@@ -4,6 +4,10 @@
 <!-- Copyright Firaxis Games 2005 -->
 <!-- -->
 <!-- Upkeep -->
+
+<!-- advc.200: This file is from original BtS (vanilla actually, BtS made
+     no changes); copied here to replace K-Mod's modified version. -->
+
 <Civ4UpkeepInfo xmlns="x-schema:CIV4GameInfoSchema.xml">
 	<UpkeepInfos>
 		<UpkeepInfo>
@@ -11,21 +15,21 @@
 			<Description>TXT_KEY_UPKEEP_LOW</Description>
 			<Strategy>TXT_KEY_UPKEEP_LOW_HELP</Strategy>
 			<iPopulationPercent>8</iPopulationPercent>
-			<iCityPercent>30</iCityPercent>
+			<iCityPercent>40</iCityPercent>
 		</UpkeepInfo>
 		<UpkeepInfo>
 			<Type>UPKEEP_MEDIUM</Type>
 			<Description>TXT_KEY_UPKEEP_MEDIUM</Description>
 			<Strategy>TXT_KEY_UPKEEP_MEDIUM_HELP</Strategy>
-			<iPopulationPercent>14</iPopulationPercent>
-			<iCityPercent>40</iCityPercent>
+			<iPopulationPercent>12</iPopulationPercent>
+			<iCityPercent>50</iCityPercent>
 		</UpkeepInfo>
 		<UpkeepInfo>
 			<Type>UPKEEP_HIGH</Type>
 			<Description>TXT_KEY_UPKEEP_HIGH</Description>
 			<Strategy>TXT_KEY_UPKEEP_HIGH_HELP</Strategy>
-			<iPopulationPercent>20</iPopulationPercent>
-			<iCityPercent>50</iCityPercent>
+			<iPopulationPercent>16</iPopulationPercent>
+			<iCityPercent>60</iCityPercent>
 		</UpkeepInfo>
 	</UpkeepInfos>
 </Civ4UpkeepInfo>

@@ -847,7 +847,8 @@
 			<LayerAnimationPath>NONE</LayerAnimationPath>
 			<PromotionPrereq>NONE</PromotionPrereq>
 			<PromotionPrereqOr1>PROMOTION_COMBAT1</PromotionPrereqOr1>
-			<PromotionPrereqOr2>PROMOTION_DRILL1</PromotionPrereqOr2>
+			<!-- advc.200: PROMOTION_DRILL1 in K-Mod; reverted -->
+			<PromotionPrereqOr2>NONE</PromotionPrereqOr2>
 			<PromotionPrereqOr3>NONE</PromotionPrereqOr3>
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
@@ -1021,7 +1022,8 @@
 			<LayerAnimationPath>NONE</LayerAnimationPath>
 			<PromotionPrereq>NONE</PromotionPrereq>
 			<PromotionPrereqOr1>PROMOTION_COMBAT2</PromotionPrereqOr1>
-			<PromotionPrereqOr2>PROMOTION_DRILL2</PromotionPrereqOr2>
+			<!-- advc.200: PROMOTION_DRILL2 in K-Mod; reverted -->
+			<PromotionPrereqOr2>NONE</PromotionPrereqOr2>
 			<PromotionPrereqOr3>NONE</PromotionPrereqOr3>
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
@@ -1106,7 +1108,8 @@
 			<PromotionPrereq>NONE</PromotionPrereq>
 			<PromotionPrereqOr1>PROMOTION_MEDIC1</PromotionPrereqOr1>
 			<PromotionPrereqOr2>PROMOTION_COMBAT3</PromotionPrereqOr2>
-			<PromotionPrereqOr3>PROMOTION_DRILL3</PromotionPrereqOr3>
+			<!-- advc.200: was PROMOTION_DRILL3 in K-Mod; reverted -->
+			<PromotionPrereqOr3>NONE</PromotionPrereqOr3>
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
@@ -1193,7 +1196,8 @@
 			<LayerAnimationPath>NONE</LayerAnimationPath>
 			<PromotionPrereq>NONE</PromotionPrereq>
 			<PromotionPrereqOr1>PROMOTION_COMBAT3</PromotionPrereqOr1>
-			<PromotionPrereqOr2>PROMOTION_DRILL3</PromotionPrereqOr2>
+			<!-- was PROMOTION_DRILL3 in K-Mod; reverted -->
+			<PromotionPrereqOr2>NONE</PromotionPrereqOr2>
 			<PromotionPrereqOr3>NONE</PromotionPrereqOr3>
 			<TechPrereq>TECH_MILITARY_SCIENCE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
@@ -1273,7 +1277,8 @@
 			<LayerAnimationPath>NONE</LayerAnimationPath>
 			<PromotionPrereq>NONE</PromotionPrereq>
 			<PromotionPrereqOr1>PROMOTION_COMBAT4</PromotionPrereqOr1>
-			<PromotionPrereqOr2>PROMOTION_DRILL4</PromotionPrereqOr2>
+			<!-- advc.200: was PROMOTION_DRILL4 in K-Mod; reverted -->
+			<PromotionPrereqOr2>NONE</PromotionPrereqOr2>
 			<PromotionPrereqOr3>NONE</PromotionPrereqOr3>
 			<TechPrereq>TECH_MILITARY_SCIENCE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
@@ -3315,7 +3320,8 @@
 			<PromotionPrereq>NONE</PromotionPrereq>
 			<PromotionPrereqOr1>PROMOTION_FLANKING1</PromotionPrereqOr1>
 			<PromotionPrereqOr2>PROMOTION_COMBAT3</PromotionPrereqOr2>
-			<PromotionPrereqOr3>PROMOTION_DRILL3</PromotionPrereqOr3>
+			<!-- was PROMOTION_DRILL3 in K-Mod; reverted -->
+			<PromotionPrereqOr3>NONE</PromotionPrereqOr3>
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>

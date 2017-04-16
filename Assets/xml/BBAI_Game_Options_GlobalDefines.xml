@@ -35,7 +35,10 @@
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 	<Define>
-		<!-- Better BTS AI: Vassals of human player build some extra military units (recommended for multiplayer only) -->
+	<!-- Better BTS AI: Vassals of human player build some extra
+	     military units (recommended for multiplayer only)
+		 dlph.3: 'Taken care of by K-mod's "prepare for war"
+		 vassal option, so unnecessary?' -->
 		<DefineName>BBAI_HUMAN_VASSAL_WAR_BUILD</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
@@ -45,9 +48,11 @@
 			1 : Defensive pacts do not cancel when a player has war declared on them
 			2 : Turns defensive pacts into alliances, so they are now also offensive pacts.  Plus pacts
 				do not cancel when war is declared.  Does not change name/description in game.
+			dlph.3: Set to 1 and 'can be signed while at war' (if 1 or 2;
+			though 2 is bugged)
 		 -->
 		<DefineName>BBAI_DEFENSIVE_PACT_BEHAVIOR</DefineName>
-		<iDefineIntVal>0</iDefineIntVal>
+		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 	<Define>
 		<!-- Better BTS AI: Allows human player to offer themselves as vassal to an AI.  The AI has been taught to value this appropriately.  (Def: 0) -->

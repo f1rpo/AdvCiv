@@ -92,13 +92,15 @@
 		<Italian>[COLOR_TECH_TEXT]%s1 commercerà %s2[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_TECH_TEXT]%s1 comerciará %s2[COLOR_REVERT]</Spanish>
 	</TEXT>
+	<!-- advc.004g: "won't trade" doesn't make clear enough that
+         the alert is about the change of mind. -->
 	<TEXT>
 		<Tag>TXT_KEY_MORECIV4LERTS_TECH_NOT_AVAIL</Tag>
-		<English>[COLOR_TECH_TEXT]%s1 won't trade %s2[COLOR_REVERT]</English>
-		<French>[COLOR_TECH_TEXT]%s1 ne veut pas échanger %s2[COLOR_REVERT]</French>
-		<German>[COLOR_TECH_TEXT]%s1 hat Technologie(n) vom Handel ausgeschlossen: %s2[COLOR_REVERT]</German>
-		<Italian>[COLOR_TECH_TEXT]%s1 non commercerà %s2[COLOR_REVERT]</Italian>
-		<Spanish>[COLOR_TECH_TEXT]%s1 no comerciará %s2[COLOR_REVERT]</Spanish>
+		<English>[COLOR_TECH_TEXT]%s1 will no longer trade %s2[COLOR_REVERT]</English>
+		<French>[COLOR_TECH_TEXT]%s1 ne veut plus échanger %s2[COLOR_REVERT]</French>
+		<German>[COLOR_TECH_TEXT]%s1 will nicht mehr tauschen: %s2[COLOR_REVERT]</German>
+		<Italian>[COLOR_TECH_TEXT]%s1 non commercer&#224; pi&#249; %s2[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_TECH_TEXT]%s1 ya no comerciar&#225; %s2[COLOR_REVERT]</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_MORECIV4LERTS_NEW_BONUS_AVAIL</Tag>

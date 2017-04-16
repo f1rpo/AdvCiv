@@ -55,9 +55,6 @@
 		<element type="DomainExtraMove" minOccurs="0" maxOccurs="*"/>
 	</ElementType>
 	<ElementType name="iCommerce" content="textOnly" dt:type="int"/>
-	<ElementType name="CommerceModifiers" content="eltOnly">
-		<element type="iCommerce" minOccurs="0" maxOccurs="*"/>
-	</ElementType>
 	<ElementType name="SpecialistExtraCommerces" content="eltOnly">
 		<element type="iCommerce" minOccurs="0" maxOccurs="*"/>
 	</ElementType>
@@ -144,7 +141,6 @@
 		<element type="iGridX"/>
 		<element type="iGridY"/>
 		<element type="DomainExtraMoves"/>
-		<element type="CommerceModifiers" minOccurs="0"/>
 		<element type="SpecialistExtraCommerces" minOccurs="0"/>
 		<element type="CommerceFlexible"/>
 		<element type="TerrainTrades"/>

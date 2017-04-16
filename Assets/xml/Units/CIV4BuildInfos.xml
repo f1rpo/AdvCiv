@@ -4,6 +4,9 @@
 <!-- Copyright Firaxis Games 2005 -->
 <!-- -->
 <!-- Build Infos -->
+<!-- dlph.9: Added FeatureStruct FALLOUT to all 12 non-route builds.
+	 (XML parser fails if I place comments inside FeatureStructs to mark these
+	 changes.) -->
 <Civ4BuildInfos xmlns="x-schema:CIV4UnitSchema.xml">
 	<BuildInfos>
 		<BuildInfo>
@@ -68,6 +71,13 @@
 					<PrereqTech>TECH_BRONZE_WORKING</PrereqTech>
 					<iTime>300</iTime>
 					<iProduction>30</iProduction>
+					<bRemove>1</bRemove>
+				</FeatureStruct>
+				<FeatureStruct>
+					<FeatureType>FEATURE_FALLOUT</FeatureType>
+					<PrereqTech>TECH_ECOLOGY</PrereqTech>
+					<iTime>600</iTime>
+					<iProduction>0</iProduction>
 					<bRemove>1</bRemove>
 				</FeatureStruct>
 			</FeatureStructs>
@@ -142,6 +152,13 @@
 					<iProduction>30</iProduction>
 					<bRemove>1</bRemove>
 				</FeatureStruct>
+				<FeatureStruct>
+					<FeatureType>FEATURE_FALLOUT</FeatureType>
+					<PrereqTech>TECH_ECOLOGY</PrereqTech>
+					<iTime>600</iTime>
+					<iProduction>0</iProduction>
+					<bRemove>1</bRemove>
+				</FeatureStruct>
 			</FeatureStructs>
 			<HotKey>KB_M</HotKey>
 			<bAltDown>0</bAltDown>
@@ -176,6 +193,13 @@
 					<iProduction>30</iProduction>
 					<bRemove>1</bRemove>
 				</FeatureStruct>
+				<FeatureStruct>
+					<FeatureType>FEATURE_FALLOUT</FeatureType>
+					<PrereqTech>TECH_ECOLOGY</PrereqTech>
+					<iTime>600</iTime>
+					<iProduction>0</iProduction>
+					<bRemove>1</bRemove>
+				</FeatureStruct>
 			</FeatureStructs>
 			<HotKey>KB_K</HotKey>
 			<bAltDown>0</bAltDown>
@@ -189,7 +213,8 @@
 			<Description>TXT_KEY_BUILD_LUMBERMILL</Description>
 			<Help/>
 			<PrereqTech>TECH_GUILDS</PrereqTech>
-			<iTime>800</iTime>
+			<!-- advc.902: was 800 -->
+			<iTime>500</iTime>
 			<iCost>0</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_LUMBERMILL</ImprovementType>
@@ -229,6 +254,13 @@
 					<iProduction>30</iProduction>
 					<bRemove>1</bRemove>
 				</FeatureStruct>
+				<FeatureStruct>
+					<FeatureType>FEATURE_FALLOUT</FeatureType>
+					<PrereqTech>TECH_ECOLOGY</PrereqTech>
+					<iTime>600</iTime>
+					<iProduction>0</iProduction>
+					<bRemove>1</bRemove>
+				</FeatureStruct>
 			</FeatureStructs>
 			<HotKey>KB_W</HotKey>
 			<bAltDown>0</bAltDown>
@@ -237,12 +269,13 @@
 			<iHotKeyPriority>0</iHotKeyPriority>
 			<Button>,Art/Interface/Buttons/Builds/BuildWindMill.dds,Art/Interface/Buttons/Actions_Builds_LeaderHeads_Specialists_Atlas.dds,5,8</Button>
 		</BuildInfo>
+		<!-- advc.902: Reduced build time from 800 to 400. -->
 		<BuildInfo>
 			<Type>BUILD_WATERMILL</Type>
 			<Description>TXT_KEY_BUILD_WATERMILL</Description>
 			<Help/>
 			<PrereqTech>TECH_MACHINERY</PrereqTech>
-			<iTime>800</iTime>
+			<iTime>400</iTime>
 			<iCost>0</iCost>
 			<bKill>0</bKill>
 			<ImprovementType>IMPROVEMENT_WATERMILL</ImprovementType>
@@ -261,6 +294,13 @@
 					<PrereqTech>TECH_BRONZE_WORKING</PrereqTech>
 					<iTime>300</iTime>
 					<iProduction>30</iProduction>
+					<bRemove>1</bRemove>
+				</FeatureStruct>
+				<FeatureStruct>
+					<FeatureType>FEATURE_FALLOUT</FeatureType>
+					<PrereqTech>TECH_ECOLOGY</PrereqTech>
+					<iTime>600</iTime>
+					<iProduction>0</iProduction>
 					<bRemove>1</bRemove>
 				</FeatureStruct>
 			</FeatureStructs>
@@ -297,6 +337,13 @@
 					<iProduction>30</iProduction>
 					<bRemove>1</bRemove>
 				</FeatureStruct>
+				<FeatureStruct>
+					<FeatureType>FEATURE_FALLOUT</FeatureType>
+					<PrereqTech>TECH_ECOLOGY</PrereqTech>
+					<iTime>600</iTime>
+					<iProduction>0</iProduction>
+					<bRemove>1</bRemove>
+				</FeatureStruct>
 			</FeatureStructs>
 			<HotKey>KB_P</HotKey>
 			<bAltDown>0</bAltDown>
@@ -329,6 +376,13 @@
 					<PrereqTech>TECH_BRONZE_WORKING</PrereqTech>
 					<iTime>300</iTime>
 					<iProduction>30</iProduction>
+					<bRemove>1</bRemove>
+				</FeatureStruct>
+				<FeatureStruct>
+					<FeatureType>FEATURE_FALLOUT</FeatureType>
+					<PrereqTech>TECH_ECOLOGY</PrereqTech>
+					<iTime>600</iTime>
+					<iProduction>0</iProduction>
 					<bRemove>1</bRemove>
 				</FeatureStruct>
 			</FeatureStructs>
@@ -365,6 +419,13 @@
 					<iProduction>30</iProduction>
 					<bRemove>1</bRemove>
 				</FeatureStruct>
+				<FeatureStruct>
+					<FeatureType>FEATURE_FALLOUT</FeatureType>
+					<PrereqTech>TECH_ECOLOGY</PrereqTech>
+					<iTime>600</iTime>
+					<iProduction>0</iProduction>
+					<bRemove>1</bRemove>
+				</FeatureStruct>
 			</FeatureStructs>
 			<HotKey>KB_P</HotKey>
 			<bAltDown>0</bAltDown>
@@ -384,7 +445,15 @@
 			<ImprovementType>IMPROVEMENT_CAMP</ImprovementType>
 			<RouteType>NONE</RouteType>
 			<EntityEvent>ENTITY_EVENT_BUILD</EntityEvent>
-			<FeatureStructs/>
+			<FeatureStructs>
+				<FeatureStruct>
+					<FeatureType>FEATURE_FALLOUT</FeatureType>
+					<PrereqTech>TECH_ECOLOGY</PrereqTech>
+					<iTime>600</iTime>
+					<iProduction>0</iProduction>
+					<bRemove>1</bRemove>
+				</FeatureStruct>
+			</FeatureStructs>
 			<HotKey>KB_H</HotKey>
 			<bAltDown>0</bAltDown>
 			<bShiftDown>0</bShiftDown>
@@ -416,6 +485,13 @@
 					<PrereqTech>TECH_BRONZE_WORKING</PrereqTech>
 					<iTime>300</iTime>
 					<iProduction>30</iProduction>
+					<bRemove>1</bRemove>
+				</FeatureStruct>
+				<FeatureStruct>
+					<FeatureType>FEATURE_FALLOUT</FeatureType>
+					<PrereqTech>TECH_ECOLOGY</PrereqTech>
+					<iTime>600</iTime>
+					<iProduction>0</iProduction>
 					<bRemove>1</bRemove>
 				</FeatureStruct>
 			</FeatureStructs>
@@ -471,6 +547,13 @@
 					<iProduction>30</iProduction>
 					<bRemove>1</bRemove>
 				</FeatureStruct>
+				<FeatureStruct>
+					<FeatureType>FEATURE_FALLOUT</FeatureType>
+					<PrereqTech>TECH_ECOLOGY</PrereqTech>
+					<iTime>600</iTime>
+					<iProduction>0</iProduction>
+					<bRemove>1</bRemove>
+				</FeatureStruct>
 			</FeatureStructs>
 			<HotKey>KB_W</HotKey>
 			<bAltDown>0</bAltDown>
@@ -505,6 +588,13 @@
 					<iProduction>30</iProduction>
 					<bRemove>1</bRemove>
 				</FeatureStruct>
+				<FeatureStruct>
+					<FeatureType>FEATURE_FALLOUT</FeatureType>
+					<PrereqTech>TECH_ECOLOGY</PrereqTech>
+					<iTime>600</iTime>
+					<iProduction>0</iProduction>
+					<bRemove>1</bRemove>
+				</FeatureStruct>
 			</FeatureStructs>
 			<HotKey>KB_T</HotKey>
 			<bAltDown>0</bAltDown>
@@ -524,7 +614,15 @@
 			<ImprovementType>IMPROVEMENT_FORT</ImprovementType>
 			<RouteType>NONE</RouteType>
 			<EntityEvent>ENTITY_EVENT_BUILD</EntityEvent>
-			<FeatureStructs/>
+			<FeatureStructs>
+				<FeatureStruct>
+					<FeatureType>FEATURE_FALLOUT</FeatureType>
+					<PrereqTech>TECH_ECOLOGY</PrereqTech>
+					<iTime>600</iTime>
+					<iProduction>0</iProduction>
+					<bRemove>1</bRemove>
+				</FeatureStruct>
+			</FeatureStructs>
 			<HotKey>KB_F</HotKey>
 			<bAltDown>0</bAltDown>
 			<bShiftDown>0</bShiftDown>
@@ -617,7 +715,8 @@
 			<Type>BUILD_FOREST_PRESERVE</Type>
 			<Description>TXT_KEY_BUILD_FOREST_PRESERVE</Description>
 			<Help/>
-			<PrereqTech>TECH_SCIENTIFIC_METHOD</PrereqTech>
+			<!-- advc.901: was SciMethod -->
+			<PrereqTech>TECH_BIOLOGY</PrereqTech>
 			<iTime>800</iTime>
 			<iCost>0</iCost>
 			<bKill>0</bKill>

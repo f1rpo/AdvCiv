@@ -382,6 +382,8 @@
 	<ElementType name="AIFreeTechs" content="eltOnly">
 		<element type="FreeTech" minOccurs="0" maxOccurs="*"/>
 	</ElementType>
+	<!-- advc.250a -->
+	<ElementType name="iDifficulty" content="textOnly" dt:type="int"/>
 	<ElementType name="HandicapInfo" content="eltOnly">
 		<element type="Type"/>
 		<element type="Description"/>
@@ -446,6 +448,8 @@
 		<element type="Goodies" maxOccurs="*"/>
 		<element type="FreeTechs" maxOccurs="*"/>
 		<element type="AIFreeTechs" maxOccurs="*"/>
+		<!-- advc.250a -->
+		<element type="iDifficulty"/>
 	</ElementType>
 	<ElementType name="HandicapInfos" content="eltOnly">
 		<element type="HandicapInfo" maxOccurs="*"/>

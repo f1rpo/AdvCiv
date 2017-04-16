@@ -660,6 +660,15 @@
 		<Italian>Directory dei Settings:</Italian>
 		<Spanish>Directorio Opciones:</Spanish>
 	</TEXT>
+	<!-- advc.009 -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPTLABEL_INFO_DIRECTORY</Tag>
+		<English>Info Directory:</English>
+		<French>Répertoire d'information:</French>
+		<German>Dokumentation:</German>
+		<Italian>Directory di informazioni:</Italian>
+		<Spanish>Directorio de información:</Spanish>
+	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPTLABEL_ASSET_SEARCH_PATHS</Tag>
 		<English>Asset Search Paths:</English>

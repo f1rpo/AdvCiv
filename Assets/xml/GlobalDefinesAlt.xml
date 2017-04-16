@@ -5,9 +5,12 @@
 <!-- -->
 <!-- Global Defines -->
 <Civ4Defines xmlns="x-schema:CIV4GlobalDefinesSchema.xml">
+	<!-- advc.009: Probably doesn't matter. Is 302 in BtS, 303 in K-Mod,
+		 I guess b/c they're not savegame-compatible. Neither are AdvCiv
+		 and K-Mod. Picking 14223 as a unique id (that's A-D-V-C in numbers). -->
 	<Define>
 		<DefineName>SAVE_VERSION</DefineName>
-		<iDefineIntVal>303</iDefineIntVal>
+		<iDefineIntVal>14223</iDefineIntVal>
 	</Define>
 	<Define>
 		<DefineName>INITIAL_GOLD_PER_UNIT</DefineName>
@@ -84,14 +87,14 @@
 		<DefineName>GLOBAL_WARMING_RESISTANCE</DefineName>
 		<iDefineIntVal>9</iDefineIntVal>
 	</Define>
+	<Define>
+		<DefineName>GLOBAL_WARMING_INDEX_PER_CHANCE</DefineName>
+		<iDefineIntVal>500</iDefineIntVal>
+	</Define>
 	<!-- global warming index above the threshold is decreased by a percentage given by the restoration rate -->
 	<Define>
 		<DefineName>GLOBAL_WARMING_RESTORATION_RATE</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>GLOBAL_WARMING_INDEX_PER_CHANCE</DefineName>
-		<iDefineIntVal>500</iDefineIntVal>
 	</Define>
 	<Define>
 		<DefineName>GLOBAL_WARMING_BASE_ANGER_PERCENT</DefineName>
@@ -153,7 +156,7 @@
 	<Define>
 		<DefineName>RELIGION_INFLUENCE_TIME_SCALE</DefineName>
 		<iDefineIntVal>50</iDefineIntVal>
-	</Define>
+ 	</Define>
 	<Define>
 		<DefineName>RELIGION_INFLUENCE_SHRINE_WEIGHT</DefineName>
 		<iDefineIntVal>20</iDefineIntVal>

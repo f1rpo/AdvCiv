@@ -22,7 +22,8 @@
 			<bNoAnimals>0</bNoAnimals>
 			<bNoBarbUnits>0</bNoBarbUnits>
 			<bNoBarbCities>0</bNoBarbCities>
-			<iAdvancedStartPoints>600</iAdvancedStartPoints>
+			<!-- advc.250c: was 600; increased because of increased costs -->
+			<iAdvancedStartPoints>800</iAdvancedStartPoints>
 			<iStartingUnitMultiplier>1</iStartingUnitMultiplier>
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
 			<iStartingWorkerUnits>0</iStartingWorkerUnits>
@@ -77,7 +78,8 @@
 			<bNoAnimals>1</bNoAnimals>
 			<bNoBarbUnits>0</bNoBarbUnits>
 			<bNoBarbCities>0</bNoBarbCities>
-			<iAdvancedStartPoints>1200</iAdvancedStartPoints>
+			<!-- advc.250c: was 1200 -->
+			<iAdvancedStartPoints>1600</iAdvancedStartPoints>
 			<iStartingUnitMultiplier>1</iStartingUnitMultiplier>
 			<iStartingDefenseUnits>1</iStartingDefenseUnits>
 			<iStartingWorkerUnits>1</iStartingWorkerUnits>
@@ -91,7 +93,8 @@
 			<iCreatePercent>100</iCreatePercent>
 			<iResearchPercent>90</iResearchPercent>
 			<!-- BBAI start: effectively modify cost for all techs from this era.  Default: 0 -->
-			<iTechCostModifier>0</iTechCostModifier>
+			<!-- advc.910: was 0 -->
+			<iTechCostModifier>-2</iTechCostModifier>
 			<!-- BBAI end -->
 			<iBuildPercent>100</iBuildPercent>
 			<iImprovementPercent>100</iImprovementPercent>
@@ -147,7 +150,8 @@
 			<bNoAnimals>1</bNoAnimals>
 			<bNoBarbUnits>0</bNoBarbUnits>
 			<bNoBarbCities>0</bNoBarbCities>
-			<iAdvancedStartPoints>1800</iAdvancedStartPoints>
+			<!-- advc.250c: was 1800 -->
+			<iAdvancedStartPoints>2400</iAdvancedStartPoints>
 			<iStartingUnitMultiplier>2</iStartingUnitMultiplier>
 			<iStartingDefenseUnits>2</iStartingDefenseUnits>
 			<iStartingWorkerUnits>1</iStartingWorkerUnits>
@@ -161,7 +165,8 @@
 			<iCreatePercent>100</iCreatePercent>
 			<iResearchPercent>80</iResearchPercent>
 			<!-- BBAI start: effectively modify cost for all techs from this era.  Default: 4 -->
-			<iTechCostModifier>6</iTechCostModifier>
+			<!-- advc.910: was 6 in K-Mod -->
+			<iTechCostModifier>3</iTechCostModifier>
 			<!-- BBAI end -->
 			<iBuildPercent>100</iBuildPercent>
 			<iImprovementPercent>100</iImprovementPercent>
@@ -216,9 +221,11 @@
 			<Strategy>TXT_KEY_ERA_RENAISSANCE_STRATEGY</Strategy>
 			<bNoGoodies>1</bNoGoodies>
 			<bNoAnimals>1</bNoAnimals>
-			<bNoBarbUnits>1</bNoBarbUnits>
-			<bNoBarbCities>0</bNoBarbCities>
-			<iAdvancedStartPoints>2700</iAdvancedStartPoints>
+			<!-- advc.307: Allow units, disallow cities. -->
+			<bNoBarbUnits>0</bNoBarbUnits>
+			<bNoBarbCities>1</bNoBarbCities>
+			<!-- advc.250c: was 2700 -->
+			<iAdvancedStartPoints>3600</iAdvancedStartPoints>
 			<iStartingUnitMultiplier>2</iStartingUnitMultiplier>
 			<iStartingDefenseUnits>2</iStartingDefenseUnits>
 			<iStartingWorkerUnits>1</iStartingWorkerUnits>
@@ -232,7 +239,8 @@
 			<iCreatePercent>90</iCreatePercent>
 			<iResearchPercent>70</iResearchPercent>
 			<!-- BBAI start: effectively modify cost for all techs from this era.  Default: 9 -->
-			<iTechCostModifier>12</iTechCostModifier>
+			<!-- advc.910: was 12 in K-Mod -->
+			<iTechCostModifier>14</iTechCostModifier>
 			<!-- BBAI end -->
 			<iBuildPercent>90</iBuildPercent>
 			<iImprovementPercent>90</iImprovementPercent>
@@ -286,9 +294,11 @@
 			<Strategy>TXT_KEY_ERA_INDUSTRIAL_STRATEGY</Strategy>
 			<bNoGoodies>1</bNoGoodies>
 			<bNoAnimals>1</bNoAnimals>
-			<bNoBarbUnits>1</bNoBarbUnits>
-			<bNoBarbCities>0</bNoBarbCities>
-			<iAdvancedStartPoints>4000</iAdvancedStartPoints>
+			<!-- advc.307: Allow units, disallow cities. -->
+			<bNoBarbUnits>0</bNoBarbUnits>
+			<bNoBarbCities>1</bNoBarbCities>
+			<!-- advc.250c: was 4000 -->
+			<iAdvancedStartPoints>5500</iAdvancedStartPoints>
 			<iStartingUnitMultiplier>3</iStartingUnitMultiplier>
 			<iStartingDefenseUnits>3</iStartingDefenseUnits>
 			<iStartingWorkerUnits>2</iStartingWorkerUnits>
@@ -302,7 +312,8 @@
 			<iCreatePercent>80</iCreatePercent>
 			<iResearchPercent>60</iResearchPercent>
 			<!-- BBAI start: effectively modify cost for all techs from this era.  Default: 14 -->
-			<iTechCostModifier>16</iTechCostModifier>
+			<!-- advc.910: was 16 in K-Mod -->
+			<iTechCostModifier>25</iTechCostModifier>
 			<!-- BBAI end -->
 			<iBuildPercent>80</iBuildPercent>
 			<iImprovementPercent>80</iImprovementPercent>
@@ -353,9 +364,11 @@
 			<Strategy>TXT_KEY_ERA_MODERN_STRATEGY</Strategy>
 			<bNoGoodies>1</bNoGoodies>
 			<bNoAnimals>1</bNoAnimals>
-			<bNoBarbUnits>1</bNoBarbUnits>
+			<!-- advc.307: Allow units. -->
+			<bNoBarbUnits>0</bNoBarbUnits>
 			<bNoBarbCities>1</bNoBarbCities>
-			<iAdvancedStartPoints>5500</iAdvancedStartPoints>
+			<!-- advc.250c: was 5500 -->
+			<iAdvancedStartPoints>7500</iAdvancedStartPoints>
 			<iStartingUnitMultiplier>3</iStartingUnitMultiplier>
 			<iStartingDefenseUnits>3</iStartingDefenseUnits>
 			<iStartingWorkerUnits>2</iStartingWorkerUnits>
@@ -369,7 +382,8 @@
 			<iCreatePercent>70</iCreatePercent>
 			<iResearchPercent>50</iResearchPercent>
 			<!-- BBAI start: effectively modify cost for all techs from this era.  Default: 18 -->
-			<iTechCostModifier>20</iTechCostModifier>
+			<!-- advc.910: was 20 in K-Mod -->
+			<iTechCostModifier>33</iTechCostModifier>
 			<!-- BBAI end -->
 			<iBuildPercent>70</iBuildPercent>
 			<iImprovementPercent>70</iImprovementPercent>
@@ -418,9 +432,11 @@
 			<Strategy>TXT_KEY_ERA_FUTURE_STRATEGY</Strategy>
 			<bNoGoodies>1</bNoGoodies>
 			<bNoAnimals>1</bNoAnimals>
-			<bNoBarbUnits>1</bNoBarbUnits>
+			<!-- advc.307: Allow units. -->
+			<bNoBarbUnits>0</bNoBarbUnits>
 			<bNoBarbCities>1</bNoBarbCities>
-			<iAdvancedStartPoints>7000</iAdvancedStartPoints>
+			<!-- advc.250c: was 7000 -->
+			<iAdvancedStartPoints>9500</iAdvancedStartPoints>
 			<iStartingUnitMultiplier>3</iStartingUnitMultiplier>
 			<iStartingDefenseUnits>3</iStartingDefenseUnits>
 			<iStartingWorkerUnits>3</iStartingWorkerUnits>
@@ -434,7 +450,8 @@
 			<iCreatePercent>60</iCreatePercent>
 			<iResearchPercent>40</iResearchPercent>
 			<!-- BBAI start: effectively modify cost for all techs from this era.  Default: 18 -->
-			<iTechCostModifier>18</iTechCostModifier>
+			<!-- advc.910: was 18 in K-Mod -->
+			<iTechCostModifier>30</iTechCostModifier>
 			<!-- BBAI end -->
 			<iBuildPercent>60</iBuildPercent>
 			<iImprovementPercent>60</iImprovementPercent>

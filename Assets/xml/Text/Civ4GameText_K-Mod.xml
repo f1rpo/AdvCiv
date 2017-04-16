@@ -25,16 +25,6 @@
 		<Spanish>[SPACE]en la casilla</Spanish>
 	</TEXT>
 
-	<!-- Percentage modifiers from "Civilization" (eg. from tech) -->
-	<TEXT>
-		<Tag>TXT_KEY_MISC_HELP_MODIFIER_FROM_CIV</Tag>
-		<English>[ICON_BULLET]%D1%%%F2 from Civilization</English>
-		<French>[ICON_BULLET]%D1%%%F2 (civilisation)</French>
-		<German>[ICON_BULLET]%D1%%%F2 durch Zivilisation</German>
-		<Italian>[ICON_BULLET]%D1%%%F2 per la civilt&#224;</Italian>
-		<Spanish>[ICON_BULLET]%D1%%%F2 por civilizaci&#243;n</Spanish>
-	</TEXT>
-
 	<TEXT>
 		<Tag>TXT_KEY_PER</Tag>
 		<English>[SPACE]per[SPACE]</English>
@@ -514,13 +504,14 @@
 		<Spanish>[ICON_BULLET]%D1_Mod%% [ICON_UNHEALTHY] por poblaci&#243;n</Spanish>		
 	</TEXT>
 
-	<!-- penalty promotion (for barbarian ships) -->
+	<!-- penalty promotion (for barbarian ships)
+	     advc.002c: Added German, French, Italian. -->
 	<TEXT>
 		<Tag>TXT_KEY_PROMOTION_DISORGANIZED</Tag>
 		<English>Disorganized</English>
-		<French>Disorganized</French>
-		<German>Unorganisiert</German>
-		<Italian>Disorganized</Italian>
+		<French>Inorganis&#233;</French>
+		<German>Desorganisiert</German>
+		<Italian>disorganizzato</Italian>
 		<Spanish>Desorganizado</Spanish>
 	</TEXT>
 
