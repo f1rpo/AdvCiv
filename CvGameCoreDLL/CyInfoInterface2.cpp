@@ -158,6 +158,8 @@ void CyInfoPythonInterface2()
 		.def("getAIPerEraModifier", &CvHandicapInfo::getAIPerEraModifier, "int ()")
 		.def("getAIAdvancedStartPercent", &CvHandicapInfo::getAIAdvancedStartPercent, "int ()")
 		.def("getNumGoodies", &CvHandicapInfo::getNumGoodies, "int ()")
+		// advc.250a:
+		.def("getDifficulty", &CvHandicapInfo::getDifficulty, "int ()")
 
 		// Arrays
 

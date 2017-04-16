@@ -1655,17 +1655,31 @@ bool CvDLLButtonPopup::launchChangeCivicsPopup(CvPopup* pPopup, CvPopupInfo &inf
 			}
 			szBuffer += gDLL->getText("TXT_KEY_POPUP_START_REVOLUTION");
 			gDLL->getInterfaceIFace()->popupSetBodyString(pPopup, szBuffer);
-
-			szBuffer = gDLL->getText("TXT_KEY_POPUP_YES_START_REVOLUTION");
-			int iAnarchyLength = GET_PLAYER(GC.getGameINLINE().getActivePlayer()).getCivicAnarchyLength(paeNewCivics);
-			if (iAnarchyLength > 0)
-			{
-				szBuffer += gDLL->getText("TXT_KEY_POPUP_TURNS_OF_ANARCHY", iAnarchyLength);
-			}
-			gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer, NULL, 0, WIDGET_GENERAL);
+			// <advc.004o>
+			if(GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).
+					/*  "> 100" would leave the get-started button alone on Epic and
+						Marathon. That's what I meant to do initially, but now I
+						I think the button shouldn't be there in any case, so, 1000
+						is just an arbitrary high number. */
+					getAnarchyPercent() > 1000) { // </advc.004o>
+				szBuffer = gDLL->getText("TXT_KEY_POPUP_YES_START_REVOLUTION");
+				int iAnarchyLength = GET_PLAYER(GC.getGameINLINE().getActivePlayer()).getCivicAnarchyLength(paeNewCivics);
+				if (iAnarchyLength > 0)
+				{
+					szBuffer += gDLL->getText("TXT_KEY_POPUP_TURNS_OF_ANARCHY", iAnarchyLength);
+				}
+				gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer, NULL, 0, WIDGET_GENERAL);
+			} // advc.004o
 		}
 		else
 		{
+			/*  <advc.001> The EXE tries to show the first-revolution pop-up twice
+				when playing Advanced Start in a later era; perhaps also with
+				other settings. */
+			if(GC.getGame().getGameTurn() != GC.getGame().getStartTurn()) {
+				SAFE_DELETE_ARRAY(paeNewCivics)
+				return false;
+			} // </advc.001>
 			gDLL->getInterfaceIFace()->popupSetBodyString(pPopup, gDLL->getText("TXT_KEY_POPUP_FIRST_REVOLUTION"));
 		}
 
@@ -1675,7 +1689,7 @@ bool CvDLLButtonPopup::launchChangeCivicsPopup(CvPopup* pPopup, CvPopupInfo &inf
 		gDLL->getInterfaceIFace()->popupLaunch(pPopup, false, POPUPSTATE_MINIMIZED);
 	}
 
-	SAFE_DELETE_ARRAY(paeNewCivics);
+	SAFE_DELETE_ARRAY(paeNewCivics); // kmodx: Memory leak
 
 	return (bValid);
 }
@@ -2079,7 +2093,9 @@ bool CvDLLButtonPopup::launchMainMenuPopup(CvPopup* pPopup, CvPopupInfo &info)
 		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_RETIRE").c_str(), NULL, MM_RETIRE, WIDGET_GENERAL, MM_RETIRE, 0, true, POPUP_LAYOUT_STRETCH, DLL_FONT_CENTER_JUSTIFY);
 	}
 
-	if ((GC.getGameINLINE().getElapsedGameTurns() == 0) && !(GC.getGameINLINE().isGameMultiPlayer()) && !(GC.getInitCore().getWBMapScript()))
+	if ((GC.getGameINLINE().getElapsedGameTurns() // advc.004j: was // == 0
+			<= 3
+		) && !(GC.getGameINLINE().isGameMultiPlayer()) && !(GC.getInitCore().getWBMapScript()))
 	{
 		// Don't allow if there has already been diplomacy
 		bool bShow = true;
@@ -2094,7 +2110,12 @@ bool CvDLLButtonPopup::launchMainMenuPopup(CvPopup* pPopup, CvPopupInfo &info)
 			}
 		}
 
-		if (bShow)
+		/* <advc.004j> Commented out.
+		   After ending the initial turn, some script data seems to
+		   be set by the EXE. Not sure what data that is and whether
+		   CvGame::regenerateMap can handle it; experimental for now.
+		   Fwiw, I'm resetting all script data in regenerateMap. */
+		/*if (bShow)
 		{
 			if (!GC.getGameINLINE().getScriptData().empty())
 			{
@@ -2113,7 +2134,7 @@ bool CvDLLButtonPopup::launchMainMenuPopup(CvPopup* pPopup, CvPopupInfo &info)
 					break;
 				}
 			}
-		}
+		}*/ // </advc.004j>
 
 		if (bShow)
 		{
@@ -2653,9 +2674,9 @@ bool CvDLLButtonPopup::launchLaunchPopup(CvPopup* pPopup, CvPopupInfo &info)
 	//gDLL->getInterfaceIFace()->popupSetBodyString(pPopup, gDLL->getText("TXT_KEY_ESTIMATED_VICTORY_DATE", szDate.GetCString()));
 	// K-Mod. Include number of turns, and success probability.
 	gDLL->getInterfaceIFace()->popupSetBodyString(pPopup,
-		gDLL->getText("TXT_KEY_SPACE_SHIP_SCREEN_TRAVEL_TIME_LABEL", kTeam.getVictoryDelay(eVictory)) + NEWLINE +
-		gDLL->getText("TXT_KEY_ESTIMATED_VICTORY_DATE", szDate.GetCString()) + NEWLINE +
-		gDLL->getText("TXT_KEY_SPACESHIP_CHANCE_OF_SUCCESS", kTeam.getLaunchSuccessRate(eVictory)));
+	gDLL->getText("TXT_KEY_SPACE_SHIP_SCREEN_TRAVEL_TIME_LABEL", kTeam.getVictoryDelay(eVictory)) + NEWLINE +
+	gDLL->getText("TXT_KEY_ESTIMATED_VICTORY_DATE", szDate.GetCString()) + NEWLINE +
+	gDLL->getText("TXT_KEY_SPACESHIP_CHANCE_OF_SUCCESS", kTeam.getLaunchSuccessRate(eVictory)));
 	// K-Mod end
 
 	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_YES"), NULL, 0, WIDGET_GENERAL);

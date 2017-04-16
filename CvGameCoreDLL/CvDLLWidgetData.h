@@ -211,6 +211,15 @@ public:
 ** K-Mod end
 */
 
+	// <advc.004a> Additional help text:
+	 // Discover ("bulb") button
+	CvWString getDiscoverPathText(UnitTypes ut, PlayerTypes pt) const;
+	// </advc.004a> <advc.004b> Found button
+	CvWString getFoundCostText(CvPlot* p, PlayerTypes owner) const;
+	CvWString getHomePlotYieldText(CvPlot* p, PlayerTypes owner) const;
+	CvWString getNetFeatureHealthText(CvPlot* cityPlot, PlayerTypes owner) const;
+	// </advc.004b>
+
 protected:
 	
 	static CvDLLWidgetData* m_pInst;

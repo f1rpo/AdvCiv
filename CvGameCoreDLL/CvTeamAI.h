@@ -7,10 +7,23 @@
 
 #include "CvTeam.h"
 
+// advc.104
+#include "WarAndPeaceAI.h"
+
+
 class CvTeamAI : public CvTeam
 {
 
-public:
+private:
+
+	// advc.003: Chunk of code that occured twice in doWar.
+	void AI_abandonWarPlanIfTimedOut(int baseAbandonTime, TeamTypes t,
+			bool isLimited, int iEnemyPowerPercent);
+	bool isPursuingCircumnav() const; // advc.136a
+
+public: // <advc.104>
+	WarAndPeaceAI::Team& warAndPeaceAI(); 
+	WarAndPeaceAI::Team const& warAndPeaceAI() const; // </advc.104>
 
 	CvTeamAI();
 	virtual ~CvTeamAI();
@@ -39,7 +52,7 @@ public:
 
 	void AI_makeAssignWorkDirty();
 
-	void AI_updateAreaStragies(bool bTargets = true);
+	void AI_updateAreaStrategies(bool bTargets = true); // advc.003: "Stragies"->"Strategies"
 	void AI_updateAreaTargets();
 
 	int AI_countFinancialTrouble() const;
@@ -73,7 +86,8 @@ public:
 	bool AI_isLandTarget(TeamTypes eTeam) const;
 	bool AI_isAllyLandTarget(TeamTypes eTeam) const;
 	bool AI_shareWar(TeamTypes eTeam) const;
-
+	 // advc.003, advc.130e:
+	void AI_updateAttitudeCache(TeamTypes eTeam, bool updateWorstEnemy = true);
 	AttitudeTypes AI_getAttitude(TeamTypes eTeam, bool bForced = true) const;
 	int AI_getAttitudeVal(TeamTypes eTeam, bool bForced = true) const;
 	int AI_getMemoryCount(TeamTypes eTeam, MemoryTypes eMemory) const;
@@ -92,7 +106,10 @@ public:
 
 	int CvTeamAI::AI_knownTechValModifier(TechTypes eTech) const; // K-Mod
 
-	int AI_techTradeVal(TechTypes eTech, TeamTypes eTeam) const;
+	int AI_techTradeVal(TechTypes eTech, TeamTypes eTeam
+		, bool ignoreDiscount = false // advc.550a
+		, bool peaceDeal = false // advc.140h
+		) const;
 	DenialTypes AI_techTrade(TechTypes eTech, TeamTypes eTeam) const;
 
 	int AI_mapTradeVal(TeamTypes eTeam) const;
@@ -102,7 +119,8 @@ public:
 	DenialTypes AI_vassalTrade(TeamTypes eTeam) const;
 
 	int AI_surrenderTradeVal(TeamTypes eTeam) const;
-	DenialTypes AI_surrenderTrade(TeamTypes eTeam, int iPowerMultiplier = 100) const;
+	DenialTypes AI_surrenderTrade(TeamTypes eTeam, int iPowerMultiplier = 100,
+			bool checkAccept = true) const; // advc.104o
 
 	// bbai
 	int AI_countMembersWithStrategy(int iStrategy) const; // K-Mod
@@ -130,6 +148,7 @@ public:
 
 	int AI_declareWarTradeVal(TeamTypes eWarTeam, TeamTypes eTeam) const;
 	DenialTypes AI_declareWarTrade(TeamTypes eWarTeam, TeamTypes eTeam, bool bConsiderPower = true) const;
+	int roundTradeVal(int val) const; //advc.104k
 
 	int AI_openBordersTradeVal(TeamTypes eTeam) const;
 	DenialTypes AI_openBordersTrade(TeamTypes eTeam) const;
@@ -140,8 +159,14 @@ public:
 	DenialTypes AI_permanentAllianceTrade(TeamTypes eTeam) const;
 
 	TeamTypes AI_getWorstEnemy() const;
-	void AI_updateWorstEnemy();
-
+	// advc.130p: new param
+	void AI_updateWorstEnemy(bool updateRivalTrade = true);
+	/*  advc.130k: Random number to add or subtract from state counters
+		(instead of just incrementing or decrementing). Non-negative result,
+		caller will have to multiply by -1 when decaying a counter.
+		Result is capped at 'cap' (upper bound). -1: None.
+		Public visibility b/c CvPlayerAI needs it too. */
+	int randomCounterChange(int cap = -1) const;
 	int AI_getWarPlanStateCounter(TeamTypes eIndex) const;
 	void AI_setWarPlanStateCounter(TeamTypes eIndex, int iNewValue);
 	void AI_changeWarPlanStateCounter(TeamTypes eIndex, int iChange);
@@ -173,17 +198,39 @@ public:
 	int AI_getWarSuccess(TeamTypes eIndex) const;
 	void AI_setWarSuccess(TeamTypes eIndex, int iNewValue);
 	void AI_changeWarSuccess(TeamTypes eIndex, int iChange);
+	// <advc.130m>
+	/*  This team is an ally of agentId, and agentId has inflicted a loss on the
+		shared enemy, or suffered a loss from the shared enemy. */
+	void reportSharedWarSuccess(int intensity, TeamTypes agentId, TeamTypes enemyId,
+			// Don't check if this team needs the assistance
+			bool ignoreDistress = false);
+	/*  The war success of our war ally allyId against a shared enemy,
+		plus the war success of shared enemies against allyId.
+		This is quite different from AI_getWarSuccess, which counts our success
+		against eIndex. Also uses a different scale. */
+	int getSharedWarSuccess(TeamTypes allyId) const;
+	void setSharedWarSuccess(TeamTypes allyId, int sws); // </advc.130m>
+	/*  <advc.130n> Game turn on which rel was first encountered by this team;
+		-1 if never. */
+	int getReligionKnownSince(ReligionTypes rel) const;
+	/*  Report encounter with a religion; function will check if its the first
+		encounter. */
+	void reportNewReligion(ReligionTypes rel); // </advc.130n>
 
 	int AI_getEnemyPeacetimeTradeValue(TeamTypes eIndex) const;
 	void AI_setEnemyPeacetimeTradeValue(TeamTypes eIndex, int iNewValue);
 	void AI_changeEnemyPeacetimeTradeValue(TeamTypes eIndex, int iChange);
-
+	// <advc.130p>
+	double getDiploDecay() const;
+	double recentlyMetMultiplier(TeamTypes tId) const;
+	// </advc.130p>
 	int AI_getEnemyPeacetimeGrantValue(TeamTypes eIndex) const;
 	void AI_setEnemyPeacetimeGrantValue(TeamTypes eIndex, int iNewValue);
 	void AI_changeEnemyPeacetimeGrantValue(TeamTypes eIndex, int iChange);
 
 	WarPlanTypes AI_getWarPlan(TeamTypes eIndex) const;
 	bool AI_isChosenWar(TeamTypes eIndex) const;
+	bool isAnyChosenWar() const; // advc.105
 	bool AI_isSneakAttackPreparing(TeamTypes eIndex) const;
 	bool AI_isSneakAttackReady(TeamTypes eIndex) const;
 	bool AI_isSneakAttackReady() const; // K-Mod (any team)
@@ -203,6 +250,19 @@ public:
 	
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);
+	/*  advc.012: AI now has to guess in some cases whether it can benefit from
+		feature defense. */
+	int AI_plotDefense(CvPlot const& p, bool bIgnoreBuilding = false) const;
+	void forgiveEnemy(TeamTypes enemyId, bool capitulated, bool freed); // advc.130y
+	void thankLiberator(TeamTypes libTeam); // advc.130y
+	/*  <advc.115b>
+		advc.104: NO_VOTESOURCE if none built yet,
+		AP if AP built but not UN; otherwise UN */
+	VoteSourceTypes getLatestVictoryVoteSource() const;
+	bool isAnyCloseToReligiousVictory() const; // </advc.115b>
+	/*  advc.104o: Previously a magic number in CvPlayer::getTradeDenial; needed
+		in additional places now. */
+	static int const vassalPowerModSurrender = 140;
 
 	// K-Mod. Strength Memory - a very basic and rough reminder-map of how strong the enemy presence is on each plot.
 public:
@@ -229,10 +289,14 @@ protected:
 	int* m_aiDefensivePactCounter;
 	int* m_aiShareWarCounter;
 	int* m_aiWarSuccess;
+	int* sharedWarSuccess; // advc.130m
+	std::map<ReligionTypes,int> religionKnownSince; // advc.130n
 	int* m_aiEnemyPeacetimeTradeValue;
 	int* m_aiEnemyPeacetimeGrantValue;
 
 	WarPlanTypes* m_aeWarPlan;
+
+	WarAndPeaceAI::Team wpai; // advc.104
 
 	int AI_noTechTradeThreshold() const;
 	int AI_techTradeKnownPercent() const;
@@ -245,6 +309,9 @@ protected:
 	int AI_dogpileWarRand() const;
 	int AI_makePeaceRand() const;
 	int AI_noWarAttitudeProb(AttitudeTypes eAttitude) const;
+	int AI_getOpenBordersAttitudeDivisor() const; // advc.130i
+	// advc.130p: 0 or less if tId isn't an enemy at all
+	int enemyValue(TeamTypes tId) const;
 
 	void AI_doCounter();
 	void AI_doWar();
@@ -261,5 +328,11 @@ protected:
 #else
 #define GET_TEAM CvTeamAI::getTeamNonInl
 #endif
+
+/* <advc.003> To facilitate access to and usage of team-level functions
+   when given 'PlayerTypes' values. */
+#define TEAMID(civId) GET_PLAYER(civId).getTeam()
+#define TEAMREF(civId) GET_TEAM(TEAMID(civId))
+// </advc.003>
 
 #endif

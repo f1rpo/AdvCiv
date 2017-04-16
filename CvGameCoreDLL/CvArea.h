@@ -40,6 +40,16 @@ public:
 	int getNumUnownedTiles() const;																						// Exposed to Python
 	void changeNumOwnedTiles(int iChange);
 
+	// <advc.300>
+	std::pair<int,int> countOwnedUnownedHabitableTiles(
+			bool ignoreBarb = false) const;
+	int countCivCities() const;
+	int countCivs(bool subtractOCC = false) const; // with at least 1 city
+	bool hasAnyAreaPlayerBonus(BonusTypes bId) const;
+	int numBarbCitiesEver() const;
+	void barbCityCreated();
+	// </advc.300>
+
 	int getNumRiverEdges() const;																							// Exposed to Python
 	void changeNumRiverEdges(int iChange);
 
@@ -74,7 +84,10 @@ public:
 
 	int getBuildingHappiness(PlayerTypes eIndex) const;												// Exposed to Python
 	void changeBuildingHappiness(PlayerTypes eIndex, int iChange);
-
+	// <advc.310>
+	int getContinentalTradeRoutes(PlayerTypes eIndex) const;												// Exposed to Python
+	void changeContinentalTradeRoutes(PlayerTypes eIndex, int iChange);
+	// </advc.310>
 	int getFreeSpecialist(PlayerTypes eIndex) const;													// Exposed to Python
 	void changeFreeSpecialist(PlayerTypes eIndex, int iChange);
 
@@ -128,6 +141,7 @@ protected:
 	int m_iNumCities;
 	int m_iTotalPopulation;
 	int m_iNumStartingPlots;
+	int nBarbCitiesEver; // advc.300
 
 	bool m_bWater;
 
@@ -138,6 +152,7 @@ protected:
 	int* m_aiBuildingGoodHealth;
 	int* m_aiBuildingBadHealth;
 	int* m_aiBuildingHappiness;
+	int* m_aiContinentalTradeRoutes; // advc.310
 	int* m_aiFreeSpecialist;
 	int* m_aiPower;
 	int* m_aiBestFoundValue;

@@ -696,6 +696,14 @@ public:
 	DllExport void setDefineSTRING( const char * szName, const char * szValue );
 
 	inline int getEXTRA_YIELD() { return m_iEXTRA_YIELD; } // K-Mod (why aren't all these functions inline?)
+	// advc.130s: Cached for performance reasons
+	inline int isJOIN_WAR_DIPLO_BONUS() { return m_bJOIN_WAR_DIPLO_BONUS; }
+	// advc.099:
+	inline int getTILE_CULTURE_DECAY_PER_MILL() { return m_iTILE_CULTURE_DECAY_PER_MILL; }
+	// advc.101:
+	inline int getNUM_WARNING_REVOLTS() { return m_iNUM_WARNING_REVOLTS; }
+	// advc.140:
+	inline int getMAX_DISTANCE_CITY_MAINTENANCE() { return m_iMAX_DISTANCE_CITY_MAINTENANCE; }
 	int getMOVE_DENOMINATOR();
 	int getNUM_UNIT_PREREQ_OR_BONUSES();
 	int getNUM_BUILDING_PREREQ_OR_BONUSES();
@@ -1144,6 +1152,10 @@ protected:
 	FVariableSystem* m_VarSystem;
 
 	int m_iEXTRA_YIELD; // K-Mod
+	bool m_bJOIN_WAR_DIPLO_BONUS; // advc.130s
+	int m_iTILE_CULTURE_DECAY_PER_MILL; // advc.099
+	int m_iNUM_WARNING_REVOLTS; // advc.101
+	int m_iMAX_DISTANCE_CITY_MAINTENANCE; // advc.140
 	int m_iMOVE_DENOMINATOR;
 	int m_iNUM_UNIT_PREREQ_OR_BONUSES;
 	int m_iNUM_BUILDING_PREREQ_OR_BONUSES;

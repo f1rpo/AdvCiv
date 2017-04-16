@@ -2,6 +2,8 @@
 
 #ifndef CvString_h
 #define CvString_h
+// advc.make: Needed for _USRDLL definition
+#include "CvDefines.h"
 
 #include <string>
 #pragma warning( disable: 4251 )		// needs to have dll-interface to be used by clients of class
@@ -333,7 +335,7 @@ inline bool CvString::formatv(std::string & out, const char * fmt, va_list args)
 	if (success)
 		out = pbuf;
 	else
-		out.clear();
+		out = "";
 
 	if (pbuf!=buf)
 		delete [] pbuf;
@@ -376,7 +378,7 @@ inline bool CvWString::formatv(std::wstring & out, const wchar * fmt, va_list ar
 	if (success)
 		out = pbuf;
 	else
-		out.clear();
+		out = L"";
 
 	if (pbuf!=buf)
 		delete [] pbuf;

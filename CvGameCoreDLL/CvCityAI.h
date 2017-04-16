@@ -67,11 +67,15 @@ public:
 /********************************************************************************/
 	bool AI_isDanger();
 
-	int AI_neededDefenders();
+	int AI_neededDefenders(bool ignoreEvac = false); // advc.139: param added
 	int AI_neededAirDefenders();
 	int AI_minDefenders();
-	int AI_neededFloatingDefenders();
+	// advc.139: Added param
+	int AI_neededFloatingDefenders(bool ignoreEvac = false);
 	void AI_updateNeededFloatingDefenders();
+	// <advc.139>
+	void updateEvacuating(double relativeCityVal);
+	bool isEvacuating() const; // </advc.139>
 
 	int AI_getEmphasizeAvoidGrowthCount() const;
 	bool AI_isEmphasizeAvoidGrowth() const;
@@ -146,6 +150,7 @@ public:
 	void write(FDataStreamBase* pStream);
 
 	void AI_ClearConstructionValueCache(); // K-Mod
+	bool isAwfulSite(PlayerTypes futureOwnerId) const; // advc.122
 
 protected:
 
@@ -175,6 +180,8 @@ protected:
 
 	int m_iNeededFloatingDefenders;
 	int m_iNeededFloatingDefendersCacheTurn;
+	// advc.139: Updated during AI turns; no need for serialization
+	bool bEvacuate;
 
 	int m_iWorkersNeeded;
 	int m_iWorkersHave;

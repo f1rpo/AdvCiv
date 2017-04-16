@@ -31,10 +31,12 @@ class BugAlertsOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addCheckbox(screen, leftL, "Civ4lerts__CityPendingHealthiness")
 		self.addCheckbox(screen, leftR, "Civ4lerts__CityHealthiness")		
 		self.addCheckbox(screen, leftL, "Civ4lerts__CityPendingHappiness")
-		self.addCheckbox(screen, leftR, "Civ4lerts__CityHappiness")		
-		self.addCheckbox(screen, leftL, "Civ4lerts__CityPendingOccupation")
-		self.addCheckbox(screen, leftR, "Civ4lerts__CityOccupation")
-		
+		self.addCheckbox(screen, leftR, "Civ4lerts__CityHappiness")
+		# <advc.210b> Replacing these two left/right boxes with a single one
+		# for the revolt alert.
+		#self.addCheckbox(screen, leftL, "Civ4lerts__CityPendingOccupation")
+		#self.addCheckbox(screen, leftR, "Civ4lerts__CityOccupation")
+		self.addCheckbox(screen, left, "Civ4lerts__Revolt")	# </advc.210b>
 		self.addCheckbox(screen, left, "MoreCiv4lerts__CityPendingBorderExpansion")
 		self.addCheckbox(screen, left, "Civ4lerts__CityCanHurryPop")
 		self.addCheckbox(screen, left, "Civ4lerts__CityCanHurryGold")
@@ -56,17 +58,19 @@ class BugAlertsOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addCheckbox(screen, right, "MoreCiv4lerts__TechTrade")
 		self.addCheckbox(screen, right, "MoreCiv4lerts__BonusTrade")
 		self.addCheckbox(screen, right, "MoreCiv4lerts__MapTrade")
+		# advc.210a:
+		self.addCheckbox(screen, right, "Civ4lerts__WarTrade")
 		
 		rightL, rightR = self.addTwoColumnLayout(screen, right, "Alerts_Trade_Column")
 		self.addCheckboxIntDropdown(screen, rightL, rightR, "Civ4lerts__GoldTrade", "Civ4lerts__GoldTradeThresh", "LAYOUT_LEFT")
 		self.addCheckboxIntDropdown(screen, rightL, rightR, "Civ4lerts__GoldPerTurnTrade", "Civ4lerts__GoldPerTurnTradeThresh", "LAYOUT_LEFT")
 		
+		# advc.210a: Removing these alerts
 		# Victories
-		self.addLabel(screen, right, "Alerts_Victory", "Victory:")
-		
-		rightL, rightR = self.addTwoColumnLayout(screen, right, "Alerts_Victory_Column")
-		self.addCheckboxFloatDropdown(screen, rightL, rightR, "MoreCiv4lerts__DomPop", "MoreCiv4lerts__DomPopThresh", "LAYOUT_LEFT")
-		self.addCheckboxFloatDropdown(screen, rightL, rightR, "MoreCiv4lerts__DomLand", "MoreCiv4lerts__DomLandThresh", "LAYOUT_LEFT")
+		#self.addLabel(screen, right, "Alerts_Victory", "Victory:")
+		#rightL, rightR = self.addTwoColumnLayout(screen, right, "Alerts_Victory_Column")
+		#self.addCheckboxFloatDropdown(screen, rightL, rightR, "MoreCiv4lerts__DomPop", "MoreCiv4lerts__DomPopThresh", "LAYOUT_LEFT")
+		#self.addCheckboxFloatDropdown(screen, rightL, rightR, "MoreCiv4lerts__DomLand", "MoreCiv4lerts__DomLandThresh", "LAYOUT_LEFT")
 		
 		screen.attachHSeparator(column, column + "Sep")
 		

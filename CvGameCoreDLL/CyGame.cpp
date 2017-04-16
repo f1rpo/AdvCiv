@@ -1217,3 +1217,21 @@ void CyGame::doControl(int iControl)
 		m_pGame->doControl((ControlTypes) iControl);
 	}
 }
+
+// <advc.104>
+bool CyGame::useKModAI() {
+
+	return m_pGame->useKModAI();
+}
+// </advc.104>
+// advc.300:
+int CyGame::getBarbarianStartTurn() { return m_pGame->getBarbarianStartTurn(); }
+// <advc.250b>
+std::wstring CyGame::SPaHPointsForSettingsScreen() {
+
+    return m_pGame ? *(m_pGame->startPointsAsHandicap().forSettingsScreen())
+			: std::wstring();
+}
+// </advc.250b>
+// advc.250:
+int CyGame::getDifficultyForEndScore() { return m_pGame->getDifficultyForEndScore(); }

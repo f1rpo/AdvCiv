@@ -92,6 +92,9 @@ public:
 
 	bool isActionRecommended(int iAction);
 
+	// advc.004h
+	void showCityCross() const;
+
 	bool isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker) const;						// Exposed to Python 
 
 	bool canDoCommand(CommandTypes eCommand, int iData1, int iData2, bool bTestVisible = false, bool bTestBusy = true);	// Exposed to Python
@@ -101,6 +104,19 @@ public:
 	CvPlot* getPathEndTurnPlot() const;																																						// Exposed to Python
 	bool generatePath(const CvPlot* pToPlot, int iFlags = 0, bool bReuse = false, int* piPathTurns = NULL, int iMaxPath = -1) const; // Exposed to Python (K-Mod added iMaxPath)
 	KmodPathFinder& getPathFinder() const; // K-Mod
+
+	/*  advc.104b: If this is set to a target team, CvUnit::generatePath (for any
+		CvUnit) can be used for computing the path length from the unit to a tile
+		owned by the target team assuming a DoW on the target team and its vassals
+		(but on no other teams). Should be reset to NO_TEAM afterwards. E.g.
+		CvUnit::measuringDistance = destPlot->getTeam();
+		int dist;
+		bool canReach = u->generatePath(destPlot, MOVE_DECLARE_WAR, false, dist);
+		CvUnit::measuringDistance = NO_TEAM;
+
+		A hack that I'm not using anymore, but that I don't want to remove yet.
+		(Instead using CvPlot::calculatePathDistanceToPlot.) */
+	static TeamTypes measuringDistance;
 
 	bool canEnterTerritory(TeamTypes eTeam, bool bIgnoreRightOfPassage = false) const;						// Exposed to Python
 	bool canEnterArea(TeamTypes eTeam, const CvArea* pArea, bool bIgnoreRightOfPassage = false) const;						// Exposed to Python
@@ -124,10 +140,14 @@ public:
 	bool canGift(bool bTestVisible = false, bool bTestTransport = true);																											// Exposed to Python 
 	void gift(bool bTestTransport = true);
 
-	bool canLoadUnit(const CvUnit* pUnit, const CvPlot* pPlot) const;															// Exposed to Python
+	bool canLoadUnit(const CvUnit* pUnit, const CvPlot* pPlot
+		, bool checkMoves = false // advc.123c
+		) const;															// Exposed to Python
 	void loadUnit(CvUnit* pUnit);
 
-	bool canLoad(const CvPlot* pPlot) const;																											// Exposed to Python
+	bool canLoad(const CvPlot* pPlot
+		, bool checkMoves = false // advc.123c
+		) const;																											// Exposed to Python
 	void load();
 	bool shouldLoadOnMove(const CvPlot* pPlot) const;
 
@@ -339,6 +359,7 @@ public:
 	bool canAttack(const CvUnit& defender) const;
 	bool canDefend(const CvPlot* pPlot = NULL) const;																	// Exposed to Python
 	bool canSiege(TeamTypes eTeam) const;																							// Exposed to Python
+	bool canCombat() const; // dlph.8
 
 	int airBaseCombatStr() const;																						// Exposed to Python
 	int airMaxCombatStr(const CvUnit* pOther) const;																						// Exposed to Python
@@ -625,6 +646,7 @@ public:
 	void setMadeInterception(bool bNewValue);																				// Exposed to Python
 
 	DllExport bool isPromotionReady() const;																									// Exposed to Python
+	bool isReadyForPromotion() const; // advc.002e
 	void setPromotionReady(bool bNewValue);																					// Exposed to Python
 	void testPromotionReady();
 

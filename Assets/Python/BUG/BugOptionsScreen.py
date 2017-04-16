@@ -29,6 +29,17 @@ CoreOpt = BugCore.game.Core
 MainOpt = BugCore.game.MainInterface
 
 
+## <advc.102>
+def toggleShowFriendlyMoves(argsList=None):
+	gc = BugUtil.gc
+	game = gc.getGame()
+	p = gc.getPlayer(game.getActivePlayer())
+	o = PlayerOptionTypes.PLAYEROPTION_SHOW_FRIENDLY_MOVES
+	currentlyEnabled = p.isOption(o)
+	p.setOption(o, not currentlyEnabled)
+## </advc.102>
+
+
 ## Using and Showing
 
 def getOptionsScreen():

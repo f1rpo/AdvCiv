@@ -774,7 +774,20 @@ class CvVictoryScreen:
 
 		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_MAP_SIZE", (gc.getWorldInfo(gc.getMap().getWorldSize()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_CLIMATE", (gc.getClimateInfo(gc.getMap().getClimate()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
-		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_SEA_LEVEL", (gc.getSeaLevelInfo(gc.getMap().getSeaLevel()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
+		# <advc.137> Use TXT_KEY_LOW/HIGH instead of SEA_LEVEL keys.
+		# (The SEA_LEVEL keys include the recommendation for the
+		# Custom Game screen - don't want that here.
+		seaLvl = gc.getSeaLevelInfo(gc.getMap().getSeaLevel()).getSeaLevelChange()
+		if seaLvl == 0: # Medium sea level - use the BtS code.
+			screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_SEA_LEVEL", (gc.getSeaLevelInfo(gc.getMap().getSeaLevel()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
+		else:
+			tkey = "TXT_KEY_HIGH"
+			if seaLvl < 0:
+				tkey = "TXT_KEY_LOW"
+			s = localText.getText(tkey, ())
+			appendText = localText.getText("TXT_KEY_SETTINGS_SEA_LEVEL", (s,))
+			screen.appendListBoxStringNoUpdate(szSettingsTable, appendText, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
+		# </advc.137>
 		screen.appendListBoxStringNoUpdate(szSettingsTable, " ", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_STARTING_ERA", (gc.getEraInfo(gc.getGame().getStartEra()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_GAME_SPEED", (gc.getGameSpeedInfo(gc.getGame().getGameSpeedType()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
@@ -789,10 +802,50 @@ class CvVictoryScreen:
 
 		for i in range(GameOptionTypes.NUM_GAMEOPTION_TYPES):
 			if gc.getGame().isOption(i):
-				screen.appendListBoxStringNoUpdate(szOptionsTable, gc.getGameOptionInfo(i).getDescription(), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+				# <advc.104> Handle Aggressive AI below; skip it here.
+				if gc.getGameOptionInfo(i).getTextKey() == "TXT_KEY_GAME_OPTION_AGGRESSIVE_AI":
+					continue # </advc.104>
+				# <advc.250b> Handle Advanced Start options below if SPaH.
+				isSPaH = gc.getGame().isOption(GameOptionTypes.GAMEOPTION_SPAH)
+				if isSPaH:
+					if gc.getGameOptionInfo(i).getTextKey() == "TXT_KEY_GAME_OPTION_SPAH":
+						continue
+					if gc.getGameOptionInfo(i).getTextKey() == "TXT_KEY_GAME_OPTION_ADVANCED_START":
+						continue
+				# </advc.250b>
+				# <advc.300> Show earliest turn that barbarians can spawn on
+				descr = gc.getGameOptionInfo(i).getDescription()
+				if gc.getGameOptionInfo(i).getTextKey() =="TXT_KEY_GAME_OPTION_RAGING_BARBARIANS":
+					barbStart = gc.getGame().getBarbarianStartTurn()
+					# Stop displaying after some time
+					if barbStart + 25 > gc.getGame().getGameTurn():
+						descr += "\n\t("
+						descr += localText.getText("TXT_KEY_BARB_START", ())
+						descr += " " + str(barbStart) + ")"
+				# Next line: Plug in descr </advc.300>
+				screen.appendListBoxStringNoUpdate(szOptionsTable, descr, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+
+		# <advc.104> AI settings
+		isAggro = gc.getGame().isOption(GameOptionTypes.GAMEOPTION_AGGRESSIVE_AI)
+		isK = gc.getGame().useKModAI()
+		displayString = None
+		if isAggro and isK:
+			displayString = localText.getText("TXT_KEY_GAME_OPTION_AGGRESSIVE_AI",())
+		elif isK: # Only possible if Aggressive AI disabled through XML
+			displayString = "Non-aggressive AI"
+		if not displayString is None: # Copy-pasted from above
+			screen.appendListBoxStringNoUpdate(szOptionsTable, displayString, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# </advri.104>
 
 		if (gc.getGame().isOption(GameOptionTypes.GAMEOPTION_ADVANCED_START)):
-			szNumPoints = u"%s %d" % (localText.getText("TXT_KEY_ADVANCED_START_POINTS", ()), gc.getGame().getNumAdvancedStartPoints())
+			if not isSPaH: # advc.250b
+				szNumPoints = u"%s %d" % (localText.getText("TXT_KEY_ADVANCED_START_POINTS", ()), gc.getGame().getNumAdvancedStartPoints())
+			# <advc.250b>
+			else:
+				# Could be done directly in Python, and probably
+				# more easily, but I'm more comfortable in C++.
+				szNumPoints = gc.getGame().SPaHPointsForSettingsScreen()
+			# </advc.250b>
 			screen.appendListBoxStringNoUpdate(szOptionsTable, szNumPoints, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
 		if (gc.getGame().isGameMultiPlayer()):

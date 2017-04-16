@@ -1,0 +1,393 @@
+#pragma once
+
+#ifndef WAR_UTILITY_ASPECT_H
+#define WAR_UTILITY_ASPECT_H
+
+#include "MilitaryAnalyst.h"
+#include "WarAndPeaceAI.h"
+
+class MilitaryAnalyst;
+
+
+/*  <advc.104> New class. An aspect of war evaluation.
+	Few const functions in this class because the 'log' function needs to be
+	able to write to the report object. */
+class WarUtilityAspect {
+
+public:
+	WarUtilityAspect(WarEvalParameters& params);
+	/*  Returns the computed utility (same as calling utility(0)).
+		Sets some protected data members that subclasses should find useful.
+		Concrete subclasses should therefore overwrite evaluate(0) instead. */	
+	virtual int evaluate(MilitaryAnalyst& m);
+	virtual char const* aspectName() const=0;
+	/*  Caller needs to call evaluate first, which computes war utility. This is
+		just a getter. */
+	int utility() const;
+
+protected:
+	// Just for convenience (replacing report->log) 
+	void log(char const* fmt, ...);
+	/*  What can m->ourId gain from or lose to theyId (both set by
+		evaluate(MilitaryAnalyst&)). From the pov of m->ourId.	
+		After computing the aspect utility, subclasses should add (not assign!)
+		their result to WarUtilityAspect::u */
+	virtual void evaluate()=0;
+	/*  If war utility is computed in this function, it should be added to
+		WarUtilityAspect::u. */
+	/*  Pre-computations not specific to a given civ. Most subclasses shouldn't
+		need this.
+		If (partial) war utility is computed, it should returned (otherwise 0).
+		This function should not modify WarUtilityAspect::u. */
+	virtual int preEvaluate();
+	// See WarUtilityBroaderAspect. Concrete subclasses shouldn't overwrite this.
+	virtual bool concernsOnlyWarParties() const;
+
+	/* Everything and the kitchen sink. Lots of code in this
+	   class hierachy; don't want to call getters all the time.
+	   Caveat: The order of declaration here determines the order
+	   of initialization in the constructor. Improper order will
+	   result in faulty initialization. The Visual Studio compiler
+	   doesn't warn about this either (lacks a WReorder option).
+	   This also affects a few other classes that have references
+	   as members, in particular WarEvaluator and MilitaryAnalyst.*/
+	WarEvalParameters const& params;
+	TeamTypes agentId;
+	CvTeamAI& agent;
+	WarAndPeaceAI::Team& agentAI;
+	std::vector<PlayerTypes> const& agentTeam;
+	std::vector<TeamTypes> const& properTeams;
+	std::vector<PlayerTypes> const& properCivs;
+	int u;
+	WarAndPeaceReport& report;
+	int numRivals; // Civs presently alive, not on our team, non-vassal
+	int numKnownRivals; // Like above, but only those met by agent
+
+	/*  Subclasses must not access these members until prepareEvaluation(1)
+		has been called.
+		Initialization is guaranteed although they're not references.
+		This is obviously not an ideal class design. A separate class
+		WarUtilityAspect::Civ would be even more unwieldy I think. */
+	MilitaryAnalyst* m;
+	PlayerTypes weId;
+	CvPlayerAI* we;
+	WarAndPeaceAI::Civ* weAI;
+	WarAndPeaceCache* ourCache;
+
+	/*  Subclasses must not access these members until evaluate(1)
+		has been called.
+		'they' are not necessarily the team targeted by the DoW. Can be any rival
+		that we might directly or indirectly gain sth. from (or lose sth. to). */
+	PlayerTypes theyId;
+	CvPlayerAI* they;
+	WarAndPeaceAI::Civ* theyAI;
+	std::vector<int> weConquerFromThem;
+	// Our current attitude towards them and their current attitude towards us
+	AttitudeTypes towardsThem, towardsUs;
+	int valTowardsThem, valTowardsUs; // Relations values
+
+	// To be called by subclasses only from evaluate(0) or prepareEvaluation(0).
+	 /* Score for assets lost by them to a given civ, or to any civ
+		(first parameter NO_PLAYER).
+		Computed based on our knowledge (i.e. not necessarily from the pov of 'to').
+		The score total for all their present assets (lost or not) can be obtained
+		by passing a double pointer.
+		(Shouldn't use theyAI->getCache().totalAssetScore() instead b/c that
+		includes data about cities we may not know of.)
+		Update: Now also subtracts score for assets conquered by them from 'to'
+		(or from any civ); i.e. scores net loss (or gain) of assets. */
+	 double lostAssetScore(PlayerTypes to = NO_PLAYER, double* returnTotal = NULL);
+	 double lossesFromBlockade(PlayerTypes victimId, PlayerTypes to);
+	 double lossesFromNukes(PlayerTypes victimId, PlayerTypes sourceId);
+	 /* Score for assets conquered by us from them (as set by evaluate(0)).
+		'mute' disables logging within the function body. */
+	 double conqAssetScore(bool mute = true);
+	 // Portion of cities of civId that aren't lost in the war
+	 double cityRatio(PlayerTypes civId) const;
+	 // Between our team and 'other', or their team if none given
+	 double normalizeUtility(double utilityTeamOnTeam, TeamTypes other = NO_TEAM);
+	 /*  Evaluation of their usefulness as our trade partner. Would prefer this
+		 to be computed just once by WarAndPeaceCache (the computations aren't
+		 totally cheap), but I also want the log output. They're not called
+		 frequently. */
+	 double partnerUtilFromTech();
+	 double partnerUtilFromTrade();
+	 double partnerUtilFromMilitary();
+	 static int const partnerUtilFromOB = 8;
+
+private:
+	// In between calls to evaluate
+	 void reset();
+	 void resetCivOnCiv();
+	int evaluate(PlayerTypes theyId);
+	AttitudeTypes techRefuseThresh(PlayerTypes civId);
+};
+
+/*  Not a nice name. Derive from this class rather than WarUtilityAspect
+	if evaluate(0) should be called also for parties that aren't part of the
+	military analysis. */
+class WarUtilityBroaderAspect : public WarUtilityAspect {
+public:
+	WarUtilityBroaderAspect(WarEvalParameters& params);
+protected:
+	bool concernsOnlyWarParties() const;
+};
+
+class GreedForAssets : public WarUtilityAspect {
+public:
+	GreedForAssets(WarEvalParameters& params);
+	void evaluate();
+	char const* aspectName() const;
+private:
+	void initCitiesPerArea();
+	void freeCitiesPerArea();
+	double overextensionCost();
+	double defensibilityCost();
+	double threatToCities(PlayerTypes civId);
+	double competitionMultiplier();
+	std::map<int,int>* citiesPerArea[MAX_CIV_PLAYERS];
+};
+
+
+class GreedForVassals : public WarUtilityAspect {
+public:
+	GreedForVassals(WarEvalParameters& params);
+	void evaluate();
+	char const* aspectName() const;
+};
+
+
+class GreedForSpace : public WarUtilityAspect {
+public:
+	GreedForSpace(WarEvalParameters& params);
+	void evaluate();
+	char const* aspectName() const;
+};
+
+
+class GreedForCash : public WarUtilityAspect {
+public:
+	GreedForCash(WarEvalParameters& params);
+	void evaluate();
+	char const* aspectName() const;
+};
+
+
+class Loathing : public WarUtilityAspect {
+public:
+	Loathing(WarEvalParameters& params);
+	void evaluate();
+	char const* aspectName() const;
+private:
+	double lossRating();
+};
+
+
+class MilitaryVictory : public WarUtilityAspect {
+public:
+	MilitaryVictory(WarEvalParameters& params);
+	int preEvaluate();
+	void evaluate();
+	char const* aspectName() const;
+private:
+	double progressRatingConquest();
+	double progressRatingDomination();
+	double progressRatingDiplomacy();
+	void addConquestsByPartner(std::map<int,double>& r, AttitudeTypes attThresh,
+			double weight);
+	double votesToGo;
+	bool enoughVotes;
+};
+
+
+class Assistance : public WarUtilityAspect {
+public:
+	Assistance(WarEvalParameters& params);
+	void evaluate();
+	char const* aspectName() const;
+private:
+	double assistanceRatio();
+};
+
+
+class Reconquista : public WarUtilityAspect {
+public:
+	Reconquista(WarEvalParameters& params);
+	void evaluate();
+	char const* aspectName() const;
+};
+
+
+class Rebuke : public WarUtilityAspect {
+public:
+	Rebuke(WarEvalParameters& params);
+	void evaluate();
+	char const* aspectName() const;
+};
+
+
+class Fidelity : public WarUtilityAspect {
+public:
+	Fidelity(WarEvalParameters& params);
+	void evaluate();
+	char const* aspectName() const;
+};
+
+
+class HiredHand : public WarUtilityAspect {
+public:
+	HiredHand(WarEvalParameters& params);
+	void evaluate();
+	char const* aspectName() const;
+private:
+	double eval(PlayerTypes allyId, int originalUtility, int obligationThresh);
+};
+
+
+class BorderDisputes : public WarUtilityAspect {
+public:
+	BorderDisputes(WarEvalParameters& params);
+	void evaluate();
+	char const* aspectName() const;
+};
+
+
+class SuckingUp : public WarUtilityAspect {
+public:
+	SuckingUp(WarEvalParameters& params);
+	void evaluate();
+	char const* aspectName() const;
+};
+
+
+class PreEmptiveWar : public WarUtilityBroaderAspect {
+public:
+	PreEmptiveWar(WarEvalParameters& params);
+	void evaluate();
+	char const* aspectName() const;
+};
+
+
+class KingMaking : public WarUtilityBroaderAspect {
+public:
+	KingMaking(WarEvalParameters& params);
+	int preEvaluate();
+	void evaluate();
+	char const* aspectName() const;
+private:
+	void addLeadingCivs(std::set<PlayerTypes>& r, double margin,
+			bool predictScore = true) const;
+	double theirRelativeLoss();
+	std::vector<PlayerTypes> civs; // excluding vassals
+	std::set<PlayerTypes> winning;
+	static double const scoreMargin;
+};
+
+
+class Effort : public WarUtilityAspect {
+public:
+	Effort(WarEvalParameters& params);
+	int preEvaluate();
+	void evaluate();
+	char const* aspectName() const;
+};
+
+
+class Risk : public WarUtilityAspect {
+public:
+	Risk(WarEvalParameters& params);
+	void evaluate();
+	char const* aspectName() const;
+};
+
+
+class IllWill : public WarUtilityBroaderAspect {
+public:
+	IllWill(WarEvalParameters& params);
+	int preEvaluate();
+	void evaluate();
+	char const* aspectName() const;
+private:
+	void evalLostPartner();
+	void evalRevenge();
+	void evalAngeredPartners();
+	double nukeCost(double nukes);
+	double uMinus;
+	double altPartnerFactor;
+};
+
+
+class Affection : public WarUtilityAspect {
+public:
+	Affection(WarEvalParameters& params);
+	void evaluate();
+	char const* aspectName() const;
+};
+
+
+class Distraction : public WarUtilityAspect {
+public:
+	Distraction(WarEvalParameters& params);
+	void evaluate();
+	char const* aspectName() const;
+};
+
+
+class PublicOpposition : public WarUtilityAspect {
+public:
+	PublicOpposition(WarEvalParameters& params);
+	void evaluate();
+	char const* aspectName() const;
+};
+
+
+class Revolts : public WarUtilityAspect {
+public:
+	Revolts(WarEvalParameters& params);
+	void evaluate();
+	char const* aspectName() const;
+private:
+	std::set<int> countedCities;
+};
+
+
+class UlteriorMotives : public WarUtilityBroaderAspect {
+public:
+	UlteriorMotives(WarEvalParameters& params);
+	void evaluate();
+	char const* aspectName() const;
+};
+
+
+class FairPlay : public WarUtilityAspect {
+public:
+	FairPlay(WarEvalParameters& params);
+	void evaluate();
+	char const* aspectName() const;
+private:
+	int initialMilitaryUnits(PlayerTypes civId);
+};
+
+
+class Bellicosity : public WarUtilityAspect {
+public:
+	Bellicosity(WarEvalParameters& params);
+	void evaluate();
+	char const* aspectName() const;
+};
+
+
+class TacticalSituation : public WarUtilityAspect {
+public:
+	TacticalSituation(WarEvalParameters& params);
+	void evaluate();
+	char const* aspectName() const;
+private:
+	void evalEngagement();
+	void evalOperational();
+	int evacPop(PlayerTypes ownerId, PlayerTypes invaderId);
+};
+
+// </advc.104>
+
+#endif

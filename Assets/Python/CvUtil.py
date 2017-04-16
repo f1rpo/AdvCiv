@@ -159,6 +159,9 @@ def myExceptHook(type, value, tb):
 
 def pyPrint(stuff):
 	stuff = 'PY:' + stuff + "\n"
+	# advc.001: Added encoding; used to throw an exception when printing
+	# city names with non-ASCII characters
+	stuff = stuff.encode("UTF-8")
 	sys.stdout.write(stuff)
 
 def pyAssert(cond, msg):
@@ -189,7 +192,10 @@ def getScoreComponent(iRawScore, iInitial, iMax, iFactor, bExponential, bFinal, 
 		iScore = ((100 + gc.getDefineINT("SCORE_VICTORY_PERCENT")) * iScore) / 100
 
 	if bFinal:
-		iScore = ((100 + gc.getDefineINT("SCORE_HANDICAP_PERCENT_OFFSET") + (gc.getGame().getHandicapType() * gc.getDefineINT("SCORE_HANDICAP_PERCENT_PER"))) * iScore) / 100
+		# <advc.250a> Let C++ handle difficulty. Raise the fraction to per-mill.
+		diffic = gc.getGame().getDifficultyForEndScore()
+		iScore = ((1000 + 10 * gc.getDefineINT("SCORE_HANDICAP_PERCENT_OFFSET") + diffic * gc.getDefineINT("SCORE_HANDICAP_PERCENT_PER")) * iScore) / 1000
+		# </advc.250a>
 
 	return int(iScore)
 	

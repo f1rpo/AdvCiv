@@ -15,6 +15,10 @@
 
 #include "CvArea.h"
 #include "CvPlot.h"
+// <advc.300>
+#include "Shelf.h"
+#include <map>
+// </advc.300>
 
 
 class FAStar;
@@ -303,6 +307,14 @@ protected:
 
 	void calculateAreas();
 
+	// <advc.300>
+public:
+	// Caller provides the vector
+	void getShelves(int landAreaId, std::vector<Shelf*>& r) const;
+	void computeShelves();
+private:
+	std::map<Shelf::Id,Shelf*> shelves;
+	// </advc.300>
 };
 
 #endif

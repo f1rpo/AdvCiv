@@ -61,5 +61,7 @@ void CyPlayerPythonInterface2(python::class_<CyPlayer>& x)
 		.def("canSplitArea", &CyPlayer::canSplitArea, "bool (int)")
 		.def("canHaveTradeRoutesWith", &CyPlayer::canHaveTradeRoutesWith, "bool (int)")
 		.def("forcePeace", &CyPlayer::forcePeace, "void (int)")
+		// advc.210:
+		.def("checkAlert", &CyPlayer::checkAlert, "void (int alertId, bool silent)")
 		;
 }

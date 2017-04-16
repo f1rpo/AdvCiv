@@ -97,7 +97,7 @@ class CvTechChooser:
 # BUG - GP Tech Prefs - end
 
 		self.PIXEL_INCREMENT = 7
-		self.BOX_INCREMENT_WIDTH = 30 # Used to be 33 #Should be a multiple of 3...
+		self.BOX_INCREMENT_WIDTH = 27 # Used to be 33 #Should be a multiple of 3...
 		self.BOX_INCREMENT_HEIGHT = 9 #Should be a multiple of 3...
 		self.BOX_INCREMENT_Y_SPACING = 6 #Should be a multiple of 3...
 		self.BOX_INCREMENT_X_SPACING = 9 #Should be a multiple of 3...
@@ -240,12 +240,12 @@ class CvTechChooser:
 
 		screen = self.getScreen()
 
-		self.BOX_INCREMENT_WIDTH = 30 # Used to be 33 #Should be a multiple of 3...
+		self.BOX_INCREMENT_WIDTH = 27 # Used to be 33 #Should be a multiple of 3...
 		self.DrawTechChooser(screen, self.TabPanels[0], True, True, True, True, True, True)
 
 		self.BOX_INCREMENT_WIDTH = 12 # Used to be 33 #Should be a multiple of 3...
 		self.DrawTechChooser(screen, self.TabPanels[1], True, False, True, False, False, True)
-		self.BOX_INCREMENT_WIDTH = 30 # Used to be 33 #Should be a multiple of 3...
+		self.BOX_INCREMENT_WIDTH = 27 # Used to be 33 #Should be a multiple of 3...
 
 	def ShowTab(self):
 #		BugUtil.debug("cvTechChooser: ShowTab")
@@ -700,30 +700,29 @@ class CvTechChooser:
 				fX += X_INCREMENT
 
 		j = 0
-		k = 0
-
-		# K-Mod. Commerce modifiers
-		for j in range(CommerceTypes.NUM_COMMERCE_TYPES):
-			if (gc.getTechInfo(i).getCommerceModifier(j) > 0):
-				szCommerceModifierButton = self.getNextWidgetName("CommerceModifierButton")
-				screen.addDDSGFCAt( szCommerceModifierButton, szTechRecord, gc.getCommerceInfo(j).getButton(), iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_GLOBAL_COMMERCE_MODIFIER, i, j, False )
-				fX += X_INCREMENT
-
-		j = 0
-		k = 0
+		k = 0	
 
 		# K-Mod. Extra specialist commerce
 		for j in range(CommerceTypes.NUM_COMMERCE_TYPES):
 			if (gc.getTechInfo(i).getSpecialistExtraCommerce(j) > 0):
-				if (gc.getDefineINT("DEFAULT_SPECIALIST") != SpecialistTypes.NO_SPECIALIST):
+				# <advc.002d>
+				bestFitSpecialist = SpecialistTypes.NO_SPECIALIST
+				bestFitValue = -1
+				for k in range(gc.getNumSpecialistInfos()):
+					sp = gc.getSpecialistInfo(k)
+					commChange = sp.getCommerceChange(j)
+					if commChange > 0 and commChange > bestFitValue:
+						bestFitValue = commChange
+						bestFitSpecialist = k
+				if (bestFitSpecialist != SpecialistTypes.NO_SPECIALIST):
+					# Below: using bestFitSpecialist instead of gc.getDefineINT("DEFAULT_SPECIALIST")</advc.002d>
 					szSpecialistCommerceButtonButton = self.getNextWidgetName("SpecialistCommerceButton")
-					screen.addDDSGFCAt( szSpecialistCommerceButtonButton, szTechRecord, gc.getSpecialistInfo(gc.getDefineINT("DEFAULT_SPECIALIST")).getButton(), iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_EXTRA_SPECIALIST_COMMERCE, i, j, False )
+					screen.addDDSGFCAt( szSpecialistCommerceButtonButton, szTechRecord, gc.getSpecialistInfo(bestFitSpecialist).getButton(), iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_EXTRA_SPECIALIST_COMMERCE, i, j, False )
 					fX += X_INCREMENT
 				break
 
 		j = 0
 		k = 0
-
 		# K-Mod end.
 
 		# Adjustments
@@ -744,13 +743,18 @@ class CvTechChooser:
 
 		# Terrain opens up as a trade route
 		for j in range( gc.getNumTerrainInfos() ):
-			if (gc.getTechInfo(i).isTerrainTrade(j) and not (gc.getTeam(gc.getPlayer(self.iCivSelected).getTeam()).isTerrainTrade(j))):
+			if gc.getTechInfo(i).isTerrainTrade(j):
+				# advc.124: This hides the icon in the tech tree once the
+				# the player has the tech. Confusing.
+				#and not (gc.getTeam(gc.getPlayer(self.iCivSelected).getTeam()).isTerrainTrade(j)):
 				szTerrainTradeButton = self.getNextWidgetName("TerrainTradeButton")
 				screen.addDDSGFCAt( szTerrainTradeButton, szTechRecord, ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_WATERTRADE").getPath(), iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_TERRAIN_TRADE, i, j, False )
 				fX += X_INCREMENT
 
 		j = gc.getNumTerrainInfos()	
-		if (gc.getTechInfo(i).isRiverTrade() and not (gc.getTeam(gc.getPlayer(self.iCivSelected).getTeam()).isRiverTrade())):
+		if gc.getTechInfo(i).isRiverTrade():
+			# advc.124: Ability not used currently, but still, for consistency:
+			#and not (gc.getTeam(gc.getPlayer(self.iCivSelected).getTeam()).isRiverTrade()):
 			szTerrainTradeButton = self.getNextWidgetName("TerrainTradeButton")
 			screen.addDDSGFCAt( szTerrainTradeButton, szTechRecord, ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_RIVERTRADE").getPath(), iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_TERRAIN_TRADE, i, j, False )
 			fX += X_INCREMENT
@@ -850,7 +854,7 @@ class CvTechChooser:
 		if (self.sTechTabID == self.sTechSelectTab):
 			bTechName = True
 			sPanel = self.TabPanels[0]
-			self.BOX_INCREMENT_WIDTH = 30 # Used to be 33 #Should be a multiple of 3...
+			self.BOX_INCREMENT_WIDTH = 27 # Used to be 33 #Should be a multiple of 3...
 		else:
 			bTechName = False
 			sPanel = self.TabPanels[1]

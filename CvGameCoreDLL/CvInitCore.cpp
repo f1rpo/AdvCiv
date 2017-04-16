@@ -1863,15 +1863,29 @@ void CvInitCore::resetAdvancedStartPoints()
 		iPoints *= GC.getWorldInfo(getWorldSize()).getAdvancedStartPointsMod();
 		iPoints /= 100;
 	}
-	
-	if (NO_GAMESPEED != getGameSpeed())
+	// <advc.250c> Reduce start-point costs based on game speed instead.
+	/*if (NO_GAMESPEED != getGameSpeed())
 	{
 		iPoints *= GC.getGameSpeedInfo(getGameSpeed()).getGrowthPercent();
 		iPoints /= 100;
-	}
-
+	}*/
+	// Effect of world size removed through WorldInfo XML
+	// </advc.250c>
 	setNumAdvancedStartPoints(iPoints);
 }
+
+// <advc.250c>
+int CvInitCore::getAdvancedStartMinPoints() const {
+
+	for(int i = 0; i < GC.getNumUnitClassInfos(); i++) {
+		CvUnitInfo& u = GC.getUnitInfo((UnitTypes)GC.getUnitClassInfo(
+				(UnitClassTypes)i).getDefaultUnitIndex());
+		if(u.isFound())
+			return u.getAdvancedStartCost();
+	}
+	FAssert(false);
+	return -1;
+} // </advc.250c>
 
 
 void CvInitCore::read(FDataStreamBase* pStream)

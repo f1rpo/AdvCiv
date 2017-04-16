@@ -58,6 +58,13 @@ public:
 	const CLinkList<TradeData>* getSecondTrades() const;
 
 	DllExport bool isCancelable(PlayerTypes eByPlayer = NO_PLAYER, CvWString* pszReason = NULL);
+	/*  advc.130f: I've tried adding a bool param with default value to
+		isCancelable. This lead to a crash from the EXE when canceling a deal
+		through the Trade Screen (which was nasty to debug). Adding parameters
+		to DllExports isn't always a problem; see e.g. CvPlayer::canResearch.
+		Not sure why it doesn't work in this case.
+		Anyway, new function instead. */
+	bool isEverCancelable(PlayerTypes eByPlayer) const;
 	DllExport int turnsToCancel(PlayerTypes eByPlayer = NO_PLAYER);
 
 	DllExport static bool isAnnual(TradeableItems eItem);
@@ -77,6 +84,9 @@ protected:
 
 	bool startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer);
 	void endTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer, bool bTeam);
+	// advc.130p:
+	static void addEndTradeMemory(PlayerTypes eFromPlayer, PlayerTypes eToPlayer,
+			TradeableItems dealType);
 
 	void startTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes eToTeam, bool bDual);
 	void endTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes eToTeam);

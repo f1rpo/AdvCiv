@@ -41,6 +41,7 @@ public:
 	void kill(bool bUpdatePlotGroups);																								// Exposed to Python
 
 	void doTurn();
+	void doRevolt(); // advc.003: previously in CvPlot::doCulture
 
 	bool isCitySelected();
 	DllExport bool canBeSelected() const;
@@ -171,7 +172,9 @@ public:
 	DllExport bool isVisible(TeamTypes eTeam, bool bDebug) const;						// Exposed to Python
 
 	bool isCapital() const;																				// Exposed to Python
-	bool isCoastal(int iMinWaterSize) const;																									// Exposed to Python
+	/* advc.003: Global default used for -1. Also removed that default from all
+	   calls to this function (except those from Python). */
+	bool isCoastal(int iMinWaterSize = -1) const;																									// Exposed to Python
 	bool isDisorder() const;																			// Exposed to Python				 
 	bool isHolyCity(ReligionTypes eIndex) const;									// Exposed to Python				
 	bool isHolyCity() const;																			// Exposed to Python				
@@ -183,6 +186,10 @@ public:
 	int getNoMilitaryPercentAnger() const;																	// Exposed to Python 
 	int getCulturePercentAnger() const;																			// Exposed to Python
 	int getReligionPercentAnger() const;																		// Exposed to Python
+	/*  advc.104: Moved parts of getReligionPercentAnger() into a subroutine.
+		getReligionPercentAnger(PlayerTypes) doesn't check if the city owner is
+		at war with civId; can be used for predicting anger caused by a DoW. */
+	double getReligionPercentAnger(PlayerTypes civId) const;
 	int getHurryPercentAnger(int iExtra = 0) const;																				// Exposed to Python
 	int getConscriptPercentAnger(int iExtra = 0) const;																		// Exposed to Python
 	int getDefyResolutionPercentAnger(int iExtra = 0) const;
@@ -192,7 +199,9 @@ public:
 	int getVassalUnhappiness() const;																		// Exposed to Python
 	int unhappyLevel(int iExtra = 0) const;																	// Exposed to Python 
 	int happyLevel() const;																				// Exposed to Python				
-	int angryPopulation(int iExtra = 0) const;										// Exposed to Python
+	int angryPopulation(int iExtra = 0
+		, bool ignoreCultureRate = false // advc.104
+		) const;										// Exposed to Python
 
 	int visiblePopulation() const;
 	int totalFreeSpecialists() const;															// Exposed to Python				 
@@ -223,7 +232,12 @@ public:
 	int cultureDistance(int iDX, int iDY) const;														// Exposed to Python
 	int cultureStrength(PlayerTypes ePlayer) const;								// Exposed to Python					 
 	int cultureGarrison(PlayerTypes ePlayer) const;								// Exposed to Python					 
-	int culturePressureFactor() const; // K-Mod
+	/*  advc.003: Renamed this function to make clear that's it's part of the
+		AI code and doesn't affect revolt probabilities. (Could move it to CvCityAI,
+		but that class isn't really usable b/c of the flawed object-oriented design.) */
+	int AI_culturePressureFactor() const; // K-Mod
+	// advc.099c:
+	PlayerTypes calculateCulturalOwner() const;
 																																		
 	int getNumBuilding(BuildingTypes eIndex) const;									// Exposed to Python					
 	int getNumActiveBuilding(BuildingTypes eIndex) const;						// Exposed to Python
@@ -233,7 +247,9 @@ public:
 /*                                                                                              */
 /* Bugfix                                                                                       */
 /************************************************************************************************/
-	int getNumActiveWorldWonders() const;
+	int getNumActiveWorldWonders(
+		PlayerTypes ownerId = NO_PLAYER // advc.104d: Allow a hypothetical owner
+		) const;
 /************************************************************************************************/
 /* UNOFFICIAL_PATCH                        END                                                  */
 /************************************************************************************************/
@@ -245,6 +261,9 @@ public:
 	DllExport int getIndex() const;
 	DllExport IDInfo getIDInfo() const;
 	void setID(int iID);
+	/*  advc.104: The same as getID? setID is only called in the EXE, so one can't
+		be sure. */
+	int plotNum() const;
 
 	DllExport int getX() const;																			// Exposed to Python
 #ifdef _USRDLL
@@ -353,14 +372,31 @@ public:
 	int getMaintenance() const;																	// Exposed to Python
 	int getMaintenanceTimes100() const;																	// Exposed to Python
 	void updateMaintenance();
-	int calculateMaintenanceDistance() const; // K-Mod
 	int calculateDistanceMaintenance() const;										// Exposed to Python
 	int calculateNumCitiesMaintenance() const;									// Exposed to Python
 	int calculateColonyMaintenance() const;									// Exposed to Python
 	int calculateCorporationMaintenance() const;									// Exposed to Python
-	int calculateDistanceMaintenanceTimes100() const;										// Exposed to Python
-	int calculateNumCitiesMaintenanceTimes100() const;									// Exposed to Python
-	int calculateColonyMaintenanceTimes100() const;									// Exposed to Python
+	/* <advc.104> Added an optional parameter to allow the computation of
+	   projected maintenance for cities yet to be conquered. */
+	  /* advc.004b: Replaced this K-Mod-introduced function entirely with a
+	     private static function (was only used internally). */
+	  //int calculateMaintenanceDistance() const;
+	int calculateDistanceMaintenanceTimes100(PlayerTypes owner = NO_PLAYER) const;										// Exposed to Python
+	int calculateColonyMaintenanceTimes100(PlayerTypes owner = NO_PLAYER) const;
+	int calculateNumCitiesMaintenanceTimes100(PlayerTypes owner = NO_PLAYER) const;									// Exposed to Python									// Exposed to Python
+	// </advc.104>
+	// <advc.004b> A projection for cities yet to be founded */
+	static int calculateDistanceMaintenanceTimes100(CvPlot* cityPlot,
+			PlayerTypes owner, int population = -1);
+	static int calculateNumCitiesMaintenanceTimes100(CvPlot* cityPlot,
+			PlayerTypes owner, int population = -1, int extraCities = 0);
+	static int calculateColonyMaintenanceTimes100(CvPlot* cityPlot,
+			PlayerTypes owner, int population = -1);
+	static int initialPopulation();
+	private: 
+	  static int calculateMaintenanceDistance(CvPlot* cityPlot, PlayerTypes owner);
+	public:
+	// </advc.004b>
 	int calculateCorporationMaintenanceTimes100(CorporationTypes eCorporation) const;									// Exposed to Python
 	int calculateCorporationMaintenanceTimes100() const;									// Exposed to Python
 	int calculateBaseMaintenanceTimes100() const;
@@ -448,7 +484,8 @@ public:
 /*                                                                                              */
 /************************************************************************************************/
 // From BUG
-	int getAdditionalHealthByBuilding(BuildingTypes eBuilding, int& iGood, int& iBad) const;
+	int getAdditionalHealthByBuilding(BuildingTypes eBuilding, int& iGood, int& iBad,
+			bool assumeStrategicBonuses = false) const; // advc.001h
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
@@ -783,7 +820,23 @@ public:
 	int getCultureTimes100(PlayerTypes eIndex) const;													// Exposed to Python
 	int countTotalCultureTimes100() const;																							// Exposed to Python
 	PlayerTypes findHighestCulture() const;																			// Exposed to Python
-	bool canCultureFlip(PlayerTypes eToPlayer) const; // K-Mod
+	/*  advc.101: Doesn't check if it will flip. Difference from
+		getRevoltTestProbability: that function only returns the probability
+		of the first revolt test, not the second one based on culture garrison.
+		If ignoreWar is set, a probability is returned even if the city can't revolt
+		b/c it's already in occupation and at war with the cultural owner.
+		If ignoreGarrison is set, culture garrison strength is treated as 0.
+		If ignoreOccupation is set, then the probability is computed assuming that
+		the city isn't in occupation.
+		Not factored in: That the revolt test is skipped after decreasing the
+		occupation timer. */
+	double revoltProbability(bool ignoreWar = false,
+			bool ignoreGarrison = false,
+			bool ignoreOccupation = false) const; // advc.023
+	double probabilityOccupationDecrement() const; // advc.023
+	bool canCultureFlip(PlayerTypes eToPlayer
+		, bool checkPriorRevolts = true // advc.101
+		) const; // K-Mod
 	int calculateCulturePercent(PlayerTypes eIndex) const;											// Exposed to Python
 	int calculateTeamCulturePercent(TeamTypes eIndex) const;										// Exposed to Python
 	void setCulture(PlayerTypes eIndex, int iNewValue, bool bPlots, bool bUpdatePlotGroups);			// Exposed to Python
@@ -792,8 +845,9 @@ public:
 	void changeCultureTimes100(PlayerTypes eIndex, int iChange, bool bPlots, bool bUpdatePlotGroups);		// Exposed to Python
 
 	int getNumRevolts(PlayerTypes eIndex) const;
+	int getNumRevolts() const; // advc.099c: To the current cultural owner
 	void changeNumRevolts(PlayerTypes eIndex, int iChange);
-	int getRevoltTestProbability() const;
+	double getRevoltTestProbability() const; // advc.101: Now between 0 and 1
 
 	bool isTradeRoute(PlayerTypes eIndex) const;																	// Exposed to Python
 	void setTradeRoute(PlayerTypes eIndex, bool bNewValue);
@@ -801,7 +855,8 @@ public:
 	bool isEverOwned(PlayerTypes eIndex) const;																		// Exposed to Python
 	void setEverOwned(PlayerTypes eIndex, bool bNewValue);
 
-	DllExport bool isRevealed(TeamTypes eIndex, bool bDebug) const;								// Exposed to Python
+	// advc.003: Default for bDebug added
+	DllExport bool isRevealed(TeamTypes eIndex, bool bDebug = false) const;								// Exposed to Python
 	void setRevealed(TeamTypes eIndex, bool bNewValue);											// Exposed to Python
 
 	bool getEspionageVisibility(TeamTypes eTeam) const;								// Exposed to Python
@@ -1029,7 +1084,11 @@ public:
 /**		BETTER_BTS_AI_MOD						END								*/
 /********************************************************************************/
 	virtual bool AI_isDanger() = 0;
-	virtual int AI_neededDefenders() = 0;
+	// advc.139: param added
+	virtual int AI_neededDefenders(bool ignoreEvac = false) = 0;
+	// <advc.139>
+	virtual void updateEvacuating(double relativeCityVal)=0;
+	virtual bool isEvacuating() const=0; // </advc.139>
 	virtual int AI_neededAirDefenders() = 0;
 	virtual int AI_minDefenders() = 0;
 	virtual bool AI_isEmphasizeAvoidGrowth() const = 0;
@@ -1068,6 +1127,9 @@ public:
 	virtual int AI_getWorkersHave() = 0;
 	virtual int AI_getWorkersNeeded() = 0;
 	virtual void AI_changeWorkersHave(int iChange) = 0;
+	// advc.003: To get rid of a K-Mod cast
+	virtual void AI_ClearConstructionValueCache()=0;
+	virtual bool isAwfulSite(PlayerTypes futureOwnerId) const=0; // advc.122
 
 	bool hasShrine(ReligionTypes eReligion) const;
 	void processVoteSourceBonus(VoteSourceTypes eVoteSource, bool bActive);
@@ -1080,6 +1142,9 @@ public:
 
 protected:
 
+	// <advc.003> Moved here for quicker inspection in debugger
+	CvWString m_szName;
+	PlayerTypes m_eOwner; // </advc.003>
 	int m_iID;
 	int m_iX;
 	int m_iY;
@@ -1181,7 +1246,7 @@ protected:
 	bool m_bLayoutDirty;
 	bool m_bPlundered;
 
-	PlayerTypes m_eOwner;
+	//PlayerTypes m_eOwner; // advc.003: Moved up
 	PlayerTypes m_ePreviousOwner;
 	PlayerTypes m_eOriginalOwner;
 	CultureLevelTypes m_eCultureLevel;
@@ -1213,7 +1278,7 @@ protected:
 	bool* m_abRevealed;
 	bool* m_abEspionageVisibility;
 
-	CvWString m_szName;
+	//CvWString m_szName; // advc.003: Moved up
 	CvString m_szScriptData;
 
 	int* m_paiNoBonus;
@@ -1299,6 +1364,9 @@ protected:
 
 	virtual bool AI_addBestCitizen(bool bWorkers, bool bSpecialists, int* piBestPlot = NULL, SpecialistTypes* peBestSpecialist = NULL) = 0;
 	virtual bool AI_removeWorstCitizen(SpecialistTypes eIgnoreSpecialist = NO_SPECIALIST) = 0;
+
+	double garrisonStrength() const; // advc.500b
+	void damageGarrison(PlayerTypes revoltSource);
 };
 
 #endif

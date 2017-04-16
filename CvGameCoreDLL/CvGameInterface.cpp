@@ -50,11 +50,19 @@ void CvGame::updateColoredPlots()
 		return;
 	}
 
+	// <advc.004h>
+	// Moved up
+	pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+	// See comment in CvUnit.cpp
+	if(pHeadSelectedUnit != NULL) pHeadSelectedUnit->showCityCross();
+	// </advc.004h>
+
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      06/25/09                                jdog5000      */
 /*                                                                                              */
 /* Debug                                                                                        */
 /************************************************************************************************/
+  if(gDLL->getInterfaceIFace()->isShowYields()) { // advc.007
 	// City circles for debugging
 	if (isDebugMode())
 	{
@@ -107,6 +115,7 @@ void CvGame::updateColoredPlots()
 			}
 		}
 	}
+  } // advc.007
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
@@ -157,7 +166,6 @@ void CvGame::updateColoredPlots()
 	}
 
 	pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
-	pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
 
 	if (pHeadSelectedCity != NULL)
 	{
@@ -764,6 +772,13 @@ void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers) con
 		const_cast<CvGame*>(this)->updateTestEndTurn();
 		// again, I'm sorry about the const_cast. this function and updateTestEndTurn are both dllexport functions.
 		// so I can't change the constness of either of them to fix the problem.
+		// <advc.002e> Hide glow when all units moved
+		if(GC.getDefineINT("SHOW_PROMOTION_GLOW") <= 0) {
+			CvPlayer const& owner = GET_PLAYER(pCycleUnit->getOwnerINLINE());
+			int dummy;
+			for(CvUnit* u = owner.firstUnit(&dummy); u != NULL; u = owner.nextUnit(&dummy))
+				gDLL->getEntityIFace()->showPromotionGlow(u->getUnitEntity(), false);
+		} // </advc.002e>
 	}
 	// K-Mod end
 
@@ -1997,12 +2012,17 @@ void CvGame::doControl(ControlTypes eControl)
 	case CONTROL_WORLD_BUILDER:
 		// K-Mod. (original code moved into CvGame::retire)
 		{
-			CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_CONFIRM_MENU);
-			if (NULL != pInfo)
-			{
-				pInfo->setData1(4);
-				gDLL->getInterfaceIFace()->addPopup(pInfo, GC.getGameINLINE().getActivePlayer(), true);
-			}
+			// <advc.007>
+			if(GC.getGameINLINE().isDebugMode())
+				enterWorldBuilder();
+			else { // </advc.007>
+				CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_CONFIRM_MENU);
+				if (NULL != pInfo)
+				{
+					pInfo->setData1(4);
+					gDLL->getInterfaceIFace()->addPopup(pInfo, GC.getGameINLINE().getActivePlayer(), true);
+				}
+			} // advc.007
 		}
 		// K-Mod end
 		break;

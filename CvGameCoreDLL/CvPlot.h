@@ -8,6 +8,8 @@
 //#include "CvStructs.h"
 #include "LinkedList.h"
 #include <bitset>
+// advc.300:
+#include <set>
 
 #pragma warning( disable: 4251 )		// needs to have dll-interface to be used by clients of class
 
@@ -100,6 +102,10 @@ public:
 	bool isRiverSide() const;																																		// Exposed to Python
 	bool isRiver() const;																																				// Exposed to Python
 	bool isRiverConnection(DirectionTypes eDirection) const;																		// Exposed to Python
+	// advc.500:
+	bool isConnectRiverSegments() const;
+	// advc.121: A kind of canal detection
+	bool isConnectSea() const;
 
 	CvPlot* getNearestLandPlotInternal(int iDistance) const;
 	int getNearestLandArea() const;																															// Exposed to Python
@@ -115,7 +121,9 @@ public:
 	void updateSeeFromSight(bool bIncrement, bool bUpdatePlotGroups);
 
 	bool canHaveBonus(BonusTypes eBonus, bool bIgnoreLatitude = false) const;																						// Exposed to Python
-	bool canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam = NO_TEAM, bool bPotential = false) const;		// Exposed to Python
+	bool canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam = NO_TEAM, bool bPotential = false,
+			BuildTypes eBuild = NO_BUILD, bool bAnyBuild = true // dlph.9
+			) const;		// Exposed to Python
 
 	bool canBuild(BuildTypes eBuild, PlayerTypes ePlayer = NO_PLAYER, bool bTestVisible = false) const;														// Exposed to Python
 	int getBuildTime(BuildTypes eBuild) const;																																										// Exposed to Python
@@ -127,7 +135,11 @@ public:
 	CvUnit* getSelectedUnit() const;																																// Exposed to Python
 	int getUnitPower(PlayerTypes eOwner = NO_PLAYER) const;																					// Exposed to Python				
 
-	int defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding, bool bHelp = false) const;									// Exposed to Python				
+	int defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding,
+		/*  advc.012: NO_TEAM means feature defense applies; moved bHelp to the
+			end b/c that parameter is rarely set */
+		TeamTypes eAttacker = NO_TEAM, bool bHelp = false
+		) const;									// Exposed to Python				
 	int movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot) const;														// Exposed to Python				
 
 	int getExtraMovePathCost() const;																																// Exposed to Python
@@ -145,7 +157,8 @@ public:
 /************************************************************************************************/
 	bool isHasPathToEnemyCity( TeamTypes eAttackerTeam, bool bIgnoreBarb = true );
 	bool isHasPathToPlayerCity( TeamTypes eMoveTeam, PlayerTypes eOtherPlayer = NO_PLAYER );
-	int calculatePathDistanceToPlot( TeamTypes eTeam, CvPlot* pTargetPlot );
+	int calculatePathDistanceToPlot( TeamTypes eTeam, CvPlot* pTargetPlot,
+			TeamTypes eTargetTeam = NO_TEAM, DomainTypes dom = NO_DOMAIN); // advc.104b
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
@@ -165,7 +178,9 @@ public:
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
 
-	PlayerTypes calculateCulturalOwner() const;
+	PlayerTypes calculateCulturalOwner(
+		bool ignoreCultureRange = false // advc.099c
+		) const;
 
 	void plotAction(PlotUnitFunc func, int iData1 = -1, int iData2 = -1, PlayerTypes eOwner = NO_PLAYER, TeamTypes eTeam = NO_TEAM);
 	int plotCount(ConstPlotUnitFunc funcA, int iData1A = -1, int iData2A = -1, PlayerTypes eOwner = NO_PLAYER, TeamTypes eTeam = NO_TEAM, ConstPlotUnitFunc funcB = NULL, int iData1B = -1, int iData2B = -1) const;
@@ -177,7 +192,13 @@ public:
 
 	DllExport bool isVisible(TeamTypes eTeam, bool bDebug) const;																			// Exposed to Python
 	DllExport bool isActiveVisible(bool bDebug) const;																								// Exposed to Python
-	bool isVisibleToCivTeam() const;																																	// Exposed to Python
+	bool isVisibleToCivTeam() const;																																// Exposed to Python
+	// <advc.300>
+	bool isCivUnitNearby(int radius) const;
+	void getAdjacentLandAreaIds(std::set<int>& r) const; // Caller provides the set
+	CvPlot const* nearestInvisiblePlot(bool onlyLand, int maxPlotDist,
+			TeamTypes observer) const;
+	// </advc.300>
 	bool isVisibleToWatchingHuman() const;																														// Exposed to Python
 	bool isAdjacentVisible(TeamTypes eTeam, bool bDebug) const;																				// Exposed to Python
 	bool isAdjacentNonvisible(TeamTypes eTeam) const;																				// Exposed to Python
@@ -201,6 +222,8 @@ public:
 	int getNumVisibleEnemyDefenders(const CvUnit* pUnit) const;																				// Exposed to Python
 	int getNumVisiblePotentialEnemyDefenders(const CvUnit* pUnit) const;															// Exposed to Python
 	DllExport bool isVisibleEnemyUnit(PlayerTypes ePlayer) const;																			// Exposed to Python
+	// advc.122:
+	bool isVisibleEnemyCityAttacker(PlayerTypes ePlayer) const;
 	bool isVisiblePotentialEnemyUnit(PlayerTypes ePlayer) const; // K-Mod
 	DllExport int getNumVisibleUnits(PlayerTypes ePlayer) const;
 	bool isVisibleEnemyUnit(const CvUnit* pUnit) const;
@@ -352,6 +375,8 @@ public:
 
 	DllExport CvCity* getPlotCity() const;																																					// Exposed to Python
 	void setPlotCity(CvCity* pNewValue);
+	void setRuinsName(const CvWString& name); // advc.005c
+	const wchar* getRuinsName() const; // advc.005c
 
 	CvCity* getWorkingCity() const;																																				// Exposed to Python
 	void updateWorkingCity();
@@ -371,6 +396,7 @@ public:
 	int getRiverCrossingCount() const;																																	// Exposed to Python
 	void changeRiverCrossingCount(int iChange);
 
+	bool isHabitable(bool ignoreSea = false) const; // advc.300
 	short* getYield();
 	DllExport int getYield(YieldTypes eIndex) const;																										// Exposed to Python
 	int calculateNatureYield(YieldTypes eIndex, TeamTypes eTeam, bool bIgnoreFeature = false) const;		// Exposed to Python
@@ -437,9 +463,13 @@ public:
 	void updateRiverCrossing(DirectionTypes eIndex);
 	void updateRiverCrossing();
 
-	DllExport bool isRevealed(TeamTypes eTeam, bool bDebug) const;																								// Exposed to Python
+	DllExport bool isRevealed(TeamTypes eTeam,
+		bool bDebug = false // advc.003
+		) const;																								// Exposed to Python
 	DllExport void setRevealed(TeamTypes eTeam, bool bNewValue, bool bTerrainOnly, TeamTypes eFromTeam, bool bUpdatePlotGroup);	// Exposed to Python
-	bool isAdjacentRevealed(TeamTypes eTeam) const;																				// Exposed to Python
+	bool isAdjacentRevealed(TeamTypes eTeam
+		, bool skipOcean = false // advc.250c
+		) const;																				// Exposed to Python
 	bool isAdjacentNonrevealed(TeamTypes eTeam) const;																				// Exposed to Python
 
 	DllExport ImprovementTypes getRevealedImprovementType(TeamTypes eTeam, bool bDebug) const;					// Exposed to Python
@@ -450,6 +480,7 @@ public:
 
 	int getBuildProgress(BuildTypes eBuild) const;																											// Exposed to Python  
 	bool changeBuildProgress(BuildTypes eBuild, int iChange, TeamTypes eTeam = NO_TEAM);								// Exposed to Python 
+	void decayBuildProgress(); // advc.011
 
 	void updateFeatureSymbolVisibility(); 
 	void updateFeatureSymbol(bool bForce = false);
@@ -602,6 +633,8 @@ protected:
 	char* m_szScriptData;
 
 	short* m_paiBuildProgress;
+	int turnsBuildsInterrupted; // advc.011
+	CvWString mostRecentCityName; // advc.005c
 
 	CvFeature* m_pFeatureSymbol;
 	CvRoute* m_pRouteSymbol;

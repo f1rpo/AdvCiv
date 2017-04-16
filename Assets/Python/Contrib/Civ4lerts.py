@@ -102,7 +102,7 @@ class Civ4lerts:
 
 	def __init__(self, eventManager):
 		cityEvent = BeginActivePlayerTurnCityAlertManager(eventManager)
-		cityEvent.add(CityOccupation(eventManager))
+		#cityEvent.add(CityOccupation(eventManager)) # advc.210b: Disabled
 		cityEvent.add(CityGrowth(eventManager))
 		cityEvent.add(CityHealthiness(eventManager))
 		cityEvent.add(CityHappiness(eventManager))
@@ -112,6 +112,8 @@ class Civ4lerts:
 		cityEvent = EndTurnReadyCityAlertManager(eventManager)
 		cityEvent.add(CityPendingGrowth(eventManager))
 		
+		WarTrade(eventManager) # advc.210a
+		Revolt(eventManager) # advc.210b
 		GoldTrade(eventManager)
 		GoldPerTurnTrade(eventManager)
 		RefusesToTalk(eventManager)
@@ -149,7 +151,8 @@ def addMessage(iPlayer, szString, szIcon, iFlashX=-1, iFlashY=-1, bOffArrow=Fals
 	
 	Culture:  Zoom to City, Ignore
 	"""
-	eventMessageTimeLong = gc.getDefineINT("EVENT_MESSAGE_TIME_LONG")
+	# advc.106c: Reduced time from LONG to normal
+	eventMessageTimeLong = gc.getDefineINT("EVENT_MESSAGE_TIME")
 	CyInterface().addMessage(iPlayer, True, eventMessageTimeLong,
 							 szString, None, InterfaceMessageTypes.MESSAGE_TYPE_INFO, 
 							 szIcon, ColorTypes(-1),
@@ -757,10 +760,16 @@ class GoldTrade(AbstractStatefulAlert):
 
 	def _reset(self):
 		self.maxGoldTrade = {}
-		for player in range(gc.getMAX_PLAYERS()):
-			self.maxGoldTrade[player] = {}
-			for rival in range(gc.getMAX_PLAYERS()):
-				self._setMaxGoldTrade(player, rival, 0)
+		# <advc.106c> maxGoldForTrade is supposed to be the gold offered
+		# by the AI when an alert was last displayed. This value can't
+		# be restored after loading; it'd have to be saved. I think using
+		# the gold currently offered is close enough.
+		for playerID in range(gc.getMAX_PLAYERS()):
+			self.maxGoldTrade[playerID] = {}
+			for rival in TradeUtil.getGoldTradePartners(playerID):
+				rivalID = rival.getID()
+				self._setMaxGoldTrade(playerID, rivalID, rival.AI_maxGoldTrade(playerID))
+		# </advc.106c>
 
 	def _getMaxGoldTrade(self, player, rival):
 		return self.maxGoldTrade[player][rival]
@@ -796,10 +805,13 @@ class GoldPerTurnTrade(AbstractStatefulAlert):
 
 	def _reset(self):
 		self.maxGoldPerTurnTrade = {}
-		for player in range(gc.getMAX_PLAYERS()):
-			self.maxGoldPerTurnTrade[player] = {}
-			for rival in range(gc.getMAX_PLAYERS()):
-				self._setMaxGoldPerTurnTrade(player, rival, 0)
+		# <advc.106c> See comment on maxGoldTrade
+		for playerID in range(gc.getMAX_PLAYERS()):
+			self.maxGoldPerTurnTrade[playerID] = {}
+			for rival in TradeUtil.getGoldTradePartners(playerID):
+				rivalID = rival.getID()
+				self._setMaxGoldPerTurnTrade(playerID, rivalID, rival.AI_maxGoldPerTurnTrade(playerID))
+		# </advc.106c>
 
 	def _getMaxGoldPerTurnTrade(self, player, rival):
 		return self.maxGoldPerTurnTrade[player][rival]
@@ -882,7 +894,13 @@ class RefusesToTalk(AbstractStatefulAlert):
 	def _reset(self):
 		self.refusals = {}
 		for player in PlayerUtil.players():
-			self.refusals[player.getID()] = set()
+			# <advc.106c> See comment on maxGoldTrade
+			playerID = player.getID()
+			self.refusals[playerID] = set()
+			for rival in PlayerUtil.players(True, False, False, False):
+				if DiplomacyUtil.canContact(player, rival) and not DiplomacyUtil.isWillingToTalk(rival, playerID):
+					self.refusals[playerID].add(rival.getID())
+			# </advc.106c>
 
 class WorstEnemy(AbstractStatefulAlert):
 	"""
@@ -891,13 +909,19 @@ class WorstEnemy(AbstractStatefulAlert):
 	def __init__(self, eventManager):
 		AbstractStatefulAlert.__init__(self, eventManager)
 		eventManager.addEventHandler("BeginActivePlayerTurn", self.onBeginActivePlayerTurn)
-
 # EF: the worst enemy is updated at the end of each team's turn, so these are pointless
-#		eventManager.addEventHandler("changeWar", self.onChangeWar)
-#		eventManager.addEventHandler("firstContact", self.onFirstContact)
-#		eventManager.addEventHandler("cityRazed", self.onCityRazed)
-#		eventManager.addEventHandler("vassalState", self.onVassalState)
-#		eventManager.addEventHandler("playerChangeStateReligion", self.onPlayerChangeStateReligion)
+		# <advc.130e> Now updated more timely, so these aren't pointless;
+		#             however, not all attitude changes are covered by the
+		#             handlers. Updating just once per turn is at least
+		#             consistent. Also, all these triggers are announced anyway,
+		#             so an additional alert isn't all that helpful.
+		#             E.g. if a war is declared, the player can probably
+		#             guess that this affects worst-enemy status.
+		#eventManager.addEventHandler("changeWar", self.onChangeWar)
+		#eventManager.addEventHandler("firstContact", self.onFirstContact)
+		#eventManager.addEventHandler("cityRazed", self.onCityRazed)
+		#eventManager.addEventHandler("vassalState", self.onVassalState)
+		#eventManager.addEventHandler("playerChangeStateReligion", self.onPlayerChangeStateReligion)
 
 	def onBeginActivePlayerTurn(self, argsList):
 		self.check()
@@ -932,7 +956,9 @@ class WorstEnemy(AbstractStatefulAlert):
 				return
 		self.check()
 
-	def check(self):
+	# advc.106c: Easiest in this case to do intialization through a
+	# silent check - added param 'silent'
+	def check(self, silent=False):
 		if (not Civ4lertsOpt.isShowWorstEnemyAlert()):
 			return
 		eActivePlayer = PlayerUtil.getActivePlayerID()
@@ -973,14 +999,15 @@ class WorstEnemy(AbstractStatefulAlert):
 						else:
 							message = BugUtil.getText("TXT_KEY_CIV4LERTS_ON_SWITCH_WORST_ENEMY", 
 									(gc.getTeam(eTeam).getName(), gc.getTeam(eNewEnemy).getName(), gc.getTeam(eOldEnemy).getName()))
-					if message:
+					if message and not silent: # advc.106c
 						addMessageNoIcon(eActivePlayer, message)
 		for eEnemy, haters in delayedMessages.iteritems():
 			if eActiveTeam == eEnemy:
 				message = BugUtil.getText("TXT_KEY_CIV4LERTS_ON_YOU_WORST_ENEMY", haters)
 			else:
 				message = BugUtil.getText("TXT_KEY_CIV4LERTS_ON_WORST_ENEMY", (haters, gc.getTeam(eEnemy).getName()))
-			addMessageNoIcon(eActivePlayer, message)
+			if not silent: # advc.106c
+				addMessageNoIcon(eActivePlayer, message)
 
 	def _reset(self):
 		"""
@@ -990,3 +1017,44 @@ class WorstEnemy(AbstractStatefulAlert):
 		self.enemies = {}
 		for player in PlayerUtil.players():
 			self.enemies[player.getID()] = [-1] * gc.getMAX_TEAMS()
+		self.check(True) # advc.106c
+
+# <advc.210a>
+class WarTrade(AbstractStatefulAlert):
+
+	def __init__(self, eventManager):
+		AbstractStatefulAlert.__init__(self, eventManager)
+		eventManager.addEventHandler("BeginActivePlayerTurn", self.onBeginActivePlayerTurn)
+		self.id = 0
+
+	def onBeginActivePlayerTurn(self, argsList):
+		self.check()
+
+	def check(self, silent=False):
+		if not Civ4lertsOpt.isShowWarTradeAlert():
+			return
+		gc.getPlayer(PlayerUtil.getActivePlayerID()).checkAlert(self.id, silent)
+
+	def _reset(self):
+		self.check(True)
+# </advc.210a>
+
+# <advc.210b>
+class Revolt(AbstractStatefulAlert):
+
+	def __init__(self, eventManager):
+		AbstractStatefulAlert.__init__(self, eventManager)
+		eventManager.addEventHandler("BeginActivePlayerTurn", self.onBeginActivePlayerTurn)
+		self.id = 1
+
+	def onBeginActivePlayerTurn(self, argsList):
+		self.check()
+
+	def check(self, silent=False):
+		if not Civ4lertsOpt.isShowRevoltAlert():
+			return
+		gc.getPlayer(PlayerUtil.getActivePlayerID()).checkAlert(self.id, silent)
+
+	def _reset(self):
+		self.check(True)
+# </advc.210b>

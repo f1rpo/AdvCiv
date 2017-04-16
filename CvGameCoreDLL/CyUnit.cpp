@@ -1453,7 +1453,7 @@ void CyUnit::setMadeInterception(bool bNewValue)
 
 bool CyUnit::isPromotionReady() 
 {
-	return m_pUnit ? m_pUnit->isPromotionReady() : false;
+	return m_pUnit ? m_pUnit->isReadyForPromotion() : false; // advc.002e
 }
 
 void CyUnit::setPromotionReady(bool bNewValue)

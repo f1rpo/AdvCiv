@@ -211,7 +211,9 @@ int CyPlot::movementCost(CyUnit* pUnit, CyPlot* pFromPlot)
 
 int CyPlot::defenseModifier(int iDefendTeam, bool bIgnoreBuilding, bool bHelp)
 {
-	return m_pPlot ? m_pPlot->defenseModifier((TeamTypes)iDefendTeam, bIgnoreBuilding, bHelp) : -1;
+	return m_pPlot ? m_pPlot->defenseModifier((TeamTypes)iDefendTeam, bIgnoreBuilding,
+		NO_TEAM, // advc.012: Python callers (none currently) always have feature defense included this way
+		bHelp) : -1;
 }
 
 int CyPlot::getExtraMovePathCost()

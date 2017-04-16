@@ -193,9 +193,13 @@ void CvSelectionGroup::doTurn()
 		// wake unit if skipped last turn 
 		//		or healing and automated or no longer hurt (automated healing is one turn at a time)
 		//		or on sentry and there is danger
+		// advc.004l: Also wake the unit if healing outside of a city and danger:
+		bool bSentryAlert = sentryAlert();
 		if (eActivityType == ACTIVITY_HOLD ||
-			(eActivityType == ACTIVITY_HEAL && (AI_isControlled() || !bHurt)) ||
-			(eActivityType == ACTIVITY_SENTRY && sentryAlert()))
+			(eActivityType == ACTIVITY_HEAL && (AI_isControlled() || !bHurt
+			|| (bSentryAlert && !plot()->isCity()) // advc.004l
+			)) ||
+			(eActivityType == ACTIVITY_SENTRY && bSentryAlert))
 		{
 			setActivityType(ACTIVITY_AWAKE);
 		}
@@ -313,7 +317,46 @@ bool CvSelectionGroup::showMoves() const
 					{
 						if (kLoopPlayer.isOption(PLAYEROPTION_SHOW_FRIENDLY_MOVES))
 						{
-							return true;
+							// <advc.102> Hide uninteresting friendly moves.
+							PlayerTypes groupOwner = m_eOwner;
+							PlayerTypes spectator = kLoopPlayer.getID();
+							PlayerTypes plotOwner = plot()->getOwnerINLINE();
+							bool isAwayFromHome = groupOwner != plotOwner;
+							bool isInSpectatorsBorders = spectator == plotOwner;
+							bool showSoloMoves = GC.getDefineINT("SHOW_FRIENDLY_SOLO_MOVES"),
+							       showWorkers = GC.getDefineINT("SHOW_FRIENDLY_WORKER_MOVES"),
+							         showShips = GC.getDefineINT("SHOW_FRIENDLY_SEA_MOVES"),
+							// Also refers to Executives; those have the same Unit AI
+						      showMissionaries = GC.getDefineINT("SHOW_FRIENDLY_MISSIONARY_MOVES");
+							// This is just to avoid cycling through the units (efficiency)
+							if(isInSpectatorsBorders || ((showMissionaries || showSoloMoves)
+									&& isAwayFromHome))
+								return true;
+							if(showWorkers && showShips && showMissionaries && showSoloMoves)
+								return true;
+							for(CLLNode<IDInfo>* uNode = headUnitNode(); uNode != NULL;
+									uNode = nextUnitNode(uNode)) {
+								CvUnit& u = *(::getUnit(uNode->m_data));
+								bool isSeaUnit = u.getDomainType() == DOMAIN_SEA;
+								bool isCombatant = u.getUnitCombatType() != NO_UNITCOMBAT;
+								if(!isSeaUnit && isCombatant && !isAwayFromHome
+										&& plot()->getNumUnits() == 1)
+									return false;
+								bool isWorker = (u.AI_getUnitAIType() == UNITAI_WORKER ||
+										u.AI_getUnitAIType() == UNITAI_WORKER_SEA);
+								bool isNonCargoShip = (isSeaUnit && u.cargoSpace() <= 1);
+								bool isMissionary = u.AI_getUnitAIType() == UNITAI_MISSIONARY;
+								if(!isMissionary && isAwayFromHome)
+									return true;
+								if((isWorker && showWorkers) || (isNonCargoShip && showShips) ||
+										(isMissionary && showMissionaries))
+									return true;
+								if(!isWorker && !isNonCargoShip && !isMissionary)
+									return true;
+							}
+							return false;
+							// original code was:
+							//return true; </advc.102>
 						}
 					}
 				}
@@ -1243,6 +1286,7 @@ void CvSelectionGroup::startMission()
 		}
 	}
 }
+
 // K-Mod. CvSelectionGroup::continueMission used to be a recursive function.
 // I've moved the bulk of the function into a new function, and turned continueMission into just a simple loop to remove the recursion.
 void CvSelectionGroup::continueMission()
@@ -1309,7 +1353,8 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 	}
 
 	// K-Mod. 'direct attack' should be used for attack commands only. (But in simultaneous turns mode, the defenders might have already left.)
-	FAssert(bDone || !(headMissionQueueNode()->m_data.iFlags & MOVE_DIRECT_ATTACK) || GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS));
+	// advc.006: Keeps triggering now and then w/o obvious problems.
+	//FAssert(bDone || !(headMissionQueueNode()->m_data.iFlags & MOVE_DIRECT_ATTACK) || GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS));
 
 	if (!bDone)
 	{
@@ -1695,7 +1740,7 @@ bool CvSelectionGroup::canDoCommand(CommandTypes eCommand, int iData1, int iData
 		return false;
 
 	pUnitNode = headUnitNode();
-
+	
 	while (pUnitNode != NULL)
 	{
 		pLoopUnit = ::getUnit(pUnitNode->m_data);
@@ -1703,11 +1748,16 @@ bool CvSelectionGroup::canDoCommand(CommandTypes eCommand, int iData1, int iData
 
 		if (pLoopUnit->canDoCommand(eCommand, iData1, iData2, bTestVisible, false))
 		{
-			return true;
-		}
+			if(eCommand != COMMAND_LOAD) // advc.123c
+				return true;
+		} /*  <advc.123c> Normally, a group can do a command if any unit can do it,
+			  but in the case of loading, it seems easier to make an exception than
+			  to have the load command fail for some of the selected units. */
+		else if(eCommand == COMMAND_LOAD)
+			return false; // </advc.123c>
 	}
 
-	return false;
+	return eCommand == COMMAND_LOAD; // advc.123c: was //return false;
 }
 
 bool CvSelectionGroup::canEverDoCommand(CommandTypes eCommand, int iData1, int iData2, bool bTestVisible, bool bUseCache)
@@ -3271,42 +3321,55 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 	return bAttack;
 }
 
-// Most of this function has been restructured / edited for K-Mod.
+
 void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUnit, bool bEndMove)
 {
 	//PROFILE_FUNC();
-	FAssert(!isBusy());
+
+	FAssert(!isBusy()); // K-Mod
+
+	CLLNode<IDInfo>* pUnitNode;
+	CvUnit* pLoopUnit;
 
 	// K-Mod. Some variables to help us regroup appropriately if not everyone can move.
 	CvSelectionGroup* pStaticGroup = 0;
 	UnitAITypes eHeadAI = getHeadUnitAI();
 
-	// Copy the list of units to move. (Units may be bumped or killed during the move process; which could mess up the group.)
-	std::vector<IDInfo> originalGroup;
-
+	// Move the combat unit first, so that no-capture units don't get unneccarily left behind.
 	if (pCombatUnit)
-		originalGroup.push_back(pCombatUnit->getIDInfo());
-
-	for (CLLNode<IDInfo>* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode))
-	{
-		if (pCombatUnit == NULL || pUnitNode->m_data != pCombatUnit->getIDInfo())
-			originalGroup.push_back(pUnitNode->m_data);
-	}
-	FAssert(originalGroup.size() == getNumUnits());
+		pCombatUnit->move(pPlot, true);
 	// K-Mod end
 
-	//while (pUnitNode != NULL)
-	for (std::vector<IDInfo>::iterator it = originalGroup.begin(); it != originalGroup.end(); ++it) // K-Mod
+  /* <advc.001> Units that can't capture cities move in stage 1 (i.e. always last).
+     This allows other units to capture an empty city, and then all units can
+	 advance as one group. Relevant when attacking with a Gunship grouped
+	 together with weaker units. (pCombatUnit is then NULL.)
+	 CvUnit::updateCombat may still unselect the no-capture unit through
+	 checkRemoveSelectionAfterAttack. This could be fixed, doesn't seem worth
+	 the trouble.
+	 K-Mod 1.45 has rewritten this function, which may fix the problem (and some others
+	 too), but then I'd also have to merge the K-Mod fix for the Gunship city capture
+	 bug ... too much work. */
+  for(int stage = 0; stage < 2; stage++) {
+	pUnitNode = headUnitNode(); // Moved down </advc.001>
+	while (pUnitNode != NULL)
 	{
-		//CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		//pUnitNode = nextUnitNode(pUnitNode);
-		CvUnit* pLoopUnit = ::getUnit(*it);
+		pLoopUnit = ::getUnit(pUnitNode->m_data);
+		pUnitNode = nextUnitNode(pUnitNode);
 
 		//if ((pLoopUnit->canMove() && ((bCombat && (!(pLoopUnit->isNoCapture()) || !(pPlot->isEnemyCity(*pLoopUnit)))) ? pLoopUnit->canMoveOrAttackInto(pPlot) : pLoopUnit->canMoveInto(pPlot))) || (pLoopUnit == pCombatUnit))
 		// K-Mod
-		if (pLoopUnit == NULL)
-			continue;
-		if (pLoopUnit->canMove() && (bCombat ? pLoopUnit->canMoveOrAttackInto(pPlot) : pLoopUnit->canMoveInto(pPlot)))
+		if (pLoopUnit == pCombatUnit)
+			continue; // this unit is moved before the loop.
+		// <advc.001>
+		if((bool)stage != pLoopUnit->isNoCapture())
+			continue; // </advc.001>
+		if (pLoopUnit->canMove() && 
+				/* advc.001: This condition was removed in K-Mod 1.44, but is
+			       needed b/c canMoveOrAttackInto doesn't cover it
+			       (perhaps it should). */
+				!(pLoopUnit->isNoCapture() && pPlot->isEnemyCity(*pLoopUnit)) &&
+			(bCombat ? pLoopUnit->canMoveOrAttackInto(pPlot) : pLoopUnit->canMoveInto(pPlot)))
 		{
 			pLoopUnit->move(pPlot, true);
 		}
@@ -3319,29 +3382,30 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 			// K-Mod. all units left behind should stay in the same group. (unless it would mean a change of group AI)
 			// (Note: it is important that units left behind are not in the original group.
 			// The later code assumes that the original group has moved, and if it hasn't, there will be an infinite loop.)
-			if (pStaticGroup)
+			if (pStaticGroup && (isHuman() || pStaticGroup->getHeadUnitAI() == eHeadAI))
 				pLoopUnit->joinGroup(pStaticGroup, true);
 			else
 			{
 				pLoopUnit->joinGroup(0, true);
-				if (isHuman() || pLoopUnit->AI_getUnitAIType() == eHeadAI)
-					pStaticGroup = pLoopUnit->getGroup();
-				// else -- wwe could track the ungrouped units; but I don't think there's much point.
+				pStaticGroup = pLoopUnit->getGroup();
 			}
 			//
 		}
 		// K-Mod. If the unit is no longer in the original group; then display it's movement animation now.
+		// (this replaces the ExecuteMove line commented out in the above block, and it also handles the case of loading units onto boats.)
 		if (pLoopUnit->getGroupID() != getID())
 			pLoopUnit->ExecuteMove(((float)(GC.getMissionInfo(MISSION_MOVE_TO).getTime() * gDLL->getMillisecsPerTurn())) / 1000.0f, false);
-	}
+		// K-Mod end
+	} // advc.001
+  }
 
-	// Execute move animation for units still in this group.
+	//execute move
 	if(bEndMove || !canAllMove())
 	{
-		CLLNode<IDInfo>* pUnitNode = headUnitNode();
+		pUnitNode = headUnitNode();
 		while(pUnitNode != NULL)
 		{
-			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+			pLoopUnit = ::getUnit(pUnitNode->m_data);
 			pUnitNode = nextUnitNode(pUnitNode);
 
 			pLoopUnit->ExecuteMove(((float)(GC.getMissionInfo(MISSION_MOVE_TO).getTime() * gDLL->getMillisecsPerTurn())) / 1000.0f, false);
@@ -3521,7 +3585,12 @@ bool CvSelectionGroup::groupBuild(BuildTypes eBuild)
 	// Note. The only time this bit of code might matter is if the automated unit has orders queued. Ideally, the AI should never issue orders which violate the leave old improvements rule.
 	if (isAutomated() && GET_PLAYER(getOwnerINLINE()).isOption(PLAYEROPTION_SAFE_AUTOMATION) &&
 		GC.getBuildInfo(eBuild).getImprovement() != NO_IMPROVEMENT && pPlot->getImprovementType() != NO_IMPROVEMENT &&
-		pPlot->getImprovementType() != GC.getDefineINT("RUINS_IMPROVEMENT"))
+		pPlot->getImprovementType() != GC.getDefineINT("RUINS_IMPROVEMENT")
+		// <advc.121> Forts on unworkable tiles are OK despite SAFE_AUTOMATION.
+		&& (
+		!GC.getImprovementInfo((ImprovementTypes)GC.getBuildInfo(eBuild).
+		getImprovement()).isActsAsCity() || pPlot->getWorkingCity() == NULL)
+		) // </advc.121>
 	{
 		FAssertMsg(false, "AI has issued an order which violates PLAYEROPTION_SAFE_AUTOMATION"); 
 		return false;
@@ -3852,6 +3921,7 @@ bool CvSelectionGroup::canDoMission(int iMission, int iData1, int iData2, CvPlot
 			break;
 
 		case MISSION_SEAPATROL:
+			return false; // advc.004k
 			if (!bValid && pLoopUnit->canSeaPatrol(pPlot))
 			{
 				if (!bCheckMoves)
@@ -3909,7 +3979,15 @@ bool CvSelectionGroup::canDoMission(int iMission, int iData1, int iData2, CvPlot
 			break;
 
 		case MISSION_PLUNDER:
-			if (pLoopUnit->canPlunder(pPlot, bTestVisible) && (!bCheckMoves || pLoopUnit->canMove()))
+			if (pLoopUnit->canPlunder(pPlot, bTestVisible) &&
+					/*  advc.001: Replacing the clause below. The bug occurred when
+						a player set a unit to Blockade (=plunder), spending all its
+						movement points, and then clicking on the Blockade button
+						again. The unit then stopped blockading. Not sure if this
+						is the best way to fix it, but it least it works: Hides the
+						Blockade button when a unit has no moves left. */
+					pLoopUnit->canMove())
+					//(!bCheckMoves || pLoopUnit->canMove()))
 				return true;
 			break;
 
@@ -4304,7 +4382,9 @@ bool CvSelectionGroup::generatePath( const CvPlot* pFromPlot, const CvPlot* pToP
 {
 	// K-Mod - if I can stop the UI from messing with this pathfinder, I might be able to reduce OOS bugs.
 	// (note, the const-cast is just to get around the bad code from the original developers)
-	FAssert(const_cast<CvSelectionGroup*>(this)->AI_isControlled());
+	FAssert(const_cast<CvSelectionGroup*>(this)->AI_isControlled()
+		|| CvUnit::measuringDistance != NO_TEAM // advc.104b
+		);
 	// K-Mod end
 
 	PROFILE("CvSelectionGroup::generatePath()")

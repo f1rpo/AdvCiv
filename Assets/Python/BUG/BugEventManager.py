@@ -416,6 +416,20 @@ class BugEventManager(CvEventManager.CvEventManager):
 		self.iActiveTurn = -1
 		self.eActivePlayer = -1
 		self.bEndTurnFired = False
+		
+	# <advc.106c> Normal reset, then set current values
+	# in order to prevent checkActivePlayerTurnStart from firing
+	# right after loading a game. Still fires when Python modules
+	# are reloaded, which causes (harmless) exceptions in Civ4lerts.
+	# Tbd.: BugEventManager should somehow detect during initialization
+	# whether it's the game is starting or if modules are being reloaded.
+	# In the latter case, resetActiveTurnAfterLoad needs to be called
+	# instead of resetActiveTurn.
+	def resetActiveTurnAfterLoad(self, argsList=None):
+		self.resetActiveTurn()
+		self.iActiveTurn = gc.getGame().getGameTurn()
+		self.eActivePlayer = gc.getGame().getActivePlayer()
+	# </advc.106c>
 	
 	def checkActivePlayerTurnStart(self):
 		"""Fires the BeginActivePlayerTurn event if either the active player or game turn
@@ -589,8 +603,9 @@ def configure(logging=None, noLogEvents=None):
 		ChangePlayer.ChangePlayer(g_eventManager)
 		Tester.Tester(g_eventManager)
 
+	# advc.106c: Changed OnLoad handler
 	g_eventManager.addEventHandler("kbdEvent", g_eventManager.onKbdEvent)
-	g_eventManager.addEventHandler("OnLoad", g_eventManager.resetActiveTurn)
+	g_eventManager.addEventHandler("OnLoad", g_eventManager.resetActiveTurnAfterLoad)
 	g_eventManager.addEventHandler("GameStart", g_eventManager.resetActiveTurn)
 	g_eventManager.addEventHandler("gameUpdate", g_eventManager.onGameUpdate)
 	# --

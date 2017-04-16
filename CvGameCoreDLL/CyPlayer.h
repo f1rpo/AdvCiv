@@ -51,6 +51,7 @@ public:
 	void killUnits();
 	bool hasTrait(int /*TraitTypes*/ iIndex);
 	bool isHuman();
+	bool isHumanDisabled(); // advc.127
 	bool isBarbarian();
 	std::wstring getName();
 	std::wstring getNameForm(int iForm);
@@ -146,8 +147,7 @@ public:
 	int calculateUnitCost();
 	int calculateUnitSupply();
 	int calculatePreInflatedCosts();
-	//int calculateInflationRate();
-	int getInflationRate(); // K-Mod
+	int calculateInflationRate();
 	int calculateInflatedCosts();
 	int calculateGoldRate();
 	int calculateTotalCommerce();
@@ -478,7 +478,8 @@ public:
 	void AI_updateFoundValues(bool bStartingLoc);
 	int AI_foundValue(int iX, int iY, int iMinUnitRange/* = -1*/, bool bStartingLoc/* = false*/);
 	bool AI_isFinancialTrouble();
-	bool AI_isWillingToTalk(int /*PlayerTypes*/ ePlayer) { return m_pPlayer ? m_pPlayer->AI_isWillingToTalk((PlayerTypes)ePlayer) : false; } // K-Mod
+	// advc.104l: Moved definition into .cpp file
+	bool AI_isWillingToTalk(int /*PlayerTypes*/ ePlayer); // K-Mod
 	bool AI_demandRebukedWar(int /*PlayerTypes*/ ePlayer);
 	AttitudeTypes AI_getAttitude(int /*PlayerTypes*/ ePlayer);
 	int AI_unitValue(int /*UnitTypes*/ eUnit, int /*UnitAITypes*/ eUnitAI, CyArea* pArea);
@@ -517,6 +518,7 @@ public:
 	bool canHaveTradeRoutesWith(int iPlayer);
 
 	void forcePeace(int iPlayer);
+	void checkAlert(int alertId, bool silent); // advc.210
 
 private:
 	CvPlayer* m_pPlayer;

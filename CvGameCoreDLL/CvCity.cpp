@@ -271,7 +271,10 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 	setGameTurnFounded(GC.getGameINLINE().getGameTurn());
 	setGameTurnAcquired(GC.getGameINLINE().getGameTurn());
 
-	changePopulation(GC.getDefineINT("INITIAL_CITY_POPULATION") + GC.getEraInfo(GC.getGameINLINE().getStartEra()).getFreePopulation());
+	changePopulation(
+		// advc.004b: No functional change, just needed the same thing elsewhere
+		initialPopulation()
+		);
 
 	changeAirUnitCapacity(GC.getDefineINT("CITY_AIR_UNIT_CAPACITY"));
 
@@ -305,7 +308,9 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 				}
 			}
 
-			if (!isHuman())
+			if (!isHuman()
+					&& !GC.getGameINLINE().isOption(GAMEOPTION_SPAH) // advc.250b
+				)
 			{
 				changeOverflowProduction(GC.getDefineINT("INITIAL_AI_CITY_PRODUCTION"), 0);
 			}
@@ -788,6 +793,7 @@ void CvCity::kill(bool bUpdatePlotGroups)
 /************************************************************************************************/
 
 	pPlot->setPlotCity(NULL);
+	pPlot->setRuinsName(getName()); // advc.005c
 
 /************************************************************************************************/
 /* UNOFFICIAL_PATCH                       03/04/10                                jdog5000      */
@@ -960,10 +966,12 @@ void CvCity::doTurn()
 		changeCultureUpdateTimer(-1);
 	}
 
-	if (getOccupationTimer() > 0)
+	/*  advc.023: Now handled in doRevolt (which is called at the start of a round,
+		not the end of a player turn) */
+	/*if (getOccupationTimer() > 0)
 	{
 		changeOccupationTimer(-1);
-	}
+	}*/
 
 	if (getHurryAngerTimer() > 0)
 	{
@@ -1072,6 +1080,127 @@ void CvCity::doTurn()
 	// XXX
 }
 
+// <advc.003> Code cut and pasted from CvPlot::doCulture; also refactored.
+void CvCity::doRevolt() { PROFILE("CvCity::doRevolts()")
+
+	if(isOccupation()) { // <advc.023>
+		double prDecr = probabilityOccupationDecrement();
+		if(::bernoulliSuccess(prDecr)) {
+			changeOccupationTimer(-1);
+			return;
+		}
+	} // </advc.023>
+	PlayerTypes eCulturalOwner = calculateCulturalOwner();
+	// <advc.099c>
+	PlayerTypes ownerIgnRange = eCulturalOwner;
+	if(GC.getDefineINT("REVOLTS_IGNORE_CULTURE_RANGE") > 0)
+		ownerIgnRange = plot()->calculateCulturalOwner(true);
+	// If not within culture range, can revolt but not flip 
+	bool canFlip = (ownerIgnRange == eCulturalOwner);
+	eCulturalOwner = ownerIgnRange;
+	// </advc.099c>
+	/*  <advc.101> To avoid duplicate code in CvDLLWidgetData::parseNationalityHelp,
+		compute the revolt probability in a separate function. */
+	double prRevolt = revoltProbability();
+	if(!::bernoulliSuccess(prRevolt))
+		return; // </advc.101>
+	damageGarrison(eCulturalOwner); // advc.003: Code moved into subroutine 
+	if(canFlip && // advc.099
+			canCultureFlip(eCulturalOwner)) {
+		if(GC.getGameINLINE().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) &&
+				GET_PLAYER(eCulturalOwner).isHuman())
+			kill(true);
+		else plot()->setOwner(eCulturalOwner, true, true); // will delete pCity
+		/*  advc.003 (comment): setOwner doesn't actually delete this object; just
+			calls CvCity::kill. Messages also handled by setOwner (through
+			CvPlayer::acquireCity). */
+		return;
+	}
+	/* K-Mod, 11/jan/11, karadoc
+	** Changed number of revolt turns to not depend on iCityStrength,
+	** because iCityStrength can be huge. */
+	/* original bts code
+	pCity->changeOccupationTimer(GC.getDefineINT("BASE_REVOLT_OCCUPATION_TURNS")
+	+ ((iCityStrength * GC.getDefineINT("REVOLT_OCCUPATION_TURNS_PERCENT")) /
+	100));*/
+	// <advc.023>
+	/*  Removed factor 2 from the second summand. K-Mod 1.45 changelog said:
+		'Decreased the duration of revolts from
+		 3+2*(previous revolts) to 2+(previous revolts). (...)
+		 The net effect of these changes is that (...) the number of turns spent
+		 in revolt will be similar to before (...).'
+		This is just what I need now that the occupation timer decreases
+		probabilistically, but wasn't committed to the K-Mod repository.
+		So I'm adding it here. */
+	int turnsOccupation = GC.getDefineINT("BASE_REVOLT_OCCUPATION_TURNS")
+			+ getNumRevolts(eCulturalOwner); // </advc.023>
+	// K-Mod end
+	changeNumRevolts(eCulturalOwner, 1);
+	if(!isOccupation()) // advc.023: Don't prolong revolt
+		changeOccupationTimer(turnsOccupation);
+	CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_REVOLT_IN_CITY",
+			GET_PLAYER(eCulturalOwner).getCivilizationAdjective(),
+			getNameKey());
+	// <advc.023>
+	/*  Population loss if pCity should flip, but can't. We know at this point
+		that the current revolt doesn't flip the city; but can it ever flip? */
+	if((!canFlip || !canCultureFlip(eCulturalOwner, false)) &&
+			getNumRevolts(eCulturalOwner) >= GC.getNUM_WARNING_REVOLTS() &&
+			getPopulation() > 1) {
+		changePopulation(-1);
+		// Says "Citizens have been killed"
+		szBuffer.append(L" " + gDLL->getText("TXT_KEY_EVENT_HURRICANE_2"));
+	} // </advc.023>
+	/*  <advc.101> BtS comment: "XXX announce for all seen cities?"
+		I guess that's better. Mustn't startle third parties with color
+		and sound though. */
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+		CvPlayer const& civ = GET_PLAYER((PlayerTypes)i);
+		if(!civ.isAlive() || civ.isMinorCiv())
+			continue;
+		bool affected = (civ.getID() == eCulturalOwner ||
+				civ.getID() == getOwnerINLINE());
+		if(!affected && !isRevealed(civ.getTeam()))
+			continue;
+		InterfaceMessageTypes msgType = MESSAGE_TYPE_INFO;
+		LPCTSTR sound = NULL;
+		// Color of both the text and the flashing icon
+		ColorTypes color = (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE");
+		if(affected) {
+			msgType = MESSAGE_TYPE_MINOR_EVENT;
+			sound = "AS2D_CITY_REVOLT";
+			if(civ.getID() == getOwnerINLINE())
+				color = (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN");
+			else color = (ColorTypes)GC.getInfoTypeForString("COLOR_RED");
+		}
+		gDLL->getInterfaceIFace()->addHumanMessage(civ.getID(), false,
+				GC.getEVENT_MESSAGE_TIME(), szBuffer, sound, msgType,
+				ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),
+				color, getX_INLINE(), getY_INLINE(), true, true);
+	} // </advc.101>
+}
+
+void CvCity::damageGarrison(PlayerTypes revoltSource) {
+
+	CLinkList<IDInfo> oldUnits;
+	CLLNode<IDInfo>* pUnitNode = plot()->headUnitNode();
+	while(pUnitNode != NULL) {
+		oldUnits.insertAtEnd(pUnitNode->m_data);
+		pUnitNode = plot()->nextUnitNode(pUnitNode);
+	}
+	pUnitNode = oldUnits.head();
+	while(pUnitNode != NULL) {
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+		pUnitNode = plot()->nextUnitNode(pUnitNode);
+		if(pLoopUnit == NULL)
+			continue;
+		if(pLoopUnit->isBarbarian())
+			pLoopUnit->kill(false, revoltSource);
+		else if(pLoopUnit->canDefend())
+			pLoopUnit->changeDamage((pLoopUnit->currHitPoints() / 2),
+					revoltSource);
+	}
+}// </advc.003>
 
 bool CvCity::isCitySelected()
 {
@@ -1329,8 +1458,20 @@ bool CvCity::canWork(CvPlot* pPlot) const
 		}
 
 		if (pPlot->getBlockadedCount(getTeam()) > 0)
-		{
-			return false;
+		{   /*  <advc.124> Should work, but I don't want units to overwrite
+				blockades after all. */
+			/*bool isDefended = false;
+			for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+				PlayerTypes civId = (PlayerTypes)i;
+				if(GET_PLAYER(civId).isAlive() && TEAMREF(civId).getMasterTeam() ==
+						TEAMREF(getOwnerINLINE()).getMasterTeam() &&
+						pPlot->isVisibleOtherUnit(civId)) {
+					isDefended = true;
+					break;
+				}
+			}
+			if(!isDefended) */// </advc.124>
+				return false;
 		}
 
 		/* Replaced by blockade mission, above
@@ -4158,6 +4299,8 @@ bool CvCity::isCapital() const
 
 bool CvCity::isCoastal(int iMinWaterSize) const
 {
+	// advc.003:
+	if(iMinWaterSize < 0) iMinWaterSize = GC.getMIN_WATER_SIZE_FOR_OCEAN();
 	return plot()->isCoastalLand(iMinWaterSize);
 }
 
@@ -4246,62 +4389,101 @@ int CvCity::getOvercrowdingPercentAnger(int iExtra) const
 
 int CvCity::getNoMilitaryPercentAnger() const
 {
-	int iAnger;
+	if(GC.getDefineINT("DEMAND_BETTER_PROTECTION") <= 0) { // advc.500b
+		int iAnger;
 
-	iAnger = 0;
+		iAnger = 0;
 
-	if (getMilitaryHappinessUnits() == 0)
-	{
-		iAnger += GC.getDefineINT("NO_MILITARY_PERCENT_ANGER");
+		if (getMilitaryHappinessUnits() == 0)
+		{
+			iAnger += GC.getDefineINT("NO_MILITARY_PERCENT_ANGER");
+		}
+
+		return iAnger;
+	// <advc.500b>
 	}
-
-	return iAnger;
+	double const actualGarrStr = garrisonStrength();
+	double const targetGarrStr = getPopulation() / 2.0;
+	if(actualGarrStr >= targetGarrStr)
+		return 0;
+	/* Currently (as per vanilla) 334, meaning 33.4% of the population get angry.
+	   The caller adds up all the anger percentages (actually permillages)
+	   before rounding, so rounding shouldn't a concern in this function. */
+	int const maxAnger = GC.getDefineINT("NO_MILITARY_PERCENT_ANGER");
+	return maxAnger - (int)(maxAnger * actualGarrStr / targetGarrStr);
+	// </advc.500b>
 }
 
 
 int CvCity::getCulturePercentAnger() const
 {
-	int iTotalCulture;
-	int iAngryCulture;
-	int iCulture;
-	int iI;
+	// advc.003: Removed C-style declarations
 
-	iTotalCulture = plot()->countTotalCulture();
+	int iTotalCulture = plot()->countTotalCulture();
 
 	if (iTotalCulture == 0)
 	{
 		return 0;
 	}
 
-	iAngryCulture = 0;
+	int iAngryCulture = 0;
 
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
-	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
-		{
-			if (GET_PLAYER((PlayerTypes)iI).getTeam() != getTeam())
-			{
-				iCulture = plot()->getCulture((PlayerTypes)iI);
-
-				if (iCulture > 0)
-				{
-					if (atWar(GET_PLAYER((PlayerTypes)iI).getTeam(), getTeam()))
-					{
-						iCulture *= std::max(0, (GC.getDefineINT("AT_WAR_CULTURE_ANGER_MODIFIER") + 100));
-						iCulture /= 100;
-					}
-
-					iAngryCulture += iCulture;
-				}
-			}
+	// <advc.099>
+	int const angerCB = GC.getDefineINT("CLOSED_BORDERS_CULTURE_ANGER_MODIFIER");
+	int const angerWar = GC.getDefineINT("AT_WAR_CULTURE_ANGER_MODIFIER");
+	for(int iI = 0; iI < MAX_PLAYERS; iI++) {
+		CvPlayer const& p = GET_PLAYER((PlayerTypes)iI);
+		TeamTypes tId = p.getTeam();
+		CvTeam const& t = GET_TEAM(tId);
+		if(!p.isEverAlive() || tId == getTeam())
+			continue;
+		int iCulture = plot()->getCulture(p.getID());
+		if(iCulture > 0) {
+			int relationsModifier = 0;
+			if((!GET_TEAM(getTeam()).isOpenBorders(tId) && tId != BARBARIAN_TEAM) ||
+					(!p.isAlive()) ||
+					(t.isVassal(getTeam())) && t.isCapitulated())
+				relationsModifier += angerCB;
+			if(p.isAlive() && atWar(tId, getTeam()))
+				relationsModifier += angerWar;
+			iCulture *= std::max(0, (relationsModifier + 100));
+			iCulture /= 100;
+			iAngryCulture += iCulture;
 		}
-	}
+	} // </advc.099>
 
 	return ((GC.getDefineINT("CULTURE_PERCENT_ANGER") * iAngryCulture) / iTotalCulture);
 }
 
+// <advc.104>
+int CvCity::getReligionPercentAnger() const {
 
-int CvCity::getReligionPercentAnger() const
+	double r = 0;
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+		CvPlayer const& civ = GET_PLAYER((PlayerTypes)i);
+		if(!civ.isAlive() || !atWar(civ.getTeam(), getTeam()))
+			continue;
+		r += getReligionPercentAnger(civ.getID());
+	}
+	return ::round(r);
+}
+
+double CvCity::getReligionPercentAnger(PlayerTypes civId) const {
+
+	CvGame& g = GC.getGameINLINE();
+	if(g.getNumCities() == 0 || getReligionCount() == 0) return 0;
+	CvPlayer const& civ = GET_PLAYER(civId);
+	ReligionTypes rel = civ.getStateReligion();
+	if(rel == NO_RELIGION || !isHasReligion(rel))
+		return 0;
+	double sameFaithCityRatio = civ.getHasReligionCount(rel) / (double)g.getNumCities();
+	// normally 800
+	double angerFactor = GC.getDefineINT("RELIGION_PERCENT_ANGER") /
+			(double)getReligionCount();
+	return sameFaithCityRatio * angerFactor;
+}
+// BtS code (with more rounding artifacts):
+/*int CvCity::getReligionPercentAnger() const
 {
 	int iCount;
 	int iAnger;
@@ -4346,8 +4528,7 @@ int CvCity::getReligionPercentAnger() const
 	iAnger /= getReligionCount();
 
 	return iAnger;
-}
-
+}*/ // </advc.104>
 
 int CvCity::getHurryPercentAnger(int iExtra) const
 {
@@ -4412,9 +4593,12 @@ int CvCity::getVassalHappiness() const
 	{
 		if (getTeam() != i)
 		{
-			if (GET_TEAM((TeamTypes)i).isVassal(getTeam()))
+			if (GET_TEAM((TeamTypes)i).isVassal(getTeam())
+					&& !GET_TEAM((TeamTypes)i).isCapitulated() // advc.142
+				)
 			{
 				iHappy += GC.getDefineINT("VASSAL_HAPPINESS");
+				break; // advc.142
 			}
 		}
 	}
@@ -4433,6 +4617,7 @@ int CvCity::getVassalUnhappiness() const
 			if (GET_TEAM(getTeam()).isVassal((TeamTypes)i))
 			{
 				iUnhappy += GC.getDefineINT("VASSAL_HAPPINESS");
+				break; // advc.142: Just for performance
 			}
 		}
 	}
@@ -4529,11 +4714,17 @@ int CvCity::happyLevel() const
 }
 
 
-int CvCity::angryPopulation(int iExtra) const
+int CvCity::angryPopulation(int iExtra
+	, bool ignoreCultureRate // advc.104
+	) const
 {
 	PROFILE("CvCityAI::angryPopulation");
 
-	return range((unhappyLevel(iExtra) - happyLevel()), 0, (getPopulation() + iExtra));
+	return range((unhappyLevel(iExtra) - happyLevel()
+		+ (ignoreCultureRate ?
+		// Actually, ignore tales of "villainy" too
+		getCommerceHappiness() - getEspionageHappinessCounter() : 0) // advc.104
+		), 0, (getPopulation() + iExtra));
 }
 
 
@@ -4990,64 +5181,146 @@ int CvCity::cultureDistance(int iDX, int iDY) const
 
 int CvCity::cultureStrength(PlayerTypes ePlayer) const
 {
-	CvPlot* pLoopPlot;
-	int iStrength;
-	int iI;
-
-	iStrength = 1;
-
-	iStrength += (getHighestPopulation() * 2);
-
-	for (iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
-	{
-		pLoopPlot = plotDirection(getX_INLINE(), getY_INLINE(), ((DirectionTypes)iI));
-
-		if (pLoopPlot != NULL)
-		{
-			if (pLoopPlot->getOwnerINLINE() == ePlayer)
-			{
-				iStrength += (GC.getGameINLINE().getCurrentEra() + 1);
-			}
+	//int iStrength;
+	//iStrength = 1;
+	//iStrength += (getHighestPopulation() * 2);
+	// <advc.101> Replacing the above
+	double pop = getPopulation();
+	CvGame& g = GC.getGameINLINE();
+	int time = g.getGameTurn() - getGameTurnAcquired();
+	double div = 0.75 * GC.getGameSpeedInfo(g.getGameSpeedType()).
+			getGoldenAgePercent();
+	double timeRatio = std::min(1.0, time / div);
+	// Gradually shift to highest pop
+	pop += timeRatio * (getHighestPopulation() - pop);
+	bool canFlip = canCultureFlip(ePlayer, false) &&
+			ePlayer == plot()->calculateCulturalOwner();
+	double iStrength = 1 + 2 * pop;
+	double strFromInnerRadius = 0;
+	CvPlayer const& owner = GET_PLAYER(getOwnerINLINE());
+	/*  Would make more sense to use owner's era (if ePlayer is dead) b/c the
+		insurgents would mostly use the owner's military tech. But don't want
+		human owner to have to pay attention to his/her tech era. */
+	EraTypes era = g.getCurrentEra();
+	if(GET_PLAYER(ePlayer).isAlive())
+		era = GET_PLAYER(ePlayer).getCurrentEra();
+	double eraFactor = 1 + std::pow((double)era, 1.3); // </advc.101>
+	// <advc.099c>
+	if(ePlayer == BARBARIAN_PLAYER)
+		eraFactor /= 2; // </advc.099c>
+	for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
+		CvPlot* pLoopPlot = plotDirection(getX_INLINE(), getY_INLINE(),
+				((DirectionTypes)i));
+		if(pLoopPlot == NULL)
+			continue;
+		if(canFlip && // advc.101
+				pLoopPlot->getOwnerINLINE() == ePlayer) {
+			// advc.101:
+			strFromInnerRadius += ::dRange(time/div - 2/3.0, 0.0, 3.5) * eraFactor;
 		}
+		// <advc.101>
+		double cap = 0.25 + timeRatio * 0.75;
+		strFromInnerRadius += eraFactor *
+				::dRange((pLoopPlot->calculateCulturePercent(ePlayer) -
+				pLoopPlot->calculateCulturePercent(getOwnerINLINE())) / 100.0,
+				0.0, cap);
 	}
-
+	iStrength += std::min(iStrength, strFromInnerRadius);
+	/*  HurryAnger also factors into grievanceModifier below, but for small cities
+		(where Slavery is most effective), this constant bonus matters more. */
+	if(getHurryAngerTimer() > 0)
+		iStrength += 10; // </advc.101>
 /*
 ** K-Mod, 7/jan/11, karadoc
 ** changed so that culture strength asymptotes as the attacking culture approaches 100%
 */
-	/* original bts code
-	iStrength *= std::max(0, (((GC.getDefineINT("REVOLT_TOTAL_CULTURE_MODIFIER") * (plot()->getCulture(ePlayer) - plot()->getCulture(getOwnerINLINE()) + 1)) / (plot()->getCulture(ePlayer) + 1)) + 100));
-	*/
-	iStrength *= std::max(0, (GC.getDefineINT("REVOLT_TOTAL_CULTURE_MODIFIER") * (plot()->getCulture(ePlayer) - plot()->getCulture(getOwnerINLINE()))) / (plot()->getCulture(getOwnerINLINE()) + 1) + 100);
+	// <advc.101> Restored BtS formula; now using floating point operations
+	iStrength *= std::max(0.0, 1 +
+			/*  Don't like the multiplicative interaction between this and the
+				grievances; now added it to the grievances. */
+			//(GC.getDefineINT("REVOLT_TOTAL_CULTURE_MODIFIER") *
+			(plot()->getCulture(ePlayer) - plot()->getCulture(getOwnerINLINE())) /
+			(double)plot()->getCulture(ePlayer));
+	// commented out: K-Mod replacement
+	//iStrength *= std::max(0, (GC.getDefineINT("REVOLT_TOTAL_CULTURE_MODIFIER") * (plot()->getCulture(ePlayer) - plot()->getCulture(getOwnerINLINE()))) / (plot()->getCulture(getOwnerINLINE()) + 1) + 100);
+	// New (advc): Reduce strength if far less culture than some third party
+	double thirdPartyModifier = (8.0 *
+			plot()->calculateTeamCulturePercent(TEAMID(ePlayer))) /
+			(5.0 * plot()->calculateTeamCulturePercent(
+			plot()->findHighestCultureTeam()));
+	if(thirdPartyModifier < 1.0)
+		iStrength *= thirdPartyModifier;
+	// Also/ further reduce strength if owner has almost as much culture as ePlayer
+	double secondPartyModifier = ::dRange(plot()->getCulture(ePlayer) /
+			(double)plot()->getCulture(getOwnerINLINE()) - 1, 0.0, 1.0);
+	iStrength *= secondPartyModifier;
+	// </advc.101>
 /*
 ** K-Mod end
 */
-	iStrength /= 100;
-
-	if (GET_PLAYER(ePlayer).getStateReligion() != NO_RELIGION)
-	{
-		if (isHasReligion(GET_PLAYER(ePlayer).getStateReligion()))
-		{
-			iStrength *= std::max(0, (GC.getDefineINT("REVOLT_OFFENSE_STATE_RELIGION_MODIFIER") + 100));
-			iStrength /= 100;
+	/*  <advc.099c> Religion offense might make sense even when a civ is dead,
+		but can't expect the player to memorize the state religions of dead civs.
+		Instead, count religion offense also when the owner's state religion
+		is absent and at least one religion is in the city. This makes (some)
+		sense whether the revolt civ is dead or not. */
+	ReligionTypes ownerStateRel = owner.getStateReligion();
+	bool religionSuppressed = false;
+	if(ownerStateRel != NO_RELIGION && !isHasReligion(ownerStateRel)) {
+		for(int i = 0; i < GC.getNumReligionInfos(); i++) {
+			ReligionTypes rel = (ReligionTypes)i;
+			if(isHasReligion(rel) && rel != ownerStateRel) {
+				religionSuppressed = true;
+				break;
+			}
 		}
 	}
-
-	if (GET_PLAYER(getOwnerINLINE()).getStateReligion() != NO_RELIGION)
-	{
-		if (isHasReligion(GET_PLAYER(getOwnerINLINE()).getStateReligion()))
-		{
-			iStrength *= std::max(0, (GC.getDefineINT("REVOLT_DEFENSE_STATE_RELIGION_MODIFIER") + 100));
-			iStrength /= 100;
-		}
+	// advc.101: Apply them all at once
+	double grievanceModifier = 0;
+	/*  100 in BtS XML; I've increased it to 200 to keep pace with K-Mod's
+		changes to culture spread */
+	grievanceModifier += -1 + (GC.getDefineINT("REVOLT_TOTAL_CULTURE_MODIFIER") / 100.0);
+	CvPlayer const& revoltPl = GET_PLAYER(ePlayer);
+	if(religionSuppressed || (revoltPl.isAlive() &&
+			(!GET_TEAM(revoltPl.getTeam()).isCapitulated() ||
+			revoltPl.getMasterTeam() != getTeam()) &&
+			revoltPl.getStateReligion() != NO_RELIGION && // No functional change
+			isHasReligion(revoltPl.getStateReligion()))) {
+		// </advc.099c>
+		// advc.101: Replacing the code below
+		grievanceModifier += GC.getDefineINT("REVOLT_OFFENSE_STATE_RELIGION_MODIFIER") / 100.0;
+		//iStrength *= std::max(0, (GC.getDefineINT("REVOLT_OFFENSE_STATE_RELIGION_MODIFIER") + 100));
+		//iStrength /= 100;
+	} // <advc.003>
+	ReligionTypes ownerReligion = owner.getStateReligion();
+	if(ownerReligion != NO_RELIGION && isHasReligion(ownerReligion)) { // </advc.003>
+		/*  advc.101: Replacing the code below. Division by 50 so that it
+			cancels out the OFFENSE modifier (no functional change). */
+		grievanceModifier += GC.getDefineINT("REVOLT_DEFENSE_STATE_RELIGION_MODIFIER") / 50.0;
+		//iStrength *= std::max(0, (GC.getDefineINT("REVOLT_DEFENSE_STATE_RELIGION_MODIFIER") + 100));
+		//iStrength /= 100;
 	}
-
-	return iStrength;
+	// <advc.101>
+	if(getHurryAngerTimer() > 0)
+		grievanceModifier += 0.5;
+	// <advc.099c>
+	if(GET_TEAM(getTeam()).isCapitulated() && canFlip)
+		grievanceModifier += 1; // </advc.099c>
+	// The defense modifier should only halve culture strength, not reduce by 100%
+	if(grievanceModifier < 0)
+		grievanceModifier /= 2;
+	iStrength *= (1 + std::max(-1.0, grievanceModifier));
+	return ::round(iStrength);
+	// </advc.101>
 }
 
 
 int CvCity::cultureGarrison(PlayerTypes ePlayer) const
 {
+	/*  advc.101: Barbarian garrisons are somehow not supposed to prevent revolts.
+		BtS enforces this in CvPlot::doCulture (now renamed to CvPlot::doRevolts).
+		Easier to do it here. */
+	if(isBarbarian()) return 0;
+
 	CLLNode<IDInfo>* pUnitNode;
 	CvUnit* pLoopUnit;
 	int iGarrison;
@@ -5061,19 +5334,41 @@ int CvCity::cultureGarrison(PlayerTypes ePlayer) const
 		pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = plot()->nextUnitNode(pUnitNode);
 
-		iGarrison += pLoopUnit->getUnitInfo().getCultureGarrisonValue();
+		int val = pLoopUnit->getUnitInfo().getCultureGarrisonValue();
+		/*  advc.101: Some sample culture garrison values from Civ4UnitInfos.xml:
+			Warrior: 3, Maceman: 6, Rifleman: 9. I.e. Warrior has a far the better
+			cost/value ratio than Rifleman (0.2 vs. 0.08). I guess the idea is that
+			A LOT of units are needed to suppress a revolt, even with modern tech.
+			It's a bit extreme though, and creates problems for the AI, which won't
+			put sufficient numbers of Rifles or Infantry into conquered cities
+			(at least not given the current formulas for cultureStrength).
+			This exponentiation is partly canceled out by exponentiation of the
+			current game era in CvCity::cultureStrength. */
+		val = ::round(std::pow(val * 2 / 3.0, 1.4));
+		// <advc.023>
+		val *= pLoopUnit->maxHitPoints() - pLoopUnit->getDamage();
+		val /= 100;
+		iGarrison += val;
 	}
-
-	if (atWar(GET_PLAYER(ePlayer).getTeam(), getTeam()))
+	// Commented out: </advc.023>
+	/*if (atWar(GET_PLAYER(ePlayer).getTeam(), getTeam()))
 	{
 		iGarrison *= 2;
-	}
-
+	} */
+	// advc.101: Exponentiate again to strength in numbers a superlinear effect
+	iGarrison = ::round(std::pow((double)iGarrison, 1.2));
 	return iGarrison;
 }
 
+// <advc.099c>
+PlayerTypes CvCity::calculateCulturalOwner() const {
+
+	return plot()->calculateCulturalOwner(
+			GC.getDefineINT("REVOLTS_IGNORE_CULTURE_RANGE") > 0);
+} // </advc.099c>
+
 // K-Mod
-int CvCity::culturePressureFactor() const
+int CvCity::AI_culturePressureFactor() const
 {
 	int iAnswer = 0;
 	const int iDivisor = 60;
@@ -5155,16 +5450,22 @@ bool CvCity::hasActiveWorldWonder() const
 /* Bugfix                                                                                       */
 /************************************************************************************************/
 // From Mongoose SDK
-int CvCity::getNumActiveWorldWonders() const
+int CvCity::getNumActiveWorldWonders(
+	PlayerTypes ownerId // advc.104d
+	) const
 {
 	int iI;
 	int iCount = 0;
+	// advc.104d:
+	TeamTypes obsTeam = (ownerId == NO_PLAYER ? getTeam() : TEAMID(ownerId));
 
 	for (iI = 0; iI < GC.getNumBuildingInfos(); iI++)
 	{
 		if (isWorldWonderClass((BuildingClassTypes)(GC.getBuildingInfo((BuildingTypes)iI).getBuildingClassType())))
 		{
-			if (getNumRealBuilding((BuildingTypes)iI) > 0 && !(GET_TEAM(getTeam()).isObsoleteBuilding((BuildingTypes)iI)))
+			if (getNumRealBuilding((BuildingTypes)iI) > 0 && !(GET_TEAM(
+					obsTeam // advc.104d
+					).isObsoleteBuilding((BuildingTypes)iI)))
 			{
 				iCount++;
 			}
@@ -5239,6 +5540,11 @@ void CvCity::setID(int iID)
 	m_iID = iID;
 }
 
+// <advc.104>
+int CvCity::plotNum() const {
+
+	return GC.getMapINLINE().plotNumINLINE(m_iX, m_iY);
+} // </advc.104>
 
 int CvCity::getX() const
 {
@@ -5849,7 +6155,8 @@ int CvCity::getSavedMaintenanceTimes100ByBuilding(BuildingTypes eBuilding) const
 	{
 		int iNewMaintenance = calculateBaseMaintenanceTimes100() * std::max(0, getMaintenanceModifier() + iModifier + 100) / 100;
 		//return getMaintenanceTimes100() - iNewMaintenance;
-		return ROUND_DIVIDE((getMaintenanceTimes100() - iNewMaintenance)*(100+GET_PLAYER(getOwnerINLINE()).getInflationRate()), 100); // K-Mod
+		// advc.201:
+		return ROUND_DIVIDE((getMaintenanceTimes100() - iNewMaintenance)*(100+GET_PLAYER(getOwnerINLINE()).calculateInflationRate()), 100); // K-Mod
 	}
 
 	return 0;
@@ -5895,85 +6202,17 @@ void CvCity::updateMaintenance()
 	}
 }
 
-// K-Mod. new function to help with maintenance calculations
-int CvCity::calculateMaintenanceDistance() const
-{
-	CvCity* pLoopCity;
-	int iLoop;
-
-	int iLongest = 0;
-	int iShortestGovernment = INT_MAX;
-
-	for (pLoopCity = GET_PLAYER(getOwnerINLINE()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwnerINLINE()).nextCity(&iLoop))
-	{
-		iLongest = std::max(iLongest, plotDistance(getX_INLINE(), getY_INLINE(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE()));
-
-		if (pLoopCity->isGovernmentCenter())
-			iShortestGovernment = std::min(iShortestGovernment, plotDistance(getX_INLINE(), getY_INLINE(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE()));
-	}
-	return std::min(iLongest, iShortestGovernment);
-}
-// K-mod end
-
 int CvCity::calculateDistanceMaintenance() const
 {
 	return (calculateDistanceMaintenanceTimes100() / 100);
 }
 
-int CvCity::calculateDistanceMaintenanceTimes100() const
+// advc.104: Added parameter
+int CvCity::calculateDistanceMaintenanceTimes100(PlayerTypes owner) const
 {
-/*
-** K-Mod, 17/dec/10
-** Moved the search for maintenance distance to a separate function and improved the efficiency
-*/
-	/* original bts code
-	CvCity* pLoopCity;
-	int iWorstCityMaintenance;
-	int iBestCapitalMaintenance;
-	int iTempMaintenance;
-	int iLoop;
-
-	iWorstCityMaintenance = 0;
-	iBestCapitalMaintenance = MAX_INT;
-
-	for (pLoopCity = GET_PLAYER(getOwnerINLINE()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwnerINLINE()).nextCity(&iLoop))
-	{
-		iTempMaintenance = 100 * (GC.getDefineINT("MAX_DISTANCE_CITY_MAINTENANCE") * plotDistance(getX_INLINE(), getY_INLINE(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE()));
-	*/
-		int iTempMaintenance = 100 * GC.getDefineINT("MAX_DISTANCE_CITY_MAINTENANCE") * calculateMaintenanceDistance(); //K-mod
-
-	// unaltered bts code
-		iTempMaintenance *= (getPopulation() + 7);
-		iTempMaintenance /= 10;
-
-		iTempMaintenance *= std::max(0, (GET_PLAYER(getOwnerINLINE()).getDistanceMaintenanceModifier() + 100));
-		iTempMaintenance /= 100;
-
-		iTempMaintenance *= GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getDistanceMaintenancePercent();
-		iTempMaintenance /= 100;
-
-		iTempMaintenance *= GC.getHandicapInfo(getHandicapType()).getDistanceMaintenancePercent();
-		iTempMaintenance /= 100;
-
-		iTempMaintenance /= GC.getMapINLINE().maxPlotDistance();
-
-	/* original bts code
-		iWorstCityMaintenance = std::max(iWorstCityMaintenance, iTempMaintenance);
-
-		if (pLoopCity->isGovernmentCenter())
-		{
-			iBestCapitalMaintenance = std::min(iBestCapitalMaintenance, iTempMaintenance);
-		}
-	}
-
-	iTempMaintenance = std::min(iWorstCityMaintenance, iBestCapitalMaintenance);
-	*/
-/*
-** K-Mod end
-*/
-	FAssert(iTempMaintenance >= 0);
-
-	return iTempMaintenance;
+	// advc.004b: Find the old code in the new static function
+	return CvCity::calculateDistanceMaintenanceTimes100(plot(),
+			owner == NO_PLAYER ? getOwnerINLINE() : owner, getPopulation());
 }
 
 int CvCity::calculateNumCitiesMaintenance() const
@@ -5981,116 +6220,27 @@ int CvCity::calculateNumCitiesMaintenance() const
 	return (calculateNumCitiesMaintenanceTimes100() / 100);
 }
 
-int CvCity::calculateNumCitiesMaintenanceTimes100() const
+// advc.104: Added parameter
+int CvCity::calculateNumCitiesMaintenanceTimes100(PlayerTypes owner) const
 {
-	int iNumCitiesPercent = 100;
-
-	iNumCitiesPercent *= (getPopulation() + 17);
-	iNumCitiesPercent /= 18;
-
-	iNumCitiesPercent *= GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getNumCitiesMaintenancePercent();
-	iNumCitiesPercent /= 100;
-
-	iNumCitiesPercent *= GC.getHandicapInfo(getHandicapType()).getNumCitiesMaintenancePercent();
-	iNumCitiesPercent /= 100;
-
-	int iNumVassalCities = 0;
-	for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; iPlayer++)
-	{
-		CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
-		if (kLoopPlayer.getTeam() != getTeam() && GET_TEAM(kLoopPlayer.getTeam()).isVassal(getTeam()))
-		{
-			iNumVassalCities += kLoopPlayer.getNumCities();
-		}
-	}
-
-	iNumVassalCities /= std::max(1, GET_TEAM(getTeam()).getNumMembers());
-/*
-** K-Mod, 04/sep/10, karadoc
-** Reduced vassal maintenace and removed maintenace cap
-*/
-	/* original BTS code
-	int iNumCitiesMaintenance = (GET_PLAYER(getOwnerINLINE()).getNumCities() + iNumVassalCities) * iNumCitiesPercent;
-	iNumCitiesMaintenance = std::min(iNumCitiesMaintenance, GC.getHandicapInfo(getHandicapType()).getMaxNumCitiesMaintenance() * 100); */
-	int iNumCitiesMaintenance = (GET_PLAYER(getOwnerINLINE()).getNumCities() + iNumVassalCities / 2) * iNumCitiesPercent;
-/*
-** K-Mod end
-*/
-
-	iNumCitiesMaintenance *= std::max(0, (GET_PLAYER(getOwnerINLINE()).getNumCitiesMaintenanceModifier() + 100));
-	iNumCitiesMaintenance /= 100;
-
-	FAssert(iNumCitiesMaintenance >= 0);
-
-	return iNumCitiesMaintenance;
+	// advc.004b: Find the old code in the new static function
+	return calculateNumCitiesMaintenanceTimes100(plot(),
+			owner == NO_PLAYER ? getOwnerINLINE() : owner,
+			getPopulation());
 }
-
 
 int CvCity::calculateColonyMaintenance() const
 {
 	return (calculateColonyMaintenanceTimes100() / 100);
 }
 
-int CvCity::calculateColonyMaintenanceTimes100() const
+// advc.104: Added parameter
+int CvCity::calculateColonyMaintenanceTimes100(PlayerTypes owner) const
 {
-	if (GC.getGameINLINE().isOption(GAMEOPTION_NO_VASSAL_STATES))
-	{
-		return 0;
-	}
-
-	CvCity* pCapital = GET_PLAYER(getOwnerINLINE()).getCapitalCity();
-	if (pCapital && pCapital->area() == area())
-	{
-		return 0;
-	}
-
-	int iNumCitiesPercent = 100;
-
-	iNumCitiesPercent *= (getPopulation() + 17);
-	iNumCitiesPercent /= 18;
-
-	iNumCitiesPercent *= GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getColonyMaintenancePercent();
-	iNumCitiesPercent /= 100;
-
-	iNumCitiesPercent *= GC.getHandicapInfo(getHandicapType()).getColonyMaintenancePercent();
-	iNumCitiesPercent /= 100;
-
-	int iNumCities = (area()->getCitiesPerPlayer(getOwnerINLINE()) - 1) * iNumCitiesPercent;
-	
-	int iMaintenance = (iNumCities * iNumCities) / 100;
-
-/**
-*** K-Mod, 17/dec/10, karadoc
-*** Changed colony maintenance cap to not include distance maintenance modifiers (such as state property)
-**/
-	/* original bts code
-	iMaintenance = std::min(iMaintenance, (GC.getHandicapInfo(getHandicapType()).getMaxColonyMaintenance() * calculateDistanceMaintenanceTimes100()) / 100);
-	*/
-
-	int iMaintenanceCap = 100 * GC.getDefineINT("MAX_DISTANCE_CITY_MAINTENANCE") * calculateMaintenanceDistance();
-
-	iMaintenanceCap *= (getPopulation() + 7);
-	iMaintenanceCap /= 10;
-
-	iMaintenanceCap *= GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getDistanceMaintenancePercent();
-	iMaintenanceCap /= 100;
-
-	iMaintenanceCap *= GC.getHandicapInfo(getHandicapType()).getDistanceMaintenancePercent();
-	iMaintenanceCap /= 100;
-
-	iMaintenanceCap /= GC.getMapINLINE().maxPlotDistance();
-
-	iMaintenanceCap *= GC.getHandicapInfo(getHandicapType()).getMaxColonyMaintenance();
-	iMaintenanceCap /= 100;
-
-	iMaintenance = std::min(iMaintenance, iMaintenanceCap);
-/**
-*** K-Mod end
-**/
-
-	FAssert(iMaintenance >= 0);
-
-	return iMaintenance;
+	// advc.004b: Find the old code in the new static function
+	return calculateColonyMaintenanceTimes100(plot(),
+			owner == NO_PLAYER ? getOwnerINLINE() : owner,
+			getPopulation());
 }
 
 
@@ -6149,12 +6299,7 @@ int CvCity::calculateCorporationMaintenanceTimes100(CorporationTypes eCorporatio
 	iMaintenance *= std::max(0, (GET_PLAYER(getOwnerINLINE()).getCorporationMaintenanceModifier() + 100));
 	iMaintenance /= 100;
 
-	// K-Mod note. This division by inflation effectively cancels with the inflation factor in calculateInflatedCosts.
-	// However, since city maintenance is cached and is only updated in particular situations; this adjustment
-	// may result in corporation maintenance sometimes being higher than it should be - as inflation grows and
-	// the correction factor to counter inflation remains unchanged.
-	// This is obviously a bug; but I'm not going to worry about it right now.
-	int iInflation = GET_PLAYER(getOwnerINLINE()).getInflationRate() + 100;
+	int iInflation = GET_PLAYER(getOwnerINLINE()).calculateInflationRate() + 100;
 	if (iInflation > 0)
 	{
 		iMaintenance *= 100;
@@ -6892,7 +7037,8 @@ int CvCity::getAdditionalHappinessByBuilding(BuildingTypes eBuilding, int& iGood
  * Doesn't reset iGood or iBad to zero.
  * Doesn't check if the building can be constructed in this city.
  */
-int CvCity::getAdditionalHealthByBuilding(BuildingTypes eBuilding, int& iGood, int& iBad) const
+int CvCity::getAdditionalHealthByBuilding(BuildingTypes eBuilding, int& iGood, int& iBad,
+		bool assumeStrategicBonuses) const // advc.001h
 {
 	FAssertMsg(eBuilding >= 0, "eBuilding expected to be >= 0");
 	FAssertMsg(eBuilding < GC.getNumBuildingInfos(), "eBuilding expected to be < GC.getNumBuildingInfos()");
@@ -6929,14 +7075,26 @@ int CvCity::getAdditionalHealthByBuilding(BuildingTypes eBuilding, int& iGood, i
 	// Bonus
 	for (iI = 0; iI < GC.getNumBonusInfos(); iI++)
 	{
-		if ((hasBonus((BonusTypes)iI) || kBuilding.getFreeBonus() == iI) && kBuilding.getNoBonus() != iI)
+		if ((hasBonus((BonusTypes)iI) || kBuilding.getFreeBonus() == iI
+				// <advc.001h>
+				|| (assumeStrategicBonuses &&
+				GC.getBonusInfo((BonusTypes)iI).getHappiness() == 0 &&
+				GC.getBonusInfo((BonusTypes)iI).getHealth() == 0) // </advc.001h>
+				) && kBuilding.getNoBonus() != iI)
 		{
 			addGoodOrBad(kBuilding.getBonusHealthChanges(iI), iGood, iBad);
 		}
 	}
-
+	// advc.001h: Need this several times
+	BonusTypes powBonus = (BonusTypes)kBuilding.getPowerBonus();
 	// Power
-	if (kBuilding.isPower() || kBuilding.isAreaCleanPower() || (kBuilding.getPowerBonus() != NO_BONUS && hasBonus((BonusTypes)kBuilding.getPowerBonus())))
+	if (kBuilding.isPower() || kBuilding.isAreaCleanPower() || 
+			(powBonus != NO_BONUS && (hasBonus(powBonus)
+			// <advc.001h>
+			|| (assumeStrategicBonuses &&
+			GC.getBonusInfo(powBonus).getHappiness() == 0 &&
+			GC.getBonusInfo(powBonus).getHealth() == 0)) // </advc.001h>
+			))
 	{
 		// adding power
 		if (!isPower())
@@ -6948,8 +7106,9 @@ int CvCity::getAdditionalHealthByBuilding(BuildingTypes eBuilding, int& iGood, i
 			{
 				addGoodOrBad(GC.getDefineINT("DIRTY_POWER_HEALTH_CHANGE"), iGood, iBad);
 			}
-		}
-		else
+		} /* advc.001h: Count change from dirty to clean only if we already have
+			 the resource (i.e. Uranium) */
+		else if(powBonus == NO_BONUS || hasBonus(powBonus))
 		{
 			// replacing dirty power with clean power
 			if (isDirtyPower() && !kBuilding.isDirtyPower())
@@ -7900,11 +8059,13 @@ void CvCity::changeDefenseDamage(int iChange)
 
 		plot()->plotAction(PUF_makeInfoBarDirty);
 	}
+	else setBombarded(true); // advc.004c: Set bombarded if no change.
 }
 
 void CvCity::changeDefenseModifier(int iChange)
 {
-	if (iChange != 0)
+	// advc.004c: Want changeDefenseDamage to call setBombarded even if iChange==0
+	//if (iChange != 0)
 	{
 		int iTotalDefense = getTotalDefense(false);
 
@@ -7935,7 +8096,12 @@ bool CvCity::isBombardable(const CvUnit* pUnit) const
 		return false;
 	}
 
-	return (getDefenseModifier(false) > 0);
+	return (getDefenseModifier(false) > 0)
+		/*  advc.004c: Allow bombarding defenseless cities (to keep their def at 0),
+			except cities that have nothing to recover.
+			Don't allow the AI to do this b/c the AI can't tell if it matters.
+			Much easier to prevent 0-bombardment by the AI here than in CvUnitAI. */
+		|| (getTotalDefense(false) > 0 && pUnit->isHuman());
 }
 
 
@@ -9966,7 +10132,8 @@ int CvCity::countTotalCultureTimes100() const
 
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
+		// advc.099: Replaced "Alive" with "EverAlive"
+		if (GET_PLAYER((PlayerTypes)iI).isEverAlive())
 		{
 			iTotalCulture += getCultureTimes100((PlayerTypes)iI);
 		}
@@ -9988,7 +10155,17 @@ PlayerTypes CvCity::findHighestCulture() const
 
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
+		/*  advc.099: Replaced "Alive" with "EverAlive".
+			This function is only used in the context of razing and
+			recapture, and I'm not sure if having a dead civ as cultural owner
+			works well in these cases. It means that no civ gets angry about
+			a razed city with a dead cultural owner.
+			Raze anger is apparently not concerned with the fate of the population
+			because nationality is determined by tile culture (and this function
+			counts city culture). Rather, it seems to be about cultural sites,
+			and if these belog mostly to a dead civ, I guess there should
+			indeed be no anger. */ 
+		if (GET_PLAYER((PlayerTypes)iI).isEverAlive())
 		{
 			iValue = getCultureTimes100((PlayerTypes)iI);
 
@@ -10002,16 +10179,68 @@ PlayerTypes CvCity::findHighestCulture() const
 
 	return eBestPlayer;
 }
+// <advc.101>
+double CvCity::revoltProbability(bool ignoreWar,
+		bool ignoreGarrison, bool ignoreOccupation) const { // advc.023
+
+	PlayerTypes eCulturalOwner = calculateCulturalOwner(); // advc.099c
+	if(eCulturalOwner == NO_PLAYER || TEAMID(eCulturalOwner) == getTeam()
+			// <advc.099c> Barb revolts
+			|| (GC.getDefineINT("BARBS_REVOLT") <= 0 &&
+			eCulturalOwner == BARBARIAN_PLAYER) ||
+			GC.getGameINLINE().getGameTurn() - getGameTurnFounded() <
+			(10 * GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).
+			getConstructPercent()) / 100) // </advc.099c>
+		return 0;
+	// <advc.023>
+	double occupationFactor = 1;
+	if(isOccupation() && !ignoreOccupation) {
+		occupationFactor = 0.5;
+		if(!ignoreWar && GET_PLAYER(eCulturalOwner).isAlive() &&
+				GET_TEAM(getTeam()).isAtWar(TEAMID(eCulturalOwner)))
+			return 0;
+	} // </advc.023>
+	int iCityStrength = cultureStrength(eCulturalOwner);
+	int iGarrison =
+		(ignoreGarrison ? 0 : // advc.023
+		cultureGarrison(eCulturalOwner));
+	if(iCityStrength <= iGarrison)
+		return 0;
+	/*  About the two revolt tests: I guess the first one checks if the city tries
+		to revolt, and the second if the garrison can stop the revolt.
+		Restored the BtS formula for the second test. */
+	return std::max(0.0, (1.0 - (iGarrison / (double)iCityStrength))) *
+			getRevoltTestProbability() * occupationFactor;
+} // </advc.101>
+
+// <advc.023>
+double CvCity::probabilityOccupationDecrement() const {
+
+	if(!isOccupation())
+		return 0;
+	return std::pow(1 - revoltProbability(true, false, true),
+			GC.getDefineINT("OCCUPATION_COUNTDOWN_EXPONENT"));
+} // </advc.023>
 
 // K-Mod. The following function defines whether or not the city is allowed to flip to the given player
-bool CvCity::canCultureFlip(PlayerTypes eToPlayer) const
+bool CvCity::canCultureFlip(PlayerTypes eToPlayer
+	, bool checkPriorRevolts // advc.101: default true
+	) const
 {
 	if (isBarbarian())
 		return true;
-
+	// <advc.099c> Actually still guaranteed by caller, but shouldn't rely on it
+	if(eToPlayer == NO_PLAYER || !GET_PLAYER(eToPlayer).isAlive() ||
+			eToPlayer == BARBARIAN_PLAYER || // Not guaranteed by caller
+			TEAMREF(eToPlayer).isVassal(getTeam()))
+		return false; // </advc.099c>
 	return !GC.getGameINLINE().isOption(GAMEOPTION_NO_CITY_FLIPPING) &&
-		(GC.getGameINLINE().isOption(GAMEOPTION_FLIPPING_AFTER_CONQUEST) || getPreviousOwner() == NO_PLAYER || GET_PLAYER(getPreviousOwner()).getTeam() != GET_PLAYER(eToPlayer).getTeam()) &&
-		getNumRevolts(eToPlayer) >= GC.getDefineINT("NUM_WARNING_REVOLTS");
+		// advc.101: City flipping option negated (now has inverse meaning)
+		(!GC.getGameINLINE().isOption(GAMEOPTION_NO_FLIPPING_AFTER_CONQUEST) ||
+		getPreviousOwner() == NO_PLAYER ||
+		TEAMID(getPreviousOwner()) != TEAMID(eToPlayer)) && // advc.003
+		(!checkPriorRevolts || // advc.101
+		getNumRevolts(eToPlayer) >= GC.getNUM_WARNING_REVOLTS());
 }
 // K-Mod end
 
@@ -10039,7 +10268,8 @@ int CvCity::calculateTeamCulturePercent(TeamTypes eIndex) const
 
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
+		// advc.099: Replaced "Alive" with "EverAlive"
+		if (GET_PLAYER((PlayerTypes)iI).isEverAlive())
 		{
 			if (GET_PLAYER((PlayerTypes)iI).getTeam() == eIndex)
 			{
@@ -10113,7 +10343,14 @@ int CvCity::getNumRevolts(PlayerTypes eIndex) const
 	FAssertMsg(eIndex < MAX_PLAYERS, "eIndex expected to be < MAX_PLAYERS");
 	return m_aiNumRevolts[eIndex];
 }
+// <advc.099c>
+int CvCity::getNumRevolts() const {
 
+	PlayerTypes cultOwner = calculateCulturalOwner();
+	if(cultOwner == NO_PLAYER)
+		return 0;
+	return getNumRevolts(cultOwner);
+} // </advc.099c>
 
 void CvCity::changeNumRevolts(PlayerTypes eIndex, int iChange)
 {
@@ -10123,7 +10360,8 @@ void CvCity::changeNumRevolts(PlayerTypes eIndex, int iChange)
 	FAssert(getNumRevolts(eIndex) >= 0);
 }
 
-int CvCity::getRevoltTestProbability() const
+// advc.101: Changed return type
+double CvCity::getRevoltTestProbability() const
 {
 	int iBestModifier = 0;
 
@@ -10140,7 +10378,11 @@ int CvCity::getRevoltTestProbability() const
 	}
 	iBestModifier = range(iBestModifier, 0, 100);
 
-	return ((GC.getDefineINT("REVOLT_TEST_PROB") * (100 - iBestModifier)) / 100);
+	return std::min(1.0, // advc.101: Upper bound used to be handled by the caller
+			((GC.getDefineINT("REVOLT_TEST_PROB") * (100 - iBestModifier)) / 100.0)
+			// advc.101: Game-speed scaling as in K-Mod
+			/ GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).
+			getVictoryDelayPercent());
 }
 
 bool CvCity::isEverOwned(PlayerTypes eIndex) const
@@ -10207,9 +10449,16 @@ void CvCity::setRevealed(TeamTypes eIndex, bool bNewValue)
 		m_abRevealed[eIndex] = bNewValue;
 
 		// K-Mod
-		if (bNewValue)
+		if (bNewValue) {
 			GET_TEAM(eIndex).makeHasSeen(getTeam());
 		// K-Mod end
+			// <advc.130n>
+			for(int i = 0; i < GC.getNumReligionInfos(); i++) {
+				ReligionTypes rel = (ReligionTypes)i;
+				if(isHasReligion(rel))
+					GET_TEAM(eIndex).reportNewReligion(rel);
+			} // </advc.130n>
+		}
 
 		updateVisibility();
 
@@ -11465,22 +11714,33 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool b
 						szBuffer = gDLL->getText("TXT_KEY_MISC_COMPLETES_WONDER", GET_PLAYER(getOwnerINLINE()).getNameKey(), GC.getBuildingInfo(eIndex).getTextKeyWide());
 						GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getOwnerINLINE(), szBuffer, getX_INLINE(), getY_INLINE(), (ColorTypes)GC.getInfoTypeForString("COLOR_BUILDING_TEXT"));
 
-						for (iI = 0; iI < MAX_PLAYERS; iI++)
-						{
-							if (GET_PLAYER((PlayerTypes)iI).isAlive())
-							{
-								if (isRevealed(GET_PLAYER((PlayerTypes)iI).getTeam(), false))
-								{
-									szBuffer = gDLL->getText("TXT_KEY_MISC_WONDER_COMPLETED", GET_PLAYER(getOwnerINLINE()).getNameKey(), GC.getBuildingInfo(eIndex).getTextKeyWide());
-									gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_WONDER_BUILDING_BUILD", MESSAGE_TYPE_MAJOR_EVENT, GC.getBuildingInfo(eIndex).getArtInfo()->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_BUILDING_TEXT"), getX_INLINE(), getY_INLINE(), true, true);
-								}
-								else
-								{
-									szBuffer = gDLL->getText("TXT_KEY_MISC_WONDER_COMPLETED_UNKNOWN", GC.getBuildingInfo(eIndex).getTextKeyWide());
-									gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_WONDER_BUILDING_BUILD", MESSAGE_TYPE_MAJOR_EVENT, GC.getBuildingInfo(eIndex).getArtInfo()->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_BUILDING_TEXT"));
-								}
-							}
-						}
+						// <advc.106>
+						for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+							CvPlayer& msgTarget = GET_PLAYER((PlayerTypes)i);
+							if(!msgTarget.isAlive())
+								continue;
+							bool isRev = isRevealed(msgTarget.getTeam(), false);
+							bool isMet = TEAMREF(msgTarget.getID()).isHasMet(
+									TEAMID(getOwner()));
+							if(isRev)
+								szBuffer = gDLL->getText("TXT_KEY_MISC_WONDER_COMPLETED_CITY",
+										GET_PLAYER(getOwner()).getNameKey(),
+										GC.getBuildingInfo(eIndex).getTextKeyWide(),
+										getName().GetCString());
+							else if(isMet)
+								szBuffer = gDLL->getText("TXT_KEY_MISC_WONDER_COMPLETED",
+										GET_PLAYER(getOwner()).getNameKey(),
+										GC.getBuildingInfo(eIndex).getTextKeyWide());
+							else szBuffer = gDLL->getText("TXT_KEY_MISC_WONDER_COMPLETED_UNKNOWN",
+										GC.getBuildingInfo(eIndex).getTextKeyWide());
+							gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)i), false,
+									GC.getEVENT_MESSAGE_TIME(), szBuffer,
+									"AS2D_WONDER_BUILDING_BUILD", MESSAGE_TYPE_MAJOR_EVENT,
+									GC.getBuildingInfo(eIndex).getArtInfo()->getButton(),
+									(ColorTypes)GC.getInfoTypeForString("COLOR_BUILDING_TEXT"),
+									// Indicate location only if revealed.
+									isRev ? getX_INLINE() : -1, isRev ? getY_INLINE() : -1, isRev, isRev);
+						} // </advc.106>
 					}
 				}
 
@@ -11496,7 +11756,11 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool b
 		//great wall
 		if (bFirst)
 		{
-			if (GC.getBuildingInfo(eIndex).isAreaBorderObstacle())
+			if (GC.getBuildingInfo(eIndex).isAreaBorderObstacle()
+				/*  advc.310: Show GW as 3D model even when playing w/o barbs
+					(BorderObstacle ability disabled through CvInfos then). */
+				|| GC.getBuildingInfo(eIndex).getGlobalTradeRoutes() > 0
+				)
 			{
 				int iCountExisting = 0;
 				for (iI = 0; iI < GC.getNumBuildingInfos(); iI++)
@@ -11599,7 +11863,8 @@ void CvCity::setHasReligion(ReligionTypes eIndex, bool bNewValue, bool bAnnounce
 						{
 							if (isRevealed(GET_PLAYER((PlayerTypes)iI).getTeam(), false))
 							{
-								if ((getOwnerINLINE() == iI) || (GET_PLAYER((PlayerTypes)iI).getStateReligion() == eIndex) || GET_PLAYER((PlayerTypes)iI).hasHolyCity(eIndex))
+								// advc.106e: Commented out.
+								//if ((getOwnerINLINE() == iI) || (GET_PLAYER((PlayerTypes)iI).getStateReligion() == eIndex) || GET_PLAYER((PlayerTypes)iI).hasHolyCity(eIndex))
 								{
 									CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_RELIGION_SPREAD", GC.getReligionInfo(eIndex).getTextKeyWide(), getNameKey());
 									gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getReligionInfo(eIndex).getSound(), MESSAGE_TYPE_MAJOR_EVENT, GC.getReligionInfo(eIndex).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), getX_INLINE(), getY_INLINE(), bArrows, bArrows);
@@ -11631,9 +11896,16 @@ void CvCity::setHasReligion(ReligionTypes eIndex, bool bNewValue, bool bAnnounce
 		else // religion removed
 		{
 			if (bAnnounce)
-			{
-				CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_RELIGION_REMOVE", GC.getReligionInfo(eIndex).getTextKeyWide(), getNameKey());
-				gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BLIGHT", MESSAGE_TYPE_MAJOR_EVENT, GC.getReligionInfo(eIndex).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX_INLINE(), getY_INLINE(), bArrows, bArrows);
+			{	// <advc.106e> Announce removed religion to other civs as well
+				for (int i = 0; i < MAX_CIV_PLAYERS; i++) {
+					CvPlayer const& civ = GET_PLAYER((PlayerTypes)i);
+					if(!civ.isAlive() || !isRevealed(civ.getTeam(), false))
+						continue; // </advc.106e>
+					CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_RELIGION_REMOVE", GC.getReligionInfo(eIndex).getTextKeyWide(), getNameKey());
+					gDLL->getInterfaceIFace()->addHumanMessage(
+							civ.getID(), // advc.106e: was getOwner() in K-Mod
+							false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BLIGHT", MESSAGE_TYPE_MAJOR_EVENT, GC.getReligionInfo(eIndex).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX_INLINE(), getY_INLINE(), bArrows, bArrows);
+				} // advc.106e
 			}
 		}
 		// K-Mod end
@@ -11642,6 +11914,12 @@ void CvCity::setHasReligion(ReligionTypes eIndex, bool bNewValue, bool bAnnounce
 		{
 			// Python Event
 			CvEventReporter::getInstance().religionSpread(eIndex, getOwnerINLINE(), this);
+			// <advc.130n>
+			for(int i = 0; i < MAX_CIV_TEAMS; i++) {
+				CvTeamAI& t = GET_TEAM((TeamTypes)i);
+				if(t.isAlive() && isRevealed(t.getID()))
+					t.reportNewReligion(eIndex);
+			} // </advc.130n>
 		}
 		else
 		{
@@ -11663,8 +11941,14 @@ int CvCity::getReligionGrip(ReligionTypes eReligion) const
 
 	if (isHasReligion(eReligion))
 	{
-		iScore += GC.getDefineINT("RELIGION_INFLUENCE_POPULATION_WEIGHT") * getPopulation();
-
+		int iTempScore = GC.getDefineINT("RELIGION_INFLUENCE_POPULATION_WEIGHT") * getPopulation();
+		// <advc.099c> Try to satisfy foreign pop
+		if(revoltProbability(true, false, true) > 0) {
+			PlayerTypes cultOwner = calculateCulturalOwner();
+			if(GET_PLAYER(cultOwner).getStateReligion() == eReligion)
+				iTempScore *= 2;
+		}
+		iScore += iTempScore; // </advc.099c>
 		if (GET_PLAYER(getOwnerINLINE()).getStateReligion() == eReligion)
 		{
 			iScore += GC.getDefineINT("RELIGION_INFLUENCE_STATE_RELIGION_WEIGHT");
@@ -11900,11 +12184,16 @@ CvCity* CvCity::getTradeCity(int iIndex) const
 
 int CvCity::getTradeRoutes() const
 {
+	/*  advc.123e: 0 trade routes result in 0 profit from plundering; see
+		CvUnit::collectBlockadeGold */
+	if(getOwner() == BARBARIAN_PLAYER) return 0;
 	int iTradeRoutes;
 
 	iTradeRoutes = GC.getGameINLINE().getTradeRoutes();
 	iTradeRoutes += GET_PLAYER(getOwnerINLINE()).getTradeRoutes();
-	if (isCoastal(GC.getMIN_WATER_SIZE_FOR_OCEAN()))
+	// advc.310: Continental TR no longer included in player TR
+	iTradeRoutes += area()->getContinentalTradeRoutes(getOwner());
+	if (isCoastal())
 	{
 		iTradeRoutes += GET_PLAYER(getOwnerINLINE()).getCoastalTradeRoutes();
 	}
@@ -11956,46 +12245,49 @@ void CvCity::updateTradeRoutes()
 	if (!isDisorder() && !isPlundered())
 	{
 		iTradeRoutes = getTradeRoutes();
-
 		FAssert(iTradeRoutes <= GC.getDefineINT("MAX_TRADE_ROUTES"));
-
-		for (iI = 0; iI < MAX_PLAYERS; iI++)
+		// <advc.003> Refactored this triple loop for improved readability.
+		PlayerTypes ownId = getOwnerINLINE();
+		CvPlayer& owner = GET_PLAYER(ownId);
+		for(iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 		{
-			if (GET_PLAYER(getOwnerINLINE()).canHaveTradeRoutesWith((PlayerTypes)iI))
+			PlayerTypes partnerId = (PlayerTypes)iI;
+			CvPlayer& partnerCiv = GET_PLAYER(partnerId);
+			if(!owner.canHaveTradeRoutesWith(partnerId))
+				continue;
+			for(pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop);
+					pLoopCity != NULL; pLoopCity = partnerCiv.nextCity(&iLoop))
 			{
-				for (pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
+				/*  <advc.124> A connection along revealed tiles ensures that the
+					city tile is revealed, but this doesn't imply that the city is
+					also revealed: The tile could've been explored before the city
+					existed. Need to check CvCity::isRevealed explicitly. */
+				if(pLoopCity->isDisorder() || !pLoopCity->isRevealed(getTeam()))
+					continue; // <advc.124>
+				if(pLoopCity == this)
+					continue;
+				if(pLoopCity->isTradeRoute(ownId) && getTeam() != TEAMID(partnerId))
+					continue;
+				if(pLoopCity->plotGroup(ownId) != plotGroup(ownId)
+						&& GC.getDefineINT("IGNORE_PLOT_GROUP_FOR_TRADE_ROUTES") <= 0)
+					continue;
+				iValue = calculateTradeProfit(pLoopCity);
+				for (iJ = 0; iJ < iTradeRoutes; iJ++)
 				{
-					if (pLoopCity != this)
+					if(iValue <= paiBestValue[iJ])
+						continue;
+					for (iK = (iTradeRoutes - 1); iK > iJ; iK--)
 					{
-						if (!(pLoopCity->isTradeRoute(getOwnerINLINE())) || (getTeam() == GET_PLAYER((PlayerTypes)iI).getTeam()))
-						{
-							if (pLoopCity->plotGroup(getOwnerINLINE()) == plotGroup(getOwnerINLINE()) || GC.getDefineINT("IGNORE_PLOT_GROUP_FOR_TRADE_ROUTES"))
-							{
-								iValue = calculateTradeProfit(pLoopCity);
-
-								for (iJ = 0; iJ < iTradeRoutes; iJ++)
-								{
-									if (iValue > paiBestValue[iJ])
-									{
-										for (iK = (iTradeRoutes - 1); iK > iJ; iK--)
-										{
-											paiBestValue[iK] = paiBestValue[(iK - 1)];
-											m_paTradeCities[iK] = m_paTradeCities[(iK - 1)];
-										}
-
-										paiBestValue[iJ] = iValue;
-										m_paTradeCities[iJ] = pLoopCity->getIDInfo();
-
-										break;
-									}
-								}
-							}
-						}
+						paiBestValue[iK] = paiBestValue[(iK - 1)];
+						m_paTradeCities[iK] = m_paTradeCities[(iK - 1)];
 					}
+					paiBestValue[iJ] = iValue;
+					m_paTradeCities[iJ] = pLoopCity->getIDInfo();
+					break;
 				}
 			}
 		}
-	}
+	} // </advc.003>
 
 	iTradeProfit = 0;
 
@@ -12810,7 +13102,8 @@ void CvCity::doGrowth()
 	iDiff = foodDifference();
 
 	changeFood(iDiff);
-	changeFoodKept(iDiff);
+	if(iDiff > 0) // advc.160: Don't empty the Granary when insufficient food
+		changeFoodKept(iDiff);
 
 	setFoodKept(range(getFoodKept(), 0, ((growthThreshold() * getMaxFoodKeptPercent()) / 100)));
 
@@ -12836,6 +13129,9 @@ void CvCity::doGrowth()
 		if (getPopulation() > 1)
 		{
 			changePopulation(-1);
+			// <advc.160>
+			changeFood(getFoodKept());
+			setFoodKept(0); // </advc.160>
 		}
 	}
 }
@@ -12867,6 +13163,8 @@ void CvCity::doCulture()
 	iLevel = getCultureLevel();
 	if (iLevel > 0)
 	{
+		// advc.125:
+		int useKModTradeCulture = GC.getDefineINT("USE_KMOD_TRADE_CULTURE");
 		// add up the culture contribution for each player before applying it
 		// so that we avoid excessive calls to change culture and reduce rounding errors
 		int iTradeCultureTimes100[MAX_PLAYERS] = {};
@@ -12888,6 +13186,11 @@ void CvCity::doCulture()
 		{
 			if (iTradeCultureTimes100[iI] > 0)
 			{
+				// <advc.125>
+				if((useKModTradeCulture < 0 &&
+						plot()->getCulture((PlayerTypes)iI) == 0) ||
+						useKModTradeCulture == 0)
+					iTradeCultureTimes100[iI] = 0; // </advc.125>
 				// plot culture only.
 				//changeCultureTimes100((PlayerTypes)iI, iTradeCultureTimes100[iI], false, false);
 				doPlotCultureTimes100(false, (PlayerTypes)iI, iTradeCultureTimes100[iI], false);
@@ -12962,34 +13265,35 @@ void CvCity::doPlotCultureTimes100(bool bUpdate, PlayerTypes ePlayer, int iCultu
 	iCultureRateTimes100+= bCityCulture ? 400 : 0;
 
 	// note, original code had "if (getCultureTimes100(ePlayer) > 0)". I took that part out.
-	if (eCultureLevel != NO_CULTURELEVEL &&	(std::abs(iCultureRateTimes100*iScale) >= 100 || bCityCulture))
+	if (eCultureLevel == NO_CULTURELEVEL || // <advc.003> Inverted some conditions
+			(std::abs(iCultureRateTimes100*iScale) < 100 && !bCityCulture))
+		return; // advc.003
+	// <advc.025>
+	int cultureToMaster = 100;
+	if(GET_TEAM(getTeam()).isCapitulated())
+		cultureToMaster = GC.getDefineINT("CAPITULATED_TO_MASTER_CULTURE_PERCENT");
+	// </advc.025>
+	for (int iDX = -iCultureRange; iDX <= iCultureRange; iDX++)
 	{
-		for (int iDX = -iCultureRange; iDX <= iCultureRange; iDX++)
+		for (int iDY = -iCultureRange; iDY <= iCultureRange; iDY++)
 		{
-			for (int iDY = -iCultureRange; iDY <= iCultureRange; iDY++)
-			{
-				int iDistance = cultureDistance(iDX, iDY);
-
-				if (iDistance <= iCultureRange)
-				{
-					CvPlot* pLoopPlot = plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
-
-					if (pLoopPlot != NULL)
-					{
-						if (pLoopPlot->isPotentialCityWorkForArea(area()))
-						{
-							/* int iCultureToAdd =
-								(iInnerFactor * iCultureRange - iDistance * (iInnerFactor - iOuterFactor))
-								* iCultureRateTimes100 / (iCultureRange * 100); */
-							//int iCultureToAdd = (int)(iScale*iCultureRateTimes100*exp(-iB*iDistance)/100);
-							int iCultureToAdd =
-								iCultureRateTimes100*((iScale-1)*(iDistance-iCultureRange)*(iDistance-iCultureRange) + iCultureRange*iCultureRange)/(100*iCultureRange*iCultureRange);
-
-							pLoopPlot->changeCulture(ePlayer, iCultureToAdd, (bUpdate || !(pLoopPlot->isOwned())));
-						}
-					}
-				}
-			}
+			int iDistance = cultureDistance(iDX, iDY);
+			if(iDistance > iCultureRange)
+				continue; 
+			CvPlot* pLoopPlot = plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
+			if(pLoopPlot == NULL || !pLoopPlot->isPotentialCityWorkForArea(area()))
+				continue; // </advc.003>
+			/* int iCultureToAdd =
+				(iInnerFactor * iCultureRange - iDistance * (iInnerFactor - iOuterFactor))
+				* iCultureRateTimes100 / (iCultureRange * 100); */
+			//int iCultureToAdd = (int)(iScale*iCultureRateTimes100*exp(-iB*iDistance)/100);
+			int iCultureToAdd = iCultureRateTimes100*((iScale-1)*(iDistance-iCultureRange)*(iDistance-iCultureRange) + iCultureRange*iCultureRange)/(100*iCultureRange*iCultureRange);
+			// <advc.025>
+			if(cultureToMaster != 100 && pLoopPlot->getTeam() != getTeam() &&
+					pLoopPlot->getTeam() == GET_TEAM(getTeam()).getMasterTeam())
+				iCultureToAdd = (iCultureToAdd * cultureToMaster) / 100;
+			// </advc.025>
+			pLoopPlot->changeCulture(ePlayer, iCultureToAdd, (bUpdate || !(pLoopPlot->isOwned())));
 		}
 	}
 /*
@@ -13504,25 +13808,69 @@ void CvCity::doMeltdown()
 
 	for (iI = 0; iI < GC.getNumBuildingInfos(); iI++)
 	{
-		if (getNumBuilding((BuildingTypes)iI) > 0)
-		{
-			if (GC.getBuildingInfo((BuildingTypes)iI).getNukeExplosionRand() != 0)
-			{
-				if (GC.getGameINLINE().getSorenRandNum(GC.getBuildingInfo((BuildingTypes)iI).getNukeExplosionRand(), "Meltdown!!!") == 0)
-				{
-					if (getNumRealBuilding((BuildingTypes)iI) > 0)
-					{
-						setNumRealBuilding(((BuildingTypes)iI), 0);
-					}
-					//plot()->nukeExplosion(1);
-					plot()->nukeExplosion(1, 0, false); // K-Mod
-
-					szBuffer = gDLL->getText("TXT_KEY_MISC_MELTDOWN_CITY", getNameKey());
-					gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_MELTDOWN", MESSAGE_TYPE_MINOR_EVENT, ARTFILEMGR.getInterfaceArtInfo("INTERFACE_UNHEALTHY_PERSON")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX_INLINE(), getY_INLINE(), true, true);
-
-					break;
-				}
+		// <dlph.5>
+		// <advc.003> Restructured DarkLunaPhantom's code the code a bit
+		int oddsDivisor = GC.getBuildingInfo((BuildingTypes)iI).getNukeExplosionRand();
+		if(oddsDivisor <= 0) continue; // Can save some time then
+		if(getNumActiveBuilding((BuildingTypes)iI) == 0) // Was getNumBuilding
+			continue;
+		CvBuildingInfo& kBuilding = GC.getBuildingInfo((BuildingTypes)iI);
+		if(kBuilding.getNukeExplosionRand() == 0 || isAreaCleanPower() ||
+				(!kBuilding.isPower() && kBuilding.getPowerBonus() == NO_BONUS) ||
+				(kBuilding.getPowerBonus() != NO_BONUS &&
+				!hasBonus((BonusTypes)kBuilding.getPowerBonus())))
+			continue;
+		bool bUnused = false;
+		// Check for hydroplant (or any modded plant with less severe drawbacks)
+		for(int iJ = 0; iJ < GC.getNumBuildingInfos(); iJ++) {
+			if(iI == iJ || getNumActiveBuilding((BuildingTypes)iJ) == 0)
+				continue;
+			CvBuildingInfo& kLoopBuilding = GC.getBuildingInfo((BuildingTypes)iJ);
+			if(!kLoopBuilding.isPower() &&
+					(kLoopBuilding.getPowerBonus() == NO_BONUS ||
+					!hasBonus((BonusTypes)kLoopBuilding.getPowerBonus())))
+				continue;
+			if(kBuilding.isDirtyPower() && !kLoopBuilding.isDirtyPower()) {
+				bUnused = true;
+				break;
 			}
+			if(kBuilding.isDirtyPower() != kLoopBuilding.isDirtyPower())
+				continue;
+			if(kLoopBuilding.getNukeExplosionRand() == 0) {
+				bUnused = true;
+				break;
+			}
+			if(kBuilding.getNukeExplosionRand() >
+					kLoopBuilding.getNukeExplosionRand())
+				continue;
+			if(kBuilding.getNukeExplosionRand() <
+					kLoopBuilding.getNukeExplosionRand()) {
+				bUnused = true;
+				break;
+			}
+			if(iI < iJ) {
+				bUnused = true;
+				break;
+			}
+		}
+		if(bUnused)
+			continue;
+		// Adjust odds to game speed:
+		double pr = 1.0 / (oddsDivisor * GC.getGameINLINE().gameSpeedFactor());
+		//if (GC.getGameINLINE().getSorenRandNum(GC.getBuildingInfo((BuildingTypes)iI).getNukeExplosionRand(), "Meltdown!!!") == 0)
+		if(::bernoulliSuccess(pr)) // </dlph></advc.003>
+		{
+			if (getNumRealBuilding((BuildingTypes)iI) > 0)
+			{
+				setNumRealBuilding(((BuildingTypes)iI), 0);
+			}
+			//plot()->nukeExplosion(1);
+			plot()->nukeExplosion(1, 0, false); // K-Mod
+
+			szBuffer = gDLL->getText("TXT_KEY_MISC_MELTDOWN_CITY", getNameKey());
+			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_MELTDOWN", MESSAGE_TYPE_MINOR_EVENT, ARTFILEMGR.getInterfaceArtInfo("INTERFACE_UNHEALTHY_PERSON")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX_INLINE(), getY_INLINE(), true, true);
+
+			break;
 		}
 	}
 }
@@ -14861,7 +15209,7 @@ void CvCity::invalidateYieldRankCache(YieldTypes eYield)
 
 void CvCity::invalidateCommerceRankCache(CommerceTypes eCommerce)
 {
-	FAssertMsg(eCommerce >= NO_COMMERCE && eCommerce < NUM_COMMERCE_TYPES, "invalidateCommerceRankCache passed bogus commerce index");
+	FAssertMsg(eCommerce >= NO_COMMERCE && eCommerce < NUM_COMMERCE_TYPES, "invalidateCommerceRankCache passed bogus commerce index"); // kmodx: was NO_YIELD and NUM_YIELD_TYPES
 
 	if (eCommerce == NO_COMMERCE)
 	{
@@ -15306,7 +15654,8 @@ void CvCity::liberate(bool bConquest)
 		if (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isVassal(GET_PLAYER(eOwner).getTeam()))
 		{
 			iOldMasterLand = GET_TEAM(GET_PLAYER(eOwner).getTeam()).getTotalLand();
-			iOldVassalLand = GET_TEAM(GET_PLAYER(ePlayer).getTeam()).getTotalLand(false);
+			iOldVassalLand = std::max(10, // advc.112: Lower bound added
+				GET_TEAM(GET_PLAYER(ePlayer).getTeam()).getTotalLand(false));
 		}
 
 		CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_CITY_LIBERATED", getNameKey(), GET_PLAYER(eOwner).getNameKey(), GET_PLAYER(ePlayer).getCivilizationAdjectiveKey());
@@ -15323,12 +15672,14 @@ void CvCity::liberate(bool bConquest)
 		GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, eOwner, szBuffer, getX_INLINE(), getY_INLINE(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 
 		GET_PLAYER(ePlayer).acquireCity(this, false, true, true);
-		GET_PLAYER(ePlayer).AI_changeMemoryCount(eOwner, MEMORY_LIBERATED_CITIES, 1);
+		// advc.130j:
+		GET_PLAYER(ePlayer).AI_rememberEvent(eOwner, MEMORY_LIBERATED_CITIES);
 
 		if (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isVassal(GET_PLAYER(eOwner).getTeam()))
 		{
 			int iNewMasterLand = GET_TEAM(GET_PLAYER(eOwner).getTeam()).getTotalLand();
-			int iNewVassalLand = GET_TEAM(GET_PLAYER(ePlayer).getTeam()).getTotalLand(false);
+			int iNewVassalLand = std::max(10, // advc.112: Lower bound added
+					GET_TEAM(GET_PLAYER(ePlayer).getTeam()).getTotalLand(false));
 
 			GET_TEAM(GET_PLAYER(ePlayer).getTeam()).setMasterPower(GET_TEAM(GET_PLAYER(ePlayer).getTeam()).getMasterPower() + iNewMasterLand - iOldMasterLand);
 			GET_TEAM(GET_PLAYER(ePlayer).getTeam()).setVassalPower(GET_TEAM(GET_PLAYER(ePlayer).getTeam()).getVassalPower() + iNewVassalLand - iOldVassalLand);
@@ -15481,8 +15832,8 @@ PlayerTypes CvCity::getLiberationPlayer(bool bConquest) const
 			CvPlot* pLoopPlot = ::plotCity(getX_INLINE(), getY_INLINE(), iPlot);
 
 			if (NULL != pLoopPlot)
-			{
-				if (pLoopPlot->isVisibleEnemyUnit(eBestPlayer))
+			{	// advc.122: was VisibleEnemyUnit
+				if (pLoopPlot->isVisibleEnemyCityAttacker(eBestPlayer))
 				{
 					return NO_PLAYER;
 				}
@@ -15640,3 +15991,258 @@ void CvCity::getBuildQueue(std::vector<std::string>& astrQueue) const
 	}
 }
 
+// <advc.004b> See CvCity.h
+int CvCity::initialPopulation() {
+
+	return GC.getDefineINT("INITIAL_CITY_POPULATION") +
+			GC.getEraInfo(GC.getGameINLINE().getStartEra()).getFreePopulation();
+}
+
+int CvCity::calculateDistanceMaintenanceTimes100(CvPlot* cityPlot,
+		PlayerTypes owner, int population) {
+	/* advc.004b, advc.104: Copied from the original function of the same name
+	   and plugged in the parameters. No functional change. */
+	if(population < 0) population = initialPopulation();
+/*
+** K-Mod, 17/dec/10
+** Moved the search for maintenance distance to a separate function and improved the efficiency
+*/
+	/* original bts code
+	CvCity* pLoopCity;
+	int iWorstCityMaintenance;
+	int iBestCapitalMaintenance;
+	int iTempMaintenance;
+	int iLoop;
+
+	iWorstCityMaintenance = 0;
+	iBestCapitalMaintenance = MAX_INT;
+
+	for (pLoopCity = GET_PLAYER(getOwnerINLINE()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwnerINLINE()).nextCity(&iLoop))
+	{
+		iTempMaintenance = 100 * (GC.getDefineINT("MAX_DISTANCE_CITY_MAINTENANCE") * plotDistance(getX_INLINE(), getY_INLINE(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE()));
+	*/
+	// advc.140: MAX_DIST... now cached
+	int iTempMaintenance = 100 * GC.getMAX_DISTANCE_CITY_MAINTENANCE() * calculateMaintenanceDistance(cityPlot, owner); //K-mod
+
+	// unaltered bts code
+		iTempMaintenance *= (population + 7);
+		iTempMaintenance /= 10;
+
+		iTempMaintenance *= std::max(0, (GET_PLAYER(owner).getDistanceMaintenanceModifier() + 100));
+		iTempMaintenance /= 100;
+
+		iTempMaintenance *= GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getDistanceMaintenancePercent();
+		iTempMaintenance /= 100;
+
+		iTempMaintenance *= GC.getHandicapInfo(GET_PLAYER(owner).getHandicapType()).getDistanceMaintenancePercent();
+		iTempMaintenance /= 100;
+
+		iTempMaintenance /= GC.getMapINLINE().maxPlotDistance();
+
+	/* original bts code
+		iWorstCityMaintenance = std::max(iWorstCityMaintenance, iTempMaintenance);
+
+		if (pLoopCity->isGovernmentCenter())
+		{
+			iBestCapitalMaintenance = std::min(iBestCapitalMaintenance, iTempMaintenance);
+		}
+	}
+
+	iTempMaintenance = std::min(iWorstCityMaintenance, iBestCapitalMaintenance);
+	*/
+/*
+** K-Mod end
+*/
+	FAssert(iTempMaintenance >= 0);
+
+	return iTempMaintenance;
+}
+
+// K-Mod. new function to help with maintenance calculations
+int CvCity::calculateMaintenanceDistance(CvPlot* cityPlot, PlayerTypes owner)
+{
+	/* advc.004b, advc.104: Moved the K-Mod code here and plugged in the parameters.
+	   No functional change. */
+	int x = cityPlot->getX_INLINE(), y = cityPlot->getY_INLINE();
+
+	CvCity* pLoopCity;
+	int iLoop;
+
+	int iLongest = 0;
+	int iShortestGovernment = INT_MAX;
+
+	for (pLoopCity = GET_PLAYER(owner).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(owner).nextCity(&iLoop))
+	{
+		int d = plotDistance(x, y, pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
+		iLongest = std::max(iLongest, d);
+		if(pLoopCity->isGovernmentCenter())
+			iShortestGovernment = std::min(iShortestGovernment, d);
+	}
+	// <advc.140> Upper bound added
+	int r = std::min(iLongest, iShortestGovernment);
+	int cap = ::round(1 + GC.getMapINLINE().maxPlotDistance() *
+			(10.0 / GC.getMAX_DISTANCE_CITY_MAINTENANCE()));
+	return std::min(r, cap);
+	// </advc.140>
+}
+// K-mod end
+
+int CvCity::calculateNumCitiesMaintenanceTimes100(CvPlot* cityPlot,
+		PlayerTypes owner, int population, int extraCities) {
+
+	/* advc.004b, advc.104: Copied from the original function of the same name
+	   and plugged in the parameters. No functional change. */
+	if(population < 0) population = initialPopulation();
+
+	int iNumCitiesPercent = 100;
+
+	iNumCitiesPercent *= (population + 17);
+	iNumCitiesPercent /= 18;
+
+	iNumCitiesPercent *= GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getNumCitiesMaintenancePercent();
+	iNumCitiesPercent /= 100;
+
+	iNumCitiesPercent *= GC.getHandicapInfo(GET_PLAYER(owner).getHandicapType()).getNumCitiesMaintenancePercent();
+	iNumCitiesPercent /= 100;
+
+	int iNumVassalCities = 0;
+	for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; iPlayer++)
+	{
+		CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
+		if (kLoopPlayer.getTeam() != TEAMID(owner) && GET_TEAM(kLoopPlayer.getTeam()).isVassal(TEAMID(owner)))
+		{
+			iNumVassalCities += kLoopPlayer.getNumCities();
+		}
+	}
+
+	iNumVassalCities /= std::max(1, GET_TEAM(TEAMID(owner)).getNumMembers());
+/*
+** K-Mod, 04/sep/10, karadoc
+** Reduced vassal maintenace and removed maintenace cap
+*/
+	/* original BTS code
+	int iNumCitiesMaintenance = (GET_PLAYER(getOwnerINLINE()).getNumCities() + iNumVassalCities) * iNumCitiesPercent;
+	iNumCitiesMaintenance = std::min(iNumCitiesMaintenance, GC.getHandicapInfo(getHandicapType()).getMaxNumCitiesMaintenance() * 100); */
+	int iNumCitiesMaintenance = (GET_PLAYER(owner).getNumCities()
+		+ extraCities
+		+ iNumVassalCities / 2) * iNumCitiesPercent;
+/*
+** K-Mod end
+*/
+
+	iNumCitiesMaintenance *= std::max(0, (GET_PLAYER(owner).getNumCitiesMaintenanceModifier() + 100));
+	iNumCitiesMaintenance /= 100;
+
+	FAssert(iNumCitiesMaintenance >= 0);
+
+	return iNumCitiesMaintenance;
+}
+
+int CvCity::calculateColonyMaintenanceTimes100(CvPlot* cityPlot, PlayerTypes owner,
+		int population) {
+
+	/* advc.004b, advc.104: Copied from the original function of the same name
+	   and plugged in the parameters. No functional change. */
+	if(population < 0) population = initialPopulation();
+	HandicapTypes ownerHandicap = GET_PLAYER(owner).getHandicapType();
+	CvArea* cityArea = cityPlot->area();
+
+	if (GC.getGameINLINE().isOption(GAMEOPTION_NO_VASSAL_STATES))
+	{
+		return 0;
+	}
+
+	CvCity* pCapital = GET_PLAYER(owner).getCapitalCity();
+	if (pCapital && pCapital->area() == cityArea)
+	{
+		return 0;
+	}
+
+	int iNumCitiesPercent = 100;
+
+	iNumCitiesPercent *= (population + 17);
+	iNumCitiesPercent /= 18;
+
+	iNumCitiesPercent *= GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getColonyMaintenancePercent();
+	iNumCitiesPercent /= 100;
+
+	iNumCitiesPercent *= GC.getHandicapInfo(ownerHandicap).getColonyMaintenancePercent();
+	iNumCitiesPercent /= 100;
+
+	int iNumCities = (cityArea->getCitiesPerPlayer(owner) - 1) * iNumCitiesPercent;
+	
+	int iMaintenance = (iNumCities * iNumCities) / 100;
+
+/**
+*** K-Mod, 17/dec/10, karadoc
+*** Changed colony maintenance cap to not include distance maintenance modifiers (such as state property)
+**/
+	/* original bts code
+	iMaintenance = std::min(iMaintenance, (GC.getHandicapInfo(getHandicapType()).getMaxColonyMaintenance() * calculateDistanceMaintenanceTimes100()) / 100);
+	*/
+	// advc.140: MAX_DIST... now cached
+	int iMaintenanceCap = 100 * GC.getMAX_DISTANCE_CITY_MAINTENANCE() * calculateMaintenanceDistance(cityPlot, owner);
+
+	iMaintenanceCap *= (population + 7);
+	iMaintenanceCap /= 10;
+
+	iMaintenanceCap *= GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getDistanceMaintenancePercent();
+	iMaintenanceCap /= 100;
+
+	iMaintenanceCap *= GC.getHandicapInfo(ownerHandicap).getDistanceMaintenancePercent();
+	iMaintenanceCap /= 100;
+
+	iMaintenanceCap /= GC.getMapINLINE().maxPlotDistance();
+
+	iMaintenanceCap *= GC.getHandicapInfo(ownerHandicap).getMaxColonyMaintenance();
+	iMaintenanceCap /= 100;
+
+	iMaintenance = std::min(iMaintenance, iMaintenanceCap);
+/**
+*** K-Mod end
+**/
+
+	FAssert(iMaintenance >= 0);
+
+	return iMaintenance;
+}
+// </advc.004b>
+
+// <advc.500b>
+double CvCity::garrisonStrength() const {
+
+	double r = 0;
+	for(int i = 0; i < plot()->getNumUnits(); i++) {
+		CvUnit* pu = plot()->getUnitByIndex(i);
+		if(pu == NULL)
+			continue;
+		CvUnitInfo const& u = pu->getUnitInfo();
+		// Excludes Scout, Explorer, Gunship, naval units
+		if(!u.isMilitaryHappiness())
+			continue;
+		double defStr = u.getCombat();
+		CvPlayer const& owner = GET_PLAYER(getOwnerINLINE());
+		int modifier = getBuildingDefense(); // e.g. Walls
+		// e.g. Chichen Itza
+		modifier += owner.getCityDefenseModifier();
+		// CvPlot::getDefense doesn't deliver exactly what's needed
+		if(plot()->isHills())
+			modifier += GC.getHILLS_EXTRA_DEFENSE() + u.getHillsDefenseModifier();
+		modifier += u.getCityDefenseModifier();
+		// Combat and Garrison promotions
+		for(int j = 0; j < GC.getNumPromotionInfos(); j++) {
+			PromotionTypes promoId = (PromotionTypes)j;
+			if(!pu->isHasPromotion(promoId))
+				continue;
+			CvPromotionInfo const& promo = GC.getPromotionInfo(promoId);
+			modifier += promo.getCombatPercent();
+			modifier += promo.getCityDefensePercent();
+		}
+		defStr *= 1 + modifier / 100.0;
+		// Outdated units count half
+		if(allUpgradesAvailable(pu->getUnitType()) != NO_UNIT)
+			defStr /= 2;
+		r += defStr;
+	}
+	return r;
+} // </advc.500b>

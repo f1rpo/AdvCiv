@@ -1713,7 +1713,8 @@ class CvInfoScreen:
 					pBuilding = gc.getBuildingInfo(iBuildingLoop)
 
 					# If this building is a wonder...
-					if (isWorldWonderClass(gc.getBuildingInfo(iBuildingLoop).getBuildingClassType())):
+					# advc.003:
+					if isWorldWonderClass(pBuilding.getBuildingClassType()):
 
 						if (pCity.getNumBuilding(iBuildingLoop) > 0):
 
@@ -2253,7 +2254,8 @@ class CvInfoScreen:
 							pBuilding = gc.getBuildingInfo(iBuildingLoop)
 
 							# World Wonder Mode
-							if (self.szWonderDisplayMode == self.szWDM_WorldWonder and isWorldWonderClass(gc.getBuildingInfo(iBuildingLoop).getBuildingClassType())):
+							# advc.003:
+							if self.szWonderDisplayMode == self.szWDM_WorldWonder and isWorldWonderClass(pBuilding.getBuildingClassType()):
 
 								# Is this city building a wonder?
 								if (iBuildingProd == iBuildingLoop):
@@ -2272,7 +2274,8 @@ class CvInfoScreen:
 									self.iNumWonders += 1
 
 							# National/Team Wonder Mode
-							elif (self.szWonderDisplayMode == self.szWDM_NatnlWonder and (isNationalWonderClass(gc.getBuildingInfo(iBuildingLoop).getBuildingClassType()) or isTeamWonderClass(gc.getBuildingInfo(iBuildingLoop).getBuildingClassType()))):
+							#advc.003
+							elif self.szWonderDisplayMode == self.szWDM_NatnlWonder and (isNationalWonderClass(pBuilding.getBuildingClassType()) or isTeamWonderClass(pBuilding.getBuildingClassType())):
 
 								# Is this city building a wonder?
 								if (iBuildingProd == iBuildingLoop):
@@ -2342,7 +2345,14 @@ class CvInfoScreen:
 			iPlayerTeam = pPlayer.getTeam()
 
 			# No barbs and only display national wonders for the active player's team
-			if (pPlayer and not pPlayer.isBarbarian()):
+			# advc.001d: The above comment was apparently copied from the
+			# BtS calculateWondersList function, but national wonders aren't
+			# actually skipped. Actually, no reason to exclude barbs.
+			# Skip national wonders later so that they're still shown if a
+			# city was investigated (a K-Mod change). I.e. remove this check
+			# entirely:
+			#if (pPlayer and not pPlayer.isBarbarian()):
+			if 1:
 
 				# Loop through this player's cities and determine if they have any wonders to display
 				apCityList = PyPlayer(iPlayerLoop).getCityList()
@@ -2370,10 +2380,14 @@ class CvInfoScreen:
 					else:
 						for iBuildingLoop in range(gc.getNumBuildingInfos()):
 							iBuildingProd = pCity.getProductionBuilding()
-#							pBuilding = gc.getBuildingInfo(iBuildingLoop)
-
+							# <advc.001d> While I'm a it - no need to list
+							# Palaces
+							pBuilding = gc.getBuildingInfo(iBuildingLoop)
+							if pBuilding.isCapital():
+								continue
 							# World Wonder Mode
-							if (self.szWonderDisplayMode == self.szWDM_WorldWonder and isWorldWonderClass(gc.getBuildingInfo(iBuildingLoop).getBuildingClassType())):
+							# advc.003
+							if self.szWonderDisplayMode == self.szWDM_WorldWonder and isWorldWonderClass(pBuilding.getBuildingClassType()):
 								# Is this city building a wonder?
 								if (iBuildingProd == iBuildingLoop):
 									if (iPlayerTeam == self.iActiveTeam):
@@ -2389,12 +2403,13 @@ class CvInfoScreen:
 									if (iPlayerTeam == self.iActiveTeam or self.pActiveTeam.isHasMet(iPlayerTeam)):
 										self.aaWondersBuilt_BUG.append([pCity.getBuildingOriginalTime(iBuildingLoop),iBuildingLoop,True,pPlayer.getCivilizationShortDescription(0),pCity, iPlayerLoop])
 									else:
-										self.aaWondersBuilt_BUG.append([pCity.getBuildingOriginalTime(iBuildingLoop),iBuildingLoop,False,localText.getText("TXT_KEY_UNKNOWN", ()),pCity, 18])
+										self.aaWondersBuilt_BUG.append([pCity.getBuildingOriginalTime(iBuildingLoop),iBuildingLoop,False,localText.getText("TXT_KEY_UNKNOWN", ()),pCity,gc.getBARBARIAN_PLAYER()])
+										# dlph: Replaced hardcoded 18 with barbarian player
 	#								print("Adding World wonder to list: %s, %d, %s" %(pCity.getBuildingOriginalTime(iBuildingLoop),iBuildingLoop,pPlayer.getCivilizationAdjective(0)))
 									self.iNumWonders += 1
 
 							# National/Team Wonder Mode
-							elif (self.szWonderDisplayMode == self.szWDM_NatnlWonder and (isNationalWonderClass(gc.getBuildingInfo(iBuildingLoop).getBuildingClassType()) or isTeamWonderClass(gc.getBuildingInfo(iBuildingLoop).getBuildingClassType()))):
+							elif self.szWonderDisplayMode == self.szWDM_NatnlWonder and (isNationalWonderClass(pBuilding.getBuildingClassType()) or isTeamWonderClass(pBuilding.getBuildingClassType())):
 
 								# Is this city building a wonder?
 								if (iBuildingProd == iBuildingLoop):
@@ -2413,11 +2428,13 @@ class CvInfoScreen:
 									if (iPlayerTeam == self.iActiveTeam):
 										self.aaWondersBuilt_BUG.append([pCity.getBuildingOriginalTime(iBuildingLoop),iBuildingLoop,True,pPlayer.getCivilizationShortDescription(0), pCity, iPlayerLoop])
 										self.iNumWonders += 1
-
-									elif (self.pActiveTeam.isHasMet(iPlayerTeam)
-									and pCity.isRevealed(gc.getGame().getActiveTeam())):
-										self.aaWondersBuilt_BUG.append([pCity.getBuildingOriginalTime(iBuildingLoop),iBuildingLoop,True,pPlayer.getCivilizationShortDescription(0), pCity, iPlayerLoop])
-										self.iNumWonders += 1
+									# <advc.001d> Never show (finished)
+									# national wonders of other teams.
+									#elif (self.pActiveTeam.isHasMet(iPlayerTeam)
+									#and pCity.isRevealed(gc.getGame().getActiveTeam())):
+										#self.aaWondersBuilt_BUG.append([pCity.getBuildingOriginalTime(iBuildingLoop),iBuildingLoop,True,pPlayer.getCivilizationShortDescription(0), pCity, iPlayerLoop])
+										#self.iNumWonders += 1
+									# </advc.001>
 
 		# This array used to store which players have already used up a team's slot so team projects don't get added to list more than once
 		aiTeamsUsed = []

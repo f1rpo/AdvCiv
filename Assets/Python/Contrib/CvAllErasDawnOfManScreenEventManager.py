@@ -17,7 +17,10 @@ def init():
 	START_YEAR = gc.getDefineINT("START_YEAR")
 
 def onGameStart(argsList):
-	if ( gc.getGame().getGameTurnYear() != START_YEAR ) :
+	# advc.250c: Show DoM also when human starts advanced - actually always
+	# show DoM on game start, but for ordinary games, CvEventManager.py
+	# already show it.
+	if gc.getGame().getGameTurnYear() != START_YEAR or (gc.getGame().isOption(GameOptionTypes.GAMEOPTION_ADVANCED_START) and not gc.getGame().isOption(GameOptionTypes.GAMEOPTION_SPAH)):
 		if (gc.getGame().getGameTurn() == gc.getGame().getStartTurn()) or (gc.getGame().countNumHumanGameTurnActive() == 0):
 			for iPlayer in range(gc.getMAX_PLAYERS()):
 				pPlayer = gc.getPlayer(iPlayer)

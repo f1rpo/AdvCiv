@@ -39,8 +39,9 @@
 					get="isBUG_MA"/>
 	
 			<!-- Technology Advisor (F6) by EmperorFool, Ruff_Hi -->
+			<!-- advc.004e: Disabled by default. -->
 			<option id="GPTechPrefs" key="GP Tech Prefs" 
-					type="boolean" default="True" 
+					type="boolean" default="False" 
 					get="isShowGPTechPrefs"/>
 			<option id="WideTechScreen" key="Wide Tech Screen" 
 					type="boolean" default="False" 

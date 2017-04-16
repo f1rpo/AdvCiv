@@ -8,7 +8,8 @@
 #include "CvPlayer.h"
 #include "AI_defines.h"
 
-class CvEventTriggerInfo;
+// advc.104
+#include "WarAndPeaceAI.h"
 
 class CvPlayerAI : public CvPlayer
 {
@@ -27,6 +28,25 @@ public:
 		return m_aPlayers[ePlayer];
 	}
 #endif
+	// <advc.109>
+    bool isLonely() const;
+	bool feelsSafe() const;
+	bool isThreatFromMinorCiv() const; // </advc.109>
+	// <advc.104>
+	WarAndPeaceAI::Civ& warAndPeaceAI();
+	WarAndPeaceAI::Civ const& warAndPeaceAI() const; // </advc.104>
+	// advc.104h: Returns true if peace deal implemented (or offered to human)
+	bool negotiatePeace(PlayerTypes civId, int theirBenefit, int ourBenefit);
+	// <advc.651> Check at the beginning of each turn
+	void checkDangerFromSubmarines();
+	private: bool dangerFromSubs; public: // Not serialized
+	bool isDangerFromSubmarines() const; // </advc.651>
+    /* Are there cities with sufficient production to
+	   train a significant number of units of type 'ut'?*/
+	bool canBeExpectedToTrain(UnitTypes ut) const; // advc.104, advc.651
+	bool isDefenseFocusOnBarbarians(int areaId) const; // advc.300
+	bool willOfferPeace(PlayerTypes toId) const; // advc.003
+
 	DllExport static CvPlayerAI& getPlayerNonInl(PlayerTypes ePlayer);
 
 	static void initStatics();
@@ -63,7 +83,7 @@ public:
 	void AI_doCentralizedProduction(); // K-Mod. (not used)
 
 	void AI_conquerCity(CvCity* pCity);
-
+	double razeAngerRating(CvCity const& c) const; // advc.130q
 	bool AI_acceptUnit(CvUnit* pUnit) const;
 	bool AI_captureUnit(UnitTypes eUnit, CvPlot* pPlot) const;
 
@@ -78,6 +98,7 @@ public:
 	struct CvFoundSettings
 	{
 		CvFoundSettings(const CvPlayerAI& kPlayer, bool bStartingLoc);
+		int barbDiscouragedRange; // advc.300
 		int iMinRivalRange;
 		bool bStartingLoc;
 		int iClaimThreshold; // culture required to pop the 2nd borders. (from original bts)
@@ -103,6 +124,7 @@ public:
 
 	int AI_targetCityValue(CvCity* pCity, bool bRandomize, bool bIgnoreAttackers = false) const;
 	CvCity* AI_findTargetCity(CvArea* pArea) const;
+	int cityWonderVal(CvCity* c) const; // advc.104d
 
 	bool AI_isCommercePlot(CvPlot* pPlot) const;
 /************************************************************************************************/
@@ -112,7 +134,21 @@ public:
 /************************************************************************************************/
 	bool isSafeRangeCacheValid() const; // K-Mod
 	bool AI_getAnyPlotDanger(CvPlot* pPlot, int iRange = -1, bool bTestMoves = true, bool bCheckBorder = true) const; // K-Mod added bCheckBorder
-	int AI_getPlotDanger(CvPlot* pPlot, int iRange = -1, bool bTestMoves = true) const;
+	int AI_getPlotDanger(CvPlot* pPlot, int iRange = -1, bool bTestMoves = true
+		// <advc.104> Same as in AI_getAnyPlotDanger
+		, bool bCheckBorder = true,
+		/*  Out parameter that counts enemy units in range with at most
+			hpLimit hit points. Not counted if NULL. In any case, damaged units
+			are included in the count returned by this function. */
+		int* lowHealth = NULL, int hpLimit = 60,
+		/*  For better performance, stop counting at limitCount. I.e. return value
+			can be at most limitCount. Healthy units are counted before damaged ones
+			(lowHealth).
+			Unlimited count if limitCount is negative. */
+		int limitCount = -1,
+		// Unless NO_PLAYER, count only danger from this enemy
+		PlayerTypes enemyId = NO_PLAYER // </advc.104>
+		) const;
 	//int AI_getUnitDanger(CvUnit* pUnit, int iRange = -1, bool bTestMoves = true, bool bAnyDanger = true) const;
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
@@ -149,7 +185,9 @@ public:
 	bool AI_hasTradedWithTeam(TeamTypes eTeam) const;
 
 	void AI_updateAttitudeCache(); // K-Mod (for all players)
-	void AI_updateAttitudeCache(PlayerTypes ePlayer); // K-Mod
+	void AI_updateAttitudeCache(PlayerTypes ePlayer
+		, bool updateWorstEnemy = true // advc.130e
+		); // K-Mod
 	void AI_changeCachedAttitude(PlayerTypes ePlayer, int iChange); // K-Mod
 	AttitudeTypes AI_getAttitude(PlayerTypes ePlayer, bool bForced = true) const;
 	int AI_getAttitudeVal(PlayerTypes ePlayer, bool bForced = true) const;
@@ -159,8 +197,10 @@ public:
 	void AI_updateCloseBorderAttitudeCache(); // K-Mod
 	void AI_updateCloseBorderAttitudeCache(PlayerTypes ePlayer); // K-Mod
 	int AI_getCloseBordersAttitude(PlayerTypes ePlayer) const;
-
-	int AI_getWarAttitude(PlayerTypes ePlayer) const;
+	int warSuccessAttitudeDivisor() const; // advc.130y, advc.sha
+	int AI_getWarAttitude(PlayerTypes ePlayer
+		, int partialSum = INT_MIN // advc.sha
+		) const;
 	int AI_getPeaceAttitude(PlayerTypes ePlayer) const;
 	int AI_getSameReligionAttitude(PlayerTypes ePlayer) const;
 	int AI_getDifferentReligionAttitude(PlayerTypes ePlayer) const;
@@ -173,22 +213,47 @@ public:
 	int AI_getFavoriteCivicAttitude(PlayerTypes ePlayer) const;
 	int AI_getTradeAttitude(PlayerTypes ePlayer) const;
 	int AI_getRivalTradeAttitude(PlayerTypes ePlayer) const;
+	int AI_getBonusTradeCounter(TeamTypes toId) const; // advc.130p
 	int AI_getMemoryAttitude(PlayerTypes ePlayer, MemoryTypes eMemory) const;
 	int AI_getColonyAttitude(PlayerTypes ePlayer) const;
+	// BEGIN: Show Hidden Attitude Mod 01/22/2010
+	int AI_getFirstImpressionAttitude(PlayerTypes ePlayer) const;
+	int AI_getTeamSizeAttitude(PlayerTypes ePlayer) const;
+	// advc.sha: One function for both BetterRank and WorseRank
+	int AI_getRankDifferenceAttitude(PlayerTypes ePlayer) const;
+	//int AI_getLowRankAttitude(PlayerTypes ePlayer) const; // advc.sha
+	int AI_getLostWarAttitude(PlayerTypes ePlayer) const;
+	//int AI_getKnownPlayerRank(PlayerTypes ePlayer) const; // advc.sha
+	// END: Show Hidden Attitude Mod
+	int AI_getExpansionistAttitude(PlayerTypes ePlayer) const; // advc.130w
+	int knownRankDifference(PlayerTypes otherId) const; // advc.130c
 
 	PlayerVoteTypes AI_diploVote(const VoteSelectionSubData& kVoteData, VoteSourceTypes eVoteSource, bool bPropose);
 
-	int AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pList, bool bIgnoreAnnual = false, int iExtra = 1) const;
+	int AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pList, bool bIgnoreAnnual = false, int iExtra = 1
+		, bool ignoreDiscount = false // advc.550a
+		) const;
 	bool AI_goldDeal(const CLinkList<TradeData>* pList) const;
-	bool AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList, int iChange = 1) const;
+	/*  advc.130o: Removed const qualifier - function may now change diplo memory.
+		Note that this function, despite lacking the DLLEport macro, gets called
+		directly from Civ4BeyondSword.exe.
+		Changing const-ness of such functions can cause problems, but fortunately
+		doesn't appear to in this case. (Well, could always cast it away in
+		the body.) */
+	bool AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList, int iChange = 1);
 	bool AI_counterPropose(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirInventory, CLinkList<TradeData>* pOurInventory, CLinkList<TradeData>* pTheirCounter, CLinkList<TradeData>* pOurCounter) const;
 	int AI_tradeAcceptabilityThreshold(PlayerTypes eTrader) const; // K-Mod
+	// advc.132:
+	bool checkCivicReligionConsistency(CLinkList<TradeData> const* tradeItems) const;
 
 	DllExport int AI_maxGoldTrade(PlayerTypes ePlayer) const;
 
 	DllExport int AI_maxGoldPerTurnTrade(PlayerTypes ePlayer) const;
 	int AI_goldPerTurnTradeVal(int iGoldPerTurn) const;
-
+	// <advc.026>
+	int maxGoldTradeGenerous(PlayerTypes theyId) const;
+	int maxGoldPerTurnTradeGenerous(PlayerTypes theyId) const;
+	// </advc.026>
 	int AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled = false) const; // K-Mod added bAssumeEnabled
 	int AI_baseBonusVal(BonusTypes eBonus) const;
 	int AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer, int iChange) const;
@@ -222,6 +287,9 @@ public:
 	int AI_maxUnitCostPerMil(CvArea* pArea = 0, int iBuildProb = -1) const; // K-Mod
 	int AI_nukeWeight() const; // K-Mod
 	bool AI_isLandWar(CvArea* pArea) const; // K-Mod
+	/*  advc.105: To replace some of the calls to
+		GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0. */
+	bool isFocusWar(CvArea* ap = NULL) const;
 
 	int AI_missionaryValue(CvArea* pArea, ReligionTypes eReligion, PlayerTypes* peBestPlayer = NULL) const;
 	int AI_executiveValue(CvArea* pArea, CorporationTypes eCorporation, PlayerTypes* peBestPlayer = NULL, bool bSpreadOnly = false) const;
@@ -241,7 +309,8 @@ public:
 	int AI_wakePlotTargetMissionAIs(CvPlot* pPlot, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL) const;
 // K-Mod
 	int AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eDefenceTeam, DomainTypes eDomainType = DOMAIN_LAND, int iRange = 0, bool bAtTarget = true, bool bCheckMoves = false, bool bNoCache = false) const;
-	int AI_localAttackStrength(const CvPlot* pTargetPlot, TeamTypes eAttackTeam, DomainTypes eDomainType = DOMAIN_LAND, int iRange = 2, bool bUseTarget = true, bool bCheckMoves = false, bool bCheckCanAttack = false) const;
+	int AI_localAttackStrength(const CvPlot* pTargetPlot, TeamTypes eAttackTeam, DomainTypes eDomainType = DOMAIN_LAND, int iRange = 2, bool bUseTarget = true, bool bCheckMoves = false, bool bCheckCanAttack = false
+			, int* attackerCount = NULL) const; // advc.139
 	int AI_cityTargetStrengthByPath(CvCity* pCity, CvSelectionGroup* pSkipSelectionGroup, int iMaxPathTurns) const;
 // K-Mod end
 // BBAI
@@ -303,7 +372,11 @@ public:
 
 	int AI_getPeacetimeGrantValue(PlayerTypes eIndex) const;
 	void AI_changePeacetimeGrantValue(PlayerTypes eIndex, int iChange);
-
+	/*  <advc.130p> The change functions apply adjustments and have a side-effect
+		on EnemyTrade and EnemyGrant values. These here are simple setters. */
+	void AI_setPeacetimeTradeValue(PlayerTypes eIndex, int iVal);
+	void AI_setPeacetimeGrantValue(PlayerTypes eIndex, int iVal);
+	// </advc.130p>
 	int AI_getGoldTradedTo(PlayerTypes eIndex) const;
 	void AI_changeGoldTradedTo(PlayerTypes eIndex, int iChange);
 
@@ -319,6 +392,9 @@ public:
 
 	int AI_getMemoryCount(PlayerTypes eIndex1, MemoryTypes eIndex2) const;
 	void AI_changeMemoryCount(PlayerTypes eIndex1, MemoryTypes eIndex2, int iChange);
+	// advc.130j: Increases memory count based on current attitude
+	void AI_rememberEvent(PlayerTypes civId, MemoryTypes mem);
+	void rememberWar(PlayerTypes formerEnemyId); // advc.130z
 
 	// K-Mod
 	int AI_getCityTargetTimer() const;
@@ -352,7 +428,7 @@ public:
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/		
-
+	bool isCloseToReligiousVictory() const;
 	bool AI_isDoStrategy(int iStrategy) const;
 
 	void AI_updateGreatPersonWeights(); // K-Mod
@@ -448,12 +524,36 @@ public:
 	bool AI_isFirstTech(TechTypes eTech) const;
 
 	void AI_ClearConstructionValueCache(); // K-Mod
-
+	// advc.001: needed for bNeighbouringReligion in AI_techValue
+	bool AI_hasSharedPrimaryArea(PlayerTypes pId) const;
+	// <advc.003><advc.104m>
+	bool proposeEmbargo(PlayerTypes humanId);
+	bool contactReligion(PlayerTypes humanId);
+	bool contactCivics(PlayerTypes humanId);
+	bool askHelp(PlayerTypes humanId);
+	// tribute type: 0 for gold, 1 for map, 2 for tech and 3 for bonus resource
+	bool demandTribute(PlayerTypes humanId, int tributeType);
+	// </advc.104m></advc.003>
+	// advc.104r: public, and added parameter
+	void AI_doSplit(bool force = false);
 	// for serialization
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);
 
 protected:
+	/*  <advc.130p> For code shared by AI_changePeacetimeTradeValue and
+		AI_changePeacetimeGrantValue. The third parameter says which
+		of the two should be changed. */
+	void AI_changePeaceTimeValue(PlayerTypes eIndex, int iChange, bool isGrant);
+	static int const peacetimeTradeValDivisor = 1000;
+	static int const peacetimeTradeRelationsLimit = 4;
+	/*  </advc.130p> advc.130x: Mode 0: same religion, 1: different religion,
+		2: favorite civic. Returns the absolute value of the limit for the
+		time based religion/civics relations modifier. */
+	int ideologyDiploLimit(PlayerTypes theyId, int mode) const;
+	// advc.104h:
+	int negotiatePeace(PlayerTypes receiverId, PlayerTypes giverId, int delta,
+			int* iGold, TechTypes* eBestTech, CvCity** pBestCity);
 
 	static CvPlayerAI* m_aPlayers;
 
@@ -464,6 +564,7 @@ protected:
 	int m_iReligionTimer;
 	int m_iExtraGoldTarget;
 	int m_iCityTargetTimer; // K-Mod
+	WarAndPeaceAI::Civ wpai; // advc.104
 
 	/* original bts code
 	mutable int m_iStrategyHash;
@@ -536,7 +637,11 @@ protected:
 	void AI_doCivics();
 	void AI_doReligion();
 	void AI_doDiplo();
-	void AI_doSplit();
+	// advc.003:
+	bool proposeJointWar(PlayerTypes humanId);
+	int defensivePactAttitude(PlayerTypes ePlayer, bool vassalPacts) const; // advc.130t
+	double expansionistHate(PlayerTypes civId) const;
+	//void AI_doSplit(); // advc.104r: Moved to public section
 	void AI_doCheckFinancialTrouble();
 
 	// K-Mod. I've moved the bulk of AI_getStrategyHash into a new function: AI_updateStrategyHash.

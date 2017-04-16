@@ -24,6 +24,7 @@ CvArea::CvArea()
 	m_aiBuildingGoodHealth = new int[MAX_PLAYERS];
 	m_aiBuildingBadHealth = new int[MAX_PLAYERS];
 	m_aiBuildingHappiness = new int[MAX_PLAYERS];
+	m_aiContinentalTradeRoutes = new int[MAX_PLAYERS]; // advc.310
 	m_aiFreeSpecialist = new int[MAX_PLAYERS];
 	m_aiPower = new int[MAX_PLAYERS];
 	m_aiBestFoundValue = new int[MAX_PLAYERS];
@@ -70,6 +71,7 @@ CvArea::~CvArea()
 	SAFE_DELETE_ARRAY(m_aiBuildingGoodHealth);
 	SAFE_DELETE_ARRAY(m_aiBuildingBadHealth);
 	SAFE_DELETE_ARRAY(m_aiBuildingHappiness);
+	SAFE_DELETE_ARRAY(m_aiContinentalTradeRoutes); // advc.310
 	SAFE_DELETE_ARRAY(m_aiFreeSpecialist);
 	SAFE_DELETE_ARRAY(m_aiPower);
 	SAFE_DELETE_ARRAY(m_aiBestFoundValue);
@@ -135,6 +137,7 @@ void CvArea::reset(int iID, bool bWater, bool bConstructorCall)
 	m_iNumCities = 0;
 	m_iTotalPopulation = 0;
 	m_iNumStartingPlots = 0;
+	nBarbCitiesEver = 0; // advc.300
 
 	m_bWater = bWater;
 
@@ -147,6 +150,7 @@ void CvArea::reset(int iID, bool bWater, bool bConstructorCall)
 		m_aiBuildingGoodHealth[iI] = 0;
 		m_aiBuildingBadHealth[iI] = 0;
 		m_aiBuildingHappiness[iI] = 0;
+		m_aiContinentalTradeRoutes[iI] = 0; // advc.310
 		m_aiFreeSpecialist[iI] = 0;
 		m_aiPower[iI] = 0;
 		m_aiBestFoundValue[iI] = 0;
@@ -401,6 +405,65 @@ void CvArea::changeNumOwnedTiles(int iChange)
 }
 
 
+// <advc.300>
+std::pair<int,int> CvArea::countOwnedUnownedHabitableTiles(bool ignoreBarb) const {
+
+	std::pair<int,int> r;
+	r.first = 0; r.second = 0;
+	CvMap const& map = GC.getMap();
+	for(int i = 0; i < map.numPlots(); i++) {
+		CvPlot* plot = map.plotByIndexINLINE(i);
+		if(plot == NULL || plot->area() == NULL || plot->area()->getID() != getID()
+				|| !plot->isHabitable())
+			continue;
+		if(plot->isOwned() && (!ignoreBarb ||
+				plot->getOwnerINLINE() != BARBARIAN_PLAYER))
+			r.first++;
+		else r.second++;
+	}
+	return r;
+}
+
+
+int CvArea::countCivCities() const {
+
+	int r = 0;
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+		r += getCitiesPerPlayer((PlayerTypes)i);
+	return r;
+}
+
+
+int CvArea::countCivs(bool subtractOCC) const {
+
+	/* Perhaps an owned tile (across the sea) should suffice, but tiles-per-civ
+	   aren't cached/ serialized (yet). */
+	int r = 0;
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+		if(getCitiesPerPlayer((PlayerTypes)i) > 0 && (!subtractOCC ||
+				!GET_PLAYER((PlayerTypes)i).isHuman() ||
+				!GC.getGameINLINE().isOption(GAMEOPTION_ONE_CITY_CHALLENGE)))
+			r++;
+	return r;
+}
+
+
+bool CvArea::hasAnyAreaPlayerBonus(BonusTypes bId) const {
+
+	for(int i = 0; i < MAX_PLAYERS; i++) {
+		PlayerTypes pId = (PlayerTypes)i;
+		// Barb, minor civ, anything goes so long as there's a city
+		if(getCitiesPerPlayer(pId) > 0 && GET_PLAYER(pId).hasBonus(bId))
+			return true;
+	}
+	return false;
+}
+
+int CvArea::numBarbCitiesEver() const { return nBarbCitiesEver; }
+void CvArea::barbCityCreated() { nBarbCitiesEver++; }
+// </advc.300>
+
+
 int CvArea::getNumRiverEdges() const												
 {
 	return m_iNumRiverEdges;
@@ -500,6 +563,7 @@ void CvArea::changeCitiesPerPlayer(PlayerTypes eIndex, int iChange)
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be >= 0");
 	FAssertMsg(eIndex < MAX_PLAYERS, "eIndex is expected to be < MAX_PLAYERS");
 	m_iNumCities = (m_iNumCities + iChange);
+	barbCityCreated(); // advc.300
 	FAssert(getNumCities() >= 0);
 	m_aiCitiesPerPlayer[eIndex] = (m_aiCitiesPerPlayer[eIndex] + iChange);
 	FAssert(getCitiesPerPlayer(eIndex) >= 0);
@@ -592,6 +656,18 @@ void CvArea::changeBuildingHappiness(PlayerTypes eIndex, int iChange)
 	}
 }
 
+// <advc.310>
+int CvArea::getContinentalTradeRoutes(PlayerTypes eIndex) const {
+	FAssert(eIndex >= 0); FAssert(eIndex < MAX_PLAYERS);
+	return m_aiContinentalTradeRoutes[eIndex];
+}
+void CvArea::changeContinentalTradeRoutes(PlayerTypes eIndex, int iChange) {
+	FAssert(eIndex >= 0); FAssert(eIndex < MAX_PLAYERS);
+	if(iChange == 0) return;
+	m_aiContinentalTradeRoutes[eIndex] += iChange;
+	FAssert(getContinentalTradeRoutes(eIndex) >= 0);
+	GET_PLAYER(eIndex).updateTradeRoutes();
+} // </advc.310>
 
 int CvArea::getFreeSpecialist(PlayerTypes eIndex) const
 {
@@ -845,8 +921,15 @@ int CvArea::getNumAIUnits(PlayerTypes eIndex1, UnitAITypes eIndex2) const
 {
 	FAssertMsg(eIndex1 >= 0, "eIndex1 is expected to be >= 0");
 	FAssertMsg(eIndex1 < MAX_PLAYERS, "eIndex1 is expected to be < MAX_PLAYERS");
-	FAssertMsg(eIndex2 >= 0, "eIndex2 is expected to be >= 0");
 	FAssertMsg(eIndex2 < NUM_UNITAI_TYPES, "eIndex2 is expected to be < NUM_UNITAI_TYPES");
+	// <advc.124> NO_UNITAI counts all units of eIndex1
+	//FAssertMsg(eIndex2 >= 0, "eIndex2 is expected to be >= 0");
+	if(eIndex2 < 0) {
+		int r = 0;
+		for(int i = 0; i < NUM_UNITAI_TYPES; i++)
+			r += m_aaiNumAIUnits[eIndex1][i];
+		return r;
+	} // </advc.124>
 	return m_aaiNumAIUnits[eIndex1][eIndex2];
 }
 
@@ -927,6 +1010,7 @@ void CvArea::read(FDataStreamBase* pStream)
 	pStream->Read(&m_iNumCities);
 	pStream->Read(&m_iTotalPopulation);
 	pStream->Read(&m_iNumStartingPlots);
+	pStream->Read(&nBarbCitiesEver); // advc.300
 
 	pStream->Read(&m_bWater);
 
@@ -937,6 +1021,7 @@ void CvArea::read(FDataStreamBase* pStream)
 	pStream->Read(MAX_PLAYERS, m_aiBuildingGoodHealth);
 	pStream->Read(MAX_PLAYERS, m_aiBuildingBadHealth);
 	pStream->Read(MAX_PLAYERS, m_aiBuildingHappiness);
+	pStream->Read(MAX_PLAYERS, m_aiContinentalTradeRoutes); // advc.310
 	pStream->Read(MAX_PLAYERS, m_aiFreeSpecialist);
 	pStream->Read(MAX_PLAYERS, m_aiPower);
 	pStream->Read(MAX_PLAYERS, m_aiBestFoundValue);
@@ -985,6 +1070,7 @@ void CvArea::write(FDataStreamBase* pStream)
 	pStream->Write(m_iNumCities);
 	pStream->Write(m_iTotalPopulation);
 	pStream->Write(m_iNumStartingPlots);
+	pStream->Write(nBarbCitiesEver); // advc.300
 
 	pStream->Write(m_bWater);
 
@@ -995,6 +1081,7 @@ void CvArea::write(FDataStreamBase* pStream)
 	pStream->Write(MAX_PLAYERS, m_aiBuildingGoodHealth);
 	pStream->Write(MAX_PLAYERS, m_aiBuildingBadHealth);
 	pStream->Write(MAX_PLAYERS, m_aiBuildingHappiness);
+	pStream->Write(MAX_PLAYERS, m_aiContinentalTradeRoutes); // advc.310
 	pStream->Write(MAX_PLAYERS, m_aiFreeSpecialist);
 	pStream->Write(MAX_PLAYERS, m_aiPower);
 	pStream->Write(MAX_PLAYERS, m_aiBestFoundValue);

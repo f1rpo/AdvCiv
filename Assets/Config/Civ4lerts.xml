@@ -18,8 +18,9 @@
 	<options id="Civ4lerts" file="Civ4lerts.ini">
 		<section id="Civ4lerts">
 			<!-- Move this outside of INI once Mod objects hold options -->
+			<!-- advc.106d: Enabled by default. -->
 			<option id="Enabled" key="Enabled" 
-					type="boolean" default="False" 
+					type="boolean" default="True" 
 					get="isEnabled" set="setEnabled" 
 					label="Enable Civ4lerts" 
 					help="When checked, messages are displayed to alert you to various pending and existing conditions using Dr. Elmer Jiggle's Civ4lerts mod."/>
@@ -65,6 +66,10 @@
 					get="isShowCityOccupationAlert" set="setShowCityOccupationAlert" 
 					label="Occupation" 
 					help="When checked, displays an alert when a city has been pacified, ending occupation."/>
+			<!-- advc.210b: Replacement for the two entries above -->
+			<option id="Revolt" key="Revolts" 
+					type="boolean" default="True" and="Enabled" 
+					get="isShowRevoltAlert" set="setShowRevoltAlert"/>
 			
 			<option id="CityCanHurryPop" key="City Can Hurry Pop" 
 					type="boolean" default="False" and="Enabled" 
@@ -78,6 +83,10 @@
 					help="When checked, displays an alert once a city can hurry the item it's building with gold."/>
 			
 			<!-- Trade -->
+			<!-- advc.210a -->
+			<option id="WarTrade" key="War Plans" 
+					type="boolean" default="True" and="Enabled" 
+					get="isShowWarTradeAlert" set="setShowWarTradeAlert"/>
 			<option id="GoldTrade" key="Gold Trade" 
 					type="boolean" default="False" and="Enabled" 
 					get="isShowGoldTradeAlert" set="setShowGoldTradeAlert" 
@@ -105,8 +114,9 @@
 			<option id="RefusesToTalk" key="Refuses To Talk" 
 					type="boolean" default="False" and="Enabled" 
 					get="isShowRefusesToTalkAlert" set="setShowRefusesToTalkAlert"/>
+			<!-- advc.106d: was False by default -->
 			<option id="WorstEnemy" key="Worst Enemy" 
-					type="boolean" default="False" and="Enabled" 
+					type="boolean" default="True" and="Enabled" 
 					get="isShowWorstEnemyAlert" set="setShowWorstEnemyAlert"/>
 		</section>
 	</options>

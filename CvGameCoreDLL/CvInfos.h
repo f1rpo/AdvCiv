@@ -356,8 +356,6 @@ public:
 	int getPrereqOrTechs(int i) const;		// Exposed to Python
 	int getPrereqAndTechs(int i) const;		// Exposed to Python
 
-	int getCommerceModifier(int i) const; // K-Mod, Exposed to Python
-	int* getCommerceModifierArray() const; // K-Mod
 	int getSpecialistExtraCommerce(int i) const; // K-Mod, Exposed to Python
 	int* getSpecialistExtraCommerceArray() const; // K-Mod
 	bool isCommerceFlexible(int i) const;	// Exposed to Python
@@ -425,7 +423,6 @@ protected:
 	int* m_piPrereqOrTechs;
 	int* m_piPrereqAndTechs;
 
-	int* m_piCommerceModifier; // K-Mod
 	int* m_piSpecialistExtraCommerce; // K-Mod
 	bool* m_pbCommerceFlexible;
 	bool* m_pbTerrainTrade;
@@ -2423,6 +2420,7 @@ public:
 	int getAIPerEraModifier() const;						// Exposed to Python
 	int getAIAdvancedStartPercent() const;						// Exposed to Python
 	int getNumGoodies() const;				// Exposed to Python
+	int getDifficulty() const; // advc.250a; exposed to Python
 
 	// Arrays
 
@@ -2497,6 +2495,7 @@ protected:
 	int m_iAIPerEraModifier;
 	int m_iAIAdvancedStartPercent;
 	int m_iNumGoodies;
+	int m_iDifficulty; // advc.250a
 
 	CvString m_szHandicapName;
 
@@ -3593,7 +3592,7 @@ public:
 	int getVassalPowerModifier() const;				// Exposed to Python
 	int getFavoriteCivic() const;																// Exposed to Python
 	int getFavoriteReligion() const;																// Exposed to Python
-	int getFreedomAppreciation() const;																// Exposed to Python
+	int getFreedomAppreciation() const;								// Exposed to Python
 
 	const TCHAR* getArtDefineTag() const;				// Exposed to Python
 	void setArtDefineTag(const TCHAR* szVal);

@@ -279,6 +279,14 @@ void CyGamePythonInterface()
 
 		.def("isEventActive", &CyGame::isEventActive, "bool (int /*EventTriggerTypes*/ eTrigger)")
 		.def("doControl", &CyGame::doControl, "void (int /*ControlTypes*/ iControl)")
+		// advc.104:
+		.def("useKModAI", &CyGame::useKModAI, "bool ()")
+		// advc.300:
+		.def("getBarbarianStartTurn", &CyGame::getBarbarianStartTurn, "int ()")
+		// advc.250b:
+		.def("SPaHPointsForSettingsScreen", &CyGame::SPaHPointsForSettingsScreen)
+		// advc.250:
+		.def("getDifficultyForEndScore", &CyGame::getDifficultyForEndScore, "int ()")
 		;
 
 	python::class_<CyDeal>("CyDeal")

@@ -594,7 +594,7 @@ void CvDllPythonEvents::reportSelectionGroupPushMission(CvSelectionGroup* pSelec
 
 		postEvent(eventData);
 
-		delete[] aiUnitIds;
+		delete[] aiUnitIds; // kmodx: Memory leak
 	}
 }
 

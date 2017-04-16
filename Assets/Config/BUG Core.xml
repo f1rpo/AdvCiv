@@ -108,4 +108,9 @@
 	
 	<shortcut module="BugHelp" function="launch" keys="Alt Ctrl F1"/>
 		<!--arg type="string" value="TXT_KEY_BUG_HELP_FILE"/-->
+
+	<!-- advc.102: For convenience, I'm adding my hotkey to the
+		 BugOptionsScreen module (although it affects a player option,
+		 not a BUG option). -->
+	<shortcut module="BugOptionsScreen" function="toggleShowFriendlyMoves" keys="Shift M"/>
 </mod>

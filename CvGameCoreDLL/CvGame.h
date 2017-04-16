@@ -8,6 +8,8 @@
 //#include "CvStructs.h"
 #include "CvDeal.h"
 #include "CvRandom.h"
+// advc.250b:
+#include "StartPointsAsHandicap.h"
 
 class CvPlot;
 class CvCity;
@@ -30,6 +32,7 @@ public:
 protected:
 
 	void uninit();
+	void setStartTurnYear(int turnNumber = 0); // advc.250c
 
 public:
 
@@ -122,6 +125,9 @@ public:
 	DllExport int countCivTeamsEverAlive() const;																	// Exposed to Python
 	DllExport int countHumanPlayersAlive() const;																	// Exposed to Python
 	int countFreeTeamsAlive() const; // K-Mod
+	// advc.137: Replaces getDefaultPlayers for most purposes
+	int getRecommendedPlayers() const;
+	int getSeaLevelChange() const; // advc.137, advc.140
 
 	int countTotalCivPower();																								// Exposed to Python
 	int countTotalNukeUnits();																							// Exposed to Python
@@ -129,13 +135,21 @@ public:
 	int getNumFreeBonuses(BuildingTypes eBuilding);													// Exposed to Python
 
 	int countReligionLevels(ReligionTypes eReligion);							// Exposed to Python 
-	int calculateReligionPercent(ReligionTypes eReligion) const;				// Exposed to Python
+	int calculateReligionPercent(ReligionTypes eReligion,
+			// advc.115b:
+			bool ignoreOtherReligions = false
+			) const;				// Exposed to Python
 	int countCorporationLevels(CorporationTypes eCorporation);							// Exposed to Python 
 	void replaceCorporation(CorporationTypes eCorporation1, CorporationTypes eCorporation2);
 
 	int goldenAgeLength() const;																					// Exposed to Python
 	int victoryDelay(VictoryTypes eVictory) const;							// Exposed to Python
 	int getImprovementUpgradeTime(ImprovementTypes eImprovement) const;		// Exposed to Python
+	/*  advc.003: 3 for Marathon, 0.67 for Quick. Based on VictoryDelay.
+		For cases where there isn't a more specific game speed modifier that
+		could be applied. (E.g. tech costs should be adjusted based on
+		iResearchPercent, not based on this function.) */
+	double gameSpeedFactor() const;
 
 	bool canTrainNukes() const;																		// Exposed to Python
 	DllExport EraTypes getCurrentEra() const;											// Exposed to Python
@@ -181,6 +195,10 @@ public:
 
 	int getEstimateEndTurn() const;																// Exposed to Python
 	void setEstimateEndTurn(int iNewValue);												// Exposed to Python
+	/*  advc.003: Ratio of turns played to total estimated game length;
+		between 0 and 1.
+		'delay' is added to the number of turns played. */
+	double gameTurnProgress(int delay = 0) const;
 
 	DllExport int getTurnSlice() const;																			// Exposed to Python
 	int getMinutesPlayed() const;																	// Exposed to Python
@@ -243,8 +261,10 @@ public:
 	DllExport void initScoreCalculation();
 
 	int getAIAutoPlay();																				// Exposed to Python
-	DllExport void setAIAutoPlay(int iNewValue);																// Exposed to Python
-	void changeAIAutoPlay(int iChange);
+	DllExport void setAIAutoPlay(int iNewValue																// Exposed to Python
+			, bool changePlayerStatus = true); // advc.127
+	void changeAIAutoPlay(int iChange
+			, bool changePlayerStatus = true); // advc.127
 /*
 ** K-mod, 6/dec/10, karadoc
 */
@@ -290,7 +310,7 @@ public:
 	DllExport bool isHotSeat() const;																							// Exposed to Python
 	DllExport bool isPbem() const;																								// Exposed to Python
 	DllExport bool isPitboss() const;																							// Exposed to Python
-	DllExport bool isSimultaneousTeamTurns() const;																							// Exposed to Python
+	DllExport bool isSimultaneousTeamTurns() const; // Exposed to Python
 
 	DllExport bool isFinalInitialized() const;																		// Exposed to Python
 	DllExport void setFinalInitialized(bool bNewValue);
@@ -307,9 +327,19 @@ public:
 	DllExport PlayerTypes getActivePlayer() const;																				// Exposed to Python
 	DllExport void setActivePlayer(PlayerTypes eNewValue, bool bForceHotSeat = false);		// Exposed to Python
 	DllExport void updateUnitEnemyGlow();
+	/* <advc.106b> When a DLL function is called from the EXE, there is no (other)
+	   way to determine whether it's during a human turn. (If it is known that
+	   it's a human turn, then getActivePlayer says which human.) */
+	bool isAITurn() const;
+	void setAITurn(bool b);
+	private: bool aiTurn; public: // </advc.106b>
 
 	DllExport HandicapTypes getHandicapType() const;
 	DllExport void setHandicapType(HandicapTypes eHandicap);
+
+	HandicapTypes getAIHandicap() const; // advc.127
+	// advc.250:
+	int getDifficultyForEndScore() const; // Exposed to Python
 
 	DllExport PlayerTypes getPausePlayer() const;																			// Exposed to Python
 	DllExport bool isPaused() const;																									// Exposed to Python
@@ -580,6 +610,27 @@ public:
 
 	std::set<int> m_ActivePlayerCycledGroups; // K-Mod. This is used to track which groups have been cycled through in the current turn. Note: it does not need to be kept in sync for multiplayer games.
 
+	/* advc.104: Doesn't belong here, but I didn't want to add Python wrapper
+	   classes just for that one function. */
+	bool useKModAI() const; // Exposed to Python
+	/*  advc.250b: Used for exposing a StartPointsAsHandicap member function
+		to Python through CvGame. */
+	StartPointsAsHandicap& startPointsAsHandicap();
+	inline int getMinimapWaterMode() const { return minimapWaterMode; } // advc.002a
+	// advc.011: Accessing this again and again from XML might be too slow.
+	inline int getDelayUntilBuildDecay() const { return delayUntilBuildDecay; }
+
+	/* <advc.108>: Three levels of start plot normalization:
+	   1: low (weak starting plots on average, high variance);
+	      for single-player
+	   2: high (strong starting plots, low variance);
+	      for multi-player
+	   3: very high (very strong starting plots, low variance);
+	      BtS/ K-Mod behavior
+	   Only used during game initialization, hence not serialized. */
+	int getNormalizationLevel() const;
+	private: int normalizationLevel; // </advc.108>
+
 protected:
 	int m_iElapsedGameTurns;
 	int m_iStartTurn;
@@ -619,6 +670,7 @@ protected:
 	bool m_bNukesValid;
 
 	HandicapTypes m_eHandicap;
+	HandicapTypes aiHandicap; // advc.127
 	PlayerTypes m_ePausePlayer;
 	UnitTypes m_eBestLandUnit;
 	TeamTypes m_eWinner;
@@ -683,12 +735,20 @@ protected:
 
 	int		m_iNumCultureVictoryCities;
 	int		m_eCultureVictoryCultureLevel;
+	int minimapWaterMode; // advc.002a: Cached for better performance
+	int delayUntilBuildDecay; // advc.011
+
+	StartPointsAsHandicap spah; // advc.250b
 
 	void doTurn();
 	void doDeals();
 	void doGlobalWarming();
 	CvPlot* getRandGWPlot(int iPool); // K-Mod
 	void doHolyCity();
+	// <advc.138>
+	int religionPriority(TeamTypes teamId, ReligionTypes relId) const;
+	int religionPriority(PlayerTypes civId, ReligionTypes relId) const;
+	// </advc.138>
 	void doHeadquarters();
 	void doDiploVote();
 	void doVoteResults();
@@ -697,6 +757,23 @@ protected:
 	void createBarbarianCities();
 	void createBarbarianUnits();
 	void createAnimals();
+
+	// <advc.300>
+	public: int getBarbarianStartTurn() const; // Exposed to Python
+	protected:
+	void createBarbCity(bool noCivCities, float prMod = 1.0);
+	int numBarbariansToSpawn(int tilesPerUnit, int nTiles,
+			int uUnowned, int nUnitsPresent, int nBarbarianCities = 0);
+	/*  spawnBarbarians returns the number of land units spawned
+		(possibly in cargo). */
+	 int spawnBarbarians(int n, CvArea& area, Shelf* shelf,
+			bool cargoAllowed = false);
+	 CvPlot* randomBarbPlot(CvArea const& area, Shelf* shelf) const;
+	 bool killBarb(int nPresent, int nTiles, int barbPop,
+			CvArea& area, Shelf* shelf);
+	// Use of PRNG makes this non-const
+	UnitTypes randomBarbUnit(UnitAITypes ai, CvArea const& a);
+	// </advc.300>
 
 	void verifyCivics();
 

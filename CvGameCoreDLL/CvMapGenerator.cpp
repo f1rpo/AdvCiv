@@ -161,6 +161,32 @@ bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY, bool bIg
 		}
 	}
 
+	// <advc.129> Also prevent more than one adjacent copy regardless of range.
+	int nFound = 0;
+	for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
+		CvPlot* pp = plotDirection(iX, iY, (DirectionTypes)i);
+		if(pp == NULL) continue; CvPlot const& p = *pp;
+		if(p.area() != pArea) continue;
+		if(p.getBonusType() == eBonus) {
+			nFound++;
+			if(nFound >= 2)
+				return false;
+			/*  A single adjacent copy could already have another adjacent copy.
+				However, if that's prohibited, clusters of more than 2 resources
+				won't be placed at all. (They're only placed around one central
+				tile, which also gets the resource.) Better to change the placement
+				pattern then (addUniqueBonusType). */
+			/*for(int j = 0; j < NUM_DIRECTION_TYPES; j++) {
+				CvPlot* pp2 = plotDirection(p.getX_INLINE(), p.getY_INLINE(),
+						(DirectionTypes)j);
+				if(pp2 == NULL) continue; CvPlot const& p2 = *pp2;
+				if(p2.area() != pArea) continue;
+				if(p2.getBonusType() == eBonus)
+					return false;
+			}*/
+		}
+	} // </advc.129>
+
 	return true;
 }
 
@@ -181,7 +207,7 @@ bool CvMapGenerator::canPlaceGoodyAt(ImprovementTypes eImprovement, int iX, int 
 
 	pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
 
-	if (!(pPlot->canHaveImprovement(eImprovement, NO_TEAM))) 
+	if (!(pPlot->canHaveImprovement(eImprovement, NO_TEAM)))
 	{
 		return false;
 	}
@@ -773,6 +799,50 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 			{
 				if (canPlaceBonusAt(eBonusType, pPlot->getX_INLINE(), pPlot->getY_INLINE(), bIgnoreLatitude))
 				{
+					/*	<advc.129> About to place a cluster of eBonusType. Don't
+						place that cluster near an earlier cluster (or any instance)
+						of the same bonus class - that's what can lead to e.g.
+						starts with 5 Gold.
+						canPlaceBonusAt can't enforce this well b/c it doesn't
+						know whether a cluster starts (distance needs to be heeded)
+						or continues (distance mustn't be heeded). */
+					int classToAvoid = pBonusInfo.getBonusClassType();
+					/*  Only resources that occur in clusters are problematic.
+						Not sure about the classToAvoid>0 clause. 0 is the "general"
+						bonus class containing all the clustered resources except
+						for Gold, Silver, Gems which I've moved to a separate class
+						"precious". I.e. currently only double clusters of precious
+						bonuses are avoided. Eliminating all double clusters might
+						get in the way of (early) resource trades too much,
+						and make the map less exciting than it could be. */
+					if(pBonusInfo.getGroupRand() > 0 && classToAvoid > 0) {
+						bool skip = false;
+						/*  Can't use pClassInfo.getUniqueRange() b/c this has to be
+							0 for bonuses that appear in clusters. 5 hardcoded. */
+						int dist = 5;
+						CvPlot const& randPlot = *pPlot;
+						int const x = randPlot.getX_INLINE();
+						int const y = randPlot.getY_INLINE();
+						for(int dx = -dist; dx <= dist; dx++)
+						for(int dy = -dist; dy <= dist; dy++) {
+							CvPlot* pp = plotXY(x, y, dx, dy);
+							if(pp == NULL) continue; CvPlot& p = *pp;
+							if(p.getArea() != randPlot.getArea() ||
+									plotDistance(x, y, p.getX_INLINE(),
+									p.getY_INLINE()) > dist)
+								continue;
+							BonusTypes otherId = p.getBonusType();
+							if(otherId != NO_BONUS && GC.getBonusInfo(otherId).
+									getBonusClassType() == classToAvoid &&
+									GC.getBonusInfo(otherId).getGroupRand() > 0) {
+								skip = true;
+								break;
+							}
+						}
+						if(skip)
+							continue;
+					}
+					// </advc.129>
 					pPlot->setBonusType(eBonusType);
 
 					for (int iDX = -(pBonusInfo.getGroupRange()); iDX <= pBonusInfo.getGroupRange(); iDX++)
@@ -996,6 +1066,9 @@ void CvMapGenerator::generateRandomMap()
 
 	generatePlotTypes();
 	generateTerrain();
+	/* advc.300: Already done in CvMap::calculateAreas, but when calculateAreas
+	   is called during map generation, tile yields aren't yet set. */
+	GC.getMap().computeShelves();
 }
 
 void CvMapGenerator::generatePlotTypes()
@@ -1171,6 +1244,23 @@ int CvMapGenerator::calculateNumBonusesToAdd(BonusTypes eBonusType)
 				iNumPossible++;
 			}
 		}
+		// <advc.129>
+		int subtrahend = pBonusInfo.getTilesPer(); // Typically 16 or 32
+		int remainder = iNumPossible;
+		int result = 0;
+		/* Place one for the first, say, 16 tiles, the next after 17, then 18 ...
+		   i.e. number of resources placed grows sublinearly with the number of
+		   eligible plots. */
+		while(true) {
+			remainder -= subtrahend;
+			if(remainder < 0)
+				break;
+			result++;
+			subtrahend++;
+		}
+		if(GC.getDefineINT("SUBLINEAR_BONUS_QUANTITIES") > 0)
+			iLandTiles += result;
+		else // </advc.129>
 		iLandTiles += (iNumPossible / pBonusInfo.getTilesPer());
 	}
 

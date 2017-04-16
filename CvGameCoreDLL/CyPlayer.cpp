@@ -16,6 +16,7 @@
 #include "CySelectionGroup.h"
 #include "CvDLLPythonIFaceBase.h"
 #include "CvGlobals.h"
+#include "WarEvaluator.h" // advc.104l
 
 CyPlayer::CyPlayer() : m_pPlayer(NULL)
 {
@@ -120,7 +121,12 @@ bool CyPlayer::isHuman()
 {
 	return m_pPlayer ? m_pPlayer->isHuman() : false;
 }
-
+// <advc.127>
+bool CyPlayer::isHumanDisabled()
+{
+	return m_pPlayer ? m_pPlayer->isHumanDisabled() : false;
+}
+// </advc.127>
 bool CyPlayer::isBarbarian()
 {
 	return m_pPlayer ? m_pPlayer->isBarbarian() : false;
@@ -521,10 +527,9 @@ int CyPlayer::calculatePreInflatedCosts()
 	return m_pPlayer ? m_pPlayer->calculatePreInflatedCosts() : -1;
 }
 
-//int CyPlayer::calculateInflationRate()
-int CyPlayer::getInflationRate()
+int CyPlayer::calculateInflationRate()
 {
-	return m_pPlayer ? m_pPlayer->getInflationRate() : -1;
+	return m_pPlayer ? m_pPlayer->calculateInflationRate() : -1;
 }
 
 int CyPlayer::calculateInflatedCosts()
@@ -2086,6 +2091,23 @@ bool CyPlayer::AI_isFinancialTrouble()
 {
 	return m_pPlayer ? m_pPlayer->AI_isFinancialTrouble() : false;
 }
+// <advc.104l> Previously defined in CyPlayer.h
+bool CyPlayer::AI_isWillingToTalk(int /*PlayerTypes*/ ePlayer) {
+
+	if(!m_pPlayer)
+		return false;
+	/*  <advc.001> This function can get called when a human player is
+		eliminated during AI Auto Play. The player isn't yet set to
+		isAlive=false then. */
+	CvPlayerAI const& p = GET_PLAYER((PlayerTypes)ePlayer);
+	if(p.getNumCities() <= 0 && p.getNumUnits() <= 0)
+		return false; // </advc.001>
+	// Gets called dozens of time already when loading a savegame
+	WarEvaluator::checkCache = true;
+	bool r = m_pPlayer->AI_isWillingToTalk(p.getID());
+	WarEvaluator::checkCache = false;
+	return r;
+} // </advc.104l>
 
 bool CyPlayer::AI_demandRebukedWar(int /*PlayerTypes*/ ePlayer)
 {
@@ -2283,3 +2305,9 @@ void  CyPlayer::forcePeace(int iPlayer)
 	if (m_pPlayer)
 		m_pPlayer->forcePeace((PlayerTypes)iPlayer);
 }
+
+// <advc.210>
+void CyPlayer::checkAlert(int alertId, bool silent) {
+
+	m_pPlayer->checkAlert(alertId, silent);
+} // </advc.210>

@@ -62,6 +62,7 @@ protected:
 	UnitAITypes m_eUnitAIType;
 
 	int m_iAutomatedAbortTurn;
+	int searchRangeRandPercent; // advc.128
 
 	bool AI_considerDOW(CvPlot* pPlot); // K-Mod
 	bool AI_considerPathDOW(CvPlot* pPlot, int iFlags); // K-Mod
@@ -138,6 +139,8 @@ protected:
 	bool AI_guardCityAirlift();
 	bool AI_guardCoast(bool bPrimaryOnly = false, int iFlags = 0, int iMaxPath = -1); // K-Mod
 	bool AI_guardBonus(int iMinValue = 0);
+	bool AI_guardYield(); // advc.300
+	bool AI_barbAmphibiousCapture(); // advc.306
 	int AI_getPlotDefendersNeeded(CvPlot* pPlot, int iExtra);
 	bool AI_guardFort(bool bSearch = true);
 	bool AI_guardCitySite();
@@ -180,6 +183,7 @@ protected:
 	//bool AI_goToTargetBarbCity(int iMaxPathTurns = 10); // disabled by K-Mod. (duplicate code ftl)
 	bool AI_pillageAroundCity(CvCity* pTargetCity, int iBonusValueThreshold = 0, int iFlags = 0, int iMaxPathTurns = MAX_INT);
 	bool AI_bombardCity();
+	// advc.003: iFlags for cityAttack is no longer used (not since K-Mod 1.15)
 	bool AI_cityAttack(int iRange, int iOddsThreshold, int iFlags = 0, bool bFollow = false);
 	bool AI_anyAttack(int iRange, int iOddsThreshold, int iFlags = 0, int iMinStack = 0, bool bAllowCities = true, bool bFollow = false);
 /************************************************************************************************/
@@ -188,6 +192,7 @@ protected:
 	bool AI_rangeAttack(int iRange);
 	bool AI_leaveAttack(int iRange, int iThreshold, int iStrengthThreshold);
 	bool AI_defensiveCollateral(int iThreshold, int iSearchRange); // K-Mod
+	bool AI_evacuateCity(); // advc.139
 	bool AI_defendTeritory(int iThreshold, int iFlags, int iMaxPathTurns, bool bLocal = false); // K-Mod
 	bool AI_stackVsStack(int iSearchRange, int iAttackThreshold, int iRiskThreshold, int iFlags); // K-Mod
 	bool AI_blockade();
@@ -322,7 +327,8 @@ protected:
 
 	bool AI_poach();
 	bool AI_choke(int iRange = 1, bool bDefensive = false, int iFlags = 0);
-
+	// advc.012: Current plot if p=NULL; cf. CvTeamAI::plotDefense
+	int AI_plotDefense(CvPlot const* p = NULL) const;
 	bool AI_solveBlockageProblem(CvPlot* pDestPlot, bool bDeclareWar);
 	
 	int AI_calculatePlotWorkersNeeded(CvPlot* pPlot, BuildTypes eBuild);
@@ -335,6 +341,11 @@ protected:
 
 	// added so under cheat mode we can call protected functions for testing
 	friend class CvGameTextMgr;
+
+	/* advc.117, advc.121: Need this value repeatedly within a worker move and
+	   it might be costly to recompute. No need for serialization b/c it all
+	   happens within the same AI move. */
+	private: int neededWorkers;
 
 // Lead From Behind by UncutDragon. (edited for K-Mod)
 public:

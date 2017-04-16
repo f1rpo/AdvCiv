@@ -26,12 +26,18 @@ class MoreCiv4lerts:
 
 	def __init__(self, eventManager):
 		## Init event handlers
-		MoreCiv4lertsEvent(eventManager)
+		# <advc.135b> One instance per player
+		for iPlayer in range(gc.getMAX_PLAYERS()):
+			if gc.getPlayer(iPlayer).isHuman():
+				MoreCiv4lertsEvent(eventManager, iPlayer)
+		# <advc.135b>
 
 class AbstractMoreCiv4lertsEvent(object):
 	
-	def __init__(self, eventManager, *args, **kwargs):
+	def __init__(self, eventManager, iPlayer, *args, **kwargs):
 			super( AbstractMoreCiv4lertsEvent, self).__init__(*args, **kwargs)
+			# advc.135b: Added attribute iOwner
+			self.iOwner = iPlayer
 
 	def _addMessageNoIcon(self, iPlayer, message, iColor=-1):
 			#Displays an on-screen message with no popup icon.
@@ -48,14 +54,17 @@ class AbstractMoreCiv4lertsEvent(object):
 	def _addMessage(self, iPlayer, szString, szIcon, iFlashX, iFlashY, bOffArrow, bOnArrow, iColor):
 			#Displays an on-screen message.
 			eventMessageTimeLong = gc.getDefineINT("EVENT_MESSAGE_TIME_LONG")
-			CyInterface().addMessage(iPlayer, True, eventMessageTimeLong,
-									 szString, None, 0, szIcon, ColorTypes(iColor),
-									 iFlashX, iFlashY, bOffArrow, bOnArrow)
+			# advc.135b: Ignore iPlayer. Shouldn't be necessary b/c
+			# the iActivePlayer (on the caller side) should always
+			# be iOwner. Tbd.: Remove the iPlayer attribute from all
+			# _addMessage... functions.
+			CyInterface().addMessage(self.iOwner, True, eventMessageTimeLong, szString, None, 0, szIcon, ColorTypes(iColor), iFlashX, iFlashY, bOffArrow, bOnArrow)
 
 class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 
-	def __init__(self, eventManager, *args, **kwargs):
-		super(MoreCiv4lertsEvent, self).__init__(eventManager, *args, **kwargs)
+	# advc.135b: Param iPlayer (owner) added
+	def __init__(self, eventManager, iPlayer, *args, **kwargs):
+		super(MoreCiv4lertsEvent, self).__init__(eventManager, iPlayer, *args, **kwargs)
 
 		eventManager.addEventHandler("BeginActivePlayerTurn", self.onBeginActivePlayerTurn)
 		eventManager.addEventHandler("cityAcquired", self.OnCityAcquired)
@@ -71,17 +80,29 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 		self.reset()
 	
 	def reset(self, argsList=None):
-		self.CurrAvailTechTrades = {}
-		self.PrevAvailTechTrades = {}
-		self.PrevAvailBonusTrades = {}
-		self.PrevAvailOpenBordersTrades = set()
-		self.PrevAvailMapTrades = set()
-		self.PrevAvailDefensivePactTrades = set()
-		self.PrevAvailPermanentAllianceTrades = set()
-		self.PrevAvailVassalTrades = set()
-		self.PrevAvailSurrenderTrades = set()
-		self.PrevAvailPeaceTrades = set()
-		self.lastDomLimitMsgTurn = 0
+		# <advc.106c><advc.135b>
+		# Should perhaps just call checkAlerts with
+		# a silent=true parameter.
+		# advc.135b: owner instead of activePlayer
+		currentTurn = gc.getGame().getGameTurn()
+		owner = gc.getPlayer(self.iOwner)
+		iTeam = owner.getTeam()
+		self.PrevAvailTechTrades = self.getTechTrades(owner, iTeam)
+		# (self.CurrAvailTechTrades was never used)
+		self.PrevAvailBonusTrades = self.getBonusTrades(owner, iTeam)
+		self.PrevAvailOpenBordersTrades = self.getOpenBordersTrades(owner, iTeam)
+		self.PrevAvailMapTrades = self.getMapTrades(owner, iTeam)
+		self.PrevAvailDefensivePactTrades = self.getDefensivePactTrades(owner, iTeam)
+		self.PrevAvailPermanentAllianceTrades = self.getPermanentAllianceTrades(owner, iTeam)
+		self.PrevAvailVassalTrades = self.getVassalTrades(owner, iTeam)
+		self.PrevAvailSurrenderTrades = self.getSurrenderTrades(owner, iTeam)
+		self.PrevAvailPeaceTrades = self.getPeaceTrades(owner, iTeam)
+		# </advc.135b>
+		self.lastDomLimitMsgTurn = currentTurn
+		# I don't think the domination alert is an important one, and the
+		# computation of last[Pop|Land]Count isn't in a separate function,
+		# so I'm leaving the initial/ reset values as they are.
+		# </advc.106c>
 		self.lastPopCount = 0
 		self.lastLandCount = 0
 
@@ -137,47 +158,54 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 		"Called when the active player can start making their moves."
 		iGameTurn = argsList[0]
 		iPlayer = gc.getGame().getActivePlayer()
-		self.CheckForAlerts(iPlayer, PyPlayer(iPlayer).getTeam(), True)
+		if iPlayer == self.iOwner: # advc.135b
+			self.CheckForAlerts(iPlayer, PyPlayer(iPlayer).getTeam(), True)
 
 	def OnCityAcquired(self, argsList):
 		owner, playerType, city, bConquest, bTrade = argsList
 		iPlayer = city.getOwner()
 		if (not self.getCheckForDomVictory()): return
-		if (iPlayer == gc.getGame().getActivePlayer()):
+		if (iPlayer == self.iOwner): # advc.135b
 			self.CheckForAlerts(iPlayer, PyPlayer(iPlayer).getTeam(), False)
 
 	def OnCityBuilt(self, argsList):
 		city = argsList[0]
 		iPlayer = city.getOwner()
-		iActivePlayer = gc.getGame().getActivePlayer()
+		# advc.135b: All uses replaced with self.iOwner
+		#iActivePlayer = gc.getGame().getActivePlayer()
 		if (self.getCheckForDomVictory()):
-			if (iPlayer == iActivePlayer):
+			if (iPlayer == self.iOwner):
 				self.CheckForAlerts(iPlayer, PyPlayer(iPlayer).getTeam(), False)
 		if (self.getCheckForForeignCities()):
-			if (iPlayer != iActivePlayer):
-				bRevealed = city.isRevealed(gc.getActivePlayer().getTeam(), False)
+			if (iPlayer != self.iOwner):
+				owner = gc.getPlayer(self.iOwner)
+				bRevealed = city.isRevealed(owner.getTeam(), False)
+				# advc.135b: canSeeCityList checks if ActivePlayer
+				# can see the list of iPlayer - should be self.iOwner
+				# instead of ActivePlayer. Doesn't matter though b/c
+				# K-Mod disables public city lists.
 				if (bRevealed or PlayerUtil.canSeeCityList(iPlayer)):
 					player = gc.getPlayer(iPlayer)
 					#iColor = gc.getPlayerColorInfo(player.getPlayerColor()).getColorTypePrimary()
 					iColor = gc.getInfoTypeForString("COLOR_MAGENTA")
 					if (bRevealed):
 						message = localText.getText("TXT_KEY_MORECIV4LERTS_CITY_FOUNDED", (player.getName(), city.getName()))
-						self._addMessageAtCity(iActivePlayer, message, "Art/Interface/Buttons/Actions/foundcity.dds", city, iColor)
+						self._addMessageAtCity(self.iOwner, message, "Art/Interface/Buttons/Actions/foundcity.dds", city, iColor)
 					else:
 						message = localText.getText("TXT_KEY_MORECIV4LERTS_CITY_FOUNDED_UNSEEN", (player.getName(), city.getName()))
-						self._addMessageNoIcon(iActivePlayer, message, iColor)
+						self._addMessageNoIcon(self.iOwner, message, iColor)
 
 	def OnCityRazed(self, argsList):
 		city, iPlayer = argsList
 		if (not self.getCheckForDomVictory()): return
-		if (iPlayer == gc.getGame().getActivePlayer()):
+		if (iPlayer == self.iOwner): # advc.135b
 			self.CheckForAlerts(iPlayer, PyPlayer(iPlayer).getTeam(), False)
 
 	def OnCityLost(self, argsList):
 		city = argsList[0]
 		iPlayer = city.getOwner()
 		if (not self.getCheckForDomVictory()): return
-		if (iPlayer == gc.getGame().getActivePlayer()):
+		if (iPlayer == self.iOwner): # advc.135b
 			self.CheckForAlerts(iPlayer, PyPlayer(iPlayer).getTeam(), False)
 
 	def CheckForAlerts(self, iActivePlayer, activeTeam, BeginTurn):
@@ -350,17 +378,22 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 					message = localText.getText("TXT_KEY_MORECIV4LERTS_NEW_BONUS_AVAIL",	
 												(gc.getPlayer(iLoopPlayer).getName(), szNewTrades))
 					self._addMessageNoIcon(iActivePlayer, message)
+					# advc.105: Moved here to avoid messages about "flickering" offers
+					self.PrevAvailBonusTrades = tradesByPlayer
 				
 				#Determine removed bonuses
-				removedTrades = previousTrades.difference(currentTrades).intersection(desiredBonuses)
-				if (removedTrades):
-					szRemovedTrades = self.buildBonusString(removedTrades)
-					message = localText.getText("TXT_KEY_MORECIV4LERTS_BONUS_NOT_AVAIL",	
-												(gc.getPlayer(iLoopPlayer).getName(), szRemovedTrades))
-					self._addMessageNoIcon(iActivePlayer, message)
+				# <advc.105> This is rarely relevant (resources being no
+				# longer available).
+				#removedTrades = previousTrades.difference(currentTrades).intersection(desiredBonuses)
+				#if (removedTrades):
+				#	szRemovedTrades = self.buildBonusString(removedTrades)
+				#	message = #localText.getText("TXT_KEY_MORECIV4LERTS_BONUS_NOT_AVAIL",	
+				#								(gc.getPlayer(iLoopPlayer).getName(), szRemovedTrades))
+				#	self._addMessageNoIcon(iActivePlayer, message)
+				# </advc.105>
 
 			#save curr trades for next time
-			self.PrevAvailBonusTrades = tradesByPlayer
+			# self.PrevAvailBonusTrades = tradesByPlayer # advc.105: moved up
 		
 		if (BeginTurn and self.getCheckForMap()):
 			currentTrades = self.getMapTrades(activePlayer, activeTeam)
@@ -527,7 +560,8 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 		currentTrades = set()
 		for loopPlayer in TradeUtil.getPeaceTradePartners(player):
 			if (loopPlayer.canTradeItem(iPlayerID, tradeData, False)):
-				if (loopPlayer.getTradeDenial(iPlayerID, tradeData) == DenialTypes.NO_DENIAL): # will trade
+				# advc.104i: Added call to AI_isWillingToTalk; the crucial UWAI check is in there
+				if (loopPlayer.getTradeDenial(iPlayerID, tradeData) == DenialTypes.NO_DENIAL and loopPlayer.AI_isWillingToTalk(iPlayerID)): 
 					currentTrades.add(loopPlayer.getID())
 		return currentTrades
 	

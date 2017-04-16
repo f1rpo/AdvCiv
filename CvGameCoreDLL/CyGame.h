@@ -290,6 +290,11 @@ public:
 	bool isEventActive(int /*EventTriggerTypes*/ eTrigger);
 	void doControl(int iControl);
 
+	bool useKModAI(); // advc.104
+	int getBarbarianStartTurn(); // advc.300
+	std::wstring SPaHPointsForSettingsScreen(); // advc.250b
+	int getDifficultyForEndScore(); // advc.250
+
 protected:
 	CvGame* m_pGame;
 };

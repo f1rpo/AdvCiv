@@ -5,6 +5,10 @@
 
 // defines.h
 
+#define _USRDLL /* advc.make: Normally set by the makefile. However, then the
+                   Visual Studio editor can't find dozens of inlined functions,
+                   and puts a red line under each call to them. */
+
 // The following #defines should not be moddable...
 
 #define MOVE_IGNORE_DANGER									(0x00000001)
@@ -53,6 +57,8 @@
 #define RANDPLOT_PASSIBLE											(0x00000010)
 #define RANDPLOT_NOT_VISIBLE_TO_CIV						(0x00000020)
 #define RANDPLOT_NOT_CITY											(0x00000040)
+// advc.300
+#define RANDPLOT_HABITABLE (0x00000080)
 
 #ifdef _USRDLL
 #define MAX_CIV_PLAYERS												(18) // note: default is 18, some people like 48. They are not compatible

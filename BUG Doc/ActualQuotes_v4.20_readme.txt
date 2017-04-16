@@ -1,0 +1,93 @@
+**ActualQuotes diplomacy text** for Civ4, ver. 4.20 (Beyond the Sword)
+
+By Willowmound
+
+
+Extract to: …My Documents\My Games\Beyond the Sword\CustomAssets\XML\
+
+-or-
+
+To add to a specific mod: …Program Files\Firaxis Games\Sid Meier’s Civilization 4\Beyond the Sword\Mods\[YourMod]\Assets\XML\
+
+
+	This mod replaces the original leader-specific diplomacy text 
+	with text based on attributed quotes -- some famous, and some 
+	not so famous.
+
+
+	New to Beyond the Sword:
+
+*All Hammurabi's quotes have been adapted from the "Code of Hammurabi", a law text 
+commissioned by him and presented as his own words.
+
+*Zara Yaqob's quotes are taken from "The Chronicle of the Emperor Zara Yaqob".
+
+*Suryavarman's one "quote" is an adaptation of the oath of allegiance required to be 
+taken by all Suryavarman's officials.
+
+*Darius' few quotes are taken from the Bible.
+
+*All Gilgamesh's quotes are lifted from the "Epic of Gilgamesh". Many are shortened, 
+and some have been combined with other parts of the text in order to make better sense 
+in our context.
+
+*Boudicca's quotes are taken entirely from various parts of Tacitus' rendition of 
+Boudicca's final battle cry.
+
+*There are 617 glyphs in Pacal's tomb. Only some of these have been deciphered, and 
+Pacal's "quote" is taken from the current interpretation of the meaning of the 
+so-called "shield glyph".
+
+	New to Warlords:
+
+*Mehmed II's single "quote" is an invention (by me) based on the alleged promise the
+ sultan made to his men during the siege of Constantinople, that they could have "the 
+women and the boys of the city".
+
+*Most of Ragnar Lodbrok's quotes are taken from the saga "The Last of the Volsungs" as 
+translated by Donald Mackenzie. These quotes are thus rhyming verse. Ideally, quotes 
+would have been taken from the possibly more accurate "The Saga of Ragnar Lodbrok and 
+his sons" ("Ragnars saga loðbrókar ok sona hans"), however I have been unable to find 
+a translation of this text.
+
+*There exist no quotes attributed to Shaka Zulu. Instead, I have used snippets from 
+a traditional Zulu "praise song" that has Shaka as its subject.
+
+*The quotes for Ramesses II have been taken from a commemorative stela of the Ramesside 
+family located at Tanis; the stela commemorating the marriage between Ramesses II and 
+the daughter of the chief of Kheta; and from the peace treaty between Ramesses II and 
+the Hittite king Hattusili III.
+
+*Wang Kon does not currently have any new text, as I have been unable to find even a 
+whisper of a quote attributed to him.
+
+	Original vanilla content:
+
+*Quotes for Mansa Musa are taken from Al-Umari's description of Musa's visit to Cairo 
+in 1324.
+
+*Quotes for Montezuma have been taken in part from the various Codices in which Aztec 
+eyewitness accounts are recorded, and in part from Cortez's own account of his meeting 
+with Montezuma.
+
+*Note that the one quote used for Huayna Capac was in fact uttered by his son, Inca 
+Atahuallpa, to Fray Wincente Valverde.
+
+*Most quotes for Asoka are taken from "The Edicts of KingAshoka", a collection of 
+proclamations concerned mainly with social reform. They were apparently written in 
+Asoka's own words.
+
+*Most quotes for Qin Shi Huang are taken from a stoneinscription on Mount Langya set 
+up to praise Qin and make his will clear. As few direct quotes exist, this was the 
+second best thing.
+
+*The few quotes used for Cyrus are Biblical, as no othersource claiming to have his 
+exact words exist. The Bible quotes are probably mostly fiction too, but in this context
+better than nothing.
+
+*Quotes for Hatshepsut are taken from various Egyptian inscriptions made during her reign.
+
+
+	*All other leaders' quotes are from various sources around 
+	the internet, and all are well known, even if some may be 
+	apocryphal.

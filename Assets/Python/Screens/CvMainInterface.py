@@ -1293,7 +1293,8 @@ class CvMainInterface:
 		if player.getCommercePercent(eCommerce) > 0:
 			return True
 
-		if eCommerce == CommerceTypes.COMMERCE_ESPIONAGE and (gc.getGame().isOption(GameOptionTypes.GAMEOPTION_NO_ESPIONAGE) or gc.getTeam(player.getTeam()).getHasMetCivCount(True) == 0):
+		# advc.120c: Added commerce==0 condition
+		if eCommerce == CommerceTypes.COMMERCE_ESPIONAGE and (gc.getGame().isOption(GameOptionTypes.GAMEOPTION_NO_ESPIONAGE) or gc.getTeam(player.getTeam()).getHasMetCivCount(True) == 0 or (gc.getPlayer(ePlayer).getCommercePercent(eCommerce) == 0 and not CyInterface().isCityScreenUp())):
 			return False
 
 		if player.isCommerceFlexible(eCommerce):
@@ -3045,6 +3046,10 @@ class CvMainInterface:
 
 						if not CyInterface().isCityScreenUp():
 							szOutText = u"<font=2>" + localText.getText("TXT_KEY_MISC_POS_GOLD_PER_TURN", (gc.getPlayer(ePlayer).getCommerceRate(CommerceTypes(eCommerce)), )) + u"</font>"
+							# <advc.004p>
+							if eCommerce == CommerceTypes.COMMERCE_CULTURE:
+								szOutText = u""
+							# </advc.004p>
 							szString = "RateText" + str(iI)
 # BUG - Min/Max Sliders - start
 							if MainOpt.isShowMinMaxCommerceButtons():
@@ -3928,7 +3933,8 @@ class CvMainInterface:
 										self.yields.addForeignTrade(iTradeProfit)
 # K-Mod: Trade culture
 						iTradeCultureTimes100 = pLoopCity.getTradeCultureRateTimes100(pHeadSelectedCity.getCultureLevel())
-						if (iTradeCultureTimes100 >= 20):
+						# advc.125:
+						if (iTradeCultureTimes100 >= 20) and gc.getDefineINT("USE_KMOD_TRADE_CULTURE") != 0:
 							szTradeCultureBuffer = u"%s%.1f%c" %( "+", iTradeCultureTimes100/100.0, gc.getCommerceInfo(CommerceTypes.COMMERCE_CULTURE).getChar())
 							szRightBuffer = szRightBuffer + szTradeCultureBuffer
 # K-Mod: Trade culture end
@@ -4017,7 +4023,8 @@ class CvMainInterface:
 				g_iNumRightBonus = iRightCount
 				
 				#iMaintenance = pHeadSelectedCity.getMaintenanceTimes100()
-				iMaintenance = pHeadSelectedCity.getMaintenanceTimes100() * (100+gc.getPlayer(pHeadSelectedCity.getOwner()).getInflationRate()) / 100 # K-Mod
+				# advc.201:
+				iMaintenance = pHeadSelectedCity.getMaintenanceTimes100() * (100+gc.getPlayer(pHeadSelectedCity.getOwner()).calculateInflationRate()) / 100 # K-Mod
 
 				szBuffer = localText.getText("INTERFACE_CITY_MAINTENANCE", ())
 				
@@ -4390,17 +4397,27 @@ class CvMainInterface:
 				screen.show( "NationalityText" )
 				iRemainder = 100
 				iWhichBar = 0
+				players = list()
+				# <advc.099> Replaced "Alive" with "EverAlive"
+				# Moreover, it turns out that setStackedBarColorsRGB will
+				# stack at most 4 bars, and that happens outside the SDK.
+				# The best one can do is to start with the longest bars.
 				for h in range( gc.getMAX_PLAYERS() ):
-					if ( gc.getPlayer(h).isAlive() ):
-						iPercent = pHeadSelectedCity.plot().calculateCulturePercent(h)
-						if ( iPercent > 0 ):
-							screen.setStackedBarColorsRGB( "NationalityBar", iWhichBar, gc.getPlayer(h).getPlayerTextColorR(), gc.getPlayer(h).getPlayerTextColorG(), gc.getPlayer(h).getPlayerTextColorB(), gc.getPlayer(h).getPlayerTextColorA() )
-							if ( iRemainder <= 0):
-								screen.setBarPercentage( "NationalityBar", iWhichBar, 0.0 )
-							else:
-								screen.setBarPercentage( "NationalityBar", iWhichBar, float(iPercent) / iRemainder)
-							iRemainder -= iPercent
-							iWhichBar += 1
+					if not gc.getPlayer(h).isEverAlive():
+						continue
+					iPercent = pHeadSelectedCity.plot().calculateCulturePercent(h)
+					if iPercent <= 0:
+						continue
+					players.append((h, iPercent))
+				players = sorted(players, key=lambda x: x[1], reverse=True)
+				for (h, iPercent) in players: # </advc.099>
+					screen.setStackedBarColorsRGB( "NationalityBar", iWhichBar, gc.getPlayer(h).getPlayerTextColorR(), gc.getPlayer(h).getPlayerTextColorG(), gc.getPlayer(h).getPlayerTextColorB(), gc.getPlayer(h).getPlayerTextColorA() )
+					if ( iRemainder <= 0):
+						screen.setBarPercentage( "NationalityBar", iWhichBar, 0.0 )
+					else:
+						screen.setBarPercentage( "NationalityBar", iWhichBar, float(iPercent) / iRemainder)
+					iRemainder -= iPercent
+					iWhichBar += 1
 				screen.show( "NationalityBar" )
 
 				iDefenseModifier = pHeadSelectedCity.getDefenseModifier(False)

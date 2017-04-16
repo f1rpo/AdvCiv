@@ -15,6 +15,7 @@ class FAStarNode;
 
 class CvSelectionGroup
 {
+
 public:
 
 	CvSelectionGroup();

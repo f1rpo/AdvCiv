@@ -196,6 +196,14 @@ bool CvXMLLoadUtility::SetGlobalDefines()
 		return false;
 	}
 
+	/* <advc.009> Load a separate GlobalDefines file. My guess as to the
+	   intended way of doing that: Set modularLoading=1 and name the
+	   configuration file something_GlobalDefines.xml.
+	   I can't get that to work, though, and it appears neither could
+	   the other modders. Hence: hard-coded filenames. */
+	if(!ReadGlobalDefines("xml\\GlobalDefines_advc.xml", cache))
+		return false; // </advc.009>
+
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      02/21/10                                jdog5000      */
 /*                                                                                              */

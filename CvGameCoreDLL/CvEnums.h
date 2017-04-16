@@ -549,7 +549,6 @@ enum WidgetTypes					// Exposed to Python
 	WIDGET_HELP_GW_INDEX,
 	WIDGET_HELP_GW_UNHAPPY,
 
-	WIDGET_HELP_GLOBAL_COMMERCE_MODIFIER,
 	WIDGET_HELP_EXTRA_SPECIALIST_COMMERCE,
 	// K-Mod end
 
@@ -714,6 +713,13 @@ enum FlavorTypes						// Exposed to Python
     FLAVOR_CULTURE,
     FLAVOR_GROWTH,
 	// K-Mod end
+	// <advc.001>
+	FLAVOR_ESPIONAGE, /*  Added by BtS, missing in karadoc's list. Not a bug really,
+						  just means that it was impossible to base AI code on
+						  FLAVOR_ESPIONAGE. */
+	/*  Since the flavors are complete now, might as well add NUM...TYPES
+		(as a static alternative to GC.getNumFlavorTypes). */
+	NUM_FLAVOR_TYPES // </advc.001>
 };
 
 enum EmphasizeTypes					// Exposed to Python
@@ -726,9 +732,9 @@ enum GameOptionTypes				// Exposed to Python
 	NO_GAMEOPTION = -1,
 
 	GAMEOPTION_ADVANCED_START,
-	GAMEOPTION_NO_CITY_RAZING,
+	GAMEOPTION_SPAH, // advc.250b: Taking the spot of NO_CITY_RAZING
 	GAMEOPTION_NO_CITY_FLIPPING,
-	GAMEOPTION_FLIPPING_AFTER_CONQUEST,
+	GAMEOPTION_NO_FLIPPING_AFTER_CONQUEST, // advc.101
 	GAMEOPTION_NO_BARBARIANS,
 	GAMEOPTION_RAGING_BARBARIANS,
 	GAMEOPTION_AGGRESSIVE_AI,
@@ -749,6 +755,8 @@ enum GameOptionTypes				// Exposed to Python
 	GAMEOPTION_NO_GOODY_HUTS,
 	GAMEOPTION_NO_EVENTS,
 	GAMEOPTION_NO_ESPIONAGE,
+	GAMEOPTION_NO_CITY_RAZING, // advc.250b: Moved down
+	GAMEOPTION_NO_ANIMALS, // advc.309
 
 #ifdef _USRDLL
 	NUM_GAMEOPTION_TYPES
@@ -1971,8 +1979,10 @@ enum MemoryTypes							// Exposed to Python
 	MEMORY_STOPPED_TRADING_RECENT,
 	MEMORY_HIRED_TRADE_EMBARGO,
 	MEMORY_MADE_DEMAND,
+	MEMORY_CANCELLED_VASSAL_AGREEMENT, // advc.143
 	MEMORY_MADE_DEMAND_RECENT,
 	MEMORY_CANCELLED_OPEN_BORDERS,
+	MEMORY_CANCELLED_DEFENSIVE_PACT, // advc.130p
 	MEMORY_TRADED_TECH_TO_US,
 	MEMORY_RECEIVED_TECH_FROM_ANY,
 	MEMORY_VOTED_AGAINST_US,
@@ -1980,6 +1990,7 @@ enum MemoryTypes							// Exposed to Python
 	MEMORY_EVENT_GOOD_TO_US,
 	MEMORY_EVENT_BAD_TO_US,
 	MEMORY_LIBERATED_CITIES,
+	MEMORY_INDEPENDENCE, // advc.130r
 
 	NUM_MEMORY_TYPES
 };

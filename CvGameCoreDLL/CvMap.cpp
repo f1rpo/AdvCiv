@@ -630,12 +630,14 @@ void CvMap::combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvP
 
 CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTimeout)
 {
-	CvPlot* pPlot;
 	CvPlot* pTestPlot;
-	CvPlot* pLoopPlot;
 	bool bValid;
+	/*  <advc.304> The standard 100 trials for monte-carlo selection often fail to
+		find a plot when only handful of tiles are legal on large maps.
+		10000 trials would probably do, but that isn't much faster anymore than
+		gathering all valid plots upfront - which is what I'm doing. */
+	/*CvPlot* pPlot;
 	int iCount;
-	int iDX, iDY;
 
 	pPlot = NULL;
 
@@ -646,32 +648,22 @@ CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTi
 		pTestPlot = plotSorenINLINE(GC.getGameINLINE().getSorenRandNum(getGridWidthINLINE(), "Rand Plot Width"), GC.getGameINLINE().getSorenRandNum(getGridHeightINLINE(), "Rand Plot Height"));
 
 		FAssertMsg(pTestPlot != NULL, "TestPlot is not assigned a valid value");
-
+		*/
+	std::vector<CvPlot*> legalPlots;
+	CvMap const& m = GC.getMap();
+	for(int i = 0; i < m.numPlots(); i++) {
+		pTestPlot = m.plotByIndexINLINE(i);
+		if(pTestPlot == NULL) continue; // </advc.304>
 		if ((iArea == -1) || (pTestPlot->getArea() == iArea))
 		{
 			bValid = true;
 
-			if (bValid)
-			{
-				if (iMinUnitDistance != -1)
-				{
-					for (iDX = -(iMinUnitDistance); iDX <= iMinUnitDistance; iDX++)
-					{
-						for (iDY = -(iMinUnitDistance); iDY <= iMinUnitDistance; iDY++)
-						{
-							pLoopPlot	= plotXY(pTestPlot->getX_INLINE(), pTestPlot->getY_INLINE(), iDX, iDY);
-
-							if (pLoopPlot != NULL)
-							{
-								if (pLoopPlot->isUnit())
-								{
-									bValid = false;
-								}
-							}
-						}
-					}
-				}
-			}
+			/* advc.300: Moved the horribly nested loop here to a new function
+			   b/c I need it again elsewhere. Now ignores barbarians on
+			   surrounding plots.
+			   Also deleted some declarations at the top that are no longer used. */
+			if(pTestPlot->isCivUnitNearby(iMinUnitDistance) || pTestPlot->isUnit())
+				bValid = false;
 
 			if (bValid)
 			{
@@ -750,17 +742,28 @@ CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTi
 				}
 			}
 
+			// <advc.300>
+			if((iFlags & RANDPLOT_HABITABLE) &&
+					pTestPlot->getYield(YIELD_FOOD) <= 0)
+				bValid = false; // </advc.300>
+
 			if (bValid)
 			{
-				pPlot = pTestPlot;
-				break;
+				legalPlots.push_back(pTestPlot); // advc.304
+				/*pPlot = pTestPlot;
+				break;*/
 			}
 		}
 
-		iCount++;
+		// <advc.304>
+		//iCount++;
 	}
-
-	return pPlot;
+	//return pPlot;
+	int nLegal = (int)legalPlots.size();
+    if(nLegal == 0)
+        return NULL;
+    return legalPlots[GC.getGame().getSorenRandNum(nLegal, "advc.304")];
+	// </advc.304>
 }
 
 
@@ -792,7 +795,7 @@ CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam, boo
 					{
 						if (!bSameArea || (pLoopCity->area() == plotINLINE(iX, iY)->area()) || (bCoastalOnly && (pLoopCity->waterArea() == plotINLINE(iX, iY)->area())))
 						{
-							if (!bCoastalOnly || pLoopCity->isCoastal(GC.getMIN_WATER_SIZE_FOR_OCEAN()))
+							if (!bCoastalOnly || pLoopCity->isCoastal())
 							{
 								if ((eTeamAtWarWith == NO_TEAM) || atWar(GET_PLAYER((PlayerTypes)iI).getTeam(), eTeamAtWarWith))
 								{
@@ -1027,7 +1030,20 @@ float CvMap::getHeightCoords()
 
 int CvMap::maxPlotDistance()
 {
-	return std::max(1, plotDistance(0, 0, ((isWrapXINLINE()) ? (getGridWidthINLINE() / 2) : (getGridWidthINLINE() - 1)), ((isWrapYINLINE()) ? (getGridHeightINLINE() / 2) : (getGridHeightINLINE() - 1))));
+	// <advc.140> Replacing this line:
+	//return std::max(1, plotDistance(0, 0, ((isWrapXINLINE()) ? (getGridWidthINLINE() / 2) : (getGridWidthINLINE() - 1)), ((isWrapYINLINE()) ? (getGridHeightINLINE() / 2) : (getGridHeightINLINE() - 1))));
+	CvGame const& g = GC.getGameINLINE();
+	CvWorldInfo const& w = GC.getWorldInfo(getWorldSize());
+	double civRatio = g.getRecommendedPlayers() / (double)g.countCivPlayersEverAlive();
+	double seaLvlModifier = (100 - 5 * g.getSeaLevelChange()) / 100.0;
+	int wraps = -1; // 0 if cylindrical (1 wrap), -1 flat, +1 toroidical
+	if(isWrapX())
+		wraps++;
+	if(isWrapY())
+		wraps++;
+	double r = std::sqrt(w.getGridWidth() * w.getGridHeight() * civRatio *
+			seaLvlModifier) * 3.5 - 5 * wraps;
+	return std::max(1, ::round(r)); // </advc.140>
 }
 
 
@@ -1391,6 +1407,7 @@ void CvMap::read(FDataStreamBase* pStream)
 	ReadStreamableFFreeListTrashArray(m_areas, pStream);
 
 	setup();
+	computeShelves(); // advc.300
 }
 
 // save object to a stream
@@ -1475,7 +1492,57 @@ void CvMap::calculateAreas()
 			gDLL->getFAStarIFace()->GeneratePath(&GC.getAreaFinder(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), -1, -1, pLoopPlot->isWater(), iArea);
 		}
 	}
+	computeShelves(); // advc.300
 }
 
 
 // Private Functions...
+
+// <advc.300>
+using std::vector;
+using std::map;
+using std::set;
+using std::pair;
+
+
+// All shelves adjacent to a continent
+void CvMap::getShelves(int landAreaId, vector<Shelf*>& r) const {
+
+	for(map<Shelf::Id,Shelf*>::const_iterator it = shelves.begin();
+			it != shelves.end(); it++) {
+		if(it->first.first == landAreaId)
+    		r.push_back(it->second);
+	}
+}
+
+
+void CvMap::computeShelves() {
+
+	for(map<Shelf::Id,Shelf*>::iterator it = shelves.begin();
+			it != shelves.end(); it++)
+		SAFE_DELETE(it->second);
+	shelves.clear();
+
+	for(int i = 0; i < numPlotsINLINE(); i++) {
+		CvPlot* plot = plotByIndexINLINE(i);
+		// For each passable marine water plot
+		if(plot == NULL || !plot->isWater() || plot->isLake() ||
+				plot->isImpassable() || !plot->isHabitable())
+			continue;
+		// Add plot to shelves of all adjacent land areas
+		set<int> adjLands;
+		plot->getAdjacentLandAreaIds(adjLands);
+		for(set<int>::iterator it = adjLands.begin(); it != adjLands.end(); it++) {
+			Shelf::Id sid(*it, plot->getArea());
+			map<Shelf::Id,Shelf*>::iterator shelfPos = shelves.find(sid);
+			Shelf* shelf;
+			if(shelfPos == shelves.end()) {
+				shelf = new Shelf();
+				shelves.insert(make_pair(sid, shelf));
+			}
+			else shelf = shelfPos->second;
+			shelf->add(plot);
+		}
+	}
+}
+// </advc.300>

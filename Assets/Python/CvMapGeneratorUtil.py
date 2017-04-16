@@ -1100,7 +1100,7 @@ class TerrainGenerator:
 			terrainVal = self.terrainTundra
 		elif lat < self.fGrassLatitude:
 			terrainVal = self.terrainGrass
-		else:
+		else: 
 			desertVal = self.deserts.getHeight(iX, iY)
 			plainsVal = self.plains.getHeight(iX, iY)
 			if ((desertVal >= self.iDesertBottom) and (desertVal <= self.iDesertTop) and (lat >= self.fDesertBottomLatitude) and (lat < self.fDesertTopLatitude)):

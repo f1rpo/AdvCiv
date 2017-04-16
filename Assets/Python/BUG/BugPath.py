@@ -79,7 +79,7 @@ import shutil
 
 DATA_FOLDER = "Data"
 SETTINGS_FOLDER = "Settings"
-INFO_FOLDER = "Info"
+INFO_FOLDER = "BUG Doc" # advc.009: was "Info", but it's only about BUG
 
 MODS_FOLDER = "Mods"
 ASSETS_FOLDER = "Assets"
@@ -247,7 +247,6 @@ def findInfoFile(name, subdir=None):
 	Locates and returns the path to the named informational file or None if not found.
 	"""
 	return getFilePath(getInfoDir(), name, subdir)
-
 
 def createDataFile(name, subdir=None):
 	"""
@@ -625,6 +624,17 @@ def initDataFolder():
 	else:
 		BugUtil.error("No valid data directory containing %s found", SETTINGS_FOLDER)
 	_dataFolderInitDone = True
+	# <advc.009> setDataDir tries to locate INFO_FOLDER in the same place
+	# as SETTINGS_FOLDER, but settings need to be in \My Games\, whereas
+	# info is in the program folder. I don't see how this can work in standalone
+	# BUG (same code there) either - perhaps it doesn't; haven't tried it.
+	global _infoDir
+	for dir in dataDirs:
+		_infoDir = join(dir, INFO_FOLDER)
+		if isdir(_infoDir): # Show the troublesome path in the System tab too
+			BugConfigTracker.add("Info_Directory", _infoDir)
+			break
+	# </advc.009>
 
 def setDataDir(dir):
 	if isdir(dir):
@@ -635,7 +645,8 @@ def setDataDir(dir):
 			global _dataDir, _settingsDir, _infoDir
 			_dataDir = dir
 			_settingsDir = settingsDir
-			_infoDir = join(dir, INFO_FOLDER)
+			# advc.009: Caller handles this now
+			#_infoDir = join(dir, INFO_FOLDER) 
 			BugConfigTracker.add("Settings_Directory", _settingsDir)
 			return True
 	return False

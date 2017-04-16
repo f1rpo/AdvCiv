@@ -188,7 +188,8 @@ bool CvSelectionGroupAI::AI_update()
 		iTempHack++;
 		if (iTempHack > 100)
 		{
-			FAssertMsg(false, "unit stuck in a loop");
+			// advc.006:
+			//FAssertMsg(false, "unit stuck in a loop");
 			CvUnit* pHeadUnit = getHeadUnit();
 			if (NULL != pHeadUnit)
 			{
@@ -275,8 +276,11 @@ bool CvSelectionGroupAI::AI_update()
 				while ((pEntityNode != NULL) && readyToMove(true))
 				{
 					CvUnit* pLoopUnit = ::getUnit(pEntityNode->m_data);
+					/*  advc.001: Got a crash here once that I couldn't
+						reproduce after reloading. Assertion added. */
+					FAssert(pLoopUnit != NULL);
 					pEntityNode = nextUnitNode(pEntityNode);
-
+					if(pLoopUnit == NULL) continue; // advc.001
 					if (bFirst)
 						path_finder.Reset();
 
@@ -482,7 +486,11 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupSacrifice(const CvPlot* pPlot, bool b
 					if (bForce || pLoopUnit->canMoveInto(pPlot, true))
 					{
                         int iValue = pLoopUnit->AI_sacrificeValue(pPlot);
-						FAssertMsg(iValue > 0, "iValue is expected to be greater than 0");
+						/* advc.006: > 0 not guaranteed if unit has no
+						   production cost; changed to >= 0. That's still
+						   enough to pass the test ">= iBestValue" below
+						   (iBestValue is initially 0). */
+						FAssert(iValue >= 0);
 
 						// we want to pick the last unit of highest value, so pick the last unit with a good value
 						if (iValue >= iBestValue)

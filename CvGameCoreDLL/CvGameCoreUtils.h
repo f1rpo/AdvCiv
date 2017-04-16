@@ -40,6 +40,29 @@ class CvInfoBase;
 #undef max
 #undef min
 
+// <advc.003> floating point utility
+int round(double d);
+bool bernoulliSuccess(double pr); // 0 <= pr <= 1
+double median(std::vector<double>& distribution, bool sorted = false);
+double mean(std::vector<double>& distribution);
+double max(std::vector<double>& distribution);
+double min(std::vector<double>& distribution);
+// see e.g. wikipedia: "percentile rank"
+double percentileRank(std::vector<double>& distribution, double score,
+		bool sorted = false, bool isScorePartOfDistribution = true);
+	    // is the distribution sorted (ascending)?
+		/* is 'score' to be considered as a part of the distribution?
+		   if yes, the percentile rank is going to be positive.
+		   either way, the value of 'score' shouldn't be added to
+		   the distribution by the caller. */
+/*  Hash based on the components of x. Plot index of capital factored in for
+	increased range if civId given.
+	Result between 0 and 1. Returns float b/c CvRandom uses float (not double). */
+float hash(std::vector<long> const& x, PlayerTypes civId = NO_PLAYER);
+// For hashing just a single input
+float hash(long x, PlayerTypes civId = NO_PLAYER);
+// </advc.003>
+
 //sign function taken from FirePlace - JW
 template<class T> __forceinline T getSign( T x ) { return (( x < 0 ) ? T(-1) : x > 0 ? T(1) : T(0)); };
 
@@ -78,6 +101,15 @@ inline float range(float fNum, float fLow, float fHigh)
 		return fNum;
 	}
 }
+
+/*  <advc.003> Don't want to work with float in places where memory usage isn't a
+	concern. */
+inline double dRange(double d, double low, double high) {
+
+	if(d < low) return low;
+	if(d > high) return high;
+	return d;
+} // </advc.003>
 
 inline int coordDistance(int iFrom, int iTo, int iRange, bool bWrap)
 {
@@ -230,6 +262,7 @@ inline DirectionTypes directionXY(const CvPlot* pFromPlot, const CvPlot* pToPlot
 CvPlot* plotCity(int iX, int iY, int iIndex);																			// Exposed to Python
 int plotCityXY(int iDX, int iDY);																									// Exposed to Python
 int plotCityXY(const CvCity* pCity, const CvPlot* pPlot);													// Exposed to Python
+bool isInnerRing(CvPlot const* pl, CvPlot const* cityPl); // advc.303
 
 CardinalDirectionTypes getOppositeCardinalDirection(CardinalDirectionTypes eDir);	// Exposed to Python 
 DirectionTypes cardinalDirectionToDirection(CardinalDirectionTypes eCard);				// Exposed to Python
@@ -273,7 +306,7 @@ bool isWorldUnitClass(UnitClassTypes eUnitClass);											// Exposed to Python
 bool isTeamUnitClass(UnitClassTypes eUnitClass);											// Exposed to Python
 bool isNationalUnitClass(UnitClassTypes eUnitClass);									// Exposed to Python
 bool isLimitedUnitClass(UnitClassTypes eUnitClass);										// Exposed to Python
-
+bool isMundaneBuildingClass(int buildingClass); // advc.104
 bool isWorldWonderClass(BuildingClassTypes eBuildingClass);						// Exposed to Python
 bool isTeamWonderClass(BuildingClassTypes eBuildingClass);						// Exposed to Python
 bool isNationalWonderClass(BuildingClassTypes eBuildingClass);				// Exposed to Python
@@ -308,6 +341,8 @@ bool PUF_isCombatTeam(const CvUnit* pUnit, int iData1, int iData2);
 bool PUF_isOtherPlayer( const CvUnit* pUnit, int iData1, int iData2 = -1);
 bool PUF_isOtherTeam( const CvUnit* pUnit, int iData1, int iData2 = -1);
 bool PUF_isEnemy( const CvUnit* pUnit, int iData1, int iData2 = -1);
+// advc.122:
+bool PUF_isEnemyCityAttacker( const CvUnit* pUnit, int iData1, int iData2 = -1);
 bool PUF_isVisible( const CvUnit* pUnit, int iData1, int iData2 = -1);
 bool PUF_isVisibleDebug( const CvUnit* pUnit, int iData1, int iData2 = -1);
 bool PUF_canSiege( const CvUnit* pUnit, int iData1, int iData2 = -1);
@@ -355,6 +390,8 @@ int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int 
 int pathValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
 int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
 int stepDestValid(int iToX, int iToY, const void* pointer, FAStar* finder);
+// advc.104b:
+int stepDestValid_advc(int iToX, int iToY, const void* pointer, FAStar* finder);
 int stepHeuristic(int iFromX, int iFromY, int iToX, int iToY);
 int stepValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
 int stepCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
@@ -369,6 +406,8 @@ int teamStepValid(FAStarNode* parent, FAStarNode* node, int data, const void* po
 /********************************************************************************/
 /* 	BETTER_BTS_AI_MOD						END								*/
 /********************************************************************************/
+// advc.104b: 
+int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
 int routeValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
 int borderValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
 int areaValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);

@@ -11,6 +11,8 @@
 #include "CvPlotGroup.h"
 #include "LinkedList.h"
 #include "CvTalkingHeadMessage.h"
+// advc.210:
+#include "AdvCiv4lerts.h"
 
 class CvDiploParameters;
 class CvPopupInfo;
@@ -102,7 +104,8 @@ public:
 /*                                                                                              */
 /************************************************************************************************/
 	void setHumanDisabled( bool newVal );
-	bool isHumanDisabled( );
+	bool isHumanDisabled( )
+		const; // advc.127: const and exposed to Python
 /************************************************************************************************/
 /* AI_AUTO_PLAY_MOD                        END                                                  */
 /************************************************************************************************/
@@ -196,6 +199,7 @@ public:
 	void contact(PlayerTypes ePlayer);																															// Exposed to Python
 	DllExport void handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer, int iData1, int iData2);
 	bool canTradeWith(PlayerTypes eWhoTo) const;																													// Exposed to Python
+	bool canTradeWithBulk(PlayerTypes eWhoTo) const; // advc.122
 	bool canReceiveTradeCity() const;
 	DllExport bool canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial = false) const;			// Exposed to Python
 	DllExport DenialTypes getTradeDenial(PlayerTypes eWhoTo, TradeData item) const;												// Exposed to Python
@@ -204,10 +208,12 @@ public:
 	DllExport int getNumTradeableBonuses(BonusTypes eBonus) const;																				// Exposed to Python
 	int getNumTradeBonusImports(PlayerTypes ePlayer) const;																								// Exposed to Python
 	bool hasBonus(BonusTypes eBonus) const;									// Exposed to Python
-
-	bool isTradingWithTeam(TeamTypes eTeam, bool bIncludeCancelable) const;
+	// advc.003: Said "IncludeCancelable" but it actually does the opposite
+	bool isTradingWithTeam(TeamTypes eTeam, bool bIncludeUncancelable) const;
 	bool canStopTradingWithTeam(TeamTypes eTeam, bool bContinueNotTrading = false) const;																										// Exposed to Python
-	void stopTradingWithTeam(TeamTypes eTeam);																											// Exposed to Python
+	void stopTradingWithTeam(TeamTypes eTeam
+		, bool diploPenalty = true // advc.130f
+		);																											// Exposed to Python
 	void killAllDeals();																																						// Exposed to Python
 
 	void findNewCapital();																																					// Exposed to Python 
@@ -262,14 +268,24 @@ public:
 	void setGwPercentAnger(int iNewValue); // K-Mod
 
 	int getUnitCostMultiplier() const; // K-Mod
-	int calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& iPaidUnits, int& iPaidMilitaryUnits, int& iUnitCost, int& iMilitaryCost, int& iExtraCost) const; // (K-Mod changed iBaseUnitCost to iUnitCost)
-	int calculateUnitCost() const;																																				// Exposed to Python
-	int calculateUnitSupply(int& iPaidUnits, int& iBaseSupplyCost) const;																	// Exposed to Python
-	int calculateUnitSupply() const;																																			// Exposed to Python
+	int calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& iPaidUnits, int& iPaidMilitaryUnits, int& iUnitCost, int& iMilitaryCost, int& iExtraCost
+		// advc.004b Added optional parameter
+		, int extraPop = 0
+		) const; // (K-Mod changed iBaseUnitCost to iUnitCost)
+	int calculateUnitCost(
+		// advc.004b Added optional parameter
+		int extraPop = 0
+		) const;																																				// Exposed to Python
+	int calculateUnitSupply(int& iPaidUnits, int& iBaseSupplyCost
+		// advc.004b Added optional parameter
+		, int extraOutsideUnits = 0
+		) const;																	// Exposed to Python
+	int calculateUnitSupply(
+		// advc.004b Added optional parameter
+		int extraOutsideUnits = 0
+		) const;																																			// Exposed to Python
 	int calculatePreInflatedCosts() const;																																// Exposed to Python
-	//int calculateInflationRate() const;	// (was exposed to python. Use getInflationRate instead.)
-	void updateInflationRate(); // K-Mod
-	int getInflationRate() const { return m_iInflationRate; } // K-Mod, exposed to Python.
+	int calculateInflationRate() const;																																		// Exposed to Python
 	int calculateInflatedCosts() const;																																		// Exposed to Python
 
 	//int calculateBaseNetGold() const; // disabled by K-Mod
@@ -281,7 +297,10 @@ public:
 
 	bool isResearch() const;																																							// Exposed to Python
 	DllExport bool canEverResearch(TechTypes eTech) const;																								// Exposed to Python
-	DllExport bool canResearch(TechTypes eTech, bool bTrade = false, bool bFree = false) const; // (K-Mod, added bFree. Does this break DllExport?) Exposed to Python
+	DllExport bool canResearch(TechTypes eTech, bool bTrade = false, bool bFree = false
+		// (K-Mod, added bFree. Does this break DllExport?) Exposed to Python
+		, bool couldResearchAgain = false // advc.126: Disables the isHasTech check
+		) const;
 	DllExport TechTypes getCurrentResearch() const;																												// Exposed to Python
 	bool isCurrentResearchRepeat() const;																																	// Exposed to Python
 	bool isNoResearchAvailable() const;																																		// Exposed to Python
@@ -376,6 +395,7 @@ public:
 	DllExport int getAdvancedStartRouteCost(RouteTypes eRoute, bool bAdd, CvPlot* pPlot = NULL) const;																													// Exposed to Python 
 	DllExport int getAdvancedStartTechCost(TechTypes eTech, bool bAdd) const;																													// Exposed to Python 
 	DllExport int getAdvancedStartVisibilityCost(bool bAdd, CvPlot* pPlot = NULL) const;																													// Exposed to Python 
+	static int adjustAdvStartPtsToSpeed(int pts); // advc.250c
 
 	DllExport int getGoldenAgeTurns() const;																															// Exposed to Python  
 	DllExport bool isGoldenAge() const;																																		// Exposed to Python 
@@ -545,6 +565,8 @@ public:
 	void changeCorporationMaintenanceModifier(int iChange);
 
 	int getTotalMaintenance() const;																																					// Exposed to Python
+	// advc.004b: Need the exact value (new getter function)
+	int getTotalMaintenanceTimes100() const;
 	void changeTotalMaintenance(int iChange);
 
 	int getUpkeepModifier() const;																																						// Exposed to Python
@@ -697,7 +719,7 @@ public:
 	void setFoundedFirstCity(bool bNewValue);																										
 																																															
 	DllExport bool isStrike() const;																																	// Exposed to Python					
-	void setStrike(bool bNewValue);																															
+	void setStrike(bool bNewValue);		
 
 	DllExport PlayerTypes getID() const;																												// Exposed to Python					
 																																															
@@ -719,7 +741,7 @@ public:
 																																															
 	PlayerTypes getParent() const;
 	void setParent(PlayerTypes eParent);
-
+	TeamTypes getMasterTeam() const; // advc.003
 	DllExport TeamTypes getTeam() const;																												// Exposed to Python					
 	void setTeam(TeamTypes eTeam);		
 	void updateTeamType();
@@ -846,6 +868,8 @@ public:
 	int countTotalHasReligion() const;																																// Exposed to Python
 	int findHighestHasReligionCount() const;																													// Exposed to Python
 	void changeHasReligionCount(ReligionTypes eIndex, int iChange);
+	// advc.132: No longer just an AI concept b/c spies can switch to non-minority
+	bool isMinorityReligion(ReligionTypes rel) const;
 
 	int getHasCorporationCount(CorporationTypes eIndex) const;																							// Exposed to Python
 	int countTotalHasCorporation() const;																																// Exposed to Python
@@ -863,8 +887,14 @@ public:
 	void setResearchingTech(TechTypes eIndex, bool bNewValue);
 
 	DllExport CivicTypes getCivics(CivicOptionTypes eIndex) const;																		// Exposed to Python					
-	int getSingleCivicUpkeep(CivicTypes eCivic, bool bIgnoreAnarchy = false) const;										// Exposed to Python					
-	int getCivicUpkeep(CivicTypes* paeCivics = NULL, bool bIgnoreAnarchy = false) const;							// Exposed to Python					
+	int getSingleCivicUpkeep(CivicTypes eCivic, bool bIgnoreAnarchy = false
+		// advc.004b: Added an optional parameter
+		, int extraCities = 0
+		) const;										// Exposed to Python
+	int getCivicUpkeep(CivicTypes* paeCivics = NULL, bool bIgnoreAnarchy = false
+		// advc.004b: Added an optional parameter
+		, int extraCities = 0
+		) const;							// Exposed to Python					
 	void setCivics(CivicOptionTypes eIndex, CivicTypes eNewValue);															// Exposed to Python					
 
 	int getSpecialistExtraYield(SpecialistTypes eIndex1, YieldTypes eIndex2) const;										// Exposed to Python
@@ -972,6 +1002,8 @@ public:
 	void updateCultureHistory(int iTurn, int iBestCulture);
 	int getEspionageHistory(int iTurn) const;																							// Exposed to Python
 	void updateEspionageHistory(int iTurn, int iBestEspionage);
+	// advc.004s:
+	void updateHistoryMovingAvg(CvTurnScoreMap& hist, int t, int newSample);
 
 	const CvPlayerRecord* getPlayerRecord() const; // K-Mod
 
@@ -1047,6 +1079,12 @@ public:
 	void verifyUnitStacksValid();
 	UnitTypes getTechFreeUnit(TechTypes eTech) const;
 
+	// <advc.134a>
+	void setOfferingPeace(TeamTypes aiTeam);
+	TeamTypes offeringPeace; bool expectingPeaceOffer;
+	// </advc.134a>
+	void checkAlert(int alertId, bool silent); // advc.210
+
 	DllExport void buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& ourList) const;
 	DllExport bool getHeadingTradeString(PlayerTypes eOtherPlayer, TradeableItems eItem, CvWString& szString, CvString& szIcon) const;
 	DllExport bool getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer, bool bShowingCurrent, const TradeData& zTradeData, CvWString& szString, CvString& szIcon) const;
@@ -1078,7 +1116,12 @@ public:
 	virtual void AI_conquerCity(CvCity* pCity) = 0;
 	virtual short AI_foundValue(int iX, int iY, int iMinUnitRange = -1, bool bStartingLoc = false) const = 0; // Exposed to Python. K-Mod changed return value from int to short
 	virtual bool AI_isCommercePlot(CvPlot* pPlot) const = 0;
-	virtual int AI_getPlotDanger(CvPlot* pPlot, int iRange = -1, bool bTestMoves = true) const = 0;
+	virtual int AI_getPlotDanger(CvPlot* pPlot, int iRange = -1, bool bTestMoves = true
+		/*  advc.104: These pure virtual AI_... functions are pointless b/c
+			GET_PLAYER yields a CvPlayerAI reference anyway, but see karadoc's
+			warning above. */
+		, bool bCheckBorder = true, int* lowHealth = NULL, int hpLimit = 60, int limitCount = -1, PlayerTypes enemyId = NO_PLAYER
+		) const = 0;
 	virtual bool AI_isFinancialTrouble() const = 0;																											// Exposed to Python
 	virtual TechTypes AI_bestTech(int iMaxPathLength = 1, bool bIgnoreCost = false, bool bAsync = false, TechTypes eIgnoreTech = NO_TECH, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR) const = 0;
 	virtual void AI_chooseFreeTech() = 0;
@@ -1088,8 +1131,11 @@ public:
 	virtual bool AI_demandRebukedWar(PlayerTypes ePlayer) const = 0;																		// Exposed to Python
 	virtual AttitudeTypes AI_getAttitude(PlayerTypes ePlayer, bool bForced = true) const = 0;																// Exposed to Python
 	virtual PlayerVoteTypes AI_diploVote(const VoteSelectionSubData& kVoteData, VoteSourceTypes eVoteSource, bool bPropose) = 0;
-	virtual int AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pList, bool bIgnoreAnnual = false, int iExtra = 0) const = 0;
-	virtual bool AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList, int iChange = 1) const = 0;
+	virtual int AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pList, bool bIgnoreAnnual = false, int iExtra = 0
+		, bool ignoreDiscount = false // advc.550a
+		) const = 0;
+	// advc.130o: Removed const qualifier
+	virtual bool AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList, int iChange = 1) = 0;
 	virtual bool AI_counterPropose(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirInventory, CLinkList<TradeData>* pOurInventory, CLinkList<TradeData>* pTheirCounter, CLinkList<TradeData>* pOurCounter) const = 0;
 	virtual int AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled = false) const = 0; // K-Mod added bAssumeEnabled
 	virtual int AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer, int iChange = 0) const = 0;
@@ -1129,6 +1175,7 @@ public:
 
 protected:
 
+	PlayerTypes m_eID; // advc.003: Moved here for easier access in the debugger
 	int m_iStartingX;
 	int m_iStartingY;
 	int m_iTotalPopulation;
@@ -1225,7 +1272,6 @@ protected:
 	int m_iCombatExperience;
 	int m_iPopRushHurryCount;
 	int m_iInflationModifier;
-	int m_iInflationRate; // K-Mod
 
 	uint m_uiStartTime;  // XXX save these?
 
@@ -1252,7 +1298,7 @@ protected:
 
 	int m_iChoosingFreeTechCount; // K-Mod (based on the 'Unofficial Patch'
 
-	PlayerTypes m_eID;
+	//PlayerTypes m_eID; // advc.003: Moved up
 	LeaderHeadTypes m_ePersonalityType;
 	EraTypes m_eCurrentEra;
 	ReligionTypes m_eLastStateReligion;
@@ -1337,7 +1383,14 @@ protected:
 
 	CvMessageQueue m_listGameMessages; 
 	CvPopupQueue m_listPopups;
-	CvDiploQueue m_listDiplomacy; 
+	CvDiploQueue m_listDiplomacy;
+
+	WarTradeAlert warTradeAlert; // advc.210a
+	RevoltAlert revoltAlert; // advc.210b
+	// <advc.106b>
+	int iNewMessages;
+	void postProcessBeginTurnEvents();
+	// </advc.106b>
 
 	CvTurnScoreMap m_mapScoreHistory;
 	CvTurnScoreMap m_mapEconomyHistory;
@@ -1352,6 +1405,8 @@ protected:
 	void doEspionagePoints();
 	void doWarnings();
 	void doEvents();
+	void decayBuildProgress(); // advc.011
+	void showForeignPromoGlow(bool b); // advc.002e
 
 	bool checkExpireEvent(EventTypes eEvent, const EventTriggeredData& kTriggeredData) const;
 	void expireEvent(EventTypes eEvent, const EventTriggeredData& kTriggeredData, bool bFail);

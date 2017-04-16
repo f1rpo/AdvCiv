@@ -143,9 +143,11 @@ class AIAutoPlay :
 
         if( game.getAIAutoPlay() == 1 and iPlayer > game.getActivePlayer() and gc.getActivePlayer().isAlive() ) :
             # Forces isHuman checks to come through positive for everything after human players turn
-
-            self.checkPlayer()
-            game.setAIAutoPlay(0)
+			# <advc.127> Commented out; pass instead. (The setAIAutoPlay
+			# call might be superfluous in any case.)
+            #self.checkPlayer()
+            #game.setAIAutoPlay(0)
+			pass # </advc.127>
         
         elif( self.bSaveAllDeaths ) :
             if( game.getAIAutoPlay() == 0 and not gc.getActivePlayer().isAlive() and iPlayer > game.getActivePlayer() ) :
@@ -158,10 +160,14 @@ class AIAutoPlay :
         # Can't use isHuman as isHuman has been deactivated by automation
         if( self.refortify and iPlayer == game.getActivePlayer() and game.getAIAutoPlay() == 1 ) :
             doRefortify( game.getActivePlayer() )
-        
-        if( iPlayer == gc.getBARBARIAN_PLAYER() and game.getAIAutoPlay() == 1 ) :
+        # <advc.127> This only works if there's a human in slot 0; commented out.
+        # Replacement below.
+        #if (iPlayer == gc.getBARBARIAN_PLAYER() and game.getAIAutoPlay() == 1):
+        turnsLeft = game.getAIAutoPlay()
+        if (turnsLeft == 1 and iPlayer == gc.getBARBARIAN_PLAYER() and gc.getPlayer(0).isHumanDisabled()) or (turnsLeft == 0 and iPlayer < gc.getBARBARIAN_PLAYER() and gc.getPlayer(iPlayer + 1).isHumanDisabled()):
+            # </advc.127>
             # About to turn off automation
-            #self.checkPlayer()
+            self.checkPlayer() # advc.127: Un-commented this line.
             pass
 
     def checkPlayer( self ) :
@@ -197,6 +203,7 @@ class AIAutoPlay :
             gc.getActivePlayer().setIsHuman( True )
 
         CvUtil.pyPrint('CDP: Setting autoplay to 0')
+		# advc.127 (comment): Re-enables humans
         game.setAIAutoPlay(0)
         
         if( not pPlayer.isHuman() ) :

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+	Text strings for Show Hidden Attitudes Mod
+
+	Author: DaveMcW
+	Forum: http://forums.civfanatics.com/showthread.php?t=335966
+  -->
+<Civ4GameText xmlns="http://www.firaxis.com">
+	<TEXT>
+		<Tag>TXT_KEY_MISC_ATTITUDE_FIRST_IMPRESSION</Tag>
+		<English>%D1: "A first impression is a lasting one."</English>
+		<French>%D1: "C'est la premi&#232;re impression qui compte."</French>
+		<German>%D1: "Der erste Eindruck z&#228;hlt."</German>
+		<Italian>%D1: "La prima impressione &#232; quella che conta."</Italian>
+		<Spanish>%D1: "La primera impresi&#243;n es la que cuenta."</Spanish>
+	</TEXT>
+	<!-- advc.sha: Removed the déjà from French translation. -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_ATTITUDE_TEAM_SIZE</Tag>
+		<English>%D1: "Your team is too big."</English>
+		<French>%D1: "Votre &#233;quipe est trop grande."</French>
+		<German>%D1: "Euer Team ist zu groß."</German>
+		<Italian>%D1: "La tua squadra &#232; troppo grande."</Italian>
+		<Spanish>%D1: "Tu equipo es demasiado grande."</Spanish>
+	</TEXT>
+	<!-- advc.sha: Text was "Your small civilization is no threat to us".
+		 A bit misleading; it's not a matter of size. -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_ATTITUDE_BETTER_RANK</Tag>
+		<English>%D1: "You're hardly a threat to us."</English>
+		<French>%D1: "Vous ne nous posez aucune menace."</French>
+		<German>%D1: "Ihr seid kaum eine Bedrohung f&#252;r uns."</German>
+		<Italian>%D1: "Non ci ponete alcuna minaccia."</Italian>
+		<Spanish>%D1: "No supon&#233;is ninguna amenaza para nosotros."</Spanish>
+	</TEXT>
+	<!-- advc.sha: Works differently in AdvCiv, and "we feel threatened by
+		 your large civ" no longer fits well. -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_ATTITUDE_WORSE_RANK</Tag>
+		<English>%D1: "You're getting ahead of us."</English>
+		<French>%D1: "Vous &#234;tes en train de nous d&#233;passer."</French>
+		<German>%D1: "Ihr seid dabei uns zu &#252;berfl&#252;geln."</German>
+		<Italian>%D1: "Ci state scavalcando."</Italian>
+		<Spanish>%D1: "Nos est&#225;is aventajando."</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_ATTITUDE_LOST_WAR</Tag>
+		<English>%D1: "The war is going badly for us."</English>
+		<French>%D1: "Nous perdons la guerre."</French>
+		<German>%D1: "Dieser Krieg verl&#228;uft ung&#252;nstig f&#252;r uns."</German>
+		<Italian>%D1: "La guerra sta andando male per noi."</Italian>
+		<Spanish>%D1: "Nos va mal en esta guerra."</Spanish>
+	</TEXT>
+	<!-- advc.sha: Deleted TXT_KEY_MISC_ATTITUDE_LOW_RANK ("developing
+		 nations should work together to catch up") b/c it doesn't apply in
+		 AdvCiv. -->
+</Civ4GameText>

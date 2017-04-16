@@ -11,7 +11,7 @@ void logBBAI(TCHAR* format, ... )
 	va_list args;
 	va_start(args, format);
 	_vsnprintf(buf, 2048-4, format, args);
-	va_end(args);
+	va_end(args); // kmodx
 	gDLL->logMsg("BBAI.log", buf);
 #endif
 }

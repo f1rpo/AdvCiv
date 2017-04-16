@@ -187,6 +187,7 @@ public:
 
 	DllExport int getNumAdvancedStartPoints() const	{ return m_iNumAdvancedStartPoints; }
 	DllExport void setNumAdvancedStartPoints(int iNumPoints)	{ m_iNumAdvancedStartPoints = iNumPoints; }
+	int getAdvancedStartMinPoints() const; // advc.250c
 
 	DllExport unsigned int getSyncRandSeed() const	{ return m_uiSyncRandSeed; }
 	DllExport void setSyncRandSeed(unsigned int uiSyncRandSeed)	{ m_uiSyncRandSeed = uiSyncRandSeed; }

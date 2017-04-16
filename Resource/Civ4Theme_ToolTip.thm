@@ -1,0 +1,198 @@
+/********************************************************************** 
+
+Filename	:	Civ4Theme_ToolTip.thm
+Content		:	Civ4 - GToolTip control theme
+Created		:	May 1, 2005
+Authors		:	Sven Dixon
+
+Copyright	:	(c) 2005 Scaleform Corp. All Rights Reserved.
+
+Licensees may use this file in accordance with the valid Scaleform
+GFC Commercial License Agreement provided with the software.
+
+This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING 
+THE WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR ANY PURPOSE.
+
+For information regarding GFC Commercial License Agreements go to:
+	online - http://www.scaleform.com/licensing.html or
+	email  - sales@scaleform.com 
+
+**********************************************************************/
+
+/* advc.002b: Copied from BtS/Resource/Themes/Civ4. Changed the tga
+   paths based on ancestral's tutorial in order to avoid copies of all
+   the UI graphics. Prefixed each path with "../../../../Resource/". */
+
+// *** Main ToolTip control namespace 
+
+with GFC_Control_ToolTip
+{
+
+	GFC_Control_DefaultToolTip_Style
+	{
+		GFC_Control_Renderer_Control			=	GFC_CtrlTheme_Bitmap_Control_ToolTip_Renderer_Control;
+
+
+		with .Renderer
+		{
+			.Text								=	GFC_CtrlTheme_Bitmap_Control_ToolTip_Renderer_Text;
+		}									
+										
+		with GFC_Control_Flag
+		{									
+			// Base control flags							
+			.Transparent						=	GFlags(GCtrl, GFC_CF_TRANSPARENT);
+			.SolidInner							=	0;	//GFlags(GCtrl, GFC_CF_SOLIDINNER);
+			.SolidBackground					=	0;	//GFlags(GCtrl, GFC_CF_SOLIDBACKGROUND);
+			.RegionClip							=	GFlags(GCtrl, GFC_CF_REGIONCLIP);
+			.RegionClipParent					=	0;	//GFlags(GCtrl, GFC_CF_REGIONCLIP_PARENT);
+			.NoExternalWindow					=	GFlags(GCtrl, GFC_CF_NOEXTERNALWINDOW);
+			.HitTest							=	GFlags(GCtrl, GFC_CF_HITTEST_NOHIT);
+			.TopLayer							=	0;	//GFlags(GCtrl, GFC_CF_TOPLAYER);
+			.TopLayerBitmap						=	0;	//GFlags(GCtrl, GFC_CF_TOPLAYERBITMAP);
+			.BottomLayerBitmap					=	0;	//GFlags(GCtrl, GFC_CF_BOTTOMLAYERBITMAP);
+												
+			// Control flag change masks		
+			.Mask_InvalidateControl				=	GFlags(GCtrl, GFC_CF_DISABLED, GFC_CF_TRANSPARENT, GFC_CF_TOPLAYER);
+		}
+
+		with .Flag								
+		{
+			// ToolTip flags										
+			.VAlign								=	GFlags(GToolTipCtrl, GFC_CF_TOOLTIP_VCENTER);
+			.HAlign								=	GFlags(GToolTipCtrl, GFC_CF_TOOLTIP_LEFT);
+			.Wrap								=	GFlags(GToolTipCtrl, GFC_CF_TOOLTIP_WRAP_WORD);
+			.Crop								=	GFlags(GToolTipCtrl, GFC_CF_TOOLTIP_CROP_CHAR);
+			.CropDotted							=	GFlags(GToolTipCtrl);
+			.Multiline							=	GFlags(GToolTipCtrl, GFC_CF_TOOLTIP_MULTILINE);
+
+			// ToolTip flag change masks
+			//.ToolTipMask_InvalidateControl	=	GFlags(GToolTipCtrl);
+		}							
+							
+		with .Color							
+		{								
+			.Inner								=	SF_CtrlTheme_Civ4_Control_Color_BG;
+			.Border								=	GFC_Control_Color_ToolTipBorder;
+			.Text								=	GFC_Control_Color_Text_Default;
+			.TextShadow							=	GFC_Control_Color_TextShadow_Default;
+		}								
+											
+		with .Combine						
+		{								
+			.Inner								=	GFC_Control_Combine_Surface;
+			.Border								=	GFC_Control_Combine_Surface;
+			.Text_Dest							=	GFC_Control_Combine_Text_Default_Dest;
+			.Text_Factor						=	GFC_Control_Combine_Text_Default_Factor;
+			.TextShadow_Dest					=	GFC_Control_Combine_TextShadow_Default_Dest;
+			.TextShadow_Factor					=	GFC_Control_Combine_TextShadow_Default_Factor;
+		}
+		
+		with .Size
+		{
+			.ExtraMargin						=	GRectMargin(10,4,10,4);
+			.BorderMargin						=	GRectMargin(0,0,0,0);
+			.ExtentMargin						=	GRectMargin(0,0,0,0);
+			.MaxWidth							=	500;
+			.MaxHeight							=	0;
+		}
+		
+		.Font_Text								=	SF_CtrlTheme_Civ4_Control_Font_Size1_Normal;
+		
+
+		// ******* Initialize all the Bitmap theme ToolTip properties to avoid inheritance problems
+		
+		with GFC_CtrlTheme_Bitmap_Control_ToolTip_Skin
+		{
+			.Inner_Default			=	0;	
+			.Border_Default			=	0;
+		}
+
+		map GFC_Control			=	GFC_Control_DefaultControl_Style;
+	}	// end GFC_Control_DefaultToolTip_Style
+
+
+
+	// **** Normal ToolTip style
+	
+	GFC_Control_StandardToolTip_Style
+	{
+		// ToolTip border and inner bitmap skins	
+		with GFC_CtrlTheme_Bitmap_Control_ToolTip_Skin
+		{
+			.Border_Default
+			{
+				layer { }
+			/*
+				(
+					LayerFlags		=	GFlags(GCtrlBitmapSkin, GFC_BITMAPSKIN_SIDES_SCALE, GFC_BITMAPSKIN_CENTER_SCALE);
+					DestCombine		=	GColorCombine(BlendSource,Disable);
+					FactorCombine	= 	GColorCombine(Modulate,Modulate);
+					FactorColor		= 	GFC_Control_Color_ToolTipInner;
+					Image			=	GBitmap("../../../../Resource/Civ4/tooltip.tga", HVGrid, 1, 1, 0, 0);
+					Margin			=	GRectMargin(7,7,7,7);
+				}
+				layer
+				{
+					LayerFlags		= 	GFlags(GCtrlBitmapSkin, GFC_BITMAPSKIN_SIDES_SCALE, GFC_BITMAPSKIN_CENTER_SCALE, GFC_BITMAPSKIN_BACKCAPS_REGION, GFC_BITMAPSKIN_NOHITTEST);
+					DestCombine		= 	GColorCombine(BlendSource,Disable);
+					FactorCombine	= 	GColorCombine(Modulate,Source);
+					FactorColor		= 	GFC_Control_Color_ToolTipInner;
+					Image			= 	GBitmap("../../../../Resource/Civ4/white.tga", HVGrid, 1, 1, 0, 0);
+					Margin			= 	GRectMargin(7,7,7,7);
+				}				
+				layer
+				{
+					LayerFlags		=	GFlags(GCtrlBitmapSkin, GFC_BITMAPSKIN_SIDES_SCALE, GFC_BITMAPSKIN_CENTER_SCALE, GFC_BITMAPSKIN_BACKCAPS_PARTIAL);
+					DestCombine		=	GColorCombine(BlendSource,Disable);
+					FactorCombine	= 	GColorCombine(Modulate,Source);
+					FactorColor		= 	GFC_Control_Color_ToolTipInner;
+					Image			=	GBitmap("../../../../Resource/Civ4/tooltip.tga", HVGrid, 1, 1, 0, 0);
+					Margin			=	GRectMargin(7,7,7,7);
+				}
+				layer
+				{
+					LayerFlags		= 	GFlags(GCtrlBitmapSkin, GFC_BITMAPSKIN_SIDES_SCALE, GFC_BITMAPSKIN_CENTER_EMPTY, GFC_BITMAPSKIN_NOTVISIBLE,
+															  	GFC_BITMAPSKIN_BACKCAPS_REGION, GFC_BITMAPSKIN_REGION_TRANSPARENT, GFC_BITMAPSKIN_COLORKEY);
+					DestCombine		= 	GColorCombine(BlendSource,Disable);
+					Image			= 	GBitmap("../../../../Resource/Civ4/tooltip_mask.tga", HVGrid, 1, 1, 0, 0);
+					Margin			= 	GRectMargin(8,8,8,8);
+					ColorKey		= 	GColor(0,0,0,0);
+					ColorKeyMax		= 	GColor(0,0,0,96);
+					ColorKeyMask	= 	GColor(0,0,0,255);
+				}
+			*/
+			}						
+			
+			.Inner_Default
+			{
+				layer
+				{
+					LayerFlags		=	GFlags(GCtrlBitmapSkin, GFC_BITMAPSKIN_CENTER_FILL, GFC_BITMAPSKIN_BACKCAPS_REGION);
+					CenterColor		=	SF_CtrlTheme_Civ4_Control_Color_BG; 
+				}
+				layer
+				{
+					LayerFlags		=	GFlags(GCtrlBitmapSkin, GFC_BITMAPSKIN_SIDES_SCALE, GFC_BITMAPSKIN_CENTER_SCALE);
+					DestCombine		=	GColorCombine(BlendSource,Disable);
+					FactorCombine	= 	GColorCombine(Modulate,Modulate);
+					FactorColor		= 	SF_CtrlTheme_Civ4_Control_Color_BG;
+					Image			=	GBitmap("../../../../Resource/Civ4/tooltip.tga", HVGrid, 1, 2, 0, 1);
+					Margin			=	GRectMargin(7,7,7,7);
+				}
+				layer
+				{
+					LayerFlags		=	GFlags(GCtrlBitmapSkin, GFC_BITMAPSKIN_SIDES_SCALE, GFC_BITMAPSKIN_CENTER_EMPTY);
+					DestCombine		=	GColorCombine(BlendSource,Disable);
+					Image			=	GBitmap("../../../../Resource/Civ4/tooltip.tga", HVGrid, 1, 2, 0, 0);
+					Margin			=	GRectMargin(3,3,3,3);
+				}
+			}
+		}
+
+		map GFC_CtrlTheme_Bitmap_Control	= GFC_Control_DefaultToolTip_Style;
+		map GFC_Control						= GFC_Control_DefaultToolTip_Style;
+	}
+	
+}
+

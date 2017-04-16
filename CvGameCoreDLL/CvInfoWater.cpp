@@ -29,11 +29,12 @@
 //  PURPOSE :   Default constructor
 //
 //------------------------------------------------------------------------------------------------------
-CvWaterPlaneInfo::CvWaterPlaneInfo() :
-	m_fMaterialAlpha(0.0f),
-	m_BaseTextureScale(0.0f),
-	m_fURate(0.0f),
-	m_fVRate(0.0f)
+CvWaterPlaneInfo::CvWaterPlaneInfo()
+// <kmodx>
+: m_fMaterialAlpha(0.0f),
+  m_BaseTextureScale(0.0f),
+  m_fURate(0.0f),
+  m_fVRate(0.0f) // </kmodx>
 {
 
 }
@@ -183,17 +184,19 @@ bool CvWaterPlaneInfo::read(CvXMLLoadUtility* pXML)
 //  PURPOSE :   Default constructor
 //
 //------------------------------------------------------------------------------------------------------
-CvTerrainPlaneInfo::CvTerrainPlaneInfo() :
-	m_bVisible(false),
-	m_bGroundPlane(false),
-	m_fMaterialAlpha(0.0f),
-	m_fCloseAlpha(0.0f),
-	m_BaseTextureScaleU(0.0f),
-	m_BaseTextureScaleV(0.0f),
-	m_fURate(0.0f),
-	m_fVRate(0.0f),
-	m_fZHeight(0.0f),
-	m_eFogType(FOG_TYPE_NONE)
+CvTerrainPlaneInfo::CvTerrainPlaneInfo()
+// <kmodx>
+: m_bVisible(false),
+  m_bGroundPlane(false),
+  m_fMaterialAlpha(0.0f),
+  m_fCloseAlpha(0.0f),
+  m_BaseTextureScaleU(0.0f),
+  m_BaseTextureScaleV(0.0f),
+  m_fURate(0.0f),
+  m_fVRate(0.0f),
+  m_fZHeight(0.0f),
+  m_eFogType(FOG_TYPE_NONE)
+// </kmodx>
 {
 
 }
@@ -317,9 +320,8 @@ bool CvTerrainPlaneInfo::read(CvXMLLoadUtility* pXML)
 //  PURPOSE :   Default constructor
 //
 //------------------------------------------------------------------------------------------------------
-CvCameraOverlayInfo::CvCameraOverlayInfo() :
-	m_bVisible(false),
-	m_eCameraOverlayType(CAMERA_OVERLAY_DECAL)
+CvCameraOverlayInfo::CvCameraOverlayInfo()
+: m_bVisible(false), m_eCameraOverlayType(CAMERA_OVERLAY_DECAL) // kmodx
 {
 
 }

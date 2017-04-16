@@ -1,7 +1,7 @@
 #CvModName.py
 
-modName = "K-Mod"
-displayName = "K-Mod"
+modName = "AdvCiv" # advc.009
+displayName = "AdvCiv" #advc.009
 modVersion = ""
 
 civName = "BtS"

@@ -1011,7 +1011,6 @@ m_piDomainExtraMoves(NULL),
 m_piFlavorValue(NULL), 
 m_piPrereqOrTechs(NULL),
 m_piPrereqAndTechs(NULL),
-m_piCommerceModifier(NULL), // K-Mod
 m_piSpecialistExtraCommerce(NULL), // K-Mod
 m_pbCommerceFlexible(NULL),
 m_pbTerrainTrade(NULL)
@@ -1031,7 +1030,6 @@ CvTechInfo::~CvTechInfo()
 	SAFE_DELETE_ARRAY(m_piFlavorValue);
 	SAFE_DELETE_ARRAY(m_piPrereqOrTechs);
 	SAFE_DELETE_ARRAY(m_piPrereqAndTechs);
-	SAFE_DELETE_ARRAY(m_piCommerceModifier); // K-Mod
 	SAFE_DELETE_ARRAY(m_piSpecialistExtraCommerce); // K-Mod
 	SAFE_DELETE_ARRAY(m_pbCommerceFlexible);
 	SAFE_DELETE_ARRAY(m_pbTerrainTrade);
@@ -1277,19 +1275,6 @@ int CvTechInfo::getPrereqAndTechs(int i) const
 }
 
 // K-Mod
-int CvTechInfo::getCommerceModifier(int i) const
-{
-	FAssertMsg(m_piCommerceModifier, "Tech info not initialised");
-	FASSERT_BOUNDS(0, NUM_COMMERCE_TYPES, i, "CvTechInfo::getCommerceModifier");
-
-	return m_piCommerceModifier ? m_piCommerceModifier[i] : 0;
-}
-
-int* CvTechInfo::getCommerceModifierArray() const
-{
-	return m_piCommerceModifier;
-}
-
 int CvTechInfo::getSpecialistExtraCommerce(int i) const
 {
 	FAssertMsg(m_piSpecialistExtraCommerce, "Tech info not initialised");
@@ -1375,20 +1360,12 @@ void CvTechInfo::read(FDataStreamBase* stream)
 	SAFE_DELETE_ARRAY(m_piPrereqAndTechs);
 	m_piPrereqAndTechs = new int[GC.getNUM_AND_TECH_PREREQS()];
 	stream->Read(GC.getNUM_AND_TECH_PREREQS(), m_piPrereqAndTechs);
-
 	// K-Mod
-	if (uiFlag >= 2)
-	{
-		SAFE_DELETE_ARRAY(m_piCommerceModifier)
-		m_piCommerceModifier = new int[NUM_COMMERCE_TYPES];
-		stream->Read(NUM_COMMERCE_TYPES, m_piCommerceModifier);
-	}
 	if (uiFlag >= 1)
 	{
 		SAFE_DELETE_ARRAY(m_piSpecialistExtraCommerce)
 		m_piSpecialistExtraCommerce = new int[NUM_COMMERCE_TYPES];
-		stream->Read(NUM_COMMERCE_TYPES, m_piSpecialistExtraCommerce);
-	}
+		stream->Read(NUM_COMMERCE_TYPES, m_piSpecialistExtraCommerce);	}
 	// K-Mod end
 
 	SAFE_DELETE_ARRAY(m_pbCommerceFlexible);
@@ -1408,7 +1385,7 @@ void CvTechInfo::write(FDataStreamBase* stream)
 {
 	CvInfoBase::write(stream);
 
-	uint uiFlag=2;
+	uint uiFlag=1;
 	stream->Write(uiFlag);		// flag for expansion
 
 	stream->Write(m_iAdvisorType);
@@ -1453,7 +1430,6 @@ void CvTechInfo::write(FDataStreamBase* stream)
 	stream->Write(GC.getNumFlavorTypes(), m_piFlavorValue);
 	stream->Write(GC.getNUM_OR_TECH_PREREQS(), m_piPrereqOrTechs);
 	stream->Write(GC.getNUM_AND_TECH_PREREQS(), m_piPrereqAndTechs);
-	stream->Write(NUM_COMMERCE_TYPES, m_piCommerceModifier); // K-Mod. uiFlag >= 2
 	stream->Write(NUM_COMMERCE_TYPES, m_piSpecialistExtraCommerce); // K-Mod. uiFlag >= 1
 	stream->Write(NUM_COMMERCE_TYPES, m_pbCommerceFlexible);
 	stream->Write(GC.getNumTerrainInfos(), m_pbTerrainTrade);
@@ -1517,16 +1493,6 @@ bool CvTechInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iGridY, "iGridY");
 
 	// K-Mod
-	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"CommerceModifiers"))
-	{
-		pXML->SetCommerce(&m_piCommerceModifier);
-		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
-	}
-	else
-	{
-		pXML->InitList(&m_piCommerceModifier, NUM_COMMERCE_TYPES);
-	}
-
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"SpecialistExtraCommerces"))
 	{
 		pXML->SetCommerce(&m_piSpecialistExtraCommerce);
@@ -3142,7 +3108,10 @@ m_iUnitMeleeWaveSize(0),
 m_iUnitRangedWaveSize(0),
 m_iNumUnitNames(0),
 m_iCommandType(NO_COMMAND),
+// <kmodx>
 m_iLeaderExperience(0),
+m_iLeaderPromotion(NO_PROMOTION),
+// </kmodx>
 m_bAnimal(false),
 m_bFoodProduction(false),
 m_bNoBadGoodies(false),
@@ -3181,7 +3150,6 @@ m_bLineOfSight(false),
 m_bHiddenNationality(false),
 m_bAlwaysHostile(false),
 m_bNoRevealMap(false),
-m_iLeaderPromotion(NO_PROMOTION),
 m_fUnitMaxSpeed(0.0f),
 m_fUnitPadTime(0.0f),
 m_pbUpgradeUnitClass(NULL),
@@ -3509,7 +3477,9 @@ int CvUnitInfo::getConscriptionValue() const
 }
 
 int CvUnitInfo::getCultureGarrisonValue() const
-{
+{	// <advc.101> Will probably make these changes in XML eventually; for now here.
+	if(isMechUnit())
+		return m_iCultureGarrisonValue / 2; // </advc.101>
 	return m_iCultureGarrisonValue;
 }
 
@@ -6862,6 +6832,11 @@ int CvBuildingInfo::getGreatGeneralRateModifier() const
 
 int CvBuildingInfo::getDomesticGreatGeneralRateModifier() const
 {
+	// <advc.310> Dynamic ability of Great Wall
+	CvGame const& g = GC.getGameINLINE();
+	if(!g.isOption(GAMEOPTION_RAGING_BARBARIANS) &&
+			!g.isOption(GAMEOPTION_NO_BARBARIANS))
+		return 0; // </advc.310>
 	return m_iDomesticGreatGeneralRateModifier;
 }
 
@@ -6992,6 +6967,11 @@ int CvBuildingInfo::getCoastalTradeRoutes() const
 
 int CvBuildingInfo::getGlobalTradeRoutes() const	
 {
+	// <advc.310> Dynamic ability of Great Wall
+	CvGame const& g = GC.getGameINLINE();
+	if(g.isOption(GAMEOPTION_RAGING_BARBARIANS) &&
+			!g.isOption(GAMEOPTION_NO_BARBARIANS))
+		return 0; // </advc.310>
 	return m_iGlobalTradeRoutes;
 }
 
@@ -7207,6 +7187,8 @@ bool CvBuildingInfo::isAreaCleanPower() const
 
 bool CvBuildingInfo::isAreaBorderObstacle() const
 {
+	// advc.310: Dynamic ability of Great Wall
+	if(GC.getGameINLINE().isOption(GAMEOPTION_NO_BARBARIANS)) return false;
 	return m_bAreaBorderObstacle;
 }
 
@@ -10140,6 +10122,7 @@ m_iAIWarWearinessPercent(0),
 m_iAIPerEraModifier(0),
 m_iAIAdvancedStartPercent(0),
 m_iNumGoodies(0),
+m_iDifficulty(-1), // advc.250a
 m_piGoodies(NULL),
 m_pbFreeTechs(NULL),
 m_pbAIFreeTechs(NULL)
@@ -10450,6 +10433,9 @@ int CvHandicapInfo::getNumGoodies() const
 	return m_iNumGoodies;
 }
 
+// advc.250a:
+int CvHandicapInfo::getDifficulty() const { return m_iDifficulty; }
+
 // Arrays
 
 int CvHandicapInfo::getGoodies(int i) const				
@@ -10539,6 +10525,7 @@ void CvHandicapInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iAIPerEraModifier);
 	stream->Read(&m_iAIAdvancedStartPercent);
 	stream->Read(&m_iNumGoodies);
+	stream->Read(&m_iDifficulty); // advc.250a
 
 	stream->ReadString(m_szHandicapName);
 
@@ -10623,6 +10610,7 @@ void CvHandicapInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iAIPerEraModifier);
 	stream->Write(m_iAIAdvancedStartPercent);
 	stream->Write(m_iNumGoodies);
+	stream->Write(m_iDifficulty); // advc.250a
 
 	stream->WriteString(m_szHandicapName);
 
@@ -10699,6 +10687,7 @@ bool CvHandicapInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iAIWarWearinessPercent, "iAIWarWearinessPercent");
 	pXML->GetChildXmlValByName(&m_iAIPerEraModifier, "iAIPerEraModifier");
 	pXML->GetChildXmlValByName(&m_iAIAdvancedStartPercent, "iAIAdvancedStartPercent");
+	pXML->GetChildXmlValByName(&m_iDifficulty, "iDifficulty"); // advc.250a
 
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "Goodies"))
 	{
@@ -15038,7 +15027,7 @@ CvWorldInfo::~CvWorldInfo()
 
 int CvWorldInfo::getDefaultPlayers() const
 {
-	return m_iDefaultPlayers; 
+	return m_iDefaultPlayers;
 }
 
 int CvWorldInfo::getUnitNameModifier() const
@@ -17687,7 +17676,7 @@ m_fTrailLength(0.0f),
 m_fTrailTaper(0.0f),
 m_fTrailFadeStartTime(0.0f),
 m_fTrailFadeFalloff(0.0f),
-m_fBattleDistance(0.0f),
+m_fBattleDistance(0.0f), // kmodx
 m_fRangedDeathTime(0.0f),
 m_fExchangeAngle(0.0f),
 m_bSmoothMove(false),
@@ -19013,8 +19002,10 @@ m_iWaterHeight(0),
 m_fTextureScaleX(0.0f),
 m_fTextureScaleY(0.0f),
 m_fZScale(0.0f),
+// <kmodx>
 m_fPeakScale(0.0f),
 m_fHillScale(0.0f),
+// </kmodx>
 m_bUseTerrainShader(false),
 m_bUseLightmap(false),
 m_bRandomMap(false)
@@ -22676,8 +22667,9 @@ bool CvEventInfo::readPass2(CvXMLLoadUtility* pXML)
 //  PURPOSE :   Default constructor
 //
 //------------------------------------------------------------------------------------------------------
-CvEspionageMissionInfo::CvEspionageMissionInfo() :
-	m_iCost(0),
+CvEspionageMissionInfo::CvEspionageMissionInfo()
+	// <kmodx>
+	: m_iCost(0),
 	m_bIsPassive(false),
 	m_bIsTwoPhases(false),
 	m_bTargetsCity(false),
@@ -22708,6 +22700,7 @@ CvEspionageMissionInfo::CvEspionageMissionInfo() :
 	m_iCounterespionageNumTurns(0),
 	m_iCounterespionageMod(0),
 	m_iDifficultyMod(0)
+	// </kmodx>
 {
 }
 

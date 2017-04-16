@@ -156,11 +156,23 @@ class CvEspionageAdvisor:
 		screen.addPanel( self.szTotalPaneWidget, "", "", true, true,
 			self.X_TOTAL_PANE, self.Y_TOTAL_PANE, self.W_TOTAL_PANE, self.H_TOTAL_PANE, PanelStyles.PANEL_STYLE_MAIN )
 
-		self.szMakingText = "MakingText"
-		self.X_MAKING_TEXT = 490
-		self.Y_MAKING_TEXT = 85
-		szText = u"<font=4>" + localText.getText("TXT_KEY_ESPIONAGE_SCREEN_TOTAL_NUM_EPS", (pActivePlayer.getCommerceRate(CommerceTypes.COMMERCE_ESPIONAGE), )) + "</font>"
-		screen.setLabel(self.szMakingText, "Background", szText, CvUtil.FONT_LEFT_JUSTIFY, self.X_MAKING_TEXT, self.Y_MAKING_TEXT, self.Z_CONTROLS, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		# <advc.120c> Replace TOTAL_NUM_EPS text with espionage slider
+		#self.szMakingText = "MakingText"
+		#self.X_MAKING_TEXT = 490
+		#self.Y_MAKING_TEXT = 85
+		#szText = u"<font=4>" + localText.getText("TXT_KEY_ESPIONAGE_SCREEN_TOTAL_NUM_EPS", (pActivePlayer.getCommerceRate(CommerceTypes.COMMERCE_ESPIONAGE), )) + "</font>"
+		#screen.setLabel(self.szMakingText, "Background", szText, CvUtil.FONT_LEFT_JUSTIFY, self.X_MAKING_TEXT, self.Y_MAKING_TEXT, self.Z_CONTROLS, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		# Copied from EconomicsAdvisor.py
+		x = self.X_TOTAL_PANE
+		y = self.Y_TOTAL_PANE
+		eCommerce = CommerceTypes.COMMERCE_ESPIONAGE
+		screen.setButtonGFC("plusButton", u"", "", x + self.TEXT_MARGIN, y + self.TEXT_MARGIN, 20, 20, WidgetTypes.WIDGET_CHANGE_PERCENT, eCommerce, gc.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS"), ButtonStyles.BUTTON_STYLE_CITY_PLUS )
+		screen.setButtonGFC("minusButton", u"", "", x + self.TEXT_MARGIN + 24, y + self.TEXT_MARGIN, 20, 20, WidgetTypes.WIDGET_CHANGE_PERCENT, eCommerce, -gc.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS"), ButtonStyles.BUTTON_STYLE_CITY_MINUS )
+		szText = u"<font=3>" + gc.getCommerceInfo(eCommerce).getDescription() + u" (" + unicode(pActivePlayer.getCommercePercent(eCommerce)) + u"%)</font>"
+		screen.setLabel("espRateLabel", "Background",  szText, CvUtil.FONT_LEFT_JUSTIFY, x + self.TEXT_MARGIN + 50, y + self.TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		szRate = u"<font=3>" + unicode(pActivePlayer.getCommerceRate(CommerceTypes(eCommerce))) + u"</font>"
+		screen.setLabel("espRate", "Background", szRate, CvUtil.FONT_RIGHT_JUSTIFY, x + self.PANE_WIDTH - self.TEXT_MARGIN, y + self.TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		# </advc.120c>
 
 		############################
 		#### Right Panel
@@ -366,6 +378,19 @@ class CvEspionageAdvisor:
 
 			pActivePlayer = gc.getPlayer(self.iActivePlayer)
 			pActiveTeam = gc.getTeam(pActivePlayer.getTeam())
+			
+			# <advc.120c> Update labels
+			screen.deleteWidget("espRateLabel")
+			screen.deleteWidget("espRate")
+			# Same code as above, except for the buttons
+			x = self.X_TOTAL_PANE
+			y = self.Y_TOTAL_PANE
+			eCommerce = CommerceTypes.COMMERCE_ESPIONAGE
+			szText = u"<font=3>" + gc.getCommerceInfo(eCommerce).getDescription() + u" (" + unicode(pActivePlayer.getCommercePercent(eCommerce)) + u"%)</font>"
+			screen.setLabel("espRateLabel", "Background",  szText, CvUtil.FONT_LEFT_JUSTIFY, x + self.TEXT_MARGIN + 50, y + self.TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+			szRate = u"<font=3>" + unicode(pActivePlayer.getCommerceRate(CommerceTypes(eCommerce))) + u"</font>"
+			screen.setLabel("espRate", "Background", szRate, CvUtil.FONT_RIGHT_JUSTIFY, x + self.PANE_WIDTH - self.TEXT_MARGIN, y + self.TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			# </advc.120c>
 
 			iPlayerLoop = 0
 
