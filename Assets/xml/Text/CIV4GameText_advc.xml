@@ -1576,5 +1576,15 @@
 		<Italian>[ICON_BULLET]Immagazzina %d1_Mod%% di [ICON_FOOD] dopo la crescita o fame</Italian>
 		<Spanish>[ICON_BULLET]Almacena el %d1_Mod%% de los [ICON_FOOD] tras el crecimiento o inanición.</Spanish>
 	</TEXT>
+
+	<!-- [advc.104t] Warning added; hopefully temporary -->
+	<TEXT>
+		<Tag>TXT_KEY_GAME_OPTION_PERMANENT_ALLIANCES_HELP</Tag>
+		<English>(WARNING: This option hasn't been tested with the AdvCiv mod.) Two civilizations can form a Permanent Alliance which lasts the rest of the game.</English>
+		<French>(WARNING: This option hasn't been tested with the AdvCiv mod.) Deux civilisations peuvent former une alliance permanente qui dure jusqu'&#224; la fin du jeu.</French>
+		<German>(WARNING: This option hasn't been tested with the AdvCiv mod.) Zwei Zivilisationen k&#246;nnen eine Allianz schlie&#223;en, die die restliche Spielzeit &#252;berdauert.</German>
+		<Italian>(WARNING: This option hasn't been tested with the AdvCiv mod.) Due civilt&#224; possono formare una alleanza permanente che duri fino alla fine della partita.</Italian>
+		<Spanish>(WARNING: This option hasn't been tested with the AdvCiv mod.) Dos civilizaciones pueden formar una alianza permanente que dure hasta que acabe la partida.</Spanish>
+	</TEXT>
 	
 </Civ4GameText>

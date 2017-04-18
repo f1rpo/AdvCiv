@@ -8517,22 +8517,25 @@ int CvPlayerAI::AI_getMemoryAttitude(PlayerTypes ePlayer, MemoryTypes eMemory) c
 	CvLeaderHeadInfo const& lh = GC.getLeaderHeadInfo(getLeaderType());
 	if(eMemory == MEMORY_ACCEPTED_CIVIC) {
 		CivicTypes fav = (CivicTypes)lh.getFavoriteCivic();
-		if(fav != NO_CIVIC && !GET_PLAYER(ePlayer).isCivic(fav))
+		if(fav != NO_CIVIC && (!GET_PLAYER(ePlayer).isCivic(fav) ||
+				!isCivic(fav)))
 			return 0;
 	}
 	if(eMemory == MEMORY_ACCEPTED_RELIGION) {
 		ReligionTypes fav = (ReligionTypes)lh.getFavoriteReligion();
-		if(fav != NO_RELIGION && GET_PLAYER(ePlayer).getStateReligion() != fav)
+		if(fav != NO_RELIGION && (GET_PLAYER(ePlayer).getStateReligion() != fav ||
+				getStateReligion() != fav))
 			return 0;
 	}
 	if(eMemory == MEMORY_DENIED_CIVIC) {
 		CivicTypes fav = (CivicTypes)lh.getFavoriteCivic();
-		if(fav == NO_CIVIC || GET_PLAYER(ePlayer).isCivic(fav))
+		if(fav == NO_CIVIC || GET_PLAYER(ePlayer).isCivic(fav) || !isCivic(fav))
 			return 0;
 	}
 	if(eMemory == MEMORY_DENIED_RELIGION) {
 		ReligionTypes fav = (ReligionTypes)lh.getFavoriteReligion();
-		if(fav == NO_RELIGION || GET_PLAYER(ePlayer).getStateReligion() == fav)
+		if(fav == NO_RELIGION || GET_PLAYER(ePlayer).getStateReligion() == fav ||
+				getStateReligion() != fav)
 			return 0;
 	} // </advc.145>
 	/* <advc.130j> Was 100. Effect halved b/c diplo actions now counted twice.
@@ -21709,9 +21712,9 @@ void CvPlayerAI::AI_updateStrategyHash()
 			multiplier *= ::dRange(iCloseness / 100.0, 0.0, 1.0) + 0.3;;
 			// <advc.022> Reduced paranoia if resistance futile
 			double powRatio = iTheirPower / (double)iOurDefensivePower;
-			/*  No change if ratio is 160% or less; 210% -> 50% reduced paranoia;
+			/*  No change if ratio is 165% or less; 215% -> 50% reduced paranoia;
 				260% -> 0 paranoia */
-			multiplier *= std::max(0.0, 1 - std::max(0.0, powRatio - 1.6));
+			multiplier *= std::max(0.0, 1 - std::max(0.0, powRatio - 1.65));
 			iTempParanoia = ::round(iTempParanoia * multiplier);
 			// </advc.022>
 			iParanoia += iTempParanoia;

@@ -21821,8 +21821,8 @@
 			<bPrereqReligion>0</bPrereqReligion>
 			<bCenterInCity>0</bCenterInCity>
 			<iAIWeight>0</iAIWeight>
-			<!-- advc.310: Back to 200 as in BtS (was 300 in K-Mod) -->
-			<iCost>200</iCost>
+			<!-- advc.310: was 300 in K-Mod, 200 in BtS -->
+			<iCost>240</iCost>
 			<iHurryCostModifier>100</iHurryCostModifier>
 			<iAdvancedStartCost>-1</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>

@@ -10331,7 +10331,7 @@ int CvCityAI::AI_experienceWeight()
 	//return ((getProductionExperience() + getDomainFreeExperience(DOMAIN_SEA)) * 2);
 	// K-Mod
 	return 2 * getProductionExperience() + getDomainFreeExperience(DOMAIN_LAND) + getDomainFreeExperience(DOMAIN_SEA)
-			- 5; /*  advc.017: Barracks are pretty ubiquitous; shouldn't add 6
+			- 4; /*  advc.017: Barracks are pretty ubiquitous; shouldn't add 6
 					 to buildUnitProb. Rather make cities w/o Barracks hesitant
 					 to train units. */
 	// K-Mod end
