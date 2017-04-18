@@ -138,7 +138,7 @@ public:
 	void doTurnUnits();
 
 	void verifyCivics();
-
+	void verifyStateReligion(); // dlph.10
 	void updatePlotGroups();
 
 	void updateYield();

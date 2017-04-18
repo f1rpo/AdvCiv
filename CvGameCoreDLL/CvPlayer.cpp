@@ -3708,6 +3708,12 @@ void CvPlayer::verifyCivics()
 	}
 }
 
+// <dlph.10>
+void CvPlayer::verifyStateReligion() {
+
+	if(!isAnarchy() && !canDoReligion(getStateReligion()))
+		setLastStateReligion(NO_RELIGION);
+} // </dlph.10>
 
 void CvPlayer::updatePlotGroups()
 {
