@@ -8379,7 +8379,7 @@ int CvPlayerAI::AI_getShareWarAttitude(PlayerTypes ePlayer) const
 	limit = std::min(limit, 1 + turnsShared / div);
 	r += range((int)(theirContribution /
 			// This divisor seems to produce roughly the result I have in mind
-			(2.5 * GC.getWAR_SUCCESS_CITY_CAPTURING() * div)), 0, limit);
+			(3.5 * GC.getWAR_SUCCESS_CITY_CAPTURING() * div)), 0, limit);
 	return r;
 	// </advc.130m>
 }

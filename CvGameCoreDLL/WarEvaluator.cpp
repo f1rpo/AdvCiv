@@ -276,7 +276,7 @@ void WarEvaluator::fillWithAspects(vector<WarUtilityAspect*>& v) {
 	v.push_back(new UlteriorMotives(params));
 	v.push_back(new TacticalSituation(params));
 	v.push_back(new Bellicosity(params));
-	//v.push_back(new FairPlay(params));
+	v.push_back(new FairPlay(params));
 }
 
 void WarEvaluator::evaluate(PlayerTypes weId, vector<WarUtilityAspect*>& aspects) {

@@ -143,9 +143,11 @@ private:
 	void freeCitiesPerArea();
 	double overextensionCost();
 	double defensibilityCost();
+	double medianDistFromOurConquests(PlayerTypes civId);
 	double threatToCities(PlayerTypes civId);
 	double competitionMultiplier();
 	std::map<int,int>* citiesPerArea[MAX_CIV_PLAYERS];
+	double ourDist;
 };
 
 
