@@ -25,6 +25,12 @@ int WarEvaluator::cacheSz = 5; // lastCall... initializers need to match this nu
 int WarEvaluator::lastIndex = 0;
 bool WarEvaluator::checkCache = false;
 
+void WarEvaluator::clearCache() {
+
+	for(int i = 0; i < cacheSz; i++)
+		lastCallResult[i] = INT_MIN;
+}
+
 WarEvaluator::WarEvaluator(WarEvalParameters& warEvalParams, bool useCache) :
 
 	params(warEvalParams), report(params.getReport()),

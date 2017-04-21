@@ -8038,11 +8038,11 @@ int CvPlayerAI::AI_getCloseBordersAttitude(PlayerTypes ePlayer) const
 	return m_aiCloseBordersAttitudeCache[ePlayer];
 }
 
-// <advc.130y><advc.sha>
+// <advc.sha>
 int CvPlayerAI::warSuccessAttitudeDivisor() const {
 
 	return GC.getWAR_SUCCESS_CITY_CAPTURING() + 2 * getCurrentEra();
-} // </advc.sha></advc.130y>
+} // </advc.sha>
 
 int CvPlayerAI::AI_getWarAttitude(PlayerTypes ePlayer,
 		int partialSum) const // advc.sha

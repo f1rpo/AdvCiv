@@ -7763,29 +7763,29 @@ int CvGame::spawnBarbarians(int n, CvArea& area, Shelf* shelf,
 	for (iI = 0; iI < n; iI++)
 	{
         // <advc.300>
-		pPlot = randomBarbPlot(area, shelf);
-		/* If we can't find a plot once, we won't find one in a later iteration
-		   either. */
-		if(pPlot == NULL)
-			return r;
-		// Reroll once if the tile has poor yield
-		int totalYield = 0;
-		for(int i = 0; i < GC.getNUM_YIELD_TYPES(); i++)
-			totalYield += pPlot->getYield((YieldTypes)i);
-		// Want to re-roll flat Tundra Forest as well
-		if(totalYield == 2 && pPlot->getImprovementType() == NO_IMPROVEMENT) {
-			totalYield = 0;
-			for(int i = 0; i < GC.getNUM_YIELD_TYPES(); i++)
-				totalYield += pPlot->calculateNatureYield((YieldTypes)i, NO_TEAM,
-					true); // Ignore feature
-		}
-		if(totalYield < 2) {
+		// Reroll twice if the tile has poor yield
+		for(int i = 0; i < 3; i++) {
 			pPlot = randomBarbPlot(area, shelf);
+			/* If we can't find a plot once, we won't find one in a later
+				iteration either. */
 			if(pPlot == NULL)
 				return r;
+			int totalYield = 0;
+			for(int i = 0; i < GC.getNUM_YIELD_TYPES(); i++)
+				totalYield += pPlot->getYield((YieldTypes)i);
+			// Want to re-roll flat Tundra Forest as well
+			if(totalYield == 2 && pPlot->getImprovementType() == NO_IMPROVEMENT) {
+				totalYield = 0;
+				for(int i = 0; i < GC.getNUM_YIELD_TYPES(); i++)
+					totalYield += pPlot->calculateNatureYield((YieldTypes)i,
+							NO_TEAM, true); // Ignore feature
+			}
+			if(totalYield >= 2)
+				break;
 		}
 		UnitAITypes ai = UNITAI_ATTACK;
-		if(shelf != NULL) ai = UNITAI_ATTACK_SEA;
+		if(shelf != NULL)
+			ai = UNITAI_ATTACK_SEA;
 		// Original code moved into new function:
 		UnitTypes ut = randomBarbUnit(ai, area);
 		if(ut == NO_UNIT)
@@ -7823,19 +7823,26 @@ CvPlot* CvGame::randomBarbPlot(CvArea const& area, Shelf* shelf) const {
 			RANDPLOT_PASSIBLE |
 			RANDPLOT_HABITABLE | // New flag
 			RANDPLOT_UNOWNED;
-	// With Rage, spawn barbs even in visible plots from Renaissance onward
-	/*if(!GC.getGame().isOption(GAMEOPTION_RAGING_BARBARIANS) ||
-			!GC.getEraInfo(GC.getGame().getCurrentEra()).isNoBarbCities())
-		restrictionFlags = restrictionFlags | RANDPLOT_NOT_VISIBLE_TO_CIV;*/
-	// (Disabled again; too irrelevant)
 	/*  Added the "unowned" flag to prevent spawning in barbarian land.
 		Could otherwise happen now b/c the visible flag and dist. restriction
 		no longer apply to barbarians previously spawned; see
 		CvPlot::isVisibleToCivTeam, CvMap::isCivUnitNearby. */
 	int dist = GC.getDefineINT("MIN_BARBARIAN_STARTING_DISTANCE");
+	// <advc.304> Sometimes don't pick a plot if there are few legal plots
+	int legalCount = 0;
+	CvPlot* r = NULL;
 	if(shelf == NULL)
-		return GC.getMap().syncRandPlot(restrictionFlags, area.getID(), dist);
-	return shelf->randomPlot(restrictionFlags, dist);
+		r = GC.getMap().syncRandPlot(restrictionFlags, area.getID(), dist, -1,
+				&legalCount);
+	else r = shelf->randomPlot(restrictionFlags, dist, &legalCount);
+	if(r != NULL) {
+		double prSkip = 0;
+		if(legalCount > 0 && legalCount < 4)
+			prSkip = 1 - 1.0 / (5 - legalCount);
+		if(::bernoulliSuccess(prSkip))
+			r = NULL;
+	}
+	return r; // </advc.304>
 }
 
 

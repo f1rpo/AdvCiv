@@ -5311,11 +5311,8 @@ void CvTeamAI::forgiveEnemy(TeamTypes enemyId, bool capitulated, bool freed) {
 		making peace but also when breaking free. Can therefore not rely on
 		this->isCapitulated (but GET_TEAM(enemyId).isCapitulated() is fine).
 		If we make peace after having broken free, it's called twice for each
-		former enemy in total. Reduce memory by at most 1 on the call with
-		freed==true. */
+		former enemy in total. */
 	int delta = 0;
-	if(!freed)
-		delta--;
 	capitulated = (capitulated || GET_TEAM(enemyId).isCapitulated());
 	if(capitulated)
 		delta--;
@@ -5344,9 +5341,10 @@ void CvTeamAI::forgiveEnemy(TeamTypes enemyId, bool capitulated, bool freed) {
 					MEMORY_DECLARED_WAR);
 			int deltaLoop = delta;
 			/*  Forgiveness if war success small, but only if memory high and
-				no other forgiveness condition applies */
-			if(limit <= -3 && delta >= 0 &&
-					(double)ws < 0.75 * member.warSuccessAttitudeDivisor())
+				no other forgiveness condition applies, and not (times 0) in the
+				Ancient era (attacks on Workers and Settlers). */
+			if(limit <= -3 && delta >= 0 && (double)ws < 0.3 * getCurrentEra() *
+					GC.getWAR_SUCCESS_CITY_CAPTURING())
 				deltaLoop--;
 			// No complete forgiveness unless capitulated
 			if(!capitulated && limit < 0)

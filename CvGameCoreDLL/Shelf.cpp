@@ -11,7 +11,8 @@ void Shelf::add(CvPlot* plot) {
 }
 
 
-CvPlot* Shelf::randomPlot(int restrictionFlags, int unitDistance) const {
+CvPlot* Shelf::randomPlot(int restrictionFlags, int unitDistance,
+		int* legalCount) const {
 
     /* Based on CvMap::syncRandPlot, but shelves are (normally) so small
        that random sampling isn't efficient. Instead, compute the legal
@@ -36,6 +37,8 @@ CvPlot* Shelf::randomPlot(int restrictionFlags, int unitDistance) const {
             legal.push_back(plot);
     }
     int nLegal = legal.size();
+	if(legalCount != NULL)
+		*legalCount = nLegal;
     if(nLegal == 0)
         return NULL;
     return legal[GC.getGameINLINE().getSorenRandNum(nLegal, "advc.300")];

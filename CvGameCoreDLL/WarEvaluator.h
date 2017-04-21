@@ -66,6 +66,7 @@ private:
 	/*  If (or while) set, all WarEvaluator objects use the cache, not just those
 		with useCache=true. */
 	public: static bool checkCache;
+			static void clearCache();
 };
 
 // </advc.104>

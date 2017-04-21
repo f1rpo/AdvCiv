@@ -1646,10 +1646,10 @@ void HiredHand::evaluate() {
 				log("... but we don't like our hireling enough to care");
 				continue;
 			}
-			/*  Behave as if someone had paid us the equivalent of 12 utility;
+			/*  Behave as if someone had paid us the equivalent of 20 utility;
 				feel obliged to fight along the ally for 10 turns.
 				Or should it matter how much we've paid the ally? */
-			uPlus += eval(ally.getID(), 12, 10);
+			uPlus += eval(ally.getID(), 20, 10);
 		}
 	}
 	/*  Have we been at war since the start of the game? Then it's a scenario
@@ -2976,7 +2976,10 @@ void FairPlay::evaluate() {
 		Not actually true in e.g. EarthAD1000 scenario. Still, early attacks on
 		AI civs aren't a serious problem. */
 	if(g.getCurrentEra() > 0 || !they->isHuman() || we->isHuman() ||
-			m->getWarsDeclaredBy(weId).count(theyId) <= 0)
+			m->getWarsDeclaredBy(weId).count(theyId) <= 0 ||
+			// No kid gloves if they've attacked us or a friend
+			we->AI_getMemoryAttitude(theyId, MEMORY_DECLARED_WAR) < 0 ||
+			we->AI_getMemoryAttitude(theyId, MEMORY_DECLARED_WAR_ON_FRIEND) < 0)
 		return;
 	CvHandicapInfo& h = GC.getHandicapInfo(g.getHandicapType());
 	/*  Mostly care about Archery, which has power 6. The Wheel isn't unfair
@@ -2992,8 +2995,8 @@ void FairPlay::evaluate() {
 	if(!powerTechFound)
 		return;*/
 	/*  Actually, never mind checking for starting tech. Don't want early rushes
-		on low difficulty either, and on King the AI doesn't get Archery, but lots
-		of other freebies. */
+		on low difficulty either, and on King, the AI doesn't get Archery, but
+		lots of other freebies. */
 	int trainPercent = GC.getGameSpeedInfo(g.getGameSpeedType()).getTrainPercent();
 	if(trainPercent <= 0) {
 		FAssert(trainPercent > 0);

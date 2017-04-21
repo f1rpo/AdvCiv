@@ -56,6 +56,7 @@ void WarAndPeaceAI::update() {
 	}
 	for(size_t i = 0; i < _properTeams.size(); i++)
 		GET_TEAM(getWPAI._properTeams[i]).warAndPeaceAI().updateMembers();
+	WarEvaluator::clearCache();
 }
 
 bool WarAndPeaceAI::isEnabled(bool inBackground) const{
@@ -1211,6 +1212,13 @@ int WarAndPeaceAI::Team::endWarVal(TeamTypes enemyId) const {
 	CvTeamAI const& human = (agentHuman ? GET_TEAM(agentId) : GET_TEAM(enemyId));
 	CvTeamAI const& ai =  (agentHuman ? GET_TEAM(enemyId) : GET_TEAM(agentId));
 	int aiReluct = ai.warAndPeaceAI().reluctanceToPeace(human.getID(), false);
+	/*  If no payment is possible, human utility shouldn't matter.
+		(Should ideally also check if human could give the AI a city.
+		Then again, human probably won't give up a city anywax, at least not
+		pre-Alphabet and pre-Currency. */
+	if(aiReluct <= 0 && !human.isGoldTrading() && !human.isTechTrading() &&
+			!ai.isGoldTrading() && !ai.isTechTrading())
+		return 0;
 	// Really just utility given how peaceThreshold is computed for humans
 	int humanUtility = human.warAndPeaceAI().reluctanceToPeace(ai.getID(), false);
 	// Neither side pays if both want peace, and the AI wants it more than the human
@@ -1555,11 +1563,11 @@ double WarAndPeaceAI::Team::confidenceFromWarSuccess(TeamTypes targetId) const {
 	float const fixedBound = 0.5;
 	// Reaches fixedBound after 25 turns
 	float timeBasedBound = (100 - 2 * timeAtWar) / 100.0f;
-	/*  Becomes relevant once a war lasts long; e.g. after 25 turns, will need a
-		total war success of 250 to reach fixedBound. Should perhaps somehow
-		be based on the progress of the game (war successes are more plentiful
-		late in the game). Anyway, the idea is that no one has much of a leg up
-		in a war without much action. */
+	/*  Total-based bound: Becomes relevant once a war lasts long; e.g. after
+		25 turns, in the Industrial era, will need a total war success of 250
+		in order to reach fixedBound. Neither side should feel confident if there
+		isn't much action. */
+	float progressFactor = 11 - GET_TEAM(agentId).getCurrentEra() * 1.5f;
 	float totalBasedBound = (100 - (5.0f * (ourSuccess + theirSuccess)) / timeAtWar)
 			/ 100;
 	float r = successRatio;

@@ -628,7 +628,8 @@ void CvMap::combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvP
 	}
 }
 
-CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTimeout)
+CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTimeout,
+		int* legalCount) // advc.304
 {
 	CvPlot* pTestPlot;
 	bool bValid;
@@ -760,6 +761,8 @@ CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTi
 	}
 	//return pPlot;
 	int nLegal = (int)legalPlots.size();
+	if(legalCount != NULL)
+		*legalCount = nLegal;
     if(nLegal == 0)
         return NULL;
     return legalPlots[GC.getGame().getSorenRandNum(nLegal, "advc.304")];

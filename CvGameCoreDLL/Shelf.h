@@ -18,7 +18,8 @@ class Shelf {
 public:
 
 	void add(CvPlot* plot);
-	CvPlot* randomPlot(int restrictionFlags, int unitDistance) const;
+	CvPlot* randomPlot(int restrictionFlags, int unitDistance,
+			int* legalCount = NULL) const;
 	int size() const;
 	int countUnownedPlots() const;
 	int countBarbarians() const;
