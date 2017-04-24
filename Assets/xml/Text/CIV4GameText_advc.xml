@@ -390,10 +390,19 @@
 	<TEXT>
 		<Tag>TXT_KEY_FROM_FEATURES</Tag>
 		<English> from Features</English>
-		<French> en raison des Caract&#233;ristiques</French>
+		<French> en raison des caract&#233;ristiques</French>
 		<German> durch Gel&#228;nde</German>
-		<Italian> dalle Caratteristiche</Italian>
-		<Spanish> por Accidentes</Spanish>
+		<Italian> dalle caratteristiche</Italian>
+		<Spanish> por accidentes</Spanish>
+	</TEXT>
+	<!-- Based on TXT_KEY_PEDIA_TRAITS in Civ4GameTextInfos.xml. -->
+	<TEXT>
+		<Tag>TXT_KEY_FROM_TRAIT</Tag>
+		<English> from Traits</English>
+		<French> traits de caract&#232;re</French>
+		<German> durch Merkmale des Herrschers</German>
+		<Italian> dalle punti di forza</Italian>
+		<Spanish> por rasgos</Spanish>
 	</TEXT>
 	<!-- Home tile yield; based on TXT_KEY_PEDIA_YIELDS (Civ4GameTextInfos.xml).
 		-->

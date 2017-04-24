@@ -2039,17 +2039,39 @@ bool CvUnit::isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttack
 	int iOurDefense;
 	int iTheirDefense;
 
-	if (pDefender == NULL)
-	{
-		return true;
-	}
-
 	TeamTypes eAttackerTeam = NO_TEAM;
 	if (NULL != pAttacker)
 	{
 		eAttackerTeam = pAttacker->getTeam();
 	}
 
+	// <advc.028>
+	bool invisible = (eAttackerTeam != NO_TEAM && isInvisible(eAttackerTeam, false));
+	// Only pick invisible unit as defender once attack is underway ...
+	if(invisible && pAttacker->getAttackPlot() == NULL)
+		return false;
+	/*  and if there is some visible team unit that could get attacked otherwise
+		(better: check if our team has the best visible defender; tbd.): */
+	if(invisible) {
+		bool found = false;
+		CLLNode<IDInfo>* node = plot()->headUnitNode();
+		while(node != NULL) {
+			CvUnit* u = ::getUnit(node->m_data);
+			node = plot()->nextUnitNode(node);
+			if(u->getTeam() == getTeam() && !u->isInvisible(eAttackerTeam, false))
+				found = true;
+		}
+		if(!found)
+			return false;
+	}
+	// Moved down: // </advc.028>
+	if (pDefender == NULL)
+	{
+		return true;
+	}
+	// <advc.028>
+	if(pDefender->getTeam() != getTeam() && invisible)
+		return false; // </advc.028>
 	if (canCoexistWithEnemyUnit(eAttackerTeam))
 	{
 		return false;

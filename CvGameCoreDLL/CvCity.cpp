@@ -1145,7 +1145,7 @@ void CvCity::doRevolt() { PROFILE("CvCity::doRevolts()")
 	/*  Population loss if pCity should flip, but can't. We know at this point
 		that the current revolt doesn't flip the city; but can it ever flip? */
 	if((!canFlip || !canCultureFlip(eCulturalOwner, false)) &&
-			getNumRevolts(eCulturalOwner) >= GC.getNUM_WARNING_REVOLTS() &&
+			getNumRevolts(eCulturalOwner) > GC.getNUM_WARNING_REVOLTS() &&
 			getPopulation() > 1) {
 		changePopulation(-1);
 		// Says "Citizens have been killed"

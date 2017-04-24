@@ -1720,8 +1720,10 @@ void InvasionGraph::breakCycle(vector<Node*> const& cyc) {
 	            continue;
 			double baseThreat = ss->getThreat();
 			double thr = baseThreat * willingness(nodeMap[*it]->getId(), n.getId());
-			report.log("Threat set to %d/%d percent (base/modified by willingness)",
-					::round(100 * baseThreat), ::round(100 * thr));
+			if(std::abs(thr - baseThreat) > 0.005)
+				report.log("Threat set to %d/%d percent (base/modified by willingness)",
+						::round(100 * baseThreat), ::round(100 * thr));
+			else report.log("Threat set to %d percent", ::round(100 * thr));
 		    /* Whether power ratios or power values are used, makes no
 			   difference in this context. Ratios are convenient b/c there's
 			   a function for those anyway. */

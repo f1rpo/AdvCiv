@@ -1808,8 +1808,8 @@ class CvInfoScreen:
 					szTurnFounded = localText.getText("TXT_KEY_TIME_BC", (-iTurnYear,))#"%d %s" %(-iTurnYear, self.TEXT_BC)
 				else:
 					szTurnFounded = localText.getText("TXT_KEY_TIME_AD", (iTurnYear,))#"%d %s" %(iTurnYear, self.TEXT_AD)
-
-				if (pCity.isRevealed(gc.getGame().getActiveTeam()) or gc.getTeam(pPlayer.getTeam()).isHasMet(gc.getGame().getActiveTeam())):
+				# advc.001d: hasMet clause commented out
+				if (pCity.isRevealed(gc.getGame().getActiveTeam())):# or gc.getTeam(pPlayer.getTeam()).isHasMet(gc.getGame().getActiveTeam())):
 					self.szCityNames[iRankLoop] = pCity.getName().upper()
 					self.szCityDescs[iRankLoop] = ("%s, %s" %(pPlayer.getCivilizationAdjective(0), localText.getText("TXT_KEY_MISC_FOUNDED_IN", (szTurnFounded,))))
 				else:

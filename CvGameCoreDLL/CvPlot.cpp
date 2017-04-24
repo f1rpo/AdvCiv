@@ -2734,8 +2734,8 @@ CvUnit* CvPlot::getBestDefender(PlayerTypes eOwner, PlayerTypes eAttackingPlayer
 		pUnitNode = nextUnitNode(pUnitNode);
 
 		if ((eOwner == NO_PLAYER) || (pLoopUnit->getOwnerINLINE() == eOwner))
-		{
-			if ((eAttackingPlayer == NO_PLAYER) || !(pLoopUnit->isInvisible(GET_PLAYER(eAttackingPlayer).getTeam(), false)))
+		{	// advc.028: Invisibility handled by CvUnit::isBetterDefenderThan now
+			//if ((eAttackingPlayer == NO_PLAYER) || !(pLoopUnit->isInvisible(GET_PLAYER(eAttackingPlayer).getTeam(), false)))
 			{
 				if (!bTestAtWar || eAttackingPlayer == NO_PLAYER || pLoopUnit->isEnemy(GET_PLAYER(eAttackingPlayer).getTeam(), this) || (NULL != pAttacker && pAttacker->isEnemy(GET_PLAYER(pLoopUnit->getOwnerINLINE()).getTeam(), this)))
 				{
@@ -2827,7 +2827,7 @@ int CvPlot::defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding,
 	iModifier = GC.getTerrainInfo(getTerrainType()).getDefenseModifier();
 	// <advc.012>
 	if(getFeatureType() != NO_FEATURE && (eAttacker == NO_TEAM 
-			|| getTeam() != eAttacker))
+				|| getTeam() != eAttacker))
 		iModifier += GC.getFeatureInfo(getFeatureType()).getDefenseModifier();
 	// </advc.012>
 	if (isHills())

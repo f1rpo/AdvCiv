@@ -6881,22 +6881,30 @@ void CvUnitAI::AI_attackSeaMove()
 			// City under blockade
 			// Attacker has low odds since anyAttack checks above passed, try to break if sufficient numbers
 
-			int iAttackers = plot()->plotCount(PUF_isUnitAIType, UNITAI_ATTACK_SEA, -1, NO_PLAYER, getTeam(), PUF_isGroupHead, -1, -1);
+			int iAttackers = plot()->plotCount(PUF_isUnitAIType, UNITAI_ATTACK_SEA, -1, NO_PLAYER, getTeam());
+			// advc.114a: Why count only group heads? Need to count all attackers!
+					//PUF_isGroupHead, -1, -1);
 			int iBlockaders = kOwner.AI_getWaterDanger(plot(), 4);
-
-			if( iAttackers > (iBlockaders + 2) )
+			//if( iAttackers > (iBlockaders + 2) )
+			// advc.114a: Replacing the above
+			if(2 * iAttackers >= 3 * iBlockaders && iBlockaders > 0)
 			{
 				if( iAttackers > GC.getGameINLINE().getSorenRandNum(2*iBlockaders + 1, "AI - Break blockade") )
 				{
 					// BBAI TODO: Make odds scale by # of blockaders vs number of attackers
-					/* <advc.114a>: Exactly. If the blockaders aren't outnumbered
-					   at least 2:1, use 32% as the threshold. In most cases,
-					   the previous conditions already ensure 2:1, and then
-					   it's 24%. At 3:1, 4:1 etc., the threshold
-					   decreases in decrements of 8 all the way to 0
-					   (attack regardless of individual odds). */
-					int oddsThresh = 8 * (5 - iAttackers / iBlockaders);
-					oddsThresh = std::max(oddsThresh, 0);
+					/*  <advc.114a>: Exactly. Attack regardless of odds when
+						outnumbering them 5:1; 1% at 3:1; 22% at 2:1; 33% at 1.5:1.
+						Those are chancy odds, but don't want CvCityAI to build any
+						more (outdated) ships than necessary; they won't have much
+						of a future use. Also, blockading units can't usually heal;
+						not imperative to destroy them in one turn. In fact, damaging
+						them may be enough to drive them off. */
+					double attackerRatio = iAttackers / (double)iBlockaders;
+					int oddsThresh = 0;
+					if(attackerRatio < 5 && attackerRatio >= 3)
+						oddsThresh = 1;
+					if(attackerRatio < 3)
+						oddsThresh = ::round(std::pow(5 - attackerRatio, 2.8));
 					if(AI_anyAttack(1, oddsThresh))
 					//if (AI_anyAttack(1, 15)) // </advc.114a>
 					{
@@ -11576,9 +11584,8 @@ bool CvUnitAI::AI_guardCity(bool bLeave, bool bSearch, int iMaxPath, int iFlags)
 
 
 	CvPlot* pPlot = plot();
-	CvCity* pCity = pPlot->getPlotCity(); // advc.139
-	if (pCity != NULL && pCity->getOwnerINLINE() == getOwnerINLINE()
-			&& !pCity->isEvacuating()) // advc.139
+	CvCity* pCity = pPlot->getPlotCity(); // advc.003
+	if (pCity != NULL && pCity->getOwnerINLINE() == getOwnerINLINE())
 	{
 		int iExtra; // additional defenders needed.
 		if (bLeave && !pCity->AI_isDanger())
@@ -16307,10 +16314,15 @@ bool CvUnitAI::AI_evacuateCity() {
 		AI_defensiveCollateral can still happen, but not when the threat ratio is
 		this high. */
 	if(m_pUnitInfo->getCombat() > 0 && !m_pUnitInfo->isNoDefensiveBonus()) {
-		/*  This can be below 1 for injured units, but tends to be > 1 depending
-			on def. modifiers, esp. remaining city defense. */
-		prEvac = (100.0 * m_pUnitInfo->getCombat()) / currEffectiveStr(plot(), NULL);
-		prEvac -= ((AI_getUnitAIType() == UNITAI_CITY_DEFENSE) ? 1 : 0.5);
+		if(AI_getUnitAIType() == UNITAI_CITY_DEFENSE)
+			prEvac = 0;
+		else {
+			prEvac = 1.8 - currHitPoints() / (maxHitPoints()+0.001);
+			int defenseMod = fortifyModifier() + plot()->defenseModifier(getTeam(),
+					GC.getGameINLINE().getCurrentEra() > 3) + cityDefenseModifier() +
+					(plot()->isHills() ? hillsDefenseModifier() : 0);
+			prEvac -= defenseMod / 100.0;
+		}
 	}
 	/*  retreatToCity isn't perfect for this; selects the city based on plot danger.
 		Hopefully sufficient most of the time. */

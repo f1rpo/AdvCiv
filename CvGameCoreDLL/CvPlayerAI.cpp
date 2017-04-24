@@ -445,6 +445,8 @@ void CvPlayerAI::updateCacheData()
 		AI_updateAvailableIncome(); // K-Mod
 		checkDangerFromSubmarines(); // advc.651
 		// <advc.139>
+		if(isBarbarian())
+			return;
 		std::vector<double> cityValues; int i;
 		for(CvCity* c = firstCity(&i); c != NULL; c = nextCity(&i))
 			cityValues.push_back(c->AI_cityValue());
@@ -10266,9 +10268,10 @@ bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer, const CLinkList<TradeDat
 					}
 				}
 			}
-			/*  advc.001: If human asks for gold, then pGoldNode is NULL here,
+			/*  <advc.001> If human asks for gold, then pGoldNode is NULL here,
 				and the AI won't ask e.g. for a tech in exchange */
-			else if(GET_PLAYER(ePlayer).isHuman()) bAddFinalItem = true;
+			else if(GET_PLAYER(ePlayer).isHuman() && iValueForThem > iValueForUs)
+				bAddFinalItem = true; // </advc.001>
 		}
 
 		if (iValueForThem > iValueForUs)

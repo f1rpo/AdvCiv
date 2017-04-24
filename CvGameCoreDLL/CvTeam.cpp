@@ -1498,7 +1498,7 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 	// K-Mod. Same functionality, but a bit cleaner and a bit faster.
 	for (PlayerTypes i = (PlayerTypes)0; i < MAX_PLAYERS; i = (PlayerTypes)(i+1))
 	{
-		const CvPlayerAI& kPlayer_i = GET_PLAYER(i);
+		CvPlayerAI& kPlayer_i = GET_PLAYER(i); // advc.130o: const removed
 
 		if (!kPlayer_i.isAlive() || kPlayer_i.getTeam() != getID())
 			continue;
@@ -1514,8 +1514,8 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 				continue;
 
 			// <advc.130o>
-			if(kPlayer_i.isHuman() && !kPlayer_j.isHuman() && GET_TEAM(eTeam).
-					AI_getMemoryCount(getID(), MEMORY_MADE_DEMAND) > 0 &&
+			if(bPrimaryDoW && kPlayer_i.isHuman() && !kPlayer_j.isHuman() &&
+					GET_TEAM(eTeam).AI_getMemoryCount(getID(), MEMORY_MADE_DEMAND) > 0 &&
 					TEAMREF(j).getMasterTeam() != getMasterTeam() &&
 					(kPlayer_j.getTeam() == eTeam ||
 					GET_TEAM(eTeam).isHasMet(kPlayer_j.getTeam()))) {
@@ -1524,8 +1524,11 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 				int delta = GC.getDefineINT("WAR_DESPITE_TRIBUTE_MEMORY");
 				delta = std::max(mem, delta) - mem;
 				kPlayer_j.AI_changeMemoryCount(i, MEMORY_MADE_DEMAND_RECENT, delta);
+			}
+			if(bPrimaryDoW && i != j) {
+				int mem = kPlayer_i.AI_getMemoryCount(j, MEMORY_MADE_DEMAND);
+				kPlayer_i.AI_changeMemoryCount(j, MEMORY_MADE_DEMAND, -mem);
 			} // </advc.130o>
-
 			if (kPlayer_j.getTeam() == eTeam)
 			{
 				if(bPrimaryDoW) // advc.130y
