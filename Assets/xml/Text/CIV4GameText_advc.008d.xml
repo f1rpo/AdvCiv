@@ -124,11 +124,11 @@
 <!-- advc.310 -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_2</Tag>
-	<English>(AdvCiv) The trade route ability of the [COLOR_BUILDING_TEXT]Great Wall[COLOR_REVERT] should make it worth considering even in games without Barbarians. It does not have this ability, though, in games with [COLOR_HIGHLIGHT_TEXT]Raging Barbarians[COLOR_REVERT].</English>
-	<French>(AdvCiv) The trade route ability of the [COLOR_BUILDING_TEXT]Great Wall[COLOR_REVERT] should make it worth considering even in games without Barbarians. It does not have this ability, though, in games with [COLOR_HIGHLIGHT_TEXT]Raging Barbarians[COLOR_REVERT].</French>
+	<English>(AdvCiv) The trade route ability of the [COLOR_BUILDING_TEXT]Great Wall[COLOR_REVERT] should make it worth considering even in games without Barbarians. It does not have this ability, though, in games with Raging Barbarians.</English>
+	<French>(AdvCiv) The trade route ability of the [COLOR_BUILDING_TEXT]Great Wall[COLOR_REVERT] should make it worth considering even in games without Barbarians. It does not have this ability, though, in games with Raging Barbarians.</French>
 	<German>(AdvCiv) Durch ihre Handelsrouten-Fähigkeit ist die Große (Chinesische) Mauer auch in Spielen ohne Barbaren erwägenswert. Bei Einstellung "Wütende Barbaren" hat die Mauer diese Fähigkeit allerdings nicht.</German>
-	<Italian>(AdvCiv) The trade route ability of the [COLOR_BUILDING_TEXT]Great Wall[COLOR_REVERT] should make it worth considering even in games without Barbarians. It does not have this ability, though, in games with [COLOR_HIGHLIGHT_TEXT]Raging Barbarians[COLOR_REVERT].</Italian>
-	<Spanish>(AdvCiv) The trade route ability of the [COLOR_BUILDING_TEXT]Great Wall[COLOR_REVERT] should make it worth considering even in games without Barbarians. It does not have this ability, though, in games with [COLOR_HIGHLIGHT_TEXT]Raging Barbarians[COLOR_REVERT].</Spanish>
+	<Italian>(AdvCiv) The trade route ability of the [COLOR_BUILDING_TEXT]Great Wall[COLOR_REVERT] should make it worth considering even in games without Barbarians. It does not have this ability, though, in games with Raging Barbarians.</Italian>
+	<Spanish>(AdvCiv) The trade route ability of the [COLOR_BUILDING_TEXT]Great Wall[COLOR_REVERT] should make it worth considering even in games without Barbarians. It does not have this ability, though, in games with Raging Barbarians.</Spanish>
 </TEXT>
 
 <!-- advc.306 -->

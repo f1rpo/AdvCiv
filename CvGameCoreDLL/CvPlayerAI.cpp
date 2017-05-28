@@ -4727,19 +4727,28 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves
 								break;
 							}
 						}
-
-						if (pLoopUnit->isEnemy(eTeam))
-						{
-							if (pLoopUnit->canAttack())
-							{
-								if (!(pLoopUnit->isInvisible(eTeam, false)))
-								{
-								    if (pLoopUnit->canMoveOrAttackInto(pPlot))
-								    {	// <advc.104>
-										if(enemyId == NO_PLAYER || pLoopUnit->getOwnerINLINE() == enemyId)
-											plotUnits.push_back(pLoopUnit);
-									}
-								}
+						// <advc.003> Some indentation removed
+						if (pLoopUnit->isEnemy(eTeam) && pLoopUnit->canAttack() &&
+								!pLoopUnit->isInvisible(eTeam, false)) {
+							// </advc.003>
+							/*  <advc.001> AI_getPlotDanger gets called during our
+								turn, and we want to know if the hostile pLoopUnit
+								will be able to attack on its owner's next turn.
+								Therefore, shouldn't check isMadeAttack, but
+								that's what canMoveOrAttackInto does. The only
+								useful thing it does is check impassable terrain
+								(though only for pPlot, not even the path), which
+								could be helpful for sea units. Therefore keep
+								the check for non-land units (despite the
+								potential problem with isMadeAttack).
+								Fwiw, Warlords didn't have this check at all;
+								added in BtS. */
+						if((pLoopUnit->getDomainType() == DOMAIN_LAND &&
+								!pPlot->isWater()) || // </advc.001>
+								pLoopUnit->canMoveOrAttackInto(pPlot))
+							{	// <advc.104>
+								if(enemyId == NO_PLAYER || pLoopUnit->getOwnerINLINE() == enemyId)
+									plotUnits.push_back(pLoopUnit);
 							}
 						}
 					}

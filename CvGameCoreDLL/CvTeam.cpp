@@ -4452,6 +4452,7 @@ int CvTeam::turnsOfForcedPeaceRemaining(TeamTypes tId) const {
 		TeamTypes two = TEAMREF(d->getSecondPlayer()).getMasterTeam();
 		if(((one == ourMasterId && two == theirMasterId) ||
 				(one == theirMasterId && two == ourMasterId)) &&
+				d->headFirstTradesNode() != NULL &&
 				d->headFirstTradesNode()->m_data.m_eItemType == TRADE_PEACE_TREATY)
 			r = std::max(r, d->turnsToCancel());
 	}

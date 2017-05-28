@@ -783,13 +783,21 @@ void CvPlot::updateCenterUnit()
 	} */ // disabled by K-Mod. I don't think its relevent whether or not the best defender can move.
 
 	if (getCenterUnit() == NULL)
-	{
-		setCenterUnit(getBestDefender(NO_PLAYER, GC.getGameINLINE().getActivePlayer(), gDLL->getInterfaceIFace()->getHeadSelectedUnit()));
+	{	// <advc.028>
+		CvUnit* bestDef = getBestDefender(NO_PLAYER, GC.getGameINLINE().getActivePlayer(), gDLL->getInterfaceIFace()->getHeadSelectedUnit());
+		if(bestDef != NULL && !bestDef->isInvisible(GC.getGameINLINE().getActiveTeam(), true))
+			setCenterUnit(bestDef);
+		//setCenterUnit(getBestDefender(NO_PLAYER, GC.getGameINLINE().getActivePlayer(), gDLL->getInterfaceIFace()->getHeadSelectedUnit()));
+		// (Replaced by the above) // </advc.028>
 	}
 
 	if (getCenterUnit() == NULL)
-	{
-		setCenterUnit(getBestDefender(NO_PLAYER, GC.getGameINLINE().getActivePlayer()));
+	{	// <advc.028>
+		CvUnit* bestDef = getBestDefender(NO_PLAYER, GC.getGameINLINE().getActivePlayer());
+		if(bestDef != NULL && !bestDef->isInvisible(GC.getGameINLINE().getActiveTeam(), true))
+			setCenterUnit(bestDef);
+		//setCenterUnit(getBestDefender(NO_PLAYER, GC.getGameINLINE().getActivePlayer()));
+		// (Replaced by the above) // </advc.028>
 	}
 }
 
