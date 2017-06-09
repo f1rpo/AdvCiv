@@ -467,10 +467,10 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 			return true; // Don't consider capitulation w/o having tried peace negot.
 		}
 	}
-	int theirReluct = target.warAndPeaceAI().reluctanceToPeace(agentId);
+	int theirReluct = target.warAndPeaceAI().reluctanceToPeace(agentId, false);
 	report->log("Their reluctance to peace: %d", theirReluct);
 	if(theirReluct <= maxReparations && !human) {
-		int tradeVal = ::round(utilityToTradeVal(theirReluct));
+		int tradeVal = ::round(utilityToTradeVal(std::max(0, theirReluct)));
 		tradeVal = ::round(tradeVal * WarAndPeaceAI::reparationsAIPercent / 100.0);
 		report->log("Trying to offer reparations with a trade value of %d",
 				tradeVal);
@@ -480,7 +480,8 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 		report->log("Peace negotiation %s", (r ? "failed" : "succeeded"));
 		return r;
 	}
-	else report->log("No peace negotiation attempted; they're too reluctant");
+	else if(!human)
+		report->log("No peace negotiation attempted; they're too reluctant");
 	if(considerCapitulation(targetId, u, theirReluct))
 		return true; // No surrender
 	int cities = agent.getNumCities();
@@ -526,7 +527,12 @@ bool WarAndPeaceAI::Team::considerCapitulation(TeamTypes masterId, int ourWarUti
 		them to conquer; doesn't have to mean that they'll soon offer peace.
 		Probability test to ensure that we eventually capitulate even if
 		master's reluctance remains low. */
-	double prSkip = ::dRange(1 - masterReluctancePeace / 100.0, 0.0, 1.0);
+	double prSkip = 1 - (masterReluctancePeace * 0.015 + 0.25);
+	int ourCities = GET_TEAM(agentId).getNumCities();
+	// If few cities remain, we can't afford to wait
+	if(ourCities <= 2) prSkip -= 0.2;
+	if(ourCities <= 1) prSkip -= 0.1;
+	prSkip = ::dRange(prSkip, 0.0, 0.87);
 	report->log("%d percent probability to delay capitulation based on master's "
 			"reluctance to peace (%d)", ::round(100 * prSkip), masterReluctancePeace);
 	if(::bernoulliSuccess(prSkip)) {
@@ -1214,8 +1220,8 @@ int WarAndPeaceAI::Team::endWarVal(TeamTypes enemyId) const {
 	int aiReluct = ai.warAndPeaceAI().reluctanceToPeace(human.getID(), false);
 	/*  If no payment is possible, human utility shouldn't matter.
 		(Should ideally also check if human could give the AI a city.
-		Then again, human probably won't give up a city anywax, at least not
-		pre-Alphabet and pre-Currency. */
+		Then again, human probably won't give up a city anyway, at least not
+		pre-Alphabet and pre-Currency.) */
 	if(aiReluct <= 0 && !human.isGoldTrading() && !human.isTechTrading() &&
 			!ai.isGoldTrading() && !ai.isTechTrading())
 		return 0;
@@ -1883,6 +1889,32 @@ bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 	}
 	else FAssert(cr > 0); */
 	return false;
+}
+
+bool WarAndPeaceAI::Civ::considerGiftRequest(PlayerTypes theyId,
+		int tradeVal) const {
+
+	/*  Just check war utility and peace treaty here; all the other conditions
+		are handled by CvPlayerAI::AI_considerOffer. */
+	if(TEAMREF(weId).isForcePeace(TEAMID(theyId)))
+		return false;
+	// If war not possible, might as well sign a peace treaty
+	if(!TEAMREF(weId).canDeclareWar(TEAMID(theyId)) ||
+			!TEAMREF(theyId).canDeclareWar(TEAMID(weId)))
+		return true;
+	CvPlayerAI const& we = GET_PLAYER(weId);
+	/*  Accept probabilistically regardless of war utility (so long as we're
+		not planning war yet, which the caller ensures).
+		Probability to accept is 45% for Gandhi, 0% for Tokugawa. */
+	if(::bernoulliSuccess(0.5 - we.prDenyHelp()))
+		return true;
+	WarAndPeaceReport silentReport(true);
+	WarEvalParameters params(we.getTeam(), TEAMID(theyId), silentReport);
+	WarEvaluator eval(params);
+	double u = eval.evaluate(WARPLAN_LIMITED, 5) - 5; // minus 5 for goodwill
+	if(u >= 0)
+		return false;
+	return utilityToTradeVal(-u) < tradeVal;
 }
 
 bool WarAndPeaceAI::Civ::isPossiblePeaceDeal(PlayerTypes humanId) const {

@@ -230,7 +230,7 @@ protected:
 	// K-mod end
 
 	int AI_experienceWeight();
-	int AI_buildUnitProb();
+	int AI_buildUnitProb(bool draft = false); // advc.017: param added
 
 	void AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peBestBuild, int iFoodPriority, int iProductionPriority, int iCommercePriority, bool bChop, int iHappyAdjust, int iHealthAdjust, int iDesiredFoodChange);
 

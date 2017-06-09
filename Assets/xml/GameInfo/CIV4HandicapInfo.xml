@@ -1106,7 +1106,7 @@
 			<iAIUnitUpgradePercent>50</iAIUnitUpgradePercent>
 			<iAIInflationPercent>80</iAIInflationPercent>
 			<iAIWarWearinessPercent>80</iAIWarWearinessPercent>
-			<iAIPerEraModifier>-2</iAIPerEraModifier>
+			<iAIPerEraModifier>-3</iAIPerEraModifier>
 			<iAIAdvancedStartPercent>200</iAIAdvancedStartPercent>
 			<Goodies>
                 <GoodyType>GOODY_HIGH_GOLD</GoodyType>

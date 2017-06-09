@@ -4893,7 +4893,16 @@ bool CvUnit::airBomb(int iX, int iY)
 
 	if (pCity != NULL)
 	{
-		pCity->changeDefenseModifier(-airBombCurrRate());
+		/*  <advc.004c> Same as in CvUnit::bombard except that IgnoreBuildingDefense
+			doesn't have to be checked here b/c all air units have that. */
+		int modWithBuildings = pCity->getDefenseModifier(false);
+		int modSansBuildings = pCity->getDefenseModifier(true);
+		FAssertMsg(modSansBuildings > 0 || isHuman(),
+				"The AI shoudn't bombard cities whose def is already 0");
+		double chg = -airBombCurrRate() * (modWithBuildings / (double)modSansBuildings);
+		pCity->changeDefenseModifier(std::min(0, (int)::floor(chg)));
+		// Replacing this line: // </advc.004c>
+		//pCity->changeDefenseModifier(-airBombCurrRate());
 
 		szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_DEFENSES_REDUCED_TO", pCity->getNameKey(), pCity->getDefenseModifier(false), getNameKey());
 		gDLL->getInterfaceIFace()->addHumanMessage(pCity->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMBARDED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX_INLINE(), pCity->getY_INLINE(), true, true);
@@ -5041,17 +5050,27 @@ bool CvUnit::bombard()
 	{
 		return false;
 	}
-	// advc.004c:
-	FAssertMsg(pBombardCity->getDefenseModifier(false) > 0 || isHuman(),
+	// <advc.004c>
+	bool bIgnore = ignoreBuildingDefense();
+	int modWithBuildings = pBombardCity->getDefenseModifier(false);
+	FAssertMsg(modWithBuildings > 0 || isHuman(),
 			"The AI shoudn't bombard cities whose def is already 0");
+	int modSansBuildings = pBombardCity->getDefenseModifier(true);
+	// </advc.004c>
 	int iBombardModifier = 0;
-	if (!ignoreBuildingDefense())
+	
+	if (!bIgnore) // advc.004c
 	{
 		iBombardModifier -= pBombardCity->getBuildingBombardDefense();
 	}
-
-	pBombardCity->changeDefenseModifier(-(bombardRate() * std::max(0, 100 + iBombardModifier)) / 100);
-
+	// <advc.004c> Same formula as in BtS (except for rounding)
+	double chg = -(bombardRate() * std::max(0, 100 + iBombardModifier)) / 100.0;
+	if(bIgnore && modSansBuildings > 0) /*  bIgnore doesn't just ignore
+			BombardDefense, also need to decrease DefenseModifier proportional
+			to the effect of buildings in order to properly ignore BuildingDefense. */
+		chg *= modWithBuildings / (double)modSansBuildings;
+	pBombardCity->changeDefenseModifier(std::min(0, (int)::floor(chg)));
+	// </advc.004c>
 	setMadeAttack(true);
 	changeMoves(GC.getMOVE_DENOMINATOR());
 
@@ -7810,7 +7829,9 @@ CvCity* CvUnit::getUpgradeCity(UnitTypes eUnit, bool bSearch, int* iSearchValue)
 					if (!bCoastalOnly || ((pWaterArea = pLoopCity->waterArea()) != NULL && !pWaterArea->isLake()))
 					{
 						// can this city train this unit?
-						if (pLoopCity->canTrain(eUnit, false, false, true))
+						//if (pLoopCity->canTrain(eUnit, false, false, true))
+						// advc.001b: Replacing the above
+						if(pLoopCity->canUpgradeTo(eUnit))
 						{
 							// if we do not care about distance, then the first match will do
 							if (bIgnoreDistance)
@@ -7856,7 +7877,9 @@ CvCity* CvUnit::getUpgradeCity(UnitTypes eUnit, bool bSearch, int* iSearchValue)
 		if (pClosestCity != NULL)
 		{
 			// if we can train, then return this city (otherwise it will return NULL)
-			if (pClosestCity->canTrain(eUnit, false, false, true))
+			//if (pClosestCity->canTrain(eUnit, false, false, true))
+			// advc.001b: Replacing the above
+			if(pClosestCity->canUpgradeTo(eUnit))
 			{
 				// did not search, always return 1 for search value
 				iBestValue = 1;

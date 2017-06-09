@@ -545,7 +545,8 @@ public:
 	bool canApplyEvent(EventTypes eEvent) const;
 	void applyEvent(EventTypes eEvent);
 
-	bool canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible) const;
+	bool canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
+			bool checkAirUnitCap = true) const; // advc.001b
 
 	bool isEspionageCounterSpy(TeamTypes eTeam) const;
 

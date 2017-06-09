@@ -5487,7 +5487,10 @@ bool CvPlayer::isTradingWithTeam(TeamTypes eTeam, bool bIncludeUncancelable) con
 
 bool CvPlayer::canStopTradingWithTeam(TeamTypes eTeam, bool bContinueNotTrading) const
 {
-	if (eTeam == getTeam())
+	// <advc.130d> Replacing the two conditions below.
+	if(getMasterTeam() == GET_TEAM(eTeam).getMasterTeam())
+		return false;
+	/*if (eTeam == getTeam())
 	{
 		return false;
 	}
@@ -5495,7 +5498,7 @@ bool CvPlayer::canStopTradingWithTeam(TeamTypes eTeam, bool bContinueNotTrading)
 	if (GET_TEAM(getTeam()).isVassal(eTeam))
 	{
 		return false;
-	}
+	}*/ // </advc.130d>
 	/*  <advc.130f> ContinueNotTrading is only set when checking if
 		a ForceNoTrade resolution is legal. Can propose it when having no
 		deals or when all deals can be canceled, but not when there is an

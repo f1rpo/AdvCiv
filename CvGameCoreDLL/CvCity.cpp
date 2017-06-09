@@ -1083,12 +1083,11 @@ void CvCity::doTurn()
 // <advc.003> Code cut and pasted from CvPlot::doCulture; also refactored.
 void CvCity::doRevolt() { PROFILE("CvCity::doRevolts()")
 
-	if(isOccupation()) { // <advc.023>
-		double prDecr = probabilityOccupationDecrement();
-		if(::bernoulliSuccess(prDecr)) {
-			changeOccupationTimer(-1);
-			return;
-		}
+	// <advc.023>
+	double prDecr = probabilityOccupationDecrement();
+	if(::bernoulliSuccess(prDecr)) {
+		changeOccupationTimer(-1);
+		return;
 	} // </advc.023>
 	PlayerTypes eCulturalOwner = calculateCulturalOwner();
 	// <advc.099c>
@@ -1908,6 +1907,11 @@ UnitTypes CvCity::allUpgradesAvailable(UnitTypes eUnit, int iUpgradeCount) const
 	return NO_UNIT;
 }
 
+// <advc.001b>
+bool CvCity::canUpgradeTo(UnitTypes eUnit) const {
+
+	return canTrain(eUnit, false, false, true, false, false);
+}// </advc.001b>
 
 bool CvCity::isWorldWondersMaxed() const
 {
@@ -1990,7 +1994,8 @@ bool CvCity::isBuildingsMaxed() const
 }
 
 
-bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool bIgnoreCost, bool bIgnoreUpgrades) const
+bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool bIgnoreCost, bool bIgnoreUpgrades,
+		bool checkAirUnitCap) const // advc.001b
 {
 	if (eUnit == NO_UNIT)
 	{
@@ -2029,7 +2034,8 @@ bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool b
 		}
 	}
 
-	if (!plot()->canTrain(eUnit, bContinue, bTestVisible))
+	if (!plot()->canTrain(eUnit, bContinue, bTestVisible,
+			checkAirUnitCap)) // advc.001b
 	{
 		return false;
 	}
@@ -5187,6 +5193,15 @@ int CvCity::cultureStrength(PlayerTypes ePlayer) const
 	// <advc.101> Replacing the above
 	double pop = getPopulation();
 	CvGame& g = GC.getGameINLINE();
+	/*  Would make more sense to use owner's era (if ePlayer is dead) b/c the
+		insurgents would mostly use the owner's military tech. But don't want
+		human owner to have to pay attention to his/her tech era. */
+	EraTypes era = g.getCurrentEra();
+	if(GET_PLAYER(ePlayer).isAlive())
+		era = GET_PLAYER(ePlayer).getCurrentEra();
+	double eraFactor = 1 + std::pow((double)era, 1.3);
+	// To put a cap on the initial revolt chance in large cities:
+	pop = std::min(pop, 1.5 * eraFactor);
 	int time = g.getGameTurn() - getGameTurnAcquired();
 	double div = 0.75 * GC.getGameSpeedInfo(g.getGameSpeedType()).
 			getGoldenAgePercent();
@@ -5198,13 +5213,7 @@ int CvCity::cultureStrength(PlayerTypes ePlayer) const
 	double iStrength = 1 + 2 * pop;
 	double strFromInnerRadius = 0;
 	CvPlayer const& owner = GET_PLAYER(getOwnerINLINE());
-	/*  Would make more sense to use owner's era (if ePlayer is dead) b/c the
-		insurgents would mostly use the owner's military tech. But don't want
-		human owner to have to pay attention to his/her tech era. */
-	EraTypes era = g.getCurrentEra();
-	if(GET_PLAYER(ePlayer).isAlive())
-		era = GET_PLAYER(ePlayer).getCurrentEra();
-	double eraFactor = 1 + std::pow((double)era, 1.3); // </advc.101>
+	// </advc.101>
 	// <advc.099c>
 	if(ePlayer == BARBARIAN_PLAYER)
 		eraFactor /= 2; // </advc.099c>
@@ -5293,13 +5302,17 @@ int CvCity::cultureStrength(PlayerTypes ePlayer) const
 	} // <advc.003>
 	ReligionTypes ownerReligion = owner.getStateReligion();
 	if(ownerReligion != NO_RELIGION && isHasReligion(ownerReligion)) { // </advc.003>
-		/*  advc.101: Replacing the code below. Division by 50 so that it
+		/*  <advc.101> Replacing the code below. Division by 50 so that it
 			cancels out the OFFENSE modifier (no functional change). */
 		grievanceModifier += GC.getDefineINT("REVOLT_DEFENSE_STATE_RELIGION_MODIFIER") / 50.0;
 		//iStrength *= std::max(0, (GC.getDefineINT("REVOLT_DEFENSE_STATE_RELIGION_MODIFIER") + 100));
 		//iStrength /= 100;
-	}
-	// <advc.101>
+	} /* No state religion is still better than some oppressive state religion that
+		 the city doesn't share. */
+	if(ownerReligion == NO_RELIGION) {
+		grievanceModifier += GC.getDefineINT("REVOLT_DEFENSE_STATE_RELIGION_MODIFIER")
+				/ 100.0;
+	} // <advc.101>
 	if(getHurryAngerTimer() > 0)
 		grievanceModifier += 0.5;
 	// <advc.099c>
@@ -8101,7 +8114,7 @@ bool CvCity::isBombardable(const CvUnit* pUnit) const
 			except cities that have nothing to recover.
 			Don't allow the AI to do this b/c the AI can't tell if it matters.
 			Much easier to prevent 0-bombardment by the AI here than in CvUnitAI. */
-		|| (getTotalDefense(false) > 0 && pUnit->isHuman());
+			|| (getTotalDefense(false) > 0 && pUnit->isHuman() && !isBombarded());
 }
 
 
@@ -10209,8 +10222,14 @@ double CvCity::revoltProbability(bool ignoreWar,
 	/*  About the two revolt tests: I guess the first one checks if the city tries
 		to revolt, and the second if the garrison can stop the revolt.
 		Restored the BtS formula for the second test. */
-	return std::max(0.0, (1.0 - (iGarrison / (double)iCityStrength))) *
+	double r = std::max(0.0, (1.0 - (iGarrison / (double)iCityStrength))) *
 			getRevoltTestProbability() * occupationFactor;
+	// Don't use probabilities that are too small to be displayed
+	if(r < 0.0001)
+		return 0;
+	if(r > 0.9999)
+		return 1;
+	return r;
 } // </advc.101>
 
 // <advc.023>

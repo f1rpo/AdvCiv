@@ -5344,9 +5344,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 					CvCity const& c = *pPlot->getPlotCity();
 					double pr = c.revoltProbability() *
 							(1 - c.probabilityOccupationDecrement()); // advc.023
-					if(pr > 0) { // Don't falsely claim 0 or 100%
-						pr = std::max(pr, 0.01);
-						if(pr < 1) pr = std::min(pr, 0.99);
+					if(pr > 0) {
 						wchar floatBuffer[1024];
 						swprintf(floatBuffer, L"%.2f", (float)(100 * pr));
 						szString.append(gDLL->getText("TXT_KEY_MISC_CHANCE_OF_REVOLT",

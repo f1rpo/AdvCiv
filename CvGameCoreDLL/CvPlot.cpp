@@ -10225,7 +10225,8 @@ void CvPlot::applyEvent(EventTypes eEvent)
 	}
 }
 
-bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible) const
+bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
+		bool checkAirUnitCap) const // advc.001b
 {
 	CvCity* pCity = getPlotCity();
 
@@ -10416,7 +10417,7 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible) const
 	}
 
 	// <advc.001b> Enforce air unit cap
-	if(!bTestVisible && GC.getUnitInfo(eUnit).getAirUnitCap() > 0 &&
+	if(checkAirUnitCap && !bTestVisible && GC.getUnitInfo(eUnit).getAirUnitCap() > 0 &&
 			airUnitSpaceAvailable(getTeam()) < 1)
 		return false; // </advc.001b>
 

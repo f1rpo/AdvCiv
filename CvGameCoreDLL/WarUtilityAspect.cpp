@@ -2180,7 +2180,9 @@ int Effort::preEvaluate() {
 		if(ut == NO_UNIT) continue;
 		CvUnitInfo const& u = GC.getUnitInfo(ut);
 		double lost = m->lostPower(weId, mb);
-		FAssert(lost >= 0); if(!(lost>=0)) continue;
+		/*  Really shouldn't be negative, but sometimes is minus 0.0-something;
+			probably not a bug worth chasing. */
+		FAssert(lost >= -1); if(!(lost>=0)) continue;
 		double typicalPow = weAI->militaryPower(u, u.getPowerValue());
 		if(typicalPow <= 0) continue;
 		double typicalCost = we->getProductionNeeded(ut);
@@ -2773,12 +2775,28 @@ void Distraction::evaluate() {
 			}
 		}
 	}
+	if(numPotentialWars <= 0)
+		return;
 	/*  We're going start at most one of the potential wars, but having more
 		candidates is good */
 	double adjustedCostForPotential = maxPotential + totalCostForPotential /
 			std::sqrt((double)numPotentialWars);
+	/*  If we expect to knock them out, the current war may be over before the
+		time horizon of the simulation; then it's a smaller distraction.
+		(InvasionGraph could store elimination timestamps, but seems too much work
+		to implement. Can guess the time well enough here by counting their remaining
+		cities.) */
+	if(m->isEliminated(theyId) ||
+			m->getCapitulationsAccepted(agentId).count(TEAMID(theyId)) > 0) {
+		double mult = they->getNumCities() / 3.0;
+		if(mult < 1) {
+			log("Distraction cost reduced to %d percent b/c we're almost done "
+					"with %s", ::round(mult * 100), report.leaderName(theyId));
+			adjustedCostForPotential *= mult;
+		}
+	}
 	if(adjustedCostForPotential > 0.5) {
-		log("Adjusted cost for all %d potential wars: %d", numPotentialWars,
+		log("Adjusted cost for all (%d) potential wars: %d", numPotentialWars,
 				::round(adjustedCostForPotential));
 		uMinus += adjustedCostForPotential;
 	}
@@ -3033,7 +3051,7 @@ void Bellicosity::evaluate() {
 		for peaceful leaders) if the AI is too aggressive or not aggressive enough.
 		Currently, without this aspect, the AI doesn't seem quite aggressive enough
 		in the early game. */
-	if(!m->isWar(agentId, TEAMID(theyId)))
+	if(we->isHuman() || !m->isWar(agentId, TEAMID(theyId)))
 		return;
 	// One war is enough
 	if(agent.getAtWarCount() > 0 && !agent.isAtWar(TEAMID(theyId)))

@@ -519,6 +519,46 @@
 		<Italian>Apre i confini delle due civilt&#224;, generando il commercio dalle rotte commerciali e consentendo il diritto di passaggio per le unit&#224;.</Italian>
 		<Spanish>Abre las fronteras de dos civilizaciones, generando comercio a trav&#233;s de las rutas comerciales y confiriendo derecho de paso a las unidades.</Spanish>
 	</TEXT>
+
+	<!-- advc.004g: Added Executives to the list; sth. the BtS developers
+		 must've missed. Original key in CIV4GameTextInfos_Objects.xml. Translation for "Executive" taken from TXT_KEY_UNIT_EXECUTIVE in
+		 CIV4GameText_BTS_Fixed.xml. -->
+	<TEXT>
+		<Tag>TXT_KEY_SPECIALUNIT_PEOPLE</Tag>
+		<English>Scouts, Explorers, Missionaries, Execs, Spies, Great People</English>
+		<French>
+			<Text>Eclaireurs, Explorateurs, Missionnaires, Dirigeants, Espions, Personnages illustres</Text>
+			<Gender>Male</Gender>
+			<Plural>1</Plural>
+		</French>
+		<German>
+			<Text>Sp&#228;her, Kundschafter, Missionare, Vorst&#228;nde, Spione, gro&#223;e Pers&#246;nlichkeiten</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</German>
+		<Italian>
+			<Text>Scout, Esploratore, Missionario, Spia, Grande Personaggio:Scout, Esploratori, Missionari, Funzionari, Spie, Grandi Personaggi</Text>
+			<Gender>Male:Male:Male:Female:Male</Gender>
+			<Plural>0:1</Plural>
+		</Italian>
+		<Spanish>
+			<Text>Unidad de Batidor, Explorador, Misionero, Esp&#237;a, Gran personaje:Unidades de Batidores, Exploradores, Misioneros, Ejecutivos, Esp&#237;as, Grandes personajes</Text>
+			<Gender>Male</Gender>
+			<Plural>0:1</Plural>
+		</Spanish>
+	</TEXT>
+	<!-- Overwrites key in CIV4GameTextInfos.xml. The "Carries
+		 [list of special units]" line gets a bit long with Executives added,
+		 and it's clear enough from context that the units are carried as
+		 cargo. -->
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_CARRIES</Tag>
+		<English>[SPACE](%s1_Name)</English>
+		<French>[SPACE](%s1_Name)</French>
+		<German>[SPACE](%s1_Name)</German>
+		<Italian>[SPACE](%s1_Name)</Italian>
+		<Spanish>[SPACE](%s1_Name)</Spanish>
+	</TEXT>
 	
 	<!-- [advc.004s] Originally in CIV4GameTextInfos.xml;
 		 says just "(Gold)" there. Translation from TXT_KEY_RESEARCH

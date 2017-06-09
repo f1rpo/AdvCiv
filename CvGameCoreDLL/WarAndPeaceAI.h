@@ -202,8 +202,9 @@ public:
 		  int totalWarRand() const;
 		  int limitedWarRand() const;
 		  int dogpileWarRand() const;
-		// Tribute demands. BtS handles these in CvPlayerAI::AI_considerOffer.
+		// Request and demands. BtS handles these in CvPlayerAI::AI_considerOffer.
 		bool considerDemand(PlayerTypes theyId, int tradeVal) const;
+		bool considerGiftRequest(PlayerTypes theyId, int tradeVal) const;
 		bool amendTensions(PlayerTypes humanId) const;
 		// False if all assets of the human civ wouldn't be enough
 		bool isPossiblePeaceDeal(PlayerTypes humanId) const;

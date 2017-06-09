@@ -2920,13 +2920,15 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eTeam, int iPowerMultiplier,
 		{
 			iOurSuccess += iOthersBestSuccess - iTheirSuccess;
 		}
-
-		iMasterPower = (2 * iMasterPower * iTheirSuccess) / (iTheirSuccess + iOurSuccess);
-		// advc.112: FURIOUS clause added; WorstEnemy doesn't say much when at war
+		// <advc.112> Instead multiply VassalPower by the inverse factor
+		//iMasterPower = (2 * iMasterPower * iTheirSuccess) / (iTheirSuccess + iOurSuccess);
+		iVassalPower = ::round(iVassalPower * ((iTheirSuccess + iOurSuccess)) /
+				(1.8 * iTheirSuccess)); // Slightly reduce the coefficient
+		// FURIOUS clause added; WorstEnemy doesn't say much when at war.
 		if (AI_getWorstEnemy() == eTeam && AI_getAttitude(eTeam) <= ATTITUDE_FURIOUS)
-		{
-			iMasterPower *= 3;
-			iMasterPower /= 4;
+		{	// was 75%, now 90%. 
+			iMasterPower *= 9;
+			iMasterPower /= 10; // </advc.112>
 		}
 	}
 	else
@@ -3046,13 +3048,13 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eTeam, int iPowerMultiplier,
 	}
 	if(!colony) { // advc.112
 		// if (iVassalPower > iAveragePower || 3 * iVassalPower > 2 * iMasterPower)
-		// advc.112: Changed coefficients from 5/4 to 100/76
-		if (100*iVassalPower > 76*iAveragePower // K-Mod. (second condition already checked)
+		// advc.112: Changed coefficients from 5/4 to 1/0.76
+		if (iVassalPower > 0.76*iAveragePower // K-Mod. (second condition already checked)
 				// <advc.112> Median condition; randomization when breaking free
-				|| (!isAtWar(eTeam) && 100 * iVassalPower > 76 * medianPow)) {
+				|| (!isAtWar(eTeam) && iVassalPower > 0.76 * medianPow)) {
 			if(!isAVassal() || ::hash(GC.getGameINLINE().getGameTurn(),
 					getLeaderID()) < 0.1) // </advc.112>
-			return DENIAL_POWER_US;
+				return DENIAL_POWER_US;
 		}
 	}
 	/*  <advc.112> Refactored, then decided to disable it entirely.

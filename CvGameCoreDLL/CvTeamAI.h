@@ -161,6 +161,8 @@ public: // <advc.104>
 	TeamTypes AI_getWorstEnemy() const;
 	// advc.130p: new param
 	void AI_updateWorstEnemy(bool updateRivalTrade = true);
+	// advc.130p: 0 or less if tId isn't an enemy at all
+	int enemyValue(TeamTypes tId) const;
 	/*  advc.130k: Random number to add or subtract from state counters
 		(instead of just incrementing or decrementing). Non-negative result,
 		caller will have to multiply by -1 when decaying a counter.
@@ -310,8 +312,6 @@ protected:
 	int AI_makePeaceRand() const;
 	int AI_noWarAttitudeProb(AttitudeTypes eAttitude) const;
 	int AI_getOpenBordersAttitudeDivisor() const; // advc.130i
-	// advc.130p: 0 or less if tId isn't an enemy at all
-	int enemyValue(TeamTypes tId) const;
 
 	void AI_doCounter();
 	void AI_doWar();

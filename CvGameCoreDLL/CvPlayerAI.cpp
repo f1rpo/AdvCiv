@@ -7936,8 +7936,8 @@ int CvPlayerAI::AI_getAttitudeVal(PlayerTypes ePlayer, bool bForced) const
 		}
 		// <advc.130v>
 		CvTeamAI const& ourTeam = GET_TEAM(getTeam());
-		if(ourTeam.isCapitulated())
-			return GET_TEAM(ourTeam.getMasterTeam()).AI_getAttitudeVal(TEAMID(ePlayer));
+		if(ourTeam.isCapitulated()) // Cautious. Or rather same val as master?
+			return 0;//GET_TEAM(ourTeam.getMasterTeam()).AI_getAttitudeVal(TEAMID(ePlayer));
 		if(TEAMREF(ePlayer).isCapitulated()) {
 			if(TEAMREF(ePlayer).isVassal(ourTeam.getID()))
 				return 5; // Pleased
@@ -8367,7 +8367,7 @@ int CvPlayerAI::AI_getShareWarAttitude(PlayerTypes ePlayer) const
 	bool isShare = ourTeam.AI_shareWar(GET_PLAYER(ePlayer).getTeam());
 	if(!isShare && ourTeam.getAtWarCount() > 0) {
 		/*  Only suspend the relations bonus from past shared war if the current war
-			is at least 5 turns old, and only if we could use help ( */
+			is at least 5 turns old, and only if we could use help. */
 		int wsThresh = ::round((3.0 * warSuccessAttitudeDivisor()) / 4);
 		for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 			CvTeamAI const& t = GET_TEAM((TeamTypes)i);
@@ -8444,6 +8444,11 @@ int CvPlayerAI::AI_getRivalTradeAttitude(PlayerTypes ePlayer) const {
 			(ourTeam.AI_getEnemyPeacetimeTradeValue(theirId) / 2);
 	// OB hurt our feelings also
 	TeamTypes enemyId = ourTeam.AI_getWorstEnemy();
+	/*  Checking enemyValue here should - hopefully - fix an oscillation problem,
+		but I don't quite know what I'm doing ...
+		(Checking this in CvTeamAI::AI_getWorstEnemy would be bad for perfromance.) */
+	if(ourTeam.enemyValue(enemyId) <= 0)
+		enemyId = NO_TEAM;
 	double dualDealCounter = 0; // cf. CvDeal::isDual
 	if(enemyId != NO_TEAM) {
 		if(GET_TEAM(theirId).isOpenBorders(enemyId)) {
@@ -9835,7 +9840,9 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData
 	int iTheirValue = AI_dealVal(ePlayer, pTheirList, false, iChange);
 
 	if (iOurValue > 0 && 0 == pTheirList->getLength() && 0 == iTheirValue)
-	{
+	{	// <advc.130v> Vassal mustn't force a peace treaty on its master
+		if(kOurTeam.isAVassal() && !kOurTeam.isVassal(TEAMID(ePlayer)))
+			return false; // </advc.130v>
 		// K-Mod
 		// Don't give any gifts to civs that you are about to go to war with.
 		if (kOurTeam.AI_getWarPlan(GET_PLAYER(ePlayer).getTeam()) != NO_WARPLAN)
@@ -9904,15 +9911,9 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData
 					accept = false;
 				}
 			} // <advc.130o>
-			else { // </advc.130o> <advc.144>
-				int contactRandGiveHelp = GC.getLeaderHeadInfo(getPersonalityType()).
-						getContactRand(CONTACT_GIVE_HELP);
-				double pr = std::min(std::sqrt((double)contactRandGiveHelp) / 100.0,
-						0.5);
-				if(::bernoulliSuccess(pr))
-					return false;
-			} // </advc.144>
-
+			// </advc.130o> <advc.144>
+			else if(::bernoulliSuccess(prDenyHelp()))
+				return false; // </advc.144>
 			// <advc.140m>
 			if(accept && demand && getWPAI.isEnabled())
 				accept = warAndPeaceAI().considerDemand(ePlayer, iOurValue);
@@ -9935,6 +9936,10 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData
 			iThreshold -= GET_PLAYER(ePlayer).AI_getPeacetimeGrantValue(getID());
 
 			accept = (iOurValue < iThreshold); // advc.130o: Don't return yet
+			// <advc.144>
+			if(accept && !demand && getWPAI.isEnabled())
+				accept = warAndPeaceAI().considerGiftRequest(ePlayer, iOurValue);
+			// </advc.144>
 		}
 		// <advc.130o>
 		if(demand) {
@@ -9963,6 +9968,14 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData
 	}
 
 	return (iTheirValue >= iOurValue);
+}
+
+double CvPlayerAI::prDenyHelp() const {
+
+	int contactRandGiveHelp = GC.getLeaderHeadInfo(getPersonalityType()).
+			getContactRand(CONTACT_GIVE_HELP);
+	double r = std::min(std::sqrt((double)contactRandGiveHelp) / 100.0, 0.5);
+	return r;
 }
 
 // K-Mod. Helper fuction for AI_counterPropose. (lambas would be really nice here, but we can't have nice things.)
@@ -11569,15 +11582,20 @@ int CvPlayerAI::AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer
 	default:
 		FAssert(false);
 		break;
-	}
-
+	} // <advc.130f>
+	CvTeam const& kTeam = TEAMREF(ePlayer); // The team that'll have to cancel OB
+	if(kTeam.isOpenBorders(eTradeTeam)) {
+		if(kTeam.getAtWarCount() > 0 && GET_PLAYER(ePlayer).isFocusWar())
+			iModifier += 150;
+		else iModifier += 50;
+	} // </advc.130f>
 	iValue *= std::max(0, (iModifier + 100));
 	iValue /= 100;
-
-	if (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isOpenBorders(eTradeTeam))
+	// advc.130f: Factored into iModifier now
+	/*if (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isOpenBorders(eTradeTeam))
 	{
 		iValue *= 2;
-	}
+	}*/
 
 	if (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isDefensivePact(eTradeTeam))
 	{
@@ -12843,10 +12861,12 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 /* General AI                                                                                   */
 /************************************************************************************************/
 		// Boats which can't be seen don't play defense, don't make good escorts
-		if (GC.getUnitInfo(eUnit).getInvisibleType() != NO_INVISIBLE)
+		/*  <advc.028> They can defend now. Stats of subs and Stealth Destroyer
+			aren't great for escorting, but there's other code to check this. */
+		/*if (GC.getUnitInfo(eUnit).getInvisibleType() != NO_INVISIBLE)
 		{
 			iValue /= 2;
-		}
+		}*/ // </advc.028>
 /************************************************************************************************/
 /* UNOFFICIAL_PATCH                        END                                                  */
 /************************************************************************************************/
@@ -14677,7 +14697,8 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 				}
 				else if (iProductionFactor >= 140) // cf. 'bGoodValue' in CvCityAI::AI_doDraft
 				{
-					iTempValue *= 2*iMaxSpending;
+					// advc.017: was 2*iMaxSpending
+					iTempValue *= ::round(1.35*iMaxSpending);
 					iTempValue /= std::max(1, iMaxSpending + iUnitSpending);
 				}
 				// todo. put in something to do with how much happiness we can afford to lose.. or something like that.
@@ -16480,6 +16501,8 @@ void CvPlayerAI::AI_rememberEvent(PlayerTypes civId, MemoryTypes mem) {
 		delta = std::min(3, delta); // </advc.130y>
 	AI_changeMemoryCount(civId, mem, delta);
 	// <advc.130l>
+	if(GC.getDefineINT("ENABLE_130L") <= 0)
+		return;
 	int const nPairs = 6;
 	MemoryTypes coupledRequests[nPairs][2] = {
 		{MEMORY_GIVE_HELP, MEMORY_REFUSED_HELP},
@@ -16697,6 +16720,10 @@ void CvPlayerAI::AI_doCounter()
 					GC.getLeaderHeadInfo(getPersonalityType()).
 					getMemoryDecayRand(mId) <= 0)
 				continue; // </advc.003>
+			// <advc.144> No decay of MADE_DEMAND_RECENT while peace treaty
+			if(mId == MEMORY_MADE_DEMAND_RECENT &&
+					GET_TEAM(getTeam()).isForcePeace(TEAMID(civId)))
+				continue; // </advc.144>
 			// <advc.130r> No decay while war ongoing
 			if(mId == MEMORY_DECLARED_WAR &&
 					GET_TEAM(getTeam()).isAtWar(TEAMID(civId)))
@@ -18117,7 +18144,11 @@ void CvPlayerAI::AI_doDiplo()
 					}
 				}
 				
-				if (!abContacted[civ.getTeam()]) {
+				if (!abContacted[civ.getTeam()] &&
+						// <advc.130v> 
+						(!GET_TEAM(getTeam()).isAVassal() ||
+						GET_TEAM(getTeam()).getMasterTeam() == civ.getTeam())) {
+						// </advc.130v>
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      02/12/10                                jdog5000      */
 /*                                                                                              */

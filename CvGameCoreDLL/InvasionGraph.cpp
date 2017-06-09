@@ -194,7 +194,10 @@ InvasionGraph::Node::~Node() {
 void InvasionGraph::Node::addWarOpponents(std::set<PlayerTypes> const& wo) {
 
 	for(set<PlayerTypes>::const_iterator it = wo.begin(); it != wo.end(); it++) {
-		if(!isWarOpponent[*it]) {
+		if(!isWarOpponent[*it] &&
+				/*  Should arguably be guaranteed somewhere higher up; not currently
+					guaranteed when there is a holy war vote. */
+				TEAMREF(id).getMasterTeam() != TEAMREF(*it).getMasterTeam()) {
 			isWarOpponent[*it] = true;
 			warOpponents.insert(*it);
 		}
@@ -977,11 +980,11 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	// Would be nicer to check all traits for defense bonuses
 	if(GET_PLAYER(defender.weId).warAndPeaceAI().getCache().hasProtectiveTrait())
 		cityDefenderBonus += 0.3;
+	bool isGunp = military[ARMY]->getTypicalUnit()->isIgnoreBuildingDefense();
 	// Normal defensive promotions are assumed to be countered by city raider
 	// For all non-mounted defenders
 	double tileBonus = military[ARMY]->getTypicalUnit() == NULL ? 0 :
-			c->city()->getDefenseModifier(military[ARMY]->getTypicalUnit()->
-			isIgnoreBuildingDefense());
+			c->city()->getDefenseModifier(isGunp);
 	/* AI tends to run low on siege after a while. era+1 based on assumption that
 	   AI tends to bring enough siege to bomb. twice per turn on average
 	   (on the final turn, some siege units will also attack, i.e. can't bomb).
@@ -1004,6 +1007,8 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	/* Walls and Castle slow down bombardment.
 	   min(75...: A mod could grant 100% bombard defense; treat >75% as 75% */
 	int bombDefPercent = std::min(75, c->city()->getBuildingBombardDefense());
+	if(isGunp)
+		bombDefPercent = 0;
 	FAssert(bombDefPercent >= 0);
 	if(bombDefPercent >= 85) { // No building does that
 		bombDuration = 0;
@@ -1661,7 +1666,10 @@ void InvasionGraph::simulateComponent(Node& start) {
 	vector<Node*> cycle;
 	cycle.insert(cycle.begin(), forwardPath.begin() + startOfCycle,
 			forwardPath.end());
-	FAssert(cycle.size() != 1);
+	if(cycle.size() == 1) {
+		FAssert(cycle.size() != 1);
+		return;
+	}
 	if(!cycle.empty()) {
 		report.log("*Cycle*");
 		string msg = "";

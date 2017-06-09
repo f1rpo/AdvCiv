@@ -7956,82 +7956,84 @@ void CvCityAI::AI_doDraft(bool bForce)
 
 			// Don't shrink cities too much
 			//int iConscriptPop = getConscriptPopulation();
-			if (!bGoodValue && !bDanger && (3 * (getPopulation() - iConscriptPop) < getHighestPopulation() * 2) )
+			if (//!bGoodValue && // advc.017: Don't shrink them arbitrarily just b/c it's "good value"!
+				!bDanger && (3 * (getPopulation() - iConscriptPop) < getHighestPopulation() * 2) )
 			{
 				return;
 			}
-
+			// <advc.017>
+			// Cut-and-pasted from below:
+			bool tooMuchPop = AI_countWorkedPoorPlots() > 0 ||
+					foodDifference(false, true)+getFood() < 0 ||
+					(foodDifference(false, true) < 0 && healthRate() <= -4);
+			// Don't just draft for no particular reason
+			if(!bDanger && !kOwner.isFocusWar() && !tooMuchPop)
+				return; // </advc.017>
 			// Large cities want a little spare happiness
 			int iHappyDiff = GC.getDefineINT("CONSCRIPT_POP_ANGER") - iConscriptPop + (bGoodValue ? 0 : getPopulation()/10);
+			// <advc.003> DeMorgan'd
+			if((!bGoodValue && !bLandWar) || angryPopulation(iHappyDiff) > 0)
+				return; // </advc.003>
+			bool bWait = true;
 
-			if ((bGoodValue || bLandWar) && angryPopulation(iHappyDiff) == 0)
+			if( bWait && kOwner.AI_isDoStrategy(AI_STRATEGY_TURTLE) )
 			{
-				bool bWait = true;
-
-				if( bWait && kOwner.AI_isDoStrategy(AI_STRATEGY_TURTLE) )
+				// Full out defensive
+				/* original bts code
+				if( bDanger || (getPopulation() >= std::max(5, getHighestPopulation() - 1)) )
 				{
-					// Full out defensive
-					/* original bts code
-					if( bDanger || (getPopulation() >= std::max(5, getHighestPopulation() - 1)) )
-					{
-						bWait = false;
-					}
-					else if( AI_countWorkedPoorPlots() >= 1 )
-					{
-						bWait = false;
-					}*/
-
-					// K-Mod: full out defensive indeed. We've already checked for happiness, and we're desperate for units.
-					// Just beware of happiness sources that might expire - such as military happiness.
-					if (getConscriptAngerTimer() == 0 || AI_countWorkedPoorPlots() > 0)
-						bWait = false;
+					bWait = false;
 				}
-
-				if( bWait && bDanger )
+				else if( AI_countWorkedPoorPlots() >= 1 )
 				{
-					// If city might be captured, don't hold back
-					/* BBAI code
-					int iOurDefense = GET_TEAM(getTeam()).AI_getOurPlotStrength(plot(),0,true,false,true);
-					int iEnemyOffense = GET_PLAYER(getOwnerINLINE()).AI_getEnemyPlotStrength(plot(),2,false,false);
+					bWait = false;
+				}*/
+				// K-Mod: full out defensive indeed. We've already checked for happiness, and we're desperate for units.
+				// Just beware of happiness sources that might expire - such as military happiness.
+				if (getConscriptAngerTimer() == 0 || AI_countWorkedPoorPlots() > 0)
+					bWait = false;
+			}
 
-					if( (iOurDefense == 0) || (3*iEnemyOffense > 2*iOurDefense) ) */
-					// K-Mod
-					int iOurDefense = kOwner.AI_localDefenceStrength(plot(), getTeam(), DOMAIN_LAND, 0);
-					int iEnemyOffense = kOwner.AI_localAttackStrength(plot(), NO_TEAM, DOMAIN_LAND, 2);
-					if (iOurDefense < iEnemyOffense)
-					// K-Mod end
-					{
+			if( bWait && bDanger )
+			{
+				// If city might be captured, don't hold back
+				/* BBAI code
+				int iOurDefense = GET_TEAM(getTeam()).AI_getOurPlotStrength(plot(),0,true,false,true);
+				int iEnemyOffense = GET_PLAYER(getOwnerINLINE()).AI_getEnemyPlotStrength(plot(),2,false,false);
+
+				if( (iOurDefense == 0) || (3*iEnemyOffense > 2*iOurDefense) ) */
+				// K-Mod
+				int iOurDefense = kOwner.AI_localDefenceStrength(plot(), getTeam(), DOMAIN_LAND, 0);
+				int iEnemyOffense = kOwner.AI_localAttackStrength(plot(), NO_TEAM, DOMAIN_LAND, 2);
+				if (iOurDefense < iEnemyOffense)
+				// K-Mod end
+				{
+					bWait = false;
+				}
+			}
+
+			if(bWait) {
+				// Non-critical, only burn population if population is not worth much
+				// <advc.017>
+				double prDraft = AI_buildUnitProb(true) / 100.0;
+				if(::bernoulliSuccess(prDraft) && // </advc.017>
+					(getConscriptAngerTimer() == 0 || isNoUnhappiness()) // K-Mod
+					&& (bGoodValue ||
+					tooMuchPop)) // advc.017: same condition as before, just as a variable
 						bWait = false;
-					}
-				}
+			}
 
-				if( bWait )
-				{
-					// Non-critical, only burn population if population is not worth much
-					//if ((getConscriptAngerTimer() == 0) && (AI_countWorkedPoorPlots() > 1))
-					if ((getConscriptAngerTimer() == 0 || isNoUnhappiness()) // K-Mod
-						&& (bGoodValue || AI_countWorkedPoorPlots() > 0 || foodDifference(false, true)+getFood() < 0 || (foodDifference(false, true) < 0 && healthRate() <= -4)))
-					{
-						//if( (getPopulation() >= std::max(5, getHighestPopulation() - 1)) )
-						// We're working poor tiles. What more do you want?
-						{
-							bWait = false;
-						}
-					}
-				}
-
-				if( !bWait && gCityLogLevel >= 2 )
-				{
-					logBBAI("      City %S (size %d, highest %d) chooses to conscript with danger: %d, land war: %d, poor tiles: %d%s", getName().GetCString(), getPopulation(), getHighestPopulation(), bDanger, bLandWar, AI_countWorkedPoorPlots(), bGoodValue ? ", good value" : "");
-				}
+			if( !bWait && gCityLogLevel >= 2 )
+			{
+				logBBAI("      City %S (size %d, highest %d) chooses to conscript with danger: %d, land war: %d, poor tiles: %d%s", getName().GetCString(), getPopulation(), getHighestPopulation(), bDanger, bLandWar, AI_countWorkedPoorPlots(), bGoodValue ? ", good value" : "");
+			}
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
 
-				if (!bWait)
-				{
-					conscript();
-				}
+			if (!bWait)
+			{
+				conscript();
 			}
 		}
 	}
@@ -10338,12 +10340,14 @@ int CvCityAI::AI_experienceWeight()
 }
 
 
-// BBAI / K-Mod
-int CvCityAI::AI_buildUnitProb()
+// BBAI / K-Mod // <advc.017> Draft param added; count XP weight only half then.
+int CvCityAI::AI_buildUnitProb(bool draft)
 {
-	int iProb;
-	iProb = (GC.getLeaderHeadInfo(getPersonalityType()).getBuildUnitProb() + AI_experienceWeight());
-
+	int iProb = GC.getLeaderHeadInfo(getPersonalityType()).getBuildUnitProb();
+	int xpWeight = AI_experienceWeight();
+	if(draft)
+		xpWeight /= 2;
+	iProb += xpWeight; // </advc.017>
 	if (!isBarbarian() && GET_PLAYER(getOwnerINLINE()).AI_isFinancialTrouble())
 	{
 		iProb /= 2;
@@ -10359,10 +10363,12 @@ int CvCityAI::AI_buildUnitProb()
 		iProb *= std::max(40, 100 - 20 * (GC.getGameINLINE().getCurrentEra() - GET_PLAYER(getOwnerINLINE()).getCurrentEra()));
 		iProb /= 100;
 	}
-	// advc.017: Lowered multiplier from 2 to 1.5
-	iProb *= 100 + ::round(1.5*getMilitaryProductionModifier());
-	iProb /= 100;
 	// <advc.017>
+	if(!draft) {
+		// Lowered multiplier from 2 to 1.5
+		iProb *= 100 + ::round(1.5 * getMilitaryProductionModifier());
+		iProb /= 100;
+	} // <advc.017>
 	if(!isBarbarian()) {
 		int highestRivalPow = 0;
 		for(int i = 0; i < MAX_CIV_TEAMS; i++) {
@@ -10380,14 +10386,16 @@ int CvCityAI::AI_buildUnitProb()
 			double advantage = ratio - 1;
 			if(advantage >= 1.5)
 				iProb = ::round(0.25 * iProb);
-			else iProb = ::round(iProb * (1 - advantage / 2));
+			// No point in training more units when far behind
+			else if(advantage > -0.65)
+				iProb = ::round(iProb * (1 - advantage / 2));
 		}
 		int cities = GET_PLAYER(getOwnerINLINE()).getNumCities();
 		/*  Can't afford to specialize one city entirely on military production
 			until we've expanded a bit */
 		iProb = std::min(iProb, 20 * (1 + cities));
-		/*  Don't get too careless in the early when most cities have negative
-			AI_experienceWeight */
+		/*  Don't get too careless in the early game when most cities have
+			negative AI_experienceWeight */
 		iProb = std::max(iProb, 25 - 2 * cities);
 	} // </advc.017>
 	//return iProb;
