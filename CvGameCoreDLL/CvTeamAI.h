@@ -315,7 +315,8 @@ protected:
 
 	void AI_doCounter();
 	void AI_doWar();
-
+	// advc.104o:
+	int AI_declareWarTradeValLegacy(TeamTypes eWarTeam, TeamTypes eTeam) const;
 
 	// added so under cheat mode we can call protected functions for testing
 	friend class CvGameTextMgr;

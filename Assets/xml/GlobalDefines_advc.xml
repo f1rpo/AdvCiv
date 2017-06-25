@@ -86,15 +86,35 @@
         <iDefineIntVal>300</iDefineIntVal>
     </Define>
 
-	<!-- [advc.101]
-		 Not a new parameter. Value increased to 200 
-		 (recommended) in an effort to restore the original BtS revolt
-		 probabilities without undoing K-Mod's overhaul of the culture system.
-		 This essentially doubles the strength of foreign culture.
-		 Original value (in GlobalDefines.xml): 100. -->
+	<!-- These three are from the original GlobalDefines.
+
+		 [advc.101]  Value increased to 200 (recommended) in an effort to
+		 restore the original BtS revolt probabilities without undoing K-Mod's
+		 overhaul of the culture system. This essentially doubles the strength
+		 of foreign culture. Original value: 100. -->
 	<Define>
 		<DefineName>REVOLT_TOTAL_CULTURE_MODIFIER</DefineName>
 		<iDefineIntVal>200</iDefineIntVal>
+	</Define>
+	<!-- [advc.099c] Was 100, meaning that foreign culture strength is doubled
+		 if the foreign state religion is in the city. Now also applies when the
+		 owner of the foreign culture is eliminated and there is a "suppressed"
+		 religion in the city, i.e. a religion that differs from the city owner's
+		 state religion (no suppression if no state religion).
+		 Recommended: 50 b/c doubling is a bit much. -->
+	<Define>
+		<DefineName>REVOLT_OFFENSE_STATE_RELIGION_MODIFIER</DefineName>
+		<iDefineIntVal>50</iDefineIntVal>
+	</Define>
+	<!-- Applies when the city owner's state religion is present in the city,
+		 and applies half if the owner has no state religion. Was combined
+		 multiplicatively with the OFFENSE_MODIFIER above in such a way
+		 that the modifiers canceled out when both applied. Now combined
+		 additively, meaning that they still cancel out b/c I've reduced the
+		 OFFENSE_MODIFIER. The DEFENSE_MODIFIER remains -50. -->
+	<Define>
+		<DefineName>REVOLT_DEFENSE_STATE_RELIGION_MODIFIER</DefineName>
+		<iDefineIntVal>-50</iDefineIntVal>
 	</Define>
 
 	<!-- [advc.102]

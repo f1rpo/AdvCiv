@@ -1464,11 +1464,11 @@
 		 Civ4lerts Options.xml -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__WARTRADE_HOVER</Tag>
-		<English>Displays an alert whenever an AI leader becomes (or stops being) willing to start a war on your request.</English>
-		<French>Displays an alert whenever an AI leader becomes (or stops being) willing to start a war on your request.</French>
+		<English>Displays an alert whenever an AI leader becomes (or stops being) willing to start a war at your request.</English>
+		<French>Displays an alert whenever an AI leader becomes (or stops being) willing to start a war at your request.</French>
 		<German>Mitteilung, wenn ein KI-Gegner bereit (oder nicht mehr bereit) ist, einem anderen Gegner auf Ihren Wunsch den Krieg zu erklären.</German>
-		<Italian>Displays an alert whenever an AI leader becomes (or stops being) willing to start a war on your request.</Italian>
-		<Spanish>Displays an alert whenever an AI leader becomes (or stops being) willing to start a war on your request.</Spanish>
+		<Italian>Displays an alert whenever an AI leader becomes (or stops being) willing to start a war at your request.</Italian>
+		<Spanish>Displays an alert whenever an AI leader becomes (or stops being) willing to start a war at your request.</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_CIV4LERTS_TRADE_WAR</Tag>

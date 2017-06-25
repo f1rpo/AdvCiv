@@ -5302,9 +5302,12 @@ int CvCity::cultureStrength(PlayerTypes ePlayer) const
 	} // <advc.003>
 	ReligionTypes ownerReligion = owner.getStateReligion();
 	if(ownerReligion != NO_RELIGION && isHasReligion(ownerReligion)) { // </advc.003>
-		/*  <advc.101> Replacing the code below. Division by 50 so that it
-			cancels out the OFFENSE modifier (no functional change). */
-		grievanceModifier += GC.getDefineINT("REVOLT_DEFENSE_STATE_RELIGION_MODIFIER") / 50.0;
+		/*  <advc.099c> Replacing the code below. The OFFENSE modifier
+			was originally set to 100 in XML and DEFENSE to -50, and they were
+			cancelling out when both applied (multiplication by 100+100 and then
+			by 100-50). I'm changing the values in XML so that they cancel out
+			when added up. */
+		grievanceModifier += GC.getDefineINT("REVOLT_DEFENSE_STATE_RELIGION_MODIFIER") / 100.0;
 		//iStrength *= std::max(0, (GC.getDefineINT("REVOLT_DEFENSE_STATE_RELIGION_MODIFIER") + 100));
 		//iStrength /= 100;
 	} /* No state religion is still better than some oppressive state religion that
@@ -5312,7 +5315,7 @@ int CvCity::cultureStrength(PlayerTypes ePlayer) const
 	if(ownerReligion == NO_RELIGION) {
 		grievanceModifier += GC.getDefineINT("REVOLT_DEFENSE_STATE_RELIGION_MODIFIER")
 				/ 100.0;
-	} // <advc.101>
+	} // <advc.099c>
 	if(getHurryAngerTimer() > 0)
 		grievanceModifier += 0.5;
 	// <advc.099c>

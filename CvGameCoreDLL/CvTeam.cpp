@@ -2318,13 +2318,18 @@ int CvTeam::getAtWarCount(bool bIgnoreMinors, bool bIgnoreVassals) const
 /************************************************************************************************/
 
 // <dlph.3> (actually an advc change)
-bool CvTeam::allWarsShared(TeamTypes otherId) const {
+bool CvTeam::allWarsShared(TeamTypes otherId,
+		bool checkBothWays) const { // advc.130f
 
 	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 		TeamTypes tId = (TeamTypes)i; CvTeam const& t = GET_TEAM(tId);
 		if(!t.isAlive()) continue;
-		if(t.isAtWar(getID()) != t.isAtWar(otherId))
+		if(checkBothWays && // advc.130f
+				t.isAtWar(getID()) != t.isAtWar(otherId))
 			return false;
+		// <advc.130f>
+		if(!t.isAtWar(otherId) && t.isAtWar(getID()))
+			return false; // </advc.130f>
 	}
 	return true;
 } // </dlph.3>
@@ -6077,8 +6082,8 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 							isForceRevealedBonus(eBonus))
 						continue; // advc.003
 					pCity = GC.getMapINLINE().findCity(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), NO_PLAYER,
-							NO_TEAM, //advc.004r: instead of getID()
-							false);
+							// advc.004r: Pass ID as 'observer' (last param) instead of city owner 
+							NO_TEAM, false, false, NO_TEAM, NO_DIRECTION, NULL, getID());
 					if (pCity == NULL)
 						continue; // advc.003
 					szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_DISCOVERED_BONUS", GC.getBonusInfo(eBonus).getTextKeyWide(), pCity->getNameKey());

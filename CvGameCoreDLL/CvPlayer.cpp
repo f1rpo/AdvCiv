@@ -3561,7 +3561,7 @@ void CvPlayer::doTurn()
 	}
 
 	verifyCivics();
-
+	//verifyStateReligion(); // dlph.10: disabled for now
 	updateTradeRoutes();
 
 	updateWarWearinessPercentAnger();
@@ -4627,6 +4627,11 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 	case DIPLOEVENT_ACCEPT_DEMAND:
 		// advc.130j:
 		GET_PLAYER(getID()).AI_rememberEvent(ePlayer, MEMORY_ACCEPT_DEMAND);
+		/*  advc.130o, advc.104: So that the AI can tell if a demand was
+			_recently_ accepted. Don't call AI_rememberEvent b/c I want only
+			a "half" memory (for 10 turns instead of 20). */
+		GET_PLAYER(ePlayer).AI_changeMemoryCount(getID(),
+				MEMORY_MADE_DEMAND_RECENT, 1);
 		/*  advc.003 (comment): This event (and its counterpart REJECTED_DEMAND)
 			is only triggered when a human accepts an AI demand. When a human
 			demands sth., DIPLOEVENT_MADE_DEMAND triggers (and that one doesn't
@@ -4736,8 +4741,9 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 		// advc.130j:
 		GET_PLAYER(getID()).AI_rememberEvent(ePlayer, MEMORY_ACCEPTED_STOP_TRADING);
 		GET_PLAYER(ePlayer).stopTradingWithTeam((TeamTypes)iData1);
-		// advc.130f: We also stop trading
-		stopTradingWithTeam((TeamTypes)iData1, false);
+		// <advc.130f> We also stop trading (unless ePlayer is our capitulated vassal)
+		if(!TEAMREF(ePlayer).isCapitulated() || !TEAMREF(ePlayer).isVassal(getTeam()))
+			stopTradingWithTeam((TeamTypes)iData1, false); // </advc.130f>
 		for (iI = 0; iI < MAX_PLAYERS; iI++)
 		{
 			if (GET_PLAYER((PlayerTypes)iI).isAlive())
@@ -5072,7 +5078,9 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 					{
 						if (GET_TEAM(getTeam()).canDeclareWar((TeamTypes)(item.m_iData)))
 						{
-							return true;
+							//return true;
+							// advc.100: Replacing the line above
+							return !GET_TEAM(getTeam()).isAtWar(TEAMID(eWhoTo));
 						}
 					}
 				}
@@ -5087,8 +5095,12 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 			if (GET_TEAM(getTeam()).isHasMet(embargoTarget) && TEAMREF(eWhoTo).isHasMet(embargoTarget))
 			{
 				if (canStopTradingWithTeam(embargoTarget)
-						// advc.130f:
-						&& !GET_PLAYER(eWhoTo).isTradingWithTeam(embargoTarget, true)
+						// <advc.130f>
+						&& (!GET_PLAYER(eWhoTo).isTradingWithTeam(
+						embargoTarget, true) ||
+						(GET_TEAM(getTeam()).isCapitulated() &&
+						GET_TEAM(getTeam()).isVassal(TEAMID(eWhoTo))))
+						// </advc.130f>
 					)
 				{
 					return true;

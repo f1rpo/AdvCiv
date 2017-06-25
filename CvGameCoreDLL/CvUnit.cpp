@@ -400,6 +400,7 @@ void CvUnit::reset(int iID, UnitTypes eUnit, PlayerTypes eOwner, bool bConstruct
 
 	m_szName.clear();
 	m_szScriptData ="";
+	initiallyVisible = true; // advc.102
 
 	if (!bConstructorCall)
 	{
@@ -6049,8 +6050,9 @@ bool CvUnit::canSpread(const CvPlot* pPlot, ReligionTypes eReligion, bool bTestV
 	if (pCity->isHasReligion(eReligion))
 	{
 		return false;
-	}
-
+	} // <advc.099d>
+	if(pCity->isDisorder())
+		return false; // </advc.099d>
 	if (!canEnterArea(pPlot->getTeam(), pPlot->area()))
 	{
 		return false;
@@ -6228,7 +6230,9 @@ bool CvUnit::canSpreadCorporation(const CvPlot* pPlot, CorporationTypes eCorpora
 	{
 		return false;
 	}
-
+	 // <advc.099d>
+	if(pCity->isDisorder())
+		return false; // </advc.099d>
 	if (!canEnterArea(pPlot->getTeam(), pPlot->area()))
 	{
 		return false;
@@ -13719,6 +13723,16 @@ bool CvUnit::verifyStackValid()
 	return true;
 }
 
+// <advc.102> Really belongs in CvSelectionGroup, but can't add members there.
+void CvUnit::setInitiallyVisible(bool b) {
+
+	initiallyVisible = b;
+}
+
+bool CvUnit::isInitiallyVisible() const {
+
+	return initiallyVisible;
+}// </advc.102>
 
 // Private Functions...
 

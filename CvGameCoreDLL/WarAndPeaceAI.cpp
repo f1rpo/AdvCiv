@@ -953,6 +953,11 @@ bool WarAndPeaceAI::Team::canSchemeAgainst(TeamTypes targetId,
 	if(agent.isAVassal())
 		return false;
 	CvTeam const& target = GET_TEAM(targetId);
+	/*  advc.130o: Shouldn't attack right after peace from demand; therefore
+		don't plan war during the peace treaty. */
+	if(agent.isForcePeace(targetId) && agent.AI_getMemoryCount(
+				targetId, MEMORY_ACCEPT_DEMAND) > 0)
+		return false;
 	return target.isAlive() && !target.isMinorCiv() && agent.isHasMet(targetId) &&
 			!target.isAVassal() && target.getNumCities() > 0 && (assumeNoWarPlan ||
 			agent.AI_getWarPlan(targetId) == NO_WARPLAN) &&
@@ -1119,13 +1124,40 @@ int WarAndPeaceAI::Team::declareWarTradeVal(TeamTypes targetId,
 				rep.teamName(agentId), rep.teamName(targetId),
 				rep.teamName(sponsorId));
 	}
+	CvTeamAI const& sponsor = GET_TEAM(sponsorId);
 	// Don't log details of war evaluation
 	WarAndPeaceReport silentReport(true);
-	WarEvalParameters params(agentId, targetId, silentReport, false,
-			GET_TEAM(sponsorId).getLeaderID());
+	WarEvalParameters params(agentId, targetId, silentReport, false, sponsor.getLeaderID());
 	WarEvaluator eval(params);
 	int u = eval.evaluate(WARPLAN_LIMITED);
-	double price = utilityToTradeVal(std::max(1, -u));
+	/*  Sponsored war results in a peace treaty with the sponsor. Don't check if
+		we're planning war against the sponsor - too easy to read (b/c there are
+		just two possibilities). Instead check war utility against the sponsor. */
+	if(canSchemeAgainst(sponsorId)) {
+		WarEvalParameters params2(agentId, sponsorId, silentReport);
+		WarEvaluator eval2(params2);
+		int uVsSponsor = eval2.evaluate(WARPLAN_LIMITED, 3);
+		if(uVsSponsor > 0)
+			u -= ::round(0.67 * uVsSponsor);
+	}
+	/*  Don't trust utility completely; human sponsor will try to pick the time
+		when we're most willing. Need to be concervative. Also, apparently the
+		sponsor gets sth. out of the DoW, and therefore we should always ask for
+		decent price, even if we don't mind declaring war. */
+	int lowerBound = -2;
+	if(!sponsor.isAtWar(targetId))
+		lowerBound -= 5;
+	// War utility esp. unreliable when things get desperate
+	int wsr = GET_TEAM(agentId).AI_getWarSuccessRating();
+	if(wsr < 0)
+		lowerBound += wsr / 10;
+	u = std::min(lowerBound, u);
+	double priceOurEconomy = utilityToTradeVal(-u);
+	double priceSponsorEconomy = sponsor.warAndPeaceAI().utilityToTradeVal(-u);
+	/*  If the sponsor has the bigger economy, use the mean of the price based on
+		our economy and his, otherwise, base it only on our economy. */
+	double price = (priceOurEconomy + std::max(priceOurEconomy, priceSponsorEconomy))
+			/ 2;
 	rep.log("War utility: %d, base price: %d", u, ::round(price));
 	CvTeamAI const& agent = GET_TEAM(agentId);
 	/*  Adjust the price based on our attitude and obscure it so that humans
@@ -2173,8 +2205,12 @@ double WarAndPeaceAI::Civ::estimateBuildUpRate(PlayerTypes civId, int period) co
 
 double WarAndPeaceAI::Civ::confidenceFromPastWars(TeamTypes targetId) const {
 
+	int sign = 1;
+	double sc = cache.pastWarScore(targetId);
+	if(sc < 0)
+		sign = -1;
 	// -15% for the first lost war, less from further wars
-	double r = 1 + std::sqrt((double)cache.pastWarScore(targetId)) * 0.15;
+	double r = 1 + sign * std::sqrt(std::abs(sc)) * 0.15;
 	return ::dRange(r, 0.5, 1.5);
 }
 
@@ -2222,9 +2258,9 @@ double WarAndPeaceAI::Civ::warConfidenceLearned(PlayerTypes targetId,
 
 	double fromWarSuccess = TEAMREF(weId).warAndPeaceAI().confidenceFromWarSuccess(
 			TEAMID(targetId));
-	double fromPastWars = 1;
-	if(!ignoreDefOnly)
-		fromPastWars = confidenceFromPastWars(TEAMID(targetId));
+	double fromPastWars = confidenceFromPastWars(TEAMID(targetId));
+	if(ignoreDefOnly == (fromPastWars > 1))
+		fromPastWars = 1;
 	double r = 1;
 	if(fromWarSuccess > 0)
 		r += fromWarSuccess - 1;
@@ -2244,12 +2280,13 @@ double WarAndPeaceAI::Civ::warConfidenceAllies() const {
 	if(we.isHuman())
 		return 1;
 	double dpwr = GC.getLeaderHeadInfo(we.getPersonalityType()).getDogpileWarRand();
-	if(dpwr <= 0) return 0;
+	if(dpwr <= 0)
+		return 0;
 	/* dpwr is between 20 (DeGaulle, high confidence) and
 	   150 (Lincoln, low confidence). These values are too far apart to convert
 	   them proportionally. Hence the square root. The result is between
-	   1.22 and 0.45. */
-	return std::sqrt(30 / dpwr);
+	   1 and 0.23. */
+	return std::sqrt(30 / dpwr) - 0.22;
 }
 
 double WarAndPeaceAI::Civ::confidenceAgainstHuman() const {

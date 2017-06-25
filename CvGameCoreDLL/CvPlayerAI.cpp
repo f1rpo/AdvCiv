@@ -564,8 +564,11 @@ void CvPlayerAI::AI_doTurnUnitsPre()
 	if (AI_getCityTargetTimer() == 0 && GC.getGameINLINE().getSorenRandNum(8, "AI Update Area Targets") == 0) // K-Mod added timer check.
 	{
 		AI_updateAreaTargets();
-	}
-
+	} // <advc.102>
+	int dummy;
+	for(CvUnit* u = firstUnit(&dummy); u != NULL; u = nextUnit(&dummy)) {
+		u->setInitiallyVisible(u->plot()->isVisibleToWatchingHuman());
+	} // </advc.102>
 	if (isHuman())
 	{
 		return;
@@ -2002,9 +2005,10 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)
 					}
 
 					// <advc.116>
-					if (bFinancialTrouble)
-					{
-						iRazeValue += 15;
+					if(bFinancialTrouble) {
+						iRazeValue += (pCity->calculateDistanceMaintenanceTimes100(getID()) +
+								pCity->calculateDistanceMaintenanceTimes100(getID())) /
+								100; // Replacing:
 								//std::max(0, (70 - 15 * pCity->getPopulation()));
 					}
 					iRazeValue -= 3 * pCity->getPopulation();
@@ -7936,8 +7940,9 @@ int CvPlayerAI::AI_getAttitudeVal(PlayerTypes ePlayer, bool bForced) const
 		}
 		// <advc.130v>
 		CvTeamAI const& ourTeam = GET_TEAM(getTeam());
-		if(ourTeam.isCapitulated()) // Cautious. Or rather same val as master?
-			return 0;//GET_TEAM(ourTeam.getMasterTeam()).AI_getAttitudeVal(TEAMID(ePlayer));
+		if(ourTeam.isCapitulated()) // Same val as master, but at most Cautious.
+			return std::min(0, GET_TEAM(ourTeam.getMasterTeam()).
+					AI_getAttitudeVal(TEAMID(ePlayer)));
 		if(TEAMREF(ePlayer).isCapitulated()) {
 			if(TEAMREF(ePlayer).isVassal(ourTeam.getID()))
 				return 5; // Pleased
@@ -8446,7 +8451,7 @@ int CvPlayerAI::AI_getRivalTradeAttitude(PlayerTypes ePlayer) const {
 	TeamTypes enemyId = ourTeam.AI_getWorstEnemy();
 	/*  Checking enemyValue here should - hopefully - fix an oscillation problem,
 		but I don't quite know what I'm doing ...
-		(Checking this in CvTeamAI::AI_getWorstEnemy would be bad for perfromance.) */
+		(Checking this in CvTeamAI::AI_getWorstEnemy would be bad for performance.) */
 	if(ourTeam.enemyValue(enemyId) <= 0)
 		enemyId = NO_TEAM;
 	double dualDealCounter = 0; // cf. CvDeal::isDual
@@ -8612,12 +8617,13 @@ int CvPlayerAI::AI_getRankDifferenceAttitude(PlayerTypes ePlayer) const {
 	// Don't count ranks of unknown civs
 	int iRankDifference = knownRankDifference(ePlayer);
 	CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(getPersonalityType());
+	CvGame& g = GC.getGameINLINE();
 	/*  This was "+ 1" in BtS, which is arguably a bug.
 		Continue using CivPlayersEverAlive although iRankDifference is now based
 		only on known civs. */
-	double maxRankDifference = GC.getGameINLINE().countCivPlayersEverAlive() - 1;
-	int base;
-	double multiplier;
+	double maxRankDifference = g.countCivPlayersEverAlive() - 1;
+	int base = 0;
+	double multiplier = 0;
 	// If we're ranked worse than they are:
 	if(iRankDifference > 0) {
 		base = lh.getWorseRankDifferenceAttitudeChange();
@@ -8634,9 +8640,11 @@ int CvPlayerAI::AI_getRankDifferenceAttitude(PlayerTypes ePlayer) const {
 		base = lh.getBetterRankDifferenceAttitudeChange();
 	}
 	int r = ::round(base * multiplier);
-	CvGame& g = GC.getGameINLINE();
 	// Don't hate them if they're still in the first era
-	if(r < 0 && GET_PLAYER(ePlayer).getCurrentEra() <= g.getStartEra())
+	if(r < 0 && (GET_PLAYER(ePlayer).getCurrentEra() <= g.getStartEra() ||
+			/*  nor if the score difference is small (otherwise attitude can
+				change too frequently) */
+			g.getPlayerScore(ePlayer) - g.getPlayerScore(getID()) < 25))
 		return 0;
 	// Don't like them if we're still in the first era
 	if(r > 0 && getCurrentEra() <= g.getStartEra())
@@ -11549,10 +11557,12 @@ int CvPlayerAI::AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer
 
 	FAssertMsg(ePlayer != getID(), "shouldn't call this function on ourselves");
 	FAssertMsg(GET_PLAYER(ePlayer).getTeam() != getTeam(), "shouldn't call this function on ourselves");
-	FAssertMsg(eTradeTeam != getTeam(), "shouldn't call this function on ourselves");
-	FAssertMsg(GET_TEAM(eTradeTeam).isAlive(), "GET_TEAM(eWarTeam).isAlive is expected to be true");
-	FAssertMsg(!atWar(eTradeTeam, GET_PLAYER(ePlayer).getTeam()), "eTeam should be at peace with eWarTeam");
-
+	FAssertMsg(eTradeTeam != getTeam(), "shouldn't call this function on ourselves"); // advc.003: The next two asserts had nonsensical messages (copy-paste error apparently)
+	FAssertMsg(GET_TEAM(eTradeTeam).isAlive(), "GET_TEAM(eTradeTeam).isAlive is expected to be true");
+	FAssertMsg(!atWar(eTradeTeam, GET_PLAYER(ePlayer).getTeam()), "ePlayer should be at peace with eTradeTeam");
+	// <advc.130f>
+	if(TEAMREF(ePlayer).isCapitulated() && TEAMREF(ePlayer).isVassal(getTeam()))
+		return 0; // </advc.130f>
 	iValue = (50 + (GC.getGameINLINE().getGameTurn() / 2));
 	iValue += (GET_TEAM(eTradeTeam).getNumCities() * 5);
 
@@ -11583,13 +11593,20 @@ int CvPlayerAI::AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer
 		FAssert(false);
 		break;
 	} // <advc.130f>
+	// towardUs - i.e. toward the civ who pays for the embargo
+	AttitudeTypes towardUs = GET_PLAYER(ePlayer).AI_getAttitude(getID());
+	if(towardUs >= ATTITUDE_PLEASED)
+		iModifier -= 25;
+	if(towardUs >= ATTITUDE_FRIENDLY)
+		iModifier -= 25;
 	CvTeam const& kTeam = TEAMREF(ePlayer); // The team that'll have to cancel OB
 	if(kTeam.isOpenBorders(eTradeTeam)) {
-		if(kTeam.getAtWarCount() > 0 && GET_PLAYER(ePlayer).isFocusWar())
-			iModifier += 150;
+		if(kTeam.getAtWarCount() > 0 && GET_PLAYER(ePlayer).isFocusWar() &&
+				!kTeam.allWarsShared(getTeam(), false))
+			iModifier += towardUs < ATTITUDE_FRIENDLY ? 150 : 100;
 		else iModifier += 50;
-	} // </advc.130f>
-	iValue *= std::max(0, (iModifier + 100));
+	} // Lower bound was 0% in BtS, now 50%
+	iValue *= std::max(50, iModifier + 100); // </advc.130f>
 	iValue /= 100;
 	// advc.130f: Factored into iModifier now
 	/*if (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isOpenBorders(eTradeTeam))
@@ -11658,7 +11675,12 @@ DenialTypes CvPlayerAI::AI_stopTradingTrade(TeamTypes eTradeTeam, PlayerTypes eP
 	{
 		return DENIAL_POWER_THEM;
 	}
-
+	// <advc.130f>
+	// "It's out of our hands" b/c the vassal treaty can't be canceled
+	if(GET_TEAM(eTradeTeam).isVassal(getTeam()))
+		return DENIAL_POWER_THEM;
+	if(GET_TEAM(getTeam()).isAtWar(TEAMID(ePlayer)))
+		return NO_DENIAL; // </advc.130f>
 	eAttitude = GET_TEAM(getTeam()).AI_getAttitude(GET_PLAYER(ePlayer).getTeam());
 
 	for (iI = 0; iI < MAX_PLAYERS; iI++)

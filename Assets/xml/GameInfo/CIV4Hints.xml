@@ -525,7 +525,7 @@
 			<Description>TXT_KEY_KMOD_HINT_15</Description>
 		</HintInfo>
 		<!-- These have been replaced or updated; should receive higher
-			 probability too -->
+			 probability too. -->
 		<HintInfo>
 			<Description>TXT_KEY_HINT_INTERFACE_1</Description>
 		</HintInfo>

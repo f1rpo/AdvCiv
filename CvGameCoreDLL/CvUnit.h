@@ -757,6 +757,8 @@ public:
 	bool isAlwaysHostile(const CvPlot* pPlot) const;
 
 	bool verifyStackValid();
+	void setInitiallyVisible(bool b); // advc.102
+	bool isInitiallyVisible() const; // advc.102
 
 	DllExport const CvArtInfoUnit* getArtInfo(int i, EraTypes eEra) const;										// Exposed to Python
 	DllExport const TCHAR* getButton() const;										// Exposed to Python
@@ -878,6 +880,7 @@ protected:
 	bool m_bInfoBarDirty;
 	bool m_bBlockading;
 	bool m_bAirCombat;
+	bool initiallyVisible; // advc.102
 
 	PlayerTypes m_eOwner;
 	PlayerTypes m_eCapturingPlayer;

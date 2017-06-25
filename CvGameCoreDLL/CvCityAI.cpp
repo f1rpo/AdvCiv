@@ -12096,7 +12096,7 @@ int CvCityAI::AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance)
 	return m_aiPlayerCloseness[eIndex];	
 }
 
-// K-Mod
+// K-Mod   // advc.003 (comment): unused function
 int CvCityAI::AI_highestTeamCloseness(TeamTypes eTeam)
 {
 	int iCloseness = -1;

@@ -315,7 +315,6 @@ bool CvSelectionGroup::showMoves(
 		}
 		if(!kLoopPlayer.isOption(PLAYEROPTION_SHOW_FRIENDLY_MOVES))
 			continue; // </advc.003>
-//FAssert(plot()->getX()<14||plot()->getX()>18||plot()->getY()<18||plot()->getY()>22);
 		// <advc.102> Hide uninteresting friendly moves
 		PlayerTypes groupOwner = m_eOwner;
 		TeamTypes spectator = kLoopPlayer.getTeam();
@@ -1600,7 +1599,8 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 			{	// <advc.102> Previously only checked if destVisible
 				bool destVisible = plot()->isVisibleToWatchingHuman();
 				bool startVisible = fromPlot->isVisibleToWatchingHuman();
-				if(destVisible || startVisible) // </advc.102>
+				if(destVisible || (startVisible && ::getUnit(headUnitNode()->
+						m_data)->isInitiallyVisible())) // </advc.102>
 				{	// <advc.102> Pass fromPlot
 					updateMissionTimer(iSteps, fromPlot);
 					if(showMoves(*fromPlot)) // </advc.102>

@@ -3650,11 +3650,13 @@
 		<Italian>Mi spiace, ma sei troppo insistente.</Italian>
 		<Spanish>Lo sentimos, pero nos presion&#225;is demasiado.</Spanish>
 	</TEXT>
+	<!-- [advc.004g] The German translation of answer 1 was stating that the
+		 demand is NOT accepted. -->
 	<TEXT>
 		<Tag>AI_DIPLO_ACCEPT_DEMAND_1</Tag>
 		<English>We accede to your unreasonable demands.</English>
 		<French>Nous acc&#233;dons &#224; vos requ&#234;tes exag&#233;r&#233;es.</French>
-		<German>Wir lassen uns nicht auf Eure unversch&#228;mten Forderungen ein!</German>
+		<German>Unversch&#228;mtheit! Aber wir geben nach.</German>
 		<Italian>Accettiamo le tue insensate richieste.</Italian>
 		<Spanish>No podemos acceder a vuestras exigencias tan poco razonables.</Spanish>
 	</TEXT>
@@ -3684,7 +3686,7 @@
 	</TEXT>
 	<TEXT>
 		<Tag>AI_DIPLO_ACCEPT_DEMAND_5</Tag>
-		<English>Sure: kick a civilisation when it's down. I accept your terms.</English>
+		<English>Sure: kick a civilization when it's down. I accept your terms.</English>
 		<French>Vous pi&#233;tinez une civilisation qui est d&#233;j&#224; &#224; terre ? Soit, j'accepte vos conditions.</French>
 		<German>Sicher, tretet ruhig noch nach, wenn der andere am Boden liegt! Ich akzeptiere Eure Bedingungen!</German>
 		<Italian>Sono d'accordo, infierire su una civilt&#224; in ginocchio. Accetto le vostre condizioni.</Italian>

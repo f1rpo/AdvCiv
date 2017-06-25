@@ -88,7 +88,10 @@ public:
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
-	bool allWarsShared(TeamTypes otherId) const; // dlph.3
+	bool allWarsShared(TeamTypes otherId, // dlph.3
+			/*  advc.130f: If false, check only if the war enemies of this team
+				are included in those of otherId. (set inclusion) */
+			bool checkBothWays = true) const;
 	bool anyWarShared(TeamTypes otherId) const; // advc.130s
 	int getWarPlanCount(WarPlanTypes eWarPlan, bool bIgnoreMinors = true) const;								// Exposed to Python
 	int getAnyWarPlanCount(bool bIgnoreMinors = true) const;																		// Exposed to Python

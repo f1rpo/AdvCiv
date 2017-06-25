@@ -97,6 +97,12 @@ int WarUtilityAspect::evaluate(PlayerTypes theyId) {
 			getAtPeaceAttitudeDivisor() / 2)
 		valTowardsThem++;
 	towardsThem = we->AI_getAttitudeFromValue(valTowardsThem);
+	/*  advc.130o: If recently received tribute, we're pleased as far
+		as war plans go. */
+	if(!params.isConsideringPeace() &&
+			we->AI_getMemoryCount(theyId, MEMORY_ACCEPT_DEMAND) > 0 &&
+			they->AI_getMemoryCount(weId, MEMORY_MADE_DEMAND_RECENT) > 0)
+		towardsThem = std::max(towardsThem, ATTITUDE_PLEASED);
 	towardsUs = they->AI_getAttitudeFromValue(valTowardsUs);
 	for(iSetIt it = m->conqueredCities(weId).begin();
 			it != m->conqueredCities(weId).end();
@@ -130,7 +136,8 @@ int WarUtilityAspect::utility() const {
 	return u;
 }
 
-double WarUtilityAspect::lostAssetScore(PlayerTypes to, double* returnTotal) {
+double WarUtilityAspect::lostAssetScore(PlayerTypes to, double* returnTotal,
+		TeamTypes ignoreGains) {
 
 	double r = 0;
 	double total = 0;
@@ -151,7 +158,8 @@ double WarUtilityAspect::lostAssetScore(PlayerTypes to, double* returnTotal) {
 				r += 4;
 		}
 		else if(m->conqueredCities(theyId).count(c.id()) > 0 &&
-				(to == NO_PLAYER || m->lostCities(to).count(c.id()) > 0)) {
+				(to == NO_PLAYER || m->lostCities(to).count(c.id()) > 0) &&
+				c.city()->getTeam() != ignoreGains) {
 			/*  Their cache doesn't account for GP settled in cities of a third
 				party (unless espionage visibility), so we don't subtract
 				NumGreatPeople.
@@ -914,13 +922,6 @@ void Loathing::evaluate() {
 			// Capitulated is as good as dead
 			TEAMREF(theyId).isCapitulated())
 		return;
-	 // Don't start a war if they paid
-	if(!params.isConsideringPeace() &&
-			we->AI_getMemoryCount(theyId, MEMORY_ACCEPT_DEMAND) > 0) {
-				log("No loathing because %s paid us tribute",
-						report.leaderName(theyId));
-		return;
-	}
 	int veng = weAI->vengefulness();
 	if(veng == 0) {
 		log("No loathing b/c of our leader's personality");
@@ -1858,7 +1859,8 @@ void PreEmptiveWar::evaluate() {
 	for(size_t i = 0; i < properCivs.size(); i++) {
 		CvPlayer const& civ = GET_PLAYER(properCivs[i]);
 		double vassalFactor = 1;
-		if(GET_TEAM(civ.getTeam()).isAVassal()) vassalFactor = 0.5;
+		if(GET_TEAM(civ.getTeam()).isAVassal())
+			vassalFactor = 0.5;
 		if(civ.getMasterTeam() == GET_PLAYER(theyId).getMasterTeam() ||
 				m->getCapitulationsAccepted(TEAMID(theyId)).
 				count(civ.getTeam()) > 0) {
@@ -1867,6 +1869,19 @@ void PreEmptiveWar::evaluate() {
 			theirPredictedCities += (civ.getNumCities() +
 					m->conqueredCities(civ.getID()).size() -
 					m->lostCities(civ.getID()).size()) * vassalFactor;
+			/*  Ignore cities that their side gains from our human target
+				(to avoid dogpiling on human) */
+			TeamTypes targetId = params.targetId();
+			if(targetId != NO_TEAM && targetId != theyId &&
+					GET_TEAM(targetId).isHuman()) {
+				for(iSetIt it = m->conqueredCities(civ.getID()).begin();
+						it != m->conqueredCities(civ.getID()).end(); it++) {
+					CvCity* c = WarAndPeaceCache::City::cityById(*it);
+					if(c != NULL && c->getTeam() == targetId)
+						theirPredictedCities--;
+				}
+				FAssert(theirPredictedCities >= 0);
+			}
 		}
 	}
 	double theirConqRatio = 1;
@@ -2081,6 +2096,11 @@ double KingMaking::theirRelativeLoss() {
 
 	if(!m->isPartOfAnalysis(theyId)) // To save time
 		return 0;
+	bool humanTarget = false;
+	// Ignore assets that they gain from human target (to avoid dogpiling on human)
+	TeamTypes ignoreGains = params.targetId();
+	if(ignoreGains != NO_TEAM && !GET_TEAM(ignoreGains).isHuman())
+		ignoreGains = NO_TEAM;
 	double theirLosses = 0; double theirAssets = 0;
 	for(size_t i = 0; i < properCivs.size(); i++) {
 		CvTeam const& t = TEAMREF(properCivs[i]);
@@ -2096,7 +2116,8 @@ double KingMaking::theirRelativeLoss() {
 			}
 			continue;
 		}
-		double losses = lostAssetScore(NO_PLAYER, &assets); // can be negative
+		// can be negative
+		double losses = lostAssetScore(NO_PLAYER, &assets, ignoreGains);
 		theirAssets += vassalFactor * assets;
 		theirLosses += vassalFactor * losses;
 	}

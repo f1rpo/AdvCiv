@@ -95,8 +95,10 @@ protected:
 		(Shouldn't use theyAI->getCache().totalAssetScore() instead b/c that
 		includes data about cities we may not know of.)
 		Update: Now also subtracts score for assets conquered by them from 'to'
-		(or from any civ); i.e. scores net loss (or gain) of assets. */
-	 double lostAssetScore(PlayerTypes to = NO_PLAYER, double* returnTotal = NULL);
+		(or from any civ); i.e. scores net loss (or gain) of assets.
+		Gains from team ignoreGains aren't counted. */
+	 double lostAssetScore(PlayerTypes to = NO_PLAYER, double* returnTotal = NULL,
+			TeamTypes ignoreGains = NO_TEAM);
 	 double lossesFromBlockade(PlayerTypes victimId, PlayerTypes to);
 	 double lossesFromNukes(PlayerTypes victimId, PlayerTypes sourceId);
 	 /* Score for assets conquered by us from them (as set by evaluate(0)).

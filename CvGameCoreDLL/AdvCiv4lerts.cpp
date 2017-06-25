@@ -81,8 +81,9 @@ void WarTradeAlert::check() {
 				msg(gDLL->getText("TXT_KEY_CIV4LERTS_TRADE_WAR",
 						warTeam.getName().GetCString(),
 						victim.getName().GetCString()));
-			 // Obviously can't hire warTeam if it has already declared war
-			else if(!warTeam.isAtWar(victim.getID()))
+			/*  Obviously can't hire warTeam if it has already declared war
+				or if victim has been eliminated. */
+			else if(victim.isAlive() && !warTeam.isAtWar(victim.getID()))
 				msg(gDLL->getText("TXT_KEY_CIV4LERTS_NO_LONGER_TRADE_WAR",
 						warTeam.getName().GetCString(),
 						victim.getName().GetCString()));

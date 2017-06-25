@@ -576,7 +576,8 @@
 			<iBarbarianCityCreationTurnsElapsed>30</iBarbarianCityCreationTurnsElapsed>
 			<iBarbarianCityCreationProb>7</iBarbarianCityCreationProb>
 			<iAnimalBonus>-20</iAnimalBonus>
-			<iBarbarianBonus>0</iBarbarianBonus>
+			<!-- advc.313: was 0 -->
+			<iBarbarianBonus>-5</iBarbarianBonus>
 			<iAIAnimalBonus>-40</iAIAnimalBonus>
 			<iAIBarbarianBonus>-25</iAIBarbarianBonus>
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
@@ -691,7 +692,8 @@
 			<iBarbarianCityCreationTurnsElapsed>25</iBarbarianCityCreationTurnsElapsed>
 			<iBarbarianCityCreationProb>7</iBarbarianCityCreationProb>
 			<iAnimalBonus>-10</iAnimalBonus>
-			<iBarbarianBonus>0</iBarbarianBonus>
+			<!-- advc.313: was 0 -->
+			<iBarbarianBonus>-5</iBarbarianBonus>
 			<iAIAnimalBonus>-40</iAIAnimalBonus>
 			<iAIBarbarianBonus>-25</iAIBarbarianBonus>
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
@@ -810,7 +812,8 @@
 			<iBarbarianCityCreationTurnsElapsed>20</iBarbarianCityCreationTurnsElapsed>
 			<iBarbarianCityCreationProb>8</iBarbarianCityCreationProb>
 			<iAnimalBonus>-5</iAnimalBonus>
-			<iBarbarianBonus>0</iBarbarianBonus>
+			<!-- advc.313: was 0 -->
+			<iBarbarianBonus>-5</iBarbarianBonus>
 			<iAIAnimalBonus>-40</iAIAnimalBonus>
 			<iAIBarbarianBonus>-25</iAIBarbarianBonus>
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
