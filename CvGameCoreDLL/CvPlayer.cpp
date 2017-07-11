@@ -532,7 +532,6 @@ void CvPlayer::initInGame(PlayerTypes eID)
 	}
 
 	resetPlotAndCityData();
-
 	AI_init();
 }
 
@@ -994,6 +993,10 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 		m_aVote.clear();
 		m_aUnitExtraCosts.clear();
 		m_triggersFired.clear();
+		// <advc.106b>
+		for(size_t i = 0; i < majorMsgs.size(); i++)
+			SAFE_DELETE(majorMsgs[i]);
+		majorMsgs.clear(); // </advc.106b>
 	}
 
 	m_plotGroups.removeAll();
@@ -2180,7 +2183,9 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 					if (pOldCity->isRevealed(GET_PLAYER((PlayerTypes)iI).getTeam(), false))
 					{
 						szBuffer = gDLL->getText("TXT_KEY_MISC_CITY_CAPTURED_BY", szName.GetCString(), getCivilizationDescriptionKey());
-						gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CITYCAPTURED", MESSAGE_TYPE_MAJOR_EVENT, ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pOldCity->getX_INLINE(), pOldCity->getY_INLINE(), true, true);
+						gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CITYCAPTURED",
+								MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, // advc.106b
+								ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pOldCity->getX_INLINE(), pOldCity->getY_INLINE(), true, true);
 					}
 				}
 			}
@@ -2522,14 +2527,9 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 
 		GC.getMapINLINE().verifyUnitValidPlot();
 	}
-	// <advc.001f>
-	for(iI = 0; iI < MAX_TEAMS; iI++)
-		if(m_abRevealed[iI])
-			pCityPlot->setRevealed((TeamTypes)iI, true, false, NO_TEAM, false);
-	// BtS code:
+
+	// advc.001f: Commented out; handled later (after the raze decision)
 	//pCityPlot->setRevealed(GET_PLAYER(eOldOwner).getTeam(), true, false, NO_TEAM, false);
-	SAFE_DELETE_ARRAY(m_abRevealed);
-	// </advc.001f>
 
 	pNewCity->updateEspionageVisibility(false);
 
@@ -2579,7 +2579,9 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 				if (iCaptureGold > 0)
 				{
 					szBuffer = gDLL->getText("TXT_KEY_MISC_PILLAGED_CITY", iCaptureGold, pNewCity->getNameKey());
-					gDLL->getInterfaceIFace()->addHumanMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CITYRAZE", MESSAGE_TYPE_MAJOR_EVENT, ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pNewCity->getX_INLINE(), pNewCity->getY_INLINE(), true, true);
+					gDLL->getInterfaceIFace()->addHumanMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CITYRAZE",
+							MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, // advc.106b
+							ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pNewCity->getX_INLINE(), pNewCity->getY_INLINE(), true, true);
 				}
 
 				pNewCity->doTask(TASK_RAZE);
@@ -2651,6 +2653,12 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		}
 	}
 
+	// <advc.001f>
+	for(iI = 0; iI < MAX_TEAMS; iI++)
+		if(m_abRevealed[iI])
+			pCityPlot->setRevealed((TeamTypes)iI, true, false, NO_TEAM, false);
+	SAFE_DELETE_ARRAY(m_abRevealed);
+	// </advc.001f>
 	/* <advc.001> Elimination otherwise happens only in CvGame::update, which
 	   appears to be called only during the human player's turn. That means a dead
 	   AI can get one more turn before being eliminated. Not normally a problem
@@ -3575,7 +3583,11 @@ void CvPlayer::doTurn()
 	   CvPlot::setRevealed would be nice, but possibly too slow - game already tends
 	   to hang for a moment after map trades. */
 	GET_TEAM(getTeam()).testCircumnavigated();
-
+	// <advc.029>
+	int dummy;
+	for(CvUnit* u = firstUnit(&dummy); u != NULL; u = nextUnit(&dummy))
+		u->doTurnPost();
+	// </advc.029>
 	updateEconomyHistory(GC.getGameINLINE().getGameTurn(), calculateTotalCommerce());
 	updateIndustryHistory(GC.getGameINLINE().getGameTurn(), calculateTotalYield(YIELD_PRODUCTION));
 	updateAgricultureHistory(GC.getGameINLINE().getGameTurn(), calculateTotalYield(YIELD_FOOD));
@@ -5784,7 +5796,9 @@ void CvPlayer::raze(CvCity* pCity)
 				if (pCity->isRevealed(GET_PLAYER((PlayerTypes)iI).getTeam(), false))
 				{
 					swprintf(szBuffer, gDLL->getText("TXT_KEY_MISC_CITY_HAS_BEEN_RAZED_BY", pCity->getNameKey(), getCivilizationDescriptionKey()).GetCString());
-					gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CITYRAZED", MESSAGE_TYPE_MAJOR_EVENT, ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX_INLINE(), pCity->getY_INLINE(), true, true);
+					gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CITYRAZED",
+							MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, // advc.106b
+							ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pCity->getX_INLINE(), pCity->getY_INLINE(), true, true);
 				}
 			}
 		}
@@ -9361,7 +9375,9 @@ void CvPlayer::changeGoldenAgeTurns(int iChange)
 						if (isGoldenAge())
 						{
 							szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYER_GOLDEN_AGE_HAS_BEGUN", getNameKey());
-							gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), (((PlayerTypes)iI) == getID()), GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_GOLDAGESTART", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+							gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), (((PlayerTypes)iI) == getID()), GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_GOLDAGESTART",
+									MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, // advc.106b
+									NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 						}
 						else
 						{
@@ -11473,6 +11489,8 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 				for(CvDiploQueue::iterator it = m_listDiplomacy.begin();
 						it != m_listDiplomacy.end(); ++it) {
 					CvDiploParameters* pDiplo = *it;
+					// Can be NULL!
+					CLLNode<TradeData>* tdn = pDiplo->getOurOfferList().head();
 					if(pDiplo->getDiploComment() == GC.getInfoTypeForString(
 							"AI_DIPLOCOMMENT_STOP_TRADING") &&
 							pDiplo->getData() != TEAMREF(pDiplo->getWhoTalkingTo()).
@@ -11483,9 +11501,20 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 						m_listDiplomacy.remove(pDiplo);
 						break;
 					}
-				} // </advc.001e>
+					// AI may send offer for DP and then receive a DoW
+					else if(tdn != NULL && tdn->m_data.m_eItemType ==
+							TRADE_DEFENSIVE_PACT &&
+							!GET_TEAM(getTeam()).allWarsShared(
+							TEAMID(pDiplo->getWhoTalkingTo()))) {
+						delete pDiplo;
+						m_listDiplomacy.remove(pDiplo);
+						break;
+					} // </advc.001e>
+				}
 				/*  <advc.134a> The EXE also gets the checks for peace (and surrender)
-					wrong. */
+					wrong. Note that these checks are done while displaying the
+					diplo popup (or right before), so it doesn't help to reinsert
+					the offer into m_listDiplomacy. */
 				if(!getWPAI.isEnabled()) { // Don't try to fix it when UWAI enabled
 					for(CvDiploQueue::iterator it = m_listDiplomacy.begin();
 							it != m_listDiplomacy.end(); ++it) {
@@ -11503,7 +11532,12 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 					}
 				}
 				postProcessBeginTurnEvents();
-			} // </106b>
+			}
+			// Clear messages in any case (in particular during AIAutoPlay)
+			for(size_t i = 0; i < majorMsgs.size(); i++)
+				SAFE_DELETE(majorMsgs[i]);
+			majorMsgs.clear();
+			// </106b>
 		}
 
 		if (getID() == GC.getGameINLINE().getActivePlayer())
@@ -13558,7 +13592,8 @@ void CvPlayer::setCivics(CivicOptionTypes eIndex, CivicTypes eNewValue)
 								if (GET_TEAM(getTeam()).isHasMet(GET_PLAYER((PlayerTypes)iI).getTeam()))
 								{
 									szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYER_ADOPTED_CIVIC", getNameKey(), GC.getCivicInfo(getCivics(eIndex)).getTextKeyWide());
-									gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CIVIC_ADOPT", MESSAGE_TYPE_MAJOR_EVENT);
+									gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CIVIC_ADOPT",
+											MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY); // advc.106b
 								}
 							}
 						}
@@ -14277,16 +14312,29 @@ void CvPlayer::addMessage(const CvTalkingHeadMessage& message)
 	m_listGameMessages.push_back(message);
 	// <advc.106b>
 	CvGame const& g = GC.getGameINLINE();
+	/*  Special treatment only for events in other civs' turns.
+		NB: ActivePlayer is always human. */
+	if(!g.isAITurn() && g.getActivePlayer() == getID())
+		return;
 	/* DISPLAY_ONLY, COMBAT, CHAT, QUEST don't show up on the Event tab
 	   of the Turn Log, and therefore shouldn't count.
 	   (That is assuming that quests also send INFO messages, which I haven't
 	   verified - tbd.) */
-	if((message.getMessageType() == MESSAGE_TYPE_INFO ||
-			message.getMessageType() == MESSAGE_TYPE_MINOR_EVENT ||
-			message.getMessageType() == MESSAGE_TYPE_MAJOR_EVENT) &&
-			// NB: ActivePlayer is always human
-			(g.isAITurn() || g.getActivePlayer() != getID()))
+	InterfaceMessageTypes mt = message.getMessageType();
+	if(mt == MESSAGE_TYPE_INFO || mt == MESSAGE_TYPE_MINOR_EVENT ||
+			mt == MESSAGE_TYPE_MAJOR_EVENT || mt == MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY)
 		iNewMessages++; // See comment in postProcessBeginTurnEvents
+	if(mt == MESSAGE_TYPE_MAJOR_EVENT) {
+		/*  Need to make a copy b/c, apparently, the EXE deletes the original
+			before postProcessBeginTurnEvents gets called. */
+		CvTalkingHeadMessage* copy = new CvTalkingHeadMessage(message.getTurn(),
+				message.getLength(), message.getDescription(),
+				NULL, // The sound is already played when the event triggers
+				MESSAGE_TYPE_MAJOR_EVENT, message.getIcon(), message.getFlashColor(),
+				message.getX(), message.getY(), message.getOffScreenArrows(),
+				message.getOnScreenArrows());
+		majorMsgs.push_back(copy);
+	}
 	// </advc.106b>
 }
 
@@ -14315,8 +14363,19 @@ void CvPlayer::postProcessBeginTurnEvents() {
 				have to show the Turn Log in all cases). */
 			GC.getGameINLINE().isHotSeat())))) {
 		gDLL->getInterfaceIFace()->clearEventMessages();
+		if(!GC.getGameINLINE().isHotSeat()) {
+			/*  Show major events even if the Turn Log gets opened. As with
+				iNewMessages, CvPlayer needs to keep track of the recent messages;
+				use majorMsgs for that. */
+			for(size_t i = 0; i < majorMsgs.size(); i++)
+				gDLL->getInterfaceIFace()->showMessage(*majorMsgs[i]);
+		}
 		gDLL->getInterfaceIFace()->showTurnLog();
 	}
+	// Clear messages in any case
+	for(size_t i = 0; i < majorMsgs.size(); i++)
+		SAFE_DELETE(majorMsgs[i]);
+	majorMsgs.clear();
 	GC.getGame().setAITurn(false);
 } // </advc.106b>
 
@@ -14448,6 +14507,7 @@ CvDiploParameters* CvPlayer::popFrontDiplomacy()
 		pDiplo = m_listDiplomacy.front();
 		m_listDiplomacy.pop_front();
 	}
+
 	return pDiplo;
 }
 
@@ -18761,11 +18821,11 @@ void CvPlayer::createGreatPeople(UnitTypes eGreatPersonUnit, bool bIncrementThre
 						pGreatPeopleUnit->getName().GetCString(),
 						gpOwner.getCivilizationDescriptionKey());
 			else continue;
-		}
+		} // <advc.106b>
 		InterfaceMessageTypes msgType = MESSAGE_TYPE_MINOR_EVENT;
 		// Only birth of own GP is major.
 		if(msgTarget.getID() == gpOwner.getID())
-			msgType = MESSAGE_TYPE_MAJOR_EVENT;
+			msgType = MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY; // </advc.106b>
 		gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)i), false,
 				GC.getEVENT_MESSAGE_TIME(), szReplayMessage,
 				"AS2D_UNIT_GREATPEOPLE", msgType, pGreatPeopleUnit->getButton(),
@@ -21732,7 +21792,7 @@ bool CvPlayer::splitEmpire(int iAreaId)
 			pLoopPlot->setRevealed(GET_PLAYER(eNewPlayer).getTeam(), true, false, getTeam(), false);
 		}
 	}
-
+	std::vector<CvCity*> acquiredCities; // advc.104r
 	int iLoop;
 	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
@@ -21749,12 +21809,16 @@ bool CvPlayer::splitEmpire(int iAreaId)
 				if (NULL != pCity)
 				{
 					pCity->setCultureTimes100(eNewPlayer, iCulture, false, false);
+					/*  <advc.104r> Want to initialize UWAI data after assigning
+						cities but before creating units. Therefore move
+						unit placement into a separate loop. */
+					acquiredCities.push_back(pCity);
 				}
-
-				for (int i = 0; i < GC.getDefineINT("COLONY_NUM_FREE_DEFENDERS"); ++i)
+				
+				/*for (int i = 0; i < GC.getDefineINT("COLONY_NUM_FREE_DEFENDERS"); ++i)
 				{
 					pCity->initConscriptedUnit();
-				}
+				}*/ // </advc.104r>
 			}
 		}
 	}
@@ -21784,7 +21848,13 @@ bool CvPlayer::splitEmpire(int iAreaId)
 	GET_PLAYER(eNewPlayer).AI_updateAttitudeCache(getID());
 	GET_PLAYER(getID()).AI_updateAttitudeCache(eNewPlayer);
 	// K-Mod end
-
+	// <advc.104r>
+	if(getWPAI.isEnabled())
+		getWPAI.processNewCivInGame(eNewPlayer);
+	for(size_t i = 0; i < acquiredCities.size(); i++)
+		for(int j = 0; j < GC.getDefineINT("COLONY_NUM_FREE_DEFENDERS"); j++)
+			acquiredCities[i]->initConscriptedUnit();
+	// </advc.104r>
 	return true;
 }
 

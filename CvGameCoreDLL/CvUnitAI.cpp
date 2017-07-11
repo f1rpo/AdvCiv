@@ -6820,7 +6820,13 @@ void CvUnitAI::AI_attackSeaMove()
 			{
 				return;
 			}
-
+			// <advc.017b>
+			CvArea* a = area();
+			if(m_pUnitInfo->getDefaultUnitAIType() == UNITAI_EXPLORE_SEA &&
+					kOwner.AI_totalWaterAreaUnitAIs(a, UNITAI_EXPLORE_SEA) <
+					kOwner.AI_neededExplorers(a))
+				AI_setUnitAIType(UNITAI_EXPLORE_SEA);
+			// </advc.017b>
 			if (AI_retreatToCity())
 			{
 				return;
@@ -7097,11 +7103,11 @@ void CvUnitAI::AI_reserveSeaMove()
 /* 	BETTER_BTS_AI_MOD						END								*/
 /********************************************************************************/
 
-	//if (AI_guardBonus(30))
-	if (AI_guardBonus(15)) // K-Mod (note: this will defend seafood when we have exactly 1 of them)
-	{
-		return;
-	}
+	/*  advc.017b: Defend bonus if it's threatened, otherwise, consider a bunch of
+		other activities first. (K-Mod's AI_guardBonus(15) moved down instead.) */
+	if(kOwner.AI_getWaterDanger(plot(), std::min(maxMoves(), DANGER_RANGE), false) > 0 &&
+			AI_guardBonus(10))
+		return; // </advc.017b>
 
 	if (AI_heal(30, 1))
 	{
@@ -7203,6 +7209,11 @@ void CvUnitAI::AI_reserveSeaMove()
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
+	// advc.017b: Moved this down
+	if (AI_guardBonus(15)) // K-Mod (note: this will defend seafood when we have exactly 1 of them)
+	{
+		return;
+	}
 
 	if (AI_travelToUpgradeCity())
 	{
@@ -7538,43 +7549,7 @@ void CvUnitAI::AI_exploreSeaMove()
 			return;
 		}
 	}
-	
-	if (!isHuman() && !isBarbarian()) //XXX move some of this into a function? maybe useful elsewhere
-	{
-		//Obsolete?
-		int iValue = kOwner.AI_unitValue(getUnitType(), AI_getUnitAIType(), area());
-		int iBestValue = kOwner.AI_bestAreaUnitAIValue(AI_getUnitAIType(), area());
-		
-		if (iValue < iBestValue)
-		{
-			//Transform
-			if (kOwner.AI_unitValue(getUnitType(), UNITAI_WORKER_SEA, area()) > 0)
-			{
-				AI_setUnitAIType(UNITAI_WORKER_SEA);
-				return;
-			}
-			
-			if (kOwner.AI_unitValue(getUnitType(), UNITAI_PIRATE_SEA, area()) > 0)
-			{
-				AI_setUnitAIType(UNITAI_PIRATE_SEA);
-				return;
-			}
-			
-			if (kOwner.AI_unitValue(getUnitType(), UNITAI_MISSIONARY_SEA, area()) > 0)
-			{
-				AI_setUnitAIType(UNITAI_MISSIONARY_SEA);
-				return;
-			}
-			
-			if (kOwner.AI_unitValue(getUnitType(), UNITAI_RESERVE_SEA, area()) > 0)
-			{
-				AI_setUnitAIType(UNITAI_RESERVE_SEA);
-				return;
-			}
-			scrap();
-			return;
-		}		
-	}
+	// advc.017b: Moved the transform/ scrap block down; try nearby exploration first.
 
 	if (getDamage() > 0)
 	{
@@ -7605,6 +7580,48 @@ void CvUnitAI::AI_exploreSeaMove()
 			return;
 		}
 	}
+	// advc.017b: Moved this chunk of code down
+	/*  <advc.017b> Make sure we're not converting or scrapping a unit that
+		CvPlayerAI thinks we need */
+	bool excessExplorers = (kOwner.AI_neededExplorers(area()) <
+			kOwner.AI_totalWaterAreaUnitAIs(area(), UNITAI_EXPLORE_SEA) -
+			// The above counts units that are still being trained; don't want that here.
+			kOwner.AI_getNumTrainAIUnits(UNITAI_EXPLORE_SEA));
+	// </advc.017b>
+	if (!isHuman() && !isBarbarian() //XXX move some of this into a function? maybe useful elsewhere
+			&& excessExplorers) // advc.017b
+	{
+		// advc.017b: Moved the obsoletion test; now only required for scrapping
+		// <advc.003> Made this more concise (original code deleted)
+		std::vector<UnitAITypes> transformTypes;
+		transformTypes.push_back(UNITAI_WORKER_SEA);
+		transformTypes.push_back(UNITAI_PIRATE_SEA);
+		// <advc.017b> Instead of always trying MISSIONARY_SEA before RESERVE_SEA
+		if((kOwner.AI_totalUnitAIs(UNITAI_MISSIONARY) > 0 ||
+				kOwner.AI_isDoStrategy(AI_STRATEGY_MISSIONARY)) &&
+				kOwner.AI_totalUnitAIs(UNITAI_MISSIONARY_SEA) <= 1) {
+			transformTypes.push_back(UNITAI_MISSIONARY_SEA);
+			transformTypes.push_back(UNITAI_RESERVE_SEA);
+		}
+		else {
+			transformTypes.push_back(UNITAI_RESERVE_SEA);
+			transformTypes.push_back(UNITAI_MISSIONARY_SEA);
+		} // </advc.017b>
+		for(size_t i = 0; i < transformTypes.size(); i++) {
+			if(kOwner.AI_unitValue(getUnitType(), transformTypes[i], area()) > 0) {
+				AI_setUnitAIType(transformTypes[i]);
+				return;
+			}
+		} // </advc.003>
+		// <advc.017b> Cut and pasted from above:
+		//Obsolete?
+		int iValue = kOwner.AI_unitValue(getUnitType(), AI_getUnitAIType(), area());
+		int iBestValue = kOwner.AI_bestAreaUnitAIValue(AI_getUnitAIType(), area());
+		if (iValue < iBestValue) {
+			scrap();
+			return;
+		} // </advc.017b>
+	}
 
 	if (AI_explore())
 	{
@@ -7633,7 +7650,7 @@ void CvUnitAI::AI_exploreSeaMove()
 
 		if (pWaterArea != NULL)
 		{
-			if (kOwner.AI_totalWaterAreaUnitAIs(pWaterArea, UNITAI_EXPLORE_SEA) > kOwner.AI_neededExplorers(pWaterArea))
+			if(excessExplorers) // advc.017b
 			{
 				if (kOwner.calculateUnitCost() > 0)
 				{
@@ -8551,7 +8568,12 @@ void CvUnitAI::AI_settlerSeaMove()
 			FAssert(pWaterArea != NULL);
 			if (pWaterArea != NULL)
 			{
-				if (kOwner.AI_totalWaterAreaUnitAIs(pWaterArea, UNITAI_SETTLER_SEA) > 1)
+				if (kOwner.AI_totalWaterAreaUnitAIs(pWaterArea, UNITAI_SETTLER_SEA) > 1
+						/*  advc.017b: Also convert if no colonies (which may need Workers)
+							and no Settler on the horizon. */
+						|| (kOwner.AI_totalUnitAIs(UNITAI_SETTLE) <= 0 &&
+						kOwner.getNumCities() == area()->getCitiesPerPlayer(getOwnerINLINE()) &&
+						kOwner.AI_totalUnitAIs(UNITAI_ASSAULT_SEA) <= 5))
 				{
 					if (kOwner.AI_unitValue(getUnitType(), UNITAI_ASSAULT_SEA, pWaterArea) > 0)
 					{
@@ -14596,7 +14618,14 @@ bool CvUnitAI::AI_patrol()
 							int delta = ::abs(facedX - x) + ::abs(facedY - y);
 							if(delta <= 1)
 								iValue += GC.getGameINLINE().getSorenRandNum(
-										10000, "advc.102"); // </advc.102>
+										10000, "advc.102");
+							/*  Prefer to stay/ get out of foreign borders: could be
+								human borders, and AI patrols inside human borders
+								are annoying when "Show ...Moves" is enabled. */
+							PlayerTypes adjOwner = pAdjacentPlot->getOwnerINLINE();
+							if(adjOwner != getOwnerINLINE() && adjOwner != NO_PLAYER)
+								iValue -= 4000;
+							// </advc.102>
 						}
 						if (isBarbarian()
 							/*  advc.306: Patrolling barb ships should pretty much
@@ -24942,6 +24971,9 @@ int CvUnitAI::AI_stackOfDoomExtra() const
 			mult /= std::max(0.75, trainMod);
 	}
 	CvTeamAI const& ourTeam = GET_TEAM(kOwner.getTeam());
+	// A little extra for naval assault
+	if(area()->getAreaAIType(ourTeam.getID()) == AREAAI_ASSAULT)
+		mult += 0.225;
 	if(ourTeam.getWarPlanCount(WARPLAN_TOTAL) <= 0)
 		mult *= 0.85;
 	r = ::round(mult * r); // </advc.104p>

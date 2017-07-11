@@ -1089,7 +1089,6 @@ void CvCityAI::AI_chooseProduction()
     		}
 		}
     }
-
 	// <advc.124> Need these values again later.
 	int seaExplorersTarget = 0;
 	int seaExplorersNow = 0;
@@ -1098,14 +1097,23 @@ void CvCityAI::AI_chooseProduction()
 		seaExplorersNow = kPlayer.AI_totalWaterAreaUnitAIs(pWaterArea,
 				UNITAI_EXPLORE_SEA);
 	} // </advc.124>
-    if (bMaybeWaterArea)
-	{
+	// <advc.017>
+	// Perhaps not a proper water area, but need a pointer to it anyway
+	CvArea* wa = waterArea(true);
+	FAssert((wa != NULL) == bMaybeWaterArea);
+    if(wa != NULL && bMaybeWaterArea) { // </advc.017>
 		if( !(bLandWar && iWarSuccessRating < -30) && !bDanger && !bFinancialTrouble )
-		{
-			if (kPlayer.AI_getNumTrainAIUnits(UNITAI_ATTACK_SEA) + kPlayer.AI_getNumTrainAIUnits(UNITAI_PIRATE_SEA) + kPlayer.AI_getNumTrainAIUnits(UNITAI_RESERVE_SEA) < std::min(3,kPlayer.getNumCities()))
+		{	/*  <advc.017> These were calls to AI_getNumTrainAIUnits, i.e. the
+				BBAI code only ensured that we're not building lots of ships in
+				parallel. I suspect that AI_totalWaterAreaUnitAIs had been intended,
+				after all, the logBBAI call says "minimal naval". */
+			if (kPlayer.AI_totalWaterAreaUnitAIs(wa, UNITAI_ATTACK_SEA) +
+				kPlayer.AI_totalWaterAreaUnitAIs(wa, UNITAI_PIRATE_SEA) +
+				kPlayer.AI_totalWaterAreaUnitAIs(wa, UNITAI_RESERVE_SEA) <
+			// </advc.017>
+				std::min(3,kPlayer.getNumCities()))
 			{
-				if ((bMaybeWaterArea && bWaterDanger)
-					|| (pWaterArea != NULL && bPrimaryArea && kPlayer.AI_countNumAreaHostileUnits(pWaterArea, true, false, false, false) > 0))
+				if ((bMaybeWaterArea && bWaterDanger) || (pWaterArea != NULL && bPrimaryArea && kPlayer.AI_countNumAreaHostileUnits(pWaterArea, true, false, false, false) > 0))
 				{
 					if( gCityLogLevel >= 2 ) logBBAI("      City %S uses minimal naval", getName().GetCString());
 
@@ -1555,9 +1563,13 @@ void CvCityAI::AI_chooseProduction()
 			{
 				int iTotalCities = kPlayer.getNumCities();
 				int iSettlerSeaNeeded = std::min(iNumWaterAreaCitySites, ((iTotalCities + 4) / 8) + 1);
+				bool bColonies = false; // advc.017b
 				if (kPlayer.getCapitalCity() != NULL)
 				{
 					int iOverSeasColonies = iTotalCities - kPlayer.getCapitalCity()->area()->getCitiesPerPlayer(getOwnerINLINE());
+					// <advc.017b>
+					if(iOverSeasColonies > 0)
+						bColonies = true; // </advc.017b>
 					int iLoop = 2;
 					int iExtras = 0;
 					while (iOverSeasColonies >= iLoop)
@@ -1570,6 +1582,9 @@ void CvCityAI::AI_chooseProduction()
 				if (bAssault)
 				{
 					iSettlerSeaNeeded = std::min(1, iSettlerSeaNeeded);
+					// <advc.017b> For consistency with CvUnitAI::AI_settlerSeaMove
+					if(!bColonies && kPlayer.AI_totalUnitAIs(UNITAI_SETTLE) <= 0)
+						iSettlerSeaNeeded = 0; // </advc.017b>
 				}
 				
 				if (kPlayer.AI_totalWaterAreaUnitAIs(pWaterArea, UNITAI_SETTLER_SEA) < iSettlerSeaNeeded)
@@ -1632,7 +1647,9 @@ void CvCityAI::AI_chooseProduction()
         }
 
 		// K-Mod (the spies stuff used to be lower down)
-		int iNumSpies = kPlayer.AI_totalAreaUnitAIs(pArea, UNITAI_SPY) + kPlayer.AI_getNumTrainAIUnits(UNITAI_SPY);
+		int iNumSpies = kPlayer.AI_totalAreaUnitAIs(pArea, UNITAI_SPY);
+				// advc.001h: Commented out
+				//+ kPlayer.AI_getNumTrainAIUnits(UNITAI_SPY);
 		int iNeededSpies = iNumCitiesInArea / 3;
 		iNeededSpies += bPrimaryArea ? (kPlayer.getCommerceRate(COMMERCE_ESPIONAGE)+50)/100 : 0;
 		iNeededSpies *= GC.getLeaderHeadInfo(kPlayer.getPersonalityType()).getEspionageWeight();
@@ -1871,17 +1888,46 @@ void CvCityAI::AI_chooseProduction()
 			{
 				int iEscorts = kPlayer.AI_totalAreaUnitAIs(pArea, UNITAI_ESCORT_SEA);
 				iEscorts += kPlayer.AI_totalAreaUnitAIs(pAssaultWaterArea, UNITAI_ESCORT_SEA);
-
+				
 				int iTransportViability = kPlayer.AI_calculateUnitAIViability(UNITAI_ASSAULT_SEA, DOMAIN_SEA);
 
 				//int iDesiredEscorts = ((1 + 2 * iTransports) / 3);
 				int iDesiredEscorts = iTransports; // K-Mod
+				
 				if( iTransportViability > 95 )
 				{
 					// Transports are stronger than escorts (usually Galleons and Caravels)
 					iDesiredEscorts /= 2; // was /3
 				}
-				
+				// <advc.017>
+				int const era = kPlayer.getCurrentEra();
+				iDesiredEscorts = (era * iDesiredEscorts) / (era + 1);
+				/*  Use max, not sum, b/c multiple war enemies are unlikely
+					to coordinate an attack on our transports. */
+				double maxThreat = 0;
+				for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+					CvPlayerAI const& enemy = GET_PLAYER((PlayerTypes)i);
+					if(enemy.isAlive() && GET_TEAM(getTeam()).AI_getWarPlan(
+							enemy.getMasterTeam()) != NO_WARPLAN) {
+						/*  Tbd.: Should perhaps check if the enemy sea attackers even
+							pose a danger to our cargo ships; could be Frigates
+							against Industrial-era Transports. */
+						bool areaAlone = enemy.AI_isCapitalAreaAlone();
+						double threat = 0; int dummy;
+						/*  Don't want to just count the enemy ships (not open info);
+							count their coastal cities instead. */
+						for(CvCity* c = enemy.firstCity(&dummy); c != NULL; c = enemy.nextCity(&dummy)) {
+							if(c->plot()->isAdjacentToArea(pAssaultWaterArea)) {
+								// Isolated civs tend to build more ships
+								threat += areaAlone ? 1.4 : 1;
+							}
+						}
+						maxThreat = std::max(threat, maxThreat);
+					}
+				}
+				iDesiredEscorts = std::min(iDesiredEscorts, ::round(1.4 * maxThreat));
+				iDesiredEscorts = std::max(iDesiredEscorts, (era / 2) * ::round(maxThreat));
+				// </advc.017>
 				/*if (iEscorts < iDesiredEscorts)
 				{
 					if (AI_chooseUnit(UNITAI_ESCORT_SEA, (iEscorts < iDesiredEscorts/3) ? -1 : 50)) */
@@ -1908,7 +1954,11 @@ void CvCityAI::AI_chooseProduction()
 					iAttackSea += kPlayer.AI_totalAreaUnitAIs(pAssaultWaterArea, UNITAI_ATTACK_SEA);
 
 					int iDesiredAttackSea = 1 + 4*iTransports / (GC.getUnitInfo(eBestAttackSeaUnit).getBombardRate() == 0 ? 10 : 3);
-						
+					// <advc.017>
+					/*  Don't build lots of sea attackers if we already have
+						lots of escorts */
+					iDesiredAttackSea = std::max(1 + iDesiredAttackSea / 3,
+							iDesiredAttackSea - iEscorts); // </advc.017>
 					if (iAttackSea < iDesiredAttackSea)
 					{
 						int iOdds = 20 + 50 * (iDesiredAttackSea - iAttackSea)/iDesiredAttackSea;
@@ -1923,18 +1973,18 @@ void CvCityAI::AI_chooseProduction()
 						}
 					}
 				}
-				/*  advc.104p: Added the coefficient. Cargo space isn't that
-					expensive; make sure AI landings don't get delayed by a lack
-					of transport capacity. Existing cargo units can also be stuck
-					somewhere. */
-				if (::round(1.35 * iUnitsToTransport) > iTransportCapacity)
+				/*  <advc.104p> Cargo space isn't that expensive; make sure
+					AI landings don't get delayed by a lack of transport capacity.
+					Existing cargo units can also be stuck somewhere. */
+				int targetCapacity = ::round(1.25 * iUnitsToTransport);
+				if(targetCapacity > iTransportCapacity) // </advc.104p>
 				{
 					//if ((iUnitSpending < iMaxUnitSpending) || (iUnitsToTransport > 2*iTransportCapacity))
 					// K-Mod
 					if (iUnitSpending < iMaxUnitSpending ||
 						GC.getGameINLINE().getSorenRandNum(100, "Build Transport") <
 								// advc.104p: Changed 100 to 350
-								(350 * (iUnitsToTransport - iTransportCapacity)) /
+								(350 * (targetCapacity - iTransportCapacity)) /
 								std::max(1, iTransportCapacity))
 					// K-Mod end
 					{
@@ -6377,7 +6427,7 @@ void CvCityAI::updateEvacuating(double relativeCityVal) {
 			// Only bail if they can take the city in one turn or almost
 			attackerCount < plot()->getNumDefenders(getOwnerINLINE()) + 1)
 		return;
-	int defStr = o.AI_localDefenceStrength(plot(), getTeam(), DOMAIN_LAND, 3, true);
+	int defStr = o.AI_localDefenceStrength(plot(), getTeam(), DOMAIN_LAND, 3);
 	int thresh = GC.getDefineINT("AI_EVACUATION_THRESH");
 	//  Higher threshold for important cities
 	if(relativeCityVal > 0.5)
@@ -11139,7 +11189,9 @@ void CvCityAI::AI_buildGovernorChooseProduction()
 		//spies
 		if (!kOwner.AI_isAreaAlone(area()))
 		{
-			int iNumSpies = kOwner.AI_totalAreaUnitAIs(area(), UNITAI_SPY) + kOwner.AI_getNumTrainAIUnits(UNITAI_SPY);
+			int iNumSpies = kOwner.AI_totalAreaUnitAIs(area(), UNITAI_SPY);
+					// advc.001h: Commented out
+					//+ kOwner.AI_getNumTrainAIUnits(UNITAI_SPY);
 			int iNeededSpies = 2 + area()->getCitiesPerPlayer(kOwner.getID()) / 5;
 			iNeededSpies += kOwner.getCommercePercent(COMMERCE_ESPIONAGE)/20;
 
@@ -12867,9 +12919,9 @@ bool CvCityAI::isAwfulSite(PlayerTypes futureOwnerId) const {
 			decentTiles++;
 			continue;
 		}
-		// Coast is half-decent
+		// Coast is (almost) half-decent
 		if(countCoast && p.isWater() && p.isAdjacentToLand())
-			decentTiles += 0.5;
+			decentTiles += 0.4;
 	}
 	return decentTiles < 6.99;
 } // </advc.122>

@@ -767,7 +767,11 @@ void CvTeam::addTeam(TeamTypes eTeam)
 	}
 
 	AI_updateWorstEnemy();
-	GET_TEAM(getID()).warAndPeaceAI().addTeam(eTeam); // advc.104t
+	// <advc.104t>
+	if(getWPAI.isEnabled()) {
+		GET_TEAM(getID()).warAndPeaceAI().addTeam(eTeam);
+		getWPAI.update();
+	} // </advc.104t>
 	AI_updateAreaStrategies();
 
 	GC.getGameINLINE().updateScore(true);
@@ -4921,7 +4925,9 @@ void CvTeam::freeVassal(TeamTypes eVassal) const
 			pLoopDeal->kill();
 		}
 	} // <advc.130y>
-	if(isCapitulated())
+	if(isCapitulated() && GET_PLAYER(GET_TEAM(eVassal).getLeaderID()).
+			// Not thankful if still thankful to old master
+			AI_getMemoryAttitude(getLeaderID(), MEMORY_INDEPENDENCE) <= 0)
 		GET_TEAM(eVassal).thankLiberator(getMasterTeam());
 	/*  Prevent freed vassal from immediately becoming someone else's vassal.
 		Want the civ that made the former master capitulate (i.e. getMasterTeam)
@@ -5691,11 +5697,14 @@ void CvTeam::announceTechToPlayers(TechTypes eIndex, bool bPartial)
 			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
 			{
 				CvWString szBuffer = gDLL->getText((bPartial ? "TXT_KEY_MISC_PROGRESS_TOWARDS_TECH" : "TXT_KEY_MISC_YOU_DISCOVERED_TECH"), GC.getTechInfo(eIndex).getTextKeyWide());
-
-				//gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, (bSound ? GC.getEVENT_MESSAGE_TIME() : -1), szBuffer, (bSound ? GC.getTechInfo(eIndex).getSoundMP() : NULL), MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_TECH_TEXT"));
+				// <advc.201> BtS code restored
+				gDLL->getInterfaceIFace()->addHumanMessage((PlayerTypes)iI, false, (bSound ? GC.getEVENT_MESSAGE_TIME() : -1), szBuffer,
+						(bSound ? GC.getTechInfo(eIndex).getSoundMP() : NULL),
+						MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, // advc.106b
+						NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_TECH_TEXT"));
 				// K-Mod. Play the quote sound always, the "MP" sound is boring.
-				gDLL->getInterfaceIFace()->addHumanMessage((PlayerTypes)iI, false, (bSound ? GC.getEVENT_MESSAGE_TIME() : -1), szBuffer, (bSound ? GC.getTechInfo(eIndex).getSound() : NULL), MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_TECH_TEXT"));
-				// K-Mod end
+				//gDLL->getInterfaceIFace()->addHumanMessage((PlayerTypes)iI, false, (bSound ? GC.getEVENT_MESSAGE_TIME() : -1), szBuffer, (bSound ? GC.getTechInfo(eIndex).getSound() : NULL), MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_TECH_TEXT"));
+				// K-Mod end // </advc.201>
 			}
 		}
 	}
@@ -6116,9 +6125,10 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 							if(!member.isAlive() || member.getTeam() != getID())
 								continue;
 							gDLL->getInterfaceIFace()->addHumanMessage(member.getID(),
-									false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
-									// Play the sound, why not
-									"AS2D_DISCOVERBONUS");
+									false, GC.getEVENT_MESSAGE_TIME(), szBuffer
+									// Don't play the sound
+									//,"AS2D_DISCOVERBONUS"
+									);
 						}
 					}
 				} // </advc.004r>

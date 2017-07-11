@@ -218,6 +218,7 @@ int CvTalkingHeadMessage::getExpireTurn()
 		break;
 	case MESSAGE_TYPE_QUEST:
 	case MESSAGE_TYPE_MAJOR_EVENT:
+	case MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY: // advc.106b
 		// never expires
 		iExpireTurn = GC.getGameINLINE().getGameTurn() + 1;
 		break;

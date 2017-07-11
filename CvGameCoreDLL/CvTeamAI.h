@@ -238,7 +238,8 @@ public: // <advc.104>
 	bool AI_isSneakAttackReady() const; // K-Mod (any team)
 	void AI_setWarPlan(TeamTypes eIndex, WarPlanTypes eNewValue, bool bWar = true);
 
-	int AI_teamCloseness(TeamTypes eIndex, int iMaxDistance = -1) const;
+	int AI_teamCloseness(TeamTypes eIndex, int iMaxDistance = -1,
+			bool considerLandTarget = false) const; // advc.104o
 	
 	bool AI_performNoWarRolls(TeamTypes eTeam);
 	

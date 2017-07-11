@@ -281,6 +281,12 @@ public:
 	int AI_countCargoSpace(UnitAITypes eUnitAI) const;
 
 	int AI_neededExplorers(CvArea* pArea) const;
+	/*  <advc.003b> Now cached. advc.017b adds another call to AI_neededExplorers,
+		and it gets called by several UnitAI members too. Probably no noticeable
+		difference in performance, but who knows. */
+	void AI_updateNeededExplorers();
+	private: int AI_neededExplorersBulk(CvArea const* pArea) const;
+	std::map<int,int> neededExplorersByArea; public: // </advc.003b>
 	int AI_neededWorkers(CvArea* pArea) const;
 	int AI_neededMissionaries(CvArea* pArea, ReligionTypes eReligion) const;
 	int AI_neededExecutives(CvArea* pArea, CorporationTypes eCorporation) const;

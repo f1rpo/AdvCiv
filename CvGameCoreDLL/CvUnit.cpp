@@ -401,6 +401,7 @@ void CvUnit::reset(int iID, UnitTypes eUnit, PlayerTypes eOwner, bool bConstruct
 	m_szName.clear();
 	m_szScriptData ="";
 	initiallyVisible = true; // advc.102
+	m_iLastReconTurn = -1; // advc.029
 
 	if (!bConstructorCall)
 	{
@@ -784,10 +785,17 @@ void CvUnit::doTurn()
 	setMadeAttack(false);
 	setMadeInterception(false);
 
-	setReconPlot(NULL);
+	//setReconPlot(NULL); // advc.029: Handled at end of turn now
 
 	setMoves(0);
 }
+
+// <advc.029>
+void CvUnit::doTurnPost() {
+
+	if(GC.getGameINLINE().getGameTurn() > m_iLastReconTurn)
+		setReconPlot(NULL);
+} // </advc.029>
 
 
 void CvUnit::updateAirStrike(CvPlot* pPlot, bool bQuick, bool bFinish)
@@ -10642,6 +10650,7 @@ void CvUnit::setReconPlot(CvPlot* pNewValue)
 
 			pNewValue->changeReconCount(1); // changeAdjacentSight() tests for getReconCount()
 			pNewValue->changeAdjacentSight(getTeam(), GC.getDefineINT("RECON_VISIBILITY_RANGE"), true, this, true);
+			m_iLastReconTurn = GC.getGameINLINE().getGameTurn(); // advc.029
 		}
 	}
 }
@@ -12440,6 +12449,12 @@ void CvUnit::read(FDataStreamBase* pStream)
 	pStream->Read(&m_iLastMoveTurn);
 	pStream->Read(&m_iReconX);
 	pStream->Read(&m_iReconY);
+	// <advc.029>
+	if(uiFlag < 4) {
+		if(m_iReconX != INVALID_PLOT_COORD && m_iReconY != INVALID_PLOT_COORD)
+			m_iLastReconTurn = GC.getGameINLINE().getGameTurn();
+	}
+	else pStream->Read(&m_iLastReconTurn); // </advc.029>
 	pStream->Read(&m_iGameTurnCreated);
 	pStream->Read(&m_iDamage);
 	pStream->Read(&m_iMoves);
@@ -12538,7 +12553,7 @@ void CvUnit::read(FDataStreamBase* pStream)
 
 void CvUnit::write(FDataStreamBase* pStream)
 {
-	uint uiFlag=3;
+	uint uiFlag=4; // advc.029
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iID);
@@ -12549,6 +12564,7 @@ void CvUnit::write(FDataStreamBase* pStream)
 	pStream->Write(m_iLastMoveTurn);
 	pStream->Write(m_iReconX);
 	pStream->Write(m_iReconY);
+	pStream->Write(m_iLastReconTurn); // advc.029
 	pStream->Write(m_iGameTurnCreated);
 	pStream->Write(m_iDamage);
 	pStream->Write(m_iMoves);

@@ -431,6 +431,7 @@ void CvPlayerAI::updateCacheData()
 	{
 		// AI_updateCloseBorderAttitudeCache();
 		// AI_updateAttitudeCache(); // attitude of this player is relevant to other players too, so this needs to be done elsewhere.
+		AI_updateNeededExplorers(); // advc.003b
 		AI_calculateAverages();
 		AI_updateVictoryStrategyHash();
 		//if (!isHuman()) // advc.104: Human strategies are interesting to know for
@@ -980,8 +981,12 @@ bool CvPlayerAI::negotiatePeace(PlayerTypes civId, int theirBenefit, int ourBene
 		pDiplo->setOurOfferList(theirList);
 		pDiplo->setTheirOfferList(ourList);
 		gDLL->beginDiplomacy(pDiplo, civId);
-//advc.test:
+//advc.test, advc.134a:
 FAssertMsg(getWPAI.isEnabled(), "AI sent peace offer; if it doesn't appear, it could be b/c of a change in circumstances, but more likely advc.134a isn't working as intended");
+/*  Note: The diplo msg gets through w/o problems if the OfferLists are left empty.
+	The diplo comment will still say to "end the bloodshed", and if the player
+	accepts, a peace treaty is signed.
+	But it's no use if the AI can't offer reparations. */
 	}
 	else GC.getGameINLINE().implementDeal(getID(), civId, &ourList, &theirList);
 	return true;
@@ -1836,8 +1841,8 @@ void CvPlayerAI::AI_makeProductionDirty()
 /************************************************************************************************/
 void CvPlayerAI::AI_conquerCity(CvCity* pCity)
 {
-	bool bRaze = false;
-
+	bool bRaze = false; // advc.116
+	bool cultureVict = false; 
 	if (canRaze(pCity))
 	{
 	    int iRazeValue = 0;
@@ -1855,15 +1860,31 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)
 				if( 2*pLoopCity->getCulture(pCity->getPreviousOwner()) > pLoopCity->getCultureThreshold(GC.getGameINLINE().culturalVictoryCultureLevel()) )
 				{
 					iHighCultureCount++;
-					if( iHighCultureCount >= GC.getGameINLINE().culturalVictoryNumCultureCities() )
-					{
-						//Raze city enemy needs for cultural victory unless we greatly over power them
-						logBBAI( "  Razing enemy cultural victory city" );
-						bRaze = true;
-					}
+			// <advc.116> Count them all before deciding what to do
 				}
 			}
-		}
+			int victTarget = GC.getGameINLINE().culturalVictoryNumCultureCities();
+			// Razing won't help if they have many high-culture cities
+			if(iHighCultureCount == victTarget || iHighCultureCount == victTarget + 1) {
+				cultureVict = true;
+				CvTeam const& prevTeam = TEAMREF(pCity->getPreviousOwner());
+				// Don't raze if they're unlikely to reconquer it
+				double powRatio = prevTeam.getPower(true) /
+						(0.1 + GET_TEAM(getTeam()).getPower(false));
+				if(powRatio > 0.80)
+					bRaze = true;
+				if(!bRaze) {
+					int attStr = AI_localAttackStrength(pCity->plot(),
+							prevTeam.getID(), DOMAIN_LAND, 4);
+					int defStr = AI_localDefenceStrength(pCity->plot(), getTeam(),
+							DOMAIN_LAND, 3);
+					if(5 * attStr > 4 * defStr)
+						bRaze = true;
+					if(bRaze)
+						logBBAI( "  Razing enemy cultural victory city" );
+					}
+				} // </advc.116>
+			}
 		// <advc.122>
 		if(!isBarbarian() && !pCity->isHolyCity() && !pCity->isEverOwned(getID()) &&
 				!pCity->hasActiveWorldWonder() && pCity->isAwfulSite(getID()))
@@ -1871,22 +1892,25 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)
 		if( !bRaze )
 		{
 			// Reasons to not raze
-			if( (getNumCities() <= 1) || (getNumCities() < 5 && iCloseness > 0) )
-			{
-				if( gPlayerLogLevel >= 1 )
+			if(!cultureVict) { // advc.116
+				if( (getNumCities() <= 1) || (getNumCities() < 5 && iCloseness > 0) )
 				{
-					logBBAI("    Player %d (%S) decides not to raze %S because they have few cities", getID(), getCivilizationDescription(0), pCity->getName().GetCString() );
+					if( gPlayerLogLevel >= 1 )
+					{
+						logBBAI("    Player %d (%S) decides not to raze %S because they have few cities", getID(), getCivilizationDescription(0), pCity->getName().GetCString() );
+					}
 				}
-			}
-			else if( AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3) && GET_TEAM(getTeam()).AI_isPrimaryArea(pCity->area()) )
-			{
-				// Do not raze, going for domination
-				if( gPlayerLogLevel >= 1 )
+				else if( AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3) && GET_TEAM(getTeam()).AI_isPrimaryArea(pCity->area()) )
 				{
-					logBBAI("    Player %d (%S) decides not to raze %S because they're going for domination", getID(), getCivilizationDescription(0), pCity->getName().GetCString() );
-				}
+					// Do not raze, going for domination
+					if( gPlayerLogLevel >= 1 )
+					{
+						logBBAI("    Player %d (%S) decides not to raze %S because they're going for domination", getID(), getCivilizationDescription(0), pCity->getName().GetCString() );
+					}
+				} // <advc.116>
 			}
-			else if( isBarbarian() )
+			//else // </advc.116>
+			if( isBarbarian() )
 			{
 				if ( !(pCity->isHolyCity()) && !(pCity->hasActiveWorldWonder()))
 				{
@@ -1981,7 +2005,12 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)
 							iRazeValue += 30;
 						} */
 						// K-Mod
-						if (pNearestTeamAreaCity == NULL)
+						if (pNearestTeamAreaCity == NULL
+								/*  <advc.300> The +15 is bad enough if we don't have to worry about
+									attacks against the city */
+									&& pCity->getPreviousOwner() != BARBARIAN_PLAYER
+									&& pCity->area()->getNumCities() > 1)
+									// </advc.300>
 						{
 							if (bTotalWar && GET_TEAM(GET_PLAYER(pCity->getPreviousOwner()).getTeam()).AI_isPrimaryArea(pCity->area()))
 								iRazeValue += 5;
@@ -1989,7 +2018,7 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)
 								iRazeValue += 30;
 						}
 						// K-Mod end
-						else
+						else if(pNearestTeamAreaCity != NULL) // advc.300
 						{
 							int iDistance = plotDistance(pCity->getX_INLINE(), pCity->getY_INLINE(), pNearestTeamAreaCity->getX_INLINE(), pNearestTeamAreaCity->getY_INLINE());
 							iDistance -= DEFAULT_PLAYER_CLOSENESS + 2;
@@ -2959,6 +2988,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	int iBaseProduction = 0; // K-Mod. (used to devalue cities which are unable to get any production.)
 
 	bool bNeutralTerritory = true;
+	bool firstColony = false; // advc.040
 
 	if (!canFound(iX, iY))
 	{
@@ -2969,7 +2999,15 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	CvArea* pArea = pPlot->area();
 	bool bIsCoastal = pPlot->isCoastalLand(GC.getMIN_WATER_SIZE_FOR_OCEAN());
 	int iNumAreaCities = pArea->getCitiesPerPlayer(getID());
-
+	// <advc.040>
+	if(bIsCoastal && iNumAreaCities <= 0 && !isBarbarian() &&
+			(pPlot->isFreshWater() ||
+			/*  Don't apply special rules for first colony to Tundra and Ice b/c
+				these are likely surrounded by more (unrevealed) Tundra and Ice.
+				(non-river Desert also excluded, perhaps unfortunately.) */
+			pPlot->calculateNatureYield(YIELD_FOOD, getTeam(), true) +
+			pPlot->calculateNatureYield(YIELD_PRODUCTION, getTeam(), true) > 1))
+		firstColony = true; // </advc.040>
 	bool bAdvancedStart = (getAdvancedStartPoints() >= 0);
 
 	if (!kSet.bStartingLoc && !bAdvancedStart)
@@ -3088,7 +3126,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	std::vector<int> viBonusCount(GC.getNumBonusInfos(), 0);
 
 	int iBadTile = 0;
-
+	int unrev = 0, revDecentLand = 0; // advc.040
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 	{
 		CvPlot* pLoopPlot = plotCity(iX, iY, iI);
@@ -3132,9 +3170,16 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				}
 			}
 			// K-Mod end
+			// <advc.040>
+			else if(firstColony && pLoopPlot->isRevealed(getTeam()))
+				revDecentLand++;
+			if(firstColony && !pLoopPlot->isRevealed(getTeam()))
+				unrev++; // </advc.040>
 		}
-	}
-
+	} /* <advc.040> Make sure we do naval exploration near the spot before sending
+		 a Settler */
+	if(revDecentLand < 4)
+		firstColony = false; // </advc.040>
 	iBadTile /= 2;
 
 	if (!kSet.bStartingLoc)
@@ -3144,7 +3189,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			)
 		{
 			bool bHasGoodBonus = false;
-
+			int freshw = (pPlot->isFreshWater() ? 1 : 0); // advc.031
 			for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 			{
 				CvPlot* pLoopPlot = plotCity(iX, iY, iI);
@@ -3169,13 +3214,17 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 									bHasGoodBonus = true;
 									break;
 								}
-							}
+							} // <advc.031>
+							if(pLoopPlot->isFreshWater())
+								freshw++; // </advc.031>
 						}
 					}
 				}
 			}
 
-			if (!bHasGoodBonus)
+			if (!bHasGoodBonus
+					&& freshw < 3 // advc.031
+					&& !firstColony) // advc.040
 			{
 				return 0;
 			}
@@ -3186,14 +3235,17 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	int iTeammateTakenTiles = 0;
 	int iHealth = 0;
 	int iValue = 800; // was 1000
-
+	// <advc.040>
+	if(firstColony)
+		iValue += 40 * std::min(5, unrev); // </advc.040>
 	int iYieldLostHere = 0;
 
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 	{
 		CvPlot* pLoopPlot = plotCity(iX, iY, iI);
-		if(isBarbarian() && !::isInnerRing(pLoopPlot, pPlot)) continue; // advc.303
-
+		// <advc.303>
+		if(isBarbarian() && !::isInnerRing(pLoopPlot, pPlot))
+			continue; // </advc.303>
 		if (pLoopPlot == NULL)
 		{
 			iTakenTiles++;
@@ -3215,9 +3267,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 
 			FeatureTypes eFeature = pLoopPlot->getFeatureType();
 			BonusTypes eBonus = pLoopPlot->getBonusType((kSet.bStartingLoc
-				  /* advc.108: Don't factor in unrevealed bonuses. Sadly, this
-					 will skip all bonuses that aren't always revealed, even
-					 when starting in a later era. */
+				  // advc.108: Don't factor in unrevealed bonuses
 				  && GC.getGame().getNormalizationLevel() > 1)
 				? NO_TEAM : getTeam());
 			ImprovementTypes eBonusImprovement = NO_IMPROVEMENT;
@@ -3494,8 +3544,11 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 							iSpecialCommerce += pLoopPlot->calculateBestNatureYield(YIELD_COMMERCE, getTeam()) + GC.getImprovementInfo(eBonusImprovement).getImprovementBonusYield(eBonus, YIELD_COMMERCE);
 						}
 
-						if (pLoopPlot->isWater())
-							iValue += (bIsCoastal ? 0 : -800); // (was ? 100 : -800)
+						/*if (pLoopPlot->isWater())
+							iValue += (bIsCoastal ? 0 : -800);*/ // (was ? 100 : -800)
+						// <advc.031> Replacing the above
+						if(pLoopPlot->isWater() && !bIsCoastal)
+							iValue -= 100; // </advc.031>
 					}
 				} // end if usable bonus
 				if (eBonusImprovement == NO_IMPROVEMENT && iI != CITY_HOME_PLOT)
@@ -3837,7 +3890,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 
 			if (pPlot->getBonusType() != NO_BONUS)
 			{
-				iValue /= 2;
+				//iValue /= 2;
+				iValue = ::round(0.7 * iValue); // advc.031: Replacing the above
 			}
 		}
 	}
@@ -7944,7 +7998,7 @@ int CvPlayerAI::AI_getAttitudeVal(PlayerTypes ePlayer, bool bForced) const
 			return std::min(0, GET_TEAM(ourTeam.getMasterTeam()).
 					AI_getAttitudeVal(TEAMID(ePlayer)));
 		if(TEAMREF(ePlayer).isCapitulated()) {
-			if(TEAMREF(ePlayer).isVassal(ourTeam.getID()))
+			if(TEAMREF(ePlayer).getMasterTeam() == ourTeam.getMasterTeam())
 				return 5; // Pleased
 			return ourTeam.AI_getAttitudeVal(GET_PLAYER(ePlayer).getMasterTeam());
 		}
@@ -8614,10 +8668,13 @@ int CvPlayerAI::AI_getTeamSizeAttitude(PlayerTypes ePlayer) const {
 // <advc.130c>
 int CvPlayerAI::AI_getRankDifferenceAttitude(PlayerTypes ePlayer) const {
 
+	CvGame& g = GC.getGameINLINE();
+	// No hate if they're 150% ahead
+	if(g.getPlayerScore(ePlayer) * 10 > g.getPlayerScore(getID()) * 15)
+		return 0;
 	// Don't count ranks of unknown civs
 	int iRankDifference = knownRankDifference(ePlayer);
 	CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(getPersonalityType());
-	CvGame& g = GC.getGameINLINE();
 	/*  This was "+ 1" in BtS, which is arguably a bug.
 		Continue using CivPlayersEverAlive although iRankDifference is now based
 		only on known civs. */
@@ -13078,8 +13135,31 @@ int CvPlayerAI::AI_countCargoSpace(UnitAITypes eUnitAI) const
 
 
 int CvPlayerAI::AI_neededExplorers(CvArea* pArea) const
-{
-	FAssert(pArea != NULL);
+{	// <advc.003b> Body moved into AI_neededExplorersBulk
+	if(pArea == NULL) {
+		FAssert(pArea != NULL);
+		return 0;
+	}
+	std::map<int,int>::const_iterator r = neededExplorersByArea.find(pArea->getID());
+	if(r == neededExplorersByArea.end())
+		return 0; // Small area w/o cached value; no problem.
+	return r->second;
+}
+
+void CvPlayerAI::AI_updateNeededExplorers() {
+
+	neededExplorersByArea.clear();
+	CvMap& m = GC.getMapINLINE(); int dummy;
+	for(CvArea* a = m.firstArea(&dummy); a != NULL; a = m.nextArea(&dummy)) {
+		int id = a->getID();
+		// That threshold should also be OK for land areas
+		if(a->getNumTiles() > GC.getLAKE_MAX_AREA_SIZE())
+			neededExplorersByArea[a->getID()] = AI_neededExplorersBulk(a);
+		// Nothing stored for small areas; AI_neededExplorers will return 0.
+	}
+}
+// Body cut and pasted from AI_neededExplorers
+int CvPlayerAI::AI_neededExplorersBulk(CvArea const* pArea) const {
 
 	// advc.305: Be sure not to build Workboats for exploration
 	if(isBarbarian()) return 0;
@@ -13130,9 +13210,7 @@ int CvPlayerAI::AI_neededExplorers(CvArea* pArea) const
 		}
 	}
 	return iNeeded;
-
-}
-
+} // </advc.003b>
 
 /* advc.003, advc.117, advc.121: This function appears to be expensive:
    countUnimprovedBonuses loops over all plots. Called each time a
@@ -19279,6 +19357,20 @@ void CvPlayerAI::read(FDataStreamBase* pStream)
 	// K-Mod end
 	//pStream->Read(MAX_PLAYERS, m_aiCloseBordersAttitudeCache);
 	pStream->Read(MAX_PLAYERS, &m_aiCloseBordersAttitudeCache[0]); // K-Mod
+	// <advc.003b>
+	if(uiFlag >= 8) {
+		int sz = 0;
+		pStream->Read(&sz);
+		for(int i = 0; i < sz; i++) {
+			int first = -1, second = 0;
+			pStream->Read(&first);
+			pStream->Read(&second);
+			FAssert(first >= 0);
+			neededExplorersByArea[first] = second;
+		}
+	} else if(isAlive())
+		AI_updateNeededExplorers();
+	// </advc.003b>
 	// <advc.104>
 	if(isEverAlive() && !isBarbarian() && !isMinorCiv()) {
 		wpai.read(pStream); 
@@ -19303,7 +19395,7 @@ void CvPlayerAI::write(FDataStreamBase* pStream)
 	uint uiFlag=0;
 */
 	// Flag for type of save
-	uint uiFlag=7;
+	uint uiFlag=8; // advc.003b: 8 for neededExplorersByArea
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iPeaceWeight);
@@ -19387,6 +19479,13 @@ void CvPlayerAI::write(FDataStreamBase* pStream)
 	// K-Mod end
 	//pStream->Write(MAX_PLAYERS, m_aiCloseBordersAttitudeCache);
 	pStream->Write(MAX_PLAYERS, &m_aiCloseBordersAttitudeCache[0]); // K-Mod
+	// <advc.003b>
+	pStream->Write((int)neededExplorersByArea.size());
+	for(std::map<int,int>::const_iterator it = neededExplorersByArea.begin();
+			it != neededExplorersByArea.end(); it++) {
+		pStream->Write(it->first);
+		pStream->Write(it->second);
+	} // </advc.003b>
 	// <advc.104>
 	if(isEverAlive() && !isBarbarian() && !isMinorCiv())
 		wpai.write(pStream); // </advc.104>
@@ -21690,6 +21789,16 @@ void CvPlayerAI::AI_updateStrategyHash()
 
 		// Do we think our relations are bad?
 		int iCloseness = AI_playerCloseness((PlayerTypes)iI, DEFAULT_PLAYER_CLOSENESS);
+		// <advc.022>
+		if(!AI_hasSharedPrimaryArea(kLoopPlayer.getID())) {
+			int noSharePenalty = 150;
+			EraTypes loopEra = kLoopPlayer.getCurrentEra();
+			if(loopEra >= 4)
+				noSharePenalty -= 50;
+			if(loopEra >= 5)
+				noSharePenalty -= 50;
+			iCloseness = std::max(0, iCloseness - noSharePenalty);
+		} // </advc.022>
 		// if (iCloseness > 0)
 		if (iCloseness > 0 || bCitiesInPrime) // K-Mod
 		{
@@ -24334,7 +24443,7 @@ int CvPlayerAI::AI_getMinFoundValue() const
 	iValue *= iNetCommerce;
 	iValue /= std::max(std::max(1, iNetCommerce / 4), iNetCommerce - iNetExpenses);
 
-	// advc.105: Don't do this at all.
+	// advc.105: Don't do this at all
 	/*if (GET_TEAM(getTeam()).getAnyWarPlanCount(1) > 0)
 	{
 		iValue *= 2;
@@ -24358,7 +24467,10 @@ int CvPlayerAI::AI_getMinFoundValue() const
 	// But we're really going to have to fudge it anyway, because the city value is in arbitrary units
 	// lets just say each gold per turn is worth roughly 60 'value points'.
 	// In the future, this could be AI flavour based.
-	iValue += iNumCitiesPercent * getNumCities() * 60 / 100;
+	iValue += (iNumCitiesPercent * getNumCities() * //60) / 100;
+			/*  advc.130v: We may not be paying much for cities, but our master
+				will have to pay as well. */
+			(60 + (GET_TEAM(getTeam()).isCapitulated() ? 33 : 0))) / 100;
 	// K-Mod end
 	
 	return iValue;

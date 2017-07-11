@@ -24,7 +24,7 @@ WarAndPeaceCache::WarAndPeaceCache() {
 	bHasAggressiveTrait = bHasProtectiveTrait = canScrub = false;
 	trainDeepSeaCargo = trainAnyCargo = false;
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-		wwAnger[i] = threatRatings[i] = -1;
+		wwAnger[i] = threatRatings[i] = relativeNavyPow[i] = -1;
 		located[i] = false;
 		nReachableCities[i] = targetMissionCounts[i] = vassalTechScores[i] =
 				vassalResourceScores[i] = adjacentLand[i] = -1;
@@ -67,6 +67,7 @@ void WarAndPeaceCache::clear(bool beforeUpdate) {
 		vassalTechScores[i] = 0;
 		vassalResourceScores[i] = 0;
 		adjacentLand[i] = 0;
+		relativeNavyPow[i] = 0;
 		wwAnger[i] = 0;
 	}
 	nReachableCities[ownerId] = GET_PLAYER(ownerId).getNumCities();
@@ -93,7 +94,10 @@ void WarAndPeaceCache::clear(bool beforeUpdate) {
 // Called when saving
 void WarAndPeaceCache::write(FDataStreamBase* stream) {
 
-	stream->Write(ownerId);
+	int savegameVersion = 1;
+	/*  I hadn't thought of a version number in the initial release. Need
+		to fold it into ownerId now to avoid breaking compatibility. */
+	stream->Write(ownerId + 100 * savegameVersion);
 	int n = (int)v.size();
 	stream->Write(n);
 	for(int i = 0; i < n; i++)
@@ -104,6 +108,7 @@ void WarAndPeaceCache::write(FDataStreamBase* stream) {
 	stream->Write(MAX_CIV_PLAYERS, vassalTechScores);
 	stream->Write(MAX_CIV_PLAYERS, vassalResourceScores);
 	stream->Write(MAX_CIV_PLAYERS, adjacentLand);
+	stream->Write(MAX_CIV_PLAYERS, relativeNavyPow);
 	stream->Write(MAX_CIV_PLAYERS, wwAnger);
 	stream->Write(MAX_CIV_TEAMS, pastWarScores);
 	stream->Write(MAX_CIV_TEAMS, sponsorshipsAgainst);
@@ -135,11 +140,11 @@ void WarAndPeaceCache::write(FDataStreamBase* stream) {
 // Called when loading
 void WarAndPeaceCache::read(FDataStreamBase* stream) {
 
-	{ // Important to set onwerId first b/c clear uses it
-		int tmp;
-		stream->Read(&tmp);
-		ownerId = (PlayerTypes)tmp;
-	}
+	int tmp;
+	stream->Read(&tmp);
+	int savegameVersion = tmp / 100;
+	ownerId = (PlayerTypes)(tmp % 100);
+	// Important to set onwerId first b/c clear uses it
 	clear();
 	int n;
 	stream->Read(&n);
@@ -154,6 +159,8 @@ void WarAndPeaceCache::read(FDataStreamBase* stream) {
 	stream->Read(MAX_CIV_PLAYERS, vassalTechScores);
 	stream->Read(MAX_CIV_PLAYERS, vassalResourceScores);
 	stream->Read(MAX_CIV_PLAYERS, adjacentLand);
+	if(savegameVersion >= 1)
+		stream->Read(MAX_CIV_PLAYERS, relativeNavyPow);
 	stream->Read(MAX_CIV_PLAYERS, wwAnger);
 	stream->Read(MAX_CIV_TEAMS, pastWarScores);
 	stream->Read(MAX_CIV_TEAMS, sponsorshipsAgainst);
@@ -190,6 +197,8 @@ void WarAndPeaceCache::read(FDataStreamBase* stream) {
 	stream->Read(&nNonNavyUnits);
 	stream->Read(&totalAssets);
 	stream->Read(&goldPerProduction);
+	if(savegameVersion < 1)
+		updateRelativeNavyPower();
 }
 
 /*  Called each turn. Some data are also updated throughout the turn, e.g. through
@@ -205,11 +214,11 @@ void WarAndPeaceCache::update() {
 	updateTotalAssetScore();
 	updateLatestTurnReachableBySea();
 	updateTargetMissionCounts();
-	for(size_t i = 0; i < militaryPower.size(); i++)
-		militaryPower[i]->updateTypicalUnit();
+	updateTypicalUnits();
 	updateThreatRatings();
 	updateVassalScores();
 	updateAdjacentLand();
+	updateRelativeNavyPower();
 	updateGoldPerProduction();
 	updateWarAnger();
 	updateCanScrub();
@@ -383,11 +392,15 @@ void WarAndPeaceCache::updateWarUtilityIgnDistraction(TeamTypes targetId) {
 	WarEvalParameters params(agent.getID(), targetId, report, true);
 	WarEvaluator eval(params);
 	WarPlanTypes wp = agent.AI_getWarPlan(targetId);
+	int prepTime = 0;
 	// Just limited war and naval based on AI_isLandTarget is good enough here
-	if(wp == NO_WARPLAN)
+	if(wp == NO_WARPLAN) {
 		wp = WARPLAN_PREPARING_LIMITED;
+		if(!agent.warAndPeaceAI().isPushover(targetId))
+			prepTime = 5;
+	}
 	warUtilityIgnDistraction[targetId] = eval.evaluate(wp,
-			!agent.AI_isLandTarget(targetId));
+			!agent.AI_isLandTarget(targetId), prepTime);
 }
 
 void WarAndPeaceCache::updateWarAnger() {
@@ -499,6 +512,13 @@ int WarAndPeaceCache::numAdjacentLandPlots(PlayerTypes civId) const {
 	if(civId == NO_PLAYER)
 		return -1;
 	return adjacentLand[civId];
+}
+
+double WarAndPeaceCache::relativeNavyPower(PlayerTypes civId) const {
+
+	if(civId == NO_PLAYER)
+		return -1;
+	return relativeNavyPow[civId];
 }
 
 int WarAndPeaceCache::pastWarScore(TeamTypes tId) const {
@@ -713,6 +733,37 @@ void WarAndPeaceCache::updateAdjacentLand() {
 		if(p->isAdjacentPlayer(ownerId, true))
 			adjacentLand[o]++;
 	}
+}
+
+void WarAndPeaceCache::updateRelativeNavyPower() {
+
+	/*PROFILE_FUNC();
+	for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
+		PlayerTypes civId = getWPAI.properCivs()[i];*/
+		/*  Tbd.:
+			Exact result: (their navy power) /
+						  (their total power from navy, army, home guard)
+			Intelligence ratio (100% assume we know all their positions;
+			0 we know nothing, in particular if !TEAMREF(civId).isHasMet(TEAMID(ownerId))).
+			-100%
+			+100% * #(their cities visible to us) / #(their cities)
+			+100% * #(their cities revealed to us) / #(their cities)
+				+25% if OB, otherwise
+				+max{0, -25% + 50% * #(our spies)/ #(cities revealed to us)}
+			+10% * (our era) + 5% * (war plan age)
+				+range(closeness%, 0, 100%) if same capital area, otherwise
+				+#(their coastal cities revealed to us) / #(their cities) *
+						(50 + 10 * #(our sea patrols) + #(our explorers))
+			Result guessed based on revealed info on map:
+			(0.7 * #(their revealed coastal cities) / #(their revealed cities))
+			/ (2 + #(rivals on their continent)
+			Watch out for div by 0.
+			Return average weighted by int. ratio of exact and guessed result.
+			Apply result after copying of the exact values in InvasionGraph, and
+			in WarUtilityAspect::LossesFromBlockade.
+			Int. ratio might have further uses in the future (would have to
+			store it separately then though). */
+	//}
 }
 
 /* Copied and adapted from CvPlayerAI::AI_enemyTargetMissions.
@@ -986,6 +1037,12 @@ void WarAndPeaceCache::addTeam(TeamTypes otherId) {
 			}
 		}
 	}
+}
+
+void WarAndPeaceCache::updateTypicalUnits() {
+
+	for(size_t i = 0; i < militaryPower.size(); i++)
+		militaryPower[i]->updateTypicalUnit();
 }
 
 void WarAndPeaceCache::updateMilitaryPower(CvUnitInfo const& u, bool add) {

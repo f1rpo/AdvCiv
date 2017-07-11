@@ -93,7 +93,8 @@ public:
 		else if (GC.getGameINLINE().getActivePlayer() == ePlayer)
 		{
 			// this means ePlayer is human, but currently using auto-play
-			if (eType == MESSAGE_TYPE_MAJOR_EVENT || eType == MESSAGE_TYPE_CHAT)
+			if (eType == MESSAGE_TYPE_MAJOR_EVENT || eType == MESSAGE_TYPE_CHAT ||
+					eType == MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY) // advc.106b
 				addMessage(ePlayer, bForce, iLength, szString, pszSound, eType, NULL, NO_COLOR, -1, -1, false, false);
 		}
 	}

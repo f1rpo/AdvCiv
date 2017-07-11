@@ -1388,6 +1388,7 @@ protected:
 	WarTradeAlert warTradeAlert; // advc.210a
 	RevoltAlert revoltAlert; // advc.210b
 	// <advc.106b>
+	std::vector<CvTalkingHeadMessage*> majorMsgs;
 	int iNewMessages;
 	void postProcessBeginTurnEvents();
 	// </advc.106b>

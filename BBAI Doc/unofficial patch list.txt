@@ -1,0 +1,170 @@
+Outstanding issues:
+
+-  Issues with "enemy spotted near"?
+-  Espionage slider at 100% for human player?
+-  Adjust where new capital is placed after loss?
+-  Very first turn players skipped if shuffle teams selected
+-  Diplomacy text to clarify when AI declines trades because of relations with teammates, vassals
+-  Tech score is summed in team score though tech is shared, producing bias towards teams with more players
+-  Path planning issues for groups with some commandos
+-  What else should scale by game speed?  Diplomacy has biggest effect, but may be too big for here ...
+-  Air bombing unowned land: http://forums.civfanatics.com/showpost.php?p=8794715&postcount=11
+
+------------------------------------------
+
+Unofficial Patch Change List
+
+Version 1.6 changes:
+
+- CvPlayerAI::AI_commerceWeight - Standardized culture slider thresholds for detecting when human player is going for cultural victory
+- CvTeam::doTurn - Removed unnecessary code (thanks EF)
+- CvCityAI::AI_yieldValue - Resolved issues with rounding off small commerce amounts leading to working suboptimal tiles/specialists in some circumstances (reported by Caboose)
+- CvPlot::calculateImprovementYieldChange - Fixed AI valuation of improvements causing negative yields (for mods) (thanks Afforess)
+- CvGameTextMgr::assignFontIds - Removes an erroneous extra increment command that was breaking GameFont.tga files when using exactly 49 or 74 resource types in a mod (thanks LunarMongoose)
+- CvGameTextMgr::setPlotHelp - Can now handle plots with extra healing powers (thanks LunarMongoose)
+- CvGameTextMgr::setFeatureHelp - Now displays feature damage/healing (thanks LunarMongoose)
+- CvUnit::healTurns and CvUnit::canHeal - Now handles damage and healing from plot features (thanks LunarMongoose)
+- Added CIV4GameText_UnofficialPatch.xml to mod files
+- CvGame::doTurn - Fixed bug with simultaneous team turns when team 0 is dead (thanks snarko)
+- CvDLLWidgetData::parseActionHelp - Now displays that improvement will be destroyed when removing feature (thanks EF)
+- CvGameTextMgr::buildBuildingRequiresString - Adds text if building is required in city for wonder, like hospital for red cross (thanks EF)
+- CvCity::popOrder - Fix bug with production decay with multiple queued units (thanks jesusin and EF)
+- CvUnit::canLoad - Reinstated improved MongooseSDK fix to not show load button for unit already on transport if there is no other transport it could switch to (thanks LunarMongoose)
+- CvUnit::canPillage - Fix bug where all terrain units could pillage resources when on a transport (thanks LunarMongoose)
+- CvPlayerAI::AI_executiveValue - Fixed bug causing AI not to use executives it had produced in some circumstances (thanks denev)
+- CvPlayerAI::AI_cultureVictoryTechValue - Fixed bug where AI ignored buildings with obsolete safe commerce (thanks Fuyu)
+- CvInfo (8 places) - Added booleans to record if a building has a SpecialistYieldChange or BonusYieldModifier defined (for next change)
+- CvGameTextMgr::setBuildingHelp - Using above, improved response time of city screen (thanks Afforess)
+- CvPlayerAI::AI_bestTech - Fix bug where iTempValue never added to iValue for building maintenance
+- CvPlayerAI::AI_bestTech - AI now also counts ObsoleteSafeCommerce culture for cultural buildings
+
+
+Version 1.50 changes:
+
+- CvCityAI::AI_buildingValueThreshold - Fixed bug causing AI cities to over value buildings which unlock specialists in many circumstances when picking what to build
+- CyInfoInterface2 - Fixed issue with "getHappiness" for improvements (thanks NotSoGood)
+- CvPlayer::canFound - Changed handling of founding on water tiles so that Python callback has final say if it is turned on
+- CvPlayer::removeBuildingClass - Fixed issue with removing buildings when building class was maxed out for some mods (thanks EF)
+- CvPlot::doImprovement - Minor efficiency improvement for existing game speed scaling fix
+- CvPlot::doImprovment & CvPlot::doFeature - Now scale accoding to getVictoryDelayPercent, which is more appropriate
+- CvUnitAI::AI_specialSeaTransportMissionary - Fixed minor bug in valuation for executives
+- CvPlayerAI::AI_targetGold - Fixed bug causing AI to not bother with budgeting for expenses for first 40 turns of scenarios and advanced start games
+- CvCity::init - Reverted to standard BTS code where floodplains are removed when a city is founded
+- CvCity::kill - Replace floodplain after city is destroyed
+- CvTeam::doTurn - Added barbarian passive tech fix from Mongoose SDK
+- CvPlayerAI::AI_changePeacetimeTradeValue and CvPlayerAI::AI_changePeacetimeGrantValue - AIs you haven't met yet will no longer get angry at you for trading with their worst enemy (thanks Sephi)
+- CvPlayerAI::AI_getStrategyHash - Fixed several bugs where player ID was used where team ID was intended
+- CvPlayerAI::AI_targetCityValue - Fixed issues with valuation of cities with inactive world wonders, multi-holy-cities
+- CvCity - Added function getNumActiveWorldWonders()
+- CvPlayerAI::AI_commerceWeight - Improved valuation of generating culture in human player cities when culture bar is > 50% (ie, player probably going for cultural victory)
+- CyInfoInterface1 - Added missing CvUnitInfo::isOnlyDefensive (thanks Afforess)
+- CvCityAI::AI_calculateCulturePressure and CvCityAI::AI_playerCloseness - Fixed incorrect usage of getID() (thanks denev)
+- CvPlayerAI::AI_foundValue - Added missing division for iClaimThrehsold (thanks denev)
+- CvTeam::shareCounters - Fixed bug causing inappropriate overflow research and effectively free techs when forming a Permanent Alliance
+- CIV4GameText_Events_BTS.xml - Fixed Italian translation for TXT_KEY_EVENTTRIGGER_MOTOR_OIL and usage of Amun-Re (thanks jsbrigo)
+- Popup.py - Fixed X versus iX in addPythonButtonXY(), and (maybe) fixed reference to non-existent variable in addTitleData() (thanks EF)
+- CvCity::getProductionModifier (three versions of this function) - Changed to allow mods to create negative production modifiers (thanks NotSoGood)
+- CvUnit::rangeStrike - Fixed bug with determining if can range strike, and potential OOS from range strikes (thanks God-Emperor)
+- CvUnit::canRangeStrikeAt - Added check for whether target plot is visible (thanks God-Emperor)
+
+
+Version 1.40 changes:
+
+- CvGameTextMgr::setBuildingHelp - Fixed issue in mods with display of exposing spies text for buildings which lower espionage defense (thanks Afforess)
+- CvPlayer and CvDLLWidgetData - Fixed bug where you could acquire unlimited free techs from Oracle or Liberalism (thanks Emperor Fool)
+- CvCity - Fixed extra overflow production bug when stopping culture process after border pop (thanks denev)
+- CvUnit::canLoadUnit - Rolled back change blocking switching cargo among transports
+- CIV4BuildingInfos.xml - Fixed incorrect sound for building supermarket, added missing sound for building coal plant (thanks Arian)
+
+
+Version 1.30 changes:
+
+- CvPlayerAI::AI_bestTech - Fixed potential rare crash bug in mods where units with no transport capacity can upgrade to units with transport capacity (thanks Afforess)
+- CvGameTextMgr::getOtherRelationsString - Fixed potential issue revealing names of civs you haven't met yet (thanks Emperor Fool)
+- CvCity::popOrder - Fixed issue introduced by prior attempt to fix handling of buildings with player limits.  Building classes which set iMaxPlayerInstances should now work correctly regardless of what iExtraPlayerInstances is set to. (thanks ztjal)
+- CvPlayerAI::AI_civicValue - Fixed crash bug in multi-player simultaneous turns games created by necessary re-timing of AI_doSplit (thanks to TheOnlyDJCat for debugging help)
+- CvPlayer::canDoCivics - Same as above
+- CvUnit::maxCombatStr - Handled very rare case where pointer might not be properly set when loading simultaneous turns game in hotseat
+- CvPlayer::canFound - Fixed several issues for mods using the python callback to allow founding cities on water tiles (thanks Emperor Fool)
+- CvPlayerAI::AI_getHealthWeight - Fixed bug for mods where civics with negative iExtraHealth were evaluated incorrectly (thanks phungus420)
+- CvPlayerAI::AI_getHappinessWeight - Fixed bug for mods where civics with negative happiness effects from troops, largest cities, or war weariness were evaluated incorrectly
+- CvPlayerAI::AI_civicValue - Changes so that civics valuation works properly with above changes
+- CvCity::setBuildingHealthChange - Fixed several copy/paste and logic bugs affecting bonus building health from events, especially after city conquest (thanks Emperor Fool)
+- CvCity::setBuildingHappyChange - Fixed several logic bugs affecting bonus building health from events, especially after city conquest
+- CvPlot::doFeature - Plot feature (Forest/jungle) appearance now scales by game speed
+- CvPlot::doImprovement - Bonus appearance in mines now scales by game speed
+- CvAdvisorUtils.py - Blocked city liberation popup if you haven't met liberation player (reported by r_rolo1)
+- CvPlayer::canTradeItem - You can now ask AI members of your own team to change religion or civics (thanks denev)
+- CIV4EventTriggerInfos.xml - EVENTTRIGGER_SPY_DISCOVERED now requires you have a spy, fixes issue where event would fire with no espionage enabled and your only choice was war
+- CvCity::init - Building a city on floodplains no longer removes floodplains, they'll still be there if city is destroyed (from Mongoose SDK)
+- CvUnit::convert - Fixed potential issue in mods where units with transport capacity might upgrade to units without (from Mongoose SDK)
+- CvUnit::canLoadUnit - Block units which are on another transport from taking on cargo of their own (from Mongoose SDK)
+- CvUnit::shouldLoadOnMove - Fixed issue with all terrain land units moving onto water tiles with transports in them (from Mongoose SDK)
+- CvUnit::canAirDefend - Land units which are on transports can no longer defend against air attacks (from Mongoose SDK)
+
+
+Version 1.20 changes:
+
+- CvUnit::canSpread - Moved Python cannot spread callback to end of function where it belongs, will speed up those mods which use this callback a little
+- CvPlayerAI::AI_missionaryValue - Fixed copy and past bug causing overvaluation of missionaries for AIs going for cultural victory early in the game.
+- CvGameTextMgr (many places) - Fixed issues where unhappiness and unhealthiness from civics or buildings would incorrectly show up as -(unhappy face) instead of +(unhappy face) in several circumstances.  (Thanks EmporerFool, Grave, Afforess)
+- CvGameTextMgr - Game will now properly display info for buildings which generate unhappiness in an area or globally, or produce state religion unhappiness (should these ever come up in mods)
+- CvPlayerAI::AI_doTurnPost and CvPlayerAI::AI_doTurnUnitsPost - Added in accidentally skipped fix for AI_doSplit issues as suggested by alexman
+- CvTeamAI::AI_calculateAreaAIType - Fixed incorrect index usage (thanks cephalo)
+- CvCity::popOrder - Fixed issue with improper use of iExtra causing national wonders to max out early in some mods (thanks davidlallen)
+- CvTeam::addTeam - Fixed bug where, if civs A and B join in a permanent alliance, they get the max of A and B's espionage points against C but C just keeps its point against A and loses its points to B if that's higher
+- CvUnit::canMoveInto - Removed strange behavior where setting a unit to be unable to enter a terrain type would be overridden by features (forrest, fallout) (thanks TC01)
+- CvCityAI::AI_chooseProduction - Fixed bug reducing AI production of workers, and a similar issue for barb players producing too many
+
+
+Version 1.10 changes:
+
+- CvGame::addPlayer - Restored 3.17 UP changes forcing clearing of old player names, civ descriptions, etc when placing a new player in a previously occupied slot.
+- CvCity::setCultureLevel - Now behavior where a city building culture would cancel order when reaching next level only applies to human player.  It was completely unnecessary for AI and caused a small bug with extra overflow production.
+- CvUnit::canMoveInto - Changed to allow paratroopers to capture workers and undefended cities after paradropping.  Also allows units with multiple moves to capture multiple tiles of non-combat units like workers.
+- CvCity::kill - When a player loses a city, that city now clears all of its trade route claims so that they can be taken by other cities owned by the player.  Previously, these trade routes were permanently lost.  (Thanks RedFury and DanF5771)
+- CvUnitAI::AI_spreadReligionAirlift and CvUnitAI::AI_spreadCorporationAirlift - AI will no longer airlift multiple of the same kind of missionary or executive to the same target spread city on the same turn
+- CvAdvisorUtils.py - Advisor will no longer bug for city liberation to player you're at war with.
+- CvDomesticAdvisor.py - City liberation to player you're at war with no longer offered.
+- CvDLLButtonPopup::launchFreeColonyPopup - Removed cities whose liberation player you are at war with from popup.
+- CIV4EventInfos.xml - In EVENT_OVERWHELM_DONE_1, removed references to non-existent Python functions which blocked this option. (thanks Pep)
+- CvSelectionGroup::continueMission - Fixed issue causing units with multiple orders to forget their later orders under certain circumstances.  (thanks Pep)
+- CvCityAI::AI_doHurry - Fixed several bugs where AI would incorrectly think it was getting a great deal on a pop/gold rush when it was actually doing the other kind of rush.  (thanks Pep)
+
+
+Version 1.00 fixes:
+
+1)  CvUnitAI::AI_paradrop - fixed bug with valuation of terrain bonuses causing paradrops to avoid bonuses in some circumstances when intention is clearly to encourage landing on bonuses and pillaging
+2)  CvUnitAI::AI_settleMove - fixed bug when settler cannot reach a city site in an area (blocked by mountains, other player).  Caused settler to wait infinitely in city instead of loading into transport.
+3)  CvTeamAI::AI_doWar - use bFinancesProLimitedWar for limited war calc instead of max war version
+4)  CvPlayerAI::AI_calculateUnitAIViability - Fixed incorrect integer usage which caused function return to be meaningless, blocked AI logic for building privateers
+5)  CvPlayerAI::AI_isFinancialTrouble, CvCityAI::AI_updateBestBuild, and CvPlayerAI::AI_getMinFoundValue - Fixed bug in calculating expenses when AI has negative gold per turn
+6)  CvPlayerAI::AI_getTotalFloatingDefendersNeeded - Fixed poor decision by AI if it has captured one or two cities on someone else's continent, it would minimally defend its new cities
+7)  CvPlayerAI::AI_getStrategyHash - Fixed incorrect counting of destroyers as mobile anti-air
+8)  CvPlayerAI::AI_doDiplo - Fixed issue where team is sneak attack ready but hasn't declared war, AI would still demand tribute. If other team accepted, it blocked war declaration for 10 turns but AI still launched invasion and was then bounced when it could eventually declare.
+9)  CvPlayerAI::AI_bestPlotEspionage - relevant weights are 0, +- 50, +- 100, so comparison for Agg AI should be < 51 instead of < 50
+10)  CvPlayerAI::AI_commerceWeight - Governors now do smarter things when human player sets culture slider to 100%
+11)  isPotentialEnemy in CvGameCoreUtils - Fixed bug leading to AI launching invasions when unable to declare war, troops eventually got bounced when war was declared
+12)  CvGame::addPlayer - No longer invalidate color choice for added civ if it's taken by this player slot
+13)  CvCityAI::AI_cityThreat - Fixed bug when AI is running crush strategy, wrong int was divided
+14)  CvCity::popOrder - Kept overflow fixes from 3.17 unofficial patch
+15)  CvCityAI::AI_neededDefenders - Improved efficiency and minor tweaks
+16)  CvPlayerAI::AI_isFinancialTrouble, CvCityAI::AI_updateBestBuild, and CvPlayerAI::AI_getMinFoundValue - Fixed bug where spending gpt for resources reduced calculation of expenses (thanks DanF5771)
+17)  CvPlayerAI::AI_conquerCity - Fixed bug where cityAcquiredAndKept event reported wrong player in some circumstances (thanks Maniac)
+18)  CvPlayerAI::AI_unitValue - Fixed potential crash bug in looking up AI_unitValue for UNITAI_MISSIONARY units without passing a valid CvArea*
+19)  CvUnit::isIntruding - Kept 3.17 unofficial patch feature that vassal spies are never caught in master's territory
+20)  CvUnit::collateralCombat - Kept 3.17 unofficial patch feature which allows mods to enables barrage promotions for collateral damage units
+21)  CvUnitAI::AI_assaultSeaMove - Fixed bug where unit type was used when unit AI type was intended
+22)  CvUnit::canMoveInto - Capturing an undefended city is now considered an attack action, like capturing a worker.  Mainly affects paratroopers, who now cannot capture undefended cities right after paradrop.  Previously, paratroopers could capture undefended cities but not cities with only a worder or ship in them. (Change modified in later versions)
+23)  CvTeam::shareCounters - Fixed bug in permanent alliances when No Tech Brokering is turned on, where a civ would often become unable to trade a tech they had researched after entering a permanent alliance.
+24)  CvNetDoCommand::Execute - Fixed bug causing "Upgrade All" action to sometimes only do a fraction of the available units.
+25)  CvPlayerAI::AI_unitValue - Stealth boats do not make good escorts since they often don't defend, so AI is now very unlikely to use them as escorts for transports.
+26)  CIV4UnitInfos.xml - Removed UNITAI_ESCORT_SEA from Stealth Destroyer (stealth doesn't defend first, so not a good escort).  Set iPower weighting for Missile Cruiser to much more appropriate 42 from 14 (iPower ratings for boats were increased by Firaxis a while back, but they missed this one).
+27)  CvCityAI::AI_yieldValue - Fixed issue causing city governor and AI to heavily weight food when building gold or any other form of commerce.  Produced unexpected and poor results for human player, did not help AI either.
+28)  CvCity::setCultureLevel - Removed behavior where a city building culture would cancel order when reaching next level. Completely unnecessary for AI, human player is unlikely to be expecting this. Also appears to cause a bug with extra overflow production. (Change modified in later versions)
+29)  CIV4UnitClassInfos.xml - Fixed description entry for ship of the line (thanks ripple01)
+30)  CIV4ArtDefines_Unit.xml - Fixed many discrepancies in TrainSound between unique and non-unique units (thanks ripple01)
+31)  CvRandomEventInterface.py - Fixed function name from getHelpThGoths1 to getHelpTheGoths1 (thanks Chrill)
+32)  CvMapGeneratorUtil.py - Fixed function getLatitudeAtPlot in both FeatureGenerator and TerrainGenerator so that it properly returns 1.0 for both north and south poles and correctly locates equator (thanks Temudjin)
+33)  CvPlot::getLatitude - Fixed so that it properly returns highest latitude value for both north and south poles and correctly locates equator, improved integer rounding errors which caused slight skew in terrain types between northern and southern hemisphere (thanks Temudjin)
+34)  CvDLLWidgetData::parseFlagHelp - Added UP version info to help popup when mousing over big flag in bottom right.

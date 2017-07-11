@@ -2402,10 +2402,10 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 	if(dom == DOMAIN_LAND && pNewPlot->isWater())
 		return FALSE;
 	bool coastalCity = pNewPlot->isCity(true) && pNewPlot->isCoastalLand();
-	// Use DOMAIN_IMMOBILE to encode sea units with impassible terrain
-	bool impassibleTerrain = false;
+	// Use DOMAIN_IMMOBILE to encode sea units with impassable terrain
+	bool impassableTerrain = false;
 	if(dom == DOMAIN_IMMOBILE) {
-		impassibleTerrain = true;
+		impassableTerrain = true;
 		dom = DOMAIN_SEA;
 	}
 	if(dom == DOMAIN_SEA && !coastalCity && !pNewPlot->isWater() &&
@@ -2414,7 +2414,7 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 		return FALSE;
 	/*  This handles only Coast, and no other terrain types that a mod might make
 		impassable */
-	if(!coastalCity && ePlotTeam != eTeam && impassibleTerrain &&
+	if(!coastalCity && ePlotTeam != eTeam && impassableTerrain &&
 			pNewPlot->getTerrainType() != (TerrainTypes)(GC.getDefineINT("SHALLOW_WATER_TERRAIN")))
 		return FALSE;
 	// Don't check isRevealed; caller ensures that destination city is deducible

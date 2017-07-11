@@ -28,6 +28,8 @@ public:
 	 std::vector<PlayerTypes>& properCivs();
 	 std::vector<TeamTypes>& properTeams();
 	void update();
+	// When a colony is created
+	void processNewCivInGame(PlayerTypes newCivId);
 	/*  true if UWAI fully enabled, making all decisions, otherwise false.
 		If inBackground is set, true if UWAI is running only in the background,
 		but false if UWAI fully enabled or fully disabled. */
@@ -118,6 +120,7 @@ public:
 			accepting vassalId puts us (the would-be master) into a war. */
 		DenialTypes acceptVassal(TeamTypes vassalId) const;
 		bool isLandTarget(TeamTypes theyId) const;
+		bool isPushover(TeamTypes theyId) const;
 
 	  /* The remaining functions are only to be called while doWar
 		 is being evaluated. */

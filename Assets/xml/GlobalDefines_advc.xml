@@ -725,5 +725,13 @@
 		<DefineName>CITY_TRADE_CULTURE_THRESH</DefineName>
 		<iDefineIntVal>10</iDefineIntVal>
 	</Define>
+	
+	<!-- [advc.030] Set this to 1 or greater (recommended) to treat plot groups
+		 that are separated by mountain peaks as separate map areas. 0 or less
+		 for BtS behavior (only land/water partition the map). -->
+	<Define>
+		<DefineName>PASSABLE_AREAS</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
 
 </Civ4Defines>

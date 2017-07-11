@@ -4262,7 +4262,6 @@ bool CvPlot::isImpassable() const
 	{
 		return true;
 	}
-
 	if (getTerrainType() == NO_TERRAIN)
 	{
 		return false;
@@ -4457,11 +4456,11 @@ int CvPlot::getArea() const
 
 void CvPlot::setArea(int iNewValue)
 {
-	bool bOldLake;
+	//bool bOldLake; // advc.003: is never read
 
 	if (getArea() != iNewValue)
 	{
-		bOldLake = isLake();
+		//bOldLake = isLake(); // advc.003
 
 		if (area() != NULL)
 		{
@@ -5089,7 +5088,9 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 			, oldOwnerDescr // advc.101
 			);
 		gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CULTUREFLIP", MESSAGE_TYPE_MAJOR_EVENT,  ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX_INLINE(), getY_INLINE(), true, true);
-		gDLL->getInterfaceIFace()->addHumanMessage(eNewValue, false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CULTUREFLIP", MESSAGE_TYPE_MAJOR_EVENT,  ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), getX_INLINE(), getY_INLINE(), true, true);
+		gDLL->getInterfaceIFace()->addHumanMessage(eNewValue, false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CULTUREFLIP",
+				MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, // advc.106b
+				ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), getX_INLINE(), getY_INLINE(), true, true);
 
 		szBuffer = gDLL->getText("TXT_KEY_MISC_CITY_REVOLTS_JOINS", pOldCity->getNameKey(), GET_PLAYER(eNewValue).getCivilizationDescriptionKey()
 			, oldOwnerDescr // advc.101
@@ -5344,7 +5345,7 @@ void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGr
 	CvArea* pLastArea;
 	CvPlot* pLoopPlot;
 	bool bWasWater;
-	bool bRecalculateAreas;
+	bool bRecalculateAreas = false; // advc.030
 	int iAreaCount;
 	int iI;
 
@@ -5356,6 +5357,7 @@ void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGr
 		}
 
 		bWasWater = isWater();
+		bool wasPeak = isPeak(); // advc.030
 
 		updateSeeFromSight(false, true);
 
@@ -5540,7 +5542,6 @@ void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGr
 						bRecalculateAreas = true;
 					}
 				}
-
 				if (bRecalculateAreas)
 				{
 					GC.getMapINLINE().recalculateAreas();
@@ -5564,7 +5565,27 @@ void CvPlot::setPlotType(PlotTypes eNewValue, bool bRecalculate, bool bRebuildGr
 				}
 			}
 		}
-
+		// <advc.030>
+		if(!isWater() && wasPeak != isPeak() && !bRecalculateAreas && bRecalculate) {
+			/*  When removing a peak, it's easy enough to tell whether we need to
+				recalc, but too much work to come up with conditions for recalc
+				when placing a peak; will have to always recalc. */
+			if(isPeak())
+				GC.getMapINLINE().recalculateAreas();
+			else {
+				int areaId = getArea();
+				for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
+					CvPlot* p = ::plotDirection(getX_INLINE(), getY_INLINE(),
+							((DirectionTypes)i));
+					if(p == NULL || p->isWater())
+						continue;
+					if(areaId != p->getArea()) {
+						GC.getMapINLINE().recalculateAreas();
+						break;
+					}
+				}
+			}
+		} // </advc.030>
 		if (bRebuildGraphics && GC.IsGraphicsInitialized())
 		{
 			//Update terrain graphical 

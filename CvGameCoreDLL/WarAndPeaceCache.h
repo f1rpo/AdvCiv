@@ -69,6 +69,7 @@ public:
 	 int vassalTechScore(PlayerTypes civId) const;
 	 int vassalResourceScore(PlayerTypes civId) const;
 	int numAdjacentLandPlots(PlayerTypes civId) const;
+	double relativeNavyPower(PlayerTypes civId) const;
 	int pastWarScore(TeamTypes tId) const;
 	// Trade value paid to us for declaring war against tId
 	int sponsorshipAgainst(TeamTypes tId) const;
@@ -102,6 +103,9 @@ public:
 	void setReadyToCapitulate(TeamTypes masterId, bool b);
 	 // When forming a Permanent Alliance
 	void addTeam(TeamTypes otherId);
+	/*  public b/c this needs to be done ahead of the normal update when a
+		colony is created (bootsrapping problem) */
+	void updateTypicalUnits();
 
 private:
 	// beforeUpdated: Only clear data that is recomputed in 'update'
@@ -114,6 +118,7 @@ private:
 	void updateThreatRatings();
 	void updateVassalScores();
 	void updateAdjacentLand();
+	void updateRelativeNavyPower();
 	void updateTargetMissionCount(PlayerTypes civId);
 	double calculateThreatRating(PlayerTypes civId) const;
 	double teamThreat(TeamTypes tId) const;
@@ -157,6 +162,7 @@ private:
 	 bool located[MAX_CIV_PLAYERS];
 	 // (CvTeamAI::AI_calculateAdjacentLandPlots is too slow and per team)
 	 int adjacentLand[MAX_CIV_PLAYERS];
+	 double relativeNavyPow[MAX_CIV_PLAYERS];
 	// per team
 	 int pastWarScores[MAX_CIV_TEAMS];
 	 // Value of the sponsorship

@@ -345,7 +345,8 @@ bool CvSelectionGroup::showMoves(
 				break;
 			bool isWorker = (u.AI_getUnitAIType() == UNITAI_WORKER ||
 					u.AI_getUnitAIType() == UNITAI_WORKER_SEA);
-			bool isNonCargoShip = (isSeaUnit && u.cargoSpace() <= 1);
+			bool isNonCargoShip = (isSeaUnit && !u.isHuman() &&
+					(u.cargoSpace() <= 1 || AI_getMissionAIType() == MISSIONAI_PATROL));
 			bool isMissionary = u.AI_getUnitAIType() == UNITAI_MISSIONARY;
 			if(!isMissionary && isAwayFromHome && (!isSeaUnit ||
 					!isNonCargoShip || showShips || enteringOrLeaving))

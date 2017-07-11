@@ -4327,7 +4327,7 @@ DenialTypes CvTeamAI::AI_declareWarTrade(TeamTypes eWarTeam, TeamTypes eTeam, bo
 			CvTeamAI const& t = GET_TEAM((TeamTypes)i);
 			if(!t.isAlive() || t.isMinorCiv() || !t.isAtWar(getID()))
 				continue;
-			int closeness = AI_teamCloseness(t.getID(), DEFAULT_PLAYER_CLOSENESS);
+			int closeness = AI_teamCloseness(t.getID(), DEFAULT_PLAYER_CLOSENESS, true);
 			if(closeness > highestCloseness) {
 				highestCloseness = closeness;
 				closestWarEnemy = t.getID();
@@ -4335,7 +4335,7 @@ DenialTypes CvTeamAI::AI_declareWarTrade(TeamTypes eWarTeam, TeamTypes eTeam, bo
 		}
 	}
 	if(closestWarEnemy != NO_TEAM) {
-		int closeness = AI_teamCloseness(eWarTeam, DEFAULT_PLAYER_CLOSENESS);
+		int closeness = AI_teamCloseness(eWarTeam, DEFAULT_PLAYER_CLOSENESS, true);
 		if(closeness < highestCloseness)
 			return DENIAL_TOO_MANY_WARS;
 	}
@@ -5209,7 +5209,8 @@ void CvTeamAI::AI_setWarPlan(TeamTypes eIndex, WarPlanTypes eNewValue, bool bWar
 
 //if this number is over 0 the teams are "close"
 //this may be expensive to run, kinda O(N^2)...
-int CvTeamAI::AI_teamCloseness(TeamTypes eIndex, int iMaxDistance) const
+int CvTeamAI::AI_teamCloseness(TeamTypes eIndex, int iMaxDistance,
+		bool considerLandTarget) const // advc.104o
 {
 	PROFILE_FUNC();
 	int iI, iJ;
@@ -5239,9 +5240,10 @@ int CvTeamAI::AI_teamCloseness(TeamTypes eIndex, int iMaxDistance) const
 				}
 			}
 		}
-	}
-	
-	return iValue;	
+	} // <advc.104o> AI_playerCloseness is just about air distance
+	if(considerLandTarget && AI_isLandTarget(eIndex))
+		iValue += 150; // </advc.104o>
+	return iValue;
 }
 
 

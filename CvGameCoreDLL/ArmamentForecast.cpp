@@ -77,6 +77,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 	bool attackedRecently = false;
 	// Any war or peace assumed that involves civId, or war preparations by civId
 	bool fictionalScenario = false;
+	TeamTypes singleWarEnemy = NO_TEAM; // Only relevant if there is just one enemy
 	for(size_t i = 0; i < getWPAI.properTeams().size(); i++) {
 		TeamTypes loopTeamId = getWPAI.properTeams()[i];
 		if(loopTeamId == tId)
@@ -107,6 +108,9 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 				   because it doesn't (or shouldn't) lead to additional buildup. */
 			    reachEither) {
 			nWars++;
+			if(nWars <= 1)
+				singleWarEnemy = loopTeam.getID();
+			else singleWarEnemy = NO_TEAM;
 			if(intensity == NORMAL)
 				intensity = INCREASED;
 			// t recently attacked by loopTeam
@@ -200,6 +204,16 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 	if(!peaceScenario && fictionalScenario && civ.getID() == weId &&
 			!t.isAtWar(params.targetId()))
 		navalArmament = params.isNaval();
+	/*  Assume that war against a single small enemy doesn't increase the
+		build-up intensity. Otherwise, the AI will tend to leave 1 or 2 cities
+		alive. Would be cleaner to assume a shorter time horizon, but that's a
+		can of worms. */
+	if(singleWarEnemy != NO_TEAM && !navalArmament && nTotalWars <= 0 &&
+			nWarPlans <= 1 && !civ.AI_isDoStrategy(AI_STRATEGY_ALERT1
+			| AI_STRATEGY_ALERT2) && t.warAndPeaceAI().isPushover(singleWarEnemy)) {
+		intensity = NORMAL;
+		fictionalScenario = true; // Don't check AreAI either
+	}
 	// Rely on Area AI (only) if there is no hypothetical war or peace
 	if(fictionalScenario)
 		predictArmament(timeHorizon, productionEstimate, prodFromUpgrades,
@@ -281,8 +295,8 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 		double additionalProduction, Intensity intensity, bool defensive,
 		bool navalArmament) {
 
+	CvPlayerAI const& civ = GET_PLAYER(civId);
 	if(!defensive) {
-		CvPlayerAI const& civ = GET_PLAYER(civId);
 		/*  Space and culture victory tend to overrule military build-up (even when
 			military victory is pursued in parallel), and divert a lot of production
 			into cultural things or spaceship parts. */
@@ -351,20 +365,38 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 	double branchPortions[NUM_BRANCHES];
 	for(int i = 0; i < NUM_BRANCHES; i++)
 		branchPortions[i] = 0;
-	// By default, focus on army (too extreme? just 85%?)
-	branchPortions[ARMY] = 1;
+	// Little defense by default
+	branchPortions[HOME_GUARD] = 0.13;
 	if(navalArmament) {
 		branchPortions[FLEET] = 0.2;
+		int rev = 0, revCoast = 0, dummy = 0;
+		for(CvCity* c = civ.firstCity(&dummy); c != NULL; c = civ.nextCity(&dummy)) {
+			if(c->isRevealed(civ.getTeam())) {
+				rev++;
+				if(c->isCoastal())
+					revCoast++;
+			}
+		}
+		if(rev > 0) {
+			if(rev >= civ.getNumCities() && revCoast <= 0)
+				branchPortions[FLEET] = 0;
+			// Assume very little defensive build-up when attacking across the sea
+			else if(!defensive)
+				branchPortions[HOME_GUARD] = 0.05;
+			double coastRatio = revCoast / (double)rev;
+			branchPortions[FLEET] = std::min(0.08 + coastRatio / 2.8, 0.35);
+		}
 		/* As the game progresses, the production portion needed for cargo units
 		   decreases. Factoring in the typical cargo capacity also makes the code
 		   robust to XML changes to cargo capacities. */
 		if(military[LOGISTICS]->getTypicalUnit() != NULL) {
-			branchPortions[LOGISTICS] = 1.0 /
-					military[LOGISTICS]->getTypicalUnitPower();
+			branchPortions[LOGISTICS] = std::min(branchPortions[FLEET],
+					1.0 / military[LOGISTICS]->getTypicalUnitPower());
 		}
-		branchPortions[ARMY] = 1.0 - branchPortions[FLEET]
-				- branchPortions[LOGISTICS];
 	}
+	branchPortions[ARMY] = 1 - branchPortions[HOME_GUARD] - branchPortions[FLEET] -
+			branchPortions[LOGISTICS];
+	FAssert(branchPortions[ARMY] >= 0);
 	if(defensive || intensity == NORMAL) {
 		// No cargo in defensive naval wars
 		branchPortions[FLEET] += branchPortions[LOGISTICS];
@@ -373,25 +405,26 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 		branchPortions[FLEET] /= 2;
 		branchPortions[HOME_GUARD] += branchPortions[FLEET];
 		if(!GET_PLAYER(civId).isHuman() && defensive) {
-			// Shift two thirds of the army budget to home guard
-			branchPortions[ARMY] /= 3;
-			branchPortions[HOME_GUARD] += 2 * branchPortions[ARMY];
+			// Shift half of the army budget to home guard
+			branchPortions[ARMY] /= 2;
+			branchPortions[HOME_GUARD] += branchPortions[ARMY];
 		}
 		else { // Shift 1/3 for humans -- they build fewer garrisons
 			branchPortions[ARMY] *= (2.0/ 3);
 			branchPortions[HOME_GUARD] += (0.5 * branchPortions[ARMY]);
 		}
 	}
-
 	if(!defensive) {
-		// Shift 25% to nuclear. Undone below if unable to build nukes.
-		branchPortions[NUCLEAR] = 0.25;
+		// Undone below if unable to build nukes
+		double nukePortion = 0.2;
+		if(civ.isHuman())
+			nukePortion += 0.05;
+		branchPortions[NUCLEAR] = nukePortion;
 		for(int i = 0; i < NUM_BRANCHES; i++) {
 			if(i == NUCLEAR) continue;
-			branchPortions[i] *= 0.75;
+			branchPortions[i] *= (1 - nukePortion);
 		}
 	}
-
 	// Shift weights away from milit. branches the civ can't build units for.
 	double surplus = 0;
 	for(int i = 0; i < NUM_BRANCHES; i++) {
@@ -401,16 +434,18 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 			branchPortions[i] = 0;
 		}
 	}
-	if(surplus >= 1) {
+	if(surplus > 0.999) {
 		report.log("Armament forecast canceled b/c no units can be trained");
 		return;
 	}
+	double checksum = 0;
 	for(int i = 0; i < NUM_BRANCHES; i++) {
 		MilitaryBranch& mb = *military[i];
 		if(mb.getTypicalUnit() != NULL)
 			branchPortions[i] += surplus * branchPortions[i] / (1 - surplus);
+		checksum += branchPortions[i];
 	}
-
+	FAssert(checksum > 0.99 && checksum < 1.01);
 	/* Assume no deliberate build-up of Cavalry. Army can happen to be mounted
 	   though. */
 	CvUnitInfo const* typicalArmyUnit = military[ARMY]->getTypicalUnit();

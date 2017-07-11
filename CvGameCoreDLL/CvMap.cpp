@@ -1475,34 +1475,80 @@ void CvMap::rebuild(int iGridW, int iGridH, int iTopLatitude, int iBottomLatitud
 void CvMap::calculateAreas()
 {
 	PROFILE("CvMap::calculateAreas");
-	CvPlot* pLoopPlot;
-	CvArea* pArea;
-	int iArea;
-	int iI;
+	if(GC.getDefineINT("PASSABLE_AREAS") <= 0) { // advc.030
+		CvPlot* pLoopPlot;
+		CvArea* pArea;
+		int iArea;
+		int iI;
 
-	for (iI = 0; iI < numPlotsINLINE(); iI++)
-	{
-		pLoopPlot = plotByIndexINLINE(iI);
-		gDLL->callUpdater();
-		FAssertMsg(pLoopPlot != NULL, "LoopPlot is not assigned a valid value");
-
-		if (pLoopPlot->getArea() == FFreeList::INVALID_INDEX)
+		for (iI = 0; iI < numPlotsINLINE(); iI++)
 		{
-			pArea = addArea();
-			pArea->init(pArea->getID(), pLoopPlot->isWater());
+			pLoopPlot = plotByIndexINLINE(iI);
+			gDLL->callUpdater();
+			FAssertMsg(pLoopPlot != NULL, "LoopPlot is not assigned a valid value");
 
-			iArea = pArea->getID();
+			if (pLoopPlot->getArea() == FFreeList::INVALID_INDEX)
+			{
+				pArea = addArea();
+				pArea->init(pArea->getID(), pLoopPlot->isWater());
 
-			pLoopPlot->setArea(iArea);
+				iArea = pArea->getID();
 
-			gDLL->getFAStarIFace()->GeneratePath(&GC.getAreaFinder(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), -1, -1, pLoopPlot->isWater(), iArea);
+				pLoopPlot->setArea(iArea);
+
+				gDLL->getFAStarIFace()->GeneratePath(&GC.getAreaFinder(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), -1, -1, pLoopPlot->isWater(), iArea);
+			}
 		}
+	// <advc.030>
 	}
+	else for(int pass = 0; pass <= 1; pass++) {
+		for(int i = 0; i < numPlotsINLINE(); i++) {
+			CvPlot* pp = plotByIndexINLINE(i); FAssert(pp != NULL);
+			CvPlot& p = *pp;
+			if(pass == 0) { // No idea what this does; better do it only once.
+				gDLL->callUpdater();
+				// Second pass for peaks; can't handle all-peak areas otherwise.
+				if(p.isPeak())
+					continue;
+			}
+			if(p.getArea() != FFreeList::INVALID_INDEX)
+				continue;
+			FAssert(pass == 0 || p.isPeak());
+			CvArea& a = *addArea();
+			int aId = a.getID();
+			a.init(aId, p.isWater());
+			p.setArea(aId);
+			calculateAreas_visit(p);
+		}
+	} // </advc.030>
+
 	computeShelves(); // advc.300
 }
 
 
 // Private Functions...
+
+// <advc.030>
+void CvMap::calculateAreas_visit(CvPlot const& p) {
+
+	int const x = p.getX_INLINE();
+	int const y = p.getY_INLINE();
+	for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
+		CvPlot* qp = ::plotDirection(x, y, (DirectionTypes)i);
+		if(qp == NULL)
+			continue;
+		CvPlot& q = *qp;
+		if(q.getArea() == FFreeList::INVALID_INDEX && p.isWater() == q.isWater() &&
+				// Check only orthogonal adjacency of water tiles
+				(!p.isWater() || x == q.getX_INLINE() || y == q.getY_INLINE()) &&
+				/*  Depth-first search that doesn't continue at peaks except to
+					other peaks so that mountain ranges end up in the same CvArea). */
+				(!p.isPeak() || q.isPeak())) {
+			q.setArea(p.getArea());
+			calculateAreas_visit(q);
+		}
+	}
+} // </advc.030>
 
 // <advc.300>
 using std::vector;

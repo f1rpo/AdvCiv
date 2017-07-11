@@ -318,6 +318,8 @@ public:
 private:
 	std::map<Shelf::Id,Shelf*> shelves;
 	// </advc.300>
+	// advc.030:
+	void calculateAreas_visit(CvPlot const& p);
 };
 
 #endif

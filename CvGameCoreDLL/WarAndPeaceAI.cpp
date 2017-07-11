@@ -59,6 +59,18 @@ void WarAndPeaceAI::update() {
 	WarEvaluator::clearCache();
 }
 
+void WarAndPeaceAI::processNewCivInGame(PlayerTypes newCivId) {
+
+	update();
+	TEAMREF(newCivId).warAndPeaceAI().init(TEAMID(newCivId));
+	WarAndPeaceAI::Civ& newAI = GET_PLAYER(newCivId).warAndPeaceAI();
+	newAI.init(newCivId);
+	// Need to set the typical units before updating the caches of the old civs
+	newAI.getCache().updateTypicalUnits();
+	for(size_t i = 0; i < _properTeams.size(); i++)
+		GET_TEAM(_properTeams[i]).warAndPeaceAI().turnPre();
+}
+
 bool WarAndPeaceAI::isEnabled(bool inBackground) const{
 
 	if(!enabled)
@@ -159,17 +171,14 @@ void WarAndPeaceAI::Team::doWar() {
 
 	if(!getWPAI.isUpdated())
 		return;
-	/* As for war plan "attacked recent" --> "attacked", this transition
-	   can still be made if a human civ becomes AI-controlled or if a
-	   vassal breaks free. */
 	CvTeamAI& agent = GET_TEAM(agentId);
+	if(!agent.isAlive() || agent.isBarbarian() || agent.isMinorCiv())
+		return;
 	FAssertMsg(!agent.isAVassal() || agent.getAtWarCount() > 0 ||
 			agent.getWarPlanCount(WARPLAN_DOGPILE) +
 			agent.getWarPlanCount(WARPLAN_LIMITED) +
 			agent.getWarPlanCount(WARPLAN_TOTAL) <= 0,
 			"Vassals shouldn't have non-preparatory war plans unless at war");
-	if(!agent.isAlive() || agent.isBarbarian() || agent.isMinorCiv())
-		return;
 	startReport();
 	if(agent.isHuman() || agent.isAVassal()) {
 		report->log("%s is %s", report->teamName(agentId), (agent.isHuman() ?
@@ -282,7 +291,7 @@ void WarAndPeaceAI::Team::updateMembers() {
 		if(TEAMID(civId) == agentId)
 			members.push_back(civId);
 	}
-	// Can now happen when called while loading a savegame
+	// Can happen when called while loading a savegame
 	//FAssertMsg(!members.empty(), "Agent not a proper team");
 }
 
@@ -332,7 +341,7 @@ bool WarAndPeaceAI::Team::reviewWarPlans() {
 			// evaluate sets preparation time on params
 			plans.push_back(PlanData(u, targetId, params.getPreparationTime()));
 			/*  Skip scheming when in a very bad war. Very unlikely that another war
-				could help them. And I worry that, in rare situations, when the
+				could help then. And I worry that, in rare situations, when the
 				outcome of a war is close, but potentially disastrous, that an
 				additional war could produce a more favorable simulation outcome. */
 			if(u < -100 && agent.isAtWar(targetId))
@@ -462,7 +471,7 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 		double pr = std::sqrt((double)-u) * 0.03; // 30% at u=-100
 		report->log("Probability for peace negotiation: %d percent",
 				::round(pr * 100));
-		if(bernoulliSuccess(1 - pr)) {
+		if(::bernoulliSuccess(1 - pr)) {
 			report->log("Peace negotiation randomly skipped");
 			return true; // Don't consider capitulation w/o having tried peace negot.
 		}
@@ -470,7 +479,11 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 	int theirReluct = target.warAndPeaceAI().reluctanceToPeace(agentId, false);
 	report->log("Their reluctance to peace: %d", theirReluct);
 	if(theirReluct <= maxReparations && !human) {
-		int tradeVal = ::round(utilityToTradeVal(std::max(0, theirReluct)));
+		// Base the reparations they demand on their economy
+		int tradeVal = ::round(target.warAndPeaceAI().utilityToTradeVal(
+				std::max(0, theirReluct)));
+		/*  Reduce the trade value b/c the war isn't completely off the table;
+			could continue after 10 turns. */
 		tradeVal = ::round(tradeVal * WarAndPeaceAI::reparationsAIPercent / 100.0);
 		report->log("Trying to offer reparations with a trade value of %d",
 				tradeVal);
@@ -788,7 +801,7 @@ bool WarAndPeaceAI::Team::considerSwitchTarget(TeamTypes targetId, int u,
 	}
 	double padding = 0;
 	if(u < 20) padding += 20 - u;
-	double pr = 1 - (u + padding) / (bestUtility + padding);
+	double pr = 0.75 * (1 - (u + padding) / (bestUtility + padding));
 	report->log("Switching target for war preparations to %s (u=%d) with pr=%d percent",
 			report->teamName(bestAltTargetId), bestUtility, ::round(100 * pr));
 	if(!::bernoulliSuccess(pr)) {
@@ -981,11 +994,12 @@ void WarAndPeaceAI::Team::scheme() {
 		return;
 	}
 	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
-		CvTeam const& minor = GET_TEAM((TeamTypes)i);
+		CvTeamAI const& minor = GET_TEAM((TeamTypes)i);
 		if(!minor.isAlive() || !minor.isMinorCiv())
 			continue;
 		int closeness = agent.AI_teamCloseness(minor.getID());
-		if(closeness >= 10) {
+		if(closeness >= 40 && minor.AI_isLandTarget(agentId) &&
+				agent.AI_isLandTarget(minor.getID())) {
 			report->log("No scheming b/c busy fighting minor civ %s at closeness %d",
 					report->teamName(minor.getID()), closeness);
 			return;
@@ -997,7 +1011,10 @@ void WarAndPeaceAI::Team::scheme() {
 		if(!canSchemeAgainst(targetId))
 			continue;
 		report->log("Scheming against %s", report->teamName(targetId));
-		bool skipTotal = agent.getAnyWarPlanCount() > 0;
+		bool shortWork = isPushover(targetId);
+		if(shortWork)
+			report->log("Target assumed to be short work");
+		bool skipTotal = agent.getAnyWarPlanCount() > 0 || shortWork;
 		/*  Skip scheming entirely if already in a total war? Probably too
 			restrictive in the lategame. Perhaps have reviewWarPlans compute the
 			smallest utility among current war plans, and skip scheming if that
@@ -1013,7 +1030,8 @@ void WarAndPeaceAI::Team::scheme() {
 			totalNaval = params.isNaval();
 			totalPrepTime = params.getPreparationTime();
 		}
-		int uLimited = eval.evaluate(WARPLAN_PREPARING_LIMITED);
+		int uLimited = !shortWork ? eval.evaluate(WARPLAN_PREPARING_LIMITED):
+				eval.evaluate(WARPLAN_PREPARING_LIMITED, 0);
 		bool limitedNaval = params.isNaval();
 		int limitedPrepTime = params.getPreparationTime();
 		bool total = (uTotal > uLimited);
@@ -1141,9 +1159,9 @@ int WarAndPeaceAI::Team::declareWarTradeVal(TeamTypes targetId,
 			u -= ::round(0.67 * uVsSponsor);
 	}
 	/*  Don't trust utility completely; human sponsor will try to pick the time
-		when we're most willing. Need to be concervative. Also, apparently the
+		when we're most willing. Need to be conservative. Also, apparently the
 		sponsor gets sth. out of the DoW, and therefore we should always ask for
-		decent price, even if we don't mind declaring war. */
+		a decent price, even if we don't mind declaring war. */
 	int lowerBound = -2;
 	if(!sponsor.isAtWar(targetId))
 		lowerBound -= 5;
@@ -1551,6 +1569,17 @@ bool WarAndPeaceAI::Team::isLandTarget(TeamTypes theyId) const {
 	if(!hasCoastalCity && canReachAnyByLand)
 		return true;
 	return false;
+}
+
+bool WarAndPeaceAI::Team::isPushover(TeamTypes theyId) const {
+
+	CvTeam const& they = GET_TEAM(theyId);
+	CvTeam const& agent = GET_TEAM(agentId);
+	int theirCities = they.getNumCities();
+	int agentCities = agent.getNumCities();
+	return (theirCities <= 1 && agentCities >= 3 ||
+			4 * theirCities < agentCities) &&
+			10 * they.getPower(true) < 4 * agent.getPower(false);
 }
 
 void WarAndPeaceAI::Team::startReport() {
@@ -2286,7 +2315,7 @@ double WarAndPeaceAI::Civ::warConfidenceAllies() const {
 	   150 (Lincoln, low confidence). These values are too far apart to convert
 	   them proportionally. Hence the square root. The result is between
 	   1 and 0.23. */
-	return std::sqrt(30 / dpwr) - 0.22;
+	return std::max(0.0, std::sqrt(30 / dpwr) - 0.22);
 }
 
 double WarAndPeaceAI::Civ::confidenceAgainstHuman() const {

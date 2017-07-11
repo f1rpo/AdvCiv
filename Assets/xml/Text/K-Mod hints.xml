@@ -142,11 +142,11 @@
 	 to the highest bidder!" -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_14</Tag>
-	<English>(AdvCiv) Barbarians do not appear in tiles that are visible to any civilization. Carefully positioned lookouts can significantly reduce the barbarian activity in an area.</English>
-	<French>(AdvCiv) Les barbares peuvent appara&#238;tre sur toutes les cases recouvertes par le brouillard de guerre. Vous ne saurez donc jamais ce qu'il y a sur celles qui sont invisibles, m&#234;me si vous avez d&#233;j&#224; v&#233;rifi&#233; au tour pr&#233;c&#233;dent !</French>
-	<German>(AdvCiv) Barbaren erscheinen nicht auf Feldern, die von einer Zivilisation eingesehen werden können. Wohl positionierte Späher können die Barbarenaktivität in einem Gebiet deutlich verringern.</German>
-	<Italian>(AdvCiv) I Barbari possono apparire in un qualsiasi spazio oscurato dalla nebbia di guerra. Non essere mai certo che uno spazio non visibile sia sicuro, anche se hai controllato durante il turno precedente!</Italian>
-	<Spanish>(AdvCiv) Los bárbaros no reaparecerán en dos pasos de cualquiera de las unidades. Con el posicionamiento cuidadoso de batidores puedes bloquear completamente grupos de pillaje que se formen en tu área.</Spanish>
+	<English>Barbarians do not appear in tiles that are visible to any civilization. Carefully positioned lookouts can significantly reduce the barbarian activity in an area.</English>
+	<French>Les barbares peuvent appara&#238;tre sur toutes les cases recouvertes par le brouillard de guerre. Vous ne saurez donc jamais ce qu'il y a sur celles qui sont invisibles, m&#234;me si vous avez d&#233;j&#224; v&#233;rifi&#233; au tour pr&#233;c&#233;dent !</French>
+	<German>Barbaren erscheinen nicht auf Feldern, die von einer Zivilisation eingesehen werden können. Wohl positionierte Späher können die Barbarenaktivität in einem Gebiet deutlich verringern.</German>
+	<Italian>I Barbari possono apparire in un qualsiasi spazio oscurato dalla nebbia di guerra. Non essere mai certo che uno spazio non visibile sia sicuro, anche se hai controllato durante il turno precedente!</Italian>
+	<Spanish>Los bárbaros no reaparecerán en dos pasos de cualquiera de las unidades. Con el posicionamiento cuidadoso de batidores puedes bloquear completamente grupos de pillaje que se formen en tu área.</Spanish>
 </TEXT>
 <!-- replacement text for the double-click tip, because I've changed the functionality of double-click -->
 <TEXT>

@@ -31944,9 +31944,11 @@
 			<iMaxGoldTradePercent>10</iMaxGoldTradePercent>
 			<iMaxGoldPerTurnTradePercent>10</iMaxGoldPerTurnTradePercent>
 			<!-- BBAI Victory Strategy -->
-			<iCultureVictoryWeight>30</iCultureVictoryWeight>
+			<!-- advc.005a: was 30 -->
+			<iCultureVictoryWeight>40</iCultureVictoryWeight>
 			<iSpaceVictoryWeight>50</iSpaceVictoryWeight>
-			<iConquestVictoryWeight>35</iConquestVictoryWeight>
+			<!-- advc.005a: was 35 -->
+			<iConquestVictoryWeight>25</iConquestVictoryWeight>
 			<iDominationVictoryWeight>0</iDominationVictoryWeight>
 			<iDiplomacyVictoryWeight>35</iDiplomacyVictoryWeight>
 			<!-- BBAI Victory Strategy -->
@@ -31957,7 +31959,8 @@
 			<iMaxWarMinAdjacentLandPercent>1</iMaxWarMinAdjacentLandPercent>
 			<iLimitedWarRand>120</iLimitedWarRand>
 			<iLimitedWarPowerRatio>100</iLimitedWarPowerRatio>
-			<iDogpileWarRand>80</iDogpileWarRand>
+			<!-- advc.005a: was 80 -->
+			<iDogpileWarRand>100</iDogpileWarRand>
 			<iMakePeaceRand>40</iMakePeaceRand>
 			<iDeclareWarTradeRand>40</iDeclareWarTradeRand>
 			<iDemandRebukedSneakProb>50</iDemandRebukedSneakProb>

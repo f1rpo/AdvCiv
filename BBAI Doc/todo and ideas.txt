@@ -1,0 +1,129 @@
+-----------------------------------------------------------
+
+For 1.10
+
+- AI scraps extra transports/escorts if planning land war
+- Build like assault fraction of time if at war with non-land targets, fraction based partly on number of wars
+
+- Strategic resource unit AI ... defensive, recapture, offensive and deny
+
+- Breakout power calculations into land, sea, air, production?
+	- Add power for promotions (and subtract on death)
+	- Add power for cash on hand
+	- UNITAI_COUNTER valuation of interception based on enemy air power
+
+- Gold spending in US
+
+- High value unit preservation
+
+- AI willing to end wars earlier if it has a much higher value target
+- AI acceptance of capitulation of insignificant targets in late game
+
+- DPII diplomacy changes?
+
+- Afforess' city building free promotion fix
+
+- New tech selection randomization?
+
+-----------------------------------------------------------
+
+Potential future targeted changes to explore:
+
+Air AI
+- Bombers hit random nearby enemy cities if no air defenses and nothing else to do?
+
+Victory Strategy
+x Effect civic choices
+- Effect wonder construction
+- Effect tech values
+- Effect unit construction
+- Effect great people usage
+- Spies go after competitors in final stages and play defense
+
+City AI:
+- Better logic (centralized) for determining when to relocate capital
+- Settler production priority, adjust area city site values based on number of settlers in the field
+- Cities build culture to grab bonuses
+
+Worker AI:
+- Build railroads on mines etc with high priority to speed industrial revolution
+- Chop to support early wonders or rushes
+
+War strategy AI:
+- Target cities to stop potential victory - capital for space, high culture cities for cultural.  Use war declaration code as a guide for how to determine if other player is close
+
+Tech selection AI:
+- Replace randomized method with having computed value weight random draw instead of using random multiplies (will allow debugging of final valuation)
+
+Unit AI:
+x Attack stacks should stage in coastal cities if in assault areas
+- If sending an attack load with no attack city units, change at least one unit ai
+- Stranded move to city with good closeness
+- Generals spawned in enemy territory (mods) -> lead
+- Fast moving attack/pillage groups sometimes shadow instead of join attack stacks, break off to pillage
+
+Nuke AI:
+- Don't always launch first, don't be predictable
+- Add leader head personality variable to control how "nuke happy" an AI is
+
+Naval AI:
+- Escorts for picking up stranded
+- AttackSea have pretty low attack odds threshold ... how to coordinate buildup of naval strength to take out strong enemy units?
+- Keep transport groups out of recently captured cities
+x Escorts start with transports better, by having transports start mission ai but not leave until they have escorts under many circumstances
+
+Great people AI
+- If losing war or on defensive, up value of Golden Age (so can switch to drafting civics easily)
+
+Missionary AI
+- Fix disconnect in shipping missionaries to small islands
+- When to build monasteries, esp non-state
+
+Civics AI
+- If in tough war, up value of civics which allow whipping, or buying?
+- If preparing for war against a tough opponent, up value of above as well
+
+Diplomacy:
+- How do losing/weak civs ask for help in war?  Try to vassal themselves to anyone
+- when will vassals choose to break free?
+- Pick state religion logic
+x Less willing to make peace when about to capture city, more willing when have threatened cities
+- Go after civs who previously took your prized cities?
+- Teams behind in tech more willing to make trades with others also behind?
+- Scale some interactions with game speed?
+
+Expose AI variables:
+- ?
+
+Efficiency:
+- Cache CvPlayer::getBestRoute
+
+-----------------------------------------------------------
+
+Bigger picture avenues to pursue:
+
+Area city graphs, or some way to pick ports for naval invasion.
+
+Check decisions about making amphibious assaults versus landing next to city.  Also, separate off attack ships and have them bombard before invasion?
+
+Active defense, both shifting defenders around plus forming a stack to attack invaders.  See Version 0.50 thread. (is this in good shape?)
+
+AI should give up on cities it has no chance of keeping, avoid "meat grinder" exploit http://forums.civfanatics.com/showpost.php?p=8521601&postcount=357
+
+Guard city logic causes cycles due to inconsistent counting of units.
+
+New type of warplan:  opportunity.  AI who wants to do Total War but is too weak to declare but still has a fighting chance if enemy is distracted, prepares and then enters a waiting for opportunity state.  Multiple waiters can join together if joint power high enough, otherwise individuals wait and declare when enemy is tied up and there's an opportunity.  Waiting eventually clears if AI decides to go after a different target.
+
+Rework power calculations so that:
+1)  Land, sea, and air are separate
+2)  Better economic/production power understanding (can enemy out produce us?)
+3)  Better tech power understanding (do we need to catch up in military tech?)
+
+Centralized national wonder construction:
+0) Evaluate current war/economic climate, decide how many cities can be tied up with wonders
+1) Loop over all cities (skip small, crappy ones?), and all unbuilt national wonders, creating list for each wonder of its top cities and their computed values
+2) Discount values for nat wonders which cannot be built yet, especially those far away in tech tree
+3) Loop over wonders in order of top value and assign wonder to highest value city which still has slot open
+4) Before pushing construction, check for fast production boosting builds
+- Debug values can use Ctrl+Alt hover over city? Or override civics/techs during development
+- Make sure that certain wonder combos get boosts, wall street favored for holy city, etc

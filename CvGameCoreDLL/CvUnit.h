@@ -85,7 +85,7 @@ public:
 	DllExport void NotifyEntity(MissionTypes eMission);
 
 	void doTurn();
-
+	void doTurnPost(); // advc.029
 	void updateCombat(bool bQuick = false);
 	void updateAirCombat(bool bQuick = false);
 	void updateAirStrike(CvPlot* pPlot, bool bQuick, bool bFinish);
@@ -821,6 +821,7 @@ protected:
 	int m_iLastMoveTurn;
 	int m_iReconX;
 	int m_iReconY;
+	int m_iLastReconTurn; // advc.029
 	int m_iGameTurnCreated;
 	int m_iDamage;
 	int m_iMoves;
