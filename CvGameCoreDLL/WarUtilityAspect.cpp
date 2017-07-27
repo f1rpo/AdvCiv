@@ -3280,6 +3280,10 @@ void TacticalSituation::evalOperational() {
 	double targetAttackers = 4 + std::pow((double)they->getCurrentEra(), 1.3);
 	if(params.isNaval())
 		targetAttackers *= 1.3;
+	double trainMod = GC.getHandicapInfo(GC.getGameINLINE().
+			getHandicapType()).getAITrainPercent() / 100.0;
+	// Smaller target on lower difficulty
+	targetAttackers /= ::dRange(trainMod, 1.0, 1.5);
 	/*  Don't necessarily need a larger initial stack for total war.
 		A little maybe ... */
 	if(params.isTotal())

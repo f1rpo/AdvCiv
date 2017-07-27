@@ -1759,7 +1759,7 @@ bool CvUnit::isActionRecommended(int iAction)
 	//BonusTypes eBonus;
 	//int iIndex;
 	/*  advc.002e: Can't find another DLL function that is called by the EXE after
-		loading a savegame and after calling CvUnit::isPromotionRead */
+		loading a savegame and after calling CvUnit::isPromotionReady */
 	gDLL->getEntityIFace()->showPromotionGlow(getUnitEntity(), isReadyForPromotion());
 	if (getOwnerINLINE() != GC.getGameINLINE().getActivePlayer())
 	{
@@ -11546,8 +11546,7 @@ void CvUnit::setMadeInterception(bool bNewValue)
 	to show the glow on those only once the human turn starts (in
 	CvPlayer::doWarnings). */
 bool CvUnit::isPromotionReady() const {
-	//return m_bPromotionReady;
-	return GC.getDefineINT("SHOW_PROMOTION_GLOW") > 0;
+	return m_bPromotionReady && GC.getDefineINT("SHOW_PROMOTION_GLOW") > 0;
 }
 
 bool CvUnit::isReadyForPromotion() const {

@@ -10107,6 +10107,7 @@ m_iBarbarianInitialDefenders(0),
 m_iAIDeclareWarProb(0),
 m_iAIWorkRateModifier(0),
 m_iAIGrowthPercent(0),
+m_iAIResearchPercent(0), // advc.251
 m_iAITrainPercent(0),
 m_iAIWorldTrainPercent(0),
 m_iAIConstructPercent(0),
@@ -10357,6 +10358,11 @@ int CvHandicapInfo::getAIGrowthPercent() const
 {
 	return m_iAIGrowthPercent;
 }
+// <advc.251>
+int CvHandicapInfo::getAIResearchPercent() const		
+{
+	return m_iAIResearchPercent;
+} // </advc.251>
 
 int CvHandicapInfo::getAITrainPercent() const
 {
@@ -10510,6 +10516,10 @@ void CvHandicapInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iAIDeclareWarProb);
 	stream->Read(&m_iAIWorkRateModifier);
 	stream->Read(&m_iAIGrowthPercent);
+	// <advc.251>
+	if(uiFlag >= 1)
+		stream->Read(&m_iAIResearchPercent);
+	else m_iAIResearchPercent = 100; // </advc.251>
 	stream->Read(&m_iAITrainPercent);
 	stream->Read(&m_iAIWorldTrainPercent);
 	stream->Read(&m_iAIConstructPercent);
@@ -10548,7 +10558,7 @@ void CvHandicapInfo::write(FDataStreamBase* stream)
 {
 	CvInfoBase::write(stream);
 
-	uint uiFlag=0;
+	uint uiFlag=1; // advc.251
 	stream->Write(uiFlag);		// Flag for Expansion
 
 	stream->Write(m_iFreeWinsVsBarbs);
@@ -10595,6 +10605,7 @@ void CvHandicapInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iAIDeclareWarProb);
 	stream->Write(m_iAIWorkRateModifier);
 	stream->Write(m_iAIGrowthPercent);
+	stream->Write(m_iAIResearchPercent); // advc.251
 	stream->Write(m_iAITrainPercent);
 	stream->Write(m_iAIWorldTrainPercent);
 	stream->Write(m_iAIConstructPercent);
@@ -10673,6 +10684,7 @@ bool CvHandicapInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iAIDeclareWarProb, "iAIDeclareWarProb");
 	pXML->GetChildXmlValByName(&m_iAIWorkRateModifier, "iAIWorkRateModifier");
 	pXML->GetChildXmlValByName(&m_iAIGrowthPercent, "iAIGrowthPercent");
+	pXML->GetChildXmlValByName(&m_iAIResearchPercent, "iAIResearchPercent"); // advc.251
 	pXML->GetChildXmlValByName(&m_iAITrainPercent, "iAITrainPercent");
 	pXML->GetChildXmlValByName(&m_iAIWorldTrainPercent, "iAIWorldTrainPercent");
 	pXML->GetChildXmlValByName(&m_iAIConstructPercent, "iAIConstructPercent");

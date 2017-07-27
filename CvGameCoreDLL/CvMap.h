@@ -163,6 +163,7 @@ public:
 
 	int maxPlotDistance();																								// Exposed to Python
 	int maxStepDistance();																								// Exposed to Python
+	int maxMaintenanceDistance(); // advc.140
 
 	DllExport int getGridWidth() const;																		// Exposed to Python
 #ifdef _USRDLL

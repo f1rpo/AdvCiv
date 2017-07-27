@@ -2405,6 +2405,7 @@ public:
 	int getAIDeclareWarProb() const;								// Exposed to Python
 	int getAIWorkRateModifier() const;				// Exposed to Python
 	int getAIGrowthPercent() const;				// Exposed to Python
+	int getAIResearchPercent() const; // advc.251
 	int getAITrainPercent() const;				// Exposed to Python
 	int getAIWorldTrainPercent() const;				// Exposed to Python
 	int getAIConstructPercent() const;				// Exposed to Python
@@ -2480,6 +2481,7 @@ protected:
 	int m_iAIDeclareWarProb;
 	int m_iAIWorkRateModifier;
 	int m_iAIGrowthPercent;
+	int m_iAIResearchPercent; // advc.251
 	int m_iAITrainPercent;
 	int m_iAIWorldTrainPercent;
 	int m_iAIConstructPercent;

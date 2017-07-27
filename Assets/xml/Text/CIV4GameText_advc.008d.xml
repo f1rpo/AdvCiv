@@ -44,11 +44,11 @@
 	 routes." Not news anymore. -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_56</Tag>
-	<English>(UWAI) Some leaders are known not to wage war against civs they're pleased with; however, don't count on it if the target is a large civ that looks like easy pickings.</English>
-	<French>(UWAI) Some leaders are known not to wage war against civs they're pleased with; however, don't count on it if the target is a large civ that looks like easy pickings.</French>
+	<English>(UWAI) Some leaders are known not to wage war against civs they're pleased with; however, don't count on it if the target is a large civ that looks like very easy pickings.</English>
+	<French>(UWAI) Some leaders are known not to wage war against civs they're pleased with; however, don't count on it if the target is a large civ that looks like very easy pickings.</French>
 	<German>(UWAI) Von manchen Herrschern ist bekannt, dass sie keinen Krieg anfangen solange sie "erfreut" sind. Verlassen Sie sich darauf aber nicht, wenn die Beute groß ist und der zu erwartende Widerstand gering.</German>
-	<Italian>(UWAI) Some leaders are known not to wage war against civs they're pleased with; however, don't count on it if the target is a large civ that looks like easy pickings.</Italian>
-	<Spanish>(UWAI) Some leaders are known not to wage war against civs they're pleased with; however, don't count on it if the target is a large civ that looks like easy pickings.</Spanish>
+	<Italian>(UWAI) Some leaders are known not to wage war against civs they're pleased with; however, don't count on it if the target is a large civ that looks like very easy pickings.</Italian>
+	<Spanish>(UWAI) Some leaders are known not to wage war against civs they're pleased with; however, don't count on it if the target is a large civ that looks like very easy pickings.</Spanish>
 </TEXT>
 
 <!-- "Oil-based navies are a huge step up from coal-powered ironclads. If you
@@ -154,11 +154,11 @@
 <!-- advc.130m -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_5</Tag>
-	<English>(AdvCiv) If you wish to gain a lasting boost to relations from a mutual military struggle, it's not enough to be formally at war with the same civilization. You'll have to actually send units to fight in the war. Even then, the bonus to relations fades over time.</English>
-	<French>(AdvCiv) If you wish to gain a lasting boost to relations from a mutual military struggle, it's not enough to be formally at war with the same civilization. You'll have to actually send units to fight in the war. Even then, the relations bonus fades over time.</French>
+	<English>(AdvCiv) For a lasting boost to relations from a mutual military struggle, it's not enough to be formally at war with the same civilization. You'll have to actually send units to fight in the war. Even then, the bonus to relations fades over time.</English>
+	<French>(AdvCiv) For a lasting boost to relations from a mutual military struggle, it's not enough to be formally at war with the same civilization. You'll have to actually send units to fight in the war. Even then, the relations bonus fades over time.</French>
 	<German>(AdvCiv) Für einen andauernden Diplomatiebonus durch gemeinsame militärische Aktivitäten reicht es nicht, formal gemeinsam im Krieg zu sein. Sie müssen auch wirklich Einheiten in den Kampf schicken, und selbst dann schwindet der Diplomatiebonus im Laufe der Zeit.</German>
-	<Italian>(AdvCiv) If you wish to gain a lasting boost to relations from a mutual military struggle, it's not enough to be formally at war with the same civilization. You'll have to actually send units to fight in the war. Even then, the bonus to relations fades over time.</Italian>
-	<Spanish>(AdvCiv) If you wish to gain a lasting boost to relations from a mutual military struggle, it's not enough to be formally at war with the same civilization. You'll have to actually send units to fight in the war. Even then, the bonus to relations fades over time.</Spanish>
+	<Italian>(AdvCiv) For a lasting boost to relations from a mutual military struggle, it's not enough to be formally at war with the same civilization. You'll have to actually send units to fight in the war. Even then, the bonus to relations fades over time.</Italian>
+	<Spanish>(AdvCiv) For a lasting boost to relations from a mutual military struggle, it's not enough to be formally at war with the same civilization. You'll have to actually send units to fight in the war. Even then, the bonus to relations fades over time.</Spanish>
 </TEXT>
 
 <!-- advc.sha -->
@@ -241,11 +241,11 @@
 <!-- advc.099 -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_14</Tag>
-	<English>(AdvCiv) If your game options allow cities to flip after conquest, you may have to keep a large portion of your troops stationed in conquered cities to suppress revolts until your culture value increases. Make sure those cities are worth the effort.</English>
-	<French>(AdvCiv) If your game options allow cities to flip after conquest, you may have to keep a large portion of your troops stationed in conquered cities to suppress revolts until your culture value increases. Make sure those cities are worth the effort.</French>
-	<German>(AdvCiv) Wenn die Spieloptionen Stadtwechsel nach Eroberung zulassen, müssen Sie sich darauf einstellen, große Truppenkontingente in eroberten Städten zu stationieren, um Revolten zu verhindern bis Ihr Kulturwert sich erhöht. Überlegen Sie sich vorher gut, ob die eroberten Städte das wert sind.</German>
-	<Italian>(AdvCiv) If your game options allow cities to flip after conquest, you may have to keep a large portion of your troops stationed in conquered cities to suppress revolts until your culture value increases. Make sure those cities are worth the effort.</Italian>
-	<Spanish>(AdvCiv) If your game options allow cities to flip after conquest, you may have to keep a large portion of your troops stationed in conquered cities to suppress revolts until your culture value increases. Make sure those cities are worth the effort.</Spanish>
+	<English>(AdvCiv) You may have to keep a large portion of your troops stationed in conquered cities to suppress revolts until your culture value increases. Make sure those cities are worth the effort.</English>
+	<French>(AdvCiv) You may have to keep a large portion of your troops stationed in conquered cities to suppress revolts until your culture value increases. Make sure those cities are worth the effort.</French>
+	<German>(AdvCiv) In eroberten Städten können große Truppenkontingente notwendig sein, um Revolten zu verhindern bis Ihr Kulturwert sich erhöht. Überlegen Sie sich vorher gut, ob die eroberten Städte das wert sind.</German>
+	<Italian>(AdvCiv) You may have to keep a large portion of your troops stationed in conquered cities to suppress revolts until your culture value increases. Make sure those cities are worth the effort.</Italian>
+	<Spanish>(AdvCiv) You may have to keep a large portion of your troops stationed in conquered cities to suppress revolts until your culture value increases. Make sure those cities are worth the effort.</Spanish>
 </TEXT>
 
 <!-- advc.124 -->
@@ -300,11 +300,11 @@
 <!-- advc.102 -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_20</Tag>
-	<English>(AdvCiv) Give the options for showing foreign moves another chance. These options make it easier to spot an impending invasion, but they used to increase turn times a lot. The added delay is now much smaller.</English>
-	<French>(AdvCiv) Give the options for showing foreign moves another chance. These options make it easier to spot an impending invasion, but they used to increase turn times a lot. The added delay is now much smaller.</French>
-	<German>(AdvCiv) Geben Sie den Optionen zur Anzeige gegnerischer Züge noch eine Chance. Sie erleichtern es, bevorstehende Überfälle zu bemerken, haben aber bisher den Spielfluss erheblich gestört. Die Anzeige gegnerischer Züge nimmt nun viel weniger Zeit in Anspruch.</German>
-	<Italian>(AdvCiv) Give the options for showing foreign moves another chance. These options make it easier to spot an impending invasion, but they used to increase turn times a lot. The added delay is now much smaller.</Italian>
-	<Spanish>(AdvCiv) Give the options for showing foreign moves another chance. These options make it easier to spot an impending invasion, but they used to increase turn times a lot. The added delay is now much smaller.</Spanish>
+	<English>(AdvCiv) Give the "Show friendly moves" option another chance. It takes up much less time now.</English>
+	<French>(AdvCiv) Give the "Show friendly moves" option another chance. It takes up much less time now.</French>
+	<German>(AdvCiv) Geben Sie der Option "Freundliche Bewegungen zeigen" noch eine Chance. Die Anzeige der Züge nimmt nicht mehr so viel Zeit in Anspruch.</German>
+	<Italian>(AdvCiv) Give the "Show friendly moves" option another chance. It takes up much less time now.</Italian>
+	<Spanish>(AdvCiv) Give the "Show friendly moves" option another chance. It takes up much less time now.</Spanish>
 </TEXT>
 
 <!-- advc.102 -->

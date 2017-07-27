@@ -175,6 +175,7 @@ public:
 	DllExport bool isVisible(TeamTypes eTeam, bool bDebug) const;						// Exposed to Python
 
 	bool isCapital() const;																				// Exposed to Python
+	bool isPrereqBonusSea() const; // advc.041
 	/* advc.003: Global default used for -1. Also removed that default from all
 	   calls to this function (except those from Python). */
 	bool isCoastal(int iMinWaterSize = -1) const;																									// Exposed to Python

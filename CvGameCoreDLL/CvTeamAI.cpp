@@ -5240,9 +5240,11 @@ int CvTeamAI::AI_teamCloseness(TeamTypes eIndex, int iMaxDistance,
 				}
 			}
 		}
-	} // <advc.104o> AI_playerCloseness is just about air distance
-	if(considerLandTarget && AI_isLandTarget(eIndex))
-		iValue += 150; // </advc.104o>
+	} /* <advc.104o> (Change disabled for now b/c advc.107 now factors
+		land connection into AI_playerCloseness. Could increase iValue here
+		in order to further increase the impact.) */
+	/*if(considerLandTarget && AI_isLandTarget(eIndex))
+		iValue += 50; */ // </advc.104o>
 	return iValue;
 }
 

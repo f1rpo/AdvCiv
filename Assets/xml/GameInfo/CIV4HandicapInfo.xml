@@ -20,7 +20,8 @@
 			<iGold>0</iGold>
 			<iFreeUnits>24</iFreeUnits>
 			<iUnitCostPercent>20</iUnitCostPercent>
-			<iResearchPercent>60</iResearchPercent>
+			<!-- advc.251: was 60 -->
+			<iResearchPercent>50</iResearchPercent>
 			<iDistanceMaintenancePercent>45</iDistanceMaintenancePercent>
 			<iNumCitiesMaintenancePercent>40</iNumCitiesMaintenancePercent>
 			<iMaxNumCitiesMaintenance>4</iMaxNumCitiesMaintenance>
@@ -56,6 +57,8 @@
 			<iAIDeclareWarProb>25</iAIDeclareWarProb>
 			<iAIWorkRateModifier>0</iAIWorkRateModifier>
 			<iAIGrowthPercent>160</iAIGrowthPercent>
+			<!-- advc.251: I.e. lower tech costs for the AI -->
+			<iAIResearchPercent>75</iAIResearchPercent>
 			<iAITrainPercent>160</iAITrainPercent>
 			<iAIWorldTrainPercent>160</iAIWorldTrainPercent>
 			<iAIConstructPercent>160</iAIConstructPercent>
@@ -162,7 +165,8 @@
 			<iGold>0</iGold>
 			<iFreeUnits>18</iFreeUnits>
 			<iUnitCostPercent>30</iUnitCostPercent>
-			<iResearchPercent>75</iResearchPercent>
+			<!-- advc.251: was 75 -->
+			<iResearchPercent>60</iResearchPercent>
 			<iDistanceMaintenancePercent>55</iDistanceMaintenancePercent>
 			<iNumCitiesMaintenancePercent>50</iNumCitiesMaintenancePercent>
 			<iMaxNumCitiesMaintenance>4</iMaxNumCitiesMaintenance>
@@ -198,6 +202,8 @@
 			<iAIDeclareWarProb>50</iAIDeclareWarProb>
 			<iAIWorkRateModifier>0</iAIWorkRateModifier>
 			<iAIGrowthPercent>130</iAIGrowthPercent>
+			<!-- advc.251: I.e. lower tech costs for the AI -->
+			<iAIResearchPercent>75</iAIResearchPercent>
 			<iAITrainPercent>130</iAITrainPercent>
 			<iAIWorldTrainPercent>130</iAIWorldTrainPercent>
 			<iAIConstructPercent>130</iAIConstructPercent>
@@ -280,7 +286,8 @@
 			<iGold>0</iGold>
 			<iFreeUnits>12</iFreeUnits>
 			<iUnitCostPercent>40</iUnitCostPercent>
-			<iResearchPercent>90</iResearchPercent>
+			<!-- advc.251: was 90 -->
+			<iResearchPercent>80</iResearchPercent>
 			<iDistanceMaintenancePercent>65</iDistanceMaintenancePercent>
 			<iNumCitiesMaintenancePercent>60</iNumCitiesMaintenancePercent>
 			<iMaxNumCitiesMaintenance>5</iMaxNumCitiesMaintenance>
@@ -316,6 +323,8 @@
 			<iAIDeclareWarProb>75</iAIDeclareWarProb>
 			<iAIWorkRateModifier>0</iAIWorkRateModifier>
 			<iAIGrowthPercent>110</iAIGrowthPercent>
+			<!-- advc.251: I.e. lower tech costs for the AI -->
+			<iAIResearchPercent>85</iAIResearchPercent>
 			<iAITrainPercent>110</iAITrainPercent>
 			<iAIWorldTrainPercent>110</iAIWorldTrainPercent>
 			<iAIConstructPercent>110</iAIConstructPercent>
@@ -409,6 +418,8 @@
 			<iAIDeclareWarProb>100</iAIDeclareWarProb>
 			<iAIWorkRateModifier>0</iAIWorkRateModifier>
 			<iAIGrowthPercent>100</iAIGrowthPercent>
+			<!-- advc.251 -->
+			<iAIResearchPercent>100</iAIResearchPercent>
 			<iAITrainPercent>100</iAITrainPercent>
 			<iAIWorldTrainPercent>100</iAIWorldTrainPercent>
 			<iAIConstructPercent>100</iAIConstructPercent>
@@ -498,6 +509,8 @@
 			<iAIDeclareWarProb>100</iAIDeclareWarProb>
 			<iAIWorkRateModifier>10</iAIWorkRateModifier>
 			<iAIGrowthPercent>100</iAIGrowthPercent>
+			<!-- advc.251 -->
+			<iAIResearchPercent>100</iAIResearchPercent>
 			<iAITrainPercent>95</iAITrainPercent>
 			<iAIWorldTrainPercent>100</iAIWorldTrainPercent>
 			<iAIConstructPercent>95</iAIConstructPercent>
@@ -591,6 +604,8 @@
 			<iAIDeclareWarProb>100</iAIDeclareWarProb>
 			<iAIWorkRateModifier>20</iAIWorkRateModifier>
 			<iAIGrowthPercent>95</iAIGrowthPercent>
+			<!-- advc.251 -->
+			<iAIResearchPercent>100</iAIResearchPercent>
 			<iAITrainPercent>90</iAITrainPercent>
 			<iAIWorldTrainPercent>100</iAIWorldTrainPercent>
 			<iAIConstructPercent>90</iAIConstructPercent>
@@ -670,7 +685,8 @@
 			<iGold>0</iGold>
 			<iFreeUnits>3</iFreeUnits>
 			<iUnitCostPercent>80</iUnitCostPercent>
-			<iResearchPercent>120</iResearchPercent>
+			<!-- advc.251: was 120 -->
+			<iResearchPercent>125</iResearchPercent>
 			<iDistanceMaintenancePercent>95</iDistanceMaintenancePercent>
 			<iNumCitiesMaintenancePercent>90</iNumCitiesMaintenancePercent>
 			<iMaxNumCitiesMaintenance>7</iMaxNumCitiesMaintenance>
@@ -707,6 +723,8 @@
 			<iAIDeclareWarProb>100</iAIDeclareWarProb>
 			<iAIWorkRateModifier>50</iAIWorkRateModifier>
 			<iAIGrowthPercent>90</iAIGrowthPercent>
+			<!-- advc.251: I.e. higher tech costs for the AI -->
+			<iAIResearchPercent>103</iAIResearchPercent>
 			<iAITrainPercent>85</iAITrainPercent>
 			<iAIWorldTrainPercent>100</iAIWorldTrainPercent>
 			<iAIConstructPercent>85</iAIConstructPercent>
@@ -790,7 +808,8 @@
 			<iGold>0</iGold>
 			<iFreeUnits>2</iFreeUnits>
 			<iUnitCostPercent>90</iUnitCostPercent>
-			<iResearchPercent>125</iResearchPercent>
+			<!-- advc.251: was 125 -->
+			<iResearchPercent>130</iResearchPercent>
 			<iDistanceMaintenancePercent>100</iDistanceMaintenancePercent>
 			<iNumCitiesMaintenancePercent>95</iNumCitiesMaintenancePercent>
 			<iMaxNumCitiesMaintenance>7</iMaxNumCitiesMaintenance>
@@ -827,6 +846,8 @@
 			<iAIDeclareWarProb>100</iAIDeclareWarProb>
 			<iAIWorkRateModifier>75</iAIWorkRateModifier>
 			<iAIGrowthPercent>85</iAIGrowthPercent>
+			<!-- advc.251: I.e. higher tech costs for the AI -->
+			<iAIResearchPercent>105</iAIResearchPercent>
 			<iAITrainPercent>80</iAITrainPercent>
 			<iAIWorldTrainPercent>100</iAIWorldTrainPercent>
 			<iAIConstructPercent>80</iAIConstructPercent>
@@ -914,7 +935,8 @@
 			<iGold>0</iGold>
 			<iFreeUnits>1</iFreeUnits>
 			<iUnitCostPercent>100</iUnitCostPercent>
-			<iResearchPercent>130</iResearchPercent>
+			<!-- advc.251: was 130 -->
+			<iResearchPercent>150</iResearchPercent>
 			<iDistanceMaintenancePercent>100</iDistanceMaintenancePercent>
 			<iNumCitiesMaintenancePercent>100</iNumCitiesMaintenancePercent>
 			<iMaxNumCitiesMaintenance>8</iMaxNumCitiesMaintenance>
@@ -950,6 +972,8 @@
 			<iAIDeclareWarProb>100</iAIDeclareWarProb>
 			<iAIWorkRateModifier>100</iAIWorkRateModifier>
 			<iAIGrowthPercent>80</iAIGrowthPercent>
+			<!-- advc.251: I.e. higher tech costs for the AI -->
+			<iAIResearchPercent>125</iAIResearchPercent>
 			<iAITrainPercent>60</iAITrainPercent>
 			<iAIWorldTrainPercent>100</iAIWorldTrainPercent>
 			<iAIConstructPercent>60</iAIConstructPercent>
@@ -1061,7 +1085,7 @@
 			<iGold>0</iGold>
 			<iFreeUnits>5</iFreeUnits>
 			<iUnitCostPercent>70</iUnitCostPercent>
-			<iResearchPercent>120</iResearchPercent>
+			<iResearchPercent>110</iResearchPercent>
 			<iDistanceMaintenancePercent>90</iDistanceMaintenancePercent>
 			<iNumCitiesMaintenancePercent>90</iNumCitiesMaintenancePercent>
 			<iMaxNumCitiesMaintenance>6</iMaxNumCitiesMaintenance>
@@ -1097,6 +1121,8 @@
 			<iAIDeclareWarProb>100</iAIDeclareWarProb>
 			<iAIWorkRateModifier>10</iAIWorkRateModifier>
 			<iAIGrowthPercent>90</iAIGrowthPercent>
+			<!-- advc.251: Lower tech costs for the AI -->
+			<iAIResearchPercent>95</iAIResearchPercent>
 			<iAITrainPercent>90</iAITrainPercent>
 			<iAIWorldTrainPercent>90</iAIWorldTrainPercent>
 			<iAIConstructPercent>90</iAIConstructPercent>

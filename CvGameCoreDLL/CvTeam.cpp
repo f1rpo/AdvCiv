@@ -1397,6 +1397,74 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 		GET_TEAM(getID()).AI_setWarPlanStateCounter(eTeam, 0);
 		GET_TEAM(eTeam).AI_setWarPlanStateCounter(getID(), 0);
 	} // </advc.104q>
+
+	/*  advc.130h: Moved this entire loop up b/c I'm adding code that depends on
+		the atWarWithPartner status before the DoW */
+	// advc.003: Deleted the BtS code that karadoc refers to
+	// K-Mod. Same functionality, but a bit cleaner and a bit faster.
+	for (PlayerTypes i = (PlayerTypes)0; i < MAX_PLAYERS; i = (PlayerTypes)(i+1))
+	{
+		CvPlayerAI& kPlayer_i = GET_PLAYER(i); // advc.130o: const removed
+
+		if (!kPlayer_i.isAlive() || kPlayer_i.getTeam() != getID())
+			continue;
+		// player i is a member of this team.
+
+		for (PlayerTypes j = (PlayerTypes)0; j < MAX_PLAYERS; j = (PlayerTypes)(j+1))
+		{
+			CvPlayerAI& kPlayer_j = GET_PLAYER(j);
+
+			if (!kPlayer_j.isAlive()
+					// advc.003b: Doesn't hurt to include them, I guess, but no need
+					|| j == BARBARIAN_PLAYER || kPlayer_j.isMinorCiv())
+				continue;
+
+			// <advc.130o>
+			if(bPrimaryDoW && kPlayer_i.isHuman() && !kPlayer_j.isHuman() &&
+					GET_TEAM(eTeam).AI_getMemoryCount(getID(), MEMORY_MADE_DEMAND) > 0 &&
+					TEAMREF(j).getMasterTeam() != getMasterTeam() &&
+					(kPlayer_j.getTeam() == eTeam ||
+					GET_TEAM(eTeam).isHasMet(kPlayer_j.getTeam()))) {
+				// Raise it to 8 (or what XML says)
+				int mem = kPlayer_j.AI_getMemoryCount(i, MEMORY_MADE_DEMAND_RECENT);
+				int delta = GC.getDefineINT("WAR_DESPITE_TRIBUTE_MEMORY");
+				delta = std::max(mem, delta) - mem;
+				kPlayer_j.AI_changeMemoryCount(i, MEMORY_MADE_DEMAND_RECENT, delta);
+			}
+			if(bPrimaryDoW && i != j) {
+				int mem = kPlayer_i.AI_getMemoryCount(j, MEMORY_MADE_DEMAND);
+				kPlayer_i.AI_changeMemoryCount(j, MEMORY_MADE_DEMAND, -mem);
+			} // </advc.130o>
+			if (kPlayer_j.getTeam() == eTeam)
+			{
+				if(bPrimaryDoW) // advc.130y
+					kPlayer_j.AI_rememberEvent(i, MEMORY_DECLARED_WAR); // advc.130j
+				// advc.130y:
+				else kPlayer_j.AI_changeMemoryCount(i, MEMORY_DECLARED_WAR, 2);
+			}
+			else if (kPlayer_j.getTeam() != getID())
+			{
+				const CvTeamAI& kTeam_j = GET_TEAM(kPlayer_j.getTeam());
+
+				if (kTeam_j.isHasMet(eTeam) && !kTeam_j.isAtWar(eTeam))
+				{
+					if (kTeam_j.AI_getAttitude(eTeam) >= ATTITUDE_PLEASED &&
+							// <advc.130h>
+							GET_TEAM(eTeam).getMasterTeam() != kTeam_j.getMasterTeam() &&
+							/*  Not if eTeam is also fighting a partner and
+								(appears to have) started it. */
+							(kTeam_j.AI_getMemoryCount(eTeam, MEMORY_DECLARED_WAR_ON_FRIEND) <= 0) ||
+							!kPlayer_j.atWarWithPartner(eTeam))
+							// </advc.130h>
+					{   // advc.130j:
+						kPlayer_j.AI_rememberEvent(i, MEMORY_DECLARED_WAR_ON_FRIEND);
+					}
+				}
+			}
+		}
+	}
+	// K-Mod end.
+
 	setAtWar(eTeam, true);
 	GET_TEAM(eTeam).setAtWar(getID(), true);
 
@@ -1498,68 +1566,7 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 		}
 	}
 
-	// advc.003: Deleted the BtS code that karadoc refers to
-	// K-Mod. Same functionality, but a bit cleaner and a bit faster.
-	for (PlayerTypes i = (PlayerTypes)0; i < MAX_PLAYERS; i = (PlayerTypes)(i+1))
-	{
-		CvPlayerAI& kPlayer_i = GET_PLAYER(i); // advc.130o: const removed
-
-		if (!kPlayer_i.isAlive() || kPlayer_i.getTeam() != getID())
-			continue;
-		// player i is a member of this team.
-
-		for (PlayerTypes j = (PlayerTypes)0; j < MAX_PLAYERS; j = (PlayerTypes)(j+1))
-		{
-			CvPlayerAI& kPlayer_j = GET_PLAYER(j);
-
-			if (!kPlayer_j.isAlive()
-					// advc.003b: Doesn't hurt to include them, I guess, but no need
-					|| j == BARBARIAN_PLAYER || kPlayer_j.isMinorCiv())
-				continue;
-
-			// <advc.130o>
-			if(bPrimaryDoW && kPlayer_i.isHuman() && !kPlayer_j.isHuman() &&
-					GET_TEAM(eTeam).AI_getMemoryCount(getID(), MEMORY_MADE_DEMAND) > 0 &&
-					TEAMREF(j).getMasterTeam() != getMasterTeam() &&
-					(kPlayer_j.getTeam() == eTeam ||
-					GET_TEAM(eTeam).isHasMet(kPlayer_j.getTeam()))) {
-				// Raise it to 8 (or what XML says)
-				int mem = kPlayer_j.AI_getMemoryCount(i, MEMORY_MADE_DEMAND_RECENT);
-				int delta = GC.getDefineINT("WAR_DESPITE_TRIBUTE_MEMORY");
-				delta = std::max(mem, delta) - mem;
-				kPlayer_j.AI_changeMemoryCount(i, MEMORY_MADE_DEMAND_RECENT, delta);
-			}
-			if(bPrimaryDoW && i != j) {
-				int mem = kPlayer_i.AI_getMemoryCount(j, MEMORY_MADE_DEMAND);
-				kPlayer_i.AI_changeMemoryCount(j, MEMORY_MADE_DEMAND, -mem);
-			} // </advc.130o>
-			if (kPlayer_j.getTeam() == eTeam)
-			{
-				if(bPrimaryDoW) // advc.130y
-					kPlayer_j.AI_rememberEvent(i, MEMORY_DECLARED_WAR); // advc.130j
-				// advc.130y:
-				else kPlayer_j.AI_changeMemoryCount(i, MEMORY_DECLARED_WAR, 2);
-			}
-			else if (kPlayer_j.getTeam() != getID())
-			{
-				const CvTeamAI& kTeam_j = GET_TEAM(kPlayer_j.getTeam());
-
-				if (kTeam_j.isHasMet(eTeam) && !kTeam_j.isAtWar(eTeam))
-				{
-					if (kTeam_j.AI_getAttitude(eTeam) >= ATTITUDE_PLEASED &&
-							// <advc.130h>
-							GET_TEAM(eTeam).getMasterTeam() != kTeam_j.getMasterTeam() &&
-							// Not if they (might have) started it
-							kTeam_j.AI_getMemoryCount(eTeam, MEMORY_DECLARED_WAR_ON_FRIEND) <= 0)
-							// </advc.130h>
-					{   // advc.130j:
-						kPlayer_j.AI_rememberEvent(i, MEMORY_DECLARED_WAR_ON_FRIEND);
-					}
-				}
-			}
-		}
-	}
-	// K-Mod end.
+	// advc.130h: (Code block dealing with diplo repercussions moved up)
 
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
 	{
@@ -3143,7 +3150,12 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 
 	iCost *= GC.getHandicapInfo(getHandicapType()).getResearchPercent();
 	iCost /= 100;
-
+	// <advc.251>
+	if(!isHuman() && !isBarbarian()) {
+		// Important to use game handicap here (not team handicap)
+		iCost = (iCost * GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).
+				getAIResearchPercent()) / 100;
+	} // </advc.251>
 	if (bGlobalModifiers) // K-Mod
 	{
 		iCost *= GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getResearchPercent();

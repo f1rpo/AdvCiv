@@ -352,6 +352,8 @@
 	<ElementType name="iAIDeclareWarProb" content="textOnly" dt:type="int"/>
 	<ElementType name="iAIWorkRateModifier" content="textOnly" dt:type="int"/>
 	<ElementType name="iAIGrowthPercent" content="textOnly" dt:type="int"/>
+	<!-- advc.251 -->
+	<ElementType name="iAIResearchPercent" content="textOnly" dt:type="int"/>
 	<ElementType name="iAITrainPercent" content="textOnly" dt:type="int"/>
 	<ElementType name="iAIWorldTrainPercent" content="textOnly" dt:type="int"/>
 	<ElementType name="iAIConstructPercent" content="textOnly" dt:type="int"/>
@@ -431,6 +433,8 @@
 		<element type="iAIDeclareWarProb"/>
 		<element type="iAIWorkRateModifier"/>
 		<element type="iAIGrowthPercent"/>
+		<!-- advc.251 -->
+		<element type="iAIResearchPercent"/>
 		<element type="iAITrainPercent"/>
 		<element type="iAIWorldTrainPercent"/>
 		<element type="iAIConstructPercent"/>

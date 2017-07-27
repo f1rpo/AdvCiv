@@ -4655,7 +4655,8 @@
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
-			<iMinAreaSize>20</iMinAreaSize>
+			<!-- advc.041: was 20 -->
+			<iMinAreaSize>-1</iMinAreaSize>
 			<iConquestProb>66</iConquestProb>
 			<iCitiesPrereq>0</iCitiesPrereq>
 			<iTeamsPrereq>0</iTeamsPrereq>

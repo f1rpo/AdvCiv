@@ -1037,7 +1037,9 @@ void WarAndPeaceAI::Team::scheme() {
 		bool total = (uTotal > uLimited);
 		int u = std::max(uLimited, uTotal);
 		report->setMute(false);
-		int const reportThresh = (GET_TEAM(targetId).isHuman() ? -50 : -10);
+		int reportThresh = (GET_TEAM(targetId).isHuman() ?
+				GC.getDefineINT("UWAI_REPORT_THRESH_HUMAN") :
+				GC.getDefineINT("UWAI_REPORT_THRESH"));
 		// Extra evaluation just for logging
 		if(!report->isMute() && u > reportThresh) {
 			if(total)
@@ -1577,7 +1579,7 @@ bool WarAndPeaceAI::Team::isPushover(TeamTypes theyId) const {
 	CvTeam const& agent = GET_TEAM(agentId);
 	int theirCities = they.getNumCities();
 	int agentCities = agent.getNumCities();
-	return (theirCities <= 1 && agentCities >= 3 ||
+	return ((theirCities <= 1 && agentCities >= 3) ||
 			4 * theirCities < agentCities) &&
 			10 * they.getPower(true) < 4 * agent.getPower(false);
 }

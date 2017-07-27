@@ -19,6 +19,21 @@
     </Define>
 	
 	<!-- [advc.104]
+		 If UWAI reports are enabled (see above), no details about a AI war plan
+		 are logged unless that war plan has greater utility than this
+		 threshold. There's a separate threshold for war plans against
+		 human players. Recommended: -10/-50; use sth. like -1000/-1000 to log
+		 details always. -->
+    <Define>
+        <DefineName>UWAI_REPORT_THRESH</DefineName>
+        <iDefineIntVal>-10</iDefineIntVal>
+    </Define>
+    <Define>
+        <DefineName>UWAI_REPORT_THRESH_HUMAN</DefineName>
+        <iDefineIntVal>-50</iDefineIntVal>
+    </Define>
+	
+	<!-- [advc.104]
 		If set to 1 or greater, and UWAI is enabled in Game Options
 		(i.e. "Aggressive AI" not checked), UWAI runs in the background and
 		writes a logfile (depending in REPORT_INTERVAL), but lets the K-Mod AI
@@ -574,14 +589,16 @@
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 	
-	<!-- [advc.250c]
-		 If set to 1 or greater, games with Advanced Start begin with a
-		 turn number computed from the number of assigned start points.
+	<!-- [advc.250c][advc.251]
+		 If set to 1 or greater, games on Immortal, Deity or King difficulty,
+		 or any difficulty and Advanced Start, begin with a turn number
+		 computed from the number of free AI Settlers and Workers or the number
+		 of assigned start points.
 		 If set to 0 or less, the turn number is only determined by the
 		 start era (0 in Ancient era) as in BtS.
-		 Recommended: 1. -->
+		 Recommended: 1 -->
 	<Define>
-		<DefineName>ADVANCED_START_INCREASE_TURN_COUNTER</DefineName>
+		<DefineName>INCREASE_START_TURN</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 
@@ -731,6 +748,13 @@
 		 for BtS behavior (only land/water partition the map). -->
 	<Define>
 		<DefineName>PASSABLE_AREAS</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	
+	<!-- [advc.004t] Set to 0 to enable change 004t (not recommended; see
+		 manual). -->
+	<Define>
+		<DefineName>ENABLE_POPUP_RECOMMENDATIONS</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 

@@ -1841,8 +1841,8 @@ void CvPlayerAI::AI_makeProductionDirty()
 /************************************************************************************************/
 void CvPlayerAI::AI_conquerCity(CvCity* pCity)
 {
-	bool bRaze = false; // advc.116
-	bool cultureVict = false; 
+	bool bRaze = false;
+	bool cultureVict = false; // advc.116
 	if (canRaze(pCity))
 	{
 	    int iRazeValue = 0;
@@ -4087,8 +4087,12 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			pNearestCity = GC.getMapINLINE().findCity(iX, iY, getID(), getTeam(), false);
 			if (pNearestCity != NULL)
 			{
-				int iDistance = plotDistance(iX, iY, pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE());
-				iValue -= std::min(500 * iDistance, (8000 * iDistance) / GC.getMapINLINE().maxPlotDistance());
+				int iDistance = // advc.031:
+						std::min(GC.getMapINLINE().maxMaintenanceDistance(),
+						plotDistance(iX, iY, pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE()));
+				iValue -= std::min(500 * iDistance, (//8000
+						std::max(8000 - getCurrentEra() * 1000, 4000) // advc.031
+						* iDistance) / GC.getMapINLINE().maxPlotDistance());
 			}
 		}
 	}
@@ -4097,13 +4101,17 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	{
 		return 1;
 	}
-
-	if (pArea->getNumCities() == 0)
+  if(!GET_TEAM(getTeam()).isCapitulated()) { // advc.130v
+	if (pArea->countCivCities() == 0) // advc.031: Had been counting barb cities
 	{
 		//iValue *= 2;
 		// K-Mod: presumably this is meant to be a bonus for being the first on a new continent.
 		// But I don't want it to be a bonus for settling on tiny islands, so I'm changing it.
-		iValue *= range(100 * (pArea->getNumTiles() - 15) / 15, 100, 200);
+		iValue *= range(100 * (pArea->//getNumTiles()
+				getNumRevealedTiles(getTeam()) // advc.031: Don't cheat
+				- 15) / //15
+				20 // req. 40 revealed tiles for the full bonus
+				, 100, 200);
 		iValue /= 100;
 		// K-Mod end
 	}
@@ -4127,7 +4135,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			iValue /= 4;
 		}
 	}
-
+  } // </advc.130v>
 	if (!kSet.bStartingLoc)
 	{
 		int iFoodSurplus = std::max(0, iSpecialFoodPlus - iSpecialFoodMinus);
@@ -4648,8 +4656,12 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 							{
 								if (!(pLoopUnit->isInvisible(eTeam, false)))
 								{
-								    if (pLoopUnit->canMoveOrAttackInto(pPlot))
-								    {
+								    //if (pLoopUnit->canMoveOrAttackInto(pPlot))
+									/*  <advc.001k> Replacing the above
+										(which calls isMadeAttack) */
+									if((pLoopUnit->getDomainType() == DOMAIN_SEA) ==
+											pPlot->isWater()) // </advc.001k>
+									{
                                         if (!bTestMoves)
                                         {
                                             return true;
@@ -4789,21 +4801,11 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves
 						if (pLoopUnit->isEnemy(eTeam) && pLoopUnit->canAttack() &&
 								!pLoopUnit->isInvisible(eTeam, false)) {
 							// </advc.003>
-							/*  <advc.001> AI_getPlotDanger gets called during our
-								turn, and we want to know if the hostile pLoopUnit
-								will be able to attack on its owner's next turn.
-								Therefore, shouldn't check isMadeAttack, but
-								that's what canMoveOrAttackInto does. The only
-								useful thing it does is check impassable terrain
-								(though only for pPlot, not even the path), which
-								could be helpful for sea units. Therefore keep
-								the check for non-land units (despite the
-								potential problem with isMadeAttack).
-								Fwiw, Warlords didn't have this check at all;
-								added in BtS. */
-						if((pLoopUnit->getDomainType() == DOMAIN_LAND &&
-								!pPlot->isWater()) || // </advc.001>
-								pLoopUnit->canMoveOrAttackInto(pPlot))
+							//if (pLoopUnit->canMoveOrAttackInto(pPlot))
+							/*  <advc.001k> Replacing the above (which calls
+								isMadeAttack) */
+							if((pLoopUnit->getDomainType() == DOMAIN_SEA) ==
+									pPlot->isWater())// </advc.001k>
 							{	// <advc.104>
 								if(enemyId == NO_PLAYER || pLoopUnit->getOwnerINLINE() == enemyId)
 									plotUnits.push_back(pLoopUnit);
@@ -8325,6 +8327,10 @@ int CvPlayerAI::AI_getExpansionistAttitude(PlayerTypes ePlayer) const {
 					0.0, 1.0) * plus;
 		}
 	}
+	/*  1 city could just be one placed a bit too close to a foreign capital
+		in the early game */
+	if(foreignCities <= 1)
+		return 0;
 	int everAlive = 0;
 	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 		CvTeam const& t = GET_TEAM((TeamTypes)i);
@@ -8336,8 +8342,11 @@ int CvPlayerAI::AI_getExpansionistAttitude(PlayerTypes ePlayer) const {
 	double citiesPerCiv = std::max((double)
 			GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getTargetNumCities(),
 			civCities / (double)everAlive);
+	EraTypes era = GC.getGameINLINE().getCurrentEra();
+	if(era <= 2)
+		citiesPerCiv = std::min(citiesPerCiv, 3.0 * (1 + era));
 	double h = expansionistHate(ePlayer);
-	return -std::min(4, ::round(h * 2.25 * foreignCities / citiesPerCiv));
+	return -std::min(4, ::round(h * 2.4 * foreignCities / citiesPerCiv));
 }
 
 int CvPlayerAI::AI_getRivalVassalAttitude(PlayerTypes ePlayer) const {
@@ -9958,11 +9967,10 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData
 		}
 		else
 		{
-			// advc.130o: Moved up
-			if (AI_getMemoryCount(ePlayer, MEMORY_MADE_DEMAND_RECENT) > 0)
-			{
-				return false;
-			}
+			// <advc.130o> Moved up
+			int const mc = AI_getMemoryCount(ePlayer, MEMORY_MADE_DEMAND_RECENT);
+			if(mc > 0)
+				return false; // </advc.130o>
 			/*  <advc.130o> Was hard-coded, but the XML value is CAUTIOUS for all
 				leaders, so, no functional change. */
 			AttitudeTypes const noGiveHelpThresh = (AttitudeTypes)GC.getLeaderHeadInfo(
@@ -9979,10 +9987,10 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData
 			// </advc.130o> <advc.144>
 			else if(::bernoulliSuccess(prDenyHelp()))
 				return false; // </advc.144>
-			// <advc.140m>
+			// <advc.104m>
 			if(accept && demand && getWPAI.isEnabled())
 				accept = warAndPeaceAI().considerDemand(ePlayer, iOurValue);
-			// </advc.140m>
+			// </advc.104m>
 		}
 		// advc.130o: Do this only if UWAI hasn't already handled the offer
 		if(!demand || (!getWPAI.isEnabled() && accept)) {
@@ -13172,7 +13180,10 @@ int CvPlayerAI::AI_neededExplorersBulk(CvArea const* pArea) const {
 	}
 	else
 	{
-		iNeeded = std::min(iNeeded + (pArea->getNumUnrevealedTiles(getTeam()) / 150), std::min(3, ((getNumCities() / 3) + 2)));
+		iNeeded = std::min(iNeeded + (pArea->getNumUnrevealedTiles(getTeam()) / //150
+				// 040: Exploration becomes ever cheaper as the game progresses
+				std::max(150 - 20 * getCurrentEra(), 50)
+				), std::min(3, ((getNumCities() / 3) + 2)));
 	}
 
 	if (0 == iNeeded)
@@ -16828,21 +16839,9 @@ void CvPlayerAI::AI_doCounter()
 			if(mId == MEMORY_DECLARED_WAR &&
 					GET_TEAM(getTeam()).isAtWar(TEAMID(civId)))
 				continue;
-			if(mId == MEMORY_DECLARED_WAR_ON_FRIEND) {
-				bool atWarWithPartner = false;
-				for(int k = 0; k < MAX_CIV_PLAYERS; k++) {
-					CvPlayer const& partner = GET_PLAYER((PlayerTypes)k);
-					if(partner.isAlive() && partner.getID() != getID() &&
-							!partner.isMinorCiv() &&
-							TEAMREF(civId).isAtWar(partner.getTeam()) &&
-							AI_getAttitude(partner.getID()) >= ATTITUDE_PLEASED) {
-						atWarWithPartner = true;
-						break;
-					}
-				}
-				if(atWarWithPartner)
-					continue;
-			} // </advc.130r>
+			if(mId == MEMORY_DECLARED_WAR_ON_FRIEND &&
+					atWarWithPartner(TEAMID(civId)))
+				continue; // </advc.130r>
 			// <advc.130j>
 			/*  Need to decay at least twice as fast b/c each
 				request now counts twice (on average). */
@@ -20329,8 +20328,8 @@ int CvPlayerAI::AI_calculateCultureVictoryStage() const
 				iHighCultureCount++;
 			}
 
-			// is over 1/2 of the way there?
-			if( 2*pLoopCity->getCulture(getID()) > pLoopCity->getCultureThreshold(GC.getGameINLINE().culturalVictoryCultureLevel()) )
+			// advc.115: Threshold was 50%, now 67%
+			if( pLoopCity->getCulture(getID()) > ::round(0.67 * pLoopCity->getCultureThreshold(GC.getGameINLINE().culturalVictoryCultureLevel())) )
 			{
 				iCloseToLegendaryCount++;
 			}
@@ -21791,12 +21790,14 @@ void CvPlayerAI::AI_updateStrategyHash()
 		int iCloseness = AI_playerCloseness((PlayerTypes)iI, DEFAULT_PLAYER_CLOSENESS);
 		// <advc.022>
 		if(!AI_hasSharedPrimaryArea(kLoopPlayer.getID())) {
-			int noSharePenalty = 150;
+			int noSharePenalty = 99;
 			EraTypes loopEra = kLoopPlayer.getCurrentEra();
+			if(loopEra >= 3)
+				noSharePenalty -= 33;
 			if(loopEra >= 4)
-				noSharePenalty -= 50;
+				noSharePenalty -= 33;
 			if(loopEra >= 5)
-				noSharePenalty -= 50;
+				noSharePenalty -= 33;
 			iCloseness = std::max(0, iCloseness - noSharePenalty);
 		} // </advc.022>
 		// if (iCloseness > 0)
@@ -23242,13 +23243,18 @@ int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea* pArea) const
 	{
 		iDefenders /= 2;
 	}
-
+	// advc.107: Don't want even more rounding artifacts
+	double mod = 1;
 	if (!GC.getGameINLINE().isOption(GAMEOPTION_AGGRESSIVE_AI))
 	{
-		iDefenders *= 2;
-		iDefenders /= 3;
-	}
-
+		mod *= 0.67; // advc.107: Replacing the two lines below
+		/*iDefenders *= 2;
+		iDefenders /= 3;*/
+	} /* <advc.107> Fewer defenders on low difficulty, more on high difficulty.
+		 Times 0.9 b/c I don't actually want more defenders on moderately high
+		 difficulty. */
+	mod /= ::dRange(trainingModifierFromHandicap() * 0.9, 0.7, 1.5);
+	iDefenders = ::round(mod * iDefenders); // </advc.107>
 	// BBAI: Removed AI_STRATEGY_GET_BETTER_UNITS reduction, it was reducing defenses twice
 	
 	if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3))
@@ -23264,13 +23270,13 @@ int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea* pArea) const
 	iDefenders *= 60;
 	iDefenders /= std::max(30, (GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAITrainPercent() - 20));
 	
-    // <advc.107> Replacing code for extra defenses vs. Raging Barbarians.
+    // <advc.107> Replacing code below (extra defenses vs. Raging Barbarians)
     if(GC.getGame().isOption(GAMEOPTION_RAGING_BARBARIANS)
             && !GC.getEraInfo(getCurrentEra()).isNoBarbUnits()) {
         int startEra = GC.getGameINLINE().getStartEra();
         if(iCurrentEra <= 1 + startEra)
            iDefenders += 1 + startEra;
-    } // unmodded code:
+    }
     /*if ((iCurrentEra < 3) && (GC.getGameINLINE().isOption(GAMEOPTION_RAGING_BARBARIANS)))
     {
         iDefenders += 2;
@@ -25657,7 +25663,11 @@ bool CvPlayerAI::AI_isPlotThreatened(CvPlot* pPlot, int iRange, bool bTestMoves)
 						CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 						if (pLoopUnit->isEnemy(getTeam()) && pLoopUnit->canAttack() && !pLoopUnit->isInvisible(getTeam(), false))
 						{
-							if (pLoopUnit->canMoveOrAttackInto(pPlot))
+							//if (pLoopUnit->canMoveOrAttackInto(pPlot))
+							/*  <advc.001k> Replacing the above
+								(which calls isMadeAttack) */
+							if((pLoopUnit->getDomainType() == DOMAIN_SEA) ==
+									pPlot->isWater()) // </advc.001k>
 							{
 								int iPathTurns = 0;
 								if (bTestMoves)
@@ -25735,6 +25745,20 @@ void CvPlayerAI::AI_ClearConstructionValueCache()
 }
 // K-Mod end
 
+// <advc.130r><advc.130h>
+bool CvPlayerAI::atWarWithPartner(TeamTypes theyId) const {
+
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+		CvPlayer const& partner = GET_PLAYER((PlayerTypes)i);
+		if(partner.isAlive() && partner.getTeam() != getTeam() &&
+				!partner.isMinorCiv() && GET_TEAM(theyId).isAtWar(
+				partner.getTeam()) && AI_getAttitude(partner.getID()) >=
+				ATTITUDE_PLEASED)
+			return true;
+	}
+	return false;
+} // </advc.130h></advc.130r>
+
 // <advc.651>
 void CvPlayerAI::checkDangerFromSubmarines() {
 
@@ -25772,15 +25796,16 @@ bool CvPlayerAI::canBeExpectedToTrain(UnitTypes ut) const {
 		FAssert(false);
 		return false;
 	}
-	bool isSeaUnit = (GC.getUnitInfo(ut).getDomainType() == DOMAIN_SEA);
+	CvUnitInfo& u = GC.getUnitInfo(ut);
+	bool isSeaUnit = (u.getDomainType() == DOMAIN_SEA);
+	int minAreaSz = std::max(0, u.getMinAreaSize());
 	/* Should be able to build at least two units in ten turns (i.e. one in five);
 	   otherwise, the unit probably won't be trained, or just 1 or 2. */
 	int targetProduction = ::round(getProductionNeeded(ut) / 5.0);
 	int partialSum = 0;
 	CvCity* c; int i;
 	for(c = firstCity(&i); c != NULL; c = nextCity(&i)) {
-		// isCoastal check is redundant; only for speed
-		if((isSeaUnit && !c->isCoastal()) || !c->canTrain(ut))
+		if((isSeaUnit && !c->isCoastal(minAreaSz)) || !c->canTrain(ut))
 			continue;
 		partialSum += c->getProduction();
 		if(partialSum >= targetProduction)

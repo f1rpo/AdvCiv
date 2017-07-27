@@ -45,7 +45,7 @@ private:
 	   two separate options because my war-and-peace AI implies Aggressive AI. */
 	void sortOutWPAIOptions(bool fromSaveGame);
 	WarAndPeaceAI wpai;
-// </avdri.104>
+// </advri.104>
 
 
 };

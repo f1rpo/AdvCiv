@@ -107,9 +107,9 @@
 		 New help text for the Aggressive AI option. Original text in CIV4GameText_Misc1.xml. -->
     <TEXT>
 		<Tag>TXT_KEY_GAME_OPTION_AGGRESSIVE_AI_HELP</Tag>
-		<English>Use K-Mod's aggressive AI for decisions on war and peace</English>
+		<English>Use K-Mod's aggressive AI for decisions on war and peace (instead of the newer AdvCiv AI). </English>
 		<French>Emploie l'IA agressive de K-Mod pour les d&#233;cisions de guerre et paix.</French>
-		<German>Verwende die aggressive K-Mod-KI f&#252;r Entscheidungen &#252;ber Krieg und Frieden</German>
+		<German>Verwende die aggressive K-Mod-KI f&#252;r Entscheidungen &#252;ber Krieg und Frieden (anstatt der neueren AdvCiv-KI).</German>
 		<Italian>Usa l'IA aggressiva di K-Mod per le decisioni di guerra e pace.</Italian>
 		<Spanish>Emplea IA de K-Mod por las decisiones de guerra e paz.</Spanish>
     </TEXT>
@@ -1634,6 +1634,17 @@
 		<German>(WARNING: This option hasn't been tested with the AdvCiv mod.) Zwei Zivilisationen k&#246;nnen eine Allianz schlie&#223;en, die die restliche Spielzeit &#252;berdauert.</German>
 		<Italian>(WARNING: This option hasn't been tested with the AdvCiv mod.) Due civilt&#224; possono formare una alleanza permanente che duri fino alla fine della partita.</Italian>
 		<Spanish>(WARNING: This option hasn't been tested with the AdvCiv mod.) Dos civilizaciones pueden formar una alianza permanente que dure hasta que acabe la partida.</Spanish>
+	</TEXT>
+	
+	<!-- [advc.004t] Shortened version of TXT_KEY_POPUP_RECOMMENDED in
+		 CIV4GameTextInfos.xml. -->
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_NO_RECOMMENDATION</Tag>
+		<English>%s1_ProdName (%d2_NumTurns)</English>
+		<French>%s1_ProdName (%d2_NumTurns) </French>
+		<German>%s1_ProdName (%d2_NumTurns)</German>
+		<Italian>%s1_ProdName (%d2_NumTurns)</Italian>
+		<Spanish>%s1_ProdName (%d2_NumTurns [NUM2:turno:turnos])</Spanish>
 	</TEXT>
 	
 </Civ4GameText>

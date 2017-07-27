@@ -531,6 +531,8 @@ public:
 	bool AI_isFirstTech(TechTypes eTech) const;
 
 	void AI_ClearConstructionValueCache(); // K-Mod
+	// advc.130r, advc.130h: Are they at war with a partner of ours?
+	bool atWarWithPartner(TeamTypes theyId) const;
 	// advc.001: needed for bNeighbouringReligion in AI_techValue
 	bool AI_hasSharedPrimaryArea(PlayerTypes pId) const;
 	// <advc.003><advc.104m>

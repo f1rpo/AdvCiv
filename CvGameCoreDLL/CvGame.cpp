@@ -245,7 +245,7 @@ void CvGame::setInitialItems()
 		}
 		// <advc.250b>
 		else if(GET_PLAYER(i).isAlive() && i != BARBARIAN_PLAYER &&
-				!GET_PLAYER(i).isMinorCiv()) nAI++; // </Advc.250b>
+				!GET_PLAYER(i).isMinorCiv()) nAI++; // </advc.250b>
 	}
 	if (isGameMultiPlayer()) {
 		if (iHumanPlayers > 0)
@@ -281,18 +281,31 @@ void CvGame::setInitialItems()
 	if(isOption(GAMEOPTION_SPAH))
 		// Reassigns start plots and start points
 		spah.setInitialItems(); // </advc.250b>
+	int startTurn = getStartTurn(); // advc.250c, advc.251
 	// <advc.250c>
 	if(GC.getGameINLINE().getStartEra() == 0 &&
-			GC.getDefineINT("ADVANCED_START_INCREASE_TURN_COUNTER") > 0) {
+			GC.getDefineINT("INCREASE_START_TURN") > 0) {
 		std::vector<double> distr;
 		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 			CvPlayer const& civ = GET_PLAYER((PlayerTypes)i);
 			if(civ.isAlive())
 				distr.push_back(civ.getAdvancedStartPoints());
 		}
-		double maxMean = (::max(distr) + ::mean(distr)) / 1.9;
-		setStartTurnYear(getStartTurn() +  ::round(std::sqrt(std::max(0.0, maxMean -
-				2 * GC.getHandicapInfo(aiHandicap).getAIAdvancedStartPercent()))));
+		startTurn = getStartTurn();
+		double maxMean = (::max(distr) + ::mean(distr)) / 2.0;
+		if(maxMean > 500)
+			startTurn += ::round(std::sqrt(std::max(0.0, maxMean - 200)));
+	} // </advc.250c>
+	// <advc.251> Also set a later start turn if handicap grants lots of AI freebies
+	if(!isOption(GAMEOPTION_ADVANCED_START) && getNumHumanPlayers() <
+			countCivPlayersAlive()) {
+		CvHandicapInfo& gameHandicap = GC.getHandicapInfo(getHandicapType());
+		startTurn += ((gameHandicap.getAIStartingUnitMultiplier() * 10 +
+				gameHandicap.getAIStartingWorkerUnits() * 10) *
+				GC.getGameSpeedInfo(getGameSpeedType()).getGrowthPercent()) / 100;
+	} // <advc.250c>
+	if(getStartTurn() != startTurn && GC.getDefineINT("INCREASE_START_TURN") > 0) {
+		setStartTurnYear(startTurn);
 		/*  initDiplomacy is called from outside the DLL between the first
 			setStartTurnYear call and setInitialItems. The second setStartTurnYear
 			causes any initial "universal" peace treaties to end after 1 turn.
@@ -300,8 +313,7 @@ void CvGame::setInitialItems()
         CvDeal* d; int dummy;
         for(d = firstDeal(&dummy); d != NULL; d = nextDeal(&dummy))
             d->setInitialGameTurn(getGameTurn());
-	} // </advc.250c>
-
+	} // </advc.250c></advc.251>
 	for (int i = 0; i < MAX_PLAYERS; ++i)
 	{
 		CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)i);
@@ -1722,9 +1734,9 @@ void CvGame::normalizeAddFoodBonuses()
 					}
 				}
 				
-				int iTargetFoodBonusCount = 
-					normalizationLevel; // advc.108: instead of 3
-				//iTargetFoodBonusCount += (iGoodNatureTileCount == 0) ? 2 : 0;
+				int iTargetFoodBonusCount = 3;
+				// advc.108: (Don't do this after all:)
+				//int iTargetFoodBonusCount = normalizationLevel;
 				iTargetFoodBonusCount += std::max(0, 2-iGoodNatureTileCount); // K-Mod
 
 				// K-Mod. I've rearranged a couple of things to make it a bit more efficient and easier to read.
@@ -2033,7 +2045,11 @@ void CvGame::normalizeAddExtras()
 					}
 					else
 					{
-						if (pLoopPlot->getBonusType() != NO_BONUS)
+						if (pLoopPlot->getBonusType(
+								// <advc.108> Don't count unrevealed bonuses
+								GC.getGame().getNormalizationLevel() > 1 ?
+								NO_TEAM : kLoopPlayer.getTeam() // </advc.108>
+								) != NO_BONUS)
 						{
 							iOtherCount++;
 						}

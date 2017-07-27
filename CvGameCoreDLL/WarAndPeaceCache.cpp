@@ -743,8 +743,8 @@ void WarAndPeaceCache::updateRelativeNavyPower() {
 		/*  Tbd.:
 			Exact result: (their navy power) /
 						  (their total power from navy, army, home guard)
-			Intelligence ratio (100% assume we know all their positions;
-			0 we know nothing, in particular if !TEAMREF(civId).isHasMet(TEAMID(ownerId))).
+			Intelligence ratio (100%: assume we know all their positions;
+			0: we know nothing, in particular if !TEAMREF(civId).isHasMet(TEAMID(ownerId))).
 			-100%
 			+100% * #(their cities visible to us) / #(their cities)
 			+100% * #(their cities revealed to us) / #(their cities)

@@ -2039,7 +2039,12 @@ bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool b
 	{
 		return false;
 	}
-
+	/*  <advc.041> Don't allow any ships to be trained at lakes, except
+		Workboat if there are resources in the lake. */
+	CvUnitInfo& u = GC.getUnitInfo(eUnit);
+	if(u.getDomainType() == DOMAIN_SEA && !isCoastal() &&
+			(!u.isPrereqBonuses() || (u.isPrereqBonuses() && !isPrereqBonusSea())))
+		return false; // </advc.041>
 	if(GC.getUSE_CANNOT_TRAIN_CALLBACK())
 	{
 		CyCity *pyCity = new CyCity((CvCity*)this);
@@ -4302,11 +4307,22 @@ bool CvCity::isCapital() const
 	return (GET_PLAYER(getOwnerINLINE()).getCapitalCity() == this);
 }
 
+// <advc.041>
+bool CvCity::isPrereqBonusSea() const {
+
+	for(int j = 0; j < NUM_DIRECTION_TYPES; j++) {
+		CvPlot* p = plotDirection(getX_INLINE(), getY_INLINE(), (DirectionTypes)j);
+		if(p != NULL && p->isWater() && p->area()->getNumTotalBonuses() > 0)
+			return true;
+	}
+	return false;
+}// </advc.041>
 
 bool CvCity::isCoastal(int iMinWaterSize) const
 {
-	// advc.003:
-	if(iMinWaterSize < 0) iMinWaterSize = GC.getMIN_WATER_SIZE_FOR_OCEAN();
+	// <advc.003>
+	if(iMinWaterSize < 0)
+		iMinWaterSize = GC.getMIN_WATER_SIZE_FOR_OCEAN(); // </advc.003>
 	return plot()->isCoastalLand(iMinWaterSize);
 }
 
@@ -16114,8 +16130,7 @@ int CvCity::calculateMaintenanceDistance(CvPlot* cityPlot, PlayerTypes owner)
 	}
 	// <advc.140> Upper bound added
 	int r = std::min(iLongest, iShortestGovernment);
-	int cap = ::round(1 + GC.getMapINLINE().maxPlotDistance() *
-			(10.0 / GC.getMAX_DISTANCE_CITY_MAINTENANCE()));
+	int cap = GC.getMapINLINE().maxMaintenanceDistance();
 	return std::min(r, cap);
 	// </advc.140>
 }

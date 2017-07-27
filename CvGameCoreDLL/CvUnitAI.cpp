@@ -17303,7 +17303,7 @@ bool CvUnitAI::AI_pillageRange(int iRange, int iBonusValueThreshold, int iFlags)
 								   pillaging. Barbarians are supposed to be destructive and
 								   shortsighted. More importantly, it's inexplicable for most
 								   human players when the barbarians repeatedly spare improvements. */
-								|| getOwner() == BARBARIAN_PLAYER 
+								|| isBarbarian() 
 								) && canPillage(pLoopPlot))
                             {
                                 if (!(pLoopPlot->isVisibleEnemyUnit(this)))
@@ -24961,14 +24961,13 @@ int CvUnitAI::AI_stackOfDoomExtra() const
 	// K-Mod end
 	// <advc.104p>
 	double mult = 1;
-	/*  Bigger AI stacks on Emperor onwards (b/c units are cheaper to train then,
+	/*  Bigger AI stacks on higher difficulty (b/c units are cheaper to train then,
 		not b/c bigger stacks are generally smarter) */
-	if(!kOwner.isHuman()) {
-		// 85% on Emperor, 80% on Immortal, 60% on Deity (raise that to 75%)
+	if(!kOwner.isHuman() && !isBarbarian()) {
+		// e.g. 85% on Emperor, 80% on Immortal, 60% on Deity (raise that to 75%)
 		double trainMod = GC.getHandicapInfo(GC.getGameINLINE().
 				getHandicapType()).getAITrainPercent() / 100.0;
-		if(trainMod <= 0.89)
-			mult /= std::max(0.75, trainMod);
+		mult /= std::max(0.75, trainMod);
 	}
 	CvTeamAI const& ourTeam = GET_TEAM(kOwner.getTeam());
 	// A little extra for naval assault

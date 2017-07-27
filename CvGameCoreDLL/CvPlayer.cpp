@@ -1529,15 +1529,16 @@ void CvPlayer::initFreeUnits()
 	{
 		int iPoints = g.getNumAdvancedStartPoints();
 
-		// advc.125b (comment): Disabled through Handicap XML
+		// advc.250b (comment): Disabled through Handicap XML
 		iPoints *= GC.getHandicapInfo(getHandicapType()).getAdvancedStartPointsMod();
 		iPoints /= 100;
 
 		if (!isHuman()
 			&& !g.isOption(GAMEOPTION_SPAH) // advc.250b
 			)
-		{
-			iPoints *= GC.getHandicapInfo(getHandicapType()).getAIAdvancedStartPercent();
+		{	/*  advc.250b, advc.001: Was this->getHandicapType(), i.e. Noble, which
+				means that this code block did nothing. */
+			iPoints *= GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIAdvancedStartPercent();
 			iPoints /= 100;
 		}
 		/*  <advc.250c> Civs in Advanced Start can place a city even if they don't
@@ -6935,24 +6936,11 @@ int CvPlayer::getProductionNeeded(UnitTypes eUnit) const
 
 	iProductionNeeded *= GC.getEraInfo(GC.getGameINLINE().getStartEra()).getTrainPercent();
 	iProductionNeeded /= 100;
-
-	if (!isHuman() && !isBarbarian())
-	{
-		if (isWorldUnitClass(eUnitClass))
-		{
-			iProductionNeeded *= GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIWorldTrainPercent();
-			iProductionNeeded /= 100;
-		}
-		else
-		{
-			iProductionNeeded *= GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAITrainPercent();
-			iProductionNeeded /= 100;
-		}
-
-		iProductionNeeded *= std::max(0, ((GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIPerEraModifier() * getCurrentEra()) + 100));
-		iProductionNeeded /= 100;
-	}
-
+	/*  <advc.107> Code moved into auxiliary function b/c I need this modifier
+		in AI_getTotalFloatingDefendersNeeded. */
+	iProductionNeeded = ::round(iProductionNeeded *
+			trainingModifierFromHandicap(isWorldUnitClass(eUnitClass)));
+	// </advc.107>
 	iProductionNeeded += getUnitExtraCost(eUnitClass);
 
 	// Python cost modifier
@@ -7116,6 +7104,21 @@ int CvPlayer::getProductionModifier(ProjectTypes eProject) const
 
 	return iMultiplier;
 }
+
+// <advc.107> Cut from getProductionNeeded; refactored
+double CvPlayer::trainingModifierFromHandicap(bool worldClass) const {
+
+	if(isHuman() || isBarbarian())
+		return 1;
+	double r = 1;
+	CvHandicapInfo& gameHandicap = GC.getHandicapInfo(GC.getGameINLINE().getHandicapType());
+	if(worldClass)
+		r *= (gameHandicap.getAIWorldTrainPercent() / 100.0);
+	else r *= (gameHandicap.getAITrainPercent() / 100.0);
+	r *= (std::max(0, gameHandicap.getAIPerEraModifier() * getCurrentEra() + 100)
+			/ 100.0);
+	return r;
+} // </advc.107>
 
 int CvPlayer::getBuildingClassPrereqBuilding(BuildingTypes eBuilding, BuildingClassTypes ePrereqBuildingClass, int iExtra) const
 {

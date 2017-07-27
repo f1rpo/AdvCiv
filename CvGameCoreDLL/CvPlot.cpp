@@ -10276,7 +10276,7 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 		}
 	}
 
-	if (GC.getUnitInfo(eUnit).isPrereqBonuses())
+	/*if (GC.getUnitInfo(eUnit).isPrereqBonuses())
 	{
 		if (GC.getUnitInfo(eUnit).getDomainType() == DOMAIN_SEA)
 		{
@@ -10336,7 +10336,18 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 		{
 			return false;
 		}
-
+	/*  <advc.041> Replacing the above (moved to CvCityAI::AI_bestUnitAI). I.e.
+		treat MinAreaSize and PrereqBonuses as mere recommendations (for the AI)
+		rather than game rules.
+		NB: MinAreaSize is still enforced as a rule for buildings.
+		The last clause above should perhaps be checked by the AI before
+		upgrading units; but AI sea units can end up in small water areas only
+		via WorldBuilder, so I'm not bothering with this. */
+	if(isCity()) {
+		if(GC.getUnitInfo(eUnit).getDomainType() == DOMAIN_SEA && !isWater() &&
+				!isCoastalLand())
+			return false;
+	} else { // </advc.041>
 		if (GC.getUnitInfo(eUnit).getDomainType() == DOMAIN_SEA)
 		{
 			if (!isWater())
@@ -10351,7 +10362,7 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 				return false;
 			}
 		}
-		else
+		else // advc.003 (comment): Upgrade air units only in cities
 		{
 			return false;
 		}

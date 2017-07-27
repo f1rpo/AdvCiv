@@ -1648,7 +1648,7 @@ void CvCityAI::AI_chooseProduction()
 
 		// K-Mod (the spies stuff used to be lower down)
 		int iNumSpies = kPlayer.AI_totalAreaUnitAIs(pArea, UNITAI_SPY);
-				// advc.001h: Commented out
+				// advc.001j: Commented out
 				//+ kPlayer.AI_getNumTrainAIUnits(UNITAI_SPY);
 		int iNeededSpies = iNumCitiesInArea / 3;
 		iNeededSpies += bPrimaryArea ? (kPlayer.getCommerceRate(COMMERCE_ESPIONAGE)+50)/100 : 0;
@@ -3095,7 +3095,25 @@ UnitTypes CvCityAI::AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync, AdvisorTypes
 
 		if (!canTrain(eLoopUnit))
 			continue;
-
+		// <advc.041> Mostly cut and pasted from CvPlot::canTrain
+		CvUnitInfo& u = GC.getUnitInfo(eLoopUnit);
+		if(u.isPrereqBonuses()) {
+			if(u.getDomainType() == DOMAIN_SEA) {
+				if(!isPrereqBonusSea())
+					continue;
+			}
+			/*  This was '> 0' in CvPlot::canTrain, which is apparently a bug,
+				but doesn't really matter b/c no land unit has this prereq. */
+			else if(area()->getNumTotalBonuses() <= 0)
+				continue;
+		}
+		int minAreaSz = u.getMinAreaSize();
+		if(minAreaSz > 0) {
+			CvPlot const& p = *plot();
+			if((u.getDomainType() == DOMAIN_SEA && !p.isCoastalLand(minAreaSz)) ||
+					(u.getDomainType() != DOMAIN_SEA && p.area()->getNumTiles() < minAreaSz))
+				continue;
+		} // </advc.041>
 		int iValue = GET_PLAYER(getOwnerINLINE()).AI_unitValue(eLoopUnit, eUnitAI, area());
 		if (iValue > 0)
 		{
@@ -3312,16 +3330,6 @@ BuildingTypes CvCityAI::AI_bestBuilding(int iFocusFlags, int iMaxTurns, bool bAs
 
 BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns, int iMinThreshold, bool bAsync, AdvisorTypes eIgnoreAdvisor)
 {
-	/*BuildingTypes eLoopBuilding;
-	BuildingTypes eBestBuilding;
-	bool bAreaAlone;
-	int iProductionRank;
-	int iTurnsLeft;
-	int iValue;
-	int iTempValue;
-	int iBestValue;
-	int iI, iJ; */ // K-Mod. I've moved the declarations to where they are actually used - to reduce the likelihood of mistakes
-
 	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE()); // K-Mod (and I've replaced all other GET_PLAYER calls in this function)
 
 	bool bAreaAlone = kOwner.AI_isAreaAlone(area());
@@ -3840,8 +3848,8 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 
 		//if (((iFocusFlags & BUILDINGFOCUS_HEALTHY) || (iPass > 0)) && !isNoUnhealthyPopulation())
 		if ((iFocusFlags & BUILDINGFOCUS_HEALTHY) || iPass > 0) // K-Mod
-		{	/*  advc.003: Initialization added for iGood. Not actually necessary,
-				I think, but it looked scary. */
+		{	/*  advc.003: Initialization added. Not actually necessary, I think,
+				but it looked scary. */
 			int iGood = 0, iBad = 0;
 			int iBuildingActualHealth = getAdditionalHealthByBuilding(eBuilding,iGood,iBad,
 					// <advc.001h>
@@ -3858,7 +3866,6 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 			// </advc.001h>
 			// K-Mod. I've essentially rewritten this evaluation of health; but there may still be some bbai code / original bts code.
 			int iCitValue = 6 + kOwner.getCurrentEra(); // (estimating citizen value to be 6 + era commerce per turn)
-			// advc.001h: Major bug: sign of iBuildingHealth flipped
 			int iWasteDelta = std::max(0, -futureHealthLevel-iBuildingActualHealth) -
 					std::max(0, -futureHealthLevel);
 			// High value for change in our food deficit.
@@ -3932,8 +3939,11 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 					iValue += kBuilding.getDomainFreeExperience(iI) * iWeight;
 					break;
 				case DOMAIN_SEA:
-					// special case. Don't use 'iWeight', because for sea bIsHighProductionCity may be too strict.
-					iValue += kBuilding.getDomainFreeExperience(iI) * 7;
+					// advc.041: No longer guaranteed by the building's MinAreaSize
+					if(isCoastal(GC.getMIN_WATER_SIZE_FOR_OCEAN() * 2)) {
+						// special case. Don't use 'iWeight', because for sea bIsHighProductionCity may be too strict.
+						iValue += kBuilding.getDomainFreeExperience(iI) * 7;
+					}
 					break;
 				default:
 					// half value.
@@ -3965,8 +3975,9 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 			}
 
 			iValue += (kBuilding.getDomainFreeExperience(DOMAIN_SEA) * ((iHasMetCount > 0) ? 16 : 8));
-
-			iValue += (kBuilding.getDomainProductionModifier(DOMAIN_SEA) / 4);
+			// advc.041: No longer guaranteed by the building's MinAreaSize
+			if(isCoastal(GC.getMIN_WATER_SIZE_FOR_OCEAN() * 2))
+				iValue += (kBuilding.getDomainProductionModifier(DOMAIN_SEA) / 4);
 		}
 
 		if ((iFocusFlags & BUILDINGFOCUS_MAINTENANCE) || (iFocusFlags & BUILDINGFOCUS_GOLD) || (iPass > 0))
@@ -6313,7 +6324,9 @@ int CvCityAI::AI_minDefenders()
 	{
 		iDefenders++;
 	}
-	if (((iEra - GC.getGame().getStartEra() / 2) >= GC.getNumEraInfos() / 2) && isCoastal())
+	if (((iEra - GC.getGame().getStartEra() / 2) >= GC.getNumEraInfos() / 2) && isCoastal(
+			// advc.107: A small water area doesn't justify an extra defender
+			2 * GC.getMIN_WATER_SIZE_FOR_OCEAN()))
 	{
 		iDefenders++;
 	}
@@ -11190,7 +11203,7 @@ void CvCityAI::AI_buildGovernorChooseProduction()
 		if (!kOwner.AI_isAreaAlone(area()))
 		{
 			int iNumSpies = kOwner.AI_totalAreaUnitAIs(area(), UNITAI_SPY);
-					// advc.001h: Commented out
+					// advc.001j: Commented out
 					//+ kOwner.AI_getNumTrainAIUnits(UNITAI_SPY);
 			int iNeededSpies = 2 + area()->getCitiesPerPlayer(kOwner.getID()) / 5;
 			iNeededSpies += kOwner.getCommercePercent(COMMERCE_ESPIONAGE)/20;
@@ -12194,15 +12207,18 @@ void CvCityAI::AI_cachePlayerCloseness(int iMaxDistance)
 				}
 
 				int iDistance = stepDistance(getX_INLINE(), getY_INLINE(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
-				
-				if (area() != pLoopCity->area() )
-				{
+				/*  <advc.107> No functional change here. It's OK to use a
+					higher search range for cities on other continents;
+					but will have to decrease the distance later on when
+					computing the closeness value. */
+				bool sameArea = (area() == pLoopCity->area());
+				if(!sameArea) { // </advc.107>
 					iDistance += 1;
 					iDistance /= 2;
 				}
 				if (iDistance <= iMaxDistance)
 				{
-					if ( getArea() == pLoopCity->getArea() )
+					if (sameArea) // advc.107: No functional change
 					{
 						int iPathDistance = GC.getMap().calculatePathDistance(plot(), pLoopCity->plot());
 						if (iPathDistance > 0)
@@ -12231,8 +12247,10 @@ void CvCityAI::AI_cachePlayerCloseness(int iMaxDistance)
 						if (pLoopCity->isBarbarian())
 						{
 							iTempValue /= 4;
-						}
-						
+						} // <advc.107>
+						if(!sameArea)
+							iTempValue /= (pLoopCity->isCoastal() ? 2 : 3);
+						// </advc.107>
 						iValue += iTempValue;					
 						iBestValue = std::max(iBestValue, iTempValue);
 					}
@@ -12277,161 +12295,161 @@ int CvCityAI::AI_cityThreat(bool bDangerPercent)
 	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		const CvPlayerAI& kLoopPlayer = GET_PLAYER((PlayerTypes)iI); // K-Mod
-		//if ((iI != getOwner()) && GET_PLAYER((PlayerTypes)iI).isAlive())
-		if (kLoopPlayer.isAlive() && kLoopPlayer.getTeam() != getTeam() && !GET_TEAM(kOwner.getTeam()).isVassal(kLoopPlayer.getTeam())) // K-Mod
-		{
-			int iAccessFactor = AI_playerCloseness((PlayerTypes)iI, DEFAULT_PLAYER_CLOSENESS); // (was "iTempValue")
-			// (this is roughly 20 points for each neighbouring city.)
+		// <advc.003>
+		if(!kLoopPlayer.isAlive() || kLoopPlayer.getTeam() == getTeam() || // K-Mod
+				GET_TEAM(kOwner.getTeam()).isVassal(kLoopPlayer.getTeam()))
+			continue; // </advc.003>
+		int iAccessFactor = AI_playerCloseness((PlayerTypes)iI, DEFAULT_PLAYER_CLOSENESS); // (was "iTempValue")
+		// (this is roughly 20 points for each neighbouring city.)
 
-			// K-Mod
-			// Add some more points for each plot the loop player owns in our fat-cross.
-			if (iAccessFactor > 0)
+		// K-Mod
+		// Add some more points for each plot the loop player owns in our fat-cross.
+		if (iAccessFactor > 0)
+		{
+			for (int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
 			{
-				for (int iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
+				CvPlot* pLoopPlot = getCityIndexPlot(iJ);
+				if (pLoopPlot && pLoopPlot->getOwnerINLINE() == iI)
 				{
-					CvPlot* pLoopPlot = getCityIndexPlot(iJ);
-					if (pLoopPlot && pLoopPlot->getOwnerINLINE() == iI)
-					{
-						iAccessFactor += (stepDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) <= 1) ? 2 : 1;
-					}
+					iAccessFactor += (stepDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) <= 1) ? 2 : 1;
 				}
 			}
+		}
 
-			// Evaluate the posibility of a naval assault.
-			if (isCoastal())
-			{
-				// This evaluation may be expensive (when I finish writing it), so only do it if there is reason to be concerned.
-				if (kOwner.AI_isDoVictoryStrategyLevel4() ||
+		// Evaluate the posibility of a naval assault.
+		if (isCoastal( // advc.131: Area size threshold was 10, now 20
+				2 * GC.getMIN_WATER_SIZE_FOR_OCEAN()))
+		{
+			// This evaluation may be expensive (when I finish writing it), so only do it if there is reason to be concerned.
+			if (kOwner.AI_isDoVictoryStrategyLevel4() ||
 					GET_TEAM(getTeam()).AI_getWarPlan(kLoopPlayer.getTeam()) != NO_WARPLAN ||
 					(!kOwner.AI_isLandWar(area()) && kLoopPlayer.AI_getAttitude(getOwnerINLINE()) < ATTITUDE_PLEASED))
-				{
-					int iNavalAccess = 0;
-
-					//PROFILE("AI_cityThreat naval assault");
-					// (temporary calculation based on the original bts code. I intend to make this significantly more detailed - eventually.)
-					/* int iCurrentEra = kOwner.getCurrentEra();
-					iValue += std::max(0, ((10 * iCurrentEra) / 3) - 6); */
-
-					int iEra = GC.getGameINLINE().getCurrentEra();
-					iNavalAccess += std::max(0, 30*(iEra+1)/(GC.getNumEraInfos()+1) - 10);
-
-					iAccessFactor = std::max(iAccessFactor, iNavalAccess);
-				}
-			}
-			// K-Mod end
-
-			if (iAccessFactor > 0)
 			{
-				int iCivFactor; // K-Mod. (originally the following code had iTempValue *= foo; rather than iCivFactor = foo;)
-				/*  advc.018: Commented out. I don't get why crush should make us
-					more protective of our cities. The
-					if(bCrushStrategy) iCivFactor/=2 a bit farther down seems to be
-					the better approach. */
-				/*if (bCrushStrategy && GET_TEAM(getTeam()).AI_getWarPlan(kLoopPlayer.getTeam()) != NO_WARPLAN)
-				{
-					iCivFactor = 400;
+				int iNavalAccess = 0;
+
+				//PROFILE("AI_cityThreat naval assault");
+				// (temporary calculation based on the original bts code. I intend to make this significantly more detailed - eventually.)
+				/* int iCurrentEra = kOwner.getCurrentEra();
+				iValue += std::max(0, ((10 * iCurrentEra) / 3) - 6); */
+
+				int iEra = GC.getGameINLINE().getCurrentEra();
+				iNavalAccess += std::max(0, 30*(iEra+1)/(GC.getNumEraInfos()+1) - 10);
+
+				iAccessFactor = std::max(iAccessFactor, iNavalAccess);
+			}
+		}
+		// K-Mod end
+
+		if (iAccessFactor > 0)
+		{
+			int iCivFactor; // K-Mod. (originally the following code had iTempValue *= foo; rather than iCivFactor = foo;)
+			/*  advc.018: Commented out. I don't get why crush should make us
+				more protective of our cities. The
+				if(bCrushStrategy) iCivFactor/=2 a bit farther down seems to be
+				the better approach. */
+			/*if (bCrushStrategy && GET_TEAM(getTeam()).AI_getWarPlan(kLoopPlayer.getTeam()) != NO_WARPLAN)
+			{
+				iCivFactor = 400;
+			}
+			else */if (atWar(getTeam(), kLoopPlayer.getTeam()))
+			{
+				iCivFactor = 300;
+			}
+			// Beef up border security before starting war, but not too much (bbai)
+			else if ( GET_TEAM(getTeam()).AI_getWarPlan(kLoopPlayer.getTeam()) != NO_WARPLAN )
+			{
+				iCivFactor = 180;
+			}
+			else
+			{	// <advc.022>
+				AttitudeTypes towardThem = kOwner.AI_getAttitude(kLoopPlayer.getID());
+				AttitudeTypes towardUs = kLoopPlayer.AI_getAttitude(kOwner.getID());
+				// Humans like us at most as much as we like them
+				if(kLoopPlayer.isHuman()) {
+					if(towardThem < towardUs)
+						towardUs = towardThem;
+					// Normally humans are at best Cautious (see advc.130u)
+					if(towardThem >= ATTITUDE_FRIENDLY)
+						towardUs = ATTITUDE_PLEASED;
 				}
-				else */if (atWar(getTeam(), kLoopPlayer.getTeam()))
+				else {
+					// Round toward towardUs
+					int iTowardThem = towardThem;
+					if(towardUs > iTowardThem)
+						iTowardThem++;
+					towardUs = (AttitudeTypes)((towardUs + iTowardThem) / 2);
+				} // Replaced below:
+				//switch (kOwner.AI_getAttitude((PlayerTypes)iI))
+				// (K-Mod note: for good strategy, this should probably be _their_ attitude rather than ours.
+				//  But perhaps for role-play it is better the way it is.)
+				switch(towardUs) // </advc.022>
 				{
-					iCivFactor = 300;
-				}
-				// Beef up border security before starting war, but not too much (bbai)
-				else if ( GET_TEAM(getTeam()).AI_getWarPlan(kLoopPlayer.getTeam()) != NO_WARPLAN )
-				{
+				case ATTITUDE_FURIOUS:
 					iCivFactor = 180;
+					break;
+
+				case ATTITUDE_ANNOYED:
+					iCivFactor = 130;
+					break;
+
+				case ATTITUDE_CAUTIOUS:
+					iCivFactor = 100;
+					break;
+
+				case ATTITUDE_PLEASED:
+					iCivFactor = 50;
+					break;
+
+				case ATTITUDE_FRIENDLY:
+					iCivFactor = 20;
+					break;
+
+				default:
+					FAssert(false);
+					break;
+				}
+
+				// K-Mod
+				// Reduce threat level of our vassals, particularly from capilutated vassals.
+				if (GET_TEAM(kLoopPlayer.getTeam()).isVassal(getTeam()))
+				{
+					iCivFactor = std::min(iCivFactor, GET_TEAM(kLoopPlayer.getTeam()).isCapitulated() ? 30 : 50);
 				}
 				else
-				{	// <advc.022>
-					AttitudeTypes towardThem = kOwner.AI_getAttitude(kLoopPlayer.getID());
-					AttitudeTypes towardUs = kLoopPlayer.AI_getAttitude(kOwner.getID());
-					// Humans like us at most as much as we like them
-					if(kLoopPlayer.isHuman()) {
-						if(towardThem < towardUs)
-							towardUs = towardThem;
-						// Normally humans are at best Cautious (see advc.130u)
-						if(towardThem >= ATTITUDE_FRIENDLY)
-							towardUs = ATTITUDE_PLEASED;
-					}
-					else {
-						// Round toward towardUs
-						int iTowardThem = towardThem;
-						if(towardUs > iTowardThem)
-							iTowardThem++;
-						towardUs = (AttitudeTypes)((towardUs + iTowardThem) / 2);
-					} // Replaced below:
-					//switch (kOwner.AI_getAttitude((PlayerTypes)iI))
-					// (K-Mod note: for good strategy, this should probably be _their_ attitude rather than ours.
-					//  But perhaps for role-play it is better the way it is.)
-					switch(towardUs) // </advc.022>
-					{
-					case ATTITUDE_FURIOUS:
-						iCivFactor = 180;
-						break;
-
-					case ATTITUDE_ANNOYED:
-						iCivFactor = 130;
-						break;
-
-					case ATTITUDE_CAUTIOUS:
-						iCivFactor = 100;
-						break;
-
-					case ATTITUDE_PLEASED:
-						iCivFactor = 50;
-						break;
-
-					case ATTITUDE_FRIENDLY:
-						iCivFactor = 20;
-						break;
-
-					default:
-						FAssert(false);
-						break;
-					}
-
-					// K-Mod
-					// Reduce threat level of our vassals, particularly from capilutated vassals.
-					if (GET_TEAM(kLoopPlayer.getTeam()).isVassal(getTeam()))
-					{
-						iCivFactor = std::min(iCivFactor, GET_TEAM(kLoopPlayer.getTeam()).isCapitulated() ? 30 : 50);
-					}
-					else
-					{
-						// Increase threat level for cities that we have captured from this player
-						// I may add a turn limit later if this produces unwanted behaviour. (getGameTurn() - getGameTurnAcquired() < 40)
-						if (getPreviousOwner() == iI)
-							iCivFactor = iCivFactor * 3/2;
-
-						// Don't get too comfortable if kLoopPlayer is using a conquest strategy.
-						if (kLoopPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4 | AI_VICTORY_DOMINATION4))
-							iCivFactor = std::max(100, iCivFactor);
-					}
-					// K-Mod end
-
-					if (bCrushStrategy)
-					{
-						iCivFactor /= 2;
-					}
-				}
-
-				// K-Mod. Amplify the threat rating for rivals which have high power.
-				if (kLoopPlayer.getPower() > kOwner.getPower())
 				{
-					/* bbai version
-					iTempValue *= std::min( 400, (100 * GET_PLAYER((PlayerTypes)iI).getPower())/std::max(1, GET_PLAYER(getOwnerINLINE()).getPower()) );
-					iTempValue /= 100; */
-
-					// exclude population power. (Should this use the same power comparison used to calculate areaAI and war values?)
-					int iLoopPower = kLoopPlayer.getPower() - getPopulationPower(kLoopPlayer.getTotalPopulation());
-					int iOurPower = kOwner.getPower() - getPopulationPower(kOwner.getTotalPopulation());
-					iCivFactor *= range(100 * iLoopPower/std::max(1, iOurPower), 100, 400);
-					iCivFactor /= 100;
+					// Increase threat level for cities that we have captured from this player
+					// I may add a turn limit later if this produces unwanted behaviour. (getGameTurn() - getGameTurnAcquired() < 40)
+					if (getPreviousOwner() == iI)
+						iCivFactor = iCivFactor * 3/2;
+					// Don't get too comfortable if kLoopPlayer is using a conquest strategy.
+					if (kLoopPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4 | AI_VICTORY_DOMINATION4))
+						iCivFactor = std::max(100, iCivFactor);
 				}
+				// K-Mod end
 
-				/* iTempValue /= 100;
-				iTotalThreat += iTempValue; */
-				iTotalThreat += iAccessFactor * iCivFactor / 100; // K-Mod
+				if (bCrushStrategy)
+				{
+					iCivFactor /= 2;
+				}
 			}
+
+			// K-Mod. Amplify the threat rating for rivals which have high power.
+			if (kLoopPlayer.getPower() > kOwner.getPower())
+			{
+				/* bbai version
+				iTempValue *= std::min( 400, (100 * GET_PLAYER((PlayerTypes)iI).getPower())/std::max(1, GET_PLAYER(getOwnerINLINE()).getPower()) );
+				iTempValue /= 100; */
+
+				// exclude population power. (Should this use the same power comparison used to calculate areaAI and war values?)
+				int iLoopPower = kLoopPlayer.getPower() - getPopulationPower(kLoopPlayer.getTotalPopulation());
+				int iOurPower = kOwner.getPower() - getPopulationPower(kOwner.getTotalPopulation());
+				iCivFactor *= range(100 * iLoopPower/std::max(1, iOurPower), 100, 400);
+				iCivFactor /= 100;
+			}
+
+			/* iTempValue /= 100;
+			iTotalThreat += iTempValue; */
+			iTotalThreat += iAccessFactor * iCivFactor / 100; // K-Mod
 		}
 	}
 

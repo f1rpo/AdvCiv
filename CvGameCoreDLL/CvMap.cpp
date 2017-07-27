@@ -1058,6 +1058,11 @@ int CvMap::maxStepDistance()
 	return std::max(1, stepDistance(0, 0, ((isWrapXINLINE()) ? (getGridWidthINLINE() / 2) : (getGridWidthINLINE() - 1)), ((isWrapYINLINE()) ? (getGridHeightINLINE() / 2) : (getGridHeightINLINE() - 1))));
 }
 
+// <advc.140>
+int CvMap::maxMaintenanceDistance() {
+
+	return ::round(1 + maxPlotDistance() * (10.0 / GC.getMAX_DISTANCE_CITY_MAINTENANCE()));
+} // </advc.140>
 
 int CvMap::getGridWidth() const
 {

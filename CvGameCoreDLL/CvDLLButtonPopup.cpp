@@ -1152,11 +1152,19 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 	{
 		eProductionBuilding = pCity->AI_bestBuilding(0, 50, true, ((eProductionUnit != NO_UNIT) ? ((AdvisorTypes)(GC.getUnitInfo(eProductionUnit).getAdvisorType())) : NO_ADVISOR));
 	}
-
+	// <advc.004t>
+	bool recommend = GC.getDefineINT("ENABLE_POPUP_RECOMMENDATIONS") > 0 ||
+			GET_PLAYER(pCity->getOwnerINLINE()).isOption(PLAYEROPTION_ADVISOR_HELP);
+			// </advc.004t>
 	if (eProductionUnit != NO_UNIT)
 	{
 		int iTurns = pCity->getProductionTurnsLeft(eProductionUnit, 0);
-		szBuffer = gDLL->getText("TXT_KEY_POPUP_RECOMMENDED", GC.getUnitInfo(eProductionUnit).getTextKeyWide(), iTurns, GC.getAdvisorInfo((AdvisorTypes)(GC.getUnitInfo(eProductionUnit).getAdvisorType())).getTextKeyWide());
+		// <advc.004t>
+		if(!recommend) {
+			szBuffer = gDLL->getText("TXT_KEY_POPUP_NO_RECOMMENDATION",
+					GC.getUnitInfo(eProductionUnit).getTextKeyWide(), iTurns);
+		} else // </advc.004t>
+			szBuffer = gDLL->getText("TXT_KEY_POPUP_RECOMMENDED", GC.getUnitInfo(eProductionUnit).getTextKeyWide(), iTurns, GC.getAdvisorInfo((AdvisorTypes)(GC.getUnitInfo(eProductionUnit).getAdvisorType())).getTextKeyWide());
 		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer, GET_PLAYER(pCity->getOwnerINLINE()).getUnitButton(eProductionUnit), GC.getUnitInfo(eProductionUnit).getUnitClassType(), WIDGET_TRAIN, GC.getUnitInfo(eProductionUnit).getUnitClassType(), pCity->getID(), true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY );
 		iNumBuilds++;
 	}
@@ -1164,6 +1172,12 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 	if (eProductionBuilding != NO_BUILDING)
 	{
 		int iTurns = pCity->getProductionTurnsLeft(eProductionBuilding, 0);
+		// <advc.004t>
+		if(!recommend) {
+			szBuffer = gDLL->getText("TXT_KEY_POPUP_NO_RECOMMENDATION",
+					GC.getBuildingInfo(eProductionBuilding).getTextKeyWide(),
+					iTurns);
+		} else // </advc.004t>
 		szBuffer = gDLL->getText("TXT_KEY_POPUP_RECOMMENDED", GC.getBuildingInfo(eProductionBuilding).getTextKeyWide(), iTurns, GC.getAdvisorInfo((AdvisorTypes)(GC.getBuildingInfo(eProductionBuilding).getAdvisorType())).getTextKeyWide());
 		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer, GC.getBuildingInfo(eProductionBuilding).getButton(), GC.getBuildingInfo(eProductionBuilding).getBuildingClassType(), WIDGET_CONSTRUCT, GC.getBuildingInfo(eProductionBuilding).getBuildingClassType(), pCity->getID(), true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY );
 		iNumBuilds++;
@@ -1172,6 +1186,12 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 	if (eProductionProject != NO_PROJECT)
 	{
 		int iTurns = pCity->getProductionTurnsLeft(eProductionProject, 0);
+		// <advc.004t>
+		if(!recommend) {
+			szBuffer = gDLL->getText("TXT_KEY_POPUP_NO_RECOMMENDATION",
+					GC.getProjectInfo(eProductionProject).getTextKeyWide(),
+					iTurns);
+		} else // </advc.004t>
 		szBuffer = gDLL->getText("TXT_KEY_POPUP_RECOMMENDED_NO_ADV", GC.getProjectInfo(eProductionProject).getTextKeyWide(), iTurns);
 		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer, GC.getProjectInfo(eProductionProject).getButton(), eProductionProject, WIDGET_CREATE, eProductionProject, pCity->getID(), true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY );
 		iNumBuilds++;
@@ -1179,6 +1199,11 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 
 	if (eProductionProcess != NO_PROCESS)
 	{
+		// <advc.004t>
+		if(!recommend) {
+			szBuffer = CvWString::format(GC.getProjectInfo(eProductionProject).
+					getTextKeyWide());
+		} else // </advc.004t>
 		szBuffer = gDLL->getText("TXT_KEY_POPUP_RECOMMENDED_NO_ADV_OR_TURNS", GC.getProcessInfo(eProductionProcess).getTextKeyWide());
 		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer, GC.getProcessInfo(eProductionProcess).getButton(), eProductionProcess, WIDGET_MAINTAIN, eProductionProcess, pCity->getID(), true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY );
 		iNumBuilds++;
@@ -1568,8 +1593,11 @@ bool CvDLLButtonPopup::launchChooseTechPopup(CvPopup* pPopup, CvPopupInfo &info)
 					szBuffer.Format(L"%s (%d)", GC.getTechInfo((TechTypes)iI).getDescription(), ((iDiscover > 0) ? 0 : player.getResearchTurnsLeft(((TechTypes)iI), true)));
 
 					if ((iI == eBestTech) || (iI == eNextBestTech))
-					{
-						szBuffer += gDLL->getText("TXT_KEY_POPUP_RECOMMENDED_ONLY_ADV", GC.getAdvisorInfo((AdvisorTypes)(GC.getTechInfo((TechTypes)iI).getAdvisorType())).getTextKeyWide());
+					{	// <advc.004t>
+						if(GC.getDefineINT("ENABLE_POPUP_RECOMMENDATIONS") > 0 ||
+								player.isOption(PLAYEROPTION_ADVISOR_HELP))
+								// </advc.004t>
+							szBuffer += gDLL->getText("TXT_KEY_POPUP_RECOMMENDED_ONLY_ADV", GC.getAdvisorInfo((AdvisorTypes)(GC.getTechInfo((TechTypes)iI).getAdvisorType())).getTextKeyWide());
 					}
 
 					CvString szButton = GC.getTechInfo((TechTypes) iI).getButton();
