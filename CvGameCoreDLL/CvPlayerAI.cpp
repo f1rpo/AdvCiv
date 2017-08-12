@@ -11530,7 +11530,13 @@ int CvPlayerAI::AI_cityTradeVal(CvCity* pCity) const
 	iValue += pCity->getPopulation()*20 + pCity->getHighestPopulation()*30; // K-Mod
 
 	iValue += (pCity->getCultureLevel() * 200);
-	iValue += 200 * pCity->getCultureLevel() * pCity->getCulture(getID()) / std::max(1, pCity->getCulture(pCity->getOwnerINLINE())); // K-Mod
+	iValue += (200 * pCity->getCultureLevel() * pCity->getCulture(getID())) /
+			std::max(1, pCity->getCulture(pCity->getOwnerINLINE())
+			/*  advc.001: I think karadoc's intention was to add at most
+				200 * CultureLevel, namely when the city owner has 0 culture,
+				but without the addition below, the increment would actually be
+				200 * CultureLevel * this player's city culture, i.e. millions. */
+			+ pCity->getCulture(getID()));
 
 	//iValue += (((((pCity->getPopulation() * 50) + GC.getGameINLINE().getElapsedGameTurns() + 100) * 4) * pCity->plot()->calculateCulturePercent(pCity->getOwnerINLINE())) / 100);
 	// K-Mod

@@ -559,6 +559,25 @@
 		<Italian>[SPACE](%s1_Name)</Italian>
 		<Spanish>[SPACE](%s1_Name)</Spanish>
 	</TEXT>
+
+	<!-- advc.004g: Originally in CIV4GameTextInfos.xml; info about right-click
+		 shorthand added.  -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_INCREASE_RATE</Tag>
+		<English>Increase %s1_CmrcType Rate by %d2_Mod%%. (Right-click to set to 100%.)</English>
+		<French>Augmente la production (Taux : %s1_CmrcType) de %d2_Mod%%</French>
+		<German>Wirtschaftsrate f&#252;r %s1_CmrcType um %d2_Mod%% erh&#246;hen. (Rechtsklick setzt die Rate auf 100%.)</German>
+		<Italian>Aumenta il ritmo %s1_CmrcType del %d2_Mod%%</Italian>
+		<Spanish>Aumentar ritmo de %s1_CmrcType en un %d2_Mod%%</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_DECREASE_RATE</Tag>
+		<English>Decrease %s1_CmrcType Rate by %d2_Mod%%. (Right-click to set to 0.)</English>
+		<French>R&#233;duit la production (Taux : %s1_CmrcType) de %d2_Mod%%</French>
+		<German>Wirtschaftsrate f&#252;r %s1_CmrcType um %d2_Mod%% senken. (Rechtsklick setzt die Rate auf 0.)</German>
+		<Italian>Diminuisce il ritmo %s1_CmrcType del %d2_Mod%%</Italian>
+		<Spanish>Disminuir ritmo de %s1_CmrcType en un %d2_Mod%%</Spanish>
+	</TEXT>
 	
 	<!-- [advc.004s] Originally in CIV4GameTextInfos.xml;
 		 says just "(Gold)" there. Translation from TXT_KEY_RESEARCH

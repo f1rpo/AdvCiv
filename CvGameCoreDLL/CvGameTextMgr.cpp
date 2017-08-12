@@ -16155,7 +16155,7 @@ void CvGameTextMgr::parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity& city
 			iProgress *= 100;
 			iProgress /= owner.greatPeopleThreshold(false);
 			//int iProgress = ((city.getGreatPeopleUnitProgress((UnitTypes)iI) * 100) / iTotalGreatPeopleUnitProgress);
-			// </advc.001>
+			// </advc.001c>
 			if (iProgress > 0)
 			{
 				iTotalTruncated += iProgress;

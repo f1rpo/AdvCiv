@@ -2428,13 +2428,12 @@ class CvInfoScreen:
 									if (iPlayerTeam == self.iActiveTeam):
 										self.aaWondersBuilt_BUG.append([pCity.getBuildingOriginalTime(iBuildingLoop),iBuildingLoop,True,pPlayer.getCivilizationShortDescription(0), pCity, iPlayerLoop])
 										self.iNumWonders += 1
-									# <advc.001d> Never show (finished)
-									# national wonders of other teams.
-									#elif (self.pActiveTeam.isHasMet(iPlayerTeam)
-									#and pCity.isRevealed(gc.getGame().getActiveTeam())):
-										#self.aaWondersBuilt_BUG.append([pCity.getBuildingOriginalTime(iBuildingLoop),iBuildingLoop,True,pPlayer.getCivilizationShortDescription(0), pCity, iPlayerLoop])
-										#self.iNumWonders += 1
-									# </advc.001>
+									# advc.001d (comment): To hide (finished)
+									# national wonders of other teams, remove
+									# this code block:
+									elif (self.pActiveTeam.isHasMet(iPlayerTeam) and pCity.isRevealed(gc.getGame().getActiveTeam())):
+										self.aaWondersBuilt_BUG.append([pCity.getBuildingOriginalTime(iBuildingLoop),iBuildingLoop,True,pPlayer.getCivilizationShortDescription(0), pCity, iPlayerLoop])
+										self.iNumWonders += 1
 
 		# This array used to store which players have already used up a team's slot so team projects don't get added to list more than once
 		aiTeamsUsed = []
