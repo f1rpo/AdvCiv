@@ -371,7 +371,7 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 		branchPortions[FLEET] = 0.2;
 		int rev = 0, revCoast = 0, dummy = 0;
 		for(CvCity* c = civ.firstCity(&dummy); c != NULL; c = civ.nextCity(&dummy)) {
-			if(c->isRevealed(civ.getTeam())) {
+			if(c->isRevealed(civ.getTeam(), false)) {
 				rev++;
 				if(c->isCoastal())
 					revCoast++;

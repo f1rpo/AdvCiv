@@ -132,6 +132,7 @@ friend class Node;
 		std::set<PlayerTypes> warOpponents;
 		bool isWarOpponent[MAX_CIV_PLAYERS];
 		std::vector<MilitaryBranch*> military;
+		std::vector<double> currentPow;
 		double productionInvested;
 		bool eliminated;
 		bool capitulated;

@@ -1071,7 +1071,8 @@ void CvTeam::doTurn()
 				//if (!isHasTech((TechTypes)iI))
 				if (!isHasTech(i) && 
 					(ignorePrereqs || // advc.307
-					kBarbPlayer.canResearch(i, false, true))) // K-Mod. Make no progress on techs until prereqs are researched.
+					// advc.003:
+					kBarbPlayer.canResearchBulk(i, false, true))) // K-Mod. Make no progress on techs until prereqs are researched.
 				{
 					int iCount = 0;
 					int iPossibleCount = 0;
@@ -1453,8 +1454,8 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 							GET_TEAM(eTeam).getMasterTeam() != kTeam_j.getMasterTeam() &&
 							/*  Not if eTeam is also fighting a partner and
 								(appears to have) started it. */
-							(kTeam_j.AI_getMemoryCount(eTeam, MEMORY_DECLARED_WAR_ON_FRIEND) <= 0) ||
-							!kPlayer_j.atWarWithPartner(eTeam))
+							((kTeam_j.AI_getMemoryCount(eTeam, MEMORY_DECLARED_WAR_ON_FRIEND) <= 0) ||
+							!kPlayer_j.atWarWithPartner(eTeam)))
 							// </advc.130h>
 					{   // advc.130j:
 						kPlayer_j.AI_rememberEvent(i, MEMORY_DECLARED_WAR_ON_FRIEND);
@@ -1760,10 +1761,14 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 	// K-Mod end
 }
 
-void CvTeam::makePeace(TeamTypes eTeam, bool bBumpUnits
-	, TeamTypes broker // advc.100b
-	)
-{
+// <advc.100b>
+void CvTeam::makePeace(TeamTypes eTeam, bool bBumpUnits) {
+
+	return makePeaceBulk(eTeam, bBumpUnits);
+}
+
+void CvTeam::makePeaceBulk(TeamTypes eTeam, bool bBumpUnits, TeamTypes broker)
+{ // </advc.100b>
 	CvWString szBuffer;
 	int iI;
 
@@ -6094,7 +6099,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 							// <advc.004r>
 							&& pLoopPlot->getTeam() != NO_TEAM &&
 							pLoopPlot->getTeam() != BARBARIAN_TEAM) ||
-							!pLoopPlot->isRevealed(getID())) // </advc.004r>
+							!pLoopPlot->isRevealed(getID(), false)) // </advc.004r>
 						continue; // advc.003
 					eBonus = pLoopPlot->getBonusType();
 					if (eBonus == NO_BONUS)

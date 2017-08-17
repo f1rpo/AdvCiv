@@ -917,6 +917,7 @@ public:
 	DllExport int getNumGlobeLayers() const;
 
 	void deleteInfoArrays();
+	bool isCachingDone() const; // advc.003c
 
 protected:
 
@@ -1145,6 +1146,7 @@ protected:
 	int m_iNumFootstepAudioTags;
 
 	CvString m_szCurrentXMLFile;
+	bool cachingDone; // advc.003c
 	//////////////////////////////////////////////////////////////////////////
 	// Formerly Global Defines
 	//////////////////////////////////////////////////////////////////////////

@@ -213,8 +213,8 @@ bool CvXMLLoadUtility::SetGlobalDefines()
 	{
 		//return false;
 	}
-
-	if (!ReadGlobalDefines("xml\\BBAI_AI_Variables_GlobalDefines.xml", cache))
+	// advc.104x: Removed the BBAI prefix from the file name
+	if (!ReadGlobalDefines("xml\\AI_Variables_GlobalDefines.xml", cache))
 	{
 		//return false;
 	}

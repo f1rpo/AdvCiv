@@ -53,11 +53,9 @@ public:
 	//DllExport void declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan); // Exposed to Python
 	void declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, bool bPrimaryDoW = true, // K-Mod added bPrimaryDoW, Exposed to Python
 			PlayerTypes sponsor = NO_PLAYER); // advc.100
-	DllExport void makePeace(TeamTypes eTeam, bool bBumpUnits = true,
-		/*  advc.100b: Let's hope the additional param doesn't break any
-			external calls. */
-		TeamTypes broker = NO_TEAM
-		);																		// Exposed to Python
+	DllExport void makePeace(TeamTypes eTeam, bool bBumpUnits = true);																		// Exposed to Python
+	// advc.100b: To avoid changing the signature of the function above:
+	void makePeaceBulk(TeamTypes eTeam, bool bBumpUnits = true, TeamTypes broker = NO_TEAM);
 	//bool canContact(TeamTypes eTeam) const; // Exposed to Python
 	bool canContact(TeamTypes eTeam, bool bCheckWillingness = false) const; // K-Mod, Exposed to Python
 	void meet(TeamTypes eTeam, bool bNewDiplo);																		// Exposed to Python

@@ -1,0 +1,245 @@
+<?xml version="1.0"?>
+
+<Civ4Defines xmlns="x-schema:CIV4GlobalDefinesSchema.xml">
+	<!-- [advc.104x] This file used to be called BBAI_AI_Variables_
+		 GlobalDefines.xml; now also contains UWAI parameters.
+		
+		 UWAI breaks down the computation of AI war utility into a sum of
+		 26 "aspects", most of which are either in favor of war (added to the
+		 total war utility) or against war (subtracted). There are a few mixed
+		 aspects that could either increase or decrease war utility.
+		 Each aspect corresponds to one particular motivation for or against war.
+		 Through this file, a weight is assigned to each aspect. This weight is
+		 interpreted as a percentage by which the aspect utility is multiplied.
+		 The default (recommended) weights are all 100. This doesn't imply though
+		 that all aspects contribute equally by default; the weights are only a
+		 final adjustment to the (hardcoded) formulas.
+		 A weight of e.g. 50 halves the default impact of an aspect, 200
+		 doubles it. 0 means that the aspect is entirely disregarded. A
+		 negative weight (not recommended) turns a pro-war aspect into an
+		 anti-war aspect or vice versa.
+		 In the descriptions below, "we" refers to the AI civ that is
+		 considering war. -->
+	<Define>
+		<!-- The cities we expect to conquer as economical assets. -->
+		<DefineName>UWAI_WEIGHT_GREED_FOR_ASSETS</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- The economical value of accepted capitulations. 
+			 (Not: Getting closer to a Conquest victory; that's handled under
+			  MILITARY_VICTORY.) -->
+		<DefineName>UWAI_WEIGHT_GREED_FOR_VASSALS</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- By eliminating a civ early in the game, some of the unsettled land
+			 near it can be settled and exploited. Lebensraum if you will (and
+			 in Civ, it actually works).  -->
+		<DefineName>UWAI_WEIGHT_GREED_FOR_SPACE</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- Just the value of expected reparations really. Sponsored war is
+			 covered by HIRED_HAND. -->
+		<DefineName>UWAI_WEIGHT_GREED_FOR_CASH</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- The satisfaction of seeing our (worst) enemies devastated. -->
+		<DefineName>UWAI_WEIGHT_LOATHING</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- The prospect of a speedy military victory incites us to wage war.
+			 This covers Domination, Conquest and Diplomatic victory; Diplo
+			 victory also factors into ILL_WILL. -->
+		<DefineName>UWAI_WEIGHT_MILITARY_VICTORY</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- Protect our partners because we want to continue trading with
+			 them, and don't want to become isolated. Assistance for more
+			 principled reasons is covered by FIDELITY; the "mutual strugle"
+			 diplo bonus by SUCKING_UP. -->
+		<DefineName>UWAI_WEIGHT_PRESERVATION_OF_PARTNERS</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+  <!-- The next four - Reconquista, Rebuke, Fidelity and Hired Hand - are about
+	   upholding a reputation. Since Civ 4 doesn't have a reputation system,
+	   this is mostly (irrational) role-playing. -->
+	<Define>
+		<!-- By reconquering previously owned cities, we show that it's not
+			 worthwhile to conquer our cities; we'll get them back. -->
+		<DefineName>UWAI_WEIGHT_RECONQUISTA</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- We show we can take by force what was denied to us when we
+			 demanded tribute. I.e. increased war utility if we remember how
+			 they "refused to give us tribute". A rebuked demand can also lead
+			 to an immediate change in war planning, but that's handled by
+			 WarAndPeaceAI::Team::respondToRebuke, not in XML. -->
+		<DefineName>UWAI_WEIGHT_REBUKE</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- By declaring war on a civ that recently attacked one of our
+			 partners, we demonstrate that its worthwhile to be our partner,
+			 and dangerous to attack our partners. -->
+		<DefineName>UWAI_WEIGHT_FIDELITY</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- We continue a war because we've been paid for it. (Or maybe rather
+			 to prove that we're a reliable hireling.) -->
+		<DefineName>UWAI_WEIGHT_HIRED_HAND</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- By conquering cities, we reduce culture pressure on our cities. -->
+		<DefineName>UWAI_WEIGHT_BORDER_DISPUTES</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- Fight a joint war for the "mutual struggle" diplo bonus. -->
+		<DefineName>UWAI_WEIGHT_SUCKING_UP</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- To weaken a civ that we perceive as a long-term threat. -->
+		<DefineName>UWAI_WEIGHT_PREEMPTIVE_WAR</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- Stop civs that we don't like from winning the game, or even civs
+			 that we're Pleased with if we're in contention ourselves. Likely
+			 winners can be civs close to a victory condition, but also civs
+			 that have gotten ahead in score or that we expect to get ahead
+			 through an ongoing war. -->
+		<DefineName>UWAI_WEIGHT_KING_MAKING</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- Our military build-up, lost units and ravages of war. Adjusted
+			 based on our opportunities for peaceful development (i.e. an
+			 opportunity cost). Also takes into account whether we'll have
+			 further use of units surviving the war and whether lost units
+			 will have to be replaced. -->
+		<DefineName>UWAI_WEIGHT_EFFORT</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- The risk of losing cities or vassals in the war, or even having to
+			 capitulate or being eliminated. -->
+		<DefineName>UWAI_WEIGHT_RISK</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- The negative diplomatic consequences of war: angering the civ
+			 we're fighting against and third parties. -->
+		<DefineName>UWAI_WEIGHT_ILL_WILL</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- Don't want to plan war against civs that we like. This is only
+			 role-playing; ILL_WILL handles the rational reasons for not
+			 attacking partners. -->
+		<DefineName>UWAI_WEIGHT_AFFECTION</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- Distractions from fighting multiple wars are already covered by
+			 the military analysis, but not quite reliably so, so this is an
+			 extra cost to discourage wars on multiple fronts. -->
+		<DefineName>UWAI_WEIGHT_DISTRACTION</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- Anger from war weariness and bonds of faith. -->
+		<DefineName>UWAI_WEIGHT_PUBLIC_OPPOSITION</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- War leaves fewer units stationed in cities, which can lead to
+			 revolts in cities conquered in some previous war. Due to the
+			 "Immortal Culture" changes, this can be a significant considera-
+			 tion sometimes. -->
+		<DefineName>UWAI_WEIGHT_REVOLTS</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- Applies only when we're paid to start a war and the sponsor isn't
+			 apparently in need of assistance (or not even at war). Why hire
+			 us then? Will have to pay extra to allay our suspicions. -->
+		<DefineName>UWAI_WEIGHT_ULTERIOR_MOTIVES</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- Discourages early war against humans; not fair when the AI has a
+			 head start. -->
+		<DefineName>UWAI_WEIGHT_FAIR_PLAY</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- War as its own purpose. Before this aspect was added, there was too
+			 little war before the Medieval era. Especially affects AI
+			 leaders with aggressive/ suicidal personalities. -->
+		<DefineName>UWAI_WEIGHT_BELLICOSITY</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- Is the tactical situation favorable, i.e. do we/ do they have
+			 exposed damaged units, cities that are about to fall, or
+			 reinforcements coming up. When in doubt, entangled units lead to
+			 increased war utility. If still preparing war: Do we have suffi-
+			 cient units to start the war; is there still enough time to build
+			 them? -->
+		<DefineName>UWAI_WEIGHT_TACTICAL_SITUATION</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<!-- [/advc.104x] -->
+
+	<!-- -->
+	<!-- Better BTS AI / K-Mod variables to allow easy AI tweaking -->
+	<!-- by jdog5000 / karadoc -->
+	<!-- -->
+	<Define>
+		<!-- War success value of capturing a city.  BBAI default: 25, BTS 10 -->
+		<DefineName>WAR_SUCCESS_CITY_CAPTURING</DefineName>
+		<iDefineIntVal>25</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- Ratio of enemy power to team power for AI to consider running TURTLE (all out defense, no offensive forays) strategy.  
+		Equal power would be 100.  BBAI default: 250 -->
+		<DefineName>BBAI_TURTLE_ENEMY_POWER_RATIO</DefineName>
+		<iDefineIntVal>250</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- Minimum stack strength ratio at which AI will attack enemy city it is next to, higher means less suicide.  BTS default: 120 -->
+		<DefineName>BBAI_ATTACK_CITY_STACK_RATIO</DefineName>
+		<iDefineIntVal>125</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- Minimum attack odds of best attacker for AI to skip bombarding a city and just attack.  BBAI default: 12 -->
+		<DefineName>BBAI_SKIP_BOMBARD_BEST_ATTACK_ODDS</DefineName>
+		<iDefineIntVal>10</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- Base ratio of stack strengths for AI considering skipping bombard and just attacking enemy city.
+		This ratio is reduced by the AI's best attacker odds and how long it will take to bombard the city.
+		Lower means AI will more readily skip bombarding.  BBAI default: 300 -->
+		<DefineName>BBAI_SKIP_BOMBARD_BASE_STACK_RATIO</DefineName>
+		<iDefineIntVal>260</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- Minimum stack strength ratio for AI to skip bombarding city and just attack, higher is more conservative.  BBAI default: 150 -->
+		<DefineName>BBAI_SKIP_BOMBARD_MIN_STACK_RATIO</DefineName>
+		<iDefineIntVal>140</iDefineIntVal>
+	</Define>
+	<Define>
+		<!-- Minimum city site value that the AI will consider settling. default: 600. (K-Mod) -->
+		<DefineName>BBAI_MINIMUM_FOUND_VALUE</DefineName>
+		<iDefineIntVal>600</iDefineIntVal>
+	</Define>
+</Civ4Defines>

@@ -487,13 +487,21 @@ void CvInitCore::resetGame()
 
 	// Standard game parameters
 	m_eWorldSize = NO_WORLDSIZE;											// STANDARD_ option?
-	m_eClimate = (ClimateTypes)GC.getDefineINT("STANDARD_CLIMATE");			// NO_ option?
-	m_eSeaLevel = (SeaLevelTypes)GC.getDefineINT("STANDARD_SEALEVEL");		// NO_ option?
-	m_eEra = (EraTypes)GC.getDefineINT("STANDARD_ERA");						// NO_ option?
-	m_eGameSpeed = (GameSpeedTypes)GC.getDefineINT("STANDARD_GAMESPEED");	// NO_ option?
-	m_eTurnTimer = (TurnTimerTypes)GC.getDefineINT("STANDARD_TURNTIMER");	// NO_ option?
-	m_eCalendar = (CalendarTypes)GC.getDefineINT("STANDARD_CALENDAR");		// NO_ option?
-
+	/*  <advc.003c> This function is called multiple times before XML is loaded.
+		GC.getDefineINT returns 0 then, which is fine, but now also triggers
+		a failed assertion. Therefore check if GC is done with the loading
+		(and caching) of XML values.
+		The in-line comments "NO_ option?" below are from the Vanilla developers.
+		If I'd just set everything to NO_..., I'd have to set proper values at
+		some later point though. */
+	bool cd = GC.isCachingDone();
+	m_eClimate = cd ? (ClimateTypes)GC.getDefineINT("STANDARD_CLIMATE") : NO_CLIMATE;			// NO_ option?
+	m_eSeaLevel = cd ? (SeaLevelTypes)GC.getDefineINT("STANDARD_SEALEVEL") : NO_SEALEVEL;		// NO_ option?
+	m_eEra = cd ? (EraTypes)GC.getDefineINT("STANDARD_ERA") : NO_ERA;						// NO_ option?
+	m_eGameSpeed = cd ? (GameSpeedTypes)GC.getDefineINT("STANDARD_GAMESPEED") : NO_GAMESPEED;	// NO_ option?
+	m_eTurnTimer = cd ? (TurnTimerTypes)GC.getDefineINT("STANDARD_TURNTIMER") : NO_TURNTIMER;	// NO_ option?
+	m_eCalendar = cd ? (CalendarTypes)GC.getDefineINT("STANDARD_CALENDAR") : NO_CALENDAR;		// NO_ option?
+	// </advc.003c>
 	// Map-specific custom parameters
 	clearCustomMapOptions();
 
@@ -645,7 +653,8 @@ void CvInitCore::resetPlayer(PlayerTypes eID)
 		m_aeCiv[eID] = NO_CIVILIZATION;
 		m_aeLeader[eID] = NO_LEADER;
 		m_aeTeam[eID] = (TeamTypes)eID;
-		m_aeHandicap[eID] = (HandicapTypes)GC.getDefineINT("STANDARD_HANDICAP");
+		// advc.003c: See comment in resetGame
+		m_aeHandicap[eID] = GC.isCachingDone() ? (HandicapTypes)GC.getDefineINT("STANDARD_HANDICAP") : NO_HANDICAP;
 		m_aeColor[eID] = NO_PLAYERCOLOR;
 		m_aeArtStyle[eID] = NO_ARTSTYLE;
 

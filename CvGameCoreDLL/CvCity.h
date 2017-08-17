@@ -859,8 +859,7 @@ public:
 	bool isEverOwned(PlayerTypes eIndex) const;																		// Exposed to Python
 	void setEverOwned(PlayerTypes eIndex, bool bNewValue);
 
-	// advc.003: Default for bDebug added
-	DllExport bool isRevealed(TeamTypes eIndex, bool bDebug = false) const;								// Exposed to Python
+	DllExport bool isRevealed(TeamTypes eIndex, bool bDebug) const;								// Exposed to Python
 	void setRevealed(TeamTypes eIndex, bool bNewValue);											// Exposed to Python
 
 	bool getEspionageVisibility(TeamTypes eTeam) const;								// Exposed to Python

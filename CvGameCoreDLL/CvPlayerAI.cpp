@@ -3171,9 +3171,9 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			}
 			// K-Mod end
 			// <advc.040>
-			else if(firstColony && pLoopPlot->isRevealed(getTeam()))
+			else if(firstColony && pLoopPlot->isRevealed(getTeam(), false))
 				revDecentLand++;
-			if(firstColony && !pLoopPlot->isRevealed(getTeam()))
+			if(pLoopPlot != NULL && firstColony && !pLoopPlot->isRevealed(getTeam(), false))
 				unrev++; // </advc.040>
 		}
 	} /* <advc.040> Make sure we do naval exploration near the spot before sending
@@ -8311,7 +8311,7 @@ int CvPlayerAI::AI_getExpansionistAttitude(PlayerTypes ePlayer) const {
 	double foreignCities = 0; int dummy;
 	for(CvCity* cp = they.firstCity(&dummy); cp != NULL; cp = they.nextCity(&dummy)) {
 		if(cp == NULL) continue; CvCity const& c = *cp;
-		if(!c.isRevealed(getTeam()))
+		if(!c.isRevealed(getTeam(), false))
 			continue;
 		TeamTypes highestCulture = c.plot()->findHighestCultureTeam();
 		if(highestCulture != TEAMID(ePlayer)) {
@@ -19242,6 +19242,13 @@ bool CvPlayerAI::demandTribute(PlayerTypes humanId, int tributeType) {
 	}
 	if(theirList.getLength() <= 0)
 		return false;
+	// <advc.104m> Don't ask for too little
+	// Unless difficulty is low
+	if(GC.getHandicapInfo(human.getHandicapType()).getDifficulty() > 25) {
+		int dealVal = AI_dealVal(humanId, &theirList, false, 1, true);
+		if(dealVal < 50 * std::pow(2.0, getCurrentEra()))
+			return false;
+	} // </advc.104m>
 	AI_changeContactTimer(humanId, CONTACT_DEMAND_TRIBUTE,
 			GC.getLeaderHeadInfo(getPersonalityType()).
 			getContactDelay(CONTACT_DEMAND_TRIBUTE));

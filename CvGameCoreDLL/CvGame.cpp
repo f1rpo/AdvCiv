@@ -574,7 +574,8 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	m_bNukesValid = false;
 
 	m_eHandicap = eHandicap;
-	aiHandicap = (HandicapTypes)GC.getDefineINT("STANDARD_HANDICAP"); // advc.127
+	// advc.127: (XML not loaded when constructor called)
+	aiHandicap = bConstructorCall ? NO_HANDICAP : (HandicapTypes)GC.getDefineINT("STANDARD_HANDICAP");
 	m_ePausePlayer = NO_PLAYER;
 	m_eBestLandUnit = NO_UNIT;
 	m_eWinner = NO_TEAM;
@@ -726,8 +727,10 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	}
 	m_ActivePlayerCycledGroups.clear(); // K-Mod
 	aiTurn = false; // advc.106b
-	minimapWaterMode = GC.getDefineINT("MINIMAP_WATER_MODE"); // advc.002a
-	delayUntilBuildDecay = GC.getDefineINT("DELAY_UNTIL_BUILD_DECAY"); // advc.011
+	// advc.002a:
+	minimapWaterMode = bConstructorCall ? -1 : GC.getDefineINT("MINIMAP_WATER_MODE");
+	// advc.011:
+	delayUntilBuildDecay = bConstructorCall ? -1 : GC.getDefineINT("DELAY_UNTIL_BUILD_DECAY");
 }
 
 
@@ -7337,16 +7340,12 @@ void CvGame::createBarbCity(bool skipCivAreas, float prMod) {
 						case.
 						Also, the first city placed in a previously uninhabited area
 						is placed randomly b/c each found value gets multipied
-						with 0, which is probably a bug. Adding 1 would suffice
-						to fix this, but I'm adding 10 to reduce the effect of owned
-						tiles a bit more when all eligible areas are small.
-						10 is also close to the number of tiles the new city will
-						immediately occupy, so it's like using a projection instead
-						of the actually owned tiles. */
+						with 0, which is probably a bug. Let's instead use the projected number of
+						owned tiles after placing the city (by adding 9). */
 						int nOwned = pLoopPlot->area()->getNumOwnedTiles();
 						if(skipCivAreas)
 							iValue += nOwned;
-						else iValue *= nOwned + 10; // advc.001 </advc.300>
+						else iValue *= nOwned + 9; // advc.001 </advc.300>
 					}
 
 					/*  advc.300, advc.001: Looks like another bug.

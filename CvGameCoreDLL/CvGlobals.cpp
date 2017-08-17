@@ -144,6 +144,7 @@ m_aeTurnRightDirection(NULL),
 //m_aPlayerOptionsInfo(NULL),
 m_Profiler(NULL),
 m_VarSystem(NULL),
+cachingDone(false),
 m_iEXTRA_YIELD(0), // K-Mod
 m_bJOIN_WAR_DIPLO_BONUS(false), // advc.130s
 m_iTILE_CULTURE_DECAY_PER_MILL(0), // advc.099
@@ -2731,7 +2732,8 @@ void CvGlobals::cacheGlobals()
 	m_iUSE_CANNOT_TRAIN_CALLBACK = getDefineINT("USE_CANNOT_TRAIN_CALLBACK");
 	m_iUSE_CAN_TRAIN_CALLBACK = getDefineINT("USE_CAN_TRAIN_CALLBACK");
 	m_iUSE_UNIT_CANNOT_MOVE_INTO_CALLBACK = getDefineINT("USE_UNIT_CANNOT_MOVE_INTO_CALLBACK");
-	m_iUSE_USE_CANNOT_SPREAD_RELIGION_CALLBACK = getDefineINT("USE_USE_CANNOT_SPREAD_RELIGION_CALLBACK");
+	// advc.003c, advc.001: Had said "USE_USE..."
+	m_iUSE_USE_CANNOT_SPREAD_RELIGION_CALLBACK = getDefineINT("USE_CANNOT_SPREAD_RELIGION_CALLBACK");
 	m_iUSE_FINISH_TEXT_CALLBACK = getDefineINT("USE_FINISH_TEXT_CALLBACK");
 	m_iUSE_ON_UNIT_SET_XY_CALLBACK = getDefineINT("USE_ON_UNIT_SET_XY_CALLBACK");
 	m_iUSE_ON_UNIT_SELECTED_CALLBACK = getDefineINT("USE_ON_UNIT_SELECTED_CALLBACK");
@@ -2803,6 +2805,8 @@ void CvGlobals::cacheGlobals()
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
+	getWPAI.cacheXML(); // advc.104x
+	cachingDone = true; // advc.003c
 }
 
 /************************************************************************************************/
@@ -2829,7 +2833,9 @@ int CvGlobals::getDefineINT( const char * szName, const int iDefault ) const
 int CvGlobals::getDefineINT( const char * szName ) const
 {
 	int iReturn = 0;
-	GC.getDefinesVarSystem()->GetValue( szName, iReturn );
+	bool success = // advc.003c
+			GC.getDefinesVarSystem()->GetValue( szName, iReturn );
+	FAssert(success); // advc.003c
 	return iReturn;
 }
 
@@ -3648,6 +3654,11 @@ void CvGlobals::deleteInfoArrays()
 	m_aInfoVectors.clear();
 }
 
+// <advc.003c>
+bool CvGlobals::isCachingDone() const {
+
+	return cachingDone;
+} // </advc.003c>
 
 //
 // Global Infos Hash Map

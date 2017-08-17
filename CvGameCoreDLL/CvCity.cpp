@@ -1159,7 +1159,7 @@ void CvCity::doRevolt() { PROFILE("CvCity::doRevolts()")
 			continue;
 		bool affected = (civ.getID() == eCulturalOwner ||
 				civ.getID() == getOwnerINLINE());
-		if(!affected && !isRevealed(civ.getTeam()))
+		if(!affected && !isRevealed(civ.getTeam(), false))
 			continue;
 		InterfaceMessageTypes msgType = MESSAGE_TYPE_INFO;
 		LPCTSTR sound = NULL;
@@ -10220,9 +10220,10 @@ double CvCity::revoltProbability(bool ignoreWar,
 			// <advc.099c> Barb revolts
 			|| (GC.getDefineINT("BARBS_REVOLT") <= 0 &&
 			eCulturalOwner == BARBARIAN_PLAYER) ||
+			(GET_PLAYER(getOwnerINLINE()).getCurrentEra() <= 0 &&
 			GC.getGameINLINE().getGameTurn() - getGameTurnFounded() <
 			(10 * GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).
-			getConstructPercent()) / 100) // </advc.099c>
+			getConstructPercent()) / 100)) // </advc.099c>
 		return 0;
 	// <advc.023>
 	double occupationFactor = 1;
@@ -11962,7 +11963,7 @@ void CvCity::setHasReligion(ReligionTypes eIndex, bool bNewValue, bool bAnnounce
 			// <advc.130n>
 			for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 				CvTeamAI& t = GET_TEAM((TeamTypes)i);
-				if(t.isAlive() && isRevealed(t.getID()))
+				if(t.isAlive() && isRevealed(t.getID(), false))
 					t.reportNewReligion(eIndex);
 			} // </advc.130n>
 		}
@@ -12170,7 +12171,7 @@ void CvCity::setHasCorporation(CorporationTypes eIndex, bool bNewValue, bool bAn
 					plot()->setRevealed(civ.getTeam(), true, false, NO_TEAM, false);
 				// Replaced by the line below:
 				//if (getOwnerINLINE() == iI || GET_PLAYER((PlayerTypes)iI).hasHeadquarters(eIndex))
-				if(isRevealed(civ.getTeam())) // </advc.106e>
+				if(isRevealed(civ.getTeam(), false)) // </advc.106e>
 				{
 					if (getOwnerINLINE() == iI)
 					{
@@ -12310,7 +12311,7 @@ void CvCity::updateTradeRoutes()
 					city tile is revealed, but this doesn't imply that the city is
 					also revealed: The tile could've been explored before the city
 					existed. Need to check CvCity::isRevealed explicitly. */
-				if(pLoopCity->isDisorder() || !pLoopCity->isRevealed(getTeam()))
+				if(pLoopCity->isDisorder() || !pLoopCity->isRevealed(getTeam(), false))
 					continue; // <advc.124>
 				if(pLoopCity == this)
 					continue;

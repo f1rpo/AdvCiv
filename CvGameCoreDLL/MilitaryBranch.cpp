@@ -335,9 +335,11 @@ double MilitaryBranch::Fleet::unitPower(CvUnitInfo const& u, bool modify) const 
 double MilitaryBranch::Logistics::unitPower(CvUnitInfo const& u,
 		bool modify) const {
 
-	/* The special cargo condition excludes caravels, but also all types
-	   of carriers. The second condition repairs this. */
-	if(u.getSpecialCargo() == NO_SPECIALUNIT || u.getDomainCargo() == DOMAIN_AIR)
+	if(u.getSpecialCargo() == NO_SPECIALUNIT)
+			/*  This would include carriers and subs in Logistics. But I think
+				only proper transport ships should count b/c aircraft can't
+				conquer cities. */
+			//|| u.getDomainCargo() == DOMAIN_AIR)
 		return u.getCargoSpace();
 	return -1;
 }

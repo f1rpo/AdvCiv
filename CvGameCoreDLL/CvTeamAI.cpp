@@ -1123,6 +1123,7 @@ bool CvTeamAI::AI_shareWar(TeamTypes eTeam) const
 
 	return false;
 }
+
 // <advc.003> This error-prone double loop is needed in several places
 void CvTeamAI::AI_updateAttitudeCache(TeamTypes eTeam,
 		bool updateWorstEnemy) { // advc.130e
@@ -4500,7 +4501,7 @@ DenialTypes CvTeamAI::AI_openBordersTrade(TeamTypes eTeam) const
 		if(pp == NULL) continue; CvPlot const& p = *pp;
 		PlayerTypes plotOwner = p.getOwnerINLINE();
 		if(plotOwner != NO_PLAYER && TEAMID(plotOwner) == eTeam &&
-				p.isRevealed(getID()) && !p.isWater()) {
+				p.isRevealed(getID(), false) && !p.isWater()) {
 			theirLandRevealed = true;
 			break;
 		}

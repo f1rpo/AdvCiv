@@ -4419,7 +4419,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 
 				for (TechTypes iI = (TechTypes)0; iI < GC.getNumTechInfos(); iI=(TechTypes)(iI+1))
 				{
-					if (kOwner.canResearch(iI, false, true))
+					if (kOwner.canResearchBulk(iI, false, true)) // advc.003
 					{
 						int iTechValue = GET_TEAM(getTeam()).getResearchCost(iI);
 						iTotalTechValue += iTechValue;

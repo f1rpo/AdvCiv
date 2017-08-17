@@ -1717,8 +1717,8 @@ void CvGame::doControl(ControlTypes eControl)
 			cycleCities(true, !(gDLL->getInterfaceIFace()->isCityScreenUp()));
 		}
 		else
-		{
-			gDLL->getInterfaceIFace()->selectLookAtCity(true);
+		{	// advc.042: Leads to "Procedure not found" crash
+			;//gDLL->getInterfaceIFace()->selectLookAtCity(true);
 		}
 		gDLL->getInterfaceIFace()->lookAtSelectionPlot();
 		break;
@@ -1729,8 +1729,8 @@ void CvGame::doControl(ControlTypes eControl)
 			cycleCities(false, !(gDLL->getInterfaceIFace()->isCityScreenUp()));
 		}
 		else
-		{
-			gDLL->getInterfaceIFace()->selectLookAtCity(true);
+		{	// advc.042: Leads to "Procedure not found" crash
+			;//gDLL->getInterfaceIFace()->selectLookAtCity(true);
 		}
 		gDLL->getInterfaceIFace()->lookAtSelectionPlot();
 		break;

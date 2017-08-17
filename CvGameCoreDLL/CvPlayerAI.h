@@ -230,7 +230,9 @@ public:
 
 	PlayerVoteTypes AI_diploVote(const VoteSelectionSubData& kVoteData, VoteSourceTypes eVoteSource, bool bPropose);
 
-	int AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pList, bool bIgnoreAnnual = false, int iExtra = 1
+	int AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pList, bool bIgnoreAnnual = false,
+		int iChange = 1 /*  advc.003: was called iExtra, which didn't make sense
+							and differed from the parameter name in CvPlayerAI.cpp. */
 		, bool ignoreDiscount = false // advc.550a
 		) const;
 	bool AI_goldDeal(const CLinkList<TradeData>* pList) const;

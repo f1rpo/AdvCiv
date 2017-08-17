@@ -143,11 +143,11 @@ class AIAutoPlay :
 
         if( game.getAIAutoPlay() == 1 and iPlayer > game.getActivePlayer() and gc.getActivePlayer().isAlive() ) :
             # Forces isHuman checks to come through positive for everything after human players turn
-			# <advc.127> Commented out; pass instead. (The setAIAutoPlay
-			# call might be superfluous in any case.)
+            # <advc.127> Commented out; pass instead. (The setAIAutoPlay
+            # call might be superfluous in any case.)
             #self.checkPlayer()
             #game.setAIAutoPlay(0)
-			pass # </advc.127>
+            pass # </advc.127>
         
         elif( self.bSaveAllDeaths ) :
             if( game.getAIAutoPlay() == 0 and not gc.getActivePlayer().isAlive() and iPlayer > game.getActivePlayer() ) :
@@ -164,7 +164,28 @@ class AIAutoPlay :
         # Replacement below.
         #if (iPlayer == gc.getBARBARIAN_PLAYER() and game.getAIAutoPlay() == 1):
         turnsLeft = game.getAIAutoPlay()
-        if (turnsLeft == 1 and iPlayer == gc.getBARBARIAN_PLAYER() and gc.getPlayer(0).isHumanDisabled()) or (turnsLeft == 0 and iPlayer < gc.getBARBARIAN_PLAYER() and gc.getPlayer(iPlayer + 1).isHumanDisabled()):
+        if turnsLeft > 1:
+            pass
+        # Find the closest player preceding the disabled human in the turn order
+        # (normally the barbarians)
+        disabledHuman = -1
+        for x in range(gc.getMAX_CIV_PLAYERS()):
+            if gc.getPlayer(x).isHumanDisabled():
+                disabledHuman = x
+                break
+        if disabledHuman == -1:
+            pass
+        preceding = iPlayer
+        turnsLeftTarget = 0
+        m = gc.getMAX_PLAYERS()
+        for x in range(disabledHuman - 1, disabledHuman - m, -1):
+            y = x % m
+            if gc.getPlayer(y).isAlive():
+                preceding = y
+                break
+        if preceding > disabledHuman: # If turn order wraps around
+            turnsLeftTarget = 1
+        if turnsLeft == turnsLeftTarget and iPlayer == preceding:
             # </advc.127>
             # About to turn off automation
             self.checkPlayer() # advc.127: Un-commented this line.

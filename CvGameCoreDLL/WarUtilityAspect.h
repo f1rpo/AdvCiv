@@ -21,6 +21,8 @@ public:
 		Concrete subclasses should therefore overwrite evaluate(0) instead. */	
 	virtual int evaluate(MilitaryAnalyst& m);
 	virtual char const* aspectName() const=0;
+	// Needs to correspond to the call order in WarAndPeaceAI::cacheXML
+	virtual int xmlId() const=0;
 	/*  Caller needs to call evaluate first, which computes war utility. This is
 		just a getter. */
 	int utility() const;
@@ -140,6 +142,7 @@ public:
 	GreedForAssets(WarEvalParameters& params);
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 private:
 	void initCitiesPerArea();
 	void freeCitiesPerArea();
@@ -158,6 +161,7 @@ public:
 	GreedForVassals(WarEvalParameters& params);
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 };
 
 
@@ -166,6 +170,7 @@ public:
 	GreedForSpace(WarEvalParameters& params);
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 };
 
 
@@ -174,6 +179,7 @@ public:
 	GreedForCash(WarEvalParameters& params);
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 };
 
 
@@ -182,6 +188,7 @@ public:
 	Loathing(WarEvalParameters& params);
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 private:
 	double lossRating();
 };
@@ -193,6 +200,7 @@ public:
 	int preEvaluate();
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 private:
 	double progressRatingConquest();
 	double progressRatingDomination();
@@ -209,6 +217,7 @@ public:
 	Assistance(WarEvalParameters& params);
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 private:
 	double assistanceRatio();
 };
@@ -219,6 +228,7 @@ public:
 	Reconquista(WarEvalParameters& params);
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 };
 
 
@@ -227,6 +237,7 @@ public:
 	Rebuke(WarEvalParameters& params);
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 };
 
 
@@ -235,6 +246,7 @@ public:
 	Fidelity(WarEvalParameters& params);
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 };
 
 
@@ -243,6 +255,7 @@ public:
 	HiredHand(WarEvalParameters& params);
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 private:
 	double eval(PlayerTypes allyId, int originalUtility, int obligationThresh);
 };
@@ -253,6 +266,7 @@ public:
 	BorderDisputes(WarEvalParameters& params);
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 };
 
 
@@ -261,6 +275,7 @@ public:
 	SuckingUp(WarEvalParameters& params);
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 };
 
 
@@ -269,6 +284,7 @@ public:
 	PreEmptiveWar(WarEvalParameters& params);
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 };
 
 
@@ -278,6 +294,7 @@ public:
 	int preEvaluate();
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 private:
 	void addLeadingCivs(std::set<PlayerTypes>& r, double margin,
 			bool predictScore = true) const;
@@ -294,6 +311,7 @@ public:
 	int preEvaluate();
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 };
 
 
@@ -302,6 +320,7 @@ public:
 	Risk(WarEvalParameters& params);
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 };
 
 
@@ -311,6 +330,7 @@ public:
 	int preEvaluate();
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 private:
 	void evalLostPartner();
 	void evalRevenge();
@@ -326,6 +346,7 @@ public:
 	Affection(WarEvalParameters& params);
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 };
 
 
@@ -334,6 +355,7 @@ public:
 	Distraction(WarEvalParameters& params);
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 };
 
 
@@ -342,6 +364,7 @@ public:
 	PublicOpposition(WarEvalParameters& params);
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 };
 
 
@@ -350,6 +373,7 @@ public:
 	Revolts(WarEvalParameters& params);
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 private:
 	std::set<int> countedCities;
 };
@@ -360,6 +384,7 @@ public:
 	UlteriorMotives(WarEvalParameters& params);
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 };
 
 
@@ -368,6 +393,7 @@ public:
 	FairPlay(WarEvalParameters& params);
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 private:
 	int initialMilitaryUnits(PlayerTypes civId);
 };
@@ -378,6 +404,7 @@ public:
 	Bellicosity(WarEvalParameters& params);
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 };
 
 
@@ -386,6 +413,7 @@ public:
 	TacticalSituation(WarEvalParameters& params);
 	void evaluate();
 	char const* aspectName() const;
+	int xmlId() const;
 private:
 	void evalEngagement();
 	void evalOperational();

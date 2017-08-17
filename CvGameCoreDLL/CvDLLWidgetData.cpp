@@ -6029,7 +6029,7 @@ CvWString CvDLLWidgetData::getNetFeatureHealthText(CvPlot* cityPlot,
 			continue;
 		CvPlot* pp = plotCity(cityPlot->getX(), cityPlot->getY(), i);
 		if(pp == NULL) continue; CvPlot const& p = *pp;
-		if(p.getFeatureType() == NO_FEATURE || !p.isRevealed(TEAMID(owner)))
+		if(p.getFeatureType() == NO_FEATURE || !p.isRevealed(TEAMID(owner), false))
 			continue;
 		int healthPercent = GC.getFeatureInfo(p.getFeatureType()).getHealthPercent();
 		if(healthPercent > 0)
@@ -6064,6 +6064,21 @@ CvWString CvDLLWidgetData::getNetFeatureHealthText(CvPlot* cityPlot,
 			r.append(CvWString::format(L"%d%c", badHealth, icon));
 		}
 		r.append(gDLL->getText("TXT_KEY_FROM_FEATURES"));
+	}
+	int extraHealth = GET_PLAYER(owner).getExtraHealth();
+	if(extraHealth != 0) {
+		r.append(NEWLINE);
+		int icon = 0;
+		r.append(L"+");
+		if(extraHealth > 0) {
+			icon = gDLL->getSymbolID(HEALTHY_CHAR);
+			r.append(CvWString::format(L"%d%c", extraHealth, icon));
+		}
+		else {
+			icon = gDLL->getSymbolID(UNHEALTHY_CHAR);
+			r.append(CvWString::format(L"%d%c", badHealth, icon));
+		}
+		r.append(gDLL->getText("TXT_KEY_FROM_TRAIT"));
 	}
 	return r;
 }

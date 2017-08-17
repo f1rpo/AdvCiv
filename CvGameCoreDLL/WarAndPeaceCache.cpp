@@ -1475,7 +1475,7 @@ void WarAndPeaceCache::City::updateAssetScore() {
 	// Settled specialists
 	if(cityOwnerId == cacheOwnerId || c.getEspionageVisibility(TEAMID(cacheOwnerId)))
 		r += 4 * c.getNumGreatPeople();
-	if(c.isRevealed(t.getID()))
+	if(c.isRevealed(t.getID(), false))
 		r += c.getPopulation() / 2.0;
 	// Plot deduced but unrevealed; use an estimate:
 	else r += 3 * GET_PLAYER(cityOwnerId).getCurrentEra() / 2;
@@ -1489,7 +1489,7 @@ void WarAndPeaceCache::City::updateAssetScore() {
 		// Fall back on city tile for cultureModifier if p unrevealed
 		CvPlot* cultureTestPlot = fc[0];
 		double baseTileScore = 1.0 / 3; // i.e. 1/6 of a resource tile
-		if(p.isRevealed(t.getID())) {
+		if(p.isRevealed(t.getID(), false)) {
 			// getBonusType ensures that we can see the resource
 			BonusTypes res = p.getBonusType(t.getID());
 			if(res != NO_BONUS && !t.isBonusObsolete(res))

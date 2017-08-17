@@ -36,8 +36,9 @@ class TechPrefs:
 
 	def __init__(self):
 		self.NUM_TECHS = gc.getNumTechInfos()
-		self.NUM_AND_PREREQS = gc.getDefineINT("NUM_AND_TECH_PREREQS")
-		self.NUM_OR_PREREQS = gc.getDefineINT("NUM_OR_TECH_PREREQS")
+		# <advc.003c> Was getDefineINT; use the cached values instead
+		self.NUM_AND_PREREQS = gc.getNUM_AND_TECH_PREREQS()
+		self.NUM_OR_PREREQS = gc.getNUM_OR_TECH_PREREQS() # </advc.003c>
 		
 		self.mTechs = {}
 		self.lTechsByFlavor = []

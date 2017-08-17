@@ -113,6 +113,48 @@ bool WarAndPeaceAI::isUpdated() const {
 	return GC.getGameINLINE().getElapsedGameTurns() > 1;
 }
 
+void WarAndPeaceAI::cacheXML() {
+
+	/*  Would be so much more elegant to store the weights in the WarUtilityAspect
+		classes, but these are only initialized during war evaluation, whereas
+		the caching should happen just once at game start. The way I'm implementing
+		it now, the numbers returned by WarUtilityAspect::xmlId need to corespond
+		to the call order in this function - which sucks. */
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_GREED_FOR_ASSETS"));
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_GREED_FOR_VASSALS"));
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_GREED_FOR_SPACE"));
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_GREED_FOR_CASH"));
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_LOATHING"));
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_MILITARY_VICTORY"));
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_PRESERVATION_OF_PARTNERS"));
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_RECONQUISTA"));
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_REBUKE"));
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_FIDELITY"));
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_HIRED_HAND"));
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_BORDER_DISPUTES"));
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_SUCKING_UP"));
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_PREEMPTIVE_WAR"));
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_KING_MAKING"));
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_EFFORT"));
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_RISK"));
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_ILL_WILL"));
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_AFFECTION"));
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_DISTRACTION"));
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_PUBLIC_OPPOSITION"));
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_REVOLTS"));
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_ULTERIOR_MOTIVES"));
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_FAIR_PLAY"));
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_BELLICOSITY"));
+	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_TACTICAL_SITUATION"));
+}
+
+double WarAndPeaceAI::aspectWeight(int xmlId) const {
+
+	if(xmlId < 0 ||  xmlWeights.size() <= (size_t)xmlId)
+		return 1;
+	return xmlWeights[xmlId] / 100.0;
+}
+
 int const maxReparations = 25;
 
 WarAndPeaceAI::Team::Team() {
@@ -1058,10 +1100,13 @@ void WarAndPeaceAI::Team::scheme() {
 			Gandhi and Mansa Musa 400 for total, else 200.
 			I.e. peaceful leaders hesitate longer before starting war preparations;
 			warlike leaders have more drive. */
-		if(total) drive = lh.getMaxWarRand() <= 0 ? 0 :
-				drive / lh.getMaxWarRand();
-		else drive = lh.getLimitedWarRand() <= 0 ? 0 :
-				drive / lh.getLimitedWarRand();
+		double div = total ? lh.getMaxWarRand() : lh.getLimitedWarRand();
+		/*  Let's make the AI a little less patient, especially the peaceful
+			types. */
+		div = std::pow(div, 0.97); // This maps e.g. 400 to 334 and 40 to 36
+		if(div < 0.01)
+			drive = 0;
+		else drive /= div;
 		/*  Delay preparations probabilistically (by lowering drive) when there's
 			still a peace treaty */
 		double peacePortionRemaining = agent.turnsOfForcedPeaceRemaining(targetId) /
@@ -1117,11 +1162,10 @@ DenialTypes WarAndPeaceAI::Team::declareWarTrade(TeamTypes targetId,
 	int const utilityThresh = -32;
 	if(u > utilityThresh)
 		return NO_DENIAL;
-	/*  "Maybe we'll change our mind" when it's (very) close. Perhaps remove this
-		clause b/c, if we do change our mind, the price may still be unattractively
-		high. */
-	if(u > utilityThresh - 5)
-		return DENIAL_RECENT_CANCEL;
+	/* "Maybe we'll change our mind" when it's (very) close?
+		No, don't provide this info after all. */
+	/*if(u > utilityThresh - 5)
+		return DENIAL_RECENT_CANCEL;*/
 	CvTeamAI const& agent = GET_TEAM(agentId);
 	// We don't know why utility is so small; can only guess
 	if(4 * agent.getPower(true) < 3 * GET_TEAM(targetId).getPower(true))
@@ -1886,7 +1930,7 @@ bool WarAndPeaceAI::Civ::considerDemand(PlayerTypes theyId, int tradeVal) const 
 	// Willing to pay at most this much
 	double paymentCap = TEAMREF(weId).warAndPeaceAI().reparationsToHuman(
 			// Interpret theirUtility as a probability of attack
-			-ourUtility * (5 + theirUtility) / 100.0);
+			-ourUtility * (8 + theirUtility) / 100.0);
 	return paymentCap >= (double)tradeVal;
 	// Some randomness? Actually none in the BtS code (AI_considerOffer) either
 }

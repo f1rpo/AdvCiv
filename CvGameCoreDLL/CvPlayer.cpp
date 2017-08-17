@@ -2279,7 +2279,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		paiBuildingOriginalTime[iI] = pOldCity->getBuildingOriginalTime((BuildingTypes)iI);
 	}
 	// advc.001f:
-	for(iI = 0; iI < MAX_TEAMS; iI++) m_abRevealed[iI] = pOldCity->isRevealed((TeamTypes)iI);
+	for(iI = 0; iI < MAX_TEAMS; iI++) m_abRevealed[iI] = pOldCity->isRevealed((TeamTypes)iI, false);
 
 	std::vector<BuildingYieldChange> aBuildingYieldChange;
 	std::vector<BuildingCommerceChange> aBuildingCommerceChange;
@@ -2670,7 +2670,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 		CvPlayerAI& civ = GET_PLAYER((PlayerTypes)i);
 		if(civ.isAlive() && civ.getID() != getID() && !civ.isMinorCiv() &&
-				pCityPlot->isRevealed(civ.getTeam()) &&
+				pCityPlot->isRevealed(civ.getTeam(), false) &&
 				GET_TEAM(civ.getTeam()).isHasMet(getTeam()))
 			civ.AI_updateAttitudeCache(getID());
 	} // </advc.130w>
@@ -4983,7 +4983,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 					GC.getDefineINT("CITY_TRADE_CULTURE_THRESH"))
 				break;
 			// Should be checked regardless of vassal/master stuff:
-			if(pCityTraded == NULL || !pCityTraded->isRevealed(TEAMID(eWhoTo)))
+			if(pCityTraded == NULL || !pCityTraded->isRevealed(TEAMID(eWhoTo), false))
 				break;
 			// The BtS condition: // </advc.122>
 			if ((!GET_TEAM(getTeam()).isAVassal() && !GET_TEAM(GET_PLAYER(eWhoTo).getTeam()).isVassal(getTeam())
@@ -5859,8 +5859,8 @@ bool CvPlayer::canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) 
 		{
 			if (GC.getTechInfo((TechTypes) iI).isGoodyTech())
 			{
-				//if (canResearch((TechTypes)iI))
-				if (canResearch((TechTypes)iI, false, true)) // K-Mod
+				//if (canResearch((TechTypes)iI)) // advc.003:
+				if (canResearchBulk((TechTypes)iI, false, true)) // K-Mod
 				{
 					bTechFound = true;
 					break;
@@ -6055,8 +6055,8 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 		{
 			if (GC.getTechInfo((TechTypes) iI).isGoodyTech())
 			{
-				//if (canResearch((TechTypes)iI))
-				if (canResearch((TechTypes)iI, false, true)) // K-Mod
+				//if (canResearch((TechTypes)iI)) // advc.003:
+				if (canResearchBulk((TechTypes)iI, false, true)) // K-Mod
 				{
 					iValue = (1 + GC.getGameINLINE().getSorenRandNum(10000, "Goody Tech"));
 
@@ -7917,9 +7917,8 @@ int CvPlayer::calculateResearchModifier(TechTypes eTech) const
 	if(GC.getGame().isOption(GAMEOPTION_RAGING_BARBARIANS) && GC.getGame().
 			getStartEra() == (EraTypes)0) {
 		switch(techEra) {
-		case 0: iModifier += 10; break;
-		case 1: iModifier += 20; break;
-		case 2: iModifier += 15; break;
+		case 1: iModifier += 15; break;
+		case 2: iModifier += 10; break;
 		}
 	} // </advc.308>
 
@@ -8082,9 +8081,14 @@ bool CvPlayer::canEverResearch(TechTypes eTech) const
 }
 
 
-bool CvPlayer::canResearch(TechTypes eTech, bool bTrade, bool bFree
-	, bool couldResearchAgain // advc.126
-	) const
+// <advc.126>
+bool CvPlayer::canResearch(TechTypes eTech, bool bTrade) const {
+
+	return canResearchBulk(eTech, bTrade);
+}
+
+bool CvPlayer::canResearchBulk(TechTypes eTech, bool bTrade, bool bFree,
+		bool couldResearchAgain) const // </advc.126>
 {
 	bool bFoundPossible;
 	bool bFoundValid;
@@ -8133,7 +8137,7 @@ bool CvPlayer::canResearch(TechTypes eTech, bool bTrade, bool bFree
 
 			if (GET_TEAM(getTeam()).isHasTech(ePrereq)
 				 // advc.126: Don't check recursively (for execution speed concerns)
-				&& (couldResearchAgain || canResearch(ePrereq, false, true, true))
+				&& (couldResearchAgain || canResearchBulk(ePrereq, false, true, true))
 				)
 			{
 				if (!bTrade || GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_BROKERING) || !GET_TEAM(getTeam()).isNoTradeTech(ePrereq))
@@ -8157,7 +8161,7 @@ bool CvPlayer::canResearch(TechTypes eTech, bool bTrade, bool bFree
 		{
 			if (!GET_TEAM(getTeam()).isHasTech(ePrereq)
 				// advc.126:
-				|| (couldResearchAgain && !canResearch(ePrereq, false, true, true))
+				|| (couldResearchAgain && !canResearchBulk(ePrereq, false, true, true))
 				)
 			{
 				return false;
@@ -18816,7 +18820,7 @@ void CvPlayer::createGreatPeople(UnitTypes eGreatPersonUnit, bool bIncrementThre
 		if(!msgTarget.isAlive())
 			continue;
 		CvPlayer const& gpOwner = GET_PLAYER(pPlot->getOwner());
-		bool isRev = pPlot->isRevealed(msgTarget.getTeam());
+		bool isRev = pPlot->isRevealed(msgTarget.getTeam(), false);
 		bool isMet = TEAMREF(msgTarget.getID()).isHasMet(TEAMID(gpOwner.getID()));
 		if(!isRev) {
 			if(isMet)
@@ -22634,8 +22638,8 @@ bool CvPlayer::canStealTech(PlayerTypes eTarget, TechTypes eTech) const
 {
 	if (GET_TEAM(GET_PLAYER(eTarget).getTeam()).isHasTech(eTech))
 	{
-		//if (canResearch(eTech))
-		if (canResearch(eTech, false, true)) // K-Mod
+		//if (canResearch(eTech)) // advc.003:
+		if (canResearchBulk(eTech, false, true)) // K-Mod
 		{
 			return true;
 		}

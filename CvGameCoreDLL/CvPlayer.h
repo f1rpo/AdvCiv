@@ -298,10 +298,12 @@ public:
 
 	bool isResearch() const;																																							// Exposed to Python
 	DllExport bool canEverResearch(TechTypes eTech) const;																								// Exposed to Python
-	DllExport bool canResearch(TechTypes eTech, bool bTrade = false, bool bFree = false
+	DllExport bool canResearch(TechTypes eTech, bool bTrade = false) const;
+	// advc.003: To make sure the new params don't break anything
+	bool canResearchBulk(TechTypes eTech, bool bTrade = false, bool bFree = false,
 		// (K-Mod, added bFree. Does this break DllExport?) Exposed to Python
-		, bool couldResearchAgain = false // advc.126: Disables the isHasTech check
-		) const;
+		// advc.126: Disables the isHasTech check
+		bool couldResearchAgain = false) const;
 	DllExport TechTypes getCurrentResearch() const;																												// Exposed to Python
 	bool isCurrentResearchRepeat() const;																																	// Exposed to Python
 	bool isNoResearchAvailable() const;																																		// Exposed to Python

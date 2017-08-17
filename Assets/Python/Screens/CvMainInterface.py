@@ -1655,8 +1655,8 @@ class CvMainInterface:
 			screen.show( "MilitaryAdvisorButton" )
 			screen.show( "VictoryAdvisorButton" )
 			screen.show( "InfoAdvisorButton" )
-# BUG - City Arrows - start
-			if (MainOpt.isShowCityCycleArrows()):
+# BUG - City Arrows - start advc.042: commented out
+			if false: #(MainOpt.isShowCityCycleArrows()):
 				screen.show( "MainCityScrollMinus" )
 				screen.show( "MainCityScrollPlus" )
 			else:

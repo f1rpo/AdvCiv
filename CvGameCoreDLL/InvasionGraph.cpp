@@ -183,6 +183,10 @@ void InvasionGraph::Node::initMilitary() {
 	military.push_back(new MilitaryBranch::Logistics(*pm[LOGISTICS]));
 	military.push_back(new MilitaryBranch::Cavalry(*pm[CAVALRY]));
 	military.push_back(new MilitaryBranch::NuclearArsenal(*pm[NUCLEAR]));
+	/*  Remember the current values (including home guard, which isn't in cache)
+		for computing GainedPower later */
+	for(size_t i = 0; i < military.size(); i++)
+		currentPow.push_back(military[i]->power());
 }
 
 InvasionGraph::Node::~Node() {
@@ -1563,7 +1567,7 @@ double InvasionGraph::Node::getLostPower(MilitaryBranchTypes mb) const {
 
 double InvasionGraph::Node::getGainedPower(MilitaryBranchTypes mb) const {
 
-	return military[mb]->power() - cache.getPowerValues()[mb]->power();
+	return military[mb]->power() - currentPow[mb];
 }
 
 double InvasionGraph::Node::getProductionInvested() const {

@@ -463,9 +463,7 @@ public:
 	void updateRiverCrossing(DirectionTypes eIndex);
 	void updateRiverCrossing();
 
-	DllExport bool isRevealed(TeamTypes eTeam,
-		bool bDebug = false // advc.003
-		) const;																								// Exposed to Python
+	DllExport bool isRevealed(TeamTypes eTeam, bool bDebug) const;																								// Exposed to Python
 	DllExport void setRevealed(TeamTypes eTeam, bool bNewValue, bool bTerrainOnly, TeamTypes eFromTeam, bool bUpdatePlotGroup);	// Exposed to Python
 	bool isAdjacentRevealed(TeamTypes eTeam
 		, bool skipOcean = false // advc.250c

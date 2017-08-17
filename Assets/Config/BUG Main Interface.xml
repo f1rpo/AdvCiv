@@ -57,9 +57,10 @@
 			</option>
 			
 			<!-- City Cycle Arrows by SimCutie -->
-			<option id="CityArrows" key="City Cycle Arrows" 
+			<!-- advc.042: Commented out -->
+			<!--<option id="CityArrows" key="City Cycle Arrows" 
 					type="boolean" default="True" 
-					get="isShowCityCycleArrows" dirtyBit="MiscButtons"/>
+					get="isShowCityCycleArrows" dirtyBit="MiscButtons"/> -->
 
 			<!-- Progress Bar Tick Marks -->
 			<option id="ProgressBarsTickMarks" key="Tick Marks" 
