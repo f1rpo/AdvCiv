@@ -54,6 +54,9 @@ protected:
 	// Utility functions for roughenHeights()
 	int getRiverValueAtPlot(CvPlot* pPlot);
 	int calculateNumBonusesToAdd(BonusTypes eBonusType);
+	// advc.129: To avoid duplicate code in addUniqueBonus and addNonUniqueBonus
+	int placeGroup(BonusTypes eBonusType, CvPlot const& center,
+			bool bIgnoreLatitude, int limit = 100);
 
 private:
 	static CvMapGenerator* m_pInst;

@@ -1229,9 +1229,66 @@ int CyGame::getBarbarianStartTurn() { return m_pGame->getBarbarianStartTurn(); }
 // <advc.250b>
 std::wstring CyGame::SPaHPointsForSettingsScreen() {
 
-    return m_pGame ? *(m_pGame->startPointsAsHandicap().forSettingsScreen())
-			: std::wstring();
+    if(m_pGame == NULL)
+		return L"";
+	std::wstring* r = m_pGame->startPointsAsHandicap().forSettingsScreen();
+	if(r == NULL)
+		return L"";
+	return *r;
+} // </advc.250b>
+// <advc.250>
+int CyGame::getDifficultyForEndScore() {
+	if(m_pGame == NULL)
+		return 0;
+	return m_pGame->getDifficultyForEndScore();
+} // </advc.250><advc.703>
+int CyGame::getMaxChapters() {
+	return m_pGame ? m_pGame->getRiseFall().getMaxChapters() : -1;
 }
-// </advc.250b>
-// advc.250:
-int CyGame::getDifficultyForEndScore() { return m_pGame->getDifficultyForEndScore(); }
+int CyGame::getCurrentChapter() {
+	return m_pGame ? m_pGame->getRiseFall().getCurrentChapter() : -1;
+}
+int CyGame::getChapterStart(int chapter) {
+	return m_pGame ? m_pGame->getRiseFall().getChapter(chapter).getStartTurn() : -1;
+}
+int CyGame::getChapterEnd(int chapter) {
+	return m_pGame ? m_pGame->getRiseFall().getChapter(chapter).getEndTurn() : -1;
+}
+int CyGame::getChapterScore(int chapter) {
+	return m_pGame ? m_pGame->getRiseFall().getChapter(chapter).computeScore() : -1;
+}
+int CyGame::getChapterScoreTurn(int chapter) {
+	return m_pGame ? m_pGame->getRiseFall().getChapter(chapter).getScoreTurn() : -1;
+}
+int CyGame::getChapterCiv(int chapter) {
+	return m_pGame ? m_pGame->getRiseFall().getChapter(chapter).getCiv() : -1;
+}
+std::wstring CyGame::chapterScoreBreakdown() {
+
+	if(m_pGame == NULL)
+		return L"";
+	std::wstring* r = m_pGame->getRiseFall().chapterScoreBreakdown();
+	if(r == NULL)
+		return L"";
+	return *r;
+}
+std::wstring CyGame::riseScoreBreakdown() {
+
+	if(m_pGame == NULL)
+		return L"";
+	std::wstring* r = m_pGame->getRiseFall().riseScoreBreakdown();
+	if(r == NULL)
+		return L"";
+	return *r;
+} // </advc.703><advc.706>
+bool CyGame::isRFInterlude() {
+	if(m_pGame == NULL)
+		return false;
+	return (m_pGame->isOption(GAMEOPTION_RISE_FALL) &&
+			m_pGame->getRiseFall().getInterludeCountdown() >= 0);
+}
+bool CyGame::isAITurn() {
+	if(m_pGame == NULL)
+		return false;
+	return m_pGame->isAITurn();
+} // </advc.706>

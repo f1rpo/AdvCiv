@@ -1085,7 +1085,7 @@ class CvMainInterface:
 				#screen.modifyLabel( "EndTurnText", acOutput, CvUtil.FONT_CENTER_JUSTIFY )
 				screen.setEndTurnState( "EndTurnText", acOutput )
 				bShow = True
-			elif (messageControl.GetFirstBadConnection() != -1):
+			elif (messageControl.GetFirstBadConnection() != -1) and not gc.getGame().isOption(GameOptionTypes.GAMEOPTION_RISE_FALL): # advc.706: Side effect of switching active player:
 				# Waiting on a bad connection to resolve
 				if (messageControl.GetConnState(messageControl.GetFirstBadConnection()) == 1):
 					if (gc.getGame().isMPOption(MultiplayerOptionTypes.MPOPTION_ANONYMOUS)):
@@ -1200,7 +1200,9 @@ class CvMainInterface:
 
 	# Will redraw the interface
 	def redraw( self ):
-
+		# <advc.706> Freezy main interface during interlude
+		if gc.getGame().isRFInterlude():
+			return 0 # </advc.706>
 #		BugUtil.debug("redraw - Turn %d, Player %d, Interface %d, End Turn Button %d", 
 #				gc.getGame().getGameTurn(), gc.getGame().getActivePlayer(), CyInterface().getShowInterface(), CyInterface().getEndTurnState())
 

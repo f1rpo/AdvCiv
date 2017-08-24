@@ -118,7 +118,7 @@ void WarAndPeaceAI::cacheXML() {
 	/*  Would be so much more elegant to store the weights in the WarUtilityAspect
 		classes, but these are only initialized during war evaluation, whereas
 		the caching should happen just once at game start. The way I'm implementing
-		it now, the numbers returned by WarUtilityAspect::xmlId need to corespond
+		it now, the numbers returned by WarUtilityAspect::xmlId need to correspond
 		to the call order in this function - which sucks. */
 	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_GREED_FOR_ASSETS"));
 	xmlWeights.push_back(GC.getDefineINT("UWAI_WEIGHT_GREED_FOR_VASSALS"));
@@ -311,18 +311,40 @@ WarAndPeaceAI::Civ& WarAndPeaceAI::Team::leaderWpai() {
 	return GET_PLAYER(GET_TEAM(agentId).getLeaderID()).warAndPeaceAI();
 }
 
-void WarAndPeaceAI::Team::addTeam(TeamTypes otherId) {
+void WarAndPeaceAI::Team::addTeam(PlayerTypes otherLeaderId) {
 
 	for(size_t i = 0; i < members.size(); i++)
-		GET_PLAYER(members[i]).warAndPeaceAI().getCache().addTeam(otherId);
+		GET_PLAYER(members[i]).warAndPeaceAI().getCache().addTeam(otherLeaderId);
 }
 
 double WarAndPeaceAI::Team::utilityToTradeVal(double u) const {
 
 	double r = 0;
 	for(size_t i = 0; i < members.size(); i++)
-		r += GET_PLAYER(members[i]).warAndPeaceAI().utilityToTradeVal(u);
-	return r;
+		r += utilityToTradeVal(u, members[i]);
+	return r / members.size();
+}
+
+double WarAndPeaceAI::Team::tradeValToUtility(double tradeVal) const {
+
+	double r = 0;
+	for(size_t i = 0; i < members.size(); i++)
+		r += tradeValToUtility(tradeVal, members[i]);
+	return r / members.size();
+}
+
+double WarAndPeaceAI::Team::utilityToTradeVal(double u,
+		PlayerTypes memberId) const {
+
+	return u / GET_PLAYER(memberId).warAndPeaceAI().
+			tradeValUtilityConversionRate();
+}
+
+double WarAndPeaceAI::Team::tradeValToUtility(double tradeVal,
+		PlayerTypes memberId) const {
+
+	return tradeVal * GET_PLAYER(memberId).warAndPeaceAI().
+			tradeValUtilityConversionRate();
 }
 
 void WarAndPeaceAI::Team::updateMembers() {
@@ -1314,10 +1336,7 @@ int WarAndPeaceAI::Team::endWarVal(TeamTypes enemyId) const {
 	CvTeamAI const& human = (agentHuman ? GET_TEAM(agentId) : GET_TEAM(enemyId));
 	CvTeamAI const& ai =  (agentHuman ? GET_TEAM(enemyId) : GET_TEAM(agentId));
 	int aiReluct = ai.warAndPeaceAI().reluctanceToPeace(human.getID(), false);
-	/*  If no payment is possible, human utility shouldn't matter.
-		(Should ideally also check if human could give the AI a city.
-		Then again, human probably won't give up a city anyway, at least not
-		pre-Alphabet and pre-Currency.) */
+	// If no payment is possible, human utility shouldn't matter.
 	if(aiReluct <= 0 && !human.isGoldTrading() && !human.isTechTrading() &&
 			!ai.isGoldTrading() && !ai.isTechTrading())
 		return 0;
@@ -1371,7 +1390,7 @@ int WarAndPeaceAI::Team::endWarVal(TeamTypes enemyId) const {
 				utility isn't too reliable (may well assume that the human starts
 				some costly but futile offensive) and fluctuate a lot from turn
 				to turn, whereas peace terms mustn't fluctuate too much.
-				And at least if aiReluct < 0, we do want peace genotiations to
+				And at least if aiReluct < 0, we do want peace negotiations to
 				succeed. */
 			double greedFactor = 0.05;
 			if(aiReluct > 0)
@@ -1384,6 +1403,28 @@ int WarAndPeaceAI::Team::endWarVal(TeamTypes enemyId) const {
 			reparations += greedFactor * human.warAndPeaceAI().
 					utilityToTradeVal(delta);
 			reparations *= WarAndPeaceAI::reparationsHumanPercent / 100.0;
+			/*  Demand less if human has too little. Akin to the
+				tech/gold trading clause higher up. */
+			if(aiReluct < 0 && human.getNumMembers() == 1) {
+				int maxHumanCanPay = -1;
+				ai.warAndPeaceAI().leaderWpai().canTradeAssets(
+						::round(reparations), human.getLeaderID(),
+						&maxHumanCanPay);
+				if(maxHumanCanPay < reparations) {
+					/*  This means that the human player may want to make peace
+						right away when the AI becomes willing to talk b/c the
+						AI could change its mind again on the next turn. */
+					if(::hash((GC.getGameINLINE().getGameTurn() -
+							/*  Integer division to avoid flickering, e.g.
+								when aiReluct/-50.0 is about 0.5. Don't just
+								hash game turn b/c that would mean that the
+								AI can change its mind only every so many turns -
+								too predictable. */
+							ai.AI_getWarSuccessRating()) / 8,
+							ai.getLeaderID()) < aiReluct / -40.0)
+						reparations = maxHumanCanPay;
+				}
+			}
 		}
 	}
 	return ::round(reparations);
@@ -2024,48 +2065,55 @@ bool WarAndPeaceAI::Civ::considerGiftRequest(PlayerTypes theyId,
 	return utilityToTradeVal(-u) < tradeVal;
 }
 
-bool WarAndPeaceAI::Civ::isPossiblePeaceDeal(PlayerTypes humanId) const {
+bool WarAndPeaceAI::Civ::isPeaceDealPossible(PlayerTypes humanId) const {
 
+	// <advc.705>
+	CvGame const& g = GC.getGameINLINE();
+	if(g.isOption(GAMEOPTION_RISE_FALL) &&
+			g.getRiseFall().isCooperationRestricted(weId) &&
+			TEAMREF(weId).warAndPeaceAI().reluctanceToPeace(TEAMID(humanId)) >= 10)
+		return false;
+	// </advc.705>
+	int targetTradeVal = TEAMREF(humanId).warAndPeaceAI().endWarVal(TEAMID(weId));
+	if(targetTradeVal <= 0)
+		return true;
+	return canTradeAssets(targetTradeVal, humanId);
+}
+
+bool WarAndPeaceAI::Civ::canTradeAssets(int targetTradeVal, PlayerTypes humanId,
+		int* r) const {
+
+	int totalTradeVal = 0;
 	CvPlayer const& human = GET_PLAYER(humanId);
 	TradeData item;
-	int targetUtility = TEAMREF(weId).warAndPeaceAI().reluctanceToPeace(
-			human.getTeam());
-	if(targetUtility <= 0)
-		return true;
-	int targetTradeVal = ::round(TEAMREF(weId).warAndPeaceAI().
-			utilityToTradeVal(targetUtility));
-	int totalTradeVal = 0;
 	setTradeItem(&item, TRADE_GOLD, human.getGold());
 	if(human.canTradeItem(weId, item, true))
 		totalTradeVal += human.getGold();
-	if(totalTradeVal >= targetTradeVal) return true;
+	if(totalTradeVal >= targetTradeVal && r == NULL)
+		return true;
 	for(int i = 0; i < GC.getNumTechInfos(); i++) {
 		setTradeItem(&item, TRADE_TECHNOLOGIES, i);
 		if(human.canTradeItem(weId, item, true)) {
 			totalTradeVal += TEAMREF(weId).AI_techTradeVal((TechTypes)i,
 					human.getTeam(), true, true);
-			if(totalTradeVal >= targetTradeVal) return true;
+			if(totalTradeVal >= targetTradeVal && r == NULL)
+				return true;
 		}
 	}
-	int dummy;
+	int dummy = -1;
 	for(CvCity* c = human.firstCity(&dummy); c != NULL; c = human.nextCity(&dummy)) {
 		setTradeItem(&item, TRADE_CITIES, c->getID());
 		if(human.canTradeItem(weId, item, true)) {
 			totalTradeVal += GET_PLAYER(weId).AI_cityTradeVal(c);
-			if(totalTradeVal >= targetTradeVal) return true;
+			if(totalTradeVal >= targetTradeVal && r == NULL)
+				return true;
 		}
 	}
-	return false;
-}
-
-double WarAndPeaceAI::Civ::tradeValToUtility(double tradeVal) const {
-
-	return tradeVal * tradeValUtilityConversionRate();
-}
-
-double WarAndPeaceAI::Civ::utilityToTradeVal(double u) const {
-
-	return u / tradeValUtilityConversionRate();
+	if(r != NULL) {
+		*r = totalTradeVal;
+		return false;
+	}
+	return (totalTradeVal >= targetTradeVal);
 }
 
 double WarAndPeaceAI::Civ::tradeValUtilityConversionRate() const {
@@ -2078,12 +2126,22 @@ double WarAndPeaceAI::Civ::tradeValUtilityConversionRate() const {
 		speedFactor = 100.0 / trainPercent;
 	return (3 * speedFactor) / (std::max(10.0, estimateYieldRate(YIELD_COMMERCE))
 			+ 2 * std::max(1.0, estimateYieldRate(YIELD_PRODUCTION)));
-	/*  Note that change 004s excludes espionage and culture from the
+	/*  Note that change advc.004s excludes espionage and culture from the
 		Economy history, and estimateYieldRate(YIELD_COMMERCE) doesn't account
 		for these yields either. Not a problem for culture, I think, which is
 		usually produced in addition to gold and research, but the economic output
 		of civs running the Big Espionage strategy will be underestimated.
 		Still better than just adding up all commerce types. */
+}
+
+double WarAndPeaceAI::Civ::utilityToTradeVal(double u) const {
+
+	return TEAMREF(weId).warAndPeaceAI().utilityToTradeVal(u);
+}
+
+double WarAndPeaceAI::Civ::tradeValToUtility(double tradeVal) const {
+
+	return TEAMREF(weId).warAndPeaceAI().tradeValToUtility(tradeVal);
 }
 
 /*  Assets provide mostly per-turn effects, which become less valuable
@@ -2361,7 +2419,15 @@ double WarAndPeaceAI::Civ::warConfidenceAllies() const {
 	   150 (Lincoln, low confidence). These values are too far apart to convert
 	   them proportionally. Hence the square root. The result is between
 	   1 and 0.23. */
-	return std::max(0.0, std::sqrt(30 / dpwr) - 0.22);
+	double r = std::max(0.0, std::sqrt(30 / dpwr) - 0.22);
+	/*  Should have much greater confidence in civs on our team, but
+		can't tell in this function who the ally is. Hard to rewrite
+		InvasionGraph such that each ally is evaluated individually; wasn't
+		written with team games in mind. As a temporary measure, just generally
+		increase confidence when part of a team: */
+	if(GET_TEAM(we.getTeam()).getNumMembers() > 1)
+		r = ::dRange(2 * r, 0.6, 1.2);
+	return r;
 }
 
 double WarAndPeaceAI::Civ::confidenceAgainstHuman() const {

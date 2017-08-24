@@ -16,9 +16,9 @@ class WarUtilityAspect {
 
 public:
 	WarUtilityAspect(WarEvalParameters& params);
-	/*  Returns the computed utility (same as calling utility(0)).
+	/*  Returns the computed utility (same as calling utility(void)).
 		Sets some protected data members that subclasses should find useful.
-		Concrete subclasses should therefore overwrite evaluate(0) instead. */	
+		Concrete subclasses should therefore overwrite evaluate(void) instead. */	
 	virtual int evaluate(MilitaryAnalyst& m);
 	virtual char const* aspectName() const=0;
 	// Needs to correspond to the call order in WarAndPeaceAI::cacheXML
@@ -39,14 +39,14 @@ protected:
 		WarUtilityAspect::u. */
 	/*  Pre-computations not specific to a given civ. Most subclasses shouldn't
 		need this.
-		If (partial) war utility is computed, it should returned (otherwise 0).
+		If (partial) war utility is computed, it should be returned (otherwise 0).
 		This function should not modify WarUtilityAspect::u. */
 	virtual int preEvaluate();
 	// See WarUtilityBroaderAspect. Concrete subclasses shouldn't overwrite this.
 	virtual bool concernsOnlyWarParties() const;
 
 	/* Everything and the kitchen sink. Lots of code in this
-	   class hierachy; don't want to call getters all the time.
+	   class hierarchy; don't want to call getters all the time.
 	   Caveat: The order of declaration here determines the order
 	   of initialization in the constructor. Improper order will
 	   result in faulty initialization. The Visual Studio compiler
@@ -65,7 +65,7 @@ protected:
 	int numRivals; // Civs presently alive, not on our team, non-vassal
 	int numKnownRivals; // Like above, but only those met by agent
 
-	/*  Subclasses must not access these members until prepareEvaluation(1)
+	/*  Subclasses must not access these members until evaluate(m)
 		has been called.
 		Initialization is guaranteed although they're not references.
 		This is obviously not an ideal class design. A separate class
@@ -75,10 +75,7 @@ protected:
 	CvPlayerAI* we;
 	WarAndPeaceAI::Civ* weAI;
 	WarAndPeaceCache* ourCache;
-
-	/*  Subclasses must not access these members until evaluate(1)
-		has been called.
-		'they' are not necessarily the team targeted by the DoW. Can be any rival
+	/*  'they' are not necessarily the team targeted by the DoW. Can be any rival
 		that we might directly or indirectly gain sth. from (or lose sth. to). */
 	PlayerTypes theyId;
 	CvPlayerAI* they;
@@ -88,7 +85,7 @@ protected:
 	AttitudeTypes towardsThem, towardsUs;
 	int valTowardsThem, valTowardsUs; // Relations values
 
-	// To be called by subclasses only from evaluate(0) or prepareEvaluation(0).
+	// To be called by subclasses only from evaluate or preEvaluate.
 	 /* Score for assets lost by them to a given civ, or to any civ
 		(first parameter NO_PLAYER).
 		Computed based on our knowledge (i.e. not necessarily from the pov of 'to').
@@ -103,7 +100,7 @@ protected:
 			TeamTypes ignoreGains = NO_TEAM);
 	 double lossesFromBlockade(PlayerTypes victimId, PlayerTypes to);
 	 double lossesFromNukes(PlayerTypes victimId, PlayerTypes sourceId);
-	 /* Score for assets conquered by us from them (as set by evaluate(0)).
+	 /* Score for assets conquered by us from them (as set by evaluate(void)).
 		'mute' disables logging within the function body. */
 	 double conqAssetScore(bool mute = true);
 	 // Portion of cities of civId that aren't lost in the war
@@ -128,7 +125,7 @@ private:
 };
 
 /*  Not a nice name. Derive from this class rather than WarUtilityAspect
-	if evaluate(0) should be called also for parties that aren't part of the
+	if evaluate(void) should be called also for parties that aren't part of the
 	military analysis. */
 class WarUtilityBroaderAspect : public WarUtilityAspect {
 public:

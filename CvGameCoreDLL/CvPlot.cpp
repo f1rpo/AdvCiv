@@ -36,7 +36,7 @@
 /************************************************************************************************/
 
 #define STANDARD_MINIMAP_ALPHA		(0.6f)
-
+bool CvPlot::activeVisibility = true; // advc.706
 
 // Public Functions...
 
@@ -3622,12 +3622,13 @@ CvPlot const* CvPlot::nearestInvisiblePlot(bool onlyLand, int maxPlotDist,
 			return r;
 	}
 	return NULL;
-}
-// </advc.300>
+} // </advc.300>
 
 
 bool CvPlot::isActiveVisible(bool bDebug) const
-{
+{	// <advc.706>
+	if(!activeVisibility)
+		return false; // </advc.706>
 	return isVisible(GC.getGameINLINE().getActiveTeam(), bDebug); 
 }
 

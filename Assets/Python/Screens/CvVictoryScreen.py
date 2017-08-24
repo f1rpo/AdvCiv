@@ -34,6 +34,8 @@ VICTORY_CONDITION_SCREEN = 0
 GAME_SETTINGS_SCREEN = 1
 UN_RESOLUTION_SCREEN = 2
 UN_MEMBERS_SCREEN = 3
+# advc.703
+RF_SCORE_SCREEN = 4
 
 class CvVictoryScreen:
 	"Keeps track of victory conditions"
@@ -53,6 +55,18 @@ class CvVictoryScreen:
 		self.UN_RESOLUTION_TAB_ID = "VotingTabWidget"
 		self.UN_MEMBERS_TAB_ID = "MembersTabWidget"
 		self.SPACESHIP_SCREEN_BUTTON = 1234
+		
+		# <advc.703>
+		self.RF_SCORE_TAB_ID = "RiseFallTabWidget"
+		# Adopted from CvReligionScreen:
+		self.AREA1_ID =  "RiseFallAreaWidget1"
+		self.AREA2_ID =  "RiseFallAreaWidget2"
+		self.X_RF1_AREA = 45
+		self.X_RF2_AREA = 522
+		self.Y_RF_AREA = 350
+		self.W_RF_AREA = 457
+		self.H_RF_AREA = 340
+		# </advc.703>
 
 		self.Z_BACKGROUND = -6.1
 		self.Z_CONTROLS = self.Z_BACKGROUND - 0.2
@@ -81,7 +95,13 @@ class CvVictoryScreen:
 
 		self.TABLE2_WIDTH_0 = 740
 		self.TABLE2_WIDTH_1 = 265
-
+		# <advc.703>
+		self.RF_TABLEW_0 = 120
+		self.RF_TABLEW_1 = 180
+		self.RF_TABLEW_2 = 220
+		self.RF_TABLEW_3 = 260
+		self.RF_TABLEW_4 = 210
+		# </advc.703>
 # BUG Additions Start
 		self.TABLE3_WIDTH_0 = 450
 		self.TABLE3_WIDTH_1 = 90
@@ -161,6 +181,10 @@ class CvVictoryScreen:
 			self.showVotingScreen()
 		elif self.iScreen == UN_MEMBERS_SCREEN:
 			self.showMembersScreen()
+		# <advc.703>
+		elif self.iScreen == RF_SCORE_SCREEN:
+			self.showRiseFall()
+		# </advc.703>
 
 	def drawTabs(self):
 		screen = self.getScreen()
@@ -184,12 +208,21 @@ class CvVictoryScreen:
 			else:
 				screen.setText(self.UN_RESOLUTION_TAB_ID, "", u"<font=4>" + localText.getColorText("TXT_KEY_VOTING_TITLE", (), gc.getInfoTypeForString("COLOR_YELLOW")).upper() + "</font>", CvUtil.FONT_CENTER_JUSTIFY, xLink, self.Y_LINK, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 			xLink += self.DX_LINK
-
-			if (self.iScreen != UN_MEMBERS_SCREEN):
-				screen.setText(self.UN_MEMBERS_TAB_ID, "", u"<font=4>" + localText.getText("TXT_KEY_MEMBERS_TITLE", ()).upper() + "</font>", CvUtil.FONT_CENTER_JUSTIFY, xLink, self.Y_LINK, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			# advc.703: Merge members into resolution when R&F enabled
+			if not gc.getGame().isOption(GameOptionTypes.GAMEOPTION_RISE_FALL):
+				if (self.iScreen != UN_MEMBERS_SCREEN):
+					screen.setText(self.UN_MEMBERS_TAB_ID, "", u"<font=4>" + localText.getText("TXT_KEY_MEMBERS_TITLE", ()).upper() + "</font>", CvUtil.FONT_CENTER_JUSTIFY, xLink, self.Y_LINK, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+				else:
+					screen.setText(self.UN_MEMBERS_TAB_ID, "", u"<font=4>" + localText.getColorText("TXT_KEY_MEMBERS_TITLE", (), gc.getInfoTypeForString("COLOR_YELLOW")).upper() + "</font>", CvUtil.FONT_CENTER_JUSTIFY, xLink, self.Y_LINK, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+				xLink += self.DX_LINK
+		# <advc.703>
+		if gc.getGame().isOption(GameOptionTypes.GAMEOPTION_RISE_FALL):
+			if self.iScreen != RF_SCORE_SCREEN:
+				screen.setText(self.RF_SCORE_TAB_ID, "", u"<font=4>" + localText.getText("TXT_KEY_GAME_SCORE", ()).upper() + "</font>", CvUtil.FONT_CENTER_JUSTIFY, xLink, self.Y_LINK, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 			else:
-				screen.setText(self.UN_MEMBERS_TAB_ID, "", u"<font=4>" + localText.getColorText("TXT_KEY_MEMBERS_TITLE", (), gc.getInfoTypeForString("COLOR_YELLOW")).upper() + "</font>", CvUtil.FONT_CENTER_JUSTIFY, xLink, self.Y_LINK, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+				screen.setText(self.RF_SCORE_TAB_ID, "", u"<font=4>" + localText.getColorText("TXT_KEY_GAME_SCORE", (), gc.getInfoTypeForString("COLOR_YELLOW")).upper() + "</font>", CvUtil.FONT_CENTER_JUSTIFY, xLink, self.Y_LINK, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 			xLink += self.DX_LINK
+		# </advc.703>
 
 	def showVotingScreen(self):
 		self.deleteAllWidgets()
@@ -287,7 +320,13 @@ class CvVictoryScreen:
 		if screen.getTableNumRows(szTable) > 0:
 			screen.setTableNumRows(szTable, screen.getTableNumRows(szTable)-1)
 		#
-
+		# <advc.703> Add info from members tab
+		if not gc.getGame().isOption(GameOptionTypes.GAMEOPTION_RISE_FALL):
+			self.drawTabs()
+			pass
+		screen.appendTableRow(szTable) # Empty row as separator
+		self.appendMemberRows(screen, szTable)
+		# </advc.703>
 		self.drawTabs()
 
 
@@ -616,22 +655,11 @@ class CvVictoryScreen:
 		sString = u"<font=2>" + sString + "</font>"
 		screen.setTableText(szTable, 0, iRow, sString, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
-
-	def showMembersScreen_NonBUG(self):
-		self.deleteAllWidgets()
-
+	# <advc.703> Now shared by showVotes and showMembersScreen_NonBUG
+	# (I don't think the BUG version can be enabled in K-Mod)
+	def appendMemberRows(self, screen, szTable):
 		activePlayer = gc.getPlayer(self.iActivePlayer)
 		iActiveTeam = activePlayer.getTeam()
-
-		screen = self.getScreen()
-
-		screen.addPanel(self.getNextWidgetName(), "", "", False, False, self.X_AREA-10, self.Y_AREA-15, self.W_AREA+20, self.H_AREA+30, PanelStyles.PANEL_STYLE_BLUE50)
-		szTable = self.getNextWidgetName()
-		screen.addTableControlGFC(szTable, 2, self.X_AREA, self.Y_AREA, self.W_AREA, self.H_AREA, False, False, 32,32, TableStyles.TABLE_STYLE_STANDARD)
-		screen.enableSelect(szTable, False)
-		screen.setTableColumnHeader(szTable, 0, "", self.TABLE2_WIDTH_0)
-		screen.setTableColumnHeader(szTable, 1, "", self.TABLE2_WIDTH_1)
-
 		for i in range(gc.getNumVoteSourceInfos()):
 			if gc.getGame().isDiploVote(i):
 				kVoteSource = gc.getVoteSourceInfo(i)
@@ -674,7 +702,148 @@ class CvVictoryScreen:
 		# Remove the final empty row (K-Mod)
 		if screen.getTableNumRows(szTable) > 0:
 			screen.setTableNumRows(szTable, screen.getTableNumRows(szTable)-1)
-		#
+	# </advc.703>
+
+	def showMembersScreen_NonBUG(self):
+		self.deleteAllWidgets()
+
+		activePlayer = gc.getPlayer(self.iActivePlayer)
+		iActiveTeam = activePlayer.getTeam()
+
+		screen = self.getScreen()
+
+		screen.addPanel(self.getNextWidgetName(), "", "", False, False, self.X_AREA-10, self.Y_AREA-15, self.W_AREA+20, self.H_AREA+30, PanelStyles.PANEL_STYLE_BLUE50)
+		szTable = self.getNextWidgetName()
+		screen.addTableControlGFC(szTable, 2, self.X_AREA, self.Y_AREA, self.W_AREA, self.H_AREA, False, False, 32,32, TableStyles.TABLE_STYLE_STANDARD)
+		screen.enableSelect(szTable, False)
+		screen.setTableColumnHeader(szTable, 0, "", self.TABLE2_WIDTH_0)
+		screen.setTableColumnHeader(szTable, 1, "", self.TABLE2_WIDTH_1)
+		# advc.703: Code moved into subroutine
+		self.appendMemberRows(screen, szTable)
+
+
+	# <advc.703>
+	def showRiseFall(self):
+		self.deleteAllWidgets()	
+		screen = self.getScreen()
+		screen.addPanel(self.getNextWidgetName(), "", "", False, False, self.X_AREA-10, self.Y_AREA-15, self.W_AREA+20, self.H_AREA+30, PanelStyles.PANEL_STYLE_BLUE50)
+		szTable = self.getNextWidgetName()
+		screen.addTableControlGFC(szTable, 5, self.X_AREA, self.Y_AREA, self.W_AREA, self.H_AREA, False, False, 32,32, TableStyles.TABLE_STYLE_STANDARD)
+		screen.setTableColumnHeader(szTable, 0, "", self.RF_TABLEW_0)
+		screen.setTableColumnHeader(szTable, 1, "", self.RF_TABLEW_1)
+		screen.setTableColumnHeader(szTable, 2, "", self.RF_TABLEW_2)
+		screen.setTableColumnHeader(szTable, 3, "", self.RF_TABLEW_3)
+		screen.setTableColumnHeader(szTable, 4, "", self.RF_TABLEW_4)
+		screen.appendTableRow(szTable)
+		iNumRows = screen.getTableNumRows(szTable)
+		iTitleRow = iNumRows - 1
+		szHeading = u"<font=4b>" + localText.getText("TXT_KEY_RF_CHAPTER_PLURAL", ()) + u"</font>"
+		screen.setTableText(szTable, 0, iTitleRow, szHeading, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		partialScore = 0
+		allScored = true
+		extGame = gc.getGame().getGameState() == GameStateTypes.GAMESTATE_EXTENDED
+		currentTurn = gc.getGame().getGameTurn()
+		maxChapters = gc.getGame().getMaxChapters()
+		for i in range(maxChapters):
+			startTurn = gc.getGame().getChapterStart(i)
+			endTurn = gc.getGame().getChapterEnd(i)
+			# Endless chapter for extended play
+			extChapter = (endTurn < 0 and gc.getGame().getMaxTurns() > 0)
+			ongoing = (currentTurn >= startTurn and (currentTurn <= endTurn or extChapter))
+			if ongoing and not extChapter:
+				allScored = false
+			iRow = screen.appendTableRow(szTable)
+			# [0] Chapter index
+			s = str(i + 1)
+			if ongoing:
+				s = self.highlight(s)
+			s = "  " + s # Don't want this to align exactly with the heading
+			screen.setTableText(szTable, 0, iRow, s, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			# [1] Civ description
+			chapterCiv = gc.getGame().getChapterCiv(i)
+			activeCiv = gc.getGame().getActivePlayer()
+			s = "?"
+			if currentTurn >= startTurn and chapterCiv >= 0:
+				s = gc.getPlayer(chapterCiv).getCivilizationShortDescription(0)
+				if ongoing and not extChapter:
+					s = self.highlight(s)
+			screen.setTableText(szTable, 1, iRow, s, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			# [2] Start/end turn
+			s = localText.getText("TXT_KEY_RF_CHAPTER_INTERVAL", (startTurn, endTurn))
+			if endTurn < 0:
+				s = localText.getText("TXT_KEY_RF_TURN", (startTurn,))
+			if ongoing and not extChapter:
+				s = self.highlight(s)
+			screen.setTableText(szTable, 2, iRow, s, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			# [3] Points
+			chapterScore = gc.getGame().getChapterScore(i)
+			scoreTurn = gc.getGame().getChapterScoreTurn(i)
+			s = localText.getText("TXT_KEY_RF_CHAPTER_PTS", (chapterScore,))
+			# Highlight the part in parentheses when ongoing, otherwise the pts.
+			if currentTurn <= endTurn:
+				s += " ("
+				remaining = endTurn - currentTurn + 1
+				if remaining > 1:
+					s += self.highlight(localText.getText("TXT_KEY_RF_CHAPTER_REMAIN", (remaining,)))
+				else:
+					s += self.highlight(localText.getText("TXT_KEY_RF_CHAPTER_FINAL", ()))
+				s += ")"
+			elif currentTurn >= scoreTurn:
+				# Doesn't actually imply that the chapter's already scored b/c
+				# the chapter civ could come later in the turn order than the
+				# current civ; but I'm lazy to export isScored to Python.
+				s = self.highlight(s)
+			elif chapterCiv < 0 or not gc.getTeam(gc.getPlayer(chapterCiv).getTeam()).isHasMet(gc.getPlayer(activeCiv).getTeam()):
+				s += " (" + localText.getText("TXT_KEY_RF_CHAPTER_LAST_KNOWN", (endTurn,)) + ")"
+			if currentTurn < startTurn:
+				s = "?"
+			else:
+				partialScore += chapterScore
+			screen.setTableText(szTable, 3, iRow, s, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			# [4] Scoring turn
+			s = localText.getText("TXT_KEY_RF_CHAPTER_SCORE_TURN", (scoreTurn,))
+			if i == maxChapters - 1 and scoreTurn < 0:
+				s = localText.getText("TXT_KEY_RF_CHAPTER_SCORE_END", ())
+			if currentTurn >= scoreTurn:
+				s = self.highlight(s)
+			if not extGame or currentTurn >= scoreTurn:
+				screen.setTableText(szTable, 4, iRow, s, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			if extChapter:
+				break # The remaining chapters will never happen
+		iRow = screen.appendTableRow(szTable)
+		s1 = localText.getText("TXT_KEY_RF_PARTIAL_SUM", ())
+		s2 = str(partialScore)
+		if allScored: # Only relevant when the game is over
+			s1 = self.highlight(localText.getText("TXT_KEY_RF_TOTAL", ()))
+			s2 = self.highlight(s2)
+		screen.setTableText(szTable, 2, iRow, s1, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_RIGHT_JUSTIFY)
+		screen.setTableText(szTable, 3, iRow, s2, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# The panels in the lower half are based on CvReligionScreen
+		screen.addPanel(self.AREA1_ID, "", "", True, True, self.X_RF1_AREA, self.Y_RF_AREA, self.W_RF_AREA, self.H_RF_AREA, PanelStyles.PANEL_STYLE_BLUE50)
+		screen.addPanel(self.AREA2_ID, "", "", True, True, self.X_RF2_AREA, self.Y_RF_AREA, self.W_RF_AREA, self.H_RF_AREA, PanelStyles.PANEL_STYLE_BLUE50)
+		chapterScoreText = u"<font=3b>"
+		chapterScoreText += localText.getText("TXT_KEY_RF_CHAPTER_BREAKDOWN_H", ())
+		chapterScoreText += u"</font>"
+		chapterScoreText += u"<font=3>" + "\n\n"
+		if not extGame: # No breakdown after game end
+			chapterScoreText += gc.getGame().chapterScoreBreakdown()
+		chapterScoreText += u"</font>"
+		riseScoreText = u"<font=3b>"
+		if extGame >= 0:
+			riseScoreText += localText.getText("TXT_KEY_RF_RISE_FINAL_H", ())
+		else:
+			riseScoreText += localText.getText("TXT_KEY_RF_RISE_BREAKDOWN_H", ())
+		riseScoreText += u"</font>"
+		riseScoreText += u"<font=3>" + "\n\n"
+		riseScoreText += gc.getGame().riseScoreBreakdown()
+		riseScoreText += u"</font>"
+		screen.addMultilineText("Child" + self.AREA1_ID, chapterScoreText, self.X_RF1_AREA+20, self.Y_RF_AREA+20, self.W_RF_AREA-20, self.H_RF_AREA-20, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		screen.addMultilineText("Child" + self.AREA2_ID, riseScoreText, self.X_RF2_AREA+10, self.Y_RF_AREA+20, self.W_RF_AREA-10, self.H_RF_AREA-20, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		self.drawTabs()
+	
+	def highlight(self, s):
+		return u"<font=2b>" + s + u"</font>"
+	# </advc.703>
 
 	def formatPercent(self, f):
 		return "%.1f%%" % f
@@ -1621,6 +1790,10 @@ class CvVictoryScreen:
 		screen.deleteWidget(self.Vote_DipVic_ID)
 		screen.deleteWidget(self.Vote_AP_ID)
 		screen.deleteWidget(self.Vote_UN_ID)
+		screen.deleteWidget(self.AREA1_ID)
+		screen.deleteWidget(self.AREA2_ID)
+		screen.deleteWidget("Child" + self.AREA1_ID)
+		screen.deleteWidget("Child" + self.AREA2_ID)
 
 	# handle the input for this screen...
 	def handleInput (self, inputClass):
@@ -1645,6 +1818,11 @@ class CvVictoryScreen:
 			elif (sWidget == self.UN_MEMBERS_TAB_ID):
 				self.iScreen = UN_MEMBERS_SCREEN
 				self.showMembersScreen()
+			# <advc.703>
+			elif (sWidget == self.RF_SCORE_TAB_ID):
+				self.iScreen = RF_SCORE_SCREEN
+				self.showRiseFall()
+			# </advc.703>
 
 			elif (sWidget == self.Vote_Pope_ID and self.VoteType == 2):
 				self.VoteType = 1

@@ -6994,7 +6994,7 @@ void CvGameTextMgr::parsePromotionHelp(CvWStringBuffer &szBuffer, PromotionTypes
 		CvPromotionInfo& pi = GC.getPromotionInfo(loopPromo);
 		/* If a unit is selected, only show pi if promo will help that unit
 		   to acquire pi; don't just show all promotions that promo might
-		   principally lead to. */ 
+		   theoretically lead to. */ 
 		if(selectedUnit != NULL && selectedUnit->getOwner() != NO_PLAYER) {
 			if(!selectedUnit->isPromotionValid(loopPromo))
 				continue;
@@ -11528,7 +11528,10 @@ void CvGameTextMgr::setBadHealthHelp(CvWStringBuffer &szBuffer, CvCity& city)
 		iHealth = -(GET_PLAYER(city.getOwnerINLINE()).getExtraHealth());
 		if (iHealth > 0)
 		{
-			szBuffer.append(gDLL->getText("TXT_KEY_MISC_HEALTH_FROM_CIV", iHealth));
+			szBuffer.append(gDLL->getText(
+					//"TXT_KEY_MISC_HEALTH_FROM_CIV",
+					"TXT_KEY_FROM_TRAIT", // advc.004
+					iHealth));
 			szBuffer.append(NEWLINE);
 		}
 
@@ -16580,7 +16583,10 @@ void CvGameTextMgr::setScoreHelp(CvWStringBuffer &szString, PlayerTypes ePlayer)
 			szString.append(L"\n");
 		} // </advc.250c>
 		if (iTotalScore == player.calculateScore())
-		{
+		{	// <advc.703> Advertise the Score Tab
+			if(GC.getGameINLINE().isOption(GAMEOPTION_RISE_FALL))
+				szString.append(gDLL->getText("TXT_KEY_RF_CIV_SCORE_BREAKDOWN", iPopScore, iPop, iMaxPop, iLandScore, iLand, iMaxLand, iTechScore, iTech, iMaxTech, iWondersScore, iWonders, iMaxWonders, iTotalScore));
+			else // </advc.703>
 			szString.append(gDLL->getText("TXT_KEY_SCORE_BREAKDOWN", iPopScore, iPop, iMaxPop, iLandScore, iLand, iMaxLand, iTechScore, iTech, iMaxTech, iWondersScore, iWonders, iMaxWonders, iTotalScore, iVictoryScore));
 		}
 	}
@@ -18304,9 +18310,17 @@ void CvGameTextMgr::getTurnTimerText(CvWString& strText)
 				}
 			}
 		}
-
-		if (GC.getGameINLINE().getGameState() == GAMESTATE_ON)
-		{
+		CvGame const& g = GC.getGameINLINE(); // advc.003
+		if (g.getGameState() == GAMESTATE_ON)
+		{	// <advc.700> Top priority for Auto Play timer
+			if(g.isOption(GAMEOPTION_RISE_FALL)) {
+				int autoPlayCountdown = g.getRiseFall().getAutoPlayCountdown();
+				if(autoPlayCountdown > 0) {
+					strText = gDLL->getText("TXT_KEY_RF_INTERLUDE_COUNTDOWN",
+							autoPlayCountdown);
+					return;
+				}
+			} // </advc.700>
 			int iMinVictoryTurns = MAX_INT;
 			for (int i = 0; i < GC.getNumVictoryInfos(); ++i)
 			{
@@ -18342,19 +18356,31 @@ void CvGameTextMgr::getTurnTimerText(CvWString& strText)
 				}
 
 				strText += gDLL->getText("TXT_KEY_MISC_TURNS_LEFT_TO_VICTORY", iMinVictoryTurns);
-			}
-			else if (GC.getGameINLINE().getMaxTurns() > 0)
-			{
-				if ((GC.getGameINLINE().getElapsedGameTurns() >= (GC.getGameINLINE().getMaxTurns() - 100)) && (GC.getGameINLINE().getElapsedGameTurns() < GC.getGameINLINE().getMaxTurns()))
+			} /* <advc.003> Merged these two conditions so that more else-if
+				clauses can be added below */ 
+			else if (GC.getGameINLINE().getMaxTurns() > 0 &&
+					((GC.getGameINLINE().getElapsedGameTurns() >= (GC.getGameINLINE().getMaxTurns() -
+					30 // advc.004: was 100
+					)) && (GC.getGameINLINE().getElapsedGameTurns() <
+					GC.getGameINLINE().getMaxTurns())))
+			{ // </advc.003>
+				if (!strText.empty())
 				{
-					if (!strText.empty())
-					{
-						strText += L" -- ";
-					}
-
-					strText += gDLL->getText("TXT_KEY_MISC_TURNS_LEFT", (GC.getGameINLINE().getMaxTurns() - GC.getGameINLINE().getElapsedGameTurns()));
+					strText += L" -- ";
 				}
-			}
+
+				strText += gDLL->getText("TXT_KEY_MISC_TURNS_LEFT", (GC.getGameINLINE().getMaxTurns() - GC.getGameINLINE().getElapsedGameTurns()));
+			} // <advc.700> The other countdowns take precedence
+			else if(GC.getGameINLINE().isOption(GAMEOPTION_RISE_FALL)) {
+				std::pair<int,int> rfCountdown = GC.getGameINLINE().getRiseFall().
+						getChapterCountdown();
+				/*  Only show it toward the end of a chapter. A permanent countdown
+					would have to be placed elsewhere b/c the font is too large and
+					its size appears to be set outside the SDK. */
+				if(rfCountdown.second >= 0 && rfCountdown.second - rfCountdown.first < 3)
+					strText = gDLL->getText("TXT_KEY_RF_CHAPTER_COUNTDOWN",
+							rfCountdown.first, rfCountdown.second);
+			} // </advc.700>
 		}
 	}
 }

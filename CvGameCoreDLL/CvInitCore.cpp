@@ -9,6 +9,8 @@
 #include "CvDLLUtilityIFaceBase.h"
 #include "CvGameAI.h"
 #include "CvGameCoreUtils.h"
+// advc.001m:
+#include "CvDLLInterfaceIFaceBase.h"
 
 // Public Functions...
 
@@ -1234,7 +1236,8 @@ void CvInitCore::setLeaderName(PlayerTypes eID, const CvWString & szLeaderName)
 		gDLL->stripSpecialCharacters(szName);
 
 		m_aszLeaderName[eID] = szName;
-	}
+	} // advc.001m:
+	gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
 }
 
 const CvWString & CvInitCore::getLeaderNameKey(PlayerTypes eID) const

@@ -86,11 +86,19 @@ public:
 		InterfaceMessageTypes eType = MESSAGE_TYPE_INFO, LPCSTR pszIcon = NULL, ColorTypes eFlashColor = NO_COLOR,
 		int iFlashX = -1, int iFlashY = -1, bool bShowOffScreenArrows = false, bool bShowOnScreenArrows = false)
 	{
-		if (GET_PLAYER(ePlayer).isHuman())
+		if (GET_PLAYER(ePlayer).isHuman()
+				/*  <advc.700> Want message archive to be available when human
+					takes over. AI messages expire just like human messages. */
+				|| (GC.getGameINLINE().isOption(GAMEOPTION_RISE_FALL) &&
+				!GET_PLAYER(ePlayer).isHumanDisabled() &&
+				GC.getGameINLINE().getRiseFall().isDeliverMessages(ePlayer)))
+				// </advc.700>
 		{
 			addMessage(ePlayer, bForce, iLength, szString, pszSound, eType, pszIcon, eFlashColor, iFlashX, iFlashY, bShowOffScreenArrows, bShowOnScreenArrows);
 		}
-		else if (GC.getGameINLINE().getActivePlayer() == ePlayer)
+		//else if (GC.getGameINLINE().getActivePlayer() == ePlayer)
+		// advc.700: Replacing the above
+		else if(!GET_PLAYER(ePlayer).isHuman() && GET_PLAYER(ePlayer).isHumanDisabled())
 		{
 			// this means ePlayer is human, but currently using auto-play
 			if (eType == MESSAGE_TYPE_MAJOR_EVENT || eType == MESSAGE_TYPE_CHAT ||

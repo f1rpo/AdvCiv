@@ -42,7 +42,7 @@ public:
 	DllExport bool getShown() const;
 	DllExport void setShown(bool bShown);
 
-	int getExpireTurn();
+	int getExpireTurn(bool human = true); // advc.700: Param added
 
 
 protected:

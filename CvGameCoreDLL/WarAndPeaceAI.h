@@ -31,7 +31,7 @@ public:
 	// When a colony is created
 	void processNewCivInGame(PlayerTypes newCivId);
 	/*  true if UWAI fully enabled, making all decisions, otherwise false.
-		If inBackground is set, true if UWAI is running only in the background,
+		If inBackground is set, then true if UWAI is running only in the background,
 		but false if UWAI fully enabled or fully disabled. */
 	bool isEnabled(bool inBackground = false) const;
 	void setUseKModAI(bool b);
@@ -79,7 +79,7 @@ public:
 		void write(FDataStreamBase* stream);
 		// Replacing parts of CvTeamAI::AI_declareWarTrade
 		DenialTypes declareWarTrade(TeamTypes targetId, TeamTypes sponsorId) const;
-		/*  Replacing CvTeamAI::AI__declareWarTradeVal. However, that function is
+		/*  Replacing CvTeamAI::AI_declareWarTradeVal. However, that function is
 			called on the sponsor, whereas this one is called on the team that gets
 			payed for war (which is also the case for declareWarTrade and
 			CvTeamAI::AI_declareWarTrade). */
@@ -152,8 +152,11 @@ public:
 		WarAndPeaceAI::Civ const& leaderWpai() const;
 		WarAndPeaceAI::Civ& leaderWpai();
 		// When forming a Permanent Alliance
-		void addTeam(TeamTypes otherId);
+		void addTeam(PlayerTypes otherLeaderId);
 		double utilityToTradeVal(double u) const;
+		/*  tradeVal should roughly correspond to gold per turn; converted into
+			war utility based on our current commerce rate. */
+		double tradeValToUtility(double tradeVal) const;
 
 	private:
 		void reset();
@@ -182,6 +185,13 @@ public:
 		void closeReport();
 		bool isReportTurn() const;
 		TeamTypes diploVoteCounterCandidate(VoteSourceTypes voteSource) const;
+		/*  Not in WarAndPeaceAI::Civ b/c I want these to be private. They're
+			only auxiliary functions for their team-level counterparts, and should
+			not be used for any other computations.
+			Instead, I'm placing conversion functions in WarAndPeaceAI::Civ
+			that simply call the team versions. */
+		  double utilityToTradeVal(double u, PlayerTypes memberId) const;
+		  double tradeValToUtility(double tradeVal, PlayerTypes memberId) const;
 
 		TeamTypes agentId;
 		bool inBackgr;
@@ -212,12 +222,15 @@ public:
 		bool considerDemand(PlayerTypes theyId, int tradeVal) const;
 		bool considerGiftRequest(PlayerTypes theyId, int tradeVal) const;
 		bool amendTensions(PlayerTypes humanId) const;
-		// False if all assets of the human civ wouldn't be enough
-		bool isPossiblePeaceDeal(PlayerTypes humanId) const;
-		/*  tradeVal should roughly correspond to gold per turn; converted into
-			war utility based on our current commerce rate. */
-		double tradeValToUtility(double tradeVal) const;
-		double utilityToTradeVal(double u) const;
+		// False if all assets of the human civ wouldn't nearly be enough
+		bool isPeaceDealPossible(PlayerTypes humanId) const;
+		/*  Can humanId trade assets to us with a total value of at least
+			targetTradeVal? */
+		bool canTradeAssets(int targetTradeVal, PlayerTypes humanId,
+				/*  If this is not NULL, it is used to return the trade value of
+					all assets that the human can trade, but only up to
+					targetTradeVal. */
+				int* r = NULL) const;
 		double amortizationMultiplier() const;
 		bool isNearMilitaryVictory(int stage) const;
 		int getConquestStage() const;
@@ -227,28 +240,31 @@ public:
 		int closeBordersAttitudeChangePercent(PlayerTypes civId) const;
 		/* This function isn't specific to a given civ. Should perhaps
 		   be in a wrapper/ subclass of CvUnitInfo. Leaving it here for now.
-		   At least, it's easily accessible this way.
+		   At least it's easily accessible this way.
 		   If a 'baseValue' is given, that value replaces the
 		   power value defined in Unit.xml. */
 		double militaryPower(CvUnitInfo const& u, double baseValue = -1) const;
-		/* Can this civ hurry it's cities' production somehow?
+		/* Can this civ hurry its cities' production somehow?
 		   (Slavery, Univ. Suffrage) */
 		bool canHurry() const;
 		double buildUnitProb() const;
 		double estimateYieldRate(YieldTypes yield, int nSamples = 5) const;
-		/*  period: build-up over how many turns? Will be adjusted to game speed
+		/*  period: Build-up over how many turns? Will be adjusted to game speed
 			by this function! */
 		double estimateBuildUpRate(PlayerTypes civId, int period = 10) const;
+		double tradeValUtilityConversionRate() const;
+		double utilityToTradeVal(double u) const;
+		double tradeValToUtility(double tradeVal) const;
 		/* Confidence based on experience from past wars with targetId.
 		   1 if none, otherwise between 0.5 and 1.5. */
 		double confidenceFromPastWars(TeamTypes targetId) const;
-        // Leader traits that aren't cached. More traits in WarAndPeaceCache.
+        // Personality values that aren't cached. More traits in WarAndPeaceCache.
 		  /* A measure of how paranoid our leader is, based on EspionageWeight and
 	         protective trait. EspionageWeight is between 50 (Gandhi)
 		     and 150 (Stalin).
 			 Return value is between 0.5 and 1.8.
 		     "Paranoia" would be a better name, but that already means sth. else
-	         in the context of Civ AI. */
+	         (related to the Alert AI strategy). */
 		  double distrustRating() const;
 		  /* A measure of optimism (above 1) or pessimism (between 0 and 1) of our
 		     leader about conducting war against 'vs'. (It's not clear if 'vs'
@@ -277,7 +293,6 @@ public:
 		  double prideRating() const;
 
 	private:
-		double tradeValUtilityConversionRate() const;
 		// Probability assumed by the AI if this civ is human
 		double humanBuildUnitProb() const;
 

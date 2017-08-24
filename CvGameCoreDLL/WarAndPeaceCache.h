@@ -102,9 +102,11 @@ public:
 	bool isReadyToCapitulate(TeamTypes masterId) const;
 	void setReadyToCapitulate(TeamTypes masterId, bool b);
 	 // When forming a Permanent Alliance
-	void addTeam(TeamTypes otherId);
+	void addTeam(PlayerTypes otherLeaderId);
+	// Moves data that is stored only at the team leader
+	void onTeamLeaderChanged(PlayerTypes formerLeaderId);
 	/*  public b/c this needs to be done ahead of the normal update when a
-		colony is created (bootsrapping problem) */
+		colony is created (bootstrapping problem) */
 	void updateTypicalUnits();
 
 private:

@@ -451,33 +451,32 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 	CvUnitInfo const* typicalArmyUnit = military[ARMY]->getTypicalUnit();
 	if(typicalArmyUnit != NULL && military[CAVALRY]->canEmploy(*typicalArmyUnit))
 		branchPortions[CAVALRY] = branchPortions[ARMY];
-
-	// Logging
-	ostringstream msg;
-	msg << "Branch portions for ";
-	bool firstItemDone = false; // for commas
-	for(int i = 0; i < NUM_BRANCHES; i++) {
-		if(i == NUCLEAR || branchPortions[i] < 0.01)
-			continue;
-		MilitaryBranch& mb = *military[i];
-		if(firstItemDone)
-			msg << ", ";
-		msg << mb;
-		firstItemDone = true;
+	if(!report.isMute()) {// Logging
+		ostringstream msg;
+		msg << "Branch portions for ";
+		bool firstItemDone = false; // for commas
+		for(int i = 0; i < NUM_BRANCHES; i++) {
+			if(i == NUCLEAR || branchPortions[i] < 0.01)
+				continue;
+			MilitaryBranch& mb = *military[i];
+			if(firstItemDone)
+				msg << ", ";
+			msg << mb;
+			firstItemDone = true;
+		}
+		msg << ": ";
+		firstItemDone = false;
+		for(int i = 0; i < NUM_BRANCHES; i++) {
+			if(i == NUCLEAR || branchPortions[i] < 0.01)
+				continue;
+			MilitaryBranch& mb = *military[i];
+			if(firstItemDone)
+				msg << ", ";
+			msg << ::round(100 * branchPortions[i]);
+			firstItemDone = true;
+		}
+		report.log("%s", msg.str().c_str());
 	}
-	msg << ": ";
-	firstItemDone = false;
-	for(int i = 0; i < NUM_BRANCHES; i++) {
-		if(i == NUCLEAR || branchPortions[i] < 0.01)
-			continue;
-		MilitaryBranch& mb = *military[i];
-		if(firstItemDone)
-			msg << ", ";
-		msg << ::round(100 * branchPortions[i]);
-		firstItemDone = true;
-	}
-	report.log("%s", msg.str().c_str());
-
 	// Compute total production for armament
 	double totalProductionForBuildUp = additionalProduction;
 	totalProductionForBuildUp += turnsBuildUp * armamentPortion * perTurnProduction;

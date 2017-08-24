@@ -1466,6 +1466,9 @@ void CvPlayer::changeCiv( CivilizationTypes eNewCiv )
 //
 void CvPlayer::setIsHuman( bool bNewValue )
 {
+	// <advc.706> Make sure that these are consistent
+	if(!bNewValue)
+		m_bDisableHuman = false; // </advc.706>
 	if( bNewValue == isHuman() )
 		return;
 
@@ -1473,7 +1476,6 @@ void CvPlayer::setIsHuman( bool bNewValue )
 		GC.getInitCore().setSlotStatus( getID(), SS_TAKEN );
 	else
 		GC.getInitCore().setSlotStatus( getID(), SS_COMPUTER ); // or SS_OPEN for multiplayer?
-
 }
 /************************************************************************************************/
 /* CHANGE_PLAYER                          END                                                  */
@@ -1936,7 +1938,7 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 			else
 			{
 				FAssertMsg(//false
-					/*  advc.021: Tectonics apparently assigns all starting plots
+					/*  advc.021a: Tectonics apparently assigns all starting plots
 						at once on its own and then returns "None". Or something;
 						doesn't seem to be a problem anyway. Now I'm having it
 						return -10 to indicate that it's non-/known issue. */
@@ -3499,7 +3501,7 @@ void CvPlayer::doTurn()
 
 	FAssertMsg(isAlive(), "isAlive is expected to be true");
 	FAssertMsg(!hasBusyUnit() || GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS)  || GC.getGameINLINE().isSimultaneousTeamTurns(), "End of turn with busy units in a sequential-turn game");
-
+	CvGame& g = GC.getGame();
 	/* <advc.106b> Can't figure out from within CvGame whether it's an AI turn,
 	   need assistance from CvPlayer.
 	   doTurn contains the entire sequence of an AI turn, but is
@@ -3507,7 +3509,7 @@ void CvPlayer::doTurn()
 	   the AI should be considered in control b/c the player can't view
 	   messages. (Well, if a player unit is attacked, messages are displayed
 	   immediately.) */
-	GC.getGame().setAITurn(true);
+	g.setAITurn(true);
 	if(isHuman())
 		iNewMessages = 0;
 	/* This way, iNewMessages is never reset for non-human. I guess that means the
@@ -3517,7 +3519,9 @@ void CvPlayer::doTurn()
 	if(isHuman())
 		gDLL->getInterfaceIFace()->clearEventMessages();
 	// </advc.106b>
-
+	// <advc.700>
+	if(g.isOption(GAMEOPTION_RISE_FALL))
+		g.getRiseFall().atTurnEnd(getID()); // </advc.700>
 	CvEventReporter::getInstance().beginPlayerTurn( GC.getGameINLINE().getGameTurn(),  getID());
 
 	doUpdateCacheOnTurn();
@@ -4126,7 +4130,10 @@ int CvPlayer::calculateScore(bool bFinal, bool bVictory) const
 	argsList.add(bFinal);
 	argsList.add(bVictory);
 	gDLL->getPythonIFace()->callFunction(PYGameModule, "calculateScore", argsList.makeFunctionArgs(), &lScore);
-
+	// <advc.707>
+	if(GC.getGameINLINE().isOption(GAMEOPTION_RISE_FALL) && bFinal)
+		return GC.getGameINLINE().getRiseFall().getNormalizedFinalScore();
+	// </advc.707>
 	return ((int)lScore);
 }
 
@@ -6414,8 +6421,8 @@ void CvPlayer::found(int iX, int iY)
 	{
 		pCity->doFoundMessage();
 	}
-
-	CvEventReporter::getInstance().cityBuilt(pCity);
+	if(CvPlot::activeVisibility) // advc.706: Suppress name-city popup
+		CvEventReporter::getInstance().cityBuilt(pCity);
 
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      10/02/09                                jdog5000      */
@@ -11211,116 +11218,114 @@ void CvPlayer::setAlive(bool bNewValue)
 {
 	CvWString szBuffer;
 	int iI;
+	// <advc.003>
+	if(isAlive() == bNewValue)
+		return; // </advc.003>
+	m_bAlive = bNewValue;
+	GET_TEAM(getTeam()).updateLeaderID(); // advc.003b
+	GET_TEAM(getTeam()).changeAliveCount((isAlive()) ? 1 : -1);
 
-	if (isAlive() != bNewValue)
+	// Report event to Python
+	CvEventReporter::getInstance().setPlayerAlive(getID(), bNewValue);
+
+	if (isAlive())
 	{
-		m_bAlive = bNewValue;
-
-		GET_TEAM(getTeam()).changeAliveCount((isAlive()) ? 1 : -1);
-
-		// Report event to Python
-		CvEventReporter::getInstance().setPlayerAlive(getID(), bNewValue);
-
-		if (isAlive())
+		if (!isEverAlive())
 		{
-			if (!isEverAlive())
-			{
-				m_bEverAlive = true;
+			m_bEverAlive = true;
 
-				GET_TEAM(getTeam()).changeEverAliveCount(1);
-			}
-
-			if (getNumCities() == 0)
-			{
-				setFoundedFirstCity(false);
-			}
-
-			updatePlotGroups();
-
-			if (GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) || (GC.getGameINLINE().getNumGameTurnActive() == 0) || (GC.getGameINLINE().isSimultaneousTeamTurns() && GET_TEAM(getTeam()).isTurnActive()))
-			{
-				setTurnActive(true);
-			}
-
-			gDLL->openSlot(getID());
-
-			// K-Mod. Attitude cache
-			for (PlayerTypes i = (PlayerTypes)0; i < MAX_PLAYERS; i=(PlayerTypes)(i+1))
-			{
-				GET_PLAYER(i).AI_updateAttitudeCache(getID());
-				GET_PLAYER(getID()).AI_updateAttitudeCache(i);
-			}
-			// K-Mod end
-		}
-		else
-		{
-			// <advc.001> CvTeam::makePeace does this, but here they missed it
-			for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-				CvPlayer& warEnemy = GET_PLAYER((PlayerTypes)i);
-				if(warEnemy.isAlive() && warEnemy.getID() != getID() &&
-						!warEnemy.isMinorCiv() && GET_TEAM(warEnemy.getTeam()).
-						isAtWar(getTeam()))
-					warEnemy.updateWarWearinessPercentAnger();
-			/*  The two will, by the way, remain at war for the rest of the game
-				(which doesn't matter b/c dead civs get excluded everywhere). */
-			} // </advc.001>
-			clearResearchQueue();
-			killUnits();
-			killCities();
-			killAllDeals();
-
-			setTurnActive(false);
-
-			gDLL->endMPDiplomacy();
-			gDLL->endDiplomacy();
-
-			if (!isHuman())
-			{
-				gDLL->closeSlot(getID());
-			}
-
-			if (GC.getGameINLINE().getElapsedGameTurns() > 0)
-			{
-				if (!isBarbarian())
-				{
-					szBuffer = gDLL->getText("TXT_KEY_MISC_CIV_DESTROYED", getCivilizationAdjectiveKey());
-
-					for (iI = 0; iI < MAX_PLAYERS; iI++)
-					{
-						if (GET_PLAYER((PlayerTypes)iI).isAlive())
-						{
-							gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CIVDESTROYED", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
-						}
-					}
-
-					GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
-				}
-			}
+			GET_TEAM(getTeam()).changeEverAliveCount(1);
 		}
 
-		GC.getGameINLINE().setScoreDirty(true);
+		if (getNumCities() == 0)
+		{
+			setFoundedFirstCity(false);
+		}
+
+		updatePlotGroups();
+
+		if (GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) || (GC.getGameINLINE().getNumGameTurnActive() == 0) || (GC.getGameINLINE().isSimultaneousTeamTurns() && GET_TEAM(getTeam()).isTurnActive()))
+		{
+			setTurnActive(true);
+		}
+
+		gDLL->openSlot(getID());
+
+		// K-Mod. Attitude cache
+		for (PlayerTypes i = (PlayerTypes)0; i < MAX_PLAYERS; i=(PlayerTypes)(i+1))
+		{
+			GET_PLAYER(i).AI_updateAttitudeCache(getID());
+			GET_PLAYER(getID()).AI_updateAttitudeCache(i);
+		}
+		// K-Mod end
 	}
+	else
+	{
+		// <advc.001> CvTeam::makePeace does this, but here they missed it
+		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+			CvPlayer& warEnemy = GET_PLAYER((PlayerTypes)i);
+			if(warEnemy.isAlive() && warEnemy.getID() != getID() &&
+				!warEnemy.isMinorCiv() && GET_TEAM(warEnemy.getTeam()).
+				isAtWar(getTeam()))
+				warEnemy.updateWarWearinessPercentAnger();
+			/*  The two will, by the way, remain at war for the rest of the game
+			(which doesn't matter b/c dead civs get excluded everywhere). */
+		} // </advc.001>
+		clearResearchQueue();
+		killUnits();
+		killCities();
+		killAllDeals();
+
+		setTurnActive(false);
+
+		gDLL->endMPDiplomacy();
+		gDLL->endDiplomacy();
+
+		if (!isHuman())
+		{
+			gDLL->closeSlot(getID());
+		}
+
+		if (GC.getGameINLINE().getElapsedGameTurns() > 0)
+		{
+			if (!isBarbarian())
+			{
+				szBuffer = gDLL->getText("TXT_KEY_MISC_CIV_DESTROYED", getCivilizationAdjectiveKey());
+
+				for (iI = 0; iI < MAX_PLAYERS; iI++)
+				{
+					if (GET_PLAYER((PlayerTypes)iI).isAlive())
+					{
+						gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CIVDESTROYED", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
+					}
+				}
+
+				GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
+			}
+		}
+	}
+	CvGame& g = GC.getGame(); // advc.003
+	g.setScoreDirty(true);
+	// <advc.700>
+	if(g.isOption(GAMEOPTION_RISE_FALL))
+		g.getRiseFall().reportElimination(getID()); // </advc.700>
 }
 
 
 void CvPlayer::verifyAlive()
 {
-	bool bKill;
-
 	if (isAlive())
 	{
-		bKill = false;
-
-		if (!bKill)
+		bool bKill = false; // advc.003: Removed superfluous code
+		if (!isBarbarian())
 		{
-			if (!isBarbarian())
+			if (getNumCities() == 0 && getAdvancedStartPoints() < 0)
 			{
-				if (getNumCities() == 0 && getAdvancedStartPoints() < 0)
+				//if ((getNumUnits() == 0) || (!(GC.getGameINLINE().isOption(GAMEOPTION_COMPLETE_KILLS)) && isFoundedFirstCity()))
+				// advc.701: COMPLETE_KILLS option removed (replacing the line above)
+				if (getNumUnits() <= 0 || isFoundedFirstCity())
 				{
-					if ((getNumUnits() == 0) || (!(GC.getGameINLINE().isOption(GAMEOPTION_COMPLETE_KILLS)) && isFoundedFirstCity()))
-					{
-						bKill = true;
-					}
+					bKill = true;
 				}
 			}
 		}
@@ -11479,7 +11484,10 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 					gDLL->getInterfaceIFace()->playGeneralSound("AS2D_NEWTURN");
 				}
 			}
-
+			// <advc.706> Skip warnings and messages if only pausing for civ selection
+		  if(!GC.getGameINLINE().isOption(GAMEOPTION_RISE_FALL) ||
+				  !GC.getGameINLINE().getRiseFall().isSelectingCiv()) {
+				  // </advc.706>
 			doWarnings();
 			// <advc.106b>
 			if(isHuman()) {
@@ -11540,6 +11548,13 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 				}
 				postProcessBeginTurnEvents();
 			}
+		  } // advc.706
+			// <advc.700>
+			if(isHuman() || isHumanDisabled()) {
+				CvGame& g = GC.getGame();
+				if(g.isOption(GAMEOPTION_RISE_FALL))
+					g.getRiseFall().atActiveTurnStart();
+			} // </advc.700>
 			// Clear messages in any case (in particular during AIAutoPlay)
 			for(size_t i = 0; i < majorMsgs.size(); i++)
 				SAFE_DELETE(majorMsgs[i]);
@@ -11902,7 +11917,11 @@ PlayerTypes CvPlayer::getID() const
 HandicapTypes CvPlayer::getHandicapType() const																
 {
 	// <advc.127>
-	if(isHumanDisabled())
+	if(isHumanDisabled() && // <advc.706>
+			// Even with R&F, Ctrl+Shift+X still leads to Auto Play with AI handicap
+			(!GC.getGameINLINE().isOption(GAMEOPTION_RISE_FALL) ||
+			!GC.getGameINLINE().getRiseFall().hasRetired()))
+			// </advc.706>
 		return GC.getGameINLINE().getAIHandicap(); 
 	// </advc.127>
 	return GC.getInitCore().getHandicap(getID());
@@ -12111,7 +12130,12 @@ void CvPlayer::setParent(PlayerTypes eParent)
 TeamTypes CvPlayer::getMasterTeam() const {
 
 	return GET_TEAM(getTeam()).getMasterTeam();
-} // </advc.003>
+}
+bool CvPlayer::isAVassal() const {
+
+	return GET_TEAM(getTeam()).isAVassal();
+}
+// </advc.003>
 
 TeamTypes CvPlayer::getTeam() const
 {
@@ -12134,7 +12158,7 @@ void CvPlayer::setTeam(TeamTypes eTeam)
 {
 	FAssert(eTeam != NO_TEAM);
 	FAssert(getTeam() != NO_TEAM);
-
+	TeamTypes oldTeam = getTeam(); // advc.003b
 	GET_TEAM(getTeam()).changeNumMembers(-1);
 	if (isAlive())
 	{
@@ -12158,11 +12182,17 @@ void CvPlayer::setTeam(TeamTypes eTeam)
 	if (isEverAlive())
 	{
 		GET_TEAM(getTeam()).changeEverAliveCount(1);
-	}
+	} // <advc.003b>
+	if(getTeam() != oldTeam) {
+		GET_TEAM(getTeam()).updateLeaderID();
+		GET_TEAM(oldTeam).updateLeaderID();
+	} // </advc.003b>
 	GET_TEAM(getTeam()).changeNumCities(getNumCities());
 	GET_TEAM(getTeam()).changeTotalPopulation(getTotalPopulation());
 	GET_TEAM(getTeam()).changeTotalLand(getTotalLand());
-
+	// <advc.104t>
+	if(getWPAI.isEnabled())
+		getWPAI.update(); // </advc.104t>
 	// K-Mod Attitude cache
 	if (GC.getGameINLINE().isFinalInitialized())
 	{
@@ -14316,9 +14346,14 @@ void CvPlayer::deleteEventTriggered(int iID)
 
 void CvPlayer::addMessage(const CvTalkingHeadMessage& message)
 {
+	// <advc.706> Remove messages arriving during interlude from display immediately
+	CvGame const& g = GC.getGameINLINE();
+	if(g.isOption(GAMEOPTION_RISE_FALL) && g.getActivePlayer() == getID() &&
+			g.getRiseFall().getInterludeCountdown() >= 0)
+		gDLL->getInterfaceIFace()->clearEventMessages();
+	// </advc.706>
 	m_listGameMessages.push_back(message);
 	// <advc.106b>
-	CvGame const& g = GC.getGameINLINE();
 	/*  Special treatment only for events in other civs' turns.
 		NB: ActivePlayer is always human. */
 	if(!g.isAITurn() && g.getActivePlayer() == getID())
@@ -14406,7 +14441,8 @@ void CvPlayer::expireMessages()
 	while(it != m_listGameMessages.end())
 	{
 		CvTalkingHeadMessage& message = *it;
-		if (GC.getGameINLINE().getGameTurn() >= message.getExpireTurn())
+		if (GC.getGameINLINE().getGameTurn() >= message.getExpireTurn(
+				isHuman() || isHumanDisabled())) // advc.700
 		{
 			it = m_listGameMessages.erase(it);
 			bFoundExpired = true;
@@ -18331,6 +18367,11 @@ void CvPlayer::read(FDataStreamBase* pStream)
 	pStream->Read(&m_iInflationModifier);
 	warTradeAlert.init(getID()); // advc.210a
 	revoltAlert.init(getID()); // advc.210b
+	/*  <advc.706> Loading into retirement. Can't do this in RiseFall::read b/c
+		CvPlayer::reset has to be through first. */
+	CvGame& g = GC.getGameINLINE();
+	if(g.isOption(GAMEOPTION_RISE_FALL) && g.getRiseFall().hasRetired())
+		g.getRiseFall().retire(); // </advc.706>
 }
 
 //
@@ -18801,18 +18842,19 @@ void CvPlayer::createGreatPeople(UnitTypes eGreatPersonUnit, bool bIncrementThre
 	}
 
 
-	CvWString szReplayMessage;
+	//CvWString szReplayMessage;
+	CvWString szMessage; // advc.003: Renamed b/c used not only for replay
 	if (pCity)
 	{
 		CvWString szCity;
 		szCity.Format(L"%s (%s)", pCity->getName().GetCString(), GET_PLAYER(pCity->getOwnerINLINE()).getReplayName());
-		szReplayMessage = gDLL->getText("TXT_KEY_MISC_GP_BORN", pGreatPeopleUnit->getName().GetCString(), szCity.GetCString());
+		szMessage = gDLL->getText("TXT_KEY_MISC_GP_BORN", pGreatPeopleUnit->getName().GetCString(), szCity.GetCString());
 	}
 	else
 	{
-		szReplayMessage = gDLL->getText("TXT_KEY_MISC_GP_BORN_FIELD", pGreatPeopleUnit->getName().GetCString());
+		szMessage = gDLL->getText("TXT_KEY_MISC_GP_BORN_FIELD", pGreatPeopleUnit->getName().GetCString());
 	}
-	GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szReplayMessage, iX, iY, (ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT"));
+	GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szMessage, iX, iY, (ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT"));
 
 	// <advc.106>
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
@@ -18821,22 +18863,22 @@ void CvPlayer::createGreatPeople(UnitTypes eGreatPersonUnit, bool bIncrementThre
 			continue;
 		CvPlayer const& gpOwner = GET_PLAYER(pPlot->getOwner());
 		bool isRev = pPlot->isRevealed(msgTarget.getTeam(), false);
-		bool isMet = TEAMREF(msgTarget.getID()).isHasMet(TEAMID(gpOwner.getID()));
+		if(!TEAMREF(msgTarget.getID()).isHasMet(TEAMID(gpOwner.getID())))
+			continue;
 		if(!isRev) {
-			if(isMet)
-				szReplayMessage = gDLL->getText("TXT_KEY_MISC_GP_BORN_CIV",
-						pGreatPeopleUnit->getName().GetCString(),
-						gpOwner.getCivilizationDescriptionKey());
-			else continue;
-		} // <advc.106b>
+			szMessage = gDLL->getText("TXT_KEY_MISC_GP_BORN_CIV",
+					pGreatPeopleUnit->getName().GetCString(),
+					gpOwner.getCivilizationDescriptionKey());
+		}
+		// <advc.106b>
 		InterfaceMessageTypes msgType = MESSAGE_TYPE_MINOR_EVENT;
-		// Only birth of own GP is major.
+		// Only birth of own GP is major
 		if(msgTarget.getID() == gpOwner.getID())
 			msgType = MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY; // </advc.106b>
 		gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)i), false,
-				GC.getEVENT_MESSAGE_TIME(), szReplayMessage,
-				"AS2D_UNIT_GREATPEOPLE", msgType, pGreatPeopleUnit->getButton(),
-				(ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT"),
+				GC.getEVENT_MESSAGE_TIME(), szMessage, "AS2D_UNIT_GREATPEOPLE",
+				msgType, pGreatPeopleUnit->getButton(), (ColorTypes)
+				GC.getInfoTypeForString("COLOR_UNIT_TEXT"),
 				// Indicate location only if revealed.
 				isRev ? iX : -1, isRev ? iY : -1, isRev, isRev);
 	} // </advc.106>

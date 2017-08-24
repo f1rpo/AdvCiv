@@ -10,7 +10,7 @@
 #include "CvDLLInterfaceIFaceBase.h"
 #include "CvInitCore.h"
 
-int CvReplayInfo::REPLAY_VERSION = 4;
+int CvReplayInfo::REPLAY_VERSION = 5; // advc.707: was 4
 
 CvReplayInfo::CvReplayInfo() :
 	m_iActivePlayer(0),
@@ -27,6 +27,7 @@ CvReplayInfo::CvReplayInfo() :
 	m_iMapWidth(0),
 	m_pcMinimapPixels(NULL),
 	m_iNormalizedScore(0),
+	m_iFinalScore(-1), // advc.707
 	m_bMultiplayer(false),
 	m_iStartYear(0)
 {
@@ -97,6 +98,16 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 		}
 
 		m_iNormalizedScore = player.calculateScore(true, player.getTeam() == GC.getGameINLINE().getWinner());
+		// <advc.707> Treat R&F games as "Score" victory (previously unused)
+		if(game.isOption(GAMEOPTION_RISE_FALL)) {
+			for(int i = 0; i < GC.getNumVictoryInfos(); i++) {
+				VictoryTypes vt = (VictoryTypes)i;
+				if(GC.getVictoryInfo(vt).isTargetScore()) {
+					m_eVictoryType = vt;
+					break;
+				}
+			}
+		} // </advc.707>
 	}
 
 	m_bMultiplayer = game.isGameMultiPlayer();
@@ -182,6 +193,9 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 		memcpy((void*)m_pcMinimapPixels, ptexture, m_nMinimapSize);
 
 	m_szModName = gDLL->getModName();
+	// <advc.707>
+	if(m_iFinalScore < 0)
+		m_iFinalScore = getFinalPlayerScore(); // </advc.707>
 }
 
 int CvReplayInfo::getNumPlayers() const
@@ -508,8 +522,18 @@ int CvReplayInfo::getPlayerAgriculture(int iPlayer, int iTurn) const
 
 int CvReplayInfo::getFinalScore() const
 {
+	return m_iFinalScore; // advc.707
+}
+// <advc.707> This new function now does what getFinalScore used to do
+int CvReplayInfo::getFinalPlayerScore() const
+{
 	return getPlayerScore(m_iActivePlayer, m_iFinalTurn);
 }
+// Can now also set the final score to sth. different from the player score
+void CvReplayInfo::setFinalScore(int sc)
+{
+	m_iFinalScore = sc;
+} // </advc.707>
 
 int CvReplayInfo::getFinalEconomy() const
 {
@@ -654,7 +678,10 @@ bool CvReplayInfo::read(FDataStreamBase& stream)
 		if (iVersion > 2)
 		{
 			stream.ReadString(m_szModName);
-		}
+		} // <advc.707>
+		if(iVersion >= 5)
+			stream.Read(&m_iFinalScore);
+		else m_iFinalScore = getFinalPlayerScore(); // </advc.707>
 	}
 	catch (...)
 	{
@@ -724,4 +751,5 @@ void CvReplayInfo::write(FDataStreamBase& stream)
 	stream.Write(m_nMinimapSize, m_pcMinimapPixels);
 	stream.Write(m_bMultiplayer);
 	stream.WriteString(m_szModName);
+	stream.Write(m_iFinalScore); // advc.707
 }

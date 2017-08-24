@@ -761,6 +761,14 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 	case BUTTONPOPUP_FOUND_RELIGION:
 		CvMessageControl::getInstance().sendFoundReligion(GC.getGameINLINE().getActivePlayer(), (ReligionTypes)pPopupReturn->getButtonClicked(), (ReligionTypes)info.getData1());
 		break;
+	// <advc.706>
+	case BUTTONPOPUP_RF_CHOOSECIV:
+		GC.getGameINLINE().getRiseFall().afterCivSelection(pPopupReturn->getButtonClicked());
+		break;
+	case BUTTONPOPUP_RF_DEFEAT:
+		GC.getGameINLINE().getRiseFall().handleDefeatPopup(
+				pPopupReturn->getButtonClicked());
+		break; // </advc.706>
 
 	default:
 		FAssert(false);
@@ -885,6 +893,15 @@ void CvDLLButtonPopup::OnFocus(CvPopup* pPopup, CvPopupInfo &info)
 // returns false if popup is not launched
 bool CvDLLButtonPopup::launchButtonPopup(CvPopup* pPopup, CvPopupInfo &info)
 {
+	// <advc.706>
+	if(info.getButtonPopupType() == BUTTONPOPUP_RF_CHOOSECIV)
+		return GC.getGameINLINE().getRiseFall().launchCivSelectionPopup(pPopup, info);
+	if(info.getButtonPopupType() == BUTTONPOPUP_RF_DEFEAT)
+		return GC.getGameINLINE().getRiseFall().launchDefeatPopup(pPopup, info);
+	if(!CvPlot::activeVisibility)
+		return false;
+	// </advc.706>
+
 	FAssert(GC.getGameINLINE().getActivePlayer() != NO_PLAYER); // K-Mod
 
 	bool bLaunched = false;
@@ -895,6 +912,15 @@ bool CvDLLButtonPopup::launchButtonPopup(CvPopup* pPopup, CvPopupInfo &info)
 		bLaunched = launchTextPopup(pPopup, info);
 		break;
 	case BUTTONPOPUP_CHOOSEPRODUCTION:
+		{	/*  <advc.706> The EXE launches this popup after human takeover;
+				afterwards(?), the AI chooses the production, and the popup
+				is killed once the player clicks on it. Easiest solutions seems
+				to block choose-production popups on the initial turn of a
+				R&F chapter. */
+			CvGame& g = GC.getGame();
+			if(g.isOption(GAMEOPTION_RISE_FALL) && g.getRiseFall().isBlockPopups())
+				break; // </advc.706>
+		}
 		bLaunched = launchProductionPopup(pPopup, info);
 		break;
 	case BUTTONPOPUP_CHANGERELIGION:
@@ -2224,9 +2250,15 @@ bool CvDLLButtonPopup::launchConfirmMenu(CvPopup *pPopup, CvPopupInfo &info)
 	case 1:
 		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_EXIT_TO_MAIN_MENU").c_str(), NULL, 0, WIDGET_GENERAL);
 		break;
-	case 2:
+	case 2: { // <advc.706>
+		CvGame const& g = GC.getGameINLINE();
+		if(g.isOption(GAMEOPTION_RISE_FALL)) {
+			gDLL->getInterfaceIFace()->popupSetBodyString(pPopup,
+					g.getRiseFall().retireConfirmMsg());
+		} // </advc.706>
 		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_RETIRE").c_str(), NULL, 0, WIDGET_GENERAL);
 		break;
+	}
 	case 3:
 		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_REGENERATE_MAP").c_str(), NULL, 0, WIDGET_GENERAL);
 		break;

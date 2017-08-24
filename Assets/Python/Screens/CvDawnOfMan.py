@@ -96,11 +96,17 @@ class CvDawnOfMan:
 		screen.addPanel( szMainPanel, "", "", true, true,
 			self.X_MAIN_PANEL, self.Y_MAIN_PANEL, self.W_MAIN_PANEL, self.H_MAIN_PANEL, PanelStyles.PANEL_STYLE_MAIN )
 		
+		# <advc.704>
+		riseFall = gc.getGame().isOption(GameOptionTypes.GAMEOPTION_RISE_FALL)
+		rfChapter = -1
+		if riseFall:
+			rfChapter = gc.getGame().getCurrentChapter()
+		# </advc.704>
+		
 		# Top
-		# advc.250c: Title "The Dawn of Man" doesn't make sense when
-		# starting in a later era.
-		# advc.250c:
-		isLaterEraStart = (gc.getGame().getStartEra() > 0)
+		# advc.250c: Title "The Dawn of Man" doesn't make sense when starting in a later era.
+		# advc.704: Treat later chapters like later-era start.
+		isLaterEraStart = (gc.getGame().getStartEra() > 0 or gc.getGame().getCurrentEra() > 0 or rfChapter > 0)
 		if not isLaterEraStart:
 			szHeaderPanel = "DawnOfManHeaderPanel"
 			screen.addPanel( szHeaderPanel, "", "", true, false,
@@ -152,10 +158,25 @@ class CvDawnOfMan:
 		# <advc.250c> Show the first text block only for Ancient start
 		bodyString1 = localText.getText("TXT_KEY_DAWN_OF_MAN_TEXT1", (CyGameTextMgr().getTimeStr(gc.getGame().getGameTurn(), false), self.player.getCivilizationAdjectiveKey()))
 		bodyString2 = localText.getText("TXT_KEY_DAWN_OF_MAN_TEXT2", (self.player.getNameKey(),))
-		#bodyString = localText.getText("TXT_KEY_DAWN_OF_MAN_TEXT", (CyGameTextMgr().getTimeStr(gc.getGame().getGameTurn(), false), self.player.getCivilizationAdjectiveKey(), self.player.getNameKey()))
-		bodyString = bodyString2
-		if not isLaterEraStart:
-			bodyString = bodyString1 + bodyString
+		bodyString = ""
+		# <advc.704>
+		if riseFall:
+			len = gc.getGame().getChapterEnd(rfChapter) - gc.getGame().getChapterStart(rfChapter) + 1;
+			bodyString2 = localText.getText("TXT_KEY_RF_DOM_FOUND", (len, self.player.getCivilizationAdjectiveKey()))
+			chapterNumber = rfChapter + 1 # Start at 1
+			chp = localText.getText("TXT_KEY_RF_CHAPTER", ())
+			chapterString = localText.getText("TXT_KEY_RF_CHAPTER", ()) + " " + str(chapterNumber)
+			if gc.getGame().getCurrentChapter() == gc.getGame().getMaxChapters():
+				chapterString = localText.getText("TXT_KEY_RF_DOM_FINAL", ()) + " " + chp
+			chapterString += ". "
+			bodyString = chapterString
+			if rfChapter > 0: # not the first chapter
+				bodyString += localText.getText("TXT_KEY_RF_DOM", (CyGameTextMgr().getTimeStr(gc.getGame().getGameTurn(), false), len, self.player.getCivilizationAdjectiveKey()))
+		if rfChapter <= 0:
+		# </advc.704>
+			if not isLaterEraStart:
+				bodyString += bodyString1
+			bodyString += bodyString2
 		# </advc.250c>
 		screen.addMultilineText( "BodyText", bodyString, self.X_TEXT_PANEL + self.iMarginSpace, self.Y_TEXT_PANEL + self.iMarginSpace + self.iTEXT_PANEL_MARGIN, self.W_TEXT_PANEL - (self.iMarginSpace * 2), self.H_TEXT_PANEL - (self.iMarginSpace * 2) - 75, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 		

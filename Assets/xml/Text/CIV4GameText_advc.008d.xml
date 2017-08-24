@@ -99,6 +99,17 @@
 	<Spanish>(AdvCiv) Don't be lulled if barbarians appear only in small numbers in the ancient era - it's often not until the end of the classical era that they reach their full strength.</Spanish>
 </TEXT>
 
+<!-- Not news anymore: "The Courthouse, Jail, Palace and Castle increase the
+	 number of Espionage Points the player will receive each turn." -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_50</Tag>
+	<English>(UWAI) If a war opponent refuses to negotiate peace, it's because everything you could offer them in trade wouldn't be enough. (Or because you're fighting the war at the request of a third party.)</English>
+	<French>(UWAI) If a war opponent refuses to negotiate peace, it's because everything you could offer them in trade wouldn't be enough. (Or because you're fighting the war at the request of a third party.)</French>
+	<German>(UWAI) Wenn ein Kriegsgegner Friedensgespräche ablehnt, dann weil Sie ihm nicht genug anbieten können. (Oder weil Sie den Krieg auf Bitten eines Partners begonnen haben.)</German>
+	<Italian>(UWAI) If a war opponent refuses to negotiate peace, it's because everything you could offer them in trade wouldn't be enough. (Or because you're fighting the war at the request of a third party.)</Italian>
+	<Spanish>(UWAI) If a war opponent refuses to negotiate peace, it's because everything you could offer them in trade wouldn't be enough. (Or because you're fighting the war at the request of a third party.)</Spanish>
+</TEXT>
+
 <!-- "Use your mouse wheel to zoom" duh -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_INTERFACE_1</Tag>
@@ -241,11 +252,11 @@
 <!-- advc.099 -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_14</Tag>
-	<English>(AdvCiv) You may have to keep a large portion of your troops stationed in conquered cities to suppress revolts until your culture value increases. Make sure those cities are worth the effort.</English>
-	<French>(AdvCiv) You may have to keep a large portion of your troops stationed in conquered cities to suppress revolts until your culture value increases. Make sure those cities are worth the effort.</French>
+	<English>(AdvCiv) You may have to keep a sizable portion of your troops stationed in conquered cities to suppress revolts until your culture value increases. Make sure those cities are worth the effort.</English>
+	<French>(AdvCiv) You may have to keep a sizable portion of your troops stationed in conquered cities to suppress revolts until your culture value increases. Make sure those cities are worth the effort.</French>
 	<German>(AdvCiv) In eroberten Städten können große Truppenkontingente notwendig sein, um Revolten zu verhindern bis Ihr Kulturwert sich erhöht. Überlegen Sie sich vorher gut, ob die eroberten Städte das wert sind.</German>
-	<Italian>(AdvCiv) You may have to keep a large portion of your troops stationed in conquered cities to suppress revolts until your culture value increases. Make sure those cities are worth the effort.</Italian>
-	<Spanish>(AdvCiv) You may have to keep a large portion of your troops stationed in conquered cities to suppress revolts until your culture value increases. Make sure those cities are worth the effort.</Spanish>
+	<Italian>(AdvCiv) You may have to keep a sizable portion of your troops stationed in conquered cities to suppress revolts until your culture value increases. Make sure those cities are worth the effort.</Italian>
+	<Spanish>(AdvCiv) You may have to keep a sizable portion of your troops stationed in conquered cities to suppress revolts until your culture value increases. Make sure those cities are worth the effort.</Spanish>
 </TEXT>
 
 <!-- advc.124 -->
@@ -310,11 +321,11 @@
 <!-- advc.102 -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_21</Tag>
-	<English>Use [Ctrl + O] to access the player options menu even during your opponents' turns. If animations of rival moves seem to take forever, you can, right there, enable quick combat or hide foreign moves.</English>
-	<French>Use [Ctrl + O] to access the player options menu even during your opponents' turns. If animations of rival moves seem to take forever, you can, right there, enable quick combat or hide foreign moves.</French>
+	<English>Press [Ctrl + O] to access the player options menu even during your opponents' turns. If animations of rival moves seem to take forever, you can, right there, enable quick combat or hide foreign moves.</English>
+	<French>Press [Ctrl + O] to access the player options menu even during your opponents' turns. If animations of rival moves seem to take forever, you can, right there, enable quick combat or hide foreign moves.</French>
 	<German>Per [Ctrl + O] können Sie auch während gegnerischer Züge auf das Optionsmenü zugreifen. Falls gegnerische Züge einmal kein Ende nehmen wollen, können Sie so direkt auf Schnellen Kampf schalten oder gegnerische Züge ausblenden.</German>
-	<Italian>Use [Ctrl + O] to access the player options menu even during your opponents' turns. If animations of rival moves seem to take forever, you can, right there, enable quick combat or hide foreign moves.</Italian>
-	<Spanish>Use [Ctrl + O] to access the player options menu even during your opponents' turns. If animations of rival moves seem to take forever, you can, right there, enable quick combat or hide foreign moves.</Spanish>
+	<Italian>Press [Ctrl + O] to access the player options menu even during your opponents' turns. If animations of rival moves seem to take forever, you can, right there, enable quick combat or hide foreign moves.</Italian>
+	<Spanish>Press [Ctrl + O] to access the player options menu even during your opponents' turns. If animations of rival moves seem to take forever, you can, right there, enable quick combat or hide foreign moves.</Spanish>
 </TEXT>
 
 <TEXT>
@@ -346,11 +357,29 @@
 
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_25</Tag>
-	<English>(UWAI) If a war opponent refuses to negotiate peace, it's because everything you could offer them in trade wouldn't be enough. (Or because you're fighting the war at the request of a third party.)</English>
-	<French>(UWAI) If a war opponent refuses to negotiate peace, it's because everything you could offer them in trade wouldn't be enough. (Or because you're fighting the war at the request of a third party.)</French>
-	<German>(UWAI) Wenn ein Kriegsgegner Friedensgespräche ablehnt, dann weil Sie ihm nicht genug anbieten können. (Oder weil Sie den Krieg auf Bitten eines Partners begonnen haben.)</German>
-	<Italian>(UWAI) If a war opponent refuses to negotiate peace, it's because everything you could offer them in trade wouldn't be enough. (Or because you're fighting the war at the request of a third party.)</Italian>
-	<Spanish>(UWAI) If a war opponent refuses to negotiate peace, it's because everything you could offer them in trade wouldn't be enough. (Or because you're fighting the war at the request of a third party.)</Spanish>
+	<English>Press [ALT + X] to show the city radius ("big fat cross") around the cursor. You can mark a future city site by left-clicking; right-click removes a mark.</English>
+	<French>Press [ALT + X] to show the city radius ("big fat cross") around the cursor. You can mark a future city site by left-clicking; right-click removes a mark.</French>
+	<German>Drücken Sie [ALT + X], so erscheint der Stadtradius um den Mauszeiger. Per Linksklick können Sie dann den Standort einer geplanten Stadt markieren; Rechtklick entfernt die Markierung wieder.</German>
+	<Italian>Press [ALT + X] to show the city radius ("big fat cross") around the cursor. You can mark a future city site by left-clicking; right-click removes a mark.</Italian>
+	<Spanish>Press [ALT + X] to show the city radius ("big fat cross") around the cursor. You can mark a future city site by left-clicking; right-click removes a mark.</Spanish>
+</TEXT>
+
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_26</Tag>
+	<English>If you have cheats enabled (code "chipotle"), you can press [Shift + Ctrl + X] to enable AI Auto Play, i.e. to shift control of your civilization to the AI for a number of turns.</English>
+	<French>If you have cheats enabled (code "chipotle"), you can press [Shift + Ctrl + X] to enable AI Auto Play, i.e. to shift control of your civilization to the AI for a number of turns.</French>
+	<German>Wenn Sie Cheats aktiviert haben (Codewort "chipotle"), können Sie per [Shift + Ctrl + X] der KI vorübergehend die Kontrolle über Ihre Zivilisation übertragen.</German>
+	<Italian>If you have cheats enabled (code "chipotle"), you can press [Shift + Ctrl + X] to enable AI Auto Play, i.e. to shift control of your civilization to the AI for a number of turns.</Italian>
+	<Spanish>If you have cheats enabled (code "chipotle"), you can press [Shift + Ctrl + X] to enable AI Auto Play, i.e. to shift control of your civilization to the AI for a number of turns.</Spanish>
+</TEXT>
+
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_27</Tag>
+	<English>Press [ALT + D] to change the name of your leader and civilization.</English>
+	<French>Press [ALT + D] to change the name of your leader and civilization.</French>
+	<German>Per [ALT + D] können Sie den Namen Ihres Herrschers und Ihrer Zivilisation ändern.</German>
+	<Italian>Press [ALT + D] to change the name of your leader and civilization.</Italian>
+	<Spanish>Press [ALT + D] to change the name of your leader and civilization.</Spanish>
 </TEXT>
 
 </Civ4GameText>

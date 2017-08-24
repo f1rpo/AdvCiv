@@ -14,6 +14,8 @@
 #include "CyPlot.h"
 #include "CyArgsList.h"
 #include <set> // K-Mod
+// advc.129:
+#include <algorithm>
 
 //
 // static
@@ -844,8 +846,9 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 					}
 					// </advc.129>
 					pPlot->setBonusType(eBonusType);
-
-					for (int iDX = -(pBonusInfo.getGroupRange()); iDX <= pBonusInfo.getGroupRange(); iDX++)
+					// advc.129: Replacing the code below
+					placeGroup(eBonusType, *pPlot, bIgnoreLatitude);
+					/*for (int iDX = -(pBonusInfo.getGroupRange()); iDX <= pBonusInfo.getGroupRange(); iDX++)
 					{
 						for (int iDY = -(pBonusInfo.getGroupRange()); iDY <= pBonusInfo.getGroupRange(); iDY++)
 						{
@@ -865,7 +868,7 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 								}
 							}
 						}
-					}
+					} */
 				}
 			}
 		}
@@ -884,8 +887,8 @@ void CvMapGenerator::addNonUniqueBonusType(BonusTypes eBonusType)
 	}
 
 	int* piShuffle = shuffle(GC.getMapINLINE().numPlotsINLINE(), GC.getGameINLINE().getMapRand());
-
-	CvBonusInfo& pBonusInfo = GC.getBonusInfo(eBonusType);
+	// advc.129: Moved into placeGroup
+	//CvBonusInfo& pBonusInfo = GC.getBonusInfo(eBonusType);
 
 	bool bIgnoreLatitude = GC.getGameINLINE().pythonIsBonusIgnoreLatitudes();
 
@@ -897,8 +900,9 @@ void CvMapGenerator::addNonUniqueBonusType(BonusTypes eBonusType)
 		{
 			pPlot->setBonusType(eBonusType);
 			iBonusCount--;
-
-			for (int iDX = -(pBonusInfo.getGroupRange()); iDX <= pBonusInfo.getGroupRange(); iDX++)
+			// advc.129: Replacing the code block below
+			iBonusCount -= placeGroup(eBonusType, *pPlot, bIgnoreLatitude, iBonusCount);
+			/*for (int iDX = -(pBonusInfo.getGroupRange()); iDX <= pBonusInfo.getGroupRange(); iDX++)
 			{
 				for (int iDY = -(pBonusInfo.getGroupRange()); iDY <= pBonusInfo.getGroupRange(); iDY++)
 				{
@@ -921,7 +925,7 @@ void CvMapGenerator::addNonUniqueBonusType(BonusTypes eBonusType)
 				}
 			}
 
-			FAssertMsg(iBonusCount >= 0, "iBonusCount must be >= 0");
+			FAssertMsg(iBonusCount >= 0, "iBonusCount must be >= 0");*/
 
 			if (iBonusCount == 0)
 			{
@@ -932,6 +936,40 @@ void CvMapGenerator::addNonUniqueBonusType(BonusTypes eBonusType)
 
 	SAFE_DELETE_ARRAY(piShuffle);
 }
+
+
+// <advc.129>
+int CvMapGenerator::placeGroup(BonusTypes eBonusType, CvPlot const& center,
+		bool bIgnoreLatitude, int limit) {
+
+	CvBonusInfo const& pBonusInfo = GC.getBonusInfo(eBonusType);
+	// The one in the center is already placed, but that doesn't count here
+	int placed = 0;
+	std::vector<CvPlot*> groupRange;
+	for(int iDX = -pBonusInfo.getGroupRange(); iDX <=
+			pBonusInfo.getGroupRange(); iDX++) {
+		for(int iDY = -pBonusInfo.getGroupRange(); iDY <=
+				pBonusInfo.getGroupRange(); iDY++) {
+			CvPlot* p = plotXY(center.getX_INLINE(), center.getY_INLINE(), iDX, iDY);
+			if(p != NULL && canPlaceBonusAt(eBonusType,
+					p->getX_INLINE(), p->getY_INLINE(), bIgnoreLatitude))
+				groupRange.push_back(p);
+		}
+	}
+	std::random_shuffle(groupRange.begin(), groupRange.end());
+	for(size_t j = 0; j < groupRange.size() && limit > 0; j++) {
+		int prPercent = pBonusInfo.getGroupRand();
+		prPercent = ::round(prPercent * std::pow(2/3.0, placed));
+		if (GC.getGameINLINE().getMapRandNum(
+				100, "addNonUniqueBonusType") < prPercent) {
+			groupRange[j]->setBonusType(eBonusType);
+			limit--;
+			placed++;
+		}
+	}
+	FAssert(limit >= 0);
+	return placed;
+} // </advc.129>
 
 
 void CvMapGenerator::addGoodies()

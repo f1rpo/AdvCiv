@@ -743,8 +743,11 @@ void WarAndPeaceCache::updateRelativeNavyPower() {
 		/*  Tbd.:
 			Exact result: (their navy power) /
 						  (their total power from navy, army, home guard)
+
 			Intelligence ratio (100%: assume we know all their positions;
-			0: we know nothing, in particular if !TEAMREF(civId).isHasMet(TEAMID(ownerId))).
+			0: we know nothing, in particular if
+			!TEAMREF(civId).isHasMet(TEAMID(ownerId))).
+
 			-100%
 			+100% * #(their cities visible to us) / #(their cities)
 			+100% * #(their cities revealed to us) / #(their cities)
@@ -754,6 +757,7 @@ void WarAndPeaceCache::updateRelativeNavyPower() {
 				+range(closeness%, 0, 100%) if same capital area, otherwise
 				+#(their coastal cities revealed to us) / #(their cities) *
 						(50 + 10 * #(our sea patrols) + #(our explorers))
+
 			Result guessed based on revealed info on map:
 			(0.7 * #(their revealed coastal cities) / #(their revealed cities))
 			/ (2 + #(rivals on their continent)
@@ -837,13 +841,13 @@ double WarAndPeaceCache::teamThreat(TeamTypes tId) const {
 		diploFactor -= 0.2;
 	diploFactor = ::dRange(diploFactor, 0.0, 1.0);
 	// Less likely to attack us if there are many targets to choose from
-	double altTargetsFactor = 0;
+	double altTargetsDivisor = 0;
 	for(size_t i = 0; i < getWPAI.properTeams().size(); i++) {
 		if(!GET_TEAM(getWPAI.properTeams()[i]).isAVassal())
-			altTargetsFactor++;
+			altTargetsDivisor++;
 	}
-	altTargetsFactor /= 5;
-	return diploFactor * powFactor * altTargetsFactor;
+	altTargetsDivisor /= 5;
+	return diploFactor * powFactor / std::max(0.35, altTargetsDivisor);
 }
 
 double WarAndPeaceCache::longTermPower(TeamTypes tId, bool defensive) const {
@@ -1003,8 +1007,7 @@ bool WarAndPeaceCache::isReadyToCapitulate(TeamTypes masterId) const {
 		return readyToCapitulate.count(masterId) > 0;
 	/*  Not nice; if I add a few more team-related items, I should really put
 		them in a separate class. */
-	return GET_PLAYER(TEAMREF(ownerId).getLeaderID()).warAndPeaceAI().getCache().
-			isReadyToCapitulate(masterId);
+	return leaderCache().isReadyToCapitulate(masterId);
 }
 
 void WarAndPeaceCache::setReadyToCapitulate(TeamTypes masterId, bool b) {
@@ -1021,11 +1024,10 @@ void WarAndPeaceCache::setReadyToCapitulate(TeamTypes masterId, bool b) {
 			setReadyToCapitulate(masterId, b);
 }
 
-void WarAndPeaceCache::addTeam(TeamTypes otherId) {
+void WarAndPeaceCache::addTeam(PlayerTypes otherLeaderId) {
 
 	// Get the team-related data from the other team's leader
-	WarAndPeaceCache& other = GET_TEAM(otherId).warAndPeaceAI().leaderWpai().
-			getCache();
+	WarAndPeaceCache& other = GET_PLAYER(otherLeaderId).warAndPeaceAI().getCache();
 	// Fairly unimportant data
 	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 		pastWarScores[i] += other.pastWarScores[i];
@@ -1036,6 +1038,25 @@ void WarAndPeaceCache::addTeam(TeamTypes otherId) {
 				sponsorshipsAgainst[i] = other.sponsorshipsAgainst[i];
 			}
 		}
+	}
+}
+
+void WarAndPeaceCache::onTeamLeaderChanged(PlayerTypes formerLeaderId) {
+
+	if(formerLeaderId == NO_PLAYER)
+		return;
+	PlayerTypes leaderId =  TEAMREF(ownerId).getLeaderID();
+	if(leaderId == NO_PLAYER || formerLeaderId == leaderId)
+		return;
+	for(size_t i = 0; i < getWPAI.properTeams().size(); i++) {
+		TeamTypes tId = getWPAI.properTeams()[i];
+		if(GET_TEAM(tId).isHuman())
+			GET_PLAYER(TEAMREF(ownerId).getLeaderID()).warAndPeaceAI().getCache().
+					setReadyToCapitulate(tId, GET_PLAYER(formerLeaderId).
+					warAndPeaceAI().getCache().readyToCapitulate.count(tId) > 0);
+		GET_PLAYER(TEAMREF(ownerId).getLeaderID()).warAndPeaceAI().getCache().
+				warUtilityIgnDistraction[tId] = GET_PLAYER(formerLeaderId).
+				warAndPeaceAI().getCache().warUtilityIgnDistraction[tId];
 	}
 }
 

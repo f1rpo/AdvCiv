@@ -554,6 +554,7 @@ public:
 	DllExport float getAqueductSourceWeight() const;  // used to place aqueducts on the map
 	DllExport bool shouldDisplayBridge(CvPlot* pToPlot, PlayerTypes ePlayer) const;
 	DllExport bool checkLateEra() const;
+	static bool activeVisibility; // advc.706
 
 	void read(FDataStreamBase* pStream);
 	void write(FDataStreamBase* pStream);

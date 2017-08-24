@@ -2206,14 +2206,17 @@ int CvTeamAI::AI_techTradeVal(TechTypes eTech, TeamTypes eTeam,
 
 	iValue += (((iCost / 2) * (iPossibleKnownCount - iKnownCount)) / iPossibleKnownCount);
 	*/
-	// K-Mod. Standardized the modifier for # of teams with the tech; and removed the effect of team size.
-	int iValue = (150 + AI_knownTechValModifier(eTech)) * std::max(0, (getResearchCost(eTech, true, false) - getResearchProgress(eTech))) / 100;
+	int iValue = (
+		125 // advc.551: was 150
+			// K-Mod. Standardized the modifier for # of teams with the tech; and removed the effect of team size.
+			+ AI_knownTechValModifier(eTech)) * std::max(0, (getResearchCost(eTech, true, false) - getResearchProgress(eTech))) / 100;
 	// K-Mod end
-	/*  advc.104h: Peace for tech isn't that attractive for the receiving side
+	/*  <advc.104h> Peace for tech isn't that attractive for the receiving side
 		b/c they could continue the war and still get the tech when making peace
 		later on. Doesn't work the same way with gold b/c the losing side may well
 		spend the gold if the war continues */
-	if(peaceDeal) iValue = ::round(0.667 * iValue);
+	if(peaceDeal)
+		iValue = ::round(0.7 * iValue); // </advc.104h>
 
 	iValue *= std::max(0, (GC.getTechInfo(eTech).getAITradeModifier() + 100));
 	iValue /= 100;
@@ -3267,7 +3270,8 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eTeam, int iPowerMultiplier,
 	double landRatio = std::max(10, getTotalLand(false)) / (double)
 			std::max(10, getVassalPower()); // </advc.112>
 	double thresh = GC.getDefineINT("VASSAL_DENY_OWN_LOSSES_FACTOR") / 100.0;
-	if(landRatio < 0.85 * thresh || (landRatio < thresh && ::bernoulliSuccess(0.15)))
+	if(landRatio < 0.85 * thresh || (landRatio < thresh &&
+			::hash(GC.getGameINLINE().getGameTurn(), getLeaderID()) < 0.15))
 		return DENIAL_POWER_YOUR_ENEMIES; // Denial type doesn't matter
 	// </advc.143><advc.143b>
 	double nuked = 0;
@@ -5859,9 +5863,9 @@ int CvTeamAI::randomCounterChange(int cap) const {
 	/*  Could e.g. factor in GameTurn to make diplo faster/slower as the game
 		progresses, but for now, just flip two fair coins */
 	int r = 0;
-	if(::bernoulliSuccess(0.5))
+	if(::bernoulliSuccess(0.5, "advc.130k"))
 		r++;
-	if(::bernoulliSuccess(0.5))
+	if(::bernoulliSuccess(0.5, "advc.130k"))
 		r++;
 	if(cap < 0)
 		return r;
@@ -5905,7 +5909,8 @@ void CvTeamAI::AI_doCounter()
 		if(isHasMet(tId) && AI_shareWar(tId))
 			AI_changeShareWarCounter(tId, randomCounterChange()); // </advc.130k>
 		// <advc.130m> Decay by 1 with 10% probability
-		else if(AI_getShareWarCounter(tId) > 0 && ::bernoulliSuccess(0.1))
+		else if(AI_getShareWarCounter(tId) > 0 &&
+				::bernoulliSuccess(0.1, "advc.130m"))
 			AI_changeShareWarCounter(tId, -1);
 		// Exponential decay
 		double decay = getDiploDecay();

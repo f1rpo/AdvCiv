@@ -546,6 +546,8 @@ double MilitaryAnalyst::militaryProduction(PlayerTypes civId) const {
 
 void MilitaryAnalyst::logResults(PlayerTypes civId) {
 
+	if(report.isMute())
+		return;
 	// Not the best way to identify civs that weren't part of the simulation ...
 	if(::round(militaryProduction(civId)) == 0)
 		return;

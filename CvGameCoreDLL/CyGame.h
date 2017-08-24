@@ -294,6 +294,20 @@ public:
 	int getBarbarianStartTurn(); // advc.300
 	std::wstring SPaHPointsForSettingsScreen(); // advc.250b
 	int getDifficultyForEndScore(); // advc.250
+	// <advc.703>
+	int getMaxChapters();
+	int getCurrentChapter();
+	int getChapterStart(int chapter);
+	int getChapterEnd(int chapter);
+	int getChapterScore(int chapter);
+	int getChapterScoreTurn(int chapter);
+	int getChapterCiv(int chapter);
+	std::wstring chapterScoreBreakdown();
+	std::wstring riseScoreBreakdown();
+	// </advc.703>
+	// <advc.706>
+	bool isRFInterlude();
+	bool isAITurn(); // </advc.706>
 
 protected:
 	CvGame* m_pGame;

@@ -46,9 +46,6 @@ friend class Node;
 	class Node {
 
 	public:
-		/* futureWarOpponents: Contents are copied by this class.
-		   Only opponents that this Node isn't already at war with should be
-		   included. */
 		Node(PlayerTypes civId, InvasionGraph& outer);
 		~Node();
 		// Selects primary target.
@@ -95,8 +92,6 @@ friend class Node;
 		    portion of its army this Node commits to the clash; armyPortion2
 		    works likewise (for the target). */
 		 void clash(double armyPortion1, double armyPortion2);
-		 /* Units the AI has alloted for protecting cities. Not available for
-		    an invasion. */
 		 // For iterating over connected components
 		  bool isComponentDone() const;
 		  void setComponentDone(bool b);

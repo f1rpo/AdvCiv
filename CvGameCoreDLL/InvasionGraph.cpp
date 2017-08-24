@@ -437,6 +437,8 @@ void InvasionGraph::Node::logTypicalUnits() {
 	/*if(military[HOME_GUARD] != NULL &&
 			military[HOME_GUARD]->getTypicalUnit() == NULL)
 		military[HOME_GUARD]->updateTypicalUnit();*/
+	if(report.isMute())
+		return;
 	// Log typical units only once per evaluation (they don't change)
 	if(outer.isPeaceScenario || (outer.allWarPartiesKnown &&
 			outer.m.evaluationParameters().getPreparationTime() > 0))
@@ -451,7 +453,7 @@ void InvasionGraph::Node::logTypicalUnits() {
 			continue;
 		CvUnitInfo const& u = *uptr;
 		/*  No, better to show the base cost b/c that's how the typical units
-			is chosen */
+			are chosen */
 		//int cost = GET_PLAYER(id).getProductionNeeded(mb.getTypicalUnitType());
 		report.log("%s: %d (%s, cost: %d)", mb.str(),
 				::round(mb.getTypicalUnitPower()),
@@ -995,8 +997,12 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	   Too little? 10 * instead of 8? */
 	double bombPerTurn = 8 * (GET_PLAYER(id).getCurrentEra() + 1) *
 			(6.0 - conquests.size()) / 6;
-	// Don't assume that AI will endlessly bombard
-	if(bombPerTurn < 8 || tileBonus / bombPerTurn > 5)
+	/*  Don't assume that AI will endlessly bombard.
+		For a Medieval Castle backed by Chichen Itza (i.e. 125% def),
+		tileBonus / bombPerTurn is about 5.2. W/o bombardment, an attack is pretty
+		hopeless. Don't want such a city to completely discourage war, therefore
+		set the threshold slightly higher than 5.2; at first, I had set it to 5. */
+	if(bombPerTurn < 8 || tileBonus / bombPerTurn > 5.25)
 		canBombard = false;
 	double bombDmg = 0;
 	if(canBombard) {
@@ -1246,7 +1252,7 @@ void InvasionGraph::Node::applyStep(SimulationStep const& step) {
 				}
 			}
 			/* Assume that some defenders are built upon the loss of a city.
-			   Defenders built while the war is conducted are principally
+			   Defenders built while the war is conducted are generally
 			   covered by ArmamentForecast, including defenders hurried just prior
 			   to an attack, but not emergency defenders built while the invading
 			   army heals and approaches its next target. */
@@ -1495,7 +1501,7 @@ void InvasionGraph::Node::clash(double armyPortion1, double armyPortion2) {
 	/* Handling the clash in 'step' is a bit of a hack. It turned out that
 	   'clash' would have a lot of overlap with 'step'. 'clash' should be
 	   symmetrical, but, the way it's now implemented, step needs to be called
-	   on n2 and apply on n1.
+	   on n2 and applied on n1.
 	   I've considered resolving clashes only as part of city attacks,
 	   but want to resolve the clash first in order to give third parties
 	   a chance to conquer cities (pre-empting the winner of the clash). */

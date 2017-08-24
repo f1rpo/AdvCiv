@@ -128,10 +128,12 @@
 			<bDefault>0</bDefault>
 			<bVisible>1</bVisible>
 		</GameOptionInfo>
+		<!-- advc.701: Taking the spot of NEW_RANDOM_SEED so that it's grouped
+			 with the other special challenge options. -->
 		<GameOptionInfo>
-			<Type>GAMEOPTION_NEW_RANDOM_SEED</Type>
-			<Description>TXT_KEY_GAME_OPTION_NEW_RANDOM_SEED</Description>
-			<Help>TXT_KEY_GAME_OPTION_NEW_RANDOM_SEED_HELP</Help>
+			<Type>GAMEOPTION_RISE_FALL</Type>
+			<Description>TXT_KEY_GAME_OPTION_RISE_FALL</Description>
+			<Help>TXT_KEY_GAME_OPTION_RISE_FALL_HELP</Help>
 			<bDefault>0</bDefault>
 			<bVisible>1</bVisible>
 		</GameOptionInfo>
@@ -142,13 +144,13 @@
 			<bDefault>0</bDefault>
 			<bVisible>1</bVisible>
 		</GameOptionInfo>
+		<!-- advc.701: Taking the spot of COMPLETE_KILLS (removed). -->
 		<GameOptionInfo>
-			<Type>GAMEOPTION_COMPLETE_KILLS</Type>
-			<Description>TXT_KEY_GAME_OPTION_COMPLETE_KILLS</Description>
-			<Help>TXT_KEY_GAME_OPTION_COMPLETE_KILLS_HELP</Help>
+			<Type>GAMEOPTION_NEW_RANDOM_SEED</Type>
+			<Description>TXT_KEY_GAME_OPTION_NEW_RANDOM_SEED</Description>
+			<Help>TXT_KEY_GAME_OPTION_NEW_RANDOM_SEED_HELP</Help>
 			<bDefault>0</bDefault>
-			<!-- advc.027 -->
-			<bVisible>0</bVisible>
+			<bVisible>1</bVisible>
 		</GameOptionInfo>
 		<GameOptionInfo>
 			<Type>GAMEOPTION_NO_VASSAL_STATES</Type>

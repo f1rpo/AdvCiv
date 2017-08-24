@@ -627,18 +627,7 @@
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_21</Description>
 		</HintInfo>
-		<HintInfo>
-			<Description>TXT_KEY_ADVC_HINT_22</Description>
-		</HintInfo>
-		<HintInfo>
-			<Description>TXT_KEY_ADVC_HINT_23</Description>
-		</HintInfo>
-		<HintInfo>
-			<Description>TXT_KEY_ADVC_HINT_24</Description>
-		</HintInfo>
-		<HintInfo>
-			<Description>TXT_KEY_ADVC_HINT_25</Description>
-		</HintInfo>
+		<!-- Skip 22-27; shouldn't be as frequent. -->
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_1</Description>
 		</HintInfo>
@@ -702,6 +691,23 @@
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_21</Description>
 		</HintInfo>
-		<!-- skip 22-25; shouldn't be as frequent -->
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_22</Description>
+		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_23</Description>
+		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_24</Description>
+		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_25</Description>
+		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_26</Description>
+		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_27</Description>
+		</HintInfo>
 	</HintInfos>
 </Civ4Hints>

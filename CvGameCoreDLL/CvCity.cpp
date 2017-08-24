@@ -1085,7 +1085,7 @@ void CvCity::doRevolt() { PROFILE("CvCity::doRevolts()")
 
 	// <advc.023>
 	double prDecr = probabilityOccupationDecrement();
-	if(::bernoulliSuccess(prDecr)) {
+	if(::bernoulliSuccess(prDecr, "advc.023")) {
 		changeOccupationTimer(-1);
 		return;
 	} // </advc.023>
@@ -1101,7 +1101,7 @@ void CvCity::doRevolt() { PROFILE("CvCity::doRevolts()")
 	/*  <advc.101> To avoid duplicate code in CvDLLWidgetData::parseNationalityHelp,
 		compute the revolt probability in a separate function. */
 	double prRevolt = revoltProbability();
-	if(!::bernoulliSuccess(prRevolt))
+	if(!::bernoulliSuccess(prRevolt, "advc.101"))
 		return; // </advc.101>
 	damageGarrison(eCulturalOwner); // advc.003: Code moved into subroutine 
 	if(canFlip && // advc.099
@@ -1169,8 +1169,8 @@ void CvCity::doRevolt() { PROFILE("CvCity::doRevolts()")
 			msgType = MESSAGE_TYPE_MINOR_EVENT;
 			sound = "AS2D_CITY_REVOLT";
 			if(civ.getID() == getOwnerINLINE())
-				color = (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN");
-			else color = (ColorTypes)GC.getInfoTypeForString("COLOR_RED");
+				color = (ColorTypes)GC.getInfoTypeForString("COLOR_RED");
+			else color = (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN");
 		}
 		gDLL->getInterfaceIFace()->addHumanMessage(civ.getID(), false,
 				GC.getEVENT_MESSAGE_TIME(), szBuffer, sound, msgType,
@@ -3841,7 +3841,8 @@ void CvCity::conscript()
 
 	if (NULL != pUnit)
 	{
-		if (GC.getGameINLINE().getActivePlayer() == getOwnerINLINE())
+		if (GC.getGameINLINE().getActivePlayer() == getOwnerINLINE()
+				&& CvPlot::activeVisibility) // advc.706
 		{
 			gDLL->getInterfaceIFace()->lookAt(plot()->getPoint(), CAMERALOOKAT_NORMAL); // K-Mod
 			gDLL->getInterfaceIFace()->selectUnit(pUnit, true, false, true);
@@ -13008,7 +13009,9 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 			swprintf(szTempBuffer, gDLL->getText(((isProductionLimited()) ? "TXT_KEY_MISC_WORK_HAS_BEGUN_LIMITED" : "TXT_KEY_MISC_WORK_HAS_BEGUN"), getProductionNameKey()).GetCString());
 			wcscat(szBuffer, szTempBuffer);
 		}
-		gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, szSound, MESSAGE_TYPE_MINOR_EVENT, szIcon, (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), getX_INLINE(), getY_INLINE(), true, true);
+		gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, szSound,
+				MESSAGE_TYPE_INFO, // advc.106b: was MINOR_EVENT
+				szIcon, (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), getX_INLINE(), getY_INLINE(), true, true);
 	}
 
 	if ((getTeam() == GC.getGameINLINE().getActiveTeam()) || GC.getGameINLINE().isDebugMode())
@@ -13332,11 +13335,16 @@ void CvCity::doPlotCultureTimes100(bool bUpdate, PlayerTypes ePlayer, int iCultu
 			CvPlot* pLoopPlot = plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
 			if(pLoopPlot == NULL || !pLoopPlot->isPotentialCityWorkForArea(area()))
 				continue; // </advc.003>
-			/* int iCultureToAdd =
-				(iInnerFactor * iCultureRange - iDistance * (iInnerFactor - iOuterFactor))
-				* iCultureRateTimes100 / (iCultureRange * 100); */
-			//int iCultureToAdd = (int)(iScale*iCultureRateTimes100*exp(-iB*iDistance)/100);
-			int iCultureToAdd = iCultureRateTimes100*((iScale-1)*(iDistance-iCultureRange)*(iDistance-iCultureRange) + iCultureRange*iCultureRange)/(100*iCultureRange*iCultureRange);
+			//int iCultureToAdd = iCultureRateTimes100*((iScale-1)*(iDistance-iCultureRange)*(iDistance-iCultureRange) + iCultureRange*iCultureRange)/(100*iCultureRange*iCultureRange);
+			/*  <advc.001> Deleted some old K-Mod code that had been commented out.
+				The line above was the most recent K-Mod code. Causes an integer
+				overflow when a large amount of culture is added through the
+				WorldBuilder (e.g. 50000). Corrected below. */
+			double dCultureToAdd = iCultureRateTimes100 /
+					(100.0*iCultureRange*iCultureRange);
+			int delta = iDistance-iCultureRange;
+			dCultureToAdd *= (iScale-1)*delta*delta + iCultureRange*iCultureRange;
+			int iCultureToAdd = ::round(dCultureToAdd); // </advc.001>
 			// <advc.025>
 			if(cultureToMaster != 100 && pLoopPlot->getTeam() != getTeam() &&
 					pLoopPlot->getTeam() == GET_TEAM(getTeam()).getMasterTeam())
@@ -13907,7 +13915,7 @@ void CvCity::doMeltdown()
 		// Adjust odds to game speed:
 		double pr = 1.0 / (oddsDivisor * GC.getGameINLINE().gameSpeedFactor());
 		//if (GC.getGameINLINE().getSorenRandNum(GC.getBuildingInfo((BuildingTypes)iI).getNukeExplosionRand(), "Meltdown!!!") == 0)
-		if(::bernoulliSuccess(pr)) // </dlph></advc.003>
+		if(::bernoulliSuccess(pr, "dlph.5")) // </dlph.5></advc.003>
 		{
 			if (getNumRealBuilding((BuildingTypes)iI) > 0)
 			{

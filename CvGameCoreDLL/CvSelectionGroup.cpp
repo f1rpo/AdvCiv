@@ -4755,8 +4755,10 @@ CvSelectionGroup* CvSelectionGroup::splitGroup(int iSplitSize, CvUnit* pNewHeadU
 	// K-Mod
 	// if the remainder group doesn't have the same unitAI, then it should be split up, so that we don't get any strange groups forming.
 	// Note: the force split can be overridden by the calling function if need be.
-	/* if (pRemainderGroup && pRemainderGroup->getHeadUnitAI() != eOldHeadAI)
-		pRemainderGroup->AI_setForceSeparate(); */
+	/*  <advc.706> Uncommented this old K-Mod code b/c my splitGroup(1) calls
+		failed the FAssert below. */
+	if (GC.getGameINLINE().isOption(GAMEOPTION_RISE_FALL) && pRemainderGroup && pRemainderGroup->getHeadUnitAI() != eOldHeadAI)
+		pRemainderGroup->AI_setForceSeparate(); // </advc.706>
 	FAssert(!pRemainderGroup || pRemainderGroup->getHeadUnitAI() == eOldHeadAI || pRemainderGroup->AI_isForceSeparate()); // this should now be automatic, because of my other edits.
 	// K-Mod end
 

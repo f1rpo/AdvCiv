@@ -8079,7 +8079,7 @@ void CvCityAI::AI_doDraft(bool bForce)
 				// Non-critical, only burn population if population is not worth much
 				// <advc.017>
 				double prDraft = AI_buildUnitProb(true) / 100.0;
-				if(::bernoulliSuccess(prDraft) && // </advc.017>
+				if(::bernoulliSuccess(prDraft, "advc.017") && // </advc.017>
 					(getConscriptAngerTimer() == 0 || isNoUnhappiness()) // K-Mod
 					&& (bGoodValue ||
 					tooMuchPop)) // advc.017: same condition as before, just as a variable

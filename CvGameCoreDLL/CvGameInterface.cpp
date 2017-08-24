@@ -438,6 +438,11 @@ void CvGame::updateBlockadedPlots()
 			gDLL->getEngineIFace()->fillAreaBorderPlot(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), color, AREA_BORDER_LAYER_BLOCKADED);
 		}
 	}
+	/*  <advc.700> An odd place for initialization. Need graphics to be fully
+		initialized so that I can send an error msg to the player if necessary.
+		Not the case in e.g. CvGame::init or setInitialItems. */
+	if(isOption(GAMEOPTION_RISE_FALL) && getElapsedGameTurns() <= 0)
+		riseFall.init(); // </advc.700>
 }
 
 
@@ -1461,7 +1466,12 @@ bool CvGame::canDoControl(ControlTypes eControl) const
 	{
 		return false;
 	}
-
+	/*  <advc.706> I don't think loading is possible in between turns, but there
+		would be no harm in it. */
+	if(!CvPlot::activeVisibility && eControl != CONTROL_LOAD_GAME &&
+			eControl != CONTROL_QUICK_LOAD && eControl != CONTROL_OPTIONS_SCREEN)
+		return false;
+	// </advc.706>
 	switch (eControl)
 	{
 	case CONTROL_SELECTYUNITTYPE:
@@ -2870,7 +2880,9 @@ bool CvGame::shouldDisplayEndTurn() const
 }
 
 bool CvGame::shouldDisplayWaitingOthers() const
-{
+{	// <advc.706>
+	if(!CvPlot::activeVisibility)
+		return false; // </advc.706>
 	if (!gDLL->getInterfaceIFace()->isCitySelection())
 	{
 		if (!GET_PLAYER(getActivePlayer()).isTurnActive())

@@ -404,8 +404,8 @@ void CvGame::regenerateMap()
 		if (NULL != pPlot)
 		{
 			/*  advc.003 (comment): This appears to have no effect. Perhaps the
-				camera can't be moved at this point. Don't see how this could be
-				fixed inside the DLL. */
+				camera can't be moved at this point. Would have to be done at some
+				later point I guess. */
 			gDLL->getInterfaceIFace()->lookAt(pPlot->getPoint(), CAMERALOOKAT_NORMAL);
 		}
 	}
@@ -452,6 +452,9 @@ void CvGame::uninit()
 	m_aPlotExtraCosts.clear();
 	m_mapVoteSourceReligions.clear();
 	m_aeInactiveTriggers.clear();
+	/*  advc.700: Need to call this explicitly due to the unusual way that
+		RiseFall is initialized (from updateBlockadedPlots) */
+	riseFall.reset();
 }
 
 // <advc.250c> Function body cut from CvGame::init. Changes marked inline.
@@ -731,6 +734,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	minimapWaterMode = bConstructorCall ? -1 : GC.getDefineINT("MINIMAP_WATER_MODE");
 	// advc.011:
 	delayUntilBuildDecay = bConstructorCall ? -1 : GC.getDefineINT("DELAY_UNTIL_BUILD_DECAY");
+	turnLoadedFromSave = -1; // advc.044
 }
 
 
@@ -1363,7 +1367,8 @@ void CvGame::normalizeRemovePeaks()
 						if (pLoopPlot != NULL)
 						{
 							if (pLoopPlot->isPeak()
-								&& ::bernoulliSuccess(prRemoval) // advc.108
+								// advc.108:
+								&& ::bernoulliSuccess(prRemoval, "advc.108")
 								)
 							{
 								pLoopPlot->setPlotType(PLOT_HILLS);
@@ -1503,7 +1508,8 @@ void CvGame::normalizeRemoveBadFeatures()
                         {
 							// <advc.108>
 							if(::plotDistance(pLoopPlot, pStartingPlot) < 2 ||
-									::bernoulliSuccess(prRemoval)) // </advc.108
+									::bernoulliSuccess(prRemoval, "advc.108"))
+									// </advc.108
 								pLoopPlot->setFeatureType(NO_FEATURE);
                         }
                     }
@@ -1608,9 +1614,10 @@ void CvGame::normalizeRemoveBadTerrain()
                                     {
 										// <advc.108>
 										double prCont = 1 - prRemoval;
-										bool cont = ::bernoulliSuccess(prCont);
+										bool cont = ::bernoulliSuccess(prCont, "advc.108");
 										if(iPlotFood == 1) {
-											if(cont) continue;
+											if(cont)
+												continue;
 											else if(::bernoulliSuccess(prCont))
 												continue;
 										} // </advc.108>
@@ -2397,15 +2404,25 @@ void CvGame::update()
 		// sample generic event
 		CyArgsList pyArgs;
 		pyArgs.add(getTurnSlice());
-		CvEventReporter::getInstance().genericEvent("gameUpdate", pyArgs.makeFunctionArgs());
+		/*  advc.706: To prevent BUG alerts from being checked at the start of a
+			game turn. I've tried doing that through BugEventManager.py, but
+			eventually gave up. Not sure if my isAITurn clause prevents any
+			useful Python code from being executed. Nothing seems to be amiss,
+			but, to avoid breaking sth. that doesn't need to be fixed, I'm still
+			blocking the gameUpdate event only when R&F is enabled. */
+		if(!isAITurn() || !isOption(GAMEOPTION_RISE_FALL))
+			CvEventReporter::getInstance().genericEvent("gameUpdate", pyArgs.makeFunctionArgs());
 
 		if (getTurnSlice() == 0)
-		{
-			gDLL->getEngineIFace()->AutoSave(true);
+		{	// <advc.700> Delay initial auto-save until RiseFall is initialized
+			bool isStartTurn = (getGameTurn() == getStartTurn()); // advc.004m
+			// I guess TurnSlice==0 already implies that it's the start turn (?)
+			if((!isStartTurn || !isOption(GAMEOPTION_RISE_FALL)) // </advc.700>
+					&& turnLoadedFromSave != m_iElapsedGameTurns) // advc.044
+				gDLL->getEngineIFace()->AutoSave(true);
 			/* <advc.004m> This seems to be the earliest place where bubbles can
 			   be enabled w/o crashing. */
-			if(getGameTurn() == getStartTurn() &&
-					GC.getDefineINT("SHOW_RESOURCE_BUBBLES_AT_GAME_START") > 0)
+			if(isStartTurn && GC.getDefineINT("SHOW_RESOURCE_BUBBLES_AT_GAME_START") > 0)
 				gDLL->getEngineIFace()->setResourceLayer(true); // </advc.004m>
 		}
 
@@ -2433,7 +2450,8 @@ void CvGame::update()
 
 		if ((getAIAutoPlay() == 0) && !(gDLL->GetAutorun()) && GAMESTATE_EXTENDED != getGameState())
 		{
-			if (countHumanPlayersAlive() == 0)
+			if (countHumanPlayersAlive() == 0
+					&& !isOption(GAMEOPTION_RISE_FALL)) // advc.707
 			{
 				setGameState(GAMESTATE_OVER);
 			}
@@ -2445,7 +2463,10 @@ void CvGame::update()
 		{
 			gDLL->getInterfaceIFace()->setInAdvancedStart(true);
 			gDLL->getInterfaceIFace()->setWorldBuilder(true);
-		}
+		} /* <advc.705> I don't like adding code to this oft-called function, but these
+			are just a few instructions (unless there is actually text to restore). */
+		if(isOption(GAMEOPTION_RISE_FALL))
+			riseFall.restoreDiploText(); // </advc.705>
 	}
 	PROFILE_END();
 	stopProfilingDLL(false);
@@ -4424,7 +4445,7 @@ void CvGame::initScoreCalculation()
 }
 
 
-int CvGame::getAIAutoPlay()
+int CvGame::getAIAutoPlay() const // advc.003: made const
 {
 	return m_iAIAutoPlay;
 }
@@ -5227,35 +5248,40 @@ void CvGame::setActivePlayer(PlayerTypes eNewValue, bool bForceHotSeat)
 				sendPlayerOptions(true);
 			}
 		}
-
-		if (GC.IsGraphicsInitialized())
-		{
-			GC.getMapINLINE().updateFog();
-			GC.getMapINLINE().updateVisibility();
-			GC.getMapINLINE().updateSymbols();
-			GC.getMapINLINE().updateMinimapColor();
-
-			updateUnitEnemyGlow();
-
-			gDLL->getInterfaceIFace()->setEndTurnMessage(false);
-
-			gDLL->getInterfaceIFace()->clearSelectedCities();
-			gDLL->getInterfaceIFace()->clearSelectionList();
-
-			gDLL->getInterfaceIFace()->setDirty(PercentButtons_DIRTY_BIT, true);
-			gDLL->getInterfaceIFace()->setDirty(ResearchButtons_DIRTY_BIT, true);
-			gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true);
-			gDLL->getInterfaceIFace()->setDirty(MinimapSection_DIRTY_BIT, true);
-			gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
-			gDLL->getInterfaceIFace()->setDirty(UnitInfo_DIRTY_BIT, true);
-			gDLL->getInterfaceIFace()->setDirty(Flag_DIRTY_BIT, true);
-			gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
-
-			gDLL->getEngineIFace()->SetDirty(CultureBorders_DIRTY_BIT, true);
-			gDLL->getInterfaceIFace()->setDirty(BlockadedPlots_DIRTY_BIT, true);
-		}
+		updateActiveVisibility(); // advc.706: Moved into subroutine
 	}
 }
+
+// <advc.706> Cut and pasted from CvGame::setActivePlayer
+void CvGame::updateActiveVisibility() {
+
+		if(!GC.IsGraphicsInitialized())
+			return;
+		GC.getMapINLINE().updateFog();
+		GC.getMapINLINE().updateVisibility();
+		GC.getMapINLINE().updateSymbols();
+		GC.getMapINLINE().updateMinimapColor();
+
+		updateUnitEnemyGlow();
+
+		gDLL->getInterfaceIFace()->setEndTurnMessage(false);
+
+		gDLL->getInterfaceIFace()->clearSelectedCities();
+		gDLL->getInterfaceIFace()->clearSelectionList();
+
+		gDLL->getInterfaceIFace()->setDirty(PercentButtons_DIRTY_BIT, true);
+		gDLL->getInterfaceIFace()->setDirty(ResearchButtons_DIRTY_BIT, true);
+		gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true);
+		gDLL->getInterfaceIFace()->setDirty(MinimapSection_DIRTY_BIT, true);
+		gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
+		gDLL->getInterfaceIFace()->setDirty(UnitInfo_DIRTY_BIT, true);
+		gDLL->getInterfaceIFace()->setDirty(Flag_DIRTY_BIT, true);
+		gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
+
+		gDLL->getEngineIFace()->SetDirty(CultureBorders_DIRTY_BIT, true);
+		gDLL->getInterfaceIFace()->setDirty(BlockadedPlots_DIRTY_BIT, true);
+}
+// </advc.706>
 
 void CvGame::updateUnitEnemyGlow()
 {
@@ -5371,13 +5397,14 @@ void CvGame::setWinner(TeamTypes eNewWinner, VictoryTypes eNewVictory)
 	{
 		m_eWinner = eNewWinner;
 		m_eVictory = eNewVictory;
-
+		// advc.707: Handled by RiseFall::prepareForExtendedGame
+		if(!GC.getGame().isOption(GAMEOPTION_RISE_FALL))
 /************************************************************************************************/
 /* AI_AUTO_PLAY_MOD                        07/09/08                                jdog5000      */
 /*                                                                                              */
 /*                                                                                              */
 /************************************************************************************************/
-		CvEventReporter::getInstance().victory(eNewWinner, eNewVictory);
+			CvEventReporter::getInstance().victory(eNewWinner, eNewVictory);
 /************************************************************************************************/
 /* AI_AUTO_PLAY_MOD                        END                                                  */
 /************************************************************************************************/
@@ -5437,9 +5464,10 @@ void CvGame::setGameState(GameStateTypes eNewValue)
 		if (eNewValue == GAMESTATE_OVER)
 		{
 			CvEventReporter::getInstance().gameEnd();
-
+			// <advc.707>
+			if(isOption(GAMEOPTION_RISE_FALL))
+				riseFall.prepareForExtendedGame(); // </advc.707>
 			showEndGameSequence();
-
 			for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 			{
 				if (GET_PLAYER((PlayerTypes)iI).isHuman())
@@ -6329,7 +6357,8 @@ void CvGame::doTurn()
 	PROFILE_BEGIN("CvGame::doTurn()");
 
 	// END OF TURN
-	CvEventReporter::getInstance().beginGameTurn( getGameTurn() );
+	if(CvPlot::activeVisibility) // advc.706: Suppress popups
+		CvEventReporter::getInstance().beginGameTurn( getGameTurn() );
 
 	doUpdateCacheOnTurn();
 
@@ -6358,8 +6387,6 @@ void CvGame::doTurn()
 
 	doHeadquarters();
 
-	doDiploVote();
-
 	gDLL->getInterfaceIFace()->setEndTurnMessage(false);
 	gDLL->getInterfaceIFace()->setHasMovedUnit(false);
 
@@ -6380,6 +6407,11 @@ void CvGame::doTurn()
 
 	incrementGameTurn();
 	incrementElapsedGameTurns();
+	// <advc.700>
+	if(isOption(GAMEOPTION_RISE_FALL))
+		riseFall.atGameTurnStart(); // </advc.700>
+	// advc.127: was right after doHeadquarters
+	doDiploVote();
 
 	if (isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
 	{
@@ -6454,8 +6486,11 @@ void CvGame::doTurn()
 	PROFILE_END();
 
 	stopProfilingDLL(true);
-
-	gDLL->getEngineIFace()->AutoSave();
+	// <advc.700>
+	if(isOption(GAMEOPTION_RISE_FALL))
+		riseFall.autoSave();
+	else // </advc.700>
+		gDLL->getEngineIFace()->AutoSave();
 }
 
 // <advc.106b>
@@ -7727,7 +7762,7 @@ int CvGame::numBarbariansToSpawn(int tilesPerUnit, int nTiles, int nUnowned,
 	/* BtS always spawns at least one unit, but on Marathon, this could be
 	   too fast. Probabilistic instead. */
 	if(rFractional < 1) {
-		if(::bernoulliSuccess(rFractional))
+		if(::bernoulliSuccess(rFractional, "advc.300"))
 			return 1;
 		else return 0;
 	}
@@ -7765,7 +7800,7 @@ int CvGame::spawnBarbarians(int n, CvArea& area, Shelf* shelf,
 					way, i.e. a ship receiving a second passenger while travelling
 					to its target through fog of war. I don't think that happens
 					often enough though. */
-				if(cargo->getCargo() > 1 || ::bernoulliSuccess(0.75))
+				if(cargo->getCargo() > 1 || ::bernoulliSuccess(0.75, "advc.306"))
 					break;
 			}
 		}
@@ -7854,7 +7889,7 @@ CvPlot* CvGame::randomBarbPlot(CvArea const& area, Shelf* shelf) const {
 		double prSkip = 0;
 		if(legalCount > 0 && legalCount < 4)
 			prSkip = 1 - 1.0 / (5 - legalCount);
-		if(::bernoulliSuccess(prSkip))
+		if(::bernoulliSuccess(prSkip, "advc.304"))
 			r = NULL;
 	}
 	return r; // </advc.304>
@@ -7873,7 +7908,7 @@ bool CvGame::killBarb(int nPresent, int nTiles, int barbPop, CvArea& area,
 								is currently used). */
 	// Don't want large barb continents crawling with units
 	divisor = 5 * std::pow(divisor, 0.7);
-	if(::bernoulliSuccess(nPresent / divisor)) {
+	if(::bernoulliSuccess(nPresent / divisor, "advc.300 (kill)")) {
 		if(shelf != NULL)
 			return shelf->killBarb();
 		/*  Could be a bit more considerate about which unit to sacrifice.
@@ -8478,7 +8513,7 @@ void CvGame::testVictory()
 
 	updateScore();
 
-	long lResult = 1;
+	long lResult = 1; // advc.003 (comment): This checks if 10 turns have elapsed
 	gDLL->getPythonIFace()->callFunction(PYGameModule, "isVictoryTest", NULL, &lResult);
 	if (lResult == 0)
 	{
@@ -9274,8 +9309,17 @@ void CvGame::read(FDataStreamBase* pStream)
 
 	m_mapRand.read(pStream);
 	m_sorenRand.read(pStream);
-	if(isOption(GAMEOPTION_SPAH)) spah.read(pStream); // advc.250b
-
+	// <advc.250b>
+	if(isOption(GAMEOPTION_SPAH))
+		spah.read(pStream); // </advc.250b><advc.701>
+	if(uiFlag >= 2) {
+		if(isOption(GAMEOPTION_RISE_FALL))
+			riseFall.read(pStream);
+	}
+	else { // Options have been shuffled around
+		setOption(GAMEOPTION_NEW_RANDOM_SEED, isOption(GAMEOPTION_RISE_FALL));
+		setOption(GAMEOPTION_RISE_FALL, false);
+	} // </advc.701>
 	{
 		clearReplayMessageMap();
 		ReplayMessageList::_Alloc::size_type iSize;
@@ -9379,6 +9423,7 @@ void CvGame::read(FDataStreamBase* pStream)
 		compatibility right now. */
 	minimapWaterMode = GC.getDefineINT("MINIMAP_WATER_MODE");
 	delayUntilBuildDecay = GC.getDefineINT("DELAY_UNTIL_BUILD_DECAY"); // advc.011
+	turnLoadedFromSave = m_iElapsedGameTurns; // advc.044
 }
 
 
@@ -9386,7 +9431,7 @@ void CvGame::write(FDataStreamBase* pStream)
 {
 	int iI;
 
-	uint uiFlag=1;
+	uint uiFlag=2; // advc.701: 2 for R&F option
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iElapsedGameTurns);
@@ -9492,8 +9537,11 @@ void CvGame::write(FDataStreamBase* pStream)
 
 	m_mapRand.write(pStream);
 	m_sorenRand.write(pStream);
-	if(isOption(GAMEOPTION_SPAH)) spah.write(pStream); // advc.250b
-
+	// <advc.250b>
+	if(isOption(GAMEOPTION_SPAH))
+		spah.write(pStream); // </advc.250b><advc.701>
+	if(isOption(GAMEOPTION_RISE_FALL))
+		riseFall.write(pStream); // </advc.701>
 	ReplayMessageList::_Alloc::size_type iSize = m_listReplayMessages.size();
 	pStream->Write(iSize);
 	ReplayMessageList::const_iterator it;
@@ -9548,7 +9596,10 @@ void CvGame::writeReplay(FDataStreamBase& stream, PlayerTypes ePlayer)
 	if (m_pReplayInfo)
 	{
 		m_pReplayInfo->createInfo(ePlayer);
-
+		// <advc.707>
+		if(isOption(GAMEOPTION_RISE_FALL))
+			m_pReplayInfo->setFinalScore(riseFall.getFinalRiseScore());
+		// </advc.707>
 		m_pReplayInfo->write(stream);
 	}
 }
@@ -9761,21 +9812,31 @@ void CvGame::addPlayer(PlayerTypes eNewPlayer, LeaderHeadTypes eLeader, Civiliza
 void CvGame::changeHumanPlayer( PlayerTypes eNewHuman )
 {
 	PlayerTypes eCurHuman = getActivePlayer();
-
+	/*  <advc.127> Rearranged code b/c of a change in CvPlayer::isOption.
+		Important for advc.706. */
+	if(eNewHuman == eCurHuman) {
+		if(getActivePlayer() != eNewHuman)
+			setActivePlayer(eNewHuman, false);
+		GET_PLAYER(eNewHuman).setIsHuman(true);
+		GET_PLAYER(eNewHuman).updateHuman();
+		return;
+	}
+	GET_PLAYER(eCurHuman).setIsHuman(true);
 	GET_PLAYER(eNewHuman).setIsHuman(true);
-	setActivePlayer(eNewHuman, false);
-	
+	GET_PLAYER(eCurHuman).updateHuman();
+	GET_PLAYER(eNewHuman).updateHuman();
 	for (int iI = 0; iI < NUM_PLAYEROPTION_TYPES; iI++)
 	{
 		GET_PLAYER(eNewHuman).setOption( (PlayerOptionTypes)iI, GET_PLAYER(eCurHuman).isOption((PlayerOptionTypes)iI) );
 	}
-
 	for (int iI = 0; iI < NUM_PLAYEROPTION_TYPES; iI++)
 	{
 		gDLL->sendPlayerOption(((PlayerOptionTypes)iI), GET_PLAYER(eNewHuman).isOption((PlayerOptionTypes)iI));
-	}
+	} // </advc.127>
+	setActivePlayer(eNewHuman, false);
 
 	GET_PLAYER(eCurHuman).setIsHuman(false);
+	GET_PLAYER(eCurHuman).updateHuman(); // advc.127
 }
 /********************************************************************************/
 /* 	BETTER_BTS_AI_MOD						END								*/
@@ -10797,7 +10858,9 @@ bool CvGame::pythonIsBonusIgnoreLatitudes() const
 bool CvGame::useKModAI() const { return !GC.getGame().warAndPeaceAI().isEnabled(); }
 // advc.250b:
 StartPointsAsHandicap& CvGame::startPointsAsHandicap() { return spah; }
-
+// <advc.703>
+RiseFall const& CvGame::getRiseFall() const { return riseFall; }
+RiseFall& CvGame::getRiseFall() { return riseFall; } // </advc.703>
 // <advc.108>: See comment in Game.h
 int CvGame::getNormalizationLevel() const {
 

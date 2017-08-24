@@ -1,0 +1,111 @@
+#pragma once
+
+#ifndef RISE_FALL_H
+#define RISE_FALL_H
+
+#include "CvString.h"
+#include "RFChapter.h"
+#include "RFTotalScore.h"
+
+class CvPopup;
+
+// <advc.700>: Main class for the Rise & Fall mod component
+class RiseFall {
+
+public:
+	RiseFall();
+	~RiseFall();
+	void reset();
+	void init();
+	void write(FDataStreamBase* pStream);
+	void read(FDataStreamBase* pStream);
+	void atGameTurnStart();
+	void atActiveTurnStart();
+	void atTurnEnd(PlayerTypes civId);
+	void autoSave(); // May decide not to save
+	void retire();
+	int getRetireTurns() const;
+	bool hasRetired() const;
+	int getAutoPlayCountdown() const;
+	std::pair<int,int> getChapterCountdown() const;
+	int getInterludeCountdown() const;
+	void reportElimination(PlayerTypes civId);
+	void prepareForExtendedGame();
+	int getFinalRiseScore() const;
+	int getNormalizedFinalScore() const;
+	// Callbacks for CvDLLButtonPopup
+	  bool launchDefeatPopup(CvPopup* popup, CvPopupInfo& info);
+	  void handleDefeatPopup(int buttonClicked);
+	  bool launchCivSelectionPopup(CvPopup* popup, CvPopupInfo& info);
+	  void handleCivSelection(PlayerTypes selectedCiv);
+	  void afterCivSelection(int buttonClicked);
+	  void assignCivSelectionHelp(CvWStringBuffer& szBuffer,
+			PlayerTypes selectedCiv);
+	  CvWString retireConfirmMsg() const;
+	  bool isSelectingCiv() const; // Waiting for callback
+	bool isBlockPopups() const;
+	bool isDeliverMessages(PlayerTypes civId) const;
+	bool isCooperationRestricted(PlayerTypes aiCiv) const;
+	// Some deals are non-collusive regardless of trade value
+	bool isSquareDeal(CLinkList<TradeData> const& humanReceives,
+			CLinkList<TradeData> const& aiReceives, PlayerTypes aiCiv) const;
+	/*  Deal value assuming that certain items like civics changes are of low
+		value to the human side. */
+	int pessimisticDealVal(PlayerTypes aiCivId, int dealVal,
+			CLinkList<TradeData> const& humanReceives) const;
+	double dealThresh(bool annual) const;
+	// A hack to get the AI to refuse gifts:
+	  void substituteDiploText(bool gift);
+	  void restoreDiploText();
+	// For aligning score breakdowns
+	static wchar const* fillWS(int n, bool addPlus = false);
+	RFChapter& getChapter(int i) const; // Helps with exposal to Python
+	// Exposed to Python through CvGame:
+	  std::wstring* chapterScoreBreakdown(); 
+	  std::wstring* riseScoreBreakdown();
+	  /*  Named "MaxChapters" in order to make clear that the game may well end
+		  before all chapters are through */
+	  int getMaxChapters() const;
+	  int getCurrentChapter() const;
+
+private:
+	RFChapter* mostRecentlyFinished() const;
+	void computeEligibleCivs(std::vector<PlayerTypes>& r, bool allowRepeat) const;
+	bool isEligible(PlayerTypes civId, bool allowRepeat) const;
+	void updateOffLimits();
+	CvWString knownName(PlayerTypes civId, bool nameNumber) const;
+	int getCivChapter(PlayerTypes civId) const; // -1 if none
+	void eligibleByRecommendation(std::vector<PlayerTypes>& r) const;
+	static bool byRecommendation(PlayerTypes one, PlayerTypes two);
+	void haltForCivSelection(PlayerTypes haltCiv);
+	PlayerTypes nextCivAlive(PlayerTypes startExcluded) const;
+	void setPlayerControl(PlayerTypes civId, bool b);
+	void welcomeToNextChapter(int pos);
+	void centerCamera(PlayerTypes civId);
+	void showDawnOfMan();
+	void showDoW();
+	void showQuests();
+	void abandonPlans(PlayerTypes civId);
+	void setUIHidden(bool b);
+	void setPlayerName();
+	bool allSquare(CLinkList<TradeData> const& list, PlayerTypes from,
+			PlayerTypes to) const;
+	void shutOff(CvWString errorMsg);
+	void showError(CvWString errorMsg);
+	CvDiplomacyResponse* findThanks();
+	void clearDiploStrings();
+
+	int interludeLength;
+	std::vector<RFChapter*> chapters;
+	std::vector<CvString*> originalThanks;
+	std::set<TeamTypes> offLimits;
+	RFTotalScore riseScore;
+	int interludeCountdown;
+	bool selectingCiv;
+	bool retryingCivSelection;
+	CvWString* originalName;
+};
+
+// </advc.700>
+
+#endif

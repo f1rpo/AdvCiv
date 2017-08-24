@@ -143,6 +143,7 @@ public:
 	bool isBarbarian() const;																														// Exposed to Python
 	bool isMinorCiv() const;																														// Exposed to Python
 	PlayerTypes getLeaderID() const;																										// Exposed to Python
+	void updateLeaderID(); // advc.003b
 	PlayerTypes getSecretaryID() const;																									// Exposed to Python
 	HandicapTypes getHandicapType() const;																							// Exposed to Python
 	DllExport CvWString getName() const;																								// Exposed to Python
@@ -500,7 +501,10 @@ protected:
 	bool* m_abDefensivePact;
 	bool* m_abForcePeace;
 	bool* m_abVassal;
-	TeamTypes masterId; // advc.003b
+	// <advc.003b>
+	TeamTypes masterId;
+	PlayerTypes leaderId;
+	// </advc.003b>
 	bool* m_abCanLaunch;
 
 	int* m_paiRouteChange;

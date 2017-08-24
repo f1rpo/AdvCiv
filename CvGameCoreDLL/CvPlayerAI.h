@@ -236,6 +236,7 @@ public:
 		, bool ignoreDiscount = false // advc.550a
 		) const;
 	bool AI_goldDeal(const CLinkList<TradeData>* pList) const;
+	bool isAnnualDeal(CLinkList<TradeData> const& itemList) const; // advc.705
 	/*  advc.130o: Removed const qualifier - function may now change diplo memory.
 		Note that this function, despite lacking the DLLEport macro, gets called
 		directly from Civ4BeyondSword.exe.
@@ -565,6 +566,13 @@ protected:
 	// advc.104h:
 	int negotiatePeace(PlayerTypes receiverId, PlayerTypes giverId, int delta,
 			int* iGold, TechTypes* eBestTech, CvCity** pBestCity);
+	/*  <advc.705> AI_counterPropose gets called from the EXE (despite having
+		no DLLExport directive). Can't add a parameter there. */
+	bool counterProposeBulk(PlayerTypes ePlayer,
+			const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList,
+			CLinkList<TradeData>* pTheirInventory, CLinkList<TradeData>* pOurInventory,
+			CLinkList<TradeData>* pTheirCounter, CLinkList<TradeData>* pOurCounter,
+			double leniency) const; // </advc.705>
 
 	static CvPlayerAI* m_aPlayers;
 

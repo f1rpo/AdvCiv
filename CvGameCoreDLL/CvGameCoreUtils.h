@@ -41,8 +41,9 @@ class CvInfoBase;
 #undef min
 
 // <advc.003> floating point utility
-int round(double d);
-bool bernoulliSuccess(double pr); // 0 <= pr <= 1
+inline int round(double d) { return (int)floor(0.5 + d); }
+int roundToMultiple(double d, int modulus);
+bool bernoulliSuccess(double pr, char const* pszLog = ""); // 0 <= pr <= 1
 double median(std::vector<double>& distribution, bool sorted = false);
 double mean(std::vector<double>& distribution);
 double max(std::vector<double>& distribution);

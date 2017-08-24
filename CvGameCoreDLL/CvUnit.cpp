@@ -563,13 +563,43 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 		if (NO_UNIT != getLeaderUnitType())
 		{
 			CvWString szBuffer;
-			szBuffer = gDLL->getText("TXT_KEY_MISC_GENERAL_KILLED", getNameKey());
-			for (PlayerTypes i = (PlayerTypes)0; i < MAX_PLAYERS; i=(PlayerTypes)(i+1))
-			{
-				if (GET_PLAYER(i).isAlive())
-				{
-					//gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getEraInfo(GC.getGameINLINE().getCurrentEra()).getAudioUnitDefeatScript(), MESSAGE_TYPE_MAJOR_EVENT);
-					gDLL->getInterfaceIFace()->addHumanMessage(i, false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_INTERCEPTED", MESSAGE_TYPE_MAJOR_EVENT); // K-Mod (the other sound is not appropriate for most civs receiving the message.)
+			//szBuffer = gDLL->getText("TXT_KEY_MISC_GENERAL_KILLED", getNameKey());
+			// <advc.004u> szBuffer now set inside the loop
+			PlayerTypes ownerId = getOwner();
+			// Don't see how the GG could have no owner, but let's be certain.
+			if(ownerId != NO_PLAYER) { // </advc.004u>
+				for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1)) // advc.003: Exclude barbs
+				{	// <advc.003>
+					if(!GET_PLAYER(i).isAlive())
+						continue; // </advc.003>
+					ColorTypes col = NO_COLOR;
+					// <advc.004u>
+					if(i == ownerId) {
+						szBuffer = gDLL->getText("TXT_KEY_MISC_YOUR_GENERAL_KILLED", getNameKey(),
+								GET_PLAYER(ePlayer).getCivilizationShortDescription());
+						col = (ColorTypes)GC.getInfoTypeForString("COLOR_RED");
+					}
+					else if(i == ePlayer) {
+						szBuffer = gDLL->getText("TXT_KEY_MISC_GENERAL_KILLED_BY_YOU", getNameKey(),
+								GET_PLAYER(ownerId).getCivilizationShortDescription());
+						col = (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN");
+					}
+					else {
+						szBuffer = gDLL->getText("TXT_KEY_MISC_GENERAL_KILLED", getNameKey(),
+								GET_PLAYER(ownerId).getCivilizationShortDescription(),
+								GET_PLAYER(ePlayer).getCivilizationShortDescription());
+						col = (ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT");
+					}
+					bool isRev = plot()->isRevealed(TEAMID(i), false);
+					// </advc.004u>
+					gDLL->getInterfaceIFace()->addHumanMessage(i, false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
+							// advc.004u: Play the original sound when it does fit
+							i == ownerId ? GC.getEraInfo(GET_PLAYER(i).getCurrentEra()).getAudioUnitDefeatScript() :
+							"AS2D_INTERCEPTED", MESSAGE_TYPE_MAJOR_EVENT, // K-Mod (the other sound is not appropriate for most civs receiving the message.)
+							// <advc.004u> Indicate location on map
+							getButton(), col, isRev ? plot()->getX() : -1,
+							isRev ? plot()->getY() : -1, isRev, isRev);
+							// </advc.004u>
 				}
 			}
 		}
@@ -3489,7 +3519,11 @@ bool CvUnit::canGift(bool bTestVisible, bool bTestTransport)
 		if(!aCargoUnits[i]->canGift(false, false))
 			return false; // </dlph.4>
 	// </advc.123a>
-
+	// <advc.705>
+	CvGame const& g = GC.getGameINLINE();
+	if(g.isOption(GAMEOPTION_RISE_FALL) && isHuman() &&
+			g.getRiseFall().isCooperationRestricted(pPlot->getOwnerINLINE()))
+		return false; // </advc.705>
 	return !atWar(pPlot->getTeam(), getTeam());
 }
 
@@ -5989,7 +6023,8 @@ bool CvUnit::found()
 		return false;
 	}
 
-	if (GC.getGameINLINE().getActivePlayer() == getOwnerINLINE())
+	if (GC.getGameINLINE().getActivePlayer() == getOwnerINLINE()
+			&& CvPlot::activeVisibility) // advc.706
 	{
 		gDLL->getInterfaceIFace()->lookAt(plot()->getPoint(), CAMERALOOKAT_NORMAL);
 	}

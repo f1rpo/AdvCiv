@@ -600,6 +600,11 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 		GAMETEXT.setCommerceChangeHelp(szBuffer, L"", L"", gDLL->getText("TXT_KEY_CIVIC_PER_SPECIALIST").GetCString(), GC.getTechInfo((TechTypes)(widgetDataStruct.m_iData1)).getSpecialistExtraCommerceArray(), false, false);
 		break;
 	//K-Mod end
+	// <advc.706>
+	case WIDGET_RF_CIV_CHOICE:
+		GC.getGameINLINE().getRiseFall().assignCivSelectionHelp(szBuffer,
+				(PlayerTypes)widgetDataStruct.m_iData1);
+		break; // </advc.706>
 	}
 }
 
@@ -873,7 +878,12 @@ bool CvDLLWidgetData::executeAction( CvWidgetDataStruct &widgetDataStruct )
 
 	case WIDGET_ZOOM_CITY:
 		break;
-
+	// <advc.706>
+	case WIDGET_RF_CIV_CHOICE:
+		GC.getGameINLINE().getRiseFall().handleCivSelection(
+				(PlayerTypes)widgetDataStruct.m_iData1);
+		break;
+	// </advc.706>
 	case WIDGET_HELP_TECH_PREPREQ:
 	case WIDGET_HELP_OBSOLETE:
 	case WIDGET_HELP_OBSOLETE_BONUS:
@@ -4749,6 +4759,14 @@ void CvDLLWidgetData::parseFlagHelp(CvWidgetDataStruct &widgetDataStruct, CvWStr
 
 	szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), GC.getCivilizationInfo(GC.getGameINLINE().getActiveCivilizationType()).getDescription());
 	szBuffer.append(szTempBuffer);
+	// <advc.700>
+	CvGame const& g = GC.getGame();
+	if(g.isOption(GAMEOPTION_RISE_FALL)) {
+		std::pair<int,int> rfCountdown = g.getRiseFall().getChapterCountdown();
+		if(rfCountdown.second >= 0)
+			szBuffer.append(L" (" + gDLL->getText("TXT_KEY_RF_CHAPTER_COUNTDOWN",
+					rfCountdown.first, rfCountdown.second) + L")");
+	} // </advc.700>
 	szBuffer.append(NEWLINE);
 
 	GAMETEXT.parseLeaderTraits(szBuffer, GET_PLAYER(GC.getGameINLINE().getActivePlayer()).getLeaderType(), GET_PLAYER(GC.getGameINLINE().getActivePlayer()).getCivilizationType());

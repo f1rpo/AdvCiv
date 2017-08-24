@@ -51,6 +51,8 @@ WarEvaluator::WarEvaluator(WarEvalParameters& warEvalParams, bool useCache) :
 
 void WarEvaluator::reportPreamble() {
 
+	if(report.isMute())
+		return;
 	/* Show members in one column per team. Use spaces for alignment, table
 	   markers ('|') for Textile. */
 	report.log("Evaluating *%s%s war* between %s%s and %s%s", params.isTotal() ?

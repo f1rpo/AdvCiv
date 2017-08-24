@@ -138,7 +138,7 @@
 		<Tag>TXT_KEY_DAWN_OF_MAN_TEXT1</Tag>
 		<English>The sun rises on the year %s1_year. Since time immemorial, the %s2_civ people have lived a nomadic life. After years of wandering, they are ready to settle down and found your first city. [NEWLINE][NEWLINE]</English>
 		<French>Le soleil se l&#232;ve sur l'an %s1_year. Depuis des temps imm&#233;moriaux, les %s2_civ vivent en nomades. Apr&#232;s des ann&#233;es d'errance, ils sont pr&#234;ts &#224; s'installer et &#224; fonder votre premi&#232;re ville. [NEWLINE][NEWLINE]</French>
-		<German>Die Sonne erhellt das Jahr %s1_year Das %s2:3_civ Volk f&#252;hrt seit uralter Zeit ein Nomadenleben. Doch nun, nach so vielen Jahren des Umherziehens, sind die Menschen bereit, sich niederzulassen und Eure erste Stadt zu gr&#252;nden. [NEWLINE][NEWLINE]</German>
+		<German>Die Sonne erhellt das Jahr %s1_year. Das %s2:3_civ Volk f&#252;hrt seit uralter Zeit ein Nomadenleben. Doch nun, nach so vielen Jahren des Umherziehens, sind die Menschen bereit, sich niederzulassen und Eure erste Stadt zu gr&#252;nden. [NEWLINE][NEWLINE]</German>
 		<Italian>Il sole sorge nell'anno %s1_year. Da tempi immemori, la popolazione %s2:2_civ ha condotto una vita nomade. Dopo anni di vagabondaggi, sono infine pronti a stabilirsi e a fondare la tua prima citt&#224;. [NEWLINE][NEWLINE]</Italian>
 		<Spanish>El sol se alza en el a&#241;o %s1_year. Desde tiempos inmemoriales, los %s2:3_civ han llevado una vida n&#243;mada. Tras a&#241;os de deambular, est&#225;n listos para asentarse y fundar vuestra primera ciudad. [NEWLINE][NEWLINE]</Spanish>
 	</TEXT>
@@ -578,8 +578,36 @@
 		<Italian>Diminuisce il ritmo %s1_CmrcType del %d2_Mod%%</Italian>
 		<Spanish>Disminuir ritmo de %s1_CmrcType en un %d2_Mod%%</Spanish>
 	</TEXT>
+
+	<!-- advc.004g: The other terrain names are in
+		 CIV4GameTextInfos_Objects.xml. Previously used the same TXT_KEY as
+		 shelf ice, which was confusing, and everyone calls it "snow" anyway. -->
+	<TEXT>
+		<Tag>TXT_KEY_TERRAIN_SNOW</Tag>
+		<English>Snow</English>
+		<French>
+			<Text>Neige</Text>
+			<Gender>Female</Gender>
+			<Plural>0</Plural>
+		</French>
+		<German>
+			<Text>Schnee</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</German>
+		<Italian>
+			<Text>Neve</Text>
+			<Gender>Female</Gender>
+			<Plural>0</Plural>
+		</Italian>
+		<Spanish>
+			<Text>Nieve</Text>
+			<Gender>Female</Gender>
+			<Plural>0</Plural>
+		</Spanish>
+	</TEXT>
 	
-	<!-- [advc.004s] Originally in CIV4GameTextInfos.xml;
+	<!-- advc.004s: Originally in CIV4GameTextInfos.xml;
 		 says just "(Gold)" there. Translation from TXT_KEY_RESEARCH
 		 in CIV4GameText_Misc1.xml. -->
 	<TEXT>
@@ -1312,9 +1340,18 @@
 		<Spanish>&#161;Los enemigos infiltrados han saqueado %d1[ICON_GOLD] de nuestro tesoro!</Spanish>
 	</TEXT>
 
-	<!-- [advc.021] Originally in CIV4GameText_BTS_PatchText.xml. -->
+	<!-- [advc.021a] Originally in CIV4GameText_BTS_PatchText.xml.
+		 The percentages in the TXT_KEY names are way off. -->
 	<TEXT>
 		<Tag>TXT_KEY_MAP_SCRIPT_EARTH_70</Tag>
+		<English>Earthlike (80%% water)</English>
+		<French>Semblable à la Terre (80%% d'eau)</French>
+		<German>Erdähnlich (80%% Wasser)</German>
+		<Italian>Simile alla Terra (80%% acqua)</Italian>
+		<Spanish>Similar a la Tierra (80%% agua)</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MAP_SCRIPT_EARTH_60</Tag>
 		<English>Earthlike (70%% water)</English>
 		<French>Semblable à la Terre (70%% d'eau)</French>
 		<German>Erdähnlich (70%% Wasser)</German>
@@ -1322,20 +1359,12 @@
 		<Spanish>Similar a la Tierra (70%% agua)</Spanish>
 	</TEXT>
 	<TEXT>
-		<Tag>TXT_KEY_MAP_SCRIPT_EARTH_60</Tag>
+		<Tag>TXT_KEY_MAP_SCRIPT_EARTH_50</Tag>
 		<English>Earthlike (60%% water)</English>
 		<French>Semblable à la Terre (60%% d'eau)</French>
 		<German>Erdähnlich (60%% Wasser)</German>
 		<Italian>Simile alla Terra (60%% acqua)</Italian>
 		<Spanish>Similar a la Tierra (60%% agua)</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_MAP_SCRIPT_EARTH_50</Tag>
-		<English>Earthlike (50%% water)</English>
-		<French>Semblable à la Terre (50%% d'eau)</French>
-		<German>Erdähnlich (50%% Wasser)</German>
-		<Italian>Simile alla Terra (50%% acqua)</Italian>
-		<Spanish>Similar a la Tierra (50%% agua)</Spanish>
 	</TEXT>
 
 	<!-- advc.004g: Based on Vanilla Civ4GameTextInfos.xml -->
@@ -1664,6 +1693,582 @@
 		<German>%s1_ProdName (%d2_NumTurns)</German>
 		<Italian>%s1_ProdName (%d2_NumTurns)</Italian>
 		<Spanish>%s1_ProdName (%d2_NumTurns [NUM2:turno:turnos])</Spanish>
+	</TEXT>
+
+	<!-- [advc.004u] Originally in CIV4GameText_Warlords.xml without the Civ
+		 variables. -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_GENERAL_KILLED</Tag>
+		<English>%s1_warlord (%s2_Civ) has died in combat against %s3_Civ!</English>
+		<French>%s1_warlord (%s2_Civ) est mort au combat contre %s3_Civ !</French>
+		<German>%s1_warlord (%s2_Civ) ist im Kampf gegen %s3_Civ gefallen!</German>
+		<Italian>%s1_warlord (%s2_Civ) &#232; morto in battaglia contro %s3_Civ!</Italian>
+		<Spanish>&#161;%s1_warlord (%s2_Civ) ha muerto en combate en contra de %s3_Civ!</Spanish>
+	</TEXT>
+	<!-- New TXT_KEYs for special cases (player kills or loses GG) -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_YOUR_GENERAL_KILLED</Tag>
+		<English>%s1_warlord has died in combat against %s2_Civ!</English>
+		<French>%s1_warlord est mort au combat contre %s2_Civ !</French>
+		<German>%s1_warlord ist im Kampf gegen %s2_Civ gefallen!</German>
+		<Italian>%s1_warlord &#232; morto in battaglia contro %s2_Civ!</Italian>
+		<Spanish>&#161;%s1_warlord ha muerto en combate en contra de %s2_Civ!</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_GENERAL_KILLED_BY_YOU</Tag>
+		<English>%s1_warlord (%s2_Civ) has died in combat against you!</English>
+		<French>%s1_warlord (%s2_Civ) est mort au combat contre nous !</French>
+		<German>%s1_warlord (%s2_Civ) ist im Kampf gegen uns gefallen!</German>
+		<Italian>%s1_warlord (%s2_Civ) &#232; morto in battaglia contro noi!</Italian>
+		<Spanish>&#161;%s1_warlord (%s2_Civ) ha muerto en combate en contra de nosotros!</Spanish>
+	</TEXT>
+	
+	<!-- [advc.700] -->
+	<TEXT>
+		<Tag>TXT_KEY_RF_REPLAY_NEXT_CHAPTER</Tag>
+		<English>Start of Chapter %d1_Num: Player controls %s2.</English>
+		<French>Start of Chapter %d1_Num1: Player controls %s2.</French>
+		<German>Beginn Abschnitt %d1_Num1: Spieler steuert %s2.</German>
+		<Italian>Start of Chapter %d1_Num1: Player controls %s2.</Italian>
+		<Spanish>Start of Chapter %d1_Num1: Player controls %s2.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CHAPTER_COUNTDOWN</Tag>
+		<English>Turn  %d1_Trn/%d2_Trn</English>
+		<French>Turn  %d1_Trn/%d2_Trn</French>
+		<German>Zug  %d1_Trn/%d2_Trn</German>
+		<Italian>Turn  %d1_Trn/%d2_Trn</Italian>
+		<Spanish>Turn  %d1_Trn/%d2_Trn</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_INTERLUDE_COUNTDOWN</Tag>
+		<English>Auto Play: %d1_Trn</English>
+		<French>Auto Play: %d1_Trn</French>
+		<German>Autom. Züge: %d1_Trn</German>
+		<Italian>Auto Play: %d1_Trn</Italian>
+		<Spanish>Auto Play: %d1_Trn</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_NO_THANKS</Tag>
+		<English>We can't accept gifts from you. Let's haggle instead?</English>
+		<French>We can't accept gifts from you. Let's haggle instead?</French>
+		<German>Geschenke können wir von Euch nicht annehmen. Wollt Ihr nicht feilschen?</German>
+		<Italian>We can't accept gifts from you. Let's haggle instead?</Italian>
+		<Spanish>We can't accept gifts from you. Let's haggle instead?</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_POPUP_FINAL_TURN</Tag>
+		<English>This is the final turn of Chapter %d1_Chpt. Any lasting decisions on the last minute? (Start/ end wars, civic changes, use of Great People ...). Have you decided on your next civ yet?</English>
+		<French>This is the final turn of Chapter %d1_Chpt. Any lasting decisions on the last minute? (Start/ end wars, civic changes, use of Great People ...). Have you decided on your next civ yet?</French>
+		<German>Letzter Zug des %d1_Chpt. Abschnitts. Noch weitreichende Entscheidungen auf den letzten Drücker? (Krieg/ Frieden, Staatsform, Beförderungen ...). Haben Sie Ihre nächste Zivilisation ins Auge gefasst?</German>
+		<Italian>This is the final turn of Chapter %d1_Chpt. Any lasting decisions on the last minute? (Start/ end wars, civic changes, use of Great People ...). Have you decided on your next civ yet?</Italian>
+		<Spanish>This is the final turn of Chapter %d1_Chpt. Any lasting decisions on the last minute? (Start/ end wars, civic changes, use of Great People ...). Have you decided on your next civ yet?</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_POPUP_AUTO_PLAY</Tag>
+		<English>[NEWLINE][NEWLINE]Before Chapter %d1_Chpt, there's an intermediate period of %d2_Trns turns on Auto Play.</English>
+		<French>[NEWLINE][NEWLINE]Before Chapter %d1_Chpt, there's an intermediate period of %d2_Trns turns on Auto Play.</French>
+		<German>[NEWLINE][NEWLINE]Der %d1_Chpt. Spielabschnitt beginnt erst nach einer Zwischenzeit von %d2_Trns automatisierten Zügen.</German>
+		<Italian>[NEWLINE][NEWLINE]Before Chapter %d1_Chpt, there's an intermediate period of %d2_Trns turns on Auto Play.</Italian>
+		<Spanish>[NEWLINE][NEWLINE]Before Chapter %d1_Chpt, there's an intermediate period of %d2_Trns turns on Auto Play.</Spanish>
+	</TEXT>
+
+	<!-- [advc.701] -->
+	<TEXT>
+		<Tag>TXT_KEY_GAME_OPTION_RISE_FALL</Tag>
+		<English>Rise and Fall</English>
+		<French>Rise and Fall</French>
+		<German>Aufstieg und Fall</German>
+		<Italian>Rise and Fall</Italian>
+		<Spanish>Rise and Fall</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GAME_OPTION_RISE_FALL_HELP</Tag>
+		<English>Divides the game into chapters; at the end of each chapter, you take over an AI civ and the AI takes over your previous civ. (Singleplayer only, and Large or Huge map recommended.)</English>
+		<French>Divides the game into chapters; at the end of each chapter, you take over an AI civ and the AI takes over your previous civ. (Singleplayer only, and Large or Huge map recommended.)</French>
+		<German>Übernehmen Sie in jedem Spielabschnitt eine andere Zivilisation von der KI. (Nur Einzelspielermodus; große oder riesige Karte empfohlen.)</German>
+		<Italian>Divides the game into chapters; at the end of each chapter, you take over an AI civ and the AI takes over your previous civ. (Singleplayer only, and Large or Huge map recommended.)</Italian>
+		<Spanish>Divides the game into chapters; at the end of each chapter, you take over an AI civ and the AI takes over your previous civ. (Singleplayer only, and Large or Huge map recommended.)</Spanish>
+	</TEXT>
+
+	<!-- [advc.702] -->
+	<TEXT>
+		<Tag>TXT_KEY_RF_SINGLEPL_ONLY</Tag>
+		<English>The Rise and Fall option is only for singleplayer games.</English>
+		<French>The Rise and Fall option is only for singleplayer games.</French>
+		<German>Die Aufstieg-und-Fall-Option funktioniert nur im Einzelspielermodus.</German>
+		<Italian>The Rise and Fall option is only for singleplayer games.</Italian>
+		<Spanish>The Rise and Fall option is only for singleplayer games.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_NO_TEAMS</Tag>
+		<English>The Rise and Fall option is incompatible with team games.</English>
+		<French>The Rise and Fall option is incompatible with team games.</French>
+		<German>Die Aufstieg-und-Fall-Option ist mit Teams nicht kompatibel.</German>
+		<Italian>The Rise and Fall option is incompatible with team games.</Italian>
+		<Spanish>The Rise and Fall option is incompatible with team games.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_INVALID_OPTION</Tag>
+		<English>This game option is incompatible with Rise and Fall:  %s1_OptName</English>
+		<French>This game option is incompatible with Rise and Fall:  %s1_OptName</French>
+		<German>Folgende Spieloption ist nicht mit der Aufstieg-und-Fall-Option kompatibel: %s1_OptName</German>
+		<Italian>This game option is incompatible with Rise and Fall:  %s1_OptName</Italian>
+		<Spanish>This game option is incompatible with Rise and Fall:  %s1_OptName</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_INVALID_CHAPTERS</Tag>
+		<English>Invalid number of chapters: %d1_Num</English>
+		<French>Invalid number of chapters: %d1_Num</French>
+		<German>Unzulässige Anzahl von Spielabschnitten: %d1_Num</German>
+		<Italian>Invalid number of chapters: %d1_Num</Italian>
+		<Spanish>Invalid number of chapters: %d1_Num</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CHAPTER_TOO_SHORT</Tag>
+		<English>Chapter number %d1_Num is too short: %d2_Trns</English>
+		<French>Chapter number %d1_Num is too short: %d2_Trns</French>
+		<German>Spielabschnitt %d1_Num ist zu kurz: %d2_Trns</German>
+		<Italian>Chapter number %d1_Num is too short: %d2_Trns</Italian>
+		<Spanish>Chapter number %d1_Num is too short: %d2_Trns</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_SHUT_OFF</Tag>
+		<English>The Rise and Fall option has been disabled.</English>
+		<French>The Rise and Fall option has been disabled.</French>
+		<German>Die Aufstieg-und-Fall-Option wurde deaktiviert.</German>
+		<Italian>The Rise and Fall option has been disabled.</Italian>
+		<Spanish>The Rise and Fall option has been disabled.</Spanish>
+	</TEXT>
+
+	<!-- [advc.703] -->
+	<TEXT>
+		<Tag>TXT_KEY_RF_CHAPTER_PLURAL</Tag>
+		<English>Chapters</English>
+		<French>Chapters</French>
+		<German>Abschnitte</German>
+		<Italian>Chapters</Italian>
+		<Spanish>Chapters</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CHAPTER_INTERVAL</Tag>
+		<English>Turn %d1_Strt to %d2_End</English>
+		<French>Turn %d1_Strt to %d2_End</French>
+		<German>Zug %d1_Strt bis %d2_End</German>
+		<Italian>Turn %d1_Strt to %d2_End</Italian>
+		<Spanish>Turn %d1_Strt to %d2_End</Spanish>
+	</TEXT>
+	<!-- Amazingly, these two didn't exist yet -->
+	<TEXT>
+		<Tag>TXT_KEY_RF_TURN</Tag>
+		<English>Turn %d1_Trn</English>
+		<French>Turn %d1_Trn</French>
+		<German>Zug %d1_Trn</German>
+		<Italian>Turn %d1_Trn</Italian>
+		<Spanish>Turn %d1_Trn</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_TOTAL</Tag>
+		<English>Total:</English>
+		<French>Total:</French>
+		<German>Gesamtsumme:</German>
+		<Italian>Total:</Italian>
+		<Spanish>Total:</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CHAPTER_PTS</Tag>
+		<English>%d1_Pts points</English>
+		<French>%d1_Pts points</French>
+		<German>%d1_Pts Punkte</German>
+		<Italian>%d1_Pts points</Italian>
+		<Spanish>%d1_Pts points</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CHAPTER_REMAIN</Tag>
+		<English>turns remaining: %d1_Trns</English>
+		<French>turns remaining: %d1_Trns</French>
+		<German>Noch %d1_Trns Züge</German>
+		<Italian>turns remaining: %d1_Trns</Italian>
+		<Spanish>turns remaining: %d1_Trns</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CHAPTER_LAST_KNOWN</Tag>
+		<English>status on turn %d1_Trn</English>
+		<French>status on turn %d1_Trn</French>
+		<German>Stand Zug %d1_Trn</German>
+		<Italian>status on turn %d1_Trn</Italian>
+		<Spanish>status on turn %d1_Trn</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CHAPTER_FINAL</Tag>
+		<English>final turn</English>
+		<French>final turn</French>
+		<German>letzter Zug</German>
+		<Italian>final turn</Italian>
+		<Spanish>final turn</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CHAPTER_SCORE_TURN</Tag>
+		<English>Scored on Turn %d1_Trn</English>
+		<French>Scored on Turn %d1_Trn</French>
+		<German>Gewertet in Zug %d1_Trn</German>
+		<Italian>Scored on Turn %d1_Trn</Italian>
+		<Spanish>Scored on Turn %d1_Trn</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CHAPTER_SCORE_END</Tag>
+		<English>Scored at game end</English>
+		<French>Scored at game end</French>
+		<German>Wertung bei Spielende</German>
+		<Italian>Scored at game end</Italian>
+		<Spanish>Scored at game end</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_PARTIAL_SUM</Tag>
+		<English>Total so far:</English>
+		<French>Total so far:</French>
+		<German>Teilsumme:</German>
+		<Italian>Total so far:</Italian>
+		<Spanish>Total so far:</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CHAPTER_BREAKDOWN_H</Tag>
+		<English>Current Chapter Score</English>
+		<French>Current Chapter Score</French>
+		<German>Punkte für aktuellen Abschnitt</German>
+		<Italian>Current Chapter Score</Italian>
+		<Spanish>Current Chapter Score</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_RISE_BREAKDOWN_H</Tag>
+		<English>Rise Score by winning this turn</English>
+		<French>Rise Score by winning this turn</French>
+		<German>Aufstiegspunkte bei Sieg in diesem Zug</German>
+		<Italian>Rise Score by winning this turn</Italian>
+		<Spanish>Rise Score by winning this turn</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_RISE_FINAL_H</Tag>
+		<English>Rise Score at game end</English>
+		<French>Rise Score at game end</French>
+		<German>Aufstiegspunkte am Spielende</German>
+		<Italian>Rise Score at game end</Italian>
+		<Spanish>Rise Score at game end</Spanish>
+	</TEXT>
+	<!-- s14 to s18 are for alignment. TAB alone doesn't work because 3-digit
+		 numbers take up more than one tab (at least with the increased font
+		 sizes from advc.002b). -->
+	<TEXT>
+		<Tag>TXT_KEY_RF_CHAPTER_BREAKDOWN</Tag>
+		<English>%s12+%d1_Pts[TAB]from rank (%d2.)[NEWLINE]%s13 -%d3_Pts[TAB]from initial rank (%d4. of %d5)[NEWLINE]%s14+%d6_Pts[TAB]from Civ score (%d7%% of rank %d8)[NEWLINE]%s15 -%d9_Pts[TAB]from initial Civ score (%d10%% of rank %d11)</English>
+		<French>%s12+%d1_Pts[TAB]from rank (%d2.)[NEWLINE]%s13 -%d3_Pts[TAB]from initial rank (%d4. of %d5)[NEWLINE]%s14+%d6_Pts[TAB]from Civ score (%d7%% of rank %d8)[NEWLINE]%s15 -%d9_Pts[TAB]from initial Civ score (%d10%% of rank %d11)</French>
+		<German>%s12+%d1_Pts[TAB]für Rang (%d2.)[NEWLINE]%s13 -%d3_Pts[TAB]für Ausgangsrang (%d4. of %d5)[NEWLINE]%s14+%d6_Pts[TAB]für Civ-Punktzahl (%d7%% von Rang %d8)[NEWLINE]%s15 -%d9_Pts[TAB]für Civ-Punktzahl zu Beginn (%d10%% von Rang %d11)</German>
+		<Italian>%s12+%d1_Pts[TAB]from rank (%d2.)[NEWLINE]%s13 -%d3_Pts[TAB]from initial rank (%d4. of %d5)[NEWLINE]%s14+%d6_Pts[TAB]from Civ score (%d7%% of rank %d8)[NEWLINE]%s15 -%d9_Pts[TAB]from initial Civ score (%d10%% of rank %d11)</Italian>
+		<Spanish>%s12+%d1_Pts[TAB]from rank (%d2.)[NEWLINE]%s13 -%d3_Pts[TAB]from initial rank (%d4. of %d5)[NEWLINE]%s14+%d6_Pts[TAB]from Civ score (%d7%% of rank %d8)[NEWLINE]%s15 -%d9_Pts[TAB]from initial Civ score (%d10%% of rank %d11)</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CHAPTER_SCORE_IF_RETIRING</Tag>
+		<English>%s3+%d1_Pts[TAB]if retiring this turn (%d2%% time unspent)</English>
+		<French>%s3+%d1_Pts[TAB]if retiring this turn (%d2%% time unspent)</French>
+		<German>%s3+%d1_Pts[TAB]bei sofortiger Abdankung (%d2%% Zeit übrig)</German>
+		<Italian>%s3+%d1_Pts[TAB]if retiring this turn (%d2%% time unspent)</Italian>
+		<Spanish>%s3+%d1_Pts[TAB]if retiring this turn (%d2%% time unspent)</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CHAPTER_SCORE_RETIRED</Tag>
+		<English>%s3+%d1_Pts[TAB]from retiring (%d2%% time unspent)</English>
+		<French>%s3+%d1_Pts[TAB]from retiring (%d2%% time unspent)</French>
+		<German>%s3+%d1_Pts[TAB]für Abdankung (%d2%% Zeit übrig)</German>
+		<Italian>%s3+%d1_Pts[TAB]from retiring (%d2%% time unspent)</Italian>
+		<Spanish>%s3+%d1_Pts[TAB]from retiring (%d2%% time unspent)</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CHAPTER_SCORE_REPEAT</Tag>
+		<English>%s3 -%d1_Pts[TAB]because %s2_Civ played repeatedly</English>
+		<French>%s3 -%d1_Pts[TAB]because %s2_Civ played repeatedly</French>
+		<German>%s3 -%d1_Pts[TAB]because %s2_Civ played repeatedly</German>
+		<Italian>%s3 -%d1_Pts[TAB]because %s2_Civ played repeatedly</Italian>
+		<Spanish>%s3 -%d1_Pts[TAB]because %s2_Civ played repeatedly</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CHAPTER_BOTTOM_LINE_PLUS</Tag>
+		<English>%s2  %d1_Pts[TAB]in total</English>
+		<French>%s2  %d1_Pts[TAB]in total</French>
+		<German>%s2  %d1_Pts[TAB]insgesamt</German>
+		<Italian>%s2  %d1_Pts[TAB]in total</Italian>
+		<Spanish>%s2  %d1_Pts[TAB]in total</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CHAPTER_BOTTOM_LINE_MINUS</Tag>
+		<English>%s3  %d1_Pts[TAB]in total; negative total reduced to[NEWLINE]%s4  %d2_Pts[TAB](square root times three)</English>
+		<French>%s3  %d1_Pts[TAB]in total; negative total reduced to[NEWLINE]%s4  %d2_Pts[TAB](square root times three)</French>
+		<German>%s3  %d1_Pts[TAB]insgesamt; negative Summe reduziert auf[NEWLINE]%s4  %d2_Pts[TAB](dreimal die Wurzel)</German>
+		<Italian>%s3  %d1_Pts[TAB]in total; negative total reduced to[NEWLINE]%s4  %d2_Pts[TAB](square root times three)</Italian>
+		<Spanish>%s3  %d1_Pts[TAB]in total; negative total reduced to[NEWLINE]%s4  %d2_Pts[TAB](square root times three)</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_RISE_BREAKDOWN</Tag>
+		<English>%s14%d1_Pts[TAB]from sum of scored chapters [NEWLINE]%s15%d2_Pts[TAB]from finished but unscored chapters[NEWLINE]%s16+%d3_Pts[TAB]from victory, compensating for %d4 missed chapters[NEWLINE]%s17 -%d5_Pts[TAB]from initial rank (%d6. of %d7)[NEWLINE]%s18+%d8_Pts[TAB]for %d9%% time unspent in current chapter[NEWLINE]%s19+%d10_Pts[TAB](+%d11%%) from %s12_Hnd difficulty[NEWLINE]   -----------------------------------------------------------[NEWLINE]%s20  %d13_Pts[TAB]in total</English>
+		<French>%s14%d1_Pts[TAB]from sum of scored chapters [NEWLINE]%s15%d2_Pts[TAB]from finished but unscored chapters[NEWLINE]%s16+%d3_Pts[TAB]from victory, compensating for %d4 missed chapters[NEWLINE]%s17 -%d5_Pts[TAB]from initial rank (%d6. of %d7)[NEWLINE]%s18+%d8_Pts[TAB]for %d9%% time unspent in current chapter[NEWLINE]%s19+%d10_Pts[TAB](+%d11%%) from %s12_Hnd difficulty[NEWLINE]   -----------------------------------------------------------[NEWLINE]%s20  %d13_Pts[TAB]in total</French>
+		<German>%s14%d1_Pts[TAB]für gewertete Abschnitte [NEWLINE]%s15%d2_Pts[TAB]für beendete, noch ungewertete Abschnitte[NEWLINE]%s16+%d3_Pts[TAB]für Sieg, Ersatz für %d4 verpasste Abschnitte[NEWLINE]%s17 -%d5_Pts[TAB]für Ausgangsrang (%d6. von %d7)[NEWLINE]%s18+%d8_Pts[TAB]für %d9%% übrige Zeit im aktuellen Abschnitt[NEWLINE]%s19+%d10_Pts[TAB](+%d11%%) für Schwierigkeitsstufe %s12_Hnd[NEWLINE]   -----------------------------------------------------------[NEWLINE]%s20  %d13_Pts[TAB]insgesamt</German>
+		<Italian>%s14%d1_Pts[TAB]from sum of scored chapters [NEWLINE]%s15%d2_Pts[TAB]from finished but unscored chapters[NEWLINE]%s16+%d3_Pts[TAB]from victory, compensating for %d4 missed chapters[NEWLINE]%s17 -%d5_Pts[TAB]from initial rank (%d6. of %d7)[NEWLINE]%s18+%d8_Pts[TAB]for %d9%% time unspent in current chapter[NEWLINE]%s19+%d10_Pts[TAB](+%d11%%) from %s12_Hnd difficulty[NEWLINE]   -----------------------------------------------------------[NEWLINE]%s20  %d13_Pts[TAB]in total</Italian>
+		<Spanish>%s14%d1_Pts[TAB]from sum of scored chapters [NEWLINE]%s15%d2_Pts[TAB]from finished but unscored chapters[NEWLINE]%s16+%d3_Pts[TAB]from victory, compensating for %d4 missed chapters[NEWLINE]%s17 -%d5_Pts[TAB]from initial rank (%d6. of %d7)[NEWLINE]%s18+%d8_Pts[TAB]for %d9%% time unspent in current chapter[NEWLINE]%s19+%d10_Pts[TAB](+%d11%%) from %s12_Hnd difficulty[NEWLINE]   -----------------------------------------------------------[NEWLINE]%s20  %d13_Pts[TAB]in total</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_NORMALIZED</Tag>
+		<English>%s2%d1_Pts[TAB]normalized</English>
+		<French>%s2%d1_Pts[TAB]normalized</French>
+		<German>%s2%d1_Pts[TAB]normalisiert</German>
+		<Italian>%s2%d1_Pts[TAB]normalized</Italian>
+		<Spanish>%s2%d1_Pts[TAB]normalized</Spanish>
+	</TEXT>
+	<!-- A couple of changes to the breakdown on the scoreboard (but mostly
+		 copied from CIV4GameText_Warlords_Civ4Changed.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_RF_CIV_SCORE_BREAKDOWN</Tag>
+		<English>%d1 from Population (%d2_pop/%d3_pop_max)[NEWLINE]%d4 from Land (%d5_land/%d6_land_max)[NEWLINE]%d7 from Technology (%d8_tech/%d9_tech_max)[NEWLINE]%d10 from Wonders (%d11_wonder/%d12_wonder_max)[NEWLINE]------------------------[NEWLINE]Total = %d13[NEWLINE]See Score Tab (F8) for Chapter Score</English>
+		<French>%d1 pour population (%d2_pop/%d3_pop_max)[NEWLINE]%d4 pour territoire (%d5_land/%d6_land_max)[NEWLINE]%d7 pour technologies (%d8_tech/%d9_tech_max)[NEWLINE]%d10 pour Merveilles (%d11_wonder/%d12_wonder_max)[NEWLINE]------------------------[NEWLINE]Total = %d13[NEWLINE]Voir le Score Tab (F8) pour le score du chapitre</French>
+		<German>%d1 f&#252;r Bev&#246;lkerung (%d2_pop/%d3_pop_max)[NEWLINE]%d4 f&#252;r Land (%d5_land/%d6_land_max)[NEWLINE]%d7 f&#252;r Technologie (%d8_tech/%d9_tech_max)[NEWLINE]%d10 f&#252;r Wunder (%d11_wonder/%d12_wonder_max)[NEWLINE]------------------------[NEWLINE]Gesamt = %d13[NEWLINE]Abschnittspunktzahl: Siehe Score Tab (F8)</German>
+		<Italian>%d1 dalla popolazione (%d2_pop/%d3_pop_max)[NEWLINE]%d4 dal territorio (%d5_land/%d6_land_max)[NEWLINE]%d7 dalla tecnologia (%d8_tech/%d9_tech_max)[NEWLINE]%d10 dalle Meraviglie (%d11_wonder/%d12_wonder_max)[NEWLINE]------------------------[NEWLINE]Totale = %d13[NEWLINE]Vedi il Score Tab (F8) per il punteggio del capitolo</Italian>
+		<Spanish>%d1 por poblaci&#243;n (%d2_pop/%d3_pop_max)[NEWLINE]%d4 por territorio (%d5_land/%d6_land_max)[NEWLINE]%d7 por tecnolog&#237;a (%d8_tech/%d9_tech_max)[NEWLINE]%d10 por maravillas (%d11_wonder/%d12_wonder_max)[NEWLINE]------------------------[NEWLINE]Puntuaci&#243;n Total = %d13[NEWLINE]V&#233;ase el Score Tab (F8) por el puntuaci&#243;n del cap&#237;tulo</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_POPUP_SCORE</Tag>
+		<English>Chapter %d1 (%s2_Civ) has been scored</English>
+		<French>Chapter %d1 (%s2_Civ) has been scored</French>
+		<German>Wertung von Abschnitt %d1 (%s2_Civ)</German>
+		<Italian>Chapter %d1 (%s2_Civ) has been scored</Italian>
+		<Spanish>Chapter %d1 (%s2_Civ) has been scored</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_POPUP_SCORE_EARLY</Tag>
+		<English>Early scoring of chapter %d1 because %s2_Civ was conquered</English>
+		<French>Early scoring of chapter %d1 because %s2_Civ was conquered</French>
+		<German>Vorzeitige Wertung von Abschnitt %d1, da %s2_Civ erobert wurde</German>
+		<Italian>Early scoring of chapter %d1 because %s2_Civ was conquered</Italian>
+		<Spanish>Early scoring of chapter %d1 because %s2_Civ was conquered</Spanish>
+	</TEXT>
+
+	<!-- advc.704 -->
+	<TEXT>
+		<Tag>TXT_KEY_RF_DOM_FINAL</Tag>
+		<English>Final</English>
+		<French>Final</French>
+		<German>Letztes</German>
+		<Italian>Final</Italian>
+		<Spanish>Final</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CHAPTER</Tag>
+		<English>Chapter</English>
+		<French>Chapter</French>
+		<German>Abschnitt</German>
+		<Italian>Chapter</Italian>
+		<Spanish>Chapter</Spanish>
+	</TEXT>
+	<!-- Just a few words changed to align better with the Rise and Fall
+		 narrative -->
+	<TEXT>
+		<Tag>TXT_KEY_RF_DOM_FOUND</Tag>
+		<English>For %d1 turns, the %s2_civ are vesting absolute power in you, trusting that you can found a Civilization to stand the test of time!</English>
+		<French>For %d1 turns, the %s2_civ are vesting absolute power in you, trusting that you can found a Civilization to stand the test of time!</French>
+		<German>Für %d1 Züge verleiht das %s2:2 Volk Euch absolute Macht und vertraut darauf, dass Ihr eine Zivilisation begr&#252;nden werdet, die die Zeit &#252;berdauert!</German>
+		<Italian>For %d1 turns, the %s2_civ are vesting absolute power in you, trusting that you can found a Civilization to stand the test of time!</Italian>
+		<Spanish>For %d1 turns, the %s2_civ are vesting absolute power in you, trusting that you can found a Civilization to stand the test of time!</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_DOM</Tag>
+		<English>The sun rises on the year %s1_year. For %d2 turns, the %s3_civ are vesting absolute power in you, trusting that you can lead their Civilization to its zenith.[NEWLINE][NEWLINE]All units have been awoken for a roll call. You may want to investigate your cities, and confer with your advisors about ongoing/ potential deals, civics, espionage, finances and current research.</English>
+		<French>The sun rises on the year %s1_year. For %d2 turns, the %s3_civ are vesting absolute power in you, trusting that you can lead their Civilization to its zenith.[NEWLINE][NEWLINE]All units have been awoken for a roll call. You may want to investigate your cities, and confer with your advisors about ongoing/ potential deals, civics, espionage, finances and current research.</French>
+		<German>Die Sonne erhellt das Jahr %s1_year. Für %d2 Züge verleiht das %s3:2 Volk Euch absolute Macht und vertraut darauf, dass Ihr seine Zivilisation in goldene Zeiten führen werdet.[NEWLINE][NEWLINE]Alle Einheiten wurden geweckt und sind zum Appell angetreten. Eure Gouverneure und Berater stehen bereit, um jegliche Anweisungen umzusetzen - betreffs Stadtverwaltung, Diplomatie, Staatsformen, Spionage, Finanzen, Forschung ...</German>
+		<Italian>The sun rises on the year %s1_year. For %d2 turns, the %s3_civ are vesting absolute power in you, trusting that you can lead their Civilization to its zenith.[NEWLINE][NEWLINE]All units have been awoken for a roll call. You may want to investigate your cities, and confer with your advisors about ongoing/ potential deals, civics, espionage, finances and current research.</Italian>
+		<Spanish>The sun rises on the year %s1_year. For %d2 turns, the %s3_civ are vesting absolute power in you, trusting that you can lead their Civilization to its zenith.[NEWLINE][NEWLINE]All units have been awoken for a roll call. You may want to investigate your cities, and confer with your advisors about ongoing/ potential deals, civics, espionage, finances and current research.</Spanish>
+	</TEXT>
+	
+	<!-- [advc.706]
+		 The Retire action needs slightly different text. Could be done more
+		 nicely by showing help text dynamically depending on game settings
+		 (but I'm not going to). -->
+	<!-- From CIV4GameText_Help.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_CONTROL_RETIRE_HELP</Tag>
+		<English>Retire from the game. When done in multiplayer (or Rise and Fall), the AI will take over the player's Civilization.</English>
+		<French>Abandonner la partie. En mode Multijoueur, l'I.A. prend le contr&#244;le de la civilisation du joueur.</French>
+		<German>Abdanken. Im Multiplayer-Modus (ebenso Aufstieg und Fall) &#252;bernimmt in diesem Fall die KI die Zivilisation des entsprechenden Spielers.</German>
+		<Italian>Ritirati dal gioco. Se ci si ritira durante una partita in multigiocatore, l'IA rilever&#224; la civilt&#224; del giocatore.</Italian>
+		<Spanish>Para retirarse de la partida. Cuando se haga en multijugador, la IA llevar&#225; a la civilizaci&#243;n del jugador que abandone.</Spanish>
+	</TEXT>
+	<!-- From CIV4GameText_Misc1.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_RETIRE</Tag>
+		<English>Retire</English>
+		<French>Abandonner</French>
+		<German>Abdanken</German>
+		<Italian>Ritirati</Italian>
+		<Spanish>Retirarse</Spanish>
+	</TEXT>
+	<!-- From CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_RETIRE</Tag>
+		<English>Retire from the game</English>
+		<French>Abandonner la partie</French>
+		<German>Aus dem Spiel abdanken</German>
+		<Italian>Ritirati dalla partita</Italian>
+		<Spanish>Retirarse de la partida</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CONFIRM_RETIRE</Tag>
+		<English>If you retire, your remaining %d1 turns of the chapter are played by the AI.</English>
+		<French>If you retire, your remaining %d1 turns of the chapter are played by the AI.</French>
+		<German>Wenn Sie abdanken, übernimmt die KI die übrigen %d1 Züge des Kapitels.</German>
+		<Italian>If you retire, your remaining %d1 turns of the chapter are played by the AI.</Italian>
+		<Spanish>If you retire, your remaining %d1 turns of the chapter are played by the AI.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CONFIRM_RETIRE_INTERLUDE</Tag>
+		<English>Plus a %d1-turn intermediate period on Auto Play.</English>
+		<French>Plus a %d1-turn intermediate period on Auto Play.</French>
+		<German>Plus eine Zwischenzeit von %d1 automatisierten Zügen.</German>
+		<Italian>Plus a %d1-turn intermediate period on Auto Play.</Italian>
+		<Spanish>Plus a %d1-turn intermediate period on Auto Play.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_POPUP_RECOMMEND_RETIRE</Tag>
+		<English>Recommendation: Unless you can win in this chapter, it may be time to retire (main menu). Since you've already reached rank 1, your score is not going to improve much more, but %s1_Civ could become a major obstacle in later chapters. Retiring lets the AI finish this chapter and yields some bonus points.</English>
+		<French>Recommendation: Unless you can win in this chapter, it may be time to retire (main menu). Since you've already reached rank 1, your score is not going to improve much more, but %s1_Civ could become a major obstacle in later chapters. Retiring lets the AI finish this chapter and yields some bonus points.</French>
+		<German>Empfehlung: Falls Sie nicht noch in diesem Spielabschnitt gewinnen können, sollten Sie eine Abdankung (Hauptmenü) in Betracht ziehen. Da Sie schon in Führung sind, wird sich Ihre Punktzahl für diesen Abschnitt kaum noch erhöhen, aber %s1_Civ könnte in späteren Abschnitten ein gefährlicher Gegner werden. Die Abdankung lässt die KI den Abschnitt zu Ende spielen und bringt einige Zusatzpunkte.</German>
+		<Italian>Recommendation: Unless you can win in this chapter, it may be time to retire (main menu). Since you've already reached rank 1, your score is not going to improve much more, but %s1_Civ could become a major obstacle in later chapters. Retiring lets the AI finish this chapter and yields some bonus points.</Italian>
+		<Spanish>Recommendation: Unless you can win in this chapter, it may be time to retire (main menu). Since you've already reached rank 1, your score is not going to improve much more, but %s1_Civ could become a major obstacle in later chapters. Retiring lets the AI finish this chapter and yields some bonus points.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_DEFEAT</Tag>
+		<English>The next chapter will start on turn %d1 after %d2 turns of Auto Play.</English>
+		<French>The next chapter will start on turn %d1 after %d2 turns of Auto Play.</French>
+		<German>Der nächste Abschnitt beginnt in Zug %d1 nach %d2 automatisierten Zügen.</German>
+		<Italian>The next chapter will start on turn %d1 after %d2 turns of Auto Play.</Italian>
+		<Spanish>The next chapter will start on turn %d1 after %d2 turns of Auto Play.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CIV_SELECTION_EMPTY</Tag>
+		<English>There is no civ for you to pick for Chapter %d1.</English>
+		<French>There is no civ for you to pick for Chapter %d1.</French>
+		<German>Es gibt keine Zivilisation, die Sie zulässigerweise im %d1. Abschnitt übernehmen könnten.</German>
+		<Italian>There is no civ for you to pick for Chapter %d1.</Italian>
+		<Spanish>There is no civ for you to pick for Chapter %d1.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CIV_SELECTION_EMPTY2</Tag>
+		<English>Perhaps a civ will become available later on (i.e. a colony or one of your vassals from a previous chapter).</English>
+		<French>Perhaps a civ will become available later on (i.e. a colony or one of your vassals from a previous chapter).</French>
+		<German>Womöglich wird später noch eine Zivilisation verfügbar (eine neue Kolonie oder ein Vasall aus einem früheren Abschnitt).</German>
+		<Italian>Perhaps a civ will become available later on (i.e. a colony or one of your vassals from a previous chapter).</Italian>
+		<Spanish>Perhaps a civ will become available later on (i.e. a colony or one of your vassals from a previous chapter).</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CIV_SELECTION_UNSCORED</Tag>
+		<English>Also, if you continue the game on Auto Play, Chapter %d1 can be scored normally. If you end the game now, that chapter is scored right away.</English>
+		<French>Also, if you continue the game on Auto Play, Chapter %d1 can be scored normally. If you end the game now, that chapter is scored right away.</French>
+		<German>Außerdem kann Abschnitt %d1 regulär gewertet werden, wenn Sie das Spiel automatisiert weiterlaufen lassen. Wenn Sie das Spiel jetzt beenden, wird dieser Abschnitt sofort gewertet.</German>
+		<Italian>Also, if you continue the game on Auto Play, Chapter %d1 can be scored normally. If you end the game now, that chapter is scored right away.</Italian>
+		<Spanish>Also, if you continue the game on Auto Play, Chapter %d1 can be scored normally. If you end the game now, that chapter is scored right away.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_SKIP_CHAPTER</Tag>
+		<English>Skip to Chapter %d1 (%d2 turns of Auto Play).</English>
+		<French>Skip to Chapter %d1 (%d2 turns of Auto Play).</French>
+		<German>Weiter zum %d1. Abschnitt (%d2 automatisierte Züge)</German>
+		<Italian>Skip to Chapter %d1 (%d2 turns of Auto Play).</Italian>
+		<Spanish>Skip to Chapter %d1 (%d2 turns of Auto Play).</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_RETIRE_ALL</Tag>
+		<English>End the game and go to final score.</English>
+		<French>End the game and go to final score.</French>
+		<German>Spielende und Endwertung</German>
+		<Italian>End the game and go to final score.</Italian>
+		<Spanish>End the game and go to final score.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CIV_SELECTION</Tag>
+		<English>Please select your civ for Chapter %d1.</English>
+		<French>Please select your civ for Chapter %d1.</French>
+		<German>Wählen Sie Ihre Zivilisation für Spielabschnitt %d1.</German>
+		<Italian>Please select your civ for Chapter %d1.</Italian>
+		<Spanish>Please select your civ for Chapter %d1.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CIV_SELECTION_RETRY</Tag>
+		<English>Your previous choice has just been eliminated.</English>
+		<French>Your previous choice has just been eliminated.</French>
+		<German>Ihre vorige Wahl ist gerade aus dem Spiel ausgeschieden.</German>
+		<Italian>Your previous choice has just been eliminated.</Italian>
+		<Spanish>Your previous choice has just been eliminated.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CIV_SELECTION_REPEAT</Tag>
+		<English>You've already played this civ in Chapter %d1. If you select it again, the score for Chapter %d2 will be halved.</English>
+		<French>You've already played this civ in Chapter %d1. If you select it again, the score for Chapter %d2 will be halved.</French>
+		<German>Sie haben diese Zivilisation schon in Abschnitt %d1 gespielt. Bei erneuter Wahl wird die Punktzahl für Abschnitt %d2 halbiert.</German>
+		<Italian>You've already played this civ in Chapter %d1. If you select it again, the score for Chapter %d2 will be halved.</Italian>
+		<Spanish>You've already played this civ in Chapter %d1. If you select it again, the score for Chapter %d2 will be halved.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CIV_SELECTION_SCORE</Tag>
+		<English>Current Civ Score: %d1_Pts</English>
+		<French>Current Civ Score: %d1_Pts</French>
+		<German>Aktueller Civ-Punktestand: %d1_Pts</German>
+		<Italian>Current Civ Score: %d1_Pts</Italian>
+		<Spanish>Current Civ Score: %d1_Pts</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CIV_SELECTION_CAPVASSAL</Tag>
+		<English>Capitulated vassal of</English>
+		<French>Capitulated vassal of</French>
+		<German>Vasall (kapituliert) von</German>
+		<Italian>Capitulated vassal of</Italian>
+		<Spanish>Capitulated vassal of</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CIV_SELECTION_VOLVASSAL</Tag>
+		<English>Voluntary vassal of</English>
+		<French>Voluntary vassal of</French>
+		<German>Vasall (freiwillig) von</German>
+		<Italian>Voluntary vassal of</Italian>
+		<Spanish>Voluntary vassal of</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CIV_SELECTION_WAR</Tag>
+		<English>War enemies</English>
+		<French>War enemies</French>
+		<German>Kriegsgegner</German>
+		<Italian>War enemies</Italian>
+		<Spanish>War enemies</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CIV_SELECTION_NUMBER</Tag>
+		<English>No. %d1</English>
+		<French>No. %d1</French>
+		<German>Nr. %d1</German>
+		<Italian>No. %d1</Italian>
+		<Spanish>No. %d1</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_YOU_AT_WAR</Tag>
+		<English>You're at war with %s1_Civ!</English>
+		<French>You're at war with %s1_Civ!</French>
+		<German>Wir befinden uns im Krieg mit %s1_Civ!</German>
+		<Italian>You're at war with %s1_Civ!</Italian>
+		<Spanish>You're at war with %s1_Civ!</Spanish>
+	</TEXT>
+	<!-- Translations: TXT_KEY_QUEST_MESSAGE_LOG in CIV4GameText_BTS.xml.
+		 fr. Qu&#234;tes, it. Imprese, sp. Misiones -->
+	<TEXT>
+		<Tag>TXT_KEY_GOT_QUESTS</Tag>
+		<English>Your civilization is on a quest. Check the Quest log (Ctrl + Tab).</English>
+		<French>Your civilization is on a quest. Check the Quest log (Ctrl + Tab).</French>
+		<German>Ein Quest liegt an (Quest Log: Ctrl + Tab).</German>
+		<Italian>Your civilization is on a quest. Check the Quest log (Ctrl + Tab).</Italian>
+		<Spanish>Your civilization is on a quest. Check the Quest log (Ctrl + Tab).</Spanish>
 	</TEXT>
 	
 </Civ4GameText>

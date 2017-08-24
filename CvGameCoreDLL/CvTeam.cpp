@@ -53,7 +53,9 @@ CvTeam::CvTeam()
 	m_abDefensivePact = new bool[MAX_TEAMS];
 	m_abForcePeace = new bool[MAX_TEAMS];
 	m_abVassal = new bool[MAX_TEAMS];
-	masterId = NO_TEAM; // 003b
+	// <advc.003b>
+	masterId = NO_TEAM;
+	leaderId = NO_PLAYER; // </advc.003b>
 	m_abCanLaunch = NULL;
 
 	m_paiRouteChange = NULL;
@@ -219,7 +221,9 @@ void CvTeam::reset(TeamTypes eID, bool bConstructorCall)
 
 	// advc.134a:
 	offeringPeace = NO_TEAM; peaceOfferStage = 0;
-	masterId = NO_TEAM; // advc.003b
+	// <advc.003b>
+	masterId = NO_TEAM;
+	leaderId = NO_PLAYER; // </advc.003b>
 	for (iI = 0; iI < MAX_TEAMS; iI++)
 	{
 		m_aiStolenVisibilityTimer[iI] = 0;
@@ -604,7 +608,9 @@ void CvTeam::addTeam(TeamTypes eTeam)
 	shareCounters(eTeam);
 	//GET_TEAM(eTeam).shareCounters(getID());
 	// K-Mod note: eTeam is not going to be used after we've finished this merge, so the sharing does not need to be two-way.
-
+	/*  advc.104t: Leader id needed later for merging data; unavailable after the
+		loop below. */
+	PlayerTypes eTeamLeader = GET_TEAM(eTeam).getLeaderID();
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).getTeam() == eTeam)
@@ -769,7 +775,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 	AI_updateWorstEnemy();
 	// <advc.104t>
 	if(getWPAI.isEnabled()) {
-		GET_TEAM(getID()).warAndPeaceAI().addTeam(eTeam);
+		GET_TEAM(getID()).warAndPeaceAI().addTeam(eTeamLeader);
 		getWPAI.update();
 	} // </advc.104t>
 	AI_updateAreaStrategies();
@@ -3348,32 +3354,42 @@ bool CvTeam::isMinorCiv() const
 	return bValid;
 }
 
+// <advc.003b> This gets called a lot; now precomputed.
+PlayerTypes CvTeam::getLeaderID() const {
 
-PlayerTypes CvTeam::getLeaderID() const
-{
-	int iI;
+	return leaderId;
+}
 
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
-	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
-		{
-			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
-			{
-				return ((PlayerTypes)iI);
+void CvTeam::updateLeaderID() {
+
+	PlayerTypes formerLeader = getLeaderID();
+	bool done = false;
+	for (int iI = 0; iI < MAX_PLAYERS; iI++) {
+		if (GET_PLAYER((PlayerTypes)iI).isAlive()) {
+			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID()) {
+				leaderId = (PlayerTypes)iI;
+				done = true;
+				break;
 			}
 		}
 	}
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
-	{
-		if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
-		{
-			return ((PlayerTypes)iI);
+	if(!done) {
+		for (int iI = 0; iI < MAX_PLAYERS; iI++) {
+			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID()) {
+				leaderId = (PlayerTypes)iI;
+				done = true;
+				break;
+			}
 		}
 	}
-
-	return NO_PLAYER;
-}
+	if(done) {
+		// <advc.104t>
+		 if(getWPAI.isEnabled() && formerLeader != leaderId)
+			GET_PLAYER(leaderId).warAndPeaceAI().getCache().onTeamLeaderChanged(formerLeader);
+		 // </advc.104t>
+	}
+	else leaderId = NO_PLAYER;
+} // </advc.003b>
 
 
 PlayerTypes CvTeam::getSecretaryID() const
@@ -4347,7 +4363,17 @@ void CvTeam::setOpenBorders(TeamTypes eIndex, bool bNewValue)
 		bOldFreeTrade = isFreeTrade(eIndex);
 
 		m_abOpenBorders[eIndex] = bNewValue;
-
+		// <advc.130p> OB affect diplo from rival trade
+		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+			CvPlayerAI& other = GET_PLAYER((PlayerTypes)i);
+			if(other.getTeam() == getID())
+				continue;
+			for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
+				CvPlayerAI& member = GET_PLAYER((PlayerTypes)j);
+				if(member.getTeam() == getID())
+					other.AI_updateAttitudeCache(member.getID());
+			}
+		} // </advc.130p>
 		AI_setOpenBordersCounter(eIndex, 0);
 
 		GC.getMapINLINE().verifyUnitValidPlot();
@@ -5758,7 +5784,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < GC.getNumTechInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
-	FAssertMsg(ePlayer >= 0, "eIndex is expected to be non-negative (invalid Index)");
+	FAssertMsg(ePlayer >= 0, "ePlayer is expected to be non-negative (invalid Index)"); // advc.003: Message said "eIndex..."
 	FAssertMsg(ePlayer < MAX_PLAYERS, "ePlayer is expected to be within maximum bounds (invalid Index)");
 
 	if (isHasTech(eIndex) != bNewValue)
@@ -7133,7 +7159,11 @@ void CvTeam::read(FDataStreamBase* pStream)
 	pStream->Read(MAX_TEAMS, m_abDefensivePact);
 	pStream->Read(MAX_TEAMS, m_abForcePeace);
 	pStream->Read(MAX_TEAMS, m_abVassal);
-	pStream->Read((int*)&masterId); // advc.003b
+	// <advc.003b>
+	pStream->Read((int*)&masterId);
+	if(uiFlag >= 2)
+		pStream->Read((int*)&leaderId);
+	else updateLeaderID(); // </advc.003b>
 	pStream->Read(GC.getNumVictoryInfos(), m_abCanLaunch);
 
 	pStream->Read(GC.getNumRouteInfos(), m_paiRouteChange);
@@ -7184,7 +7214,7 @@ void CvTeam::write(FDataStreamBase* pStream)
 {
 	int iI;
 
-	uint uiFlag = 1;
+	uint uiFlag = 2; // advc.003b: leaderId added
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iNumMembers);
@@ -7235,7 +7265,9 @@ void CvTeam::write(FDataStreamBase* pStream)
 	pStream->Write(MAX_TEAMS, m_abDefensivePact);
 	pStream->Write(MAX_TEAMS, m_abForcePeace);
 	pStream->Write(MAX_TEAMS, m_abVassal);
-	pStream->Write(masterId); // advc.003b
+	// <advc.003b>
+	pStream->Write(masterId);
+	pStream->Write(leaderId); // </advc.003b>
 	pStream->Write(GC.getNumVictoryInfos(), m_abCanLaunch);
 
 	pStream->Write(GC.getNumRouteInfos(), m_paiRouteChange);

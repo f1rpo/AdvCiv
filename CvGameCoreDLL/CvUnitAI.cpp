@@ -6655,8 +6655,8 @@ void CvUnitAI::AI_barbAttackSeaMove()
 		Should also resolve an issue where barb ships are indefinitely stuck
 		patrolling an unowned stretch surrounded by borders. (Patrolling barbs
 		never enter borders.) */
-	if((::bernoulliSuccess(0.2) || getGroup()->getMissionType(0) == MISSION_MOVE_TO)
-			&& AI_safety())
+	if((::bernoulliSuccess(0.2, "advc.306") ||
+			getGroup()->getMissionType(0) == MISSION_MOVE_TO) && AI_safety())
 		return; // </advc.306>
 
 	if (AI_patrol())
@@ -9696,7 +9696,7 @@ void CvUnitAI::AI_defenseAirMove()
 
 	// <advc.651>
 	if(GET_PLAYER(getOwner()).isDangerFromSubmarines() && plot()->isCoastalLand() &&
-			::bernoulliSuccess(0.38)) {
+			::bernoulliSuccess(0.38, "advc.651")) {
 		/* Would be better to check for matching Invisible Types (modded aircraft
 		   may not be able to see invisible units). Also, isCoastalLand is a bit
 		   narrow -- can often scout the seas from landlocked cities. */
@@ -14679,7 +14679,8 @@ bool CvUnitAI::AI_patrol()
 		&& (pBestPlot->getOwner() != getOwner() || isBarbarian() ||
 		// Make sure not to hamper early exploration (perhaps not an issue)
 		GC.getGameINLINE().getElapsedGameTurns() < 25 ||
-		(::bernoulliSuccess(0.1) && !pBestPlot->isUnit())) // </advc.102>
+		(::bernoulliSuccess(0.1, "advc.102") && !pBestPlot->isUnit()))
+		// </advc.102>
 		)
 	{
 		FAssert(!atPlot(pBestPlot));
@@ -16048,7 +16049,7 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, int iFlags, int iMin
 
 			// <advc.128>
 			if((std::abs(iDX) > searchRangeRand || std::abs(iDY) > searchRangeRand)
-					&& !pLoopPlot->isActiveVisible(false))
+					&& !pLoopPlot->isVisible(getTeam(), false))
 				continue; // </advc.128>
 
 			int iEnemyDefenders = bDeclareWar ? pLoopPlot->getNumVisiblePotentialEnemyDefenders(this) : pLoopPlot->getNumVisibleEnemyDefenders(this);
@@ -16357,11 +16358,11 @@ bool CvUnitAI::AI_evacuateCity() {
 	}
 	/*  retreatToCity isn't perfect for this; selects the city based on plot danger.
 		Hopefully sufficient most of the time. */
-	if(::bernoulliSuccess(prEvac))
+	if(::bernoulliSuccess(prEvac, "advc.139"))
 		return AI_retreatToCity();
 	return false;
-}
-// </advc.139>
+} // </advc.139>
+
 
 // K-Mod.
 // bLocal is just to help with the efficiency of this function for short-range checks. It means that we should look only in nearby plots.

@@ -20,7 +20,8 @@ def onGameStart(argsList):
 	# advc.250c: Show DoM also when human starts advanced - actually always
 	# show DoM on game start, but for ordinary games, CvEventManager.py
 	# already show it.
-	if gc.getGame().getGameTurnYear() != START_YEAR or (gc.getGame().isOption(GameOptionTypes.GAMEOPTION_ADVANCED_START) and not gc.getGame().isOption(GameOptionTypes.GAMEOPTION_SPAH)):
+	# advc.704: RiseFall isn't initialized onGameStart; show the screen from the DLL instead
+	if (gc.getGame().getGameTurnYear() != START_YEAR or (gc.getGame().isOption(GameOptionTypes.GAMEOPTION_ADVANCED_START) and not gc.getGame().isOption(GameOptionTypes.GAMEOPTION_SPAH))) and not gc.getGame().isOption(GameOptionTypes.GAMEOPTION_RISE_FALL):
 		if (gc.getGame().getGameTurn() == gc.getGame().getStartTurn()) or (gc.getGame().countNumHumanGameTurnActive() == 0):
 			for iPlayer in range(gc.getMAX_PLAYERS()):
 				pPlayer = gc.getPlayer(iPlayer)

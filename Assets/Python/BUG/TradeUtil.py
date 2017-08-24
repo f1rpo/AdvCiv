@@ -116,9 +116,9 @@ DOMESTIC_TRADE = 0
 DOMESTIC_OVERSEAS_TRADE = 1
 FOREIGN_TRADE = 2
 FOREIGN_OVERSEAS_TRADE = 3
-# advc.003c: XML isn't loaded when this line is executed; the value isn't used
-# either, so I'm removing this line (to avoid a failed assertion)
-#MAX_TRADE_ROUTES = gc.getMAX_TRADE_ROUTES()
+# advc.003c: XML isn't loaded when this line is executed. Commented out b/c
+# the value isn't even used.
+#MAX_TRADE_ROUTES = gc.getDefineINT("MAX_TRADE_ROUTES")
 FRACTIONAL_TRADE = False
 TRADE_PROFIT_FUNC = None
 

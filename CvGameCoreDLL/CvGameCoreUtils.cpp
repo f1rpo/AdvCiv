@@ -39,18 +39,23 @@
 // <advc.003>
 using std::vector;
 
-inline int round(double d) {
+int roundToMultiple(double d, int modulus) {
 
-    return (int)floor(0.5 + d);
+	int r = round(d + 0.5 * modulus);
+	return r - r % modulus;
 }
 
-bool bernoulliSuccess(double pr) {
+bool bernoulliSuccess(double pr, char const* pszLog) {
 
     int chancePerMyriad = round(pr * 10000.0);
 	// These two checks are just for better performance
-	if(chancePerMyriad >= 10000) return true;
-	if(chancePerMyriad <= 0) return false;
-    return GC.getGameINLINE().getSorenRandNum(10000, "bs") < chancePerMyriad;
+	if(chancePerMyriad >= 10000)
+		return true;
+	if(chancePerMyriad <= 0)
+		return false;
+	if(strlen(pszLog) <= 0)
+		pszLog = "bs";
+    return GC.getGameINLINE().getSorenRandNum(10000, pszLog) < chancePerMyriad;
 }
 
 double median(vector<double>& distribution, bool sorted) {

@@ -120,7 +120,7 @@ CvUnit* Shelf::randomBarbCargoUnit() const {
 	int nLegal = legal.size();
 	if(nLegal == 0) return NULL;
 	double pr = 0.2 + nLegal / 10.0;
-    if(!::bernoulliSuccess(pr))
+    if(!::bernoulliSuccess(pr, "advc.306 (shelf)"))
         return NULL;
     return legal[GC.getGameINLINE().getSorenRandNum(nLegal, "advc.306")];
 } // </advc.306>

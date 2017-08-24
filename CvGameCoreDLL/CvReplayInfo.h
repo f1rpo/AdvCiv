@@ -57,6 +57,9 @@ public:
 	DllExport int getPlayerIndustry(int iPlayer, int iTurn) const;
 	DllExport int getPlayerAgriculture(int iPlayer, int iTurn) const;
 	DllExport int getFinalScore() const;
+	// <advc.707>
+	void setFinalScore(int sc);
+	int getFinalPlayerScore() const; // </advc.707>
 	DllExport int getFinalEconomy() const;
 	DllExport int getFinalIndustry() const;
 	DllExport int getFinalAgriculture() const;
@@ -104,6 +107,7 @@ protected:
 	CvWString m_szFinalDate;
 	CalendarTypes m_eCalendar;
 	int m_iNormalizedScore;
+	int m_iFinalScore; // advc.707
 
 	struct TurnData
 	{

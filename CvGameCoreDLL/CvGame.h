@@ -10,6 +10,8 @@
 #include "CvRandom.h"
 // advc.250b:
 #include "StartPointsAsHandicap.h"
+// advc.700:
+#include "RiseFall.h"
 
 class CvPlot;
 class CvCity;
@@ -260,7 +262,7 @@ public:
 	int getInitWonders() const;																		// Exposed to Python
 	DllExport void initScoreCalculation();
 
-	int getAIAutoPlay();																				// Exposed to Python
+	int getAIAutoPlay() const; // advc.003: made const																// Exposed to Python
 	DllExport void setAIAutoPlay(int iNewValue																// Exposed to Python
 			, bool changePlayerStatus = true); // advc.127
 	void changeAIAutoPlay(int iChange
@@ -326,11 +328,17 @@ public:
 
 	DllExport PlayerTypes getActivePlayer() const;																				// Exposed to Python
 	DllExport void setActivePlayer(PlayerTypes eNewValue, bool bForceHotSeat = false);		// Exposed to Python
+	void updateActiveVisibility(); // advc.706
 	DllExport void updateUnitEnemyGlow();
 	/* <advc.106b> When a DLL function is called from the EXE, there is no (other)
 	   way to determine whether it's during a human turn. (If it is known that
 	   it's a human turn, then getActivePlayer says which human.) */
-	bool isAITurn() const;
+	/*  advc.706: Also need these functions to make sure that
+		ActivePlayerTurnStart events are fired only on human turns.
+		Exported isAITurn to Python for that reason, though I'm actually
+		suppressing the Python event through CvGame::update now, so the
+		Python export is currently unused. */
+	bool isAITurn() const; // Exported to Python
 	void setAITurn(bool b);
 	private: bool aiTurn; public: // </advc.106b>
 
@@ -619,6 +627,9 @@ public:
 	inline int getMinimapWaterMode() const { return minimapWaterMode; } // advc.002a
 	// advc.011: Accessing this again and again from XML might be too slow.
 	inline int getDelayUntilBuildDecay() const { return delayUntilBuildDecay; }
+	// <advc.703>
+	RiseFall const& getRiseFall() const;
+	RiseFall& getRiseFall(); // </advc.703>
 
 	/* <advc.108>: Three levels of start plot normalization:
 	   1: low (weak starting plots on average, high variance);
@@ -656,6 +667,7 @@ protected:
 	int m_iAIAutoPlay;
 	int m_iGlobalWarmingIndex;	// K-Mod
 	int m_iGwEventTally;		// K-Mod
+	int turnLoadedFromSave; // advc.044
 
 	unsigned int m_uiInitialTime;
 
@@ -739,6 +751,7 @@ protected:
 	int delayUntilBuildDecay; // advc.011
 
 	StartPointsAsHandicap spah; // advc.250b
+	RiseFall riseFall; // advc.700
 
 	void doTurn();
 	void doDeals();

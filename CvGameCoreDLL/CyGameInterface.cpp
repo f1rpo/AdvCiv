@@ -287,6 +287,20 @@ void CyGamePythonInterface()
 		.def("SPaHPointsForSettingsScreen", &CyGame::SPaHPointsForSettingsScreen)
 		// advc.250:
 		.def("getDifficultyForEndScore", &CyGame::getDifficultyForEndScore, "int ()")
+		// <advc.703>
+		.def("getMaxChapters", &CyGame::getMaxChapters, "int ()")
+		.def("getCurrentChapter", &CyGame::getCurrentChapter, "int ()")
+		.def("getChapterStart", &CyGame::getChapterStart, "int (int)")
+		.def("getChapterEnd", &CyGame::getChapterEnd, "int (int)")
+		.def("getChapterScore", &CyGame::getChapterScore, "int (int)")
+		.def("getChapterScoreTurn", &CyGame::getChapterScoreTurn, "int (int)")
+		.def("getChapterCiv", &CyGame::getChapterCiv, "int (int)")
+		.def("chapterScoreBreakdown", &CyGame::chapterScoreBreakdown)
+		.def("riseScoreBreakdown", &CyGame::riseScoreBreakdown)
+		// </advc.704><advc.706>
+		.def("isRFInterlude", &CyGame::isRFInterlude, "bool ()")
+		.def("isAITurn", &CyGame::isAITurn, "bool ()")
+		// </advc.706>
 		;
 
 	python::class_<CyDeal>("CyDeal")

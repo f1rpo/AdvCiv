@@ -745,6 +745,7 @@ public:
 	PlayerTypes getParent() const;
 	void setParent(PlayerTypes eParent);
 	TeamTypes getMasterTeam() const; // advc.003
+	bool isAVassal() const; // advc.003
 	DllExport TeamTypes getTeam() const;																												// Exposed to Python					
 	void setTeam(TeamTypes eTeam);		
 	void updateTeamType();

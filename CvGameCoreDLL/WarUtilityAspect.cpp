@@ -187,7 +187,7 @@ double WarUtilityAspect::lostAssetScore(PlayerTypes to, double* returnTotal,
 	double fromBlockade = 0.1 * blockadeMultiplier * (total - r);
 	r += fromBlockade;
 	if(returnTotal != NULL)
-		*returnTotal += total;
+		*returnTotal = total;
 	return r;
 }
 
@@ -1039,7 +1039,7 @@ MilitaryVictory::MilitaryVictory(WarEvalParameters& params)
 
 void MilitaryVictory::evaluate() {
 
-	// Vassals shouldn't strife for victory; not until breaking free.
+	// Vassals shouldn't strive for victory; not until breaking free.
 	if(agent.isAVassal())
 		return;
 	double progressRating = 0;
@@ -1140,7 +1140,7 @@ double MilitaryVictory::progressRatingConquest() {
 	// If we don't take them out entirely - how much do they lose
 	double theirScore = 0;
 	double theirLostScore = lostAssetScore(weId, &theirScore);
-	/*  Utility of vassals is principally computed separately (linked wars),
+	/*  Utility of vassals is normally computed separately (linked wars),
 		but in this case, our vassals may do something that helps the master
 		specifically (namely bring down our last remaining rivals). */
 	for(size_t i = 0; i < properCivs.size(); i++)
@@ -1842,7 +1842,9 @@ void PreEmptiveWar::evaluate() {
 		our chances now. */
 	/*  Don't worry about long-term threat if already in the endgame; Kingmaking
 		handles this. */
-	if(agent.AI_isAnyMemberDoVictoryStrategyLevel3()) return;
+	if(agent.AI_isAnyMemberDoVictoryStrategyLevel3() || m->isEliminated(weId) ||
+			m->hasCapitulated(agent.getID()))
+		return;
 	double threat = ourCache->threatRating(theyId);
 	/*  War evaluation should always assume minor threats; not worth addressing here
 		explicitly */
@@ -1881,7 +1883,7 @@ void PreEmptiveWar::evaluate() {
 	double theirConqRatio = 1;
 	if(theirPresentCities > 0)
 		theirConqRatio = theirPredictedCities / theirPresentCities;
-	/*  We assume that they are going to attack us some 50 to 100 turns from now,
+	/*  We assume that they are going to attack us some 50 turns from now,
 		and they're going to choose the time that suits them best. Therefore,
 		cities that they conquer are assumed to contribute to their power,
 		whereas conquests by us or our vassals are assumed to be too recent to
@@ -2017,7 +2019,7 @@ void KingMaking::evaluate() {
 	double caughtUpBonus = 0;
 	set<PlayerTypes> presentWinners;
 	addLeadingCivs(presentWinners, scoreMargin, false);
-	double const catchUpVal = 24.0 / std::sqrt((double)winning.size());
+	double const catchUpVal = 24.0 / std::pow((double)winning.size(), 0.75);
 	if(winning.count(weId) > 0) {
 		winningRivals--;
 		/*  If we're among the likely winners, then it's a showdown between us
@@ -2704,6 +2706,10 @@ void Affection::evaluate() {
 		uMinus += uncertainty;
 		FAssert(uMinus >= 0);
 	}
+	/*  In team games, the pairwise affection adds up more than the
+		pairwise conquests; need to correct that a bit. */
+	if(agent.getNumMembers() > 1)
+		uMinus = normalizeUtility(uMinus) * agent.getNumMembers() * 0.75;
 	if(uMinus > 0.5) {
 		log("NoWarAttProb: %d percent, our attitude: %d, for linked war: %d percent",
 				::round(100 * pr), towardsThem, ::round(100 * linkedWarFactor));
