@@ -82,7 +82,6 @@ private:
 	void setPlayerControl(PlayerTypes civId, bool b);
 	void welcomeToNextChapter(int pos);
 	void centerCamera(PlayerTypes civId);
-	void showDawnOfMan();
 	void showDoW();
 	void showQuests();
 	void abandonPlans(PlayerTypes civId);

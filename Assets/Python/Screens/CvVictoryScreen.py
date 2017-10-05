@@ -96,11 +96,11 @@ class CvVictoryScreen:
 		self.TABLE2_WIDTH_0 = 740
 		self.TABLE2_WIDTH_1 = 265
 		# <advc.703>
-		self.RF_TABLEW_0 = 120
+		self.RF_TABLEW_0 = 125
 		self.RF_TABLEW_1 = 180
 		self.RF_TABLEW_2 = 220
 		self.RF_TABLEW_3 = 260
-		self.RF_TABLEW_4 = 210
+		self.RF_TABLEW_4 = 205
 		# </advc.703>
 # BUG Additions Start
 		self.TABLE3_WIDTH_0 = 450
@@ -208,7 +208,7 @@ class CvVictoryScreen:
 			else:
 				screen.setText(self.UN_RESOLUTION_TAB_ID, "", u"<font=4>" + localText.getColorText("TXT_KEY_VOTING_TITLE", (), gc.getInfoTypeForString("COLOR_YELLOW")).upper() + "</font>", CvUtil.FONT_CENTER_JUSTIFY, xLink, self.Y_LINK, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 			xLink += self.DX_LINK
-			# advc.703: Merge members into resolution when R&F enabled
+			# advc.703: Merge Members into Resolutions when R&F enabled
 			if not gc.getGame().isOption(GameOptionTypes.GAMEOPTION_RISE_FALL):
 				if (self.iScreen != UN_MEMBERS_SCREEN):
 					screen.setText(self.UN_MEMBERS_TAB_ID, "", u"<font=4>" + localText.getText("TXT_KEY_MEMBERS_TITLE", ()).upper() + "</font>", CvUtil.FONT_CENTER_JUSTIFY, xLink, self.Y_LINK, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
@@ -320,7 +320,7 @@ class CvVictoryScreen:
 		if screen.getTableNumRows(szTable) > 0:
 			screen.setTableNumRows(szTable, screen.getTableNumRows(szTable)-1)
 		#
-		# <advc.703> Add info from members tab
+		# <advc.703> Add info from Members tab
 		if not gc.getGame().isOption(GameOptionTypes.GAMEOPTION_RISE_FALL):
 			self.drawTabs()
 			pass
@@ -791,7 +791,7 @@ class CvVictoryScreen:
 			elif currentTurn >= scoreTurn:
 				# Doesn't actually imply that the chapter's already scored b/c
 				# the chapter civ could come later in the turn order than the
-				# current civ; but I'm lazy to export isScored to Python.
+				# current civ; but I'm too lazy to export isScored to Python.
 				s = self.highlight(s)
 			elif chapterCiv < 0 or not gc.getTeam(gc.getPlayer(chapterCiv).getTeam()).isHasMet(gc.getPlayer(activeCiv).getTeam()):
 				s += " (" + localText.getText("TXT_KEY_RF_CHAPTER_LAST_KNOWN", (endTurn,)) + ")"

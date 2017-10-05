@@ -529,7 +529,7 @@ int CvReplayInfo::getFinalPlayerScore() const
 {
 	return getPlayerScore(m_iActivePlayer, m_iFinalTurn);
 }
-// Can now also set the final score to sth. different from the player score
+// Can now also set the final score to sth. other than the player score
 void CvReplayInfo::setFinalScore(int sc)
 {
 	m_iFinalScore = sc;

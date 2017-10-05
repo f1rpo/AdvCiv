@@ -74,7 +74,7 @@ void RiseFall::init() {
 	int totalTurns = endTurn - startTurn;
 	chapterModifier *= totalTurns / (double)endTurn;
 	int civs = g.countCivPlayersAlive();
-	{	// If few civs, stick to unmodified maxChapters
+	{	// If few civs, stick to unmodified maxChapters.
 		int maxChaptersModified = ::round(maxChapters * chapterModifier);
 		if(maxChaptersModified > maxChapters) {
 			int bound = std::max(::round(civs / 1.51), maxChapters);
@@ -89,7 +89,7 @@ void RiseFall::init() {
 	}
 	interludeLength = GC.getDefineINT("RF_INTERLUDE_LENGTH_BASE");
 	interludeLength = ::range(::round((interludeLength * speed.getTrainPercent())
-			/ 100.0), 5, 10);
+			/ 100.0), std::min(interludeLength, 5), std::max(interludeLength, 10));
 	int playLength = totalTurns - (maxChapters - 1) * interludeLength;
 	int partialLength = 0;
 	for(int i = 0; i < maxChapters - 1; i++) {
@@ -140,7 +140,7 @@ void RiseFall::init() {
 	/*  Initial auto-save. Normally happens already in CvGame::update, but
 		RiseFall isn't yet initialized then. */
 	gDLL->getEngineIFace()->AutoSave(true);
-	showDawnOfMan();
+	g.showDawnOfMan();
 }
 
 void RiseFall::write(FDataStreamBase* pStream) {
@@ -501,7 +501,7 @@ void RiseFall::welcomeToNextChapter(int pos) {
 	CvPlayer& p = GET_PLAYER(ch.getCiv());
 	centerCamera(p.getID());
 	abandonPlans(p.getID()); // Also tries to move the camera
-	showDawnOfMan();
+	GC.getGame().showDawnOfMan();
 	showDoW();
 	showQuests();
 	offLimits.clear();
@@ -521,17 +521,6 @@ void RiseFall::centerCamera(PlayerTypes civId) {
 		gDLL->getInterfaceIFace()->lookAt(capitalPlot->getPoint(),
 				CAMERALOOKAT_NORMAL);
 	}
-}
-
-void RiseFall::showDawnOfMan() {
-
-	// This appears to require an argument, and I've no clue which
-	//gDLL->getPythonIFace()->callFunction("CvScreensInterface", "showDawnOfMan");
-	// Instead (based on CvAllErasDawnOfManScreenEventManager.py):
-	CvPopupInfo* dom = new CvPopupInfo();
-	dom->setButtonPopupType(BUTTONPOPUP_PYTHON_SCREEN);
-	dom->setText(L"showDawnOfMan");
-	GET_PLAYER(GC.getGame().getActivePlayer()).addPopup(dom);
 }
 
 void RiseFall::showDoW() {
@@ -995,16 +984,32 @@ void RiseFall::assignCivSelectionHelp(CvWStringBuffer& szBuffer,
 CvWString RiseFall::knownName(PlayerTypes civId, bool nameNumber) const {
 
 	bool hasMet = false;
-	for(size_t j = 0; j < chapters.size(); j++) {
-		if(!chapters[j]->hasEnded())
+	for(size_t i = 0; i < chapters.size(); i++) {
+		if(!chapters[i]->hasEnded())
 			break;
-		if(TEAMREF(chapters[j]->getCiv()).isHasMet(TEAMID(civId))) {
+		if(TEAMREF(chapters[i]->getCiv()).isHasMet(TEAMID(civId))) {
 			hasMet = true;
 			break;
 		}
 	}
-	if(hasMet)
-		return GET_PLAYER(civId).getCivilizationShortDescription();
+	if(hasMet) {
+		CvPlayer const& civ = GET_PLAYER(civId);
+		bool unique = true;
+		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+			CvPlayer const& other = GET_PLAYER((PlayerTypes)i);
+			if(other.isEverAlive() && other.getID() != civId &&
+					other.getCivilizationType() == civ.getCivilizationType()) {
+				unique = false;
+				break;
+			}
+		}
+		/*  Nicer to show civ names, but if one civ is in the game multiple times,
+			will have to show the leader name. */
+		if(unique)
+			return civ.getCivilizationShortDescription();
+		return CvWString(GC.getLeaderHeadInfo(civ.getLeaderType()).getDescription()) +
+				L"'s " + civ.getCivilizationShortDescription();
+	}
 	if(!nameNumber)
 		return gDLL->getText("TXT_KEY_TOPCIVS_UNKNOWN");
 	// Order has to be consistent with the numbering in launchCivSelectionPopup

@@ -1200,7 +1200,7 @@ class CvMainInterface:
 
 	# Will redraw the interface
 	def redraw( self ):
-		# <advc.706> Freezy main interface during interlude
+		# <advc.706> Freeze main interface during interlude
 		if gc.getGame().isRFInterlude():
 			return 0 # </advc.706>
 #		BugUtil.debug("redraw - Turn %d, Player %d, Interface %d, End Turn Button %d", 
