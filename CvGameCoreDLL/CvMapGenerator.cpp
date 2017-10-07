@@ -14,8 +14,6 @@
 #include "CyPlot.h"
 #include "CyArgsList.h"
 #include <set> // K-Mod
-// advc.129:
-#include <algorithm>
 
 //
 // static
@@ -956,17 +954,26 @@ int CvMapGenerator::placeGroup(BonusTypes eBonusType, CvPlot const& center,
 				groupRange.push_back(p);
 		}
 	}
-	std::random_shuffle(groupRange.begin(), groupRange.end());
-	for(size_t j = 0; j < groupRange.size() && limit > 0; j++) {
+	// Would've been nice, but must use MapRand instead.
+	//std::random_shuffle(groupRange.begin(), groupRange.end());
+	int sz = (int)groupRange.size();
+	if(sz <= 0)
+		return 0;
+	int* shuffl = new int[sz];
+	for(int i = 0; i < sz; i++)
+		shuffl[i] = i;
+	::shuffleArray(shuffl, sz, GC.getGame().getMapRand());
+	for(int j = 0; j < sz && limit > 0; j++) {
 		int prPercent = pBonusInfo.getGroupRand();
 		prPercent = ::round(prPercent * std::pow(2/3.0, placed));
 		if (GC.getGameINLINE().getMapRandNum(
 				100, "addNonUniqueBonusType") < prPercent) {
-			groupRange[j]->setBonusType(eBonusType);
+			groupRange[shuffl[j]]->setBonusType(eBonusType);
 			limit--;
 			placed++;
 		}
 	}
+	delete[] shuffl;
 	FAssert(limit >= 0);
 	return placed;
 } // </advc.129>

@@ -76,7 +76,7 @@
 	<Tag>TXT_KEY_KMOD_HINT_7</Tag>
 	<English>(K-Mod) When a Great General chooses to lead a unit as a warlord, it shares an immediate experience boost to all units in the group. More experience points are given to bigger groups.</English>
 	<French>(K-Mod) When a Great General chooses to lead a unit as a warlord, it shares an immediate experience boost to all units in the group. More experience points are given to bigger groups.</French>
-	<German>(K-Mod) Wenn ein Großer General sich dazu entschließt, eine Einheit als Kriegsherr zu führen, teilt er einmalig einige Erfahrungspunkte mit allen Einheiten der Gruppe. Größere Gruppen erhalten dabei mehr Punkte als kleine.</German>
+	<German>(K-Mod) Wenn ein Großer General sich dazu entschließt, eine Einheit als Kriegsherr zu führen, teilt er einmalig Erfahrungspunkte mit allen Einheiten der Gruppe. Größere Gruppen erhalten dabei mehr Punkte als kleine.</German>
 	<Italian>(K-Mod) Quando un Grande Generale decide di unirsi ad un unità come Grande Condottiero, distribuisce in immediato aumento di esperienza con tutte le unità sulla stessa casella. Maggiore lo stack, maggiore l'esperienza.</Italian>
 	<Spanish>(K-Mod) Cuando un Gran General elige liderar una unidad como un caudillo, comparte un aumento inmediato de experiencia a todas las unidades en el grupo. Más puntos de experiencia son dados a grupos más grandes.</Spanish>
 </TEXT>
@@ -85,7 +85,7 @@
 	<Tag>TXT_KEY_KMOD_HINT_8</Tag>
 	<English>(K-Mod) In the city screen, hold down the [ALT] key and point to a building or specialist to see its net effect.</English>
 	<French>(K-Mod) In the city screen, hold down the [ALT] key and point to a building or specialist to see its net effect.</French>
-	<German>(K-Mod) Halte im Stadtbildschirm [Alt] gedrückt und zeige auf ein Gebäude oder einen Spezialisten, um seinen Netto-Effekt zu sehen.</German>
+	<German>(K-Mod) Halten Sie im Stadtbildschirm [Alt] gedrückt und zeigen Sie auf ein Gebäude oder einen Spezialisten, um seinen Netto-Effekt zu sehen.</German>
 	<Italian>(K-Mod) In the city screen, hold down the [ALT] key and point to a building or specialist to see its net effect.</Italian>
 	<Spanish>(K-Mod) Mantén la tecla [ALT] presionada y apunta a un edificio o especialista para ver el efecto si estuviera en la ciudad actual.</Spanish>
 </TEXT>
@@ -161,7 +161,7 @@
 	<Tag>TXT_KEY_KMOD_HINT_14</Tag>
 	<English>(K-Mod) Hold the 'X' key when issuing a command to temporarily suppress automatic unit cycling.</English>
 	<French>(K-Mod) Hold the 'X' key when issuing a command to temporarily suppress automatic unit cycling.</French>
-	<German>(K-Mod) Halte 'X' gedrückt um den automatischen Einheitenwechsel zu unterdrücken.</German>
+	<German>(K-Mod) Halten Sie 'X' gedrückt, um den automatischen Einheitenwechsel zu unterdrücken.</German>
 	<Italian>(K-Mod) Hold the 'X' key when issuing a command to temporarily suppress automatic unit cycling.</Italian>
 	<Spanish>(K-Mod) Mantener la tecla 'X' presionada cuando das una órden para suprimir temporalmente el ciclo de unidades.</Spanish>
 </TEXT>

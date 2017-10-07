@@ -40,7 +40,7 @@ public:
 
 	DllExport void setInitialItems();
 	DllExport void regenerateMap();
-
+	void showDawnOfMan(); // advc.004j
 	DllExport void initDiplomacy();
 	DllExport void initFreeState();
 	DllExport void initFreeUnits();

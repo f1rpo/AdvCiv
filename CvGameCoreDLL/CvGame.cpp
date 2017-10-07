@@ -380,7 +380,10 @@ void CvGame::regenerateMap()
 	CvMapGenerator::GetInstance().addGameElements();
 
 	gDLL->getEngineIFace()->RebuildAllPlots();
-
+	// <advc.004j>
+	if(isOption(GAMEOPTION_ADVANCED_START))
+		setStartTurn(0); // Increased below by setInitialItems
+	else setGameTurn(getStartTurn()); // <advc.004j>
 	CvEventReporter::getInstance().resetStatistics();
 
 	setInitialItems();
@@ -394,9 +397,17 @@ void CvGame::regenerateMap()
 	gDLL->getInterfaceIFace()->setDirty(ColoredPlots_DIRTY_BIT, true);
 
 	cycleSelectionGroups_delayed(1, false);
-
-	gDLL->getEngineIFace()->AutoSave(true);
-
+	// <advc.700>
+	if(isOption(GAMEOPTION_RISE_FALL)) {
+		riseFall.reset();
+		riseFall.init();
+	}
+	else { // </advc.700>
+		gDLL->getEngineIFace()->AutoSave(true);
+		// <advc.004j> Somehow doesn't work with Adv. Start; DoM screen doesn't appear.
+		if(!isOption(GAMEOPTION_ADVANCED_START))
+			showDawnOfMan();
+	} // </advc.004j>
 	if (NO_PLAYER != getActivePlayer())
 	{
 		CvPlot* pPlot = GET_PLAYER(getActivePlayer()).getStartingPlot();
@@ -410,6 +421,20 @@ void CvGame::regenerateMap()
 		}
 	}
 }
+
+// <advc.004j>
+void CvGame::showDawnOfMan() {
+
+	if(getActivePlayer() == NO_PLAYER)
+		return;
+	// This appears to require an argument, and I've no clue which
+	//gDLL->getPythonIFace()->callFunction("CvScreensInterface", "showDawnOfMan");
+	// Instead (based on CvAllErasDawnOfManScreenEventManager.py):
+	CvPopupInfo* dom = new CvPopupInfo();
+	dom->setButtonPopupType(BUTTONPOPUP_PYTHON_SCREEN);
+	dom->setText(L"showDawnOfMan");
+	GET_PLAYER(getActivePlayer()).addPopup(dom);
+} // </advc.004j>
 
 
 void CvGame::uninit()

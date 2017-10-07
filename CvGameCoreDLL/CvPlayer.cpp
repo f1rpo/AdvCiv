@@ -1857,6 +1857,31 @@ int CvPlayer::startingPlotDistanceFactor(CvPlot* pPlot, PlayerTypes ePlayer, int
 
 }
 
+// <advc.027>
+int CvPlayer::coastRiverStartingAreaScore(CvArea const* a) const {
+
+	if(a == NULL) {
+		FAssert(a != NULL);
+		return 0;
+	}
+	int r = 0;
+	// Loop based on CvArea::countCoastalLand
+	for(int i = 0; i < GC.getMapINLINE().numPlotsINLINE(); i++) {
+		CvPlot* p = GC.getMapINLINE().plotByIndexINLINE(i);
+		if(p->isPeak() || p->getArea() != a->getID())
+			continue;
+		int totalYield = p->calculateTotalBestNatureYield(getTeam());
+		int foodYield = p->calculateBestNatureYield(YIELD_FOOD, getTeam());
+		if((foodYield > 0 && totalYield >= 2) || totalYield >= 3) {
+			if(p->isCoastalLand())
+				r += 2;
+			if(p->isRiver())
+				r++;
+		}
+	}
+	return r;
+} // </advc.027>
+
 
 // Returns the id of the best area, or -1 if it doesn't matter:
 int CvPlayer::findStartingArea() const
@@ -1895,7 +1920,15 @@ int CvPlayer::findStartingArea() const
 		{
 			// iNumPlayersOnArea is the number of players starting on the area, plus this player
 			int iNumPlayersOnArea = (pLoopArea->getNumStartingPlots() + 1);
-			int iTileValue = ((pLoopArea->calculateTotalBestNatureYield() + (pLoopArea->countCoastalLand() * 2) + pLoopArea->getNumRiverEdges() + (pLoopArea->getNumTiles())) + 1);
+			// <advc.027>
+			int iTileValue = 1 + pLoopArea->calculateTotalBestNatureYield() + 
+					/*2 * pLoopArea->countCoastalLand() +
+					pLoopArea->getNumRiverEdges() +*/
+					coastRiverStartingAreaScore(pLoopArea) + // Replacing the above
+					// New: factor in bonus resources
+					::round(pLoopArea->getNumTotalBonuses() * 1.5) +
+					pLoopArea->getNumTiles() / 2; // Halved
+			// </advc.027>
 			iValue = iTileValue / iNumPlayersOnArea;
 
 			iValue *= std::min(NUM_CITY_PLOTS + 1, pLoopArea->getNumTiles() + 1);
@@ -1941,7 +1974,7 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 					/*  advc.021a: Tectonics apparently assigns all starting plots
 						at once on its own and then returns "None". Or something;
 						doesn't seem to be a problem anyway. Now I'm having it
-						return -10 to indicate that it's non-/known issue. */
+						return -10 to indicate that it's a known (or non-) issue. */
 					result == -10
 					, "python findStartingPlot() returned an invalid plot index!");
 			}

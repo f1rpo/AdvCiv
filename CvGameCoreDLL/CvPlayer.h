@@ -80,6 +80,8 @@ public:
 	bool startingPlotWithinRange(CvPlot* pPlot, PlayerTypes ePlayer, int iRange, int iPass) const;									// Exposed to Python
 	int startingPlotDistanceFactor(CvPlot* pPlot, PlayerTypes ePlayer, int iRange) const;
 	int findStartingArea() const;
+	// advc.027: New auxiliary function
+	int coastRiverStartingAreaScore(CvArea const* a) const;
 	CvPlot* findStartingPlot(bool bRandomize = false);																																									// Exposed to Python
 
 	CvPlotGroup* initPlotGroup(CvPlot* pPlot);													

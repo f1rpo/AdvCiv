@@ -184,6 +184,10 @@ void RFChapterScore::update() {
 	civScorePercent = ::round((100.0 * civScore) / nextBestScore);
 	fromCivScore = civScorePercent;
 	initialCivScorePercent = ::round((100.0 * initialCivScore) / referenceScore);
+	/*  Assume that scores at game start are all equal (although that's not true
+		on difficulty settings above Noble) */
+	if(chapter->getPosition() == 0)
+		initialCivScorePercent = 100;
 	fromInitialCivScore = -initialCivScorePercent;
 	fromRank = ::round((100.0 * (initialRivals - rank + 1)) /
 			std::max(1, initialRivals));

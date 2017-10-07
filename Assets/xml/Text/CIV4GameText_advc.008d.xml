@@ -10,7 +10,7 @@
 	<Tag>TXT_KEY_HINT_70</Tag>
 	<English>(AdvCiv) The behavior of your capitulated vassals reflects on you. If they raze cities or trade with a pariah, your rivals will hold you responsible.</English>
 	<French>(AdvCiv) The behavior of your capitulated vassals reflects on you. If they raze cities or trade with a pariah, your rivals will hold you responsible.</French>
-	<German>(AdvCiv) Sie sind für das Verhalten Ihrer kapitulierten Vasallen verantwortlich. Wenn diese Städte vernichten oder mit unbeliebten Zivilisationen tauschen, fällt das auf Sie zurück. Statten Sie Vasallen nicht leichtfertig mit Atomwaffen aus.</German>
+	<German>(AdvCiv) Sie sind für das Verhalten Ihrer kapitulierten Vasallen verantwortlich. Wenn diese Städte vernichten oder mit unbeliebten Zivilisationen tauschen, fällt das auf Sie zurück.</German>
 	<Italian>(AdvCiv) The behavior of your capitulated vassals reflects on you. If they raze cities or trade with a pariah, your rivals will hold you responsible.</Italian>
 	<Spanish>(AdvCiv) The behavior of your capitulated vassals reflects on you. If they raze cities or trade with a pariah, your rivals will hold you responsible.</Spanish>
 </TEXT>
@@ -120,6 +120,16 @@
 	<Spanish>Use [Alt + M] to set a reminder for yourself.</Spanish>
 </TEXT>
 
+<!-- advc.102: I've extended this hint a bit. -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_INTERFACE_15</Tag>
+	<English>Press [Ctrl + O] to access the player options menu even during your opponents' turns. If animations of rival moves seem to take forever, you can, right there, enable quick combat or hide foreign moves.</English>
+	<French>Press [Ctrl + O] to access the player options menu even during your opponents' turns. If animations of rival moves seem to take forever, you can, right there, enable quick combat or hide foreign moves.</French>
+	<German>Per [Ctrl + O] können Sie auch während gegnerischer Züge auf das Optionsmenü zugreifen. Falls gegnerische Züge einmal kein Ende nehmen wollen, können Sie so direkt auf Schnellen Kampf schalten oder gegnerische Züge ausblenden.</German>
+	<Italian>Press [Ctrl + O] to access the player options menu even during your opponents' turns. If animations of rival moves seem to take forever, you can, right there, enable quick combat or hide foreign moves.</Italian>
+	<Spanish>Press [Ctrl + O] to access the player options menu even during your opponents' turns. If animations of rival moves seem to take forever, you can, right there, enable quick combat or hide foreign moves.</Spanish>
+</TEXT>
+
 
 <!-- New hints not replacing anything -->
 <!-- advc.300 -->
@@ -207,7 +217,7 @@
 	<Tag>TXT_KEY_ADVC_HINT_9</Tag>
 	<English>(AdvCiv) If your rivals voice opposition to your territorial expansion, it can help to grant some of your cities independence. That said, the resulting vassal state may raise objections as well. You can't expect to conquer the world, and have the world thank you for it.</English>
 	<French>(AdvCiv) If your rivals voice opposition to your territorial expansion, it can help to grant some of your cities independence. That said, the resulting vassal state may raise objections as well. You can't expect to conquer the world, and have the world thank you for it.</French>
-	<German>(AdvCiv) Wenn sich Gegner über Ihren Expansionsdrang beklagen, kann es helfen, einige Ihrer Städte als Kolonie zu befreien; allerdings kann auch dieser Vasallenstaat Ihrer Beliebtheit schaden. Letztlich ist es zu viel verlangt, von der Welt geliebt zu werden, während Sie die Welt erobern.</German>
+	<German>(AdvCiv) Wenn sich Gegner über Ihren Expansionsdrang beklagen, kann es helfen, einige Ihrer Städte als Kolonie zu befreien; allerdings kann auch diese als Vasallenstaat Ihrer Beliebtheit schaden. Letztlich ist es zu viel verlangt, von der Welt geliebt zu werden, während Sie die Welt erobern.</German>
 	<Italian>(AdvCiv) If your rivals voice opposition to your territorial expansion, it can help to grant some of your cities independence. That said, the resulting vassal state may raise objections as well. You can't expect to conquer the world, and have the world thank you for it.</Italian>
 	<Spanish>(AdvCiv) If your rivals voice opposition to your territorial expansion, it can help to grant some of your cities independence. That said, the resulting vassal state may raise objections as well. You can't expect to conquer the world, and have the world thank you for it.</Spanish>
 </TEXT>
@@ -264,7 +274,7 @@
 	<Tag>TXT_KEY_ADVC_HINT_15</Tag>
 	<English>(AdvCiv) You can't have trade routes with cities that you haven't located on the map. Be sure to regularly scout for new foreign cities in order to get the full trade benefits from your [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] agreements.</English>
 	<French>(AdvCiv) You can't have trade routes with cities that you haven't located on the map. Be sure to regularly scout for new foreign cities in order to get the full trade benefits from your [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] agreements.</French>
-	<German>(AdvCiv) Sie können nur mit Städten Handel treiben, deren Lage Sie kennen. Daher lohnt es sich, nach regelmäßig neugegründeten Städten Ausschau zu halten.</German>
+	<German>(AdvCiv) Sie können nur mit Städten Handel treiben, deren Lage Sie kennen. Daher lohnt es sich, regelmäßig nach neugegründeten Städten Ausschau zu halten.</German>
 	<Italian>(AdvCiv) You can't have trade routes with cities that you haven't located on the map. Be sure to regularly scout for new foreign cities in order to get the full trade benefits from your [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] agreements.</Italian>
 	<Spanish>(AdvCiv) You can't have trade routes with cities that you haven't located on the map. Be sure to regularly scout for new foreign cities in order to get the full trade benefits from your [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] agreements.</Spanish>
 </TEXT>
@@ -318,14 +328,13 @@
 	<Spanish>(AdvCiv) Give the "Show friendly moves" option another chance. It takes up much less time now.</Spanish>
 </TEXT>
 
-<!-- advc.102 -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_21</Tag>
-	<English>Press [Ctrl + O] to access the player options menu even during your opponents' turns. If animations of rival moves seem to take forever, you can, right there, enable quick combat or hide foreign moves.</English>
-	<French>Press [Ctrl + O] to access the player options menu even during your opponents' turns. If animations of rival moves seem to take forever, you can, right there, enable quick combat or hide foreign moves.</French>
-	<German>Per [Ctrl + O] können Sie auch während gegnerischer Züge auf das Optionsmenü zugreifen. Falls gegnerische Züge einmal kein Ende nehmen wollen, können Sie so direkt auf Schnellen Kampf schalten oder gegnerische Züge ausblenden.</German>
-	<Italian>Press [Ctrl + O] to access the player options menu even during your opponents' turns. If animations of rival moves seem to take forever, you can, right there, enable quick combat or hide foreign moves.</Italian>
-	<Spanish>Press [Ctrl + O] to access the player options menu even during your opponents' turns. If animations of rival moves seem to take forever, you can, right there, enable quick combat or hide foreign moves.</Spanish>
+	<English>Press [ALT + D] to change the name of your leader and civilization.</English>
+	<French>Press [ALT + D] to change the name of your leader and civilization.</French>
+	<German>Per [ALT + D] können Sie den Namen Ihres Herrschers und Ihrer Zivilisation ändern.</German>
+	<Italian>Press [ALT + D] to change the name of your leader and civilization.</Italian>
+	<Spanish>Press [ALT + D] to change the name of your leader and civilization.</Spanish>
 </TEXT>
 
 <TEXT>
@@ -371,15 +380,6 @@
 	<German>Wenn Sie Cheats aktiviert haben (Codewort "chipotle"), können Sie per [Shift + Ctrl + X] der KI vorübergehend die Kontrolle über Ihre Zivilisation übertragen.</German>
 	<Italian>If you have cheats enabled (code "chipotle"), you can press [Shift + Ctrl + X] to enable AI Auto Play, i.e. to shift control of your civilization to the AI for a number of turns.</Italian>
 	<Spanish>If you have cheats enabled (code "chipotle"), you can press [Shift + Ctrl + X] to enable AI Auto Play, i.e. to shift control of your civilization to the AI for a number of turns.</Spanish>
-</TEXT>
-
-<TEXT>
-	<Tag>TXT_KEY_ADVC_HINT_27</Tag>
-	<English>Press [ALT + D] to change the name of your leader and civilization.</English>
-	<French>Press [ALT + D] to change the name of your leader and civilization.</French>
-	<German>Per [ALT + D] können Sie den Namen Ihres Herrschers und Ihrer Zivilisation ändern.</German>
-	<Italian>Press [ALT + D] to change the name of your leader and civilization.</Italian>
-	<Spanish>Press [ALT + D] to change the name of your leader and civilization.</Spanish>
 </TEXT>
 
 </Civ4GameText>
