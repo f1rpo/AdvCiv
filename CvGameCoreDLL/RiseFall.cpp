@@ -271,15 +271,26 @@ bool RiseFall::hasRetired() const {
 
 int RiseFall::getAutoPlayCountdown() const {
 
-	if(hasRetired() && GET_PLAYER(GC.getGameINLINE().getActivePlayer()).
-			isHumanDisabled()) {
+	if(isSelectingCiv()) /* Not sure if needed; be sure we're not showing
+							a countdown while the popup is open. */
+		return 0;
+	PlayerTypes activePl = GC.getGameINLINE().getActivePlayer();
+	if(activePl == NO_PLAYER) {
+		FAssert(activePl != NO_PLAYER);
+		return -1;
+	}
+	CvPlayer const& pl = GET_PLAYER(activePl);
+	if(pl.isHuman() && !pl.isHumanDisabled()) // Normal play
+		return 0;
+	if(hasRetired() && pl.isHumanDisabled()) {
 		int r = GC.getGameINLINE().getAIAutoPlay();
 		if(interludeCountdown < 0) // Anticipate interlude
 			r += interludeLength;
 		else r += interludeCountdown;
-		return r;
+		return r + 1; // +1 for the turn of retirement
 	}
-	else return std::max(0, interludeCountdown);
+	// +1 for the turn on which the chapter is ended
+	return std::max(0, interludeCountdown + 1);
 }
 
 void RiseFall::atTurnEnd(PlayerTypes civId) {
@@ -496,6 +507,10 @@ void RiseFall::setPlayerName() {
 void RiseFall::welcomeToNextChapter(int pos) {
 
 	FAssert(pos > 0);
+	/*  Message about revolution from the turn before human takeover lingers
+		for some reason (and perhaps other messages too). Player will have to
+		check the Event Log anyway, so let's just clear the screen. */
+	gDLL->getInterfaceIFace()->clearEventMessages();
 	RFChapter& ch = *chapters[pos];
 	setPlayerName();
 	CvPlayer& p = GET_PLAYER(ch.getCiv());
@@ -672,7 +687,10 @@ bool RiseFall::isBlockPopups() const {
 		Conceivable exception: The player conquers a city on the initial turn,
 		and there is no disorder because the city was formerly owned. I guess
 		in this case, the player won't be prompted to choose production, which
-		is bad, but rare and won't crash the game. */
+		is bad, but rare and won't crash the game.
+		
+		I'm now also using this function for tech-choice popups, contact by
+		the AI and Civ4lerts. */
 	return chapters[pos]->getStartTurn() == GC.getGame().getGameTurn();
 }
 
@@ -695,7 +713,9 @@ bool RiseFall::isDeliverMessages(PlayerTypes civId) const {
 
 bool RiseFall::isCooperationRestricted(PlayerTypes aiCiv) const {
 
-	aiCiv = GET_TEAM(GET_PLAYER(aiCiv).getMasterTeam()).getLeaderID();
+	PlayerTypes masterId = GET_TEAM(GET_PLAYER(aiCiv).getMasterTeam()).getLeaderID();
+	if(masterId != aiCiv && isCooperationRestricted(masterId))
+		return true;
 	PlayerTypes human = GC.getGameINLINE().getActivePlayer();
 	if(aiCiv == human)
 		return false;
@@ -946,6 +966,11 @@ void RiseFall::assignCivSelectionHelp(CvWStringBuffer& szBuffer,
 	CvGame& g = GC.getGame();
 	wstringstream wss;
 	wss << knownName(selectedCiv, false) << L"\n";
+	int victStage = victoryStage(selectedCiv);
+	if(victStage > 0) {
+		wss << gDLL->getText("TXT_KEY_RF_CIV_SELECTION_VICTSTAGE") << L": "
+				<< victStage << L"/4\n";
+	}
 	wss << gDLL->getText("TXT_KEY_RF_CIV_SELECTION_SCORE",
 			g.getPlayerScore(selectedCiv));
 	CvTeam& t = TEAMREF(selectedCiv);
@@ -1067,6 +1092,12 @@ bool RiseFall::byRecommendation(PlayerTypes one, PlayerTypes two) {
 		return false;
 	if(p2.isAVassal() && !p1.isAVassal())
 		return true;
+	int vs1 = victoryStage(one);
+	int vs2 = victoryStage(two);
+	if(vs1 > vs2)
+		return false;
+	if(vs2 > vs1)
+		return false;
 	CvGame const& g = GC.getGameINLINE();
 	int sc1 = g.getPlayerScore(one);
 	int sc2 = g.getPlayerScore(two);
@@ -1075,6 +1106,24 @@ bool RiseFall::byRecommendation(PlayerTypes one, PlayerTypes two) {
 	if(sc2 > sc1)
 		return true;
 	return g.getPlayerRank(one) > g.getPlayerRank(two);
+}
+
+int RiseFall::victoryStage(PlayerTypes civId) {
+
+	if(civId == NO_PLAYER) {
+		FAssert(false);
+		return 0;
+	}
+	CvPlayerAI const& civ = GET_PLAYER(civId);
+	if(!civ.isAlive())
+		return -1;
+	int r = 0;
+	// Stages 1 and 2 aren't meaningful enough
+	if(civ.AI_isDoVictoryStrategyLevel3())
+		r = 3;
+	if(civ.AI_isDoVictoryStrategyLevel4())
+		r = 4;
+	return r;
 }
 
 CvWString RiseFall::retireConfirmMsg() const {

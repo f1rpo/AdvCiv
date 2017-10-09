@@ -617,7 +617,10 @@ public:
 	DllExport void handleDiplomacySetAIComment(DiploCommentTypes eComment) const;
 
 	std::set<int> m_ActivePlayerCycledGroups; // K-Mod. This is used to track which groups have been cycled through in the current turn. Note: it does not need to be kept in sync for multiplayer games.
-
+	// <advc.004m>
+	bool isResourceLayer() const;
+	void reportResourceLayerToggled();
+	// </advc.004m>
 	/* advc.104: Doesn't belong here, but I didn't want to add Python wrapper
 	   classes just for that one function. */
 	bool useKModAI() const; // Exposed to Python
@@ -749,6 +752,8 @@ protected:
 	int		m_eCultureVictoryCultureLevel;
 	int minimapWaterMode; // advc.002a: Cached for better performance
 	int delayUntilBuildDecay; // advc.011
+	bool bResourceLayer; // advc.004m
+	bool resourceLayerSet; // advc.003d
 
 	StartPointsAsHandicap spah; // advc.250b
 	RiseFall riseFall; // advc.700

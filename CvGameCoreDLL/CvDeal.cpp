@@ -928,8 +928,10 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 				continue; // </advc.003>
 			// advc.130j:
 			attacked.AI_rememberEvent(eToPlayer, MEMORY_HIRED_WAR_ALLY);
-			// advc.104i: Same code as in CvPlayer::handleDiploEvent
-			attacked.AI_changeMemoryCount(eFromPlayer, MEMORY_STOPPED_TRADING_RECENT, 1);
+			// <advc.104i> Same code as in CvPlayer::handleDiploEvent
+			if(attacked.AI_getMemoryCount(eFromPlayer, MEMORY_STOPPED_TRADING_RECENT) <= 0)
+				attacked.AI_changeMemoryCount(eFromPlayer, MEMORY_STOPPED_TRADING_RECENT, 1);
+			// </advc.104i>
 		}
 		break;
 
@@ -1150,7 +1152,7 @@ void CvDeal::addEndTradeMemory(PlayerTypes eFromPlayer, PlayerTypes eToPlayer,
 			else if(dealType == TRADE_VASSAL)
 				mem = MEMORY_CANCELLED_VASSAL_AGREEMENT;
 			// advc.130j:
-			GET_PLAYER(eToTeamMember).AI_rememberEvent(eFromTeamMember, mem);
+			GET_PLAYER(eToTeamMember).AI_changeMemoryCount(eFromTeamMember, mem, 2);
 		}
 	}
 }

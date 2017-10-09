@@ -7,6 +7,7 @@
 
 	Copyright (c) 2010 The BUG Mod.
 -->
+<!-- advc.003d: getUserDir added -->
 <mod id="BULL" 
 	 name="BULL Core" 
 	 module="BugDll"
@@ -19,6 +20,7 @@
 	<export function="getOptionINT" to="CvAppInterface"/>
 	<export function="getOptionFLOAT" to="CvAppInterface"/>
 	<export function="getOptionSTRING" to="CvAppInterface"/>
+	<export function="getUserDirStr" to="CvAppInterface"/>
 	
 	<export module="CvModName" function="getNameAndVersion" to="CvAppInterface" as="getModNameAndVersion"/>
 </mod>

@@ -21,6 +21,9 @@ void AdvCiv4lert::msg(CvWString s, LPCSTR icon, int x, int y, int goodOrBad) con
 
 	if(isSilent)
 		return;
+	CvGame& g = GC.getGame();
+	if(g.isOption(GAMEOPTION_RISE_FALL) && g.getRiseFall().isBlockPopups())
+		return;
 	int color = GC.getInfoTypeForString("COLOR_WHITE");
 	if(goodOrBad > 0)
 		color = GC.getInfoTypeForString("COLOR_GREEN");

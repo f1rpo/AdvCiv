@@ -307,6 +307,7 @@ public:
 	// </advc.703>
 	// <advc.706>
 	bool isRFInterlude();
+	bool isRFBlockPopups();
 	bool isAITurn(); // </advc.706>
 
 protected:

@@ -323,7 +323,7 @@ class CvVictoryScreen:
 		# <advc.703> Add info from Members tab
 		if not gc.getGame().isOption(GameOptionTypes.GAMEOPTION_RISE_FALL):
 			self.drawTabs()
-			pass
+			return
 		screen.appendTableRow(szTable) # Empty row as separator
 		self.appendMemberRows(screen, szTable)
 		# </advc.703>

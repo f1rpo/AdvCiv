@@ -33,6 +33,7 @@ public:
 	void prepareForExtendedGame();
 	int getFinalRiseScore() const;
 	int getNormalizedFinalScore() const;
+	static int victoryStage(PlayerTypes civId);
 	// Callbacks for CvDLLButtonPopup
 	  bool launchDefeatPopup(CvPopup* popup, CvPopupInfo& info);
 	  void handleDefeatPopup(int buttonClicked);
@@ -43,7 +44,6 @@ public:
 			PlayerTypes selectedCiv);
 	  CvWString retireConfirmMsg() const;
 	  bool isSelectingCiv() const; // Waiting for callback
-	bool isBlockPopups() const;
 	bool isDeliverMessages(PlayerTypes civId) const;
 	bool isCooperationRestricted(PlayerTypes aiCiv) const;
 	// Some deals are non-collusive regardless of trade value
@@ -67,6 +67,7 @@ public:
 		  before all chapters are through */
 	  int getMaxChapters() const;
 	  int getCurrentChapter() const;
+	  bool isBlockPopups() const;
 
 private:
 	RFChapter* mostRecentlyFinished() const;
