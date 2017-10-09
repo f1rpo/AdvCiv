@@ -4078,7 +4078,7 @@ class BonusPlacer:
 		
 		# <advc.021b> As in Civ 4 Reimagined; skip the code below.
 		CyPythonMgr().allowDefaultImpl()
-		pass # </advc.021b>
+		return # </advc.021b>
 
 		#first get bonus/area link
 		bonus = self.bonusList[self.bonusDict[eBonus]]
@@ -4925,7 +4925,7 @@ class StartingPlotFinder:
 							plot.setFeatureType(FeatureTypes.NO_FEATURE, -1)
 		#ensure maximum number of bad features
 		# advc.021b: Let normalizeRemoveBadFeatures handle it
-		pass
+		return
 	
 		badFeaturesToRemove = badFeaturesFound - mc.MaxBadFeaturesInFC
 		if badFeaturesToRemove > 0:

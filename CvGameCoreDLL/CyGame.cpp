@@ -1287,6 +1287,12 @@ bool CyGame::isRFInterlude() {
 	return (m_pGame->isOption(GAMEOPTION_RISE_FALL) &&
 			m_pGame->getRiseFall().getInterludeCountdown() >= 0);
 }
+bool CyGame::isRFBlockPopups() {
+	if(m_pGame == NULL)
+		return false;
+	return (m_pGame->isOption(GAMEOPTION_RISE_FALL) &&
+			m_pGame->getRiseFall().isBlockPopups());
+}
 bool CyGame::isAITurn() {
 	if(m_pGame == NULL)
 		return false;

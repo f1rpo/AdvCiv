@@ -92,9 +92,10 @@ std::pair<int,int> RFChapterScore::computeRank(bool storeCivScores) {
 	double ourRank = 1;
 	int ourRivals = 0;
 	CvGame& g = GC.getGame();
-	PlayerTypes we = chapter->getCiv();
-	bool weVassal = TEAMREF(we).isAVassal();
-	int ourScore = modifiedCivScore(we);
+	CvPlayerAI const& we = GET_PLAYER(chapter->getCiv());
+	bool weVassal = GET_TEAM(we.getTeam()).isAVassal();
+	int ourVictStage = g.getRiseFall().victoryStage(we.getID());
+	int ourScore = modifiedCivScore(we.getID());
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 		CvPlayer const& they = GET_PLAYER((PlayerTypes)i);
 		if(!they.isAlive() || they.isMinorCiv() || they.isAVassal()) {
@@ -104,12 +105,19 @@ std::pair<int,int> RFChapterScore::computeRank(bool storeCivScores) {
 		}
 		if(storeCivScores)
 			initialCivScores[i] = modifiedCivScore(they.getID());
-		if(they.getID() == we ||
+		if(they.getID() == we.getID() ||
 				/*  Current player civ can't hurt our rank if we're a
 					previous player civ */
 				they.getID() == g.getActivePlayer())
 			continue;
 		ourRivals++;
+		int theirVictStage = g.getRiseFall().victoryStage(they.getID());
+		if(theirVictStage > ourVictStage) {
+			ourRank++;
+			continue;
+		}
+		if(ourVictStage > theirVictStage)
+			continue;
 		int theirScore = modifiedCivScore(they.getID());
 		if(theirScore > ourScore)
 			ourRank++;
@@ -118,7 +126,7 @@ std::pair<int,int> RFChapterScore::computeRank(bool storeCivScores) {
 	}
 	/*  Assume that the player starts in the middle, even if the AI starts with
 		more free tech. */
-	if(g.getGameTurn() <= g.getStartTurn() && GET_PLAYER(we).isAlive())
+	if(g.getGameTurn() <= g.getStartTurn() && we.isAlive())
 		ourRank = 1 + ourRivals / 2.0;
 	ourRank += 0.01; // Just to be explicit about rounding up
 	return std::make_pair<int,int>(::round(ourRank), ourRivals);

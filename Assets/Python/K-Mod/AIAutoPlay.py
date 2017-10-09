@@ -143,11 +143,11 @@ class AIAutoPlay :
 
         if( game.getAIAutoPlay() == 1 and iPlayer > game.getActivePlayer() and gc.getActivePlayer().isAlive() ) :
             # Forces isHuman checks to come through positive for everything after human players turn
-            # <advc.127> Commented out; pass instead. (The setAIAutoPlay
+            # <advc.127> Commented out; return instead. (The setAIAutoPlay
             # call might be superfluous in any case.)
             #self.checkPlayer()
             #game.setAIAutoPlay(0)
-            pass # </advc.127>
+            return # </advc.127>
         
         elif( self.bSaveAllDeaths ) :
             if( game.getAIAutoPlay() == 0 and not gc.getActivePlayer().isAlive() and iPlayer > game.getActivePlayer() ) :
@@ -165,7 +165,7 @@ class AIAutoPlay :
         #if (iPlayer == gc.getBARBARIAN_PLAYER() and game.getAIAutoPlay() == 1):
         turnsLeft = game.getAIAutoPlay()
         if turnsLeft > 1:
-            pass
+            return
         # Find the closest player preceding the disabled human in the turn order
         # (normally the barbarians)
         disabledHuman = -1
@@ -174,7 +174,7 @@ class AIAutoPlay :
                 disabledHuman = x
                 break
         if disabledHuman == -1:
-            pass
+            return
         preceding = iPlayer
         turnsLeftTarget = 0
         m = gc.getMAX_PLAYERS()
@@ -189,7 +189,6 @@ class AIAutoPlay :
             # </advc.127>
             # About to turn off automation
             self.checkPlayer() # advc.127: Un-commented this line.
-            pass
 
     def checkPlayer( self ) :
         

@@ -16899,24 +16899,32 @@ void CvPlayerAI::AI_doCounter()
 		PlayerTypes civId = (PlayerTypes)iI; 
 		if(!GET_PLAYER(civId).isAlive())
 			continue; 
-		for (iJ = 0; iJ < NUM_MEMORY_TYPES; iJ++)
-		{	MemoryTypes mId = (MemoryTypes)iJ;
-			if(AI_getMemoryCount(civId, mId) <= 0 ||
-					GC.getLeaderHeadInfo(getPersonalityType()).
+		for (iJ = 0; iJ < NUM_MEMORY_TYPES; iJ++) {
+			MemoryTypes mId = (MemoryTypes)iJ;
+			int c = AI_getMemoryCount(civId, mId);
+			if(c <= 0 || GC.getLeaderHeadInfo(getPersonalityType()).
 					getMemoryDecayRand(mId) <= 0)
 				continue; // </advc.003>
 			// <advc.144> No decay of MADE_DEMAND_RECENT while peace treaty
 			if(mId == MEMORY_MADE_DEMAND_RECENT &&
 					GET_TEAM(getTeam()).isForcePeace(TEAMID(civId)))
 				continue; // </advc.144>
-			// <advc.130r> No decay while war ongoing
-			if(mId == MEMORY_DECLARED_WAR &&
-					GET_TEAM(getTeam()).isAtWar(TEAMID(civId)))
-				continue;
+			// <advc.130r>
+			if(GET_TEAM(getTeam()).isAtWar(TEAMID(civId))) {
+				// No decay while war ongoing
+				if(mId == MEMORY_DECLARED_WAR)
+					continue;
+				// Limited decay while war ongoing
+				if((mId == MEMORY_CANCELLED_OPEN_BORDERS ||
+						mId == MEMORY_CANCELLED_DEFENSIVE_PACT ||
+						mId == MEMORY_CANCELLED_VASSAL_AGREEMENT) &&
+						c <= 1)
+					continue;
+			}
 			if(mId == MEMORY_DECLARED_WAR_ON_FRIEND &&
 					atWarWithPartner(TEAMID(civId)))
-				continue; // </advc.130r>
-			// <advc.130j>
+				continue;
+			// </advc.130r><advc.130j>
 			/*  Need to decay at least twice as fast b/c each
 				request now counts twice (on average). */
 			double div = 2;
@@ -16927,9 +16935,8 @@ void CvPlayerAI::AI_doCounter()
 			if(getWPAI.isEnabled() && (mId == MEMORY_REJECTED_DEMAND ||
 					mId == MEMORY_ACCEPT_DEMAND))
 				div *= (10 / 6.0); // 60% faster decay // </advc.104m>
-			int c = AI_getMemoryCount(civId, mId);
 			// <advc.130r> Faster yet if multiple requests remembered
-			if(c > 3) // c=3 could stem from a single request
+			if(c > 3) // c==3 could stem from a single request
 				div = 2 * std::sqrt(c / 2.0); // </advc.130r>
 			int decayRand = GC.getLeaderHeadInfo(getPersonalityType()).
 					getMemoryDecayRand(mId);
@@ -17760,11 +17767,7 @@ void CvPlayerAI::AI_doDiplo()
 		{
 			return;
 		}
-	} /* <advc.706> Don't want player to receive diplo msgs on the first turn
-		 of a chapter. */
-	CvGame& g = GC.getGame();
-	if(g.isOption(GAMEOPTION_RISE_FALL) && g.getRiseFall().isBlockPopups())
-		return; // </advc.706>
+	}
 	iGoldValuePercent = AI_goldTradeValuePercent();
 
 	for (iI = 0; iI < MAX_TEAMS; iI++)
@@ -17789,6 +17792,14 @@ void CvPlayerAI::AI_doDiplo()
 			if(!civ.isAlive() || civ.isHuman() != (iPass == 1) || civId == getID() ||
 					civ.getNumCities() <= 0) // advc.701
 				continue;
+			/*  <advc.706> Don't want player to receive diplo msgs on the
+				first turn of a chapter. */
+			if(civ.isHuman()) {
+				CvGame& g = GC.getGame();
+				if(g.isOption(GAMEOPTION_RISE_FALL) &&
+						g.getRiseFall().isBlockPopups())
+					continue;
+			} // </advc.706>
 			//if (GET_PLAYER((PlayerTypes)iI).getTeam() != getTeam()) // disabled by K-Mod
 			for(pLoopDeal = GC.getGameINLINE().firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = GC.getGameINLINE().nextDeal(&iLoop))
 			{

@@ -12,12 +12,12 @@
 	(even those that are just included in K-Mod because, without further
 	context, players may not know that e.g. "BUG" is the name of a mod). -->
 
-<!-- advc.008c: Now also hints at main menu button -->
+<!-- advc.008c: Now also hints at menu button -->
 <TEXT>
 	<Tag>TXT_KEY_BUG_HINT_INTERFACE_1</Tag>
-	<English>You can customize the BUG mod from the main menu, or by pressing [ALT + CTRL + O].</English>
+	<English>You can customize the BUG mod from the game menu [ESC], or by pressing [ALT + CTRL + O].</English>
 	<French>Pressez [ALT + CTRL + O] pour accèder aux écrans d'options du BUG Mod.</French>
-	<German>Der BUG-Mod lässt sich vom Hauptmenü aus konfigurieren, oder mit der Tastenkombination [STRG + ALT + O].</German>
+	<German>Die BUG-Mod lässt sich vom Menü [ESC] aus konfigurieren, oder mit der Tastenkombination [STRG + ALT + O].</German>
 	<Italian>Premi [ALT + CTRL + O] per accedere alla schermata di configurazione del BUG Mod.</Italian>
 	<Spanish>Presiona [ALT + CTRL + O] para abrir la pantalla de opciones de BUG.</Spanish>
 </TEXT>
@@ -343,6 +343,27 @@
 	<German>Wunder haben einzigartige Vorteile und inspirieren Ihre Untertanen. Aus diesem Grund bringen St&#228;dte, in denen Sie Weltwunder oder Nationale Wunder errichten, mehr Gro&#223;e Pers&#246;nlichkeiten hervor.</German>
 	<Italian>Le Meraviglie del mondo non solo forniscono dei benefici molto utili, ma sono anche una fonte di ispirazione per la tua popolazione. Nelle citt&#224; in cui si trovano delle Grandi Meraviglie &#232; pi&#249; facile che appaiano dei Grandi Personaggi.</Italian>
 	<Spanish>Las maravillas del mundo no solo proporcionan beneficios &#250;nicos, sino que tambi&#233;n son una inspiraci&#243;n para el pueblo. En las ciudades que construyan maravillas de la antig&#252;edad o varias grandes maravillas aparecer&#225;n m&#225;s grandes personajes.</Spanish>
+</TEXT>
+
+<!-- advc.008c: Shortened this a bit -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_67</Tag>
+	<English>While the HQ of a corporation generates extra income, each city hosting a corporation branch suffers increased maintenance costs. Unless you build courthouses in your branch cities and a bank in the HQ city, you may actually run at a net loss.</English>
+	<French>Si vous choisissez de fonder une soci&#233;t&#233; commerciale, sachez que m&#234;me si le si&#232;ge social b&#233;n&#233;ficiera de revenus suppl&#233;mentaires, chaque ville abritant cette soci&#233;t&#233; subira une hausse de ses co&#251;ts d'entretien. Construisez des tribunaux dans toutes ces villes et des banques pr&#232;s de vos si&#232;ges sociaux, sous peine de subir une banqueroute.</French>
+	<German>Ein Unternehmenssitz liefert zwar Zusatzeinnahmen, aber gleichzeitig verursachen die Niederlassungen Unterhaltskosten. Errichten Sie in Städten mit Niederlassungen Gerichtsgebäude und in der Stadt mit dem Unternehmenssitz eine Bank, um nicht unterm Strich einen Verlust zu machen.</German>
+	<Italian>Se decidi di fondare una Corporazione, ricorda che sebbene i quartieri generali beneficeranno di rendite extra, ogni città che ospita una corporazione vedrà aumentare i suoi costi di mantenimento. Costruisci Palazzi di giustizia nelle città con le Corporazioni e Banche nei quartieri generali, altrimenti la Corporazione potrebbe andare in passivo.</Italian>
+	<Spanish>Si eliges fundar una corporación, recuerda que -aunque sus sedes gocen de beneficios extra- toda ciudad que albergue una corporación tendrá mayores costes de mantenimiento. Construye delegaciones en todas tus ciudades con corporaciones y bancos en tus sedes; de otro modo, la corporación no hará más que generar pérdidas.</Spanish>
+</TEXT>
+
+<!-- advc.008c: Said "ALT-I" (instead of plus), which was confusing. Improved
+	 German translation. -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_INTERFACE_2</Tag>
+	<English>Press [CTRL + I] to play with a minimized interface. Press [ALT + I] to play without interface.</English>
+	<French>Appuyez sur [CTRL + I] pour jouer avec une interface r&#233;duite. Appuyez sur [ALT + I] pour jouer sans interface.</French>
+	<German>Dr&#252;cken Sie [STRG + I], um die Bedienoberfläche zu minimieren oder [ALT + I], um sie ganz auszublenden.</German>
+	<Italian>Premi [CTRL + I] per giocare con l'interfaccia minimizzata. Premi [ALT + I] per giocare senza interfaccia...</Italian>
+	<Spanish>Pulsar [CTRL + I] para jugar con una interfaz minimizada. Pulsar [ALT + I] para jugar sin interfaz.</Spanish>
 </TEXT>
 
 </Civ4GameText>

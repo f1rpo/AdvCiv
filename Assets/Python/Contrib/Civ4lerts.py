@@ -151,6 +151,9 @@ def addMessage(iPlayer, szString, szIcon, iFlashX=-1, iFlashY=-1, bOffArrow=Fals
 	
 	Culture:  Zoom to City, Ignore
 	"""
+	# <advc.706>
+	if gc.getGame().isRFBlockPopups():
+		return # </advc.706>
 	# advc.106c: Reduced time from LONG to normal
 	eventMessageTimeLong = gc.getDefineINT("EVENT_MESSAGE_TIME")
 	CyInterface().addMessage(iPlayer, True, eventMessageTimeLong,

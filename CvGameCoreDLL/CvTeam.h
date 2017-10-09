@@ -540,6 +540,7 @@ protected:
 
 	void cancelDefensivePacts();
 	void allowDefensivePactsToBeCanceled(); // dlph.3
+	void makeUnwillingToTalk(TeamTypes otherId); // advc.104i
 	void announceTechToPlayers(TechTypes eIndex, bool bPartial = false);
 
 	virtual void read(FDataStreamBase* pStream);

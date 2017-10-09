@@ -120,6 +120,16 @@
 	<Spanish>Use [Alt + M] to set a reminder for yourself.</Spanish>
 </TEXT>
 
+<!-- "Go-To (All Units) by pressing ALT+G" - has anyone ever used this? -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_INTERFACE_53</Tag>
+	<English>If you have cheats enabled (code "chipotle"), you can press [Shift + Ctrl + X] to enable AI Auto Play, i.e. to shift control of your civilization to the AI for a number of turns.</English>
+	<French>If you have cheats enabled (code "chipotle"), you can press [Shift + Ctrl + X] to enable AI Auto Play, i.e. to shift control of your civilization to the AI for a number of turns.</French>
+	<German>Wenn Sie Cheats aktiviert haben (Codewort "chipotle"), können Sie per [Shift + Ctrl + X] der KI vorübergehend die Kontrolle über Ihre Zivilisation übertragen.</German>
+	<Italian>If you have cheats enabled (code "chipotle"), you can press [Shift + Ctrl + X] to enable AI Auto Play, i.e. to shift control of your civilization to the AI for a number of turns.</Italian>
+	<Spanish>If you have cheats enabled (code "chipotle"), you can press [Shift + Ctrl + X] to enable AI Auto Play, i.e. to shift control of your civilization to the AI for a number of turns.</Spanish>
+</TEXT>
+
 <!-- advc.102: I've extended this hint a bit. -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_INTERFACE_15</Tag>
@@ -371,15 +381,6 @@
 	<German>Drücken Sie [ALT + X], so erscheint der Stadtradius um den Mauszeiger. Per Linksklick können Sie dann den Standort einer geplanten Stadt markieren; Rechtklick entfernt die Markierung wieder.</German>
 	<Italian>Press [ALT + X] to show the city radius ("big fat cross") around the cursor. You can mark a future city site by left-clicking; right-click removes a mark.</Italian>
 	<Spanish>Press [ALT + X] to show the city radius ("big fat cross") around the cursor. You can mark a future city site by left-clicking; right-click removes a mark.</Spanish>
-</TEXT>
-
-<TEXT>
-	<Tag>TXT_KEY_ADVC_HINT_26</Tag>
-	<English>If you have cheats enabled (code "chipotle"), you can press [Shift + Ctrl + X] to enable AI Auto Play, i.e. to shift control of your civilization to the AI for a number of turns.</English>
-	<French>If you have cheats enabled (code "chipotle"), you can press [Shift + Ctrl + X] to enable AI Auto Play, i.e. to shift control of your civilization to the AI for a number of turns.</French>
-	<German>Wenn Sie Cheats aktiviert haben (Codewort "chipotle"), können Sie per [Shift + Ctrl + X] der KI vorübergehend die Kontrolle über Ihre Zivilisation übertragen.</German>
-	<Italian>If you have cheats enabled (code "chipotle"), you can press [Shift + Ctrl + X] to enable AI Auto Play, i.e. to shift control of your civilization to the AI for a number of turns.</Italian>
-	<Spanish>If you have cheats enabled (code "chipotle"), you can press [Shift + Ctrl + X] to enable AI Auto Play, i.e. to shift control of your civilization to the AI for a number of turns.</Spanish>
 </TEXT>
 
 </Civ4GameText>
