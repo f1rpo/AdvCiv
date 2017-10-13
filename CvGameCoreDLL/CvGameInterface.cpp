@@ -1165,24 +1165,26 @@ void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, i
 						while (pSelectedUnitNode != NULL)
 						{
 							pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-
-							TeamTypes eRivalTeam = pSelectedUnit->getDeclareWarMove(pPlot);
-
-							if (eRivalTeam != NO_TEAM)
-							{
-								CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_DECLAREWARMOVE);
-								if (NULL != pInfo)
+							/*  advc.001 Player apparently wants to attack the
+								enemy unit if there is one (rather than declare war
+								against a third party): */
+							if(!pPlot->isVisibleEnemyUnit(pSelectedUnit)) {
+								TeamTypes eRivalTeam = pSelectedUnit->getDeclareWarMove(pPlot);
+								if (eRivalTeam != NO_TEAM)
 								{
-									pInfo->setData1(eRivalTeam);
-									pInfo->setData2(pPlot->getX());
-									pInfo->setData3(pPlot->getY());
-									pInfo->setOption1(bShift);
-									pInfo->setOption2(pPlot->getTeam() != eRivalTeam);
-									gDLL->getInterfaceIFace()->addPopup(pInfo);
+									CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_DECLAREWARMOVE);
+									if (NULL != pInfo)
+									{
+										pInfo->setData1(eRivalTeam);
+										pInfo->setData2(pPlot->getX());
+										pInfo->setData3(pPlot->getY());
+										pInfo->setOption1(bShift);
+										pInfo->setOption2(pPlot->getTeam() != eRivalTeam);
+										gDLL->getInterfaceIFace()->addPopup(pInfo);
+									}
+									return;
 								}
-								return;
-							}
-
+							} // advc.001
 							pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
 						}
 					}
@@ -1887,7 +1889,9 @@ void CvGame::doControl(ControlTypes eControl)
 				(Fullscreen pretty much rules out that a debugger is attached.) */
 			if(gDLL->getGraphicOption(GRAPHICOPTION_FULLSCREEN)) {
 				// Based on code in CvBugOptions.cpp
-				CvString quickSavePath; //="C:\\Users\\Administrator\\Documents\\My Games\\Beyond the Sword\\Saves\\single\\quick\\QuickSave.CivBeyondSwordSave";
+				/*  On my system, it's "C:\\Users\\Administrator\\Documents\\My Games\\Beyond the Sword\\Saves\\single\\quick\\QuickSave.CivBeyondSwordSave";
+					the user directory can vary. */
+				CvString quickSavePath;
 				gDLL->getPythonIFace()->callFunction(PYBugOptionsModule, "getUserDirStr", NULL, &quickSavePath);
 				if(!quickSavePath.empty()) {
 					quickSavePath += "\\Beyond the Sword\\Saves\\single\\quick\\QuickSave.CivBeyondSwordSave";

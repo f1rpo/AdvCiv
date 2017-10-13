@@ -8012,19 +8012,35 @@ int CvPlayerAI::AI_getAttitudeVal(PlayerTypes ePlayer, bool bForced) const
 
 int CvPlayerAI::AI_calculateStolenCityRadiusPlots(PlayerTypes ePlayer) const
 {
-	PROFILE_FUNC();
-
-	CvPlot* pLoopPlot;
-	int iCount;
-	int iI;
-
+	PROFILE_FUNC(); // <advc.003> Refactored
 	FAssert(ePlayer != getID());
-
-	iCount = 0;
-
-	for (iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
+	int iCount = 0; // </advc.003>
+	// <advc.147> Replacing the code below
+	/*  Note that this function is only called once per turn. And I'm not even
+		sure that the new code is slower. */
+	int dummy=-1;
+	for(CvCity* cp = firstCity(&dummy); cp != NULL; cp = nextCity(&dummy)) {
+		CvCity const& c = *cp;
+		std::vector<CvPlot const*> radius;
+		::fatCross(*c.plot(), radius);
+		int perCityCount = 0;
+		int upperBound = std::max(6, c.getPopulation());
+		for(size_t i = 1; i < radius.size(); i++) {
+			CvPlot const* pp = radius[i];
+			if(pp == NULL)
+				continue;
+			CvPlot const& p = *pp;
+			if(p.getOwnerINLINE() == ePlayer) {
+				perCityCount++;
+				if(perCityCount >= upperBound)
+					break;
+			}
+		}
+		iCount += perCityCount;
+	} // </advc.147>
+	/*for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 	{
-		pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
 
 		if (pLoopPlot->getOwnerINLINE() == ePlayer)
 		{
@@ -8033,8 +8049,7 @@ int CvPlayerAI::AI_calculateStolenCityRadiusPlots(PlayerTypes ePlayer) const
 				iCount++;
 			}
 		}
-	}
-
+	}*/
 	return iCount;
 }
 
@@ -11647,6 +11662,9 @@ int CvPlayerAI::AI_cityTradeVal(CvCity* pCity) const
 	/*  advc.104d: Moved the K-Mod code here into a new function
 		cityWonderVal (with some tweaks). */
 	iValue += cityWonderVal(pCity) * 10;
+	// <advc.139>
+	if(pCity->isEvacuating())
+		iValue = ::round(0.5 * iValue); // </advc.139>
 	return GET_TEAM(getTeam()).roundTradeVal(iValue); // advc.104k
 }
 
@@ -20374,7 +20392,8 @@ void CvPlayerAI::AI_doCheckFinancialTrouble()
 
 
 // heavily edited by K-Mod and bbai
-int CvPlayerAI::AI_calculateCultureVictoryStage() const
+int CvPlayerAI::AI_calculateCultureVictoryStage(
+		int countdownThresh) const // advc.115
 {
 	PROFILE_FUNC();
 
@@ -20429,9 +20448,12 @@ int CvPlayerAI::AI_calculateCultureVictoryStage() const
 				iHighCultureCount++;
 			}
 
-			// advc.115: Threshold was 50%, now 67%
-			if( pLoopCity->getCulture(getID()) > ::round(0.67 * pLoopCity->getCultureThreshold(GC.getGameINLINE().culturalVictoryCultureLevel())) )
-			{
+			// <advc.115> Threshold was 50%, now 67%, still 60% for human.
+			double thresh = 0.67;
+			if(isHuman())
+				thresh = 0.6;
+			if( pLoopCity->getCulture(getID()) > ::round(thresh * pLoopCity->getCultureThreshold(GC.getGameINLINE().culturalVictoryCultureLevel())) )
+			{// </ advc.115>
 				iCloseToLegendaryCount++;
 			}
 
@@ -20538,10 +20560,9 @@ int CvPlayerAI::AI_calculateCultureVictoryStage() const
 			}
 		}
 		*/
-
-		// advc.109:
-		if(isLonely()) iValue -= 30;
-
+		// <advc.109>
+		if(isLonely())
+			iValue -= 30; // </advc.109>
 		//int iNonsense = AI_getStrategyRand() + 10;
 		iValue += (AI_getStrategyRand(0) % 70); // advc.115: was 100
 
@@ -20586,7 +20607,11 @@ int CvPlayerAI::AI_calculateCultureVictoryStage() const
 				return 4;
 			}*/
 			// K-Mod. Do full culture if our winning countdown is below the countdown target.
-			int iCountdownTarget = 180;
+			/*  <advc.115> Was 180. Now set to the countdownThresh param if
+				it is provided, otherwise 100. */
+			int iCountdownTarget = 100;
+			if(countdownThresh >= 0)
+				iCountdownTarget = countdownThresh; // </advc.115>
 			{
 				// The countdown target depends on what other victory strategies we have in mind. The target is 180 turns * 100 / iDenominator.
 				// For example, if we're already at war, and going for conquest 4, the target countdown is then ~ 180 * 100 / 470 == 38 turns.
@@ -21082,12 +21107,16 @@ int CvPlayerAI::AI_calculateDominationVictoryStage() const
 			landObjective ); // advc.104c
 
 	if(!blockedByFriend) { // advc.104c
-		if( iPercentOfDomination > 80 )
-		{
+		// <advc.115>
+		int civs = GC.getGameINLINE().countCivPlayersEverAlive();
+		if( iPercentOfDomination > 87 - civs ) // was simply 80
+		{ // </advc.115>
 			return 4;
 		}
 
-		if( iPercentOfDomination > 55 ) // advc.115: was 50
+		if( iPercentOfDomination >
+				// advc.115: was simply 50
+				62 - civs )
 		{
 			return 3;
 		}
@@ -25847,15 +25876,20 @@ void CvPlayerAI::AI_ClearConstructionValueCache()
 // K-Mod end
 
 // <advc.130r><advc.130h>
-bool CvPlayerAI::atWarWithPartner(TeamTypes theyId) const {
+bool CvPlayerAI::atWarWithPartner(TeamTypes theyId, bool checkPartnerAttacked) const {
 
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 		CvPlayer const& partner = GET_PLAYER((PlayerTypes)i);
 		if(partner.isAlive() && partner.getTeam() != getTeam() &&
 				!partner.isMinorCiv() && GET_TEAM(theyId).isAtWar(
 				partner.getTeam()) && AI_getAttitude(partner.getID()) >=
-				ATTITUDE_PLEASED)
-			return true;
+				ATTITUDE_PLEASED) {
+			if(!checkPartnerAttacked)
+				return true;
+			WarPlanTypes wp = GET_TEAM(partner.getTeam()).AI_getWarPlan(theyId);
+			if(wp == WARPLAN_ATTACKED || wp == WARPLAN_ATTACKED_RECENT)
+				return true;
+		}
 	}
 	return false;
 } // </advc.130h></advc.130r>

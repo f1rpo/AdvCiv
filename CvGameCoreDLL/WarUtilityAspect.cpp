@@ -1948,20 +1948,23 @@ int KingMaking::preEvaluate() {
 	/*  Three classes of civs; all in the best non-empty category are likely
 		winners in our book. */
 	// I: Civs at victory stage 4
-	for(size_t i = 0; i < civs.size(); i++)
-		if(GET_PLAYER(properCivs[i]).AI_isDoVictoryStrategyLevel4())
-			winning.insert(properCivs[i]);
+	for(size_t i = 0; i < civs.size(); i++) {
+		CvPlayerAI const& civ = GET_PLAYER(properCivs[i]);
+		// Tbd.: Merge with code in RiseFall::victoryStage
+		if(civ.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4 | AI_VICTORY_DOMINATION4 |
+				 AI_VICTORY_DIPLOMACY4 | AI_VICTORY_SPACE4) ||
+				 /*  Check isDoStrategy first in order to avoid the costlier
+					calculate... call */
+				 (civ.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4) &&
+				  civ.AI_calculateCultureVictoryStage(55) >= 4))
+			winning.insert(civ.getID());
+	}
 	if(!winning.empty())
 		return 0;
 	//  II: Civs at victory stage 3 or game score near the top
 	for(size_t i = 0; i < civs.size(); i++)
 		if(GET_PLAYER(properCivs[i]).AI_isDoVictoryStrategyLevel3())
 			winning.insert(properCivs[i]);
-	// Actually, merge II and II entirely
-	/*if(!r.empty()) { // Use class III if no one at victory stage 3
-		addLeadingCivs(r, civs, 0.1);
-		return;
-	} */
 	// III: Civs with a competitive game score
 	/*  Important to use scores predicted based on military analysis because the
 		AI needs to be able to respond quickly when a civ starts running away with

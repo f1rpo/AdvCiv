@@ -1328,9 +1328,8 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 			continue;
 		CvPlot* p = c->plot();
 		int pwd = -1; // pairwise (travel) duration
-		int d; // set by measureDistance
+		int d = -1; // set by measureDistance
 		if(measureDistance(DOMAIN_LAND, p, targetCity->plot(), &d)) {
-			FAssert(d >= 0);
 			double speed = 1;
 			if(era >= 6) // Future era; to account for very high mobility in endgame
 				speed++;
@@ -1440,28 +1439,16 @@ bool WarAndPeaceCache::City::measureDistance(DomainTypes dom, CvPlot* start,
 	return (*r >= 0);
 } // </advc.104b>
 
-void WarAndPeaceCache::City::fatCross(vector<CvPlot*>& r) {
+void WarAndPeaceCache::City::fatCross(vector<CvPlot const*>& r) {
 
-	FAssert(r.empty());
-	r.reserve(21);
-	for(int i = 0; i < 21; i++)
-		r.push_back(NULL);
-	if(city() == NULL)
+	if(city() == NULL) {
+		FAssert(r.empty());
+		r.reserve(21);
+		for(int i = 0; i < 21; i++)
+			r.push_back(NULL);
 		return;
-	r[0] = city()->plot();
-	int pos = 1;
-	CvMap& map = GC.getMap();
-	for(int dx = -CITY_PLOTS_RADIUS; dx <= CITY_PLOTS_RADIUS; dx++) {
-		for(int dy = -CITY_PLOTS_RADIUS; dy <= CITY_PLOTS_RADIUS; dy++) {
-			// Skip corners and center
-			if(std::abs(dx) + std::abs(dy) == 4 || (dx == 0 && dy == 0))
-				continue;
-			// that's NULL if off the map
-			r[pos] = map.plot(r[0]->getX_INLINE() + dx, r[0]->getY_INLINE() + dy);
-			pos++;
-		}
 	}
-	FAssert(pos == 21);
+	return ::fatCross(*city()->plot(), r);
 }
 
 void WarAndPeaceCache::City::updateAssetScore() {
@@ -1500,15 +1487,18 @@ void WarAndPeaceCache::City::updateAssetScore() {
 		r += c.getPopulation() / 2.0;
 	// Plot deduced but unrevealed; use an estimate:
 	else r += 3 * GET_PLAYER(cityOwnerId).getCurrentEra() / 2;
-	vector<CvPlot*> fc; fatCross(fc);
+	vector<CvPlot const*> fc;
+	fatCross(fc);
 	for(int i = 0; i < 21; i++) {
-		CvPlot* pp = fc[i];
-		if(pp == NULL) continue; CvPlot const& p = *pp;
+		CvPlot const* pp = fc[i];
+		if(pp == NULL)
+			continue;
+		CvPlot const& p = *pp;
 		// If no working city, we should be able to get the tile by popping borders
 		if(p.getWorkingCity() != city() && p.getWorkingCity() != NULL && i != 0)
 			continue;
 		// Fall back on city tile for cultureModifier if p unrevealed
-		CvPlot* cultureTestPlot = fc[0];
+		CvPlot const* cultureTestPlot = fc[0];
 		double baseTileScore = 1.0 / 3; // i.e. 1/6 of a resource tile
 		if(p.isRevealed(t.getID(), false)) {
 			// getBonusType ensures that we can see the resource

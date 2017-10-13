@@ -774,6 +774,8 @@ class CvVictoryScreen:
 				s = localText.getText("TXT_KEY_RF_TURN", (startTurn,))
 			if ongoing and not extChapter:
 				s = self.highlight(s)
+			if endTurn >= 0: # Don't highlight this part
+				s += " (" + BugUtil.getDisplayYear(gc.getGame().getTurnYear(endTurn)) + ")"
 			screen.setTableText(szTable, 2, iRow, s, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 			# [3] Points
 			chapterScore = gc.getGame().getChapterScore(i)
@@ -797,6 +799,8 @@ class CvVictoryScreen:
 				s += " (" + localText.getText("TXT_KEY_RF_CHAPTER_LAST_KNOWN", (endTurn,)) + ")"
 			if currentTurn < startTurn:
 				s = "?"
+			elif extChapter:
+				s = "-"
 			else:
 				partialScore += chapterScore
 			screen.setTableText(szTable, 3, iRow, s, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
@@ -804,7 +808,7 @@ class CvVictoryScreen:
 			s = localText.getText("TXT_KEY_RF_CHAPTER_SCORE_TURN", (scoreTurn,))
 			if i == maxChapters - 1 and scoreTurn < 0:
 				s = localText.getText("TXT_KEY_RF_CHAPTER_SCORE_END", ())
-			if currentTurn >= scoreTurn:
+			elif currentTurn >= scoreTurn:
 				s = self.highlight(s)
 			if not extGame or currentTurn >= scoreTurn:
 				screen.setTableText(szTable, 4, iRow, s, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)

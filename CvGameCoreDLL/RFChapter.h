@@ -24,6 +24,7 @@ public:
 	void start();
 	void setScoreAtEnd(int sc);
 	void score();
+	void setScored(int turn);
 	void setRetireWasRecommended(bool b);
 	bool wasRetireRecommended() const;
 	void setRetireTurn(int t);

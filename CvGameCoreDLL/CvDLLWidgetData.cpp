@@ -3454,12 +3454,12 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 		{
 			GAMETEXT.getAttitudeString(szBuffer, ePlayer, eActivePlayer);
 			GAMETEXT.getWarWearinessString(szBuffer, ePlayer, eActivePlayer); // K-Mod
-
-			if (!kPlayer.isHuman() && willTalk)
+			// <advc.104v> Now done later
+			/*if (!kPlayer.isHuman() && willTalk)
 			{
 				szBuffer.append(NEWLINE);
 				szBuffer.append(gDLL->getText("TXT_KEY_MISC_CTRL_TRADE"));
-			}
+			}*/
 		}
 		// K-Mod end
 
@@ -3504,12 +3504,21 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 				szBuffer.append(NEWLINE);
 				szBuffer.append(gDLL->getText(L"TXT_KEY_AT_WAR_WITH", szWarWithString.getCString()));
 			}
-
+			// <advc.004v> Moved here from above
+			bool showCtrlTrade = !((GC.altKey() || GC.ctrlKey()) && gDLL->getChtLvl() > 0) &&
+					!kPlayer.isHuman() && willTalk;
+			if (showCtrlTrade) {
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_MISC_CTRL_TRADE"));
+			} // </advc.004>
 			if( !(kActiveTeam.isAtWar(eTeam)))
 			{
 				if (kActiveTeam.canDeclareWar(eTeam))
-				{
-					szBuffer.append(NEWLINE);
+				{	// <advc.104v>
+					if(showCtrlTrade)
+						szBuffer.append(L", "); // Put them on one line
+					else // </advc.104v>
+						szBuffer.append(NEWLINE);
 					szBuffer.append(gDLL->getText("TXT_KEY_MISC_ALT_DECLARE_WAR"));
 				}
 				else

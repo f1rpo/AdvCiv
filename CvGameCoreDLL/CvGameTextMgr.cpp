@@ -4380,7 +4380,8 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 				szString.append(CvWString::format(L"\n %s = %d", GC.getCivicInfo((CivicTypes)iI).getDescription(), GET_PLAYER(pPlot->getOwner()).AI_civicValue((CivicTypes)iI)));			
 			}
 */
-			if( bShift && !bAlt)
+			if(false && // advc.007: Disabled
+					bShift && !bAlt)
 			{
 				const CvPlayerAI& kPlayer = GET_PLAYER(pPlot->getOwnerINLINE());
 				std::vector<int> viBonusClassRevealed(GC.getNumBonusClassInfos(), 0);
@@ -4466,10 +4467,11 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 			{
 				for (int iI = 0; iI < GC.getNumCivicInfos(); iI++)
 				{
-					szString.append(CvWString::format(L"\n %s = %d", GC.getCivicInfo((CivicTypes)iI).getDescription(), GET_PLAYER(pPlot->getOwner()).AI_civicValue((CivicTypes)iI)));			
+					szString.append(CvWString::format(L"\n %s = %d", GC.getCivicInfo((CivicTypes)iI).getDescription(), GET_PLAYER(pPlot->getOwner()).AI_civicValue((CivicTypes)iI)));
 				}
 			}
-			else if( pPlot->headUnitNode() == NULL )
+			else if( false && // advc.007: Disabled
+					pPlot->headUnitNode() == NULL )
 			{
 				std::vector<UnitAITypes> vecUnitAIs;
 
@@ -4523,7 +4525,8 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 		szString.append(GC.getTerrainInfo(pPlot->getTerrainType()).getDescription());
 
 		FAssert((0 < GC.getNumBonusInfos()) && "GC.getNumBonusInfos() is not greater than zero but an array is being allocated in CvInterface::updateHelpStrings");
-		for (iI = 0; iI < GC.getNumBonusInfos(); ++iI)
+		// advc.007: Commented out
+		/*for (iI = 0; iI < GC.getNumBonusInfos(); ++iI)
 		{
 			if (pPlot->isPlotGroupConnectedBonus(GC.getGameINLINE().getActivePlayer(), ((BonusTypes)iI)))
 			{
@@ -4531,7 +4534,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 				szString.append(GC.getBonusInfo((BonusTypes)iI).getDescription());
 				szString.append(CvWString::format(L" (%d)", GET_PLAYER(GC.getGameINLINE().getActivePlayer()).AI_bonusVal((BonusTypes)iI, 0, true)));
 			}
-		}
+		}*/
 
 		if (pPlot->getPlotGroup(GC.getGameINLINE().getActivePlayer()) != NULL)
 		{
@@ -4701,13 +4704,13 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 				pPlot->AI_sumStrength(NO_PLAYER, NO_PLAYER, DOMAIN_AIR, true, false, false));
 			szString.append(szTempBuffer);
 		}*/
-
-		if (pPlot->getPlotCity() != NULL)
+		if (false && // advc.007: Takes up too much room
+			pPlot->getPlotCity() != NULL)
 		{
 			PlayerTypes ePlayer = pPlot->getOwnerINLINE();
 			CvPlayerAI& kPlayer = GET_PLAYER(ePlayer);
-			// advc.007: Takes up too much room
-			/*szString.append(CvWString::format(L"\n\nAI unit class weights ..."));
+			
+			szString.append(CvWString::format(L"\n\nAI unit class weights ..."));
 			for (iI = 0; iI < GC.getNumUnitClassInfos(); ++iI)
 			{
 				if (kPlayer.AI_getUnitClassWeight((UnitClassTypes)iI) != 0)
@@ -4722,7 +4725,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 				{
 					szString.append(CvWString::format(L"\n%s = % d", GC.getUnitCombatInfo((UnitCombatTypes)iI).getDescription(), kPlayer.AI_getUnitCombatWeight((UnitCombatTypes)iI)));
 				}
-			}*/			
+			}
 		}
 	}
 	else if (!bShift && bAlt && (gDLL->getChtLvl() > 0))

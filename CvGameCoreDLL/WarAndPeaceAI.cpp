@@ -2069,7 +2069,7 @@ bool WarAndPeaceAI::Civ::isPeaceDealPossible(PlayerTypes humanId) const {
 
 	/*  Could simply call CvPlayerAI::AI_counterPropose, but I think there are rare
 		situations when a deal is possible but AI_counterPropose doesn't find it.
-		It's also slower. */
+		It would also be slower. */
 	// <advc.705>
 	CvGame const& g = GC.getGameINLINE();
 	if(g.isOption(GAMEOPTION_RISE_FALL) &&

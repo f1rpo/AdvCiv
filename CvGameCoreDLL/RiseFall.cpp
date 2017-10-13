@@ -112,19 +112,26 @@ void RiseFall::init() {
 			return;
 		}
 	}
-	double delayMultiplier = GC.getDefineINT("RF_SCORING_DELAY_MULTIPLIER_PERCENT")
-			/ 100.0;
+	double delayFirst = GC.getDefineINT("RF_SCORING_DELAY_FIRST") / 100.0;
+	double delayPenult = GC.getDefineINT("RF_SCORING_DELAY_PENULTIMATE") / 100.0;
 	int chapterStart = startTurn;
 	for(size_t i = 0; i < chapters.size(); i++) {
 		int nextChapterLength = (i >= chapters.size() - 1 ? 0 :
 				chapters[i + 1]->getLength());
 		if(nextChapterLength <= 0)
-			chapters[i]->setDelay(0);
-		else chapters[i]->setDelay(interludeLength + ::range(::roundToMultiple(
+			chapters[i]->setDelay(-10000); // For a negative scoreTurn
+		else { 
+			double delayMultiplier = delayPenult;
+			if(maxChapters != 2) {
+				delayMultiplier = delayFirst + i *
+						(delayPenult - delayFirst) / (maxChapters - 2);
+			}
+			chapters[i]->setDelay(interludeLength + ::range((int)( // Round down
 				// Avoid very long delays when chapters are long
 				std::min(speed.getGoldenAgePercent(), nextChapterLength) *
-				delayMultiplier, 5) + 1,
+				delayMultiplier) + 1,
 				5, nextChapterLength - 5));
+		}
 		chapters[i]->setStartTurn(chapterStart);
 		chapterStart += chapters[i]->getLength() + interludeLength;
 	}
@@ -850,6 +857,9 @@ void RiseFall::prepareForExtendedGame() {
 			chapters[pos]->score();
 		riseScore.freezeTotal(chapters);
 		chapters[pos]->setEndless(true);
+		/*  So that the game end turn gets shown as the score turn. The popup
+			that switches to extended game appears one turn after victory. */
+		chapters[pos]->setScored(GC.getGame().getGameTurn() - 1);
 		if(g.getAIAutoPlay()) {
 			abandonPlans(chapters[pos]->getCiv());
 			g.setAIAutoPlay(0);
@@ -1123,6 +1133,15 @@ int RiseFall::victoryStage(PlayerTypes civId) {
 		r = 3;
 	if(civ.AI_isDoVictoryStrategyLevel4())
 		r = 4;
+	/*  Culture4 is normally quite a bit farther away from victory than
+		the other stage-4 strategies. Need to recompute the culture
+		victory stage with a lowered countdownThresh. */
+	if(r == 4 && civ.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4) &&
+			!civ.AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY4) &&
+			!civ.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4) &&
+			!civ.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4) &&
+			!civ.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4))
+		r = std::max(3, civ.AI_calculateCultureVictoryStage(55));
 	return r;
 }
 

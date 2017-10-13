@@ -1462,7 +1462,7 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 							/*  Not if eTeam is also fighting a partner and
 								(appears to have) started it. */
 							((kTeam_j.AI_getMemoryCount(eTeam, MEMORY_DECLARED_WAR_ON_FRIEND) <= 0) ||
-							!kPlayer_j.atWarWithPartner(eTeam)))
+							!kPlayer_j.atWarWithPartner(eTeam, true)))
 							// </advc.130h>
 					{   // advc.130j:
 						kPlayer_j.AI_rememberEvent(i, MEMORY_DECLARED_WAR_ON_FRIEND);
@@ -7147,8 +7147,8 @@ void CvTeam::makeUnwillingToTalk(TeamTypes otherId) {
 			}
 			/*  STOPPED_TRADING memory has no effect on humans. Make the
 				other side unwilling to talk then. Could simply always make both
-				sides unwilling, but then, the expected duration until peace can
-				be negotiated would get longer. */
+				sides unwilling, but then, the expected RTT duration would
+				become longer. */
 			else if(ourMember.isHuman() && theirMember.AI_getMemoryCount(
 					ourMember.getID(), MEMORY_STOPPED_TRADING_RECENT) <= 0) {
 				theirMember.AI_changeMemoryCount(ourMember.getID(),
