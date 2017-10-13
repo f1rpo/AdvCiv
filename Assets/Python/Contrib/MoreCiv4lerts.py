@@ -54,7 +54,11 @@ class AbstractMoreCiv4lertsEvent(object):
 
 	def _addMessage(self, iPlayer, szString, szIcon, iFlashX, iFlashY, bOffArrow, bOnArrow, iColor):
 			#Displays an on-screen message.
-			eventMessageTimeLong = gc.getDefineINT("EVENT_MESSAGE_TIME_LONG")
+			# <advc.706>
+			if gc.getGame().isRFBlockPopups():
+				return # </advc.706>
+			# advc.106c: Reduced time from LONG to normal
+			eventMessageTimeLong = gc.getDefineINT("EVENT_MESSAGE_TIME")
 			# advc.135b: Ignore iPlayer. Shouldn't be necessary b/c
 			# the iActivePlayer (on the caller side) should always
 			# be iOwner. Tbd.: Remove the iPlayer attribute from all
@@ -160,7 +164,7 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 		#iGameTurn = argsList[0] # advc.003: Unused
 		# <advc.706>
 		if not gc.getPlayer(self.iOwner).isHuman():
-			pass # </advc.706>
+			return # </advc.706>
 		iPlayer = gc.getGame().getActivePlayer()
 		if iPlayer == self.iOwner: # advc.135b
 			self.CheckForAlerts(iPlayer, PyPlayer(iPlayer).getTeam(), True)
@@ -169,7 +173,7 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 		owner, playerType, city, bConquest, bTrade = argsList
 		# <advc.706>
 		if not gc.getPlayer(self.iOwner).isHuman():
-			pass # </advc.706>
+			return # </advc.706>
 		iPlayer = city.getOwner()
 		if (not self.getCheckForDomVictory()): return
 		if (iPlayer == self.iOwner): # advc.135b
@@ -179,7 +183,7 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 		city = argsList[0]
 		# <advc.706>
 		if not gc.getPlayer(self.iOwner).isHuman():
-			pass # </advc.706>
+			return # </advc.706>
 		iPlayer = city.getOwner()
 		# advc.135b: All uses replaced with self.iOwner
 		#iActivePlayer = gc.getGame().getActivePlayer()
@@ -210,7 +214,7 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 		if (not self.getCheckForDomVictory()): return
 		# <advc.706>
 		if not gc.getPlayer(self.iOwner).isHuman():
-			pass # </advc.706>
+			return # </advc.706>
 		if (iPlayer == self.iOwner): # advc.135b
 			self.CheckForAlerts(iPlayer, PyPlayer(iPlayer).getTeam(), False)
 
@@ -218,7 +222,7 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 		city = argsList[0]
 		# <advc.706>
 		if not gc.getPlayer(self.iOwner).isHuman():
-			pass # </advc.706>
+			return # </advc.706>
 		iPlayer = city.getOwner()
 		if (not self.getCheckForDomVictory()): return
 		if (iPlayer == self.iOwner): # advc.135b

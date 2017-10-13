@@ -11,6 +11,8 @@
 #include "CvGameTextMgr.h"
 #include "CvMessageControl.h"
 #include "CvBugOptions.h"
+// advc.003d:
+#include <fstream>
 
 void CvGame::updateColoredPlots()
 {
@@ -1824,6 +1826,9 @@ void CvGame::doControl(ControlTypes eControl)
 
 	case CONTROL_RESOURCE_ALL:
 		gDLL->getEngineIFace()->toggleResourceLayer();
+		/*  advc.004m: Need to keep track of toggling in order to be able to
+			tell whether it's enabled. */
+		GC.getGame().reportResourceLayerToggled();
 		break;
 
 	case CONTROL_UNIT_ICONS:
@@ -1876,7 +1881,24 @@ void CvGame::doControl(ControlTypes eControl)
 
 	case CONTROL_QUICK_LOAD:
 		if (!(isNetworkMultiPlayer()))	// SP only!
-		{
+		{	// <advc.003d>
+			/*  Loading works fine in windowed mode, and when a debugger is
+				attached, exitingToMainMenu can actually be quite slow.
+				(Fullscreen pretty much rules out that a debugger is attached.) */
+			if(gDLL->getGraphicOption(GRAPHICOPTION_FULLSCREEN)) {
+				// Based on code in CvBugOptions.cpp
+				CvString quickSavePath; //="C:\\Users\\Administrator\\Documents\\My Games\\Beyond the Sword\\Saves\\single\\quick\\QuickSave.CivBeyondSwordSave";
+				gDLL->getPythonIFace()->callFunction(PYBugOptionsModule, "getUserDirStr", NULL, &quickSavePath);
+				if(!quickSavePath.empty()) {
+					quickSavePath += "\\Beyond the Sword\\Saves\\single\\quick\\QuickSave.CivBeyondSwordSave";
+					// CTD if loading fails, so let's make sure that the file is good.
+					std::ifstream quickSaveFile(quickSavePath);
+					if(quickSaveFile.good()) {
+						gDLL->getInterfaceIFace()->exitingToMainMenu(quickSavePath.c_str());
+						break;
+					}
+				}
+			} // </advc.003d>
 			gDLL->QuickLoad();
 		}
 		break;
@@ -2069,7 +2091,11 @@ void CvGame::doControl(ControlTypes eControl)
 void CvGame::retire()
 {
 	FAssert(canDoControl(CONTROL_RETIRE));
-
+	// <advc.706>
+	if(isOption(GAMEOPTION_RISE_FALL)) {
+		riseFall.retire();
+		return;
+	} // </advc.706>
 	if (!isGameMultiPlayer() || countHumanPlayersAlive() == 1)
 	{
 		if (gDLL->GetAutorun())

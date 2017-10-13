@@ -631,6 +631,17 @@
 			<Plural>0</Plural>
 		</Spanish>
 	</TEXT>
+
+	<!-- advc.004g: Originally in CIV4GameText_Misc1.xml. "Game menu" doesn't
+		 translate well; just "menu" will have to do. -->
+	<TEXT>
+		<Tag>TXT_KEY_MAIN_MENU</Tag>
+		<English>Open Game Menu</English>
+		<French>Ouvrir le menu</French>
+		<German>Men&#252; &#246;ffnen</German>
+		<Italian>Apri il menu</Italian>
+		<Spanish>Abrir men&#250;</Spanish>
+	</TEXT>
 	
 	<!-- advc.004s: Originally in CIV4GameTextInfos.xml;
 		 says just "(Gold)" there. Translation from TXT_KEY_RESEARCH
@@ -1814,11 +1825,11 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_RF_POPUP_FINAL_TURN</Tag>
-		<English>This is the final turn of Chapter %d1_Chpt. Any lasting decisions on the last minute? (Start/ end wars, civic changes, use of Great People ...). Have you already decided on your next civ?</English>
-		<French>This is the final turn of Chapter %d1_Chpt. Any lasting decisions on the last minute? (Start/ end wars, civic changes, use of Great People ...). Have you already decided on your next civ?</French>
-		<German>Letzte Runde des %d1_Chpt. Abschnitts. Noch weitreichende Entscheidungen auf den letzten Drücker? (Krieg/ Frieden, Staatsform, Beförderungen ...). Haben Sie Ihre nächste Zivilisation ins Auge gefasst?</German>
-		<Italian>This is the final turn of Chapter %d1_Chpt. Any lasting decisions on the last minute? (Start/ end wars, civic changes, use of Great People ...). Have you already decided on your next civ?</Italian>
-		<Spanish>This is the final turn of Chapter %d1_Chpt. Any lasting decisions on the last minute? (Start/ end wars, civic changes, use of Great People ...). Have you already decided on your next civ?</Spanish>
+		<English>This is the final turn of Chapter %d1_Chpt. Any lasting decisions on the last minute? (Start/ end wars, civic changes, promotions, use of Great People ...). Have you already decided on your next civ?</English>
+		<French>This is the final turn of Chapter %d1_Chpt. Any lasting decisions on the last minute? (Start/ end wars, civic changes, promotions, use of Great People ...). Have you already decided on your next civ?</French>
+		<German>Letzte Runde des %d1_Chpt. Abschnitts. Noch weitreichende Entscheidungen auf den letzten Drücker? (Krieg/ Frieden, Staatsform, Beförderungen, Einsatz Großer Persönlichkeiten ...). Haben Sie Ihre nächste Zivilisation ins Auge gefasst?</German>
+		<Italian>This is the final turn of Chapter %d1_Chpt. Any lasting decisions on the last minute? (Start/ end wars, civic changes, promotions, use of Great People ...). Have you already decided on your next civ?</Italian>
+		<Spanish>This is the final turn of Chapter %d1_Chpt. Any lasting decisions on the last minute? (Start/ end wars, civic changes, promotions, use of Great People ...). Have you already decided on your next civ?</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_RF_POPUP_AUTO_PLAY</Tag>
@@ -2190,11 +2201,11 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_RF_POPUP_RECOMMEND_RETIRE</Tag>
-		<English>Recommendation: Unless you can win in this chapter, it may be time to retire (main menu). Since you've already reached rank 1, your score is not going to improve much, but %s1_Civ could become a major obstacle in later chapters. Retiring lets the AI finish this chapter and yields some bonus points.</English>
-		<French>Recommendation: Unless you can win in this chapter, it may be time to retire (main menu). Since you've already reached rank 1, your score is not going to improve much, but %s1_Civ could become a major obstacle in later chapters. Retiring lets the AI finish this chapter and yields some bonus points.</French>
-		<German>Empfehlung: Falls Sie nicht noch in diesem Spielabschnitt gewinnen können, sollten Sie eine Abdankung (Hauptmenü) in Betracht ziehen. Da Sie schon in Führung sind, wird sich Ihre Punktzahl für diesen Abschnitt kaum noch erhöhen, aber %s1_Civ könnte in späteren Abschnitten ein gefährlicher Gegner werden. Die Abdankung lässt die KI den Abschnitt zu Ende spielen und bringt einige Zusatzpunkte.</German>
-		<Italian>Recommendation: Unless you can win in this chapter, it may be time to retire (main menu). Since you've already reached rank 1, your score is not going to improve much, but %s1_Civ could become a major obstacle in later chapters. Retiring lets the AI finish this chapter and yields some bonus points.</Italian>
-		<Spanish>Recommendation: Unless you can win in this chapter, it may be time to retire (main menu). Since you've already reached rank 1, your score is not going to improve much, but %s1_Civ could become a major obstacle in later chapters. Retiring lets the AI finish this chapter and yields some bonus points.</Spanish>
+		<English>Recommendation: Unless you can win in this chapter, it may be time to retire (through the game menu). Since you've already reached rank 1, your score is not going to improve much, but %s1_Civ could become a major obstacle in later chapters. Retiring lets the AI finish this chapter and yields some bonus points.</English>
+		<French>Recommendation: Unless you can win in this chapter, it may be time to retire (through the game menu). Since you've already reached rank 1, your score is not going to improve much, but %s1_Civ could become a major obstacle in later chapters. Retiring lets the AI finish this chapter and yields some bonus points.</French>
+		<German>Empfehlung: Falls Sie nicht noch in diesem Spielabschnitt gewinnen können, sollten Sie eine Abdankung (über das ESC-Menü) in Betracht ziehen. Da Sie schon in Führung sind, wird sich Ihre Punktzahl für diesen Abschnitt kaum noch erhöhen, aber %s1_Civ könnte in späteren Abschnitten ein gefährlicher Gegner werden. Die Abdankung lässt die KI den Abschnitt zu Ende spielen und bringt einige Zusatzpunkte.</German>
+		<Italian>Recommendation: Unless you can win in this chapter, it may be time to retire (through the game menu). Since you've already reached rank 1, your score is not going to improve much, but %s1_Civ could become a major obstacle in later chapters. Retiring lets the AI finish this chapter and yields some bonus points.</Italian>
+		<Spanish>Recommendation: Unless you can win in this chapter, it may be time to retire (through the game menu). Since you've already reached rank 1, your score is not going to improve much, but %s1_Civ could become a major obstacle in later chapters. Retiring lets the AI finish this chapter and yields some bonus points.</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_RF_DEFEAT</Tag>
@@ -2267,6 +2278,14 @@
 		<German>Sie haben diese Zivilisation schon in Abschnitt %d1 gespielt. Bei erneuter Wahl wird die Punktzahl für Abschnitt %d2 halbiert.</German>
 		<Italian>You've already played this civ in Chapter %d1. If you select it again, the score for Chapter %d2 will be halved.</Italian>
 		<Spanish>You've already played this civ in Chapter %d1. If you select it again, the score for Chapter %d2 will be halved.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_CIV_SELECTION_VICTSTAGE</Tag>
+		<English>Victory stage</English>
+		<French>Victory stage</French>
+		<German>Siegesgewissheit</German>
+		<Italian>Victory stage</Italian>
+		<Spanish>Victory stage</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_RF_CIV_SELECTION_SCORE</Tag>

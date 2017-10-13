@@ -1076,7 +1076,8 @@ public:
 	bool canHaveTradeRoutesWith(PlayerTypes ePlayer) const;
 
 	void forcePeace(PlayerTypes ePlayer);    // exposed to Python
-
+	// advc.032: True iff a treaty was found and its turnsToCancel reset
+	bool resetPeaceTreaty(PlayerTypes otherId);
 	bool canSpiesEnterBorders(PlayerTypes ePlayer) const;
 	int getNewCityProductionValue() const;
 

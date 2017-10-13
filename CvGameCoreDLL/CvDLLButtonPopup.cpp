@@ -894,14 +894,22 @@ void CvDLLButtonPopup::OnFocus(CvPopup* pPopup, CvPopupInfo &info)
 bool CvDLLButtonPopup::launchButtonPopup(CvPopup* pPopup, CvPopupInfo &info)
 {
 	// <advc.706>
-	if(info.getButtonPopupType() == BUTTONPOPUP_RF_CHOOSECIV)
-		return GC.getGameINLINE().getRiseFall().launchCivSelectionPopup(pPopup, info);
-	if(info.getButtonPopupType() == BUTTONPOPUP_RF_DEFEAT)
-		return GC.getGameINLINE().getRiseFall().launchDefeatPopup(pPopup, info);
-	if(!CvPlot::activeVisibility)
-		return false;
-	// </advc.706>
-
+	CvGame& g = GC.getGame();
+	if(g.isOption(GAMEOPTION_RISE_FALL)) {
+		ButtonPopupTypes bpt = info.getButtonPopupType();
+		if(bpt == BUTTONPOPUP_RF_CHOOSECIV)
+			return GC.getGameINLINE().getRiseFall().launchCivSelectionPopup(pPopup, info);
+		if(bpt == BUTTONPOPUP_RF_DEFEAT)
+			return GC.getGameINLINE().getRiseFall().launchDefeatPopup(pPopup, info);
+		if(!CvPlot::activeVisibility)
+			return false;
+		/*  The EXE launches these popups after human takeover; afterwards(?),
+			the AI makes a choice, and the popup is killed once the player clicks
+			on it. */
+		if((bpt == BUTTONPOPUP_CHOOSEPRODUCTION || bpt == BUTTONPOPUP_CHOOSETECH) &&
+				g.getRiseFall().isBlockPopups())
+			return false;
+	} // </advc.706>
 	FAssert(GC.getGameINLINE().getActivePlayer() != NO_PLAYER); // K-Mod
 
 	bool bLaunched = false;
@@ -912,15 +920,6 @@ bool CvDLLButtonPopup::launchButtonPopup(CvPopup* pPopup, CvPopupInfo &info)
 		bLaunched = launchTextPopup(pPopup, info);
 		break;
 	case BUTTONPOPUP_CHOOSEPRODUCTION:
-		{	/*  <advc.706> The EXE launches this popup after human takeover;
-				afterwards(?), the AI chooses the production, and the popup
-				is killed once the player clicks on it. Easiest solutions seems
-				to block choose-production popups on the initial turn of a
-				R&F chapter. */
-			CvGame& g = GC.getGame();
-			if(g.isOption(GAMEOPTION_RISE_FALL) && g.getRiseFall().isBlockPopups())
-				break; // </advc.706>
-		}
 		bLaunched = launchProductionPopup(pPopup, info);
 		break;
 	case BUTTONPOPUP_CHANGERELIGION:

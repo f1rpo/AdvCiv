@@ -38,6 +38,8 @@
 from CvPythonExtensions import *
 import BugOptions
 import BugUtil
+# advc.003d:
+import BugPath
 
 gc = CyGlobalContext()
 
@@ -182,6 +184,13 @@ def castOptionValue(func, id, default):
 	except:
 		return default
 
+# <advc.003d>
+def getUserDirStr():
+	r = BugPath.getUserDir()
+	if r == None:
+		return ""
+	return str(r)
+# </advc.003d>
 
 def init():
 	"""

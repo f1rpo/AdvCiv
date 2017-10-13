@@ -1422,7 +1422,7 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 			CvPlayerAI& kPlayer_j = GET_PLAYER(j);
 
 			if (!kPlayer_j.isAlive()
-					// advc.003b: Doesn't hurt to include them, I guess, but no need
+					// advc.003b: Doesn't hurt to include them, I guess, but no need.
 					|| j == BARBARIAN_PLAYER || kPlayer_j.isMinorCiv())
 				continue;
 
@@ -1457,6 +1457,7 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 				{
 					if (kTeam_j.AI_getAttitude(eTeam) >= ATTITUDE_PLEASED &&
 							// <advc.130h>
+							!GET_TEAM(eTeam).isCapitulated() &&
 							GET_TEAM(eTeam).getMasterTeam() != kTeam_j.getMasterTeam() &&
 							/*  Not if eTeam is also fighting a partner and
 								(appears to have) started it. */
@@ -1715,15 +1716,21 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 	{
 		cancelDefensivePacts();
 	}
-
+	bool defPactTriggered = false; // advc.104i
 	for (iI = 0; iI < MAX_TEAMS; iI++)
 	{
 		if (iI != getID() && iI != eTeam && GET_TEAM((TeamTypes)iI).isAlive())
-		{	// dlph.3: Ally can already be at war with the aggressor
-			if(GET_TEAM((TeamTypes)iI).isAtWar(eTeam)) continue;
+		{	// <dlph.3> Ally can already be at war with the aggressor
+			if(GET_TEAM((TeamTypes)iI).isAtWar(eTeam))
+				continue; // </dlph.3>
 			if (GET_TEAM((TeamTypes)iI).isDefensivePact(eTeam))
 			{
 				GET_TEAM((TeamTypes)iI).declareWar(getID(), bNewDiplo, WARPLAN_DOGPILE, false);
+				// <advc.104i>
+				defPactTriggered = true;
+				/*  Team iI declares war on us, and this makes our team
+					unwilling to talk to iI. */
+				makeUnwillingToTalk((TeamTypes)iI); // </advc.104i>
 			}
 			else if( (GC.getBBAI_DEFENSIVE_PACT_BEHAVIOR() > 1) && GET_TEAM((TeamTypes)iI).isDefensivePact(getID()))
 			{
@@ -1739,6 +1746,10 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 	}
 	// K-Mod / BBAI end.
 	GET_TEAM(eTeam).allowDefensivePactsToBeCanceled(); // dlph.3
+	/*  <advc.104i> When other teams come to the help of eTeam through a
+		defensive pact, then eTeam becomes unwilling to talk with us. */
+	if(defPactTriggered)
+		GET_TEAM(eTeam).makeUnwillingToTalk(getID()); // </advc.104i>
 	for (iI = 0; iI < MAX_TEAMS; iI++)
 	{
 		if (iI != getID() && iI != eTeam)
@@ -4641,7 +4652,20 @@ void CvTeam::setVassal(TeamTypes eIndex, bool bNewValue, bool bCapitulated)
 
 		setForcePeace(eIndex, false);
 		GET_TEAM(eIndex).setForcePeace(getID(), false);
-
+		// <advc.130o> Forget tribute demands
+		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+			CvPlayerAI& ourMember = GET_PLAYER((PlayerTypes)i);
+			if(!ourMember.isAlive() || ourMember.getTeam() != getID())
+				continue;
+			for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
+				CvPlayer& other = GET_PLAYER((PlayerTypes)j);
+				if(!other.isAlive() || other.isMinorCiv())
+					continue;
+				int mem = ourMember.AI_getMemoryCount(other.getID(), MEMORY_MADE_DEMAND);
+				if(mem > 0)
+					ourMember.AI_changeMemoryCount(other.getID(), MEMORY_MADE_DEMAND, -mem);
+			}
+		} // </advc.130o>
 		// advc.130y: Used to be done after declaring wars
 		// <advc.003> Refactored
 		for(int i = 0; i < MAX_CIV_TEAMS; i++) {
@@ -6121,10 +6145,10 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 				for (iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 				{
 					pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
-					if ((pLoopPlot->getTeam() != getID()
-							// <advc.004r>
-							&& pLoopPlot->getTeam() != NO_TEAM &&
-							pLoopPlot->getTeam() != BARBARIAN_TEAM) ||
+					// <advc.004r>
+					TeamTypes revTeam = pLoopPlot->getRevealedTeam(getID(), false);
+					if((revTeam != getID() && revTeam != NO_TEAM &&
+							revTeam != BARBARIAN_TEAM) ||
 							!pLoopPlot->isRevealed(getID(), false)) // </advc.004r>
 						continue; // advc.003
 					eBonus = pLoopPlot->getBonusType();
@@ -7097,6 +7121,42 @@ void CvTeam::allowDefensivePactsToBeCanceled() {
 			d->setInitialGameTurn(-100);
 	}
 } // </dlph.3>
+
+// <advc.104i>
+void CvTeam::makeUnwillingToTalk(TeamTypes otherId) {
+
+	// No need to make vassals unwilling to talk; can't negotiate war/ peace anyway.
+	if(otherId == NO_TEAM || isAVassal() || GET_TEAM(otherId).isAVassal())
+		return;
+	/*  Make each member i of our team unwilling to talk to every member j
+		of the other team. */
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+		CvPlayerAI& ourMember = GET_PLAYER((PlayerTypes)i);
+		if(!ourMember.isAlive() || ourMember.getTeam() != getID())
+			continue;
+		for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
+			CvPlayer& theirMember = GET_PLAYER((PlayerTypes)j);
+			if(!theirMember.isAlive() || theirMember.getTeam() != otherId)
+				continue;
+			if(!ourMember.isHuman() &&
+					// Same code as in CvDeal::startTrade, case WAR_TRADE
+					ourMember.AI_getMemoryCount(theirMember.getID(),
+					MEMORY_STOPPED_TRADING_RECENT) <= 0) {
+				ourMember.AI_changeMemoryCount(theirMember.getID(),
+						MEMORY_STOPPED_TRADING_RECENT, 1);
+			}
+			/*  STOPPED_TRADING memory has no effect on humans. Make the
+				other side unwilling to talk then. Could simply always make both
+				sides unwilling, but then, the expected duration until peace can
+				be negotiated would get longer. */
+			else if(ourMember.isHuman() && theirMember.AI_getMemoryCount(
+					ourMember.getID(), MEMORY_STOPPED_TRADING_RECENT) <= 0) {
+				theirMember.AI_changeMemoryCount(ourMember.getID(),
+						MEMORY_STOPPED_TRADING_RECENT, 1);
+			}
+		}
+	}
+} // </advc.104i>
 
 void CvTeam::read(FDataStreamBase* pStream)
 {

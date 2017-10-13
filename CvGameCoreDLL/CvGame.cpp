@@ -760,6 +760,15 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	// advc.011:
 	delayUntilBuildDecay = bConstructorCall ? -1 : GC.getDefineINT("DELAY_UNTIL_BUILD_DECAY");
 	turnLoadedFromSave = -1; // advc.044
+	// <advc.004m>
+	if(bConstructorCall)
+		bResourceLayer = true;
+	else if(GC.getDefineINT("SHOW_RESOURCE_BUBBLES_AT_GAME_START") <= 0) {
+		/*  This causes the resource layer to be disabled when returning to the
+			main menu. (Rather than remembering the latest status.) */
+		bResourceLayer = false;
+	} // </advc.004m>
+	resourceLayerSet = false; // advc.003d
 }
 
 
@@ -2492,6 +2501,13 @@ void CvGame::update()
 			are just a few instructions (unless there is actually text to restore). */
 		if(isOption(GAMEOPTION_RISE_FALL))
 			riseFall.restoreDiploText(); // </advc.705>
+		// <advc.003d>
+		if(!resourceLayerSet) {
+			gDLL->getEngineIFace()->setResourceLayer(isResourceLayer());
+			/*  This flag is only for performance - who knows how long the
+				line above takes (even if bOn already equals bResourceLayer). */
+			resourceLayerSet = true;
+		} // </advc.003d>
 	}
 	PROFILE_END();
 	stopProfilingDLL(false);
@@ -3025,14 +3041,21 @@ bool CvGame::selectionListIgnoreBuildingDefense() const
 
 
 void CvGame::implementDeal(PlayerTypes eWho, PlayerTypes eOtherWho, CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirList, bool bForce)
-{
-	CvDeal* pDeal;
-
-	FAssertMsg(eWho != NO_PLAYER, "Who is not assigned a valid value");
-	FAssertMsg(eOtherWho != NO_PLAYER, "OtherWho is not assigned a valid value");
-	FAssertMsg(eWho != eOtherWho, "eWho is not expected to be equal with eOtherWho");
-
-	pDeal = addDeal();
+{	// <advc.003> Minor refactoring
+	FAssert(eWho != NO_PLAYER);
+	FAssert(eOtherWho != NO_PLAYER);
+	FAssert(eWho != eOtherWho); // </advc.003>
+	// <advc.032>
+	if(TEAMREF(eWho).isForcePeace(TEAMID(eOtherWho))) {
+		for(CLLNode<TradeData>* item = pOurList->head(); item != NULL;
+				item = pOurList->next(item)) {
+			if(item->m_data.m_eItemType == TRADE_PEACE_TREATY) {
+				if(GET_PLAYER(eWho).resetPeaceTreaty(eOtherWho))
+					return;
+			}
+		}
+	} // </advc.032>
+	CvDeal* pDeal = addDeal(); 
 	pDeal->init(pDeal->getID(), eWho, eOtherWho);
 	pDeal->addTrades(pOurList, pTheirList, !bForce);
 	if ((pDeal->getLengthFirstTrades() == 0) && (pDeal->getLengthSecondTrades() == 0))
@@ -10879,6 +10902,16 @@ bool CvGame::pythonIsBonusIgnoreLatitudes() const
 	return false;
 }
 
+// <advc.004m>
+bool CvGame::isResourceLayer() const {
+
+	return bResourceLayer;
+}
+void CvGame::reportResourceLayerToggled() {
+
+	bResourceLayer = !bResourceLayer;
+}
+// </advc.004m>
 // advc.104:
 bool CvGame::useKModAI() const { return !GC.getGame().warAndPeaceAI().isEnabled(); }
 // advc.250b:

@@ -3552,9 +3552,7 @@ void CvPlayer::doTurn()
 	if(isHuman())
 		gDLL->getInterfaceIFace()->clearEventMessages();
 	// </advc.106b>
-	// <advc.700>
-	if(g.isOption(GAMEOPTION_RISE_FALL))
-		g.getRiseFall().atTurnEnd(getID()); // </advc.700>
+
 	CvEventReporter::getInstance().beginPlayerTurn( GC.getGameINLINE().getGameTurn(),  getID());
 
 	doUpdateCacheOnTurn();
@@ -3638,7 +3636,9 @@ void CvPlayer::doTurn()
 	gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
 
 	AI_doTurnPost();
-
+	// <advc.700>
+	if(g.isOption(GAMEOPTION_RISE_FALL))
+		g.getRiseFall().atTurnEnd(getID()); // </advc.700>
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      07/08/09                                jdog5000      */
 /*                                                                                              */
@@ -4780,8 +4780,11 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 				continue; // </advc.003>
 			// advc.130j:
 			attacked.AI_rememberEvent(getID(), MEMORY_HIRED_WAR_ALLY);
-			// advc.104i: Just +1, i.e. for 15 turns on average
-			attacked.AI_changeMemoryCount(ePlayer, MEMORY_STOPPED_TRADING_RECENT, 1);
+			// <advc.104i>
+			if(attacked.AI_getMemoryCount(ePlayer, MEMORY_STOPPED_TRADING_RECENT) <= 0) {
+				// For 0.5*25 turns on average
+				attacked.AI_changeMemoryCount(ePlayer, MEMORY_STOPPED_TRADING_RECENT, 1);
+			} // </advc.104i>
 		}
 		break;
 
@@ -5621,7 +5624,8 @@ void CvPlayer::stopTradingWithTeam(TeamTypes eTeam,
 			{   // <advc.130j>
 				if(diploPenalty) // advc.130f: RECENT causes only refusal to talk
 					civ.AI_rememberEvent(getID(), MEMORY_STOPPED_TRADING);
-				civ.AI_rememberEvent(getID(), MEMORY_STOPPED_TRADING_RECENT);
+				// Don't rememberEvent - not supposed to be based on attitude
+				civ.AI_changeMemoryCount(getID(), MEMORY_STOPPED_TRADING_RECENT, 2);
 			}   // </advc.130j>
 		}
 	}
@@ -22921,6 +22925,29 @@ void CvPlayer::forcePeace(PlayerTypes ePlayer)
 		GC.getGameINLINE().implementDeal(getID(), ePlayer, &playerList, &loopPlayerList);
 	}
 }
+
+// <advc.032>
+bool CvPlayer::resetPeaceTreaty(PlayerTypes otherId) {
+
+	CvGame& g = GC.getGameINLINE(); int dummy=-1;
+	for(CvDeal* d = g.firstDeal(&dummy); d != NULL; d = g.nextDeal(&dummy)) {
+		if((d->getFirstPlayer() == getID() &&
+				d->getSecondPlayer() == otherId) ||
+				(d->getSecondPlayer() == getID() &&
+				d->getFirstPlayer() == otherId)) {
+			if(d->getFirstTrades() == NULL)
+				continue;
+			for(CLLNode<TradeData>* item = d->getFirstTrades()->head();
+					item != NULL; item = d->getFirstTrades()->next(item)) {
+				if(item->m_data.m_eItemType == TRADE_PEACE_TREATY) {
+					d->setInitialGameTurn(g.getGameTurn());
+					return true; // Assume that there is at most 1 peace treaty
+				}
+			}
+		}
+	}
+	return false;
+} // </advc.032>
 
 bool CvPlayer::canSpiesEnterBorders(PlayerTypes ePlayer) const
 {
