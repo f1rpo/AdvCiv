@@ -101,15 +101,17 @@ void RFTotalScore::update(std::vector<RFChapter*> const& chapters) {
 		}
 	}
 	int compensation = victoryBase * unstarted; // For missed chapters
-	fromVictory = victoryBase * 2 + compensation;
+	fromVictory = victoryBase + compensation;
 	// Victory premium awarded when starting from rank 1
 	int fromVictoryMin = (victoryBase / 3) * (1 + unstarted);
 	fromInitialRank = ::round((-(fromVictory - fromVictoryMin) *
 			(initialRivals - initialRank + 1.0)) /
 			std::max(1, initialRivals));
 	total = fromVictory + fromInitialRank;
-	fromRemainingTime = ::round(victoryBase * (remainingTimePercent / 100.0));
+	fromRemainingTime = remainingTimePercent;
 	// Earlier formula:
+	//fromRemainingTime = ::round(victoryBase * (remainingTimePercent / 100.0));
+	// Even earlier:
 	/*fromRemainingTime = std::max(0, ::round((total - compensation) *
 			(remainingTimePercent / 200.0)));*/
 	total += fromRemainingTime + fromScored + fromFinishedUnscored;
@@ -156,7 +158,7 @@ int RFTotalScore::getScore() const {
 int RFTotalScore::getNormalizedScore() const {
 
 	// To match the adjusted (see advc.043) scale of the Dan Quayle screen
-	return ::round(std::pow((getScore() + 200) / 14.0, 2.5));
+	return ::round(std::pow((getScore() + 250) / 12.5, 2.5));
 }
 
 void RFTotalScore::freezeTotal(std::vector<RFChapter*> const& chapters) {

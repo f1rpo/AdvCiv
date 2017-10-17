@@ -26,7 +26,7 @@ public:
 
 private:
 	void updateString();
-	std::pair<int,int> computeRank(bool storeCivScores);
+	std::pair<int,int> computeRank(bool storeCivScores, bool ignoreVictStage = false);
 	int modifiedCivScore(PlayerTypes civId) const;
 
 	std::wstring* breakdownString;

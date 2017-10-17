@@ -62,6 +62,11 @@ double percentileRank(std::vector<double>& distribution, double score,
 float hash(std::vector<long> const& x, PlayerTypes civId = NO_PLAYER);
 // For hashing just a single input
 float hash(long x, PlayerTypes civId = NO_PLAYER);
+/*  'r' is an empty vector in which the 21 CvPlot* in the fat cross around p
+	will be placed. &p itself gets placed in r[0]; the others in no particular
+	order. If the fat cross has fewer than 21 plots (edge of the map),
+	NULL entries will be included. */
+void fatCross(CvPlot const& p, std::vector<CvPlot const*>& r);
 // </advc.003>
 
 //sign function taken from FirePlace - JW

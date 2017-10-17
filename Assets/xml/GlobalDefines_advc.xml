@@ -782,12 +782,22 @@
 		<DefineName>RF_CHAPTER_LENGTH_SHIFT_PERCENT</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
-	<!-- Determines when scoring happens. Has to be during the chapter following
-		 the one being scored and at least 5 turns away from the chapter start
-		 and end. 50 (recommended) puts it in the middle of the chapter. -->
+	<!-- These two settings determine when scoring happens. The first one is
+		 for the first chapter and second one for the penultimate chapter. (The
+		 final chapter is only scored if the AI wins, and then it's scored
+		 immediately.) The other chapters are interpolated.
+		 For all chapters (except the final one), scoring has to happen during
+		 the subsequent chapter and at least 5 turns away from the start and
+		 end of that chapter. 50 and 25 (recommended) means that the first
+		 chapter is scored in the middle of the second chapter, and the
+		 penultimate chapter one quarter into the final chapter. -->
 	<Define>
-		<DefineName>RF_SCORING_DELAY_MULTIPLIER_PERCENT</DefineName>
+		<DefineName>RF_SCORING_DELAY_FIRST</DefineName>
 		<iDefineIntVal>50</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>RF_SCORING_DELAY_PENULTIMATE</DefineName>
+		<iDefineIntVal>25</iDefineIntVal>
 	</Define>
 	<!-- Set to 1 (recommended, I guess) to enable a popup reminder at the
 		 start of the final turn of each chapter. Set to 0 to disable the popup.

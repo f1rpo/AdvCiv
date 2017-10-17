@@ -2795,7 +2795,8 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eTeam, int iPowerMultiplier,
 			}
 		}	
 	}
-	// <advc.112> Don't vassal while we still have plans to expand
+	// <advc.112>
+	// Don't vassal while we still have plans to expand
 	if(!isAVassal() && (getWarPlanCount(WARPLAN_PREPARING_LIMITED) > 0 ||
 			getWarPlanCount(WARPLAN_PREPARING_TOTAL) > 0))
 		return DENIAL_POWER_US;
@@ -2803,7 +2804,10 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eTeam, int iPowerMultiplier,
 	// !isParent check removed
 	// Computation of iPersonalityModifier moved down
 	// Commented-out BBAI code (06/03/09, jdog) deleted
-	// </advc.112>
+	if(getAtWarCount() <= 0 && getDefensivePactCount() > 0) {
+		// "We" (= this team and its partners) "are doing fine on our own"
+		return DENIAL_POWER_US;
+	} // </advc.112>
 	// <advc.143b>
 	if(!isAtWar(eTeam) && getNumNukeUnits() > 0 &&
 			getNukeInterception() >= kMasterTeam.getNukeInterception())

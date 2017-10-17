@@ -198,12 +198,9 @@ public:
 		int id() const;
 		// NULL if the city no longer exists at the time of retrieval
 		CvCity* city() const;
-		/*  'r' is an empty vector in which the 21 CvPlot* will be placed. r[0]
-			is the city tile itself; the others in no particular order. If a
-			city's fat cross has fewer plots (edge of the map), some NULL entries
-			will be included. If the underlying CvCity no longer exists,
-			all entries are NULL. */
-		void fatCross(std::vector<CvPlot*>& r);
+		/*  See ::fatCross in CvGameCoreUtils. If the underlying CvCity
+			no longer exists, all entries are NULL. */
+		void fatCross(std::vector<CvPlot const*>& r);
 		void write(FDataStreamBase* stream);
 		void read(FDataStreamBase* stream);
 	    static CvCity* cityById(int id);

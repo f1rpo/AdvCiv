@@ -83,7 +83,8 @@ void RFChapterScore::atChapterStart(RFChapter const& rfc) {
 	initialRivals = rank_rivals.second;
 }
 
-std::pair<int,int> RFChapterScore::computeRank(bool storeCivScores) {
+std::pair<int,int> RFChapterScore::computeRank(bool storeCivScores,
+		bool ignoreVictStage) {
 
 	if(chapter == NULL) {
 		FAssert(chapter != NULL);
@@ -111,6 +112,7 @@ std::pair<int,int> RFChapterScore::computeRank(bool storeCivScores) {
 				they.getID() == g.getActivePlayer())
 			continue;
 		ourRivals++;
+<<<<<<< HEAD
 		int theirVictStage = g.getRiseFall().victoryStage(they.getID());
 		if(theirVictStage > ourVictStage) {
 			ourRank++;
@@ -118,6 +120,17 @@ std::pair<int,int> RFChapterScore::computeRank(bool storeCivScores) {
 		}
 		if(ourVictStage > theirVictStage)
 			continue;
+=======
+		if(!ignoreVictStage) {
+			int theirVictStage = g.getRiseFall().victoryStage(they.getID());
+			if(theirVictStage > ourVictStage) {
+				ourRank++;
+				continue;
+			}
+			if(ourVictStage > theirVictStage)
+				continue;
+		}
+>>>>>>> origin/master
 		int theirScore = modifiedCivScore(they.getID());
 		if(theirScore > ourScore)
 			ourRank++;
@@ -152,8 +165,9 @@ void RFChapterScore::update() {
 		updateString();
 		return;
 	}
-	// Necessary when update triggered by elimination
-	GC.getGame().updateScore();
+	GC.getGame().updateScore(); // Necessary when update triggered by elimination
+	/*  Could apply victory stages only to initial ranks by calling
+		computeRank with ignoreVictStage=true here. */
 	rank = computeRank(false).first;
 	PlayerTypes chCiv = chapter->getCiv();
 	int civScore = modifiedCivScore(chCiv);

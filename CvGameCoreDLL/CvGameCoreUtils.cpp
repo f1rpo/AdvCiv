@@ -149,7 +149,28 @@ float hash(long x, PlayerTypes civId) {
 	v.push_back(x);
 	return hash(v, civId);
 }
-// </advc.003>
+
+void fatCross(CvPlot const& p, vector<CvPlot const*>& r) {
+
+	FAssert(r.empty());
+	r.reserve(21);
+	for(int i = 0; i < 21; i++)
+		r.push_back(NULL);
+	r[0] = &p;
+	int pos = 1;
+	CvMap& map = GC.getMap();
+	for(int dx = -CITY_PLOTS_RADIUS; dx <= CITY_PLOTS_RADIUS; dx++) {
+		for(int dy = -CITY_PLOTS_RADIUS; dy <= CITY_PLOTS_RADIUS; dy++) {
+			// Skip corners and center
+			if(std::abs(dx) + std::abs(dy) == 4 || (dx == 0 && dy == 0))
+				continue;
+			// that's NULL if off the map
+			r[pos] = map.plot(r[0]->getX_INLINE() + dx, r[0]->getY_INLINE() + dy);
+			pos++;
+		}
+	}
+	FAssert(pos == 21);
+} // </advc.003>
 
 
 CvPlot* plotCity(int iX, int iY, int iIndex)

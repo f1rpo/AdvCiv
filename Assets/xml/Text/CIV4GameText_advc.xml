@@ -1790,6 +1790,24 @@
 		<Spanish>&#161;%s1_warlord (%s2_Civ) ha muerto en combate en contra de nosotros!</Spanish>
 	</TEXT>
 	
+	<!-- [advc.004v] Originally in CIV4GameTextInfos.xml. Shortened. -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_CTRL_TRADE</Tag>
+		<English>[CTRL] for trade table</English>
+		<French>[CTRL]: n&#233;gociations</French>
+		<German>[STRG]: Verhandlungstisch</German>
+		<Italian>[CTRL] per negoziazione</Italian>
+		<Spanish>[CTRL] para intercambios</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_ALT_DECLARE_WAR</Tag>
+		<English>[ALT] to declare war</English>
+		<French>[ALT]: d&#233;clare la guerre</French>
+		<German>[ALT]: Kriegserkl&#228;rung</German>
+		<Italian>[ALT] per dichiarare guerra</Italian>
+		<Spanish>[ALT] para declarar la guerra</Spanish>
+	</TEXT>
+	
 	<!-- [advc.700] -->
 	<TEXT>
 		<Tag>TXT_KEY_RF_REPLAY_NEXT_CHAPTER</Tag>

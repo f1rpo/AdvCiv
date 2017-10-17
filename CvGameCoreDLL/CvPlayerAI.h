@@ -418,7 +418,8 @@ public:
 	EventTypes AI_chooseEvent(int iTriggeredId) const;
 	virtual void AI_launch(VictoryTypes eVictory);
 
-	int AI_calculateCultureVictoryStage() const;
+	int AI_calculateCultureVictoryStage(
+			int countdownThresh = -1) const; // advc.115
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      03/17/10                                jdog5000      */
 /*                                                                                              */
@@ -534,8 +535,10 @@ public:
 	bool AI_isFirstTech(TechTypes eTech) const;
 
 	void AI_ClearConstructionValueCache(); // K-Mod
-	// advc.130r, advc.130h: Are they at war with a partner of ours?
-	bool atWarWithPartner(TeamTypes theyId) const;
+	// advc.130r: Are they at war with a partner of ours?
+	/*  advc.130h: If checkPartnerAttacked==true, then only partners w/ war plan
+		"attacked" or "attacked recent" count. */
+	bool atWarWithPartner(TeamTypes theyId, bool checkPartnerAttacked = false) const;
 	// advc.001: needed for bNeighbouringReligion in AI_techValue
 	bool AI_hasSharedPrimaryArea(PlayerTypes pId) const;
 	// <advc.003><advc.104m>

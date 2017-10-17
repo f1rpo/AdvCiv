@@ -122,6 +122,11 @@ void RFChapter::score() {
 	scoreTimestamp = GC.getGame().getGameTurn();
 }
 
+void RFChapter::setScored(int turn) {
+
+	scoreTimestamp = turn;
+}
+
 void RFChapter::setRetireTurn(int t) {
 
 	retireTurn = t;

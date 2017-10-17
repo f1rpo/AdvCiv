@@ -120,6 +120,21 @@
 	<Spanish>Use [Alt + M] to set a reminder for yourself.</Spanish>
 </TEXT>
 
+<<<<<<< HEAD
+=======
+<!-- "Press the forward and back buttons on your mouse to cycle through units
+	 on the same plot" Few people have these, and it doesn't sound very
+	 convenient either. -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_INTERFACE_45</Tag>
+	<English>When the screen says "Initializing" for several seconds while loading a saved game, it might help to briefly minimize the game by pressing [ALT + TAB] twice.</English>
+	<French>When the screen says "Initializing" for several seconds while loading a saved game, it might help to briefly minimize the game by pressing [ALT + TAB] twice.</French>
+	<German>Wenn beim Laden eines Spielstands für längere Zeit "Wird initialisiert" angezeigt wird, kann es helfen, das Spiel per [ALT + TAB] für einen Augenblick zu minimieren.</German>
+	<Italian>When the screen says "Initializing" for several seconds while loading a saved game, it might help to briefly minimize the game by pressing [ALT + TAB] twice.</Italian>
+	<Spanish>When the screen says "Initializing" for several seconds while loading a saved game, it might help to briefly minimize the game by pressing [ALT + TAB] twice.</Spanish>
+</TEXT>
+
+>>>>>>> origin/master
 <!-- "Go-To (All Units) by pressing ALT+G" - has anyone ever used this? -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_INTERFACE_53</Tag>
@@ -185,11 +200,11 @@
 <!-- advc.130m -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_5</Tag>
-	<English>(AdvCiv) For a lasting boost to relations from a mutual military struggle, it's not enough to be formally at war with the same civilization. You'll have to actually send units to fight in the war. Even then, the bonus to relations fades over time.</English>
-	<French>(AdvCiv) For a lasting boost to relations from a mutual military struggle, it's not enough to be formally at war with the same civilization. You'll have to actually send units to fight in the war. Even then, the relations bonus fades over time.</French>
+	<English>(AdvCiv) For a lasting boost to relations from a mutual military struggle, it is not enough to be formally at war with the same civilization. You'll have to actually send units to fight in the war. Even then, the bonus to relations fades over time.</English>
+	<French>(AdvCiv) For a lasting boost to relations from a mutual military struggle, it is not enough to be formally at war with the same civilization. You'll have to actually send units to fight in the war. Even then, the relations bonus fades over time.</French>
 	<German>(AdvCiv) Für einen andauernden Diplomatiebonus durch gemeinsame militärische Aktivitäten reicht es nicht, formal gemeinsam im Krieg zu sein. Sie müssen auch wirklich Einheiten in den Kampf schicken, und selbst dann schwindet der Diplomatiebonus im Laufe der Zeit.</German>
-	<Italian>(AdvCiv) For a lasting boost to relations from a mutual military struggle, it's not enough to be formally at war with the same civilization. You'll have to actually send units to fight in the war. Even then, the bonus to relations fades over time.</Italian>
-	<Spanish>(AdvCiv) For a lasting boost to relations from a mutual military struggle, it's not enough to be formally at war with the same civilization. You'll have to actually send units to fight in the war. Even then, the bonus to relations fades over time.</Spanish>
+	<Italian>(AdvCiv) For a lasting boost to relations from a mutual military struggle, it is not enough to be formally at war with the same civilization. You'll have to actually send units to fight in the war. Even then, the bonus to relations fades over time.</Italian>
+	<Spanish>(AdvCiv) For a lasting boost to relations from a mutual military struggle, it is not enough to be formally at war with the same civilization. You'll have to actually send units to fight in the war. Even then, the bonus to relations fades over time.</Spanish>
 </TEXT>
 
 <!-- advc.sha -->
@@ -225,11 +240,11 @@
 <!-- advc.130w -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_9</Tag>
-	<English>(AdvCiv) If your rivals voice opposition to your territorial expansion, it can help to grant some of your cities independence. That said, the resulting vassal state may raise objections as well. You can't expect to conquer the world, and have the world thank you for it.</English>
-	<French>(AdvCiv) If your rivals voice opposition to your territorial expansion, it can help to grant some of your cities independence. That said, the resulting vassal state may raise objections as well. You can't expect to conquer the world, and have the world thank you for it.</French>
+	<English>(AdvCiv) If your rivals voice opposition to your territorial expansion, it can help to grant some of your cities independence. That said, the resulting vassal state may raise objections as well. You can't expect to conquer the world and have the world thank you for it.</English>
+	<French>(AdvCiv) If your rivals voice opposition to your territorial expansion, it can help to grant some of your cities independence. That said, the resulting vassal state may raise objections as well. You can't expect to conquer the world and have the world thank you for it.</French>
 	<German>(AdvCiv) Wenn sich Gegner über Ihren Expansionsdrang beklagen, kann es helfen, einige Ihrer Städte als Kolonie zu befreien; allerdings kann auch diese als Vasallenstaat Ihrer Beliebtheit schaden. Letztlich ist es zu viel verlangt, von der Welt geliebt zu werden, während Sie die Welt erobern.</German>
-	<Italian>(AdvCiv) If your rivals voice opposition to your territorial expansion, it can help to grant some of your cities independence. That said, the resulting vassal state may raise objections as well. You can't expect to conquer the world, and have the world thank you for it.</Italian>
-	<Spanish>(AdvCiv) If your rivals voice opposition to your territorial expansion, it can help to grant some of your cities independence. That said, the resulting vassal state may raise objections as well. You can't expect to conquer the world, and have the world thank you for it.</Spanish>
+	<Italian>(AdvCiv) If your rivals voice opposition to your territorial expansion, it can help to grant some of your cities independence. That said, the resulting vassal state may raise objections as well. You can't expect to conquer the world and have the world thank you for it.</Italian>
+	<Spanish>(AdvCiv) If your rivals voice opposition to your territorial expansion, it can help to grant some of your cities independence. That said, the resulting vassal state may raise objections as well. You can't expect to conquer the world and have the world thank you for it.</Spanish>
 </TEXT>
 
 <TEXT>
