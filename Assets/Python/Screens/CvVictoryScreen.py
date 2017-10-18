@@ -97,8 +97,8 @@ class CvVictoryScreen:
 		self.TABLE2_WIDTH_1 = 265
 		# <advc.703>
 		self.RF_TABLEW_0 = 125
-		self.RF_TABLEW_1 = 180
-		self.RF_TABLEW_2 = 220
+		self.RF_TABLEW_1 = 150
+		self.RF_TABLEW_2 = 250
 		self.RF_TABLEW_3 = 260
 		self.RF_TABLEW_4 = 205
 		# </advc.703>
