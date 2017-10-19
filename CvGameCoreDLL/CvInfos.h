@@ -2419,6 +2419,7 @@ public:
 	int getAIInflationPercent() const;				// Exposed to Python
 	int getAIWarWearinessPercent() const;				// Exposed to Python
 	int getAIPerEraModifier() const;						// Exposed to Python
+	int getAIAttitudeChange() const; // advc.148
 	int getAIAdvancedStartPercent() const;						// Exposed to Python
 	int getNumGoodies() const;				// Exposed to Python
 	int getDifficulty() const; // advc.250a; exposed to Python
@@ -2496,6 +2497,7 @@ protected:
 	int m_iAIWarWearinessPercent;
 	int m_iAIPerEraModifier;
 	int m_iAIAdvancedStartPercent;
+	int m_iAIAttitudeChange; // advc.148
 	int m_iNumGoodies;
 	int m_iDifficulty; // advc.250a
 

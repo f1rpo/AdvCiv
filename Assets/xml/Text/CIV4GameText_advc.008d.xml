@@ -103,11 +103,11 @@
 	 number of Espionage Points the player will receive each turn." -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_50</Tag>
-	<English>(UWAI) If a war opponent refuses to negotiate peace, it's because everything you could offer them in trade wouldn't be enough. (Or because you're fighting the war at the request of a third party.)</English>
-	<French>(UWAI) If a war opponent refuses to negotiate peace, it's because everything you could offer them in trade wouldn't be enough. (Or because you're fighting the war at the request of a third party.)</French>
+	<English>(UWAI) If a war opponent refuses to negotiate peace, it's because everything you could offer them in trade wouldn't be enough. (Or because you're fighting the war on behalf of a third party.)</English>
+	<French>(UWAI) If a war opponent refuses to negotiate peace, it's because everything you could offer them in trade wouldn't be enough. (Or because you're fighting the war on behalf of a third party.)</French>
 	<German>(UWAI) Wenn ein Kriegsgegner Friedensgespräche ablehnt, dann weil Sie ihm nicht genug anbieten können. (Oder weil Sie den Krieg auf Bitten eines Partners begonnen haben.)</German>
-	<Italian>(UWAI) If a war opponent refuses to negotiate peace, it's because everything you could offer them in trade wouldn't be enough. (Or because you're fighting the war at the request of a third party.)</Italian>
-	<Spanish>(UWAI) If a war opponent refuses to negotiate peace, it's because everything you could offer them in trade wouldn't be enough. (Or because you're fighting the war at the request of a third party.)</Spanish>
+	<Italian>(UWAI) If a war opponent refuses to negotiate peace, it's because everything you could offer them in trade wouldn't be enough. (Or because you're fighting the war on behalf of a third party.)</Italian>
+	<Spanish>(UWAI) If a war opponent refuses to negotiate peace, it's because everything you could offer them in trade wouldn't be enough. (Or because you're fighting the war on behalf of a third party.)</Spanish>
 </TEXT>
 
 <!-- "Use your mouse wheel to zoom" duh -->

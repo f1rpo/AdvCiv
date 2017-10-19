@@ -22689,8 +22689,9 @@ bool CvPlayer::canHaveTradeRoutesWith(PlayerTypes ePlayer) const
 	{
 		return true;
 	}
-
-	if(kOtherPlayer.isAnarchy()) return false; // advc.124
+	// <advc.124>
+	if(kOtherPlayer.isAnarchy())
+		return false; // </advc.124>
 
 	if (GET_TEAM(getTeam()).isFreeTrade(kOtherPlayer.getTeam()))
 	{

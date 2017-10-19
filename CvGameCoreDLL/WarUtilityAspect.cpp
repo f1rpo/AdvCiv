@@ -1076,19 +1076,16 @@ void MilitaryVictory::evaluate() {
 		log("Rivals remaining: %d", numRivals);
 		log("Pursued mil. victory conditions: %d", nVictories);
 	}
-	if(numRivals <= 0) return;
+	if(numRivals <= 0)
+		return;
 	/*  Division by (sqrt of) nVictories because it's not so useful to pursue
 		several victory conditions at once. But don't go below the max of the
 		progress values. */
 	double prgr = std::max(maxProgress, progressRating /
 			std::sqrt((double)nVictories));
 	// The fewer rivals remain, the more we're willing to go all-in for victory
-	double div = numRivals;
-	/*  Worry less about rivals if we think we'll make it within the time horizon
-		of war evaluation */
-	if(maxProgress > 0.95)
-		div = std::sqrt((double)numRivals);
-	double uPlus = 180 * prgr / div;
+	double div = 2 + std::sqrt((double)numRivals);
+	double uPlus = 540 * prgr / div;
 	/*  May lose votes if nuked. This could be better integrated with the progress
 		ratings above. First had it as a separate class, now kind of tacked on. */
 	double voteCost = 0;
@@ -1189,7 +1186,7 @@ double MilitaryVictory::progressRatingDomination() {
 	targetCities = (targetCities +
 			0.01 * g.getAdjustedLandPercent(dom) * g.getNumCities()) / 2;
 	double citiesToGo = targetCities - agent.getNumCities();
-	double popGained = 0; // double is more convenient later on
+	double popGained = 0;
 	double citiesGained = 0;
 	set<int> const& conq = m->conqueredCities(weId);
 	for(iSetIt it = conq.begin(); it != conq.end(); it++) {
@@ -1201,6 +1198,24 @@ double MilitaryVictory::progressRatingDomination() {
 			as well) */
 		popGained += c.city()->getPopulation() - 0.5;
 		citiesGained = citiesGained + 1;
+	}
+	if(m->getCapitulationsAccepted(agentId).count(TEAMID(theyId)) > 0) {
+		int theirPopRemaining = they->getTotalPopulation();
+		set<int> const& lost = m->lostCities(theyId);
+		FAssertMsg(!lost.empty(), "They capitulated w/o losing a city?");
+		int theirCitiesRemaining = they->getNumCities() - lost.size();
+		for(iSetIt it = lost.begin(); it != lost.end(); it++) {
+			City* cp = ourCache->lookupCity(*it);
+			if(cp == NULL)
+				continue;
+			theirPopRemaining -= cp->city()->getPopulation();
+		}
+		if(theirCitiesRemaining > 0) {
+			log("%d vassal pop gained, and %d cities", theirPopRemaining,
+					theirCitiesRemaining);
+		}
+		citiesGained += 0.5 * theirCitiesRemaining;
+		popGained += 0.5 * theirPopRemaining;
 	}
 	if(citiesGained == 0)
 		return 0;

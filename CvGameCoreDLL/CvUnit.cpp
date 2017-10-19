@@ -8276,7 +8276,10 @@ bool CvUnit::isRivalTerritory() const
 
 bool CvUnit::isMilitaryHappiness() const
 {
-	return m_pUnitInfo->isMilitaryHappiness();
+	return m_pUnitInfo->isMilitaryHappiness()
+			// <advc.001o>
+			&& (plot()->getTeam() == getTeam() || plot()->getTeam() ==
+			GET_TEAM(getTeam()).getMasterTeam()); // </advc.001o>
 }
 
 

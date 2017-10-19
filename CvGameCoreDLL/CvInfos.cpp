@@ -10121,6 +10121,7 @@ m_iAIUnitUpgradePercent(0),
 m_iAIInflationPercent(0),
 m_iAIWarWearinessPercent(0),
 m_iAIPerEraModifier(0),
+m_iAIAttitudeChange(1), // advc.148
 m_iAIAdvancedStartPercent(0),
 m_iNumGoodies(0),
 m_iDifficulty(-1), // advc.250a
@@ -10433,6 +10434,11 @@ int CvHandicapInfo::getAIAdvancedStartPercent() const
 {
 	return m_iAIAdvancedStartPercent;
 }
+// <advc.148>
+int CvHandicapInfo::getAIAttitudeChange() const
+{
+	return m_iAIAttitudeChange;
+} // </advc.148>
 
 int CvHandicapInfo::getNumGoodies() const					
 {
@@ -10534,6 +10540,9 @@ void CvHandicapInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iAIWarWearinessPercent);
 	stream->Read(&m_iAIPerEraModifier);
 	stream->Read(&m_iAIAdvancedStartPercent);
+	// <advc.148>
+	if(uiFlag >= 2)
+		stream->Read(&m_iAIAttitudeChange); // </advc.148>
 	stream->Read(&m_iNumGoodies);
 	stream->Read(&m_iDifficulty); // advc.250a
 
@@ -10558,7 +10567,7 @@ void CvHandicapInfo::write(FDataStreamBase* stream)
 {
 	CvInfoBase::write(stream);
 
-	uint uiFlag=1; // advc.251
+	uint uiFlag=2; // advc.251: 1, advc.148: 2
 	stream->Write(uiFlag);		// Flag for Expansion
 
 	stream->Write(m_iFreeWinsVsBarbs);
@@ -10620,6 +10629,7 @@ void CvHandicapInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iAIWarWearinessPercent);
 	stream->Write(m_iAIPerEraModifier);
 	stream->Write(m_iAIAdvancedStartPercent);
+	stream->Write(m_iAIAttitudeChange); // advc.148
 	stream->Write(m_iNumGoodies);
 	stream->Write(m_iDifficulty); // advc.250a
 
@@ -10699,6 +10709,7 @@ bool CvHandicapInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iAIWarWearinessPercent, "iAIWarWearinessPercent");
 	pXML->GetChildXmlValByName(&m_iAIPerEraModifier, "iAIPerEraModifier");
 	pXML->GetChildXmlValByName(&m_iAIAdvancedStartPercent, "iAIAdvancedStartPercent");
+	pXML->GetChildXmlValByName(&m_iAIAttitudeChange, "iAIAttitudeChange"); // advc.148
 	pXML->GetChildXmlValByName(&m_iDifficulty, "iDifficulty"); // advc.250a
 
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "Goodies"))

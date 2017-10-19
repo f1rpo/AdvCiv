@@ -7864,15 +7864,15 @@ AttitudeTypes CvPlayerAI::AI_getAttitudeFromValue(int iAttitudeVal)
 	{
 		return ATTITUDE_FRIENDLY;
 	}
-	else if (iAttitudeVal >= 3)
+	else if (iAttitudeVal >= 4) // advc.148: was 3
 	{
 		return ATTITUDE_PLEASED;
 	}
-	else if (iAttitudeVal <= -10)
+	else if (iAttitudeVal <= -8) // advc.148: was -10
 	{
 		return ATTITUDE_FURIOUS;
 	}
-	else if (iAttitudeVal <= -3)
+	else if (iAttitudeVal <= -2) // advc.148: was -3
 	{
 		return ATTITUDE_ANNOYED;
 	}
@@ -8024,7 +8024,8 @@ int CvPlayerAI::AI_calculateStolenCityRadiusPlots(PlayerTypes ePlayer) const
 		std::vector<CvPlot const*> radius;
 		::fatCross(*c.plot(), radius);
 		int perCityCount = 0;
-		int upperBound = std::max(6, c.getPopulation());
+		int upperBound = std::max(6,
+				(c.getPopulation() + c.getHighestPopulation()) / 2);
 		for(size_t i = 1; i < radius.size(); i++) {
 			CvPlot const* pp = radius[i];
 			if(pp == NULL)
@@ -8110,6 +8111,7 @@ void CvPlayerAI::AI_updateCloseBorderAttitudeCache(PlayerTypes ePlayer)
 				GET_TEAM(civ.getTeam()).isCapitulated())
 			iPercent += (m_aiCloseBordersAttitudeCache[civ.getID()] * 100) / limit;
 	} // </advc.130v>
+	iPercent = ::round(iPercent * 1.2); // advc.147
 	m_aiCloseBordersAttitudeCache[ePlayer] = (limit * iPercent) / 100;
 }
 // K-Mod end
@@ -8662,19 +8664,24 @@ int CvPlayerAI::AI_getColonyAttitude(PlayerTypes ePlayer) const
 int CvPlayerAI::AI_getFirstImpressionAttitude(PlayerTypes ePlayer) const {
 
 	CvPlayerAI& kPlayer = GET_PLAYER(ePlayer);
-	int iAttitude = GC.getLeaderHeadInfo(getPersonalityType()).getBaseAttitude();
-	iAttitude += GC.getHandicapInfo(kPlayer.getHandicapType()).getAttitudeChange();
+	CvHandicapInfo& h = GC.getHandicapInfo(kPlayer.getHandicapType());
+	CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(getPersonalityType());
+	int iAttitude = lh.getBaseAttitude();
+	iAttitude += h.getAttitudeChange();
 	if(!kPlayer.isHuman()) {
-		// <advc.130b> New variable; initial value from original code.
-		int peaceWeightModifier = 4 - abs(AI_getPeaceWeight() - GET_PLAYER(ePlayer).AI_getPeaceWeight());
-		if(peaceWeightModifier > 0)
-			peaceWeightModifier++;
-		else peaceWeightModifier--;
-		/* Halve the modifier. Increasing the absolute value (above) is equivalent
-		   to rounding up. */
-		peaceWeightModifier /= 2;
-        iAttitude += peaceWeightModifier; // </advc.130b>
-		iAttitude += std::min(GC.getLeaderHeadInfo(getPersonalityType()).getWarmongerRespect(), GC.getLeaderHeadInfo(kPlayer.getPersonalityType()).getWarmongerRespect());
+		// <advc.130b>
+		// Original peace weight modifier
+		int peaceWeightModifier = 4 - abs(AI_getPeaceWeight() -
+				kPlayer.AI_getPeaceWeight());
+		double personalityModifier = peaceWeightModifier * 0.45;
+		// Original warmonger respect modifier
+		int respectModifier = std::min(lh.getWarmongerRespect(),
+				GC.getLeaderHeadInfo(kPlayer.getPersonalityType()).
+				getWarmongerRespect());
+		personalityModifier += respectModifier * 0.75;
+		iAttitude += ::round(personalityModifier);
+		iAttitude = ::range(iAttitude, -3, 3); // </advc.130b>
+		iAttitude += h.getAIAttitudeChange(); // advc.148
 	}
     return iAttitude;
 }
@@ -8708,7 +8715,8 @@ int CvPlayerAI::AI_getRankDifferenceAttitude(PlayerTypes ePlayer) const {
 		   near 0 when greater than 50% of nCivs. */
 		multiplier = 1 - (2.0 * std::abs(
 				iRankDifference - 0.35 * maxRankDifference) / maxRankDifference);
-		if(multiplier < 0) multiplier = 0;
+		if(multiplier < 0)
+			multiplier = 0;
 	}
 	/* If we're ranked better, as in BtS, the modifier is proportional
 	   to the relative rank difference. */
@@ -8724,7 +8732,8 @@ int CvPlayerAI::AI_getRankDifferenceAttitude(PlayerTypes ePlayer) const {
 			g.getPlayerScore(ePlayer) - g.getPlayerScore(getID()) < 25))
 		return 0;
 	// Don't like them if we're still in the first era
-	if(r > 0 && getCurrentEra() <= g.getStartEra())
+	if(r > 0 && (getCurrentEra() <= g.getStartEra() ||
+			GET_PLAYER(ePlayer).AI_isDoVictoryStrategyLevel3()))
 		return 0;
 	return r;
 } // </advc.130c>
@@ -8766,66 +8775,60 @@ int CvPlayerAI::knownRankDifference(PlayerTypes otherId) const {
 PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, VoteSourceTypes eVoteSource, bool bPropose)
 {
 	PROFILE_FUNC();
-
-	CivicTypes eBestCivic;
-	int iOpenCount;
-	int iClosedCount;
-	int iValue;
-	int iBestValue;
-	int iI;
-
+	// <advc.003> Moved the other declarations
+	int iValue=0;
+	int iI=0;
+	// Replacing getGame calls throughout this function
+	CvGame& g = GC.getGame(); // </advc.003>
 	VoteTypes eVote = kVoteData.eVote;
 
 	CvTeamAI& kOurTeam = GET_TEAM(getTeam()); // K-Mod
 
-	if (GC.getGameINLINE().isTeamVote(eVote))
+	if (g.isTeamVote(eVote))
 	{
-		if (GC.getGameINLINE().isTeamVoteEligible(getTeam(), eVoteSource))
+		if (g.isTeamVoteEligible(getTeam(), eVoteSource))
 		{
 			return (PlayerVoteTypes)getTeam();
-		}
-
-		if (GC.getVoteInfo(eVote).isVictory())
-		{
-			iBestValue = 7;
-		}
-		else
-		{
-			iBestValue = 0;
-		}
-
+		} // <advc.148>
+		int iBestValue = 0;
+		if(GC.getVoteInfo(eVote).isVictory())
+			iBestValue = 9; // was 7 </advc.148>
 		PlayerVoteTypes eBestTeam = PLAYER_VOTE_ABSTAIN;
 		int secondBestVal = iBestValue; // advc.115b
 		for (iI = 0; iI < MAX_TEAMS; iI++)
-		{
-			if (GET_TEAM((TeamTypes)iI).isAlive())
+		{	// <advc.003>
+			if(!GET_TEAM((TeamTypes)iI).isAlive() ||
+					!g.isTeamVoteEligible((TeamTypes)iI, eVoteSource))
+				continue; // </advc.003>
+			if (kOurTeam.isVassal((TeamTypes)iI))
 			{
-				if (GC.getGameINLINE().isTeamVoteEligible((TeamTypes)iI, eVoteSource))
-				{
-					if (kOurTeam.isVassal((TeamTypes)iI))
-					{
-						return (PlayerVoteTypes)iI;
-					}
-
-					iValue = kOurTeam.AI_getAttitudeVal((TeamTypes)iI);
-					if(iValue > secondBestVal) { // advc.115b
-						if (iValue > iBestValue)
-						{
-							secondBestVal = iBestValue; // advc.115b
-							iBestValue = iValue;
-							eBestTeam = (PlayerVoteTypes)iI;
-						}
-						else secondBestVal = iValue; // advc.115b
-					}
-				}
+				return (PlayerVoteTypes)iI;
 			}
-		}
-		if(iBestValue == secondBestVal) return PLAYER_VOTE_ABSTAIN; // advc.115b
+
+			iValue = kOurTeam.AI_getAttitudeVal((TeamTypes)iI);
+			/*  <advc.130v> Capitulated vassals don't just vote for
+				their master, but also for civs that the master likes. */
+			if(kOurTeam.isCapitulated()) {
+				iValue = GET_TEAM(kOurTeam.getMasterTeam()).
+						AI_getAttitudeVal((TeamTypes)iI);
+			} // </advc.130v>
+			if(iValue > secondBestVal) { // advc.115b
+				if (iValue > iBestValue)
+				{
+					secondBestVal = iBestValue; // advc.115b
+					iBestValue = iValue;
+					eBestTeam = (PlayerVoteTypes)iI;
+				}
+				else secondBestVal = iValue; // advc.115b
+			}
+		} // <advc.115b>
+		if(iBestValue == secondBestVal)
+			return PLAYER_VOTE_ABSTAIN; // </advc.115b>
 		return eBestTeam;
 	}
 	else
 	{
-		TeamTypes eSecretaryGeneral = GC.getGameINLINE().getSecretaryGeneral(eVoteSource);
+		TeamTypes eSecretaryGeneral = g.getSecretaryGeneral(eVoteSource);
 
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      12/30/08                                jdog5000      */
@@ -8876,7 +8879,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 				{
 					if (!isCivic((CivicTypes)iI))
 					{
-						eBestCivic = AI_bestCivic((CivicOptionTypes)(GC.getCivicInfo((CivicTypes)iI).getCivicOptionType()));
+						CivicTypes eBestCivic = AI_bestCivic((CivicOptionTypes)(GC.getCivicInfo((CivicTypes)iI).getCivicOptionType()));
 
 						if (eBestCivic != NO_CIVIC)
 						{
@@ -8907,7 +8910,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 									bValid = false;
 
 									// Increase odds of defiance, particularly on AggressiveAI
-									if (iBestCivicValue > ((iNewCivicValue * (140 + (GC.getGame().getSorenRandNum((GC.getGameINLINE().isOption(GAMEOPTION_AGGRESSIVE_AI) ? 60 : 80), "AI Erratic Defiance (Force Civic)"))) / 100)))
+									if (iBestCivicValue > ((iNewCivicValue * (140 + (g.getSorenRandNum((g.isOption(GAMEOPTION_AGGRESSIVE_AI) ? 60 : 80), "AI Erratic Defiance (Force Civic)"))) / 100)))
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
@@ -8939,7 +8942,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
-				if (getNumCities() > ((GC.getGameINLINE().getNumCities() * 2) / (GC.getGameINLINE().countCivPlayersAlive() + 1)))
+				if (getNumCities() > ((g.getNumCities() * 2) / (g.countCivPlayersAlive() + 1)))
 				{
 					bValid = false;
 				}
@@ -8954,7 +8957,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 				iVoteBanThreshold += kOurTeam.getNukeInterception() / 3;
 				iVoteBanThreshold += GC.getLeaderHeadInfo(getPersonalityType()).getBuildUnitProb();
 				iVoteBanThreshold *= std::max(1, GC.getLeaderHeadInfo(getPersonalityType()).getWarmongerRespect());
-				if (GC.getGameINLINE().isOption(GAMEOPTION_AGGRESSIVE_AI))
+				if (g.isOption(GAMEOPTION_AGGRESSIVE_AI))
 				{
 					iVoteBanThreshold *= 2;
 				}
@@ -8991,19 +8994,19 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
 
-				bValid = (GC.getGameINLINE().getSorenRandNum(100, "AI nuke ban vote") > iVoteBanThreshold);
+				bValid = (g.getSorenRandNum(100, "AI nuke ban vote") > iVoteBanThreshold);
 				
 				if (AI_isDoStrategy(AI_STRATEGY_OWABWNW))
 				{
 					bValid = false;
 				}
-				else if ((kOurTeam.getNumNukeUnits() / std::max(1, kOurTeam.getNumMembers())) < (GC.getGameINLINE().countTotalNukeUnits() / std::max(1, GC.getGameINLINE().countCivPlayersAlive())))
+				else if ((kOurTeam.getNumNukeUnits() / std::max(1, kOurTeam.getNumMembers())) < (g.countTotalNukeUnits() / std::max(1, g.countCivPlayersAlive())))
 				{
 					bValid = false;
 				}
 				if (!bValid && AI_getNumTrainAIUnits(UNITAI_ICBM) > 0)
 				{
-					if (GC.getGame().getSorenRandNum(AI_isDoStrategy(AI_STRATEGY_OWABWNW) ? 2 : 3, "AI Erratic Defiance (No Nukes)") == 0)
+					if (g.getSorenRandNum(AI_isDoStrategy(AI_STRATEGY_OWABWNW) ? 2 : 3, "AI Erratic Defiance (No Nukes)") == 0)
 					{
 						bDefy = true;
 					}
@@ -9028,8 +9031,8 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
 
-				iOpenCount = 0;
-				iClosedCount = 0;
+				int iOpenCount = 0;
+				int iClosedCount = 0;
 
 				for (iI = 0; iI < MAX_TEAMS; iI++)
 				{
@@ -9144,7 +9147,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 
 				int iSuccessScale = GET_PLAYER(kVoteData.ePlayer).getNumMilitaryUnits() * GC.getDefineINT("WAR_SUCCESS_ATTACKING") / 5;
 
-				bool bAggressiveAI = GC.getGameINLINE().isOption(GAMEOPTION_AGGRESSIVE_AI);
+				bool bAggressiveAI = g.isOption(GAMEOPTION_AGGRESSIVE_AI);
 				if (bAggressiveAI)
 				{
 					iSuccessScale *= 3;
@@ -9254,7 +9257,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 					if(bLosingBig &&
 						/*  advc.104n: The BtS code can have us randomly vote
 							against our own proposal. */
-						::hash(GC.getGameINLINE().getGameTurn(), getID()) < prPeace)
+						::hash(g.getGameTurn(), getID()) < prPeace)
 						//(GC.getGame().getSorenRandNum(iPeaceRand, "AI Force Peace to avoid loss") || bPropose) )
 					{
 						// Non-warmongers want peace to escape loss
@@ -9280,7 +9283,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 						// Can we continue this war with defiance penalties?
 						if( !AI_isFinancialTrouble() )
 						{
-							if (!GC.getGame().getSorenRandNum(iPeaceRand, "AI defy Force Peace!"))
+							if (!g.getSorenRandNum(iPeaceRand, "AI defy Force Peace!"))
 							{
 								bDefy = true;
 							}
@@ -9318,7 +9321,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 									int iDefyRand = GC.getLeaderHeadInfo(getPersonalityType()).getBasePeaceWeight();
 									iDefyRand /= (bAggressiveAI ? 2 : 1);
 
-									if (GC.getGame().getSorenRandNum(iDefyRand, "AI Erratic Defiance (Force Peace)") == 0)
+									if (g.getSorenRandNum(iDefyRand, "AI Erratic Defiance (Force Peace)") == 0)
 									{
 										bDefy = true;
 									}
@@ -9540,7 +9543,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 					{
 						if(!getWPAI.isEnabled()) { // advc.104n
 							int iNoWarOdds = GC.getLeaderHeadInfo(getPersonalityType()).getNoWarAttitudeProb((kOurTeam.AI_getAttitude(eWarTeam)));
-							bValid = ((iNoWarOdds < 30) || (GC.getGame().getSorenRandNum(100, "AI War Vote Attitude Check (Force War)") > iNoWarOdds));						
+							bValid = ((iNoWarOdds < 30) || (g.getSorenRandNum(100, "AI War Vote Attitude Check (Force War)") > iNoWarOdds));						
 						// <advc.104n>
 						} 
 						if(getWPAI.isEnabled()) {
@@ -9609,7 +9612,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 						{
 							bValid = false;
 							// BBAI TODO: Wonders, holy city, aggressive AI?
-							if (GC.getGame().getSorenRandNum(3, "AI Erratic Defiance (Assign City)") == 0)
+							if (g.getSorenRandNum(3, "AI Erratic Defiance (Assign City)") == 0)
 							{
 								bDefy = true;
 							}
@@ -16516,6 +16519,20 @@ void CvPlayerAI::AI_setPeacetimeGrantValue(PlayerTypes eIndex, int iVal) {
 	m_aiPeacetimeGrantValue[eIndex] = iVal;
 } // </advc.130p>
 
+// <advc.130k>
+void CvPlayerAI::AI_setSameReligionCounter(PlayerTypes eIndex, int iValue) {
+	m_aiSameReligionCounter[eIndex] = iValue;
+}
+void CvPlayerAI::AI_setDifferentReligionCounter(PlayerTypes eIndex, int iValue) {
+	m_aiDifferentReligionCounter[eIndex] = iValue;
+}
+void CvPlayerAI::AI_setFavoriteCivicCounter(PlayerTypes eIndex, int iValue) {
+	m_aiFavoriteCivicCounter[eIndex] = iValue;
+}
+void CvPlayerAI::AI_setBonusTradeCounter(PlayerTypes eIndex, int iValue) {
+	m_aiBonusTradeCounter[eIndex] = iValue;
+} // </advc.130k>
+
 // <advc.130x> 0: same religion, 1 differing religion, 2 fav civic
 int CvPlayerAI::ideologyDiploLimit(PlayerTypes theyId, int mode) const {
 
@@ -16734,23 +16751,6 @@ void CvPlayerAI::AI_rememberEvent(PlayerTypes civId, MemoryTypes mem) {
 			} // </advc.130l>
 } // </advc.130j>
 
-// <advc.130z>
-void CvPlayerAI::rememberWar(PlayerTypes formerEnemyId) {
-
-	CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(getPersonalityType());
-	AttitudeTypes towardThem = AI_getAttitude(formerEnemyId);
-	// Typically Annoyed (attitude needs to strictly better for OB)
-	AttitudeTypes obThresh = (AttitudeTypes)lh.
-			getOpenBordersRefuseAttitudeThreshold();
-	AttitudeTypes dpThresh = (AttitudeTypes)lh.
-			getDefensivePactRefuseAttitudeThreshold();
-	if(AI_getMemoryCount(formerEnemyId, MEMORY_CANCELLED_OPEN_BORDERS) == 0 &&
-			towardThem <= obThresh + 1) // not strictly better than obThresh plus 1
-		AI_changeMemoryCount(formerEnemyId, MEMORY_CANCELLED_OPEN_BORDERS, 1);
-	if(AI_getMemoryCount(formerEnemyId, MEMORY_CANCELLED_DEFENSIVE_PACT) == 0 &&
-			towardThem <= dpThresh + 1)
-		AI_changeMemoryCount(formerEnemyId, MEMORY_CANCELLED_DEFENSIVE_PACT, 1);
-}// </advc.130z>
 
 // K-Mod. Note, unlike some other timers, this timer is internally stored as the turn number that the timer will expire.
 // With this system, the timer doesn't have to be decremented every turn.
@@ -16842,9 +16842,8 @@ int CvPlayerAI::AI_calculateGoldenAgeValue(bool bConsiderRevolution) const
 
 void CvPlayerAI::AI_doCounter()
 {
-	int iBonusImports;
-	int iI, iJ;
-
+	int iI=0, iJ=0; // advc.003
+	double mult = 1 - GET_TEAM(getTeam()).getDiploDecay(); // advc.130k
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
 	{	// <advc.130k>
 		PlayerTypes civId = (PlayerTypes)iI;
@@ -16856,39 +16855,52 @@ void CvPlayerAI::AI_doCounter()
 		if(getStateReligion() != NO_RELIGION &&
 				getStateReligion() == civ.getStateReligion())
 			AI_changeSameReligionCounter(civId, t.randomCounterChange());
-		else AI_changeSameReligionCounter(civId, -t.randomCounterChange(
-				AI_getSameReligionCounter(civId)));
+		else AI_setSameReligionCounter(civId, (int)(
+				mult * AI_getSameReligionCounter(civId)));
 		CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(getPersonalityType());
 		if(getStateReligion() != NO_RELIGION &&
 				civ.getStateReligion() != NO_RELIGION &&
 				getStateReligion() != civ.getStateReligion() &&
 				// Delay religion hate if just met
 				t.AI_getHasMetCounter(civ.getTeam()) >
-				// This is 10 (given the BtS value in XML)
+				// This is 10 (given the XML value in BtS)
 				2 * -lh.getDifferentReligionAttitudeDivisor())
 			AI_changeDifferentReligionCounter(civId, t.randomCounterChange());
-		else AI_changeDifferentReligionCounter(civId, -t.randomCounterChange(
-				AI_getDifferentReligionCounter(civId)));
+		else AI_setDifferentReligionCounter(civId, (int)(
+				mult * AI_getDifferentReligionCounter(civId)));
 		if(lh.getFavoriteCivic() != NO_CIVIC) {
 			CivicTypes favCivic = (CivicTypes)lh.getFavoriteCivic();
 			if(isCivic(favCivic) && civ.isCivic(favCivic))
 				AI_changeFavoriteCivicCounter(civId, t.randomCounterChange());
-			else AI_changeFavoriteCivicCounter(civId, -t.randomCounterChange(
-					AI_getFavoriteCivicCounter(civId)));
+			else AI_setFavoriteCivicCounter(civId, (int)(
+				mult * AI_getFavoriteCivicCounter(civId)));
 		}
-		/*  This one can increase and decrease by more than one in BtS;
-			simply call t.randomCounterChange repeatedly to randomize this. */
-		iBonusImports = getNumTradeBonusImports(civId);
-		for(int i = 0; i < 2 * iBonusImports; i++)
-			AI_changeBonusTradeCounter(civId, t.randomCounterChange());
-		if(iBonusImports == 0) {
-			int c = AI_getBonusTradeCounter(civId);
-			int expectedDecrease = 1 + std::min(c, civ.getNumCities() / 4);
-			for(int i = 0; i < expectedDecrease; i++)
-				AI_changeBonusTradeCounter(civId, t.randomCounterChange(c));
-		} // </advc.130k>
+		int iBonusImports = getNumTradeBonusImports(civId);
+		// <advc.149>
+		int attitudeDiv = lh.getBonusTradeAttitudeDivisor();
+		int c = AI_getBonusTradeCounter(civId);
+		if(iBonusImports <= ::round(c / (1.5 * attitudeDiv))) {
+			/*  BtS decreases the BonusTradeCounter by 1 + civ.getNumCities() / 4,
+				but let's just do exponential decay instead. */
+			AI_setBonusTradeCounter(civId, (int)(
+					mult * AI_getBonusTradeCounter(civId)));
+		}
+		else {
+			double incr = iBonusImports;
+			CvCity* capital = getCapitalCity();
+			if(capital != NULL && iBonusImports > 0) {
+				int capBonuses = capital->countUniqueBonuses() - iBonusImports;
+				/*  Rather than changing attitudeDiv in XML for every leader,
+					do the fine-tuning here. */
+				double weight = attitudeDiv / 8.5;
+				if(capBonuses >= weight)
+					incr = (iBonusImports / (double)capBonuses) * weight;
+			}
+			AI_changeBonusTradeCounter(civId, t.randomCounterChange(::round(
+					1.25 * attitudeDiv * lh.getBonusTradeAttitudeChangeLimit()),
+					incr / 2)); // Halved b/c it's binomial distrib. w/ 2 trials
+		} // </advc.149></advc.130k>
 		// <advc.130p>
-		double mult = 1 - GET_TEAM(getTeam()).getDiploDecay();
 		AI_setPeacetimeGrantValue(civId, (int)(
 				mult * AI_getPeacetimeGrantValue(civId)));
 		AI_setPeacetimeTradeValue(civId, (int)(
@@ -20448,7 +20460,7 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(
 				iHighCultureCount++;
 			}
 
-			// <advc.115> Threshold was 50%, now 67%, still 60% for human.
+			// <advc.115> Threshold was 50%, now 67%, 60% for human.
 			double thresh = 0.67;
 			if(isHuman())
 				thresh = 0.6;

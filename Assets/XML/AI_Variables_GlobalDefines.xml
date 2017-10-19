@@ -144,9 +144,10 @@
 	<Define>
 		<!-- Don't want to plan war against civs that we like. This is only
 			 role-playing; ILL_WILL handles the rational reasons for not
-			 attacking partners. -->
+			 attacking partners.
+			 v0.90: Let's try 83. -->
 		<DefineName>UWAI_WEIGHT_AFFECTION</DefineName>
-		<iDefineIntVal>100</iDefineIntVal>
+		<iDefineIntVal>83</iDefineIntVal>
 	</Define>
 	<Define>
 		<!-- Distractions from fighting multiple wars are already covered by

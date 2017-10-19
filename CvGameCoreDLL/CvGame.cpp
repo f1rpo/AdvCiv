@@ -2535,7 +2535,7 @@ void CvGame::updateScore(bool bForce)
 	{
 		abPlayerScored[iI] = false;
 	}
-
+	std::vector<PlayerTypes> updateAttitude; // advc.001
 	for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
 		iBestScore = MIN_INT;
@@ -2556,13 +2556,16 @@ void CvGame::updateScore(bool bForce)
 		}
 
 		abPlayerScored[eBestPlayer] = true;
-
+		// <advc.001>
+		if(eBestPlayer != NO_PLAYER && iI != getPlayerRank(eBestPlayer))
+			updateAttitude.push_back(eBestPlayer); // </advc.001>
 		setRankPlayer(iI, eBestPlayer);
 		setPlayerRank(eBestPlayer, iI);
 		setPlayerScore(eBestPlayer, iBestScore);
 		GET_PLAYER(eBestPlayer).updateScoreHistory(getGameTurn(), iBestScore);
-	}
-
+	} // <advc.001>
+	for(size_t i = 0; i < updateAttitude.size(); i++)
+		GET_PLAYER(updateAttitude[i]).AI_updateAttitudeCache(); // </advc.001>
 	for (iI = 0; iI < MAX_CIV_TEAMS; iI++)
 	{
 		abTeamScored[iI] = false;

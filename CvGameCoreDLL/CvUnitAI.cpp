@@ -24954,11 +24954,24 @@ int CvUnitAI::AI_stackOfDoomExtra() const
 	//return ((AI_getBirthmark() % (1 + GET_PLAYER(getOwnerINLINE()).getCurrentEra())) + 4);
 	// K-Mod
 	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
-	int iFlavourExtra = kOwner.AI_getFlavorValue(FLAVOR_MILITARY)/2 + (kOwner.AI_getFlavorValue(FLAVOR_MILITARY) > 0 ?
-			6 : 4); // advc.104p: was 8: 4
-	int iEra = kOwner.getCurrentEra();
+	int iFlavourExtra = kOwner.AI_getFlavorValue(FLAVOR_MILITARY)/2 +
+			(kOwner.AI_getFlavorValue(FLAVOR_MILITARY) > 0 ?
+			4 : 2); // <advc.104p> was 8:4
+	/*  Would be best to use the era of the target, but stacks aren't formed
+		against a particular target. Game era is still better than using
+		our era. If we're more advanced than our rivals, it doesn't mean that
+		we need larger stacks than theirs. */
+	int iEra = GC.getGameINLINE().getCurrentEra(); // </advc.104p>
 	// 4 base. then rand between 0 and ... (1 or 2 + iEra + flavour * era ratio)
-	int r = AI_getBirthmark() % ((kOwner.AI_isDoStrategy(AI_STRATEGY_CRUSH) ? 2 : 1) + iEra + (iEra+1)*iFlavourExtra/std::max(1, GC.getNumEraInfos())) + 4;
+	// <advc.104p> Put that era ratio in a variable and round modulus to nearest
+	double eraRatio = (iEra+1.0)/std::max(1, GC.getNumEraInfos());
+	int modulus = ::round( // </advc.104p>
+			((kOwner.AI_isDoStrategy(AI_STRATEGY_CRUSH) ? 2 : 1) +
+			eraRatio * iFlavourExtra +
+			// <advc.104p> Half of iEra factored into the non-random portion
+			iEra/2));
+	int r = (iEra+1)/2 + // </advc.104p>
+			4 + (AI_getBirthmark() % modulus);
 	// K-Mod end
 	// <advc.104p>
 	double mult = 1;

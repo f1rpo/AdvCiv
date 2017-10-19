@@ -366,4 +366,14 @@
 	<Spanish>Pulsar [CTRL + I] para jugar con una interfaz minimizada. Pulsar [ALT + I] para jugar sin interfaz.</Spanish>
 </TEXT>
 
+<!-- advc.008c: Info about Alt key added. -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_INTERFACE_39</Tag>
+	<English>To view combat odds, hold down the right mouse button on the target tile. By also holding down [ALT], you can view combat odds even when not at war.</English>
+	<French>Pour conna&#238;tre vos chances en cas de combat, maintenez le bouton droit de la souris enfonc&#233; sur la case vis&#233;e.</French>
+	<German>Um die Kampfchancen Ihrer Einheit zu sehen, halten Sie die rechte Maustaste über dem Zielfeld gedrückt. Wenn Sie außerdem [ALT] gedrückt halten, werden die Kampfchancen auch dann angezeigt, wenn Sie nicht im Krieg sind.</German>
+	<Italian>Per visualizzare le probabilit&#224; di vittoria di uno scontro, tieni premuto il pulsante destro del mouse su una casella bersaglio...</Italian>
+	<Spanish>Mantener el cursor encima de la casilla objetivo para ver las probabilidades del combate...</Spanish>
+</TEXT>
+
 </Civ4GameText>

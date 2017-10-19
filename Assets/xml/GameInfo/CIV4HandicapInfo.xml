@@ -32,7 +32,8 @@
 			<iInflationPercent>60</iInflationPercent>
 			<iHealthBonus>4</iHealthBonus>
 			<iHappyBonus>6</iHappyBonus>
-			<iAttitudeChange>2</iAttitudeChange>
+			<!-- advc.148: was 2 -->
+			<iAttitudeChange>3</iAttitudeChange>
 			<iNoTechTradeModifier>100</iNoTechTradeModifier>
 			<iTechTradeKnownModifier>-100</iTechTradeKnownModifier>
 			<iUnownedTilesPerGameAnimal>100</iUnownedTilesPerGameAnimal>
@@ -73,6 +74,8 @@
 			<iAIWarWearinessPercent>100</iAIWarWearinessPercent>
 			<iAIPerEraModifier>0</iAIPerEraModifier>
 			<iAIAdvancedStartPercent>100</iAIAdvancedStartPercent>
+			<!-- advc.148 -->
+			<iAIAttitudeChange>0</iAIAttitudeChange>
 			<Goodies>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
@@ -177,7 +180,8 @@
 			<iInflationPercent>70</iInflationPercent>
 			<iHealthBonus>3</iHealthBonus>
 			<iHappyBonus>5</iHappyBonus>
-			<iAttitudeChange>1</iAttitudeChange>
+			<!-- advc.148: was 1 -->
+			<iAttitudeChange>2</iAttitudeChange>
 			<iNoTechTradeModifier>90</iNoTechTradeModifier>
 			<iTechTradeKnownModifier>-50</iTechTradeKnownModifier>
 			<iUnownedTilesPerGameAnimal>80</iUnownedTilesPerGameAnimal>
@@ -218,6 +222,8 @@
 			<iAIWarWearinessPercent>90</iAIWarWearinessPercent>
 			<iAIPerEraModifier>0</iAIPerEraModifier>
 			<iAIAdvancedStartPercent>100</iAIAdvancedStartPercent>
+			<!-- advc.148 -->
+			<iAIAttitudeChange>0</iAIAttitudeChange>
 			<Goodies>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
@@ -298,7 +304,8 @@
 			<iInflationPercent>80</iInflationPercent>
 			<iHealthBonus>2</iHealthBonus>
 			<iHappyBonus>4</iHappyBonus>
-			<iAttitudeChange>0</iAttitudeChange>
+			<!-- advc.148: was 0 -->
+			<iAttitudeChange>1</iAttitudeChange>
 			<iNoTechTradeModifier>80</iNoTechTradeModifier>
 			<iTechTradeKnownModifier>-25</iTechTradeKnownModifier>
 			<iUnownedTilesPerGameAnimal>60</iUnownedTilesPerGameAnimal>
@@ -339,6 +346,8 @@
 			<iAIWarWearinessPercent>80</iAIWarWearinessPercent>
 			<iAIPerEraModifier>0</iAIPerEraModifier>
 			<iAIAdvancedStartPercent>100</iAIAdvancedStartPercent>
+			<!-- advc.148 -->
+			<iAIAttitudeChange>0</iAIAttitudeChange>
 			<Goodies>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
@@ -393,7 +402,8 @@
 			<iInflationPercent>90</iInflationPercent>
 			<iHealthBonus>2</iHealthBonus>
 			<iHappyBonus>4</iHappyBonus>
-			<iAttitudeChange>-1</iAttitudeChange>
+			<!-- advc.148: was -1 -->
+			<iAttitudeChange>0</iAttitudeChange>
 			<iNoTechTradeModifier>70</iNoTechTradeModifier>
 			<iTechTradeKnownModifier>0</iTechTradeKnownModifier>
 			<iUnownedTilesPerGameAnimal>50</iUnownedTilesPerGameAnimal>
@@ -434,6 +444,8 @@
 			<iAIWarWearinessPercent>80</iAIWarWearinessPercent>
 			<iAIPerEraModifier>0</iAIPerEraModifier>
 			<iAIAdvancedStartPercent>100</iAIAdvancedStartPercent>
+			<!-- advc.148 -->
+			<iAIAttitudeChange>1</iAIAttitudeChange>
 			<Goodies>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
@@ -484,7 +496,8 @@
 			<iInflationPercent>95</iInflationPercent>
 			<iHealthBonus>2</iHealthBonus>
 			<iHappyBonus>4</iHappyBonus>
-			<iAttitudeChange>-1</iAttitudeChange>
+			<!-- advc.148: was -1 -->
+			<iAttitudeChange>0</iAttitudeChange>
 			<iNoTechTradeModifier>60</iNoTechTradeModifier>
 			<iTechTradeKnownModifier>0</iTechTradeKnownModifier>
 			<iUnownedTilesPerGameAnimal>40</iUnownedTilesPerGameAnimal>
@@ -526,6 +539,8 @@
 			<iAIPerEraModifier>-1</iAIPerEraModifier>
 			<!-- advc.250c: was 110 -->
 			<iAIAdvancedStartPercent>125</iAIAdvancedStartPercent>
+			<!-- advc.148 -->
+			<iAIAttitudeChange>1</iAIAttitudeChange>
 			<Goodies>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
@@ -578,7 +593,8 @@
 			<iInflationPercent>100</iInflationPercent>
 			<iHealthBonus>2</iHealthBonus>
 			<iHappyBonus>4</iHappyBonus>
-			<iAttitudeChange>-1</iAttitudeChange>
+			<!-- advc.148: was -1 -->
+			<iAttitudeChange>0</iAttitudeChange>
 			<iNoTechTradeModifier>50</iNoTechTradeModifier>
 			<iTechTradeKnownModifier>0</iTechTradeKnownModifier>
 			<iUnownedTilesPerGameAnimal>35</iUnownedTilesPerGameAnimal>
@@ -621,6 +637,8 @@
 			<iAIPerEraModifier>-2</iAIPerEraModifier>
 			<!-- advc.250c: was 120 -->
 			<iAIAdvancedStartPercent>145</iAIAdvancedStartPercent>
+			<!-- advc.148 -->
+			<iAIAttitudeChange>1</iAIAttitudeChange>
 			<Goodies>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
@@ -697,7 +715,8 @@
 			<iInflationPercent>100</iInflationPercent>
 			<iHealthBonus>2</iHealthBonus>
 			<iHappyBonus>4</iHappyBonus>
-			<iAttitudeChange>-1</iAttitudeChange>
+			<!-- advc.148: was -1 -->
+			<iAttitudeChange>0</iAttitudeChange>
 			<iNoTechTradeModifier>40</iNoTechTradeModifier>
 			<iTechTradeKnownModifier>0</iTechTradeKnownModifier>
 			<iUnownedTilesPerGameAnimal>30</iUnownedTilesPerGameAnimal>
@@ -740,6 +759,8 @@
 			<iAIPerEraModifier>-3</iAIPerEraModifier>
 			<!-- advc.250c: was 135 -->
 			<iAIAdvancedStartPercent>175</iAIAdvancedStartPercent>
+			<!-- advc.148 -->
+			<iAIAttitudeChange>1</iAIAttitudeChange>
 			<Goodies>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
@@ -820,7 +841,8 @@
 			<iInflationPercent>100</iInflationPercent>
 			<iHealthBonus>2</iHealthBonus>
 			<iHappyBonus>4</iHappyBonus>
-			<iAttitudeChange>-1</iAttitudeChange>
+			<!-- advc.148: was -1 -->
+			<iAttitudeChange>0</iAttitudeChange>
 			<iNoTechTradeModifier>30</iNoTechTradeModifier>
 			<iTechTradeKnownModifier>0</iTechTradeKnownModifier>
 			<iUnownedTilesPerGameAnimal>25</iUnownedTilesPerGameAnimal>
@@ -863,6 +885,8 @@
 			<iAIPerEraModifier>-4</iAIPerEraModifier>
 			<!-- advc.250c: was 150 -->
 			<iAIAdvancedStartPercent>210</iAIAdvancedStartPercent>
+			<!-- advc.148 -->
+			<iAIAttitudeChange>1</iAIAttitudeChange>
 			<Goodies>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
@@ -947,7 +971,8 @@
 			<iInflationPercent>100</iInflationPercent>
 			<iHealthBonus>2</iHealthBonus>
 			<iHappyBonus>4</iHappyBonus>
-			<iAttitudeChange>-1</iAttitudeChange>
+			<!-- advc.148: was -1 -->
+			<iAttitudeChange>0</iAttitudeChange>
 			<iNoTechTradeModifier>20</iNoTechTradeModifier>
 			<iTechTradeKnownModifier>0</iTechTradeKnownModifier>
 			<iUnownedTilesPerGameAnimal>20</iUnownedTilesPerGameAnimal>
@@ -989,6 +1014,8 @@
 			<iAIPerEraModifier>-5</iAIPerEraModifier>
 			<!-- advc.250c: was 170 -->
 			<iAIAdvancedStartPercent>270</iAIAdvancedStartPercent>
+			<!-- advc.148 -->
+			<iAIAttitudeChange>1</iAIAttitudeChange>
 			<Goodies>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
@@ -1073,8 +1100,8 @@
 			<!-- advc.250a -->
 			<iDifficulty>90</iDifficulty>
 		</HandicapInfo>
-		<!-- advc.250a -->
-		<HandicapInfo>
+		<!-- advc.250a: Uncomment this to re-enable the King difficulty: -->
+		<!--<HandicapInfo>
 			<Type>HANDICAP_KING</Type>
 			<Description>TXT_KEY_HANDICAP_KING</Description>
 			<Help>TXT_KEY_HANDICAP_KING_HELP</Help>
@@ -1096,7 +1123,7 @@
 			<iInflationPercent>100</iInflationPercent>
 			<iHealthBonus>2</iHealthBonus>
 			<iHappyBonus>4</iHappyBonus>
-			<iAttitudeChange>-1</iAttitudeChange>
+			<iAttitudeChange>0</iAttitudeChange>
 			<iNoTechTradeModifier>50</iNoTechTradeModifier>
 			<iTechTradeKnownModifier>0</iTechTradeKnownModifier>
 			<iUnownedTilesPerGameAnimal>40</iUnownedTilesPerGameAnimal>
@@ -1121,7 +1148,6 @@
 			<iAIDeclareWarProb>100</iAIDeclareWarProb>
 			<iAIWorkRateModifier>10</iAIWorkRateModifier>
 			<iAIGrowthPercent>90</iAIGrowthPercent>
-			<!-- advc.251: Lower tech costs for the AI -->
 			<iAIResearchPercent>95</iAIResearchPercent>
 			<iAITrainPercent>90</iAITrainPercent>
 			<iAIWorldTrainPercent>90</iAIWorldTrainPercent>
@@ -1137,6 +1163,7 @@
 			<iAIWarWearinessPercent>80</iAIWarWearinessPercent>
 			<iAIPerEraModifier>-3</iAIPerEraModifier>
 			<iAIAdvancedStartPercent>200</iAIAdvancedStartPercent>
+			<iAIAttitudeChange>1</iAIAttitudeChange>
 			<Goodies>
                 <GoodyType>GOODY_HIGH_GOLD</GoodyType>
                 <GoodyType>GOODY_HIGH_GOLD</GoodyType>
@@ -1187,6 +1214,6 @@
 				</FreeTech>
 			</AIFreeTechs>
 			<iDifficulty>65</iDifficulty>
-		</HandicapInfo>
+		</HandicapInfo>-->
 	</HandicapInfos>
 </Civ4HandicapInfo>

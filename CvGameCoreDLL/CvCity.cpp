@@ -10775,6 +10775,17 @@ void CvCity::changeNumBonuses(BonusTypes eIndex, int iChange)
 	}
 }
 
+// <advc.149>
+int CvCity::countUniqueBonuses() const {
+
+	int r = 0;
+	for(int i = 0; i < GC.getNumBonusInfos(); i++)
+		if(hasBonus((BonusTypes)i))
+			r++;
+	return r;
+}
+// </advc.149>
+
 int CvCity::getNumCorpProducedBonuses(BonusTypes eIndex) const
 {
 	FAssertMsg(eIndex >= 0, "eIndex expected to be >= 0");

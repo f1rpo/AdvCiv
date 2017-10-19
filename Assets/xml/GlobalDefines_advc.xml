@@ -354,10 +354,10 @@
 	
 	<!-- [advc.004m]
 	     No clue how this is measured. Original value is 2200
-		 (GlobalDefines.xml), recommended: 4200. -->
+		 (GlobalDefines.xml), recommended: 4400. -->
 	<Define>
 		<DefineName>CAMERA_START_DISTANCE</DefineName>
-		<fDefineFloatVal>4200</fDefineFloatVal>
+		<fDefineFloatVal>4400</fDefineFloatVal>
 	</Define>
 
 	<!-- [advc.004m]

@@ -164,11 +164,12 @@ public: // <advc.104>
 	// advc.130p: 0 or less if tId isn't an enemy at all
 	int enemyValue(TeamTypes tId) const;
 	/*  advc.130k: Random number to add or subtract from state counters
-		(instead of just incrementing or decrementing). Non-negative result,
-		caller will have to multiply by -1 when decaying a counter.
+		(instead of just incrementing or decrementing). Binomial distribution
+		with 2 trials and a probability of pr.
+		Non-negative result, caller will have to multiply by -1 to decrease a counter.
 		Result is capped at 'cap' (upper bound). -1: None.
 		Public visibility b/c CvPlayerAI needs it too. */
-	int randomCounterChange(int cap = -1) const;
+	int randomCounterChange(int cap = -1, double pr = 0.5) const;
 	int AI_getWarPlanStateCounter(TeamTypes eIndex) const;
 	void AI_setWarPlanStateCounter(TeamTypes eIndex, int iNewValue);
 	void AI_changeWarPlanStateCounter(TeamTypes eIndex, int iChange);
@@ -313,6 +314,7 @@ protected:
 	int AI_makePeaceRand() const;
 	int AI_noWarAttitudeProb(AttitudeTypes eAttitude) const;
 	int AI_getOpenBordersAttitudeDivisor() const; // advc.130i
+	double OBcounterIncrement(TeamTypes tId) const; // advc.130z
 
 	void AI_doCounter();
 	void AI_doWar();

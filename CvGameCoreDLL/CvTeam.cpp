@@ -1923,21 +1923,6 @@ void CvTeam::makePeaceBulk(TeamTypes eTeam, bool bBumpUnits, TeamTypes broker)
 				}
 			}
 		}
-		// <advc.130z>
-		if(!isVassal(eTeam) && !GET_TEAM(eTeam).isVassal(getID())) {
-			for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-				CvPlayerAI& ourMember = GET_PLAYER((PlayerTypes)i);
-				if(ourMember.getTeam() != getID() || !ourMember.isAlive())
-					continue;
-				for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
-					CvPlayerAI& theirMember = GET_PLAYER((PlayerTypes)j);
-					if(theirMember.getTeam() != eTeam || !theirMember.isAlive())
-						continue;
-					ourMember.rememberWar(theirMember.getID());
-					theirMember.rememberWar(ourMember.getID());
-				}
-			}
-		} // </advc.130z>
 	}
 	// K-Mod end
 	

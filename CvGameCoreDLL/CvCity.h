@@ -881,7 +881,7 @@ public:
 	int getNumBonuses(BonusTypes eIndex) const;																		// Exposed to Python
 	bool hasBonus(BonusTypes eIndex) const;															// Exposed to Python
 	void changeNumBonuses(BonusTypes eIndex, int iChange);
-
+	int countUniqueBonuses() const; // advc.149
 	int getNumCorpProducedBonuses(BonusTypes eIndex) const;
 	bool isCorporationBonus(BonusTypes eBonus) const;
 	bool isActiveCorporation(CorporationTypes eCorporation) const;

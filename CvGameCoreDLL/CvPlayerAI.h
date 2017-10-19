@@ -367,7 +367,7 @@ public:
 
 	int AI_getSameReligionCounter(PlayerTypes eIndex) const;
 	void AI_changeSameReligionCounter(PlayerTypes eIndex, int iChange);
-
+	
 	int AI_getDifferentReligionCounter(PlayerTypes eIndex) const;
 	void AI_changeDifferentReligionCounter(PlayerTypes eIndex, int iChange);
 
@@ -386,7 +386,12 @@ public:
 		on EnemyTrade and EnemyGrant values. These here are simple setters. */
 	void AI_setPeacetimeTradeValue(PlayerTypes eIndex, int iVal);
 	void AI_setPeacetimeGrantValue(PlayerTypes eIndex, int iVal);
-	// </advc.130p>
+	// </advc.130p><advc.130k> To make exponential decay more convenient
+	void AI_setSameReligionCounter(PlayerTypes eIndex, int iValue);
+	void AI_setDifferentReligionCounter(PlayerTypes eIndex, int iValue);
+	void AI_setFavoriteCivicCounter(PlayerTypes eIndex, int iValue);
+	void AI_setBonusTradeCounter(PlayerTypes eIndex, int iValue);
+	// </advc.130k>
 	int AI_getGoldTradedTo(PlayerTypes eIndex) const;
 	void AI_changeGoldTradedTo(PlayerTypes eIndex, int iChange);
 
@@ -404,7 +409,6 @@ public:
 	void AI_changeMemoryCount(PlayerTypes eIndex1, MemoryTypes eIndex2, int iChange);
 	// advc.130j: Increases memory count based on current attitude
 	void AI_rememberEvent(PlayerTypes civId, MemoryTypes mem);
-	void rememberWar(PlayerTypes formerEnemyId); // advc.130z
 
 	// K-Mod
 	int AI_getCityTargetTimer() const;

@@ -271,7 +271,7 @@ class MapConstants:
 		self.landPercent = 0.295
 
 		#Percentage of land squares high enough to be Hills or Peaks.
-		self.HillPercent   = 0.24 # advc.021b: was 42
+		self.HillPercent   = 0.29 # advc.021b: was 42
 
 		#Percentage of land squares high enough to be Peaks.
 		# advc.021b: was 0.12
@@ -5350,7 +5350,7 @@ def getCustomMapOptionDescAt(argsList):
 			return "Flat"
 	elif optionID == 1:
 		# advc.021b: was just "Old World"
-		owMsg = "Old World (unless Pangaea); -15% players recommended"
+		owMsg = "Old World (unless Pangaea); -20% players recommended"
 		if mc.AllowNewWorld:
 			if selectionID == 0:
 				return owMsg

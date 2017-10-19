@@ -2804,11 +2804,10 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eTeam, int iPowerMultiplier,
 	// !isParent check removed
 	// Computation of iPersonalityModifier moved down
 	// Commented-out BBAI code (06/03/09, jdog) deleted
-	if(getAtWarCount() <= 0 && getDefensivePactCount() > 0) {
+	if(getAtWarCount() <= 0 && getDefensivePactCount() > 0 && !isAVassal()) {
 		// "We" (= this team and its partners) "are doing fine on our own"
 		return DENIAL_POWER_US;
-	} // </advc.112>
-	// <advc.143b>
+	} // </advc.112><advc.143b>
 	if(!isAtWar(eTeam) && getNumNukeUnits() > 0 &&
 			getNukeInterception() >= kMasterTeam.getNukeInterception())
 		return DENIAL_POWER_US;
@@ -4922,8 +4921,8 @@ void CvTeamAI::AI_changeWarSuccess(TeamTypes eIndex, int iChange)
 {
 	AI_setWarSuccess(eIndex, (AI_getWarSuccess(eIndex) + iChange));
 	// <advc.130m>
-	if(iChange <= 0) return;
-	if(eIndex == BARBARIAN_TEAM) return;
+	if(iChange <= 0 || eIndex == BARBARIAN_TEAM)
+		return;
 	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 		TeamTypes allyId = (TeamTypes)i;
 		CvTeamAI& ally = GET_TEAM(allyId);
@@ -5860,16 +5859,59 @@ int CvTeamAI::AI_getOpenBordersAttitudeDivisor() const {
 		}
 	}
 	return r;
+}
+
+double CvTeamAI::OBcounterIncrement(TeamTypes tId) const {
+
+	if(tId == getID() || tId == NO_TEAM) {
+		FAssert(false);
+		return 0;
+	}
+	int totalForeignTrade = 0;
+	int tradeFromThem = 0;
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+		CvPlayerAI const& ourMember = GET_PLAYER((PlayerTypes)i);
+		if(!ourMember.isAlive() || ourMember.getTeam() != getID())
+			continue;
+		// Based on calculateTradeRoutes in BUG's TradeUtil.py
+		int dummy=-1;
+		for(CvCity* c = ourMember.firstCity(&dummy); c != NULL;
+				c = ourMember.nextCity(&dummy)) {
+			for(int j = 0; j < c->getTradeRoutes(); j++) {
+				CvCity* partner = c->getTradeCity(j);
+				if(partner == NULL)
+					continue;
+				TeamTypes pt = partner->getTeam();
+				if(pt == NO_TEAM || pt == getID())
+					continue;
+				int tradeCommerce = c->calculateTradeYield(YIELD_COMMERCE,
+						c->calculateTradeProfit(partner));
+				totalForeignTrade += tradeCommerce;
+				if(pt == tId)
+					tradeFromThem += tradeCommerce;
+			}
+		}
+	}
+	double fromTrade = 0;
+	if(totalForeignTrade > 0 && tradeFromThem > 0)
+		fromTrade = std::sqrt(tradeFromThem / (double)totalForeignTrade);
+	double fromCloseness = 0;
+	int ourCities = getNumCities(); int theirCities = GET_TEAM(tId).getNumCities();
+	if(ourCities > 0 && theirCities > 0)
+		fromCloseness = AI_teamCloseness(tId, DEFAULT_PLAYER_CLOSENESS) /
+				(std::sqrt(ourCities + (double)theirCities) * 20);
+	/*  Would be nice to add another, say, 0.25 if any of our units w/o
+		isRivalTerritory is currently inside the borders of a tId member, but
+		that's too costly to check here and too complicated to keep track of. */
+	return ::dRange(fromTrade + fromCloseness, 1/6.0, 8/6.0);
 } // </advc.130i>
 // <advc.130k>
-int CvTeamAI::randomCounterChange(int cap) const {
+int CvTeamAI::randomCounterChange(int cap, double pr) const {
 
-	/*  Could e.g. factor in GameTurn to make diplo faster/slower as the game
-		progresses, but for now, just flip two fair coins */
 	int r = 0;
-	if(::bernoulliSuccess(0.5, "advc.130k"))
+	if(::bernoulliSuccess(pr, "advc.130k"))
 		r++;
-	if(::bernoulliSuccess(0.5, "advc.130k"))
+	if(::bernoulliSuccess(pr, "advc.130k"))
 		r++;
 	if(cap < 0)
 		return r;
@@ -5882,7 +5924,8 @@ void CvTeamAI::AI_doCounter()
 	{
 		// <advc.130k>
 		TeamTypes tId = (TeamTypes) iI;
-		if(!GET_TEAM(tId).isAlive() || tId == getID()) continue;
+		if(!GET_TEAM(tId).isAlive() || tId == getID())
+			continue;
 		if(AI_getWarPlan(tId) != NO_WARPLAN) /*  advc.001: NO_WARPLAN should imply
 			that the state counter is at 0, rather than some arbitrary value.
 			advc.104 relies on this. */
@@ -5896,31 +5939,33 @@ void CvTeamAI::AI_doCounter()
 			lead to problems somewhere (probably not but ...) */
 		else AI_changeAtPeaceCounter(tId, (AI_getAtPeaceCounter(tId) == 0 ?
 					1 : randomCounterChange()));
-		if(isHasMet(tId))
-			AI_changeHasMetCounter(tId, 1);
+		if(!isHasMet(tId))
+			continue;
+		AI_changeHasMetCounter(tId, 1);
+		double decay = getDiploDecay(); // advc.130k
 		// <advc.130i>
 		int c = AI_getOpenBordersCounter(tId);
 		if(isOpenBorders(tId)) {
+			double const pr = OBcounterIncrement(tId) / 2; // advc.130i
 			int const cMax = 2 * AI_getOpenBordersAttitudeDivisor() + 10;
-			AI_changeOpenBordersCounter(tId, randomCounterChange(cMax));
-		} 
-		else AI_changeOpenBordersCounter(tId, -randomCounterChange(c));
+			AI_changeOpenBordersCounter(tId, randomCounterChange(cMax, pr));
+		} // <advc.130k>
+		else AI_setOpenBordersCounter(tId, (int)(
+				(1 - decay) * AI_getOpenBordersCounter(tId))); // </advc.130k>
 		// </advc.130i>
 		if(isDefensivePact(tId))
 			AI_changeDefensivePactCounter(tId, randomCounterChange());
-		else AI_changeDefensivePactCounter(tId, -randomCounterChange(
-				AI_getDefensivePactCounter(tId)));
-		if(isHasMet(tId) && AI_shareWar(tId))
+		// <advc.130k>
+		else AI_setDefensivePactCounter(tId, (int)(
+				(1 - decay) * AI_getDefensivePactCounter(tId))); // </advc.130k>
+		if(AI_shareWar(tId))
 			AI_changeShareWarCounter(tId, randomCounterChange()); // </advc.130k>
 		// <advc.130m> Decay by 1 with 10% probability
 		else if(AI_getShareWarCounter(tId) > 0 &&
 				::bernoulliSuccess(0.1, "advc.130m"))
 			AI_changeShareWarCounter(tId, -1);
-		// Exponential decay
-		double decay = getDiploDecay();
 		setSharedWarSuccess(tId, (int)
-				((1 - decay) * getSharedWarSuccess(tId)));
-		// </advc.130m>
+				((1 - decay) * getSharedWarSuccess(tId))); // </advc.130m>
 		// <advc.130p>
 		AI_changeEnemyPeacetimeGrantValue(tId, -(int)::ceil(
 				decay * AI_getEnemyPeacetimeGrantValue(tId)));

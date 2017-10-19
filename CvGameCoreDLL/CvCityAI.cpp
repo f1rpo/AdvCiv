@@ -5898,7 +5898,11 @@ int CvCityAI::AI_projectValue(ProjectTypes eProject)
 
 	if (area()->getAreaAIType(kOwner.getTeam()) != AREAAI_NEUTRAL)
 		iSpaceValue = area()->getAreaAIType(kOwner.getTeam()) == AREAAI_DEFENSIVE ? iSpaceValue/2 : 2*iSpaceValue/3;
-
+	// <advc.115> Check if we have remotely enough production capacity for SS parts
+	if(iSpaceValue > 0 && kOwner.calculateTotalYield(YIELD_PRODUCTION) <
+			GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).
+			getCreatePercent())
+		iSpaceValue = 0; // </advc.115>
 	iValue += iSpaceValue;
 
 	return iValue;

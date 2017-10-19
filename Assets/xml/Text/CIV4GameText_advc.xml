@@ -643,6 +643,17 @@
 		<Spanish>Abrir men&#250;</Spanish>
 	</TEXT>
 	
+	<!-- advc.004g: Originally in Civ4GameTextInfos.xml. Plural "peoples"
+		 sounds better. "close" together dropped (for brevity). -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_ATTITUDE_OPEN_BORDERS</Tag>
+		<English>%D1: "Our Open Borders have brought our peoples together."</English>
+		<French>%D1 : "Le libre passage a rapproch&#233; nos deux peuples."</French>
+		<German>%D1: "Die &#214;ffnung unserer Grenzen hat unsere V&#246;lker zusammengebracht."</German>
+		<Italian>%D1: "Il nostro accordo di diritto di passaggio ha permesso ai nostri popoli di avvicinarsi"</Italian>
+		<Spanish>%D1: "La apertura de fronteras ha acercado m&#225;s a nuestros pueblos."</Spanish>
+	</TEXT>
+	
 	<!-- advc.004s: Originally in CIV4GameTextInfos.xml;
 		 says just "(Gold)" there. Translation from TXT_KEY_RESEARCH
 		 in CIV4GameText_Misc1.xml.
@@ -2362,6 +2373,61 @@
 		<German>Ein Quest liegt an (Quest Log: Ctrl + Tab).</German>
 		<Italian>Your civilization is on a quest. Check the Quest log (Ctrl + Tab).</Italian>
 		<Spanish>Your civilization is on a quest. Check the Quest log (Ctrl + Tab).</Spanish>
+	</TEXT>
+
+	<!-- advc.004w: Based on keys in CIV4GameTextInfos.xml. -->
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_WORLD_WONDER1</Tag>
+		<English>[ICON_BULLET]World Wonder</English>
+		<French>[ICON_BULLET]Merveille mondiale</French>
+		<German>[ICON_BULLET]Weltwunder</German>
+		<Italian>[ICON_BULLET]Grande Meraviglia</Italian>
+		<Spanish>[ICON_BULLET]Maravilla del mundo</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_TEAM_WONDER1</Tag>
+		<English>[ICON_BULLET]Team Wonder</English>
+		<French>[ICON_BULLET]Merveille d'&#233;quipe</French>
+		<German>[ICON_BULLET]Teamwunder</German>
+		<Italian>[ICON_BULLET]Meraviglia di squadra</Italian>
+		<Spanish>[ICON_BULLET]Maravilla de equipo</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_NATIONAL_WONDER1</Tag>
+		<English>[ICON_BULLET]National Wonder</English>
+		<French>[ICON_BULLET]Merveille nationale</French>
+		<German>[ICON_BULLET]Nationales Wunder</German>
+		<Italian>[ICON_BULLET]Meraviglia Nazionale</Italian>
+		<Spanish>[ICON_BULLET]Maravilla nacional</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_PROJECT_WORLD1</Tag>
+		<English>[ICON_BULLET]World Project</English>
+		<French>[ICON_BULLET]Projet mondial</French>
+		<German>[ICON_BULLET]Weltprojekt</German>
+		<Italian>[ICON_BULLET]Progetto globale</Italian>
+		<Spanish>[ICON_BULLET]Proyecto mundial</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_PROJECT_TEAM1</Tag>
+		<English>[ICON_BULLET]Team Project</English>
+		<French>[ICON_BULLET]Projet d'&#233;quipe</French>
+		<German>[ICON_BULLET]Teamprojekt</German>
+		<Italian>[ICON_BULLET]Progetto di squadra</Italian>
+		<Spanish>[ICON_BULLET]Proyecto de equipo</Spanish>
+	</TEXT>
+
+	<!-- advc.004w: Why did they have to put the bullet icons into the
+		 text keys ...
+		 Now I have to make another key to get parentheses.
+		 Original in CIV4GameText_BTS_FourthRoundTranslation.xml. -->
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_CIVIC_HEALTH_HAPPINESS_CHANGE_PAR</Tag>
+		<English>[ICON_BULLET](%D1_Change%F2_HappyOrHealth with[SPACE]</English>
+		<French>[ICON_BULLET](%D1_Change%F2_HappyOrHealth avec [SPACE]</French>
+		<German>[ICON_BULLET](%D1_Change%F2_HappyOrHealth mit[SPACE]</German>
+		<Italian>[ICON_BULLET](%D1_Change%F2_HappyOrHealth con[SPACE]</Italian>
+		<Spanish>[ICON_BULLET](%D1_Change %F2_HappyOrHealth con[SPACE]</Spanish>
 	</TEXT>
 	
 </Civ4GameText>
