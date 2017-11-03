@@ -1087,9 +1087,9 @@ public:
 /**		BETTER_BTS_AI_MOD						END								*/
 /********************************************************************************/
 	virtual bool AI_isDanger() = 0;
-	// advc.139: param added
-	virtual int AI_neededDefenders(bool ignoreEvac = false) = 0;
 	// <advc.139>
+	virtual int AI_neededDefenders(bool ignoreEvac = false) = 0;
+	virtual int AI_neededFloatingDefenders(bool ignoreEvac = false) = 0;
 	virtual void updateEvacuating(double relativeCityVal)=0;
 	virtual bool isEvacuating() const=0; // </advc.139>
 	virtual int AI_neededAirDefenders() = 0;

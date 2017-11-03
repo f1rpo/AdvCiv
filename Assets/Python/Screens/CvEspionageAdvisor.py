@@ -157,21 +157,12 @@ class CvEspionageAdvisor:
 			self.X_TOTAL_PANE, self.Y_TOTAL_PANE, self.W_TOTAL_PANE, self.H_TOTAL_PANE, PanelStyles.PANEL_STYLE_MAIN )
 
 		# <advc.120c> Replace TOTAL_NUM_EPS text with espionage slider
+		# (The slider is in the refresh function though)
 		#self.szMakingText = "MakingText"
 		#self.X_MAKING_TEXT = 490
 		#self.Y_MAKING_TEXT = 85
 		#szText = u"<font=4>" + localText.getText("TXT_KEY_ESPIONAGE_SCREEN_TOTAL_NUM_EPS", (pActivePlayer.getCommerceRate(CommerceTypes.COMMERCE_ESPIONAGE), )) + "</font>"
 		#screen.setLabel(self.szMakingText, "Background", szText, CvUtil.FONT_LEFT_JUSTIFY, self.X_MAKING_TEXT, self.Y_MAKING_TEXT, self.Z_CONTROLS, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
-		# Copied from EconomicsAdvisor.py
-		x = self.X_TOTAL_PANE
-		y = self.Y_TOTAL_PANE
-		eCommerce = CommerceTypes.COMMERCE_ESPIONAGE
-		screen.setButtonGFC("plusButton", u"", "", x + self.TEXT_MARGIN, y + self.TEXT_MARGIN, 20, 20, WidgetTypes.WIDGET_CHANGE_PERCENT, eCommerce, gc.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS"), ButtonStyles.BUTTON_STYLE_CITY_PLUS )
-		screen.setButtonGFC("minusButton", u"", "", x + self.TEXT_MARGIN + 24, y + self.TEXT_MARGIN, 20, 20, WidgetTypes.WIDGET_CHANGE_PERCENT, eCommerce, -gc.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS"), ButtonStyles.BUTTON_STYLE_CITY_MINUS )
-		szText = u"<font=3>" + gc.getCommerceInfo(eCommerce).getDescription() + u" (" + unicode(pActivePlayer.getCommercePercent(eCommerce)) + u"%)</font>"
-		screen.setLabel("espRateLabel", "Background",  szText, CvUtil.FONT_LEFT_JUSTIFY, x + self.TEXT_MARGIN + 50, y + self.TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
-		szRate = u"<font=3>" + unicode(pActivePlayer.getCommerceRate(CommerceTypes(eCommerce))) + u"</font>"
-		screen.setLabel("espRate", "Background", szRate, CvUtil.FONT_RIGHT_JUSTIFY, x + self.PANE_WIDTH - self.TEXT_MARGIN, y + self.TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 		# </advc.120c>
 
 		############################
@@ -230,10 +221,11 @@ class CvEspionageAdvisor:
 			self.szMissionsTitleText = "MissionsTitle"
 			szText = u"<font=4>" + localText.getText("TXT_KEY_ESPIONAGE_SCREEN_MISSIONS", ()) + "</font>"
 			screen.setLabel(self.szMissionsTitleText, "Background", szText, CvUtil.FONT_LEFT_JUSTIFY, self.X_MISSIONS_LIST, self.Y_MISSIONS_LIST - 40, self.Z_CONTROLS, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
-
+			# advc.120d: was TXT_KEY_ESPIONAGE_SCREEN_COST
 			self.szEffectsCostTitleText = "EffectsCostTitle"
-			szText = u"<font=4>" + localText.getText("TXT_KEY_ESPIONAGE_SCREEN_COST", ()) + "</font>"
-			screen.setLabel(self.szEffectsCostTitleText, "Background", szText, CvUtil.FONT_LEFT_JUSTIFY, self.X_EFFECTS_COSTS_LIST, self.Y_EFFECTS_COSTS_LIST - 40, self.Z_CONTROLS, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+			szText = u"<font=4>" + localText.getText("TXT_KEY_MISC_THRESHOLD", ()) + "</font>"
+			# advc.120d: Subtract 40 from horizontal position
+			screen.setLabel(self.szEffectsCostTitleText, "Background", szText, CvUtil.FONT_LEFT_JUSTIFY, self.X_EFFECTS_COSTS_LIST-40, self.Y_EFFECTS_COSTS_LIST - 40, self.Z_CONTROLS, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 
 			self.szMissionsCostTitleText = "MissionsCostTitle"
 			szText = u"<font=4>" + localText.getText("TXT_KEY_ESPIONAGE_SCREEN_COST", ()) + "</font>"
@@ -379,7 +371,18 @@ class CvEspionageAdvisor:
 			pActivePlayer = gc.getPlayer(self.iActivePlayer)
 			pActiveTeam = gc.getTeam(pActivePlayer.getTeam())
 			
-			# <advc.120c> Update labels
+			# <advc.120c>
+			# Copied from EconomicsAdvisor.py
+			x = self.X_TOTAL_PANE
+			y = self.Y_TOTAL_PANE
+			eCommerce = CommerceTypes.COMMERCE_ESPIONAGE
+			screen.setButtonGFC("plusButton", u"", "", x + self.TEXT_MARGIN, y + self.TEXT_MARGIN, 20, 20, WidgetTypes.WIDGET_CHANGE_PERCENT, eCommerce, gc.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS"), ButtonStyles.BUTTON_STYLE_CITY_PLUS )
+			screen.setButtonGFC("minusButton", u"", "", x + self.TEXT_MARGIN + 24, y + self.TEXT_MARGIN, 20, 20, WidgetTypes.WIDGET_CHANGE_PERCENT, eCommerce, -gc.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS"), ButtonStyles.BUTTON_STYLE_CITY_MINUS )
+			szText = u"<font=3>" + gc.getCommerceInfo(eCommerce).getDescription() + u" (" + unicode(pActivePlayer.getCommercePercent(eCommerce)) + u"%)</font>"
+			screen.setLabel("espRateLabel", "Background",  szText, CvUtil.FONT_LEFT_JUSTIFY, x + self.TEXT_MARGIN + 50, y + self.TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+			szRate = u"<font=3>" + unicode(pActivePlayer.getCommerceRate(CommerceTypes(eCommerce))) + u"</font>"
+			screen.setLabel("espRate", "Background", szRate, CvUtil.FONT_RIGHT_JUSTIFY, x + self.PANE_WIDTH - self.TEXT_MARGIN, y + self.TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			# Update labels
 			screen.deleteWidget("espRateLabel")
 			screen.deleteWidget("espRate")
 			# Same code as above, except for the buttons
@@ -481,6 +484,9 @@ class CvEspionageAdvisor:
 
 				szMissionsTable = self.getNextWidgetName()
 				szHelpText = localText.getText("TXT_KEY_ESPIONAGE_MISSIONS_SPY", ())
+				# <advc.120d>
+				if not pActivePlayer.canSpy():
+					szHelpText = localText.getText("TXT_KEY_ESPIONAGE_NO_SPY", ()) # </advc.120d>
 				screen.addTableControlGFCWithHelp(szMissionsTable, 4, self.X_MISSIONS_LIST, self.Y_MISSIONS_LIST, self.W_MISSIONS_LIST + self.W_MISSIONS_COSTS_LIST + self.W_TABLE_1 + self.W_TABLE_3, self.H_MISSIONS_LIST, False, False, 32,32, TableStyles.TABLE_STYLE_STANDARD, szHelpText)
 				screen.setTableColumnHeader(szMissionsTable, 0, "", self.W_TABLE_0)
 				screen.setTableColumnHeader(szMissionsTable, 1, "", self.W_TABLE_1)
@@ -489,20 +495,31 @@ class CvEspionageAdvisor:
 
 
 				# Loop through all Missions
-				for iMissionLoop in range(gc.getNumEspionageMissionInfos()):
+				for iPass in range(3): # advc.120d
+					for iMissionLoop in range(gc.getNumEspionageMissionInfos()):
 
-					pMission = gc.getEspionageMissionInfo(iMissionLoop)
-
-					if (pMission.getCost() != -1):
-
+						pMission = gc.getEspionageMissionInfo(iMissionLoop)
+						# <advc.003> Reduce indentation
+						if (pMission.getCost() == -1):
+							continue # </advc.003>
+						# <advc.120d>
+						isSabotage = False
+						if pMission.getDestroyProjectCostFactor() + pMission.getDestroyBuildingCostFactor() + pMission.getDestroyProductionCostFactor() > 0 or pMission.isDestroyImprovement():
+							isSabotage = True
+						isSteal = False
+						if pMission.getBuyTechCostFactor() + pMission.getStealTreasuryTypes() > 0:
+							isSteal = True
+						if (iPass < 2) == isSabotage or (iPass > 0) == isSteal:
+							continue
+						# Moved up:
+						pActiveCity = gc.getPlayer(self.iTargetPlayer).getCity(self.iActiveCityID)
+						# </advc.120d>
 						# Only passive effects
 						if (pMission.isPassive()):
 
 							pPlot = None
 
 							if (self.iActiveCityID != -1 and pMission.isTargetsCity()):
-
-								pActiveCity = gc.getPlayer(self.iTargetPlayer).getCity(self.iActiveCityID)
 								pPlot = pActiveCity.plot()
 
 
@@ -520,14 +537,20 @@ class CvEspionageAdvisor:
 									pTeam = gc.getTeam(pActivePlayer.getTeam())
 									if (not pTeam.isHasTech(pMission.getTechPrereq())):
 										szText = u"<color=255,0,0,0>%s</color>" %(szText)
-
+								# <advc.120d>
+								costStr = str(iCost)
+								if pActiveTeam.getEspionagePointsAgainstTeam(iTargetTeam) >= iCost:
+									costStr = localText.changeTextColor(costStr, gc.getInfoTypeForString("COLOR_GREEN"))
+								# </advc.120d>
 								iRow = screen.appendTableRow(szEffectsTable)
 								screen.setTableText(szEffectsTable, 0, iRow, szText, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-								screen.setTableText(szEffectsTable, 2, iRow, str(iCost), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_RIGHT_JUSTIFY)
+								screen.setTableText(szEffectsTable, 2, iRow, costStr, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_RIGHT_JUSTIFY)
 
 						# Active Mission
 						else:
-
+							# <advc.120d>
+							if not pActivePlayer.canSpy():
+								continue # </advc.120d>
 							if (self.iSelectedMission == -1):
 								self.iSelectedMission = iMissionLoop
 
@@ -542,19 +565,48 @@ class CvEspionageAdvisor:
 							szTechText = ""
 							if (pMission.getTechPrereq() != -1):
 								szTechText = " (%s)" %(gc.getTechInfo(pMission.getTechPrereq()).getDescription())
-
+							# <advc.120d>
+							elif pMission.getBuyTechCostFactor() > 0 and iCost > 0 and pActivePlayer.canSeeTech(self.iTargetPlayer):
+								stealTech = pActivePlayer.getStealCostTech(self.iTargetPlayer)
+								if stealTech >= 0:
+									szTechText = " (%s)" %(gc.getTechInfo(stealTech).getDescription())
+							missingPrereq = False
+							# </advc.120d>
 							szText = pMission.getDescription() + szTechText
 
 							if (pMission.getTechPrereq() != -1):
 								pTeam = gc.getTeam(pActivePlayer.getTeam())
 								if (not pTeam.isHasTech(pMission.getTechPrereq())):
 									szText = u"<color=255,0,0,0>%s</color>" %(szText)
-
-							iRow = screen.appendTableRow(szMissionsTable)
-							screen.setTableText(szMissionsTable, 0, iRow, szText, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+									missingPrereq = True
+							# <advc.120d>
+							costStr = "(n/a)"
 							if iCost > 0:
-								screen.setTableText(szMissionsTable, 2, iRow, str(iCost), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_RIGHT_JUSTIFY)
-
+								costStr = str(iCost)
+								if pActiveTeam.getEspionagePointsAgainstTeam(iTargetTeam) >= iCost:
+									costStr = localText.changeTextColor(costStr, gc.getInfoTypeForString("COLOR_GREEN"))
+							# Secret costs
+							if pMission.getBuyTechCostFactor() > 0 and not pActivePlayer.canSeeTech(self.iTargetPlayer):
+								# This can't happen so long as Alphabet enables both Spies and tech trading
+								costStr = "?"
+							# Display the Destroy missions as a single item
+							elif isSabotage:
+								if pMission.getDestroyProductionCostFactor() > 0:
+									costStr = "?"
+									szText = localText.getText("TXT_KEY_ESPIONAGE_SABOTAGE", ())
+								elif pMission.getDestroyProjectCostFactor() <= 0 or iCost <= 0:
+									continue
+							if pMission.getStealTreasuryTypes() > 0 and iCost > 0:
+								if not missingPrereq:
+									iAmount = pActivePlayer.getEspionageGoldQuantity(iMissionLoop, self.iTargetPlayer, pActiveCity)
+									if iAmount > 0:
+										szText += " (%s)" %(localText.getText("TXT_KEY_ESPIONAGE_STEAL_AMOUNT", (iAmount,)))
+								else: # Don't give away AI gold if the player can't actually steal gold
+									costStr = "?"
+							iRow = screen.appendTableRow(szMissionsTable)
+							screen.setTableText(szMissionsTable, 2, iRow, costStr, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_RIGHT_JUSTIFY)
+							# The line below: Moved down </advc.120d>
+							screen.setTableText(szMissionsTable, 0, iRow, szText, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 		return 0
 
 	# returns a unique ID for a widget in this screen

@@ -228,7 +228,10 @@ void CvGame::init(HandicapTypes eHandicap)
 void CvGame::setInitialItems()
 {
 	PROFILE_FUNC();
-
+	/*  <advc.030> At least in the Earth_IceAge scenario, Ice is placed after
+		calling CvMap::calculateAreas. But the areas now depend on Ice. */
+	if(GC.getInitCore().isScenario())
+		GC.getMap().recalculateAreas(); // </advc.030>
 	int nAI = 0; // advc.250b: Just for disabling SPaH in game w/o any AI civs
 	// K-Mod: Adjust the game handicap level to be the average of all the human player's handicap.
 	// (Note: in the original bts rules, it would always set to Nobel if the humans had different handicaps)
@@ -4506,7 +4509,9 @@ void CvGame::setAIAutoPlay(int iNewValue
 		, bool changePlayerStatus) // advc.127
 {
 	m_iAIAutoPlay = std::max(0, iNewValue);
-	if(!changePlayerStatus) return; // advc.127
+	// <advc.127>
+	if(!changePlayerStatus)
+		return; // <advc.127>
 /************************************************************************************************/
 /* AI_AUTO_PLAY_MOD                           07/09/08                            jdog5000      */
 /*                                                                                              */

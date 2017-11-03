@@ -4780,11 +4780,14 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 				continue; // </advc.003>
 			// advc.130j:
 			attacked.AI_rememberEvent(getID(), MEMORY_HIRED_WAR_ALLY);
-			// <advc.104i>
+			// <advc.104i> Refuse to talk with both war enemies
 			if(attacked.AI_getMemoryCount(ePlayer, MEMORY_STOPPED_TRADING_RECENT) <= 0) {
 				// For 0.5*25 turns on average
 				attacked.AI_changeMemoryCount(ePlayer, MEMORY_STOPPED_TRADING_RECENT, 1);
-			} // </advc.104i>
+			}
+			if(attacked.AI_getMemoryCount(getID(), MEMORY_STOPPED_TRADING_RECENT) <= 0)
+				attacked.AI_changeMemoryCount(getID(), MEMORY_STOPPED_TRADING_RECENT, 1);
+			// </advc.104i>
 		}
 		break;
 
@@ -5795,6 +5798,8 @@ void CvPlayer::raze(CvCity* pCity)
 				GET_PLAYER(eHighestCulturePlayer).AI_changeMemoryCount(
 						GET_TEAM(getMasterTeam()).getLeaderID(),
 						MEMORY_RAZED_CITY, count);
+				if(count <= 0) // At least count it for the vassal then
+					count = 1;
 			} // </advc.130v>
 			GET_PLAYER(eHighestCulturePlayer).AI_changeMemoryCount(getID(), MEMORY_RAZED_CITY, count);
 		}
@@ -12556,6 +12561,14 @@ bool CvPlayer::setCommercePercent(CommerceTypes eIndex, int iNewValue, bool bFor
 	{
 		gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(Financial_Screen_DIRTY_BIT, true);
+		// <advc.120c>
+		// For slider on Espionage screen
+		gDLL->getInterfaceIFace()->setDirty(Espionage_Advisor_DIRTY_BIT, true);
+		// Redraw +/- buttons if espionage set to 0
+		gDLL->getInterfaceIFace()->setDirty(PercentButtons_DIRTY_BIT, true);
+		/*  Caveat: For some reason, the order of these two calls matters.
+			The espionage bit needs to be set first. */
+		// </advc.120c>
 	}
 	// K-Mod end
 
@@ -15101,6 +15114,60 @@ bool CvPlayer::canDoEspionageMission(EspionageMissionTypes eMission, PlayerTypes
 	return true;
 }
 
+// <advc.120d> Mostly cut-and-paste from getEspionageMissionBaseCost
+TechTypes CvPlayer::getStealCostTech(PlayerTypes eTargetPlayer) const {
+
+	TechTypes r = NO_TECH;
+	if(eTargetPlayer == NO_PLAYER)
+		return r;
+	int iProdCost = MAX_INT;
+	for(int iTech = 0; iTech < GC.getNumTechInfos(); iTech++) {
+		TechTypes eTech = (TechTypes)iTech;
+		if(canStealTech(eTargetPlayer, eTech)) {
+			int iCost = GET_TEAM(getTeam()).getResearchCost(eTech);
+			if(iCost < iProdCost) {
+				iProdCost = iCost;
+				r = eTech;
+			}
+		}
+	}
+	return r;
+}
+
+/*  I may need this elsewhere someday (or might want to change the rules
+	about when techs are visible) */
+bool CvPlayer::canSeeTech(PlayerTypes otherId) const {
+
+	// Partly based on drawTechDeals in ExoticForeignAdvisor.py
+	if(otherId == NO_PLAYER)
+		return false;
+	if(GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_TRADING))
+		return false;
+	CvTeam const& ourTeam = GET_TEAM(getTeam());
+	CvTeam const& otherTeam = TEAMREF(otherId);
+	if(!ourTeam.isAlive() || !otherTeam.isAlive() ||
+			ourTeam.isBarbarian() || otherTeam.isBarbarian() ||
+			ourTeam.isMinorCiv() || otherTeam.isMinorCiv())
+		return false;
+	return ourTeam.isHasMet(otherTeam.getID()) &&
+			(ourTeam.isTechTrading() || otherTeam.isTechTrading());
+}
+
+bool CvPlayer::canSpy() const {
+
+	for(int i = 0; i < GC.getNumUnitInfos(); i++) {
+		UnitTypes ut = (UnitTypes)i;
+		CvUnitInfo const& u = GC.getUnitInfo(ut);
+		if(u.isSpy() && canTrain(ut))
+			return true;
+	} int dummy=-1;
+	for(CvUnit* u = firstUnit(&dummy); u != NULL; u = nextUnit(&dummy)) {
+		if(u->isSpy())
+			return true;
+	}
+	return false;
+} // </advc.120d>
+
 int CvPlayer::getEspionageMissionCost(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvPlot* pPlot, int iExtraData, const CvUnit* pSpyUnit) const
 {
 	int iMissionCost = getEspionageMissionBaseCost(eMission, eTargetPlayer, pPlot, iExtraData, pSpyUnit);
@@ -15184,28 +15251,13 @@ int CvPlayer::getEspionageMissionBaseCost(EspionageMissionTypes eMission, Player
 	{
 		// Buy (Steal) Tech
 		TechTypes eTech = (TechTypes)iExtraData;
-		int iProdCost = MAX_INT;
-
-		if (NO_TECH == eTech)
-		{
-			for (int iTech = 0; iTech < GC.getNumTechInfos(); ++iTech)
-			{
-				if (canStealTech(eTargetPlayer, (TechTypes)iTech))
-				{
-					int iCost = GET_TEAM(getTeam()).getResearchCost((TechTypes)iTech);
-					if (iCost < iProdCost)
-					{
-						iProdCost = iCost;
-						eTech = (TechTypes)iTech;
-					}
-				}
-			}
-		}
-		else
-		{
-			iProdCost = GET_TEAM(getTeam()).getResearchCost(eTech);
-		}
-
+		// <advc.120d> Original code moved into auxiliary function
+		iMissionCost = -1;
+		if(eTech == NO_TECH)
+			eTech = getStealCostTech(eTargetPlayer);
+		int iProdCost = (eTech == NULL ? -1 :
+				GET_TEAM(getTeam()).getResearchCost(eTech));
+		// </advc.120d>
 		if (NO_TECH != eTech)
 		{
 			if (canStealTech(eTargetPlayer, eTech))

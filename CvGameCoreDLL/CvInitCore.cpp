@@ -757,6 +757,13 @@ bool CvInitCore::getWBMapScript() const
 	return (gDLL->isDescFileName( CvString(m_szMapScriptName).GetCString() ));
 }
 
+// <advc.030>
+bool CvInitCore::isScenario() const {
+
+	return m_eType == GAME_SP_SCENARIO || GAME_MP_SCENARIO ||
+			GAME_HOTSEAT_SCENARIO || GAME_PBEM_SCENARIO;
+} // </advc.030>
+
 
 void CvInitCore::setWorldSize(const CvWString & szWorldSize)
 {

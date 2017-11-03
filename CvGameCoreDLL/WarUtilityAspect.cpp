@@ -1985,7 +1985,11 @@ int KingMaking::preEvaluate() {
 		AI needs to be able to respond quickly when a civ starts running away with
 		the game; can't wait until rival conquests have actually happened. */
 	addLeadingCivs(winning, scoreMargin);
-	if(winning.count(weId) > 0 && winning.size() <= 1) {
+	if(winning.count(weId) > 0 && winning.size() <= 1 &&
+			// We don't want to be the only winner if it means betraying our partners
+			(params.targetId() == NO_TEAM || agent.isAtWar(params.targetId()) ||
+			agent.AI_isChosenWar(params.targetId()) || GC.getLeaderHeadInfo(we->getPersonalityType()).
+			getNoWarAttitudeProb(agent.AI_getAttitude(params.targetId())) < 100)) {
 		log("We'll be the only winners");
 		return 45;
 	}
@@ -1998,14 +2002,25 @@ void KingMaking::addLeadingCivs(set<PlayerTypes>& r, double margin,
 	CvGame& g = GC.getGameINLINE();
 	double bestScore = 1;
 	for(size_t i = 0; i < civs.size(); i++) {
-		double sc = predictScore ? m->predictedGameScore(properCivs[i]) :
-				g.getPlayerScore(properCivs[i]);
-		if(sc > bestScore) bestScore = sc;
+		double sc = predictScore ? m->predictedGameScore(civs[i]) :
+				g.getPlayerScore(civs[i]);
+		/*  Count extra score for commerce so that civs that are getting far
+			ahead in tech are identified as a threat */
+		CvPlayerAI const& civ = GET_PLAYER(civs[i]);
+		if(civ.getCurrentEra() >= 3 &&
+				// The late game is covered by victory stages
+				civ.getCurrentEra() <= 4 && g.getCurrentEra() <= 4) {
+			double commerceRate = civ.warAndPeaceAI().estimateYieldRate(
+					YIELD_COMMERCE);
+			sc += commerceRate / 2;
+		}
+		if(sc > bestScore)
+			bestScore = sc;
 	}
 	for(size_t i = 0; i < civs.size(); i++) {
-		if((predictScore ? m->predictedGameScore(properCivs[i]) :
-				g.getPlayerScore(properCivs[i])) / bestScore >= 0.75)
-			r.insert(properCivs[i]);
+		if((predictScore ? m->predictedGameScore(civs[i]) :
+				g.getPlayerScore(civs[i])) / bestScore >= 0.75)
+			r.insert(civs[i]);
 	}
 }
 
@@ -2182,7 +2197,7 @@ int Effort::preEvaluate() {
 		else {
 			/*  Reduced cost for long-distance war; less disturbance of Workers
 				and Settlers, and less danger of pillaging */
-			uMinus += m->turnsSimulated() / ((allWarsLongDist ? 5.0 : 3.5) +
+			uMinus += m->turnsSimulated() / ((allWarsLongDist ? 8.0 : 5.5) +
 					// Workers not much of a concern later on
 					we->getCurrentEra() / 2);
 			log("Cost for wartime economy and ravages: %d%s", ::round(uMinus),

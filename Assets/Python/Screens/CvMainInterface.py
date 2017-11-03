@@ -363,7 +363,10 @@ class CvMainInterface:
 		self.iX_FoVSlider = self.xResolution - 120
 		self.iY_FoVSlider = iBtnY + 30
 		self.sFieldOfView_Text = localText.getText("TXT_KEY_BUG_OPT_MAININTERFACE__FIELDOFVIEW_TEXT", ())
-		self.DEFAULT_FIELD_OF_VIEW = max(40, min(80, self.xResolution / 30)) # K-Mod (bigger FoW for bigger monitors. They'll appreciate it. Trust me.)
+		#self.DEFAULT_FIELD_OF_VIEW = max(40, min(80, self.xResolution / 30)) # K-Mod (bigger FoW for bigger monitors. They'll appreciate it. Trust me.)
+		# <advc.004m> Don't just ignore the XML setting. (Replacing the above)
+		fovxml = gc.getFIELD_OF_VIEW()
+		self.DEFAULT_FIELD_OF_VIEW = int(max(fovxml, min(2 * fovxml, self.xResolution / max(70 - fovxml, 10)))) # </advc.004m>
 		if MainOpt.isRememberFieldOfView():
 			self.iField_View = int(MainOpt.getFieldOfView())
 			# K-Mod

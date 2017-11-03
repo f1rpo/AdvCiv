@@ -899,6 +899,32 @@ int CyPlayer::getEspionageMissionCost(int /*EspionageMissionTypes*/ eMission, in
 {
 	return m_pPlayer ? m_pPlayer->getEspionageMissionCost((EspionageMissionTypes) eMission, (PlayerTypes) eTargetPlayer, NULL != pPlot ? pPlot->getPlot() : NULL, iExtraData) : -1;
 }
+// <advc.120d>
+int CyPlayer::getEspionageGoldQuantity(int eMission, int eTargetPlayer,
+		CyCity* pCity) {
+	if(m_pPlayer == NULL)
+		return -1;
+	return m_pPlayer->getEspionageGoldQuantity((EspionageMissionTypes)eMission,
+			(PlayerTypes)eTargetPlayer, pCity == NULL ? NULL : pCity->getCity());
+}
+
+int CyPlayer::getStealCostTech(int eTargetPlayer) {
+	if(m_pPlayer == NULL)
+		return NO_TECH;
+	return m_pPlayer->getStealCostTech((PlayerTypes)eTargetPlayer);
+}
+
+bool CyPlayer::canSeeTech(int eTargetPlayer) {
+	if(m_pPlayer == NULL)
+		return false;
+	return m_pPlayer->canSeeTech((PlayerTypes)eTargetPlayer);
+}
+
+bool CyPlayer::canSpy() {
+	if(m_pPlayer == NULL)
+		return false;
+	return m_pPlayer->canSpy();
+} // <advc.120d>
 
 void CyPlayer::doEspionageMission(int /*EspionageMissionTypes*/ eMission, int /*PlayerTypes*/ eTargetPlayer, CyPlot* pPlot, int iExtraData, CyUnit* pUnit)
 {

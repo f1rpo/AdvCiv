@@ -631,17 +631,6 @@
 			<Plural>0</Plural>
 		</Spanish>
 	</TEXT>
-
-	<!-- advc.004g: Originally in CIV4GameText_Misc1.xml. "Game menu" doesn't
-		 translate well; just "menu" will have to do. -->
-	<TEXT>
-		<Tag>TXT_KEY_MAIN_MENU</Tag>
-		<English>Open Game Menu</English>
-		<French>Ouvrir le menu</French>
-		<German>Men&#252; &#246;ffnen</German>
-		<Italian>Apri il menu</Italian>
-		<Spanish>Abrir men&#250;</Spanish>
-	</TEXT>
 	
 	<!-- advc.004g: Originally in Civ4GameTextInfos.xml. Plural "peoples"
 		 sounds better. "close" together dropped (for brevity). -->
@@ -1230,6 +1219,14 @@
 		<German>Vasall (kapituliert) von: %s1_CivDesc</German>
 		<Italian>Vassallo (arreso) di %s1_CivDesc</Italian>
 		<Spanish>Vasallo (capitulado) del %s1_CivDesc</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ATTITUDE_VASSAL_OF</Tag>
+		<English>Vassal (voluntary) of %s1_CivDesc</English>
+		<French>Vassal (volontaire) de : %s1_CivDesc</French>
+		<German>Vasall (freiwillig) von: %s1_CivDesc</German>
+		<Italian>Vassallo (volontario) di %s1_CivDesc</Italian>
+		<Spanish>Vasallo (volontario) del %s1_CivDesc</Spanish>
 	</TEXT>
 
 	<!-- [advc.130w] Explanation text for new diplo modifier -->
@@ -2428,6 +2425,101 @@
 		<German>[ICON_BULLET](%D1_Change%F2_HappyOrHealth mit[SPACE]</German>
 		<Italian>[ICON_BULLET](%D1_Change%F2_HappyOrHealth con[SPACE]</Italian>
 		<Spanish>[ICON_BULLET](%D1_Change %F2_HappyOrHealth con[SPACE]</Spanish>
+	</TEXT>
+
+	<!-- advc.120d -->
+	<TEXT>
+		<Tag>TXT_KEY_ESPIONAGE_SABOTAGE</Tag>
+		<English>Sabotage</English>
+		<French>Sabotage</French>
+		<German>Sabotage</German>
+		<Italian>Sabotaggio</Italian>
+		<Spanish>Sabotaje</Spanish>
+	</TEXT>
+	<!-- Replacement for TXT_KEY_ESPIONAGE_MISSIONS_SPY in CIV4GameText_BTS.xml
+		 when the player can't train spies yet. -->
+	<TEXT>
+		<Tag>TXT_KEY_ESPIONAGE_NO_SPY</Tag>
+		<English>You need to be able to train Spies (or control a Great Spy) in order to see the costs of espionage missions.</English>
+		<French>Vous devez être capable d'entrainer des Espions (ou avoir un Grand Espion) afin de voir les coûts des missions d'espionnage.</French>
+		<German>Die Missionskosten werden erst angezeigt, wenn Sie Spione ausbilden können (oder einen Großen Spion besitzen).</German>
+		<Italian>Per vedere i costi delle missioni di spionaggio, deve prima essere capace di realizzare le Spie (o avere una Grande Spia).</Italian>
+		<Spanish>Para ver los costos de las misiones de espionaje, primero deba ser capaz de entrenar Espías (o tener un Gran Espía).</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ESPIONAGE_STEAL_AMOUNT</Tag>
+		<English>%d1 [ICON_GOLD]</English>
+		<French>%d1 [ICON_GOLD]</French>
+		<German>%d1 [ICON_GOLD]</German>
+		<Italian>%d1 [ICON_GOLD]</Italian>
+		<Spanish>%d1 [ICON_GOLD]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_THRESHOLD</Tag>
+		<English>Threshold</English>
+		<French>Seuil</French>
+		<German>Grenzwert</German>
+		<Italian>Soglia</Italian>
+		<Spanish>Límite</Spanish>
+	</TEXT>
+
+	<!-- advc.002g -->
+	<!-- See CIV4ColorVals.xml for the available colors. PLAYER_GRAY isn't
+		 ideal, but comes the closest to what I had in mind. -->
+	<!-- From Civ4GameTextInfos.xml: -->
+	<TEXT>
+		<Tag>TXT_KEY_MAIN_MENU_PLAY_NOW</Tag>
+		<English>[COLOR_PLAYER_GRAY]Play Now[COLOR_REVERT]</English>
+		<French>[COLOR_PLAYER_GRAY]Jouer[COLOR_REVERT]</French>
+		<German>[COLOR_PLAYER_GRAY]Jetzt spielen[COLOR_REVERT]</German>
+		<Italian>[COLOR_PLAYER_GRAY]Gioca ora[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_PLAYER_GRAY]Jugar ya[COLOR_REVERT]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MAIN_MENU_SCENARIO</Tag>
+		<English>[COLOR_PLAYER_GRAY]Play Scenario[COLOR_REVERT]</English>
+		<French>[COLOR_PLAYER_GRAY]Jouer un sc&#233;nario[COLOR_REVERT]</French>
+		<German>[COLOR_PLAYER_GRAY]Szenario spielen[COLOR_REVERT]</German>
+		<Italian>[COLOR_PLAYER_GRAY]Gioca uno scenario[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_PLAYER_GRAY]Jugar un escenario[COLOR_REVERT]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MAIN_MENU_UPDATES</Tag>
+		<English>[COLOR_PLAYER_GRAY]Check for updates[COLOR_REVERT]</English>
+		<French>[COLOR_PLAYER_GRAY]Chercher des mises &#224; jour[COLOR_REVERT]</French>
+		<German>[COLOR_PLAYER_GRAY]Auf Updates pr&#252;fen[COLOR_REVERT]</German>
+		<Italian>[COLOR_PLAYER_GRAY]Verifica aggiornamenti[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_PLAYER_GRAY]Comprobar actualizaciones[COLOR_REVERT]</Spanish>
+	</TEXT>
+	<!-- From Civ4GameText_Misc1.xml. "(BtS)" added because credits for the mod
+		 aren't included (and I don't think I can add them there either). -->
+	<TEXT>
+		<Tag>TXT_KEY_MAIN_MENU_CREDITS</Tag>
+		<English>CREDITS (BtS)</English>
+		<French>CR&#201;DITS (BtS)</French>
+		<German>CREDITS (BtS)</German>
+		<Italian>RICONOSCIMENTI (BtS)</Italian>
+		<Spanish>CR&#201;DITOS (BtS)</Spanish>
+	</TEXT>
+	<!-- From Civ4GameText_BTS_Fixed.xml. Shortened in order to make it less
+		 noticeable. -->
+	<TEXT>
+		<Tag>CHANGED_TXT_KEY_MAIN_MENU_WARLORS</Tag>
+		<English>[COLOR_PLAYER_GRAY]BtS Content[COLOR_REVERT]</English>
+		<French>[COLOR_PLAYER_GRAY]Contenu de BtS[COLOR_REVERT]</French>
+		<German>[COLOR_PLAYER_GRAY]BtS-Inhalte[COLOR_REVERT]</German>
+		<Italian>[COLOR_PLAYER_GRAY]Contenuti di BtS[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_PLAYER_GRAY]Contenido de BtS[COLOR_REVERT]</Spanish>
+	</TEXT>
+	<!-- Originally in CIV4GameText_Misc1.xml. "Game menu" doesn't translate
+		 well; just "menu" will have to do. -->
+	<TEXT>
+		<Tag>TXT_KEY_MAIN_MENU</Tag>
+		<English>Open Game Menu</English>
+		<French>Ouvrir le menu</French>
+		<German>Men&#252; &#246;ffnen</German>
+		<Italian>Apri il menu</Italian>
+		<Spanish>Abrir men&#250;</Spanish>
 	</TEXT>
 	
 </Civ4GameText>

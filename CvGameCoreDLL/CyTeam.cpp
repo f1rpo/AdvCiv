@@ -690,6 +690,13 @@ void CyTeam::freeVassal(int /*TeamTypes*/ eIndex)
 	}
 }
 
+// <advc.130v>
+bool CyTeam::isCapitulated() {
+	if(m_pTeam == NULL)
+		return false;
+	return m_pTeam->isCapitulated();
+} // </advc.130v>
+
 bool CyTeam::isDefensivePact(int /*TeamTypes*/ eIndex)				 
 {
 	return m_pTeam ? m_pTeam->isDefensivePact((TeamTypes)eIndex) : false;

@@ -354,10 +354,19 @@
 	
 	<!-- [advc.004m]
 	     No clue how this is measured. Original value is 2200
-		 (GlobalDefines.xml), recommended: 4400. -->
+		 (GlobalDefines.xml), recommended: 4600. -->
 	<Define>
 		<DefineName>CAMERA_START_DISTANCE</DefineName>
-		<fDefineFloatVal>4400</fDefineFloatVal>
+		<fDefineFloatVal>4600</fDefineFloatVal>
+	</Define>
+
+	<!-- [advc.004m]
+		 Original value es 42.0, recommended: 35.0. The BUG field-of-view
+		 slider in BUG overwrites this if "Remember Field of View" is checked
+		 in the BUG menu. -->
+	<Define>
+		<DefineName>FIELD_OF_VIEW</DefineName>
+		<fDefineFloatVal>35.0</fDefineFloatVal>
 	</Define>
 
 	<!-- [advc.004m]
@@ -805,6 +814,13 @@
 	<Define>
 		<DefineName>RF_ENABLE_FINAL_TURN_POPUP</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+
+	<!-- [advc.002h] 0 only hides the clouds. The shadows are hidden through
+		 BML.fpk. Original value: 1. -->
+	<Define>
+		<DefineName>RENDER_GLOBEVIEW_CLOUDS</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 
 </Civ4Defines>

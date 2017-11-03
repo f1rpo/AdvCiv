@@ -226,6 +226,12 @@ public:
 	int getEspionageSpending(int /*PlayerTypes*/ ePlayer);
 	bool canDoEspionageMission(int /*EspionageMissionTypes*/ eMission, int /*PlayerTypes*/ eTargetPlayer, CyPlot* pPlot, int iExtraData);
 	int getEspionageMissionCost(int /*EspionageMissionTypes*/ eMission, int /*PlayerTypes*/ eTargetPlayer, CyPlot* pPlot, int iExtraData);
+	// <advc.120d>
+	int getEspionageGoldQuantity(int /*EspionageMissionTypes*/ eMission,
+			int /*PlayerTypes*/ eTargetPlayer, CyCity* pCity);
+	int getStealCostTech(int eTargetPlayer);
+	bool canSeeTech(int eTargetPlayer);
+	bool canSpy(); // </advc.120d>
 	void doEspionageMission(int /*EspionageMissionTypes*/ eMission, int /*PlayerTypes*/ eTargetPlayer, CyPlot* pPlot, int iExtraData, CyUnit* pUnit);
 
 	int getEspionageSpendingWeightAgainstTeam(int /*TeamTypes*/ eIndex);

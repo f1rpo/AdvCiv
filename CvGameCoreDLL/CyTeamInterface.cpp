@@ -157,6 +157,8 @@ void CyTeamPythonInterface()
 		.def("setVassal", &CyTeam::setVassal, "void (TeamTypes, bool)")
 		.def("assignVassal", &CyTeam::assignVassal, "void (TeamTypes, bool)")
 		.def("freeVassal", &CyTeam::freeVassal, "void (TeamTypes)")
+		// advc.130v
+		.def("isCapitulated", &CyTeam::isCapitulated, "bool ()")
 		.def("isDefensivePact", &CyTeam::isDefensivePact, "bool (TeamTypes)")
 		.def("getRouteChange", &CyTeam::getRouteChange,	"int (RouteType) - Route Change caused by RouteType")
 		.def("changeRouteChange", &CyTeam::changeRouteChange, "void (int /*RouteType*/ eIndex, int iChange)")

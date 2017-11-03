@@ -1512,21 +1512,44 @@ void CvMap::calculateAreas()
 			CvPlot& p = *pp;
 			if(pass == 0) { // No idea what this does; better do it only once.
 				gDLL->callUpdater();
-				// Second pass for peaks; can't handle all-peak areas otherwise.
-				if(p.isPeak())
+				/*  Second pass for impassables; can't handle
+					all-peak/ice areas otherwise. */
+				if(p.isImpassable())
 					continue;
 			}
 			if(p.getArea() != FFreeList::INVALID_INDEX)
 				continue;
-			FAssert(pass == 0 || p.isPeak());
+			FAssert(pass == 0 || p.isImpassable());
 			CvArea& a = *addArea();
 			int aId = a.getID();
 			a.init(aId, p.isWater());
 			p.setArea(aId);
 			calculateAreas_visit(p);
 		}
+		// Store areas only separated by impassible tiles as adjacent
+		for(int i = 0; i < numPlotsINLINE(); i++) {
+			CvPlot* pp = plotByIndexINLINE(i); FAssert(pp != NULL);
+			CvPlot& p = *pp;
+			int const x = p.getX_INLINE();
+			int const y = p.getY_INLINE();
+			for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
+				CvPlot* qp = ::plotDirection(x, y, (DirectionTypes)i);
+				if(qp == NULL)
+					continue;
+				CvPlot& q = *qp;
+				// Only orthogonal adjacency for water tiles
+				if(p.isWater() && x != q.getX_INLINE() && y != q.getY_INLINE())
+					continue;
+				if(p.getArea() != q.getArea() && p.isWater() == q.isWater()) {
+					p.area()->addAdjacentArea(q.getArea());
+					q.area()->addAdjacentArea(p.getArea());
+				}
+			}
+		} int dummy=-1;
+		// CvArea::getNumTiles no longer sufficient for identifying lakes
+		for(CvArea* a = firstArea(&dummy); a != NULL; a = nextArea(&dummy))
+			a->updateLake();
 	} // </advc.030>
-
 	computeShelves(); // advc.300
 }
 
@@ -1543,12 +1566,20 @@ void CvMap::calculateAreas_visit(CvPlot const& p) {
 		if(qp == NULL)
 			continue;
 		CvPlot& q = *qp;
+		/*  The two neighbors that p and q have in common if p and q are
+			diagonally adjacent: */
+		CvPlot* s = plot(p.getX_INLINE(), q.getY_INLINE());
+		CvPlot* t = plot(q.getX_INLINE(), p.getY_INLINE());
+		FAssertMsg(s != NULL && t != NULL, "Map appears to be non-convex");
 		if(q.getArea() == FFreeList::INVALID_INDEX && p.isWater() == q.isWater() &&
-				// Check only orthogonal adjacency of water tiles
-				(!p.isWater() || x == q.getX_INLINE() || y == q.getY_INLINE()) &&
-				/*  Depth-first search that doesn't continue at peaks except to
-					other peaks so that mountain ranges end up in the same CvArea). */
-				(!p.isPeak() || q.isPeak())) {
+				// For water tiles, orthogonal adjacency is unproblematic
+				(!p.isWater() || x == q.getX_INLINE() || y == q.getY_INLINE()
+				// Diagonal adjacency only works if either s or t are water 
+				|| s == NULL || s->isWater() || t == NULL || t->isWater()) &&
+				/*  Depth-first search that doesn't continue at impassables
+					except to other impassables so that mountain ranges and
+					ice packs end up in one CvArea. */
+				(!p.isImpassable() || q.isImpassable())) {
 			q.setArea(p.getArea());
 			calculateAreas_visit(q);
 		}

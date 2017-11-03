@@ -138,7 +138,9 @@ void CvArea::reset(int iID, bool bWater, bool bConstructorCall)
 	m_iTotalPopulation = 0;
 	m_iNumStartingPlots = 0;
 	nBarbCitiesEver = 0; // advc.300
-
+	// <advc.030>
+	m_bLake = false;
+	adjAreas.clear(); // </advc.030>
 	m_bWater = bWater;
 
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
@@ -359,11 +361,33 @@ int CvArea::getNumTiles() const
 }
 
 
-bool CvArea::isLake() const							
+bool CvArea::isLake() const
 {
-	return (isWater() && (getNumTiles() <= GC.getLAKE_MAX_AREA_SIZE()));
+	return m_bLake; // <advc.030> Replacing the line below
+	//return (isWater() && (getNumTiles() <= GC.getLAKE_MAX_AREA_SIZE()));
 }
 
+void CvArea::updateLake() {
+
+	m_bLake = false;
+	if(!isWater())
+		return;
+	CvMap& m = GC.getMapINLINE();
+	int totalTiles = getNumTiles();
+	if(totalTiles > GC.getLAKE_MAX_AREA_SIZE())
+		return;
+	for(size_t i = 0; i < adjAreas.size(); i++) {
+		totalTiles += m.getArea(adjAreas[i])->getNumTiles();
+		if(totalTiles > GC.getLAKE_MAX_AREA_SIZE())
+			return;
+	}
+	m_bLake = true;
+}
+
+void CvArea::addAdjacentArea(int areaId) {
+
+	adjAreas.push_back(areaId);
+} // </advc.030>}
 
 void CvArea::changeNumTiles(int iChange)
 {
@@ -1013,7 +1037,19 @@ void CvArea::read(FDataStreamBase* pStream)
 	pStream->Read(&nBarbCitiesEver); // advc.300
 
 	pStream->Read(&m_bWater);
-
+	// <advc.030>
+	if(uiFlag >= 1) {
+		pStream->Read(&m_bLake);
+		int sz = -1;
+		pStream->Read(&sz);
+		for(int i = 0; i < sz; i++) {
+			int tmp = -1;
+			pStream->Read(&tmp);
+			adjAreas.push_back(tmp);
+		}
+	}
+	else m_bLake = (m_bWater && m_iNumTiles <= GC.getLAKE_MAX_AREA_SIZE());
+	// </advc.030>
 	pStream->Read(MAX_PLAYERS, m_aiUnitsPerPlayer);
 	pStream->Read(MAX_PLAYERS, m_aiAnimalsPerPlayer);
 	pStream->Read(MAX_PLAYERS, m_aiCitiesPerPlayer);
@@ -1059,7 +1095,7 @@ void CvArea::write(FDataStreamBase* pStream)
 {
 	int iI;
 
-	uint uiFlag=0;
+	uint uiFlag=1; // advc.030: was 0
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iID);
@@ -1073,7 +1109,12 @@ void CvArea::write(FDataStreamBase* pStream)
 	pStream->Write(nBarbCitiesEver); // advc.300
 
 	pStream->Write(m_bWater);
-
+	// <advc.030>
+	pStream->Write(m_bLake);
+	pStream->Write((int)adjAreas.size());
+	for(size_t i = 0; i < adjAreas.size(); i++)
+		pStream->Write(adjAreas[i]);
+	// </advc.030>
 	pStream->Write(MAX_PLAYERS, m_aiUnitsPerPlayer);
 	pStream->Write(MAX_PLAYERS, m_aiAnimalsPerPlayer);
 	pStream->Write(MAX_PLAYERS, m_aiCitiesPerPlayer);

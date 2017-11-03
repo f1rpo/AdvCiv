@@ -908,8 +908,8 @@ void CvCity::doTurn()
 	int iI;
 
 	if (!isBombarded())
-	{
-		changeDefenseDamage(-(GC.getDefineINT("CITY_DEFENSE_DAMAGE_HEAL_RATE")));
+	{	// cdtw.2: Now cached
+		changeDefenseDamage(-GC.getCITY_DEFENSE_DAMAGE_HEAL_RATE());
 	}
 
 	setLastDefenseDamage(getDefenseDamage());
@@ -14440,10 +14440,19 @@ void CvCity::getVisibleBuildings(std::list<BuildingTypes>& kChosenVisible, int& 
 	for(int i = 0; i < iNumBuildings; i++)
 	{
 		eCurType = (BuildingTypes) i;
-		if(getNumBuilding(eCurType) > 0)
-		{
-			kVisible.push_back(eCurType);
-		}
+		// <advc.045>
+		if(getNumBuilding(eCurType) <= 0)
+			continue;
+		// Copied these two checks from Rise of Mankind
+		CvBuildingInfo& kBuilding = GC.getBuildingInfo(eCurType);
+		bool bIsWonder = isLimitedWonderClass((BuildingClassTypes)kBuilding.
+				getBuildingClassType());
+		bool bIsDefense = (kBuilding.getDefenseModifier() > 0);
+		PlayerTypes activePl = GC.getGameINLINE().getActivePlayer();
+		if(activePl != NO_PLAYER && !plot()->isInvestigate(TEAMID(activePl)) &&
+				!bIsWonder && !bIsDefense)
+			continue; // </advc.045>
+		kVisible.push_back(eCurType);
 	}
 
 	// sort the visible ones by decreasing priority

@@ -215,6 +215,12 @@ void CyPlayerPythonInterface1(python::class_<CyPlayer>& x)
 		.def("getEspionageSpending", &CyPlayer::getEspionageSpending, "int (PlayerTypes eIndex)")
 		.def("canDoEspionageMission", &CyPlayer::canDoEspionageMission, "bool (EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, CyPlot* pPlot, int iExtraData)")
 		.def("getEspionageMissionCost", &CyPlayer::getEspionageMissionCost, "int (EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, CyPlot* pPlot, int iExtraData)")
+		// <advc.120d>
+		.def("getEspionageGoldQuantity", &CyPlayer::getEspionageGoldQuantity, "int (EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, CyCity* pPlot)")
+		.def("getStealCostTech", &CyPlayer::getStealCostTech, "int (PlayerTypes eTargetPlayer)")
+		.def("canSeeTech", &CyPlayer::canSeeTech, "bool (PlayerTypes eTargetPlayer)")
+		.def("canSpy", &CyPlayer::canSpy, "bool ()")
+		// </advc.120d>
 		.def("doEspionageMission", &CyPlayer::doEspionageMission, "void (EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, CyPlot* pPlot, int iExtraData, CyUnit* pUnit)")
 		.def("getEspionageSpendingWeightAgainstTeam", &CyPlayer::getEspionageSpendingWeightAgainstTeam, "int (TeamTypes eIndex)")
 		.def("setEspionageSpendingWeightAgainstTeam", &CyPlayer::setEspionageSpendingWeightAgainstTeam, "void (TeamTypes eIndex, int iValue)")

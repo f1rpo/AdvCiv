@@ -736,6 +736,10 @@ void CyInfoPythonInterface3()
 		.def("isDestroyImprovement", &CvEspionageMissionInfo::isDestroyImprovement, "bool ()")
 		.def("getDestroyBuildingCostFactor", &CvEspionageMissionInfo::getDestroyBuildingCostFactor, "int ()")
 		.def("getDestroyUnitCostFactor", &CvEspionageMissionInfo::getDestroyUnitCostFactor, "int ()")
+		// <advc.120d> These had somehow not been exposed to Python:
+		.def("getDestroyProjectCostFactor", &CvEspionageMissionInfo::getDestroyProjectCostFactor, "int ()")
+		.def("getDestroyProductionCostFactor", &CvEspionageMissionInfo::getDestroyProductionCostFactor, "int ()")
+		// </advc.120d>
 		.def("getBuyUnitCostFactor", &CvEspionageMissionInfo::getBuyUnitCostFactor, "int ()")
 		.def("getBuyCityCostFactor", &CvEspionageMissionInfo::getBuyCityCostFactor, "int ()")
 		.def("getStealTreasuryTypes", &CvEspionageMissionInfo::getStealTreasuryTypes, "int ()")

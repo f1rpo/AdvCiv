@@ -2370,7 +2370,7 @@ void CvUnitAI::AI_attackMove()
 		AreaAITypes eAreaAIType = area()->getAreaAIType(getTeam());
         if (plot()->isCity())
         {
-            if (plot()->getOwnerINLINE() == getOwnerINLINE())
+            if (plot()->getTeam() == getTeam()) // cdtw.9
             {
                 if ((eAreaAIType == AREAAI_ASSAULT) || (eAreaAIType == AREAAI_ASSAULT_ASSIST))
                 {
@@ -2425,7 +2425,7 @@ void CvUnitAI::AI_attackMove()
 
 		if (!bDanger)
 		{
-			if (plot()->getOwnerINLINE() == getOwnerINLINE())
+			if (plot()->getTeam() == getTeam()) // cdtw.9
 			{
 				bool bAssault = ((eAreaAIType == AREAAI_ASSAULT) || (eAreaAIType == AREAAI_ASSAULT_MASSING) || (eAreaAIType == AREAAI_ASSAULT_ASSIST));
 				if ( bAssault )
@@ -2671,7 +2671,7 @@ void CvUnitAI::AI_attackMove()
 
 		if (!bDanger && (area()->getAreaAIType(getTeam()) != AREAAI_DEFENSIVE))
 		{
-			if (plot()->getOwnerINLINE() == getOwnerINLINE())
+			if (plot()->getTeam() == getTeam()) // cdtw.9
 			{
 				if (AI_load(UNITAI_ASSAULT_SEA, MISSIONAI_LOAD_ASSAULT, NO_UNITAI, 1, -1, -1, 1, MOVE_SAFE_TERRITORY, 4))
 				{
@@ -2901,7 +2901,8 @@ void CvUnitAI::AI_attackCityMove()
 
 	bool bInCity = plot()->isCity();
 
-	if( bInCity && plot()->getOwnerINLINE() == getOwnerINLINE() )
+	if( bInCity &&
+			plot()->getTeam() == getTeam()) // cdtw.9
 	{
 		// force heal if we in our own city and damaged
 		// can we remove this or call AI_heal here?
@@ -2916,7 +2917,9 @@ void CvUnitAI::AI_attackCityMove()
 			// BBAI TODO: split out slow units ... will need to test to make sure this doesn't cause loops
 		}
 
-		if ((GC.getGame().getGameTurn() - plot()->getPlotCity()->getGameTurnAcquired()) <= 1)
+		if ((GC.getGame().getGameTurn() - plot()->getPlotCity()->getGameTurnAcquired()) <= 1
+				// cdtw.9: (comment from Dave_uk) only do this in our own cities though
+				&& plot()->getOwnerINLINE() == getOwnerINLINE())
 		{
 			CvSelectionGroup* pOldGroup = getGroup();
 
@@ -3543,6 +3546,7 @@ void CvUnitAI::AI_attackCityMove()
 				//FAssertMsg(false, "failed to find path to target city."); // AI_pickTargetCity now allows boat-only paths, so this assertion no longer holds.
 				iPathTurns = 100;
 			}
+
 			if (!pTargetCity->isBarbarian() || iPathTurns < (bAnyWarPlan ? 7 : 12)) // don't bother with long-distance barb attacks
 			{
 				// See if we can get there faster by boat..
@@ -22456,9 +22460,11 @@ bool CvUnitAI::AI_airStrike(int iThreshold)
 					if (pLoopPlot->isCity())
 					{
 						const CvCity* pCity = pLoopPlot->getPlotCity();
-						iBombValue = std::max(0, std::min(pCity->getDefenseDamage() + airBombCurrRate(), GC.getMAX_CITY_DEFENSE_DAMAGE()) - pCity->getDefenseDamage());
-						iBombValue *= iAdjacentAttackers + 2*iAssaultEnRoute + (area()->getAreaAIType(getTeam()) == AREAAI_OFFENSIVE ? 5 : 1);
-						iBombValue /= 2;
+						if(pCity->getDefenseModifier(true) > 0) { // advc.004c
+							iBombValue = std::max(0, std::min(pCity->getDefenseDamage() + airBombCurrRate(), GC.getMAX_CITY_DEFENSE_DAMAGE()) - pCity->getDefenseDamage());
+							iBombValue *= iAdjacentAttackers + 2*iAssaultEnRoute + (area()->getAreaAIType(getTeam()) == AREAAI_OFFENSIVE ? 5 : 1);
+							iBombValue /= 2;
+						}
 					}
 					else
 					{

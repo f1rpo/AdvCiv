@@ -1123,9 +1123,8 @@ void WarAndPeaceAI::Team::scheme() {
 			I.e. peaceful leaders hesitate longer before starting war preparations;
 			warlike leaders have more drive. */
 		double div = total ? lh.getMaxWarRand() : lh.getLimitedWarRand();
-		/*  Let's make the AI a little less patient, especially the peaceful
-			types. */
-		div = std::pow(div, 0.97); // This maps e.g. 400 to 334 and 40 to 36
+		// Let's make the AI a bit less patient, especially the peaceful types
+		div = std::pow(div, 0.95); // This maps e.g. 400 to 296 and 40 to 33
 		if(div < 0.01)
 			drive = 0;
 		else drive /= div;
@@ -1177,13 +1176,24 @@ DenialTypes WarAndPeaceAI::Team::declareWarTrade(TeamTypes targetId,
 	if(!canReach(targetId))
 		return DENIAL_NO_GAIN;
 	WarAndPeaceReport silentReport(true);
+	PlayerTypes sponsorLeaderId = GET_TEAM(sponsorId).getLeaderID();
 	WarEvalParameters params(agentId, targetId, silentReport, false,
-			GET_TEAM(sponsorId).getLeaderID());
+			sponsorLeaderId);
 	WarEvaluator eval(params, true);
 	int u = eval.evaluate(WARPLAN_LIMITED);
-	int const utilityThresh = -32;
-	if(u > utilityThresh)
-		return NO_DENIAL;
+	int utilityThresh = -32;
+	if(u > utilityThresh) {
+		if(GET_TEAM(sponsorId).isHuman()) {
+			int humanTradeVal = -1;
+			leaderWpai().canTradeAssets(::round(utilityToTradeVal(utilityThresh)),
+					sponsorLeaderId, &humanTradeVal);
+			// Don't return NO_DENIAL if human can't pay enough
+			utilityThresh = std::max(utilityThresh,
+					-::round(tradeValToUtility(humanTradeVal)));
+		}
+		if(u > utilityThresh)
+			return NO_DENIAL;
+	}
 	/* "Maybe we'll change our mind" when it's (very) close?
 		No, don't provide this info after all. */
 	/*if(u > utilityThresh - 5)

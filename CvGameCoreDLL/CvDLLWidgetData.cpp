@@ -1313,14 +1313,6 @@ void CvDLLWidgetData::doResearch(CvWidgetDataStruct &widgetDataStruct)
 void CvDLLWidgetData::doChangePercent(CvWidgetDataStruct &widgetDataStruct)
 {
 	CvMessageControl::getInstance().sendPercentChange(((CommerceTypes)widgetDataStruct.m_iData1), widgetDataStruct.m_iData2);
-	// <advc.120c>
-	// For slider on Espionage screen:
-	gDLL->getInterfaceIFace()->setDirty(Espionage_Advisor_DIRTY_BIT, true);
-	// Redraw +/- buttons on if espionage set to 0
-	gDLL->getInterfaceIFace()->setDirty(PercentButtons_DIRTY_BIT, true);
-	/*  Caveat: For some reason, the order of these two calls matters. The espionage
-		bit needs to be set first. */
-	// </advc.120c>
 }
 
 // K-Mod. Right click on "change percent" buttons will set them to min / max.

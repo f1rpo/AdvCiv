@@ -4937,7 +4937,7 @@ bool CvUnit::airBomb(int iX, int iY)
 	if (pCity != NULL)
 	{
 		/*  <advc.004c> Same as in CvUnit::bombard except that IgnoreBuildingDefense
-			doesn't have to be checked here b/c all air units have that. */
+			doesn't have to be checked here b/c all air units have that */
 		int modWithBuildings = pCity->getDefenseModifier(false);
 		int modSansBuildings = pCity->getDefenseModifier(true);
 		FAssertMsg(modSansBuildings > 0 || isHuman(),

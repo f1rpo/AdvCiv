@@ -3436,7 +3436,8 @@ HandicapTypes CvTeam::getHandicapType() const
 	{
 		//FAssertMsg((iGameHandicap / iCount) >= 0, "(iGameHandicap / iCount) is expected to be non-negative (invalid Index)");
 		// advc.250a: (also disabled the assertion above)
-		return (HandicapTypes)(iGameHandicap / (10 * iCount));
+		return (HandicapTypes)std::min(GC.getNumHandicapInfos() - 1,
+				(iGameHandicap / (10 * iCount)));
 	}
 	else
 	{
@@ -4833,8 +4834,9 @@ void CvTeam::setVassal(TeamTypes eIndex, bool bNewValue, bool bCapitulated)
 		if (kLoopPlayer.getTeam() == eIndex)
 		{
 			kLoopPlayer.updateMaintenance();
-			// advc.130v: Border conflicts of the vassal held against the master
-			if(isCapitulated()) kLoopPlayer.AI_updateCloseBorderAttitudeCache();
+			// <advc.130v> Border conflicts of the vassal held against the master
+			if(isCapitulated())
+				kLoopPlayer.AI_updateCloseBorderAttitudeCache(); // </advc.130v>
 		}
 	}
 

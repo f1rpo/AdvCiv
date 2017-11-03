@@ -164,6 +164,7 @@ public:
 	void setVassal(int /*TeamTypes*/ eIndex, bool bVassal, bool bCapitulated);
 	void assignVassal(int /*TeamTypes*/ eIndex, bool bSurrender);
 	void freeVassal(int /*TeamTypes*/ eIndex);
+	bool isCapitulated(); // advc.130v
 	bool isDefensivePact(int /*TeamTypes*/ eIndex);
 	int getRouteChange(int /*RouteTypes*/ eIndex);
 	void changeRouteChange(int /*RouteTypes*/ eIndex, int iChange);
