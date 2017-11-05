@@ -44,6 +44,7 @@ public:
 	DllExport void initDiplomacy();
 	DllExport void initFreeState();
 	DllExport void initFreeUnits();
+	void initScenario(); // advc.104u
 
 	DllExport void assignStartingPlots();
 	DllExport void normalizeStartingPlots();

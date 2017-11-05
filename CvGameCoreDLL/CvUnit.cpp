@@ -574,6 +574,7 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 						continue; // </advc.003>
 					ColorTypes col = NO_COLOR;
 					// <advc.004u>
+					FAssert(ownerId != ePlayer);
 					if(i == ownerId) {
 						szBuffer = gDLL->getText("TXT_KEY_MISC_YOUR_GENERAL_KILLED", getNameKey(),
 								GET_PLAYER(ePlayer).getCivilizationShortDescription());
@@ -3032,6 +3033,12 @@ bool CvUnit::canMoveOrAttackInto(const CvPlot* pPlot, bool bDeclareWar) const
 	return canMoveInto(pPlot, false, bDeclareWar, true);
 }*/
 
+// <advc.030>
+bool CvUnit::canEnterArea(CvArea const& a) const {
+
+	return a.canBeEntered(*area(), this);
+} // </advc.030>
+
 
 void CvUnit::attack(CvPlot* pPlot, bool bQuick)
 {
@@ -4119,8 +4126,8 @@ int CvUnit::healRate(const CvPlot* pPlot, bool bLocation, bool bUnits) const
 			pLoopPlot = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), ((DirectionTypes)iI));
 
 			if (pLoopPlot != NULL)
-			{
-				if (pLoopPlot->area() == pPlot->area())
+			{	// advc.030: Instead check domain type below
+				//if (pLoopPlot->area() == pPlot->area())
 				{
 					pUnitNode = pLoopPlot->headUnitNode();
 
@@ -4129,7 +4136,10 @@ int CvUnit::healRate(const CvPlot* pPlot, bool bLocation, bool bUnits) const
 						pLoopUnit = ::getUnit(pUnitNode->m_data);
 						pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
 
-						if (pLoopUnit->getTeam() == getTeam()) // XXX what about alliances?
+						if (	// <advc.030>
+								pLoopUnit->getDomainType() == getDomainType() &&
+								!pLoopUnit->isCargo() && // </advc.030>
+								pLoopUnit->getTeam() == getTeam()) // XXX what about alliances?
 						{
 							iHeal = pLoopUnit->getAdjacentTileHeal();
 
@@ -9285,8 +9295,9 @@ CvUnit* CvUnit::bestSeaPillageInterceptor(CvUnit* pPillager, int iMinOdds) const
 					pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
 
 					if (NULL != pLoopUnit)
-					{
-						if (pLoopUnit->area() == pPillager->plot()->area())
+					{	// advc.030: Replacing the line below
+						if(pLoopUnit->canEnterArea(*pPillager->plot()->area()))
+						//if (pLoopUnit->area() == pPillager->plot()->area())
 						{
 							if (!pLoopUnit->isInvisible(getTeam(), false))
 							{
@@ -11698,9 +11709,21 @@ void CvUnit::collectBlockadeGold()
 				CvCity* pCity = pLoopPlot->getPlotCity();
 
 				if (NULL != pCity && !pCity->isPlundered() && isEnemy(pCity->getTeam()) && !atWar(pCity->getTeam(), getTeam()))
-				{
-					if (pCity->area() == area() || pCity->plot()->isAdjacentToArea(area()))
-					{
+				{	// <advc.033>
+					bool blockadedPlotFound = false;
+					for(int k = 0; k < NUM_DIRECTION_TYPES; k++) {
+						CvPlot* adj = plotDirection(pCity->getX_INLINE(),
+								pCity->getY_INLINE(), ((DirectionTypes)k));
+						if(adj != NULL && adj->getBlockadedCount(pCity->getTeam()) &&
+								/*  Could still be a third party blockading; need to also
+									check path: */
+								GC.getMapINLINE().calculatePathDistance(plot(), adj) < iBlockadeRange)
+							blockadedPlotFound = true;
+					}
+					if(!blockadedPlotFound)
+						continue;
+					//if (pCity->area() == area() || pCity->plot()->isAdjacentToArea(area()))
+					{	// </advc.033>
 						int iGold = pCity->calculateTradeProfit(pCity) * pCity->getTradeRoutes();
 						if (iGold > 0)
 						{

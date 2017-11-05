@@ -649,7 +649,7 @@ void CvCityAI::AI_chooseProduction()
 
 		bWaterDanger = kPlayer.AI_getWaterDanger(plot(), 4) > 0;
 	}
-	// advc.003: Some old and unused code delted
+	// advc.003: Some old and unused code deleted
 	bool bLandWar = kPlayer.AI_isLandWar(pArea); // K-Mod
 	bool bDefenseWar = (pArea->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE);
 	bool bAssaultAssist = (pArea->getAreaAIType(getTeam()) == AREAAI_ASSAULT_ASSIST);
@@ -2191,10 +2191,10 @@ void CvCityAI::AI_chooseProduction()
 				// Additional check for air defenses
 				int iFightersHave = kPlayer.AI_totalUnitAIs(UNITAI_DEFENSE_AIR);
 
-				if(3*iFightersHave < iAircraftNeed ||
-						// <cdtw.7>
-						(kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4) &&
-						3*iFightersHave < 2*kPlayer.getNumCities())) // </cdtw.7>
+				if(3*iFightersHave < iAircraftNeed)
+						// <cdtw.7> (Disabled again)
+						/*(kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4) &&
+						3*iFightersHave < 2*kPlayer.getNumCities())) */// </cdtw.7>
 				{
 					if (AI_chooseUnit(UNITAI_DEFENSE_AIR))
 					{
@@ -2342,12 +2342,12 @@ void CvCityAI::AI_chooseProduction()
 				}
 			}
 			// K-Mod end
-			// <cdtw.8>
-			if(iUnitSpending > (iBuildUnitProb / 2)) {
+			// <cdtw.8> (Don't do this after all)
+			/*if(iUnitSpending > (iBuildUnitProb / 2)) {
 				if(eCityAttackUnit == NO_UNIT || 
 					(!GC.getUnitInfo(eCityAttackUnit).getUnitAIType(UNITAI_ATTACK_CITY) &&
 					kPlayer.AI_bestCityUnitAIValue(UNITAI_ATTACK_CITY, this, &eCityAttackUnit) <= 110))
-				iTrainInvaderChance /= 2; // </cdtw.8>
+				iTrainInvaderChance /= 2;*/ // </cdtw.8>
 			if (AI_chooseLeastRepresentedUnit(invaderTypes, iTrainInvaderChance))
 			{
 				return;
@@ -2525,16 +2525,6 @@ void CvCityAI::AI_chooseProduction()
 				return;
 			}
 		}
-		// <cdtw> (Comment from Dave_uk)
-		/*  high value buildings including national and world wonders in the
-			later game. once we already have a standing army that we're paying
-			for. Only if we can finish quickly, and depending on war situation. */
-		else if(kPlayer.getCurrentEra() >= GC.getNumEraInfos() / 2 &&
-				2*iWonderRoll < iUnitSpending && iWarSuccessRating >= 0 &&
-				!bDefenseWar && !bDanger &&
-			AI_chooseBuilding(0, 100 - iUnitSpending, bLandWar ? 5 : 10))
-			return;
-		} // </cdtw>
 	}
 	
 	if (iUnitSpending < iMaxUnitSpending + 12 && !bFinancialTrouble) // was +4 (new metric)

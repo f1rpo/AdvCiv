@@ -1600,8 +1600,8 @@ class CvVictoryScreen:
 				continue
 			# otherwise, loop through their cities
 			(loopCity, iter) = loopPlayer.firstCity(false)
-			while(loopCity):
-				if (not loopCity.isNone() and loopCity.getTeam() == iTeam):
+			while(loopCity): # advc.001d: isRevealed clause added
+				if (not loopCity.isNone() and loopCity.getTeam() == iTeam and loopCity.isRevealed(gc.getGame().getActiveTeam(), True)):
 					iRate = loopCity.getCommerceRateTimes100(CommerceTypes.COMMERCE_CULTURE)
 					if iRate == 0:
 						iTurns = -1

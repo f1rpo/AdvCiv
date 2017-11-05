@@ -942,7 +942,8 @@ void Loathing::evaluate() {
 	log("Loss rating for %s: %d", report.leaderName(theyId), ::round(lr));
 	log("Our vengefulness: %d", veng);
 	int nNonVassalCivs = numRivals;
-	if(!agent.isAVassal()) nNonVassalCivs += agent.getNumMembers();
+	if(!agent.isAVassal())
+		nNonVassalCivs += agent.getNumMembers();
 	/*  Obsessing over one enemy is unwise if there are many potential enemies.
 		Rounded down deliberately b/c it would be a bit too high otherwise. */
 	int rivalDivisor = (int)std::sqrt((double)nNonVassalCivs);
@@ -1288,15 +1289,15 @@ double MilitaryVictory::progressRatingDiplomacy() {
 					conquestsWithWeights.insert(pair<int,double>(*it, weight));
 			continue;
 		}
-		// These are civs we need to deal with somehow for AP victory
-		if(!isUN && !GET_PLAYER(civId).isVotingMember(voteSource)) {
-			if(m->isEliminated(civId))
-				apObstaclesRemoved++;
-		}
+	}
+	// Need to deal with them somehow for AP victory
+	if(!isUN && !they->isVotingMember(voteSource)) {
+		if(m->isEliminated(theyId))
+			apObstaclesRemoved++;
 	}
 	double obstacleProgress = 0;
 	if(apObstacles > 0) {
-		obstacleProgress = apObstaclesRemoved / apObstacles;
+		obstacleProgress = apObstaclesRemoved / (double)apObstacles;
 		if(obstacleProgress > 0)
 			log("Progress on AP obstacles: %d percent",
 					::round(100 * obstacleProgress));
@@ -1363,8 +1364,8 @@ double MilitaryVictory::progressRatingDiplomacy() {
 		popGained += newVassalVotes;
 	}
 	if(popGained > 0.5)
-		log("Total expected votes: %d, current votes-to-go: %d", ::round(popGained),
-				::round(votesToGo));
+		log("Total expected votes: %d, current votes-to-go: %d",
+				::round(popGained), ::round(votesToGo));
 	FAssert(votesToGo > 0);
 	popGained = std::min(popGained, votesToGo);
 	double r = popGained / votesToGo;
@@ -2823,7 +2824,7 @@ void Distraction::evaluate() {
 					agent.canDeclareWar(tId) &&
 				ut > -warDuration) {
 			double costForPotential = std::min(15.0,
-					(ut - std::max(0.0, utilityVsThem) + warDuration) / 1.5);
+					(ut - std::max(0.0, utilityVsThem) + warDuration) / 1.55);
 			if(costForPotential > 0.5) {
 				log("War against %s (%d turns) distracts us from potential war plan "
 						"against %s. Current utilities: %d/%d; Distraction cost: %d",
@@ -2842,7 +2843,8 @@ void Distraction::evaluate() {
 	}
 	/*  We're going start at most one of the potential wars, but having more
 		candidates is good */
-	double adjustedCostForPotential = maxPotential + totalCostForPotential /
+	double adjustedCostForPotential = maxPotential +
+			(totalCostForPotential - maxPotential) /
 			std::sqrt((double)numPotentialWars);
 	/*  If we expect to knock them out, the current war may be over before the
 		time horizon of the simulation; then it's a smaller distraction.
@@ -2881,16 +2883,18 @@ PublicOpposition::PublicOpposition(WarEvalParameters& params) : WarUtilityAspect
 
 void PublicOpposition::evaluate() {
 
-	if(!m->isWar(weId, theyId) || m->isEliminated(weId))
+	if(we->isAnarchy() || !m->isWar(weId, theyId) || m->isEliminated(weId))
 		return;
 	int pop = we->getTotalPopulation();
-	if(pop <= 0) return; // at game start
+	if(pop <= 0) // at game start
+		return;
 	double faithAnger = 0;
 	int dummy; for(CvCity* cp = we->firstCity(&dummy); cp != NULL;
 			cp = we->nextCity(&dummy)) { CvCity const& c = *cp;
+		if(c.isDisorder())
+			continue;
 		double angry = c.angryPopulation(0,
-				!we->AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3) &&
-				!we->AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4));
+				!we->AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3));
 		faithAnger += std::min(angry, c.getReligionPercentAnger(theyId) *
 				c.getPopulation() / (double)GC.getPERCENT_ANGER_DIVISOR());
 	}
@@ -3133,7 +3137,7 @@ void Bellicosity::evaluate() {
 	u += ::round(2 * bellicosity * gloryRate);
 }
 
-char const* Bellicosity::aspectName() const { return "Bellicostiy"; }
+char const* Bellicosity::aspectName() const { return "Bellicosity"; }
 int Bellicosity::xmlId() const { return 24; }
 
 TacticalSituation::TacticalSituation(WarEvalParameters& params)

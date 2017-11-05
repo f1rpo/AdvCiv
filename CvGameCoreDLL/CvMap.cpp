@@ -1479,36 +1479,50 @@ void CvMap::rebuild(int iGridW, int iGridH, int iTopLatitude, int iBottomLatitud
 
 void CvMap::calculateAreas()
 {
-	PROFILE("CvMap::calculateAreas");
-	if(GC.getDefineINT("PASSABLE_AREAS") <= 0) { // advc.030
-		CvPlot* pLoopPlot;
-		CvArea* pArea;
-		int iArea;
-		int iI;
+	PROFILE("CvMap::calculateAreas"); // <advc.030>
+	if(GC.getDefineINT("PASSABLE_AREAS") > 0) {
+		/*  Will recalculate from CvGame::setinitialItems once normalization is
+			through. But need preliminary areas because normalization is done
+			based on areas. Also, some scenarios don't call CvGame::
+			setInitialItems; these only get the initial calculation based on
+			land, sea and peaks (not ice). */
+		calculateAreas_030();
+		calculateReprAreas();
+		return;
+	} // </advc.030>
+	CvPlot* pLoopPlot;
+	CvArea* pArea;
+	int iArea;
+	int iI;
 
-		for (iI = 0; iI < numPlotsINLINE(); iI++)
+	for (iI = 0; iI < numPlotsINLINE(); iI++)
+	{
+		pLoopPlot = plotByIndexINLINE(iI);
+		gDLL->callUpdater();
+		FAssertMsg(pLoopPlot != NULL, "LoopPlot is not assigned a valid value");
+
+		if (pLoopPlot->getArea() == FFreeList::INVALID_INDEX)
 		{
-			pLoopPlot = plotByIndexINLINE(iI);
-			gDLL->callUpdater();
-			FAssertMsg(pLoopPlot != NULL, "LoopPlot is not assigned a valid value");
+			pArea = addArea();
+			pArea->init(pArea->getID(), pLoopPlot->isWater());
 
-			if (pLoopPlot->getArea() == FFreeList::INVALID_INDEX)
-			{
-				pArea = addArea();
-				pArea->init(pArea->getID(), pLoopPlot->isWater());
+			iArea = pArea->getID();
 
-				iArea = pArea->getID();
+			pLoopPlot->setArea(iArea);
 
-				pLoopPlot->setArea(iArea);
-
-				gDLL->getFAStarIFace()->GeneratePath(&GC.getAreaFinder(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), -1, -1, pLoopPlot->isWater(), iArea);
-			}
+			gDLL->getFAStarIFace()->GeneratePath(&GC.getAreaFinder(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), -1, -1, pLoopPlot->isWater(), iArea);
 		}
-	// <advc.030>
-	}
-	else for(int pass = 0; pass <= 1; pass++) {
+	} // <advc.030>
+	int dummy=-1;
+	updateLakes(); // </advc.030>
+}
+
+// <advc.030>
+void CvMap::calculateAreas_030() {
+
+	for(int pass = 0; pass <= 1; pass++) {
 		for(int i = 0; i < numPlotsINLINE(); i++) {
-			CvPlot* pp = plotByIndexINLINE(i); FAssert(pp != NULL);
+			CvPlot* pp = plotByIndexINLINE(i);
 			CvPlot& p = *pp;
 			if(pass == 0) { // No idea what this does; better do it only once.
 				gDLL->callUpdater();
@@ -1526,32 +1540,67 @@ void CvMap::calculateAreas()
 			p.setArea(aId);
 			calculateAreas_visit(p);
 		}
-		// Store areas only separated by impassible tiles as adjacent
+	}
+}
+
+void CvMap::updateLakes() {
+
+	// CvArea::getNumTiles no longer sufficient for identifying lakes
+	int dummy=-1;
+	for(CvArea* a = firstArea(&dummy); a != NULL; a = nextArea(&dummy))
+		a->updateLake();
+	for(int i = 0; i < numPlotsINLINE(); i++) {
+		CvPlot* pp = plotByIndexINLINE(i);
+		if(pp->isLake())
+			pp->updateYield();
+	}
+	computeShelves(); // advc.300
+}
+
+void CvMap::calculateReprAreas() {
+
+	/*  Still need areas as in BtS for submarine movement. Store at each CvArea
+		an area id representing all areas that would be encompassed by the same
+		BtS area. To decide if a submarine move is possible, only need to
+		check if the representative id of the submarine's current area equals
+		that of its target area. That's done in CvArea::canBeEntered. */
+	int loopCounter = 0;
+	int reprChanged = 0; // For debugging; otherwise a bool would suffice.
+	do {
+		reprChanged = 0;
 		for(int i = 0; i < numPlotsINLINE(); i++) {
-			CvPlot* pp = plotByIndexINLINE(i); FAssert(pp != NULL);
+			CvPlot* pp = plotByIndexINLINE(i);
 			CvPlot& p = *pp;
 			int const x = p.getX_INLINE();
 			int const y = p.getY_INLINE();
-			for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
-				CvPlot* qp = ::plotDirection(x, y, (DirectionTypes)i);
+			for(int j = 0; j < NUM_DIRECTION_TYPES; j++) {
+				CvPlot* qp = ::plotDirection(x, y, (DirectionTypes)j);
 				if(qp == NULL)
 					continue;
 				CvPlot& q = *qp;
 				// Only orthogonal adjacency for water tiles
 				if(p.isWater() && x != q.getX_INLINE() && y != q.getY_INLINE())
 					continue;
-				if(p.getArea() != q.getArea() && p.isWater() == q.isWater()) {
-					p.area()->addAdjacentArea(q.getArea());
-					q.area()->addAdjacentArea(p.getArea());
+				int const pReprArea = p.area()->getRepresentativeArea();
+				int const qReprArea = q.area()->getRepresentativeArea();
+				if(pReprArea != qReprArea && p.isWater() == q.isWater()) {
+					if(qReprArea < pReprArea)
+						p.area()->setRepresentativeArea(qReprArea);
+					else q.area()->setRepresentativeArea(pReprArea);
+					reprChanged++;
 				}
 			}
-		} int dummy=-1;
-		// CvArea::getNumTiles no longer sufficient for identifying lakes
-		for(CvArea* a = firstArea(&dummy); a != NULL; a = nextArea(&dummy))
-			a->updateLake();
-	} // </advc.030>
-	computeShelves(); // advc.300
-}
+		}
+		if(++loopCounter > 10) {
+			FAssert(loopCounter <= 10); // advc.test
+			/*  Will have to write a faster algorithm then, based on the BtS code at
+				the beginning of this function. Would also make it easier to set the
+				lakes. */
+			break;
+		}
+	} while(reprChanged > 0);
+	updateLakes();
+} // </advc.030>
 
 
 // Private Functions...

@@ -66,18 +66,8 @@ void MilitaryBranch::updateTypicalUnit() {
 		}
 		else {
 			CvCity* capital = civ.getCapitalCity();
-			/* Capital can be NULL at the beginning of a game, and, apparently,
-			   also briefly before a civ is eliminated. */
-			if(capital == NULL || !capital->canTrain(ut))
-				continue;
-			/*  Don't want the AI to magically know which units a civ can train
-				(in the very early game, when techs aren't public knowledge),
-				and want humans to actually train an Archer in order to deter an
-				AI rush. */
-			if(NO_TECH != (TechTypes)u.getPrereqAndTech() && // exclude Warrior
-					(!GET_TEAM(civ.getTeam()).isTechTrading() ||
-					GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_TRADING)) &&
-					civ.getUnitClassCount((UnitClassTypes)i) <= 0)
+			if(capital == NULL || !capital->canTrain(ut, false, false, false, false,
+					true)) // Ignore air unit cap
 				continue;
 		}
 		/* Normally apply situational modifiers only in simulation steps;
@@ -140,9 +130,37 @@ UnitTypes MilitaryBranch::getTypicalUnitType() const {
 	return typicalUnitType;
 }
 
-double MilitaryBranch::getTypicalUnitPower() const {
+double MilitaryBranch::getTypicalUnitPower(PlayerTypes pov) const {
 
-	return typicalUnitPower;
+	if(canKnowTypicalUnit(pov))
+		return typicalUnitPower;
+	// Underestimate power
+	return typicalUnitPower * 0.8;
+}
+
+int MilitaryBranch::getTypicalUnitCost(PlayerTypes pov) const {
+
+	if(typicalUnitType == NO_UNIT)
+		return -1;
+	int r = GET_PLAYER(ownerId).getProductionNeeded(typicalUnitType);
+	if(canKnowTypicalUnit(pov))
+		return r;
+	// Underestimate cost
+	return ::round(r * 0.85);
+}
+
+bool MilitaryBranch::canKnowTypicalUnit(PlayerTypes pov) const {
+
+	if(pov == NO_PLAYER || pov == ownerId || typicalUnitType == NO_UNIT)
+		return true;
+	if(NO_TECH != (TechTypes)getTypicalUnit()->getPrereqAndTech())
+		return true; // Warrior
+	if(GET_PLAYER(ownerId).getUnitClassCount((UnitClassTypes)getTypicalUnit()->
+			getUnitClassType()) > 0)
+		return true; // The unit's in the wild
+	if(GET_PLAYER(pov).canSeeTech(ownerId))
+		return true; // Tech visible on Foreign Advisor
+	return false;
 }
 
 double MilitaryBranch::power() const {

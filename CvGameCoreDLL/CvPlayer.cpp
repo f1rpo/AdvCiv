@@ -15134,24 +15134,27 @@ TechTypes CvPlayer::getStealCostTech(PlayerTypes eTargetPlayer) const {
 	return r;
 }
 
-/*  I may need this elsewhere someday (or might want to change the rules
-	about when techs are visible) */
+// <advc.104>
 bool CvPlayer::canSeeTech(PlayerTypes otherId) const {
 
 	// Partly based on drawTechDeals in ExoticForeignAdvisor.py
 	if(otherId == NO_PLAYER)
 		return false;
-	if(GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_TRADING))
-		return false;
 	CvTeam const& ourTeam = GET_TEAM(getTeam());
 	CvTeam const& otherTeam = TEAMREF(otherId);
+	if(ourTeam.getID() == otherTeam.getID())
+		return true;
+	if(otherTeam.isVassal(ourTeam.getID()))
+		return true; // Can see tech through "we'd like you to research ..."
+	if(GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_TRADING))
+		return false;
 	if(!ourTeam.isAlive() || !otherTeam.isAlive() ||
 			ourTeam.isBarbarian() || otherTeam.isBarbarian() ||
 			ourTeam.isMinorCiv() || otherTeam.isMinorCiv())
 		return false;
 	return ourTeam.isHasMet(otherTeam.getID()) &&
 			(ourTeam.isTechTrading() || otherTeam.isTechTrading());
-}
+} // </advc.104>
 
 bool CvPlayer::canSpy() const {
 

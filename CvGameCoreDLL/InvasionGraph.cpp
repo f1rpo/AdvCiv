@@ -452,12 +452,18 @@ void InvasionGraph::Node::logTypicalUnits() {
 		if(uptr == NULL)
 			continue;
 		CvUnitInfo const& u = *uptr;
-		/*  No, better to show the base cost b/c that's how the typical units
-			are chosen */
-		//int cost = GET_PLAYER(id).getProductionNeeded(mb.getTypicalUnitType());
-		report.log("%s: %d (%s, cost: %d)", mb.str(),
-				::round(mb.getTypicalUnitPower()),
-		report.unitName(u), u.getProductionCost());
+		int actualCost = u.getProductionCost();
+		int actualPow = ::round(mb.getTypicalUnitPower());
+		report.log("%s: %d (%s, cost: %d)", mb.str(), actualPow,
+				report.unitName(u), actualCost);
+		int povCost = mb.getTypicalUnitCost(outer.weId);
+		int povPow = ::round(mb.getTypicalUnitPower(outer.weId));
+		if(povPow != actualPow) {
+			/*  povCost and actualCost often won't match b/c actualCost here
+				ignores handicap */
+			report.log("(%s's estimate: %d cost, %d power)",
+					report.leaderName(outer.weId), povCost, povPow);
+		}
 	}
 	report.log("");
 }
@@ -783,9 +789,9 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		std::pair<double,double> lwl = clashLossesWinnerLoser(fleetPow,
 				targetFleetPow, false, true);
 		double lossesAtt, lossesDef;
-		double typicalArmyUnitPow = military[ARMY]->getTypicalUnitPower();
+		double typicalArmyUnitPow = military[ARMY]->getTypicalUnitPower(outer.weId);
 		if(military[ARMY]->getTypicalUnit() == NULL) {
-			FAssertMsg(false, "No typical army unit found");
+			FAssertMsg(GET_PLAYER(id).getNumCities() <= 0, "No typical army unit found");
 			typicalArmyUnitPow = 3.25; // That's a Warrior
 		}
 		/* Tend to underestimate the head count b/c of outdated
@@ -950,9 +956,10 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 			|| c->city()->hasActiveWorldWonder();
 	if(isCityImportant)
 		nLocalGarrisons += 2;
-	double typicalGarrisonPow = defender.military[HOME_GUARD]->getTypicalUnitPower();
+	double typicalGarrisonPow = defender.military[HOME_GUARD]->getTypicalUnitPower(outer.weId);
 	if(defender.military[HOME_GUARD]->getTypicalUnit() == NULL) {
-		FAssertMsg(false, "No typical garrison unit found");
+		FAssertMsg(GET_PLAYER(defender.id).getNumCities() <= 0,
+				"No typical garrison unit found");
 		typicalGarrisonPow = 3.25; // That's a Warrior
 	}
 	// Fewer rallies if all spread thin
@@ -979,14 +986,15 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	double fortificationBonus = 0.25;
 	MilitaryBranch* g = defender.military[HOME_GUARD];
 	bool noGuardUnit = (g->getTypicalUnit() == NULL);
-	FAssert(!noGuardUnit);
+	FAssert(!noGuardUnit || GET_PLAYER(defender.id).getNumCities() <= 0);
 	// For all garrisons
 	double cityDefenderBonus = noGuardUnit ? 0 :
 			g->getTypicalUnit()->getCityDefenseModifier() / 100.0;
 	// Would be nicer to check all traits for defense bonuses
 	if(GET_PLAYER(defender.weId).warAndPeaceAI().getCache().hasProtectiveTrait())
 		cityDefenderBonus += 0.3;
-	bool isGunp = military[ARMY]->getTypicalUnit()->isIgnoreBuildingDefense();
+	bool isGunp = military[ARMY]->getTypicalUnit() != NULL &&
+			military[ARMY]->getTypicalUnit()->isIgnoreBuildingDefense();
 	// Normal defensive promotions are assumed to be countered by city raider
 	// For all non-mounted defenders
 	double tileBonus = military[ARMY]->getTypicalUnit() == NULL ? 0 :
@@ -1205,7 +1213,7 @@ void InvasionGraph::Node::applyStep(SimulationStep const& step) {
 			int nUnitsLeftBehind = 2 + GET_PLAYER(id).getCurrentEra();
 			if(GET_PLAYER(attacker.id).isHuman())
 				nUnitsLeftBehind = (2 * nUnitsLeftBehind) / 3;
-			double powLeftBehind = military[ARMY]->getTypicalUnitPower()
+			double powLeftBehind = military[ARMY]->getTypicalUnitPower(outer.weId)
 					* nUnitsLeftBehind;
 			powLeftBehind = std::min(powLeftBehind, attacker.military[ARMY]->power()
 					- attacker.lostPower[ARMY]);
@@ -1260,7 +1268,7 @@ void InvasionGraph::Node::applyStep(SimulationStep const& step) {
 				double div = 3.0;
 				if(GET_PLAYER(id).getMaxConscript() > 0)
 					div = 2.0;
-				emergencyDefPow += military[HOME_GUARD]->getTypicalUnitPower()
+				emergencyDefPow += military[HOME_GUARD]->getTypicalUnitPower(outer.weId)
 						* (step.getDuration() / div);
 				report.log("Emergency defender power for %s: %d",
 						report.leaderName(id), ::round(emergencyDefPow));

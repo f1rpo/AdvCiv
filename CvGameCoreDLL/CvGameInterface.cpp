@@ -403,7 +403,9 @@ void CvGame::updateColoredPlots()
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
 
-										if (pLoopPlot->isWater() && pLoopPlot->area() == pLoopUnit->area())
+										if (pLoopPlot->isWater())
+												// advc.033: PathDistance check suffices
+												//&& pLoopPlot->area() == pLoopUnit->area())
 										{
 											NiColorA color(GC.getColorInfo((ColorTypes)GC.getPlayerColorInfo(GET_PLAYER(getActivePlayer()).getPlayerColor()).getColorTypePrimary()).getColor());
 											color.a = 0.5f;

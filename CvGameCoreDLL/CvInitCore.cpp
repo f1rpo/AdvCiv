@@ -760,8 +760,8 @@ bool CvInitCore::getWBMapScript() const
 // <advc.030>
 bool CvInitCore::isScenario() const {
 
-	return m_eType == GAME_SP_SCENARIO || GAME_MP_SCENARIO ||
-			GAME_HOTSEAT_SCENARIO || GAME_PBEM_SCENARIO;
+	return m_eType == GAME_SP_SCENARIO || m_eType == GAME_MP_SCENARIO ||
+			m_eType == GAME_HOTSEAT_SCENARIO || m_eType == GAME_PBEM_SCENARIO;
 } // </advc.030>
 
 

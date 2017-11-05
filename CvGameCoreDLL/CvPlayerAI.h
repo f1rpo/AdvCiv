@@ -553,6 +553,7 @@ public:
 	// tribute type: 0 for gold, 1 for map, 2 for tech and 3 for bonus resource
 	bool demandTribute(PlayerTypes humanId, int tributeType);
 	// </advc.104m></advc.003>
+	double amortizationMultiplier(int delay) const; // advc.104, advc.031
 	// advc.104r: public, and added parameter
 	void AI_doSplit(bool force = false);
 	// for serialization

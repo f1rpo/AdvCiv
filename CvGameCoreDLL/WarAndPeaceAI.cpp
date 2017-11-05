@@ -2157,21 +2157,10 @@ double WarAndPeaceAI::Civ::tradeValToUtility(double tradeVal) const {
 	return TEAMREF(weId).warAndPeaceAI().tradeValToUtility(tradeVal);
 }
 
-/*  Assets provide mostly per-turn effects, which become less valuable
-	over the course of a game b/c there are fewer and fewer turns to go.
-	Not worth considering in the first half of the game, but e.g. after
-	300 turns (normal settings), the multiplier will have decreased to 0.7.
-
-	Current implementation isn't specific to this civ, but this could change;
-	could estimate end turn based on knowledge of this civ. */
 double WarAndPeaceAI::Civ::amortizationMultiplier() const {
 
-	return std::min(1.0, 2 * // Use this multiplier to fine-tune the effect
-	/*  The 25-turn delay is there b/c this function is used to evaluate assets
-		acquired in the medium-term future. Would be cleaner to pass the 25
-		as a "delay" parameter to this function, but that turned out to be
-		awkward to implement. */
-			(1 - GC.getGameINLINE().gameTurnProgress(25)));
+	// 25 turns delay b/c war planning is generally about a medium-term future
+	return GET_PLAYER(weId).amortizationMultiplier(25);
 }
 
 bool WarAndPeaceAI::Civ::isNearMilitaryVictory(int stage) const {
@@ -2282,6 +2271,12 @@ double WarAndPeaceAI::Civ::buildUnitProb() const {
 	if(we.isHuman())
 		return humanBuildUnitProb();
 	return GC.getLeaderHeadInfo(we.getPersonalityType()).getBuildUnitProb() / 100.0;
+}
+
+double WarAndPeaceAI::Civ::shipSpeed() const {
+
+	// Tbd.: Use the actual speed of our typical LOGISTICS unit
+	return ::dRange(GET_PLAYER(weId).getCurrentEra() + 1.0, 3.0, 5.0);
 }
 
 double WarAndPeaceAI::Civ::humanBuildUnitProb() const {

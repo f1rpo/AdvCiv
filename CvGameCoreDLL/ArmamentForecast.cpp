@@ -16,7 +16,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		report(m.evaluationParameters().getReport()),
 		military(military), timeHorizon(timeHorizon) {
 
-	// advc.test: Clogs up the log too much for the moment
+	// Clogs up the log too much for the moment
 	if(!GET_PLAYER(civId).isHuman())
 	  report.setMute(true);
 	report.log("Armament forecast for *%s*",
@@ -391,7 +391,7 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 		   robust to XML changes to cargo capacities. */
 		if(military[LOGISTICS]->getTypicalUnit() != NULL) {
 			branchPortions[LOGISTICS] = std::min(branchPortions[FLEET],
-					1.0 / military[LOGISTICS]->getTypicalUnitPower());
+					1.0 / military[LOGISTICS]->getTypicalUnitPower(m.ourId()));
 		}
 	}
 	branchPortions[ARMY] = 1 - branchPortions[HOME_GUARD] - branchPortions[FLEET] -
@@ -488,14 +488,13 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 	//report.log("\nbq."); // Textile block quote (takes up too much space)
 	for(int i = 0; i < NUM_BRANCHES; i++) {
 		MilitaryBranch& mb = *military[i];
-		CvUnitInfo const* uptr = mb.getTypicalUnit();
-		if(uptr == NULL)
+		int typicalProd = mb.getTypicalUnitCost(m.ourId());
+		if(typicalProd <= 0)
 			continue;
-		CvUnitInfo const& u = *uptr;
-		double pow = mb.getTypicalUnitPower();
+		double pow = mb.getTypicalUnitPower(m.ourId());
 		CvPlayerAI& civ = GET_PLAYER(civId);
 		double incr = branchPortions[i] * totalProductionForBuildUp * pow /
-				civ.getProductionNeeded(mb.getTypicalUnitType());
+				typicalProd;
 		mb.changePower(incr);
 		int iincr = ::round(incr);
 		if(iincr > 0)

@@ -140,7 +140,7 @@ void CvArea::reset(int iID, bool bWater, bool bConstructorCall)
 	nBarbCitiesEver = 0; // advc.300
 	// <advc.030>
 	m_bLake = false;
-	adjAreas.clear(); // </advc.030>
+	reprAreaId = iID; // </advc.030>
 	m_bWater = bWater;
 
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
@@ -217,6 +217,7 @@ int CvArea::getID() const
 void CvArea::setID(int iID)														
 {
 	m_iID = iID;
+	reprAreaId = iID; // advc.030
 }
 
 
@@ -367,27 +368,64 @@ bool CvArea::isLake() const
 	//return (isWater() && (getNumTiles() <= GC.getLAKE_MAX_AREA_SIZE()));
 }
 
-void CvArea::updateLake() {
+void CvArea::updateLake(bool checkRepr) {
 
+	PROFILE("CvArea::updateLake");
 	m_bLake = false;
 	if(!isWater())
 		return;
-	CvMap& m = GC.getMapINLINE();
 	int totalTiles = getNumTiles();
 	if(totalTiles > GC.getLAKE_MAX_AREA_SIZE())
 		return;
-	for(size_t i = 0; i < adjAreas.size(); i++) {
-		totalTiles += m.getArea(adjAreas[i])->getNumTiles();
-		if(totalTiles > GC.getLAKE_MAX_AREA_SIZE())
-			return;
+	if(!checkRepr) {
+		m_bLake = true;
+		return;
+	}
+	CvMap& m = GC.getMapINLINE(); int dummy=-1;
+	for(CvArea* other = m.firstArea(&dummy); other != NULL; other = m.nextArea(&dummy)) {
+		if(other->reprAreaId == reprAreaId && other->m_iID != m_iID) {
+			totalTiles += other->getNumTiles();
+			if(totalTiles > GC.getLAKE_MAX_AREA_SIZE())
+				return;
+		}
 	}
 	m_bLake = true;
 }
 
-void CvArea::addAdjacentArea(int areaId) {
+void CvArea::setRepresentativeArea(int areaId) {
 
-	adjAreas.push_back(areaId);
-} // </advc.030>}
+	reprAreaId = areaId;
+}
+
+int CvArea::getRepresentativeArea() const {
+
+	return reprAreaId;
+}
+
+/*  Replacement for the BtS area()==area() checks, i.e. mostly used for
+	performance reasons before more specific and costlier checks. */
+bool CvArea::canBeEntered(CvArea const& from, CvUnit const* u) const {
+
+	if(getID() == from.getID())
+		return true;
+	/*  If I wanted to support canMoveAllTerrain here, then I couldn't do
+		anything more when u==NULL. So that's not supported. */
+	if(isWater() == from.isWater() && (reprAreaId != from.reprAreaId ||
+			(u != NULL && !u->canMoveImpassable())))
+		return false;
+	/*  Can't rule out movement between water and land without knowing if the
+		unit is a ship inside a city or a land unit aboard a transport */
+	if(u == NULL)
+		return true;
+	if(isWater() && (u->getDomainType() != DOMAIN_SEA || !u->plot()->isCity()))
+		return false;
+	if(!isWater() && (u->getDomainType() != DOMAIN_LAND || !u->isCargo()))
+		return false;
+	/*  In the cases above, movement may actually still be possible if it's
+		a sea unit entering a city or a land unit boarding a transport.
+		So this function really assumes that u enters a hostile plot. */
+	return true;
+} // </advc.030>
 
 void CvArea::changeNumTiles(int iChange)
 {
@@ -1040,16 +1078,12 @@ void CvArea::read(FDataStreamBase* pStream)
 	// <advc.030>
 	if(uiFlag >= 1) {
 		pStream->Read(&m_bLake);
-		int sz = -1;
-		pStream->Read(&sz);
-		for(int i = 0; i < sz; i++) {
-			int tmp = -1;
-			pStream->Read(&tmp);
-			adjAreas.push_back(tmp);
-		}
+		pStream->Read(&reprAreaId);
 	}
-	else m_bLake = (m_bWater && m_iNumTiles <= GC.getLAKE_MAX_AREA_SIZE());
-	// </advc.030>
+	else {
+		updateLake(false);
+		reprAreaId = m_iID;
+	} // </advc.030>
 	pStream->Read(MAX_PLAYERS, m_aiUnitsPerPlayer);
 	pStream->Read(MAX_PLAYERS, m_aiAnimalsPerPlayer);
 	pStream->Read(MAX_PLAYERS, m_aiCitiesPerPlayer);
@@ -1111,9 +1145,7 @@ void CvArea::write(FDataStreamBase* pStream)
 	pStream->Write(m_bWater);
 	// <advc.030>
 	pStream->Write(m_bLake);
-	pStream->Write((int)adjAreas.size());
-	for(size_t i = 0; i < adjAreas.size(); i++)
-		pStream->Write(adjAreas[i]);
+	pStream->Write(reprAreaId);
 	// </advc.030>
 	pStream->Write(MAX_PLAYERS, m_aiUnitsPerPlayer);
 	pStream->Write(MAX_PLAYERS, m_aiAnimalsPerPlayer);

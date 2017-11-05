@@ -35,8 +35,12 @@ public:
 	int getNumTiles() const;																									// Exposed to Python
 	bool isLake() const;																											// Exposed to Python
 	// <advc.030>
-	void updateLake();
-	void addAdjacentArea(int areaId); // </advc.030>
+	void updateLake(bool checkRepr = true);
+	void setRepresentativeArea(int areaId);
+	// Should only be needed for computing the equivalence classes
+	int getRepresentativeArea() const;
+	bool canBeEntered(CvArea const& from, CvUnit const* u = NULL) const;
+	// </advc.030>
 	void changeNumTiles(int iChange);
 
 	int getNumOwnedTiles() const;																							// Exposed to Python
@@ -149,7 +153,7 @@ protected:
 	bool m_bWater;
 	// <advc.030>
 	bool m_bLake;
-	std::vector<int> adjAreas; // </advc.030>
+	int reprAreaId; // </advc.030>
 	int* m_aiUnitsPerPlayer;
 	int* m_aiAnimalsPerPlayer;
 	int* m_aiCitiesPerPlayer;

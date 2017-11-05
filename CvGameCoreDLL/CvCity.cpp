@@ -1021,45 +1021,15 @@ void CvCity::doTurn()
 
 	// XXX
 #ifdef _DEBUG
-	{
-		CvPlot* pPlot;
-		int iCount;
-		int iI, iJ;
-
+	{	// advc.003: Variable declarations deleted
 		for (iI = 0; iI < NUM_YIELD_TYPES; iI++)
-		{
-			FAssert(getBaseYieldRate((YieldTypes)iI) >= 0);
+		{	// <advc.003> Want to see the value in the debugger
+			int byr = getBaseYieldRate((YieldTypes)iI);
+			FAssert(byr >= 0);
 			FAssert(getYieldRate((YieldTypes)iI) >= 0);
-
-			iCount = 0;
-
-			for (iJ = 0; iJ < NUM_CITY_PLOTS; iJ++)
-			{
-				if (isWorkingPlot(iJ))
-				{
-					pPlot = getCityIndexPlot(iJ);
-
-					if (pPlot != NULL)
-					{
-						iCount += pPlot->getYield((YieldTypes)iI);
-					}
-				}
-			}
-
-			for (iJ = 0; iJ < GC.getNumSpecialistInfos(); iJ++)
-			{
-				iCount += (GET_PLAYER(getOwnerINLINE()).specialistYield(((SpecialistTypes)iJ), ((YieldTypes)iI)) * (getSpecialistCount((SpecialistTypes)iJ) + getFreeSpecialistCount((SpecialistTypes)iJ)));
-			}
-
-			for (iJ = 0; iJ < GC.getNumBuildingInfos(); iJ++)
-			{
-				iCount += getNumActiveBuilding((BuildingTypes)iJ) * (GC.getBuildingInfo((BuildingTypes) iJ).getYieldChange(iI) + getBuildingYieldChange((BuildingClassTypes)GC.getBuildingInfo((BuildingTypes) iJ).getBuildingClassType(), (YieldTypes)iI));
-			}
-
-			iCount += getTradeYield((YieldTypes)iI);
-			iCount += getCorporationYield((YieldTypes)iI);
-
-			FAssert(iCount == getBaseYieldRate((YieldTypes)iI));
+			// advc.104u: Code moved into auxiliary function
+			int iCount = calculateBaseYieldRate((YieldTypes)iI);
+			FAssert(iCount == byr); // advc.003
 		}
 
 		for (iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
@@ -1079,6 +1049,34 @@ void CvCity::doTurn()
 #endif
 	// XXX
 }
+
+// <advc.104u> Cut, pasted, refactored from the end of CvCity::doTurn
+int CvCity::calculateBaseYieldRate(YieldTypes y) {
+
+	int r = 0;
+	for(int i = 0; i < NUM_CITY_PLOTS; i++) {
+		if(isWorkingPlot(i)) {
+			CvPlot* pl = getCityIndexPlot(i);
+			if(pl != NULL)
+				r += pl->getYield(y);
+		}
+	}
+	for(int i = 0; i < GC.getNumSpecialistInfos(); i++) {
+		SpecialistTypes sp = (SpecialistTypes)i;
+		r += GET_PLAYER(getOwnerINLINE()).specialistYield(sp, y) *
+				(getSpecialistCount(sp) + getFreeSpecialistCount(sp));
+	}
+	for(int i = 0; i < GC.getNumBuildingInfos(); i++) {
+		BuildingTypes bt = (BuildingTypes)i;
+		CvBuildingInfo const& b = GC.getBuildingInfo(bt);
+		r += getNumActiveBuilding(bt) * (b.getYieldChange(y) +
+				getBuildingYieldChange((BuildingClassTypes)b.
+				getBuildingClassType(), y));
+	}
+	r += getTradeYield(y);
+	r += getCorporationYield(y);
+	return r;
+} // </advc.104u>
 
 // <advc.003> Code cut and pasted from CvPlot::doCulture; also refactored.
 void CvCity::doRevolt() { PROFILE("CvCity::doRevolts()")
@@ -14450,8 +14448,18 @@ void CvCity::getVisibleBuildings(std::list<BuildingTypes>& kChosenVisible, int& 
 		bool bIsDefense = (kBuilding.getDefenseModifier() > 0);
 		PlayerTypes activePl = GC.getGameINLINE().getActivePlayer();
 		if(activePl != NO_PLAYER && !plot()->isInvestigate(TEAMID(activePl)) &&
-				!bIsWonder && !bIsDefense)
-			continue; // </advc.045>
+				!bIsWonder && !bIsDefense && !GC.getGameINLINE().isDebugMode()) {
+			// Not from Rise of Mankind:
+			bool visibleYieldChange = false;
+			int* seaPlotYieldChanges = kBuilding.getSeaPlotYieldChangeArray();
+			int* riverPlotYieldChanges = kBuilding.getRiverPlotYieldChangeArray();
+			for(int j = 0; j < NUM_YIELD_TYPES; j++) {
+				if(seaPlotYieldChanges[j] + riverPlotYieldChanges[j] != 0)
+					visibleYieldChange = true;
+			}
+			if(!visibleYieldChange)
+				continue;
+		} // </advc.045>
 		kVisible.push_back(eCurType);
 	}
 

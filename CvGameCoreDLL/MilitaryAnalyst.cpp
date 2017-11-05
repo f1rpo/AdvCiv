@@ -173,7 +173,7 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 		timeHorizon += 5;
 	/*  Skip phase 1 if it would be short (InvasionGraph::Node::isSneakAttack
 		will still read the actual prep time from the WarEvalParameters) */
-	if(prepTime < 6) {
+	if(prepTime < 4) {
 		if(prepTime > 0)
 			report.log("Skipping short prep. time (%d turns):", prepTime);
 		timeHorizon += prepTime; // Prolong 2nd phase instead

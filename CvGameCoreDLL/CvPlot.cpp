@@ -1197,8 +1197,9 @@ void CvPlot::updatePlotGroupBonus(bool bAdd)
 	}
 
 	CvPlotGroup* pPlotGroup = getPlotGroup(getOwnerINLINE());
-
-	if(pPlotGroup == NULL) return; // advc.003
+	// <advc.003>
+	if(pPlotGroup == NULL)
+		return; // </advc.003>
 
 	CvCity* pPlotCity = getPlotCity();
 
@@ -5752,6 +5753,7 @@ void CvPlot::setFeatureType(FeatureTypes eNewValue, int iVariety)
 		}
 	}
 }
+
 
 void CvPlot::setFeatureDummyVisibility(const char *dummyTag, bool show)
 {

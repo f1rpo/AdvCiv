@@ -228,10 +228,6 @@ void CvGame::init(HandicapTypes eHandicap)
 void CvGame::setInitialItems()
 {
 	PROFILE_FUNC();
-	/*  <advc.030> At least in the Earth_IceAge scenario, Ice is placed after
-		calling CvMap::calculateAreas. But the areas now depend on Ice. */
-	if(GC.getInitCore().isScenario())
-		GC.getMap().recalculateAreas(); // </advc.030>
 	int nAI = 0; // advc.250b: Just for disabling SPaH in game w/o any AI civs
 	// K-Mod: Adjust the game handicap level to be the average of all the human player's handicap.
 	// (Note: in the original bts rules, it would always set to Nobel if the humans had different handicaps)
@@ -263,6 +259,10 @@ void CvGame::setInitialItems()
 	initFreeState();
 	assignStartingPlots();
 	normalizeStartingPlots();
+	// <advc.030> Now that ice has been placed and normalization is through
+	if(GC.getDefineINT("PASSABLE_AREAS") > 0)
+		GC.getMap().recalculateAreas();
+	// </advc.030>
 	initFreeUnits();
 	/*  <advc.127> Set aiHandicap to the average of AI handicaps. (Scenarios can
 		assign unequal AI handicaps.) */
@@ -939,6 +939,35 @@ void CvGame::initFreeUnits()
 	}
 }
 
+// <advc.104u>
+/*  Parts of the AI don't seem to get properly initialized in scenarios. Not
+	sure if this has always been the case, if it has to do with K-Mod changes to
+	the turn order (team turns vs. player turns) or is only a problem for UWAI. */
+void CvGame::initScenario() {
+
+	// Citizens not properly assigned
+	for(int i = 0; i < MAX_PLAYERS; i++) {
+		CvPlayerAI& pl = GET_PLAYER((PlayerTypes)i);
+		if(!pl.isAlive())
+			continue; int dummy=-1;
+		for(CvCity* c = pl.firstCity(&dummy); c != NULL; c = pl.nextCity(&dummy)) {
+			/*  After getting failed assertions in CvCity::doTurn in the
+				Europe1000AD scenario (I'm guessing due to production from
+				Apostolic Palace). */
+			for(int j = 0; j < NUM_YIELD_TYPES; j++) {
+				YieldTypes y = (YieldTypes)j;
+				c->setBaseYieldRate(y, c->calculateBaseYieldRate(y));
+			}
+			c->AI_assignWorkingPlots();
+		}
+	}
+	// Ensure UWAI initialization
+	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
+		CvTeamAI& t = GET_TEAM((TeamTypes)i);
+		if(t.isAlive())
+			t.AI_doTurnPre();
+	}
+} // </advc.104u>
 
 void CvGame::assignStartingPlots()
 {

@@ -762,14 +762,22 @@
 	</TEXT>
 
 	<!-- advc.137: Copy-pasted from Vanilla Civ4GameText_Misc1.xml;
-		 recommendation added (only in English). -->
+		 recommendation added (only in English and German). -->
 	<TEXT>
 		<Tag>TXT_KEY_MAP_SCRIPT_TERRA_DESCR</Tag>
-		<English>Extra players recommended (ca. 30%%).&#010;Terra generates random land masses similar to those of the planet Earth. All players begin in the Old World. These maps are extra large!</English>
+		<English>Extra players recommended (ca. +30%%).&#010;Terra generates random land masses similar to those of the planet Earth. All players begin in the Old World. These maps are extra large!</English>
 		<French>Des continents similaires &#224; ceux de la Terre sont cr&#233;&#233;s al&#233;atoirement. Tous les joueurs commencent dans l'Antiquit&#233;. Ces cartes sont immenses !</French>
-		<German>Terra generiert zuf&#228;llige Landfl&#228;chen, &#228;hnlich wie die auf dem Planeten Erde. Alle Spieler beginnen zun&#228;chst in der Alten Welt. Diese Kartenvarianten sind besonders gro&#223;!</German>
+		<German>Höhere Spielerzahl empfohlen (ca. +30%%). Terra generiert zuf&#228;llige Landfl&#228;chen, &#228;hnlich wie die auf dem Planeten Erde. Alle Spieler beginnen zun&#228;chst in der Alten Welt. Diese Kartenvarianten sind besonders gro&#223;!</German>
 		<Italian>Terra genera delle masse terrestri casuali simili a quelle del nostro pianeta. Tutti i giocatori iniziano nel Vecchio Mondo. Queste mappe sono grandissime!</Italian>
 		<Spanish>Terra genera al azar masas de tierra similares a las del planeta Tierra. Todos los jugadores empiezan en el Viejo Mundo. &#161;Estos mapas son supergrandes!</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MAP_SCRIPT_PANGAEA_DESCR</Tag>
+		<English>Pan-Gaia: "One Earth," a massive single continent. Fewer players than normal recommended (about -15%%) because relatively few water tiles can be worked.</English>
+		<French>Pan-Gaia: "Une terre", un seul et &#233;norme continent.</French>
+		<German>Pang&#228;a: "Eine Erde", ein einziger gewaltiger Kontinent. Geringere Spielerzahl empfohlen (etwa -15%%) da weniger Wasserfelder bearbeitet werden können als auf anderen Karten.</German>
+		<Italian>Pan-Gaia: "Una terra", un enorme continente.</Italian>
+		<Spanish>Pan-gea ("una Tierra"), un solo continente enorme.</Spanish>
 	</TEXT>
 
 	<!-- advc.137: Copy-pasted from Vanilla Civ4GameTextInfos.xml;
@@ -2464,16 +2472,18 @@
 	</TEXT>
 
 	<!-- advc.002g -->
-	<!-- See CIV4ColorVals.xml for the available colors. PLAYER_GRAY isn't
-		 ideal, but comes the closest to what I had in mind. -->
+	<!-- See CIV4ColorVals.xml for the available colors. PLAYER_GRAY is,
+		 apparently, also used for graying out Multiplayer when it's disabled
+		 through ModName.ini. -->
 	<!-- From Civ4GameTextInfos.xml: -->
+	<!-- Just removed the exclamation mark -->
 	<TEXT>
 		<Tag>TXT_KEY_MAIN_MENU_PLAY_NOW</Tag>
-		<English>[COLOR_PLAYER_GRAY]Play Now[COLOR_REVERT]</English>
-		<French>[COLOR_PLAYER_GRAY]Jouer[COLOR_REVERT]</French>
-		<German>[COLOR_PLAYER_GRAY]Jetzt spielen[COLOR_REVERT]</German>
-		<Italian>[COLOR_PLAYER_GRAY]Gioca ora[COLOR_REVERT]</Italian>
-		<Spanish>[COLOR_PLAYER_GRAY]Jugar ya[COLOR_REVERT]</Spanish>
+		<English>Play Now</English>
+		<French>Jouer</French>
+		<German>Jetzt spielen</German>
+		<Italian>Gioca ora</Italian>
+		<Spanish>Jugar ya</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_MAIN_MENU_SCENARIO</Tag>

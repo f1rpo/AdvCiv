@@ -733,7 +733,7 @@ public:
 	int getYieldRate(YieldTypes eIndex) const;									// Exposed to Python
 	void setBaseYieldRate(YieldTypes eIndex, int iNewValue);					// Exposed to Python
 	void changeBaseYieldRate(YieldTypes eIndex, int iChange);					// Exposed to Python
-
+	int calculateBaseYieldRate(YieldTypes eIndex); // advc.104u
 	int getYieldRateModifier(YieldTypes eIndex) const;							// Exposed to Python
 	void changeYieldRateModifier(YieldTypes eIndex, int iChange);
 

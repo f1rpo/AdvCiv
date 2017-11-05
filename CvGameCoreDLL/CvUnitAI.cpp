@@ -2988,7 +2988,7 @@ void CvUnitAI::AI_attackCityMove()
 	{
 		bReadyToAttack = getGroup()->getNumUnits() >=
 				// advc.300: was // (bHuntBarbs ? 3
-				(huntOnlyBarbs ? (barbGarrisonRatio * 3) / 2
+				(huntOnlyBarbs ? (barbGarrisonRatio * 3) / (2 + owner.getCurrentEra()/2)
 				: AI_stackOfDoomExtra());
 	}
 
@@ -11024,7 +11024,6 @@ bool CvUnitAI::AI_omniGroup(UnitAITypes eUnitAI, int iMaxGroup, int iMaxOwnUnitA
 
 	CvUnit* pBestUnit = NULL;
 	int iBestValue = MAX_INT;
-
 	int iLoop;
 	CvSelectionGroup* pLoopGroup = NULL;
 	for (pLoopGroup = GET_PLAYER(getOwnerINLINE()).firstSelectionGroup(&iLoop); pLoopGroup != NULL; pLoopGroup = GET_PLAYER(getOwnerINLINE()).nextSelectionGroup(&iLoop))
@@ -11037,8 +11036,11 @@ bool CvUnitAI::AI_omniGroup(UnitAITypes eUnitAI, int iMaxGroup, int iMaxOwnUnitA
 		if (AI_plotValid(pPlot))
 		{
 			if (iMaxPath != 0 || pPlot == plot())
-			{
-				if (getDomainType() != DOMAIN_LAND || canMoveAllTerrain() || area() == pPlot->area())
+			{	
+				if (getDomainType() != DOMAIN_LAND || canMoveAllTerrain() ||
+						// advc.030: Replacing the clause below
+						canEnterArea(*pPlot->area()))
+						//area() == pPlot->area())
 				{
 					if (AI_allowGroup(pLoopUnit, eUnitAI))
 					{
@@ -12060,11 +12062,14 @@ bool CvUnitAI::AI_barbAmphibiousCapture() {
 		DirectionTypes dir = (DirectionTypes)i;
 		CvPlot* pp = ::plotDirection(plot()->getX_INLINE(), plot()->getY_INLINE(), dir);
 		if(pp == NULL) continue; CvPlot const& p = *pp;
+		// <advc.306>
+		if(p.getTeam() != NO_TEAM && p.area()->isBorderObstacle(p.getTeam()))
+			continue; // </advc.306>
 		/*  Undefended city (perhaps unnecessary; not sure if the assault routine
 			gets this right, or if it would drop units next to the city) */
 		CvCity* c = p.getPlotCity();
 		if(c != NULL && !c->isBarbarian() && !p.isVisibleEnemyDefender(this)) {
-FAssertMsg(false, "Just to test if this ever happens"); // advc.test
+			FAssertMsg(false, "Just to test if this ever happens"); // advc.test
 			dest = pp;
 			// Sudden attacks on undefended cities are OK (see below)
 			targetWithinOwnBorders = false; // Not a good variable name
@@ -13838,7 +13843,11 @@ bool CvUnitAI::AI_join(int iMaxCount)
 /* Unit AI, Efficiency                                                                          */
 /************************************************************************************************/
 		// BBAI efficiency: check same area
-		if ((pLoopCity->area() == area()) && AI_plotValid(pLoopCity->plot()))
+		if ( /* advc.030: Replacing the clause below (although it won't
+				make functional difference) */
+				canEnterArea(*pLoopCity->area())
+				//(pLoopCity->area() == area())
+				&& AI_plotValid(pLoopCity->plot()))
 		{
 			if (!(pLoopCity->plot()->isVisibleEnemyUnit(this)))
 			{
@@ -15915,7 +15924,9 @@ bool CvUnitAI::AI_bombardCity()
 	int iBase = GC.getBBAI_SKIP_BOMBARD_BASE_STACK_RATIO();
 	int iMin = GC.getBBAI_SKIP_BOMBARD_MIN_STACK_RATIO();
 	int iBombardTurns = getGroup()->getBombardTurns(pBombardCity);
-	if(iBombardTurns == 0) return false; // advc.004c
+	// <advc.004c>
+	if(iBombardTurns == 0)
+		return false; // </advc.004c>
 	iBase = (iBase * (GC.getMAX_CITY_DEFENSE_DAMAGE()-pBombardCity->getDefenseDamage()) + iMin * pBombardCity->getDefenseDamage())/std::max(1, GC.getMAX_CITY_DEFENSE_DAMAGE());
 	int iThreshold = (iBase * (100 - iAttackOdds) + (1 + iBombardTurns/2) * iMin * iAttackOdds) / (100 + (iBombardTurns/2) * iAttackOdds);
 	int iComparison = getGroup()->AI_compareStacks(pBombardCity->plot(), true);
@@ -17730,7 +17741,10 @@ bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal)
 			continue;
 		if (!isPotentialEnemy(pLoopPlot->getTeam(), pLoopPlot))
 			continue;
-
+		// <advc.306>
+		if(isBarbarian() && pLoopPlot->getTeam() != NO_TEAM &&
+				pLoopPlot->area()->isBorderObstacle(pLoopPlot->getTeam()))
+			continue; // </advc.306>
 		// Note: currently these condtions mean we will never land to invade land-locked enemies
 
 		int iTargetCities = pLoopPlot->area()->getCitiesPerPlayer(pLoopPlot->getOwnerINLINE());
@@ -21272,6 +21286,7 @@ bool CvUnitAI::AI_handleStranded(int iFlags)
 				if (pLoopPlot->getArea() == getArea() && pLoopPlot->isCoastalLand())
 				{
 					// TODO: check that the water isnt' blocked by ice.
+					// advc.030 (comment): ^Should be guaranteed by pLoopPlot->getArea() == getArea() now
 					int iPathTurns;
 					if (generatePath(pLoopPlot, iFlags, true, &iPathTurns, iShortestPath))
 					{
@@ -24749,7 +24764,12 @@ bool CvUnitAI::AI_plotValid(CvPlot* pPlot)
 		break;
 
 	case DOMAIN_LAND:
-		if (pPlot->getArea() == getArea() || canMoveAllTerrain())
+		if (//pPlot->getArea() == getArea()
+			/*  advc.030: Replacing the above. Wouldn't hurt to do that for
+				DOMAIN_SEA as well, but no need. For DOMAIN_LAND, the change is
+				only important if a land unit is given canMoveImpassable. */
+				canEnterArea(*pPlot->area())
+				|| canMoveAllTerrain())
 		{
 			return true;
 		}

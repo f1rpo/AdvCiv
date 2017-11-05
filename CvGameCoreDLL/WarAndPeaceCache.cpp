@@ -224,7 +224,11 @@ void WarAndPeaceCache::update() {
 	updateCanScrub();
 
 	// Any values used by war evaluation need to be updated before this!
-	updateWarUtility();
+	if(GC.getGameINLINE().getElapsedGameTurns() > 0) { /* On turn 0, the
+			other civs' caches aren't up to date, which can cause problems
+			in scenarios. */
+		updateWarUtility();
+	}
 }
 
 void WarAndPeaceCache::updateCities(PlayerTypes civId) {
@@ -406,9 +410,13 @@ void WarAndPeaceCache::updateWarUtilityIgnDistraction(TeamTypes targetId) {
 void WarAndPeaceCache::updateWarAnger() {
 
 	CvPlayerAI const& owner = GET_PLAYER(ownerId);
+	if(owner.isAnarchy())
+		return;
 	double totalWWAnger = 0;
 	int dummy; for(CvCity* cp = owner.firstCity(&dummy); cp != NULL;
 			cp = owner.nextCity(&dummy)) { CvCity const& c = *cp;
+		if(c.isDisorder())
+			continue;
 		/*  Disregard happiness from culture rate unless we need culture
 			regardless of happiness */
 		double angry = c.angryPopulation(0,
@@ -417,6 +425,8 @@ void WarAndPeaceCache::updateWarAnger() {
 		totalWWAnger += std::min(angry, c.getWarWearinessPercentAnger()
 				* c.getPopulation() / (double)GC.getPERCENT_ANGER_DIVISOR());
 	}
+	if(totalWWAnger < 0.01)
+		return;
 	// Who causes the wwAnger?
 	double wwContribs[MAX_CIV_TEAMS];
 	double totalWeight = 0;
@@ -860,7 +870,8 @@ double WarAndPeaceCache::longTermPower(TeamTypes tId, bool defensive) const {
 			continue;
 		WarAndPeaceAI::Civ const& wpai = civ.warAndPeaceAI();
 		MilitaryBranch& army = *wpai.getCache().getPowerValues()[ARMY];
-		if(army.getTypicalUnit() == NULL)
+		int typicalUnitProd = army.getTypicalUnitCost();
+		if(typicalUnitProd <= 0)
 			continue;
 		/*  Long-term power mostly depends on production capacity and willingness
 			to produce units. That said, 50~100 turns are also enough to
@@ -870,7 +881,7 @@ double WarAndPeaceCache::longTermPower(TeamTypes tId, bool defensive) const {
 				0.35 * wpai.estimateYieldRate(YIELD_FOOD) +
 				0.25 * wpai.estimateYieldRate(YIELD_COMMERCE)) *
 				(wpai.buildUnitProb() + 0.15) * army.getTypicalUnitPower() /
-				(double)civ.getProductionNeeded(army.getTypicalUnitType());
+				(double)typicalUnitProd;
 	}
 	return r;
 }
@@ -1314,6 +1325,7 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 	bool trainAnyCargo = cacheOwner.warAndPeaceAI().getCache().
 			canTrainAnyCargo();
 	int const seaPenalty = (human ? 2 : 4);
+	double shipSpeed = cacheOwner.warAndPeaceAI().shipSpeed();
 	vector<int> pairwDurations;
 	/*  If we find no land path and no sea path from a city c to the target,
 		but at least one other city that does have a path to the target, then there
@@ -1360,9 +1372,7 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 				dom = DOMAIN_IMMOBILE; // Encode non-ocean as IMMOBILE
 			if(measureDistance(dom, p, targetCity->plot(), &d)) {
 				FAssert(d >= 0);
-				/*  Speed of ships. Tbd.: Could update typicalUnits before Cities and
-					use the actual speed of the cacheOwner's typical LOGISTICS unit. */
-				d = (int)std::ceil(d / ::dRange(era + 1.0, 3.0, 5.0)) + seaPenalty;
+				d = (int)std::ceil(d / shipSpeed) + seaPenalty;
 				if(pwd < 0 || d < pwd) {
 					pwd = d;
 					rbsLoop = true;
@@ -1410,31 +1420,72 @@ bool WarAndPeaceCache::City::measureDistance(DomainTypes dom, CvPlot* start,
 		CvPlot* dest, int* r) {
 
 	PROFILE_FUNC();
+	/*  Caveat: dom can be IMMOBILE, which means Galley. Should compare dom
+		only with DOMAIN_LAND in this function, not DOMAIN_SEA. */
 	if(dom == DOMAIN_LAND && start->area() != dest->area())
 		return false;
 	// Can't plot mixed-domain paths
 	int const minSz = GC.getMIN_WATER_SIZE_FOR_OCEAN();
-	if(dom == DOMAIN_SEA && !start->isCoastalLand(minSz))
+	if(dom != DOMAIN_LAND && !start->isCoastalLand(minSz))
 		return false;
+	// Sanity check to avoid costly distance measurement
+	if(GET_PLAYER(cacheOwnerId).getCurrentEra() < 4) {
+		// Era: AI needs to be able to target even very remote rivals eventually
+		double stepDist = ::stepDistance(start, dest);
+		if(dom == DOMAIN_LAND)
+			stepDist /= 2; // Effect of roads
+		stepDist /= GET_PLAYER(cacheOwnerId).warAndPeaceAI().shipSpeed();
+		int maxDist = (dom == DOMAIN_LAND ? getWPAI.maxLandDist() :
+				getWPAI.maxSeaDist());
+		/*  Would be better to pass maxDist to calculatePathDistanceToPlot,
+			but the pathfinder has no such param. */
+		if(stepDist > maxDist)
+			return false;
+		/*  Tbd.: Want to set r to maxDist if era>=4, but can't be sure that
+			there is a path at all ... */
+	}
 	// dest is guaranteed to be owned; get the owner before possibly changing dest
 	TeamTypes destTeam = dest->getTeam();
-	if(dom == DOMAIN_SEA && !dest->isCoastalLand(minSz)) {
+	if(dom != DOMAIN_LAND && !dest->isCoastalLand(minSz)) {
 		/*  A naval assault drops the units off on a tile adjacent to the city;
 			try to find an adjacent coastal tile. */
 		int x = dest->getX_INLINE();
 		int y = dest->getY_INLINE();
 		dest = NULL;
+		int shortestStepDist = INT_MAX;
 		for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
 			CvPlot* adj = ::plotDirection(x, y, (DirectionTypes)i);
 			if(adj != NULL && adj->isCoastalLand(minSz)) {
-				dest = adj;
-				// Testing all adjacent plots would be too expensive I think
-				break;
+				int stepDist = ::stepDistance(start, adj);
+				if(stepDist < shortestStepDist) {
+					dest = adj;
+					shortestStepDist = stepDist;
+				}
 			}
 		}
 		if(dest == NULL)
 			return false;
 	}
+	if(dom != DOMAIN_LAND) {
+		// The transports move onto a water tile adjacent to the coastal tile
+		int destx = dest->getX_INLINE();
+		int desty = dest->getY_INLINE();
+		int shortestStepDist = MAX_INT;
+		for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
+			CvPlot* adj = ::plotDirection(destx, desty, (DirectionTypes)i);
+			if(adj != NULL && adj->isWater()) {
+				int stepDist = ::stepDistance(start, adj);
+				if(stepDist < shortestStepDist) {
+					dest = adj;
+					shortestStepDist = stepDist;
+				}
+			}
+		}
+	}
+	/*  This covers pack ice too (due to change 030). The PathDistance below
+		won't take detours around ice into account though. */
+	if(dom != DOMAIN_LAND && !start->isAdjacentToArea(dest->area()))
+		return false;
 	*r = start->calculatePathDistanceToPlot(start->getTeam(), dest, destTeam, dom);
 	return (*r >= 0);
 } // </advc.104b>

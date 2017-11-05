@@ -308,9 +308,11 @@ protected:
 	CvPlot* m_pMapPlots;
 
 	FFreeListTrashArray<CvArea> m_areas;
-
 	void calculateAreas();
-
+	// <advc.030>
+	void calculateAreas_030();
+	void calculateReprAreas();
+	void updateLakes(); // </advc.030>
 	// <advc.300>
 public:
 	// Caller provides the vector
