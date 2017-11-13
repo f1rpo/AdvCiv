@@ -2,6 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "WarUtilityAspect.h"
+#include "CvStatistics.h"
 
 using std::vector;
 using std::string;
@@ -3048,14 +3049,66 @@ FairPlay::FairPlay(WarEvalParameters& params) : WarUtilityAspect(params) {}
 
 void FairPlay::evaluate() {
 
-	CvGame& g = GC.getGameINLINE();
-	/*  Assume that AI-on-AI wars are always fair b/c they have the same handicap.
-		Not actually true in e.g. EarthAD1000 scenario. Still, early attacks on
-		AI civs aren't a serious problem. */
-	if(g.getCurrentEra() > 0 || !they->isHuman() || we->isHuman() ||
-			m->getWarsDeclaredBy(weId).count(theyId) <= 0 ||
-			// No kid gloves if they've attacked us or a friend
+	// Once we've gone through the trouble of preparing war, it's too late.
+	if(m->getWarsDeclaredBy(weId).count(theyId) <= 0 ||
+			agent.AI_isSneakAttackReady(TEAMID(theyId)) ||
+			// No kid gloves if they've attacked us before
 			we->AI_getMemoryAttitude(theyId, MEMORY_DECLARED_WAR) < 0 ||
+			they->AI_isDoVictoryStrategyLevel3())
+		return;
+	// Avoid big dogpiles (or taking turns attacking a single target)
+	double otherEnemies = 0;
+	int potentialOtherEnemies = 0;
+	CvGame& g = GC.getGameINLINE();
+	int theirRank = g.getPlayerRank(theyId);
+	for(size_t i = 0; i < properCivs.size(); i++) {
+		CvPlayerAI const& other = GET_PLAYER(properCivs[i]);
+		if(other.getID() == weId || other.getID() == theyId || other.isAVassal())
+			continue;
+		potentialOtherEnemies++;
+		bool immediateWar = (TEAMREF(theyId).isAtWar(other.getTeam()) ||
+				m->getWarsDeclaredBy(other.getID()).count(theyId) > 0);
+		if(immediateWar || they->AI_getMemoryAttitude(other.getID(),
+				MEMORY_DECLARED_WAR) <= -2) {
+			double incr = 1.15;
+			if(!immediateWar) {
+				incr *= 0.73;
+				if(they->AI_getMemoryAttitude(other.getID(),
+						MEMORY_DECLARED_WAR) == -2)
+					incr *= 0.85;
+			}
+			// Ganging up on the leader is less problematic
+			if(theirRank < g.getPlayerRank(other.getID()))
+				incr /= 2;
+			otherEnemies += incr;
+			log("Another enemy of %s: %s; increment: %d percent",
+					report.leaderName(theyId),
+					report.leaderName(other.getID()), ::round(incr * 100));
+		}
+		else if(TEAMREF(theyId).AI_shareWar(other.getTeam())) {
+			log("An ally of %s: %s", report.leaderName(theyId),
+					report.leaderName(other.getID()));
+			otherEnemies--;
+		}
+		if(other.AI_getMemoryAttitude(theyId,
+				MEMORY_DECLARED_WAR) <= -2) {
+			log("They've attacked %s before", report.leaderName(other.getID()));
+			otherEnemies -= 0.5;
+		}
+	}
+	if(potentialOtherEnemies > 0 && otherEnemies > 0) {
+		double fromOtherEnemies = 30 * (otherEnemies /
+				std::sqrt((double)potentialOtherEnemies) - 0.5);
+		if(fromOtherEnemies > 0.5) {
+			log("From other enemies: %d", ::round(fromOtherEnemies));
+			u -= ::round(fromOtherEnemies);
+		}
+	}
+	// The rest of this function deals with the early game
+	/*  Assume that early AI-on-AI wars are always fair b/c they have the same
+		handicap. Not actually true in e.g. EarthAD1000 scenario. Still, early
+		attacks on AI civs aren't a serious problem. */
+	if(!they->isHuman() || we->isHuman() ||
 			we->AI_getMemoryAttitude(theyId, MEMORY_DECLARED_WAR_ON_FRIEND) < 0)
 		return;
 	CvHandicapInfo& h = GC.getHandicapInfo(g.getHandicapType());
@@ -3083,6 +3136,33 @@ void FairPlay::evaluate() {
 	/*  All bets off by turn 100, but, already by turn 50, the cost may
 		no longer be prohibitive. */
 	double uMinus = std::pow((100 - t) / 2.0, 1.28);
+	if(g.getCurrentEra() > 0) // The above only matters in the Ancient era
+		uMinus = 0;
+	// ... but dogpiling remains an issue in the Classical era
+	if(g.getCurrentEra() > 1)
+		return;
+	// Don't dogpile when human has lost cities in the early game
+	int citiesBuilt = they->getPlayerRecord()->getNumCitiesBuilt();
+	double fromCityLoss = 0;
+	if(citiesBuilt > 0) {
+		fromCityLoss = 100 * std::pow((1 -
+				they->getNumCities() / (double)citiesBuilt), 0.85);
+	}
+	if(fromCityLoss >= 0.5) {
+		log("From lost human cities: %d", ::round(fromCityLoss));
+		uMinus += fromCityLoss;
+	}
+	// If no cities gained nor lost, at least don't DoW in quick succession.
+	else if(they->getNumCities() == citiesBuilt) {
+		int fromRecentDoW = 35 * TEAMREF(theyId).getWarPlanCount(WARPLAN_ATTACKED_RECENT);
+		log("From recent DoW: %d", fromRecentDoW);
+		uMinus += fromRecentDoW;
+	}
+	int div = 3 - towardsThem + we->AI_getMemoryAttitude(theyId, MEMORY_REJECTED_DEMAND);
+	if(div > 1) {
+		log("Divided by %d because of attitude", div);
+		uMinus /= div;
+	}
 	u -= std::max(0, ::round(uMinus));
 }
 

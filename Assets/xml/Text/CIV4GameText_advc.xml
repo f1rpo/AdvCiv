@@ -1329,8 +1329,8 @@
 	<TEXT>
 		<Tag>TXT_KEY_FEATUREDEF</Tag>
 		<English>%D1_Mod%% for tile owner</English>
-		<French>%D1_Mod%% pour le proprio de la case</French>
-		<German>%D1_Mod%% bei Besitz des Feldes</German>
+		<French>%D1_Mod%% pour le proprio</French>
+		<German>%D1_Mod%% für Besitzer</German>
 		<Italian>%D1_Mod%% se possiede la caselle</Italian>
 		<Spanish>%D1_Mod%% si posee la casilla</Spanish>
 	</TEXT>
@@ -2433,6 +2433,16 @@
 		<German>[ICON_BULLET](%D1_Change%F2_HappyOrHealth mit[SPACE]</German>
 		<Italian>[ICON_BULLET](%D1_Change%F2_HappyOrHealth con[SPACE]</Italian>
 		<Spanish>[ICON_BULLET](%D1_Change %F2_HappyOrHealth con[SPACE]</Spanish>
+	</TEXT>
+
+	<!-- advc.004w: (Could've used TXT_KEY_WITH_SPACE instead) -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_DEAL_DUAL</Tag>
+		<English>%s1 with %s2</English>
+		<French>%s1 avec %s2</French>
+		<German>%s1 mit %s2</German>
+		<Italian>%s1 con %s2</Italian>
+		<Spanish>%s1 con %s2</Spanish>
 	</TEXT>
 
 	<!-- advc.120d -->

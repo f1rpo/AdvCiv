@@ -1186,7 +1186,9 @@ DenialTypes WarAndPeaceAI::Team::declareWarTrade(TeamTypes targetId,
 		if(GET_TEAM(sponsorId).isHuman()) {
 			int humanTradeVal = -1;
 			leaderWpai().canTradeAssets(::round(utilityToTradeVal(utilityThresh)),
-					sponsorLeaderId, &humanTradeVal);
+					sponsorLeaderId, &humanTradeVal,
+					// AI doesn't accept cities as payment for war
+					true);
 			// Don't return NO_DENIAL if human can't pay enough
 			utilityThresh = std::max(utilityThresh,
 					-::round(tradeValToUtility(humanTradeVal)));
@@ -2094,7 +2096,7 @@ bool WarAndPeaceAI::Civ::isPeaceDealPossible(PlayerTypes humanId) const {
 }
 
 bool WarAndPeaceAI::Civ::canTradeAssets(int targetTradeVal, PlayerTypes humanId,
-		int* r) const {
+		int* r, bool ignoreCities) const {
 
 	int totalTradeVal = 0;
 	CvPlayer const& human = GET_PLAYER(humanId);
@@ -2113,13 +2115,15 @@ bool WarAndPeaceAI::Civ::canTradeAssets(int targetTradeVal, PlayerTypes humanId,
 				return true;
 		}
 	}
-	int dummy = -1;
-	for(CvCity* c = human.firstCity(&dummy); c != NULL; c = human.nextCity(&dummy)) {
-		setTradeItem(&item, TRADE_CITIES, c->getID());
-		if(human.canTradeItem(weId, item, true)) {
-			totalTradeVal += GET_PLAYER(weId).AI_cityTradeVal(c);
-			if(totalTradeVal >= targetTradeVal && r == NULL)
-				return true;
+	if(!ignoreCities) {
+		int dummy = -1;
+		for(CvCity* c = human.firstCity(&dummy); c != NULL; c = human.nextCity(&dummy)) {
+			setTradeItem(&item, TRADE_CITIES, c->getID());
+			if(human.canTradeItem(weId, item, true)) {
+				totalTradeVal += GET_PLAYER(weId).AI_cityTradeVal(c);
+				if(totalTradeVal >= targetTradeVal && r == NULL)
+					return true;
+			}
 		}
 	}
 	if(r != NULL) {

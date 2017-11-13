@@ -8566,7 +8566,10 @@ void CvPlayer::revolution(CivicTypes* paeNewCivics, bool bForce)
 	if (getID() == GC.getGameINLINE().getActivePlayer())
 	{
 		gDLL->getInterfaceIFace()->setDirty(Popup_DIRTY_BIT, true); // to force an update of the civic chooser popup
-	}
+	} // <advc.004x>
+	killAll(BUTTONPOPUP_CHANGECIVIC);
+	if(iAnarchyLength > 0)
+		killAll(BUTTONPOPUP_CHOOSEPRODUCTION); // </advc.004x>
 }
 
 
@@ -8698,6 +8701,10 @@ void CvPlayer::convert(ReligionTypes eReligion)
 	setLastStateReligion(eReligion);
 
 	setConversionTimer(std::max(1, ((100 + getAnarchyModifier()) * GC.getDefineINT("MIN_CONVERSION_TURNS")) / 100) + iAnarchyLength);
+	// <advc.004x>
+	killAll(BUTTONPOPUP_CHANGERELIGION);
+	if(iAnarchyLength > 0)
+		killAll(BUTTONPOPUP_CHOOSEPRODUCTION); // </advc.004x>
 }
 
 
@@ -14032,7 +14039,7 @@ bool CvPlayer::pushResearch(TechTypes eTech, bool bClear)
 	{
 		return false;
 	}
-
+	bool wasEmpty = (m_researchQueue.getLength() == 0); // advc.004x
 	//	Pop the entire queue...
 	if (bClear)
 	{
@@ -14116,7 +14123,9 @@ bool CvPlayer::pushResearch(TechTypes eTech, bool bClear)
 
 	// ONEVENT - Tech selected (any)
 	CvEventReporter::getInstance().techSelected(eTech, getID());
-
+	// <advc.004x>
+	if(wasEmpty && getID() == GC.getGameINLINE().getActivePlayer())
+		killAll(BUTTONPOPUP_CHOOSETECH, 0); // </advc.004x>
 	return true;
 }
 
@@ -14512,7 +14521,13 @@ void CvPlayer::expireMessages()
 void CvPlayer::addPopup(CvPopupInfo* pInfo, bool bFront)
 {
 	if (isHuman())
-	{
+	{	// <advc.004x>
+		if(pInfo->getButtonPopupType() == BUTTONPOPUP_CHANGERELIGION)
+			killAll(BUTTONPOPUP_CHANGERELIGION);
+		else if(pInfo->getButtonPopupType() == BUTTONPOPUP_CHANGECIVIC)
+			killAll(BUTTONPOPUP_CHANGECIVIC);
+		else if(pInfo->getButtonPopupType() == BUTTONPOPUP_CHOOSETECH)
+			killAll(BUTTONPOPUP_CHOOSETECH, 0); // </advc.004x>
 		if (bFront)
 		{
 			m_listPopups.push_front(pInfo);
@@ -17980,8 +17995,7 @@ void CvPlayer::setPbemNewTurn(bool bNew)
 //
 void CvPlayer::read(FDataStreamBase* pStream)
 {
-	int iI;
-
+	int iI=0;
 	// Init data before load
 	reset();
 
@@ -24168,3 +24182,34 @@ void CvPlayer::checkAlert(int alertId, bool silent)  {
 	if(alert == NULL) return;
 	alert->check(silent);
 } // </advc.210>
+
+// <advc.004x>
+void CvPlayer::killAll(ButtonPopupTypes bpt, int data1) {
+
+	// Preserve the popups we don't want killed in newQueue
+	std::list<CvPopupInfo*> newQueue;
+	for(int pass = 0; pass < 2; pass++) {
+		if(pass == 1) {
+			// Recall popups already launched
+			gDLL->getInterfaceIFace()->getDisplayedButtonPopups(m_listPopups);
+		}
+		for(std::list<CvPopupInfo*>::iterator it = m_listPopups.begin();
+				it != m_listPopups.end(); it++) {
+			CvPopupInfo* pi = *it;
+			if(pi->getButtonPopupType() != bpt || (data1 >= 0 &&
+					pi->getData1() != data1))
+				newQueue.push_back(pi);
+			else {
+				if(pass <= 0)
+					SAFE_DELETE(pi);
+				// else it's still in the list of popups on display
+			}
+		}
+		m_listPopups.clear();
+	}
+	// The EXE will relaunch these from m_listPopups
+	gDLL->getInterfaceIFace()->clearQueuedPopups();
+	for(std::list<CvPopupInfo*>::iterator it = newQueue.begin();
+			it != newQueue.end(); it++)
+		m_listPopups.push_back(*it);
+} // </advc.004x>

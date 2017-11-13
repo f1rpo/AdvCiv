@@ -32535,6 +32535,7 @@
 					<iMemoryAttitudePercent>100</iMemoryAttitudePercent>
 				</MemoryAttitudePercent>
 			</MemoryAttitudePercents>
+			<!-- advc.005a: was 80 at PLEASED -->
 			<NoWarAttitudeProbs>
 				<NoWarAttitudeProb>
 					<AttitudeType>ATTITUDE_ANNOYED</AttitudeType>
@@ -32546,7 +32547,7 @@
 				</NoWarAttitudeProb>
 				<NoWarAttitudeProb>
 					<AttitudeType>ATTITUDE_PLEASED</AttitudeType>
-					<iNoWarProb>80</iNoWarProb>
+					<iNoWarProb>90</iNoWarProb>
 				</NoWarAttitudeProb>
 				<NoWarAttitudeProb>
 					<AttitudeType>ATTITUDE_FRIENDLY</AttitudeType>

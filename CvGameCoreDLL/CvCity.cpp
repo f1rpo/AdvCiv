@@ -12476,12 +12476,12 @@ void CvCity::pushOrder(OrderTypes eOrder, int iData1, int iData2, bool bSave, bo
 	{
 		return;
 	}
-
+	bool wasEmpty = (m_orderQueue.getLength() == 0); // advc.004x
 	order.eOrderType = eOrder;
 	order.iData1 = iData1;
 	order.iData2 = iData2;
 	order.bSave = bSave;
-
+	
 	/* original bts code
 	if (bAppend)
 	{
@@ -12532,7 +12532,11 @@ void CvCity::pushOrder(OrderTypes eOrder, int iData1, int iData2, bool bSave, bo
 			gDLL->getInterfaceIFace()->setDirty(CityScreen_DIRTY_BIT, true);
 			gDLL->getInterfaceIFace()->setDirty(PlotListButtons_DIRTY_BIT, true);
 		}
-	}
+	} /* <advc.004x> (Fixme: Accomplishes nothing b/c, unlike choose-tech,
+		choose-production popups aren't queued at CvPlayer.) */
+	if(wasEmpty && getOwnerINLINE() == GC.getGameINLINE().getActivePlayer())
+		GET_PLAYER(getOwnerINLINE()).killAll(BUTTONPOPUP_CHOOSEPRODUCTION,
+				getID()); // </advc.004x>
 }
 
 

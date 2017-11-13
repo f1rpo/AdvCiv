@@ -230,7 +230,7 @@ public:
 				/*  If this is not NULL, it is used to return the trade value of
 					all assets that the human can trade, but only up to
 					targetTradeVal. */
-				int* r = NULL) const;
+				int* r = NULL, bool ignoreCities = false) const;
 		double amortizationMultiplier() const;
 		bool isNearMilitaryVictory(int stage) const;
 		int getConquestStage() const;

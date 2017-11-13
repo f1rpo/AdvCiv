@@ -260,7 +260,7 @@ void WarAndPeaceCache::updateCities(PlayerTypes civId) {
 
 void WarAndPeaceCache::updateTotalAssetScore() {
 
-	// For Palace; it's counted as a national wonder below, but's worth another 5.
+	// For Palace; it's counted as a national wonder below, but it's worth another 5.
 	totalAssets = 5;
 	for(int i = 0; i < size(); i++) {
 		City const& c = *getCity(i);
@@ -284,6 +284,8 @@ double WarAndPeaceCache::goldPerProdBuildings() {
 	vector<double> buildingCounts; // excluding wonders
 	vector<double> wonderCounts;
 	CvPlayerAI const& owner = GET_PLAYER(ownerId);
+	EraTypes ownerEra = owner.getCurrentEra();
+	ReligionTypes ownerReligion = owner.getStateReligion();
 	for(CvCity* cp = owner.firstCity(&dummy); cp != NULL;
 			cp = owner.nextCity(&dummy)) { CvCity const& c = *cp;
 		int buildings = 0, wonders = 0;
@@ -295,6 +297,17 @@ double WarAndPeaceCache::goldPerProdBuildings() {
 					// Wonder in construction elsewhere:
 					owner.getBuildingClassMaking((BuildingClassTypes)
 					b.getBuildingClassType()) == 0) {
+				if(b.getReligionType() != NO_RELIGION) {
+					// No Renaissance Monasteries
+					TechTypes obsTech = (TechTypes)b.getObsoleteTech();
+					if(obsTech != NO_TECH && GC.getTechInfo(obsTech).getEra() <=
+							ownerEra)
+						continue;
+					// If state religion, count only buildings of that religion.
+					if(ownerReligion != NO_RELIGION &&
+							b.getReligionType() != ownerReligion)
+						continue;
+				}
 				if(isMundaneBuildingClass(b.getBuildingClassType())) 
 					buildings++;
 				else wonders++;

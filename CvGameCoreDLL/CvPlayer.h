@@ -992,6 +992,7 @@ public:
 	void clearPopups();
 	DllExport CvPopupInfo* popFrontPopup();
 	DllExport const CvPopupQueue& getPopups() const;
+	void killAll(ButtonPopupTypes bpt, int data1 = -1); // advc.004x
 	DllExport void addDiplomacy(CvDiploParameters* pDiplo);
 	void clearDiplomacy();
 	DllExport const CvDiploQueue& getDiplomacy() const;

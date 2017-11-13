@@ -2006,7 +2006,15 @@ void CvInitCore::read(FDataStreamBase* pStream)
 	if(CvPlayerAI::areStaticsInitialized())
 	{
 		for (int i=0;i<MAX_PLAYERS;i++)
-		{
+		{ /* <advc.706> Had a reproducible crash when loading a non-R&F game
+			 from within an R&F game right after inspecting a city.
+			 Resetting the human players before reading any other player data
+			 seems to have fixed it. */
+			CvPlayer& pl = GET_PLAYER((PlayerTypes)i);
+			if(pl.isHuman()) {
+				pl.reset((PlayerTypes)i);
+				pl.setIsHuman(true);
+			} // </advc.706>
 			GET_PLAYER((PlayerTypes)i).updateHuman();
 			GET_PLAYER((PlayerTypes) i).updateTeamType();
 		}

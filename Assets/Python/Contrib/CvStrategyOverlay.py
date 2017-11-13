@@ -71,8 +71,9 @@ def onLoad(argsList):
 	def callRead(layer):
 		layer.read()
 	callEachLayer(callRead)
-	if StratLayerOpt.isShowDotMap():
-		getDotMap().redrawCities()
+	# advc.001: FIXME. This accomplishes nothing b/c the game isn't ready for drawing. Don't know how to fix this. Current workaround: Press Alt-X after loading.
+	#if StratLayerOpt.isShowDotMap():
+		#getDotMap().redrawCities()
 
 def onPreSave(argsList):
 	def callWrite(layer):

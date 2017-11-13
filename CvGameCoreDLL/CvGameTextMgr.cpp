@@ -14220,10 +14220,12 @@ void CvGameTextMgr::getDealString(CvWStringBuffer& szBuffer, CvDeal& deal, Playe
 	const CLinkList<TradeData>* pListPlayer1 = deal.getFirstTrades();
 	const CLinkList<TradeData>* pListPlayer2 = deal.getSecondTrades();
 	
-	getDealString(szBuffer, ePlayer1, ePlayer2, pListPlayer1,  pListPlayer2, ePlayerPerspective);
+	getDealString(szBuffer, ePlayer1, ePlayer2, pListPlayer1,  pListPlayer2, ePlayerPerspective,
+			deal.turnsToCancel()); // advc.004w
 }
 
-void CvGameTextMgr::getDealString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer1, PlayerTypes ePlayer2, const CLinkList<TradeData>* pListPlayer1, const CLinkList<TradeData>* pListPlayer2, PlayerTypes ePlayerPerspective)
+void CvGameTextMgr::getDealString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer1, PlayerTypes ePlayer2, const CLinkList<TradeData>* pListPlayer1, const CLinkList<TradeData>* pListPlayer2, PlayerTypes ePlayerPerspective,
+		int turnsToCancel) // advc.004w
 {
 	if (NO_PLAYER == ePlayer1 || NO_PLAYER == ePlayer2)
 	{
@@ -14239,7 +14241,8 @@ void CvGameTextMgr::getDealString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer
 		for (pTradeNode = pListPlayer1->head(); pTradeNode; pTradeNode = pListPlayer1->next(pTradeNode))
 		{
 			CvWStringBuffer szTrade;
-			getTradeString(szTrade, pTradeNode->m_data, ePlayer1, ePlayer2);
+			getTradeString(szTrade, pTradeNode->m_data, ePlayer1, ePlayer2,
+					turnsToCancel); // advc.004w
 			setListHelp(szDealOne, L"", szTrade.getCString(), L", ", bFirst);
 			bFirst = false;
 		}
@@ -14253,12 +14256,33 @@ void CvGameTextMgr::getDealString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer
 		for (pTradeNode = pListPlayer2->head(); pTradeNode; pTradeNode = pListPlayer2->next(pTradeNode))
 		{
 			CvWStringBuffer szTrade;
-			getTradeString(szTrade, pTradeNode->m_data, ePlayer2, ePlayer1);
+			getTradeString(szTrade, pTradeNode->m_data, ePlayer2, ePlayer1,
+					turnsToCancel); // advc.004w
 			setListHelp(szDealTwo, L"", szTrade.getCString(), L", ", bFirst);
 			bFirst = false;
 		}
+	} // <advc.004w>
+	bool allDual = false;
+	if(pListPlayer1 != NULL && pListPlayer2 != NULL) {
+		for(int pass = 0; pass < 2; pass++) {
+			CLinkList<TradeData> const& list = *(pass == 0 ? pListPlayer1 : pListPlayer2);
+			for(CLLNode<TradeData>* node = list.head(); node != NULL;
+					node = list.next(node)) {
+				TradeableItems item = node->m_data.m_eItemType;
+				if(!CvDeal::isDual(item)) {
+					allDual = false;
+					break;
+				}
+				else allDual = true;
+			}
+		}
 	}
-
+	if(allDual) {
+		szBuffer.append(gDLL->getText("TXT_KEY_MISC_DEAL_DUAL",
+				szDealOne.getCString(), (ePlayerPerspective == ePlayer1 ? 
+				GET_PLAYER(ePlayer2).getNameKey() :
+				GET_PLAYER(ePlayer1).getNameKey())));
+	} else // </advc.004w>
 	if (!szDealOne.isEmpty())
 	{
 		if (!szDealTwo.isEmpty())
@@ -14674,7 +14698,14 @@ void CvGameTextMgr::getEspionageString(CvWStringBuffer& szBuffer, PlayerTypes eP
 	}
 }
 
-void CvGameTextMgr::getTradeString(CvWStringBuffer& szBuffer, const TradeData& tradeData, PlayerTypes ePlayer1, PlayerTypes ePlayer2)
+// <advc.>
+void CvGameTextMgr::getTradeString(CvWStringBuffer& szBuffer, const TradeData& tradeData, PlayerTypes ePlayer1, PlayerTypes ePlayer2) {
+
+	return getTradeString(szBuffer, tradeData, ePlayer1, ePlayer2, -1);
+} // </advc.>
+
+void CvGameTextMgr::getTradeString(CvWStringBuffer& szBuffer, const TradeData& tradeData, PlayerTypes ePlayer1, PlayerTypes ePlayer2,
+		int turnsToCancel) // advc.
 {
 	switch (tradeData.m_eItemType)
 	{
@@ -14703,7 +14734,10 @@ void CvGameTextMgr::getTradeString(CvWStringBuffer& szBuffer, const TradeData& t
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_PERMANENT_ALLIANCE"));
 		break;
 	case TRADE_PEACE_TREATY:
-		szBuffer.append(gDLL->getText("TXT_KEY_MISC_PEACE_TREATY", GC.getDefineINT("PEACE_TREATY_LENGTH")));
+		szBuffer.append(gDLL->getText("TXT_KEY_MISC_PEACE_TREATY",
+				// <advc.>
+				(turnsToCancel < 0 ? GC.getDefineINT("PEACE_TREATY_LENGTH") :
+				turnsToCancel))); // </advc.>
 		break;
 	case TRADE_TECHNOLOGIES:
 		szBuffer.assign(CvWString::format(L"%s", GC.getTechInfo((TechTypes)tradeData.m_iData).getDescription()));

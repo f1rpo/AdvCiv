@@ -3657,7 +3657,8 @@ int CvTeam::getForceTeamVoteEligibilityCount(VoteSourceTypes eVoteSource) const
 
 bool CvTeam::isForceTeamVoteEligible(VoteSourceTypes eVoteSource) const
 {
-	return ((getForceTeamVoteEligibilityCount(eVoteSource) > 0) && !isMinorCiv());
+	return ((getForceTeamVoteEligibilityCount(eVoteSource) > 0) && !isMinorCiv()
+			&& !isCapitulated()); // advc.014
 }
 
 

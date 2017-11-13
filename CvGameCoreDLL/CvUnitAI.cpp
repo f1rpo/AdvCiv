@@ -2985,11 +2985,17 @@ void CvUnitAI::AI_attackCityMove()
 
 	bool bReadyToAttack = false;
 	if( !bTurtle )
-	{
-		bReadyToAttack = getGroup()->getNumUnits() >=
-				// advc.300: was // (bHuntBarbs ? 3
-				(huntOnlyBarbs ? (barbGarrisonRatio * 3) / (2 + owner.getCurrentEra()/2)
-				: AI_stackOfDoomExtra());
+	{	// <advc.300>
+		int const groupSz = getGroup()->getNumUnits();
+		if(!huntOnlyBarbs && groupSz >= AI_stackOfDoomExtra())
+			bReadyToAttack = true;
+		else if(huntOnlyBarbs && groupSz >=
+				(barbGarrisonRatio * 3) / (2 + owner.getCurrentEra()/2) &&
+				/*  Don't send a giant stack. (Tbd.: Should perhaps
+					split up the group then.) */
+				groupSz < 2.75 * barbGarrisonRatio)
+			bReadyToAttack = true;
+		// </advc.300>
 	}
 
 	if( isBarbarian() )
@@ -3102,8 +3108,10 @@ void CvUnitAI::AI_attackCityMove()
 			iReducedModifier *= std::min(20, iBombardTurns);
 			iReducedModifier /= 20;
 			int iBase = 210 + (pTargetCity->plot()->isHills() ? GC.getHILLS_EXTRA_DEFENSE() : 0);
-			iComparePostBombard *= iBase;
-			iComparePostBombard /= std::max(1, iBase + iReducedModifier - iDefenseModifier); // def. mod. < 200. I promise.
+			// advc.003: Make sure we don't get an overflow here
+			double mult = iBase / (double)std::max(1,
+					iBase + iReducedModifier - iDefenseModifier); // def. mod. < 200. I promise.
+			iComparePostBombard = ::round(mult * iComparePostBombard);
 			// iBase > 100 is to offset the over-reduction from compounding.
 			// With iBase == 200, bombarding a defence bonus of 100% will reduce effective defence by 50%
 		}
@@ -7585,45 +7593,78 @@ void CvUnitAI::AI_exploreSeaMove()
 		}
 	}
 	// advc.017b: Moved this chunk of code down
-	/*  <advc.017b> Make sure we're not converting or scrapping a unit that
-		CvPlayerAI thinks we need */
-	bool excessExplorers = (kOwner.AI_neededExplorers(area()) <
-			kOwner.AI_totalWaterAreaUnitAIs(area(), UNITAI_EXPLORE_SEA) -
-			// The above counts units that are still being trained; don't want that here.
-			kOwner.AI_getNumTrainAIUnits(UNITAI_EXPLORE_SEA));
-	// </advc.017b>
-	if (!isHuman() && !isBarbarian() //XXX move some of this into a function? maybe useful elsewhere
-			&& excessExplorers) // advc.017b
-	{
-		// advc.017b: Moved the obsoletion test; now only required for scrapping
-		// <advc.003> Made this more concise (original code deleted)
-		std::vector<UnitAITypes> transformTypes;
-		transformTypes.push_back(UNITAI_WORKER_SEA);
-		transformTypes.push_back(UNITAI_PIRATE_SEA);
-		// <advc.017b> Instead of always trying MISSIONARY_SEA before RESERVE_SEA
-		if((kOwner.AI_totalUnitAIs(UNITAI_MISSIONARY) > 0 ||
-				kOwner.AI_isDoStrategy(AI_STRATEGY_MISSIONARY)) &&
-				kOwner.AI_totalUnitAIs(UNITAI_MISSIONARY_SEA) <= 1) {
-			transformTypes.push_back(UNITAI_MISSIONARY_SEA);
-			transformTypes.push_back(UNITAI_RESERVE_SEA);
-		}
-		else {
-			transformTypes.push_back(UNITAI_RESERVE_SEA);
-			transformTypes.push_back(UNITAI_MISSIONARY_SEA);
-		} // </advc.017b>
-		for(size_t i = 0; i < transformTypes.size(); i++) {
-			if(kOwner.AI_unitValue(getUnitType(), transformTypes[i], area()) > 0) {
-				AI_setUnitAIType(transformTypes[i]);
+	bool excessExplorers = false;
+	if (!isHuman() && !isBarbarian()) //XXX move some of this into a function? maybe useful elsewhere
+	{	// <advc.017b>
+		/*  Make sure we're not converting or scrapping a unit that CvPlayerAI
+			thinks we need */
+		bool transform = (kOwner.AI_neededExplorers(area()) <
+				kOwner.AI_totalWaterAreaUnitAIs(area(), UNITAI_EXPLORE_SEA) -
+				/*  The above counts units that are still being trained;
+					don't want that here. */
+				kOwner.AI_getNumTrainAIUnits(UNITAI_EXPLORE_SEA));
+		excessExplorers = transform;
+		UnitAITypes defaultAI = (UnitAITypes)m_pUnitInfo->getDefaultUnitAIType();
+		if(!transform && !m_pUnitInfo->isRivalTerritory() && // East Indiaman
+				(defaultAI == UNITAI_ASSAULT_SEA || defaultAI == UNITAI_SETTLER_SEA ||
+				defaultAI == UNITAI_WORKER_SEA)) {
+			for(int i = 0; i < GC.getNumUnitClassInfos(); i++) {
+				UnitClassTypes uct = (UnitClassTypes)i;
+				/*  Will eventually build some Caravels as attackers even if
+					explorers are maxed out. Could alternatively check
+					kOwner.canTrain(ut), but that's slightly more expensive. */
+				if(kOwner.getUnitClassCount(uct) <= 0)
+					continue;
+				UnitTypes ut = (UnitTypes)GC.getCivilizationInfo(kOwner.
+						getCivilizationType()).getCivilizationUnits(uct);
+					if(ut != NO_UNIT && GC.getUnitInfo(ut).isRivalTerritory()) {
+						transform = true;
+						break;
+					}
+			}
+		} // Moved the obsoletion test; now only required for scrapping
+		if(transform) { // </advc.017b>
+			// <advc.003> Made this more concise (original code deleted)
+			std::vector<UnitAITypes> transformTypes;
+			transformTypes.push_back(UNITAI_WORKER_SEA);
+			transformTypes.push_back(UNITAI_PIRATE_SEA);
+			AreaAITypes aai = area()->getAreaAIType(getTeam());
+			if(aai == AREAAI_ASSAULT || aai == AREAAI_ASSAULT_ASSIST ||
+					aai == AREAAI_ASSAULT_MASSING ||
+					kOwner.AI_totalUnitAIs(UNITAI_SETTLE) <= 0 ||
+					kOwner.AI_totalUnitAIs(UNITAI_SETTLER_SEA) > 0) {
+				transformTypes.push_back(UNITAI_ASSAULT_SEA);
+				transformTypes.push_back(UNITAI_SETTLER_SEA);
+			}
+			else {
+				transformTypes.push_back(UNITAI_SETTLER_SEA);
+				transformTypes.push_back(UNITAI_ASSAULT_SEA);
+			}
+			// <advc.017b> Instead of always trying MISSIONARY_SEA before RESERVE_SEA
+			if((kOwner.AI_totalUnitAIs(UNITAI_MISSIONARY) > 0 ||
+					kOwner.AI_isDoStrategy(AI_STRATEGY_MISSIONARY)) &&
+					kOwner.AI_totalUnitAIs(UNITAI_MISSIONARY_SEA) <= 1) {
+				transformTypes.push_back(UNITAI_MISSIONARY_SEA);
+				transformTypes.push_back(UNITAI_RESERVE_SEA);
+			}
+			else {
+				transformTypes.push_back(UNITAI_RESERVE_SEA);
+				transformTypes.push_back(UNITAI_MISSIONARY_SEA);
+			} // </advc.017b>
+			for(size_t i = 0; i < transformTypes.size(); i++) {
+				if(kOwner.AI_unitValue(getUnitType(), transformTypes[i], area()) > 0) {
+					AI_setUnitAIType(transformTypes[i]);
+					return;
+				}
+			} // </advc.003>
+			// <advc.017b> Cut and pasted from above:
+			//Obsolete?
+			int iValue = kOwner.AI_unitValue(getUnitType(), AI_getUnitAIType(), area());
+			int iBestValue = kOwner.AI_bestAreaUnitAIValue(AI_getUnitAIType(), area());
+			if (iValue < iBestValue) {
+				scrap();
 				return;
 			}
-		} // </advc.003>
-		// <advc.017b> Cut and pasted from above:
-		//Obsolete?
-		int iValue = kOwner.AI_unitValue(getUnitType(), AI_getUnitAIType(), area());
-		int iBestValue = kOwner.AI_bestAreaUnitAIValue(AI_getUnitAIType(), area());
-		if (iValue < iBestValue) {
-			scrap();
-			return;
 		} // </advc.017b>
 	}
 
@@ -13844,7 +13885,7 @@ bool CvUnitAI::AI_join(int iMaxCount)
 /************************************************************************************************/
 		// BBAI efficiency: check same area
 		if ( /* advc.030: Replacing the clause below (although it won't
-				make functional difference) */
+				make a functional difference) */
 				canEnterArea(*pLoopCity->area())
 				//(pLoopCity->area() == area())
 				&& AI_plotValid(pLoopCity->plot()))

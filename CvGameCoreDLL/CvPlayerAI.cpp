@@ -2983,7 +2983,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	int iSpecialFoodMinus = 0;
 	int iSpecialProduction = 0;
 	int iSpecialCommerce = 0;
-	int iBaseProduction = 0; // K-Mod. (used to devalue cities which are unable to get any production.)
+	// advc.031: int->double
+	double baseProduction = 0; // K-Mod. (used to devalue cities which are unable to get any production.)
 	double specials = 0; // advc.031: Number of tiles with special yield
 
 	bool bNeutralTerritory = true;
@@ -3387,7 +3388,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 
 					// K-Mod. Before we make special adjustments, there are some things we need to do with the true values.
 					if (eYield == YIELD_PRODUCTION)
-						iBaseProduction += aiYield[YIELD_PRODUCTION];
+						baseProduction += aiYield[YIELD_PRODUCTION];
 					else if (eYield == YIELD_FOOD)
 						iSpecialFoodPlus += std::max(0, aiYield[YIELD_FOOD] - GC.getFOOD_CONSUMPTION_PER_POPULATION());
 					//
@@ -3426,7 +3427,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			}
 			// K-Mod. add non city plot production to the base production count. (city plot has already been counted)
 			if (iI != CITY_HOME_PLOT) {
-				iBaseProduction += aiYield[YIELD_PRODUCTION];
+				baseProduction += aiYield[YIELD_PRODUCTION];
 				// <advc.031>
 				if(iPlotValue > 25 && pLoopPlot->isRiver())
 					iRiver++; // </advc.031>
@@ -3481,15 +3482,25 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			}
 			else // is land
 			{
-				if (iI != CITY_HOME_PLOT // <advc.031>
-						// Counted as iSpecialProduction
-						&& eBonus == NO_BONUS) {
+				if (iI != CITY_HOME_PLOT) {
 					//iBaseProduction += pLoopPlot->isHills() ? 2 : 1;
 					/*  The above is pretty bad. We're not going to build
 						Workshops everywhere. Doesn't check for Peak or Desert. */
-					if(getNumCities() <= 2) { // Fair enough early on
+					FeatureTypes ft = pLoopPlot->getFeatureType();
+					/*  If not event. removeable, then production from feature
+						is already counted above */
+					if(bEventuallyRemoveableFeature && ft != NO_FEATURE &&
+							GC.getFeatureInfo(ft).getYieldChange(
+							YIELD_PRODUCTION) > 0) {
+						baseProduction += GC.getFeatureInfo(ft).
+								/*  For chopping or Lumbermill.
+									(I shouldn't hardcode it like this, but, god,
+									is this stuff awkward to implement.) */
+								getYieldChange(YIELD_PRODUCTION) + 0.5;
+					}
+					else if(getNumCities() <= 2) { // Fair enough early on
 						if(pLoopPlot->isHills())
-							iBaseProduction += 2;
+							baseProduction += 2;
 					}
 					else { for(int j = 0; j < GC.getNumImprovementInfos(); j++) {
 						ImprovementTypes imprId = (ImprovementTypes)j;
@@ -3501,6 +3512,9 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 						int yc = impr.getYieldChange(YIELD_PRODUCTION) +
 								kTeam.getImprovementYieldChange(imprId,
 								YIELD_PRODUCTION);
+						/*  Note that any additional yield from putting impr
+							on a bonus resource is already counted as
+							iSpecialProduction */
 						for(int k = 0; k < NUM_YIELD_TYPES && k != YIELD_PRODUCTION; k++) {
 							int otherYield = impr.getYieldChange((YieldTypes)k);
 							if(otherYield < 0) // Will be less inclined to build it then
@@ -3516,7 +3530,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 						if(yc <= 0 || !pLoopPlot->canHaveImprovement(imprId, getTeam()))
 							continue;
 						FAssertMsg(yc <= 3, "is this much production possible?");
-						iBaseProduction += yc;
+						baseProduction += yc;
 					} } // </advc.031>
 				}
 
@@ -3724,7 +3738,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		|| (isBarbarian() && iTakenTiles > 2)) // advc.303
 		&& iResourceValue < 250) // <advc.031>
 		|| (iTakenTiles >= (2 * NUM_CITY_PLOTS) / 3 &&
-		iResourceValue < 900)) // </advc.031>
+		iResourceValue < 800)) // </advc.031>
 	{
 		return 0;
 	}
@@ -3798,10 +3812,10 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					iSeaValue /= 100;
 				}
 				// Modify based on production (since the point is to build a navy)
-				double mult = (iBaseProduction + iSpecialProduction) / 18.0;
+				double mult = (baseProduction + iSpecialProduction) / 18.0;
 				mult = 0.7 * ::dRange(mult, 0.1, 2.0);
-				if(GC.getInitCore().getMapScriptName().
-						compare(L"Pangaea") == 0)
+				// That's the name of the .py file; not language-dependent.
+				if(GC.getInitCore().getMapScriptName().compare(L"Pangaea") == 0)
 					mult /= 2;
 				iSeaValue = ::round(iSeaValue * mult);
 				// </advc.031>
@@ -4070,20 +4084,25 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 
 	// K-Mod. reduce value of cities which will struggle to get any productivity.
 	{
-		iBaseProduction += iSpecialProduction;
+		baseProduction += iSpecialProduction;
 		// <advc.040>
-		iBaseProduction += std::max(unrev / 2, ::round(
-				iBaseProduction * (unrev / (double)NUM_CITY_PLOTS)));
+		baseProduction += std::max(unrev / 2, ::round(
+				baseProduction * (unrev / (double)NUM_CITY_PLOTS)));
 		// </advc.040>
-		FAssert(!pPlot->isRevealed(getTeam(), false) || iBaseProduction >= GC.getYieldInfo(YIELD_PRODUCTION).getMinCity());
+		/*  advc.031: The assertion below can fail when there are gems under
+			jungle. Something's not quite correct in the baseProduction
+			computation, but it isn't worth fretting over. */
+		baseProduction = std::max(baseProduction, (double)GC.getYieldInfo(YIELD_PRODUCTION).getMinCity());
+		//FAssert(!pPlot->isRevealed(getTeam(), false) || baseProduction >= GC.getYieldInfo(YIELD_PRODUCTION).getMinCity());
 		int iThreshold = 9; // pretty arbitrary
 		// <advc.303> Can't expect that much production from just the inner ring.
 		if(isBarbarian())
 			iThreshold = 4; // </advc.303>
-		if (iBaseProduction < iThreshold)
-		{
-			iValue *= iBaseProduction;
-			iValue /= iThreshold;
+		if (baseProduction < iThreshold)
+		{	// advc.031: Replacing the two lines below
+			iValue = ::round(iValue * baseProduction / iThreshold);
+			/*iValue *= iBaseProduction;
+			iValue /= iThreshold;*/
 		}
 	}
 	// K-Mod end
@@ -8879,7 +8898,8 @@ int CvPlayerAI::AI_getMemoryAttitude(PlayerTypes ePlayer, MemoryTypes eMemory) c
 		but this rarely mattered. Now rounding down would often result in no effect
 		on relations. */
 	double div = 195; // Finer granularity for DoW:
-	if(eMemory == MEMORY_DECLARED_WAR) div = 295; // </advc.130j>
+	if(eMemory == MEMORY_DECLARED_WAR)
+		div = 295; // </advc.130j>
 	return ::round((AI_getMemoryCount(ePlayer, eMemory) *
 			GC.getLeaderHeadInfo(getPersonalityType()).
 			getMemoryAttitudePercent(eMemory)) / div); 
@@ -19385,11 +19405,23 @@ bool CvPlayerAI::proposeEmbargo(PlayerTypes humanId) {
 	TeamTypes eBestTeam = GET_TEAM(getTeam()).AI_getWorstEnemy();
 	if(eBestTeam == NO_TEAM || !TEAMREF(humanId).isHasMet(eBestTeam) ||
 			GET_TEAM(eBestTeam).isVassal(TEAMID(humanId)) ||
-			!GET_PLAYER(humanId).canStopTradingWithTeam(eBestTeam))
+			!GET_PLAYER(humanId).canStopTradingWithTeam(eBestTeam) ||
+			// advc.104m:
+			GET_TEAM(getTeam()).AI_isSneakAttackReady(TEAMID(humanId)))
 		return false;
 	FAssert(!atWar(TEAMID(humanId), eBestTeam));
 	FAssert(TEAMID(humanId) != eBestTeam);
-	/*  <advc.130f> Mustn't propose embargo if our deals can't be canceled.
+	// <advc.130f>
+	/*  During war preparation against human, ask to stop trading only if this
+		will improve our attitude. */
+	/*if(GET_TEAM(getTeam()).AI_getWarPlan(TEAMID(humanId)) != NO_WARPLAN &&
+			AI_getAttitude(humanId) >= AI_getAttitudeFromValue(AI_getAttitudeVal(humanId))
+			+ GC.getLeaderHeadInfo(getPersonalityType()).
+			getMemoryAttitudePercent(MEMORY_ACCEPTED_STOP_TRADING) / 100)
+		return false;*/
+	/*  ^ Never mind; leave it up to the human to figure out if the AI might
+		declare war anyway. */
+	/*  Mustn't propose embargo if our deals can't be canceled.
 		Perhaps this check should be in CvPlayer::canTradeItem instead? */
 	CvGame& g = GC.getGameINLINE(); int dummy;
 	for(CvDeal* d = g.firstDeal(&dummy); d != NULL; d = g.nextDeal(&dummy)) {
@@ -19465,6 +19497,8 @@ bool CvPlayerAI::contactCivics(PlayerTypes humanId) {
 bool CvPlayerAI::askHelp(PlayerTypes humanId) {
 
 	// <advc.104m>
+	if(GET_TEAM(getTeam()).AI_isSneakAttackReady(TEAMID(humanId)))
+		return false;
 	if(getWPAI.isEnabled() && ::bernoulliSuccess(0.2, "advc.130m"))
 		return false; // </advc.104m>
 	// <advc.705>
@@ -19511,6 +19545,8 @@ bool CvPlayerAI::askHelp(PlayerTypes humanId) {
 bool CvPlayerAI::demandTribute(PlayerTypes humanId, int tributeType) {
 
 	// <advc.104m>
+	if(GET_TEAM(getTeam()).AI_isSneakAttackReady(TEAMID(humanId)))
+		return false;
 	if(getWPAI.isEnabled() && ::bernoulliSuccess(0.5, "advc.104m"))
 		return false; // </advc.104m>
 	if(AI_getContactTimer(humanId, CONTACT_DEMAND_TRIBUTE) > 0 ||

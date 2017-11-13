@@ -2596,8 +2596,17 @@ void CvGame::updateScore(bool bForce)
 		setPlayerScore(eBestPlayer, iBestScore);
 		GET_PLAYER(eBestPlayer).updateScoreHistory(getGameTurn(), iBestScore);
 	} // <advc.001>
-	for(size_t i = 0; i < updateAttitude.size(); i++)
-		GET_PLAYER(updateAttitude[i]).AI_updateAttitudeCache(); // </advc.001>
+	/*for(size_t i = 0; i < updateAttitude.size(); i++)
+		GET_PLAYER(updateAttitude[i]).AI_updateAttitudeCache();*/
+	/*  The above isn't enough; the attitudes of those outside updateAttitude
+		toward those inside could also change. */
+	if(!updateAttitude.empty()) {
+		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+			CvPlayerAI& civ = GET_PLAYER((PlayerTypes)i);
+			if(civ.isAlive() && !civ.isMinorCiv())
+				civ.AI_updateAttitudeCache();
+		}
+	} // </advc.001>
 	for (iI = 0; iI < MAX_CIV_TEAMS; iI++)
 	{
 		abTeamScored[iI] = false;
