@@ -365,7 +365,7 @@ class CvMainInterface:
 		self.sFieldOfView_Text = localText.getText("TXT_KEY_BUG_OPT_MAININTERFACE__FIELDOFVIEW_TEXT", ())
 		#self.DEFAULT_FIELD_OF_VIEW = max(40, min(80, self.xResolution / 30)) # K-Mod (bigger FoW for bigger monitors. They'll appreciate it. Trust me.)
 		# <advc.004m> (Replacing the above) Don't just ignore the XML setting. Problem: BUG stores the value computed for self.DEFAULT_FIELD_OF_VIEW in CvGlobals, overwriting the FIELD_OF_VIEW set through XML until the game is restarted. This makes my computation below recursive, leading to a shift in the field-of-view value each time that the game returns to the main menu, which, incidentally, it does frequently because of change 003d. Therefore only make the resolution-based adjustment if the BUG slider is not used. If the slider is used, people are going to set it manually anyway.
-		if not MainOpt.isRememberFieldOfView() and not MainOpt.isShowFieldOfView():
+		if (not MainOpt.isRememberFieldOfView() and not MainOpt.isShowFieldOfView()) or int(MainOpt.getFieldOfView()) < 0:
 			fovxml = gc.getFIELD_OF_VIEW()
 			self.DEFAULT_FIELD_OF_VIEW = int(max(fovxml, min(2 * fovxml, self.xResolution / max(70 - fovxml, 10)))) # </advc.004m>
 		if MainOpt.isRememberFieldOfView():

@@ -531,8 +531,9 @@ void CvCity::reset(int iID, PlayerTypes eOwner, int iX, int iY, bool bConstructo
 	for (iI = 0; iI < MAX_TEAMS; iI++)
 	{
 		m_abEspionageVisibility[iI] = false;
-	}
-
+	} // <advc.004x>
+	mrWasUnit = false;
+	mrOrder = -1; // </advc.004x>
 	m_szName.clear();
 	m_szScriptData = "";
 
@@ -959,8 +960,24 @@ void CvCity::doTurn()
 				}
 			}
 		}
-	}
-
+	} // <advc.004x>
+	else {
+		CvPlayer& owner = GET_PLAYER(getOwnerINLINE());
+		if(isHuman() && !isProduction() && !isProductionAutomated() &&
+				owner.getAnarchyTurns() == 1 && GC.getGameINLINE().getGameState() != GAMESTATE_EXTENDED) {
+			UnitTypes mrUnit = NO_UNIT;
+			BuildingTypes mrBuilding = NO_BUILDING;
+			ProjectTypes mrProject = NO_PROJECT;
+			if(mrOrder >= 0) {
+				if(mrWasUnit)
+					mrUnit = (UnitTypes)mrOrder;
+				else if(mrOrder >= GC.getNumBuildingInfos())
+					mrProject = (ProjectTypes)(mrOrder - GC.getNumBuildingInfos());
+				else mrBuilding = (BuildingTypes)mrOrder;
+			}
+			chooseProduction(mrUnit, mrBuilding, mrProject, mrOrder >= 0);
+		}
+	} // </advc.004x>
 	if (getCultureUpdateTimer() > 0)
 	{
 		changeCultureUpdateTimer(-1);
@@ -1381,7 +1398,7 @@ void CvCity::chooseProduction(UnitTypes eTrainUnit, BuildingTypes eConstructBuil
 {
 	// K-Mod. don't create the popup if the city is in disorder
 	FAssert(isHuman() && !isProductionAutomated());
-	if (isDisorder())
+	if (isOccupation()) // advc.004x: was isDisorder
 	{
 		AI_setChooseProductionDirty(true);
 		return;
@@ -3263,6 +3280,7 @@ void CvCity::setProduction(int iNewValue)
 	{
 		setProjectProduction(getProductionProject(), iNewValue);
 	}
+	mrOrder = -1; mrWasUnit = false; // advc.004x
 }
 
 
@@ -12532,8 +12550,7 @@ void CvCity::pushOrder(OrderTypes eOrder, int iData1, int iData2, bool bSave, bo
 			gDLL->getInterfaceIFace()->setDirty(CityScreen_DIRTY_BIT, true);
 			gDLL->getInterfaceIFace()->setDirty(PlotListButtons_DIRTY_BIT, true);
 		}
-	} /* <advc.004x> (Fixme: Accomplishes nothing b/c, unlike choose-tech,
-		choose-production popups aren't queued at CvPlayer.) */
+	} // <advc.004x>
 	if(wasEmpty && getOwnerINLINE() == GC.getGameINLINE().getActivePlayer())
 		GET_PLAYER(getOwnerINLINE()).killAll(BUTTONPOPUP_CHOOSEPRODUCTION,
 				getID()); // </advc.004x>
@@ -12989,7 +13006,14 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 				}
 
 				chooseProduction(eTrainUnit, eConstructBuilding, eCreateProject, bFinish);
-
+				/*  <advc.004x> Remember the order in case the popups needs to
+					be delayed */
+				mrWasUnit = (eTrainUnit != NO_UNIT);
+				if(mrWasUnit)
+					mrOrder = eTrainUnit;
+				else if(eCreateProject != NO_PROJECT)
+					mrOrder = GC.getNumBuildingInfos() + eCreateProject;
+				else mrOrder = eConstructBuilding; // </advc.004x>
 				bMessage = true;
 			}
 		}
@@ -14187,7 +14211,11 @@ void CvCity::read(FDataStreamBase* pStream)
 		int iChange;
 		pStream->Read(&iChange);
 		m_aBuildingHealthChange.push_back(std::make_pair((BuildingClassTypes)iBuildingClass, iChange));
-	}
+	} // <advc.004x>
+	if(uiFlag >= 2) {
+		pStream->Read(&mrOrder);
+		pStream->Read(&mrWasUnit);
+	} // </advc.004x>
 }
 
 void CvCity::write(FDataStreamBase* pStream)
@@ -14195,6 +14223,7 @@ void CvCity::write(FDataStreamBase* pStream)
 	int iI;
 
 	uint uiFlag=1;
+	uiFlag++; // advc.004x
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iID);
@@ -14409,7 +14438,9 @@ void CvCity::write(FDataStreamBase* pStream)
 	{
 		pStream->Write((*it).first);
 		pStream->Write((*it).second);
-	}
+	} // <advc.004x>
+	pStream->Write(mrOrder);
+	pStream->Write(mrWasUnit); // </advc.004x>
 }
 
 
@@ -14439,6 +14470,12 @@ void CvCity::getVisibleBuildings(std::list<BuildingTypes>& kChosenVisible, int& 
 	std::vector<BuildingTypes> kVisible;
 
 	iNumBuildings = GC.getNumBuildingInfos();
+	// <advc.045>
+	PlayerTypes activePl = GC.getGameINLINE().getActivePlayer();
+	bool allVisible = (activePl == NO_PLAYER ||
+			plot()->isInvestigate(TEAMID(activePl)) ||
+			plot()->plotCount(NULL, -1, -1, activePl) > 0 ||
+			GC.getGameINLINE().isDebugMode()); // </advc.045>
 	for(int i = 0; i < iNumBuildings; i++)
 	{
 		eCurType = (BuildingTypes) i;
@@ -14451,9 +14488,7 @@ void CvCity::getVisibleBuildings(std::list<BuildingTypes>& kChosenVisible, int& 
 				getBuildingClassType());
 		bool bIsDefense = (kBuilding.getDefenseModifier() > 0);
 		PlayerTypes activePl = GC.getGameINLINE().getActivePlayer();
-		if(activePl != NO_PLAYER && !plot()->isInvestigate(TEAMID(activePl)) &&
-				!bIsWonder && !bIsDefense && !GC.getGameINLINE().isDebugMode()) {
-			// Not from Rise of Mankind:
+		if(!allVisible && !bIsWonder && !bIsDefense) {
 			bool visibleYieldChange = false;
 			int* seaPlotYieldChanges = kBuilding.getSeaPlotYieldChangeArray();
 			int* riverPlotYieldChanges = kBuilding.getRiverPlotYieldChangeArray();

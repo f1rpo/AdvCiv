@@ -16284,6 +16284,10 @@ void CvGameTextMgr::parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity& city
 
 		std::vector< std::pair<UnitTypes, int> > aUnitProgress;
 		int iTotalTruncated = 0;
+		/*  advc.001c: This should be owner.greatPeopleThreshold(false), but
+			I don't want to predict GPP overflow here. */
+		int target = std::max(1, city.getGreatPeopleProgress() +
+				iTurnsLeft * city.getGreatPeopleRate());
 		for (iI = 0; iI < GC.getNumUnitInfos(); ++iI)
 		{
 			// <advc.001c>
@@ -16292,7 +16296,7 @@ void CvGameTextMgr::parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity& city
 					(iTurnsLeft * city.getGreatPeopleUnitRate(gpType)
 					* city.getTotalGreatPeopleRateModifier()) / 100;
 			iProgress *= 100;
-			iProgress /= owner.greatPeopleThreshold(false);
+			iProgress /= target;
 			//int iProgress = ((city.getGreatPeopleUnitProgress((UnitTypes)iI) * 100) / iTotalGreatPeopleUnitProgress);
 			// </advc.001c>
 			if (iProgress > 0)

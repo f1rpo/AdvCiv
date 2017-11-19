@@ -1280,7 +1280,9 @@ protected:
 	bool* m_abTradeRoute;
 	bool* m_abRevealed;
 	bool* m_abEspionageVisibility;
-
+	// <advc.004x> Most recently completed order
+	int mrOrder;
+	bool mrWasUnit; // </advc.004x>
 	//CvWString m_szName; // advc.003: Moved up
 	CvString m_szScriptData;
 

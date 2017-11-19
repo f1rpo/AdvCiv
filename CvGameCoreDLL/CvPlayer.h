@@ -209,6 +209,7 @@ public:
 	int getNumAvailableBonuses(BonusTypes eBonus) const;																									// Exposed to Python
 	DllExport int getNumTradeableBonuses(BonusTypes eBonus) const;																				// Exposed to Python
 	int getNumTradeBonusImports(PlayerTypes ePlayer) const;																								// Exposed to Python
+	double bonusImportValue(PlayerTypes fromId) const; // advc.149
 	bool hasBonus(BonusTypes eBonus) const;									// Exposed to Python
 	// advc.003: Said "IncludeCancelable" but it actually does the opposite
 	bool isTradingWithTeam(TeamTypes eTeam, bool bIncludeUncancelable) const;

@@ -3153,10 +3153,14 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				so this is about snow. Perhaps snow river should be
 				just 1 bad tile(?). Bonus check added (Incense). */
 				pLoopPlot->getBonusType() == NO_BONUS &&
-				!pLoopPlot->isHills() &&
 				(pLoopPlot->calculateBestNatureYield(YIELD_FOOD, getTeam()) == 0 || pLoopPlot->calculateTotalBestNatureYield(getTeam()) <= 1))
-			{
-				iBadTile += 2;
+			{	// <advc.031>
+				iBadTile++; /*  Snow hills had previously not been counted as bad,
+				but they are. Worthless even unless the city is deperate for
+				production or has plenty of food. */
+				if(!pLoopPlot->isHills() || (baseProduction >= 10 &&
+						iSpecialFoodPlus - iSpecialFoodMinus < 5))
+					iBadTile++; // </advc.031>
 			}
 			else if (pLoopPlot->isWater() && pLoopPlot->calculateBestNatureYield(YIELD_FOOD, getTeam()) <= 1)
 			{	/* <advc.031> Removed the bIsCoastal check from the
@@ -3245,7 +3249,9 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	int iTakenTiles = 0;
 	int iTeammateTakenTiles = 0;
 	int iHealth = 0;
-	int iRiver = 0; // advc.031
+	// <advc.031>
+	int iRiver = 0;
+	int iGreen  = 0; // </advc.031>
 	int iValue = 800; // was 1000
 
 	// <advc.040>
@@ -3421,7 +3427,9 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 							// advc.031: was 30 *...
 							iPlotValue += 25 * kFeature.getYieldChange(eYield);
 						}
-					}
+					} // <advc.031>
+					if(aiYield[YIELD_FOOD] >= 2)
+						iGreen++; // </advc.031>
 				}
 				// K-Mod end
 			}
@@ -3548,8 +3556,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				}
 			} /* <advc.030> Details chosen so that iPlotValue=150 is a fixpoint;
 				 150 seems like a pretty average plot value to me. */
-			iPlotValue = ::round(std::pow((double)std::max(
-					iPlotValue/3, iPlotValue - 35), 1.25) / 2.5);
+			iPlotValue = ::round(std::max(iPlotValue/3.0,
+					std::pow(std::max(0.0, iPlotValue - 35.0), 1.25) / 2.5));
 			// </advc.130>
 			// K-Mod version (original code deleted)
 			if (kSet.bEasyCulture)
@@ -3597,9 +3605,17 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					viBonusCount[eBonus]++; // (this use to be above the iBonusValue initialization)
 					FAssert(viBonusCount[eBonus] > 0);
 
-					iBonusValue *= (kSet.bStartingLoc ? 100 : kSet.iGreed);
+					iBonusValue *= (kSet.bStartingLoc ? 100 :
+						/*  advc.031: Greed perhaps shouldn't matter here at all.
+							Civs that like founding lots of cities are going to
+							have lots of resources anyway; that's one thing they
+							don't need to be grredy for. */
+							(kSet.iGreed + 200) / 3);
 					iBonusValue /= 100;
-					/*  <advc.031> Stop the AI from securing more than one Oil
+					// <advc.031>
+					if(pLoopPlot->getOwnerINLINE() == getID())
+						iBonusValue = 0; // We've already got it
+					/*  Stop the AI from securing more than one Oil
 						source when Oil is revealed but not yet workable */
 					if(eBonusImprovement == NO_IMPROVEMENT &&
 							getNumAvailableBonuses(eBonus) <= 0) { int dummy=-1;
@@ -3715,6 +3731,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		iResourceValue /= 4; // try not to make the value of strategic resources too overwhelming. (note: I removed a bigger value reduction from the original code higher up.)
 	// Note: iSpecialFood is whatever food happens to be asscioated with bonuses. Don't value it highly, because it's also counted in a bunch of other ways.
 	// <advc.031>
+	// Preserve this for later
+	int nonYieldResourceVal = std::max(0, iResourceValue);
 	if(specials > 0.01) {
 		double perSpecial[NUM_YIELD_TYPES];
 		for(int i = 0; i < NUM_YIELD_TYPES; i++)
@@ -3742,7 +3760,17 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	{
 		return 0;
 	}
-
+	/*  <advc.031> There's already a food surplus factor toward the end of
+		the function, but that one doesn't punish cities with low food much;
+		not sure if it's intended to do that. */
+	if(!kSet.bStartingLoc && getCurrentEra() < 4) {
+		double lowFoodFactor = (7 + iGreen + iSpecialFoodPlus -
+				iSpecialFoodMinus) / 10.0;
+		lowFoodFactor = ::dRange(lowFoodFactor, 0.45, 1.0);
+		// Don't apply this to the value from happiness/health/strategic
+		iValue = ::round((iValue - nonYieldResourceVal) * lowFoodFactor)
+				+ nonYieldResourceVal;
+	} // </advc.031>
 	/* original bts code (K-Mod: just go look at what "iTeammateTakenTiles" actually is...)
 	if (iTeammateTakenTiles > 1)
 	{
@@ -16936,7 +16964,10 @@ void CvPlayerAI::AI_rememberEvent(PlayerTypes civId, MemoryTypes mem) {
 	}
 	int delta = 2;
 	// Need a finer granularity for DoW
-	if(mem == MEMORY_DECLARED_WAR) delta = 3;
+	if(mem == MEMORY_DECLARED_WAR)
+		delta = 3;
+// This disables the bulk of change 130j:
+#if 0
 	// We're surprised by the actions of civId
 	if((sign < 0 && (AI_getAttitude(civId) >= ATTITUDE_FRIENDLY ||
 			// <advc.130o> Surprised by war despite tribute
@@ -16948,6 +16979,7 @@ void CvPlayerAI::AI_rememberEvent(PlayerTypes civId, MemoryTypes mem) {
 	if((sign > 0 && AI_getAttitude(civId) >= ATTITUDE_FRIENDLY) ||
 			(sign < 0 && AI_getAttitude(civId) <= ATTITUDE_ANNOYED))
 		delta--;
+#endif
 	// <advc.130y> Cap DoW penalty for vassals
 	if(mem == MEMORY_DECLARED_WAR && (GET_TEAM(getTeam()).isAVassal() ||
 			TEAMREF(civId).isAVassal()))
@@ -17107,39 +17139,57 @@ void CvPlayerAI::AI_doCounter()
 				AI_changeFavoriteCivicCounter(civId, t.randomCounterChange());
 			else AI_setFavoriteCivicCounter(civId, (int)(
 				mult * AI_getFavoriteCivicCounter(civId)));
-		}
-		int iBonusImports = getNumTradeBonusImports(civId);
+		} // <advc.130p>
+		AI_setPeacetimeGrantValue(civId, (int)(
+				mult * AI_getPeacetimeGrantValue(civId)));
+		AI_setPeacetimeTradeValue(civId, (int)(
+				mult * AI_getPeacetimeTradeValue(civId)));
+		// </advc.130p>
 		// <advc.149>
 		int attitudeDiv = lh.getBonusTradeAttitudeDivisor();
+		if(attitudeDiv <= 0)
+			continue;
+		//int iBonusImports = getNumTradeBonusImports(civId);
+		// Same scale as the above, but taking into account utility.
+		double bonusVal = bonusImportValue(civId);
 		int c = AI_getBonusTradeCounter(civId);
-		if(iBonusImports <= ::round(c / (1.5 * attitudeDiv))) {
+		if(bonusVal <= c / (1.5 * attitudeDiv)) {
 			/*  BtS decreases the BonusTradeCounter by 1 + civ.getNumCities() / 4,
 				but let's just do exponential decay instead. */
 			AI_setBonusTradeCounter(civId, (int)(
 					mult * AI_getBonusTradeCounter(civId)));
 		}
 		else {
-			double incr = iBonusImports;
-			CvCity* capital = getCapitalCity();
-			if(capital != NULL && iBonusImports > 0) {
-				int capBonuses = capital->countUniqueBonuses() - iBonusImports;
+			double incr = bonusVal;
+			if(bonusVal > 0.01) {
+				CvCity* capital = getCapitalCity();
+				double capBonuses = 0;
+				if(capital != NULL) {
+					capBonuses = std::max(0.0,
+							capital->countUniqueBonuses() - bonusVal);
+				}
+				double exportable = 0;
+				for(int j = 0; j < GC.getNumBonusInfos(); j++) {
+					BonusTypes bt = (BonusTypes)j;
+					int avail = civ.getNumAvailableBonuses(bt)
+							+ civ.getBonusExport(bt);
+					if(avail > 1)
+						exportable += std::min(avail - 1, 3);
+				} /* Mean of capBonuses and a multiple of exportable, but
+					 no more than 1.5 times capBonuses. */
+				double weight1 = (capBonuses + std::min(capBonuses * 2,
+						3.1 * std::max(bonusVal, exportable))) / 2;
 				/*  Rather than changing attitudeDiv in XML for every leader,
 					do the fine-tuning here. */
-				double weight = attitudeDiv / 8.5;
-				if(capBonuses >= weight)
-					incr = (iBonusImports / (double)capBonuses) * weight;
+				double weight2 = attitudeDiv / 8.5;
+				if(weight1 >= weight2)
+					incr = (bonusVal / weight1) * weight2;
 			}
 			AI_changeBonusTradeCounter(civId, t.randomCounterChange(::round(
 					1.25 * attitudeDiv * lh.getBonusTradeAttitudeChangeLimit()),
 					incr / 2)); // Halved b/c it's binomial distrib. w/ 2 trials
 		} // </advc.149></advc.130k>
-		// <advc.130p>
-		AI_setPeacetimeGrantValue(civId, (int)(
-				mult * AI_getPeacetimeGrantValue(civId)));
-		AI_setPeacetimeTradeValue(civId, (int)(
-				mult * AI_getPeacetimeTradeValue(civId)));
-		// </advc.130p>
-	} 
+	}
 
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
 	{

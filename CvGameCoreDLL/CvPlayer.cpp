@@ -5516,6 +5516,32 @@ int CvPlayer::getNumTradeBonusImports(PlayerTypes ePlayer) const
 	return iCount;
 }
 
+// <advc.149> Based on getNumTradeBonusImports
+double CvPlayer::bonusImportValue(PlayerTypes fromId) const {
+
+	
+	double r = 0;
+	CvGame& g = GC.getGameINLINE(); int dummy=-1;
+	for(CvDeal* d = g.firstDeal(&dummy); d != NULL; d = g.nextDeal(&dummy)) {
+		CLinkList<TradeData> const* list = NULL;
+		if(d->getFirstPlayer() == getID() && d->getSecondPlayer() == fromId)
+			list = d->getSecondTrades();
+		else if(d->getSecondPlayer() == getID() && d->getFirstPlayer() == fromId)
+			list = d->getFirstTrades();
+		if(list == NULL)
+			continue;
+		CLLNode<TradeData>* node=NULL;
+		for(node = list->head(); node != NULL; node = list->next(node)) {
+			if(node->m_data.m_eItemType == TRADE_RESOURCES) {
+				r += GET_PLAYER(getID()).AI_bonusVal((BonusTypes)
+						node->m_data.m_iData, -1);
+			}
+		}
+	}
+	return r / 10.0; // Assuming that 10 is a typical bonusVal
+} // </advc.149>
+
+
 // advc.003: Renamed parameter
 bool CvPlayer::isTradingWithTeam(TeamTypes eTeam, bool bIncludeUncancelable) const
 {
