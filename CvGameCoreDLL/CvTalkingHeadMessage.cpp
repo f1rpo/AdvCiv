@@ -226,6 +226,10 @@ int CvTalkingHeadMessage::getExpireTurn(bool human) // advc.700: param added
 		// never saved
 		iExpireTurn = GC.getGameINLINE().getGameTurn() - 1;
 		break;
+	// <advc.106b>
+	case MESSAGE_TYPE_EOT:
+		iExpireTurn++;
+		break; // </advc.106b>
 	default:
 		FAssert(false);
 		break;

@@ -2542,4 +2542,14 @@
 		<Spanish>Abrir men&#250;</Spanish>
 	</TEXT>
 	
+	<!-- advc.106b -->
+	<TEXT>
+		<Tag>TXT_KEY_END_TURN_MSG</Tag>
+		<English>[COLOR_LIGHT_GREY]----- Older messages:[COLOR_REVERT]</English>
+		<French>[COLOR_LIGHT_GREY]----- Messages plus anciens:[COLOR_REVERT]</French>
+		<German>[COLOR_LIGHT_GREY]----- Ältere Nachrichten:[COLOR_REVERT]</German>
+		<Italian>[COLOR_LIGHT_GREY]----- Messaggi meno recenti:[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_LIGHT_GREY]----- Mensajes más antiguos:[COLOR_REVERT]</Spanish>
+	</TEXT>
+	
 </Civ4GameText>

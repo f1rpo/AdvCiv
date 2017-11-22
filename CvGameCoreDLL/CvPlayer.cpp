@@ -3543,6 +3543,13 @@ void CvPlayer::doTurn()
 	   messages. (Well, if a player unit is attacked, messages are displayed
 	   immediately.) */
 	g.setAITurn(true);
+	if(isHuman() && GC.getDefineINT("START_OF_TURN_MESSAGE_LIMIT") >= 0 &&
+			g.getElapsedGameTurns() > 0) {
+		CvWString endTurnMsg = gDLL->getText("TXT_KEY_END_TURN_MSG");
+		gDLL->getInterfaceIFace()->addHumanMessage(getID(), false, 0, endTurnMsg,
+				0, MESSAGE_TYPE_EOT, 0, (ColorTypes)
+				GC.getInfoTypeForString("COLOR_LIGHT_GREY"));
+	}
 	if(isHuman())
 		iNewMessages = 0;
 	/* This way, iNewMessages is never reset for non-human. I guess that means the

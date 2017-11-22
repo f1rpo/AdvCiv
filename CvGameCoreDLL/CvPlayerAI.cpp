@@ -3252,7 +3252,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	// <advc.031>
 	int iRiver = 0;
 	int iGreen  = 0; // </advc.031>
-	int iValue = 800; // was 1000
+	// advc.031: was 800 in K-Mod and 1000 before K-Mod
+	int iValue = 600;
 
 	// <advc.040>
 	if(firstColony)
@@ -3813,16 +3814,16 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				// Push players to get more coastal cities so they can build navies
 				CvArea* pWaterArea = pPlot->waterArea(true);
 				if( pWaterArea != NULL )
-				{
-					iSeaValue += 120 + (kSet.bSeafaring ? 160 : 0);
-
+				{	// advc.031: Replacing the line below
+					iSeaValue += (kSet.bSeafaring ? 140 : 80);
+					//120 + (kSet.bSeafaring ? 160 : 0);
 					if( GET_TEAM(getTeam()).AI_isWaterAreaRelevant(pWaterArea)
 							/*  advc.031: Don't worry about coastal production if we
 								already have many coastal cities. */
 							&& countNumCoastalCities() <= getNumCities() / 3)
-					{
-						iSeaValue += 120 + (kSet.bSeafaring ? 160 : 0);
-
+					{	// advc.031: Replacing the line below
+						iSeaValue += (kSet.bSeafaring ? 240 : 125);
+						//iSeaValue += 120 + (kSet.bSeafaring ? 160 : 0);
 						//if( (countNumCoastalCities() < (getNumCities()/4)) || (countNumCoastalCitiesByArea(pPlot->area()) == 0) )
 						if (
 							// advc.031: Disabled this clause
@@ -4229,9 +4230,17 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 
 			if (iDelta > -20 && iDelta <= (kSet.bAmbitious ? 10 : 0) * (kSet.bEasyCulture ? 2 : 1))
 			{
+				int iTmp = iValue; // advc.031
 				// we want to get this spot before our opponents do. The lower our advantage, the more urgent the site is.
 				iValue *= 120 + iDelta/2 + (kSet.bAmbitious ? 5 : 0);
 				iValue /= 100;
+				/*  <advc.031> Don't rush to settle marginal spots (which might
+					not even make the MinFoundValue cut w/o the boost above). */
+				if(iTmp < 2000) {
+					iValue *= iTmp;
+					iValue /= 2000;
+					iValue = std::max(iTmp, iValue);
+				} // </advc.031>
 			}
 			iDelta -= kSet.bEasyCulture ? 20 : 10;
 			if (iDelta > 0)
@@ -4344,17 +4353,19 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		}
 		else if (pArea->getNumCities() == (iTeamAreaCities + GET_TEAM(BARBARIAN_TEAM).countNumCitiesByArea(pArea)))
 		{*/
-			iValue *= 4;
-			iValue /= 3;
+			iValue *= 5; // advc.031: was *=4 and /=3
+			iValue /= 4;
 		}
 		else if (iTeamAreaCities > 0
 				/*  advc.040: One city isn't a good enough reason for
 					discriminating against new colonies */
 				&& AI_isPrimaryArea(pArea))
 		{
-			iValue *= 5;
-			iValue /= 4;
+			//iValue *= 5;
+			//iValue /= 4;
+			; // advc.031: Instead reduce the value in the else branch
 		}
+		else iValue = ::round(iValue * 0.8); // advc.031
 	}
   } // </advc.130v>
 	if (!kSet.bStartingLoc)
