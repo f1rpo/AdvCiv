@@ -1847,9 +1847,23 @@ void CvCityAI::AI_chooseProduction()
 				if( (GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0) )
 				{
 					if( (pArea->getAreaAIType(getTeam()) != AREAAI_DEFENSIVE) )
-					{
-						// BBAI TODO: faster to switch to checking path for some selection group?
-						if( !(plot()->isHasPathToEnemyCity(getTeam())) )
+					{	// <advc.030b>
+						bool assaultTargetFound = false;
+						for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+							CvPlayer const& other = GET_PLAYER((PlayerTypes)i);
+							if(!other.isAlive() || GET_TEAM(getTeam()).AI_getWarPlan(
+									other.getTeam()) == NO_WARPLAN)
+								continue;
+							if(pWaterArea->getCitiesPerPlayer(other.getID(), true) > 0) {
+								assaultTargetFound = true;
+								break;
+							}
+						}
+						if(!assaultTargetFound)
+							pAssaultWaterArea = NULL;
+						if(assaultTargetFound && // </advc.030b>
+							// BBAI TODO: faster to switch to checking path for some selection group?
+							!(plot()->isHasPathToEnemyCity(getTeam())) )
 						{
 							bBuildAssault = true;
 						}

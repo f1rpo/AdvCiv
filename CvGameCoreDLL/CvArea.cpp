@@ -612,8 +612,14 @@ void CvArea::changeAnimalsPerPlayer(PlayerTypes eIndex, int iChange)
 }
 
 
-int CvArea::getCitiesPerPlayer(PlayerTypes eIndex) const
-{
+int CvArea::getCitiesPerPlayer(PlayerTypes eIndex,
+		// <advc.030b>
+		bool checkAdjacentCoast) const {
+	/*  Perhaps this parameter isn't really needed, but this function gets called
+		from so many places that I can't check if one of them might have a problem
+		with water areas having a positive city count. */
+	if(!checkAdjacentCoast && isWater())
+		return false; // </advc.030b>
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be >= 0");
 	FAssertMsg(eIndex < MAX_PLAYERS, "eIndex is expected to be < MAX_PLAYERS");
 	return m_aiCitiesPerPlayer[eIndex];
@@ -628,7 +634,7 @@ void CvArea::changeCitiesPerPlayer(PlayerTypes eIndex, int iChange)
 	barbCityCreated(); // advc.300
 	FAssert(getNumCities() >= 0);
 	m_aiCitiesPerPlayer[eIndex] = (m_aiCitiesPerPlayer[eIndex] + iChange);
-	FAssert(getCitiesPerPlayer(eIndex) >= 0);
+	FAssert(getCitiesPerPlayer(eIndex, true) >= 0); // advc.030b
 }
 
 
@@ -1129,7 +1135,8 @@ void CvArea::write(FDataStreamBase* pStream)
 {
 	int iI;
 
-	uint uiFlag=1; // advc.030: was 0
+	uint uiFlag=0;
+	uiFlag++; // advc.030
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iID);

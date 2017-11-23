@@ -263,7 +263,10 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 	}
 
 	area()->changeCitiesPerPlayer(getOwnerINLINE(), 1);
-
+	// <advc.030b>
+	CvArea* wa = waterArea(true);
+	if(wa != NULL)
+		wa->changeCitiesPerPlayer(getOwnerINLINE(), 1); // </advc.030b>
 	GET_TEAM(getTeam()).changeNumCities(1);
 
 	GC.getGameINLINE().changeNumCities(1);
@@ -824,7 +827,12 @@ void CvCity::kill(bool bUpdatePlotGroups)
 /************************************************************************************************/
 
 	area()->changeCitiesPerPlayer(getOwnerINLINE(), -1);
-
+	// <advc.030b>
+	CvArea* wa = waterArea(true);
+	/*  Can't really handle ice melted by global warming, but at least ensure
+		that CitiesPerPlayer doesn't become negative. */
+	if(wa != NULL && wa->getCitiesPerPlayer(getOwnerINLINE(), true) > 0)
+		wa->changeCitiesPerPlayer(getOwnerINLINE(), -1); // </advc.030b>
 	GET_TEAM(getTeam()).changeNumCities(-1);
 
 	GC.getGameINLINE().changeNumCities(-1);
@@ -14216,6 +14224,12 @@ void CvCity::read(FDataStreamBase* pStream)
 		pStream->Read(&mrOrder);
 		pStream->Read(&mrWasUnit);
 	} // </advc.004x>
+	// <advc.030b>
+	if(uiFlag < 3) {
+		CvArea* wa = waterArea(true);
+		if(wa != NULL)
+			wa->changeCitiesPerPlayer(getOwnerINLINE(), 1);
+	} // </advc.030b>
 }
 
 void CvCity::write(FDataStreamBase* pStream)
@@ -14224,6 +14238,7 @@ void CvCity::write(FDataStreamBase* pStream)
 
 	uint uiFlag=1;
 	uiFlag++; // advc.004x
+	uiFlag++; // advc.030b
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iID);
@@ -16266,9 +16281,10 @@ int CvCity::calculateNumCitiesMaintenanceTimes100(CvPlot* cityPlot,
 int CvCity::calculateColonyMaintenanceTimes100(CvPlot* cityPlot, PlayerTypes owner,
 		int population) {
 
-	/* advc.004b, advc.104: Copied from the original function of the same name
+	/* <advc.004b><advc.104> Copied from the original function of the same name
 	   and plugged in the parameters. No functional change. */
-	if(population < 0) population = initialPopulation();
+	if(population < 0)
+		population = initialPopulation(); // </advc.004b></advc.104>
 	HandicapTypes ownerHandicap = GET_PLAYER(owner).getHandicapType();
 	CvArea* cityArea = cityPlot->area();
 

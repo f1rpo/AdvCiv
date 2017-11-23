@@ -77,7 +77,8 @@ public:
 	int getAnimalsPerPlayer(PlayerTypes eIndex) const;												// Exposed to Python
 	void changeAnimalsPerPlayer(PlayerTypes eIndex, int iChange);
 
-	int getCitiesPerPlayer(PlayerTypes eIndex) const;													// Exposed to Python
+	int getCitiesPerPlayer(PlayerTypes eIndex,													// Exposed to Python
+			bool checkAdjacentCoast = false) const; // advc.030b
 	void changeCitiesPerPlayer(PlayerTypes eIndex, int iChange);
 
 	int getPopulationPerPlayer(PlayerTypes eIndex) const;											// Exposed to Python

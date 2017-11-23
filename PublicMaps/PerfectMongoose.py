@@ -5414,18 +5414,22 @@ def getBottomLatitude():
 
 
 def getGridSize(argsList):
-	# advc.021b: Could use the defaults (10x6,13x8,16x10,21x13,26x16,32x20) instead by uncommenting these two lines. But the sizes below are really just a little larger than the defaults and have nice, clean 3:2 ratios.
+	# <advc.021b> Could use the defaults (10x6,13x8,16x10,21x13,26x16,32x20) by uncommenting the two lines below.
 	#CyPythonMgr().allowDefaultImpl()
-	#pass
+	#return
 	grid_sizes = {
-		WorldSizeTypes.WORLDSIZE_DUEL:					(12,  8),
+		# was 12x8
+		WorldSizeTypes.WORLDSIZE_DUEL:					(13,  8),
 		WorldSizeTypes.WORLDSIZE_TINY:					(15, 10),
-		WorldSizeTypes.WORLDSIZE_SMALL:					(18, 12),
-		WorldSizeTypes.WORLDSIZE_STANDARD:				(24, 16),
-		# advc.021b: was 30x20
+		# was 18x12
+		WorldSizeTypes.WORLDSIZE_SMALL:					(17, 11),
+		# was 24x16
+		WorldSizeTypes.WORLDSIZE_STANDARD:				(22, 14),
+		# was 30x20
 		WorldSizeTypes.WORLDSIZE_LARGE:					(27, 18),
-		# advc.021b: was 36x24
+		# was 36x24
 		WorldSizeTypes.WORLDSIZE_HUGE:					(33, 22)
+		# </advc.021b>
 	}
 	if (argsList[0] == -1): # (-1,) is passed to function on loads
 			return []

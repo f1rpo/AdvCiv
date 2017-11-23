@@ -3544,7 +3544,7 @@ void CvPlayer::doTurn()
 	   immediately.) */
 	g.setAITurn(true);
 	if(isHuman() && GC.getDefineINT("START_OF_TURN_MESSAGE_LIMIT") >= 0 &&
-			g.getElapsedGameTurns() > 0) {
+			g.getElapsedGameTurns() > 0 && !m_listGameMessages.empty()) {
 		CvWString endTurnMsg = gDLL->getText("TXT_KEY_END_TURN_MSG");
 		gDLL->getInterfaceIFace()->addHumanMessage(getID(), false, 0, endTurnMsg,
 				0, MESSAGE_TYPE_EOT, 0, (ColorTypes)

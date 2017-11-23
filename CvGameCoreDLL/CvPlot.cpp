@@ -9092,6 +9092,14 @@ void CvPlot::processArea(CvArea* pArea, int iChange)
 		pArea->changePower(pCity->getOwnerINLINE(), (getPopulationPower(pCity->getPopulation()) * iChange));
 
 		pArea->changeCitiesPerPlayer(pCity->getOwnerINLINE(), iChange);
+		// <advc.030b>
+		CvArea* wa = waterArea(true);
+		if(wa != NULL) {
+			if(iChange > 0 || (iChange < 0 &&
+					// See comment in CvCity::kill
+					wa->getCitiesPerPlayer(getOwnerINLINE()) > 0, true))
+				wa->changeCitiesPerPlayer(getOwnerINLINE(), iChange);
+		} // </advc.030b>
 		pArea->changePopulationPerPlayer(pCity->getOwnerINLINE(), (pCity->getPopulation() * iChange));
 
 		for (iI = 0; iI < GC.getNumBuildingInfos(); ++iI)

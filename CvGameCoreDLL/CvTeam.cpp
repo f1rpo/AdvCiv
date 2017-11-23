@@ -6055,12 +6055,14 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 
 			if (bFirst)
 			{
+				bool bAnnounce = false; // advc.004
 				if (GC.getGameINLINE().countKnownTechNumTeams(eIndex) == 1)
 				{
 					eFreeUnit = GET_PLAYER(ePlayer).getTechFreeUnit(eIndex);
 					if (eFreeUnit != NO_UNIT)
 					{
 						bFirstBonus = true;
+						bAnnounce = true; // advc.004
 						pCapitalCity = GET_PLAYER(ePlayer).getCapitalCity();
 
 						if (pCapitalCity != NULL)
@@ -6072,7 +6074,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 					if (GC.getTechInfo(eIndex).getFirstFreeTechs() > 0)
 					{
 						bFirstBonus = true;
-
+						bAnnounce = true; // advc.004
 						if (!isHuman())
 						{
 							for (iI = 0; iI < GC.getTechInfo(eIndex).getFirstFreeTechs(); iI++)
@@ -6085,27 +6087,29 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 							szBuffer = gDLL->getText("TXT_KEY_MISC_FIRST_TECH_CHOOSE_FREE", GC.getTechInfo(eIndex).getTextKeyWide());
 							GET_PLAYER(ePlayer).chooseTech(GC.getTechInfo(eIndex).getFirstFreeTechs(), szBuffer.GetCString());
 						}
-
-						for (iI = 0; iI < MAX_PLAYERS; iI++)
-						{
-							if (GET_PLAYER((PlayerTypes)iI).isAlive())
-							{
-								if (isHasMet(GET_PLAYER((PlayerTypes)iI).getTeam()))
-								{
-									szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_FIRST_TO_TECH", GET_PLAYER(ePlayer).getNameKey(), GC.getTechInfo(eIndex).getTextKeyWide());
-								}
-								else
-								{
-									szBuffer = gDLL->getText("TXT_KEY_MISC_UNKNOWN_FIRST_TO_TECH", GC.getTechInfo(eIndex).getTextKeyWide());
-								}
-								gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_FIRSTTOTECH", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
-							}
-						}
+						// advc.004: Announcement code moved into next block
 
 						szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_FIRST_TO_TECH", GET_PLAYER(ePlayer).getReplayName(), GC.getTechInfo(eIndex).getTextKeyWide());
 						GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, ePlayer, szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
-					}
-
+					} // <advc.004>
+					if(bAnnounce) { // Cut, pasted, refactored from above
+						// Free GP only minor event
+						bool bMajor = (GC.getTechInfo(eIndex).getFirstFreeTechs() > 0);
+						for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+							CvPlayer const& civ = GET_PLAYER((PlayerTypes)i);
+							if(!civ.isAlive() || civ.getTeam() == TEAMID(ePlayer))
+								continue;
+							if(isHasMet(civ.getTeam()))
+								szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_FIRST_TO_TECH", GET_PLAYER(ePlayer).getNameKey(), GC.getTechInfo(eIndex).getTextKeyWide());
+							else szBuffer = gDLL->getText("TXT_KEY_MISC_UNKNOWN_FIRST_TO_TECH", GC.getTechInfo(eIndex).getTextKeyWide());
+							gDLL->getInterfaceIFace()->addHumanMessage(civ.getID(), false,
+									GC.getEVENT_MESSAGE_TIME(), szBuffer,
+									(bMajor ? "AS2D_FIRSTTOTECH" : 0),
+									(bMajor ? MESSAGE_TYPE_MAJOR_EVENT :
+									MESSAGE_TYPE_MINOR_EVENT), NULL, (ColorTypes)
+									GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+						}
+					} // </advc.004>
 					if (bFirstBonus)
 					{
 						for (iI = 0; iI < MAX_PLAYERS; iI++)
