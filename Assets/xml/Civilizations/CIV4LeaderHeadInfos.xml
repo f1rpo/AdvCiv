@@ -537,7 +537,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -1165,7 +1165,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -1803,7 +1803,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -2434,7 +2434,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -3070,7 +3070,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -3708,7 +3708,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -4352,7 +4352,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -4980,7 +4980,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -5611,7 +5611,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -6252,7 +6252,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -6895,7 +6895,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -7535,7 +7535,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -8171,7 +8171,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -8807,7 +8807,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -9441,7 +9441,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -10052,7 +10052,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -10688,7 +10688,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -11315,7 +11315,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -11955,7 +11955,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -12597,7 +12597,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -13230,7 +13230,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -13864,7 +13864,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -14511,7 +14511,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -15151,7 +15151,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -15782,7 +15782,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -16413,7 +16413,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -17049,7 +17049,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -17689,7 +17689,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -18316,7 +18316,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -18956,7 +18956,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -19592,7 +19592,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -20234,7 +20234,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -20869,7 +20869,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -21509,7 +21509,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -22149,7 +22149,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -22789,7 +22789,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -23436,7 +23436,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -24065,7 +24065,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -24699,7 +24699,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -25334,7 +25334,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -25969,7 +25969,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -26603,7 +26603,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -27237,7 +27237,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -27868,7 +27868,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -28515,7 +28515,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -29160,7 +29160,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -29794,7 +29794,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -30429,7 +30429,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -31063,7 +31063,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -31705,7 +31705,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -32360,7 +32360,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -33007,7 +33007,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>

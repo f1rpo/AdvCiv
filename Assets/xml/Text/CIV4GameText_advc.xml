@@ -1324,6 +1324,16 @@
 		<Spanish>Modernizar Pretoriano VI</Spanish>
 	</TEXT>
 	
+	<!-- advc.908a: Originally in CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_TRAIT_EXTRA_YIELD_THRESHOLDS</Tag>
+		<English>[NEWLINE][SPACE][SPACE][ICON_BULLET]+1%F1_yield on tiles with a natural yield of at least %d2%F3_yield or a total yield of at least %d4%F5_yield.</English>
+		<French>[NEWLINE][SPACE][SPACE][ICON_BULLET]+1%F1_yield sur les cases avec un rendement naturel de %d2%F3_yield ou un rendement total de %d4%F5_yield.</French>
+		<German>[NEWLINE][SPACE][SPACE][ICON_BULLET]+1%F1_yield auf Feldern mit natürlichem Ertrag von wenigstens %d2%F3_yield oder einem Gesamtertrag von wenigstens %d4%F5_yield.</German>
+		<Italian>[NEWLINE][SPACE][SPACE][ICON_BULLET]+1%F1_yield su caselle con un rendimento naturale di %d2%F3_yield o un rendimento totale di %d4%F5_yield.</Italian>
+		<Spanish>[NEWLINE][SPACE][SPACE][ICON_BULLET]+1 %F1_yield en las casillas con un rendimiento natural de %d2%F3_yield o un rendimiento total de %d4%F5_yield.</Spanish>
+	</TEXT>
+	
 	<!-- [advc.012] Plot help text to be used along with TXT_KEY_PLOT_BONUS
 		 (Civ4GameTextInfos.xml). -->
 	<TEXT>

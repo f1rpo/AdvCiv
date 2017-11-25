@@ -6043,10 +6043,13 @@ void CvGameTextMgr::parseTraits(CvWStringBuffer &szHelpString, TraitTypes eTrait
 
 		// ExtraYieldThresholds
 		for (iI = 0; iI < NUM_YIELD_TYPES; ++iI)
-		{
-			if (GC.getTraitInfo(eTrait).getExtraYieldThreshold(iI) > 0)
-			{
-				szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_EXTRA_YIELD_THRESHOLDS", GC.getYieldInfo((YieldTypes) iI).getChar(), GC.getTraitInfo(eTrait).getExtraYieldThreshold(iI), GC.getYieldInfo((YieldTypes) iI).getChar()));
+		{	// advc.908a:
+			int extraYieldThresh = GC.getTraitInfo(eTrait).getExtraYieldThreshold(iI);
+			int yieldChar = GC.getYieldInfo((YieldTypes) iI).getChar();
+			if(extraYieldThresh > 0) {
+				szHelpString.append(gDLL->getText("TXT_KEY_TRAIT_EXTRA_YIELD_THRESHOLDS", GC.getYieldInfo((YieldTypes) iI).getChar(),
+						extraYieldThresh, yieldChar,
+						extraYieldThresh + 1, yieldChar)); // advc.908a
 			}
 			// Trade Yield Modifiers
 			if (GC.getTraitInfo(eTrait).getTradeYieldModifier(iI) != 0)

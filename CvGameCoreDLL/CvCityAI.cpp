@@ -10301,8 +10301,18 @@ bool CvCityAI::AI_finalImprovementYieldDifference(CvPlot* pPlot, short* piYields
 		for (YieldTypes i = (YieldTypes)0; i < NUM_YIELD_TYPES; i=(YieldTypes)(i+1))
 		{
 			int iYieldDiff = pPlot->calculateImprovementYieldChange(eFinalImprovement, i, getOwnerINLINE()) - pPlot->calculateImprovementYieldChange(eCurrentImprovement, i, getOwnerINLINE());
-			if (kOwner.getExtraYieldThreshold(i) > 0)
-				iYieldDiff += (pPlot->getYield(i) >= kOwner.getExtraYieldThreshold(i) ? -GC.getEXTRA_YIELD() : 0) + (pPlot->getYield(i)+iYieldDiff >= kOwner.getExtraYieldThreshold(i) ? GC.getEXTRA_YIELD() : 0);
+			// <advc.908a>
+			int extraYieldThresh = kOwner.getExtraYieldThreshold(i);
+			if(extraYieldThresh > 0 &&
+					// Otherwise the improvement doesn't matter
+					pPlot->calculateNatureYield(i, getTeam()) < extraYieldThresh) {
+				if(pPlot->getYield(i) > extraYieldThresh)
+					iYieldDiff -= GC.getEXTRA_YIELD();
+				if(pPlot->getYield(i) + iYieldDiff > extraYieldThresh)
+					iYieldDiff += GC.getEXTRA_YIELD();
+				// Replacing the line below // </advc.908a>
+				//iYieldDiff += (pPlot->getYield(i) >= kOwner.getExtraYieldThreshold(i) ? -GC.getEXTRA_YIELD() : 0) + (pPlot->getYield(i)+iYieldDiff >= kOwner.getExtraYieldThreshold(i) ? GC.getEXTRA_YIELD() : 0);
+			}
 
 			if (iYieldDiff != 0)
 			{

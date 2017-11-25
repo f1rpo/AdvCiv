@@ -3601,7 +3601,7 @@ CvPlot const* CvPlot::nearestInvisiblePlot(bool onlyLand, int maxPlotDist,
 		return this;
 	CvPlot* r = NULL;
 	CvMap const& m = GC.getMapINLINE();
-	//  Process plots in a spiral pattern (for performance reasons).
+	//  Process plots in a spiral pattern (for performance reasons)
 	for(int d = 1; d <= maxPlotDist; d++) {
 		int shortestDist = maxPlotDist + 1;
 		for(int dx = -d; dx <= d; dx++) {
@@ -3610,7 +3610,8 @@ CvPlot const* CvPlot::nearestInvisiblePlot(bool onlyLand, int maxPlotDist,
 				if(::abs(dx) < d && ::abs(dy) < d) continue;
 				CvPlot* pp = m.plot(getX_INLINE() + dx, getY_INLINE() + dy);
 				if(pp == NULL) continue; CvPlot const& p = *pp;
-				if(p.isVisible(observer, false) || (onlyLand && p.isWater()))
+				if(p.isVisible(observer, false) || (onlyLand && p.isWater()) ||
+						(p.isOwned() && p.getOwnerINLINE() != BARBARIAN_PLAYER))
 					continue;
 				int plotDist = ::plotDistance(pp, this);
 				if(plotDist < shortestDist) {
@@ -6591,7 +6592,6 @@ int CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const
 	RouteTypes eRoute;
 	PlayerTypes ePlayer;
 	bool bCity;
-	int iYield;
 
 	if (bDisplay && GC.getGameINLINE().isDebugMode())
 	{
@@ -6627,8 +6627,9 @@ int CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const
 		eImprovement = getImprovementType();
 		eRoute = getRouteType();
 	}
-
-	iYield = calculateNatureYield(eYield, ((ePlayer != NO_PLAYER) ? GET_PLAYER(ePlayer).getTeam() : NO_TEAM));
+	int natureYield = // advc.908a: Preserve this for later
+			calculateNatureYield(eYield, ((ePlayer != NO_PLAYER) ? GET_PLAYER(ePlayer).getTeam() : NO_TEAM));
+	int iYield = natureYield;
 
 	if (eImprovement != NO_IMPROVEMENT)
 	{
@@ -6700,13 +6701,11 @@ int CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const
 	//iYield += GC.getGameINLINE().getPlotExtraYield(m_iX, m_iY, eYield);
 
 	if (ePlayer != NO_PLAYER)
-	{
-		if (GET_PLAYER(ePlayer).getExtraYieldThreshold(eYield) > 0)
-		{
-			if (iYield >= GET_PLAYER(ePlayer).getExtraYieldThreshold(eYield))
-			{
-				iYield += GC.getEXTRA_YIELD();
-			}
+	{	// <advc.908a>
+		int extraYieldThresh = GET_PLAYER(ePlayer).getExtraYieldThreshold(eYield);
+		if(extraYieldThresh > 0) {
+			if(iYield > extraYieldThresh || natureYield >= extraYieldThresh)
+				iYield += GC.getEXTRA_YIELD(); // </advc.908a>
 		}
 
 		if (GET_PLAYER(ePlayer).isGoldenAge())
@@ -9881,8 +9880,9 @@ int CvPlot::getYieldWithBuild(BuildTypes eBuild, YieldTypes eYield, bool bWithUp
 			bIgnoreFeature = true;
 		}
 	}
-
-	iYield += calculateNatureYield(eYield, getTeam(), bIgnoreFeature);
+	int natureYield = // advc.908a: Preserve this for later
+			calculateNatureYield(eYield, getTeam(), bIgnoreFeature);
+	iYield += natureYield;
 
 	ImprovementTypes eImprovement = (ImprovementTypes)GC.getBuildInfo(eBuild).getImprovement();
 	// K-Mod. if the build doesn't have its own improvement - use the existing one!
@@ -9943,7 +9943,9 @@ int CvPlot::getYieldWithBuild(BuildTypes eBuild, YieldTypes eYield, bool bWithUp
 
 	// K-Mod. Count the 'extra yield' for financial civs. (Don't bother with golden-age bonuses.)
 	int iThreshold = GET_PLAYER(getOwnerINLINE()).getExtraYieldThreshold(eYield);
-	if (iThreshold > 0 && iYield >= iThreshold)
+	if (iThreshold > 0 &&
+				// advc.908a:
+				(iYield > iThreshold || natureYield >= iThreshold))
 		iYield += GC.getEXTRA_YIELD();
 	// K-Mod end
 

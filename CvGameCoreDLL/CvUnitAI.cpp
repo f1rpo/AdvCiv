@@ -4166,7 +4166,7 @@ void CvUnitAI::AI_reserveMove()
 		return;
 	}
 
-	// <advc.300> Protect high-yield tiles from raging barbs
+	// <advc.300> Protect high-yield tiles from barbs
 	CvCity* c = plot()->getPlotCity();
 	if(GET_PLAYER(getOwnerINLINE()).isDefenseFocusOnBarbarians(
 			area()->getID()) && AI_guardYield())
@@ -12032,14 +12032,14 @@ bool CvUnitAI::AI_guardBonus(int iMinValue)
 	return false;
 }
 
-// <advc.300> Structure adopted from AI_guardBonus.
+// <advc.300> Structure adopted from AI_guardBonus
 bool CvUnitAI::AI_guardYield() {
 
 	// <advc.107>
 	if(GET_PLAYER(getOwnerINLINE()).AI_isDoStrategy(AI_STRATEGY_TURTLE))
 		return false; // </advc.107>
 	CvCity* c = plot()->getPlotCity();
-	// For now, only consider nearby city if already guarding bonus
+	// For now, only consider nearby city if already guarding bonus.
 	MissionTypes stayPut = isFortifyable() ? MISSION_FORTIFY : MISSION_SKIP;
 	MissionAITypes const GB = MISSIONAI_GUARD_BONUS;
 	if(c == NULL && getGroup()->AI_getMissionAIType() == GB)
@@ -12047,6 +12047,8 @@ bool CvUnitAI::AI_guardYield() {
 	if(c == NULL || c->getOwnerINLINE() != getOwnerINLINE())
 		return false;
 	int bestVal = 6;
+	if(!GC.getGameINLINE().isOption(GAMEOPTION_RAGING_BARBARIANS))
+		bestVal = 8;
 	CvPlot* bestPlot = NULL;
 	for(int i = 0; i < NUM_CITY_PLOTS; i++) {
 		CvPlot* pp = plotCity(plot()->getX_INLINE(), plot()->getY_INLINE(), i);
@@ -12074,10 +12076,12 @@ bool CvUnitAI::AI_guardYield() {
 		/*  Example cont.: +2 from the Hill (25/10 rounded down).
 			I.e. it's worth protecting (barely). */
 		val += p.defenseModifier(BARBARIAN_TEAM, true, getTeam()) / 10; // advc.012
-		if(val <= bestVal) continue; // Will only decrease from here
+		if(val <= bestVal) // Will only decrease from here
+			continue;
 		// Guard only tiles near invisible regions (where barbs might appear)
 		CvPlot const* ni = p.nearestInvisiblePlot(true, 5, getTeam());
-		if(ni == NULL) continue;
+		if(ni == NULL)
+			continue;
 		val -= ::plotDistance(ni, pp);
 		if(val > bestVal) {
 			bestVal = val;
@@ -25026,7 +25030,7 @@ int CvUnitAI::AI_stackOfDoomExtra() const
 			4 : 2); // <advc.104p> was 8:4
 	/*  Would be best to use the era of the target, but stacks aren't formed
 		against a particular target. Game era is still better than using
-		our era. If we're more advanced than our rivals, it doesn't mean that
+		our era: If we're more advanced than our rivals, it doesn't mean that
 		we need larger stacks than theirs. */
 	int iEra = GC.getGameINLINE().getCurrentEra(); // </advc.104p>
 	// 4 base. then rand between 0 and ... (1 or 2 + iEra + flavour * era ratio)

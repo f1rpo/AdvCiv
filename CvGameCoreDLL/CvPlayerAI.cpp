@@ -3433,16 +3433,18 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 						iGreen++; // </advc.031>
 				}
 				// K-Mod end
+				// <advc.031>
+				else if(getExtraYieldThreshold(eYield) > 0 &&
+						aiYield[eYield] >= getExtraYieldThreshold(eYield))
+					aiYield[eYield] += GC.getEXTRA_YIELD(); // </advc.031>
 			}
 			// K-Mod. add non city plot production to the base production count. (city plot has already been counted)
 			if (iI != CITY_HOME_PLOT) {
-				baseProduction += aiYield[YIELD_PRODUCTION];
+				baseProduction += aiYield[YIELD_PRODUCTION]; //
 				// <advc.031>
 				if(iPlotValue > 25 && pLoopPlot->isRiver())
 					iRiver++; // </advc.031>
 			}
-			//
-
 			// (note: these numbers have been adjusted for K-Mod)
 			if ((iI == CITY_HOME_PLOT || aiYield[YIELD_FOOD] >= GC.getFOOD_CONSUMPTION_PER_POPULATION())
 					/*  advc.031: Lighthouse isn't yet taken into account here,
@@ -3547,8 +3549,23 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				{
 					//iPlotValue += 10; // (original)
 					// K-Mod
-					iPlotValue += (kSet.bFinancial || kSet.bStartingLoc) ? 30 : 10;
-					iPlotValue += (pPlot->isRiver() ? 15 : 0);
+					//iPlotValue += (kSet.bFinancial || kSet.bStartingLoc) ? 30 : 10;
+					//iPlotValue += (pPlot->isRiver() ? 15 : 0);
+					// <advc.908a> Replacing the above
+					/*  Changed b/c of change to Financial trait, but also b/c
+						advc.031 already appreciates high-yield tiles more,
+						and I don't want the AI to overvalue tundra and snow
+						rivers. */
+					int riverPlotVal = (kSet.bStartingLoc ? 25 : 7);
+					if(kSet.bFinancial)
+						riverPlotVal += 11;
+					riverPlotVal = std::max(30, riverPlotVal);
+					/*  Is this just to steer the AI toward settling at rivers
+						rather than trying to make all river plots workable?
+						Other than that, I can only think of Levee. */
+					if(pPlot->isRiver())
+						riverPlotVal += (kSet.bStartingLoc ? 12 : 6);
+					iPlotValue += riverPlotVal; // </advc.908a>
 				}
 				if (pLoopPlot->canHavePotentialIrrigation())
 				{
@@ -26338,11 +26355,11 @@ bool CvPlayerAI::isDefenseFocusOnBarbarians(int areaId) const {
 	if(ap == NULL) return false; CvArea const& a = *ap;
 	CvGame& g = GC.getGameINLINE();
 	return a.getAreaAIType(getTeam()) != AREAAI_DEFENSIVE &&
-			!AI_isDoStrategy(AI_STRATEGY_ALERT2) &&
-			GC.getGame().isOption(GAMEOPTION_RAGING_BARBARIANS) &&
+			getNumCities() > 1 &&
+			!AI_isDoStrategy(AI_STRATEGY_ALERT1) && !isFocusWar() &&
+			!GC.getGame().isOption(GAMEOPTION_NO_BARBARIANS) &&
 			g.getGameTurn() >= g.getBarbarianStartTurn() &&
 			g.getCurrentEra() < g.getStartEra() + 2;
-		return false;	
 } // </advc.300>
 
 // <advc.104>

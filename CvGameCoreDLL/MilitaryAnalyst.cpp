@@ -350,8 +350,12 @@ double MilitaryAnalyst::interceptionMultiplier(TeamTypes tId) {
 	int nukeInterception = std::max(GET_TEAM(tId).getNukeInterception(),
 			// advc.143b:
 			GET_TEAM(GET_TEAM(tId).getMasterTeam()).getNukeInterception());
-	// Assume 1/3 of their nukes are Tactical, which can't be intercepted
-	return 1 - (2 * nukeInterception / 300.0);
+	double const evasionPr = 0.5; // Fixme: Shouldn't hardcode this
+	// Percentage of Tactical Nukes
+	double tactRatio = (GET_TEAM(tId).isHuman() ? 0.5 : 0.33);
+	return ::dRange(100 -
+			(nukeInterception * ((1 - tactRatio) + evasionPr * tactRatio)),
+			0.0, 100.0) / 100.0;
 }
 
 void MilitaryAnalyst::prepareResults() {

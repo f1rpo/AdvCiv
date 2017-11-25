@@ -18511,6 +18511,11 @@ void CvPlayer::read(FDataStreamBase* pStream)
 	CvGame& g = GC.getGameINLINE();
 	if(g.isOption(GAMEOPTION_RISE_FALL) && g.getRiseFall().hasRetired())
 		g.getRiseFall().retire(); // </advc.706>
+	// <advc.908a>
+	if(uiFlag < 5 && isAlive() && !isBarbarian()) {
+		for(int i = 0; i < NUM_YIELD_TYPES; i++)
+			updateExtraYieldThreshold((YieldTypes)i);
+	} // </advc.908a>
 }
 
 //
@@ -18522,6 +18527,7 @@ void CvPlayer::write(FDataStreamBase* pStream)
 	int iI;
 
 	uint uiFlag = 4;
+	uiFlag++; // advc.908a
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iStartingX);

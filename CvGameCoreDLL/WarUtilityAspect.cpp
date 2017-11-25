@@ -265,7 +265,7 @@ double WarUtilityAspect::lossesFromNukes(PlayerTypes victimId, PlayerTypes srcId
 	double r = hits * (victimCache.canScrubFallout() ?
 			lossRate - 0.05 : lossRate + 0.05) * scorePerCity;
 	if(r > 0.5)
-		log("Lost score of %d for cities hit: %d; assets per city: %d; cities hit: %.2f; ",
+		log("Lost score of %s for cities hit: %d; assets per city: %d; cities hit: %.2f; ",
 				report.leaderName(victimId), ::round(r),
 				::round(scorePerCity), hits);
 	return r;
@@ -3049,8 +3049,9 @@ FairPlay::FairPlay(WarEvalParameters& params) : WarUtilityAspect(params) {}
 
 void FairPlay::evaluate() {
 
-	// Once we've gone through the trouble of preparing war, it's too late.
-	if(m->getWarsDeclaredBy(weId).count(theyId) <= 0 ||
+	if(TEAMREF(theyId).isAVassal() ||
+			// Once we've gone through the trouble of preparing war, it's too late.
+			m->getWarsDeclaredBy(weId).count(theyId) <= 0 ||
 			agent.AI_isSneakAttackReady(TEAMID(theyId)) ||
 			// No kid gloves if they've attacked us before
 			we->AI_getMemoryAttitude(theyId, MEMORY_DECLARED_WAR) < 0 ||
