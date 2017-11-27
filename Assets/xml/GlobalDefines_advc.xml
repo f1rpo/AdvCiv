@@ -401,6 +401,16 @@
 		<iDefineIntVal>3</iDefineIntVal>
 	</Define>
 	
+	<!-- advc.106e: 4 (recommended) means that religion spread in foreign
+		 cities is no longer announced once the player enters the Industrial era
+		 (unless the player owns the respective holy city). Set to -1 to
+		 disable those announcements in all eras or to 7 or greater to enable
+		 them in all eras. -->
+	<Define>
+		<DefineName>STOP_RELIGION_SPREAD_ANNOUNCE_ERA</DefineName>
+		<iDefineIntVal>4</iDefineIntVal>
+	</Define>
+	
 	<!-- [advc.099]
 		 New parameter: The default value for culture-based anger
 		 now assumes Open Borders; with closed borders, the anger is

@@ -6196,7 +6196,8 @@ bool CvUnit::spread(ReligionTypes eReligion)
 
 		if (GC.getGameINLINE().getSorenRandNum(100, "Unit Spread Religion") < iSpreadProb)
 		{
-			pCity->setHasReligion(eReligion, true, true, false);
+			pCity->setHasReligion(eReligion, true, true, false,
+					getOwnerINLINE()); // advc.106e
 			bSuccess = true;
 		}
 		else
@@ -6233,8 +6234,10 @@ bool CvUnit::spread(ReligionTypes eReligion)
 			}
 			else
 			{
-				pCity->setHasReligion(eReligion, true, true, false);
-				pCity->setHasReligion(eFailedReligion, false, true, false);
+				pCity->setHasReligion(eReligion, true, true, false,
+						getOwnerINLINE()); // advc.106e
+				pCity->setHasReligion(eFailedReligion, false, true, false,
+						getOwnerINLINE()); // advc.106e
 				bSuccess = true;
 			}
 			// K-Mod

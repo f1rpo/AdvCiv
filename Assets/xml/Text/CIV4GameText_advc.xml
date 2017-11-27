@@ -686,6 +686,23 @@
 		<Italian>%s1_PlyrName abiura %s2:2_RelName!</Italian>
 		<Spanish>%s1_PlyrName renega de %s2_RelName.</Spanish>
 	</TEXT>
+	<!-- advc.151 -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_AND_RENOUNCE_RELIGION</Tag>
+		<English>(And renounces %s1_RelName.)</English>
+		<French>(Et renonce %s1_RelName.)</French>
+		<German>(Und schw&#246;rt dem %s1_RelName ab.)</German>
+		<Italian>(E abiura %s1:2_RelName.)</Italian>
+		<Spanish>(E renega de %s1_RelName.)</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_AND_ABOLISH_CIVIC</Tag>
+		<English>(Abolishes %s1_CvcName.)</English>
+		<French>(Aboli: %s1_CvcName.)</French>
+		<German>(Abgeschafft: %s1_CvcName.)</German>
+		<Italian>([NUM1:Abolito:Abolita]: %s1_CvcName.)</Italian>
+		<Spanish>([NUM1:Abolido:Abolida]: %s1_CvcName.)</Spanish>
+	</TEXT>
 	
 	<!-- advc.099: Overwrites CIV4GameTextInfos.xml. Since its culture
 	     remains in the game, it isn't accurate to say the civ was

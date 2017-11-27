@@ -12168,9 +12168,15 @@ void CvPlayer::setLastStateReligion(ReligionTypes eNewValue)
 		if(eNewValue == NO_RELIGION)
 			szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYER_RENOUNCE_RELIGION",
 					getNameKey(), GC.getReligionInfo(eOldReligion).getTextKeyWide());
-		else szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYER_CONVERT_RELIGION",
+		else {
+			szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYER_CONVERT_RELIGION",
 					getNameKey(), GC.getReligionInfo(eNewValue).getTextKeyWide());
-		// </advc.150a>
+			// <advc.151>
+			if(eOldReligion != NO_RELIGION) {
+				szBuffer += L" " + gDLL->getText("TXT_KEY_MISC_AND_RENOUNCE_RELIGION",
+						GC.getReligionInfo(eOldReligion).getTextKeyWide());
+			} // </advc.151>
+		} // </advc.150a>
 		for (iI = 0; iI < MAX_PLAYERS; iI++)
 		{
 			if (GET_PLAYER((PlayerTypes)iI).isAlive())
@@ -13711,14 +13717,20 @@ void CvPlayer::setCivics(CivicOptionTypes eIndex, CivicTypes eNewValue)
 					// K-Mod
 					if (eOldCivic != NO_CIVIC)
 					// K-Mod end
-					{
+					{	// <advc.151> Moved out of the loop
+						szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYER_ADOPTED_CIVIC", getNameKey(),
+								GC.getCivicInfo(getCivics(eIndex)).getTextKeyWide());
+						if(eOldCivic != GC.getCivilizationInfo(getCivilizationType()).
+								getCivilizationInitialCivics(eIndex)) {
+							szBuffer += L" " + gDLL->getText("TXT_KEY_MISC_AND_ABOLISH_CIVIC",
+									GC.getCivicInfo(eOldCivic).getTextKeyWide());
+						} // </advc.151>
 						for (iI = 0; iI < MAX_PLAYERS; iI++)
 						{
 							if (GET_PLAYER((PlayerTypes)iI).isAlive())
 							{
 								if (GET_TEAM(getTeam()).isHasMet(GET_PLAYER((PlayerTypes)iI).getTeam()))
 								{
-									szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYER_ADOPTED_CIVIC", getNameKey(), GC.getCivicInfo(getCivics(eIndex)).getTextKeyWide());
 									gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CIVIC_ADOPT",
 											MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY); // advc.106b
 								}

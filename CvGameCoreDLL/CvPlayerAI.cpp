@@ -19478,14 +19478,19 @@ bool CvPlayerAI::proposeJointWar(PlayerTypes humanId) {
 	Same assumptions as for contactReligion, plus can't be between vassal + master. */
 bool CvPlayerAI::proposeEmbargo(PlayerTypes humanId) {
 
-	if(AI_getContactTimer(humanId, CONTACT_STOP_TRADING) > 0)
+	if(AI_getContactTimer(humanId, CONTACT_STOP_TRADING) > 0 ||
+			AI_getAttitude(humanId) <= ATTITUDE_FURIOUS) // advc.130f
 		return false;
-	TeamTypes eBestTeam = GET_TEAM(getTeam()).AI_getWorstEnemy();
+	CvTeamAI const& ourTeam = GET_TEAM(getTeam());
+	TeamTypes eBestTeam = ourTeam.AI_getWorstEnemy();
 	if(eBestTeam == NO_TEAM || !TEAMREF(humanId).isHasMet(eBestTeam) ||
 			GET_TEAM(eBestTeam).isVassal(TEAMID(humanId)) ||
 			!GET_PLAYER(humanId).canStopTradingWithTeam(eBestTeam) ||
 			// advc.104m:
-			GET_TEAM(getTeam()).AI_isSneakAttackReady(TEAMID(humanId)))
+			ourTeam.AI_isSneakAttackReady(TEAMID(humanId)) ||
+			// <advc.130f>
+			ourTeam.AI_getAttitudeVal(TEAMID(humanId)) -
+			ourTeam.AI_getAttitudeVal(eBestTeam) < 2) // </advc.130f>
 		return false;
 	FAssert(!atWar(TEAMID(humanId), eBestTeam));
 	FAssert(TEAMID(humanId) != eBestTeam);

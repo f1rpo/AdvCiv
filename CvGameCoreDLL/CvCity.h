@@ -975,7 +975,8 @@ public:
 	void setNumFreeBuilding(BuildingTypes eIndex, int iNewValue);
 
 	bool isHasReligion(ReligionTypes eIndex) const;
-	void setHasReligion(ReligionTypes eIndex, bool bNewValue, bool bAnnounce, bool bArrows = true);
+	void setHasReligion(ReligionTypes eIndex, bool bNewValue, bool bAnnounce, bool bArrows = true,
+			PlayerTypes missionaryOwner = NO_PLAYER); // advc.106e
 	int getReligionGrip(ReligionTypes eReligion) const; // K-Mod
 
 	bool isHasCorporation(CorporationTypes eIndex) const;

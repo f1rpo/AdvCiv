@@ -11899,7 +11899,8 @@ bool CvCity::isHasReligion(ReligionTypes eIndex) const
 }
 
 
-void CvCity::setHasReligion(ReligionTypes eIndex, bool bNewValue, bool bAnnounce, bool bArrows)
+void CvCity::setHasReligion(ReligionTypes eIndex, bool bNewValue, bool bAnnounce, bool bArrows,
+		PlayerTypes missionaryOwner) // advc.106e
 {
 	FASSERT_BOUNDS(0, GC.getNumReligionInfos(), eIndex, "CvCity::setHasReligion");
 
@@ -11926,7 +11927,10 @@ void CvCity::setHasReligion(ReligionTypes eIndex, bool bNewValue, bool bAnnounce
 		AI_setAssignWorkDirty(true);
 
 		setInfoDirty(true);
-
+		// <advc.106e>
+		EraTypes ownerEra = GET_PLAYER(getOwnerINLINE()).getCurrentEra();
+		EraTypes const eraThresh = (EraTypes)GC.getDefineINT(
+				"STOP_RELIGION_SPREAD_ANNOUNCE_ERA"); // </advc.106e>
 		if (isHasReligion(eIndex))
 		{
 			GC.getGameINLINE().makeReligionFounded(eIndex, getOwnerINLINE());
@@ -11941,8 +11945,12 @@ void CvCity::setHasReligion(ReligionTypes eIndex, bool bNewValue, bool bAnnounce
 						{
 							if (isRevealed(GET_PLAYER((PlayerTypes)iI).getTeam(), false))
 							{
-								// advc.106e: Commented out.
-								//if ((getOwnerINLINE() == iI) || (GET_PLAYER((PlayerTypes)iI).getStateReligion() == eIndex) || GET_PLAYER((PlayerTypes)iI).hasHolyCity(eIndex))
+								// advc.106e:
+								if (ownerEra < eraThresh || missionaryOwner == iI ||
+										getOwnerINLINE() == iI ||
+										// advc.106e: Disable this clause
+										//(GET_PLAYER((PlayerTypes)iI).getStateReligion() == eIndex) ||
+										GET_PLAYER((PlayerTypes)iI).hasHolyCity(eIndex))
 								{
 									CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_RELIGION_SPREAD", GC.getReligionInfo(eIndex).getTextKeyWide(), getNameKey());
 									gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getReligionInfo(eIndex).getSound(),
@@ -11980,6 +11988,9 @@ void CvCity::setHasReligion(ReligionTypes eIndex, bool bNewValue, bool bAnnounce
 				for (int i = 0; i < MAX_CIV_PLAYERS; i++) {
 					CvPlayer const& civ = GET_PLAYER((PlayerTypes)i);
 					if(!civ.isAlive() || !isRevealed(civ.getTeam(), false))
+						continue;
+					if(missionaryOwner != civ.getID() && ownerEra >= eraThresh &&
+							getOwnerINLINE() != civ.getID() && !civ.hasHolyCity(eIndex))
 						continue; // </advc.106e>
 					CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_RELIGION_REMOVE", GC.getReligionInfo(eIndex).getTextKeyWide(), getNameKey());
 					gDLL->getInterfaceIFace()->addHumanMessage(

@@ -5076,14 +5076,19 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 	UnitTypes eBestUnit;
 	int iFreeUnits;
 	int iI;
-
-	if(getOwnerINLINE() == eNewValue) return; // advc.003
+	// <advc.003>
+	if(getOwnerINLINE() == eNewValue)
+		return; // </advc.003>
 	GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_PLOT_OWNER_CHANGE, eNewValue, (char*)NULL, getX_INLINE(), getY_INLINE());
 
 	pOldCity = getPlotCity();
 
 	if (pOldCity != NULL)
-	{
+	{	// <advc.003>
+		if(eNewValue == NO_PLAYER) {
+			FAssert(eNewValue != NO_PLAYER);
+			return;
+		} // </advc.003>
 		/*  advc.101: Include pre-revolt owner in messages (sometimes not easy
 			to tell once the city has flipped, and in replays). */
 		const wchar* oldOwnerDescr = GET_PLAYER(pOldCity->getOwner()).getCivilizationDescriptionKey();
@@ -5094,7 +5099,24 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 		gDLL->getInterfaceIFace()->addHumanMessage(eNewValue, false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CULTUREFLIP",
 				MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, // advc.106b
 				ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), getX_INLINE(), getY_INLINE(), true, true);
-
+		// <advc.101> Tell other civs about it (akin to code in CvCity::doRevolt)
+		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+			CvPlayer const& civ = GET_PLAYER((PlayerTypes)i);
+			if(!civ.isAlive() || civ.isMinorCiv() || civ.getID() == getOwnerINLINE() ||
+					civ.getID() == eNewValue || !isRevealed(civ.getTeam(), false))
+				continue;
+			ColorTypes color = (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE");
+			InterfaceMessageTypes msgType = MESSAGE_TYPE_MAJOR_EVENT;
+			if(TEAMREF(eNewValue).isVassal(civ.getTeam()))
+				color = (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN");
+			else if(GET_TEAM(pOldCity->getTeam()).isVassal(civ.getTeam()))
+				color = (ColorTypes)GC.getInfoTypeForString("COLOR_RED");
+			else msgType = MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY; // advc.106b
+			gDLL->getInterfaceIFace()->addHumanMessage(civ.getID(), false,
+					GC.getEVENT_MESSAGE_TIME(), szBuffer, 0, msgType,
+					ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->
+					getPath(), color, getX_INLINE(), getY_INLINE(), true, true);
+		} // </advc.101>
 		szBuffer = gDLL->getText("TXT_KEY_MISC_CITY_REVOLTS_JOINS", pOldCity->getNameKey(), GET_PLAYER(eNewValue).getCivilizationDescriptionKey()
 			, oldOwnerDescr // advc.101
 			);

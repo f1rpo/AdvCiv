@@ -4521,8 +4521,9 @@ void CvTeam::setVassal(TeamTypes eIndex, bool bNewValue, bool bCapitulated)
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < MAX_TEAMS, "eIndex is expected to be within maximum bounds (invalid Index)");
 	FAssertMsg(!bNewValue || !GET_TEAM(eIndex).isAVassal(), "can't become a vassal of a vassal")
-
-	if(isVassal(eIndex) == bNewValue) return; // advc.003
+	// <advc.003>
+	if(isVassal(eIndex) == bNewValue)
+		return; // <advc.003>
 	for (int i = 0; i < MAX_PLAYERS; i++)
 	{
 		if (GET_PLAYER((PlayerTypes)i).getTeam() == getID())
@@ -4865,8 +4866,9 @@ void CvTeam::setVassal(TeamTypes eIndex, bool bNewValue, bool bCapitulated)
 		}
 	}
 	// K-Mod end
-	// advc.014: Early re-election if vote source owner capitulates
-	if(isCapitulated()) GC.getGameINLINE().updateSecretaryGeneral();
+	// <advc.014> Early re-election if vote source owner capitulates
+	if(isCapitulated())
+		GC.getGameINLINE().updateSecretaryGeneral(); // </advc.014>
 	// <advc.143b>
 	if(isCapitulated()) {
 		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
@@ -4880,6 +4882,15 @@ void CvTeam::setVassal(TeamTypes eIndex, bool bNewValue, bool bCapitulated)
 			}
 		}
 	} // </advc.143b>
+	// <advc.130v>
+	if(bNewValue && bCapitulated && GET_TEAM(eIndex).isHuman()) {
+		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+			CvPlayer& masterMember = GET_PLAYER((PlayerTypes)i);
+			if(masterMember.isAlive() && masterMember.getTeam() == eIndex &&
+					masterMember.isHuman())
+				masterMember.setEspionageSpendingWeightAgainstTeam(getID(), 0);
+		}
+	} // </advc.130v
 }
 
 // K-Mod. Return the team which is the master of this team. (if this team is free, return getID())
@@ -6140,7 +6151,8 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 					// <advc.004r>
 					TeamTypes revTeam = pLoopPlot->getRevealedTeam(getID(), false);
 					if((revTeam != getID() && revTeam != NO_TEAM &&
-							revTeam != BARBARIAN_TEAM) ||
+							revTeam != BARBARIAN_TEAM &&
+							!GET_TEAM(revTeam).isVassal(getID())) ||
 							!pLoopPlot->isRevealed(getID(), false)) // </advc.004r>
 						continue; // advc.003
 					eBonus = pLoopPlot->getBonusType();
