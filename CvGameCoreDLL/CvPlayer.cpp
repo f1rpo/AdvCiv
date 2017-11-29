@@ -4789,7 +4789,7 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 			attacked.AI_rememberEvent(getID(), MEMORY_HIRED_WAR_ALLY);
 			// <advc.104i> Refuse to talk with both war enemies
 			if(attacked.AI_getMemoryCount(ePlayer, MEMORY_STOPPED_TRADING_RECENT) <= 0) {
-				// For 0.5*25 turns on average
+				// For 0.5*22 turns on average
 				attacked.AI_changeMemoryCount(ePlayer, MEMORY_STOPPED_TRADING_RECENT, 1);
 			}
 			if(attacked.AI_getMemoryCount(getID(), MEMORY_STOPPED_TRADING_RECENT) <= 0)
@@ -6495,7 +6495,21 @@ void CvPlayer::found(int iX, int iY)
 	else
 	{
 		pCity->doFoundMessage();
-	}
+	} // <advc.210c>
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+		CvPlayer const& civ = GET_PLAYER((PlayerTypes)i);
+		if(civ.isAlive() && pCity->getOwnerINLINE() != civ.getID() &&
+				pCity->isRevealed(civ.getTeam(), false)) {
+			gDLL->getInterfaceIFace()->addHumanMessage(civ.getID(), false,
+					GC.getEVENT_MESSAGE_TIME(),
+					gDLL->getText("TXT_KEY_MORECIV4LERTS_CITY_FOUNDED",
+					getNameKey(), pCity->getNameKey()), 0, MESSAGE_TYPE_INFO,
+					ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->
+					getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"),
+					pCity->getX_INLINE(), pCity->getY_INLINE(), true, true);
+
+		}
+	} // </advc.210c>
 	if(CvPlot::activeVisibility) // advc.706: Suppress name-city popup
 		CvEventReporter::getInstance().cityBuilt(pCity);
 
@@ -15318,7 +15332,7 @@ int CvPlayer::getEspionageMissionBaseCost(EspionageMissionTypes eMission, Player
 		iMissionCost = -1;
 		if(eTech == NO_TECH)
 			eTech = getStealCostTech(eTargetPlayer);
-		int iProdCost = (eTech == NULL ? -1 :
+		int iProdCost = (eTech == NO_TECH ? -1 :
 				GET_TEAM(getTeam()).getResearchCost(eTech));
 		// </advc.120d>
 		if (NO_TECH != eTech)

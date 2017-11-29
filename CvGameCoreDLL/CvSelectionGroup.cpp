@@ -775,10 +775,20 @@ void CvSelectionGroup::startMission()
 		FAssertMsg(GET_PLAYER(getOwnerINLINE()).isTurnActive() || GET_PLAYER(getOwnerINLINE()).isHuman(), "It's expected that either the turn is active for this player or the player is human");
 
 		// K-Mod. Moved from outside.
-		if (readyForMission())
+		if (readyForMission()) {
 			setActivityType(ACTIVITY_MISSION);
-		else
-			setActivityType(ACTIVITY_HOLD);
+			// <advc.029> (Not sure if this is the best place for this)
+			if(getHeadUnit() != NULL && getDomainType() == DOMAIN_AIR) {
+				MissionData mdata = headMissionQueueNode()->m_data;
+				CvPlot* dest = GC.getMapINLINE().plotINLINE(mdata.iData1, mdata.iData2);
+				/*  Both air attack and rebase are MOVE_TO missions. Want to
+					clear the recon-plot only for rebase. */
+				if(mdata.eMissionType == MISSION_MOVE_TO && dest != NULL &&
+						dest->isFriendlyCity(*getHeadUnit(), true))
+					getHeadUnit()->setReconPlot(NULL);
+			} // </advc.029>
+		}
+		else setActivityType(ACTIVITY_HOLD);
 		// K-Mod end
 
 		// Whole group effects

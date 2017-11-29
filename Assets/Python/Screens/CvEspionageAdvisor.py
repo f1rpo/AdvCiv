@@ -386,13 +386,11 @@ class CvEspionageAdvisor:
 			screen.deleteWidget("espRateLabel")
 			screen.deleteWidget("espRate")
 			# Same code as above, except for the buttons
-			x = self.X_TOTAL_PANE
-			y = self.Y_TOTAL_PANE
 			eCommerce = CommerceTypes.COMMERCE_ESPIONAGE
 			szText = u"<font=3>" + gc.getCommerceInfo(eCommerce).getDescription() + u" (" + unicode(pActivePlayer.getCommercePercent(eCommerce)) + u"%)</font>"
 			screen.setLabel("espRateLabel", "Background",  szText, CvUtil.FONT_LEFT_JUSTIFY, x + self.TEXT_MARGIN + 50, y + self.TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
-			szRate = u"<font=3>" + unicode(pActivePlayer.getCommerceRate(CommerceTypes(eCommerce))) + u"</font>"
-			screen.setLabel("espRate", "Background", szRate, CvUtil.FONT_RIGHT_JUSTIFY, x + self.PANE_WIDTH - self.TEXT_MARGIN, y + self.TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			szRate = u"<font=3><color=0,255,0,0>%s</color></font>" %(localText.getText("TXT_KEY_ESPIONAGE_NUM_EPS_PER_TURN", (pActivePlayer.getCommerceRate(CommerceTypes(eCommerce)), )))
+			screen.setLabel("espRate", "Background", szRate, CvUtil.FONT_RIGHT_JUSTIFY, x + self.PANE_WIDTH + self.TEXT_MARGIN, y + self.TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 			# </advc.120c>
 
 			iPlayerLoop = 0
@@ -539,7 +537,7 @@ class CvEspionageAdvisor:
 										szText = u"<color=255,0,0,0>%s</color>" %(szText)
 								# <advc.120d>
 								costStr = str(iCost)
-								if pActiveTeam.getEspionagePointsAgainstTeam(iTargetTeam) >= iCost:
+								if pActivePlayer.canDoEspionageMission(iMissionLoop, self.iTargetPlayer, None, 0):
 									costStr = localText.changeTextColor(costStr, gc.getInfoTypeForString("COLOR_GREEN"))
 								# </advc.120d>
 								iRow = screen.appendTableRow(szEffectsTable)

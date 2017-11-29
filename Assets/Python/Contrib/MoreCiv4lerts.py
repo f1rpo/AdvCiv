@@ -157,7 +157,9 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 		return self.getCheckForDomPopVictory() or self.getCheckForDomLandVictory()
 	
 	def getCheckForForeignCities(self):
-		return self.options.isShowCityFoundedAlert()
+		# advc.210c: Disable this by force b/c players upgrading to v0.91 could still have it enabled, leading to messages from both the DLL and Python.
+		return False
+		#return self.options.isShowCityFoundedAlert()
 
 	def onBeginActivePlayerTurn(self, argsList):
 		"Called when the active player can start making their moves."
@@ -198,6 +200,7 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 				# can see the list of iPlayer - should be self.iOwner
 				# instead of ActivePlayer. Doesn't matter though b/c
 				# K-Mod disables public city lists.
+				# advc.210c (comment): The city-founded alert is now entirely disabled.
 				if (bRevealed or PlayerUtil.canSeeCityList(iPlayer)):
 					player = gc.getPlayer(iPlayer)
 					#iColor = gc.getPlayerColorInfo(player.getPlayerColor()).getColorTypePrimary()

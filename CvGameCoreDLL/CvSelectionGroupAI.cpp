@@ -277,7 +277,10 @@ bool CvSelectionGroupAI::AI_update()
 				{
 					CvUnit* pLoopUnit = ::getUnit(pEntityNode->m_data);
 					/*  advc.001: Got a crash here once that I couldn't
-						reproduce after reloading. Assertion added. */
+						reproduce after reloading. Assertion added.
+						Update: Got the crash again, but assertions weren't
+						enabled. The call came from AI_unitUpdate. The continue
+						statement below doesn't seem to have helped. */
 					FAssert(pLoopUnit != NULL);
 					pEntityNode = nextUnitNode(pEntityNode);
 					if(pLoopUnit == NULL) continue; // advc.001

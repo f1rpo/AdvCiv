@@ -434,7 +434,7 @@ void CvPlayerAI::updateCacheData()
 		AI_updateNeededExplorers(); // advc.003b
 		AI_calculateAverages();
 		AI_updateVictoryStrategyHash();
-		//if (!isHuman()) // advc.104: Human strategies are interesting to know for
+		//if (!isHuman()) // advc.104: Human strategies are interesting to know
 						  //           for UWAI.
 		{
 			AI_updateStrategyHash();
@@ -8030,7 +8030,7 @@ bool CvPlayerAI::AI_isWillingToTalk(PlayerTypes ePlayer) const
 		if(!GET_PLAYER(ePlayer).isHuman())
 			return true;
 		/*  The EXE keeps calling this function when the diplo screen is
-			already open, and isPossiblePeaceDeal is an expensive function */
+			already open, and isPeaceDealPossible is an expensive function */
 		if(gDLL->isDiplomacy())
 			return true;
 		return kOurTeam.AI_surrenderTrade(TEAMID(ePlayer)) == NO_DENIAL ||
@@ -17209,7 +17209,7 @@ void CvPlayerAI::AI_doCounter()
 						3.1 * std::max(bonusVal, exportable))) / 2;
 				/*  Rather than changing attitudeDiv in XML for every leader,
 					do the fine-tuning here. */
-				double weight2 = attitudeDiv / 8.5;
+				double weight2 = 325.0 / attitudeDiv;
 				if(weight1 >= weight2)
 					incr = (bonusVal / weight1) * weight2;
 			}

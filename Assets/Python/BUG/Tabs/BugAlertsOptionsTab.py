@@ -40,7 +40,8 @@ class BugAlertsOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addCheckbox(screen, left, "MoreCiv4lerts__CityPendingBorderExpansion")
 		self.addCheckbox(screen, left, "Civ4lerts__CityCanHurryPop")
 		self.addCheckbox(screen, left, "Civ4lerts__CityCanHurryGold")
-		self.addCheckbox(screen, left, "MoreCiv4lerts__CityFounded")
+		# advc.210c: Disabled
+		#self.addCheckbox(screen, left, "MoreCiv4lerts__CityFounded")
 		
 		# Diplomacy
 		self.addLabel(screen, center, "Alerts_Diplomacy", "Diplomacy:")

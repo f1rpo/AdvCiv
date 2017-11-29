@@ -17,12 +17,13 @@
 		<Italian>[COLOR_MAGENTA]Il confine culturale di %s1 sta per espandersi.[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_MAGENTA]El límite cultural de %s1 está a punto de ampliarse.[COLOR_REVERT]</Spanish>
 	</TEXT>
-	
+
+	<!-- advc.210c: Minor change to German translation -->
 	<TEXT>
 		<Tag>TXT_KEY_MORECIV4LERTS_CITY_FOUNDED</Tag>
 		<English>%s1_Player has founded %s2_City.</English>
 		<French>%s1_Player has founded %s2_City.</French>
-		<German>%s1_Player hat die Stadt %s2_City gegründet.</German>
+		<German>%s1_Player hat %s2_City gegründet.</German>
 		<Italian>%s1_Player ha fondato %s2_City.</Italian>
 		<Spanish>%s1_Player ha fundado %s2_City.</Spanish>
 	</TEXT>

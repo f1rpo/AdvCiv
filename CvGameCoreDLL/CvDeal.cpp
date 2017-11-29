@@ -84,7 +84,8 @@ void CvDeal::kill(bool bKillTeam)
 		if (GET_TEAM(GET_PLAYER(getFirstPlayer()).getTeam()).isHasMet(GET_PLAYER(getSecondPlayer()).getTeam()))
 		{
 			szDealString.clear();
-			GAMETEXT.getDealString(szDealString, *this, getFirstPlayer());
+			GAMETEXT.getDealString(szDealString, *this, getFirstPlayer(),
+					true); // advc.004w
 			szString.Format(L"%s: %s", szCancelString.GetCString(), szDealString.getCString());
 			gDLL->getInterfaceIFace()->addHumanMessage((PlayerTypes)getFirstPlayer(), true, GC.getEVENT_MESSAGE_TIME(), szString, "AS2D_DEAL_CANCELLED");
 		}
@@ -92,7 +93,8 @@ void CvDeal::kill(bool bKillTeam)
 		if (GET_TEAM(GET_PLAYER(getSecondPlayer()).getTeam()).isHasMet(GET_PLAYER(getFirstPlayer()).getTeam()))
 		{
 			szDealString.clear();
-			GAMETEXT.getDealString(szDealString, *this, getSecondPlayer());
+			GAMETEXT.getDealString(szDealString, *this, getSecondPlayer(),
+					true); // advc.004w
 			szString.Format(L"%s: %s", szCancelString.GetCString(), szDealString.getCString());
 			gDLL->getInterfaceIFace()->addHumanMessage((PlayerTypes)getSecondPlayer(), true, GC.getEVENT_MESSAGE_TIME(), szString, "AS2D_DEAL_CANCELLED");
 		}
