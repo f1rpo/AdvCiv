@@ -298,7 +298,7 @@ double WarAndPeaceCache::goldPerProdBuildings() {
 					owner.getBuildingClassMaking((BuildingClassTypes)
 					b.getBuildingClassType()) == 0) {
 				if(b.getReligionType() != NO_RELIGION) {
-					// No Renaissance Monasteries
+					// No Monasteries when they're about to go obsolete
 					TechTypes obsTech = (TechTypes)b.getObsoleteTech();
 					if(obsTech != NO_TECH && GC.getTechInfo(obsTech).getEra() <=
 							ownerEra)
@@ -1139,6 +1139,7 @@ int WarAndPeaceCache::City::getAssetScore() const {
 
 bool WarAndPeaceCache::City::canReach() const {
 
+	PROFILE_FUNC();
 	if(city() == NULL || !TEAMREF(cacheOwnerId).AI_deduceCitySite(city()))
 		return false;
 	if(distance >= 0)

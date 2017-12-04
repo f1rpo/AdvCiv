@@ -3557,7 +3557,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 						and I don't want the AI to overvalue tundra and snow
 						rivers. */
 					int riverPlotVal = (kSet.bStartingLoc ? 25 : 7);
-					if(kSet.bFinancial)
+					if(kSet.bFinancial && aiYield[YIELD_FOOD] +
+							aiYield[YIELD_PRODUCTION] >= 1)
 						riverPlotVal += 11;
 					riverPlotVal = std::max(30, riverPlotVal);
 					/*  Is this just to steer the AI toward settling at rivers
@@ -11321,7 +11322,6 @@ int CvPlayerAI::AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled)
 // (K-Mod note: very vague units. roughly 4x gold / turn / city.)
 int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus) const
 {
-	PROFILE_FUNC();
 	// advc.003: Reduced indentation throughout this function
 	//recalculate if not defined
 	if(m_aiBonusValue[eBonus] != -1)

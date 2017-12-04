@@ -17,11 +17,12 @@
 	<options id="Advisors" file="BUG Advisors.ini">
 		<section id="Advisors">
 			<!-- Exotic Foreign Advisor (F4) by Requies, Dresden, EmperorFool -->
+			<!-- advc.004: Set the default to Numbers (was Smilies) -->
 			<option id="EFAGlanceTab" key="EFA Glance" 
 					type="boolean" default="True" 
 					get="isShowGlance"/>
 			<list   id="EFAGlanceAttitudes" key="EFA Glance Attitudes" 
-					type="int" default="1" listType="string">
+					type="int" default="0" listType="string">
 				<choice id="Numbers" get="isShowGlanceNumbers"/>
 				<choice id="Smilies" get="isShowGlanceSmilies"/>
 				<choice id="Both" get="isShowGlanceNumbers isShowGlanceSmilies"/>
@@ -83,19 +84,21 @@
 			<option id="NonZeroStatsOnly" key="Non-Zero Stats Only"
 					type="boolean" default="True"
 					get="isNonZeroStatsOnly"/> <!-- K-Mod -->
+			<!-- advc.004: Both enabled by default -->
 			<option id="BugInfoWonders" key="Wonders" 
-					type="boolean" default="False" 
+					type="boolean" default="True" 
 					get="isShowInfoWonders"/>
 			<option id="BugInfoWondersPlayerColor" key="Wonders Player Color" 
-					type="boolean" default="False" 
+					type="boolean" default="True" 
 					get="isWonderListUsePlayerColor"/>
 
 			<!-- Sevopedia (F12) by Sevo -->
+			<!-- advc.004: Both enabled by default -->
 			<option id="Sevopedia" key="Sevopedia" 
-					type="boolean" default="False" 
+					type="boolean" default="True" 
 					get="isSevopedia"/>
 			<option id="SevopediaSortItemList" key="Sevopedia Sort" 
-					type="boolean" default="False" 
+					type="boolean" default="True" 
 					get="isSortSevopedia"/>
 		</section>
 	</options>

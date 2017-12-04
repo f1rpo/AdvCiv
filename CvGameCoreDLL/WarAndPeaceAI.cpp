@@ -1001,6 +1001,7 @@ int WarAndPeaceAI::Team::tradeValJointWar(TeamTypes targetId,
 	/*  This function could handle a human ally, but the AI isn't supposed to
 		pay humans for war (and I've no plans for changing that). */
 	FAssert(!GET_TEAM(allyId).isHuman());
+	PROFILE_FUNC();
 	// That's already a comparison between joint war and solo war
 	int u = uJointWar(targetId, allyId);
 	if(u < 0)

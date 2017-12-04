@@ -316,29 +316,18 @@ void CvGameTextMgr::setOOSSeeds(CvWString& szString, PlayerTypes ePlayer)
 }
 
 void CvGameTextMgr::setNetStats(CvWString& szString, PlayerTypes ePlayer)
-{
-	if (ePlayer != GC.getGameINLINE().getActivePlayer())
-	{
-		if (GET_PLAYER(ePlayer).isHuman())
-		{
-			if (gDLL->getInterfaceIFace()->isNetStatsVisible())
-			{
-				int iNetID = GET_PLAYER(ePlayer).getNetID();
-				if (gDLL->isConnected(iNetID))
-				{
-					szString = gDLL->getText("TXT_KEY_MISC_NUM_MS", gDLL->GetLastPing(iNetID));
-				}
-				else
-				{
-					szString = gDLL->getText("TXT_KEY_MISC_DISCONNECTED");
-				}
-			}
-		}
-		else
-		{
-			szString = gDLL->getText("TXT_KEY_MISC_AI");
-		}
+{	// advc.003: Some refactoring
+	if(ePlayer == GC.getGameINLINE().getActivePlayer()
+			// advc.004v: Moved up
+			|| !gDLL->getInterfaceIFace()->isNetStatsVisible())
+		return;
+	if(GET_PLAYER(ePlayer).isHuman()) {
+		int iNetID = GET_PLAYER(ePlayer).getNetID();
+		if(gDLL->isConnected(iNetID))
+			szString = gDLL->getText("TXT_KEY_MISC_NUM_MS", gDLL->GetLastPing(iNetID));
+		else szString = gDLL->getText("TXT_KEY_MISC_DISCONNECTED");
 	}
+	else szString = gDLL->getText("TXT_KEY_MISC_AI");
 }
 
 
@@ -14702,14 +14691,14 @@ void CvGameTextMgr::getEspionageString(CvWStringBuffer& szBuffer, PlayerTypes eP
 	}
 }
 
-// <advc.>
+// <advc.004w>
 void CvGameTextMgr::getTradeString(CvWStringBuffer& szBuffer, const TradeData& tradeData, PlayerTypes ePlayer1, PlayerTypes ePlayer2) {
 
 	return getTradeString(szBuffer, tradeData, ePlayer1, ePlayer2, -1);
-} // </advc.>
+} // </advc.004w>
 
 void CvGameTextMgr::getTradeString(CvWStringBuffer& szBuffer, const TradeData& tradeData, PlayerTypes ePlayer1, PlayerTypes ePlayer2,
-		int turnsToCancel) // advc.
+		int turnsToCancel) // advc.004w
 {
 	switch (tradeData.m_eItemType)
 	{
@@ -14739,9 +14728,9 @@ void CvGameTextMgr::getTradeString(CvWStringBuffer& szBuffer, const TradeData& t
 		break;
 	case TRADE_PEACE_TREATY:
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_PEACE_TREATY",
-				// <advc.>
+				// <advc.004w>
 				(turnsToCancel < 0 ? GC.getDefineINT("PEACE_TREATY_LENGTH") :
-				turnsToCancel))); // </advc.>
+				turnsToCancel))); // </advc.004w>
 		break;
 	case TRADE_TECHNOLOGIES:
 		szBuffer.assign(CvWString::format(L"%s", GC.getTechInfo((TechTypes)tradeData.m_iData).getDescription()));

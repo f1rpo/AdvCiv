@@ -832,5 +832,14 @@
 		<DefineName>RENDER_GLOBEVIEW_CLOUDS</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
+	
+	<!-- [advc.550d] This modifier is applied to research rates when playing
+		 with the "No tech trading" option. The modifier is reduced in the
+		 early and late game. Recommended: 28. Use 0 for BtS behavior (research
+		 rate not modified when playing without tech trading). -->
+	<Define>
+		<DefineName>TECH_COST_NOTRADE_MODIFIER</DefineName>
+		<iDefineIntVal>28</iDefineIntVal>
+	</Define>
 
 </Civ4Defines>

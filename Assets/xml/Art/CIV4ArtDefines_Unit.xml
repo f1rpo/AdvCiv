@@ -2040,8 +2040,7 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_CARAVEL</Type>
 			<Button>,Art/Interface/Buttons/Units/Caravel.dds,Art/Interface/Buttons/Unit_Resource_Atlas.dds,1,9</Button>
-			<!-- advc.002j: was 0.24 -->
-			<fScale>0.25</fScale>
+			<fScale>0.24</fScale>
 			<fInterfaceScale>0.5</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>

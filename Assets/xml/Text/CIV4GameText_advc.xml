@@ -689,7 +689,7 @@
 	<!-- advc.151 -->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_AND_RENOUNCE_RELIGION</Tag>
-		<English>(And renounces %s1_RelName.)</English>
+		<English>(Renounces %s1_RelName.)</English>
 		<French>(Et renonce %s1_RelName.)</French>
 		<German>(Und schw&#246;rt dem %s1_RelName ab.)</German>
 		<Italian>(E abiura %s1:2_RelName.)</Italian>

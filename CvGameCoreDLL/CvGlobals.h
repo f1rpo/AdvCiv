@@ -1308,6 +1308,8 @@ public:
 	int getTECH_COST_FIRST_KNOWN_PREREQ_MODIFIER();
 	int getTECH_COST_KNOWN_PREREQ_MODIFIER();
 	int getTECH_COST_MODIFIER();
+	// advc.550d: Not tech diffusion, but related.
+	int getTECH_COST_NOTRADE_MODIFIER();
 
 protected:
 	bool m_bTECH_DIFFUSION_ENABLE;
@@ -1317,6 +1319,7 @@ protected:
 	int m_iTECH_COST_FIRST_KNOWN_PREREQ_MODIFIER;
 	int m_iTECH_COST_KNOWN_PREREQ_MODIFIER;
 	int m_iTECH_COST_MODIFIER;
+	int m_iTECH_COST_NOTRADE_MODIFIER; // advc.550d
 	
 // From Lead From Behind by UncutDragon. (edited for K-Mod)
 public:

@@ -125,20 +125,28 @@ void CvUnit::init(int iID, UnitTypes eUnit, UnitAITypes eUnitAI, PlayerTypes eOw
 	plot()->updateCenterUnit();
 
 	plot()->setFlagDirty(true);
-
-	// advc.003: Was called iUnitName, which doesn't make any sense to me.
-	int iCreated = GC.getGameINLINE().getUnitCreatedCount(getUnitType());
+	// <advc.003>
+	CvGame& g = GC.getGameINLINE();
+	// Was called iUnitName, which doesn't make any sense to me.
+	int iCreated = g.getUnitCreatedCount(getUnitType()); // </advc.003>
 	int iNumNames = m_pUnitInfo->getNumUnitNames();
 	if (iCreated < iNumNames)
-	{
-		// <advc.005b>
-		int iRand = GC.getGameINLINE().getSorenRandNum(5, "advc.005b");
-		/*  Basic assumption: About half the names are used in a long (space-race)
-			game; so, skip every 2nd name on average (expected value of iRand is 2).
-			The index of the most recently used name isn't available; instead,
-			take two times the number of previously used names in order to pickup
-			roughly where we left off. */
-		int iOffset = 2 * iCreated + iRand;
+	{	// <advc.005b>
+		/*  Skip every step'th name on average. Basic assumption: About half of
+			the names are used in a long (space-race) game with 7 civs; therefore, skip every
+			step=2 then. Adjust this to the (current) number of civs. */
+		int alive = g.countCivPlayersAlive();
+		if(alive <= 0) {
+			FAssert(alive > 0);
+			alive = 7;
+		}
+		int step = std::max(1, ::round(14.0 / alive));
+		// This gives iRand an expected value of step
+		int iRand = GC.getGameINLINE().getSorenRandNum(2 * step + 1, "advc.005b");
+		/*  The index of the most recently used name isn't available; instead,
+			take step times the number of previously used names in order to
+			pick up roughly where we left off. */
+		int iOffset = step * iCreated + iRand;
 		// That's +8 in Medieval, +16 in Renaissance and +24 in Industrial or later
 		iOffset += std::min(24, 8 * std::max(0, GC.getGame().getStartEra() - 1));
 		bool nameSet = false;

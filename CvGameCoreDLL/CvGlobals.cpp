@@ -271,6 +271,7 @@ m_paMainMenus(NULL)
 ,m_iTECH_COST_FIRST_KNOWN_PREREQ_MODIFIER(20)
 ,m_iTECH_COST_KNOWN_PREREQ_MODIFIER(20)
 ,m_iTECH_COST_MODIFIER(0)
+,m_iTECH_COST_NOTRADE_MODIFIER(0) // advc.550d
 
 // From Lead From Behind by UncutDragon
 // Lead from Behind flags
@@ -2791,6 +2792,9 @@ void CvGlobals::cacheGlobals()
 	m_iTECH_COST_FIRST_KNOWN_PREREQ_MODIFIER = getDefineINT("TECH_COST_FIRST_KNOWN_PREREQ_MODIFIER", m_iTECH_COST_FIRST_KNOWN_PREREQ_MODIFIER);
 	m_iTECH_COST_KNOWN_PREREQ_MODIFIER = getDefineINT("TECH_COST_KNOWN_PREREQ_MODIFIER", m_iTECH_COST_KNOWN_PREREQ_MODIFIER);
 	m_iTECH_COST_MODIFIER = getDefineINT("TECH_COST_MODIFIER", m_iTECH_COST_MODIFIER);
+	// <advc.550d>
+	m_iTECH_COST_NOTRADE_MODIFIER = getDefineINT("TECH_COST_NOTRADE_MODIFIER",
+			m_iTECH_COST_NOTRADE_MODIFIER); // </advc.550d>
 	
 // From Lead From Behind by UncutDragon
 // Lead from Behind flags
@@ -3865,6 +3869,12 @@ int CvGlobals::getTECH_COST_MODIFIER()
 {
 	return m_iTECH_COST_MODIFIER;
 }
+
+// <advc.550d>
+int CvGlobals::getTECH_COST_NOTRADE_MODIFIER() {
+
+	return m_iTECH_COST_NOTRADE_MODIFIER;
+} // </advc.550d>
 
 
 // From Lead From Behind by UncutDragon (edited for K-Mod)

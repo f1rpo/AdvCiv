@@ -8005,19 +8005,23 @@ int CvPlayer::calculateResearchModifier(TechTypes eTech) const
 		iModifier += (iPossiblePaths - iUnknownPaths) * GC.getTECH_COST_KNOWN_PREREQ_MODIFIER();
 	}
 
-	EraTypes techEra = (EraTypes)GC.getTechInfo(eTech).getEra(); // advc.308
+	EraTypes techEra = (EraTypes)GC.getTechInfo(eTech).getEra(); // advc.003
 	iModifier -= GC.getEraInfo(techEra).getTechCostModifier();
 
 	iModifier -= GC.getTECH_COST_MODIFIER();
+	CvGame& g = GC.getGameINLINE(); // advc.003
 	// <advc.308>
-	if(GC.getGame().isOption(GAMEOPTION_RAGING_BARBARIANS) && GC.getGame().
-			getStartEra() == (EraTypes)0) {
+	if(g.isOption(GAMEOPTION_RAGING_BARBARIANS) && g.getStartEra() == (EraTypes)0) {
 		switch(techEra) {
-		case 1: iModifier += 15; break;
-		case 2: iModifier += 10; break;
+		case 1: iModifier += 14; break;
+		case 2: iModifier += 7; break;
 		}
 	} // </advc.308>
-
+	// <advc.550d>
+	if(g.isOption(GAMEOPTION_NO_TECH_TRADING) && techEra > 0 && techEra < 6) {
+		iModifier += std::max(0, ::round(GC.getTECH_COST_NOTRADE_MODIFIER() - 5 *
+				std::pow(std::abs(techEra - 2.5), 1.5)));
+	} // </advc.550d>
 	return iModifier;
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */

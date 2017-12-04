@@ -4521,7 +4521,11 @@ void CvTeam::setVassal(TeamTypes eIndex, bool bNewValue, bool bCapitulated)
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < MAX_TEAMS, "eIndex is expected to be within maximum bounds (invalid Index)");
 	FAssertMsg(!bNewValue || !GET_TEAM(eIndex).isAVassal(), "can't become a vassal of a vassal")
-	// <advc.003>
+	bool wasCapitulated = isCapitulated(); // advc.130v
+	/*  <advc.003> If this function is used for turning capitulated into
+		voluntary vassals at some point, then the code for processin this change
+		will have to be placed before this clause, or will also have to check if
+		isCapitulated()==bCapitulated here. */
 	if(isVassal(eIndex) == bNewValue)
 		return; // <advc.003>
 	for (int i = 0; i < MAX_PLAYERS; i++)
@@ -4796,7 +4800,7 @@ void CvTeam::setVassal(TeamTypes eIndex, bool bNewValue, bool bCapitulated)
 						gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_REVOLTSTART", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 					}
 				}
-			}				
+			}
 		}
 		// <advc.130y>
 		// Don't forgive if it's apparent that we haven't fought wars as a vassal
@@ -4890,7 +4894,32 @@ void CvTeam::setVassal(TeamTypes eIndex, bool bNewValue, bool bCapitulated)
 					masterMember.isHuman())
 				masterMember.setEspionageSpendingWeightAgainstTeam(getID(), 0);
 		}
-	} // </advc.130v
+	} // </advc.130v>
+	// <advc.130f> Delete stopped-trading memory
+	if(wasCapitulated != bCapitulated) {
+		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+			CvPlayerAI& ourMember = GET_PLAYER((PlayerTypes)i);
+			if(!ourMember.isAlive() || ourMember.getTeam() != getID())
+				continue;
+			for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
+				CvPlayerAI& theirMember = GET_PLAYER((PlayerTypes)j);
+				if(!theirMember.isAlive() || theirMember.getTeam() == getID())
+					continue;
+				int mem = ourMember.AI_getMemoryCount(theirMember.getID(), MEMORY_STOPPED_TRADING);
+				if(mem > 0) // Just so I can check this in the debugger
+					ourMember.AI_changeMemoryCount(theirMember.getID(), MEMORY_STOPPED_TRADING, -mem);
+				mem = ourMember.AI_getMemoryCount(theirMember.getID(), MEMORY_STOPPED_TRADING_RECENT);
+				if(mem > 0)
+					ourMember.AI_changeMemoryCount(theirMember.getID(), MEMORY_STOPPED_TRADING_RECENT, -mem);
+				mem = theirMember.AI_getMemoryCount(ourMember.getID(), MEMORY_STOPPED_TRADING);
+				if(mem > 0)
+					theirMember.AI_changeMemoryCount(ourMember.getID(), MEMORY_STOPPED_TRADING, -mem);
+				mem = theirMember.AI_getMemoryCount(ourMember.getID(), MEMORY_STOPPED_TRADING_RECENT);
+				if(mem > 0)
+					theirMember.AI_changeMemoryCount(ourMember.getID(), MEMORY_STOPPED_TRADING_RECENT, -mem);
+			}
+		}
+	} // </advc.130f
 }
 
 // K-Mod. Return the team which is the master of this team. (if this team is free, return getID())
