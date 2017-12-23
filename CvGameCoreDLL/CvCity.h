@@ -677,7 +677,7 @@ public:
 	bool isProductionAutomated() const;											// Exposed to Python
 	void setProductionAutomated(bool bNewValue, bool bClear);					// Exposed to Python 
 
-	/* allows you to programatically specify a cities walls rather than having them be generated automagically */
+	/* allows you to programmatically specify a cities walls rather than having them be generated automagically */
 	DllExport bool isWallOverride() const; 
 	void setWallOverride(bool bOverride);
 

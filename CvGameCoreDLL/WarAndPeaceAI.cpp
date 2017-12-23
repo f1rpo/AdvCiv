@@ -4,6 +4,7 @@
 #include "WarAndPeaceAI.h"
 #include "WarEvaluator.h"
 #include "CvDiploParameters.h"
+#include "CvDLLInterfaceIFaceBase.h"
 
 /*  advc.make: Include this for debugging with Visual Leak Detector
 	(if installed). Doesn't matter which file includes it; preferrable a cpp file
@@ -453,8 +454,10 @@ bool WarAndPeaceAI::Team::reviewPlan(TeamTypes targetId, int u, int prepTime) {
 		if(!canSchemeAgainst(targetId, true)) {
 			report->log("War plan \"%s\" canceled b/c %s is no longer a legal target",
 					report->warPlanName(wp), report->teamName(targetId));
-			if(!inBackgr)
+			if(!inBackgr) {
 				agent.AI_setWarPlan(targetId, NO_WARPLAN);
+				showWarPlanAbandonedMsg(targetId);
+			}
 			return false;
 		}
 		if(wp != WARPLAN_PREPARING_LIMITED && wp != WARPLAN_PREPARING_TOTAL) {
@@ -465,8 +468,10 @@ bool WarAndPeaceAI::Team::reviewPlan(TeamTypes targetId, int u, int prepTime) {
 					(inBackgr && wp == WARPLAN_DOGPILE));
 			if(u < 0) {
 				report->log("Imminent war canceled; no longer worthwhile");
-				if(!inBackgr)
+				if(!inBackgr) {
 					agent.AI_setWarPlan(targetId, NO_WARPLAN);
+					showWarPlanAbandonedMsg(targetId);
+				}
 				return false;
 			}
 			CvMap const& m = GC.getMapINLINE();
@@ -485,8 +490,10 @@ bool WarAndPeaceAI::Team::reviewPlan(TeamTypes targetId, int u, int prepTime) {
 			if(wpAge > timeout) {
 				report->log("Imminent war canceled b/c of timeout (%d turns)",
 						timeout);
-				if(!inBackgr)
+				if(!inBackgr) {
 					agent.AI_setWarPlan(targetId, NO_WARPLAN);
+					showWarPlanAbandonedMsg(targetId);
+				}
 				return false;
 			}
 			report->log("War remains imminent (%d turns until timeout)",
@@ -799,8 +806,10 @@ bool WarAndPeaceAI::Team::considerAbandonPreparations(TeamTypes targetId, int u,
 			(WarEvaluator doesn't handle this properly, i.e. would ignore the
 			all but one plan). Can only occur here if UWAI was running in the
 			background for some time. */
-		if(!inBackgr)
+		if(!inBackgr) {
 			agent.AI_setWarPlan(targetId, NO_WARPLAN);
+			showWarPlanAbandonedMsg(targetId);
+		}
 		report->log("More than one war in preparation, canceling the one against %s",
 				report->teamName(targetId));
 		return false;
@@ -809,8 +818,10 @@ bool WarAndPeaceAI::Team::considerAbandonPreparations(TeamTypes targetId, int u,
 		return true;
 	if(timeRemaining <= 0 && u < 0) {
 		report->log("Time limit for preparations reached; plan abandoned");
-		if(!inBackgr)
+		if(!inBackgr) {
 			agent.AI_setWarPlan(targetId, NO_WARPLAN);
+			showWarPlanAbandonedMsg(targetId);
+		}
 		return false;
 	}
 	WarPlanTypes wp = agent.AI_getWarPlan(targetId);
@@ -830,8 +841,10 @@ bool WarAndPeaceAI::Team::considerAbandonPreparations(TeamTypes targetId, int u,
 			::round(pr * 100), warRand);
 	if(::bernoulliSuccess(pr)) {
 		report->log("Preparations abandoned");
-		if(!inBackgr)
+		if(!inBackgr) {
 			agent.AI_setWarPlan(targetId, NO_WARPLAN);
+			showWarPlanAbandonedMsg(targetId);
+		}
 		return false;
 	}
 	else report->log("Preparations not abandoned");
@@ -876,7 +889,9 @@ bool WarAndPeaceAI::Team::considerSwitchTarget(TeamTypes targetId, int u,
 	if(!inBackgr) {
 		int wpAge = agent.AI_getWarPlanStateCounter(targetId);
 		agent.AI_setWarPlan(targetId, NO_WARPLAN);
+		showWarPlanAbandonedMsg(targetId);
 		agent.AI_setWarPlan(bestAltTargetId, wp);
+		showWarPrepStartedMsg(bestAltTargetId);
 		agent.AI_setWarPlanStateCounter(bestAltTargetId, timeRemaining);
 	}
 	return false;
@@ -1148,8 +1163,10 @@ void WarAndPeaceAI::Team::scheme() {
 		report->log("Drive for war preparations against %s: %d percent",
 				report->teamName(targetId), ::round(100 * drive));
 		if(::bernoulliSuccess(drive)) {
-			if(!inBackgr)
+			if(!inBackgr) {
 				agent.AI_setWarPlan(targetId, wp);
+				showWarPrepStartedMsg(targetId);
+			}
 			report->log("War plan initiated (%s)", report->warPlanName(wp));
 			break; // Prepare only one war at a time
 		}
@@ -1707,6 +1724,28 @@ bool WarAndPeaceAI::Team::isReportTurn() const {
 	int turnNumber = GC.getGameINLINE().getGameTurn();
 	int reportInterval = GC.getDefineINT("REPORT_INTERVAL");
 	return (reportInterval > 0 && turnNumber % reportInterval == 0);
+}
+
+void WarAndPeaceAI::Team::showWarPrepStartedMsg(TeamTypes targetId) {
+
+	showWarPlanMsg(targetId, "TXT_KEY_WAR_PREPARATION_STARTED");
+}
+
+void WarAndPeaceAI::Team::showWarPlanAbandonedMsg(TeamTypes targetId) {
+
+	showWarPlanMsg(targetId, "TXT_KEY_WAR_PLAN_ABANDONED");
+}
+
+void WarAndPeaceAI::Team::showWarPlanMsg(TeamTypes targetId, char const* txtKey) {
+
+	CvPlayer& activePl = GET_PLAYER(GC.getGameINLINE().getActivePlayer());
+	if(!activePl.isSpectator() || GC.getDefineINT("UWAI_SPECTATOR_ENABLED") <= 0)
+		return;
+	CvWString szBuffer = gDLL->getText(txtKey,
+			GET_TEAM(agentId).getName().GetCString(),
+			GET_TEAM(targetId).getName().GetCString());
+	gDLL->getInterfaceIFace()->addHumanMessage(activePl.getID(), false,
+			GC.getEVENT_MESSAGE_TIME(), szBuffer, 0, MESSAGE_TYPE_MAJOR_EVENT);
 }
 
 double WarAndPeaceAI::Team::confidenceFromWarSuccess(TeamTypes targetId) const {

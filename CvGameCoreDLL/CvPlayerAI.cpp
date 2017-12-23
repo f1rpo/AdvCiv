@@ -136,6 +136,43 @@ bool CvPlayerAI::isThreatFromMinorCiv() const {
 	return false;
 } // </advc.109>
 
+// <dlph.16> (Though DarkLunaPhantom didn't put this in a separate function)
+int CvPlayerAI::nukeDangerDivisor() const {
+
+	if(GC.getGameINLINE().isNoNukes())
+		return 15;
+	// "we're going to cheat a little bit, by counting nukes that we probably shouldn't know about."
+	bool bDanger = false;
+	bool bRemoteDanger = false;
+	CvLeaderHeadInfo& ourPers = GC.getLeaderHeadInfo(getPersonalityType());
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+		CvPlayerAI const& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
+		// Vassals can't have nukes b/c of change advc.143b
+		if(!kLoopPlayer.isAlive() || kLoopPlayer.isAVassal() ||
+				!GET_TEAM(getTeam()).isHasMet(kLoopPlayer.getTeam()) ||
+				kLoopPlayer.getTeam() == getTeam())
+			continue;
+		/*  advc: Avoid building shelters against friendly
+			nuclear powers. This is mostly role-playing. */
+		CvLeaderHeadInfo& theirPers = GC.getLeaderHeadInfo(
+				kLoopPlayer.getPersonalityType());
+		AttitudeTypes towardThem = AI_getAttitude(kLoopPlayer.getID());
+		if(ourPers.getNoWarAttitudeProb(towardThem) >= 100 &&
+				(kLoopPlayer.isHuman() ?
+				towardThem >= ATTITUDE_FRIENDLY :
+				theirPers.getNoWarAttitudeProb(kLoopPlayer.
+				AI_getAttitude(getID())) >= 100))
+			continue;
+		if(kLoopPlayer.getNumNukeUnits() > 0)
+			return 1; // Greatest danger, smallest divisor.
+		if(kLoopPlayer.getCurrentEra() >= 5)
+			bRemoteDanger = true;
+	}
+	if(bRemoteDanger)
+		return 10;
+	return 20;
+} // </dlph.16>
+
 // <advc.001> Mostly copy-pasted from the homonymous CvTeamAI function
 bool CvPlayerAI::AI_hasSharedPrimaryArea(PlayerTypes pId) const {
 
@@ -3748,7 +3785,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	//        Food is always great - unless we already have too much; and food already affects a bunch of other parts of the site evaluation...
 	if (kSet.bStartingLoc)
 		iResourceValue /= 4; // try not to make the value of strategic resources too overwhelming. (note: I removed a bigger value reduction from the original code higher up.)
-	// Note: iSpecialFood is whatever food happens to be asscioated with bonuses. Don't value it highly, because it's also counted in a bunch of other ways.
+	// Note: iSpecialFood is whatever food happens to be associated with bonuses. Don't value it highly, because it's also counted in a bunch of other ways.
 	// <advc.031>
 	// Preserve this for later
 	int nonYieldResourceVal = std::max(0, iResourceValue);
@@ -4796,7 +4833,7 @@ bool CvPlayerAI::AI_isCommercePlot(CvPlot* pPlot) const
 // K-Mod. The cache also needs to be reset when routes are destroyed, because distance 2 border danger only counts when there is a route.
 // Actually, the cache doesn't need to be cleared when war is declared; because false negatives have no impact with this cache.
 // The safe plot cache can be invalid if we kill an enemy unit. Currently this is unaccounted for, and so the cache doesn't always match the true state.
-// In general, I think this cache is a poorly planned idea. It's prone to subtle bugs if there are rule changes in seemingly independant parts of the games.
+// In general, I think this cache is a poorly planned idea. It's prone to subtle bugs if there are rule changes in seemingly independent parts of the games.
 //
 // I've done a bit of speed profiling and found that although the safe plot cache does shortcut around 50% of calls to AI_getAnyPlotDanger,
 // that only ends up saving a few milliseconds each turn anyway. I don't really think that's worth risking of getting problems from bad cache.
@@ -5679,7 +5716,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 	if (kTechInfo.isMapVisible())
 	{
 		iValue += (3*GC.getMapINLINE().getLandPlots() + GC.getMapINLINE().numPlots())/400; // (3 * 1100 + 4400)/400 = 14. ~3 commerce/turn
-		// Note, the world is usually thoroghly explored by the time of satilites. So this is low value.
+		// Note, the world is usually thoroughly explored by the time of satellites. So this is low value.
 		// If we wanted to evaluate this properly, we'd need to calculate at how much of the world is still unexplored.
 	}
 
@@ -5994,7 +6031,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 
 			/* original code
 			iTempValue += (GC.getImprovementInfo((ImprovementTypes)iJ).getTechYieldChanges(eTech, iK) * getImprovementCount((ImprovementTypes)iJ) * 50); */
-			// Often, an improvment only becomes viable after it gets the tech bonus.
+			// Often, an improvement only becomes viable after it gets the tech bonus.
 			// So it's silly to score the bonus proportionally to how many of the improvements we already have.
 			iTempValue += GC.getImprovementInfo((ImprovementTypes)iJ).getTechYieldChanges(eTech, iK)
 				* std::max(getImprovementCount((ImprovementTypes)iJ), 3*getNumCities()/2) * 4;
@@ -17631,51 +17668,51 @@ void CvPlayerAI::AI_doCommerce()
 					for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; ++iPlayer)
 					{
 						CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
-						if (kLoopPlayer.getTeam() == iTeam && kLoopPlayer.getNumCities() > 0)
+						// <advc.003>
+						if (kLoopPlayer.getTeam() != iTeam || kLoopPlayer.getNumCities() <= 0)
+							continue; // </advc.003>
+						std::vector<int> cityModifiers;
+						CvCity* pLoopCity;
+						int iLoop;
+						int iTargetCities = 0;
+						for (pLoopCity = kLoopPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kLoopPlayer.nextCity(&iLoop))
 						{
-							std::vector<int> cityModifiers;
-							CvCity* pLoopCity;
-							int iLoop;
-							int iTargetCities = 0;
-							for (pLoopCity = kLoopPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kLoopPlayer.nextCity(&iLoop))
+							if (pLoopCity->isRevealed(getTeam(), false) && pLoopCity->area() != NULL && AI_isPrimaryArea(pLoopCity->area()))
 							{
-								if (pLoopCity->isRevealed(getTeam(), false) && pLoopCity->area() != NULL && AI_isPrimaryArea(pLoopCity->area()))
-								{
-									cityModifiers.push_back(getEspionageMissionCostModifier(NO_ESPIONAGEMISSION, (PlayerTypes)iPlayer, pLoopCity->plot()));
-								}
+								cityModifiers.push_back(getEspionageMissionCostModifier(NO_ESPIONAGEMISSION, (PlayerTypes)iPlayer, pLoopCity->plot()));
 							}
-							if (cityModifiers.size() > 0)
+						}
+						if (cityModifiers.size() > 0)
+						{
+							// Get the average of the lowest 3 cities.
+							int iSampleSize = std::min(3, (int)cityModifiers.size());
+							std::partial_sort(cityModifiers.begin(), cityModifiers.begin()+iSampleSize, cityModifiers.end());
+							int iModifier = 0;
+							for (std::vector<int>::iterator it = cityModifiers.begin(); it != cityModifiers.begin()+iSampleSize; ++it)
 							{
-								// Get the average of the lowest 3 cities.
-								int iSampleSize = std::min(3, (int)cityModifiers.size());
-								std::partial_sort(cityModifiers.begin(), cityModifiers.begin()+iSampleSize, cityModifiers.end());
-								int iModifier = 0;
-								for (std::vector<int>::iterator it = cityModifiers.begin(); it != cityModifiers.begin()+iSampleSize; ++it)
-								{
-									iModifier += *it;
-								}
-								iModifier /= iSampleSize;
+								iModifier += *it;
+							}
+							iModifier /= iSampleSize;
 
-								if (iModifier < iMinModifier ||
-									(iModifier == iMinModifier && iAttitude < kTeam.AI_getAttitudeVal(eMinModTeam)))
+							if (iModifier < iMinModifier ||
+								(iModifier == iMinModifier && iAttitude < kTeam.AI_getAttitudeVal(eMinModTeam)))
+							{
+								// do they have any techs we can steal?
+								bool bValid = false;
+								for (int iT = 0; iT < GC.getNumTechInfos(); iT++)
 								{
-									// do they have any techs we can steal?
-									bool bValid = false;
-									for (int iT = 0; iT < GC.getNumTechInfos(); iT++)
+									if (canStealTech((PlayerTypes)iPlayer, (TechTypes)iT))
 									{
-										if (canStealTech((PlayerTypes)iPlayer, (TechTypes)iT))
-										{
-											bValid = iApproxTechCost > 0; // don't set it true unless there are at least 2 stealable techs.
-											// get a (very rough) approximation of how much it will cost to steal a tech.
-											iApproxTechCost = (kTeam.getResearchCost((TechTypes)iT) + iApproxTechCost) / (iApproxTechCost != 0 ? 2 : 1);
-											break;
-										}
+										bValid = iApproxTechCost > 0; // don't set it true unless there are at least 2 stealable techs.
+										// get a (very rough) approximation of how much it will cost to steal a tech.
+										iApproxTechCost = (kTeam.getResearchCost((TechTypes)iT) + iApproxTechCost) / (iApproxTechCost != 0 ? 2 : 1);
+										break;
 									}
-									if (bValid)
-									{
-										iMinModifier = iModifier;
-										eMinModTeam = (TeamTypes)iTeam;
-									}
+								}
+								if (bValid)
+								{
+									iMinModifier = iModifier;
+									eMinModTeam = (TeamTypes)iTeam;
 								}
 							}
 						}
@@ -20870,7 +20907,7 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(
 
 	// K-Mod, disabling some stuff.
 	// It is still possible to get a cultural victory in advanced start games.
-	// and moving your captial city certainly does not indicate that you shouldn't go for a cultural victory!
+	// and moving your capital city certainly does not indicate that you shouldn't go for a cultural victory!
 	// ... and colonies don't get their capital on turn 1 anyway.
 	/* original code
 	if (GC.getGame().getStartEra() > 1)
@@ -21565,7 +21602,7 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 		return 0;
 	}
 
-	// Check for whether we are elligible for election
+	// Check for whether we are eligible for election
 	bool bVoteEligible = false;
 	for( int iVoteSource = 0; iVoteSource < GC.getNumVoteSourceInfos(); iVoteSource++ )
 	{
@@ -21676,7 +21713,7 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 ///
 /// Victory strategies are computed on demand once per turn and stored for the rest
 /// of the turn.  Each victory strategy type has 4 levels, the first two are
-/// determined largely from AI tendencies and randomn dice rolls.  The second
+/// determined largely from AI tendencies and random dice rolls.  The second
 /// two are based on measurables and past actions, so the AI can use them to
 /// determine what other players (including the human player) are doing.
 bool CvPlayerAI::AI_isDoVictoryStrategy(int iVictoryStrategy) const

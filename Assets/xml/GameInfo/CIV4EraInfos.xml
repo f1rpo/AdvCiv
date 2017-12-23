@@ -166,7 +166,7 @@
 			<iResearchPercent>80</iResearchPercent>
 			<!-- BBAI start: effectively modify cost for all techs from this era.  Default: 4 -->
 			<!-- advc.910: was 6 in K-Mod -->
-			<iTechCostModifier>5</iTechCostModifier>
+			<iTechCostModifier>8</iTechCostModifier>
 			<!-- BBAI end -->
 			<iBuildPercent>100</iBuildPercent>
 			<iImprovementPercent>100</iImprovementPercent>

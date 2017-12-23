@@ -55,7 +55,8 @@ class AbstractMoreCiv4lertsEvent(object):
 	def _addMessage(self, iPlayer, szString, szIcon, iFlashX, iFlashY, bOffArrow, bOnArrow, iColor):
 			#Displays an on-screen message.
 			# <advc.706>
-			if gc.getGame().isRFBlockPopups():
+			# advc.127: No alerts during or right after Auto Play
+			if gc.getGame().isRFBlockPopups() or gc.getPlayer(self.iOwner).isHumanDisabled() or gc.getPlayer(self.iOwner).isAutoPlayJustEnded():
 				return # </advc.706>
 			# advc.106c: Reduced time from LONG to normal
 			eventMessageTimeLong = gc.getDefineINT("EVENT_MESSAGE_TIME")

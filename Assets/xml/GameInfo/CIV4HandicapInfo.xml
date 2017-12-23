@@ -740,7 +740,8 @@
 			<iAIStartingExploreUnits>1</iAIStartingExploreUnits>
 			<iBarbarianDefenders>3</iBarbarianDefenders>
 			<iAIDeclareWarProb>100</iAIDeclareWarProb>
-			<iAIWorkRateModifier>50</iAIWorkRateModifier>
+			<!-- advc.113: was 50 -->
+			<iAIWorkRateModifier>30</iAIWorkRateModifier>
 			<iAIGrowthPercent>90</iAIGrowthPercent>
 			<!-- advc.251: I.e. higher tech costs for the AI -->
 			<iAIResearchPercent>103</iAIResearchPercent>
@@ -866,7 +867,8 @@
 			<iAIStartingExploreUnits>1</iAIStartingExploreUnits>
 			<iBarbarianDefenders>4</iBarbarianDefenders>
 			<iAIDeclareWarProb>100</iAIDeclareWarProb>
-			<iAIWorkRateModifier>75</iAIWorkRateModifier>
+			<!-- advc.113: was 75 -->
+			<iAIWorkRateModifier>40</iAIWorkRateModifier>
 			<iAIGrowthPercent>85</iAIGrowthPercent>
 			<!-- advc.251: I.e. higher tech costs for the AI -->
 			<iAIResearchPercent>105</iAIResearchPercent>
@@ -995,7 +997,8 @@
 			<iAIStartingExploreUnits>1</iAIStartingExploreUnits>
 			<iBarbarianDefenders>4</iBarbarianDefenders>
 			<iAIDeclareWarProb>100</iAIDeclareWarProb>
-			<iAIWorkRateModifier>100</iAIWorkRateModifier>
+			<!-- advc.113: was 100 -->
+			<iAIWorkRateModifier>50</iAIWorkRateModifier>
 			<iAIGrowthPercent>80</iAIGrowthPercent>
 			<!-- advc.251: I.e. higher tech costs for the AI -->
 			<iAIResearchPercent>125</iAIResearchPercent>

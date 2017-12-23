@@ -5103,7 +5103,8 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 			CvPlayer const& civ = GET_PLAYER((PlayerTypes)i);
 			if(!civ.isAlive() || civ.isMinorCiv() || civ.getID() == getOwnerINLINE() ||
-					civ.getID() == eNewValue || !isRevealed(civ.getTeam(), false))
+					civ.getID() == eNewValue || (!isRevealed(civ.getTeam(), false) &&
+					!civ.isSpectator())) // advc.127
 				continue;
 			ColorTypes color = (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE");
 			InterfaceMessageTypes msgType = MESSAGE_TYPE_MAJOR_EVENT;

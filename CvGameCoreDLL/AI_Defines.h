@@ -8,7 +8,7 @@
 /* 																			    */
 /* 																			    */
 /********************************************************************************/
-// Could increase this value now that player closness is fixed
+// Could increase this value now that player closeness is fixed
 #define DEFAULT_PLAYER_CLOSENESS 7
 
 #define AI_DAGGER_THRESHOLD			100  //higher is a lower chance
@@ -18,7 +18,7 @@
 #define AI_STRATEGY_DAGGER              (1 << 1)   // Aggressive early game
 #define AI_STRATEGY_CRUSH				(1 << 2)   // Convert units to City Attack
 #define AI_STRATEGY_ALERT1				(1 << 3)   // Likely attack from neighbor
-#define AI_STRATEGY_ALERT2				(1 << 4)   // Seemingly immenient attack from enemy
+#define AI_STRATEGY_ALERT2				(1 << 4)   // Seemingly imminent attack from enemy
 #define AI_STRATEGY_TURTLE              (1 << 5)   // Defensive shell
 #define AI_STRATEGY_LAST_STAND			(1 << 6) 
 #define AI_STRATEGY_FINAL_WAR			(1 << 7)

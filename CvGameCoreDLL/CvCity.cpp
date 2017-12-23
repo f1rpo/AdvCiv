@@ -8626,7 +8626,9 @@ void CvCity::setCultureLevel(CultureLevelTypes eNewValue, bool bUpdatePlotGroups
 					{
 						if (GET_PLAYER((PlayerTypes)iI).isAlive())
 						{
-							if (isRevealed(GET_PLAYER((PlayerTypes)iI).getTeam(), false))
+							if (isRevealed(GET_PLAYER((PlayerTypes)iI).getTeam(), false)
+									// advc.127:
+									|| GET_PLAYER((PlayerTypes)iI).isSpectator())
 							{
 								szBuffer = gDLL->getText("TXT_KEY_MISC_CULTURE_LEVEL", getNameKey(), GC.getCultureLevelInfo(getCultureLevel()).getTextKeyWide());
 								gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CULTURELEVEL", MESSAGE_TYPE_MAJOR_EVENT, GC.getCommerceInfo(COMMERCE_CULTURE).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"), getX_INLINE(), getY_INLINE(), true, true);
@@ -9461,7 +9463,7 @@ int CvCity::getBuildingCommerceByBuilding(CommerceTypes eIndex, BuildingTypes eB
 			GC.getGameINLINE().getGameTurnYear() - getBuildingOriginalTime(eBuilding) >= kBuilding.getCommerceChangeDoubleTime(eIndex)
 			? 2 : 1;
 		// there are just two components which get multiplied by the time factor: the standard commerce, and the "safe" commerce.
-		// the rest of the compontents are bonuses which should not be doubled.
+		// the rest of the components are bonuses which should not be doubled.
 
 		if (!kBuilding.isCommerceChangeOriginalOwner(eIndex) || getBuildingOriginalOwner(eBuilding) == getOwnerINLINE())
 		{
@@ -10628,7 +10630,7 @@ void CvCity::setName(const wchar* szNewValue, bool bFound)
 {
 	CvWString szName(szNewValue);
 	gDLL->stripSpecialCharacters(szName);
-	// K-Mod. stripSpecialCharacters apparently doesn't count '%' as a special characater
+	// K-Mod. stripSpecialCharacters apparently doesn't count '%' as a special character
 	// however, strings with '%' in them will cause the game to crash. So I'm going to strip them out.
 	for (CvWString::iterator it = szName.begin(); it != szName.end(); )
 	{
@@ -11799,7 +11801,8 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool b
 							bool isRev = isRevealed(msgTarget.getTeam(), false);
 							bool isMet = TEAMREF(msgTarget.getID()).isHasMet(
 									TEAMID(getOwner()));
-							if(isRev)
+							if(isRev ||
+									msgTarget.isSpectator()) // advc.127
 								szBuffer = gDLL->getText("TXT_KEY_MISC_WONDER_COMPLETED_CITY",
 										GET_PLAYER(getOwner()).getNameKey(),
 										GC.getBuildingInfo(eIndex).getTextKeyWide(),
@@ -13312,7 +13315,7 @@ void CvCity::doCulture()
 }
 
 
-// This function has essentially been rewriten for K-Mod. (and it use to not be 'times 100')
+// This function has essentially been rewritten for K-Mod. (and it use to not be 'times 100')
 // A note about scale: the city plot itself gets roughly 10x culture. The outer edges of the cultural influence get 1x culture (ie. the influence that extends beyond the borders).
 void CvCity::doPlotCultureTimes100(bool bUpdate, PlayerTypes ePlayer, int iCultureRateTimes100, bool bCityCulture)
 {
@@ -15811,9 +15814,11 @@ void CvCity::liberate(bool bConquest)
 		CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_CITY_LIBERATED", getNameKey(), GET_PLAYER(eOwner).getNameKey(), GET_PLAYER(ePlayer).getCivilizationAdjectiveKey());
 		for (int iI = 0; iI < MAX_PLAYERS; ++iI)
 		{
-			if (GET_PLAYER((PlayerTypes)iI).isAlive())
+			CvPlayer const& civ = GET_PLAYER((PlayerTypes)iI); // advc.003
+			if (civ.isAlive())
 			{
-				if (isRevealed(GET_PLAYER((PlayerTypes)iI).getTeam(), false))
+				if (isRevealed(civ.getTeam(), false)
+						|| civ.isSpectator()) // advc.127
 				{
 					gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_REVOLTEND",
 							MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, // advc.106b
@@ -16269,7 +16274,7 @@ int CvCity::calculateNumCitiesMaintenanceTimes100(CvPlot* cityPlot,
 	iNumVassalCities /= std::max(1, GET_TEAM(TEAMID(owner)).getNumMembers());
 /*
 ** K-Mod, 04/sep/10, karadoc
-** Reduced vassal maintenace and removed maintenace cap
+** Reduced vassal maintenance and removed maintenance cap
 */
 	/* original BTS code
 	int iNumCitiesMaintenance = (GET_PLAYER(getOwnerINLINE()).getNumCities() + iNumVassalCities) * iNumCitiesPercent;

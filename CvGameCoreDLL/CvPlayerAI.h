@@ -32,6 +32,7 @@ public:
     bool isLonely() const;
 	bool feelsSafe() const;
 	bool isThreatFromMinorCiv() const; // </advc.109>
+	int nukeDangerDivisor() const; // dlph.16
 	// <advc.104>
 	WarAndPeaceAI::Civ& warAndPeaceAI();
 	WarAndPeaceAI::Civ const& warAndPeaceAI() const; // </advc.104>

@@ -19,7 +19,9 @@ void AdvCiv4lert::init(PlayerTypes ownerId) {
 
 void AdvCiv4lert::msg(CvWString s, LPCSTR icon, int x, int y, int goodOrBad) const {
 
-	if(isSilent)
+	if(isSilent || // <advc.127>
+			GET_PLAYER(ownerId).isHumanDisabled() ||
+			GET_PLAYER(ownerId).isAutoPlayJustEnded()) // </advc.127>
 		return;
 	CvGame& g = GC.getGame();
 	if(g.isOption(GAMEOPTION_RISE_FALL) && g.getRiseFall().isBlockPopups())

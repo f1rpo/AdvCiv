@@ -184,6 +184,9 @@ public:
 		void startReport();
 		void closeReport();
 		bool isReportTurn() const;
+		void showWarPrepStartedMsg(TeamTypes targetId);
+		void showWarPlanAbandonedMsg(TeamTypes targetId);
+		void showWarPlanMsg(TeamTypes targetId, char const* txtKey);
 		TeamTypes diploVoteCounterCandidate(VoteSourceTypes voteSource) const;
 		/*  Not in WarAndPeaceAI::Civ b/c I want these to be private. They're
 			only auxiliary functions for their team-level counterparts, and should

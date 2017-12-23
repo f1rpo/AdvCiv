@@ -23134,9 +23134,12 @@
 			<UniqueNames>
 				<UniqueName>TXT_KEY_GREAT_PERSON_PEBEKKAMEN</UniqueName>
 				<UniqueName>TXT_KEY_GREAT_PERSON_EPHIALTES</UniqueName>
-				<UniqueName>TXT_KEY_GREAT_PERSON_JING_KE</UniqueName>
-				<UniqueName>TXT_KEY_GREAT_PERSON_QIN_WUYANG</UniqueName>
+				<!-- advc.005b: Moved up because he lived a century or so
+					 earlier than Jing Ke -->
 				<UniqueName>TXT_KEY_GREAT_PERSON_CALIPPUS</UniqueName>
+				<UniqueName>TXT_KEY_GREAT_PERSON_JING_KE</UniqueName>
+				<!-- advc.310: Removed TXT_KEY_GREAT_PERSON_QIN_WUYANG because
+					 the Great Wall no longer provides espionage points -->
 				<UniqueName>TXT_KEY_GREAT_PERSON_LEONE_ALBERTI</UniqueName>
 				<UniqueName>TXT_KEY_GREAT_PERSON_JOHN_BARLOW</UniqueName>
 				<UniqueName>TXT_KEY_GREAT_PERSON_FRANCIS_WALSINGHAM</UniqueName>
@@ -23164,6 +23167,8 @@
 				<UniqueName>TXT_KEY_GREAT_PERSON_CLAUS_VON_STAUFFENBERG</UniqueName>
 				<UniqueName>TXT_KEY_GREAT_PERSON_SUZANNE_SPAAK</UniqueName>
 				<UniqueName>TXT_KEY_GREAT_PERSON_WILLIAM_DONOVAN</UniqueName>
+				<!-- advc.005 (comment): These are named after playtesters.
+					 Would be nice to replace them. -->
 				<UniqueName>TXT_KEY_GREAT_PERSON_SPEAKER</UniqueName>
 				<UniqueName>TXT_KEY_GREAT_PERSON_VIKTOR_GRIPH</UniqueName>
 				<UniqueName>TXT_KEY_GREAT_PERSON_NOLAN</UniqueName>

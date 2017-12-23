@@ -2723,7 +2723,7 @@ void CvUnitAI::AI_attackMove()
 
 		/* if( !bDanger && !isHuman() && plot()->isCoastalLand() && kOwner.AI_unitTargetMissionAIs(this, MISSIONAI_PICKUP) > 0 )
 		{
-			// If no other desireable actions, wait for pickup
+			// If no other desirable actions, wait for pickup
 			getGroup()->pushMission(MISSION_SKIP);
 			return;
 		} */ // disabled by K-Mod. We don't need this.
@@ -3007,7 +3007,7 @@ void CvUnitAI::AI_attackCityMove()
 	if( bReadyToAttack )
 	{
 		// Check that stack has units which can capture cities
-		// (K-Mod, I've edited this section to distiguish between 'no capture' and 'combat limit < 100')
+		// (K-Mod, I've edited this section to distinguish between 'no capture' and 'combat limit < 100')
 		bReadyToAttack = false;
 		int iNoCombatLimit = 0;
 		int iCityCapture = 0;

@@ -559,9 +559,9 @@ double ArmamentForecast::productionFromUpgrades() {
 	if(!civ.isHuman()) {
 		CvHandicapInfo& gameHandicap = GC.getHandicapInfo(GC.getGameINLINE().
 				getHandicapType());
-		double aiUpgradeFactor = gameHandicap.getAIUnitUpgradePercent() +
-				// NB: The modifier is negative
-				gameHandicap.getAIPerEraModifier() * civ.getCurrentEra();
+		double aiUpgradeFactor = gameHandicap.getAIUnitUpgradePercent();
+			// advc.250d: The per-era modifier no longer applies to upgrade cost
+			// + gameHandicap.getAIPerEraModifier() * civ.getCurrentEra();
 		aiUpgradeFactor /= 100.0;
 		/* Shouldn't draw conclusions from AI_getGoldToUpgradeAllUnits when
 		   AI upgrades are (modded to be) free or almost free. */

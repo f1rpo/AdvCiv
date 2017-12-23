@@ -126,6 +126,10 @@ bool CyPlayer::isHumanDisabled()
 {
 	return m_pPlayer ? m_pPlayer->isHumanDisabled() : false;
 }
+bool CyPlayer::isAutoPlayJustEnded()
+{
+	return m_pPlayer ? m_pPlayer->isAutoPlayJustEnded() : false;
+}
 // </advc.127>
 bool CyPlayer::isBarbarian()
 {

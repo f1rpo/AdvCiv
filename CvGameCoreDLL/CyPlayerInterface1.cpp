@@ -49,8 +49,10 @@ void CyPlayerPythonInterface1(python::class_<CyPlayer>& x)
 		.def("killUnits", &CyPlayer::killUnits, "void ()")
 		.def("hasTrait", &CyPlayer::hasTrait, "bool hasTrait(int /*TraitTypes*/ iIndex) - returns True if player is the Trait Type.")
 		.def("isHuman", &CyPlayer::isHuman, "bool ()")
-		// advc.127:
+		// <advc.127>
 		.def("isHumanDisabled", &CyPlayer::isHumanDisabled, "bool ()")
+		.def("isAutoPlayJustEnded", &CyPlayer::isAutoPlayJustEnded, "bool ()")
+		// </advc.127>
 		.def("isBarbarian", &CyPlayer::isBarbarian, "bool () - returns True if player is a Barbarian")
 		.def("getName", &CyPlayer::getName, "str ()")
 		.def("getNameForm", &CyPlayer::getNameForm, "str ()")

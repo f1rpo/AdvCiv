@@ -45,7 +45,7 @@
 #endif
 
 //
-// creates a derived artItem class which automatically registers itself with the ARTFILEMGR upon contruction.
+// creates a derived artItem class which automatically registers itself with the ARTFILEMGR upon construction.
 // creates a static var of that artItem type which constructs (and registers) at startup.
 // creates a getFooArtInfo() function that searches the map based on the id provided and returns the artInfo struct or null.
 //

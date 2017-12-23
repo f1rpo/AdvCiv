@@ -106,8 +106,11 @@ public:
 /*                                                                                              */
 /************************************************************************************************/
 	void setHumanDisabled( bool newVal );
-	bool isHumanDisabled( )
-		const; // advc.127: const and exposed to Python
+	bool isHumanDisabled( ) // <advc.127>
+		const; // const and exposed to Python
+	bool isSpectator() const;
+	// Exposed to Python (and only needed there):
+	bool isAutoPlayJustEnded() const; // </advc.127>
 /************************************************************************************************/
 /* AI_AUTO_PLAY_MOD                        END                                                  */
 /************************************************************************************************/
@@ -1307,6 +1310,7 @@ protected:
 /*                                                                                              */
 /************************************************************************************************/
 	bool m_bDisableHuman;				// Set to true to disable isHuman() check
+	bool autoPlayJustEnded; // advc.127
 /************************************************************************************************/
 /* AI_AUTO_PLAY_MOD                        END                                                  */
 /************************************************************************************************/

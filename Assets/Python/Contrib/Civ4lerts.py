@@ -152,7 +152,8 @@ def addMessage(iPlayer, szString, szIcon, iFlashX=-1, iFlashY=-1, bOffArrow=Fals
 	Culture:  Zoom to City, Ignore
 	"""
 	# <advc.706>
-	if gc.getGame().isRFBlockPopups():
+	# advc.127: No alerts during or right after Auto Play
+	if gc.getGame().isRFBlockPopups() or gc.getPlayer(iPlayer).isHumanDisabled() or gc.getPlayer(iPlayer).isAutoPlayJustEnded():
 		return # </advc.706>
 	# advc.106c: Reduced time from LONG to normal
 	eventMessageTimeLong = gc.getDefineINT("EVENT_MESSAGE_TIME")

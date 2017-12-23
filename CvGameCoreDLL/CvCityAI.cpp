@@ -2098,37 +2098,7 @@ void CvCityAI::AI_chooseProduction()
 				}
 				return;
 			}
-
-			if (iUnitSpending < (iMaxUnitSpending))
-			{
-				int iMissileCarriers = kPlayer.AI_totalUnitAIs(UNITAI_MISSILE_CARRIER_SEA);
-			
-				if (!bFinancialTrouble && iMissileCarriers > 0 && !bImportantCity)
-				{
-					if( (iProductionRank <= ((kPlayer.getNumCities() / 2) + 1)) )
-					{
-						UnitTypes eBestMissileCarrierUnit = NO_UNIT;  
-						kPlayer.AI_bestCityUnitAIValue(UNITAI_MISSILE_CARRIER_SEA, NULL, &eBestMissileCarrierUnit);
-						if (eBestMissileCarrierUnit != NO_UNIT)
-						{
-							FAssert(GC.getUnitInfo(eBestMissileCarrierUnit).getDomainCargo() == DOMAIN_AIR);
-							
-							int iMissileCarrierAirNeeded = iMissileCarriers * GC.getUnitInfo(eBestMissileCarrierUnit).getCargoSpace();
-							
-							if ((kPlayer.AI_totalUnitAIs(UNITAI_MISSILE_AIR) < iMissileCarrierAirNeeded) || 
-								(bPrimaryArea && (kPlayer.AI_totalAreaUnitAIs(pArea, UNITAI_MISSILE_CARRIER_SEA) * GC.getUnitInfo(eBestMissileCarrierUnit).getCargoSpace() < kPlayer.AI_totalAreaUnitAIs(pArea, UNITAI_MISSILE_AIR))))
-							{
-								// Don't always build missiles, more likely if really low
-								if (AI_chooseUnit(UNITAI_MISSILE_AIR, (kPlayer.AI_totalUnitAIs(UNITAI_MISSILE_AIR) < iMissileCarrierAirNeeded/2) ? 50 : 20))
-								{
-									if( gCityLogLevel >= 2 ) logBBAI("      City %S uses build missile", getName().GetCString());
-									return;
-								}
-							}
-						}
-					}
-				}
-			}
+			// dlph.15: missile carrier code moved
 		}
 	}
 	
@@ -2244,7 +2214,37 @@ void CvCityAI::AI_chooseProduction()
 				}
 			}
 		}
-	}
+	} // <dlph.15>
+	int iMissileCarriers = kPlayer.AI_totalUnitAIs(UNITAI_MISSILE_CARRIER_SEA);		
+	if (!bFinancialTrouble && iMissileCarriers > 0 && !bImportantCity)
+	{
+		if( (iProductionRank <= ((kPlayer.getNumCities() / 2) + 1)) )
+		{
+			UnitTypes eBestMissileCarrierUnit = NO_UNIT;  
+			kPlayer.AI_bestCityUnitAIValue(UNITAI_MISSILE_CARRIER_SEA, NULL, &eBestMissileCarrierUnit);
+			if (eBestMissileCarrierUnit != NO_UNIT)
+			{
+				FAssert(GC.getUnitInfo(eBestMissileCarrierUnit).getDomainCargo() == DOMAIN_AIR);
+							
+				int iMissileCarrierAirNeeded = iMissileCarriers * GC.getUnitInfo(eBestMissileCarrierUnit).getCargoSpace();
+							
+				if ((kPlayer.AI_totalUnitAIs(UNITAI_MISSILE_AIR) < iMissileCarrierAirNeeded) || 
+						(bPrimaryArea && (kPlayer.AI_totalAreaUnitAIs(pArea, UNITAI_MISSILE_CARRIER_SEA) *
+						GC.getUnitInfo(eBestMissileCarrierUnit).getCargoSpace()
+						// Bugfix: was "<" in BtS
+						>
+						kPlayer.AI_totalAreaUnitAIs(pArea, UNITAI_MISSILE_AIR))))
+				{
+					// Don't always build missiles, more likely if really low
+					if (AI_chooseUnit(UNITAI_MISSILE_AIR, (kPlayer.AI_totalUnitAIs(UNITAI_MISSILE_AIR) < iMissileCarrierAirNeeded/2) ? 50 : 20))
+					{
+						if( gCityLogLevel >= 2 ) logBBAI("      City %S uses build missile", getName().GetCString());
+						return;
+					}
+				}
+			}
+		}
+	} // </dlph.15>
 
 	/* original code
 	if (!bAlwaysPeace && !(bLandWar || bAssault) && (kPlayer.AI_isDoStrategy(AI_STRATEGY_OWABWNW) || (GC.getGame().getSorenRandNum(12, "AI consider Nuke") == 0)))
@@ -2270,7 +2270,7 @@ void CvCityAI::AI_chooseProduction()
 			}
 		}
 	} */
-	// K-Mod. Roughly the same conditions for builing a nuke, but with a few adjustments for flavour and strategy
+	// K-Mod. Roughly the same conditions for building a nuke, but with a few adjustments for flavour and strategy
 	if (!bAlwaysPeace && !bLandWar && !bUnitExempt && !bFinancialTrouble)
 	{
 		if ((kPlayer.AI_isDoStrategy(AI_STRATEGY_OWABWNW) || GC.getGame().getSorenRandNum(1200, "AI consider Nuke") < std::min(400, iNukeWeight))
@@ -2343,7 +2343,7 @@ void CvCityAI::AI_chooseProduction()
 			UnitTypes eCityAttackUnit = NO_UNIT;
 			kPlayer.AI_bestCityUnitAIValue(UNITAI_ATTACK_CITY, this, &eCityAttackUnit);
 			// </cdtw.8>
-			// K-Mod - get more seige units for crush
+			// K-Mod - get more siege units for crush
 			if (bCrushStrategy && GC.getGameINLINE().getSorenRandNum(100, "City AI extra crush bombard") < iTrainInvaderChance)
 			{
 				if (eCityAttackUnit != NO_UNIT && GC.getUnitInfo(eCityAttackUnit).getBombardRate() > 0)
@@ -3183,7 +3183,7 @@ UnitTypes CvCityAI::AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync, AdvisorTypes
 		iValue *= (getProductionExperience(eLoopUnit) + 10);
 		iValue /= 10;
 
-		// Take into account free promotions, and avaiable promotions that suit the AI type.
+		// Take into account free promotions, and available promotions that suit the AI type.
 		// Note: it might be better if this was in AI_unitValue rather than here, but the
 		// advantage of doing it here is that we can check city promotions at the same time.
         int iPromotionValue = 0;
@@ -3634,6 +3634,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 	PROFILE_FUNC();
 
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	CvTeamAI& kTeam = GET_TEAM(kOwner.getTeam()); // dlph.16
 	CvBuildingInfo& kBuilding = GC.getBuildingInfo(eBuilding);
 	BuildingClassTypes eBuildingClass = (BuildingClassTypes) kBuilding.getBuildingClassType();
 	int iLimitedWonderLimit = limitedWonderClassLimit(eBuildingClass);
@@ -3792,8 +3793,44 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 				iValue += iTemp;
 			}
 
-			iValue += -kBuilding.getNukeModifier() / (GC.getGameINLINE().isNukesValid() && !GC.getGameINLINE().isNoNukes() ? 4 : 40);
+			//iValue += -kBuilding.getNukeModifier() / (GC.getGameINLINE().isNukesValid() && !GC.getGameINLINE().isNoNukes() ? 4 : 40);
 			// K-Mod end
+			// <dlph.16> Replacing the line above.
+			// DarkLunaPhantom - "Bomb Shelters should be of much higher value, I copied and adjusted rough estimates from AI_projectValue()."
+			int iNukeDefense = -kBuilding.getNukeModifier();
+			if(iNukeDefense > 0) {
+				int iNukeEvasionProbability = 0;
+				int iNukeUnitTypes = 0;
+				for(int i = 0; i < GC.getNumUnitInfos(); i++) {
+					CvUnitInfo const& kLoopUnit = GC.getUnitInfo((UnitTypes)i);
+					if(kLoopUnit.getNukeRange() >= 0) {
+						iNukeEvasionProbability += kLoopUnit.getEvasionProbability();
+						iNukeUnitTypes++;
+					}
+				}
+				iNukeEvasionProbability /= std::max(1, iNukeUnitTypes);
+				/*  DarkLunaPhantom - "cf. iTargetValue in the SDI section of
+					AI_projectValue() (K-Mod)." */
+				int iTargetValue = 10 + (getYieldRate(YIELD_PRODUCTION) * 5 +
+						getYieldRate(YIELD_COMMERCE) * 3)/2;
+				/*  "Lazy attempt to estimate the value of the strongest
+					unit stack this shelter might defend." */
+				int iStackValue = 0;
+				for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+					CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
+					if(kLoopPlayer.getTeam() == kOwner.getTeam())
+						iStackValue += area()->getPower(kLoopPlayer.getID());
+				}
+				iStackValue *= 7;
+				iStackValue /= 20;
+				int iTempValue = iNukeDefense * (iStackValue + iTargetValue);
+				iTempValue /= 100;
+				iTempValue *= 10000 - kTeam.getNukeInterception() *
+						(100 - iNukeEvasionProbability);
+				iTempValue /= 10000;
+				iTempValue /= kOwner.nukeDangerDivisor();
+				iValue += iTempValue;
+			} // </dlph.16>
 		}
 
 		if ((iFocusFlags & BUILDINGFOCUS_ESPIONAGE) || (iPass > 0))
@@ -5744,7 +5781,7 @@ ProjectTypes CvCityAI::AI_bestProject(int* piBestValue)
 	return eBestProject;
 }
 
-// This function has been completely rewriten for K-Mod
+// This function has been completely rewritten for K-Mod
 // The return value is roughly in units of 4 * commerce per turn, to match AI_buildingValue.
 // However, note that most projects don't actually give commerce per turn - so the evaluation is quite rough.
 int CvCityAI::AI_projectValue(ProjectTypes eProject)
@@ -7047,8 +7084,9 @@ void CvCityAI::AI_getYieldMultipliers(int &iFoodMultiplier, int &iProductionMult
 	// Never shrink aggressively
 	if(iTargetSize < getPopulation())
 		iTargetSize = std::max(iTargetSize, getPopulation() - 2); // </advc.120e>
-	 // advc.300: Make barbs a little less afraid of angry citizens
-	if(isBarbarian()) iTargetSize++;
+	// <advc.300> Make barbs a little less afraid of angry citizens
+	if(isBarbarian())
+		iTargetSize++; // </advc.300>
 
 	// total food and production include yield from buildings, corporations, specialists, and so on.
 	int iFoodTotal = getBaseYieldRate(YIELD_FOOD);
@@ -7098,8 +7136,11 @@ void CvCityAI::AI_getYieldMultipliers(int &iFoodMultiplier, int &iProductionMult
 	} */
 
 	int iProductionTarget = 1 + std::max(getPopulation(), iTargetSize * 3 / 5);
-	// advc.300: +25% production target
-	if(isBarbarian()) { iProductionTarget *= 125; iProductionTarget /= 100; }
+	// <advc.300> +50% production target
+	if(isBarbarian()) {
+		iProductionTarget *= 150;
+		iProductionTarget /= 100;
+	} // </advc.300>
 
 	if (iProductionTotal < iProductionTarget)
 	{

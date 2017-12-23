@@ -756,6 +756,7 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	m_bDisableHuman = false; // bbai
 	m_iChoosingFreeTechCount = 0; // K-Mod
 	iNewMessages = 0; // advc.106b
+	autoPlayJustEnded = false; // advc.127
 	
 	m_eID = eID;
 	updateTeamType();
@@ -2212,11 +2213,13 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 
 		for (iI = 0; iI < MAX_PLAYERS; iI++)
 		{
-			if (GET_PLAYER((PlayerTypes)iI).isAlive())
+			CvPlayer const& civ = GET_PLAYER((PlayerTypes)iI); // advc.003
+			if (civ.isAlive())
 			{
 				if (iI != getID())
 				{
-					if (pOldCity->isRevealed(GET_PLAYER((PlayerTypes)iI).getTeam(), false))
+					if (pOldCity->isRevealed(civ.getTeam(), false)
+							|| civ.isSpectator()) // advc.127
 					{
 						szBuffer = gDLL->getText("TXT_KEY_MISC_CITY_CAPTURED_BY", szName.GetCString(), getCivilizationDescriptionKey());
 						gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CITYCAPTURED",
@@ -3205,14 +3208,18 @@ bool CvPlayer::hasTrait(TraitTypes eTrait) const
 void CvPlayer::setHumanDisabled( bool newVal )
 {
 	// <advc.127>
-	if(newVal && !m_bDisableHuman) gDLL->getInterfaceIFace()->clearQueuedPopups();
+	autoPlayJustEnded = true;
+	if(newVal && !m_bDisableHuman)
+		gDLL->getInterfaceIFace()->clearQueuedPopups();
 	if(!newVal && m_bDisableHuman) {
-		/*  Remove the inter-AI diplo modifiers; would otherwise happen during the
-			next round of AI turns, i.e. with a 1-turn delay. */
+		/*  Remove the inter-AI diplo modifiers; would otherwise happen during
+			the next round of AI turns, i.e. with a 1-turn delay. */
 		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 			CvPlayerAI& p = GET_PLAYER((PlayerTypes)i);
-			if(p.isAlive()) p.AI_updateAttitudeCache();
+			if(p.isAlive())
+				p.AI_updateAttitudeCache();
 		}
+		iNewMessages = 0; // Don't open Event Log when coming out of Auto Play
 	} // </advc.127>
 	m_bDisableHuman = newVal;
 	updateHuman();
@@ -3222,6 +3229,17 @@ bool CvPlayer::isHumanDisabled( )
 {
 	return m_bDisableHuman;
 }
+
+// <advc.127>
+bool CvPlayer::isSpectator() const {
+
+	return isHumanDisabled() && GC.getGameINLINE().isDebugMode();
+}
+
+bool CvPlayer::isAutoPlayJustEnded() const {
+
+	return autoPlayJustEnded;
+} // </advc.127>
 /************************************************************************************************/
 /* AI_AUTO_PLAY_MOD                            END                                              */
 /************************************************************************************************/
@@ -3552,16 +3570,18 @@ void CvPlayer::doTurn()
 	}
 	if(isHuman())
 		iNewMessages = 0;
-	/* This way, iNewMessages is never reset for non-human. I guess that means the
-	   Event Log may open when taking over an AI seat or returning from
-	   Auto Player - shouldn't be a big deal. May also happen when loading a
-	   multiplayer game b/c iNewMessages isn't serialized. */
+	/*  This way, iNewMessages is never reset for non-humans. It is reset in
+		setHumanDisabled though, i.e. when coming out of AI Auto Play.
+		Fixme(?): The Event Log might open when loading a multiplayer game b/c
+		iNewMessages isn't serialized. */
 	if(isHuman())
 		gDLL->getInterfaceIFace()->clearEventMessages();
 	// </advc.106b>
 
 	CvEventReporter::getInstance().beginPlayerTurn( GC.getGameINLINE().getGameTurn(),  getID());
-
+	/*  advc.127: Only needs to be true when Civ4lerts are checked, which is done
+		in response to beginPlayerTurn. */
+	autoPlayJustEnded = false;
 	doUpdateCacheOnTurn();
 
 	GC.getGameINLINE().verifyDeals();
@@ -5872,11 +5892,13 @@ void CvPlayer::raze(CvCity* pCity)
 
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
+		CvPlayer const& civ = GET_PLAYER((PlayerTypes)iI); // advc.003
+		if (civ.isAlive())
 		{
 			if (iI != getID())
 			{
-				if (pCity->isRevealed(GET_PLAYER((PlayerTypes)iI).getTeam(), false))
+				if (pCity->isRevealed(civ.getTeam(), false)
+						|| civ.isSpectator()) // advc.127
 				{
 					swprintf(szBuffer, gDLL->getText("TXT_KEY_MISC_CITY_HAS_BEEN_RAZED_BY", pCity->getNameKey(), getCivilizationDescriptionKey()).GetCString());
 					gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CITYRAZED",
@@ -7734,6 +7756,11 @@ int CvPlayer::calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& i
 	// (iBaseUnitCost is no longer fed back to the caller. Only the modified cost is.)
 	iUnitCost = iPaidUnits * getGoldPerUnit() * getUnitCostMultiplier() / 10000;
 	iMilitaryCost = iPaidMilitaryUnits * getGoldPerMilitaryUnit() / 100;
+	// <advc.912b>
+	if(!isHuman() && !isBarbarian()) {
+		iMilitaryCost = ::round(iMilitaryCost * 0.01 * GC.getHandicapInfo(
+				GC.getGameINLINE().getHandicapType()).getAIUnitSupplyPercent());
+	} // </advc.912b>
 	iExtraCost = getExtraUnitCost() / 100;
 
 	int iSupport = iUnitCost + iMilitaryCost + iExtraCost;
@@ -7803,9 +7830,9 @@ int CvPlayer::calculateUnitSupply(int& iPaidUnits, int& iBaseSupplyCost
 	{
 		iSupply *= GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIUnitSupplyPercent();
 		iSupply /= 100;
-
-		iSupply *= std::max(0, ((GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIPerEraModifier() * getCurrentEra()) + 100));
-		iSupply /= 100;
+		// advc.250d: Commented out
+		/*iSupply *= std::max(0, ((GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIPerEraModifier() * getCurrentEra()) + 100));
+		iSupply /= 100;*/
 	}
 
 	FAssert(iSupply >= 0);
@@ -9482,9 +9509,11 @@ void CvPlayer::changeGoldenAgeTurns(int iChange)
 
 			for (iI = 0; iI < MAX_PLAYERS; iI++)
 			{
-				if (GET_PLAYER((PlayerTypes)iI).isAlive())
+				CvPlayer const& civ = GET_PLAYER((PlayerTypes)iI); // advc.003
+				if (civ.isAlive())
 				{
-					if (GET_TEAM(getTeam()).isHasMet(GET_PLAYER((PlayerTypes)iI).getTeam()))
+					if (GET_TEAM(getTeam()).isHasMet(civ.getTeam())
+							|| civ.isSpectator()) // advc.127
 					{
 						if (isGoldenAge())
 						{
@@ -9575,7 +9604,9 @@ void CvPlayer::changeAnarchyTurns(int iChange)
 
 			if (isAnarchy())
 			{
-				gDLL->getInterfaceIFace()->addHumanMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), gDLL->getText("TXT_KEY_MISC_REVOLUTION_HAS_BEGUN").GetCString(), "AS2D_REVOLTSTART", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
+				gDLL->getInterfaceIFace()->addHumanMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), gDLL->getText("TXT_KEY_MISC_REVOLUTION_HAS_BEGUN").GetCString(), "AS2D_REVOLTSTART",
+						MESSAGE_TYPE_MINOR_EVENT, // advc.106b: was MAJOR
+						NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
 			}
 			else
 			{
@@ -10059,7 +10090,9 @@ int CvPlayer::getTypicalUnitValue(UnitAITypes eUnitAI, DomainTypes eDomain) cons
 }
 
 int CvPlayer::getGoldPerUnit() const																		
-{
+{	// <dlph.14>
+	if(isBarbarian())
+		return 0; // </dlph.14>
 	return m_iGoldPerUnit;
 }
 
@@ -10079,7 +10112,9 @@ void CvPlayer::changeGoldPerUnit(int iChange)
 
 
 int CvPlayer::getGoldPerMilitaryUnit() const
-{
+{	// <dlph.14>
+	if(isBarbarian())
+		return 0; // </dlph.14>
 	return m_iGoldPerMilitaryUnit;
 }
 
@@ -12197,9 +12232,11 @@ void CvPlayer::setLastStateReligion(ReligionTypes eNewValue)
 		} // </advc.150a>
 		for (iI = 0; iI < MAX_PLAYERS; iI++)
 		{
-			if (GET_PLAYER((PlayerTypes)iI).isAlive())
+			CvPlayer const& civ = GET_PLAYER((PlayerTypes)iI);
+			if (civ.isAlive())
 			{
-				if (GET_TEAM(getTeam()).isHasMet(GET_PLAYER((PlayerTypes)iI).getTeam()))
+				if (GET_TEAM(getTeam()).isHasMet(civ.getTeam())
+						|| civ.isSpectator()) // advc.127
 				{
 					gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_RELIGION_CONVERT", MESSAGE_TYPE_MAJOR_EVENT);
 				}
@@ -13750,13 +13787,13 @@ void CvPlayer::setCivics(CivicOptionTypes eIndex, CivicTypes eNewValue)
 								if (GET_TEAM(getTeam()).isHasMet(GET_PLAYER((PlayerTypes)iI).getTeam()))
 								{
 									gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CIVIC_ADOPT",
-											MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY); // advc.106b
+											MESSAGE_TYPE_MINOR_EVENT); // advc.106b
 								}
 							}
 						}
-
-						szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYER_ADOPTED_CIVIC", getNameKey(), GC.getCivicInfo(getCivics(eIndex)).getTextKeyWide());
-						GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szBuffer);
+						// advc.106: Don't record civics changes in replays
+						/*szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYER_ADOPTED_CIVIC", getNameKey(), GC.getCivicInfo(getCivics(eIndex)).getTextKeyWide());
+						GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szBuffer);*/
 					}
 				}
 			}
@@ -16368,7 +16405,7 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 			break;
 		default:
 			// The first action must be to place a city
-			// so players can lose by spending everything
+			// so players can't lose by spending everything
 			return;
 		}
 	}
@@ -16534,14 +16571,15 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 					found(iX, iY);
 					changeAdvancedStartPoints(-std::min(iCost, getAdvancedStartPoints()));
 					GC.getGameINLINE().updateColoredPlots();
-					CvCity* pCity = pPlot->getPlotCity();
+					// advc.250c: Commented out
+					/*CvCity* pCity = pPlot->getPlotCity();
 					if (pCity != NULL)
 					{
 						if (pCity->getPopulation() > 1)
 						{
 							pCity->setFood(pCity->growthThreshold() / 2);
 						}
-					}
+					}*/
 				}
 			}
 
@@ -16596,7 +16634,8 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 				if (bPopChanged)
 				{
 					pCity->setHighestPopulation(pCity->getPopulation());
-					if (pCity->getPopulation() == 1)
+					// advc.250c, dlph: Commented out
+					/*if (pCity->getPopulation() == 1)
 					{
 						pCity->setFood(0);
 						pCity->setFoodKept(0);
@@ -16605,7 +16644,7 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 					{
 						pCity->setFood(pCity->growthThreshold() / 2);
 						pCity->setFoodKept((pCity->getFood() * pCity->getMaxFoodKeptPercent()) / 100);
-					}
+					}*/
 				}
 			}
 		}
@@ -17129,7 +17168,7 @@ int CvPlayer::getAdvancedStartCityCost(bool bAdd, CvPlot* pPlot) const
 			{
 				return -1;
 			}
-			//Only allow founding a city at someone elses start point if 
+			//Only allow founding a city at someone else's start point if 
 			//We have no cities and they have no cities.
 			if ((getID() != eClosestPlayer) && ((getNumCities() > 0) || (GET_PLAYER(eClosestPlayer).getNumCities() > 0)))
 			{
@@ -17151,9 +17190,18 @@ int CvPlayer::getAdvancedStartCityCost(bool bAdd, CvPlot* pPlot) const
 			iCost *= 100 + GC.getDefineINT("ADVANCED_START_CITY_COST_INCREASE") * iNumCities;
 			iCost /= 100;
 		}
+	} // <advc.250c>
+	if(getNumCities() > 0) { // <dlph>
+		for(int i = 0; i < GC.getNumUnitInfos(); i++) {
+			UnitTypes ut = (UnitTypes)i;
+			if(GC.getUnitInfo(ut).isFound()) {
+				iCost *= 100;
+				iCost /= std::max(1, 100 + getProductionModifier(ut));
+				break;
+			}
+		} // </dlph>
 	}
-
-	return adjustAdvStartPtsToSpeed(iCost); // advc.250c
+	return adjustAdvStartPtsToSpeed(iCost); // </advc.250c>
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -21910,9 +21958,11 @@ bool CvPlayer::splitEmpire(int iAreaId)
 		CvWString szMessage = gDLL->getText("TXT_KEY_MISC_EMPIRE_SPLIT", getNameKey(), GC.getCivilizationInfo(eBestCiv).getShortDescriptionKey(), GC.getLeaderHeadInfo(eBestLeader).getTextKeyWide());
 		for (int i = 0; i < MAX_CIV_PLAYERS; ++i)
 		{
-			if (GET_PLAYER((PlayerTypes)i).isAlive())
+			CvPlayer const& civ = GET_PLAYER((PlayerTypes)i);
+			if (civ.isAlive())
 			{
-				if (i == getID() || i == eNewPlayer || GET_TEAM(GET_PLAYER((PlayerTypes)i).getTeam()).isHasMet(getTeam()))
+				if (i == getID() || i == eNewPlayer || GET_TEAM(getTeam()).isHasMet(civ.getTeam()) ||
+						civ.isSpectator()) // advc.127
 				{
 					gDLL->getInterfaceIFace()->addHumanMessage((PlayerTypes)i, false, GC.getEVENT_MESSAGE_TIME(), szMessage, "AS2D_REVOLTEND", MESSAGE_TYPE_MAJOR_EVENT, ARTFILEMGR.getInterfaceArtInfo("INTERFACE_CITY_BAR_CAPITAL_TEXTURE")->getPath());
 				}

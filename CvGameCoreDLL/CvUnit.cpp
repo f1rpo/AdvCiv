@@ -593,7 +593,8 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 								GET_PLAYER(ownerId).getCivilizationShortDescription());
 						col = (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN");
 					}
-					else {
+					else if(TEAMREF(i).isHasMet(TEAMID(ownerId)) // advc.004u
+							|| GET_PLAYER(i).isSpectator()) { // advc.127
 						szBuffer = gDLL->getText("TXT_KEY_MISC_GENERAL_KILLED", getNameKey(),
 								GET_PLAYER(ownerId).getCivilizationShortDescription(),
 								GET_PLAYER(ePlayer).getCivilizationShortDescription());
@@ -4486,7 +4487,8 @@ bool CvUnit::nuke(int iX, int iY)
 			//if (GET_PLAYER((PlayerTypes)iI).isAlive())
 			// K-Mod. Only show the message to players who have met the teams involved!
 			const CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
-			if (kLoopPlayer.isAlive() && GET_TEAM(kLoopPlayer.getTeam()).isHasMet(getTeam()) && GET_TEAM(kLoopPlayer.getTeam()).isHasMet(eBestTeam))
+			if (kLoopPlayer.isAlive() && (GET_TEAM(kLoopPlayer.getTeam()).isHasMet(getTeam()) && GET_TEAM(kLoopPlayer.getTeam()).isHasMet(eBestTeam)
+					|| kLoopPlayer.isSpectator())) // advc.127
 			// K-Mod end
 			{
 				szBuffer = gDLL->getText("TXT_KEY_MISC_NUKE_INTERCEPTED", GET_PLAYER(getOwnerINLINE()).getNameKey(), getNameKey(), GET_TEAM(eBestTeam).getName().GetCString());
@@ -4636,7 +4638,8 @@ bool CvUnit::nuke(int iX, int iY)
 		//if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		// K-Mod
 		const CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
-		if (kLoopPlayer.isAlive() && GET_TEAM(kLoopPlayer.getTeam()).isHasMet(getTeam()))
+		if (kLoopPlayer.isAlive() && (GET_TEAM(kLoopPlayer.getTeam()).isHasMet(getTeam())
+				|| kLoopPlayer.isSpectator())) // advc.127
 		// K-Mod end
 		{
 			szBuffer = gDLL->getText("TXT_KEY_MISC_NUKE_LAUNCHED", GET_PLAYER(getOwnerINLINE()).getNameKey(), getNameKey());
@@ -7652,9 +7655,9 @@ int CvUnit::upgradePrice(UnitTypes eUnit) const
 	{
 		iPrice *= GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIUnitUpgradePercent();
 		iPrice /= 100;
-
-		iPrice *= std::max(0, ((GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIPerEraModifier() * GET_PLAYER(getOwnerINLINE()).getCurrentEra()) + 100));
-		iPrice /= 100;
+		// advc.250d: Commented out
+		/*iPrice *= std::max(0, ((GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIPerEraModifier() * GET_PLAYER(getOwnerINLINE()).getCurrentEra()) + 100));
+		iPrice /= 100;*/
 	}
 
 	iPrice -= (iPrice * getUpgradeDiscount()) / 100;

@@ -51,7 +51,10 @@ public:
 	void killUnits();
 	bool hasTrait(int /*TraitTypes*/ iIndex);
 	bool isHuman();
-	bool isHumanDisabled(); // advc.127
+	// <advc.127>
+	bool isHumanDisabled();
+	bool isAutoPlayJustEnded();
+	// </advc.127>
 	bool isBarbarian();
 	std::wstring getName();
 	std::wstring getNameForm(int iForm);

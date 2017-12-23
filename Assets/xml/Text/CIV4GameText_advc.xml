@@ -2579,4 +2579,24 @@
 		<Spanish>[COLOR_LIGHT_GREY]----- Mensajes más antiguos:[COLOR_REVERT]</Spanish>
 	</TEXT>
 	
+	<!-- advc.104v -->
+	<TEXT>
+		<Tag>TXT_KEY_WAR_PREPARATION_STARTED</Tag>
+		<English>%s1_Ldr has begun war preparations against %s2_Ldr.</English>
+		<French>%s1_Ldr a commencé les préparatifs de guerre contre %s2_Ldr.</French>
+		<German>%s1_Ldr hat Kriegsvorbereitungen gegen %s2_Ldr begonnen.</German>
+		<Italian>%s1_Ldr ha iniziato i preparativi di guerra contro %s2_Ldr.</Italian>
+		<Spanish>%s1_Ldr ha comenzado los preparativos de guerra contra %s2_Ldr.</Spanish>
+	</TEXT>
+	<!-- The Germanic personal pronouns mimic AI_DIPLO_ATTITUDE_PLAYER_PLEASED_6
+		 in CIV4DiplomacyText.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_WAR_PLAN_ABANDONED</Tag>
+		<English>%s1_Ldr has abandoned [NUM1:his:her:x:x] war plans against %s2_Ldr.</English>
+		<French>%s1_Ldr a abandonné ses plans de guerre contre %s2_Ldr.</French>
+		<German>%s1_Ldr hat [NUM1:seine:ihre:x:x] Kriegspläne gegen %s2_Ldr aufgegeben.</German>
+		<Italian>%s1_Ldr ha abbandonato i suoi piani di guerra contro %s2_Ldr.</Italian>
+		<Spanish>%s1_Ldr ha abandonado sus planes de guerra contra %s2_Ldr.</Spanish>
+	</TEXT>
+	
 </Civ4GameText>
