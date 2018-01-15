@@ -54,15 +54,18 @@ public:
 	void declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, bool bPrimaryDoW = true, // K-Mod added bPrimaryDoW, Exposed to Python
 			PlayerTypes sponsor = NO_PLAYER); // advc.100
 	DllExport void makePeace(TeamTypes eTeam, bool bBumpUnits = true);																		// Exposed to Python
-	// advc.100b: To avoid changing the signature of the function above:
-	void makePeaceBulk(TeamTypes eTeam, bool bBumpUnits = true, TeamTypes broker = NO_TEAM);
+	// advc.100b To avoid changing the signature of the function above:
+	void makePeaceBulk(TeamTypes eTeam, bool bBumpUnits = true, TeamTypes broker = NO_TEAM,
+			bool bCapitulate = false); // advc.034
 	//bool canContact(TeamTypes eTeam) const; // Exposed to Python
 	bool canContact(TeamTypes eTeam, bool bCheckWillingness = false) const; // K-Mod, Exposed to Python
 	void meet(TeamTypes eTeam, bool bNewDiplo);																		// Exposed to Python
 	void signPeaceTreaty(TeamTypes eTeam); // K-Mod
 	void signOpenBorders(TeamTypes eTeam);																				// Exposed to Python
+	void signDisengage(TeamTypes otherId); // advc.034
 	void signDefensivePact(TeamTypes eTeam);																			// Exposed to Python
-	bool canSignDefensivePact(TeamTypes eTeam);
+	// advc.003: const qualifier added
+	bool canSignDefensivePact(TeamTypes eTeam) const;
 
 	int getAssets() const;																															// Exposed to Python
 	int getPower(bool bIncludeVassals) const;																																// Exposed to Python
@@ -275,7 +278,11 @@ public:
 	bool isFreeTrade(TeamTypes eIndex) const;																	// Exposed to Python
 	bool isOpenBorders(TeamTypes eIndex) const;																// Exposed to Python
 	void setOpenBorders(TeamTypes eIndex, bool bNewValue);
-
+	// <advc.034>
+	bool isDisengage(TeamTypes eIndex) const;
+	void setDisengage(TeamTypes eIndex, bool bNewValue);
+	void cancelDisengage(TeamTypes otherId);
+	// </advc.034>
 	bool isDefensivePact(TeamTypes eIndex) const;															// Exposed to Python
 	void setDefensivePact(TeamTypes eIndex, bool bNewValue);
 
@@ -498,6 +505,7 @@ protected:
 	bool* m_abHasSeen; // K-Mod
 	bool* m_abPermanentWarPeace;
 	bool* m_abOpenBorders;
+	bool m_abDisengage[MAX_CIV_PLAYERS]; // advc.034
 	bool* m_abDefensivePact;
 	bool* m_abForcePeace;
 	bool* m_abVassal;

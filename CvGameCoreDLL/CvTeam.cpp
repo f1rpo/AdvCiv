@@ -237,6 +237,7 @@ void CvTeam::reset(TeamTypes eID, bool bConstructorCall)
 		m_abAtWar[iI] = false;
 		m_abPermanentWarPeace[iI] = false;
 		m_abOpenBorders[iI] = false;
+		m_abDisengage[iI] = false; // advc.034
 		m_abDefensivePact[iI] = false;
 		m_abForcePeace[iI] = false;
 		m_abVassal[iI] = false;
@@ -255,6 +256,7 @@ void CvTeam::reset(TeamTypes eID, bool bConstructorCall)
 			kLoopTeam.m_abAtWar[getID()] = false;
 			kLoopTeam.m_abPermanentWarPeace[getID()] = false;
 			kLoopTeam.m_abOpenBorders[getID()] = false;
+			kLoopTeam.m_abDisengage[getID()] = false; // advc.034
 			kLoopTeam.m_abDefensivePact[getID()] = false;
 			kLoopTeam.m_abForcePeace[getID()] = false;
 			kLoopTeam.m_abVassal[getID()] = false;
@@ -513,22 +515,21 @@ void CvTeam::addTeam(TeamTypes eTeam)
 	}
 
 	for (iI = 0; iI < MAX_TEAMS; iI++)
-	{
-		if ((iI != getID()) && (iI != eTeam))
+	{	// <advc.003>
+		if(iI == getID() || iI == eTeam)
+			continue;
+		TeamTypes i = (TeamTypes)iI;
+		if(!GET_TEAM(i).isAlive())
+			continue; // </advc.003>
+		if (GET_TEAM(eTeam).isOpenBorders(i))
 		{
-			if (GET_TEAM((TeamTypes)iI).isAlive())
-			{
-				if (GET_TEAM(eTeam).isOpenBorders((TeamTypes)iI))
-				{
-					setOpenBorders(((TeamTypes)iI), true);
-					GET_TEAM((TeamTypes)iI).setOpenBorders(getID(), true);
-				}
-				else if (isOpenBorders((TeamTypes)iI))
-				{
-					GET_TEAM(eTeam).setOpenBorders(((TeamTypes)iI), true);
-					GET_TEAM((TeamTypes)iI).setOpenBorders(eTeam, true);
-				}
-			}
+			setOpenBorders(i, true);
+			GET_TEAM(i).setOpenBorders(getID(), true);
+		}
+		else if (isOpenBorders(i))
+		{
+			GET_TEAM(eTeam).setOpenBorders(i, true);
+			GET_TEAM(i).setOpenBorders(eTeam, true);
 		}
 	}
 
@@ -682,7 +683,9 @@ void CvTeam::addTeam(TeamTypes eTeam)
 						  (pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT) ||
 						  (pNode->m_data.m_eItemType == TRADE_PEACE_TREATY) ||
 						  (pNode->m_data.m_eItemType == TRADE_VASSAL) ||
-						  (pNode->m_data.m_eItemType == TRADE_SURRENDER))
+						  (pNode->m_data.m_eItemType == TRADE_SURRENDER)
+						  // advc.034: Simplest to just cancel it
+						  || pNode->m_data.m_eItemType == TRADE_DISENGAGE)
 					{
 						bValid = false;
 					}
@@ -697,7 +700,9 @@ void CvTeam::addTeam(TeamTypes eTeam)
 						  (pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT) ||
 						  (pNode->m_data.m_eItemType == TRADE_PEACE_TREATY) ||
 						  (pNode->m_data.m_eItemType == TRADE_VASSAL) ||
-						  (pNode->m_data.m_eItemType == TRADE_SURRENDER))
+						  (pNode->m_data.m_eItemType == TRADE_SURRENDER)
+						  // advc.034: As above
+						  || pNode->m_data.m_eItemType == TRADE_DISENGAGE)
 					{
 						bValid = false;
 					}
@@ -1791,15 +1796,17 @@ void CvTeam::makePeace(TeamTypes eTeam, bool bBumpUnits) {
 	return makePeaceBulk(eTeam, bBumpUnits);
 }
 
-void CvTeam::makePeaceBulk(TeamTypes eTeam, bool bBumpUnits, TeamTypes broker)
+void CvTeam::makePeaceBulk(TeamTypes eTeam, bool bBumpUnits, TeamTypes broker,
+		bool bCapitulate) // advc.034
 { // </advc.100b>
 	CvWString szBuffer;
 	int iI;
 
 	FAssertMsg(eTeam != NO_TEAM, "eTeam is not assigned a valid value");
 	FAssertMsg(eTeam != getID(), "eTeam is not expected to be equal with getID()");
-	// advc.003:
-	if(!isAtWar(eTeam)) return;
+	// <advc.003>
+	if(!isAtWar(eTeam))
+		return; // </advc.003>
 	// <advc.104> To record who won the war, before war success is reset.
 	GET_TEAM(getID()).warAndPeaceAI().reportWarEnding(eTeam);
 	GET_TEAM(eTeam).warAndPeaceAI().reportWarEnding(getID());
@@ -1864,7 +1871,9 @@ void CvTeam::makePeaceBulk(TeamTypes eTeam, bool bBumpUnits, TeamTypes broker)
 
 	AI_setWarPlan(eTeam, NO_WARPLAN);
 	GET_TEAM(eTeam).AI_setWarPlan(getID(), NO_WARPLAN);
-
+	// <advc.034>
+	if(!bCapitulate && GC.getDefineINT("DISENGAGE_LENGTH") > 0)
+		signDisengage(eTeam); // </advc.034>
 	if (bBumpUnits)
 	{
 		GC.getMapINLINE().verifyUnitValidPlot();
@@ -2097,6 +2106,23 @@ void CvTeam::signOpenBorders(TeamTypes eTeam)
 	}
 }
 
+// <advc.034> Sign a disengagement agreement (based on signOpenBorders)
+void CvTeam::signDisengage(TeamTypes otherId) {
+
+	CvTeam& other = GET_TEAM(otherId);
+	TradeData item;
+	setTradeItem(&item, TRADE_DISENGAGE);
+	if(!GET_PLAYER(getLeaderID()).canTradeItem(other.getLeaderID(), item) ||
+			!GET_PLAYER(other.getLeaderID()).canTradeItem(getLeaderID(), item))
+		return;
+	CLinkList<TradeData> ourList;
+	CLinkList<TradeData> theirList;
+	ourList.insertAtEnd(item);
+	theirList.insertAtEnd(item);
+	GC.getGameINLINE().implementDeal(getLeaderID(), other.getLeaderID(),
+			&ourList, &theirList);
+} // </advc.034>
+
 
 void CvTeam::signDefensivePact(TeamTypes eTeam)
 {
@@ -2124,7 +2150,7 @@ void CvTeam::signDefensivePact(TeamTypes eTeam)
 	}
 }
 
-bool CvTeam::canSignDefensivePact(TeamTypes eTeam)
+bool CvTeam::canSignDefensivePact(TeamTypes eTeam) const // advc.003: const
 {
 	for (int iTeam = 0; iTeam < MAX_CIV_TEAMS; ++iTeam)
 	{
@@ -4364,47 +4390,75 @@ void CvTeam::setOpenBorders(TeamTypes eIndex, bool bNewValue)
 
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < MAX_TEAMS, "eIndex is expected to be within maximum bounds (invalid Index)");
-
-	if (isOpenBorders(eIndex) != bNewValue)
-	{
-		bOldFreeTrade = isFreeTrade(eIndex);
-
-		m_abOpenBorders[eIndex] = bNewValue;
-		// <advc.130p> OB affect diplo from rival trade
-		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-			CvPlayerAI& other = GET_PLAYER((PlayerTypes)i);
-			if(other.getTeam() == getID())
-				continue;
-			for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
-				CvPlayerAI& member = GET_PLAYER((PlayerTypes)j);
-				if(member.getTeam() == getID())
-					other.AI_updateAttitudeCache(member.getID());
-			}
-		} // </advc.130p>
-		AI_setOpenBordersCounter(eIndex, 0);
-
-		GC.getMapINLINE().verifyUnitValidPlot();
-
-		if ((getID() == GC.getGameINLINE().getActiveTeam()) || (eIndex == GC.getGameINLINE().getActiveTeam()))
-		{
-			gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
+	// <advc.003>
+	if(isOpenBorders(eIndex) == bNewValue)
+		return; // </advc.003>
+	bOldFreeTrade = isFreeTrade(eIndex);
+	m_abOpenBorders[eIndex] = bNewValue;
+	// <advc.130p> OB affect diplo from rival trade
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+		CvPlayerAI& other = GET_PLAYER((PlayerTypes)i);
+		if(other.getTeam() == getID())
+			continue;
+		for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
+			CvPlayerAI& member = GET_PLAYER((PlayerTypes)j);
+			if(member.getTeam() == getID())
+				other.AI_updateAttitudeCache(member.getID());
 		}
+	} // </advc.130p>
+	AI_setOpenBordersCounter(eIndex, 0);
 
-		if (bOldFreeTrade != isFreeTrade(eIndex))
+	GC.getMapINLINE().verifyUnitValidPlot();
+
+	if ((getID() == GC.getGameINLINE().getActiveTeam()) || (eIndex == GC.getGameINLINE().getActiveTeam()))
+	{
+		gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
+	}
+
+	if (bOldFreeTrade != isFreeTrade(eIndex))
+	{
+		for (iI = 0; iI < MAX_PLAYERS; iI++)
 		{
-			for (iI = 0; iI < MAX_PLAYERS; iI++)
+			if (GET_PLAYER((PlayerTypes)iI).isAlive())
 			{
-				if (GET_PLAYER((PlayerTypes)iI).isAlive())
+				if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
 				{
-					if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
-					{
-						GET_PLAYER((PlayerTypes)iI).updateTradeRoutes();
-					}
+					GET_PLAYER((PlayerTypes)iI).updateTradeRoutes();
 				}
 			}
 		}
-	}
+	} // <advc.034>
+	if(bNewValue)
+		GET_TEAM(getID()).cancelDisengage(eIndex); // </advc.034>
 }
+
+// <advc.034>
+bool CvTeam::isDisengage(TeamTypes eIndex) const {
+
+	if(eIndex >= MAX_CIV_PLAYERS || eIndex < 0)
+		return false;
+	return m_abDisengage[eIndex];
+}
+
+void CvTeam::setDisengage(TeamTypes eIndex, bool bNewValue) {
+
+	if(eIndex >= MAX_CIV_PLAYERS || eIndex < 0)
+		return;
+	m_abDisengage[eIndex] = bNewValue;
+	if(!bNewValue && !isFriendlyTerritory(eIndex) && !isAtWar(eIndex))
+		GC.getMapINLINE().verifyUnitValidPlot(); // Bump units
+}
+
+void CvTeam::cancelDisengage(TeamTypes otherId) {
+
+	CvGame& g = GC.getGame(); int dummy=-1;
+	for(CvDeal* d = g.firstDeal(&dummy); d != NULL; d = g.nextDeal(&dummy)) {
+		if(d->isDisengage() && d->isBetween(getID(), otherId)) {
+			d->kill(false);
+			break;
+		}
+	}
+} // </advc.034>
 
 
 bool CvTeam::isDefensivePact(TeamTypes eIndex) const
@@ -4565,7 +4619,7 @@ void CvTeam::setVassal(TeamTypes eIndex, bool bNewValue, bool bCapitulated)
 	}
 
 	m_abVassal[eIndex] = bNewValue;
-	if(bNewValue) masterId = eIndex; else masterId = NO_TEAM; // advc.003b
+	masterId = (bNewValue ? eIndex : NO_TEAM); // advc.003b
 
 	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
 	{
@@ -4608,47 +4662,50 @@ void CvTeam::setVassal(TeamTypes eIndex, bool bNewValue, bool bCapitulated)
 	{
 		m_bCapitulated = bCapitulated;
 
-		CvDeal* pLoopDeal;
 		int iLoop;
+		// advc.003: Moved into loop
+		/*CvDeal* pLoopDeal;
 		CLLNode<TradeData>* pNode;
-		bool bValid;
+		bool bValid;*/
+		for (CvDeal* pLoopDeal = GC.getGameINLINE().firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = GC.getGameINLINE().nextDeal(&iLoop))
+		{	// <advc.034>
+			if(pLoopDeal->isBetween(eIndex, getID()) && pLoopDeal->isDisengage())
+				pLoopDeal->kill();
+			// </advc.034><advc.003>
+			if(TEAMID(pLoopDeal->getFirstPlayer()) != getID() &&
+					TEAMID(pLoopDeal->getSecondPlayer()) != getID())
+				continue;
+			bool bValid = true; // </advc.003>
 
-		for (pLoopDeal = GC.getGameINLINE().firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = GC.getGameINLINE().nextDeal(&iLoop))
-		{
-			if ((GET_PLAYER(pLoopDeal->getFirstPlayer()).getTeam() == getID()) || (GET_PLAYER(pLoopDeal->getSecondPlayer()).getTeam() == getID()))
+			if (pLoopDeal->getFirstTrades() != NULL)
 			{
-				bValid = true;
-
-				if (pLoopDeal->getFirstTrades() != NULL)
+				for (CLLNode<TradeData>* pNode = pLoopDeal->getFirstTrades()->head(); pNode; pNode = pLoopDeal->getFirstTrades()->next(pNode))
 				{
-					for (pNode = pLoopDeal->getFirstTrades()->head(); pNode; pNode = pLoopDeal->getFirstTrades()->next(pNode))
+					if ((pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT) ||
+						(pNode->m_data.m_eItemType == TRADE_PEACE_TREATY))
 					{
-						if ((pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT) ||
-							(pNode->m_data.m_eItemType == TRADE_PEACE_TREATY))
-						{
-							bValid = false;
-							break;
-						}
+						bValid = false;
+						break;
 					}
 				}
+			}
 
-				if (bValid && pLoopDeal->getSecondTrades() != NULL)
+			if (bValid && pLoopDeal->getSecondTrades() != NULL)
+			{
+				for (CLLNode<TradeData>* pNode = pLoopDeal->getSecondTrades()->head(); pNode; pNode = pLoopDeal->getSecondTrades()->next(pNode))
 				{
-					for (pNode = pLoopDeal->getSecondTrades()->head(); pNode; pNode = pLoopDeal->getSecondTrades()->next(pNode))
+					if ((pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT) ||
+						(pNode->m_data.m_eItemType == TRADE_PEACE_TREATY))
 					{
-						if ((pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT) ||
-							(pNode->m_data.m_eItemType == TRADE_PEACE_TREATY))
-						{
-							bValid = false;
-							break;
-						}
+						bValid = false;
+						break;
 					}
 				}
+			}
 
-				if (!bValid)
-				{
-					pLoopDeal->kill();
-				}
+			if (!bValid)
+			{
+				pLoopDeal->kill();
 			}
 		}
 
@@ -7264,6 +7321,9 @@ void CvTeam::read(FDataStreamBase* pStream)
 	pStream->Read(MAX_TEAMS, m_abAtWar);
 	pStream->Read(MAX_TEAMS, m_abPermanentWarPeace);
 	pStream->Read(MAX_TEAMS, m_abOpenBorders);
+	// <advc.034>
+	if(uiFlag >= 3)
+		pStream->Read(MAX_CIV_TEAMS, m_abDisengage); // </advc.034>
 	pStream->Read(MAX_TEAMS, m_abDefensivePact);
 	pStream->Read(MAX_TEAMS, m_abForcePeace);
 	pStream->Read(MAX_TEAMS, m_abVassal);
@@ -7322,7 +7382,9 @@ void CvTeam::write(FDataStreamBase* pStream)
 {
 	int iI;
 
-	uint uiFlag = 2; // advc.003b: leaderId added
+	uint uiFlag = 1;
+	uiFlag = 2; // advc.003b: leaderId added
+	uiFlag = 3; // advc.034
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iNumMembers);
@@ -7370,6 +7432,7 @@ void CvTeam::write(FDataStreamBase* pStream)
 	pStream->Write(MAX_TEAMS, m_abAtWar);
 	pStream->Write(MAX_TEAMS, m_abPermanentWarPeace);
 	pStream->Write(MAX_TEAMS, m_abOpenBorders);
+	pStream->Write(MAX_CIV_TEAMS, m_abDisengage); // advc.034
 	pStream->Write(MAX_TEAMS, m_abDefensivePact);
 	pStream->Write(MAX_TEAMS, m_abForcePeace);
 	pStream->Write(MAX_TEAMS, m_abVassal);

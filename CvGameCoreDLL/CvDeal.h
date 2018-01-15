@@ -33,7 +33,7 @@ public:
 	bool isVassalDeal() const;
 	bool isUncancelableVassalDeal(PlayerTypes eByPlayer, CvWString* pszReason = NULL) const;
 	DllExport static bool isVassalTributeDeal(const CLinkList<TradeData>* pList);
-
+	bool isDisengage() const; // advc.034
 	DllExport int getID() const;
 	void setID(int iID);
 
@@ -42,7 +42,9 @@ public:
 
 	DllExport PlayerTypes getFirstPlayer() const;
 	DllExport PlayerTypes getSecondPlayer() const;
-
+	// <advc.003>
+	bool isBetween(PlayerTypes civ1, PlayerTypes civ2) const;
+	bool isBetween(TeamTypes t1, TeamTypes t2) const; // </advc.003>
 	void clearFirstTrades();
 	void insertAtEndFirstTrades(TradeData trade);
 	DllExport CLLNode<TradeData>* nextFirstTradesNode(CLLNode<TradeData>* pNode) const;

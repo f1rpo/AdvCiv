@@ -1316,6 +1316,9 @@ void CyEnumsPythonInterface()
 		.value("TRADE_RELIGION", TRADE_RELIGION)
 		.value("NUM_TRADEABLE_HEADINGS", NUM_TRADEABLE_HEADINGS)
 		.value("NUM_TRADEABLE_ITEMS", NUM_TRADEABLE_ITEMS)
+		/*  advc.034: After NUM_TRADEABLE_ITEMS because it's not supposed to be
+			included in iterations over TradeableItems */
+		.value("TRADE_DISENGAGE", TRADE_DISENGAGE)
 		;
 
 	python::enum_<DiploEventTypes>("DiploEventTypes")

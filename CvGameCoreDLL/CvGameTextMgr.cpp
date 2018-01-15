@@ -14026,6 +14026,40 @@ void CvGameTextMgr::buildTechTreeString(CvWStringBuffer &szBuffer, TechTypes eTe
 	}
 }
 
+// <advc.034>
+void CvGameTextMgr::buildDisengageString(CvWString& szString, PlayerTypes activeId,
+		PlayerTypes otherId) {
+
+	int turns = 0;
+	CvGame& g = GC.getGameINLINE(); int dummy=-1;
+	for(CvDeal* d = g.firstDeal(&dummy); d != NULL; d = g.nextDeal(&dummy)) {
+		if(d->isDisengage() && d->isBetween(activeId, otherId)) {
+			turns = d->turnsToCancel();
+			break;
+		}
+	}
+	FAssert(turns >= 0);
+	// This is "%s1 (%d2 [NUM2:Turn:Turns])", just what I need.
+	szString.append(gDLL->getText("INTERFACE_CITY_PRODUCTION",
+			gDLL->getText("TXT_KEY_MISC_OPEN_BORDERS").GetCString(), turns));
+}
+
+void CvGameTextMgr::buildPeaceTreatyString(CvWString& szString,
+		PlayerTypes activeId, PlayerTypes otherId) {
+
+	int turns = 0;
+	CvGame& g = GC.getGameINLINE(); int dummy=-1;
+	for(CvDeal* d = g.firstDeal(&dummy); d != NULL; d = g.nextDeal(&dummy)) {
+		if(d->isPeaceDeal() && d->isBetween(activeId, otherId)) {
+			turns = d->turnsToCancel();
+			break;
+		}
+	}
+	FAssert(turns >= 0);
+	szString.append(gDLL->getText("TXT_KEY_TRADE_PEACE_TREATY_STRING", turns));
+} // </advc.034>
+
+
 void CvGameTextMgr::setPromotionHelp(CvWStringBuffer &szBuffer, PromotionTypes ePromotion, bool bCivilopediaText)
 {
 	if (!bCivilopediaText)
@@ -14752,6 +14786,12 @@ void CvGameTextMgr::getTradeString(CvWStringBuffer& szBuffer, const TradeData& t
 	case TRADE_RELIGION:
 		szBuffer.assign(CvWString::format(L"%s", GC.getReligionInfo((ReligionTypes)tradeData.m_iData).getDescription()));
 		break;
+	// <advc.034>
+	case TRADE_DISENGAGE: {
+		CvWString szString;
+		buildDisengageString(szString, ePlayer1, ePlayer2);
+		szBuffer.append(szString); }
+		break; // </advc.034>
 	default:
 		FAssert(false);
 		break;
@@ -15598,6 +15638,8 @@ void CvGameTextMgr::parseLeaderHeadHelp(CvWStringBuffer &szBuffer, PlayerTypes e
 
 void CvGameTextMgr::parseLeaderLineHelp(CvWStringBuffer &szBuffer, PlayerTypes eThisPlayer, PlayerTypes eOtherPlayer)
 {
+	// advc.003:
+	FAssertMsg(false, "Just checking if this function is ever even called");
 	if (NO_PLAYER == eThisPlayer || NO_PLAYER == eOtherPlayer)
 	{
 		return;
@@ -15626,7 +15668,13 @@ void CvGameTextMgr::parseLeaderLineHelp(CvWStringBuffer &szBuffer, PlayerTypes e
 		{
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_OPEN_BORDERS"));
 			szBuffer.append(NEWLINE);
-		}
+		} // <advc.034>
+		else if(thisTeam.isDisengage(otherTeam.getID())) {
+			CvWString szString;
+			buildDisengageString(szString, eThisPlayer, eOtherPlayer);
+			szBuffer.append(szString);
+			szBuffer.append(NEWLINE);
+		} // </advc.034>
 		if (thisTeam.isVassal(otherTeam.getID()))
 		{
 			// <advc.130v> Make clearer when a vassal is capitulated

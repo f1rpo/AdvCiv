@@ -185,6 +185,11 @@ public:
 
 	DllExport void buildSingleLineTechTreeString(CvWStringBuffer &szBuffer, TechTypes eTech, bool bPlayerContext);
 	DllExport void buildTechTreeString(CvWStringBuffer &szBuffer, TechTypes eTech, bool bPlayerContext, TechTypes eFromTech);
+	// <advc.034>
+	void buildDisengageString(CvWString& szString, PlayerTypes activeId,
+			PlayerTypes otherId);
+	void buildPeaceTreatyString(CvWString& szString, PlayerTypes activeId,
+			PlayerTypes otherId); // </advc.034>
 
 	void getWarplanString(CvWStringBuffer& szString, WarPlanTypes eWarPlan);
 	DllExport void getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer, PlayerTypes eTargetPlayer);

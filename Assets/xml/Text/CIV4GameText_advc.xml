@@ -2599,4 +2599,15 @@
 		<Spanish>%s1_Ldr ha abandonado sus planes de guerra contra %s2_Ldr.</Spanish>
 	</TEXT>
 	
+	<!-- advc.034: Based on TXT_KEY_TRADE_OPEN_BORDERS in CIV4GameTextInfos.xml
+		 and Google Translate for the Romance languages. -->
+	<TEXT>
+		<Tag>TXT_KEY_TRADE_DISENGAGE</Tag>
+		<English>Right-of-Passage for a limited number of turns to allow units to be repositioned after a war.</English>
+		<French>Droit de passage temporaire pour permettre le repositionnement des unités après une guerre.</French>
+		<German>Vorübergehendes Durchreiserecht, damit nach einem Krieg Einheiten verlegt werden können.</German>
+		<Italian>Diritto di passaggio temporaneo per consentire il riposizionamento delle unità dopo una guerra.</Italian>
+		<Spanish>Derecho temporal de paso para permitir que las unidades sean reposicionadas después de una guerra.</Spanish>
+	</TEXT>
+	
 </Civ4GameText>

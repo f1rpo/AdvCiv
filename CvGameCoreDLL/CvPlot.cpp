@@ -4020,7 +4020,9 @@ bool CvPlot::isValidRoute(const CvUnit* pUnit) const
 {
 	if (isRoute())
 	{
-		if (!pUnit->isEnemy(getTeam(), this) || pUnit->isEnemyRoute())
+		if ((!pUnit->isEnemy(getTeam(), this) || pUnit->isEnemyRoute())
+				// advc.034:
+				&& !GET_TEAM(pUnit->getTeam()).isDisengage(getTeam()))
 		{
 			return true;
 		}

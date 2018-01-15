@@ -6201,7 +6201,8 @@ void CvUnitAI::AI_spyMove()
 						return;
 					}
 				}
-				else
+				// advc.034: Can take our time during disengagement
+				else if(isIntruding())
 				{
 					// If we think we'll get caught soon, then do the mission early.
 					int iInterceptChance = getSpyInterceptPercent(plot()->getTeam(), false);

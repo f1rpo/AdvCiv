@@ -2569,7 +2569,7 @@ int teamStepValid(FAStarNode* parent, FAStarNode* node, int data, const void* po
 		return TRUE;
 	}
 
-	// advc.001: Was just ePlotTeam == eTargetTeam; anticipate DoW on/ by vassals
+	// advc.001: Was just ePlotTeam == eTargetTeam; anticipate DoW on/ by vassals.
 	if(eTargetTeam != NO_TEAM && GET_TEAM(ePlotTeam).getMasterTeam() == GET_TEAM(eTargetTeam).getMasterTeam())
 	{
 		return TRUE;
@@ -2585,7 +2585,8 @@ int teamStepValid(FAStarNode* parent, FAStarNode* node, int data, const void* po
 		return TRUE;
 	}
 
-	if (kTeam.isOpenBorders(ePlotTeam))
+	if (kTeam.isOpenBorders(ePlotTeam)
+			|| kTeam.isDisengage(ePlotTeam)) // advc.034
 	{
 		return TRUE;
 	}

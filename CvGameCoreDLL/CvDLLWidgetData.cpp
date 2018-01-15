@@ -3454,7 +3454,13 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 			}*/
 		}
 		// K-Mod end
-
+		// <advc.034>
+		if(GET_TEAM(eActiveTeam).isDisengage(eTeam)) {
+			CvWString szString;
+			GAMETEXT.buildDisengageString(szString, eActivePlayer, ePlayer);
+			szBuffer.append(NEWLINE);
+			szBuffer.append(szString);
+		} // </advc.034>
 		if (eTeam != eActiveTeam )
 		{
 			// Show which civs this player is at war with
@@ -4684,6 +4690,10 @@ void CvDLLWidgetData::parseTradeItem(CvWidgetDataStruct &widgetDataStruct, CvWSt
 			break;
 		case TRADE_PEACE_TREATY:
 			szBuffer.append(gDLL->getText("TXT_KEY_TRADE_PEACE_TREATY", GC.getDefineINT("PEACE_TREATY_LENGTH")));
+			break;
+			// <advc.034>
+		case TRADE_DISENGAGE:
+			szBuffer.append(gDLL->getText("TXT_KEY_TRADE_DISENGAGE"));
 			break;
 		}
 

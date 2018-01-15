@@ -2555,12 +2555,12 @@ bool CvUnit::canEnterTerritory(TeamTypes eTeam, bool bIgnoreRightOfPassage) cons
 
 	if (!bIgnoreRightOfPassage)
 	{
-		if (GET_TEAM(getTeam()).isOpenBorders(eTeam))
+		if (GET_TEAM(getTeam()).isOpenBorders(eTeam)
+				|| GET_TEAM(getTeam()).isDisengage(eTeam)) // advc.034
 		{
 			return true;
 		}
 	}
-
 	return false;
 }
 
@@ -3466,10 +3466,9 @@ bool CvUnit::canGift(bool bTestVisible, bool bTestTransport)
 	// <advc.143b>
 	if(m_pUnitInfo->getNukeRange() >= 0) // -1 for non-nukes
 		return false; // </advc.143b>
-	// <advc.123a>
-	if(!TEAMREF(getOwnerINLINE()).isOpenBorders(TEAMID(pPlot->getOwnerINLINE())) &&
-			TEAMREF(pPlot->getOwnerINLINE()).isVassal(TEAMID(getOwnerINLINE())))
-		return false; // </advc.123a>
+	// <advc.034>
+	if(!TEAMREF(getOwnerINLINE()).isOpenBorders(TEAMID(pPlot->getOwnerINLINE())))
+		return false; // </advc.034>
 
 	if (pPlot->isVisibleEnemyUnit(this))
 	{
@@ -7261,8 +7260,9 @@ bool CvUnit::isIntruding() const
 	// UNOFFICIAL_PATCH End
 	{
 		return false;
-	}
-
+	} // <advc.034>
+	if(GET_TEAM(eLocalTeam).isDisengage(getTeam()))
+		return false; // </advc.034>
 	return true;
 }
 

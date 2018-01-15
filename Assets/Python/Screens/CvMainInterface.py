@@ -1114,7 +1114,8 @@ class CvMainInterface:
 					#screen.modifyLabel( "EndTurnText", acOutput, CvUtil.FONT_CENTER_JUSTIFY )
 					screen.setEndTurnState( "EndTurnText", acOutput )
 					bShow = True
-				elif ( CyInterface().shouldDisplayWaitingOthers() ):
+				# advc.127: No "Waiting" message during Auto Play
+				elif CyInterface().shouldDisplayWaitingOthers() and not gc.getPlayer(gc.getGame().getActivePlayer()).isHumanDisabled():
 					acOutput = localText.getText("SYSTEM_WAITING", ())
 					#screen.modifyLabel( "EndTurnText", acOutput, CvUtil.FONT_CENTER_JUSTIFY )
 					screen.setEndTurnState( "EndTurnText", acOutput )

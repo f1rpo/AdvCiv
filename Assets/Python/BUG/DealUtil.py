@@ -101,7 +101,8 @@ def isAnnual(eItem):
 		TradeableItems.TRADE_GOLD_PER_TURN, 
 		TradeableItems.TRADE_VASSAL, 
 		TradeableItems.TRADE_SURRENDER, 
-		TradeableItems.TRADE_OPEN_BORDERS, 
+		TradeableItems.TRADE_OPEN_BORDERS,
+		TradeableItems.TRADE_DISENGAGE, # advc.034
 		TradeableItems.TRADE_DEFENSIVE_PACT, 
 		TradeableItems.TRADE_PERMANENT_ALLIANCE, 
 	)
@@ -110,7 +111,8 @@ def isDual(eItem, bExcludePeace=False):
 	if bExcludePeace and eItem == TradeableItems.TRADE_PEACE_TREATY:
 		return False
 	return eItem in (
-		TradeableItems.TRADE_OPEN_BORDERS, 
+		TradeableItems.TRADE_OPEN_BORDERS,
+		TradeableItems.TRADE_DISENGAGE, # advc.034
 		TradeableItems.TRADE_DEFENSIVE_PACT, 
 		TradeableItems.TRADE_PERMANENT_ALLIANCE, 
 		TradeableItems.TRADE_PEACE_TREATY, 
@@ -121,7 +123,8 @@ def hasData(eItem):
 		TradeableItems.TRADE_MAPS, 
 		TradeableItems.TRADE_VASSAL, 
 		TradeableItems.TRADE_SURRENDER, 
-		TradeableItems.TRADE_OPEN_BORDERS, 
+		TradeableItems.TRADE_OPEN_BORDERS,
+		TradeableItems.TRADE_DISENGAGE, # advc.034
 		TradeableItems.TRADE_DEFENSIVE_PACT, 
 		TradeableItems.TRADE_PERMANENT_ALLIANCE, 
 		TradeableItems.TRADE_PEACE_TREATY, 

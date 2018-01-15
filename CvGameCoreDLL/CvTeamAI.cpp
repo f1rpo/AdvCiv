@@ -4569,8 +4569,9 @@ DenialTypes CvTeamAI::AI_defensivePactTrade(TeamTypes eTeam) const
 	if (GC.getGameINLINE().countCivTeamsAlive() == 2)
 	{
 		return DENIAL_NO_GAIN;
-	}
-	if(!isOpenBorders(eTeam)) return DENIAL_JOKING; // advc.130t
+	} // <advc.130t>
+	if(!isOpenBorders(eTeam))
+		return DENIAL_JOKING; // </advc.130t>
 	if (AI_getWorstEnemy() == eTeam)
 	{
 		return DENIAL_WORST_ENEMY;

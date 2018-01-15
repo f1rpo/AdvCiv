@@ -840,4 +840,14 @@
 		<iDefineIntVal>28</iDefineIntVal>
 	</Define>
 
+	<!-- [advc.034] The number of turns with Open Borders after making peace.
+		 The turn on which peace is made counts as the first turn with Open
+		 Borders. Can't be more than 10 turns (PEACE_TREATY_LENGTH in the
+		 original GlobalDefines.xml). 0 means no Open Borders (BtS behavior).
+		 Recommended: 0 or 3 to 5 -->
+	<Define>
+		<DefineName>DISENGAGE_LENGTH</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+
 </Civ4Defines>

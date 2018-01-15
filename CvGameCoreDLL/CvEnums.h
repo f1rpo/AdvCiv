@@ -1887,6 +1887,9 @@ enum TradeableItems						// Exposed to Python
 
 	NUM_TRADEABLE_ITEMS = NUM_TRADEABLE_HEADINGS,
 #endif
+	/*  advc.034: Don't need to include this in iterations over TradeableItems
+		(although I suppose it wouldn't hurt) */
+	TRADE_DISENGAGE,
 };
 
 enum DiploEventTypes					// Exposed to Python
