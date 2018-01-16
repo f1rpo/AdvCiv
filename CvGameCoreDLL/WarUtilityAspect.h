@@ -100,6 +100,8 @@ protected:
 			TeamTypes ignoreGains = NO_TEAM);
 	 double lossesFromBlockade(PlayerTypes victimId, PlayerTypes to);
 	 double lossesFromNukes(PlayerTypes victimId, PlayerTypes sourceId);
+	 // advc.035:
+	 double lossesFromFlippedTiles(PlayerTypes victimId, PlayerTypes sourceId = NO_PLAYER);
 	 /* Score for assets conquered by us from them (as set by evaluate(void)).
 		'mute' disables logging within the function body. */
 	 double conqAssetScore(bool mute = true);

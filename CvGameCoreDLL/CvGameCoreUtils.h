@@ -66,8 +66,9 @@ float hash(long x, PlayerTypes civId = NO_PLAYER);
 	will be placed. &p itself gets placed in r[0]; the others in no particular
 	order. If the fat cross has fewer than 21 plots (edge of the map),
 	NULL entries will be included. */
-void fatCross(CvPlot const& p, std::vector<CvPlot const*>& r);
-// </advc.003>
+void fatCross(CvPlot const& p, std::vector<CvPlot*>& r);
+// </advc.003> // advc.035:
+void contestedPlots(std::vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2);
 
 //sign function taken from FirePlace - JW
 template<class T> __forceinline T getSign( T x ) { return (( x < 0 ) ? T(-1) : x > 0 ? T(1) : T(0)); };

@@ -10642,8 +10642,8 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 			iValue += (iTemp / 16);
 		}
 	}
-
-	iTemp = GC.getPromotionInfo(ePromotion).getRevoltProtection();
+	// advc.099e: Commented out
+	/*iTemp = GC.getPromotionInfo(ePromotion).getRevoltProtection();
 	if ((AI_getUnitAIType() == UNITAI_CITY_DEFENSE) ||
 		(AI_getUnitAIType() == UNITAI_CITY_COUNTER) ||
 		(AI_getUnitAIType() == UNITAI_CITY_SPECIAL))
@@ -10656,7 +10656,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 				iValue += (iTemp / 2);
 			}
 		}
-	}
+	}*/
 
 	iTemp = GC.getPromotionInfo(ePromotion).getCollateralDamageProtection();
 	if ((AI_getUnitAIType() == UNITAI_CITY_DEFENSE) ||
@@ -20076,7 +20076,8 @@ bool CvUnitAI::AI_fortTerritory(bool bCanal, bool bAirbase)
 		{
 			if (pLoopPlot->getOwnerINLINE() == getOwnerINLINE()) // XXX team???
 			{
-				if (pLoopPlot->getImprovementType() == NO_IMPROVEMENT)
+				if (pLoopPlot->getImprovementType() == NO_IMPROVEMENT
+						&& !pLoopPlot->isContestedByRival()) // advc.035
 				{
 					int iValue = 0;
 					iValue += bCanal ? kOwner.AI_getPlotCanalValue(pLoopPlot) : 0;
@@ -20337,6 +20338,9 @@ bool CvUnitAI::AI_improveBonus() // K-Mod. (all that junk wasn't being used anyw
 												iValue /= (GC.getBuildInfo(eBuild).getTime() + 1);*/
 												CvImprovementInfo& imp = GC.getImprovementInfo(impId);
 												int defenseUtility = imp.getDefenseModifier();
+												// <advc.035>
+												if(pLoopPlot->isContestedByRival())
+													defenseUtility = 0; // </advc.035>
 												FeatureTypes ft = pLoopPlot->getFeatureType();
 												TerrainTypes tt = pLoopPlot->getTerrainType();
 												/* Prioritize Forts on tiles with high natural defense and on important

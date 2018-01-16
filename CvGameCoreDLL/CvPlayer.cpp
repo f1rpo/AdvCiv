@@ -3653,7 +3653,8 @@ void CvPlayer::doTurn()
 	// </advc.029>
 	/*  <advc.034> Cancel disengagement agreements at the end of a round, i.e.
 		at the end of the barb turn. */
-	if(isBarbarian() && GC.getDefineINT("DISENGAGE_LENGTH") > 0) {
+	int disengageLength = GC.getDefineINT("DISENGAGE_LENGTH") > 0;
+	if(isBarbarian() && disengageLength > 0) {
 		CvGame& g = GC.getGame(); int dummy=-1;
 		for(CvDeal* d = g.firstDeal(&dummy); d != NULL; d = g.nextDeal(&dummy)) {
 			if(d->isDisengage() && d->turnsToCancel() <= 1) {
@@ -3663,6 +3664,14 @@ void CvPlayer::doTurn()
 				d->setInitialGameTurn(d->getInitialGameTurn() - 1);
 				d->kill();
 			}
+		}
+	} // If DISENGAGE_LENGTH set to 0 in between sessions
+	else if(disengageLength <= 0) {
+		CvTeam& ourTeam = GET_TEAM(getTeam());
+		for(int i = 0; i < MAX_CIV_TEAMS; i++) {
+			TeamTypes tId = (TeamTypes)i;
+			if(ourTeam.isDisengage(tId))
+				ourTeam.cancelDisengage(tId);
 		}
 	} // </advc.034>
 	updateEconomyHistory(GC.getGameINLINE().getGameTurn(), calculateTotalCommerce());

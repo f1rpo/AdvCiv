@@ -209,7 +209,7 @@ void CvPlot::reset(int iX, int iY, bool bConstructorCall)
 	m_bFlagDirty = false;
 	m_bPlotLayoutDirty = false;
 	m_bLayoutStateWorked = false;
-	
+	m_eSecondOwner = // advc.035
 	m_eOwner = NO_PLAYER;
 	m_ePlotType = PLOT_OCEAN;
 	m_eTerrainType = NO_TERRAIN;
@@ -544,8 +544,21 @@ void CvPlot::doImprovementUpgrade()
 void CvPlot::updateCulture(bool bBumpUnits, bool bUpdatePlotGroups)
 {
 	if (!isCity())
-	{
-		setOwner(calculateCulturalOwner(), bBumpUnits, bUpdatePlotGroups);
+	{	// <advc.035>
+		PlayerTypes ownerId = calculateCulturalOwner();
+		setSecondOwner(ownerId);
+		if(GC.getOWN_EXCLUSIVE_RADIUS() > 0 && ownerId != NO_PLAYER) {
+			PlayerTypes secondOwnerId = calculateCulturalOwner(false, true);
+			if(secondOwnerId != NO_PLAYER) {
+				if(!TEAMREF(secondOwnerId).isAtWar(TEAMID(ownerId)))
+					ownerId = secondOwnerId;
+				else setSecondOwner(secondOwnerId);
+			}
+			else FAssertMsg(secondOwnerId != NO_PLAYER, "ownerId!=NO_PLAYER"
+					" should imply secondOwnerId!=NO_PLAYER");
+		}
+		setOwner(ownerId, // </advc.035>
+				bBumpUnits, bUpdatePlotGroups);
 	}
 }
 
@@ -3299,7 +3312,8 @@ void CvPlot::invalidateBorderDangerCache()
 // K-Mod end
 
 PlayerTypes CvPlot::calculateCulturalOwner(
-	bool ignoreCultureRange // advc.099c
+	bool ignoreCultureRange, // advc.099c
+	bool ownExclusiveRadius // advc.035
 	) const
 {
 	PROFILE("CvPlot::calculateCulturalOwner()")
@@ -3325,12 +3339,34 @@ PlayerTypes CvPlot::calculateCulturalOwner(
 	{
 		return NO_PLAYER;
 	}
-
+	// <advc.035>
+	bool inCityRadius[MAX_PLAYERS];
+	for(int i = 0; i < MAX_PLAYERS; i++)
+		inCityRadius[i] = false;
+	bool anyCityRadius = false;
+	if(ownExclusiveRadius) {
+		std::vector<CvPlot*> cross;
+		::fatCross(*this, cross);
+		for(size_t i = 1; i < cross.size(); i++) {
+			if(cross[i] == NULL) continue;
+			CvPlot const& p = *cross[i];
+			if(!p.isCity() || p.getPlotCity()->isOccupation())
+				continue;
+			PlayerTypes cityOwner = p.getPlotCity()->getOwnerINLINE();
+			if(isWithinCultureRange(cityOwner)) {
+				inCityRadius[cityOwner] = true;
+				anyCityRadius = true;
+			}
+		}
+	}
+	// </advc.035>
 	iBestCulture = 0;
 	eBestPlayer = NO_PLAYER;
 
 	for (iI = 0; iI < MAX_PLAYERS; ++iI)
-	{
+	{	// <advc.035>
+		if(ownExclusiveRadius && anyCityRadius && !inCityRadius[iI])
+			continue; // </advc.035>
 		if (GET_PLAYER((PlayerTypes)iI).isAlive()
 			|| ignoreCultureRange // advc.099c
 			)
@@ -5336,6 +5372,31 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 }
 
 
+// <advc.035>
+PlayerTypes CvPlot::getSecondOwner() const {
+
+	if(isCity())
+		return getPlotCity()->getOwnerINLINE();
+	return (PlayerTypes)m_eSecondOwner;
+}
+
+void CvPlot::setSecondOwner(PlayerTypes eNewValue) {
+
+	m_eSecondOwner = (char)eNewValue;
+}
+
+bool CvPlot::isContestedByRival(PlayerTypes rivalId) const {
+
+	PlayerTypes const firstOwner = getOwnerINLINE();
+	PlayerTypes const secondOwner = getSecondOwner();
+	return secondOwner != NO_PLAYER && firstOwner != NO_PLAYER &&
+			firstOwner != secondOwner && (rivalId == NO_PLAYER ||
+			secondOwner == rivalId || firstOwner == rivalId) &&
+			TEAMREF(firstOwner).getMasterTeam() !=
+			TEAMREF(secondOwner).getMasterTeam();
+} // </advc.035>
+
+
 PlotTypes CvPlot::getPlotType() const
 {
 	return (PlotTypes)m_ePlotType;
@@ -6858,7 +6919,8 @@ TeamTypes CvPlot::findHighestCultureTeam() const
 }
 
 
-PlayerTypes CvPlot::findHighestCulturePlayer() const
+PlayerTypes CvPlot::findHighestCulturePlayer(
+		bool bAlive) const // advc.035
 {
 	PlayerTypes eBestPlayer = NO_PLAYER;
 	int iBestValue = 0;
@@ -6866,7 +6928,9 @@ PlayerTypes CvPlot::findHighestCulturePlayer() const
 	for (int iI = 0; iI < MAX_PLAYERS; ++iI)
 	{
 		// advc.099: Replaced "Alive" with "EverAlive"
-		if (GET_PLAYER((PlayerTypes)iI).isEverAlive())
+		if ((GET_PLAYER((PlayerTypes)iI).isEverAlive()
+				// advc.035:
+				&& !bAlive) || GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
 			int iValue = getCulture((PlayerTypes)iI);
 
@@ -9262,7 +9326,10 @@ void CvPlot::read(FDataStreamBase* pStream)
 	pStream->Read(&m_eRouteType);
 	pStream->Read(&m_eRiverNSDirection);
 	pStream->Read(&m_eRiverWEDirection);
-
+	// <advc.035>
+	if(uiFlag >= 1)
+		pStream->Read(&m_eSecondOwner);
+	else m_eSecondOwner = m_eOwner; // </advc.035>
 	pStream->Read((int*)&m_plotCity.eOwner);
 	pStream->Read(&m_plotCity.iID);
 	pStream->Read((int*)&m_workingCity.eOwner);
@@ -9464,6 +9531,7 @@ void CvPlot::write(FDataStreamBase* pStream)
 	uint iI;
 
 	uint uiFlag=0;
+	uiFlag = 1; // advc.035
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iX);
@@ -9501,7 +9569,7 @@ void CvPlot::write(FDataStreamBase* pStream)
 	pStream->Write(m_eRouteType);
 	pStream->Write(m_eRiverNSDirection);
 	pStream->Write(m_eRiverWEDirection);
-
+	pStream->Write(m_eSecondOwner); // advc.035
 	pStream->Write(m_plotCity.eOwner);
 	pStream->Write(m_plotCity.iID);
 	pStream->Write(m_workingCity.eOwner);

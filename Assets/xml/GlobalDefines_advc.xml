@@ -850,4 +850,13 @@
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 
+	<!-- [advc.035] If set to 1 (recommended), tiles that are only within the
+		 radius of one city belong to the owner of that city regardless of
+		 culture. Set to 0 for BtS behavior (ownership determined only by
+		 culture range and tile culture). -->
+	<Define>
+		<DefineName>OWN_EXCLUSIVE_RADIUS</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+
 </Civ4Defines>

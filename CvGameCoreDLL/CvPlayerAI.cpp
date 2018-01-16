@@ -3105,29 +3105,17 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		}
 	}
 
-	int iOwnedTiles = 0;
-
-	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
-	{
-		CvPlot* pLoopPlot = plotCity(iX, iY, iI);
-
-		if (pLoopPlot == NULL || (pLoopPlot->isOwned() && pLoopPlot->getTeam() != getTeam()))
-		{
-			iOwnedTiles++;
-		}
-	}
-
-	if (iOwnedTiles > (NUM_CITY_PLOTS / 3))
-	{
-		return 0;
-	}
-
 	// (K-Mod this site radius check code was moved from higher up)
 	//Explaination of city site adjustment:
 	//Any plot which is otherwise within the radius of a city site
 	//is basically treated as if it's within an existing city radius
 	std::vector<bool> abCitySiteRadius(NUM_CITY_PLOTS, false);
-
+	/*  <advc.035>
+		Need to distinguish tiles within the radius of one of our team's cities
+		from those within just any city radius. */
+	std::vector<bool> abOwnCityRadius(NUM_CITY_PLOTS, false);
+	// Whether the tile flips to us once we settle near it
+	std::vector<bool> abFlip(NUM_CITY_PLOTS, false);
 	// K-Mod. bug fixes etc. (original code deleted)
 	if (!kSet.bStartingLoc)
 	{
@@ -3156,9 +3144,38 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					}
 				}
 			}
+		} // <advc.035>
+		int dummy=-1;
+		for(CvCity* c = firstCity(&dummy); c != NULL; c = nextCity(&dummy)) {
+			for(int i = 0; i < NUM_CITY_PLOTS; i++) {
+				CvPlot* p = plotCity(iX, iY, i);
+				if(p != NULL && plotDistance(p->getX_INLINE(), p->getY_INLINE(),
+						c->getX_INLINE(), c->getY_INLINE()) <= CITY_PLOTS_RADIUS)
+					abOwnCityRadius[i] = true;
+			}
 		}
+		for(int i = 0; i < NUM_CITY_PLOTS; i++) {
+			CvPlot* p = plotCity(iX, iY, i);
+			abFlip[i] = p != NULL && p->isOwned() && p->isCityRadius() &&
+					!abOwnCityRadius[i] && p->getTeam() != getTeam() &&
+					(p->getSecondOwner() == getID() ||
+					/*  The above is enough b/c the tile may not be within the
+						culture range of one of our cities; but it will be once
+						the new city is founded. */
+					p->findHighestCulturePlayer(true) == getID());
+		} // </advc.035>
 	}
 	// K-Mod end
+	// advc.035: Moved the owned-tile counting down b/c I need abFlip for it
+	int iOwnedTiles = 0;
+	for(int i = 0; i < NUM_CITY_PLOTS; i++) {
+		CvPlot* pLoopPlot = plotCity(iX, iY, i);
+		if (pLoopPlot == NULL || (pLoopPlot->isOwned() && pLoopPlot->getTeam() != getTeam()
+				&& !abFlip[i])) // advc.035
+			iOwnedTiles++;
+	}
+	if(iOwnedTiles > NUM_CITY_PLOTS / 3)
+		return 0;
 
 	std::vector<int> viBonusCount(GC.getNumBonusInfos(), 0);
 
@@ -3180,12 +3197,24 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 
 		if (iI != CITY_HOME_PLOT)
 		{
-			if ((pLoopPlot == NULL) || pLoopPlot->isImpassable())
-			{
+			/*  <advc.031> NULL and impassable count as 2 bad tiles (as in BtS),
+				but don't cheat with unrevealed tiles. */
+			if(pLoopPlot == NULL) {
 				iBadTile += 2;
+				continue; 
 			}
+			if(!kSet.bAllSeeing && !pLoopPlot->isRevealed(getTeam(), false)) {
+				// <advc.040>
+				if(firstColony)
+					unrev++; // </advc.040>
+				continue;
+			}
+			if(pLoopPlot->isImpassable()) {
+				iBadTile += 2;
+				continue;
+			} // </advc.031>
 			// K-Mod (original code deleted)
-			else if (//!pLoopPlot->isFreshWater() &&
+			if (//!pLoopPlot->isFreshWater() &&
 			/*  advc.031: Flood plains have high nature yield anyway,
 				so this is about snow. Perhaps snow river should be
 				just 1 bad tile(?). Bonus check added (Incense). */
@@ -3211,22 +3240,22 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			}
 			else if (pLoopPlot->isOwned())
 			{
-				if (pLoopPlot->getTeam() != getTeam() || pLoopPlot->isBeingWorked())
-				{
-					iBadTile++;
-				}
-				// note: this final condition is... not something I intend to keep permanently.
-				else if (pLoopPlot->isCityRadius() || abCitySiteRadius[iI])
-				{
-					iBadTile++;
-				}
+				if(!abFlip[iI]) { // advc.035
+					if (pLoopPlot->getTeam() != getTeam() || pLoopPlot->isBeingWorked())
+					{
+						iBadTile++;
+					}
+					// note: this final condition is... not something I intend to keep permanently.
+					else if (pLoopPlot->isCityRadius() || abCitySiteRadius[iI])
+					{
+						iBadTile++;
+					}
+				} // advc.035
 			}
 			// K-Mod end
 			// <advc.040>
-			else if(firstColony && pLoopPlot->isRevealed(getTeam(), false))
-				revDecentLand++;
-			if(pLoopPlot != NULL && firstColony && !pLoopPlot->isRevealed(getTeam(), false))
-				unrev++; // </advc.040>
+			else if(firstColony)
+				revDecentLand++; // </advc.040>
 		}
 	} /* <advc.040> Make sure we do naval exploration near the spot before
 		 sending a Settler */
@@ -3309,15 +3338,9 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		}
 		//else if (pLoopPlot->isCityRadius() || abCitySiteRadius[iI])
 		else if (iI != CITY_HOME_PLOT && (pLoopPlot->isCityRadius() || abCitySiteRadius[iI]) // K-Mod
-				// <advc.300> Barb city radius won't expand
-				&& (pLoopPlot->getOwnerINLINE() != NO_PLAYER ||
-				pLoopPlot->findHighestCulturePlayer() != BARBARIAN_PLAYER))
-		{		// </advc.300>
+				&& !abFlip[iI]) // advc.035
+		{
 			iTakenTiles++;
-			/*  <advc.300> Don't settle close to barbarians, conquer their
-				cities instead (or raze before deciding where to settle). */
-			if(pLoopPlot->getOwnerINLINE() == BARBARIAN_PLAYER)
-				iTakenTiles++; // </advc.300>
 			if (abCitySiteRadius[iI])
 			{
 				iTeammateTakenTiles++;
@@ -3366,7 +3389,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			// to take into account the proximity of foreign cities and so on.
 			// (similar to the calculation at the end of this function!)
 			int iCultureMultiplier;
-			if (!pLoopPlot->isOwned() || pLoopPlot->getOwnerINLINE() == getID())
+			if (!pLoopPlot->isOwned() || pLoopPlot->getOwnerINLINE() == getID()
+					|| abFlip[iI]) // advc.035
 				iCultureMultiplier = 100;
 			else
 			{
@@ -3376,9 +3400,16 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				int iOtherCulture = std::max(1, pLoopPlot->getCulture(pLoopPlot->getOwnerINLINE()));
 				iCultureMultiplier = 100 * (iOurCulture + kSet.iClaimThreshold);
 				iCultureMultiplier /= (iOtherCulture + kSet.iClaimThreshold
-						// advc.031: The above is too optimistic
-						+ ::round(0.72 * (iOurCulture + kSet.iClaimThreshold)));
+						/*  advc.035: The above is OK if cities own their
+							exclusive radius ... */
+						+ (GC.getOWN_EXCLUSIVE_RADIUS() ? 0 :
+						// advc.031: but w/o that rule, it's too optimistic.
+						::round(0.72 * (iOurCulture + kSet.iClaimThreshold))));
 				iCultureMultiplier = std::min(100, iCultureMultiplier);
+				// <advc.035> Increase it a bit?
+				/*if(GC.getOWN_EXCLUSIVE_RADIUS())
+					iCultureMultiplier = (2 * iCultureMultiplier + 100) / 3;*/
+				// </advc.035>
 			}
 
 			//
@@ -3388,7 +3419,11 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				//discourage hopeless cases, especially on other continents.
 				iTakenTiles += (iNumAreaCities > 0) ? 1 : 2;
 			}
-
+			/*  <advc.035> The discouragement above is still useful for avoiding
+				revolts */
+			if(GC.getOWN_EXCLUSIVE_RADIUS())
+				iCultureMultiplier = std::max(iCultureMultiplier, 65);
+			// </advc.035>
 			if (eBonus != NO_BONUS /* <advc.031> A Fort doesn't help if it
 									  doesn't actually connect the bonus. */
 					&& GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getBonusInfo(
@@ -3639,7 +3674,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 
 			iValue += iPlotValue;
 			// advc.031: Was 33, but now computed differently.
-			if (iCultureMultiplier > 20) //ignore hopelessly entrenched tiles.
+			if (iCultureMultiplier > 20 //ignore hopelessly entrenched tiles.
+					|| GC.getOWN_EXCLUSIVE_RADIUS() > 0) // advc.035
 			{
 
 				if (eBonus != NO_BONUS && // K-Mod added water case (!!)
@@ -3756,10 +3792,12 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					}
 				} // end if usable bonus
 				if (eBonusImprovement == NO_IMPROVEMENT && iI != CITY_HOME_PLOT
-						/*  advc.031: Need to account for foreign culture
+						/*  <advc.031> Need to account for foreign culture
 							somehow, and I don't want to divide the
 							special food plus, which is usually just 1 or 2. */
-						&& iCultureMultiplier > 55)
+						&& iCultureMultiplier >
+							(GC.getOWN_EXCLUSIVE_RADIUS() ? 40 : // advc.035
+							55)) // </advc.031>
 				{
 					// non bonus related special food. (Note: the city plot is counted elsewhere.)
 					int iEffectiveFood = aiYield[YIELD_FOOD];
@@ -8364,7 +8402,7 @@ int CvPlayerAI::AI_calculateStolenCityRadiusPlots(PlayerTypes ePlayer) const
 	int dummy=-1;
 	for(CvCity* cp = firstCity(&dummy); cp != NULL; cp = nextCity(&dummy)) {
 		CvCity const& c = *cp;
-		std::vector<CvPlot const*> radius;
+		std::vector<CvPlot*> radius;
 		::fatCross(*c.plot(), radius);
 		int perCityCount = 0;
 		int upperBound = std::max(6,
@@ -8427,22 +8465,37 @@ void CvPlayerAI::AI_updateCloseBorderAttitudeCache(PlayerTypes ePlayer)
 		m_aiCloseBordersAttitudeCache[ePlayer] = 0;
 		return;
 	} // </advc.130v>
-	int iPercent = std::min(60, (AI_calculateStolenCityRadiusPlots(ePlayer) * 3));
-
-	//if (GET_TEAM(getTeam()).AI_isLandTarget(GET_PLAYER(ePlayer).getTeam()))
+	// <advc.035>
+	int weOwnCulturally = 0;
+	bool bWar = kOurTeam.isAtWar(eTheirTeam);
+	if(!bWar) {
+		std::vector<CvPlot*> contested;
+		::contestedPlots(contested, kOurTeam.getID(), eTheirTeam);
+		for(size_t i = 0; i < contested.size(); i++)
+			if(contested[i]->getSecondOwner() == getID())
+				weOwnCulturally++;
+	}
+	int stolenWeight = 4; // advc.147: 3 in BtS
+	if(GC.getOWN_EXCLUSIVE_RADIUS() > 0 && !bWar)
+		stolenWeight = 6; // </advc.035>
+	// advc.003: For visibility in debugger
+	int stolen = AI_calculateStolenCityRadiusPlots(ePlayer);
+	int iPercent = std::min(60, stolen *
+			stolenWeight + 3 * weOwnCulturally); // advc.035
 	// K-Mod. I've rewritten AI_isLandTarget. The condition I'm using here is equivalent to the original function.
-	if (kOurTeam.AI_hasCitiesInPrimaryArea(eTheirTeam) && kOurTeam.AI_calculateAdjacentLandPlots(eTheirTeam) >= 8)
-	// K-Mod end
-	{
-		iPercent += 40;
-	}
-
-	// bbai
-	if( AI_isDoStrategy(AI_VICTORY_CONQUEST3) )
-	{
-		iPercent = std::min( 120, (3 * iPercent)/2 );
-	}
-	// bbai end
+	/*if (kOurTeam.AI_hasCitiesInPrimaryArea(eTheirTeam) && kOurTeam.AI_calculateAdjacentLandPlots(eTheirTeam) >= 8) // K-Mod end
+		iPercent += 40;*/
+	// <advc.147> Replacing the above
+	if (kOurTeam.AI_hasCitiesInPrimaryArea(eTheirTeam)) {
+		int adjLand = kOurTeam.AI_calculateAdjacentLandPlots(eTheirTeam);
+		if(adjLand > 5) {
+			int targetCities = GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).
+					getTargetNumCities();
+			double adjWeight = ::dRange((5 * targetCities) /
+					std::sqrt((double)getTotalLand()), 2.0, 4.0);
+			iPercent += std::min(40, ::round(adjLand * adjWeight));
+		}
+	} // </advc.147>
 	// <advc.130v>
 	if(TEAMREF(ePlayer).isCapitulated())
 		iPercent /= 2; // </advc.130v>
@@ -8457,8 +8510,14 @@ void CvPlayerAI::AI_updateCloseBorderAttitudeCache(PlayerTypes ePlayer)
 			if(fromVassal > 0)
 				iPercent += fromVassal;
 		}
-	} // </advc.130v>
-	iPercent = ::round(iPercent * 1.2); // advc.147
+	}
+	iPercent = std::min(iPercent, 100); // </advc.130v>
+	// bbai
+	if( AI_isDoStrategy(AI_VICTORY_CONQUEST3) )
+	{
+		iPercent = std::min( 120, (3 * iPercent)/2 );
+	}
+	// bbai end
 	m_aiCloseBordersAttitudeCache[ePlayer] = (limit * iPercent) / 100;
 }
 // K-Mod end

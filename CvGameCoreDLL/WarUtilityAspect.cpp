@@ -187,6 +187,7 @@ double WarUtilityAspect::lostAssetScore(PlayerTypes to, double* returnTotal,
 	double blockadeMultiplier = lossesFromBlockade(theyId, to);
 	double fromBlockade = 0.1 * blockadeMultiplier * (total - r);
 	r += fromBlockade;
+	r += lossesFromFlippedTiles(theyId, to); // advc.035
 	if(returnTotal != NULL)
 		*returnTotal = total;
 	return r;
@@ -270,6 +271,37 @@ double WarUtilityAspect::lossesFromNukes(PlayerTypes victimId, PlayerTypes srcId
 				::round(scorePerCity), hits);
 	return r;
 }
+
+// <advc.035>
+double WarUtilityAspect::lossesFromFlippedTiles(PlayerTypes victimId,
+		PlayerTypes srcId) {
+	
+	if(GC.getOWN_EXCLUSIVE_RADIUS() <= 0)
+		return 0;
+	double r = 0;
+	int victimLostTiles = 0;
+	std::vector<TeamTypes> sources;
+	if(srcId == NO_PLAYER) {
+		for(size_t i = 0; i < properTeams.size(); i++)
+			sources.push_back(properTeams[i]);
+	}
+	else sources.push_back(TEAMID(srcId));
+	WarAndPeaceCache const& victimCache = GET_PLAYER(victimId).warAndPeaceAI().
+			getCache();
+	for(size_t i = 0; i < sources.size(); i++) {
+		if(m->isWar(sources[i], TEAMID(victimId))) {
+			victimLostTiles += victimCache.numLostTilesAtWar(sources[i]);
+		}
+	}
+	int const teamSz = TEAMREF(theyId).getNumMembers();
+	if(std::abs(victimLostTiles) <= 4 * teamSz)
+		return 0;
+	int victimLandTiles = GET_PLAYER(victimId).getTotalLand();
+	double const weight = 125;
+	r = (weight * victimLostTiles) / std::max(5, victimLandTiles);
+	r /= teamSz; // Tiles are counted per team, but this is a per-civ function.
+	return r;
+} // </advc.035>
 
 double WarUtilityAspect::conqAssetScore(bool mute) {
 
@@ -2366,6 +2398,8 @@ void Risk::evaluate() {
 		fromNukes = scareCost;
 	}
 	uMinus += fromNukes;
+	/*  advc.035 (comment): Don't consider lossFromFlippedTiles here. We might
+	capture the very cities that steal our tiles by continuing the war. */
 	uMinus /= total;
 	if(uMinus > 0.5) {
 		if(fromBlockade > 0.5)

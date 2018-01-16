@@ -4339,7 +4339,41 @@ void CvTeam::setAtWar(TeamTypes eIndex, bool bNewValue)
 {
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < MAX_TEAMS, "eIndex is expected to be within maximum bounds (invalid Index)");
+	// <advc.035>
+	if(m_abAtWar[eIndex] == bNewValue)
+		return; // </advc.035>
 	m_abAtWar[eIndex] = bNewValue;
+	// <advc.035>
+	if(eIndex < getID())
+		return; // setAtWar gets called on both sides; do this only once.
+	std::vector<CvPlot*> flipPlots;
+	::contestedPlots(flipPlots, getID(), eIndex);
+	for(size_t i = 0; i < flipPlots.size(); i++) {
+		CvPlot& p = *flipPlots[i];
+		PlayerTypes secondOwner = p.getSecondOwner();
+		p.setSecondOwner(p.getOwnerINLINE());
+		/*  I guess it's a bit cleaner (faster?) not to bump units and update
+			plot groups until all tiles are flipped */
+		p.setOwner(secondOwner, false, false);
+	}
+	for(size_t i = 0; i < flipPlots.size(); i++) {
+		CvPlot& p = *flipPlots[i];
+		p.updatePlotGroup();
+		p.verifyUnitValidPlot();
+	}
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+		CvPlayerAI& ourMember = GET_PLAYER((PlayerTypes)i);
+		if(!ourMember.isAlive() || ourMember.getTeam() != getID())
+			continue;
+		for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
+			CvPlayerAI& theirMember = GET_PLAYER((PlayerTypes)j);
+			if(!theirMember.isAlive() || theirMember.getTeam() != eIndex)
+				continue;
+			ourMember.AI_updateCloseBorderAttitudeCache(theirMember.getID());
+			theirMember.AI_updateCloseBorderAttitudeCache(ourMember.getID());
+		}
+	} // (AttitudeCache is updated by caller)
+	// </advc.035>
 }
 
 

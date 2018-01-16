@@ -212,10 +212,20 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 			CvMessageControl::getInstance().sendChangeWar((TeamTypes)info.getData1(), true);
 		}
 		if (((pPopupReturn->getButtonClicked() == 0) || info.getOption2()) && info.getFlags() == 0)
-		{
-			//GC.getGameINLINE().selectionListGameNetMessage(GAMEMESSAGE_PUSH_MISSION, MISSION_MOVE_TO, info.getData2(), info.getData3(), info.getFlags(), false, info.getOption1());
-			GC.getGameINLINE().selectionListGameNetMessage(GAMEMESSAGE_PUSH_MISSION, MISSION_MOVE_TO, info.getData2(), info.getData3(), info.getFlags() | MOVE_DECLARE_WAR, false, info.getOption1()); // K-Mod
-			// (See comments in CvGame::selectionListGameNetMessage for an explanation for the MOVE_DECLARE_WAR flag. Basically, it's a kludge.)
+		{	// <advc.035>
+			CvUnit* u = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+			CvPlot* at = (u == NULL ? NULL : u->plot());
+			// Don't move ahead if the tile we're on is going to flip
+			if(at != NULL && (!at->isOwned() ||
+					(TEAMREF(at->getSecondOwner()).getMasterTeam() !=
+					GET_TEAM((TeamTypes)info.getData1()).getMasterTeam() &&
+					!GET_TEAM(TEAMREF(at->getSecondOwner()).getMasterTeam()).
+					isDefensivePact(GET_TEAM((TeamTypes)info.getData1()).
+					getMasterTeam())))) { // </advc.035>
+				//GC.getGameINLINE().selectionListGameNetMessage(GAMEMESSAGE_PUSH_MISSION, MISSION_MOVE_TO, info.getData2(), info.getData3(), info.getFlags(), false, info.getOption1());
+				GC.getGameINLINE().selectionListGameNetMessage(GAMEMESSAGE_PUSH_MISSION, MISSION_MOVE_TO, info.getData2(), info.getData3(), info.getFlags() | MOVE_DECLARE_WAR, false, info.getOption1()); // K-Mod
+				// (See comments in CvGame::selectionListGameNetMessage for an explanation for the MOVE_DECLARE_WAR flag. Basically, it's a kludge.)
+			}
 		}
 		break;
 

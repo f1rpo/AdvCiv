@@ -4387,7 +4387,8 @@ bool CvCity::isHeadquarters(CorporationTypes eIndex) const
 
 void CvCity::setHeadquarters(CorporationTypes eIndex)
 {
-	GC.getGameINLINE().setHeadquarters(eIndex, this, true);
+	GC.getGameINLINE().setHeadquarters(eIndex, this,
+			false); // advc.106e
 
 	if (GC.getCorporationInfo(eIndex).getFreeUnitClass() != NO_UNITCLASS)
 	{
@@ -5263,8 +5264,16 @@ int CvCity::cultureStrength(PlayerTypes ePlayer) const
 				((DirectionTypes)i));
 		if(pLoopPlot == NULL)
 			continue;
+		// <advc.035>
+		PlayerTypes loopOwner = pLoopPlot->getOwnerINLINE();
+		if(GC.getOWN_EXCLUSIVE_RADIUS() && loopOwner != NO_PLAYER &&
+				!TEAMREF(loopOwner).isAtWar(owner.getTeam())) {
+			PlayerTypes const secondOwner = pLoopPlot->getSecondOwner();
+			if(secondOwner != loopOwner) // Checked only for easier debugging
+				loopOwner = secondOwner;
+		} // </advc.035>
 		if(canFlip && // advc.101
-				pLoopPlot->getOwnerINLINE() == ePlayer) {
+				loopOwner == ePlayer) { // advc.035
 			// advc.101:
 			strFromInnerRadius += ::dRange(time/div - 2/3.0, 0.0, 3.5) * eraFactor;
 		}

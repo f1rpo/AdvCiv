@@ -30,8 +30,9 @@ WarAndPeaceCache::WarAndPeaceCache() {
 				vassalResourceScores[i] = adjacentLand[i] = -1;
 	}
 	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
-		pastWarScores[i] = sponsorshipsAgainst[i] = sponsorsAgainst[i] =
-			warUtilityIgnDistraction[i] = -1;
+		lostTilesAtWar[i] = // advc.035
+			pastWarScores[i] = sponsorshipsAgainst[i] =
+			sponsorsAgainst[i] = warUtilityIgnDistraction[i] = -1;
 	} 
 }
 
@@ -75,8 +76,10 @@ void WarAndPeaceCache::clear(bool beforeUpdate) {
 	goldPerProduction = 0;
 	canScrub = false;
 	trainDeepSeaCargo = trainAnyCargo = false;
-	for(int i = 0; i < MAX_CIV_TEAMS; i++)
+	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
+		lostTilesAtWar[i] = 0; // advc.035
 		warUtilityIgnDistraction[i] = MIN_INT;
+	}
 	if(!beforeUpdate) {
 		nNonNavyUnits = 0;
 		latestTurnReachableBySea.clear();
@@ -95,6 +98,7 @@ void WarAndPeaceCache::clear(bool beforeUpdate) {
 void WarAndPeaceCache::write(FDataStreamBase* stream) {
 
 	int savegameVersion = 1;
+	savegameVersion = 2; // advc.035
 	/*  I hadn't thought of a version number in the initial release. Need
 		to fold it into ownerId now to avoid breaking compatibility. */
 	stream->Write(ownerId + 100 * savegameVersion);
@@ -110,6 +114,7 @@ void WarAndPeaceCache::write(FDataStreamBase* stream) {
 	stream->Write(MAX_CIV_PLAYERS, adjacentLand);
 	stream->Write(MAX_CIV_PLAYERS, relativeNavyPow);
 	stream->Write(MAX_CIV_PLAYERS, wwAnger);
+	stream->Write(MAX_CIV_TEAMS, lostTilesAtWar); // advc.035
 	stream->Write(MAX_CIV_TEAMS, pastWarScores);
 	stream->Write(MAX_CIV_TEAMS, sponsorshipsAgainst);
 	stream->Write(MAX_CIV_TEAMS, sponsorsAgainst);
@@ -162,6 +167,9 @@ void WarAndPeaceCache::read(FDataStreamBase* stream) {
 	if(savegameVersion >= 1)
 		stream->Read(MAX_CIV_PLAYERS, relativeNavyPow);
 	stream->Read(MAX_CIV_PLAYERS, wwAnger);
+	// <advc.035>
+	if(savegameVersion >= 2)
+		stream->Read(MAX_CIV_TEAMS, lostTilesAtWar); // </advc.035>
 	stream->Read(MAX_CIV_TEAMS, pastWarScores);
 	stream->Read(MAX_CIV_TEAMS, sponsorshipsAgainst);
 	stream->Read(MAX_CIV_TEAMS, sponsorsAgainst);
@@ -218,6 +226,7 @@ void WarAndPeaceCache::update() {
 	updateThreatRatings();
 	updateVassalScores();
 	updateAdjacentLand();
+	updateLostTilesAtWar(); // advc.035
 	updateRelativeNavyPower();
 	updateGoldPerProduction();
 	updateWarAnger();
@@ -536,6 +545,13 @@ int WarAndPeaceCache::numAdjacentLandPlots(PlayerTypes civId) const {
 		return -1;
 	return adjacentLand[civId];
 }
+// <advc.035>
+int WarAndPeaceCache::numLostTilesAtWar(TeamTypes tId) const {
+
+	if(tId == NO_TEAM)
+		return -1;
+	return lostTilesAtWar[tId];
+} // </advc.035>
 
 double WarAndPeaceCache::relativeNavyPower(PlayerTypes civId) const {
 
@@ -757,6 +773,25 @@ void WarAndPeaceCache::updateAdjacentLand() {
 			adjacentLand[o]++;
 	}
 }
+// <advc.035>
+void WarAndPeaceCache::updateLostTilesAtWar() {
+
+	PROFILE_FUNC();
+	CvTeam const& ownerTeam = TEAMREF(ownerId);
+	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
+		TeamTypes tId = (TeamTypes)i;
+		std::vector<CvPlot*> flipped;
+		::contestedPlots(flipped, ownerTeam.getID(), tId);
+		int lost = 0;
+		for(size_t j = 0; j < flipped.size(); j++) {
+			TeamTypes plotTeamId = flipped[j]->getTeam(); // current tile owner
+			// Count the tiles that ownerTeam loses when at war with tId
+			if(plotTeamId == (ownerTeam.isAtWar(tId) ? tId : ownerTeam.getID()))
+				lost++;
+		}
+		lostTilesAtWar[i] = lost;
+	}
+} // </advc.035>
 
 void WarAndPeaceCache::updateRelativeNavyPower() {
 
@@ -1504,7 +1539,7 @@ bool WarAndPeaceCache::City::measureDistance(DomainTypes dom, CvPlot* start,
 	return (*r >= 0);
 } // </advc.104b>
 
-void WarAndPeaceCache::City::fatCross(vector<CvPlot const*>& r) {
+void WarAndPeaceCache::City::fatCross(vector<CvPlot*>& r) {
 
 	if(city() == NULL) {
 		FAssert(r.empty());
@@ -1552,7 +1587,7 @@ void WarAndPeaceCache::City::updateAssetScore() {
 		r += c.getPopulation() / 2.0;
 	// Plot deduced but unrevealed; use an estimate:
 	else r += 3 * GET_PLAYER(cityOwnerId).getCurrentEra() / 2;
-	vector<CvPlot const*> fc;
+	vector<CvPlot*> fc;
 	fatCross(fc);
 	for(int i = 0; i < 21; i++) {
 		CvPlot const* pp = fc[i];
@@ -1591,6 +1626,9 @@ void WarAndPeaceCache::City::updateAssetScore() {
 				2.0 * ctp.calculateCulturePercent(cacheOwnerId) +
 				ctp.calculateCulturePercent(c.getOwner()) +
 				ctp.calculateCulturePercent(BARBARIAN_PLAYER)) / 100.0);
+		// <advc.035>
+		if(GC.getOWN_EXCLUSIVE_RADIUS() > 0 && cultureModifier < 1)
+			cultureModifier = (2 * cultureModifier + 1) / 3; // </advc.035>
 		r += baseTileScore * cultureModifier;
 	}
 	double inflationMultiplier = 1 + cacheOwner.calculateInflationRate() / 100.0;
