@@ -438,7 +438,7 @@ class CvEspionageAdvisor:
 
 				pTargetPlayer = gc.getPlayer(self.iTargetPlayer)
 				pyTargetPlayer = PyPlayer(self.iTargetPlayer)
-
+				iTargetTeam = pTargetPlayer.getTeam() # advc.120d
 				# List of Cities
 				self.szCityListBox = self.getNextWidgetName()
 				screen.addListBoxGFC(self.szCityListBox, "", self.X_CITY_LIST, self.Y_CITY_LIST, self.W_CITY_LIST, self.H_CITY_LIST, TableStyles.TABLE_STYLE_STANDARD)

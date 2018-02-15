@@ -212,7 +212,6 @@ public:
 	int getNumAvailableBonuses(BonusTypes eBonus) const;																									// Exposed to Python
 	DllExport int getNumTradeableBonuses(BonusTypes eBonus) const;																				// Exposed to Python
 	int getNumTradeBonusImports(PlayerTypes ePlayer) const;																								// Exposed to Python
-	double bonusImportValue(PlayerTypes fromId) const; // advc.149
 	bool hasBonus(BonusTypes eBonus) const;									// Exposed to Python
 	// advc.003: Said "IncludeCancelable" but it actually does the opposite
 	bool isTradingWithTeam(TeamTypes eTeam, bool bIncludeUncancelable) const;
@@ -339,7 +338,10 @@ public:
 
 	DllExport int getCivicAnarchyLength(CivicTypes* paeNewCivics) const;																	// Exposed to Python
 	DllExport int getReligionAnarchyLength() const;																												// Exposed to Python
-
+	// <advc.132>
+	int getCivicAnarchyLengthBulk(CivicTypes* paeNewCivics, bool ignoreGoldenAge) const;
+	int getReligionAnarchyLengthBulk(bool ignoreGoldenAge) const;
+	// </advc.132>
 	DllExport int unitsRequiredForGoldenAge() const;																											// Exposed to Python
 	int unitsGoldenAgeCapable() const;																																		// Exposed to Python
 	DllExport int unitsGoldenAgeReady() const;																														// Exposed to Python
@@ -530,7 +532,9 @@ public:
 
 	int getHappyPerMilitaryUnit() const;																																			// Exposed to Python
 	void changeHappyPerMilitaryUnit(int iChange);												
-
+	// <advc.912c>
+	int getLuxuryModifier() const;																																			// Exposed to Python
+	void changeLuxuryModifier(int iChange); // </advc.912c>
 	int getMilitaryFoodProductionCount() const;														
 	bool isMilitaryFoodProduction() const;																																		// Exposed to Python
 	void changeMilitaryFoodProductionCount(int iChange);
@@ -1102,6 +1106,8 @@ public:
 	TeamTypes offeringPeace; bool expectingPeaceOffer;
 	// </advc.134a>
 	void checkAlert(int alertId, bool silent); // advc.210
+	// advc.104, advc.038, advc.132; exposed to Python.
+	double estimateYieldRate(YieldTypes yield, int nSamples = 5) const;
 
 	DllExport void buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& ourList) const;
 	DllExport bool getHeadingTradeString(PlayerTypes eOtherPlayer, TradeableItems eItem, CvWString& szString, CvString& szIcon) const;
@@ -1155,9 +1161,11 @@ public:
 	// advc.130o: Removed const qualifier
 	virtual bool AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList, int iChange = 1) = 0;
 	virtual bool AI_counterPropose(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirInventory, CLinkList<TradeData>* pOurInventory, CLinkList<TradeData>* pTheirCounter, CLinkList<TradeData>* pOurCounter) const = 0;
-	virtual int AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled = false) const = 0; // K-Mod added bAssumeEnabled
+	virtual int AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled = false, // K-Mod added bAssumeEnabled
+			bool bTrade = false) const = 0; // advc.036
 	virtual int AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer, int iChange = 0) const = 0;
-	virtual DenialTypes AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer) const = 0;
+	virtual DenialTypes AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
+			int iChange = 0) const = 0; // advc.133
 	virtual int AI_cityTradeVal(CvCity* pCity) const = 0;
 	virtual DenialTypes AI_cityTrade(CvCity* pCity, PlayerTypes ePlayer) const = 0;
 	virtual DenialTypes AI_stopTradingTrade(TeamTypes eTradeTeam, PlayerTypes ePlayer) const = 0;
@@ -1239,6 +1247,7 @@ protected:
 	int m_iExtraUnitCost;
 	int m_iNumMilitaryUnits;
 	int m_iHappyPerMilitaryUnit;
+	int m_iLuxuryModifier; // advc.912c
 	int m_iMilitaryFoodProductionCount;
 	int m_iConscriptCount;
 	int m_iMaxConscript;
@@ -1406,6 +1415,7 @@ protected:
 
 	WarTradeAlert warTradeAlert; // advc.210a
 	RevoltAlert revoltAlert; // advc.210b
+	BonusThirdPartiesAlert bonusThirdPartiesAlert; // advc.210d
 	// <advc.106b>
 	std::vector<CvTalkingHeadMessage*> majorMsgs;
 	int iNewMessages;

@@ -5344,6 +5344,7 @@ m_iFreeMilitaryUnitsPopulationPercent(0),
 m_iGoldPerUnit(0),												
 m_iGoldPerMilitaryUnit(0),									
 m_iHappyPerMilitaryUnit(0),
+m_iLuxuryModifier(0), // advc.912c
 m_iLargestCityHappiness(0),
 m_iWarWearinessModifier(0),
 m_iFreeSpecialist(0),
@@ -5529,6 +5530,11 @@ int CvCivicInfo::getHappyPerMilitaryUnit() const
 {
 	return m_iHappyPerMilitaryUnit;
 }
+// <advc.912c>
+int CvCivicInfo::getLuxuryModifier() const
+{
+	return m_iLuxuryModifier;
+} // </advc.912c>
 
 int CvCivicInfo::getLargestCityHappiness() const
 {
@@ -5821,6 +5827,9 @@ void CvCivicInfo::read(FDataStreamBase* stream)
 	}
 	// K-Mod end
 	stream->Read(&m_iHappyPerMilitaryUnit);
+	// <advc.912c>
+	if(uiFlag >= 3)
+		stream->Read(&m_iLuxuryModifier); // </advc.912c>
 	stream->Read(&m_iLargestCityHappiness);
 	stream->Read(&m_iWarWearinessModifier);
 	stream->Read(&m_iFreeSpecialist);
@@ -5919,6 +5928,7 @@ void CvCivicInfo::write(FDataStreamBase* stream)
 	CvInfoBase::write(stream);
 
 	uint uiFlag=2;
+	uiFlag = 3; // advc.912c
 	stream->Write(uiFlag);		// flag for expansion
 
 	stream->Write(m_iCivicOptionType);
@@ -5945,6 +5955,7 @@ void CvCivicInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iGoldPerUnit);												
 	stream->Write(m_iGoldPerMilitaryUnit);									
 	stream->Write(m_iHappyPerMilitaryUnit);
+	stream->Write(m_iLuxuryModifier); // advc.912c
 	stream->Write(m_iLargestCityHappiness);
 	stream->Write(m_iWarWearinessModifier);
 	stream->Write(m_iFreeSpecialist);
@@ -6037,6 +6048,8 @@ bool CvCivicInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iGoldPerUnit, "iGoldPerUnit");
 	pXML->GetChildXmlValByName(&m_iGoldPerMilitaryUnit, "iGoldPerMilitaryUnit");
 	pXML->GetChildXmlValByName(&m_iHappyPerMilitaryUnit, "iHappyPerMilitaryUnit");
+	// advc.912c:
+	pXML->GetChildXmlValByName(&m_iLuxuryModifier, "iLuxuryModifier");
 	pXML->GetChildXmlValByName(&m_bMilitaryFoodProduction, "bMilitaryFoodProduction");
 	pXML->GetChildXmlValByName(&m_iMaxConscript, "iMaxConscript");
 	//pXML->GetChildXmlValByName(&m_bNoUnhealthyPopulation, "bNoUnhealthyPopulation");

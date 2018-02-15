@@ -273,10 +273,11 @@ void WarAndPeaceCache::updateTotalAssetScore() {
 	totalAssets = 5;
 	for(int i = 0; i < size(); i++) {
 		City const& c = *getCity(i);
-		if(c.city()->getOwnerINLINE() == ownerId)
+		CvCity* cp = c.city();
+		if(cp != NULL && cp->getOwnerINLINE() == ownerId)
 			/*  National wonders aren't included in the per-city asset score b/c
 				they shouldn't count for rival cities. */
-			totalAssets += c.getAssetScore() + c.city()->getNumNationalWonders() * 4;
+			totalAssets += c.getAssetScore() + cp->getNumNationalWonders() * 4;
 	}
 }
 
@@ -776,7 +777,9 @@ void WarAndPeaceCache::updateAdjacentLand() {
 // <advc.035>
 void WarAndPeaceCache::updateLostTilesAtWar() {
 
-	PROFILE_FUNC();
+	//PROFILE_FUNC();
+	if(GC.getOWN_EXCLUSIVE_RADIUS() <= 0)
+		return;
 	CvTeam const& ownerTeam = TEAMREF(ownerId);
 	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 		TeamTypes tId = (TeamTypes)i;
@@ -925,9 +928,9 @@ double WarAndPeaceCache::longTermPower(TeamTypes tId, bool defensive) const {
 			to produce units. That said, 50~100 turns are also enough to
 			translate food yield into additional production and commerce
 			into better units. */
-		r += (wpai.estimateYieldRate(YIELD_PRODUCTION) +
-				0.35 * wpai.estimateYieldRate(YIELD_FOOD) +
-				0.25 * wpai.estimateYieldRate(YIELD_COMMERCE)) *
+		r += (civ.estimateYieldRate(YIELD_PRODUCTION) +
+				0.35 * civ.estimateYieldRate(YIELD_FOOD) +
+				0.25 * civ.estimateYieldRate(YIELD_COMMERCE)) *
 				(wpai.buildUnitProb() + 0.15) * army.getTypicalUnitPower() /
 				(double)typicalUnitProd;
 	}
@@ -1140,6 +1143,7 @@ void WarAndPeaceCache::updateMilitaryPower(CvUnitInfo const& u, bool add) {
 WarAndPeaceCache::City::City(PlayerTypes cacheOwnerId, CvCity* c)
 		: cacheOwnerId(cacheOwnerId) {
 
+	canDeduce = TEAMREF(cacheOwnerId).AI_deduceCitySite(c);
 	// Use plot index as city id (the pointer 'c' isn't serializable)
 	plotIndex = c->plotNum();
 	updateDistance(c);
@@ -1152,11 +1156,15 @@ WarAndPeaceCache::City::City(PlayerTypes cacheOwnerId, CvCity* c)
 }
 
 WarAndPeaceCache::City::City(PlayerTypes cacheOwnerId)
-	: cacheOwnerId(cacheOwnerId) {}
+		: cacheOwnerId(cacheOwnerId) {
+
+	plotIndex = assetScore = distance = targetValue = -1;
+	reachByLand = reachBySea = canDeduce = false;
+}
 
 CvCity* WarAndPeaceCache::City::city() const {
 
-	CvPlot* cityPlot = GC.getMap().plotByIndexINLINE(plotIndex);
+	CvPlot* cityPlot = GC.getMapINLINE().plotByIndexINLINE(plotIndex);
 	if(cityPlot == NULL)
 		return NULL;
 	return cityPlot->getPlotCity();
@@ -1175,7 +1183,14 @@ int WarAndPeaceCache::City::getAssetScore() const {
 bool WarAndPeaceCache::City::canReach() const {
 
 	PROFILE_FUNC();
-	if(city() == NULL || !TEAMREF(cacheOwnerId).AI_deduceCitySite(city()))
+	CvCity* const cp = city();
+	if(cp == NULL ||
+			// A bit slow:
+			// !TEAMREF(cacheOwnerId).AI_deduceCitySite(city())
+			/*  Check isRevealed first b/c I'm only updating canDeduce
+				once per turn */
+			(!cp->isRevealed(TEAMID(cacheOwnerId), false) &&
+			!canDeduce))
 		return false;
 	if(distance >= 0)
 		return true;
@@ -1223,22 +1238,44 @@ bool WarAndPeaceCache::City::canCurrentlyReachBySea() const {
 
 void WarAndPeaceCache::City::write(FDataStreamBase* stream) {
 
+	int savegameVersion = 1;
 	stream->Write(plotIndex);
 	stream->Write(assetScore);
-	stream->Write(distance);
+	/*  I hadn't thought of a version number in the initial release.
+		Fold it into 'distance' to avoid breaking compatibility. */
+	FAssert(distance >= -1 && distance < 10000);
+	// Add 1 b/c distance can be -1
+	stream->Write(distance + 1 + 10000 * savegameVersion);
 	stream->Write(targetValue);
 	stream->Write(reachByLand);
 	stream->Write(reachBySea);
+	stream->Write(canDeduce);
 }
 
 void WarAndPeaceCache::City::read(FDataStreamBase* stream) {
 
 	stream->Read(&plotIndex);
 	stream->Read(&assetScore);
-	stream->Read(&distance);
+	int tmp;
+	stream->Read(&tmp);
+	int savegameVersion = tmp / 10000;
+	distance = (tmp % 10000) - 1;
 	stream->Read(&targetValue);
 	stream->Read(&reachByLand);
 	stream->Read(&reachBySea);
+	if(savegameVersion >= 1)
+		stream->Read(&canDeduce);
+	else {
+		/*  Can't call TEAMREF(cacheOwnerId).AI_deduceCitySite(city()) here b/c
+			City::city() calls CvPlot::getPlotCity, which requires the city owner
+			(CvPlayer object) to be initialized. At this point, only the civs
+			up to cacheOwnerId are initialized.
+			canDeduce gets set properly on the next WarAndPeaceCache::update. */
+		CvPlot* cityPlot = GC.getMapINLINE().plotByIndexINLINE(plotIndex);
+		if(cityPlot == NULL)
+			canDeduce = false;
+		else canDeduce = cityPlot->isRevealed(TEAMID(cacheOwnerId), false);
+	}
 }
 
 CvCity* WarAndPeaceCache::City::cityById(int id) {
@@ -1519,7 +1556,7 @@ bool WarAndPeaceCache::City::measureDistance(DomainTypes dom, CvPlot* start,
 		// The transports move onto a water tile adjacent to the coastal tile
 		int destx = dest->getX_INLINE();
 		int desty = dest->getY_INLINE();
-		int shortestStepDist = MAX_INT;
+		int shortestStepDist = INT_MAX;
 		for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
 			CvPlot* adj = ::plotDirection(destx, desty, (DirectionTypes)i);
 			if(adj != NULL && adj->isWater()) {
@@ -1629,6 +1666,15 @@ void WarAndPeaceCache::City::updateAssetScore() {
 		// <advc.035>
 		if(GC.getOWN_EXCLUSIVE_RADIUS() > 0 && cultureModifier < 1)
 			cultureModifier = (2 * cultureModifier + 1) / 3; // </advc.035>
+		// <advc.099b>
+		/*  Don't check if it's actually in the exclusive radius; might be too
+			slow. Instead, only increase cultureModifier for tiles in the
+			inner ring, and increase it based on the weight for the outer ring. */
+		if(::plotDistance(pp, c.plot()) == 1) {
+			double exclMult = 1 + 0.5 * GET_PLAYER(cityOwnerId).
+					exclusiveRadiusWeight(2);
+			cultureModifier = std::min(1.0, cultureModifier * exclMult);
+		} // </advc.099b>
 		r += baseTileScore * cultureModifier;
 	}
 	double inflationMultiplier = 1 + cacheOwner.calculateInflationRate() / 100.0;

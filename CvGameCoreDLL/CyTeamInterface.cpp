@@ -71,6 +71,10 @@ void CyTeamPythonInterface()
 		.def("getName", &CyTeam::getName, "str ()")
 
 		.def("getNumMembers", &CyTeam::getNumMembers, "int (); # of people on team")
+		// <advc.155>
+		.def("getAliveCount", &CyTeam::getAliveCount, "int ()")
+		.def("getMasterTeam", &CyTeam::getMasterTeam, "int ()")
+		// </advc.155>
 		.def("isAlive", &CyTeam::isAlive, "bool ()")
 		.def("isEverAlive", &CyTeam::isEverAlive, "bool ()")
 		.def("getNumCities", &CyTeam::getNumCities, "int (); # of cities controlled by team")
@@ -157,7 +161,7 @@ void CyTeamPythonInterface()
 		.def("setVassal", &CyTeam::setVassal, "void (TeamTypes, bool)")
 		.def("assignVassal", &CyTeam::assignVassal, "void (TeamTypes, bool)")
 		.def("freeVassal", &CyTeam::freeVassal, "void (TeamTypes)")
-		// advc.130v
+		// advc.130v:
 		.def("isCapitulated", &CyTeam::isCapitulated, "bool ()")
 		.def("isDefensivePact", &CyTeam::isDefensivePact, "bool (TeamTypes)")
 		.def("getRouteChange", &CyTeam::getRouteChange,	"int (RouteType) - Route Change caused by RouteType")

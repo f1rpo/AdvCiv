@@ -771,7 +771,6 @@ class MapConstants:
 		# Values set through trial and error, aiming at around 18% land at high sea level, 24% at medium sea level and 30% at low sea level. This is higher than Fractal, which has about 15/20/29, but the land shapes produced by PM look too delicate with the Fractal ratios. I think PM also produces more marginal or unusable land than Fractal. Ultimately, the goal is to support exactly the same number of players as Fractal for all combinations of map settings.
 		delta = 0.0
 		if worldSz == 0:
-			# This produces playable maps only sometimes; the script doesn't really support Duel size.
 			delta = 0.45
 		elif worldSz == 1:
 			delta = 0.03

@@ -404,6 +404,8 @@ void CyInfoPythonInterface1()
 		.def("getGoldPerUnit", &CvCivicInfo::getGoldPerUnit, "int ()")
 		.def("getGoldPerMilitaryUnit", &CvCivicInfo::getGoldPerMilitaryUnit, "int ()")
 		.def("getHappyPerMilitaryUnit", &CvCivicInfo::getHappyPerMilitaryUnit, "int ()")
+		// advc.912c:
+		.def("getLuxuryModifier", &CvCivicInfo::getLuxuryModifier, "int ()")
 		.def("getLargestCityHappiness", &CvCivicInfo::getLargestCityHappiness, "int ()")
 		.def("getWarWearinessModifier", &CvCivicInfo::getWarWearinessModifier, "int ()")
 		.def("getFreeSpecialist", &CvCivicInfo::getFreeSpecialist, "int ()")

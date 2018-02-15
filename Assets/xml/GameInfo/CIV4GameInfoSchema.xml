@@ -651,6 +651,8 @@
 	<ElementType name="iGoldPerUnit" content="textOnly" dt:type="int"/>
 	<ElementType name="iGoldPerMilitaryUnit" content="textOnly" dt:type="int"/>
 	<ElementType name="iHappyPerMilitaryUnit" content="textOnly" dt:type="int"/>
+	<!-- advc.912c -->
+	<ElementType name="iLuxuryModifier" content="textOnly" dt:type="int"/>
 	<ElementType name="bMilitaryFoodProduction" content="textOnly" dt:type="boolean"/>
 	<ElementType name="iMaxConscript" content="textOnly" dt:type="int"/>
 	<ElementType name="iUnhealthyPopulationModifier" content="textOnly" dt:type="int"/>
@@ -786,6 +788,8 @@
 		<element type="iGoldPerUnit"/>
 		<element type="iGoldPerMilitaryUnit"/>
 		<element type="iHappyPerMilitaryUnit"/>
+		<!-- advc.912c -->
+		<element type="iLuxuryModifier"/>
 		<element type="bMilitaryFoodProduction"/>
 		<element type="iMaxConscript"/>
 		<element type="iUnhealthyPopulationModifier"/>

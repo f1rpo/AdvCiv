@@ -41,7 +41,7 @@ using std::vector;
 
 int roundToMultiple(double d, int modulus) {
 
-	int r = round(d + 0.5 * modulus);
+	int r = (int)(d + 0.5 * modulus);
 	return r - r % modulus;
 }
 

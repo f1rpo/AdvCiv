@@ -477,7 +477,7 @@ bool WarAndPeaceAI::Team::reviewPlan(TeamTypes targetId, int u, int prepTime) {
 			CvMap const& m = GC.getMapINLINE();
 			// 12 turns for a Standard-size map, 9 on Small
 			int timeout = std::max(m.getGridWidth(), m.getGridHeight()) / 7;
-			// Checking missions is a bit costly, don't do it if timeout isn't near
+			// Checking missions is a bit costly, don't do it if timeout isn't near.
 			if(wpAge > timeout) {
 				// Akin to code in CvTeamAI::AI_endWarVal
 				for(size_t i = 0; i < members.size(); i++) {
@@ -858,6 +858,9 @@ bool WarAndPeaceAI::Team::considerSwitchTarget(TeamTypes targetId, int u,
 	WarPlanTypes wp = agent.AI_getWarPlan(targetId);
 	TeamTypes bestAltTargetId = NO_TEAM;
 	int bestUtility = 0;
+	bool qualms = (GC.getLeaderHeadInfo(GET_PLAYER(agent.getLeaderID()).
+			getPersonalityType()).getNoWarAttitudeProb(
+			agent.AI_getAttitude(targetId)) >= 100);
 	for(size_t i = 0; i < getWPAI._properTeams.size(); i++) {
 		TeamTypes altTargetId = getWPAI._properTeams[i];
 		if(!canSchemeAgainst(altTargetId) ||
@@ -867,7 +870,7 @@ bool WarAndPeaceAI::Team::considerSwitchTarget(TeamTypes targetId, int u,
 		WarEvalParameters params(agentId, altTargetId, silentReport);
 		WarEvaluator eval(params);
 		int uSwitch = eval.evaluate(wp, timeRemaining);
-		if(uSwitch > std::max(bestUtility, u)) {
+		if(uSwitch > std::max(bestUtility, u) || (qualms && uSwitch > 0)) {
 			bestAltTargetId = altTargetId;
 			bestUtility = uSwitch;
 		}
@@ -877,8 +880,11 @@ bool WarAndPeaceAI::Team::considerSwitchTarget(TeamTypes targetId, int u,
 		return true;
 	}
 	double padding = 0;
-	if(u < 20) padding += 20 - u;
+	if(std::min(u, bestUtility) < 20)
+		padding += 20 - std::min(u, bestUtility);
 	double pr = 0.75 * (1 - (u + padding) / (bestUtility + padding));
+	if(qualms)
+		pr += 1.8;
 	report->log("Switching target for war preparations to %s (u=%d) with pr=%d percent",
 			report->teamName(bestAltTargetId), bestUtility, ::round(100 * pr));
 	if(!::bernoulliSuccess(pr)) {
@@ -1086,6 +1092,9 @@ void WarAndPeaceAI::Team::scheme() {
 		}
 	}
 	vector<TargetData> targets;
+	double totalDrive = 0;
+	CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(GET_PLAYER(agent.getLeaderID()).
+			getPersonalityType());
 	for(size_t i = 0; i < getWPAI._properTeams.size(); i++) {
 		TeamTypes targetId = getWPAI._properTeams[i];
 		if(!canSchemeAgainst(targetId))
@@ -1132,8 +1141,6 @@ void WarAndPeaceAI::Team::scheme() {
 		if(u <= 0)
 			continue;
 		double drive = u;
-		CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(GET_PLAYER(agent.getLeaderID()).
-				getPersonalityType());
 		/*  WarRand of e.g. Alexander and Montezuma 50 for total war, else 40;
 			Gandhi and Mansa Musa 400 for total, else 200.
 			I.e. peaceful leaders hesitate longer before starting war preparations;
@@ -1151,6 +1158,7 @@ void WarAndPeaceAI::Team::scheme() {
 				(GC.getDefineINT("PEACE_TREATY_LENGTH") + 1.0);
 		drive *= std::pow(1 - peacePortionRemaining, 1.5);
 		targets.push_back(TargetData(drive, targetId, total, u));
+		totalDrive += drive;
 	}
 	// Descending by drive
 	std::sort(targets.begin(), targets.end());
@@ -1158,6 +1166,12 @@ void WarAndPeaceAI::Team::scheme() {
 	for(size_t i = 0; i < targets.size(); i++) {
 		TeamTypes targetId = targets[i].id;
 		double drive = targets[i].drive;
+		// Conscientious hesitation
+		if(lh.getNoWarAttitudeProb(agent.AI_getAttitude(targetId)) >= 100) {
+			drive -= totalDrive / 2;
+			if(drive <= 0)
+				continue;
+		}
 		WarPlanTypes wp = (targets[i].total ? WARPLAN_PREPARING_TOTAL :
 				WARPLAN_PREPARING_LIMITED);
 		report->log("Drive for war preparations against %s: %d percent",
@@ -1171,7 +1185,7 @@ void WarAndPeaceAI::Team::scheme() {
 			break; // Prepare only one war at a time
 		}
 		report->log("No preparations begun this turn");
-		if(GET_TEAM(targetId).isHuman() && targets[i].u <= 25) {
+		if(GET_TEAM(targetId).isHuman() && targets[i].u <= 23) {
 			PlayerTypes theirLeaderId = GET_TEAM(targetId).getLeaderID();
 			if(GET_PLAYER(agent.getLeaderID()).canContactAndTalk(theirLeaderId)) {
 				report->log("Trying to amend tensions with human %s",
@@ -2181,8 +2195,9 @@ double WarAndPeaceAI::Civ::tradeValUtilityConversionRate() const {
 			getTrainPercent();
 	if(trainPercent > 0)
 		speedFactor = 100.0 / trainPercent;
-	return (3 * speedFactor) / (std::max(10.0, estimateYieldRate(YIELD_COMMERCE))
-			+ 2 * std::max(1.0, estimateYieldRate(YIELD_PRODUCTION)));
+	CvPlayer const& we = GET_PLAYER(weId);
+	return (3 * speedFactor) / (std::max(10.0, we.estimateYieldRate(YIELD_COMMERCE))
+			+ 2 * std::max(1.0, we.estimateYieldRate(YIELD_PRODUCTION)));
 	/*  Note that change advc.004s excludes espionage and culture from the
 		Economy history, and estimateYieldRate(YIELD_COMMERCE) doesn't account
 		for these yields either. Not a problem for culture, I think, which is
@@ -2333,43 +2348,6 @@ double WarAndPeaceAI::Civ::humanBuildUnitProb() const {
 			human.getCurrentEra() <= 2)
 		r += 0.05;
 	return r;
-}
-
-// Inspired by CvTeamAI::AI_estimateTotalYieldRate.
-double WarAndPeaceAI::Civ::estimateYieldRate(YieldTypes yield, int nSamples) const {
-
-	CvPlayerAI& we = GET_PLAYER(weId);
-	CvGame& g = GC.getGameINLINE();
-	int turnNumber = g.getGameTurn();
-	int turnsPlayed = turnNumber - g.getStartTurn();
-	nSamples = std::min(nSamples, turnsPlayed - 1);
-	vector<double> samples; // ::median works with double
-	/* When anarchy lasts several turns, the sample may not contain a single
-	   non-revolution turn. In this case, increase the sample size gradually. */
-	while(samples.empty() && nSamples < turnsPlayed) {
-		for(int i = 1; i <= nSamples; i++) {
-			int sampleIndex = turnNumber - i;
-			int h = 0;
-			switch(yield) {
-			case YIELD_COMMERCE:
-				h = we.getEconomyHistory(sampleIndex);
-				break;
-			case YIELD_PRODUCTION:
-				h = we.getIndustryHistory(sampleIndex);
-				break;
-			case YIELD_FOOD:
-				h = we.getAgricultureHistory(sampleIndex);
-				break;
-			default: FAssert(false);
-			}
-			if(h > 0) // Omit revolution turns
-				samples.push_back(h);
-		}
-		nSamples++;
-	}
-	if(samples.empty())
-		return 0;
-	return ::median(samples);
 }
 
 /*  Doesn't currently use any members of this object, but perhaps it will in the

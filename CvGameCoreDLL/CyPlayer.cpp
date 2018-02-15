@@ -2336,8 +2336,17 @@ void  CyPlayer::forcePeace(int iPlayer)
 		m_pPlayer->forcePeace((PlayerTypes)iPlayer);
 }
 
+// <advc.038>
+int CyPlayer::estimateYieldRate(YieldTypes yield) const {
+
+	if(m_pPlayer == NULL)
+		return -1;
+	return ::round(m_pPlayer->estimateYieldRate(yield));
+} // </advc.038>
+
 // <advc.210>
 void CyPlayer::checkAlert(int alertId, bool silent) {
 
-	m_pPlayer->checkAlert(alertId, silent);
+	if(m_pPlayer != NULL)
+		m_pPlayer->checkAlert(alertId, silent);
 } // </advc.210>

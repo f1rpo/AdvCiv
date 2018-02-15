@@ -178,12 +178,15 @@
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 	
-	<!-- [advc.102]
-		 0 or less (recommended) disables the "Top Civs" pop-up ("... has
-		 completed his greatest work: The [e.g.] wealthiest civilizations"). -->
+	<!-- [advc.038]
+		 The "Top Civs" pop-up ("... has completed his greatest work: The
+		 [e.g.] wealthiest civilizations") appears every TOP_CIVS_INTERVAL
+		 turns, though not before turn 75 (hardcoded). The interval gets
+		 adjusted to the game speed setting. Set to e.g. 10000 to disable
+		 the popup. Recommended: 40. BtS: 50. -->
 	<Define>
-		<DefineName>SHOW_TOP_CIVS</DefineName>
-		<iDefineIntVal>0</iDefineIntVal>
+		<DefineName>TOP_CIVS_INTERVAL</DefineName>
+		<iDefineIntVal>40</iDefineIntVal>
 	</Define>
 
     <!-- [advc.107]
@@ -337,12 +340,13 @@
 	
 	<!-- [advc.002a]
 		 Determines the color of cultural borders of water tiles on the
-		 minimap. 5 (recommended; or any other value except 3 and 4) means
+		 minimap. 5 (or any other value except 3 and 4) means
 		 that the tile is colored at 50% opactiy. 4 is the BtS behavior:
-		 full color. 3 leaves the tiles uncolored (as in Civ 3). -->
+		 full color. 3 leaves the tiles uncolored (as in Civ 3).
+		 6 (recommended) is like 5 but doesn't show units on the minimap. -->
     <Define>
         <DefineName>MINIMAP_WATER_MODE</DefineName>
-        <iDefineIntVal>5</iDefineIntVal>
+        <iDefineIntVal>6</iDefineIntVal>
     </Define>
 
 	<!-- [advc.004f]
@@ -365,10 +369,11 @@
 	</Define>
 
 	<!-- [advc.004m]
-		 Original value es 42.0, recommended: 35.0. The BUG field-of-view
+		 Original value is 42.0, recommended: 35.0. The BUG field-of-view
 		 slider overwrites this if "Remember Field of View" is checked in the
 		 BUG menu. The value entered here is auto-adjusted to the screen
-		 resolution in CvMainInterface.py. -->
+		 resolution in CvMainInterface.py. Misc\Civ4DetailManager.xml also
+		 affects the cmaera distance and angle. -->
 	<Define>
 		<DefineName>FIELD_OF_VIEW</DefineName>
 		<fDefineFloatVal>35.0</fDefineFloatVal>
@@ -413,6 +418,14 @@
 	<Define>
 		<DefineName>STOP_RELIGION_SPREAD_ANNOUNCE_ERA</DefineName>
 		<iDefineIntVal>4</iDefineIntVal>
+	</Define>
+
+	<!-- advc.106e: 0 (recommended) means that there is no announcement to
+		 other civs when a civ's state religion spreads in one of that civ's
+		 cities. Set to 1 to receive such announcements. -->
+	<Define>
+		<DefineName>ANNOUNCE_STATE_RELIGION_SPREAD</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 	
 	<!-- [advc.099]
@@ -483,13 +496,23 @@
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 
-		<!-- [advc.099]
+	<!-- [advc.099b]
 	     Each round, the tile culture value of each player (civ and barbarian)
 		 is decreased by this permillage. 0 to disable decay.
+		 (Will also have to set EXCLUSIVE_RADIUS_DECAY=0 to disable decay in
+		 foreign city radi.)
 		 Recommended: 10 (1% decay). -->
 	<Define>
 		<DefineName>TILE_CULTURE_DECAY_PER_MILL</DefineName>
 		<iDefineIntVal>10</iDefineIntVal>
+	</Define>
+	<!-- Per-mill decay rate of foreign culture on tiles that are only within
+		 the city radius of the city owner. The value gets doubled for tiles in
+		 the inner radius. Set to 0 to have foreign culture decay normally.
+		Recommended: 25 -->
+	<Define>
+		<DefineName>EXCLUSIVE_RADIUS_DECAY</DefineName>
+		<iDefineIntVal>25</iDefineIntVal>
 	</Define>
 	
 	<!-- [advc.300]
@@ -850,12 +873,21 @@
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 
-	<!-- [advc.035] If set to 1 (recommended), tiles that are only within the
+	<!-- [advc.035] If set to 1, tiles that are only within the
 		 radius of one city belong to the owner of that city regardless of
-		 culture. Set to 0 for BtS behavior (ownership determined only by
-		 culture range and tile culture). -->
+		 culture. Recommended: 0 (ownership determined only by
+		 culture range and tile culture as in BtS). Rather set
+		 EXCLUSIVE_RADIUS_DECAY -->
 	<Define>
 		<DefineName>OWN_EXCLUSIVE_RADIUS</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+
+	<!-- [advc.039] If set to 1 (recommended), reparations made for peace are
+		 announced to third parties. 0 for BtS behavior (only e.g "Gandhi has
+		 made peace with Alexander" is announced). -->
+	<Define>
+		<DefineName>ANNOUNCE_REPARATIONS</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 

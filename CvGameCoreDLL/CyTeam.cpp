@@ -259,6 +259,16 @@ int CyTeam::getNumMembers()
 {
 	return m_pTeam ? m_pTeam->getNumMembers() : -1;
 }
+// <advc.155>
+int CyTeam::getAliveCount()
+{
+	return m_pTeam ? m_pTeam->getAliveCount() : -1;
+}
+
+int CyTeam::getMasterTeam()
+{
+	return m_pTeam ? m_pTeam->getMasterTeam() : -1;
+} // </advc.155>
 
 bool CyTeam::isAlive()
 {

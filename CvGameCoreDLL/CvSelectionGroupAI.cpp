@@ -254,7 +254,7 @@ bool CvSelectionGroupAI::AI_update()
 
 	if (!bDead)
 	{
-		// K-Mod. this is how we deal with force update when some group memebers can't move.
+		// K-Mod. this is how we deal with force update when some group members can't move.
 		if (isForceUpdate())
 		{
 			setForceUpdate(false);
@@ -266,7 +266,7 @@ bool CvSelectionGroupAI::AI_update()
 		{
 			bool bFollow = false;
 
-			// if we not group attacking, then check for follow action
+			// if we're not group attacking, then check for follow action
 			if (!AI_isGroupAttack())
 			{
 				CLLNode<IDInfo>* pEntityNode = headUnitNode();
@@ -274,16 +274,14 @@ bool CvSelectionGroupAI::AI_update()
 				bool bFirst = true;
 
 				while ((pEntityNode != NULL) && readyToMove(true))
-				{
+				{	// <advc.001> (This will be fixed properly in K-Mod 1.46)
+					if(pEntityNode->m_data.eOwner != m_eOwner) {
+						FAssert(false); break; } // </advc.001>
 					CvUnit* pLoopUnit = ::getUnit(pEntityNode->m_data);
-					/*  advc.001: Got a crash here once that I couldn't
-						reproduce after reloading. Assertion added.
-						Update: Got the crash again, but assertions weren't
-						enabled. The call came from AI_unitUpdate. The continue
-						statement below doesn't seem to have helped. */
-					FAssert(pLoopUnit != NULL);
+					// <advc.001>
+					if(pLoopUnit == NULL) {
+						FAssert(false); break; } // </advc.001>
 					pEntityNode = nextUnitNode(pEntityNode);
-					if(pLoopUnit == NULL) continue; // advc.001
 					if (bFirst)
 						path_finder.Reset();
 

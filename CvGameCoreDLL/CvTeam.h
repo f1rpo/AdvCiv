@@ -56,7 +56,8 @@ public:
 	DllExport void makePeace(TeamTypes eTeam, bool bBumpUnits = true);																		// Exposed to Python
 	// advc.100b To avoid changing the signature of the function above:
 	void makePeaceBulk(TeamTypes eTeam, bool bBumpUnits = true, TeamTypes broker = NO_TEAM,
-			bool bCapitulate = false); // advc.034
+			bool bCapitulate = false, // advc.034
+			CLinkList<TradeData>* reparations = NULL); // advc.039
 	//bool canContact(TeamTypes eTeam) const; // Exposed to Python
 	bool canContact(TeamTypes eTeam, bool bCheckWillingness = false) const; // K-Mod, Exposed to Python
 	void meet(TeamTypes eTeam, bool bNewDiplo);																		// Exposed to Python
@@ -155,7 +156,7 @@ public:
 	DllExport int getNumMembers() const;																								// Exposed to Python
 	void changeNumMembers(int iChange);
 
-	DllExport int getAliveCount() const;
+	DllExport int getAliveCount() const; // advc.155: Exposed to Python
 	DllExport int isAlive() const;																											// Exposed to Python
 	void changeAliveCount(int iChange);
 
@@ -292,7 +293,7 @@ public:
 	int turnsOfForcedPeaceRemaining(TeamTypes tId) const;
 	bool isVassal(TeamTypes eIndex) const;																// Exposed to Python
 	void setVassal(TeamTypes eIndex, bool bNewValue, bool bCapitulated);
-
+	// advc.155: Exposed to Python
 	TeamTypes getMasterTeam() const; // K-Mod
 
 	void assignVassal(TeamTypes eVassal, bool bSurrender) const;																// Exposed to Python
@@ -549,6 +550,9 @@ protected:
 	void cancelDefensivePacts();
 	void allowDefensivePactsToBeCanceled(); // dlph.3
 	void makeUnwillingToTalk(TeamTypes otherId); // advc.104i
+	// <advc.039>
+	CvWString const tradeItemString(TradeableItems itemType, int data,
+			TeamTypes fromId) const; // </advc.039>
 	void announceTechToPlayers(TechTypes eIndex, bool bPartial = false);
 
 	virtual void read(FDataStreamBase* pStream);

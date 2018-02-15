@@ -665,8 +665,8 @@ void CvCityAI::AI_chooseProduction()
 	int iWarSuccessRating = GET_TEAM(getTeam()).AI_getWarSuccessRating();
 	int iEnemyPowerPerc = GET_TEAM(getTeam()).AI_getEnemyPowerPercent(true);
 	// <cdtw> (Comment from Dave_uk:)
-	/*  if we are the weaker part of a team, and have a land war in our primary area,
-		increase enemy power percent so we aren't overconfident due to a
+	/*  if we are the weaker part of a team, and have a land war in our primary
+		area, increase enemy power percent so we aren't overconfident due to a
 		powerful team-mate who may not actually be that much help */
 	if (bLandWar && bPrimaryArea && !GET_TEAM(getTeam()).isAVassal() &&
 			GET_TEAM(getTeam()).getNumMembers() > 1) {

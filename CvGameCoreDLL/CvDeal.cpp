@@ -197,10 +197,27 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 		// K-Mod. Bump units only after all trades are completed, because some deals (such as city gifts) may affect which units get bumped.
 		// (originally, units were bumped automatically while executing the peace deal trades)
 		// Note: the original code didn't bump units for vassal trades. This is can erroneously allow the vassal's units to stay in the master's land.
+		// <advc.039>
+		bool bSurrender = isVassalTrade(pFirstList) || isVassalTrade(pSecondList);
+		if(!bSurrender && pFirstList != NULL && pSecondList != NULL &&
+				GC.getDefineINT("ANNOUNCE_REPARATIONS") > 0) {
+			int l1 = pFirstList->getLength();
+			int l2 = pSecondList->getLength();
+			// Call makePeaceBulk on the recipient of reparations
+			if(l1 == 1 && l2 > 1) {
+				GET_TEAM(eFirstTeam).makePeaceBulk(eSecondTeam, false, NO_TEAM,
+						false, pSecondList);
+			}
+			else if(l2 == 1 && l1 > 1) {
+				GET_TEAM(eSecondTeam).makePeaceBulk(eFirstTeam, false, NO_TEAM,
+						false, pFirstList);
+			}
+		}
+		else // </advc.039>
 		// <advc.034>
-		GET_TEAM(eFirstTeam).makePeaceBulk(eSecondTeam, false, NO_TEAM,
-				isVassalTrade(pFirstList) || isVassalTrade(pSecondList));
-				// </advc.034>
+			GET_TEAM(eFirstTeam).makePeaceBulk(eSecondTeam, false, NO_TEAM,
+					bSurrender); // advc.039
+		// </advc.034>
 		bBumpUnits = true;
 		// K-Mod end
 	}
@@ -279,7 +296,7 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 		for (CLLNode<TradeData>* pNode = pFirstList->head(); pNode; pNode = pFirstList->next(pNode))
 		{
 			// <advc.104> Allow UWAI to record the value of the sponsorship
-			if(pNode->m_data.m_eItemType == TRADE_WAR)
+			if(pNode->m_data.m_eItemType == TRADE_WAR && pSecondList != NULL)
 				GET_PLAYER(getFirstPlayer()).warAndPeaceAI().getCache().
 						reportSponsoredWar(*pSecondList, getSecondPlayer(),
 						(TeamTypes)pNode->m_data.m_iData); // </advc.104>
@@ -308,7 +325,7 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 		for (CLLNode<TradeData>* pNode = pSecondList->head(); pNode; pNode = pSecondList->next(pNode))
 		{
 			//  <advc.104> As above
-			if(pNode->m_data.m_eItemType == TRADE_WAR)
+			if(pNode->m_data.m_eItemType == TRADE_WAR && pFirstList != NULL)
 				GET_PLAYER(getSecondPlayer()).warAndPeaceAI().getCache().
 						reportSponsoredWar(*pFirstList, getFirstPlayer(),
 						(TeamTypes)pNode->m_data.m_iData); // </advc.104>
@@ -792,17 +809,22 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 	switch (trade.m_eItemType)
 	{
 	case TRADE_TECHNOLOGIES:
-	{
+	{	// advc.003: TEAMREF macro applied in this case block
 		// K-Mod only adjust tech_from_any memory if this is a tech from a recent era
 		// and the team receiving the tech isn't already more than 2/3 of the way through.
 		// (This is to prevent the AI from being crippled by human players selling them lots of tech scraps.)
 		// Note: the current game era is the average of all the player eras, rounded down. (It no longer includes barbs.)
 		bool bSignificantTech =
-			GC.getTechInfo((TechTypes)trade.m_iData).getEra() >= GC.getGame().getCurrentEra()-1 &&
-			GET_TEAM(GET_PLAYER(eToPlayer).getTeam()).getResearchLeft((TechTypes)trade.m_iData) > GET_TEAM(GET_PLAYER(eToPlayer).getTeam()).getResearchCost((TechTypes)trade.m_iData) / 3;
+				GC.getTechInfo((TechTypes)trade.m_iData).getEra() >=
+				// advc.550e: Replacing the line below
+				GET_PLAYER(eToPlayer).getCurrentEra() &&
+				// GC.getGame().getCurrentEra()-1 &&
+				TEAMREF(eToPlayer).getResearchLeft((TechTypes)trade.m_iData) >
+				TEAMREF(eToPlayer).getResearchCost((TechTypes)trade.m_iData) / 3;
 		// K-Mod end
-		GET_TEAM(GET_PLAYER(eToPlayer).getTeam()).setHasTech(((TechTypes)trade.m_iData), true, eToPlayer, true, true);
-		GET_TEAM(GET_PLAYER(eToPlayer).getTeam()).setNoTradeTech(((TechTypes)trade.m_iData), true);
+		TEAMREF(eToPlayer).setHasTech(((TechTypes)trade.m_iData), true, eToPlayer, true, true);
+		if(bSignificantTech) // advc.550e
+			TEAMREF(eToPlayer).setNoTradeTech(((TechTypes)trade.m_iData), true);
 
 		if( gTeamLogLevel >= 2 )
 		{
@@ -810,20 +832,20 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 		}
 
 		for (iI = 0; iI < MAX_PLAYERS; iI++)
-		{
-			if (GET_PLAYER((PlayerTypes)iI).isAlive())
+		{	// <advc.003>
+			if(!GET_PLAYER((PlayerTypes)iI).isAlive() ||
+					!bSignificantTech) // advc.550e
+				continue; // </advc.003>
+			if (GET_PLAYER((PlayerTypes)iI).getTeam() == GET_PLAYER(eToPlayer).getTeam())
+			{   // advc.130j:
+				GET_PLAYER((PlayerTypes)iI).AI_rememberEvent(eFromPlayer, MEMORY_TRADED_TECH_TO_US);
+			}
+			else // advc.550e: Commented out
+			//if (bSignificantTech) // K-Mod
 			{
-				if (GET_PLAYER((PlayerTypes)iI).getTeam() == GET_PLAYER(eToPlayer).getTeam())
+				if (GET_TEAM(GET_PLAYER((PlayerTypes)iI).getTeam()).isHasMet(GET_PLAYER(eToPlayer).getTeam()))
 				{   // advc.130j:
-					GET_PLAYER((PlayerTypes)iI).AI_rememberEvent(eFromPlayer, MEMORY_TRADED_TECH_TO_US);
-				}
-				//else
-				else if (bSignificantTech) // K-Mod
-				{
-					if (GET_TEAM(GET_PLAYER((PlayerTypes)iI).getTeam()).isHasMet(GET_PLAYER(eToPlayer).getTeam()))
-					{   // advc.130j:
-						GET_PLAYER((PlayerTypes)iI).AI_rememberEvent(eToPlayer, MEMORY_RECEIVED_TECH_FROM_ANY);
-					}
+					GET_PLAYER((PlayerTypes)iI).AI_rememberEvent(eToPlayer, MEMORY_RECEIVED_TECH_FROM_ANY);
 				}
 			}
 		}

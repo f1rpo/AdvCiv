@@ -1797,7 +1797,8 @@ void CvTeam::makePeace(TeamTypes eTeam, bool bBumpUnits) {
 }
 
 void CvTeam::makePeaceBulk(TeamTypes eTeam, bool bBumpUnits, TeamTypes broker,
-		bool bCapitulate) // advc.034
+		bool bCapitulate, // advc.034
+		CLinkList<TradeData>* reparations) // advc.039
 { // </advc.100b>
 	CvWString szBuffer;
 	int iI;
@@ -1942,30 +1943,60 @@ void CvTeam::makePeaceBulk(TeamTypes eTeam, bool bBumpUnits, TeamTypes broker,
 	}
 	// K-Mod end
 	
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
-	{
-		CvPlayer const& civ = GET_PLAYER((PlayerTypes)iI); // advc.003
-		if (civ.isAlive())
-		{
-			if (civ.getTeam() == getID())
-			{
-				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_MADE_PEACE_WITH", GET_TEAM(eTeam).getName().GetCString());
-				gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_MAKEPEACE", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+	for(iI = 0; iI < MAX_PLAYERS; iI++) { // <advc.003>
+		CvPlayer const& civ = GET_PLAYER((PlayerTypes)iI);
+		if(!civ.isAlive())
+			continue; // </advc.003>
+		bool bWarTeam = false; // advc.039
+		if(civ.getTeam() == getID()) {
+			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_MADE_PEACE_WITH", GET_TEAM(eTeam).getName().GetCString());
+			gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_MAKEPEACE", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+			bWarTeam = true; // advc.039
+		}
+		else if(civ.getTeam() == eTeam) {
+			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_MADE_PEACE_WITH", getName().GetCString());
+			gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_MAKEPEACE", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+			/*  <advc.039> Show message about reparations also to non-leading
+				members of a (human) team (in addition to YOU_MADE_PEACE) */
+			bWarTeam = true;
+		}
+		//else
+		if((!bWarTeam || (reparations != NULL && civ.getID() != getLeaderID() &&
+				civ.getID() != GET_TEAM(eTeam).getLeaderID())) &&
+				// </advc.039>
+				((isHasMet(civ.getTeam()) && GET_TEAM(eTeam).isHasMet(civ.getTeam()))
+				|| civ.isSpectator())) { // advc.127
+			// <advc.039>
+			bool bReparations = false;
+			if(reparations != NULL) {
+				szBuffer = gDLL->getText("TXT_KEY_MISC_PEACE_IN_EXCHANGE",
+						getName().GetCString(), GET_TEAM(eTeam).getName().GetCString()) + L" ";
+				for(CLLNode<TradeData>* tdn = reparations->head(); tdn != NULL;
+						tdn = reparations->next(tdn)) {
+					CvWString const itemStr = tradeItemString(
+							tdn->m_data.m_eItemType, tdn->m_data.m_iData, eTeam);
+					if(itemStr.length() <= 0)
+						continue;
+					bReparations = true;
+					szBuffer += itemStr;
+					if(reparations->next(tdn) != NULL) {
+						if(reparations->next(reparations->next(tdn)) == NULL)
+							szBuffer += L" " + gDLL->getText("TXT_KEY_AND") + L" ";
+						else szBuffer += L", ";
+					}
+					else szBuffer += L".";
+				} // Can handle it, but I don't think it should happen:
+				FAssert(bReparations);
 			}
-			else if (civ.getTeam() == eTeam)
-			{
-				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_MADE_PEACE_WITH", getName().GetCString());
-				gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_MAKEPEACE", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+			if(!bReparations) { // </advc.039>
+				szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_MADE_PEACE",
+						getName().GetCString(), GET_TEAM(eTeam).getName().GetCString());
 			}
-			else if ((isHasMet(civ.getTeam()) && GET_TEAM(eTeam).isHasMet(civ.getTeam()))
-					|| civ.isSpectator()) // advc.127
-			{
-				szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_MADE_PEACE", getName().GetCString(), GET_TEAM(eTeam).getName().GetCString());
-				gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_THEIRMAKEPEACE", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
-			}
+			gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_THEIRMAKEPEACE", MESSAGE_TYPE_MAJOR_EVENT, NULL,
+					(bReparations ? NO_COLOR : // advc.039
+					(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT")));
 		}
 	}
-
 	szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_MADE_PEACE", getReplayName().GetCString(), GET_TEAM(eTeam).getReplayName().GetCString());
 	// <advc.100b>
 	if(broker != NO_TEAM && broker != eTeam && broker != getID())
@@ -1998,7 +2029,7 @@ void CvTeam::makePeaceBulk(TeamTypes eTeam, bool bBumpUnits, TeamTypes broker,
 
 // K-Mod. I've added bCheckWillingness.
 // note. I would have done this the same way in CvPlayer::canContact
-// but unfortunately, changing the signiture of that function causes the game to crash - because it's a dll export.
+// but unfortunately, changing the signature of that function causes the game to crash - because it's a dll export.
 bool CvTeam::canContact(TeamTypes eTeam, bool bCheckWillingness) const
 {
 	int iI, iJ;
@@ -2496,7 +2527,7 @@ int CvTeam::getHasMetCivCount(bool bIgnoreMinors) const
 				{
 					if (isHasMet((TeamTypes)iI))
 					{
-						FAssert(iI != getID());
+						//FAssert(iI != getID()); // advc.006
 						iCount++;
 					}
 				}
@@ -5883,6 +5914,64 @@ bool CvTeam::isHasTech(TechTypes eIndex) const
 	FAssertMsg(m_pabHasTech != NULL, "m_pabHasTech is not expected to be equal with NULL");
 	return m_pabHasTech[eIndex];
 }
+
+// <advc.039>
+CvWString const CvTeam::tradeItemString(TradeableItems itemType, int data,
+			TeamTypes fromId) const {
+
+	CvTeam const& from = GET_TEAM(fromId);
+	switch(itemType) {
+	case TRADE_CITIES: {
+		CvCity* c = GET_PLAYER(from.getLeaderID()).getCity(data);
+		if(c == NULL)
+			return L"";
+		return c->getName();
+	}
+	case TRADE_CIVIC: {
+		CivicTypes ct = (CivicTypes)data;
+		if(ct == NO_CIVIC)
+			return L"";
+		return gDLL->getText("TXT_KEY_MISC_ADOPTING_CIVIC",
+				GC.getCivicInfo(ct).getTextKeyWide());
+	}
+	case TRADE_RELIGION: {
+		ReligionTypes rt = (ReligionTypes)data;
+		if(rt == NO_RELIGION)
+			return L"";
+		return gDLL->getText("TXT_KEY_MISC_CONVERTING_RELIGION",
+				GC.getReligionInfo(rt).getTextKeyWide());
+	}
+	case TRADE_EMBARGO: {
+		TeamTypes targetId = (TeamTypes)data;
+		if(targetId == NO_TEAM)
+			return L"";
+		return gDLL->getText("TXT_KEY_MISC_EMBARGO_AGAINST",
+				GET_TEAM(targetId).getName().GetCString());
+	}
+	case TRADE_GOLD: {
+		if(data <= 0)
+			return L"";
+		return gDLL->getText("TXT_KEY_MISC_CASH", data);
+	}
+	case TRADE_GOLD_PER_TURN: {
+		if(data <= 0)
+			return L"";
+		return gDLL->getText("TXT_KEY_MISC_GPT", data);
+	}
+	case TRADE_MAPS: {
+		return gDLL->getText("TXT_KEY_MISC_MAPS_CIV", from.getName().GetCString());
+	}
+	case TRADE_TECHNOLOGIES: {
+		TechTypes tt = (TechTypes)data;
+		if(tt == NO_TECH)
+			return L"";
+		return CvWString::format(SETCOLR L"%s" ENDCOLR,
+				TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
+				GC.getTechInfo(tt).getDescription());
+	}
+	}
+	return L"";
+} // </advc.039>
 
 void CvTeam::announceTechToPlayers(TechTypes eIndex, bool bPartial)
 {

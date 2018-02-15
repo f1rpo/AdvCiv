@@ -3,6 +3,7 @@
 #ifndef ADVCIV4LERTS_H
 #define ADVCIV4LERTS_H
 
+#include "CvDeal.h"
 #include "CvString.h"
 
 /*  <advc.210>: I can't write this in Python, so I'm having Civ4lerts.py call
@@ -25,8 +26,8 @@ protected:
 	void msg(CvWString s, LPCSTR icon = NULL, int x = -1, int y = -1,
 			int goodOrBad = 0) const;
 	PlayerTypes ownerId;
-private:
 	bool isSilent;
+	bool isDebug;
 };
 
 // <advc.210a>
@@ -51,6 +52,21 @@ private:
 	std::set<int> revoltPossible;
 	std::set<int> occupation;
 }; // </advc.210b>
+
+// <advc.210d>
+class BonusThirdPartiesAlert : public AdvCiv4lert {
+public:
+	BonusThirdPartiesAlert();
+protected:
+	void check();
+	void reset();
+private:
+	void getExportData(CLinkList<TradeData> const* list, PlayerTypes toId,
+			std::vector<int>& r) const;
+	void doMsg(PlayerTypes fromId, int data, int newQuantity,
+			int oldQuantity);
+	std::multiset<int> exportDeals[MAX_CIV_PLAYERS];
+}; // </advc.210d>
 
 // </advc.210>
 

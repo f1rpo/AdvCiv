@@ -252,7 +252,6 @@ public:
 		bool canHurry() const;
 		double buildUnitProb() const;
 		double shipSpeed() const;
-		double estimateYieldRate(YieldTypes yield, int nSamples = 5) const;
 		/*  period: Build-up over how many turns? Will be adjusted to game speed
 			by this function! */
 		double estimateBuildUpRate(PlayerTypes civId, int period = 10) const;

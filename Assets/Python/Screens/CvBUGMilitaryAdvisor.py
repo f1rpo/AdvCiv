@@ -873,7 +873,8 @@ class CvMilitaryAdvisor:
 		screen.addPanel(szPanel_ID, u"", "", False, False, self.X_MAP, self.Y_MAP, self.W_MAP, self.H_MAP, PanelStyles.PANEL_STYLE_MAIN)
 		screen.initMinimap(self.X_MAP + self.MAP_MARGIN, self.X_MAP + self.W_MAP - self.MAP_MARGIN, self.Y_MAP + self.MAP_MARGIN, self.Y_MAP + self.H_MAP - self.MAP_MARGIN, self.Z_CONTROLS)
 		screen.updateMinimapSection(False, False)
-		screen.updateMinimapColorFromMap(MinimapModeTypes.MINIMAPMODE_TERRITORY, 0.3)
+		# advc.002a: Param was alpha=0.3
+		screen.updateMinimapColorFromMap(MinimapModeTypes.MINIMAPMODE_TERRITORY, 0.6)
 		screen.setMinimapMode(MinimapModeTypes.MINIMAPMODE_MILITARY)
 
 		self.UL_setMinimapVisibility(screen, True)

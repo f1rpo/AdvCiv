@@ -77,6 +77,9 @@ public:
 	std::wstring getName();
 
 	int getNumMembers();
+	// <advc.155>
+	int getAliveCount();
+	int getMasterTeam(); // </advc.155>
 	bool isAlive();
 	bool isEverAlive();
 	int getNumCities();

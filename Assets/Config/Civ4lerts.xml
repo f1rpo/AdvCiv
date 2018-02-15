@@ -87,13 +87,18 @@
 			<option id="WarTrade" key="War Plans" 
 					type="boolean" default="True" and="Enabled" 
 					get="isShowWarTradeAlert" set="setShowWarTradeAlert"/>
+			<!-- advc.210d -->
+			<option id="BonusThirdParties" key="Bonus Third Parties" 
+					type="boolean" default="False" and="Enabled" 
+					get="isShowBonusThirdPartiesAlert" set="setShowBonusThirdPartiesAlert"/>
 			<option id="GoldTrade" key="Gold Trade" 
 					type="boolean" default="False" and="Enabled" 
 					get="isShowGoldTradeAlert" set="setShowGoldTradeAlert" 
 					label="Gold" 
 					help="."/>
+			<!-- advc.036: Default was 50 -->
 			<list   id="GoldTradeThresh" key="Gold Trade Threshold" 
-					type="int" default="50" listType="int" 
+					type="int" default="100" listType="int" 
 					values="25, 50, 100, 200, 300, 500, 1000" 
 					get="getGoldTradeThreshold" set="setGoldTradeThreshold" 
 					label="Threshold" 
@@ -103,8 +108,9 @@
 					get="isShowGoldPerTurnTradeAlert" set="setShowGoldPerTurnTradeAlert" 
 					label="Gold Per Turn" 
 					help="."/>
+			<!-- advc.036: Default was 5 -->
 			<list   id="GoldPerTurnTradeThresh" key="Gold Per Turn Threshold" 
-					type="int" default="5" listType="int" 
+					type="int" default="10" listType="int" 
 					values="1, 2, 3, 5, 10, 15, 20, 25, 30, 50, 100" 
 					get="getGoldPerTurnTradeThreshold" set="setGoldPerTurnTradeThreshold" 
 					label="Threshold" 

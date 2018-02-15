@@ -1244,6 +1244,8 @@ void InvasionGraph::Node::applyStep(SimulationStep const& step) {
 				int nConqueredByOther = (int)losses.size() - nConqueredByAtt;
 				FAssert(nConqueredByOther >= 0);
 				if(!GET_PLAYER(id).isHuman() &&
+						// Last team member standing
+						TEAMREF(id).getAliveCount() <= 1 &&
 						/*  To decide whether to capitulate to a given team, we need
 							to know what will happen if we don't capitulate. */
 						(id != weId || TEAMID(attacker.id) !=
@@ -1315,10 +1317,19 @@ void InvasionGraph::Node::setCapitulated(TeamTypes masterId) {
 	   wars of its master, but that gets too complicated. */
 	setEliminated(true);
 	for(int i = 0; i < MAX_PLAYERS; i++) {
-		if(outer.nodeMap[i] == NULL)
+		if(outer.nodeMap[i] == NULL || i == id || outer.nodeMap[i]->isEliminated())
 			continue;
-		if(TEAMID((PlayerTypes)i) == masterId)
+		TeamTypes tId = (TeamTypes)TEAMID((PlayerTypes)i);
+		if(tId == masterId)
 			outer.nodeMap[i]->capitulationsAccepted.insert(TEAMID(id));
+		else if(tId == TEAMID(id)) {
+			bool const hasCap = outer.nodeMap[i]->hasCapitulated();
+			if(hasCap) { // Make sure not to produce a stack overflow
+				FAssert(!hasCap);
+				continue;
+			}
+			outer.nodeMap[i]->setCapitulated(masterId);
+		}
 	}
 }
 

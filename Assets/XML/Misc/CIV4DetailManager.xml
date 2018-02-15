@@ -11,18 +11,24 @@
 		<Key>700, 0.00</Key>
 		<Key>750, 1.00</Key>
 	</Fader>
-	<!-- advc.004m: Was 6000,0.00;6400,1.0. Don't know what each number means,
-		 so I've kept them at the same ratio as before. -->
+	<!-- advc.004m: Was 6000,0.00;6400,1.0. The second key appears to affect
+		 the lighting. I get dark shadows on some hills when I set both keys to
+		 the same value. -->
 	<Fader>
 		<Name>DF_SKY</Name>
-		<Key>6900, 0.00</Key>
-		<Key>7360, 1.0</Key>
+		<Key>7200, 0.00</Key>
+		<Key>7680, 1.0</Key>
 		<Key>%CAMERA_MAX_DISTANCE, 1.00</Key>
 	</Fader>
+	<!-- advc.004m: Was also 6000,0.00;6400,1.0. I'd rather set this to a lower
+		 value, which results in a more top down angle, but this causes artifacts: one zoom level getting skipped depending on whether one 
+		 zooms in or out, flickering Mine improvements when moving them camera
+		 by left-clicking a tile or even a black flash when entering globe
+		 view. In fact, 7680 for the second value also gives me that black flash. -->
 	<Fader>
 		<Name>DF_GLOBE_TERRAIN</Name>
-		<Key>6000, 0.00</Key>
-		<Key>6400, 1.00</Key>
+		<Key>7200, 0.00</Key>
+		<Key>7200, 1.00</Key>
 	</Fader>
 	<Fader>
 		<Name>DF_GLOBE_MORPH</Name>

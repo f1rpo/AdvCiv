@@ -664,7 +664,9 @@ protected:
 
 	void processArea(CvArea* pArea, int iChange);
 	void doImprovementUpgrade();
-
+	// <advc.099b>
+	void doCultureDecay();
+	int exclusiveRadius(PlayerTypes ePlayer) const; // </advc.099b>
 	ColorTypes plotMinimapColor();
 
 	// added so under cheat mode we can access protected stuff

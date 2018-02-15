@@ -235,6 +235,7 @@ public:
 		int plotIndex, assetScore, distance, targetValue;
 		bool reachByLand;
 		bool reachBySea;
+		bool canDeduce;
 		PlayerTypes cacheOwnerId;
 	};
 };

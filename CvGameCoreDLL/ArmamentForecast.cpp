@@ -25,8 +25,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 	/* The current production rate. It's probably going to increase a bit
 	   over the planning interval, but not much since the forecast doesn't
 	   reach far into the future; ignore that increase. */
-	double productionEstimate = GET_PLAYER(civId).warAndPeaceAI().
-			estimateYieldRate(YIELD_PRODUCTION);
+	double productionEstimate = GET_PLAYER(civId).estimateYieldRate(YIELD_PRODUCTION);
 	/* A very rough estimate of hurry hammers. Would be nicer to base this on
 	   the actual hurry effect, e.g., for Slavery, per-use production divided
 	   by anger duration. */
@@ -386,12 +385,27 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 			double coastRatio = revCoast / (double)rev;
 			branchPortions[FLEET] = std::min(0.08 + coastRatio / 2.8, 0.35);
 		}
-		/* As the game progresses, the production portion needed for cargo units
-		   decreases. Factoring in the typical cargo capacity also makes the code
-		   robust to XML changes to cargo capacities. */
-		if(military[LOGISTICS]->getTypicalUnit() != NULL) {
+		double typicalCargo = military[LOGISTICS]->getTypicalUnitPower(m.ourId());
+		if(typicalCargo > 0.1 && military[LOGISTICS]->getTypicalUnit() != NULL) {
 			branchPortions[LOGISTICS] = std::min(branchPortions[FLEET],
-					1.0 / military[LOGISTICS]->getTypicalUnitPower(m.ourId()));
+			/*  As the game progresses, the production portion needed for cargo
+				units decreases. Factoring in the typical cargo capacity also
+				makes the code robust against XML changes to cargo capacities. */
+					1.0 / typicalCargo);
+			if(!defensive && intensity > NORMAL)  {
+				/*  Need to assume more naval build-up if 'civ' hardly has any
+					navy; otherwise, the AI may assume that a naval assault is
+					hopeless. */
+				double mult = (::dRange(2 - military[LOGISTICS]->power() /
+						(typicalCargo * civ.getCurrentEra()), 1, 1.5) + 1) / 2;
+				branchPortions[LOGISTICS] *= mult;
+				double typicalFleetPow = military[FLEET]->getTypicalUnitPower(m.ourId());
+				if(typicalFleetPow > 0.1) {
+					mult = (::dRange(2 - military[FLEET]->power() /
+							(typicalFleetPow * civ.getCurrentEra()), 1, 1.5) + 1) / 2;
+					branchPortions[FLEET] *= mult;
+				}
+			}
 		}
 	}
 	branchPortions[ARMY] = 1 - branchPortions[HOME_GUARD] - branchPortions[FLEET] -
@@ -540,7 +554,7 @@ double ArmamentForecast::productionFromUpgrades() {
 	   or a vassal receiving tech quickly from its master.
 	   Spend at most five turns worth of income on upgrades. The subtrahend
 	   will be 0 during anarchy -- not a big problem I think. */
-	double income = civ.warAndPeaceAI().estimateYieldRate(YIELD_COMMERCE, 3) -
+	double income = civ.estimateYieldRate(YIELD_COMMERCE, 3) -
 			civ.calculateInflatedCosts();
 	double incomeBound = 5 * income;
 	if(incomeBound < r)

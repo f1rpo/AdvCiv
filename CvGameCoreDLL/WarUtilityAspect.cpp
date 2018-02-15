@@ -393,8 +393,8 @@ double WarUtilityAspect::partnerUtilFromTech() {
 	if(humanBonus > 0)
 		log("Tech trade bonus for human civs: %d", ::round(humanBonus));
 	// Use their commerce to determine potential for future tech trade
-	double commRatio = theyAI->estimateYieldRate(YIELD_COMMERCE) /
-			weAI->estimateYieldRate(YIELD_COMMERCE);
+	double commRatio = they->estimateYieldRate(YIELD_COMMERCE) /
+			we->estimateYieldRate(YIELD_COMMERCE);
 	if(commRatio > 1)
 		commRatio = 1 / commRatio;
 	double r = std::pow(commRatio, 2) * (20 + humanBonus);
@@ -567,8 +567,11 @@ void GreedForAssets::evaluate() {
 	if(conqScore < 0.01)
 		return;
 	double compMult = competitionMultiplier();
-	if(compMult != 1)
+	if(compMult < 0.99 || compMult > 1.01)
 		log("Competition multiplier: %d percent", ::round(compMult * 100));
+	double teamSzMult = teamSizeMultiplier();
+	if(teamSzMult < 0.99 || teamSzMult > 1.01)
+		log("Team size multiplier: %d percent", ::round(teamSzMult * 100));
 	double presentScore = ourCache->totalAssetScore();
 	log("Score for present assets: %d", ::round(presentScore));
 	/*  Count mundane buildings for presentScore? May build these in the
@@ -579,7 +582,8 @@ void GreedForAssets::evaluate() {
 	double defCost = defensibilityCost();
 	log("Cost modifiers: %d percent for overextension, %d for defensibility",
 			::round(100 * overextCost), ::round(100 * defCost));
-	double uPlus = baseUtility * (1 - overextCost - defCost);
+	double uPlus = compMult * teamSzMult * baseUtility *
+			(1 - overextCost - defCost);
 	// Greed shouldn't motivate peaceful leaders too much
 	if(we->AI_getPeaceWeight() >= 7) {
 		double cap = 260 - 10 * we->AI_getPeaceWeight();
@@ -601,7 +605,7 @@ double GreedForAssets::overextensionCost() {
 		Look at our current expenses: are we already overextended? */
 	// Don't mind paying 25% for city maintenance
 	double r = -0.25;
-	double ourIncome = weAI->estimateYieldRate(YIELD_COMMERCE);
+	double ourIncome = we->estimateYieldRate(YIELD_COMMERCE);
 	// Expenses excluding unit cost and supply
 	double ourMaintenance = (we->getTotalMaintenance() +
 			we->getCivicUpkeep(NULL, true)) *
@@ -741,7 +745,7 @@ double GreedForAssets::competitionMultiplier() {
 		based on just one simulation trajectory, and if they (the target) have
 		few cities, we might actually get none at all. Compute a reduction rate
 		for our GreedForAssets to account for that risk.
-		Should reduce early-game dogpiling (which can be very unfair). */
+		Should reduce early-game dogpiling. */
 	int competitors = 0;
 	for(size_t i = 0; i < properCivs.size(); i++) {
 		CvPlayer const& competitor = GET_PLAYER(properCivs[i]);
@@ -762,6 +766,17 @@ double GreedForAssets::competitionMultiplier() {
 	}
 	FAssert(theirCities > competitors); // B/c we conquer at least 1 as well
 	return std::max(0.0, 1 - competitors / (double)theirCities);
+}
+
+double GreedForAssets::teamSizeMultiplier() {
+
+	/*  To account for team-on-team warfare having a somewhat slower pace than
+		civ-on-civ, meaning that further conquests tend to happen after the
+		time horizon of the simulation. (A longer horizon could be too costly
+		computationally.) And to account for military assistance within a team
+		being a bit underestimated by InvasionGraph (which can't be helped). */
+	double teamSz = std::min(agent.getAliveCount(), TEAMREF(theyId).getAliveCount());
+	return std::min(1.43, (1 + std::sqrt(teamSz)) / 2);
 }
 
 void GreedForAssets::initCitiesPerArea() {
@@ -802,14 +817,14 @@ void GreedForVassals::evaluate() {
 	// Will need their capital later
 	if(newVassals.count(TEAMID(theyId)) == 0 || they->getCapitalCity() == NULL)
 		return;
-	double ourIncome = std::max(8.0, weAI->estimateYieldRate(YIELD_COMMERCE));
+	double ourIncome = std::max(8.0, we->estimateYieldRate(YIELD_COMMERCE));
 	double totalUtility = 0;
 	/*  Their commerce may be lower than now at the end of the war.
 		(Don't try to estimate our own post-war commerce though.) */
 	double cr = cityRatio(theyId);
 	log("Ratio of cities kept by the vassal: cr=%d percent", ::round(cr * 100));
 	// Vassal commerce to account for tech they might research for us
-	double vassalIncome = theyAI->estimateYieldRate(YIELD_COMMERCE);
+	double vassalIncome = they->estimateYieldRate(YIELD_COMMERCE);
 	double relIncome = vassalIncome * cr / ourIncome;
 	log("Rel. income of vassal %s = %d percent = cr * %d / %d",
 			report.leaderName(theyId), ::round(100 * relIncome),
@@ -1445,6 +1460,8 @@ void Assistance::evaluate() {
 		I'm adopting a bit of code in partnerUtilFromTrade. */
 	if(TEAMREF(theyId).isAVassal() || /* Don't want to end up helping a potentially
 										 dangerous master. */
+			// Their utility is added to ours in the end; don't count it here.
+			they->getTeam() == agentId ||
 			/*  These checks can make us inclined to attack a friend if it's already
 				under attack; b/c the peace scenario will have reduced utility from
 				Assistance and the war scenario won't. I guess that's OK.
@@ -1762,7 +1779,7 @@ void BorderDisputes::evaluate() {
 	if(we->isHuman() && cbac != 0)
 		diplo = ::round((-4.0 * diplo) / cbac);
 	if(m->getCapitulationsAccepted(agentId).count(TEAMID(theyId)) > 0) {
-		int uPlus = diplo * 10;
+		int uPlus = diplo * 8;
 		log("They capitulate; shared-borders diplo%s: %d",
 				(we->isHuman() ? " (human)" : ""), diplo);
 		return;
@@ -2044,8 +2061,7 @@ void KingMaking::addLeadingCivs(set<PlayerTypes>& r, double margin,
 		if(civ.getCurrentEra() >= 3 &&
 				// The late game is covered by victory stages
 				civ.getCurrentEra() <= 4 && g.getCurrentEra() <= 4) {
-			double commerceRate = civ.warAndPeaceAI().estimateYieldRate(
-					YIELD_COMMERCE);
+			double commerceRate = civ.estimateYieldRate(YIELD_COMMERCE);
 			sc += commerceRate / 2;
 		}
 		if(sc > bestScore)
@@ -2472,7 +2488,7 @@ int IllWill::preEvaluate() {
 				GET_PLAYER(properCivs[i]).AI_getAttitude(weId) <= ATTITUDE_ANNOYED))
 			hostiles++;
 	int partners = numKnownRivals - hostiles;
-	altPartnerFactor = std::sqrt(1.0 / std::max(1, partners - 4));
+	altPartnerFactor = std::sqrt(1.0 / std::max(1, partners - 3));
 	return 0;
 }
 
@@ -2640,6 +2656,7 @@ void IllWill::evalAngeredPartners() {
 
 	if(they->isHuman() || m->isWar(weId, theyId) ||
 			valTowardsUs > 12 || // Nothing can alienate them
+			they->getTeam() == agentId ||
 			towardsThem <= ATTITUDE_FURIOUS) // We don't mind angering them
 		return;
 	// 2 only for Gandhi; else 1
@@ -2648,23 +2665,28 @@ void IllWill::evalAngeredPartners() {
 	int penalties = 0;
 	for(set<PlayerTypes>::const_iterator it = m->getWarsDeclaredBy(weId).begin();
 			it != m->getWarsDeclaredBy(weId).end(); it++) {
-		if(TEAMREF(*it).isAVassal()) continue;
-		FAssert(*it != theyId); // Ruled out upfront
+		if(TEAMREF(*it).isAVassal() || they->getTeam() == TEAMID(*it))
+			continue;
 		if(they->AI_getAttitude(*it) >= ATTITUDE_PLEASED) {
 			log("-%d relations with %s for DoW on %s", penaltyPerDoW,
 					report.leaderName(theyId), report.leaderName(*it));
 			penalties += penaltyPerDoW;
 		}
 	}
-	if(penalties <= 0) return;
+	if(penalties <= 0)
+		return;
 	double costPerPenalty = (partnerUtilFromTrade() + partnerUtilFromTech() +
 			partnerUtilFromMilitary() + (agent.isOpenBorders(TEAMID(theyId)) ?
 			partnerUtilFromOB : 0)) /
 			/*  We lose only a little bit of goodwill, but we're also exposing
 				ourselves to a dogpile war. Menace handles that, but doesn't factor
 				in the diplo penalties from our DoW. */
-			(they->AI_getAttitudeFromValue(valTowardsUs - penalties) <=
-			ATTITUDE_CAUTIOUS ? 3.5 : 5);
+			((they->AI_getAttitudeFromValue(valTowardsUs - penalties) <=
+			ATTITUDE_CAUTIOUS ? 3.5 : 5) *
+			/*  Don't worry quite as much about diplo in team games. AI DoW
+				aren't as dynamic, and sufficient for tech trading if some
+				team members get along. */
+			std::sqrt((double)agent.getNumMembers()));
 	log("Cost per -1 relations: %d", ::round(costPerPenalty));
 	/*  costPerPenalty already adjusted to game progress, but want to dilute
 		the impact of leader personality in addition to that. diploWeight is
@@ -3098,7 +3120,7 @@ void FairPlay::evaluate() {
 	int theirRank = g.getPlayerRank(theyId);
 	for(size_t i = 0; i < properCivs.size(); i++) {
 		CvPlayerAI const& other = GET_PLAYER(properCivs[i]);
-		if(other.getID() == weId || other.getID() == theyId || other.isAVassal())
+		if(other.getTeam() == agentId || other.getID() == theyId || other.isAVassal())
 			continue;
 		potentialOtherEnemies++;
 		bool immediateWar = (TEAMREF(theyId).isAtWar(other.getTeam()) ||

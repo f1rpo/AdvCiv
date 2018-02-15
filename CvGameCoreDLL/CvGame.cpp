@@ -5414,6 +5414,8 @@ int CvGame::getDifficultyForEndScore() const {
 
 	CvHandicapInfo& h = GC.getHandicapInfo(getHandicapType());
 	int r = h.getDifficulty();
+	if(isOption(GAMEOPTION_ONE_CITY_CHALLENGE))
+		r += 30;
 	if(!isOption(GAMEOPTION_SPAH))
 		return r;
 	std::vector<int> aiStartPointDistrib;

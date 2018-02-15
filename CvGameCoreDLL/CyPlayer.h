@@ -527,6 +527,8 @@ public:
 	bool canHaveTradeRoutesWith(int iPlayer);
 
 	void forcePeace(int iPlayer);
+	// advc.038: returns int b/c I'm not sure if double would cause problems
+	int estimateYieldRate(YieldTypes yield) const;
 	void checkAlert(int alertId, bool silent); // advc.210
 
 private:

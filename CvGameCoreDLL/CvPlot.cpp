@@ -35,7 +35,7 @@
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
 
-#define STANDARD_MINIMAP_ALPHA		(0.6f)
+#define STANDARD_MINIMAP_ALPHA		(0.75f) // advc.002a: was 0.6
 bool CvPlot::activeVisibility = true; // advc.706
 
 // Public Functions...
@@ -547,7 +547,7 @@ void CvPlot::updateCulture(bool bBumpUnits, bool bUpdatePlotGroups)
 	{	// <advc.035>
 		PlayerTypes ownerId = calculateCulturalOwner();
 		setSecondOwner(ownerId);
-		if(GC.getOWN_EXCLUSIVE_RADIUS() > 0 && ownerId != NO_PLAYER) {
+		if(GC.getOWN_EXCLUSIVE_RADIUS() > 0  && ownerId != NO_PLAYER) {
 			PlayerTypes secondOwnerId = calculateCulturalOwner(false, true);
 			if(secondOwnerId != NO_PLAYER) {
 				if(!TEAMREF(secondOwnerId).isAtWar(TEAMID(ownerId)))
@@ -758,10 +758,11 @@ void CvPlot::updateMinimapColor()
 	}
 	// <advc.002a>
 	int const mwm = GC.getGameINLINE().getMinimapWaterMode();
-	if(mwm == 3 && isWater()) return;
+	if(mwm == 3 && isWater())
+		return;
 	// </advc.002a>
 	gDLL->getInterfaceIFace()->setMinimapColor(MINIMAPMODE_TERRITORY, getX_INLINE(), getY_INLINE(), plotMinimapColor(), STANDARD_MINIMAP_ALPHA
-			/ ((isWater() && mwm != 4) ? 2 : 1)); // advc.002a
+			/ ((isWater() && mwm != 4) ? 2.3f : 1.f)); // advc.002a
 }
 
 
@@ -5388,12 +5389,43 @@ void CvPlot::setSecondOwner(PlayerTypes eNewValue) {
 bool CvPlot::isContestedByRival(PlayerTypes rivalId) const {
 
 	PlayerTypes const firstOwner = getOwnerINLINE();
-	PlayerTypes const secondOwner = getSecondOwner();
-	return secondOwner != NO_PLAYER && firstOwner != NO_PLAYER &&
-			firstOwner != secondOwner && (rivalId == NO_PLAYER ||
-			secondOwner == rivalId || firstOwner == rivalId) &&
-			TEAMREF(firstOwner).getMasterTeam() !=
-			TEAMREF(secondOwner).getMasterTeam();
+	if(firstOwner == NO_PLAYER)
+		return false;
+	if(GC.getOWN_EXCLUSIVE_RADIUS() > 0) {
+		PlayerTypes const secondOwner = getSecondOwner();
+		return secondOwner != NO_PLAYER && firstOwner != NO_PLAYER &&
+				firstOwner != secondOwner && (rivalId == NO_PLAYER ||
+				secondOwner == rivalId || firstOwner == rivalId) &&
+				TEAMREF(firstOwner).getMasterTeam() !=
+				TEAMREF(secondOwner).getMasterTeam();
+	} // <advc.099b>
+	else if(GC.getEXCLUSIVE_RADIUS_DECAY() > 0) {
+		if(firstOwner == rivalId) // No longer contested; they own it.
+			return false;
+		int totalCulture = countTotalCulture();
+		double exclWeight = GET_PLAYER(firstOwner).exclusiveRadiusWeight();
+		int ourCulture = getCulture(firstOwner);
+		// Just for efficiency
+		if(ourCulture * exclWeight >= 0.5 * totalCulture)
+			return false;
+		if(rivalId != NO_PLAYER) {
+			if(getCulture(rivalId) >= ourCulture * exclWeight &&
+					exclusiveRadius(rivalId) >= 0)
+				return true;
+			return false;
+		}
+		for(int i = 0; i < MAX_PLAYERS; i++) {
+			CvPlayerAI const& pl = GET_PLAYER((PlayerTypes)i);
+			if(!pl.isAlive() || i == getOwnerINLINE())
+				continue;
+			int dist = exclusiveRadius(pl.getID());
+			if(dist >= 0 && getCulture(pl.getID()) >=
+					ourCulture * pl.exclusiveRadiusWeight(dist))
+				return true;
+		}
+		return false;
+	} // </advc.099b>
+	return false; 
 } // </advc.035>
 
 
@@ -9102,16 +9134,76 @@ void CvPlot::doCulture() {
 	CvCity* c = getPlotCity();
 	if(c != NULL)
 		c->doRevolt(); // </advc.003>
-	// <advc.099>
-	int decayPerMill = GC.getTILE_CULTURE_DECAY_PER_MILL();
-	for(int i = 0; i < MAX_PLAYERS; i++) {
-		PlayerTypes plId = (PlayerTypes)i;
-		int culture = getCulture(plId);
-		culture -= (culture * decayPerMill) / 1000;
-		setCulture(plId, culture, false, false);
-	} // </advc.099>
+	doCultureDecay(); // advc.099b
 	updateCulture(true, true);
 }
+
+// <advc.099b>
+void CvPlot::doCultureDecay() {
+
+	PROFILE_FUNC();
+	int const exclDecay = GC.getEXCLUSIVE_RADIUS_DECAY();
+	PlayerTypes exclOwner = NO_PLAYER;
+	int exclOwnerCulture = -1;
+	int dist = -1;
+	if(exclDecay > 0 && isOwned()) {
+		for(int i = 0; i < MAX_PLAYERS; i++) {
+			CvPlayer const& pl = GET_PLAYER((PlayerTypes)i);
+			if(!pl.isAlive())
+				continue;
+			int excl = exclusiveRadius(pl.getID());
+			if(excl >= 0) {
+				dist = excl;
+				exclOwner = pl.getID();
+				exclOwnerCulture = getCulture(exclOwner);
+				break;
+			}
+		}
+	}
+	for(int i = 0; i < MAX_PLAYERS; i++) {
+		PlayerTypes plId = (PlayerTypes)i;
+		if(!GET_PLAYER(plId).isEverAlive())
+			continue;
+		int decayPerMill = GC.getTILE_CULTURE_DECAY_PER_MILL();
+		int culture = getCulture(plId);
+		if(plId != exclOwner && dist >= 0 && culture >= exclOwnerCulture) {
+			if(dist <= 2)
+				decayPerMill += exclDecay;
+			if(dist <= 1)
+				decayPerMill += exclDecay;
+		}
+		culture -= (culture * decayPerMill) / 1000;
+		setCulture(plId, culture, false, false);
+	}
+} // </advc.099b>
+
+/*  <advc.099b>
+	 0: city tile belonging to ePlayer
+	-1: Not in the exclusive radius of ePlayer. I.e. not in the radius of any
+		ePlayer city or also in the radius of another player's city.
+	 1 or 2: In the exclusive radius of ePlayer.
+	 1: In an inner ring
+	 2: Not in any inner ring */
+int CvPlot::exclusiveRadius(PlayerTypes ePlayer) const {
+
+	if(isCity()) {
+		if(getOwnerINLINE() == ePlayer)
+			return 0;
+		return -1;
+	}
+	int r = -1;
+	for(int i = 0; i < NUM_CITY_PLOTS; i++) {
+		CvPlot* pp = ::plotCity(getX_INLINE(), getY_INLINE(), i);
+		if(pp == NULL) continue; CvPlot& p = *pp;
+		if(!p.isCity())
+			continue;
+		if(p.getOwnerINLINE() == ePlayer)
+			r = ::plotDistance(&p, this);
+		else return -1;
+	}
+	return r;
+} // </advc.099b>
+
 
 void CvPlot::processArea(CvArea* pArea, int iChange)
 {
@@ -9249,7 +9341,9 @@ ColorTypes CvPlot::plotMinimapColor()
 			return (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE");
 		}
 
-		if (isActiveVisible(true))
+		if (isActiveVisible(true)
+				// advc.002a
+				&& GC.getGameINLINE().getMinimapWaterMode() != 6)
 		{
 			pCenterUnit = getDebugCenterUnit();
 
@@ -9329,7 +9423,9 @@ void CvPlot::read(FDataStreamBase* pStream)
 	// <advc.035>
 	if(uiFlag >= 1)
 		pStream->Read(&m_eSecondOwner);
-	else m_eSecondOwner = m_eOwner; // </advc.035>
+	else m_eSecondOwner = m_eOwner;
+	if(GC.getOWN_EXCLUSIVE_RADIUS() <= 0)
+		m_eSecondOwner = m_eOwner; // </advc.035>
 	pStream->Read((int*)&m_plotCity.eOwner);
 	pStream->Read(&m_plotCity.iID);
 	pStream->Read((int*)&m_workingCity.eOwner);

@@ -77,6 +77,7 @@ public:
 	bool isWorldWondersMaxed() const;																							// Exposed to Python
 	bool isTeamWondersMaxed() const;																							// Exposed to Python
 	bool isNationalWondersMaxed() const;																					// Exposed to Python
+	int getNumNationalWondersLeft() const; // advc.004w
 	bool isBuildingsMaxed() const;																								// Exposed to Python
 
 	bool canTrain(UnitTypes eUnit, bool bContinue = false, bool bTestVisible = false, bool bIgnoreCost = false, bool bIgnoreUpgrades = false
@@ -499,7 +500,8 @@ public:
 	int getFeatureBadHappiness() const;																		// Exposed to Python
 	void updateFeatureHappiness();
 
-	int getBonusGoodHappiness() const;																		// Exposed to Python  
+	int getBonusGoodHappiness(																		// Exposed to Python  
+			bool ignoreModifier = false) const; // advc.912c
 	int getBonusBadHappiness() const;																			// Exposed to Python  
 	void changeBonusGoodHappiness(int iChange);
 	void changeBonusBadHappiness(int iChange);

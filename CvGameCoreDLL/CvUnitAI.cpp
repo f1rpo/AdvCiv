@@ -12053,7 +12053,7 @@ bool CvUnitAI::AI_guardYield() {
 	CvPlot* bestPlot = NULL;
 	for(int i = 0; i < NUM_CITY_PLOTS; i++) {
 		CvPlot* pp = plotCity(plot()->getX_INLINE(), plot()->getY_INLINE(), i);
-		if(!AI_plotValid(pp)) continue; CvPlot const& p = *pp;
+		if(pp == NULL || !AI_plotValid(pp)) continue; CvPlot const& p = *pp;
 		if(p.getOwnerINLINE() != getOwnerINLINE() ||
 				p.getImprovementType() == NO_IMPROVEMENT ||
 				p.getPlotCity() != NULL || p.isWater() || p.isUnit())
@@ -12115,7 +12115,6 @@ bool CvUnitAI::AI_barbAmphibiousCapture() {
 			gets this right, or if it would drop units next to the city) */
 		CvCity* c = p.getPlotCity();
 		if(c != NULL && !c->isBarbarian() && !p.isVisibleEnemyDefender(this)) {
-			FAssertMsg(false, "Just to test if this ever happens"); // advc.test
 			dest = pp;
 			// Sudden attacks on undefended cities are OK (see below)
 			targetWithinOwnBorders = false; // Not a good variable name
@@ -21158,7 +21157,11 @@ bool CvUnitAI::AI_retreatToCity(bool bPrimary, bool bPrioritiseAirlift, int iMax
 	CvPlot* pBestPlot = NULL;
 	int iShortestPath = MAX_INT;
 	bool evac = (pCity != NULL && pCity->isEvacuating()); // advc.139
-	for (int iPass = (getGroup()->canDefend() ? 1 : 0) ; iPass < 3; iPass++)
+	/*  advc.003: Used after the loop (pushMission MISSION_MOVE_TO). I don't see
+		how the K-Mod code (iPass declared in the loop's init statement) even
+		compiles. */
+	int iPass = 0;
+	for (iPass = (getGroup()->canDefend() ? 1 : 0) ; iPass < 3; iPass++)
 	{
 		int iLoop;
 		bool bNeedsAirlift = false;
@@ -21235,7 +21238,9 @@ bool CvUnitAI::AI_retreatToCity(bool bPrimary, bool bPrioritiseAirlift, int iMax
 		if (atPlot(pBestPlot))
 			getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_RETREAT);
 		else
-			getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), iPass >= 2 ? MOVE_IGNORE_DANGER : 0, false, false, MISSIONAI_RETREAT); // was iPass >= 3
+			getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(),
+					iPass >= 2 ? MOVE_IGNORE_DANGER : 0, // was iPass >= 3
+					false, false, MISSIONAI_RETREAT);
 		return true;
 	}
 

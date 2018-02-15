@@ -395,4 +395,14 @@
 	<Spanish>Press [ALT + X] to show the city radius ("big fat cross") around the cursor. You can mark a future city site by left-clicking; right-click removes a mark.</Spanish>
 </TEXT>
 
+<!-- Romance languages mostly Google Translate -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_26</Tag>
+	<English>The first time that you demand resources from a vassal is guaranteed to succeed. Make sure to demand all the resources you need at once.</English>
+	<French>La première fois que vous demandez des ressources à un vassal est garanti pour réussir. Assurez-vous de demander toutes les ressources dont vous avez besoin en même temps.</French>
+	<German>Wenn Sie zum ersten Mal Ressourcen von einem Vasallen fordern, ist der Erfolg garantiert. Verlangen Sie also alle Ressourcen die Sie brauchen auf einmal.</German>
+	<Italian>La prima volta che si richiedono risorse da un vassallo è garantito il successo. Quindi, chieda tutte le risorse di cui ha bisogno in una volta.</Italian>
+	<Spanish>La primera vez que exige recursos de un vasallo tiene garantizado el éxito. Asegúrese de exigir todos los recursos que necesita a la vez.</Spanish>
+</TEXT>
+
 </Civ4GameText>

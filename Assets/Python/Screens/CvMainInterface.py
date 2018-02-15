@@ -4996,6 +4996,11 @@ class CvMainInterface:
 											else:
 												iScore = gc.getGame().getPlayerScore(ePlayer)
 												szPlayerScore = u"%d" % iScore
+												# <advc.155>
+												eMaster = gc.getTeam(eTeam).getMasterTeam()
+												if gc.getTeam(eMaster).getAliveCount() > 1 and gc.getDefineINT("COLOR_CODE_TEAM_SCORE") > 0:
+													szPlayerScore = u"<color=%d,%d,%d,%d>%s</color>" %(gc.getPlayer(gc.getTeam(eMaster).getLeaderID()).getPlayerTextColorR(), gc.getPlayer(gc.getTeam(eMaster).getLeaderID()).getPlayerTextColorG(), gc.getPlayer(gc.getTeam(eMaster).getLeaderID()).getPlayerTextColorB(), gc.getPlayer(gc.getTeam(eMaster).getLeaderID()).getPlayerTextColorA(), szPlayerScore)
+												# </advc.155>
 												if (bAlignIcons):
 													scores.setScore(szPlayerScore)
 # BUG - Score Delta - start
@@ -5231,7 +5236,8 @@ class CvMainInterface:
 					scores.draw(screen)
 				else:
 					if ( CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_SHOW or CyInterface().isInAdvancedStart()):
-						yCoord = yResolution - 186
+						# advc.106d: Was yResolution-168. That position is actually just fine, but I can't figure out how to move the contents of the Scoreboard there.
+						yCoord = yResolution - 184
 					else:
 						yCoord = yResolution - 68
 					screen.setPanelSize( "ScoreBackground", xResolution - 21 - iWidth, yCoord - (iBtnHeight * iCount) - 4, iWidth + 12, (iBtnHeight * iCount) + 8 )

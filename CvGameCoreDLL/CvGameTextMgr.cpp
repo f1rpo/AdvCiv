@@ -7287,25 +7287,47 @@ void CvGameTextMgr::parseCivicInfo(CvWStringBuffer &szHelpText, CivicTypes eCivi
 		}
 	}
 
-	//	Happiness per military unit
-	if (GC.getCivicInfo(eCivic).getHappyPerMilitaryUnit() != 0)
+	// advc.003: Used a bunch of times
+	int const happyPerMilitaryUnit = GC.getCivicInfo(eCivic).getHappyPerMilitaryUnit();
+	if (happyPerMilitaryUnit != 0)
 	{
 		szHelpText.append(NEWLINE);
+		/*  <advc.912c> If a player reverts to the BtS ability through XML,
+			show the old help text (instead of "+2 happiness per 2 units"). */
+		int absHappyPerMilitaryUnit = abs(happyPerMilitaryUnit);
+		if(absHappyPerMilitaryUnit == 2) {
+			szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_UNIT_HAPPINESS",
+					absHappyPerMilitaryUnit / 2, ((happyPerMilitaryUnit > 0) ?
+					gDLL->getSymbolID(HAPPY_CHAR) :
+					gDLL->getSymbolID(UNHAPPY_CHAR))));
+		}
+		else {
+			szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_UNIT_HAPPINESS2",
+			// </advc.912c>
 /************************************************************************************************/
 /* UNOFFICIAL_PATCH                       08/28/09                            jdog5000          */
 /*                                                                                              */
 /* Bugfix                                                                                       */
 /************************************************************************************************/
 /* original bts code
-		szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_UNIT_HAPPINESS", GC.getCivicInfo(eCivic).getHappyPerMilitaryUnit(), ((GC.getCivicInfo(eCivic).getHappyPerMilitaryUnit() > 0) ? gDLL->getSymbolID(HAPPY_CHAR) : gDLL->getSymbolID(UNHAPPY_CHAR))));
+				GC.getCivicInfo(eCivic).getHappyPerMilitaryUnit(), ((GC.getCivicInfo(eCivic).getHappyPerMilitaryUnit() > 0) ? gDLL->getSymbolID(HAPPY_CHAR) : gDLL->getSymbolID(UNHAPPY_CHAR))));
 
 */
-		// Use absolute value with unhappy face
-		szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_UNIT_HAPPINESS", abs(GC.getCivicInfo(eCivic).getHappyPerMilitaryUnit()), ((GC.getCivicInfo(eCivic).getHappyPerMilitaryUnit() > 0) ? gDLL->getSymbolID(HAPPY_CHAR) : gDLL->getSymbolID(UNHAPPY_CHAR))));
+		
+				// Use absolute value with unhappy face
+				absHappyPerMilitaryUnit, ((happyPerMilitaryUnit > 0) ? gDLL->getSymbolID(HAPPY_CHAR) : gDLL->getSymbolID(UNHAPPY_CHAR))));
 /************************************************************************************************/
 /* UNOFFICIAL_PATCH                        END                                                  */
 /************************************************************************************************/
+		// <advc.912c>
+		} 
 	}
+	if(GC.getCivicInfo(eCivic).getLuxuryModifier() != 0) {
+		szHelpText.append(NEWLINE);
+		szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_LUXURY_MODIFIER",
+				GC.getCivicInfo(eCivic).getLuxuryModifier(),
+				gDLL->getSymbolID(HAPPY_CHAR)));
+	} // </advc.912c>
 
 	//	Military units produced with food
 	if (GC.getCivicInfo(eCivic).isMilitaryFoodProduction())
@@ -9674,7 +9696,26 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 	}
 	else
 	{	// <advc.003> Refactored
-		if(isWorldWonderClass(bct)) { // <advc.004w>
+		// <advc.004w> Either already constructed in pCity, or queued.
+		bool isConstruct = false;
+		BuildingTypes bt = (BuildingTypes)(GC.getCivilizationInfo(
+				kPlayer.getCivilizationType()).getCivilizationBuildings(bct));
+		if(pCity != NULL && bt != NO_BUILDING) {
+			if(pCity->getNumBuilding(bt) > 0)
+				isConstruct = true;
+			else {
+				for(CLLNode<OrderData>* odn = pCity->headOrderQueueNode();
+						odn != NULL; odn = pCity->nextOrderQueueNode(odn)) {
+					if(odn->m_data.eOrderType != ORDER_CONSTRUCT)
+						continue;
+					if(odn->m_data.iData1 == bt) {
+						isConstruct = true;
+						break;
+					}
+				}
+			}
+		}
+		if(isWorldWonderClass(bct)) {
 			szBuffer.append(NEWLINE); // Newline in any case
 			int n = bci.getMaxGlobalInstances();
 			if(pCity == NULL) {
@@ -9684,12 +9725,18 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 						n)); // </advc.004w>
 			}
 			else { // <advc.004w>
-				if(n == 1)
+				n -= (g.getBuildingClassCreatedCount(bct) +
+						TEAMREF(ePlayer).getBuildingClassMaking(bct));
+				if(n == 1 || (n == 0 && isConstruct))
 					szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_WORLD_WONDER1"));
-				else szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_WORLD_WONDER_LEFT",
-						n - g.getBuildingClassCreatedCount(bct) -
-						TEAMREF(ePlayer).getBuildingClassMaking(bct)));
-				// </advc.004w>
+				else {
+					if(!isConstruct)
+						szBuffer.append(gDLL->getText("TXT_KEY_COLOR_NEGATIVE"));
+					szBuffer.append(gDLL->getText(
+							"TXT_KEY_BUILDING_WORLD_WONDER_LEFT", n));
+					if(!isConstruct)
+						szBuffer.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
+				} // </advc.004w>
 			}
 		}
 		if(isTeamWonderClass(bct)) { // <advc.004w>
@@ -9698,20 +9745,34 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 			if(pCity == NULL) {
 				if(n == 1)
 					szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_TEAM_WONDER1"));
-				else szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_TEAM_WONDER_ALLOWED",
-						n)); // </advc.004w>
+				else {
+					if(!isConstruct)
+						szBuffer.append(gDLL->getText("TXT_KEY_COLOR_NEGATIVE"));
+					szBuffer.append(gDLL->getText(
+							"TXT_KEY_BUILDING_TEAM_WONDER_ALLOWED", n));
+					if(!isConstruct)
+						szBuffer.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
+				} // </advc.004w>
 			}
 			else { // <advc.004w>
+				n -= TEAMREF(ePlayer).getBuildingClassCountPlusMaking(bct);
 				if(n == 1)
 					szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_TEAM_WONDER1"));
-				else szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_TEAM_WONDER_LEFT",
-						n  - TEAMREF(ePlayer).getBuildingClassCountPlusMaking(bct)));
-				// </advc.004w>
+				else {
+					if(!isConstruct)
+						szBuffer.append(gDLL->getText("TXT_KEY_COLOR_NEGATIVE"));
+					szBuffer.append(gDLL->getText(
+							"TXT_KEY_BUILDING_TEAM_WONDER_LEFT", n));
+					if(!isConstruct)
+						szBuffer.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
+				} // </advc.004w>
 			}
 		}
-		if(isNationalWonderClass(bct)
+		if(isNationalWonderClass(bct) &&
 				// <advc.004w> Palace isn't really a National Wonder
-				&& !kBuilding.isCapital()) {
+				!kBuilding.isCapital() &&
+				// That case is handled below; no need for "0 left" in addition.
+				(pCity == NULL || !pCity->isNationalWondersMaxed() || isConstruct)) {
 			szBuffer.append(NEWLINE); // Newline in any case
 			int n = bci.getMaxPlayerInstances();
 			if(pCity == NULL) {
@@ -9721,10 +9782,28 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 						n)); // </advc.004w>
 			}
 			else { // <advc.004w>
-				if(n == 1)
+				n -= kPlayer.getBuildingClassCountPlusMaking(bct);
+				/*  This would be the same behavior as for great wonders, but I
+					want to show "0 left" only if the wonder is being built
+					elsewhere; otherwise, show how many more national wonders
+					the city can build. */
+				/*if(n == 1)
 					szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_NATIONAL_WONDER1"));
 				else szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_NATIONAL_WONDER_LEFT",
-						n - kPlayer.getBuildingClassCountPlusMaking(bct))); // </advc.004w>
+						n)); */
+				if(n <= 0 && !isConstruct) {
+					szBuffer.append(gDLL->getText("TXT_KEY_COLOR_NEGATIVE"));
+					szBuffer.append(gDLL->getText(
+							"TXT_KEY_BUILDING_NATIONAL_WONDER_LEFT", n));
+					szBuffer.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
+				}
+				else {
+					n = pCity->getNumNationalWondersLeft();
+					if(n < 0)
+						szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_NATIONAL_WONDER1"));
+					else szBuffer.append(gDLL->getText(
+							"TXT_KEY_BUILDING_NATIONAL_WONDER_LEFT", n));
+				} // </advc.004w>
 			}
 		} // </advc.003>
 	}
@@ -14247,7 +14326,7 @@ void CvGameTextMgr::getDealString(CvWStringBuffer& szBuffer, CvDeal& deal, Playe
 	const CLinkList<TradeData>* pListPlayer1 = deal.getFirstTrades();
 	const CLinkList<TradeData>* pListPlayer2 = deal.getSecondTrades();
 	
-	getDealString(szBuffer, ePlayer1, ePlayer2, pListPlayer1,  pListPlayer2, ePlayerPerspective,
+	getDealString(szBuffer, ePlayer1, ePlayer2, pListPlayer1, pListPlayer2, ePlayerPerspective,
 			(bCancel ? -1 : deal.turnsToCancel())); // advc.004w
 }
 

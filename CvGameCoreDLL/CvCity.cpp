@@ -1979,21 +1979,28 @@ bool CvCity::isTeamWondersMaxed() const
 
 
 bool CvCity::isNationalWondersMaxed() const
-{
-	int iMaxNumWonders = (GC.getGameINLINE().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman()) ? GC.getDefineINT("MAX_NATIONAL_WONDERS_PER_CITY_FOR_OCC") : GC.getDefineINT("MAX_NATIONAL_WONDERS_PER_CITY");
-
-	if (iMaxNumWonders == -1)
-	{
+{	// <advc.004w>
+	int numLeft = getNumNationalWondersLeft();
+	if(numLeft < 0)
 		return false;
-	}
-
-	if (getNumNationalWonders() >= iMaxNumWonders)
-	{
-		return true;
-	}
-
-	return false;
+	return (numLeft == 0);
+	// Moved into getNumNationalWondersLeft
+	/*int iMaxNumWonders = (GC.getGameINLINE().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman()) ? GC.getDefineINT("MAX_NATIONAL_WONDERS_PER_CITY_FOR_OCC") : GC.getDefineINT("MAX_NATIONAL_WONDERS_PER_CITY");
+	if(iMaxNumWonders == -1) return false;
+	if(getNumNationalWonders() >= iMaxNumWonders) return true;
+	return false;*/
 }
+
+int CvCity::getNumNationalWondersLeft() const {
+
+	int iMaxNumWonders = (GC.getGameINLINE().isOption(
+			GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman()) ?
+			GC.getDefineINT("MAX_NATIONAL_WONDERS_PER_CITY_FOR_OCC") :
+			GC.getDefineINT("MAX_NATIONAL_WONDERS_PER_CITY");
+	if(iMaxNumWonders < 0)
+		return -1;
+	return std::max(0, iMaxNumWonders - getNumNationalWonders());
+} // </advc.004w>
 
 
 bool CvCity::isBuildingsMaxed() const
@@ -6861,7 +6868,8 @@ int CvCity::getMilitaryHappinessUnits() const
 
 int CvCity::getMilitaryHappiness() const
 {
-	return (getMilitaryHappinessUnits() * GET_PLAYER(getOwnerINLINE()).getHappyPerMilitaryUnit());
+	return (getMilitaryHappinessUnits() * GET_PLAYER(getOwnerINLINE()).getHappyPerMilitaryUnit())
+			/ 2; // advc.912c
 }
 
 
@@ -7370,9 +7378,15 @@ void CvCity::updateFeatureHappiness()
 }
 
 
-int CvCity::getBonusGoodHappiness() const
+int CvCity::getBonusGoodHappiness(
+		bool ignoreModifier) const // advc.912c
 {
-	return m_iBonusGoodHappiness;
+	//return m_iBonusGoodHappiness;
+	// <advc.912c> Replacing the above
+	int r = m_iBonusGoodHappiness;
+	if(!ignoreModifier)
+		r = (r * (100 + GET_PLAYER(getOwnerINLINE()).getLuxuryModifier())) / 100;
+	return r; // </advc.912c>
 }
 
 
@@ -11942,7 +11956,10 @@ void CvCity::setHasReligion(ReligionTypes eIndex, bool bNewValue, bool bAnnounce
 		// <advc.106e>
 		EraTypes ownerEra = GET_PLAYER(getOwnerINLINE()).getCurrentEra();
 		EraTypes const eraThresh = (EraTypes)GC.getDefineINT(
-				"STOP_RELIGION_SPREAD_ANNOUNCE_ERA"); // </advc.106e>
+				"STOP_RELIGION_SPREAD_ANNOUNCE_ERA");
+		bool const announceStateReligionSpread = (GC.getDefineINT(
+				"ANNOUNCE_STATE_RELIGION_SPREAD") > 0);
+		// </advc.106e>
 		if (isHasReligion(eIndex))
 		{
 			GC.getGameINLINE().makeReligionFounded(eIndex, getOwnerINLINE());
@@ -11957,8 +11974,10 @@ void CvCity::setHasReligion(ReligionTypes eIndex, bool bNewValue, bool bAnnounce
 						{
 							if (isRevealed(GET_PLAYER((PlayerTypes)iI).getTeam(), false))
 							{
-								// advc.106e:
-								if (ownerEra < eraThresh || missionaryOwner == iI ||
+								// <advc.106e>
+								if ((ownerEra < eraThresh && (announceStateReligionSpread ||
+										GET_PLAYER(getOwnerINLINE()).getStateReligion() != eIndex)) ||
+										missionaryOwner == iI || // </advc.106e>
 										getOwnerINLINE() == iI ||
 										// advc.106e: Disable this clause
 										//(GET_PLAYER((PlayerTypes)iI).getStateReligion() == eIndex) ||
@@ -13271,8 +13290,9 @@ void CvCity::doCulture()
 		{
 			return;
 		}
-	}
-
+	} // <advc.099b>
+	if(isOccupation())
+		return; // </advc.099b>
 /**
 *** K-Mod, 26/sep/10, 31/oct/10, Karadoc
 *** Trade culture
@@ -16087,8 +16107,14 @@ int CvCity::getMusicScriptId() const
 		{
 			bIsHappy = false;
 		}
-	}
-
+	} /* <advc.001> Got a crash here once when loading a game with a small
+		 number of civs from within a game with a large number of civs. */
+	CvPlayer const& owner = GET_PLAYER(getOwnerINLINE());
+	LeaderHeadTypes lht = owner.getLeaderType();
+	if(lht <= -1) {
+		FAssert(lht > -1);
+		return 0;
+	} // </advc.001>
 	CvLeaderHeadInfo& kLeaderInfo = GC.getLeaderHeadInfo(GET_PLAYER(getOwnerINLINE()).getLeaderType());
 	EraTypes eCurEra = GET_PLAYER(getOwnerINLINE()).getCurrentEra();
 	if (bIsHappy)

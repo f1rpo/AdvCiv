@@ -2538,8 +2538,9 @@ DenialTypes CvTeamAI::AI_mapTrade(TeamTypes eTeam) const
 			}
 		}
 	}
-
-	if(isPursuingCircumnav()) return DENIAL_MYSTERY; // advc.136a
+	// <advc.136a>
+	if(isPursuingCircumnav())
+		return DENIAL_MYSTERY; // </advc.136a>
 
 	return NO_DENIAL;
 }
@@ -4080,7 +4081,7 @@ int CvTeamAI::AI_makePeaceTradeVal(TeamTypes ePeaceTeam, TeamTypes eTeam) const
 // <advc.104k> No functional change
 int CvTeamAI::roundTradeVal(int val) const {
 
-	int rem = GC.getDefineINT("DIPLOMACY_VALUE_REMAINDER");
+	int rem = GC.getDIPLOMACY_VALUE_REMAINDER();
 	val -= val % rem;
 	if(isHuman()) // Not sure if this is really needed
 		return std::max(val, rem);
@@ -4435,6 +4436,15 @@ DenialTypes CvTeamAI::AI_declareWarTrade(TeamTypes eWarTeam, TeamTypes eTeam, bo
 			}
 		}
 		if(closestWarEnemy != NO_TEAM) {
+			/*  If any fighting occurred or recently declared, don't treat
+				closeness as 0. (And don't be willing to attack teams with
+				0 closeness.) */
+			if(highestCloseness <= 0 && (GET_TEAM(closestWarEnemy).
+					AI_getWarPlan(getID()) == WARPLAN_ATTACKED_RECENT ||
+					AI_getWarPlan(closestWarEnemy) == WARPLAN_ATTACKED_RECENT ||
+					AI_getWarSuccess(closestWarEnemy) +
+					GET_TEAM(closestWarEnemy).AI_getWarSuccess(getID()) > 0))
+				highestCloseness = 1;
 			int closeness = AI_teamCloseness(eWarTeam, DEFAULT_PLAYER_CLOSENESS, true);
 			if(closeness < highestCloseness)
 				return DENIAL_TOO_MANY_WARS;

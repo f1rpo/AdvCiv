@@ -114,6 +114,7 @@ class Civ4lerts:
 		
 		WarTrade(eventManager) # advc.210a
 		Revolt(eventManager) # advc.210b
+		BonusThirdParties(eventManager) # advc.210d
 		GoldTrade(eventManager)
 		GoldPerTurnTrade(eventManager)
 		RefusesToTalk(eventManager)
@@ -770,6 +771,8 @@ class GoldTrade(AbstractStatefulAlert):
 		# the gold currently offered is close enough.
 		for playerID in range(gc.getMAX_PLAYERS()):
 			self.maxGoldTrade[playerID] = {}
+			for rivalID in range(gc.getMAX_PLAYERS()):
+				self._setMaxGoldTrade(playerID, rivalID, 0)
 			for rival in TradeUtil.getGoldTradePartners(playerID):
 				rivalID = rival.getID()
 				self._setMaxGoldTrade(playerID, rivalID, rival.AI_maxGoldTrade(playerID))
@@ -812,6 +815,8 @@ class GoldPerTurnTrade(AbstractStatefulAlert):
 		# <advc.106c> See comment on maxGoldTrade
 		for playerID in range(gc.getMAX_PLAYERS()):
 			self.maxGoldPerTurnTrade[playerID] = {}
+			for rivalID in range(gc.getMAX_PLAYERS()):
+				self._setMaxGoldPerTurnTrade(playerID, rivalID, 0)
 			for rival in TradeUtil.getGoldTradePartners(playerID):
 				rivalID = rival.getID()
 				self._setMaxGoldPerTurnTrade(playerID, rivalID, rival.AI_maxGoldPerTurnTrade(playerID))
@@ -1062,3 +1067,23 @@ class Revolt(AbstractStatefulAlert):
 	def _reset(self):
 		self.check(True)
 # </advc.210b>
+
+# <advc.210d>
+class BonusThirdParties(AbstractStatefulAlert):
+
+	def __init__(self, eventManager):
+		AbstractStatefulAlert.__init__(self, eventManager)
+		eventManager.addEventHandler("BeginActivePlayerTurn", self.onBeginActivePlayerTurn)
+		self.id = 2
+
+	def onBeginActivePlayerTurn(self, argsList):
+		self.check()
+
+	def check(self, silent=False):
+		if not Civ4lertsOpt.isShowBonusThirdPartiesAlert():
+			return
+		gc.getPlayer(PlayerUtil.getActivePlayerID()).checkAlert(self.id, silent)
+
+	def _reset(self):
+		self.check(True)
+# </advc.210d>

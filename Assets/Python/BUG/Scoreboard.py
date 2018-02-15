@@ -356,7 +356,7 @@ class Scoreboard:
 		
 		x = xResolution - 12 # start here and shift left with each column
 		if ( interface.getShowInterface() == InterfaceVisibility.INTERFACE_SHOW or interface.isInAdvancedStart()):
-			y = yResolution - 206
+			y = yResolution - 188 # advc.106d: was yResolution-206
 		else:
 			y = yResolution - 88
 		totalWidth = 0
@@ -477,7 +477,7 @@ class Scoreboard:
 			interface.checkFlashReset( playerScore.getID() )
 		
 		if ( interface.getShowInterface() == InterfaceVisibility.INTERFACE_SHOW or interface.isInAdvancedStart()):
-			y = yResolution - 186
+			y = yResolution - 168 # advc.106d: was yResolution-186
 		else:
 			y = yResolution - 68
 		screen.setPanelSize( "ScoreBackground", xResolution - 21 - totalWidth, y - (height * self.size()) - 4, 

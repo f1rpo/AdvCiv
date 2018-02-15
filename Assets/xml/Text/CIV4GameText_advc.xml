@@ -1130,11 +1130,11 @@
 		 and wonder in known city. -->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_GP_BORN_CIV</Tag>
-		<English>%s1_GPName has been born in the %s2_CivName.</English>
-		<French>Naissance de %s1_GPName dans le %s2_CivName.</French>
-		<German>%s1_GPName wurde im %s2_CivName geboren.</German>
-		<Italian>%s1_GPName &#232; [NUM1:nato:nata] nel %s2_CivName!</Italian>
-		<Spanish>%s1_GPName ha nacido en el %s2_CivName.</Spanish>
+		<English>[COLOR_UNIT_TEXT]%s1_GPName[COLOR_REVERT] has been born in the %s2_CivName.</English>
+		<French>Naissance de [COLOR_UNIT_TEXT]%s1_GPName[COLOR_REVERT] dans le %s2_CivName.</French>
+		<German>[COLOR_UNIT_TEXT]%s1_GPName[COLOR_REVERT] wurde im %s2_CivName geboren.</German>
+		<Italian>[COLOR_UNIT_TEXT]%s1_GPName[COLOR_REVERT] &#232; [NUM1:nato:nata] nel %s2_CivName!</Italian>
+		<Spanish>[COLOR_UNIT_TEXT]%s1_GPName[COLOR_REVERT] ha nacido en el %s2_CivName.</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_MISC_WONDER_COMPLETED_CITY</Tag>
@@ -1179,6 +1179,36 @@
 		<German>%s1_CorpName wurde in einem fernen Land gegr&#252;ndet!</German>
 		<Italian>La %s1_CorpName &#232; stata fondata in terre lontane!</Italian>
 		<Spanish>&#161;%s1_CorpName se ha incorporado a una tierra lejana.</Spanish>
+	</TEXT>
+	<!-- From CIV4GameTextInfos.xml. Just adding color (rather than coloring
+		 the whole message through the DLL. -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_GP_BORN</Tag>
+		<English>[COLOR_UNIT_TEXT]%s1_GPName[COLOR_REVERT] has been born in %s2_CityName!</English>
+		<French>Naissance de [COLOR_UNIT_TEXT]%s1_GPName[COLOR_REVERT] &#224; %s2_CityName !</French>
+		<German>Die Gro&#223;e Pers&#246;nlichkeit [COLOR_UNIT_TEXT]%s1_GPName[COLOR_REVERT] wurde in %s2_CityName geboren!</German>
+		<Italian>[COLOR_UNIT_TEXT]%s1_GPName[COLOR_REVERT] &#232; nato a %s2_CityName!</Italian>
+		<Spanish>[COLOR_UNIT_TEXT]%s1_GPName[COLOR_REVERT] ha nacido en %s2_CityName.</Spanish>
+	</TEXT>
+	<!-- As above (and "faraway" is one word). This key isn't used anymore,
+		 but just in case I ever want to use it ... -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_GP_BORN_SOMEWHERE</Tag>
+		<English>[COLOR_UNIT_TEXT]%s1_GPName[COLOR_REVERT] has been born in a faraway land!</English>
+		<French>Naissance de [COLOR_UNIT_TEXT]%s1_GPName[COLOR_REVERT] dans un pays lointain !</French>
+		<German>Die Gro&#223;e Pers&#246;nlichkeit [COLOR_UNIT_TEXT]%s1_GPName[COLOR_REVERT] wurde in einem fernen Land geboren!</German>
+		<Italian>[COLOR_UNIT_TEXT]%s1_GPName[COLOR_REVERT] &#232; [NUM1:nato:nata] in una terra lontana!</Italian>
+		<Spanish>[COLOR_UNIT_TEXT]%s1_GPName[COLOR_REVERT] ha nacido en una tierra muy lejana.</Spanish>
+	</TEXT>
+	<!-- This one's from CIV4GameText_Warlords.xml. Not sure I've ever seen it
+		 in the game. -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_GP_BORN_FIELD</Tag>
+		<English>[COLOR_UNIT_TEXT]%s1_GreatPersonName[COLOR_REVERT] has emerged in the field</English>
+		<French>[COLOR_UNIT_TEXT]%s1_GreatPersonName[COLOR_REVERT] s'est r&#233;v&#233;l&#233; sur le champ de bataille</French>
+		<German>[COLOR_UNIT_TEXT]%s1_GreatPersonName[COLOR_REVERT] im Feld entstanden</German>
+		<Italian>[COLOR_UNIT_TEXT]%s1_GreatPersonName[COLOR_REVERT] si &#232; distinto sul campo</Italian>
+		<Spanish>Ha aparecido [COLOR_UNIT_TEXT]%s1_GreatPersonName[COLOR_REVERT] en el campo de batalla</Spanish>
 	</TEXT>
 
 	<!-- [advc.124] Originally defined in Civ4GameTextInfos.xml.
@@ -1619,14 +1649,14 @@
 		<Spanish>Planes della guerra</Spanish>
 	</TEXT>
 	<!-- Based on TXT_KEY_BUG_OPT_CIV4LERTS__WORSTENEMY_HOVER in
-		 Civ4lerts Options.xml -->
+		 Civ4lerts Options.xml. Romance languages through Google Translate. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__WARTRADE_HOVER</Tag>
 		<English>Displays an alert whenever an AI leader becomes (or stops being) willing to start a war at your request.</English>
-		<French>Displays an alert whenever an AI leader becomes (or stops being) willing to start a war at your request.</French>
+		<French>Affiche une alerte lorsqu'un chef d'IA devient (ou cesse d'être) prêt à déclencher une guerre à votre demande.</French>
 		<German>Mitteilung, wenn ein KI-Gegner bereit (oder nicht mehr bereit) ist, einem anderen Gegner auf Ihren Wunsch den Krieg zu erklären.</German>
-		<Italian>Displays an alert whenever an AI leader becomes (or stops being) willing to start a war at your request.</Italian>
-		<Spanish>Displays an alert whenever an AI leader becomes (or stops being) willing to start a war at your request.</Spanish>
+		<Italian>Visualizza un avviso ogni volta che un comandante AI diventa (o smette di essere) disposto a iniziare una guerra su sua richiesta.</Italian>
+		<Spanish>Muestra una alerta cada vez que un líder de IA se convierte (o deja de estar) dispuesto a iniciar una guerra a petición suya.</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_CIV4LERTS_TRADE_WAR</Tag>
@@ -1654,13 +1684,14 @@
 		<Italian>Rivolte</Italian>
 		<Spanish>Revueltes</Spanish>
 	</TEXT>
+	<!-- Romance languages: Google Translate -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__REVOLT_HOVER</Tag>
 		<English>Displays an alert when a city can (or can no longer) revolt, and when occupation ends after a revolt or after conquest.</English>
-		<French>Displays an alert when a city can (or can no longer) revolt, and when occupation ends after a revolt or after conquest.</French>
+		<French>Affiche une alerte quand une ville peut (ou ne peut plus) se révolter, et quand l'occupation se termine après une révolte ou après une conquête.</French>
 		<German>Mitteilung, wenn eine Revolte droht (oder nicht mehr droht), und wenn nach einer Revolte oder bei Besatzung die Ruhe wiederhergestellt wurde.</German>
-		<Italian>Displays an alert when a city can (or can no longer) revolt, and when occupation ends after a revolt or after conquest.</Italian>
-		<Spanish>Displays an alert when a city can (or can no longer) revolt, and when occupation ends after a revolt or after conquest.</Spanish>
+		<Italian>Visualizza un avviso quando una città può (o non può più) sollevarsi e quando l'occupazione termina dopo una rivolta o dopo la conquista.</Italian>
+		<Spanish>Muestra una alerta cuando una ciudad puede (o no puede) rebelarse, y cuando la ocupación termina después de una revuelta o después de la conquista.</Spanish>
 	</TEXT>
 	<!-- I've tried it with [COLOR_WARNING_TEXT] ... [COLOR_REVERT], i.e. in red,
 		 but this draws too much attention. Same for [COLOR_POSITIVE_TEXT]
@@ -1708,6 +1739,98 @@
 		<German>Chance den Timer zu verringern: %d1%%</German>
 		<Italian>Probabilitá di ridurre il timer: %d1%%</Italian>
 		<Spanish>Probabilidad de disminuir el timer: %d1%%</Spanish>
+	</TEXT>
+	
+	<!-- [advc.210d] -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__BONUSTHIRDPARTIES_TEXT</Tag>
+		<English>Third parties</English>
+		<French>Tierces parties</French>
+		<German>Drittparteien</German>
+		<Italian>Terze parti</Italian>
+		<Spanish>Entre terceros</Spanish>
+	</TEXT>
+	<!-- Romance languages from Google Translate -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__BONUSTHIRDPARTIES_HOVER</Tag>
+		<English>Displays an alert when rivals start or stop trading resources. No alert when two rivals that had already been trading resources agree on an additional trade unless it involves a strategic resource.</English>
+		<French>Affiche une alerte lorsqu'un concurrent commence ou arrête d'exporter une ressource vers un autre concurrent.</French>
+		<German>Mitteilung, wenn ein Gegner beginnt oder aufhört, einem anderen Gegner Ressourcen zu liefern. Keine Mitteilung wenn lediglich ein weiterer Handel dazukommt, außer bei strategischen Ressourcen.</German>
+		<Italian>Visualizza un avviso quando un concorrente inizia o interrompe l'esportazione di risorse verso un altro rivale. Nessun avviso se si tratta soltanto di un scambio ulteriore, ad eccezione delle risorse strategiche.</Italian>
+		<Spanish>Muestra una alerta cuando un rival comienza o deja de exportar un recurso a otro rival. No hay alerta si solo se trata de un intercambio adicional, con la excepción de los recursos estratégicos.</Spanish>
+	</TEXT>
+	<!-- The digit 1 is to get around the genus -->
+	<TEXT>
+		<Tag>TXT_KEY_CIV4LERTS_ONE_MORE</Tag>
+		<English>another %F1_bonus</English>
+		<French>1 autre %F1_bonus</French>
+		<German>noch 1 %F1_bonus</German>
+		<Italian>un'altra risorsa di %F1_bonus</Italian>
+		<Spanish>otro recurso de %F1_bonus</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CIV4LERTS_BONUS_ICON</Tag>
+		<English>%F1_bonus</English>
+		<French>%F1_bonus</French>
+		<German>%F1_bonus</German>
+		<Italian>%F1_bonus</Italian>
+		<Spanish>%F1_bonus</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CIV4LERTS_ONE_FEWER</Tag>
+		<English>one fewer %F1_bonus</English>
+		<French>1 %F1_bonus de moins</French>
+		<German>1 %F1_bonus weniger</German>
+		<Italian>1 %F1_bonus in meno</Italian>
+		<Spanish>1 %F1_bonus menos</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CIV4LERTS_NOW_EXPORTING</Tag>
+		<English>%s1 is now exporting %s2 to %s3.</English>
+		<French>%s1 exporte maintenant %s2 à %s3.</French>
+		<German>%s1 liefert jetzt %s2 an %s3.</German>
+		<Italian>%s1 ora esporta %s2 a %s3.</Italian>
+		<Spanish>%s1 ahora está exportando %s2 a %s3.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CIV4LERTS_NO_LONGER_EXPORTING</Tag>
+		<English>%s1 is no longer exporting %s2 to %s3.</English>
+		<French>%s1 n'exporte plus de %s2 à %s3.</French>
+		<German>%s1 liefert nicht länger %s2 an %s3.</German>
+		<Italian>%s1 non sta più esportando %s2 a %s3.</Italian>
+		<Spanish>%s1 ya no está exportando %s2 a %s3.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CIV4LERTS_EXPORTING_STRATEGIC</Tag>
+		<English>%s1 is now exporting a strategic resource to %s2: %s3</English>
+		<French>%s1 exporte maintenant une ressource stratégique à %s2: %s3</French>
+		<German>%s1 liefert jetzt eine strategische Ressource an %s2: %s3</German>
+		<Italian>%s1 ora esporta una risorsa strategica a %s2: %s3</Italian>
+		<Spanish>%s1 ahora está exportando un recurso estratégico a %s2: %s3</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CIV4LERTS_NOT_EXPORTING_STRATEGIC</Tag>
+		<English>%s1 is no longer exporting this strategic resource to %s2: %s3</English>
+		<French>%s1 n'exporte plus cette ressource stratégique à %s2: %s3</French>
+		<German>%s1 hat die Lieferung einer strategischen Ressource an %s2 eingestellt: %s3</German>
+		<Italian>%s1 non esporta più questa risorsa strategica a %s2: %s3</Italian>
+		<Spanish>%s1 ya no está exportando este recurso estratégico a %s2: %s3</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CIV4LERTS_EXPORTING_ANY</Tag>
+		<English>%s1 is now exporting resources (%s3) to %s2</English>
+		<French>%s1 exporte maintenant des ressources (%s3) à %s2</French>
+		<German>%s1 liefert jetzt Ressourcen (%s3) an %s2</German>
+		<Italian>%s1 ora esporta risorse (%s3) a %s2</Italian>
+		<Spanish>%s1 ahora está exportando recursos (%s3) a %s2</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CIV4LERTS_EXPORTING_NONE</Tag>
+		<English>%s1 is no longer exporting resources to %s2 (canceled: %s3).</English>
+		<French>%s1 n'exporte plus de ressources à %s2 (annulé: %s3).</French>
+		<German>%s1 liefert keine Ressourcen mehr an %s2 (eingestellt: %s3).</German>
+		<Italian>%s1 non esporta più risorse a %s2 (cancellato: %s3).</Italian>
+		<Spanish>%s1 ya no está exportando recursos a %s2 (cancelado: %s3).</Spanish>
 	</TEXT>
 
 	<!-- [advc.004q] Based on TXT_KEY_ATTITUDE_TOWARDS in
@@ -2448,6 +2571,31 @@
 		<Italian>[ICON_BULLET]Progetto di squadra</Italian>
 		<Spanish>[ICON_BULLET]Proyecto de equipo</Spanish>
 	</TEXT>
+	<!-- advc.004w: Put only the number in parentheses, not the wonder type -->
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_WORLD_WONDER_LEFT</Tag>
+		<English>[SPACE]World Wonder (%d1_Num Left)</English>
+		<French>[SPACE]Merveille mondiale (reste %d1_Num)</French>
+		<German>[SPACE]Weltwunder (%d1_Num &#252;brig)</German>
+		<Italian>[SPACE]Grande Meraviglia (%d1_Num [NUM1:rimasta:rimaste])</Italian>
+		<Spanish>[SPACE]Maravilla del mundo: (%d1_Num [NUM1:restante:restantes])</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_NATIONAL_WONDER_LEFT</Tag>
+		<English>[SPACE]National Wonder (%d1_Num Left)</English>
+		<French>[SPACE]Merveille nationale (reste %d1_Num)</French>
+		<German>[SPACE]Nationales Wunder: (%d1_Num &#252;brig)</German>
+		<Italian>[SPACE]Meraviglia Nazionale: (%d1_Num [NUM1:rimasta:rimaste])</Italian>
+		<Spanish>[SPACE]Maravilla nacional: (%d1_Num [NUM1:restante:restantes])</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_TEAM_WONDER_LEFT</Tag>
+		<English>[SPACE]Team Wonder (%d1_Num Left)</English>
+		<French>[SPACE]Merveille d'&#233;quipe (reste %d1_Num)</French>
+		<German>[SPACE]Teamwunder (%d1_Num &#252;brig)</German>
+		<Italian>[SPACE]Meraviglia di squadra (%d1_Num [NUM1:rimasta:rimaste])</Italian>
+		<Spanish>[SPACE]Maravilla de equipo (%d1_Num [NUM1:restante:restantes])</Spanish>
+	</TEXT>
 
 	<!-- advc.004w: Why did they have to put the bullet icons into the
 		 text keys ...
@@ -2608,6 +2756,126 @@
 		<German>Vorübergehendes Durchreiserecht, damit nach einem Krieg Einheiten verlegt werden können.</German>
 		<Italian>Diritto di passaggio temporaneo per consentire il riposizionamento delle unità dopo una guerra.</Italian>
 		<Spanish>Derecho temporal de paso para permitir que las unidades sean reposicionadas después de una guerra.</Spanish>
+	</TEXT>
+
+	<!-- advc.912c: Based on  and TXT_KEY_MISC_HELP_YIELD_BONUS
+		TXT_KEY_CIVIC_UNIT_HAPPINESS in CIV4GameTextInfos.xml.
+		"Luxury" was a game term in Civ 3, but in Civ 4 it's only slang;
+		can't use "from Luxuries" in help text. -->
+	<TEXT>
+		<Tag>TXT_KEY_CIVIC_LUXURY_MODIFIER</Tag>
+		<English>[ICON_BULLET]+%d1_Mod%% %F2_Happy from Resources</English>
+		<French>[ICON_BULLET]+%d1_Mod%% %F2_Happy de ressources</French>
+		<German>[ICON_BULLET]+%d1_Mod%% %F2_Happy durch Ressourcen</German>
+		<Italian>[ICON_BULLET]+%d1_Mod%% %F2_Happy dalle risorse</Italian>
+		<Spanish>[ICON_BULLET]+%d1_Mod%% %F2_Happy por recursos</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CIVIC_UNIT_HAPPINESS2</Tag>
+		<English>[ICON_BULLET]%D1_PerUnit%F2_HappyOrSad per every 2 Military Units Stationed in a City</English>
+		<French>[ICON_BULLET]%D1_PerUnit%F2_HappyOrSad pour 2 unit&#233;s militaires en garnison dans une ville</French>
+		<German>[ICON_BULLET]%D1_PerUnit%F2_HappyOrSad für jeweils 2 stationierte Milit&#228;reinheiten</German>
+		<Italian>[ICON_BULLET]%D1_PerUnit%F2_HappyOrSad per ogni due unit&#224; militari stazionate in citt&#224;</Italian>
+		<Spanish>[ICON_BULLET]%D1_PerUnit %F2_HappyOrSad por cada dos unidades militares destacadas en la ciudad</Spanish>
+	</TEXT>
+
+	<!-- advc.005e: Only changed the German entry.
+		 Original text key in CIV4GameTextInfos_Objects.xml. -->
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_GALLEY</Tag>
+		<English>Galley</English>
+		<French>
+			<Text>Gal&#232;re</Text>
+			<Gender>Female</Gender>
+			<Plural>0</Plural>
+		</French>
+		<German>
+			<Text>Galeere:Galeeren</Text>
+			<Gender>Female</Gender>
+			<Plural>0:1</Plural>
+		</German>
+		<Italian>
+			<Text>Galea:Galee</Text>
+			<Gender>Female</Gender>
+			<Plural>0:1</Plural>
+		</Italian>
+		<Spanish>
+			<Text>Galera:Galeras</Text>
+			<Gender>Female</Gender>
+			<Plural>0:1</Plural>
+		</Spanish>
+	</TEXT>
+	
+	<!-- advc.039: Based on TXT_KEY_MISC_SOMEONE_MADE_PEACE in
+		 CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_PEACE_IN_EXCHANGE</Tag>
+		<English>[COLOR_HIGHLIGHT_TEXT]%s1_TeamName has made peace with %s2_TeamName[COLOR_REVERT] in exchange for</English>
+		<French>[COLOR_HIGHLIGHT_TEXT]%s1_TeamName a fait la paix avec %s2_TeamName[COLOR_REVERT] en échange de:</French>
+		<German>[COLOR_HIGHLIGHT_TEXT]%s1_TeamName hat mit %s2_TeamName[COLOR_REVERT] Frieden geschlossen im Austausch für</German>
+		<Italian>[COLOR_HIGHLIGHT_TEXT]%s1_TeamName ha siglato la pace con %s2_TeamName[COLOR_REVERT] in cambio di:</Italian>
+		<Spanish>[COLOR_HIGHLIGHT_TEXT]%s1_TeamName ha firmado la paz con %s2_TeamName[COLOR_REVERT] a cambio de</Spanish>
+	</TEXT>
+	<!-- Spanish based on AI_DIPLO_CIVIC_PRESSURE_1 in CIV4DiplomacyText.xml;
+		 hope for the best. -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_ADOPTING_CIVIC</Tag>
+		<English>adopting [COLOR_HIGHLIGHT_TEXT]%s1_CivicName[COLOR_REVERT]</English>
+		<French>l'adoption de: [COLOR_HIGHLIGHT_TEXT]%s1_CivicName[COLOR_REVERT]</French>
+		<German>einen Staatsformwechsel ([COLOR_HIGHLIGHT_TEXT]%s1_CivicName[COLOR_REVERT])</German>
+		<Italian>un cambio della forma di governo ([COLOR_HIGHLIGHT_TEXT]%s1_CivicName[COLOR_REVERT])</Italian>
+		<Spanish>adoptar [NUM1:el:la:los:las] [COLOR_HIGHLIGHT_TEXT]%s1_CivicName[COLOR_REVERT]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_CONVERTING_RELIGION</Tag>
+		<English>converting to [COLOR_HIGHLIGHT_TEXT]%s1_ReligionName[COLOR_REVERT]</English>
+		<French>la conversion au [COLOR_HIGHLIGHT_TEXT]%s1_ReligionName[COLOR_REVERT]</French>
+		<German>den Übertritt zum [COLOR_HIGHLIGHT_TEXT]%s1_ReligionName[COLOR_REVERT]</German>
+		<Italian>a conversione al [COLOR_HIGHLIGHT_TEXT]%s1_ReligionName[COLOR_REVERT]</Italian>
+		<Spanish>convertirse al [COLOR_HIGHLIGHT_TEXT]%s1_ReligionName[COLOR_REVERT]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_EMBARGO_AGAINST</Tag>
+		<English>an embargo against %s1_TeamName</English>
+		<French>un embargo contre %s1_TeamName</French>
+		<German>ein Embargo gegen %s1_TeamName</German>
+		<Italian>un embargo contro %s1_TeamName</Italian>
+		<Spanish>un embargo contra %s1_TeamName</Spanish>
+	</TEXT>
+	<!-- Based on TXT_KEY_CIVIC_SCREEN_UPKEEP in CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_GPT</Tag>
+		<English>%d1[ICON_GOLD] per turn</English>
+		<French>%d1[ICON_GOLD] par tour</French>
+		<German>%d1[ICON_GOLD] pro Runde</German>
+		<Italian>%d1[ICON_GOLD] per turno</Italian>
+		<Spanish>%d1 [ICON_GOLD] por turno</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_CASH</Tag>
+		<English>%d1[ICON_GOLD]</English>
+		<French>%d1[ICON_GOLD]</French>
+		<German>%d1[ICON_GOLD]</German>
+		<Italian>%d1[ICON_GOLD]</Italian>
+		<Spanish>%d1 [ICON_GOLD]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_MAPS_CIV</Tag>
+		<English>%s1's maps</English>
+		<French>les cartes de %s1</French>
+		<German>%s1s Weltkarte</German>
+		<Italian>le mappe di %s1</Italian>
+		<Spanish>los mapas de %s1</Spanish>
+	</TEXT>
+
+	<!-- advc.002k: From CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_TIME_AD</Tag>
+		<English>AD %d1_Date</English>
+		<French>%d1_Date ap. J.C</French>
+		<German>%d1_Date n. Chr.</German>
+		<Italian>%d1_Date d.C.</Italian>
+		<Spanish>%d1_Date d. C.</Spanish>
 	</TEXT>
 	
 </Civ4GameText>

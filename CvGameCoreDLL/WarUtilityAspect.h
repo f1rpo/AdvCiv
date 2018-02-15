@@ -150,6 +150,7 @@ private:
 	double medianDistFromOurConquests(PlayerTypes civId);
 	double threatToCities(PlayerTypes civId);
 	double competitionMultiplier();
+	double teamSizeMultiplier();
 	std::map<int,int>* citiesPerArea[MAX_CIV_PLAYERS];
 	double ourDist;
 };
