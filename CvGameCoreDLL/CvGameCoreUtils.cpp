@@ -1192,7 +1192,7 @@ int estimateCollateralWeight(const CvPlot* pPlot, TeamTypes eAttackTeam, TeamTyp
 			// Or we could check all types... But the reality is, there are always going to be mods and fringe cases where
 			// the esitmate is inaccurate. And currently in K-Mod, all instances of immunity are to the units own type anyway.
 			// Whichever way we do the estimate, cho-ku-nu is going to mess it up anyway. (Unless I change the game mechanics.)
-			if ( // advc.001: Animals have no unit combat type
+			if ( // advc.001: Animals have no unit combat type (K146 also fixes this)
 				pLoopUnit->getUnitCombatType() != NO_UNITCOMBAT &&
 				pLoopUnit->getUnitInfo().getUnitCombatCollateralImmune(pLoopUnit->getUnitCombatType()))
 				iResistanceSum += 100;

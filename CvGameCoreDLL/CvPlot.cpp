@@ -547,7 +547,7 @@ void CvPlot::updateCulture(bool bBumpUnits, bool bUpdatePlotGroups)
 	{	// <advc.035>
 		PlayerTypes ownerId = calculateCulturalOwner();
 		setSecondOwner(ownerId);
-		if(GC.getOWN_EXCLUSIVE_RADIUS() > 0  && ownerId != NO_PLAYER) {
+		if(GC.getOWN_EXCLUSIVE_RADIUS() > 0 && ownerId != NO_PLAYER) {
 			PlayerTypes secondOwnerId = calculateCulturalOwner(false, true);
 			if(secondOwnerId != NO_PLAYER) {
 				if(!TEAMREF(secondOwnerId).isAtWar(TEAMID(ownerId)))
@@ -10089,12 +10089,11 @@ int CvPlot::getYieldWithBuild(BuildTypes eBuild, YieldTypes eYield, bool bWithUp
 		{
 			//in the case that improvements upgrade, use 2 upgrade levels higher for the
 			//yield calculations.
-			ImprovementTypes eUpgradeImprovement = (ImprovementTypes)GC.getImprovementInfo(eImprovement).getImprovementUpgrade();
+			/*ImprovementTypes eUpgradeImprovement = (ImprovementTypes)GC.getImprovementInfo(eImprovement).getImprovementUpgrade();
 			if (eUpgradeImprovement != NO_IMPROVEMENT)
 			{
 				//unless it's commerce on a low food tile, in which case only use 1 level higher
-				// K-Mod, stuff that. Just use 2 levels.
-				//if ((eYield != YIELD_COMMERCE) || (getYield(YIELD_FOOD) >= GC.getFOOD_CONSUMPTION_PER_POPULATION()))
+				if ((eYield != YIELD_COMMERCE) || (getYield(YIELD_FOOD) >= GC.getFOOD_CONSUMPTION_PER_POPULATION()))
 				{
 					ImprovementTypes eUpgradeImprovement2 = (ImprovementTypes)GC.getImprovementInfo(eUpgradeImprovement).getImprovementUpgrade();
 					if (eUpgradeImprovement2 != NO_IMPROVEMENT)
@@ -10103,11 +10102,16 @@ int CvPlot::getYieldWithBuild(BuildTypes eBuild, YieldTypes eYield, bool bWithUp
 					}
 				}
 			}
-			
 			if ((eUpgradeImprovement != NO_IMPROVEMENT) && (eUpgradeImprovement != eImprovement))
 			{
 				eImprovement = eUpgradeImprovement;
-			}
+			}*/
+			// <k146> Replacing the above
+			// stuff that. Just use 2 levels.
+			ImprovementTypes eFinalImprovement = finalImprovementUpgrade(eImprovement);
+			if (eFinalImprovement != NO_IMPROVEMENT)
+				eImprovement = eFinalImprovement;
+			// </k146>
 		}
 		
 		iYield += calculateImprovementYieldChange(eImprovement, eYield, getOwnerINLINE(), false);

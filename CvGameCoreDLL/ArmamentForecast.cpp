@@ -361,9 +361,7 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 	}
 	armamentPortion = ::dRange(armamentPortion, 0.0, 0.8);
 	// Portions of the military branches
-	double branchPortions[NUM_BRANCHES];
-	for(int i = 0; i < NUM_BRANCHES; i++)
-		branchPortions[i] = 0;
+	double branchPortions[NUM_BRANCHES] = {0.0};
 	// Little defense by default
 	branchPortions[HOME_GUARD] = 0.13;
 	if(navalArmament) {

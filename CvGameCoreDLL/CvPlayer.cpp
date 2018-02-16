@@ -14108,6 +14108,7 @@ int CvPlayer::findPathLength(TechTypes eTech, bool bCost) const
 		if (ePreReq != NO_TECH)
 		{
 			//	Recursively find the path length (takes into account all ANDs)
+			// k146 (note): This will double-count any shared AND-prepreqs.
 			iNumSteps = findPathLength(ePreReq, bCost);
 
 			//	If the prereq is a valid tech and its the current shortest, mark it as such
@@ -23035,7 +23036,7 @@ bool CvPlayer::canForceCivics(PlayerTypes eTarget, CivicTypes eCivic) const
 bool CvPlayer::canForceReligion(PlayerTypes eTarget, ReligionTypes eReligion) const
 {
 	//return (GET_PLAYER(eTarget).canDoReligion(eReligion) && GET_PLAYER(eTarget).getStateReligion() != eReligion && getStateReligion() == eReligion);
-	// K-Mod - You shouldn't be able to force a relgion on an irreligious civ.
+	// K-Mod - You shouldn't be able to force a religion on an irreligious civ.
 	//return (GET_PLAYER(eTarget).isStateReligion() && GET_PLAYER(eTarget).canDoReligion(eReligion) && GET_PLAYER(eTarget).getStateReligion() != eReligion && getStateReligion() == eReligion);
     // <advc.132> Rewritten based on the K-Mod condition (commented out above).
 	CvPlayer const& they = GET_PLAYER(eTarget);

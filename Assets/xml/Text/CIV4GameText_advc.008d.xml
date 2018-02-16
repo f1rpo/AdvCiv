@@ -405,4 +405,14 @@
 	<Spanish>La primera vez que exige recursos de un vasallo tiene garantizado el éxito. Asegúrese de exigir todos los recursos que necesita a la vez.</Spanish>
 </TEXT>
 
+<!-- advc.036 -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_27</Tag>
+	<English>(AdvCiv) When asked to make a trade offer for a resource, the AI will try to offer gold per turn if your income is negative, and a resource otherwise. Adjust your gold slider in order to get the offer you want.</English>
+	<French>(AdvCiv) When asked to make a trade offer for a resource, the AI will try to offer gold per turn if your income is negative, and a resource otherwise. Adjust your gold slider in order to get the offer you want.</French>
+	<German>(AdvCiv) Wenn Sie einen KI-Gegner nach einem Angebot für eine Ressource fragen, schlägt er Gold pro Zug vor, falls Ihr Einkommen negativ ist, und ansonsten eine andere Ressource. Durch Ihren Goldregler können Sie also die Art des Angebots steuern.</German>
+	<Italian>(AdvCiv) When asked to make a trade offer for a resource, the AI will try to offer gold per turn if your income is negative, and a resource otherwise. Adjust your gold slider in order to get the offer you want.</Italian>
+	<Spanish>(AdvCiv) When asked to make a trade offer for a resource, the AI will try to offer gold per turn if your income is negative, and a resource otherwise. Adjust your gold slider in order to get the offer you want.</Spanish>
+</TEXT>
+
 </Civ4GameText>

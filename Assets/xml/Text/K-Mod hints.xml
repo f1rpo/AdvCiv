@@ -159,11 +159,11 @@
 </TEXT>
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_14</Tag>
-	<English>(K-Mod) Hold the 'X' key when issuing a command to temporarily suppress automatic unit cycling.</English>
-	<French>(K-Mod) Hold the 'X' key when issuing a command to temporarily suppress automatic unit cycling.</French>
-	<German>(K-Mod) Halten Sie 'X' gedrückt, um den automatischen Einheitenwechsel zu unterdrücken.</German>
-	<Italian>(K-Mod) Hold the 'X' key when issuing a command to temporarily suppress automatic unit cycling.</Italian>
-	<Spanish>(K-Mod) Mantener la tecla 'X' presionada cuando das una órden para suprimir temporalmente el ciclo de unidades.</Spanish>
+	<English>(K-Mod) Hold the [X] key when issuing a command to temporarily suppress automatic unit cycling.</English>
+	<French>(K-Mod) Hold the [X] key when issuing a command to temporarily suppress automatic unit cycling.</French>
+	<German>(K-Mod) Halten Sie [X] gedrückt, um den automatischen Einheitenwechsel zu unterdrücken.</German>
+	<Italian>(K-Mod) Hold the [X] key when issuing a command to temporarily suppress automatic unit cycling.</Italian>
+	<Spanish>(K-Mod) Mantener la tecla [X] presionada cuando das una órden para suprimir temporalmente el ciclo de unidades.</Spanish>
 </TEXT>
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_15</Tag>
@@ -172,6 +172,17 @@
 	<German>Die Handelsraten und Spinonagegewichtungen können durch einen Rechtsklick auf die Plus- oder Minusknöpfe schnell maximiert beziehungsweise minimiert werden.</German>
 	<Italian>Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</Italian>
 	<Spanish>Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</Spanish>
+</TEXT>
+
+<!-- advc.008c: From MMod; I've changed the wording a little and added the
+	 German translation. -->
+<TEXT>
+	<Tag>TXT_KEY_KMOD_HINT_16</Tag>
+	<English>Hold [ALT] when clicking the 'Wake' command in order to wake all your units of the same type around the world.</English>
+	<French>Hold [ALT] when clicking the 'Wake' command in order to wake all your units of the same type around the world.</French>
+	<German>Halten Sie beim Wecken einer Einheit [ALT] gedrückt, so werden weltweit alle Ihre Einheiten dieses Typs geweckt.</German>
+	<Italian>Hold [ALT] when clicking the 'Wake' command in order to wake all your units of the same type around the world.</Italian>
+	<Spanish>Hold [ALT] when clicking the 'Wake' command in order to wake all your units of the same type around the world.</Spanish>
 </TEXT>
 
 <!-- advc.008c: Thought it'd be nice to mention the small K-Mod change to

@@ -6228,7 +6228,6 @@ int CvCity::getSavedMaintenanceTimes100ByBuilding(BuildingTypes eBuilding) const
 	{
 		int iNewMaintenance = calculateBaseMaintenanceTimes100() * std::max(0, getMaintenanceModifier() + iModifier + 100) / 100;
 		//return getMaintenanceTimes100() - iNewMaintenance;
-		// advc.201:
 		return ROUND_DIVIDE((getMaintenanceTimes100() - iNewMaintenance)*(100+GET_PLAYER(getOwnerINLINE()).calculateInflationRate()), 100); // K-Mod
 	}
 
@@ -7887,14 +7886,16 @@ void CvCity::changeForeignTradeRouteModifier(int iChange)
 *** Trade culture calculation
 **/
 int CvCity::getTradeCultureRateTimes100(int iLevel) const
-{
-	// int iPercent = std::min((int)getCultureLevel(), iLevel) - 1;
-	// I've disabled the cap since trade culture isn't added to city culture now, 11/dec/10
-	int iPercent = (int)getCultureLevel();
-
+{	// <k146>
+	// Note: iLevel currently isn't used.
+	//int iPercent = (int)getCultureLevel();
+	// Note: GC.getNumCultureLevelInfos() is 7 with the standard xml, which means legendary culture is level 6.
+	// So we have 3, 4, 4, 5, 5, 6, 6
+	int iPercent = (GC.getNumCultureLevelInfos()+(int)getCultureLevel())/2;
 	if (iPercent > 0)
 	{
-		// 1% of culture rate for each culture level.
+		// (originally this was 1% of culture rate for each culture level.)
+		// </k146>
 		return (m_aiCommerceRate[COMMERCE_CULTURE] * iPercent)/100;
 	}
 	return 0;

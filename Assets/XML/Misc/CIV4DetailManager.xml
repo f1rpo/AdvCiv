@@ -22,7 +22,7 @@
 	</Fader>
 	<!-- advc.004m: Was also 6000,0.00;6400,1.0. I'd rather set this to a lower
 		 value, which results in a more top down angle, but this causes artifacts: one zoom level getting skipped depending on whether one 
-		 zooms in or out, flickering Mine improvements when moving them camera
+		 zooms in or out, flickering Mine improvements when moving the camera
 		 by left-clicking a tile or even a black flash when entering globe
 		 view. In fact, 7680 for the second value also gives me that black flash. -->
 	<Fader>

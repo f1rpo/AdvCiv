@@ -475,6 +475,10 @@
 		<HintInfo>
 			<Description>TXT_KEY_KMOD_HINT_15</Description>
 		</HintInfo> <!-- right-click on +/- -->
+		<!-- advc.008c: Alt+Wake -->
+		<HintInfo>
+			<Description>TXT_KEY_KMOD_HINT_16</Description>
+		</HintInfo>
 		
 		<!-- advc.008d: Copied K-Mod hints to increase their probability: -->
 		<HintInfo>
@@ -524,6 +528,7 @@
 		<HintInfo>
 			<Description>TXT_KEY_KMOD_HINT_15</Description>
 		</HintInfo>
+		<!-- Skip 16 b/c it's rarely useful -->
 		<!-- These have been replaced or updated; should receive higher
 			 probability too. -->
 		<HintInfo>
@@ -630,6 +635,9 @@
 		</HintInfo>
 		<!-- Skip 22-26; shouldn't be as frequent. -->
 		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_27</Description>
+		</HintInfo>
+		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_1</Description>
 		</HintInfo>
 		<HintInfo>
@@ -704,6 +712,9 @@
 		</HintInfo>
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_26</Description>
+		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_27</Description>
 		</HintInfo>
 	</HintInfos>
 </Civ4Hints>

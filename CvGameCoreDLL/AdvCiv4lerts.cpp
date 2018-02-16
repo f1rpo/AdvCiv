@@ -24,7 +24,7 @@ void AdvCiv4lert::init(PlayerTypes ownerId) {
 	reset();
 }
 
-void AdvCiv4lert::msg(CvWString s, LPCSTR icon, int x, int y, int goodOrBad) const { // advc.127: For spectator mode
+void AdvCiv4lert::msg(CvWString s, LPCSTR icon, int x, int y, int goodOrBad) const {
 
 	if(isSilent)
 		return;

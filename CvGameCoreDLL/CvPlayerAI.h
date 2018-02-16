@@ -161,19 +161,21 @@ public:
 	//int AI_goldTarget() const;
 	int AI_goldTarget(bool bUpgradeBudgetOnly = false) const; // K-Mod
 
-	TechTypes AI_bestTech(int iMaxPathLength = 1, bool bIgnoreCost = false, bool bAsync = false, TechTypes eIgnoreTech = NO_TECH, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR) const;
+	TechTypes AI_bestTech(int iMaxPathLength = 1, bool bFreeTech = false, bool bAsync = false, TechTypes eIgnoreTech = NO_TECH, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR) const;
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      03/18/10                                jdog5000      */
 /*                                                                                              */
 /* Tech AI                                                                                      */
 /************************************************************************************************/
-	int AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost, bool bAsync, const std::vector<int>& viBonusClassRevealed, const std::vector<int>& viBonusClassUnrevealed, const std::vector<int>& viBonusClassHave) const;
+	int AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech, bool bAsync, const std::vector<int>& viBonusClassRevealed, const std::vector<int>& viBonusClassUnrevealed, const std::vector<int>& viBonusClassHave) const;
 	int AI_obsoleteBuildingPenalty(TechTypes eTech, bool bConstCache) const; // K-Mod
 	int AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bEnablesWonder) const; // Rewritten for K-Mod
 	int AI_techUnitValue( TechTypes eTech, int iPathLength, bool &bEnablesUnitWonder ) const;
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
+	// k146:
+	int AI_techProjectValue(TechTypes eTech, int iPathLength, bool &bEnablesProjectWonder) const;
 	int AI_cultureVictoryTechValue(TechTypes eTech) const;
 
 	void AI_chooseFreeTech();
@@ -556,7 +558,7 @@ public:
 	bool AI_hasSharedPrimaryArea(PlayerTypes pId) const;
 	bool proposeResourceTrade(PlayerTypes otherId); // advc.133
 	// <advc.003><advc.104m>
-	bool proposeEmbargo(PlayerTypes civId);
+	bool proposeEmbargo(PlayerTypes humanId);
 	bool contactReligion(PlayerTypes humanId);
 	bool contactCivics(PlayerTypes humanId);
 	bool askHelp(PlayerTypes humanId);
@@ -567,6 +569,8 @@ public:
 	// advc.104r: public, and added parameter
 	void AI_doSplit(bool force = false);
 	double exclusiveRadiusWeight(int dist = -1) const; // advc.099b
+	// k146: Used in conjuction with canTrain
+	bool AI_haveResourcesToTrain(UnitTypes eUnit) const;
 	// for serialization
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);

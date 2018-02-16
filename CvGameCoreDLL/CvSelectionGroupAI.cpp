@@ -265,38 +265,38 @@ bool CvSelectionGroupAI::AI_update()
 		if (!isHuman())
 		{
 			bool bFollow = false;
-
-			// if we're not group attacking, then check for follow action
-			if (!AI_isGroupAttack())
+			// <k146>
+			// if we're not group attacking, then check for 'follow' action
+			if (!AI_isGroupAttack() && readyToMove(true)) 
 			{
-				CLLNode<IDInfo>* pEntityNode = headUnitNode();
-				// K-Mod note: I've rearranged a few things below, and added 'bFirst'.
+				/*  What we do here might split the group. So to avoid problems,
+					lets make a list of our units. */
+				std::vector<IDInfo> originalGroup;
+				for(CLLNode<IDInfo>* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode))
+ 				{
+					originalGroup.push_back(pUnitNode->m_data);
+				}
+				FAssert(originalGroup.size() == getNumUnits());
 				bool bFirst = true;
-
-				while ((pEntityNode != NULL) && readyToMove(true))
-				{	// <advc.001> (This will be fixed properly in K-Mod 1.46)
-					if(pEntityNode->m_data.eOwner != m_eOwner) {
-						FAssert(false); break; } // </advc.001>
-					CvUnit* pLoopUnit = ::getUnit(pEntityNode->m_data);
-					// <advc.001>
-					if(pLoopUnit == NULL) {
-						FAssert(false); break; } // </advc.001>
-					pEntityNode = nextUnitNode(pEntityNode);
-					if (bFirst)
-						path_finder.Reset();
-
-					if (pLoopUnit->canMove())
+				path_finder.Reset();
+				for (std::vector<IDInfo>::iterator it = originalGroup.begin(); it != originalGroup.end(); ++it)
+				{
+					CvUnit* pLoopUnit = ::getUnit(*it);
+					if (pLoopUnit && pLoopUnit->getGroupID() == getID() &&
+							pLoopUnit->canMove())
 					{
 						if (pLoopUnit->AI_follow(bFirst))
 						{
 							bFollow = true;
 							bFirst = true; // let the next unit start fresh.
+							path_finder.Reset();
+							if (!readyToMove(true))
+								break;
 						}
 						else
 							bFirst = false;
 					}
-				}
-				// K-Mod end
+				} // </k146>
 			}
 
 			if (doDelayedDeath())

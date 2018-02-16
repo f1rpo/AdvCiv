@@ -373,7 +373,7 @@
 		 slider overwrites this if "Remember Field of View" is checked in the
 		 BUG menu. The value entered here is auto-adjusted to the screen
 		 resolution in CvMainInterface.py. Misc\Civ4DetailManager.xml also
-		 affects the cmaera distance and angle. -->
+		 affects the camera distance and angle. -->
 	<Define>
 		<DefineName>FIELD_OF_VIEW</DefineName>
 		<fDefineFloatVal>35.0</fDefineFloatVal>
@@ -888,6 +888,16 @@
 		 made peace with Alexander" is announced). -->
 	<Define>
 		<DefineName>ANNOUNCE_REPARATIONS</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	
+	<!-- [advc.155] If set to 1 or greater (recommended), then the leaderboard
+		 shows civ scores in the color of that civ's team leader. The scores of
+		 civs without other team members are shown in white, so this setting
+		 only affects team games and Permanent Alliances. Set to 0 for BtS
+		 behavior: all scores shown in white. -->
+	<Define>
+		<DefineName>COLOR_CODE_TEAM_SCORE</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 

@@ -4030,7 +4030,6 @@ class CvMainInterface:
 				g_iNumRightBonus = iRightCount
 				
 				#iMaintenance = pHeadSelectedCity.getMaintenanceTimes100()
-				# advc.201:
 				iMaintenance = pHeadSelectedCity.getMaintenanceTimes100() * (100+gc.getPlayer(pHeadSelectedCity.getOwner()).calculateInflationRate()) / 100 # K-Mod
 
 				szBuffer = localText.getText("INTERFACE_CITY_MAINTENANCE", ())

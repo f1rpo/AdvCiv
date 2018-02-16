@@ -4801,7 +4801,6 @@ void CvDLLWidgetData::parseMaintenanceHelp(CvWidgetDataStruct &widgetDataStruct,
 		}
 		else
 		{
-			// advc.201:
 			int iInflationFactor = 100 + GET_PLAYER(pHeadSelectedCity->getOwnerINLINE()).calculateInflationRate(); // K-Mod
 
 			//		szBuffer = "Maintenance represents the total cost of governing this city.\n";
