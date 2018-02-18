@@ -287,7 +287,8 @@ class CvMilitaryAdvisor:
 						bVisible = False
 						plot = loopUnit.plot()
 						if (not plot.isNone()):
-							bVisible = plot.isVisible(gc.getPlayer(self.iActivePlayer).getTeam(), False) and not loopUnit.isInvisible(gc.getPlayer(self.iActivePlayer).getTeam(), False)
+							# advc.007: bDebug=True in isVisible and isInvisible call
+							bVisible = plot.isVisible(gc.getPlayer(self.iActivePlayer).getTeam(), True) and not loopUnit.isInvisible(gc.getPlayer(self.iActivePlayer).getTeam(), True)
 
 						if unitType >= 0 and unitType < gc.getNumUnitInfos() and bVisible:
 							iNumUnits = self.unitsList[unitType][3]

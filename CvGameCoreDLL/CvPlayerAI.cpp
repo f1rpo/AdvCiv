@@ -5758,7 +5758,7 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 		the max path length; but instead of just picking the highest value one
 		irrespective of depth, we'll use the evaluatations to add value to the
 		prereq techs, and then choose the best depth 1 tech at the end. */
-	std::vector<std::pair<int, TechTypes> > techs; // (value, tech) pairs)
+	std::vector<std::pair<int,TechTypes> > techs; // (value, tech) pairs)
 	//std::vector<TechTypes> techs;
 	//std::vector<int> values;
 	// cumulative number of techs for each depth of the search. (techs_to_depth[0] == 0)
@@ -5826,8 +5826,9 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 				continue; // We're missing at least one "and" prereq
 			//
 
-			// Otherwise, all the prereqs are either researched, or on our list from lower depths.
-			// We're ready to evaluate this tech and add it to the list.
+			/*  Otherwise, all the prereqs are either researched, or on our list
+				from lower depths. We're ready to evaluate this tech and add it
+				to the list. */
 			int iValue = AI_techValue(eTech, iDepth+1, iDepth == 0 && bFreeTech, bAsync, viBonusClassRevealed, viBonusClassUnrevealed, viBonusClassHave);
 
 			techs.push_back(std::make_pair(iValue, eTech));
@@ -5841,7 +5842,8 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 			}
 		}
 	}
-	techs_to_depth.push_back(iTechCount); // We need this to ensure techs_to_depth[1] exists.
+	// We need this to ensure techs_to_depth[1] exists.
+	techs_to_depth.push_back(iTechCount);
 
 	FAssert(techs_to_depth.size() == iMaxPathLength+1);
 	//FAssert(techs.size() == values.size());
@@ -6012,7 +6014,7 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 		* All techs above the threshold are viable end points.
 		* For each end point, pick the highest value prereqs which allow us to
 		  reach the endpoint.
-		* If there that doesn't fill all the full path, pick the highest value
+		* If that doesn't fill all the full path, pick the highest value
 		  available techs. (eg. if our end-point is not a the max depth, we can
 		  pick an arbitrary tech at depth=0) */
 
@@ -6022,7 +6024,9 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 	FAssert(techs.size() == techs_to_depth[techs_to_depth.size()-1]);
 	for (size_t i = 1; i < techs_to_depth.size(); ++i)
 	{
-		std::sort(techs.begin()+techs_to_depth[i-1], techs.begin()+techs_to_depth[i], std::greater<std::pair<int, TechTypes> >());
+		std::sort(techs.begin()+techs_to_depth[i-1],
+				techs.begin()+techs_to_depth[i],
+				std::greater<std::pair<int,TechTypes> >());
 	}
 
 	// First deal with the trivial cases...
@@ -6042,9 +6046,9 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 	}
 
 	// Create a list of possible tech paths.
-	std::vector<std::pair<int, std::vector<int> > > tech_paths; // (total_value, path)
+	std::vector<std::pair<int,std::vector<int> > > tech_paths; // (total_value, path)
 	// Note: paths are a vector of indices referring to `techs`.
-	/*  Paths are in reverse order, for convinence in constructive them.
+	/*  Paths are in reverse order, for convinience in constructing them.
 		(ie. the first tech to research is at the end of the list.) */
 
 	// Initial threshold
@@ -6053,12 +6057,12 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 			(int)techs.size()-1)].first;
 	// Note: this works even if depth=0 isn't big enough.
 
-	double fDepthRate = 0.8;
+	double fDepthRate = 0.62; // advc: 0.8 in k146
 
 	for (int end_depth = 0; end_depth < iMaxPathLength; ++end_depth)
 	{
 		// Note: at depth == 0, there are no prereqs, so we only need to consider the best option.
-		for (int i = (end_depth == 0? iMaxPathLength-1 :
+		for (int i = (end_depth == 0 ? iMaxPathLength - 1 :
 				techs_to_depth[end_depth]); i < techs_to_depth[end_depth+1]; ++i)
 		{
 			if (techs[i].first < iThreshold)
@@ -6079,7 +6083,6 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 			{
 				techs_to_check.push(techs[i].second);
 			}
-
 			while (!techs_to_check.empty() && (int)techs_in_path.size() <
 					iMaxPathLength)
 			{
@@ -6107,7 +6110,8 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 								tech_paths.back().first = (int)(fDepthRate *
 										tech_paths.back().first);
 								tech_paths.back().first += techs[j].first;
-								tech_paths.back().second.push_back(i);
+								tech_paths.back().second.push_back(
+										j); // advc.001: was i in k146
 								techs_in_path.insert(ePrereq);
 								techs_to_check.push(ePrereq);
 								bMissingPrereq = false;
@@ -6193,6 +6197,7 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 					we've matched their prereqs already. */
 				while ((int)techs_in_path.size() < iMaxPathLength)
 				{
+					size_t const sz = techs_in_path.size(); // advc.001
 					for (int j = 0; j < techs_to_depth[1] &&
 							(int)techs_in_path.size() < iMaxPathLength; ++j)
 					{
@@ -6221,7 +6226,9 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 								tech_paths.back().second.push_back(j);
 							}
 						}
-					}
+					} // <advc.001> Avoid infinite loop
+					if(techs_in_path.size() <= sz)
+						break; // </advc.001>
 				}
 				// Recalculate total value;
 				tech_paths.back().first = 0;
@@ -6249,7 +6256,7 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 	}
 	std::vector<std::pair<int,std::vector<int> > >::iterator best_path_it =
 			std::max_element(tech_paths.begin(), tech_paths.end(),
-			PairFirstLess<int, std::vector<int> >());
+			PairFirstLess<int,std::vector<int> >());
 	TechTypes eBestTech = techs[best_path_it->second.back()].second;
 	if( gPlayerLogLevel >= 1)
 	{
@@ -22094,7 +22101,7 @@ double CvPlayerAI::exclusiveRadiusWeight(int dist) const {
 		contested tiles that are within the working radius of our cities
 		exclusively. Since the decay of tile culture isn't based on game speed,
 		that confidence is greater on the slower speed settings. */
-	return 1 - std::pow(1 - (mult * GC.getEXCLUSIVE_RADIUS_DECAY() /
+	return 1 - std::pow(1 - (mult * GC.getCITY_RADIUS_DECAY() /
 			1000.0), 25 * GC.getGameSpeedInfo(GC.getGameINLINE().
 			getGameSpeedType()).getGoldenAgePercent() / 100.0);
 } // </advc.099b>

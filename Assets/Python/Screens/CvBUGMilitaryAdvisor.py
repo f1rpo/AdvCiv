@@ -976,7 +976,8 @@ class CvMilitaryAdvisor:
 					plot = unit.plot()
 					if plot.isNone():
 						continue
-					bVisible = plot.isVisible(iActiveTeam, False) and not unit.isInvisible(iActiveTeam, False)
+					# advc.007: changed bDebug from False to True
+					bVisible = plot.isVisible(iActiveTeam, True) and not unit.isInvisible(iActiveTeam, True)
 					if not bVisible:
 						continue
 					if unit.getVisualOwner() in self.selectedLeaders:

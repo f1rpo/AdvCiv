@@ -4073,7 +4073,6 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 
 				int iTempValue = (iExistingUpkeep - iNewUpkeep) / 22; // slightly more then 4x savings, just to acomodate growth.
 
-				// advc.201:
 				iTempValue = iTempValue * (100+kOwner.calculateInflationRate()) / 100; // We want absolute savings, including inflation.
 
 				/* iTempValue *= kOwner.AI_commerceWeight(COMMERCE_GOLD, 0); // (note, not just for this particular city - because this isn't direct gold production)
@@ -5320,7 +5319,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 				}
 			}
 
-			// corp evaluation moved here, and rewriten for K-Mod
+			// corp evaluation moved here, and rewritten for K-Mod
 			{
 				CorporationTypes eCorporation = (CorporationTypes)kBuilding.getFoundsCorporation();
 				int iCorpValue = 0;
@@ -6034,7 +6033,7 @@ ProcessTypes CvCityAI::AI_bestProcess(CommerceTypes eCommerceType) const
 	return eBestProcess;
 }
 
-// K-Mod. I've rearranged / rewriten most of this function.
+// K-Mod. I've rearranged / rewritten most of this function.
 // units of ~4x commerce
 int CvCityAI::AI_processValue(ProcessTypes eProcess, CommerceTypes eCommerceType) const
 {
@@ -6949,7 +6948,7 @@ bool CvCityAI::AI_isGoodPlot(int iPlot, int* aiYields) const
 }
 // K-Mod end
 
-// K-Mod rewriten to use my new function - AI_isGoodPlot.
+// K-Mod rewritten to use my new function - AI_isGoodPlot.
 int CvCityAI::AI_countGoodPlots() const
 {
 	int iCount = 0;
@@ -11076,7 +11075,7 @@ int CvCityAI::AI_getHappyFromHurry(HurryTypes eHurry, BuildingTypes eBuilding, b
 }
 
 
-// K-Mod. I'm essentially rewriten this function.
+// K-Mod. I'm essentially rewritten this function.
 // note: units ~ commerce x100
 int CvCityAI::AI_cityValue() const
 {
@@ -11114,7 +11113,7 @@ int CvCityAI::AI_cityValue() const
 	iValue += getCommerceRateTimes100(COMMERCE_GOLD);
 
 	int iCosts = calculateColonyMaintenanceTimes100() + 2*getMaintenanceTimes100()/3;
-	iCosts = iCosts * (100+kOwner.calculateInflationRate()) / 100; // advc.201
+	iCosts = iCosts * (100+kOwner.calculateInflationRate()) / 100;
 
 	// slightly encourage empire split when aiming for a diplomatic victory
 	if (kOwner.AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY3) && kOwner.getCommercePercent(COMMERCE_GOLD) > 0)

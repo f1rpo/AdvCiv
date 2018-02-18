@@ -242,28 +242,16 @@ void WarAndPeaceCache::update() {
 
 void WarAndPeaceCache::updateCities(PlayerTypes civId) {
 
-	/*  Tbd(?). The measurement of pairwise path lengths is the costliest thing
-		that UWAI does computationally. It's already much faster than it first was,
-		and quite acceptable now, but could still achieve a noticeable speedup
-		by not updating the distances on every turn. When FriendlyTerritory,
-		OpenBorders or AtWar status with another team changes, an update is
-		necessary. That said, any shift in borders could greatly shorten or lengthen
-		the paths, so a probabilistic update would be needed in addition, e.g.
-		based on a hash value of the city's coordinates. And perhaps always
-		update when ownership of any city changes.
-		Would also have to change the start of the clear function; currently
-		deletes all data on cities, but should only do that when !beforeUpdate. */
-	CvPlayerAI& civ = GET_PLAYER(civId);
-	int foo;
+	CvPlayerAI& civ = GET_PLAYER(civId); int foo=-1;
 	for(CvCity* c = civ.firstCity(&foo); c != NULL; c = civ.nextCity(&foo)) {
-		// c->isRevealed() impedes the AI too much
-		if(!TEAMREF(ownerId).AI_deduceCitySite(c))
-			continue;
-		City* cacheCity = new City(ownerId, c);
-		v.push_back(cacheCity);
-		cityMap.insert(std::make_pair<int,City*>(cacheCity->id(), cacheCity));
-		if(cacheCity->canReach())
-			nReachableCities[civ.getID()]++;
+		// c.isRevealed() impedes the AI too much
+		if(TEAMREF(ownerId).AI_deduceCitySite(c)) {
+			City* cacheCity = new City(ownerId, c);
+			v.push_back(cacheCity);
+			cityMap.insert(std::make_pair<int,City*>(cacheCity->id(), cacheCity));
+			if(civId != ownerId && cacheCity->canReach())
+				nReachableCities[civId]++;
+		}
 	}
 }
 
@@ -1039,6 +1027,38 @@ void WarAndPeaceCache::reportWarEnding(TeamTypes enemyId) {
 	sponsorsAgainst[enemyId] = NO_PLAYER;
 }
 
+void WarAndPeaceCache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId) {
+
+	if(!TEAMREF(ownerId).AI_deduceCitySite(c))
+		return;
+	/*  I didn't think I'd need to update the city cache during turns, so this
+		is awkward to write ... */
+	City* fromCache = NULL;
+	std::map<int,City*>::iterator pos = cityMap.find(c->plotNum());
+	if(pos != cityMap.end())
+		fromCache = pos->second;
+	size_t vIndex = -1;
+	if(fromCache != NULL) {
+		if(fromCache->canReach())
+			nReachableCities[oldOwnerId]--;
+		cityMap.erase(pos);
+		for(vIndex = 0; vIndex < v.size(); vIndex++) {
+			if(v[vIndex] != NULL && v[vIndex]->id() == fromCache->id()) {
+				delete v[vIndex];
+				v[vIndex] = NULL;
+				break;
+			}
+		}
+	}
+	City* toCache = new City(ownerId, c);
+	if(vIndex < 0 || vIndex >= v.size())
+		v.push_back(toCache);
+	else v[vIndex] = toCache;
+	cityMap.insert(std::make_pair<int,City*>(toCache->id(), toCache));
+	if(toCache->canReach())
+		nReachableCities[c->getOwnerINLINE()]++;
+}
+
 void WarAndPeaceCache::reportSponsoredWar(CLinkList<TradeData> const& sponsorship,
 		PlayerTypes sponsorId, TeamTypes targetId) {
 
@@ -1148,7 +1168,7 @@ WarAndPeaceCache::City::City(PlayerTypes cacheOwnerId, CvCity* c)
 	plotIndex = c->plotNum();
 	updateDistance(c);
 	// AI_targetCityValue doesn't account for reachability (probably should)
-	if(!canReach())
+	if(!canReach() || cacheOwnerId == c->getOwnerINLINE())
 		targetValue = -1;
 	else targetValue = GET_PLAYER(cacheOwnerId).AI_targetCityValue(
 			city(), false, true);
@@ -1514,22 +1534,18 @@ bool WarAndPeaceCache::City::measureDistance(DomainTypes dom, CvPlot* start,
 	int const minSz = GC.getMIN_WATER_SIZE_FOR_OCEAN();
 	if(dom != DOMAIN_LAND && !start->isCoastalLand(minSz))
 		return false;
-	// Sanity check to avoid costly distance measurement
-	if(GET_PLAYER(cacheOwnerId).getCurrentEra() < 4) {
-		// Era: AI needs to be able to target even very remote rivals eventually
-		double stepDist = ::stepDistance(start, dest);
-		if(dom == DOMAIN_LAND)
-			stepDist /= 2; // Effect of roads
-		stepDist /= GET_PLAYER(cacheOwnerId).warAndPeaceAI().shipSpeed();
-		int maxDist = (dom == DOMAIN_LAND ? getWPAI.maxLandDist() :
-				getWPAI.maxSeaDist());
-		/*  Would be better to pass maxDist to calculatePathDistanceToPlot,
-			but the pathfinder has no such param. */
-		if(stepDist > maxDist)
-			return false;
-		/*  Tbd.: Want to set r to maxDist if era>=4, but can't be sure that
-			there is a path at all ... */
-	}
+	int maxDist = (dom == DOMAIN_LAND ? getWPAI.maxLandDist() :
+			getWPAI.maxSeaDist());
+	// AI needs to be able to target even very remote rivals eventually
+	if(GET_PLAYER(cacheOwnerId).getCurrentEra() >= 4)
+		maxDist = (4 * maxDist) / 3;
+	// stepDistance sanity check to avoid costly distance measurement
+	double stepDist = ::stepDistance(start, dest);
+	if(dom == DOMAIN_LAND)
+		stepDist /= 2; // Effect of roads
+	stepDist /= GET_PLAYER(cacheOwnerId).warAndPeaceAI().shipSpeed();
+	if(stepDist > maxDist)
+		return false;
 	// dest is guaranteed to be owned; get the owner before possibly changing dest
 	TeamTypes destTeam = dest->getTeam();
 	if(dom != DOMAIN_LAND && !dest->isCoastalLand(minSz)) {
@@ -1572,7 +1588,8 @@ bool WarAndPeaceCache::City::measureDistance(DomainTypes dom, CvPlot* start,
 		won't take detours around ice into account though. */
 	if(dom != DOMAIN_LAND && !start->isAdjacentToArea(dest->area()))
 		return false;
-	*r = start->calculatePathDistanceToPlot(start->getTeam(), dest, destTeam, dom);
+	*r = start->calculatePathDistanceToPlot(start->getTeam(), dest, destTeam,
+			dom, maxDist);
 	return (*r >= 0);
 } // </advc.104b>
 

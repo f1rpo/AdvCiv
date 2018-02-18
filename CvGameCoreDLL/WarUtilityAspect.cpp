@@ -3240,7 +3240,8 @@ Bellicosity::Bellicosity(WarEvalParameters& params) : WarUtilityAspect(params) {
 
 void Bellicosity::evaluate() {
 
-	if(we->isHuman() || !m->isWar(agentId, TEAMID(theyId)))
+	if(we->isHuman() || !m->isWar(agentId, TEAMID(theyId)) ||
+			!agent.warAndPeaceAI().canReach(TEAMID(theyId)))
 		return;
 	// One war is enough
 	if(agent.getAtWarCount() > 0 && !agent.isAtWar(TEAMID(theyId)))
@@ -3261,7 +3262,12 @@ void Bellicosity::evaluate() {
 		// Included in other branches, and we never itch for nuclear war
 		if(mb == CAVALRY || mb == LOGISTICS || mb == NUCLEAR)
 			continue;
-		deltaLostPow += m->lostPower(theyId, mb) - 0.75 * m->lostPower(weId, mb);
+		double ourLostPow = m->lostPower(weId, mb);
+		/*  If they lose much more than we do, chances are that a third party is
+			causing this. And don't want a warlike AI to attack a weak civ just
+			for sport. */
+		deltaLostPow += std::min(2.35 * ourLostPow,
+				m->lostPower(theyId, mb)) - 0.75 * ourLostPow;
 		if(mb != HOME_GUARD) // Not tracked by cache, and not really relevant here
 			presentAggrPow += ourCache->getPowerValues()[mb]->power();
 	}

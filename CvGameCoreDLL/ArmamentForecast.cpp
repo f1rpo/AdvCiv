@@ -390,7 +390,7 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 				units decreases. Factoring in the typical cargo capacity also
 				makes the code robust against XML changes to cargo capacities. */
 					1.0 / typicalCargo);
-			if(!defensive && intensity > NORMAL)  {
+			if(!defensive && intensity > NORMAL && civ.getCurrentEra() > 0)  {
 				/*  Need to assume more naval build-up if 'civ' hardly has any
 					navy; otherwise, the AI may assume that a naval assault is
 					hopeless. */

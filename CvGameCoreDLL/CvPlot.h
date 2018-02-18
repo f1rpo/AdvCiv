@@ -158,7 +158,9 @@ public:
 	bool isHasPathToEnemyCity( TeamTypes eAttackerTeam, bool bIgnoreBarb = true );
 	bool isHasPathToPlayerCity( TeamTypes eMoveTeam, PlayerTypes eOtherPlayer = NO_PLAYER );
 	int calculatePathDistanceToPlot( TeamTypes eTeam, CvPlot* pTargetPlot,
-			TeamTypes eTargetTeam = NO_TEAM, DomainTypes dom = NO_DOMAIN); // advc.104b
+			// <advc.104b>
+			TeamTypes eTargetTeam = NO_TEAM, DomainTypes dom = NO_DOMAIN,
+			int iMaxPath = -1); // </advc.104b>
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/

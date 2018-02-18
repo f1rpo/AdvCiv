@@ -152,6 +152,7 @@ friend class Node;
 		 bool isSneakAttack(Node const& other) const;
 		 bool isContinuedWar(Node const& other) const;
 		 bool canReachByLand(int cityId) const;
+		 CvArea* clashArea(PlayerTypes otherId) const;
 
 		 std::vector<WarAndPeaceCache::City const*> conquests;
 		 std::set<int> losses; // WarAndPeaceCache::City IDs

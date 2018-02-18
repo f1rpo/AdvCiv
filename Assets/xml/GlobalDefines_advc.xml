@@ -499,20 +499,19 @@
 	<!-- [advc.099b]
 	     Each round, the tile culture value of each player (civ and barbarian)
 		 is decreased by this permillage. 0 to disable decay.
-		 (Will also have to set EXCLUSIVE_RADIUS_DECAY=0 to disable decay in
+		 (Will also have to set CITY_RADIUS_DECAY=0 to disable decay in
 		 foreign city radi.)
 		 Recommended: 10 (1% decay). -->
 	<Define>
 		<DefineName>TILE_CULTURE_DECAY_PER_MILL</DefineName>
 		<iDefineIntVal>10</iDefineIntVal>
 	</Define>
-	<!-- Per-mill decay rate of foreign culture on tiles that are only within
-		 the city radius of the city owner. The value gets doubled for tiles in
-		 the inner radius. Set to 0 to have foreign culture decay normally.
-		Recommended: 25 -->
+	<!-- Per-mill decay rate of foreign culture on tiles within a city radius.
+		 The value gets doubled for tiles in the inner radius. Set to 0 to have
+		 foreign culture decay normally. Recommended: 20 -->
 	<Define>
-		<DefineName>EXCLUSIVE_RADIUS_DECAY</DefineName>
-		<iDefineIntVal>25</iDefineIntVal>
+		<DefineName>CITY_RADIUS_DECAY</DefineName>
+		<iDefineIntVal>20</iDefineIntVal>
 	</Define>
 	
 	<!-- [advc.300]
@@ -876,8 +875,8 @@
 	<!-- [advc.035] If set to 1, tiles that are only within the
 		 radius of one city belong to the owner of that city regardless of
 		 culture. Recommended: 0 (ownership determined only by
-		 culture range and tile culture as in BtS). Rather set
-		 EXCLUSIVE_RADIUS_DECAY -->
+		 culture range and tile culture as in BtS). Rather increase
+		 CITY_RADIUS_DECAY. -->
 	<Define>
 		<DefineName>OWN_EXCLUSIVE_RADIUS</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>

@@ -1579,7 +1579,7 @@ class CvVictoryScreen:
 		if (CyGame().isDebugMode()):
 			self.szDropdownName = self.DEBUG_DROPDOWN_ID
 			screen.addDropDownBoxGFC(self.szDropdownName, 22, 12, 300, WidgetTypes.WIDGET_GENERAL, -1, -1, FontTypes.GAME_FONT)
-			for j in range(gc.getMAX_PLAYERS()):
+			for j in range(gc.getMAX_CIV_PLAYERS()): # advc.007: barbs excluded
 				if (gc.getPlayer(j).isAlive()):
 					screen.addPullDownString(self.szDropdownName, gc.getPlayer(j).getName(), j, j, False )
 		

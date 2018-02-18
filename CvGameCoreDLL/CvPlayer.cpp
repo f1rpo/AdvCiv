@@ -2581,8 +2581,16 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	if (bUpdatePlotGroups)
 	{
 		GC.getGameINLINE().updatePlotGroups();
-	}
-
+	} // <advc.104>
+	if(getWPAI.isEnabled() || getWPAI.isEnabled(true)) {
+		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+			CvPlayerAI& civ = GET_PLAYER((PlayerTypes)i);
+			if(civ.isAlive()) {
+				civ.warAndPeaceAI().getCache().reportCityOwnerChanged(
+						pNewCity, eOldOwner);
+			}
+		}
+	} // </advc.104>
 	CvEventReporter::getInstance().cityAcquired(eOldOwner, getID(), pNewCity, bConquest, bTrade);
 
 /************************************************************************************************/

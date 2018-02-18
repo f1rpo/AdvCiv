@@ -2488,7 +2488,10 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 			!m.plotINLINE(node->m_iX, parent->m_iY)->isWater())
 		return FALSE;
 	TeamTypes ePlotTeam = pNewPlot->getTeam();
-	std::vector<int> v = *((std::vector<int> *)pointer);
+	int* v = (int*)pointer;
+	int iMaxPath = v[5];
+	if(iMaxPath > 0 && node->m_iHeuristicCost + node->m_iKnownCost > iMaxPath)
+		return FALSE;
 	TeamTypes eTeam = (TeamTypes)v[0];
 	TeamTypes eTargetTeam = (TeamTypes)v[1];
 	DomainTypes dom = (DomainTypes)v[2];

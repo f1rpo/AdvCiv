@@ -96,6 +96,7 @@ public:
 	void reportUnitCreated(CvUnitInfo const& u);
 	void reportUnitDestroyed(CvUnitInfo const& u);
 	void reportWarEnding(TeamTypes enemyId);
+	void reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId);
 	/*  Would prefer to pass a CvDeal object, but no suitable one is available
 		at the call location */
 	void reportSponsoredWar(CLinkList<TradeData> const& sponsorship,

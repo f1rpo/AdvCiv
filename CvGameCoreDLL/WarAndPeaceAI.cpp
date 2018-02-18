@@ -97,10 +97,14 @@ int WarAndPeaceAI::maxLandDist() const {
 int WarAndPeaceAI::maxSeaDist() const {
 
 	CvWorldInfo const& wi = GC.getWorldInfo(GC.getMapINLINE().getWorldSize());
+	int r = 15;
 	// That's true for Large and Huge maps
 	if(wi.getGridWidth() > 100 || wi.getGridHeight() > 100)
-		return 20;
-	return 15;
+		r = 20;
+	CvMap const& m = GC.getMapINLINE();
+	if(!m.isWrapXINLINE() && !m.isWrapYINLINE())
+		r = (r * 6) / 5;
+	return r;
 }
 
 bool WarAndPeaceAI::isUpdated() const {

@@ -3230,7 +3230,7 @@ bool CvPlot::isHasPathToPlayerCity( TeamTypes eMoveTeam, PlayerTypes eOtherPlaye
 	b/c it didn't seem to work at all until I changed the GetLastNode call
 	at the end. */
 int CvPlot::calculatePathDistanceToPlot( TeamTypes eTeam, CvPlot* pTargetPlot,
-		TeamTypes eTargetTeam, DomainTypes dom) // advc.104b
+		TeamTypes eTargetTeam, DomainTypes dom, int iMaxPath) // advc.104b
 {
 	PROFILE_FUNC();
 
@@ -3245,14 +3245,15 @@ int CvPlot::calculatePathDistanceToPlot( TeamTypes eTeam, CvPlot* pTargetPlot,
 
 	// Imitate instatiation of irrigated finder, pIrrigatedFinder
 	// Can't mimic step finder initialization because it requires creation from the exe
-	/*  <advc.104b> vector type changed to int; dom, eTargetTeam (instead of
-		NO_TEAM) and target coordinates added */
-	std::vector<int> teamVec;
-	teamVec.push_back(eTeam);
-	teamVec.push_back(eTargetTeam);
-	teamVec.push_back(dom);
-	teamVec.push_back(pTargetPlot->getX_INLINE());
-	teamVec.push_back(pTargetPlot->getY_INLINE()); // </advc.104b>
+	/*  <advc.104b> vector type changed to int[]; dom, eTargetTeam (instead of
+		NO_TEAM), iMaxPath and target coordinates added */
+	int teamVec[6] = {0};
+	teamVec[0] = eTeam;
+	teamVec[1] = eTargetTeam;
+	teamVec[2] = dom;
+	teamVec[3] = pTargetPlot->getX_INLINE();
+	teamVec[4] = pTargetPlot->getY_INLINE();
+	teamVec[5] = iMaxPath; // </advc.104b>
 	FAStar* pTeamStepFinder = gDLL->getFAStarIFace()->create();
 	gDLL->getFAStarIFace()->Initialize(pTeamStepFinder,
 			GC.getMapINLINE().getGridWidthINLINE(), 
@@ -3262,7 +3263,7 @@ int CvPlot::calculatePathDistanceToPlot( TeamTypes eTeam, CvPlot* pTargetPlot,
 			// advc.104b: Plugging in _advc functions
 			stepDestValid_advc, stepHeuristic, stepCost, teamStepValid_advc, stepAdd,
 			NULL, NULL);
-	gDLL->getFAStarIFace()->SetData(pTeamStepFinder, &teamVec);
+	gDLL->getFAStarIFace()->SetData(pTeamStepFinder, teamVec);
 	FAStarNode* pNode;
 
 	int iPathDistance = -1;
@@ -5399,7 +5400,7 @@ bool CvPlot::isContestedByRival(PlayerTypes rivalId) const {
 				TEAMREF(firstOwner).getMasterTeam() !=
 				TEAMREF(secondOwner).getMasterTeam();
 	} // <advc.099b>
-	else if(GC.getEXCLUSIVE_RADIUS_DECAY() > 0) {
+	else if(GC.getCITY_RADIUS_DECAY() > 0) {
 		if(firstOwner == rivalId) // No longer contested; they own it.
 			return false;
 		int totalCulture = countTotalCulture();
@@ -9142,38 +9143,43 @@ void CvPlot::doCulture() {
 void CvPlot::doCultureDecay() {
 
 	PROFILE_FUNC();
-	int const exclDecay = GC.getEXCLUSIVE_RADIUS_DECAY();
-	PlayerTypes exclOwner = NO_PLAYER;
-	int exclOwnerCulture = -1;
-	int dist = -1;
-	if(exclDecay > 0 && isOwned()) {
-		for(int i = 0; i < MAX_PLAYERS; i++) {
-			CvPlayer const& pl = GET_PLAYER((PlayerTypes)i);
-			if(!pl.isAlive())
+	bool inRadius[MAX_CIV_PLAYERS] = {false};
+	bool inAnyRadius = false;
+	int maxRadiusCulture = 0;
+	int minDist = 10;
+	if(isOwned() && !isCity()) {
+		for(int i = 0; i < NUM_CITY_PLOTS; i++) {
+			CvPlot* pp = ::plotCity(getX_INLINE(), getY_INLINE(), i);
+			if(pp == NULL) continue; CvPlot& p = *pp;
+			if(!p.isCity())
 				continue;
-			int excl = exclusiveRadius(pl.getID());
-			if(excl >= 0) {
-				dist = excl;
-				exclOwner = pl.getID();
-				exclOwnerCulture = getCulture(exclOwner);
-				break;
+			PlayerTypes const cityOwnerId = p.getOwnerINLINE();
+			if(cityOwnerId != NO_PLAYER && cityOwnerId != BARBARIAN_PLAYER) {
+				minDist = std::min(minDist, ::plotDistance(&p, this));
+				maxRadiusCulture = std::max(maxRadiusCulture,
+						getCulture(cityOwnerId));
+				inRadius[cityOwnerId] = true;
+				inAnyRadius = true;
 			}
 		}
 	}
+	int const exclDecay = GC.getCITY_RADIUS_DECAY();
 	for(int i = 0; i < MAX_PLAYERS; i++) {
-		PlayerTypes plId = (PlayerTypes)i;
-		if(!GET_PLAYER(plId).isEverAlive())
+		PlayerTypes civId = (PlayerTypes)i;
+		if(!GET_PLAYER(civId).isEverAlive())
 			continue;
 		int decayPerMill = GC.getTILE_CULTURE_DECAY_PER_MILL();
-		int culture = getCulture(plId);
-		if(plId != exclOwner && dist >= 0 && culture >= exclOwnerCulture) {
-			if(dist <= 2)
+		int culture = getCulture(civId);
+		if(inAnyRadius && !inRadius[i] &&
+				// Times 0.95 to avoid ownership oscillation
+				culture > 0.95 * maxRadiusCulture) {
+			if(minDist <= 2)
 				decayPerMill += exclDecay;
-			if(dist <= 1)
+			if(minDist <= 1)
 				decayPerMill += exclDecay;
 		}
 		culture -= (culture * decayPerMill) / 1000;
-		setCulture(plId, culture, false, false);
+		setCulture(civId, culture, false, false);
 	}
 } // </advc.099b>
 
