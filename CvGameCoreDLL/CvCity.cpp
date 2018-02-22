@@ -10696,7 +10696,10 @@ void CvCity::doFoundMessage()
 			NULL, NO_COLOR, getX_INLINE(), getY_INLINE());
 
 	szBuffer = gDLL->getText("TXT_KEY_MISC_CITY_IS_FOUNDED", getNameKey());
-	GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_CITY_FOUNDED, getOwnerINLINE(), szBuffer, getX_INLINE(), getY_INLINE(), (ColorTypes)GC.getInfoTypeForString("COLOR_ALT_HIGHLIGHT_TEXT"));
+	GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_CITY_FOUNDED, getOwnerINLINE(), szBuffer, getX_INLINE(), getY_INLINE(),
+			//(ColorTypes)GC.getInfoTypeForString("COLOR_ALT_HIGHLIGHT_TEXT")
+			// advc.106: Use ALT_HIGHLIGHT for research-related stuff now
+			GET_PLAYER(getOwnerINLINE()).getPlayerTextColor());
 }
 
 
@@ -16331,7 +16334,7 @@ int CvCity::calculateNumCitiesMaintenanceTimes100(CvPlot* cityPlot,
 }
 
 int CvCity::calculateColonyMaintenanceTimes100(CvPlot* cityPlot, PlayerTypes owner,
-		int population) {
+		int population, int extraCities) {
 
 	/* <advc.004b><advc.104> Copied from the original function of the same name
 	   and plugged in the parameters. No functional change. */
@@ -16362,7 +16365,8 @@ int CvCity::calculateColonyMaintenanceTimes100(CvPlot* cityPlot, PlayerTypes own
 	iNumCitiesPercent *= GC.getHandicapInfo(ownerHandicap).getColonyMaintenancePercent();
 	iNumCitiesPercent /= 100;
 
-	int iNumCities = (cityArea->getCitiesPerPlayer(owner) - 1) * iNumCitiesPercent;
+	int iNumCities = (cityArea->getCitiesPerPlayer(owner) - 1
+			+ extraCities) * iNumCitiesPercent;
 	
 	int iMaintenance = (iNumCities * iNumCities) / 100;
 

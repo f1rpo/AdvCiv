@@ -59,6 +59,20 @@ try:
 finally:
 	sys.stderr = stderr
 
+# <advc.004y> Source: see manual
+MOD_OPTION_SEP = "__"
+def makeOptionId(modId, optionId):
+	"""Concatenates the mod and option ID with a separator of the option ID
+	doesn't already have one.
+	
+	Returns a fully qualified option ID.
+	"""
+	if optionId is not None and modId is not None:
+		if optionId.find(MOD_OPTION_SEP) == -1:
+			return modId + MOD_OPTION_SEP + optionId
+	return optionId
+# </advc.004y>
+
 class ConfigParser(xmllib.XMLParser):
 	
 	def __init__(self):

@@ -23,7 +23,7 @@
 ##
 
 
-# advc.021b: Made some changes myself and ported some from the Totestra version included in Civ 4 Reimagined. The changes just remove/ bypass code and set parameters; the mathy parts are unchanged.
+# advc.021b: Made some changes myself and ported some from the Totestra version included in Civ 4 Reimagined. The changes mostly remove/ bypass code and set parameters.
 
 
 
@@ -260,22 +260,23 @@ class MapConstants:
 		# Factor to modify mc.landPercent by if a Low or High Sea Level is chosen
 		#self.SeaLevelFactor = 1.5
 		# advc.021b: Moving this setting up and replacing it with a separate one for low and high sea level. Not getting the land ratios I want with just one.
-		self.LoSeaLevelFactor = 1.26
-		self.HiSeaLevelFactor = 0.69
+		# Aiming at around 18% land at high sea level, 25% at medium sea level and 32% at low sea level. This is higher than Fractal, which has about 15/20/29, but the land shapes produced by PM look too delicate with the Fractal ratios. I think PM also produces more marginal or unusable land than Fractal. Ultimately, the goal is to support exactly the same number of players as Fractal for all combinations of map settings.
+		self.LoSeaLevelFactor = 1.25
+		self.HiSeaLevelFactor = 0.72
 
 		#Percent of land vs. water
 		#LM - Exact Real Earth Value. Actual generated results are in the 24-31% range
 		#depending on map size, meteors, and which landmass generator was selected.
 		#self.landPercent   = 0.2889
-		# advc.021b: As is hinted at by the comments above, this isn't the final land ratio; no need to cling to the real-Earth ratio. Gets further modified in initInGameOptions.
-		self.landPercent = 0.295
+		# advc.021b: See comments about sea level above. Gets further modified in initInGameOptions.
+		self.landPercent = 0.253
 
 		#Percentage of land squares high enough to be Hills or Peaks.
-		self.HillPercent   = 0.29 # advc.021b: was 42
+		self.HillPercent   = 0.30 # advc.021b: was 42
 
 		#Percentage of land squares high enough to be Peaks.
 		# advc.021b: was 0.12
-		self.PeakPercent   = 0.035
+		self.PeakPercent   = 0.045
 
 		#Percentage of land squares cold enough to be Snow.
 		self.SnowPercent   = 0.08 # advc.021b: was 0.15
@@ -287,8 +288,8 @@ class MapConstants:
 		#Of the squares too warm to be Snow or Tundra, percentage dry enough to be Desert.
 		#(Use the first number to set the percent of TOTAL land area. I'm using 18%, while the
 		#Google Consensus for a Real Earth Desert Value seems to be 20%.)
-		# advc.021b: I'm using 15%
-		self.DesertPercent = 0.15 / (1.0 - self.TundraPercent)
+		# advc.021b: I'm using 16%
+		self.DesertPercent = 0.16 / (1.0 - self.TundraPercent)
 
 		#Of the squares too warm to be Snow or Tundra, percentage dry enough to be Desert or Plains.
 		#The remainder will be Grassland. (This code auto-sets Plains and Grassland to be equal.)
@@ -388,10 +389,10 @@ class MapConstants:
 
 		#The following values are used for assigning starting locations. For now,
 		#they have the same ratio that is found in CvPlot::getFoundValue
-		# <advc.021b> Was 20/40/10, which sounds crazy. Using the values from Civ 4 Reimagined instead.
+		# <advc.021b> Was 20/40/10. Using the values from Civ 4 Reimagined instead, except for food, now valued at 23 (40 in Civ 4 Reimagined). Don't want to rule out steppe starts when there isn't enough room elsewhere. Let the normalization code worry about lack of food.
 		self.CommerceValue   = 15
 		self.ProductionValue = 30
-		self.FoodValue       = 40
+		self.FoodValue       = 23
 		# </advc.021b>
 
 		#Coastal cities are important, how important is determined by this
@@ -722,7 +723,7 @@ class MapConstants:
 			self.hmWidth += 1
 		# New World Rules
 		if mmap.getCustomMapOption(1) == 1:
-			# advc.021b: Was "= not self.AllowNewWorld", which I found confusing.
+			# advc: Was "= not self.AllowNewWorld", which I found confusing.
 			self.AllowNewWorld = True
 		self.optionsString = "Map Options:\n"
 		#if self.LandmassGenerator == 0:
@@ -756,9 +757,9 @@ class MapConstants:
 			string = "False"
 		self.optionsString += "Allow New World = " + string + "\n"
 
+		self.northAttenuationRange  = 0.1
 		# Avoid elongated Antarctica; likelier to occur when land ratio is high
 		seaChg = gc.getSeaLevelInfo(mmap.getSeaLevel()).getSeaLevelChange()
-		self.northAttenuationRange  = 0.1
 		if seaChg < 0:
 			self.northAttenuationFactor = 0.2
 		else:
@@ -767,23 +768,21 @@ class MapConstants:
 		self.southAttenuationFactor = self.northAttenuationFactor
 		# Between 0 (Duel) and 5 (Huge)
 		worldSz = mmap.getWorldSize()
-		# The actual land ratios seem to increase with world size, but I want them to depend only on the sea level setting.
-		# Values set through trial and error, aiming at around 18% land at high sea level, 24% at medium sea level and 30% at low sea level. This is higher than Fractal, which has about 15/20/29, but the land shapes produced by PM look too delicate with the Fractal ratios. I think PM also produces more marginal or unusable land than Fractal. Ultimately, the goal is to support exactly the same number of players as Fractal for all combinations of map settings.
+		# I'm somehow getting a bit more land than configured on Duel and Tiny, and resources are also denser on these maps, leading to more cities per player than I'd like.
 		delta = 0.0
 		if worldSz == 0:
-			delta = 0.45
+			delta = -0.02
 		elif worldSz == 1:
-			delta = 0.03
-		elif worldSz == 2:
-			delta = 0.044
-		elif worldSz >= 4:
-			delta = -0.017
+			delta = -0.01
 		self.landPercent += delta
 		if mc.AllowNewWorld:
-			# advc.021b: Now only best-effort. Ideally, if it fails, nearly as much land should be removed as would've been in the New World, so that the player count is still balanced.
-			self.maximumMeteorCount = 3 * (worldSz + 2)
+			# Far fewer than the 15 in PerfectMongoose. Now only a best effort.
+			self.maximumMeteorCount = 2 * (worldSz - 1)
+			if seaChg < 0:
+				self.maximumMeteorCount = self.maximumMeteorCount + 1
+			self.maximumMeteorCount = max(1, self.maximumMeteorCount)
 		else:
-			maximumMeteorCount = 0
+			self.maximumMeteorCount = 0
 		# </advc.021b>
 
 mc = MapConstants()
@@ -3197,7 +3196,7 @@ class TerrainMap:
 			diffMap.append(0.0)
 		#I tried using a deviation from surrounding average altitude
 		#to determine hills and peaks but I didn't like the
-		#results. Therefore I an using lowest neighbor
+		#results. Therefore I am using lowest neighbor
 		for y in range(mc.height):
 			for x in range(mc.width):
 				i = em.GetIndex(x, y)
@@ -3343,11 +3342,17 @@ class PangaeaBreaker:
 		meteorCount = 0
 		while not mc.AllowPangeas and self.isPangea() and meteorCount < mc.maximumMeteorCount:
 			pangeaDetected = True
-			x, y = self.getMeteorStrike()
-			print "A meteor has struck the Earth at %(x)d, %(y)d!!" % {"x":x,"y":y}
-			self.castMeteorUponTheEarth(x, y)
-			meteorThrown = True
+			# <advc.021b> Moved up
 			meteorCount += 1
+			if True: # </advc.021b>
+				x, y = self.getMeteorStrike()
+				print "A meteor has struck the Earth at %(x)d, %(y)d!!" % {"x":x,"y":y}
+				self.castMeteorUponTheEarth(x, y)
+				meteorThrown = True
+			# <advc.021b> I've tried raising the seas here. Didn't work well at all.
+			else:
+				em.seaLevelThreshold *= 1.03
+			# </advc.021b>
 			self.createDistanceMap()
 			self.areaMap.defineAreas(isHmWaterMatch)
 		if meteorThrown:
@@ -3373,7 +3378,8 @@ class PangaeaBreaker:
 		continentList.sort(lambda x, y:cmp(x.size, y.size))
 		continentList.reverse()
 		biggestSize = continentList[0].size
-		if 0.70 < float(biggestSize) / float(totalLand):
+		# advc.021b: was 0.7<...
+		if 0.73 < float(biggestSize) / float(totalLand):
 			return True
 		return False
 
@@ -3484,7 +3490,7 @@ class PangaeaBreaker:
 			em = e2
 		else:
 			em = e3
-		radius = PRand.randint(mc.minimumMeteorSize, max(mc.minimumMeteorSize + 1, em.width / 16))
+		radius = PRand.randint(mc.minimumMeteorSize, max(mc.minimumMeteorSize + 1, 2 * mc.minimumMeteorSize)) #,em.width / 16)) # advc.021b
 		circlePointList = self.getCirclePoints(x, y, radius)
 		circlePointList.sort(lambda n, m:cmp(n.y, m.y))
 		for n in range(0, len(circlePointList), 2):
@@ -3495,10 +3501,11 @@ class PangaeaBreaker:
 			else:
 				x2 = circlePointList[n].x
 				x1 = circlePointList[n + 1].x
-			self.drawCraterLine(x1, x2, cy)
+			# <advc.021b> params centerX, centerY added
+			self.drawCraterLine(x1, x2, cy, x, y)
 
 
-	def drawCraterLine(self, x1, x2, y):
+	def drawCraterLine(self, x1, x2, y, centerX, centerY): # </advc.021b>
 		if mc.LandmassGenerator == 2:
 			em = e2
 		else:
@@ -3507,7 +3514,8 @@ class PangaeaBreaker:
 			return
 		for x in range(x1, x2 + 1):
 			i = GetHmIndex(x, y)
-			em.data[i] = 0.0
+			# advc.021b: was em.data[i]=0.0, which seems to lead to coastal Peaks
+			em.data[i] *= min(0.88,0.37+math.sqrt((x-centerX)*(x-centerX)+(y-centerY)*(y-centerY))/7.0)
 
 
 	def getCirclePoints(self, xCenter, yCenter, radius):
@@ -3594,7 +3602,7 @@ class PangaeaBreaker:
 					indexMap.append(-1)
 		n = 0
 		for s in C:
-			#Check 4 nieghbors
+			#Check 4 neighbors
 			xx = s.x - gap
 			if xx < 0:
 				xx = em.width / (gap * gap)
@@ -3752,9 +3760,15 @@ class ContinentMap:
 		continentList.sort(lambda x, y:cmp(x.ID, y.ID))
 		continentList.reverse()
 		for n in range(len(continentList)):
+			# <advc.021b> Small land masses are no use for the Old World b/c civs can't start there
+			if continentList[0].size < 50:
+				continentList.append(continentList[0])
+				del continentList[0]
+				continue # </advc.021b>
 			oldWorldSize += continentList[0].size
 			del continentList[0]
-			if float(oldWorldSize) / float(totalLand) > 0.6:
+			# Was > 0.6. A larger Old World plays better, while the true ratio (Africa+Eurasia)/(Africa+EurasiaAmerica+Oceania) is indeed just 62.5%. Use randomness to make a realistic size possible but rather unlikely.
+			if float(oldWorldSize) / float(totalLand) > (60 + PRand.randint(0, 9)) / 100.0:
 				break
 		#add back the biggestNewWorld continent
 		continentList.append(biggestNewWorld)
@@ -4506,8 +4520,18 @@ class StartingPlotFinder:
 					del player_list[iChoosePlayer]
 			self.startingAreaList = list()
 			for i in range(len(areas)):
-				# advc.021b: Second clause was >5; now as in Civ 4 Reimagined.
-				if areaOldWorld[i] and areas[i].getNumTiles() > 45:
+				# <advc.021b>
+				tileThresh = 40
+				gc = CyGlobalContext()
+				sea = gc.getSeaLevelInfo(gc.getMap().getSeaLevel()).getSeaLevelChange()
+				if sea < 0:
+					tileThresh *= mc.LoSeaLevelFactor
+				elif sea > 0:
+					tileThresh *= mc.HiSeaLevelFactor
+					if gc.getMap().getWorldSize() <= 0:
+						tileThresh *= 0.7
+				# Second clause was getNumTiles()>5 (>45 in Civ 4 Reimagined)
+				if areaOldWorld[i] and areas[i].getNumHabitableTiles() > tileThresh: # </advc.021b>
 					startArea = StartingArea(areas[i].getID())
 					self.startingAreaList.append(startArea)
 			#Get the value of the whole old world
@@ -4759,7 +4783,7 @@ class StartingPlotFinder:
 		if not coastalCity and plot.isWater():
 			# advc.021b: Was =0; now as in Civ 4 Reimagined. Totestra also sets food=0; not sure if I should adopt that too.
 			value -= 300
-		#Food surplus makes the square much more valueable than if there is no food here.
+		#Food surplus makes the square much more valuable than if there is no food here.
 		if food >= gc.getFOOD_CONSUMPTION_PER_POPULATION():
 			value *= 4
 		elif food == gc.getFOOD_CONSUMPTION_PER_POPULATION() - 1:
@@ -5059,11 +5083,27 @@ class StartingArea:
 		#Sort plots by local value
 		self.plotList.sort(lambda x, y: cmp(x.localValue, y.localValue))
 		#To save time and space let's get rid of some of the lesser plots
-		cull = (len(self.plotList) * 2) / 3
+		#cull = (len(self.plotList) * 2) / 3
+		# <advc.021b> Cull fewer tiles b/c start plots are getting placed too close to each other. If too few are culled, however, civs start in the middle of a continent too rarely.
+		newWorldSubtr = 0
+		# The more crowded the map, the fewer the tiles we can afford to rule out.
+		if mc.AllowNewWorld:
+			newWorldSubtr = 1
+		civs = max(1, gc.getGame().countCivPlayersEverAlive())
+		seaLevelAdj = 0.0
+		seaChg = gc.getSeaLevelInfo(gameMap.getSeaLevel()).getSeaLevelChange()
+		if seaChg < 0:
+			seaLevelAdj = 0.5
+		elif seaChg > 0:
+			seaLevelAdj = -0.5
+		cull = max(0, int(round(len(self.plotList) * (0.25  + (gameMap.getWorldSize() - newWorldSubtr + seaLevelAdj) / (2.0 * civs)))))
+		# </advc.021b>
 		for i in range(cull):
 			del self.plotList[0]
 		#You now should be able to eliminate more plots by sorting high to low and
 		#having the best plot eat plots within 3 squares, then same for next, etc.
+		# advc.021b: A variable for these 3 squares; and make it 5, not 3.
+		elimDist = 5
 		self.plotList.reverse()
 		numPlots = len(self.plotList)
 		for n in range(numPlots):
@@ -5073,8 +5113,8 @@ class StartingArea:
 				break
 			y = self.plotList[n].y
 			x = self.plotList[n].x
-			for yy in range(y - 3, y + 4):
-				for xx in range(x - 3, x + 4):
+			for yy in range(y - elimDist, y + elimDist + 1):
+				for xx in range(x - elimDist, x + elimDist + 1):
 					if yy < 0 or yy >= mc.height:
 						continue
 					xx = xx % mc.width #wrap xx
@@ -5413,9 +5453,10 @@ def getBottomLatitude():
 
 
 def getGridSize(argsList):
-	# <advc.021b> Could use the defaults (10x6,13x8,16x10,21x13,26x16,32x20) by uncommenting the two lines below.
-	#CyPythonMgr().allowDefaultImpl()
-	#return
+	# <advc.021b> Use the defaults (10x6,13x8,16x10,21x13,26x16,32x20), which are smaller, combined with a higher land ratio.
+	CyPythonMgr().allowDefaultImpl()
+	return
+	# At first, I had tried these sizes in between the default and PerfectMongoose:
 	grid_sizes = {
 		# was 12x8
 		WorldSizeTypes.WORLDSIZE_DUEL:					(13,  8),
@@ -5443,7 +5484,8 @@ def generatePlotTypes():
 	mc.height = map.getGridHeight()
 	PRand.seed()
 	if mc.LandmassGenerator == 2:
-		mc.minimumMeteorSize = (1 + int(round(float(mc.hmWidth) / float(mc.width)))) * 2 # advc.021b: Final multiplier was 3
+		# advc.021b, advc.001: Was hmWidth/width, but hmWidth is a constant (144), and meteor size should grow with the map size. E.g. Standard map size means width=84.
+		mc.minimumMeteorSize = 1 + int(round((2.0 * mc.width) / float(mc.hmWidth))) # advc.021b: Coefficient moved into numerator; was 3.
 		em = e2
 		em.initialize(mc.hmWidth, mc.hmHeight, mc.WrapX, mc.WrapY)
 		em.PerformTectonics()
@@ -5456,19 +5498,21 @@ def generatePlotTypes():
 		em = e3
 		if mc.ClimateSystem == 0:
 			em.initialize(mc.width,   mc.height,   mc.WrapX, mc.WrapY)
-		else:
-			mc.minimumMeteorSize = (1 + int(round(float(mc.hmWidth) / float(mc.width)))) * 3
+		else: 
+			# advc.021b: See above
+			mc.minimumMeteorSize = 1 + int(round((2.0 * mc.width) / float(mc.hmWidth))) # advc.021b
 			em.initialize(mc.hmWidth, mc.hmHeight, mc.WrapX, mc.WrapY)
 		em.GenerateElevationMap()
 		em.FillInLakes()
-	pb.breakPangaeas()
+	if mc.maximumMeteorCount > 0: # advc.021b
+		pb.breakPangaeas()
 	if mc.ClimateSystem == 0:
 		c3.GenerateTemperatureMap()
 		c3.GenerateRainfallMap()
 	else:
 		c2.CreateClimateMaps()
-	if mc.LandmassGenerator == 2 or mc.ClimateSystem == 1:
-		ShrinkMaps()
+	#if mc.LandmassGenerator == 2 or mc.ClimateSystem == 1:
+		#ShrinkMaps()
 	tm.initialize()
 	tm.GeneratePlotMap()
 	tm.GenerateTerrainMap()
@@ -6020,12 +6064,7 @@ def addBonuses():
 
 
 def assignStartingPlots():
-	# <advc.021b> Use StartingPlotFinder only if the New World needs to be exempted
-	if mc.AllowNewWorld:
-		sf.SetStartingPlots()
-	else:
-		CyPythonMgr().allowDefaultImpl()
-	# </advc.021b>
+	sf.SetStartingPlots()
 
 
 def beforeInit():

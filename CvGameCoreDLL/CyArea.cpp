@@ -204,3 +204,12 @@ int CyArea::getNumImprovements(int /*ImprovementTypes*/ eImprovement)
 {
 	return m_pArea ? m_pArea->getNumImprovements( (ImprovementTypes)eImprovement) : -1;
 }
+
+// <advc.021b>
+int CyArea::getNumHabitableTiles() {
+
+	if(m_pArea == NULL)
+		return -1;
+	std::pair<int,int> r = m_pArea->countOwnedUnownedHabitableTiles();
+	return r.first + r.second;
+} // </advc.021b>

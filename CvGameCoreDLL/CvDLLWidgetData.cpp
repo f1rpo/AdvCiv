@@ -5998,9 +5998,13 @@ CvWString CvDLLWidgetData::getFoundCostText(CvPlot* p, PlayerTypes ownerId)
 	int deltaMaintOther = 0; int dummy;
 	for(CvCity* c = owner.firstCity(&dummy); c != NULL; c = owner.nextCity(&dummy)) {
 		int current = CvCity::calculateNumCitiesMaintenanceTimes100(
-				c->plot(), ownerId, c->getPopulation());
+				c->plot(), ownerId, c->getPopulation()) +
+				CvCity::calculateColonyMaintenanceTimes100(c->plot(),
+				ownerId, c->getPopulation());
 		int projected = CvCity::calculateNumCitiesMaintenanceTimes100(
-				c->plot(), ownerId, c->getPopulation(), 1);
+				c->plot(), ownerId, c->getPopulation(), 1) +
+				CvCity::calculateColonyMaintenanceTimes100(c->plot(),
+				ownerId, c->getPopulation(), 1);
 		int delta = projected - current;
 		/* Reduced maintenance from buildings isn't considered by the above
 	       functions. Using a snippet from CvCity::updateMaintenance: */

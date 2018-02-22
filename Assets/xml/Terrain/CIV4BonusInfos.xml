@@ -1248,7 +1248,8 @@
 			<iPlacementOrder>5</iPlacementOrder>
 			<iConstAppearance>50</iConstAppearance>
 			<iMinAreaSize>3</iMinAreaSize>
-			<iMinLatitude>0</iMinLatitude>
+			<!-- advc.021b: was 0 -->
+			<iMinLatitude>35</iMinLatitude>
 			<iMaxLatitude>90</iMaxLatitude>
 			<Rands>
 				<iRandApp1>25</iRandApp1>
@@ -1263,7 +1264,8 @@
 			<iGroupRange>1</iGroupRange>
 			<iGroupRand>50</iGroupRand>
 			<bArea>1</bArea>
-			<bHills>1</bHills>
+			<!-- advc.021b: was 1 -->
+			<bHills>0</bHills>
 			<bFlatlands>1</bFlatlands>
 			<bNoRiverSide>0</bNoRiverSide>
 			<bNormalize>1</bNormalize>

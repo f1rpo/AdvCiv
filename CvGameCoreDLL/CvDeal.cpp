@@ -99,17 +99,24 @@ void CvDeal::kill(bool bKillTeam)
 			gDLL->getInterfaceIFace()->addHumanMessage((PlayerTypes)getSecondPlayer(), true, GC.getEVENT_MESSAGE_TIME(), szString, "AS2D_DEAL_CANCELLED");
 		}
 	}
+	// <advc.036>
+	killSilent(bKillTeam);
+}
+
+void CvDeal::killSilent(bool bKillTeam, bool bUpdateAttitude) { // </advc.036>
 
 	CLLNode<TradeData>* pNode;
 
 	for (pNode = headFirstTradesNode(); (pNode != NULL); pNode = nextFirstTradesNode(pNode))
 	{
-		endTrade(pNode->m_data, getFirstPlayer(), getSecondPlayer(), bKillTeam);
+		endTrade(pNode->m_data, getFirstPlayer(), getSecondPlayer(), bKillTeam,
+				bUpdateAttitude); // advc.036
 	}
 
 	for (pNode = headSecondTradesNode(); (pNode != NULL); pNode = nextSecondTradesNode(pNode))
 	{
-		endTrade(pNode->m_data, getSecondPlayer(), getFirstPlayer(), bKillTeam);
+		endTrade(pNode->m_data, getSecondPlayer(), getFirstPlayer(), bKillTeam,
+				bUpdateAttitude); // advc.036
 	}
 
 	GC.getGameINLINE().deleteDeal(getID());
@@ -199,6 +206,7 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 		// Note: the original code didn't bump units for vassal trades. This is can erroneously allow the vassal's units to stay in the master's land.
 		// <advc.039>
 		bool bSurrender = isVassalTrade(pFirstList) || isVassalTrade(pSecondList);
+		bool bDone = false;
 		if(!bSurrender && pFirstList != NULL && pSecondList != NULL &&
 				GC.getDefineINT("ANNOUNCE_REPARATIONS") > 0) {
 			int l1 = pFirstList->getLength();
@@ -207,13 +215,15 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 			if(l1 == 1 && l2 > 1) {
 				GET_TEAM(eFirstTeam).makePeaceBulk(eSecondTeam, false, NO_TEAM,
 						false, pSecondList);
+				bDone = true;
 			}
 			else if(l2 == 1 && l1 > 1) {
 				GET_TEAM(eSecondTeam).makePeaceBulk(eFirstTeam, false, NO_TEAM,
 						false, pFirstList);
+				bDone = true;
 			}
 		}
-		else // </advc.039>
+		if(!bDone) // </advc.039>
 		// <advc.034>
 			GET_TEAM(eFirstTeam).makePeaceBulk(eSecondTeam, false, NO_TEAM,
 					bSurrender); // advc.039
@@ -604,6 +614,30 @@ bool CvDeal::isVassalTributeDeal(const CLinkList<TradeData>* pList)
 	return true;
 }
 
+/*  <advc.003> True if one side is the other side's vassal, the vassal gives
+	only resources and master gives nothing in return. */
+bool CvDeal::isVassalTributeDeal() const {
+
+	PlayerTypes vassalId = NO_PLAYER;
+	PlayerTypes masterId = NO_PLAYER;
+	CLinkList<TradeData> const* vassalGives = NULL;
+	CLinkList<TradeData> const* masterGives = NULL;
+	if(TEAMREF(getFirstPlayer()).isVassal(TEAMID(getSecondPlayer()))) {
+		vassalId = getFirstPlayer();
+		masterId = getSecondPlayer();
+		vassalGives = getFirstTrades();
+		masterGives = getSecondTrades();
+	}
+	else if(TEAMREF(getSecondPlayer()).isVassal(TEAMID(getFirstPlayer()))) {
+		vassalId = getSecondPlayer();
+		masterId = getFirstPlayer();
+		vassalGives = getSecondTrades();
+		masterGives = getFirstTrades();
+	}
+	return vassalId != NO_PLAYER && masterGives->getLength() <= 0 &&
+			CvDeal::isVassalTributeDeal(vassalGives);
+} // </advc.003>
+
 // <advc.034>
 bool CvDeal::isDisengage() const {
 
@@ -664,6 +698,12 @@ void CvDeal::setInitialGameTurn(int iNewValue)
 {
 	m_iInitialGameTurn = iNewValue;
 }
+
+// <advc.133>
+int CvDeal::getAge() const {
+
+	return GC.getGameINLINE().getGameTurn() - getInitialGameTurn();
+} // </advc.133>
 
 
 PlayerTypes CvDeal::getFirstPlayer() const
@@ -1121,7 +1161,8 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 
 // <advc.003> Refactored this function
 void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
-		PlayerTypes eToPlayer, bool bTeam) {
+		PlayerTypes eToPlayer, bool bTeam,
+		bool bUpdateAttitude) { // advc.036
 
 	bool teamTradeEnded = false; // advc.133
 	switch(trade.m_eItemType) {
@@ -1198,8 +1239,9 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
 		return; // No need to update attitude
 	// </advc.034>
 	default: FAssert(false);
-	}
-	// </advc.003>
+	} // </advc.003> <advc.036>
+	if(!bUpdateAttitude)
+		return; // </advc.036>
 	// <advc.133> (I think this is needed even w/o change 133 canceling more deals)
 	if(!teamTradeEnded)
 		GET_PLAYER(eFromPlayer).AI_updateAttitudeCache(eToPlayer);

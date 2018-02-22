@@ -3639,6 +3639,9 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 	BuildingClassTypes eBuildingClass = (BuildingClassTypes) kBuilding.getBuildingClassType();
 	int iLimitedWonderLimit = limitedWonderClassLimit(eBuildingClass);
 	bool bIsLimitedWonder = (iLimitedWonderLimit >= 0);
+	// <advc.131>
+	int totalBonusYieldMod = 0;
+	int totalImprFreeSpecialists = 0; // </advc.131>
 	// K-Mod. This new value, iPriorityFactor, is used to boost the value of productivity buildings without overvaluing productivity.
 	// The point is to get the AI to build productiviy buildings quickly, but not if they come with large negative side effects.
 	// I may use it for other adjustments in the future.
@@ -4535,6 +4538,8 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 				if (kBuilding.getImprovementFreeSpecialist(iI) > 0)
 				{
 					iValue += kBuilding.getImprovementFreeSpecialist(iI) * countNumImprovedPlots((ImprovementTypes)iI, true) * 50;
+					// advc.131:
+					totalImprFreeSpecialists += kBuilding.getImprovementFreeSpecialist(iI);
 				}
 			}
 
@@ -4856,6 +4861,8 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 					if (hasBonus((BonusTypes)iJ))
 					{
 						iTempValue += ((kBuilding.getBonusYieldModifier(iJ, iI) * iBaseRate) / 27); // originally 12
+						// advc.131:
+						totalBonusYieldMod += kBuilding.getBonusYieldModifier(iJ, iI);
 					}
 				}
 
@@ -5643,8 +5650,23 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 				iValue = iValue * (10 + iFlavour) / 10; // K-Mod. (This will give +100% for 10-10 flavour matchups.)
 			}
 		}
-	}
-
+	} // <advc.131>
+	if(kOwner.getCurrentEra() < 4 && ::isNationalWonderClass(eBuildingClass) &&
+			isCapital() && totalBonusYieldMod < 40 &&
+			totalImprFreeSpecialists <= 0 &&
+			kBuilding.getGreatGeneralRateModifier() < 40 &&
+			kBuilding.getMilitaryProductionModifier() < 40 &&
+			kBuilding.getFreeExperience() < 4) {
+		int totalCommerceMod = 0;
+		for(int i = 0; i < NUM_COMMERCE_TYPES; i++)
+			totalCommerceMod += kBuilding.getCommerceModifier(i);
+		if(totalCommerceMod < 40) {
+			int slotsLeft = getNumNationalWondersLeft();
+			FAssert(slotsLeft > 0);
+			double slotMod = std::min(1.0, 0.25 * (slotsLeft + 1));
+			iValue = ::round(iValue * slotMod);
+		}
+	} // </advc.131>
 	// constructionValue cache
 	if (bUseConstructionValueCache && !bConstCache)
 	{

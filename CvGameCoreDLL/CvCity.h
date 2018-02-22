@@ -77,7 +77,7 @@ public:
 	bool isWorldWondersMaxed() const;																							// Exposed to Python
 	bool isTeamWondersMaxed() const;																							// Exposed to Python
 	bool isNationalWondersMaxed() const;																					// Exposed to Python
-	int getNumNationalWondersLeft() const; // advc.004w
+	int getNumNationalWondersLeft() const; // advc.004w, advc.131
 	bool isBuildingsMaxed() const;																								// Exposed to Python
 
 	bool canTrain(UnitTypes eUnit, bool bContinue = false, bool bTestVisible = false, bool bIgnoreCost = false, bool bIgnoreUpgrades = false
@@ -396,7 +396,7 @@ public:
 	static int calculateNumCitiesMaintenanceTimes100(CvPlot* cityPlot,
 			PlayerTypes owner, int population = -1, int extraCities = 0);
 	static int calculateColonyMaintenanceTimes100(CvPlot* cityPlot,
-			PlayerTypes owner, int population = -1);
+			PlayerTypes owner, int population = -1, int extraCities = 0);
 	static int initialPopulation();
 	private: 
 	  static int calculateMaintenanceDistance(CvPlot* cityPlot, PlayerTypes owner);

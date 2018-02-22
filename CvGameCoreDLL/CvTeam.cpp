@@ -6140,10 +6140,11 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 
 			bReligionFounded = false;
 			bFirstBonus = false;
-
+			// advc.106:
+			bool firstToDiscover = (GC.getGameINLINE().countKnownTechNumTeams(eIndex) == 1);
 			if (bFirst)
 			{
-				if (GC.getGameINLINE().countKnownTechNumTeams(eIndex) == 1)
+				if (firstToDiscover)
 				{
 					CyArgsList argsList;
 					argsList.add(getID());
@@ -6288,7 +6289,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 			if (bFirst)
 			{
 				bool bAnnounce = false; // advc.004
-				if (GC.getGameINLINE().countKnownTechNumTeams(eIndex) == 1)
+				if (firstToDiscover)
 				{
 					eFreeUnit = GET_PLAYER(ePlayer).getTechFreeUnit(eIndex);
 					if (eFreeUnit != NO_UNIT)
@@ -6320,9 +6321,11 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 							GET_PLAYER(ePlayer).chooseTech(GC.getTechInfo(eIndex).getFirstFreeTechs(), szBuffer.GetCString());
 						}
 						// advc.004: Announcement code moved into next block
-
-						szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_FIRST_TO_TECH", GET_PLAYER(ePlayer).getReplayName(), GC.getTechInfo(eIndex).getTextKeyWide());
-						GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, ePlayer, szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+						// advc.106: Do it at the end instead
+						if(GC.getDefineINT("SHOW_FIRST_TO_DISCOVER_IN_REPLAY") <= 0) {
+							szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_FIRST_TO_TECH", GET_PLAYER(ePlayer).getReplayName(), GC.getTechInfo(eIndex).getTextKeyWide());
+							GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, ePlayer, szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+						} // advc.106
 					} // <advc.004>
 					if(bAnnounce) { // Cut, pasted, refactored from above
 						// Free GP only minor event
@@ -6486,6 +6489,17 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 					}
 				}
 			}
+			// <advc.106>
+			if(bFirst && firstToDiscover &&
+					GC.getGameINLINE().getElapsedGameTurns() > 0 &&
+					GC.getDefineINT("SHOW_FIRST_TO_DISCOVER_IN_REPLAY") > 0) {
+				szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_FIRST_TO_TECH",
+						GET_PLAYER(ePlayer).getReplayName(),
+						GC.getTechInfo(eIndex).getTextKeyWide());
+				GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT,
+						ePlayer, szBuffer, -1, -1, (ColorTypes)
+						GC.getInfoTypeForString("COLOR_ALT_HIGHLIGHT_TEXT"));
+			} // </advc.106>
 		}
 
 		if (bNewValue)

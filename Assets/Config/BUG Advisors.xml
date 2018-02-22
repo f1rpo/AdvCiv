@@ -93,7 +93,7 @@
 					get="isWonderListUsePlayerColor"/>
 
 			<!-- Sevopedia (F12) by Sevo -->
-			<!-- advc.004: Both enabled by default -->
+			<!-- advc.004y: Both enabled by default -->
 			<option id="Sevopedia" key="Sevopedia" 
 					type="boolean" default="True" 
 					get="isSevopedia"/>

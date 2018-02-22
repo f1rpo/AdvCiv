@@ -762,15 +762,16 @@ public:
 	void setParent(PlayerTypes eParent);
 	TeamTypes getMasterTeam() const; // advc.003
 	bool isAVassal() const; // advc.003
-	DllExport TeamTypes getTeam() const;																												// Exposed to Python					
-	void setTeam(TeamTypes eTeam);		
+	DllExport TeamTypes getTeam() const;																												// Exposed to Python
+	void setTeam(TeamTypes eTeam);
 	void updateTeamType();
-																																																							
-	DllExport PlayerColorTypes getPlayerColor() const;																								// Exposed to Python									
-	DllExport int getPlayerTextColorR() const;																												// Exposed to Python								
-	DllExport int getPlayerTextColorG() const;																												// Exposed to Python									
-	DllExport int getPlayerTextColorB() const;																												// Exposed to Python									
-	DllExport int getPlayerTextColorA() const;																												// Exposed to Python									
+													
+	DllExport PlayerColorTypes getPlayerColor() const;																								// Exposed to Python
+	DllExport int getPlayerTextColorR() const;																												// Exposed to Python
+	DllExport int getPlayerTextColorG() const;																												// Exposed to Python
+	DllExport int getPlayerTextColorB() const;																												// Exposed to Python
+	DllExport int getPlayerTextColorA() const;																												// Exposed to Python
+	ColorTypes getPlayerTextColor() const; // advc.106
 																																									
 	int getSeaPlotYield(YieldTypes eIndex) const;																											// Exposed to Python
 	void changeSeaPlotYield(YieldTypes eIndex, int iChange);

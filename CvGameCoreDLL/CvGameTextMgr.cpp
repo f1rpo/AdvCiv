@@ -11072,16 +11072,21 @@ void CvGameTextMgr::buildBuildingRequiresString(CvWStringBuffer& szBuffer, Build
 			{
 				if (ePlayer == NO_PLAYER)
 				{	// <advc.004y>
-					int iNeeded = kBuilding.getPrereqNumOfBuildingClass((BuildingClassTypes)iI);
-					iNeeded *= std::max(0, (GC.getWorldInfo(GC.getMapINLINE().
+					int iLow = kBuilding.getPrereqNumOfBuildingClass((BuildingClassTypes)iI);
+					int iHigh = iLow * std::max(0, (GC.getWorldInfo(GC.getMapINLINE().
 							getWorldSize()).getBuildingClassPrereqModifier()
 							+ 100));
-					iNeeded /= 100; // </advc.004y>
+					if(iHigh > 100 && iHigh < 200) iHigh = 2; else // advc.310
+					iHigh /= 100; // </advc.004y>
 					CvWString szTempBuffer;
-					szTempBuffer.Format(L"%s%s", NEWLINE,
-						gDLL->getText("TXT_KEY_BUILDING_REQUIRES_NUM_SPECIAL_BUILDINGS_NO_CITY",
-						GC.getBuildingInfo(eLoopBuilding).getTextKeyWide(),
-						iNeeded // advc.004y
+					szTempBuffer.Format(L"%s%s", NEWLINE, gDLL->getText(
+							// <advc.004y>
+							(iLow == iHigh ?
+							"TXT_KEY_BUILDING_REQ_BUILDINGS_NOCITY" :
+							"TXT_KEY_BUILDING_REQ_BUILDINGS_NOCITY_RANGE"),
+							// </advc.004y>
+							GC.getBuildingInfo(eLoopBuilding).getTextKeyWide(),
+							iLow, iHigh // advc.004y
 						).c_str());
 
 					szBuffer.append(szTempBuffer);

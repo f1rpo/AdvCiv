@@ -11,7 +11,8 @@
 	 advc.305: Removed (now allowed) Workboat.
 	 advc.307: Allowed War Elephant (still can't spawn), Musketman,
 	 Cavalry, Anti-Tank, SAM Infantry.
-	 Disallowed Frigate, Privateer, Rifleman, Grenadier, Spy (dlph.6). -->
+	 Disallowed Frigate, Privateer, Paratrooper, Rifleman, Grenadier,
+	 Spy (dlph.6). -->
 <Civ4CivilizationInfos xmlns="x-schema:CIV4CivilizationsSchema.xml">
 	<CivilizationInfos>
 		<CivilizationInfo>
@@ -4566,6 +4567,10 @@
 				</Unit>
 				<Unit>
 					<UnitClassType>UNITCLASS_MARINE</UnitClassType>
+					<UnitType>NONE</UnitType>
+				</Unit>
+				<Unit>
+					<UnitClassType>UNITCLASS_PARATROOPER</UnitClassType>
 					<UnitType>NONE</UnitType>
 				</Unit>
 				<Unit>

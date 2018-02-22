@@ -2529,8 +2529,7 @@ void CvGame::update()
 		{
 			gDLL->getInterfaceIFace()->setInAdvancedStart(true);
 			gDLL->getInterfaceIFace()->setWorldBuilder(true);
-		} /* <advc.705> I don't like adding code to this oft-called function, but these
-			are just a few instructions (unless there is actually text to restore). */
+		} // <advc.705>
 		if(isOption(GAMEOPTION_RISE_FALL))
 			riseFall.restoreDiploText(); // </advc.705>
 		// <advc.003d>
@@ -3085,7 +3084,16 @@ bool CvGame::selectionListIgnoreBuildingDefense() const
 
 
 void CvGame::implementDeal(PlayerTypes eWho, PlayerTypes eOtherWho, CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirList, bool bForce)
-{	// <advc.003> Minor refactoring
+{
+	// <advc.036>
+	implementDealBulk(eWho, eOtherWho, pOurList, pTheirList, bForce);
+}
+
+CvDeal* CvGame::implementDealBulk(PlayerTypes eWho, PlayerTypes eOtherWho,
+		CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirList,
+		bool bForce) { // </advc.036>
+
+	// <advc.003> Minor refactoring
 	FAssert(eWho != NO_PLAYER);
 	FAssert(eOtherWho != NO_PLAYER);
 	FAssert(eWho != eOtherWho); // </advc.003>
@@ -3095,7 +3103,7 @@ void CvGame::implementDeal(PlayerTypes eWho, PlayerTypes eOtherWho, CLinkList<Tr
 				item = pOurList->next(item)) {
 			if(item->m_data.m_eItemType == TRADE_PEACE_TREATY) {
 				if(GET_PLAYER(eWho).resetPeaceTreaty(eOtherWho))
-					return;
+					return NULL; // advc.036
 			}
 		}
 	} // </advc.032>
@@ -3105,7 +3113,9 @@ void CvGame::implementDeal(PlayerTypes eWho, PlayerTypes eOtherWho, CLinkList<Tr
 	if ((pDeal->getLengthFirstTrades() == 0) && (pDeal->getLengthSecondTrades() == 0))
 	{
 		pDeal->kill();
+		return NULL; // advc.036
 	}
+	return pDeal; // advc.036
 }
 
 

@@ -48,6 +48,7 @@ public:
 	void changeNumOwnedTiles(int iChange);
 
 	// <advc.300>
+	// advc.021b: Exposed to Python as getNumHabitableTiles
 	std::pair<int,int> countOwnedUnownedHabitableTiles(
 			bool ignoreBarb = false) const;
 	int countCivCities() const;

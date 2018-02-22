@@ -268,11 +268,12 @@
 			<fBlue>1.00</fBlue>
 			<fAlpha>1.00</fAlpha>
 		</ColorVal>
+		<!-- advc.106: Was 50,100,10%; unpleasantly bright. -->
 		<ColorVal>
 			<Type>COLOR_ALT_HIGHLIGHT_TEXT</Type>
-			<fRed>0.50</fRed>
-			<fGreen>1.00</fGreen>
-			<fBlue>0.10</fBlue>
+			<fRed>0.25</fRed>
+			<fGreen>0.96</fGreen>
+			<fBlue>0.35</fBlue>
 			<fAlpha>1.00</fAlpha>
 		</ColorVal>
 		<ColorVal>

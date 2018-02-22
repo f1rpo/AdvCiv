@@ -398,6 +398,22 @@
 		<DefineName>DEMAND_BETTER_PROTECTION</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
+	
+	<!-- [advc.106]
+		 If set to 1, era transitions are recorded in replays.
+		 Set to 0 for BtS behavior (no era transitions in replays).
+		 Recommended: 0, rather use SHOW_FIRST_TO_DISCOVER_IN_REPLAY. -->
+	<Define>
+		<DefineName>SHOW_ENTERED_ERA_IN_REPLAY</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<!-- [advc.106]
+		 If set to 1 (recommended), the first discovery of each tech is recorded
+		 in replays. If set to 0, only Liberalism is recorded (BtS behavior). -->
+	<Define>
+		<DefineName>SHOW_FIRST_TO_DISCOVER_IN_REPLAY</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
 
 	<!-- [advc.106b]
 		 If more than this many messages are queued at the beginning of a

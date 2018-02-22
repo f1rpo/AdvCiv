@@ -1136,6 +1136,24 @@
 		<Italian>[COLOR_UNIT_TEXT]%s1_GPName[COLOR_REVERT] &#232; [NUM1:nato:nata] nel %s2_CivName!</Italian>
 		<Spanish>[COLOR_UNIT_TEXT]%s1_GPName[COLOR_REVERT] ha nacido en el %s2_CivName.</Spanish>
 	</TEXT>
+	<!-- Keep this one fully colored -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_GP_BORN_REPLAY</Tag>
+		<English>[COLOR_UNIT_TEXT]%s1_GPStr has been born in the %s2_CivName.[COLOR_REVERT]</English>
+		<French>[COLOR_UNIT_TEXT]Naissance de %s1_GPStr[COLOR_REVERT] dans le %s2_CivName.[COLOR_REVERT]</French>
+		<German>[COLOR_UNIT_TEXT]%s1_GPStr wurde im %s2_CivName geboren.[COLOR_REVERT]</German>
+		<Italian>[COLOR_UNIT_TEXT]%s1_GPStr &#232; [NUM1:nato:nata] nel %s2_CivName![COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_UNIT_TEXT]%s1_GPStr ha nacido en el %s2_CivName.[COLOR_REVERT]</Spanish>
+	</TEXT>
+	<!-- Put the GP type first in replays in English -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_GP_NAME_REPLAY</Tag>
+		<English>The %s1_GPType %s2_GPName</English>
+		<French>%s2_GPName (%s1_GPType)</French>
+		<German>%s2_GPName (%s1_GPType)</German>
+		<Italian>%s2_GPName (%s1_GPType)</Italian>
+		<Spanish>%s2_GPName (%s1_GPType)</Spanish>
+	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_MISC_WONDER_COMPLETED_CITY</Tag>
 		<English>%s1_PlyrName has completed %s2_WndrName in %s3_CityName!</English>
@@ -2876,6 +2894,37 @@
 		<German>%d1_Date n. Chr.</German>
 		<Italian>%d1_Date d.C.</Italian>
 		<Spanish>%d1_Date d. C.</Spanish>
+	</TEXT>
+
+	<!-- advc.004y: Originally in CIV4GameTextInfos.xml. Only removed the
+		 parentheses and "Total"; more comprehensible this way. -->
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_REQ_BUILDINGS_NOCITY</Tag>
+		<English>[COLOR_WARNING_TEXT]Requires %s1_Name: %d2[COLOR_REVERT]</English>
+		<French>[COLOR_WARNING_TEXT]Requiert : %s1_Name (%d2)[COLOR_REVERT]</French>
+		<German>[COLOR_WARNING_TEXT]Erfordert: %s1_Name (%d2)[COLOR_REVERT]</German>
+		<Italian>[COLOR_WARNING_TEXT]Richiede %s1_Name: %d2[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_WARNING_TEXT]Requiere %s1_Name: %d2[COLOR_REVERT]</Spanish>
+	</TEXT>
+	<!-- Same with a range. Add "depending on map size"? -->
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_REQ_BUILDINGS_NOCITY_RANGE</Tag>
+		<English>[COLOR_WARNING_TEXT]Requires %s1_Name: %d2-%d3[COLOR_REVERT]</English>
+		<French>[COLOR_WARNING_TEXT]Requiert : %s1_Name (%d2-%d3)[COLOR_REVERT]</French>
+		<German>[COLOR_WARNING_TEXT]Erfordert: %s1_Name (%d2-%d3)[COLOR_REVERT]</German>
+		<Italian>[COLOR_WARNING_TEXT]Richiede %s1_Name: %d2-%d3[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_WARNING_TEXT]Requiere %s1_Name: %d2-%d3[COLOR_REVERT]</Spanish>
+	</TEXT>
+
+	<!-- advc.106: Based on TXT_KEY_ERA_SPLASH_SCREEN in
+		 Civ4GameText_Misc1.xml. -->
+	<TEXT>
+		<Tag>TXT_KEY_SOMEONE_ENTERED_ERA</Tag>
+		<English>%s1_Ldr has entered the %s2_era era.</English>
+		<French>%s1_Ldr vient d'entrer dans une nouvelle &#232;re (%s2_era).</French>
+		<German>%s1_Ldr hat das Zeitalter %s2_era erreicht.</German>
+		<Italian>%s1_Ldr è entrato nell'era %s2_era!</Italian>
+		<Spanish>%s1_Ldr ha entrado en [NUM2:el:la:los:las] %s2_era.</Spanish>
 	</TEXT>
 	
 </Civ4GameText>

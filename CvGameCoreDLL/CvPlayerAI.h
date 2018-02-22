@@ -245,9 +245,13 @@ public:
 		Note that this function, despite lacking the DLLEport macro, gets called
 		directly from Civ4BeyondSword.exe.
 		Changing const-ness of such functions can cause problems, but fortunately
-		doesn't appear to in this case. (Well, could always cast it away in
-		the body.) */
+		doesn't appear to in this case. */
 	bool AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList, int iChange = 1);
+	// <advc.133> Adding a param does cause problems, so ...
+	bool AI_considerOfferBulk(PlayerTypes ePlayer,
+			CLinkList<TradeData> const* pTheirList,
+			CLinkList<TradeData> const* pOurList,
+			int iChange = 1, int dealAge = 0); // </advc.133>
 	double prDenyHelp() const; // advc.144
 	bool AI_counterPropose(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirInventory, CLinkList<TradeData>* pOurInventory, CLinkList<TradeData>* pTheirCounter, CLinkList<TradeData>* pOurCounter) const;
 	int AI_tradeAcceptabilityThreshold(PlayerTypes eTrader) const; // K-Mod
@@ -597,14 +601,19 @@ protected:
 			CLinkList<TradeData>* pTheirCounter, CLinkList<TradeData>* pOurCounter,
 			double leniency) const; // </advc.705>
 	// <advc.003>
-	void balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInventory,
+	bool balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInventory,
 			PlayerTypes ePlayer, int& iGreaterVal, int& iSmallerVal,
 			CLinkList<TradeData>* pCounter,
-			CLinkList<TradeData> const* pList, double leniency,
-			bool bGenerous, int happyLeft, int healthLeft) const;
+			CLinkList<TradeData> const* pList,
+			double leniency, // advc.705
+			bool bGenerous,
+			// advc.036:
+			int happyLeft, int healthLeft, int iOtherListLength) const;
 	int checkCancel(CvDeal const& d, PlayerTypes otherId, bool flip);
-	// </advc.003>
-	int adjustTradeGoldToDiplo(int gold, PlayerTypes civId) const; // advc.036
+	// </advc.003> <advc.036>
+	int adjustTradeGoldToDiplo(int gold, PlayerTypes civId) const;
+	void foldDeals() const;
+	void foldDeals(CvDeal& d1, CvDeal& d2) const; // </advc.036>
 	int anarchyTradeVal(CivicTypes eCivic = NO_CIVIC) const; // advc.132
 	double bonusImportValue(PlayerTypes fromId) const; // advc.149
 
@@ -669,7 +678,7 @@ protected:
 	int* m_aiUnitClassWeights;
 	int* m_aiUnitCombatWeights;
 	std::map<UnitClassTypes, int> m_GreatPersonWeights; // K-Mod
-
+	static int const singleBonusTradeTolerance = 20; // advc.036
 	//mutable int* m_aiCloseBordersAttitudeCache;
 	std::vector<int> m_aiCloseBordersAttitudeCache; // K-Mod. (the original system was prone to mistakes.)
 

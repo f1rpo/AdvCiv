@@ -12221,7 +12221,14 @@ void CvPlayer::setCurrentEra(EraTypes eNewValue)
 					addPopup(pInfo);
 				}
 			}
-		}
+		} // <advc.106>
+		if(GC.getDefineINT("SHOW_ENTERED_ERA_IN_REPLAY") > 0) {
+			CvWString szBuffer = gDLL->getText("TXT_KEY_SOMEONE_ENTERED_ERA",
+					getNameKey(), GC.getEraInfo(eNewValue).getTextKeyWide());
+			GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT,
+					getID(), szBuffer, -1, -1, (ColorTypes)
+					GC.getInfoTypeForString("COLOR_ALT_HIGHLIGHT_TEXT"));
+		} // </advc.106>
 	}
 }
 
@@ -12303,7 +12310,9 @@ void CvPlayer::setLastStateReligion(ReligionTypes eNewValue)
 				}
 			}
 		}
-		GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szBuffer);
+		GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szBuffer,
+				// advc.106: was NO_COLOR (i.e. white), now same as religion founded.
+				-1, -1, (ColorTypes) GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 	}
 
 	// Python Event
@@ -12448,6 +12457,12 @@ int CvPlayer::getPlayerTextColorA() const
 	FAssertMsg(getPlayerColor() != NO_PLAYERCOLOR, "getPlayerColor() is not expected to be equal with NO_PLAYERCOLOR");
 	return ((int)(GC.getColorInfo((ColorTypes) GC.getPlayerColorInfo(getPlayerColor()).getTextColorType()).getColor().a * 255));
 }
+
+// <advc.106>
+ColorTypes CvPlayer::getPlayerTextColor() const {
+
+	return (ColorTypes)GC.getPlayerColorInfo(getPlayerColor()).getTextColorType();
+} // </advc.106>
 
 
 int CvPlayer::getSeaPlotYield(YieldTypes eIndex) const
@@ -19155,10 +19170,17 @@ void CvPlayer::createGreatPeople(UnitTypes eGreatPersonUnit, bool bIncrementThre
 			}
 		}
 	}
-
-
-	//CvWString szReplayMessage;
-	CvWString szMessage; // advc.003: Renamed b/c used not only for replay
+	// <advc.106>
+	CvPlayer const& gpOwner = GET_PLAYER(pPlot->getOwner());
+	// Use shorter message for replays
+	CvWString szReplayMessage = gDLL->getText("TXT_KEY_MISC_GP_BORN_REPLAY",
+			pGreatPeopleUnit->getReplayName().GetCString(),
+			gpOwner.getCivilizationDescriptionKey()); // </advc.106>
+	GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(),
+			szReplayMessage, iX, iY, (ColorTypes)GC.getInfoTypeForString(
+			"COLOR_UNIT_TEXT"));
+	// advc.106: Non-replay message
+	CvWString szMessage;
 	if (pCity)
 	{
 		CvWString szCity;
@@ -19168,15 +19190,11 @@ void CvPlayer::createGreatPeople(UnitTypes eGreatPersonUnit, bool bIncrementThre
 	else
 	{
 		szMessage = gDLL->getText("TXT_KEY_MISC_GP_BORN_FIELD", pGreatPeopleUnit->getName().GetCString());
-	}
-	GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szMessage, iX, iY, (ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT"));
-
-	// <advc.106>
+	} // <advc.106>
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 		CvPlayer& msgTarget = GET_PLAYER((PlayerTypes)i);
 		if(!msgTarget.isAlive())
 			continue;
-		CvPlayer const& gpOwner = GET_PLAYER(pPlot->getOwner());
 		bool isRev = pPlot->isRevealed(msgTarget.getTeam(), false);
 		if(!TEAMREF(msgTarget.getID()).isHasMet(TEAMID(gpOwner.getID())))
 			continue;
@@ -19184,8 +19202,7 @@ void CvPlayer::createGreatPeople(UnitTypes eGreatPersonUnit, bool bIncrementThre
 			szMessage = gDLL->getText("TXT_KEY_MISC_GP_BORN_CIV",
 					pGreatPeopleUnit->getName().GetCString(),
 					gpOwner.getCivilizationDescriptionKey());
-		}
-		// <advc.106b>
+		} // <advc.106b>
 		InterfaceMessageTypes msgType = MESSAGE_TYPE_MINOR_EVENT;
 		// Only birth of own GP is major
 		if(msgTarget.getID() == gpOwner.getID())

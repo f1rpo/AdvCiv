@@ -12039,6 +12039,15 @@ const CvWString CvUnit::getName(uint uiForm) const
 	return szBuffer;
 }
 
+// <advc.106>
+CvWString const CvUnit::getReplayName() const {
+
+	if(m_szName.empty())
+		return m_pUnitInfo->getDescription();
+	return gDLL->getText("TXT_KEY_MISC_GP_NAME_REPLAY",
+			m_pUnitInfo->getDescription(), m_szName.GetCString());
+} // </advc.106>
+
 
 const wchar* CvUnit::getNameKey() const
 {

@@ -805,7 +805,17 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 			logisticsPortionTarget = (military[LOGISTICS]->power() -
 					defender.lostPower[LOGISTICS]) * confDef / targetFleetPow;
 		// +30% for attacker b/c only a clear victory can prevent a naval landing
-		bool attWin = (fleetPow > 1 && 1.3 * fleetPow > targetFleetPow);
+		double fleetPowMult = 1.3;
+		if(clashOnly) {
+			fleetPowMult = 1;
+			/*  In a clash, let every civ overestimate its own chances; this
+				should make it harder to deter the AI through naval build-up. */
+			if(id == weId)
+				fleetPowMult *= 1.25;
+			else if(defender.id == weId)
+				fleetPowMult /= 1.25;
+		}
+		bool attWin = (fleetPow > 1 && fleetPowMult * fleetPow > targetFleetPow);
 		std::pair<double,double> lwl = clashLossesWinnerLoser(fleetPow,
 				targetFleetPow, false, true);
 		double lossesAtt, lossesDef;
@@ -880,8 +890,9 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		battleArea = cvCity->area();
 	else if(!isNaval) {
 		battleArea = clashArea(defender.id);
-		if(battleArea == NULL)
-			FAssertMsg(battleArea != NULL, "No shared area should imply isNaval");
+		/*  This can happen when a civ has just lost its foothold in an area
+			and reachability hasn't been updated yet. */
+		//FAssertMsg(battleArea != NULL, "No shared area should imply isNaval");
 	} // (Else only naval battle; assume that fleets are fully deployed.)
 	int const remainingCitiesAtt = attCities - losses.size();
 	int const remainingCitiesDef = defCities - defender.losses.size();

@@ -174,8 +174,8 @@
 	<Spanish>Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</Spanish>
 </TEXT>
 
-<!-- advc.008c: From MMod; I've changed the wording a little and added the
-	 German translation. -->
+<!-- k146: I've changed the wording a little and added the German translation.
+	 -->
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_16</Tag>
 	<English>Hold [ALT] when clicking the 'Wake' command in order to wake all your units of the same type around the world.</English>
@@ -385,6 +385,17 @@
 	<German>Um die Kampfchancen Ihrer Einheit zu sehen, halten Sie die rechte Maustaste über dem Zielfeld gedrückt. Wenn Sie außerdem [ALT] gedrückt halten, werden die Kampfchancen auch dann angezeigt, wenn Sie nicht im Krieg sind.</German>
 	<Italian>Per visualizzare le probabilit&#224; di vittoria di uno scontro, tieni premuto il pulsante destro del mouse su una casella bersaglio...</Italian>
 	<Spanish>Mantener el cursor encima de la casilla objetivo para ver las probabilidades del combate...</Spanish>
+</TEXT>
+
+<!-- advc.008c: Removed the "look it up in Civilopedia" part b/c the hint was
+	 too long. Not a very useful hint; should replace it at some point. -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_73</Tag>
+	<English>To found a Corporation, you must have the correct type of Great Person, have researched the appropriate technologies and build it in a city with one or more of the resources that the Corporation demands.</English>
+	<French>Pour fonder une soci&#233;t&#233; commerciale, vous devez disposer du bon type de personnages illustres, avoir recherch&#233; les technologies appropri&#233;es, et la construire dans une ville disposant d'au moins une des ressources dont elle a besoin</French>
+	<German>Um eine Kapitalgesellschaft zu gr&#252;nden, m&#252;sst Ihr &#252;ber die richtige Gro&#223;e Pers&#246;nlichkeit verf&#252;gen, die entsprechenden Technologien erforscht haben und sie in einer Stadt errichten, die eine oder mehr der f&#252;r die Kapitalgesellschaft erforderlichen Ressourcen hat.</German>
+	<Italian>Per fondare una corporazione devi avere il giusto tipo di Grande Personaggio, aver ricercato le tecnologie giuste e devi costruirla in una citt&#224; con una o pi&#249; delle risorse necessarie alla corporazione stessa.</Italian>
+	<Spanish>Para fundar una corporaci&#243;n, debes tener el tipo correcto de gran personaje, haber investigado las tecnolog&#237;as apropiadas y crearla en una ciudad con uno o m&#225;s de los recursos que la corporaci&#243;n necesita.</Spanish>
 </TEXT>
 
 </Civ4GameText>

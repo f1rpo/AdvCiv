@@ -1029,7 +1029,8 @@ void WarAndPeaceCache::reportWarEnding(TeamTypes enemyId) {
 
 void WarAndPeaceCache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId) {
 
-	if(!TEAMREF(ownerId).AI_deduceCitySite(c))
+	if(!TEAMREF(ownerId).AI_deduceCitySite(c) || c->getOwnerINLINE() ==
+			BARBARIAN_PLAYER)
 		return;
 	/*  I didn't think I'd need to update the city cache during turns, so this
 		is awkward to write ... */
@@ -1051,8 +1052,11 @@ void WarAndPeaceCache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId)
 		}
 	}
 	City* toCache = new City(ownerId, c);
-	if(vIndex < 0 || vIndex >= v.size())
+	if(vIndex < 0 || vIndex >= v.size()) {
 		v.push_back(toCache);
+		// (c could also have become revealed through map trade)
+		//FAssertMsg(oldOwnerId == BARBARIAN_PLAYER);
+	}
 	else v[vIndex] = toCache;
 	cityMap.insert(std::make_pair<int,City*>(toCache->id(), toCache));
 	if(toCache->canReach())
