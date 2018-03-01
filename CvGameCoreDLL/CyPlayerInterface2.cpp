@@ -65,5 +65,7 @@ void CyPlayerPythonInterface2(python::class_<CyPlayer>& x)
 		.def("estimateYieldRate", &CyPlayer::estimateYieldRate, "int (int /*YieldTypes*/ yield)")
 		// advc.210:
 		.def("checkAlert", &CyPlayer::checkAlert, "void (int alertId, bool silent)")
+		// advc.210e:
+		.def("AI_corporationBonusVal", &CyPlayer::AI_corporationBonusVal, "int (int)")
 		;
 }

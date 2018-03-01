@@ -16730,10 +16730,12 @@ void CvGameTextMgr::buildCityBillboardIconString( CvWStringBuffer& szBuffer, CvC
 			int iDefenseModifier = pCity->getDefenseModifier(GC.getGameINLINE().selectionListIgnoreBuildingDefense());
 
 			if (iDefenseModifier != 0)
-			{	
+			{
 				//szBuffer.append(CvWString::format(L" %c:%s%d%%", gDLL->getSymbolID(DEFENSE_CHAR), ((iDefenseModifier > 0) ? "+" : ""), iDefenseModifier));
 				// <advc.002f> Replacing the above
-				szBuffer.append(CvWString::format(L"   %s%d%%%c",
+				szBuffer.append(CvWString::format(L"   " SETCOLR L"%s%d%%" ENDCOLR L"%c",
+						// I've tried some other colors, but they're no easier to read.
+						TEXT_COLOR("COLOR_WHITE"),
 						((iDefenseModifier > 0) ? "+" : ""),
 						iDefenseModifier,
 						gDLL->getSymbolID(DEFENSE_CHAR))); // </advc.002f>

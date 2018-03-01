@@ -478,6 +478,15 @@ bool WarAndPeaceAI::Team::reviewPlan(TeamTypes targetId, int u, int prepTime) {
 				}
 				return false;
 			}
+			/*  Tbd.: Should allow switching when war remains imminent for a long
+				time; too inflexible currently. I think considerSwitchTarget
+				assumes that no war is imminent though; probably needs some
+				adjustments. Or I could just temporarily set wp to PREPARING. */
+			/*double xx=?; double yy=?;
+			if(::bernoulliSuccess(std::min(xx, wpAge * yy), "advc.104")) {
+				if(!considerSwitchTarget(targetId, u, 0))
+					return false;
+			}*/
 			CvMap const& m = GC.getMapINLINE();
 			// 12 turns for a Standard-size map, 9 on Small
 			int timeout = std::max(m.getGridWidth(), m.getGridHeight()) / 7;
@@ -2132,7 +2141,8 @@ bool WarAndPeaceAI::Civ::considerGiftRequest(PlayerTypes theyId,
 	double u = eval.evaluate(WARPLAN_LIMITED, 5) - 5; // minus 5 for goodwill
 	if(u >= 0)
 		return false;
-	return utilityToTradeVal(-u) < tradeVal;
+	double thresh = utilityToTradeVal(-u);
+	return thresh >= tradeVal;
 }
 
 bool WarAndPeaceAI::Civ::isPeaceDealPossible(PlayerTypes humanId) const {

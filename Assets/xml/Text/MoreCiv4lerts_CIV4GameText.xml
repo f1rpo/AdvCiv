@@ -103,22 +103,35 @@
 		<Italian>[COLOR_TECH_TEXT]%s1 non commercer&#224; pi&#249; %s2[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_TECH_TEXT]%s1 ya no comerciar&#225; %s2[COLOR_REVERT]</Spanish>
 	</TEXT>
+
+	<!-- [advc.210e] "export" instead of "trade" -->
 	<TEXT>
 		<Tag>TXT_KEY_MORECIV4LERTS_NEW_BONUS_AVAIL</Tag>
-		<English>[COLOR_HIGHLIGHT_TEXT]%s1 will trade %s2[COLOR_REVERT]</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]%s1 veut échanger %s2[COLOR_REVERT]</French>
-		<German>[COLOR_HIGHLIGHT_TEXT]%s1 hat Ressourcen zum Handeln: %s2[COLOR_REVERT]</German>
-		<Italian>[COLOR_HIGHLIGHT_TEXT]%s1 commercerà %s2[COLOR_REVERT]</Italian>
-		<Spanish>[COLOR_HIGHLIGHT_TEXT]%s1 comerciará %s2[COLOR_REVERT]</Spanish>
+		<English>[COLOR_HIGHLIGHT_TEXT]%s1 will export %s2[COLOR_REVERT]</English>
+		<French>[COLOR_HIGHLIGHT_TEXT]%s1 veut exporter %s2[COLOR_REVERT]</French>
+		<German>[COLOR_HIGHLIGHT_TEXT]%s1 hat Ressourcen zum Export: %s2[COLOR_REVERT]</German>
+		<Italian>[COLOR_HIGHLIGHT_TEXT]%s1 esporterà %s2[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_HIGHLIGHT_TEXT]%s1 exportará %s2[COLOR_REVERT]</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_MORECIV4LERTS_BONUS_NOT_AVAIL</Tag>
-		<English>[COLOR_HIGHLIGHT_TEXT]%s1 won't trade %s2[COLOR_REVERT]</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]%s1 ne veut pas échanger %s2[COLOR_REVERT]</French>
-		<German>[COLOR_HIGHLIGHT_TEXT]%s1 hat Ressourcen vom Handel ausgeschlossen: %s2[COLOR_REVERT]</German>
-		<Italian>[COLOR_HIGHLIGHT_TEXT]%s1 non commercerà %s2[COLOR_REVERT]</Italian>
-		<Spanish>[COLOR_HIGHLIGHT_TEXT]%s1 no comerciará %s2[COLOR_REVERT]</Spanish>
+		<English>[COLOR_HIGHLIGHT_TEXT]%s1 will no longer export %s2[COLOR_REVERT]</English>
+		<French>[COLOR_HIGHLIGHT_TEXT]%s1 ne veut plus exporter %s2[COLOR_REVERT]</French>
+		<German>[COLOR_HIGHLIGHT_TEXT]%s1 will nicht mehr exportieren: %s2[COLOR_REVERT]</German>
+		<Italian>[COLOR_HIGHLIGHT_TEXT]%s1 non esporterà più %s2[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_HIGHLIGHT_TEXT]%s1 ya no exportará %s2[COLOR_REVERT]</Spanish>
 	</TEXT>
+	<!-- new key: import -->
+	<TEXT>
+		<Tag>TXT_KEY_MORECIV4LERTS_NEW_SALE</Tag>
+		<English>[COLOR_HIGHLIGHT_TEXT]%s1 will import %s2[COLOR_REVERT]</English>
+		<French>[COLOR_HIGHLIGHT_TEXT]%s1 veut importer %s2[COLOR_REVERT]</French>
+		<German>[COLOR_HIGHLIGHT_TEXT]%s1 möchte importieren: %s2[COLOR_REVERT]</German>
+		<Italian>[COLOR_HIGHLIGHT_TEXT]%s1 importerà %s2[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_HIGHLIGHT_TEXT]%s1 importará %s2[COLOR_REVERT]</Spanish>
+	</TEXT>
+	<!-- [/advc.210e] -->
+
 	<TEXT>
 		<Tag>TXT_KEY_MORECIV4LERTS_MAP</Tag>
 		<English>[COLOR_TECH_TEXT]Will Trade Map: %s1[COLOR_REVERT]</English>

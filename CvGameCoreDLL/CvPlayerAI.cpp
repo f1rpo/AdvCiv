@@ -6084,8 +6084,11 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 			{
 				techs_to_check.push(techs[i].second);
 			}
-			while (!techs_to_check.empty() && (int)techs_in_path.size() <
-					iMaxPathLength)
+			while (!techs_to_check.empty() && (int)techs_in_path.size()
+					/*  <advc.001> Was <. Even if no more techs can be added to
+						the path, it could still be valid, namely if we already
+						have all the prereqs for the remaining techs_to_check. */
+					<= iMaxPathLength)
 			{
 				bool bMissingPrereq = false;
 
@@ -6205,7 +6208,7 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 						if (techs_in_path.count(techs[j].second) == 0)
 						{
 							techs_in_path.insert(techs[j].second);
-							/*  Note: since this tech isn't a prereqs,
+							/*  Note: since this tech isn't a prereq,
 								it can go anywhere in our path. Try to research
 								highest values first. */
 							int k = 0;
@@ -7736,7 +7739,8 @@ int CvPlayerAI::AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bE
 		for (size_t i = 0; i < relevant_cities.size(); i++)
 		{
 			if (relevant_cities[i]->canConstruct(eLoopBuilding, false, false, true, true) ||
-				isNationalWonderClass(eClass)) // (ad-hoc). National wonders often require something which is unlocked by the same tech. So I'll disregard the construction requirements.
+				(isNationalWonderClass(eClass) && // (ad-hoc). National wonders often require something which is unlocked by the same tech. So I'll disregard the construction requirements.
+				!relevant_cities[i]->isNationalWondersMaxed())) // advc.131
 			{
 				if (bLimitedBuilding) // TODO: don't assume 'limited' means 'only one'.
 					iBuildingValue = std::max(iBuildingValue, relevant_cities[i]->AI_buildingValue(eLoopBuilding, 0, 0, bConstCache));
@@ -8787,21 +8791,31 @@ bool CvPlayerAI::AI_isWillingToTalk(PlayerTypes ePlayer) const
 
 	// <advc.104i>
 	int atWarCounter = kOurTeam.AI_getAtWarCounter(TEAMID(ePlayer));
-	if(getWPAI.isEnabled() && AI_getMemoryCount(ePlayer,
-			MEMORY_STOPPED_TRADING_RECENT) <= 0) { // else RTT as in BtS
+	if(getWPAI.isEnabled()) {
 		if(GET_TEAM(getTeam()).AI_surrenderTrade(TEAMID(ePlayer)) == NO_DENIAL)
 			return true;
 		// 1 turn RTT and let the team leader handle peace negotiation
 		if(atWarCounter <= 1 || GET_TEAM(getTeam()).getLeaderID() != getID())
 			return false;
+		// valid=true: want to return true, but still need to check for embargo.
+		bool valid = false;
+		/*  Checking for a possible peace deal only serves as a convenience for
+			human players; no need to do it for AI-AI peace. */
 		if(!GET_PLAYER(ePlayer).isHuman())
-			return true;
-		/*  The EXE keeps calling this function when the diplo screen is
-			already open, and isPeaceDealPossible is an expensive function */
-		if(gDLL->isDiplomacy())
-			return true;
-		return kOurTeam.AI_surrenderTrade(TEAMID(ePlayer)) == NO_DENIAL ||
-				warAndPeaceAI().isPeaceDealPossible(ePlayer);
+			valid = true;
+		else {
+			/*  The EXE keeps calling this function when the diplo screen is
+				already open, and isPeaceDealPossible is an expensive function. */
+			if(gDLL->isDiplomacy())
+				return true;
+			valid = (kOurTeam.AI_surrenderTrade(TEAMID(ePlayer)) == NO_DENIAL ||
+					warAndPeaceAI().isPeaceDealPossible(ePlayer));
+		}
+		if(AI_getMemoryCount(ePlayer, MEMORY_STOPPED_TRADING_RECENT) > 0) {
+			if(!valid)
+				return false; // else RTT as in BtS
+		}
+		else return valid;
 	}
 	if(!getWPAI.isEnabled()) // </advc.104i>
 		// K-Mod
@@ -11751,7 +11765,6 @@ bool CvPlayerAI::balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInvent
 			}
 		}
 		if(pBestCityNode != NULL) {
-			FAssert(bGenerous || iGreaterVal >= (iSmallerVal + iBestCityValue));
 			item_value_list.push_back(std::make_pair(&pBestCityNode->m_data,
 					iBestCityValue));
 		}
@@ -12387,9 +12400,9 @@ int CvPlayerAI::AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled,
 			//if (!kTeam.isBonusRevealed(eBonus))
 			// note. the tech is used here as a kind of proxy for the civ's readiness to use the bonus.
 			if (!kTeam.isHasTech((TechTypes)GC.getBonusInfo(eBonus).getTechReveal()))
-				iValue /= 2;
+				iValue /= (bTrade ? 3 : 2); // advc.036: was /=2
 			if (!kTeam.isHasTech((TechTypes)GC.getBonusInfo(eBonus).getTechCityTrade()))
-				iValue /= 2;
+				iValue /= (bTrade ? 3 : 2); // advc.036: was /=2
 		}
 		// K-Mod end
 	}
@@ -12573,7 +12586,9 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 				if (ePrereqBonus != NO_BONUS)
 				{
 					iOrBonuses++;
-					//iOrBonusesWeHave += (ePrereqBonus != eBonus && getNumAvailableBonuses(ePrereqBonus)) ? 1 : 0;
+					// advc.036: Uncommented. Should be fine now.
+					iOrBonusesWeHave += (ePrereqBonus != eBonus &&
+							getNumAvailableBonuses(ePrereqBonus) > 0) ? 1 : 0;
 					// @*#!  It occurs to me that using state-dependant stuff such as NumAvailableBonuses here could result in OOS errors.
 					// This is because the code here can be trigged by local UI events, and then the value could be cached...
 					// It's very frustrating - because including the effect from iOrBonusesWeHave was going to be a big improvment.
@@ -12614,8 +12629,9 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 						Otherwise, a human could e.g. trade for Ivory one turn
 						before finishing Construction. */
 					TechTypes mainReq = (TechTypes)kLoopUnit.getPrereqAndTech();
-					if(mainReq != NO_TECH && !kTeam.isHasTech(mainReq) &&
-							kTeam.getResearchProgress(mainReq) <= 0)
+					if(!isHuman() || (mainReq != NO_TECH &&
+							!kTeam.isHasTech(mainReq) &&
+							kTeam.getResearchProgress(mainReq) <= 0))
 						iUnitValue /= 3;
 				} // </advc.036>
 			}
@@ -12686,8 +12702,19 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 		}
 
 		for (int iJ = 0; iJ < NUM_YIELD_TYPES; iJ++)
-		{
-			iTempValue += kLoopBuilding.getBonusYieldModifier(eBonus, iJ) / 2;
+		{	// <advc.003> Easier to debug this way
+			int const bym = kLoopBuilding.getBonusYieldModifier(eBonus, iJ);
+			if(bym > 0) { // </advc.003>
+				iTempValue += kLoopBuilding.getBonusYieldModifier(eBonus, iJ) /
+						/*  <advc.036> 25 for Ironworks is normally too much;
+							need to take into account that we can build it in
+							only one city. Then again, if we have very few cities,
+							we may not be able to build it at all ...
+							Too tedious to check getPrereqNumOfBuildingClass,
+							so just use a constant divisor. */
+						(::isNationalWonderClass((BuildingClassTypes)iI) ? 5 :
+						2);
+			}
 			if (kLoopBuilding.getPowerBonus() == eBonus)
 			{
 				iTempValue += kLoopBuilding.getPowerYieldModifier(iJ);
@@ -12857,6 +12884,10 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 	// <advc.036>
 	int iValue = ::round(dValue);
 	iValue = std::max(0, iValue);
+	/*  To address karadoc's "@*#!" comment in the middle of this function;
+		coupled with a change in AI_updateBonusValue(BonusTypes). */
+	if(GC.getGameINLINE().isNetworkMultiPlayer())
+		return iValue;
 	if(!bTrade) {
 		m_aiBonusValue[eBonus] = iValue;
 		return iValue;
@@ -13096,7 +13127,7 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 	/*  advc.133: Don't bother checking the value-based clauses when considering
 		cancelation. AI_considerOffer handles that. */
 	if(iChange >= 0) {
-		valueForThem = kPlayer.AI_bonusVal(eBonus, 0); // </advc.036>
+		valueForThem = kPlayer.AI_bonusVal(eBonus, 0, false, true); // </advc.036>
 		if (isHuman()
 				/*  advc.036: No deal if they (AI) don't need the resource, but
 					check attitude before giving the human that info. */
@@ -13326,7 +13357,7 @@ int CvPlayerAI::AI_cityTradeVal(CvCity* pCity) const
 	iValue += cityWonderVal(pCity) * 10;
 	// <advc.139>
 	if(pCity->isEvacuating())
-		iValue = ::round(0.5 * iValue); // </advc.139>
+		iValue = ::round(0.33 * iValue); // </advc.139>
 	return GET_TEAM(getTeam()).roundTradeVal(iValue); // advc.104k
 }
 
@@ -13359,11 +13390,12 @@ DenialTypes CvPlayerAI::AI_cityTrade(CvCity* pCity, PlayerTypes ePlayer) const {
 	}
 	if(isHuman() || atWar(getTeam(), kPlayer.getTeam()))
 		return NO_DENIAL;
-	if(kPlayer.getTeam() != getTeam())
-		return DENIAL_NEVER;
-	if(pCity->calculateCulturePercent(getID()) > 50)
-		return DENIAL_TOO_MUCH;
-	return NO_DENIAL;
+	if(kPlayer.getTeam() == getTeam()) {
+		if(pCity->calculateCulturePercent(getID()) > 50)
+			return DENIAL_TOO_MUCH;
+		return NO_DENIAL;
+	}
+	return DENIAL_NEVER;
 } // </advc.003>
 
 
@@ -18598,7 +18630,7 @@ void CvPlayerAI::AI_doCounter()
 		// Same scale as the above, but taking into account utility.
 		double bonusVal = bonusImportValue(civId);
 		int c = AI_getBonusTradeCounter(civId);
-		if(bonusVal <= c / (1.5 * attitudeDiv)) {
+		if(bonusVal <= c / (1.2 * attitudeDiv)) {
 			/*  BtS decreases the BonusTradeCounter by 1 + civ.getNumCities() / 4,
 				but let's just do exponential decay instead. */
 			AI_setBonusTradeCounter(civId, (int)(
@@ -18623,16 +18655,16 @@ void CvPlayerAI::AI_doCounter()
 				} /* Mean of capBonuses and a multiple of exportable, but
 					 no more than 1.5 times capBonuses. */
 				double weight1 = (capBonuses + std::min(capBonuses * 2,
-						2.3 * std::max(bonusVal, exportable))) / 2;
+						2.4 * std::max(bonusVal, exportable))) / 2;
 				/*  Rather than changing attitudeDiv in XML for every leader,
 					do the fine-tuning here. */
-				double weight2 = 345.0 / attitudeDiv;
+				double weight2 = 338.0 / attitudeDiv;
 				if(weight1 >= weight2)
 					incr = (bonusVal / weight1) * weight2;
 			}
 			AI_changeBonusTradeCounter(civId, t.randomCounterChange(::round(
 					1.25 * attitudeDiv * lh.getBonusTradeAttitudeChangeLimit()),
-					incr / 2)); // Halved b/c it's binomial distrib. w/ 2 trials
+					incr / 2)); // Halved b/c it's binomial distrib w/ 2 trials
 			// <advc.036>
 			int oldGoldTraded = AI_getGoldTradedTo(civId);
 			int newGoldTraded = (int)(mult * oldGoldTraded);
@@ -27003,10 +27035,16 @@ int CvPlayerAI::AI_calculateTotalBombard(DomainTypes eDomain) const
 void CvPlayerAI::AI_updateBonusValue(BonusTypes eBonus)
 {
 	FAssert(m_aiBonusValue != NULL);
-
-	//reset
-    m_aiBonusValue[eBonus] = -1;
-	m_aiBonusValueTrade[eBonus] = -1; // advc.036
+	/*  <advc.036> Don't just reset; recompute them all, and never update the
+		cache in AI_baseBonusVal. This should make sure we're not getting OOS. */
+	if(GC.getGameINLINE().isNetworkMultiPlayer()) {
+		m_aiBonusValue[eBonus] = AI_baseBonusVal(eBonus);
+		m_aiBonusValueTrade[eBonus] = AI_baseBonusVal(eBonus, true);
+	} else { // Reset and update on demand is faster; should be fine in singleplayer.
+	// </advc.036>
+		m_aiBonusValue[eBonus] = -1;
+		m_aiBonusValueTrade[eBonus] = -1;
+	}
 }
 
 void CvPlayerAI::AI_updateBonusValue()

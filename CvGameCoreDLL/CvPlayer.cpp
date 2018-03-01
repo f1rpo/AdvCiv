@@ -5017,8 +5017,6 @@ bool CvPlayer::canReceiveTradeCity() const
 
 bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial) const
 {
-	CvCity *pOurCapitalCity;
-
 	if (bTestDenial)
 	{
 		if (getTradeDenial(eWhoTo, item) != NO_DENIAL)
@@ -5090,29 +5088,33 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 					GC.getGameINLINE().getMaxCityElimination() > 0)
 				break; // </advc.003>
 			// <advc.122>
-			if(pCityTraded->plot()->calculateCulturePercent(eWhoTo) <
+			if(pCityTraded == NULL || pCityTraded->isCapital() ||
+					!pCityTraded->isRevealed(theirTeam.getID(), false))
+				break;
+			CvPlot const* cityPlot = pCityTraded->plot();
+			// Allow ceding a city that is about to be conquered
+			/*if(pCityTraded->isEvacuating() && theirTeam.isAtWar(getTeam()) &&
+					// For performance
+					pCityTraded->isVisible(theirTeam.getID(), false)) {
+				int attCount = -1;
+				GET_PLAYER(getID()).AI_localAttackStrength(cityPlot,
+						theirTeam.getID(), DOMAIN_LAND, 1, true, false, false,
+						&attCount);
+				int defCount = pCityTraded->getMilitaryHappinessUnits();
+				if(attCount >= defCount)
+					return true;
+			} */ // Don't want to allow this after all
+			if(cityPlot->calculateCulturePercent(eWhoTo) <
 					GC.getDefineINT("CITY_TRADE_CULTURE_THRESH"))
 				break;
-			// Should be checked regardless of vassal/master stuff:
-			if(pCityTraded == NULL || !pCityTraded->isRevealed(theirTeam.getID(), false))
-				break;
-			// The BtS condition: // </advc.122>
-			if ((!ourTeam.isAVassal() && !theirTeam.isVassal(getTeam())
-					// <advc.122> Alternative condition:
-						) || (theirTeam.isVassal(getTeam()) &&
-						// Tile culture, not city culture
-						pCityTraded->plot()->getCulture(eWhoTo) >
-						pCityTraded->plot()->getCulture(getID()))) // </advc.122>
-					{
-				pOurCapitalCity = getCapitalCity();
-				if (pOurCapitalCity != NULL)
-				{
-					if (pOurCapitalCity->getID() != item.m_iData)
-					{
-						return true;
-					}
-				}
-			}
+			// The BtS condition:
+			if ((!ourTeam.isAVassal() && !theirTeam.isVassal(getTeam())) ||
+					// Alternative condition:
+					(theirTeam.isVassal(getTeam()) &&
+					// Tile culture, not city culture.
+					cityPlot->getCulture(eWhoTo) > cityPlot->getCulture(getID()))) {
+				return true;
+			} // </advc.122>
 		}
 		break;
 

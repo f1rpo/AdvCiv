@@ -2387,6 +2387,53 @@ int Effort::xmlId() const { return 15; }
 
 Risk::Risk(WarEvalParameters& params) : WarUtilityAspect(params) {}
 
+int Risk::preEvaluate() {
+
+	// Handle potential losses of our vassals here
+	double uMinus = 0;
+	for(size_t i = 0; i < properCivs.size(); i++) {
+		PlayerTypes const vId = properCivs[i];
+		CvPlayerAI const& vassal = GET_PLAYER(vId);
+		if(vId == weId || vassal.getMasterTeam() != agentId)
+			continue;
+		// OK to peek into our vassal's cache
+		WarAndPeaceCache const& vassalCache = vassal.warAndPeaceAI().getCache();
+		double relativeVassalLoss = 1;
+		if(!m->isEliminated(vId)) {
+			double lostVassalScore = 0;
+			for(iSetIt it = m->lostCities(vId).begin();
+					it != m->lostCities(vId).end(); it++) {
+				City* c = vassalCache.lookupCity(*it);
+				if(c == NULL) continue;
+				lostVassalScore += c->getAssetScore();
+			}
+			relativeVassalLoss = lostVassalScore /
+					(vassalCache.totalAssetScore() + 0.01);
+		}
+		double vassalCost = 0;
+		if(relativeVassalLoss > 0) {
+			vassalCost = relativeVassalLoss * 33;
+			log("Cost for losses of vassal %s: %d", report.leaderName(vId),
+					::round(vassalCost));
+		}
+		if(!TEAMREF(vId).isCapitulated()) {
+			double relativePow = (m->gainedPower(vId, ARMY) +
+					vassalCache.getPowerValues()[ARMY]->power()) /
+					(m->gainedPower(weId, ARMY) +
+					ourCache->getPowerValues()[ARMY]->power()) - 0.9;
+			if(relativePow > 0) {
+				double breakAwayCost = std::min(20.0, std::sqrt(relativePow) * 40);
+				if(breakAwayCost > 0.5)
+					log("Cost for %s breaking free: %d", report.leaderName(vId),
+							::round(breakAwayCost));
+				vassalCost += breakAwayCost;
+			}
+		}
+		uMinus += vassalCost;
+	}
+	return ::round(uMinus);
+}
+
 void Risk::evaluate() {
 
 	double lostAssets = 0;
@@ -2433,44 +2480,6 @@ void Risk::evaluate() {
 		int const costForCapitulation = 100;
 		uMinus += costForCapitulation;
 		log("Cost halved because of capitulation; %d added", costForCapitulation);
-	}
-	/*  Above, 'they' are the ones we're losing cities too. Below, they're
-		our vassal that's losing cities itself. */
-	if(they->getMasterTeam() == agentId) {
-		// OK to peek into our vassal's cache
-		WarAndPeaceCache* theirCache = &theyAI->getCache();
-		double relativeVassalLoss = 1;
-		if(!m->isEliminated(theyId)) {
-			double lostVassalScore = 0;
-			for(iSetIt it = m->lostCities(theyId).begin();
-					it != m->lostCities(theyId).end(); it++) {
-				City* c = theirCache->lookupCity(*it);
-				if(c == NULL) continue;
-				lostVassalScore += c->getAssetScore();
-			}
-			relativeVassalLoss = lostVassalScore /
-					(theyAI->getCache().totalAssetScore() + 0.01);
-		}
-		double vassalCost = 0;
-		if(relativeVassalLoss > 0) {
-			vassalCost = relativeVassalLoss * 40;
-			log("Cost for losses of vassal %s: %d", report.leaderName(theyId),
-					::round(vassalCost));
-		}
-		if(!TEAMREF(theyId).isCapitulated()) {
-			double relativePow = (m->gainedPower(theyId, ARMY) +
-					theirCache->getPowerValues()[ARMY]->power()) /
-					(m->gainedPower(weId, ARMY) +
-					ourCache->getPowerValues()[ARMY]->power()) - 0.9;
-			if(relativePow > 0) {
-				double breakAwayCost = std::min(20.0, std::sqrt(relativePow) * 40);
-				if(breakAwayCost > 0.5)
-					log("Cost for %s breaking free: %d", report.leaderName(theyId),
-							::round(breakAwayCost));
-				vassalCost += breakAwayCost;
-			}
-		}
-		uMinus += vassalCost;
 	}
 	u -= ::round(uMinus);
 }
@@ -2554,7 +2563,7 @@ double IllWill::nukeCost(double nukes) {
 
 void IllWill::evalLostPartner() {
 
-	if(numRivals < 2) // Zero-sum game then, and our loss is equally their loss
+	if(numRivals < 2) // Zero-sum game then, and our loss is equally their loss.
 		return;
 	// Only master attitude matters for capitulated vassals (b/c of change 130v)
 	bool theyCapit = TEAMREF(theyId).isAVassal() || m->hasCapitulated(TEAMID(theyId));
@@ -2572,8 +2581,9 @@ void IllWill::evalLostPartner() {
 			diploFactor -= 0.15;
 	}
 	/*  Humans are forgiving and tend to end wars quickly. This special treatment
-		should lead to slightly greater willingness to declare war against human,
-		but also slightly greater willingness to make peace again. */
+		should lead to slightly greater willingness to declare war against human
+		(handled at the end of this function), but also slightly greater 
+		willingness to make peace again. */
 	else diploFactor -= 0.15;
 	// Don't expect much from reconciling with minor players
 	if(m->isEliminated(theyId) || theyCapit)
@@ -2601,13 +2611,21 @@ void IllWill::evalLostPartner() {
 	log("Base partner utility from %s: %d", report.leaderName(theyId),
 			::round(partnerUtil));
 	log("Modifier for alt. partners: %d percent", ::round(100 * altPartnerFactor));
-	uMinus += partnerUtil * altPartnerFactor;
+	double uMinusTmp = partnerUtil * altPartnerFactor;
 	// They may help us again in the future (if we don't go to war with them)
 	if(we->AI_getMemoryCount(theyId, MEMORY_GIVE_HELP) > 0) {
 		double giftUtility = 5 * weAI->amortizationMultiplier();
 		log("%d for given help", ::round(giftUtility));
-		uMinus += giftUtility;
+		uMinusTmp += giftUtility;
 	}
+	double const humanMult = 0.81;
+	if(they->isHuman()) {
+		log("Lost-partner cost reduced b/c humans are forgiving");
+		uMinusTmp *= humanMult;
+	}
+	if(we->isHuman())
+		uMinusTmp *= humanMult;
+	uMinus += uMinusTmp;
 }
 
 void IllWill::evalRevenge() {

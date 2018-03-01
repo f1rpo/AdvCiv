@@ -528,7 +528,9 @@ void CvPlot::doImprovementUpgrade()
 		ImprovementTypes eImprovementUpdrade = (ImprovementTypes)GC.getImprovementInfo(getImprovementType()).getImprovementUpgrade();
 		if (eImprovementUpdrade != NO_IMPROVEMENT)
 		{
-			if (isBeingWorked() || GC.getImprovementInfo(eImprovementUpdrade).isOutsideBorders())
+			if ((isBeingWorked()
+					&& !getWorkingCity()->isDisorder()) // advc.001
+					|| GC.getImprovementInfo(eImprovementUpdrade).isOutsideBorders())
 			{
 				changeUpgradeProgress(GET_PLAYER(getOwnerINLINE()).getImprovementUpgradeRate());
 

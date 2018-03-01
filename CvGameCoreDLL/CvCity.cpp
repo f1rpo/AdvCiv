@@ -1049,11 +1049,12 @@ void CvCity::doTurn()
 	{	// advc.003: Variable declarations deleted
 		for (iI = 0; iI < NUM_YIELD_TYPES; iI++)
 		{	// <advc.003> Want to see the value in the debugger
-			int byr = getBaseYieldRate((YieldTypes)iI);
+			YieldTypes y = (YieldTypes)iI;
+			int byr = getBaseYieldRate(y);
 			FAssert(byr >= 0);
-			FAssert(getYieldRate((YieldTypes)iI) >= 0);
+			FAssert(getYieldRate(y) >= 0);
 			// advc.104u: Code moved into auxiliary function
-			int iCount = calculateBaseYieldRate((YieldTypes)iI);
+			int iCount = calculateBaseYieldRate(y);
 			FAssert(iCount == byr); // advc.003
 		}
 

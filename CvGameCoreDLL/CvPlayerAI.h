@@ -242,12 +242,10 @@ public:
 	bool AI_goldDeal(const CLinkList<TradeData>* pList) const;
 	bool isAnnualDeal(CLinkList<TradeData> const& itemList) const; // advc.705
 	/*  advc.130o: Removed const qualifier - function may now change diplo memory.
-		Note that this function, despite lacking the DLLEport macro, gets called
-		directly from Civ4BeyondSword.exe.
-		Changing const-ness of such functions can cause problems, but fortunately
-		doesn't appear to in this case. */
+		While this function lacks the DLLExport macro, it still gets called from
+		outside the SDK. Changing const-ness seems to be OK. */
 	bool AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList, int iChange = 1);
-	// <advc.133> Adding a param does cause problems, so ...
+	// <advc.133> Adding a param causes problems though, so ...
 	bool AI_considerOfferBulk(PlayerTypes ePlayer,
 			CLinkList<TradeData> const* pTheirList,
 			CLinkList<TradeData> const* pOurList,
@@ -261,8 +259,8 @@ public:
 	bool checkResourceLimits(CLinkList<TradeData> const* weGive,
 			CLinkList<TradeData> const* theyGive, PlayerTypes theyId,
 			int iChange) const; // </advc.036>
+	// advc.003 (comment): These two are exposed to Python
 	DllExport int AI_maxGoldTrade(PlayerTypes ePlayer) const;
-
 	DllExport int AI_maxGoldPerTurnTrade(PlayerTypes ePlayer) const;
 	int AI_goldPerTurnTradeVal(int iGoldPerTurn) const;
 	// <advc.026>
@@ -277,6 +275,7 @@ public:
 	int AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer, int iChange) const;
 	DenialTypes AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 			int iChange = 0) const; // advc.133
+	// advc.210e: Exposed to Python
 	int AI_corporationBonusVal(BonusTypes eBonus) const;
 
 	int AI_cityTradeVal(CvCity* pCity) const;

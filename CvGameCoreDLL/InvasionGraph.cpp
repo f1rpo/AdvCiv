@@ -425,6 +425,9 @@ void InvasionGraph::Node::prepareForSimulation() {
 	PROFILE_FUNC();
 	cacheIndex = 0;
 	cache.sortCitiesByAttackPriority();
+	/*  Fixme: Sorting by attack priority can result in e.g. the first city
+		in one area and the next in another, but an invading army tends to stay
+		in one area until all cities there are conquered. */
 	componentDone = false;
 	emergencyDefPow = 0;
 	distractionByConquest = 0;
@@ -909,7 +912,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 						(double)remainingCitiesAtt;
 				CvCity* capital = GET_PLAYER(id).getCapitalCity();
 				if(capital != NULL && capital->area() == battleArea)
-					areaWeightAtt *= 1.33;
+					areaWeightAtt *= (GET_PLAYER(id).isHuman() ? 1.5 : 1.33);
 				areaWeightAtt = std::min(1.0, areaWeightAtt);
 			}
 			/*  For a human attacker, leave areaWeightAtt at 100% and assume that
@@ -935,7 +938,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 					(double)remainingCitiesDef;
 			CvCity* capital = GET_PLAYER(defender.id).getCapitalCity();
 			if(capital != NULL && capital->area() == battleArea)
-				areaWeightDef *= 1.33;
+				areaWeightDef *= (GET_PLAYER(defender.id).isHuman() ? 1.5 : 1.33);
 			areaWeightDef = std::min(1.0, areaWeightDef);
 			if(areaWeightDef < 0.99) {
 				report.log("Area weight defender: %d percent",

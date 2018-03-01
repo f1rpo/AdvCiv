@@ -60,7 +60,7 @@
 	<Define>
 		<!-- Protect our partners because we want to continue trading with
 			 them, and don't want to become isolated. Assistance for more
-			 principled reasons is covered by FIDELITY; the "mutual strugle"
+			 principled reasons is covered by FIDELITY, the "mutual struggle"
 			 diplo bonus by SUCKING_UP. -->
 		<DefineName>UWAI_WEIGHT_PRESERVATION_OF_PARTNERS</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
@@ -85,13 +85,13 @@
 	</Define>
 	<Define>
 		<!-- By declaring war on a civ that recently attacked one of our
-			 partners, we demonstrate that its worthwhile to be our partner,
+			 partners, we demonstrate that it's worthwhile to be our partner,
 			 and dangerous to attack our partners. -->
 		<DefineName>UWAI_WEIGHT_FIDELITY</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
 	</Define>
 	<Define>
-		<!-- We continue a war because we've been paid for it. (Or maybe rather
+		<!-- We continue a war because we've been paid for it. (Or maybe, rather,
 			 to prove that we're a reliable hireling.) -->
 		<DefineName>UWAI_WEIGHT_HIRED_HAND</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
@@ -107,7 +107,7 @@
 		<iDefineIntVal>100</iDefineIntVal>
 	</Define>
 	<Define>
-		<!-- To weaken a civ that we perceive as a long-term threat. -->
+		<!-- To weaken a civ that we perceive as a long-term military threat. -->
 		<DefineName>UWAI_WEIGHT_PREEMPTIVE_WAR</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
 	</Define>
@@ -122,7 +122,7 @@
 	</Define>
 	<Define>
 		<!-- Our military build-up, lost units and ravages of war. Adjusted
-			 based on our opportunities for peaceful development (i.e. an
+			 based on our opportunities for peaceful development (i.e. it's an
 			 opportunity cost). Also takes into account whether we'll have
 			 further use of units surviving the war and whether lost units
 			 will have to be replaced. -->
@@ -151,7 +151,7 @@
 	</Define>
 	<Define>
 		<!-- Distractions from fighting multiple wars are already covered by
-			 the military analysis, but not quite reliably so, so this is an
+			 the military analysis, but not quite reliably, so this is an
 			 extra cost to discourage wars on multiple fronts. -->
 		<DefineName>UWAI_WEIGHT_DISTRACTION</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
@@ -164,8 +164,8 @@
 	<Define>
 		<!-- War leaves fewer units stationed in cities, which can lead to
 			 revolts in cities conquered in some previous war. Due to the
-			 "Immortal Culture" changes, this can be a significant considera-
-			 tion sometimes. -->
+			 "Immortal Culture" changes, this consideration is sometimes
+			 significant. -->
 		<DefineName>UWAI_WEIGHT_REVOLTS</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
 	</Define>
@@ -184,8 +184,9 @@
 	</Define>
 	<Define>
 		<!-- War as its own purpose. Before this aspect was added, there was too
-			 little war before the Medieval era. Especially affects AI
-			 leaders with aggressive/ suicidal personalities. -->
+			 little war before the Medieval era on spacious maps.
+			 Especially affects AI leaders with aggressive/ suicidal
+			 personalities. -->
 		<DefineName>UWAI_WEIGHT_BELLICOSITY</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
 	</Define>

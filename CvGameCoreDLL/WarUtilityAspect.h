@@ -318,6 +318,7 @@ public:
 class Risk : public WarUtilityAspect {
 public:
 	Risk(WarEvalParameters& params);
+	int preEvaluate();
 	void evaluate();
 	char const* aspectName() const;
 	int xmlId() const;

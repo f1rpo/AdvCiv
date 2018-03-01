@@ -96,6 +96,8 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 		self.PrevAvailTechTrades = self.getTechTrades(owner, iTeam)
 		# (self.CurrAvailTechTrades was never used)
 		self.PrevAvailBonusTrades = self.getBonusTrades(owner, iTeam)
+		# advc.210e:
+		self.PrevAvailBonusSales = self.getBonusSales(owner)
 		self.PrevAvailOpenBordersTrades = self.getOpenBordersTrades(owner, iTeam)
 		self.PrevAvailMapTrades = self.getMapTrades(owner, iTeam)
 		self.PrevAvailDefensivePactTrades = self.getDefensivePactTrades(owner, iTeam)
@@ -402,11 +404,11 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 					message = localText.getText("TXT_KEY_MORECIV4LERTS_NEW_BONUS_AVAIL",	
 												(gc.getPlayer(iLoopPlayer).getName(), szNewTrades))
 					self._addMessageNoIcon(iActivePlayer, message)
-					# advc.105: Moved here to avoid messages about "flickering" offers
+					# advc.106: Moved here to avoid messages about "flickering" offers
 					self.PrevAvailBonusTrades = tradesByPlayer
 				
 				#Determine removed bonuses
-				# <advc.105> This is rarely relevant (resources being no
+				# <advc.106> This is rarely relevant (resources being no
 				# longer available).
 				#removedTrades = previousTrades.difference(currentTrades).intersection(desiredBonuses)
 				#if (removedTrades):
@@ -414,10 +416,11 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 				#	message = #localText.getText("TXT_KEY_MORECIV4LERTS_BONUS_NOT_AVAIL",	
 				#								(gc.getPlayer(iLoopPlayer).getName(), szRemovedTrades))
 				#	self._addMessageNoIcon(iActivePlayer, message)
-				# </advc.105>
+				# </advc.106>
 
 			#save curr trades for next time
-			# self.PrevAvailBonusTrades = tradesByPlayer # advc.105: moved up
+			# self.PrevAvailBonusTrades = tradesByPlayer # advc.106: moved up
+			self.checkForExports(activePlayer) # advc.210e
 		
 		if (BeginTurn and self.getCheckForMap()):
 			currentTrades = self.getMapTrades(activePlayer, activeTeam)
@@ -481,6 +484,22 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 				players = self.buildPlayerString(newTrades)
 				message = localText.getText("TXT_KEY_MORECIV4LERTS_PEACE_TREATY", (players,))
 				self._addMessageNoIcon(iActivePlayer, message)
+	
+	# <advc.210e> Based on 'bonus trades' code
+	def checkForExports(self, player):
+		tradesByPlayer = self.getBonusSales(player)
+		for iLoopPlayer, currentTrades in tradesByPlayer.iteritems():
+			if (self.PrevAvailBonusSales.has_key(iLoopPlayer)):
+				previousTrades = self.PrevAvailBonusSales[iLoopPlayer]
+			else:
+				previousTrades = set()
+			newTrades = currentTrades.difference(previousTrades)
+			if (newTrades):
+				szNewTrades = self.buildBonusString(newTrades)
+				message = localText.getText("TXT_KEY_MORECIV4LERTS_NEW_SALE", (gc.getPlayer(iLoopPlayer).getName(), szNewTrades))
+				self._addMessageNoIcon(player.getID(), message)
+				self.PrevAvailBonusSales = tradesByPlayer
+	# </advc.210e>
 
 	def getTechTrades(self, player, team):
 		iPlayerID = player.getID()
@@ -503,6 +522,22 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 			will, wont = TradeUtil.getTradeableBonuses(loopPlayer, player)
 			bonusesByPlayer[loopPlayer.getID()] = will
 		return bonusesByPlayer
+	# <advc.210e>
+	def getBonusSales(self, player):
+		r = {}
+		playerGoldTr = gc.getTeam(player.getTeam()).isGoldTrading()
+		for other in TradeUtil.getBonusTradePartners(player):
+			if not playerGoldTr and not gc.getTeam(other.getTeam()).isGoldTrading():
+				continue
+			if other.AI_maxGoldPerTurnTrade(player.getID()) <= 0:
+				continue
+			# As getBonusTrades, but switch the parameters in this call:
+			will, wont = TradeUtil.getTradeableBonuses(player, other)
+			r[other.getID()] = set()
+			for iBonus in will.intersection(TradeUtil.getDesiredBonuses(other)):
+				if player.getNumTradeableBonuses(iBonus) > 1 and player.AI_corporationBonusVal(iBonus) <= 0:
+					r[other.getID()].add(iBonus)
+		return r # </advc.210e>
 
 	def getMapTrades(self, player, team):
 		iPlayerID = player.getID()

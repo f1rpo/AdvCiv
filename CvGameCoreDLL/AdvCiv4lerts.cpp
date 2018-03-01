@@ -151,7 +151,10 @@ void RevoltAlert::check() {
 						0);
 			}
 		}
-		else if(couldPreviouslyRevolt && wasOccupation == c->isOccupation()) {
+		else if(couldPreviouslyRevolt && wasOccupation == c->isOccupation() &&
+				/*  Don't report 0 revolt chance when in occupation b/c
+					revolt chance will increase a bit when occupation ends. */
+				!c->isOccupation()) {
 			msg(gDLL->getText("TXT_KEY_CIV4LERTS_NO_LONGER_REVOLT", c->getName().
 						GetCString()), NULL
 						,//ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),

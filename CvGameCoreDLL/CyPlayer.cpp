@@ -2220,7 +2220,6 @@ void CyPlayer::AI_setExtraGoldTarget(int iNewValue)
 	}
 }
 
-
 int CyPlayer::getScoreHistory(int iTurn) const
 {
 	return (NULL != m_pPlayer ? m_pPlayer->getScoreHistory(iTurn) : 0);
@@ -2350,3 +2349,14 @@ void CyPlayer::checkAlert(int alertId, bool silent) {
 	if(m_pPlayer != NULL)
 		m_pPlayer->checkAlert(alertId, silent);
 } // </advc.210>
+
+// <advc.210e>
+int CyPlayer::AI_corporationBonusVal(int eBonus) const {
+
+	if(m_pPlayer == NULL)
+		return -1;
+	/*  Adding AI_corporationBonusVal as a pure virtual function to CvPlayer
+		causes the EXE to crash during initialization. Will have to down-cast
+		instead. */
+	return dynamic_cast<CvPlayerAI*>(m_pPlayer)->AI_corporationBonusVal((BonusTypes)eBonus);
+} // </advc.210e>

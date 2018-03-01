@@ -1364,7 +1364,7 @@ bool WarAndPeaceCache::City::byAttackPriority(City* one, City* two) {
 }
 double WarAndPeaceCache::City::attackPriority() const {
 
-	/* targetValue is something like 10 to 100, distance 1 to 20 perhaps. */
+	// targetValue is something like 10 to 100, distance 1 to 20 perhaps.
 	return getTargetValue() - std::min(100, 5 * distance);
 }
 
