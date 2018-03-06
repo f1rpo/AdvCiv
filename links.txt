@@ -1,0 +1,8 @@
+Download site and instructions for installation:
+	https://forums.civfanatics.com/resources/advanced-civ.26111
+Manual on GitHub:
+	https://github.com/f1rpo/AdvCiv/raw/master/manual.pdf
+Source code on GitHub:
+	https://github.com/f1rpo/AdvCiv
+Discussion thread on CivFanatics:
+	https://forums.civfanatics.com/threads/advanced-civ.614217

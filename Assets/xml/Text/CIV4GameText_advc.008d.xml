@@ -92,11 +92,11 @@
 <!-- advc.300 -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_43</Tag>
-	<English>(AdvCiv) Don't be lulled if barbarians appear only in small numbers in the ancient era - it's often not until the end of the classical era that they reach their full strength.</English>
-	<French>(AdvCiv) Don't be lulled if barbarians appear only in small numbers in the ancient era - it's often not until the end of the classical era that they reach their full strength.</French>
+	<English>(AdvCiv) Don't be lulled if Barbarians appear only in small numbers in the ancient era - it's often not until the end of the classical era that they reach their full strength.</English>
+	<French>(AdvCiv) Don't be lulled if Barbarians appear only in small numbers in the ancient era - it's often not until the end of the classical era that they reach their full strength.</French>
 	<German>(AdvCiv) Wiegen Sie sich nicht in Sicherheit, wenn im Altertum zunächst nur wenige Barbaren erscheinen. Oft dauert es bis zur späten Klassik, ehe die Barbaren ihre volle Stärke erreichen.</German>
-	<Italian>(AdvCiv) Don't be lulled if barbarians appear only in small numbers in the ancient era - it's often not until the end of the classical era that they reach their full strength.</Italian>
-	<Spanish>(AdvCiv) Don't be lulled if barbarians appear only in small numbers in the ancient era - it's often not until the end of the classical era that they reach their full strength.</Spanish>
+	<Italian>(AdvCiv) Don't be lulled if Barbarians appear only in small numbers in the ancient era - it's often not until the end of the classical era that they reach their full strength.</Italian>
+	<Spanish>(AdvCiv) Don't be lulled if Barbarians appear only in small numbers in the ancient era - it's often not until the end of the classical era that they reach their full strength.</Spanish>
 </TEXT>
 
 <!-- Not news anymore: "The Courthouse, Jail, Palace and Castle increase the
@@ -157,11 +157,11 @@
 <!-- advc.300 -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_1</Tag>
-	<English>(AdvCiv) Don't worry about leaving snow and desert tiles unattended: barbarians can't appear there.</English>
-	<French>(AdvCiv) Don't worry about leaving snow and desert tiles unattended: barbarians can't appear there.</French>
+	<English>(AdvCiv) Don't worry about leaving snow and desert tiles unattended: Barbarians can't appear there.</English>
+	<French>(AdvCiv) Don't worry about leaving snow and desert tiles unattended: Barbarians can't appear there.</French>
 	<German>(AdvCiv) Lassen Sie Schnee- und Wüstenfelder ruhig unbeobachtet; Barbaren können dort nicht erscheinen.</German>
-	<Italian>(AdvCiv) Don't worry about leaving snow and desert tiles unattended: barbarians can't appear there.</Italian>
-	<Spanish>(AdvCiv) Don't worry about leaving snow and desert tiles unattended: barbarians can't appear there.</Spanish>
+	<Italian>(AdvCiv) Don't worry about leaving snow and desert tiles unattended: Barbarians can't appear there.</Italian>
+	<Spanish>(AdvCiv) Don't worry about leaving snow and desert tiles unattended: Barbarians can't appear there.</Spanish>
 </TEXT>
 
 <!-- advc.310 -->
@@ -187,11 +187,11 @@
 <!-- advc.312 -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_4</Tag>
-	<English>(AdvCiv) By fighting barbarians, your units can gain experience and [COLOR_HIGHLIGHT_TEXT]Great General[COLOR_REVERT] points. However, little experience and no points are earned if your units outclass theirs, and units at level 4 or higher have nothing to learn from barbarians.</English>
-	<French>(AdvCiv) By fighting barbarians, your units can gain experience and [COLOR_HIGHLIGHT_TEXT]Great General[COLOR_REVERT] points. However, little experience and no points are earned if your units outclass theirs, and units at level 4 or higher have nothing to learn from barbarians.</French>
+	<English>(AdvCiv) By fighting Barbarians, your units can gain experience and [COLOR_HIGHLIGHT_TEXT]Great General[COLOR_REVERT] points. However, little experience and no points are earned if your units outclass theirs, and units at level 4 or higher have nothing to learn from Barbarians.</English>
+	<French>(AdvCiv) By fighting Barbarians, your units can gain experience and [COLOR_HIGHLIGHT_TEXT]Great General[COLOR_REVERT] points. However, little experience and no points are earned if your units outclass theirs, and units at level 4 or higher have nothing to learn from Barbarians.</French>
 	<German>(AdvCiv) Im Kampf gegen Barbaren können Ihre Einheiten Erfahrung und Generalspunkte sammeln. Wenn Ihre Einheiten aber weit überlegen sind, sammeln sie keine Punkte und wenig Erfahrung, und Einheiten ab Stufe 4 können von Barbaren gar nichts weiter lernen.</German>
-	<Italian>(AdvCiv) By fighting barbarians, your units can gain experience and [COLOR_HIGHLIGHT_TEXT]Great General[COLOR_REVERT] points. However, little experience and no points are earned if your units outclass theirs, and units at level 4 or higher have nothing to learn from barbarians.</Italian>
-	<Spanish>(AdvCiv) By fighting barbarians, your units can gain experience and [COLOR_HIGHLIGHT_TEXT]Great General[COLOR_REVERT] points. However, little experience and no points are earned if your units outclass theirs, and units at level 4 or higher have nothing to learn from barbarians..</Spanish>
+	<Italian>(AdvCiv) By fighting Barbarians, your units can gain experience and [COLOR_HIGHLIGHT_TEXT]Great General[COLOR_REVERT] points. However, little experience and no points are earned if your units outclass theirs, and units at level 4 or higher have nothing to learn from Barbarians.</Italian>
+	<Spanish>(AdvCiv) By fighting Barbarians, your units can gain experience and [COLOR_HIGHLIGHT_TEXT]Great General[COLOR_REVERT] points. However, little experience and no points are earned if your units outclass theirs, and units at level 4 or higher have nothing to learn from Barbarians..</Spanish>
 </TEXT>
 
 <!-- advc.130m -->
@@ -266,10 +266,10 @@
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_12</Tag>
 	<English>(K-Mod) Don't risk your fishermen getting pillaged and blockaded by Barbarians. Barbarian ships aren't an even match for yours - just a single galley may be enough to fend them off.</English>
-	<French>(K-Mod) Don't risk your fishermen getting pillaged and blockaded by barbarians. Barbarian ships aren't an even match for yours - just a single galley may be enough to fend them off.</French>
+	<French>(K-Mod) Don't risk your fishermen getting pillaged and blockaded by Barbarians. Barbarian ships aren't an even match for yours - just a single galley may be enough to fend them off.</French>
 	<German>(K-Mod) Setzen Sie Ihre Fischer nicht dem Risiko aus, von Barbaren geplündert und blockiert zu werden. Die Barbarenschiffe sind Ihren Schiffen nicht ganz ebenbürtig, so dass häufig schon eine einzelne Galeere reicht, um die Barbaren abzuwehren.</German>
-	<Italian>(K-Mod) Don't risk your fishermen getting pillaged and blockaded by barbarians. Barbarian ships aren't an even match for yours - just a single galley may be enough to fend them off.</Italian>
-	<Spanish>(K-Mod) Don't risk your fishermen getting pillaged and blockaded by barbarians. Barbarian ships aren't an even match for yours - just a single galley may be enough to fend them off.</Spanish>
+	<Italian>(K-Mod) Don't risk your fishermen getting pillaged and blockaded by Barbarians. Barbarian ships aren't an even match for yours - just a single galley may be enough to fend them off.</Italian>
+	<Spanish>(K-Mod) Don't risk your fishermen getting pillaged and blockaded by Barbarians. Barbarian ships aren't an even match for yours - just a single galley may be enough to fend them off.</Spanish>
 </TEXT>
 
 <TEXT>
@@ -343,11 +343,11 @@
 <!-- advc.102 -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_20</Tag>
-	<English>(AdvCiv) Give the "Show friendly moves" option another chance. It takes up much less time now.</English>
-	<French>(AdvCiv) Give the "Show friendly moves" option another chance. It takes up much less time now.</French>
-	<German>(AdvCiv) Geben Sie der Option "Freundliche Bewegungen zeigen" noch eine Chance. Die Anzeige der Züge nimmt nicht mehr so viel Zeit in Anspruch.</German>
-	<Italian>(AdvCiv) Give the "Show friendly moves" option another chance. It takes up much less time now.</Italian>
-	<Spanish>(AdvCiv) Give the "Show friendly moves" option another chance. It takes up much less time now.</Spanish>
+	<English>(AdvCiv) The "Show Friendly Moves" option doesn't show all moves because that would take too long. E.g. the moves of Workers aren't shown.</English>
+	<French>(AdvCiv) The "Show Friendly Moves" option doesn't show all moves because that would take too long. E.g. the moves of Workers aren't shown.</French>
+	<German>(AdvCiv) Die Option "Freundliche Bewegungen zeigen" lässt manche Einheiten aus, z.B. Bautrupps, damit die Animationen nicht zu viel Zeit in Anspruch nehmen.</German>
+	<Italian>(AdvCiv) The "Show Friendly Moves" option doesn't show all moves because that would take too long. E.g. the moves of Workers aren't shown.</Italian>
+	<Spanish>(AdvCiv) The "Show Friendly Moves" option doesn't show all moves because that would take too long. E.g. the moves of Workers aren't shown.</Spanish>
 </TEXT>
 
 <TEXT>

@@ -634,6 +634,7 @@ void RiseFall::abandonPlans(PlayerTypes civId) {
 			c->AI_setEmphasize((EmphasizeTypes)i, false);
 		// Clear production queue
 		c->setProductionAutomated(false, true);	
+		c->setCitizensAutomated(true);
 	}
 }
 
@@ -1288,7 +1289,7 @@ int RiseFall::pessimisticDealVal(PlayerTypes aiCivId, int dealVal,
 		int itemVal = 0;
 		/*  What the AI thinks that the item should be worth to the human civ.
 			In most cases, there is no code for this, and then replVal has to
-			be set based on itemVal (what the AI normally demands fot the item). */
+			be set based on itemVal (what the AI normally demands for the item). */
 		int replVal = -1;
 		int data = node->m_data.m_iData;
 		switch(node->m_data.m_eItemType) {

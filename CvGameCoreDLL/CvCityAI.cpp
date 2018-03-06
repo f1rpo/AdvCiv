@@ -3641,7 +3641,8 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 	bool bIsLimitedWonder = (iLimitedWonderLimit >= 0);
 	// <advc.131>
 	int totalBonusYieldMod = 0;
-	int totalImprFreeSpecialists = 0; // </advc.131>
+	int totalImprFreeSpecialists = 0;
+	bool anySeaPlotYieldChange = false; // </advc.131>
 	// K-Mod. This new value, iPriorityFactor, is used to boost the value of productivity buildings without overvaluing productivity.
 	// The point is to get the AI to build productiviy buildings quickly, but not if they come with large negative side effects.
 	// I may use it for other adjustments in the future.
@@ -3960,7 +3961,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 			//iValue -= iCitValue * iWasteDelta;
 			// <advc.001h> Replacing the above; be more afraid of high iWasteDelta
 			if(iWasteDelta <= 0)
-				iValue -= iCitValue * iWasteDelta;
+				iValue -= iCitValue * iWasteDelta; // </advc.001h>
 			else iValue -= iCitValue * ::round(std::pow((double)iWasteDelta, 1.3));
 			// some extra value if the change will help us grow (this is a positive change bias)
 			if (iWasteDelta < 0 && iHappinessLevel > 0)
@@ -4324,12 +4325,14 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 			if (iGreatPeopleRateModifier > 0)
 			{
 				int iGreatPeopleRate = getBaseGreatPeopleRate();
-				const int kTargetGPRate = 10;
+				// advc.131: was 10 flat
+				const int kTargetGPRate = 5 + 2 * std::max(1, (int)kOwner.getCurrentEra());
 
 				// either not a wonder, or a wonder and our GP rate is at least the target rate
 				if (!bIsLimitedWonder || iGreatPeopleRate >= kTargetGPRate)
 				{
-					iValue += ((iGreatPeopleRateModifier * iGreatPeopleRate) / 16);
+					iValue += ((iGreatPeopleRateModifier * iGreatPeopleRate) /
+							10); // advc.131: was 16
 				}
 				// otherwise, this is a limited wonder (aka National Epic), we _really_ do not want to build this here
 				// subtract from the value (if this wonder has a lot of other stuff, we still might build it)
@@ -4678,7 +4681,14 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 							{
 								for (pLoopCity = kOwner.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kOwner.nextCity(&iLoop))
 								{
-									if (pLoopCity->canConstruct(eLoopBuilding, false, true) && pLoopCity->getProductionBuilding() != eLoopBuilding)
+									if (pLoopCity->getProductionBuilding() != eLoopBuilding &&
+										/*  advc.003 (comment): bVisible=true means: check only if the building
+											appears in the production list. In particular, prereq buildings aren't
+											checked, which is good. However, the national wonder limit also isn't
+											checked, which is bad.
+											Same problem a bit higher up in this function (K-Mod comment:
+											"This is a minor flaw in the AI.") */
+											pLoopCity->canConstruct(eLoopBuilding, false, true))
 										iHighestValue = std::max(pLoopCity->AI_buildingValue(eLoopBuilding, 0, 0, bConstCache, false), iHighestValue);
 								}
 
@@ -4897,6 +4907,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 				{
 					//iRawYieldValue += kBuilding.getSeaPlotYieldChange(iI) * AI_buildingSpecialYieldChangeValue(eBuilding, (YieldTypes)iI);
 					iRawYieldValue += kBuilding.getSeaPlotYieldChange(iI) * AI_buildingSeaYieldChangeWeight(eBuilding, iFoodDifference > 0 && iHappinessLevel > 0); // K-Mod
+					anySeaPlotYieldChange = true; // advc.131
 				}
 				if (kBuilding.getRiverPlotYieldChange(iI) > 0)
 				{
@@ -5662,9 +5673,16 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 			totalCommerceMod += kBuilding.getCommerceModifier(i);
 		if(totalCommerceMod < 40) {
 			int slotsLeft = getNumNationalWondersLeft();
-			FAssert(slotsLeft > 0);
+			// Special treatment for Moai
+			if(slotsLeft == 2 && anySeaPlotYieldChange)
+				slotsLeft--;
 			double slotMod = std::min(1.0, 0.25 * (slotsLeft + 1));
 			iValue = ::round(iValue * slotMod);
+			FAssert(slotsLeft >= 0);
+			/*  0 is also bad, but can happen if canConstruct was only checked
+				with bTestVisible=true. */
+			if(slotsLeft == 0)
+				iValue = 0;
 		}
 	} // </advc.131>
 	// constructionValue cache
@@ -10335,8 +10353,9 @@ int CvCityAI::AI_jobChangeValue(std::pair<bool, int> new_job, std::pair<bool, in
 				// each successive great person costs more points. So the points are effectively worth less...
 				// (note: I haven't tried to match this value decrease with the actual cost increase,
 				// because the value of the great people changes as well.)
-				iGPPValue *= 100;
-				iGPPValue /= 90 + 7 * kOwner.getGreatPeopleCreated(); // it would be nice if we had a flavour modifier for this.
+				iGPPValue *= 138; // advc.131: was *=100
+				// advc.131: was 90+7*...
+				iGPPValue /= 90 + 9 * kOwner.getGreatPeopleCreated(); // it would be nice if we had a flavour modifier for this.
 			}
 
 			//iTempValue /= kOwner.AI_averageGreatPeopleMultiplier();

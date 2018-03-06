@@ -11209,13 +11209,16 @@ bool CvPlayerAI::AI_considerOfferBulk(PlayerTypes ePlayer,
 			/*  Moved here from CvPlayer::handleDiploEvent b/c that handler
 				can't distinguish whether the AI accepts a human demand */
 			if(accept) {
-				// ePlayer is human, but still let the proxy AI remember.
-				GET_PLAYER(ePlayer).AI_rememberEvent(getID(), MEMORY_ACCEPT_DEMAND);
+				/*  ePlayer is human; could still let the proxy AI remember,
+					but that gets confusing in R&F games when a human demands
+					tribute from a civ and later takes control of that civ.
+					So don't do this after all: */
+				  //GET_PLAYER(ePlayer).AI_rememberEvent(getID(), MEMORY_ACCEPT_DEMAND);
 				AI_rememberEvent(ePlayer, MEMORY_MADE_DEMAND);
 			}
 			else {
-				// Again, not important.
-				GET_PLAYER(ePlayer).AI_rememberEvent(getID(), MEMORY_REJECTED_DEMAND);
+				// See above
+				  //GET_PLAYER(ePlayer).AI_rememberEvent(getID(), MEMORY_REJECTED_DEMAND);
 				/*  Here's where we don't increase MEMORY_MADE_DEMAND b/c the
 					demand isn't accepted. CvPlayer::handleDiploEvent deals
 					with the MADE_DEMAND_RECENT memory. */
@@ -11866,8 +11869,8 @@ bool CvPlayerAI::balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInvent
 		/*  <advc.001> If human asks for gold, then pGoldNode is NULL here,
 			and the AI won't ask e.g. for a tech in exchange */
 		else if(bGenerous && kPlayer.isHuman() && iGreaterVal > iSmallerVal &&
-				pList->getLength() > 0 &&
-				!CvDeal::isAnnual(pList->head()->m_data.m_eItemType))
+				(pList->getLength() <= 0 ||
+				!CvDeal::isAnnual(pList->head()->m_data.m_eItemType)))
 			bAddFinalItem = true; // </advc.001>
 	}
 	if(iGreaterVal > iSmallerVal) {
@@ -11901,8 +11904,8 @@ bool CvPlayerAI::balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInvent
 		}
 		// <advc.001> See above at if(pGoldNode)...else
 		else if(bGenerous && kPlayer.isHuman() && iGreaterVal > iSmallerVal &&
-				pList->getLength() > 0 &&
-				CvDeal::isAnnual(pList->head()->m_data.m_eItemType))
+				(pList->getLength() <= 0 ||
+				CvDeal::isAnnual(pList->head()->m_data.m_eItemType)))
 			bAddFinalItem = true; // </advc.001>
 	} // <advc.036> A mix of the two K-Mod algorithms for item selection
 	if(iGreaterVal > iSmallerVal && final_item.first == NULL) {

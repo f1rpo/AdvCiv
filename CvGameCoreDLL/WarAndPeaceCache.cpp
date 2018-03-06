@@ -329,7 +329,8 @@ double WarAndPeaceCache::goldPerProdBuildings() {
 double WarAndPeaceCache::goldPerProdSites() {
 
 	CvPlayerAI const& owner = GET_PLAYER(ownerId);
-	double sites = owner.AI_getNumCitySites();
+	double sites = std::max(0, owner.AI_getNumCitySites() -
+			owner.AI_getNumAIUnits(UNITAI_SETTLE));
 	CvPlayer const& barb = GET_PLAYER(BARBARIAN_PLAYER);
 	/*  Don't want to count faraway barb cities. From looking at some sample
 		numbers, a threshold of 30 might accomplish this. */

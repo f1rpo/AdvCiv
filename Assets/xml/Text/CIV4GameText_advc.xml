@@ -796,6 +796,14 @@
 		<Italian>Pan-Gaia: "Una terra", un enorme continente.</Italian>
 		<Spanish>Pan-gea ("una Tierra"), un solo continente enorme.</Spanish>
 	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MAP_SCRIPT_OASIS_DESCR</Tag>
+		<English>The desert region in the middle holds the strategic minerals. The fertile region in the north has less land (but more resources) than the south. Extra players recommended (ca. +25%%) because there is very little sea and much of the desert is habitable because of rivers.</English>
+		<French>La r&#233;gion d&#233;sertique au centre contient toutes les ressources min&#233;rales strat&#233;giques. Les fertiles r&#233;gions du nord sont moins grandes (mais contiennent plus de ressources) que celles du sud.</French>
+		<German>In der W&#252;stenregion in der Mitte der Karte finden sich wichtige strategische Mineralienvorkommen. In der fruchtbaren Region im Norden stehen weniger Landstriche (aber mehr Ressourcen) zur Verf&#252;gung als im S&#252;den. Höhere Spielerzahl empfohlen (ca. +25%%), da das Meer kaum Raum einnimmt und die Wüste großteils bewohnbar ist.</German>
+		<Italian>La regione desertica nella zona centrale della mappa contiene le risorse strategiche minerarie. La regione fertile a nord dispone di meno terra ma di pi&#249; risorse di quella a sud.</Italian>
+		<Spanish>La regi&#243;n des&#233;rtica central contiene los minerales estrat&#233;gicos. La f&#233;rtil regi&#243;n septentrional tiene menos tierra, pero m&#225;s recursos, que la meridional.</Spanish>
+	</TEXT>
 
 	<!-- advc.137: Copy-pasted from Vanilla Civ4GameTextInfos.xml;
 		 recommendation added (only in English). -->

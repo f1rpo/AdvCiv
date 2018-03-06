@@ -287,9 +287,9 @@ void BonusThirdPartiesAlert::doMsg(PlayerTypes fromId, int data,
 	if(isDebug) {
 		msgStr = (newQuantity > 0 ?
 				gDLL->getText("TXT_KEY_CIV4LERTS_NOW_EXPORTING",
-				from.getName(), quantityStr.GetCString(), to.getName()) :
+				from.getNameKey(), quantityStr.GetCString(), to.getNameKey()) :
 				gDLL->getText("TXT_KEY_CIV4LERTS_NO_LONGER_EXPORTING",
-				from.getName(), quantityStr.GetCString(), to.getName()));
+				from.getNameKey(), quantityStr.GetCString(), to.getNameKey()));
 	}
 	else {
 		if((newQuantity > 0) == (oldQuantity > 0))
@@ -316,7 +316,7 @@ void BonusThirdPartiesAlert::doMsg(PlayerTypes fromId, int data,
 			msgStr = gDLL->getText(newQuantity > 0 ?
 					"TXT_KEY_CIV4LERTS_EXPORTING_STRATEGIC" :
 					"TXT_KEY_CIV4LERTS_NOT_EXPORTING_STRATEGIC",
-					from.getName(), to.getName(), quantityStr.GetCString());
+					from.getNameKey(), to.getNameKey(), quantityStr.GetCString());
 		}
 		else {
 			int imports = to.getNumTradeBonusImports(fromId);
@@ -326,7 +326,7 @@ void BonusThirdPartiesAlert::doMsg(PlayerTypes fromId, int data,
 			msgStr = gDLL->getText((newQuantity > 0 ?
 					"TXT_KEY_CIV4LERTS_EXPORTING_ANY" :
 					"TXT_KEY_CIV4LERTS_EXPORTING_NONE"),
-					from.getName(), to.getName(), quantityStr.GetCString());
+					from.getNameKey(), to.getNameKey(), quantityStr.GetCString());
 		}
 	}
 	msg(msgStr);

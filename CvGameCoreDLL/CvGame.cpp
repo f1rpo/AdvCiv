@@ -383,10 +383,11 @@ void CvGame::regenerateMap()
 	CvMapGenerator::GetInstance().addGameElements();
 
 	gDLL->getEngineIFace()->RebuildAllPlots();
-	// <advc.004j>
-	if(isOption(GAMEOPTION_ADVANCED_START))
-		setStartTurn(0); // Increased below by setInitialItems
-	else setGameTurn(getStartTurn()); // <advc.004j>
+	// <advc.004j><advc.251>
+	setGameTurn(0);
+	setStartTurn(0);
+	setStartTurnYear();
+	// </advc.151><advc.004j>
 	CvEventReporter::getInstance().resetStatistics();
 
 	setInitialItems();
@@ -1037,7 +1038,7 @@ void CvGame::assignStartingPlots()
 		if (pLoopPlot->isStartingPlot())
 			starting_plots.push_back(pLoopPlot);
 	}
-	// Now, randomly the starting plots to each player.
+	// Now, randomly assign a starting plot to each player.
 	for (PlayerTypes i = (PlayerTypes)0; starting_plots.size() > 0 && i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
 	{
 		CvPlayer& kLoopPlayer = GET_PLAYER(i);

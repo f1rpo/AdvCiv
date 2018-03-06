@@ -5096,7 +5096,7 @@ class StartingArea:
 			seaLevelAdj = 0.5
 		elif seaChg > 0:
 			seaLevelAdj = -0.5
-		cull = max(0, int(round(len(self.plotList) * (0.25  + (gameMap.getWorldSize() - newWorldSubtr + seaLevelAdj) / (2.0 * civs)))))
+		cull = max(0, int(round(len(self.plotList) * (0.22  + (gameMap.getWorldSize() - newWorldSubtr + seaLevelAdj) / (2.0 * civs)))))
 		# </advc.021b>
 		for i in range(cull):
 			del self.plotList[0]
