@@ -3254,14 +3254,18 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				so this is about snow. Perhaps snow river should be
 				just 1 bad tile(?). Bonus check added (Incense). */
 				pLoopPlot->getBonusType() == NO_BONUS &&
-				(pLoopPlot->calculateBestNatureYield(YIELD_FOOD, getTeam()) == 0 || pLoopPlot->calculateTotalBestNatureYield(getTeam()) <= 1))
+				(pLoopPlot->calculateBestNatureYield(YIELD_FOOD, getTeam()) == 0 ||
+				pLoopPlot->calculateTotalBestNatureYield(getTeam()) <= 1))
 			{	// <advc.031>
 				iBadTile++; /*  Snow hills had previously not been counted as bad,
-				but they are. Worthless even unless the city is deperate for
+				but they are. Worthless even unless the city is desperate for
 				production or has plenty of food. */
-				if(!pLoopPlot->isHills() || (baseProduction >= 10 &&
+				/*if(!pLoopPlot->isHills() || (baseProduction >= 10 &&
 						iSpecialFoodPlus - iSpecialFoodMinus < 5))
-					iBadTile++; // </advc.031>
+					iBadTile++;*/
+				/*  But we can't tell here whether that's the case
+					(baseProduction and special food haven't been computed) */
+				iBadTile++; // </advc.031>
 			}
 			else if (pLoopPlot->isWater() && pLoopPlot->calculateBestNatureYield(YIELD_FOOD, getTeam()) <= 1)
 			{	/* <advc.031> Removed the bIsCoastal check from the
@@ -3297,7 +3301,6 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	if(revDecentLand < 4)
 		firstColony = false; // </advc.040>
 	iBadTile /= 2;
-
 	if (!kSet.bStartingLoc)
 	{
 		if ((iBadTile > (NUM_CITY_PLOTS / 2)) || (pArea->getNumTiles() <= 2)
@@ -3803,7 +3806,6 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 
 					//iValue += (iBonusValue + 10);
 					iResourceValue += iBonusValue; // K-Mod
-
 					if (iI != CITY_HOME_PLOT)
 					{
 						if (eBonusImprovement != NO_IMPROVEMENT)
@@ -13281,7 +13283,7 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 			(valueForUs >= tradeValThresh +
 			/*  bonusVal gives every city equal weight, but early on,
 				it's mostly about the capital, which can grow fast. */
-			std::min(2, getNumCities() / 2)) :
+			std::min(2, (getNumCities() - 1) / 2)) :
 			(3 * valueForUs >= 2 * valueForThem ||
 			valueForThem - valueForUs < tradeValThresh ||
 			valueForUs > tradeValThresh + 2))

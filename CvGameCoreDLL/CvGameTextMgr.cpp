@@ -9259,37 +9259,42 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit, bool
 				szBuffer.append(ENDCOLR);
 			}
 		}
-	}
-	// advc.004y:
+	} // advc.004y: Commented out
 	//if (!bCivilopediaText && GC.getGameINLINE().getActivePlayer() != NO_PLAYER)
+	if (pCity == NULL)
 	{
-		if (pCity == NULL)
-		{
+		if(GC.getUnitInfo(eUnit).getProductionCost() > 0) { // advc.004y
 			szTempBuffer.Format(L"%s%d%c", NEWLINE,
 					// <advc.004y>
 					(GC.getGameINLINE().getActivePlayer() == NO_PLAYER ?
 					GC.getUnitInfo(eUnit).getProductionCost() : // </advc.004y>
-					GET_PLAYER(ePlayer).getProductionNeeded(eUnit)), GC.getYieldInfo(YIELD_PRODUCTION).getChar());
+					GET_PLAYER(ePlayer).getProductionNeeded(eUnit)),
+					GC.getYieldInfo(YIELD_PRODUCTION).getChar());
+			szBuffer.append(szTempBuffer);
+		}
+	}
+	else
+	{
+		szBuffer.append(NEWLINE);
+		szBuffer.append(gDLL->getText("TXT_KEY_UNIT_TURNS",
+				pCity->getProductionTurnsLeft(eUnit,
+				((GC.ctrlKey() || !(GC.shiftKey())) ? 0 :
+				pCity->getOrderQueueLength())),
+				pCity->getProductionNeeded(eUnit),
+				GC.getYieldInfo(YIELD_PRODUCTION).getChar()));
+		iProduction = pCity->getUnitProduction(eUnit);
+		if (iProduction > 0)
+		{
+			szTempBuffer.Format(L" - %d/%d%c", iProduction,
+					pCity->getProductionNeeded(eUnit),
+					GC.getYieldInfo(YIELD_PRODUCTION).getChar());
 			szBuffer.append(szTempBuffer);
 		}
 		else
 		{
-
-			szBuffer.append(NEWLINE);
-			szBuffer.append(gDLL->getText("TXT_KEY_UNIT_TURNS", pCity->getProductionTurnsLeft(eUnit, ((GC.ctrlKey() || !(GC.shiftKey())) ? 0 : pCity->getOrderQueueLength())), pCity->getProductionNeeded(eUnit), GC.getYieldInfo(YIELD_PRODUCTION).getChar()));
-
-			iProduction = pCity->getUnitProduction(eUnit);
-
-			if (iProduction > 0)
-			{
-				szTempBuffer.Format(L" - %d/%d%c", iProduction, pCity->getProductionNeeded(eUnit), GC.getYieldInfo(YIELD_PRODUCTION).getChar());
-				szBuffer.append(szTempBuffer);
-			}
-			else
-			{
-				szTempBuffer.Format(L" - %d%c", pCity->getProductionNeeded(eUnit), GC.getYieldInfo(YIELD_PRODUCTION).getChar());
-				szBuffer.append(szTempBuffer);
-			}
+			szTempBuffer.Format(L" - %d%c", pCity->getProductionNeeded(eUnit),
+					GC.getYieldInfo(YIELD_PRODUCTION).getChar());
+			szBuffer.append(szTempBuffer);
 		}
 	}
 
@@ -9680,7 +9685,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 	if (NO_BUILDING != eDefaultBuilding && eDefaultBuilding != eBuilding
 			&& !inBuildingList) // advc.004w
 	{
-		for (iI  = 0; iI < GC.getNumCivilizationInfos(); ++iI)
+		for (int iI  = 0; iI < GC.getNumCivilizationInfos(); ++iI)
 		{
 			BuildingTypes eUniqueBuilding = (BuildingTypes)GC.getCivilizationInfo((CivilizationTypes)iI).getCivilizationBuildings(bct);
 			if (eUniqueBuilding == eBuilding)
