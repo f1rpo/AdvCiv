@@ -47,10 +47,13 @@ public:
 	void read(FDataStreamBase* stream);
 	int numReachableCities(PlayerTypes civId) const ;
 	int size() const;
+		private: /* These shouldn't be used anymore. Always keep the cache
+					sorted by AttackPriority instead. */
 	void sortCitiesByOwnerAndDistance();
 	void sortCitiesByOwnerAndTargetValue();
 	void sortCitiesByDistance();
 	void sortCitiesByTargetValue();
+		public:
 	void sortCitiesByAttackPriority();
 	City* getCity(int index) const;
 	// Use CvCity::plotNum for the plotIndex of a given CvCity
@@ -192,6 +195,9 @@ public:
 			currently reachable. */
 		int getDistance(bool forceCurrentVal = false) const;
 		int getTargetValue() const;
+		/* A mix of target value and distance. Target value alone would
+		   ignore opportunistic attacks. */
+		double attackPriority() const;
 		bool canReachByLand() const;
 		// Use canReachByLand instead for military analysis
 		bool canCurrentlyReachBySea() const;
@@ -228,10 +234,6 @@ public:
 	    bool measureDistance(DomainTypes dom, CvPlot* start, CvPlot* dest, int* r);
 		void updateDistance(CvCity* targetCity);
 		void updateAssetScore();
-
-		/* A mix of target value and distance. Target value alone would
-		   ignore opportunistic attacks. */
-		double attackPriority() const;
 
 		int plotIndex, assetScore, distance, targetValue;
 		bool reachByLand;

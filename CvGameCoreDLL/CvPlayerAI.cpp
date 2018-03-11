@@ -9120,8 +9120,11 @@ int CvPlayerAI::AI_calculateStolenCityRadiusPlots(PlayerTypes ePlayer,
 			if(pp == NULL)
 				continue;
 			CvPlot const& p = *pp;
+			/*  Don't count tiles in the outer ring as stolen when borders
+				haven't expanded yet. */
+			if(::plotDistance(pp, c.plot()) > c.getCultureLevel())
+				continue;
 			if(p.getOwnerINLINE() == ePlayer
-					// advc.147:
 					&& (!onlyNonWorkable || p.getCityRadiusCount() <= 1)) {
 				perCityCount++;
 				if(perCityCount >= upperBound)
@@ -12381,11 +12384,11 @@ int CvPlayerAI::AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled,
 	int tradeVal = 0;
 	// More valuable if we have few resources for trade
 	int surplus = 0;
-	for(int i = 0; i < GC.getNumBonusInfos(); i++)
-		surplus += std::max(0, getNumTradeableBonuses((BonusTypes)i) - 1);
-	if(bTrade) /* Want surplus to matter mostly for buildValue and
-				  foundValue, and not so much for prices charged in trade. */
-		surplus = std::max(2, surplus);
+	if(!bTrade) { /* Importing resources is not going to give us more resources
+					to trade with b/c we can't wheel and deal */
+		for(int i = 0; i < GC.getNumBonusInfos(); i++)
+			surplus += std::max(0, getNumTradeableBonuses((BonusTypes)i) - 1);
+	}
 	tradeVal = ::round(4 / std::sqrt((double)std::max(1, std::max(surplus,
 			2 * (iBonusCount + iChange))))); // </advc.036>
 	if ((iChange == 0) || ((iChange == 1) && (iBonusCount == 0)) || ((iChange == -1) && (iBonusCount == 1))
@@ -12396,7 +12399,8 @@ int CvPlayerAI::AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled,
 		iValue += AI_baseBonusVal(eBonus,
 				bTrade); // advc.036
 		iValue += AI_corporationBonusVal(eBonus);
-		iValue = std::max(iValue, tradeVal); // advc.036
+		if(!bTrade)
+			iValue = std::max(iValue, tradeVal); // advc.036
 		// K-Mod.
 		if (!bAssumeEnabled)
 		{

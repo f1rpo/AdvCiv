@@ -219,6 +219,7 @@ void WarAndPeaceCache::update() {
 	updateTrainCargo();
 	for(size_t i = 0; i < getWPAI.properCivs().size(); i++)
 		updateCities(getWPAI.properCivs()[i]);
+	sortCitiesByAttackPriority();
 	updateTotalAssetScore();
 	updateLatestTurnReachableBySea();
 	updateTargetMissionCounts();
@@ -642,7 +643,36 @@ void WarAndPeaceCache::sortCitiesByTargetValue() {
 
 void WarAndPeaceCache::sortCitiesByAttackPriority() {
 
-	sort(v.begin(), v.end(), City::byAttackPriority);
+	//sort(v.begin(), v.end(), City::byAttackPriority);
+	PROFILE_FUNC();
+	/*  Selection sort b/c I want to factor in city areas. An invading army tends
+		to stay in one area until all cities there are conquered. */
+	for(size_t i = 0; i < v.size() - 1; i++) {
+		CvCity* cvc = NULL;
+		if(i > 0)
+			cvc = v[i - 1]->city();
+		/*  I don't think it's guaranteed here that the city still exists on the
+			map. */
+		CvArea* a = (cvc == NULL ? NULL : cvc->area());
+		double maxPriority = (v[i]->city() == NULL ? -1 : v[i]->attackPriority());
+		int maxIndex = i;
+		for(size_t j = i + 1; j < v.size(); j++) {
+			CvCity* cvc2 = v[j]->city();
+			CvArea* a2 = (cvc2 == NULL ? NULL : cvc2->area());
+			double priority2 = (cvc2 == NULL ? -1 : v[j]->attackPriority());
+			if(i > 0 && a != NULL && a != a2 && priority2 > 0)
+				priority2 /= 2;
+			if(priority2 > maxPriority) {
+				maxIndex = j;
+				maxPriority = priority2;
+			}
+		}
+		if(maxIndex != i) {
+			City* tmp = v[i];
+			v[i] = v[maxIndex];
+			v[maxIndex] = tmp;
+		}
+    }
 }
 
 int WarAndPeaceCache::size() const {
@@ -1062,6 +1092,7 @@ void WarAndPeaceCache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId)
 	cityMap.insert(std::make_pair<int,City*>(toCache->id(), toCache));
 	if(toCache->canReach())
 		nReachableCities[c->getOwnerINLINE()]++;
+	sortCitiesByAttackPriority();
 }
 
 void WarAndPeaceCache::reportSponsoredWar(CLinkList<TradeData> const& sponsorship,
@@ -1365,8 +1396,12 @@ bool WarAndPeaceCache::City::byAttackPriority(City* one, City* two) {
 }
 double WarAndPeaceCache::City::attackPriority() const {
 
-	// targetValue is something like 10 to 100, distance 1 to 20 perhaps.
-	return getTargetValue() - std::min(100, 5 * distance);
+	if(distance < 0)
+		return -1;
+	/*  targetValue is something like 10 to 100, distance 1 to 20 perhaps.
+		Add 1000 b/c negative values should be reserved for error conditions. */
+	return std::max(0.0, 1000 + getTargetValue() -
+			std::min(100.0, 1.5 * std::pow((double)distance, 1.7)));
 }
 
 int WarAndPeaceCache::City::byOwner(City* one, City* two) {

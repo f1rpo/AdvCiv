@@ -424,10 +424,7 @@ void InvasionGraph::Node::prepareForSimulation() {
 
 	PROFILE_FUNC();
 	cacheIndex = 0;
-	cache.sortCitiesByAttackPriority();
-	/*  Fixme: Sorting by attack priority can result in e.g. the first city
-		in one area and the next in another, but an invading army tends to stay
-		in one area until all cities there are conquered. */
+	//cache.sortCitiesByAttackPriority(); // Done in WarAndPeaceCache now
 	componentDone = false;
 	emergencyDefPow = 0;
 	distractionByConquest = 0;

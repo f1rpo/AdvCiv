@@ -964,6 +964,32 @@
 		</Spanish>
 	</TEXT>
 
+	<!-- advc.005: From CIV4GameText_Objects_BTS.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_CIV_SUMERIA_SHORT_DESC</Tag>
+		<English>Sumer</English>
+		<French>
+			<Text>Sum&#233;riens</Text>
+			<Gender>Male</Gender>
+			<Plural>1</Plural>
+		</French>
+		<German>
+			<Text>Sumer</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</German>
+		<Italian>
+			<Text>Sumer</Text>
+			<Gender>Female</Gender>
+			<Plural>0</Plural>
+		</Italian>
+		<Spanish>
+			<Text>Sumeria</Text>
+			<Gender>Female</Gender>
+			<Plural>0</Plural>
+		</Spanish>
+	</TEXT>
+
 	<!-- advc.005b: From CIV4GameText_Warlords.xml.
 		 I'm removing the roman numerals. It's clear enough e.g. which
 		 Gustav Adoplh is meant, and if not, I don't mind the ambuigity.
