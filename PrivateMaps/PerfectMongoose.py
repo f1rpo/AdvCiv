@@ -390,6 +390,7 @@ class MapConstants:
 		#The following values are used for assigning starting locations. For now,
 		#they have the same ratio that is found in CvPlot::getFoundValue
 		# <advc.021b> Was 20/40/10. Using the values from Civ 4 Reimagined instead, except for food, now valued at 23 (40 in Civ 4 Reimagined). Don't want to rule out steppe starts when there isn't enough room elsewhere. Let the normalization code worry about lack of food.
+		# (Now that I've replaced PotentialValue with AI_foundValue in one important spot, these coefficients should be less important. They're still used though.)
 		self.CommerceValue   = 15
 		self.ProductionValue = 30
 		self.FoodValue       = 23
@@ -397,8 +398,8 @@ class MapConstants:
 
 		#Coastal cities are important, how important is determined by this
 		#value.
-		# advc.021b: Was 1.3; now set as in Civ 4 Reimagined.
-		self.CoastalCityValueBonus = 1.25
+		# advc.021b: Was 1.3; 1.25 in Civ 4 Reimagined. 1.2 seems to be enough to prevent cities one off the coast.
+		self.CoastalCityValueBonus = 1.2
 
 		#River side cities are also important, how important is determined by this
 		#value.
@@ -5064,6 +5065,8 @@ class StartingArea:
 	def CalculatePlotList(self):
 		gc = CyGlobalContext()
 		gameMap = CyMap()
+		# advc.021b:
+		activePl = gc.getPlayer(gc.getGame().getActivePlayer())
 		for y in range(mc.height):
 			for x in range(mc.width):
 				plot = gameMap.plot(x, y)
@@ -5075,6 +5078,8 @@ class StartingArea:
 					if plot.area().getNumTiles() - plot.getLatitude() < 25 or plot.getLatitude() > 55:
 						continue # </advc.021b>
 					food, value = sf.getCityPotentialValue(x, y)
+					# advc.021b:
+					value = activePl.AI_foundValue(x, y, -1, True)
 					if value > 0:
 						startPlot = StartPlot(x, y, value)
 						if plot.isWater():
@@ -5158,16 +5163,27 @@ class StartingArea:
 		numPlayers = len(self.playerList)
 		if numPlayers <= 0:
 			return
-		avgDistanceList = list()
-		for i in range(len(self.plotList)):
-			avgDistanceList.append(self.plotList[i])
-		#Make sure first guy starts on the end and not in the middle, otherwise if
-		#there are two players one will start on the middle and the other on the end
-		avgDistanceList.sort(lambda x, y:cmp(x.avgDistance, y.avgDistance))
-		avgDistanceList.reverse()
-		#First place players as far as possible away from each other
-		#Place the first player
-		avgDistanceList[0].vacant = False
+		# <advc.021b> Sometimes begin by making the plot with the best localValue a starting plot
+		firstPlayerPlaced = False
+		if numPlayers == 1 or PRand.randint(0, 100) < (numPlayers - 2) * 20:
+			# On PM, the best plot is almost always at a coast. I want to have inland starts too from time to time.
+			for i in range(min(7, len(self.plotList))):
+				if not self.plotList[i].isCoast() or PRand.randint(0, 100) < 15:
+					self.plotList[i].vacant = False
+					firstPlayerPlaced = True
+					break
+		if not firstPlayerPlaced:
+		# </advc.021b>
+			avgDistanceList = list()
+			for i in range(len(self.plotList)):
+				avgDistanceList.append(self.plotList[i])
+			#Make sure first guy starts on the end and not in the middle, otherwise if
+			#there are two players one will start on the middle and the other on the end
+			avgDistanceList.sort(lambda x, y:cmp(x.avgDistance, y.avgDistance))
+			avgDistanceList.reverse()
+			#First place players as far as possible away from each other
+			#Place the first player
+			avgDistanceList[0].vacant = False
 		for i in range(1,numPlayers):
 			distanceList = list()
 			for n in range(len(self.plotList)):

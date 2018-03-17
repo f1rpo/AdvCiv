@@ -9509,10 +9509,11 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 	/*  ePlayer is NULL if Civilopedia accessed from main menu.
 		bCivilopedia is false then by the way (fixme?). */
 	CvPlayer const* pPlayer = (ePlayer == NO_PLAYER ? NULL : &GET_PLAYER(ePlayer));
-	// </advc.003>
-	//if(!bCivilopediaText && ePlayer != NO_PLAYER) { // advc.003
-	szTempBuffer.Format( SETCOLR L"<link=literal>%s</link>" ENDCOLR , TEXT_COLOR("COLOR_BUILDING_TEXT"), kBuilding.getDescription());
-	szBuffer.append(szTempBuffer);
+	//if(!bCivilopediaText && ePlayer != NO_PLAYER) {
+	if(!bCivilopediaText) { // </advc.003>
+		szTempBuffer.Format( SETCOLR L"<link=literal>%s</link>" ENDCOLR , TEXT_COLOR("COLOR_BUILDING_TEXT"), kBuilding.getDescription());
+		szBuffer.append(szTempBuffer);
+	}
 /*
 ** K-Mod, 30/dec/10, karadoc
 ** changed so that conditional happiness is not double-reported. (such as happiness from state-religion buildings, or culture slider)

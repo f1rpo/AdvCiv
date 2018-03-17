@@ -23156,6 +23156,8 @@
 				<UniqueName>TXT_KEY_GREAT_PERSON_ALLAN_PINKERTON</UniqueName>
 				<UniqueName>TXT_KEY_GREAT_PERSON_WILLIAM_MELVILLE</UniqueName>
 				<UniqueName>TXT_KEY_GREAT_PERSON_BELLE_BOYD</UniqueName>
+				<!-- advc.005b: Replacement for Qin Wuyang -->
+				<UniqueName>TXT_KEY_GREAT_PERSON_FRITZ_DUQUESNE</UniqueName>
 				<UniqueName>TXT_KEY_GREAT_PERSON_SIDNEY_REILLY</UniqueName>
 				<UniqueName>TXT_KEY_GREAT_PERSON_AN_JUNG_GEUN</UniqueName>
 				<UniqueName>TXT_KEY_GREAT_PERSON_CLAUDE_DANSEY</UniqueName>
@@ -23167,18 +23169,20 @@
 				<UniqueName>TXT_KEY_GREAT_PERSON_CLAUS_VON_STAUFFENBERG</UniqueName>
 				<UniqueName>TXT_KEY_GREAT_PERSON_SUZANNE_SPAAK</UniqueName>
 				<UniqueName>TXT_KEY_GREAT_PERSON_WILLIAM_DONOVAN</UniqueName>
-				<!-- advc.005 (comment): These are named after playtesters.
-					 Would be nice to replace them. -->
-				<UniqueName>TXT_KEY_GREAT_PERSON_SPEAKER</UniqueName>
-				<UniqueName>TXT_KEY_GREAT_PERSON_VIKTOR_GRIPH</UniqueName>
-				<UniqueName>TXT_KEY_GREAT_PERSON_NOLAN</UniqueName>
-				<UniqueName>TXT_KEY_GREAT_PERSON_ATLAS</UniqueName>
-				<UniqueName>TXT_KEY_GREAT_PERSON_FOSHAUG</UniqueName>
-				<UniqueName>TXT_KEY_GREAT_PERSON_JOE_MATISE</UniqueName>
-				<UniqueName>TXT_KEY_GREAT_PERSON_EYSTEIN</UniqueName>
-				<UniqueName>TXT_KEY_GREAT_PERSON_DANIEL_COLE</UniqueName>
-				<UniqueName>TXT_KEY_GREAT_PERSON_MAX_GOGF</UniqueName>
-				<UniqueName>TXT_KEY_GREAT_PERSON_MARK_SWISS</UniqueName>
+				<!-- advc.005b These were named after BtS playtesters:
+					 SPEAKER, VIKTOR_GRIPH, NOLAN, ATLAS, FOSHAUG, JOE_MATISE,
+					 EYSTEIN, DANIEL_COLE, MAX_GOGF, MARK_SWISS
+					 10 replacements: -->
+				<UniqueName>TXT_KEY_GREAT_PERSON_JUAN_PUJOL_GARCIA</UniqueName>
+				<UniqueName>TXT_KEY_GREAT_PERSON_KRYSTYNA_SKARBEK</UniqueName>
+				<UniqueName>TXT_KEY_GREAT_PERSON_JOSEPHINE_BAKER</UniqueName>
+				<UniqueName>TXT_KEY_GREAT_PERSON_LAVRENTIY_BERIA</UniqueName>
+				<UniqueName>TXT_KEY_GREAT_PERSON_KANG_SHENG</UniqueName>
+				<UniqueName>TXT_KEY_GREAT_PERSON_MARKUS_WOLF</UniqueName>
+				<UniqueName>TXT_KEY_GREAT_PERSON_IVAN_SEROV</UniqueName>
+				<UniqueName>TXT_KEY_GREAT_PERSON_KIM_PHILBY</UniqueName>
+				<UniqueName>TXT_KEY_GREAT_PERSON_RAMESHWARNATH_KAO</UniqueName>
+				<UniqueName>TXT_KEY_GREAT_PERSON_HAMID_GUL</UniqueName>
 			</UniqueNames>
 			<Special>SPECIALUNIT_PEOPLE</Special>
 			<Capture>NONE</Capture>

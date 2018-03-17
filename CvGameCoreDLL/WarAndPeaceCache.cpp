@@ -647,7 +647,7 @@ void WarAndPeaceCache::sortCitiesByAttackPriority() {
 	PROFILE_FUNC();
 	/*  Selection sort b/c I want to factor in city areas. An invading army tends
 		to stay in one area until all cities there are conquered. */
-	for(size_t i = 0; i < v.size() - 1; i++) {
+	for(int i = 0; i < ((int)v.size()) - 1; i++) {
 		CvCity* cvc = NULL;
 		if(i > 0)
 			cvc = v[i - 1]->city();

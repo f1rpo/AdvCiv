@@ -714,8 +714,8 @@ void CvCityAI::AI_chooseProduction()
 	if( pWaterSettlerArea == NULL )
 	{
 		pWaterSettlerArea = GC.getMap().findBiggestArea(true);
-
-		if( GET_PLAYER(getOwnerINLINE()).AI_totalWaterAreaUnitAIs(pWaterSettlerArea, UNITAI_SETTLER_SEA) == 0 )
+		if(pWaterSettlerArea != NULL && // advc.001: What if there is no water at all?
+			GET_PLAYER(getOwnerINLINE()).AI_totalWaterAreaUnitAIs(pWaterSettlerArea, UNITAI_SETTLER_SEA) == 0 )
 		{
 			pWaterSettlerArea = NULL;
 		}
