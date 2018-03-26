@@ -1678,7 +1678,9 @@ bool CvDLLButtonPopup::launchChangeCivicsPopup(CvPopup* pPopup, CvPopupInfo &inf
 	CivicOptionTypes eCivicOptionType = (CivicOptionTypes)info.getData1();
 	CivicTypes eCivicType = (CivicTypes)info.getData2();
 	bool bValid = false;
-
+	bool bStartButton = true; // advc.004o
+	// advc.003:
+	CvPlayer const& activePl = GET_PLAYER(GC.getGameINLINE().getActivePlayer());
 	if (eCivicType != NO_CIVIC)
 	{
 		for (int iI = 0; iI < GC.getNumCivicOptionInfos(); iI++)
@@ -1689,11 +1691,22 @@ bool CvDLLButtonPopup::launchChangeCivicsPopup(CvPopup* pPopup, CvPopupInfo &inf
 			}
 			else
 			{
-				paeNewCivics[iI] = GET_PLAYER(GC.getGameINLINE().getActivePlayer()).getCivics((CivicOptionTypes)iI);
+				paeNewCivics[iI] = activePl.getCivics((CivicOptionTypes)iI);
+				// <advc.004o>
+				if(bStartButton) {
+					for(int j = 0; j < GC.getNumCivicInfos(); j++) {
+						CivicTypes ct = (CivicTypes)j;
+						if(GC.getCivicInfo(ct).getCivicOptionType() == iI &&
+								paeNewCivics[iI] != ct && activePl.canDoCivics(ct)) {
+							bStartButton = false;
+							break;
+						}
+					}
+				} // </advc.004o>
 			}
 		}
 
-		if (GET_PLAYER(GC.getGameINLINE().getActivePlayer()).canRevolution(paeNewCivics))
+		if (activePl.canRevolution(paeNewCivics))
 		{
 			bValid = true;
 		}
@@ -1718,11 +1731,11 @@ bool CvDLLButtonPopup::launchChangeCivicsPopup(CvPopup* pPopup, CvPopupInfo &inf
 			szBuffer += gDLL->getText("TXT_KEY_POPUP_START_REVOLUTION");
 			gDLL->getInterfaceIFace()->popupSetBodyString(pPopup, szBuffer);
 			// <advc.004o>
-			if(GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).
+			if(bStartButton || GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).
 					/*  "> 100" would leave the get-started button alone on Epic and
-						Marathon. That's what I meant to do initially, but now I
-						I think the button shouldn't be there in any case, so, 1000
-						is just an arbitrary high number. */
+						Marathon. That's what I meant to do initially, but now
+						I think the button shouldn't be there in any case, so,
+						1000 is just an arbitrary high number. */
 					getAnarchyPercent() > 1000) { // </advc.004o>
 				szBuffer = gDLL->getText("TXT_KEY_POPUP_YES_START_REVOLUTION");
 				int iAnarchyLength = GET_PLAYER(GC.getGameINLINE().getActivePlayer()).getCivicAnarchyLength(paeNewCivics);

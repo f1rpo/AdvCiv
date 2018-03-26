@@ -14636,9 +14636,26 @@ void CvPlayer::postProcessBeginTurnEvents() {
 	   b/c the tech finished message doesn't take up much attention. */
 	if(getCurrentResearch() == NO_TECH)
 		iNewMessages--;
+	// Don't open the Turn Log when there's only first-contact diplo
+	bool bRelevantDiplo = false;
+	if(!m_listDiplomacy.empty() && iNewMessages > 0) {
+		for(CvDiploQueue::const_iterator it = m_listDiplomacy.begin(); it !=
+				m_listDiplomacy.end(); it++) {
+			CvDiploParameters* dp = *it;
+			if(dp == NULL) {
+				FAssert(dp != NULL);
+				continue;
+			}
+			if(dp->getHumanDiplo() || dp->getOurOfferList().getLength() > 0 ||
+					dp->getTheirOfferList().getLength() > 0) {
+				bRelevantDiplo = true;
+				break;
+			}
+		}
+	}
 	if(!GC.getGame().getAIAutoPlay() && limit >= 0 && (iNewMessages > limit ||
-			(iNewMessages > 0 && (!m_listDiplomacy.empty() ||
-			/*  Hotseat seems shows messages only if there hasn't been another
+			(iNewMessages > 0 && (bRelevantDiplo ||
+			/*  Hotseat seems to show messages only if there hasn't been another
 				human turn since the message was triggered (can't check that here;
 				have to show the Turn Log in all cases). */
 			GC.getGameINLINE().isHotSeat())))) {

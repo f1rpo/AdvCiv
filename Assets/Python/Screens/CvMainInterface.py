@@ -5625,8 +5625,9 @@ class CvMainInterface:
 
 # BUG - field of view slider - start
 	def setFieldofView(self, screen, bDefault):
+		# K-Mod
 		#if bDefault or not MainOpt.isShowFieldOfView():
-		if bDefault or (not MainOpt.isShowFieldOfView() and not MainOpt.isRememberFieldOfView()): # K-Mod
+		if bDefault or (not MainOpt.isShowFieldOfView() and not MainOpt.isRememberFieldOfView()) or int(MainOpt.getFieldOfView()) < 10: # advc.004m: Only remember sensible values
 			pass # advc.004m: See long comment in initState
 			#self._setFieldofView(screen, self.DEFAULT_FIELD_OF_VIEW)
 		else:

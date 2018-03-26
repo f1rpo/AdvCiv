@@ -488,7 +488,7 @@ void RiseFall::setUIHidden(bool b) {
 
 	if(gDLL->getInterfaceIFace()->isBareMapMode() != b)
 		gDLL->getInterfaceIFace()->toggleBareMapMode();
-	/*  toggleScoresVisible(): Isn't acutally hidden b/c CvMainInterface.py doesn't
+	/*  toggleScoresVisible(): Isn't actually hidden b/c CvMainInterface.py doesn't
 		update itself during interlude.
 		toggleTurnLog(): Can't check if it's open. */
 	gDLL->getInterfaceIFace()->setDiplomacyLocked(b);
@@ -539,7 +539,7 @@ void RiseFall::centerCamera(PlayerTypes civId) {
 	if(capitalPlot != NULL) {
 		/*  Apparently, this has no effect, at least not at the time that I call
 			this function. Misplaced camera is also an issue when regenerating
-			the map or using Civ Changer (Ctrl+Z); perhaps can't be fixed. */
+			the map or using Civ Changer (Alt+Z); perhaps can't be fixed. */
 		gDLL->getInterfaceIFace()->lookAt(capitalPlot->getPoint(),
 				CAMERALOOKAT_NORMAL);
 	}
@@ -1069,7 +1069,7 @@ void RiseFall::eligibleByRecommendation(vector<PlayerTypes>& r) const {
 	r.insert(r.begin(), noRepeat.begin(), noRepeat.end());
 	vector<PlayerTypes> all;
 	computeEligibleCivs(all, true);
-	/*  Sort those in all minus noRepeat separately and append the result to r.
+	/*  Sort those in 'all' minus 'noRepeat' separately and append the result to 'r'.
 		(Would be nicer to let byRecommendation handle this, but that's difficult
 		w/o accessing non-static functions, and I don't want to turn
 		byRecommendation into a functor.) */

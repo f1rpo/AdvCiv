@@ -103,8 +103,9 @@ void RFChapter::setCiv(PlayerTypes playerId) {
 void RFChapter::start() {
 
 	CvGame& g = GC.getGame();
-	/*  This shouldn't do anything currently (i.e. chapters start exactly as
-		planned, but could change in a future version). */
+	FAssert(startTurn == g.getGameTurn());
+	/*  This shouldn't do anything currently. (I.e. chapters start exactly as
+		planned, but could change in a future version.) */
 	startTurn = g.getGameTurn();
 	breakdown.atChapterStart(*this);
 }
