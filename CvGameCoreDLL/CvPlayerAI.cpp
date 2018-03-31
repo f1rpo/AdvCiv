@@ -19601,10 +19601,12 @@ int CvPlayerAI::checkCancel(CvDeal const& d, PlayerTypes otherId, bool flip) {
 	if(trades1 == NULL)
 		return -1;
 	CLLNode<TradeData>* tdn = trades1->head();
-	if(tdn != NULL && CvDeal::isDual(tdn->m_data.m_eItemType, true) &&
-			getTradeDenial(otherId, tdn->m_data) != NO_DENIAL &&
-			::bernoulliSuccess(0.2, "advc.133"))
-		return 1;
+	if(tdn != NULL && CvDeal::isDual(tdn->m_data.m_eItemType, true)) {
+		if(getTradeDenial(otherId, tdn->m_data) != NO_DENIAL &&
+				::bernoulliSuccess(0.2, "advc.133"))
+			return 1;
+		else return -1;
+	}
 	/*  getTradeDenial will always return DENIAL_JOKING. Instead, call
 		AI_bonusTrade explicitly and tell it that this is about cancelation. */
 	if(trades2 == NULL)
