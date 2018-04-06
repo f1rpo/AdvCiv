@@ -3573,7 +3573,7 @@ void CvPlayer::doTurn()
 	   messages. (Well, if a player unit is attacked, messages are displayed
 	   immediately.) */
 	g.setAITurn(true);
-	if(isHuman() && GC.getDefineINT("START_OF_TURN_MESSAGE_LIMIT") >= 0 &&
+	if(isHuman() && getStartOfTurnMessageLimit() >= 0 &&
 			g.getElapsedGameTurns() > 0 && !m_listGameMessages.empty()) {
 		CvWString endTurnMsg = gDLL->getText("TXT_KEY_END_TURN_MSG");
 		gDLL->getInterfaceIFace()->addHumanMessage(getID(), false, 0, endTurnMsg,
@@ -14629,7 +14629,7 @@ void CvPlayer::postProcessBeginTurnEvents() {
          right after triggering it.
 	   => Need to track messages triggered during other civs' turns manually
 	      (iNewMessages). */
-	int limit = GC.getDefineINT("START_OF_TURN_MESSAGE_LIMIT");
+	int limit = getStartOfTurnMessageLimit();
 	/* Finishing a tech should generate a message, which is rather superfluous
 	   b/c of the splash screen. Don't want to suppress it b/c it should go
 	   into the log, but don't count it when deciding whether to open the log
@@ -14674,6 +14674,17 @@ void CvPlayer::postProcessBeginTurnEvents() {
 		SAFE_DELETE(majorMsgs[i]);
 	majorMsgs.clear();
 	GC.getGame().setAITurn(false);
+}
+
+int CvPlayer::getStartOfTurnMessageLimit() const {
+
+	int r = GC.getDefineINT("START_OF_TURN_MESSAGE_LIMIT");
+	if(r < 0)
+		return r;
+	if(!isOption(PLAYEROPTION_MINIMIZE_POP_UPS) &&
+			GC.getDefineINT("MESSAGE_LIMIT_WITHOUT_MPU") == 0)
+		return -1;
+	return r;
 } // </advc.106b>
 
 

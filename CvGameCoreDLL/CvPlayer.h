@@ -1421,6 +1421,7 @@ protected:
 	std::vector<CvTalkingHeadMessage*> majorMsgs;
 	int iNewMessages;
 	void postProcessBeginTurnEvents();
+	int getStartOfTurnMessageLimit() const;
 	// </advc.106b>
 
 	CvTurnScoreMap m_mapScoreHistory;

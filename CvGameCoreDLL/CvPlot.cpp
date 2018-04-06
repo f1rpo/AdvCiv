@@ -3345,10 +3345,10 @@ PlayerTypes CvPlot::calculateCulturalOwner(
 	}
 	// <advc.035>
 	bool inCityRadius[MAX_PLAYERS];
-	for(int i = 0; i < MAX_PLAYERS; i++)
-		inCityRadius[i] = false;
 	bool anyCityRadius = false;
 	if(ownExclusiveRadius) {
+		for(int i = 0; i < MAX_PLAYERS; i++)
+			inCityRadius[i] = false;
 		std::vector<CvPlot*> cross;
 		::fatCross(*this, cross);
 		for(size_t i = 1; i < cross.size(); i++) {

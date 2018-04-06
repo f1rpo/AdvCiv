@@ -58,6 +58,15 @@ void MilitaryBranch::updateTypicalUnit() {
 		if(u.getCombat() == 0 || u.getCombatLimit() < 100 || !isValidDomain(u) ||
 				u.getDomainType() == DOMAIN_AIR || u.getDomainType() == DOMAIN_IMMOBILE)
 			continue;
+		// I may want to give some combat unit a national limit at some point ...
+		int const nationalLimit = GC.getUnitClassInfo((UnitClassTypes)i).
+				getMaxPlayerInstances();
+		if(nationalLimit >= 0 && nationalLimit <
+				(GC.getGameINLINE().getCurrentEra() + 1) * 4) {
+			// ... but until then:
+			FAssert(false); // advc.test
+			continue;
+		}
 		/* Could call this for land units as well, but relying on the capital for
 		   those is faster, and perhaps more accurate as well. */
 		if(u.getDomainType() == DOMAIN_SEA) {

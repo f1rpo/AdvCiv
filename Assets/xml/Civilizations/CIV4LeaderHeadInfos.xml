@@ -342,9 +342,9 @@
 					<iContactRand>250</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -970,7 +970,7 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -1608,7 +1608,7 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -2239,7 +2239,7 @@
 					<iContactRand>250</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -2875,7 +2875,7 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -3513,7 +3513,7 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -4157,7 +4157,7 @@
 					<iContactRand>50</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -4785,7 +4785,7 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -5416,7 +5416,7 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -6057,7 +6057,7 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -6701,7 +6701,7 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -7341,7 +7341,7 @@
 					<iContactRand>25</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -7977,7 +7977,7 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -8613,7 +8613,7 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -9247,7 +9247,7 @@
 					<iContactRand>10000</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -9858,7 +9858,7 @@
 					<iContactRand>25</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -10494,7 +10494,7 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -11121,7 +11121,7 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -11761,7 +11761,7 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -12403,7 +12403,7 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -13036,7 +13036,7 @@
 					<iContactRand>250</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -13670,7 +13670,7 @@
 					<iContactRand>50</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -14317,7 +14317,7 @@
 					<iContactRand>50</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -14957,7 +14957,7 @@
 					<iContactRand>50</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -15588,7 +15588,7 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -16219,7 +16219,7 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -16855,7 +16855,7 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -17495,7 +17495,7 @@
 					<iContactRand>50</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -18122,7 +18122,7 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -18763,7 +18763,7 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -19399,7 +19399,7 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -20041,7 +20041,7 @@
 					<iContactRand>25</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -20676,7 +20676,7 @@
 					<iContactRand>25</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -21316,7 +21316,7 @@
 					<iContactRand>250</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -21956,7 +21956,7 @@
 					<iContactRand>250</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -22596,7 +22596,7 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -23244,7 +23244,7 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -23873,7 +23873,7 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -24507,7 +24507,7 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -25143,7 +25143,7 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -25778,7 +25778,7 @@
 					<iContactRand>250</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -26412,7 +26412,7 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -27046,7 +27046,7 @@
 					<iContactRand>25</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -27678,7 +27678,7 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -28325,7 +28325,7 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -28970,7 +28970,7 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -29604,7 +29604,7 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -30239,7 +30239,7 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -30873,7 +30873,7 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -31515,7 +31515,7 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -32170,7 +32170,7 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>
@@ -32817,7 +32817,7 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
-					<!-- advc.130z: was 20 -->
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
 					<iContactRand>10</iContactRand>
 				</ContactRand>

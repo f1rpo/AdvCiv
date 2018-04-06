@@ -33,8 +33,8 @@ def launch(argsList=None):
 		except:
 			showErrorAlert(BugUtil.getPlainText("TXT_KEY_BUG_HELP_CANNOT_OPEN_BROWSER_TITLE"), 
 					BugUtil.getText("TXT_KEY_BUG_HELP_CANNOT_OPEN_BROWSER_BODY", (url,)))		
-	else:
-		sLang = ["ENG", "FRA", "DEU", "ITA", "ESP"]
+	else: # advc.009: There is no FRA and ESP translation
+		sLang = ["ENG", "ENG", "DEU", "ITA", "ENG"]
 		name = "BUG Mod Help-%s.chm" % (sLang[CyGame().getCurrentLanguage()])
 		file = BugPath.findInfoFile(name)
 		if file:

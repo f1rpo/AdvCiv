@@ -710,6 +710,8 @@ public:
 	inline int getDIPLOMACY_VALUE_REMAINDER() { return m_iDIPLOMACY_VALUE_REMAINDER; }
 	// advc.099b:
 	inline int getCITY_RADIUS_DECAY() { return m_iCITY_RADIUS_DECAY; }
+	// advc.005f:
+	inline int getENABLE_005F() { return m_iENABLE_005F; }
 	int getMOVE_DENOMINATOR();
 	int getNUM_UNIT_PREREQ_OR_BONUSES();
 	int getNUM_BUILDING_PREREQ_OR_BONUSES();
@@ -1168,6 +1170,7 @@ protected:
 	int m_iOWN_EXCLUSIVE_RADIUS; // advc.035
 	int m_iDIPLOMACY_VALUE_REMAINDER; // advc.003b
 	int m_iCITY_RADIUS_DECAY; // advc.099b
+	int m_iENABLE_005F; // advc.005f
 	int m_iMOVE_DENOMINATOR;
 	int m_iNUM_UNIT_PREREQ_OR_BONUSES;
 	int m_iNUM_BUILDING_PREREQ_OR_BONUSES;

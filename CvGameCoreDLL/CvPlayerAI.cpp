@@ -20293,8 +20293,13 @@ void CvPlayerAI::AI_doDiplo()
 							if (civ.isHuman())
 							{
 								if (!abContacted[civ.getTeam()])
-								{
-									AI_changeContactTimer(civId, CONTACT_OPEN_BORDERS, GC.getLeaderHeadInfo(getPersonalityType()).getContactDelay(CONTACT_OPEN_BORDERS));
+								{	// <advc.124>
+									double speedAdjust = ::range(GC.getGameSpeedInfo(g.getGameSpeedType()).
+											getResearchPercent(), 100, 200) / 100.0;
+											// </advc.124>
+									AI_changeContactTimer(civId, CONTACT_OPEN_BORDERS,
+											::round(speedAdjust * // advc.124
+											GC.getLeaderHeadInfo(getPersonalityType()).getContactDelay(CONTACT_OPEN_BORDERS)));
 									pDiplo = new CvDiploParameters(getID());
 									FAssert(pDiplo != NULL);
 									pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_OFFER_DEAL"));

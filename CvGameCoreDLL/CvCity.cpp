@@ -4292,7 +4292,16 @@ LeaderHeadTypes CvCity::getPersonalityType() const
 
 ArtStyleTypes CvCity::getArtStyleType() const
 {
-	return GET_PLAYER(getOwnerINLINE()).getArtStyleType();
+	//return GET_PLAYER(getOwnerINLINE()).getArtStyleType();
+	// <advc.005f> Replacing the above
+	PlayerTypes artCiv = getOwnerINLINE();
+	if(GC.getENABLE_005F() > 0) {
+		PlayerTypes cultOwner = calculateCulturalOwner();
+		if(cultOwner != NO_PLAYER)
+			artCiv = cultOwner;
+		else FAssert(cultOwner != NO_PLAYER);
+	}
+	return GET_PLAYER(artCiv).getArtStyleType(); // </advc.005f>
 }
 
 

@@ -117,10 +117,10 @@
 					help="."/>
 			
 			<!-- Diplomacy -->
+			<!-- advc.106: Both set to True by default -->
 			<option id="RefusesToTalk" key="Refuses To Talk" 
-					type="boolean" default="False" and="Enabled" 
+					type="boolean" default="True" and="Enabled" 
 					get="isShowRefusesToTalkAlert" set="setShowRefusesToTalkAlert"/>
-			<!-- advc.106d: was False by default -->
 			<option id="WorstEnemy" key="Worst Enemy" 
 					type="boolean" default="True" and="Enabled" 
 					get="isShowWorstEnemyAlert" set="setShowWorstEnemyAlert"/>

@@ -1794,15 +1794,16 @@ double WarAndPeaceAI::Team::confidenceFromWarSuccess(TeamTypes targetId) const {
 	int theirSuccess = std::max(1, target.AI_getWarSuccess(agentId));
 	float successRatio = ((float)ourSuccess) / theirSuccess;
 	float const fixedBound = 0.5;
-	// Reaches fixedBound after 25 turns
-	float timeBasedBound = (100 - 2 * timeAtWar) / 100.0f;
+	// Reaches fixedBound after 20 turns
+	float timeBasedBound = (100 - 2.5f * timeAtWar) / 100.0f;
 	/*  Total-based bound: Becomes relevant once a war lasts long; e.g. after
 		25 turns, in the Industrial era, will need a total war success of 250
 		in order to reach fixedBound. Neither side should feel confident if there
 		isn't much action. */
-	float progressFactor = 11 - GET_TEAM(agentId).getCurrentEra() * 1.5f;
-	float totalBasedBound = (100 - (5.0f * (ourSuccess + theirSuccess)) / timeAtWar)
-			/ 100;
+	float progressFactor = std::max(3.0f,
+			11 - GET_TEAM(agentId).getCurrentEra() * 1.5f);
+	float totalBasedBound = (100 - (progressFactor *
+			(ourSuccess + theirSuccess)) / timeAtWar) / 100;
 	float r = successRatio;
 	r = ::range(r, fixedBound, 2 - fixedBound);
 	r = ::range(r, timeBasedBound, 2 - timeBasedBound);
@@ -2183,13 +2184,21 @@ bool WarAndPeaceAI::Civ::canTradeAssets(int targetTradeVal, PlayerTypes humanId,
 				return true;
 		}
 	}
+	int cityLimit = (int)std::ceil(human.getNumCities() / 6.0);
+	int cityCount = 0;
 	if(!ignoreCities) {
 		int dummy = -1;
 		for(CvCity* c = human.firstCity(&dummy); c != NULL; c = human.nextCity(&dummy)) {
 			setTradeItem(&item, TRADE_CITIES, c->getID());
 			if(human.canTradeItem(weId, item, true)) {
+				if(totalTradeVal < targetTradeVal)
+					cityCount++;
 				totalTradeVal += GET_PLAYER(weId).AI_cityTradeVal(c);
-				if(totalTradeVal >= targetTradeVal && r == NULL)
+				if(cityCount > cityLimit) {
+					if(r == NULL)
+						return false;
+				}
+				else if(totalTradeVal >= targetTradeVal && r == NULL)
 					return true;
 			}
 		}
@@ -2198,7 +2207,7 @@ bool WarAndPeaceAI::Civ::canTradeAssets(int targetTradeVal, PlayerTypes humanId,
 		*r = totalTradeVal;
 		return false;
 	}
-	return (totalTradeVal >= targetTradeVal);
+	return (cityCount <= cityLimit && totalTradeVal >= targetTradeVal);
 }
 
 double WarAndPeaceAI::Civ::tradeValUtilityConversionRate() const {

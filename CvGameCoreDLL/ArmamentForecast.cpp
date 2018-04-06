@@ -159,7 +159,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 			   [Check obsolete now that Dagger is disabled.] */
 			(civ.AI_isDoStrategy(AI_STRATEGY_DAGGER) && !civ.isHuman()) ||
 			/* Concurrent war preparations: probably shouldn't be possible anyway.
-			   Must be definitely be disregarded for weId b/c the war preparations
+			   Must definitely be disregarded for weId b/c the war preparations
 			   currently under consideration may lead to abandonment of
 			   concurrent war preparations. */
 			(t.getWarPlanCount(WARPLAN_PREPARING_TOTAL) > 0 &&
@@ -248,8 +248,10 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 			   match the war plan. Make a projection based on the human power curve. */
 			double bur = GET_PLAYER(weId).warAndPeaceAI().estimateBuildUpRate(civId);
 			Intensity basedOnBUR = INCREASED;
-			if(bur > 0.25) basedOnBUR = FULL;
-			else if(bur < 18) basedOnBUR = NORMAL;
+			if(bur > 0.25)
+				basedOnBUR = FULL;
+			else if(bur < 0.18)
+				basedOnBUR = NORMAL;
 			report.log("Build-up intensity based on power curve: %d", (int)basedOnBUR);
 			if(civ.isHuman()) {
 				intensity = basedOnBUR;

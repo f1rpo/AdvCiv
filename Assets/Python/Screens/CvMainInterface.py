@@ -364,20 +364,25 @@ class CvMainInterface:
 		self.iY_FoVSlider = iBtnY + 30
 		self.sFieldOfView_Text = localText.getText("TXT_KEY_BUG_OPT_MAININTERFACE__FIELDOFVIEW_TEXT", ())
 		#self.DEFAULT_FIELD_OF_VIEW = max(40, min(80, self.xResolution / 30)) # K-Mod (bigger FoW for bigger monitors. They'll appreciate it. Trust me.)
-		# <advc.004m> (Replacing the above) Don't just ignore the XML setting. Problem: BUG stores the value computed for self.DEFAULT_FIELD_OF_VIEW in CvGlobals, overwriting the FIELD_OF_VIEW set through XML until the game is restarted. This makes my computation below recursive, leading to a shift in the field-of-view value each time that the game returns to the main menu, which, incidentally, it does frequently because of change 003d. Therefore only make the resolution-based adjustment if the BUG slider is not used. If the slider is used, people are going to set it manually anyway.
-		if (not MainOpt.isRememberFieldOfView() and not MainOpt.isShowFieldOfView()) or int(MainOpt.getFieldOfView()) < 0:
-			fovxml = gc.getFIELD_OF_VIEW()
-			self.DEFAULT_FIELD_OF_VIEW = int(max(fovxml, min(2 * fovxml, self.xResolution / max(70 - fovxml, 10)))) # </advc.004m>
-		if MainOpt.isRememberFieldOfView():
-			self.iField_View = int(MainOpt.getFieldOfView())
+		#if MainOpt.isRememberFieldOfView():
+			#self.iField_View = int(MainOpt.getFieldOfView())
 			# K-Mod
-			if self.iField_View < 0:
-				self.iField_View = self.DEFAULT_FIELD_OF_VIEW
+			#if self.iField_View < 0:
+				#self.iField_View = self.DEFAULT_FIELD_OF_VIEW
 			# K-Mod end
-		else:
-			self.iField_View = self.DEFAULT_FIELD_OF_VIEW
-# BUG - field of view slider - end
+		#else:
+			#self.iField_View = self.DEFAULT_FIELD_OF_VIEW
 
+		# <advc.004m> Replacing the above. Will have to ignore the XML setting (like K-Mod does) to avoid recursion - BUG stores the value computed for self.DEFAULT_FIELD_OF_VIEW in CvGlobals, overwriting the FIELD_OF_VIEW set through XML until the game is restarted.
+		self.DEFAULT_FIELD_OF_VIEW = 35.0 # 42.0 originally (FIELD_OF_VIEW in GlobalDefines)
+		aspectFactor = pow((0.8 * self.xResolution) / self.yResolution, 0.72)
+		if (not MainOpt.isRememberFieldOfView() and not MainOpt.isShowFieldOfView()) or int(MainOpt.getFieldOfView()) < 0:
+			self.DEFAULT_FIELD_OF_VIEW = int(max(self.DEFAULT_FIELD_OF_VIEW, min(2 * self.DEFAULT_FIELD_OF_VIEW, (aspectFactor * self.xResolution) / max(70 - self.DEFAULT_FIELD_OF_VIEW, 10))))
+			self.iField_View = self.DEFAULT_FIELD_OF_VIEW
+		else:
+			self.iField_View = int(MainOpt.getFieldOfView())
+		# </advc.004m>
+# BUG - field of view slider - end
 
 # BUG - Progress Bar - Tick Marks - start
 		xCoord = 268 + (self.xResolution - 1024) / 2
@@ -5628,8 +5633,7 @@ class CvMainInterface:
 		# K-Mod
 		#if bDefault or not MainOpt.isShowFieldOfView():
 		if bDefault or (not MainOpt.isShowFieldOfView() and not MainOpt.isRememberFieldOfView()) or int(MainOpt.getFieldOfView()) < 10: # advc.004m: Only remember sensible values
-			pass # advc.004m: See long comment in initState
-			#self._setFieldofView(screen, self.DEFAULT_FIELD_OF_VIEW)
+			self._setFieldofView(screen, self.DEFAULT_FIELD_OF_VIEW)
 		else:
 			self._setFieldofView(screen, self.iField_View)
 
