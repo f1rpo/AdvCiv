@@ -12677,7 +12677,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 	eTrainUnit = NO_UNIT;
 	eConstructBuilding = NO_BUILDING;
 	eCreateProject = NO_PROJECT;
-
+	int maxedBuildingOrProject = NO_BUILDING; // advc.123f
 	switch (pOrderNode->m_data.eOrderType)
 	{
 	case ORDER_TRAIN:
@@ -12835,11 +12835,12 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 		}
 		break;
 
-	case ORDER_CONSTRUCT:
+	case ORDER_CONSTRUCT:{
 		eConstructBuilding = ((BuildingTypes)(pOrderNode->m_data.iData1));
-
-		GET_PLAYER(getOwnerINLINE()).changeBuildingClassMaking(((BuildingClassTypes)(GC.getBuildingInfo(eConstructBuilding).getBuildingClassType())), -1);
-
+		// <advc.003>
+		BuildingClassTypes bct = (BuildingClassTypes)GC.getBuildingInfo(
+				eConstructBuilding).getBuildingClassType(); // </advc.003>
+		GET_PLAYER(getOwnerINLINE()).changeBuildingClassMaking(bct, -1);
 		if (bFinish)
 		{
 /*************************************************************************************************/
@@ -12848,14 +12849,15 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 /* Bugfix                                                                                        */
 /*************************************************************************************************/
 /* original bts code
-			if (GET_PLAYER(getOwnerINLINE()).isBuildingClassMaxedOut(((BuildingClassTypes)(GC.getBuildingInfo(eConstructBuilding).getBuildingClassType())), 1))
+			if (GET_PLAYER(getOwnerINLINE()).isBuildingClassMaxedOut(bct, 1))
 */
-			if (GET_PLAYER(getOwnerINLINE()).isBuildingClassMaxedOut(((BuildingClassTypes)(GC.getBuildingInfo(eConstructBuilding).getBuildingClassType())), GC.getBuildingClassInfo((BuildingClassTypes)(GC.getBuildingInfo(eConstructBuilding).getBuildingClassType())).getExtraPlayerInstances()))
+			if (GET_PLAYER(getOwnerINLINE()).isBuildingClassMaxedOut(bct,
+					GC.getBuildingClassInfo(bct).getExtraPlayerInstances()))
 /*************************************************************************************************/
 /* UNOFFICIAL_PATCH                         END                                                  */
 /*************************************************************************************************/
 			{
-				GET_PLAYER(getOwnerINLINE()).removeBuildingClass((BuildingClassTypes)(GC.getBuildingInfo(eConstructBuilding).getBuildingClassType()));
+				GET_PLAYER(getOwnerINLINE()).removeBuildingClass(bct);
 			}
 
 			setNumRealBuilding(eConstructBuilding, getNumRealBuilding(eConstructBuilding) + 1);
@@ -12892,7 +12894,10 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 			{
 				GET_PLAYER(getOwnerINLINE()).changeGold(iProductionGold);
 			}
-
+			// <advc.123f>
+			if(::isWorldWonderClass(bct) &&
+					GC.getGameINLINE().isBuildingClassMaxedOut(bct))
+				maxedBuildingOrProject = eConstructBuilding; // </advc.123f>
 			CvEventReporter::getInstance().buildingBuilt(this, eConstructBuilding);
 
 /************************************************************************************************/
@@ -12909,7 +12914,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 /************************************************************************************************/
 		}
 		break;
-
+	}
 	case ORDER_CREATE:
 		eCreateProject = ((ProjectTypes)(pOrderNode->m_data.iData1));
 
@@ -12991,14 +12996,16 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 			// * Limited which production modifiers affect gold from production overflow. 3/3
 			iLostProduction *= getBaseYieldRateModifier(YIELD_PRODUCTION);
 			iLostProduction /= std::max(1, getBaseYieldRateModifier(YIELD_PRODUCTION, getProductionModifier(eCreateProject)));
-
-			int iProductionGold = ((iLostProduction * GC.getDefineINT("MAXED_PROJECT_GOLD_PERCENT")) / 100);
+			// advc.123f: was MAXED_PROJECT_GOLD_PERCENT
+			int iProductionGold = ((iLostProduction * GC.getDefineINT("MAXED_BUILDING_GOLD_PERCENT")) / 100);
 			// UNOFFICIAL_PATCH End
 			if (iProductionGold > 0)
 			{
 				GET_PLAYER(getOwnerINLINE()).changeGold(iProductionGold);
 			}
-
+			// <advc.123f>
+			if(GC.getGameINLINE().isProjectMaxedOut(eCreateProject))
+				maxedBuildingOrProject = eCreateProject; // </advc.123f>
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      10/02/09                                jdog5000      */
 /*                                                                                              */
@@ -13021,7 +13028,56 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 		FAssertMsg(false, "pOrderNode->m_data.eOrderType is not a valid option");
 		break;
 	}
-
+	// <advc.123f> Fail gold from great wonders and world projects
+	if(maxedBuildingOrProject != NO_BUILDING) { int foo=-1;
+		bool bProject = (pOrderNode->m_data.eOrderType == ORDER_CREATE);
+		ProjectTypes pt = (bProject ? (ProjectTypes)maxedBuildingOrProject :
+				NO_PROJECT);
+		BuildingTypes bt = (bProject ? NO_BUILDING :
+				(BuildingTypes)maxedBuildingOrProject);
+		BuildingClassTypes bct = (bProject ? NO_BUILDINGCLASS :
+				(BuildingClassTypes)GC.getBuildingInfo(bt).getBuildingClassType());
+		for(int i = 0; i < MAX_PLAYERS; i++) {
+			if(i == getOwnerINLINE()) // No fail gold for the city owner
+				continue;
+			CvPlayer& p = GET_PLAYER((PlayerTypes)i);
+			if(!p.isAlive())
+				continue;
+			// Just for efficiency
+			if(!bProject && p.getBuildingClassMaking(bct) <= 0)
+				continue;
+			for(CvCity* c = p.firstCity(&foo); c != NULL; c = p.nextCity(&foo)) {
+				// Fail gold only for queued orders
+				/*  If a mod-mod allows e.g. a wonder with up to 2 instances
+					and p is building 2 instances in parallel when this city
+					finishes 1 instance, abort only 1 of p's instances:
+					the one with less production invested. */
+				CvCity* minProductionCity = NULL;
+				int minProduction = 0;
+				for(int j = 0; j < c->getOrderQueueLength(); j++) {
+					OrderData* od = c->getOrderFromQueue(j);
+					if(od == NULL || od->eOrderType != (bProject ? ORDER_CREATE :
+							ORDER_CONSTRUCT) ||
+							od->iData1 != maxedBuildingOrProject)
+						continue;
+					int productionInvested = (bProject ?
+							c->getProjectProduction(pt) :
+							c->getBuildingProduction(bt));
+					if(productionInvested > minProduction) {
+						minProduction = productionInvested;
+						minProductionCity = c;
+					}
+				}
+				if(minProductionCity != NULL) {
+					// 0 fail gold for teammates
+					if(p.getTeam() == getTeam())
+						minProduction = 0;
+					minProductionCity->failProduction(maxedBuildingOrProject,
+							minProduction, bProject);
+				}
+			}
+		}
+	} // </advc.123f>
 	if (pOrderNode == headOrderQueueNode())
 	{
 		bStart = true;
@@ -13476,7 +13532,8 @@ bool CvCity::doCheckProduction()
 		if (getUnitProduction((UnitTypes)iI) > 0)
 		{
 			if (GET_PLAYER(getOwnerINLINE()).isProductionMaxedUnitClass((UnitClassTypes)(GC.getUnitInfo((UnitTypes)iI).getUnitClassType())))
-			{
+			{	/*  advc.123f (comment): Does nothing b/c I'm setting
+					MAXED_UNIT_GOLD_PERCENT=0 */
 				iProductionGold = ((getUnitProduction((UnitTypes)iI) * GC.getDefineINT("MAXED_UNIT_GOLD_PERCENT")) / 100);
 
 				if (iProductionGold > 0)
@@ -13497,17 +13554,13 @@ bool CvCity::doCheckProduction()
 		if (getBuildingProduction((BuildingTypes)iI) > 0)
 		{
 			if (GET_PLAYER(getOwnerINLINE()).isProductionMaxedBuildingClass((BuildingClassTypes)(GC.getBuildingInfo((BuildingTypes)iI).getBuildingClassType())))
-			{
-				iProductionGold = ((getBuildingProduction((BuildingTypes)iI) * GC.getDefineINT("MAXED_BUILDING_GOLD_PERCENT")) / 100);
-
-				if (iProductionGold > 0)
-				{
+			{	// advc.123f: Commented out. Fail gold now handled in popOrder.
+				/*iProductionGold = ((getBuildingProduction((BuildingTypes)iI) * GC.getDefineINT("MAXED_BUILDING_GOLD_PERCENT")) / 100);
+				if(iProductionGold > 0) {
 					GET_PLAYER(getOwnerINLINE()).changeGold(iProductionGold);
-
 					szBuffer = gDLL->getText("TXT_KEY_MISC_LOST_WONDER_PROD_CONVERTED", getNameKey(), GC.getBuildingInfo((BuildingTypes)iI).getTextKeyWide(), iProductionGold);
 					gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_WONDERGOLD", MESSAGE_TYPE_MINOR_EVENT, GC.getCommerceInfo(COMMERCE_GOLD).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX_INLINE(), getY_INLINE(), true, true);
-				}
-
+				}*/
 				setBuildingProduction(((BuildingTypes)iI), 0);
 			}
 		}
@@ -13518,17 +13571,13 @@ bool CvCity::doCheckProduction()
 		if (getProjectProduction((ProjectTypes)iI) > 0)
 		{
 			if (GET_PLAYER(getOwnerINLINE()).isProductionMaxedProject((ProjectTypes)iI))
-			{
-				iProductionGold = ((getProjectProduction((ProjectTypes)iI) * GC.getDefineINT("MAXED_PROJECT_GOLD_PERCENT")) / 100);
-
-				if (iProductionGold > 0)
-				{
+			{	// advc.123f: Commented out. Fail gold now handled in popOrder.
+				/*iProductionGold = ((getProjectProduction((ProjectTypes)iI) * GC.getDefineINT("MAXED_BUILDING_GOLD_PERCENT")) / 100);
+				if(iProductionGold > 0) {
 					GET_PLAYER(getOwnerINLINE()).changeGold(iProductionGold);
-
 					szBuffer = gDLL->getText("TXT_KEY_MISC_LOST_WONDER_PROD_CONVERTED", getNameKey(), GC.getProjectInfo((ProjectTypes)iI).getTextKeyWide(), iProductionGold);
 					gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_WONDERGOLD", MESSAGE_TYPE_MINOR_EVENT, GC.getCommerceInfo(COMMERCE_GOLD).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX_INLINE(), getY_INLINE(), true, true);
-				}
-
+				}*/
 				setProjectProduction(((ProjectTypes)iI), 0);
 			}
 		}
@@ -16453,3 +16502,36 @@ double CvCity::garrisonStrength() const {
 	}
 	return r;
 } // </advc.500b>
+
+// <advc.123f>
+void CvCity::failProduction(int orderData, int investedProduction,
+		bool bProject) {
+
+	// Based on code in doCheckProduction
+	if(bProject)
+		setProjectProduction((ProjectTypes)orderData, 0);
+	else setBuildingProduction((BuildingTypes)orderData, 0);
+	for(int i = getOrderQueueLength() - 1; i >= 0; i--) {
+		OrderData* od = getOrderFromQueue(i);
+		if(od != NULL && od->eOrderType == (bProject ? ORDER_CREATE : ORDER_CONSTRUCT) &&
+				od->iData1 == orderData) {
+			FAssert(!canContinueProduction(*od));
+			popOrder(i, false, true);
+		}
+	}
+	int buildingGoldPercent = GC.getDefineINT("MAXED_BUILDING_GOLD_PERCENT");
+	if(buildingGoldPercent <= 0)
+		return;
+	int iProductionGold = (investedProduction * buildingGoldPercent) / 100;
+	GET_PLAYER(getOwnerINLINE()).changeGold(iProductionGold);
+	CvWString msg = gDLL->getText("TXT_KEY_MISC_LOST_WONDER_PROD_CONVERTED",
+			getNameKey(), bProject ?
+			GC.getProjectInfo((ProjectTypes)orderData).getTextKeyWide() :
+			GC.getBuildingInfo((BuildingTypes)orderData).getTextKeyWide(),
+			iProductionGold);
+	gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), false,
+			GC.getEVENT_MESSAGE_TIME(), msg, "AS2D_WONDERGOLD",
+			MESSAGE_TYPE_MINOR_EVENT, GC.getCommerceInfo(COMMERCE_GOLD).
+			getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
+			getX_INLINE(), getY_INLINE(), true, true);
+} // </advc.123f>
