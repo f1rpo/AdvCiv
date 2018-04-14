@@ -1076,7 +1076,9 @@ void CvTeam::doTurn()
 					to catch up. */ //|| (((int)g.getStartEra()) > 0)
 				;
 		// </advc.307>
-		// K-Mod. Delay the start of the barbarian research. (This is an experimental change. It is currently compensated by an increase in the barbarian tech rate.)
+		/*  K-Mod. Delay the start of the barbarian research. (This is an
+			experimental change. It is currently compensated by an increase in
+			the barbarian tech rate.) */
 		const CvPlayerAI& kBarbPlayer = GET_PLAYER(getLeaderID());
 		const CvGame& kGame = GC.getGameINLINE();
 		if (kGame.getElapsedGameTurns() >= GC.getHandicapInfo(kGame.getHandicapType()).getBarbarianCreationTurnsElapsed() * GC.getGameSpeedInfo(kGame.getGameSpeedType()).getBarbPercent() / 200)
@@ -1108,11 +1110,13 @@ void CvTeam::doTurn()
 							}
 
 							iPossibleCount++;
-							// advc.307:
-							if(kLoopTeam.isHasTech(i)) hasTechCount++;
+							// <advc.307>
+							if(kLoopTeam.isHasTech(i))
+								hasTechCount++; // </advc.307>
 						}
-					}
-
+					} /*  advc.302: Don't stop barb research entirely even when
+						  there is no contact with civs */
+					iCount = std::max(iCount, hasTechCount / 3);
 					if (iCount > 0)
 					{
 						FAssertMsg(iPossibleCount > 0, "iPossibleCount is expected to be greater than 0");
@@ -2905,6 +2909,8 @@ int CvTeam::countTotalCulture() const
 // <advc.302>
 bool CvTeam::isInContactWithBarbarians() const {
 
+	if(GC.getGameINLINE().isOption(GAMEOPTION_NO_BARBARIANS))
+		return true; // Needed for advc.314 (free unit from goody hut)
 	bool checkCity = GC.getGame().getElapsedGameTurns() >=
 			GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getBarbPercent();
 	// (Perhaps just unitThresh=1 would have the same effect)

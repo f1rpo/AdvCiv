@@ -38,7 +38,8 @@
 	<Italian>(K-Mod) L'influenza culturale di ogni città si estende oltre i suoi bordi. Se sei pressato culturalmente da un'altra civiltà prendi in considerazione di aumentare l'output culturale delle città vicine e non solo di quella pressata.</Italian>
 	<Spanish>(K-Mod) La influencia clultural de cada ciudad se extiende más alla de su frontera. Si estás siendo presionado culturalmente por otra civilización, considera adquirir más cultura en todas las ciudades cercanas; no solo en las ciudades que están siendo presionadas.</Spanish>
 </TEXT>
-<!-- advc.008c: Qualified this one a bit. Global warming isn't normally a good reason not to chop. -->
+<!-- advc.008c: Qualified this one a bit. Global warming isn't normally a good
+	 reason not to chop. -->
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_3</Tag>
 	<English>In the late game, forests and jungles help offset the pollution caused by your civilization. If you don't need to chop them down, consider keeping them to reduce the effects of global warming.</English>
@@ -137,9 +138,9 @@
 	 original hint ("Barbarians can appear anywhere a tile is obscured by fog
 	 of war, so never assume a tile you can't see is safe, even if you checked
 	 it the turn before!") is correct again. I'm overwriting hint 14 instead
-	 because it's very bad advice: "Be careful in signing Open Border
-	 agreements - make sure your 'friend' isn't mapping out your land for sale
-	 to the highest bidder!" -->
+	 because it's bad advice: "Be careful in signing Open Border agreements -
+	 make sure your 'friend' isn't mapping out your land for sale to the 
+	 highest bidder!" -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_14</Tag>
 	<English>Barbarians do not appear in tiles that are visible to any civilization. Carefully positioned lookouts can significantly reduce the barbarian activity in an area.</English>
@@ -214,7 +215,7 @@
 	<Spanish>Mant&#233;n algunos esp&#237;as en tus fronteras para practicar el contraespionaje. &#161;Los esp&#237;as enemigos pueden sembrar el caos!</Spanish>
 </TEXT>
 
-<!-- advc.008c: Nudge players towards disabling Random Events -->
+<!-- advc.008c: Nudge players toward disabling Random Events -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_69</Tag>
 	<English>If you play with the Random Events option, you may be wise to keep some reserve gold in your treasury. Your savings could help mitigate the effects of a disastrous event or grant you access to additional opportunities when a positive event rolls around.</English>
@@ -280,7 +281,7 @@
 	 should normally be built. -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_27</Tag>
-	<English>Make sure you need every building your city creates. Cities bringing in no research can sometimes skip libraries, just as cities that don't train units can skip barracks.</English>
+	<English>Make sure you need every building your city creates. Cities bringing in no research can sometimes skip Libraries, just as cities that don't train units can skip Barracks.</English>
 	<French>Ne construisez que les b&#226;timents dont vos villes ont besoin. Celles qui ne produisent pas de commerce peuvent se passer de biblioth&#232;que, celles qui ne verront jamais le combat n'ont besoin ni de remparts ni de ch&#226;teaux.</French>
 	<German>Achten Sie darauf, nur Geb&#228;ude zu errichten, die Ihre Stadt auch wirklich braucht. Bei geringem Forschungsertrag brauchen Sie nicht unbedingt eine Bibliothek, und Städte, die keine Einheiten trainieren, kommen ohne Kaserne aus.</German>
 	<Italian>Assicurati di aver davvero bisogno degli edifici che costruisci: le citt&#224; che non generano commercio possono fare a meno delle biblioteche, cos&#236; come una citt&#224; che non viene mai attaccata pu&#242; rinunciare a mura e castello.</Italian>
@@ -291,7 +292,7 @@
 	 "Colony". -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_54</Tag>
-	<English>To reduce your city maintenance, consider turning your cities on distant continents into colonies. To form a colony, go to the Domestic Advisor screen and press the first button.</English>
+	<English>To reduce your city maintenance, consider turning your cities on distant continents into colonies. To form a colony, go to the Domestic Advisor screen and press the button with the fist icon.</English>
 	<French>Si vous cherchez &#224; r&#233;duire le co&#251;t d'entretien de vos villes, pensez &#224; transformer en colonies vos villes situ&#233;es sur des continents lointains. Pour former une colonie, ouvrez l'&#233;cran du conseiller aux affaires int&#233;rieures et cliquez sur le bouton "Colonie".</French>
 	<German>Um Ihre Unterhaltskosten f&#252;r St&#228;dte zu senken, k&#246;nnen Sie Ihre St&#228;dte auf entfernten Kontinenten in Kolonien umwandeln. &#214;ffnen Sie dazu den Inlandsberater und klicken Sie auf den Knopf mit dem Faustsymbol.</German>
 	<Italian>Se stai cercando di ridurre i costi di manutenzione della tua citt&#224;, considera di trasformare quelle lontane in Colonie. Per formare una Colonia, vai nella schermata del consigliere interno e seleziona la voce "Colonia".</Italian>
@@ -334,7 +335,7 @@
 	 produce better results..." -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_1</Tag>
-	<English>Scouts and explorers get better results from tribal villages than other units.</English>
+	<English>Scouts and Explorers get better results from tribal villages than other units.</English>
 	<French>Envoyez des &#233;claireurs dans les villages indig&#232;nes pour obtenir de meilleurs r&#233;sultats.</French>
 	<German>Betreten Sie Stammesd&#246;rfer mit einem Sp&#228;her oder Kundschafter, um bessere Ergebnisse zu erzielen.</German>
 	<Italian>Si ottengono migliori risultati entrando nei villaggi indigeni con gli scout...</Italian>
@@ -359,7 +360,7 @@
 <!-- advc.008c: Shortened this a bit -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_67</Tag>
-	<English>While the HQ of a corporation generates extra income, each city hosting a corporation branch suffers increased maintenance costs. Unless you build courthouses in your branch cities and a bank in the HQ city, you may actually run at a net loss.</English>
+	<English>While the HQ of a corporation generates extra income, each city hosting a corporation branch suffers increased maintenance costs. Unless you build Courthouses in your branch cities and a Bank in the HQ city, you may actually run at a net loss.</English>
 	<French>Si vous choisissez de fonder une soci&#233;t&#233; commerciale, sachez que m&#234;me si le si&#232;ge social b&#233;n&#233;ficiera de revenus suppl&#233;mentaires, chaque ville abritant cette soci&#233;t&#233; subira une hausse de ses co&#251;ts d'entretien. Construisez des tribunaux dans toutes ces villes et des banques pr&#232;s de vos si&#232;ges sociaux, sous peine de subir une banqueroute.</French>
 	<German>Ein Unternehmenssitz liefert zwar Zusatzeinnahmen, aber gleichzeitig verursachen die Niederlassungen Unterhaltskosten. Errichten Sie in Städten mit Niederlassungen Gerichtsgebäude und in der Stadt mit dem Unternehmenssitz eine Bank, um nicht unterm Strich einen Verlust zu machen.</German>
 	<Italian>Se decidi di fondare una Corporazione, ricorda che sebbene i quartieri generali beneficeranno di rendite extra, ogni città che ospita una corporazione vedrà aumentare i suoi costi di mantenimento. Costruisci Palazzi di giustizia nelle città con le Corporazioni e Banche nei quartieri generali, altrimenti la Corporazione potrebbe andare in passivo.</Italian>
@@ -385,17 +386,6 @@
 	<German>Um die Kampfchancen Ihrer Einheit zu sehen, halten Sie die rechte Maustaste über dem Zielfeld gedrückt. Wenn Sie außerdem [ALT] gedrückt halten, werden die Kampfchancen auch dann angezeigt, wenn Sie nicht im Krieg sind.</German>
 	<Italian>Per visualizzare le probabilit&#224; di vittoria di uno scontro, tieni premuto il pulsante destro del mouse su una casella bersaglio...</Italian>
 	<Spanish>Mantener el cursor encima de la casilla objetivo para ver las probabilidades del combate...</Spanish>
-</TEXT>
-
-<!-- advc.008c: Removed the "look it up in Civilopedia" part b/c the hint was
-	 too long. Not a very useful hint; should replace it at some point. -->
-<TEXT>
-	<Tag>TXT_KEY_HINT_73</Tag>
-	<English>To found a Corporation, you must have the correct type of Great Person, have researched the appropriate technologies and build it in a city with one or more of the resources that the Corporation demands.</English>
-	<French>Pour fonder une soci&#233;t&#233; commerciale, vous devez disposer du bon type de personnages illustres, avoir recherch&#233; les technologies appropri&#233;es, et la construire dans une ville disposant d'au moins une des ressources dont elle a besoin</French>
-	<German>Um eine Kapitalgesellschaft zu gr&#252;nden, m&#252;sst Ihr &#252;ber die richtige Gro&#223;e Pers&#246;nlichkeit verf&#252;gen, die entsprechenden Technologien erforscht haben und sie in einer Stadt errichten, die eine oder mehr der f&#252;r die Kapitalgesellschaft erforderlichen Ressourcen hat.</German>
-	<Italian>Per fondare una corporazione devi avere il giusto tipo di Grande Personaggio, aver ricercato le tecnologie giuste e devi costruirla in una citt&#224; con una o pi&#249; delle risorse necessarie alla corporazione stessa.</Italian>
-	<Spanish>Para fundar una corporaci&#243;n, debes tener el tipo correcto de gran personaje, haber investigado las tecnolog&#237;as apropiadas y crearla en una ciudad con uno o m&#225;s de los recursos que la corporaci&#243;n necesita.</Spanish>
 </TEXT>
 
 </Civ4GameText>

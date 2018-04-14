@@ -849,19 +849,9 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 	switch (trade.m_eItemType)
 	{
 	case TRADE_TECHNOLOGIES:
-	{	// advc.003: TEAMREF macro applied in this case block
-		// K-Mod only adjust tech_from_any memory if this is a tech from a recent era
-		// and the team receiving the tech isn't already more than 2/3 of the way through.
-		// (This is to prevent the AI from being crippled by human players selling them lots of tech scraps.)
-		// Note: the current game era is the average of all the player eras, rounded down. (It no longer includes barbs.)
-		bool bSignificantTech =
-				GC.getTechInfo((TechTypes)trade.m_iData).getEra() >=
-				// advc.550e: Replacing the line below
-				GET_PLAYER(eToPlayer).getCurrentEra() &&
-				// GC.getGame().getCurrentEra()-1 &&
-				TEAMREF(eToPlayer).getResearchLeft((TechTypes)trade.m_iData) >
-				TEAMREF(eToPlayer).getResearchCost((TechTypes)trade.m_iData) / 3;
-		// K-Mod end
+	{	// <advc.550e> Code moved into subroutine and modified there
+		bool bSignificantTech = GET_PLAYER(eToPlayer).isSignificantDiscovery(
+				(TechTypes)trade.m_iData); // </advc.550e>
 		TEAMREF(eToPlayer).setHasTech(((TechTypes)trade.m_iData), true, eToPlayer, true, true);
 		if(bSignificantTech) // advc.550e
 			TEAMREF(eToPlayer).setNoTradeTech(((TechTypes)trade.m_iData), true);

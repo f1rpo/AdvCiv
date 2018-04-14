@@ -586,6 +586,29 @@
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 	
+	<!-- [advc.314] Settings for goody hut outcomes. See also Civ4GoodyInfo.xml
+		 and Civ4HandicapInfo.xml. -->
+	<!-- Turn after which effects of goody huts begin to increase. Recommended:
+		 50; use a high value like 5000 for BtS behavior (hut effects not based
+		 on game turn). -->
+	<Define>
+		<DefineName>GOODY_BUFF_START_TURN</DefineName>
+		<iDefineIntVal>50</iDefineIntVal>
+	</Define>
+	<!-- Turn after which effects of goody huts do not increase further.
+		 Recommended: 200. Has to be greater than or equal to
+		 GOODY_BUFF_START_TURN. -->
+	<Define>
+		<DefineName>GOODY_BUFF_PEAK_TURN</DefineName>
+		<iDefineIntVal>200</iDefineIntVal>
+	</Define>
+	<!-- Factor by which the effects of goody huts are increased on
+		 GOODY_BUFF_PEAK_TURN. Recommended: 10 -->
+	<Define>
+		<DefineName>GOODY_BUFF_PEAK_MULTIPLIER</DefineName>
+		<iDefineIntVal>10</iDefineIntVal>
+	</Define>
+	
 	<!-- [advc.139]
 	     The AI evacuates combat units from a city, when the "attack
 		 strength" against the city divided by the local "defense strength"

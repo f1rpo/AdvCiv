@@ -5438,7 +5438,7 @@ int CvCity::cultureGarrison(PlayerTypes ePlayer) const
 	{
 		iGarrison *= 2;
 	} */
-	// advc.101: Exponentiate again to strength in numbers a superlinear effect
+	// advc.101: Exponentiate again to give strength in numbers a superlinear effect
 	iGarrison = ::round(std::pow((double)iGarrison, 1.2));
 	return iGarrison;
 }
@@ -12639,7 +12639,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 	int iCount;
 	int iProductionNeeded;
 	int iOverflow;
-
+	CvPlayerAI& owner = GET_PLAYER(getOwnerINLINE()); // advc.003
 	bWasFoodProduction = isFoodProduction();
 
 	if (iNum == -1)
@@ -12686,10 +12686,10 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 		FAssertMsg(eTrainUnit != NO_UNIT, "eTrainUnit is expected to be assigned a valid unit type");
 		FAssertMsg(eTrainAIUnit != NO_UNITAI, "eTrainAIUnit is expected to be assigned a valid unit AI type");
 
-		GET_PLAYER(getOwnerINLINE()).changeUnitClassMaking(((UnitClassTypes)(GC.getUnitInfo(eTrainUnit).getUnitClassType())), -1);
+		owner.changeUnitClassMaking(((UnitClassTypes)(GC.getUnitInfo(eTrainUnit).getUnitClassType())), -1);
 
 		area()->changeNumTrainAIUnits(getOwnerINLINE(), eTrainAIUnit, -1);
-		GET_PLAYER(getOwnerINLINE()).AI_changeNumTrainAIUnits(eTrainAIUnit, -1);
+		owner.AI_changeNumTrainAIUnits(eTrainAIUnit, -1);
 
 		if (bFinish)
 		{
@@ -12718,7 +12718,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 			// UNOFFICIAL_PATCH End
 			if (iProductionGold > 0)
 			{
-				GET_PLAYER(getOwnerINLINE()).changeGold(iProductionGold);
+				owner.changeGold(iProductionGold);
 			} */
 
 			// K-Mod. use excess production to build more of the same unit
@@ -12727,7 +12727,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 			for (iBuilt = 0; iBuilt < iToBuild; iBuilt++)
 			{
 				// original build code
-				pUnit = GET_PLAYER(getOwnerINLINE()).initUnit(eTrainUnit, getX_INLINE(), getY_INLINE(), eTrainAIUnit);
+				pUnit = owner.initUnit(eTrainUnit, getX_INLINE(), getY_INLINE(), eTrainAIUnit);
 				FAssertMsg(pUnit != NULL, "pUnit is expected to be assigned a valid unit object");
 
 				pUnit->finishMoves();
@@ -12743,12 +12743,12 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 
 				if (isHuman())
 				{
-					if (GET_PLAYER(getOwnerINLINE()).isOption(PLAYEROPTION_START_AUTOMATED))
+					if (owner.isOption(PLAYEROPTION_START_AUTOMATED))
 					{
 						pUnit->automate(AUTOMATE_BUILD);
 					}
 
-					if (GET_PLAYER(getOwnerINLINE()).isOption(PLAYEROPTION_MISSIONARIES_AUTOMATED))
+					if (owner.isOption(PLAYEROPTION_MISSIONARIES_AUTOMATED))
 					{
 						pUnit->automate(AUTOMATE_RELIGION);
 					}
@@ -12795,7 +12795,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 				int iProductionGold = iLostProduction * GC.getDefineINT("MAXED_UNIT_GOLD_PERCENT") / 100;
 				if (iProductionGold > 0)
 				{
-					GET_PLAYER(getOwnerINLINE()).changeGold(iProductionGold);
+					owner.changeGold(iProductionGold);
 				}
 			}
 
@@ -12840,7 +12840,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 		// <advc.003>
 		BuildingClassTypes bct = (BuildingClassTypes)GC.getBuildingInfo(
 				eConstructBuilding).getBuildingClassType(); // </advc.003>
-		GET_PLAYER(getOwnerINLINE()).changeBuildingClassMaking(bct, -1);
+		owner.changeBuildingClassMaking(bct, -1);
 		if (bFinish)
 		{
 /*************************************************************************************************/
@@ -12849,15 +12849,15 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 /* Bugfix                                                                                        */
 /*************************************************************************************************/
 /* original bts code
-			if (GET_PLAYER(getOwnerINLINE()).isBuildingClassMaxedOut(bct, 1))
+			if (owner.isBuildingClassMaxedOut(bct, 1))
 */
-			if (GET_PLAYER(getOwnerINLINE()).isBuildingClassMaxedOut(bct,
+			if (owner.isBuildingClassMaxedOut(bct,
 					GC.getBuildingClassInfo(bct).getExtraPlayerInstances()))
 /*************************************************************************************************/
 /* UNOFFICIAL_PATCH                         END                                                  */
 /*************************************************************************************************/
 			{
-				GET_PLAYER(getOwnerINLINE()).removeBuildingClass(bct);
+				owner.removeBuildingClass(bct);
 			}
 
 			setNumRealBuilding(eConstructBuilding, getNumRealBuilding(eConstructBuilding) + 1);
@@ -12892,7 +12892,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 			// UNOFFICIAL_PATCH End
 			if (iProductionGold > 0)
 			{
-				GET_PLAYER(getOwnerINLINE()).changeGold(iProductionGold);
+				owner.changeGold(iProductionGold);
 			}
 			// <advc.123f>
 			if(::isWorldWonderClass(bct) &&
@@ -12953,7 +12953,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 					}
 					else
 					{
-						GET_PLAYER(getOwnerINLINE()).AI_launch(eVictory);
+						owner.AI_launch(eVictory);
 					}
 				}
 				else
@@ -13001,7 +13001,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 			// UNOFFICIAL_PATCH End
 			if (iProductionGold > 0)
 			{
-				GET_PLAYER(getOwnerINLINE()).changeGold(iProductionGold);
+				owner.changeGold(iProductionGold);
 			}
 			// <advc.123f>
 			if(GC.getGameINLINE().isProjectMaxedOut(eCreateProject))
@@ -13146,8 +13146,8 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 		if (eTrainUnit != NO_UNIT)
 		{
 			swprintf(szBuffer, gDLL->getText(((isLimitedUnitClass((UnitClassTypes)(GC.getUnitInfo(eTrainUnit).getUnitClassType()))) ? "TXT_KEY_MISC_TRAINED_UNIT_IN_LIMITED" : "TXT_KEY_MISC_TRAINED_UNIT_IN"), GC.getUnitInfo(eTrainUnit).getTextKeyWide(), getNameKey()).GetCString());
-			strcpy( szSound, GC.getUnitInfo(eTrainUnit).getArtInfo(0,GET_PLAYER(getOwnerINLINE()).getCurrentEra(), NO_UNIT_ARTSTYLE)->getTrainSound() );
-			szIcon = GET_PLAYER(getOwnerINLINE()).getUnitButton(eTrainUnit);
+			strcpy(szSound, GC.getUnitInfo(eTrainUnit).getArtInfo(0, owner.getCurrentEra(), NO_UNIT_ARTSTYLE)->getTrainSound() );
+			szIcon = owner.getUnitButton(eTrainUnit);
 		}
 		else if (eConstructBuilding != NO_BUILDING)
 		{
@@ -13526,19 +13526,19 @@ bool CvCity::doCheckProduction()
 	CvWString szBuffer;
 	int iI;
 	bool bOK = true;
-
+	CvPlayerAI& owner = GET_PLAYER(getOwnerINLINE()); // advc.003
 	for (iI = 0; iI < GC.getNumUnitInfos(); iI++)
 	{
 		if (getUnitProduction((UnitTypes)iI) > 0)
 		{
-			if (GET_PLAYER(getOwnerINLINE()).isProductionMaxedUnitClass((UnitClassTypes)(GC.getUnitInfo((UnitTypes)iI).getUnitClassType())))
+			if (owner.isProductionMaxedUnitClass((UnitClassTypes)(GC.getUnitInfo((UnitTypes)iI).getUnitClassType())))
 			{	/*  advc.123f (comment): Does nothing b/c I'm setting
 					MAXED_UNIT_GOLD_PERCENT=0 */
 				iProductionGold = ((getUnitProduction((UnitTypes)iI) * GC.getDefineINT("MAXED_UNIT_GOLD_PERCENT")) / 100);
 
 				if (iProductionGold > 0)
 				{
-					GET_PLAYER(getOwnerINLINE()).changeGold(iProductionGold);
+					owner.changeGold(iProductionGold);
 
 					szBuffer = gDLL->getText("TXT_KEY_MISC_LOST_WONDER_PROD_CONVERTED", getNameKey(), GC.getUnitInfo((UnitTypes)iI).getTextKeyWide(), iProductionGold);
 					gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_WONDERGOLD", MESSAGE_TYPE_MINOR_EVENT, GC.getCommerceInfo(COMMERCE_GOLD).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX_INLINE(), getY_INLINE(), true, true);
@@ -13553,11 +13553,11 @@ bool CvCity::doCheckProduction()
 	{
 		if (getBuildingProduction((BuildingTypes)iI) > 0)
 		{
-			if (GET_PLAYER(getOwnerINLINE()).isProductionMaxedBuildingClass((BuildingClassTypes)(GC.getBuildingInfo((BuildingTypes)iI).getBuildingClassType())))
+			if (owner.isProductionMaxedBuildingClass((BuildingClassTypes)(GC.getBuildingInfo((BuildingTypes)iI).getBuildingClassType())))
 			{	// advc.123f: Commented out. Fail gold now handled in popOrder.
 				/*iProductionGold = ((getBuildingProduction((BuildingTypes)iI) * GC.getDefineINT("MAXED_BUILDING_GOLD_PERCENT")) / 100);
 				if(iProductionGold > 0) {
-					GET_PLAYER(getOwnerINLINE()).changeGold(iProductionGold);
+					owner.changeGold(iProductionGold);
 					szBuffer = gDLL->getText("TXT_KEY_MISC_LOST_WONDER_PROD_CONVERTED", getNameKey(), GC.getBuildingInfo((BuildingTypes)iI).getTextKeyWide(), iProductionGold);
 					gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_WONDERGOLD", MESSAGE_TYPE_MINOR_EVENT, GC.getCommerceInfo(COMMERCE_GOLD).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX_INLINE(), getY_INLINE(), true, true);
 				}*/
@@ -13570,11 +13570,11 @@ bool CvCity::doCheckProduction()
 	{
 		if (getProjectProduction((ProjectTypes)iI) > 0)
 		{
-			if (GET_PLAYER(getOwnerINLINE()).isProductionMaxedProject((ProjectTypes)iI))
+			if (owner.isProductionMaxedProject((ProjectTypes)iI))
 			{	// advc.123f: Commented out. Fail gold now handled in popOrder.
 				/*iProductionGold = ((getProjectProduction((ProjectTypes)iI) * GC.getDefineINT("MAXED_BUILDING_GOLD_PERCENT")) / 100);
 				if(iProductionGold > 0) {
-					GET_PLAYER(getOwnerINLINE()).changeGold(iProductionGold);
+					owner.changeGold(iProductionGold);
 					szBuffer = gDLL->getText("TXT_KEY_MISC_LOST_WONDER_PROD_CONVERTED", getNameKey(), GC.getProjectInfo((ProjectTypes)iI).getTextKeyWide(), iProductionGold);
 					gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_WONDERGOLD", MESSAGE_TYPE_MINOR_EVENT, GC.getCommerceInfo(COMMERCE_GOLD).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX_INLINE(), getY_INLINE(), true, true);
 				}*/
@@ -13610,17 +13610,17 @@ bool CvCity::doCheckProduction()
 					{
 						if (pOrderNode->m_data.iData1 == iI)
 						{
-							GET_PLAYER(getOwnerINLINE()).changeUnitClassMaking(((UnitClassTypes)(GC.getUnitInfo((UnitTypes)(pOrderNode->m_data.iData1)).getUnitClassType())), -1);
+							owner.changeUnitClassMaking(((UnitClassTypes)(GC.getUnitInfo((UnitTypes)(pOrderNode->m_data.iData1)).getUnitClassType())), -1);
 							pOrderNode->m_data.iData1 = eUpgradeUnit;
-							if (GET_PLAYER(getOwnerINLINE()).AI_unitValue(eUpgradeUnit, ((UnitAITypes)(pOrderNode->m_data.iData2)), area()) == 0)
+							if (owner.AI_unitValue(eUpgradeUnit, ((UnitAITypes)(pOrderNode->m_data.iData2)), area()) == 0)
 							{
 								area()->changeNumTrainAIUnits(getOwnerINLINE(), ((UnitAITypes)(pOrderNode->m_data.iData2)), -1);
-								GET_PLAYER(getOwnerINLINE()).AI_changeNumTrainAIUnits(((UnitAITypes)(pOrderNode->m_data.iData2)), -1);
+								owner.AI_changeNumTrainAIUnits(((UnitAITypes)(pOrderNode->m_data.iData2)), -1);
 								pOrderNode->m_data.iData2 = GC.getUnitInfo(eUpgradeUnit).getDefaultUnitAIType();
 								area()->changeNumTrainAIUnits(getOwnerINLINE(), ((UnitAITypes)(pOrderNode->m_data.iData2)), 1);
-								GET_PLAYER(getOwnerINLINE()).AI_changeNumTrainAIUnits(((UnitAITypes)(pOrderNode->m_data.iData2)), 1);
+								owner.AI_changeNumTrainAIUnits(((UnitAITypes)(pOrderNode->m_data.iData2)), 1);
 							}
-							GET_PLAYER(getOwnerINLINE()).changeUnitClassMaking(((UnitClassTypes)(GC.getUnitInfo((UnitTypes)(pOrderNode->m_data.iData1)).getUnitClassType())), 1);
+							owner.changeUnitClassMaking(((UnitClassTypes)(GC.getUnitInfo((UnitTypes)(pOrderNode->m_data.iData1)).getUnitClassType())), 1);
 						}
 					}
 

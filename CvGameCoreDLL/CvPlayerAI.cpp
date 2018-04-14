@@ -5057,8 +5057,8 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 						}
 
 						if (pLoopUnit->isEnemy(eTeam))
-						{
-							if (pLoopUnit->canAttack())
+						{	// advc.315: was pLoopUnit->canAttack()
+							if (canBeAttackedBy(*pLoopUnit))
 							{
 								if (!(pLoopUnit->isInvisible(eTeam, false)))
 								{ /* advc.030, advc.001k: Replacing the line below
@@ -5204,7 +5204,9 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves
 							}
 						}
 						// <advc.003> Some indentation removed
-						if (pLoopUnit->isEnemy(eTeam) && pLoopUnit->canAttack() &&
+						if (pLoopUnit->isEnemy(eTeam) &&
+								// advc.315: was pLoopUnit->canAttack()
+								canBeAttackedBy(*pLoopUnit) &&
 								!pLoopUnit->isInvisible(eTeam, false)) {
 							// </advc.003>
 							/*  advc.030, advc.001k: Replacing the line below
@@ -5415,8 +5417,8 @@ int CvPlayerAI::AI_getWaterDanger(CvPlot* pPlot, int iRange, bool bTestMoves) co
 							pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
 
 							if (pLoopUnit->isEnemy(getTeam()))
-							{
-								if (pLoopUnit->canAttack())
+							{	// advc.315: was pLoopUnit->canAttack()
+								if (canBeAttackedBy(*pLoopUnit))
 								{
 									if (!(pLoopUnit->isInvisible(getTeam(), false)))
 									{
@@ -13831,7 +13833,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		case UNITAI_ATTACK:
 			if (u.getCombat() > 0)
 			{
-				if (!u.isOnlyDefensive())
+				if (!::isMostlyDefensive(u)) // advc.315
 				{
 					bValid = true;
 				}
@@ -13841,7 +13843,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		case UNITAI_ATTACK_CITY:
 			if (u.getCombat() > 0)
 			{
-				if (!u.isOnlyDefensive())
+				if (!::isMostlyDefensive(u)) // advc.315
 				{
 					if (!u.isNoCapture())
 					{
@@ -13854,7 +13856,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		case UNITAI_COLLATERAL:
 			if (u.getCombat() > 0)
 			{
-				if (!u.isOnlyDefensive())
+				if (!::isMostlyDefensive(u)) // advc.315
 				{
 					if (u.getCollateralDamage() > 0)
 					{
@@ -13867,7 +13869,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		case UNITAI_PILLAGE:
 			if (u.getCombat() > 0)
 			{
-				if (!u.isOnlyDefensive())
+				if (!::isMostlyDefensive(u)) // advc.315
 				{
 					bValid = true;
 				}
@@ -13877,7 +13879,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		case UNITAI_RESERVE:
 			if (u.getCombat() > 0)
 			{
-				if (!u.isOnlyDefensive())
+				if (!::isMostlyDefensive(u)) // advc.315
 				{
 						bValid = true;
 					}
@@ -13887,7 +13889,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		case UNITAI_COUNTER:
 			if (u.getCombat() > 0)
 			{
-				if (!u.isOnlyDefensive())
+				if (!::isMostlyDefensive(u)) // advc.315
 				{
 					if (u.getInterceptionProbability() > 0)
 					{
@@ -14395,7 +14397,8 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 					continue;
 				const CvUnitInfo& kLoopInfo = GC.getUnitInfo(eLoopUnit);
 
-				if (kLoopInfo.getDomainType() == DOMAIN_LAND && kLoopInfo.getCombat() > 0 && !kLoopInfo.isOnlyDefensive())
+				if (kLoopInfo.getDomainType() == DOMAIN_LAND && kLoopInfo.getCombat() > 0 &&
+						!::isMostlyDefensive(kLoopInfo)) // advc.315
 				{
 					if (kLoopInfo.getCombatLimit() < 100)
 						iLimitedUnits += getUnitClassCount(i);
@@ -15393,35 +15396,42 @@ int CvPlayerAI::AI_adjacentPotentialAttackers(CvPlot* pPlot, bool bTestCanMove) 
 	for (iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 	{
 		pLoopPlot = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), ((DirectionTypes)iI));
+		// <advc.003>
+		if(pLoopPlot == NULL)
+			continue; // </advc.003>
+		// <advc.030>
+		CvArea const& fromArea = *pLoopPlot->area();
+		//if (pLoopPlot->area() == pPlot->area())
+		// Replacing the above (negated):
+		if(!plotArea.canBeEntered(fromArea))
+			continue; // </advc.030>
+		pUnitNode = pLoopPlot->headUnitNode();
 
-		if (pLoopPlot != NULL)
-		{	// <advc.030>
-			CvArea const& fromArea = *pLoopPlot->area();
-			if(plotArea.canBeEntered(fromArea)) // Replacing:
-			//if (pLoopPlot->area() == pPlot->area()) // </advc.030>
+		while (pUnitNode != NULL)
+		{
+			pLoopUnit = ::getUnit(pUnitNode->m_data);
+			pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
+			// <advc.003>
+			if (pLoopUnit->getOwnerINLINE() != getID())
+				continue; // </advc.003>
+			// advc.030: Replacing the line below
+			if(plotArea.canBeEntered(fromArea, pLoopUnit))
+			//if (pLoopUnit->getDomainType() == ((pPlot->isWater()) ? DOMAIN_SEA : DOMAIN_LAND))
 			{
-				pUnitNode = pLoopPlot->headUnitNode();
-
-				while (pUnitNode != NULL)
+				if (pLoopUnit->canAttack()
+						/*  advc.315: This way, no units with OnlyAttackBarbarians
+							are counted as potential attackers. Could check if
+							the CenterUnit of pPlot is Barbarian, but only
+							Explorer has OnlyAttackBarbarians and I don't think
+							the AI will or should use Explorers for any
+							coordinated attacks anyway. */
+						&& !::isMostlyDefensive(pLoopUnit->getUnitInfo()))
 				{
-					pLoopUnit = ::getUnit(pUnitNode->m_data);
-					pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
-
-					if (pLoopUnit->getOwnerINLINE() == getID())
-					{	// advc.030: Replacing the line below
-						if(plotArea.canBeEntered(fromArea, pLoopUnit))
-						//if (pLoopUnit->getDomainType() == ((pPlot->isWater()) ? DOMAIN_SEA : DOMAIN_LAND))
+					if (!bTestCanMove || pLoopUnit->canMove())
+					{
+						if (!pLoopUnit->AI_isCityAIType())
 						{
-							if (pLoopUnit->canAttack())
-							{
-								if (!bTestCanMove || pLoopUnit->canMove())
-								{
-									if (!(pLoopUnit->AI_isCityAIType()))
-									{
-										iCount++;
-									}
-								}
-							}
+							iCount++;
 						}
 					}
 				}
@@ -16031,7 +16041,9 @@ int CvPlayerAI::AI_localAttackStrength(const CvPlot* pTargetPlot, TeamTypes eAtt
 					{
 						if (!pLoopUnit->canAttack()) // bCheckCanAttack means something else.
 							continue;
-
+						// <advc.315> See comment in AI_adjacentPotentialAttackers
+						if(::isMostlyDefensive(pLoopUnit->getUnitInfo()))
+							continue; // </advc.315>
 						if (bCheckMoves)
 						{
 							// unfortunately, we can't use the global pathfinder here
@@ -16073,7 +16085,7 @@ int CvPlayerAI::AI_localAttackStrength(const CvPlot* pTargetPlot, TeamTypes eAtt
 						if(attackerCount != NULL && pLoopUnit->getDamage() < 30) {
 							CvUnitInfo& u = GC.getUnitInfo(pLoopUnit->getUnitType());
 							// 80 is Cannon; don't count the early siege units
-							if(!u.isOnlyDefensive() && u.getCombatLimit() >= 80)
+							if(u.getCombatLimit() >= 80)
 								(*attackerCount)++;
 						} // </advc.139>
 					}
@@ -25262,7 +25274,8 @@ void CvPlayerAI::AI_convertUnitAITypesForCrush()
 			bValid = false;
 		}*/
 		
-		if (!pLoopUnit->canAttack() || (pLoopUnit->AI_getUnitAIType() == UNITAI_CITY_SPECIAL))
+		if (!pLoopUnit->canAttack() || (pLoopUnit->AI_getUnitAIType() == UNITAI_CITY_SPECIAL)
+				|| ::isMostlyDefensive(pLoopUnit->getUnitInfo())) // advc.315
 		{
 			bValid = false;
 		}
@@ -27150,10 +27163,15 @@ void CvPlayerAI::AI_doEnemyUnitData()
 					}
 					else if (pLoopUnit->getOwnerINLINE() != getID())
 					{
-						iUnitValue += pLoopUnit->canAttack() ? 4 : 1;
+						int tmp = ((pLoopUnit->canAttack() &&
+								// advc.315:
+								!::isMostlyDefensive(pLoopUnit->getUnitInfo())) ?
+								4 : 1);
+						iUnitValue += tmp;
 						if (pLoopPlot->getCulture(getID()) > 0)
 						{
-							iUnitValue += pLoopUnit->canAttack() ? 4 : 1;
+							//iUnitValue += pLoopUnit->canAttack() ? 4 : 1;
+							iUnitValue += tmp; // advc.315
 						}
 					}
 					
@@ -27897,7 +27915,10 @@ bool CvPlayerAI::AI_isPlotThreatened(CvPlot* pPlot, int iRange, bool bTestMoves)
 					for (CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode(); pUnitNode != NULL; pUnitNode = pLoopPlot->nextUnitNode(pUnitNode))
 					{
 						CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-						if (pLoopUnit->isEnemy(getTeam()) && pLoopUnit->canAttack() && !pLoopUnit->isInvisible(getTeam(), false))
+						if (pLoopUnit->isEnemy(getTeam()) &&
+								// advc.315: was pLoopUnit->canAttack()
+								canBeAttackedBy(*pLoopUnit) &&
+								!pLoopUnit->isInvisible(getTeam(), false))
 						{ /* advc.030, advc.001k: Replacing the line below
 							 (which calls isMadeAttack) */
 							if(pPlotArea->canBeEntered(fromArea, pLoopUnit))
@@ -27934,6 +27955,21 @@ bool CvPlayerAI::AI_isPlotThreatened(CvPlot* pPlot, int iRange, bool bTestMoves)
 
 	return false;
 }
+
+// <advc.315>
+bool CvPlayerAI::canBeAttackedBy(CvUnit const& u) const {
+
+	if(!u.canAttack() ||
+			/*  advc.315a: Since animals don't worry about being attacked,
+				OnlyAttackAnimals can be treated like !canAttack here. */
+			u.getUnitInfo().isOnlyAttackAnimals())
+		return false;
+	// <advc.315b>
+	if(isBarbarian())
+		return true;
+	return !u.getUnitInfo().isOnlyAttackBarbarians();
+	// </advc.315b>
+} // </advc.315>
 
 bool CvPlayerAI::AI_isFirstTech(TechTypes eTech) const
 {

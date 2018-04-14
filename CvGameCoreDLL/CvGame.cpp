@@ -8055,7 +8055,8 @@ UnitTypes CvGame::randomBarbUnit(UnitAITypes ai, CvArea const& a) {
 			continue;
 		CvUnitInfo& u = GC.getUnitInfo(ut);
 		DomainTypes dom = (DomainTypes)u.getDomainType();
-		if(u.getCombat() <= 0 || u.isOnlyDefensive() || dom == DOMAIN_AIR ||
+		if(u.getCombat() <= 0 || dom == DOMAIN_AIR ||
+				::isMostlyDefensive(u) || // advc.315
 				(dom == DOMAIN_SEA) != sea ||
 				!GET_PLAYER(BARBARIAN_PLAYER).canTrain(ut))
 			continue;
@@ -10963,6 +10964,35 @@ bool CvGame::pythonIsBonusIgnoreLatitudes() const
 
 	return false;
 }
+
+// <advc.314> Between 0 and GOODY_BUFF_PEAK_MULTIPLIER, depending on game turn.
+double CvGame::goodyHutEffectFactor(
+		/*  Use true when a goody hut effect is supposed to increase with
+			the game speed. When set to false, the turn numbers in this
+			function are still game-speed adjusted. */
+		bool speedAdjust) const {
+
+	CvGameSpeedInfo& sp = GC.getGameSpeedInfo(getGameSpeedType());
+	double speedMultTurns = sp.getGrowthPercent() / 100.0;
+	double speedMultFinal = (speedAdjust ? sp.getTrainPercent() / 100.0 : 1);
+	double startTurn = std::max(0.0,
+			GC.getDefineINT("GOODY_BUFF_START_TURN") * speedMultTurns);
+	double peakTurn = std::max(startTurn,
+			GC.getDefineINT("GOODY_BUFF_PEAK_TURN") * speedMultTurns);
+	double peakMult = std::max(1, GC.getDefineINT("GOODY_BUFF_PEAK_MULTIPLIER"));
+	/*  Exponent for power-law function; aiming for a function shape that
+		resembles the graphs on the Info tab. */
+	double exponent = 1.25;
+	// (or rather: the inverse of the gradient)
+	double gradient = std::pow(peakTurn - startTurn, exponent) / (peakMult - 1);
+	gradient = ::dRange(gradient, 1.0, 500.0);
+	double t = GC.getInitCore().getGameTurn(); // (CvGame::getGameTurn isn't const)
+	/*  Function through (startTurn, 1) and (peakTurn, peakMult)
+		[^that's assuming speedAdjust=false] */
+	double r = speedMultFinal * std::min(peakMult,
+			(gradient + std::pow(std::max(0.0, t - startTurn), exponent)) / gradient);
+	return r;
+} // </advc.314>
 
 // <advc.004m>
 bool CvGame::isResourceLayer() const {

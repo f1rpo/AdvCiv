@@ -3074,6 +3074,7 @@ m_iCollateralDamageMaxUnits(0),
 m_iCityAttackModifier(0),
 m_iCityDefenseModifier(0),
 m_iAnimalCombatModifier(0),
+m_iBarbarianCombatModifier(0), // advc.315c
 m_iHillsAttackModifier(0),
 m_iHillsDefenseModifier(0),
 m_iBombRate(0),
@@ -3116,6 +3117,8 @@ m_bAnimal(false),
 m_bFoodProduction(false),
 m_bNoBadGoodies(false),
 m_bOnlyDefensive(false),
+m_bOnlyAttackAnimals(false), // advc.315a
+m_bOnlyAttackBarbarians(false), // advc.315b
 m_bNoCapture(false),
 m_bQuickCombat(false),
 m_bRivalTerritory(false),
@@ -3435,6 +3438,11 @@ int CvUnitInfo::getAnimalCombatModifier() const
 {
 	return m_iAnimalCombatModifier;
 }
+// <advc.315c>
+int CvUnitInfo::getBarbarianCombatModifier() const
+{
+	return m_iBarbarianCombatModifier;
+} // </advc.315c>
 
 int CvUnitInfo::getHillsAttackModifier() const
 {
@@ -3634,6 +3642,16 @@ bool CvUnitInfo::isOnlyDefensive() const
 {
 	return m_bOnlyDefensive;
 }
+// <advc.315a>
+bool CvUnitInfo::isOnlyAttackAnimals() const
+{
+	return m_bOnlyAttackAnimals;
+} // </advc.315a>
+// <advc.315b>
+bool CvUnitInfo::isOnlyAttackBarbarians() const
+{
+	return m_bOnlyAttackBarbarians;
+} // </advc.315b>
 
 bool CvUnitInfo::isNoCapture() const	
 {
@@ -4225,7 +4243,6 @@ void CvUnitInfo::read(FDataStreamBase* stream)
 
 	uint uiFlag=0;
 	stream->Read(&uiFlag);	// flags for expansion
-
 	stream->Read(&m_iAIWeight);
 	stream->Read(&m_iProductionCost);
 	stream->Read(&m_iHurryCostModifier);
@@ -4263,6 +4280,9 @@ void CvUnitInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iCityAttackModifier);
 	stream->Read(&m_iCityDefenseModifier);
 	stream->Read(&m_iAnimalCombatModifier);
+	// <advc.315c>
+	if(uiFlag >= 2)
+		stream->Read(&m_iBarbarianCombatModifier); // </advc.315c>
 	stream->Read(&m_iHillsAttackModifier);
 	stream->Read(&m_iHillsDefenseModifier);
 	stream->Read(&m_iBombRate);
@@ -4312,6 +4332,11 @@ void CvUnitInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_bFoodProduction);
 	stream->Read(&m_bNoBadGoodies);
 	stream->Read(&m_bOnlyDefensive);
+	// <advc.315>
+	if(uiFlag >= 2) {
+		stream->Read(&m_bOnlyAttackAnimals); // advc.315a
+		stream->Read(&m_bOnlyAttackBarbarians); // advc.315b
+	} // </advc.315>
 	stream->Read(&m_bNoCapture);
 	stream->Read(&m_bQuickCombat);
 	stream->Read(&m_bRivalTerritory);
@@ -4523,6 +4548,7 @@ void CvUnitInfo::write(FDataStreamBase* stream)
 	CvHotkeyInfo::write(stream);
 
 	uint uiFlag=1;
+	uiFlag++; // advc.315
 	stream->Write(uiFlag);		// flag for expansion
 
 	stream->Write(m_iAIWeight);
@@ -4562,6 +4588,7 @@ void CvUnitInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iCityAttackModifier);
 	stream->Write(m_iCityDefenseModifier);
 	stream->Write(m_iAnimalCombatModifier);
+	stream->Write(m_iBarbarianCombatModifier); // advc.315c
 	stream->Write(m_iHillsAttackModifier);
 	stream->Write(m_iHillsDefenseModifier);
 	stream->Write(m_iBombRate);
@@ -4608,6 +4635,8 @@ void CvUnitInfo::write(FDataStreamBase* stream)
 	stream->Write(m_bFoodProduction);
 	stream->Write(m_bNoBadGoodies);
 	stream->Write(m_bOnlyDefensive);
+	stream->Write(m_bOnlyAttackAnimals); // advc.315a
+	stream->Write(m_bOnlyAttackBarbarians); // advc.315b
 	stream->Write(m_bNoCapture);
 	stream->Write(m_bQuickCombat);
 	stream->Write(m_bRivalTerritory);
@@ -4750,6 +4779,10 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_bFoodProduction, "bFood");
 	pXML->GetChildXmlValByName(&m_bNoBadGoodies, "bNoBadGoodies");
 	pXML->GetChildXmlValByName(&m_bOnlyDefensive, "bOnlyDefensive");
+	// advc.315a:
+	pXML->GetChildXmlValByName(&m_bOnlyAttackAnimals, "bOnlyAttackAnimals");
+	// advc.315b:
+	pXML->GetChildXmlValByName(&m_bOnlyAttackBarbarians, "bOnlyAttackBarbarians");
 	pXML->GetChildXmlValByName(&m_bNoCapture, "bNoCapture");
 	pXML->GetChildXmlValByName(&m_bQuickCombat, "bQuickCombat");
 	pXML->GetChildXmlValByName(&m_bRivalTerritory, "bRivalTerritory");
@@ -4950,6 +4983,8 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iCityAttackModifier, "iCityAttack");
 	pXML->GetChildXmlValByName(&m_iCityDefenseModifier, "iCityDefense");
 	pXML->GetChildXmlValByName(&m_iAnimalCombatModifier, "iAnimalCombat");
+	// advc.315c:
+	pXML->GetChildXmlValByName(&m_iBarbarianCombatModifier, "iBarbarianCombat");
 	pXML->GetChildXmlValByName(&m_iHillsAttackModifier, "iHillsAttack");
 	pXML->GetChildXmlValByName(&m_iHillsDefenseModifier, "iHillsDefense");
 

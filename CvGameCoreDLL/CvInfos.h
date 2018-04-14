@@ -854,6 +854,7 @@ public:
 	int getCityAttackModifier() const;				// Exposed to Python
 	int getCityDefenseModifier() const;				// Exposed to Python
 	int getAnimalCombatModifier() const;			// Exposed to Python
+	int getBarbarianCombatModifier() const; // advc.315c
 	int getHillsAttackModifier() const;			// Exposed to Python
 	int getHillsDefenseModifier() const;			// Exposed to Python
 	int getBombRate() const;									// Exposed to Python
@@ -897,6 +898,8 @@ public:
 	bool isFoodProduction() const;				// Exposed to Python
 	bool isNoBadGoodies() const;				// Exposed to Python
 	bool isOnlyDefensive() const;				// Exposed to Python
+	bool isOnlyAttackAnimals() const; // advc.315a
+	bool isOnlyAttackBarbarians() const; // advc.315b
 	bool isNoCapture() const;				// Exposed to Python
 	bool isQuickCombat() const;				// Exposed to Python
 	bool isRivalTerritory() const;				// Exposed to Python
@@ -1038,6 +1041,7 @@ protected:
 	int m_iCityAttackModifier;
 	int m_iCityDefenseModifier;
 	int m_iAnimalCombatModifier;
+	int m_iBarbarianCombatModifier; // advc.315
 	int m_iHillsAttackModifier;
 	int m_iHillsDefenseModifier;
 	int m_iBombRate;
@@ -1079,6 +1083,8 @@ protected:
 	bool m_bFoodProduction;
 	bool m_bNoBadGoodies;
 	bool m_bOnlyDefensive;
+	bool m_bOnlyAttackAnimals; // advc.315a
+	bool m_bOnlyAttackBarbarians; // advc.315b
 	bool m_bNoCapture;
 	bool m_bQuickCombat;
 	bool m_bRivalTerritory;

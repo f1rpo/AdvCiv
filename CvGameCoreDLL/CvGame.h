@@ -620,6 +620,7 @@ public:
 	DllExport void handleDiplomacySetAIComment(DiploCommentTypes eComment) const;
 
 	std::set<int> m_ActivePlayerCycledGroups; // K-Mod. This is used to track which groups have been cycled through in the current turn. Note: it does not need to be kept in sync for multiplayer games.
+	double goodyHutEffectFactor(bool speedAdjust = true) const; // advc.314
 	// <advc.004m>
 	bool isResourceLayer() const;
 	void reportResourceLayerToggled();

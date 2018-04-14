@@ -289,6 +289,11 @@ bool isBeforeUnitCycle(const CvUnit* pFirstUnit, const CvUnit* pSecondUnit);
 bool isBeforeGroupOnPlot(const CvSelectionGroup* pFirstGroup, const CvSelectionGroup* pSecondGroup); // K-Mod
 int groupCycleDistance(const CvSelectionGroup* pFirstGroup, const CvSelectionGroup* pSecondGroup); // K-Mod
 bool isPromotionValid(PromotionTypes ePromotion, UnitTypes eUnit, bool bLeader);	// Exposed to Python
+// <advc.315>
+inline bool isMostlyDefensive(CvUnitInfo const& u) {
+
+	return u.isOnlyDefensive() || u.isOnlyAttackAnimals() || u.isOnlyAttackBarbarians();
+} // </advc.315>
 
 int getPopulationAsset(int iPopulation);								// Exposed to Python
 int getLandPlotsAsset(int iLandPlots);									// Exposed to Python

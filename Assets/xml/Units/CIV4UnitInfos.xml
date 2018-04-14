@@ -25,6 +25,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -128,6 +132,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives>
@@ -205,6 +211,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -308,6 +318,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -377,6 +389,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -480,6 +496,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -549,6 +567,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -652,6 +674,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives>
@@ -731,6 +755,10 @@
 			<bFood>1</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -839,6 +867,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -912,6 +942,10 @@
 			<bFood>1</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -1101,6 +1135,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -1167,6 +1203,10 @@
 			<bFood>1</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -1356,6 +1396,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -1419,7 +1461,12 @@
 			<bAnimal>0</bAnimal>
 			<bFood>0</bFood>
 			<bNoBadGoodies>1</bNoBadGoodies>
-			<bOnlyDefensive>1</bOnlyDefensive>
+			<!-- advc.315a: Replaced with OnlyAttackAnimals -->
+			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>1</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -1527,7 +1574,9 @@
 			<iCollateralDamageMaxUnits>0</iCollateralDamageMaxUnits>
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
-			<iAnimalCombat>100</iAnimalCombat>
+			<!-- advc.315c: Was 100; now BarbarianCombat instead. -->
+			<iAnimalCombat>0</iAnimalCombat>
+			<iBarbarianCombat>100</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -1591,14 +1640,21 @@
 			<bAnimal>0</bAnimal>
 			<bFood>0</bFood>
 			<bNoBadGoodies>1</bNoBadGoodies>
-			<bOnlyDefensive>1</bOnlyDefensive>
-			<bNoCapture>0</bNoCapture>
+			<!-- advc.315b: Replaced with OnlyAttackBarbarians and NoCapture -->
+			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>1</bOnlyAttackBarbarians>
+			<!-- advc.315b: Not supposed to conquer Barbarian cities -->
+			<bNoCapture>1</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
 			<bMilitaryHappiness>0</bMilitaryHappiness>
 			<bMilitarySupport>1</bMilitarySupport>
 			<bMilitaryProduction>1</bMilitaryProduction>
-			<bPillage>0</bPillage>
+			<!-- advc.315 -->
+			<bPillage>1</bPillage>
 			<bSpy>0</bSpy>
 			<bSabotage>0</bSabotage>
 			<bDestroy>0</bDestroy>
@@ -1695,6 +1751,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -1715,7 +1773,8 @@
 			<DomainCargo>NONE</DomainCargo>
 			<iCargo>0</iCargo>
 			<iConscription>0</iConscription>
-			<iCultureGarrison>0</iCultureGarrison>
+			<!-- advc.315c: was 0 -->
+			<iCultureGarrison>3</iCultureGarrison>
 			<iExtraCost>0</iExtraCost>
 			<iAsset>2</iAsset>
 			<iPower>2</iPower>
@@ -1736,16 +1795,8 @@
 			<bShiftDown>0</bShiftDown>
 			<bCtrlDown>0</bCtrlDown>
 			<iHotKeyPriority>0</iHotKeyPriority>
-			<FreePromotions>
-				<FreePromotion>
-					<PromotionType>PROMOTION_GUERILLA1</PromotionType>
-					<bFreePromotion>1</bFreePromotion>
-				</FreePromotion>
-				<FreePromotion>
-					<PromotionType>PROMOTION_WOODSMAN1</PromotionType>
-					<bFreePromotion>1</bFreePromotion>
-				</FreePromotion>
-			</FreePromotions>
+			<!-- advc.315c: was PROMOTION_GUERILLA1 and PROMOTION_WOODSMAN1 -->
+			<FreePromotions/>
 			<LeaderPromotion>NONE</LeaderPromotion>
 			<iLeaderExperience>0</iLeaderExperience>
 		</UnitInfo>
@@ -1768,6 +1819,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>1</bRivalTerritory>
@@ -1877,6 +1932,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -1947,6 +2004,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -2050,6 +2111,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -2115,6 +2178,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -2218,6 +2285,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -2283,6 +2352,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -2386,6 +2459,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -2451,6 +2526,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -2554,6 +2633,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -2619,6 +2700,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -2722,6 +2807,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -2787,6 +2874,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -2890,6 +2981,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -2955,6 +3048,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -3058,6 +3155,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -3123,6 +3222,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -3226,6 +3329,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -3290,6 +3395,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -3393,6 +3502,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -3457,6 +3568,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -3560,6 +3675,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -3624,6 +3741,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -3727,6 +3848,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -3791,6 +3914,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -3894,6 +4021,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -3958,6 +4087,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -4061,6 +4194,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -4125,6 +4260,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -4228,6 +4367,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -4292,6 +4433,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -4409,6 +4554,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>25</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -4473,6 +4620,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -4594,6 +4745,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>25</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -4668,6 +4821,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -4784,6 +4941,8 @@
 			<iCityAttack>10</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -4848,6 +5007,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -4968,6 +5131,8 @@
 			<iCityAttack>10</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -5037,6 +5202,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -5158,6 +5327,8 @@
 			<iCityAttack>10</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -5228,6 +5399,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -5358,6 +5533,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -5430,6 +5607,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -5555,6 +5736,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -5632,6 +5815,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -5757,6 +5944,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -5831,6 +6020,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -5956,6 +6149,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -6025,6 +6220,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -6145,6 +6344,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -6215,6 +6416,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -6352,6 +6557,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -6422,6 +6629,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -6554,6 +6765,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -6628,6 +6841,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -6765,6 +6982,8 @@
 			<iCityAttack>10</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -6840,6 +7059,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -6961,6 +7184,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -7030,6 +7255,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -7155,6 +7384,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -7229,6 +7460,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -7349,6 +7584,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -7418,6 +7655,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -7538,6 +7779,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -7607,6 +7850,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -7731,6 +7978,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -7804,6 +8053,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -7920,6 +8173,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -7984,6 +8239,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -8104,6 +8363,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -8168,6 +8429,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -8284,6 +8549,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -8361,6 +8628,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -8477,6 +8748,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -8558,6 +8831,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -8682,6 +8959,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -8751,6 +9030,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -8875,6 +9158,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -8948,6 +9233,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -9072,6 +9361,8 @@
 			<iCityAttack>10</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -9141,6 +9432,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -9257,6 +9552,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -9331,6 +9628,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -9459,6 +9760,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -9528,6 +9831,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -9644,6 +9951,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -9713,6 +10022,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -9828,6 +10141,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -9897,6 +10212,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -10016,6 +10335,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -10094,6 +10415,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -10213,6 +10538,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -10295,6 +10622,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -10402,6 +10733,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -10466,6 +10799,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -10585,6 +10922,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -10654,6 +10993,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -10770,6 +11113,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>50</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>25</iHillsDefense>
 			<TerrainNatives/>
@@ -10834,6 +11179,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -10950,6 +11299,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>50</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>25</iHillsDefense>
 			<TerrainNatives/>
@@ -11014,6 +11365,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -11130,6 +11485,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>50</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>25</iHillsDefense>
 			<TerrainNatives/>
@@ -11199,6 +11556,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -11315,6 +11676,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>25</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>25</iHillsDefense>
 			<TerrainNatives/>
@@ -11379,6 +11742,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -11507,6 +11874,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -11576,6 +11945,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -11704,6 +12077,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -11773,6 +12148,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -11889,6 +12268,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -11958,6 +12339,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -12074,6 +12459,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -12143,6 +12530,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -12264,6 +12655,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -12338,6 +12731,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -12463,6 +12860,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -12532,6 +12931,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -12661,6 +13064,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -12740,6 +13145,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -12865,6 +13274,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -12934,6 +13345,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -13064,6 +13479,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -13128,6 +13545,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -13253,6 +13674,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -13317,6 +13740,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -13447,6 +13874,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -13511,6 +13940,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -13658,6 +14091,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -13727,6 +14162,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -13861,6 +14300,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -13925,6 +14366,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -14054,6 +14499,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -14123,6 +14570,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -14252,6 +14703,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -14326,6 +14779,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -14442,6 +14899,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -14511,6 +14970,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -14632,6 +15095,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -14701,6 +15166,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -14821,6 +15290,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -14890,6 +15361,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -15010,6 +15485,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -15088,6 +15565,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -15208,6 +15689,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -15277,6 +15760,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>1</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -15401,6 +15888,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -15475,6 +15964,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -15587,6 +16080,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -15656,6 +16151,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -15772,6 +16271,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -15846,6 +16347,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -15963,6 +16468,8 @@
 			<iCityAttack>100</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -16033,6 +16540,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -16145,6 +16656,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -16214,6 +16727,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>1</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -16330,6 +16847,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -16408,6 +16927,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -16520,6 +17043,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -16594,6 +17119,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -16705,6 +17234,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -16779,6 +17310,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -16906,6 +17441,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -16971,6 +17508,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -17096,6 +17637,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -17160,6 +17703,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -17299,6 +17846,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -17365,6 +17914,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>1</bRivalTerritory>
@@ -17496,6 +18049,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -17560,6 +18115,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>1</bRivalTerritory>
@@ -17703,6 +18262,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -17768,6 +18329,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -17885,6 +18450,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -17949,6 +18516,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>1</bRivalTerritory>
@@ -18070,6 +18641,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -18134,6 +18707,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -18265,6 +18842,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -18334,6 +18913,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -18459,6 +19042,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -18523,6 +19108,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -18645,6 +19234,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -18719,6 +19310,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -18846,6 +19441,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -18910,6 +19507,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -19023,6 +19624,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -19087,6 +19690,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -19208,6 +19815,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -19272,6 +19881,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -19391,6 +20004,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -19455,6 +20070,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -19572,6 +20191,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -19636,6 +20257,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -19759,6 +20384,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -19823,6 +20450,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>1</bRivalTerritory>
@@ -19946,6 +20577,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -20020,6 +20653,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>1</bRivalTerritory>
@@ -20143,6 +20780,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -20227,6 +20866,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -20336,6 +20979,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -20400,6 +21045,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -20508,6 +21157,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -20572,6 +21223,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -20684,6 +21339,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -20748,6 +21405,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -20860,6 +21521,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -20924,6 +21587,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -21036,6 +21703,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -21105,6 +21774,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -21216,6 +21889,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -21285,6 +21960,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -21392,6 +22071,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -21456,6 +22137,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -21563,6 +22248,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -21627,6 +22314,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -21734,6 +22425,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -21826,6 +22519,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -21968,6 +22665,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -22069,6 +22768,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -22187,6 +22890,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -22293,6 +22998,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -22419,6 +23128,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -22515,6 +23226,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>1</bRivalTerritory>
@@ -22637,6 +23352,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -22735,6 +23452,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -22857,6 +23578,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -22963,6 +23686,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>0</bRivalTerritory>
@@ -23081,6 +23808,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
@@ -23199,6 +23928,10 @@
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
 			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
 			<bRivalTerritory>1</bRivalTerritory>
@@ -23318,6 +24051,8 @@
 			<iCityAttack>0</iCityAttack>
 			<iCityDefense>0</iCityDefense>
 			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>

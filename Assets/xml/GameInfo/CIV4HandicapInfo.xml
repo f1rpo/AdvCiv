@@ -84,7 +84,7 @@
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
-				<GoodyType>GOODY_SETTLER</GoodyType>
+				<!-- advc.314: One GOODY_SETTLER entry removed -->
 				<GoodyType>GOODY_SETTLER</GoodyType>
 				<GoodyType>GOODY_WARRIOR</GoodyType>
 				<GoodyType>GOODY_WARRIOR</GoodyType>
@@ -232,7 +232,7 @@
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
-				<GoodyType>GOODY_SETTLER</GoodyType>
+				<!-- advc.314: One GOODY_SETTLER entry removed -->
 				<GoodyType>GOODY_SETTLER</GoodyType>
 				<GoodyType>GOODY_WARRIOR</GoodyType>
 				<GoodyType>GOODY_WARRIOR</GoodyType>
@@ -357,7 +357,7 @@
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
-				<GoodyType>GOODY_SETTLER</GoodyType>
+				<!-- advc.314: GOODY_SETTLER entry removed -->
 				<GoodyType>GOODY_WARRIOR</GoodyType>
 				<GoodyType>GOODY_WARRIOR</GoodyType>
 				<GoodyType>GOODY_SCOUT</GoodyType>

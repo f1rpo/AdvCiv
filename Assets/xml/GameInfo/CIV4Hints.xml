@@ -570,6 +570,9 @@
 		<HintInfo>
 			<Description>TXT_KEY_HINT_16</Description>
 		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_HINT_73</Description>
+		</HintInfo>
 		
 		<!-- AdvCiv hints, two times each -->
 		<HintInfo>
@@ -636,6 +639,9 @@
 		<!-- Skip 22-26; shouldn't be as frequent. -->
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_27</Description>
+		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_28</Description>
 		</HintInfo>
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_1</Description>
@@ -715,6 +721,9 @@
 		</HintInfo>
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_27</Description>
+		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_28</Description>
 		</HintInfo>
 	</HintInfos>
 </Civ4Hints>

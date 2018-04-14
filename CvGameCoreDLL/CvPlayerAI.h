@@ -705,6 +705,7 @@ protected:
 	double expansionistHate(PlayerTypes civId) const;
 	//void AI_doSplit(); // advc.104r: Moved to public section
 	void AI_doCheckFinancialTrouble();
+	bool canBeAttackedBy(CvUnit const& u) const; // advc.315
 
 	// K-Mod. I've moved the bulk of AI_getStrategyHash into a new function: AI_updateStrategyHash.
 	inline int AI_getStrategyHash() const { return m_iStrategyHash; }

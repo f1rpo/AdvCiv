@@ -229,8 +229,11 @@ public:
 	void disband(CvCity* pCity);																																		// Exposed to Python
 
 	bool canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) const;													// Exposed to Python
-	void receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit);															// Exposed to Python
-	void doGoody(CvPlot* pPlot, CvUnit* pUnit);																											// Exposed to Python
+	void receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,															// Exposed to Python
+			bool noRecursion = false); // advc.314
+	void doGoody(CvPlot* pPlot, CvUnit* pUnit,																											// Exposed to Python
+			// advc.314: Set this when rolling an additional outcome
+			GoodyTypes taboo = NO_GOODY);
 
 	DllExport bool canFound(int iX, int iY, bool bTestVisible = false) const;															// Exposed to Python			
 	void found(int iX, int iY);																																			// Exposed to Python			
@@ -315,6 +318,8 @@ public:
 	DllExport int getResearchTurnsLeft(TechTypes eTech, bool bOverflow) const;														// Exposed to Python
 	bool canSeeResearch(PlayerTypes ePlayer) const; // K-Mod, Exposed to Python
 	bool canSeeDemographics(PlayerTypes ePlayer) const; // K-Mod, Exposed to Python
+	// advc.550e; also need it for advc.314
+	bool isSignificantDiscovery(TechTypes eTech) const;
 
 	bool isCivic(CivicTypes eCivic) const;																																// Exposed to Python
 	bool canDoCivics(CivicTypes eCivic) const;																														// Exposed to Python

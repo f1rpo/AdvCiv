@@ -472,7 +472,11 @@ int groupCycleDistance(const CvSelectionGroup* pFirstGroup, const CvSelectionGro
 			{
 				if (pFirstHead->getUnitCombatType() != pSecondHead->getUnitCombatType())
 					iPenalty += 2;
-				if (pFirstHead->canAttack() != pSecondHead->canAttack())
+				if (pFirstHead->canAttack() != pSecondHead->canAttack()
+						// <advc.315>
+						|| ::isMostlyDefensive(pFirstHead->getUnitInfo()) !=
+						::isMostlyDefensive(pSecondHead->getUnitInfo()))
+						// </advc.315>
 					iPenalty += 1;
 			}
 			else

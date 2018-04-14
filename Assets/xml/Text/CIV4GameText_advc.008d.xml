@@ -27,6 +27,19 @@
 	<Spanish>(AdvCiv) Don't worry about rivals that dislike your capitulated vassals - this can't sway them to declare war on you. However, vassals that came to you peacefully are a different story!</Spanish>
 </TEXT>
 
+<!-- advc.008c: In BtS, this was a lengthy explanation about how to found a
+	 corporation. I had previously edited it a bit for brevity. See K-Mod
+	 hints.xml in AdvCiv 0.92 for that version of the hint.
+	 advc.114, advc.115b: -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_73</Tag>
+	<English>(AdvCiv) When your Caravels discover an unclaimed continent, consider sending an Explorer: At that point of the game, Tribal Villages can yield substantial amounts of gold and other goodies.</English>
+	<French>(AdvCiv) When your Caravels discover an unclaimed continent, consider sending an Explorer: At that point of the game, Tribal Villages can yield substantial amounts of gold and other goodies.</French>
+	<German>(AdvCiv) Wenn Ihre Karavellen einen unerforschten Kontinent entdecken, kann es sich lohnen, mit einem Kundschafter nach Stammesdörfern zu suchen. So spät im Spiel können diese beträchtliche Goldsummen und andere Goodies ergeben.</German>
+	<Italian>(AdvCiv) When your Caravels discover an unclaimed continent, consider sending an Explorer: At that point of the game, Tribal Villages can yield substantial amounts of gold and other goodies.</Italian>
+	<Spanish>(AdvCiv) When your Caravels discover an unclaimed continent, consider sending an Explorer: At that point of the game, Tribal Villages can yield substantial amounts of gold and other goodies.</Spanish>
+</TEXT>
+
 <!-- "If you find a valuable resource that is too far away for you to use,
 	 it may still be smart to keep a unit on top of it, if only to find
 	 out who eventually is going to control it." Who does that? -->
@@ -413,6 +426,16 @@
 	<German>(AdvCiv) Wenn Sie einen KI-Gegner nach einem Angebot für eine Ressource fragen, schlägt er Gold pro Zug vor, falls Ihr Einkommen negativ ist, und ansonsten eine andere Ressource. Durch Ihren Goldregler können Sie also die Art des Angebots steuern.</German>
 	<Italian>(AdvCiv) When asked to make a trade offer for a resource, the AI will try to offer gold per turn if your income is negative, and a resource otherwise. Adjust your gold slider in order to get the offer you want.</Italian>
 	<Spanish>(AdvCiv) When asked to make a trade offer for a resource, the AI will try to offer gold per turn if your income is negative, and a resource otherwise. Adjust your gold slider in order to get the offer you want.</Spanish>
+</TEXT>
+
+<!-- advc.115a, advc.115c -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_28</Tag>
+	<English>(AdvCiv) Scouts can help stave off Barbarians in the early game. While unable to attack non-Animal units, Scouts now have a defensive bonus against all Barbarians.</English>
+	<French>(AdvCiv) Scouts can help stave off Barbarians in the early game. While unable to attack non-Animal units, Scouts now have a defensive bonus against all Barbarians.</French>
+	<German>(AdvCiv) Späher können im frühen Spiel dabei helfen, Barbaren abzuwehren. Sie dürfen zwar nur Tiere angreifen, erhalten aber gegen alle Barbaren einen Verteidigungsbonus.</German>
+	<Italian>(AdvCiv) Scouts can help stave off Barbarians in the early game. While unable to attack non-Animal units, Scouts now have a defensive bonus against all Barbarians.</Italian>
+	<Spanish>(AdvCiv) Scouts can help stave off Barbarians in the early game. While unable to attack non-Animal units, Scouts now have a defensive bonus against all Barbarians.</Spanish>
 </TEXT>
 
 </Civ4GameText>

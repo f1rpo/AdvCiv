@@ -415,6 +415,7 @@ public:
 	int cityAttackModifier() const;																					// Exposed to Python
 	int cityDefenseModifier() const;																				// Exposed to Python
 	int animalCombatModifier() const;																				// Exposed to Python
+	int barbarianCombatModifier() const; // advc.315c
 	int hillsAttackModifier() const;																				// Exposed to Python
 	int hillsDefenseModifier() const;																				// Exposed to Python
 	int terrainAttackModifier(TerrainTypes eTerrain) const;								// Exposed to Python

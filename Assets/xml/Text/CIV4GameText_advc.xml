@@ -777,6 +777,50 @@
 		<Italian>da turno</Italian>
 		<Spanish>desde turno</Spanish>
 	</TEXT>
+	
+	<!-- advc.314: Based on TXT_KEY_GOODY_SCOUT in Vanilla
+		 Civ4GameTextInfos.xml. -->
+	<TEXT>
+		<Tag>TXT_KEY_GOODY_FREE_UNIT</Tag>
+		<English>The villagers have provided you with a %s1_Unit!</English>
+		<French>Les villageois vous fournissent une unit&#233; (%s1_Unit) !</French>
+		<German>Die Bewohner haben Euch eine Einheit (%s1_Unit) zur Verf&#252;gung gestellt!</German>
+		<Italian>Gli abitanti del villaggio ti hanno donato un'unit&#224; (%s1_Unit)!</Italian>
+		<Spanish>Los aldeanos os han dado una unidad (%s1_Unit).</Spanish>
+	</TEXT>
+	
+	<!-- advc.315: The original text keys for unit abilities are in in
+		 Civ4GameTextInfos.xml. I hate the capitalization and hard-coded
+		 bullets, but at least it's consistent. -->
+	<!-- advc.315a -->
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_ONLY_ATTACK_ANIMALS</Tag>
+		<English>[ICON_BULLET]Can Attack Only Animals</English>
+		<French>[ICON_BULLET]Ne peut attaquer que des animaux</French>
+		<German>[ICON_BULLET]Kann nur Tiere angreifen</German>
+		<Italian>[ICON_BULLET]Può attaccare solo animali</Italian>
+		<Spanish>[ICON_BULLET]Puede atacar solo a los animales</Spanish>
+	</TEXT>
+	<!-- advc.315b -->
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_ONLY_ATTACK_BARBARIANS</Tag>
+		<English>[ICON_BULLET]Can Attack Only Barbarians</English>
+		<French>[ICON_BULLET]Ne peut attaquer que des barbares</French>
+		<German>[ICON_BULLET]Kann nur Barbaren angreifen</German>
+		<Italian>[ICON_BULLET]Può attaccare solo barbari</Italian>
+		<Spanish>[ICON_BULLET]Puede atacar solo a los bárbaros</Spanish>
+	</TEXT>
+	<!-- advc.315c: The parentheses are there in order to teach players that
+		 it's correct when combat help says "vs. Barbarians"  - since Animals
+		 count as Barbarians. -->
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_BARBARIAN_COMBAT_MOD</Tag>
+		<English>[ICON_BULLET]%D1_Change%% vs. Barbarians (and Animals)</English>
+		<French>[ICON_BULLET]%D1_Change%% contre les barbares (et animaux)</French>
+		<German>[ICON_BULLET]%D1_Change%% gegen Barbaren (und Tiere)</German>
+		<Italian>[ICON_BULLET]%D1_Change%% contro barbari (e animali)</Italian>
+		<Spanish>[ICON_BULLET]%D1_Change%% contra bárbaros (e animales)</Spanish>
+	</TEXT>
 
 	<!-- advc.137: Copy-pasted from Vanilla Civ4GameText_Misc1.xml;
 		 recommendation added (only in English and German). -->

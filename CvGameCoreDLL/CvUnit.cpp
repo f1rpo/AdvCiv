@@ -1731,7 +1731,10 @@ void CvUnit::updateCombat(bool bQuick)
 
 				if (bAdvance)
 				{
-					if (!isNoCapture())
+					//if (!isNoCapture())
+					/*  advc.315b: Let Explorer capture Workers,
+						but not Gunship. */
+					if(!m_pUnitInfo->isIgnoreTerrainCost())
 					{
 						pDefender->setCapturingPlayer(getOwnerINLINE());
 					}
@@ -2821,7 +2824,7 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 				return false;
 			}
 		}
-		// K-Mod. Don't let noCapture units attack defenceless cities. (eg. cities with a worker in them)
+		// K-Mod. Don't let noCapture units attack defenseless cities. (eg. cities with a worker in them)
 		/*if (pPlot->isEnemyCity(*this))
 		{
 			if (!bAttack || !pPlot->isVisibleEnemyDefender(this))
@@ -2903,7 +2906,17 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 						{
 							return false;
 						}
-					}
+					} // <advc.315>
+					else if(bAttack && ( // <advc.315b>
+							(m_pUnitInfo->isOnlyAttackBarbarians() &&
+							pPlot->getCenterUnit() != NULL &&
+							!pPlot->getCenterUnit()->isBarbarian()) ||
+							// </advc.315b> <advc.315a>
+							(m_pUnitInfo->isOnlyAttackAnimals() &&
+							pPlot->getCenterUnit() != NULL &&
+							!pPlot->getCenterUnit()->isAnimal())))
+							// </advc.315a>
+						return false; // </advc.315>
 				}
 			}
 
@@ -8567,11 +8580,12 @@ int CvUnit::maxCombatStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDet
 		}
 
 		if (isBarbarian())
-		{
+		{	// advc.315c: And changed the iExtraModifier assignements below to +=
+			iExtraModifier = -pAttacker->barbarianCombatModifier();
 			if (pAttacker->isHuman())
 			{
 				//iExtraModifier = GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getBarbarianCombatModifier();
-				iExtraModifier = GC.getHandicapInfo(GET_PLAYER(pAttacker->getOwnerINLINE()).getHandicapType()).getBarbarianCombatModifier(); // K-Mod
+				iExtraModifier += GC.getHandicapInfo(GET_PLAYER(pAttacker->getOwnerINLINE()).getHandicapType()).getBarbarianCombatModifier(); // K-Mod
 				iModifier += iExtraModifier;
 				if (pCombatDetails != NULL)
 				{
@@ -8580,7 +8594,7 @@ int CvUnit::maxCombatStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDet
 			}
 			else
 			{
-				iExtraModifier = GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIBarbarianCombatModifier();
+				iExtraModifier += GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIBarbarianCombatModifier();
 				iModifier += iExtraModifier;
 				if (pCombatDetails != NULL)
 				{
@@ -8590,11 +8604,12 @@ int CvUnit::maxCombatStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDet
 		}
 
 		if (pAttacker->isBarbarian())
-		{
+		{	// advc.315c: And changed the iExtraModifier assignements below to -=
+			iExtraModifier = barbarianCombatModifier();
 			if (isHuman())
 			{
 				//iExtraModifier = -GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getBarbarianCombatModifier();
-				iExtraModifier = -GC.getHandicapInfo(GET_PLAYER(getOwnerINLINE()).getHandicapType()).getBarbarianCombatModifier(); // K-Mod
+				iExtraModifier += -GC.getHandicapInfo(GET_PLAYER(getOwnerINLINE()).getHandicapType()).getBarbarianCombatModifier(); // K-Mod
 				iModifier += iExtraModifier;
 				if (pCombatDetails != NULL)
 				{
@@ -8603,7 +8618,7 @@ int CvUnit::maxCombatStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDet
 			}
 			else
 			{
-				iExtraModifier = -GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIBarbarianCombatModifier();
+				iExtraModifier += -GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIBarbarianCombatModifier();
 				iModifier += iExtraModifier;
 				if (pCombatDetails != NULL)
 				{
@@ -8966,15 +8981,16 @@ bool CvUnit::canAttack() const
 }
 bool CvUnit::canAttack(const CvUnit& defender) const
 {
-	if (!canAttack())
-	{
+	if(!canAttack())
 		return false;
-	}
-
-	if (defender.getDamage() >= combatLimit())
-	{
+	// <advc.315a>
+	if(m_pUnitInfo->isOnlyAttackAnimals() && !defender.isAnimal())
+		return false; // </advc.315a>
+	// <advc.315b>
+	if(m_pUnitInfo->isOnlyAttackBarbarians() && !defender.isBarbarian())
+		return false; // </advc.315b>
+	if(defender.getDamage() >= combatLimit())
 		return false;
-	}
 
 	// Artillery can't amphibious attack
 	if (plot()->isWater() && !defender.plot()->isWater())
@@ -9089,7 +9105,9 @@ int CvUnit::airMaxCombatStr(const CvUnit* pOther) const
 		if (pOther->isAnimal())
 		{
 			iModifier += animalCombatModifier();
-		}
+		} // <advc.315c>
+		if(pOther->isBarbarian())
+			iModifier += barbarianCombatModifier(); // </advc.315c>
 	}
 
 	if (iModifier > 0)
@@ -9645,6 +9663,12 @@ int CvUnit::animalCombatModifier() const
 {
 	return m_pUnitInfo->getAnimalCombatModifier();
 }
+
+// <advc.315c>
+int CvUnit::barbarianCombatModifier() const
+{
+	return m_pUnitInfo->getBarbarianCombatModifier();
+} // </advc.315c>
 
 
 int CvUnit::hillsAttackModifier() const
@@ -10237,7 +10261,10 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 									GET_TEAM(getTeam()).AI_changeWarSuccess(pLoopUnit->getTeam(), GC.getDefineINT("WAR_SUCCESS_UNIT_CAPTURING"));
 								}
 
-								if (!isNoCapture())
+								//if (!isNoCapture())
+								/*  advc.315b: Let Explorer capture Workers,
+									but not Gunship. */
+								if(!m_pUnitInfo->isIgnoreTerrainCost())
 								{
 									pLoopUnit->setCapturingPlayer(getOwnerINLINE());
 								}
@@ -13671,7 +13698,9 @@ bool CvUnit::canApplyEvent(EventTypes eEvent) const
 
 	if (kEvent.getUnitImmobileTurns() > 0)
 	{
-		if (!canAttack())
+		if (!canAttack()
+				// advc.315: Farm Bandits and Toxcatl random events
+				|| ::isMostlyDefensive(*m_pUnitInfo))
 		{
 			return false;
 		}

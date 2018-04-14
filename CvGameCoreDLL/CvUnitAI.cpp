@@ -3020,7 +3020,9 @@ void CvUnitAI::AI_attackCityMove()
 			pUnitNode = pGroup->nextUnitNode(pUnitNode);
 
 			//if( !pLoopUnit->isOnlyDefensive() )
-			if (pLoopUnit->canAttack()) // K-Mod
+			if (pLoopUnit->canAttack() // K-Mod
+					// advc.315:
+					&& !::isMostlyDefensive(pLoopUnit->getUnitInfo()))
 			{
 				iCityCapture += pLoopUnit->isNoCapture() ? 0 : 1;
 				iNoCombatLimit += pLoopUnit->combatLimit() < 100 ? 0 : 1;
@@ -4862,8 +4864,12 @@ void CvUnitAI::AI_exploreMove()
 		{
 			return;
 		}
-	}
-
+	} // <advc.315> Idle explorers can help guard city sites
+	if(!isHuman() && !GC.getGameINLINE().isOption(GAMEOPTION_NO_BARBARIANS) &&
+			(m_pUnitInfo->getCombat() * barbarianCombatModifier()) / 100 >=
+			(GET_PLAYER(BARBARIAN_PLAYER).getCurrentEra() + 1) * 2 &&
+			AI_guardCitySite())
+		return; // </advc.315>
 	if (!isHuman() && (AI_getUnitAIType() == UNITAI_EXPLORE))
 	{
 		if (GET_PLAYER(getOwnerINLINE()).AI_totalAreaUnitAIs(area(), UNITAI_EXPLORE) > GET_PLAYER(getOwnerINLINE()).AI_neededExplorers(area()))

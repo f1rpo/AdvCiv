@@ -460,8 +460,9 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit, 
 	bool bShift = GC.shiftKey();
 	bool bAlt = GC.altKey();
 
-	// advc.007: Make info more compact in debug mode
-	if(GC.getGameINLINE().isDebugMode() && bOneLine) bShort = true;
+	// <advc.007> Make info more compact in debug mode
+	if(GC.getGameINLINE().isDebugMode() && bOneLine)
+		bShort = true; // </advc.007>
 
 	szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_UNIT_TEXT"), pUnit->getName().GetCString());
 	szString.append(szTempBuffer);
@@ -548,7 +549,7 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit, 
 	}*/
 
 	if (GC.getGameINLINE().isDebugMode() && !bAlt && !bShift
-			&& !bOneLine // advc.007: Can alway press Ctrl+Alt for this info
+			&& false // advc.007: Can alway press Ctrl+Alt for this info
 		)
 	{
 		FAssertMsg(pUnit->AI_getUnitAIType() != NO_UNITAI, "pUnit's AI type expected to != NO_UNITAI");
@@ -688,7 +689,24 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit, 
 		}
 
 		if (!bShort)
-		{
+		{	// <advc.315> Whether a unit can attack is too important to omit
+			if (pUnit->isOnlyDefensive())
+			{
+				szString.append(NEWLINE);
+				szString.append(gDLL->getText("TXT_KEY_UNIT_ONLY_DEFENSIVE"));
+			} // </advc.315>
+			// <advc.315a> Same code as under setBasicUnitHelp
+			if (pUnit->getUnitInfo().isOnlyAttackAnimals())
+			{
+				szString.append(NEWLINE);
+				szString.append(gDLL->getText("TXT_KEY_UNIT_ONLY_ATTACK_ANIMALS"));
+			} // </advc.315a>
+			// <advc.315b>
+			if (pUnit->getUnitInfo().isOnlyAttackBarbarians())
+			{
+				szString.append(NEWLINE);
+				szString.append(gDLL->getText("TXT_KEY_UNIT_ONLY_ATTACK_BARBARIANS"));
+			} // </advc.315b>
 			if (pUnit->noDefensiveBonus())
 			{
 				szString.append(NEWLINE);
@@ -898,6 +916,13 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit, 
 			szString.append(NEWLINE);
 			szString.append(gDLL->getText("TXT_KEY_UNIT_ANIMAL_COMBAT_MOD", pUnit->animalCombatModifier()));
 		}
+		// <advc.315c>
+		if (pUnit->barbarianCombatModifier() != 0)
+		{
+			szString.append(NEWLINE);
+			szString.append(gDLL->getText("TXT_KEY_UNIT_BARBARIAN_COMBAT_MOD",
+					pUnit->barbarianCombatModifier()));
+		} // </advc.315c>
 
 		if (pUnit->getDropRange() > 0)
 		{
@@ -3725,7 +3750,8 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 			{
 				//iModifier = -GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getBarbarianCombatModifier();
 				iModifier = -GC.getHandicapInfo(GET_PLAYER(pAttacker->getOwnerINLINE()).getHandicapType()).getBarbarianCombatModifier(); // K-Mod
-
+				// advc.315c:
+				iModifier += pAttacker->getUnitInfo().getBarbarianCombatModifier();
 				if (iModifier != 0)
 				{
 					szString.append(NEWLINE);
@@ -3879,7 +3905,8 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 		{
 			//iModifier = -GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getBarbarianCombatModifier();
 			iModifier = -GC.getHandicapInfo(GET_PLAYER(pAttacker->getOwnerINLINE()).getHandicapType()).getBarbarianCombatModifier(); // K-Mod
-
+			// advc.315c:
+			iModifier += pAttacker->getUnitInfo().getBarbarianCombatModifier();
 			if (iModifier != 0)
 			{
 				szString.append(NEWLINE);
@@ -8489,6 +8516,18 @@ void CvGameTextMgr::setBasicUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit,
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_UNIT_ONLY_DEFENSIVE"));
 	}
+	// <advc.315a>
+	if (GC.getUnitInfo(eUnit).isOnlyAttackAnimals())
+	{
+		szBuffer.append(NEWLINE);
+		szBuffer.append(gDLL->getText("TXT_KEY_UNIT_ONLY_ATTACK_ANIMALS"));
+	} // </advc.315a>
+	// <advc.315b>
+	if (GC.getUnitInfo(eUnit).isOnlyAttackBarbarians())
+	{
+		szBuffer.append(NEWLINE);
+		szBuffer.append(gDLL->getText("TXT_KEY_UNIT_ONLY_ATTACK_BARBARIANS"));
+	} // </advc.315b>
 
 	if (GC.getUnitInfo(eUnit).isNoCapture())
 	{
@@ -8669,6 +8708,13 @@ void CvGameTextMgr::setBasicUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit,
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_UNIT_ANIMAL_COMBAT_MOD", GC.getUnitInfo(eUnit).getAnimalCombatModifier()));
 	}
+	// <advc.315c>
+	if (GC.getUnitInfo(eUnit).getBarbarianCombatModifier() != 0)
+	{
+		szBuffer.append(NEWLINE);
+		szBuffer.append(gDLL->getText("TXT_KEY_UNIT_BARBARIAN_COMBAT_MOD",
+				GC.getUnitInfo(eUnit).getBarbarianCombatModifier()));
+	} // </advc.315c>
 
 	if (GC.getUnitInfo(eUnit).getDropRange() > 0)
 	{

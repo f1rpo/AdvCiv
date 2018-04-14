@@ -5977,8 +5977,8 @@ bool CvPlayer::canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) 
 	UnitTypes eUnit;
 	bool bTechFound;
 	int iI;
-
-	if (GC.getGoodyInfo(eGoody).getExperience() > 0)
+	CvGoodyInfo const& goody = GC.getGoodyInfo(eGoody); // advc.003
+	if (goody.getExperience() > 0)
 	{
 		if ((pUnit == NULL) || !(pUnit->canAcquirePromotionAny()) || (GC.getGameINLINE().getElapsedGameTurns() < 10))
 		{
@@ -5986,24 +5986,28 @@ bool CvPlayer::canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) 
 		}
 	}
 
-	if (GC.getGoodyInfo(eGoody).getDamagePrereq() > 0)
+	if (goody.getDamagePrereq() > 0)
 	{
-		if ((pUnit == NULL) || (pUnit->getDamage() < ((pUnit->maxHitPoints() * GC.getGoodyInfo(eGoody).getDamagePrereq()) / 100)))
+		if ((pUnit == NULL) || (pUnit->getDamage() < ((pUnit->maxHitPoints() * goody.getDamagePrereq()) / 100)))
 		{
 			return false;
 		}
-	}
-
-	if (GC.getGoodyInfo(eGoody).isTech())
+	} // advc.314:
+	bool anyGold = (goody.getGold() + goody.getGoldRand1() + goody.getGoldRand2() > 0);
+	if (goody.isTech())
 	{
 		bTechFound = false;
 
 		for (iI = 0; iI < GC.getNumTechInfos(); iI++)
 		{
-			if (GC.getTechInfo((TechTypes) iI).isGoodyTech())
+			if (GC.getTechInfo((TechTypes) iI).isGoodyTech()
+					/*  advc.314: Means that only progress is granted toward the
+						tech, and then all techs are valid. */
+					|| anyGold)
 			{
-				//if (canResearch((TechTypes)iI)) // advc.003:
-				if (canResearchBulk((TechTypes)iI, false, true)) // K-Mod
+				//if (canResearch((TechTypes)iI), false, true) // K-Mod
+				// advc.003: Replacing the above
+				if (canResearchBulk((TechTypes)iI, false, true)) 
 				{
 					bTechFound = true;
 					break;
@@ -6017,41 +6021,61 @@ bool CvPlayer::canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) 
 		}
 	}
 
-	if (GC.getGoodyInfo(eGoody).isBad())
+	if (goody.isBad())
 	{
-		if ((pUnit == NULL) || pUnit->isNoBadGoodies())
+		if (pUnit == NULL || pUnit->isNoBadGoodies())
 		{
 			return false;
 		}
 	}
-
-	if (GC.getGoodyInfo(eGoody).getUnitClassType() != NO_UNITCLASS)
+	// <advc.314>
+	CvGame& g = GC.getGameINLINE();
+	bool veryEarlyGame = (100 * g.getGameTurn() <
+			20 * GC.getGameSpeedInfo(g.getGameSpeedType()).getTrainPercent());
+	if(veryEarlyGame && goody.getMinBarbarians() > 1)
+		return false;
+	/*  Moved up and added the era clause; a single free unit in the Medieval
+		era isn't going to be a problem. */
+	bool earlyMP = (GC.getGameINLINE().isGameMultiPlayer() &&
+			GC.getGameINLINE().getCurrentEra() < 2);
+	if (goody.getUnitClassType() != NO_UNITCLASS)
 	{
-		eUnit = ((UnitTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(GC.getGoodyInfo(eGoody).getUnitClassType())));
+		eUnit = ((UnitTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(goody.getUnitClassType())));
 
 		if (eUnit == NO_UNIT)
 		{
 			return false;
 		}
-
-		if ((GC.getUnitInfo(eUnit).getCombat() > 0) && !(GC.getUnitInfo(eUnit).isOnlyDefensive()))
+		CvUnitInfo const& u = GC.getUnitInfo(eUnit); // advc.003
+		if (u.getCombat() > 0 &&
+				!::isMostlyDefensive(u)) // advc.315
 		{
-			if (GC.getGameINLINE().isGameMultiPlayer() || (GC.getGameINLINE().getElapsedGameTurns() < 20))
+			if (earlyMP || // advc.314
+					//GC.getGameINLINE().getElapsedGameTurns() < 20
+					// advc.314: Replacing the above
+					veryEarlyGame)
 			{
 				return false;
 			}
-		}
-
+		} // <advc.314> I guess a Worker with a slow WorkRate would be OK
+		if(veryEarlyGame && u.getWorkRate() > 30)
+			return false; // </advc.314>
 		if (GC.getGameINLINE().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman())
 		{
-			if (GC.getUnitInfo(eUnit).isFound())
+			if (u.isFound())
 			{
 				return false;
 			}
 		}
-	}
-
-	if (GC.getGoodyInfo(eGoody).getBarbarianUnitClass() != NO_UNITCLASS)
+	} // <advc.314> Free unit and no UnitClassType given
+	else if(!goody.isBad() && goody.getMinBarbarians() > 0 &&
+			(earlyMP || veryEarlyGame))
+		return false; // </advc.314>
+	if ((goody.getBarbarianUnitClass() != NO_UNITCLASS
+			// <advc.314> Hostile unit w/o any UnitClassType given
+			|| goody.getMinBarbarians() > 0 && goody.getBarbarianUnitProb() > 0)
+			// BarbarianUnitClass has a different use now when !isBad
+			&& goody.isBad()) // </advc.314>
 	{
 		if (GC.getGameINLINE().isOption(GAMEOPTION_NO_BARBARIANS))
 		{
@@ -6069,7 +6093,10 @@ bool CvPlayer::canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) 
 
 			if (pCity != NULL)
 			{
-				if (plotDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pCity->getX_INLINE(), pCity->getY_INLINE()) <= (8 - getNumCities()))
+				if (plotDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(),
+						pCity->getX_INLINE(), pCity->getY_INLINE()) <=
+						// advc.314 (comment):
+						8 - getNumCities()) // = 7 b/c of the NumCities==1 check
 				{
 					return false;
 				}
@@ -6081,14 +6108,14 @@ bool CvPlayer::canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) 
 }
 
 
-void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
+void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,
+		bool noRecursion) // advc.314
 {
 	CvPlot* pLoopPlot;
 	CvPlot* pBestPlot = NULL;
 	CvWString szBuffer;
 	CvWString szTempBuffer;
 	TechTypes eBestTech;
-	UnitTypes eUnit;
 	int iGold;
 	int iOffset;
 	int iRange;
@@ -6099,30 +6126,39 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 	int iDX, iDY;
 	int iI;
 
-	FAssertMsg(canReceiveGoody(pPlot, eGoody, pUnit), "Instance is expected to be able to recieve goody");
-
-	szBuffer = GC.getGoodyInfo(eGoody).getDescription();
-
-	iGold = GC.getGoodyInfo(eGoody).getGold() + GC.getGameINLINE().getSorenRandNum(GC.getGoodyInfo(eGoody).getGoldRand1(), "Goody Gold 1") + GC.getGameINLINE().getSorenRandNum(GC.getGoodyInfo(eGoody).getGoldRand2(), "Goody Gold 2");
-	iGold  = (iGold * GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getGrowthPercent()) / 100;
-
-	if (iGold != 0)
+	FAssertMsg(canReceiveGoody(pPlot, eGoody, pUnit), "Instance is expected to be able to receive goody");
+	// <advc.003>
+	CvGoodyInfo const& goody = GC.getGoodyInfo(eGoody);
+	CvGame& g = GC.getGameINLINE();
+	// </advc.003>
+	szBuffer = goody.getDescription();
+	// <advc.314>
+	
+	double prUpgrade = (goody.isBad() ? 0 : goody.getBarbarianUnitProb()  / 100.0);
+	prUpgrade *= (0.065 * (g.goodyHutEffectFactor(false) - 1));
+	/*  Meaning that an upgraded version of 'goody' should be used, or, if there
+		is none, that an additional outcome should be rolled. */
+	bool bUpgrade = ::bernoulliSuccess(prUpgrade, "advc.314");
+	// </advc.314>
+	iGold = goody.getGold() + g.getSorenRandNum(goody.getGoldRand1(), "Goody Gold 1") + g.getSorenRandNum(goody.getGoldRand2(), "Goody Gold 2");
+	//iGold  = (iGold * GC.getGameSpeedInfo(g.getGameSpeedType()).getGrowthPercent()) / 100;
+	// advc.314: Replacing the above
+	iGold = (int)(iGold * g.goodyHutEffectFactor());
+	if (iGold != 0
+			// advc.314: isTech means that iGold is the research progress
+			&& !goody.isTech())
 	{
 		changeGold(iGold);
 
 		szBuffer += gDLL->getText("TXT_KEY_MISC_RECEIVED_GOLD", iGold);
-	}
+	} /* advc.134: (Moved the addHumanMessage down b/c some of the handlers
+		 have custom messages) */
 
-	if (!szBuffer.empty())
-	{
-		gDLL->getInterfaceIFace()->addHumanMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getGoodyInfo(eGoody).getSound(), MESSAGE_TYPE_MINOR_EVENT, ARTFILEMGR.getImprovementArtInfo("ART_DEF_IMPROVEMENT_GOODY_HUT")->getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
-	}
-
-	iRange = GC.getGoodyInfo(eGoody).getMapRange();
+	iRange = goody.getMapRange();
 
 	if (iRange > 0)
 	{
-		iOffset = GC.getGoodyInfo(eGoody).getMapOffset();
+		iOffset = goody.getMapOffset();
 
 		if (iOffset > 0)
 		{
@@ -6134,21 +6170,17 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 				for (iDY = -(iOffset); iDY <= iOffset; iDY++)
 				{
 					pLoopPlot = plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
+					// <advc.003>
+					if(pLoopPlot == NULL || pLoopPlot->isRevealed(getTeam(), false))
+						continue; // </advc.003>
+					iValue = (1 + g.getSorenRandNum(10000, "Goody Map"));
 
-					if (pLoopPlot != NULL)
+					iValue *= plotDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+
+					if (iValue > iBestValue)
 					{
-						if (!(pLoopPlot->isRevealed(getTeam(), false)))
-						{
-							iValue = (1 + GC.getGameINLINE().getSorenRandNum(10000, "Goody Map"));
-
-							iValue *= plotDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
-
-							if (iValue > iBestValue)
-							{
-								iBestValue = iValue;
-								pBestPlot = pLoopPlot;
-							}
-						}
+						iBestValue = iValue;
+						pBestPlot = pLoopPlot;
 					}
 				}
 			}
@@ -6169,7 +6201,7 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 				{
 					if (plotDistance(pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) <= iRange)
 					{
-						if (GC.getGameINLINE().getSorenRandNum(100, "Goody Map") < GC.getGoodyInfo(eGoody).getMapProb())
+						if (g.getSorenRandNum(100, "Goody Map") < goody.getMapProb())
 						{
 							pLoopPlot->setRevealed(getTeam(), true, false, NO_TEAM, true);
 						}
@@ -6181,27 +6213,29 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 
 	if (pUnit != NULL)
 	{
-		pUnit->changeExperience(GC.getGoodyInfo(eGoody).getExperience());
+		pUnit->changeExperience(goody.getExperience());
 	}
 
 	if (pUnit != NULL)
 	{
-		pUnit->changeDamage(-(GC.getGoodyInfo(eGoody).getHealing()));
+		pUnit->changeDamage(-(goody.getHealing()));
 	}
 
-	if (GC.getGoodyInfo(eGoody).isTech())
+	if (goody.isTech())
 	{
 		iBestValue = 0;
 		eBestTech = NO_TECH;
 
 		for (iI = 0; iI < GC.getNumTechInfos(); iI++)
 		{
-			if (GC.getTechInfo((TechTypes) iI).isGoodyTech())
+			if (GC.getTechInfo((TechTypes) iI).isGoodyTech()
+					|| iGold > 0) // advc.314
 			{
-				//if (canResearch((TechTypes)iI)) // advc.003:
-				if (canResearchBulk((TechTypes)iI, false, true)) // K-Mod
+				//if (canResearch((TechTypes)iI), false, true) // K-Mod
+				// advc.003: Replacing the above
+				if (canResearchBulk((TechTypes)iI, false, true)) 
 				{
-					iValue = (1 + GC.getGameINLINE().getSorenRandNum(10000, "Goody Tech"));
+					iValue = (1 + g.getSorenRandNum(10000, "Goody Tech"));
 
 					if (iValue > iBestValue)
 					{
@@ -6213,68 +6247,153 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit)
 		}
 
 		FAssertMsg(eBestTech != NO_TECH, "BestTech is not assigned a valid value");
-
-		GET_TEAM(getTeam()).setHasTech(eBestTech, true, getID(), true, true);
-		GET_TEAM(getTeam()).setNoTradeTech(eBestTech, true);
-	}
-
-	if (GC.getGoodyInfo(eGoody).getUnitClassType() != NO_UNITCLASS)
-	{
-		eUnit = (UnitTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(GC.getGoodyInfo(eGoody).getUnitClassType());
-
-		if (eUnit != NO_UNIT)
-		{
-			initUnit(eUnit, pPlot->getX_INLINE(), pPlot->getY_INLINE());
+		CvTeam& ourTeam = GET_TEAM(getTeam()); // advc.003
+		// advc.314:
+		if(iGold <= 0 || ourTeam.getResearchLeft(eBestTech) <= iGold) {
+			ourTeam.setHasTech(eBestTech, true, getID(), true, true);
+			if(isSignificantDiscovery(eBestTech)) // advc.314
+				ourTeam.setNoTradeTech(eBestTech, true);
+			// <advc.314>
 		}
+		else {
+			ourTeam.changeResearchProgress(eBestTech, iGold, getID());
+			szBuffer = gDLL->getText("TXT_KEY_MISC_PROGRESS_TOWARDS_TECH", iGold,
+					GC.getTechInfo(eBestTech).getDescription());
+		} // </advc.314>
 	}
-
-	if (GC.getGoodyInfo(eGoody).getBarbarianUnitClass() != NO_UNITCLASS)
-	{
-		iBarbCount = 0;
-
-		eUnit = (UnitTypes)GC.getCivilizationInfo(GET_PLAYER(BARBARIAN_PLAYER).getCivilizationType()).getCivilizationUnits(GC.getGoodyInfo(eGoody).getBarbarianUnitClass());
-
-		if (eUnit != NO_UNIT)
-		{
-			for (iPass = 0; iPass < 2; iPass++)
-			{
-				if (iBarbCount < GC.getGoodyInfo(eGoody).getMinBarbarians())
-				{
-					for (iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
-					{
-						pLoopPlot = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), ((DirectionTypes)iI));
-
-						if (pLoopPlot != NULL)
-						{
-							if (pLoopPlot->getArea() == pPlot->getArea())
-							{
-								if (!(pLoopPlot->isImpassable()))
-								{
-									if (pLoopPlot->getNumUnits() == 0)
-									{
-										if ((iPass > 0) || (GC.getGameINLINE().getSorenRandNum(100, "Goody Barbs") < GC.getGoodyInfo(eGoody).getBarbarianUnitProb()))
-										{
-											GET_PLAYER(BARBARIAN_PLAYER).initUnit(eUnit, pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), ((pLoopPlot->isWater()) ? UNITAI_ATTACK_SEA : UNITAI_ATTACK));
-											iBarbCount++;
-
-											if ((iPass > 0) && (iBarbCount == GC.getGoodyInfo(eGoody).getMinBarbarians()))
-											{
-												break;
-											}
-										}
-									}
-								}
-							}
-						}
-					}
+	// <advc.314>
+	UnitTypes eBestUnit = NO_UNIT;
+	// When units need to be placed, but no unit class is given.
+	if(goody.getMinBarbarians() > 0 &&
+			goody.getUnitClassType() == NO_UNITCLASS &&
+			goody.getBarbarianUnitClass() == NO_UNITCLASS) {
+		int iBestValue = 0;
+		for(int i = 0; i < GC.getNumUnitClassInfos(); i++) {
+			UnitTypes ut = (UnitTypes)GC.getCivilizationInfo(
+					GET_PLAYER(BARBARIAN_PLAYER).getCivilizationType()).
+					getCivilizationUnits(i);
+			if(ut == NO_UNIT)
+				continue;
+			CvUnitInfo const& u = GC.getUnitInfo(ut);
+			if(u.getPrereqOrBonuses(0) == NO_BONUS &&
+					u.getPrereqAndBonus() == NO_BONUS &&
+					u.getCombat() > 0 &&
+					(u.getPrereqAndTech() == NO_TECH || // pre-Industrial:
+					GC.getTechInfo((TechTypes)u.getPrereqAndTech()).getEra() <= 3) &&
+					GET_PLAYER(BARBARIAN_PLAYER).canTrain(ut, false, true)) {
+				int val = u.getCombat() + (goody.isBad() ?
+						// Randomize hostile units a bit
+						g.getSorenRandNum(10, "advc.314") : 0);
+				if(val > iBestValue) {
+					iBestValue = val;
+					eBestUnit = ut;
 				}
 			}
 		}
+		FAssert(eBestUnit != NO_UNIT);
 	}
+	int iMessages = 1;
+	// </advc.314>
+	if (goody.getUnitClassType() != NO_UNITCLASS
+			// <advc.314> Pick a unit based on barb techs then
+			|| (!goody.isBad() && goody.getMinBarbarians() > 0))
+	{
+		UnitTypes eUnit = NO_UNIT; // Declaration moved down
+		UnitClassTypes uct = (UnitClassTypes)goody.getUnitClassType();
+		if(uct == NO_UNITCLASS)
+			eUnit = eBestUnit;
+		else { /* Interpret BarbarianUnitClass as an upgrade to replace
+				  UnitClassType */
+			if(bUpgrade && goody.getBarbarianUnitClass() != NO_UNITCLASS) {
+				uct = (UnitClassTypes)goody.getBarbarianUnitClass();
+				// Upgrade applied, don't roll an additional outcome.
+				noRecursion = true;
+			} // </advc.314>
+			eUnit = (UnitTypes)GC.getCivilizationInfo(getCivilizationType()).
+					getCivilizationUnits(uct);
+		}
+		if (eUnit != NO_UNIT)
+		{	/*  advc.314: Let MinBarbarians > 1 generate more than 1 unit
+				(though I'm not using this so far) */
+			iMessages = 0;
+			for(int i = 0; i < std::max(1, goody.getMinBarbarians()); i++) {
+				initUnit(eUnit, pPlot->getX_INLINE(), pPlot->getY_INLINE());
+				iMessages++;
+			}
+			szBuffer = gDLL->getText("TXT_KEY_GOODY_FREE_UNIT",
+					GC.getUnitInfo(eUnit).getDescription());
+		}
+	}
+	if(!szBuffer.empty()) { /* Moved from higher up, and now allowing multiple
+							   messages */
+		for(int i = 0; i < iMessages; i++) {
+			gDLL->getInterfaceIFace()->addHumanMessage(getID(), true,
+					GC.getEVENT_MESSAGE_TIME(), szBuffer, goody.getSound(),
+					MESSAGE_TYPE_MINOR_EVENT, ARTFILEMGR.getImprovementArtInfo(
+					"ART_DEF_IMPROVEMENT_GOODY_HUT")->getButton(), (ColorTypes)
+					GC.getInfoTypeForString("COLOR_WHITE"), pPlot->getX_INLINE(),
+					pPlot->getY_INLINE());
+		}
+	}
+	/*  If not isBad, then BarbarianUnitClass has a different meaning, which is
+		handled above. */
+	if(goody.isBad() && // </advc.314>
+			(goody.getBarbarianUnitClass() != NO_UNITCLASS
+			// <advc.314> Will use eBestUnit in this case
+			|| (goody.getMinBarbarians() > 0 && goody.getBarbarianUnitProb() > 0)))
+	{
+		UnitTypes eUnit = eBestUnit;
+		if(goody.getBarbarianUnitClass() != NO_UNITCLASS) { // </advc.314>
+			eUnit = (UnitTypes)GC.getCivilizationInfo(GET_PLAYER(BARBARIAN_PLAYER).getCivilizationType()).
+					getCivilizationUnits(goody.getBarbarianUnitClass());
+		}
+		// <advc.003>
+		if(eUnit == NO_UNIT) {
+			FAssert(eUnit != NO_UNIT);
+			return;
+		} // </advc.003>
+		// <advc.314>
+		int iMinBarbs = std::max((int)(std::sqrt(goody.getMinBarbarians() *
+				g.goodyHutEffectFactor(false))), goody.getMinBarbarians());
+		// Increase the probability proportional to the change to MinBarbs
+		int prob = (goody.getBarbarianUnitProb() * iMinBarbs) / goody.getMinBarbarians();
+		int iMaxBarbs = iMinBarbs + 2; // upper bound for iPass=0
+		// </advc.314>
+		iBarbCount = 0;
+		for (iPass = 0; iPass < 2; iPass++)
+		{	// <advc.314>
+			if (iBarbCount >= iMinBarbs)
+				continue; // </advc.314>
+			for (iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
+			{
+				pLoopPlot = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), ((DirectionTypes)iI));
+				// <advc.003>
+				if(pLoopPlot == NULL || pLoopPlot->getArea() != pPlot->getArea() ||
+						pLoopPlot->isImpassable() || pLoopPlot->getNumUnits() > 0)
+					continue; // </advc.003>
+				if ((iPass > 0) || (g.getSorenRandNum(100, "Goody Barbs") <
+						prob)) // advc.314
+				{
+					GET_PLAYER(BARBARIAN_PLAYER).initUnit(eUnit,
+							pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(),
+							((pLoopPlot->isWater()) ? UNITAI_ATTACK_SEA :
+							UNITAI_ATTACK));
+					iBarbCount++;
+					if ((iPass > 0 &&
+							// advc.314:
+							iBarbCount >= iMinBarbs) || iBarbCount >= iMaxBarbs)
+						break;
+				}
+			}
+		}
+	} // <advc.314>
+	if(bUpgrade && !noRecursion)
+		doGoody(pPlot, pUnit, eGoody); // </advc.314>
 }
 
 
-void CvPlayer::doGoody(CvPlot* pPlot, CvUnit* pUnit)
+void CvPlayer::doGoody(CvPlot* pPlot, CvUnit* pUnit,
+		GoodyTypes taboo) // advc.314
 {
 	CyPlot kGoodyPlot(pPlot);
 	CyUnit kGoodyUnit(pUnit);
@@ -6290,29 +6409,38 @@ void CvPlayer::doGoody(CvPlot* pPlot, CvUnit* pUnit)
 		return;
 	}
 
-	FAssertMsg(pPlot->isGoody(), "pPlot->isGoody is expected to be true");
-
+	FAssert(pPlot->isGoody()
+			|| taboo != NO_GOODY); // advc.314
+	/*  <advc.003> Moved up. I don't think this function is ever called
+		on barbs, but if it is, the hut shouldn't be removed. */
+	if(isBarbarian()) {
+		FAssert(!isBarbarian());
+		return;
+	} // </advc.003>
 	pPlot->removeGoody();
-	if (!isBarbarian())
-	{
-		for (int iI = 0; iI < GC.getDefineINT("NUM_DO_GOODY_ATTEMPTS"); iI++)
+
+	for (int iI = 0; iI < GC.getDefineINT("NUM_DO_GOODY_ATTEMPTS"); iI++)
+	{	// <advc.003>
+		if (GC.getHandicapInfo(getHandicapType()).getNumGoodies() <= 0)
+			continue; // </advc.003>
+		GoodyTypes eGoody = (GoodyTypes)GC.getHandicapInfo(getHandicapType()).
+				getGoodies(GC.getGameINLINE().getSorenRandNum(
+				GC.getHandicapInfo(getHandicapType()).getNumGoodies(), "Goodies"));
+		FAssert(eGoody >= 0 && eGoody < GC.getNumGoodyInfos());
+		// <advc.314>
+		if(eGoody == taboo || (taboo != NO_GOODY && GC.getGoodyInfo(eGoody).
+				// Don't pair a good with a bad outcome
+				isBad() != GC.getGoodyInfo(taboo).isBad()))
+			continue; // </advc.314>
+
+		if (canReceiveGoody(pPlot, eGoody, pUnit))
 		{
-			if (GC.getHandicapInfo(getHandicapType()).getNumGoodies() > 0)
-			{
-				GoodyTypes eGoody = (GoodyTypes)GC.getHandicapInfo(getHandicapType()).getGoodies(GC.getGameINLINE().getSorenRandNum(GC.getHandicapInfo(getHandicapType()).getNumGoodies(), "Goodies"));
+			receiveGoody(pPlot, eGoody, pUnit,
+					taboo != NO_GOODY); // advc.314
 
-				FAssert(eGoody >= 0);
-				FAssert(eGoody < GC.getNumGoodyInfos());
-
-				if (canReceiveGoody(pPlot, eGoody, pUnit))
-				{
-					receiveGoody(pPlot, eGoody, pUnit);
-
-					// Python Event
-					CvEventReporter::getInstance().goodyReceived(getID(), pPlot, pUnit, eGoody);
-					break;
-				}
-			}
+			// Python Event
+			CvEventReporter::getInstance().goodyReceived(getID(), pPlot, pUnit, eGoody);
+			break;
 		}
 	}
 }
@@ -8523,6 +8651,19 @@ bool CvPlayer::canSeeDemographics(PlayerTypes ePlayer) const
 	return false;
 }
 // K-Mod end
+// <advc.550e>
+bool CvPlayer::isSignificantDiscovery(TechTypes eTech) const {
+
+	// (K-Mod comment moved here from CvDeal::startTrade)
+	// Only adjust tech_from_any memory if this is a tech from a recent era
+	// and the team receiving the tech isn't already more than 2/3 of the way through.
+	// (This is to prevent the AI from being crippled by human players selling them lots of tech scraps.)
+	// Note: the current game era is the average of all the player eras, rounded down. (It no longer includes barbs.)
+	// advc: I'm going to use the recipient's era instead, the rest is as in K-Mod.
+	return GC.getTechInfo(eTech).getEra() >= getCurrentEra() - 1 &&
+			GET_TEAM(getTeam()).getResearchLeft(eTech) >
+			GET_TEAM(getTeam()).getResearchCost(eTech) / 3;
+} // <advc.550e>
 
 bool CvPlayer::isCivic(CivicTypes eCivic) const
 {
