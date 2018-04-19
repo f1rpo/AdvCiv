@@ -13031,7 +13031,8 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer,
 		// Also a little slow b/c of advc.124
 		//if(!kPlayer.canTradeNetworkWith(civ.getID())
 		// Checking just the essentials is fine though; it's only a heuristic.
-		if(!civ.getCapitalCity()->isConnectedToCapital(ePlayer) ||
+		if((civ.getCapitalCity() != NULL &&
+				!civ.getCapitalCity()->isConnectedToCapital(ePlayer)) ||
 				civ.getNumAvailableBonuses(eBonus) > 0)
 			continue;
 		if(!kPlayer.isHuman() && kPlayer.AI_getAttitude(civ.getID()) <= refuseThresh)
