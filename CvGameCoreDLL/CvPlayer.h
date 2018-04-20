@@ -1444,7 +1444,11 @@ protected:
 	void doEvents();
 	void decayBuildProgress(); // advc.011
 	void showForeignPromoGlow(bool b); // advc.002e
-
+	// <advc.314>
+	bool isGoodyTech(TechTypes techId, bool bProgress) const;
+	void addGoodyMsg(CvWString s, CvPlot const& p, TCHAR const* sound);
+	void promoteFreeUnit(CvUnit& u, double pr);
+	// </advc.314>
 	bool checkExpireEvent(EventTypes eEvent, const EventTriggeredData& kTriggeredData) const;
 	void expireEvent(EventTypes eEvent, const EventTriggeredData& kTriggeredData, bool bFail);
 	bool isValidTriggerReligion(const CvEventTriggerInfo& kTrigger, CvCity* pCity, ReligionTypes eReligion) const;

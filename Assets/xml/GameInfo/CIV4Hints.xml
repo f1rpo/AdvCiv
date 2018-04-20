@@ -593,10 +593,7 @@
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_6</Description>
 		</HintInfo>
-		<!-- advc.130j: TXT_KEY_ADVC_HINT_7 no longer applies -->
-		<HintInfo>
-			<Description>TXT_KEY_ADVC_HINT_8</Description>
-		</HintInfo>
+		<!-- advc.130j: TXT_KEY_ADVC_HINT_7 and 8 no longer apply -->
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_9</Description>
 		</HintInfo>
@@ -661,10 +658,7 @@
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_6</Description>
 		</HintInfo>
-		<!-- advc.130j: TXT_KEY_ADVC_HINT_7 no longer applies -->
-		<HintInfo>
-			<Description>TXT_KEY_ADVC_HINT_8</Description>
-		</HintInfo>
+		<!-- advc.130j: TXT_KEY_ADVC_HINT_7 and 8 no longer apply -->
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_9</Description>
 		</HintInfo>

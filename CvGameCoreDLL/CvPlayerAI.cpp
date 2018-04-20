@@ -7509,7 +7509,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech, b
 
 	iValue += kTechInfo.getAIWeight();
 
-	if (!isHuman())
+	/*if (!isHuman())
 	{
 		int iFlavorValue = 0;
 		for (int iJ = 0; iJ < GC.getNumFlavorTypes(); iJ++)
@@ -7517,8 +7517,21 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech, b
 			iFlavorValue += AI_getFlavorValue((FlavorTypes)iJ) * kTechInfo.getFlavorValue(iJ) * 5;
 		}
 		iValue += iFlavorValue * std::min(iCityCount, iCityTarget) / std::max(1, iCityTarget);
+	}*/
+	// <advc.020> Replacing the above
+	double flavorFactor = 1.0;
+	for(int i = 0; i < GC.getNumFlavorTypes(); i++) {
+		flavorFactor += 0.25 * AI_getFlavorValue((FlavorTypes)i) *
+				kTechInfo.getFlavorValue(i) * std::min(iCityCount, iCityTarget) /
+				(100.0 * std::max(1, iCityTarget));
 	}
-
+	if(iValue > 0) {
+		/*  Don't want a higher overall value on account of flavor. Therefore,
+			divide by a sort of median flavor multiplier (1.03).
+			(Although e.g. tech-for-gold trades aren't made based on
+			AI_techValue, so I don't think this is crucial.)*/
+		iValue = ::round(iValue * flavorFactor / 1.03);
+	} // </advc.020>
 	if (kTechInfo.isRepeat())
 	{
 		iValue /= 4;

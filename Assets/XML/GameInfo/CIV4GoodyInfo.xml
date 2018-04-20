@@ -111,7 +111,11 @@
 				 currently train. Set to UNITCLASS_WARRIOR for BtS behavior. -->
 			<UnitClass>NONE</UnitClass>
 			<BarbarianClass>NONE</BarbarianClass>
-			<iBarbarianUnitProb>0</iBarbarianUnitProb>
+			<!-- advc.314: Together with bBad=0 and BarbarianClass=NONE,
+				 this gives the free unit a chance of receiving a free
+				 promotion. The probability is multiplied by a factor based on
+				 the game turn. -->
+			<iBarbarianUnitProb>50</iBarbarianUnitProb>
 			<!-- advc.314: Together with bBad=false, this indicates the number of
 				 units to be created, and a value above 0 creates a unit even if
 				 UnitClass is set to NONE. -->
@@ -212,9 +216,9 @@
 				 progress is granted toward a random tech. Set to all three
 				 iGolds to 0 to restore BtS behavior: an entire tech that has
 				 to be flagged bGoodyTech in Civ4TechInfos.xml. -->
-			<iGold>33</iGold>
-			<iGoldRand1>23</iGoldRand1>
-			<iGoldRand2>23</iGoldRand2>
+			<iGold>30</iGold>
+			<iGoldRand1>21</iGoldRand1>
+			<iGoldRand2>21</iGoldRand2>
 			<iMapOffset>0</iMapOffset>
 			<iMapRange>0</iMapRange>
 			<iMapProb>0</iMapProb>

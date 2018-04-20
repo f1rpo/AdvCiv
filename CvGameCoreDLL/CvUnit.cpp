@@ -8580,7 +8580,7 @@ int CvUnit::maxCombatStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDet
 		}
 
 		if (isBarbarian())
-		{	// advc.315c: And changed the iExtraModifier assignements below to +=
+		{	// advc.315c: And changed the iExtraModifier assignments below to +=
 			iExtraModifier = -pAttacker->barbarianCombatModifier();
 			if (pAttacker->isHuman())
 			{
@@ -8604,7 +8604,7 @@ int CvUnit::maxCombatStr(const CvPlot* pPlot, const CvUnit* pAttacker, CombatDet
 		}
 
 		if (pAttacker->isBarbarian())
-		{	// advc.315c: And changed the iExtraModifier assignements below to -=
+		{	// advc.315c: And changed the iExtraModifier assignments below to -=
 			iExtraModifier = barbarianCombatModifier();
 			if (isHuman())
 			{

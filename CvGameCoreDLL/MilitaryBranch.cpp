@@ -62,11 +62,8 @@ void MilitaryBranch::updateTypicalUnit() {
 		int const nationalLimit = GC.getUnitClassInfo((UnitClassTypes)i).
 				getMaxPlayerInstances();
 		if(nationalLimit >= 0 && nationalLimit <
-				(GC.getGameINLINE().getCurrentEra() + 1) * 4) {
-			// ... but until then:
-			FAssert(false); // advc.test
+				(GC.getGameINLINE().getCurrentEra() + 1) * 4)
 			continue;
-		}
 		/* Could call this for land units as well, but relying on the capital for
 		   those is faster, and perhaps more accurate as well. */
 		if(u.getDomainType() == DOMAIN_SEA) {
@@ -322,7 +319,7 @@ double MilitaryBranch::Army::unitPower(CvUnitInfo const& u, bool modify) const {
 		return -1;*/
 	double r = u.getPowerValue();
 	if(modify) {
-		if(u.isOnlyDefensive())
+		if(::isMostlyDefensive(u)) // advc.315
 			return -1;
 		// Prefer potential city raiders
 		for(int i = 0; i < GC.getNumPromotionInfos(); i++) {
@@ -341,7 +338,8 @@ double MilitaryBranch::Army::unitPower(CvUnitInfo const& u, bool modify) const {
 
 double MilitaryBranch::Cavalry::unitPower(CvUnitInfo const& u, bool modify) const {
 
-	if(u.getMoves() <= 1 || u.getProductionCost() >= 150 || u.isOnlyDefensive())
+	if(u.getMoves() <= 1 || u.getProductionCost() >= 150 ||
+			::isMostlyDefensive(u)) // advc.315
 		return -1;
 	return GET_PLAYER(ownerId).warAndPeaceAI().militaryPower(u);
 }

@@ -9,8 +9,10 @@
 <Civ4GameText xmlns="http://www.firaxis.com">
 
 <!-- advc.008c: Added "(K-Mod)" to hints that describe K-Mod changes
-	(even those that are just included in K-Mod because, without further
-	context, players may not know that e.g. "BUG" is the name of a mod). -->
+	(even those that are just included in K-Mod because players may not know
+	that e.g. "BUG" is the name of a mod).
+	I'm also putting any corrections of BtS hints into K-Mod hints.xml, so that
+	CIV4GameText_advc.008d.xml only contains hints about AdvCiv changes. -->
 
 <!-- advc.008c: Now also hints at menu button -->
 <TEXT>
@@ -24,11 +26,11 @@
 <!-- advc.008c: Just stylistic changes -->
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_1</Tag>
-	<English>(K-Mod) Aqueduct and Hospital increase a city's health, whereas Public Transportation and Recycling Center reduce its pollution ...</English>
-	<French>(K-Mod) Aqueduct and Hospital increase a city's health, whereas Public Transportation and Recycling Center reduce its pollution ...</French>
-	<German>(K-Mod) Aquädukt und Krankenhaus erhöhen den Gesundheitswert einer Stadt, wohingegen öffentliche Verkehrsmittel und Recyclinganlagen die Umweltverschmutzung lindern ...</German>
-	<Italian>(K-Mod) Un acquedotto o un ospedale aumentano la salute della città, ma il trasporto pubblico o il centro riciclaggio ne riducono l'inquinamento...</Italian>
-	<Spanish>(K-Mod) Un acueducto o un hospital aumentará la salud de una ciudad, pero el transporte público o un centro de reciclaje reduce su polución...</Spanish>
+	<English>(K-Mod) Aqueduct and Hospital increase a city's health, whereas Public Transportation and Recycling Center reduce its pollution.</English>
+	<French>(K-Mod) Aqueduct and Hospital increase a city's health, whereas Public Transportation and Recycling Center reduce its pollution.</French>
+	<German>(K-Mod) Aquädukt und Krankenhaus erhöhen den Gesundheitswert einer Stadt, wohingegen öffentliche Verkehrsmittel und Recyclinganlagen die Umweltverschmutzung lindern.</German>
+	<Italian>(K-Mod) Un acquedotto o un ospedale aumentano la salute della città, ma il trasporto pubblico o il centro riciclaggio ne riducono l'inquinamento.</Italian>
+	<Spanish>(K-Mod) Un acueducto o un hospital aumentará la salud de una ciudad, pero el transporte público o un centro de reciclaje reduce su polución.</Spanish>
 </TEXT>
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_2</Tag>
@@ -338,8 +340,8 @@
 	<English>Scouts and Explorers get better results from tribal villages than other units.</English>
 	<French>Envoyez des &#233;claireurs dans les villages indig&#232;nes pour obtenir de meilleurs r&#233;sultats.</French>
 	<German>Betreten Sie Stammesd&#246;rfer mit einem Sp&#228;her oder Kundschafter, um bessere Ergebnisse zu erzielen.</German>
-	<Italian>Si ottengono migliori risultati entrando nei villaggi indigeni con gli scout...</Italian>
-	<Spanish>Dar&#225; mejores resultados entrar en las aldeas de los nativos con batidores...</Spanish>
+	<Italian>Si ottengono migliori risultati entrando nei villaggi indigeni con gli scout.</Italian>
+	<Spanish>Dar&#225; mejores resultados entrar en las aldeas de los nativos con batidores.</Spanish>
 </TEXT>
 
 <!-- advc.008c: "More great people will appear in cities that build ancient
@@ -374,7 +376,7 @@
 	<English>Press [CTRL + I] to play with a minimized interface. Press [ALT + I] to play without interface.</English>
 	<French>Appuyez sur [CTRL + I] pour jouer avec une interface r&#233;duite. Appuyez sur [ALT + I] pour jouer sans interface.</French>
 	<German>Dr&#252;cken Sie [STRG + I], um die Bedienoberfläche zu minimieren oder [ALT + I], um sie ganz auszublenden.</German>
-	<Italian>Premi [CTRL + I] per giocare con l'interfaccia minimizzata. Premi [ALT + I] per giocare senza interfaccia...</Italian>
+	<Italian>Premi [CTRL + I] per giocare con l'interfaccia minimizzata. Premi [ALT + I] per giocare senza interfaccia.</Italian>
 	<Spanish>Pulsar [CTRL + I] para jugar con una interfaz minimizada. Pulsar [ALT + I] para jugar sin interfaz.</Spanish>
 </TEXT>
 
@@ -384,8 +386,8 @@
 	<English>To view combat odds, hold down the right mouse button on the target tile. By also holding down [ALT], you can view combat odds even when not at war.</English>
 	<French>Pour conna&#238;tre vos chances en cas de combat, maintenez le bouton droit de la souris enfonc&#233; sur la case vis&#233;e.</French>
 	<German>Um die Kampfchancen Ihrer Einheit zu sehen, halten Sie die rechte Maustaste über dem Zielfeld gedrückt. Wenn Sie außerdem [ALT] gedrückt halten, werden die Kampfchancen auch dann angezeigt, wenn Sie nicht im Krieg sind.</German>
-	<Italian>Per visualizzare le probabilit&#224; di vittoria di uno scontro, tieni premuto il pulsante destro del mouse su una casella bersaglio...</Italian>
-	<Spanish>Mantener el cursor encima de la casilla objetivo para ver las probabilidades del combate...</Spanish>
+	<Italian>Per visualizzare le probabilit&#224; di vittoria di uno scontro, tieni premuto il pulsante destro del mouse su una casella bersaglio.</Italian>
+	<Spanish>Mantener el cursor encima de la casilla objetivo para ver las probabilidades del combate.</Spanish>
 </TEXT>
 
 </Civ4GameText>

@@ -4138,7 +4138,6 @@ void CvUnitAI::AI_reserveMove()
 		}
 	}
 
-	//if (!bDanger)
 	if (!bDanger || !plot()->isOwned()) // K-Mod
 	{
 		if (AI_group(UNITAI_SETTLE, 2, -1, -1, false, false, false, 3, true))
@@ -4146,7 +4145,9 @@ void CvUnitAI::AI_reserveMove()
 			return;
 		}
 	}
-
+	// <advc.314> Can be important for huts near colonies
+	if(!bDanger && AI_goody(3))
+		return; // </advc.314>
 	if (AI_guardCity(true))
 	{
 		return;

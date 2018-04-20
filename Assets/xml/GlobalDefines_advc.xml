@@ -596,11 +596,11 @@
 		<iDefineIntVal>50</iDefineIntVal>
 	</Define>
 	<!-- Turn after which effects of goody huts do not increase further.
-		 Recommended: 200. Has to be greater than or equal to
+		 Recommended: 225. Has to be greater than or equal to
 		 GOODY_BUFF_START_TURN. -->
 	<Define>
 		<DefineName>GOODY_BUFF_PEAK_TURN</DefineName>
-		<iDefineIntVal>200</iDefineIntVal>
+		<iDefineIntVal>225</iDefineIntVal>
 	</Define>
 	<!-- Factor by which the effects of goody huts are increased on
 		 GOODY_BUFF_PEAK_TURN. Recommended: 10 -->
