@@ -7521,7 +7521,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech, b
 	// <advc.020> Replacing the above
 	double flavorFactor = 1.0;
 	for(int i = 0; i < GC.getNumFlavorTypes(); i++) {
-		flavorFactor += 0.25 * AI_getFlavorValue((FlavorTypes)i) *
+		flavorFactor += 0.22 * AI_getFlavorValue((FlavorTypes)i) *
 				kTechInfo.getFlavorValue(i) * std::min(iCityCount, iCityTarget) /
 				(100.0 * std::max(1, iCityTarget));
 	}

@@ -1077,7 +1077,15 @@ void CvPlot::nukeExplosion(int iRange, CvUnit* pNukeUnit, bool bBomb)
 					{
 						pLoopUnit->changeDamage(iNukeDamage, ((pNukeUnit != NULL) ? pNukeUnit->getOwnerINLINE() : NO_PLAYER));
 					}
-					else if (iNukeDamage >= GC.getDefineINT("NUKE_NON_COMBAT_DEATH_THRESHOLD"))
+					//else if (iNukeDamage >= GC.getDefineINT("NUKE_NON_COMBAT_DEATH_THRESHOLD"))
+					// <dlph.20>
+					else if(GC.getGameINLINE().getSorenRandNum(100,
+							"Non-Combat Nuke Rand") * 100 <
+							std::max(0, (pLoopCity->getNukeModifier() + 100)) *
+							(GC.getDefineINT("NUKE_UNIT_DAMAGE_BASE") - 1 +
+							(GC.getDefineINT("NUKE_UNIT_DAMAGE_RAND_1") +
+							GC.getDefineINT("NUKE_UNIT_DAMAGE_RAND_2") - 1) / 2))
+							// </dlph.20>
 					{
 						pLoopUnit->kill(false, ((pNukeUnit != NULL) ? pNukeUnit->getOwnerINLINE() : NO_PLAYER));
 					}

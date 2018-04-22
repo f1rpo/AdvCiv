@@ -590,8 +590,14 @@ void CvInitCore::resetGame(CvInitCore * pSource, bool bClear, bool bSaveGameType
 		// Standard game options
 		int i;
 		for (i = 0; i < NUM_GAMEOPTION_TYPES; ++i)
-		{
-			setOption((GameOptionTypes)i, pSource->getOption((GameOptionTypes)i));
+		{	// <advc.003>
+			GameOptionTypes got = (GameOptionTypes)i;
+			bool b = pSource->getOption(got); // </advc.003>
+			// <dlph.18>
+			CvGameOptionInfo& goi = GC.getGameOptionInfo(got);
+			if(goi.getVisible() == 0)
+				b = goi.getDefault(); // </dlph.18>
+			setOption((GameOptionTypes)i, b);
 		}
 
 		for (i = 0; i < NUM_MPOPTION_TYPES; ++i)

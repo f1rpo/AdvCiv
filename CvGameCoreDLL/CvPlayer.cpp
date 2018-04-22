@@ -6925,7 +6925,15 @@ bool CvPlayer::canConstruct(BuildingTypes eBuilding, bool bContinue, bool bTestV
 			return false;
 		}
 	}
-
+	// <dlph.19>
+	if(eBuilding == (BuildingTypes)(GC.getCivilizationInfo(getCivilizationType()).
+			getCivilizationBuildings(GC.getDefineINT("CAPITAL_BUILDINGCLASS")))) {
+        for(int i = 0; i < GC.getNumVictoryInfos(); i++) {
+            if(currentTeam.getVictoryCountdown((VictoryTypes)i) >= 0 &&
+					GC.getGameINLINE().getGameState() == GAMESTATE_ON)
+                return false;
+        }
+    } // </dlph.19>
 	if (GC.getBuildingInfo(eBuilding).getMaxStartEra() != NO_ERA)
 	{
 		if (GC.getGameINLINE().getStartEra() > GC.getBuildingInfo(eBuilding).getMaxStartEra())

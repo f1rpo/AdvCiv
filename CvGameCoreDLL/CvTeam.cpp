@@ -2914,7 +2914,7 @@ bool CvTeam::isInContactWithBarbarians() const {
 	bool checkCity = GC.getGame().getElapsedGameTurns() >=
 			GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getBarbPercent();
 	// (Perhaps just unitThresh=1 would have the same effect)
-	int unitThresh = (int)GC.getGame().getCurrentEra();
+	int unitThresh = GC.getGame().getCurrentEra();
 	CvTeam const& barbTeam = GET_TEAM(BARBARIAN_TEAM);
 	CvMap& m = GC.getMap(); int i;
 	for(CvArea* ap = m.firstArea(&i); ap != NULL; ap = m.nextArea(&i)) {

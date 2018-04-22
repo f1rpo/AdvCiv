@@ -3866,7 +3866,8 @@ EraTypes CvGame::getCurrentEra() const
 
 	if (iCount > 0)
 	{
-		return ((EraTypes)(iEra / iCount));
+		//return ((EraTypes)(iEra / iCount));
+		return (EraTypes)::round(iEra / (double)iCount); // dlph.17
 	}
 
 	return NO_ERA;
@@ -7356,8 +7357,9 @@ void CvGame::createBarbCity(bool skipCivAreas, float prMod) {
 			getBarbarianCityCreationProb();
 	/* No cities past Medieval, so it's either +0 (Ancient), +1 (Classical)
 	   or +4 (Medieval). */
-	cp += std::pow((float)GC.getGame().getCurrentEra(), 2);
-	if(skipCivAreas) cp *= prMod;
+	cp += std::pow((float)getCurrentEra(), 2);
+	if(skipCivAreas)
+		cp *= prMod;
 	// Adjust creation prob to game speed
 	CvGameSpeedInfo& gsi = GC.getGameSpeedInfo(GC.getGame().getGameSpeedType());
 	/*  Time to build a Settler depends on TrainPercent, but overall slow-down
@@ -7448,7 +7450,7 @@ void CvGame::createBarbCity(bool skipCivAreas, float prMod) {
 				{
 					/* Was: times 3. Want to make it era-based.
 					   times (2 + era) seems a bit much in tests. Try 5/3 + era. */
-					iTargetCities *= (5 + 3 * (int)GC.getGame().getCurrentEra());
+					iTargetCities *= (5 + 3 * getCurrentEra());
 					iTargetCities /= 3; // </advc.300>
 				}
 								
@@ -7562,8 +7564,7 @@ void CvGame::createBarbarianUnits()
 	bool noSpawn = GC.getEraInfo(getCurrentEra()).isNoBarbUnits() ||
 			/*  advc.307: Also stop spawning when barb tech falls behind too much;
 				may resume once barb tech catches up. */
-			GC.getGame().getCurrentEra() >
-			GET_PLAYER(BARBARIAN_PLAYER).getCurrentEra() + 1;
+			getCurrentEra() > GET_PLAYER(BARBARIAN_PLAYER).getCurrentEra() + 1;
 
 	if (getNumCivCities() < ((countCivPlayersAlive() * 3) / 2) && !isOption(GAMEOPTION_ONE_CITY_CHALLENGE))
 	{
@@ -7825,10 +7826,10 @@ int CvGame::numBarbariansToSpawn(int tilesPerUnit, int nTiles, int nUnowned,
 	/*	For Rage, reduce divisor to 60% (50% in BtS), but
 		<advc.307> reduce it further based on the game era. */
 	if(GC.getGame().isOption(GAMEOPTION_RAGING_BARBARIANS)) {
-		int currentEra = (int)GC.getGame().getCurrentEra();
+		int currentEra = getCurrentEra();
 		/*  Don't reduce divisor in start era (gets too tough on Classical
 			and Medieval starts b/c the starting defenders are mere Archers). */
-		if(currentEra <= (int)GC.getGame().getStartEra())
+		if(currentEra <= getStartEra())
 			currentEra = 0;
 		double rageMultiplier = 0.6;
 		rageMultiplier *= (8 - currentEra) / 8.0;
@@ -8069,7 +8070,7 @@ UnitTypes CvGame::randomBarbUnit(UnitAITypes ai, CvArea const& a) {
 		int unitEra = 0;
 		if(reqTech != NO_TECH)
 			unitEra = GC.getTechInfo(reqTech).getEra();
-		if(unitEra + 1 < ((int)GC.getGame().getCurrentEra()))
+		if(unitEra + 1 < getCurrentEra())
 			continue;
 		// </advc.301>
 		BonusTypes andReq = (BonusTypes)u.getPrereqAndBonus();
