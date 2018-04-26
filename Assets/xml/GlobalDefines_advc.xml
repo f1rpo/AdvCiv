@@ -954,5 +954,58 @@
 		<DefineName>MAXED_UNIT_GOLD_PERCENT</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
+	
+	<!-- [advc.004z] -->
+	<!-- If set to 1, the scoreboard remains visible in Globe view when a layer
+		 is selected that has no options to display. E.g. the BUG Strategy
+		 layer has options for drawing lines etc., so there is no room for the
+		 scoreboard, whereas e.g. the Culture layer has no such options.
+		 0 (BtS behavior) means that the scoreboard is never shown in
+		 Globe View. -->
+	<Define>
+		<DefineName>SHOW_SCORE_IN_GLOBE_VIEW</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	<!-- If set to 0, no options are shown for the Resource layer; all types of
+		 resources are indicated on the map. If set to 1 (BtS behavior),
+		 options for displaying only happiness, health or strategic resources
+		 are shown when in Globe view (meaning also that there is no room for
+		 the scoreboard). -->
+	<Define>
+		<DefineName>SHOW_RESOURCE_LAYER_OPTIONS</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<!-- If set to 0, no options are shown for the Unit layer; all units are
+		 indicated on the map. If set to 1 (BtS behavior), options
+		 for displaying e.g. only domestic or hostile units are shown
+		 when in Globe view (meaning that there is no room for the
+		 scoreboard). 1 also means that "Enemies in Territory" is the default
+		 option when not in Globe view (as in BtS). -->
+	<Define>
+		<DefineName>SHOW_UNIT_LAYER_OPTIONS</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<!-- If set to 1, the Trade layer (Globe view) colors tiles connected	
+		 through trade regardless of the tile owner. If set to 0 (BtS
+		 behavior), only tiles owned by the human player's team are colored. -->
+	<Define>
+		<DefineName>FOREIGN_GROUPS_ON_TRADE_LAYER</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	<!-- If set to 1, the Trade layer (Globe view) blackens tiles with an
+		 actively visible city that isn't connected to its owner's capital.
+		 If set to 0 (BtS behavior), connection to capital is not specially
+		 indicated. -->
+	<Define>
+		<DefineName>CONNECTION_TO_CAPITAL_ON_TRADE_LAYER</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	<!-- If set to 1, the Resource layer highlights Tribal Villages in addition
+		 to resources. If set to 0 (BtS behavior), only resources are
+		 highlighted. -->
+	<Define>
+		<DefineName>SHOW_GOODY_HUTS_ON_RESOURCE_LAYER</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
 
 </Civ4Defines>

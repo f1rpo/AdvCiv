@@ -3803,20 +3803,24 @@ void CvPlot::removeGoody()
 }
 
 
-bool CvPlot::isCity(bool bCheckImprovement, TeamTypes eForTeam) const
-{
-	if (bCheckImprovement && NO_IMPROVEMENT != getImprovementType())
-	{
-		if (GC.getImprovementInfo(getImprovementType()).isActsAsCity())
-		{
-			if (NO_TEAM == eForTeam || (NO_TEAM == getTeam() && GC.getImprovementInfo(getImprovementType()).isOutsideBorders()) || GET_TEAM(eForTeam).isFriendlyTerritory(getTeam()))
-			{
-				return true;
-			}
-		}
-	}
+bool CvPlot::isCity(bool bCheckImprovement, TeamTypes eForTeam) const {
 
-	return (getPlotCity() != NULL);
+	if(bCheckImprovement && NO_IMPROVEMENT != getImprovementType()
+			// advc.003
+			&& GC.getImprovementInfo(getImprovementType()).isActsAsCity()) {
+		if(NO_TEAM == eForTeam || (NO_TEAM == getTeam() &&
+				GC.getImprovementInfo(getImprovementType()).isOutsideBorders()) ||
+				(GET_TEAM(eForTeam).isFriendlyTerritory(getTeam())
+				// <advc.124>
+				&& getRevealedImprovementType(eForTeam, false) != NO_IMPROVEMENT &&
+				GC.getImprovementInfo(getRevealedImprovementType(eForTeam, false)).
+				isActsAsCity())) // </advc.124>
+			return true;
+	}
+	return (getPlotCity() != NULL
+			// <advc.124>
+			&& (eForTeam == NO_TEAM ||
+			getPlotCity()->isRevealed(eForTeam, false))); // </advc.124>
 }
 
 
@@ -4131,7 +4135,8 @@ bool CvPlot::isNetworkTerrain(TeamTypes eTeam) const
 
 bool CvPlot::isBonusNetwork(TeamTypes eTeam) const
 {
-	if (isRoute())
+	if (isRoute()
+			&& getRevealedRouteType(eTeam, false) != NO_ROUTE) // advc.124
 	{
 		return true;
 	}
@@ -4212,9 +4217,13 @@ bool CvPlot::isTradeNetworkConnected(const CvPlot* pPlot, TeamTypes eTeam) const
 		}
 	}
 
-	if (isRoute())
+	if (isRoute()
+			// advc.124:
+			&& getRevealedRouteType(eTeam, false) != NO_ROUTE)
 	{
-		if (pPlot->isRoute())
+		if (pPlot->isRoute()
+				// advc.124:
+				&& pPlot->getRevealedRouteType(eTeam, false) != NO_ROUTE)
 		{
 			return true;
 		}
@@ -7984,8 +7993,8 @@ void CvPlot::setRevealed(TeamTypes eTeam, bool bNewValue, bool bTerrainOnly, Tea
 	FAssertMsg(eTeam < MAX_TEAMS, "eTeam is expected to be within maximum bounds (invalid Index)");
 
 	pCity = getPlotCity();
-
-	if (isRevealed(eTeam, false) != bNewValue)
+	bool bOldValue = isRevealed(eTeam, false); // advc.124
+	if (bOldValue != bNewValue)
 	{
 		if (NULL == m_abRevealed)
 		{
@@ -8002,21 +8011,22 @@ void CvPlot::setRevealed(TeamTypes eTeam, bool bNewValue, bool bTerrainOnly, Tea
 		{
 			area()->changeNumRevealedTiles(eTeam, ((isRevealed(eTeam, false)) ? 1 : -1));
 		}
-
-		if (bUpdatePlotGroup)
+	} /* advc.124: Need to update plot group even if revealed status hasn't
+		 changed b/c the revealed status of e.g. a route may have changed. */
+	if (bUpdatePlotGroup)
+	{
+		for (iI = 0; iI < MAX_PLAYERS; ++iI)
 		{
-			for (iI = 0; iI < MAX_PLAYERS; ++iI)
+			if (GET_PLAYER((PlayerTypes)iI).isAlive())
 			{
-				if (GET_PLAYER((PlayerTypes)iI).isAlive())
+				if (GET_PLAYER((PlayerTypes)iI).getTeam() == eTeam)
 				{
-					if (GET_PLAYER((PlayerTypes)iI).getTeam() == eTeam)
-					{
-						updatePlotGroup((PlayerTypes)iI);
-					}
+					updatePlotGroup((PlayerTypes)iI);
 				}
 			}
 		}
-
+	}
+	if(bOldValue != bNewValue) { // advc.124
 		if (eTeam == GC.getGameINLINE().getActiveTeam())
 		{
 			updateSymbols();

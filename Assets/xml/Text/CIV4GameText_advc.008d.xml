@@ -438,4 +438,14 @@
 	<Spanish>(AdvCiv) Scouts can help stave off Barbarians in the early game. While unable to attack non-Animal units, Scouts now have a defensive bonus against all Barbarians.</Spanish>
 </TEXT>
 
+<!-- advc.008c: (related to advc.004z) -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_29</Tag>
+	<English>If you zoom out into Globe View, the Unit Layer will indicate unit stack sizes through color: The larger the stack in a tile, the more opaque the tile color.</English>
+	<French>If you zoom out into Globe View, the Unit Layer will indicate unit stack sizes through color: The larger the stack in a tile, the more opaque the tile color.</French>
+	<German>Wenn Sie zur Weltansicht herauszoomen und die Einheitenanzeige aktivieren, können Sie aus der Farbe eines Feldes ablesen, wie viele Einheiten sich dort befinden: Je mehr Einheiten, desto tiefer der Farbton.</German>
+	<Italian>If you zoom out into Globe View, the Unit Layer will indicate unit stack sizes through color: The larger the stack in a tile, the more opaque the tile color.</Italian>
+	<Spanish>If you zoom out into Globe View, the Unit Layer will indicate unit stack sizes through color: The larger the stack in a tile, the more opaque the tile color.</Spanish>
+</TEXT>
+
 </Civ4GameText>

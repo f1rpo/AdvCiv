@@ -6415,14 +6415,14 @@ void CvPlayer::doGoody(CvPlot* pPlot, CvUnit* pUnit,
 
 	FAssert(pPlot->isGoody()
 			|| taboo != NO_GOODY); // advc.314
-	/*  <advc.003> Moved up. I don't think this function is ever called
-		on barbs, but if it is, the hut shouldn't be removed. */
+
+	pPlot->removeGoody();
+	// <advc.003>
 	if(isBarbarian()) {
-		FAssert(!isBarbarian());
+		FAssertMsg(pPlot->isOwned(),
+				"Barbs should remove hut only when receiving a city");
 		return;
 	} // </advc.003>
-	pPlot->removeGoody();
-
 	for (int iI = 0; iI < GC.getDefineINT("NUM_DO_GOODY_ATTEMPTS"); iI++)
 	{	// <advc.003>
 		if (GC.getHandicapInfo(getHandicapType()).getNumGoodies() <= 0)
@@ -24157,34 +24157,81 @@ void CvPlayer::getTradeLayerColors(std::vector<NiColorA>& aColors, std::vector<C
 {
 	aColors.resize(GC.getMapINLINE().numPlotsINLINE(), NiColorA(0, 0, 0, 0));
 	aIndicators.clear();
-
+	// <advc.004z>
+	bool bShowForeign = (GC.getDefineINT("FOREIGN_GROUPS_ON_TRADE_LAYER") > 0);
+	bool bShowCapitalConn = (GC.getDefineINT("CONNECTION_TO_CAPITAL_ON_TRADE_LAYER") > 0);
+	// </advc.004z>
 	typedef std::map< int, std::vector<int> > PlotGroupMap;
 	PlotGroupMap mapPlotGroups;
+	std::vector<int> notConn; // advc.004z
 	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); ++iI)
 	{
 		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+		PlayerTypes ownerId = pLoopPlot->getOwnerINLINE(); // advc.004z
 		CvPlotGroup* pPlotGroup = pLoopPlot->getPlotGroup(getID());
-		if (pPlotGroup != NULL && pLoopPlot->isRevealed(getTeam(), true) && pLoopPlot->getTeam() == getTeam())
-		{
-			mapPlotGroups[pPlotGroup->getID()].push_back(iI);
+		if (pPlotGroup != NULL && pLoopPlot->isRevealed(getTeam(), true) &&
+				(pLoopPlot->getTeam() == getTeam()
+				// <advc.004z>
+				|| (bShowForeign && !pLoopPlot->isImpassable() &&
+				ownerId != BARBARIAN_PLAYER &&
+				// Get rid of insignificant groups
+				(pPlotGroup->getLengthPlots() >= 5 ||
+				!pLoopPlot->isWater() || ownerId != NO_PLAYER)))) {
+			if(bShowCapitalConn && pLoopPlot->isVisible(getTeam(), false) &&
+					pLoopPlot->isCity() && !pLoopPlot->getPlotCity()->
+					isConnectedToCapital())
+				notConn.push_back(iI);
+			else // </advc.004z>
+				mapPlotGroups[pPlotGroup->getID()].push_back(iI);
 		}
-	}
-
+	} // <advc.004z> Use the player color for the plot group of the capital
+	CvPlotGroup* capitalGroup = (getCapitalCity() == NULL ? NULL :
+			getCapitalCity()->plot()->getPlotGroup(getID()));
+	if(capitalGroup != NULL) {
+		FAssert(capitalGroup->getLengthPlots() > 0);
+		int count = mapPlotGroups.count(capitalGroup->getID());
+		if(count > 0) {
+			NiColorA kColor(getPlayerTextColorR() / 255.f,
+					getPlayerTextColorG() / 255.f,
+					getPlayerTextColorB() / 255.f,
+					getPlayerTextColorA() / 255.f * (bShowForeign ? 0.5f : 0.8f));
+			std::vector<int>& aPlots = mapPlotGroups[capitalGroup->getID()];
+			for(size_t i = 0; i < aPlots.size(); i++)
+				aColors[aPlots[i]] = kColor;
+		}
+		else FAssert(count > 0);
+	} // </advc.004z>
 	CvRandom kRandom;
 	kRandom.init(42);
 	for (PlotGroupMap::iterator it = mapPlotGroups.begin(); it != mapPlotGroups.end(); ++it)
-	{
-		NiColorA kColor(kRandom.getFloat(), kRandom.getFloat(), kRandom.getFloat(), 0.8f);
+	{	// <advc.004z> Already handled above
+		if(capitalGroup != NULL && it->first == capitalGroup->getID())
+			continue; // </advc.004z>
+		NiColorA kColor(kRandom.getFloat(), kRandom.getFloat(), kRandom.getFloat(),
+				// advc.004z: Can't tell apart land and water at 0.8
+				bShowForeign ? 0.5f :
+				0.8f);
 		std::vector<int>& aPlots = it->second;
 		for (size_t i = 0; i < aPlots.size(); ++i)
 		{
 			aColors[aPlots[i]] = kColor;
 		}
+		/*  <advc.004z> The first random color is good (white), but one of the
+			next few is a light blue that is too similar to the white.
+			Discard one float to avoid that color. */
+		kRandom.getFloat();
 	}
+	NiColorA kColor(0, 0, 0, 0.75f);
+	for(size_t i = 0; i < notConn.size(); i++)
+		aColors[notConn[i]] = kColor; // </advc.004z>
 }
 
 void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption, std::vector<NiColorA>& aColors, std::vector<CvPlotIndicatorData>& aIndicators) const
 {
+	// <advc.004z>
+	if(GC.getDefineINT("SHOW_UNIT_LAYER_OPTIONS") <= 0)
+		eOption = SHOW_ALL_MILITARY;
+	// </advc.004z>
 	aColors.resize(GC.getMapINLINE().numPlotsINLINE(), NiColorA(0, 0, 0, 0));
 	aIndicators.clear();
 
@@ -24382,65 +24429,72 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption, std
 	{
 		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
 		PlayerTypes eOwner = pLoopPlot->getRevealedOwner(getTeam(), true); 
-
-		if (pLoopPlot->isRevealed(getTeam(), true))
+		// <advc.003>
+		if(!pLoopPlot->isRevealed(getTeam(), true))
+			continue; // </advc.003>
+		BonusTypes eCurType = pLoopPlot->getBonusType((GC.getGame().isDebugMode()) ? NO_TEAM : getTeam());
+		bool bOfInterest = false; // advc.004z
+		if (eCurType != NO_BONUS)
 		{
-			BonusTypes eCurType = pLoopPlot->getBonusType((GC.getGame().isDebugMode()) ? NO_TEAM : getTeam());
-			if (eCurType != NO_BONUS)
+			CvBonusInfo& kBonusInfo = GC.getBonusInfo(eCurType);
+			switch (eOption)
 			{
-				CvBonusInfo& kBonusInfo = GC.getBonusInfo(eCurType);
+			case SHOW_ALL_RESOURCES:
+				bOfInterest = true;
+				break;
+			case SHOW_STRATEGIC_RESOURCES:
+				bOfInterest = (kBonusInfo.getHappiness() == 0) && (kBonusInfo.getHealth() == 0);
+				break;
+			case SHOW_HAPPY_RESOURCES:
+				bOfInterest = (kBonusInfo.getHappiness() != 0 ) && (kBonusInfo.getHealth() == 0);
+				break;
+			case SHOW_HEALTH_RESOURCES:
+				bOfInterest = (kBonusInfo.getHappiness() == 0) && (kBonusInfo.getHealth() != 0);
+				break;
+			} // <advc.004z>
+		}
+		if(!bOfInterest && pLoopPlot->getImprovementType() != NO_IMPROVEMENT &&
+				GC.getDefineINT("SHOW_GOODY_HUTS_ON_RESOURCE_LAYER") > 0) {
+			bOfInterest = GC.getImprovementInfo(pLoopPlot->getImprovementType()).isGoody();
+		} // </advc.004z>
+		if (bOfInterest)
+		{
+			CvPlotIndicatorData kData;
+			kData.m_strLabel = "RESOURCES";
+			kData.m_eVisibility = PLOT_INDICATOR_VISIBLE_ONSCREEN_ONLY;
+			kData.m_strIcon = // <advc.004z>
+					(eCurType == NO_BONUS ? GC.getImprovementInfo(pLoopPlot->
+					getImprovementType()).getButton() // </advc.004z>
+					: GC.getBonusInfo(eCurType).getButton());
 
-				bool bOfInterest = false;
-				switch (eOption)
-				{
-				case SHOW_ALL_RESOURCES:
-					bOfInterest = true;
-					break;
-				case SHOW_STRATEGIC_RESOURCES:
-					bOfInterest = (kBonusInfo.getHappiness() == 0) && (kBonusInfo.getHealth() == 0);
-					break;
-				case SHOW_HAPPY_RESOURCES:
-					bOfInterest = (kBonusInfo.getHappiness() != 0 ) && (kBonusInfo.getHealth() == 0);
-					break;
-				case SHOW_HEALTH_RESOURCES:
-					bOfInterest = (kBonusInfo.getHappiness() == 0) && (kBonusInfo.getHealth() != 0);
-					break;
+			int x = pLoopPlot->getX();
+			int y = pLoopPlot->getY();
+			kData.m_Target = NiPoint2(GC.getMapINLINE().plotXToPointX(x), GC.getMapINLINE().plotYToPointY(y));
 
-				}
-
-				if (bOfInterest)
-				{
-					CvPlotIndicatorData kData;
-					kData.m_strLabel = "RESOURCES";
-					kData.m_eVisibility = PLOT_INDICATOR_VISIBLE_ONSCREEN_ONLY;
-					kData.m_strIcon = GC.getBonusInfo(eCurType).getButton();
-
-					int x = pLoopPlot->getX();
-					int y = pLoopPlot->getY();
-					kData.m_Target = NiPoint2(GC.getMapINLINE().plotXToPointX(x), GC.getMapINLINE().plotYToPointY(y));
-
-					if (eOwner == NO_PLAYER)
-					{
-						kData.m_kColor.r = 0.8f;
-						kData.m_kColor.g = 0.8f;
-						kData.m_kColor.b = 0.8f;
-					}
-					else
-					{
-						PlayerColorTypes eCurPlayerColor = GET_PLAYER(eOwner).getPlayerColor();
-						const NiColorA& kColor = GC.getColorInfo((ColorTypes) GC.getPlayerColorInfo(eCurPlayerColor).getColorTypePrimary()).getColor();
-						kData.m_kColor.r = kColor.r;
-						kData.m_kColor.g = kColor.g;
-						kData.m_kColor.b = kColor.b;
-					}
-
-					szBuffer.clear();
-					GAMETEXT.setBonusHelp(szBuffer, eCurType, false);
-					kData.m_strHelpText = szBuffer.getCString();
-
-					aIndicators.push_back(kData);
-				}
+			if (eOwner == NO_PLAYER)
+			{
+				kData.m_kColor.r = 0.8f;
+				kData.m_kColor.g = 0.8f;
+				kData.m_kColor.b = 0.8f;
 			}
+			else
+			{
+				PlayerColorTypes eCurPlayerColor = GET_PLAYER(eOwner).getPlayerColor();
+				const NiColorA& kColor = GC.getColorInfo((ColorTypes) GC.getPlayerColorInfo(eCurPlayerColor).getColorTypePrimary()).getColor();
+				kData.m_kColor.r = kColor.r;
+				kData.m_kColor.g = kColor.g;
+				kData.m_kColor.b = kColor.b;
+			}
+
+			szBuffer.clear();
+			// <advc.004z>
+			if(eCurType == NO_BONUS)
+				GAMETEXT.setImprovementHelp(szBuffer, pLoopPlot->getImprovementType());
+			else // </advc.004z>
+				GAMETEXT.setBonusHelp(szBuffer, eCurType, false);
+			kData.m_strHelpText = szBuffer.getCString();
+
+			aIndicators.push_back(kData);
 		}
 	}
 }

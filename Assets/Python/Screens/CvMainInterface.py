@@ -1290,6 +1290,10 @@ class CvMainInterface:
 			# Globeview and Globelayer buttons
 			CyInterface().setDirty(InterfaceDirtyBits.GlobeInfo_DIRTY_BIT, False)
 			self.updateGlobeviewButtons()
+			# <advc.004z>
+			if gc.getDefineINT("SHOW_SCORE_IN_GLOBE_VIEW") > 0:
+				# Show/hide scoreboard depending on whether the layer has options
+				self.updateScoreStrings() # </advc.004z>
 
 		return 0
 
@@ -1668,7 +1672,7 @@ class CvMainInterface:
 			screen.show( "VictoryAdvisorButton" )
 			screen.show( "InfoAdvisorButton" )
 # BUG - City Arrows - start advc.042: commented out
-			if false: #(MainOpt.isShowCityCycleArrows()):
+			if False: #(MainOpt.isShowCityCycleArrows()):
 				screen.show( "MainCityScrollMinus" )
 				screen.show( "MainCityScrollPlus" )
 			else:
@@ -4892,7 +4896,7 @@ class CvMainInterface:
 		
 	# Will update the scores
 	def updateScoreStrings( self ):
-	
+
 		screen = CyGInterfaceScreen( "MainInterface", CvScreenEnums.MAIN_INTERFACE )
 
 		xResolution = screen.getXResolution()
@@ -4916,7 +4920,14 @@ class CvMainInterface:
 		iBtnHeight = 22
 		
 		if ((CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_HIDE_ALL and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_MINIMAP_ONLY)):
-			if (CyInterface().isScoresVisible() and not CyInterface().isCityScreenUp() and CyEngine().isGlobeviewUp() == false):
+			# <advc.004z>
+			kGLM = CyGlobeLayerManager()
+			iCurrentLayerID = kGLM.getCurrentLayerID()
+			# Copy-pasted from updateGlobeviewButtons
+			bGlobeViewOptions = (iCurrentLayerID != -1 and kGLM.getLayer(iCurrentLayerID).getNumOptions() != 0 and (gc.getDefineINT("SHOW_RESOURCE_LAYER_OPTIONS") > 0 or kGLM.getLayer(iCurrentLayerID).getName() != "RESOURCES") and (gc.getDefineINT("SHOW_UNIT_LAYER_OPTIONS") > 0 or kGLM.getLayer(iCurrentLayerID).getName() != "UNITS"))
+			# </advc.004z>
+			# advc.004z: Globe view options clause added
+			if CyInterface().isScoresVisible() and not CyInterface().isCityScreenUp() and (not CyEngine().isGlobeviewUp() or (not bGlobeViewOptions and gc.getDefineINT("SHOW_SCORE_IN_GLOBE_VIEW") > 0)):
 
 # BUG - Align Icons - start
 				bAlignIcons = ScoreOpt.isAlignIcons()
@@ -5315,7 +5326,7 @@ class CvMainInterface:
 		kGLM = CyGlobeLayerManager()
 		iNumLayers = kGLM.getNumLayers()
 		iCurrentLayerID = kGLM.getCurrentLayerID()
-		
+
 		# Positioning things based on the visibility of the globe
 		if kEngine.isGlobeviewUp():
 			screen.setHelpTextArea( 350, FontTypes.SMALL_FONT, 7, yResolution - 50, -0.1, False, "", True, False, CvUtil.FONT_LEFT_JUSTIFY, HELP_TEXT_MINIMUM_WIDTH )
@@ -5341,7 +5352,8 @@ class CvMainInterface:
 		iNumLayers = kGLM.getNumLayers()
 		if kEngine.isGlobeviewUp() and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_HIDE_ALL:
 			# set up panel
-			if iCurrentLayerID != -1 and kGLM.getLayer(iCurrentLayerID).getNumOptions() != 0:
+			# advc.004z: Clauses for RESOURCES and UNITS added. Would rather set NumOptions to 0, but GlobeLayerManager is not part of the SDK, apparently.
+			if iCurrentLayerID != -1 and kGLM.getLayer(iCurrentLayerID).getNumOptions() != 0 and (gc.getDefineINT("SHOW_RESOURCE_LAYER_OPTIONS") > 0 or kGLM.getLayer(iCurrentLayerID).getName() != "RESOURCES") and (gc.getDefineINT("SHOW_UNIT_LAYER_OPTIONS") > 0 or kGLM.getLayer(iCurrentLayerID).getName() != "UNITS"):
 				bHasOptions = True		
 			else:
 				bHasOptions = False

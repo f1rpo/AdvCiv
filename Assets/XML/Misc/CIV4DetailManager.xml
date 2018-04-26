@@ -54,11 +54,20 @@
 		<Key>3000.0, 0.9</Key>
 		<Key>5000.0, 1.2</Key>
 	</Fader>
+	<!-- advc.004z: These values seem to refer only to Globe view. The last
+		 value, changed by me from 1.0 to 0.75, sets the size of the indicator
+		 bubbles. The values in the second column of the first and second row
+		 can also be used to control the size, but only if the values in the
+		 first column are increased. What's the difference between the rows?
+		 Seems to have something to do with the sphere effect; certain
+		 combinations of values lead to misplaced bubbles when zooming all the
+		 way out. No combination I tried had any impact on the bubble size at
+		 close camera distances (non-Globe view). -->
 	<Fader>
 		<Name>F_PLOTINDICATOR_SCALE</Name>
 		<Key>0.0,  0.0</Key>
 		<Key>0.2,  0.9</Key>
-		<Key>1.0,  1.0</Key>
+		<Key>1.0,  0.75</Key>
 	</Fader>
 	<Fader>
 		<Name>F_PLOTINDICATOR_ALPHA</Name>
