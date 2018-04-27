@@ -1375,6 +1375,8 @@ protected:
 
 	double garrisonStrength() const; // advc.500b
 	void damageGarrison(PlayerTypes revoltSource);
+	// advc.123f:
+	void failProduction(int orderData, int investedProduction, bool bProject = false);
 };
 
 #endif

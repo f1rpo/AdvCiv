@@ -1380,8 +1380,8 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 	FAssertMsg(eTeam != NO_TEAM, "eTeam is not assigned a valid value");
 	FAssertMsg(eTeam != getID(), "eTeam is not expected to be equal with getID()");
 	// <advc.100>
-	FAssert(sponsor == NO_PLAYER || (GET_PLAYER(sponsor).getTeam() != getID() &&
-			GET_PLAYER(sponsor).getTeam() != eTeam)); // </advc.100>
+	FAssert(sponsor == NO_PLAYER || (TEAMID(sponsor) != getID() &&
+			TEAMID(sponsor) != eTeam)); // </advc.100>
 	if (isAtWar(eTeam))
 		return;
 
@@ -1660,8 +1660,8 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 			wchar const* sponsorName = L"";
 			if(sponsor != NO_PLAYER) {
 				/*  Need to make a local copy b/c the thing returned by getName
-					gets somehow overwritten with an empty string before the message
-					is sent. */
+					gets somehow overwritten with an empty string before the
+					message is sent. */
 				szSponsorName = GET_PLAYER(sponsor).getName();
 				sponsorName = szSponsorName.GetCString();
 			} // </advc.100>

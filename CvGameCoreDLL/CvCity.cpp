@@ -12615,9 +12615,10 @@ void CvCity::pushOrder(OrderTypes eOrder, int iData1, int iData2, bool bSave, bo
 			gDLL->getInterfaceIFace()->setDirty(PlotListButtons_DIRTY_BIT, true);
 		}
 	} // <advc.004x>
-	if(wasEmpty && getOwnerINLINE() == GC.getGameINLINE().getActivePlayer())
+	if(wasEmpty && getOwnerINLINE() == GC.getGameINLINE().getActivePlayer()) {
 		GET_PLAYER(getOwnerINLINE()).killAll(BUTTONPOPUP_CHOOSEPRODUCTION,
-				getID()); // </advc.004x>
+				getID());
+	} // </advc.004x>
 }
 
 
@@ -13126,7 +13127,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 				}
 
 				chooseProduction(eTrainUnit, eConstructBuilding, eCreateProject, bFinish);
-				/*  <advc.004x> Remember the order in case the popups needs to
+				/*  <advc.004x> Remember the order in case the popup needs to
 					be delayed */
 				mrWasUnit = (eTrainUnit != NO_UNIT);
 				if(mrWasUnit)

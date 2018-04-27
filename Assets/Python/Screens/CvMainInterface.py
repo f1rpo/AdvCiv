@@ -5377,9 +5377,13 @@ class CvMainInterface:
 				iMaxTextWidth = -1
 				for iTmp in range(iNumOptions):
 					iOption = iTmp # iNumOptions - iTmp - 1
+					# <advc.004z> Skip dummy option (see CvEnums.h)
+					if iOption == 2:
+						continue # </advc.004z>
 					szName = "GlobeLayerOption" + str(iOption)
-					szCaption = kLayer.getOptionName(iOption)			
-					if(iOption == iCurOption):
+					szCaption = kLayer.getOptionName(iOption)
+					# advc.004z: Highlight "All Units" option when the default (2) is selected. This is the case when none of the options has been clicked yet.
+					if iOption == iCurOption or (iCurOption == 2 and iOption == 0):
 						szBuffer = "  <color=0,255,0>%s</color>  " % (szCaption)
 					else:
 						szBuffer = "  %s  " % (szCaption)

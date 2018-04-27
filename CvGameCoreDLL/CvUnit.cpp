@@ -567,8 +567,11 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 	if (ePlayer != NO_PLAYER)
 	{
 		CvEventReporter::getInstance().unitKilled(this, ePlayer);
-
-		if (NO_UNIT != getLeaderUnitType())
+		
+		if (NO_UNIT != getLeaderUnitType()
+				// <advc.004u> Treat unattached GP here too
+				|| m_pUnitInfo->getDefaultUnitAIType() == UNITAI_GENERAL ||
+				isGoldenAge()) // </advc.004u>
 		{
 			CvWString szBuffer;
 			//szBuffer = gDLL->getText("TXT_KEY_MISC_GENERAL_KILLED", getNameKey());
@@ -578,34 +581,40 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 			if(ownerId != NO_PLAYER) { // </advc.004u>
 				for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1)) // advc.003: Exclude barbs
 				{	// <advc.003>
-					if(!GET_PLAYER(i).isAlive())
+					CvPlayer& observer = GET_PLAYER(i);
+					if(!observer.isAlive())
 						continue; // </advc.003>
 					ColorTypes col = NO_COLOR;
+					TCHAR const* sound = NULL;
 					// <advc.004u>
 					FAssert(ownerId != ePlayer);
-					if(i == ownerId) {
+					if(observer.getID() == ownerId) {
 						szBuffer = gDLL->getText("TXT_KEY_MISC_YOUR_GENERAL_KILLED", getNameKey(),
 								GET_PLAYER(ePlayer).getCivilizationShortDescription());
 						col = (ColorTypes)GC.getInfoTypeForString("COLOR_RED");
+						sound = GC.getEraInfo(observer.getCurrentEra()).getAudioUnitDefeatScript();
 					}
-					else if(i == ePlayer) {
+					else if(observer.getID() == ePlayer) {
 						szBuffer = gDLL->getText("TXT_KEY_MISC_GENERAL_KILLED_BY_YOU", getNameKey(),
 								GET_PLAYER(ownerId).getCivilizationShortDescription());
 						col = (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN");
+						sound = GC.getEraInfo(observer.getCurrentEra()).getAudioUnitVictoryScript();
 					}
-					else if(TEAMREF(i).isHasMet(TEAMID(ownerId)) // advc.004u
-							|| GET_PLAYER(i).isSpectator()) { // advc.127
+					else if(TEAMREF(ownerId).isHasMet(observer.getTeam()) // advc.004u
+							|| observer.isSpectator()) { // advc.127
 						szBuffer = gDLL->getText("TXT_KEY_MISC_GENERAL_KILLED", getNameKey(),
 								GET_PLAYER(ownerId).getCivilizationShortDescription(),
 								GET_PLAYER(ePlayer).getCivilizationShortDescription());
 						col = (ColorTypes)GC.getInfoTypeForString("COLOR_UNIT_TEXT");
+						// K-Mod (the other sound is not appropriate for most civs receiving the message.)
+						sound = "AS2D_INTERCEPTED";
 					}
+					else continue;
 					bool isRev = plot()->isRevealed(TEAMID(i), false);
 					// </advc.004u>
 					gDLL->getInterfaceIFace()->addHumanMessage(i, false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
-							// advc.004u: Play the original sound when it does fit
-							i == ownerId ? GC.getEraInfo(GET_PLAYER(i).getCurrentEra()).getAudioUnitDefeatScript() :
-							"AS2D_INTERCEPTED", MESSAGE_TYPE_MAJOR_EVENT, // K-Mod (the other sound is not appropriate for most civs receiving the message.)
+							sound, // advc.004u
+							MESSAGE_TYPE_MAJOR_EVENT,
 							// <advc.004u> Indicate location on map
 							getButton(), col, isRev ? plot()->getX() : -1,
 							isRev ? plot()->getY() : -1, isRev, isRev);
@@ -1583,7 +1592,9 @@ void CvUnit::updateCombat(bool bQuick)
 			}
 
 			// Kill them!
-			pDefender->setDamage(GC.getMAX_HIT_POINTS());
+			pDefender->setDamage(GC.getMAX_HIT_POINTS(),
+					// advc.004u: Pass along killer's identity
+					getVisualOwner(pDefender->getTeam()));
 		}
 		else
 		{
@@ -1659,15 +1670,25 @@ void CvUnit::updateCombat(bool bQuick)
 							ws, getTeam(), pDefender->getTeam(), true);
 			} // <advc.130m>
 
-			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_DIED_ATTACKING", getNameKey(), pDefender->getNameKey());
-			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getEraInfo(
+			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_DIED_ATTACKING",
+					getNameKeyNoGG(), // advc.004u
+					pDefender->getNameKey());
+			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(),
+					true, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getEraInfo(
 					GET_PLAYER(getOwnerINLINE()) // advc.002l
-					.getCurrentEra()).getAudioUnitDefeatScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
-			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_KILLED_ENEMY_UNIT", pDefender->getNameKey(), getNameKey(), getVisualCivAdjective(pDefender->getTeam()));
-			gDLL->getInterfaceIFace()->addHumanMessage(pDefender->getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getEraInfo(
+					.getCurrentEra()).getAudioUnitDefeatScript(),
+					MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString(
+					"COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_KILLED_ENEMY_UNIT",
+					pDefender->getNameKey(),
+					getNameKeyNoGG(), // advc.004u
+					getVisualCivAdjective(pDefender->getTeam()));
+			gDLL->getInterfaceIFace()->addHumanMessage(pDefender->getOwnerINLINE(),
+					true, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getEraInfo(
 					GET_PLAYER(pDefender->getOwnerINLINE()) // advc.002l
-					.getCurrentEra()).getAudioUnitVictoryScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
-
+					.getCurrentEra()).getAudioUnitVictoryScript(),
+					MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString(
+					"COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
 			// report event to Python, along with some other key state
 			CvEventReporter::getInstance().combatResult(pDefender, this);
 		}
@@ -1705,22 +1726,30 @@ void CvUnit::updateCombat(bool bQuick)
 							ws, getTeam(), pDefender->getTeam(), true);
 			} // <advc.130m>
 
-			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_DESTROYED_ENEMY", getNameKey(), pDefender->getNameKey());
-			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getEraInfo(
+			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_DESTROYED_ENEMY",
+					getNameKey(),
+					pDefender->getNameKeyNoGG()); // advc.004u
+			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true,
+					GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getEraInfo(
 					GET_PLAYER(getOwnerINLINE()) // advc.002l
-					.getCurrentEra()).getAudioUnitVictoryScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
-			if (getVisualOwner(pDefender->getTeam()) != getOwnerINLINE())
-			{
-				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_WAS_DESTROYED_UNKNOWN", pDefender->getNameKey(), getNameKey());
+					.getCurrentEra()).getAudioUnitVictoryScript(),
+					MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString(
+					"COLOR_GREEN"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
+			if (getVisualOwner(pDefender->getTeam()) != getOwnerINLINE()) {
+				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_WAS_DESTROYED_UNKNOWN",
+						pDefender->getNameKeyNoGG(), // advc.004u
+						getNameKey());
 			}
-			else
-			{
-				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_WAS_DESTROYED", pDefender->getNameKey(), getNameKey(), getVisualCivAdjective(pDefender->getTeam()));
+			else {
+				szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_WAS_DESTROYED",
+						pDefender->getNameKeyNoGG(), // advc.004u
+						getNameKey(), getVisualCivAdjective(pDefender->getTeam()));
 			}
 			gDLL->getInterfaceIFace()->addHumanMessage(pDefender->getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getEraInfo(
 					GET_PLAYER(pDefender->getOwnerINLINE()) // advc.002l
-					.getCurrentEra()).getAudioUnitDefeatScript(), MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
-
+					.getCurrentEra()).getAudioUnitDefeatScript(),
+					MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString(
+					"COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE());
 			// report event to Python, along with some other key state
 			CvEventReporter::getInstance().combatResult(this, pDefender);
 
@@ -11918,7 +11947,7 @@ void CvUnit::setCombatUnit(CvUnit* pCombatUnit, bool bAttacking)
 				&& pCombatUnit->plot()->getPlotCity() 
 				&& pCombatUnit->plot()->getPlotCity()->getBuildingDefense() > 0 
 				&& cityAttackModifier() >= GC.getDefineINT("MIN_CITY_ATTACK_MODIFIER_FOR_SIEGE_TOWER")) */
-			if (showSeigeTower(pCombatUnit)) // K-Mod
+			if (showSiegeTower(pCombatUnit)) // K-Mod
 			{
 				CvDLLEntity::SetSiegeTower(true);
 			}
@@ -11963,9 +11992,9 @@ void CvUnit::setCombatUnit(CvUnit* pCombatUnit, bool bAttacking)
 	}
 }
 
-// K-Mod. Return true if the combat animation should include a seige tower
+// K-Mod. Return true if the combat animation should include a siege tower
 // (code copied from setCombatUnit, above)
-bool CvUnit::showSeigeTower(CvUnit* pDefender) const
+bool CvUnit::showSiegeTower(CvUnit* pDefender) const
 {
 	return getDomainType() == DOMAIN_LAND
 		&& !m_pUnitInfo->isIgnoreBuildingDefense()
@@ -12096,6 +12125,16 @@ const wchar* CvUnit::getNameKey() const
 	}
 }
 
+/*  <advc.004u> Like getNameKey, but use the unit type name when it's a
+	Great Person or a unit with an attached Great Warlord. */
+wchar const* CvUnit::getNameKeyNoGG() const {
+
+	if(getLeaderUnitType() == NO_UNIT && m_pUnitInfo->getDefaultUnitAIType() !=
+			UNITAI_GENERAL && !isGoldenAge())
+		return getNameKey();
+	return m_pUnitInfo->getTextKeyWide();
+}
+// </advc.004u>
 
 const CvWString& CvUnit::getNameNoDesc() const
 {
@@ -13424,17 +13463,17 @@ int CvUnit::planBattle(CvBattleDefinition& kBattle, const std::vector<int>& comb
 
 	int extraTime = 0;
 
-	// extra time for seige towers and surrendering leaders.
+	// extra time for siege towers and surrendering leaders.
 	if ((pAttackUnit->getLeaderUnitType() != NO_UNIT && pAttackUnit->isDead()) ||
 		(pDefenceUnit->getLeaderUnitType() != NO_UNIT && pDefenceUnit->isDead()) ||
-		pAttackUnit->showSeigeTower(pDefenceUnit))
+		pAttackUnit->showSiegeTower(pDefenceUnit))
 	{
 		extraTime = BATTLE_TURNS_MELEE;
 	}
 
 	// K-Mod note: the original code used:
 	//   gDLL->getEntityIFace()->GetSiegeTower(pAttackUnit->getUnitEntity()) || gDLL->getEntityIFace()->GetSiegeTower(pDefenceUnit->getUnitEntity())
-	// I've changed that to use showSeigeTower, because GetSiegeTower does not work for the Pitboss host, and therefore can cause OOS errors.
+	// I've changed that to use showSiegeTower, because GetSiegeTower does not work for the Pitboss host, and therefore can cause OOS errors.
 
 	return BATTLE_TURNS_SETUP + BATTLE_TURNS_ENDING + kBattle.getNumMeleeRounds() * BATTLE_TURNS_MELEE + kBattle.getNumRangedRounds() * BATTLE_TURNS_MELEE + extraTime;
 }

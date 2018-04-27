@@ -145,9 +145,11 @@
 	<Spanish>When the screen says "Initializing" for several seconds while loading a saved game, it might help to briefly minimize the game by pressing [ALT + TAB] twice.</Spanish>
 </TEXT>
 
-<!-- "Go-To (All Units) by pressing ALT+G" - has anyone ever used this? -->
+<!-- advc.002g: "Press [ESC] to bring up the in-game Options Menu..."
+	 Should call it "game menu", but really don't need a hint about this,
+	 so I'm replacing it. -->
 <TEXT>
-	<Tag>TXT_KEY_HINT_INTERFACE_53</Tag>
+	<Tag>TXT_KEY_HINT_INTERFACE_14</Tag>
 	<English>If you have cheats enabled (code "chipotle"), you can press [Shift + Ctrl + X] to enable AI Auto Play, i.e. to shift control of your civilization to the AI for a number of turns.</English>
 	<French>If you have cheats enabled (code "chipotle"), you can press [Shift + Ctrl + X] to enable AI Auto Play, i.e. to shift control of your civilization to the AI for a number of turns.</French>
 	<German>Wenn Sie Cheats aktiviert haben (Codewort "chipotle"), können Sie per [Shift + Ctrl + X] der KI vorübergehend die Kontrolle über Ihre Zivilisation übertragen.</German>

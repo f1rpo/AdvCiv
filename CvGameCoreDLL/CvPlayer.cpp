@@ -4833,8 +4833,8 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
-		GET_TEAM(GET_PLAYER(ePlayer).getTeam()).declareWar(((TeamTypes)iData1), false, WARPLAN_DOGPILE);
-
+		TEAMREF(ePlayer).declareWar((TeamTypes)iData1, false, WARPLAN_DOGPILE,
+				true, getID()); // advc.100
 		for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 		{
 			CvPlayerAI& attacked = GET_PLAYER((PlayerTypes)iI); // <advc.003>
@@ -24229,7 +24229,7 @@ void CvPlayer::getTradeLayerColors(std::vector<NiColorA>& aColors, std::vector<C
 void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption, std::vector<NiColorA>& aColors, std::vector<CvPlotIndicatorData>& aIndicators) const
 {
 	// <advc.004z>
-	if(GC.getDefineINT("SHOW_UNIT_LAYER_OPTIONS") <= 0)
+	if(eOption == 2) // Somehow, eOption==GLOBE_LAYER_UNIT_DUMMY doesn't work.
 		eOption = SHOW_ALL_MILITARY;
 	// </advc.004z>
 	aColors.resize(GC.getMapINLINE().numPlotsINLINE(), NiColorA(0, 0, 0, 0));
@@ -24453,7 +24453,9 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption, std
 				break;
 			} // <advc.004z>
 		}
-		if(!bOfInterest && pLoopPlot->getImprovementType() != NO_IMPROVEMENT &&
+		if(!bOfInterest && eOption == SHOW_ALL_RESOURCES &&
+				pLoopPlot->getImprovementType() != NO_IMPROVEMENT &&
+				isOption(PLAYEROPTION_NO_UNIT_RECOMMENDATIONS) &&
 				GC.getDefineINT("SHOW_GOODY_HUTS_ON_RESOURCE_LAYER") > 0) {
 			bOfInterest = GC.getImprovementInfo(pLoopPlot->getImprovementType()).isGoody();
 		} // </advc.004z>

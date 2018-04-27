@@ -56,7 +56,8 @@ void CvGame::updateColoredPlots()
 	// Moved up
 	pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
 	// See comment in CvUnit.cpp
-	if(pHeadSelectedUnit != NULL) pHeadSelectedUnit->showCityCross();
+	if(pHeadSelectedUnit != NULL)
+		pHeadSelectedUnit->showCityCross();
 	// </advc.004h>
 
 /************************************************************************************************/
@@ -343,9 +344,14 @@ void CvGame::updateColoredPlots()
 			}
 
 			// goody huts
-			if (pHeadSelectedUnit->isNoBadGoodies())
+			//if (pHeadSelectedUnit->isNoBadGoodies())
+			if(pHeadSelectedUnit->canFight()) // advc.004z: Replacing the above
 			{
 				iRange = 4;
+				// <advc.004z>
+				if(pHeadSelectedUnit->isNoBadGoodies())
+					iRange++;
+				else iRange--; // </advc.004z>
 				site_path.SetSettings(pHeadSelectedUnit->getGroup(), 0, iRange, GC.getMOVE_DENOMINATOR()); // just a smaller range.
 
 				for (iDX = -(iRange); iDX <= iRange; iDX++)

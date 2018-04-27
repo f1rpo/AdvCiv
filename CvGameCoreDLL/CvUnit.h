@@ -688,7 +688,7 @@ public:
 
 	DllExport CvUnit* getCombatUnit() const;
 	void setCombatUnit(CvUnit* pUnit, bool bAttacking = false);
-	bool showSeigeTower(CvUnit* pDefender) const; // K-Mod
+	bool showSiegeTower(CvUnit* pDefender) const; // K-Mod
 
 	CvUnit* getTransportUnit() const;																							// Exposed to Python
 	bool isCargo() const;																													// Exposed to Python
@@ -700,6 +700,7 @@ public:
 	DllExport const CvWString getName(uint uiForm = 0) const;																// Exposed to Python
 	CvWString const getReplayName() const; // advc.106
 	DllExport const wchar* getNameKey() const;																							// Exposed to Python
+	wchar const* getNameKeyNoGG() const; // advc.004u
 	const CvWString& getNameNoDesc() const;																				// Exposed to Python
 	void setName(const CvWString szNewValue);																			// Exposed to Python
 

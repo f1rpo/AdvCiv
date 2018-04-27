@@ -4867,10 +4867,11 @@ void CvUnitAI::AI_exploreMove()
 		}
 	} // <advc.315> Idle explorers can help guard city sites
 	if(!isHuman() && !GC.getGameINLINE().isOption(GAMEOPTION_NO_BARBARIANS) &&
-			(m_pUnitInfo->getCombat() * barbarianCombatModifier()) / 100 >=
-			(GET_PLAYER(BARBARIAN_PLAYER).getCurrentEra() + 1) * 2 &&
-			AI_guardCitySite())
-		return; // </advc.315>
+			(m_pUnitInfo->getCombat() * (100 + barbarianCombatModifier())) / 100 >=
+			(GET_PLAYER(BARBARIAN_PLAYER).getCurrentEra() + 1) * 2) {
+		if(AI_guardCitySite())
+			return; 
+	} // </advc.315>
 	if (!isHuman() && (AI_getUnitAIType() == UNITAI_EXPLORE))
 	{
 		if (GET_PLAYER(getOwnerINLINE()).AI_totalAreaUnitAIs(area(), UNITAI_EXPLORE) > GET_PLAYER(getOwnerINLINE()).AI_neededExplorers(area()))
@@ -12321,25 +12322,21 @@ bool CvUnitAI::AI_guardCitySite()
 {
 	PROFILE_FUNC();
 
-	CvPlot* pLoopPlot;
-	CvPlot* pBestPlot;
-	CvPlot* pBestGuardPlot;
-	int iPathTurns;
-	int iValue;
-	int iBestValue;
-	int iI;
-
-	iBestValue = 0;
-	pBestPlot = NULL;
-	pBestGuardPlot = NULL;
-
-	for (iI = 0; iI < GET_PLAYER(getOwnerINLINE()).AI_getNumCitySites(); iI++)
+	int iPathTurns=-1;
+	CvPlot* pBestPlot = NULL;
+	CvPlot* pBestGuardPlot = NULL;
+	// advc.003: Moved all the other declarations
+	CvPlayerAI const& owner = GET_PLAYER(getOwnerINLINE());
+	/*  advc.300: Don't guard any ole tile with a positive found value;
+		only actual city sites. */
+	int iBestValue = owner.AI_getMinFoundValue() - 1;
+	for (int iI = 0; iI < owner.AI_getNumCitySites(); iI++)
 	{
-		pLoopPlot = GET_PLAYER(getOwnerINLINE()).AI_getCitySite(iI);
-		if (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_GUARD_CITY, getGroup()) == 0)
+		CvPlot* pLoopPlot = owner.AI_getCitySite(iI);
+		if (owner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_GUARD_CITY, getGroup()) == 0)
 		{
 			// K-Mod. I've switched the order of the following two if statements, for efficiency.
-			iValue = pLoopPlot->getFoundValue(getOwnerINLINE());
+			int iValue = pLoopPlot->getFoundValue(owner.getID());
 			if (iValue > iBestValue)
 			{
 				if (generatePath(pLoopPlot, 0, true, &iPathTurns))
@@ -12354,6 +12351,7 @@ bool CvUnitAI::AI_guardCitySite()
 	
 	if ((pBestPlot != NULL) && (pBestGuardPlot != NULL))
 	{
+
 		if (atPlot(pBestGuardPlot))
 		{
 			getGroup()->pushMission(isFortifyable() ? MISSION_FORTIFY : MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_GUARD_CITY, pBestGuardPlot);
@@ -16720,6 +16718,7 @@ bool CvUnitAI::AI_blockade()
 
 // Returns true if a mission was pushed...
 // K-Mod todo: this function is very slow on large maps. Consider rewritting it!
+// k146, advc.003b (comment): Performance might be OK now
 bool CvUnitAI::AI_pirateBlockade()
 {
 	PROFILE_FUNC();
@@ -16728,55 +16727,39 @@ bool CvUnitAI::AI_pirateBlockade()
 	int iValue;
 	int iI;
 	
-	std::vector<int> aiDeathZone(GC.getMapINLINE().numPlotsINLINE(), 0);
-	// k146: Commented out
-	/*for (iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
-	{
-		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
-		if (AI_plotValid(pLoopPlot) || (pLoopPlot->isCity() && pLoopPlot->isAdjacentToArea(area())))
-		{
-			if (pLoopPlot->isOwned() && (pLoopPlot->getTeam() != getTeam()))
-			{
-				int iBestHostileMoves = 0;
-				CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
-				while (pUnitNode != NULL)
-				{
-					CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-					pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
-					if (isEnemy(pLoopUnit->getTeam(), pLoopUnit->plot()))
-					{
-						if (pLoopUnit->getDomainType() == DOMAIN_SEA && !pLoopUnit->isInvisible(getTeam(), false))
-						{
-							if (pLoopUnit->canAttack())
-							{
-								if (pLoopUnit->currEffectiveStr(NULL, NULL, NULL) > currEffectiveStr(pLoopPlot, pLoopUnit, NULL))
-								{
-									iBestHostileMoves = std::max(iBestHostileMoves, pLoopUnit->baseMoves());
-								}
-							}
-						}
-					}
-				}
-				if (iBestHostileMoves > 0)
-				{
-					for (int iX = -iBestHostileMoves; iX <= iBestHostileMoves; iX++)
-					{
-						for (int iY = -iBestHostileMoves; iY <= iBestHostileMoves; iY++)
-						{
-							CvPlot * pRangePlot = plotXY(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), iX, iY);
-							if (pRangePlot != NULL)
-							{
-								aiDeathZone[GC.getMap().plotNumINLINE(pRangePlot->getX_INLINE(), pRangePlot->getY_INLINE())]++;
-							}
-						}
-					}
+	/*  <k146> Removed the loop that computed the vector 'aiDeathZone'
+		("computationally expensive, and not particularly effective").
+		advc: I'm still using the body of that loop for computing
+		bIsInDanger by replacing all occurrences of pLoopPlot with
+		p=*(this->plot()). */
+	int iDeathZone = 0;
+	CvPlot const& p = *plot();
+	if(p.isOwned() && p.getTeam() != getTeam()) {
+		int iBestHostileMoves = 0;
+		CLLNode<IDInfo>* pUnitNode = p.headUnitNode();
+		while(pUnitNode != NULL) {
+			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+			pUnitNode = p.nextUnitNode(pUnitNode);
+			if(isEnemy(pLoopUnit->getTeam(), pLoopUnit->plot()) &&
+					pLoopUnit->getDomainType() == DOMAIN_SEA &&
+					!pLoopUnit->isInvisible(getTeam(), false) &&
+					pLoopUnit->canAttack() && pLoopUnit->currEffectiveStr(
+					NULL, NULL, NULL) > currEffectiveStr(&p, pLoopUnit, NULL))
+				iBestHostileMoves = std::max(iBestHostileMoves, pLoopUnit->baseMoves());
+		}
+		if(iBestHostileMoves > 0) {
+			for(int iX = -iBestHostileMoves; iX <= iBestHostileMoves; iX++) {
+				for(int iY = -iBestHostileMoves; iY <= iBestHostileMoves; iY++) {
+					CvPlot* pRangePlot = plotXY(p.getX_INLINE(),
+							p.getY_INLINE(), iX, iY);
+					if(pRangePlot != NULL)
+						iDeathZone++;
 				}
 			}
 		}
-	}*/
-	
-	bool bIsInDanger = aiDeathZone[GC.getMap().plotNumINLINE(getX_INLINE(), getY_INLINE())] > 0;
-	
+	}
+	bool bIsInDanger = (iDeathZone > 0);
+	// </k146>
 	if (!bIsInDanger)
 	{
 		if (getDamage() > 0)
@@ -16798,127 +16781,117 @@ bool CvUnitAI::AI_pirateBlockade()
 	CvPlot* pBestBlockadePlot = NULL;
 	bool bBestIsForceMove = false;
 	bool bBestIsMove = false;
-	
+	int turnNumberSalt = GC.getGameINLINE().getGameTurn() % 7; // advc.003b
 	for (iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 	{
 		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
-
-		if (AI_plotValid(pLoopPlot))
-		{
-			if (!(pLoopPlot->isVisibleEnemyUnit(this)) && canPlunder(pLoopPlot))
-			{
-				if (GC.getGame().getSorenRandNum(4, "AI Pirate Blockade") == 0)
-				{
-					if (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_BLOCKADE, getGroup(), 3) == 0)
-					{
+		// <advc.003>
+		if(!AI_plotValid(pLoopPlot) ||
+				!pLoopPlot->isRevealed(getTeam(), false) || // advc.003b
+				pLoopPlot->isVisibleEnemyUnit(this) || !canPlunder(pLoopPlot) ||
+				//GC.getGame().getSorenRandNum(4, "AI Pirate Blockade") != 0 ||
+				/*  advc.033: Replacing the above. Should make Privateers a bit
+					more stationary. */
+				::hash(iI + turnNumberSalt, getOwnerINLINE()) > 0.25f ||
+				GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(
+				pLoopPlot, MISSIONAI_BLOCKADE, getGroup(), 3) != 0 ||
+				// advc.003b:
+				(!pLoopPlot->isOwned() && pLoopPlot->isAdjacentOwned()))
+			continue; // </advc.003>
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      01/17/09                                jdog5000      */
 /*                                                                                              */
 /* Pirate AI                                                                                    */
 /************************************************************************************************/
 /* original bts code
-						if (generatePath(pLoopPlot, 0, true, &iPathTurns))
-*/
-						if (generatePath(pLoopPlot, MOVE_AVOID_ENEMY_WEIGHT_3, true, &iPathTurns))
+		if (generatePath(pLoopPlot, 0, true, &iPathTurns))
+*/		// <advc.003>
+		if(!generatePath(pLoopPlot, MOVE_AVOID_ENEMY_WEIGHT_3, true, &iPathTurns))
+			continue; // </advc.003>
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
-						{
-							int iBlockadedCount = 0;
-							int iPopulationValue = 0;
-							int iRange = GC.getDefineINT("SHIP_BLOCKADE_RANGE") - 1;
-							for (int iX = -iRange; iX <= iRange; iX++)
-							{
-								for (int iY = -iRange; iY <= iRange; iY++)
-								{
-									CvPlot* pRangePlot = plotXY(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), iX, iY);
-									if (pRangePlot != NULL)
-									{
-										bool bPlotBlockaded = false;
-										if (pRangePlot->isWater() && pRangePlot->isOwned() && isEnemy(pRangePlot->getTeam(), pLoopPlot))
-										{
-											bPlotBlockaded = true;
-											iBlockadedCount += pRangePlot->getBlockadedCount(pRangePlot->getTeam());
-										}
-										
-										if (!bPlotBlockaded)
-										{
-											CvCity* pPlotCity = pRangePlot->getPlotCity();
-											if (pPlotCity != NULL)
-											{
-												if (isEnemy(pPlotCity->getTeam(), pLoopPlot))															
-												{
-													int iCityValue = 3 + pPlotCity->getPopulation();
-													iCityValue *= (atWar(getTeam(), pPlotCity->getTeam()) ? 1 : 3);
-													if (GET_PLAYER(pPlotCity->getOwnerINLINE()).isNoForeignTrade())
-													{
-														iCityValue /= 2;
-													}
-													iPopulationValue += iCityValue;
-													
-												}
-											}
-										}
-									}
-								}
-							}
-							iValue = iPopulationValue;
-							
-							iValue *= 1000;
-							
-							iValue /= 16 + iBlockadedCount;
-							
-							bool bMove = getPathFinder().GetPathTurns() == 1 && getPathFinder().GetFinalMoves() > 0;
-							if (atPlot(pLoopPlot))
-							{
-								iValue *= 3;
-							}
-							else if (bMove)
-							{
-								iValue *= 2;
-							}
-							
-							int iDeath = aiDeathZone[GC.getMap().plotNumINLINE(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE())];
-							
-							bool bForceMove = false;
-							if (iDeath)
-							{
-								iValue /= 10;
-							}
-							else if (bIsInDanger && (iPathTurns <= 2) && (0 == iPopulationValue))
-							{
-								if (getPathFinder().GetFinalMoves() == 0)
-								{
-									if (!pLoopPlot->isAdjacentOwned())
-									{
-										int iRand = GC.getGame().getSorenRandNum(2500, "AI Pirate Retreat");
-										iValue += iRand;
-										if (iRand > 1000)
-										{
-											iValue += GC.getGame().getSorenRandNum(2500, "AI Pirate Retreat");
-											bForceMove = true;
-										}
-									}
-								}
-							}
-							
-							if (!bForceMove)
-							{
-								iValue /= iPathTurns + 1;
-							}
-							
-							if (iValue > iBestValue)
-							{
-								iBestValue = iValue;
-								pBestPlot = bForceMove ? pLoopPlot : getPathEndTurnPlot();
-								pBestBlockadePlot = pLoopPlot;
-								bBestIsForceMove = bForceMove;
-								bBestIsMove = bMove;
-							}
-						}
+		int iBlockadedCount = 0;
+		int iPopulationValue = 0;
+		int iRange = GC.getDefineINT("SHIP_BLOCKADE_RANGE") - 1;
+		for (int iX = -iRange; iX <= iRange; iX++)
+		{
+			for (int iY = -iRange; iY <= iRange; iY++)
+			{
+				CvPlot* pRangePlot = plotXY(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), iX, iY);
+				// <advc.003>
+				if(pRangePlot == NULL)
+					continue; // </advc.003>
+				bool bPlotBlockaded = false;
+				if (pRangePlot->isWater() && pRangePlot->isOwned() && isEnemy(pRangePlot->getTeam(), pLoopPlot))
+				{
+					bPlotBlockaded = true;
+					iBlockadedCount += pRangePlot->getBlockadedCount(pRangePlot->getTeam());
+				} // <advc.003>
+				if(bPlotBlockaded)
+					continue; // </advc.003>
+				CvCity* pPlotCity = pRangePlot->getPlotCity();
+				if (pPlotCity != NULL &&
+						/*  advc.003: Note that isEnemy checks isAlwaysHostile;
+							so the owner pPlotCity does not have to be a
+							war enemy of this unit. */
+						isEnemy(pPlotCity->getTeam(), pLoopPlot))
+				{
+					int iCityValue = 3 + pPlotCity->getPopulation();
+					iCityValue *= (atWar(getTeam(), pPlotCity->getTeam()) ? 1 : 3);
+					if (GET_PLAYER(pPlotCity->getOwnerINLINE()).isNoForeignTrade())
+					{
+						iCityValue /= 2;
 					}
+					iPopulationValue += iCityValue;
 				}
 			}
+		}
+		iValue = iPopulationValue;
+
+		iValue *= 1000;
+
+		iValue /= 16 + iBlockadedCount;
+
+		bool bMove = getPathFinder().GetPathTurns() == 1 && getPathFinder().GetFinalMoves() > 0;
+		if (atPlot(pLoopPlot))
+		{
+			iValue *= 3;
+		}
+		else if (bMove)
+		{
+			iValue *= 2;
+		}
+		bool bForceMove = false;
+		// k146: Some aiDeathZone code deleted
+		if (bIsInDanger && iPathTurns <= 2 && 0 == iPopulationValue &&
+				// advc.003:
+				getPathFinder().GetFinalMoves() == 0
+				// advc.003b: AdjacentOwned now guaranteed
+				//&& !pLoopPlot->isAdjacentOwned()
+				)
+		{
+			int iRand = GC.getGame().getSorenRandNum(2500, "AI Pirate Retreat");
+			iValue += iRand;
+			if (iRand > 1000)
+			{
+				iValue += GC.getGame().getSorenRandNum(2500, "AI Pirate Retreat");
+				bForceMove = true;
+			}
+		}
+
+		if (!bForceMove)
+		{
+			iValue /= iPathTurns + 1;
+		}
+
+		if (iValue > iBestValue)
+		{
+			iBestValue = iValue;
+			pBestPlot = bForceMove ? pLoopPlot : getPathEndTurnPlot();
+			pBestBlockadePlot = pLoopPlot;
+			bBestIsForceMove = bForceMove;
+			bBestIsMove = bMove;
 		}
 	}
 
@@ -16952,7 +16925,6 @@ bool CvUnitAI::AI_pirateBlockade()
 			}
 		}
 	}
-
 	return false;
 }
 

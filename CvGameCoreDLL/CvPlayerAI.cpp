@@ -6089,7 +6089,7 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 				techs_to_check.push(techs[i].second);
 			}
 			while (!techs_to_check.empty() && (int)techs_in_path.size()
-					/*  <advc.001> Was <. Even if no more techs can be added to
+					/*  advc.001: Was <. Even if no more techs can be added to
 						the path, it could still be valid, namely if we already
 						have all the prereqs for the remaining techs_to_check. */
 					<= iMaxPathLength)
@@ -9055,7 +9055,9 @@ void CvPlayerAI::AI_updateAttitudeCache(PlayerTypes ePlayer
 	iAttitude += AI_getWarAttitude(ePlayer, iAttitude);
 
 	m_aiAttitudeCache[ePlayer] = range(iAttitude, -100, 100);
-	if(updateWorstEnemy) GET_TEAM(getTeam()).AI_updateWorstEnemy(); // advc.130e
+	// <advc.130e>
+	if(updateWorstEnemy)
+		GET_TEAM(getTeam()).AI_updateWorstEnemy(); // </advc.130e>
 }
 
 // for making minor adjustments
@@ -9107,8 +9109,9 @@ int CvPlayerAI::AI_getAttitudeVal(PlayerTypes ePlayer, bool bForced) const
 		{
 			return -100;
 		}
-	}
-	if(isHuman()) return 0; // advc.130u
+	} // <advc.130u>
+	if(isHuman())
+		return 0; // </advc.130u>
 	return m_aiAttitudeCache[ePlayer];
 }
 
@@ -9312,13 +9315,16 @@ int CvPlayerAI::AI_getPeaceAttitude(PlayerTypes ePlayer) const
 	if (GC.getLeaderHeadInfo(getPersonalityType()).getAtPeaceAttitudeDivisor() != 0)
 	{
 		/*  <advc.130a> Use the minimum of peace counter and has-met counter, but
-			reduce the dvisisor based on game progress, meaning that civs who meet
+			reduce the divisor based on game progress, meaning that civs who meet
 			late have to wait only 30 turns instead of 60. */
 		// As in BtS:
 		int metAndAtPeace = GET_TEAM(getTeam()).AI_getAtPeaceCounter(TEAMID(ePlayer));
+
 		metAndAtPeace = std::min(metAndAtPeace, GET_TEAM(getTeam()).AI_getHasMetCounter(TEAMID(ePlayer)));
+
 		// As in BtS:
 		int divisor = GC.getLeaderHeadInfo(getPersonalityType()).getAtPeaceAttitudeDivisor();
+
 		divisor = ::round(divisor * std::max(0.5, 1 -
 				GC.getGameINLINE().gameTurnProgress()));
 		/*  Rounded down as in BtS; at least 'divisor' turns need to pass before
@@ -9551,7 +9557,7 @@ int CvPlayerAI::defensivePactAttitude(PlayerTypes ePlayer, bool vassalPacts) con
 				(!vassalPacts && TEAMREF(ePlayer).isDefensivePact(t.getID()) &&
 				!ourTeam.isDefensivePact(t.getID()) &&
 				ourTeam.getPower(true) / (double)t.getPower(true) > 0.7)) {
-			// Score up to -4 per pact - too much? Cap at ATTITUDE_FRIENDLY - 2?
+			// Score up to -4 per pact -- too much? Cap at ATTITUDE_FRIENDLY-2?
 			score += std::max(0, std::min((int)ATTITUDE_FRIENDLY - 1,
 					(GC.getLeaderHeadInfo(getPersonalityType()).
 					getDeclareWarThemRefuseAttitudeThreshold() + 1) -
@@ -9576,7 +9582,7 @@ double CvPlayerAI::expansionistHate(PlayerTypes civId) const {
 	double powRatio = GET_TEAM(getTeam()).getPower(true) / (double)
 			TEAMREF(civId).getPower(true);
 	r = std::min(r, powRatio);
-	return dRange(r, 0.0, 1.0);
+	return ::dRange(r, 0.0, 1.0);
 } // </advc.130w>
 
 int CvPlayerAI::AI_getShareWarAttitude(PlayerTypes ePlayer) const
@@ -9789,8 +9795,8 @@ int CvPlayerAI::AI_getMemoryAttitude(PlayerTypes ePlayer, MemoryTypes eMemory) c
 		195 (instead of 200) to make sure that 0.5 gets rounded up. BtS rounded down,
 		but this rarely mattered. Now rounding down would often result in no effect
 		on relations. */
-	double div = 195; // Finer granularity for DoW:
-	if(eMemory == MEMORY_DECLARED_WAR)
+	double div = 195;
+	if(eMemory == MEMORY_DECLARED_WAR) // Finer granularity for DoW
 		div = 295; // </advc.130j>
 	return ::round((AI_getMemoryCount(ePlayer, eMemory) *
 			GC.getLeaderHeadInfo(getPersonalityType()).
@@ -9907,9 +9913,11 @@ int CvPlayerAI::knownRankDifference(PlayerTypes otherId) const {
 	int ourRank = g.getPlayerRank(getID());
 	int theirRank = g.getPlayerRank(otherId);
 	int delta = ourRank - theirRank;
-	// We know who's ranked better, but (perhaps) not the exact rank difference
-	if(delta < -1) delta = -1;
-	if(delta > 1) delta = 1;
+	// We know who's ranked better, but (perhaps) not the exact rank difference.
+	if(delta < -1)
+		delta = -1;
+	if(delta > 1)
+		delta = 1;
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 		PlayerTypes thirdId = (PlayerTypes)i;
 		CvPlayer const& thirdCiv = GET_PLAYER(thirdId);
@@ -9960,7 +9968,8 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 
 			iValue = kOurTeam.AI_getAttitudeVal((TeamTypes)iI);
 			/*  <advc.130v> Capitulated vassals don't just vote for
-				their master, but also for civs that the master likes. */
+				their master, but also for civs that the master likes.
+				(Human masters aren't going to like anyone.) */
 			if(kOurTeam.isCapitulated()) {
 				iValue = GET_TEAM(kOurTeam.getMasterTeam()).
 						AI_getAttitudeVal((TeamTypes)iI);
@@ -13015,7 +13024,7 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer,
 	ourVal = std::pow(ourVal, 0.7);
 	/*  What else could ePlayer do with the resource? Trade it to somebody else.
 		I'm assuming that trade denial has already filtered out resources that
-		ePlayer (really) needs idomestically. */
+		ePlayer (really) needs domestically. */
 	int cityCount = 0;
 	int knownCivs = 0;
 	int otherTakers = 0;
@@ -13076,7 +13085,7 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer,
 		want humans to keep their surplus resources and sell unneeded nonsurplus
 		resources instead for a slightly higher price. */
 	if(!kPlayer.isHuman() && (avail - iChange == 0 ||
-			avail == 0 || // when considering cancellation
+			avail == 0 || // when considering cancelation
 			kPlayer.AI_corporationBonusVal(eBonus) > 0))
 		r++;
 	if(!isHuman()) // Never pay more than it's worth to us
@@ -14998,8 +15007,9 @@ void CvPlayerAI::AI_updateNeededExplorers() {
 // Body cut and pasted from AI_neededExplorers
 int CvPlayerAI::AI_neededExplorersBulk(CvArea const* pArea) const {
 
-	// advc.305: Be sure not to build Workboats for exploration
-	if(isBarbarian()) return 0;
+	// <advc.305> Be sure not to build Workboats for exploration
+	if(isBarbarian())
+		return 0; // </advc.305>
 
 	int iNeeded = 0;
 
@@ -15111,7 +15121,7 @@ int CvPlayerAI::AI_neededWorkers(CvArea* pArea) const
 	   The 25% increase (new XML parameter) leads to extra workers being trained
 	   ahead of time. (Probably too many workers in the later eras this way, but
 	   that's a minor concern.)
-	   Then, the std::min bounds: I made the first one stricter,
+	   Then the std::min bounds: I made the first one stricter,
 	   i.e. at most 2.5 workers per city instead of 3, and removed
 	   the second one. Current population should have no bearing on workers. */
 	iCount = (iCount * (100 + GC.getDefineINT("WORKER-RESERVE_PERCENT"))) / 100;
@@ -17408,8 +17418,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 			if (kHurryInfo.getProductionPerPopulation() > 0)
 			{
 				// <advc.121>
-				int multiplier = 3;
-				if(bWarPlan) multiplier++;
+				int multiplier = (bWarPlan ? 4 : 3);
 				if(pCapital != NULL && pCapital->area()->getAreaAIType(getTeam()) ==
 						AREAAI_DEFENSIVE && isFocusWar())
 					multiplier++; // </advc.121>
@@ -17635,7 +17644,7 @@ int CvPlayerAI::AI_religionValue(ReligionTypes eReligion) const
 	// also, most civs with a high base modifier also have iReligionFlavor > 0; and so their final modifier will be reduced.
 	int iDiplomaticModifier = 10 * iDiplomaticBase * iLikedReligionCivs / std::max(1, iTotalCivs);
 	iDiplomaticModifier /= 10 + iReligionFlavor;
-	// advc.131: AP matter even if diplo modifier already high
+	// advc.131: AP matters even if diplo modifier already high
 	//if (iDiplomaticModifier < iDiplomaticBase/3)
 	{
 		for (VoteSourceTypes i = (VoteSourceTypes)0; i < GC.getNumVoteSourceInfos(); i = (VoteSourceTypes)(i+1))
@@ -17922,8 +17931,9 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 				{
 					iValue += 3 * iAvgFoodShortage * iBaseUnhealth;
 					/*  advc.160: Prefer large cities w/o Granaries.
-						Too little impact? iValue culd be sth. like 100,
-						threshold e.g. 30, food kept 12. */
+						Too little impact?
+						iValue could be sth. like 100, threshold e.g. 30,
+						food kept 12. */
 					iValue += pCity->growthThreshold() - pCity->getFoodKept();
 				}
 				// K-Mod end
@@ -18001,9 +18011,8 @@ bool CvPlayerAI::AI_isMaliciousEspionageTarget(PlayerTypes eTarget) const
 	if (GET_PLAYER(eTarget).getTeam() == getTeam())
 		return false;
 	return
-		// <advc.120b>: Replaceing ...
 		//AI_getAttitude(eTarget) <= (GC.getGameINLINE().isOption(GAMEOPTION_AGGRESSIVE_AI) ? ATTITUDE_PLEASED : ATTITUDE_CAUTIOUS) ||
-		// ... with:
+		// <advc.120b>: Replacing the above:
 		GC.getLeaderHeadInfo(getPersonalityType()).getNoWarAttitudeProb(std::min(
 				AI_getAttitude(eTarget) + 1, NUM_ATTITUDE_TYPES - 1)) < 100 ||
 		// </advc.120b>
@@ -18240,7 +18249,7 @@ void CvPlayerAI::AI_changePeaceTimeValue(PlayerTypes eIndex, int iChange,
 		scores, times 2 b/c "fair trade" is twice as sensitive as "traded with
 		worst enemy" (it's this way too in BtS) */
 	int incr = ::round((val * 4000)
-			/*  BtS adjusted trade and grant values to the game progress only when
+			/*  BtS adjusted trade and grant values to the game progress when
 				computing the effect on relations. Now that progress is measured
 				by score, it's better to do it here, based on the scores at the time
 				that the trade happens. */
@@ -18307,7 +18316,8 @@ void CvPlayerAI::AI_setBonusTradeCounter(PlayerTypes eIndex, int iValue) {
 	m_aiBonusTradeCounter[eIndex] = iValue;
 } // </advc.130k>
 
-// <advc.130x> 0: same religion, 1 differing religion, 2 fav civic
+/*  <advc.130x> modes:
+	0: same religion, 1 differing religion, 2 fav civic */
 int CvPlayerAI::ideologyDiploLimit(PlayerTypes theyId, int mode) const {
 
 	if(mode < 0 && mode > 2) {
@@ -18324,7 +18334,8 @@ int CvPlayerAI::ideologyDiploLimit(PlayerTypes theyId, int mode) const {
 	}
 	lhLimit = abs(lhLimit);
 	// Don't further reduce a limit of 1
-	if(lhLimit <= 1) return lhLimit;
+	if(lhLimit <= 1)
+		return lhLimit;
 	int total = 0;
 	int count = 0;
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
@@ -18508,7 +18519,7 @@ void CvPlayerAI::AI_rememberEvent(PlayerTypes civId, MemoryTypes mem) {
 		{MEMORY_ACCEPTED_CIVIC, MEMORY_DENIED_CIVIC},
 		{MEMORY_ACCEPTED_JOIN_WAR, MEMORY_DENIED_JOIN_WAR},
 		{MEMORY_ACCEPTED_STOP_TRADING, MEMORY_DENIED_STOP_TRADING},
-		/*  All the others are AI requests, so, this one is odd, and
+		/*  All the others are AI requests, so this one is odd, and
 			it decays very quickly anyway. */
 		//{MEMORY_VOTED_FOR_US, MEMORY_VOTED_AGAINST_US},
 		/*  Could let a +2 event erase e.g. half of a remembered -2 event,
@@ -18517,7 +18528,7 @@ void CvPlayerAI::AI_rememberEvent(PlayerTypes civId, MemoryTypes mem) {
 		//{MEMORY_EVENT_GOOD_TO_US, MEMORY_EVENT_BAD_TO_US},
 		// Not worth complicating things for:
 		//{MEMORY_DECLARED_WAR, MEMORY_INDEPENDENCE},
-		// !! Update nPairs when adding/removing pairs
+		// !! Update nPairs when adding/removing pairs !!
 	};
 	for(int i = 0; i < nPairs; i++)
 		for(int j = 0; j < 2; j++)
@@ -18699,7 +18710,7 @@ void CvPlayerAI::AI_doCounter()
 			}
 			AI_changeBonusTradeCounter(civId, t.randomCounterChange(::round(
 					1.25 * attitudeDiv * lh.getBonusTradeAttitudeChangeLimit()),
-					incr / 2)); // Halved b/c it's binomial distrib w/ 2 trials
+					incr / 2)); // Halved b/c it's a binomial distrib w/ 2 trials
 			// <advc.036>
 			int oldGoldTraded = AI_getGoldTradedTo(civId);
 			int newGoldTraded = (int)(mult * oldGoldTraded);
@@ -18814,7 +18825,7 @@ double CvPlayerAI::bonusImportValue(PlayerTypes fromId) const {
 			}
 		}
 	}
-	// The divisor should be the typical value of a somewhat useful bonus
+	// The divisor should be the typical gpt value of a somewhat useful bonus
 	return r / 5;
 } // </advc.149>
 
@@ -18872,7 +18883,9 @@ void CvPlayerAI::AI_doMilitary()
 
 				iCost = AI_unitCostPerMil();
 			} while (iCost > 0 && (iCost > iMaxCost || calculateGoldRate() < 0) && AI_isFinancialTrouble()
-				&& iDisbandCount <= 2); // advc.110: Disband at most 2 units per turn.
+					// <advc.110> Limit the number of units disbanded per turn
+					&& ((int)iDisbandCount <= std::max(1, (int)getCurrentEra()) ||
+					isStrike())); // </advc.110>
 		}
 	}
 	// K-Mod end
@@ -20118,9 +20131,10 @@ void CvPlayerAI::AI_doDiplo()
 							else
 							{
 								bool bAccepted = true;
-								/*  advc.104o: Already checked by canTradeItem
-									(actually regardless of whether UWAI is enabled,
-									I think) */
+								/*  advc.104o: The bAccepted condition below is
+									already checked by canTradeItem I think.
+									(Should perhaps skip it regardless of
+									whether UWAI is enabled.) */
 								if(!getWPAI.isEnabled()) {
 									TeamTypes eMasterTeam = civ.getTeam();
 									for (int iTeam = 0; iTeam < MAX_CIV_TEAMS; iTeam++)
@@ -20902,7 +20916,7 @@ void CvPlayerAI::AI_doDiplo()
 }
 
 // <advc.003> Refactored code from AI_doDiplo
-/*  Caller ensures that human isn't us, not on our team, not a vassal
+/*  Caller ensures that humanId isn't us, not on our team, not a vassal
 	and can be contacted. We're alive, not human, not a vassal, team leader. */
 bool CvPlayerAI::proposeJointWar(PlayerTypes humanId) {
 
@@ -21143,7 +21157,7 @@ bool CvPlayerAI::proposeResourceTrade(PlayerTypes civId) {
 		setTradeItem(&item, TRADE_RESOURCES, eBestGiveBonus);
 		ourList.insertAtEnd(item);
 		/*  Code (K-Mod) copied from the tech trade block above.
-			Can't move this stuff into the AI_counterPropose b/c
+			Can't move this stuff into AI_counterPropose b/c
 			the lists need to be allocated here. */
 		CLinkList<TradeData> ourInventory, theirInventory, ourCounter, theirCounter;
 		// Leave our inventory empty; we're not giving anything else.
@@ -23031,8 +23045,9 @@ int CvPlayerAI::AI_calculateConquestVictoryStage() const
 		const CvTeamAI& kLoopTeam = GET_TEAM(i);
 
 		if (i == getTeam() || !kLoopTeam.isAlive() || kLoopTeam.isMinorCiv())
-			continue;
-		if(!kLoopTeam.isAVassal()) nRemaining++; // advc.104c
+			continue; // <advc.104c>
+		if(!kLoopTeam.isAVassal())
+			nRemaining++; // </advc.104c>
 		if (kTeam.isHasMet(i) && !kLoopTeam.isAVassal())
 		{
 			iRivalTeams++;
@@ -23188,24 +23203,24 @@ int CvPlayerAI::AI_calculateDominationVictoryStage() const
 				(theirPopPercent >= popObjective - iOurPopPercent ||
 				theirLandPercent >= landObjective - iOurLandPercent))
 			blockedByFriend = true;
-	} // </avdri.104c>
+	} // </advc.104c>
 	
 	iPercentOfDomination = (100 * iOurPopPercent) / 
 			popObjective; // advc.104c
-	iPercentOfDomination = std::min( iPercentOfDomination, (100 * iOurLandPercent) /
-			landObjective ); // advc.104c
+	iPercentOfDomination = std::min(iPercentOfDomination, (100 * iOurLandPercent) /
+			landObjective); // advc.104c
 
 	if(!blockedByFriend) { // advc.104c
 		// <advc.115>
 		int civs = GC.getGameINLINE().countCivPlayersEverAlive();
-		if( iPercentOfDomination > 87 - civs ) // was simply 80
-		{ // </advc.115>
+		if(iPercentOfDomination > 87 - civs) // was simply 80
+		{	// </advc.115>
 			return 4;
 		}
 
 		if( iPercentOfDomination >
 				// advc.115: was simply 50
-				62 - civs )
+				62 - civs)
 		{
 			return 3;
 		}
@@ -23322,10 +23337,10 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 		}
 	}
 	/*  LeaderHead weight is between 0 and 70. We're adding a hash between
-		0 and 50 below. These are for flavor and randomness. This is the
-		intelligent part; put that between 0 and 180.
-		Square because having e.g. 50% of the necessary votes isn't nearly
-		enough; need to get close to the vote target. */
+		0 and 50 below. These are for flavor and randomness.
+		This here is the intelligent part; put it between 0 and 180.
+		Square b/c having e.g. 50% of the necessary votes isn't nearly enough;
+		need to get close to the vote target. */
 	iValue += ::round(200 * progressRatio * progressRatio * membersProgress * membersProgress);
 	// </advc.115b>
 
@@ -24044,7 +24059,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 			// K-Mod. Paranoia gets scaled by relative power anyway...
 			iTempParanoia += std::max(0, iAttitudeWarProb/2);
 			/*  <advc.022> This is about us attacking someone (not relevant for
-				Paranoia, but for Dagger, so our attitude should be used.
+				Paranoia, but for Dagger), so our attitude should be used.
 				K-Mod already did that, but iAttitudeWarProb now refers to
 				kLoopPlayer. */
 			//if (iAttitudeWarProb > 10 && iCloseness > 0)
@@ -25507,7 +25522,7 @@ int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea* pArea) const
     if(GC.getGame().isOption(GAMEOPTION_RAGING_BARBARIANS)
             && !GC.getEraInfo(getCurrentEra()).isNoBarbUnits()) {
         int startEra = GC.getGameINLINE().getStartEra();
-        if(iCurrentEra <= 1 + startEra)
+		if(GC.getGameINLINE().getCurrentEra() <= 1 + startEra)
            iDefenders += 1 + startEra;
     }
     /*if ((iCurrentEra < 3) && (GC.getGameINLINE().isOption(GAMEOPTION_RAGING_BARBARIANS)))
@@ -28189,7 +28204,8 @@ int CvPlayerAI::anarchyTradeVal(CivicTypes eCivic) const {
 	r *= (anarchyLength + 0.36 * switchBackAnarchyLength);
 	/*  Going to get only half the trade val as gpt. But we're also going to
 		benefit from denying gold from a competitor. So far, only humans can
-		trade for religion and civics changes, and they're strong competitors. */
+		trade for religion and civics changes, and they're strong competitors.
+		Therefore multiply by a factor smaller than 2. */
 	r *= 1.73;
 	return ::round(r);
 } // </advc.132>

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<!-- advc: This file contains only in-game text added by the mod.
-	 Look on my translation works, and despair. -->
+<!-- advc: This file contains only in-game text added by the mod. -->
 <Civ4GameText>
 
 	<!-- [advc.100] In-game text for displaying and logging messages about
@@ -107,9 +106,9 @@
 		 New help text for the Aggressive AI option. Original text in CIV4GameText_Misc1.xml. -->
     <TEXT>
 		<Tag>TXT_KEY_GAME_OPTION_AGGRESSIVE_AI_HELP</Tag>
-		<English>Use K-Mod's aggressive AI for decisions on war and peace (instead of the newer AdvCiv AI). </English>
+		<English>Use the K-Mod AI for decisions on war and peace (instead of the newer and less aggressive AdvCiv AI). </English>
 		<French>Emploie l'IA agressive de K-Mod pour les d&#233;cisions de guerre et paix.</French>
-		<German>Verwende die aggressive K-Mod-KI f&#252;r Entscheidungen &#252;ber Krieg und Frieden (anstatt der neueren AdvCiv-KI).</German>
+		<German>Verwende die K-Mod-KI f&#252;r Entscheidungen &#252;ber Krieg und Frieden (anstatt der neueren und weniger aggressiven AdvCiv-KI).</German>
 		<Italian>Usa l'IA aggressiva di K-Mod per le decisioni di guerra e pace.</Italian>
 		<Spanish>Emplea IA de K-Mod por las decisiones de guerra e paz.</Spanish>
     </TEXT>
@@ -642,12 +641,44 @@
 		<Italian>%D1: "Il nostro accordo di diritto di passaggio ha permesso ai nostri popoli di avvicinarsi"</Italian>
 		<Spanish>%D1: "La apertura de fronteras ha acercado m&#225;s a nuestros pueblos."</Spanish>
 	</TEXT>
+
+	<!-- advc.004g: Originally in Civ4GameTextInfos.xml. Removed the "trying"
+		 from "died trying to attack". -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_YOU_UNIT_DIED_ATTACKING</Tag>
+		<English>Your %s1_UnitName has died attacking a %s2_EnUName!</English>
+		<French>Votre %s1_UnitName a p&#233;ri en attaquant [NUM2:un:une:des:des] %s2_EnUName !</French>
+		<German>Eure Einheit %s1_UnitName ist beim Angriff auf eine Einheit %s2_EnUName umgekommen!</German>
+		<Italian>La tua unit&#224; di %s1_UnitName &#232; [NUM1:morto:morta] attaccando %s2_EnUName!</Italian>
+		<Spanish>[NUM1:Vuestro:Vuestra:Vuestros:Vuestras] %s1_UnitName [NUM1:ha:ha:han:han] muerto atacando a [NUM2:un:una:unos:unas] %s2_EnUName.</Spanish>
+	</TEXT>
+
+	<!-- advc.004g: Originally in CIV4GameText_Misc1.xml. The way that the
+		 option is named and described suggests that it shows a city radius
+		 around a selected Settler (I wish!), but it actually shows the radii of
+		 existing cities. -->
+	<TEXT>
+		<Tag>TXT_KEY_GRAPHICOPTION_CITY_RADIUS</Tag>
+		<English>Show City Radii</English>
+		<French>Afficher Rayon ville</French>
+		<German>Stadtumkreise anzeigen</German>
+		<Italian>Mostra raggio d'azione delle citt&#224;</Italian>
+		<Spanish>Mostrar radio urbano</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GRAPHICOPTION_CITY_RADIUS_HELP</Tag>
+		<English>Shows the radii of existing cities when a Settler is selected</English>
+		<French>Affiche les rayons de les villes quand un colon est s&#233;lectionn&#233;.</French>
+		<German>Zeigt die Umkreise bisheriger Städte an, wenn ein Siedler ausgewählt ist.</German>
+		<Italian>Mostra i raggi d'azione delle citt&#224; selezionando un colono</Italian>
+		<Spanish>Para ver los radios urbanos al seleccionar a un colono</Spanish>
+	</TEXT>
 	
 	<!-- advc.004s: Originally in CIV4GameTextInfos.xml;
 		 says just "(Gold)" there. Translation from TXT_KEY_RESEARCH
 		 in CIV4GameText_Misc1.xml.
 		 German: Not enough room for "BSP (...)".
-		 Sadly, since the text appears as an option in a drop-down menu,
+		 Sadly, since the text appears as an option on a drop-down menu,
 		 it seems to be impossible to use yield icons (e.g. [ICON_GOLD] instead
 		 of the word "Gold"). It would've been really nice to use the
 		 combat strength icon on the "Power" graph. -->
@@ -2411,7 +2442,7 @@
 		<Tag>TXT_KEY_GAME_OPTION_RISE_FALL_HELP</Tag>
 		<English>Divides the game into chapters; at the end of each chapter, you take over an AI civ and the AI takes over your previous civ. (Singleplayer only, and Large or Huge map recommended.)</English>
 		<French>Divides the game into chapters; at the end of each chapter, you take over an AI civ and the AI takes over your previous civ. (Singleplayer only, and Large or Huge map recommended.)</French>
-		<German>Der Spieler in jedem Spielabschnitt eine andere Zivilisation von der KI. (Nur Einzelspielermodus; große oder riesige Karte empfohlen.)</German>
+		<German>Der Spieler übernimmt in jedem Spielabschnitt eine andere Zivilisation von der KI. (Nur Einzelspielermodus; große oder riesige Karte empfohlen.)</German>
 		<Italian>Divides the game into chapters; at the end of each chapter, you take over an AI civ and the AI takes over your previous civ. (Singleplayer only, and Large or Huge map recommended.)</Italian>
 		<Spanish>Divides the game into chapters; at the end of each chapter, you take over an AI civ and the AI takes over your previous civ. (Singleplayer only, and Large or Huge map recommended.)</Spanish>
 	</TEXT>

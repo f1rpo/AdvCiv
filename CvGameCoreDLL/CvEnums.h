@@ -2770,6 +2770,11 @@ enum GlobeLayerUnitOptionTypes
 {
 	SHOW_ALL_MILITARY,
 	SHOW_TEAM_MILITARY,
+	/*  advc.004z: The third position is the default, which, apparently, cannot
+		be changed properly with the SDK. Put a dummy option in that position,
+		have it behave like SHOW_ALL_MILITARY and hide it from the player
+		(through CvMainInterface.py). */
+	GLOBE_LAYER_UNIT_DUMMY,
 	SHOW_ENEMIES_IN_TERRITORY,
 	SHOW_ENEMIES,
 	SHOW_PLAYER_DOMESTICS,

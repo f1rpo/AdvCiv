@@ -979,11 +979,10 @@
 		 indicated on the map. If set to 1 (BtS behavior), options
 		 for displaying e.g. only domestic or hostile units are shown
 		 when in Globe view (meaning that there is no room for the
-		 scoreboard). 1 also means that "Enemies in Territory" is the default
-		 option when not in Globe view (as in BtS). -->
+		 scoreboard). -->
 	<Define>
 		<DefineName>SHOW_UNIT_LAYER_OPTIONS</DefineName>
-		<iDefineIntVal>0</iDefineIntVal>
+		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 	<!-- If set to 1, the Trade layer (Globe view) colors tiles connected	
 		 through trade regardless of the tile owner. If set to 0 (BtS
@@ -1000,9 +999,10 @@
 		<DefineName>CONNECTION_TO_CAPITAL_ON_TRADE_LAYER</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
-	<!-- If set to 1, the Resource layer highlights Tribal Villages in addition
-		 to resources. If set to 0 (BtS behavior), only resources are
-		 highlighted. -->
+	<!-- If set to 1, and unit action recommendations are disabled, the
+		 Resource layer highlights Tribal Villages in addition to resources
+		 when showing "All Resources". If set to 0 (BtS behavior), the Resource
+		 layer never highlights Tribal Villages. -->
 	<Define>
 		<DefineName>SHOW_GOODY_HUTS_ON_RESOURCE_LAYER</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>

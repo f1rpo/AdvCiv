@@ -351,6 +351,7 @@ void RiseFall::atTurnEnd(PlayerTypes civId) {
 
 void RiseFall::atGameTurnStart() {
 
+	CvGame& g = GC.getGame();
 	int currentChPos = getCurrentChapter();
 	if(currentChPos < 0 || interludeCountdown > 0) {
 		interludeCountdown--;
@@ -359,7 +360,6 @@ void RiseFall::atGameTurnStart() {
 		//centerCamera(g.getActivePlayer());
 		return;
 	}
-	CvGame& g = GC.getGame();
 	int gameTurn = g.getGameTurn();
 	RFChapter& currentCh = *chapters[currentChPos];
 	if(currentCh.getStartTurn() >= gameTurn) {
@@ -542,6 +542,9 @@ void RiseFall::centerCamera(PlayerTypes civId) {
 			the map or using Civ Changer (Alt+Z); perhaps can't be fixed. */
 		gDLL->getInterfaceIFace()->lookAt(capitalPlot->getPoint(),
 				CAMERALOOKAT_NORMAL);
+		// This doesn't seem to help either:
+		/*NiPoint3 p3 = capitalPlot->getPoint();
+		gDLL->getEngineIFace()->ClampToWorldCoords(&p3);*/
 	}
 }
 
@@ -596,23 +599,29 @@ void RiseFall::abandonPlans(PlayerTypes civId) {
 		if(gr->getHeadUnit() == NULL)
 			continue;
 		gr->setAutomateType(NO_AUTOMATE);
+		// Remove all but the current mission
+		while(gr->headMissionQueueNode() != NULL &&
+				gr->nextMissionQueueNode(gr->headMissionQueueNode()) != NULL)
+			gr->deleteMissionQueueNode(gr->nextMissionQueueNode(gr->headMissionQueueNode()));
+		/*  If it's not a BUILD mission, remove the current mission too. Also
+			remove MISSION_ROUTE_TO b/c it's not really just a single mission. */
 		if(gr->getActivityType() != ACTIVITY_MISSION ||
 				gr->getMissionType(0) != MISSION_BUILD) {
 			gr->setActivityType(ACTIVITY_AWAKE);
 			gr->clearMissionQueue();
 			if(!active)
 				continue;
-			// Not really the job of this function, but while we're at it:
-			if(!unitSelected && capital != NULL && gr->atPlot(capital->plot())) {
-				gDLL->getInterfaceIFace()->selectGroup(gr->getHeadUnit(),
-					false, false, false);
-				unitSelected = true;
-				gDLL->getInterfaceIFace()->lookAtSelectionPlot();
-			}
-			// Otherwise, units outside owner's borders don't appear on the main interface
-			if(gr->plot()->getOwnerINLINE() != civId)
-				gr->plot()->updateCenterUnit();
 		}
+		// Not really the job of this function, but while we're at it:
+		if(!unitSelected && capital != NULL && gr->atPlot(capital->plot())) {
+			gDLL->getInterfaceIFace()->selectGroup(gr->getHeadUnit(),
+					false, false, false);
+			unitSelected = true;
+			gDLL->getInterfaceIFace()->lookAtSelectionPlot();
+		}
+		// Without this, units outside owner's borders don't appear on the main interface.
+		if(gr->plot()->getOwnerINLINE() != civId)
+			gr->plot()->updateCenterUnit();
 	}
 	// Set research slider to a balanced-budget position
 	int incr = GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS");
