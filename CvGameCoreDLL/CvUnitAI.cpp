@@ -12327,6 +12327,7 @@ bool CvUnitAI::AI_guardCitySite()
 	CvPlot* pBestGuardPlot = NULL;
 	// advc.003: Moved all the other declarations
 	CvPlayerAI const& owner = GET_PLAYER(getOwnerINLINE());
+	//iBestValue = 0;
 	/*  advc.300: Don't guard any ole tile with a positive found value;
 		only actual city sites. */
 	int iBestValue = owner.AI_getMinFoundValue() - 1;
@@ -16833,7 +16834,7 @@ bool CvUnitAI::AI_pirateBlockade()
 				CvCity* pPlotCity = pRangePlot->getPlotCity();
 				if (pPlotCity != NULL &&
 						/*  advc.003: Note that isEnemy checks isAlwaysHostile;
-							so the owner pPlotCity does not have to be a
+							so the owner of pPlotCity does not have to be a
 							war enemy of this unit. */
 						isEnemy(pPlotCity->getTeam(), pLoopPlot))
 				{

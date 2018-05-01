@@ -24590,7 +24590,8 @@ void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector
 		if (iTotalCulture == 0)
 			continue;
 		// K-Mod end
-		for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; iPlayer++)
+		// dlph.21: was MAX_CIV_PLAYERS
+		for (int iPlayer = 0; iPlayer < MAX_PLAYERS; iPlayer++)
 		{
 			// advc.099: Replaced "Alive" with "EverAlive"
 			if (GET_PLAYER((PlayerTypes)iPlayer).isEverAlive())

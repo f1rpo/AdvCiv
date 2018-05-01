@@ -3959,7 +3959,7 @@ bool CvPlot::isVisibleEnemyUnit(PlayerTypes ePlayer) const
 // <advc.122>
 bool CvPlot::isVisibleEnemyCityAttacker(PlayerTypes ePlayer) const {
 	return (plotCheck(PUF_isEnemyCityAttacker, ePlayer, false, NO_PLAYER, NO_TEAM, PUF_isVisible, ePlayer) != NULL);
-} // </Advc.122>
+} // </advc.122>
 
 // K-Mod
 bool CvPlot::isVisiblePotentialEnemyUnit(PlayerTypes ePlayer) const
@@ -9358,14 +9358,14 @@ void CvPlot::processArea(CvArea* pArea, int iChange)
 ColorTypes CvPlot::plotMinimapColor()
 {
 	CvUnit* pCenterUnit;
-
+	TeamTypes activeTeam = GC.getGameINLINE().getActiveTeam(); // advc.003
 	if (GC.getGameINLINE().getActivePlayer() != NO_PLAYER)
 	{
 		CvCity* pCity;
 
 		pCity = getPlotCity();
 
-		if ((pCity != NULL) && pCity->isRevealed(GC.getGameINLINE().getActiveTeam(), true))
+		if ((pCity != NULL) && pCity->isRevealed(activeTeam, true))
 		{
 			return (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE");
 		}
@@ -9378,13 +9378,14 @@ ColorTypes CvPlot::plotMinimapColor()
 
 			if (pCenterUnit != NULL)
 			{
-				return ((ColorTypes)(GC.getPlayerColorInfo(GET_PLAYER(pCenterUnit->getVisualOwner()).getPlayerColor()).getColorTypePrimary()));
+				return (ColorTypes)(GC.getPlayerColorInfo(GET_PLAYER(pCenterUnit->getVisualOwner()).getPlayerColor()).getColorTypePrimary());
 			}
 		}
-
-		if ((getRevealedOwner(GC.getGameINLINE().getActiveTeam(), true) != NO_PLAYER) && !isRevealedBarbarian())
+		// dlph.21: Removed !isRevealedBarbarian() clause
+		if (getRevealedOwner(activeTeam, true) != NO_PLAYER)
 		{
-			return ((ColorTypes)(GC.getPlayerColorInfo(GET_PLAYER(getRevealedOwner(GC.getGameINLINE().getActiveTeam(), true)).getPlayerColor()).getColorTypePrimary()));
+			return ((ColorTypes)(GC.getPlayerColorInfo(GET_PLAYER(
+					getRevealedOwner(activeTeam, true)).getPlayerColor()).getColorTypePrimary()));
 		}
 	}
 

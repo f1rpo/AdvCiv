@@ -247,10 +247,13 @@ void CvGame::setInitialItems()
 				!GET_PLAYER(i).isMinorCiv()) nAI++; // </advc.250b>
 	}
 	if (isGameMultiPlayer()) {
-		if (iHumanPlayers > 0)
+		if (iHumanPlayers > 0) {
 			/*  advc.250a: Relies on no strange new handicaps being placed
 				between Settler and Deity. Same in CvTeam::getHandicapType. */
-			setHandicapType((HandicapTypes)(iTotal / (10 * iHumanPlayers)));
+				setHandicapType((HandicapTypes)
+				::round // dlph.22
+				(iTotal / (10.0 * iHumanPlayers)));
+		}
 		else // advc.003: Moved K-Mod comment into AssertMsg.
 			FAssertMsg(false, "All-AI game. Not necessarily wrong, but unexpected.");
 	}
