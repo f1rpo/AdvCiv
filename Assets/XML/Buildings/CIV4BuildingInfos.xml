@@ -384,7 +384,8 @@
 			<GlobalCorporationCommerce>NONE</GlobalCorporationCommerce>
 			<VictoryPrereq>NONE</VictoryPrereq>
 			<FreeStartEra>NONE</FreeStartEra>
-			<MaxStartEra>ERA_INDUSTRIAL</MaxStartEra>
+			<!-- advc.008a: was ERA_INDUSTRIAL -->
+			<MaxStartEra>ERA_RENAISSANCE</MaxStartEra>
 			<ObsoleteTech>NONE</ObsoleteTech>
 			<PrereqTech>TECH_DIVINE_RIGHT</PrereqTech>
 			<TechTypes/>
@@ -7817,7 +7818,7 @@
 			<BonusYieldModifiers/>
 			<ImprovementFreeSpecialists/>
 			<!-- advc.020: Was 10 Science. While Monuments should be the
-				 preferred method of popping borders fro Culture-flavored
+				 preferred method of popping borders for Culture-flavored
 				 leaders, they should eventually also be interested in
 				 Libraries (and more so than the average leader). -->
 			<Flavors>
@@ -26324,7 +26325,8 @@
 			<GlobalCorporationCommerce>NONE</GlobalCorporationCommerce>
 			<VictoryPrereq>NONE</VictoryPrereq>
 			<FreeStartEra>NONE</FreeStartEra>
-			<MaxStartEra>ERA_ANCIENT</MaxStartEra>
+			<!-- advc.310: was ERA_ANCIENT -->
+			<MaxStartEra>ERA_CLASSICAL</MaxStartEra>
 			<!-- advc.310: Was NONE -->
 			<ObsoleteTech>TECH_CORPORATION</ObsoleteTech>
 			<!-- advc.310: Was TECH_MASONRY -->
@@ -26525,7 +26527,8 @@
 			<GlobalCorporationCommerce>NONE</GlobalCorporationCommerce>
 			<VictoryPrereq>NONE</VictoryPrereq>
 			<FreeStartEra>NONE</FreeStartEra>
-			<MaxStartEra>ERA_ANCIENT</MaxStartEra>
+			<!-- advc.008a: was ERA_ANCIENT -->
+			<MaxStartEra>ERA_CLASSICAL</MaxStartEra>
 			<ObsoleteTech>NONE</ObsoleteTech>
 			<PrereqTech>TECH_AESTHETICS</PrereqTech>
 			<TechTypes/>
@@ -27074,7 +27077,8 @@
 			<GlobalCorporationCommerce>NONE</GlobalCorporationCommerce>
 			<VictoryPrereq>NONE</VictoryPrereq>
 			<FreeStartEra>NONE</FreeStartEra>
-			<MaxStartEra>ERA_RENAISSANCE</MaxStartEra>
+			<!-- advc.008a: was ERA_RENAISSANCE -->
+			<MaxStartEra>ERA_MEDIEVAL</MaxStartEra>
 			<ObsoleteTech>NONE</ObsoleteTech>
 			<PrereqTech>TECH_AESTHETICS</PrereqTech>
 			<TechTypes>

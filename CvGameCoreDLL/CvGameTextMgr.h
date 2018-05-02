@@ -175,6 +175,9 @@ public:
 	DllExport bool buildPromotionString( CvWStringBuffer& szBuffer, TechTypes eTech, int iPromotionType, bool bFirst, bool bList = false, bool bPlayerContext = false );
 	DllExport void buildHintsList(CvWStringBuffer& szBuffer);
 	DllExport void buildBuildingRequiresString(CvWStringBuffer& szBuffer, BuildingTypes eBuilding, bool bCivilopediaText, bool bTechChooserText, const CvCity* pCity);
+	// <advc.179>
+	void buildBuildingReligionYieldString(CvWStringBuffer& szBuffer,
+			CvBuildingInfo const& kBuilding); // </advc.179>
 
 	DllExport void buildCityBillboardIconString( CvWStringBuffer& szBuffer, CvCity* pCity);
 	DllExport void buildCityBillboardCityNameString( CvWStringBuffer& szBuffer, CvCity* pCity);

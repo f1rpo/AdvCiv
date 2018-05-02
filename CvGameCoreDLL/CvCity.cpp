@@ -8794,84 +8794,107 @@ int CvCity::getAdditionalBaseYieldRateByBuilding(YieldTypes eIndex, BuildingType
 	CvBuildingInfo& kBuilding = GC.getBuildingInfo(eBuilding);
 	bool bObsolete = GET_TEAM(getTeam()).isObsoleteBuilding(eBuilding);
 	int iExtraRate = 0;
-
-	if (!bObsolete)
+	// <advc.003>
+	if(bObsolete)
+		return 0; // </advc.003>
+	// <advc.179> Some overlap with code in CvGameTextMgr::buildBuildingReligionYieldString
+	for(int i = 0; i < GC.getNumVoteSourceInfos(); i++) {
+		VoteSourceTypes vsId = (VoteSourceTypes)i;
+		if(vsId != kBuilding.getVoteSourceType())
+			continue;
+		CvVoteSourceInfo& vs = GC.getVoteSourceInfo(vsId);
+		if(vs.getReligionYield(eIndex) != 0) {
+			ReligionTypes vsReligion =
+				// This would be NO_RELIGION b/c the vote source doesn't exist yet
+				//GC.getGameINLINE().getVoteSourceReligion(vsId);
+				GET_PLAYER(getOwnerINLINE()).getStateReligion();
+			if(vsReligion != NO_RELIGION) {
+				// Based on processVoteSourceBonus
+				for(int j = 0; j < GC.getNumBuildingInfos(); j++) {
+					BuildingTypes bt = (BuildingTypes)j;
+					if(getNumBuilding(bt) <= 0 || GET_TEAM(getTeam()).
+							isObsoleteBuilding(bt))
+						continue;
+					if(GC.getBuildingInfo(bt).getReligionType() == vsReligion)
+						iExtraRate += vs.getReligionYield(eIndex);
+				}
+			}
+		}
+	} // </advc.179>
+	if (kBuilding.getSeaPlotYieldChange(eIndex) != 0)
 	{
-		if (kBuilding.getSeaPlotYieldChange(eIndex) != 0)
+		int iChange = kBuilding.getSeaPlotYieldChange(eIndex);
+		for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
 		{
-			int iChange = kBuilding.getSeaPlotYieldChange(eIndex);
-			for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
+			if (isWorkingPlot(iI) && getCityIndexPlot(iI)->isWater())
 			{
-				if (isWorkingPlot(iI) && getCityIndexPlot(iI)->isWater())
-				{
-					iExtraRate += iChange;
-				}
+				iExtraRate += iChange;
 			}
 		}
-		if (kBuilding.getRiverPlotYieldChange(eIndex) != 0)
+	}
+	if (kBuilding.getRiverPlotYieldChange(eIndex) != 0)
+	{
+		int iChange = kBuilding.getRiverPlotYieldChange(eIndex);
+		for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
 		{
-			int iChange = kBuilding.getRiverPlotYieldChange(eIndex);
-			for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
+			if (isWorkingPlot(iI) && getCityIndexPlot(iI)->isRiver())
 			{
-				if (isWorkingPlot(iI) && getCityIndexPlot(iI)->isRiver())
-				{
-					iExtraRate += iChange;
-				}
+				iExtraRate += iChange;
 			}
 		}
-		iExtraRate += kBuilding.getYieldChange(eIndex);
-		iExtraRate += getBuildingYieldChange((BuildingClassTypes)kBuilding.getBuildingClassType(), eIndex);
+	}
+	iExtraRate += kBuilding.getYieldChange(eIndex);
+	iExtraRate += getBuildingYieldChange((BuildingClassTypes)kBuilding.getBuildingClassType(), eIndex);
 
-		// Trade
-		int iPlayerTradeYieldModifier = GET_PLAYER(getOwnerINLINE()).getTradeYieldModifier(eIndex);
-		if (iPlayerTradeYieldModifier > 0 && (kBuilding.getTradeRouteModifier() != 0 || kBuilding.getForeignTradeRouteModifier() != 0))
-		{
-			int iTotalTradeYield = 0;
-			int iNewTotalTradeYield = 0;
-// BUG - Fractional Trade Routes - start
+	// Trade
+	int iPlayerTradeYieldModifier = GET_PLAYER(getOwnerINLINE()).getTradeYieldModifier(eIndex);
+	if (iPlayerTradeYieldModifier > 0 && (kBuilding.getTradeRouteModifier() != 0 || kBuilding.getForeignTradeRouteModifier() != 0))
+	{
+		int iTotalTradeYield = 0;
+		int iNewTotalTradeYield = 0;
+		// BUG - Fractional Trade Routes - start
 #ifdef _MOD_FRACTRADE
-			int iTradeProfitDivisor = 100;
+		int iTradeProfitDivisor = 100;
 #else
-			int iTradeProfitDivisor = 10000;
+		int iTradeProfitDivisor = 10000;
 #endif
-// BUG - Fractional Trade Routes - end
+		// BUG - Fractional Trade Routes - end
 
-			for (int iI = 0; iI < getTradeRoutes(); ++iI)
+		for (int iI = 0; iI < getTradeRoutes(); ++iI)
+		{
+			CvCity* pCity = getTradeCity(iI);
+			if (pCity)
 			{
-				CvCity* pCity = getTradeCity(iI);
-				if (pCity)
+				int iTradeProfit = getBaseTradeProfit(pCity);
+				int iTradeModifier = totalTradeModifier(pCity);
+				int iTradeYield = iTradeProfit * iTradeModifier / iTradeProfitDivisor * iPlayerTradeYieldModifier / 100;
+				iTotalTradeYield += iTradeYield;
+
+				iTradeModifier += kBuilding.getTradeRouteModifier();
+				if (pCity->getOwnerINLINE() != getOwnerINLINE())
 				{
-					int iTradeProfit = getBaseTradeProfit(pCity);
-					int iTradeModifier = totalTradeModifier(pCity);
-					int iTradeYield = iTradeProfit * iTradeModifier / iTradeProfitDivisor * iPlayerTradeYieldModifier / 100;
-					iTotalTradeYield += iTradeYield;
-
-					iTradeModifier += kBuilding.getTradeRouteModifier();
-					if (pCity->getOwnerINLINE() != getOwnerINLINE())
-					{
-						iTradeModifier += kBuilding.getForeignTradeRouteModifier();
-					}
-					int iNewTradeYield = iTradeProfit * iTradeModifier / iTradeProfitDivisor * iPlayerTradeYieldModifier / 100;
-					iNewTotalTradeYield += iNewTradeYield;
+					iTradeModifier += kBuilding.getForeignTradeRouteModifier();
 				}
+				int iNewTradeYield = iTradeProfit * iTradeModifier / iTradeProfitDivisor * iPlayerTradeYieldModifier / 100;
+				iNewTotalTradeYield += iNewTradeYield;
 			}
-
-// BUG - Fractional Trade Routes - start
-#ifdef _MOD_FRACTRADE
-			iTotalTradeYield /= 100;
-			iNewTotalTradeYield /= 100;
-#endif
-// BUG - Fractional Trade Routes - end
-			iExtraRate += iNewTotalTradeYield - iTotalTradeYield;
 		}
 
-		// Specialists
-		for (int iI = 0; iI < GC.getNumSpecialistInfos(); ++iI)
+		// BUG - Fractional Trade Routes - start
+#ifdef _MOD_FRACTRADE
+		iTotalTradeYield /= 100;
+		iNewTotalTradeYield /= 100;
+#endif
+		// BUG - Fractional Trade Routes - end
+		iExtraRate += iNewTotalTradeYield - iTotalTradeYield;
+	}
+
+	// Specialists
+	for (int iI = 0; iI < GC.getNumSpecialistInfos(); ++iI)
+	{
+		if (kBuilding.getFreeSpecialistCount((SpecialistTypes)iI) != 0)
 		{
-			if (kBuilding.getFreeSpecialistCount((SpecialistTypes)iI) != 0)
-			{
-				iExtraRate += getAdditionalBaseYieldRateBySpecialist(eIndex, (SpecialistTypes)iI, kBuilding.getFreeSpecialistCount((SpecialistTypes)iI));
-			}
+			iExtraRate += getAdditionalBaseYieldRateBySpecialist(eIndex, (SpecialistTypes)iI, kBuilding.getFreeSpecialistCount((SpecialistTypes)iI));
 		}
 	}
 

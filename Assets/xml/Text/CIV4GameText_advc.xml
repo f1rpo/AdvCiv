@@ -3314,4 +3314,48 @@
 		<Spanish>%s1_Ldr ha entrado en [NUM2:el:la:los:las] %s2_era.</Spanish>
 	</TEXT>
 	
+	<!-- advc.179 (not confident in my translations) -->
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_RELIGION_YIELD</Tag>
+		<English>for all Buildings of the %s1_BldName Religion (can benefit Rivals)</English>
+		<French>pour tous les bâtiments de la religion [NUM1:du:de l'] %s1_BldName (rivaux peuvent profiter)</French>
+		<German>für alle religiösen Gebäude, deren Religion mit diesem Gebäude übereinstimmt (davon können auch Gegner profitieren)</German>
+		<Italian>per tutti gli edifici della religione [NUM1:del:dell'] %s1_BldName (può aiutare i rivali)</Italian>
+		<Spanish>para todos los edificios de la religión de [NUM1:el:la] %s1_BldName (puede beneficiar a rivales)</Spanish>
+	</TEXT>
+	<!-- advc.179: Added a half sentence about building religion. This should
+		 make clear what is meant by the "Apostolic Palace religion". Show this
+		 with a bullet and in white because it's no longer purely a restriction.
+		 Originally in CIV4GameText_BTS.xml. -->
+	<TEXT>
+		<Tag>TXT_KEY_REQUIRES_STATE_RELIGION</Tag>
+		<English>[ICON_BULLET]State Religion must be present in City and becomes this Building's Religion</English>
+		<French>[ICON_BULLET]La religion d'Etat doit &#234;tre pr&#233;sente dans cette ville et deviendra la religion de ce bâtiment</French>
+		<German>[ICON_BULLET]Staatsreligion muss in der Stadt vorhanden sein und wird dann zur Religion dieses Gebäudes</German>
+		<Italian>[ICON_BULLET]deve essere presente la religione di stato in citt&#224; e diventerá la religione di questo edificio</Italian>
+		<Spanish>[ICON_BULLET]La religi&#243;n oficial ha de estar presente en la ciudad e será la religión de este edificio.</Spanish>
+	</TEXT>
+	<!-- Based on TXT_KEY_BUILDING_ELECTION_ELIGIBILITY in
+		 CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_ELECTION_ELIGIBILITY_SHORT</Tag>
+		<English>and Guarantees Eligibility</English>
+		<French>et garantit l'&#233;ligibilit&#233;</French>
+		<German>und garantiert Kandidatur</German>
+		<Italian>e garantisce l'idoneit&#224;</Italian>
+		<Spanish>e garantiza la validez de los votos</Spanish>
+	</TEXT>
+	<!-- Removed "global" because "Apostolic Palace Global Elections" is too
+		 long. "UN" implies "global" anyway. Replacing the key in
+		 CIV4GameTextChanged_BTS.xml (which used to replace the one in
+		 CIV4GameTextInfos.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_DIPLO_VOTE</Tag>
+		<English>[ICON_BULLET]Triggers %s1 Elections</English>
+		<French>[ICON_BULLET]D&#233;clenche %s1 &#233;lections</French>
+		<German>[ICON_BULLET]L&#246;st globale Wahlen aus (%s1).</German>
+		<Italian>[ICON_BULLET]Attiva le %s1 Elezioni</Italian>
+		<Spanish>[ICON_BULLET]Activa el sufragio mundial (%s1).</Spanish>
+	</TEXT>
+	
 </Civ4GameText>

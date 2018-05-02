@@ -9100,7 +9100,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 		return;
 	CvBuildingClassInfo& bci = GC.getBuildingClassInfo(bct);
 	/*  ePlayer is NULL if Civilopedia accessed from main menu.
-		bCivilopedia is false then by the way (fixme?). */
+		bCivilopediaText is false then by the way (fixme?). */
 	CvPlayer const* pPlayer = (ePlayer == NO_PLAYER ? NULL : &GET_PLAYER(ePlayer));
 	//if(!bCivilopediaText && ePlayer != NO_PLAYER) {
 	if(!bCivilopediaText) { // </advc.003>
@@ -9421,7 +9421,9 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 		szFirstBuffer = gDLL->getText("TXT_KEY_BUILDING_PER_CITY_WITH", GC.getReligionInfo((ReligionTypes) kBuilding.getGlobalReligionCommerce()).getChar());
 		setCommerceChangeHelp(szBuffer, L"", L"", szFirstBuffer, GC.getReligionInfo((ReligionTypes) kBuilding.getGlobalReligionCommerce()).getGlobalReligionCommerceArray());
 	}
-
+	// <advc.179>
+	if(!bCivilopediaText)
+		buildBuildingReligionYieldString(szBuffer, kBuilding); // </advc.179>
 	if (NO_CORPORATION != kBuilding.getFoundsCorporation()
 			&& !inBuildingList) // advc.004w
 	{
@@ -9524,20 +9526,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 		szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_BORDER_OBSTACLE"));
 	}
 
-	for (iI = 0; iI < GC.getNumVoteSourceInfos(); ++iI)
-	{
-		if (kBuilding.getVoteSourceType() == (VoteSourceTypes)iI)
-		{
-			szBuffer.append(NEWLINE);
-			szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_DIPLO_VOTE", GC.getVoteSourceInfo((VoteSourceTypes)iI).getTextKeyWide()));
-		}
-	}
-
-	if (kBuilding.isForceTeamVoteEligible())
-	{
-		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_ELECTION_ELIGIBILITY"));
-	}
+	// advc.179: Triggered Election, Eligibility text moved down
 
 	if (kBuilding.isCapital())
 	{
@@ -10739,6 +10728,33 @@ void CvGameTextMgr::buildBuildingRequiresString(CvWStringBuffer& szBuffer, Build
 				szBuffer.append(gDLL->getText("TXT_KEY_REQUIRES_STATE_RELIGION"));
 			}
 		}
+		// <advc.179>
+		if(bCivilopediaText || ePlayer == NO_PLAYER)
+			buildBuildingReligionYieldString(szBuffer, kBuilding);
+		bool bEligibilityDone = false;
+		/*  Moved Triggered Election and Eligibility down so that the
+			VoteSource stuff appears in one place. */ 
+		// </advc.179>
+		for (int iI = 0; iI < GC.getNumVoteSourceInfos(); ++iI)
+		{
+			if (kBuilding.getVoteSourceType() == (VoteSourceTypes)iI)
+			{
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_DIPLO_VOTE", GC.getVoteSourceInfo((VoteSourceTypes)iI).getTextKeyWide()));
+				// <advc.179> Put eligiblity in the same line
+				if(kBuilding.isForceTeamVoteEligible()) {
+					szBuffer.append(L" " + gDLL->getText(
+							"TXT_KEY_BUILDING_ELECTION_ELIGIBILITY_SHORT"));
+					bEligibilityDone = true;
+				} // </advc.179>
+			}
+		}
+		if (kBuilding.isForceTeamVoteEligible()
+				&& !bEligibilityDone) // advc.179
+		{
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_ELECTION_ELIGIBILITY"));
+		}
 
 		if (kBuilding.getNumCitiesPrereq() > 0)
 		{
@@ -10796,24 +10812,54 @@ void CvGameTextMgr::buildBuildingRequiresString(CvWStringBuffer& szBuffer, Build
 		}
 
 		if (bCivilopediaText)
-		{
-			if (kBuilding.getVictoryPrereq() != NO_VICTORY)
-			{
-				szBuffer.append(NEWLINE);
-				szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_REQUIRES_VICTORY", GC.getVictoryInfo((VictoryTypes)(kBuilding.getVictoryPrereq())).getTextKeyWide()));
-			}
-
-			if (kBuilding.getMaxStartEra() != NO_ERA)
-			{
-				szBuffer.append(NEWLINE);
-				szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_MAX_START_ERA", GC.getEraInfo((EraTypes)kBuilding.getMaxStartEra()).getTextKeyWide()));
-			}
-
+		{	// advc.008a: Moved this block up a bit
 			if (kBuilding.getNumTeamsPrereq() > 0)
 			{
 				szBuffer.append(NEWLINE);
 				szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_REQUIRES_NUM_TEAMS", kBuilding.getNumTeamsPrereq()));
 			}
+			if (kBuilding.getVictoryPrereq() != NO_VICTORY)
+			{
+				// <advc.008a>
+				if(ePlayer == NO_PLAYER ||
+						!GC.getGameINLINE().isVictoryValid((VictoryTypes)
+						(kBuilding.getVictoryPrereq()))) {
+					if(ePlayer != NO_PLAYER)
+						szBuffer.append(gDLL->getText("TXT_KEY_COLOR_NEGATIVE"));
+					// </advc.008a>
+					szBuffer.append(NEWLINE);
+					szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_REQUIRES_VICTORY", GC.getVictoryInfo((VictoryTypes)(kBuilding.getVictoryPrereq())).getTextKeyWide()));
+					// <advc.008a>
+					if(ePlayer != NO_PLAYER)
+						szBuffer.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
+				}
+					// </advc.008a>
+			}
+
+			if (kBuilding.getMaxStartEra() != NO_ERA)
+			{	// <advc.008a>
+				TechTypes techReq = (TechTypes)kBuilding.getPrereqAndTech();
+				bool bUnavailable = (ePlayer != NO_PLAYER &&
+						GC.getGameINLINE().getStartEra() >
+						kBuilding.getMaxStartEra());
+				if(bUnavailable || (ePlayer == NO_PLAYER && (techReq == NO_TECH ||
+						GC.getTechInfo(techReq).getEra() !=
+						kBuilding.getMaxStartEra() - 1))) { // </advc.008a>
+					szBuffer.append(NEWLINE);
+					// <advc.008a>
+					if(bUnavailable)
+						szBuffer.append(gDLL->getText("TXT_KEY_COLOR_NEGATIVE"));
+					// </advc.008a>
+					szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_MAX_START_ERA",
+							GC.getEraInfo((EraTypes)kBuilding.getMaxStartEra()).
+							getTextKeyWide()));
+					// <advc.008a>
+					if(bUnavailable)
+						szBuffer.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
+					// </advc.008a>
+				}
+			}
+			// advc.008a: REQUIRES_NUM_TEAMS moved up
 		}
 		else
 		{
@@ -10922,6 +10968,31 @@ void CvGameTextMgr::buildBuildingRequiresString(CvWStringBuffer& szBuffer, Build
 	}
 }
 
+// <advc.179>
+void CvGameTextMgr::buildBuildingReligionYieldString(CvWStringBuffer& szBuffer,
+		CvBuildingInfo const& kBuilding) {
+
+	for(int i = 0; i < GC.getNumVoteSourceInfos(); i++) {
+		VoteSourceTypes vsId = (VoteSourceTypes)i;
+		if(vsId != kBuilding.getVoteSourceType())
+			continue;
+		CvVoteSourceInfo& vs = GC.getVoteSourceInfo(vsId);
+		bool bYield = false;
+		int aiYields[NUM_YIELD_TYPES];
+		for(int j = 0; j < NUM_YIELD_TYPES; j++) {
+			aiYields[j] = vs.getReligionYield(j);
+			if(vs.getReligionYield(j) != 0)
+				bYield = true;
+		}
+		if(bYield) {
+			setResumableYieldChangeHelp(szBuffer, L"", L"", L"", aiYields);
+			szBuffer.append(L" " + gDLL->getText(
+					"TXT_KEY_BUILDING_RELIGION_YIELD",
+					kBuilding.getDescription()));
+		}
+	}
+}
+// </advc.179>
 
 void CvGameTextMgr::setProjectHelp(CvWStringBuffer &szBuffer, ProjectTypes eProject, bool bCivilopediaText, CvCity* pCity)
 {
@@ -10948,9 +11019,11 @@ void CvGameTextMgr::setProjectHelp(CvWStringBuffer &szBuffer, ProjectTypes eProj
 	else
 	{
 		ePlayer = GC.getGameINLINE().getActivePlayer();
-	} // <advc.003
-	szTempBuffer.Format( SETCOLR L"<link=literal>%s</link>" ENDCOLR , TEXT_COLOR("COLOR_PROJECT_TEXT"), kProject.getDescription());
-	szBuffer.append(szTempBuffer); // </advc.003>
+	}
+	if(!bCivilopediaText) { // <advc.003
+		szTempBuffer.Format( SETCOLR L"<link=literal>%s</link>" ENDCOLR , TEXT_COLOR("COLOR_PROJECT_TEXT"), kProject.getDescription());
+		szBuffer.append(szTempBuffer);
+	}
 	if (!bCivilopediaText
 			// advc.004w: Civilopedia from main menu
 			&& ePlayer != NO_PLAYER)
@@ -11131,9 +11204,20 @@ void CvGameTextMgr::setProjectHelp(CvWStringBuffer &szBuffer, ProjectTypes eProj
 		if (bCivilopediaText)
 		{
 			if (kProject.getVictoryPrereq() != NO_VICTORY)
-			{
-				szBuffer.append(NEWLINE);
-				szBuffer.append(gDLL->getText("TXT_KEY_PROJECT_REQUIRES_STRING_VICTORY", GC.getVictoryInfo((VictoryTypes)(kProject.getVictoryPrereq())).getTextKeyWide()));
+			{	// <advc.008a>
+				if(ePlayer == NO_PLAYER ||
+						!GC.getGameINLINE().isVictoryValid((VictoryTypes)
+						(kProject.getVictoryPrereq()))) {
+					if(ePlayer != NO_PLAYER)
+						szBuffer.append(gDLL->getText("TXT_KEY_COLOR_NEGATIVE"));
+					// </advc.008a>
+					szBuffer.append(NEWLINE);
+					szBuffer.append(gDLL->getText("TXT_KEY_PROJECT_REQUIRES_STRING_VICTORY", GC.getVictoryInfo((VictoryTypes)(kProject.getVictoryPrereq())).getTextKeyWide()));
+					// <advc.008a>
+					if(ePlayer != NO_PLAYER)
+						szBuffer.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
+					// </advc.008a>
+				}
 			}
 		}
 	}
