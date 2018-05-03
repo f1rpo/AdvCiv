@@ -3358,4 +3358,14 @@
 		<Spanish>[ICON_BULLET]Activa el sufragio mundial (%s1).</Spanish>
 	</TEXT>
 	
+	<!-- advc.033 -->
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_CAN_PLUNDER</Tag>
+		<English>[ICON_BULLET]Collects Plunder Gold when Blockading Rival Cities</English>
+		<French>[ICON_BULLET]Recueille l'or du pillage en bloquant les villes rivales</French>
+		<German>[ICON_BULLET]Kassiert Gold bei Blockade gegnerischer Städte</German>
+		<Italian>[ICON_BULLET]Raccoglie l'oro del saccheggio quando blocca città rivali</Italian>
+		<Spanish>[ICON_BULLET]Recolecta oro del saqueo cuando bloquea ciudades rivales</Spanish>
+	</TEXT>
+	
 </Civ4GameText>
