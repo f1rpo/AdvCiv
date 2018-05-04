@@ -6,6 +6,7 @@
 #define CIV4_UNIT_AI_H
 
 #include "CvUnit.h"
+#include <utility> // advc.033
 
 class CvCity;
 
@@ -300,7 +301,11 @@ protected:
 	bool AI_followBombard();
 
 	bool AI_potentialEnemy(TeamTypes eTeam, const CvPlot* pPlot = NULL);
-
+	// <advc.033>
+	std::pair<int,int> countPiracyTargets(CvPlot const& p,
+			bool stopIfAnyTarget = false) const;
+	bool isAnyPiracyTarget(CvPlot const& p) const;
+	// </advc.033>
 	bool AI_defendPlot(CvPlot* pPlot);
 	int AI_pillageValue(CvPlot* pPlot, int iBonusValueThreshold = 0);
 	//int AI_nukeValue(CvCity* pCity);

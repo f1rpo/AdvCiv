@@ -5280,7 +5280,10 @@ bool CvUnit::canPillage(const CvPlot* pPlot) const
 			{
 				return false;
 			}
-		}
+		} // <advc.033>
+		if(GET_TEAM(pPlot->getTeam()).isVassal(getTeam()) ||
+				GET_TEAM(getTeam()).isVassal(pPlot->getTeam()))
+			return false; // </advc.033>
 	}
 
 	if (!(pPlot->isValidDomainForAction(*this)))
@@ -5463,7 +5466,10 @@ bool CvUnit::canPlunder(const CvPlot* pPlot, bool bTestVisible) const
 		if (pPlot->getTeam() == getTeam())
 		{
 			return false;
-		}
+		} // <advc.033>
+		if(pPlot->isOwned() && (GET_TEAM(pPlot->getTeam()).isVassal(getTeam()) ||
+				GET_TEAM(getTeam()).isVassal(pPlot->getTeam())))
+			return false; // </advc.033>
 	}
 
 	return true;
@@ -5506,54 +5512,56 @@ void CvUnit::updatePlunder(int iChange, bool bUpdatePlotGroups)
 		for (int j = -iBlockadeRange; j <= iBlockadeRange; ++j)
 		{
 			CvPlot* pLoopPlot = ::plotXY(getX_INLINE(), getY_INLINE(), i, j);
-
-			if (NULL != pLoopPlot && pLoopPlot->isWater() && pLoopPlot->area() == area())
+			// <advc.003>
+			if(NULL == pLoopPlot || !pLoopPlot->isWater() ||
+					pLoopPlot->area() != area())
+				continue; // </advc.003>
+			int iPathDist = GC.getMapINLINE().calculatePathDistance(plot(),pLoopPlot);
+			// BBAI NOTES:  There are rare issues where the path finder will return incorrect results
+			// for unknown reasons.  Seems to find a suboptimal path sometimes in partially repeatable 
+			// circumstances.  The fix below is a hack to address the permanent one or two tile blockades which 
+			// would appear randomly, it should cause extra blockade clearing only very rarely.
+			/*
+			if( iPathDist > iBlockadeRange )
 			{
-
-				int iPathDist = GC.getMapINLINE().calculatePathDistance(plot(),pLoopPlot);
-				
-				// BBAI NOTES:  There are rare issues where the path finder will return incorrect results
-				// for unknown reasons.  Seems to find a suboptimal path sometimes in partially repeatable 
-				// circumstances.  The fix below is a hack to address the permanent one or two tile blockades which 
-				// would appear randomly, it should cause extra blockade clearing only very rarely.
-				/*
-				if( iPathDist > iBlockadeRange )
+			// No blockading on other side of an isthmus
+			continue;
+			}
+			*/
+			// <advc.003>
+			if(iPathDist < 0 || iPathDist > iBlockadeRange + 2)
+				continue; // </advc.003>
+			for (int iTeam = 0; iTeam < MAX_TEAMS; ++iTeam)
+			{
+				//if (isEnemy((TeamTypes)iTeam))
+				// <advc.033> Replacing the above
+				CvTeam const& t = GET_TEAM((TeamTypes)iTeam);
+				if(t.isAlive() && isEnemy(t.getID()) && !t.isVassal(getTeam()) &&
+						!GET_TEAM(getTeam()).isVassal(t.getID())) // </advc.033>
 				{
-					// No blockading on other side of an isthmus
-					continue;
-				}
-				*/
-				
-				if( (iPathDist >= 0) && (iPathDist <= iBlockadeRange + 2) )
-				{
-					for (int iTeam = 0; iTeam < MAX_TEAMS; ++iTeam)
+					bValid = (iPathDist <= iBlockadeRange);
+					if( !bValid && (iChange == -1 && pLoopPlot->getBlockadedCount((TeamTypes)iTeam) > 0) )
 					{
-						if (isEnemy((TeamTypes)iTeam))
+						bValid = true;
+					}
+
+					if( bValid )
+					{
+						if (!bChanged)
 						{
-							bValid = (iPathDist <= iBlockadeRange);
-							if( !bValid && (iChange == -1 && pLoopPlot->getBlockadedCount((TeamTypes)iTeam) > 0) )
-							{
-								bValid = true;
-							}
+							bOldTradeNet = pLoopPlot->isTradeNetwork((TeamTypes)iTeam);
+						}
 
-							if( bValid )
-							{
-								if (!bChanged)
-								{
-									bOldTradeNet = pLoopPlot->isTradeNetwork((TeamTypes)iTeam);
-								}
+						pLoopPlot->changeBlockadedCount((TeamTypes)iTeam, iChange);
 
-								pLoopPlot->changeBlockadedCount((TeamTypes)iTeam, iChange);
-
-								if (!bChanged)
-								{
-									bChanged = (bOldTradeNet != pLoopPlot->isTradeNetwork((TeamTypes)iTeam));
-								}
-							}
+						if (!bChanged)
+						{
+							bChanged = (bOldTradeNet != pLoopPlot->isTradeNetwork((TeamTypes)iTeam));
 						}
 					}
 				}
 			}
+
 		}
 	}
 
@@ -9080,8 +9088,10 @@ bool CvUnit::canSiege(TeamTypes eTeam) const
 	if (!isNeverInvisible())
 	{
 		return false;
-	}
-
+	} // <advc.033>
+	if(eTeam != NO_TEAM && (GET_TEAM(eTeam).isVassal(getTeam()) ||
+			GET_TEAM(getTeam()).isVassal(eTeam)))
+		return false; // </advc.033>
 	return true;
 }
 
@@ -11837,7 +11847,8 @@ PlayerTypes CvUnit::getVisualOwner(TeamTypes eForTeam) const
 
 	if (getTeam() != eForTeam && eForTeam != BARBARIAN_TEAM)
 	{
-		if (m_pUnitInfo->isHiddenNationality())
+		if (m_pUnitInfo->isHiddenNationality()
+				&& !GC.getGameINLINE().isDebugMode()) // advc.007
 		{
 			if (!plot()->isCity(true, getTeam()))
 			{

@@ -2397,7 +2397,8 @@ void CvCityAI::AI_chooseProduction()
 	}
 	
 	//Arr.  Don't build pirates in financial trouble, as they'll be disbanded with high probability
-	if ((pWaterArea != NULL) && !bLandWar && !bAssault && !bFinancialTrouble && !bUnitExempt)
+	if (pWaterArea != NULL && !bLandWar && !bAssault && !bFinancialTrouble && !bUnitExempt
+			&& !TEAMREF(getOwnerINLINE()).isCapitulated()) // advc.033
 	{
 		int iPirateCount = kPlayer.AI_totalWaterAreaUnitAIs(pWaterArea, UNITAI_PIRATE_SEA);
 		int iNeededPirates = (1 + (pWaterArea->getNumTiles() / std::max(1, 200 - iBuildUnitProb)));
@@ -3035,8 +3036,9 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 	{
 		aiUnitAIVal[iI] *= std::max(0, (GC.getLeaderHeadInfo(getPersonalityType()).getUnitAIWeightModifier(iI) + 100));
 		aiUnitAIVal[iI] /= 100;
-	}
-
+	} // <advc.033>
+	if(TEAMREF(getOwnerINLINE()).isCapitulated())
+		aiUnitAIVal[UNITAI_PIRATE_SEA] = 0; // </advc.033>
 	iBestValue = 0;
 	eBestUnit = NO_UNIT;
 
@@ -8624,7 +8626,13 @@ bool CvCityAI::AI_chooseUnit(UnitAITypes eUnitAI, int iOdds)
 	}
 
 	if (eBestUnit != NO_UNIT)
-	{
+	{	// <advc.033> Don't build outdated pirates
+		if(!isBarbarian() && eUnitAI == UNITAI_PIRATE_SEA) {
+			TechTypes eTech = (TechTypes)GC.getUnitInfo(eBestUnit).getPrereqAndTech();
+			if(eTech != NO_TECH && GC.getTechInfo(eTech).getEra() <
+					GC.getGameINLINE().getCurrentEra())
+				return false;
+		} // </advc.033>
 		/* original BBAI code
 		if( iOdds < 0 ||
 			getUnitProduction(eBestUnit) > 0 ||

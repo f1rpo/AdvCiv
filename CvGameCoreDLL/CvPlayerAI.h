@@ -574,6 +574,7 @@ public:
 	double exclusiveRadiusWeight(int dist = -1) const; // advc.099b
 	// k146: Used in conjuction with canTrain
 	bool AI_haveResourcesToTrain(UnitTypes eUnit) const;
+	bool isPiracyTarget(PlayerTypes targetId) const; // advc.033
 	// for serialization
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);

@@ -28081,9 +28081,30 @@ bool CvPlayerAI::AI_haveResourcesToTrain(UnitTypes eUnit) const
 	}
 
 	return !bMissingBonus;
-}
+} // </k146>
 
-// </k146>
+// <advc.033> Are we willing to attack/pillage them with hidden-nationality units
+bool CvPlayerAI::isPiracyTarget(PlayerTypes targetId) const {
+
+	if(targetId == NO_PLAYER) {
+		FAssert(targetId != NO_PLAYER);
+		return false;
+	}
+	if(TEAMID(targetId) == getTeam())
+		return false;
+	if(getID() == BARBARIAN_PLAYER || targetId == BARBARIAN_PLAYER) {
+		/*  Can't plunder Barbs, but this function shouldn't be used for
+			deciding whether to plunder. */
+		return true;
+	}
+	if(TEAMREF(targetId).isAtWar(getTeam()))
+		return true;
+	if(GET_TEAM(getTeam()).isVassal(TEAMID(targetId)) ||
+			TEAMREF(targetId).isVassal(getTeam()))
+		return false;
+	return (AI_getAttitude(targetId) <= GC.getLeaderHeadInfo(getPersonalityType()).
+			getDeclareWarThemRefuseAttitudeThreshold());
+} // </advc.033>
 
 // <advc.130r><advc.130h>
 bool CvPlayerAI::atWarWithPartner(TeamTypes theyId, bool checkPartnerAttacked) const {
