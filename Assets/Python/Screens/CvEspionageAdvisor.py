@@ -537,7 +537,7 @@ class CvEspionageAdvisor:
 										szText = u"<color=255,0,0,0>%s</color>" %(szText)
 								# <advc.120d>
 								costStr = str(iCost)
-								if pActivePlayer.canDoEspionageMission(iMissionLoop, self.iTargetPlayer, None, 0):
+								if pActivePlayer.canDoEspionageMission(iMissionLoop, self.iTargetPlayer, pPlot, 0):
 									costStr = localText.changeTextColor(costStr, gc.getInfoTypeForString("COLOR_GREEN"))
 								# </advc.120d>
 								iRow = screen.appendTableRow(szEffectsTable)
