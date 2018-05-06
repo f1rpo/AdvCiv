@@ -19,6 +19,7 @@ class CvMilitaryAdvisor:
 	"Military Advisor"
 
 	def __init__(self, screenId):
+
 		self.screenId = screenId
 		self.MILITARY_SCREEN_NAME = "MilitaryAdvisor"
 		self.BACKGROUND_ID = "MilitaryAdvisorBackground"
@@ -140,11 +141,17 @@ class CvMilitaryAdvisor:
 		CyInterface().setShowInterface(InterfaceVisibility.INTERFACE_MINIMAP_ONLY)
 		screen.updateMinimapVisibility()
 		CyInterface().setShowInterface(iOldMode)
-					
+	
 		self.iActivePlayer = gc.getGame().getActivePlayer()
 
 		self.unitsList = [(0, 0, [], 0)] * gc.getNumUnitInfos()
 		self.selectedUnitList = []
+		# <advc.004> Reset selected unit groups if a player other than the active player was selected
+		if len(self.selectedPlayerList) != 1 or self.selectedPlayerList[0] != self.iActivePlayer:
+			self.selectedGroupList = []
+		# Always reset the selected players
+		self.selectedPlayerList = []
+		# </advc.004>
 		self.selectedPlayerList.append(self.iActivePlayer)
 
 		self.drawCombatExperience()

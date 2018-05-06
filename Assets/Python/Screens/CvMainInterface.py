@@ -301,11 +301,15 @@ class CvMainInterface:
 #########################################################################################
 
 	def numPlotListButtonsPerRow(self):
-		return self.m_iNumPlotListButtonsPerRow
+		try: # advc.009b
+			return self.m_iNumPlotListButtonsPerRow
+		# <advc.009b>
+		except AttributeError:
+			return 0 # </advc.009b>
 
-# I know that this is redundent, but CyInterface().getPlotListOffset() (and prob the column one too)
+# I know that this is redundant, but CyInterface().getPlotListOffset() (and prob the column one too)
 # uses this function
-# it is also used in "...\EntryPoints\CvScreensInterface.py" too
+# it is also used in "...\EntryPoints\CvScreensInterface.py"
 	def numPlotListButtons(self):
 		return self.numPlotListButtonsPerRow()
 
@@ -5646,12 +5650,16 @@ class CvMainInterface:
 
 # BUG - field of view slider - start
 	def setFieldofView(self, screen, bDefault):
-		# K-Mod
-		#if bDefault or not MainOpt.isShowFieldOfView():
-		if bDefault or (not MainOpt.isShowFieldOfView() and not MainOpt.isRememberFieldOfView()) or int(MainOpt.getFieldOfView()) < 10: # advc.004m: Only remember sensible values
-			self._setFieldofView(screen, self.DEFAULT_FIELD_OF_VIEW)
-		else:
-			self._setFieldofView(screen, self.iField_View)
+		try: # advc.009b
+			# K-Mod
+			#if bDefault or not MainOpt.isShowFieldOfView():
+			if bDefault or (not MainOpt.isShowFieldOfView() and not MainOpt.isRememberFieldOfView()) or int(MainOpt.getFieldOfView()) < 10: # advc.004m: Only remember sensible values
+				self._setFieldofView(screen, self.DEFAULT_FIELD_OF_VIEW)
+			else:
+				self._setFieldofView(screen, self.iField_View)
+		# <advc.009b>
+		except AttributeError:
+			pass # </advc.009b>
 
 	def _setFieldofView(self, screen, iFoV):
 		if self.iField_View_Prev != iFoV:

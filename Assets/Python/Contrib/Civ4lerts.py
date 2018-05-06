@@ -884,7 +884,11 @@ class RefusesToTalk(AbstractStatefulAlert):
 		if (not Civ4lertsOpt.isShowRefusesToTalkAlert()):
 			return
 		eActivePlayer, activePlayer = PlayerUtil.getActivePlayerAndID()
-		refusals = self.refusals[eActivePlayer]
+		try: # advc.009b
+			refusals = self.refusals[eActivePlayer]
+		# <advc.009b>
+		except AttributeError:
+			return # </advc.009b>
 		newRefusals = set()
 		for player in PlayerUtil.players(True, False, False, False):
 			if DiplomacyUtil.canContact(activePlayer, player) and not DiplomacyUtil.isWillingToTalk(player, eActivePlayer):
@@ -972,7 +976,11 @@ class WorstEnemy(AbstractStatefulAlert):
 			return
 		eActivePlayer = PlayerUtil.getActivePlayerID()
 		eActiveTeam, activeTeam = PlayerUtil.getActiveTeamAndID()
-		enemies = self.enemies[eActivePlayer]
+		try: # advc.009b
+			enemies = self.enemies[eActivePlayer]
+		# <advc.009b>
+		except AttributeError:
+			return # </advc.009b>
 		newEnemies = AttitudeUtil.getWorstEnemyTeams()
 		delayedMessages = {}
 		for eTeam, eNewEnemy in newEnemies.iteritems():
