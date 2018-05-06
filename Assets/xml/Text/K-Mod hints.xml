@@ -227,15 +227,16 @@
 	<Spanish>Debes ser prudente y guardar algunas reservas de oro en tu tesoro. Nunca se sabe cuándo tus ahorros pueden servir para mitigar los efectos de un suceso desastroso o para darte acceso a oportunidades adicionales cuando se produzca un suceso positivo.</Spanish>
 </TEXT>
 
-<!-- advc.008c: It's good to point out the BtS Concepts page, but since it's no
-	 longer a novelty, the players don't need to "be sure to check" it out. -->
+<!-- advc.008c, advc.002g: It's good to point out the BtS Concepts page, but
+	 since it's no longer a novelty, the players don't need to "be sure to
+	 check" it out. -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_59</Tag>
-	<English>The "Beyond the Sword Concepts" page in the Civilopedia summarizes the changes introduced by that expansion.</English>
-	<French>Pensez &#224; lire la page "Concepts de Beyond the Sword" dans la Civilop&#233;die pour conna&#238;tre toutes les modifications apport&#233;es par cette extension.</French>
-	<German>Die Seite "Beyond The Sword-Konzepte" in der Zivilop&#228;die fasst die &#196;nderungen dieser Erweiterung zusammen.</German>
-	<Italian>Consulta la pagina "Nozioni di Beyond the Sword" nella Civilopedia per leggere tutte le modifiche effettuate in questa espansione.</Italian>
-	<Spanish>Aseg&#250;rate de consultar la p&#225;gina "Conceptos de Beyond the Sword" en la Civilopedia para conocer todos los cambios que incorpora esta expansi&#243;n.</Spanish>
+	<English>The "BtS Concepts" page in the Civilopedia summarizes the changes introduced by the "Beyond the Sword" expansion.</English>
+	<French>Pensez &#224; lire la page "Concepts de BtS" dans la Civilop&#233;die pour conna&#238;tre toutes les modifications apport&#233;es par cette extension.</French>
+	<German>Die Seite "BtS-Konzepte" in der Zivilop&#228;die fasst die &#196;nderungen der "Beyond the Sword"-Erweiterung zusammen.</German>
+	<Italian>Consulta la pagina "Nozioni di BtS" nella Civilopedia per leggere tutte le modifiche effettuate in questa espansione.</Italian>
+	<Spanish>Aseg&#250;rate de consultar la p&#225;gina "Conceptos de BtS" en la Civilopedia para conocer todos los cambios que incorpora esta expansi&#243;n.</Spanish>
 </TEXT>
 
 <!-- advc.008c: Removed "now" as it's longer news. -->

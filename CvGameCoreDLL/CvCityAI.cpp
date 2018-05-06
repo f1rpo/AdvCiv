@@ -2271,7 +2271,8 @@ void CvCityAI::AI_chooseProduction()
 		}
 	} */
 	// K-Mod. Roughly the same conditions for building a nuke, but with a few adjustments for flavour and strategy
-	if (!bAlwaysPeace && !bLandWar && !bUnitExempt && !bFinancialTrouble)
+	if (!bAlwaysPeace && !bLandWar && !bUnitExempt && !bFinancialTrouble
+			&& !GET_TEAM(kPlayer.getTeam()).isCapitulated()) // advc.143b
 	{
 		if ((kPlayer.AI_isDoStrategy(AI_STRATEGY_OWABWNW) || GC.getGame().getSorenRandNum(1200, "AI consider Nuke") < std::min(400, iNukeWeight))
 			&& (!bAssault || GC.getGame().getSorenRandNum(400, "AI consider Nuke despite assult") < std::min(200, 50 + iNukeWeight/2)))
@@ -3037,8 +3038,10 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 		aiUnitAIVal[iI] *= std::max(0, (GC.getLeaderHeadInfo(getPersonalityType()).getUnitAIWeightModifier(iI) + 100));
 		aiUnitAIVal[iI] /= 100;
 	} // <advc.033>
-	if(TEAMREF(getOwnerINLINE()).isCapitulated())
-		aiUnitAIVal[UNITAI_PIRATE_SEA] = 0; // </advc.033>
+	if(TEAMREF(getOwnerINLINE()).isCapitulated()) {
+		aiUnitAIVal[UNITAI_PIRATE_SEA] = 0;
+		aiUnitAIVal[UNITAI_ICBM] = 0; // advc.143b
+	} // </advc.033>
 	iBestValue = 0;
 	eBestUnit = NO_UNIT;
 

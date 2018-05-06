@@ -8060,7 +8060,9 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 					if (!GC.getGameINLINE().isNoNukes())
 					{
 						iOffenceValue = std::max(iOffenceValue, (bWarPlan ? 2 : 1)*iWeight + (GC.getGameINLINE().isNukesValid() ? 2*AI_nukeWeight() : 0)*iWeight/100);
-						FAssert(!GC.getGameINLINE().isNukesValid() || AI_nukeWeight() > 0);
+						FAssert(!GC.getGameINLINE().isNukesValid() || 
+								kTeam.isCapitulated() || // advc.143b
+								AI_nukeWeight() > 0);
 					}
 					// K-Mod end
 					break;

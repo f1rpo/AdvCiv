@@ -397,6 +397,16 @@
 		<English></English><French></French><German></German>
 		<Italian></Italian><Spanish></Spanish>
 	</TEXT>
+	
+	<!-- advc.106 -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_CITY_NUKED</Tag>
+		<English>%s1_CityName (%s2_PlyrName) was hit by a nuclear warhead launched by %s3_PlyrName.</English>
+		<French>%s1_CityName (%s2_PlyrName) a été [NUM1:frappé:frappée] par une ogive nucléaire lancée par %s3_PlyrName.</French>
+		<German>%s1_CityName (%s2_PlyrName) wurde von einer Atomwaffe getroffen, abgefeuert durch %s3_PlyrName.</German>
+		<Italian>%s1_CityName (%s2_PlyrName) è stata [NUM1:colpito:colpita] da una testata nucleare lanciata da %s3_PlyrName.</Italian>
+		<Spanish>%s1_CityName (%s2_PlyrName) fue [NUM1:golpeado:golpeada] por una ojiva nuclear lanzada por %s3_PlyrName.</Spanish>
+	</TEXT>
 
 	<!-- [advc.004b]
 		 Help text for projected city costs (city maintenance, civic upkeep,

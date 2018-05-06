@@ -4589,6 +4589,7 @@ bool CvUnit::nuke(int iX, int iY)
 			GET_TEAM(getTeam()).AI_changeWarSuccess(((TeamTypes)iI), GC.getDefineINT("WAR_SUCCESS_NUKE"));
 		}
 	}
+	CvCity const* nukedCity = NULL; // advc.106
 	// <advc.130q>
 	for(int i = 0; i < MAX_TEAMS; i++) {
 		TeamTypes tId = (TeamTypes)i;
@@ -4603,6 +4604,9 @@ bool CvUnit::nuke(int iX, int iY)
 			if(p == NULL || !p->isCity())
 				continue;
 			CvCity const& c = *p->getPlotCity();
+			// <advc.106>
+			if(nukedCity == NULL || nukedCity->getPopulation() < c.getPopulation())
+				nukedCity = &c; // </advc.106>
 			if(c.getTeam() != tId)
 				continue;
 			score += GET_PLAYER(c.getOwnerINLINE()).razeAngerRating(c);
@@ -4695,7 +4699,16 @@ bool CvUnit::nuke(int iX, int iY)
 			gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), (((PlayerTypes)iI) == getOwnerINLINE()), GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_NUKE_EXPLODES", MESSAGE_TYPE_MAJOR_EVENT, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
 		}
 	}
-
+	// <advc.106>
+	if(nukedCity != NULL) {
+		szBuffer = gDLL->getText("TXT_KEY_MISC_CITY_NUKED",
+				nukedCity->getNameKey(), GET_PLAYER(
+				nukedCity->getOwnerINLINE()).getNameKey(),
+				GET_PLAYER(getOwnerINLINE()).getNameKey());
+		GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT,
+				getOwnerINLINE(), szBuffer, getX_INLINE(), getY_INLINE(),
+				(ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
+	} // </advc.106>
 	if (isSuicide())
 	{
 		kill(true);
