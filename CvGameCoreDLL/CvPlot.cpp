@@ -1081,7 +1081,8 @@ void CvPlot::nukeExplosion(int iRange, CvUnit* pNukeUnit, bool bBomb)
 					// <dlph.20>
 					else if(GC.getGameINLINE().getSorenRandNum(100,
 							"Non-Combat Nuke Rand") * 100 <
-							std::max(0, (pLoopCity->getNukeModifier() + 100)) *
+							std::max(0, ((pLoopCity == NULL ? 0 :
+							pLoopCity->getNukeModifier()) + 100)) *
 							(GC.getDefineINT("NUKE_UNIT_DAMAGE_BASE") - 1 +
 							(GC.getDefineINT("NUKE_UNIT_DAMAGE_RAND_1") +
 							GC.getDefineINT("NUKE_UNIT_DAMAGE_RAND_2") - 1) / 2))
