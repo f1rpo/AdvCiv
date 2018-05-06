@@ -1,0 +1,1882 @@
+This is K-Mod version 1.46.
+If you have any questions, comments, suggestions, bug reports, etc. Post here: http://forums.civfanatics.com/forumdisplay.php?f=470
+
+v1.46 changelist
+
+Game
++ Increased trade culture rate for lower levels. (This doesn't affect city culture. Only plot culture.)
++ Fixed overflow bug when adding large amounts of culture to a city.
++ Several miscellaneous bug fixes.
+
+AI
++ Major changes to the AI's tech evaluations. (Hopefully this will help the AI plan ahead a bit better.)
++ Improvements and bug-fixes for citizen job evaluations for AI and automated cities.
++ Several minor tweaks and changes to the AI.
+
+UI
++ Improved German language text. (by Zholef)
++ Added a couple of (useful) loading hints, and removed a couple of low-value hints.
++ Restored WHEOOHRN scoreboard indicator option.
+
+
+--
+v1.45 changelist
+
+Game
++ Increased carrying capacity of all military boats by 1.
++ Scientific Method now gives +10% science in all cities.
++ Increased the research cost of Scientific Method.
++ Computers now gives +1 science to specialists.
++ Lumber mills are now unlocked with Guilds rather than Replaceable Parts.
++ Lumber mills and forest preserves now +1 commerce on the corner of rivers, just like the other improvements do.
++ Watermills now give 1 commerce (and 1 hammer) by default, but only gain 1 commerce from Electricity. (i.e. more commerce than before in the early game; but same in the late game.)
++ Submarines and Attack Submarines now get +25% attack (for coast and ocean plots).
++ Machine guns now get +10% vs mounted units
++ Adjusted cultural city revolt probability and properties.
++ Increased the base (maximum) chance of city cultural revolt from 10% to 15%
++ Decreased the duration of revolts from 3+2*(# of revolts) to 2+(# of revolts).
++ Cities will now flip on their 3rd cultural revolt rather than their second (if it is possible for them to flip). (The average number of turns to flip a city is the same; and the average number of turns spent in revolt is similar to before - but the chance of each revolt is a bit higher, and so it is less dependent on luck.)
++ Inflation rate now increases with global tech state. Previously inflation only depended on how many turns had past, and so if the global tech rate was very high (due to lots of tech trading), players would reach high end-game yields and still have very little inflation - which would increase the tech rate further. With this change, there will be higher inflation in games which have lots of tech trading. (And the inflation will be slightly higher for players with better tech!)
++ The global warming index now decreases exponentially by 1% each turn. (This will significantly decrease the effect of global warming in games where global warming is already very strong.)
++ Reduced the global warming offset of forests and jungles from 15 to 10.
++ Adjusted the 'severity rating' formula for global warming. 'Save the planet' anger will now be a bit stronger.
++ Increased the probability of natural spread of religions.
++ Reduced chance of spies being caught while exploring friendly land.
++ Tweaked religion "grip" values. (Distance and the shrine now have a relatively higher effect.)
++ Increased the maintenance cost of Civilized Jewelers. Decreased the maintenance cost of Standard Ethanol and Aluminium Co.
++ Fixed a bug which allowed 'no capture' units to captures cities that were only defended by non-combat units. (eg. a gunship could capture a city if the city only had a worker in it.)
++ Capitulation power is now determined after cities are reassigned, rather than before. This means that civs which give up a bunch of cities when they capitulate won't immediately be able to free themselves due to the lost cities they just traded away.
++ Many fixed memory leaks and logic mistakes, with help from alberts2 and DarkLunaPhantom.
++ Fixed potential crash in CvSelectionGroup::groupMove (again, thanks to DarkLunaPhantom for the idea)
++ Fixed air intercepts conflicting with combat in simultaneous turns. (This fixes potentially unpredictable behaviour; and it also allows air combat and interceptions can happen while the interceptor's plot is being attacked by someone else.)
++ Adjusted CvTeam::shareCounters to prevent lose of circumnavigation bonus when forming a permanant alliance.
+
+AI
++ Fixed a bug which prevented the AI from declaring war with transports that ignore borders (such as the East Indiaman).
++ Adjusted worker AI to better prioritise large yield increases rather than working on plots which already have good yields.
++ The AI now counts the defensive bonus of features as negative value if they are next to cities. (This makes the AI a bit more likely to chop forests adjacent to their city.)
++ Fixed a bug which discouraged the AI from chopping forests in most situations.
++ Fixed several problems with slavery evaluation in AI_yieldValue. (The AI should work more food plots when using slavery.)
++ Rewrote AI_counterPropose to get more balanced deals. (This mostly improves the way the AI negotiates with other AI players.)
++ Increased the maximum discount that AI players are willing to offer to human players in trade deals.
++ Tweaked the AI to increase the likelihood that they'll offer a discount deal to human. (Please do consider deals that the AI offers you. They may present a one-time offer with a significant discount.)
++ The AI now uses time-weighted averages when deciding whether to build cottages. The specific time-weighting depends on the AI's situation.
++ Rewrote AI_techValue to establish a common value scale, and hence provide more accurate evaluations.
++ Improved evaluation of free techs from buildings (ie. The Oracle)
++ The AI now takes collateral damage resistance into account when evaluating stack attacks.
++ Fixed a bug which caused the AI to move units needlessly back and forward between cities (usually corporation execs).
++ Fixed AI missing inflation in the AI's colony & building evaluations.
++ Fixed several AI bugs related to the misuse of "CvUnit::getMoves" (which doesn't do what it sounds like it does). This mostly affects naval AI.
++ The AI now ignore automation settings when taking over from human players in multiplayer games.
++ Adjusted the unit priority for group pillage missions. (Slightly better choices when deciding which wounded units should pillage - if any.)
++ AI amphibious attacks will now use the normal (situation specific) city attack threshold calculation rather than a flat threshold.
++ Adjusted pathfinding costs to help exploring units to not avoid unexplored plots.
+
+UI
++ Changed UI text to include inflation whenever displaying costs. (Previously the costs displayed were not the costs that the player will actually have to pay - because inflation was not being included.)
++ Spies in foreign territory now wake automatically when they reach their maximum fortification bonus.
++ Fixed a minor rounding problem in which sometimes made espionage costs inaccurate.
++ Removed duplicate gold commerce text from financial advisor screen.
++ Fixed launch spaceship popup sometimes appearing when it shouldn't.
++ Fixed the graphs screen sometimes showing the wrong thing on the pull-down menu.
+
+Modding
++ Added two new (optional) xml fields for TechInfos.xml.
+  + 'CommerceModifiers' allows techs to give a percentage bonus for each type of commerce in all cities.
+  + 'SpecialistExtraCommerces' allows techs to give commerce bonuses to all specialists.
+  These new effects are displayed in the Tech Chooser, the Civilopedia, the mouse-over text of relevant things in the city screen; and the effects are properly evaluated for AI decision making.
++ 'RiverSideYield' for improvements now applies when touching a river, even on the corner. Previously it only applied on the side of a river, like a watermill.
+
+
+--
+v1.44b changelist
+
++ Fixed a bug which caused existing specialists to be overvalued by AI_jobChangeValue.
++ Tweaked the evaluation of food, to avoid problems caused by overvalued food.
+
+v1.44 changelist
+
+Game
+
++ Fixed OOS bugs in some random events.
+
+UI
+
++ Modified the space-ship screen and the multi-player launch space-ship popup so that travel time and success probability are always visible.
++ Corrected espionage costs displayed in spy mission popups when in a permanent alliance.
++ Added debug/cheat information for commerce weights and culture cities.
+
+Automation / AI
+
++ Forced specialist count can no longer exceed total population. (This corrects a problem where the "remove specialist" buttons seems to have no effect when the number of forced specialists was still too high.)
++ Corrected some inconsistencies in the way forced specialists are handled by automated city governors. (The governor will not assign any specialists of non-forced type unless all the forced types are full. For example, if the player forces 1 merchant specialist, then the city will not use any scientists until all the merchant slots are full.)
++ AI_juggleCitizens now directly compares jobs before switching, to ensure the accuracy of evaluations.
++ Reduced the number of executives built by automated cities.
+
+AI
+
++ Changed the evaluation of executives so that the value of spreading to foreign civs is only counted when more execs are needed.
++ Tightened the conditions on deciding to replace existing corporations.
++ Increased tendency for settler and missionary transports to wait in cities, so that they can be used when needed.
++ Fixed some minor issues with the AI's calculations when loading units into transports.
++ AI missionaries and workers now prefer waiting in cities with air-lift when they have no work to do.
++ Refined the AI's calculations for cultural victory decisions.
++ Pillage units now prioritise pillaging strategic resources they are standing on over attacking nearby enemies.
++ Increased the AI's evaluation of river plots in AI_foundValue.
++ Tweaked the area-based resources modifier for starting positions, to avoid overflow bugs on very large maps.
++ Fixed a minor mistake in the evaluation of buildings which remove resources (eg. National Park).
+
+
+--
+v1.43 changelist
+
+Game
++ Forest preserves now give +1 commerce (in addition to their previous effects).
++ German assembly plants now give +2 production (in addition to previous effects).
++ Restored the Representation civic to 'medium' upkeep.
+
++ Fixed a rare bug which sometimes caused units to get bumped off their plot when simultaneously attacking and defending (in simultaneous turns mode).
++ Fixed bug which allowed cities to momentarily exceed their specialist cap.
++ Fixed a bug which caused original ownership to be ignored when deciding whether a city can be 'liberated'.
+
++ Added bNoCache argument to AI_localDefenceStrength. This is to protect against potential OOS bugs.
++ AI_commerceWeight for culture and espionage is now cached.
++ Improved the speed of the path-finding system.
+
+AI
++ Completely redesigned the automatic assigning of worked plots and specialists in cities. (This will be an improvement for AI and for automated cities.)
++ Improved the AI's identification of culture cities aiming for a cultural victory.
++ Great artists now use the updated culture evaluation to choose when/where to create a great work (culture bombs).
++ AI espionage spending is now turned off by AI_VICTORY_CULTURE4 rather than by AI_VICTORY_CULTURE3.
++ The AI will now consider using machine guns for city defence.
++ The AI will now build assault units, transports, and attack ships are built at a more even rate, rather than focusing on one type of unit before starting the next.
++ Redesigned some sections of how the AI evaluates which units to build.
+  + There is now some basic consideration of potential promotions.
+  + Units which can't capture cities are now less likely to be built as attack units (eg. gunships).
+  + Evaluation of unit speed has been adjusted.
+  + Collateral damage immunity is now taken into account for city defenders.
+
+UI
++ The victory conditions screen now shows culture cities by team rather than by player (to match the actual conditions for victory).
++ Fixed vassal / master relationship information of humans being hidden.
++ Tweaked the format of vassal/master relationship information.
++ Added loading hint about right clicking on +/- commerce buttons.
+
+
+--
+v1.42 changelist
+
+Game
+
++ Human players can now tell their AI allies start war preparations, via the diplomacy screen.
++ Byzantine hippodromes now allow two artists.
++ The free culture which applied to plots in the area of a city is now granted even for cities with zero culture rate.
++ Reduced free city culture from 6 per turn, to 4 per turn.
++ Added some plot culture dependence to CvCity::getLiberationPlayer. (This affects the availability of the option to liberate a city.)
++ Fixed a rare bug in AI_cityTradeVal which could cause a seg-fault.
++ Changed the way AIAutoPlay disables popups, so that it is less likely to break other mods.
+
+AI
+
++ The AI will no longer start planning for war in less than 30 turns (scaled by game speed) unless a certain number of cities have been built (based on map size and number of players).
++ Fixed a bug which prevented AI players with few cities from choosing to convert to foreign religions.
++ Taught the AI how to do amphibious attack landings on non-city plots.
++ Changed the AI's evaluation of amphibious attacks to use stack strength estimates rather than just counting the number of units.
++ The AI will now consider amphibious attacks even if some of its cargo cannot attack. (eg. siege units)
++ Fixed a bug which often messed up the AI's evaluation of prerequisite buildings.
++ Made some minor changes the AI's evaluation of resource values. (I intended to change this a lot more, but there were some technical problems.)
++ Made the AI a bit more resistant to human manipulation in limited wars.
++ Fixed a minor bug which prevented the AI from making peace deals with multiple other AI players in the same turn.
++ Fixed a bug which could sometimes cause great spies to get stuck.
+
+UI
+
++ Fixed a bug which caused the danger checks for interrupting actions use the wrong range in most cases.
++ Blocked city governors from considering 'worker_sea' and 'explore_sea' when choosing to build an arbitrary unit. (They'll still build work-boats when needed.)
+
+v1.42b
++ Fixed a bug in the AI's evaluation of resource value.
++ Reduced visual clutter in the culture overlay of the zoomed-out world map.
+
+--
+v1.41 changelist
+
+Game
+
++ Increased the production cost of Incan quechuas from 15 to 20.
++ Fixed a bug which could cause the game to crash when a human player becomes the vassal of an AI in a multiplayer game.
++ Corrected a problem from bts which caused XML comments to not be ignored inside arrays
++ Fixed two rare path-finding bugs.
+
+UI
+
++ Added Spanish translation for BUG & K-Mod text, by Rual.
++ Fixed a bug which caused the declare war move popup to appear twice.
++ The standard unhealthiness from power is now included in the mouse-over text for buildings that produce power.
++ Tweaked the condition for workers being interrupted when in danger.
+
+AI
+
++ Fixed a problem which sometimes caused AI workers to get confused and waste turns.
++ Adjusted the AI's evaluation of choices for some random events.
++ Adjusted the tech value of air units
++ Reduced the conquest strategy tech value multiplier for military units
++ Fixed a rare bug in the evaluation of city sites
++ Fixed another rare bug in the danger cache from the bbai mod.
+
+--
+v1.40 changelist
+
+UI
+
++ Multi-completion of units will now be reflected by the city's order queue. ie. more than one unit is finished in a single turn, that number of units of the same type will be removed from the construction queue (if they are actually on the queue).
++ Left-click "go to" missions will now trigger to declare war popup when attempting to move into closed foreign borders (instead of simply ignoring the command).
++ Automated cities will no longer consider building 'team wonders'; just as they don't consider national wonders or world wonders. (Note: there are currently no team wonders in K-Mod anyway.)
++ Removed two empty categories from the Sevopedia.
+
+Game
+
++ Fixed a minor mistake in the latest pathfinding bugfix for groups with a mixture of movement speeds.
++ Fixed a problem with the K-Mod pathfinder which could cause a crash in mods which include zero speed units or zero move-cost roads.
++ Reversed the effect of bPrereqReligion for units and buildings. Previously it meant that a religion must _not_ be present in order to construct the building/unit. Now it means that a religion must be present. (Note: this change has no effect on K-Mod, because bPrereqReligion is not currently used by anything.)
++ Fixed a BtS bug in the evaluation of starting positions which caused most of the evaluation to be ignored, and caused some starts to have more bonuses and forests added to them than intended.
++ Added a bit of randomness to the map generators choice of area for 'unique' resources. This slightly reduces the correlation between continent size and number of resource types.
++ Added some factors to the starting position evaluation to adjust for the number of resources in the area and the number of players already placed in the area. The goal of this is to decrease the chance of getting an isolated start with a lack of resources.
++ Fixed a bug which caused some starting resources to be valued more highly than intended.
++ Increased the radius of the land outside of the fat-cross to be evaluated for starting positions.
++ (several other minor tweaks / bug fixes related to starting positions)
+
+AI
+
++ Fixed a significant bug in the latest K-Mod AI which was causing the AI to focus on constructing buildings far more than intended.
++ The trade value of cities (for ending wars) now includes some additional value for holy cities and corporation head-quarters.
++ Tightened the conditions on "opportunistic wonder" builds.
++ Adjusted the calculation for the maximum amount of gold the AI is willing to trade. AI civs with high incomes should now be a bit less likely to hoard their gold.
++ Some leaders will now build a few more workers in the early game, based on the leader's personality.
++ The AI will now value forest chopping a bit more highly in cities with low productivity.
++ Tightened the 'financial trouble' threshold in the early game, so that AI civs which expand quickly will realise sooner that they need to start getting cottages set up.
++ (several other minor AI tweaks and bug fixes)
+
+
+--
+v1.39 changelist
+
+Game
+
++ All four Drill promotions now give +15% collateral damage reduction. (Previously it was +0, +20, +20, +20.)
++ Added some nuance to the AI's evaluation of gifted units.
+  + Gifts of great people will now always result in +1 for "you gave us help".
+  + Gifts of military units are now evaluated based on the usefulness of the gifted unit and the AI player's current military needs.
+  + (The diplomatic effect of non-great person gifts still only affects the "fair and forthright" diplomatic modifier.)
++ Fixed a K-Mod bug which caused distance maintenance to always be zero for civs with exactly 2 cities.
++ Research is now completely halted while in anarchy. (Previously civs would still get +1 science per turn.)
+
+UI
+
++ Corrected the Latin in one of Julius Caeser's quotes. (hopefully)
++ Fixed a bug in the Hall of Fame screen which in rare cases could cause the game to crash.
++ The UI pathfinder is now reset when a unit is promoted. (This change was meant to be in a previous version, but it was implemented incorrectly.)
++ Fixed a BtS pathfinding bug which sometimes caused inaccurate path turns.
+
++ The the mouseover text for cathedrals will now include the number of cathedrals currently under construction when calculating the required number of temples. (ie. it will report how many temples are required to start the the construction of another cathedral.)
++ Catherals' temple requirements in the civilopedia will no longer take into account how many cathedrals the active player has built. (ie. if each cathedral requires 3 temples, then the civilopedia will just say 3 temples rather than saying how many temples are required for the next one.)
++ Missionaries will now appear as greyed out in the city-screen when they are maxed out rather than being removed completely.
++ The mouse-over text for missionaries will no longer say "requires monastery" if the player is using Organized Religion. (ie. It will only say 'requires monastery' if the player is not exempt from that requirement.)
++ In the mouseover text, unit limits are now displayed on a new line rather than inline with the unit name, and the limit text is displayed in red if the limit has already been reached.
+
+AI
+
++ Tweaked the group size adjustment used in AI_stackVsStack, so that the AI is a bit less inclined to use a big stack to attack a well defended small stack.
++ When aiming for a diplomatic victory, the AI now give some additional value to the favourite civics of their potential allies.
++ Tweaked AI_warCommitmentCost for overseas wars and for late-game wars. (This may need further testing and adjustments.)
++ Rescaled and adjusted AI_warDiplomacyCost to fix some problematic fringe cases.
++ Changed the odds formula for short-circuit 2&3 in AI_chooseProduction to better reflect individual AI flavours.
++ Reduced the effect of pre-existing progress in AI_chooseBuilding.
+
+
+--
+v1.38 changelist
+
+Game
+
++ Duns now give +1 xp for melee units (in addition to the free Guerilla I promotion).
++ Musketeers now have +15 withdrawal chance.
++ Slightly decreased the tech rate from the renaissance era onwards. (This was done by tweaking the existing hidden rate modifiers by a couple of percentage points.)
++ For the purpose of building plot improvements, resources available inside a city are now provided to all the workable plots around that city. (The purpose of this change is to let civs use Standard Ethanol corp to build railroads.)
+
+UI
+
++ Corrected the 'strategy' text for libraries. (Previously the text incorrectly stated that a library was required to build the Heroic Epic.)
++ Food added by the Volcano event will now be landmarked when 'Event Signs' is enabled.
+
+AI
+
++ Restructured the AI's 'city threat rating' calculation to be more flexible and to better reflect the risk to coastal cities.
++ Made lots of changes to the way the AI positions and uses its air units; particularly for defence.
++ When at war, the AI will now be less inclined to attack newly founded cities, and more inclined to attack cities which are likely to result in an imminent enemy victory.
++ Rewrote part of the AI's evaluation of settling great people to be more sensitive to the civ's situation and personality.
++ Fixed a problem which sometimes messed up the AI's evaluation of rushing wonders with great engineers.
+
++ Made many changes to improve the accuracy & consistency of the AI's building evaluation.
+  + Reduced the value of trade commerce and of commerce multipliers to more closely match the intended scale of 4x commerce.
+  + Removed double-counting of trade commerce from original bts code.
+  + Fixed some major inaccuracies in the evaluation of commerce happiness (theatres) and war-weariness reduction.
+  + Increased the value of clean power for the area. (Three Gorges Dam)
+  + Improved the accuracy of the 'stateReligionCommerce' evaluation.
+  + Restored missing AllCityDefenseModifier evaluation in the AI's building evaluation.
+  + Increased penalty for having multiple national wonders in the same city.
+  + Changed the way 'flavour' affects the AI's evaluation of buildings.
+  + ...
+
++ Made many changes to the AI's tech evaluation. The AI's choice of tech will now be more dependant on situation & personality.
+  + Completely redesigned the way the AI evaluates buildings to be enabled - it is now much more dependant on the AI's situation and personality.
+  + The AI will now value founding religions more highly if they have not met anyone with a state religion.
+  + The value of enabling tech trading is now based on number of civs trade would be enabled for, rather than just the number of civs met.
+  + Fixed a problem which caused Mining to be massively overrated.
+  + Fixed a minor mistake in the yield evaluation of improvements.
+  + The value bonus for wonders now depends on the AI leader's personality
+  + Increased the value of space-victory components – particularly for components which can be built more than once (eg. SS Casing).
+  + 'defence_air' units are now valued slightly more highly if the AI is alone on their island.
+
++ Made several tweaks to the AI's usage of espionage.
+  + The AI will now be willing to use malicious espionage against their 'friends' if both they and their friend are very close to victory.
+  + Increased the value of sabotaging projects.
+  + Reduced the value of spreading unhappiness.
+  + Redesigned the sabotage building evaluation.
+  + Increased the value of spread culture and allowed it to be used for offence as well as defence. (This is still very rare.)
+
+
+--
+v1.37 changelist
+
+Game / UI
+
++ Game handicap level is now set to average of humans' handicap rather than minimum.
++ Free starting techs for handicap levels are now granted based on the team handicap level rather than the game handicap level.
++ When the player handicap and game handicap are not the same, the settings screen now shows both values. (This only affects mixed handicap multiplayer games.)
++ Tech progress now carries over proportionally when a permanent alliance is formed. (eg. 100/200 will go to 150/300, whereas previously it would go to 100/300.)
++ 'Total espionage ever' is now set correctly when a permanent alliance is formed.
++ Fixed a BtS bug which caused capitulation status to not be set correctly when a permanent alliance is formed with a capitulated civ. (This is impossible in the standard rules anyway.)
++ When selecting units with ctrl/alt, if the clicked unit is already selected then moves should be checked. (The previous implementation of this rule was flawed. It should work correctly now.)
++ Tightened the conditions on some city advisor popups. (eg. the 'liberate city' recommendation now requires that the city be at least 10 turns old)
++ AI attitudes are now updated when first contact is made. (This fixes a bug which caused all leaders to be 'cautious' during the first meeting.)
++ Changed the diplomacy animation for the "worst enemy trading" greeting from 'furious' to 'disagree'. (This isn't ideal, but I think it's a bit less jarring for the AI to go from "no" to a smiling face than to go from a furious glare to a smiling face.)
+
+AI
+
++ The trade value of techs is now independent of team size. (ie. the AI will now value techs the same regardless of whether they are giving them to a 2-civ team or a to 1-civ team, whereas previously the tech would be valued more highly for the 2-civ team.)
++ Fixed a bug which sometimes caused free specialist to be poorly assigned.
++ Corrected a bug which sometimes caused the AI to give resources to their allies more often that they should.
++ Made some adjustments to the way the AI chooses target cities.
++ The AI will now put a bit more emphasis on defending cities it has captured during war.
++ Made some changes to the AI's evaluation and distribution of units built for attack forces. (This may need further tweaking after more testing.)
++ Fixed a bug which sometimes caused the AI to incorrectly think it could not attack.
++ The AI's 'attack' units should now be a bit more inclined to group with attack_city stacks rather than just doing their own thing.
++ Large AI stacks will now be willing to leave units behind so that the stack is less likely to be stalled by minor skirmishes on the way to their destination.
++ Large AI stacks will now be a bit more willing to attack smaller enemy stacks when the opportunity arises.
++ The AI will now be a bit more decisive in choosing their naval assault target. (Previously they would often change their mind when they started to get close to the destination. This wouldn't be obvious to the player, but it was a problem.)
++ Fixed a problem which sometimes caused the AI to load an unbalanced naval attack force when they didn't have enough ships. (They'd often bring too many siege units.)
++ Fixed a minor bug which sometimes caused the AI to waste a turn when unloading units at the end of a diagonal move.
++ AI explorers will now try to make contact with mapped but unmet players. (Previously the explorers were only interested in unmapped territory.)
++ Slightly increased the probability of AI spies targeting plot improvements when at war.
++ Tightened the conditions on espionage usage when using the 'espionage economy' strategy, so that the AI will be a bit less likely to waste all its espionage blowing up factories when it is meant to be stealing techs.
++ The AI will now focus slightly more on building spaceship parts during the final stages of a space race. (This will probably still need some adjustments.)
+
+Map script: Not Too Big or Small
+
++ Zones are now more likely to have a buffer at the north and south poles. This will reduce the chance of ice continents.
++ Increased the range of allowable zone sizes, particularly on larger maps.
++ Single zone maps are no longer forbidden. This will make 'Pangaea' style maps slightly more common on 'normal' size maps, and much more common on smaller maps.
++ The number of "tiny islands" now depends on the number of zones. This will reduce the chance of having vast empty oceans.
+
+
+--
+v1.36 changelist
+
+Game / UI
+
++ When choosing a default city name, the search will now skip a number of names corresponding to the number of cities the player has already founded. This means that if a player renames a city that they have founded, the game won't immediately suggest the same previous name for the next city founded. (Note: there are some technical caveats to this which may come into play in some mods.)
++ If a civilization's list of city names is exhausted, the game will suggest a _random_ name from a random civ; rather than the first available city name from a random civ.
++ When selecting a group of units by holding ctrl/alt, if the clicked unit is already selected then only units with moves will be selected in the new group regardless of the moves of the unit that was clicked. (This new condition is to work around an ambiguity problem when clicking units on the main map.)
++ Reduced the city governor's yield value adjustments when building work-boats.
++ Restored the city governor's preference for forced specialist types when assigning additional specialists. (This was broken as a side effect of a recent K-Mod change.)
++ Removed a loophole which in rare cases could cause the 'plains cow start' problem to resurface.
++ Corrected the horizontal centering of the 'new era' screen.
++ 'Make peace with other civ' trades will now result in a 10 turn peace treaty between the two civs rather than just a cease fire.
++ 'Make peace with other civ' trades will now be denied if the 3rd party refuses to talk to the 2nd party, or if the 3rd party simply refuses to make peace.
++ Restored functionality which prevents the sea movement bonus for circumnavigation from being awarded in games where the map is complete from turn 1. (This functionality had been unintentionally broken as a side effect from an earlier change.)
++ Fixed a couple of minor python problems which led to assertion failures (potentially leading to more serious problems in the future).
++ Fixed a bug which sometimes caused an infinite loop after adding units for an AI team in the world-builder.
+
+AI
+
++ Fixed a rare divide-by-zero crash caused when the AI decided to plan war against an overseas civ before either team could build boats.
++ Adjusted the AI's cost estimates for overseas wars.
++ Fixed a bug in CvTeam::getTypicalUnitValue caused the domain parameter to be ignored, which resulted in some erroneous evaluations in various parts of the AI.
+
++ Made several significant changes to the way the AI evaluates yield when choosing plot improvements. Most noteably, the value of food is now scaled based on how much food would be required to work the other available yields.
++ Made some adjustments to how the AI decides when to chop forests in the early game.
++ Fixed a bug in getYieldWithBuild which caused it to ignore yield from existing improvements when building roads. (This only had minor side effects.)
++ getYieldWithBuild now counts 'extra yield' (eg. from financial). (This helps the AI decide which plot improvements to build.)
+
++ Fixed a couple of minor bugs which sometimes caused the AI to get a bit confused when trying to transport settlers to new areas.
+
++ Corrected several parts of the AI which were using a poor approximation for the net income of their civilization. (This approximation caused some parts of the AI to think the civ was having financial difficulties if the civ was making heavy use of their espionage slider or their culture slider.)
++ Corrected a mistake in the original BtS code in AI_commerceWeight which caused the AI to miscalculate how many turns its gold would last at the current research rate.
++ Fixed an original BtS bug which caused all commerce building processes to be identified as being "good" when evaluating techs.
++ Tweaked the AI's yield values adjustments when using particular strategies.
+
+--
+v1.35 changelist
+
++ The 'why don't you attack' diplomacy screen no longer lists cities that the civ is not at war with.
++ The 'why don't you attack' diplomacy option is now only available if the civ is at least pleased towards the player, or is the player's vassal.
++ The effects of telling a civ to target a particular city will now last at least 10 turns. (The AI updates its choice of target city on random turns, and so previously the AI could randomly overrule the choice of target city immediately after the player makes the request. The new behaviour is that the choice of target city is locked in for 10 turns before the random updates resume. [Note: this still doesn't guarantee that the AI will actually attack the chosen city! It merely encourages them to do so.])
++ Fixed a problem in the way unit flags on the map are updated when switching in and out of debug mode.
++ When adding units to a group, the group's mission queue is once again cleared. (I've restored this behaviour as a workaround to a problem in the exe)
+
++ Automated cities will now build units slightly more often. (But they'll still primarily focus on buildings.)
++ The city governor now takes the 'financial' trait bonus into account when evaluating improvement upgrades to choose which plots to work.
++ Made several changes to the way the city governor chooses which plots to work
+  + Corrected an overestimate in the time for the city to grow - which sometimes caused the governor to mistakenly grow the city while still waiting for slavery unhappiness to wear off.
+  + Fixed a couple of mistakes which caused the governor to overvalue food when attempting to fill the food bar without growing the city.
+  + Reduced the value of food in general.
+  + Extra value for productivity when below par is now only used if the player doesn't have any hurry types enabled.
+  + Fixed a bug which prevented the governor from trying to stack great-person points as intended.
+
++ Tweaked the way the AI evaluates the yield of super specialists when deciding where to settle them.
++ Barbarian cities will now use 'build culture' to pop their borders once they get drama. (They still can't build any culture buildings.)
++ Fixed a problem which sometimes caused the AI to use their navy to guard lakes.
++ The AI's estimate of the diplomatic cost of war now takes into account the bonus of sharing a war with friends.
++ Slightly tightened the conditions on when an AI team will offer itself as a vassal.
++ Adjusted many of the conditions on when the AI will choose to accept a vassal.
++ Taught the AI to free itself when it no longer wants to be a vassal.
++ AI will no longer use 'we're afraid of your enemies' as an excuse to refuse capitulation when the would-be master is much stronger than their enemies.
+
++ Fixed a grammar mistake in the original BtS text for when a unit is killed by a flanking attack.
++ Fixed a bug which caused the city captured sound effect to be played to all players rather than just those who saw the city being captured.
+
+--
+v1.34 changelist
+
+Game
+
++ The anti-double-move rule in simultaneous turns mode now only applies after meeting another human.
++ Fixed an original BtS bug which messed up the conditions for random events that depend on corporations. (In particular, this bug allowed 'corporate expansion' and 'hostile takeover' to trigger for civs which did not own the HQ.)
++ Halved the number of islands settled to complete the Blessed Sea quest. (Eg. on a standard size map, the goal has been been reduced from 10 islands to 5 islands - which is still a lot, but less insane.)
++ Fortify, sentry, heal, and sea-patrol no longer block each other. (eg. the 'sentry' command will still be available when a unit is fortified or healing; so the unit doesn't need to be woken before changing its orders.)
++ Fixed a bug which prevented the financial advisor from ever reporting zero units in the supply cost. (The cost was accurate, but the number of units had a non-zero floor.)
++ Added xml option to block python callback for unit upgrade cost. (Blocked by default, for efficiency.)
++ Minor efficiency improvements.
+
+AI
+
++ Made a large number of behind-the-scenes changes to the AI to allow them to use and understand the 'fortify' command. (This is an aesthetics change only. Using the 'skip' command has the same effect in terms of game mechanics; but 'fortify' makes the units appear ready for combat graphically.)
++ Made some adjustments to the AI's cost war analysis for some more complex war situations
+  + Reduced the power estimate for secondary targets in offence wars. (eg. teams brought in by defensive pacts now only have part of their power counted.)
+  + The relative productivity estimate now includes productivity of vassals and of other enemies from different wars.
+  + The cost of war weariness from vassal-wars is now counted (in addition to war weariness from the primary war).
+  + When planning war on a vassal, the AI will now estimate unit strength based on the master's units rather then the vassal's units.
+  + The total commitment cost of war is now adjusted by a non-zero percentage at the end of the calculation. This is meant to represent the fact that teams will have some military spending regardless of any wars; and this minimum military cost might be all that's required for the war.
++ Fixed a set of bugs which prevented the AI from taking defensive pacts into account when planning war against a vassal.
++ Restored check for 'peace not possible' when negotiating capitulation. (This can't happen with the usual rules anyway.)
++ Voluntary vassalage now checks for 'war not possible' for the would-be master. (Taking on a voluntary vassal causes the master to automatically declare war on anyone the vassal is currently at war with. Without this 'war not possible' check, the vassal trade could be used to bypass peace treaties.)
++ The AI will now refuse to take on a vassal if it would mean declaring war on someone they usually wouldn't consider war with.
++ When the AI considers starting a war with a vassal, they will now use the maximum 'no war prob' of the target and of the master.
++ The AI is now slightly more likely to make basic preparation for a cultural victory in the early game.
++ Made several changes to the AI's city site evaluation.
+  + All plots above the food-per-pop threshold are now counted as 'special food plus'. (previously it was only counted for features, water, and bonuses.)
+  + Fixed some minor problems and inconsistencies in the way plot features are evaluated.
+  + Changed the way yield is counted on the city plot to better reflect the actual game mechanics. (For example, the AI will be less discouraged from settling on bonuses which would give them 3 food on the city plot; especially if they wouldn't get much more than that from the plot anyway.)
+  + Added a new factor to decrease the value of sites which lack hammers.
+  + Fixed a bug which prevented sea resources from being evaluated. (Previously, the food was counted, but not the value of the resource itself.)
+  + Value of resources (bonuses) now scales based on how many the civ has.
+  + Changed the way resources are evaluated for starting locations. (unique bonuses will be worth slightly more; and duplicate bonuses worth slightly less.)
+  + 'Easy culture' is now taken into account for bonus value as well as for yield value; so that the AI doesn't always feel they need to get strategic resources in their inner circle.
+  + 'Ambitious' civs now value bonuses more highly.
+  + Changed the way water plots are evaluated. (In general, water is worth slightly less than before but coastal cities are worth slightly more.)
+  + Tweaked some of the yield values.
++ Made some changes to the AI's usage of nukes
+  + The AI will now be slightly more likely to use nukes against civs that have nuked them in the past.
+  + Increased the tendency for civs that build the Manhattan Project to want to build nukes.
+  + The AI will now include cargo units when evaluating potential nuke targets.
+  + Fixed a bug which sometimes prevented the AI from moving its tactical nukes.
++ Stack size thresholds in naval assault missions are now reduced when en route, to discourage the AI from changing its mind half-way.
++ Naval reinforcements missions will no longer be allowed to declare war.
++ When upgrading unit types, the AI will now put slightly more care into its choice of which upgrade to choose for each unit.
+
+
+--
+v1.33 changelist
+
+Game
+
++ XML balance adjustments to several units.
+  + Production cost of war elephants (and ballista elephants) increased from 60 to 70.
+  + Maximum collateral damage targets reduced from 7 to 6 for cannons, and 8 to 7 for artillery and mobile artillery.
+  + Grenadiers now get +10% city attack.
+  + Panzers now get 1-2 first strikes.
+  + Submarines and Attack Submarines now get +10% ocean attack.
+  + Ships of the Line strength increased from 8 to 10; but bonus vs frigates decreased from +50% to +20%.
+  + Stealth Destroyers strength increased from 30 to 36.
++ Fixed a bug which prevented players from trading techs immediately after completing the research. (This behaviour was an unintended side-effect of a change in the previous version of K-Mod. -- Note: it will now also be possible to trade techs immediately after bulbing them.)
++ Corrected some minor anomalies in the new handling of CvTeam::doTurn in simultaneous turns mode.
++ Fixed a bug which allowed players to queue multiple nuke targets with a single nuke unit. (Previously, this could cause some strange behaviour.)
++ Fixed a potential infinite loop in mods that have improvements which when pillaged become the same improvement (either directly or indirectly).
+
+UI
+
++ Implemented unit cycling suppression with the X key. ie. If you hold X while issuing an order, the unit will remain selected even when it has no moves left.
++ Added a new option to the BUG options screen: Simple [Shift] Unit Selection. With this option enabled, the selection with the shift key will behave in a more rigid and predictable way.
++ Fixed several bugs and inconsistencies in the default selection rules when using the shift key.
++ Units deselected with shift key will now be ungrouped. (Previously, units would be added the the group when selected, but not removed from the group when deselected.)
++ Previously when selecting units with either ctrl or alt, units with no remaining moves would be excluded from the selection. This has been changed so that if the player explicitly clicks on a unit with no moves (while holding ctrl or alt) then the selection will include all units regardless of their moves.
++ 'Retire' and 'WorldBuilder' controls now always require confirmation. (eg. if you press ctrl+q the game will now give a prompt asking of you want to retire rather than instantly ending the game.)
++ Confirmation prompts, such as those for 'Retire' or 'Exit to Desktop', will now say explicitly what it is that you are confirming. (Previously these prompts simply said "Are you sure? Yes/No", with no hint of what they were talking about.)
++ Changed the way the game updates which unit should be displayed on top of each plot. This change significantly improves the game's response time when selecting units. (Previously the game would update every plot on the map every time a unit was selected. Now, it only updates plots in the locale of the selected unit.)
++ When pointing to an enemy stack to see combat odds, the game will now update the top unit in the enemy stack to accurately reflect which enemy unit will fight first. (Previously the top unit was accurate when the player had only a single attacker selected, but was sometimes inaccurate if the player had a whole stack selected. It should now always be accurate - but only after displaying the combat odds!) (Exception: If the attacking playing has a spy or some other unit on the target plot, that unit will always be on top.)
++ Fixed a bug which prevented the "friendlies" combat odds from being displayed. (Holding alt when pointing to a plot should give combat odds regardless of who owns the target units.)
++ The city capture sound is now played when the city is actually captured rather than when the city capture popup is displayed. This change prevents the sound from repeating if the player chooses to examine the city.
++ When a corporation expands into ones own city, the player will now only receive one message to describe what the corp. has brought to the city. They will no longer get the general "corp has spread" message.
++ Religion spread and religion removal event messages now have the standard duration rather than extended duration.
++ Nuke messages (eg. player X's nuke exploded, or player Y intercepted X's nuke) are now only shown to civs who player who have met the civilizations involved in the event.
++ Fixed a bug which caused the espionage slider to still be shown when using the "no espionage" option.
+
+--
+v1.32 changelist
+
+Game / Back-end
+
++ Ship of the Line can now be built with copper as well as with iron. (This gives ironless civs a decent naval ship if they go for the right tech.)
++ Rearranged to order of certain turn-counting game mechanics to fix some balance problems. Most notably, the turn counter for counter-espionage missions now counts down at the start of the team's turn rather than at the end of all players' turns. This means that the duration of counter-espionage missions will now be independent of which team is doing the mission and who the target team is.
++ Fixed a problem in the player colour was handled in replays. (This problem sometimes caused player names to not use the correct colour in the replay; and it also caused some special map scripts to crash the game.)
++ Rewrote the system for attitude cache, and close-border attitude cache; so that the cache is only updated at explicitly specified times. (In the previous system, if the cache was not marked as invalid at precisely the right times then it could cause OOS errors. This was an endless headache for me to manage. In the new system, attitude cache inaccuracies can no longer cause OOS. At worst, they will just cause a delay in when the attitude is updated.)
++ Fixed the triggering of unit movement animation in a couple of places.
++ The xml log will no longer report that "NONE" was not found.
+
+AI
+
++ Redesigned and rewrote the way the AI chooses when to aim for a conquest victory. (The old version basically said "if we're very strong, then we're going for conquest". The new version is far more nuanced. It primarily depends on history, personality, attitude, and power.)
++ Redesigned and rewrote the evaluation system for the AI's use of nukes. (The old system basically said "if we're at war and furious, hit 'em with everything we've got!” The new version ... doesn't do that.)
++ Made many adjustments to the AI war evaluation functions which were introduced in the previous version.
+  + The evaluation now scales more smoothly into the late-game.
+  + War commitment cost is now more strongly linked to productivity.
+  + Holy cities without the shrine building are seen as being less valuable.
+  + Relative sea-unit strength now has a significant effect on the cost of overseas wars.
+  + The effect of unit strength in general has been changed.
+  + The adjustment for distant wars has been tweaked.
+  + (and so on)
++ Tweaked the effects of the 'dagger' strategy.
++ Slightly reduced the number of siege attack units the AI likes to build.
++ Air recon units are now given top movement priority (along with spies).
++ The AI will now re-evaluate war-plans when switching out of the 'preparing' phase; and it will abandon the plans if the war is deemed to be a bad idea.
++ Fixed a couple of problems in the way the AI decides whether or not to go to war over a rebuked demand.
+
+--
+v1.31 changelist
+
+Game / UI
+
++ Fixed an original BtS bug which caused pitboss servers to crash whenever a player launched a spaceship.
++ Fixed an original BtS pitboss OOS bug which was triggered when an attack animation included a siege tower.
++ Fixed several bugs which caused the pitboss server to attempt to access unallocated memory. (There were bugs like this in the original BtS code, and K-Mod code, and BUG code.)
++ Changed the default Field of View settings to a dynamic value which scales with the size of the player's monitor.
++ Removed the city-screen field of view switching. It didn't work correctly, and I don't think we need it anyway.
++ Fixed a bug which essentially negated my previous bugfix for the 'plains cow' problem with starting positions.
++ The starting site will now always be recommended on the first turn.
++ Fixed some bugs in the BUG religion advisor which prevented the sub-options from working correctly.
++ Fixed some bugs which sometimes caused civilizations to be described as "unknown" in replays.
++ Adjusted some of the weights used for automated cities choosing military units.
++ Workers will no longer be interrupted by nearby danger if they were already in danger when they started their build.
+
+AI
+
++ Rewrote the AI evaluation of war targets. The new version will consider things such as relative unit strength, diplomatic impact, and relative productivity; as well as things which were already considered in the old version such as proximity, attitude score, and power rating.
++ Redesigned and rewrote the AI's code for deciding whether or not a potential enemy civ is a "land target". It should be far more accurate now.
++ The AI will no longer consider starting a war against civs for which no city sites have been revealed.
++ The AI's 'dagger' strategy will now more strongly encourage the AI to build units, and will significantly increase their unit spending limit.
++ Increased the war weariness threshold in AI_acceptSurrender.
++ Fixed a bug in the executive AI which caused them to evaluate corporations for themselves rather than for the player they are spreading to.
++ The AI will now take into account the cost of removing an old corp when spreading a new corp.
++ Adjusted the AI civic value for slavery pop-rushing.
++ Corrected a game-speed scaling problem in the AI for pop-rushing.
++ Greatly reduced the AI's perceived value of bonuses produced by corporations.
++ Slightly reduced the trade value of bonuses in general.
+
+--
+v1.30 changelist
+
+Game
+
++ Fixed a bug from BtS which caused the prerequisite conditions to be ignored for some diplomacy votes.
++ Added a new promotion: "Disorganized", which gives -10% strength.
++ Spontaneously spawned barbarian ships will now start with the disorganized promotion.
+
+UI
+
++ Re-enabled the "is unwilling to talk" indicator option on the scoreboard. (It now uses '!' in the order string instead of 'F'.)
++ Tweaked the effect of spacing (numbers) in the scoreboard order string so that it behaves more predictably.
++ Air units can now be ordered to rebase or air strike when only part of the group can move.
++ Missionaries and executives will now split up their group if they are automated, so that they can target different cities.
++ Made several improvements to the new group cycle ordering system.
++ When a worker finishes a build, all similar missions in progress on the plot are immediately cancelled. (This will help give better unit cycling, because it means the workers won't have to wait a cycle just to cancel their build.)
++ Made some adjustments to the orchestration of battle animations.
++ The base number of battle animations rounds is now an xml parameter: "STANDARD_BATTLE_ANIMATIONS_ROUNDS".
++ Fixed a bug in the new battle animation planning which caused the game to crash when a unit withdraws from combat without any damage done to either side.
++ Fixed a bug which caused the identify of unmet civs to be hidden in the worldbuilder screen unless using cheat mode.
++ Fixed a bug which caused some city names to be displayed in black for one turn after trading maps.
++ Espionage spending weights (in the espionage screen) will now default to 1 rather than 0.
++ Changed some of the default BUG settings. (The BUG options suitcase is now disabled by default; and the scoreboard order is slightly different.)
++ Autoplay and change player functionality is now only available in cheat mode.
+
+AI
+
++ Fixed a bug which essentially prevented the AI from spreading corporations to more than half of their cities!
++ Made some slight adjustments to the AI's probability of building execs.
++ Made some adjustments to help the AI better prioritise spaceship research and construction when close to a space victory.
++ Made some adjustments to the way the AI updates its tactical memory.
++ Changed the behaviour of barbarian galleys. They will now be slightly more interested in pillaging rather than chasing workboats.
++ Made some minor changes to the AI's gold target.
++ Slightly increased the AI's colony cost estimates when considering a diplomatic victory, so as to encourage more empire splits for diplomatic civs.
++ Slightly increased the AI's minimum attack stack size for the late-game.
+
+Back end
+
++ Made some minor speed improvements in various parts of the code.
+(The following points have no direct effect on K-mod. They only apply to mods that are based on K-Mod.)
++ Changed many parts of the back-end code and UI the handling of commerce to enable the possibility of an inflexible gold rate.
++ Removed the rule from the base game which converted all gold into research if research was inflexible.
++ Rewrote parts of the game mechanics and AI so that they can handle the new commerce flexibility rules without getting into an infinite loop.
+
+
+--
+v1.29b changelist
+
++ Rewrote some of the code for loading of the game text xml. The new loading routines treat the xml in a more intuitive and less rigid way. In particular, the language names used to tag the xml values are now what determines the text for any given language. (Previously this was determined by the order of the tags.) The order of the languages is no longer important. If there is a missing language, the first text will be used instead (this is English for all of the current text files.)
++ Fixed a problem which sometimes blocked unit cycling after an attack command.
++ Restored missing "at war" mouseover text on the scoreboard.
++ Tightened the conditions on the triggering of automoves - hopefully this will reduce the chance of getting an unintended automoves trigger at the start of the turn.
++ Deleted the tech infos xml. (it is no longer used by K-Mod)
+
+--
+v1.29 changelist
+
+Game
+
++ Reduced the upkeep of Mercantilism from 'medium' to 'low'.
++ The culture-based espionage discount is now calculated using plot culture rather than city culture. (This will make the discount apply far more often than it use to. It will need some more balance testing...)
++ The spread culture espionage mission now adds plot culture only, not city culture. (This means it will not cause border pops, and it will not have exponential growth when repeating the spread espionage mission.)
++ German Panzers now start with the Flanking I promotion. (a sign of greater things to come?)
+
+UI
+
++ Relaxed many of the conditions for executing group missions. For example, fortify, sentry, and heal can now be immediately executed by units without any movement points; bombard and airstrike missions will be executed immediately by those who can move, rather than waiting for the whole group to be able to move; groups which are given the "air patrol" mission will automatically separate into those who can do the mission and those who cannot; and so on.
++ The pillage command will now cause the whole group to pillage rather than just one unit. (This is the original functionality. It was changed by BBAI.)
++ Completely redesigned and rewrote the system for determining the order that groups are cycled through. Cycle ordering is no longer updated when a unit moves. Instead, it is updated at the end of the turn for units which have moved, and at various other times. The new system includes a bias so that units of similar types will be more likely to be ordered next to each other. Hopefully the cycling will feel a bit more natural and less jarring.
++ Implemented a new system for tracking which groups have been selected so that the group cycle wrap condition will only be triggered once all group have been cycled through rather than just triggering at some arbitrary point in the cycle.
++ Corrected some inconsitencies and mistakes in some of the triggers for unit cycling. For example, the game will now cycle groups when an order is issued to a group which is not ready to move, just as it cycles when the order is to a group which can move; fixed problem which triggered cycling when forming a group in certain situations; and so on.
++ Rapid Unit Cycling will no longer cause the game to cycle away from attack combat animations.
++ Fixed a problem with Rapid Unit Cycling which caused it not to cycle for some particular missions, including air patrol and sea patrol.
++ Units will once again wake up when forming a group. (This prevents an exploit which could allow players to bypass the movement check on air patrol and sea patrol missions.)
++ In multiplayer games, the leader and civilization of unmet players will now be concealed. ie. Unmet human players will appear with grey text in the chat and in the scoreboard, and the mouseover text will not display their leader traits. (Note: this was done by changing the functionality of CvPlayer::getPlayerColor, ::getName, and so on. By doing this, I risk creating a bunch of new bugs. But these functions are used outside of the dll and so I couldn't implement the desired functionality without changing them directly.)
++ The word "contact" is no longer shown in the scoreboard mouseover text for unmet players (because they can't actually be contacted!).
++ Changed the scoreboard mouseover text so that will include the player's own civ in the "at war" list when appropriate.
++ Implemented min/max right-click functionality to the +/- weight buttons in the espionage screen.
++ The air circling animation for fighter units will now be stopped if they leave their group. (This fixes the problem of 'phantom fighters' apparently circling long after the actual fighter has left the area.)
+
+General
+
++ Combat animations are now orchestrated to roughly correspond to the events from the actual combat mechanics. (It still isn't a blow-for-blow representation of the actual battle, but events in the animation will at least occur in the same order as the events in the combat log.)
++ Tweaked the combat rank conditions so that when two defenders have equal rank, the second one will fight; but when two attackers have the same rank, the first one will fight. (It use to be the other way around.)
++ Fixed a bug in the volcano event which sometimes caused the game message to be given to the wrong player. (The messages were always sent to the owner of the volcano plot, rather than the owner of the affected plot.)
++ Corrected a couple of fringe cases in which new civilizations could be seen without meeting their leader.
++ Made some changes to CvCity::doPlotCultureTimes100 and CvCity::setCultureTimes100 so that it these functions can apply negative culture changes.
++ Repeat research no longer triggers "avoid research" for human players unless they have their research percentage set <= 20%. (This effect caused cities to shun scientists when researching future tech.)
++ Fixed a bug in the end-of-game info screen which sometimes prevented the player from seeing the graphs of some civs. (This bug was introduced by a recent K-Mod change.)
+
+AI
+
++ Made some changes to the way AI_yieldValue handles starvation and emphasis. This should fix the behaviour in some situations which previously let the city starve.
++ Made some adjustments to the growth evaluation in AI_yieldValue.
++ Made several signficant changes to the way the AI evaluates plot yields (ie. food, production, and commerce) so as to remove a scaling problem which caused the AI to overvalue artists, among other problems.
++ Reduced the effect of high values of iDesiredFoodChange in AI_improvementValue.
++ Fixed a mistake in AI_commerceWeight which caused culture to be valued more highly than intended.
++ Added some new adjustments to AI_commerceWeight to reduce the value of culture in particular circumstances.
++ Tweaked the way culture pressure affects the value of culture for the AI.
++ Fixed a problem in AI_updateBestBuild which sometimes caused the AI to prefer to replace improvements rather than build new ones on unimproved plots.
++ Corrected some inconsistencies in the AI's evaluation of features when evaluating plot improvements. (Hopefully this will reduce the AI's tendency to replace newly built forts with plantations.)
++ Rewrote the evaluation of specialist slots in AI_buildingValue.
++ Reduced the value of conditional yield multipliers in AI_buildingValue.
++ Disabled a clause from the original AI which caused the AI to cancel everything it was building and researching when it first met a human player.
+
+
+--
+v1.28 changelist
+
+Game / UI
+
++ Restored the functionality of 'select all' commands which do not use the alt key. (These commands were unintentional disabled when I changed the functionality of double-click from 'select all' to 'wake all'.)
++ Fixed a bug which caused the Numpad Help option to crash the game.
++ The new-era popup is centered rather than displayed on the left side of the screen.
++ War weariness in the foreign advisor screen will now only been shown if the activate player can see the demographics of the target player.
++ The No Unit Cycling option now overrules the Rapid Unit Cycling option (rather than the other way around).
++ The automoves phase for human players now will not automatically activate when one of the automoves units is selected.
++ Automated units which airlift themselves will now stay automated.
++ Adding units to a group will now disable the group's automation.
++ Fixed a bug in the Unofficial Patch which prevented players from getting two free techs on the same turn. (eg. if a player built the oracle on the same turn as discovering liberalism, they'd only get one tech instead of two.)
++ Fixed a problem which prevented the move animation from starting correctly when units become ungrouped while moving. (eg. when they are loaded into a boat. This problem is what caused units to sometimes appear running across the water and so on.)
+
+AI
+
++ The AI will now consider using 100% culture for a cultural victory even when also aiming for a conquest victory. (But only when close to winning.)
++ Removed a short-circuit condition from the cultural victory AI, so that the turns target is always respected. (Previously if the player had enough cities "close to legendary", it would run 100% culture regardless of how long it would take for victory.)
++ Fixed a problem which caused the AI to ignore its gold target when aiming for a cultural victory. This problem essentially prevented them from saving gold to upgrade units or spread corporations.
++ Fixed a couple of other minor problems related to the AI's use of the commerce percentage slider.
++ Change the way the AI prioritises which cities to spread corporations to. (Note: automated execs will prefer to spread to whichever team owns the land the exec is standing in.)
++ Fixed a bug which scrambled the AI's priority order for moving land units.
++ Reformatted CvUnitAI::AI_anyAttack to fix a bug which prevented non-combat from being recognised as valid targets.
++ Slightly increased the AI's tendency for defensive attacks in their own territory.
++ Removed the weight cap in AI_commerceWeight (there was a cap of 110 on the base weight, for no apparent reason.)
++ Reduced the AI weight of science from 125 to 105. (Although it was 125 in the xml, it was effectively only 110 because of the cap.)
++ Redesigned part of the evaluation for city processes. (So that the AI would be more likely to build wealth if doing so would earn them more net research.)
++ Added some more personality and nuance to the diplomatic part of AI_religionValue.
++ Fixed a minor bug in the pathfinder which sometimes caused inaccurate results for the AI's non-combat units.
+
+--
+v1.27 changelist
+
+UI
+
++ Implemented new controls for the city build queue: ctrl+click moves the item up the list, shift+click moves it down, alt+click toggles 'repeat' for units.
++ Changed the functionality of double-clicking a stack of units. Double-click will now wake all of the units without changing their current groups.
++ Added new loading hints to describe the new double-click functionality and the new build queue commands.
++ Rapid-unit-cycling will now be even more rapid. (It will now cycle without waiting for the group to stop being busy.)
++ Previously, "automated workers leave old improvements" was implemented with inconsistent rules. It is now enforced so that automated workers will not replace existing improvements for any reason. (City ruins not included.)
++ Improved the spacing of the labels in the Foreign Advisor screen and the Info Screen. The spacing on these two screens will now automatically adjust if the game language is changed.
++ Fixed several bugs and style inconsistencies in the info screen. (Mostly problems caused by the BUG mod.)
++ Added some missing mouse-over information in the foreign advisor screen.
++ Changed the format of the war weariness mouse-over information.
++ Disabled a condition in the original BtS code which prevented city governors from considering units for any role other than their default AI type. (This only affects human players.)
++ Added all of the missing text tags for the environmental advisor screen. (The text is still only in english, but at least it is now in the right format to be translated.)
++ Corrected the colour of non-english versions of TXT_KEY_BONUS_OBSOLETE.
++ Plots with a best-replacement-improvement value of <= 1 will no longer be highlighted as recommended upgrade plots for workers. (But the best improvement will still be highlighted for workers standing on the plot.)
++ Fixed an original BtS bug which allowed players to wake or fortify units which they do not own by using the flyout menu.
+
+Game
+
++ Anarchy duration modifiers and golden age modifiers will now apply their respective adjustments to the existing anarchy / golden age at the time the modifier is applied. (eg. When the Mausoleum of Maussollos is built, it will now increase the remaining length of the current golden age by 50%.)
++ Changed the way culture processes are ended when a city's cultural borders expand. (The previous implementation, from the Unofficial Patch, could cause OOS in particular situations.)
++ Rewrote CvUnit::collateralCombat to remove a rare OOS bug, and to improve performance and readability. (I estimate that there was roughly a 1/10000 chance of getting OOS with collateral damage attack using the original code.)
++ Increased the barbarian's base tech rate from 3% per turn, to 4% per turn, but blocked this research completely for the first half of their pre-spawn turns. (This is a follow-up adjustment to the change in the previous version.)
++ Fixed a problem which prevented units from being created on a transport on the first turn of special scenarios.
++ Units on transports will now stay in their group when they are upgraded (so that the behaviour is consistent with units not on transports).
++ Added two new functions: CvPlayer::canSeeResearch and CvPlayer::canSeeDemographics. These functions are the definitive answers to the questions posed by their names. The functions consider game rules, diplomatic relationships, and espionage. They are exposed to python, and should be used instead of the current ad-hoc combinations of conditions that were used in the past.
+
+AI
+
++ When evaluating tech which enable new units, the AI will now consider the value of the unit in all the roles it is suited to, rather than only the default role.
++ Added new AI to evaluate and consider using a 'process' (eg. build wealth) instead of constructing a building. (This may need some future adjustments in the near future.)
++ Rewrote the section of AI_techValue which evaluates how much trade value the tech has. The new code should produce smarter and less erratic behaviour, and be more affected by leader personality and game situation. (There is still room for improvement...)
++ Fixed a couple of problems with the evaluation of isNoNonStateReligionSpread in AI_civicValue.
++ Reduced the effect of "aggressive AI" on the AI's decision to use the crush strategy.
++ Fixed a problem which would sometimes cause the AI to alternate between building a farm and building a fort on grain resources outside of city radii.
++ In AI_civicValue, increased the value of experience points for non-warmonger AI's who happen to be at war.
++ Fixed a minor bug which caused the city governor to mis-evaluate productivity when constructing particular buildings.
++ Slightly tightened the conditions on the AI starting multiple warplans.
++ Slightly increased how much the AI likes health from features (ie. forests).
+
+--
+v1.26 changelist
+
+Game
+
++ Changed Representation back to +3 science per specialist, and High upkeep.
++ Implemented support for global happiness modifiers in civics. ("iExtraHappiness") This includes a new line of xml in all the civics, a new item in the civics schema; dll code to load and save the new data and to display info for it in the civic help text and civilopedia, and for the AI to have some awareness of how the new happiness modifier works. -- And, of course, some code to actually make the new happiness modifier do what it is meant to do in terms of happiness!
++ Barbarians will now only be able to start making progress towards a tech when they have the prerequisites. (This may or may not significantly slow the barbarian tech rate. It'll need some more testing.)
++ The barbarian tech rate now scales with game speed and starting era using the same scaling that applies to everyone else. (Originally, their tech rate was constant regardless of game settings.)
+
+UI
+
++ Right clicking on the +/- commerce rate buttons will now set the commerce rate to 100% / 0% respectively.
++ Fixed an original BtS bug which caused the game to prefer to select air units and sea units when alt+clicking on a plot. This has been fixed so that it always selects the unit graphically shown at the top of the stack.
++ Human-controlled workers will no longer be interrupted by border danger.
++ Emphasise production now decreases the value of commerce for the purpose of choosing plot improvements. (This does not apply if emphasise commerce is also set.)
++ Blocked some AI leader flavour effects from affecting governor recommendations to human players.
++ At-war and worst-enemy information will now be displayed for the currently selected leader's mouse-over text in the foreign advisor screen.
++ Leader names are now highlighted in various mouse-over texts.
++ Removed the espionage points information from the foreign advisor mouse-over text.
++ Changed the symmetry breaking mechanism in the pathfinder, again.
+
+AI
+
++ Wrote a new section in AI_foundValue to discourage the AI from settling in amongst foreign cities, but to encourage them to settle near foreign borders.
++ Fixed an original BtS bug in AI_foundValue which prevented the 'shaping' modifier from working correctly.
++ Reduced the weight of the shaping modifier - to compensate for the fact that it actually works now!
++ Adjusted the expense estimations throughout the AI so that they now take 'inflation' into account.
++ Increased and adjusted the figures used to calculate how much the AI is willing to spend on military, to account for the fact that their military cost estimates are going to be a lot higher than now that inflation is being counted.
++ Made major changes to how food is evaluated in AI_plotValue, AI_yieldValue, and AI_specialistValue. The value of food now depends on the quality of the unworked plots and specialists.
++ Tweaked various numbers and formulas related to the evaluation of yields and specialists.
++ Fixed a bug which caused AI_bestPlotBuild to tell the AI not to chop jungles with camps on them.
++ Changed the conditions the AI requires to choose a "best religion" - it no longer cares about the "purity" of religion in the civilization.
++ Added some more nuance to the evaluation of rush-buying in AI_civicValue. It will no longer be so sought-after by the AI unless it is particularly suited to their situation.
++ Made some further adjustments to the value of drafting in AI_civicValue.
++ Added a little bit of extra value for global specialists from civics or buildings, based on average the great person multiplier.
++ Rewrote some parts of AI_attackMove. In particular, the AI will now be a bit less likely to send solo units into enemy territory.
++ Fixed an original BtS bug which caused air units to automatically load themselves into a carrier if they are upgraded in a city which is at full air capacity.
++ Fixed a problem in K-Mod which could potentially cause an infinite loop when the above bug was triggered by the AI!
++ Fixed a rare bug which could cause the AI to choose an impossible move when trying to group its units before a war. (The effect of this is that the AI would waste some time trying to do this impossible move, and then skip its turn in frustration.)
+
+v1.26b
+
++ Some bug fixes.
+
+--
+v1.25 changelist
+
+Game
+
++ The cost of espionage missions and the probability of spies being caught both depend on the total espionage points ever earnt by each of the two teams involved. These total-points modifiers are now scaled by the relative populations of the teams. This change will give small civs a slightly better chance of spying successfully on large civs.
++ Military Unit cost (from pacifism) is no longer multiplied by the handicap modifier for unit cost. Neither is "extra cost" for units (which is currently unused).
++ Changed the pacifism cost from +1 gold per military unit to +0.5 gold per military unit. (Note, the new cost is independent of difficulty level, whereas the previous cost was actually between 0.2 $/unit and 1 $/unit depending on difficulty. 0.5 gold / unit matches the previous cost on Noble.)
++ The "handicap cost" is no longer shown on the unit cost mouse-over text. Instead, it is included in the unit cost. (This change makes it consistent with other handicap modifiers in the game.)
++ "Gold per unit" and "gold per military unit" are now in units of 1/100 gold, rather than just 1 gold.
++ Increased the range of guided missiles from 4 to 5.
++ Fixed a pathfinding problem which sometimes caused boats to fail to find a path around enemy units.
++ The field-of-view settings will now only persist if Remember Field Of View is set in the BUG options.
+
+AI
+
++ Rewrote several sections of AI_civicValue, including the parts about unit costs, production bonuses, experience bonuses, and everything to do with religion.
++ Inertia against religion switching is now increased when at war and when researching a tech with a first discoverer bonus.
++ Fixed a problem which sometimes caused the AI to chop jungle forest preserves at their national park city.
++ Fixed a minor bug in CvPlot::getNonObsoleteBonusType. (It reported that the resource was 'connected' if it visiable with a city built on it, regardless of whether the resource was enabled yet. eg. oil without combustion.)
++ Fixed a minor problem in AI_assaultSeaMove which caused a little bit of confusion after empty transports are separated from an assault group.
++ Fixed a minor problem in CvSelectionGroup::splitGroup which sometimes resulted in AI groups led by a unit type which isn't meant to lead a group.
++ The AI will now use their culture slider more freely if they don't need any more research.
+
+--
+v1.24 changelist
+
+Game
+
++ Fixed some bugs in the border danger cache from the BBAI mod. These bugs caused the AI to think certain plots were in danger, indefinitely, regardless of whether it was true. This would then cause automated workers and work-boats to avoid particular areas for no apparent reason.
++ Fixed a flaw which caused cargo-carrying units to be chosen as the best defender more often than they should. (The protection for cargo-carrying units was proportional to their odds of winning the battle; so if they were almost certain to lose then their cargo did not affect their willingness to defend.)
++ When ordered to attack an adjacent plot, human controlled groups will now move their directly instead of trying to find the shortest path. (Previously, they would sometimes want to step off their origin plot so that they could enter the target plot by road, and thus save some movement points. Unfortunately, this meant it was sometimes impossible for players to use the plot they wanted to attack from.)
++ Fixed a bug which sometimes caused units to not follow the path shown by the UI when attacking from several steps away.
+
+AI
+
++ AI_assaultGoTo will now automatically order an amphibious landing if the end turn plot is 1 step from the target.
++ Fixed a rare problem which sometimes caused the AI to issue the city attack order before they are ready.
++ Slightly reduced the distance barbarians are willing to walk to get to a target city.
+
+--
+v1.23 changelist
+
+Game
+
++ When a peace deal is signed, units are now only bumped after the trade is completed. This fixes several problems, for example, if the peace deal involves a city gift, the new owner of the city will not have their units bumped out of that city.
++ When a civ capitulates, the vassal's units will now be bumped out of the master's land. (Previously they were not bumped until the following turn.)
++ When a plot's best-build is an improvement that connects the bonus, other builds which connect the bonus will no longer be marked as recommended.
++ Added a button for accessing the BUG Options screen in the in-game main menu, and in the non-BUG options screen (only when in-game).
++ Added some loading-screen tips.
+
+
+AI
+
++ Moved the corporations section of AI_techValue so that it is still counted when other civs have the tech already!
++ Made some changes to religion value and overseas trade value in AI_techValue. (Astronomy will be significantly less attractive, and early religions will be slightly less attractive for non-religious flavour leaders.)
++ In AI_tech value, the random value of first-discoverer bonuses is now scaled based on how many other civs are able to research the tech. Some extra value is given base on leader flavour. (This applies to religions, free great people, and free techs.)
++ The AI will now consider the effects of vassals, colonies, and one-way trade routes, when considering whether or not to block foreign trade in AI_civicValue. Also, AI leaders with gold flavour will be optimistic about future free trade.
++ Leaders with growth flavour will now aim for slightly more populous cities.
++ Corporation speculation when choosing civics is now more weighted than before, but it is now only done by particular leaders.
++ Fixed an original BtS problem which prevented vassals from changing their war strategy from "attacked recently" to "attacked", and thus prevented them from building their own attack stacks.
++ The AI value of evasion on nuke units now scales depending on who has the ability to shoot down the nukes. This will make ICBMs more attractive to the AI until people start building SDI.
++ Made some adjustments in the AI for air-strikes, particularly for carrier groups.
++ Changed the default unit AI of berserkers from 'counter' to 'attack city'.
++ Fixed bug in AI_guardCoast which completely messed up the calculation for the best city.
++ Tightened the conditions used to decide whether an attack stack should reposition before the city attack. (Previously it would always reposition if the city had > 50% defence, even if there were no defenders!)
++ Fixed a minor problem in AI_stackAttackCity which sometimes resulted in issuing attack orders that could only be executed on the following turn.
++ Fixed a problem in the way the AI's group attacks are handled which sometimes caused the AI to attack with its second-best unit instead of its best.
++ AI_afterAttack will no longer take control of stacks larger than 2 units, even if the group leader has attacked already. (This will help the AI make better decisions when controlling stacks with mixed speeds.)
++ AI_afterAttack will now attempt to capture undefended cities and workers. (This allows the AI to use the "chop & drop" strategy, with gunships and paratroopers.)
++ Increased the AI's state religion inertia.
++ Slightly decreased the AI's tendency to switch civics.
++ Fixed a problem which sometimes caused the AI to switch to organized religion when it had no religion.
+
+--
+v1.22 changelist
+
+Game
+
++ Fixed many (minor) bugs caused by inconsistencies in how the original code checked whether or not a plot improvement gives access to a resource.
++ Changed the symmetry breaking mechanism in the pathfinder.
++ Redesigned the mouse-over text for bonuses (ie. resources).
+  + Removed misleading information from obsolete resources (eg. "requires camp", or "+1 happiness with market")
+  + Obsolete resources now display "Obsolete" instead of "[player] has 0"
+  + The additional plot yield information now says "on plot" at the end, to make it clear that it isn't a civ-wide effect.
+  + Changed the style to be more consistent with other in-game information. (eg. removed the word "HAPPY" and replaced it with a bullet point.)
++ Fixed a couple of problems in original BtS civilopedia pages for resources. (References to buildings in the effects panel now link to their corresponding civilopedia page. The font of the improvement yield change is now the same size at the other information.)
++ Made several changes to the way the game recommends actions for workers.
++ Made some speed improvements. (particularly in times of war)
+
+AI
+
++ Fixed several minor AI inconsistencies related to the value of commerce.
++ Increased the AI's value of production when choosing plot improvements.
++ Fixed several problems related to the way the AI chooses best plot builds. In particular, the AI will now interrupt workers on the plot if the best-build gets changed to NO_BUILD.
++ Fixed many minor AI bugs caused by inconsistent use of AI_bonusValue. (The original code makes it unclear what the default arguments are, and apparently this caused some confusion.)
++ The AI will now be less keen to trade for strategic resources that it doesn't yet have the tech to reveal or use.
++ In AI_civicValue, changes in city maintenance are now calculated precisely. (Previously, a very poor approximation was used.)
++ When considering a civic which will disable corporations, the AI will now speculate about the potential value of unfounded corporations and adjust the civic value accordingly.
++ Resources produced by corps are now taken into account in AI_civicValue.
++ Improved the accuracy of the capital city yield multiplier evaluation in AI_civicValue.
++ Made several improvements and bug-fixes in the evaluation of bonuses and improvements in CvPlayerAI::AI_techValue.
++ Made several changes throughout the AI relating to nuclear weapons.
++ AI_safety will now prefer plots that are not in hostile territory. (!!)
++ Fixed a problem in AI_attackCityMove which sometimes caused large groups to wander aimlessly if they were not ready to attack a city.
++ Changed the AI's conditions for stacks being "ready to attack" to distinguish between 'no capture' and 'combat limit < 100'.
++ Fixed a problem which sometimes caused the AI to land spies on islands with no cities.
++ Fixed an original BtS bug which sometimes caused naval units to try to guard land resources.
++ The AI will now use its naval units to guard the coastal plots adjacent to its cities. (as opposed to leaving the boats inside the cities)
++ The AI will now use sea-patrol when guarding sea resources.
++ Adjusted the culture value scaling for the AI's cultural victory strategy. (This should help the 3rd culture city build up faster.)
++ Fixed a bug which often caused AI cities queue something of low value first when they want to build a high value project. (ie. it would choose the project, and then put something else at the front of the queue.)
++ Made some adjustments to the AI's unit type preferences in AI_bestUnit.
+
+--
+v1.21 changelist
+
+Game
+
++ When normalising food bonuses, the city plot is no longer counted. (ie. floodplains on the city plot no longer counts towards the minimum food for a starting city.)
++ Starting locations are now evaluated with the bEasyCulture flag, which means that the outer plots of the fat cross are worth just as much as the inner plots.
++ Disabled some special ad-hoc game mechanics that the BBAI mod used for picking up stranded units. (AI players should adhere to the same game rules that are imposed on human players!)
++ Adjusted pathCost so that units will prefer not to end their turn on plots that they cannot fight on. (eg. boats in forts)
++ Fixed a rare OOS bug caused by the attitude cache.
++ '%' characters are now automatically removed when renaming a city. (City names with percentage signs can cause the game to crash.)
++ Changed the way units are activated inside CvUnit::automate. (The previous implementation caused the game to crash if the unit was immediately consumed.)
++ Added a couple of missing BUG options to the config files. (renamed ShowDedenderHealthBars to ShowDefenderHealthBars, added SpecialistActualEffects)
++ Made some minor speed improvements.
+
+AI
+
++ Redesigned and rewrote the AI for evaluating projects, and for deciding when and where to build projects. (eg. spaceship parts, Manhattan Project, The Internet) - In general, the AI should be better able to focus on building spaceship parts when aiming for a space victory, and they should be better at deciding when it is a good time to build the Manhattan Project. (although they still won't build the Manhattan Project very often - for game-play reasons.)
++ Made several changes to the way the AI evaluates world wonders and national wonders.
++ The AI will now continue unfinished missions using the same priority queue as for issuing new missions. This will prevent the AI from moving units to guard workers before the workers have moved.
++ Completely redesigned (and rewrote) the code for the AI's use of overseas espionage. (They still won't do it a lot, but at least they'll do it better!)
++ Fixed some AI problems which sometimes made it hard for the AI to load their units onto naval transports.
++ Fixed a problem which sometimes caused the AI to not unload units from a boat when it is intending to guard the city the boat is in.
++ Fixed a couple of special cases which allowed AI groups to change their head unit AI type without forcing the group to separate.
++ Made some changes to the way the AI evaluates corporation executives.
++ Tweaked the executive AI to further discourage automated units from spreading corporations to foreign civs. (They'll only spread to close friends, vassals, and allies.)
++ Slightly increased the AI's desire for great-person points.
+
+--
+v1.20 changelist
+
+Game
+
++ Reduced the natural disapperance probability for fallout from 5% per turn to 2.5% per turn. (v1.20b)
++ Replaced all calls to gDLL->altKey, shiftKey, and ctrlKey, with equivalent native Windows functions. This should fix the problem of keys not always registering correctly.
++ It is now possible to completely clear the production queue in automated cities. (The city governor will choose the production at the end of the turn.)
++ Fixed a bug which sometimes caused unbuilt religious buildings to show an incorrect amount of culture in the mouse-over text.
++ Removed the food-loss and starvation information from Net Effects. (In my opinion, the unhealthiness info is sufficient. The rest is just clutter.)
++ Made some speed improvements.
+
+AI
+
++ Made several significant changes and bug-fixes to the way the AI chooses which plot improvements to build, and which order to build them.
++ Fixed some problems in the way the AI calculates how many workers are needed at a city.
++ Changed the way the AI scales the value of its units. Hopefully this will stop the AI from building vastly inferior units just for variety.
++ Changed the value adjustment for units to depend on the production cost itself rather than on the number of turns to build it. This will make it less sensitive to small differences in production.
++ The 'follow' AI for UNITAI_ATTACK_CITY units will now use AI_stackAttackCity. This will make it possible for AI stacks to attack their target city on the same turn they bombard.
++ Rearranged some things in AI_attackCityMove to help the AI better deal with the situation when the target city is too strong.
++ Restored the rule that units with 'noDefensiveBonuses' will not use MISSIONAI_GUARD_CITY. This will encourage the AI to bring better defenders into the city ASAP.
++ Slightly strengthed the conditions for AI_deduceCitySite. The AI will now be less likely to guess the location of cities that are already within the borders of other cities.
++ Further increased the AI tech value of military units when using alert or conquest strategies.
++ The AI is now less likely to start building things which will be obsoleted by their current research.
++ AI_buildingValue now includes a value boost for buildings that are required in the city for other buildings. eg. walls get a bonus if they would allow the city to build a castle.
++ The AI is now less likely to be motivated to use its espionage slider by hatred.
++ Fixed a bug in AI_pickupStranded which prevented the AI from recognising its current location as the best pickup plot.
++ Fixed a problem which could cause an infinite loop in certain mal-thought-out mods. (ie. if two buildings have each other as prereqs, previously it would cause an infinite loop in the AI. Now it does not.)
+
+v1.20b
+
++ Fixed a rare infinite loop bug in AI_pickupStranded.
++ Fixed a mistake in AI_getImprovementValue which could cause the AI to oscilate improvement when close to their food target.
++ Fixed a couple of misuses of 'isHasPathToAreaEnemyCity'. This was causing some stranded groups to not recognise that they are in fact stranded.
++ When evaluating the destroy building espionage mission, the AI no longer gives a bonus to prerequite buildings.
++ AI_buildingValue now takes golden age effects into account. (eg. Taj Mahal and Mausoleum of Maussollos) - Previously, these effects were just ignored in the evaluation.
++ Fixed several mistakes in the prereq part of AI_buildingValue.
+
+--
+v1.19 changelist
+
+UI
+
++ Reformatted the "actual effects" text for buildings and specialists. It is now called "Net Effect", and it appears at the bottom of the list, in grey text enclosed by parentheses.
++ Net effects for buildings and specialists will now be displayed when alt is pressed, regardless of the BUG settings.
++ The hover text for buildings now includes some previously unlisted happiness and healthiness bonuses in the base bonus. (eg. charismatic leaders will now see +1 happiness on the mouseover text for monuments.)
++ Swapped the order of the happiness and healthiness info in the city-screen side-bar, to match the order used in the dll.
++ Restored some missing text for BULL options for subtotals in the city screen.
+
+Game
+
++ When units are bumped to a different plot, their mission queue is now cleared. (This prevents workers from starting work on the wrong plot.)
++ Food resources which give less than 4 net food are now worth fewer food points to the start-position normalizer. (There is no longer any chance of having plains-cow as the sole food resource for a starting site.)
++ Randomized the position of extra rivers and lakes added by the start-position normalizer, so that we don't always get a river on the south-east corner, and a lake on the north.
++ The start-position normalizer will now not always try to create a river. (Previously it always tried but sometimes failed. Now it will fail less, and also try less.)
++ The starting position normalizer now values river plots more highly than before.
++ My map generator, "Not Too Big or Small", will now make slightly more "big" zones than before.
+
+AI
+
++ Barbarian attack stacks are now more likely to attack units outside of cities on the way towards their target city. (They use AI_stackVsStack with a random attack threshold ~ [20-170])
++ The AI will now only use the 'espionage economy' strategy if the target team has at least 2 stealable techs.
++ Made some changes to the way the AI uses its espionage slider. (Expect more espionage attacks from the AI.)
++ If an AI settler is in danger and unable to retreat, it will now try to continue a useful mission rather than just stand still.
++ Fixed some minor problems in AI_movementPriority which could sometimes cause the AI to unload units from boats before they should.
++ Adjusted some of the probability formulas used in AI_chooseProduction.
++ Changed the way the city governor chooses units. (Hopefully, this will result in more balanced armies being build when using auto-production.)
++ Border danger is no longer counted on water tiles for human players.
+
+
+--
+v1.18 changelist
+
++ The choose production popup screen will now be postponed if the city is in disorder.
++ Fixed a problem which prevented the end-of-turn message from displaying when the player has all their units automated.
++ Rearranged the the layout of the BUG City Screen options tab so that it fits neatly on one page.
++ Happiness and healthiness bonuses from events are now included in mouse-over text for buildings. (The bonuses are included in the total. They do not have their own description.)
++ Implemented "actual building effect" mouse-over hover options from BUG.
++ Fixed an original BtS problem which prevented units from executing chained commands when standing near hostile units. (ie. issuing commands while holding shift did not work. It does now.)
++ Fixed a couple of possible divide-by-zero bugs.
++ Increased the estimated movement cost of moving from one unrevealed tile to another. (So that the pathfinder is less inclined to try to walk through unexplored land.)
++ Fixed a minor bug in the original BtS code for loading xml. (This bug caused an assertion failure if the final xml entry is commented out in any file.)
+
+AI
+
++ Made several significant changes to the new slave-whip AI. (Basically, it now takes more effects into consideration.)
++ Fixed a couple of naval AI problem which could cause a loop.
++ Removed a strange rule from the original BtS code which disallowed the AI from loading into boats on the coast. (They were only allowed to load from cities and forts. This prevented the AI from rescuing stranded units.)
++ Added some missing calls to CvUnitAI::AI_handleStranded.
++ The AI's weighting for great person points now depends on their personality flavour.
++ The AI may now delay having a revolution if they are currently researching the prereq tech for a civic they want to use.
++ Added some more AI flavour effects to slave-whipping.
++ The AI will now reconsider its research options after bulbing.
++ The AI will now consider its civic options when it starts a golden age.
++ Made several changes to the AI's military defence tactics and related decision making.
++ Attack AI groups bigger than 4 will now ungroup before escorting workers.
++ Changed the way the AI decides which units to move first.
+
+v1.18b
++ Fixed a problem which sometimes prevented the AI from recognising undefended cities as attack opportunities.
++ Made some efficiency improvements
+
+
+--
+v1.17 changelist
+
++ Fixed an original BtS problem which prevented units from being un-grouped before they were automated.
++ Fixed a couple of problems with the way BUG detects the BtS user documents directory. (The original system was unable to expand environment variables in the path name.)
++ Changed the message sound effect for reporting the death of a warlord. (Previously it was the era defeat sound; now it is the "intercepted" sound. It still isn't a great fit, but it's better.)
++ The AI for automated units now executes during the "automoves" part of the turn rather than at the start of the turn. (Also, reverted the change which delayed the execution of automated unit missions. Automated units will act at the end of the turn, as they did in the previous version of K-Mod, but they will make their decisions using the latest information.)
+
+AI
+
++ Completely replaced the AI for deciding when cities should slave-whip and rush-buy. The new system will whip more often, but hopefully only when it is wise to do so. The calculation to decide when to slave-whip has some dependence on the personality of the AI player - some AIs will prefer to grow their cities; some will be especially keen to get lots of overflow hammer from whipping. The new AI is better able to adapt to different game rules. In particular, the new AI can handle hurry commands which combine gold cost and population cost; such a combination would cause the old AI to get confused and make mistakes.
++ The city governor is now allowed to slave-whip in cities set to auto production - but the governor uses slightly stricter rules than the AI players use.
++ Fixed a bug in AI_retreatToCity which caused pass 1 and 2 to be the same rather than using "ignore danger" on pass 2. (This bug was my fault.)
++ Fixed a bug in CvPlayerAI::AI_disbandValue which blocked units from being disbanded when in a well guarded city instead of blocking when in a poorly guarded city.
++ Made some other value adjustments to AI_disbandValue.
++ Fixed a bug in AI_tradeMissionValue which sometimes caused AI merchants to oscillate between trying to join a city and an impossible trade mission.
++ Slightly improved the behaviour of recon spies.
++ Closed a few problematic conditions the AI used to build units when in financial trouble. (units which would then be deleted a few turns later...)
++ AI_buildingValue now ignores half of the happiness points from military units - this is to prevent cities from getting messed up when an army decides to leave, or when the player changes civics.
++ Further lowered the AI's value of gold from specialists and buildings when it is earning more than it is spending.
++ Added some missing components to the AI's evaluation of random event options.
+
+
+--
+v1.16 changelist
+
++ Amphibious landings can now be executed even if the group isn't ready to move. (eg. if you have a transport on the coast, with no moves left, ordering it to move onto the land will now cause it to unload its cargo.)
++ Automated units will wait until the "automoves" phase before moving, rather than doing it as soon as it is their turn. (This will require some testing to make sure I haven't messed something up.)
++ Fixed a problem which sometimes caused automated units to repeated cancel and reorder their commands.
++ Made some changes to the 'resolutions' tab on the victory screen (F8). Each vote source now has a heading, and displays the number of turns until the next vote and number of votes until the next election. (I've also made a couple of minor changes to other parts of the victory screen.)
++ Rewrote the code that handles the highlighting of goody-huts and city site recommendations. It should now be more efficient for non-settlers and non-scouts, and it will now show all city sites within 7 turn range, rather than 4 plot range.
++ Units that fail to move with their group should now stay in a single split-off group rather than being completely separated.
++ Made some minor efficiency improvements.
+
+AI
+
++ Completely redesigned the system for handling stranded units. The new system is less likely to cause OOS errors, it is faster, and it fixes several bugs in the old system. For example, with the previous system (from BBAI) stranded units would often fail to recognise that they are being rescued, and thus would not load into the boat.
++ Tightened the requirements for the AI to consider starting a second war.
++ Corrected a couple of minor problems related to the AI's early-game defence of cities.
++ Made some adjustments to the AI's war-time espionage point targets.
++ CvSelectionGroup::startMission will now allow attack orders with MOVE_DIRECT_ATTACK to be executed even when not all units in the group can move. (This should enable "follow" attacks, which previous would just not happen.)
++ Tweaked AI_exploreMove to let them pillage bonuses a bit more readily.
++ Tweaked AI_buildGovernorChooseProduction to be a bit less likely to choose the culture production and to be less likely to build spies.
+
+--
+v1.15 changelist
+
++ Teams are now allowed to capitulate even when it would result in a violation of their peace treaties. (This is similar to how defensive pacts can cause teams to violate peace treaties. Note: this change does not apply to voluntary vassals.)
++ "No culture flipping after conquest" now prevents cities from flipping back to the /team/ of the previous owner, rather than just the previous owner themself.
++ Units bumped out of closed borders will now stay in their groups when possible. (This will help the AI to recover when it botches its invasion approach path. The AI can still screw up, but this change will make it less bad.)
++ The field-of-view BUG setting will now still apply after the adjustment slider is turned off. (So you can activate the slider, set it how you like it, and then hide the slider without losing your settings.)
++ Made a minor adjustment to how Rapid Unit Cycling works after automated moves.
++ Made several minor efficiency improvements.
+
+AI
+
++ Rewrote the AI's decision making process for disbanding units when in financial trouble; hopefully it will now be a bit faster and a bit smarter.
++ Made several improvements to the way the AI chooses target cities - it will now have slightly better coordination between stacks, and it will adjust its targets based on the type of war plan it is using.
++ Fixed a bug which caused the AI to sometimes forget that it could avoid a river when attacking a city.
++ Fixed a bug which sometimes prevented AI stacks from attacking cities guarded only by wounded defenders.
++ Made several changes to the AI's city attack behaviour (grouping, pillaging, attack threshold, etc)
++ Increased the AI's estimate of collateral damage when calculating attack strength.
++ Rewrote most of AI_choke, to correct several behavioural problems.
++ Adjusted the behaviour of UNITAI_COLLATERAL to be more willing to attack invading forces.
++ Fixed a problem in AI_guardCityMinDefender which sometimes caused the AI to reinforce defended cites while neglecting completely undefended cities.
++ Reserve units will no longer leave a city completely undefended.
+
+--
+v1.14 changelist
+
++ Polished up the old BUG Military Advisor screen to better match the style of the other advisor screens, and re-enabled it in the BUG options.
++ Move commands are now automatically canceled when the move reveals an obstacle which will increase the moves required to reach the destination.
++ K-Mod will now automatically create its settings folder inside the user folder 'Documents\My Games\Beyond the Sword'. This allows settings to be saved even when Civ4 is installed in program files and run without admin rights.
+
+AI
+
++ Added some new defensive behaviour for the AI's city attack units and counter units.
++ The AI will now consider the possibility of using sea transports when choosing target cities on the local continent. (This should help on wiggly maps.)
++ Made some adjustments to AI_techBuildingValue, primarily to stop the AI from falling over themselves to get access to wonders for cultural victories.
++ Fixed a K-Mod bug which was weakening the XP discount of charismatic leaders.
++ Improved the efficiency of AI_assaultSeaReinforce by using a separate pathfinder when looking for a synchronised landing.
+
+--
+v1.13 changelist
+
+Game mechanics
+
++ The Sistine Chapel's bonus culture on religious buildings is no longer doubled for 1000 year old buildings. (For example, previous a 1000 year old temple with the Sistine Chapel would give (1+3)*2 = 8 culture. Now it will only give 1*2+3 = 5 culture.)
++ Rewrote the formula for the natural spread of religion. (It now depends on two new xml values: RELIGION_SPREAD_DIVISOR_BASE and RELIGION_SPREAD_DISTANCE_FACTOR. Cities with well established culture and large population have a better chance of getting 2nd / 3rd religions spread to them.)
+
+AI
+
++ Corrected some problems with the strategy-rand initialization.
++ Tightened the rules for converting units for crush to reduce the chance of leaving a city undefended.
++ Fixed three bugs from the original BtS code which could sometimes cause the AI's amphibious group-attacks to be canceled prematurely.
++ Fixed a bbai bug which sometimes caused the AI to order amphibious attacks when it doesn't mean to.
++ Added a check in AI_localAttackStrength to not count amphibious siege attacks when bCheckCanAttack is set.
++ Tweaked the condition for canceling join missions when launching an assault group.
++ Reduced the overly-optimistic estimates for the number of bonuses available when evaluating corporations.
++ Fixed a factor of 100 mistake in the base-maintenance component of AI_corporationValue.
++ Increased the maintenance estimate for corporation value.
++ Fixed a bug which reversed the priority of units when deciding who should pillage first. (this affects human players as well)
++ Added and integrated new code hurrying wonders with great engineers. The new system will be more likely to hurry powerful wonders, and less likely to waste engineers on wonders that are almost finished.
++ AI_greatPersonMove now uses path turns as a tie-breaker for "slow" missions with equal value. (ie. build, join, and hurry.)
++ Fixed a factor of 10 mistake in the evaluation of great person points for permanent specialists.
++ Changed the way AI_pickTargetCity accounts for city defences. (This fixes a problem which caused groups with no bombard to almost always target cities with no defences.)
++ Changed the way commerce multipliers are evaluated in AI_buildingValue. (Previously they were worth 6.6 points per commerce. They are now worth 5 points per commerce, but the commerce is an inflated estimate.)
++ Diluted the effect of GPP multipliers, to prevent the AI from using specialists when it should be trying to grow.
++ Increased the devaluation rate of GPP wrt the number of great people created.
++ Reduced the value of espionage for teams that haven't met anyone.
+
+--
+v1.12 changelist
+
++ Ballista elephants now get 1 first strike.
++ Increased the natural spread of religion, especially in very large cities and in cities with no (or few) religions. (This still needs some testing. It may be too strong.)
+
++ Cargo units will now stay grouped when their transports move, unless the transports themselves are separated.
++ Made several efficiency improvements. Most notably, CvPlayerAI::AI_unitUpdate will now make a second pass over all the groups if the number of groups changes - this sometimes saves us from having to wait for the next timeslice when a group is split.
+
++ Rewrote the way the AI hunts down stray units in its territory. (Replaced AI_Protect with a new function called AI_defendTerritory.)
++ Added new function, CvPlayerAI::AI_deduceCitySite. The purpose of this function is to decide if it is reasonable for the AI to know of the existence & location of a particular city based on how much of the cultural borders have been seen.
++ Added some functionality to AI_leaveAttack: the minimum defence threshold will now be ignored if the AI thinks offence will be the best defence.
++ Fixed a mistake in the original code for AI_guardBonus, which caused the AI to undervalue resources.
++ Fixed a bug in AI_cityAttack which caused the function to ignore the odds threshold.
++ Fixed a bug in AI_defensiveCollateral which basically disabled the value bonus which is meant to come when the invading stack is defeatable.
++ Changed the way AI_settleMove responds to danger - it will now compare the enemy's strength to the group's strength.
++ The AI will now ungroup units when it upgrades them, so that when the upgraded unit loses all its moves it doesn't prevent the whole group from moving.
++ Reduced the threshold that the AI's attackCity stacks use to decide if they should wait for units to be upgraded.
++ Made several changes to the behaviour of the AI's attack units.
++ The AI will now group all its cargo units before ordering an amphibious attack landing. (This prevents them from using the next turn just to reorganise their group.)
++ Fixed some minor mistakes in the BBAI navel assault code.
++ The AI's navy is now more likely to defend its sea resources.
++ The AI is now slightly more likely to spies for recon.
++ Reduced the AI value of XP buildings in low productivity cities.
++ Reduced some of the modifiers in AI_getWeightedOdds.
++ AI_localDefenceStrength and AI_localAttackStrength now take first strikes into account (with a very rough approximation).
++ Fixed a bug in AI_localDefenceStrength which could sometimes cause the AI's tactical memory to be set incorrectly.
+
++ Implemented a new AI system for evaluating different types of great people points. Disabled the old (basic) system. (This will help the AI to get corporations, as well as holy buildings, and so on.)
++ Added a new section in AI_techValue for corporations. (Previously, corporation value would only be counted if the tech founded the corporation directly. With the new code, the corporation will be evaluated if the tech enables the HQ building.)
++ CvCityAI::AI_permanentSpecialistValue now uses CvCityAI::AI_getYieldMultipliers to adjust yield values. (This still needs some testing.)
++ CvCityAI::AI_getYieldMultipliers (which tells the AI how much to value each kind of yield) now includes yields from buildings and specialists in its tally for total food and total production. (It now uses a different counting method. Hopefully it works correctly...)
++ Adjusted the way espionage is valued, so that it doesn't get overvalued when only a few civilizations are known.
++ Increased the AI's value for culture, especially when considering a cultural victory. (This may need further tweaking.)
++ Fixed a bug in the way corporation HQ buildings are evaluated. (Specifically, the value of the new corp and old competing corps were being compared with different scales.)
++ Made some changes to corporation evaluation, both for accuracy and efficiency.
+
++ Added donation information to readme.txt.
+
+v1.12b
+
++ Fixed a rare bug which could cause the game to hang when the AI used MOVE_ATTACK_STACK with MISSION_MOVE_TO_UNIT.
+
+--
+v1.11 changelist
+
+Game mechanics
+
++ The cost of the switch religion espionage mission is now increased when trying to switch to a religion that is spread to fewer cities than the current religion.
+
+AI
+
++ Fixed a bug which caused the AI (and automated cities) to sometimes rush-buy buildings under the wrong circumstances.
++ Adjusted the way the AI evaluates city danger levels. It should now defend its borders slightly more strongly.
++ Slightly increased the AI's max unit spending for alert and total war.
++ Fixed an inconsistency in pathDestValid which under rare circumstances could cause the AI to lock up.
++ Reduced the AI's vision cheating in AI_pillageValue.
+
++ Rearranged and adjusted some parts of the attack-city AI to fix a few problems which would sometimes cause the AI's stacks to oscillate between moving to attack and moving to pillage.
++ Fixed an original BtS bug in AI_pillageValue. (it was under-valuing bonuses)
++ Made several changes to the pillaging AI.
++ Rewrote parts of CvUnitAI::AI_choke, to be smarter and more efficient.
++ Changed the way the AI evaluates ordinary attacks. (This is a significant change. There may be undiscovered negative side effects.)
++ Fixed a problem from the original BtS code which caused the game to sometimes think workboats should try to put roads on sea resource.
++ The value penalty for techs that obsolete buildings is now slightly higher, but reduced for science_flavor civs.
++ The AI's value for great people points from specialists now decreases based on how many great people their civ has created so far.
++ Rewrote sections of AI_techUnitValue. (The new code should give a more sensible value boost for different strategies; alert, turtle, conquest, etc.)
++ For unit tech value, prereqs which cannot yet be researched now count as 2 missing prereqs rather than just one.
++ Slightly increased the production emphasis for flavor_production.
++ Adjusted the conditions the AI uses to decide if its attack stack should wait for reinforcements before moving out. (They are now less likely to wait if the target city is close.)
++ The AI will no longer automatically cancel deals with their worst enemy if their worst enemy happens to be their master. (They will always be willing to trade with their master, so it makes to sense to cancel the deals.)
+
+
+UI
+
++ Fixed an original BtS problem which made it hard for the player to deselect a unit after all of their units had moved.
++ Fixed an original BtS bug which caused minimized popups to steal the focus if the player tried to queue multiple moves with their final unit.
++ Fixed a bug in the economics adviser screen which caused the +/- buttons for the research slider to open the environmental tab.
++ Improved the symmetry breaker in the pathfinder. (The symmetry breaker is a K-Mod feature which is meant to prevent the game from showing the wrong path to the player when issuing a move command.)
++ Disabled a couple of checks which prevented the player from selecting units which have recently moved in simultaneous turns mode. (I'm pretty sure the remaining stuff is still enough to 100% enforce the MIN_TIMER_UNIT_DOUBLE_MOVES rule; the checks that I removed were unnecessary and annoying. Please tell me if I'm wrong. ie. tell me if you are able to bypass the minimum double-moves time in simultaneous turns mode.)
++ For human players, "border danger" is no longer counted on plots that are defended. (This means that combat units ordered to move through enemy lands will not be interrupted unless they see an actual enemy; and that workers will not be interrupted just for working on the border if they are defended.)
++ The screen will now center on newly drafted units rather than just selecting them.
++ Increased the effect of the emphasis buttons in the city screen.
+
+Back-end
+
++ Added new xml value: BBAI_MINIMUM_FOUND_VALUE. (The purpose of this is to allow the AI to be adjusted to work more sensibly in other mods based on K-Mod.)
++ When forming a permanent alliance, deals are now canceled /after/ the team numbers have been reassigned. This should prevent the new allies from being bumped out each other's territory when their open borders deals are automatically canceled.
++ The attitude cache from the CAR mod (included in BBAI) is now saved in the savefiles - this is to avoid potential OOS problems when a player joins mid-game.
++ Removed a potential OOS problem caused by the new tactical AI memory.
++ Fixed a pathfinding efficiency problem in CvPlayerAI::AI_isPlotThreatened. (It wasn't using the advantages of the new pathfinder.)
+
+
+--
+v1.10 changelist
+
++ Wrote a new pathfinding engine. The new system produces the same results as the original system, but it is slightly more flexible and can be used much more efficiently. With the new pathfinding engine, and related changes, the game now runs significantly faster. (Note: for efficiency reasons, the new pathfinder currently assumes that there can be no roads on the ocean. If this is used in a mod that does have ocean roads, the pathfinder may produce non-optimal results.)
++ Changed the structure of the pathValid function, and the groupPathTo to help prevent future bugs. (This completely removes the possibility of the AI entering forbidden territory - which was the target of a few previous bug fixes.)
++ Fixed a rare bug which could potentially cause the auto-production governor to crash the game.
+
++ Added new AI function, AI_stackVsStack, which is used in AI_attackCityMove - this allows the AI to use its attack stacks to wipe out enemy attack stacks.
++ Taught the AI to conscript more freely when it is good value. (With standard settings, this will only happen for riflemen.)
++ Fixed a problem in AI_promotionValue which was preventing the AI from choosing healing promotions as often as intended.
++ Rewrote CvUnitAI::AI_guardCity. The rewrite fixes a double-counting problem which caused units to oscillate in and out of cities; removes some duplicated code; and gives higher priority to cities which need more defenders.
++ Adjusted AI_groupFirstVal values so that ATTACK_CITY always scores higher than ATTACK. (Previously, the overlap sometimes caused the AI to become confused about how it should group its units.)
++ Tweaked recon spy plot value so that it favours enemy territory.
++ Tweaked the conditions for the AI SPACE3 strategy.
++ Added the possibility of the AI converting their UNITAI_EXPLORE units to UNITAI_ATTACK, rather than just deleting them.
++ If the AI has not seen any target cities, it will magically know the location of the closest city in the area. This is so that they city attack stacks don't stay idle when no cities have been seen. (Think of it like a human player inferring the position based on the shape of the border. - Note: in the original AI the AI cheated like this for all cities - not just the closest city, and not just in the local area.)
+
+v1.10b
++ Fixed a problem from the original BtS code which caused the AI to delete units more often than it should. For example, it would delete all the defenders in a city, and it would delete units immediately after drafting them.
++ Fixed a late-game bug which could potentially cause a crash.
++ Added a special symmetry breaking compontent to the pathfinder. Hopefully this will prevent some problems which result from having two paths with equal cost. (eg. The interface showing one path, and then the units following a different path.)
++ Fixed a pathfinding problem which might have been able to cause OOS errors. (It's hard to say for sure if it was actually a problem or not.)
++ Fixed a problem which sometimes caused the AI to cancel deals with their master.
+
+--
+v1.09 changelist
+
++ Fixed a critical bug which caused the game to behave unpredictably if any new civ teams are created mid-game (eg, liberated colony) - eg. the game may create extremely large save files. (This was a serious bug; and I'm sorry I didn't find it sooner.)
++ Fixed a BBAI bug which sometimes caused the game to hang when using sea-patrol.
++ Fixed a bug which allowed negative plot yield values to be evaluated by the AI. (This bug didn't affect K-Mod itself, but it could cause a crash in other mods using the K-Mod dll.)
++ Fixed another instance of the bug which allowed the AI can enter forbidden territory immediately before declaring war.
++ Fixed a problem which was causing random numbers based on AI_getStrategyRand to give answers outside of the expected range. (Fixing this problem will cause the AI to behave differently to before. It may require some more adjustments to rebalance it.)
++ Fixed a mistake in AI_attackCityMove which caused the AI to incorrectly estimate the penalty from crossing rivers.
+
++ Paradops can now be performed with multiple units simultaneously instead of just one unit at a time.
++ Players are no longer allowed to air-bomb improvements or cities that they don't know exist. (ie. the improvement has to appear on the map to be a valid target - but direct visibility is not required.)
+
++ Added the stack promotions option from the latest version of the BUG mod.
++ Enabled the power ratio scoreboard option from BUG.
++ The number of cities scoreboard option from BUG will now only show the number of cities that are currently revealed on your map. (ie. it does not count any cities that you haven't seen.)
++ Added new and improved Italian game-text translations, provided by Axios.
++ Added some more language localization to the economics adviser screen (but it still isn't finished).
++ City info on the main screen will now be updated after espionage missions. (So that, for example, production is shown to be zero after a successful sabotage production mission.)
+
++ Increased the target city productivity for the AI; especially for AIs whose personality favors productivity.
++ Added some flavour adjustments for the AI's evaluation of forest chopping.
++ Tweaked various AI flavour based effects.
++ The AI's choice of target city is now adjusted based on its memory of the city's garrison. (using the AI's new tactical memory.)
++ Made various changes to the naval assault AI.
++ Made various changes to the way the AI groups it units.
++ Reworked the effect of AI_STRATEGY_PRODUCTION. It is now only triggered in rare circumstance, and it has a greater effect on the AIs strategy.
++ Corporation yield is now taken into account when choosing plot improvements.
++ Tweaked some of the worker AI.
++ Reduced the probability of the AI building spies in low productivity cities.
++ The AI will now reconsider its current city production after a building is sabotaged.
+
+v1.09b
++ Fixed an AI deadlock bug.
+
+--
+
+v1.08 changelist
+
++ Gunships now start with the Amphibious promotion.
+
++ Units will no longer automatically attack if they are ordered to move into an unseen enemy unit in the fog of war.
++ Fixed a rare divide-by-zero crash.
++ Added a workaround for a rare bug which sometimes allows the AI to use enemy roads just before declaring war. (The root cause of the bug has not been fixed, but I don't think there are any more cases where it can actually happen.)
+
++ Added some basic AI memory so that it can remember to walk around well defended choke-points without having to cheat.
++ Fixed several problems in the sea assault AI, including a somewhat tragic original BtS bug which caused the AI to think 4 units was enough for an invasion force. (The AI may struggle to get enough units for a navel invasion now - but hopefully this will be much better in the long run.)
++ Made some adjustments to the settler AI. - Mostly to fix a problem which sometimes caused them to not settle in the best places first.
++ Fixed a K-Mod bug which caused some AIs to expand very slowly at the start of the game.
++ Fixed some silly mistakes in the AI's strength comparison calculation in AI_attackCityMove.
++ Tweaked the effect of the expansive flavour flag in the AI's city placement.
++ Increased the AI's warplan abandon time for overseas wars. (so that it is less likely to give up on its warplan if it isn't quite ready to attack.)
++ Adjusted the effect of city defensive in how the AI chooses which cities to attack.
+
+--
+
+v1.07b changelist
+
++ Victory votes now require a minimum number of "full members" rather than just "voting members". This means that the Apostolic Palace victory vote is only valid if there are at least 3 full members.
+
++ Fixed a problem which caused the AI to place its early cities closer together than intended.
++ Civs with the "ambitious" personality trait are now less conserned about the geographical shape of their empire when founding cities.
++ Tweaked the settler unit AI so that it is less discourged by distance when choosing which site to go to.
++ Made several changes to the way the AI chooses target cities to attack. In particular, it will now prefer to attack cities that are close to the area target; it will prefer to attack cities that aren't on hills; and (hopefully) it will be a bit less predictable, but still smart in its city selection.
++ Removed an unintended factor of 3 in the population component of the floating defender formula.
+
+--
+
+v1.07 changelist
+
++ Increased the cost of steal treasury espionage missions.
+
++ Fixed a bug which caused Civ4 to crash if the player started a game, exited back to the main menu, and then started a new game with Rapid Unit Cycling enabled.
++ The average game era no longer counts the barbarian's era. (This affects culture pressure, AI unit build probabilities, UI sound effects, and a few other things. Hopefully it isn't a big deal.)
++ Fixed some minor problems with how attack penalties are counted in the pathfinding cost function.
++ Put a city-info dirty flag into setCommercePercent. Hopefully this will fix a bug which sometimes causes city happiness to not update on the main screen.
+
++ Some AI personalities will now choose their city sites slightly further apart.
++ Made some adjustments to the AI's gold target. It should now scale a bit better on different game speeds; and it now affected by the AI's personality.
++ The AI will no longer create huge amounts of useless gold when doing AI_avoidScience.
++ The AI will now try to spend their excess money slightly faster.
+
++ The AI is now capable of arranging tech trades that involve multiple techs - both AI-to-AI, and AI-to-human.
++ Tech trade deals offered to human players can now sometimes include a small discount. (ie. If you try to renegotiate a deal, you might not get as good a deal as was originally offered - so it might now be worth considering the deal the AI offers you rather than going straight to the renegotiate button!)
++ The AI's willingness to accept uneven trades now depends on their attitude towards the trade partner, and their relative ranks. eg. The AI will allow itself to offer slightly larger discounts to its friends, and to civs who are low on the scoreboard. (Note. this doesn't affect trades that the human proposes to the AI. It only affects deals that the AI proposes.)
+
++ Adjusted the way the AI calculates threat to its cities.
++ City attack groups will sometimes retreat if they are too weak to threaten their target city.
++ The AI will now be less willing to walk massive distances to attack barbarian cities.
++ The AI will now be willing to defend high-value bonuses with put multiple units rather than just one. (This still needs some work.)
++ Adjusted the way the AI chooses which city to attack.
++ Taught the AI some new techniques for using collateral damage defensively.
++ Rewrote most of the AI's plot strength evaluation routines so that they are more consistent with one another. The main effects of this is that the AI will now consider collateral attack power in some places where it didn't use it; and it will not count the strength of units that it cannot see in some places where it use to (ie. it will now cheat slightly less than in the original BtS code).
++ Some AI personalities will now use slightly larger attack stacks.
++ Increased the number of floating defenders the AI thinks are required for the later era.
+
++ Fixed a bug which sometimes caused the AI's to just attack with one unit rather than the entire group.
++ Fixed an original BtS bug which often caused units to forget their mission AI type. (This caused general confusion in the AI - I suspect this was the real root cause of the settler bug I fixed several versions ago.)
++ Disabled the original BtS "groupDeclareWar" checks. The AI now must choose to declare war before moving their units - just like a human player does. (This will stop the AI from accidentally declaring war when it happens to move an explorer towards potential enemy territory!)
+
+--
+
+v1.06 changelist
+
++ Fixed some problems with AI unit training probability being too small (caused by side effects of some of my other changes)
++ Fixed several problems with the new corporation spread AI.
++ Fixed an original BtS bug which essentially always caused the AI's gold target to be divided by 3.
++ Rewrote some of the AI's gold budgeting functions to compensate for the gold target bugfix and to improve their gold usage.
++ Removed double-counting of the yield value of plot features when calculating improvement value, and rebalanced some other values to compensate for the change.
++ Fixed a problem with AI_calculateAreaAIType which caused the AI to overestimate enemy power while preparing for war. (This caused the AI to abandon war-plans more often than it should.)
++ Made some adjustments to the AI's reasoning for splitting their empire.
++ Tightened the AI's rules for when to disband workers.
++ Tightened the conditions for when the AI will choose to build a new worker. (these two changes are meant to fix a problem which sometimes caused the AI to constantly build and disband workers.)
++ Fixed an original BtS bug in evaluation of workers in AI_disbandUnit. (This is not currently being used anyway.)
++ The AI will now accept gifted great people even while in financial trouble. (not that anyone is likely to want to give away great people anyway...)
++ Fixed a bug in the original code which could (very rarely) cause AI units to get stuck trying to attack an enemy that is inside the borders of some third civ.
++ Fixed an int overflow bug in the original BtS code for AI_specialistValue.
++ Made some changes to AI diplomacy. The game will now check that _both players_ are willing to talk to one another before they set up a trade. (Previously the check was one-sided.)
++ Made structural changes to some parts of the AI. (Some changes for efficiency; some to lay the foundations for future changes - I'm just mentioning this because there might be new bugs...)
+
++ Fixed a problem with the new auto citizen assignment - a rare case which could cause cities to unnecessarily starve while building settlers.
++ Fixed a rare bug which sometimes allowed the automatic citizen assignment to assign a free specialist to a plot. (Triggered when the value of the plot was exactly equal to the value of the specialist.)
++ Fixed a rare crash bug. (Triggered when an AI spy arrives at a targeted bonus improvement on the same turn that the plot loses all player ownership.)
+
++ Added a new BUG option: Rapid Unit Cycling. This option removes the delay between issuing a command to a unit and the automatic selection of your next unit.
++ Added a new BUG option for the stats tab of the info screen: "non-zero stats only".
++ Changed some of the default BUG settings and fixed some minor interface problems. (Note: there was a minor problem in the previous defaults settings which will only be fixed if "Advanced Scoreboard.ini" is deleted from the K-Mod settings folder.)
++ Changed the behaviour of automatic citizen assignment with forced specialists. (Previously, having any forced specialists would forbid the assignment of any non-forced specialists. Now it will allow other specialists when no more of the forced type can be placed.)
++ The diplomacy screen should now allow the human player to declare war even if the AI player refuses to talk. (untested)
++ Alt+click on a leader's name will now open a declare-war popup window rather than just instantly declaring war.
++ Right clicking on a unit in neutral territory will no longer open a declare-war popup. (This makes it more consistent with other right-click behaviour.)
+
+--
+
+v1.05 changelist
+
++ Fixed a major performance problem in the original BtS code. The AI's turns will now take around half the time they took before. ie. The AI is now 100% faster.
++ Fixed a bug K-Mod in the way the AI sorts their units.
+
+--
+
+v1.04 changelist
+
++ In the diplomacy screen, pressing "Lets stop this fighting..." will now bring up the trade screen with the AI's suggested peace terms. (Originally, it just made peace instantly without any trades - it was a horrible button.)
++ Added a notification message for when a religion is removed from a city.
++ Adjusted some of the action recommendations for human players. (ie. the blue circles for recommended improvements and city locations.)
+
++ Adjusted the diplomatic behaviour of AI players who are allied with human players. In particular, the AI will no longer refuse to talk to other humans.
++ Made some more changes ("improvements") to the automatic city citizen allocation system - particularly for the AI.
++ Rewrote the decision making process for the AI's choice of state religion. It should be a bit less rigid now.
++ Restructured and simplified the air unit AI, so that now it will be faster - and probably a bit smarter too. (untested)
++ Fixed and reactivated the attack sections of AI_follow - the main benefit of this is that AI attack stacks will now be able to make better use of the blitz ability of tanks.
++ Corrected the code which was meant to stop AIs from making peace when aiming for conquest victory. (The first attempt was wrong - it basically did nothing.)
++ Gave the AI some basic ability to target poorly defended cities. (I have some ideas to futher improve this in the next version.)
++ Changed some of the trigger conditions and effects of the AI's "big espionage" strategy.
++ Made many minor changes to various AI value weights and decision thresholds and so on.
+
++ Rewrote the pathCost function used by the pathfinding. This fixes several pathfinding problems & bugs. Most notably, the new code allows the AI to choose a path with involves fighting through enemy units that are in the way; the new code does not take into account movement costs or defensive bonuses for tiles that have not been revealed (this makes the AI cheat less, but it also removes an exploit which allowed human players to determin the positions of islands, roads, etc.).
++ Fixed a potential OOS bug in the K-Mod convert-for-crush code.
++ Fixed a bug in my new volcano event which allowed it to increase the soil fertility of water.
++ (hopefully) Fixed an original BtS bug which did strange things when a unit was ordered to attack a tile which was already mid-battle in simultaneous turn multiplayer. (untested)
++ Fixed a bug in the unofficial patch which causes players to miss out on free techs if they load the autosave from the turn the tech is meant to be awarded. (before this fix, the player got accused of cheating instead of getting their free tech.)
++ Blocked some more python callbacks (for speed).
+
+--
+
+v1.03 changelist
+
++ Changed the mechanics of the natural spread of religions. With the new system, only the religion with the highest 'grip' gets a chance to spread to a city - but religions may still spread even if the city already has religion. Also, if an existing religion in the city has a lower grip than the new religion, there is a chance that the existing religion will be removed. "grip" is a measure of how strong the religion is in a particular city. It is calculated based on several factors, including proximity to the holy city, the number of religious buildings in the city, the year the religion was founded, and so on. The new system is a fairly significant change, but it isn't one you should have to worry about if you don't want to.
++ Culture flipping is now blocked for the most recent previous owner of a city instead of for all previous owners (when using the default "no flipping after conquest")
+
++ Fixed some problems in the new automatic citizen assignment code.
++ Changed the way the AI counts food when deciding on plot improvements.
++ Rewrote the AI's strategy for spreading corporations. Hopefully it will spread them a bit smarter now.
++ AIs using the crush strategy will now spend less time preparing for war. (2/3 of the prep normal time)
++ AIs who are fully committed to a conquest victory will no longer make peace for any price unless they don't want a particular war.
++ AIs who are trying to get the last techs for a space victory will no longer use espionage economy.
++ Refined the AIs building value calculations, and production selection calculations.
+
++ Blocked some more python callbacks.
+
+--
+
+v1.02 changelist
+
++ Reduced the global warming defence of forests and jungles, from 20 to 15.
++ Reduced the grip effect of religious shrines from 20 to 10. (This affects the probability that a religion will be bumped out of a city when a new missionary comes.)
++ Tech trades in which the receiving player is more than 2/3 of the way through researching the tech or when the tech is more than 1 era behind the 'game era' no longer count towards tech trade memory. ie. They don't contribute to causing "we fear you are becoming too advanced".
+
++ Adjusted the AI's max unit spending formula so that it is very close to the original BtS formula, but without the BtS problems.
++ The AI will now take obsoletion of buildings into account when evaluating techs.
++ Made some other adjustments to AI tech evaluation.
++ Restructured and adjusted the evaluation code for defensive buildings, and made some other building evaluation adjustments - the main purpose was the reduce of perceived value of city walls by the time Rifling is being considered, so that Rifling isn't blocked by the obsolete penalty for techs.
++ Automated / AI workers will no longer chop tundra forests. More specifically, they won't chop forests unless they are able to replace it with a better improvement.
++ Fixed some problems with the original BtS evaluation of clearing features for improvement building. (It was over-valuing, and double-counting yield changes; but these problems only started to manifest strongly after my feature chopping change.)
++ Fixed an over-counting problem with of workers in the AI, which caused the AI to think it had more workers near a city than it actually had.
++ The AI is now more likely to make escort ships available for their assault groups.
++ Redesigned the trigger conditions and the effects of the "economy focus" AI strategy. (This is a rare strategy in which the AI will choose to neglect its military so that they can focus on boosting their economy.)
++ Tweaked the espionage AI. On large maps, it will now be more likely to use the "espionage economy" strategy.
++ Fixed some original BtS city site placement bugs and problems. In particular, there was a bug which caused the AI to not take planned city sites into account properly. Also, the AI will no longer count the value of tiles that haven't been revealed. (This also affects the blue circle settler recommendations for human players.)
++ Made some other adjustments to city site evaluation. Most noticeably, the AI is now a lot more willing to found cities that are close to one another.
++ Taught the AI how to send unescorted settlers to city locations, and meet an escort mid-way. (Hopefully this doesn't cause the AI to be too reckless with their settlers. Let me know if you see the AI doing something stupid.)
+
++ Rewrote the code for how the AI and city governor allocate city citizens. The new method is faster, and I think it is also a bit smarter. In particular, it is more likely to work low-food high-value tiles when close to the happiness limit.
++ The city governor will now build spies, missionaries, and execs (but not when you don't need them).
+
++ Moved (corrected?) the K-Mod multiplayer handicap adjustment. (In multiplayer games of K-Mod, the AI handicap level is set to be the minimum of the human player's level - but I suspect this feature was implemented incorrectly until now.)
++ Combat bonus vs animals and barbarians is now based on player handicap level rather than game handicap level. (This just means that in multiplayer games when players has different difficulty settings they will get different bonuses.)
++ Copied, from Koshling's C2C code, a fix for an original BtS pathfinding bug and pathfinding optimization. This fixes several AI problems.
++ Fixed a possible overflow bug in AI_foundValue and related functions. (thanks to Koshling for the tip)
++ Fixed a possible overflow bug in in AI_techValue.
++ Fixed an original BtS bug which affected when / who would receive feature growth messages. (With this change, you'll probably see more "a forest as grown" messages. The actual growth rate is unchanged, but the message will show up a bit more often.)
++ Fixed a potential double-counting bug in AI_rivalAirPower (triggered by the existence of any unique air units).
++ Fixed a minor problem with super-medic creation in AI_promotionValue (triggered if there is more than one "leader" promotion).
++ Added some new options to PythonCallbackDefines.xml to allow various AI python callbacks to be blocked (for efficiency).
+
+--
+
+v1.01 changelist
+
++ "Lost production" for units is now assigned to another unit of the same type (previously, it was converted into gold). With this change, it is possible to build more than one unit per turn. (Note: this does not affect normal production overflow. It only affects the production beyond the overflow limit.)
++ Made some minor changes to the auto-build city governor. (I think auto-build works pretty well now.)
++ Espionage AI value is now reduced if the player has spent less than a quarter of their total points (this means that if you aren't spending your espionage points, the city governor should stop automatically assigning spy specialists.)
++ Rewrote the decision code for bombarding / skipping bombard for city attack.
++ Rewrote parts of the raze city decision code - the AI will now be less likely to keep useless ice cities, and more likely to keep conquered land on other continents.
++ Fixed a couple of minor BtS bugs in worker recommendations.
++ Made a lot of backend changes which will speed up some parts of the game, but also make the game more resistant to OOS bugs.
+
+--
+
+v1.00 changelist
+
+NOTE: This patch changes the save file format. K-Mod saves from previous versions will not work with this version.
+
++ Added a new religion mechanic: existing religions may be removed from cities when a new religion is spread to them with a missionary. The following factors reduce the likelihood that a religion will be removed: number of religious buildings in the city, proximity to the holy city, the existence of the holy building (wherever it is), the turn the religion was founded (religions founded later will be less likely to be removed), the population of the city (larger cities are less likely to have religions removed). Note: the effects of this new religion system are actually very minor in the current version. It's a somewhat experimental feature.
++ Adjusted the missionary spread probability. Bigger cities are now less likely to have religions fail to spread (and less likely to lose religions).
++ Added some loading tips (hints) for K-Mod specific features. (Currently these are in English only.)
++ Tweaked global warming plot targeting.
+
++ Made some changes to espionage & spy usage; mostly to scale better with different game speeds and map sizes, but also to make better use of spies when espionage rate is low.
++ The AI will now send spies to destroy improvement only when at war.
++ The AI will no longer agree to requests for gifts from civs which it is planning war with.
++ Made some changes to the AI's macro-economics decision making... unit supply limit, empire splitting, financial trouble.
++ Changed the way "unit cost percentage" is calculated. The original calculation wrongly assumes that high unit cost, or low maintenance cost, imply large military - this is bad on many levels. This change is actually quite far reaching; and more work needs to be done to correct some of the flow-on effects.
++ Made several adjustments / fixes to the AI's building evaluation function.
++ Restructured and adjusted the value of yield all through the AI.
++ Changed default AI mode for axemen and macemen, from both "counter" to "attack" and "attack_city" respectively.
++ Tweaked some of the great person AI.
++ Further increased the AI's value of space techs when aiming for space victory.
++ Fixed an original BtS bug which, under most conditions, prevented settlers from moving towards the same target site two turns in a row. (It's a wonder how they managed to get anywhere useful at all!)
++ Adjusted the rules the AI uses for deciding when not to build workers - the original rules would often block them from choosing a worker in their starting city.
++ Changed to city site evaluation formula so that it rates cities as zero if they are too close to existing planned city sites.
++ Fixed a K-Mod bug which was preventing the AI from using great merchant trade missions.
++ Fixed a K-Mod bug which caused the AI to never actually carry out their intended sabotage plot improvement espionage missions.
+
++ Added a new unit AI type: UNITAI_GREAT_SPY. (Previously, great spies shared their AI with great merchants.)
++ Added four new AI mission types (these are just names that are useful when writing AI code).
++ Reduced the use of mutable variables in the cache system. Restructured when and where cache is refreshed. (This should have no effect on gameplay, but I think it will make it harder to create OOS bugs.)
+
+v1.00b
++ Fixed a bug which prevented religions from being removed as intended.
++ Added a missing factor of 100 in gold value for AI_cityValue.
++ Adjusted the AI's decision making regarding unit spending to bring the probability of war back down closer to standard BtS levels.
+
+--
+
+v0.99 changelist
+
++ Rewrote the decision making process for switching civics.
++ Changed the golden age evaluation function to take into account golden age length modifiers, and possible civic changes. Also, I've greatly increased the perceived value of golden age yield. It should be more accurate now.
++ The AI can now save its great people for for multi-great-person golden age.
++ The AI will now always check its civics on the last turn of a golden age.
++ Hardened the requirements for the AI giving free tech to human vassals.
++ Changed the way the AI decides whether or not to cancel a deal - previously the AI would always cancel deal with other AIs after 20 turns, I suspect this was an original BtS bug. Also, the AI previously would cancel gift deals to vassals and then immediately re-offer them. It doesn't do that anymore.
++ Changed the conditions the AI uses for deciding whether or not to aim for a cultural victory.
++ Cities which the AI refuses to trade will no longer appear on the AI's trade table.
+
++ Rewrote most of the AI's city production decision making. It's far less rigid now - there may be some kinks to work out in the new system.
++ Completely replaced the city governor (auto production). Hopefully, the governor will be more useful now. It's similar to the new AI code.
++ Rewrote the way building happiness and healthiness are evaluated.
++ The AI will now avoid building limited buildings in cities which value the building at less than 80% of the other possible cities. (This applies to national wonders and cathedrals.)
+
++ Greatly reduced the probability of "spontaneous" espionage missions.
++ Completely changed the way the AI decides whether a spy should be used for offence or defence.
++ The AI will no longer send spies on attack missions when it hardly has any points to spend.
++ Changed the conditions that trigger the Big Espionage strategy.
++ The AI now sees "spread culture" espionage missions as "non-malicious". i.e. The AI now thinks its ok to spread culture to its friends. I've rewritten the evaluation of these missions so that it will try to use them defensively when it is being culture crushed.
++ AI espionage weights are now calculated and set even if the AI is researching an undiscovered tech (this use to be an original bts "feature").
+
++ Added an estimation of collateral damage strength to the AI's plot strength functions.
++ AI city attack ratio now has some dependence on the AI's individual strategy.
++ Changed the conditions for when the AI will build collateral units. (There will be slightly more offensive collateral, less defensive collateral.)
++ Rewrote the BBAI war success ratio code to scale properly for wars of different sizes in different eras - this will help the AI better understand whether it should be attacking or defending.
+
++ Fixed an original BtS bug which caused AI_getEspionageTargetValue to ignore its "iMaxPath" argument.
++ Fixed a minor original BtS bug which in the evaluation of maintenance reduction buildings.
++ Fixed a minor original BtS bug in the application of the force-peace resolution when the peace-team has vassalated.
++ Fixed an problem in the original BtS code for deciding whether an AI has "financial trouble". Previously, if the AI decided to use lots of culture or espionage, that would cause it to mistakenly think it was in financial trouble.
++ Fixed a problem which caused AI spies to forget what their mission was after they enter enemy territory. (For example, a spy might set off to some distant city, and then half way their decide that it should be retreating to base because it doesn't know what to do.) - (not sure if this was BBAI or original BtS)
++ Fixed an original BtS bug which caused the AI to continuously build "early sea explorers" in the late game.
++ Fixed an original BtS bug which caused AI civs to be more much likely to split their empire when they run high culture or high espionage.
++ Fixed an original BtS bug which caused AI spies to not know when they couldn't perform an espionage mission. (in fact, the AI use to cheat - it could perform espionage on the same turn the spy moved. It can't do that anymore.)
++ The AI's spies now use the mission queue for espionage missions; previously they just performed the mission immediately. (Could this fix an OOS race-condition?)
++ Fixed an original BtS bug which allowed spies to perform the force-religion mission on Civs with Free Religion.
++ Fixed an original BtS bug which prevented the civic-switch message from being sent when a civilization switched back to one of their starting civics.
+Fixed an original BtS bug which prevented improvement builds which remove a bonus from being penalised. (I claimed to have fixed this bug before. I was wrong.)
++ Fixed an original BtS bug which sometimes caused civs aiming for cultural victory to waste their cathedrals.
+
++ Fixed a problem in the BBAI code which caused the AI to think faster bombard was bad rather than good.
++ Fixed a BBAI bug which double-counted city defence when deciding whether to attack a city.
++ Fixed a BBAI problem which sometimes caused attack stacks to get stuck indefinitely, unable to choose between attacking and pillaging.
+
++ Fixed some bugs in the attitude cache from the CAR mod.
+
++ Fixed a K-Mod bug which caused bulbing to be massively undervalued.
++ Fixed a K-Mod bug which completely disabled GW anger!
+
+--
+
+v0.98 changelist
+
++ Added the Advanced Combat Odds mod. [You can activate it from the BUG options menu.]
++ Changed the way stolen gold is calculated for espionage missions. [Previously, the amount of gold stolen was inversely proportional to the target civs number of cities!]
++ Changed the way switch civic / religion costs are calculated for espionage missions. [The cost now scales with the size of the civ.]
++ Added 4 culture to the Kremlin.
+
++ Tweaked the AI's conscription decision making.
++ Fixed a BBAI bug which was preventing the AI from ever using their "crush" strategy!
++ Made many adjustments to the (now enabled) crush strategy.
++ Adjusted the build probabilities of different unit types.
++ Added new attack conditions for collateral unit AI. [to try to fix the problem of the AI stockpiling collateral units for 'defence', but never using them.]
+
++ The AI will now try to recognise when its units are out of date, and thus aim for tech which will help them.
++ Changed tech unit value to be reduced if other prereqs are missing. [So that, for example, the unit value of assembly line is not higher then rifling if you don't have rifling!]
++ Unit value is awarded for secondary tech prereqs if the player already has the primary prereq.
+
++ Fixed an original BtS bug which would sometimes prevent AI spies from doing any espionage missions.
++ Fixed an original BtS bug which prevent the AI from using the culture slider for anything other than a cultural victory.
++ Rewrote the AI's decision making process for choosing the best espionage mission. [You're probably use to the AI just using Poison Water Supply over and over; so brace yourself for some more painful missions.]
++ Reworked most of the spy unit AI code; choosing target cities etc.
++ Changed many parts of the AI's espionage strategies. (points targeting etc.)
++ Implemented a new AI strategy: espionage economy. The way it works is that when the AI recognises that stealing techs is significantly cheaper than researching them - it may choose to focus on espionage instead of research. [The conditions for this strategy are pretty strict. Don't be surprised if you never see the AI try it.]
++ Increased the build priority of spies, so that the AI will still sometimes build them when at war.
++ The AI's espionage targets are now adjusted for different game speeds.
+
++ Rewrote most of the decision making process for "Force Peace" votes, to take into account relative power. [Previously, if an AI player had lost a few more units in the war, then it would vote for peace even if it was much stronger and even if aiming for a conquest victory!]
++ Replaced most of the AI's great person usage decisions with a new decision making process. [Before this change, the AI would _always_ use its great spies to build Scotland yard, unless every city already had it. The logic process was quite absurd.]
++ Added some personality-based changes to city site evaluation.
++ Fixed some problems in the way the AIs main strategies are chosen, to decorrelate "random" decisions.
++ Corrected a bug in the calculation of average commerce yield modifier.
++ Changed the way happiness and healthiness are evaluated for civics.
++ Tweaked the usage of, and civic value of, conscription.
++ Changed the way the AI classifies war areas - to correct a problem which sometimes caused the AI to use an "offense" strategy when it was losing an intercontinental battle.
+
++ Changed many parts of how the AI chooses which improvements to build. [I'll list some...]
++ Changed the AI's definition of a "good tile", and hence changed their city population targets.
++ Changed the way the AI counts and evaluates a city's total food.
++ Changed the scaling of the AI's commerce weight for improvement evaluation.
++ Fixed an original BtS bug which prevented improvement builds which remove bonus from being penalised.
++ When choosing an improvement, the AI will now try to anticipate how the improvement will change their future needs - this should reduce the AI's tendency to oscillating between different improvements.
++ Automated (human) workers will now try to avoid working near enemy borders when at war.
+
++ Fixed an bug in the original BtS ironclad animation file.
++ Removed / fixed some false debug assertions and logging problems; from my code, BBAI code, and from BtS code. [This only applies to the Debug build]
+
+--
+
+v0.97 changelist
+
+NOTE: This patch changes the save file format. K-Mod saves from previous versions will not work with this version.
+
++ Increased cost of The Great Lighthouse, from 200 to 300.
++ Increased Environmentalism upkeep from medium to high.
++ Made some minor changes to some corporation stats.
++ Global warming events are now slightly more biased towards cold tiles.
++ Decreased event message stagger time.
++ GwPercentAnger, average culture press, and building value are now all cached. [no effect on gameplay, but it may make the game run slightly faster.]
++ Changed the way Lead From Behind works. [Previous, LFB was so overly-protective of high-value units that it would not allow warlord-defenders to actually defend.]
+
+AI changes:
++ Adjusted the AI's criteria for drafting.
++ Adjusted spy building decision making.
++ Adjusted espionage mission evaluation.
++ Added new strategies for espionage points targeting.
++ Tweaked city site evaluation.
++ Fixed some problems in the AI's culture pressure response.
++ In most cases, the AI will no longer choose low productivity cities to build floating defenders.
++ The AI now correctly estimates no pollution change from population-pollution reduction in cities that are already at 100% reduction.
++ The AI will no longer try to 'save up' culture wonders unless it is aiming for a cultural victory.
++ For health and happiness in civic evaluation, the AI now distinguishes between switching into a bonus and out of a bonus.
++ Commerce multipliers from civics are now valued in a more reasonable way.
++ The AI will no longer try to save the Moai Statues for a city that already has high productivity.
++ Added some new strategies to help the AI catch-up if it falls behind in tech.
++ Tweaked the conditions and effects of the AI's "crush" strategy.
++ Rewrote the AI's city evaluation of specialists.
++ Rewrote parts of the AI's evaluation of corporation HQ, effect on cities, and civics. [It will now choose its HQ cities more wisely.]
+
+v0.97b
++ Fixed a bug which was completely preventing global warming.
+
+--
+
+v0.96 changelist
+
++ (This patch only has AI changes. There are no balance changes or new features.)
++ Improved the way the AI detects when it is being culture pressed
++ Taught the AI to understand the value of prerequisite buildings such as temples and universities.
++ Fixed a BtS AI bug related to cathedral building value.
++ Taught the AI to understand removable features (such as jungles) and the value of rivers when choosing city sites. (as well as few other city site evaluation tweaks)
++ The AI will now be a bit less enthusiastic about settling in useless places in the late-game.
++ Made a few minor changes to the AI tech evaluation function.
++ Made some further changes to the AI civic evaluation function.
+
+--
+
+v0.95 changelist
+
++ Many AI improvements, including better evaluation of civics, more awareness of cultural pressure, proper understanding of how environmentalism will affect GW anger, better understanding of the difference between techs that 'reveal' a resource and techs that 'enable' a resource, tweaks for espionage mission choices and nuke building, and more.
++ Fixed a bug from the original BtS code, which sometimes caused the AI to include their own military power when counting the power of a potential military target.
++ Representation science bonus reduced from +3 to +2 (!!)
++ Representation upkeep reverted to 'medium'. [its a big nerf, and yet rep. is still very powerful.]
++ Rebalanced the build up of GW anger. Compared to the old version, GW anger will now build up slower but reach a slightly higher level in games that are severely affected by global warming.
++ Adjusted the affect of "relative contribution" on GW anger. The new version is slightly more sensitive to changes close to 100%, and less harsh on civs that have more than 150%.
++ The immediate experience boost from Great Generals (when used as a 'warlord') is now increased by 10% for each affected unit, up to a maximum of +100% (ie. 40 xp shared across 11 units).
++ Increased the food production by cereal mills corp, from 0.75 food per resource up to 1 food per resource. [Maybe now it will be able to challenge sushi co?]
++ Changed the sound effect for GW events, and for the signing of defensive pacts & permanent alliances.
++ A couple of minor UI changes.
+
+--
+
+v0.94 changelist
+
+ + Tweaked some of the AI's tech evaluation formulas, and fixed a bug in the tile improvement evaluation. The changes are only minor, but I think the AI will be noticeably stronger now.
+ + Changed the game initialization to set the game handicap level to be the minimum of the human players' handicap levels. This is so that the AI does not default to "noble" in multiplayer games.
+ + Free technology bonuses from goody huts are now allowed without settling a city first.
+ + Decreased production cost of cathedrals (etc) from 300 to 240.
+ + Drafted units are now included in the stats screen's units-built tally.
+ + Global warming can no longer turn desert (or anything else) into coast. [I don't think this feature made the game more fun, and there were a few minor problems with it, such as graphical glitches.]
+ + The volcano event now has a chance of increasing the food yield of adjacent tiles (in addition to the original effects); as part of this change, I also fixed the Python API so that calculateNatureYield() actually works. I see that the same bug exists in several other python functions, but I'll only fix it when I need the functions; also, getPlotExtraYield() is now available in python.
+ + Cottages and hamlets destroyed by the volcano event will no longer leave city ruins.
+ + Lowered the threshold for global warming severity to be described as "high" (this change has no effect on gameplay).
+
+--
+
+v0.93 changelist
+
+ + Changed Odeon culture from 3 to 2.
+ + Changed Arabian Madrassa culture from 4 to 3
+ + Changed culture from Great Works to be base_rate * era, rather than base_rate * (era+1)
+ + Reverted State Property upkeep back to 'low' [Now that state property no longer eliminates colony maintenance, and corporations come into the game earlier, I feel that state property is not too powerful on low upkeep.]
+ + Increased Representation upkeep from 'medium' to 'high'
+ + Increased cost of public transport to 200 (from 150)
+ + Global warming can no longer strike impassable peak tiles
+ + Fixed a bug which caused terrain to be degraded at the same as trees were degraded. [The correct behaviour is jungle->forest->nothing before any terrain degradation takes place.]
+ + Fixed problem which sometimes caused towns not to be removed when global warming made the land uninhabitable. [I'm in two minds about whether desert towns should be allowed to stay; but for now I'm disabling it.]
+ + Minor adjustments to the environmental advisor screen.
+ + Mining inc now uses aluminium and uranium instead of gold and silver [this should make mining inc slightly weaker, and civ jewellers more viable]
+
+--
+
+v0.92 changelist
+
+ + Fixed a bug that would cause K-Mod to crash when playing with time victory disabled. (added a new xml parameter for controlling global warming chances per index)
+ + Removed all the custom map scripts that previously came with the mod. (These scripts aren't part of the mod. They can be installed separately by those who want them.)
+ + Fixed a bug that was preventing promotions with three 'or' prerequisites from being displayed.
+ + Added third promotion 'or' prerequisite information to the civilopedia (and sevopedia)
+ + Changed the tech chooser bulb preference list to only show techs that have not already been researched
+ + Disabled some faulty event handlers in Civ4lerts. [They didn't work, and they looked like they might cause a seg-fault.]
+ + Changed the global warming responsibility calculation to include offsets.
+
+--
+
+v0.91 changelist
+
+ + fixed a K-Mod bug that caused some cultural revolts to last much longer than they should.
+ + changed the length of cultural revolts 3 + 2*(number of previous revolts), so that the system is simpler. [previously it depended on the current era, the highest population of the city, and the number of adjacent plots owned by the player]
+
+
+---
+
+K-Mod, version 0.9 (beta)
+
+A list of differences between K-Mod v0.9 and standard Civ4:BtS. There may be things missing.
+
+
+== Built-in mods ==
+ + Actual quotes
+ + Better AI (customised)
+ + BUG (butchered)
+ + unofficial patch
+
+== Civics ==
+ + serfdom: +1 commerce farms & plantations, -1 commerce from towns [I want to make serfdom a useful mid-game civic]
+ + Vassalage: -25% number of cities maintenance
+ + State property: high upkeep (up from low)
+ + free speech: from +100% culture to +50%. [now that culture is more powerful, this needed a nerf.]
+ + Environmentalism: removed health bonuses, replaced with -30% unhealthiness from population, removed the corp maintenance penalty.
+
+== Traits ==
+ + protective: +100% build rate for security bureau
+ + aggressive: +100% build rate for jails (and mausoleum)
+
+== Culture ==
+ + trade route culture: trade routes give plot culture in addition to commerce. The amount of culture given by the trade route is 1% * trade city's culture level * trade city's culture rate. The culture belongs to the owner of the trade city, not the local city; and it is not counted towards the culture of the city itself – it only effects the plots around the city.
+ + changed plot culture mechanics: cultural influence extends 3 steps beyond the border. Outer ring of cultural influence gets 100% of the city culture; the city tile itself gets 1000%; the rate varies quadratically in between.
+ + instant boosts to culture (such as great works and espionage missions) now apply the appropriate amount of plot culture with their city culture
+ + change culture from great works from a flat 4000 to 800 * era. [to reduce the power of the early culture bombs – but it's worth pointing out that early culture bombs are still very powerful]
+ + Reduced culture of many buildings: 
+ + reduced the culture from most of the great wonders
+ + Sistine chapel state religion culture bonus changed from +5 to +3 [culture is more powerful now; so this building needed to be nerfed]
+ + sushi co. now produces 1.5 culture per resource, down from 2 culture per resource. [still the most powerful corp...]
+ + colosseum cost 80 -> 100, now gives 20% culture rate bonus. [I wanted a early culture multiplier that would apply to all cities.]
+ + religious building culture multiplier down from 50% to 40% [to de-emphisize the role religion plays in culture; and the balance the colosseum buff]
+
+
+== Misc balance changes ==
+ + industrial park cost from 200 to 250, 1 free engineer to 2 free engineers. [pollution hurts more now, so this building needed a buff]
+ + jail, from +4 espionage -> +2. [+4 and +50% was too powerful for a relatively early game building which has other benefits]
+ + Eiffle tower now comes with mass media instead of radio [to make mass media more appealing, and make free broadcasting towers less weird]
+ + ironclad, from 2 moves to 3. [the ironclad was frustratingly slow... with this buff it is still slower than galleons]
+ + public transport, removed health bonuses, replaced with -15% unhealthiness from population, [thinking of raising cost from 150->200.]
+ + stone henge no longer goes obsolete [I felt that this wonder was actually disadvantageous, because the 'free' monuments disappeared and thus robbed the owner of late-game culture]
+ + tech requirements for corporations changed: civ jewellers: corporation, sushi co: refrigeration, cereal mills: medicine, creative constructions: steel, standard ethanol: combustion [in my experience, sushi and mining inc are always by far the most powerful corporations. My goal with changing the prereqs is to make the weaker corps more viable.]
+ + space elevator bonus from +50 spaceship production -> +100%. [building this wonder is almost never worth the hammers/research... I suspect that even with this massive buff it will still be too weak to be worthwhile.]
+ + free commando promotion for great spy [just like a normal spy]
+ + slightly reduced the tech rate for everything in the later eras (slowed research), using the BBAI defaults
+ + work boats no long count as military units
+ + all promotions that have a combat promotion as an optional prereq also now have the equivalent drill promotion as an optional prereq. 
+
+(march, blitz, etc)
+ + leadership promotion now gives 50% protection vs revolt (in addition to +100% experience gained)
+
+
+== Minor mechanics changes ==
+ + Nuclear meltdowns: no longer destroy other buildings or population. Can still create fallout. [meltdowns were far too powerful]
+ + The count of vassal cities is now halved in the number of cities maintenance calculation. [To make vassalizing more attractive]
+ + "Number of cities" maintenance cost is no longer capped (ignores the caps set in the xml) [to weaken the power of huge civs]
+ + Distance maintenance modifiers no longer effect the cap on colony maintenance. [So that 'State Property' does not remove colony maintenance.]
+ + removed attitude averaging between vassals and masters [I felt the previous behaviour was unintuitive, undocumented, and discouraged vassalizing]
+ + made it possible to pillage ones own roads [for consistency; and because it's sometimes useful. eg. when you are trying to grow a forest]
+ + preventing a cultural revolt with a military garrison is now more difficult (asymptotically more difficult)
+ + changed the scaling of revolt chance with military garrison (from linear, to something else... small garrisons are relatively more effective than they were before).
+ + removed the free liberation culture for cities that have already been owned [to prevent an exploit]
+
+
+== Misc ==
+ + fixed some bugs in the standard game and in the BUG mod.
+ + made some adjustments to the AI; now will build more workers, tech less predictably, be less afraid of buildings that cause unhealthiness, etc.
+ + reduced rounding errors in plot culture.
+ + added an 'environmental advisor' as a tab on the financial advisor screen; it displays most of the relevant information related to pollution and global warming.
+ + added religion bonus information to the mouse-over text in the city-screen for buildings being constructed. (eg. university of sankore bonus on temples)
+ + removed the double-reporting of conditional happiness and healthiness from mouse-over text on buildings. (eg. happiness from theatre with culture slider, happiness from barracks with nationhood, etc. These bonuses are now displayed once, not twice.)
+ + changed text for bonuses from an arbitrary state-religion (eg university of sankore) to always say 'state religion' rather than a particular region.
+ + added global warming unhappiness; depends on global warming index, current global pollution rate, current local pollution rate, land size. added mouse over text in city screen, and so on.
+ + global warming can turn coastal desert tiles into ocean. When this happens, units will be bumped to a nearby tile
+ + removed the extra space in "unit can " list for unit descriptions (eg. work boats)
+
+== New culture system ==
+Perceived problems with the old system:
+In the old system, plot culture was essentially dominated by 'free culture' from cities. The actual culture output of a city had very little effect other than to increase the culture level of the city. In a culture war (where two civs attempt to push each other's borders back with culture) the culture slider wasn't much use, because the culture output of a city had a relatively minor role on plot culture. 
+
+Two cities would almost always be able to culture press a solo city even when the solo city had much more culture output than the combined total of the two cities. "Culture bombs" did almost nothing, and using spies to spread culture had essentially the same effect on plot culture as a great artist culture bomb! And culture was only useful in border cities (and in the top three culture cities when trying to get a cultural victory).
+
+My solutions:
+Plot culture is now primarily determined by the culture output of cities. The 'free' culture has been reduced to almost nothing. (I haven't completely removed free culture because otherwise it would be too easy for civs with the cultural trait to culture press in the early game.) Instant boosts to culture, such as great works and espionage missions, now apply as much plot culture as if the city had produced the culture in the normal way. Finally, plot culture from a city now extends a couple of squares beyond the borders of the city, and so cities don't need to be right on the border of the civilization to contribute to a culture war.
+
+== New global warming system ==
+In standard BtS, global warming is a bit of a joke. It is triggered by the wrong things, you can't really do much to prevent it, and it hits the world in a harsh and unintuitive way. I've completely changed it.
+
+In short, it works like this:
+Every point of unhealthiness is counted across the world. If this total is more than some threshold amount then global warming becomes possible, and the likelihood increases as long as the unhealthiness total is above the threshold. There is an environmental advisor which can tell you all the details (on the same screen as the financial advisor).
+
+When global warming strikes, it no longer removes the tile improvement, and it doesn't turn the tile straight into desert, so each strike is far less severe than in original BtS. Also, global warming is more likely to strike cold tiles before hot tiles. eg. The ice caps are likely to melt before your plains get turned into desert.
+
+Positive healthiness (eg. from hospitals) does not reduce the global warming pollution, but a environmentalism and public transport have been changed so that they do reduce unhealthiness rather than increase healthiness.
+
+As global warming becomes more likely, civilizations start to get a happiness penalty which is based on their relative contribution to global pollution.

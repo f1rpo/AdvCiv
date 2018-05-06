@@ -6089,9 +6089,6 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 				techs_to_check.push(techs[i].second);
 			}
 			while (!techs_to_check.empty() && (int)techs_in_path.size()
-					/*  advc.001: Was <. Even if no more techs can be added to
-						the path, it could still be valid, namely if we already
-						have all the prereqs for the remaining techs_to_check. */
 					<= iMaxPathLength)
 			{
 				bool bMissingPrereq = false;
@@ -6118,8 +6115,7 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 								tech_paths.back().first = (int)(fDepthRate *
 										tech_paths.back().first);
 								tech_paths.back().first += techs[j].first;
-								tech_paths.back().second.push_back(
-										j); // advc.001: was i in k146
+								tech_paths.back().second.push_back(j);
 								techs_in_path.insert(ePrereq);
 								techs_to_check.push(ePrereq);
 								bMissingPrereq = false;
@@ -6127,6 +6123,11 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 							}
 						}
 					}
+				}
+				if (bMissingPrereq)
+				{
+					// This path is invalid, because we can't get the prereqs.
+					break;
 				}
 				// OrTechs:
 				int iBestOrIndex = -1;
@@ -6203,40 +6204,33 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 			{
 				/*  todo: consider backfilling the list with deeper techs if
 					we've matched their prereqs already. */
-				while ((int)techs_in_path.size() < iMaxPathLength)
+				for (int j = 0; j < techs_to_depth[1] && (int)techs_in_path.size() <
+						iMaxPathLength; j++)
 				{
-					size_t const sz = techs_in_path.size(); // advc.001
-					for (int j = 0; j < techs_to_depth[1] &&
-							(int)techs_in_path.size() < iMaxPathLength; ++j)
+					if (techs_in_path.count(techs[j].second) == 0)
 					{
-						if (techs_in_path.count(techs[j].second) == 0)
+						techs_in_path.insert(techs[j].second);
+						int k = 0;
+						/*  Note: since this tech isn't a prereqs, it can go any-
+							where in our path. Try to research highest values first. */
+						for (; k < (int)tech_paths.back().second.size(); k++)
 						{
-							techs_in_path.insert(techs[j].second);
-							/*  Note: since this tech isn't a prereq,
-								it can go anywhere in our path. Try to research
-								highest values first. */
-							int k = 0;
-							for (; k < (int)tech_paths.back().
-									second.size(); ++k)
+							if (techs[j].first < techs[tech_paths.back().
+									second[k]].first)
 							{
-								if (techs[j].first < techs[tech_paths.back().
-										second[k]].first)
-								{
-									// Note: we'll need to recalculate the total value.
-									tech_paths.back().second.insert(
-											tech_paths.back().second.begin()+k, j);
-									break;
-								}
-							}
-							if (k == tech_paths.back().second.size())
-							{
-								// haven't added it yet
-								tech_paths.back().second.push_back(j);
+								
+								// Note: we'll need to recalculate the total value.
+								tech_paths.back().second.insert(
+										tech_paths.back().second.begin()+k, j);
+								break;
 							}
 						}
-					} // <advc.001> Avoid infinite loop
-					if(techs_in_path.size() <= sz)
-						break; // </advc.001>
+						if (k == tech_paths.back().second.size())
+						{
+							// haven't added it yet
+							tech_paths.back().second.push_back(j);
+						}
+					}
 				}
 				// Recalculate total value;
 				tech_paths.back().first = 0;
@@ -6257,14 +6251,16 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 
 	/*  Return the tech corresponding to the back (first step) of the tech path
 		with the highest value. */
-	if (tech_paths.empty())
+	std::vector<std::pair<int, std::vector<int> > >::iterator best_path_it =
+			std::max_element(tech_paths.begin(), tech_paths.end(),
+			PairFirstLess<int, std::vector<int> >());
+
+	if (best_path_it == tech_paths.end())
 	{
-		FAssertMsg(0, "Failed to create any tech paths");
+		FAssertMsg(0, "Failed to create a tech path");
 		return NO_TECH;
 	}
-	std::vector<std::pair<int,std::vector<int> > >::iterator best_path_it =
-			std::max_element(tech_paths.begin(), tech_paths.end(),
-			PairFirstLess<int,std::vector<int> >());
+
 	TechTypes eBestTech = techs[best_path_it->second.back()].second;
 	if( gPlayerLogLevel >= 1)
 	{
@@ -6275,7 +6271,8 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 				GC.getTechInfo(techs[best_path_it->second.front()].second).
 				getDescription());
 	}
-	FAssert(canResearchBulk(eBestTech, false, bFreeTech));
+	FAssert(!isResearch() || getAdvancedStartPoints() < 0 ||
+			canResearchBulk(eBestTech, false, bFreeTech));
 	// </k146>
 	return eBestTech;
 }
