@@ -11858,7 +11858,7 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool b
 							CvPlayer& msgTarget = GET_PLAYER((PlayerTypes)i);
 							if(!msgTarget.isAlive())
 								continue;
-							bool isRev = isRevealed(msgTarget.getTeam(), false);
+							bool isRev = isRevealed(msgTarget.getTeam(), true);
 							bool isMet = TEAMREF(msgTarget.getID()).isHasMet(
 									TEAMID(getOwner()));
 							if(isRev ||

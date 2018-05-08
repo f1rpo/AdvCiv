@@ -102,16 +102,22 @@ void WarTradeAlert::check() {
 			if(newValue == willWar[i][j])
 				continue;
 			willWar[i][j] = newValue;
-			if(newValue)
+			if(newValue) {
 				msg(gDLL->getText("TXT_KEY_CIV4LERTS_TRADE_WAR",
 						warTeam.getName().GetCString(),
-						victim.getName().GetCString()));
+						victim.getName().GetCString()),
+						// advc.127b:
+						NULL, warTeam.getCapitalX(), warTeam.getCapitalY());
+			}
 			/*  Obviously can't hire warTeam if it has already declared war
 				or if victim has been eliminated. */
-			else if(victim.isAlive() && !warTeam.isAtWar(victim.getID()))
+			else if(victim.isAlive() && !warTeam.isAtWar(victim.getID())) {
 				msg(gDLL->getText("TXT_KEY_CIV4LERTS_NO_LONGER_TRADE_WAR",
 						warTeam.getName().GetCString(),
-						victim.getName().GetCString()));
+						victim.getName().GetCString()),
+						// advc.127b:
+						NULL, warTeam.getCapitalX(), warTeam.getCapitalY());
+			}
 		}
 	}
 } // </advc.210a>

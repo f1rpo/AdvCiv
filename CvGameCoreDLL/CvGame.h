@@ -625,6 +625,11 @@ public:
 	bool isResourceLayer() const;
 	void reportResourceLayerToggled();
 	// </advc.004m>
+	// <advc.127b> Both return -1 if 'vs' doesn't exist in any city
+	std::pair<int,int> getVoteSourceXY(VoteSourceTypes vs) const;
+	BuildingTypes getVoteSourceBuilding(VoteSourceTypes vs) const;
+	CvCity* getVoteSourceCity(VoteSourceTypes vs) const;
+	// </advc.127b>
 	/* advc.104: Doesn't belong here, but I didn't want to add Python wrapper
 	   classes just for that one function. */
 	bool useKModAI() const; // Exposed to Python
@@ -637,7 +642,6 @@ public:
 	// <advc.703>
 	RiseFall const& getRiseFall() const;
 	RiseFall& getRiseFall(); // </advc.703>
-
 	/* <advc.108>: Three levels of start plot normalization:
 	   1: low (weak starting plots on average, high variance);
 	      for single-player

@@ -10131,8 +10131,10 @@ void CvGame::setVoteSourceReligion(VoteSourceTypes eVoteSource, ReligionTypes eR
 			for (int iI = 0; iI < MAX_PLAYERS; iI++)
 			{
 				if (GET_PLAYER((PlayerTypes)iI).isAlive())
-				{
-					gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getReligionInfo(eReligion).getSound(), MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+				{	// advc.127b:
+					std::pair<int,int> xy = getVoteSourceXY(eVoteSource);
+					gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getReligionInfo(eReligion).getSound(), MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
+								xy.first, xy.second); // advc.127b
 				}
 			}
 		}
@@ -10542,7 +10544,10 @@ void CvGame::doVoteResults()
 				{
 					CvWString szMessage;
 					szMessage.Format(L"%s: %s", gDLL->getText("TXT_KEY_ELECTION_CANCELLED").GetCString(), GC.getVoteInfo(eVote).getDescription());
-					gDLL->getInterfaceIFace()->addHumanMessage((PlayerTypes)iPlayer, false, GC.getEVENT_MESSAGE_TIME(), szMessage, "AS2D_NEW_ERA", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));					
+					// advc.127b:
+					std::pair<int,int> xy = getVoteSourceXY(eVoteSource);
+					gDLL->getInterfaceIFace()->addHumanMessage((PlayerTypes)iPlayer, false, GC.getEVENT_MESSAGE_TIME(), szMessage, "AS2D_NEW_ERA", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
+							xy.first, xy.second); // advc.127b
 				}
 			}
 		}
@@ -10729,7 +10734,17 @@ void CvGame::doVoteResults()
 					if (bShow && bPassed)
 					{
 						CvWString szMessage = gDLL->getText("TXT_KEY_VOTE_RESULTS", GC.getVoteSourceInfo(eVoteSource).getTextKeyWide(), pVoteTriggered->kVoteOption.szText.GetCString());
-						gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szMessage, "AS2D_NEW_ERA", MESSAGE_TYPE_MINOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+						// <advc.127b>
+						BuildingTypes vsBuilding = getVoteSourceBuilding(eVoteSource);
+						std::pair<int,int> xy = getVoteSourceXY(eVoteSource);
+						// </advc.127b>
+						gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szMessage, "AS2D_NEW_ERA", MESSAGE_TYPE_MINOR_EVENT,
+								// <advc.127b>
+								vsBuilding == NO_BUILDING ? NULL :
+								GC.getBuildingInfo(vsBuilding).getButton(),
+								// </advc.127b>
+								(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
+								xy.first, xy.second); // advc.127b
 						/*  <advc.150b> Throw out everything after parentheses
 							(votes for and against). */
 						szMessage = szMessage.substr(0, szMessage.find(L")") + 1);
@@ -11008,6 +11023,46 @@ void CvGame::reportResourceLayerToggled() {
 	bResourceLayer = !bResourceLayer;
 }
 // </advc.004m>
+
+// <advc.127b>
+std::pair<int,int> CvGame::getVoteSourceXY(VoteSourceTypes vs) const {
+
+	CvCity* vsCity = getVoteSourceCity(vs);
+	std::pair<int,int> r = std::make_pair<int,int>(-1,-1);
+	if(vsCity == NULL)
+		return r;
+	r.first = vsCity->getX_INLINE();
+	r.second = vsCity->getY_INLINE();
+	return r;
+}
+
+CvCity* CvGame::getVoteSourceCity(VoteSourceTypes vs) const {
+
+	BuildingTypes vsBuilding = getVoteSourceBuilding(vs);
+	if(vsBuilding == NO_BUILDING)
+		return NULL;
+	for(int i = 0; i < MAX_PLAYERS; i++) { int foo=-1;
+		CvPlayer const& pl = GET_PLAYER((PlayerTypes)i);
+		if(!pl.isAlive())
+			continue;
+		for(CvCity* c = pl.firstCity(&foo); c != NULL; c = pl.nextCity(&foo)) {
+			if(c->getNumBuilding(vsBuilding) > 0)
+				return c;
+		}
+	}
+	return NULL;
+}
+
+BuildingTypes CvGame::getVoteSourceBuilding(VoteSourceTypes vs) const {
+
+	for(int i = 0; i < GC.getNumBuildingInfos(); i++) {
+		BuildingTypes bt = (BuildingTypes)i;
+		if(GC.getBuildingInfo(bt).getVoteSourceType() == vs)
+			return bt;
+	}
+	return NO_BUILDING;
+} // </advc.127b>
+
 // advc.104:
 bool CvGame::useKModAI() const { return !GC.getGame().warAndPeaceAI().isEnabled(); }
 // advc.250b:

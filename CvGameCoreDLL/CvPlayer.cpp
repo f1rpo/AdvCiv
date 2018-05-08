@@ -9724,12 +9724,14 @@ void CvPlayer::changeGoldenAgeTurns(int iChange)
 							szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYER_GOLDEN_AGE_HAS_BEGUN", getNameKey());
 							gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), (((PlayerTypes)iI) == getID()), GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_GOLDAGESTART",
 									MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, // advc.106b
-									NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+									NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
+									getCapitalX(), getCapitalY()); // advc.127b
 						}
 						else
 						{
 							szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYER_GOLDEN_AGE_ENDED", getNameKey());
-							gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_GOLDAGEEND", MESSAGE_TYPE_MINOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+							gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_GOLDAGEEND", MESSAGE_TYPE_MINOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
+									getCapitalX(), getCapitalY()); // advc.127b
 						}
 					}
 				}
@@ -9810,12 +9812,14 @@ void CvPlayer::changeAnarchyTurns(int iChange)
 			{
 				gDLL->getInterfaceIFace()->addHumanMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), gDLL->getText("TXT_KEY_MISC_REVOLUTION_HAS_BEGUN").GetCString(), "AS2D_REVOLTSTART",
 						MESSAGE_TYPE_MINOR_EVENT, // advc.106b: was MAJOR
-						NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
+						NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"),
+						getCapitalX(), getCapitalY()); // advc.127b
 			}
 			else
 			{
 				gDLL->getInterfaceIFace()->addHumanMessage(getID(), false, GC.getEVENT_MESSAGE_TIME(), gDLL->getText("TXT_KEY_MISC_REVOLUTION_OVER").GetCString(), "AS2D_REVOLTEND", MESSAGE_TYPE_MINOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString(
-						"COLOR_WHITE")); // advc.004g: Was COLOR_WARNING_TEXT
+						"COLOR_WHITE"), // advc.004g: Was COLOR_WARNING_TEXT
+						getCapitalX(), getCapitalY()); // advc.127b
 				// K-Mod. trigger production/research popups that have been suppressed.
 				if (isHuman())
 				{
@@ -12461,7 +12465,9 @@ void CvPlayer::setLastStateReligion(ReligionTypes eNewValue)
 				if (GET_TEAM(getTeam()).isHasMet(civ.getTeam())
 						|| civ.isSpectator()) // advc.127
 				{
-					gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_RELIGION_CONVERT", MESSAGE_TYPE_MAJOR_EVENT);
+					gDLL->getInterfaceIFace()->addHumanMessage(civ.getID(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_RELIGION_CONVERT", MESSAGE_TYPE_MAJOR_EVENT,
+							// advc.127b:
+							NULL, NO_COLOR, getCapitalX(), getCapitalY());
 				}
 			}
 		}
@@ -14018,7 +14024,9 @@ void CvPlayer::setCivics(CivicOptionTypes eIndex, CivicTypes eNewValue)
 								if (GET_TEAM(getTeam()).isHasMet(GET_PLAYER((PlayerTypes)iI).getTeam()))
 								{
 									gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CIVIC_ADOPT",
-											MESSAGE_TYPE_MINOR_EVENT); // advc.106b
+											MESSAGE_TYPE_MINOR_EVENT, // advc.106b
+											// advc.127b:
+											NULL, NO_COLOR, getCapitalX(), getCapitalY());
 								}
 							}
 						}
@@ -19378,7 +19386,7 @@ void CvPlayer::createGreatPeople(UnitTypes eGreatPersonUnit, bool bIncrementThre
 		CvPlayer& msgTarget = GET_PLAYER((PlayerTypes)i);
 		if(!msgTarget.isAlive())
 			continue;
-		bool isRev = pPlot->isRevealed(msgTarget.getTeam(), false);
+		bool isRev = pPlot->isRevealed(msgTarget.getTeam(), true);
 		if(!TEAMREF(msgTarget.getID()).isHasMet(TEAMID(gpOwner.getID())))
 			continue;
 		if(!isRev) {
@@ -22215,6 +22223,7 @@ bool CvPlayer::splitEmpire(int iAreaId)
 
 	bool bPlayerExists = GET_TEAM(GET_PLAYER(eNewPlayer).getTeam()).isAlive();
 	FAssert(!bPlayerExists);
+	CvWString szMessage; // advc.127b
 	if (!bPlayerExists)
 	{
 		int iBestValue = -1;
@@ -22248,19 +22257,9 @@ bool CvPlayer::splitEmpire(int iAreaId)
 			return false;
 		}
 
-		CvWString szMessage = gDLL->getText("TXT_KEY_MISC_EMPIRE_SPLIT", getNameKey(), GC.getCivilizationInfo(eBestCiv).getShortDescriptionKey(), GC.getLeaderHeadInfo(eBestLeader).getTextKeyWide());
-		for (int i = 0; i < MAX_CIV_PLAYERS; ++i)
-		{
-			CvPlayer const& civ = GET_PLAYER((PlayerTypes)i);
-			if (civ.isAlive())
-			{
-				if (i == getID() || i == eNewPlayer || GET_TEAM(getTeam()).isHasMet(civ.getTeam()) ||
-						civ.isSpectator()) // advc.127
-				{
-					gDLL->getInterfaceIFace()->addHumanMessage((PlayerTypes)i, false, GC.getEVENT_MESSAGE_TIME(), szMessage, "AS2D_REVOLTEND", MESSAGE_TYPE_MAJOR_EVENT, ARTFILEMGR.getInterfaceArtInfo("INTERFACE_CITY_BAR_CAPITAL_TEXTURE")->getPath());
-				}
-			}
-		}
+		szMessage = gDLL->getText("TXT_KEY_MISC_EMPIRE_SPLIT", getNameKey(), GC.getCivilizationInfo(eBestCiv).getShortDescriptionKey(), GC.getLeaderHeadInfo(eBestLeader).getTextKeyWide());
+		// advc.127b: Announcement loop moved down
+		
 		GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szMessage, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 
 /************************************************************************************************/
@@ -22422,6 +22421,30 @@ bool CvPlayer::splitEmpire(int iAreaId)
 		for(int j = 0; j < GC.getDefineINT("COLONY_NUM_FREE_DEFENDERS"); j++)
 			acquiredCities[i]->initConscriptedUnit();
 	// </advc.104r>
+	/*  <advc.127b> Cut and pasted here b/c I want the announcement to point
+		to the new capital */
+	if(!bPlayerExists && eNewPlayer != NO_PLAYER) {
+		FAssert(!szMessage.empty());
+		CvCity* newCapital = GET_PLAYER(eNewPlayer).getCapitalCity();
+		for (int i = 0; i < MAX_CIV_PLAYERS; ++i) {
+			CvPlayer const& civ = GET_PLAYER((PlayerTypes)i);
+			if(!civ.isAlive())
+				continue;
+			if (i == getID() || i == eNewPlayer || GET_TEAM(getTeam()).isHasMet(civ.getTeam()) ||
+					civ.isSpectator()) // advc.127
+			{
+				bool isRev = (newCapital != NULL && newCapital->isRevealed(
+						civ.getTeam(), true));
+				LPCSTR button = (isRev ? ARTFILEMGR.getInterfaceArtInfo(
+						"INTERFACE_CITY_BAR_CAPITAL_TEXTURE")->getPath() : NULL);
+				gDLL->getInterfaceIFace()->addHumanMessage((PlayerTypes)i, false,
+						GC.getEVENT_MESSAGE_TIME(), szMessage, "AS2D_REVOLTEND",
+						MESSAGE_TYPE_MAJOR_EVENT,
+						button, NO_COLOR, isRev ? newCapital->getX() : -1,
+						isRev ? newCapital->getY() : -1);
+			}
+		}
+	} // </advc.127b>
 	return true;
 }
 
@@ -24705,6 +24728,23 @@ double CvPlayer::estimateYieldRate(YieldTypes yield, int nSamples) const {
 		return 0;
 	return ::median(samples);
 } // </advc.104>
+
+// <advc.127b>
+int CvPlayer::getCapitalX() const {
+
+	CvCity* cap = getCapitalCity();
+	if(cap == NULL)
+		return -1;
+	return cap->getX_INLINE();
+}
+
+int CvPlayer::getCapitalY() const {
+
+	CvCity* cap = getCapitalCity();
+	if(cap == NULL)
+		return -1;
+	return cap->getY_INLINE();
+} // </advc.127b>
 
 // <advc.004x>
 void CvPlayer::killAll(ButtonPopupTypes bpt, int data1) {

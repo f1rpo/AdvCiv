@@ -7019,7 +7019,9 @@ void CvUnitAI::AI_attackSeaMove()
 	}
 	// K-Mod / BBAI end
 	
-	if (plot()->isOwned() && (isEnemy(plot()->getTeam())))
+	if (plot()->isOwned() && isEnemy(plot()->getTeam())
+			// advc.033: Don't blockade Barbs
+			&& plot()->getTeam() != BARBARIAN_TEAM)
 	{
 		if (AI_blockade())
 		{
@@ -16731,7 +16733,7 @@ bool CvUnitAI::AI_blockade()
 
 
 // Returns true if a mission was pushed...
-// K-Mod todo: this function is very slow on large maps. Consider rewritting it!
+// K-Mod todo: this function is very slow on large maps. Consider rewriting it!
 // k146, advc.003b (comment): Performance might be OK now
 bool CvUnitAI::AI_pirateBlockade()
 {
@@ -16833,7 +16835,8 @@ bool CvUnitAI::AI_pirateBlockade()
 			{
 				CvPlot* pRangePlot = plotXY(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), iX, iY);
 				// <advc.003>
-				if(pRangePlot == NULL)
+				if(pRangePlot == NULL
+						|| pRangePlot->isBarbarian()) // advc.033
 					continue; // </advc.003>
 				bool bPlotBlockaded = false;
 				if (pRangePlot->isWater() && pRangePlot->isOwned() && isEnemy(pRangePlot->getTeam(), pLoopPlot))
@@ -17027,7 +17030,9 @@ bool CvUnitAI::AI_seaBombardRange(int iMaxRange)
 				CvCity* pBombardCity = bombardTarget(pLoopPlot);
 				/*  <advc.004c> Don't bombard cities at 0 (even if there is nothing
 					better to do b/c it spams the message log) */
-				if(pBombardCity != NULL && pBombardCity->getDefenseModifier(false) <= 0) 
+				if(pBombardCity != NULL && (pBombardCity->getDefenseModifier(false) <= 0 ||
+						// advc.033:
+						(pBombardCity->isBarbarian() && pBombardCity->getDefenseModifier(true) <= 0)))
 					pBombardCity = NULL; // </advc.004c>
 				if (pBombardCity != NULL && isEnemy(pBombardCity->getTeam(), pLoopPlot) && pBombardCity->getDefenseDamage() < GC.getMAX_CITY_DEFENSE_DAMAGE())
 				{
@@ -17097,7 +17102,10 @@ bool CvUnitAI::AI_seaBombardRange(int iMaxRange)
 
 						// Consider city even if fully bombarded, causes ship to camp outside blockading instead of twitching between
 						// cities after bombarding to 0
-						if (pBombardCity != NULL && isEnemy(pBombardCity->getTeam(), pLoopPlot) && pBombardCity->getTotalDefense(false) > 0)
+						if (pBombardCity != NULL && isEnemy(pBombardCity->getTeam(), pLoopPlot) && pBombardCity->getTotalDefense(false) > 0
+								/*  advc.033: Barbs normally have only building defense.
+									If that's the case, don't sea-bombard them. */
+								&& (!pBombardCity->isBarbarian() || pBombardCity->getTotalDefense(true) > 0))
 						{
 							int iPathTurns;
 							if (generatePath(pLoopPlot, 0, true, &iPathTurns, 1 + iMaxRange/baseMoves()))

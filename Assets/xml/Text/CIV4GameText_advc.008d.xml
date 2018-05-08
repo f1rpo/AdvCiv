@@ -450,4 +450,14 @@
 	<Spanish>If you zoom out into Globe View, the Unit Layer will indicate unit stack sizes through color: The larger the stack in a tile, the more opaque the tile color.</Spanish>
 </TEXT>
 
+<!-- advc.008c: (related to advc.127b) -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_30</Tag>
+	<English>Most announcements can be located on the map by opening the Event Log [Ctrl+Tab] and clicking on the announcement text.</English>
+	<French>Most announcements can be located on the map by opening the Event Log [Ctrl+Tab] and clicking on the announcement text.</French>
+	<German>Die meisten Nachrichten lassen sich durch das Ereignis-Log [Strg+Tab] auf der Karte verorten. Klicken Sie auf den Text einer Nachricht, um zum Ort des Geschehens zu springen.</German>
+	<Italian>Most announcements can be located on the map by opening the Event Log [Ctrl+Tab] and clicking on the announcement text.</Italian>
+	<Spanish>Most announcements can be located on the map by opening the Event Log [Ctrl+Tab] and clicking on the announcement text.</Spanish>
+</TEXT>
+
 </Civ4GameText>

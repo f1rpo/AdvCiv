@@ -1114,7 +1114,10 @@ public:
 	void checkAlert(int alertId, bool silent); // advc.210
 	// advc.104, advc.038, advc.132; exposed to Python.
 	double estimateYieldRate(YieldTypes yield, int nSamples = 5) const;
-
+	// <advc.127b> Both return -1 if no capital
+	int getCapitalX() const;
+	int getCapitalY() const;
+	// </advc.127b>
 	DllExport void buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& ourList) const;
 	DllExport bool getHeadingTradeString(PlayerTypes eOtherPlayer, TradeableItems eItem, CvWString& szString, CvString& szIcon) const;
 	DllExport bool getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer, bool bShowingCurrent, const TradeData& zTradeData, CvWString& szString, CvString& szIcon) const;

@@ -2,7 +2,7 @@
 <!-- advc: This file contains only in-game text added by the mod. -->
 <Civ4GameText>
 
-	<!-- [advc.100] In-game text for displaying and logging messages about
+	<!-- advc.100: In-game text for displaying and logging messages about
 		 hired DoW. Original BtS text bits pertaining to DoW are located in
 		 CIV4GameTextInfos.xml. -->
 	<TEXT>
@@ -22,7 +22,7 @@
 		<Spanish>%s1_PlyrName le declara la guerra a %s2_PlyrName. (A petici&#243;n de %s3_PlyrName.)</Spanish>
 	</TEXT>
 
-	<!-- [advc.100b] Replay message for brokered peace. Based on
+	<!-- advc.100b: Replay message for brokered peace. Based on
 		 TXT_KEY_MISC_SOMEONE_MADE_PEACE from CIV4GameTextInfos.xml.
 		 I'm reusing the "on request" translations from above. -->
 	<TEXT>
@@ -34,7 +34,7 @@
 		<Spanish>%s1_PlyrName ha firmado la paz con %s2_PlyrName. (A petici&#243;n de %s3_PlyrName.)</Spanish>
 	</TEXT>
 
-	<!-- [advc.101] Additional text for Nationality help. Similar BtS keys
+	<!-- advc.101: Additional text for Nationality help. Similar BtS keys
 		 are located in CIV4GameTextInfos.xml. -->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_PRIOR_REVOLTS</Tag>
@@ -70,7 +70,7 @@
 	</TEXT>
 
 
-	<!-- [advc.101] Originally in CIV4GameTextInfos.xml. Adding the
+	<!-- advc.101: Originally in CIV4GameTextInfos.xml. Adding the
 		 pre-revolt owner of the city. -->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_CITY_REVOLTS_JOINS</Tag>
@@ -89,8 +89,7 @@
 		<Spanish>%s1_CityName (%s3_CivName) se ha rebelado y se ha unido al %s2_CivName.</Spanish>
 	</TEXT>
 
-    <!-- [advc.104]
-		 Renaming the Aggressive AI option to indicate that it's now
+    <!-- advc.104: Renaming the Aggressive AI option to indicate that it's now
 		 linked with K-Mod's war-and-peace AI. Originally named
 		 in Civ4\Assets\CIV4GameTextInfos.xml. -->
     <TEXT>
@@ -102,8 +101,8 @@
 		<Spanish>IA agresiva (K-Mod)</Spanish>
     </TEXT>
 
-    <!-- [advc.104]
-		 New help text for the Aggressive AI option. Original text in CIV4GameText_Misc1.xml. -->
+    <!-- advc.104: New help text for the Aggressive AI option. Original text in
+		 CIV4GameText_Misc1.xml. -->
     <TEXT>
 		<Tag>TXT_KEY_GAME_OPTION_AGGRESSIVE_AI_HELP</Tag>
 		<English>Use the K-Mod AI for decisions on war and peace (instead of the newer and less aggressive AdvCiv AI). </English>
@@ -113,7 +112,7 @@
 		<Spanish>Emplea IA de K-Mod por las decisiones de guerra e paz.</Spanish>
     </TEXT>
 	
-	<!-- [advc.250b] New game option. -->
+	<!-- advc.250b: New game option. -->
     <TEXT>
 		<Tag>TXT_KEY_GAME_OPTION_SPAH</Tag>
 		<English>Start Points as Handicap</English>
@@ -131,7 +130,7 @@
 		<Spanish>Asigna los puntos de inicio solo a la IA por handicapar los jugadores humanos.</Spanish>
     </TEXT>
 	
-	<!-- [advc.250b] Dawn-of-Man text from Civ4GameTextInfos.xml split
+	<!-- advc.250b: Dawn-of-Man text from Civ4GameTextInfos.xml split
 		 in two. -->
 	<TEXT>
 		<Tag>TXT_KEY_DAWN_OF_MAN_TEXT1</Tag>
@@ -150,8 +149,7 @@
 		<Spanish>%s1_leader, vuestro pueblo os ha conferido poder absoluto, confiando en que pod&#225;is desarrollar una civilizaci&#243;n que supere los retos del tiempo.</Spanish>
 	</TEXT>
 	
-	<!-- [advc.250a]
-	     Help text for added difficulty setting King.
+	<!-- advc.250a: Help text for added difficulty setting King.
 	     Help text for the other (unmodded) handicaps is located in
 		 CIV4GameText_Help.xml. -->
 	<TEXT>
@@ -164,8 +162,7 @@
         <Spanish>Ventajas sutiles per l'IA similar a Pr&#237;ncipe e Monarca; dif&#237;cil posici&#243;n inicial por el jugador (como Deidad); l'IA comenza con un Operario, Alfarer&#237;a y un adicional Guerrero</Spanish>
     </TEXT>
 
-    <!-- [advc.250a]
-	     The names of the other (unmodded) handicaps are defined in
+    <!-- advc.250a: The names of the other (unmodded) handicaps are defined in
 		 CIV4GameTextInfos_Objects.xml -->
     <TEXT>
         <Tag>TXT_KEY_HANDICAP_KING</Tag>
@@ -217,8 +214,7 @@
 		</Spanish>
 	</TEXT>
 	
-	<!-- [advc.004a]
-	     Used in help text of promotion buttons.
+	<!-- advc.004a: Used in help text of promotion buttons.
 	     Akin to TXT_KEY_PEDIA_LEADS_TO in CIV4GameTextInfos.xml.
          The "Leads to" translations are taken from there. -->
 	<TEXT>
@@ -238,7 +234,7 @@
 		<Spanish>Necesario por </Spanish>
 	</TEXT>
 	
-	<!-- [advc.004a]
+	<!-- advc.004a
 	     Text fragments used for showing bulb paths as help text
 		 when a GP is selected.
 		 Flavor types: Don't have text keys; presumably,
@@ -388,9 +384,8 @@
 		<Spanish>o</Spanish>
 	</TEXT>
 	
-	<!-- [advc.106]
-	     Auto-save messages are triggered outside of the DLL. The best
-         modders can do is to set the message to be empty. 
+	<!-- advc.106: Auto-save messages are triggered outside of the DLL.
+		 The best that modders can do is to set the message to be empty. 
 		 The original definition is in CIV4GameText_Misc1.xml. -->
 	<TEXT>
 		<Tag>TXT_KEY_AUTOSAVING</Tag>
@@ -407,8 +402,19 @@
 		<Italian>%s1_CityName (%s2_PlyrName) è stata [NUM1:colpito:colpita] da una testata nucleare lanciata da %s3_PlyrName.</Italian>
 		<Spanish>%s1_CityName (%s2_PlyrName) fue [NUM1:golpeado:golpeada] por una ojiva nuclear lanzada por %s3_PlyrName.</Spanish>
 	</TEXT>
+	
+	<!-- advc.106f: Based on TXT_KEY_MISC_PLAYERS_SIGN_DEFENSIVE_PACT in
+		 CIV4GameText_Misc1.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_PLAYERS_CANCEL_DEFENSIVE_PACT</Tag>
+		<English>%s1 cancels defensive pact with %s2</English>
+		<French>%s1 annule son pacte de d&#233;fense avec %s2</French>
+		<German>%s1 kündigt [NUM1:sein:ihr] Verteidigungsabkommen mit %s2</German>
+		<Italian>%s1 annulla la sua alleanza difensiva con %s2</Italian>
+		<Spanish>%s1 revoca su acuerdo de protecci&#243;n con %s2.</Spanish>
+	</TEXT>
 
-	<!-- [advc.004b]
+	<!-- advc.004b
 		 Help text for projected city costs (city maintenance, civic upkeep,
 		 unit cost, inflation) before founding a city. -->
 	<TEXT>
@@ -460,7 +466,7 @@
 		<Spanish>Esta orden hace que el [COLOR_UNIT_TEXT]Colono[COLOR_REVERT] construya una ciudad en el lugar en que se encuentre. El [COLOR_UNIT_TEXT]Colono[COLOR_REVERT] se consumir&#225; en el proceso.</Spanish>
 	</TEXT>
 	
-	<!-- [advc.550]
+	<!-- advc.550
 		 Just added the word "better"; the rest is copied from vanilla
          Civ4GameTextInfos.xml. -->
 	<TEXT>
@@ -1489,7 +1495,7 @@
 		</Spanish>
 	</TEXT>
 	
-	<!-- [advc.004l] Similar to TXT_KEY_MISSION_SENTRY and
+	<!-- advc.004l: Similar to TXT_KEY_MISSION_SENTRY and
 		 TXT_KEY_MISSION_HEAL in Civ4GameTextInfos.xml.
 		 Name of Sentry-Heal mission. -->
 	<TEXT>
@@ -1512,7 +1518,7 @@
 		<Spanish>La unidad permanecer&#225; inactiva hasta que recobre el total de su fuerza o una unidad enemiga se sit&#250;e al alcance de la visibilidad.</Spanish>
 	</TEXT>
 
-	<!-- [advc.106] Spelling "faraway" vs. "far away".
+	<!-- advc.106: Spelling "faraway" vs. "far away".
 		 Copied from Civ4GameTextInfos.xml. -->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_WONDER_COMPLETED_UNKNOWN</Tag>
@@ -1523,7 +1529,7 @@
 		<Spanish>Han construido %s1_WndrName en una tierra muy lejana.</Spanish>
 	</TEXT>
 
-	<!-- [advc.106] New keys for birth in unknown city of known civ,
+	<!-- advc.106: New keys for birth in unknown city of known civ,
 		 and wonder in known city. -->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_GP_BORN_CIV</Tag>
@@ -1626,7 +1632,7 @@
 		<Spanish>Ha aparecido [COLOR_UNIT_TEXT]%s1_GreatPersonName[COLOR_REVERT] en el campo de batalla</Spanish>
 	</TEXT>
 
-	<!-- [advc.124] Originally defined in Civ4GameTextInfos.xml.
+	<!-- advc.124: Originally defined in Civ4GameTextInfos.xml.
 		 I'm adding "outside own borders" b/c this key is currently only
 		 used for trade abilities, and these always work within own
 		 borders. -->
@@ -1639,7 +1645,7 @@
 		<Spanish>[ICON_BULLET]Permite %F1_Icon en %s2:2_TerrainName fuera de propios fronteras</Spanish>
 	</TEXT>
 
-	<!-- [advc.004n] Sets key from Civ4GameTextInfos.xml to an empty
+	<!-- advc.004n: Sets key from Civ4GameTextInfos.xml to an empty
 		 string. Original value: "CTRL to shift by ...". Ctrl no longer
 		 makes a difference. Button just shows all units; shouldn't req.
 		 help text. -->
@@ -1652,7 +1658,7 @@
 		<Spanish></Spanish>
 	</TEXT>
 
-	<!-- [advc.005c] Based on TXT_KEY_IMPROVEMENT_CITY_RUINS in
+	<!-- advc.005c: Based on TXT_KEY_IMPROVEMENT_CITY_RUINS in
 	Civ4GameTextInfos_Objects.xml. First attempt (weird for tribal
 	city names like Saxons):
 		Ruins of %s1City_Name
@@ -1669,7 +1675,7 @@
 		<Spanish>Ruinas de ciudad (%s1City_Name)</Spanish>
 	</TEXT>
 	
-	<!-- [advc.130r] Copied from TXT_KEY_MISC_ATTITUDE_FREEDOM
+	<!-- advc.130r: Copied from TXT_KEY_MISC_ATTITUDE_FREEDOM
 		 (CIV4GameText_BTS.xml) -->
 	<TEXT>
 		<Tag>TXT_KEY_MEMORY_INDEPENDENCE</Tag>
@@ -1680,7 +1686,7 @@
 		<Spanish>"Nos hab&#233;is concedido la independencia."</Spanish>
 	</TEXT>
 	
-	<!-- [advc.130v] Based on TXT_KEY_ATTITUDE_VASSAL_OF and
+	<!-- advc.130v: Based on TXT_KEY_ATTITUDE_VASSAL_OF and
 		 TXT_KEY_MISC_CAPITULATE_AGREEMENT in CIV4GameText_Warlords.xml. -->
 	<TEXT>
 		<Tag>TXT_KEY_ATTITUDE_VASSAL_CAP_OF</Tag>
@@ -1699,7 +1705,7 @@
 		<Spanish>Vasallo (volontario) del %s1_CivDesc</Spanish>
 	</TEXT>
 
-	<!-- [advc.130w] Explanation text for new diplo modifier -->
+	<!-- advc.130w] Explanation text for new diplo modifier -->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_ATTITUDE_EXPANSIONIST</Tag>
 		<English>%D1: "We oppose your ruthless expansionism!"</English>
@@ -1709,7 +1715,7 @@
 		<Spanish>%D1: "Nos oponemos a vuestro expansionismo agresivo."</Spanish>
 	</TEXT>
 	
-	<!-- [advc.907a] Rename Praetorian to Legionary in English texts.
+	<!-- advc.907a: Rename Praetorian to Legionary in English texts.
 		 See CIV4GameText_advc.008.xml for the Civilopedia changes. -->
 	<TEXT>
 		<Tag>TXT_KEY_UNIT_ROME_PRAETORIAN</Tag>
@@ -1796,7 +1802,7 @@
 		<Spanish>[NEWLINE][SPACE][SPACE][ICON_BULLET]+1 %F1_yield en las casillas con un rendimiento natural de %d2%F3_yield o un rendimiento total de %d4%F5_yield.</Spanish>
 	</TEXT>
 	
-	<!-- [advc.012] Plot help text to be used along with TXT_KEY_PLOT_BONUS
+	<!-- advc.012: Plot help text to be used along with TXT_KEY_PLOT_BONUS
 		 (Civ4GameTextInfos.xml). -->
 	<TEXT>
 		<Tag>TXT_KEY_FEATUREDEF</Tag>
@@ -1815,7 +1821,7 @@
 		<Spanish>Bonificaci&#243;n de defensa: </Spanish>
 	</TEXT>
 
-	<!-- [advc.005d] Originally in Civ4GameTextInfos.xml.
+	<!-- advc.005d: Originally in Civ4GameTextInfos.xml.
 		 Adding "ascribed" where the author is probably wrong. -->
 	<TEXT>
 		<Tag>TXT_KEY_TECH_FLIGHT_QUOTE</Tag>
@@ -1884,7 +1890,7 @@
 		<Spanish>"-&#191;Usted har&#237;a barcos que navegaran contra las corrientes y los vientos con solo encender una caldera bajo la cubierta? &#173;Disc&#250;lpeme, no tengo tiempo para escuchar tonter&#237;as." - Napole&#243;n, hablando del barco a vapor de Robert Fulton</Spanish>
 	</TEXT>
 	
-	<!-- [advc.004i] Originally in CIV4GameText_BTS.xml. Added a variable
+	<!-- advc.004i: Originally in CIV4GameText_BTS.xml. Added a variable
 		 for the amount of gold. -->
 	<TEXT>
 		<Tag>TXT_KEY_ESPIONAGE_TARGET_STEAL_TREASURY</Tag>
@@ -1895,7 +1901,7 @@
 		<Spanish>&#161;Los enemigos infiltrados han saqueado %d1[ICON_GOLD] de nuestro tesoro!</Spanish>
 	</TEXT>
 
-	<!-- [advc.021a] Originally in CIV4GameText_BTS_PatchText.xml.
+	<!-- advc.021a: Originally in CIV4GameText_BTS_PatchText.xml.
 		 The percentages in the TXT_KEY names are way off. -->
 	<TEXT>
 		<Tag>TXT_KEY_MAP_SCRIPT_EARTH_70</Tag>
@@ -2043,7 +2049,7 @@
 		</Spanish>
 	</TEXT>
 	
-	<!-- [advc.130o] (No longer used)  -->
+	<!-- advc.130o (No longer used)  -->
 	<TEXT>
 		<Tag>TXT_KEY_MEMORY_EXACTED_TRIBUTE</Tag>
 		<English>"You've exacted tribute from us."</English>
@@ -2053,7 +2059,7 @@
 		<Spanish>"Nos forzasteis a pagar un tributo."</Spanish>
 	</TEXT>
 
-	<!-- [advc.210a] Translations based on TXT_KEY_MISC_SHIFT_ALT_PREPARE_WAR
+	<!-- advc.210a: Translations based on TXT_KEY_MISC_SHIFT_ALT_PREPARE_WAR
 		 in CIV4GameText_BetterBTSAI.xml. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__WARTRADE_TEXT</Tag>
@@ -2090,7 +2096,7 @@
 		<Spanish>%s1_TeamName ya no es dispuesto a una guerra contra %s2_TeamName.</Spanish>
 	</TEXT>
 	
-	<!-- [advc.210b] -->
+	<!-- advc.210b -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__REVOLT_TEXT</Tag>
 		<English>Revolts</English>
@@ -2138,7 +2144,7 @@
 		<Spanish>%s1 ha sido pacificada.</Spanish>
 	</TEXT>
 	
-	<!-- [advc.023] Based on INTERFACE_CITY_GROWING in Civ4GameTextInfos.xml -->
+	<!-- advc.023: Based on INTERFACE_CITY_GROWING in Civ4GameTextInfos.xml -->
 	<TEXT>
 		<Tag>TXT_KEY_OCCUPATION_TIMER</Tag>
 		<English>Occupation timer: %d1 [NUM1:Turn:Turns]</English>
@@ -2156,7 +2162,7 @@
 		<Spanish>Probabilidad de disminuir el timer: %d1%%</Spanish>
 	</TEXT>
 	
-	<!-- [advc.210d] -->
+	<!-- advc.210d -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__BONUSTHIRDPARTIES_TEXT</Tag>
 		<English>Third parties</English>
@@ -2248,7 +2254,7 @@
 		<Spanish>%s1 ya no está exportando recursos a %s2 (cancelado: %s3).</Spanish>
 	</TEXT>
 
-	<!-- [advc.004q] Based on TXT_KEY_ATTITUDE_TOWARDS in
+	<!-- advc.004q] Based on TXT_KEY_ATTITUDE_TOWARDS in
 		 CIV4GameText_Misc1.xml -->
 	<TEXT>
 		<Tag>TXT_KEY_GOOD_ATTITUDE_TOWARDS</Tag>
@@ -2275,7 +2281,7 @@
 		<Spanish>Actitud hacia %s3_leader: %s1_attitude (+/- 0)</Spanish>
 	</TEXT>
 	
-	<!-- [advc.002b] Overwrites values in CIV4GameText_Objects_BTS.xml. -->
+	<!-- advc.002b: Overwrites values in CIV4GameText_Objects_BTS.xml. -->
 	<TEXT>
 		<Tag>TXT_KEY_CIV_NATIVE_AMERICA_DESC</Tag>
 		<English>Amerindian Empire</English>
@@ -2301,7 +2307,7 @@
 		</Spanish>
 	</TEXT>
 	
-	<!-- [advc.004r] Based on TXT_KEY_MISC_YOU_DISCOVERED_BONUSin
+	<!-- advc.004r: Based on TXT_KEY_MISC_YOU_DISCOVERED_BONUSin
 		 Vanilla CIV4GameTextInfos.xml	-->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_DISCOVERED_NO_BONUS</Tag>
@@ -2312,7 +2318,7 @@
 		<Spanish>No se ha descubierto ninguna fuente disponible de [COLOR_HIGHLIGHT_TEXT]%s1_BonusName[COLOR_REVERT].</Spanish>
 	</TEXT>
 
-	<!-- [advc.160] Originally in CIV4GameTextInfos.xml -->
+	<!-- advc.160 Originally in CIV4GameTextInfos.xml -->
 	<TEXT>
 		<Tag>TXT_KEY_BUILDING_STORES_FOOD</Tag>
 		<English>[ICON_BULLET]Stores %d1_Mod%% of [ICON_FOOD] after Growth or Starvation</English>
@@ -2322,7 +2328,7 @@
 		<Spanish>[ICON_BULLET]Almacena el %d1_Mod%% de los [ICON_FOOD] tras el crecimiento o inanición.</Spanish>
 	</TEXT>
 
-	<!-- [advc.104t] Warning added; hopefully temporary -->
+	<!-- advc.104t: Warning added; hopefully temporary. -->
 	<TEXT>
 		<Tag>TXT_KEY_GAME_OPTION_PERMANENT_ALLIANCES_HELP</Tag>
 		<English>(WARNING: This option hasn't been tested with the AdvCiv mod.) Two civilizations can form a Permanent Alliance which lasts the rest of the game.</English>
@@ -2332,7 +2338,7 @@
 		<Spanish>(WARNING: This option hasn't been tested with the AdvCiv mod.) Dos civilizaciones pueden formar una alianza permanente que dure hasta que acabe la partida.</Spanish>
 	</TEXT>
 	
-	<!-- [advc.004t] Shortened version of TXT_KEY_POPUP_RECOMMENDED in
+	<!-- advc.004t: Shortened version of TXT_KEY_POPUP_RECOMMENDED in
 		 CIV4GameTextInfos.xml. -->
 	<TEXT>
 		<Tag>TXT_KEY_POPUP_NO_RECOMMENDATION</Tag>
@@ -2343,7 +2349,7 @@
 		<Spanish>%s1_ProdName (%d2_NumTurns [NUM2:turno:turnos])</Spanish>
 	</TEXT>
 
-	<!-- [advc.004u] Originally in CIV4GameText_Warlords.xml without the Civ
+	<!-- advc.004u: Originally in CIV4GameText_Warlords.xml without the Civ
 		 variables. -->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_GENERAL_KILLED</Tag>
@@ -2371,7 +2377,7 @@
 		<Spanish>&#161;%s1_warlord (%s2_Civ) ha muerto en combate en contra de nosotros!</Spanish>
 	</TEXT>
 	
-	<!-- [advc.004v] Originally in CIV4GameTextInfos.xml. Shortened. -->
+	<!-- advc.004v: Originally in CIV4GameTextInfos.xml. Shortened. -->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_CTRL_TRADE</Tag>
 		<English>[CTRL] for trade table</English>
@@ -2389,7 +2395,7 @@
 		<Spanish>[ALT] para declarar la guerra</Spanish>
 	</TEXT>
 	
-	<!-- [advc.700] -->
+	<!-- advc.700 -->
 	<TEXT>
 		<Tag>TXT_KEY_RF_REPLAY_NEXT_CHAPTER</Tag>
 		<English>Start of Chapter %d1_Num: Player controls %s2.</English>
@@ -2439,7 +2445,7 @@
 		<Spanish>[NEWLINE][NEWLINE]Before Chapter %d1_Chpt, there's an intermediate period of %d2_Trns turns on Auto Play.</Spanish>
 	</TEXT>
 
-	<!-- [advc.701] -->
+	<!-- advc.701 -->
 	<TEXT>
 		<Tag>TXT_KEY_GAME_OPTION_RISE_FALL</Tag>
 		<English>Rise and Fall</English>
@@ -2457,7 +2463,7 @@
 		<Spanish>Divides the game into chapters; at the end of each chapter, you take over an AI civ and the AI takes over your previous civ. (Singleplayer only, and Large or Huge map recommended.)</Spanish>
 	</TEXT>
 
-	<!-- [advc.702] -->
+	<!-- advc.702 -->
 	<TEXT>
 		<Tag>TXT_KEY_RF_SINGLEPL_ONLY</Tag>
 		<English>The Rise and Fall option is only for singleplayer games.</English>
@@ -2507,7 +2513,7 @@
 		<Spanish>The Rise and Fall option has been disabled.</Spanish>
 	</TEXT>
 
-	<!-- [advc.703] -->
+	<!-- advc.703 -->
 	<TEXT>
 		<Tag>TXT_KEY_RF_CHAPTER_PLURAL</Tag>
 		<English>Chapters</English>
@@ -2751,10 +2757,9 @@
 		<Spanish>The sun rises on the year %s1_year. For %d2 turns, the %s3_civ are vesting absolute power in you, trusting that you can lead their Civilization to its zenith.[NEWLINE][NEWLINE]All units have been awoken for a roll call. You may want to investigate your cities, and confer with your advisors about ongoing/ potential deals, civics, espionage, finances and current research.</Spanish>
 	</TEXT>
 	
-	<!-- [advc.706]
-		 The Retire action needs slightly different text. Could be done more
-		 nicely by showing help text dynamically depending on game settings
-		 (but I'm not going to). -->
+	<!-- advc.706: The Retire action needs slightly different text. Could be
+		 done more nicely by showing help text dynamically depending on game
+		 settings (but I'm not going to). -->
 	<!-- From CIV4GameText_Help.xml -->
 	<TEXT>
 		<Tag>TXT_KEY_ACTION_CONTROL_RETIRE_HELP</Tag>

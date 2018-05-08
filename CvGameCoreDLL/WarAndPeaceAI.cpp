@@ -1772,7 +1772,10 @@ void WarAndPeaceAI::Team::showWarPlanMsg(TeamTypes targetId, char const* txtKey)
 			GET_TEAM(agentId).getName().GetCString(),
 			GET_TEAM(targetId).getName().GetCString());
 	gDLL->getInterfaceIFace()->addHumanMessage(activePl.getID(), false,
-			GC.getEVENT_MESSAGE_TIME(), szBuffer, 0, MESSAGE_TYPE_MAJOR_EVENT);
+			GC.getEVENT_MESSAGE_TIME(), szBuffer, 0, MESSAGE_TYPE_MAJOR_EVENT,
+			// <advc.127b>
+			NULL, NO_COLOR, GET_TEAM(agentId).getCapitalX(),
+			GET_TEAM(agentId).getCapitalY()); // </advc.127b>
 }
 
 double WarAndPeaceAI::Team::confidenceFromWarSuccess(TeamTypes targetId) const {

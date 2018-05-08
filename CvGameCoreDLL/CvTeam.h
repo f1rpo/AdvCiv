@@ -427,7 +427,11 @@ public:
 
 	// advc.136a: Made public
 	void testCircumnavigated();
-
+	// <advc.127b> Both return -1 if no team member has a capital
+	int getCapitalX() const;
+	int getCapitalY() const;
+	private: CvCity* getLeaderCapital() const; public:
+	// </advc.127b>
 	virtual void AI_init() = 0;
 	virtual void AI_reset(bool bConstructor) = 0;
 	virtual void AI_doTurnPre() = 0;

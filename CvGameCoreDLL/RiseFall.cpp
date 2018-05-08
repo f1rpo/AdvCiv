@@ -563,7 +563,8 @@ void RiseFall::showDoW() {
 				GC.getEVENT_MESSAGE_TIME(),
 				gDLL->getText("TXT_KEY_YOU_AT_WAR", enemy.getName()),
 				NULL, MESSAGE_TYPE_INFO, NULL, (ColorTypes)
-				GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
+				GC.getInfoTypeForString("COLOR_WARNING_TEXT"),
+				enemy.getCapitalX(), enemy.getCapitalY()); // advc.127b
 	}
 }
 
