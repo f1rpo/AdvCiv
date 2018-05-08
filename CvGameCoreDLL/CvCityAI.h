@@ -250,7 +250,9 @@ protected:
 
 	void AI_cachePlayerCloseness(int iMaxDistance);
 	void AI_updateWorkersNeededHere();
-
+	// advc.179:
+	double estimateReligionBuildings(PlayerTypes civId, ReligionTypes eReligion,
+			std::vector<BuildingTypes> const& buildings) const;
 	// added so under cheat mode we can call protected functions for testing
 	friend class CvGameTextMgr;
 };

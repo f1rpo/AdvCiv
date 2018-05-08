@@ -14030,9 +14030,14 @@ void CvPlayer::setCivics(CivicOptionTypes eIndex, CivicTypes eNewValue)
 								}
 							}
 						}
-						// advc.106: Don't record civics changes in replays
-						/*szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYER_ADOPTED_CIVIC", getNameKey(), GC.getCivicInfo(getCivics(eIndex)).getTextKeyWide());
-						GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szBuffer);*/
+						/*  <advc.106> Only record civics change if renounced
+							state religion implied */
+						if(!GC.getCivicInfo(getCivics(eIndex)).isStateReligion() &&
+								GC.getCivicInfo(eOldCivic).isStateReligion()) {
+									// </advc.106>
+							szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYER_ADOPTED_CIVIC", getNameKey(), GC.getCivicInfo(getCivics(eIndex)).getTextKeyWide());
+							GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szBuffer);
+						}
 					}
 				}
 			}

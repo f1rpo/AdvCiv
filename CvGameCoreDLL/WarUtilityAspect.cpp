@@ -2102,13 +2102,14 @@ void KingMaking::evaluate() {
 	double caughtUpBonus = 0;
 	set<PlayerTypes> presentWinners;
 	addLeadingCivs(presentWinners, scoreMargin, false);
-	double const catchUpVal = 24.0 / std::pow((double)winning.size(), 0.75);
+	double catchUpVal = 24.0 / std::pow((double)winning.size(), 0.75);
+	catchUpVal *= std::pow((1 + weAI->amortizationMultiplier()) / 2, 2);
 	if(winning.count(weId) > 0) {
 		winningRivals--;
 		/*  If we're among the likely winners, then it's a showdown between us
-			and them, and, then, we try to prevent their victory despite being
-			Pleased. If we're out of contention (for the time being), we don't mind
-			if they win at Pleased. */
+			and them, and we try to prevent their victory despite being Pleased.
+			If we're out of contention (for the time being), we don't mind if
+			they win at Pleased. */
 		attitudeMultiplier += 0.25;
 		if(presentWinners.count(weId) == 0) {
 			/*  We're not presently winning, but our predicted conquests bring us
