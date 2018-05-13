@@ -1913,7 +1913,7 @@ void PreEmptiveWar::evaluate() {
 		return;
 	double threat = ourCache->threatRating(theyId);
 	/*  War evaluation should always assume minor threats; not worth addressing here
-		explicitly */
+		explicitly. */
 	if(threat < 0.15)
 		return;
 	// threatRating includes their vassals, so include vassals here as well
@@ -2084,17 +2084,17 @@ void KingMaking::evaluate() {
 	AttitudeTypes att = towardsThem;
 	/*  As humans we are very much not OK with rivals winning the game,
 		so ATTITUDE_FURIOUS would be the smarter assumption, however, I don't want
-		a leading AI to be extremely alert about a human runner up; could make it too
+		a leading AI to be extremely alert about a human runner-up; could make it too
 		difficult to catch up. */
 	if(we->isHuman())
 		att = ATTITUDE_ANNOYED;
-	/*  We don't go so far to help our friendy win (only indirectly by trying to
+	/*  We don't go as far as helping a friend win (only indirectly by trying to
 		thwart the victory of a disliked civ) */
 	if(att >= ATTITUDE_FRIENDLY)
 		return;
-	// NB: The two conditions above are superfluous; just for performance
+	// NB: The two conditions above are superfluous; just for performance.
 	double attitudeMultiplier = 0.03 + 0.25 * (ATTITUDE_PLEASED - att);
-	// If we're human and did not believe we could win, we would've quit already
+	// If we're human and did not believe we could win, we would've quit already.
 	if(we->isHuman())
 		winning.insert(weId);
 	// We're less inclined to interfere if several rivals are in competition

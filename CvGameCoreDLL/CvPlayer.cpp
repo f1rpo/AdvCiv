@@ -13979,7 +13979,7 @@ void CvPlayer::setCivics(CivicOptionTypes eIndex, CivicTypes eNewValue)
 	if (eOldCivic != eNewValue)
 	{
 		m_paeCivics[eIndex] = eNewValue;
-
+		bool bWasStateReligion = isStateReligion(); // advc.106
 		if (eOldCivic != NO_CIVIC)
 		{
 			processCivics(eOldCivic, -1);
@@ -14030,12 +14030,16 @@ void CvPlayer::setCivics(CivicOptionTypes eIndex, CivicTypes eNewValue)
 								}
 							}
 						}
-						/*  <advc.106> Only record civics change if renounced
-							state religion implied */
+						// <advc.106> Only record civics change if renounced state religion implied
 						if(!GC.getCivicInfo(getCivics(eIndex)).isStateReligion() &&
 								GC.getCivicInfo(eOldCivic).isStateReligion()) {
 									// </advc.106>
 							szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYER_ADOPTED_CIVIC", getNameKey(), GC.getCivicInfo(getCivics(eIndex)).getTextKeyWide());
+							// <advc.106>
+							if(bWasStateReligion && getLastStateReligion() != NO_RELIGION) {
+								szBuffer += L" " + gDLL->getText("TXT_KEY_MISC_AND_RENOUNCE_RELIGION",
+										GC.getReligionInfo(getLastStateReligion()).getTextKeyWide());
+							} // </advc.106>
 							GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szBuffer);
 						}
 					}
@@ -24626,7 +24630,9 @@ void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector
 			{
 				int iCurCultureAmount = pLoopPlot->getCulture((PlayerTypes)iPlayer);
 				//if (iCurCultureAmount != 0)
-				if (iCurCultureAmount * 100 / iTotalCulture >= 20) // K-Mod (to reduce visual spam from small amounts of culture)
+				if (iCurCultureAmount * 100 / iTotalCulture >= 20 // K-Mod (to reduce visual spam from small amounts of culture)
+						// advc.004z:
+						|| iPlayer == (int)pLoopPlot->getOwnerINLINE())
 				{
 					//iNumNonzeroOwners ++;
 					plot_owners.push_back(std::pair<int,int>(iCurCultureAmount, iPlayer));
@@ -24646,7 +24652,10 @@ void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector
 
 				// damp the color by the value...
 				aColors[iI * iColorsPerPlot + i] = kCurColor;
-				float blend_factor = 0.5f * std::min(1.0f, std::max(0.0f, (float)(iCurCulture - iMinTotalCulture) / iMaxTotalCulture));
+				float blend_factor = 0.5f * std::min(1.0f, std::max(
+						//0.0f,
+						0.1f, // advc.004z
+						(float)(iCurCulture - iMinTotalCulture) / iMaxTotalCulture));
 				aColors[iI * iColorsPerPlot + i].a = std::min(0.8f * blend_factor + 0.5f, 1.0f);
 			}
 		}

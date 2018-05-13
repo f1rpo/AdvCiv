@@ -1572,14 +1572,13 @@
 		<Italian>%s2_GPName (%s1_GPType)</Italian>
 		<Spanish>%s2_GPName (%s1_GPType)</Spanish>
 	</TEXT>
-	<!-- advc.008e -->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_WONDER_COMPLETED_CITY</Tag>
-		<English>%s1_PlyrName has completed the %s2_WndrName in %s3_CityName!</English>
+		<English>%s1_PlyrName has completed %s2_WndrName in %s3_CityName!</English>
 		<French>%s1_PlyrName a construit la merveille : %s2_WndrName dans %s3_CityName !</French>
 		<German>%s1_PlyrName hat das Wunder %s2_WndrName in %s3_CityName fertig gestellt!</German>
-		<Italian>%s1_PlyrName ha completato [NUM2:il:la] %s2_WndrName a %s3_CityName!</Italian>
-		<Spanish>%s1_PlyrName ha terminado [NUM2:el:la] %s2_WndrName en %s3_CityName.</Spanish>
+		<Italian>%s1_PlyrName ha completato %s2_WndrName a %s3_CityName!</Italian>
+		<Spanish>%s1_PlyrName ha terminado %s2_WndrName en %s3_CityName.</Spanish>
 	</TEXT>
 	<!-- Replacing "distant" with "faraway" for consistency. -->
 	<TEXT>
@@ -3397,34 +3396,6 @@
 		<German>[ICON_BULLET]Kassiert Gold bei Blockade gegnerischer Städte</German>
 		<Italian>[ICON_BULLET]Raccoglie l'oro del saccheggio quando blocca città rivali</Italian>
 		<Spanish>[ICON_BULLET]Recolecta oro del saqueo cuando bloquea ciudades rivales</Spanish>
-	</TEXT>
-	
-	<!-- advc.008e: From CIV4GameTextInfos.xml. "The" added b/c it no longer
-		 appears in wonder and project names. -->
-	<TEXT>
-		<Tag>TXT_KEY_MISC_WONDER_COMPLETED</Tag>
-		<English>%s1_PlyrName has completed the %s2_WndrName!</English>
-		<French>%s1_PlyrName a construit la merveille : %s2_WndrName !</French>
-		<German>%s1_PlyrName hat das Wunder %s2_WndrName fertig gestellt!</German>
-		<Italian>%s1_PlyrName ha completato [NUM2:il:la] %s2_WndrName!</Italian>
-		<Spanish>%s1_PlyrName ha terminado [NUM2:el:la] %s2_WndrName.</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_MISC_WONDER_COMPLETED_UNKNOWN</Tag>
-		<English>The %s1_WndrName has been built in a faraway land!</English>
-		<French>Une merveille (%s1_WndrName) a &#233;t&#233; construite dans un pays lointain !</French>
-		<German>Das Wunder %s1_WndrName wurde in einem fernen Land errichtet!</German>
-		<Italian>[NUM1:Il:La] %s1_WndrName &#232; [NUM1:stato costruito:stata costruita] in una terra lontana!</Italian>
-		<Spanish>Han construido [NUM1:el:la] %s1_WndrName en una tierra muy lejana.</Spanish>
-	</TEXT>
-	<!-- For non-Space projects. Original in CIV4GameText_Misc1.xml -->
-	<TEXT>
-		<Tag>TXT_KEY_MISC_CREATED_PROJECT_IN_LIMITED</Tag>
-		<English>You have created the %s1_PrjctName in %s2_CityName.</English>
-		<French>Vous avez cr&#233;&#233; : %s1_PrjctName &#224; %s2_CityName.</French>
-		<German>Das Projekt %s1_PrjctName wurde in %s2_CityName fertig gestellt.</German>
-		<Italian>Hai creato il progetto %s1_PrjctName a %s2_CityName.</Italian>
-		<Spanish>Hab&#233;is creado [NUM1:el:la] %s1_PrjctName en %s2_CityName.</Spanish>
 	</TEXT>
 	
 </Civ4GameText>

@@ -5328,15 +5328,16 @@ def getWrapX():
 def getWrapY():
 	return mc.WrapY
 
-# <advc.021b> Removing three options and changing the order of the others
+
 def getNumCustomMapOptions():
 	mc.initialize()
-	#return 5
+	#return 5 # advc.021b: Removing three options and changing the order of the others
 	return 2
 
 
 def getCustomMapOptionName(argsList):
 		optionID = argsList[0]
+		# <advc.021b>
 		#if optionID == 0:
 			#return "Landmasses:"
 		#elif optionID == 1:
@@ -5344,6 +5345,7 @@ def getCustomMapOptionName(argsList):
 		#elif optionID == 2:
 		#if optionID == 2:
 			#return "Pangaeas:"
+		# </advc.021b>
 		if optionID == 0:
 			return "World Wrap:"
 		elif optionID == 1:
@@ -5353,6 +5355,7 @@ def getCustomMapOptionName(argsList):
 
 def getNumCustomMapOptionValues(argsList):
 		optionID = argsList[0]
+		# <advc.021b>
 		#if optionID == 0:
 			#return 3
 		#elif optionID == 1:
@@ -5360,6 +5363,7 @@ def getNumCustomMapOptionValues(argsList):
 		#elif optionID == 2:
 		#if optionID == 2:
 			#return 2
+		# </advc.021b>
 		if optionID == 0:
 			return 3
 		elif optionID == 1:
@@ -5370,6 +5374,7 @@ def getNumCustomMapOptionValues(argsList):
 def getCustomMapOptionDescAt(argsList):
 	optionID    = argsList[0]
 	selectionID = argsList[1]
+	# <advc.021b>
 	#if optionID == 0:
 		#if selectionID == 0:
 			#return "PW3 Generator (Square Grid - Accurate)"
@@ -5383,7 +5388,7 @@ def getCustomMapOptionDescAt(argsList):
 		#else:
 			#return "PW2 Climate System"
 
-	# Actually, remove this option too. Try to break Pangaea iff the New World option is set.
+	# Try to break Pangaea iff the New World option is set.
 	#if optionID == 2:
 		#if mc.AllowPangeas:
 			#if selectionID == 0:
@@ -5395,7 +5400,7 @@ def getCustomMapOptionDescAt(argsList):
 				#return "Break with Meteors"
 			#else:
 				#return "Allow (Do Nothing)"
-
+	# </advc.021b>
 	if optionID == 0:
 		if selectionID == 0:
 			return "Cylindrical"
@@ -5405,7 +5410,7 @@ def getCustomMapOptionDescAt(argsList):
 			return "Flat"
 	elif optionID == 1:
 		# advc.021b: was just "Old World"
-		owMsg = "Old World (unless Pangaea); -20% players recommended"
+		owMsg = "Old World (unless Pangaea); -25% players recommended"
 		if mc.AllowNewWorld:
 			if selectionID == 0:
 				return owMsg
@@ -5417,7 +5422,7 @@ def getCustomMapOptionDescAt(argsList):
 			else:
 				return owMsg # advc.021b
 	return u""
-# </advc.021b>
+
 
 def getCustomMapOptionDefault(argsList):
 	return 0

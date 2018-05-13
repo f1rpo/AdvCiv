@@ -4877,7 +4877,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 						}
 						bool bTheyAhead = (g.getPlayerRank(civ.getID()) <
 								g.getPlayerRank(kOwner.getID()));
-						// Don't care if they benefit prom ReligionYield then
+						// Don't care if they benefit from ReligionYield then
 						if(!bTheyAhead && towardThem <= ATTITUDE_CAUTIOUS &&
 								towardThem > ATTITUDE_FURIOUS)
 							continue;
@@ -13096,8 +13096,8 @@ double CvCityAI::estimateReligionBuildings(PlayerTypes civId, ReligionTypes eRel
 	/*  Civ whose buildings we're counting
 		(we = the owner of this CvCity) */
 	CvPlayer const& civ = GET_PLAYER(civId);
-	int iPotential = 0; int foo=-1;
-	int iCertain = 0;
+	int iPotential = 0;
+	int iCertain = 0; int foo=-1;
 	for(CvCity* c = civ.firstCity(&foo); c != NULL; c = civ.nextCity(&foo)) {
 		if(!c->isRevealed(getTeam(), false)) {
 			iPotential++;

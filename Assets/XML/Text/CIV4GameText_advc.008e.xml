@@ -822,6 +822,170 @@
 			<Plural>0:1</Plural>
 		</Spanish>
 	</TEXT>
+	<!-- A hack for marking buildings that should never appear with an article
+		 ("NA" for "no article"). -->
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_ROCKNROLL_NA</Tag>
+		<English>.</English>
+		<French>.</French>
+		<German>.</German>
+		<Italian>.</Italian>
+		<Spanish>.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_BROADWAY_NA</Tag>
+		<English>.</English>
+		<French>.</French>
+		<German>.</German>
+		<Italian>.</Italian>
+		<Spanish>.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_HOLLYWOOD_NA</Tag>
+		<English>.</English>
+		<French>.</French>
+		<German>.</German>
+		<Italian>.</Italian>
+		<Spanish>.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_WEST_POINT_NA</Tag>
+		<English>.</English>
+		<French>.</French>
+		<German>.</German>
+		<Italian>.</Italian>
+		<Spanish>.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_MT_RUSHMORE_NA</Tag>
+		<English>.</English>
+		<French>.</French>
+		<German>.</German>
+		<Italian>.</Italian>
+		<Spanish>.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_STONEHENGE_NA</Tag>
+		<English>.</English>
+		<French>.</French>
+		<German>.</German>
+		<Italian>.</Italian>
+		<Spanish>.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_CHICHEN_ITZA_NA</Tag>
+		<English>.</English>
+		<French>.</French>
+		<German>.</German>
+		<Italian>.</Italian>
+		<Spanish>.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_NOTRE_DAME_NA</Tag>
+		<English>.</English>
+		<French>.</French>
+		<German>.</German>
+		<Italian>.</Italian>
+		<Spanish>.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_VERSAILLES_NA</Tag>
+		<English>.</English>
+		<French>.</French>
+		<German>.</German>
+		<Italian>.</Italian>
+		<Spanish>.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_CRISTO_REDENTOR_NA</Tag>
+		<English>.</English>
+		<French>.</French>
+		<German>.</German>
+		<Italian>.</Italian>
+		<Spanish>.</Spanish>
+	</TEXT>
+	<!-- The French name had a "Les" -->
+	<TEXT>
+		<Tag>TXT_KEY_CORPORATION_1</Tag>
+		<English>Cereal Mills</English>
+		<French>
+			<Text>Grands moulins c&#233;r&#233;aliers</Text>
+			<Gender>Male</Gender>
+			<Plural>1</Plural>
+		</French>
+		<German>
+			<Text>Cereal Mills Inc.</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</German>
+		<Italian>
+			<Text>Mulini Cereali</Text>
+			<Gender>Female</Gender>
+			<Plural>0</Plural>
+		</Italian>
+		<Spanish>
+			<Text>Cereal Mills</Text>
+			<Gender>Female</Gender>
+			<Plural>0</Plural>
+		</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CORPORATION_1_NA</Tag>
+		<English>.</English>
+		<French>..</French>
+		<German>.</German>
+		<Italian>.</Italian>
+		<Spanish>.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CORPORATION_2_NA</Tag>
+		<English>.</English>
+		<French>.</French>
+		<German>.</German>
+		<Italian>.</Italian>
+		<Spanish>.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CORPORATION_3_NA</Tag>
+		<English>.</English>
+		<French>.</French>
+		<German>.</German>
+		<Italian>.</Italian>
+		<Spanish>.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CORPORATION_4_NA</Tag>
+		<English>.</English>
+		<French>.</French>
+		<German>.</German>
+		<Italian>.</Italian>
+		<Spanish>.</Spanish>
+	</TEXT>
+	<!-- French needs an article -->
+	<TEXT>
+		<Tag>TXT_KEY_CORPORATION_5_NA</Tag>
+		<English>.</English>
+		<French>..</French>
+		<German>.</German>
+		<Italian>.</Italian>
+		<Spanish>.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CORPORATION_6_NA</Tag>
+		<English>.</English>
+		<French>.</French>
+		<German>.</German>
+		<Italian>.</Italian>
+		<Spanish>.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CORPORATION_7_NA</Tag>
+		<English>.</English>
+		<French>.</French>
+		<German>.</German>
+		<Italian>.</Italian>
+		<Spanish>.</Spanish>
+	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUILDING_GREAT_DAM</Tag>
 		<English>Three Gorges Dam</English>
@@ -1014,6 +1178,42 @@
 			<Gender>Male</Gender>
 			<Plural>0</Plural>
 		</Spanish>
+	</TEXT>
+	
+	<!-- From CIV4GameTextInfos.xml. "The" added b/c it no longer appears in 
+		 wonder and project names. -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_WONDER_COMPLETED_THE</Tag>
+		<English>%s1_PlyrName has completed the %s2_WndrName!</English>
+		<French>%s1_PlyrName a construit la merveille : %s2_WndrName !</French>
+		<German>%s1_PlyrName hat das Wunder %s2_WndrName fertig gestellt!</German>
+		<Italian>%s1_PlyrName ha completato [NUM2:il:la] %s2_WndrName!</Italian>
+		<Spanish>%s1_PlyrName ha terminado [NUM2:el:la] %s2_WndrName.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_WONDER_COMPLETED_UNKNOWN_THE</Tag>
+		<English>The %s1_WndrName has been built in a faraway land!</English>
+		<French>Une merveille (%s1_WndrName) a &#233;t&#233; construite dans un pays lointain !</French>
+		<German>Das Wunder %s1_WndrName wurde in einem fernen Land errichtet!</German>
+		<Italian>[NUM1:Il:La] %s1_WndrName &#232; [NUM1:stato costruito:stata costruita] in una terra lontana!</Italian>
+		<Spanish>Han construido [NUM1:el:la] %s1_WndrName en una tierra muy lejana.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_WONDER_COMPLETED_CITY_THE</Tag>
+		<English>%s1_PlyrName has completed the %s2_WndrName in %s3_CityName!</English>
+		<French>%s1_PlyrName a construit la merveille : %s2_WndrName dans %s3_CityName !</French>
+		<German>%s1_PlyrName hat das Wunder %s2_WndrName in %s3_CityName fertig gestellt!</German>
+		<Italian>%s1_PlyrName ha completato [NUM2:il:la] %s2_WndrName a %s3_CityName!</Italian>
+		<Spanish>%s1_PlyrName ha terminado [NUM2:el:la] %s2_WndrName en %s3_CityName.</Spanish>
+	</TEXT>
+	<!-- For non-Space projects. Original in CIV4GameText_Misc1.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_CREATED_PROJECT_IN_LIMITED</Tag>
+		<English>You have created the %s1_PrjctName in %s2_CityName.</English>
+		<French>Vous avez cr&#233;&#233; : %s1_PrjctName &#224; %s2_CityName.</French>
+		<German>Das Projekt %s1_PrjctName wurde in %s2_CityName fertig gestellt.</German>
+		<Italian>Hai creato il progetto %s1_PrjctName a %s2_CityName.</Italian>
+		<Spanish>Hab&#233;is creado [NUM1:el:la] %s1_PrjctName en %s2_CityName.</Spanish>
 	</TEXT>
 		 
 </Civ4GameText>

@@ -1010,7 +1010,7 @@ class CvVictoryScreen:
 			displayString = "Non-aggressive AI"
 		if not displayString is None: # Copy-pasted from above
 			screen.appendListBoxStringNoUpdate(szOptionsTable, displayString, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		# </advri.104>
+		# </advc.104>
 
 		if (gc.getGame().isOption(GameOptionTypes.GAMEOPTION_ADVANCED_START)):
 			if not isSPaH: # advc.250b

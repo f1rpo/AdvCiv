@@ -10876,6 +10876,28 @@ bool CvPlot::checkLateEra() const
 	return (GET_PLAYER(ePlayer).getCurrentEra() > GC.getNumEraInfos() / 2);
 }
 
+// <advc.300>
+void CvPlot::killRandomUnit(PlayerTypes eOwner, DomainTypes eDomain) {
+
+	CvUnit* victim = NULL;
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
+	int iBestVal = -1;
+	while(pUnitNode != NULL) {
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+		pUnitNode = nextUnitNode(pUnitNode);
+		if(pLoopUnit->getOwnerINLINE() == eOwner && pLoopUnit->getDomainType() == eDomain) {
+			int iVal = GC.getGameINLINE().getSorenRandNum(1000,
+					"advc.300:killRandomUnit");
+			if(iVal > iBestVal) {
+				victim = pLoopUnit;
+				iBestVal = iVal;
+			}
+		}
+	}
+	if(victim != NULL)
+		victim->kill(false);
+} // </advc.300>
+
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      02/21/10                                jdog5000      */
 /*                                                                                              */

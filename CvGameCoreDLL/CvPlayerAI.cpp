@@ -19878,7 +19878,8 @@ void CvPlayerAI::AI_doDiplo()
 				}
 			}
 
-			if (civ.getTeam() != getTeam() && TEAMREF(civId).isVassal(getTeam()))
+			if (civ.getTeam() != getTeam() && (TEAMREF(civId).isVassal(getTeam())
+					|| GET_TEAM(getTeam()).isVassal(TEAMID(civId)))) // advc.112
 			{
 				iBestValue = 0;
 				eBestGiveTech = NO_TECH;
@@ -19899,6 +19900,10 @@ void CvPlayerAI::AI_doDiplo()
 				double pr = 1 - techScoreRatio;
 				if(TEAMREF(civId).isCapitulated())
 					pr = std::max(pr, 1/3.0);
+				else if(GET_TEAM(getTeam()).isAVassal()) {
+					pr *= 0.67 * (AI_getAttitude(civId, false) -
+							(GET_TEAM(getTeam()).isCapitulated() ? 1 : 2));
+				}
 				if(techScoreRatio <= 1 && ::bernoulliSuccess(pr, "advc.112"))
 				{	// </advc.112>
 					for (iJ = 0; iJ < GC.getNumTechInfos(); iJ++)

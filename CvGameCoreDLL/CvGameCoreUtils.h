@@ -41,7 +41,7 @@ class CvInfoBase;
 #undef min
 
 // <advc.003> floating point utility
-inline int round(double d) { return (int)floor(0.5 + d); }
+inline int round(double d) { return (int)(0.5 + d); }
 int roundToMultiple(double d, int modulus);
 bool bernoulliSuccess(double pr, char const* pszLog = ""); // 0 <= pr <= 1
 double median(std::vector<double>& distribution, bool sorted = false);
@@ -69,6 +69,7 @@ float hash(long x, PlayerTypes civId = NO_PLAYER);
 void fatCross(CvPlot const& p, std::vector<CvPlot*>& r);
 // </advc.003> // advc.035:
 void contestedPlots(std::vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2);
+bool isArticle(BuildingTypes bt); // advc.008e
 
 //sign function taken from FirePlace - JW
 template<class T> __forceinline T getSign( T x ) { return (( x < 0 ) ? T(-1) : x > 0 ? T(1) : T(0)); };

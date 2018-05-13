@@ -7686,7 +7686,18 @@ void CvGame::createBarbarianUnits()
 			pLoopUnit->kill(false);
 			break;
 		}
-	}
+	} // <advc.300>
+	for(CvCity* c = GET_PLAYER(BARBARIAN_PLAYER).firstCity(&iLoop); c != NULL;
+			c = GET_PLAYER(BARBARIAN_PLAYER).nextCity(&iLoop)) {
+		/*  Large Barb congregations are only a problem if they have nothing
+			to attack */
+		if(c->area()->countCivCities() > 0)
+			continue;
+		int unitCount = c->plot()->getNumDefenders(BARBARIAN_PLAYER);
+		double pr = (unitCount - std::max(1.5 * c->getPopulation(), 4.0)) / 4.0;
+		if(::bernoulliSuccess(pr, "advc.300"))
+			c->plot()->killRandomUnit(BARBARIAN_PLAYER, DOMAIN_LAND);
+	} // </advc.300>
 }
 
 

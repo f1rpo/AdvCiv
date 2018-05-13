@@ -216,6 +216,19 @@ void contestedPlots(std::vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2) {
 	}
 } // </advc.035>
 
+// <advc.008e>
+bool isArticle(BuildingTypes bt) {
+
+	CvBuildingInfo const& bi = GC.getBuildingInfo(bt);
+	if(!isWorldWonderClass((BuildingClassTypes)bi.getBuildingClassType()))
+		return false; // Should only be called for wonders really
+	CvWString txtKey = bi.getTextKeyWide();
+	CvWString txt = gDLL->getText(txtKey + L"_NA");
+	/*  If an _NA key exists, then gDLL will return a dot. If it doesn't, then
+		an article should be used. */
+	return (txt.compare(L".") != 0);
+} // </advc.008e>
+
 CvPlot* plotCity(int iX, int iY, int iIndex)
 {
 	return GC.getMapINLINE().plotINLINE((iX + GC.getCityPlotX()[iIndex]), (iY + GC.getCityPlotY()[iIndex]));

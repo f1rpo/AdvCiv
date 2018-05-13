@@ -11863,16 +11863,27 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool b
 									TEAMID(getOwner()));
 							if(isRev ||
 									msgTarget.isSpectator()) // advc.127
-								szBuffer = gDLL->getText("TXT_KEY_MISC_WONDER_COMPLETED_CITY",
+								// <advc.008e>
+								szBuffer = gDLL->getText(::isArticle(eIndex) ?
+										"TXT_KEY_MISC_WONDER_COMPLETED_CITY_THE" :
+										"TXT_KEY_MISC_WONDER_COMPLETED_CITY", // </advc.008e>
 										GET_PLAYER(getOwner()).getNameKey(),
 										GC.getBuildingInfo(eIndex).getTextKeyWide(),
 										getName().GetCString());
-							else if(isMet)
-								szBuffer = gDLL->getText("TXT_KEY_MISC_WONDER_COMPLETED",
+							else if(isMet) {
+								// <advc.008e>
+								szBuffer = gDLL->getText(::isArticle(eIndex) ?
+										"TXT_KEY_MISC_WONDER_COMPLETED_THE" :
+										"TXT_KEY_MISC_WONDER_COMPLETED", // </advc.008e>
 										GET_PLAYER(getOwner()).getNameKey(),
 										GC.getBuildingInfo(eIndex).getTextKeyWide());
-							else szBuffer = gDLL->getText("TXT_KEY_MISC_WONDER_COMPLETED_UNKNOWN",
+							}
+							else { // <advc.008>
+								szBuffer = gDLL->getText(::isArticle(eIndex) ?
+										"TXT_KEY_MISC_WONDER_COMPLETED_UNKNOWN_THE" :
+										"TXT_KEY_MISC_WONDER_COMPLETED_UNKNOWN",
 										GC.getBuildingInfo(eIndex).getTextKeyWide());
+							}
 							gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)i), false,
 									GC.getEVENT_MESSAGE_TIME(), szBuffer,
 									"AS2D_WONDER_BUILDING_BUILD",
