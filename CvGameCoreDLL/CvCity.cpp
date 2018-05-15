@@ -11843,14 +11843,23 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool b
 						}
 						else
 						{
-							szBuffer = gDLL->getText("TXT_KEY_MISC_COMPLETED_WONDER_CHOOSE_TECH", GC.getBuildingInfo(eIndex).getTextKeyWide());
+							szBuffer = gDLL->getText( // <advc.008e>
+								::isArticle(eIndex) ?
+								"TXT_KEY_MISC_COMPLETED_WONDER_CHOOSE_TECH_THE" :
+								"TXT_KEY_MISC_COMPLETED_WONDER_CHOOSE_TECH",
+								// </advc.008e>
+								GC.getBuildingInfo(eIndex).getTextKeyWide());
 							GET_PLAYER(getOwnerINLINE()).chooseTech(GC.getBuildingInfo(eIndex).getFreeTechs() * iChangeNumRealBuilding, szBuffer.GetCString());
 						}
 					}
 
 					if (isWorldWonderClass((BuildingClassTypes)(GC.getBuildingInfo(eIndex).getBuildingClassType())))
 					{
-						szBuffer = gDLL->getText("TXT_KEY_MISC_COMPLETES_WONDER", GET_PLAYER(getOwnerINLINE()).getNameKey(), GC.getBuildingInfo(eIndex).getTextKeyWide());
+						szBuffer = gDLL->getText( // <advc.008e>
+							::isArticle(eIndex) ?
+							"TXT_KEY_MISC_COMPLETES_WONDER_THE" :
+							"TXT_KEY_MISC_COMPLETES_WONDER", // </advc.008e>
+							GET_PLAYER(getOwnerINLINE()).getNameKey(), GC.getBuildingInfo(eIndex).getTextKeyWide());
 						GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getOwnerINLINE(), szBuffer, getX_INLINE(), getY_INLINE(), (ColorTypes)GC.getInfoTypeForString("COLOR_BUILDING_TEXT"));
 
 						// <advc.106>
@@ -13192,7 +13201,12 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 		}
 		else if (eCreateProject != NO_PROJECT)
 		{
-			swprintf(szBuffer, gDLL->getText(((isLimitedProject(eCreateProject)) ? "TXT_KEY_MISC_CREATED_PROJECT_IN_LIMITED" : "TXT_KEY_MISC_CREATED_PROJECT_IN"), GC.getProjectInfo(eCreateProject).getTextKeyWide(), getNameKey()).GetCString());
+			swprintf(szBuffer, gDLL->getText(((isLimitedProject(eCreateProject)) ?
+					// <advc.008e>
+					(::isArticle(eCreateProject) ?
+					"TXT_KEY_MISC_CREATED_PROJECT_IN_LIMITED_THE" :
+					"TXT_KEY_MISC_CREATED_PROJECT_IN_LIMITED") // </advc.008e>
+					: "TXT_KEY_MISC_CREATED_PROJECT_IN"), GC.getProjectInfo(eCreateProject).getTextKeyWide(), getNameKey()).GetCString());
 			strcpy(szSound, GC.getProjectInfo(eCreateProject).getCreateSound());
 			szIcon = GC.getProjectInfo(eCreateProject).getButton();
 		}

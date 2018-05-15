@@ -12471,9 +12471,7 @@ void CvPlayer::setLastStateReligion(ReligionTypes eNewValue)
 				}
 			}
 		}
-		GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szBuffer,
-				// advc.106: was NO_COLOR (i.e. white), now same as religion founded.
-				-1, -1, (ColorTypes) GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+		GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szBuffer);
 	}
 
 	// Python Event

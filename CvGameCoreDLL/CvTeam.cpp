@@ -4586,7 +4586,8 @@ void CvTeam::setDefensivePact(TeamTypes eIndex, bool bNewValue)
 	// <advc.106f> Based on the previous block
 	else if(!bNewValue && other.isDefensivePact(getID())) {
 		CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYERS_CANCEL_DEFENSIVE_PACT",
-				getReplayName().GetCString(), other.getReplayName().GetCString());
+				getReplayName().GetCString(), other.getReplayName().GetCString(),
+				-1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 		GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT,
 				getLeaderID(), szBuffer);
 		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
@@ -5430,14 +5431,23 @@ void CvTeam::changeProjectCount(ProjectTypes eIndex, int iChange)
 
 			if (GC.getGameINLINE().isFinalInitialized() && !(gDLL->GetWorldBuilderMode()))
 			{
-				szBuffer = gDLL->getText("TXT_KEY_MISC_COMPLETES_PROJECT", getReplayName().GetCString(), kProject.getTextKeyWide());
+				szBuffer = gDLL->getText( // <advc.008e>
+						::isArticle(eIndex) ?
+						"TXT_KEY_MISC_COMPLETES_PROJECT_THE" :
+						"TXT_KEY_MISC_COMPLETES_PROJECT", // </advc.008e>
+						getReplayName().GetCString(), kProject.getTextKeyWide());
 				GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getLeaderID(), szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 
 				for (iI = 0; iI < MAX_PLAYERS; iI++)
 				{
 					if (GET_PLAYER((PlayerTypes)iI).isAlive())
 					{
-						szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_HAS_COMPLETED", getName().GetCString(), kProject.getTextKeyWide());
+						szBuffer = gDLL->getText( // <advc.008e>
+								::isArticle(eIndex) ?
+								"TXT_KEY_MISC_SOMEONE_HAS_COMPLETED_THE" :
+								"TXT_KEY_MISC_SOMEONE_HAS_COMPLETED",
+								// </advc.008e>
+								getName().GetCString(), kProject.getTextKeyWide());
 						gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PROJECT_COMPLETED", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
 								getCapitalX(), getCapitalY()); // advc.127b
 					}

@@ -69,7 +69,9 @@ float hash(long x, PlayerTypes civId = NO_PLAYER);
 void fatCross(CvPlot const& p, std::vector<CvPlot*>& r);
 // </advc.003> // advc.035:
 void contestedPlots(std::vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2);
-bool isArticle(BuildingTypes bt); // advc.008e
+// <advc.008e>
+bool isArticle(BuildingTypes bt);
+bool isArticle(ProjectTypes pt); // </advc.008e>
 
 //sign function taken from FirePlace - JW
 template<class T> __forceinline T getSign( T x ) { return (( x < 0 ) ? T(-1) : x > 0 ? T(1) : T(0)); };

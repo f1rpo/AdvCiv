@@ -227,6 +227,15 @@ bool isArticle(BuildingTypes bt) {
 	/*  If an _NA key exists, then gDLL will return a dot. If it doesn't, then
 		an article should be used. */
 	return (txt.compare(L".") != 0);
+}
+bool isArticle(ProjectTypes pt) {
+
+	CvProjectInfo const& pi = GC.getProjectInfo(pt);
+	if(!isLimitedProject(pt))
+		return false;
+	CvWString txtKey = pi.getTextKeyWide();
+	CvWString txt = gDLL->getText(txtKey + L"_NA");
+	return (txt.compare(L".") != 0);
 } // </advc.008e>
 
 CvPlot* plotCity(int iX, int iY, int iIndex)

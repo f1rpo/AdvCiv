@@ -1125,7 +1125,13 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 			if(GC.getProjectInfo(eCreateProject).isSpaceship())
 				szBuffer = gDLL->getText("TXT_KEY_POPUP_CREATED_WORK_ON_NEXT_SPACESHIP", GC.getProjectInfo(eCreateProject).getTextKeyWide(), pCity->getNameKey());
 			else
-				szBuffer = gDLL->getText(((isLimitedProject(eCreateProject)) ? "TXT_KEY_POPUP_CREATED_WORK_ON_NEXT_LIMITED" : "TXT_KEY_POPUP_CREATED_WORK_ON_NEXT"), GC.getProjectInfo(eCreateProject).getTextKeyWide(), pCity->getNameKey());
+				szBuffer = gDLL->getText(((isLimitedProject(eCreateProject)) ?
+						// <advc.108e>
+						(::isArticle(eCreateProject) ?
+						"TXT_KEY_POPUP_CREATED_WORK_ON_NEXT_LIMITED_THE" :
+						"TXT_KEY_POPUP_CREATED_WORK_ON_NEXT_LIMITED")
+						// </advc.108e>
+						: "TXT_KEY_POPUP_CREATED_WORK_ON_NEXT"), GC.getProjectInfo(eCreateProject).getTextKeyWide(), pCity->getNameKey());
 		}
 		else
 		{

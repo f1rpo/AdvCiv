@@ -1206,14 +1206,55 @@
 		<Italian>%s1_PlyrName ha completato [NUM2:il:la] %s2_WndrName a %s3_CityName!</Italian>
 		<Spanish>%s1_PlyrName ha terminado [NUM2:el:la] %s2_WndrName en %s3_CityName.</Spanish>
 	</TEXT>
-	<!-- For non-Space projects. Original in CIV4GameText_Misc1.xml -->
 	<TEXT>
-		<Tag>TXT_KEY_MISC_CREATED_PROJECT_IN_LIMITED</Tag>
+		<Tag>TXT_KEY_MISC_COMPLETED_WONDER_CHOOSE_TECH_THE</Tag>
+		<English>You have completed the %s1_BldgName! Choose a free technology...</English>
+		<French>Vous avez achev&#233; : %s1_BldgName ! Choisissez une technologie gratuite...</French>
+		<German>Ihr habt das Geb&#228;ude %s1_BldgName fertig gestellt! W&#228;hlt eine freie Technologie ...</German>
+		<Italian>Hai completato la costruzione dell'edificio %s1_BldgName! Scegli una tecnologia gratuita...</Italian>
+		<Spanish>Hab&#233;is completado [NUM1:el:la] %s1_BldgName. Elegid una tecnolog&#237;a gratis...</Spanish>
+	</TEXT>
+	<!-- Replay -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_COMPLETES_WONDER_THE</Tag>
+		<English>%s1_PlyrName completes the %s2_BldgName</English>
+		<French>%s1_PlyrName ach&#232;ve la construction de : %s2_BldgName</French>
+		<German>%s1_PlyrName stellt das Geb&#228;ude %s2_BldgName fertig</German>
+		<Italian>%s1_PlyrName ha completato la costruzione dell'edificio %s2_BldgName</Italian>
+		<Spanish>%s1_PlyrName ha completado [NUM2:el:la] %s2_BldgName</Spanish>
+	</TEXT>
+	<!-- For world and team projects. Original in CIV4GameText_Misc1.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_CREATED_PROJECT_IN_LIMITED_THE</Tag>
 		<English>You have created the %s1_PrjctName in %s2_CityName.</English>
 		<French>Vous avez cr&#233;&#233; : %s1_PrjctName &#224; %s2_CityName.</French>
 		<German>Das Projekt %s1_PrjctName wurde in %s2_CityName fertig gestellt.</German>
 		<Italian>Hai creato il progetto %s1_PrjctName a %s2_CityName.</Italian>
 		<Spanish>Hab&#233;is creado [NUM1:el:la] %s1_PrjctName en %s2_CityName.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_COMPLETES_PROJECT_THE</Tag>
+		<English>%s1_PlyrName completes the %s2_PrjctName!</English>
+		<French>%s1_PlyrName termine the %s2_PrjctName!</French>
+		<German>%s1_PlyrName stellt das  Projekt %s2_PrjctName fertig!</German>
+		<Italian>%s1_PlyrName ha completato [NUM2:il:la] %s2_PrjctName!</Italian>
+		<Spanish>%s1_PlyrName ha completado [NUM2:el:la] %s2_PrjctName</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_SOMEONE_HAS_COMPLETED_THE</Tag>
+		<English>%s1_PlyrName has completed the %s2_PrjctName!</English>
+		<French>%s1_PlyrName a achev&#233; : %s2_PrjctName !</French>
+		<German>%s1_PlyrName hat das Projekt %s2_PrjctName abgeschlossen!</German>
+		<Italian>%s1_PlyrName ha completato [NUM2:il:la] %s2_PrjctName!</Italian>
+		<Spanish>%s1_PlyrName ha completado [NUM2:el:la] %s2_PrjctName.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_CREATED_WORK_ON_NEXT_LIMITED_THE</Tag>
+		<English>You have created the [COLOR_HIGHLIGHT_TEXT]%s1_PrjtName[COLOR_REVERT] in %s2_CityName. What would you like to work on next?</English>
+		<French>Vous avez cr&#233;&#233; : [COLOR_HIGHLIGHT_TEXT]%s1_PrjtName[COLOR_REVERT] &#224; %s2_CityName. Que souhaitez-vous faire ensuite ?</French>
+		<German>Das Projekt [COLOR_HIGHLIGHT_TEXT]%s1_PrjtName[COLOR_REVERT] in %s2_CityName wurde fertig gestellt. Wie lautet Euer n&#228;chster Befehl?</German>
+		<Italian>Hai creato il progetto [COLOR_HIGHLIGHT_TEXT]%s1_PrjtName[COLOR_REVERT] a %s2_CityName. Cosa vuoi realizzare adesso?</Italian>
+		<Spanish>Hab&#233;is creado [NUM1:el:la] [COLOR_HIGHLIGHT_TEXT]%s1_PrjtName[COLOR_REVERT] en %s2_CityName. &#191;Qu&#233; quer&#233;is hacer a continuaci&#243;n?</Spanish>
 	</TEXT>
 		 
 </Civ4GameText>

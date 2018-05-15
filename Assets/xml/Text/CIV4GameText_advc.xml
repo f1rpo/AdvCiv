@@ -715,6 +715,33 @@
 			<Plural>0</Plural>
 		</Spanish>
 	</TEXT>
+
+	<!-- advc.004g: Original in CIV4GameTextInfos_Objects.xml. Was
+		 "Barbarian State". No change to other languages. -->
+	<TEXT>
+		<Tag>TXT_KEY_CIV_BARBARIAN_DESC</Tag>
+		<English>Barbarians</English>
+		<French>
+			<Text>Empire barbare</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</French>
+		<German>
+			<Text>Barbarenreich:Barbarenreich:Barbarenreich</Text>
+			<Gender>Neuter:Neuter:Neuter</Gender>
+			<Plural>0:0:0</Plural>
+		</German>
+		<Italian>
+			<Text>Territorio Barbaro</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</Italian>
+		<Spanish>
+			<Text>Territorio de los b&#225;rbaros</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</Spanish>
+	</TEXT>
 	
 	<!-- advc.004s: Originally in CIV4GameTextInfos.xml;
 		 says just "(Gold)" there. Translation from TXT_KEY_RESEARCH

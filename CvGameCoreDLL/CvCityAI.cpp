@@ -4860,7 +4860,9 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 					double ourBuildingCount = estimateReligionBuildings(
 							kOwner.getID(), stateRel, relBuildings);
 					double tempValue = ourBuildingCount;
-					double rivalFactor = 1.5 * std::sqrt((double)g.countCivPlayersAlive());
+					double rivalFactor = 1.5 * std::sqrt((double)
+							g.countCivPlayersAlive());
+					int iEverAlive = g.countCivPlayersEverAlive();
 					for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
 						CvPlayer const& civ = GET_PLAYER((PlayerTypes)j);
 						if(!civ.isAlive() || civ.getID() == kOwner.getID() ||
@@ -4876,14 +4878,15 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 									(int)ATTITUDE_ANNOYED);
 						}
 						bool bTheyAhead = (g.getPlayerRank(civ.getID()) <
-								g.getPlayerRank(kOwner.getID()));
+								std::min(g.getPlayerRank(kOwner.getID()),
+								iEverAlive / 2));
 						// Don't care if they benefit from ReligionYield then
 						if(!bTheyAhead && towardThem <= ATTITUDE_CAUTIOUS &&
 								towardThem > ATTITUDE_FURIOUS)
 							continue;
 						double loopBuildingCount = estimateReligionBuildings(
 								civ.getID(), stateRel, relBuildings);
-						/*  Don't want to help competitors; let _them_ build
+						/*  Don't want to help competitors win; let _them_ build
 							eBuilding. */
 						if(bTheyAhead && towardThem < ATTITUDE_FRIENDLY)
 							loopBuildingCount *= -1;

@@ -737,15 +737,15 @@
 		<ColorVal>
 			<Type>COLOR_PLAYER_LIGHT_ORANGE</Type>
 			<fRed>0.88</fRed>
-			<fGreen>0.61</fGreen>
+			<fGreen>0.63</fGreen>
 			<fBlue>0.31</fBlue>
 			<fAlpha>1.00</fAlpha>
 		</ColorVal>
 		<ColorVal>
 			<Type>COLOR_PLAYER_LIGHT_ORANGE_TEXT</Type>
 			<fRed>0.96</fRed>
-			<fGreen>0.78</fGreen>
-			<fBlue>0.43</fBlue>
+			<fGreen>0.80</fGreen>
+			<fBlue>0.42</fBlue>
 			<fAlpha>1.00</fAlpha>
 		</ColorVal>
 		<!-- desaturated -->
