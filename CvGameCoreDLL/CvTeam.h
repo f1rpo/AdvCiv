@@ -432,6 +432,7 @@ public:
 	int getCapitalY() const;
 	private: CvCity* getLeaderCapital() const; public:
 	// </advc.127b>
+	void makeUnwillingToTalk(TeamTypes otherId); // advc.104i
 	virtual void AI_init() = 0;
 	virtual void AI_reset(bool bConstructor) = 0;
 	virtual void AI_doTurnPre() = 0;
@@ -553,7 +554,6 @@ protected:
 
 	void cancelDefensivePacts();
 	void allowDefensivePactsToBeCanceled(); // dlph.3
-	void makeUnwillingToTalk(TeamTypes otherId); // advc.104i
 	// <advc.039>
 	CvWString const tradeItemString(TradeableItems itemType, int data,
 			TeamTypes fromId) const; // </advc.039>

@@ -14432,7 +14432,11 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			iLimitedUnits -= range(AI_totalUnitAIs(UNITAI_COLLATERAL) - iNoLimitCollateral / 2, 0, iLimitedUnits);
 			FAssert(iLimitedUnits >= 0);
 			int iAttackUnits = std::max(1, AI_totalUnitAIs(UNITAI_ATTACK) + AI_totalUnitAIs(UNITAI_ATTACK_CITY)); // floor value is just to avoid divide-by-zero
-			FAssert(iAttackUnits >= iLimitedUnits || iLimitedUnits <= 3); // this is not strictly guarenteed, but I expect it to always be true under normal playing conditions.
+			/*  advc.006: +1 added and replaced iLimitedUnits with iAttackUnits
+				in the 2nd  clause b/c this assert kept failing for a capitulated
+				Renaissance civ w/o access to Horses (not sure if that's what's
+				causing the failed assertion). */
+			FAssert(iAttackUnits+1 >= iLimitedUnits || iAttackUnits <= 3); // this is not strictly guaranteed, but I expect it to always be true under normal playing conditions.
 
 			iValue *= std::max(1, iAttackUnits - iLimitedUnits);
 			iValue /= iAttackUnits;
@@ -19640,8 +19644,12 @@ int CvPlayerAI::checkCancel(CvDeal const& d, PlayerTypes otherId, bool flip) {
 		return -1;
 	CLLNode<TradeData>* tdn = trades1->head();
 	if(tdn != NULL && CvDeal::isDual(tdn->m_data.m_eItemType, true)) {
-		if(getTradeDenial(otherId, tdn->m_data) != NO_DENIAL &&
-				::bernoulliSuccess(0.2, "advc.133"))
+		DenialTypes tden = getTradeDenial(otherId, tdn->m_data);
+		if(tden != NO_DENIAL &&
+				// <dlph.3> Cancel DP immediately when war no longer shared
+				(((tdn->m_data.m_eItemType == TRADE_DEFENSIVE_PACT &&
+				tden == DENIAL_JOKING)) || // </dlph.3>
+				::bernoulliSuccess(0.2, "advc.133")))
 			return 1;
 		else return -1;
 	}

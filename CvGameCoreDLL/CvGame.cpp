@@ -8857,6 +8857,8 @@ void CvGame::processVote(const VoteTriggeredData& kData, int iChange)
 					if (GET_TEAM(kLoopPlayer.getTeam()).canChangeWarPeace(kPlayer.getTeam()))
 					{
 						GET_TEAM(kLoopPlayer.getTeam()).declareWar(kPlayer.getTeam(), false, WARPLAN_DOGPILE);
+						// advc.104i:
+						GET_TEAM(kPlayer.getTeam()).makeUnwillingToTalk(kLoopPlayer.getTeam());
 					}
 				}
 			}
@@ -10709,48 +10711,44 @@ void CvGame::doVoteResults()
 
 				setVoteOutcome(*pVoteTriggered, bPassed ? PLAYER_VOTE_YES : PLAYER_VOTE_NO);
 			}
-
+			bool bReplayDone = false; // advc.150b
 			for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 			{
 				CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iI);
-				if (kPlayer.isHuman())
+				// <advc.003>
+				if(!kPlayer.isHuman())
+					continue; // </advc.003>
+				bool bShow = kPlayer.isVotingMember(pVoteTriggered->eVoteSource);
+				if (bShow)
 				{
-					bool bShow = kPlayer.isVotingMember(pVoteTriggered->eVoteSource);
-
-					if (bShow)
+					CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_TEXT);
+					if (NULL != pInfo)
 					{
-						CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_TEXT);
-						if (NULL != pInfo)
-						{
-							pInfo->setText(szBuffer);
-							gDLL->getInterfaceIFace()->addPopup(pInfo, (PlayerTypes)iI);
-						}
-					} // <advc.127>
-					if(!bShow)
-						bShow = kPlayer.isSpectator(); // </advc.127>
-					if (!bShow)
-					{
-						if (iI == pVoteTriggered->kVoteOption.ePlayer && GET_PLAYER(pVoteTriggered->kVoteOption.ePlayer).isVotingMember(pVoteTriggered->eVoteSource))
-						{
-							bShow = true;
-						}
+						pInfo->setText(szBuffer);
+						gDLL->getInterfaceIFace()->addPopup(pInfo, (PlayerTypes)iI);
 					}
-
-					if (!bShow)
-					{
-						if (iI == pVoteTriggered->kVoteOption.eOtherPlayer && GET_PLAYER(pVoteTriggered->kVoteOption.eOtherPlayer).isVotingMember(pVoteTriggered->eVoteSource))
-						{
-							bShow = true;
-						}
-					}
-
-					if (bShow && bPassed)
-					{
-						CvWString szMessage = gDLL->getText("TXT_KEY_VOTE_RESULTS", GC.getVoteSourceInfo(eVoteSource).getTextKeyWide(), pVoteTriggered->kVoteOption.szText.GetCString());
-						// <advc.127b>
-						BuildingTypes vsBuilding = getVoteSourceBuilding(eVoteSource);
-						std::pair<int,int> xy = getVoteSourceXY(eVoteSource);
-						// </advc.127b>
+				} // <advc.127>
+				if(!bShow)
+					bShow = kPlayer.isSpectator(); // </advc.127>
+				// <advc.003>
+				if(!bShow && iI == pVoteTriggered->kVoteOption.ePlayer &&
+						GET_PLAYER(pVoteTriggered->kVoteOption.ePlayer).
+						isVotingMember(pVoteTriggered->eVoteSource))
+					bShow = true;
+				if(!bShow && iI == pVoteTriggered->kVoteOption.eOtherPlayer &&
+						GET_PLAYER(pVoteTriggered->kVoteOption.eOtherPlayer).
+						isVotingMember(pVoteTriggered->eVoteSource))
+					bShow = true; // </advc.003>
+				if (bPassed) // advc.150b: Don't req. bShow for replay msg
+				{
+					CvWString szMessage = gDLL->getText("TXT_KEY_VOTE_RESULTS",
+							GC.getVoteSourceInfo(eVoteSource).getTextKeyWide(),
+							pVoteTriggered->kVoteOption.szText.GetCString());
+					// <advc.127b>
+					BuildingTypes vsBuilding = getVoteSourceBuilding(eVoteSource);
+					std::pair<int,int> xy = getVoteSourceXY(eVoteSource);
+					// </advc.127b>
+					if(bShow) {// advc.150b
 						gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szMessage, "AS2D_NEW_ERA", MESSAGE_TYPE_MINOR_EVENT,
 								// <advc.127b>
 								vsBuilding == NO_BUILDING ? NULL :
@@ -10758,13 +10756,14 @@ void CvGame::doVoteResults()
 								// </advc.127b>
 								(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
 								xy.first, xy.second); // advc.127b
-						/*  <advc.150b> Throw out everything after parentheses
+					} // <advc.150b>
+					if(!bReplayDone) {
+						/*  Throw out everything after parentheses
 							(votes for and against). */
 						szMessage = szMessage.substr(0, szMessage.find(L")") + 1);
 						addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, NO_PLAYER, szMessage);
-						// </advc.150b>
-					}
-
+						bReplayDone = true;
+					} // </advc.150b>
 				}
 			}
 		}

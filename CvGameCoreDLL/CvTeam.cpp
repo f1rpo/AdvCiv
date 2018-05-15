@@ -1745,14 +1745,18 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 		{	// <dlph.3> Ally can already be at war with the aggressor
 			if(GET_TEAM((TeamTypes)iI).isAtWar(eTeam))
 				continue; // </dlph.3>
-			if (GET_TEAM((TeamTypes)iI).isDefensivePact(eTeam))
-			{
+			if (GET_TEAM((TeamTypes)iI).isDefensivePact(eTeam)) {
+				FAssert(!GET_TEAM(eTeam).isAVassal() &&
+						!GET_TEAM((TeamTypes)iI).isAVassal());
 				GET_TEAM((TeamTypes)iI).declareWar(getID(), bNewDiplo, WARPLAN_DOGPILE, false);
 				// <advc.104i>
 				defPactTriggered = true;
+				if(!isAVassal()) {
 				/*  Team iI declares war on us, and this makes our team
-					unwilling to talk to iI. */
-				makeUnwillingToTalk((TeamTypes)iI); // </advc.104i>
+					unwilling to talk to both iI and its ally eTeam. */
+					makeUnwillingToTalk(eTeam);
+					makeUnwillingToTalk((TeamTypes)iI);
+				} // </advc.104i>
 			}
 			else if( (GC.getBBAI_DEFENSIVE_PACT_BEHAVIOR() > 1) && GET_TEAM((TeamTypes)iI).isDefensivePact(getID()))
 			{
@@ -1829,6 +1833,30 @@ void CvTeam::makePeaceBulk(TeamTypes eTeam, bool bBumpUnits, TeamTypes broker,
 	GET_TEAM(getID()).forgiveEnemy(eTeam, isCapitulated(), false);
 	GET_TEAM(eTeam).forgiveEnemy(getID(), GET_TEAM(eTeam).isCapitulated(), false);
 	// </advc.130y>
+	// <advc.130i>
+	if(getWPAI.isEnabled() && !isAVassal() && !GET_TEAM(eTeam).isAVassal()) {
+		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+			CvPlayerAI& civ = GET_PLAYER((PlayerTypes)i);
+			if(!civ.isAlive() || civ.getTeam() == getID() || civ.getTeam() == eTeam)
+				continue;
+			CvTeam const& t = GET_TEAM(civ.getTeam());
+			if(!t.isDefensivePact(eTeam) && !t.isDefensivePact(getID()))
+				continue;
+			FAssert(!t.isAVassal());
+			for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
+				CvPlayerAI& member = GET_PLAYER((PlayerTypes)j);
+				if(!member.isAlive() || (member.getTeam() != eTeam &&
+						member.getTeam() != getID()))
+					continue;
+				int mem = civ.AI_getMemoryCount(member.getID(), MEMORY_STOPPED_TRADING_RECENT);
+				if(mem > 0) // Checked only for testing through the debugger
+					civ.AI_changeMemoryCount(member.getID(), MEMORY_STOPPED_TRADING_RECENT, -mem);
+				mem = member.AI_getMemoryCount(civ.getID(), MEMORY_STOPPED_TRADING_RECENT);
+				if(mem > 0)
+					member.AI_changeMemoryCount(civ.getID(), MEMORY_STOPPED_TRADING_RECENT, -mem);
+			}
+		}
+	} // </advc.130i>
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      05/21/10                                jdog5000      */
 /*                                                                                              */
