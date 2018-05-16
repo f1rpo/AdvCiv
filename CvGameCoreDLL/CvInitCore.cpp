@@ -556,70 +556,70 @@ void CvInitCore::resetGame(CvInitCore * pSource, bool bClear, bool bSaveGameType
 	if (bClear || !pSource)
 	{
 		resetGame();
-	}
-	if (pSource)
+	} // <advc.003>
+	if(!pSource)
+		return; // </advc.003>
+	
+	// Only copy over saved data
+
+	// Descriptive strings about game and map
+	if (!bSaveGameType || getGameMultiplayer() != pSource->getGameMultiplayer())
 	{
-		// Only copy over saved data
-
-		// Descriptive strings about game and map
-		if (!bSaveGameType || getGameMultiplayer() != pSource->getGameMultiplayer())
-		{
-			setType(pSource->getType());
-		}
-		setGameName(pSource->getGameName());
-		setGamePassword(pSource->getGamePassword());
-		setAdminPassword(pSource->getAdminPassword(), false);
-		setMapScriptName(pSource->getMapScriptName());
-
-		setWBMapNoPlayers(pSource->getWBMapNoPlayers());
-
-		// Standard game parameters
-		setWorldSize(pSource->getWorldSize());
-		setClimate(pSource->getClimate());
-		setSeaLevel(pSource->getSeaLevel());
-		setEra(pSource->getEra());
-		setGameSpeed(pSource->getGameSpeed());
-		setTurnTimer(pSource->getTurnTimer());
-		setCalendar(pSource->getCalendar());
-
-		// Map-specific custom parameters
-		setCustomMapOptions(pSource->getNumCustomMapOptions(), pSource->getCustomMapOptions());
-		m_iNumHiddenCustomMapOptions = pSource->getNumHiddenCustomMapOptions();
-		setVictories(pSource->getNumVictories(), pSource->getVictories());
-
-		// Standard game options
-		int i;
-		for (i = 0; i < NUM_GAMEOPTION_TYPES; ++i)
-		{	// <advc.003>
-			GameOptionTypes got = (GameOptionTypes)i;
-			bool b = pSource->getOption(got); // </advc.003>
-			// <dlph.18>
-			CvGameOptionInfo& goi = GC.getGameOptionInfo(got);
-			if(goi.getVisible() == 0)
-				b = goi.getDefault(); // </dlph.18>
-			setOption((GameOptionTypes)i, b);
-		}
-
-		for (i = 0; i < NUM_MPOPTION_TYPES; ++i)
-		{
-			setMPOption((MultiplayerOptionTypes)i, pSource->getMPOption((MultiplayerOptionTypes)i));
-		}
-		setStatReporting(pSource->getStatReporting());
-
-		// Game turn mgmt
-		setGameTurn(pSource->getGameTurn());
-		setMaxTurns(pSource->getMaxTurns());
-		setPitbossTurnTime(pSource->getPitbossTurnTime());
-		setTargetScore(pSource->getTargetScore());
-
-		// City Elimination
-		setMaxCityElimination(pSource->getMaxCityElimination());
-
-		setNumAdvancedStartPoints(pSource->getNumAdvancedStartPoints());
-
-		setSyncRandSeed(pSource->getSyncRandSeed());
-		setMapRandSeed(pSource->getMapRandSeed());
+		setType(pSource->getType());
 	}
+	setGameName(pSource->getGameName());
+	setGamePassword(pSource->getGamePassword());
+	setAdminPassword(pSource->getAdminPassword(), false);
+	setMapScriptName(pSource->getMapScriptName());
+
+	setWBMapNoPlayers(pSource->getWBMapNoPlayers());
+
+	// Standard game parameters
+	setWorldSize(pSource->getWorldSize());
+	setClimate(pSource->getClimate());
+	setSeaLevel(pSource->getSeaLevel());
+	setEra(pSource->getEra());
+	setGameSpeed(pSource->getGameSpeed());
+	setTurnTimer(pSource->getTurnTimer());
+	setCalendar(pSource->getCalendar());
+
+	// Map-specific custom parameters
+	setCustomMapOptions(pSource->getNumCustomMapOptions(), pSource->getCustomMapOptions());
+	m_iNumHiddenCustomMapOptions = pSource->getNumHiddenCustomMapOptions();
+	setVictories(pSource->getNumVictories(), pSource->getVictories());
+
+	// Standard game options
+	int i;
+	for (i = 0; i < NUM_GAMEOPTION_TYPES; ++i)
+	{	// <advc.003>
+		GameOptionTypes got = (GameOptionTypes)i;
+		bool b = pSource->getOption(got); // </advc.003>
+		// <dlph.18>
+		CvGameOptionInfo& goi = GC.getGameOptionInfo(got);
+		if(goi.getVisible() == 0)
+			b = goi.getDefault(); // </dlph.18>
+		setOption((GameOptionTypes)i, b);
+	}
+
+	for (i = 0; i < NUM_MPOPTION_TYPES; ++i)
+	{
+		setMPOption((MultiplayerOptionTypes)i, pSource->getMPOption((MultiplayerOptionTypes)i));
+	}
+	setStatReporting(pSource->getStatReporting());
+
+	// Game turn mgmt
+	setGameTurn(pSource->getGameTurn());
+	setMaxTurns(pSource->getMaxTurns());
+	setPitbossTurnTime(pSource->getPitbossTurnTime());
+	setTargetScore(pSource->getTargetScore());
+
+	// City Elimination
+	setMaxCityElimination(pSource->getMaxCityElimination());
+
+	setNumAdvancedStartPoints(pSource->getNumAdvancedStartPoints());
+
+	setSyncRandSeed(pSource->getSyncRandSeed());
+	setMapRandSeed(pSource->getMapRandSeed());
 }
 
 void CvInitCore::resetPlayers()
@@ -733,6 +733,10 @@ void CvInitCore::resetPlayer(PlayerTypes eID, CvInitCore * pSource, bool bClear,
 				setLeaderName(eID, pSource->getLeaderName(eID));
 				setSlotStatus(eID, pSource->getSlotStatus(eID));
 				setSlotClaim(eID, pSource->getSlotClaim(eID));
+				// <advc.001p>
+				int foo=-1;
+				for(CvCity* c = GET_PLAYER(eID).firstCity(&foo); c != NULL; c = GET_PLAYER(eID).nextCity(&foo))
+					c->reset(); // </advc.001p>
 			}
 		}
 	}

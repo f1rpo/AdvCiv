@@ -16219,14 +16219,13 @@ int CvCity::getMusicScriptId() const
 		{
 			bIsHappy = false;
 		}
-	} /* <advc.001> Got a crash here once when loading a game with a small
-		 number of civs from within a game with a large number of civs. */
+	} // <advc.001p> (Shouldn't be needed anymore)
 	CvPlayer const& owner = GET_PLAYER(getOwnerINLINE());
 	LeaderHeadTypes lht = owner.getLeaderType();
 	if(lht <= -1) {
 		FAssert(lht > -1);
 		return 0;
-	} // </advc.001>
+	} // </advc.001p>
 	CvLeaderHeadInfo& kLeaderInfo = GC.getLeaderHeadInfo(GET_PLAYER(getOwnerINLINE()).getLeaderType());
 	EraTypes eCurEra = GET_PLAYER(getOwnerINLINE()).getCurrentEra();
 	if (bIsHappy)
