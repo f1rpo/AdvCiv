@@ -10546,11 +10546,12 @@ void CvGame::doVoteResults()
 	{
 		CvWString szBuffer;
 		CvWString szMessage;
-		VoteTypes eVote = pVoteTriggered->kVoteOption.eVote;
+		VoteSelectionSubData subd = pVoteTriggered->kVoteOption; // advc.003
+		VoteTypes eVote = subd.eVote;
 		VoteSourceTypes eVoteSource = pVoteTriggered->eVoteSource;
 		bool bPassed = false;
 
-		if (!canDoResolution(eVoteSource, pVoteTriggered->kVoteOption))
+		if (!canDoResolution(eVoteSource, subd))
 		{
 			for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; ++iPlayer)
 			{
@@ -10592,16 +10593,18 @@ void CvGame::doVoteResults()
 			if (!bAllVoted)
 			{
 				continue;
-			}
-
+			} // <advc.150b>
+			wchar const* targetCityNameKey = NULL;
+			int voteCount = -1; // </advc.150b>
 			if (isTeamVote(eVote))
 			{
 				TeamTypes eTeam = findHighestVoteTeam(*pVoteTriggered);
 
 				if (NO_TEAM != eTeam)
-				{
-					bPassed = countVote(*pVoteTriggered, (PlayerVoteTypes)eTeam) >= getVoteRequired(eVote, eVoteSource);
-				}
+				{	// <advc.150b> Store voteCount for later
+					voteCount = countVote(*pVoteTriggered, (PlayerVoteTypes)eTeam);
+					bPassed = (voteCount >= getVoteRequired(eVote, eVoteSource));
+				}	// </advc.150b>
 
 				szBuffer = GC.getVoteInfo(eVote).getDescription();
 
@@ -10645,9 +10648,15 @@ void CvGame::doVoteResults()
 				}
 			}
 			else
-			{
-				bPassed = countVote(*pVoteTriggered, PLAYER_VOTE_YES) >= getVoteRequired(eVote, eVoteSource);
-
+			{	// <advc.150b>
+				if(subd.ePlayer != NO_PLAYER && subd.iCityId >= 0) {
+					CvCity* targetCity = GET_PLAYER(subd.ePlayer).getCity(subd.iCityId);
+					if(targetCity != NULL)
+						targetCityNameKey = targetCity->getNameKey();
+				}
+				voteCount = countVote(*pVoteTriggered, PLAYER_VOTE_YES);
+				bPassed = (voteCount >= getVoteRequired(eVote, eVoteSource));
+				// </advc.150b>
 				// Defying resolution
 				if (bPassed)
 				{
@@ -10657,7 +10666,7 @@ void CvGame::doVoteResults()
 						{
 							bPassed = false;
 
-							GET_PLAYER((PlayerTypes)iJ).setDefiedResolution(eVoteSource, pVoteTriggered->kVoteOption);
+							GET_PLAYER((PlayerTypes)iJ).setDefiedResolution(eVoteSource, subd);
 						}
 					}
 				}
@@ -10670,7 +10679,7 @@ void CvGame::doVoteResults()
 						{
 							if (getPlayerVote(((PlayerTypes)iJ), pVoteTriggered->getID()) == PLAYER_VOTE_YES)
 							{
-								GET_PLAYER((PlayerTypes)iJ).setEndorsedResolution(eVoteSource, pVoteTriggered->kVoteOption);
+								GET_PLAYER((PlayerTypes)iJ).setEndorsedResolution(eVoteSource, subd);
 							}
 						}
 					}
@@ -10711,15 +10720,77 @@ void CvGame::doVoteResults()
 
 				setVoteOutcome(*pVoteTriggered, bPassed ? PLAYER_VOTE_YES : PLAYER_VOTE_NO);
 			}
-			bool bReplayDone = false; // advc.150b
+			// <advc.150b>
+			CvVoteInfo& kVote = GC.getVoteInfo(eVote);
+			if(bPassed && !kVote.isSecretaryGeneral()) {
+				CvWString resolutionStr;
+				// Special treatment for resolutions with targets
+				if(subd.ePlayer != NO_PLAYER) {
+					CvWString key;
+					if(kVote.isForcePeace())
+						key = L"TXT_KEY_POPUP_ELECTION_FORCE_PEACE";
+					else if(kVote.isForceNoTrade())
+						key = L"TXT_KEY_POPUP_ELECTION_FORCE_NO_TRADE";
+					else if(kVote.isForceWar())
+						key = L"TXT_KEY_POPUP_ELECTION_FORCE_WAR";
+					if(!key.empty()) {
+						resolutionStr = gDLL->getText(key, GET_PLAYER(subd.ePlayer).
+								getReplayName(), 0, 0);
+					}
+					else if(kVote.isAssignCity() && targetCityNameKey != NULL &&
+							subd.eOtherPlayer != NO_PLAYER) {
+						resolutionStr = gDLL->getText("TXT_KEY_POPUP_ELECTION_ASSIGN_CITY",
+								GET_PLAYER(subd.ePlayer).getCivilizationAdjectiveKey(),
+								targetCityNameKey,
+								GET_PLAYER(subd.eOtherPlayer).getReplayName(), 0, 0);
+					}
+				}
+				if(resolutionStr.empty()) {
+					resolutionStr = kVote.getDescription();
+					/*  This is e.g.
+						"U.N. Resolution #1284 (Nuclear Non-Proliferation Treaty - Cannot Build Nuclear Weapons)
+						Only want "Nuclear Non-Proliferation Treaty". */
+					size_t pos1 = resolutionStr.find(L"(");
+					if(pos1 != CvWString::npos && pos1 + 1 < resolutionStr.length()) {
+						bool bForceCivic = false;
+						// Mustn't remove the stuff after the dash if bForceCivic
+						for(int i = 0; i < GC.getNumCivicInfos(); i++) {
+							if(kVote.isForceCivic(i)) {
+								bForceCivic = true;
+								break;
+							}
+						}
+						size_t pos2 = std::min((bForceCivic ? CvWString::npos :
+								resolutionStr.find(L" -")),
+								resolutionStr.find(L")"));
+						if(pos2 > pos1)
+							resolutionStr = resolutionStr.substr(pos1 + 1, pos2 - pos1 - 1);
+					}
+				}
+				else {
+					/*  Throw out stuff in parentheses, e.g.
+						"Stop the war against Napoleon (Requires 0 of 0 Total Votes)" */
+					resolutionStr = resolutionStr.substr(0, resolutionStr.find(L"(") - 1);
+				}
+				TeamTypes secGen = getSecretaryGeneral(eVoteSource);
+				szMessage = gDLL->getText("TXT_KEY_REPLAY_RESOLUTION_PASSED",
+						GC.getVoteSourceInfo(eVoteSource).getTextKeyWide(),
+						(secGen == NO_TEAM ?
+						gDLL->getText("TXT_KEY_TOPCIVS_UNKNOWN").GetCString() :
+						GET_TEAM(secGen).getReplayName().GetCString()),
+						voteCount, // Don't show the required votes after all
+						//getVoteRequired(eVote, eVoteSource),
+						countPossibleVote(eVote, eVoteSource),
+						resolutionStr.GetCString());
+				addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, NO_PLAYER, szMessage,
+						-1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+			} // </advc.150b>
 			for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 			{
 				CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iI);
-				// <advc.003>
-				if(!kPlayer.isHuman())
-					continue; // </advc.003>
 				bool bShow = kPlayer.isVotingMember(pVoteTriggered->eVoteSource);
-				if (bShow)
+				if (bShow
+						&& kPlayer.isHuman()) // advc.127
 				{
 					CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_TEXT);
 					if (NULL != pInfo)
@@ -10727,43 +10798,34 @@ void CvGame::doVoteResults()
 						pInfo->setText(szBuffer);
 						gDLL->getInterfaceIFace()->addPopup(pInfo, (PlayerTypes)iI);
 					}
-				} // <advc.127>
-				if(!bShow)
-					bShow = kPlayer.isSpectator(); // </advc.127>
-				// <advc.003>
-				if(!bShow && iI == pVoteTriggered->kVoteOption.ePlayer &&
-						GET_PLAYER(pVoteTriggered->kVoteOption.ePlayer).
+				} // <advc.003>
+				if(!bShow && iI == subd.ePlayer && GET_PLAYER(subd.ePlayer).
 						isVotingMember(pVoteTriggered->eVoteSource))
 					bShow = true;
-				if(!bShow && iI == pVoteTriggered->kVoteOption.eOtherPlayer &&
-						GET_PLAYER(pVoteTriggered->kVoteOption.eOtherPlayer).
+				if(!bShow && iI == subd.eOtherPlayer && GET_PLAYER(subd.eOtherPlayer).
 						isVotingMember(pVoteTriggered->eVoteSource))
 					bShow = true; // </advc.003>
-				if (bPassed) // advc.150b: Don't req. bShow for replay msg
-				{
-					CvWString szMessage = gDLL->getText("TXT_KEY_VOTE_RESULTS",
-							GC.getVoteSourceInfo(eVoteSource).getTextKeyWide(),
-							pVoteTriggered->kVoteOption.szText.GetCString());
+				if (bPassed && (bShow // <advc.127>
+						|| kPlayer.isSpectator()))
+				{	
+					if(bShow || szMessage.empty()) { // Else use the replay msg
+						// </advc.127>
+						szMessage = gDLL->getText("TXT_KEY_VOTE_RESULTS",
+								GC.getVoteSourceInfo(eVoteSource).getTextKeyWide(),
+								subd.szText.GetCString());
+					}
 					// <advc.127b>
 					BuildingTypes vsBuilding = getVoteSourceBuilding(eVoteSource);
 					std::pair<int,int> xy = getVoteSourceXY(eVoteSource);
 					// </advc.127b>
-					if(bShow) {// advc.150b
-						gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szMessage, "AS2D_NEW_ERA", MESSAGE_TYPE_MINOR_EVENT,
-								// <advc.127b>
-								vsBuilding == NO_BUILDING ? NULL :
-								GC.getBuildingInfo(vsBuilding).getButton(),
-								// </advc.127b>
-								(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
-								xy.first, xy.second); // advc.127b
-					} // <advc.150b>
-					if(!bReplayDone) {
-						/*  Throw out everything after parentheses
-							(votes for and against). */
-						szMessage = szMessage.substr(0, szMessage.find(L")") + 1);
-						addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, NO_PLAYER, szMessage);
-						bReplayDone = true;
-					} // </advc.150b>
+					gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szMessage, "AS2D_NEW_ERA",
+							MESSAGE_TYPE_MAJOR_EVENT, // advc.127: was MINOR
+							// <advc.127b>
+							vsBuilding == NO_BUILDING ? NULL :
+							GC.getBuildingInfo(vsBuilding).getButton(),
+							// </advc.127b>
+							(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
+							xy.first, xy.second); // advc.127b
 				}
 			}
 		}

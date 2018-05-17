@@ -1419,7 +1419,7 @@ double MilitaryVictory::progressRatingDiplomacy() {
 	double r = popGained / votesToGo;
 	if(apObstacles < 1)
 		return r;
-	// If there are AP obstacles, give the progress rate on those 25% weight
+	// If there are AP obstacles, give the progress rate on those 25% weight.
 	return 0.25 * obstacleProgress + 0.75 * r;
 }
 

@@ -55,8 +55,10 @@
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 	<Define>
-		<!-- Better BTS AI: Allows human player to offer themselves as vassal to an AI.  The AI has been taught to value this appropriately.  (Def: 0) -->
+		<!-- Better BTS AI: Allows human player to offer themselves as vassal to an AI.  The AI has been taught to value this appropriately.  (Def: 0) 
+		advc.112: The BBAI default was 0; 1 in K-Mod. Not supported in AdvCiv.
+		-->
 		<DefineName>BBAI_HUMAN_AS_VASSAL_OPTION</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
+		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 </Civ4Defines>

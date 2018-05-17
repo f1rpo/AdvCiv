@@ -10014,7 +10014,10 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 		{
 			if (eSecretaryGeneral != NO_TEAM)
 			{
-				if (eSecretaryGeneral == getTeam())
+				if (eSecretaryGeneral == getTeam()
+						// <advc.130v>
+						|| (GET_TEAM(getTeam()).isVassal(eSecretaryGeneral)
+						&& GET_TEAM(getTeam()).isCapitulated())) // </advc.130v>
 				{
 					return PLAYER_VOTE_YES;
 				}
@@ -10060,7 +10063,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 									if (iBestCivicValue > ((iNewCivicValue * (140 + (GC.getGame().getSorenRandNum(120, "AI Erratic Defiance (Force Civic)"))) / 100)))
 */
 								// Increase threshold of voting for friend's proposal
-								if( bFriendlyToSecretary )
+								if (bFriendlyToSecretary)
 								{
 									iNewCivicValue *= 6;
 									iNewCivicValue /= 5;
@@ -10096,7 +10099,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 /*                                                                                              */
 /* Diplomacy AI                                                                                 */
 /************************************************************************************************/
-				if( bFriendlyToSecretary )
+				if (bFriendlyToSecretary)
 				{
 					return PLAYER_VOTE_YES;
 				}
@@ -10146,7 +10149,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 /*                                                                                              */
 /* Diplomacy AI                                                                                 */
 /************************************************************************************************/
-				if( bFriendlyToSecretary )
+				if (bFriendlyToSecretary)
 				{
 					iVoteBanThreshold *= 2;
 					iVoteBanThreshold /= 3;
@@ -10184,7 +10187,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 /*                                                                                              */
 /* Diplomacy AI                                                                                 */
 /************************************************************************************************/
-				if( bFriendlyToSecretary )
+				if (bFriendlyToSecretary)
 				{
 					return PLAYER_VOTE_YES;
 				}
@@ -10234,7 +10237,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 /*                                                                                              */
 /* Diplomacy AI                                                                                 */
 /************************************************************************************************/
-				if( bFriendlyToSecretary )
+				if (bFriendlyToSecretary)
 				{
 					return PLAYER_VOTE_YES;
 				}
@@ -10266,7 +10269,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 /*                                                                                              */
 /* Diplomacy AI                                                                                 */
 /************************************************************************************************/
-				if( bFriendlyToSecretary )
+				if (bFriendlyToSecretary)
 				{
 					return PLAYER_VOTE_YES;
 				}
@@ -10572,7 +10575,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 
 					if( !bValid )
 					{
-						if( bFriendlyToSecretary && !kOurTeam.isVassal(ePeaceTeam) )
+						if (bFriendlyToSecretary && !kOurTeam.isVassal(ePeaceTeam))
 						{
 							// Influence by secretary
 							bValid = true;
@@ -10605,7 +10608,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 /************************************************************************************************/
 				else
 				{
-					if( bFriendlyToSecretary )
+					if (bFriendlyToSecretary)
 					{
 						return PLAYER_VOTE_YES;
 					}

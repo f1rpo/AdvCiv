@@ -1299,7 +1299,9 @@ void WarAndPeaceCache::City::write(FDataStreamBase* stream) {
 	stream->Write(assetScore);
 	/*  I hadn't thought of a version number in the initial release.
 		Fold it into 'distance' to avoid breaking compatibility. */
-	FAssert(distance >= -1 && distance < 10000);
+	FAssertMsg(distance >= -1 && distance < 10000, "-2 is OK if loaded from an "
+			"old savegame version");
+	distance = ::range(distance, -1, 9999);
 	// Add 1 b/c distance can be -1
 	stream->Write(distance + 1 + 10000 * savegameVersion);
 	stream->Write(targetValue);
