@@ -7,7 +7,7 @@
 
 	Copyright (c) 2010 The BUG Mod.
 -->
-<!-- advc.003d: getUserDirStr added -->
+<!-- advc.003d: getUserDir added -->
 <mod id="BULL" 
 	 name="BULL Core" 
 	 module="BugDll"

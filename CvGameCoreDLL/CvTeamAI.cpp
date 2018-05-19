@@ -2759,11 +2759,13 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eTeam, int iPowerMultiplier,
 	}
 	// K-Mod end
 
-
 	if (isHuman() && kMasterTeam.isHuman())
 	{
 		return NO_DENIAL;
 	}
+	/*  advc.112 (comment): When this team is human (i.e. BBAI_HUMAN_AS_VASSAL_
+		OPTION enabled), DENIAL_POWER_US and DENIAL_POWER_YOU seem to become
+		swapped outside the SDK. */
 	// <advc.112>
 	if(AI_isAnyMemberDoVictoryStrategyLevel3())
 		return DENIAL_VICTORY;

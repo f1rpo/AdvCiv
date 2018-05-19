@@ -11290,6 +11290,7 @@ bool CvPlayerAI::AI_considerOfferBulk(PlayerTypes ePlayer,
 	// <advc.136b>
 	else {
 		if(iTheirValue < 2 * GC.getDIPLOMACY_VALUE_REMAINDER() &&
+				!bVassalTrade &&
 				!AI_goldDeal(pTheirList) && (pTheirList->getLength() <= 0 ||
 				!CvDeal::isDual(pTheirList->head()->m_data.m_eItemType)))
 			return false;

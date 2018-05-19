@@ -4767,11 +4767,17 @@ void CvDLLWidgetData::parseUnitModelHelp(CvWidgetDataStruct &widgetDataStruct, C
 void CvDLLWidgetData::parseFlagHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
 	CvWString szTempBuffer;
-
+	// <advc.135c>
+	CvGame const& g = GC.getGame();
+	if(g.isNetworkMultiPlayer() && g.isDebugToolsAllowed(false)) {
+		szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_WARNING_TEXT"),
+				L"Cheats enabled");
+		szBuffer.append(szTempBuffer);
+		szBuffer.append(NEWLINE);
+	} // </advc.135c>
 	szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), GC.getCivilizationInfo(GC.getGameINLINE().getActiveCivilizationType()).getDescription());
 	szBuffer.append(szTempBuffer);
 	// <advc.700>
-	CvGame const& g = GC.getGame();
 	if(g.isOption(GAMEOPTION_RISE_FALL)) {
 		std::pair<int,int> rfCountdown = g.getRiseFall().getChapterCountdown();
 		if(rfCountdown.second >= 0)

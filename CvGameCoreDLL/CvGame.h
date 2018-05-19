@@ -308,7 +308,7 @@ public:
 	DllExport bool isDebugMode() const;																			// Exposed to Python
 	DllExport void toggleDebugMode();																				// Exposed to Python
 	DllExport void updateDebugModeCache();
-
+	bool isDebugToolsAllowed(bool wb) const; // advc.135c
 	DllExport int getPitbossTurnTime() const;																			// Exposed to Python
 	DllExport void setPitbossTurnTime(int iHours);																			// Exposed to Python
 
@@ -800,6 +800,7 @@ protected:
 	// Use of PRNG makes this non-const
 	UnitTypes randomBarbUnit(UnitAITypes ai, CvArea const& a);
 	// </advc.300>
+	bool feignSP; // advc.135c
 
 	void verifyCivics();
 

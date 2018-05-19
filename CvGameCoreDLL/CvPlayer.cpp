@@ -19403,8 +19403,9 @@ void CvPlayer::createGreatPeople(UnitTypes eGreatPersonUnit, bool bIncrementThre
 		} // <advc.106b>
 		InterfaceMessageTypes msgType = MESSAGE_TYPE_MINOR_EVENT;
 		// Only birth of own GP is major
-		if(msgTarget.getID() == gpOwner.getID())
-			msgType = MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY; // </advc.106b>
+		// ^On second thought, make all GP births minor.
+		/*if(msgTarget.getID() == gpOwner.getID())
+			msgType = MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY;*/ // </advc.106b>
 		gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)i), false,
 				GC.getEVENT_MESSAGE_TIME(), szMessage, "AS2D_UNIT_GREATPEOPLE",
 				msgType, pGreatPeopleUnit->getButton(),

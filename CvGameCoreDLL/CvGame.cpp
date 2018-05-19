@@ -776,6 +776,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 		bResourceLayer = false;
 	} // </advc.004m>
 	resourceLayerSet = false; // advc.003d
+	feignSP = false; // advc.135c
 }
 
 
@@ -3910,7 +3911,9 @@ bool CvGame::isNetworkMultiPlayer() const
 
 
 bool CvGame::isGameMultiPlayer() const																 
-{
+{	// <advc.135c>
+	if(feignSP)
+		return false; // </advc.135c>
 	return (isNetworkMultiPlayer() || isPbem() || isHotSeat());
 }
 
@@ -4560,7 +4563,11 @@ int CvGame::getAIAutoPlay() const // advc.003: made const
 
 void CvGame::setAIAutoPlay(int iNewValue
 		, bool changePlayerStatus) // advc.127
-{
+{	// <advc.127> Goes OOS and doesn't stop properly
+	if(isNetworkMultiPlayer() && isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
+		/*  Should perhaps also return if !isDebugToolsAllowed. Then again,
+			AI Auto Play can't be used as a cheat ... */
+		return; // </advc.127>
 	m_iAIAutoPlay = std::max(0, iNewValue);
 	// <advc.127>
 	if(!changePlayerStatus)
@@ -4571,18 +4578,16 @@ void CvGame::setAIAutoPlay(int iNewValue
 /*                                                                                              */
 /************************************************************************************************/
 // Multiplayer compatibility idea from Jeckel
-/* original code
-	if ((iOldValue == 0) && (getAIAutoPlay() > 0))
-	{
-		GET_PLAYER(getActivePlayer()).killUnits();
-		GET_PLAYER(getActivePlayer()).killCities();
-	}
-*/
+	// <advc.127> To make sure I'm not breaking anything in singleplayer
+	if(!isGameMultiPlayer())
+		GET_PLAYER(getActivePlayer()).setHumanDisabled((getAIAutoPlay() != 0));
+	// </advc.127>
 	for( int iI = 0; iI < MAX_CIV_PLAYERS; iI++ )
 	{
 		if( GET_PLAYER((PlayerTypes)iI).isHuman() || GET_PLAYER((PlayerTypes)iI).isHumanDisabled() )
-		{
-			GET_PLAYER(getActivePlayer()).setHumanDisabled((getAIAutoPlay() != 0));
+		{	/*  advc.127: Was GET_PLAYER(getActivePlayer()).
+				Tagging advc.001 because that was probably a bug. */
+			GET_PLAYER((PlayerTypes)iI).setHumanDisabled((getAIAutoPlay() != 0));
 		}
 	}
 /************************************************************************************************/
@@ -5142,7 +5147,9 @@ bool CvGame::isDebugMode() const
 
 
 void CvGame::toggleDebugMode()
-{
+{	// <advc.135c>
+	if(!m_bDebugMode && !isDebugToolsAllowed(false))
+		return; // </advc.135c>
 	m_bDebugMode = ((m_bDebugMode) ? false : true);
 	updateDebugModeCache();
 
@@ -5176,7 +5183,10 @@ void CvGame::toggleDebugMode()
 
 void CvGame::updateDebugModeCache()
 {
-	if ((gDLL->getChtLvl() > 0) || (gDLL->GetWorldBuilderMode()))
+	//if ((gDLL->getChtLvl() > 0) || (gDLL->GetWorldBuilderMode()))
+	/*  advc.135c: Replacing the above (should perhaps just remove the check
+		b/c toggleDebugMode already checks isDebugToolsAllowed) */
+	if(isDebugToolsAllowed(false))
 	{
 		m_bDebugModeCache = m_bDebugMode;
 	}
@@ -5185,6 +5195,30 @@ void CvGame::updateDebugModeCache()
 		m_bDebugModeCache = false;
 	}
 }
+
+// <advc.135c>
+bool CvGame::isDebugToolsAllowed(bool wb) const {
+
+	if(gDLL->getInterfaceIFace()->isInAdvancedStart())
+		return false;
+	if(gDLL->GetWorldBuilderMode())
+		return true;
+	if(isGameMultiPlayer()) {
+		if(GC.getDefineINT("ENABLE_DEBUG_TOOLS_MULTIPLAYER") <= 0)
+			return false;
+		if(isHotSeat())
+			return true;
+		// (CvGame::getName isn't const)
+		CvWString const& gameName = GC.getInitCore().getGameName();
+		return (gameName.compare(L"chipotle") == 0);
+	}
+	if(wb) {
+		// Cut and pasted from canDoControl (CvGameInterface.cpp)
+		return GC.getInitCore().getAdminPassword().empty();
+	}
+	return gDLL->getChtLvl() > 0;
+} // </advc.135c>
+
 
 int CvGame::getPitbossTurnTime() const
 {
@@ -6604,8 +6638,13 @@ void CvGame::doTurn()
 	// <advc.700>
 	if(isOption(GAMEOPTION_RISE_FALL))
 		riseFall.autoSave();
-	else // </advc.700>
-		gDLL->getEngineIFace()->AutoSave();
+	else {// </advc.700>
+		/*  <advc.127> Avoid overlapping auto-saves in test games played on a
+			single machine. Don't know how to check this properly. */
+		if(!isNetworkMultiPlayer() || getAIAutoPlay() <= 0 || getActivePlayer() == NO_PLAYER ||
+				getActivePlayer() % 2 == 0) // </advc.127>
+			gDLL->getEngineIFace()->AutoSave();
+	}
 }
 
 // <advc.106b>
@@ -10808,18 +10847,21 @@ void CvGame::doVoteResults()
 				if (bPassed && (bShow // <advc.127>
 						|| kPlayer.isSpectator()))
 				{	
-					if(bShow || szMessage.empty()) { // Else use the replay msg
+					if(bShow || szMessage.empty() || kVote.isSecretaryGeneral()) {
 						// </advc.127>
 						szMessage = gDLL->getText("TXT_KEY_VOTE_RESULTS",
 								GC.getVoteSourceInfo(eVoteSource).getTextKeyWide(),
 								subd.szText.GetCString());
+						// Else use the replay msg
 					}
 					// <advc.127b>
 					BuildingTypes vsBuilding = getVoteSourceBuilding(eVoteSource);
 					std::pair<int,int> xy = getVoteSourceXY(eVoteSource);
 					// </advc.127b>
 					gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szMessage, "AS2D_NEW_ERA",
-							MESSAGE_TYPE_MAJOR_EVENT, // advc.127: was MINOR
+							// <advc.127> was always MINOR
+							kVote.isSecretaryGeneral() ? MESSAGE_TYPE_MINOR_EVENT :
+							MESSAGE_TYPE_MAJOR_EVENT, // </advc.127>
 							// <advc.127b>
 							vsBuilding == NO_BUILDING ? NULL :
 							GC.getBuildingInfo(vsBuilding).getButton(),

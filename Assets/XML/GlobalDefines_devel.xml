@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+
+<!-- [advc.009] AdvCiv settings for development purposes -->
+
+<Civ4Defines xmlns="x-schema:CIV4GlobalDefinesSchema.xml">
+
+	<!-- [advc.104]
+		 If logging is enabled in /My Games/
+		 Beyond The Sword/CivilizationIV.ini, a log file is written to
+		 /My Games/Beyond The Sword/Logs every REPORT_INTERVAL turns.
+		 It's not necessary to compile a debug DLL in order
+		 to see the reports. Each report records the war planning of all
+		 AI civs during a single turn. Set to 0 or less to disable logging. -->
+    <Define>
+        <DefineName>REPORT_INTERVAL</DefineName>
+        <iDefineIntVal>0</iDefineIntVal>
+    </Define>
+	
+	<!-- [advc.104]
+		 If UWAI reports are enabled (see above), no details about a AI war plan
+		 are logged unless that war plan has greater utility than this
+		 threshold. There's a separate threshold for war plans against
+		 human players. Recommended: -10/-50; use sth. like -1000/-1000 to log
+		 details always. -->
+    <Define>
+        <DefineName>UWAI_REPORT_THRESH</DefineName>
+        <iDefineIntVal>-10</iDefineIntVal>
+    </Define>
+    <Define>
+        <DefineName>UWAI_REPORT_THRESH_HUMAN</DefineName>
+        <iDefineIntVal>-50</iDefineIntVal>
+    </Define>
+
+	<!-- [advc.104v]
+		 If this is set to 1 and the Debug mode has been enabled (Ctrl+Z), then
+		 messages about AI war preparations are shown during AI Auto Play. If set
+		 to 0 (default), no such messages are shown. -->
+	<Define>
+        <DefineName>UWAI_SPECTATOR_ENABLED</DefineName>
+        <iDefineIntVal>0</iDefineIntVal>
+    </Define>
+	
+	<!-- [advc.104]
+		If set to 1 or greater, and UWAI is enabled in Game Options
+		(i.e. "Aggressive AI" not checked), UWAI runs in the background and
+		writes a logfile (depending in REPORT_INTERVAL), but lets the K-Mod AI
+		make all decisions. No impact if UWAI disabled in Game Options ("Aggressive AI" checked), or through DISABLE_UWAI.
+		For testing, or for (temporarily or permanently) switching off UWAI
+		mid-game, otherwise, recommended: 0 -->
+	<Define>
+		<DefineName>UWAI_IN_BACKGROUND</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+
+	<!-- [advc.104] Fully disables UWAI if set to 1 or greater (unlike
+		 UWAI_IN_BACKGROUND which still lets it run in the background).
+		 Same effect as selecting "Aggressive AI (K-Mod) in the Custom Game
+		 screen, but can use this XML switch to disable UWAI in a running game.
+		 There's no way to (re-)enable UWAI in a running game once it has been
+		 disabled.
+		 Recommended: 0 -->
+	<Define>
+		<DefineName>DISABLE_UWAI</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+
+	<!-- [advc.127] If set to 1, AI Auto Play can be activated in multiplayer
+		 games. Exception: Doesn't work with Simultaneous Turns. -->
+	<Define>
+		<DefineName>ENABLE_AUTOPLAY_MULTIPLAYER</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+
+	<!-- [advc.135c] If set to 1, Debug mode (Ctrl+Z) and WorldBuilder can be
+		 accessed in Hotseat. In networked multiplayer, the game needs to be
+		 named "chipotle" in addition and WorldBuilder will (unfortunately)
+		 make the game go out of sync. (Whether CheatCode is set in
+		 CivilizationIV.ini doesn't matter for multiplayer.) -->
+	<Define>
+		<DefineName>ENABLE_DEBUG_TOOLS_MULTIPLAYER</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+
+</Civ4Defines>
