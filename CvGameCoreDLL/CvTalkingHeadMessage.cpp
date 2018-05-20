@@ -220,7 +220,8 @@ int CvTalkingHeadMessage::getExpireTurn(bool human) // advc.700: param added
 	case MESSAGE_TYPE_MAJOR_EVENT:
 	case MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY: // advc.106b
 		// never expires
-		iExpireTurn = GC.getGameINLINE().getGameTurn() + 1;
+		//iExpireTurn = GC.getGameINLINE().getGameTurn() + 1;
+		iExpireTurn += 100; // advc.106b
 		break;
 	case MESSAGE_TYPE_DISPLAY_ONLY:
 		// never saved

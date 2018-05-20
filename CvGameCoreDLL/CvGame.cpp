@@ -978,58 +978,7 @@ void CvGame::assignStartingPlots()
 {
 	PROFILE_FUNC();
 
-	/* original bts code. (note. variables were originally declared at the top of the function. I've moved them.)
-	for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
-	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
-		{
-			if (GET_PLAYER((PlayerTypes)iI).getStartingPlot() == NULL)
-			{
-				iBestValue = 0;
-				pBestPlot = NULL;
-
-				for (iJ = 0; iJ < GC.getMapINLINE().numPlotsINLINE(); iJ++)
-				{
-					gDLL->callUpdater();	// allow window updates during launch
-
-					pPlot = GC.getMapINLINE().plotByIndexINLINE(iJ);
-
-					if (pPlot->isStartingPlot())
-					{
-						bValid = true;
-
-						for (iK = 0; iK < MAX_CIV_PLAYERS; iK++)
-						{
-							if (GET_PLAYER((PlayerTypes)iK).isAlive())
-							{
-								if (GET_PLAYER((PlayerTypes)iK).getStartingPlot() == pPlot)
-								{
-									bValid = false;
-									break;
-								}
-							}
-						}
-
-						if (bValid)
-						{
-							iValue = (1 + getSorenRandNum(1000, "Starting Plot"));
-
-							if (iValue > iBestValue)
-							{
-								iBestValue = iValue;
-								pBestPlot = pPlot;
-							}
-						}
-					}
-				}
-
-				if (pBestPlot != NULL)
-				{
-					GET_PLAYER((PlayerTypes)iI).setStartingPlot(pBestPlot, true);
-				}
-			}
-		}
-	} */
+	// (original bts code deleted) // advc.003	
 	// K-Mod. Same functionality, but much faster and easier to read.
 	//
 	// First, make a list of all the pre-marked starting plots on the map.
@@ -1065,16 +1014,14 @@ void CvGame::assignStartingPlots()
 			return;
 		}
 	}
-
-	std::vector<int> playerOrder;
-	std::vector<int>::iterator playerOrderIter;
-
+	std::vector<PlayerTypes> playerOrder; // advc.003: was <int>
+	std::vector<bool> newPlotFound(MAX_CIV_PLAYERS, false); // advc.108b
 	if (isTeamGame())
-	{
+	{	/*  advc.003 (comment): This assignment is just a starting point for
+			normalizeStartingPlotLocations */
 		for (int iPass = 0; iPass < 2 * MAX_PLAYERS; ++iPass)
 		{
 			bool bStartFound = false;
-
 			int iRandOffset = getSorenRandNum(countCivTeamsAlive(), "Team Starting Plot");
 
 			for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
@@ -1084,25 +1031,22 @@ void CvGame::assignStartingPlots()
 				if (GET_TEAM((TeamTypes)iLoopTeam).isAlive())
 				{
 					for (int iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++)
-					{
-						if (GET_PLAYER((PlayerTypes)iJ).isAlive())
-						{
-							if (GET_PLAYER((PlayerTypes)iJ).getTeam() == iLoopTeam)
-							{
-								if (GET_PLAYER((PlayerTypes)iJ).getStartingPlot() == NULL)
-								{
-									CvPlot* pStartingPlot = GET_PLAYER((PlayerTypes)iJ).findStartingPlot();
-
-									if (NULL != pStartingPlot)
-									{
-										GET_PLAYER((PlayerTypes)iJ).setStartingPlot(pStartingPlot, true);
-										playerOrder.push_back(iJ);
-									}
-									bStartFound = true;
-									break;
-								}
+					{	// <advc.003>
+						CvPlayer& member = GET_PLAYER((PlayerTypes)iJ);
+						if(!member.isAlive())
+							continue; // </advc.003>
+						if (member.getTeam() == iLoopTeam
+								// <advc.108b>
+								&& !newPlotFound[iJ]) {
+							if(member.getStartingPlot() == NULL)
+								member.setStartingPlot(member.findStartingPlot(), true);
+							if(member.getStartingPlot() != NULL) {
+								playerOrder.push_back(member.getID());
+								bStartFound = true;
+								newPlotFound[member.getID()] = true;
+								break;
 							}
-						}
+						} // </advc.108b>
 					}
 				}
 			}
@@ -1116,10 +1060,15 @@ void CvGame::assignStartingPlots()
 		//check all players have starting plots
 		for (int iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++)
 		{
-			FAssertMsg(!GET_PLAYER((PlayerTypes)iJ).isAlive() || GET_PLAYER((PlayerTypes)iJ).getStartingPlot() != NULL, "Player has no starting plot");
+			FAssertMsg(!GET_PLAYER((PlayerTypes)iJ).isAlive() ||
+					(GET_PLAYER((PlayerTypes)iJ).getStartingPlot() != NULL
+					&& newPlotFound[iJ]), // advc.108b
+					"Player has no starting plot");
 		}
-	}
-	else if (isGameMultiPlayer())
+	} /* advc.108b: Replace all this. Don't want handicaps to be ignored in 
+		 multiplayer, and the BtS random assignment of human starts doesn't
+		 actually work - favors player 0 when humans are in slots 0, 1 ... */
+	/*else if (isGameMultiPlayer())
 	{
 		int iRandOffset = getSorenRandNum(countCivPlayersAlive(), "Player Starting Plot");
 
@@ -1156,16 +1105,11 @@ void CvGame::assignStartingPlots()
 		}
 	}
 	else
-	{
-		/*  <advc.108> This is CivPlayersAlive minus 1 in BtS. The minus 1 prevents
-			the human from ever getting the worst plot. A bug? Perhaps they didn't
-			realize that the barbarians aren't a CivPlayer. */
-		int const upperBound = countCivPlayersAlive();
+	{	// advc.003 (Comment): The minus 1 prevents humans from getting the worst plot
+		int const upperBound = countCivPlayersAlive() - 1;
 		int iHumanSlot = range(((upperBound * GC.getHandicapInfo(getHandicapType()).
-				getStartingLocationPercent()) / 100), 0, upperBound); // </advc.108>
+				getStartingLocationPercent()) / 100), 0, upperBound);
 
-		/*	advc.003 (comment): A number of AI civs equal to iHumanSlots
-			grab the best plots. */
 		for (int iI = 0; iI < iHumanSlot; iI++)
 		{
 			if (GET_PLAYER((PlayerTypes)iI).isAlive())
@@ -1181,7 +1125,6 @@ void CvGame::assignStartingPlots()
 			}
 		}
 
-		// advc.003 (comment): Humans pick the best remaining plots.
 		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 		{
 			if (GET_PLAYER((PlayerTypes)iI).isAlive())
@@ -1197,8 +1140,6 @@ void CvGame::assignStartingPlots()
 			}
 		}
 
-		/*  advc.003 (comment): Everyone who hasn't got a plot yet
-			(i.e. the remaining AI civs) */
 		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 		{
 			if (GET_PLAYER((PlayerTypes)iI).isAlive())
@@ -1213,17 +1154,109 @@ void CvGame::assignStartingPlots()
 	}
 	
 	//Now iterate over the player starts in the original order and re-place them.
+	//std::vector<int>::iterator playerOrderIter;
 	for (playerOrderIter = playerOrder.begin(); playerOrderIter != playerOrder.end(); ++playerOrderIter)
 	{
 		GET_PLAYER((PlayerTypes)(*playerOrderIter)).setStartingPlot(GET_PLAYER((PlayerTypes)(*playerOrderIter)).findStartingPlot(), true);
+	}*/
+	// <advc.108b>
+	else {
+		int const iAlive = countCivPlayersAlive();
+		for(int i = 0; i < iAlive; i++)
+			playerOrder.push_back(NO_PLAYER);
+		for(int iPass = 0; iPass < 2; iPass++) {
+			bool bHuman = (iPass == 0);
+			int iCivs = countHumanPlayersAlive();
+			if(!bHuman)
+				iCivs = iAlive - iCivs;
+			int iRandOffset = getSorenRandNum(iCivs, "advc.108b");
+			int iSkipped = 0;
+			for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+				CvPlayer& civ = GET_PLAYER((PlayerTypes)i);
+				if(civ.isAlive() && civ.isHuman() == bHuman) {
+					if(iSkipped < iRandOffset) {
+						iSkipped++;
+						continue;
+					}
+					/*  This sets iRandOffset to the id of a random human civ
+						in the first pass, and a random AI civ in the second. */
+					iRandOffset = i;
+					break;
+				}
+			}
+			for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+				CvPlayer& civ = GET_PLAYER((PlayerTypes)((i + iRandOffset) %
+						MAX_CIV_PLAYERS));
+				if(!civ.isAlive() || civ.isHuman() != bHuman)
+					continue;
+				FAssert(!newPlotFound[civ.getID()]);
+				// If the map script hasn't set a plot, find one.
+				if(civ.getStartingPlot() == NULL)
+					civ.setStartingPlot(civ.findStartingPlot(), true);
+				if(civ.getStartingPlot() == NULL) {
+					FAssertMsg(false, "No starting plot found");
+					continue;
+				}
+				int iPos = ::range((iAlive *
+						GC.getHandicapInfo(civ.getHandicapType()).
+						getStartingLocationPercent()) / 100, 0, iAlive - 1);
+				if(playerOrder[iPos] != NO_PLAYER) { // Pos already taken
+					for(int j = 1; j < std::max(iPos + 1, iAlive - iPos); j++) {
+						// Alternate between better and worse positions
+						if(iPos + j < iAlive && playerOrder[iPos + j] == NO_PLAYER) {
+							iPos += j;
+							break;
+						}
+						if(iPos - j >= 0 && playerOrder[iPos - j] == NO_PLAYER) {
+							iPos -= j;
+							break;
+						}
+					}
+					FAssert(playerOrder[iPos] == NO_PLAYER);
+				}
+				playerOrder[iPos] = civ.getID();
+				newPlotFound[civ.getID()] = true;
+			}
+		}
 	}
+	std::vector<std::pair<int,CvPlot*> > startPlots;
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+		CvPlayer& civ = GET_PLAYER((PlayerTypes)i);
+		if(!civ.isAlive())
+			continue;
+		CvPlot* p = civ.getStartingPlot();
+		if(p == NULL) {
+			FAssertMsg(p != NULL, "Player has no starting plot");
+			civ.setStartingPlot(civ.findStartingPlot(), true);
+		}
+		if(p == NULL)
+			continue;
+		/*  p->getFoundValue(civ.getID()) would be faster, but
+			CvPlot::setFoundValue may not have been called
+			(and then it returns 0) */
+		int val = civ.AI_foundValue(p->getX_INLINE(), p->getY_INLINE(), -1, true);
+		FAssertMsg(val > 0, "Bad starting position");
+		// minus val for descending order
+		startPlots.push_back(std::make_pair<int,CvPlot*>(-val, p));
+	}
+	FAssert(startPlots.size() == playerOrder.size());
+	std::sort(startPlots.begin(), startPlots.end());
+	for(size_t i = 0; i < playerOrder.size(); i++) {
+		if(playerOrder[i] == NO_PLAYER) {
+			FAssert(playerOrder[i] != NO_PLAYER);
+			continue;
+		}
+		GET_PLAYER(playerOrder[i]).setStartingPlot(
+				startPlots[i].second, true);
+	} // </advc.108b>
 }
 
 // Swaps starting locations until we have reached the optimal closeness between teams
 // (caveat: this isn't quite "optimal" because we could get stuck in local minima, but it's pretty good)
-
 void CvGame::normalizeStartingPlotLocations()
-{
+{	// <advc.003b> This function is only for team games
+	if(!isTeamGame())
+		return; // </advc.003b>
 	CvPlot* apNewStartPlots[MAX_CIV_PLAYERS];
 	int* aaiDistances[MAX_CIV_PLAYERS];
 	int aiStartingLocs[MAX_CIV_PLAYERS];
@@ -1689,7 +1722,7 @@ void CvGame::normalizeRemoveBadTerrain()
 										if(iPlotFood == 1) {
 											if(cont)
 												continue;
-											else if(::bernoulliSuccess(prCont))
+											else if(::bernoulliSuccess(prCont, "advc.108"))
 												continue;
 										} // </advc.108>
                                         iTargetFood = 1;
@@ -4563,11 +4596,7 @@ int CvGame::getAIAutoPlay() const // advc.003: made const
 
 void CvGame::setAIAutoPlay(int iNewValue
 		, bool changePlayerStatus) // advc.127
-{	// <advc.127> Goes OOS and doesn't stop properly
-	if(isNetworkMultiPlayer() && isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
-		/*  Should perhaps also return if !isDebugToolsAllowed. Then again,
-			AI Auto Play can't be used as a cheat ... */
-		return; // </advc.127>
+{
 	m_iAIAutoPlay = std::max(0, iNewValue);
 	// <advc.127>
 	if(!changePlayerStatus)
@@ -6540,12 +6569,22 @@ void CvGame::doTurn()
 	gDLL->getInterfaceIFace()->setHasMovedUnit(false);
 
 	if (getAIAutoPlay() > 0)
-	{	/*  advc.127: Flag added: don't change player status when decrementing
+	{	/*  <advc.127> Flag added: don't change player status when decrementing
 			the counter at the start of a round. Let AIAutoPlay.py::onEndPlayerTurn
 			handle it. (Because human control should resume right before the human
 			turn, which is not necessarily at the beginning of a round.) */
 		changeAIAutoPlay(-1, false);
-
+		if(isNetworkMultiPlayer()) { // Stop when OOS
+			int syncHash = gDLL->GetSyncOOS(GET_PLAYER(getActivePlayer()).getNetID());
+			for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+				CvPlayer const& other = GET_PLAYER((PlayerTypes)i);
+				if(!other.isAlive() || other.getID() == getActivePlayer() ||
+						!other.isHumanDisabled())
+					continue;
+				if(gDLL->GetSyncOOS(other.getNetID()) != syncHash)
+					setAIAutoPlay(0);
+			}
+		} // </advc.127>
 		if (getAIAutoPlay() == 0)
 		{
 			reviveActivePlayer();

@@ -2003,8 +2003,12 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 				(Actually, not so exotic b/c I'm allowing animals to survive
 				in continents w/o civ cities (advc.300). */
 			CvUnit* up = pToPlot->getUnitByIndex(0);
-			if(up != NULL && !up->isAnimal()) // </advc.001>
-				iEnemyDefence = GET_PLAYER(pSelectionGroup->getOwnerINLINE()).AI_localDefenceStrength(pToPlot, NO_TEAM, pSelectionGroup->getDomainType(), 0, true, false, pSelectionGroup->isHuman());
+			if(up != NULL && !up->isAnimal()) { // </advc.001>
+				iEnemyDefence = GET_PLAYER(pSelectionGroup->getOwnerINLINE()).
+						AI_localDefenceStrength(pToPlot, NO_TEAM,
+						pSelectionGroup->getDomainType(), 0, true, false,
+						pSelectionGroup->isHuman());
+			}
 		}
 		else
 		{

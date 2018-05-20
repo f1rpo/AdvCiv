@@ -4227,6 +4227,8 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 			}
 
 			if (kBuilding.isAreaBorderObstacle() && !(area()->isBorderObstacle(getTeam()))
+					// advc.001n: AI_getNumAreaCitySites might cache FoundValue
+					&& !bConstCache
 					/*  <advc.310> A check for GAMEOPTION_NO_BARBARIANS is
 						unnecessary b/c the GW ability is then disabled
 						via CvInfos. */
@@ -5773,7 +5775,8 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 
 
 // This function has been significantly modified for K-Mod
-ProjectTypes CvCityAI::AI_bestProject(int* piBestValue)
+ProjectTypes CvCityAI::AI_bestProject(int* piBestValue,
+		bool bAsync) // advc.001n
 {
 	// <advc.014>
 	if(TEAMREF(getOwnerINLINE()).isCapitulated())
@@ -5808,8 +5811,10 @@ ProjectTypes CvCityAI::AI_bestProject(int* piBestValue)
 		if ((kLoopProject.getEveryoneSpecialUnit() != NO_SPECIALUNIT) ||
 			  (kLoopProject.getEveryoneSpecialBuilding() != NO_SPECIALBUILDING) ||
 			  kLoopProject.isAllowsNukes())
-		{
-			if (GC.getGameINLINE().getSorenRandNum(100, "Project Everyone") == 0)
+		{	// <advc.001n>
+			if ((bAsync ? GC.getASyncRand().get(100, "Project Everyone ASYNC") :
+					// </advc.001n>
+					GC.getGameINLINE().getSorenRandNum(100, "Project Everyone")) == 0)
 			{
 				iValue++;
 			}

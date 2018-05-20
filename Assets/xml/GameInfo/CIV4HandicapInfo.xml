@@ -286,7 +286,8 @@
 			<Help>TXT_KEY_HANDICAP_WARLORD_HELP</Help>
 			<iFreeWinsVsBarbs>3</iFreeWinsVsBarbs>
 			<iAnimalAttackProb>75</iAnimalAttackProb>
-			<iStartingLocPercent>30</iStartingLocPercent>
+			<!-- advc.108b: was 30 -->
+			<iStartingLocPercent>35</iStartingLocPercent>
 			<!-- advc.250c: was 110 -->
 			<iAdvancedStartPointsMod>100</iAdvancedStartPointsMod>
 			<iGold>0</iGold>
@@ -386,7 +387,8 @@
 			<Help>TXT_KEY_HANDICAP_NOBLE_HELP</Help>
 			<iFreeWinsVsBarbs>2</iFreeWinsVsBarbs>
 			<iAnimalAttackProb>85</iAnimalAttackProb>
-			<iStartingLocPercent>40</iStartingLocPercent>
+			<!-- advc.108b: was 40 -->
+			<iStartingLocPercent>49</iStartingLocPercent>
 			<iAdvancedStartPointsMod>100</iAdvancedStartPointsMod>
 			<iGold>0</iGold>
 			<iFreeUnits>8</iFreeUnits>
@@ -479,7 +481,8 @@
 			<Help>TXT_KEY_HANDICAP_PRINCE_HELP</Help>
 			<iFreeWinsVsBarbs>1</iFreeWinsVsBarbs>
 			<iAnimalAttackProb>90</iAnimalAttackProb>
-			<iStartingLocPercent>50</iStartingLocPercent>
+			<!-- advc.108b: was 50 -->
+			<iStartingLocPercent>55</iStartingLocPercent>
 			<!-- advc.250c: was 95 -->
 			<iAdvancedStartPointsMod>100</iAdvancedStartPointsMod>
 			<iGold>0</iGold>
@@ -576,7 +579,8 @@
 			<Help>TXT_KEY_HANDICAP_MONARCH_HELP</Help>
 			<iFreeWinsVsBarbs>0</iFreeWinsVsBarbs>
 			<iAnimalAttackProb>90</iAnimalAttackProb>
-			<iStartingLocPercent>60</iStartingLocPercent>
+			<!-- advc.108b: was 60 -->
+			<iStartingLocPercent>65</iStartingLocPercent>
 			<!-- advc.250c: was 90 -->
 			<iAdvancedStartPointsMod>100</iAdvancedStartPointsMod>
 			<iGold>0</iGold>
@@ -697,7 +701,8 @@
 			<Help>TXT_KEY_HANDICAP_EMPEROR_HELP</Help>
 			<iFreeWinsVsBarbs>0</iFreeWinsVsBarbs>
 			<iAnimalAttackProb>90</iAnimalAttackProb>
-			<iStartingLocPercent>70</iStartingLocPercent>
+			<!-- advc.108b: was 70 -->
+			<iStartingLocPercent>75</iStartingLocPercent>
 			<!-- advc.250c: was 85 -->
 			<iAdvancedStartPointsMod>100</iAdvancedStartPointsMod>
 			<iGold>0</iGold>
@@ -824,7 +829,8 @@
 			<Help>TXT_KEY_HANDICAP_IMMORTAL_HELP</Help>
 			<iFreeWinsVsBarbs>0</iFreeWinsVsBarbs>
 			<iAnimalAttackProb>90</iAnimalAttackProb>
-			<iStartingLocPercent>80</iStartingLocPercent>
+			<!-- advc.108b: was 80 -->
+			<iStartingLocPercent>85</iStartingLocPercent>
 			<!-- advc.250c: was 80 -->
 			<iAdvancedStartPointsMod>100</iAdvancedStartPointsMod>
 			<iGold>0</iGold>
@@ -955,7 +961,8 @@
 			<Help>TXT_KEY_HANDICAP_DEITY_HELP</Help>
 			<iFreeWinsVsBarbs>0</iFreeWinsVsBarbs>
 			<iAnimalAttackProb>90</iAnimalAttackProb>
-			<iStartingLocPercent>90</iStartingLocPercent>
+			<!-- advc.108b: was 90 -->
+			<iStartingLocPercent>95</iStartingLocPercent>
 			<!-- advc.250c: was 75 -->
 			<iAdvancedStartPointsMod>100</iAdvancedStartPointsMod>
 			<iGold>0</iGold>

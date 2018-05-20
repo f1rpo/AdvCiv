@@ -384,11 +384,21 @@
 <!-- advc.008c: Info about Alt key added. -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_INTERFACE_39</Tag>
-	<English>To view combat odds, hold down the right mouse button on the target tile. By also holding down [ALT], you can view combat odds even when not at war.</English>
+	<English>To view combat odds, hold down the right mouse button on the target tile. By holding down [ALT], you can view combat odds even when not at war.</English>
 	<French>Pour conna&#238;tre vos chances en cas de combat, maintenez le bouton droit de la souris enfonc&#233; sur la case vis&#233;e.</French>
-	<German>Um die Kampfchancen Ihrer Einheit zu sehen, halten Sie die rechte Maustaste über dem Zielfeld gedrückt. Wenn Sie außerdem [ALT] gedrückt halten, werden die Kampfchancen auch dann angezeigt, wenn Sie nicht im Krieg sind.</German>
+	<German>Um die Kampfchancen Ihrer Einheit zu sehen, halten Sie die rechte Maustaste über dem Zielfeld gedrückt. Wenn Sie [ALT] gedrückt halten, werden die Kampfchancen auch dann angezeigt, wenn Sie nicht im Krieg sind.</German>
 	<Italian>Per visualizzare le probabilit&#224; di vittoria di uno scontro, tieni premuto il pulsante destro del mouse su una casella bersaglio.</Italian>
 	<Spanish>Mantener el cursor encima de la casilla objetivo para ver las probabilidades del combate.</Spanish>
+</TEXT>
+
+<!-- advc.008c: "take damage" instead of "get damage" -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_61</Tag>
+	<English>Your Fighters can intercept multiple enemy planes per turn, but become less effective at it as they take damage, so take care to repair your defensive planes.</English>
+	<French>Vos chasseurs peuvent intercepter plusieurs avions ennemis par tour, mais sont moins efficaces quand ils sont endommag&#233;s. Pensez donc bien &#224; r&#233;parer vos avions de d&#233;fense.</French>
+	<German>Ihre J&#228;ger k&#246;nnen in jeder Runde mehrere feindliche Lufteinheiten abfangen, Ihre Schlagkraft sinkt allerdings, wenn sie besch&#228;digt werden. Sie sollten Ihre defensiven Lufteinheiten daher reparieren.</German>
+	<Italian>I tuoi caccia possono intercettare pi&#249; aerei per turno, ma diventano meno efficaci se subiscono danni, perci&#242; premurati di riparare i tuoi velivoli difensivi.</Italian>
+	<Spanish>Tus cazas pueden interceptar varios aviones por turno, pero se vuelven menos eficaces a medida que sufren da&#241;os, por lo que debes preocuparte de reparar tus aviones defensivos.</Spanish>
 </TEXT>
 
 </Civ4GameText>

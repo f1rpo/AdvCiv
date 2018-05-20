@@ -2007,7 +2007,15 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 	}
 
 	iRange = startingPlotRange();
-	for(int iPass = 0; iPass < GC.getMapINLINE().maxPlotDistance(); iPass++)
+	/*  <advc.140> Cut and pasted from CvMap::maxPlotDistance. I've changed that
+		function, but I think the original formula might be needed here.
+		(I'm not sure I understand the purpose of this outer loop.) */
+	CvMap const& m = GC.getMapINLINE();
+	int iMaxPlotDist = std::max(1, ::plotDistance(0, 0, ((m.isWrapXINLINE()) ?
+			(m.getGridWidthINLINE() / 2) : (m.getGridWidthINLINE() - 1)),
+			((m.isWrapYINLINE()) ? (m.getGridHeightINLINE() / 2) :
+			(m.getGridHeightINLINE() - 1))));
+	for(int iPass = 0; iPass < iMaxPlotDist; iPass++) // </advc.140>
 	{
 		CvPlot *pBestPlot = NULL;
 		int iBestValue = 0;
@@ -3296,7 +3304,16 @@ bool CvPlayer::isBarbarian() const
 	return (getID() == BARBARIAN_PLAYER);
 }
 
-static bool concealUnknownCivs() { return GC.getGameINLINE().getActiveTeam() != NO_TEAM && gDLL->getChtLvl() == 0 && !gDLL->GetWorldBuilderMode(); } // K-Mod
+// K-Mod
+static bool concealUnknownCivs() {
+
+	CvGame const& g = GC.getGameINLINE();
+	return g.getActiveTeam() != NO_TEAM &&
+			//gDLL->getChtLvl() == 0
+			// advc.135c: Replacing the above (which doesn't work in multiplayer)
+			!g.isDebugMode() &&
+			!gDLL->GetWorldBuilderMode();
+} 
 
 const wchar* CvPlayer::getName(uint uiForm) const
 {
@@ -6043,9 +6060,8 @@ bool CvPlayer::canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) 
 			GC.getGameINLINE().getCurrentEra() < 2);
 	// No free unit from Spy when hut guarded
 	if(!goody.isBad() && (goody.getUnitClassType() != NO_UNITCLASS ||
-			goody.getMinBarbarians() > 0) && pPlot->getCenterUnit() != NULL &&
-			pPlot->getCenterUnit()->isEnemy(getTeam()) && pUnit != NULL &&
-			pUnit->isSpy())
+		goody.getMinBarbarians() > 0) && pPlot->isVisibleEnemyUnit(getID()) &&
+			pUnit != NULL && pUnit->isSpy())
 		return false;
 	if (goody.getUnitClassType() != NO_UNITCLASS)
 	{
@@ -24366,14 +24382,52 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption, std::vector
 					}
 
 					if (bShowIndicator)
-					{
-						CvUnit* pUnit = pLoopPlot->getBestDefender(NO_PLAYER);
+					{	/*  <advc.004z> Don't show a defender when we need
+							!bIsMilitary */
+						CvUnit* pUnit = NULL;
+						if(eOption == SHOW_PLAYER_DOMESTICS) {
+							int const len = 12;
+							UnitAITypes priorityList[len] = {
+								UNITAI_GENERAL, UNITAI_ARTIST, UNITAI_ENGINEER,
+								UNITAI_MERCHANT, UNITAI_GREAT_SPY, UNITAI_PROPHET,
+								UNITAI_SCIENTIST, UNITAI_SETTLE, UNITAI_SPY,
+								UNITAI_MISSIONARY, UNITAI_WORKER, UNITAI_WORKER_SEA
+							};
+							PlayerTypes eActivePl = GC.getGameINLINE().getActivePlayer();
+							TeamTypes eActiveT = GC.getGameINLINE().getActiveTeam();
+							FAssert(eActivePl != NO_PLAYER);
+							for(int j = 0; j < len; j++) {
+								// Use unit owner as tiebreaker
+								for(int k = 0; k < 3; k++) {
+									pUnit = pLoopPlot->plotCheck(PUF_isUnitAIType,
+											priorityList[j], -1,
+											(k == 0 ? eActivePl : NO_PLAYER),
+											(k == 1 ? eActiveT : NO_TEAM),
+											PUF_isVisibleDebug, eActivePl, -1);
+									if(pUnit != NULL)
+										break;
+								}
+								if(pUnit != NULL)
+									break;
+							}
+							if(pUnit == NULL) {
+								pUnit = pLoopPlot->plotCheck(PUF_cannotDefend,
+										-1, -1, NO_PLAYER, NO_TEAM,
+										PUF_isVisibleDebug, eActivePl, -1);
+							}
+						}
+						else // </advc.004z>
+							pUnit = pLoopPlot->getBestDefender(NO_PLAYER);
 						if (pUnit != NULL)
 						{
 							PlayerColorTypes eUnitColor = GET_PLAYER(pUnit->getVisualOwner()).getPlayerColor();
 							const NiColorA& kColor = GC.getColorInfo((ColorTypes) GC.getPlayerColorInfo(eUnitColor).getColorTypePrimary()).getColor();
 
 							szBuffer.clear();
+						/*  advc.007 (fixme): In Debug mode, if Ctrl, Shift or Alt
+							is held down while switching eOption,
+							kIndicator.m_strHelpText is going to show debug info,
+							which is unexpected. */
 							GAMETEXT.setPlotListHelp(szBuffer, pLoopPlot, true, true);
 
 							CvPlotIndicatorData kIndicator;

@@ -1592,7 +1592,7 @@ void CvMap::calculateReprAreas() {
 			}
 		}
 		if(++loopCounter > 10) {
-			FAssert(loopCounter <= 10); // advc.test
+			FAssert(loopCounter <= 10);
 			/*  Will have to write a faster algorithm then, based on the BtS code at
 				the beginning of this function. Would also make it easier to set the
 				lakes. */

@@ -2395,7 +2395,7 @@ int Risk::preEvaluate() {
 	for(size_t i = 0; i < properCivs.size(); i++) {
 		PlayerTypes const vId = properCivs[i];
 		CvPlayerAI const& vassal = GET_PLAYER(vId);
-		if(vId == weId || vassal.getMasterTeam() != agentId)
+		if(TEAMID(vId) == TEAMID(weId) || vassal.getMasterTeam() != agentId)
 			continue;
 		// OK to peek into our vassal's cache
 		WarAndPeaceCache const& vassalCache = vassal.warAndPeaceAI().getCache();
@@ -3403,12 +3403,14 @@ void TacticalSituation::evalEngagement() {
 	}
 	int ourEvac = evacPop(weId, theyId);
 	int theirEvac = evacPop(theyId, weId);
-	/*  If a human is involved or if it's our turn, then we shouldn't worry too much
-		about our units being exposed - humans may well have already made all
-		attacks against vulnerable units before contacting us. If it's our turn,
-		it's still the beginning of the turn, so we can probably save our units. */
+	/*  If a human is involved or if it's our turn, then we shouldn't worry too
+		much about our units being exposed - humans may well have already made
+		all attacks against vulnerable units before contacting us. If it's our
+		turn, it's still the beginning of the turn, so we can probably save
+		our units. */
 	double initiativeFactor = 0.25; // Low if they have the initiative
-	if(GC.getGameINLINE().getActivePlayer() == weId || we->isHuman() || they->isHuman())
+	if(gDLL->isDiplomacy() || // I.e. we're negotiating with a human
+			we->isHuman() || they->isHuman())
 		initiativeFactor = 0.5;
 	double uPlus = (4.0 * (initiativeFactor * theirExposed -
 			(1 - initiativeFactor) * ourExposed) +

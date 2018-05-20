@@ -712,6 +712,8 @@ public:
 	inline int getCITY_RADIUS_DECAY() { return m_iCITY_RADIUS_DECAY; }
 	// advc.005f:
 	inline int getENABLE_005F() { return m_iENABLE_005F; }
+	// advc.007:
+	inline int getPER_PLAYER_MESSAGE_CONTROL_LOG() { return m_iPER_PLAYER_MESSAGE_CONTROL_LOG; }
 	int getMOVE_DENOMINATOR();
 	int getNUM_UNIT_PREREQ_OR_BONUSES();
 	int getNUM_BUILDING_PREREQ_OR_BONUSES();
@@ -1171,6 +1173,7 @@ protected:
 	int m_iDIPLOMACY_VALUE_REMAINDER; // advc.003b
 	int m_iCITY_RADIUS_DECAY; // advc.099b
 	int m_iENABLE_005F; // advc.005f
+	int m_iPER_PLAYER_MESSAGE_CONTROL_LOG; // advc.007
 	int m_iMOVE_DENOMINATOR;
 	int m_iNUM_UNIT_PREREQ_OR_BONUSES;
 	int m_iNUM_BUILDING_PREREQ_OR_BONUSES;

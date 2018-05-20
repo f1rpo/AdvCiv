@@ -3132,14 +3132,15 @@
 		<Italian>Gioca ora</Italian>
 		<Spanish>Jugar ya</Spanish>
 	</TEXT>
-	<TEXT>
+	<!-- Don't gray this out after all: -->
+	<!--TEXT>
 		<Tag>TXT_KEY_MAIN_MENU_SCENARIO</Tag>
 		<English>[COLOR_PLAYER_GRAY]Play Scenario[COLOR_REVERT]</English>
 		<French>[COLOR_PLAYER_GRAY]Jouer un sc&#233;nario[COLOR_REVERT]</French>
 		<German>[COLOR_PLAYER_GRAY]Szenario spielen[COLOR_REVERT]</German>
 		<Italian>[COLOR_PLAYER_GRAY]Gioca uno scenario[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_PLAYER_GRAY]Jugar un escenario[COLOR_REVERT]</Spanish>
-	</TEXT>
+	</TEXT-->
 	<TEXT>
 		<Tag>TXT_KEY_MAIN_MENU_UPDATES</Tag>
 		<English>[COLOR_PLAYER_GRAY]Check for updates[COLOR_REVERT]</English>
@@ -3433,6 +3434,17 @@
 		<German>Die %s1_institution-Mitglieder haben auf Vorschlag von %s2_TeamName mit %d3 von %d4 Stimmen folgenden Beschluss gefasst: %s5_resolution</German>
 		<Italian>[NUM1:Il:Le] %s1_institution [NUM1:ha:hanno] approvato la seguente risoluzione proposta da %s2_TeamName con %d3 su %d4 voti: %s5_resolution</Italian>
 		<Spanish>[NUM1:El:Las] %s1_institution [NUM1:ha:han] aprobado la siguiente resolución propuesta por %s2_TeamName con %d3 de %d4 votos: %s5_resolution</Spanish>
+	</TEXT>
+
+	<!-- advc.004z: Originally in CIV4GameText_Misc1.xml. Romanic translations
+		 based on TXT_KEY_GLOBELAYER_UNITS_ENEMYMILITARY. -->
+	<TEXT>
+		<Tag>TXT_KEY_GLOBELAYER_UNITS_DOMESTICS</Tag>
+		<English>Non-Military</English>
+		<French>Unités non militaires</French>
+		<German>Zivilisten</German>
+		<Italian>Eserciti non militari</Italian>
+		<Spanish>Ej&#233;rcitos no militares</Spanish>
 	</TEXT>
 	
 </Civ4GameText>

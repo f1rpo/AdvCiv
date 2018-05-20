@@ -80,5 +80,17 @@
 		<DefineName>ENABLE_DEBUG_TOOLS_MULTIPLAYER</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
+	
+<!-- [advc.007] If set to 1, the RandLog is named MPLogX.log,
+		 where X is the ID of the active player. That is, multiple log files 
+		 are created when playing a Direct IP test game on a single PC.
+		 These logs will have to be deleted manually in between tests.
+		 If set to 0, only one MPLog is created (and automatically deleted
+		 when a game is started or loaded), and I think whichever
+		 Windows process reserves that file first gets to write to it. -->
+	<Define>
+		<DefineName>PER_PLAYER_MESSAGE_CONTROL_LOG</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
 
 </Civ4Defines>

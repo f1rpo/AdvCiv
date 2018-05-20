@@ -582,7 +582,8 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit, 
 			szString.append(szTempBuffer);
 		}
 	}
-    if (bAlt && (gDLL->getChtLvl() > 0))
+    if (bAlt && //(gDLL->getChtLvl() > 0))
+			GC.getGameINLINE().isDebugMode()) // advc.135c
     {
 		CvSelectionGroup* eGroup = pUnit->getGroup();
 		if (eGroup != NULL)
@@ -1206,7 +1207,8 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit, 
 			szString.append(pUnit->getUnitInfo().getHelp());
 		}
 
-        if (bShift && (gDLL->getChtLvl() > 0))
+        if (bShift && //(gDLL->getChtLvl() > 0))
+				GC.getGameINLINE().isDebugMode()) // advc.135c
         {
             szTempBuffer.Format(L"\nUnitAI Type = %s.", GC.getUnitAIInfo(pUnit->AI_getUnitAIType()).getDescription());
             szString.append(szTempBuffer);
@@ -1224,7 +1226,9 @@ void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot* pPlot, bo
 	int numPromotionInfos = GC.getNumPromotionInfos();
 	
 	// if cheatmode and ctrl, display grouping info instead
-	if ((gDLL->getChtLvl() > 0) && GC.ctrlKey())
+	if (//(gDLL->getChtLvl() > 0)
+			GC.getGameINLINE().isDebugMode() // advvc.135c
+			&& GC.ctrlKey())
 	{
 		if (pPlot->isVisible(GC.getGameINLINE().getActiveTeam(), true))
 		{
@@ -3744,7 +3748,8 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 	bAlt = GC.altKey();
 	bCtrl = GC.ctrlKey();
 	
-	if (bCtrl && (gDLL->getChtLvl() > 0))
+	if (bCtrl && //(gDLL->getChtLvl() > 0))
+			GC.getGameINLINE().isDebugMode()) // advc.135c
 	{
 		if (bShift && pPlot->headUnitNode() != NULL)
 		{
@@ -3921,14 +3926,18 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 
 			int iWorkBoatsNeeded = pPlotCity->AI_neededSeaWorkers();
 			szString.append(CvWString::format(L"\n\nWorkboats Needed = %d", iWorkBoatsNeeded));
+			/*  <advc.001n> AI_getNumAreaCitySites and AI_getNumAdjacentAreaCitySites
+				call CvPlot::getFoundValue, which may cache its result. Could be
+				a sync problem in multiplayer. */
+			if(!GC.getGameINLINE().isNetworkMultiPlayer()) {
+				int iAreaSiteBestValue = 0;
+				int iNumAreaCitySites = kPlayer.AI_getNumAreaCitySites(pPlot->getArea(), iAreaSiteBestValue);
+				int iOtherSiteBestValue = 0;
+				int iNumOtherCitySites = (pPlot->waterArea() == NULL) ? 0 : kPlayer.AI_getNumAdjacentAreaCitySites(pPlot->waterArea()->getID(), pPlot->getArea(), iOtherSiteBestValue);
 
-			int iAreaSiteBestValue = 0;
-			int iNumAreaCitySites = kPlayer.AI_getNumAreaCitySites(pPlot->getArea(), iAreaSiteBestValue);
-			int iOtherSiteBestValue = 0;
-			int iNumOtherCitySites = (pPlot->waterArea() == NULL) ? 0 : kPlayer.AI_getNumAdjacentAreaCitySites(pPlot->waterArea()->getID(), pPlot->getArea(), iOtherSiteBestValue);
-
-			szString.append(CvWString::format(L"\n\nArea Sites = %d (%d)", iNumAreaCitySites, iAreaSiteBestValue));
-			szString.append(CvWString::format(L"\nOther Sites = %d (%d)", iNumOtherCitySites, iOtherSiteBestValue));
+				szString.append(CvWString::format(L"\n\nArea Sites = %d (%d)", iNumAreaCitySites, iAreaSiteBestValue));
+				szString.append(CvWString::format(L"\nOther Sites = %d (%d)", iNumOtherCitySites, iOtherSiteBestValue));
+			}
 		}
 		else if (pPlot->getOwner() != NO_PLAYER)
 		{
@@ -3985,7 +3994,11 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 
 					if( iPathLength <= 3 && !GET_TEAM(pPlot->getTeam()).isHasTech((TechTypes)iI) )
 					{
-						szString.append(CvWString::format(L"\n%s(%d)=%8d", GC.getTechInfo((TechTypes)iI).getDescription(), iPathLength, kPlayer.AI_techValue((TechTypes)iI, 1, false, true, viBonusClassRevealed, viBonusClassUnrevealed, viBonusClassHave)));
+						szString.append(CvWString::format(L"\n%s(%d)=%8d",
+								GC.getTechInfo((TechTypes)iI).getDescription(),
+								iPathLength, kPlayer.AI_techValue((TechTypes)iI,
+								1, false, true, viBonusClassRevealed,
+								viBonusClassUnrevealed, viBonusClassHave)));
 						szString.append(CvWString::format(L" (bld:%d, ", kPlayer.AI_techBuildingValue((TechTypes)iI, true, bDummy)));
 						int iObs = kPlayer.AI_obsoleteBuildingPenalty((TechTypes)iI, true);
 						if (iObs != 0)
@@ -4035,7 +4048,10 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 			{
 				for (int iI = 0; iI < GC.getNumCivicInfos(); iI++)
 				{
-					szString.append(CvWString::format(L"\n %s = %d", GC.getCivicInfo((CivicTypes)iI).getDescription(), GET_PLAYER(pPlot->getOwner()).AI_civicValue((CivicTypes)iI)));
+					szString.append(CvWString::format(L"\n %s = %d",
+							GC.getCivicInfo((CivicTypes)iI).getDescription(),
+							GET_PLAYER(pPlot->getOwner()).AI_civicValue(
+							(CivicTypes)iI)));
 				}
 			}
 			else if( false && // advc.007: Disabled
@@ -4088,7 +4104,8 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 		}
 		//return; // advc.027: No need to return; only else branches left.
 	}
-	else if (bShift && !bAlt && (gDLL->getChtLvl() > 0))
+	else if (bShift && !bAlt && //(gDLL->getChtLvl() > 0))
+			GC.getGameINLINE().isDebugMode()) // advc.135c
 	{
 		szString.append(GC.getTerrainInfo(pPlot->getTerrainType()).getDescription());
 
@@ -4176,16 +4193,15 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 					szString.append(szTempBuffer);
 				}
 			}
+		} // advc.001n: Might cache FoundValue
+		if(!GC.getGameINLINE().isNetworkMultiPlayer()) {
+			PlayerTypes eActivePlayer = GC.getGameINLINE().getActivePlayer();
+			int iActualFoundValue = pPlot->getFoundValue(eActivePlayer);
+			int iCalcFoundValue = GET_PLAYER(eActivePlayer).AI_foundValue(pPlot->getX_INLINE(), pPlot->getY_INLINE(), -1, false);
+			int iStartingFoundValue = GET_PLAYER(eActivePlayer).AI_foundValue(pPlot->getX_INLINE(), pPlot->getY_INLINE(), -1, true);
+			szTempBuffer.Format(L"\nFound Value: %d, (%d, %d)", iActualFoundValue, iCalcFoundValue, iStartingFoundValue);
+			szString.append(szTempBuffer);
 		}
-
-		PlayerTypes eActivePlayer = GC.getGameINLINE().getActivePlayer();
-		int iActualFoundValue = pPlot->getFoundValue(eActivePlayer);
-		int iCalcFoundValue = GET_PLAYER(eActivePlayer).AI_foundValue(pPlot->getX_INLINE(), pPlot->getY_INLINE(), -1, false);
-		int iStartingFoundValue = GET_PLAYER(eActivePlayer).AI_foundValue(pPlot->getX_INLINE(), pPlot->getY_INLINE(), -1, true);
-
-		szTempBuffer.Format(L"\nFound Value: %d, (%d, %d)", iActualFoundValue, iCalcFoundValue, iStartingFoundValue);
-		szString.append(szTempBuffer);
-
 		CvCity* pWorkingCity = pPlot->getWorkingCity();
 		if (NULL != pWorkingCity)
 		{
@@ -4296,7 +4312,8 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 			}
 		}
 	}
-	else if (!bShift && bAlt && (gDLL->getChtLvl() > 0))
+	else if (!bShift && bAlt && //(gDLL->getChtLvl() > 0))
+			GC.getGameINLINE().isDebugMode()) // advc.135c
 	{
 	    if (pPlot->isOwned())
 	    {
@@ -4366,7 +4383,8 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 					{
 						iBestBuildingValue *= 2*(GC.getNumEraInfos()-1) - kPlayer.getCurrentEra();
 						iBestBuildingValue /= GC.getNumEraInfos()-1;
-					}
+					} // advc.001n: AI_getNumAreaCitySites could cache FoundValue
+					if(!GC.getGameINLINE().isNetworkMultiPlayer())
 					{
 						int iTargetCities = GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getTargetNumCities();
 						int iDummy;
@@ -4593,7 +4611,9 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
             PlayerTypes ePlayer = (PlayerTypes)iI;
 			CvPlayerAI& kPlayer = GET_PLAYER(ePlayer);
 			
-			if (kPlayer.isAlive())
+			if (kPlayer.isAlive()
+					// advc.001n: Might cache FoundValue
+					&& !GC.getGameINLINE().isNetworkMultiPlayer())
             {
 				int iActualFoundValue = pPlot->getFoundValue(ePlayer);
                 int iCalcFoundValue = kPlayer.AI_foundValue(pPlot->getX_INLINE(), pPlot->getY_INLINE(), -1, false);
@@ -4661,7 +4681,8 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
             }
         }
 	}
-	else if (bShift && bAlt && (gDLL->getChtLvl() > 0))
+	else if (bShift && bAlt && //(gDLL->getChtLvl() > 0))
+			GC.getGameINLINE().isDebugMode()) // advc.135c
 	{
 		CvCity*	pCity = pPlot->getWorkingCity();
 		if (pCity != NULL)
@@ -6150,7 +6171,10 @@ void CvGameTextMgr::parseSpecialistHelp(CvWStringBuffer &szHelpString, Specialis
 			szHelpString.append(gDLL->getText("TXT_KEY_SPECIALIST_BIRTH_RATE", kInfo.getGreatPeopleRateChange()));
 
 			// K-Mod
-			if (!bCivilopediaText && gDLL->getChtLvl() > 0 && GC.ctrlKey())
+			if (!bCivilopediaText &&
+					//gDLL->getChtLvl() > 0
+					GC.getGameINLINE().isDebugMode() // advc.135c
+					&& GC.ctrlKey())
 			{
 				szHelpString.append(NEWLINE);
 				szHelpString.append(CvWString::format(L"weight: %d", GET_PLAYER((pCity != NULL) ? pCity->getOwnerINLINE() : GC.getGameINLINE().getActivePlayer()).AI_getGreatPersonWeight((UnitClassTypes)kInfo.getGreatPeopleUnitClass())));
@@ -6159,7 +6183,9 @@ void CvGameTextMgr::parseSpecialistHelp(CvWStringBuffer &szHelpString, Specialis
 		}
 
 // BUG - Specialist Actual Effects - start
-		if (pCity && (GC.altKey() || getBugOptionBOOL("MiscHover__SpecialistActualEffects", false, "BUG_MISC_SPECIALIST_HOVER_ACTUAL_EFFECTS")) && (pCity->getOwnerINLINE() == GC.getGame().getActivePlayer() || gDLL->getChtLvl() > 0))
+		if (pCity && (GC.altKey() || getBugOptionBOOL("MiscHover__SpecialistActualEffects", false, "BUG_MISC_SPECIALIST_HOVER_ACTUAL_EFFECTS")) && (pCity->getOwnerINLINE() == GC.getGame().getActivePlayer() ||
+				//gDLL->getChtLvl() > 0))
+				GC.getGameINLINE().isDebugMode())) // advc.135c
 		{
 			bool bStarted = false;
 			CvWString szStart;
@@ -7364,7 +7390,8 @@ void CvGameTextMgr::setTechHelp(CvWStringBuffer &szBuffer, TechTypes eTech, bool
 	
 	// show debug info if cheat level > 0 and alt down
 	bool bAlt = GC.altKey();
-    if (bAlt && (gDLL->getChtLvl() > 0))
+    if (bAlt && //(gDLL->getChtLvl() > 0))
+			GC.getGameINLINE().isDebugMode()) // advc.135c
     {
 		szBuffer.clear();
 		
@@ -8989,7 +9016,10 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit, bool
 	
 	if (pCity != NULL)
 	{
-		if ((gDLL->getChtLvl() > 0) && GC.ctrlKey())
+		if (
+				//(gDLL->getChtLvl() > 0)
+				GC.getGameINLINE().isDebugMode() // advc.135c
+				&& GC.ctrlKey())
 		{
 			szBuffer.append(NEWLINE);
 			for (int iUnitAI = 0; iUnitAI < NUM_UNITAI_TYPES; iUnitAI++)
@@ -10432,7 +10462,9 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 			else
 			{
 		// BUG - Building Actual Effects (edited and moved by K-Mod) - start
-				if (bActual && (GC.altKey() || getBugOptionBOOL("MiscHover__BuildingActualEffects", false, "BUG_BUILDING_HOVER_ACTUAL_EFFECTS")) && (pCity->getOwnerINLINE() == g.getActivePlayer() || gDLL->getChtLvl() > 0))
+				if (bActual && (GC.altKey() || getBugOptionBOOL("MiscHover__BuildingActualEffects", false, "BUG_BUILDING_HOVER_ACTUAL_EFFECTS")) && (pCity->getOwnerINLINE() == g.getActivePlayer() ||
+						//gDLL->getChtLvl() > 0))
+						GC.getGameINLINE().isDebugMode())) // advc.135c
 				{
 					setBuildingNetEffectsHelp(szBuffer, eBuilding, pCity);
 				}
@@ -10540,7 +10572,10 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 		}
 	} // </advc.004w>
 	// K-Mod. Moved from inside that }, above.
-	if (pCity && gDLL->getChtLvl() > 0 && GC.ctrlKey())
+	if (pCity &&
+			//gDLL->getChtLvl() > 0
+			GC.getGameINLINE().isDebugMode() // advc.135c
+			&& GC.ctrlKey())
 	{
 		int iBuildingValue = pCity->AI_buildingValue(eBuilding, 0, 0, true);
 		szBuffer.append(CvWString::format(L"\nAI Building Value = %d", iBuildingValue));
@@ -11307,12 +11342,16 @@ void CvGameTextMgr::setProjectHelp(CvWStringBuffer &szBuffer, ProjectTypes eProj
 	}
 
 	// K-Mod
-	if (pCity && gDLL->getChtLvl() > 0 && GC.ctrlKey())
+	if (pCity &&
+			//gDLL->getChtLvl() > 0
+			GC.getGameINLINE().isDebugMode() // advc.135c
+			&& GC.ctrlKey())
 	{
 		int iValue = pCity->AI_projectValue(eProject);
 		szBuffer.append(CvWString::format(L"\nProject Value (base) = %d", iValue));
 
-		ProjectTypes eBestProject = ((CvCityAI*)pCity)->AI_bestProject(&iValue);
+		ProjectTypes eBestProject = ((CvCityAI*)pCity)->AI_bestProject(&iValue,
+				true); // advc.001n
 		if (eBestProject == eProject)
 		{
 			szBuffer.append(CvWString::format(SETCOLR L"\n(Best project value (scaled) = %d)" ENDCOLR, TEXT_COLOR("COLOR_LIGHT_GREY"), iValue));
@@ -12619,7 +12658,10 @@ void CvGameTextMgr::setReligionHelpCity(CvWStringBuffer &szBuffer, ReligionTypes
 	}
 
 	// K-Mod
-	if (GC.getGameINLINE().isReligionFounded(eReligion) && pCity && gDLL->getChtLvl() > 0 && GC.ctrlKey())
+	if (GC.getGameINLINE().isReligionFounded(eReligion) && pCity &&
+			//gDLL->getChtLvl() > 0
+			GC.getGameINLINE().isDebugMode() // advc.135c
+			&& GC.ctrlKey())
 	{
 		szBuffer.append(CvWString::format(L"grip: %d", pCity->getReligionGrip(eReligion)));
 		szBuffer.append(NEWLINE);
@@ -15360,7 +15402,9 @@ void CvGameTextMgr::parseLeaderHeadHelp(CvWStringBuffer &szBuffer, PlayerTypes e
 	parsePlayerTraits(szBuffer, eThisPlayer);
 
 	// Some debug info: found-site traits, and AI flavours
-	if (gDLL->getChtLvl() > 0 && GC.altKey())
+	if (//gDLL->getChtLvl() > 0
+			GC.getGameINLINE().isDebugMode() // advc.135c
+			&& GC.altKey())
 	{
 		szBuffer.append(CvWString::format(SETCOLR SEPARATOR NEWLINE, TEXT_COLOR("COLOR_LIGHT_GREY")));
 		CvPlayerAI::CvFoundSettings kFoundSet(kPlayer, false);
@@ -18125,7 +18169,9 @@ void CvGameTextMgr::getPlotHelp(CvPlot* pMouseOverPlot, CvCity* pCity, CvPlot* p
 			if (pMouseOverPlot != NULL)
 			{
 				//if ((pMouseOverPlot == gDLL->getInterfaceIFace()->getGotoPlot()) || bAlt)
-				if (pMouseOverPlot == gDLL->getInterfaceIFace()->getGotoPlot() || (bAlt && gDLL->getChtLvl() == 0)) // K-Mod. (alt does something else in cheat mode)
+				if (pMouseOverPlot == gDLL->getInterfaceIFace()->getGotoPlot() ||
+						(bAlt && //gDLL->getChtLvl() == 0)) // K-Mod. (alt does something else in cheat mode)
+						!GC.getGameINLINE().isDebugMode())) // advc.135c
 				{
 					if (pMouseOverPlot->isActiveVisible(true))
 					{

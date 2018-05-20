@@ -6281,7 +6281,10 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 // Note: many of the values used in this function are arbitrary; but adjusted them all to get closer to having a common scale.
 // The scale before research time is taken into account is roughly 4 = 1 commerce per turn. Afterwards it is arbitrary.
 // (Compared to the original numbers, this is * 1/100 * 7 * 4. 28/100)
-int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech, bool bAsync, const std::vector<int>& viBonusClassRevealed, const std::vector<int>& viBonusClassUnrevealed, const std::vector<int>& viBonusClassHave) const
+int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
+		bool bAsync, const std::vector<int>& viBonusClassRevealed,
+		const std::vector<int>& viBonusClassUnrevealed,
+		const std::vector<int>& viBonusClassHave) const
 {
 	PROFILE_FUNC();
 	FAssert(viBonusClassRevealed.size() == GC.getNumBonusClassInfos());
@@ -6308,7 +6311,9 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech, b
 	int iRandomMax = 0;   // Max random value. (These randomness trackers aren't actually used, and may not even be accurate.)
 	//if (iPathLength <= 1) // Don't include random bonus for follow-on tech values.
 	{ // </k146>
-		iRandomFactor = ((bAsync) ? GC.getASyncRand().get(80*iCityCount, "AI Research ASYNC") : GC.getGameINLINE().getSorenRandNum(80*iCityCount, "AI Research"));
+		iRandomFactor = (bAsync ?
+				GC.getASyncRand().get(80*iCityCount, "AI Research ASYNC") :
+				GC.getGameINLINE().getSorenRandNum(80*iCityCount, "AI Research"));
 		iRandomMax = 80*iCityCount;
 		iValue += iRandomFactor;
 	}
@@ -7613,7 +7618,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech, b
 **** K-Mod, 12/sep/10, Karadoc
 **** Use a random _factor_ at the end.
 ***/
-	iRandomFactor = ((bAsync) ? GC.getASyncRand().get(
+	iRandomFactor = (bAsync ? GC.getASyncRand().get(
 			200, "AI Research factor ASYNC") : // k146: was 100
 			GC.getGameINLINE().getSorenRandNum(
 			200, "AI Research factor")); // k146: was 100
@@ -27114,7 +27119,11 @@ void CvPlayerAI::AI_updateBonusValue(BonusTypes eBonus)
 	if(GC.getGameINLINE().isNetworkMultiPlayer()) {
 		m_aiBonusValue[eBonus] = AI_baseBonusVal(eBonus);
 		m_aiBonusValueTrade[eBonus] = AI_baseBonusVal(eBonus, true);
-	} else { // Reset and update on demand is faster; should be fine in singleplayer.
+	} else { // Reset and update on demand is faster
+	/*  Tbd.: Could lead to undesirable side-effects in singleplayer, and
+		the multiplayer code is perhaps not just slower, but also less
+		accurate. Implement a bConstCache param for AI_baseBonusVal?
+		Would have to add the param to AI_bonusVal and AI_corporationValue too. */
 	// </advc.036>
 		m_aiBonusValue[eBonus] = -1;
 		m_aiBonusValueTrade[eBonus] = -1;

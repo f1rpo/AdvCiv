@@ -101,11 +101,11 @@ bool CvUnitAI::AI_update()
 		{
 			return false;
 		}
-	}
-
-	// advc.128:
-	searchRangeRandPercent = GC.getGame().getSorenRandNum(101, "advc.128");
-
+	} // <advc.128>
+	CvString const msg = CvString::format("advc.128 (%d,%d)", getX_INLINE(),
+			getY_INLINE());
+	searchRangeRandPercent = GC.getGame().getSorenRandNum(101, msg.c_str());
+	// </advc.128>
 	if (getDomainType() == DOMAIN_LAND)
 	{
 		if (plot()->isWater() && !canMoveAllTerrain())

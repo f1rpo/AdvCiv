@@ -555,7 +555,7 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 		double pr = std::sqrt((double)-u) * 0.03; // 30% at u=-100
 		report->log("Probability for peace negotiation: %d percent",
 				::round(pr * 100));
-		if(::bernoulliSuccess(1 - pr)) {
+		if(::bernoulliSuccess(1 - pr, "advc.104 (peace)")) {
 			report->log("Peace negotiation randomly skipped");
 			return true; // Don't consider capitulation w/o having tried peace negot.
 		}
@@ -632,7 +632,7 @@ bool WarAndPeaceAI::Team::considerCapitulation(TeamTypes masterId, int ourWarUti
 	prSkip = ::dRange(prSkip, 0.0, 0.87);
 	report->log("%d percent probability to delay capitulation based on master's "
 			"reluctance to peace (%d)", ::round(100 * prSkip), masterReluctancePeace);
-	if(::bernoulliSuccess(prSkip)) {
+	if(::bernoulliSuccess(prSkip, "advc.104 (cap)")) {
 		if(prSkip < 1)
 			report->log("No capitulation this turn");
 		return true;
@@ -798,7 +798,7 @@ bool WarAndPeaceAI::Team::considerPlanTypeChange(TeamTypes targetId, int u) {
 	report->log("Probability of switching: %d percent", ::round(pr * 100));
 	if(pr <= 0)
 		return true;
-	if(::bernoulliSuccess(pr)) {
+	if(::bernoulliSuccess(pr, "advc.104 (sw plan)")) {
 		report->log("Switching to war plan \"%s\"", report->warPlanName(altWarPlan));
 		if(!inBackgr) {
 			agent.AI_setWarPlan(targetId, altWarPlan);
@@ -852,7 +852,7 @@ bool WarAndPeaceAI::Team::considerAbandonPreparations(TeamTypes targetId, int u,
 	double pr = std::min(1.0, -u * warRand / 7500.0);
 	report->log("Abandoning preparations with probability %d percent (warRand=%d)",
 			::round(pr * 100), warRand);
-	if(::bernoulliSuccess(pr)) {
+	if(::bernoulliSuccess(pr, "advc.104 (aband)")) {
 		report->log("Preparations abandoned");
 		if(!inBackgr) {
 			agent.AI_setWarPlan(targetId, NO_WARPLAN);
@@ -900,7 +900,7 @@ bool WarAndPeaceAI::Team::considerSwitchTarget(TeamTypes targetId, int u,
 		pr += 1.8;
 	report->log("Switching target for war preparations to %s (u=%d) with pr=%d percent",
 			report->teamName(bestAltTargetId), bestUtility, ::round(100 * pr));
-	if(!::bernoulliSuccess(pr)) {
+	if(!::bernoulliSuccess(pr, "advc.104 (sw target)")) {
 		report->log("Target not switched");
 		return true;
 	}
@@ -1189,7 +1189,7 @@ void WarAndPeaceAI::Team::scheme() {
 				WARPLAN_PREPARING_LIMITED);
 		report->log("Drive for war preparations against %s: %d percent",
 				report->teamName(targetId), ::round(100 * drive));
-		if(::bernoulliSuccess(drive)) {
+		if(::bernoulliSuccess(drive, "advc.104 (drive)")) {
 			if(!inBackgr) {
 				agent.AI_setWarPlan(targetId, wp);
 				showWarPrepStartedMsg(targetId);
@@ -2075,7 +2075,7 @@ bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 					the probability. */
 				double pr = (8.5 - era) / cr;
 				// Excludes Gandhi (cr=10000 => pr=0.001)
-				if(pr > 0.005 && ::bernoulliSuccess(pr) &&
+				if(pr > 0.005 && ::bernoulliSuccess(pr, "advc.104 (trib)") &&
 						we.demandTribute(humanId, i))
 				return true;
 			}
@@ -2087,7 +2087,7 @@ bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 		if(cr > 0) {
 			// test in askHelp halves this probability
 			double pr = (5.5 - era) / cr;
-			if(::bernoulliSuccess(pr) && we.askHelp(humanId))
+			if(::bernoulliSuccess(pr, "advc.104 (help)") && we.askHelp(humanId))
 				return true;
 		}
 		else FAssert(cr > 0);
@@ -2098,7 +2098,8 @@ bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 		if(crReligion > 0) {
 			// Doesn't get reduced further in contactReligion
 			double pr = (8.0 - era) / crReligion;
-			if(::bernoulliSuccess(pr) && we.contactReligion(humanId))
+			if(::bernoulliSuccess(pr, "advc.104 (relig)") &&
+					we.contactReligion(humanId))
 				return true;
 		}
 		else FAssert(crReligion > 0);
@@ -2106,7 +2107,8 @@ bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 		if(crCivics > 0) {
 			double pr = 2.5 / crCivics;
 			// Exclude Saladin (cr=10000)
-			if(pr > 0.001 && ::bernoulliSuccess(pr) && we.contactCivics(humanId))
+			if(pr > 0.001 && ::bernoulliSuccess(pr, "advc.104 (civic)") &&
+					we.contactCivics(humanId))
 				return true;
 		}
 		else FAssert(crCivics > 0);
@@ -2137,7 +2139,7 @@ bool WarAndPeaceAI::Civ::considerGiftRequest(PlayerTypes theyId,
 	/*  Accept probabilistically regardless of war utility (so long as we're
 		not planning war yet, which the caller ensures).
 		Probability to accept is 45% for Gandhi, 0% for Tokugawa. */
-	if(::bernoulliSuccess(0.5 - we.prDenyHelp()))
+	if(::bernoulliSuccess(0.5 - we.prDenyHelp(), "advc.104 (gift)"))
 		return true;
 	WarAndPeaceReport silentReport(true);
 	WarEvalParameters params(we.getTeam(), TEAMID(theyId), silentReport);

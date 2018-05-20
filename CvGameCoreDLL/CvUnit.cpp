@@ -2947,12 +2947,10 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 					} // <advc.315>
 					else if(bAttack && ( // <advc.315b>
 							(m_pUnitInfo->isOnlyAttackBarbarians() &&
-							pPlot->getCenterUnit() != NULL &&
-							!pPlot->getCenterUnit()->isBarbarian()) ||
+							pPlot->plotCheck(PUF_isPlayer, BARBARIAN_PLAYER) == NULL) ||
 							// </advc.315b> <advc.315a>
 							(m_pUnitInfo->isOnlyAttackAnimals() &&
-							pPlot->getCenterUnit() != NULL &&
-							!pPlot->getCenterUnit()->isAnimal())))
+							pPlot->plotCheck(PUF_isAnimal) == NULL)))
 							// </advc.315a>
 						return false; // </advc.315>
 				}
@@ -11957,7 +11955,8 @@ void CvUnit::setCombatUnit(CvUnit* pCombatUnit, bool bAttacking)
 		{
 			if (GC.getLogging())
 			{
-				if (gDLL->getChtLvl() > 0)
+				if (//gDLL->getChtLvl() > 0)
+						GC.getGameINLINE().isDebugMode()) // advc.135c
 				{
 					// Log info about this combat...
 					char szOut[1024];

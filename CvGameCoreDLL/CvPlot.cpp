@@ -3634,8 +3634,10 @@ bool CvPlot::isCivUnitNearby(int radius) const {
 		for(int deltaY = -(radius); deltaY <= radius; deltaY++) {
 			CvPlot* plot = plotXY(getX_INLINE(), getY_INLINE(), deltaX, deltaY);
 			if(plot != NULL && plot->isUnit()) {
-				CvUnit* anyUnit = plot->getCenterUnit();
-				if(anyUnit == NULL || anyUnit->getOwner() != BARBARIAN_PLAYER)
+				CvUnit* anyUnit = plot->plotCheck(PUF_isVisible, BARBARIAN_PLAYER);
+				if(anyUnit == NULL)
+					continue;
+				if(anyUnit->getOwner() != BARBARIAN_PLAYER)
 					return true;
 			}
 		}

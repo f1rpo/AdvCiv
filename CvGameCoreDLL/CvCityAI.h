@@ -43,7 +43,8 @@ public:
 	int AI_buildingValueThreshold(BuildingTypes eBuilding, int iFocusFlags = 0, int iThreshold = 0) const; */
 	int AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags = 0, int iThreshold = 0, bool bConstCache = false, bool bAllowRecursion = true) const;
 
-	ProjectTypes AI_bestProject(int* piBestValue = 0);
+	ProjectTypes AI_bestProject(int* piBestValue = 0,
+			bool bAsync = false); // advc.001n
 	int AI_projectValue(ProjectTypes eProject);
 
 	// K-Mod note, I've deleted the single-argument version of the following two functions. They were completely superfluous.

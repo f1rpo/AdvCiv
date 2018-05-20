@@ -806,7 +806,7 @@ class PythonRandom:
 				#AIAndy - seed Python random with MapRand
 				gc = CyGlobalContext()
 				self.mapRand = gc.getGame().getMapRand()
-				seedValue = self.mapRand.get(65535, "Seeding mapRand - FairWeather.py")
+				seedValue = self.mapRand.get(65535, "Seeding mapRand - PerfectMongoose.py")
 				seed(seedValue)
 				self.seedString = "Random seed (Using getMapRand) for this map is %(s)20d" % {"s" :seedValue}
 			else:
@@ -819,7 +819,7 @@ class PythonRandom:
 		else:
 			gc = CyGlobalContext()
 			self.mapRand = gc.getGame().getMapRand()
-			seedValue = self.mapRand.get(65535, "Seeding mapRand - FairWeather.py")
+			seedValue = self.mapRand.get(65535, "Seeding mapRand - PerfectMongoose.py")
 			self.mapRand.init(seedValue)
 			self.seedString = "Random seed (Using getMapRand) for this map is %(s)20d" % {"s" :seedValue}
 
@@ -830,7 +830,7 @@ class PythonRandom:
 		else:
 			#This formula is identical to the getFloat function in CvRandom. It
 			#is not exposed to Python so I have to recreate it.
-			fResult = float(self.mapRand.get(65535, "Getting float -FairWeather.py")) / float(65535)
+			fResult = float(self.mapRand.get(65535, "Getting float -PerfectMongoose.py")) / float(65535)
 			return fResult
 
 
@@ -843,7 +843,7 @@ class PythonRandom:
 			return randint(rMin, rMax)
 		else:
 			#mapRand.get() is not inclusive, so we must make it so
-			return rMin + self.mapRand.get(rMax + 1 - rMin, "Getting a randint - FairWeather.py")
+			return rMin + self.mapRand.get(rMax + 1 - rMin, "Getting a randint - PerfectMongoose.py")
 
 
 PRand = PythonRandom()
@@ -4561,8 +4561,11 @@ class StartingPlotFinder:
 			#accurately
 			oldWorldValuePerPlayer = oldWorldValue / len(shuffledPlayers)
 			#Record the ideal number of players for each continent
+			# <advc.021b> assert and max added
+			assert oldWorldValuePerPlayer > 0
 			for startingArea in self.startingAreaList:
-				startingArea.idealNumberOfPlayers = int(round(float(startingArea.rawValue) / float(oldWorldValuePerPlayer)))
+				startingArea.idealNumberOfPlayers = int(round(float(startingArea.rawValue) / float(max(1, oldWorldValuePerPlayer))))
+			# </advc.021b>
 			#Now we want best first
 			self.startingAreaList.reverse()
 			print "number of starting areas is %(s)3d" % {"s":len(self.startingAreaList)}
@@ -4627,7 +4630,8 @@ class StartingPlotFinder:
 			# advc.021b: I'm also disabling the difficulty-based bonuses:
 			#self.addHandicapBonus()
 		except Exception, e:
-			errorPopUp("PerfectWorld's starting plot finder has failed due to a rarely occuring bug, and this map likely has unfair starting locations. You may wish to quit this game and generate a new map.")
+			# advc.021b: Removed "due to a rarely occurring bug" - it's not that rare. Added info about the exception. (Although, for debugging, it would be better to change 'Exception' to a an unlikely type like 'ImportError' and consult PythonErr.log after generating the map. This reveals the origin of the exception.)
+			errorPopUp("PerfectWorld's starting plot finder has failed; this map likely has unfair starting locations. You may wish to quit this game and generate a new map." + "\n\nAn exception of type " + e.__class__.__name__ + " occurred. Arguments:\n" + str(e.args))
 			raise Exception, e
 
 
@@ -5065,8 +5069,12 @@ class StartingArea:
 	def CalculatePlotList(self):
 		gc = CyGlobalContext()
 		gameMap = CyMap()
-		# advc.021b:
-		activePl = gc.getPlayer(gc.getGame().getActivePlayer())
+		# <advc.021b> Can't just use ActivePlayer b/c of networked multiplayer
+		humanId = -1
+		for i in range(gc.getMAX_CIV_PLAYERS()):
+			if gc.getPlayer(i).isAlive() and gc.getPlayer(i).isHuman():
+				humanId = i
+				break # </advc.021b>
 		for y in range(mc.height):
 			for x in range(mc.width):
 				plot = gameMap.plot(x, y)
@@ -5078,8 +5086,9 @@ class StartingArea:
 					if plot.area().getNumTiles() - plot.getLatitude() < 25 or plot.getLatitude() > 55:
 						continue # </advc.021b>
 					food, value = sf.getCityPotentialValue(x, y)
-					# advc.021b:
-					value = activePl.AI_foundValue(x, y, -1, True)
+					# <advc.021b>
+					if humanId >= 0: # getFoundValue isn't available yet (cache not initialized)
+						value = gc.getPlayer(humanId).AI_foundValue(x, y, -1, True) # </advc.021b>
 					if value > 0:
 						startPlot = StartPlot(x, y, value)
 						if plot.isWater():
@@ -5101,7 +5110,7 @@ class StartingArea:
 			seaLevelAdj = 0.5
 		elif seaChg > 0:
 			seaLevelAdj = -0.5
-		cull = max(0, int(round(len(self.plotList) * (0.22  + (gameMap.getWorldSize() - newWorldSubtr + seaLevelAdj) / (2.0 * civs)))))
+		cull = min(int(round(0.7 * len(self.plotList))), max(0, int(round(len(self.plotList) * (0.22  + (gameMap.getWorldSize() - newWorldSubtr + seaLevelAdj) / (2.0 * civs))))))
 		# </advc.021b>
 		for i in range(cull):
 			del self.plotList[0]
@@ -5200,6 +5209,7 @@ class StartingArea:
 			#Find biggest nearestStart and place a start there
 			distanceList.sort(lambda x, y:cmp(x.nearestStart, y.nearestStart))
 			distanceList.reverse()
+			# advc.021b (comment): This causes an exception when no suitable plot is found. Caught by SetStartingPlots.
 			distanceList[0].vacant = False
 		self.CalculateStartingPlotValues()
 		#Now place all starting positions
@@ -6086,6 +6096,8 @@ def addBonuses():
 
 def assignStartingPlots():
 	sf.SetStartingPlots()
+	# advc.021b: Let CvGame::asignStartingPlots shuffle plots around based on difficulty
+	CyPythonMgr().allowDefaultImpl()
 
 
 def beforeInit():

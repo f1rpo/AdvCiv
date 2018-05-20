@@ -2140,16 +2140,13 @@ void CvGame::enterWorldBuilder()
 	FAssert(canDoControl(CONTROL_WORLD_BUILDER));
 	if (GC.getInitCore().getAdminPassword().empty())
 	{	// <advc.315c>
-		/*  setChtLvl doesn't work in multiplayer; need to make the EXE believe
-			that we're in singleplayer. */
+		/*  In multiplayer, setWorldBuilder apparently checks ChtLvl>0 and
+			setChtLvl doesn't work. Need to make the EXE believe that we're
+			in singleplayer. */
 		feignSP = true;
-		/*  If the player was able to access the button (or Ctrl+W), then cheats
-			should be enabled. */
 		gDLL->setChtLvl(1); // </advc.315c>
 		gDLL->getInterfaceIFace()->setWorldBuilder(!(gDLL->GetWorldBuilderMode()));
-		/*  advc.315c: This will also set ChtLvl back to 0 in multiplayer.
-			Can't be helped; can't permanently feign singleplayer. */
-		feignSP = false;
+		feignSP = false; // advc.315c
 	}
 	else
 	{
