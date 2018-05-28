@@ -20248,7 +20248,8 @@
 			<Domain>DOMAIN_SEA</Domain>
 			<DefaultUnitAI>UNITAI_RESERVE_SEA</DefaultUnitAI>
 			<Invisible>INVISIBLE_STEALTH</Invisible>
-			<SeeInvisible>INVISIBLE_STEALTH</SeeInvisible>
+			<!-- advc.906: was just INVISIBLE_STEALTH -->
+			<SeeInvisible>INVISIBLE_SUBMARINE,INVISIBLE_STEALTH</SeeInvisible>
 			<Description>TXT_KEY_UNIT_STEALTH_DESTROYER</Description>
 			<Civilopedia>TXT_KEY_UNIT_STEALTH_DESTROYER_PEDIA</Civilopedia>
 			<Strategy>TXT_KEY_UNIT_STEALTH_DESTROYER_STRATEGY</Strategy>

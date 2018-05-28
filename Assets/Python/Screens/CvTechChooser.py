@@ -30,9 +30,11 @@ ClockOpt = BugCore.game.NJAGC
 import BugUtil
 
 PREF_ICON_SIZE = 24
-PREF_ICON_TOP = 168
-PREF_ICON_LEFT = 10
-
+#PREF_ICON_TOP = 168
+# <advc.004a>
+PREF_ICON_BOTTOM = 738
+PREF_ICON_LEFT = 40 # was a bit farther left (10)
+# </advc.004a>
 FLAVORS = [ TechPrefs.FLAVOR_PRODUCTION, TechPrefs.FLAVOR_GOLD, TechPrefs.FLAVOR_SCIENCE,
 			TechPrefs.FLAVOR_CULTURE, TechPrefs.FLAVOR_RELIGION ]
 UNIT_CLASSES = [ "UNITCLASS_ENGINEER", "UNITCLASS_MERCHANT", "UNITCLASS_SCIENTIST",
@@ -58,10 +60,42 @@ def resetTechPrefs(args=[]):
 
 def getAllTechPrefsHover(widgetType, iData1, iData2, bOption):
 	#return buildTechPrefsHover("TXT_KEY_BUG_TECH_PREFS_ALL", CvScreensInterface.techChooser.pPrefs.getAllFlavorTechs(iData1))
-	return buildTechPrefsHover("TXT_KEY_BUG_TECH_PREFS_ALL", CvScreensInterface.techChooser.pPrefs.getRemainingFlavorTechs(iData1)) # K-Mod
+	# <advc.004a> Use slightly different text and name the GP
+	msg = BugUtil.getPlainText("TXT_KEY_ADVC_TECH_PREFS_ALL")
+	iUnitClass = gc.getInfoTypeForString(UNIT_CLASSES[iData1])
+	pUnitInfo = gc.getUnitInfo(gc.getUnitClassInfo(iUnitClass).getDefaultUnitIndex())
+	msg += " (" + pUnitInfo.getDescription() + ")" # </advc.004a>
+	return buildTechPrefsHover(msg, CvScreensInterface.techChooser.pPrefs.getRemainingFlavorTechs(FLAVORS[iData1])) # K-Mod
 
 def getCurrentTechPrefsHover(widgetType, iData1, iData2, bOption):
-	return buildTechPrefsHover("TXT_KEY_BUG_TECH_PREFS_CURRENT", CvScreensInterface.techChooser.pPrefs.getCurrentFlavorTechs(iData1))
+	#return buildTechPrefsHover("TXT_KEY_BUG_TECH_PREFS_CURRENT", CvScreensInterface.techChooser.pPrefs.getCurrentFlavorTechs(iData1))
+	# <advc.004a> CurrentFlavorTechs isn't useful info. Instead, show all techs that have higher priority than iData2 (the current discover tech) and don't require iData2.
+	sTechs = set()
+	if iData1 >= 0 and iData2 >= 0:
+		bCurrentTechFound = False
+		for pTech in CvScreensInterface.techChooser.pPrefs.getRemainingFlavorTechs(iData1):
+			if pTech.getID() == iData2:
+				bCurrentTechFound = True
+				break # RemainingFlavorTechs is sorted by flavor
+			if pTech.getInfo().getEra() <= gc.getPlayer(gc.getGame().getActivePlayer()).getCurrentEra() + 1 and not CvScreensInterface.techChooser.pPrefs.getTech(iData2).isInevitableReq(pTech):
+				bValid = True
+				for pAlreadyAdded in sTechs:
+					if pAlreadyAdded.isInevitableReq(pTech):
+						bValid = False
+						break
+				if bValid:
+					sTechs.add(pTech)
+					for pAlreadyAdded in sTechs.copy():
+						if pTech.isInevitableReq(pAlreadyAdded):
+							sTechs.remove(pAlreadyAdded)
+		assert bCurrentTechFound
+	msg = BugUtil.getPlainText("TXT_KEY_ADVC_TECH_PREFS_CURRENT")
+	if len(sTechs) <= 0:
+		return msg
+	sCurrentTech = set()
+	sCurrentTech.add(CvScreensInterface.techChooser.pPrefs.getTech(iData2))
+	return msg + ":" + buildTechPrefsHover("", sCurrentTech) + "\n" + buildTechPrefsHover(BugUtil.getPlainText("TXT_KEY_ADVC_TECH_PREFS_MISSING_REQ"), sTechs)
+	# </advc.004a>
 
 def getFutureTechPrefsHover(widgetType, iData1, iData2, bOption):
 	pPlayer = gc.getPlayer(CvScreensInterface.techChooser.iCivSelected)
@@ -69,10 +103,18 @@ def getFutureTechPrefsHover(widgetType, iData1, iData2, bOption):
 	for i in range(gc.getNumTechInfos()):
 		if (pPlayer.isResearchingTech(i)):
 			sTechs.add(CvScreensInterface.techChooser.pPrefs.getTech(i))
-	return buildTechPrefsHover("TXT_KEY_BUG_TECH_PREFS_FUTURE", CvScreensInterface.techChooser.pPrefs.getCurrentWithFlavorTechs(iData1, sTechs))
+	#return buildTechPrefsHover("TXT_KEY_BUG_TECH_PREFS_FUTURE", CvScreensInterface.techChooser.pPrefs.getCurrentWithFlavorTechs(iData1, sTechs))
+	# advc.004a: Show the currently queued techs instead
+	return buildTechPrefsHover(BugUtil.getPlainText("TXT_KEY_ADVC_TECH_PREFS_FUTURE"), sTechs)
 
-def buildTechPrefsHover(key, lTechs):
-	szText = BugUtil.getPlainText(key) + "\n"
+# <advc.004a>
+def getTechPrefsHeadingHover(widgetType, iData1, iData2, bOption):
+	return BugUtil.getPlainText("TXT_KEY_ADVC_TECH_PREFS_HEADING")
+# </advc.004a>
+
+def buildTechPrefsHover(msg, lTechs):
+	#szText = BugUtil.getPlainText(msg) + "\n" # advc.004a: Let the caller do this
+	szText = msg + "\n"
 	for pTech in lTechs:
 		szText += "<img=%s size=24></img>" % pTech.getInfo().getButton().replace(" ", "_")
 	return szText
@@ -192,7 +234,8 @@ class CvTechChooser:
 		screen.setLabel( "TechTitleHeader", "Background", szText, CvUtil.FONT_CENTER_JUSTIFY, xPanelWidth / 2, 8, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 
 		# Make the scrollable area for the city list...
-		if BugOpt.isShowGPTechPrefs():
+		# advc.004a: What cities? Anyway, no scrollable area needed.
+		if false and BugOpt.isShowGPTechPrefs():
 			iX = 80
 			iW = xPanelWidth - 80
 		else:
@@ -209,8 +252,9 @@ class CvTechChooser:
 		screen.setActivation(self.TabPanels[1], ActivationTypes.ACTIVATE_NORMAL )
 
 # BUG - GP Tech Prefs - start
-		if BugOpt.isShowGPTechPrefs():
-			screen.addPanel("GPTechPref", u"", u"", True, False, 0, 51, 80, yPanelHeight - 95, PanelStyles.PANEL_STYLE_MAIN_WHITE )
+		# advc.004a: Commented out
+		#if BugOpt.isShowGPTechPrefs():
+		#	screen.addPanel("GPTechPref", u"", u"", True, False, 0, 51, 80, #yPanelHeight - 95, PanelStyles.PANEL_STYLE_MAIN_WHITE )
 # BUG - GP Tech Prefs - end
 
 		# Add the Highlight
@@ -1076,61 +1120,79 @@ class CvTechChooser:
 					screen.hide( "GreatPersonTechNext" + str(f) )
 				self.bPrefsShowing = False
 			return
-		# Always redraw the GP icons because otherwise they are prone to disappearing
-		# discover icon heading
-		iIconSize = 48
-		iX = PREF_ICON_LEFT + 5 * PREF_ICON_SIZE / 4 - iIconSize / 2
-		iY = PREF_ICON_TOP - iIconSize - 40
-		screen.addDDSGFC( "GreatPersonHeading", ArtFileMgr.getInterfaceArtInfo("DISCOVER_TECHNOLOGY_BUTTON").getPath(), iX, iY, iIconSize, iIconSize, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		# <advc.004a>
+		iX = PREF_ICON_LEFT 
+		iY = PREF_ICON_BOTTOM
+		# </advc.004a>
 
-		for i, f in enumerate(FLAVORS):
-			# GP icon
-			iUnitClass = gc.getInfoTypeForString(UNIT_CLASSES[i])
-			iUnitType = gc.getUnitClassInfo(iUnitClass).getDefaultUnitIndex()
-			pUnitInfo = gc.getUnitInfo(iUnitType)
-			iX = PREF_ICON_LEFT
-			iY = PREF_ICON_TOP + 4 * i * PREF_ICON_SIZE
-			screen.addDDSGFC( "GreatPerson" + str(f), pUnitInfo.getButton(), iX, iY, PREF_ICON_SIZE, PREF_ICON_SIZE, WidgetTypes.WIDGET_TECH_PREFS_ALL, f, -1 )
+		# Always redraw the GP icons because otherwise they are prone to disappearing
+
+		# discover icon heading
+		# <advc.004a> Not sure if the big light bulb really helps
+		bShowIconHeading = True
+		if bShowIconHeading: 
+			iIconSize = 36 # was 48 </advc.004a>
+			# advc.004a: Position handled above
+			#iX = PREF_ICON_LEFT + 5 * PREF_ICON_SIZE / 4 - iIconSize / 2
+			#iY = PREF_ICON_TOP - iIconSize - 40
+			# advc.004a: WIDGET added
+			screen.addDDSGFC( "GreatPersonHeading", ArtFileMgr.getInterfaceArtInfo("DISCOVER_TECHNOLOGY_BUTTON").getPath(), iX, iY-iIconSize/5, iIconSize, iIconSize, WidgetTypes.WIDGET_TECH_PREFS_HEADING, -1, -1 )
+			iX += 3 * PREF_ICON_SIZE # advc.004a: Continue to the right
+		
+		# advc.004a: Merged into the code below
+		#for i, f in enumerate(FLAVORS):
+		#	# GP icon
+		#	iUnitClass = gc.getInfoTypeForString(UNIT_CLASSES[i])
+		#	iUnitType = gc.getUnitClassInfo(iUnitClass).getDefaultUnitIndex()
+		#	pUnitInfo = gc.getUnitInfo(iUnitType)
+		#	iX = PREF_ICON_LEFT
+		#	iY = PREF_ICON_TOP + 4 * i * PREF_ICON_SIZE
+		#	screen.addDDSGFC( "GreatPerson" + str(f), pUnitInfo.getButton(), iX, iY, PREF_ICON_SIZE, PREF_ICON_SIZE, WidgetTypes.WIDGET_TECH_PREFS_ALL, f, -1 )
 		self.bPrefsShowing = True
 
 		# Remove any techs researched since last call, creating tree if necessary
 		if (not self.pPrefs):
 			self.resetTechPrefs()
 		self.pPrefs.removeKnownTechs()
-
+		bAnyResearch = False # advc.004a: Don't show the second button then
 		# Add all techs in research queue to set of soon-to-be-known techs
 		sTechs = set()
 		for i in range(gc.getNumTechInfos()):
 			if (pPlayer.isResearchingTech(i)):
 				sTechs.add(self.pPrefs.getTech(i))
-
-		# Update the buttons to reflect the new tech prefs
+				bAnyResearch = True # advc.004a
+		
+		# advc.004a: This loop is based on the placeGreatPeople function of the RFC:DoC mod
 		for i, f in enumerate(FLAVORS):
-			# GP button
+			iUnitClass = gc.getInfoTypeForString(UNIT_CLASSES[i])
+			iUnitType = gc.getUnitClassInfo(iUnitClass).getDefaultUnitIndex()
+			pUnitInfo = gc.getUnitInfo(iUnitType)
+			screen.addDDSGFC( "GreatPerson" + str(f), pUnitInfo.getButton(), iX, iY, PREF_ICON_SIZE, PREF_ICON_SIZE, WidgetTypes.WIDGET_TECH_PREFS_ALL, i, -1 ) # advc.004a: pass i instead of f
 			screen.show( "GreatPerson" + str(f) )
-
+			iX += PREF_ICON_SIZE # advc.004a
 			# Current tech GP will pop
 			szButtonName = "GreatPersonTech" + str(f)
 			pTech = self.pPrefs.getNextResearchableFlavorTech(f)
-			iX = PREF_ICON_LEFT + 3 * PREF_ICON_SIZE / 2
-			iY = PREF_ICON_TOP + 4 * i * PREF_ICON_SIZE
 			if (pTech):
-				screen.addDDSGFC( szButtonName, pTech.getInfo().getButton(), iX, iY, PREF_ICON_SIZE, PREF_ICON_SIZE, WidgetTypes.WIDGET_TECH_PREFS_CURRENT, f, -1 )
+				screen.addDDSGFC( szButtonName, pTech.getInfo().getButton(), iX, iY, PREF_ICON_SIZE, PREF_ICON_SIZE, WidgetTypes.WIDGET_TECH_PREFS_CURRENT, f, pTech.getID() ) # advc.004a: Pass pTech to widget
 			else:
 				screen.addDDSGFC( szButtonName, self.NO_TECH_ART, iX, iY, PREF_ICON_SIZE, PREF_ICON_SIZE, WidgetTypes.WIDGET_TECH_PREFS_CURRENT, f, -1 )
 			screen.show( szButtonName )
-
+			iX += PREF_ICON_SIZE  # advc.004a
 			# Tech GP will pop once selected techs are researched
 			szButtonName = "GreatPersonTechNext" + str(f)
-			pTech = self.pPrefs.getNextResearchableWithFlavorTech(f, sTechs)
-			iX = PREF_ICON_LEFT + 3 * PREF_ICON_SIZE / 2
-			iY = PREF_ICON_TOP + 4 * i * PREF_ICON_SIZE + 3 * PREF_ICON_SIZE / 2
-			if (pTech):
-				screen.addDDSGFC( szButtonName, pTech.getInfo().getButton(), iX, iY, PREF_ICON_SIZE, PREF_ICON_SIZE, WidgetTypes.WIDGET_TECH_PREFS_FUTURE, f, -1 )
+			# <advc.004a> Not sure whether to show the button when the queued tech doesn't make a difference. The two identical icons look strange, but should make it easier to learn how the current/ queued research affects the GP info.
+			pTech2 = self.pPrefs.getNextResearchableWithFlavorTech(f, sTechs)
+			if bAnyResearch and pTech2: #and pTech2 != pTech: # </advc.004a>
+				screen.addDDSGFC( szButtonName, pTech2.getInfo().getButton(), iX, iY, PREF_ICON_SIZE, PREF_ICON_SIZE, WidgetTypes.WIDGET_TECH_PREFS_FUTURE, f, -1 )
+				screen.show( szButtonName )
 			else:
-				screen.addDDSGFC( szButtonName, self.NO_TECH_ART, iX, iY, PREF_ICON_SIZE, PREF_ICON_SIZE, WidgetTypes.WIDGET_TECH_PREFS_FUTURE, f, -1 )
-			screen.show( szButtonName )
+			#	screen.addDDSGFC( szButtonName, self.NO_TECH_ART, iX, iY, PREF_ICON_SIZE, PREF_ICON_SIZE, WidgetTypes.WIDGET_TECH_PREFS_FUTURE, f, -1 )
+			# advc.004a: Rather show no button
+				screen.hide( szButtonName )
+				
 # BUG - GP Tech Prefs - end
+			iX += 2 * PREF_ICON_SIZE # advc.004a
 
 	def TechRecord (self, inputClass):
 		return 0

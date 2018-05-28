@@ -3447,4 +3447,51 @@
 		<Spanish>Ej&#233;rcitos no militares</Spanish>
 	</TEXT>
 	
+	<!-- advc.004a: Replacing TXT_KEY_BUG_TECH_PREFS_ALL, 
+		 TXT_KEY_BUG_TECH_PREFS_CURRENT and TXT_KEY_BUG_TECH_PREFS_FUTURE in
+		 BUG_CIV4GameText.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_ADVC_TECH_PREFS_FUTURE</Tag>
+		<English>After finishing queued research, i.e.</English>
+		<French>Après avoir terminé la recherche actuelle, c'est-à-dire:</French>
+		<German>Nach Abschluss laufender Forschung, d.h.</German>
+		<Italian>Dopo aver completato queste tecnologie:</Italian>
+		<Spanish>Después de completar estas tecnologías:</Spanish>
+	</TEXT>
+	<!-- "Research" isn't the proper term for the
+		 Bulb ability. Also adding translations. -->
+	<TEXT>
+		<Tag>TXT_KEY_ADVC_TECH_PREFS_CURRENT</Tag>
+		<English>Current discovery</English>
+		<French>Découverte actuelle</French>
+		<German>Derzeitige Entdeckung</German>
+		<Italian>Scoperta attuale</Italian>
+		<Spanish>Descubrimiento actual</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ADVC_TECH_PREFS_ALL</Tag>
+		<English>Preference order</English>
+		<French>Ordre de préférence</French>
+		<German>Entdeckungsprioritäten</German>
+		<Italian>Ordine di preferenza</Italian>
+		<Spanish>Orden de investigación preferido</Spanish>
+	</TEXT>
+	<!-- These two are new -->
+	<TEXT>
+		<Tag>TXT_KEY_ADVC_TECH_PREFS_HEADING</Tag>
+		<English>Technologies that Great People could currently discover</English>
+		<French>Technologies que les grandes personnalités pourraient découvrir</French>
+		<German>Derzeitige Entdeckungen Großer Persönlichkeiten</German>
+		<Italian>Tecnologie che i grandi persone potrebbero attualmente scoprire</Italian>
+		<Spanish>Tecnologías que las Grandes Personas podrían descubrir actualmente</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ADVC_TECH_PREFS_MISSING_REQ</Tag>
+		<English>Requirements missing for:</English>
+		<French>Conditions non satisfaites pour:</French>
+		<German>Anforderungen nicht erfüllt für:</German>
+		<Italian>Requisiti non soddisfatti per:</Italian>
+		<Spanish>No se cumplen los requisitos para:</Spanish>
+	</TEXT>
+	
 </Civ4GameText>

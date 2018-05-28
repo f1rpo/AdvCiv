@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!-- advc.050: This file demonstrates a possible feature for scenarios -
+	 historical rationales for resource locations.
+	 The format of the tag name is:
+	 TXT_KEY_[scenario name]_[x-coordinate]_[y-coordinate]_BONUS_[resource name]
+	 Instead of "BONUS" e.g. "PEAK" could indicate info about a mountain range;
+	 however, the DLL only supports "BONUS" so far. The DLL shows the text when
+	 ALT is held while hovering over a tile with a (bonus) resource.
+
+	 (Romance translations: through deepl.com) -->
+<Civ4GameText xmlns="http://www.firaxis.com">
+
+	<TEXT>
+		<Tag>TXT_KEY_EARTH18CIVS_68_36_BONUS_STONE</Tag>
+		<English>The Giza Plateau provided the bedrock and limestone blocks for the Great Pyramids. Other quarries were located across the Nile (Tora) and in Upper Egypt (Aswan).</English>
+		<French>Les pyramides de Giza ont été construites sur un plateau calcaire dont les blocs de pierre ont également été extraits. D'autres carrières étaient situées sur l'autre rive du Nil (Tura) et en Haute-Égypte (Assouan).</French>
+		<German>Die Pyramiden von Gizeh wurden auf einem Kalksteinplateau errichtet, aus dem auch die Steinblöcke gebrochen wurden. Weitere Steinbrüche befanden sich am anderen Nilufer (Tura) und in Oberägypten (Assuan).</German>
+		<Italian>Le piramidi di Giza furono costruite su un altopiano calcareo da cui si estraevano anche i blocchi di pietra. Altre cave erano situate sull'altra sponda del Nilo (Tura) e nell'Alto Egitto (Assuan).</Italian>
+		<Spanish>Las pirámides de Giza se construyeron sobre una meseta de piedra caliza de la que también se extraían los bloques de piedra. Otras canteras estaban situadas en la otra orilla del Nilo (Tura) y en el Alto Egipto (Asuán).</Spanish>
+	</TEXT>
+
+</Civ4GameText>

@@ -31,6 +31,9 @@
 #include "CyArgsList.h"
 #include "CvDLLPythonIFaceBase.h"
 #include "CvBugOptions.h"
+// <advc.050>
+#include "CvInitCore.h"
+#include <sstream> // </advc.050>
 
 int shortenID(int iId)
 {
@@ -3736,20 +3739,17 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 	ImprovementTypes eImprovement;
 	PlayerTypes eRevealOwner;
 	BonusTypes eBonus;
-	bool bShift;
-	bool bAlt;
-	bool bCtrl;
 	bool bFound;
 	//int iDefenseModifier; // advc.012
 	int iYield;
 	int iTurns;
 
-	bShift = GC.shiftKey();
-	bAlt = GC.altKey();
-	bCtrl = GC.ctrlKey();
-	
+	bool bShift = GC.shiftKey();
+	bool bAlt = GC.altKey();
+	bool bCtrl = GC.ctrlKey();
+	bool bDebug = GC.getGameINLINE().isDebugMode(); // advc.003
 	if (bCtrl && //(gDLL->getChtLvl() > 0))
-			GC.getGameINLINE().isDebugMode()) // advc.135c
+			bDebug) // advc.135c
 	{
 		if (bShift && pPlot->headUnitNode() != NULL)
 		{
@@ -4105,7 +4105,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 		//return; // advc.027: No need to return; only else branches left.
 	}
 	else if (bShift && !bAlt && //(gDLL->getChtLvl() > 0))
-			GC.getGameINLINE().isDebugMode()) // advc.135c
+			bDebug) // advc.135c
 	{
 		szString.append(GC.getTerrainInfo(pPlot->getTerrainType()).getDescription());
 
@@ -4313,7 +4313,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 		}
 	}
 	else if (!bShift && bAlt && //(gDLL->getChtLvl() > 0))
-			GC.getGameINLINE().isDebugMode()) // advc.135c
+			 bDebug) // advc.135c
 	{
 	    if (pPlot->isOwned())
 	    {
@@ -4682,7 +4682,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
         }
 	}
 	else if (bShift && bAlt && //(gDLL->getChtLvl() > 0))
-			GC.getGameINLINE().isDebugMode()) // advc.135c
+			bDebug) // advc.135c
 	{
 		CvCity*	pCity = pPlot->getWorkingCity();
 		if (pCity != NULL)
@@ -4881,7 +4881,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 		}
 	
 		// calc some bonus info
-		if (GC.getGameINLINE().isDebugMode())
+		if (bDebug) // advc.003
 		{
 			eBonus = pPlot->getBonusType();
 		}
@@ -5097,7 +5097,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 			szString.append(szTempBuffer);
 		} // </advc.004b>
 
-		if (GC.getGameINLINE().isDebugMode())
+		if (bDebug) // advc.003
 		{
 			eBonus = pPlot->getBonusType();
 		}
@@ -5203,6 +5203,43 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 					szString.append(GC.getBonusInfo(eBonus).getHelp());
 				}
 			} // end !isBonusObsolete
+			// <advc.050>
+			CvInitCore const& ic = GC.getInitCore();
+			if(bAlt && !bDebug) { /* ALT is also for combat odds. That takes
+					precedence. This function isn't even called when ALT is
+					pressed on a hostile unit. (Check bCtrl instead?) */
+				CvWString mapName = ic.getMapScriptName();
+				int pos = mapName.find(L"."); // Drop the file extension
+				if(pos != CvWString::npos && pos >= 2)
+					mapName = mapName.substr(0, pos);
+				std::transform(mapName.begin(), mapName.end(),
+						mapName.begin(), ::toupper); // to upper case
+				std::wostringstream ssTxtKey;
+				ssTxtKey << L"TXT_KEY_" << mapName << L"_" <<
+						pPlot->getX() << L"_" << pPlot->getY() << L"_BONUS_";
+				CvWString bonusName = GC.getBonusInfo(eBonus).getDescription();
+				std::transform(bonusName.begin(), bonusName.end(),
+						bonusName.begin(), ::toupper);
+				// Tolerate plural errors
+				if(bonusName.at(bonusName.length() - 1) == L'S')
+					bonusName = bonusName.substr(0, bonusName.length() - 1);
+				ssTxtKey << bonusName;
+				CvWString txtKey = ssTxtKey.str();
+				CvWString historyText = gDLL->getText(txtKey);
+				// getText returns txtKey if it can't find the text key
+				if(historyText.compare(txtKey) == 0) {
+					txtKey.append(L"s");
+					historyText = gDLL->getText(txtKey);
+				}
+				if(historyText.compare(txtKey) != 0) {
+					szString.append(NEWLINE);
+					szString.append(NEWLINE);
+					szString.append(CvWString::format(SETCOLR,
+							TEXT_COLOR("COLOR_HIGHLIGHT_TEXT")));
+					szString.append(historyText);
+					szString.append(CvWString::format( ENDCOLR));
+				}
+			} // </advc.050>
 		}
 
 		eImprovement = pPlot->getRevealedImprovementType(GC.getGameINLINE().getActiveTeam(), true);
@@ -5275,7 +5312,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 /* original code
 		if (pPlot->getBlockadedCount(GC.getGameINLINE().getActiveTeam()) > 0)
 */
-		if( GC.getGameINLINE().isDebugMode() )
+		if(bDebug) // advc.003
 		{
 			bool bFirst = true;
 			for (int iK = 0; iK < MAX_TEAMS; ++iK)

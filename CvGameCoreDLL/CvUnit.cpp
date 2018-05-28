@@ -9058,8 +9058,10 @@ bool CvUnit::canAttack(const CvUnit& defender) const
 		{
 			return false;
 		}
-	}
-
+	} /* <advc.050> This prevents combat odds from being shown when pressing
+		 ALT while hovering over one's own units */
+	if(getTeam() == defender.getTeam())
+		return false; // </advc.050>
 	return true;
 }
 

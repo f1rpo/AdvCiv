@@ -767,7 +767,8 @@ bool CvInitCore::getWBMapScript() const
 	return (gDLL->isDescFileName( CvString(m_szMapScriptName).GetCString() ));
 }
 
-// <advc.030>
+/*  <advc.030> Caveat: This only works at the start of a game; a savegame has
+	type GAME_..._LOAD. */
 bool CvInitCore::isScenario() const {
 
 	return m_eType == GAME_SP_SCENARIO || m_eType == GAME_MP_SCENARIO ||
