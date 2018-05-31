@@ -15934,81 +15934,76 @@ int CvCity::getBuildingHealthChange(BuildingClassTypes eBuildingClass) const
 }
 
 void CvCity::liberate(bool bConquest)
-{
-	CvPlot* pPlot = plot();
+{	// <advc.003>
 	PlayerTypes ePlayer = getLiberationPlayer(bConquest);
+	if(NO_PLAYER == ePlayer)
+		return; // </advc.003>
+	CvPlot* pPlot = plot();
 	PlayerTypes eOwner = getOwnerINLINE();
 
-	if (NO_PLAYER != ePlayer)
+	int iOldOwnerCulture = getCultureTimes100(eOwner);
+	int iOldMasterLand = 0;
+	int iOldVassalLand = 0;
+	bool bPreviouslyOwned = isEverOwned(ePlayer); // K-Mod, for use below
+	if (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isVassal(GET_PLAYER(eOwner).getTeam()))
 	{
-		int iOldOwnerCulture = getCultureTimes100(eOwner);
-		int iOldMasterLand = 0;
-		int iOldVassalLand = 0;
-		bool bPreviouslyOwned = isEverOwned(ePlayer); // K-Mod, for use below
-		if (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isVassal(GET_PLAYER(eOwner).getTeam()))
-		{
-			iOldMasterLand = GET_TEAM(GET_PLAYER(eOwner).getTeam()).getTotalLand();
-			iOldVassalLand = std::max(10, // advc.112: Lower bound added
-				GET_TEAM(GET_PLAYER(ePlayer).getTeam()).getTotalLand(false));
-		}
+		iOldMasterLand = GET_TEAM(GET_PLAYER(eOwner).getTeam()).getTotalLand();
+		iOldVassalLand = std::max(10, // advc.112: Lower bound added
+			GET_TEAM(GET_PLAYER(ePlayer).getTeam()).getTotalLand(false));
+	}
 
-		CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_CITY_LIBERATED", getNameKey(), GET_PLAYER(eOwner).getNameKey(), GET_PLAYER(ePlayer).getCivilizationAdjectiveKey());
-		for (int iI = 0; iI < MAX_PLAYERS; ++iI)
+	CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_CITY_LIBERATED", getNameKey(), GET_PLAYER(eOwner).getNameKey(), GET_PLAYER(ePlayer).getCivilizationAdjectiveKey());
+	for (int iI = 0; iI < MAX_PLAYERS; ++iI)
+	{
+		CvPlayer const& civ = GET_PLAYER((PlayerTypes)iI); // advc.003
+		if (civ.isAlive())
 		{
-			CvPlayer const& civ = GET_PLAYER((PlayerTypes)iI); // advc.003
-			if (civ.isAlive())
+			if (isRevealed(civ.getTeam(), false)
+					|| civ.isSpectator()) // advc.127
 			{
-				if (isRevealed(civ.getTeam(), false)
-						|| civ.isSpectator()) // advc.127
-				{
-					gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_REVOLTEND",
-							MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, // advc.106b
-							ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"), getX_INLINE(), getY_INLINE(), true, true);
-				}
-			}
-		}
-		GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, eOwner, szBuffer, getX_INLINE(), getY_INLINE(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
-
-		GET_PLAYER(ePlayer).acquireCity(this, false, true, true);
-		// advc.130j:
-		GET_PLAYER(ePlayer).AI_rememberEvent(eOwner, MEMORY_LIBERATED_CITIES);
-
-		if (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isVassal(GET_PLAYER(eOwner).getTeam()))
-		{
-			int iNewMasterLand = GET_TEAM(GET_PLAYER(eOwner).getTeam()).getTotalLand();
-			int iNewVassalLand = std::max(10, // advc.112: Lower bound added
-					GET_TEAM(GET_PLAYER(ePlayer).getTeam()).getTotalLand(false));
-
-			GET_TEAM(GET_PLAYER(ePlayer).getTeam()).setMasterPower(GET_TEAM(GET_PLAYER(ePlayer).getTeam()).getMasterPower() + iNewMasterLand - iOldMasterLand);
-			GET_TEAM(GET_PLAYER(ePlayer).getTeam()).setVassalPower(GET_TEAM(GET_PLAYER(ePlayer).getTeam()).getVassalPower() + iNewVassalLand - iOldVassalLand);
-		}
-
-		if (NULL != pPlot)
-		{
-			CvCity* pCity = pPlot->getPlotCity();
-			if (NULL != pCity)
-			{
-/*
-** K-Mod, 7/jan/11, karadoc
-** This mechanic was exploitable. Players could increase their culture indefinitely in a single turn by gifting cities backwards and forwards.
-** I've attempted to close the exploit.
-*/
-				if (!bPreviouslyOwned) // K-Mod
-					pCity->setCultureTimes100(ePlayer, pCity->getCultureTimes100(ePlayer) + iOldOwnerCulture / 2, true, true);
-/*
-** K-Mod end
-*/
-			}
-
-			if (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isAVassal())
-			{
-				for (int i = 0; i < GC.getDefineINT("COLONY_NUM_FREE_DEFENDERS"); ++i)
-				{
-					pCity->initConscriptedUnit();
-				}
+				gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_REVOLTEND",
+					MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, // advc.106b
+					ARTFILEMGR.getInterfaceArtInfo("WORLDBUILDER_CITY_EDIT")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"), getX_INLINE(), getY_INLINE(), true, true);
 			}
 		}
 	}
+	GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, eOwner, szBuffer, getX_INLINE(), getY_INLINE(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+
+	GET_PLAYER(ePlayer).acquireCity(this, false, true, true);
+	// advc.130j:
+	GET_PLAYER(ePlayer).AI_rememberEvent(eOwner, MEMORY_LIBERATED_CITIES);
+
+	if (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isVassal(GET_PLAYER(eOwner).getTeam()))
+	{
+		int iNewMasterLand = GET_TEAM(GET_PLAYER(eOwner).getTeam()).getTotalLand();
+		int iNewVassalLand = std::max(10, // advc.112: Lower bound added
+				GET_TEAM(GET_PLAYER(ePlayer).getTeam()).getTotalLand(false));
+
+		GET_TEAM(GET_PLAYER(ePlayer).getTeam()).setMasterPower(GET_TEAM(GET_PLAYER(ePlayer).getTeam()).getMasterPower() + iNewMasterLand - iOldMasterLand);
+		GET_TEAM(GET_PLAYER(ePlayer).getTeam()).setVassalPower(GET_TEAM(GET_PLAYER(ePlayer).getTeam()).getVassalPower() + iNewVassalLand - iOldVassalLand);
+	}
+	// dlph.23: Commented out. setCulture now done by advc.122 in acquireCity.
+	/*if (NULL != pPlot)
+	{
+		CvCity* pCity = pPlot->getPlotCity();
+		if (NULL != pCity)
+		{
+			// K-Mod, 7/jan/11, karadoc
+			// This mechanic was exploitable. Players could increase their culture indefinitely in a single turn by gifting cities backwards and forwards.
+			// I've attempted to close the exploit.
+			if (!bPreviouslyOwned) // K-Mod
+				pCity->setCultureTimes100(ePlayer, pCity->getCultureTimes100(ePlayer) + iOldOwnerCulture / 2, true, true);
+			// K-Mod end
+		}
+		
+		if (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isAVassal())
+		{
+			for (int i = 0; i < GC.getDefineINT("COLONY_NUM_FREE_DEFENDERS"); ++i)
+			{
+				pCity->initConscriptedUnit();
+			}
+		}
+	}*/
 }
 
 PlayerTypes CvCity::getLiberationPlayer(bool bConquest) const

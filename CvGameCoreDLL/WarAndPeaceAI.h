@@ -217,10 +217,6 @@ public:
 		  void write(FDataStreamBase* stream);
 		  void read(FDataStreamBase* stream);
 		WarAndPeaceCache const& getCache() const; WarAndPeaceCache& getCache();
-	    // WarRand: CvTeamAI only provides averaged values per team
-		  int totalWarRand() const;
-		  int limitedWarRand() const;
-		  int dogpileWarRand() const;
 		// Request and demands. BtS handles these in CvPlayerAI::AI_considerOffer.
 		bool considerDemand(PlayerTypes theyId, int tradeVal) const;
 		bool considerGiftRequest(PlayerTypes theyId, int tradeVal) const;
@@ -238,9 +234,6 @@ public:
 		bool isNearMilitaryVictory(int stage) const;
 		int getConquestStage() const;
 		int getDominationStage() const;
-		/* Only the percentage that says how much pressure there is at the borders;
-		   without the leader-specific factor (CloseBordersAttitudeChange). */
-		int closeBordersAttitudeChangePercent(PlayerTypes civId) const;
 		/* This function isn't specific to a given civ. Should perhaps
 		   be in a wrapper/ subclass of CvUnitInfo. Leaving it here for now.
 		   At least it's easily accessible this way.

@@ -10015,16 +10015,22 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 */
 		// Remove blanket auto approval for friendly secretary
 		bool bFriendlyToSecretary = false;
+		// dlph.25: (The bRepeal code is really advc code)
+		bool bRepeal = false;
 		if (!bPropose)
-		{
+		{	// dlph.25:
+			bRepeal = (g.getVoteOutcome(eVote) == PLAYER_VOTE_YES);
 			if (eSecretaryGeneral != NO_TEAM)
 			{
 				if (eSecretaryGeneral == getTeam()
 						// <advc.130v>
 						|| (GET_TEAM(getTeam()).isVassal(eSecretaryGeneral)
 						&& GET_TEAM(getTeam()).isCapitulated())) // </advc.130v>
-				{
-					return PLAYER_VOTE_YES;
+				{	// <dlph.25>
+					if(bRepeal)
+						return PLAYER_VOTE_NO;
+					else // </dlph.25>
+						return PLAYER_VOTE_YES;
 				}
 				else
 				{
@@ -10105,8 +10111,11 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 /* Diplomacy AI                                                                                 */
 /************************************************************************************************/
 				if (bFriendlyToSecretary)
-				{
-					return PLAYER_VOTE_YES;
+				{	// <dlph.25>
+					if(bRepeal)
+						return PLAYER_VOTE_NO;
+					else // </dlph.25>
+						return PLAYER_VOTE_YES;
 				}
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
@@ -10155,9 +10164,15 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 /* Diplomacy AI                                                                                 */
 /************************************************************************************************/
 				if (bFriendlyToSecretary)
-				{
-					iVoteBanThreshold *= 2;
-					iVoteBanThreshold /= 3;
+				{	// <dlph.25>
+					if(bRepeal) {
+						iVoteBanThreshold *= 3;
+						iVoteBanThreshold /= 2;
+					}
+					else { // </dlph.25>
+						iVoteBanThreshold *= 2;
+						iVoteBanThreshold /= 3;
+					}
 				}
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
@@ -10193,8 +10208,11 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 /* Diplomacy AI                                                                                 */
 /************************************************************************************************/
 				if (bFriendlyToSecretary)
-				{
-					return PLAYER_VOTE_YES;
+				{	// <dlph.25>
+					if(bRepeal)
+						return PLAYER_VOTE_NO;
+					else // </dlph.25>
+						return PLAYER_VOTE_YES;
 				}
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
@@ -10243,8 +10261,11 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 /* Diplomacy AI                                                                                 */
 /************************************************************************************************/
 				if (bFriendlyToSecretary)
-				{
-					return PLAYER_VOTE_YES;
+				{	// <dlph.25>
+					if(bRepeal)
+						return PLAYER_VOTE_NO;
+					else // </dlph.25>
+						return PLAYER_VOTE_YES;
 				}
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
@@ -10275,8 +10296,11 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 /* Diplomacy AI                                                                                 */
 /************************************************************************************************/
 				if (bFriendlyToSecretary)
-				{
-					return PLAYER_VOTE_YES;
+				{	// <dlph.25>
+					if(bRepeal)
+						return PLAYER_VOTE_NO;
+					else // </dlph.25>
+						return PLAYER_VOTE_YES;
 				}
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
@@ -11195,7 +11219,7 @@ bool CvPlayerAI::AI_considerOfferBulk(PlayerTypes ePlayer,
 			if(mc > 0)
 				return false; // </advc.130o>
 			/*  <advc.130o> Was hard-coded, but the XML value is CAUTIOUS for all
-				leaders, so, no functional change. */
+				leaders, so no functional change. */
 			AttitudeTypes const noGiveHelpThresh = (AttitudeTypes)GC.getLeaderHeadInfo(
 					getPersonalityType()).getNoGiveHelpAttitudeThreshold();
 			demand = AI_getAttitude(ePlayer) <= noGiveHelpThresh;

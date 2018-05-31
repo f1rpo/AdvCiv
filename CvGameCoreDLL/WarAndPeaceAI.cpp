@@ -2004,24 +2004,6 @@ void WarAndPeaceAI::Civ::read(FDataStreamBase* stream) {
 	cache.read(stream);
 }
 
-int WarAndPeaceAI::Civ::limitedWarRand() const {
-
-	return GC.getLeaderHeadInfo(GET_PLAYER(weId).getPersonalityType()).
-			getLimitedWarRand();
-}
-
-int WarAndPeaceAI::Civ::totalWarRand() const {
-
-	return GC.getLeaderHeadInfo(GET_PLAYER(weId).getPersonalityType()).
-			getMaxWarRand();
-}
-
-int WarAndPeaceAI::Civ::dogpileWarRand() const {
-
-	return GC.getLeaderHeadInfo(GET_PLAYER(weId).getPersonalityType()).
-			getDogpileWarRand();
-}
-
 bool WarAndPeaceAI::Civ::considerDemand(PlayerTypes theyId, int tradeVal) const {
 
 	CvPlayerAI const& we = GET_PLAYER(weId);
@@ -2294,23 +2276,6 @@ int WarAndPeaceAI::Civ::getDominationStage() const {
 	if(we.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4))
 		return 4;
 	return 0;
-}
-
-int WarAndPeaceAI::Civ::closeBordersAttitudeChangePercent(
-		PlayerTypes civId) const {
-
-	/* A bit of a hack. The attitude-change value is first factored in by 
-	   AI_getCloseBordersAttitude, then factored out again. This causes
-	   rounding errors too.
-	   It's fast, though, b/c AI_getCloseBordersAttitude uses caching. The
-	   clean solution would be to cache the result of this function instead.
-	   That's too laborious to program considering what this function is used
-	   for. */
-	CvPlayerAI& we = GET_PLAYER(weId);
-	int cbac = GC.getLeaderHeadInfo(we.getPersonalityType()).
-			getCloseBordersAttitudeChange();
-	if(cbac == 0) return 0;
-	return (we.AI_getCloseBordersAttitude(civId) * 100) / cbac;
 }
 
 double WarAndPeaceAI::Civ::militaryPower(CvUnitInfo const& u,

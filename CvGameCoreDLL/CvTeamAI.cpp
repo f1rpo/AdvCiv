@@ -1308,9 +1308,18 @@ int CvTeamAI::AI_chooseElection(const VoteSelectionData& kVoteSelectionData) con
 				{
 					if (GET_PLAYER((PlayerTypes)iJ).getTeam() == getID())
 					{
-						PlayerVoteTypes eVote = GET_PLAYER((PlayerTypes)iJ).AI_diploVote(kVoteSelectionData.aVoteOptions[iI], eVoteSource, true);
-
-						if (eVote != PLAYER_VOTE_YES || eVote == GC.getGameINLINE().getVoteOutcome((VoteTypes)iI))
+						PlayerVoteTypes //eVote =
+								ePlayerVote = // dlph.25: 'Same variable name was confusing'
+								GET_PLAYER((PlayerTypes)iJ).AI_diploVote(kVoteSelectionData.aVoteOptions[iI], eVoteSource, true);
+						//if (eVote != PLAYER_VOTE_YES || eVote == GC.getGameINLINE().getVoteOutcome((VoteTypes)iI))
+						/*  <dlph.25> Replacing the above.
+							'AI can choose to repeal an already passed resolution
+							if all team members agree' */
+						bool bVoteYes = (ePlayerVote == PLAYER_VOTE_YES);
+						bool bAlreadyPassed = (GC.getGameINLINE().getVoteOutcome(
+								eVote) == PLAYER_VOTE_YES);
+						  if((bVoteYes && bAlreadyPassed) || (!bVoteYes && !bAlreadyPassed))
+						// </dlph.25>
 						{
 							bValid = false;
 							break;

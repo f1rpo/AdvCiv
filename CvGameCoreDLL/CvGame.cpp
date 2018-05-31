@@ -319,7 +319,8 @@ void CvGame::setInitialItems()
         CvDeal* d; int dummy;
         for(d = firstDeal(&dummy); d != NULL; d = nextDeal(&dummy))
             d->setInitialGameTurn(getGameTurn());
-	} // </advc.250c></advc.251>
+	} // </advc.250c>
+	// </advc.251>
 	for (int i = 0; i < MAX_PLAYERS; ++i)
 	{
 		CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)i);
@@ -4999,8 +5000,9 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 		{
 			return false;
 		}
-
-		if (!kPlayer.isFullMember(eVoteSource))
+		//if (!kPlayer.isFullMember(eVoteSource))
+		// dlph.25: 'These are not necessarily the same.'
+		if (!GET_TEAM(kPlayer.getTeam()).isFullMember(eVoteSource))
 		{
 			return false;
 		}
@@ -5029,8 +5031,9 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 	else if (GC.getVoteInfo(kData.eVote).isForceNoTrade())
 	{
 		CvPlayer& kPlayer = GET_PLAYER(kData.ePlayer);
-
-		if (kPlayer.isFullMember(eVoteSource))
+		//if (kPlayer.isFullMember(eVoteSource))
+		// dlph.25: 'These are not necessarily the same.'
+		if (GET_TEAM(kPlayer.getTeam()).isFullMember(eVoteSource))
 		{
 			return false;
 		}
@@ -5041,7 +5044,9 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 			CvPlayer& kPlayer2 = GET_PLAYER((PlayerTypes)iPlayer2);
 			if (kPlayer2.getTeam() != kPlayer.getTeam())
 			{
-				if (kPlayer2.isFullMember(eVoteSource))
+				//if (kPlayer2.isFullMember(eVoteSource))
+				// dlph.25: 'These are not necessarily the same.'
+				if (GET_TEAM(kPlayer2.getTeam()).isFullMember(eVoteSource))
 				{
 					if (kPlayer2.canStopTradingWithTeam(kPlayer.getTeam()))
 					{
@@ -5066,8 +5071,9 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 		{
 			return false;
 		}
-
-		if (kPlayer.isFullMember(eVoteSource))
+		//if (kPlayer.isFullMember(eVoteSource))
+		// dlph.25: 'These are not necessarily the same.'
+		if (GET_TEAM(kPlayer.getTeam()).isFullMember(eVoteSource))
 		{
 			return false;
 		}
@@ -5094,9 +5100,11 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 			return false;
 		}
 
-		// Can be passed against a non-member only if he is already at war with a member 
-		if (!kPlayer.isVotingMember(eVoteSource))
+		//if (!kPlayer.isVotingMember(eVoteSource))
+		// dlph.25: Replacing the above
+		if (!GET_TEAM(kPlayer.getTeam()).isFullMember(eVoteSource))
 		{
+			// Can be passed only if already at war with a member
 			bool bValid = false;
 			for (int iTeam2 = 0; iTeam2 < MAX_CIV_TEAMS; ++iTeam2)
 			{
@@ -5121,7 +5129,9 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 	else if (GC.getVoteInfo(kData.eVote).isAssignCity())
 	{
 		CvPlayer& kPlayer = GET_PLAYER(kData.ePlayer);
-		if (kPlayer.isFullMember(eVoteSource) || !kPlayer.isVotingMember(eVoteSource))
+		//if (kPlayer.isFullMember(eVoteSource) || !kPlayer.isVotingMember(eVoteSource))
+		// dlph.25: 'These are not necessarily the same'
+		if (GET_TEAM(kPlayer.getTeam()).isFullMember(eVoteSource) || !GET_TEAM(kPlayer.getTeam()).isVotingMember(eVoteSource))
 		{
 			return false;
 		}
@@ -5149,7 +5159,9 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 			return false;
 		}
 
-		if (!kOtherPlayer.isFullMember(eVoteSource))
+		//if (!kOtherPlayer.isFullMember(eVoteSource))
+		// dlph.25: 'These are not necessarily the same'
+		if (!GET_TEAM(kOtherPlayer.getTeam()).isFullMember(eVoteSource))
 		{
 			return false;			
 		}
@@ -8875,7 +8887,37 @@ void CvGame::processVote(const VoteTriggeredData& kData, int iChange)
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
-
+			// <dlph.25> 'Cancel defensive pacts with the attackers first'
+			int foo=-1;
+			for(CvDeal* pLoopDeal = GC.getGameINLINE().firstDeal(&foo);
+					pLoopDeal != NULL; pLoopDeal = GC.getGameINLINE().nextDeal(&foo)) {
+				bool bCancelDeal = false;
+				if((TEAMID(pLoopDeal->getFirstPlayer()) == kPlayer.getTeam() &&
+						TEAMREF(pLoopDeal->getSecondPlayer()).isVotingMember(
+						kData.eVoteSource)) || (GET_PLAYER(pLoopDeal->
+						getSecondPlayer()).getTeam() == kPlayer.getTeam() &&
+						TEAMREF(pLoopDeal->getFirstPlayer()).isVotingMember(
+						kData.eVoteSource))) {
+					for(CLLNode<TradeData>* pNode = pLoopDeal->headFirstTradesNode();
+							pNode != NULL; pNode = pLoopDeal->nextFirstTradesNode(pNode)) {
+						if(pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT) {
+							bCancelDeal = true;
+							break;
+						}
+					}
+					if(!bCancelDeal) {
+						for(CLLNode<TradeData>* pNode = pLoopDeal->headSecondTradesNode();
+								pNode != NULL; pNode = pLoopDeal->nextSecondTradesNode(pNode)) {
+							if(pNode->m_data.m_eItemType == TRADE_DEFENSIVE_PACT) {
+								bCancelDeal = true;
+								break;
+							}
+						}
+					}
+				}
+				if(bCancelDeal)
+					pLoopDeal->kill();
+			} // </dlph.25>
 			for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; ++iPlayer)
 			{
 				CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);

@@ -2448,8 +2448,17 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	{
 		pNewCity->setEverOwned(((PlayerTypes)iI), abEverOwned[iI]);
 		pNewCity->setCultureTimes100(((PlayerTypes)iI), aiCulture[iI], false, false);
-	}
-
+	} // <dlph.23>
+	if(bTrade) {
+		int oldOwnerCulture = pNewCity->getCultureTimes100(eOldOwner);
+		int newOwnerCulture = pNewCity->getCultureTimes100(getID());
+		// Round down to a multiple of 100
+		int convertedCulture = (oldOwnerCulture / 300) * 100;
+		pNewCity->setCultureTimes100(getID(),
+				newOwnerCulture + convertedCulture, true, false);
+		pNewCity->setCultureTimes100(eOldOwner,
+				oldOwnerCulture - convertedCulture, true, false);
+    } // </dlph.23>
 	for (iI = 0; iI < GC.getNumBuildingInfos(); iI++)
 	{
 		int iNum = 0;
@@ -19638,7 +19647,7 @@ void CvPlayer::setTriggerFired(const EventTriggeredData& kTriggeredData, bool bO
 					}
 				}
 			}
-			// advc.106: Exclude from replay log
+			// advc.106g:
 			//GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), kTriggeredData.m_szGlobalText, kTriggeredData.m_iPlotX, kTriggeredData.m_iPlotY, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 		}
 		else if (!kTriggeredData.m_szText.empty())
@@ -21140,8 +21149,8 @@ void CvPlayer::applyEvent(EventTypes eEvent, int iEventTriggeredId, bool bUpdate
 				}
 			}
 		}
-
-		GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szGlobalText, pTriggeredData->m_iPlotX, pTriggeredData->m_iPlotY, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+		// advc.106g:
+		//GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szGlobalText, pTriggeredData->m_iPlotX, pTriggeredData->m_iPlotY, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 	}
 
 	if (!CvWString(kEvent.getLocalInfoTextKey()).empty())
@@ -22321,8 +22330,8 @@ bool CvPlayer::splitEmpire(int iAreaId)
 				}
 			}
 		}
-
-		for (int iTeam = 0; iTeam < MAX_TEAMS; ++iTeam)
+		// dlph.24: Commented out
+		/*for (int iTeam = 0; iTeam < MAX_TEAMS; ++iTeam)
 		{
 			CvTeam& kLoopTeam = GET_TEAM((TeamTypes)iTeam);
 
@@ -22331,7 +22340,7 @@ bool CvPlayer::splitEmpire(int iAreaId)
 				kNewTeam.setEspionagePointsAgainstTeam((TeamTypes)iTeam, GET_TEAM(getTeam()).getEspionagePointsAgainstTeam((TeamTypes)iTeam));
 				kLoopTeam.setEspionagePointsAgainstTeam(GET_PLAYER(eNewPlayer).getTeam(), kLoopTeam.getEspionagePointsAgainstTeam(getTeam()));
 			}
-		}
+		}*/
 		kNewTeam.setEspionagePointsEver(GET_TEAM(getTeam()).getEspionagePointsEver());
 
 		GET_TEAM(getTeam()).assignVassal(GET_PLAYER(eNewPlayer).getTeam(), false);
@@ -22947,11 +22956,17 @@ bool CvPlayer::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionS
 					return false;
 				}
 
-				if (kOurTeam.getAtWarCount(true) > 0 || GET_TEAM((TeamTypes)iTeam2).getAtWarCount(true) > 0)
+				if ((kOurTeam.getAtWarCount(true) > 0 || GET_TEAM((TeamTypes)iTeam2).getAtWarCount(true) > 0)
+						// dlph.25: 'Sometimes defensive pact can be signed while at war'
+						&& GC.getBBAI_DEFENSIVE_PACT_BEHAVIOR() == 0)
 				{
 					return false;
-				}
-
+				} // <dlph.25>
+				if(kOurTeam.isAtWar((TeamTypes)iTeam2)
+						/*  advc: Same additional restriction as for DP between
+							AI teams (dlph.3) */
+						|| !kOurTeam.allWarsShared((TeamTypes)iTeam2))
+					return false; // </dlph.25>
 				if (!kOurTeam.canSignDefensivePact((TeamTypes)iTeam2))
 				{
 					return false;
@@ -23041,8 +23056,13 @@ bool CvPlayer::canDefyResolution(VoteSourceTypes eVoteSource, const VoteSelectio
 	{
 		return false;
 	}
-
-	if (GC.getVoteInfo(kData.eVote).isOpenBorders())
+	CvVoteInfo const& vi = GC.getVoteInfo(kData.eVote); // advc.003
+	// <dlph.25> advc: Kek-Mod just checks isAVassal
+	if(GET_TEAM(getTeam()).isCapitulated()
+			|| (GET_TEAM(getTeam()).isAVassal() &&
+			(vi.isForceWar() || vi.isForcePeace())))
+		return false; // </dlph.25>
+	if (vi.isOpenBorders())
 	{
 		for (int iTeam = 0; iTeam < MAX_CIV_TEAMS; ++iTeam)
 		{
@@ -23059,7 +23079,7 @@ bool CvPlayer::canDefyResolution(VoteSourceTypes eVoteSource, const VoteSelectio
 			}
 		}
 	}
-	else if (GC.getVoteInfo(kData.eVote).isDefensivePact())
+	else if (vi.isDefensivePact())
 	{
 		for (int iTeam = 0; iTeam < MAX_CIV_TEAMS; ++iTeam)
 		{
@@ -23076,13 +23096,15 @@ bool CvPlayer::canDefyResolution(VoteSourceTypes eVoteSource, const VoteSelectio
 			}
 		}
 	}
-	else if (GC.getVoteInfo(kData.eVote).isForceNoTrade())
+	else if (vi.isForceNoTrade())
 	{
 		return true;
 	}
-	else if (GC.getVoteInfo(kData.eVote).isForceWar())
+	else if (vi.isForceWar())
 	{
-		if (!::atWar(getTeam(), GET_PLAYER(kData.ePlayer).getTeam()))
+		if (!::atWar(getTeam(), TEAMID(kData.ePlayer))
+				// dlph.25: 'Cannot defy war declaration against itself'
+				&& TEAMREF(kData.ePlayer).getMasterTeam() != getMasterTeam())
 		{
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      12/31/08                                jdog5000      */
@@ -23090,7 +23112,8 @@ bool CvPlayer::canDefyResolution(VoteSourceTypes eVoteSource, const VoteSelectio
 /*                                                                                              */
 /************************************************************************************************/
 			// Vassals can't defy declarations of war
-			if( !GET_TEAM(getTeam()).isAVassal() )
+			// dlph.25: Vassals already handled
+			//if( !GET_TEAM(getTeam()).isAVassal() )
 			{
 				return true;
 			}
@@ -23099,7 +23122,7 @@ bool CvPlayer::canDefyResolution(VoteSourceTypes eVoteSource, const VoteSelectio
 /************************************************************************************************/
 		}
 	}
-	else if (GC.getVoteInfo(kData.eVote).isForcePeace())
+	else if (vi.isForcePeace())
 	{
 		if (GET_PLAYER(kData.ePlayer).getTeam() == getTeam())
 		{
@@ -23111,9 +23134,11 @@ bool CvPlayer::canDefyResolution(VoteSourceTypes eVoteSource, const VoteSelectio
 			return true;
 		}
 	}
-	else if (GC.getVoteInfo(kData.eVote).isAssignCity())
+	else if (vi.isAssignCity())
 	{
-		if (kData.ePlayer == getID())
+		if (kData.ePlayer == getID()
+				// dlph.25: 'You can defy resolution giving you a city'
+				|| kData.eOtherPlayer == getID())
 		{
 			return true;
 		}
@@ -23129,7 +23154,8 @@ bool CvPlayer::canDefyResolution(VoteSourceTypes eVoteSource, const VoteSelectio
 
 void CvPlayer::setDefiedResolution(VoteSourceTypes eVoteSource, const VoteSelectionSubData& kData)
 {
-	FAssert(canDefyResolution(eVoteSource, kData));
+	FAssertMsg(canDefyResolution(eVoteSource, kData),
+			"OK to fail when a team member defies a resolution"); // dlph.25
 
 	// cities get unhappiness
 	int iLoop;

@@ -15,6 +15,8 @@ using std::set_difference;
 AdvCiv4lert::AdvCiv4lert() {
 
 	isSilent = false;
+	/*  Set this to true in a subclass constructor in order to test or debug a
+		particular alert through AI Auto Play */
 	isDebug = false;
 }
 
