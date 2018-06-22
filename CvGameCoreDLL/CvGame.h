@@ -44,8 +44,13 @@ public:
 	DllExport void initDiplomacy();
 	DllExport void initFreeState();
 	DllExport void initFreeUnits();
-	void initScenario(); // advc.104u
-
+	// <advc.051>
+	void initScenario();
+	void initFreeUnitsBulk(); // </advc.051>
+	/*  This declaration lead to strange, erroneous behavior. Mustn't add any
+		(pure?) virtual functions to this class, apparently.
+		Not really necessary either. */
+	//virtual void AI_initScenario()=0; // advc.104u
 	DllExport void assignStartingPlots();
 	DllExport void normalizeStartingPlots();
 

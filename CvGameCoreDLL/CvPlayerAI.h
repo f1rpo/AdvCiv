@@ -466,7 +466,10 @@ public:
 	void AI_nowHasTech(TechTypes eTech);
 
 	int AI_countDeadlockedBonuses(CvPlot* pPlot) const;
-
+	int AI_countDeadlockedBonusesOriginal(CvPlot* pPlot) const; // advc.test
+	// <advc.052>
+	bool AI_isDeadlockedBonus(CvPlot const& p, CvPlot const& cityPlot,
+			int iMinRange) const; // </advc.052>
 	//int AI_goldToUpgradeAllUnits(int iExpThreshold = 0) const;
 	// K-Mod
 	inline int AI_getGoldToUpgradeAllUnits() const { return m_iUpgradeUnitsCachedGold; }

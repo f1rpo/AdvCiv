@@ -65,7 +65,7 @@
 	</Define>
 
 	<!-- [advc.127] If set to 1, AI Auto Play can be activated in multiplayer
-		 games. Exception: Doesn't work with Simultaneous Turns. -->
+		 games. -->
 	<Define>
 		<DefineName>ENABLE_AUTOPLAY_MULTIPLAYER</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>

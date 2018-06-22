@@ -4495,7 +4495,12 @@ CvArea* CvPlot::secondWaterArea() const
 
 		if (pAdjacentPlot != NULL)
 		{
-			if (pAdjacentPlot->isWater() && (pAdjacentPlot->getArea() != pWaterArea->getID()))
+			if (pAdjacentPlot->isWater() &&
+					/*  advc.031: Same as in waterArea, except that I see no
+						need for a bNoImpassable parameter here - water areas
+						blocked by ice should always be excluded. */
+					!pAdjacentPlot->isImpassable() &&
+					pAdjacentPlot->getArea() != pWaterArea->getID())
 			{
 				iValue = pAdjacentPlot->area()->getNumTiles();
 

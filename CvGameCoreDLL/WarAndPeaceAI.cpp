@@ -9,7 +9,7 @@
 /*  advc.make: Include this for debugging with Visual Leak Detector
 	(if installed). Doesn't matter which file includes it; preferrable a cpp file
 	such as this b/c it doesn't cause (much) unnecessary recompilation this way. */
-//#include <vld.h> 
+//#include <vld.h>
 
 using std::vector;
 using std::set;
@@ -1870,8 +1870,14 @@ double WarAndPeaceAI::Team::computeVotesToGoForVictory(double* voteTarget,
 		}
 	}
 	if(popThresh < 0) {
-		FAssertMsg(false, "Could not determine vote threshold");
-		if(voteTarget != NULL) voteTarget = NULL;
+		// OK if a mod removes the UN victory vote
+		for(int i = 0; i < GC.getNumVoteInfos(); i++) {
+			CvVoteInfo& vote = GC.getVoteInfo((VoteTypes)i);
+			if(vote.getStateReligionVotePercent() == 0 && vote.isVictory())
+				FAssertMsg(false, "Could not determine vote threshold");
+		}
+		if(voteTarget != NULL)
+			*voteTarget = -1;
 		return -1;
 	}
 	double totalPop = g.getTotalPopulation();

@@ -3494,4 +3494,14 @@
 		<Spanish>No se cumplen los requisitos para:</Spanish>
 	</TEXT>
 	
+	<!-- advc.001: "an" not "and" -->
+	<TEXT>
+		<Tag>TXT_KEY_TRADE_PEACE_TREATY</Tag>
+		<English>Establishes an Unbreakable Peace Treaty for %d1_Num [NUM1:Turn:Turns]</English>
+		<French>Etablit un trait&#233; de paix inviolable pendant %d1_Num [NUM1:tour:tours]</French>
+		<German>Es wird f&#252;r die Dauer von %d1_Num [NUM1:Runde:Runden] ein nicht aufl&#246;sbarer Friedensvertrag geschlossen</German>
+		<Italian>Stabilisce un trattato di pace infrangibile per %d1_Num [NUM1:turno:turni]</Italian>
+		<Spanish>Establece un tratado de paz inquebrantable durante %d1_Num [NUM1:turno:turnos].</Spanish>
+	</TEXT>
+	
 </Civ4GameText>

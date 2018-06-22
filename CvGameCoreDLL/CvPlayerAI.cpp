@@ -513,10 +513,10 @@ void CvPlayerAI::AI_doTurnPre()
 	FAssertMsg(getPersonalityType() != NO_LEADER, "getPersonalityType() is not expected to be equal with NO_LEADER");
 	FAssertMsg(getLeaderType() != NO_LEADER, "getLeaderType() is not expected to be equal with NO_LEADER");
 	FAssertMsg(getCivilizationType() != NO_CIVILIZATION, "getCivilizationType() is not expected to be equal with NO_CIVILIZATION");
-	CvGame& g = GC.getGameINLINE(); // advc.003
-	// <advc.104>
+	CvGameAI& g = GC.getGameINLINE(); // advc.003
+	// <advc.104u>
 	if(getID() == 0 && g.getElapsedGameTurns() <= 0 && GC.getInitCore().isScenario())
-		g.initScenario(); // </advc.104>
+		g.AI_initScenario(); // </advc.104u>
 	//AI_invalidateCloseBordersAttitudeCache();
 
 	AI_doCounter();
@@ -3015,7 +3015,13 @@ CvPlayerAI::CvFoundSettings::CvFoundSettings(const CvPlayerAI& kPlayer, bool bSt
 	{
 		iGreed = 200; // overruling previous value;
 	}
-
+	/*  advc.031: Disable Greed except in Advanced Start. (Not sure if it's useful
+		for Advanced Start either.) In BtS, Greed had the role of bEasyCulture;
+		old comment: "Greedy founding means getting the best possible sites -
+		fitting maximum resources into the fat cross."
+		In K-Mod, it seems to be more about founding many
+		cities, although Creative trait still factors in ... */
+	else iGreed = 100;
 	if (kPlayer.isHuman())
 	{
 		// don't use personality based traits for human players.
@@ -3206,16 +3212,23 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	for(int i = 0; i < NUM_CITY_PLOTS; i++) {
 		CvPlot* pLoopPlot = plotCity(iX, iY, i);
 		if (pLoopPlot == NULL || (pLoopPlot->isOwned() && pLoopPlot->getTeam() != getTeam()
-				&& !abFlip[i])) // advc.035
+				&& !abFlip[i])) { // advc.035
 			iOwnedTiles++;
+			/*  <advc.031> Count tiles only half if they're in our inner ring
+				and can't be worked by any foreign city. */
+			if(!::isInnerRing(pLoopPlot, pPlot) || pLoopPlot->isCityRadius())
+				iOwnedTiles++; // </advc.031>
+		}
 	}
-	if(iOwnedTiles > NUM_CITY_PLOTS / 3)
+	if(iOwnedTiles / 2 > // advc.031: Halved b/c most tiles are counted twice now
+			NUM_CITY_PLOTS / 3)
 		return 0;
 
 	std::vector<int> viBonusCount(GC.getNumBonusInfos(), 0);
 
 	int iBadTile = 0;
 	int unrev = 0, revDecentLand = 0; // advc.040
+	int iLand = 0; // advc.031
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 	{
 		CvPlot* pLoopPlot = plotCity(iX, iY, iI);
@@ -3244,6 +3257,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					unrev++; // </advc.040>
 				continue;
 			}
+			if(!pLoopPlot->isWater())
+				iLand++;
 			if(pLoopPlot->isImpassable()) {
 				iBadTile += 2;
 				continue;
@@ -3726,7 +3741,9 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			{
 
 				if (eBonus != NO_BONUS && // K-Mod added water case (!!)
-					((pLoopPlot->isWater() && bIsCoastal) || pLoopPlot->area() == pPlot->area() || pLoopPlot->area()->getCitiesPerPlayer(getID()) > 0))
+					((pLoopPlot->isWater() && bIsCoastal) ||
+					pLoopPlot->area() == pPlot->area() ||
+					pLoopPlot->area()->getCitiesPerPlayer(getID()) > 0))
 				{
 					//iBonusValue = AI_bonusVal(eBonus, 1, true) * ((!kSet.bStartingLoc && (getNumTradeableBonuses(eBonus) == 0) && (paiBonusCount[eBonus] == 1)) ? 80 : 20);
 					// K-Mod
@@ -3748,13 +3765,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 						/*  advc.031: Greed perhaps shouldn't matter here at all.
 							Civs that like founding lots of cities are going to
 							have lots of resources anyway; that's one thing they
-							don't need to be greedy for.
-							In BtS, Greed had the role of bEasyCulture; old comment:
-							"Greedy founding means getting the best possible sites -
-							fitting maximum resources into the fat cross."
-							In K-Mod, it seems to be more about founding many
-							cities, although Creative trait still factors in ...
-							Just throw out Greed entirely? */
+							don't need to be greedy for. */
 							(kSet.iGreed + 200) / 3);
 					iBonusValue /= 100;
 					// <advc.031>
@@ -3873,8 +3884,12 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	} */
 	// K-mod. It's tricky to get this right. Special commerce is great in the early game, but not so great later on.
 	//        Food is always great - unless we already have too much; and food already affects a bunch of other parts of the site evaluation...
-	if (kSet.bStartingLoc)
-		iResourceValue /= 4; // try not to make the value of strategic resources too overwhelming. (note: I removed a bigger value reduction from the original code higher up.)
+	if (kSet.bStartingLoc) {
+		/*  try not to make the value of strategic resources too overwhelming.
+			(note: I removed a bigger value reduction from the original code
+			higher up.) */
+		iResourceValue /= 4;
+	}
 	// Note: iSpecialFood is whatever food happens to be associated with bonuses. Don't value it highly, because it's also counted in a bunch of other ways.
 	// <advc.031>
 	// Preserve this for later
@@ -3898,7 +3913,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 
 	if (((iTakenTiles > (NUM_CITY_PLOTS / 3)
 		|| (isBarbarian() && iTakenTiles > 2)) // advc.303
-		&& iResourceValue < 250) // <advc.031>
+		&& iResourceValue < 250 && iValue < 780) // <advc.031>
 		|| (iTakenTiles >= (2 * NUM_CITY_PLOTS) / 3 &&
 		iResourceValue < 800)) // </advc.031>
 	{
@@ -3976,8 +3991,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 							iSeaValue += 200;
 						}
 					}
-				} /* <advc.031> Apply greed only half. (Why is settling at the coast
-					 greedy at all? B/c it leaves more room for inland cities). */
+				} /* <advc.031> Apply greed only half. (Why is settling at the
+					 coast greedy at all?). */
 				int halfGreed = 100 + (kSet.iGreed - 100) / 2;
 				if(halfGreed > 100) {
 					iSeaValue *= halfGreed;
@@ -3990,7 +4005,20 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				if(GC.getInitCore().getMapScriptName().compare(L"Pangaea") == 0)
 					mult /= 2;
 				iSeaValue = ::round(iSeaValue * mult);
-				// </advc.031>
+				// Encourage canals
+				if(pWaterArea != NULL &&
+						/*  ... but not if there is so little land that some city
+							will probably create a canal in any case */
+						iLand >= 8) {
+					CvArea* water2 = pPlot->secondWaterArea();
+					if(water2 != NULL && water2 != pWaterArea) {
+						int sz1 = pWaterArea->getNumTiles();
+						int sz2 = water2->getNumTiles();
+						int szFactor = std::min(30, std::min(sz1, sz2));
+						if(szFactor >= GC.getMIN_WATER_SIZE_FOR_OCEAN())
+							iSeaValue += 8 * szFactor;
+					}
+				} // </advc.031>
 				iValue += iSeaValue;
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
@@ -4278,7 +4306,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		}
 	}
 	// K-Mod end
-
+	
 	//CvCity* pNearestCity = GC.getMapINLINE().findCity(iX, iY, ((isBarbarian()) ? NO_PLAYER : getID()));
 	// K-Mod. Adjust based on proximity to other players, and the shape of our empire.
 	if (isBarbarian())
@@ -4550,17 +4578,6 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				unrev < 5) // advc.040
 			iValue = ::round(0.62 * iValue); // </advc.031>
 	}
-
-	if (!kSet.bStartingLoc)
-	{
-		int iDeadLockCount = AI_countDeadlockedBonuses(pPlot);
-		if (bAdvancedStart && (iDeadLockCount > 0))
-		{
-			iDeadLockCount += 2;
-		}
-		iValue /= (1 + iDeadLockCount);
-	}
-
 	int subtr = (isBarbarian() ? 2 : (NUM_CITY_PLOTS / 4)); // advc.303
 	iBadTile += unrev / 2; // advc.040
 	// <advc.031>
@@ -4571,7 +4588,51 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		// Earlier attempt: division by root
 		/*double div = std::pow((double)std::max(0, iBadTile), 0.67) + 3;
 		iValue = ::round(iValue / div);*/
-	} // </advc.031>
+	}
+	int bonusHealth = 0;
+	if(getCapitalCity() != NULL)
+		bonusHealth += getCapitalCity()->getBonusGoodHealth();
+	int iBadHealth = -iHealth/100 - bonusHealth -
+			GC.getHandicapInfo(getHandicapType()).getHealthBonus();
+	if(iBadHealth >= -1) // I.e. can only grow once
+		iValue /= std::max(1, (3 - getCurrentEra() + iBadHealth));
+	// </advc.031>
+	if (!kSet.bStartingLoc)
+	{
+		int iDeadLockCount = AI_countDeadlockedBonuses(pPlot);
+		if (bAdvancedStart && (iDeadLockCount > 0))
+		{
+			iDeadLockCount += 2;
+		}
+		//iValue /= (1 + iDeadLockCount);
+		// advc.031: Replacing the above, which is too harsh.
+		iValue = (2 * iValue) / (2 + iDeadLockCount);
+		// <advc.052> For maps with high resource density
+		CvCity* cap = getCapitalCity();
+		int iMinVal = AI_getMinFoundValue();
+		if(cap != NULL && iValue > 1.35 * iMinVal) {
+			/*  Bonuses that can be used by other future cities if this city
+				doesn't grab them */
+			int iGrab = 0;
+			for(int i = 0; i < NUM_CITY_PLOTS; i++) {
+				CvPlot* p = plotCity(iX, iY, i);
+				if(p != NULL && p->getBonusType(getTeam()) != NO_BONUS &&
+						(!p->isCityRadius() ||
+						/*  The city in p isn't going to get bonuses in its outer ring
+							that are also in the radius of an older city */
+						stepDistance(p->getX_INLINE(), p->getY_INLINE(), iX, iY) <= 1)) {
+					iGrab++;
+					// Settling on a bonus is especially greedy
+					if(i == CITY_HOME_PLOT)
+						iGrab++;
+				}
+			}
+			if(iGrab >= 6)
+				iValue = std::max(iMinVal,
+					::round(iValue * std::max(0.6, (1 - 0.08 * (iGrab - 4)))));
+		} // </advc.052>
+	}
+
 	/* original bts code
 	if (kSet.bStartingLoc)
 	{
@@ -4589,15 +4650,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 
 		iValue /= (std::max(0, (iDifferentAreaTile - ((NUM_CITY_PLOTS * 2) / 3))) + 2);
 	} */ // disabled by K-Mod. This kind of stuff is already taken into account.
-	// <advc.031>
-	int bonusHealth = 0;
-	if(getCapitalCity() != NULL)
-		bonusHealth += getCapitalCity()->getBonusGoodHealth();
-	int iBadHealth = -iHealth/100 - bonusHealth -
-			GC.getHandicapInfo(getHandicapType()).getHealthBonus();
-	if(iBadHealth >= -1) // I.e. can only grow once
-		iValue /= std::max(1, (3 - getCurrentEra() + iBadHealth));
-	// </advc.031>
+	
 	// K-Mod. Note: iValue is an int, but this function only return a short - so we need to be careful.
 	FAssert(iValue >= 0);
 	FAssert(iValue < MAX_SHORT);
@@ -23354,9 +23407,11 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 		iValue += 100;
 	else iValue += GC.getLeaderHeadInfo(getPersonalityType()).getDiplomacyVictoryWeight();
 	iValue = ::round(iValue * 0.67); // Victory weight too high
-	double voteTarget = -1;
+	double voteTarget = -2;
 	double votesToGo = GET_TEAM(getTeam()).warAndPeaceAI().
 			computeVotesToGoForVictory(&voteTarget);
+	if(voteTarget == -1)
+		return 0;
 	FAssert(voteTarget > 0);
 	double progressRatio = ::dRange((voteTarget - votesToGo) / voteTarget,
 			0.0, 1.0);
@@ -24901,62 +24956,62 @@ void CvPlayerAI::AI_nowHasTech(TechTypes eTech)
 int CvPlayerAI::AI_countDeadlockedBonuses(CvPlot* pPlot) const
 {
     CvPlot* pLoopPlot;
-    CvPlot* pLoopPlot2;
-    int iDX, iDY;
-    int iI;
-    
     int iMinRange = GC.getMIN_CITY_RANGE();
     int iRange = iMinRange * 2;
     int iCount = 0;
 
-    for (iDX = -(iRange); iDX <= iRange; iDX++)
+    for (int iDX = -(iRange); iDX <= iRange; iDX++)
     {
-        for (iDY = -(iRange); iDY <= iRange; iDY++)
+        for (int iDY = -(iRange); iDY <= iRange; iDY++)
         {
             if (plotDistance(iDX, iDY, 0, 0) > CITY_PLOTS_RADIUS)
             {
                 pLoopPlot = plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
 
                 if (pLoopPlot != NULL)
-                {
-                    if (pLoopPlot->getBonusType(getTeam()) != NO_BONUS)
-                    {
-                        if (!pLoopPlot->isCityRadius() && ((pLoopPlot->area() == pPlot->area()) || pLoopPlot->isWater()))
-                        {
-                            bool bCanFound = false;
-                            bool bNeverFound = true;
-                            //potentially blockable resource
-                            //look for a city site within a city radius
-                            for (iI = 0; iI < NUM_CITY_PLOTS; iI++)
-                            {
-                                pLoopPlot2 = plotCity(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), iI);
-                                if (pLoopPlot2 != NULL)
-                                {
-                                    //canFound usually returns very quickly
-                                    if (canFound(pLoopPlot2->getX_INLINE(), pLoopPlot2->getY_INLINE(), false))
-                                    {
-                                        bNeverFound = false;
-                                        if (stepDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pLoopPlot2->getX_INLINE(), pLoopPlot2->getY_INLINE()) > iMinRange)
-                                        {
-                                            bCanFound = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                            if (!bNeverFound && !bCanFound)
-                            {
-                                iCount++;
-                            }
-                        }
-                    }
+                {	// <advc.003> Code moved into subroutine
+					if(AI_isDeadlockedBonus(*pLoopPlot, *pPlot, iMinRange))
+						iCount++; // </advc.003>
                 }
             }
         }
     }
-    
     return iCount;
 }
+
+
+/*  <advc.003> Cut, pasted and refactored from AI_countDeadlockedBonuses.
+	(I mistakenly thought I needed this for advc.052.) */
+bool CvPlayerAI::AI_isDeadlockedBonus(CvPlot const& p, CvPlot const& cityPlot,
+		int iMinRange) const {
+
+	if(p.getBonusType(getTeam()) == NO_BONUS || p.isCityRadius())
+		return false;
+	if((p.area() != cityPlot.area()) && !p.isWater())
+		return false;
+	bool bCanFound = false;
+	bool bNeverFound = true;
+	//look for a city site [cityPlot2] within a city radius [around p]
+	for(int i = 0; i < NUM_CITY_PLOTS; i++) {
+		CvPlot* pp = plotCity(p.getX_INLINE(), p.getY_INLINE(), i);
+		if(pp == NULL ||
+				// advc.031: Don't want to settle on top of the bonus
+				i == CITY_HOME_PLOT)
+			continue;
+		CvPlot const& cityPlot2 = *pp;
+		//canFound usually returns very quickly
+		if(canFound(cityPlot2.getX_INLINE(), cityPlot2.getY_INLINE(), false)) {
+			bNeverFound = false;
+			if(stepDistance(cityPlot.getX_INLINE(), cityPlot.getY_INLINE(),
+					cityPlot2.getX_INLINE(), cityPlot2.getY_INLINE()) >
+					iMinRange) {
+				bCanFound = true;
+				break;
+			}
+		}
+	}
+	return (!bNeverFound && !bCanFound);
+} // </advc.003>
 
 // K-Mod. This function use to be the bulk of AI_goldToUpgradeAllUnits()
 void CvPlayerAI::AI_updateGoldToUpgradeAllUnits()
@@ -26820,8 +26875,8 @@ void CvPlayerAI::AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites)
 				{
 					if (!AI_isPlotCitySite(pLoopPlot))
 					{
-						iValue *= std::min(NUM_CITY_PLOTS * 2, pLoopPlot->area()->getNumUnownedTiles());					
-
+						iValue *= std::min(NUM_CITY_PLOTS * 2,
+								pLoopPlot->area()->getNumUnownedTiles());
 						if (iValue > iBestFoundValue)
 						{
 							iBestFoundValue = iValue;

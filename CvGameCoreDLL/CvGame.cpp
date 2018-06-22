@@ -244,7 +244,8 @@ void CvGame::setInitialItems()
 		}
 		// <advc.250b>
 		else if(GET_PLAYER(i).isAlive() && i != BARBARIAN_PLAYER &&
-				!GET_PLAYER(i).isMinorCiv()) nAI++; // </advc.250b>
+				!GET_PLAYER(i).isMinorCiv())
+			nAI++; // </advc.250b>
 	}
 	if (isGameMultiPlayer()) {
 		if (iHumanPlayers > 0) {
@@ -267,8 +268,9 @@ void CvGame::setInitialItems()
 		GC.getMap().recalculateAreas();
 	// </advc.030>
 	initFreeUnits();
-	/*  <advc.127> Set aiHandicap to the average of AI handicaps. (Scenarios can
-		assign unequal AI handicaps.) */
+	/*  <advc.127> Set aiHandicap to the average of AI handicaps. Scenarios can
+		assign unequal AI handicaps. (Then again, scenarios don't call 
+		setInitialItems, so this loop is really superfluous.) */
 	int handicapSum = 0;
 	int div = 0;
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
@@ -341,9 +343,10 @@ void CvGame::regenerateMap()
 		return;
 	}
 
-	/* <advc.004j> Not entirely sure what script data might be, but can't
-	   hurt to reset it. CvDLLButtonPopup::launchMainMenuPopup wants to disallow
-	   map regeneration once script data has been set. */
+	/*  <advc.004j> Not sure if the unmodded game or any mod included with AdvCiv
+		uses script data, but can't hurt to reset it. CvDLLButtonPopup::
+		launchMainMenuPopup wants to disallow map regeneration once script data
+		has been set. */
 	setScriptData("");
 	for(int i = 0; i < GC.getMapINLINE().numPlots(); ++i) {
 		CvPlot* p = GC.getMapINLINE().plotByIndexINLINE(i);
@@ -917,8 +920,9 @@ void CvGame::initFreeState()
 				} 
 			}
 		}
-	}
-
+	} // <advc.051> Don't force 0 gold in scenarios
+	if(GC.getInitCore().isScenario())
+		return; // </advc.051>
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
@@ -928,12 +932,30 @@ void CvGame::initFreeState()
 	}
 }
 
+// <advc.051>
+void CvGame::initScenario() {
 
-void CvGame::initFreeUnits()
-{
-	int iI;
+	initFreeState(); // Tech from handicap
+	// <advc.030>
+	if(GC.getDefineINT("PASSABLE_AREAS") > 0)
+		GC.getMap().recalculateAreas();
+	// </advc.030>
+}
 
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+void CvGame::initFreeUnits() {
+
+	/*  In scenarios, neither setInitialItems nor initFreeState is called; the
+		EXE only calls initFreeUnits, so initialization of freebies needs to
+		happen here. (If a scenario places cities, then initFreeUnits isn't
+		called either - no additional freebies from the DLL then.) */
+	if(GC.getInitCore().isScenario())
+		initScenario();
+	initFreeUnitsBulk();
+}
+
+void CvGame::initFreeUnitsBulk() { // </advc.051>
+
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
@@ -944,36 +966,6 @@ void CvGame::initFreeUnits()
 		}
 	}
 }
-
-// <advc.104u>
-/*  Parts of the AI don't seem to get properly initialized in scenarios. Not
-	sure if this has always been the case, if it has to do with K-Mod changes to
-	the turn order (team turns vs. player turns) or is only a problem for UWAI. */
-void CvGame::initScenario() {
-
-	// Citizens not properly assigned
-	for(int i = 0; i < MAX_PLAYERS; i++) {
-		CvPlayerAI& pl = GET_PLAYER((PlayerTypes)i);
-		if(!pl.isAlive())
-			continue; int dummy=-1;
-		for(CvCity* c = pl.firstCity(&dummy); c != NULL; c = pl.nextCity(&dummy)) {
-			/*  After getting failed assertions in CvCity::doTurn in the
-				Europe1000AD scenario (I'm guessing due to production from
-				Apostolic Palace). */
-			for(int j = 0; j < NUM_YIELD_TYPES; j++) {
-				YieldTypes y = (YieldTypes)j;
-				c->setBaseYieldRate(y, c->calculateBaseYieldRate(y));
-			}
-			c->AI_assignWorkingPlots();
-		}
-	}
-	// Ensure UWAI initialization
-	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
-		CvTeamAI& t = GET_TEAM((TeamTypes)i);
-		if(t.isAlive())
-			t.AI_doTurnPre();
-	}
-} // </advc.104u>
 
 void CvGame::assignStartingPlots()
 {
