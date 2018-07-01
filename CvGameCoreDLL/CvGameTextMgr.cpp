@@ -4614,10 +4614,19 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 			if (kPlayer.isAlive()
 					// advc.001n: Might cache FoundValue
 					&& !GC.getGameINLINE().isNetworkMultiPlayer())
-            {
+            {	// <advc.007> Moved up, and skip unrevealed.
+				bool bIsRevealed = pPlot->isRevealed(kPlayer.getTeam(), false);
+				if(!bIsRevealed)
+					continue; // </advc.007>
 				int iActualFoundValue = pPlot->getFoundValue(ePlayer);
-                int iCalcFoundValue = kPlayer.AI_foundValue(pPlot->getX_INLINE(), pPlot->getY_INLINE(), -1, false);
-                int iStartingFoundValue = kPlayer.AI_foundValue(pPlot->getX_INLINE(), pPlot->getY_INLINE(), -1, true);
+				//int iCalcFoundValue = kPlayer.AI_foundValue(pPlot->getX_INLINE(), pPlot->getY_INLINE(), -1, false);
+				// <advc.007>
+				CvPlayerAI::CvFoundSettings fset(kPlayer, false);
+				fset.bDebug = true;
+				int iCalcFoundValue = kPlayer.AI_foundValue_bulk(pPlot->getX_INLINE(), pPlot->getY_INLINE(), fset);
+				int iStartingFoundValue = 0;
+				// Gets in the way of debugging bStartingLoc=false </advc.007>
+						//=kPlayer.AI_foundValue(pPlot->getX_INLINE(), pPlot->getY_INLINE(), -1, true);
                 int iBestAreaFoundValue = pPlot->area()->getBestFoundValue(ePlayer);
                 int iCitySiteBestValue;
                 int iNumAreaCitySites = kPlayer.AI_getNumAreaCitySites(pPlot->getArea(), iCitySiteBestValue);
@@ -4632,19 +4641,18 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 					}
 
 					szString.append(NEWLINE);
-
-					bool bIsRevealed = pPlot->isRevealed(kPlayer.getTeam(), false);
 					
 					szString.append(CvWString::format(SETCOLR, TEXT_COLOR(bIsRevealed ? (((iActualFoundValue > 0) && (iActualFoundValue == iBestAreaFoundValue)) ? "COLOR_UNIT_TEXT" : "COLOR_ALT_HIGHLIGHT_TEXT") : "COLOR_HIGHLIGHT_TEXT")));
 					
-					if (!bIsRevealed)
+					//if (!bIsRevealed) // advc.007
 					{
 						szString.append(CvWString::format(L"("));
 					}
 
-					szString.append(CvWString::format(L"%s: %d", kPlayer.getName(), iActualFoundValue));
+					szString.append(CvWString::format(L"%s: %d", kPlayer.getName(),
+							iCalcFoundValue)); // advc.007: Swapped with iActual
 
-					if (!bIsRevealed)
+					//if (!bIsRevealed) // advc.007
 					{
 						szString.append(CvWString::format(L")"));
 					}
@@ -4653,7 +4661,9 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 
 					if (iCalcFoundValue > 0 || iStartingFoundValue > 0)
 					{
-						szTempBuffer.Format(L" (%d,%ds)", iCalcFoundValue, iStartingFoundValue);
+						szTempBuffer.Format(L" (%d,%ds)",
+								iActualFoundValue, // advc.007: Swapped with iCalc
+								iStartingFoundValue);
 						szString.append(szTempBuffer);
 					}
 
@@ -7391,7 +7401,10 @@ void CvGameTextMgr::parseCivicInfo(CvWStringBuffer &szHelpText, CivicTypes eCivi
 		/* szHelpText.append(NEWLINE);
 		szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_SUPPORT_COSTS", (GC.getCivicInfo(eCivic).getGoldPerUnit() > 0), GC.getCommerceInfo(COMMERCE_GOLD).getChar())); */
 		// K-Mod
-		szHelpText.append(CvWString::format(L"\n%c%+.2f%c %s", gDLL->getSymbolID(BULLET_CHAR), (float)GC.getCivicInfo(eCivic).getGoldPerUnit()*fInflationFactor/100, GC.getCommerceInfo(COMMERCE_GOLD).getChar(),
+		szHelpText.append(CvWString::format(L"\n%c%+.2f%c %s",
+			gDLL->getSymbolID(BULLET_CHAR), (float)
+			GC.getCivicInfo(eCivic).getGoldPerUnit()*fInflationFactor/100,
+			GC.getCommerceInfo(COMMERCE_GOLD).getChar(),
 			gDLL->getText("TXT_KEY_CIVIC_SUPPORT_COSTS").GetCString()));
 		// K-Mod end
 	}

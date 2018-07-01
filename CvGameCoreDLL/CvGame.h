@@ -630,6 +630,10 @@ public:
 	bool isResourceLayer() const;
 	void reportResourceLayerToggled();
 	// </advc.004m>
+	// <advc.052>
+	bool isScenario() const;
+	void setScenario(bool b);
+	// </advc.052>
 	// <advc.127b> Both return -1 if 'vs' doesn't exist in any city
 	std::pair<int,int> getVoteSourceXY(VoteSourceTypes vs) const;
 	BuildingTypes getVoteSourceBuilding(VoteSourceTypes vs) const;
@@ -806,6 +810,7 @@ protected:
 	UnitTypes randomBarbUnit(UnitAITypes ai, CvArea const& a);
 	// </advc.300>
 	bool feignSP; // advc.135c
+	bool bScenario; // advc.052
 
 	void verifyCivics();
 

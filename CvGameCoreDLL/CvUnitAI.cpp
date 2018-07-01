@@ -1481,12 +1481,14 @@ void CvUnitAI::AI_settleMove()
 				}
 			}*/
 			// K-Mod end
-			iAreaBestFoundValue = std::max(iAreaBestFoundValue, pCitySitePlot->getFoundValue(getOwnerINLINE()));
+			iAreaBestFoundValue = std::max(iAreaBestFoundValue,
+					pCitySitePlot->getFoundValue(getOwnerINLINE()));
 
 		}
 		else
 		{
-			iOtherBestFoundValue = std::max(iOtherBestFoundValue, pCitySitePlot->getFoundValue(getOwnerINLINE()));
+			iOtherBestFoundValue = std::max(iOtherBestFoundValue,
+					pCitySitePlot->getFoundValue(getOwnerINLINE()));
 		}
 	}
 
@@ -17527,7 +17529,10 @@ bool CvUnitAI::AI_found(int iFlags)
 	int iBestFoundValue = 0;
 	CvPlot* pBestPlot = NULL;
 	CvPlot* pBestFoundPlot = NULL;
-
+	// <advc.052>
+	double plusMinus = 0;
+	if(!isHuman() && GC.getGameINLINE().isScenario())
+		plusMinus = 0.04; // </advc.052>
 	for (int iI = 0; iI < GET_PLAYER(getOwnerINLINE()).AI_getNumCitySites(); iI++)
 	{
 		CvPlot* pCitySitePlot = GET_PLAYER(getOwnerINLINE()).AI_getCitySite(iI);
@@ -17555,6 +17560,11 @@ bool CvUnitAI::AI_found(int iFlags)
 							if (!pCitySitePlot->isVisible(getTeam(), false) || !pCitySitePlot->isVisibleEnemyUnit(this) || (iPathTurns > 1 && getGroup()->canDefend())) // K-Mod
 							{
 								iValue = pCitySitePlot->getFoundValue(getOwnerINLINE());
+								// <advc.052>
+								double randMult = 1 - plusMinus + 2 * plusMinus *
+										::hash(m_iBirthmark);
+								iValue = ::round(iValue * randMult);
+								// </advc.052>
 								iValue *= 1000;
 								//iValue /= (iPathTurns + 1);
 								iValue /= iPathTurns + (getGroup()->canDefend() ? 4 : 1); // K-Mod

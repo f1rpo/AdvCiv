@@ -631,13 +631,13 @@ void CvMap::combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvP
 CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTimeout,
 		int* legalCount) // advc.304
 {
-	CvPlot* pTestPlot;
-	bool bValid;
 	/*  <advc.304> The standard 100 trials for monte-carlo selection often fail to
 		find a plot when only handful of tiles are legal on large maps.
 		10000 trials would probably do, but that isn't much faster anymore than
 		gathering all valid plots upfront - which is what I'm doing. */
-	/*CvPlot* pPlot;
+	/*CvPlot* pTestPlot;
+	bool bValid;
+	CvPlot* pPlot;
 	int iCount;
 
 	pPlot = NULL;
@@ -653,11 +653,12 @@ CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTi
 	std::vector<CvPlot*> legalPlots;
 	CvMap const& m = GC.getMap();
 	for(int i = 0; i < m.numPlots(); i++) {
-		pTestPlot = m.plotByIndexINLINE(i);
-		if(pTestPlot == NULL) continue; // </advc.304>
+		CvPlot* pTestPlot = m.plotByIndexINLINE(i);
+		if(pTestPlot == NULL)
+			continue; // </advc.304>
 		if ((iArea == -1) || (pTestPlot->getArea() == iArea))
 		{
-			bValid = true;
+			bool bValid = true;
 
 			/* advc.300: Moved the horribly nested loop here to a new function
 			   b/c I need it again elsewhere. Now ignores barbarians on
@@ -712,7 +713,7 @@ CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTi
 
 			if (bValid)
 			{
-				if (iFlags & RANDPLOT_PASSIBLE)
+				if (iFlags & RANDPLOT_PASSABLE)
 				{
 					if (pTestPlot->isImpassable())
 					{
@@ -744,8 +745,11 @@ CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTi
 			}
 
 			// <advc.300>
-			if((iFlags & RANDPLOT_HABITABLE) &&
+			if(bValid && (iFlags & RANDPLOT_HABITABLE) &&
 					pTestPlot->getYield(YIELD_FOOD) <= 0)
+				bValid = false;
+			if(bValid && (iFlags & RANDPLOT_WATERSOURCE) &&
+					!pTestPlot->isFreshWater() && pTestPlot->getYield(YIELD_FOOD) <= 0)
 				bValid = false; // </advc.300>
 
 			if (bValid)

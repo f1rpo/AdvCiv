@@ -759,7 +759,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	m_iShrineBuildingCount = 0;
 	m_iNumCultureVictoryCities = 0;
 	m_eCultureVictoryCultureLevel = NO_CULTURELEVEL;
-
+	bScenario = false; // advc.052
 	if (!bConstructorCall)
 	{
 		AI_reset();
@@ -7836,7 +7836,10 @@ void CvGame::createAnimals()
 
 				for (iI = 0; iI < iNeededAnimals; iI++)
 				{
-					pPlot = GC.getMapINLINE().syncRandPlot((RANDPLOT_NOT_VISIBLE_TO_CIV | RANDPLOT_PASSIBLE), pLoopArea->getID(), GC.getDefineINT("MIN_ANIMAL_STARTING_DISTANCE"));
+					pPlot = GC.getMapINLINE().syncRandPlot(
+							(RANDPLOT_NOT_VISIBLE_TO_CIV | RANDPLOT_PASSABLE
+							| RANDPLOT_WATERSOURCE), // advc.300
+							pLoopArea->getID(), GC.getDefineINT("MIN_ANIMAL_STARTING_DISTANCE"));
 
 					if (pPlot != NULL)
 					{
@@ -8078,7 +8081,7 @@ CvPlot* CvGame::randomBarbPlot(CvArea const& area, Shelf* shelf) const {
 			/*  Shelves already ensure this and one-tile islands
 				can't spawn barbs anyway. */
 			//RANDPLOT_ADJACENT_LAND |
-			RANDPLOT_PASSIBLE |
+			RANDPLOT_PASSABLE |
 			RANDPLOT_HABITABLE | // New flag
 			RANDPLOT_UNOWNED;
 	/*  Added the "unowned" flag to prevent spawning in barbarian land.
@@ -9660,6 +9663,9 @@ void CvGame::read(FDataStreamBase* pStream)
 	pStream->Read(GC.getNumBuildingInfos(), m_aiShrineReligion);
 	pStream->Read(&m_iNumCultureVictoryCities);
 	pStream->Read(&m_eCultureVictoryCultureLevel);
+	// <advc.052>
+	if(uiFlag >= 3)
+		pStream->Read(&bScenario); // </advc.052>
 	/*  advc.002a: Or write to and read from savegame. Don't want to break savegame
 		compatibility right now. */
 	minimapWaterMode = GC.getDefineINT("MINIMAP_WATER_MODE");
@@ -9672,7 +9678,9 @@ void CvGame::write(FDataStreamBase* pStream)
 {
 	int iI;
 
-	uint uiFlag=2; // advc.701: 2 for R&F option
+	uint uiFlag=1;
+	uiFlag++; // advc.701: 2 for R&F option
+	uiFlag++; // advc.052: 3 for bScenario
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iElapsedGameTurns);
@@ -9828,6 +9836,7 @@ void CvGame::write(FDataStreamBase* pStream)
 	pStream->Write(GC.getNumBuildingInfos(), m_aiShrineReligion);
 	pStream->Write(m_iNumCultureVictoryCities);
 	pStream->Write(m_eCultureVictoryCultureLevel);
+	pStream->Write(bScenario); // advc.052
 }
 
 void CvGame::writeReplay(FDataStreamBase& stream, PlayerTypes ePlayer)
@@ -11251,6 +11260,16 @@ BuildingTypes CvGame::getVoteSourceBuilding(VoteSourceTypes vs) const {
 	}
 	return NO_BUILDING;
 } // </advc.127b>
+
+// <advc.052>
+bool CvGame::isScenario() const {
+
+	return bScenario;
+}
+void CvGame::setScenario(bool b) {
+
+	bScenario = b;
+} // </advc.052>
 
 // advc.104:
 bool CvGame::useKModAI() const { return !GC.getGame().warAndPeaceAI().isEnabled(); }

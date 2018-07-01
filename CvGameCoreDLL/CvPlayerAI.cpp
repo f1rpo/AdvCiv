@@ -515,8 +515,10 @@ void CvPlayerAI::AI_doTurnPre()
 	FAssertMsg(getCivilizationType() != NO_CIVILIZATION, "getCivilizationType() is not expected to be equal with NO_CIVILIZATION");
 	CvGameAI& g = GC.getGameINLINE(); // advc.003
 	// <advc.104u>
-	if(getID() == 0 && g.getElapsedGameTurns() <= 0 && GC.getInitCore().isScenario())
+	if(getID() == 0 && g.getElapsedGameTurns() <= 0 && GC.getInitCore().isScenario()) {
 		g.AI_initScenario(); // </advc.104u>
+		g.setScenario(true);
+	}
 	//AI_invalidateCloseBordersAttitudeCache();
 
 	AI_doCounter();
@@ -2888,6 +2890,7 @@ CvPlayerAI::CvFoundSettings::CvFoundSettings(const CvPlayerAI& kPlayer, bool bSt
 	bExpansive = false;
 	bAllSeeing = bStartingLoc || kPlayer.isBarbarian();
 	barbDiscouragedRange = 8; // advc.303
+	bDebug = false; // advc.007
 
 	if (!bStartingLoc)
 	{
@@ -3048,43 +3051,23 @@ CvPlayerAI::CvFoundSettings::CvFoundSettings(const CvPlayerAI& kPlayer, bool bSt
 // Heavily edited for K-Mod (some changes marked, others not.)
 // note, this function is called for every revealed plot for every player at the start of every turn.
 // try to not make it too slow!
+/*  advc.003: Uppercase comments added and code rearranged a bit in order to
+	structure this 1000 LoC function better. Should really be in a separate class. */
 short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet) const
 {
 	PROFILE_FUNC();
-
-	int iResourceValue = 0;
-	int iSpecialFood = 0;
-	int iSpecialFoodPlus = 0;
-	int iSpecialFoodMinus = 0;
-	int iSpecialProduction = 0;
-	int iSpecialCommerce = 0;
-	// advc.031: int->double
-	double baseProduction = 0; // K-Mod. (used to devalue cities which are unable to get any production.)
-	double specials = 0; // advc.031: Number of tiles with special yield
-
-	bool bNeutralTerritory = true;
-	bool firstColony = false; // advc.040
-
-	if (!canFound(iX, iY))
-	{
+	if(!canFound(iX, iY))
 		return 0;
-	}
-	CvGame& g = GC.getGameINLINE(); // advc.003
-	CvPlot* pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
-	CvArea* pArea = pPlot->area();
-	bool bIsCoastal = pPlot->isCoastalLand(GC.getMIN_WATER_SIZE_FOR_OCEAN());
-	int iNumAreaCities = pArea->getCitiesPerPlayer(getID());
-	// <advc.040>
-	if(bIsCoastal && iNumAreaCities <= 0 && !isBarbarian() &&
-			(pPlot->isFreshWater() ||
-			/*  Don't apply first-colony logic to Tundra and Ice b/c these are
-				likely surrounded by more (unrevealed) Tundra and Ice.
-				(Non-river Desert also excluded, perhaps unfortunately.) */
-			pPlot->calculateNatureYield(YIELD_FOOD, getTeam(), true) +
-			pPlot->calculateNatureYield(YIELD_PRODUCTION, getTeam(), true) > 1))
-		firstColony = true; // </advc.040>
+// CONSTS
+	CvGame const& g = GC.getGameINLINE();
+	CvPlot* const pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
+	CvArea* const pArea = pPlot->area();
+	bool const bIsCoastal = pPlot->isCoastalLand(GC.getMIN_WATER_SIZE_FOR_OCEAN());
+	int const iNumAreaCities = pArea->getCitiesPerPlayer(getID());
+	CvCity const* const pCapital = getCapitalCity();
+// END OF CONSTS
+// INITIAL DON'T-FOUND-HERE CHECKS
 	bool bAdvancedStart = (getAdvancedStartPoints() >= 0);
-
 	if (!kSet.bStartingLoc && !bAdvancedStart)
 	{
 		if (!bIsCoastal && iNumAreaCities == 0)
@@ -3092,7 +3075,6 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			return 0;
 		}
 	}
-
 	if (bAdvancedStart)
 	{
 		//FAssert(!bStartingLoc);
@@ -3102,10 +3084,6 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			bAdvancedStart = false;
 		}
 	}
-
-	// K-Mod. city site radius check used to be here. I've moved it down a bit.
-	// ... and also the bonus vector initializtion
-
 	if (kSet.iMinRivalRange != -1)
 	{
 		for (int iDX = -(kSet.iMinRivalRange); iDX <= kSet.iMinRivalRange; iDX++)
@@ -3124,7 +3102,6 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			}
 		}
 	}
-
 	if (kSet.bStartingLoc)
 	{
 		if (pPlot->isGoody())
@@ -3142,20 +3119,25 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			}
 		}
 	}
-
-	// (K-Mod this site radius check code was moved from higher up)
-	//Explaination of city site adjustment:
-	//Any plot which is otherwise within the radius of a city site
-	//is basically treated as if it's within an existing city radius
-	std::vector<bool> abCitySiteRadius(NUM_CITY_PLOTS, false);
+// END OF INITIAL CHECKS
+// COMPUTE OVERLAP WITH OTHER CITY SITES
+	/*  (K-Mod this site radius check code was moved from higher up)
+		Explanation of city site adjustment:
+		Any plot which is otherwise within the radius of a city site is basically
+		treated as if it's within an existing city radius */
+	/*  advc.031: Changed to int in order to store the site id
+		(though it seems I won't need it after all) */
+	std::vector<int> aiCitySiteRadius(NUM_CITY_PLOTS, -1);
 	/*  <advc.035>
 		Need to distinguish tiles within the radius of one of our team's cities
 		from those within just any city radius. */
 	std::vector<bool> abOwnCityRadius(NUM_CITY_PLOTS, false);
 	// Whether the tile flips to us once we settle near it
-	std::vector<bool> abFlip(NUM_CITY_PLOTS, false);
+	std::vector<bool> abFlip(NUM_CITY_PLOTS, false); // </advc.035>
+
 	// K-Mod. bug fixes etc. (original code deleted)
-	if (!kSet.bStartingLoc)
+	if (!kSet.bStartingLoc
+			&& !kSet.bDebug) // advc.007
 	{
 		for (int iJ = 0; iJ < AI_getNumCitySites(); iJ++)
 		{
@@ -3163,8 +3145,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			if (pCitySitePlot == pPlot)
 				continue;
 			FAssert(pCitySitePlot != NULL);
-
-			if (plotDistance(iX, iY, pCitySitePlot->getX_INLINE(), pCitySitePlot->getY_INLINE()) <= GC.getMIN_CITY_RANGE() &&
+			if (!kSet.bDebug && // advc.007
+				plotDistance(iX, iY, pCitySitePlot->getX_INLINE(), pCitySitePlot->getY_INLINE()) <= GC.getMIN_CITY_RANGE() &&
 				pPlot->area() == pCitySitePlot->area())
 			{
 				// this tile is too close to one of the sites we've already chosen.
@@ -3178,21 +3160,24 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					if (plotDistance(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), pCitySitePlot->getX_INLINE(), pCitySitePlot->getY_INLINE()) <= CITY_PLOTS_RADIUS)
 					{
 						//Plot is inside the radius of a city site
-						abCitySiteRadius[iI] = true;
+						aiCitySiteRadius[iI] = iJ;
 					}
 				}
 			}
-		} // <advc.035>
-		if(GC.getOWN_EXCLUSIVE_RADIUS() > 0) {
-			int dummy=-1;
-			for(CvCity* c = firstCity(&dummy); c != NULL; c = nextCity(&dummy)) {
-				for(int i = 0; i < NUM_CITY_PLOTS; i++) {
-					CvPlot* p = plotCity(iX, iY, i);
-					if(p != NULL && plotDistance(p->getX_INLINE(), p->getY_INLINE(),
-							c->getX_INLINE(), c->getY_INLINE()) <= CITY_PLOTS_RADIUS)
-						abOwnCityRadius[i] = true;
-				}
+		}
+	} // K-Mod (bugfixes etc.) end
+	// <advc.035> (Also using this for advc.031 now)
+	if(!kSet.bStartingLoc) {
+		int foo=-1;
+		for(CvCity* c = firstCity(&foo); c != NULL; c = nextCity(&foo)) {
+			for(int i = 0; i < NUM_CITY_PLOTS; i++) {
+				CvPlot* p = plotCity(iX, iY, i);
+				if(p != NULL && plotDistance(p->getX_INLINE(), p->getY_INLINE(),
+						c->getX_INLINE(), c->getY_INLINE()) <= CITY_PLOTS_RADIUS)
+					abOwnCityRadius[i] = true;
 			}
+		}
+		if(GC.getOWN_EXCLUSIVE_RADIUS() > 0) {
 			for(int i = 0; i < NUM_CITY_PLOTS; i++) {
 				CvPlot* p = plotCity(iX, iY, i);
 				abFlip[i] = (!abOwnCityRadius[i] && p != NULL &&
@@ -3206,7 +3191,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			}
 		} // </advc.035>
 	}
-	// K-Mod end
+// END OF OVERLAP COMPUTATION
+// CHECK IF TOO MANY OWNED TILES
 	// advc.035: Moved the owned-tile counting down b/c I need abFlip for it
 	int iOwnedTiles = 0;
 	for(int i = 0; i < NUM_CITY_PLOTS; i++) {
@@ -3223,8 +3209,17 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	if(iOwnedTiles / 2 > // advc.031: Halved b/c most tiles are counted twice now
 			NUM_CITY_PLOTS / 3)
 		return 0;
-
-	std::vector<int> viBonusCount(GC.getNumBonusInfos(), 0);
+// END OF OWNED TILES CHECK
+// COUNT BAD TILES
+	// <advc.040>
+	bool firstColony = false; // advc.040
+	if(bIsCoastal && iNumAreaCities <= 0 && !isBarbarian() &&
+			(pPlot->isFreshWater() ||
+			/*  Don't apply first-colony logic to tundra, snow and desert b/c
+				these are likely surrounded by more (unrevealed) bad terrain. */
+			pPlot->calculateNatureYield(YIELD_FOOD, getTeam(), true) +
+			pPlot->calculateNatureYield(YIELD_PRODUCTION, getTeam(), true) > 1))
+		firstColony = true; // </advc.040>
 
 	int iBadTile = 0;
 	int unrev = 0, revDecentLand = 0; // advc.040
@@ -3242,7 +3237,6 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				iBadTile++;
 			continue;
 		} // </advc.303>
-
 		if (iI != CITY_HOME_PLOT)
 		{
 			/*  <advc.031> NULL and impassable count as 2 bad tiles (as in BtS),
@@ -3266,8 +3260,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			// K-Mod (original code deleted)
 			if (//!pLoopPlot->isFreshWater() &&
 			/*  advc.031: Flood plains have high nature yield anyway,
-				so this is about snow. Perhaps snow river should be
-				just 1 bad tile(?). Bonus check added (Incense). */
+				so this is about snow.
+				Bonus check added (Incense). */
 				pLoopPlot->getBonusType() == NO_BONUS &&
 				(pLoopPlot->calculateBestNatureYield(YIELD_FOOD, getTeam()) == 0 ||
 				pLoopPlot->calculateTotalBestNatureYield(getTeam()) <= 1))
@@ -3299,11 +3293,13 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					{
 						iBadTile++;
 					}
-					// note: this final condition is... not something I intend to keep permanently.
-					else if (pLoopPlot->isCityRadius() || abCitySiteRadius[iI])
+					/*  (K-Mod) note: this final condition is...
+						not something I intend to keep permanently. */
+					// advc.031: poof
+					/*else if (pLoopPlot->isCityRadius() || aiCitySiteRadius[iI] >= 0)
 					{
 						iBadTile++;
-					}
+					}*/
 				} // advc.035
 			}
 			// K-Mod end
@@ -3316,6 +3312,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	if(revDecentLand < 4)
 		firstColony = false; // </advc.040>
 	iBadTile /= 2;
+// END OF BAD TILE COUNTING
+// CHECK IF TOO MANY BAD TILES
 	if (!kSet.bStartingLoc)
 	{
 		if ((iBadTile > (NUM_CITY_PLOTS / 2)) || (pArea->getNumTiles() <= 2)
@@ -3364,140 +3362,186 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			}
 		}
 	}
-
-	int iTakenTiles = 0;
-	int iTeammateTakenTiles = 0;
-	int iHealth = 0;
-	// <advc.031>
-	int iRiver = 0;
-	int iGreen  = 0; // </advc.031>
+// END OF BAD-TILES CHECK
+// PLOT EVALUATION LOOP
 	// advc.031: was 800 in K-Mod and 1000 before K-Mod
 	int iValue = 600;
-
 	// <advc.040>
 	if(firstColony)
 		iValue += 55 * std::min(5, unrev); // </advc.040>
+	int iTakenTiles = 0;
+	// TeamMateTakenTiles code deleted (was dead code b/c of K-Mod changes)
+	//int iTeammateTakenTiles = 0;
+	int iHealth = 0;
+	// <advc.031>
+	int iRiver = 0;
+	int iGreen = 0;
+	std::vector<int> aiPlotValues(NUM_CITY_PLOTS, 0);
+	int iStealPercent = 0; // </advc.031>
 	int iYieldLostHere = 0;
+	int iResourceValue = 0;
+	int iSpecialFood = 0;
+	int iSpecialFoodPlus = 0;
+	int iSpecialFoodMinus = 0;
+	int iSpecialProduction = 0;
+	int iSpecialCommerce = 0;
+	std::vector<int> viBonusCount(GC.getNumBonusInfos(), 0);
+	// advc.031: int->double
+	double baseProduction = 0; // K-Mod. (used to devalue cities which are unable to get any production.)
+	double specials = 0; // advc.031: Number of tiles with special yield
+	//bool bNeutralTerritory = true;
+	bool bAnyForeignOwned = false; // advc.040: Replacing the above
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 	{
+// SKIP UNWORKABLE TILES
 		CvPlot* pLoopPlot = plotCity(iX, iY, iI);
+		bool const bInnerRing = ::isInnerRing(pLoopPlot, pPlot);
 		// <advc.303>
-		if(isBarbarian() && !::isInnerRing(pLoopPlot, pPlot))
+		if(isBarbarian() && !bInnerRing)
 			continue; // </advc.303>
-		if (pLoopPlot == NULL)
-		{
+		if(pLoopPlot == NULL) {
 			iTakenTiles++;
-		}
-		//else if (pLoopPlot->isCityRadius() || abCitySiteRadius[iI])
-		else if (iI != CITY_HOME_PLOT && (pLoopPlot->isCityRadius() || abCitySiteRadius[iI]) // K-Mod
-				&& !abFlip[iI]) // advc.035
-		{
-			iTakenTiles++;
-			if (abCitySiteRadius[iI])
-			{
-				iTeammateTakenTiles++;
+			continue; 
+		} /* advc.031: Moved up. If we can't see the tile, we don't really know
+			 if it's already taken by a rival. (Will find out when our Settler
+			 gets there.) */
+		if(!kSet.bAllSeeing && !pLoopPlot->isRevealed(getTeam(), false))
+			continue;
+		// <advc.031>
+		bool const bCityRadius = pLoopPlot->isCityRadius();
+		PlayerTypes const eOwner = pLoopPlot->getOwnerINLINE();
+		bool const bForeignOwned = (eOwner != NO_PLAYER && eOwner != getID());
+		bool const bSteal = (bCityRadius && bForeignOwned);
+		bool bShare = false; //aiCitySiteRadius[iI] >= 0 // </advc.031>
+		/*  advc.035: The own-exclusive-radius rule only helps if the radii 
+			don't overlap. */
+		bool const bOwnExl = (GC.getOWN_EXCLUSIVE_RADIUS() > 0 && !bCityRadius &&
+				bForeignOwned);
+		if(iI != CITY_HOME_PLOT
+				&& !abFlip[iI]) { // advc.035
+			if(bCityRadius || aiCitySiteRadius[iI] >= 0) {
+				iTakenTiles++;
+				// <advc.040>
+				if(bForeignOwned)
+					bAnyForeignOwned = true; // </advc.040>
+				//continue;
 			}
-		}
-		// K-Mod Note: it kind of sucks that no value is counted for taken tiles. Tile sharing / stealing should be allowed.
-		else if (kSet.bAllSeeing || pLoopPlot->isRevealed(getTeam(), false))
-		{
-			int iPlotValue = 0; // K-Mod note. this use to be called iTempValue. I've renamed it throughout this section to improve clarity.
-
-			FeatureTypes eFeature = pLoopPlot->getFeatureType();
-			BonusTypes eBonus = pLoopPlot->getBonusType((kSet.bStartingLoc
-				  // advc.108: Don't factor in unrevealed bonuses
-				  && g.getNormalizationLevel() > 1)
-				? NO_TEAM : getTeam());
-			ImprovementTypes eBonusImprovement = NO_IMPROVEMENT;
-			CvTeamAI const& kTeam = GET_TEAM(getTeam()); // advc.003
-			// K-Mod
-			bool bRemoveableFeature = false;
-			bool bEventuallyRemoveableFeature = false;
-			if (eFeature != NO_FEATURE)
-			{
-				for (int i = 0; i < GC.getNumBuildInfos(); ++i)
-				{
-					if (GC.getBuildInfo((BuildTypes)i).isFeatureRemove(eFeature))
-					{
-						bEventuallyRemoveableFeature = true;
-						if (kTeam.isHasTech((TechTypes)GC.getBuildInfo((BuildTypes)i).getTechPrereq())
-								// <advc.031> bugfix (tagging advc.001)
-								&& kTeam.isHasTech((TechTypes)GC.getBuildInfo((BuildTypes)i).
-								getFeatureTech(eFeature))) // </advc.031>
-						{
-							bRemoveableFeature = true;
-							break;
-						}
-					}
-				} // advc.003:
-				int featHealth = GC.getFeatureInfo(eFeature).getHealthPercent();
-				if (iI != CITY_HOME_PLOT && (!bRemoveableFeature || featHealth > 0))
-					iHealth += featHealth; // note, this will be reduced by some factor before being added to the total value.
-			}
-			// K-Mod end
-
-			// K-Mod note: iClaimThreshold is bigger for bEasyCulture and bAmbitious civs.
-			// Also note, if the multiplier was to be properly used for unowned plots, it would need
-			// to take into account the proximity of foreign cities and so on.
-			// (similar to the calculation at the end of this function!)
-			int iCultureMultiplier;
-			if (!pLoopPlot->isOwned() || pLoopPlot->getOwnerINLINE() == getID()
-					|| abFlip[iI]) // advc.035
-				iCultureMultiplier = 100;
-			else
-			{
-				bNeutralTerritory = false;
-
-				int iOurCulture = pLoopPlot->getCulture(getID());
-				PlayerTypes const loopPlotOwnerId = pLoopPlot->getOwnerINLINE();
-				int iOtherCulture = std::max(1, pLoopPlot->getCulture(loopPlotOwnerId));
-				/*  <advc.031> AI cities near OCC capital are annoying and don't
-					fare well */
-				if(GET_PLAYER(loopPlotOwnerId).isHuman() &&
-						g.isOption(GAMEOPTION_ONE_CITY_CHALLENGE))
-					iOtherCulture = (3 * iOtherCulture) / 2; // </advc.031>
-				iCultureMultiplier = 100 * (iOurCulture + kSet.iClaimThreshold);
-				iCultureMultiplier /= (iOtherCulture + kSet.iClaimThreshold
-						/*  advc.035: The above is OK if cities own their
-							exclusive radius ... */
-						+ (GC.getOWN_EXCLUSIVE_RADIUS() ? 0 :
-						// advc.031: but w/o that rule, it's too optimistic.
-						::round(0.72 * (iOurCulture + kSet.iClaimThreshold))));
-				iCultureMultiplier = std::min(100, iCultureMultiplier);
-				// <advc.035> Increase it a bit?
-				/*if(GC.getOWN_EXCLUSIVE_RADIUS())
-					iCultureMultiplier = (2 * iCultureMultiplier + 100) / 3;*/
-				// </advc.035> Moved up into the else branch:
-				if (iCultureMultiplier < ((iNumAreaCities > 0) ? 25 : 50))
-				{
-					//discourage hopeless cases, especially on other continents.
-					iTakenTiles += (iNumAreaCities > 0) ? 1 : 2;
+			/*  K-Mod Note: it kind of sucks that no value is counted for taken tiles.
+				Tile sharing / stealing should be allowed. */
+			// <advc.031> ^Exactly
+			/*  Still don't allow tiles to be shared between (planned) city sites
+				-- too difficult to estimate how many tiles each site will need.
+				I don't think it's really necessary either; sites will be updated
+				after founding a city. */
+			if(aiCitySiteRadius[iI] >= 0 || isBarbarian())
+				continue;
+			bool bOtherInnerRing = false;
+			CvCityAI const* pOtherCity = NULL;
+			if(bCityRadius) {
+				pOtherCity = static_cast<CvCityAI*>(pLoopPlot->getWorkingCity());
+				/*  NULL means its borders haven't expanded yet. Difficult to
+					judge then whether tile sharing makes sense. Better wait
+					for border expansion. */
+				if(pOtherCity == NULL && abOwnCityRadius[iI])
+					continue;
+				if(pOtherCity != NULL && AI_deduceCitySite(pOtherCity)) {
+					bOtherInnerRing = ::isInnerRing(pLoopPlot, pOtherCity->plot());
+					FAssert(!bInnerRing || !bOtherInnerRing || pOtherCity->area() != pLoopPlot->area());
+					if(bForeignOwned && (bOtherInnerRing ||
+							// Don't try to overlap with team member or master
+							TEAMID(eOwner) == getTeam() ||
+							GET_TEAM(getTeam()).isVassal(TEAMID(eOwner))))
+						continue;
+					if(!bForeignOwned)
+						bShare = true;
+					// Else let iCultureMultiplier handle bSteal
 				}
-				// <advc.099b>
-				double exclRadiusWeight = exclusiveRadiusWeight(
-						::plotDistance(pLoopPlot, pPlot));
-				iCultureMultiplier = std::min(100, ::round(iCultureMultiplier *
-						(1 + exclRadiusWeight))); // </advc.099b>
-				/*  <advc.035> The discouragement above is still useful for avoiding
-				revolts */
-				if(GC.getOWN_EXCLUSIVE_RADIUS())
-					iCultureMultiplier = std::max(iCultureMultiplier, 65);
-				// </advc.035>
 			}
-
-			//
-			if (eBonus != NO_BONUS /* <advc.031> A Fort doesn't help if it
-									  doesn't actually connect the bonus. */
-					&& GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getBonusInfo(
-					eBonus).getTechCityTrade())) // </advc.031>
-			{	/*  advc.031 (comment): Should not set eBonusImprovement to Fort
+			if(bShare) {
+				if(pLoopPlot->isBeingWorked() || bOtherInnerRing) {
+					// Don't ever reward overlapping sites
+					//|| (aiCitySiteRadius[iI] >= 0 && ::isInnerRing(pLoopPlot,
+					//AI_getCitySite(aiCitySiteRadius[iI]))))
+					continue;
+				}
+				CvPlot* pOtherPlot = (bCityRadius ? pOtherCity->plot()
+						// (Not used: bCityRadius is always true here)
+						: AI_getCitySite(aiCitySiteRadius[iI]));
+				int const iOtherPlotIndex = pOtherCity->getCityPlotIndex(pLoopPlot);
+				if(GC.getCityPlotPriority()[iI] >= GC.getCityPlotPriority()[iOtherPlotIndex])
+					continue;
+				/*  Check if the other city is going to need the tile in the
+					medium term */
+				if(pOtherCity->AI_isGoodPlot(iOtherPlotIndex) &&
+						pOtherCity->AI_countGoodPlots() -
+						pOtherCity->getPopulation() +
+						pOtherCity->getSpecialistPopulation() <= 3)
+					continue;
+				// Else let the code below deal with bShare
+				/*  (No special treatment for bShare&&bSteal; we'll
+					probably win the tile if we have two cities near it.) */
+			}
+		} // </advc.031>
+// END OF TILE SKIPPING
+		int iPlotValue = 0; // K-Mod note. this use to be called iTempValue. I've renamed it throughout this section to improve clarity.
+// DETERMINE FEATURE, BONUS, IMPROVEMENT
+		FeatureTypes const eFeature = pLoopPlot->getFeatureType();
+		BonusTypes const eBonus = pLoopPlot->getBonusType((kSet.bStartingLoc
+				// advc.108: Don't factor in unrevealed bonuses
+				&& g.getNormalizationLevel() > 1)
+				? NO_TEAM : getTeam());
+		CvTeamAI const& kTeam = GET_TEAM(getTeam());
+		// K-Mod
+		bool bRemoveableFeature = false;
+		bool bEventuallyRemoveableFeature = false;
+		if (eFeature != NO_FEATURE)
+		{
+			for (int i = 0; i < GC.getNumBuildInfos(); ++i)
+			{
+				if (GC.getBuildInfo((BuildTypes)i).isFeatureRemove(eFeature))
+				{
+					bEventuallyRemoveableFeature = true;
+					if (kTeam.isHasTech((TechTypes)GC.getBuildInfo((BuildTypes)i).getTechPrereq())
+							// <advc.031> bugfix (tagging advc.001)
+							&& kTeam.isHasTech((TechTypes)GC.getBuildInfo((BuildTypes)i).
+							getFeatureTech(eFeature))) // </advc.031>
+					{
+						bRemoveableFeature = true;
+						break;
+					}
+				}
+			}
+			int const featHealth = GC.getFeatureInfo(eFeature).getHealthPercent();
+			if(iI != CITY_HOME_PLOT && (!bRemoveableFeature || featHealth > 0)) {
+				/* (K-Mod) Note, this will be reduced by some factor before
+					being added to the total value. */
+				iHealth += featHealth;
+			}
+		}
+		// K-Mod end
+		ImprovementTypes eBonusImprovement = NO_IMPROVEMENT;
+		if(eBonus != NO_BONUS) {
+			/*  <advc.031> Some bonuses become revealed long before they can be
+				improved or traded. We're not checking the tech reqs of the
+				improvement (would have to go through Worker builds); at least
+				check the CityTrade tech. If we don't have it, eBonusImprovement
+				remains at -1. AI_bonusValue is then still counted, but no
+				special bonus yields. */
+			TechTypes tradeTech = (TechTypes)GC.getBonusInfo(eBonus).
+					getTechCityTrade();
+			if(tradeTech == NO_TECH || GET_TEAM(getTeam()).isHasTech(tradeTech) ||
+					getCurrentResearch() == tradeTech ||
+					/*  The HasTech and CurrentResearch checks are redundant,
+						I think, but faster. */
+					canResearchBulk(tradeTech, false, false, true)) {
+					// </advc.031>
+				for (int iImprovement = 0; iImprovement < GC.getNumImprovementInfos(); ++iImprovement)
+				{
+				/*  advc.031 (comment): Should not set eBonusImprovement to Fort
 					if there is an improvement that increases the tile yield.
 					Since Fort comes last in the ImprovementInfos XML, it should
 					be OK as it is. */
-				for (int iImprovement = 0; iImprovement < GC.getNumImprovementInfos(); ++iImprovement)
-				{
 					CvImprovementInfo& kImprovement = GC.getImprovementInfo((ImprovementTypes)iImprovement);
-
 					//if (kImprovement.isImprovementBonusMakesValid(eBonus))
 					if (kImprovement.isImprovementBonusTrade(eBonus)) // K-Mod. (!!)
 					{
@@ -3506,148 +3550,227 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					}
 				}
 			}
-
-			int aiYield[NUM_YIELD_TYPES];
-
-			for (int iYieldType = 0; iYieldType < NUM_YIELD_TYPES; ++iYieldType)
+		}
+// END OF FEATURE/BONUS/IMPROVEMENT
+// CULTURE MULTIPLIER
+		int iCultureMultiplier = 100;
+		/*  K-Mod note: iClaimThreshold is bigger for bEasyCulture and
+			bAmbitious civs.
+			Also note, if the multiplier was to be properly used for unowned plots,
+			it would need to take into account the proximity of foreign cities
+			and so on. (similar to the calculation at the end of this function!) */
+		/*  advc.031: I'm including unowned plots, but only those in a foreign
+			city radius. */
+		if ((bForeignOwned || (!bShare && bCityRadius))
+				&& !abFlip[iI]) { // advc.035
+			int iOurCulture = pLoopPlot->getCulture(getID());
+			int iOtherCulture = std::max(1,
+					/*  advc.031: Could find out the owner of the bCityRadius
+						city in the loop that computes abFlip, but it should be
+						fine to assume that the owner has very little tile culture. */
+					(!bForeignOwned ? 1 :
+					pLoopPlot->getCulture(eOwner)));
+			/*  <advc.031> AI cities near OCC capital are annoying and don't
+				fare well */
+			if(bForeignOwned && GET_PLAYER(eOwner).isHuman() &&
+					g.isOption(GAMEOPTION_ONE_CITY_CHALLENGE))
+				iOtherCulture = (3 * iOtherCulture) / 2; // </advc.031>
+			iCultureMultiplier = 100 * (iOurCulture + kSet.iClaimThreshold);
+			iCultureMultiplier /= (iOtherCulture + kSet.iClaimThreshold
+				// advc.035: The above is OK if cities own their exclusive radius ...
+					+ (bOwnExl ? 0 :
+					// advc.031: ... but w/o that rule, it's too optimistic.
+					::round(0.72 * (iOurCulture + kSet.iClaimThreshold))));
+			// <advc.031>
+			if(bCityRadius && !bShare) {
+				// Extra pessimism about tiles that another civ is able to work
+				if(bSteal)
+					iCultureMultiplier = ::round(0.62 * iCultureMultiplier);
+				// Less pessimism if their borders haven't expanded yet
+				else iCultureMultiplier = ::round(0.8 * iCultureMultiplier);
+				iStealPercent += std::min(75, iCultureMultiplier);
+			} // </advc.031>
+			iCultureMultiplier = std::min(100, iCultureMultiplier);
+			// advc.031: Moved up
+			if (iCultureMultiplier < ((iNumAreaCities > 0) ? 25 : 50)
+					&& !bSteal) // advc.031: Already counted as iTakenTiles
 			{
-				YieldTypes eYield = (YieldTypes)iYieldType;
-				//aiYield[eYield] = pLoopPlot->getYield(eYield);
-				aiYield[eYield] = pLoopPlot->calculateNatureYield(eYield, getTeam(), bEventuallyRemoveableFeature); // K-Mod
-
-				if (iI == CITY_HOME_PLOT)
+				//discourage hopeless cases, especially on other continents.
+				iTakenTiles += (iNumAreaCities > 0) ? 1 : 2;
+			}
+			// <advc.099b>
+			if(!bCityRadius && bForeignOwned) {
+				double exclRadiusWeight = exclusiveRadiusWeight(
+						::plotDistance(pLoopPlot, pPlot));
+				iCultureMultiplier = std::min(100, ::round(iCultureMultiplier *
+						(1 + exclRadiusWeight))); // </advc.099b>
+				if(bOwnExl) {
+					/*  <advc.035> (The discouragement above is still useful for
+						avoiding revolts) */
+					iCultureMultiplier = std::max(iCultureMultiplier, 65);
+				} // </advc.035>
+			}
+		}
+// END OF CULTURE MULTIPLIER
+// YIELD OF HOME TILE
+		int aiYield[NUM_YIELD_TYPES];
+		for (int iYieldType = 0; iYieldType < NUM_YIELD_TYPES; ++iYieldType)
+		{
+			YieldTypes eYield = (YieldTypes)iYieldType;
+			//aiYield[eYield] = pLoopPlot->getYield(eYield);
+			aiYield[eYield] = pLoopPlot->calculateNatureYield(eYield, getTeam(), bEventuallyRemoveableFeature); // K-Mod
+			if (iI == CITY_HOME_PLOT)
+			{
+				// (this section has been rewritten for K-Mod. The original code was bork.)
+				int iBasePlotYield = aiYield[eYield];
+				if (eFeature != NO_FEATURE && !bEventuallyRemoveableFeature) // note: if the feature is removable, was ignored already
+					aiYield[eYield] -= GC.getFeatureInfo(eFeature).getYieldChange(eYield);
+				aiYield[eYield] += GC.getYieldInfo(eYield).getCityChange();
+				aiYield[eYield] = std::max(aiYield[eYield], GC.getYieldInfo(eYield).getMinCity());
+				/*  K-Mod. Before we make special adjustments, there are
+					some things we need to do with the true values. */
+				if (eYield == YIELD_PRODUCTION)
+					baseProduction += aiYield[YIELD_PRODUCTION];
+				else if (eYield == YIELD_FOOD)
+					iSpecialFoodPlus += std::max(0, aiYield[YIELD_FOOD] - GC.getFOOD_CONSUMPTION_PER_POPULATION());
+				/*  (K-Mod) Subtract the special yield we'd get from a
+					bonus improvement, because we'd miss out on that by settling
+					a city here.
+					Exception: the improvement might be something dud which we
+					wouldn't normally build. eg. +1 food from a plantation should
+					not be counted, because a farm would be just as good. But +1
+					hammers from a mine should be counted, because we'd build the
+					mine anyway. I haven't thought of a good way to deal with
+					this issue. */
+				if (eBonusImprovement != NO_IMPROVEMENT)
 				{
-					// (this section has been rewritten for K-Mod. The original code was bork.)
-					int iBasePlotYield = aiYield[eYield];
-
-					if (eFeature != NO_FEATURE && !bEventuallyRemoveableFeature) // note: if the feature is removable, was ignored already
-						aiYield[eYield] -= GC.getFeatureInfo(eFeature).getYieldChange(eYield);
-
-					aiYield[eYield] += GC.getYieldInfo(eYield).getCityChange();
-
-					aiYield[eYield] = std::max(aiYield[eYield], GC.getYieldInfo(eYield).getMinCity());
-
-					// K-Mod. Before we make special adjustments, there are some things we need to do with the true values.
-					if (eYield == YIELD_PRODUCTION)
-						baseProduction += aiYield[YIELD_PRODUCTION];
-					else if (eYield == YIELD_FOOD)
-						iSpecialFoodPlus += std::max(0, aiYield[YIELD_FOOD] - GC.getFOOD_CONSUMPTION_PER_POPULATION());
-					//
-
-					// Subtract the special yield we'd get from a bonus improvement, because we'd miss out on that by settling a city here.
-					// Exception: the improvement might be something dud which we wouldn't normally build.
-					// eg. +1 food from a plantation should not be counted, because a farm would be just as good.
-					// But +1 hammers from a mine should be counted, because we'd build the mine anyway. I haven't thought of a good way to deal with this issue.
-					if (eBonusImprovement != NO_IMPROVEMENT)
-					{
-						aiYield[eYield] -= GC.getImprovementInfo(eBonusImprovement).getImprovementBonusYield(eBonus, eYield);
-					}
-
-					// and subtract the base yield, so as to emphasise city plots which add yield rather than remove it. (eg. plains-hill vs floodplain)
-					aiYield[eYield] -= iBasePlotYield;
+					//aiYield[eYield] -= GC.getImprovementInfo(eBonusImprovement).getImprovementBonusYield(eBonus, eYield);
+					// Replacing the above
+					CvImprovementInfo& impr = GC.getImprovementInfo(eBonusImprovement);
+					int imprYieldChg = impr.getImprovementBonusYield(eBonus, eYield);
+					double const exp = 1.41;
+					/*  <advc.031> Add this, exponentiate, then subtract it again.
+						This should discourage the AI from settling on
+						tiles with a high total yield.
+						(E.g. 1 production lost from settling on Copper
+						can't be evened out by fitting a plains hills instead
+						of a desert hill into the BFC -- the Copper would be
+						worked much sooner than the plains hill!) */
+					int nonBonusYieldChg = impr.getYieldChange(eYield) +
+							iBasePlotYield;
+					/*  pow makes the AI especially reluctant to settle on
+						high-yield bonuses like Gold and Gems */
+					aiYield[eYield] -= imprYieldChg <= 0 ? imprYieldChg :
+							::round(std::pow((double)imprYieldChg +
+							nonBonusYieldChg, exp) - nonBonusYieldChg);
+				} // </advc.031>
+				/*  (K-Mod) and subtract the base yield, so as to emphasise
+					city plots which add yield rather than remove it.
+					(eg. plains-hill vs floodplain) */
+				aiYield[eYield] -= iBasePlotYield;
+			}
+// END HOME TILE YIELD
+// PROPER TILE YIELDS
+			else if (bEventuallyRemoveableFeature) // adjust for removable features
+			{
+				const CvFeatureInfo& kFeature = GC.getFeatureInfo(eFeature);
+				if (bRemoveableFeature)
+				{
+					iPlotValue += 10 * kFeature.getYieldChange(eYield);
 				}
-				else if (bEventuallyRemoveableFeature) // (not city tile). adjust for removable features
+				else
 				{
-					const CvFeatureInfo& kFeature = GC.getFeatureInfo(eFeature);
-
-					if (bRemoveableFeature)
+					if (kFeature.getYieldChange(eYield) < 0)
 					{
-						iPlotValue += 10 * kFeature.getYieldChange(eYield);
+						iPlotValue -= (eBonus != NO_BONUS ? 25 : 5);
+						// advc.031: was 30 *...
+						iPlotValue += 25 * kFeature.getYieldChange(eYield);
 					}
-					else
-					{
-						if (kFeature.getYieldChange(eYield) < 0)
-						{
-							iPlotValue -= (eBonus != NO_BONUS ? 25 : 5);
-							// advc.031: was 30 *...
-							iPlotValue += 25 * kFeature.getYieldChange(eYield);
-						}
-					} // <advc.031>
-					if(aiYield[YIELD_FOOD] >= 2)
-						iGreen++; // </advc.031>
+				} // <advc.031>
+				if(eYield == YIELD_FOOD && aiYield[YIELD_FOOD] >= 2
+						&& !bSteal)
+					iGreen++; // </advc.031>
+			}
+			// K-Mod end
+			// <advc.031>
+			else if(getExtraYieldThreshold(eYield) > 0 &&
+					aiYield[eYield] >= getExtraYieldThreshold(eYield))
+				aiYield[eYield] += GC.getEXTRA_YIELD(); // </advc.031>
+		}
+		// K-Mod. add non city plot production to the base production count. (city plot has already been counted)
+		if (iI != CITY_HOME_PLOT && !bShare)
+			baseProduction += aiYield[YIELD_PRODUCTION];
+		// (note: these numbers have been adjusted for K-Mod)
+		if ((iI == CITY_HOME_PLOT || aiYield[YIELD_FOOD] >= GC.getFOOD_CONSUMPTION_PER_POPULATION())
+				/*  advc.031: Lighthouse isn't yet taken into account here,
+					but seafood tiles do satisfy the conditions above, and
+					are being a bit overrated. */
+				&& !pLoopPlot->isWater())
+		{
+			iPlotValue += 10;
+			iPlotValue += aiYield[YIELD_FOOD] * 40;
+			iPlotValue += aiYield[YIELD_PRODUCTION] * 30;
+			iPlotValue += aiYield[YIELD_COMMERCE] * 20;
+			/* original bts code
+			if (kSet.bStartingLoc)
+			{
+				iPlotValue *= 2;
+			} */
+		}
+		else if (aiYield[YIELD_FOOD] == GC.getFOOD_CONSUMPTION_PER_POPULATION() - 1)
+		{
+			iPlotValue += aiYield[YIELD_FOOD] * 30;
+			iPlotValue += aiYield[YIELD_PRODUCTION] * 25;
+			iPlotValue += aiYield[YIELD_COMMERCE] * 12;
+		}
+		else
+		{
+			iPlotValue += aiYield[YIELD_FOOD] * 15;
+			iPlotValue += aiYield[YIELD_PRODUCTION] * 15;
+			iPlotValue += aiYield[YIELD_COMMERCE] * 8;
+		}
+
+		if (pLoopPlot->isWater())
+		{
+			// K-Mod. kludge to account for lighthouse and lack of improvements.
+			iPlotValue /= (bIsCoastal ? 2 : 3);
+			iPlotValue += bIsCoastal ? 8*(aiYield[YIELD_COMMERCE]+aiYield[YIELD_PRODUCTION]) : 0;
+			// (K-Mod note, I've moved the iSpecialFoodPlus adjustment elsewhere.)
+
+			//if (kSet.bStartingLoc && !pPlot->isStartingPlot())
+			if (kSet.bStartingLoc && getStartingPlot() != pPlot) // K-Mod
+			{
+				// I'm pretty much forbidding starting 1 tile inland non-coastal.
+				// with more than a few coast tiles.
+				//iPlotValue += bIsCoastal ? 0 : -120; // was -400 (reduced by K-Mod)
+				iPlotValue += bIsCoastal ? 0 : -75; // advc.031
+			}
+		}
+		else // is land
+		{
+			if (iI != CITY_HOME_PLOT && !bSteal) {
+				//iBaseProduction += pLoopPlot->isHills() ? 2 : 1;
+				/*  The above is pretty bad. We're not going to build
+					Workshops everywhere. Doesn't check for Peak or Desert. */
+				FeatureTypes ft = pLoopPlot->getFeatureType();
+				/*  If not event. removeable, then production from feature
+					is already counted above */
+				if(bEventuallyRemoveableFeature && ft != NO_FEATURE &&
+						GC.getFeatureInfo(ft).getYieldChange(
+						YIELD_PRODUCTION) > 0) {
+					baseProduction += GC.getFeatureInfo(ft).
+							/*  For chopping or Lumbermill.
+								(I shouldn't hardcode it like this, but, god,
+								is this stuff awkward to implement.) */
+							getYieldChange(YIELD_PRODUCTION) + 0.5;
 				}
-				// K-Mod end
-				// <advc.031>
-				else if(getExtraYieldThreshold(eYield) > 0 &&
-						aiYield[eYield] >= getExtraYieldThreshold(eYield))
-					aiYield[eYield] += GC.getEXTRA_YIELD(); // </advc.031>
-			}
-			// K-Mod. add non city plot production to the base production count. (city plot has already been counted)
-			if (iI != CITY_HOME_PLOT) {
-				baseProduction += aiYield[YIELD_PRODUCTION]; //
-				// <advc.031>
-				if(iPlotValue > 25 && pLoopPlot->isRiver())
-					iRiver++; // </advc.031>
-			}
-			// (note: these numbers have been adjusted for K-Mod)
-			if ((iI == CITY_HOME_PLOT || aiYield[YIELD_FOOD] >= GC.getFOOD_CONSUMPTION_PER_POPULATION())
-					/*  advc.031: Lighthouse isn't yet taken into account here,
-						but seafood tiles do satisfy the conditions above, and
-						are being a bit overrated. */
-					&& !pLoopPlot->isWater())
-			{
-				iPlotValue += 10;
-				iPlotValue += aiYield[YIELD_FOOD] * 40;
-				iPlotValue += aiYield[YIELD_PRODUCTION] * 30;
-				iPlotValue += aiYield[YIELD_COMMERCE] * 20;
-
-				/* original bts code
-				if (kSet.bStartingLoc)
-				{
-					iPlotValue *= 2;
-				} */
-			}
-			else if (aiYield[YIELD_FOOD] == GC.getFOOD_CONSUMPTION_PER_POPULATION() - 1)
-			{
-				iPlotValue += aiYield[YIELD_FOOD] * 30;
-				iPlotValue += aiYield[YIELD_PRODUCTION] * 25;
-				iPlotValue += aiYield[YIELD_COMMERCE] * 12;
-			}
-			else
-			{
-				iPlotValue += aiYield[YIELD_FOOD] * 15;
-				iPlotValue += aiYield[YIELD_PRODUCTION] * 15;
-				iPlotValue += aiYield[YIELD_COMMERCE] * 8;
-			}
-
-			if (pLoopPlot->isWater())
-			{
-				// K-Mod. kludge to account for lighthouse and lack of improvements.
-				iPlotValue /= (bIsCoastal ? 2 : 3);
-				iPlotValue += bIsCoastal ? 8*(aiYield[YIELD_COMMERCE]+aiYield[YIELD_PRODUCTION]) : 0;
-				// (K-Mod note, I've moved the iSpecialFoodPlus adjustment elsewhere.)
-
-				//if (kSet.bStartingLoc && !pPlot->isStartingPlot())
-				if (kSet.bStartingLoc && getStartingPlot() != pPlot) // K-Mod
-				{
-					// I'm pretty much forbidding starting 1 tile inland non-coastal.
-					// with more than a few coast tiles.
-					iPlotValue += bIsCoastal ? 0 : -120; // was -400 (reduced by K-Mod)
+				else if(getNumCities() <= 2) { // Fair enough early on
+					if(pLoopPlot->isHills())
+						baseProduction += 2;
 				}
-			}
-			else // is land
-			{
-				if (iI != CITY_HOME_PLOT) {
-					//iBaseProduction += pLoopPlot->isHills() ? 2 : 1;
-					/*  The above is pretty bad. We're not going to build
-						Workshops everywhere. Doesn't check for Peak or Desert. */
-					FeatureTypes ft = pLoopPlot->getFeatureType();
-					/*  If not event. removeable, then production from feature
-						is already counted above */
-					if(bEventuallyRemoveableFeature && ft != NO_FEATURE &&
-							GC.getFeatureInfo(ft).getYieldChange(
-							YIELD_PRODUCTION) > 0) {
-						baseProduction += GC.getFeatureInfo(ft).
-								/*  For chopping or Lumbermill.
-									(I shouldn't hardcode it like this, but, god,
-									is this stuff awkward to implement.) */
-								getYieldChange(YIELD_PRODUCTION) + 0.5;
-					}
-					else if(getNumCities() <= 2) { // Fair enough early on
-						if(pLoopPlot->isHills())
-							baseProduction += 2;
-					}
-					else { for(int j = 0; j < GC.getNumImprovementInfos(); j++) {
+				else {
+					int maxProd = 0;
+					for(int j = 0; j < GC.getNumImprovementInfos(); j++) {
 						ImprovementTypes imprId = (ImprovementTypes)j;
 						/*  Not a perfectly safe way to check if we can
 							build the improvement, but fast. */
@@ -3657,9 +3780,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 						int yc = impr.getYieldChange(YIELD_PRODUCTION) +
 								kTeam.getImprovementYieldChange(imprId,
 								YIELD_PRODUCTION);
-						/*  Note that any additional yield from putting impr
-							on a bonus resource is already counted as
-							iSpecialProduction */
+						/*  Note that any additional yield from putting impr on a
+							bonus resource is already counted as iSpecialProduction */
 						for(int k = 0; k < NUM_YIELD_TYPES && k != YIELD_PRODUCTION; k++) {
 							int otherYield = impr.getYieldChange((YieldTypes)k);
 							if(otherYield < 0) // Will be less inclined to build it then
@@ -3675,54 +3797,59 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 						if(yc <= 0 || !pLoopPlot->canHaveImprovement(imprId, getTeam()))
 							continue;
 						FAssertMsg(yc <= 3, "is this much production possible?");
-						baseProduction += yc;
-					} } // </advc.031>
-				}
-
-				if (pLoopPlot->isRiver())
-				{
-					//iPlotValue += 10; // (original)
-					// K-Mod
-					//iPlotValue += (kSet.bFinancial || kSet.bStartingLoc) ? 30 : 10;
-					//iPlotValue += (pPlot->isRiver() ? 15 : 0);
-					// <advc.908a> Replacing the above
-					/*  Changed b/c of change to Financial trait, but also b/c
-						advc.031 already appreciates high-yield tiles more,
-						and I don't want the AI to overvalue tundra and snow
-						rivers. */
-					int riverPlotVal = (kSet.bStartingLoc ? 25 : 7);
-					if(kSet.bFinancial && aiYield[YIELD_FOOD] +
-							aiYield[YIELD_PRODUCTION] >= 1)
-						riverPlotVal += 11;
-					riverPlotVal = std::max(30, riverPlotVal);
-					/*  Is this just to steer the AI toward settling at rivers
-						rather than trying to make all river plots workable?
-						Other than that, I can only think of Levee. */
-					if(pPlot->isRiver())
-						riverPlotVal += (kSet.bStartingLoc ? 12 : 6);
-					iPlotValue += riverPlotVal; // </advc.908a>
-				}
-				if (pLoopPlot->canHavePotentialIrrigation())
-				{
-					// in addition to the river bonus
-					iPlotValue += 5 + (pLoopPlot->isFreshWater() ? 5 : 0);
-				}
-			} /* <advc.030> Details chosen so that iPlotValue=150 is a fixpoint;
-				 150 seems like a pretty average plot value to me. */
-			iPlotValue = ::round(std::max(iPlotValue/3.0,
-					std::pow(std::max(0.0, iPlotValue - 35.0), 1.25) / 2.5));
-			// </advc.130>
-			// K-Mod version (original code deleted)
-			if (kSet.bEasyCulture)
+						maxProd = std::max(maxProd, yc);
+					}
+					baseProduction += maxProd;
+				} // </advc.031>
+			}
+			if (pLoopPlot->isRiver() && !bSteal && !bShare)
 			{
+				// <advc.031>
+				if(iPlotValue > 25 && iI != CITY_HOME_PLOT)
+					iRiver++; // </advc.031>
+				//iPlotValue += 10; // (original)
+				// K-Mod
+				//iPlotValue += (kSet.bFinancial || kSet.bStartingLoc) ? 30 : 10;
+				//iPlotValue += (pPlot->isRiver() ? 15 : 0);
+				// <advc.908a> Replacing the above
+				/*  Changed b/c of change to Financial trait, but also b/c
+					advc.031 already appreciates high-yield tiles more,
+					and I don't want the AI to overvalue tundra and snow rivers. */
+				int riverPlotVal = (kSet.bStartingLoc ? 25 : 7);
+				if(kSet.bFinancial && aiYield[YIELD_FOOD] +
+						aiYield[YIELD_PRODUCTION] >= 1)
+					riverPlotVal += 11;
+				riverPlotVal = std::max(30, riverPlotVal);
+				/*  Is this just to steer the AI toward settling at rivers
+					rather than trying to make all river plots workable?
+					Other than that, I can only think of Levee. */
+				if(pPlot->isRiver())
+					riverPlotVal += (kSet.bStartingLoc ? 12 : 6);
+				iPlotValue += riverPlotVal; // </advc.908a>
+			}
+			if (iI != CITY_HOME_PLOT && // advc.031: No use in city tile
+				pLoopPlot->canHavePotentialIrrigation())
+			{
+				// in addition to the river bonus
+				iPlotValue += 5 + (pLoopPlot->isFreshWater() ? 5 : 0);
+			}
+		}
+		// <advc.031>
+		if(iI == CITY_HOME_PLOT) // Culture and Greed shouldn't apply to home plot
+			iValue += iPlotValue;
+		else {
+			// K-Mod version (original code deleted)
+			if(kSet.bEasyCulture) {
 				// 5/4 * 21 ~= 9 * 1.5 + 12 * 1;
 				iPlotValue *= 5;
 				iPlotValue /= 4;
 			}
-			else
-			{
-				if ((pLoopPlot->getOwnerINLINE() == getID()) || (stepDistance(iX, iY, pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) <= 1))
-				{
+			else {
+				CvPlot* pLoopPlot = plotCity(iX, iY, i);
+				if(pLoopPlot != NULL &&
+						(pLoopPlot->getOwnerINLINE() == getID() ||
+						stepDistance(iX, iY, pLoopPlot->getX_INLINE(),
+						pLoopPlot->getY_INLINE()) <= 1)) {
 					iPlotValue *= 3;
 					iPlotValue /= 2;
 				}
@@ -3730,149 +3857,198 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			iPlotValue *= kSet.iGreed;
 			iPlotValue /= 100;
 			// K-Mod end
-
 			iPlotValue *= iCultureMultiplier;
 			iPlotValue /= 100;
-
-			iValue += iPlotValue;
-			// advc.031: Was 33, but now computed differently.
-			if (iCultureMultiplier > 20 //ignore hopelessly entrenched tiles.
-					|| GC.getOWN_EXCLUSIVE_RADIUS() > 0) // advc.035
-			{
-
-				if (eBonus != NO_BONUS && // K-Mod added water case (!!)
-					((pLoopPlot->isWater() && bIsCoastal) ||
-					pLoopPlot->area() == pPlot->area() ||
-					pLoopPlot->area()->getCitiesPerPlayer(getID()) > 0))
-				{
-					//iBonusValue = AI_bonusVal(eBonus, 1, true) * ((!kSet.bStartingLoc && (getNumTradeableBonuses(eBonus) == 0) && (paiBonusCount[eBonus] == 1)) ? 80 : 20);
-					// K-Mod
-					//int iCount = getNumTradeableBonuses(eBonus) == 0 + viBonusCount[eBonus];
-					//int iBonusValue = AI_bonusVal(eBonus, 0, true) * 80 / (1 + 2*iCount);
-					/*  <advc.031> The "==0" looks like an error. Rather than correct
-						this, I'm going to let AI_bonusVal handle the number of
-						bonuses already connected. Just doing a division by iCount
-						here won't work well for strategic resources. */
-					/*  Don't assume that the bonus is enabled.
-						And the coefficient was 80, reduced a little. */
-					int iBonusValue = AI_bonusVal(eBonus, 1) * 70 / (1 + viBonusCount[eBonus]);
-					// Note: 1. the value of starting bonuses is reduced later.
-					//       2. iTempValue use to be used throughout this section. I've replaced all references with iBonusValue, for clarity.
-					viBonusCount[eBonus]++; // (this use to be above the iBonusValue initialization)
-					FAssert(viBonusCount[eBonus] > 0);
-
-					iBonusValue *= (kSet.bStartingLoc ? 100 :
-						/*  advc.031: Greed perhaps shouldn't matter here at all.
-							Civs that like founding lots of cities are going to
-							have lots of resources anyway; that's one thing they
-							don't need to be greedy for. */
-							(kSet.iGreed + 200) / 3);
-					iBonusValue /= 100;
-					// <advc.031>
-					if(pLoopPlot->getOwnerINLINE() == getID())
-						iBonusValue = 0; // We've already got it
-					/*  Stop the AI from securing more than one Oil
-						source when Oil is revealed but not yet workable */
-					if(eBonusImprovement == NO_IMPROVEMENT &&
-							getNumAvailableBonuses(eBonus) <= 0) { int dummy=-1;
-						/*  CvPlayer::countOwnedBonuses is too expensive
-							I think, but I'm copying a bit of code from there. */
-						for(CvCity* c = firstCity(&dummy); c != NULL; c = nextCity(&dummy)) {
-							if(c->AI_countNumBonuses(eBonus, true, true, -1) > 0) {
-								/*  AI_bonusVal already reduces its result when the resource
-									can't be worked, but strategic resources can still have
-									bonus values of 500 and more, so this needs to be reduced
-									much more. */
-								iBonusValue = std::min(125, ::round(iBonusValue * 0.25));
-								break;
-							}
-						}
+			if(bShare) // bSteal is already factored into iCultureMultiplier
+				iPlotValue = ::round(iPlotValue * 0.375);
+			// Sum these up later
+			aiPlotValues[iI] = iPlotValue;
+		} // </advc.031>
+// END OF PROPER TILE YIELDS
+// NON-YIELD BONUS VALUE (ResourceValue)
+		// advc.031: Was 33, but now computed differently.
+		if ((iCultureMultiplier <= 20 //ignore hopelessly entrenched tiles.
+				&& !bOwnExl) || bSteal || bShare) // advc.035
+			continue;
+		if (eBonus != NO_BONUS && // K-Mod added water case (!!)
+				((pLoopPlot->isWater() && bIsCoastal) ||
+				pLoopPlot->area() == pPlot->area() ||
+				pLoopPlot->area()->getCitiesPerPlayer(getID()) > 0))
+		{
+			//iBonusValue = AI_bonusVal(eBonus, 1, true) * ((!kSet.bStartingLoc && (getNumTradeableBonuses(eBonus) == 0) && (paiBonusCount[eBonus] == 1)) ? 80 : 20);
+			// K-Mod
+			//int iCount = getNumTradeableBonuses(eBonus) == 0 + viBonusCount[eBonus];
+			//int iBonusValue = AI_bonusVal(eBonus, 0, true) * 80 / (1 + 2*iCount);
+			/*  <advc.031> The "==0" looks like an error. Rather than correct
+				this, I'm going to let AI_bonusVal handle the number of
+				bonuses already connected. Just doing a division by iCount
+				here won't work well for strategic resources. */
+			/*  Don't assume that the bonus is enabled.
+				And the coefficient was 80, reduced a bit. */
+			int iBonusValue = ::round((AI_bonusVal(eBonus, 1) * 55.0) /
+					(1 + viBonusCount[eBonus]));
+			/*  Note (K-Mod):
+				1. the value of starting bonuses is reduced later.
+			    2. iTempValue use to be used throughout this section. I've
+				   replaced all references with iBonusValue, for clarity. */
+			viBonusCount[eBonus]++; // (this use to be above the iBonusValue initialization)
+			/*  advc (comment): ^Perhaps all bonuses should be counted in a
+				separate loop. As it is, the viBonusCount used above is only a
+				partial count. */
+			iBonusValue *= (kSet.bStartingLoc ? 100 :
+				// advc.031: Reduced impact of Greed (though it's disabled anyway)
+				(kSet.iGreed + 200) / 3);
+			iBonusValue /= 100;
+			// <advc.031>
+			if(pLoopPlot->getOwnerINLINE() == getID())
+				iBonusValue = 0; // We've already got it
+			/*  Stop the AI from securing more than one Oil
+				source when Oil is revealed but not yet workable */
+			if(eBonusImprovement == NO_IMPROVEMENT &&
+					getNumAvailableBonuses(eBonus) <= 0) { int foo=-1;
+				/*  CvPlayer::countOwnedBonuses is too expensive I think,
+					but I'm copying a bit of code from there. */
+				for(CvCity* c = firstCity(&foo); c != NULL; c = nextCity(&foo)) {
+					if(c->AI_countNumBonuses(eBonus, true, true, -1) > 0) {
+					/*  AI_bonusVal already reduces its result when the resource
+						can't be worked, but strategic resources can still have
+						bonus values of 500 and more, so this needs to be reduced
+						much more. */
+						iBonusValue = std::min(125, ::round(iBonusValue * 0.3));
+						break;
 					}
-					// </advc.031>
-					if (!kSet.bStartingLoc)
-					{
-						// K-Mod. (original code deleted)
-						if (iI != CITY_HOME_PLOT)
-						{	/*  advc.031: Why halve the value of water bonuses?
-								Perhaps because they're costly to improve. But
-								that's only true in the early game ... */
-							if (pLoopPlot->isWater()/*) {
-								//iBonusValue /= 2;*/
-									&& getCurrentEra() < 3) {
-								iBonusValue -= (3 - getCurrentEra()) * 20;
-								iBonusValue = std::max(iBonusValue, 0);
-							} // </advc.031>
-							if (pLoopPlot->getOwnerINLINE() != getID() && stepDistance(pPlot->getX_INLINE(),pPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) > 1)
-							{
-								if (!kSet.bEasyCulture)
-									iBonusValue = iBonusValue * 3/4;
-							}
-							FAssert(iCultureMultiplier <= 100);
-							iBonusValue = iBonusValue * (kSet.bAmbitious ? 110 : iCultureMultiplier) / 100;
-						}
-						else if (kSet.bAmbitious)
-							iBonusValue = iBonusValue * 110 / 100;
-						// K-Mod end
-					}
-
-					//iValue += (iBonusValue + 10);
-					iResourceValue += iBonusValue; // K-Mod
-					if (iI != CITY_HOME_PLOT)
-					{
-						if (eBonusImprovement != NO_IMPROVEMENT)
-						{
-							int iSpecialFoodTemp;
-							iSpecialFoodTemp = pLoopPlot->calculateBestNatureYield(YIELD_FOOD, getTeam()) + GC.getImprovementInfo(eBonusImprovement).getImprovementBonusYield(eBonus, YIELD_FOOD);
-
-							iSpecialFood += iSpecialFoodTemp;
-
-							iSpecialFoodTemp -= GC.getFOOD_CONSUMPTION_PER_POPULATION();
-
-							iSpecialFoodPlus += std::max(0,iSpecialFoodTemp);
-							iSpecialFoodMinus -= std::min(0,iSpecialFoodTemp);
-							// <advc.031>
-							int iSpecialProdTemp = pLoopPlot->calculateBestNatureYield(
-									YIELD_PRODUCTION, getTeam()) +
-									GC.getImprovementInfo(eBonusImprovement).
-									getImprovementBonusYield(eBonus, YIELD_PRODUCTION);
-							iSpecialProduction += iSpecialProdTemp;
-							int iSpecialCommTemp = pLoopPlot->calculateBestNatureYield(
-									YIELD_COMMERCE, getTeam()) +
-									GC.getImprovementInfo(eBonusImprovement).
-									getImprovementBonusYield(eBonus, YIELD_COMMERCE);
-							iSpecialCommerce += iSpecialCommTemp;
-							// No functional change above. Now count the tile as special.
-							if(iSpecialFoodTemp > 0 || iSpecialCommTemp + iSpecialProdTemp > 0)
-								specials++;
-							// </advc.031>
-						}
-
-						/*if (pLoopPlot->isWater())
-							iValue += (bIsCoastal ? 0 : -800);*/ // (was ? 100 : -800)
-						// <advc.031> Replacing the above
-						if(pLoopPlot->isWater() && !bIsCoastal)
-							iValue -= 100; // </advc.031>
-					}
-				} // end if usable bonus
-				if (eBonusImprovement == NO_IMPROVEMENT && iI != CITY_HOME_PLOT
-						/*  <advc.031> Need to account for foreign culture
-							somehow, and I don't want to divide the
-							special food plus, which is usually just 1 or 2. */
-						&& iCultureMultiplier >
-							(GC.getOWN_EXCLUSIVE_RADIUS() ? 40 : // advc.035
-							55)) // </advc.031>
-				{
-					// non bonus related special food. (Note: the city plot is counted elsewhere.)
-					int iEffectiveFood = aiYield[YIELD_FOOD];
-
-					if (bIsCoastal && pLoopPlot->isWater() && aiYield[YIELD_COMMERCE] > 1) // lighthouse kludge.
-						iEffectiveFood += 1;
-
-					iSpecialFoodPlus += std::max(0, iEffectiveFood - GC.getFOOD_CONSUMPTION_PER_POPULATION());
 				}
 			}
+			// </advc.031>
+			if (!kSet.bStartingLoc)
+			{
+				// K-Mod. (original code deleted)
+				if (iI != CITY_HOME_PLOT)
+				{	/*  advc.031: Why halve the value of water bonuses?
+						Perhaps because they're costly to improve. But
+						that's only true in the early game ... */
+					if (pLoopPlot->isWater()/*) {
+						//iBonusValue /= 2;*/
+							&& getCurrentEra() < 3) {
+						iBonusValue -= (3 - getCurrentEra()) * 20;
+						iBonusValue = std::max(iBonusValue, 0);
+					} // </advc.031>
+					if (pLoopPlot->getOwnerINLINE() != getID() && stepDistance(pPlot->getX_INLINE(),pPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) > 1)
+					{
+						if (!kSet.bEasyCulture)
+							iBonusValue = iBonusValue * 3/4;
+					}
+					FAssert(iCultureMultiplier <= 100);
+					iBonusValue = iBonusValue * (kSet.bAmbitious ? 110 : iCultureMultiplier) / 100;
+				}
+				else if (kSet.bAmbitious)
+					iBonusValue = iBonusValue * 110 / 100;
+				// K-Mod end
+			}
+			//iValue += (iBonusValue + 10);
+			iResourceValue += iBonusValue; // K-Mod
+// END OF RESOURCE VALUE
+// SPECIAL YIELDS
+			if (iI != CITY_HOME_PLOT)
+			{
+				if (eBonusImprovement != NO_IMPROVEMENT)
+				{
+					int iSpecialFoodTemp;
+					iSpecialFoodTemp = pLoopPlot->calculateBestNatureYield(YIELD_FOOD, getTeam()) + GC.getImprovementInfo(eBonusImprovement).getImprovementBonusYield(eBonus, YIELD_FOOD);
+					iSpecialFood += iSpecialFoodTemp;
+					iSpecialFoodTemp -= GC.getFOOD_CONSUMPTION_PER_POPULATION();
+					iSpecialFoodPlus += std::max(0,iSpecialFoodTemp);
+					iSpecialFoodMinus -= std::min(0,iSpecialFoodTemp);
+					// <advc.031>
+					int iSpecialProdTemp = pLoopPlot->calculateBestNatureYield(
+							YIELD_PRODUCTION, getTeam()) +
+							GC.getImprovementInfo(eBonusImprovement).
+							getImprovementBonusYield(eBonus, YIELD_PRODUCTION);
+					iSpecialProduction += iSpecialProdTemp;
+					int iSpecialCommTemp = pLoopPlot->calculateBestNatureYield(
+							YIELD_COMMERCE, getTeam()) +
+							GC.getImprovementInfo(eBonusImprovement).
+							getImprovementBonusYield(eBonus, YIELD_COMMERCE);
+					iSpecialCommerce += iSpecialCommTemp;
+					// No functional change above. Now count the tile as special.
+					if(iSpecialFoodTemp > 0 || iSpecialCommTemp + iSpecialProdTemp > 0)
+						specials++;
+					// </advc.031>
+				}
+
+				/*if (pLoopPlot->isWater())
+					iValue += (bIsCoastal ? 0 : -800);*/ // (was ? 100 : -800)
+				// <advc.031> Replacing the above
+				if(pLoopPlot->isWater() && !bIsCoastal)
+					iValue -= 100; // </advc.031>
+			}
+		} // end if usable bonus
+		if (eBonusImprovement == NO_IMPROVEMENT && iI != CITY_HOME_PLOT
+			/*  <advc.031> Need to account for foreign culture somehow, and I
+				don't want to divide SpecialFoodPlus, b/c it's usually just 1 or 2. */
+				&& iCultureMultiplier >
+				(bOwnExl ? 40 : // advc.035
+				55)) // </advc.031>
+		{
+			// non bonus related special food. (Note: the city plot is counted elsewhere.)
+			int iEffectiveFood = aiYield[YIELD_FOOD];
+			if (bIsCoastal && pLoopPlot->isWater() && aiYield[YIELD_COMMERCE] > 1) // lighthouse kludge.
+				iEffectiveFood += 1;
+			iSpecialFoodPlus += std::max(0, iEffectiveFood - GC.getFOOD_CONSUMPTION_PER_POPULATION());
+		}
+// END OF SPECIAL YIELDS
+	}
+// END OF PLOT EVALUATION LOOP
+// WEIGHTING OF PLOT VALUES
+	// <advc.031>
+	std::sort(aiPlotValues.begin(), aiPlotValues.end(), std::greater<int>());
+	int iTotalPlotVal[3]; // (Not counting the value of CITY_HOME_PLOT though)
+	/*  advc.test:
+		iTotalPlotVal[0] is the value I'll add to iValue.
+		For comparison in the debugger:
+		iTotalPlotVal[1] is the value K-Mod would count and
+		iTotalPlotVal[2] is the value AdvCiv 0.92 used to count. */
+	for(int k = 0; k < (kSet.bDebug ? 3 : 1); k++) {
+		iTotalPlotVal[k] = 0;
+		for(int i = 0; i < NUM_CITY_PLOTS; i++) {
+			int iPlotValue = aiPlotValues[i];
+			// CITY_HOME_PLOT should have 0 plot value here
+			FAssert(i < NUM_CITY_PLOTS - 1 || iPlotValue <= 0);
+			// <advc.test>
+			if(k == 2) {
+				double const subtr = 35;
+				if(iPlotValue > 0) {
+					/*  Details chosen so that iPlotValue=150 is a fixpoint;
+						150 seems like a pretty average plot value to me. */
+					iPlotValue = ::round(std::max(iPlotValue/3.0,
+							std::pow(std::max(0.0, iPlotValue - subtr), 1.25) / 2.5));
+				}
+			} // </advc.test>
+			if(k == 0) {
+				if(iPlotValue > 0) {
+					double const maxMultPercent = 150;
+					double const minMultPercent = 50;
+					double const normalizMult = 1.1;
+					double const subtr = 25;
+					double exp = std::log(maxMultPercent - minMultPercent) /
+							std::log(NUM_CITY_PLOTS - 1.0);
+					iPlotValue = std::max(iPlotValue / 3,
+							::round(std::max(0.0, iPlotValue - subtr) * 0.01 *
+							// Linearly decreasing multiplier:
+							/*(maxMultPercent - i * ((maxMultPercent -
+							minMultPercent) / (NUM_CITY_PLOTS - 1))));*/
+							// Try power law instead:
+							normalizMult * (minMultPercent + std::pow((double)
+							std::abs(NUM_CITY_PLOTS - 1 - i), exp))));
+				}
+			} 
+			iTotalPlotVal[k] += iPlotValue;
 		}
 	}
+	iValue += iTotalPlotVal[0];
+	// </advc.031>
+// END OF PLOT WEIGHTS
+// SPECIAL EVALUATION OF BONUS YIELDS
 
 	/* original bts code
 	iResourceValue += iSpecialFood * 50;
@@ -3910,31 +4086,54 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		iResourceValue += ::round(fromSpecial); // </advc.031>
 	}
 	iValue += std::max(0, iResourceValue);
-
+// END OF BONUS YIELD EVAL
+// TAKEN TILES CHECK
 	if (((iTakenTiles > (NUM_CITY_PLOTS / 3)
 		|| (isBarbarian() && iTakenTiles > 2)) // advc.303
 		&& iResourceValue < 250 && iValue < 780) // <advc.031>
-		|| (iTakenTiles >= (2 * NUM_CITY_PLOTS) / 3 &&
+		|| (iTakenTiles > (2 * NUM_CITY_PLOTS) / 3 &&
 		iResourceValue < 800)) // </advc.031>
 	{
 		return 0;
 	}
-	/*  <advc.031> There's already a food surplus factor toward the end of
-		the function, but that one doesn't punish cities with low food much;
-		not sure if it's intended to do that. */
-	if(!kSet.bStartingLoc && getCurrentEra() < 4) {
-		double lowFoodFactor = (7 + iGreen + iSpecialFoodPlus -
-				iSpecialFoodMinus) / 10.0;
-		lowFoodFactor = ::dRange(lowFoodFactor, 0.45, 1.0);
-		// Don't apply this to the value from happiness/health/strategic
-		iValue = ::round((iValue - nonYieldResourceVal) * lowFoodFactor)
-				+ nonYieldResourceVal;
-	} // </advc.031>
-	/* original bts code (K-Mod: just go look at what "iTeammateTakenTiles" actually is...)
-	if (iTeammateTakenTiles > 1)
-	{
-		return 0;
-	}*/
+// END OF TAKEN TILES CHECK
+// LOW FOOD ADJUSTMENT
+	if(!kSet.bStartingLoc) {
+		/*  <advc.031> Unlike the K-Mod/BtS special food multiplier below, this
+			one takes into account grassland farms. Also, I'm not rewarding
+			surplus food, just punishing deficit. */
+		if(getCurrentEra() < 4) {
+			double lowFoodFactor = (7 + iGreen + iSpecialFoodPlus -
+					iSpecialFoodMinus) / 10.0;
+			lowFoodFactor = ::dRange(lowFoodFactor, 0.5, 1.0);
+			// Don't apply this to the value from happiness/health/strategic
+			iValue = ::round((iValue - nonYieldResourceVal) * lowFoodFactor)
+					+ nonYieldResourceVal;
+		} // </advc.031>
+		int iFoodSurplus = std::max(0, iSpecialFoodPlus - iSpecialFoodMinus);
+		int iFoodDeficit = std::max(0, iSpecialFoodMinus - iSpecialFoodPlus);
+		/* original bts code
+		iValue *= 100 + 20 * std::max(0, std::min(iFoodSurplus, 2 * GC.getFOOD_CONSUMPTION_PER_POPULATION()));
+		iValue /= 100 + 20 * std::max(0, iFoodDeficit); */
+		// K-Mod. (note that iFoodSurplus and iFoodDeficit already have the "max(0, x)" built in.
+		/*iValue *= 100 + (kSet.bExpansive ? 20 : 15) * std::min(
+				(iFoodSurplus + iSpecialFoodPlus)/2,
+				2 * GC.getFOOD_CONSUMPTION_PER_POPULATION());
+		iValue /= 100 + (kSet.bExpansive ? 20 : 15) * iFoodDeficit;*/
+		// K-Mod end
+		// <advc.031> Moved this up so that I can exclude nonYieldResourceVal.
+		// The formula looks interesting; just turn it into a single multiplier ...
+		double foodFactor = (100.0 + (kSet.bExpansive ? 20 : 15) * std::min(
+				(iFoodSurplus + iSpecialFoodPlus)/2,
+				2 * GC.getFOOD_CONSUMPTION_PER_POPULATION())) /
+				(100.0 + (kSet.bExpansive ? 20 : 15) * iFoodDeficit);
+		// ... and reduce the impact b/c of the lowFoodFactor added above.
+		foodFactor = (foodFactor + 1) / 2;
+		iValue = ::round((iValue - nonYieldResourceVal) * foodFactor)
+				+ nonYieldResourceVal; // </advc.031>
+	}
+// END OF LOW FOOD ADJUSTMENT
+// NON-YIELD BENEFITS OF HOME TILE: health, chopping, coastal, hill, freshwater
 	/*  <advc.031> Bad health in the early game needs to be discouraged more
 		rigorously. Treat that case toward the end of this function. */
 	if(iHealth > 0 || getCurrentEra() > 1) {
@@ -3943,13 +4142,15 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		if(getCurrentEra() > 0 && iHealth > 200)
 			iValue += (iHealth - 200) / (getCurrentEra() + 2);
 	} // </advc.031>
+
 	if (bIsCoastal)
 	{
 		if (!kSet.bStartingLoc)
 		{
 			if (pArea->getCitiesPerPlayer(getID()) == 0)
 			{
-				if (bNeutralTerritory)
+				//if (bNeutralTerritory)
+				if(!bAnyForeignOwned) // advc.040
 				{
 					//iValue += (iResourceValue > 0) ? 800 : 100; // (BtS code)
 					// K-Mod replacement:
@@ -4016,7 +4217,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 						int sz2 = water2->getNumTiles();
 						int szFactor = std::min(30, std::min(sz1, sz2));
 						if(szFactor >= GC.getMIN_WATER_SIZE_FOR_OCEAN())
-							iSeaValue += 8 * szFactor;
+							iSeaValue += 9 * szFactor;
 					}
 				} // </advc.031>
 				iValue += iSeaValue;
@@ -4028,13 +4229,13 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		else
 		{
 			//let other penalties bring this down.
-			iValue += 500; // was 600
+			iValue += 380; // advc.031: was 600 in BtS, 500 in K-Mod
 			//if (!pPlot->isStartingPlot())
 			if (getStartingPlot() != pPlot) // K-Mod
 			{
 				if (pArea->getNumStartingPlots() == 0)
 				{
-					iValue += 600; // was 1000
+					iValue += 500; // advc.031: was 1000 in BtS, 600 in K-Mod
 				}
 			}
 		}
@@ -4043,8 +4244,9 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	if (pPlot->isHills())
 	{
 		// iValue += 200;
-		// K-Mod
-		iValue += 100 + (kSet.bDefensive ? 100 : 0);
+		// K-Mod	// advc.031: Reduced from 100+100 to 75+75 b/c counted again
+					// for diploFactor below
+		iValue += 75 + (kSet.bDefensive ? 75 : 0);
 	}
 
 	if (pPlot->isFreshWater())
@@ -4052,7 +4254,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		// iValue += 40; // K-Mod (commented this out, compensated by the river bonuses I added.)
 		iValue += (GC.getDefineINT("FRESH_WATER_HEALTH_CHANGE") * 30);
 	}
-
+// END OF NON-YIELD BENEFITS
+// SURROUNDINGS OF STARTING LOCATION
 	if (kSet.bStartingLoc)
 	{
 		//int iRange = GREATER_FOUND_RANGE;
@@ -4165,64 +4368,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			// K-Mod end
 		}
 
-		/* original bts code
-		int iWaterCount = 0;
-
-		for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
-		{
-			CvPlot* pLoopPlot = plotCity(iX, iY, iI);
-
-			if (pLoopPlot != NULL)
-			{
-				if (pLoopPlot->isWater())
-				{
-					iWaterCount ++;
-					if (pLoopPlot->getYield(YIELD_FOOD) <= 1)
-					{
-						iWaterCount++;
-					}
-				}
-			}
-		}
-		iWaterCount /= 2;
-
-		int iLandCount = (NUM_CITY_PLOTS - iWaterCount);
-
-		if (iLandCount < (NUM_CITY_PLOTS / 2))
-		{
-			//discourage very water-heavy starts.
-			iValue *= 1 + iLandCount;
-			iValue /= (1 + (NUM_CITY_PLOTS / 2));
-		} */ // disabled by K-Mod (water starts are discouraged in other ways)
-	/*}
-	// advc.003: Same condition as the previous block
-	if (kSet.bStartingLoc)
-	{*/
-		/* original bts code
-		if (pPlot->getMinOriginalStartDist() == -1)
-		{
-			iValue += (GC.getMapINLINE().maxStepDistance() * 100);
-		}
-		else
-		{
-			iValue *= (1 + 4 * pPlot->getMinOriginalStartDist());
-			iValue /= (1 + 2 * GC.getMapINLINE().maxStepDistance());
-		} */
-		// K-Mod. In the original code, getMinOriginalStartDist was always zero once the
-		// starting positions had been assigned; and so this factor didn't work correctly.
-		// I've fixed it (see change in updateMinOriginalStartDist.)
-		// But I've now disabled it completely because this stuff is handled elsewhere anyway.
-		/* int iMinRange = startingPlotRange();
-		{
-			int iScale = std::min(4*iMinRange, GC.getMapINLINE().maxStepDistance());
-			int iExistingDist = pPlot->getMinOriginalStartDist() > 0
-				? std::min(pPlot->getMinOriginalStartDist(), iScale)
-				: iScale;
-			FAssert(iScale > 2 && iExistingDist > 2); // sanity check
-			iValue *= (1 + iScale + 4 * iExistingDist);
-			iValue /= (1 + 3 * iScale);
-		} */
-		// K-Mod end
+		/*  advc.003: Unused BtS and K-Mod code dealing with WaterCount and
+			MinOriginalStartDist deleted */
 
 		//nice hacky way to avoid this messing with normalizer, use elsewhere?
 		//if (!pPlot->isStartingPlot())
@@ -4243,8 +4390,11 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 
 						if (iClosenessFactor < 1000)
 						{
-							iValue *= 2000 + iClosenessFactor;
-							iValue /= 3000;
+							/*iValue = 2000 + iClosenessFactor;
+							iValue /= 3000;*/
+							// <advc.031> If overflow is a concern ...
+							iValue = ::round(iValue * ((2000 +
+									iClosenessFactor) / 3000.0)); // </advc.031>
 						}
 					}
 				}
@@ -4272,7 +4422,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			}
 		}
 	}
-
+// END OF STARTING SURROUNDINGS
 	if (bAdvancedStart)
 	{
 		if (pPlot->getBonusType() != NO_BONUS)
@@ -4281,7 +4431,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			iValue /= 100;
 		}
 	}
-
+// LOW PRODUCTION CHECK
 	// K-Mod. reduce value of cities which will struggle to get any productivity.
 	{
 		baseProduction += iSpecialProduction;
@@ -4306,11 +4456,11 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		}
 	}
 	// K-Mod end
-	
+// END OF LOW PRODUCTION CHECK
+// SURROUNDINGS FOR NON-STARTING LOCATIONS
 	//CvCity* pNearestCity = GC.getMapINLINE().findCity(iX, iY, ((isBarbarian()) ? NO_PLAYER : getID()));
 	// K-Mod. Adjust based on proximity to other players, and the shape of our empire.
-	if (isBarbarian())
-	{
+	if(isBarbarian()) {
 		CvCity* pNearestCity = GC.getMapINLINE().findCity(iX, iY, NO_PLAYER);
 		/* <advc.303>, advc.300. Now that the outer ring isn't counted, I worry
 		   that an absolute penalty would reduce iValue to 0 too often. Also want
@@ -4339,53 +4489,43 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			}
 		}*/ // </advc.303>
 	}
-	else if (!kSet.bStartingLoc)
-	{
+	else if(!kSet.bStartingLoc) { // advc.003: Misc. refactoring in this block
 		int iForeignProximity = 0;
 		int iOurProximity = 0;
-		CvCity* pNearestCity = 0;
-		CvCity* pCapital = getCapitalCity();
+		CvCity* pNearestCity = NULL;
+		//CvCity* pCapital = getCapitalCity(); // advc.031: Moved up
 		int iMaxDistanceFromCapital = 0;
-
-		for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i = (PlayerTypes)(i+1))
-		{
-			const CvPlayer& kLoopPlayer = GET_PLAYER(i);
-			if (pArea->getCitiesPerPlayer(i) > 0 && GET_TEAM(getTeam()).isHasMet(kLoopPlayer.getTeam()) && !GET_TEAM(kLoopPlayer.getTeam()).isVassal(getTeam()))
-			{
-				int iProximity = 0;
-
-				int iLoop;
-				for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
-				{
-					if (i == getID())
-					{
-						if (pCapital)
-							iMaxDistanceFromCapital = std::max(iMaxDistanceFromCapital, plotDistance(pCapital->plot(), pLoopCity->plot()));
-					}
-
-					if (pLoopCity->getArea() == pArea->getID())
-					{
-						int iDistance = plotDistance(iX, iY, pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
-
-						if (i == getID())
-						{
-							if (!pNearestCity || iDistance < plotDistance(iX, iY, pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE()))
-								pNearestCity = pLoopCity;
-						}
-
-						int iCultureRange = pLoopCity->getCultureLevel() + 3;
-						if (iDistance <= iCultureRange && AI_deduceCitySite(pLoopCity))
-						{
-							// cf. culture distribution in CvCity::doPlotCultureTimes100
-							iProximity += 90*(iDistance-iCultureRange)*(iDistance-iCultureRange)/(iCultureRange*iCultureRange) + 10;
-						}
+		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+			CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
+			if(pArea->getCitiesPerPlayer(kLoopPlayer.getID()) <= 0 ||
+					!GET_TEAM(getTeam()).isHasMet(kLoopPlayer.getTeam()) ||
+					GET_TEAM(kLoopPlayer.getTeam()).isVassal(getTeam()))
+				continue;
+			int iProximity = 0; int foo=-1;
+			// <advc.001> was this->first/nextCity
+			for(CvCity* pLoopCity = kLoopPlayer.firstCity(&foo); pLoopCity != NULL;
+					pLoopCity = kLoopPlayer.nextCity(&foo)) { // </advc.001>
+				if(kLoopPlayer.getID() == getID() && pCapital != NULL) {
+					iMaxDistanceFromCapital = std::max(iMaxDistanceFromCapital,
+							plotDistance(pCapital->plot(), pLoopCity->plot()));
+				}
+				if(pLoopCity->getArea() == pArea->getID()) {
+					int iDistance = plotDistance(iX, iY,
+							pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
+					if(kLoopPlayer.getID() == getID() && (pNearestCity == NULL ||
+							iDistance < plotDistance(iX, iY,
+							pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE())))
+						pNearestCity = pLoopCity;
+					int iCultureRange = pLoopCity->getCultureLevel() + 3;
+					if(iDistance <= iCultureRange && AI_deduceCitySite(pLoopCity)) {
+						// cf. culture distribution in CvCity::doPlotCultureTimes100
+						iProximity += 90*(iDistance-iCultureRange)*(iDistance-iCultureRange)/(iCultureRange*iCultureRange) + 10;
 					}
 				}
-				if (kLoopPlayer.getTeam() == getTeam())
-					iOurProximity = std::max(iOurProximity, iProximity);
-				else
-					iForeignProximity = std::max(iForeignProximity, iProximity);
 			}
+			if(kLoopPlayer.getTeam() == getTeam())
+				iOurProximity = std::max(iOurProximity, iProximity);
+			else iForeignProximity = std::max(iForeignProximity, iProximity);
 		}
 		// Reduce the value if we are going to get squeezed out by culture.
 		// Increase the value if we are hoping to block the other player!
@@ -4419,6 +4559,26 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				iValue *= 100 - iDelta*3/2;
 				iValue /= 100;
 			}
+			/*  <advc.031> This is not about being squeezed, but squeezing
+				others and thereby angering them. StealPercent says how much
+				we squeeze them (cultural strength is already taken into account). */
+			if(iStealPercent >= 100) {
+				/*  Between 130 (Alexander, G. Khan, Louis, Montezuma) and
+					80 (Gandhi, Joao, Justinian). A leader who likes limited war
+					should be less concerned about creating border troubles. */
+				double diploFactor = (isHuman() ? 100 :
+						GC.getLeaderHeadInfo(getPersonalityType()).
+						getLimitedWarPowerRatio());
+				if(kSet.bDefensive)
+					diploFactor += 33;
+				if(pPlot->isHills())
+					diploFactor += 16;
+				// The importance of a few stolen tiles decreases over time
+				diploFactor += getCurrentEra() * 13;
+				diploFactor = 1.6 * diploFactor / iStealPercent;
+				diploFactor = ::dRange(diploFactor, 0.6, 1.0);
+				iValue = ::round(iValue * diploFactor);
+			} // </advc.031>
 		}
 	// K-Mod end (the rest of this block existed in the original code - but I've made some edits...)
 
@@ -4426,26 +4586,9 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		{
 			int iDistance = plotDistance(iX, iY, pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE());
 			int iNumCities = getNumCities();
-			/* original bts code
-			if (iDistance > 5)
-			{
-				iValue -= (iDistance - 5) * 500;
-			}
-			else if (iDistance < 4)
-			{
-				iValue -= (4 - iDistance) * 2000;
-			}
-			iValue *= (8 + iNumCities * 4);
-			iValue /= (2 + (iNumCities * 4) + iDistance);
-
-			if (pNearestCity->isCapital())
-			{
-				iValue *= 150;
-				iValue /= 100;
-			}
-			else if (getCapitalCity() != NULL) */
+			/*  advc.003: BtS code dealing with iDistance deleted;
+				K-Mod comment: Close cities are penalised in other ways */
 			// K-Mod.
-			// Close cities are penalised in other ways
 			int iTargetRange = (kSet.bExpansive ? 6 : 5);
 			if (iDistance > iTargetRange)
 			{
@@ -4457,24 +4600,33 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			if (!pNearestCity->isCapital() && pCapital)
 			// K-Mod end
 			{
-				//Provide up to a 50% boost to value (80% for adv.start)
-				//for city sites which are relatively close to the core
-				//compared with the most distance city from the core
-				//(having a boost rather than distance penalty avoids some distortion)
-
-				//This is not primarly about maitenance but more about empire 
-				//shape as such forbidden palace/state property are not big deal.
+				/*  Provide up to a 50% boost to value (80% for adv.start) for
+					city sites which are relatively close to the core compared
+					with the most distant city from the core (having a boost
+					rather than distance penalty avoids some distortion).
+					This is not primarly about maintenance but more about empire 
+					shape as such[, so] forbidden palace/state property are not
+					[a] big deal. */ // advc.003: "so" added b/c the comment didn't make sense to me
 				int iDistanceToCapital = plotDistance(pCapital->plot(), pPlot);
-
 				FAssert(iMaxDistanceFromCapital > 0);
 				/* original bts code
 				iValue *= 100 + (((bAdvancedStart ? 80 : 50) * std::max(0, (iMaxDistanceFromCapital - iDistance))) / iMaxDistanceFromCapital);
 				iValue /= 100; */
-				// K-Mod. just a touch of flavour. (note, for a long time this adjustment used iDistance instead of iDistanceToCaptial; and so I've reduced the scale to compensate)
-				int iShapeWeight = bAdvancedStart ? 50 : (kSet.bAmbitious ? 15 : 30);
+				/*  K-Mod. just a touch of flavour. (note, for a long time this
+					adjustment used iDistance instead of iDistanceToCaptial; and
+					so I've reduced the scale to compensate) */
+				/*int iShapeWeight = bAdvancedStart ? 50 : (kSet.bAmbitious ? 15 : 30);
 				iValue *= 100 + iShapeWeight * std::max(0, iMaxDistanceFromCapital - iDistanceToCapital) / iMaxDistanceFromCapital;
-				iValue /= 100 + iShapeWeight;
+				iValue /= 100 + iShapeWeight;*/
 				// K-Mod end
+				/*  <advc.003> I'm folding this into a single multiplier for
+					easier debugging */
+				double const shapeWeight = (bAdvancedStart ? 0.5 :
+						(kSet.bAmbitious ? 0.15 : 0.3));
+				double shapeFactor = (1 + shapeWeight * std::max(0,
+						iMaxDistanceFromCapital - iDistanceToCapital) /
+						iMaxDistanceFromCapital) / (1 + shapeWeight);
+				iValue = ::round(iValue * shapeFactor); // </advc.003>
 			}
 		}
 		else
@@ -4484,14 +4636,21 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			{
 				int iDistance = // advc.031:
 						std::min(GC.getMapINLINE().maxMaintenanceDistance(),
-						plotDistance(iX, iY, pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE()));
-				iValue -= std::min(500 * iDistance, (//8000
-						std::max(8000 - getCurrentEra() * 1000, 4000) // advc.031
-						* iDistance) / GC.getMapINLINE().maxPlotDistance());
+						plotDistance(iX, iY, pNearestCity->getX_INLINE(),
+						pNearestCity->getY_INLINE()));
+				// <advc.031> Don't discourage settling on small nearby landmasses
+				if(pCapital == NULL || pArea == pCapital->area() ||
+						plotDistance(pPlot, pCapital->plot()) >= 10 ||
+						pArea->getNumTiles() >= NUM_CITY_PLOTS) { // </advc.031>
+					iValue -= std::min(500 * iDistance, (//8000
+							std::max(8000 - getCurrentEra() * 1000, 4000) // advc.031
+							* iDistance) / GC.getMapINLINE().maxPlotDistance());
+				}
 			}
 		}
 	}
-
+// END OF NON-STARTING SURROUNDINGS
+// CITIES-PER-AREA CHECKS
 	if (iValue <= 0)
 	{
 		return 1;
@@ -4539,64 +4698,43 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		else iValue = ::round(iValue * 0.8); // advc.031
 	}
   } // </advc.130v>
-	if (!kSet.bStartingLoc)
-	{
-		int iFoodSurplus = std::max(0, iSpecialFoodPlus - iSpecialFoodMinus);
-		int iFoodDeficit = std::max(0, iSpecialFoodMinus - iSpecialFoodPlus);
-
-		/* original bts code
-		iValue *= 100 + 20 * std::max(0, std::min(iFoodSurplus, 2 * GC.getFOOD_CONSUMPTION_PER_POPULATION()));
-		iValue /= 100 + 20 * std::max(0, iFoodDeficit); */
-		// K-Mod. (note that iFoodSurplus and iFoodDeficit already have the "max(0, x)" built in.
-		iValue *= 100 + (kSet.bExpansive ? 20 : 15) * std::min(
-				(iFoodSurplus + iSpecialFoodPlus)/2,
-				2 * GC.getFOOD_CONSUMPTION_PER_POPULATION());
-		iValue /= 100 + (kSet.bExpansive ? 20 : 15) * iFoodDeficit;
-		// K-Mod end
-	}
-
+// END OF AREA CHECKS
+// BONUS COUNT CHECKS
 	if (!kSet.bStartingLoc && getNumCities() > 0)
 	{
 		int iBonusCount = 0;
+		/*  <advc.052> Count bonus in the city tile double, as settling on a bonus
+			is especially greedy. (I think this section is about not grabbing all
+			the resources with a single city when there are a lot of resources
+			in one place.) */
+		if(pPlot->getBonusType(kSet.bAllSeeing ? NO_TEAM : getTeam()) != NO_BONUS)
+			iBonusCount++; // </advc.052>
 		int iUniqueBonusCount = 0;
 		for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
 		{
 			iBonusCount += viBonusCount[iI];
 			iUniqueBonusCount += (viBonusCount[iI] > 0) ? 1 : 0;
 		}
-		if (iBonusCount > 4)
-		{
-			iValue *= 5;
-			iValue /= (1 + iBonusCount);
-		}
-		else if (iUniqueBonusCount > 2)
+		if(iBonusCount > 4) // advc.003: No functional change except rounding
+			iValue = ::round(iValue * (5.0 / (1 + iBonusCount)));
+		/*else if (iUniqueBonusCount > 2)
 		{
 			iValue *= 5;
 			iValue /= (3 + iUniqueBonusCount);
-		} // <advc.031> When there's nothing special about it 
-		else if(iResourceValue <= 0 && iSpecialFoodPlus <= 0 && iRiver < 4 &&
+		}*/
+		/*  <advc.031> Replacing the above. I can see how multiple
+			bonuses of the same type could help city specialization and thus
+			shouldn't be discouraged as much, but iBonus < 5 (unique or not)
+			shouldn't be discouraged at all. */
+		if(iBonusCount + iUniqueBonusCount >= 10) {
+			iValue = ::round(iValue * std::max(0.7, (1 - 0.08 *
+					(iBonusCount + iUniqueBonusCount - 9))));
+		}
+		// Discourage sites that offer nothing special
+		if(iResourceValue <= 0 && iSpecialFoodPlus <= 0 && iRiver < 4 &&
 				unrev < 5) // advc.040
-			iValue = ::round(0.62 * iValue); // </advc.031>
+			iValue = ::round(0.65 * iValue); // </advc.031>
 	}
-	int subtr = (isBarbarian() ? 2 : (NUM_CITY_PLOTS / 4)); // advc.303
-	iBadTile += unrev / 2; // advc.040
-	// <advc.031>
-	iBadTile -= subtr;
-	if(iBadTile > 0) {
-		iValue -= ::round(std::pow((double)iBadTile, 1.33) * 275);
-		iValue = std::max(0, iValue);
-		// Earlier attempt: division by root
-		/*double div = std::pow((double)std::max(0, iBadTile), 0.67) + 3;
-		iValue = ::round(iValue / div);*/
-	}
-	int bonusHealth = 0;
-	if(getCapitalCity() != NULL)
-		bonusHealth += getCapitalCity()->getBonusGoodHealth();
-	int iBadHealth = -iHealth/100 - bonusHealth -
-			GC.getHandicapInfo(getHandicapType()).getHealthBonus();
-	if(iBadHealth >= -1) // I.e. can only grow once
-		iValue /= std::max(1, (3 - getCurrentEra() + iBadHealth));
-	// </advc.031>
 	if (!kSet.bStartingLoc)
 	{
 		int iDeadLockCount = AI_countDeadlockedBonuses(pPlot);
@@ -4607,49 +4745,31 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		//iValue /= (1 + iDeadLockCount);
 		// advc.031: Replacing the above, which is too harsh.
 		iValue = (2 * iValue) / (2 + iDeadLockCount);
-		// <advc.052> For maps with high resource density
-		CvCity* cap = getCapitalCity();
-		int iMinVal = AI_getMinFoundValue();
-		if(cap != NULL && iValue > 1.35 * iMinVal) {
-			/*  Bonuses that can be used by other future cities if this city
-				doesn't grab them */
-			int iGrab = 0;
-			for(int i = 0; i < NUM_CITY_PLOTS; i++) {
-				CvPlot* p = plotCity(iX, iY, i);
-				if(p != NULL && p->getBonusType(getTeam()) != NO_BONUS &&
-						(!p->isCityRadius() ||
-						/*  The city in p isn't going to get bonuses in its outer ring
-							that are also in the radius of an older city */
-						stepDistance(p->getX_INLINE(), p->getY_INLINE(), iX, iY) <= 1)) {
-					iGrab++;
-					// Settling on a bonus is especially greedy
-					if(i == CITY_HOME_PLOT)
-						iGrab++;
-				}
-			}
-			if(iGrab >= 6)
-				iValue = std::max(iMinVal,
-					::round(iValue * std::max(0.6, (1 - 0.08 * (iGrab - 4)))));
-		} // </advc.052>
 	}
+// END OF BONUS COUNT CHECKS
+// ACCOUNT FOR BAD TILES
+	int subtr = (isBarbarian() ? 2 : 6); // advc.303
+	iBadTile += unrev / 2; // advc.040
+	// <advc.031>
+	iBadTile -= subtr;
+	if(iBadTile > 0) {
+		iValue -= ::round(std::pow((double)iBadTile, 1.26) * 160);
+		iValue = std::max(0, iValue);
+	}
+// END OF BAD TILES
+// BAD HEALTH CHECK
+	int bonusHealth = 0;
+	if(getCapitalCity() != NULL)
+		bonusHealth += getCapitalCity()->getBonusGoodHealth();
+	int iBadHealth = -iHealth/100 - bonusHealth -
+			GC.getHandicapInfo(getHandicapType()).getHealthBonus();
+	if(iBadHealth >= -1) // I.e. can only grow once
+		iValue /= std::max(1, (3 - getCurrentEra() + iBadHealth));
+	// </advc.031>
+// END OF BAD HEALTH CHECK
 
-	/* original bts code
-	if (kSet.bStartingLoc)
-	{
-		int iDifferentAreaTile = 0;
-
-		for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
-		{
-			CvPlot* pLoopPlot = plotCity(iX, iY, iI);
-
-			if ((pLoopPlot == NULL) || !(pLoopPlot->isWater() || pLoopPlot->area() == pArea))
-			{
-				iDifferentAreaTile++;
-			}
-		}
-
-		iValue /= (std::max(0, (iDifferentAreaTile - ((NUM_CITY_PLOTS * 2) / 3))) + 2);
-	} */ // disabled by K-Mod. This kind of stuff is already taken into account.
+	// advc.003: BtS code (iDifferentAreaTile) deleted
+	// disabled by K-Mod. This kind of stuff is already taken into account.
 	
 	// K-Mod. Note: iValue is an int, but this function only return a short - so we need to be careful.
 	FAssert(iValue >= 0);
@@ -9832,9 +9952,8 @@ int CvPlayerAI::AI_getMemoryAttitude(PlayerTypes ePlayer, MemoryTypes eMemory) c
 			return 0;
 	}
 	if(eMemory == MEMORY_ACCEPTED_RELIGION) {
-		ReligionTypes fav = (ReligionTypes)lh.getFavoriteReligion();
-		if(fav != NO_RELIGION && (GET_PLAYER(ePlayer).getStateReligion() != fav ||
-				getStateReligion() != fav))
+		if(isStateReligion() && GET_PLAYER(ePlayer).getStateReligion() !=
+				getStateReligion())
 			return 0;
 	}
 	if(eMemory == MEMORY_DENIED_CIVIC) {
@@ -9843,9 +9962,8 @@ int CvPlayerAI::AI_getMemoryAttitude(PlayerTypes ePlayer, MemoryTypes eMemory) c
 			return 0;
 	}
 	if(eMemory == MEMORY_DENIED_RELIGION) {
-		ReligionTypes fav = (ReligionTypes)lh.getFavoriteReligion();
-		if(fav == NO_RELIGION || GET_PLAYER(ePlayer).getStateReligion() == fav ||
-				getStateReligion() != fav)
+		if(!isStateReligion() || GET_PLAYER(ePlayer).getStateReligion() ==
+				getStateReligion())
 			return 0;
 	} // </advc.145>
 	/* <advc.130j> Was 100. Effect halved b/c diplo actions now counted twice.
@@ -24953,7 +25071,7 @@ void CvPlayerAI::AI_nowHasTech(TechTypes eTech)
 }
 
 
-int CvPlayerAI::AI_countDeadlockedBonuses(CvPlot* pPlot) const
+int CvPlayerAI::AI_countDeadlockedBonuses(CvPlot const* pPlot) const
 {
     CvPlot* pLoopPlot;
     int iMinRange = GC.getMIN_CITY_RANGE();
@@ -26838,13 +26956,11 @@ int CvPlayerAI::AI_getMinFoundValue() const
 void CvPlayerAI::AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites)
 {
 	// kmodx: redundant code removed
-	int iValue;
-	int iI;
+	int iI=0;
 
 	// K-Mod. Always recommend the starting location on the first turn.
 	// (because we don't have enough information to overrule what the game has cooked for us.)
-	if (
-		isHuman() &&  /* advc.108: OK for recommendations, but allow AI to evaluate
+	if (isHuman() &&  /* advc.108: OK for recommendations, but allow AI to evaluate
 					     plots and settle elsewhere - in principle;
 						 CvUnitAI::AI_settleMove still always settles in the
 						 plot. updateCitySites isn't the place to enforce this
@@ -26870,9 +26986,24 @@ void CvPlayerAI::AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites)
 			CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
 			if (pLoopPlot->isRevealed(getTeam(), false))
 			{
-				iValue = pLoopPlot->getFoundValue(getID());
+				int iValue = pLoopPlot->getFoundValue(getID());
 				if (iValue > iMinFoundValueThreshold)
-				{
+				{	// <advc.052>
+					if(!isHuman() && GC.getGameINLINE().isScenario()) {
+						// Randomly change the value by +/- 1.5%
+						double const plusMinus = 0.015;
+						std::vector<long> hashInput;
+						/*  Base the random multiplier on a number that is unique
+							per game, but doesn't change throughout a game. */
+						hashInput.push_back(GC.getGameINLINE().getSorenRand().
+								getSeed());
+						hashInput.push_back(pLoopPlot->getX_INLINE());
+						hashInput.push_back(pLoopPlot->getY_INLINE());
+						hashInput.push_back(getID());
+						double randMult = 1 - plusMinus + 2 * plusMinus *
+								::hash(hashInput);
+						iValue = ::round(iValue * randMult);
+					} // </advc.052>
 					if (!AI_isPlotCitySite(pLoopPlot))
 					{
 						iValue *= std::min(NUM_CITY_PLOTS * 2,

@@ -54,11 +54,12 @@
 #define RANDPLOT_UNOWNED											(0x00000002)
 #define RANDPLOT_ADJACENT_UNOWNED							(0x00000004)
 #define RANDPLOT_ADJACENT_LAND								(0x00000008)
-#define RANDPLOT_PASSIBLE											(0x00000010)
+#define RANDPLOT_PASSABLE											(0x00000010)
 #define RANDPLOT_NOT_VISIBLE_TO_CIV						(0x00000020)
 #define RANDPLOT_NOT_CITY											(0x00000040)
-// advc.300
+// <advc.300>
 #define RANDPLOT_HABITABLE (0x00000080)
+#define RANDPLOT_WATERSOURCE (0x00000100) // </advc.300>
 
 #ifdef _USRDLL
 #define MAX_CIV_PLAYERS												(18) // note: default is 18, some people like 48. They are not compatible

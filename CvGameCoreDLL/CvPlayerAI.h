@@ -113,6 +113,7 @@ public:
 		bool bSeafaring; // special affection for coast cities due to unique building or unit.
 		bool bExpansive; // willing to place cities further apart. (not based on the expansive trait)
 		bool bAllSeeing; // doesn't need vision of a plot to know what's there.
+		bool bDebug; // advc.007: Ignore other city sites; not: AllSeeing
 	};
 	short AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet) const;
 	// K-Mod end
@@ -465,8 +466,7 @@ public:
 
 	void AI_nowHasTech(TechTypes eTech);
 
-	int AI_countDeadlockedBonuses(CvPlot* pPlot) const;
-	int AI_countDeadlockedBonusesOriginal(CvPlot* pPlot) const; // advc.test
+	int AI_countDeadlockedBonuses(CvPlot const* pPlot) const;
 	// <advc.052>
 	bool AI_isDeadlockedBonus(CvPlot const& p, CvPlot const& cityPlot,
 			int iMinRange) const; // </advc.052>

@@ -8421,10 +8421,7 @@ bool CvPlayer::canResearch(TechTypes eTech, bool bTrade) const {
 bool CvPlayer::canResearchBulk(TechTypes eTech, bool bTrade, bool bFree,
 		bool couldResearchAgain) const // </advc.126>
 {
-	bool bFoundPossible;
-	bool bFoundValid;
-	int iI;
-
+	int iI=0;
 	if(GC.getUSE_CAN_RESEARCH_CALLBACK())
 	{
 		CyArgsList argsList;
@@ -8451,8 +8448,8 @@ bool CvPlayer::canResearchBulk(TechTypes eTech, bool bTrade, bool bFree,
 		return false;
 	}
 
-	bFoundPossible = false;
-	bFoundValid = false;
+	bool bFoundPossible = false;
+	bool bFoundValid = false;
 
 	for (iI = 0; iI < GC.getNUM_OR_TECH_PREREQS(); iI++)
 	{
@@ -8468,8 +8465,7 @@ bool CvPlayer::canResearchBulk(TechTypes eTech, bool bTrade, bool bFree,
 
 			if (GET_TEAM(getTeam()).isHasTech(ePrereq)
 				 // advc.126: Don't check recursively (for execution speed concerns)
-				&& (couldResearchAgain || canResearchBulk(ePrereq, false, true, true))
-				)
+				&& (couldResearchAgain || canResearchBulk(ePrereq, false, true, true)))
 			{
 				if (!bTrade || GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_BROKERING) || !GET_TEAM(getTeam()).isNoTradeTech(ePrereq))
 				{
@@ -8492,8 +8488,7 @@ bool CvPlayer::canResearchBulk(TechTypes eTech, bool bTrade, bool bFree,
 		{
 			if (!GET_TEAM(getTeam()).isHasTech(ePrereq)
 				// advc.126:
-				|| (couldResearchAgain && !canResearchBulk(ePrereq, false, true, true))
-				)
+				|| (couldResearchAgain && !canResearchBulk(ePrereq, false, true, true)))
 			{
 				return false;
 			}

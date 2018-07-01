@@ -4007,8 +4007,12 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 			// except that the value is reduced in cities that we don't expect to be building troops in.
 			int iWeight = 12;
 			iWeight /= iHasMetCount > 0 ? 1 : 2;
-			iWeight /= bWarPlan || bIsHighProductionCity ? 1 : 3;
-
+			iWeight /= (bWarPlan || (bIsHighProductionCity
+					// <advc.017> Avoid Barracks before first Settler
+					&& (isBarbarian() || kOwner.getNumCities() > 1 ||
+					kOwner.AI_getNumAIUnits(UNITAI_SETTLE) > 0 ||
+					kOwner.AI_getNumCitySites() <= 0)) // </advc.017>
+					? 1 : 3);
 			iValue += kBuilding.getFreeExperience() * iWeight;
 
 			for (int iI = 0; iI < GC.getNumUnitCombatInfos(); iI++)
@@ -12020,7 +12024,7 @@ int CvCityAI::AI_countGoodSpecialists(bool bHealthy) const
 //0 is normal
 //higher than zero means special.
 // (K-Mod todo: this function is currently only used for CvCityAI::AI_stealPlots, and even there it is only used in a very binary way.
-// I think I can make this function more versitile, and then use it to bring some consistency to other parts of the code.)
+// I think I can make this function more versatile, and then use it to bring some consistency to other parts of the code.)
 int CvCityAI::AI_getCityImportance(bool bEconomy, bool bMilitary)
 {
     int iValue = 0;

@@ -16216,12 +16216,13 @@ int CvCity::getMusicScriptId() const
 		{
 			bIsHappy = false;
 		}
-	} // <advc.001p> (Shouldn't be needed anymore)
+	} // <advc.001p> (Shouldn't be needed anymore; tagging advc.test)
 	CvPlayer const& owner = GET_PLAYER(getOwnerINLINE());
 	LeaderHeadTypes lht = owner.getLeaderType();
-	if(lht <= -1)
+	if(lht <= -1) {
+		FAssert(false);
 		return 0;
-	// </advc.001p>
+	} // </advc.001p>
 	CvLeaderHeadInfo& kLeaderInfo = GC.getLeaderHeadInfo(GET_PLAYER(getOwnerINLINE()).getLeaderType());
 	EraTypes eCurEra = GET_PLAYER(getOwnerINLINE()).getCurrentEra();
 	if (bIsHappy)
