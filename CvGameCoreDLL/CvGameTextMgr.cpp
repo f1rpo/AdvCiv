@@ -4193,15 +4193,15 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 					szString.append(szTempBuffer);
 				}
 			}
-		} // advc.001n: Might cache FoundValue
-		if(!GC.getGameINLINE().isNetworkMultiPlayer()) {
+		} // advc.007: Use Alt for found values
+		/*if(!GC.getGameINLINE().isNetworkMultiPlayer()) { // advc.001n: Might cache FoundValue
 			PlayerTypes eActivePlayer = GC.getGameINLINE().getActivePlayer();
 			int iActualFoundValue = pPlot->getFoundValue(eActivePlayer);
 			int iCalcFoundValue = GET_PLAYER(eActivePlayer).AI_foundValue(pPlot->getX_INLINE(), pPlot->getY_INLINE(), -1, false);
 			int iStartingFoundValue = GET_PLAYER(eActivePlayer).AI_foundValue(pPlot->getX_INLINE(), pPlot->getY_INLINE(), -1, true);
 			szTempBuffer.Format(L"\nFound Value: %d, (%d, %d)", iActualFoundValue, iCalcFoundValue, iStartingFoundValue);
 			szString.append(szTempBuffer);
-		}
+		}*/
 		CvCity* pWorkingCity = pPlot->getWorkingCity();
 		if (NULL != pWorkingCity)
 		{

@@ -1873,8 +1873,10 @@ double WarAndPeaceAI::Team::computeVotesToGoForVictory(double* voteTarget,
 		// OK if a mod removes the UN victory vote
 		for(int i = 0; i < GC.getNumVoteInfos(); i++) {
 			CvVoteInfo& vote = GC.getVoteInfo((VoteTypes)i);
-			if(vote.getStateReligionVotePercent() == 0 && vote.isVictory())
+			if(vote.getStateReligionVotePercent() == 0 && vote.isVictory()) {
 				FAssertMsg(false, "Could not determine vote threshold");
+				break;
+			}
 		}
 		if(voteTarget != NULL)
 			*voteTarget = -1;

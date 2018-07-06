@@ -3119,6 +3119,28 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			}
 		}
 	}
+	else { // advc.031: Not relevant for StartingLoc
+		int iOwnedTiles = 0;
+		for(int i = 0; i < NUM_CITY_PLOTS; i++) {
+			CvPlot* pLoopPlot = plotCity(iX, iY, i);
+			if(pLoopPlot == NULL || (pLoopPlot->isOwned() &&
+					pLoopPlot->getTeam() != getTeam())) {
+				/*  advc.035 (comment): Would be good to check abFlip[i] here,
+					but that's costly to compute, and I see the OwnedTiles check
+					mostly as a timesaver. */
+				iOwnedTiles++;
+				/*  <advc.031> Count tiles only half if they're in our inner ring
+					and can't be worked by any foreign city. */
+				if(!::isInnerRing(pLoopPlot, pPlot) || pLoopPlot->isCityRadius())
+					iOwnedTiles++; // </advc.031>
+			}
+		}
+		//if(iOwnedTiles > NUM_CITY_PLOTS / 3)
+		/*  advc.031: Most owned tiles are counted twice now, and I want sth.
+			closer to half of the tiles being owned. */
+		if(iOwnedTiles > 0.82 * NUM_CITY_PLOTS)
+			return 0;
+	}
 // END OF INITIAL CHECKS
 // COMPUTE OVERLAP WITH OTHER CITY SITES
 	/*  (K-Mod this site radius check code was moved from higher up)
@@ -3134,7 +3156,6 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	std::vector<bool> abOwnCityRadius(NUM_CITY_PLOTS, false);
 	// Whether the tile flips to us once we settle near it
 	std::vector<bool> abFlip(NUM_CITY_PLOTS, false); // </advc.035>
-
 	// K-Mod. bug fixes etc. (original code deleted)
 	if (!kSet.bStartingLoc
 			&& !kSet.bDebug) // advc.007
@@ -3166,8 +3187,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			}
 		}
 	} // K-Mod (bugfixes etc.) end
-	// <advc.035> (Also using this for advc.031 now)
-	if(!kSet.bStartingLoc) {
+	// <advc.035>
+	if(!kSet.bStartingLoc) { // (Also using this for advc.031 now)
 		int foo=-1;
 		for(CvCity* c = firstCity(&foo); c != NULL; c = nextCity(&foo)) {
 			for(int i = 0; i < NUM_CITY_PLOTS; i++) {
@@ -3192,24 +3213,6 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		} // </advc.035>
 	}
 // END OF OVERLAP COMPUTATION
-// CHECK IF TOO MANY OWNED TILES
-	// advc.035: Moved the owned-tile counting down b/c I need abFlip for it
-	int iOwnedTiles = 0;
-	for(int i = 0; i < NUM_CITY_PLOTS; i++) {
-		CvPlot* pLoopPlot = plotCity(iX, iY, i);
-		if (pLoopPlot == NULL || (pLoopPlot->isOwned() && pLoopPlot->getTeam() != getTeam()
-				&& !abFlip[i])) { // advc.035
-			iOwnedTiles++;
-			/*  <advc.031> Count tiles only half if they're in our inner ring
-				and can't be worked by any foreign city. */
-			if(!::isInnerRing(pLoopPlot, pPlot) || pLoopPlot->isCityRadius())
-				iOwnedTiles++; // </advc.031>
-		}
-	}
-	if(iOwnedTiles / 2 > // advc.031: Halved b/c most tiles are counted twice now
-			NUM_CITY_PLOTS / 3)
-		return 0;
-// END OF OWNED TILES CHECK
 // COUNT BAD TILES
 	// <advc.040>
 	bool firstColony = false; // advc.040
@@ -3365,7 +3368,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 // END OF BAD-TILES CHECK
 // PLOT EVALUATION LOOP
 	// advc.031: was 800 in K-Mod and 1000 before K-Mod
-	int iValue = 600;
+	int iValue = 500;
 	// <advc.040>
 	if(firstColony)
 		iValue += 55 * std::min(5, unrev); // </advc.040>
@@ -3498,14 +3501,17 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		{
 			for (int i = 0; i < GC.getNumBuildInfos(); ++i)
 			{
-				if (GC.getBuildInfo((BuildTypes)i).isFeatureRemove(eFeature))
+				CvBuildInfo const& bi = GC.getBuildInfo((BuildTypes)i);
+				if (bi.isFeatureRemove(eFeature))
 				{
 					bEventuallyRemoveableFeature = true;
-					if (kTeam.isHasTech((TechTypes)GC.getBuildInfo((BuildTypes)i).getTechPrereq())
-							// <advc.031> bugfix (tagging advc.001)
-							&& kTeam.isHasTech((TechTypes)GC.getBuildInfo((BuildTypes)i).
-							getFeatureTech(eFeature))) // </advc.031>
-					{
+					// <advc.031> CurrentResearch should be good enough
+					TechTypes tech1 = (TechTypes)bi.getTechPrereq();
+					TechTypes tech2 = (TechTypes)bi.getFeatureTech(eFeature);
+					if((kTeam.isHasTech(tech1) || getCurrentResearch() == tech1) &&
+							// advc.001: This check was missing
+							(kTeam.isHasTech(tech2) || getCurrentResearch() == tech2)) {
+						// </advc.031>
 						bRemoveableFeature = true;
 						break;
 					}
@@ -3686,10 +3692,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 						// advc.031: was 30 *...
 						iPlotValue += 25 * kFeature.getYieldChange(eYield);
 					}
-				} // <advc.031>
-				if(eYield == YIELD_FOOD && aiYield[YIELD_FOOD] >= 2
-						&& !bSteal)
-					iGreen++; // </advc.031>
+				}
 			}
 			// K-Mod end
 			// <advc.031>
@@ -3831,34 +3834,38 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				pLoopPlot->canHavePotentialIrrigation())
 			{
 				// in addition to the river bonus
-				iPlotValue += 5 + (pLoopPlot->isFreshWater() ? 5 : 0);
+				iPlotValue += 5;
+				if(pLoopPlot->isFreshWater()) {
+					iPlotValue += 5;
+					// <advc.031>
+					if(aiYield[YIELD_FOOD] >= GC.getFOOD_CONSUMPTION_PER_POPULATION()
+							&& !bSteal)
+						iGreen++; // </advc.031>
+				}
 			}
-		}
-		// <advc.031>
+		} // <advc.031>
 		if(iI == CITY_HOME_PLOT) // Culture and Greed shouldn't apply to home plot
 			iValue += iPlotValue;
-		else {
+		else { // </advc.031>
 			// K-Mod version (original code deleted)
 			if(kSet.bEasyCulture) {
 				// 5/4 * 21 ~= 9 * 1.5 + 12 * 1;
 				iPlotValue *= 5;
 				iPlotValue /= 4;
 			}
-			else {
-				CvPlot* pLoopPlot = plotCity(iX, iY, i);
-				if(pLoopPlot != NULL &&
-						(pLoopPlot->getOwnerINLINE() == getID() ||
-						stepDistance(iX, iY, pLoopPlot->getX_INLINE(),
-						pLoopPlot->getY_INLINE()) <= 1)) {
-					iPlotValue *= 3;
-					iPlotValue /= 2;
-				}
+			else if(pLoopPlot != NULL &&
+					(pLoopPlot->getOwnerINLINE() == getID() ||
+					stepDistance(iX, iY, pLoopPlot->getX_INLINE(),
+					pLoopPlot->getY_INLINE()) <= 1)) {
+				iPlotValue *= 3;
+				iPlotValue /= 2;
 			}
 			iPlotValue *= kSet.iGreed;
 			iPlotValue /= 100;
 			// K-Mod end
 			iPlotValue *= iCultureMultiplier;
 			iPlotValue /= 100;
+			// <advc.031>
 			if(bShare) // bSteal is already factored into iCultureMultiplier
 				iPlotValue = ::round(iPlotValue * 0.375);
 			// Sum these up later
@@ -4002,6 +4009,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 // WEIGHTING OF PLOT VALUES
 	// <advc.031>
 	std::sort(aiPlotValues.begin(), aiPlotValues.end(), std::greater<int>());
+	// CITY_HOME_PLOT should have 0 value here, others could have negative values.
+	FAssert(aiPlotValues[NUM_CITY_PLOTS - 1] <= 0);
 	int iTotalPlotVal[3]; // (Not counting the value of CITY_HOME_PLOT though)
 	/*  advc.test:
 		iTotalPlotVal[0] is the value I'll add to iValue.
@@ -4012,8 +4021,6 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		iTotalPlotVal[k] = 0;
 		for(int i = 0; i < NUM_CITY_PLOTS; i++) {
 			int iPlotValue = aiPlotValues[i];
-			// CITY_HOME_PLOT should have 0 plot value here
-			FAssert(i < NUM_CITY_PLOTS - 1 || iPlotValue <= 0);
 			// <advc.test>
 			if(k == 2) {
 				double const subtr = 35;
@@ -4753,7 +4760,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	// <advc.031>
 	iBadTile -= subtr;
 	if(iBadTile > 0) {
-		iValue -= ::round(std::pow((double)iBadTile, 1.26) * 160);
+		iValue -= ::round(std::pow((double)iBadTile, 1.25) *
+				(35.0 + (kSet.bStartingLoc ? 100 : 0)));
 		iValue = std::max(0, iValue);
 	}
 // END OF BAD TILES
