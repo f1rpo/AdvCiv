@@ -3415,7 +3415,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		PlayerTypes const eOwner = pLoopPlot->getOwnerINLINE();
 		bool const bForeignOwned = (eOwner != NO_PLAYER && eOwner != getID());
 		bool const bSteal = (bCityRadius && bForeignOwned);
-		bool bShare = false; //aiCitySiteRadius[iI] >= 0 // </advc.031>
+		bool bShare = false; // </advc.031>
 		/*  advc.035: The own-exclusive-radius rule only helps if the radii 
 			don't overlap. */
 		bool const bOwnExl = (GC.getOWN_EXCLUSIVE_RADIUS() > 0 && !bCityRadius &&
@@ -3436,11 +3436,13 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				-- too difficult to estimate how many tiles each site will need.
 				I don't think it's really necessary either; sites will be updated
 				after founding a city. */
-			if(aiCitySiteRadius[iI] >= 0 || isBarbarian())
+			if(aiCitySiteRadius[iI] >= 0)
 				continue;
 			bool bOtherInnerRing = false;
 			CvCityAI const* pOtherCity = NULL;
 			if(bCityRadius) {
+				if(isBarbarian())
+					continue;
 				pOtherCity = static_cast<CvCityAI*>(pLoopPlot->getWorkingCity());
 				/*  NULL means its borders haven't expanded yet. Difficult to
 					judge then whether tile sharing makes sense. Better wait
@@ -3461,15 +3463,9 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				}
 			}
 			if(bShare) {
-				if(pLoopPlot->isBeingWorked() || bOtherInnerRing) {
-					// Don't ever reward overlapping sites
-					//|| (aiCitySiteRadius[iI] >= 0 && ::isInnerRing(pLoopPlot,
-					//AI_getCitySite(aiCitySiteRadius[iI]))))
+				if(pLoopPlot->isBeingWorked() || bOtherInnerRing)
 					continue;
-				}
-				CvPlot* pOtherPlot = (bCityRadius ? pOtherCity->plot()
-						// (Not used: bCityRadius is always true here)
-						: AI_getCitySite(aiCitySiteRadius[iI]));
+				CvPlot* pOtherPlot = pOtherCity->plot();
 				int const iOtherPlotIndex = pOtherCity->getCityPlotIndex(pLoopPlot);
 				if(GC.getCityPlotPriority()[iI] >= GC.getCityPlotPriority()[iOtherPlotIndex])
 					continue;
@@ -3486,7 +3482,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			}
 		} // </advc.031>
 // END OF TILE SKIPPING
-		int iPlotValue = 0; // K-Mod note. this use to be called iTempValue. I've renamed it throughout this section to improve clarity.
+		int iPlotValue = 0; // K-Mod note. This used to be called iTempValue. I've renamed it throughout this section to improve clarity.
 // DETERMINE FEATURE, BONUS, IMPROVEMENT
 		FeatureTypes const eFeature = pLoopPlot->getFeatureType();
 		BonusTypes const eBonus = pLoopPlot->getBonusType((kSet.bStartingLoc
@@ -3651,21 +3647,19 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				if (eBonusImprovement != NO_IMPROVEMENT)
 				{
 					//aiYield[eYield] -= GC.getImprovementInfo(eBonusImprovement).getImprovementBonusYield(eBonus, eYield);
-					// Replacing the above
+					// <advc.031> Replacing the above
 					CvImprovementInfo& impr = GC.getImprovementInfo(eBonusImprovement);
 					int imprYieldChg = impr.getImprovementBonusYield(eBonus, eYield);
 					double const exp = 1.41;
-					/*  <advc.031> Add this, exponentiate, then subtract it again.
+					/*  Add this, exponentiate, then subtract it again.
 						This should discourage the AI from settling on
 						tiles with a high total yield.
 						(E.g. 1 production lost from settling on Copper
-						can't be evened out by fitting a plains hills instead
+						can't be evened out by fitting a plains hill instead
 						of a desert hill into the BFC -- the Copper would be
 						worked much sooner than the plains hill!) */
 					int nonBonusYieldChg = impr.getYieldChange(eYield) +
 							iBasePlotYield;
-					/*  pow makes the AI especially reluctant to settle on
-						high-yield bonuses like Gold and Gems */
 					aiYield[eYield] -= imprYieldChg <= 0 ? imprYieldChg :
 							::round(std::pow((double)imprYieldChg +
 							nonBonusYieldChg, exp) - nonBonusYieldChg);
@@ -3753,8 +3747,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		{
 			if (iI != CITY_HOME_PLOT && !bSteal) {
 				//iBaseProduction += pLoopPlot->isHills() ? 2 : 1;
-				/*  The above is pretty bad. We're not going to build
-					Workshops everywhere. Doesn't check for Peak or Desert. */
+				/*  <advc.031> The above is pretty bad: We're not going to build
+					Workshops everywhere, and it doesn't check for Peak or Desert. */
 				FeatureTypes ft = pLoopPlot->getFeatureType();
 				/*  If not event. removeable, then production from feature
 					is already counted above */
@@ -3791,9 +3785,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 								yc += otherYield;
 						}
 						/*  I'm not bothering with civics and routes here.
-							Regarding routes, I guess it's OK to undercount
-							b/c more production is needed by the time railroads
-							become available.
+							It's OK to undercount b/c more production is needed
+							by the time railroads become available.
 							A Workshop may also remove a Forest; in this case,
 							production is overcounted. */
 						// Not fast; loops through all builds.
@@ -3896,9 +3889,9 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					(1 + viBonusCount[eBonus]));
 			/*  Note (K-Mod):
 				1. the value of starting bonuses is reduced later.
-			    2. iTempValue use to be used throughout this section. I've
+			    2. iTempValue used to be used throughout this section. I've
 				   replaced all references with iBonusValue, for clarity. */
-			viBonusCount[eBonus]++; // (this use to be above the iBonusValue initialization)
+			viBonusCount[eBonus]++; // (this used to be above the iBonusValue initialization)
 			/*  advc (comment): ^Perhaps all bonuses should be counted in a
 				separate loop. As it is, the viBonusCount used above is only a
 				partial count. */
@@ -3933,7 +3926,9 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				if (iI != CITY_HOME_PLOT)
 				{	/*  advc.031: Why halve the value of water bonuses?
 						Perhaps because they're costly to improve. But
-						that's only true in the early game ... */
+						that's only true in the early game.
+						Because they tend to be common? AI_bonusVal takes
+						care of that. */
 					if (pLoopPlot->isWater()/*) {
 						//iBonusValue /= 2;*/
 							&& getCurrentEra() < 3) {
@@ -4011,12 +4006,12 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	std::sort(aiPlotValues.begin(), aiPlotValues.end(), std::greater<int>());
 	// CITY_HOME_PLOT should have 0 value here, others could have negative values.
 	FAssert(aiPlotValues[NUM_CITY_PLOTS - 1] <= 0);
-	int iTotalPlotVal[3]; // (Not counting the value of CITY_HOME_PLOT though)
 	/*  advc.test:
 		iTotalPlotVal[0] is the value I'll add to iValue.
 		For comparison in the debugger:
 		iTotalPlotVal[1] is the value K-Mod would count and
 		iTotalPlotVal[2] is the value AdvCiv 0.92 used to count. */
+	int iTotalPlotVal[3];
 	for(int k = 0; k < (kSet.bDebug ? 3 : 1); k++) {
 		iTotalPlotVal[k] = 0;
 		for(int i = 0; i < NUM_CITY_PLOTS; i++) {
