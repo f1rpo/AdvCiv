@@ -1519,8 +1519,9 @@ bool CvPlot::canHavePotentialIrrigation() const
 	if (isCity() && !isHills())
 	{
 		return true;
-	}
-
+	} // <advc.003b>
+	if(isWater())
+		return false; // </advc.003b>
 	for (iI = 0; iI < GC.getNumImprovementInfos(); ++iI)
 	{
 		if (GC.getImprovementInfo((ImprovementTypes)iI).isCarriesIrrigation())

@@ -16,8 +16,8 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		report(m.evaluationParameters().getReport()),
 		military(military), timeHorizon(timeHorizon) {
 
-	// Clogs up the log too much for the moment
-	if(!GET_PLAYER(civId).isHuman())
+	bool const bLogAI = false; // Clogs up the log too much
+	if(!bLogAI && !GET_PLAYER(civId).isHuman())
 	  report.setMute(true);
 	report.log("Armament forecast for *%s*",
 			report.leaderName(civId));
@@ -77,6 +77,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 	// Any war or peace assumed that involves civId, or war preparations by civId
 	bool fictionalScenario = false;
 	TeamTypes singleWarEnemy = NO_TEAM; // Only relevant if there is just one enemy
+	bool const noWarVsExtra = peaceScenario && params.isNoWarVsExtra();
 	for(size_t i = 0; i < getWPAI.properTeams().size(); i++) {
 		TeamTypes loopTeamId = getWPAI.properTeams()[i];
 		if(loopTeamId == tId)
@@ -86,7 +87,8 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		// Whether the simulation assumes peace between loopTeam and t
 		bool peaceAssumedLoop = peaceScenario && ((m.isOnOurSide(tId) &&
 				m.isOnTheirSide(loopTeamId)) || (m.isOnOurSide(loopTeamId) &&
-				m.isOnTheirSide(tId)));
+				m.isOnTheirSide(tId))) &&
+				(tId != weId || !noWarVsExtra || loopTeamId != params.targetId());
 		/* Important to check warplan (not just war) when
 		   second-guessing preparations underway */
 		if(peaceAssumedLoop && t.AI_getWarPlan(loopTeamId) != NO_WARPLAN)
@@ -283,7 +285,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		predictArmament(timeHorizon, productionEstimate, prodFromUpgrades,
 				intensity, defensive, navalArmament);
 	}
-	if(!GET_PLAYER(civId).isHuman())
+	if(!bLogAI && !GET_PLAYER(civId).isHuman())
 		report.setMute(false); // advc.test
 }
 

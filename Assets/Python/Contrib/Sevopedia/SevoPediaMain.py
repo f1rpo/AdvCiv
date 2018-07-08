@@ -550,7 +550,13 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		self.placeItems(WidgetTypes.WIDGET_PEDIA_JUMP_TO_IMPROVEMENT, gc.getImprovementInfo)
 	
 	def getImprovementList(self):
-		return self.getSortedList(gc.getNumImprovementInfos(), gc.getImprovementInfo)
+		# <advc.004y>
+		imprList = self.getSortedList(gc.getNumImprovementInfos(), gc.getImprovementInfo)
+		r = []
+		for descr,i in imprList:
+			if gc.getImprovementInfo(i).getPillageGold() > 0:
+				r.append((descr,i))
+		return r # </advc.004y>
 
 
 	def placeCivs(self):
@@ -566,7 +572,12 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		self.placeItems(WidgetTypes.WIDGET_PEDIA_JUMP_TO_LEADER, gc.getLeaderHeadInfo)
 	
 	def getLeaderList(self):
-		return self.getSortedList(gc.getNumLeaderHeadInfos(), gc.getLeaderHeadInfo)
+		# <advc.004y>
+		r = self.getSortedList(gc.getNumLeaderHeadInfos(), gc.getLeaderHeadInfo)
+		# Barbs should be in position 0, but use WonderConstructRand to confirm.
+		if len(r) > 0 and gc.getLeaderHeadInfo(r[0][1]).getWonderConstructRand() <= 0:
+			r.pop(0)
+		return r # </advc.004y>
 
 
 	def placeTraits(self):

@@ -14286,14 +14286,23 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 	wchar const* attitudeStr = GC.getAttitudeInfo(
 			kPlayer.AI_getAttitude(eTargetPlayer)).getTextKeyWide();
 	wchar const* targetNameStr = GET_PLAYER(eTargetPlayer).getNameKey();
-	if(total == 0)
-		szBuffer.append(gDLL->getText("TXT_KEY_ZERO_ATTITUDE_TOWARDS",
-				attitudeStr, targetNameStr));
-	else if(total > 0)
+	AttitudeTypes att = kPlayer.AI_getAttitudeFromValue(total);
+	if(att == ATTITUDE_CAUTIOUS) {
+		if(total == 0) {
+			szBuffer.append(gDLL->getText("TXT_KEY_ZERO_ATTITUDE_TOWARDS",
+					attitudeStr, targetNameStr));
+		}
+		else if(total > 0) {
+			szBuffer.append(gDLL->getText("TXT_KEY_POSITIVE_NEUTRAL_ATTITUDE_TOWARDS",
+				attitudeStr, total, targetNameStr));
+		}
+		else szBuffer.append(gDLL->getText("TXT_KEY_NEGATIVE_NEUTRAL_ATTITUDE_TOWARDS",
+				attitudeStr, total, targetNameStr));
+	}
+	else if(att > ATTITUDE_CAUTIOUS)
 		szBuffer.append(gDLL->getText("TXT_KEY_GOOD_ATTITUDE_TOWARDS",
 				attitudeStr, total, targetNameStr));
-	else if(total < 0)
-		szBuffer.append(gDLL->getText("TXT_KEY_BAD_ATTITUDE_TOWARDS",
+	else szBuffer.append(gDLL->getText("TXT_KEY_BAD_ATTITUDE_TOWARDS",
 				attitudeStr, total, targetNameStr));
 	// </advc.004q>
 

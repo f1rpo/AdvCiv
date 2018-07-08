@@ -5930,6 +5930,14 @@ double CvTeamAI::OBcounterIncrement(TeamTypes tId) const {
 // <advc.130k>
 int CvTeamAI::randomCounterChange(int cap, double pr) const {
 
+	CvGameSpeedInfo const& sp = GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType());
+	int speedAdjustPercent = sp.getGoldenAgePercent();
+	EraTypes const era = getCurrentEra();
+	if(era <= 0)
+		speedAdjustPercent = sp.getGrowthPercent();
+	else if(era == 1)
+		speedAdjustPercent = (sp.getGrowthPercent() + sp.getGoldenAgePercent()) / 2;
+	pr = 100 * pr / std::max(50, speedAdjustPercent);
 	int r = 0;
 	if(::bernoulliSuccess(pr, "advc.130k"))
 		r++;
@@ -5961,7 +5969,7 @@ void CvTeamAI::AI_doCounter()
 			lead to problems somewhere (probably not but ...) */
 		else AI_changeAtPeaceCounter(tId, (AI_getAtPeaceCounter(tId) == 0 ?
 					1 : randomCounterChange()));
-		if(!isHasMet(tId))
+		if(!isHasMet(tId) || GET_TEAM(tId).isBarbarian())
 			continue;
 		AI_changeHasMetCounter(tId, 1);
 		double decay = getDiploDecay(); // advc.130k

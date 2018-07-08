@@ -13557,6 +13557,12 @@ void CvCity::doPlotCultureTimes100(bool bUpdate, PlayerTypes ePlayer, int iCultu
 					pLoopPlot->getTeam() == GET_TEAM(getTeam()).getMasterTeam())
 				iCultureToAdd = (iCultureToAdd * cultureToMaster) / 100;
 			// </advc.025>
+			// <dlph.23> Loss of tile culture upon city trade
+			if(iCultureToAdd < 0) {
+				FAssert(iCultureRateTimes100 < 0);
+				int iPlotCulture = pLoopPlot->getCulture(ePlayer);
+				iCultureToAdd = -std::min(-iCultureToAdd, iPlotCulture);
+			} // </dlph.23>
 			pLoopPlot->changeCulture(ePlayer, iCultureToAdd, (bUpdate || !(pLoopPlot->isOwned())));
 		}
 	}

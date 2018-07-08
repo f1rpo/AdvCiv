@@ -7440,29 +7440,27 @@ void CvGame::createBarbarianCities()
 
 void CvGame::createBarbCity(bool skipCivAreas, float prMod) {
 
-	float cp = (float)GC.getHandicapInfo(GC.getGame().getHandicapType()).
-			getBarbarianCityCreationProb();
+	float cp = (float)GC.getHandicapInfo(getHandicapType()).getBarbarianCityCreationProb();
 	/* No cities past Medieval, so it's either +0 (Ancient), +1 (Classical)
 	   or +4 (Medieval). */
 	cp += std::pow((float)getCurrentEra(), 2);
 	if(skipCivAreas)
 		cp *= prMod;
 	// Adjust creation prob to game speed
-	CvGameSpeedInfo& gsi = GC.getGameSpeedInfo(GC.getGame().getGameSpeedType());
+	CvGameSpeedInfo& gsi = GC.getGameSpeedInfo(getGameSpeedType());
 	/*  Time to build a Settler depends on TrainPercent, but overall slow-down
 		(captured by BarbPercent) means less time is available for
 		training Settlers. Use the mean as a compromise. */
 	int adjPercent = (gsi.getTrainPercent() + gsi.getBarbPercent()) / 2;
 	cp *= adjPercent / 100.0f;
-	if (getSorenRandNum(100, "Barb City Creation") >= ::round(cp)) // </advc.300>
-	{
+	if(getSorenRandNum(100, "Barb City Creation") >= ::round(cp)) // </advc.300>
 		return;
-	}
+	EraTypes const gameEra = getCurrentEra(); // advc.003
 
 	int iBestValue = 0;
 	CvPlot* pBestPlot = NULL;
 	
-	/*  advc.003: (just a comment) This multiplier expresses how close the total
+	/*  advc.003: (comment) This multiplier expresses how close the total
 		number of barb cities is to the global target. In contrast, iTargetCities
 		in the loop is per area, not global.
 		It's apparently a kind of percentage. If above 100, i.e. 100+x, it seems
@@ -7515,94 +7513,85 @@ void CvGame::createBarbCity(bool skipCivAreas, float prMod) {
 	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 	{
 		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+		// <advc.003>
+		if(pLoopPlot->isWater() || pLoopPlot->isVisibleToCivTeam())
+			continue; // </advc.003>
+		// <advc.300>
+		int const iAreaSz = pLoopPlot->area()->getNumTiles();
+		bool isCivCities = (pLoopPlot->area()->getNumCities() >
+				pLoopPlot->area()->getCitiesPerPlayer(BARBARIAN_PLAYER));
+		if(skipCivAreas && isCivCities)
+			continue;
+		std::map<int,int>::const_iterator unowned = unownedPerArea.find(
+				pLoopPlot->area()->getID());
+		FAssert(unowned != unownedPerArea.end());
+		int iTargetCities = unowned->second;
+		if(isRage) { // Didn't previously affect city density
+			iTargetCities *= 7;
+			iTargetCities /= 5;
+		}
+		if(!isCivCities) {
+			/*  BtS triples iTargetCities here. Want to make it era-based.
+				Important that the multiplier is small in the first two eras
+				so that civs get a chance to settle small landmasses before
+				barbs appear there. Once there is a barb city on a small landmass,
+				there may not be room for another city, and a naval attack on a
+				barb city is difficult to execute for the AI (even impossible,
+				I think, if the city is landlocked). */
+			double mult = std::min(6.0, std::pow(gameEra + 1.0, 2.0) / 3);
+			iTargetCities = ::round(mult * iTargetCities); // </advc.300>
+		}				
+		int iUnownedTilesThreshold = GC.getHandicapInfo(getHandicapType()).getUnownedTilesPerBarbarianCity();
+		if(iAreaSz < iUnownedTilesThreshold / 3) {
+			iTargetCities *= iTargetCitiesMultiplier;
+			iTargetCities /= 100;
+		} // <advc.300>
+		CvArea& a = *pLoopPlot->area();
+		int nDestroyedCities = a.numBarbCitiesEver() -
+				a.getCitiesPerPlayer(BARBARIAN_PLAYER);
+		FAssert(nDestroyedCities >= 0);
+		nDestroyedCities = std::max(0, nDestroyedCities);
+		iUnownedTilesThreshold += nDestroyedCities * 3; // </advc.300>
+		iTargetCities /= std::max(1, iUnownedTilesThreshold);
 
-		if (!(pLoopPlot->isWater()))
+		if (pLoopPlot->area()->getCitiesPerPlayer(BARBARIAN_PLAYER) < iTargetCities)
 		{
-			if (!(pLoopPlot->isVisibleToCivTeam()))
+			//iValue = GET_PLAYER(BARBARIAN_PLAYER).AI_foundValue(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), GC.getDefineINT("MIN_BARBARIAN_CITY_STARTING_DISTANCE"));
+			// K-Mod
+			int iValue = GET_PLAYER(BARBARIAN_PLAYER).AI_foundValue_bulk(
+					pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), kFoundSet); 
+			if (iTargetCitiesMultiplier > 100)
+			{/* <advc.300> This gives the area with the most owned tiles priority
+				over other areas unless the global city target is reached (rare),
+				or the most crowded area hasn't enough unowned tiles left.
+				The idea of skipCivAreas is to settle terra incognita earlier,
+				so I'm considerably reducing the impact in that case.
+				Also, the first city placed in a previously uninhabited area is
+				placed randomly b/c each found value gets multipied with 0,
+				which is apparently a bug. Let's instead use the projected number
+				of owned tiles after placing the city (by adding 9). */
+				int nOwned = pLoopPlot->area()->getNumOwnedTiles();
+				if(skipCivAreas)
+					iValue += nOwned;
+				else iValue *= nOwned + 9; // advc.001 </advc.300>
+			}
+			/*  advc.300, advc.001: Looks like another bug.
+				Good spots have found values in the thousands; adding between 0
+				and 50 is negligible. The division by 100 suggests that times
+				1 to 1.5 was intended. The division is pointless in any case b/c
+				it applies to all found values alike, and thus doesn't affect
+				pBestPlot.
+				This kind of randomization is mitigated by the fact that clusters
+				of tiles tend to have similar found values. The effect is mostly
+				local. I'm trying to get the barbs to also settle mediocre land
+				occasionaly by randomizing CvFoundSettings.barbDiscouragedRange. */
+			//iValue += (100 + getSorenRandNum(50, "Barb City Found"));
+			//iValue /= 100;
+			iValue *= 100 + getSorenRandNum(50, "Barb City Found");
+			if (iValue > iBestValue)
 			{
-				// <advc.300>
-				bool isCivCities = (pLoopPlot->area()->getNumCities() >
-						pLoopPlot->area()->getCitiesPerPlayer(BARBARIAN_PLAYER));
-				if(skipCivAreas && isCivCities)
-					continue;
-				std::map<int,int>::const_iterator unowned = unownedPerArea.find(
-						pLoopPlot->area()->getID());
-				FAssert(unowned != unownedPerArea.end());
-				int iTargetCities = unowned->second;
-				if(isRage) { // Didn't previously affect city density
-					iTargetCities *= 7;
-					iTargetCities /= 5;
-				}
-				if(!isCivCities) // No functional change in this line
-				{
-					/* Was: times 3. Want to make it era-based.
-					   times (2 + era) seems a bit much in tests. Try 5/3 + era. */
-					iTargetCities *= (5 + 3 * getCurrentEra());
-					iTargetCities /= 3; // </advc.300>
-				}
-								
-				int iUnownedTilesThreshold = GC.getHandicapInfo(getHandicapType()).getUnownedTilesPerBarbarianCity();
-				
-				if (pLoopPlot->area()->getNumTiles() < (iUnownedTilesThreshold / 3))
-				{
-					iTargetCities *= iTargetCitiesMultiplier;
-					iTargetCities /= 100;
-				}
-				// <advc.300>
-				CvArea& a = *pLoopPlot->area();
-				int nDestroyedCities = a.numBarbCitiesEver() -
-						a.getCitiesPerPlayer(BARBARIAN_PLAYER);
-				FAssert(nDestroyedCities >= 0);
-				nDestroyedCities = std::max(0, nDestroyedCities);
-				iUnownedTilesThreshold += nDestroyedCities * 3; // </advc.300>
-				iTargetCities /= std::max(1, iUnownedTilesThreshold);
-
-				if (pLoopPlot->area()->getCitiesPerPlayer(BARBARIAN_PLAYER) < iTargetCities)
-				{
-					//iValue = GET_PLAYER(BARBARIAN_PLAYER).AI_foundValue(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), GC.getDefineINT("MIN_BARBARIAN_CITY_STARTING_DISTANCE"));
-					int iValue = GET_PLAYER(BARBARIAN_PLAYER).AI_foundValue_bulk(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), kFoundSet); // K-Mod
-
-					if (iTargetCitiesMultiplier > 100)
-					{
-					/*  <advc.300> This gives the area with the most owned tiles
-						priority over other areas unless the global city target
-						is reached (rare), or the most crowded area hasn't enough
-						unowned tiles left.
-						The idea of skipCivAreas is to settle terra incognita
-						earlier, so I'm considerably reducing the impact in that
-						case.
-						Also, the first city placed in a previously uninhabited area
-						is placed randomly b/c each found value gets multipied
-						with 0, which is probably a bug. Let's instead use the projected number of
-						owned tiles after placing the city (by adding 9). */
-						int nOwned = pLoopPlot->area()->getNumOwnedTiles();
-						if(skipCivAreas)
-							iValue += nOwned;
-						else iValue *= nOwned + 9; // advc.001 </advc.300>
-					}
-
-					/*  advc.300, advc.001: Looks like another bug.
-						Good spots have found values in the thousands; adding
-						between 0 and 50 is negligible. The division by 100
-						suggests that times 1 to 1.5 was intended.
-						The division is pointless in any case b/c it applies to
-						all found values alike, and thus doesn't affect
-						pBestPlot.
-						This kind of randomization is mitigated by the fact
-						that clusters of tiles tend to have similar found values.
-						The effect is mostly local. I'm trying to get the barbs
-						to also settle mediocre land occasionaly by randomizing
-						CvFoundSettings.barbDiscouragedRange. */
-					//iValue += (100 + getSorenRandNum(50, "Barb City Found"));
-					//iValue /= 100;
-					iValue *= 100 + getSorenRandNum(50, "Barb City Found");
-
-					if (iValue > iBestValue)
-					{
-						iBestValue = iValue;
-						pBestPlot = pLoopPlot;
-					}
-				}
+				iBestValue = iValue;
+				pBestPlot = pLoopPlot;
 			}
 		}
 	}

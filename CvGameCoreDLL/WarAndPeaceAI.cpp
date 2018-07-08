@@ -478,15 +478,17 @@ bool WarAndPeaceAI::Team::reviewPlan(TeamTypes targetId, int u, int prepTime) {
 				}
 				return false;
 			}
+			else {
 			/*  Tbd.: Should allow switching when war remains imminent for a long
 				time; too inflexible currently. I think considerSwitchTarget
 				assumes that no war is imminent though; probably needs some
 				adjustments. Or I could just temporarily set wp to PREPARING. */
-			/*double xx=?; double yy=?;
-			if(::bernoulliSuccess(std::min(xx, wpAge * yy), "advc.104")) {
-				if(!considerSwitchTarget(targetId, u, 0))
-					return false;
-			}*/
+				/*double xx=?; double yy=?;
+				if(::bernoulliSuccess(std::min(xx, wpAge * yy), "advc.104")) {
+					if(!considerSwitchTarget(targetId, u, 0))
+						return false;
+				}*/
+			}
 			CvMap const& m = GC.getMapINLINE();
 			// 12 turns for a Standard-size map, 9 on Small
 			int timeout = std::max(m.getGridWidth(), m.getGridHeight()) / 7;
@@ -532,16 +534,40 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 	CvTeamAI& target = GET_TEAM(targetId);
 	double peaceThresh = peaceThreshold(targetId);
 	report->log("Threshold for seeking peace: %d", ::round(peaceThresh));
-	if(u > peaceThresh) {
-		report->log("No peace sought b/c war utility is above the peace threshold");
-		return true;
+	bool human = target.isHuman();
+	if(u >= peaceThresh) {
+		/*  Peace so we can free our hands for a different war.
+			(The "distraction" war utility aspect also deals with this,
+			but it's normally not enough to get the AI to stop a successful
+			war before starting one that looks even more worthwhile.) */
+		if(!human) {
+			for(size_t i = 0; i < getWPAI._properTeams.size(); i++) {
+				TeamTypes otherId = getWPAI._properTeams[i];
+				if(agent.AI_isSneakAttackReady(otherId)) {
+					report->log("Considering peace with %s to focus on"
+							" imminent war against %s; evaluating two-front war:",
+							report->teamName(targetId), report->teamName(otherId));
+					WarEvalParameters params(agentId, otherId, *report, true);
+					params.addExtraTarget(targetId);
+					/*  We're sure that we want to attack otherId. Only consider
+						peace with the ExtraTarget. */
+					params.setNotConsideringPeace();
+					WarEvaluator eval(params);
+					u = eval.evaluate(agent.AI_getWarPlan(otherId), 0) -
+							GC.getUWAI_MULTI_WAR_RELUCTANCE();
+					report->log("Utility of a two-front war compared with a war "
+							"only against %s: %d", report->teamName(otherId), u);
+					break; // Only one war can be imminent at a time
+				}
+			}
+		}
+		if(u >= peaceThresh) {
+			report->log("No peace sought b/c war utility is above the peace threshold");
+			return true;
+		}
 	}
-	bool human = false;
-	// Don't try to ask human for peace
-	if(target.isHuman()) {
+	if(human) // Don't try to ask human for peace
 		report->log("Can't ask human for peace (bug in EXE)");
-		human = true;
-	}
 	CvPlayerAI& targetLeader = GET_PLAYER(target.getLeaderID());
 	CvPlayerAI& agentLeader = GET_PLAYER(agent.getLeaderID());
 	// We refuse to talk for 1 turn
@@ -551,8 +577,8 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 				report->leaderName(targetLeader.getID()));
 		return true; // Can't contact them for capitulation either
 	}
-	if(!human && u < 0) {
-		double pr = std::sqrt((double)-u) * 0.03; // 30% at u=-100
+	if(!human) {
+		double pr = std::sqrt(peaceThresh - u) * 0.03;
 		report->log("Probability for peace negotiation: %d percent",
 				::round(pr * 100));
 		if(::bernoulliSuccess(1 - pr, "advc.104 (peace)")) {
@@ -2450,7 +2476,7 @@ double WarAndPeaceAI::Civ::warConfidenceAllies() const {
 	   150 (Lincoln, low confidence). These values are too far apart to convert
 	   them proportionally. Hence the square root. The result is between
 	   1 and 0.23. */
-	double r = std::max(0.0, std::sqrt(30 / dpwr) - 0.22);
+	double r = ::dRange(std::sqrt(30 / dpwr) - 0.22, 0.0, 1.0);
 	/*  Should have much greater confidence in civs on our team, but
 		can't tell in this function who the ally is. Hard to rewrite
 		InvasionGraph such that each ally is evaluated individually; wasn't

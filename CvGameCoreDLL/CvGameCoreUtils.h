@@ -41,7 +41,7 @@ class CvInfoBase;
 #undef min
 
 // <advc.003> floating point utility
-inline int round(double d) { return (int)(0.5 + d); }
+inline int round(double d) { return (int)((d >= 0 ? 0.5 : -0.5) + d); }
 int roundToMultiple(double d, int modulus);
 bool bernoulliSuccess(double pr, char const* pszLog = ""); // 0 <= pr <= 1
 double median(std::vector<double>& distribution, bool sorted = false);

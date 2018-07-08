@@ -3226,7 +3226,7 @@ EraTypes CvTeam::getCurrentEra() const {
 
 	double sum = 0;
 	int div = 0;
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+	for(int i = 0; i < MAX_PLAYERS; i++) {
 		CvPlayer const& member = GET_PLAYER((PlayerTypes)i);
 		if(member.isAlive() && member.getTeam() == getID()) {
 			div++;

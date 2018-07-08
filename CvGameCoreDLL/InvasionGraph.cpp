@@ -579,9 +579,10 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	SimulationStep& r = *rptr;
 	double armyPowRaw = military[ARMY]->power() - lostPower[ARMY];
 	double cavPowRaw = military[CAVALRY]->power() - lostPower[CAVALRY];
-	double cavRatioRaw = armyPowRaw <= 0 ? 0 : cavPowRaw / armyPowRaw;
+	double cavRatioRaw = ::dRange(armyPowRaw <= 0 ? 0 : cavPowRaw / (armyPowRaw +
+			military[HOME_GUARD]->power() - lostPower[HOME_GUARD]), 0.0, 1.0);
 	armyPowRaw -= tempArmyLosses;
-	cavPowRaw -= tempArmyLosses * (armyPowRaw <= 0 ? 0 : cavPowRaw / armyPowRaw);
+	cavPowRaw -= tempArmyLosses * cavRatioRaw;
 	double armyPow = armyPowRaw * armyPortionAttacker;
 	armyPow = std::max(0.0, armyPow);
 	double cavPow = cavPowRaw * armyPortionAttacker;
@@ -802,7 +803,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		cargoCap *= 1 + 1 / std::max(2.0, reinforcementDist);
 		double logisticsPortionTarget = 0;
 		if(targetFleetPow > 1)
-			logisticsPortionTarget = (military[LOGISTICS]->power() -
+			logisticsPortionTarget = (defender.military[LOGISTICS]->power() -
 					defender.lostPower[LOGISTICS]) * confDef / targetFleetPow;
 		// +30% for attacker b/c only a clear victory can prevent a naval landing
 		double fleetPowMult = 1.3;
@@ -974,10 +975,15 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 				targetArmyPowMod, !clashOnly, false);
 		double cavRatio = 0;
 		double targetCavRatio = 0;
-		if(armyPow > 0.5)
-			cavRatio = cavPow / armyPow;
-		if(targetArmyPow > 0.5)
-			targetCavRatio = targetCavPow / targetArmyPow;
+		if(armyPow > 0.5) {
+			cavRatio = ::dRange(cavPow / (armyPow + military[HOME_GUARD]->power() -
+					lostPower[HOME_GUARD]), 0.0, 1.0);
+		}
+		if(targetArmyPow > 0.5) {
+			targetCavRatio = ::dRange(targetCavPow / (targetArmyPow +
+					defender.military[HOME_GUARD]->power() -
+					defender.lostPower[HOME_GUARD]), 0.0, 1.0);
+		}
 		double lossesWinner = lwl.first;
 		double lossesLoser = lwl.second;
 		double tempLosses = clashLossesTemporary(armyPowMod, targetArmyPowMod);
@@ -1384,22 +1390,35 @@ void InvasionGraph::Node::applyStep(SimulationStep const& step) {
 				}
 				int nConqueredByOther = (int)losses.size() - nConqueredByAtt;
 				FAssert(nConqueredByOther >= 0);
+				/*  If at war, attacker may already have war successes outside
+					the simulation that could scare this node into capitulation. */
+				bool bWar = attackerTeam.isAtWar(TEAMID(id));
 				if(!GET_PLAYER(id).isHuman() &&
 						// Last team member standing
 						TEAMREF(id).getAliveCount() <= 1 &&
+						GET_PLAYER(id).getNumNukeUnits() <= 0 && // advc.143b
 						/*  To decide whether to capitulate to a given team, we need
 							to know what will happen if we don't capitulate. */
 						(id != weId || TEAMID(attacker.id) !=
 						outer.m.evaluationParameters().getCapitulationTeam()) &&
-						nConqueredByAtt >= std::max(std::max(nConqueredByOther,
-						/*  If already at war, attacker may already have
-							war successes outside the simulation that could
-							scare this node into capitulation. */
-						(attackerTeam.isAtWar(TEAMID(id)) ? 1 : 2)),
-						(nCurrentActualCities - nConqueredByOther) / 2)) {
-					setCapitulated(TEAMID(attacker.id));
-					report.log("%s has *capitulated* to %s", report.leaderName(id),
-							report.leaderName(attacker.id));
+						nConqueredByAtt >= std::max(nConqueredByOther + 1,
+						(bWar ? 1 : 2))) {
+					double powModPercent = GC.getLeaderHeadInfo(GET_PLAYER(id).
+							getPersonalityType()).getVassalPowerModifier();
+					bool powModNegative = (powModPercent < 0);
+					powModPercent = (powModNegative ? -1 : 1) *
+							std::pow((powModNegative ? -1 : 1) *
+							powModPercent , 0.75);
+					/*  Need to conquer about half of the cities; a bit fewer if
+						there are a lot of them. */
+					double thresh = std::pow((double)nCurrentActualCities -
+							nConqueredByOther, 0.95) * std::max(36.0,
+							55 + (bWar ? -10 : 0) + powModPercent) / 100.0;
+					if(nConqueredByAtt >= ::round(thresh)) {
+						setCapitulated(TEAMID(attacker.id));
+						report.log("%s has *capitulated* to %s", report.leaderName(id),
+								report.leaderName(attacker.id));
+					}
 				}
 			}
 			/* Assume that some defenders are built upon the loss of a city.
@@ -1982,6 +2001,7 @@ void SimulationStep::reducePower(PlayerTypes id, MilitaryBranchTypes mb,
 	if(ofAttacker)
 		lostPowerAttacker[mb] += subtrahend;
 	else lostPowerDefender[mb] += subtrahend;
+	FAssert(lostPowerAttacker[mb]>-0.0001 && lostPowerDefender[mb]>-0.0001);
 }
 
 void SimulationStep::setSuccess(bool b) {

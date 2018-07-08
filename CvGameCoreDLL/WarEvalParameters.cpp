@@ -46,7 +46,7 @@ bool WarEvalParameters::isConsideringPeace() const {
 
 void WarEvalParameters::setNotConsideringPeace() {
 
-	consideringPeace = false;;
+	consideringPeace = false;
 }
 
 void WarEvalParameters::addWarAlly(TeamTypes tId) {
@@ -70,6 +70,13 @@ void WarEvalParameters::addExtraTarget(TeamTypes tId) {
 	for(size_t i = 0; i < getWPAI.properTeams().size(); i++)
 		if(GET_TEAM(getWPAI.properTeams()[i]).isVassal(tId))
 			extraTargets.insert(getWPAI.properTeams()[i]);
+}
+
+
+bool WarEvalParameters::isNoWarVsExtra() const {
+
+	return !extraTargets.empty() && !consideringPeace &&
+			!immediateDoW && !GET_TEAM(_agentId).isAtWar(_targetId);
 }
 
 bool WarEvalParameters::isWarAlly(TeamTypes tId) const {

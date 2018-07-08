@@ -201,6 +201,14 @@
 		<iDefineIntVal>100</iDefineIntVal>
 	</Define>
 	<!-- [/advc.104x] -->
+	<!-- [advc.104] Misc. UWAI parameters -->
+	<Define>
+		<!-- Added to the utility threshold for starting a war while already in
+			 a war. Recommended: 10 (or sth. between 0 and 25). -->
+		<DefineName>UWAI_MULTI_WAR_RELUCTANCE</DefineName>
+		<iDefineIntVal>10</iDefineIntVal>
+	</Define>
+	<!-- [/advc.104] -->
 
 	<!-- -->
 	<!-- Better BTS AI / K-Mod variables to allow easy AI tweaking -->

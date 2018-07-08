@@ -39,6 +39,10 @@ public:
 	// For peace votes (peace will be assumed in the peace scenario)
 	void addExtraTarget(TeamTypes tId);
 	bool isExtraTarget(TeamTypes tId) const;
+	/*  If this returns true, then, in the peace scenario, war should be assumed
+		vs. the main target and peace with the extra targets. Will return true
+		only if the ConsideringPeace flag is not set. */
+	bool isNoWarVsExtra() const;
 	void setSponsor(PlayerTypes civId); // Alternative to constructor arg
 	PlayerTypes getSponsor() const;
 	bool isTotal() const;

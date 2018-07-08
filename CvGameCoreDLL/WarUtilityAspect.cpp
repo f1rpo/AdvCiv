@@ -2885,6 +2885,7 @@ void Distraction::evaluate() {
 				log("%d extra cost for distraction from war in preparation",
 						::round(ut));
 			}
+			// NB: Imminent war against tId is covered by WarAndPeaceAI::Team::considerPeace
 		}
 		/*  tId as a potential alternative war target. 'ut' is the utility of
 			fighting both theyId and tId. Won't be able to tell how worthwhile war

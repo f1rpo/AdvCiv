@@ -2315,6 +2315,22 @@
 		<Spanish>Actitud hacia %s3_leader: %s1_attitude ([COLOR_WARNING_TEXT]%d2[COLOR_REVERT])</Spanish>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_POSITIVE_NEUTRAL_ATTITUDE_TOWARDS</Tag>
+		<English>%s1_attitude (+%d2) towards %s3_leader</English>
+		<French>%s1_attitude (+%d2) envers %s3_leader</French>
+		<German>%s1_attitude (+%d2) gegen&#252;ber %s3_leader</German>
+		<Italian>%s1_attitude (+%d2) confronti di %s3_leader</Italian>
+		<Spanish>Actitud hacia %s3_leader: %s1_attitude (+%d2)</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_NEGATIVE_NEUTRAL_ATTITUDE_TOWARDS</Tag>
+		<English>%s1_attitude (%d2) towards %s3_leader</English>
+		<French>%s1_attitude (%d2) envers %s3_leader</French>
+		<German>%s1_attitude (%d2) gegen&#252;ber %s3_leader</German>
+		<Italian>%s1_attitude (%d2) confronti di %s3_leader</Italian>
+		<Spanish>Actitud hacia %s3_leader: %s1_attitude (%d2)</Spanish>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_ZERO_ATTITUDE_TOWARDS</Tag>
 		<English>%s1_attitude (+/- 0) towards %s2_leader</English>
 		<French>%s1_attitude (+/- 0) envers %s2_leader</French>

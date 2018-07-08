@@ -7517,8 +7517,12 @@ void CvPlayer::processBuilding(BuildingTypes eBuilding, int iChange, CvArea* pAr
 
 	if (GC.getBuildingInfo(eBuilding).getFreeBuildingClass() != NO_BUILDINGCLASS)
 	{
-		BuildingTypes eFreeBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(GC.getBuildingInfo(eBuilding).getFreeBuildingClass());
-		changeFreeBuildingCount(eFreeBuilding, iChange);
+		BuildingTypes eFreeBuilding = (BuildingTypes)GC.getCivilizationInfo(
+				getCivilizationType()).getCivilizationBuildings(
+				GC.getBuildingInfo(eBuilding).getFreeBuildingClass());
+		// advc.303: Barbs can't receive the Monuments from Stonehenge
+		if(eFreeBuilding != NO_BUILDING)
+			changeFreeBuildingCount(eFreeBuilding, iChange);
 	}
 
 	if (GC.getBuildingInfo(eBuilding).getCivicOption() != NO_CIVICOPTION)
