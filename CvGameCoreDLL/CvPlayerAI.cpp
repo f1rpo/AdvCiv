@@ -4794,6 +4794,10 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 
 bool CvPlayerAI::AI_isAreaAlone(CvArea* pArea) const
 {
+	// <advc.131> Don't cheat with visibility early on (hurts more than it helps)
+	if(4 * pArea->getNumRevealedTiles(getTeam()) < 3 * pArea->getNumTiles() &&
+			getCurrentEra() <= GC.getGameINLINE().getStartEra())
+		return (GET_TEAM(getTeam()).getHasMetCivCount() <= 0); // </advc.131>
 	return ((pArea->getNumCities() - GET_TEAM(BARBARIAN_TEAM).countNumCitiesByArea(pArea)) == GET_TEAM(getTeam()).countNumCitiesByArea(pArea));
 }
 
@@ -8077,12 +8081,10 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 			}
 		}
 	} // </k146>
-	// advc.131: was > 0
-	bool bCapitalAlone = (GC.getGameINLINE().getElapsedGameTurns() >= 30) ?
-			AI_isCapitalAreaAlone() : false;
-	int iHasMetCount = kTeam.getHasMetCivCount(true);
-	int iCoastalCities = countNumCoastalCities();
-	CvCity* pCapitalCity = getCapitalCity();
+	int const iHasMetCount = kTeam.getHasMetCivCount(true);
+	int const iCoastalCities = countNumCoastalCities();
+	CvCity* const pCapitalCity = getCapitalCity();
+	bool const bCapitalAlone = AI_isCapitalAreaAlone();
 
 	int iValue = 0;
 
@@ -8329,10 +8331,8 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 						//iTotalUnitValue += (bCapitalAlone ? 18 : 6)*iWeight;
 						iUtilityValue = std::max(iUtilityValue,
 								(4 + // k146: was 6+
-								(bCapitalAlone ? 4 : 0) + ((iHasMetCount > 0
-								// advc.131
-								|| GC.getGameINLINE().getElapsedGameTurns() < 30)
-								? 0 : 4))*iWeight); // k146: was 6))...
+								(bCapitalAlone ? 4 : 0) + (iHasMetCount > 0 ? 0 :
+								4))*iWeight); // k146: was 6))...
 					}
 					break;
 
@@ -8478,10 +8478,10 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 
 			if (iNavalValue > 0)
 			{
-				if (getCapitalCity() != NULL)
+				if (pCapitalCity != NULL)
 				{
 					// BBAI TODO: A little odd ... naval value is 0 if have no colonies.
-					iNavalValue *= 2 * (getNumCities() - getCapitalCity()->area()->getCitiesPerPlayer(getID()));
+					iNavalValue *= 2 * (getNumCities() - pCapitalCity->area()->getCitiesPerPlayer(getID()));
 					iNavalValue /= getNumCities();
 
 					iTotalUnitValue += iNavalValue;
@@ -8513,20 +8513,20 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 
 			if (kLoopUnit.getUnitAIType(UNITAI_SETTLER_SEA))
 			{
-				if (getCapitalCity() != NULL)
+				if (pCapitalCity != NULL)
 				{
 					UnitTypes eExistingUnit = NO_UNIT;
 					int iBestAreaValue = 0;
-					AI_getNumAreaCitySites(getCapitalCity()->getArea(), iBestAreaValue);
+					AI_getNumAreaCitySites(pCapitalCity->getArea(), iBestAreaValue);
 
 					//Early Expansion by sea
 					if (AI_bestAreaUnitAIValue(UNITAI_SETTLER_SEA, NULL, &eExistingUnit) == 0)
 					{
-						CvArea* pWaterArea = getCapitalCity()->waterArea();
+						CvArea* pWaterArea = pCapitalCity->waterArea();
 						if (pWaterArea != NULL)
 						{
 							int iBestOtherValue = 0;
-							AI_getNumAdjacentAreaCitySites(pWaterArea->getID(), getCapitalCity()->getArea(), iBestOtherValue);
+							AI_getNumAdjacentAreaCitySites(pWaterArea->getID(), pCapitalCity->getArea(), iBestOtherValue);
 
 							if (iBestAreaValue == 0
 									// k146: Give us a chance to see our land first.

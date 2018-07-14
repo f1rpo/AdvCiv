@@ -2554,12 +2554,10 @@ int CvTeam::getChosenWarCount(bool bIgnoreMinors) const
 
 int CvTeam::getHasMetCivCount(bool bIgnoreMinors) const
 {
-	int iCount;
-	int iI;
+	PROFILE_FUNC(); // advc.003b: Would be easy enough to cache this
+	int iCount = 0;
 
-	iCount = 0;
-
-	for (iI = 0; iI < MAX_CIV_TEAMS; iI++)
+	for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 	{
 		if (GET_TEAM((TeamTypes)iI).isAlive())
 		{
@@ -2569,7 +2567,6 @@ int CvTeam::getHasMetCivCount(bool bIgnoreMinors) const
 				{
 					if (isHasMet((TeamTypes)iI))
 					{
-						//FAssert(iI != getID()); // advc.006
 						iCount++;
 					}
 				}
