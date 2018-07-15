@@ -549,8 +549,10 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		computing the army portions. */
 	/* Adjust the portion of the army that is assumed to be absent,
 	   i.e. 1 minus portion */
-	armyPortionDefender = 1 - (1 - armyPortionDefender) * confAlliesAtt;
-	armyPortionAttacker = 1 - (1 - armyPortionAttacker) * confAlliesDef;
+	armyPortionDefender = std::max(0.0, 1 - (1 - armyPortionDefender) *
+			confAlliesAtt);
+	armyPortionAttacker = std::max(0.0, 1 - (1 - armyPortionAttacker) *
+			confAlliesDef);
 	// No clash if no mutual reachability
 	FAssert(!clashOnly || (targetCity() != NULL && defender.targetCity() != NULL));
 	if(clashOnly) {

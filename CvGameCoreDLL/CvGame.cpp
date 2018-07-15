@@ -847,77 +847,62 @@ void CvGame::initDiplomacy()
 
 void CvGame::initFreeState()
 {
-	bool bValid;
 	int iI, iJ, iK;
-
 	for (iI = 0; iI < GC.getNumTechInfos(); iI++)
 	{
 		for (iJ = 0; iJ < MAX_TEAMS; iJ++)
-		{
-			if (GET_TEAM((TeamTypes)iJ).isAlive())
-			{
-				bValid = false;
-
-				if (!bValid)
+		{	// <advc.003>
+			if(!GET_TEAM((TeamTypes)iJ).isAlive())
+				continue; // </advc.003>
+			bool bValid = false;
+			if (//(GC.getHandicapInfo(getHandicapType()).isFreeTechs(iI)) || // disabled by K-Mod. (moved & changed. See below)
+					(!(GET_TEAM((TeamTypes)iJ).isHuman()) && GC.getHandicapInfo(getHandicapType()).isAIFreeTechs(iI)
+				/*  advc.001: Barbarians receiving free AI tech might be a bug.
+					If all AI civs start with the same tech, barbarians will
+					get that tech soon either way, but with this fix at least
+					not immediately. */
+					&& iJ != (int)BARBARIAN_TEAM
+					// advc.250c:
+					&& !isOption(GAMEOPTION_ADVANCED_START)) ||
+					(GC.getTechInfo((TechTypes)iI).getEra() < getStartEra()))
+				bValid = true;
+			if (!bValid) {
+				for (iK = 0; iK < MAX_PLAYERS; iK++)
 				{
-					if (//(GC.getHandicapInfo(getHandicapType()).isFreeTechs(iI)) || // disabled by K-Mod. (moved & changed. See below)
-						  (!(GET_TEAM((TeamTypes)iJ).isHuman()) && GC.getHandicapInfo(getHandicapType()).isAIFreeTechs(iI)
-						  /*  advc.001: Barbarians receiving free AI tech might be a bug.
-							  If all AI civs start with the same tech, barbarians will
-							  get that tech soon either way, but with this fix at least
-							  not immediately. */
-						  && iJ != (int)BARBARIAN_TEAM
-						  // advc.250c:
-						  && !isOption(GAMEOPTION_ADVANCED_START)) ||
-						  (GC.getTechInfo((TechTypes)iI).getEra() < getStartEra()))
+					CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iK); // K-Mod
+					// <advc.003>
+					if(!kLoopPlayer.isAlive() || kLoopPlayer.getTeam() != iJ)
+						continue; // </advc.003>
+					/*  <advc.250b><advc.250c> Always grant civ-specific tech,
+						but not tech from handicap if Advanced Start
+						except to human civs that don't actually start
+						Advanced (SPaH option). */
+					if (GC.getCivilizationInfo(kLoopPlayer.getCivilizationType()).isCivilizationFreeTechs(iI))
 					{
 						bValid = true;
+						break;
 					}
-				}
-
-				if (!bValid)
-				{
-					for (iK = 0; iK < MAX_PLAYERS; iK++)
+					if (!bValid &&
+						GC.getHandicapInfo(kLoopPlayer.getHandicapType()).isFreeTechs(iI)
+						&& (!isOption(GAMEOPTION_ADVANCED_START) ||
+						(isOption(GAMEOPTION_SPAH) &&
+						GET_TEAM((TeamTypes)iJ).isHuman()))
+						// </advc.250b></advc.250c>
+						) // K-Mod (give techs based on player handicap, not game handicap.)
 					{
-						CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iK); // K-Mod
-						if (kLoopPlayer.isAlive())
-						{
-							if (kLoopPlayer.getTeam() == iJ)
-							{
-							/*  <advc.250b><advc.250c> Always grant civ-specific tech,
-								but not tech from handicap if Advanced Start
-								except to human civs that don't actually start
-								Advanced (SPaH option). */
-								if (GC.getCivilizationInfo(kLoopPlayer.getCivilizationType()).isCivilizationFreeTechs(iI))
-								{
-									bValid = true;
-									break;
-								}
-								if (!bValid &&
-									GC.getHandicapInfo(kLoopPlayer.getHandicapType()).isFreeTechs(iI)
-									&& (!isOption(GAMEOPTION_ADVANCED_START) ||
-									(isOption(GAMEOPTION_SPAH) &&
-									 GET_TEAM((TeamTypes)iJ).isHuman()))
-									// </advc.250b></advc.250c>
-									) // K-Mod (give techs based on player handicap, not game handicap.)
-								{
-									bValid = true;
-									break;
-								}
-							}
-						}
+						bValid = true;
+						break;
 					}
 				}
-
-				// <advc.126> Later-era free tech only for later-era starts.
-				if(bValid && GC.getTechInfo((TechTypes)iI).getEra() > getStartEra())
-					bValid = false; // </advc.126>
-
-				GET_TEAM((TeamTypes)iJ).setHasTech(((TechTypes)iI), bValid, NO_PLAYER, false, false);
-				if (bValid && GC.getTechInfo((TechTypes)iI).isMapVisible()) 
-				{ 
-					GC.getMapINLINE().setRevealedPlots((TeamTypes)iJ, true, true); 
-				} 
+			}
+			// <advc.126> Later-era free tech only for later-era starts.
+			if(bValid && GC.getTechInfo((TechTypes)iI).getEra() > getStartEra())
+				bValid = false; // </advc.126>
+			if(bValid) // advc.051: Don't take away techs granted by the scenario
+				GET_TEAM((TeamTypes)iJ).setHasTech((TechTypes)iI, true, NO_PLAYER, false, false);
+			if (bValid && GC.getTechInfo((TechTypes)iI).isMapVisible()) 
+			{ 
+				GC.getMapINLINE().setRevealedPlots((TeamTypes)iJ, true, true); 
 			}
 		}
 	} // <advc.051> Don't force 0 gold in scenarios

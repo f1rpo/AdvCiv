@@ -55,6 +55,11 @@ void AdvCiv4lert::msg(CvWString s, LPCSTR icon, int x, int y, int goodOrBad) con
 
 void AdvCiv4lert::check(bool silent) {
 
+	if(!isDebug && !GET_PLAYER(ownerId).isHuman()) {
+		/*  Normally no need to check during Auto Play. Wouldn't hurt, except
+			that the checks aren't super fast. */
+		return;
+	}
 	if(silent)
 		isSilent = true;
 	check();

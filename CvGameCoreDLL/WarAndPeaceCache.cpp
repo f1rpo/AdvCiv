@@ -276,8 +276,8 @@ void WarAndPeaceCache::updateGoldPerProduction() {
 	goldPerProduction *= GET_PLAYER(ownerId).warAndPeaceAI().amortizationMultiplier();
 	goldPerProduction = std::max(goldPerProdVictory(), goldPerProduction);
 }
-// Reduce to 4?
-double const WarAndPeaceCache::goldPerProdUpperLimit = 4.5;
+
+double const WarAndPeaceCache::goldPerProdUpperLimit = 4.25;
 double WarAndPeaceCache::goldPerProdBuildings() {
 	int dummy; // For unused out-parameters
 	vector<double> buildingCounts; // excluding wonders

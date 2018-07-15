@@ -2568,15 +2568,18 @@ DenialTypes CvTeamAI::AI_vassalTrade(TeamTypes eTeam) const
 	FAssertMsg(eTeam != getID(), "shouldn't call this function on ourselves");
 
 	CvTeamAI& kMasterTeam = GET_TEAM(eTeam);
-
-	for (int iLoopTeam = 0; iLoopTeam < MAX_CIV_TEAMS; iLoopTeam++) // advc.003: was MAX_TEAMS
+	// advc.003: was MAX_TEAMS
+	for (TeamTypes iLoopTeam = (TeamTypes)0; iLoopTeam < MAX_CIV_TEAMS; iLoopTeam = (TeamTypes)(iLoopTeam + 1))
 	{
-		CvTeam& kLoopTeam = GET_TEAM((TeamTypes)iLoopTeam);
+		CvTeam& kLoopTeam = GET_TEAM(iLoopTeam);
 		if (kLoopTeam.isAlive() && iLoopTeam != getID() && iLoopTeam != kMasterTeam.getID())
 		{
 			if (!kLoopTeam.isAtWar(kMasterTeam.getID()) && kLoopTeam.isAtWar(getID()))
 			{
-				if (kMasterTeam.isForcePeace((TeamTypes)iLoopTeam) || !kMasterTeam.canChangeWarPeace((TeamTypes)iLoopTeam))
+				if (kMasterTeam.isForcePeace(iLoopTeam) ||
+						!kMasterTeam.canChangeWarPeace(iLoopTeam)
+						// advc.112: Don't ask master who hasn't met vassal's war enemies
+						|| !kMasterTeam.isHasMet(iLoopTeam))
 				{
 					if (!kLoopTeam.isAVassal())
 					{
@@ -2600,7 +2603,7 @@ DenialTypes CvTeamAI::AI_vassalTrade(TeamTypes eTeam) const
 				vassal agreement. (I think that's how it works.) */
 			else if (kLoopTeam.isAtWar(kMasterTeam.getID()) && !kLoopTeam.isAtWar(getID()))
 			{
-				if (!kMasterTeam.canChangeWarPeace((TeamTypes)iLoopTeam))
+				if (!kMasterTeam.canChangeWarPeace(iLoopTeam))
 				{
 					if (!kLoopTeam.isAVassal())
 					{
@@ -2610,7 +2613,7 @@ DenialTypes CvTeamAI::AI_vassalTrade(TeamTypes eTeam) const
 
 				if (!kMasterTeam.isHuman())
 				{
-					DenialTypes ePeaceDenial = kMasterTeam.AI_makePeaceTrade((TeamTypes)iLoopTeam, getID());
+					DenialTypes ePeaceDenial = kMasterTeam.AI_makePeaceTrade(iLoopTeam, getID());
 					if (NO_DENIAL != ePeaceDenial)
 					{
 						return DENIAL_PEACE_NOT_POSSIBLE_YOU;

@@ -3451,7 +3451,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					continue;
 				if(pOtherCity != NULL && AI_deduceCitySite(pOtherCity)) {
 					bOtherInnerRing = ::isInnerRing(pLoopPlot, pOtherCity->plot());
-					FAssert(!bInnerRing || !bOtherInnerRing || pOtherCity->area() != pLoopPlot->area());
+					FAssert(!bInnerRing || !bOtherInnerRing || pOtherCity->area() != pPlot->area());
 					if(bForeignOwned && (bOtherInnerRing ||
 							// Don't try to overlap with team member or master
 							TEAMID(eOwner) == getTeam() ||
@@ -3891,8 +3891,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				bonuses already connected. Just doing a division by iCount
 				here won't work well for strategic resources. */
 			/*  Don't assume that the bonus is enabled.
-				And the coefficient was 80, reduced a bit. */
-			int iBonusValue = ::round((AI_bonusVal(eBonus, 1) * 55.0) /
+				And the coefficient was 80, halved. */
+			int iBonusValue = ::round((AI_bonusVal(eBonus, 1) * 40.0) /
 					(1 + viBonusCount[eBonus]));
 			/*  Note (K-Mod):
 				1. the value of starting bonuses is reduced later.
@@ -4091,7 +4091,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		for(int i = 0; i < NUM_YIELD_TYPES; i++)
 			fromSpecial += perSpecial[i] * coefficients[i];
 		if(fromSpecial > 0)
-			fromSpecial = std::pow(fromSpecial, 1.9) * 75 * specials;
+			fromSpecial = std::pow(fromSpecial, 1.5) * 75 * specials;
 		// advc.test: The K-Mod value for comparison in debugger
 		int fromSpecialKmod=iSpecialFood*20+iSpecialProduction*40+iSpecialCommerce*35;
 		iResourceValue += ::round(fromSpecial); // </advc.031>
@@ -6711,7 +6711,11 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 
 	if (kTechInfo.isWaterWork())
 	{
-		iValue += 6 * iCoastalCities * getAveragePopulation();
+		//iValue += 6 * iCoastalCities * getAveragePopulation();
+		// <advc.131> Need large populations before water tiles become worthwhile
+		iValue += iCoastalCities * std::min(45, (int)
+				std::ceil(std::pow((double)getAveragePopulation(), 2) / 2));
+		// </advc.131>
 	}
 
 	//iValue += (kTechInfo.getFeatureProductionModifier() * 2);
@@ -6947,7 +6951,12 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 					eFinalImprovement = eBuildImprovement;
 				const CvImprovementInfo& kFinalImprovement = GC.getImprovementInfo(eFinalImprovement);
 				if (iAccessibility > 0)
-				{
+				{  /* <advc.036> Don't need to improve every tile; just those
+					  we expect to work in the near future. */
+					if(pCapitalCity != NULL) {
+						iAccessibility = std::min(iAccessibility, 100 *
+								(1 + getTotalPopulation() / getNumCities()));
+					} // </advc.036>
 					iYieldValue += iBestFeatureValue;
 
 					for (int iK = 0; iK < NUM_YIELD_TYPES; iK++)
@@ -6982,8 +6991,9 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 
 					if (getCurrentEra() > GC.getGameINLINE().getStartEra())
 						iYieldValue -= 100; // compare to a hypothetical low-value improvement
-
-					iBuildValue += std::max(0, iYieldValue) * iAccessibility * (kFinalImprovement.isWater() ? iCoastalCities : std::max(2, iCityCount)) / 2500;
+					iBuildValue += std::max(0, iYieldValue) * iAccessibility *
+							(kFinalImprovement.isWater() ? iCoastalCities :
+							std::max(2, iCityCount)) / 2500;
 					// Note: we're converting from O(100)*O(100) to O(4)
 				}
 
@@ -8701,9 +8711,9 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 			{
 				// We're quite optimistic... mostly because otherwise we'd risk undervaluing axemen in the early game! (Kludge, sorry.)
 				/*  <advc.036> Need to reduce the value of military tech compared
-					with food tech. Was 4/5. */
-				iTotalUnitValue *= 3;
-				iTotalUnitValue /= 5; // </advc.036>
+					with food tech in the early game. Was *=4 and /=5. */
+				iTotalUnitValue *= ::range(2 * getNumCities(), 1, 4);
+				iTotalUnitValue /= 6; // </advc.036>
 			}
 			else
 			{
@@ -13018,7 +13028,7 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 				iTempValue += kLoopBuilding.getPowerYieldModifier(iJ);
 			}
 		}
-
+		if(iTempValue > 0) // advc.003b
 		{
 			// determine whether we have the tech for this building
 			bool bHasTechForBuilding = true;
@@ -20966,7 +20976,7 @@ void CvPlayerAI::AI_doDiplo()
 				}
 			}
 			// 40 for all leaders
-			int iDeclareWarTradeRand = GC.getLeaderHeadInfo(getPersonalityType()).getDeclareWarTradeRand();							
+			int iDeclareWarTradeRand = GC.getLeaderHeadInfo(getPersonalityType()).getDeclareWarTradeRand();
 			if (iMinAtWarCounter < 10)
 			{
 				iDeclareWarTradeRand *= iMinAtWarCounter;
@@ -20979,6 +20989,7 @@ void CvPlayerAI::AI_doDiplo()
 				iDeclareWarTradeRand /= 4;
 				iDeclareWarTradeRand ++;
 			}
+
 			// <advc.104o>
 			// Same probability as in BtS (so far)
 			double pr = (iDeclareWarTradeRand <= 0 ? 1.0 :
@@ -21185,7 +21196,8 @@ void CvPlayerAI::AI_doDiplo()
 						setTradeItem(&item, TRADE_GOLD, iReceiveGold);
 						theirList.insertAtEnd(item);
 					}
-
+// advc.tmp:
+FAssertMsg(iMinAtWarCounter>0,"Help hired on the same turn as DoW - no problem, just want to see if this ever happens");
 					g.implementDeal(getID(), civId, &ourList, &theirList);
 				}
 			}

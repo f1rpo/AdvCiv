@@ -3086,9 +3086,9 @@ UnitTypes CvCityAI::AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync, AdvisorTypes
 	FAssertMsg(eUnitAI != NO_UNITAI, "UnitAI is not assigned a valid value");
 
 	bool bGrowMore = false;
-
-	//if (foodDifference() > 0)
-	if (foodDifference(true, true) > 0) // K-Mod
+	int const iFoodDiff =
+			foodDifference(true, true); // K-Mod
+	if (iFoodDiff > 0) 
 	{
 		// BBAI NOTE: This is where small city worker and settler production is blocked
 		if (GET_PLAYER(getOwnerINLINE()).getNumCities() <= 2)
@@ -3099,6 +3099,17 @@ UnitTypes CvCityAI::AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync, AdvisorTypes
 			bGrowMore = (eUnitAI != UNITAI_WORKER || GET_PLAYER(getOwner()).AI_totalAreaUnitAIs(area(), UNITAI_WORKER) > 0)
 				&& getPopulation() < 3 && AI_countGoodTiles(true, false, 100) >= getPopulation();
 			// K-Mod end
+			// <advc.052> Train Settler at size 2 if growth is slow in capital
+			if(bGrowMore && getPopulation() == 2 && GET_PLAYER(getOwnerINLINE()).
+					getNumCities() == 1 && eUnitAI == UNITAI_SETTLE &&
+					getFoodTurnsLeft() * 100 >= 6 * GC.getGameSpeedInfo(
+					GC.getGameINLINE().getGameSpeedType()).getTrainPercent() &&
+					/*  This is more often true than I'd like b/c of improvements
+						under construction. Could check Worker count and
+						improvement count ... */
+					iFoodDiff <= 2) {
+				bGrowMore = false;
+			} // </advc.052>
 		}
 		else
 		{
@@ -4011,8 +4022,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 					// <advc.017> Avoid Barracks before first Settler
 					&& (isBarbarian() || kOwner.getNumCities() > 1 ||
 					kOwner.AI_getNumAIUnits(UNITAI_SETTLE) > 0 ||
-					kOwner.AI_getNumCitySites() <= 0)) // </advc.017>
-					? 1 : 3);
+					kOwner.AI_getNumCitySites() <= 0)) ? 1 : 4); // </advc.017>
 			iValue += kBuilding.getFreeExperience() * iWeight;
 
 			for (int iI = 0; iI < GC.getNumUnitCombatInfos(); iI++)

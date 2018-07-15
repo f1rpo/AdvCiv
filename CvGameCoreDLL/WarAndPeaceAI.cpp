@@ -1195,7 +1195,7 @@ void WarAndPeaceAI::Team::scheme() {
 		double peacePortionRemaining = agent.turnsOfForcedPeaceRemaining(targetId) /
 				// +1.0 b/c I don't want 0 drive at this point
 				(GC.getDefineINT("PEACE_TREATY_LENGTH") + 1.0);
-		drive *= std::pow(1 - peacePortionRemaining, 1.5);
+		drive *= std::pow(1 - peacePortionRemaining, 1.0); // was ^1.5; let's try it w/o exponentiation
 		targets.push_back(TargetData(drive, targetId, total, u));
 		totalDrive += drive;
 	}
@@ -1630,8 +1630,10 @@ DenialTypes WarAndPeaceAI::Team::acceptVassal(TeamTypes vassalId) const {
 	vector<TeamTypes> warEnemies; // Just the new ones
 	for(size_t i = 0; i < getWPAI.properTeams().size(); i++) {
 		CvTeam const& t = GET_TEAM(getWPAI.properTeams()[i]);
-		if(!t.isAVassal() && t.isAtWar(vassalId) && !t.isAtWar(agentId))
+		if(!t.isAVassal() && t.isAtWar(vassalId) && !t.isAtWar(agentId)) {
 			warEnemies.push_back(t.getID());
+			FAssert(t.isHasMet(agentId)); // vassalId shouldn't ask us then
+		}
 	}
 	if(warEnemies.empty()) {
 		FAssert(!warEnemies.empty());
@@ -2468,22 +2470,22 @@ double WarAndPeaceAI::Civ::warConfidenceAllies() const {
 	CvPlayerAI const& we = GET_PLAYER(weId);
 	// AI assumes that humans have normal confidence
 	if(we.isHuman())
-		return 1;
+		return 0.8;
 	double dpwr = GC.getLeaderHeadInfo(we.getPersonalityType()).getDogpileWarRand();
 	if(dpwr <= 0)
 		return 0;
 	/* dpwr is between 20 (DeGaulle, high confidence) and
 	   150 (Lincoln, low confidence). These values are too far apart to convert
-	   them proportionally. Hence the square root. The result is between
+	   them proportionally. Hence the square root. The result is normally between
 	   1 and 0.23. */
-	double r = ::dRange(std::sqrt(30 / dpwr) - 0.22, 0.0, 1.0);
+	double r = ::dRange(std::sqrt(30 / dpwr) - 0.22, 0.0, 1.8);
 	/*  Should have much greater confidence in civs on our team, but
 		can't tell in this function who the ally is. Hard to rewrite
 		InvasionGraph such that each ally is evaluated individually; wasn't
 		written with team games in mind. As a temporary measure, just generally
 		increase confidence when part of a team: */
 	if(GET_TEAM(we.getTeam()).getNumMembers() > 1)
-		r = ::dRange(2 * r, 0.6, 1.2);
+		r = std::max(r, ::dRange(2 * r, 0.6, 1.2));
 	return r;
 }
 
