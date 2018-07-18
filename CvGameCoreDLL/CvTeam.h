@@ -424,7 +424,8 @@ public:
 	DllExport void getCompletedSpaceshipProjects(std::map<ProjectTypes, int>& mapProjects) const;
 	DllExport int getProjectPartNumber(ProjectTypes projectType, bool bAssert) const;
 	DllExport bool hasLaunched() const;
-
+	// advc.003:
+	bool hasTechToClear(FeatureTypes ft, TechTypes currentResearch = NO_TECH) const;
 	// advc.136a: Made public
 	void testCircumnavigated();
 	// <advc.127b> Both return -1 if no team member has a capital

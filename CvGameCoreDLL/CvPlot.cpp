@@ -4446,7 +4446,9 @@ CvArea* CvPlot::waterArea(bool bNoImpassable) const
 	{
 		pAdjacentPlot = plotDirection(getX_INLINE(), getY_INLINE(), ((DirectionTypes)iI));
 
-		if (pAdjacentPlot != NULL)
+		if (pAdjacentPlot != NULL
+				// advc.030b: Can be NULL while recalculating areas at game start
+				&& pAdjacentPlot->area() != NULL)
 		{
 /********************************************************************************/
 /* 	BETTER_BTS_AI_MOD						01/02/09		jdog5000		*/
@@ -4524,30 +4526,19 @@ int CvPlot::getArea() const
 	return m_iArea;
 }
 
+// advc.003: Refactored
+void CvPlot::setArea(int iNewValue) {
 
-void CvPlot::setArea(int iNewValue)
-{
-	//bool bOldLake; // advc.003: is never read
-
-	if (getArea() != iNewValue)
-	{
-		//bOldLake = isLake(); // advc.003
-
-		if (area() != NULL)
-		{
-			processArea(area(), -1);
-		}
-
-		m_iArea = iNewValue;
-		m_pPlotArea = NULL;
-
-		if (area() != NULL)
-		{
-			processArea(area(), 1);
-
-			updateIrrigated();
-			updateYield();
-		}
+	if(getArea() == iNewValue)
+		return;
+	if(area() != NULL)
+		processArea(area(), -1);
+	m_iArea = iNewValue;
+	m_pPlotArea = NULL;
+	if(area() != NULL) {
+		processArea(area(), 1);
+		updateIrrigated();
+		updateYield();
 	}
 }
 
@@ -9312,6 +9303,12 @@ void CvPlot::processArea(CvArea* pArea, int iChange)
 		pArea->changeCitiesPerPlayer(pCity->getOwnerINLINE(), iChange);
 		// <advc.030b>
 		CvArea* wa = waterArea(true);
+		/*  Fixme: During CvMap::recalculateAreas, for iChange=-1, the call above
+			could fail to locate an adjacent water area because the area of all
+			adjacent water tiles may already have been set to NULL. A subsequent
+			processArea call with iChange=1 would then lead to an incorrect
+			city count. I think this can only happen in a scenario with preplaced
+			cities though, and I'm not sure what to do about it. */
 		if(wa != NULL) {
 			if(iChange > 0 || (iChange < 0 &&
 					// See comment in CvCity::kill

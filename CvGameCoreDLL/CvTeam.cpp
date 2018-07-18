@@ -7787,6 +7787,29 @@ bool CvTeam::hasLaunched() const
 	return false;
 }
 
+// <advc.003>
+bool CvTeam::hasTechToClear(FeatureTypes ft, TechTypes currentResearch) const {
+
+	for(int i = 0; i < GC.getNumBuildInfos(); i++) {
+		CvBuildInfo const& bi = GC.getBuildInfo((BuildTypes)i);
+		if(bi.getFeatureTime(ft) <= 0)
+			continue;
+		TechTypes reqs[2] = { (TechTypes)bi.getTechPrereq(),
+							  (TechTypes)bi.getFeatureTech(ft) };
+		bool bValid = true;
+		for(int j = 0; j < 2; j++) {
+			if(reqs[j] != NO_TECH && currentResearch != reqs[j] &&
+					!isHasTech(reqs[j])) {
+				bValid = false;
+				break;
+			}
+		}
+		if(bValid)
+			return true;
+	}
+	return false;
+} // </advc.003>
+
 // advc.004a
 void CvTeam::setHasTechTemporarily(TechTypes tt, bool b) {
 	m_pabHasTech[tt] = b; }

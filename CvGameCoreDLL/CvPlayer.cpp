@@ -9552,7 +9552,7 @@ int CvPlayer::getAveragePopulation() const
 	}
 
 	//return ((getTotalPopulation() / getNumCities()) + 1);
-	// advc.131: TThe above is 100% off at the start of a game
+	// advc.131: The above is 100% off at the start of a game
 	return ::round(getTotalPopulation() / getNumCities());
 }
 

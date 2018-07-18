@@ -7011,59 +7011,78 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 						: std::max(1, 2*getNumCities() / std::max(1, 3*iCityTarget)); // a guess
 
 					//iNumBonuses += std::max(0, (iCityTarget - iCityCount)*(kFinalImprovement.isWater() ? 2 : 3)/8); // future expansion
+					// <advc.003>
+					if (iNumBonuses <= 0 || (!bRevealed && kBonusInfo.getTechReveal() != eTech))
+						continue; // </advc.003>
+					int iBonusValue = 0;
 
-					if (iNumBonuses > 0 && (bRevealed || kBonusInfo.getTechReveal() == eTech))
-					{
-						int iBonusValue = 0;
-
-						TechTypes eConnectTech = (TechTypes)kBonusInfo.getTechCityTrade();
-						if ((kTeam.isHasTech(eConnectTech) || eConnectTech == eTech) && !kTeam.isBonusObsolete((BonusTypes)iK) && kBonusInfo.getTechObsolete() != eTech)
-						{
-							// note: this is in addition to the getTechCityTrade evaluation lower in this function.
-							iBonusValue += AI_bonusVal((BonusTypes)iK, 1, true) * iCityCount;
-							if (bRevealed)
-								iBonusValue += (iNumBonuses-1) * iBonusValue / 10;
-							else
-								iBonusValue /= 2;
-						}
-						int iYieldValue = 0;
-						for (YieldTypes y = (YieldTypes)0; y < NUM_YIELD_TYPES; y=(YieldTypes)(y+1))
-						{
-							int iTempValue = 0;
-
-							iTempValue += kFinalImprovement.getImprovementBonusYield(iK, y) * 100;
-							iTempValue += kFinalImprovement.getIrrigatedYieldChange(y) * 75;
-
-							iTempValue *= AI_yieldWeight(y);
-							iTempValue /= 100;
-							iTempValue *= AI_averageYieldMultiplier(y);
-							iTempValue /= 100;
-
-							iYieldValue += iTempValue;
-						}
-						// advc.036: Apply this to later-era start too
-						if (getCurrentEra() > 0)//GC.getGameINLINE().getStartEra())
-							iYieldValue -= 100; // compare to a hypothetical low-value improvement
-
-						// Bonuses might be outside of our city borders.
-						iYieldValue *= 2*iNumBonuses;
-						iYieldValue /= (bRevealed ? 3 : 4);
-
-						if (kFinalImprovement.isWater())
-							iYieldValue = iYieldValue * 2/3;
-						/*  <advc.036> Since iBonusVal no longer overestimates
-							early-game health, high-yield tiles need to be
-							appreciated more. */
-						// iYieldValue=225 is a fixpoint in the Medieval era
-						iYieldValue = ::round(std::pow((double)iYieldValue, 1.5)
-							// Extra yields are very important in the early game
-							  / (10 + 2.5 * getCurrentEra()));
-						// </advc.036>
-						// Convert to O(4)
-						iYieldValue /= 25;
-
-						iBuildValue += iBonusValue + std::max(0, iYieldValue);
+					TechTypes eConnectTech = (TechTypes)kBonusInfo.getTechCityTrade();
+					if((kTeam.isHasTech(eConnectTech) || eConnectTech == eTech) &&
+							!kTeam.isBonusObsolete((BonusTypes)iK) &&
+							kBonusInfo.getTechObsolete() != eTech) {
+						// note: this is in addition to the getTechCityTrade evaluation lower in this function.
+						iBonusValue += AI_bonusVal((BonusTypes)iK, 1, true) * iCityCount;
+						if (bRevealed)
+							iBonusValue += (iNumBonuses-1) * iBonusValue / 10;
+						else iBonusValue /= 2;
 					}
+					int iYieldValue = 0;
+					for (YieldTypes y = (YieldTypes)0; y < NUM_YIELD_TYPES; y=(YieldTypes)(y+1))
+					{
+						int iTempValue = 0;
+
+						iTempValue += kFinalImprovement.getImprovementBonusYield(iK, y) * 100;
+						iTempValue += kFinalImprovement.getIrrigatedYieldChange(y) * 75;
+
+						iTempValue *= AI_yieldWeight(y);
+						iTempValue /= 100;
+						iTempValue *= AI_averageYieldMultiplier(y);
+						iTempValue /= 100;
+
+						iYieldValue += iTempValue;
+					}
+					// advc.036: Apply this to later-era start too
+					if (getCurrentEra() > 0)//GC.getGameINLINE().getStartEra())
+						iYieldValue -= 100; // compare to a hypothetical low-value improvement
+
+					// Bonuses might be outside of our city borders.
+					iYieldValue *= 2*iNumBonuses;
+					iYieldValue /= (bRevealed ? 3 : 4);
+
+					if (kFinalImprovement.isWater())
+						iYieldValue = iYieldValue * 2/3;
+					/*  <advc.036> Since iBonusVal no longer overestimates
+						early-game health, high-yield tiles need to be
+						appreciated more. */
+					// This makes iYieldValue=225 a fixpoint
+					iYieldValue = ::round(std::pow((double)iYieldValue, 1.5) / 15);
+					/*  At the start of the game, extra yields are very important,
+						but we need to be sure that the tile isn't blocked by a
+						feature before increasing iYieldValue further. Will have
+						to check each tile -- OK, performance isn't an issue
+						this early on. */
+					if(pCapitalCity != NULL && getNumCities() == 1) {
+						bool bValid = false;
+						for(int i = 0; i < NUM_CITY_PLOTS; i++) {
+							if(i == CITY_HOME_PLOT)
+								continue;
+							CvPlot* p = ::plotCity(pCapitalCity->getX_INLINE(), pCapitalCity->getY_INLINE(), i);
+							if(p != NULL && p->getBonusType() == iK) {
+								FeatureTypes ft = p->getFeatureType();
+								if(ft == NO_FEATURE || GET_TEAM(getTeam()).
+										hasTechToClear(ft, eTech)) {
+									bValid = true;
+									break;
+								}
+							}
+						}
+						if(bValid)
+							iYieldValue = ::round(iYieldValue * 1.5);
+					} // </advc.036>
+					// Convert to O(4)
+					iYieldValue /= 25;
+
+					iBuildValue += iBonusValue + std::max(0, iYieldValue);
 				}
 			}
 
