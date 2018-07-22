@@ -158,7 +158,8 @@ def addMessage(iPlayer, szString, szIcon, iFlashX=-1, iFlashY=-1, bOffArrow=Fals
 		return # </advc.706>
 	# advc.106c: Reduced time from LONG to normal
 	eventMessageTimeLong = gc.getDefineINT("EVENT_MESSAGE_TIME")
-	CyInterface().addMessage(iPlayer, True, eventMessageTimeLong,
+	# advc.106: Set bForce to False
+	CyInterface().addMessage(iPlayer, False, eventMessageTimeLong,
 							 szString, None, InterfaceMessageTypes.MESSAGE_TYPE_INFO, 
 							 szIcon, ColorTypes(-1),
 							 iFlashX, iFlashY, bOffArrow, bOnArrow)

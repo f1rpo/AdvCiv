@@ -64,7 +64,8 @@ class AbstractMoreCiv4lertsEvent(object):
 			# the iActivePlayer (on the caller side) should always
 			# be iOwner. Tbd.: Remove the iPlayer attribute from all
 			# _addMessage... functions.
-			CyInterface().addMessage(self.iOwner, True, eventMessageTimeLong, szString, None, 0, szIcon, ColorTypes(iColor), iFlashX, iFlashY, bOffArrow, bOnArrow)
+			# advc.106: Set bForce to False
+			CyInterface().addMessage(self.iOwner, False, eventMessageTimeLong, szString, None, 0, szIcon, ColorTypes(iColor), iFlashX, iFlashY, bOffArrow, bOnArrow)
 
 class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 

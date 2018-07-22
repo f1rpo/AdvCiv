@@ -33,8 +33,9 @@ void CvDLLInterfaceIFaceBase::addHumanMessage(PlayerTypes ePlayer, bool bForce,
 					immediately, whereas bForce=false seems to delay the
 					announcement until the start of the next turn (until the
 					preceding event has been on display long enough?).
-					bForce=true should make Auto Play easier to follow. */
-					true, iLength, szString, pszSound, eType, NULL,
+					bForce=true should make Auto Play easier to follow.
+					Also set pszSound to NULL; no sounds during Auto Play. */
+					true, iLength, szString, NULL, eType, NULL,
 					//NO_COLOR, -1, -1, // (K-Mod)
 					/*  advc.127: Don't want stuff to flash during Auto Play,
 						but pszIcon=NULL is enough to prevent this. No need to

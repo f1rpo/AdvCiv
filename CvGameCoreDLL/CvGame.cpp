@@ -9436,6 +9436,10 @@ void CvGame::read(FDataStreamBase* pStream)
 	pStream->Read(&m_iInitTech);
 	pStream->Read(&m_iInitWonders);
 	pStream->Read(&m_iAIAutoPlay);
+	/*  advc.127: m_iAIAutoPlay really shouldn't be stored in savegames.
+		Auto Play is off when a savegame is loaded, even if it's an autosave
+		created during Auto Play, so m_iAIAutoPlay needs to be 0. */
+	m_iAIAutoPlay = 0;
 	pStream->Read(&m_iGlobalWarmingIndex); // K-Mod
 	pStream->Read(&m_iGwEventTally); // K-Mod
 

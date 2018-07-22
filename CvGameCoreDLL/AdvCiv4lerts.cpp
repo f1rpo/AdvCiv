@@ -47,7 +47,7 @@ void AdvCiv4lert::msg(CvWString s, LPCSTR icon, int x, int y, int goodOrBad) con
 	else if(goodOrBad < 0)
 		color = GC.getInfoTypeForString("COLOR_RED");
 	bool arrows = (icon != NULL);
-	gDLL->getInterfaceIFace()->addHumanMessage(ownerId, true,
+	gDLL->getInterfaceIFace()->addHumanMessage(ownerId, false,
 			GC.getEVENT_MESSAGE_TIME(), s, NULL,
 			force ? MESSAGE_TYPE_MAJOR_EVENT : MESSAGE_TYPE_INFO, // advc.127
 			icon, (ColorTypes)color, x, y, arrows, arrows);

@@ -14803,7 +14803,8 @@ void CvPlayer::addMessage(const CvTalkingHeadMessage& message)
 			before postProcessBeginTurnEvents gets called. */
 		CvTalkingHeadMessage* copy = new CvTalkingHeadMessage(message.getTurn(),
 				message.getLength(), message.getDescription(),
-				NULL, // The sound is already played when the event triggers
+				// Don't play it twice
+				message.getSoundPlayed() ? NULL : message.getSound(),
 				MESSAGE_TYPE_MAJOR_EVENT, message.getIcon(), message.getFlashColor(),
 				message.getX(), message.getY(), message.getOffScreenArrows(),
 				message.getOnScreenArrows());
