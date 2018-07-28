@@ -22,6 +22,7 @@ InvasionGraph::InvasionGraph(MilitaryAnalyst& m,
 
 	lossesDone = false;
 	allWarPartiesKnown = false;
+	firstSimulateCall = true;
 	timeLimit= -1;
 	weId = m.ourId();
 	report.log("Constructing invasion graph");
@@ -711,6 +712,13 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	bool attackerUnprepared = defender.isSneakAttack(*this);
 	double deploymentDistDefender = 0;
 	double deploymentDistAttacker;
+	double mwmalpFactor = 1;
+	if(id == weId) {
+		int mwmalp = GC.getLeaderHeadInfo(GET_PLAYER(id). // in the interval [0,4]
+				getPersonalityType()).getMaxWarMinAdjacentLandPercent();
+		mwmalpFactor = std::max(1, mwmalp + 5 - (mwmalp == 0 ? 1 : 0)) / 6.0;
+		// NB: mwmalp also factors into defensibilityCost (WarUtilityAspect::Greed)
+	}
 	int healDuration = 0;
 	/* The city-based distances are deliberately not updated upon the simulated
 	   conquest of a city -- a conquered city won't immediately start producing
@@ -721,6 +729,8 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 			will ever happen, which is probably incorrect. Better to assume a
 			shorter distance in this case. */
 		deploymentDistAttacker = std::min(getWPAI.maxSeaDist(), c->getDistance());
+		deploymentDistAttacker *= mwmalpFactor; /* If this makes leaders with a
+			high mwmalp assume that they can't reach a very distant target -- OK. */
 		/* Often, the attacker can move from one conquered city to the next.
 		   Too complicated to do the distance measurements. The code above
 		   assumes that the attacking units always start at a city owned in the
@@ -746,6 +756,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		// Can't rule out that both armies are eliminated at this point
 		if(armyPow + targetArmyPow > 1) {
 			deploymentDistAttacker *= armyPow / (armyPow + targetArmyPow);
+			deploymentDistAttacker *= mwmalpFactor;
 			deploymentDistDefender -= deploymentDistAttacker;
 		}
 	}
@@ -766,7 +777,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		/* This often allows sneak attackers to attack a city before civs that
 		   have been at war for some time. These civs already get a chance to
 		   conquer cities during the simulation prolog. That said, no build-up
-		   is assumed during the prolog, so, the sneak-attacking AI may over-
+		   is assumed during the prolog, so the sneak-attacking AI may over-
 		   estimate its chances when it comes to grabbing cities. The proper
 		   solution would be to interleave the simulation and build-up steps. */
 		deploymentDuration = 3;
@@ -775,6 +786,10 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		/*  War that is already being fought in the actual game state. Assume that
 			units are already being deployed then. */
 		deploymentDuration /= 2;
+	}
+	if(cavalryAttack) {
+		deploymentDuration = ::round(0.6 * deploymentDuration);
+		deploymentDistAttacker = ::round(0.75 * deploymentDistAttacker);
 	}
 	report.log("Deployment distances (%s/%s): %d/%d",
 				report.leaderName(getId()),
@@ -1029,9 +1044,10 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		}
 	}
 	else targetArmyPow /= defDeploymentMod; // Retreated army has depl. dist. 0
-	// Attackers normally assumed to have city raider promotions; cavalry doesn't
+	/*  Attackers normally assumed to have city raider promotions;
+		cavalry doesn't, but might ignore first strikes. */
 	if(cavalryAttack) {
-		armyModAtt -= 0.2;
+		armyModAtt -= 0.12;
 		armyModAttCorr = powerCorrect(1 + armyModAtt);
 	}
 	/* Needs to be updated in any case in order to take into account potential
@@ -1804,7 +1820,9 @@ void InvasionGraph::simulate(int duration) {
 		}
 	}
 	report.log("Simulating initial build-up (%d turns)", t1);
-	simulateArmament(t1);
+	// Assume that upgrades are done in the prolog, if any, and only in phase I.
+	simulateArmament(t1, !firstSimulateCall);
+	firstSimulateCall = false;
 	// Simulation of losses over the whole duration
 	timeLimit = duration;
 	simulateLosses();
@@ -1814,7 +1832,6 @@ void InvasionGraph::simulate(int duration) {
 	   cities have been lost. */
 	report.log("Simulating concurrent build-up (%d turns)", t2);
 	report.setMute(true); // Some more build-up isn't very interesting
-	// Assume that all upgrades were already done in phase I
 	simulateArmament(t2, true);
 	report.setMute(false);
 }

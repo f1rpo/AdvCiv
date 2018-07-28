@@ -554,11 +554,12 @@ double ArmamentForecast::productionFromUpgrades() {
 	/* 'civ' may not have the funds to make all the upgrades in the
 	   medium term. Think of a human player keeping stacks of Warriors around,
 	   or a vassal receiving tech quickly from its master.
-	   Spend at most five turns worth of income on upgrades. The subtrahend
+	   Spend at most incomeTurns turns worth of income on upgrades. The subtrahend
 	   will be 0 during anarchy -- not a big problem I think. */
+	double const incomeTurns = 4;
 	double income = civ.estimateYieldRate(YIELD_COMMERCE, 3) -
 			civ.calculateInflatedCosts();
-	double incomeBound = 5 * income;
+	double incomeBound = incomeTurns * income;
 	if(incomeBound < r)
 		report.log("Upgrades bounded by income (%d gpt)", ::round(income));
 	r = std::min(incomeBound, r);

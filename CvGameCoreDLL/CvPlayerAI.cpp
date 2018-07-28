@@ -20721,13 +20721,18 @@ void CvPlayerAI::AI_doDiplo()
 						iRand *= std::max(1, iTechPerc - 60);
 						iRand /= 30; */
 						// K-Mod. not so extreme.
-						iRand = (iRand * (10 + iTechPerc) + 50)/100;
+						//iRand = (iRand * (10 + iTechPerc) + 50)/100;
+						// advc.003: Equivalent I think, but easier to read.
+						iRand = ::round(iRand * (10 + iTechPerc) / 100.0);
 						// K-Mod end
 					}
 
-					if( AI_isDoVictoryStrategy(AI_VICTORY_SPACE1) )
-						iRand /= 2;
-						
+					if( AI_isDoVictoryStrategy(AI_VICTORY_SPACE1) ) {
+						//iRand /= 2;
+						/*  advc.550a: That seems like a bit of an unfair advantage
+							for civs pursuing a Space victory. */
+						iRand = ::round(0.75 * iRand);
+					}
 					iRand = std::max(1, iRand);
 					if (g.getSorenRandNum(iRand, "AI Diplo Trade Tech") == 0)
 /************************************************************************************************/
@@ -21021,10 +21026,11 @@ void CvPlayerAI::AI_doDiplo()
 			//if(g.getSorenRandNum(iDeclareWarTradeRand, "AI Diplo Declare War Trade") != 0)
 			if(!::bernoulliSuccess(pr, "advc.104o"))
 				continue;
-			int iBestTargetValue = 0; // </advc.104o>
+			int iBestTargetValue = 0;
+			int iBestTeamPrice = -1;
+			// </advc.104o>
 			iBestValue = 0;
 			eBestTeam = NO_TEAM;
-
 			for (iJ = 0; iJ < MAX_CIV_TEAMS; iJ++)
 			{
 				if(!GET_TEAM((TeamTypes)iJ).isAlive() ||
@@ -21062,9 +21068,10 @@ void CvPlayerAI::AI_doDiplo()
 							target.getID(), civ.getTeam());
 					/*  Don't try to make the trade if the DoW by civId isn't
 						nearly as valuable to us as what they'll charge */
-					if(iValue >= (3 * theirPrice) / 4) {
+					if(4 * iValue >= 3 * theirPrice) {
 						iBestTargetValue = iValue;
 						eBestTeam = target.getID();
+						iBestTeamPrice = theirPrice;
 					}
 				}
 				else // </advc.104o>
@@ -21110,8 +21117,7 @@ void CvPlayerAI::AI_doDiplo()
 						}
 					}
 				}
-
-				iOurValue = ourTeam.AI_declareWarTradeVal(eBestTeam, civ.getTeam());
+				iOurValue = iBestTeamPrice;
 				if(eBestGiveTech != NO_TECH)
 					iTheirValue = TEAMREF(civId).AI_techTradeVal(eBestGiveTech, getTeam());
 				else iTheirValue = 0;
@@ -21215,8 +21221,6 @@ void CvPlayerAI::AI_doDiplo()
 						setTradeItem(&item, TRADE_GOLD, iReceiveGold);
 						theirList.insertAtEnd(item);
 					}
-// advc.tmp:
-FAssertMsg(iMinAtWarCounter>0,"Help hired on the same turn as DoW - no problem, just want to see if this ever happens");
 					g.implementDeal(getID(), civId, &ourList, &theirList);
 				}
 			}

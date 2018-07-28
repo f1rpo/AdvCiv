@@ -1599,8 +1599,8 @@ void Rebuke::evaluate() {
 		deny us end up paying more than was asked. */
 	double punishmentRatio = 0.5 * (theirLoss / theirTotal +
 			conqAssetScore() / std::max(10.0, ourCache->totalAssetScore()));
-	if(punishmentRatio > 0) {
-		log("Punishment ratio): %d percent, rebuke diplo: %d",
+	if(punishmentRatio > 0.001) {
+		log("Punishment ratio: %d percent, rebuke diplo: %d",
 				::round(100 * punishmentRatio), rebukeDiplo);
 		u += ::round(std::min(30.0, std::sqrt((double)rebukeDiplo)
 				* 100 * punishmentRatio));

@@ -1292,6 +1292,10 @@ int WarAndPeaceAI::Team::declareWarTradeVal(TeamTypes targetId,
 		rep.log("%s is considering to declare war on %s at the request of %s",
 				rep.teamName(agentId), rep.teamName(targetId),
 				rep.teamName(sponsorId));
+		/*  Will see the above lines multiple times in the log when this team
+			agrees to declare war b/c CvGame::implementDeal causes the dealValue
+			to be recomputed twice for diplomatic consequences ("traded with enemy",
+			"fair and forthright"). */
 	}
 	CvTeamAI const& sponsor = GET_TEAM(sponsorId);
 	// Don't log details of war evaluation
@@ -1341,7 +1345,7 @@ int WarAndPeaceAI::Team::declareWarTradeVal(TeamTypes targetId,
 	// 0.25 if pleased, 0.5 cautious, 1 furious
 	double attitudeModifier = (ATTITUDE_FRIENDLY - towardSponsor) /
 			(double)ATTITUDE_FRIENDLY;
-	// Freundschaftspreis, but still obscured (!= 0)
+	// Mates' rates, but still obscured (!= 0).
 	if(towardSponsor == ATTITUDE_FRIENDLY)
 		attitudeModifier = -0.25;
 	/*  Put our money where our mouth is: discount for war on our worst enemy
@@ -1352,7 +1356,7 @@ int WarAndPeaceAI::Team::declareWarTradeVal(TeamTypes targetId,
 		if(attitudeModifier == 0) // Avoid 0 for obscurity
 			attitudeModifier -= 0.25;
 	}
-	double obscured = price + price * attitudeModifier * h;
+	double obscured = price + price * attitudeModifier * 0.6 * h;
 	int r = ::round(obscured);
 	rep.log("Obscured price: %d (attitude modifier: %d percent)\n", r,
 			::round(100 * attitudeModifier));
@@ -2536,7 +2540,7 @@ double WarAndPeaceAI::Civ::protectiveInstinct() const {
 		common. Subtract WarMongerRespect to sort out the ones that just like
 		DP because they're fearful, e.g. Boudica or de Gaulle. */
 	CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(we.getPersonalityType());
-	int dpVal = 2* (ATTITUDE_FRIENDLY - lh.getDefensivePactRefuseAttitudeThreshold());
+	int dpVal = 2 * (ATTITUDE_FRIENDLY - lh.getDefensivePactRefuseAttitudeThreshold());
 	int wmrVal = lh.getWarmongerRespect();
 	wmrVal *= wmrVal;
 	return 0.9 + (dpVal - wmrVal) / 10.0;
