@@ -6,3 +6,5 @@ Source code on GitHub:
 	https://github.com/f1rpo/AdvCiv
 Discussion thread on CivFanatics:
 	https://forums.civfanatics.com/threads/advanced-civ.614217
+A half-finished Earth scenario for AdvCiv:
+	https://github.com/f1rpo/AdvCiv/tree/master/EuroWorld%20scenario

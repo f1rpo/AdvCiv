@@ -31,18 +31,19 @@ public class WBOut {
 				"Work in progress.",
 				"EndGame",
 		};
-		final boolean placeBarbs = false;
 		for(String line : preamble)
 			pr(line);
+		String[] blockedReligions = {"HINDUISM","CONFUCIANISM","TAOISM"};
+		final boolean placeBarbs = false;
 		Civ civs[] = {
-				new Civ("ASOKA", "INDIA", 10, 10, "MYSTICISM", "THE_WHEEL",
-						new String[]{"PATALIPUTRA"}, "", true, true),
+				new Civ("ASOKA", "INDIA", 82, 36, "MYSTICISM", "THE_WHEEL",
+						new String[]{"PATALIPUTRA","AMARAVATI",/*"UJJAIN"*/}),
 				new Civ("JULIUS_CAESAR"/*"AUGUSTUS"*/, "ROME", 46, 40, "FISHING", "MINING",
 						new String[]{"ROME"/*,"SYRACUSE"*/,"LUGDUNUM"}), // MARSEILLES?
 				new Civ("CHARLEMAGNE", "CELT", 47, 46, "MINING", "THE_WHEEL",
 						new String[]{"PRAGUE"}),
 				new Civ("DARIUS"/*"CYRUS"*/, "PERSIA", 67, 32, "THE_WHEEL", "MYSTICISM",
-						new String[]{"PERSEPOLIS","ECBATANA","KANDAHAR","MERV"/*,"SAMARQAND"*/}),
+						new String[]{"PERSEPOLIS","ECBATANA","MERV","KANDAHAR"/*,"SAMARQAND"*/}),
 				new Civ("GENGHIS_KHAN", "MONGOL", 20, 10, "MINING", "HUNTING",
 						new String[]{"TARTAR"}),
 				new Civ(placeBarbs ? "HATSHEPSUT" : "RAMESSES", "EGYPT", 56, 31, "AGRICULTURE", "MINING",
@@ -60,7 +61,7 @@ public class WBOut {
 				new Civ("SURYAVARMAN", "KHMER", 40, 10, "FISHING", "AGRICULTURE",
 						new String[]{"NINGBO"}),//"GUANGZHOU"?
 				new Civ("TOKUGAWA", "JAPAN", 45, 10, "FISHING", "MYSTICISM",
-						new String[]{"AOMORI"}),
+						new String[]{"AOMORI"}, "", true, true, blockedReligions),
 				new Civ("ZARA_YAQOB", "ETHIOPIA", 59, 24, "AGRICULTURE", "",
 						new String[]{"AKSUM","NUBIAN"}, "PRINCE"),
 				new Civ("MANSA_MUSA", "MALI", 36, 29, "MINING", "",
@@ -111,14 +112,14 @@ public class WBOut {
 				new BarbCity("NUMIDIAN",40,35),
 				//new BarbCity("GEPID",50,47),
 				new BarbCity("MAGYAR",50,44),
-				// To block the Eastern religions
-				new BarbCity("dummy",10,35,new String[]{"BUDDHISM","HINDUISM","CONFUCIANISM","TAOISM"}),
+				/* This doesn't work - civs discovering a religion tech get
+				 * to found a different religion then, e.g. Christianity from
+				 * Polytheism. */
+				//new BarbCity("dummy",10,35,blockedReligions),
 		})) : new HashSet<BarbCity>(
 				Arrays.asList(new BarbCity[] {
-				/* Perhaps a good idea to place Aryans in any case; after all,
-				 * the Harappans were one of the great early civilizations. */ 
-				new BarbCity("ARYAN",75,35),
-				new BarbCity("dummy",10,35,new String[]{"BUDDHISM","HINDUISM","CONFUCIANISM","TAOISM"}),
+				// To keep civs from rushing into the Indus valley 
+				new BarbCity("ARYAN",73,32),
 		}));
 		final boolean magyars = barbs.stream().anyMatch(p -> p.getName().equals("MAGYAR") || p.getName().equals("GEPID")); 
 		final Set<Point2D> desert = new HashSet<Point2D>(
@@ -331,6 +332,11 @@ public class WBOut {
 				new Point(76,41),
 				new Point(75,40),
 				new Point(76,40),
+				new Point(77,41),
+				new Point(77,42),
+				// Gobi
+				new Point(78,43),
+				new Point(79,43),
 				// Iran, Afghanistan, Indus, Thar
 				new Point(66,37),
 				new Point(67,37),
@@ -534,7 +540,7 @@ public class WBOut {
 				new Point(72,36),
 				new Point(73,36),
 				new Point(73,35),
-				// NW India
+				// India
 				new Point(74,37),
 				new Point(75,37),
 				new Point(75,36),
@@ -544,6 +550,60 @@ public class WBOut {
 				new Point(76,33),
 				new Point(76,32),
 				new Point(75,31),
+				new Point(84,37),
+				new Point(77,36),
+				new Point(81,36),
+				new Point(82,36),
+				new Point(77,35),
+				new Point(78,35),
+				new Point(79,35),
+				new Point(80,35),
+				new Point(83,35),
+				new Point(77,34),
+				new Point(78,34),
+				new Point(82,34),
+				new Point(77,33),
+				new Point(82,33),
+				new Point(77,32),
+				new Point(78,32),
+				new Point(79,32),
+				new Point(80,32),
+				new Point(82,32),
+				new Point(77,31),
+				new Point(78,31),
+				new Point(79,31),
+				new Point(81,31),
+				new Point(78,30),
+				new Point(79,30),
+				new Point(80,30),
+				new Point(81,30),
+				new Point(79,29),
+				new Point(80,28),
+				new Point(82,28),
+				new Point(81,27),
+				new Point(82,27),
+				// Burma
+				new Point(85,36),
+				new Point(86,36),
+				// China
+				new Point(77,43),
+				new Point(80,43),
+				new Point(81,43),
+				new Point(82,43),
+				new Point(83,43),
+				new Point(84,43),
+				new Point(86,43),
+				new Point(80,42),
+				new Point(81,42),
+				new Point(86,42),
+				new Point(82,41),
+				new Point(83,41),
+				new Point(86,41),
+				new Point(81,40),
+				new Point(86,40),
+				new Point(84,39),
+				new Point(86,39),
+				new Point(86,38),
 				// Arabian Peninsula
 				new Point(62,27),
 				new Point(62,26),
@@ -826,6 +886,51 @@ public class WBOut {
 				new Point(73,38),
 				new Point(74,38),
 				new Point(76,37),
+				new Point(77,37),
+				new Point(78,36),
+				new Point(79,36),
+				new Point(80,36),
+				new Point(81,37),
+				new Point(82,37),
+				new Point(83,38),
+				new Point(82,39),
+				new Point(81,39),
+				// India (rest)
+				new Point(83,37),
+				new Point(84,38),
+				new Point(83,36),
+				new Point(81,35),
+				new Point(82,35),
+				new Point(79,34),
+				new Point(80,34),
+				new Point(81,34),
+				new Point(83,34),
+				new Point(78,33),
+				new Point(79,33),
+				new Point(80,33),
+				new Point(81,33),
+				new Point(81,32),
+				new Point(80,31),
+				new Point(80,29),
+				new Point(81,29),
+				new Point(82,29),
+				new Point(81,28),
+				// Sri Lanka
+				new Point(85,27),
+				new Point(85,26),
+				// Burma
+				new Point(85,38),
+				new Point(85,37),
+				new Point(86,37),
+				// W China
+				new Point(85,39),
+				new Point(85,40),
+				new Point(85,41),
+				new Point(85,42),
+				new Point(85,43),
+				new Point(84,41),
+				new Point(84,42),
+				new Point(82,42),
 				// Arabian Peninsula
 				new Point(61,27),
 				new Point(63,25),
@@ -1006,17 +1111,36 @@ public class WBOut {
 				new Point(73,42),
 				new Point(74,43),
 				new Point(75,43),
-				// Hindu Kush - Himalaya
+				// Hindu Kush - Himalaya - Kunlun
 				new Point(73,40),
 				new Point(74,40),
 				new Point(72,39),
 				new Point(73,39),
 				new Point(74,39),
-				new Point(75,39),
 				new Point(76,39),
 				new Point(72,38),
 				new Point(75,38),
 				new Point(76,38),
+				new Point(78,42),
+				new Point(79,42),
+				new Point(83,42), // Hengduan Mts.
+				new Point(78,41),
+				new Point(77,40),
+				new Point(78,40),
+				new Point(80,40),
+				new Point(82,40),
+				new Point(83,40),
+				new Point(84,40),
+				new Point(77,39),
+				new Point(83,39),
+				new Point(77,38),
+				new Point(78,38),
+				new Point(81,38),
+				new Point(82,38),
+				new Point(78,37),
+				new Point(79,37),
+				new Point(80,37),
+				//new Point(75,39), // Karakorum pass
 				// Alps
 				new Point(44,43),
 				new Point(45,44),
@@ -1148,6 +1272,11 @@ public class WBOut {
 				new Point(54,21),
 				new Point(55,21),
 				//new Point(54,22), // Sudd - try a lake instead
+				// Tibetan Plateau
+				new Point(79,41),
+				new Point(80,41),
+				new Point(81,41),
+				new Point(84,27), // Sri Lanka
 		}));
 		final Set<Point2D> snow = new HashSet<Point2D>(
 				Arrays.asList(new Point[] {
@@ -1177,6 +1306,15 @@ public class WBOut {
 				new Point(59,55), // Novaya Zemlya
 				new Point(63,57), // Severnaya Zemlya
 				new Point(67,57), // Lyakhovsky Islands
+				// Should perhaps be a peak to prevent a city (Leh) here
+				new Point(75,39),
+				// Changtang
+				new Point(79,40),
+				new Point(78,39),
+				new Point(79,39),
+				new Point(80,39),
+				new Point(79,38),
+				new Point(80,38),
 		}));
 		Set<Point2D> land = new HashSet<Point2D>();
 		addSafe(land, desert);
@@ -1504,6 +1642,51 @@ public class WBOut {
 				new River(E,64,33,S), // Karun
 				new River(S,65,35,E), // Zayandé
 				new River(S,67,33,E), // Kor
+				// Yangtze
+				new River(S,83,44,E), // Jialing
+				new River(S,84,44,E), // Jialing
+				new River(E,84,43,N),
+				// Mekong
+				new River(S,86,40,E), // Lancang
+				new River(E,86,39,S), // Lancang
+				// Irawaddy
+				new River(E,85,39,S),
+				new River(E,85,38,S),
+				new River(E,85,37,S),
+				new River(E,84,38,S), // Chindwin
+				new River(S,85,38,E), // Chindwin
+				new River(S,86,37,E),
+				new River(E,86,36,S),
+				// Brahmaputra (Jamuna)
+				new River(E,83,38,S),
+				new River(E,83,37,S),
+				// Ganges
+				new River(E,77,36,S), // Ganges/Yamuna
+				new River(E,77,35,N), // Chamba/Betwa
+				new River(E,77,34,N), // Chamba/Betwa
+				new River(S,78,36,E),
+				new River(S,79,36,E),
+				new River(S,80,36,E),
+				new River(E,80,36,N),
+				new River(S,81,37,E),
+				new River(S,82,37,E),
+				new River(S,83,37,E),
+				// Mahanadi
+				new River(S,81,35,E),
+				new River(S,82,35,E),
+				new River(S,83,35,E),
+				// Godavari
+				new River(S,79,32,E),
+				new River(S,80,32,E),
+				new River(S,81,32,E),
+				// Krishna
+				new River(S,80,31,E),
+				new River(S,81,31,E),
+				new River(S,82,29,E), // Kaveri
+				// Narmada, Tapti
+				new River(S,78,33,W),
+				new River(E,77,32,S),
+				new River(S,77,32,W),
 		}));
 		final Set<Point2D> hills = new HashSet<Point2D>(
 				Arrays.asList(new Point[] {
@@ -1752,7 +1935,40 @@ public class WBOut {
 				// Taklamakan
 				new Point(74,42),
 				new Point(75,40),
-				// Afghanistan, N Pakistan, Kashmir, SE Iran
+				// W China, Burma
+				new Point(75,39), // Karakorum pass
+				new Point(80,43),
+				new Point(81,43),
+				new Point(82,43),
+				new Point(85,43),
+				new Point(80,42),
+				new Point(81,42),
+				new Point(82,42),
+				new Point(84,42),
+				new Point(85,42),
+				new Point(82,41),
+				new Point(83,41),
+				new Point(84,41),
+				new Point(81,40),
+				new Point(85,40),
+				new Point(86,40),
+				new Point(78,39),
+				new Point(80,39),
+				new Point(81,39),
+				new Point(82,39),
+				new Point(84,39),
+				new Point(85,39),
+				new Point(86,39),
+				new Point(79,38),
+				new Point(80,38),
+				new Point(83,38),
+				new Point(84,38),
+				new Point(85,38),
+				new Point(86,38),
+				new Point(85,37),
+				new Point(85,36),
+				new Point(86,36),
+				// Afghanistan, SE Iran, Bugyals
 				new Point(71,38),
 				new Point(73,38),
 				new Point(74,38),
@@ -1776,6 +1992,30 @@ public class WBOut {
 				new Point(73,32),
 				new Point(71,31),
 				new Point(72,31),
+				new Point(77,37),
+				new Point(79,36),
+				// India (rest)
+				new Point(81,37),
+				new Point(82,37),
+				new Point(81,36),
+				new Point(81,35),
+				new Point(82,35),
+				new Point(79,34),
+				new Point(80,34),
+				new Point(82,34),
+				new Point(78,33),
+				new Point(79,33),
+				new Point(81,33),
+				new Point(82,33),
+				new Point(78,31),
+				new Point(78,30),
+				new Point(81,30),
+				new Point(79,29),
+				new Point(80,29),
+				new Point(80,28),
+				new Point(81,28),
+				new Point(81,27),
+				new Point(85,26), // Sri Lanka
 				// Kola
 				new Point(52,56),
 				new Point(53,55),
@@ -1855,36 +2095,17 @@ public class WBOut {
 				new Point(42,35),
 				new Point(43,34),
 				new Point(50,32), // Cyrene
-				// Western Sudanic Zone
+				// Sudanic Zone
 				new Point(35,27),
-				new Point(36,27),
 				new Point(38,27),
 				new Point(40,27),
 				new Point(42,27),
-				new Point(37,26),
-				new Point(38,26),
-				new Point(39,26),
-				new Point(40,26),
-				new Point(41,26),
+				new Point(49,24),
 				new Point(42,26),
 				new Point(43,26),
-				new Point(43,25),
 				new Point(44,25),
 				new Point(45,25),
 				new Point(47,25),
-				new Point(44,24),
-				new Point(45,24),
-				new Point(46,24),
-				new Point(47,24),
-				new Point(48,24),
-				new Point(49,24),
-				new Point(49,23),
-				// Eastern Sudanic Zone
-				new Point(50,23),
-				new Point(51,22),
-				new Point(52,22),
-				new Point(53,22),
-				new Point(56,21),
 				// Great Britain
 				new Point(39,54),
 				new Point(39,53),
@@ -2084,13 +2305,57 @@ public class WBOut {
 				new Point(67,47), // Kazakhstan
 				// Around Hindu Kush - Himalaya
 				new Point(71,41),
-				//new Point(71,40), // not clear if logging feasible at great heigh/ steepness 
+				//new Point(71,40), // not clear if logging feasible at great steepness 
 				new Point(74,38),
 				new Point(72,40),
 				new Point(71,39),
 				new Point(73,38),
 				new Point(76,37),
 				new Point(76,36),
+				new Point(75,36),
+				new Point(83,38),
+				new Point(84,38),
+				new Point(81,37),
+				new Point(82,37),
+				new Point(77,37),
+				new Point(78,36),
+				new Point(79,36),
+				new Point(80,36),
+				// W China
+				new Point(82,43),
+				new Point(83,43),
+				new Point(84,43),
+				new Point(85,43),
+				new Point(86,43),
+				new Point(84,42),
+				new Point(85,42),
+				new Point(86,42),
+				new Point(84,41),
+				new Point(85,41),
+				new Point(84,39),
+				new Point(85,39),
+				new Point(86,39),
+				new Point(85,38), // Burma
+				// India (rest)
+				new Point(84,37),
+				new Point(81,36),
+				new Point(83,36),
+				new Point(78,35),
+				new Point(81,35),
+				new Point(82,35),
+				new Point(79,34),
+				new Point(80,34),
+				new Point(82,34),
+				new Point(83,34),
+				new Point(79,33),
+				new Point(81,33),
+				new Point(82,33),
+				new Point(81,32),
+				new Point(78,31),
+				new Point(79,31),
+				new Point(79,30),
+				new Point(81,30),
+				new Point(81,28),
 		}));
 		final Set<Point2D> jungle = new HashSet<Point2D>(
 				Arrays.asList(new Point[] {
@@ -2130,6 +2395,43 @@ public class WBOut {
 				new Point(54,21),
 				new Point(55,21),
 				//new Point(54,22), // Sudd - try a lake instead
+				  /* Seasonal tropical forest (set all of these to Forest
+				   * at first; some are still Forests) */
+				new Point(36,27),
+				new Point(37,26),
+				new Point(38,26),
+				new Point(39,26),
+				new Point(40,26),
+				new Point(41,26),
+				new Point(43,25),
+				new Point(44,24),
+				new Point(45,24),
+				new Point(46,24),
+				new Point(47,24),
+				new Point(48,24),
+				new Point(49,23),
+				new Point(50,23),
+				new Point(51,22),
+				new Point(52,22),
+				new Point(53,22),
+				new Point(56,21),
+				// Burma, S China
+				new Point(86,38),
+				new Point(85,37),
+				new Point(86,37),
+				new Point(85,36),
+				new Point(86,36),
+				// India
+				new Point(77,32),
+				new Point(77,31),
+				new Point(78,30),
+				new Point(79,29),
+				new Point(80,29),
+				new Point(80,28),
+				new Point(82,28),
+				new Point(81,27),
+				new Point(82,27),
+				new Point(84,27), // Sri Lanka
 		}));
 		final Set<Point2D> oases = new HashSet<Point2D>(
 				Arrays.asList(new Point[] {
@@ -2157,7 +2459,7 @@ public class WBOut {
 				new Point(67,29), // Al-Ain, Liwa
 				// Taklamakan
 				new Point(74,41), // Kaxgar
-				new Point(75,41), // Tarim river
+				new Point(75,41), // Yarkant
 				new Point(76,42), // Kuqa
 				new Point(76,40), // Hotan
 		}));
@@ -2256,11 +2558,11 @@ public class WBOut {
 			ice.add(new Point(71,y));
 			ice.add(new Point(72,y));
 		}
-		for(int y = 44; y >= 30; y--) { // Southern Asia
-			ice.add(new Point(77,y));
-			ice.add(new Point(78,y));
+		for(int y = 44; y >= 35; y--) { // Southern Asia
+			ice.add(new Point(87,y));
+			ice.add(new Point(88,y));
 		}
-		for(int x = 73; x <= 76; x++) { // Connect the two
+		for(int x = 73; x <= 86; x++) { // Connect the two
 			ice.add(new Point(x,44));
 			ice.add(new Point(x,45));
 		}
@@ -2292,6 +2594,8 @@ public class WBOut {
 				new Point(75,35), // Harappa
 				new Point(74,33), // Mohenjodaro
 				//new Point(73,41), // Kokand (Silk Road)
+				new Point(79,43), // Golmud (salts)
+				new Point(81,39), // Lhasa
 		}));
 		for(Point2D p : hills)
 			p.setLocation(p.getX() + offsetX, p.getY() + offsetY);
@@ -2504,6 +2808,52 @@ public class WBOut {
 				new Bonus("DYE",75,31),
 				new Bonus("OIL",76,31),
 				new Bonus("SILK",74,38),
+				// India (rest)
+				new Bonus("DYE",84,38),
+				new Bonus("SUGAR",84,37),
+				new Bonus("SPICES",81,37),
+				new Bonus("COPPER",81,36),
+				new Bonus("RICE",83,36),
+				new Bonus("IRON",79,36),
+				new Bonus("SUGAR",78,35),
+				new Bonus("COW",79,35),
+				new Bonus("COAL",81,35),
+				new Bonus("URANIUM",82,35),
+				new Bonus("DYE",83,35),
+				new Bonus("DYE",79,34),
+				new Bonus("COAL",80,34),
+				new Bonus("IRON",82,34),
+				new Bonus("SHEEP",78,33),
+				new Bonus("IVORY",79,33),
+				new Bonus("ALUMINUM",81,33),
+				new Bonus("BANANA",77,32),
+				new Bonus("RICE",81,32),
+				new Bonus("FISH",83,32),
+				new Bonus("SILK",79,31),
+				new Bonus("GEMS",81,31),
+				new Bonus("IVORY",79,30),
+				new Bonus("INCENSE",81,30),
+				new Bonus("FISH",78,29),
+				new Bonus("PIG",79,29),
+				new Bonus("GOLD",81,29),
+				new Bonus("DYE",82,29),
+				new Bonus("SPICES",80,28),
+				new Bonus("IRON",81,28),
+				new Bonus("SUGAR",82,28),
+				new Bonus("SPICES",81,27),
+				new Bonus("BANANA",82,27),
+				new Bonus("CLAM",84,26), // Moved closer to Sri Lanka to make the island more likely to be settled by the AI
+				new Bonus("GEMS",84,27),
+				new Bonus("IVORY",85,27),
+				new Bonus("SPICES",85,26),
+				// Burma
+				new Bonus("GEMS",86,38),
+				new Bonus("IVORY",85,36),
+				// W China
+				new Bonus("SILK",84,43),
+				new Bonus("ALUMINUM",85,42),
+				new Bonus("HORSE",83,41),
+				new Bonus("SILVER",86,40),
 				// Iran
 				new Bonus("HORSE",65,36),
 				new Bonus("COW",64,35),
@@ -2617,31 +2967,39 @@ public class WBOut {
 						if(plotType != 1)
 							variety = 0;
 						else {
-							int adjCold = 0, adjOtherLand = 0;
+							int adjCold = 0, adjOtherLand = 0, adjJungle = 0;
 							for(Point2D adjPlot : adjacentPlots(plot)) {
 								if(hills.stream().anyMatch(p -> p.equals(adjPlot)) ||
 										tundra.stream().anyMatch(p -> p.equals(adjPlot)) ||
 										snow.stream().anyMatch(p -> p.equals(adjPlot)) ||
-										ice.stream().anyMatch(p -> p.equals(adjPlot)))
+										ice.stream().anyMatch(p -> p.equals(adjPlot)) ||
+										peak.stream().anyMatch(p -> p.equals(adjPlot)))
 									adjCold++;
 								else if(land.stream().anyMatch(p -> p.equals(adjPlot)))
 									adjOtherLand++;
+								if(jungle.stream().anyMatch(p -> p.equals(adjPlot)))
+									adjJungle++;
 							}
-							if(adjCold - adjOtherLand >= 2)
+							if(plotType == 1) // If 'plot' is a hill
+								adjCold++;
+							if(adjCold - adjOtherLand >= 2 && adjJungle <= 0)
 								variety = 1;
 						}
 					}
 					else if(terrain.equals("TUNDRA")) {
 						variety = 2; // Boreal forest
-						int adjIcy = 0, adjOtherLand = 0;
+						int adjIcy = 0;//, adjOtherLand = 0;
 						for(Point2D adjPlot : adjacentPlots(plot)) {
 							if(snow.stream().anyMatch(p -> p.equals(adjPlot)) ||
-									ice.stream().anyMatch(p -> p.equals(adjPlot)))
+									ice.stream().anyMatch(p -> p.equals(adjPlot)) ||
+									peak.stream().anyMatch(p -> p.equals(adjPlot)))
 								adjIcy++;
-							else if(land.stream().anyMatch(p -> p.equals(adjPlot)))
-								adjOtherLand++;
+							/*else if(land.stream().anyMatch(p -> p.equals(adjPlot)))
+								adjOtherLand++;*/
 						}
-						if(adjOtherLand - adjIcy >= 2)
+						if(plotType == 1)
+							adjIcy++;
+						if(adjIcy < 2)
 							variety = 1;
 					}
 					else if(terrain.equals("PLAINS")) {
@@ -2649,12 +3007,13 @@ public class WBOut {
 						int adjWet = 0, adjDry = 0;
 						for(Point2D adjPlot : adjacentPlots(plot)) {
 							if(grass.stream().anyMatch(p -> p.equals(adjPlot)) ||
-									tundra.stream().anyMatch(p -> p.equals(adjPlot)) ||
-									snow.stream().anyMatch(p -> p.equals(adjPlot)) ||
-									ice.stream().anyMatch(p -> p.equals(adjPlot)))
+									tundra.stream().anyMatch(p -> p.equals(adjPlot)))
 								adjWet++;
+							if(jungle.stream().anyMatch(p -> p.equals(adjPlot)))
+								adjWet += 3;
 							if(plains.stream().anyMatch(p -> p.equals(adjPlot)) ||
-									desert.stream().anyMatch(p -> p.equals(adjPlot)))
+									desert.stream().anyMatch(p -> p.equals(adjPlot)) ||
+									peak.stream().anyMatch(p -> p.equals(adjPlot)))
 								adjDry++;
 						}
 						if(adjWet - adjDry >= 2)

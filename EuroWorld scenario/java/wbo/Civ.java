@@ -7,6 +7,25 @@ import java.util.ArrayList;
 public class Civ implements Comparable<Civ> {
 
 	public Civ(String leader, String civ, int x, int y, String tech1, String tech2,
+			String[] cities, String handicap, boolean playable, boolean test,
+			String[] religions) {
+		initDefault();
+		this.leader = leader;
+		this.civ = civ;
+		this.start = new Point(x, y);
+		this.tech1 = tech1;
+		this.tech2 = tech2;
+		for(String city : cities)
+			this.cities.add(city);
+		this.handicap = handicap;
+		this.playable = playable;
+		this.test = test;
+		for(String rel : religions)
+			this.religions.add(rel);
+		finalizeInit();
+	}
+	
+	public Civ(String leader, String civ, int x, int y, String tech1, String tech2,
 				String[] cities, String handicap, boolean playable, boolean test) {
 		initDefault();
 		this.leader = leader;
@@ -102,8 +121,29 @@ public class Civ implements Comparable<Civ> {
 			r += "\tTech=TECH_" + tech1 + "\n";
 		if(!tech2.isEmpty())
 			r += "\tTech=TECH_" + tech2 + "\n";
-		if(test)
+		if(test) {
 			r += "\tTech=TECH_CALENDAR\n";
+			r += "\tTech=TECH_SATELLITES\n";
+		}
+		for(String rel : religions) {
+			String relTech = "";
+			if(rel.equals("BUDDHISM"))
+				relTech = "MEDITATION";
+			if(rel.equals("HINDUISM"))
+				relTech = "POLYTHEISM";
+			if(rel.equals("JUDAISM"))
+				relTech = "MONOTHEISM";
+			if(rel.equals("CONFUCIANISM"))
+				relTech = "CODE_OF_LAWS";
+			if(rel.equals("TAOISM"))
+				relTech = "PHILOSOPHY";
+			if(rel.equals("CHRISTIANITY"))
+				relTech = "THEOLOGY";
+			if(rel.equals("ISLAM"))
+				relTech = "DIVINE_RIGHT";
+			if(!relTech.isEmpty())
+				r += "\tTech=TECH_" + relTech + "\n";
+		}
 		return r + "EndTeam";
 	}
 	
@@ -126,6 +166,10 @@ public class Civ implements Comparable<Civ> {
 	@Override
 	public int compareTo(Civ other) {
 
+		if(test && !other.test)
+			return -1;
+		if(!test && other.test)
+			return 1;
 		int thisHP = handicapPriority();
 		int otherHP = other.handicapPriority();
 		if(thisHP > otherHP)
@@ -137,6 +181,7 @@ public class Civ implements Comparable<Civ> {
 	
 	private void initDefault() {
 		cities = new ArrayList<String>();
+		religions = new ArrayList<String>();
 		start = new Point(0, 0);
 		playable = true;
 		leader = civ = tech1 = tech2 = handicap = "";
@@ -213,6 +258,7 @@ public class Civ implements Comparable<Civ> {
 
 	private String leader, civ, tech1, tech2, handicap;
 	private ArrayList<String> cities;
+	private ArrayList<String> religions;
 	private Point2D start;
 	private boolean playable, test;
 	private static final String[][] btsCities = {
