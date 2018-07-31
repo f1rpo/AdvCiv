@@ -95,6 +95,8 @@ void WarTradeAlert::check() {
 				warTeam.getID() != owner.getTeam() &&
 				!warTeam.isAtWar(owner.getTeam()) &&
 				owner.canContactAndTalk(warTeam.getLeaderID()));
+		std::vector<TeamTypes> willTradeMsgTeams;
+		std::vector<TeamTypes> noLongerTradeMsgTeams;
 		for(int j = 0; j < MAX_CIV_TEAMS; j++) {
 			CvTeam const& victim = GET_TEAM((TeamTypes)j);
 			bool newValue = (valid && victim.isAlive() && !victim.isAVassal() &&
@@ -109,24 +111,35 @@ void WarTradeAlert::check() {
 			if(newValue == willWar[i][j])
 				continue;
 			willWar[i][j] = newValue;
-			if(newValue) {
-				msg(gDLL->getText("TXT_KEY_CIV4LERTS_TRADE_WAR",
-						warTeam.getName().GetCString(),
-						victim.getName().GetCString()),
-						// advc.127b:
-						NULL, warTeam.getCapitalX(), warTeam.getCapitalY());
-			}
+			if(newValue)
+				willTradeMsgTeams.push_back(victim.getID());
 			/*  Obviously can't hire warTeam if it has already declared war
 				or if victim has been eliminated. */
-			else if(victim.isAlive() && !warTeam.isAtWar(victim.getID())) {
-				msg(gDLL->getText("TXT_KEY_CIV4LERTS_NO_LONGER_TRADE_WAR",
-						warTeam.getName().GetCString(),
-						victim.getName().GetCString()),
-						// advc.127b:
-						NULL, warTeam.getCapitalX(), warTeam.getCapitalY());
-			}
+			else if(victim.isAlive() && !warTeam.isAtWar(victim.getID()))
+				noLongerTradeMsgTeams.push_back(victim.getID());
 		}
+		msg(warTeam.getID(), willTradeMsgTeams, true);
+		msg(warTeam.getID(), noLongerTradeMsgTeams, false);
 	}
+}
+
+void WarTradeAlert::msg(TeamTypes warTeamId, std::vector<TeamTypes> victims,
+		bool bTrade) {
+
+	if(victims.empty())
+		return;
+	CvTeam const& warTeam = GET_TEAM(warTeamId);
+	CvWString text = gDLL->getText((bTrade ? "TXT_KEY_CIV4LERTS_TRADE_WAR_MULTI" :
+			"TXT_KEY_CIV4LERTS_NO_LONGER_TRADE_WAR_MULTI"),
+			warTeam.getName().GetCString()) + L" ";
+	for(size_t i = 0; i < victims.size(); i++) {
+		text += GET_TEAM(victims[i]).getName();
+		if(i != victims.size() - 1)
+			text += L", ";
+		else text += L".";
+	}
+	AdvCiv4lert::msg(text, NULL,
+			warTeam.getCapitalX(), warTeam.getCapitalY()); // advc.127b
 } // </advc.210a>
 
 // <advc.210b>

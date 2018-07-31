@@ -38,6 +38,7 @@ protected:
 	void check();
 	void reset();
 private:
+	void msg(TeamTypes warTeamId, std::vector<TeamTypes> victims, bool bTrade);
 	bool willWar[MAX_CIV_TEAMS][MAX_CIV_TEAMS];
 }; // </advc.210a>
 

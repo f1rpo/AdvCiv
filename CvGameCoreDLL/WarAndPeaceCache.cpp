@@ -31,8 +31,9 @@ WarAndPeaceCache::WarAndPeaceCache() {
 	}
 	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 		lostTilesAtWar[i] = // advc.035
-			pastWarScores[i] = sponsorshipsAgainst[i] =
-			sponsorsAgainst[i] = warUtilityIgnDistraction[i] = -1;
+				pastWarScores[i] = sponsorshipsAgainst[i] =
+				sponsorsAgainst[i] = warUtilityIgnDistraction[i];
+		hireAgainst[i] = true;
 	} 
 }
 
@@ -90,6 +91,7 @@ void WarAndPeaceCache::clear(bool beforeUpdate) {
 			pastWarScores[i] = 0;
 			sponsorshipsAgainst[i] = 0;
 			sponsorsAgainst[i] = NO_PLAYER;
+			hireAgainst[i] = true;
 		}
 	}
 }
@@ -99,6 +101,7 @@ void WarAndPeaceCache::write(FDataStreamBase* stream) {
 
 	int savegameVersion = 1;
 	savegameVersion = 2; // advc.035
+	savegameVersion = 3; // hireAgainst added
 	/*  I hadn't thought of a version number in the initial release. Need
 		to fold it into ownerId now to avoid breaking compatibility. */
 	stream->Write(ownerId + 100 * savegameVersion);
@@ -119,6 +122,7 @@ void WarAndPeaceCache::write(FDataStreamBase* stream) {
 	stream->Write(MAX_CIV_TEAMS, sponsorshipsAgainst);
 	stream->Write(MAX_CIV_TEAMS, sponsorsAgainst);
 	stream->Write(MAX_CIV_TEAMS, warUtilityIgnDistraction);
+	stream->Write(MAX_CIV_TEAMS, hireAgainst);
 	stream->Write(bHasAggressiveTrait);
 	stream->Write(bHasProtectiveTrait);
 	stream->Write(canScrub);
@@ -174,6 +178,8 @@ void WarAndPeaceCache::read(FDataStreamBase* stream) {
 	stream->Read(MAX_CIV_TEAMS, sponsorshipsAgainst);
 	stream->Read(MAX_CIV_TEAMS, sponsorsAgainst);
 	stream->Read(MAX_CIV_TEAMS, warUtilityIgnDistraction);
+	if(savegameVersion >= 3)
+		stream->Read(MAX_CIV_TEAMS, hireAgainst);
 	stream->Read(&bHasAggressiveTrait);
 	stream->Read(&bHasProtectiveTrait);
 	stream->Read(&canScrub);
@@ -579,6 +585,28 @@ int WarAndPeaceCache::warUtilityIgnoringDistraction(TeamTypes tId) const {
 	return leaderCache().warUtilityIgnDistraction[tId];
 }
 
+bool WarAndPeaceCache::canBeHiredAgainst(TeamTypes tId) const {
+
+	if(tId == NO_TEAM || tId == BARBARIAN_TEAM)
+		return false;
+	return leaderCache().hireAgainst[tId];
+}
+
+void WarAndPeaceCache::setCanBeHiredAgainst(TeamTypes tId, bool b) {
+
+	leaderCache().hireAgainst[tId] = b;
+}
+
+void WarAndPeaceCache::updateCanBeHiredAgainst(TeamTypes tId, int u, int thresh) {
+
+	// Part of the update happens in WarAndPeaceAI::Team::doWar
+	double pr = -1;
+	if(!hireAgainst[tId])
+		pr = std::min(0.58, (u - 1.5 * thresh) / 100.0);
+	else pr = 1 - (thresh - u) / 100.0;
+	hireAgainst[tId] = ::bernoulliSuccess(pr, "advc.104 (can hire)");
+}
+
 bool WarAndPeaceCache::canTrainDeepSeaCargo() const {
 
 	return trainDeepSeaCargo;
@@ -591,6 +619,14 @@ bool WarAndPeaceCache::canTrainAnyCargo() const {
 
 WarAndPeaceCache const& WarAndPeaceCache::leaderCache() const {
 
+	if(ownerId == TEAMREF(ownerId).getLeaderID())
+		return *this;
+	else return GET_PLAYER(TEAMREF(ownerId).getLeaderID()).warAndPeaceAI().
+			getCache();
+}
+
+WarAndPeaceCache& WarAndPeaceCache::leaderCache() {
+	// Same code as above; no elegant way to avoid this, I think.
 	if(ownerId == TEAMREF(ownerId).getLeaderID())
 		return *this;
 	else return GET_PLAYER(TEAMREF(ownerId).getLeaderID()).warAndPeaceAI().

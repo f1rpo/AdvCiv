@@ -82,6 +82,10 @@ public:
 	/*  Other classes should base the actual war utility computations on this
 		preliminary result */
 	int warUtilityIgnoringDistraction(TeamTypes tId) const;
+	// Not a _sufficient_ condition for agreeing to a joint war
+	bool canBeHiredAgainst(TeamTypes tId) const;
+	void setCanBeHiredAgainst(TeamTypes tId, bool b);
+	void updateCanBeHiredAgainst(TeamTypes tId, int u, int thresh);
 	bool canTrainDeepSeaCargo() const;
 	bool canTrainAnyCargo() const;
 
@@ -145,6 +149,7 @@ private:
 	void updateTrainCargo();
 	// To supply team-on-team data
 	WarAndPeaceCache const& leaderCache() const;
+	WarAndPeaceCache& leaderCache();
 
 	PlayerTypes ownerId;
 	std::vector<City*> v;
@@ -179,6 +184,7 @@ private:
 	 // Identity of the sponsor (PlayerTypes)
 	 int sponsorsAgainst[MAX_CIV_TEAMS];
 	 int warUtilityIgnDistraction[MAX_CIV_TEAMS];
+	 bool hireAgainst[MAX_CIV_TEAMS];
 	
 public:
 	/* Information to be cached about a CvCity and scoring functions useful

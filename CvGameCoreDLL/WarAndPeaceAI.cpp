@@ -264,9 +264,19 @@ void WarAndPeaceAI::Team::doWar() {
 		closeReport();
 		return;
 	}
-	if(reviewWarPlans())
+	WarAndPeaceCache& cache = leaderCache();
+	if(reviewWarPlans()) {
 		scheme();
-	else report->log("No scheming b/c clearly busy with current wars");
+		for(int i = 0; i < MAX_CIV_TEAMS; i++) {
+			if(agent.AI_isSneakAttackPreparing((TeamTypes)i))
+				cache.setCanBeHiredAgainst((TeamTypes)i, true);
+		}
+	}
+	else {
+		report->log("No scheming b/c clearly busy with current wars");
+		for(int i = 0; i < MAX_CIV_TEAMS; i++)
+			cache.setCanBeHiredAgainst((TeamTypes)i, false);
+	}
 	closeReport();
 }
 
@@ -1066,9 +1076,8 @@ int WarAndPeaceAI::Team::tradeValJointWar(TeamTypes targetId,
 	int u = uJointWar(targetId, allyId);
 	if(u < 0)
 		return 0;
-	/*  Same as in declareWarTrade. But could allow higher values in
-		AI-AI trades ... */
-	int const thresh = 35;
+	// NB: declareWarTrade applies an additional threshold
+	int const thresh = dwtUtilityThresh;
 	return ::round(utilityToTradeVal(std::min(u, thresh)));
 }
 
@@ -1094,7 +1103,7 @@ bool WarAndPeaceAI::Team::canSchemeAgainst(TeamTypes targetId,
 	/*  advc.130o: Shouldn't attack right after peace from demand; therefore
 		don't plan war during the peace treaty. */
 	if(agent.isForcePeace(targetId) && agent.AI_getMemoryCount(
-				targetId, MEMORY_ACCEPT_DEMAND) > 0)
+			targetId, MEMORY_ACCEPT_DEMAND) > 0)
 		return false;
 	return target.isAlive() && !target.isMinorCiv() && agent.isHasMet(targetId) &&
 			!target.isAVassal() && target.getNumCities() > 0 && (assumeNoWarPlan ||
@@ -1134,10 +1143,13 @@ void WarAndPeaceAI::Team::scheme() {
 	double totalDrive = 0;
 	CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(GET_PLAYER(agent.getLeaderID()).
 			getPersonalityType());
+	WarAndPeaceCache& cache = leaderCache();
 	for(size_t i = 0; i < getWPAI._properTeams.size(); i++) {
 		TeamTypes targetId = getWPAI._properTeams[i];
-		if(!canSchemeAgainst(targetId))
+		if(!canSchemeAgainst(targetId)) {
+			cache.setCanBeHiredAgainst(targetId, false);
 			continue;
+		}
 		report->log("Scheming against %s", report->teamName(targetId));
 		bool shortWork = isPushover(targetId);
 		if(shortWork)
@@ -1177,6 +1189,14 @@ void WarAndPeaceAI::Team::scheme() {
 		else report->log("%s %s war has %d utility", (total ? "total" : "limited"),
 				(((total && totalNaval) || (!total && limitedNaval)) ?
 				"naval" : ""), u);
+		bool const canHireOld = cache.canBeHiredAgainst(targetId);
+		cache.updateCanBeHiredAgainst(targetId, u, dwtUtilityThresh);
+		bool const canHireNew = cache.canBeHiredAgainst(targetId);
+		if(canHireOld != canHireNew) {
+			if(canHireNew)
+				report->log("Can now (possibly) be hired for war against target");
+			else report->log("Can no longer be hired for war against target");
+		}
 		if(u <= 0)
 			continue;
 		double drive = u;
@@ -1246,31 +1266,35 @@ DenialTypes WarAndPeaceAI::Team::declareWarTrade(TeamTypes targetId,
 
 	if(!canReach(targetId))
 		return DENIAL_NO_GAIN;
-	WarAndPeaceReport silentReport(true);
-	PlayerTypes sponsorLeaderId = GET_TEAM(sponsorId).getLeaderID();
-	WarEvalParameters params(agentId, targetId, silentReport, false,
-			sponsorLeaderId);
-	WarEvaluator eval(params, true);
-	int u = eval.evaluate(WARPLAN_LIMITED);
-	int utilityThresh = -32;
-	if(u > utilityThresh) {
-		if(GET_TEAM(sponsorId).isHuman()) {
-			int humanTradeVal = -1;
-			leaderWpai().canTradeAssets(::round(utilityToTradeVal(utilityThresh)),
-					sponsorLeaderId, &humanTradeVal,
-					// AI doesn't accept cities as payment for war
-					true);
-			// Don't return NO_DENIAL if human can't pay enough
-			utilityThresh = std::max(utilityThresh,
-					-::round(tradeValToUtility(humanTradeVal)));
+	/*  Check canBeHiredAgainst only in large games (to reduce the number of
+		war trade alerts seen by humans) */
+	if(!GET_TEAM(sponsorId).isHuman() || GET_TEAM(sponsorId).getHasMetCivCount() < 8 ||
+			leaderCache().canBeHiredAgainst(targetId)) {
+		int utilityThresh = dwtUtilityThresh + 2;
+		WarAndPeaceReport silentReport(true);
+		PlayerTypes sponsorLeaderId = GET_TEAM(sponsorId).getLeaderID();
+		WarEvalParameters params(agentId, targetId, silentReport, false,
+				sponsorLeaderId);
+		WarEvaluator eval(params, true);
+		int u = eval.evaluate(WARPLAN_LIMITED);
+		if(u > utilityThresh) {
+			if(GET_TEAM(sponsorId).isHuman()) {
+				int humanTradeVal = -1;
+				leaderWpai().canTradeAssets(::round(utilityToTradeVal(
+						utilityThresh)), sponsorLeaderId, &humanTradeVal,
+						true); // AI doesn't accept cities as payment for war
+				// Don't return NO_DENIAL if human can't pay enough
+				utilityThresh = std::max(utilityThresh,
+						-::round(tradeValToUtility(humanTradeVal)));
+			}
+			if(u > utilityThresh)
+				return NO_DENIAL;
 		}
-		if(u > utilityThresh)
-			return NO_DENIAL;
+		/* "Maybe we'll change our mind" when it's (very) close?
+			No, don't provide this info after all. */
+		/*if(u > utilityThresh - 5)
+			return DENIAL_RECENT_CANCEL;*/
 	}
-	/* "Maybe we'll change our mind" when it's (very) close?
-		No, don't provide this info after all. */
-	/*if(u > utilityThresh - 5)
-		return DENIAL_RECENT_CANCEL;*/
 	CvTeamAI const& agent = GET_TEAM(agentId);
 	// We don't know why utility is so small; can only guess
 	if(4 * agent.getPower(true) < 3 * GET_TEAM(targetId).getPower(true))
@@ -1808,6 +1832,18 @@ void WarAndPeaceAI::Team::showWarPlanMsg(TeamTypes targetId, char const* txtKey)
 			// <advc.127b>
 			NULL, NO_COLOR, GET_TEAM(agentId).getCapitalX(),
 			GET_TEAM(agentId).getCapitalY()); // </advc.127b>
+}
+
+WarAndPeaceCache& WarAndPeaceAI::Team::leaderCache() {
+
+	return GET_PLAYER(GET_TEAM(agentId).getLeaderID()).warAndPeaceAI().
+			getCache();
+}
+
+WarAndPeaceCache const& WarAndPeaceAI::Team::leaderCache() const{
+	// Duplicate code; see also WarAndPeaceCache::leaderCache
+	return GET_PLAYER(GET_TEAM(agentId).getLeaderID()).warAndPeaceAI().
+			getCache();
 }
 
 double WarAndPeaceAI::Team::confidenceFromWarSuccess(TeamTypes targetId) const {

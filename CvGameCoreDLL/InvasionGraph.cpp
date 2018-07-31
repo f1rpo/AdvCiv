@@ -1980,7 +1980,7 @@ void InvasionGraph::breakCycle(vector<Node*> const& cyc) {
 	war allies, regardless of circumstances. This function is about gauging
 	rationally whether a war party ('agg') is willing to commit resources
 	against another ('def').
-	This is to make sure that the AI can't be goaded into a joint war by a human civ,
+	This is to make sure that the AI can't be goaded into a joint war by a human,
 	and that joint wars are generally expensive enough. */
 double InvasionGraph::willingness(PlayerTypes agg, PlayerTypes def) const {
 

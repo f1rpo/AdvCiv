@@ -52,6 +52,7 @@ public:
 	/*  Modifier for human payments for peace, i.e what the AI asks a human to pay
 		(no modifier for brokering, i.e. 100%) */
 	static int const reparationsHumanPercent = 75;
+	static int const dwtUtilityThresh = -35;
 
 private:
 	std::vector<PlayerTypes> _properCivs;
@@ -187,6 +188,8 @@ public:
 		void showWarPrepStartedMsg(TeamTypes targetId);
 		void showWarPlanAbandonedMsg(TeamTypes targetId);
 		void showWarPlanMsg(TeamTypes targetId, char const* txtKey);
+		WarAndPeaceCache& leaderCache();
+		WarAndPeaceCache const& leaderCache() const;
 		TeamTypes diploVoteCounterCandidate(VoteSourceTypes voteSource) const;
 		/*  Not in WarAndPeaceAI::Civ b/c I want these to be private. They're
 			only auxiliary functions for their team-level counterparts, and should

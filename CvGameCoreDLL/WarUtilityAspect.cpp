@@ -2792,15 +2792,19 @@ void Affection::evaluate() {
 		if(towardsThem >= ATTITUDE_FRIENDLY)
 			uMinus += 45;
 	}
+	bool const ignDistr = params.isIgnoreDistraction();
 	/*  The Catherine clause - doesn't make sense for her to consider sponsored
 		war on a friend if the cost is always prohibitive. */
-	bool hiredAgainstFriend = towardsThem >= ATTITUDE_FRIENDLY &&
-			params.getSponsor() != NO_PLAYER;
+	bool hiredAgainstFriend = (towardsThem >= ATTITUDE_FRIENDLY &&
+			(params.getSponsor() != NO_PLAYER ||
+			/*  The computations ignoring distraction are also used for decisions
+				on joint wars (see WarAndPeaceAI::Team::declareWarTrade) */
+			ignDistr));
 	if(hiredAgainstFriend)
 		uMinus = 50;
 	uMinus *= linkedWarFactor;
 	// When there's supposed to be uncertainty
-	if((noWarPercent > 0 && noWarPercent < 100) || hiredAgainstFriend) {
+	if(!ignDistr && ((noWarPercent > 0 && noWarPercent < 100) || hiredAgainstFriend)) {
 		vector<long> hashInputs;
 		hashInputs.push_back(theyId);
 		hashInputs.push_back(towardsThem);

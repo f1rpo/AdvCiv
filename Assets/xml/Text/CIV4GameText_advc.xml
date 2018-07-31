@@ -2122,6 +2122,24 @@
 		<Spanish>Muestra una alerta cada vez que un líder de IA se convierte (o deja de estar) dispuesto a iniciar una guerra a petición suya.</Spanish>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_CIV4LERTS_TRADE_WAR_MULTI</Tag>
+		<English>%s1_TeamName can be convinced to start a war against</English>
+		<French>%s1_TeamName pourrait être disposé à commencer la guerre contre</French>
+		<German>%s1_TeamName wäre bereit zu einem Krieg gegen</German>
+		<Italian>%s1_TeamName potrebbe essere indotto à cominciare la guerra contro</Italian>
+		<Spanish>%s1_TeamName es dispuesto a comenzar la guerra</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CIV4LERTS_NO_LONGER_TRADE_WAR_MULTI</Tag>
+		<English>%s1_TeamName can no longer be convinced of a war against</English>
+		<French>%s1_TeamName ne pourrait plus être disposé à une guerre contre</French>
+		<German>%s1_TeamName ist nicht mehr bereit zu einen Krieg gegen</German>
+		<Italian>%s1_TeamName non potrebbe più essere indotto à una guerra contro</Italian>
+		<Spanish>%s1_TeamName ya no es dispuesto a una guerra contra</Spanish>
+	</TEXT>
+	<!-- advc.tmp: To be removed later; for now, I want the v0.92f DLL
+		 to remain compatible with the XML and Python files.-->
+	<TEXT>
 		<Tag>TXT_KEY_CIV4LERTS_TRADE_WAR</Tag>
 		<English>%s1_TeamName can be convinced to start a war against %s2_TeamName.</English>
 		<French>%s1_TeamName pourrait être disposé à commencer la guerre contre %s2_TeamName.</French>
