@@ -158,8 +158,7 @@ def addMessage(iPlayer, szString, szIcon, iFlashX=-1, iFlashY=-1, bOffArrow=Fals
 		return # </advc.706>
 	# advc.106c: Reduced time from LONG to normal
 	eventMessageTimeLong = gc.getDefineINT("EVENT_MESSAGE_TIME")
-	# advc.106: Set bForce to False
-	CyInterface().addMessage(iPlayer, False, eventMessageTimeLong,
+	CyInterface().addMessage(iPlayer, True, eventMessageTimeLong,
 							 szString, None, InterfaceMessageTypes.MESSAGE_TYPE_INFO, 
 							 szIcon, ColorTypes(-1),
 							 iFlashX, iFlashY, bOffArrow, bOnArrow)
@@ -901,7 +900,8 @@ class RefusesToTalk(AbstractStatefulAlert):
 	def display(self, eActivePlayer, key, players):
 		for ePlayer in players:
 			player = gc.getPlayer(ePlayer)
-			if player.isAlive():
+			# advc.106d: Don't report refusal to talk when war just begun 
+			if player.isAlive() and gc.getTeam(gc.getPlayer(eActivePlayer).getTeam()).AI_getAtWarCounter(player.getTeam()) > 1:
 				message = BugUtil.getText(key, player.getName())
 				addMessageNoIcon(eActivePlayer, message)
 

@@ -69,7 +69,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 	TeamTypes ourMaster = GET_PLAYER(weId).getMasterTeam();
 	TeamTypes targetMaster = GET_TEAM(targetTeamId).getMasterTeam();
 	TeamTypes master = GET_PLAYER(civId).getMasterTeam();
-	int nTotalWars = 0, nWars = 0;
+	int iTotalWars = 0, iWars = 0;
 	// Whether simulation assumes peace between civId and any other civ
 	bool peaceAssumed = false;
 	// Whether simulation assumes civId to have been recently attacked by anyone
@@ -108,8 +108,8 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 				/* If neither side can reach the other, the war doesn't count
 				   because it doesn't (or shouldn't) lead to additional buildup. */
 			    reachEither) {
-			nWars++;
-			if(nWars <= 1)
+			iWars++;
+			if(iWars <= 1)
 				singleWarEnemy = loopTeam.getID();
 			else singleWarEnemy = NO_TEAM;
 			if(intensity == NORMAL)
@@ -132,10 +132,10 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 					   under consideration if adopted. */
 					(TEAMID(weId) != tId || loopTeamId != targetTeamId)) ||
 					totalWarAssumed)
-				nTotalWars++;
+				iTotalWars++;
 		}
 	}
-	int nWarPlans = t.getAnyWarPlanCount(true);
+	int iWarPlans = t.getAnyWarPlanCount(true);
 	/*  Assume that we don't pursue any (aggressive) war preparations in the
 		peace scenario. (Should only be relevant when considering an immediate DoW,
 		e.g. on request of another civ, while already planning war. I think the
@@ -143,12 +143,12 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		WarAndPeaceAI::Team::scheme should compare the utility of the immediate war
 		with that of the war in preparation. */
 	if(peaceScenario && civId == m.ourId())
-		nWarPlans = nWars;
+		iWarPlans = iWars;
 	report.log("War plans: %d; assuming %d wars, %d total wars%s%s",
-				nWarPlans, nWars, nTotalWars,
+				iWarPlans, iWars, iTotalWars,
 				(peaceAssumed ? ", peace assumed" : ""),
 				(attackedRecently ? ", attacked recently" : ""));
-	if(nTotalWars > 0 ||
+	if(iTotalWars > 0 ||
 			/* When planning for limited war while being alert2 or dagger,
 		       the strategies take precedence. However, shouldn't trust
 			   alert2 when assuming peace b/c alert2 may well be caused
@@ -167,7 +167,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 			(t.getWarPlanCount(WARPLAN_PREPARING_TOTAL) > 0 &&
 			master != ourMaster))
 		intensity = FULL;
-	bool attackedUnprepared = attackedRecently && nWarPlans == 0;
+	bool attackedUnprepared = attackedRecently && iWarPlans == 0;
 		    // Count preparing limited as unprepared?
 			//nWarPlans <= t.getWarPlanCount(WARPLAN_PREPARING_LIMITED);
 	bool defensive = false;
@@ -179,7 +179,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 			   defensive AreaAI?), assume that t will be able to get on the
 			   offensive, or that defenses reach a saturation point. */
 			(intensity == NORMAL || !allPartiesKnown)) ||
-			attackedUnprepared || (nWars == 0 && nWarPlans == 0 &&
+			attackedUnprepared || (iWars == 0 && iWarPlans == 0 &&
 			(civ.AI_isDoStrategy(AI_STRATEGY_ALERT1) ||
 			civ.AI_isDoStrategy(AI_STRATEGY_ALERT2))))
 		defensive = true;
@@ -199,7 +199,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 	   be war vs. (attempted) peace.
 	   Can't trust Area AI when war preparations are supposed to be
 	   abandoned. */
-	if(m.isOnOurSide(tId) && peaceScenario && nWarPlans > nWars)
+	if(m.isOnOurSide(tId) && peaceScenario && iWarPlans > iWars)
 		fictionalScenario = true;
 	// During war preparations, params take precedence when it comes to naval armament
 	if(!peaceScenario && fictionalScenario && civ.getID() == weId &&
@@ -209,8 +209,8 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		build-up intensity. Otherwise, the AI will tend to leave 1 or 2 cities
 		alive. Would be cleaner to assume a shorter time horizon, but that's a
 		can of worms. */
-	if(singleWarEnemy != NO_TEAM && !navalArmament && nTotalWars <= 0 &&
-			nWarPlans <= 1 && !civ.AI_isDoStrategy(AI_STRATEGY_ALERT1
+	if(singleWarEnemy != NO_TEAM && !navalArmament && iTotalWars <= 0 &&
+			iWarPlans <= 1 && !civ.AI_isDoStrategy(AI_STRATEGY_ALERT1
 			| AI_STRATEGY_ALERT2) && t.warAndPeaceAI().isPushover(singleWarEnemy)) {
 		intensity = NORMAL;
 		fictionalScenario = true; // Don't check AreAI either
@@ -226,14 +226,14 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		if(aai == AREAAI_OFFENSIVE || aai == AREAAI_ASSAULT_ASSIST ||
 				aai == AREAAI_ASSAULT || ((aai == AREAAI_MASSING ||
 				aai == AREAAI_ASSAULT_MASSING || aai == AREAAI_DEFENSIVE) &&
-				nTotalWars == 0 && nWars > 0) ||
+				iTotalWars == 0 && iWars > 0) ||
 				civ.AI_isDoStrategy(AI_STRATEGY_ALERT1) ||
 				// advc.018: Crush now actually trains fewer units
 				civ.AI_isDoStrategy(AI_STRATEGY_CRUSH))
 			intensity = INCREASED;
 		if(civ.isFocusWar() &&
 				(aai == AREAAI_MASSING || aai == AREAAI_ASSAULT_MASSING ||
-				(aai == AREAAI_DEFENSIVE && nTotalWars > 0) ||
+				(aai == AREAAI_DEFENSIVE && iTotalWars > 0) ||
 				civ.AI_isDoStrategy(AI_STRATEGY_ALERT2) ||
 				// [Obsolete check; Dagger disabled.]
 				(civ.AI_isDoStrategy(AI_STRATEGY_DAGGER) && !civ.isHuman() &&
@@ -259,7 +259,8 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 				intensity = basedOnBUR;
 				report.log("Using estimated intensity for forecast");
 				if(intensity <= NORMAL && GET_TEAM(civ.getTeam()).
-						isAtWar(TEAMID(weId))) {
+						isAtWar(TEAMID(weId)) && !GET_TEAM(civ.getTeam()).
+						warAndPeaceAI().isPushover(TEAMID(weId))) {
 					// Have to expect that human will increase build-up as necessary
 					intensity = INCREASED;
 					report.log("Increased intensity for human at war with us");

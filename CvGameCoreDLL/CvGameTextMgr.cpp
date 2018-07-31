@@ -4040,6 +4040,11 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 							szString.append(CvWString::format(L" (enemy)"));
 						}
 						szString.append(CvWString::format(L"\n"));
+						// <advc.007>
+						szString.append(CvString::format("Bonus trade counter: %d\n",
+								GET_PLAYER(pPlot->getOwnerINLINE()).
+								AI_getBonusTradeCounter((PlayerTypes)iI)));
+						// </advc.007>
 					}
 					
 				}

@@ -190,7 +190,8 @@ class FractalWorld:
 		iHillsTop1 = self.hillsFrac.getHeightFromPercent(min((self.hillGroupOneBase + self.hillGroupOneRange), 100))
 		iHillsBottom2 = self.hillsFrac.getHeightFromPercent(max((self.hillGroupTwoBase - self.hillGroupTwoRange), 0))
 		iHillsTop2 = self.hillsFrac.getHeightFromPercent(min((self.hillGroupTwoBase + self.hillGroupTwoRange), 100))
-		iPeakThreshold = self.peaksFrac.getHeightFromPercent(self.peakPercent)
+		# advc.030: *8/7 to compensate for the removal of coastal peaks
+		iPeakThreshold = self.peaksFrac.getHeightFromPercent((self.peakPercent * 8) / 7)
 
 		for x in range(self.iNumPlotsX):
 			for y in range(self.iNumPlotsY):
@@ -202,9 +203,30 @@ class FractalWorld:
 					hillVal = self.hillsFrac.getHeight(x,y)
 					if ((hillVal >= iHillsBottom1 and hillVal <= iHillsTop1) or (hillVal >= iHillsBottom2 and hillVal <= iHillsTop2)):
 						peakVal = self.peaksFrac.getHeight(x,y)
+						bPeak = False # advc.030
 						if (peakVal <= iPeakThreshold):
-							self.plotTypes[i] = PlotTypes.PLOT_PEAK
-						else:
+							# <advc.030> Check for orthogonally adjacent water
+							bWaterFound = False
+							for dx in [-1,0,1]:
+								adjx = x + dx
+								if adjx < 0 or adjx >= self.iNumPlotsX:
+									continue
+								for dy in [-1,0,1]:
+									if (dx == 0) == (dy == 0):
+										continue
+									adjy = y + dy
+									if adjy < 0 or adjy >= self.iNumPlotsY:
+										continue
+									if self.continentsFrac.getHeight(adjx,adjy) <= iWaterThreshold:
+										bWaterFound = True
+										break
+								if bWaterFound:
+									break
+							if not bWaterFound or self.mapRand.get(2, "advc.030") == 0: # </advc.030>
+								self.plotTypes[i] = PlotTypes.PLOT_PEAK
+								# <advc.030>
+								bPeak = True
+						if not bPeak: # </advc.030> # else
 							self.plotTypes[i] = PlotTypes.PLOT_HILLS
 					else:
 						self.plotTypes[i] = PlotTypes.PLOT_LAND
@@ -786,7 +808,8 @@ class MultilayeredFractal:
 		iHillsTop1 = regionHillsFrac.getHeightFromPercent(min((25 + self.gc.getClimateInfo(self.map.getClimate()).getHillRange()), 100))
 		iHillsBottom2 = regionHillsFrac.getHeightFromPercent(max((75 - self.gc.getClimateInfo(self.map.getClimate()).getHillRange()), 0))
 		iHillsTop2 = regionHillsFrac.getHeightFromPercent(min((75 + self.gc.getClimateInfo(self.map.getClimate()).getHillRange()), 100))
-		iPeakThreshold = regionPeaksFrac.getHeightFromPercent(self.gc.getClimateInfo(self.map.getClimate()).getPeakPercent())
+		# advc.030: *8/7
+		iPeakThreshold = regionPeaksFrac.getHeightFromPercent((8*self.gc.getClimateInfo(self.map.getClimate()).getPeakPercent())/7)
 
 		# Loop through the region's plots
 		for x in range(iRegionWidth):
@@ -798,9 +821,30 @@ class MultilayeredFractal:
 					hillVal = regionHillsFrac.getHeight(x,y)
 					if ((hillVal >= iHillsBottom1 and hillVal <= iHillsTop1) or (hillVal >= iHillsBottom2 and hillVal <= iHillsTop2)):
 						peakVal = regionPeaksFrac.getHeight(x,y)
+						bPeak = False # advc.030
 						if (peakVal <= iPeakThreshold):
-							self.plotTypes[i] = PlotTypes.PLOT_PEAK
-						else:
+							# <advc.030> Mostly copy-pasted from Fractal. Don't know enough Python to create a function that the two classes can share.
+							bWaterFound = False
+							for dx in [-1,0,1]:
+								adjx = x + dx
+								if adjx < 0 or adjx >= iRegionWidth:
+									continue
+								for dy in [-1,0,1]:
+									if (dx == 0) == (dy == 0):
+										continue
+									adjy = y + dy
+									if adjy < 0 or adjy >= iRegionHeight:
+										continue
+									if regionContinentsFrac.getHeight(adjx,adjy) <= iWaterThreshold:
+										bWaterFound = True
+										break
+								if bWaterFound:
+									break
+							if not bWaterFound or self.dice.get(2, "advc.030") == 0: # </advc.030>
+								self.plotTypes[i] = PlotTypes.PLOT_PEAK
+								# <advc.030>
+								bPeak = True
+						if not bPeak: # </advc.030> # else
 							self.plotTypes[i] = PlotTypes.PLOT_HILLS
 					else:
 						self.plotTypes[i] = PlotTypes.PLOT_LAND

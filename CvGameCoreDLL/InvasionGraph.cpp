@@ -661,13 +661,13 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		/*  Only defender is assumed to bring cargo units into battle.
 			Fixme: [LOGISTICS]->power is the cargo capacity. The military power
 			is greater, but currently not tracked. */
-		double fleetPow = (military[FLEET]->power() - military[LOGISTICS]->power()
+		double fleetPow = std::max(0.0, (military[FLEET]->power() - military[LOGISTICS]->power()
 				- lostPower[FLEET] + lostPower[LOGISTICS]) * confAtt
 				// Use attacker/ defender portion also for fleet
-				* armyPortionAttacker;
-		double targetFleetPow = (defender.military[FLEET]->power()
+				* armyPortionAttacker);
+		double targetFleetPow = std::max(0.0, (defender.military[FLEET]->power()
 				- defender.lostPower[FLEET]) * confDef
-				* armyPortionDefender;
+				* armyPortionDefender);
 		/* Don't factor in distance; naval units tend to be fast;
 		   would have to use a special metric b/c City::getDistance is
 		   for land units only. */
@@ -1105,6 +1105,10 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	/* Example: Just 2 cities left, i.e. 4 garrisons. 1 has to stay
 	   in the other city, therefore only 3 in the attacked city. */
 	nGarrisons = std::min(remainingCitiesDef + 1, nGarrisons);
+	// Recently conquered city likely to lack a garrison
+	if(cvCity->isEverOwned(id) && cvCity->isOccupation() &&
+			TEAMREF(id).isAtWar(TEAMID(defender.id)))
+		nGarrisons = 1;
 	nLocalGarrisons = std::min(nGarrisons, nLocalGarrisons);
 	double guardPowUnmodified = nGarrisons * powerPerGarrison;
 	// Only for local garrisons

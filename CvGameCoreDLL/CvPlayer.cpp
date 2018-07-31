@@ -12646,7 +12646,9 @@ int CvPlayer::getPlayerTextColorA() const
 // <advc.106>
 ColorTypes CvPlayer::getPlayerTextColor() const {
 
-	return (ColorTypes)GC.getPlayerColorInfo(getPlayerColor()).getTextColorType();
+	// Don't call getPlayerColor -- that function conceals the colors of unmet civs.
+	return (ColorTypes)GC.getPlayerColorInfo(GC.getInitCore().getColor(getID())).
+			getTextColorType();
 } // </advc.106>
 
 

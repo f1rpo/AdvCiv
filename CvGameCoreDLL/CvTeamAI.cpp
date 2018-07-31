@@ -5209,11 +5209,11 @@ bool CvTeamAI::AI_isSneakAttackReady() const
 // K-Mod end
 
 // <advc.003> Refactored
-void CvTeamAI::AI_setWarPlan(TeamTypes eIndex, WarPlanTypes eNewValue, bool bWar) {
-
+void CvTeamAI::AI_setWarPlan(TeamTypes eIndex, WarPlanTypes eNewValue, bool bWar)
+{
 	FAssert(eIndex >= 0 && eIndex < MAX_TEAMS);
 
-	if(AI_getWarPlan(eIndex) == eNewValue || !bWar && isAtWar(eIndex))
+	if(AI_getWarPlan(eIndex) == eNewValue || (!bWar && isAtWar(eIndex)))
 		return;
 	m_aeWarPlan[eIndex] = eNewValue;
 	AI_setWarPlanStateCounter(eIndex, 0);
@@ -5239,6 +5239,12 @@ void CvTeamAI::AI_setWarPlan(TeamTypes eIndex, WarPlanTypes eNewValue, bool bWar
 			t.AI_setWarPlan(eIndex, vassalWp);
 	} // </advc.104j>
 } // </advc.003>
+
+// <advc.104>
+void CvTeamAI::setWarPlanNoUpdate(TeamTypes eIndex, WarPlanTypes eNewValue) {
+
+	m_aeWarPlan[eIndex] = eNewValue;
+} // </advc.104>
 
 //if this number is over 0 the teams are "close"
 //this may be expensive to run, kinda O(N^2)...

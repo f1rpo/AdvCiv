@@ -19002,7 +19002,7 @@ void CvPlayerAI::AI_doCounter()
 						2.4 * std::max(bonusVal, exportable))) / 2;
 				/*  Rather than changing attitudeDiv in XML for every leader,
 					do the fine-tuning here. */
-				double weight2 = 338.0 / attitudeDiv;
+				double weight2 = 350.0 / attitudeDiv;
 				if(weight1 >= weight2)
 					incr = (bonusVal / weight1) * weight2;
 			}

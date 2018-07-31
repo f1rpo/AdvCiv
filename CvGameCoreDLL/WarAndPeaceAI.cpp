@@ -489,15 +489,24 @@ bool WarAndPeaceAI::Team::reviewPlan(TeamTypes targetId, int u, int prepTime) {
 				return false;
 			}
 			else {
-			/*  Tbd.: Should allow switching when war remains imminent for a long
-				time; too inflexible currently. I think considerSwitchTarget
-				assumes that no war is imminent though; probably needs some
-				adjustments. Or I could just temporarily set wp to PREPARING. */
-				/*double xx=?; double yy=?;
-				if(::bernoulliSuccess(std::min(xx, wpAge * yy), "advc.104")) {
-					if(!considerSwitchTarget(targetId, u, 0))
+				// Consider switching when war remains imminent for a long time
+				double pr = std::min(0.33, wpAge * 0.04);
+				report->log("pr of considering to switch target: %d",
+						::round(100 * pr));
+				if(::bernoulliSuccess(pr, "advc.104 (switch while imminent)")) {
+					/*  considerSwitchTarget was written under the assumption
+						that no war is imminent. Could be difficult to rectify;
+						instead, change the war plan temporarily. */
+					agent.setWarPlanNoUpdate(targetId, WARPLAN_PREPARING_LIMITED);
+					bool bSwitch = !considerSwitchTarget(targetId, u, 0);
+					/*  If we do switch, then considerSwitchTarget has
+						already reset the war plan against targetId --
+						except when running in the background. */
+					if(!bSwitch || inBackgr)
+						agent.setWarPlanNoUpdate(targetId, wp);
+					if(bSwitch)
 						return false;
-				}*/
+				}
 			}
 			CvMap const& m = GC.getMapINLINE();
 			// 12 turns for a Standard-size map, 9 on Small
@@ -563,8 +572,15 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 						peace with the ExtraTarget. */
 					params.setNotConsideringPeace();
 					WarEvaluator eval(params);
-					u = eval.evaluate(agent.AI_getWarPlan(otherId), 0) -
+					/*  Check both limited and total war instead of agent
+						.AI_getWarPlan(otherId) in order to avoid a preference for
+						the two-front case on account of greater military build-up. */
+					int uLim = eval.evaluate(WARPLAN_LIMITED, 0) -
 							GC.getUWAI_MULTI_WAR_RELUCTANCE();
+					int uTot = eval.evaluate(WARPLAN_TOTAL, 0) -
+							GC.getUWAI_MULTI_WAR_RELUCTANCE();
+					u = std::min(uLim, uTot);
+					// Tbd.: If the war plan against otherId is TOTAL
 					report->log("Utility of a two-front war compared with a war "
 							"only against %s: %d", report->teamName(otherId), u);
 					break; // Only one war can be imminent at a time
@@ -907,32 +923,39 @@ bool WarAndPeaceAI::Team::considerSwitchTarget(TeamTypes targetId, int u,
 	WarPlanTypes wp = agent.AI_getWarPlan(targetId);
 	TeamTypes bestAltTargetId = NO_TEAM;
 	int bestUtility = 0;
-	bool qualms = (GC.getLeaderHeadInfo(GET_PLAYER(agent.getLeaderID()).
+	bool qualms = (timeRemaining > 0 && GC.getLeaderHeadInfo(GET_PLAYER(agent.getLeaderID()).
 			getPersonalityType()).getNoWarAttitudeProb(
 			agent.AI_getAttitude(targetId)) >= 100);
+	bool altQualms = false;
 	for(size_t i = 0; i < getWPAI._properTeams.size(); i++) {
 		TeamTypes altTargetId = getWPAI._properTeams[i];
 		if(!canSchemeAgainst(altTargetId) ||
 				agent.turnsOfForcedPeaceRemaining(altTargetId) > timeRemaining)
 			continue;
+		bool loopQualms = (GC.getLeaderHeadInfo(GET_PLAYER(agent.getLeaderID()).
+				getPersonalityType()).getNoWarAttitudeProb(
+				agent.AI_getAttitude(altTargetId)) >= 100);
+		if(loopQualms && !qualms)
+			continue;
 		WarAndPeaceReport silentReport(true);
-		WarEvalParameters params(agentId, altTargetId, silentReport);
+		WarEvalParameters params(agentId, altTargetId, silentReport, true);
 		WarEvaluator eval(params);
 		int uSwitch = eval.evaluate(wp, timeRemaining);
-		if(uSwitch > std::max(bestUtility, u) || (qualms && uSwitch > 0)) {
+		if(uSwitch > std::max(bestUtility, qualms ? 0 : u)) {
 			bestAltTargetId = altTargetId;
 			bestUtility = uSwitch;
+			altQualms = loopQualms;
 		}
 	}
 	if(bestAltTargetId == NO_TEAM) {
-		report->log("No better target for war preparations found");
+		report->log("No other promising target for war preparations found");
 		return true;
 	}
 	double padding = 0;
 	if(std::min(u, bestUtility) < 20)
 		padding += 20 - std::min(u, bestUtility);
 	double pr = 0.75 * (1 - (u + padding) / (bestUtility + padding));
-	if(qualms)
+	if(qualms && !altQualms)
 		pr += 1.8;
 	report->log("Switching target for war preparations to %s (u=%d) with pr=%d percent",
 			report->teamName(bestAltTargetId), bestUtility, ::round(100 * pr));
@@ -1194,8 +1217,8 @@ void WarAndPeaceAI::Team::scheme() {
 		bool const canHireNew = cache.canBeHiredAgainst(targetId);
 		if(canHireOld != canHireNew) {
 			if(canHireNew)
-				report->log("Can now (possibly) be hired for war against target");
-			else report->log("Can no longer be hired for war against target");
+				report->log("Can now (possibly) be hired for war");
+			else report->log("Can no longer be hired for war");
 		}
 		if(u <= 0)
 			continue;
@@ -1285,7 +1308,8 @@ DenialTypes WarAndPeaceAI::Team::declareWarTrade(TeamTypes targetId,
 						true); // AI doesn't accept cities as payment for war
 				// Don't return NO_DENIAL if human can't pay enough
 				utilityThresh = std::max(utilityThresh,
-						-::round(tradeValToUtility(humanTradeVal)));
+						// Add 5 for gold that the human might be able to procure
+						-::round(tradeValToUtility(humanTradeVal) + 5));
 			}
 			if(u > utilityThresh)
 				return NO_DENIAL;
@@ -1840,7 +1864,7 @@ WarAndPeaceCache& WarAndPeaceAI::Team::leaderCache() {
 			getCache();
 }
 
-WarAndPeaceCache const& WarAndPeaceAI::Team::leaderCache() const{
+WarAndPeaceCache const& WarAndPeaceAI::Team::leaderCache() const {
 	// Duplicate code; see also WarAndPeaceCache::leaderCache
 	return GET_PLAYER(GET_TEAM(agentId).getLeaderID()).warAndPeaceAI().
 			getCache();
@@ -2198,6 +2222,9 @@ bool WarAndPeaceAI::Civ::considerGiftRequest(PlayerTypes theyId,
 		not planning war yet, which the caller ensures).
 		Probability to accept is 45% for Gandhi, 0% for Tokugawa. */
 	if(::bernoulliSuccess(0.5 - we.prDenyHelp(), "advc.104 (gift)"))
+		return true;
+	// Probably won't want to attack theyId then
+	if(TEAMREF(weId).AI_isSneakAttackReady())
 		return true;
 	WarAndPeaceReport silentReport(true);
 	WarEvalParameters params(we.getTeam(), TEAMID(theyId), silentReport);
