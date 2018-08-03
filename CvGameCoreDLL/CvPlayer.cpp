@@ -758,6 +758,7 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	m_iChoosingFreeTechCount = 0; // K-Mod
 	iNewMessages = 0; // advc.106b
 	autoPlayJustEnded = false; // advc.127
+	bSavingReplay = false; // advc.106i
 	
 	m_eID = eID;
 	updateTeamType();
@@ -3322,7 +3323,13 @@ static bool concealUnknownCivs() {
 			// advc.135c: Replacing the above (which doesn't work in multiplayer)
 			!g.isDebugMode() &&
 			!gDLL->GetWorldBuilderMode();
-} 
+}
+
+// <advc.106i>
+void CvPlayer::setSavingReplay(bool b) {
+
+	bSavingReplay = b;
+} // </advc.106i>
 
 const wchar* CvPlayer::getName(uint uiForm) const
 {
@@ -3340,7 +3347,19 @@ const wchar* CvPlayer::getName(uint uiForm) const
 		// K-Mod end
 	}
 	else
-	{
+	{	// <advc.106i>
+		if(bSavingReplay) {
+			CvWString const tag = "TXT_KEY_REPLAY_PREFIX_ADVC";
+			CvWString prefix = gDLL->getText(tag);
+			// No prefix if the tag isn't present
+			if(tag.compare(prefix) == 0)
+				prefix = L"";
+			/*  Same hack as above. Don't call gDll->getModName b/c then I'd have
+				to deal with narrow/wide string conversion. */
+			static CvWString r; // Important to put the assignment on a separate line
+			r = prefix + GC.getInitCore().getLeaderName(getID(), uiForm);
+			return r;
+		} // </advc.106i>
 		return GC.getInitCore().getLeaderName(getID(), uiForm);
 	}
 }
@@ -8770,7 +8789,14 @@ bool CvPlayer::canDoCivics(CivicTypes eCivic) const
 			return false;
 		}
 	}
-
+	// <advc.912d>
+	if(GC.getGameINLINE().isOption(GAMEOPTION_NO_SLAVERY) && isHuman()) {
+		for(int i = 0; i < GC.getNumHurryInfos(); i++) {
+			if(GC.getCivicInfo(eCivic).isHurry(i) &&
+					GC.getHurryInfo((HurryTypes)i).getProductionPerPopulation() > 0)
+				return false;
+		}
+	} // </advc.912d>
 	return true;
 }
 

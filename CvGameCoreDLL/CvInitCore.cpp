@@ -1957,16 +1957,20 @@ void CvInitCore::read(FDataStreamBase* pStream)
 		pStream->Read(m_iNumVictories, m_abVictories);
 	}
 
-
-	if (uiSaveFlag > 0)
-	{
+	// <advc.912d>
+	if(uiSaveFlag <= 0)	{
+		pStream->Read(NUM_GAMEOPTION_TYPES - 2, m_abOptions);
+		m_abOptions[NUM_GAMEOPTION_TYPES - 2] = false;
+		m_abOptions[NUM_GAMEOPTION_TYPES - 1] = false;
+	}
+	else if(uiSaveFlag == 1) {
+		pStream->Read(NUM_GAMEOPTION_TYPES - 1, m_abOptions);
+		m_abOptions[NUM_GAMEOPTION_TYPES - 1] = false;
+	}	
+	else {
+		FAssert(uiSaveFlag == 2);
 		pStream->Read(NUM_GAMEOPTION_TYPES, m_abOptions);
-	}
-	else
-	{
-		pStream->Read(NUM_GAMEOPTION_TYPES-1, m_abOptions);
-		m_abOptions[NUM_GAMEOPTION_TYPES-1] = false;
-	}
+	} // </advc.912d>
 	pStream->Read(NUM_MPOPTION_TYPES, m_abMPOptions);
 
 	pStream->Read(&m_bStatReporting);
@@ -2036,6 +2040,7 @@ void CvInitCore::read(FDataStreamBase* pStream)
 void CvInitCore::write(FDataStreamBase* pStream)
 {
 	uint uiSaveFlag=1;
+	uiSaveFlag=2; // advc.912d
 	pStream->Write(uiSaveFlag);		// flag for expansion, see SaveBits)
 
 	// GAME DATA

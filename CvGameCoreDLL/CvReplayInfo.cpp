@@ -155,6 +155,10 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 	}
 
 	m_listReplayMessages.clear();
+	// <advc.106h>
+	if(game.getGameState() == GAMESTATE_OVER &&
+			GC.getDefineINT("SETTINGS_IN_REPLAYS") > 0)
+		addSettingsMsg(); // </advc.106h>
 	for (uint i = 0; i < game.getNumReplayMessages(); i++)
 	{
 		std::map<PlayerTypes, int>::iterator it = mapPlayers.find(game.getReplayMessagePlayer(i));
@@ -197,6 +201,95 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 	if(m_iFinalScore < 0)
 		m_iFinalScore = getFinalPlayerScore(); // </advc.707>
 }
+
+// <advc.106h>
+void CvReplayInfo::addSettingsMsg() {
+
+	CvGame& g = GC.getGame();
+	PlayerTypes plId = g.getActivePlayer();
+	if(plId == NO_PLAYER)
+		return;
+	bool bScenario = false;
+	// Strip away file ending of WB scenario
+	CvWString const wbEnding = L".CivBeyondSwordWBSave";
+	CvWString mn = getMapScriptName();
+	if(mn.length() > wbEnding.length() && mn.substr(mn.length() -
+			wbEnding.length(), wbEnding.length()).compare(wbEnding) == 0) {
+		mn = mn.substr(0, mn.length() - wbEnding.length());
+		bScenario = true;
+	}
+	CvPlayer const& pl = GET_PLAYER(plId);
+	/*  Can't use getTextKeyWide for sea level b/c of the recommendation text
+		added by advc.137 (same issue in CvVictoryScreen.py) */
+	int lvlChg = GC.getSeaLevelInfo(getSeaLevel()).getSeaLevelChange();
+	CvWString m = gDLL->getText("TXT_KEY_MISC_RELOAD", 1) + L". " +
+			gDLL->getText("TXT_KEY_MAIN_MENU_SETTINGS") + L":\n" +
+			gDLL->getText("TXT_KEY_NAME_LEADER_CIV",
+			GC.getLeaderHeadInfo(pl.getLeaderType()).getTextKeyWide(),
+			pl.getCivilizationShortDescriptionKey(), pl.getReplayName()) + L"\n" +
+			gDLL->getText("TXT_KEY_SETTINGS_DIFFICULTY",
+			GC.getHandicapInfo(getDifficulty()).getTextKeyWide()) + L"\n" +
+			(bScenario ? mn :
+			gDLL->getText("TXT_KEY_SIZE_MAP_WITH",
+			GC.getWorldInfo(getWorldSize()).getTextKeyWide(),
+			getMapScriptName().GetCString()) + L" " +
+			gDLL->getText("TXT_KEY_SETTINGS_SEA_LEVEL",
+			(lvlChg == 0 ? GC.getSeaLevelInfo(getSeaLevel()).getTextKeyWide() :
+			gDLL->getText((lvlChg < 0 ? "TXT_KEY_LOW" : "TXT_KEY_HIGH"))))) +
+			(getClimate() == 0 ? L"" : (L", " +
+			gDLL->getText("TXT_KEY_SETTINGS_CLIMATE",
+			GC.getClimateInfo(getClimate()).getTextKeyWide()))) + L"\n" +
+			gDLL->getText("TXT_KEY_SETTINGS_GAME_SPEED",
+			GC.getGameSpeedInfo(getGameSpeed()).getTextKeyWide()) +
+			(getEra() == 0 ? L"" : (L", " +
+			gDLL->getText("TXT_KEY_SETTINGS_STARTING_ERA",
+			GC.getEraInfo(getEra()).getTextKeyWide()))) + L"\n";
+	// <advc.250b>
+	if(g.isOption(GAMEOPTION_ADVANCED_START) && !g.isOption(GAMEOPTION_SPAH)) {
+		m += gDLL->getText("TXT_KEY_ADVANCED_START_POINTS") + L" "
+				+ CvWString::format(L"%d", g.getNumAdvancedStartPoints()) + L"\n";
+	} // </advc.250b>
+	int iDisabled = 0;
+	for(int i = 0; i < GC.getNumVictoryInfos(); i++) {
+		VictoryTypes vId = (VictoryTypes)i;
+		if(g.isVictoryValid(vId))
+			continue;
+		iDisabled++;
+		m += GC.getVictoryInfo(vId).getDescription();
+		m += L", ";
+	}
+	if(iDisabled > 0) {
+		m = m.substr(0, m.length() - 2) + L" "; // Drop the final comma
+		m += gDLL->getText("TXT_KEY_VICTORY_DISABLED") + L"\n";
+	} // <advc.250b>
+	if(g.isOption(GAMEOPTION_SPAH)) {
+		std::wstring* pointDistrib = g.startPointsAsHandicap().forSettingsScreen();
+		if(pointDistrib != NULL)
+			m += *pointDistrib;
+	} // </advc.250b>
+	int iOptions = 0;
+	for(int i = 0; i < GC.getNumGameOptionInfos(); i++) {
+		GameOptionTypes optId = (GameOptionTypes)i;
+		// advc.250b:
+		if(optId == GAMEOPTION_ADVANCED_START || optId == GAMEOPTION_SPAH ||
+				!g.isOption(optId) || // advc.104:
+				(optId == GAMEOPTION_AGGRESSIVE_AI && !g.useKModAI()))
+			continue;
+		iOptions++;
+		m += GC.getGameOptionInfo(optId).getDescription();
+		m += L", ";
+	}
+	if(iOptions > 0)
+		m = m.substr(0, m.length() - 2) + L"\n";
+	m += L"AdvCiv Mod"; // gDLL->getModName(false) doesn't yield a wstring
+	CvReplayMessage* settingsMsg = new CvReplayMessage(0,
+			REPLAY_MESSAGE_MAJOR_EVENT, plId);
+	settingsMsg->setText(m);
+	settingsMsg->setColor((ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"));
+	FAssert(m_listReplayMessages.empty());
+	m_listReplayMessages.push_back(settingsMsg);
+} // </advc.106h>
+
 
 int CvReplayInfo::getNumPlayers() const
 {

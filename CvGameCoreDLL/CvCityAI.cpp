@@ -3754,7 +3754,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/		
 
-	bool bCanPopRush = kOwner.canPopRush();
+	bool bCanPopRush = /*kOwner.*/canPopRush(); // advc.912d
 	bool bWarPlan = kOwner.isFocusWar(area()); // advc.105
 			//GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0; // K-Mod
 
@@ -10099,13 +10099,16 @@ int CvCityAI::AI_yieldValue(short* piYields, short* piCommerceYields, bool bRemo
 				// K-Mod. Rescaled values and conditions.
 				//if (!bWorkerOptimization && isProduction() && kOwner.canPopRush() && getHurryAngerTimer() <= std::min(3,getPopulation()/2)+2*iHappinessLevel) // K-Mod
 				// k146: Replacing the above
-				if (!bWorkerOptimization && isProduction() && kOwner.canPopRush() && iHappinessLevel >= 0)
+				if (!bWorkerOptimization && isProduction() &&
+						/*kOwner.*/canPopRush() && // advc.912d
+						iHappinessLevel >= 0)
 				{
 					//iSlaveryValue = 30 * 14 * std::max(0, aiYields[YIELD_FOOD] - ((iHealthLevel < 0) ? 1 : 0));
 					int iProductionPerPop = 0;
 					for (HurryTypes eHurry = (HurryTypes)0; eHurry < GC.getNumHurryInfos(); eHurry = (HurryTypes)(eHurry+1))
 					{
-						if (kOwner.canHurry(eHurry))
+						if (kOwner.canHurry(eHurry)
+								|| canPopRush()) // advc.912d
 						{
 							//iProductionPerPop = std::max(iProductionPerPop, GC.getGameINLINE().getProductionPerPopulation(eHurry) * iBaseProductionModifier / 100);
 							iProductionPerPop = std::max(iProductionPerPop, GC.getGameINLINE().getProductionPerPopulation(eHurry)); // Don't use modifiers weights, because slavery usage is erratic.

@@ -6682,7 +6682,6 @@ bool CvGame::isAITurn() const {
 	aiTurn = b;
 } // </advc.106b>
 
-
 void CvGame::doDeals()
 {
 	CvDeal* pLoopDeal;
@@ -9819,6 +9818,7 @@ void CvGame::write(FDataStreamBase* pStream)
 
 void CvGame::writeReplay(FDataStreamBase& stream, PlayerTypes ePlayer)
 {
+	GET_PLAYER(ePlayer).setSavingReplay(false); // advc.106i
 	SAFE_DELETE(m_pReplayInfo);
 	m_pReplayInfo = new CvReplayInfo();
 	if (m_pReplayInfo)
@@ -9833,8 +9833,12 @@ void CvGame::writeReplay(FDataStreamBase& stream, PlayerTypes ePlayer)
 }
 
 void CvGame::saveReplay(PlayerTypes ePlayer)
-{
+{	// advc.106i: Hack to prepend sth. to the replay file name
+	GET_PLAYER(ePlayer).setSavingReplay(true);
 	gDLL->getEngineIFace()->SaveReplay(ePlayer);
+	/*  advc.106i: Probably redundant b/c CvGame::writeReplay already sets it
+		to false */
+	GET_PLAYER(ePlayer).setSavingReplay(false);
 }
 
 

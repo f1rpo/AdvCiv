@@ -763,6 +763,7 @@ enum GameOptionTypes				// Exposed to Python
 	GAMEOPTION_NO_ESPIONAGE,
 	GAMEOPTION_NO_CITY_RAZING, // advc.250b: Moved down
 	GAMEOPTION_NO_ANIMALS, // advc.309
+	GAMEOPTION_NO_SLAVERY, // advc.912d
 
 #ifdef _USRDLL
 	NUM_GAMEOPTION_TYPES

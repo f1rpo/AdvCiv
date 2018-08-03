@@ -534,7 +534,9 @@ void CvCity::reset(int iID, PlayerTypes eOwner, int iX, int iY, bool bConstructo
 	for (iI = 0; iI < MAX_TEAMS; iI++)
 	{
 		m_abEspionageVisibility[iI] = false;
-	} // <advc.004x>
+	}
+	m_iPopRushHurryCount = 0; // advc.912d
+	// <advc.004x>
 	mrWasUnit = false;
 	mrOrder = -1; // </advc.004x>
 	m_szName.clear();
@@ -3502,53 +3504,40 @@ int CvCity::getExtraProductionDifference(int iExtra, int iModifier) const
 	return ((iExtra * getBaseYieldRateModifier(YIELD_PRODUCTION, iModifier)) / 100);
 }
 
-
+// advc.003: Removed some clutter
 bool CvCity::canHurry(HurryTypes eHurry, bool bTestVisible) const
 {
-	if (!(GET_PLAYER(getOwnerINLINE()).canHurry(eHurry)))
-	{
+	if(!GET_PLAYER(getOwnerINLINE()).canHurry(eHurry) &&
+			// <advc.912d>
+			(GC.getHurryInfo(eHurry).getProductionPerPopulation() <= 0 ||
+			!canPopRush())) // </advc.912d>
 		return false;
-	}
-
-	if (isDisorder())
-	{
+	if(isDisorder())
 		return false;
-	}
-
-	if (getProduction() >= getProductionNeeded())
-	{
+	if(getProduction() >= getProductionNeeded())
 		return false;
-	}
-
 	// K-Mod. moved this check outside of !bTestVisible.
-	if (!isProductionUnit() && !isProductionBuilding())
-	{
+	if(!isProductionUnit() && !isProductionBuilding())
 		return false;
-	}
-	if (!bTestVisible)
-	{
+	if(!bTestVisible) {
 		/*if (!isProductionUnit() && !isProductionBuilding())
 		{
 			return false;
 		}*/
-
-		if (GET_PLAYER(getOwnerINLINE()).getGold() < hurryGold(eHurry))
-		{
+		if(GET_PLAYER(getOwnerINLINE()).getGold() < hurryGold(eHurry))
 			return false;
-		}
-
-		if (maxHurryPopulation() < hurryPopulation(eHurry))
-		{
+		if(maxHurryPopulation() < hurryPopulation(eHurry))
 			return false;
-		}
 	}
-
 	return true;
 }
 
 bool CvCity::canHurryUnit(HurryTypes eHurry, UnitTypes eUnit, bool bIgnoreNew) const
 {
-	if (!(GET_PLAYER(getOwnerINLINE()).canHurry(eHurry)))
+	if (!GET_PLAYER(getOwnerINLINE()).canHurry(eHurry) &&
+			// <advc.912d>
+			(GC.getHurryInfo(eHurry).getProductionPerPopulation() <= 0 ||
+			!canPopRush())) // </advc.912d>
 	{
 		return false;
 	}
@@ -3578,7 +3567,10 @@ bool CvCity::canHurryUnit(HurryTypes eHurry, UnitTypes eUnit, bool bIgnoreNew) c
 
 bool CvCity::canHurryBuilding(HurryTypes eHurry, BuildingTypes eBuilding, bool bIgnoreNew) const
 {
-	if (!(GET_PLAYER(getOwnerINLINE()).canHurry(eHurry)))
+	if (!GET_PLAYER(getOwnerINLINE()).canHurry(eHurry) &&
+			// <advc.912d>
+			(GC.getHurryInfo(eHurry).getProductionPerPopulation() <= 0 ||
+			!canPopRush())) // </advc.912d>
 	{
 		return false;
 	}
@@ -3665,6 +3657,17 @@ void CvCity::hurry(HurryTypes eHurry)
 	// Python Event
 	CvEventReporter::getInstance().cityHurry(this, eHurry);
 }
+
+// <advc.912d>
+bool CvCity::canPopRush() const {
+
+	return (m_iPopRushHurryCount > 0 || GET_PLAYER(getOwnerINLINE()).canPopRush());
+}
+
+void CvCity::changePopRushCount(int iChange) {
+
+	m_iPopRushHurryCount += iChange;
+} // </advc.912d>
 
 
 UnitTypes CvCity::getConscriptUnit() const
@@ -4025,109 +4028,112 @@ void CvCity::processBonus(BonusTypes eBonus, int iChange)
 
 void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolete)
 {
-	UnitTypes eGreatPeopleUnit;
 	int iI, iJ;
-
+	// <advc.003>
+	CvBuildingInfo const& b = GC.getBuildingInfo(eBuilding);
+	CvGame& g = GC.getGameINLINE(); // </advc.003>
 	if (!(GET_TEAM(getTeam()).isObsoleteBuilding(eBuilding)) || bObsolete)
 	{
 		if (iChange > 0)
 		{
-			CorporationTypes eCorporation = (CorporationTypes)GC.getBuildingInfo(eBuilding).getFoundsCorporation();
-			if (NO_CORPORATION != eCorporation && !GC.getGameINLINE().isCorporationFounded(eCorporation))
+			CorporationTypes eCorporation = (CorporationTypes)b.getFoundsCorporation();
+			if (NO_CORPORATION != eCorporation && !g.isCorporationFounded(eCorporation))
 			{
 				setHeadquarters(eCorporation);
 			}
 		}
 
-		if (GC.getBuildingInfo(eBuilding).getNoBonus() != NO_BONUS)
+		if (b.getNoBonus() != NO_BONUS)
 		{
-			changeNoBonusCount(((BonusTypes)(GC.getBuildingInfo(eBuilding).getNoBonus())), iChange);
+			changeNoBonusCount(((BonusTypes)(b.getNoBonus())), iChange);
 		}
 
-		if (GC.getBuildingInfo(eBuilding).getFreeBonus() != NO_BONUS)
+		if (b.getFreeBonus() != NO_BONUS)
 		{
-			changeFreeBonus(((BonusTypes)(GC.getBuildingInfo(eBuilding).getFreeBonus())), (GC.getGameINLINE().getNumFreeBonuses(eBuilding) * iChange));
+			changeFreeBonus(((BonusTypes)(b.getFreeBonus())), (g.getNumFreeBonuses(eBuilding) * iChange));
 		}
 
-		if (GC.getBuildingInfo(eBuilding).getFreePromotion() != NO_PROMOTION)
+		if (b.getFreePromotion() != NO_PROMOTION)
 		{
-			changeFreePromotionCount(((PromotionTypes)(GC.getBuildingInfo(eBuilding).getFreePromotion())), iChange);
-		}
-
-		changeEspionageDefenseModifier(GC.getBuildingInfo(eBuilding).getEspionageDefenseModifier() * iChange);
-		changeGreatPeopleRateModifier(GC.getBuildingInfo(eBuilding).getGreatPeopleRateModifier() * iChange);
-		changeFreeExperience(GC.getBuildingInfo(eBuilding).getFreeExperience() * iChange);
-		changeMaxFoodKeptPercent(GC.getBuildingInfo(eBuilding).getFoodKept() * iChange);
-		changeMaxAirlift(GC.getBuildingInfo(eBuilding).getAirlift() * iChange);
-		changeAirModifier(GC.getBuildingInfo(eBuilding).getAirModifier() * iChange);
-		changeAirUnitCapacity(GC.getBuildingInfo(eBuilding).getAirUnitCapacity() * iChange);
-		changeNukeModifier(GC.getBuildingInfo(eBuilding).getNukeModifier() * iChange);
-		changeFreeSpecialist(GC.getBuildingInfo(eBuilding).getFreeSpecialist() * iChange);
-		changeMaintenanceModifier(GC.getBuildingInfo(eBuilding).getMaintenanceModifier() * iChange);
-		changeWarWearinessModifier(GC.getBuildingInfo(eBuilding).getWarWearinessModifier() * iChange);
-		changeHurryAngerModifier(GC.getBuildingInfo(eBuilding).getHurryAngerModifier() * iChange);
-		changeHealRate(GC.getBuildingInfo(eBuilding).getHealRateChange() * iChange);
-		if (GC.getBuildingInfo(eBuilding).getHealth() > 0)
+			changeFreePromotionCount(((PromotionTypes)(b.getFreePromotion())), iChange);
+		}// <advc.912d>
+		if(g.isOption(GAMEOPTION_NO_SLAVERY) && GET_PLAYER(getOwnerINLINE()).
+				isHuman() && b.getHurryAngerModifier() < 0)
+			changePopRushCount(iChange); // </advc.912d>
+		changeEspionageDefenseModifier(b.getEspionageDefenseModifier() * iChange);
+		changeGreatPeopleRateModifier(b.getGreatPeopleRateModifier() * iChange);
+		changeFreeExperience(b.getFreeExperience() * iChange);
+		changeMaxFoodKeptPercent(b.getFoodKept() * iChange);
+		changeMaxAirlift(b.getAirlift() * iChange);
+		changeAirModifier(b.getAirModifier() * iChange);
+		changeAirUnitCapacity(b.getAirUnitCapacity() * iChange);
+		changeNukeModifier(b.getNukeModifier() * iChange);
+		changeFreeSpecialist(b.getFreeSpecialist() * iChange);
+		changeMaintenanceModifier(b.getMaintenanceModifier() * iChange);
+		changeWarWearinessModifier(b.getWarWearinessModifier() * iChange);
+		changeHurryAngerModifier(b.getHurryAngerModifier() * iChange);
+		changeHealRate(b.getHealRateChange() * iChange);
+		if (b.getHealth() > 0)
 		{
-			changeBuildingGoodHealth(GC.getBuildingInfo(eBuilding).getHealth() * iChange);
+			changeBuildingGoodHealth(b.getHealth() * iChange);
 		}
 		else
 		{
-			changeBuildingBadHealth(GC.getBuildingInfo(eBuilding).getHealth() * iChange);
+			changeBuildingBadHealth(b.getHealth() * iChange);
 		}
-		if (GC.getBuildingInfo(eBuilding).getHappiness() > 0)
+		if (b.getHappiness() > 0)
 		{
-			changeBuildingGoodHappiness(GC.getBuildingInfo(eBuilding).getHappiness() * iChange);
+			changeBuildingGoodHappiness(b.getHappiness() * iChange);
 		}
 		else
 		{
-			changeBuildingBadHappiness(GC.getBuildingInfo(eBuilding).getHappiness() * iChange);
+			changeBuildingBadHappiness(b.getHappiness() * iChange);
 		}
-		if (GC.getBuildingInfo(eBuilding).getReligionType() != NO_RELIGION)
+		if (b.getReligionType() != NO_RELIGION)
 		{
-			changeStateReligionHappiness(((ReligionTypes)(GC.getBuildingInfo(eBuilding).getReligionType())), (GC.getBuildingInfo(eBuilding).getStateReligionHappiness() * iChange));
+			changeStateReligionHappiness(((ReligionTypes)(b.getReligionType())), (b.getStateReligionHappiness() * iChange));
 		}
-		changeMilitaryProductionModifier(GC.getBuildingInfo(eBuilding).getMilitaryProductionModifier() * iChange);
-		changeSpaceProductionModifier(GC.getBuildingInfo(eBuilding).getSpaceProductionModifier() * iChange);
-		changeExtraTradeRoutes(GC.getBuildingInfo(eBuilding).getTradeRoutes() * iChange);
-		changeTradeRouteModifier(GC.getBuildingInfo(eBuilding).getTradeRouteModifier() * iChange);
-		changeForeignTradeRouteModifier(GC.getBuildingInfo(eBuilding).getForeignTradeRouteModifier() * iChange);
-		changePowerCount(((GC.getBuildingInfo(eBuilding).isPower()) ? iChange : 0), GC.getBuildingInfo(eBuilding).isDirtyPower());
-		changeGovernmentCenterCount((GC.getBuildingInfo(eBuilding).isGovernmentCenter()) ? iChange : 0);
-		changeNoUnhappinessCount((GC.getBuildingInfo(eBuilding).isNoUnhappiness()) ? iChange : 0);
-		//changeNoUnhealthyPopulationCount((GC.getBuildingInfo(eBuilding).isNoUnhealthyPopulation()) ? iChange : 0);
-		changeUnhealthyPopulationModifier(GC.getBuildingInfo(eBuilding).getUnhealthyPopulationModifier() * iChange); // K-Mod
-		changeBuildingOnlyHealthyCount((GC.getBuildingInfo(eBuilding).isBuildingOnlyHealthy()) ? iChange : 0);
+		changeMilitaryProductionModifier(b.getMilitaryProductionModifier() * iChange);
+		changeSpaceProductionModifier(b.getSpaceProductionModifier() * iChange);
+		changeExtraTradeRoutes(b.getTradeRoutes() * iChange);
+		changeTradeRouteModifier(b.getTradeRouteModifier() * iChange);
+		changeForeignTradeRouteModifier(b.getForeignTradeRouteModifier() * iChange);
+		changePowerCount(((b.isPower()) ? iChange : 0), b.isDirtyPower());
+		changeGovernmentCenterCount((b.isGovernmentCenter()) ? iChange : 0);
+		changeNoUnhappinessCount((b.isNoUnhappiness()) ? iChange : 0);
+		//changeNoUnhealthyPopulationCount((b.isNoUnhealthyPopulation()) ? iChange : 0);
+		changeUnhealthyPopulationModifier(b.getUnhealthyPopulationModifier() * iChange); // K-Mod
+		changeBuildingOnlyHealthyCount((b.isBuildingOnlyHealthy()) ? iChange : 0);
 
 		for (iI = 0; iI < NUM_YIELD_TYPES; iI++)
 		{
-			changeSeaPlotYield(((YieldTypes)iI), (GC.getBuildingInfo(eBuilding).getSeaPlotYieldChange(iI) * iChange));
-			changeRiverPlotYield(((YieldTypes)iI), (GC.getBuildingInfo(eBuilding).getRiverPlotYieldChange(iI) * iChange));
-			changeBaseYieldRate(((YieldTypes)iI), ((GC.getBuildingInfo(eBuilding).getYieldChange(iI) + getBuildingYieldChange((BuildingClassTypes)GC.getBuildingInfo(eBuilding).getBuildingClassType(), (YieldTypes)iI))* iChange));
-			changeYieldRateModifier(((YieldTypes)iI), (GC.getBuildingInfo(eBuilding).getYieldModifier(iI) * iChange));
-			changePowerYieldRateModifier(((YieldTypes)iI), (GC.getBuildingInfo(eBuilding).getPowerYieldModifier(iI) * iChange));
+			changeSeaPlotYield(((YieldTypes)iI), (b.getSeaPlotYieldChange(iI) * iChange));
+			changeRiverPlotYield(((YieldTypes)iI), (b.getRiverPlotYieldChange(iI) * iChange));
+			changeBaseYieldRate(((YieldTypes)iI), ((b.getYieldChange(iI) + getBuildingYieldChange((BuildingClassTypes)b.getBuildingClassType(), (YieldTypes)iI))* iChange));
+			changeYieldRateModifier(((YieldTypes)iI), (b.getYieldModifier(iI) * iChange));
+			changePowerYieldRateModifier(((YieldTypes)iI), (b.getPowerYieldModifier(iI) * iChange));
 		}
 
 		for (iI = 0; iI < NUM_COMMERCE_TYPES; iI++)
 		{
-			changeCommerceRateModifier(((CommerceTypes)iI), (GC.getBuildingInfo(eBuilding).getCommerceModifier(iI) * iChange));
-			changeCommerceHappinessPer(((CommerceTypes)iI), (GC.getBuildingInfo(eBuilding).getCommerceHappiness(iI) * iChange));
+			changeCommerceRateModifier(((CommerceTypes)iI), (b.getCommerceModifier(iI) * iChange));
+			changeCommerceHappinessPer(((CommerceTypes)iI), (b.getCommerceHappiness(iI) * iChange));
 		}
 
 		for (iI = 0; iI < GC.getNumReligionInfos(); iI++)
 		{
-			changeReligionInfluence(((ReligionTypes)iI), (GC.getBuildingInfo(eBuilding).getReligionChange(iI) * iChange));
+			changeReligionInfluence(((ReligionTypes)iI), (b.getReligionChange(iI) * iChange));
 		}
 
 		for (iI = 0; iI < GC.getNumSpecialistInfos(); iI++)
 		{
-			changeMaxSpecialistCount(((SpecialistTypes)iI), GC.getBuildingInfo(eBuilding).getSpecialistCount(iI) * iChange);
-			changeFreeSpecialistCount(((SpecialistTypes)iI), GC.getBuildingInfo(eBuilding).getFreeSpecialistCount(iI) * iChange);
+			changeMaxSpecialistCount(((SpecialistTypes)iI), b.getSpecialistCount(iI) * iChange);
+			changeFreeSpecialistCount(((SpecialistTypes)iI), b.getFreeSpecialistCount(iI) * iChange);
 		}
 
 		for (iI = 0; iI < GC.getNumImprovementInfos(); ++iI)
 		{
-			changeImprovementFreeSpecialists((ImprovementTypes)iI, GC.getBuildingInfo(eBuilding).getImprovementFreeSpecialist(iI) * iChange);
+			changeImprovementFreeSpecialists((ImprovementTypes)iI, b.getImprovementFreeSpecialist(iI) * iChange);
 		}
 
 		FAssertMsg((0 < GC.getNumBonusInfos()) && "GC.getNumBonusInfos() is not greater than zero but an array is being allocated in CvPlotGroup::reset", "GC.getNumBonusInfos() is not greater than zero but an array is being allocated in CvPlotGroup::reset");
@@ -4135,59 +4141,59 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 		{
 			if (hasBonus((BonusTypes)iI))
 			{
-				if (GC.getBuildingInfo(eBuilding).getBonusHealthChanges(iI) > 0)
+				if (b.getBonusHealthChanges(iI) > 0)
 				{
-					changeBonusGoodHealth(GC.getBuildingInfo(eBuilding).getBonusHealthChanges(iI) * iChange);
+					changeBonusGoodHealth(b.getBonusHealthChanges(iI) * iChange);
 				}
 				else
 				{
-					changeBonusBadHealth(GC.getBuildingInfo(eBuilding).getBonusHealthChanges(iI) * iChange);
+					changeBonusBadHealth(b.getBonusHealthChanges(iI) * iChange);
 				}
-				if (GC.getBuildingInfo(eBuilding).getBonusHappinessChanges(iI) > 0)
+				if (b.getBonusHappinessChanges(iI) > 0)
 				{
-					changeBonusGoodHappiness(GC.getBuildingInfo(eBuilding).getBonusHappinessChanges(iI) * iChange);
+					changeBonusGoodHappiness(b.getBonusHappinessChanges(iI) * iChange);
 				}
 				else
 				{
-					changeBonusBadHappiness(GC.getBuildingInfo(eBuilding).getBonusHappinessChanges(iI) * iChange);
+					changeBonusBadHappiness(b.getBonusHappinessChanges(iI) * iChange);
 				}
 
-				if (GC.getBuildingInfo(eBuilding).getPowerBonus() == iI)
+				if (b.getPowerBonus() == iI)
 				{
-					changePowerCount(iChange, GC.getBuildingInfo(eBuilding).isDirtyPower());
+					changePowerCount(iChange, b.isDirtyPower());
 				}
 
 				for (iJ = 0; iJ < NUM_YIELD_TYPES; iJ++)
 				{
-					changeBonusYieldRateModifier(((YieldTypes)iJ), (GC.getBuildingInfo(eBuilding).getBonusYieldModifier(iI, iJ) * iChange));
+					changeBonusYieldRateModifier(((YieldTypes)iJ), (b.getBonusYieldModifier(iI, iJ) * iChange));
 				}
 			}
 		}
 
 		for (iI = 0; iI < GC.getNumUnitCombatInfos(); iI++)
 		{
-			changeUnitCombatFreeExperience(((UnitCombatTypes)iI), GC.getBuildingInfo(eBuilding).getUnitCombatFreeExperience(iI) * iChange);
+			changeUnitCombatFreeExperience(((UnitCombatTypes)iI), b.getUnitCombatFreeExperience(iI) * iChange);
 		}
 
 		for (iI = 0; iI < NUM_DOMAIN_TYPES; iI++)
 		{
-			changeDomainFreeExperience(((DomainTypes)iI), GC.getBuildingInfo(eBuilding).getDomainFreeExperience(iI) * iChange);
-			changeDomainProductionModifier(((DomainTypes)iI), GC.getBuildingInfo(eBuilding).getDomainProductionModifier(iI) * iChange);
+			changeDomainFreeExperience(((DomainTypes)iI), b.getDomainFreeExperience(iI) * iChange);
+			changeDomainProductionModifier(((DomainTypes)iI), b.getDomainProductionModifier(iI) * iChange);
 		}
 
 		updateExtraBuildingHappiness();
 		updateExtraBuildingHealth();
 
-		GET_PLAYER(getOwnerINLINE()).changeAssets(GC.getBuildingInfo(eBuilding).getAssetValue() * iChange);
+		GET_PLAYER(getOwnerINLINE()).changeAssets(b.getAssetValue() * iChange);
 
-		area()->changePower(getOwnerINLINE(), (GC.getBuildingInfo(eBuilding).getPowerValue() * iChange));
-		GET_PLAYER(getOwnerINLINE()).changePower(GC.getBuildingInfo(eBuilding).getPowerValue() * iChange);
+		area()->changePower(getOwnerINLINE(), (b.getPowerValue() * iChange));
+		GET_PLAYER(getOwnerINLINE()).changePower(b.getPowerValue() * iChange);
 
 		for (iI = 0; iI < MAX_PLAYERS; iI++)
 		{
 			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getTeam())
 			{
-				if (GC.getBuildingInfo(eBuilding).isTeamShare() || (iI == getOwnerINLINE()))
+				if (b.isTeamShare() || (iI == getOwnerINLINE()))
 				{
 					GET_PLAYER((PlayerTypes)iI).processBuilding(eBuilding, iChange, area());
 				}
@@ -4196,30 +4202,30 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 
 		GET_TEAM(getTeam()).processBuilding(eBuilding, iChange);
 
-		GC.getGameINLINE().processBuilding(eBuilding, iChange);
+		g.processBuilding(eBuilding, iChange);
 	}
 
 	if (!bObsolete)
 	{
-		changeBuildingDefense(GC.getBuildingInfo(eBuilding).getDefenseModifier() * iChange);
-		changeBuildingBombardDefense(GC.getBuildingInfo(eBuilding).getBombardDefenseModifier() * iChange);
+		changeBuildingDefense(b.getDefenseModifier() * iChange);
+		changeBuildingBombardDefense(b.getBombardDefenseModifier() * iChange);
 
-		changeBaseGreatPeopleRate(GC.getBuildingInfo(eBuilding).getGreatPeopleRateChange() * iChange);
+		changeBaseGreatPeopleRate(b.getGreatPeopleRateChange() * iChange);
 
-		if (GC.getBuildingInfo(eBuilding).getGreatPeopleUnitClass() != NO_UNITCLASS)
+		if (b.getGreatPeopleUnitClass() != NO_UNITCLASS)
 		{
-			eGreatPeopleUnit = ((UnitTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(GC.getBuildingInfo(eBuilding).getGreatPeopleUnitClass())));
+			UnitTypes eGreatPeopleUnit = ((UnitTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(b.getGreatPeopleUnitClass())));
 
 			if (eGreatPeopleUnit != NO_UNIT)
 			{
-				changeGreatPeopleUnitRate(eGreatPeopleUnit, GC.getBuildingInfo(eBuilding).getGreatPeopleRateChange() * iChange);
+				changeGreatPeopleUnitRate(eGreatPeopleUnit, b.getGreatPeopleRateChange() * iChange);
 			}
 		}
 
-		GET_TEAM(getTeam()).changeBuildingClassCount((BuildingClassTypes)GC.getBuildingInfo(eBuilding).getBuildingClassType(), iChange);
-		GET_PLAYER(getOwnerINLINE()).changeBuildingClassCount((BuildingClassTypes)GC.getBuildingInfo(eBuilding).getBuildingClassType(), iChange);
+		GET_TEAM(getTeam()).changeBuildingClassCount((BuildingClassTypes)b.getBuildingClassType(), iChange);
+		GET_PLAYER(getOwnerINLINE()).changeBuildingClassCount((BuildingClassTypes)b.getBuildingClassType(), iChange);
 
-		GET_PLAYER(getOwnerINLINE()).changeWondersScore(getWonderScore((BuildingClassTypes)(GC.getBuildingInfo(eBuilding).getBuildingClassType())) * iChange);
+		GET_PLAYER(getOwnerINLINE()).changeWondersScore(getWonderScore((BuildingClassTypes)(b.getBuildingClassType())) * iChange);
 	}
 
 	updateBuildingCommerce();
@@ -14380,7 +14386,10 @@ void CvCity::read(FDataStreamBase* pStream)
 		int iChange;
 		pStream->Read(&iChange);
 		m_aBuildingHealthChange.push_back(std::make_pair((BuildingClassTypes)iBuildingClass, iChange));
-	} // <advc.004x>
+	} // <advc.912d>
+	if(uiFlag >= 4)
+		pStream->Read(&m_iPopRushHurryCount); // </advc.912d>
+	// <advc.004x>
 	if(uiFlag >= 2) {
 		pStream->Read(&mrOrder);
 		pStream->Read(&mrWasUnit);
@@ -14396,11 +14405,11 @@ void CvCity::read(FDataStreamBase* pStream)
 void CvCity::write(FDataStreamBase* pStream)
 {
 	int iI;
-
-	uint uiFlag=1;
-	uiFlag++; // advc.004x
-	uiFlag++; // advc.030b
-	pStream->Write(uiFlag);		// flag for expansion
+	uint uiFlag = 1; // flag for expansion
+	uiFlag = 2; // advc.004x
+	uiFlag = 3; // advc.030b
+	uiFlag = 4; // advc.912d
+	pStream->Write(uiFlag);
 
 	pStream->Write(m_iID);
 	pStream->Write(m_iX);
@@ -14614,7 +14623,9 @@ void CvCity::write(FDataStreamBase* pStream)
 	{
 		pStream->Write((*it).first);
 		pStream->Write((*it).second);
-	} // <advc.004x>
+	}
+	pStream->Write(m_iPopRushHurryCount); // advc.912d
+	// <advc.004x>
 	pStream->Write(mrOrder);
 	pStream->Write(mrWasUnit); // </advc.004x>
 }

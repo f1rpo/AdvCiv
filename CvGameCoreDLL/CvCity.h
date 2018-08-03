@@ -143,6 +143,10 @@ public:
 
 	bool canHurry(HurryTypes eHurry, bool bTestVisible = false) const;		// Exposed to Python
 	void hurry(HurryTypes eHurry);																						// Exposed to Python
+	// <advc.912d>
+	bool canPopRush() const;
+	protected: int m_iPopRushHurryCount; public:
+	void changePopRushCount(int iChange); // </advc.912d>
 
 	UnitTypes getConscriptUnit() const;																// Exposed to Python
 	CvUnit* initConscriptedUnit();

@@ -1431,7 +1431,10 @@ protected:
 	void postProcessBeginTurnEvents();
 	int getStartOfTurnMessageLimit() const;
 	// </advc.106b>
-
+	// <advc.106i>
+	bool bSavingReplay;
+	public: void setSavingReplay(bool b); protected:
+	// </advc.106i>
 	CvTurnScoreMap m_mapScoreHistory;
 	CvTurnScoreMap m_mapEconomyHistory;
 	CvTurnScoreMap m_mapIndustryHistory;

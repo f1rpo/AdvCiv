@@ -385,6 +385,15 @@
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 	
+	<!-- advc.106h: 1 (recommended) means that the game settings are recorded
+		 in replay files (as the first replay message). 0 (BtS) behavior means
+		 that the game settings are partly stored in the replay file, but not
+		 in a human-readable form. -->
+	<Define>
+		<DefineName>SETTINGS_IN_REPLAYS</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	
 	<!-- [advc.099]
 		 The default value for culture-based anger assumes Open Borders in
 		 AdvCiv. With closed borders, the anger is CLOSED_BORDERS_CULTURE_

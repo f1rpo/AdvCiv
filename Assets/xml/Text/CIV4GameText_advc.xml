@@ -413,6 +413,44 @@
 		<Italian>%s1 annulla la sua alleanza difensiva con %s2</Italian>
 		<Spanish>%s1 revoca su acuerdo de protecci&#243;n con %s2.</Spanish>
 	</TEXT>
+	
+	<!-- advc.106i: Delete if you want no prefix for replay file names. -->
+	<TEXT>
+		<Tag>TXT_KEY_REPLAY_PREFIX_ADVC</Tag>
+		<English>[AdvCiv]</English>
+		<French>[AdvCiv]</French>
+		<German>[AdvCiv]</German>
+		<Italian>[AdvCiv]</Italian>
+		<Spanish>[AdvCiv]</Spanish>
+	</TEXT>
+
+	<!-- advc.106h -->
+	<!-- Based on TXT_KEY_LEADER_CIV_DESCRIPTION in CIV4GameText_Misc1.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_NAME_LEADER_CIV</Tag>
+		<English>%s3_name (%s1_leader) of %s2_civ_short_name</English>
+		<French>%s3_name (%s1_leader) des %s2_civ_short_name</French>
+		<German>%s3_name (%s1_leader) von %s2_civ_short_name</German>
+		<Italian>%s3_name (%s1_leader) della civilt&#224; %s2:2_civ_short_name</Italian>
+		<Spanish>%s3_name (%s1_leader) de %s2_civ_short_name</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_SIZE_MAP_WITH</Tag>
+		<English>%s1_sz %s2_map Map with</English>
+		<French>%s2_map carte (%s1_sz) avec</French>
+		<German>%s2_map Karte (%s1_sz) mit</German>
+		<Italian>%s2_map mappa (%s1_sz) con</Italian>
+		<Spanish>%s2_map mapa (%s1_sz) con</Spanish>
+	</TEXT>
+	<!-- Based on TXT_KEY_GAME_WON in CIV4GameText_Misc1.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_VICTORY_DISABLED</Tag>
+		<English>Victory Disabled</English>
+		<French>(victoire) d&#233;sactiv&#233;e</French>
+		<German>-Sieg deaktiviert</German>
+		<Italian>(vittoria) disattivata</Italian>
+		<Spanish>(victoria) desactivada</Spanish>
+	</TEXT>
 
 	<!-- advc.004b
 		 Help text for projected city costs (city maintenance, civic upkeep,
@@ -1044,6 +1082,33 @@
 		<German>Es erscheinen keine Tiere.</German>
 		<Italian>Non appariranno animali</Italian>
 		<Spanish>No aparecer&#225;n animales.</Spanish>
+	</TEXT>
+	
+	<!-- advc.912d -->
+	<TEXT>
+		<Tag>TXT_KEY_GAME_OPTION_NO_SLAVERY</Tag>
+		<English>No Slavery</English>
+		<French>Pas de esclavage</French>
+		<German>Keine Sklaverei</German>
+		<Italian>No schiavismo</Italian>
+		<Spanish>Sin esclavitud</Spanish>
+	</TEXT>
+	<!-- Romance languages: based on deepl.com -->
+	<TEXT>
+		<Tag>TXT_KEY_GAME_OPTION_NO_SLAVERY_HELP</Tag>
+		<English>Human players cannot change their civics to Slavery. Only the Aztec Sacrificial Altar allows humans to sacrifice population.</English>
+		<French>Les acteurs humains ne peuvent pas changer leur doctrine en esclavage. Seul l'autel sacrificiel aztèque permet aux humains de sacrifier la population.</French>
+		<German>Menschliche Spieler können nicht die Sklaverei als Staatsform wählen. Nur der aztekischer Opferaltar erlaubt menschlichen Spielern das Opfern ihrer Bevölkerung.</German>
+		<Italian>I giocatori umani non possono cambiare la loro forma di governo in schiavismo. Solo l'altare sacrificale azteco permette agli umani di sacrificare la popolazione.</Italian>
+		<Spanish>Los jugadores humanos no pueden cambiar sus principios a la esclavitud. Sólo el altar de sacrificios azteca permite a los humanos sacrificar a la población.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CIVIC_BLOCKED_BY_OPTION</Tag>
+		<English>[COLOR_WARNING_TEXT]Can't adopt[COLOR_REVERT] %s1_civic because of the option "%s2_opt"</English>
+		<French>[COLOR_WARNING_TEXT]Impossible d'adopter[COLOR_REVERT] l'%s1_civic à cause de l'option "%s2_opt"</French>
+		<German>Kann %s1_civic [COLOR_WARNING_TEXT]nicht einführen[COLOR_REVERT] wegen der Option "%s2_opt"</German>
+		<Italian>[COLOR_WARNING_TEXT]Non può adottare[COLOR_REVERT] la %s1_civic a causa dell'opzione "%s2_opt"</Italian>
+		<Spanish>[COLOR_WARNING_TEXT]No se puede adoptar[COLOR_REVERT] la %s1_civic debido a la opción "%s2_opt"</Spanish>
 	</TEXT>
 
 	<!-- advc.310: Originally in Civ4GameTextInfos.xml
@@ -2122,7 +2187,7 @@
 		<Spanish>Muestra una alerta cada vez que un líder de IA se convierte (o deja de estar) dispuesto a iniciar una guerra a petición suya.</Spanish>
 	</TEXT>
 	<TEXT>
-		<Tag>TXT_KEY_CIV4LERTS_TRADE_WAR_MULTI</Tag>
+		<Tag>TXT_KEY_CIV4LERTS_TRADE_WAR</Tag>
 		<English>%s1_TeamName can be convinced to start a war against</English>
 		<French>%s1_TeamName pourrait être disposé à commencer la guerre contre</French>
 		<German>%s1_TeamName wäre bereit zu einem Krieg gegen</German>
@@ -2130,30 +2195,12 @@
 		<Spanish>%s1_TeamName es dispuesto a comenzar la guerra</Spanish>
 	</TEXT>
 	<TEXT>
-		<Tag>TXT_KEY_CIV4LERTS_NO_LONGER_TRADE_WAR_MULTI</Tag>
+		<Tag>TXT_KEY_CIV4LERTS_NO_LONGER_TRADE_WAR</Tag>
 		<English>%s1_TeamName can no longer be convinced of a war against</English>
 		<French>%s1_TeamName ne pourrait plus être disposé à une guerre contre</French>
 		<German>%s1_TeamName ist nicht mehr bereit zu einen Krieg gegen</German>
 		<Italian>%s1_TeamName non potrebbe più essere indotto à una guerra contro</Italian>
 		<Spanish>%s1_TeamName ya no es dispuesto a una guerra contra</Spanish>
-	</TEXT>
-	<!-- advc.tmp: To be removed later; for now, I want the v0.92f DLL
-		 to remain compatible with the XML and Python files.-->
-	<TEXT>
-		<Tag>TXT_KEY_CIV4LERTS_TRADE_WAR</Tag>
-		<English>%s1_TeamName can be convinced to start a war against %s2_TeamName.</English>
-		<French>%s1_TeamName pourrait être disposé à commencer la guerre contre %s2_TeamName.</French>
-		<German>%s1_TeamName wäre bereit zu einem Krieg gegen %s2_TeamName.</German>
-		<Italian>%s1_TeamName potrebbe essere indotto à cominciare la guerra contro %s2_TeamName.</Italian>
-		<Spanish>%s1_TeamName es dispuesto a comenzar la guerra contra %s2_TeamName.</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_CIV4LERTS_NO_LONGER_TRADE_WAR</Tag>
-		<English>%s1_TeamName can no longer be convinced of a war against %s2_TeamName.</English>
-		<French>%s1_TeamName ne pourrait plus être disposé à une guerre contre %s2_TeamName.</French>
-		<German>%s1_TeamName ist nicht mehr bereit zu einen Krieg gegen %s2_TeamName.</German>
-		<Italian>%s1_TeamName non potrebbe più essere indotto à una guerra contro %s2_TeamName.</Italian>
-		<Spanish>%s1_TeamName ya no es dispuesto a una guerra contra %s2_TeamName.</Spanish>
 	</TEXT>
 	
 	<!-- advc.210b -->

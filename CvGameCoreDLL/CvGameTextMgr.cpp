@@ -6740,8 +6740,26 @@ void CvGameTextMgr::parseCivicInfo(CvWStringBuffer &szHelpText, CivicTypes eCivi
 	if (!bCivilopediaText)
 	{
 		if (!bPlayerContext || !(GET_PLAYER(GC.getGameINLINE().getActivePlayer()).canDoCivics(eCivic)))
-		{
-			if (!bPlayerContext || !(GET_TEAM(GC.getGameINLINE().getActiveTeam()).isHasTech((TechTypes)(GC.getCivicInfo(eCivic).getTechPrereq()))))
+		{	// <advc.912d>
+			bool bValid = true;
+			if(bPlayerContext && GC.getGameINLINE().isOption(GAMEOPTION_NO_SLAVERY) &&
+					GET_PLAYER(GC.getGameINLINE().getActivePlayer()).isHuman()) {
+				for(int i = 0; i < GC.getNumHurryInfos(); i++) {
+					if(GC.getCivicInfo(eCivic).isHurry(i) &&
+							GC.getHurryInfo((HurryTypes)i).
+							getProductionPerPopulation() > 0) {
+						bValid = false;
+						szHelpText.append(NEWLINE);
+						szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_BLOCKED_BY_OPTION",
+								GC.getCivicInfo(eCivic).getDescription(),
+								GC.getGameOptionInfo(GAMEOPTION_NO_SLAVERY).getDescription()));
+					}
+				}
+			} // </advc.912d>
+			if (!bPlayerContext ||
+					(bValid && // advc.912d: Don't show tech req if disabled by option
+					!GET_TEAM(GC.getGameINLINE().getActiveTeam()).isHasTech(
+					(TechTypes)(GC.getCivicInfo(eCivic).getTechPrereq()))))
 			{
 				if (GC.getCivicInfo(eCivic).getTechPrereq() != NO_TECH)
 				{
@@ -9822,6 +9840,15 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_HURRY_ANGER_MOD", kBuilding.getHurryAngerModifier()));
+		// <advc.912d>
+		if(ePlayer != NO_PLAYER && g.isOption(GAMEOPTION_NO_SLAVERY) &&
+				kBuilding.getHurryAngerModifier() < 0 &&
+				GET_PLAYER(ePlayer).isHuman()) {
+			szBuffer.append(NEWLINE);
+			szTempBuffer.Format(L"%c", gDLL->getSymbolID(BULLET_CHAR), szTempBuffer);
+			szBuffer.append(szTempBuffer);
+			szBuffer.append(gDLL->getText("TXT_KEY_HURRY_POPULATION"));
+		} // </advc.912d>
 	}
 
 	if (kBuilding.getWarWearinessModifier() != 0)
