@@ -402,8 +402,8 @@ int CvArea::getRepresentativeArea() const {
 	return reprAreaId;
 }
 
-/*  Replacement for the BtS area()==area() checks, i.e. mostly used for
-	performance reasons before more specific and costlier checks. */
+/*  Replacement for the BtS area()==area() checks. Mostly used for
+	performance reasons before costlier more specific checks. */
 bool CvArea::canBeEntered(CvArea const& from, CvUnit const* u) const {
 
 	if(getID() == from.getID())

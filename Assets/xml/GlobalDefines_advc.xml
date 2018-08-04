@@ -241,15 +241,14 @@
     </Define>
 
 	<!-- [advc.113]
-		 The upper bound for the number of workers that the AI builds is
+		 The upper bound for the number of Workers that the AI builds is
 		 increased by this percentage. It's there to account for various
-		 worker tasks that the AI calculation omits, such as future cities
-		 and clearing jungle.
-         Recommended: 25; 0 is close to the original BtS/ K-Mod behavior.
-		 -->
+		 Worker tasks that the AI calculations omit.
+         Recommended: 13; a small negative value like -10 might be closest to
+		 BtS behavior. -->
     <Define>
         <DefineName>WORKER-RESERVE_PERCENT</DefineName>
-        <iDefineIntVal>25</iDefineIntVal>
+        <iDefineIntVal>13</iDefineIntVal>
     </Define>
 
 	<!-- [advc.125]

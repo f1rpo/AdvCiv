@@ -1,4 +1,4 @@
-Draft of balance/historicity changes for the AdvCiv mod. May2018
+Draft of balance/historicity changes for the AdvCiv mod. Aug2018
 **************************************************************************
 
 tech-tree.pdf: The proposed tech tree
@@ -14,6 +14,7 @@ Those specific changes should be accompanied by the following general rule chang
 * Limited number of attacks per turn against a single tile.
 * Limited number of combat rounds, so that combat can end in a draw (like air combat).
 * Limited free healing; when land units are badly damaged, some need to be disbanded in order to heal the others. Or some other cost on healing. Perhaps unlimited free healing for the AI, as a player handicap.
+See also: https://forums.civfanatics.com/threads/advanced-civ.614217/page-5#post-15157996
 
 2. Lower the production bonuses from traits and resources to 80%. Let production modifiers and special commerce modifiers apply to Processes (Wealth, Research, Culture), but halve both modifiers. Reduce the production-to-commerce conversion rate of Processes to 80%. Possibly award 50:50 gold and culture when a great wonder fails. 
 

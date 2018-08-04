@@ -1543,7 +1543,7 @@ void CvUnitAI::AI_settleMove()
 			}
 		}
 	}
-	
+	bool bMoveToCoast = false; // advc.040
 	if ((iOtherBestFoundValue * 100) > (iAreaBestFoundValue * 110))
 	{
 		if (plot()->getOwnerINLINE() == getOwnerINLINE())
@@ -1551,7 +1551,14 @@ void CvUnitAI::AI_settleMove()
 			if (AI_load(UNITAI_SETTLER_SEA, MISSIONAI_LOAD_SETTLER, NO_UNITAI, -1, -1, -1, 0, iMoveFlags))
 			{
 				return;
-			}
+			} // <advc.040>
+			else {
+				CvCity* pCity = plot()->getPlotCity();
+				if(pCity != NULL && !pCity->isCoastal() &&
+						getGroup()->getNumUnits() <= 3 && area()->getNumAIUnits(
+						getOwnerINLINE(), UNITAI_SETTLER_SEA) > 0)
+					bMoveToCoast = true; // Check MaxCityElimination first
+			} // </advc.040>
 		}
 	}
 	
@@ -1590,7 +1597,9 @@ void CvUnitAI::AI_settleMove()
 			}
 		}
 	}
-
+	// <advc.040>
+	if(bMoveToCoast && moveSettlerToCoast())
+		return; // </advc.040>
 	if (iAreaBestFoundValue > 0)
 	{
 		if (AI_found(iMoveFlags))
@@ -1605,8 +1614,8 @@ void CvUnitAI::AI_settleMove()
 		{
 			return;
 		}
-
 		// BBAI TODO: Go to a good city (like one with a transport) ...
+		// advc.: ^Now adressed in moveSettlerToCoast
 	}
 
 	// K-Mod: sometimes an unescorted settlers will join up with an escort mid-mission..
@@ -25905,6 +25914,43 @@ bool CvUnitAI::AI_allowGroup(const CvUnit* pUnit, UnitAITypes eUnitAI) const
 
 	return true;
 }
+
+// <advc.040>
+bool CvUnitAI::moveSettlerToCoast(int iMaxPathTurns) {
+
+	CvPlayer const& owner = GET_PLAYER(getOwnerINLINE()); int foo=-1;
+	CvCity* currentCity = plot()->getPlotCity();
+	if(currentCity == NULL)
+		return false;
+	int const iGroupSz = getGroupSize();
+	CvCity* pBest = NULL;
+	CvPlot* pEndPlot = NULL;
+	int iBest = 0;
+	for(CvCity* c = owner.firstCity(&foo); c != NULL; c = owner.nextCity(&foo)) {
+		CvPlot& cp = *c->plot();
+		if(c == currentCity || c->area() != area() || !c->isCoastal() ||
+				!AI_plotValid(&cp) || c->isEvacuating() ||
+				owner.AI_getPlotDanger(&cp) > iGroupSz - 1)
+			continue;
+		int iPathTurns=-1;
+		if(generatePath(&cp, 0, true, &iPathTurns, iMaxPathTurns)) {
+			int iValue = 5 + iMaxPathTurns - iPathTurns;
+			if(cp.plotCheck(PUF_isUnitAIType, UNITAI_SETTLER_SEA, -1, owner.getID()) != NULL)
+				iValue += 100;
+			if(iValue > iBest) {
+				iBest = iValue;
+				pBest = c;
+				pEndPlot = getPathEndTurnPlot();
+			}
+		}
+	}
+	if(pBest == NULL)
+		return false;
+	getGroup()->pushMission(MISSION_MOVE_TO, pBest->getX_INLINE(),
+			pBest->getY_INLINE(), (iGroupSz > 1 ? 0 : MOVE_SAFE_TERRITORY),
+			false, false, MISSIONAI_LOAD_SETTLER);
+	return true;
+} // </advc.040>
 
 void CvUnitAI::read(FDataStreamBase* pStream)
 {

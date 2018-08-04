@@ -1237,8 +1237,8 @@ void CvCityAI::AI_chooseProduction()
 		if (iExistingWorkers < iNeededWorkers)
 		{
 			if (3*AI_getWorkersHave()/2 < AI_getWorkersNeeded() // local
-				// advc.113: used to be 80 instead of 180
-				|| GC.getGame().getSorenRandNum(180, "choose worker 6") > iBestBuildingValue + (iBuildUnitProb + 50)/2)
+				// advc.113: used to be RandNum(80)
+				|| GC.getGame().getSorenRandNum(170, "choose worker 6") > iBestBuildingValue + (iBuildUnitProb + 50)/2)
 			{
 				if (!bChooseWorker && AI_chooseUnit(UNITAI_WORKER))
 				{
@@ -1343,7 +1343,7 @@ void CvCityAI::AI_chooseProduction()
 			}
 		}
 	}
-	
+
 	//do a check for one tile island type thing?
     //this can be overridden by "wait and grow more"
 /***
@@ -12889,7 +12889,6 @@ void CvCityAI::AI_updateWorkersNeededHere()
 	PROFILE_FUNC();
 
 	CvPlot* pLoopPlot;
-
 	short aiYields[NUM_YIELD_TYPES];
 
 	int iWorkersNeeded = 0;
@@ -12910,7 +12909,7 @@ void CvCityAI::AI_updateWorkersNeededHere()
 	{
 		if (getProductionUnitAI() == UNITAI_WORKER)
 		{
-			if (getProductionTurnsLeft() <= 2)
+			if (getProductionTurnsLeft() <= 3) // advc.113: was <=2
 			{
 				iWorkersHave++;
 			}
@@ -12989,26 +12988,20 @@ void CvCityAI::AI_updateWorkersNeededHere()
 	{
 		int iPopDelta = AI_getTargetPopulation() - getPopulation();
 		int iFutureWork = std::max(0, iWorkedUnimprovableCount + range((iPopDelta+1)/2, 0, 3) - iImprovedUnworkedPlotCount);
-		iUnimprovedWorkedPlotCount +=
-				(int)( // <advc.113>
-				((std::min(iUnimprovedUnworkedPlotCount, iFutureWork)+1) / 2.0) // not changed except for the ".0"
-				* ((GC.getDefineINT("WORKER-RESERVE_PERCENT") + 100) / 100.0));
-			    /* Now that the AI builds more workers in total,
-				   more should be assigned to cities (instead of
-				   building roads).
-				   The term that accounts for work ahead of time
-				   is increased to 125% (given the current value
-				   of WORKER-RESERVE_PERCENT).
-				   Note that workersNeededHere also factors into
-				   CvPlayerAI::AI_neededWorkers, so the increase
-				   here is counted twice. </advc.113> */
+		iUnimprovedWorkedPlotCount += //(std::min(iUnimprovedUnworkedPlotCount, iFutureWork)+1) / 2
+			// <advc.113>
+			::round(((std::min(iUnimprovedUnworkedPlotCount, iFutureWork)+1) / 2.0)
+				* ((GC.getDefineINT("WORKER-RESERVE_PERCENT") + 100
+				// Flavor was previously counted in CvPlayerAI::workersNeededHere
+				+ 2 * GET_PLAYER(getOwnerINLINE()).
+				AI_getFlavorValue(FLAVOR_GROWTH)) / 100.0)); // </advc.113>
 	}
 	// K-Mod end
 
 	iWorkersNeeded += 2 * iUnimprovedWorkedPlotCount;
 
 	int iBestPotentialPlotValue = -1;
-	int nChops = 0; // advc.117
+	int iChop = 0; // advc.117
 	if (iWorstWorkedPlotValue != MAX_INT)
 	{
 		//Add an additional citizen to account for future growth.
@@ -13045,8 +13038,9 @@ void CvCityAI::AI_updateWorkersNeededHere()
 							}
 							// <advc.117>
 							FeatureTypes ft = pLoopPlot->getFeatureType();
-							if(ft != NO_FEATURE && GC.getBuildInfo(AI_getBestBuild(iI)).getFeatureProduction(ft) > 0)
-								nChops++; // </advc.117>
+							if(ft != NO_FEATURE && GC.getBuildInfo(
+									AI_getBestBuild(iI)).getFeatureProduction(ft) > 0)
+								iChop++; // </advc.117>
 						}
 						iBestPotentialPlotValue = std::max(iBestPotentialPlotValue, iPlotValue);
 					}
@@ -13076,7 +13070,12 @@ void CvCityAI::AI_updateWorkersNeededHere()
 		iWorkersNeeded *= 3;
 		iWorkersNeeded /= 2;
 	}
-
+	/*  advc.117:
+		Chopping isn't considered when counting (un)improved (un)worked tiles
+		above. Needs to be accounted for in this function b/c prioritizing
+		Worker training and high build utility for chopping don't help if the
+		AI doesn't assign a worker to the city where the trees are. */
+	iWorkersNeeded += ::round(0.7 * iChop);
 	if (iWorkersNeeded > 0)
 	{
 		iWorkersNeeded++;
@@ -13101,15 +13100,9 @@ void CvCityAI::AI_updateWorkersNeededHere()
 	iWorkersNeeded += (iSpecialCount + 1) / 2;
 	
 	iWorkersNeeded = std::max((iUnimprovedWorkedPlotCount + 1) / 2, iWorkersNeeded);
-
-	/* <advc.117> Chopping isn't considered when counting (un)improved (un)worked
-	  tiles above. Needs to be accounted for in this function b/c prioritizing
-	  worker building and high build utility for chopping don't help if the
-	  AI doesn't assign a worker to the city where the trees are. */
-	iWorkersNeeded += nChops / 3;
-	if(nChops > 0 && iWorkersNeeded == 0) iWorkersNeeded++;
-	// </advc.117>
-	
+	/*  advc.117: More than 3 is dubious, though it probably won't hurt much
+		in the mid/late game. */
+	iWorkersNeeded = std::min(iWorkersNeeded, 2 + GC.getGameINLINE().getCurrentEra());
 	m_iWorkersNeeded = iWorkersNeeded;
 	m_iWorkersHave = iWorkersHave;
 }

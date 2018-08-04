@@ -4514,7 +4514,8 @@ DenialTypes CvTeamAI::AI_openBordersTrade(TeamTypes eTeam) const
 		return NO_DENIAL;
 	}*/
 	
-	if (AI_getMemoryCount(eTeam, MEMORY_CANCELLED_OPEN_BORDERS) > 0)
+	if (AI_getMemoryCount(eTeam, MEMORY_CANCELLED_OPEN_BORDERS) > 0
+			&& !AI_shareWar(eTeam)) // advc.124
 	{
 		return DENIAL_RECENT_CANCEL;
 	}

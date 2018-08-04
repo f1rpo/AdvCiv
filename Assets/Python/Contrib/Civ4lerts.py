@@ -900,8 +900,8 @@ class RefusesToTalk(AbstractStatefulAlert):
 	def display(self, eActivePlayer, key, players):
 		for ePlayer in players:
 			player = gc.getPlayer(ePlayer)
-			# advc.106d: Don't report refusal to talk when war just begun 
-			if player.isAlive() and gc.getTeam(gc.getPlayer(eActivePlayer).getTeam()).AI_getAtWarCounter(player.getTeam()) > 1:
+			# advc.106d: Don't report refusal to talk when war just begun, nor when stopped trading.
+			if player.isAlive() and gc.getTeam(gc.getPlayer(eActivePlayer).getTeam()).isAtWar(player.getTeam()) and gc.getTeam(gc.getPlayer(eActivePlayer).getTeam()).AI_getAtWarCounter(player.getTeam()) > 1:
 				message = BugUtil.getText(key, player.getName())
 				addMessageNoIcon(eActivePlayer, message)
 

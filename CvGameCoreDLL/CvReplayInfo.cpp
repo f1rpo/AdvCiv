@@ -281,7 +281,18 @@ void CvReplayInfo::addSettingsMsg() {
 	}
 	if(iOptions > 0)
 		m = m.substr(0, m.length() - 2) + L"\n";
-	m += L"AdvCiv Mod"; // gDLL->getModName(false) doesn't yield a wstring
+	CvWString const tag = "TXT_KEY_REPLAY_PREFIX_ADVC";
+	// gDLL->getModName(false) doesn't yield a wstring
+	CvWString modName = gDLL->getText(tag);
+	// Don't list mod name if the tag isn't present
+	if(tag.compare(modName) == 0)
+		m = m.substr(0, m.length() - 1); // drop \n
+	else {
+		// Remove brackets
+		if(modName.at(0) == '[' && modName.at(modName.length() - 1) == ']')
+			modName = modName.substr(1, modName.length() - 2);
+		m += modName + L" Mod";
+	}
 	CvReplayMessage* settingsMsg = new CvReplayMessage(0,
 			REPLAY_MESSAGE_MAJOR_EVENT, plId);
 	settingsMsg->setText(m);

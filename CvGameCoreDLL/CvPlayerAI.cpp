@@ -7009,7 +7009,10 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 					int iNumBonuses = bRevealed
 						? countOwnedBonuses((BonusTypes)iK) // actual count
 						: std::max(1, 2*getNumCities() / std::max(1, 3*iCityTarget)); // a guess
-
+					// <advc.131> Don't jump for fish when settled one off the coast
+					if(iNumBonuses > 0 && GC.getImprovementInfo(eBuildImprovement).
+							isWater() && iCoastalCities <= 0)
+						iNumBonuses = iNumBonuses / 2; // </advc.131>
 					//iNumBonuses += std::max(0, (iCityTarget - iCityCount)*(kFinalImprovement.isWater() ? 2 : 3)/8); // future expansion
 					// <advc.003>
 					if (iNumBonuses <= 0 || (!bRevealed && kBonusInfo.getTechReveal() != eTech))
@@ -12758,6 +12761,7 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 	// <advc.036>
 	if(bTrade && m_aiBonusValueTrade[eBonus] != -1)
 		return m_aiBonusValueTrade[eBonus]; // </advc.036>
+
 	if(GET_TEAM(getTeam()).isBonusObsolete(eBonus)) {
 		m_aiBonusValue[eBonus] = 0;
 		m_aiBonusValueTrade[eBonus] = 0; // advc.036
@@ -12806,17 +12810,19 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 		in AI_bonusTradeVal. There's a division by 10 at the end of this function,
 		and it's supposed to return 4 times the gpt per city, so everything still
 		needs to be multiplied by 2: */
-	double const scaleFactor = 2;
+	double const scaleFactor = 2.1; // plus a little extra now that ExtraPop1 and ExtraPop2 no longer have equal weight
 	/*  The weight functions always assign some value to happiness and health
 		beyond what is needed for the current population, but the AI should
 		secure bonuses some time before they're needed so that CvCityAI can
 		tell when there is room for growth and prioritize food accordingly.
-		2 is a bit much though, and 1 too little, so take the mean of the two. */
+		2 is a bit much though, and 1 too little, so take a weighted mean
+		of the two. */
 	int iExtraPop1 = 1, iExtraPop2 = 2;
 	if(!bTrade) // Look ahead farther then (trades are fickle)
 		iExtraPop1 = iExtraPop2;
 	// Don't want iExtraPop to increase resource prices on the whole
-	double extraPopFactor = std::max(0.5, 0.1 * (10 - 0.5 * (iExtraPop1 + iExtraPop2)));
+	double extraPopFactor = std::max(0.5, 0.1 * (10 - (0.7 * iExtraPop1 +
+			0.3 * iExtraPop2)));
 	bool bAvailable = (getNumAvailableBonuses(eBonus) > 0);
 	if(happy > 0) {
 		/*  advc.912c: Better ignore getLuxuryModifier; don't want civs with a
@@ -12829,9 +12835,9 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 			iExtraPop1 += happy;
 			iExtraPop2 += happy;
 		}
-		dValue += scaleFactor * (0.5 + civicsMod) *
-				(AI_getHappinessWeight(happy, iExtraPop1) +
-				AI_getHappinessWeight(happy, iExtraPop2));
+		dValue += scaleFactor *
+			((0.7 + 0.5 * civicsMod) * AI_getHappinessWeight(happy, iExtraPop1) +
+			 (0.3 + 0.5 * civicsMod) * AI_getHappinessWeight(happy, iExtraPop2));
 	}
 	if(health > 0) {
 		if(bTrade && bAvailable) {
@@ -15369,11 +15375,10 @@ int CvPlayerAI::AI_neededWorkers(CvArea* pArea) const
 		negligible though. */
 	PROFILE_FUNC();
 
-	CvCity* pLoopCity;
-	int iCount;
-	int iLoop;
-
-	iCount = countUnimprovedBonuses(pArea) * 2;
+	CvCity* pLoopCity=NULL;
+	int iLoop=-1;
+	// advc.113: Let's focus on the workable bonuses (CvCityAI::AI_getWorkersNeeded)
+	int iCount = countUnimprovedBonuses(pArea);// * 2;
 
 	for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
@@ -15382,53 +15387,44 @@ int CvPlayerAI::AI_neededWorkers(CvArea* pArea) const
 			iCount += pLoopCity->AI_getWorkersNeeded() * 3;
 		}
 	}
-	
-	if (iCount == 0)
+	/*  advc.113: Commented out. Training Workers ahead of time is
+		not so unimportant. */
+	/*if (iCount == 0)
 	{
 		return 0;
+	}*/
+	if(iCount < 5 * getNumCities()) { // advc.113
+		// K-Mod. Some additional workers if for 'growth' flavour AIs who are still growing...
+		if (/*  advc.113: Growth is about tall cities. Factor Growth flavor into
+				the number of Workers per existing city, and add Workers for
+				future cities regardless of flavor. */
+				// AI_getFlavorValue(FLAVOR_GROWTH) > 0 &&
+				AI_isPrimaryArea(pArea)) {
+			int iDummy=-1; // advc.113: Changed to floating point arithmetic
+			double extraCities = std::min(GC.getWorldInfo(GC.getMapINLINE().
+					getWorldSize()).getTargetNumCities()*(4.0/3) - getNumCities(),
+					(double)AI_getNumAreaCitySites(pArea->getID(), iDummy));
+			extraCities = ::dRange(extraCities, 0.0, getNumCities()*(2.0/3));
+			/*  advc.113: Was 3*iExtraCities, which can be a lot. In K-Mod,
+				CvCityAI didn't actually train all those Workers, but now it might. */
+			iCount += ::round(1.4 * extraCities);
+		}
+		// K-Mod end
+		if(getBestRoute() != NO_ROUTE)
+			iCount += pArea->getCitiesPerPlayer(getID()) / 2;
 	}
-
-	// K-Mod. Some additional workers if for 'growth' flavour AIs who are still growing...
-	if (
-		// AI_getFlavorValue(FLAVOR_GROWTH) > 0 && // advc.113: All civs need those extra workers
-		AI_isPrimaryArea(pArea))
-	{
-		int iDummy;
-		int iExtraCities = std::min(GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getTargetNumCities()*4/3 - getNumCities(), AI_getNumAreaCitySites(pArea->getID(), iDummy));
-		iExtraCities = range(iExtraCities, 0, getNumCities()*2/3);
-		/* <advc.113> Used to be 3 indiscriminately. Factoring in Growth flavor
-		   here now, but only to a minor effect b/c Growth is mostly about
-		   tall cities, which doesn't actually fit well with additional Workers. */
-		iCount += iExtraCities * (AI_getFlavorValue(FLAVOR_GROWTH) > 0 ? 2 : 1);
-		// </advc.113>
-	}
-	// K-Mod end
-
-	if (getBestRoute() != NO_ROUTE)
-	{
-		iCount += pArea->getCitiesPerPlayer(getID()) / 2;
-	}
-
-
+	/*  advc.113: To account for future tasks other than new cities:
+		population growth and new techs, and try to err on the side of too
+		many Workers (b/c the AI is pretty bad at sharing them between cities). */
+	iCount = (iCount * (100 + GC.getDefineINT("WORKER-RESERVE_PERCENT"))) / 100;
 	iCount += 1;
 	iCount /= 3;
-
-	/* <advc.113> The AI built too few workers. More specifically, the calculation
-	   of needed workers focuses on immediate tasks, and, hence, lags behind
-	   the true workload when new tasks come up, e.g. when founding a city.
-	   The 25% increase (new XML parameter) leads to extra workers being trained
-	   ahead of time. (Probably too many workers in the later eras this way, but
-	   that's a minor concern.)
-	   Then the std::min bounds: I made the first one stricter,
-	   i.e. at most 2.5 workers per city instead of 3, and removed
-	   the second one. Current population should have no bearing on workers. */
-	iCount = (iCount * (100 + GC.getDefineINT("WORKER-RESERVE_PERCENT"))) / 100;
-
-	iCount = std::min(iCount, (5 * pArea->getCitiesPerPlayer(getID())) / 2);
-	//iCount = std::min(iCount, (1 + getTotalPopulation()) / 2); // </advc.113>
-
+	//iCount = std::min(iCount, (1 + getTotalPopulation()) / 2);
+	// <advc.113> Current population should have no bearing on Workers
+	int iCities = pArea->getCitiesPerPlayer(getID());
+	iCount = std::min(iCount, (iCities <= 1 ? 3 : ::round(2.2 * iCities)));
+	// </advc.113>
 	return std::max(1, iCount);
-
 }
 
 

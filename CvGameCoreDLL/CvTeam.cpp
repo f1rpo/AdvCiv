@@ -6042,6 +6042,13 @@ CvWString const CvTeam::tradeItemString(TradeableItems itemType, int data,
 				TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
 				GC.getTechInfo(tt).getDescription());
 	}
+	case TRADE_PEACE: {
+		TeamTypes peaceTeam = (TeamTypes)data;
+		if(peaceTeam == NO_TEAM)
+			return L"";
+		return gDLL->getText("TXT_KEY_TRADE_PEACE_WITH") +
+				GET_TEAM(peaceTeam).getName();
+	}
 	}
 	return L"";
 } // </advc.039>
