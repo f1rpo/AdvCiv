@@ -16593,7 +16593,7 @@ void CvCity::failProduction(int orderData, int investedProduction,
 			GC.getProjectInfo((ProjectTypes)orderData).getTextKeyWide() :
 			GC.getBuildingInfo((BuildingTypes)orderData).getTextKeyWide(),
 			iProductionGold);
-	gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), false,
+	gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true,
 			GC.getEVENT_MESSAGE_TIME(), msg, "AS2D_WONDERGOLD",
 			MESSAGE_TYPE_MINOR_EVENT, GC.getCommerceInfo(COMMERCE_GOLD).
 			getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),

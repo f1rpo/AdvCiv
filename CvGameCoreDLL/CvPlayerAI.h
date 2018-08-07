@@ -614,6 +614,8 @@ protected:
 			int happyLeft, int healthLeft, int iOtherListLength) const;
 	int checkCancel(CvDeal const& d, PlayerTypes otherId, bool flip);
 	// </advc.003> <advc.036>
+	// advc.026:
+	bool checkMaxGold(CLinkList<TradeData> const& items, PlayerTypes toId) const;
 	int adjustTradeGoldToDiplo(int gold, PlayerTypes civId) const;
 	void foldDeals() const;
 	void foldDeals(CvDeal& d1, CvDeal& d2) const; // </advc.036>

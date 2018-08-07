@@ -11185,7 +11185,11 @@ double CvGame::goodyHutEffectFactor(
 
 	CvGameSpeedInfo& sp = GC.getGameSpeedInfo(getGameSpeedType());
 	double speedMultTurns = sp.getGrowthPercent() / 100.0;
-	double speedMultFinal = (speedAdjust ? sp.getTrainPercent() / 100.0 : 1);
+	int const iWorldSzPercent = 100;
+		// Not sure if map-size adjustment is a good idea
+		//=GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getResearchPercent();
+	double speedMultFinal = (speedAdjust ?
+			sp.getTrainPercent() * iWorldSzPercent / 10000.0 : 1);
 	double startTurn = std::max(0.0,
 			GC.getDefineINT("GOODY_BUFF_START_TURN") * speedMultTurns);
 	double peakTurn = std::max(startTurn,

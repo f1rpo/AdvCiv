@@ -11255,12 +11255,10 @@ bool CvPlayerAI::AI_considerOfferBulk(PlayerTypes ePlayer,
 	CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer);
 	bool bHuman = kPlayer.isHuman(); // </advc.003>
 	FAssertMsg(ePlayer != getID(), "shouldn't call this function on ourselves");
-
-	if (AI_goldDeal(pTheirList) && AI_goldDeal(pOurList))
-	{
-		return false;
-	}
-
+	// <advc.003>
+	bool const bOurGoldDeal = AI_goldDeal(pOurList);
+	if(AI_goldDeal(pTheirList) && bOurGoldDeal)
+		return false; // </advc.003>
 	if (iChange > -1)
 	{
 		for (CLLNode<TradeData>* pNode = pOurList->head(); pNode; pNode = pOurList->next(pNode))
@@ -11280,6 +11278,9 @@ bool CvPlayerAI::AI_considerOfferBulk(PlayerTypes ePlayer,
 					return false;
 			}
 		} // </advc.036>
+		// <advc.026>
+		else if(bOurGoldDeal && !checkMaxGold(*pOurList, ePlayer))
+			return false; // </advc.026>
 	}
 	/*if (kPlayer.getTeam() == getTeam())
 	{
@@ -11575,12 +11576,24 @@ bool CvPlayerAI::AI_considerOfferBulk(PlayerTypes ePlayer,
 		// <advc.133> Always 125 in K-Mod
 		int tolerance = (bHuman ? 145 : 155) - std::min(35, dealAge);
 		// <advc.155>
-		if(bSameTeam)
-			tolerance = 150; // </advc.155>
-		return (tolerance * // </advc.133>
-				iTheirValue >= iOurValue * 100 // K-Mod
-				// advc.155:
-				|| (bSameTeam && iOurValue < iThreshold));
+		if(bSameTeam) {
+			if(iOurValue < iThreshold)
+				return true;
+			tolerance = 150;
+		} // </advc.155>
+		if(tolerance * // </advc.133>
+				iTheirValue >= iOurValue * 100) // K-Mod
+			return true;
+		/*  <advc.036> Need to make trades more stable in large games,
+			even to the detriment of the AI. But mustn't cling to a bad deal
+			indefinitely -> randomize it. */
+		if(!bHuman)
+			return false;
+		double prCancel = (0.025 * tolerance) /
+				(GET_TEAM(kPlayer.getTeam()).getHasMetCivCount() *
+				iOurValue / (double)iTheirValue);
+		return (prCancel < ::hash(g.getGameTurn(), getID()));
+		// </advc.036>
 	}
 	// <advc.136b>
 	else {
@@ -11772,6 +11785,9 @@ bool CvPlayerAI::counterProposeBulk(PlayerTypes ePlayer, const CLinkList<TradeDa
 	if(!isHuman() && iValueForUs > iValueForThem &&
 			iValueForUs < 2 * GC.getDIPLOMACY_VALUE_REMAINDER())
 		return false; // </advc.136b>
+	// <advc.026>
+	if(bOurGoldDeal && !checkMaxGold(*pOurList, ePlayer))
+		return false; // </advc.026>
 	bool bDeal = false; // advc.036: Moved up
 	// When counterProposing, we want balance the deal - but if we can't balance it, we want to make sure it favours us; not them.
 	// So if their value is greater, we don't mind suggesting items which take them past balance.
@@ -19960,6 +19976,23 @@ int CvPlayerAI::checkCancel(CvDeal const& d, PlayerTypes otherId, bool flip) {
 	} // </advc.133>
 	return -1;
 } // </advc.003>
+
+// <advc.026>
+bool CvPlayerAI::checkMaxGold(CLinkList<TradeData> const& items,
+		PlayerTypes toId) const {
+
+	int const iMaxGold = AI_maxGoldTrade(toId);
+	int const iMaxGPT = AI_maxGoldPerTurnTrade(toId);
+	for(CLLNode<TradeData>* tdn = items.head(); tdn != NULL;
+			tdn = items.next(tdn)) {
+		if(tdn->m_data.m_eItemType == TRADE_GOLD && tdn->m_data.m_iData > iMaxGold)
+			return false;
+		if(tdn->m_data.m_eItemType == TRADE_GOLD_PER_TURN && tdn->m_data.m_iData > iMaxGPT)
+			return false;
+	}
+	return true;
+} // </advc.026>
+
 
 void CvPlayerAI::AI_doDiplo()
 {

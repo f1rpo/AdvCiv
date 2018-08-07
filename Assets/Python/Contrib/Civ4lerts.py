@@ -157,8 +157,9 @@ def addMessage(iPlayer, szString, szIcon, iFlashX=-1, iFlashY=-1, bOffArrow=Fals
 	if gc.getGame().isRFBlockPopups() or gc.getPlayer(iPlayer).isHumanDisabled() or gc.getPlayer(iPlayer).isAutoPlayJustEnded():
 		return # </advc.706>
 	# advc.106c: Reduced time from LONG to normal
+	# advc.106: Set bForce to False
 	eventMessageTimeLong = gc.getDefineINT("EVENT_MESSAGE_TIME")
-	CyInterface().addMessage(iPlayer, True, eventMessageTimeLong,
+	CyInterface().addMessage(iPlayer, False, eventMessageTimeLong,
 							 szString, None, InterfaceMessageTypes.MESSAGE_TYPE_INFO, 
 							 szIcon, ColorTypes(-1),
 							 iFlashX, iFlashY, bOffArrow, bOnArrow)

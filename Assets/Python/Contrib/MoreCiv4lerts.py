@@ -530,7 +530,7 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 		for other in TradeUtil.getBonusTradePartners(player):
 			if not playerGoldTr and not gc.getTeam(other.getTeam()).isGoldTrading():
 				continue
-			if other.AI_maxGoldPerTurnTrade(player.getID()) <= 0:
+			if other.AI_maxGoldPerTurnTrade(player.getID()) <= 2:
 				continue
 			# As getBonusTrades, but switch the parameters in this call:
 			will, wont = TradeUtil.getTradeableBonuses(player, other)

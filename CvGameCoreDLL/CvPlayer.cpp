@@ -6302,7 +6302,7 @@ void CvPlayer::receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,
 		FAssertMsg(eBestTech != NO_TECH, "BestTech is not assigned a valid value");
 		// <advc.314> Most of the code from here on was modified
 		CvTeam& ourTeam = GET_TEAM(getTeam());
-		if(iGold <= 0 || ourTeam.getResearchLeft(eBestTech) <= iGold) {
+		if(iGold <= 0 || 0.8 * ourTeam.getResearchLeft(eBestTech) <= iGold) {
 			ourTeam.setHasTech(eBestTech, true, getID(), true, true);
 			if(isSignificantDiscovery(eBestTech))
 				ourTeam.setNoTradeTech(eBestTech, true);
