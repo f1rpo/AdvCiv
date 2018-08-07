@@ -943,6 +943,9 @@ public:
 	int getQueuePosition(TechTypes eTech) const;																											// Exposed to Python
 	DllExport void clearResearchQueue();																												// Exposed to Python
 	DllExport bool pushResearch(TechTypes eTech, bool bClear = false);													// Exposed to Python
+	// <advc.004x> Safer not to add a param to DLLExport
+	bool pushResearchBulk(TechTypes eTech, bool bClear = false,
+			bool bKillPopup = true); // </advc.004x>
 	void popResearch(TechTypes eTech);																													// Exposed to Python
 	int getLengthResearchQueue() const;																																// Exposed to Python
 	CLLNode<TechTypes>* nextResearchQueueNode(CLLNode<TechTypes>* pNode) const;

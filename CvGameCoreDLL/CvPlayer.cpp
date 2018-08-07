@@ -8614,7 +8614,8 @@ int CvPlayer::getResearchTurnsLeftTimes100(TechTypes eTech, bool bOverflow) cons
 				if ((iI == getID()) || (GET_PLAYER((PlayerTypes)iI).getCurrentResearch() == eTech))
 				{
 					//iResearchRate += GET_PLAYER((PlayerTypes)iI).calculateResearchRate(eTech);
-					iResearchRate += std::max(1, GET_PLAYER((PlayerTypes)iI).calculateResearchRate(eTech)); // K-Mod (replacing the minimum which use to be in calculateResearchRate)
+					// K-Mod (replacing the minimum which use to be in calculateResearchRate)
+					iResearchRate += std::max(1, GET_PLAYER((PlayerTypes)iI).calculateResearchRate(eTech));
 					iOverflow += (GET_PLAYER((PlayerTypes)iI).getOverflowResearch() * calculateResearchModifier(eTech)) / 100;
 				}
 			}
@@ -14420,13 +14421,17 @@ void CvPlayer::clearResearchQueue()
 //	and its pre-reqs into the queue.  If it is not an append it will change
 //	research immediately and should be used with clear.  Clear will clear the entire queue.
 bool CvPlayer::pushResearch(TechTypes eTech, bool bClear)
-{
+{	// <advc.004x>
+	return pushResearchBulk(eTech, bClear);
+}
+bool CvPlayer::pushResearchBulk(TechTypes eTech, bool bClear, bool bKillPopup)
+{ // </advc.004x>
 	int i;
 	int iNumSteps;
 	int iShortestPath;
 	bool bOrPrereqFound;
 	TechTypes ePreReq;
-  TechTypes eShortestOr;
+	TechTypes eShortestOr;
 
 	FAssertMsg(eTech != NO_TECH, "Tech is not assigned a valid value");
 
@@ -14525,7 +14530,7 @@ bool CvPlayer::pushResearch(TechTypes eTech, bool bClear)
 	// ONEVENT - Tech selected (any)
 	CvEventReporter::getInstance().techSelected(eTech, getID());
 	// <advc.004x>
-	if(wasEmpty && getID() == GC.getGameINLINE().getActivePlayer())
+	if(bKillPopup && wasEmpty && getID() == GC.getGameINLINE().getActivePlayer())
 		killAll(BUTTONPOPUP_CHOOSETECH, 0); // </advc.004x>
 	return true;
 }
@@ -15343,8 +15348,8 @@ void CvPlayer::doResearch()
 			{
 				chooseTech();
 			}
-
-			if (GC.getGameINLINE().getElapsedGameTurns() > 4)
+			// advc.124g: Commented out
+			//if (GC.getGameINLINE().getElapsedGameTurns() > 0)
 			{
 				AI_chooseResearch();
 

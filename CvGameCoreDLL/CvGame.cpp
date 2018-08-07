@@ -370,11 +370,15 @@ void CvGame::regenerateMap()
 	{
 		GET_PLAYER((PlayerTypes)iI).killAllDeals();
 	}
-
+	
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		GET_PLAYER((PlayerTypes)iI).setFoundedFirstCity(false);
 		GET_PLAYER((PlayerTypes)iI).setStartingPlot(NULL, false);
+		// <advc.004x>
+		if(GET_PLAYER((PlayerTypes)iI).isHuman())
+			GET_PLAYER((PlayerTypes)iI).killAll(BUTTONPOPUP_CHOOSETECH);
+		// </advc.004x>
 	}
 
 	for (iI = 0; iI < MAX_TEAMS; iI++)
@@ -394,6 +398,7 @@ void CvGame::regenerateMap()
 	setGameTurn(0);
 	setStartTurn(0);
 	setStartTurnYear();
+	m_iElapsedGameTurns = 0;
 	// </advc.151><advc.004j>
 	CvEventReporter::getInstance().resetStatistics();
 
@@ -922,8 +927,16 @@ void CvGame::initScenario() {
 
 	initFreeState(); // Tech from handicap
 	// <advc.030>
-	if(GC.getDefineINT("PASSABLE_AREAS") > 0)
+	if(GC.getDefineINT("PASSABLE_AREAS") > 0) {
+		/*  recalculateAreas can't handle preplaced cities. Or perhaps it can
+			(Barbarian cities are fine in most cases), but there's going to
+			be other stuff, like free units, that causes problems. */
+		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+			if(GET_PLAYER((PlayerTypes)i).getNumCities() > 0)
+				return;
+		}
 		GC.getMap().recalculateAreas();
+	}
 	// </advc.030>
 }
 
@@ -931,8 +944,7 @@ void CvGame::initFreeUnits() {
 
 	/*  In scenarios, neither setInitialItems nor initFreeState is called; the
 		EXE only calls initFreeUnits, so initialization of freebies needs to
-		happen here. (If a scenario places cities, then initFreeUnits isn't
-		called either - no additional freebies from the DLL then.) */
+		happen here. */
 	if(GC.getInitCore().isScenario())
 		initScenario();
 	initFreeUnitsBulk();

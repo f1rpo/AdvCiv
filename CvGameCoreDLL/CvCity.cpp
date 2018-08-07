@@ -316,7 +316,9 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 				)
 			{
 				changeOverflowProduction(GC.getDefineINT("INITIAL_AI_CITY_PRODUCTION"), 0);
-			}
+			} // <advc.124g>
+			if(isHuman() && eOwner == GC.getGameINLINE().getActivePlayer())
+				GET_PLAYER(eOwner).chooseTech(); // </advc.124g>
 		}
 	}
 

@@ -7983,7 +7983,7 @@ int CvPlayerAI::AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bE
 
 			if (relevant_cities.empty())
 			{
-				FAssertMsg(isBarbarian(), "No revelent cities in AI_techBuildingValue");
+				FAssertMsg(isBarbarian(), "No relevant cities in AI_techBuildingValue");
 				return 0;
 			}
 		}
@@ -8981,8 +8981,9 @@ void CvPlayerAI::AI_chooseResearch()
 		}
 
 		if (eBestTech != NO_TECH)
-		{
-			pushResearch(eBestTech);
+		{	/*  advc.004x: Don't kill popup when AI chooses tech for human
+				(instead prod the human each turn to pick a tech him/herself) */
+			pushResearchBulk(eBestTech, false, false);
 		}
 	}
 }
