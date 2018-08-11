@@ -2498,13 +2498,11 @@ void CvGame::update()
 		// sample generic event
 		CyArgsList pyArgs;
 		pyArgs.add(getTurnSlice());
-		/*  advc.706: To prevent BUG alerts from being checked at the start of a
+		/*  advc.210: To prevent BUG alerts from being checked at the start of a
 			game turn. I've tried doing that through BugEventManager.py, but
-			eventually gave up. Not sure if my isAITurn clause prevents any
-			useful Python code from being executed. Nothing seems to be amiss,
-			but, to avoid breaking sth. that doesn't need to be fixed, I'm still
-			blocking the gameUpdate event only when R&F is enabled. */
-		if(!isAITurn() || !isOption(GAMEOPTION_RISE_FALL))
+			eventually gave up. Tagging advc.706 b/c it's especially important
+			to supress the update when R&F is enabled. */
+		if(!isAITurn())
 			CvEventReporter::getInstance().genericEvent("gameUpdate", pyArgs.makeFunctionArgs());
 
 		if (getTurnSlice() == 0)

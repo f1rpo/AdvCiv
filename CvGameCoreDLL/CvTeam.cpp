@@ -624,6 +624,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 			GET_PLAYER((PlayerTypes)iI).setTeam(getID());
 		}
 	}
+	updateLeaderID(); // advc.003b
 	// <dlph.13>
 	// "AP resident and UN secretary general teams need to be updated if that team will not be used anymore."
 	for (iI = 0; iI < GC.getNumVoteSourceInfos(); iI++)
@@ -778,6 +779,9 @@ void CvTeam::addTeam(TeamTypes eTeam)
 			{
 				kLoopTeam.AI_setWarPlan(getID(), NO_WARPLAN, false);
 				kLoopTeam.AI_setWarPlan(eTeam, NO_WARPLAN, false);
+				// <advc.001> Cancel our war plans too
+				if(isHuman() && !isAtWar(kLoopTeam.getID()))
+					AI_setWarPlan(kLoopTeam.getID(), NO_WARPLAN); // </advc.001>
 			}
 		}
 	}

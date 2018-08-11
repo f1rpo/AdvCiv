@@ -24817,7 +24817,8 @@ void CvPlayer::checkAlert(int alertId, bool silent)  {
 	case 2: alert = &bonusThirdPartiesAlert; break; // advc.210d
 	default: FAssertMsg(false, "Invalid alert id");
 	}
-	if(alert == NULL) return;
+	if(alert == NULL)
+		return;
 	alert->check(silent);
 } // </advc.210>
 

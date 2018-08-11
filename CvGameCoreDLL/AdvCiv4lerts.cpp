@@ -119,7 +119,8 @@ void WarTradeAlert::check() {
 				noLongerTradeMsgTeams.push_back(victim.getID());
 		}
 		msg(warTeam.getID(), willTradeMsgTeams, true);
-		msg(warTeam.getID(), noLongerTradeMsgTeams, false);
+		if(GC.getDefineINT("ALERT_ON_NO_LONGER_WAR_TRADE") > 0)
+			msg(warTeam.getID(), noLongerTradeMsgTeams, false);
 	}
 }
 

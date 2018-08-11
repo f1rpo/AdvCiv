@@ -956,4 +956,16 @@
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 
+	<!-- advc.210a: If set to 1 and if the War Trades alert is enabled, a
+		 message is shown when a civ can no longer be convinced to start a war
+		 against some other civ. If set to 0, the War Trades alert only
+		 triggers when a civ becomes willing to start a war
+		 Recommended: 0, at least in games with more than 10 civs. War trades
+		 are offered only for a couple of turns most of the time, so an alert
+		 about the trade becoming available should be sufficient. -->
+	<Define>
+		<DefineName>ALERT_ON_NO_LONGER_WAR_TRADE</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+
 </Civ4Defines>

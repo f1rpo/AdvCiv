@@ -1354,7 +1354,7 @@ int WarAndPeaceAI::Team::declareWarTradeVal(TeamTypes targetId,
 	/*  Sponsored war results in a peace treaty with the sponsor. Don't check if
 		we're planning war against the sponsor - too easy to read (b/c there are
 		just two possibilities). Instead check war utility against the sponsor. */
-	if(canSchemeAgainst(sponsorId)) {
+	if(canSchemeAgainst(sponsorId, true)) {
 		WarEvalParameters params2(agentId, sponsorId, silentReport);
 		WarEvaluator eval2(params2);
 		int uVsSponsor = eval2.evaluate(WARPLAN_LIMITED, 3);
@@ -1405,7 +1405,7 @@ int WarAndPeaceAI::Team::declareWarTradeVal(TeamTypes targetId,
 			attitudeModifier -= 0.25;
 	}
 	double obscured = price + price * attitudeModifier * 0.6 * h;
-	int r = ::round(obscured);
+	int r = ::roundToMultiple(obscured, 5);
 	rep.log("Obscured price: %d (attitude modifier: %d percent)\n", r,
 			::round(100 * attitudeModifier));
 	return r;
