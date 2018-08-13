@@ -52,7 +52,8 @@ public:
 	bool canEventuallyDeclareWar(TeamTypes eTeam) const; // bbai, Exposed to Python
 	//DllExport void declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan); // Exposed to Python
 	void declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, bool bPrimaryDoW = true, // K-Mod added bPrimaryDoW, Exposed to Python
-			PlayerTypes sponsor = NO_PLAYER); // advc.100
+			PlayerTypes sponsor = NO_PLAYER, // advc.100
+			bool bRandomEvent = false); // advc.106g
 	DllExport void makePeace(TeamTypes eTeam, bool bBumpUnits = true);																		// Exposed to Python
 	// advc.100b To avoid changing the signature of the function above:
 	void makePeaceBulk(TeamTypes eTeam, bool bBumpUnits = true, TeamTypes broker = NO_TEAM,

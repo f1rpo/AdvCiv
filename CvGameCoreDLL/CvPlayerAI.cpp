@@ -20630,6 +20630,7 @@ void CvPlayerAI::AI_doDiplo()
 				{
 					if (TEAMREF(civId).getDefensivePower() < ourTeam.getPower(true)
 							&& !isFocusWar()  // advc.105
+							&& !ourTeam.isForcePeace(TEAMID(civId)) // advc.104m
 							// advc.104g:
 							&& (!getWPAI.isEnabled() || warAndPeaceAI().getCache().numReachableCities(civId) > 0))
 					{
@@ -20641,7 +20642,8 @@ void CvPlayerAI::AI_doDiplo()
 										getContactRand(CONTACT_DEMAND_TRIBUTE),
 										"AI Diplo Demand Tribute") == 0) {
 									abContacted[civ.getTeam()] = demandTribute(civId, i);
-									break;
+									if(abContacted[civ.getTeam()])
+										break;
 								}
 							}
 						}
@@ -21644,7 +21646,7 @@ bool CvPlayerAI::askHelp(PlayerTypes humanId) {
 	return true;
 }
 
-// Same necessary conditions as the others
+// Same necessary conditions as the functions above
 bool CvPlayerAI::demandTribute(PlayerTypes humanId, int tributeType) {
 
 	// <advc.104m>
@@ -22553,7 +22555,7 @@ int CvPlayerAI::AI_eventValue(EventTypes eEvent, const EventTriggeredData& kTrig
 			// So whatever I do here is completely new.
 
 			// Note: the event will make the other team declare war on us.
-			// Also, I've decided nto to multiply this by number of turns or anything like that.
+			// Also, I've decided not to multiply this by number of turns or anything like that.
 			// The war evaluation is rough, and optimistic... and besides, we can always declare war ourselves if we want to.
 			int iWarValue = kTeam.AI_startWarVal(GET_PLAYER(kTriggeredData.m_eOtherPlayer).getTeam(), WARPLAN_ATTACKED);
 

@@ -12,6 +12,7 @@
 #include "CvPlot.h"
 #include "CvDLLEntityIFaceBase.h"
 #include "CvDLLInterfaceIFaceBase.h"
+#include "CvDLLEngineIFaceBase.h" // advc.102
 #include "CvDLLFAStarIFaceBase.h"
 #include "FAStarNode.h"
 #include "CvInfos.h"
@@ -291,7 +292,8 @@ void CvSelectionGroup::doTurn()
 bool CvSelectionGroup::showMoves(
 		CvPlot const& fromPlot) const // advc.102
 {
-	if (GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) || GC.getGameINLINE().isSimultaneousTeamTurns())
+	if (GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) || GC.getGameINLINE().isSimultaneousTeamTurns()
+			|| gDLL->getEngineIFace()->isGlobeviewUp()) // advc.102
 	{
 		return false;
 	}

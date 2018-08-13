@@ -25,6 +25,8 @@ public:
 	bool canDeclareWar(int /*TeamTypes*/ eTeam);
 	bool canEventuallyDeclareWar(int /*TeamTypes*/ eTeam); // K-Mod
 	void declareWar(int /*TeamTypes*/ eTeam, bool bNewDiplo, int /*WarPlanTypes*/ eWarPlan);
+	// advc.106g:
+	void declareWarEvent(int /*TeamTypes*/ eTeam, bool bNewDiplo, int /*WarPlanTypes*/ eWarPlan);
 	void makePeace(int /*TeamTypes*/ eTeam);
 	bool canContact(int /*TeamTypes*/ eTeam);
 	void meet(int /*TeamTypes*/ eTeam, bool bNewDiplo);

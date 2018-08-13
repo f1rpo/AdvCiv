@@ -399,11 +399,14 @@ void RiseFall::atActiveTurnStart() {
 		if(chapters[i]->isScored() && !chapters[i]->isScoreShown()) {
 			CvPopupInfo* popup = new CvPopupInfo(BUTTONPOPUP_TEXT);
 			CvWString text;
+			/*  Bypass CvPlayer::getCivilizationDescription
+				(which obscures unknown civs) */
+			wchar const* civDescr = GC.getCivilizationInfo(
+					GET_PLAYER(chapters[i]->getCiv()).getCivilizationType()).
+					getShortDescription();
 			if(GET_PLAYER(chapters[i]->getCiv()).isAlive())
-				text = gDLL->getText("TXT_KEY_RF_POPUP_SCORE", i + 1,
-						GET_PLAYER(chapters[i]->getCiv()).getCivilizationShortDescription());
-			else text = gDLL->getText("TXT_KEY_RF_POPUP_SCORE_EARLY",  i + 1,
-						GET_PLAYER(chapters[i]->getCiv()).getCivilizationShortDescription());
+				text = gDLL->getText("TXT_KEY_RF_POPUP_SCORE", i + 1, civDescr);
+			else text = gDLL->getText("TXT_KEY_RF_POPUP_SCORE_EARLY",  i + 1, civDescr);
 			text.append(L":\n\n" +
 					*chapters[i]->computeScoreBreakdown().getString());
 			popup->setText(text);
@@ -1048,13 +1051,15 @@ CvWString RiseFall::knownName(PlayerTypes civId, bool nameNumber) const {
 				unique = false;
 				break;
 			}
-		}
+		} // Bypass CvPlayer::getCivDescription
+		wchar const* civDescr = GC.getCivilizationInfo(civ.getCivilizationType()).
+				getShortDescription();
 		/*  Nicer to show civ names, but if one civ is in the game multiple times,
 			will have to show the leader name. */
 		if(unique)
-			return civ.getCivilizationShortDescription();
+			return civDescr;
 		return CvWString(GC.getLeaderHeadInfo(civ.getLeaderType()).getDescription()) +
-				L"'s " + civ.getCivilizationShortDescription();
+				L"'s " + civDescr;
 	}
 	if(!nameNumber)
 		return gDLL->getText("TXT_KEY_TOPCIVS_UNKNOWN");

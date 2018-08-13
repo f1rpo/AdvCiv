@@ -538,7 +538,7 @@
 		 and Civ4HandicapInfo.xml. -->
 	<!-- Turn after which effects of goody huts begin to increase. Recommended:
 		 50; use a high value like 5000 for BtS behavior (hut effects not based
-		 on game turn). -->
+		 on game turn), and increase GOODY_BUFF_PEAK_TURN accordingly. -->
 	<Define>
 		<DefineName>GOODY_BUFF_START_TURN</DefineName>
 		<iDefineIntVal>50</iDefineIntVal>
@@ -941,7 +941,7 @@
 	</Define>
 	<!-- If set to 1, the Trade layer (Globe view) blackens tiles with an
 		 actively visible city that isn't connected to its owner's capital.
-		 If set to 0 (BtS behavior), connection to capital is not specially
+		 If set to 0 (BtS behavior), connection to the capital is not 
 		 indicated. -->
 	<Define>
 		<DefineName>CONNECTION_TO_CAPITAL_ON_TRADE_LAYER</DefineName>

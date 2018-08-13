@@ -1289,13 +1289,14 @@ DenialTypes WarAndPeaceAI::Team::declareWarTrade(TeamTypes targetId,
 
 	if(!canReach(targetId))
 		return DENIAL_NO_GAIN;
+	CvTeam const& sponsor = GET_TEAM(sponsorId);
 	/*  Check canBeHiredAgainst only in large games (to reduce the number of
 		war trade alerts seen by humans) */
-	if(!GET_TEAM(sponsorId).isHuman() || GET_TEAM(sponsorId).getHasMetCivCount() < 8 ||
+	if(!sponsor.isHuman() || sponsor.getHasMetCivCount() < 8 ||
 			leaderCache().canBeHiredAgainst(targetId)) {
 		int utilityThresh = dwtUtilityThresh + 2;
 		WarAndPeaceReport silentReport(true);
-		PlayerTypes sponsorLeaderId = GET_TEAM(sponsorId).getLeaderID();
+		PlayerTypes const sponsorLeaderId = sponsor.getLeaderID();
 		WarEvalParameters params(agentId, targetId, silentReport, false,
 				sponsorLeaderId);
 		WarEvaluator eval(params, true);
@@ -1321,7 +1322,8 @@ DenialTypes WarAndPeaceAI::Team::declareWarTrade(TeamTypes targetId,
 	}
 	CvTeamAI const& agent = GET_TEAM(agentId);
 	// We don't know why utility is so small; can only guess
-	if(4 * agent.getPower(true) < 3 * GET_TEAM(targetId).getPower(true))
+	if(4 * agent.getPower(true) + (sponsor.isAtWar(targetId) ?
+			2 * sponsor.getPower(true) : 0) < 3 * GET_TEAM(targetId).getPower(true))
 		return DENIAL_POWER_THEM;
 	if(agent.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CULTURE4) ||
 			agent.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_SPACE4))

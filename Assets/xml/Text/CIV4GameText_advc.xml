@@ -17,9 +17,21 @@
 		<Tag>TXT_KEY_MISC_SOMEONE_HIRED_WAR</Tag>
 		<English>%s1_PlyrName declares war on %s2_PlyrName! (At the request of %s3_PlyrName.)</English>
 		<French>%s1_PlyrName d&#233;clare la guerre &#224; %s2_PlyrName !  (Sur requ&#233;te de %s3_PlyrName.)</French>
-		<German>%s1_PlyrName erkl&#228;rt %s2_PlyrName den Krieg!(Auf Ersuchen von %s3_PlyrName.)</German>
+		<German>%s1_PlyrName erkl&#228;rt %s2_PlyrName den Krieg! (Auf Ersuchen von %s3_PlyrName.)</German>
 		<Italian>%s1_PlyrName dichiara guerra a %s2_PlyrName! (Su richiesta di %s3_PlyrName.)</Italian>
 		<Spanish>%s1_PlyrName le declara la guerra a %s2_PlyrName. (A petici&#243;n de %s3_PlyrName.)</Spanish>
+	</TEXT>
+	
+	<!-- advc.106g: Based on TXT_KEY_MISC_SOMEONE_DECLARES_WAR
+		 (CIV4GameTextInfos.xml) and TXT_KEY_GAME_OPTION_NO_EVENTS
+		 (CIV4GameText_BTS.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_WAR_VIA_EVENT</Tag>
+		<English>%s1_PlyrName declares war on %s2_PlyrName! (In response to a random event.)</English>
+		<French>%s1_PlyrName d&#233;clare la guerre &#224; %s2_PlyrName !  (En réponse à un événement aléatoire.)</French>
+		<German>%s1_PlyrName erkl&#228;rt %s2_PlyrName den Krieg! (Als Reaktion auf ein Zufallsereignis.)</German>
+		<Italian>%s1_PlyrName dichiara guerra a %s2_PlyrName! (In risposta a un evento casuale.)</Italian>
+		<Spanish>%s1_PlyrName le declara la guerra a %s2_PlyrName. (En respuesta a un suceso al azar.)</Spanish>
 	</TEXT>
 
 	<!-- advc.100b: Replay message for brokered peace. Based on

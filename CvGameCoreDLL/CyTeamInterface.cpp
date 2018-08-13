@@ -19,6 +19,8 @@ void CyTeamPythonInterface()
 		.def("canDeclareWar", &CyTeam::canDeclareWar, "bool (int /*TeamTypes*/ eTeam)")
 		.def("canEventuallyDeclareWar", &CyTeam::canEventuallyDeclareWar, "bool (int /*TeamTypes*/ eTeam)") // K-Mod
 		.def("declareWar", &CyTeam::declareWar, "void (int /*TeamTypes*/ eTeam, bool bNewDiplo, int /*WarPlanTypes*/ eWarPlan) - Forces your team to declare War on iTeam")
+		// advc.106g:
+		.def("declareWarEvent", &CyTeam::declareWarEvent, "void (int /*TeamTypes*/ eTeam, bool bNewDiplo, int /*WarPlanTypes*/ eWarPlan) - Forces your team to declare War on iTeam. Use this function when war is declared in response to a random event.")
 		.def("makePeace", &CyTeam::makePeace, "void (int /*TeamTypes*/ eTeam) - Forces peace between your team and iTeam")
 		.def("canContact", &CyTeam::canContact, "bool (int /*TeamTypes*/ eTeam)")
 		.def("meet", &CyTeam::meet, "void (int /*TeamTypes*/ eTeam, bool bNewDiplo) - forces team to meet iTeam")

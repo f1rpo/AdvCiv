@@ -2858,6 +2858,7 @@ void Distraction::evaluate() {
 	for(size_t i = 0; i < properCivs.size(); i++) {
 		TeamTypes tId = TEAMID(properCivs[i]);
 		if(tId == TEAMID(theyId) || !agent.isHasMet(tId) ||
+				agent.warAndPeaceAI().isPushover(tId) ||
 				// Making peace with the master won't help us to focus on the vassal
 				GET_TEAM(tId).isAVassal() ||
 				(!agent.warAndPeaceAI().canReach(tId) &&
@@ -2918,33 +2919,31 @@ void Distraction::evaluate() {
 			}
 		}
 	}
-	if(numPotentialWars <= 0) {
-		u -= ::round(uMinus);
-		return;
+	if(numPotentialWars > 0) {
+		/*  We're going start at most one of the potential wars, but having more
+			candidates is good */
+		double adjustedCostForPotential = maxPotential +
+				(totalCostForPotential - maxPotential) /
+				std::sqrt((double)numPotentialWars);
+		if(adjustedCostForPotential > 0.5) {
+			log("Adjusted cost for all (%d) potential wars: %d", numPotentialWars,
+					::round(adjustedCostForPotential));
+			uMinus += adjustedCostForPotential;
+		}
 	}
-	/*  We're going start at most one of the potential wars, but having more
-		candidates is good */
-	double adjustedCostForPotential = maxPotential +
-			(totalCostForPotential - maxPotential) /
-			std::sqrt((double)numPotentialWars);
 	/*  If we expect to knock them out, the current war may be over before the
 		time horizon of the simulation; then it's a smaller distraction.
 		(InvasionGraph could store elimination timestamps, but seems too much work
 		to implement. Can guess the time well enough here by counting their remaining
 		cities.) */
-	if(m->isEliminated(theyId) ||
-			m->getCapitulationsAccepted(agentId).count(TEAMID(theyId)) > 0) {
+	if(uMinus > 0.01 && (m->isEliminated(theyId) ||
+			m->getCapitulationsAccepted(agentId).count(TEAMID(theyId)) > 0)) {
 		double mult = they->getNumCities() / 3.0;
 		if(mult < 1) {
 			log("Distraction cost reduced to %d percent b/c we're almost done "
 					"with %s", ::round(mult * 100), report.leaderName(theyId));
-			adjustedCostForPotential *= mult;
+			uMinus *= mult;
 		}
-	}
-	if(adjustedCostForPotential > 0.5) {
-		log("Adjusted cost for all (%d) potential wars: %d", numPotentialWars,
-				::round(adjustedCostForPotential));
-		uMinus += adjustedCostForPotential;
 	}
 	u -= ::round(uMinus);
 }

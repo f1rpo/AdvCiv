@@ -1054,7 +1054,7 @@ BeginMap
 	wrap Y=0
 	top latitude=80
 	bottom latitude=-70
-	world size=WORLDSIZE_STANDARD
+	world size=WORLDSIZE_LARGE
 	climate=CLIMATE_TEMPERATE
 	sealevel=SEALEVEL_LOW
 	num plots written=8640
@@ -18281,6 +18281,7 @@ BeginPlot
 	x=47,y=42
 	TerrainType=TERRAIN_PLAINS
 	PlotType=1
+	ImprovementType=IMPROVEMENT_GOODY_HUT
 EndPlot
 BeginPlot
 	x=47,y=43
@@ -18716,6 +18717,7 @@ BeginPlot
 	RiverNSDirection=0
 	TerrainType=TERRAIN_GRASS
 	PlotType=2
+	ImprovementType=IMPROVEMENT_GOODY_HUT
 EndPlot
 BeginPlot
 	x=48,y=51
@@ -18732,6 +18734,7 @@ BeginPlot
 	FeatureType=FEATURE_FOREST, FeatureVariety=0
 	TerrainType=TERRAIN_GRASS
 	PlotType=2
+	ImprovementType=IMPROVEMENT_GOODY_HUT
 EndPlot
 BeginPlot
 	x=48,y=54
@@ -19818,6 +19821,7 @@ BeginPlot
 	x=51,y=39
 	TerrainType=TERRAIN_PLAINS
 	PlotType=2
+	ImprovementType=IMPROVEMENT_GOODY_HUT
 EndPlot
 BeginPlot
 	x=51,y=40
@@ -20947,6 +20951,7 @@ BeginPlot
 	x=54,y=31
 	TerrainType=TERRAIN_DESERT
 	PlotType=2
+	ImprovementType=IMPROVEMENT_GOODY_HUT
 EndPlot
 BeginPlot
 	x=54,y=32
@@ -21073,6 +21078,7 @@ BeginPlot
 	x=54,y=54
 	TerrainType=TERRAIN_PLAINS
 	PlotType=2
+	ImprovementType=IMPROVEMENT_GOODY_HUT
 EndPlot
 BeginPlot
 	x=54,y=55
@@ -21773,6 +21779,7 @@ BeginPlot
 	BonusType=BONUS_WINE
 	TerrainType=TERRAIN_PLAINS
 	PlotType=2
+	ImprovementType=IMPROVEMENT_GOODY_HUT
 EndPlot
 BeginPlot
 	x=56,y=41
@@ -22277,6 +22284,7 @@ BeginPlot
 	x=57,y=60
 	TerrainType=TERRAIN_TUNDRA
 	PlotType=1
+	ImprovementType=IMPROVEMENT_GOODY_HUT
 EndPlot
 BeginPlot
 	x=57,y=61
@@ -22605,6 +22613,7 @@ BeginPlot
 	RiverNSDirection=2
 	TerrainType=TERRAIN_PLAINS
 	PlotType=2
+	ImprovementType=IMPROVEMENT_GOODY_HUT
 EndPlot
 BeginPlot
 	x=58,y=49
@@ -23711,6 +23720,7 @@ BeginPlot
 	x=61,y=38
 	TerrainType=TERRAIN_PLAINS
 	PlotType=1
+	ImprovementType=IMPROVEMENT_GOODY_HUT
 EndPlot
 BeginPlot
 	x=61,y=39
@@ -23796,6 +23806,7 @@ BeginPlot
 	FeatureType=FEATURE_FOREST, FeatureVariety=0
 	TerrainType=TERRAIN_GRASS
 	PlotType=2
+	ImprovementType=IMPROVEMENT_GOODY_HUT
 EndPlot
 BeginPlot
 	x=61,y=53
@@ -25369,6 +25380,7 @@ BeginPlot
 	FeatureType=FEATURE_FOREST, FeatureVariety=1
 	TerrainType=TERRAIN_PLAINS
 	PlotType=1
+	ImprovementType=IMPROVEMENT_GOODY_HUT
 EndPlot
 BeginPlot
 	x=65,y=47
@@ -25733,6 +25745,7 @@ BeginPlot
 	x=66,y=42
 	TerrainType=TERRAIN_PLAINS
 	PlotType=2
+	ImprovementType=IMPROVEMENT_GOODY_HUT
 EndPlot
 BeginPlot
 	x=66,y=43
@@ -26104,6 +26117,7 @@ BeginPlot
 	RiverNSDirection=2
 	TerrainType=TERRAIN_PLAINS
 	PlotType=2
+	ImprovementType=IMPROVEMENT_GOODY_HUT
 EndPlot
 BeginPlot
 	x=67,y=38
@@ -27630,6 +27644,7 @@ BeginPlot
 	x=71,y=26
 	TerrainType=TERRAIN_DESERT
 	PlotType=1
+	ImprovementType=IMPROVEMENT_GOODY_HUT
 EndPlot
 BeginPlot
 	x=71,y=27
@@ -29228,6 +29243,7 @@ BeginPlot
 	x=75,y=31
 	TerrainType=TERRAIN_DESERT
 	PlotType=1
+	ImprovementType=IMPROVEMENT_GOODY_HUT
 EndPlot
 BeginPlot
 	x=75,y=32
@@ -30062,6 +30078,7 @@ BeginPlot
 	FeatureType=FEATURE_OASIS, FeatureVariety=0
 	TerrainType=TERRAIN_DESERT
 	PlotType=2
+	ImprovementType=IMPROVEMENT_GOODY_HUT
 EndPlot
 BeginPlot
 	x=77,y=44
@@ -31587,7 +31604,6 @@ BeginPlot
 		CityOwner=18
 		CityName=TXT_KEY_CITY_NAME_ARYAN
 	EndCity
-	ImprovementType=IMPROVEMENT_GOODY_HUT
 EndPlot
 BeginPlot
 	x=81,y=37
@@ -31968,6 +31984,7 @@ BeginPlot
 	FeatureType=FEATURE_FLOOD_PLAINS, FeatureVariety=0
 	TerrainType=TERRAIN_DESERT
 	PlotType=2
+	ImprovementType=IMPROVEMENT_GOODY_HUT
 EndPlot
 BeginPlot
 	x=82,y=38
@@ -32355,6 +32372,7 @@ BeginPlot
 	x=83,y=39
 	TerrainType=TERRAIN_DESERT
 	PlotType=2
+	ImprovementType=IMPROVEMENT_GOODY_HUT
 EndPlot
 BeginPlot
 	x=83,y=40
@@ -33903,6 +33921,7 @@ BeginPlot
 	x=87,y=47
 	TerrainType=TERRAIN_DESERT
 	PlotType=2
+	ImprovementType=IMPROVEMENT_GOODY_HUT
 EndPlot
 BeginPlot
 	x=87,y=48
@@ -34213,6 +34232,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=88,y=36
+	BonusType=BONUS_DYE
 	isNOfRiver
 	RiverWEDirection=1
 	TerrainType=TERRAIN_PLAINS
@@ -34647,6 +34667,7 @@ BeginPlot
 	x=89,y=43
 	TerrainType=TERRAIN_GRASS
 	PlotType=1
+	ImprovementType=IMPROVEMENT_GOODY_HUT
 EndPlot
 BeginPlot
 	x=89,y=44
@@ -34961,7 +34982,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=90,y=33
-	BonusType=BONUS_DYE
 	isNOfRiver
 	RiverWEDirection=1
 	TerrainType=TERRAIN_GRASS

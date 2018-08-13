@@ -82,7 +82,7 @@ public class WBOut {
 		pr("");
 		int numPlots = w * h;
 		// Only territory for 10 leaders so far
-		String worldSz = "STANDARD"; // "LARGE" "HUGE"
+		String worldSz = "LARGE"; // "HUGE"
 		String mapStr[] = {
 				"BeginMap",
 				"\tgrid width=" + w,
@@ -2836,7 +2836,7 @@ public class WBOut {
 				new Bonus("FISH",78,29),
 				new Bonus("PIG",79,29),
 				new Bonus("GOLD",81,29),
-				new Bonus("DYE",82,29),
+				new Bonus("DYE",80,32), // Moved from 82,29 to make room for Chennai/ Madras
 				new Bonus("SPICES",80,28),
 				new Bonus("IRON",81,28),
 				new Bonus("SUGAR",82,28),
@@ -3055,8 +3055,8 @@ public class WBOut {
 						pr("\t\tHolyCityReligionType=RELIGION_" + religion);
 					pr("\tEndCity");
 				}
-				if(optBarbCity.isPresent() &&
-						!huts.stream().anyMatch(p -> p.equals(plot)))
+				if(!optBarbCity.isPresent() &&
+						huts.stream().anyMatch(p -> p.equals(plot)))
 					pr("\tImprovementType=IMPROVEMENT_GOODY_HUT");
 				pr("EndPlot");
 			}

@@ -3575,7 +3575,7 @@ bool CvTeamAI::AI_refuseWar(TeamTypes eWarTeam) const
 
 	if (AI_noWarAttitudeProb(eAttitude) >= 100)
 	{
-		// ok, so we wouldn't independantly choose this war, but could we be bought into it?
+		// ok, so we wouldn't independently choose this war, but could we be bought into it?
 		// If any of our team would refuse, then the team refuses. (cf. AI_declareWarTrade)
 		for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
 		{

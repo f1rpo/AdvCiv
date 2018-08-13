@@ -1375,7 +1375,8 @@ bool CvTeam::canEventuallyDeclareWar(TeamTypes eTeam) const
 
 // K-Mod note: I've shuffled things around a bit in this function.
 void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, bool bPrimaryDoW,
-		PlayerTypes sponsor) // advc.100
+		PlayerTypes sponsor, // advc.100
+		bool bRandomEvent) // advc.106g
 {
 	PROFILE_FUNC();
 
@@ -1720,8 +1721,19 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 						GET_TEAM(eTeam).getReplayName().GetCString(),
 						sponsorName);
 			}
-			else // </advc.100>
-			szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_DECLARES_WAR", getReplayName().GetCString(), GET_TEAM(eTeam).getReplayName().GetCString());
+			else { // </advc.100>
+				// <advc.106g>
+				if(bRandomEvent) {
+					szBuffer = gDLL->getText("TXT_KEY_MISC_WAR_VIA_EVENT",
+							getReplayName().GetCString(), GET_TEAM(eTeam).
+							getReplayName().GetCString());
+				}
+				else { // </advc.106g>
+					szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_DECLARES_WAR",
+							getReplayName().GetCString(), GET_TEAM(eTeam).
+							getReplayName().GetCString());
+				}
+			}
 			GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getLeaderID(), szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
 		}
 	}
