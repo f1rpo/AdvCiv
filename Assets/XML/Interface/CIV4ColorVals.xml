@@ -623,8 +623,8 @@
 		</ColorVal>
 		<ColorVal>
 			<Type>COLOR_PLAYER_PURPLE_TEXT</Type>
-			<fRed>0.98</fRed>
-			<fGreen>0.62</fGreen>
+			<fRed>0.95</fRed>
+			<fGreen>0.58</fGreen>
 			<fBlue>1.00</fBlue>
 			<fAlpha>1.00</fAlpha>
 		</ColorVal>
@@ -713,8 +713,8 @@
 		<ColorVal>
 			<Type>COLOR_PLAYER_LIGHT_YELLOW_TEXT</Type>
 			<fRed>0.87</fRed>
-			<fGreen>0.86</fGreen>
-			<fBlue>0.45</fBlue>
+			<fGreen>0.87</fGreen>
+			<fBlue>0.63</fBlue>
 			<fAlpha>1.00</fAlpha>
 		</ColorVal>
 		<ColorVal>

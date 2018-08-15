@@ -7476,11 +7476,8 @@ int CvPlayer::getBuildingClassPrereqBuilding(BuildingTypes eBuilding, BuildingCl
 	BuildingClassTypes eBuildingClass = (BuildingClassTypes)kBuilding.getBuildingClassType();
 
 	iPrereqs *= std::max(0, (GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getBuildingClassPrereqModifier() + 100));
-	/*  advc.310: Round up if between 1 and 2. Otherwise, the prereq number can't
-		ever be 2 in a normal-size world. (The modifier is 50%, and there is
-		no integer that	yields 2 when increased by 50% and rounded down). */
-	if(iPrereqs > 100 && iPrereqs < 200) iPrereqs = 2; else
-	iPrereqs /= 100;
+	//iPrereqs /= 100;
+	iPrereqs = (int)::ceil(iPrereqs / 100.0); // advc.954: Round up
 
 	if (!isLimitedWonderClass(eBuildingClass))
 	{
@@ -24598,13 +24595,15 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption, std
 			case SHOW_HEALTH_RESOURCES:
 				bOfInterest = (kBonusInfo.getHappiness() == 0) && (kBonusInfo.getHealth() != 0);
 				break;
-			} // <advc.004z>
-		}
+			}
+		} // <advc.004z>
+		ImprovementTypes impr = NO_IMPROVEMENT; 
 		if(!bOfInterest && eOption == SHOW_ALL_RESOURCES &&
-				pLoopPlot->getImprovementType() != NO_IMPROVEMENT &&
 				isOption(PLAYEROPTION_NO_UNIT_RECOMMENDATIONS) &&
 				GC.getDefineINT("SHOW_GOODY_HUTS_ON_RESOURCE_LAYER") > 0) {
-			bOfInterest = GC.getImprovementInfo(pLoopPlot->getImprovementType()).isGoody();
+			impr = pLoopPlot->getRevealedImprovementType(getTeam(), false);
+			bOfInterest = (impr != NO_IMPROVEMENT && GC.getImprovementInfo(impr).
+					isGoody());
 		} // </advc.004z>
 		if (bOfInterest)
 		{
@@ -24612,8 +24611,8 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption, std
 			kData.m_strLabel = "RESOURCES";
 			kData.m_eVisibility = PLOT_INDICATOR_VISIBLE_ONSCREEN_ONLY;
 			kData.m_strIcon = // <advc.004z>
-					(eCurType == NO_BONUS ? GC.getImprovementInfo(pLoopPlot->
-					getImprovementType()).getButton() // </advc.004z>
+					(eCurType == NO_BONUS ? GC.getImprovementInfo(impr).
+					getButton() // </advc.004z>
 					: GC.getBonusInfo(eCurType).getButton());
 
 			int x = pLoopPlot->getX();

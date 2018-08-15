@@ -753,11 +753,17 @@ bool RiseFall::isCooperationRestricted(PlayerTypes aiCiv) const {
 			prevChCiv = chapters[currentChPos - 1]->getCiv();
 		return prevChCiv == aiCiv;
 	}
-	// Assume that each civ is played only once
 	for(int i = 0; i <= currentChPos; i++)
-		if(chapters[i]->isScored() && chapters[i]->getCiv() == aiCiv)
-			return false;
-	return true;
+		if(chapters[i]->getCiv() == aiCiv)
+			return !chapters[i]->isScored();
+	if(GET_PLAYER(aiCiv).AI_isDoVictoryStrategyLevel3())
+		return true;
+	CvGame const& g = GC.getGameINLINE();
+	if(g.getCurrentEra() >= 4)
+		return true;
+	int const iRank = g.getPlayerRank(aiCiv);
+	int const iKnown = TEAMREF(human).getHasMetCivCount() + 1; // +1 for human
+	return (iRank >= iKnown / 2);
 }
 
 RFChapter* RiseFall::mostRecentlyFinished() const {
@@ -1273,9 +1279,7 @@ bool RiseFall::allSquare(CLinkList<TradeData> const& list, PlayerTypes from,
 			allVassal = false;
 		if(item == TRADE_CITIES) {
 			CvCity* c = GET_PLAYER(from).getCity(node->m_data.m_iData);
-			if(c == NULL)
-				allLiberation = false;
-			else if(c->getLiberationPlayer(false) == to)
+			if(c == NULL || c->getLiberationPlayer(false) != to)
 				allLiberation = false;
 		}
 		else allLiberation = false;
@@ -1340,7 +1344,7 @@ int RiseFall::pessimisticDealVal(PlayerTypes aiCivId, int dealVal,
 
 double RiseFall::dealThresh(bool annual) const {
 
-	if(annual) // Resource trades are less problematic
+	if(annual) // Resource trades (and peace treaties) are less problematic
 		return 0.35;
 	return 0.65;
 }

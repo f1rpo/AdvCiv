@@ -26473,10 +26473,9 @@
 			<DomainFreeExperiences/>
 			<DomainProductionModifiers/>
 			<BuildingHappinessChanges/>
-			<!-- advc.310: Walls as prereq. Num-Needed refers to Tiny/Duel
-				 map size; scaled up for other sizes. A change to the
-				 rounding method in CvPlayer.cpp makes it so that the req.
-				 number is 2 on Small, Normal, Large and Huge. -->
+			<!-- advc.310: i...Needed refers to Duel map size. Note that
+				 advc.054 changes the map-size adjustment so that 2 Walls are
+				 required on all map sizes above Tiny.  -->
 			<PrereqBuildingClasses>
 				<PrereqBuildingClass>
 					<BuildingClassType>BUILDINGCLASS_WALLS</BuildingClassType>

@@ -10786,11 +10786,13 @@ void CvGameTextMgr::buildBuildingRequiresString(CvWStringBuffer& szBuffer, Build
 				if (ePlayer == NO_PLAYER)
 				{	// <advc.004y>
 					int iLow = kBuilding.getPrereqNumOfBuildingClass((BuildingClassTypes)iI);
-					int iHigh = iLow * std::max(0, (GC.getWorldInfo(GC.getMapINLINE().
-							getWorldSize()).getBuildingClassPrereqModifier()
-							+ 100));
-					if(iHigh > 100 && iHigh < 200) iHigh = 2; else // advc.310
-					iHigh /= 100; // </advc.004y>
+					WorldSizeTypes wsz = (WorldSizeTypes)(GC.getNumWorldInfos() - 1);
+					if(ePlayer != NO_PLAYER)
+						wsz = GC.getMapINLINE().getWorldSize();
+					int iHigh = iLow * std::max(0, (GC.getWorldInfo(wsz).
+							getBuildingClassPrereqModifier() + 100));
+					iHigh = (int)::ceil(iHigh / 100.0); // advc.054
+					// </advc.004y>
 					CvWString szTempBuffer;
 					szTempBuffer.Format(L"%s%s", NEWLINE, gDLL->getText(
 							// <advc.004y>

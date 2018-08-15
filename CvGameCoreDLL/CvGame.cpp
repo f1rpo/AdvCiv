@@ -5701,7 +5701,7 @@ void CvGame::setRankPlayer(int iRank, PlayerTypes ePlayer)
 
 
 int CvGame::getPlayerRank(PlayerTypes ePlayer) const														 
-{
+{	// advc.003 (comment): The topmost rank is 0
 	FAssertMsg(ePlayer >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(ePlayer < MAX_PLAYERS, "ePlayer is expected to be within maximum bounds (invalid Index)");
 	return m_aiPlayerRank[ePlayer];
