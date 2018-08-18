@@ -929,7 +929,7 @@ bool WarAndPeaceAI::Team::considerSwitchTarget(TeamTypes targetId, int u,
 	bool altQualms = false;
 	for(size_t i = 0; i < getWPAI._properTeams.size(); i++) {
 		TeamTypes altTargetId = getWPAI._properTeams[i];
-		if(!canSchemeAgainst(altTargetId) ||
+		if(!canSchemeAgainst(altTargetId, false) ||
 				agent.turnsOfForcedPeaceRemaining(altTargetId) > timeRemaining)
 			continue;
 		bool loopQualms = (GC.getLeaderHeadInfo(GET_PLAYER(agent.getLeaderID()).
@@ -1095,13 +1095,12 @@ int WarAndPeaceAI::Team::tradeValJointWar(TeamTypes targetId,
 		pay humans for war (and I've no plans for changing that). */
 	FAssert(!GET_TEAM(allyId).isHuman());
 	PROFILE_FUNC();
-	// That's already a comparison between joint war and solo war
-	int u = uJointWar(targetId, allyId);
+	int u = uJointWar(targetId, allyId); // Compares joint war with solo war
 	if(u < 0)
 		return 0;
 	// NB: declareWarTrade applies an additional threshold
 	int const thresh = dwtUtilityThresh;
-	return ::round(utilityToTradeVal(std::min(u, thresh)));
+	return ::round(utilityToTradeVal(std::min(u, -thresh)));
 }
 
 int WarAndPeaceAI::Team::reluctanceToPeace(TeamTypes otherId,
@@ -1169,10 +1168,10 @@ void WarAndPeaceAI::Team::scheme() {
 	WarAndPeaceCache& cache = leaderCache();
 	for(size_t i = 0; i < getWPAI._properTeams.size(); i++) {
 		TeamTypes targetId = getWPAI._properTeams[i];
-		if(!canSchemeAgainst(targetId)) {
+		if(!canSchemeAgainst(targetId, true))
 			cache.setCanBeHiredAgainst(targetId, false);
+		if(!canSchemeAgainst(targetId, false))
 			continue;
-		}
 		report->log("Scheming against %s", report->teamName(targetId));
 		bool shortWork = isPushover(targetId);
 		if(shortWork)
@@ -1321,7 +1320,7 @@ DenialTypes WarAndPeaceAI::Team::declareWarTrade(TeamTypes targetId,
 			return DENIAL_RECENT_CANCEL;*/
 	}
 	CvTeamAI const& agent = GET_TEAM(agentId);
-	// We don't know why utility is so small; can only guess
+	// We don't know why utility is so small; can only guess.
 	if(4 * agent.getPower(true) + (sponsor.isAtWar(targetId) ?
 			2 * sponsor.getPower(true) : 0) < 3 * GET_TEAM(targetId).getPower(true))
 		return DENIAL_POWER_THEM;
@@ -1369,7 +1368,7 @@ int WarAndPeaceAI::Team::declareWarTradeVal(TeamTypes targetId,
 		a decent price, even if we don't mind declaring war. */
 	int lowerBound = -2;
 	if(!sponsor.isAtWar(targetId))
-		lowerBound -= 5;
+		lowerBound -= 4;
 	// War utility esp. unreliable when things get desperate
 	int wsr = GET_TEAM(agentId).AI_getWarSuccessRating();
 	if(wsr < 0)
@@ -1661,9 +1660,11 @@ double WarAndPeaceAI::Team::reparationsToHuman(double u) const {
 
 void WarAndPeaceAI::Team::respondToRebuke(TeamTypes targetId, bool prepare) {
 
-	if(!canSchemeAgainst(targetId))
-		return;
 	CvTeamAI& agent = GET_TEAM(agentId);
+	if(!canSchemeAgainst(targetId, true) || (prepare ?
+			agent.AI_isSneakAttackPreparing(targetId) :
+			agent.AI_isSneakAttackReady(targetId)))
+		return;
 	if(!prepare && !agent.canDeclareWar(targetId))
 		return;
 	CvTeam const& target = GET_TEAM(targetId);

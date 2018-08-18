@@ -436,6 +436,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -1061,6 +1065,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -1702,6 +1710,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -2330,6 +2342,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -2969,6 +2985,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -3604,6 +3624,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -4251,6 +4275,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -4876,6 +4904,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -5507,6 +5539,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -6148,6 +6184,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -6795,6 +6835,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -7435,6 +7479,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -8068,6 +8116,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -8707,6 +8759,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -9341,6 +9397,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -9949,6 +10009,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -10588,6 +10652,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -11212,6 +11280,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -11852,6 +11924,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -12497,6 +12573,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -13127,6 +13207,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -13761,6 +13845,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -14411,6 +14499,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -15051,6 +15143,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -15682,6 +15778,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -16310,6 +16410,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -16946,6 +17050,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -17589,6 +17697,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -18213,6 +18325,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -18857,6 +18973,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -19490,6 +19610,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -20135,6 +20259,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -20767,6 +20895,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -21410,6 +21542,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -22050,6 +22186,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -22687,6 +22827,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -23338,6 +23482,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -23964,6 +24112,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -24598,6 +24750,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -25237,6 +25393,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -25869,6 +26029,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -26506,6 +26670,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -27140,6 +27308,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -27769,6 +27941,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -28419,6 +28595,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -29064,6 +29244,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -29695,6 +29879,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -30333,6 +30521,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -30964,6 +31156,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -31606,6 +31802,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -32264,6 +32464,10 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
@@ -32908,6 +33112,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>

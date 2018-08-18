@@ -282,7 +282,8 @@ public:
 	int AI_cityTradeVal(CvCity* pCity) const;
 	DenialTypes AI_cityTrade(CvCity* pCity, PlayerTypes ePlayer) const;
 
-	int AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer) const;
+	int AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer,
+			bool bWarTrade = false) const; // advc.104o
 	DenialTypes AI_stopTradingTrade(TeamTypes eTradeTeam, PlayerTypes ePlayer) const;
 
 	int AI_civicTradeVal(CivicTypes eCivic, PlayerTypes ePlayer) const;

@@ -181,7 +181,7 @@ public:
 		  bool considerConcludePreparations(TeamTypes targetId, int u,
 				int timeRemaining);
 		void scheme(); // Consider new war plans
-		bool canSchemeAgainst(TeamTypes targetId, bool assumeNoWarPlan = false) const;
+		bool canSchemeAgainst(TeamTypes targetId, bool assumeNoWarPlan) const;
 		void startReport();
 		void closeReport();
 		bool isReportTurn() const;

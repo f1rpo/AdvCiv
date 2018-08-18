@@ -3097,9 +3097,14 @@ void UlteriorMotives::evaluate() {
 	CvTeamAI const& target = GET_TEAM(targetId);
 	bool jointWar = m->isWar(TEAMID(theyId), targetId);
 	// If they're in a hot war, their motives seem clear (and honest) enough
-	if(jointWar && target.AI_getWarSuccess(TEAMID(theyId)) +
+	if(jointWar && (target.AI_getWarSuccess(TEAMID(theyId)) +
 			TEAMREF(theyId).AI_getWarSuccess(targetId) >
-			(3 * GC.getWAR_SUCCESS_CITY_CAPTURING()) / 2 &&
+			(3 * GC.getWAR_SUCCESS_CITY_CAPTURING()) / 2 ||
+			/*  An AI sponsor can, in principle, have ulterior motives. For example,
+				if they expect the war to hurt us, this could result in positive
+				utility from Kingmaking for them. This is a bit farfetched though,
+				so I'm going to skip the war success check if the sponsor is an AI. */
+			!they->isHuman()) &&
 			// Perhaps no longer hot?
 			target.warAndPeaceAI().canReach(TEAMID(theyId)) &&
 			// If the target is in our area but not theirs, that's fishy
@@ -3112,8 +3117,9 @@ void UlteriorMotives::evaluate() {
 		suspicious we are. */
 	int delta = GC.getLeaderHeadInfo(we->getPersonalityType()).
 			getDeclareWarRefuseAttitudeThreshold() - towardsThem + 1;
-	int uMinus = 15 + 5 * (delta - (towardsThem == ATTITUDE_FRIENDLY ? 1 : 0));
-	if(!jointWar) uMinus += 5;
+	int uMinus = 8 + 4 * (delta - (towardsThem == ATTITUDE_FRIENDLY ? 1 : 0));
+	if(!jointWar)
+		uMinus += 4;
 	if(uMinus > 0) {
 		log("Difference between attitude towards %s (%d) and refuse-thresh: %d",
 				report.leaderName(theyId), towardsThem, -delta);

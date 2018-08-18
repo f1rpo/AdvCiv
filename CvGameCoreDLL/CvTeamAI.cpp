@@ -4301,7 +4301,7 @@ int CvTeamAI::AI_declareWarTradeVal(TeamTypes eWarTeam, TeamTypes eTeam) const
 	CvPlayerAI const& allyLeader = GET_PLAYER(GET_TEAM(eTeam).getLeaderID());
 	if(allyLeader.canStopTradingWithTeam(eWarTeam))
 		r = std::max(r, GET_PLAYER(getLeaderID()).AI_stopTradingTradeVal(
-				eWarTeam, allyLeader.getID()));
+				eWarTeam, allyLeader.getID(), true));
 	// </advc.104o>
 	return roundTradeVal(r); // advc.104k
 }
@@ -4693,7 +4693,7 @@ void CvTeamAI::AI_updateWorstEnemy(bool updateRivalTrade) // advc.130p: New para
 	int iBestValue = enemyValue(m_eWorstEnemy);
 	if(iBestValue > 0) {
 		eBestTeam = m_eWorstEnemy;
-		/*  <advc.130p> Inertia; to reduce oscillation. New worst enemy has to be
+		/*  advc.130p: Inertia; to reduce oscillation. New worst enemy has to be
 			strictly worse than current minus 1.
 			Oscillation is already a problem in BtS, but changes in
 			CvPlayerAI::AI_getRivalTradeAttitude (penalty for OB) make it worse.
@@ -4702,8 +4702,6 @@ void CvTeamAI::AI_updateWorstEnemy(bool updateRivalTrade) // advc.130p: New para
 			between the two would be even worse. */
 		iBestValue++;
 	}
-	else eBestTeam = NO_TEAM;
-	// </advc.130p>
 	for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 	{
 		TeamTypes eLoopTeam = (TeamTypes)iI;
@@ -4718,11 +4716,14 @@ void CvTeamAI::AI_updateWorstEnemy(bool updateRivalTrade) // advc.130p: New para
 		}
 	}
 	// <advc.130p>
+	if(eBestTeam == m_eWorstEnemy)
+		return;
 	if(updateRivalTrade && m_eWorstEnemy != NO_TEAM && m_eWorstEnemy != eBestTeam) {
 		for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 			TeamTypes tId = (TeamTypes)i;
 			// The old enemy can't have traded with itself
-			if(!GET_TEAM(tId).isAlive() || tId == m_eWorstEnemy) continue;
+			if(!GET_TEAM(tId).isAlive() || tId == m_eWorstEnemy)
+				continue;
 			int const oldGrantVal = AI_getEnemyPeacetimeGrantValue(tId);
 			int const oldTradeVal = AI_getEnemyPeacetimeTradeValue(tId);
 			AI_setEnemyPeacetimeGrantValue(tId, (2 * oldGrantVal) / 3);
@@ -4730,9 +4731,8 @@ void CvTeamAI::AI_updateWorstEnemy(bool updateRivalTrade) // advc.130p: New para
 		}
 		// The above loop may have improved relations with eBestTeam
 		AI_updateWorstEnemy(false);
-	}
-	if(eBestTeam == m_eWorstEnemy)
 		return;
+	}
 	m_eWorstEnemy = eBestTeam;
 	/*  Changing EnemyPeacetime values updates the attitude cache, but that's
 		still based on the old worst enemy. Need another update vs. everyone
@@ -6007,14 +6007,14 @@ void CvTeamAI::AI_doCounter()
 		setSharedWarSuccess(tId, (int)
 				((1 - decay) * getSharedWarSuccess(tId))); // </advc.130m>
 		// <advc.130p>
-		AI_changeEnemyPeacetimeGrantValue(tId, -(int)::ceil(
+		AI_changeEnemyPeacetimeGrantValue(tId, -(int)std::ceil(
 				decay * AI_getEnemyPeacetimeGrantValue(tId)));
-		AI_changeEnemyPeacetimeTradeValue(tId, -(int)::ceil(
+		AI_changeEnemyPeacetimeTradeValue(tId, -(int)std::ceil(
 				decay * AI_getEnemyPeacetimeTradeValue(tId)));
 		// </advc.130p>
 		// <advc.130r> Double decay rate for war success
 		int wsOld = AI_getWarSuccess(tId);
-		int wsNew = std::max(0, wsOld - (int)::ceil(2 * decay * wsOld));
+		int wsNew = std::max(0, wsOld - (int)std::ceil(2 * decay * wsOld));
 		AI_setWarSuccess(tId, wsNew); // </advc.130r>
 	}
 }

@@ -7014,7 +7014,25 @@ void CvGameTextMgr::parseCivicInfo(CvWStringBuffer &szHelpText, CivicTypes eCivi
 	if (getWorldSizeMaxConscript(eCivic) != 0)
 	{
 		szHelpText.append(NEWLINE);
-		szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_CONSCRIPTION", getWorldSizeMaxConscript(eCivic)));
+		// <advc.004y>
+		/*  Caller doesn't seem to set bPlayerContext and bCivilopediaText
+			properly; will have to figure it out on our own: */
+		bool bRange = (GC.getGameINLINE().getActivePlayer() == NO_PLAYER);
+		if(bRange) {
+			int iBase = GC.getCivicInfo(eCivic).getMaxConscript();
+			int iLow = (iBase * std::max(0, (GC.getWorldInfo((WorldSizeTypes)0).
+					getMaxConscriptModifier() + 100))) / 100;
+			int iHigh = (iBase * std::max(0, (GC.getWorldInfo((WorldSizeTypes)
+					(GC.getNumWorldInfos() - 1)).getMaxConscriptModifier() + 100))) / 100;
+			if(iHigh == iLow)
+				bRange = false;
+			else {
+				szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_CONSCRIPTION_RANGE",
+						iLow, iHigh));
+			}
+		}
+		if(!bRange) // </advc.004y>
+			szHelpText.append(gDLL->getText("TXT_KEY_CIVIC_CONSCRIPTION", getWorldSizeMaxConscript(eCivic)));
 	}
 
 	//	Population Unhealthiness
@@ -9558,7 +9576,24 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 	if (kBuilding.getFreeBonus() != NO_BONUS)
 	{
 		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_PROVIDES", g.getNumFreeBonuses(eBuilding), GC.getBonusInfo((BonusTypes) kBuilding.getFreeBonus()).getTextKeyWide(), GC.getBonusInfo((BonusTypes) kBuilding.getFreeBonus()).getChar()));
+		// <advc.004y>
+		bool bRange = (ePlayer == NO_PLAYER);
+		if(bRange) {
+			int iLow = GC.getWorldInfo((WorldSizeTypes)
+					0).getNumFreeBuildingBonuses();
+			int iHigh = GC.getWorldInfo((WorldSizeTypes)
+					(GC.getNumWorldInfos() - 1)).getNumFreeBuildingBonuses();
+			if(iHigh == iLow)
+				bRange = false;
+			else {
+				szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_PROVIDES_RANGE",
+						iLow, iHigh, GC.getBonusInfo((BonusTypes)kBuilding.
+						getFreeBonus()).getTextKeyWide(), GC.getBonusInfo(
+						(BonusTypes)kBuilding.getFreeBonus()).getChar()));
+			}
+		}
+		if(!bRange) // </advc.004y>
+			szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_PROVIDES", g.getNumFreeBonuses(eBuilding), GC.getBonusInfo((BonusTypes) kBuilding.getFreeBonus()).getTextKeyWide(), GC.getBonusInfo((BonusTypes) kBuilding.getFreeBonus()).getChar()));
 
 		if (GC.getBonusInfo((BonusTypes)(kBuilding.getFreeBonus())).getHealth() != 0)
 		{
@@ -10791,7 +10826,7 @@ void CvGameTextMgr::buildBuildingRequiresString(CvWStringBuffer& szBuffer, Build
 						wsz = GC.getMapINLINE().getWorldSize();
 					int iHigh = iLow * std::max(0, (GC.getWorldInfo(wsz).
 							getBuildingClassPrereqModifier() + 100));
-					iHigh = (int)::ceil(iHigh / 100.0); // advc.054
+					iHigh = (int)::ceil(iHigh / 100.0); // advc.140
 					// </advc.004y>
 					CvWString szTempBuffer;
 					szTempBuffer.Format(L"%s%s", NEWLINE, gDLL->getText(

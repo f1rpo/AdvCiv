@@ -4880,6 +4880,7 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 /************************************************************************************************/
 		TEAMREF(ePlayer).declareWar((TeamTypes)iData1, false, WARPLAN_DOGPILE,
 				true, getID()); // advc.100
+		// Call CvTeam::makeUnwillingToTalk instead?
 		for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 		{
 			CvPlayerAI& attacked = GET_PLAYER((PlayerTypes)iI); // <advc.003>
@@ -7477,7 +7478,7 @@ int CvPlayer::getBuildingClassPrereqBuilding(BuildingTypes eBuilding, BuildingCl
 
 	iPrereqs *= std::max(0, (GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getBuildingClassPrereqModifier() + 100));
 	//iPrereqs /= 100;
-	iPrereqs = (int)::ceil(iPrereqs / 100.0); // advc.954: Round up
+	iPrereqs = (int)std::ceil(iPrereqs / 100.0); // advc.140: Round up
 
 	if (!isLimitedWonderClass(eBuildingClass))
 	{

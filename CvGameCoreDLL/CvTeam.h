@@ -371,12 +371,10 @@ public:
 	/* advc.004a: A hack that allows other classes to pretend that a team knows
 	   a tech for some computation. Should be toggled back afterwards. */
 	void setHasTechTemporarily(TechTypes tt, bool b);
-	/* <advc.134a> NB: Looks like the several stages (finite state machine)
+	/* advc.134a: (Looks like the several stages (finite state machine)
 	   aren't needed after all; i.e. would work with just offeringPeace
-	   set to either the team whose peace offer is incoming or NO_TEAM otherwise. */
+	   set to either the team whose peace offer is incoming or NO_TEAM otherwise.) */
 	void advancePeaceOfferStage(TeamTypes aiTeam = NO_TEAM);
-	private: TeamTypes offeringPeace; int peaceOfferStage;
-	public: // </advc.134a>
 
 	bool isNoTradeTech(TechTypes eIndex) const;																														// Exposed to Python
 	void setNoTradeTech(TechTypes eIndex, bool bNewValue);																					// Exposed to Python
@@ -546,6 +544,8 @@ protected:
 	int** m_ppaaiImprovementYieldChange;
 
 	std::vector<BonusTypes> m_aeRevealedBonuses;
+
+	TeamTypes offeringPeace; int peaceOfferStage; // advc.134a
 
 	void doWarWeariness();
 

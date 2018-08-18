@@ -3462,6 +3462,24 @@
 		<Italian>[COLOR_WARNING_TEXT]Richiede %s1_Name: %d2-%d3[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_WARNING_TEXT]Requiere %s1_Name: %d2-%d3[COLOR_REVERT]</Spanish>
 	</TEXT>
+	<!-- Based on TXT_KEY_CIVIC_CONSCRIPTION in CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_CIVIC_CONSCRIPTION_RANGE</Tag>
+		<English>[ICON_BULLET]Can [LINK=CONCEPT_DRAFT]Draft[\LINK] %d1_Num-%d2_Num Units per Turn</English>
+		<French>[ICON_BULLET]Peut [LINK=CONCEPT_DRAFT]enr&#244;ler[\LINK] %d1_Num-%d2_Num Unit&#233;s par tour</French>
+		<German>[ICON_BULLET]Kann %d1_Num-%d2_Num Einheiten pro Runde [LINK=CONCEPT_DRAFT]rekrutieren[\LINK]</German>
+		<Italian>[ICON_BULLET]Pu&#242; [LINK=CONCEPT_DRAFT]richiamare[\LINK] alla leva %d1_Num-%d2_Num unit&#224; per turno</Italian>
+		<Spanish>[ICON_BULLET]Puede [LINK=CONCEPT_DRAFT]reclutar[\LINK] %d1_Num-%d2_Num unidades por turno</Spanish>
+	</TEXT>
+	<!-- Based on TXT_KEY_BUILDING_PROVIDES in CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_PROVIDES_RANGE</Tag>
+		<English>[ICON_BULLET]Provides %d1_Num-%d2_Num [COLOR_HIGHLIGHT_TEXT][LINK=literal]%s3_BonusName[\LINK][COLOR_REVERT] (%F4_BonusIcon)</English>
+		<French>[ICON_BULLET]Fournit %d1_Num-%d2_Num [COLOR_HIGHLIGHT_TEXT][LINK=literal]%s3_BonusName[\LINK][COLOR_REVERT] (%F4_BonusIcon)</French>
+		<German>[ICON_BULLET]Liefert %d1_Num-%d2_Num des Bonusguts [COLOR_HIGHLIGHT_TEXT][LINK=literal]%s3_BonusName[\LINK][COLOR_REVERT] (%F4_BonusIcon)</German>
+		<Italian>[ICON_BULLET]Fornisce %d1_Num-%d2_Num [COLOR_HIGHLIGHT_TEXT][LINK=literal]%s3_BonusName[\LINK][COLOR_REVERT] (%F4_BonusIcon)</Italian>
+		<Spanish>[ICON_BULLET]Da %d1_Num-%d2_Num de [COLOR_HIGHLIGHT_TEXT][LINK=literal]%s3_BonusName[\LINK][COLOR_REVERT] (%F4_BonusIcon)</Spanish>
+	</TEXT>
 
 	<!-- advc.106: Based on TXT_KEY_ERA_SPLASH_SCREEN in
 		 Civ4GameText_Misc1.xml. -->

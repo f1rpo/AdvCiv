@@ -6510,7 +6510,8 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	}
 	if(!bFreeTech) // k146
 		iValue += kTeam.getResearchProgress(eTech)/4;
-
+	// advc.007: Might need this again
+	//FAssert(!canResearch(eTech) || std::wcscmp(kTechInfo.getDescription(), L"Feudalism") != 0);
 	// Map stuff
 	if (kTechInfo.isExtraWaterSeeFrom())
 	{
@@ -13751,48 +13752,50 @@ DenialTypes CvPlayerAI::AI_cityTrade(CvCity* pCity, PlayerTypes ePlayer) const {
 	return DENIAL_NEVER;
 } // </advc.003>
 
-
-int CvPlayerAI::AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer) const
+/*  advc.003 (comment): This object pays for the embargo and ePlayer stops trading
+	with eTradeTeam. */
+int CvPlayerAI::AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer,
+		bool bWarTrade) const // advc.104o
 {
-	CvDeal* pLoopDeal;
-	int iModifier;
-	int iValue;
-	int iLoop;
-
-	FAssertMsg(ePlayer != getID(), "shouldn't call this function on ourselves");
-	FAssertMsg(GET_PLAYER(ePlayer).getTeam() != getTeam(), "shouldn't call this function on ourselves");
-	FAssertMsg(eTradeTeam != getTeam(), "shouldn't call this function on ourselves"); // advc.003: The next two asserts had nonsensical messages (copy-paste error apparently)
-	FAssertMsg(GET_TEAM(eTradeTeam).isAlive(), "GET_TEAM(eTradeTeam).isAlive is expected to be true");
-	FAssertMsg(!atWar(eTradeTeam, GET_PLAYER(ePlayer).getTeam()), "ePlayer should be at peace with eTradeTeam");
+	CvDeal* pLoopDeal=NULL;
+	int iLoop=-1;
+	// advc.003: Moved some declarations
+	FAssert(ePlayer != getID());
+	FAssert(TEAMID(ePlayer) != getTeam());
+	FAssert(eTradeTeam != getTeam());
+	FAssert(GET_TEAM(eTradeTeam).isAlive());
+	FAssert(!atWar(eTradeTeam, TEAMID(ePlayer)));
 	// <advc.130f>
 	if(TEAMREF(ePlayer).isCapitulated() && TEAMREF(ePlayer).isVassal(getTeam()))
 		return 0; // </advc.130f>
-	iValue = (50 + (GC.getGameINLINE().getGameTurn() / 2));
-	iValue += (GET_TEAM(eTradeTeam).getNumCities() * 5);
-
-	iModifier = 0;
-
-	switch (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).AI_getAttitude(eTradeTeam))
-	{
+	int iValue = 50 + GC.getGameINLINE().getGameTurn() / 2;
+	//iValue += GET_TEAM(eTradeTeam).getNumCities() * 5;
+	// <advc.130f>
+	iValue += std::max(GET_TEAM(getTeam()).getNumCities(),
+			GET_TEAM(eTradeTeam).getNumCities()) * 4;
+	int iModifier = 0;
+	if(!bWarTrade) {
+		int iPowRatioPercent = (100 * GET_TEAM(eTradeTeam).getPower(true)) /
+				(TEAMREF(ePlayer).getPower(false) +
+				(GET_TEAM(eTradeTeam).isAtWar(getTeam()) ?
+				GET_TEAM(getTeam()).getPower(false) / 4 : 0));
+		iModifier += iPowRatioPercent;
+	} // </advc.130f>
+	switch(TEAMREF(ePlayer).AI_getAttitude(eTradeTeam)) {
 	case ATTITUDE_FURIOUS:
 		break;
-
 	case ATTITUDE_ANNOYED:
 		iModifier += 25;
 		break;
-
 	case ATTITUDE_CAUTIOUS:
 		iModifier += 50;
 		break;
-
 	case ATTITUDE_PLEASED:
 		iModifier += 100;
 		break;
-
 	case ATTITUDE_FRIENDLY:
 		iModifier += 200;
 		break;
-
 	default:
 		FAssert(false);
 		break;
@@ -13805,10 +13808,16 @@ int CvPlayerAI::AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer
 		iModifier -= 25;
 	CvTeam const& kTeam = TEAMREF(ePlayer); // The team that'll have to cancel OB
 	if(kTeam.isOpenBorders(eTradeTeam)) {
+		iModifier += 50;
 		if(kTeam.getAtWarCount() > 0 && GET_PLAYER(ePlayer).isFocusWar() &&
-				!kTeam.allWarsShared(getTeam(), false))
-			iModifier += towardUs < ATTITUDE_FRIENDLY ? 150 : 100;
-		else iModifier += 50;
+				!kTeam.allWarsShared(getTeam(), false)) {
+			/*  <advc.104o> Will probably want to focus on the new war then.
+				(Though with a human sponsor, we shouldn't be too sure.) */
+			if(bWarTrade)
+				iModifier += ((isHuman() && towardUs < ATTITUDE_FRIENDLY) ? 50 : 25);
+			// </advc.104o>
+			else iModifier += (towardUs < ATTITUDE_FRIENDLY ? 100 : 50);
+		}
 	} // Lower bound was 0% in BtS, now 50%
 	iValue *= std::max(50, iModifier + 100); // </advc.130f>
 	iValue /= 100;
@@ -13825,30 +13834,55 @@ int CvPlayerAI::AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer
 
 	for(pLoopDeal = GC.getGameINLINE().firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = GC.getGameINLINE().nextDeal(&iLoop))
 	{
-		if (pLoopDeal->isCancelable(getID()) && !(pLoopDeal->isPeaceDeal()))
+		//if (pLoopDeal->isCancelable(getID()) && !(pLoopDeal->isPeaceDeal()))
+		// <advc.130f>
+		if(pLoopDeal->isPeaceDeal() ||
+				/*  OB don't have a proper trade value and have already been
+					covered above */
+				pLoopDeal->headFirstTradesNode() != NULL &&
+				pLoopDeal->headFirstTradesNode()->m_data.m_eItemType ==
+				TRADE_OPEN_BORDERS)
+			continue; // </advc.130f>
+		if (GET_PLAYER(pLoopDeal->getFirstPlayer()).getTeam() == TEAMID(ePlayer)
+				// advc.001q:
+				&& TEAMID(pLoopDeal->getSecondPlayer()) == eTradeTeam)
 		{
-			if (GET_PLAYER(pLoopDeal->getFirstPlayer()).getTeam() == GET_PLAYER(ePlayer).getTeam())
+			if (pLoopDeal->getLengthSecondTrades() > 0)
 			{
-				if (pLoopDeal->getLengthSecondTrades() > 0)
-				{
-					iValue += (GET_PLAYER(pLoopDeal->getFirstPlayer()).AI_dealVal(pLoopDeal->getSecondPlayer(), pLoopDeal->getSecondTrades()) * ((pLoopDeal->getLengthFirstTrades() == 0) ? 2 : 1));
-				}
+				iValue += GET_PLAYER(pLoopDeal->getFirstPlayer()).AI_dealVal(
+						pLoopDeal->getSecondPlayer(), pLoopDeal->getSecondTrades()) *
+						/*  advc.130f: Was ... 2 : 1.
+							dealVal is based on the peace treaty duration,
+							but we're likely to lose the trade permanently.
+							A gift is better than a trade, but what we give away
+							is less valuable than what we get; 3:2 captures this
+							better than 2:1 I think. */
+						(pLoopDeal->getLengthFirstTrades() == 0 ? 3 : 2);
 			}
+		}
 
-			if (GET_PLAYER(pLoopDeal->getSecondPlayer()).getTeam() == GET_PLAYER(ePlayer).getTeam())
+		if (GET_PLAYER(pLoopDeal->getSecondPlayer()).getTeam() == TEAMID(ePlayer)
+				// advc.001q:
+				&& TEAMID(pLoopDeal->getFirstPlayer()) == eTradeTeam)
+		{
+			if (pLoopDeal->getLengthFirstTrades() > 0)
 			{
-				if (pLoopDeal->getLengthFirstTrades() > 0)
-				{
-					iValue += (GET_PLAYER(pLoopDeal->getSecondPlayer()).AI_dealVal(pLoopDeal->getFirstPlayer(), pLoopDeal->getFirstTrades()) * ((pLoopDeal->getLengthSecondTrades() == 0) ? 2 : 1));
-				}
+				iValue += GET_PLAYER(pLoopDeal->getSecondPlayer()).AI_dealVal(
+						pLoopDeal->getFirstPlayer(), pLoopDeal->getFirstTrades()) *
+						// advc.130f: See above
+						(pLoopDeal->getLengthSecondTrades() == 0 ? 3 : 2);
 			}
 		}
 	}
 
-	if (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isVassal(getTeam()))
+	if (TEAMREF(ePlayer).isVassal(getTeam()))
 	{
 		iValue /= 2;
-	}
+	} // <advc.130f>
+	double embargoLengthMult = GC.getLeaderHeadInfo(GET_PLAYER(GET_TEAM(
+			eTradeTeam).getLeaderID()).getPersonalityType()).
+			getMemoryDecayRand(MEMORY_STOPPED_TRADING_RECENT) / 20.0;
+	iValue = ::round(embargoLengthMult * iValue); // </advc.130f>
 	return GET_TEAM(getTeam()).roundTradeVal(iValue); // advc.104k
 }
 
@@ -17579,12 +17613,15 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 			// K-Mod end
 		}
 		iTempValue += ((kCivic.getTradeYieldModifier(iI) * iCities) / 11);
-		// (K-Mod note: that denominator is bogus, but since no civics currently have this modifier anyway, I'm just going to leave it.)
+		/*  (K-Mod note: that denominator is bogus, but since no civics
+			currently have this modifier anyway, I'm just going to leave it.) */
 
 		for (int iJ = 0; iJ < GC.getNumImprovementInfos(); iJ++)
 		{
-			// Free Speech
-			iTempValue += (AI_averageYieldMultiplier((YieldTypes)iI) * (kCivic.getImprovementYieldChanges(iJ, iI) * (getImprovementCount((ImprovementTypes)iJ) + iCities/2))) / 100;
+			iTempValue += (AI_averageYieldMultiplier((YieldTypes)iI) *
+					(kCivic.getImprovementYieldChanges(iJ, iI) *
+					(getImprovementCount((ImprovementTypes)iJ) + iCities/2))) /
+					100;
 		}
 
 		/* original code
@@ -19042,6 +19079,9 @@ void CvPlayerAI::AI_doCounter()
 			}
 			if(mId == MEMORY_DECLARED_WAR_ON_FRIEND &&
 					atWarWithPartner(TEAMID(civId)))
+				continue;
+			if((mId == MEMORY_STOPPED_TRADING || mId == MEMORY_HIRED_TRADE_EMBARGO) &&
+					AI_getMemoryCount(civId, MEMORY_STOPPED_TRADING_RECENT) > 0)
 				continue;
 			// </advc.130r><advc.130j>
 			/*  Need to decay at least twice as fast b/c each
