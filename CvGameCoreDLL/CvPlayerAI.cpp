@@ -21038,33 +21038,31 @@ void CvPlayerAI::AI_doDiplo()
 					}
 				}
 			}
-			// 40 for all leaders
+			
 			int iDeclareWarTradeRand = GC.getLeaderHeadInfo(getPersonalityType()).getDeclareWarTradeRand();
-			if (iMinAtWarCounter < 10)
+			/*if (iMinAtWarCounter < 10)
 			{
 				iDeclareWarTradeRand *= iMinAtWarCounter;
 				iDeclareWarTradeRand /= 10;
 				iDeclareWarTradeRand ++;
 			}
-										
 			if (iMinAtWarCounter < 4)
 			{
 				iDeclareWarTradeRand /= 4;
 				iDeclareWarTradeRand ++;
-			}
-
-			// <advc.104o>
-			// Same probability as in BtS (so far)
+			}*/
+			// <advc.161> Replacing the above
+			if(iMinAtWarCounter == MAX_INT)
+				continue;
+			iDeclareWarTradeRand = iDeclareWarTradeRand / 10 +
+					std::min(10, iMinAtWarCounter);
 			double pr = (iDeclareWarTradeRand <= 0 ? 1.0 :
 					1.0 / iDeclareWarTradeRand);
-			/*  pr is 1 if iMinAtWarCounter is 0, i.e. we've just declared war
-				ourselves. That's a bit too predictable I think. */
-			if(getWPAI.isEnabled())
-				pr = std::min(pr, 0.75);
 			// Commented out: BtS probability test
 			//if(g.getSorenRandNum(iDeclareWarTradeRand, "AI Diplo Declare War Trade") != 0)
-			if(!::bernoulliSuccess(pr, "advc.104o"))
-				continue;
+			if(!::bernoulliSuccess(pr, "advc.161"))
+				continue; // </advc.161>
+			// <advc.104o>
 			int iBestTargetValue = 0;
 			int iBestTeamPrice = -1;
 			// </advc.104o>

@@ -1491,6 +1491,12 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 		}
 	}
 	// K-Mod end.
+	// <advc.104i>
+	if(sponsor != NO_PLAYER) {
+		makeUnwillingToTalk(eTeam);
+		if(TEAMREF(sponsor).isAtWar(eTeam))
+			TEAMREF(sponsor).makeUnwillingToTalk(eTeam);
+	} // </advc.104i>
 
 	setAtWar(eTeam, true);
 	GET_TEAM(eTeam).setAtWar(getID(), true);
@@ -7502,30 +7508,34 @@ void CvTeam::allowDefensivePactsToBeCanceled() {
 // <advc.104i>
 void CvTeam::makeUnwillingToTalk(TeamTypes otherId) {
 
+	if(!getWPAI.isEnabled())
+		return;
 	// No need to make vassals unwilling to talk; can't negotiate war/ peace anyway.
 	if(otherId == NO_TEAM || isAVassal() || GET_TEAM(otherId).isAVassal())
 		return;
-	/*  Make each member i of our team unwilling to talk to every member j
-		of the other team. */
+	/*  Make each leading member i of our team unwilling to talk to every
+		leading member j of the other team. "Leading": team leader or human;
+		only these can make peace. */
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 		CvPlayerAI& ourMember = GET_PLAYER((PlayerTypes)i);
-		if(!ourMember.isAlive() || ourMember.getTeam() != getID())
+		if(!ourMember.isAlive() || ourMember.getTeam() != getID() ||
+				(!ourMember.isHuman() && ourMember.getID() != getLeaderID()))
 			continue;
 		for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
 			CvPlayer& theirMember = GET_PLAYER((PlayerTypes)j);
-			if(!theirMember.isAlive() || theirMember.getTeam() != otherId)
+			if(!theirMember.isAlive() || theirMember.getTeam() != otherId ||
+					(!theirMember.isHuman() && theirMember.getID() !=
+					GET_TEAM(otherId).getLeaderID()))
 				continue;
 			if(!ourMember.isHuman() &&
-					// Same code as in CvDeal::startTrade, case WAR_TRADE
 					ourMember.AI_getMemoryCount(theirMember.getID(),
 					MEMORY_STOPPED_TRADING_RECENT) <= 0) {
 				ourMember.AI_changeMemoryCount(theirMember.getID(),
 						MEMORY_STOPPED_TRADING_RECENT, 1);
 			}
-			/*  STOPPED_TRADING memory has no effect on humans. Make the
-				other side unwilling to talk then. Could simply always make both
-				sides unwilling, but then, the expected RTT duration would
-				become longer. */
+			/*  STOPPED_TRADING memory has no effect on humans. Make the other
+				side unwilling to talk then. Could simply always make both sides
+				unwilling, but then, the expected RTT duration would become longer. */
 			else if(ourMember.isHuman() && theirMember.AI_getMemoryCount(
 					ourMember.getID(), MEMORY_STOPPED_TRADING_RECENT) <= 0) {
 				theirMember.AI_changeMemoryCount(ourMember.getID(),

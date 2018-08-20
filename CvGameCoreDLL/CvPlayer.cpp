@@ -4880,7 +4880,6 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 /************************************************************************************************/
 		TEAMREF(ePlayer).declareWar((TeamTypes)iData1, false, WARPLAN_DOGPILE,
 				true, getID()); // advc.100
-		// Call CvTeam::makeUnwillingToTalk instead?
 		for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 		{
 			CvPlayerAI& attacked = GET_PLAYER((PlayerTypes)iI); // <advc.003>
@@ -4888,14 +4887,6 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 				continue; // </advc.003>
 			// advc.130j:
 			attacked.AI_rememberEvent(getID(), MEMORY_HIRED_WAR_ALLY);
-			// <advc.104i> Refuse to talk with both war enemies
-			if(attacked.AI_getMemoryCount(ePlayer, MEMORY_STOPPED_TRADING_RECENT) <= 0) {
-				// For 0.5*22 turns on average
-				attacked.AI_changeMemoryCount(ePlayer, MEMORY_STOPPED_TRADING_RECENT, 1);
-			}
-			if(attacked.AI_getMemoryCount(getID(), MEMORY_STOPPED_TRADING_RECENT) <= 0)
-				attacked.AI_changeMemoryCount(getID(), MEMORY_STOPPED_TRADING_RECENT, 1);
-			// </advc.104i>
 		}
 		break;
 
