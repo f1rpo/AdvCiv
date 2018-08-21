@@ -49,6 +49,7 @@ public:
 	// Some deals are non-collusive regardless of trade value
 	bool isSquareDeal(CLinkList<TradeData> const& humanReceives,
 			CLinkList<TradeData> const& aiReceives, PlayerTypes aiCiv) const;
+	bool isNeededWarTrade(CLinkList<TradeData> const& humanReceives) const;
 	/*  Deal value assuming that certain items like civics changes are of low
 		value to the human side. */
 	int pessimisticDealVal(PlayerTypes aiCivId, int dealVal,

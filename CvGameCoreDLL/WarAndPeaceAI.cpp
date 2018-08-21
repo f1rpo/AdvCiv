@@ -1096,11 +1096,14 @@ int WarAndPeaceAI::Team::tradeValJointWar(TeamTypes targetId,
 	FAssert(!GET_TEAM(allyId).isHuman());
 	PROFILE_FUNC();
 	int u = uJointWar(targetId, allyId); // Compares joint war with solo war
-	if(u < 0)
+	/*  Low u suggests that we're not sure that we'll need help. Also,
+		war evaluation doesn't account for MEMORY_HIRED_WAR_ALLY and
+		CvTeam::makeUnwillingToTalk (advc.104o). */
+	if(u < 5 + 9 * ::hash(GC.getGameINLINE().getGameTurn(),
+			GET_TEAM(agentId).getLeaderID()))
 		return 0;
 	// NB: declareWarTrade applies an additional threshold
-	int const thresh = dwtUtilityThresh;
-	return ::round(utilityToTradeVal(std::min(u, -thresh)));
+	return ::round(utilityToTradeVal(std::min(u, -dwtUtilityThresh)));
 }
 
 int WarAndPeaceAI::Team::reluctanceToPeace(TeamTypes otherId,

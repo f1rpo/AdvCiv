@@ -2712,8 +2712,9 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		{
 			CvEventReporter::getInstance().cityAcquiredAndKept(getID(), pNewCity);
 		}
-	}
-
+	} // <advc.004x>
+	if(bTrade && isHuman())
+		pNewCity->chooseProduction(); // </advc.004x>
 	// Forcing events that deal with the old city not to expire just because we conquered that city
 	for (CvEventMap::iterator it = m_mapEventsOccured.begin(); it != m_mapEventsOccured.end(); ++it)
 	{
@@ -13786,7 +13787,8 @@ void CvPlayer::changeHasReligionCount(ReligionTypes eIndex, int iChange)
 // <advc.132> Body adopted from CvPlayerAI::AI_religionTrade
 bool CvPlayer::isMinorityReligion(ReligionTypes rel) const {
 
-	if(getStateReligion() == NO_RELIGION) return true;
+	if(getStateReligion() == NO_RELIGION)
+		return true;
 	int const relCount = getHasReligionCount(rel);
 	return relCount < getNumCities() / 2 &&
 		   relCount < getHasReligionCount(getStateReligion()) - 1;
@@ -24870,6 +24872,8 @@ int CvPlayer::getCapitalY() const {
 // <advc.004x>
 void CvPlayer::killAll(ButtonPopupTypes bpt, int data1) {
 
+	if(getID() != GC.getGameINLINE().getActivePlayer() || !isHuman())
+		return;
 	// Preserve the popups we don't want killed in newQueue
 	std::list<CvPopupInfo*> newQueue;
 	for(int pass = 0; pass < 2; pass++) {

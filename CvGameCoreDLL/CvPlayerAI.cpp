@@ -11465,8 +11465,9 @@ bool CvPlayerAI::AI_considerOfferBulk(PlayerTypes ePlayer,
 			return false; // </advc.133>
 		// <advc.130o>
 		bool demand = false;
-		bool accept = true; // </advc.130o>
-		if (kOurTeam.isVassal(kPlayer.getTeam()) && CvDeal::isVassalTributeDeal(pOurList))
+		bool accept = true;
+		bool vassal = kOurTeam.isVassal(kPlayer.getTeam()); // </advc.130o>
+		if(vassal && CvDeal::isVassalTributeDeal(pOurList))
 		{
 			if (AI_getAttitude(ePlayer, false) <= GC.getLeaderHeadInfo(getPersonalityType()).getVassalRefuseAttitudeThreshold()
 				//&& kOurTeam.getAtWarCount(true) == 0
@@ -11491,7 +11492,7 @@ bool CvPlayerAI::AI_considerOfferBulk(PlayerTypes ePlayer,
 				leaders, so no functional change. */
 			AttitudeTypes const noGiveHelpThresh = (AttitudeTypes)GC.getLeaderHeadInfo(
 					getPersonalityType()).getNoGiveHelpAttitudeThreshold();
-			demand = AI_getAttitude(ePlayer) <= noGiveHelpThresh;
+			demand = (AI_getAttitude(ePlayer) <= noGiveHelpThresh);
 			if (demand) // </advc.130o>
 			{
 				FAssert(bHuman);
@@ -11499,11 +11500,16 @@ bool CvPlayerAI::AI_considerOfferBulk(PlayerTypes ePlayer,
 				{	// advc.130o: Don't return just yet
 					accept = false;
 				}
-			} // <advc.130o>
-			// </advc.130o> <advc.144>
-			else if(!bSameTeam && // advc.155
-					::hash(GC.getGameINLINE().getGameTurn(), getID()) < prDenyHelp())
-				return false; // </advc.144>
+			} // <advc.144>
+			else { // <advc.130v>
+				if(AI_getAttitude(ePlayer, false) <= noGiveHelpThresh)
+					return false; // </advc.130v>
+				if(!bSameTeam && // advc.155
+						!vassal && // advc.130v
+						::hash(GC.getGameINLINE().getGameTurn(), getID()) <
+						prDenyHelp())
+					return false; // </advc.144>
+			}
 			// <advc.104m>
 			if(accept && demand && getWPAI.isEnabled() &&
 					!bSameTeam) // advc.155
@@ -11516,20 +11522,25 @@ bool CvPlayerAI::AI_considerOfferBulk(PlayerTypes ePlayer,
 			iThreshold *= 2;
 			// <advc.155>
 			if(bSameTeam)
-				iThreshold *= 5;
-			else { // </advc.155>
+				iThreshold *= 5; // </advc.155>
+			else if(!vassal) { // advc.130v
 				if (TEAMREF(ePlayer).AI_isLandTarget(getTeam()))
 				{
 					iThreshold *= 3;
 				} 
 				iThreshold *= (TEAMREF(ePlayer).getPower(false) + 100);
 				iThreshold /= (kOurTeam.getPower(false) + 100);
-			} // advc.155
+			} // <advc.155>
+			int randExtra = ::round((::hash(g.getGameTurn(), getID()) - 0.5) *
+					iThreshold * 0.2);
+			iThreshold += randExtra; // </advc.155>
 			iThreshold -= kPlayer.AI_getPeacetimeGrantValue(getID());
 
 			accept = (iOurValue < iThreshold); // advc.130o: Don't return yet
 			// <advc.144>
-			if(accept && !demand && getWPAI.isEnabled())
+			if(accept && !demand &&
+					!vassal && // advc.130v
+					getWPAI.isEnabled())
 				accept = warAndPeaceAI().considerGiftRequest(ePlayer, iOurValue);
 			// </advc.144>
 		}
@@ -11566,8 +11577,10 @@ bool CvPlayerAI::AI_considerOfferBulk(PlayerTypes ePlayer,
 			double thresh = g.getRiseFall().dealThresh(isAnnualDeal(*pOurList));
 			if(iChange < 0)
 				thresh = std::min(thresh, std::max(0.4, thresh - 0.15));
-			if(pessimisticVal / (iTheirValue + 0.01) < thresh)
-				return g.getRiseFall().isSquareDeal(*pOurList, *pTheirList, getID());
+			if(pessimisticVal / (iTheirValue + 0.01) < thresh) {
+				return (g.getRiseFall().isSquareDeal(*pOurList, *pTheirList, getID()) ||
+						g.getRiseFall().isNeededWarTrade(*pOurList));
+			}
 		}
 		if(!kOurTeam.isGoldTrading() && !TEAMREF(ePlayer).isGoldTrading())
 			iOurValue = ::round(0.9 * iOurValue);
@@ -11868,8 +11881,9 @@ bool CvPlayerAI::counterProposeBulk(PlayerTypes ePlayer, const CLinkList<TradeDa
 			double thresh = g.getRiseFall().dealThresh(isAnnualDeal(ourListCounter));
 			if(bDeal && g.getRiseFall().pessimisticDealVal(getID(), iValueForThem,
 					ourListCounter) / (iValueForUs + 0.01) < thresh)
-				bDeal = (g.getRiseFall().isSquareDeal(*pOurList, *pTheirList, getID()) &&
-						 g.getRiseFall().isSquareDeal(*pOurCounter, *pTheirCounter, getID()));
+				bDeal = ((g.getRiseFall().isSquareDeal(*pOurList, *pTheirList, getID()) &&
+						 g.getRiseFall().isSquareDeal(*pOurCounter, *pTheirCounter, getID())) ||
+						 g.getRiseFall().isNeededWarTrade(*pOurList));
 		}
 		double const secondAttempt = 0.9;
 		if(!bDeal && !GET_TEAM(getTeam()).isGoldTrading() &&
@@ -14080,7 +14094,10 @@ DenialTypes CvPlayerAI::AI_religionTrade(ReligionTypes eReligion, PlayerTypes eP
 	{
 		return NO_DENIAL;
 	}
-
+	// <advc.132>
+	if(GET_PLAYER(ePlayer).isStateReligion() && eReligion != GET_PLAYER(ePlayer).
+			getStateReligion())
+		return DENIAL_JOKING; // </advc.132>
 	if (GET_TEAM(getTeam()).isVassal(GET_PLAYER(ePlayer).getTeam()))
 	{
 		return NO_DENIAL;

@@ -735,8 +735,8 @@ bool RiseFall::isDeliverMessages(PlayerTypes civId) const {
 bool RiseFall::isCooperationRestricted(PlayerTypes aiCiv) const {
 
 	PlayerTypes masterId = GET_TEAM(GET_PLAYER(aiCiv).getMasterTeam()).getLeaderID();
-	if(masterId != aiCiv && isCooperationRestricted(masterId))
-		return true;
+	if(masterId != aiCiv)
+		return isCooperationRestricted(masterId);
 	PlayerTypes human = GC.getGameINLINE().getActivePlayer();
 	if(aiCiv == human)
 		return false;
@@ -1261,6 +1261,26 @@ bool RiseFall::isSquareDeal(CLinkList<TradeData> const& humanReceives,
 	if(//allSquare(humanReceives, aiCiv, human) &&
 			allSquare(aiReceives, human, aiCiv))
 		return true;
+	return false;
+}
+
+bool RiseFall::isNeededWarTrade(CLinkList<TradeData> const& humanReceives) const {
+
+	CvPlayerAI const& human = GET_PLAYER(GC.getGameINLINE().getActivePlayer());
+	for(CLLNode<TradeData>* node = humanReceives.head();
+			node != NULL; node = humanReceives.next(node)) {
+		if(node->m_data.m_eItemType == TRADE_WAR) {
+			TeamTypes targetId = (TeamTypes)node->m_data.m_iData;
+			if(targetId == NO_PLAYER) {
+				FAssert(targetId != NO_PLAYER);
+				return false;
+			}
+			if(GET_TEAM(targetId).AI_getWarSuccess(human.getTeam()) >
+					GC.getWAR_SUCCESS_CITY_CAPTURING() && 
+					GET_TEAM(human.getTeam()).AI_getEnemyPowerPercent() > 100)
+				return true;
+		}
+	}
 	return false;
 }
 
