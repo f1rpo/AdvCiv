@@ -44,6 +44,14 @@ void CyTeam::declareWar(int /*TeamTypes*/ eTeam, bool bNewDiplo, int /*WarPlanTy
 		m_pTeam->declareWar((TeamTypes)eTeam, bNewDiplo, (WarPlanTypes)eWarPlan);
 }
 
+// <advc.106g>
+void CyTeam::declareWarEvent(int /*TeamTypes*/ eTeam, bool bNewDiplo, int /*WarPlanTypes*/ eWarPlan)
+{
+	if (m_pTeam)
+		m_pTeam->declareWar((TeamTypes)eTeam, bNewDiplo, (WarPlanTypes)eWarPlan,
+				true, NO_PLAYER, true);
+} // </advc.106g>
+
 void CyTeam::makePeace(int /*TeamTypes*/ eTeam)
 {
 	if (m_pTeam)
@@ -259,6 +267,16 @@ int CyTeam::getNumMembers()
 {
 	return m_pTeam ? m_pTeam->getNumMembers() : -1;
 }
+// <advc.155>
+int CyTeam::getAliveCount()
+{
+	return m_pTeam ? m_pTeam->getAliveCount() : -1;
+}
+
+int CyTeam::getMasterTeam()
+{
+	return m_pTeam ? m_pTeam->getMasterTeam() : -1;
+} // </advc.155>
 
 bool CyTeam::isAlive()
 {
@@ -689,6 +707,13 @@ void CyTeam::freeVassal(int /*TeamTypes*/ eIndex)
 		m_pTeam->freeVassal((TeamTypes)eIndex);
 	}
 }
+
+// <advc.130v>
+bool CyTeam::isCapitulated() {
+	if(m_pTeam == NULL)
+		return false;
+	return m_pTeam->isCapitulated();
+} // </advc.130v>
 
 bool CyTeam::isDefensivePact(int /*TeamTypes*/ eIndex)				 
 {

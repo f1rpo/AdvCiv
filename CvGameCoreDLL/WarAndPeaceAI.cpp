@@ -4,11 +4,12 @@
 #include "WarAndPeaceAI.h"
 #include "WarEvaluator.h"
 #include "CvDiploParameters.h"
+#include "CvDLLInterfaceIFaceBase.h"
 
 /*  advc.make: Include this for debugging with Visual Leak Detector
 	(if installed). Doesn't matter which file includes it; preferrable a cpp file
 	such as this b/c it doesn't cause (much) unnecessary recompilation this way. */
-//#include <vld.h> 
+//#include <vld.h>
 
 using std::vector;
 using std::set;
@@ -96,10 +97,14 @@ int WarAndPeaceAI::maxLandDist() const {
 int WarAndPeaceAI::maxSeaDist() const {
 
 	CvWorldInfo const& wi = GC.getWorldInfo(GC.getMapINLINE().getWorldSize());
+	int r = 15;
 	// That's true for Large and Huge maps
 	if(wi.getGridWidth() > 100 || wi.getGridHeight() > 100)
-		return 20;
-	return 15;
+		r = 20;
+	CvMap const& m = GC.getMapINLINE();
+	if(!m.isWrapXINLINE() && !m.isWrapYINLINE())
+		r = (r * 6) / 5;
+	return r;
 }
 
 bool WarAndPeaceAI::isUpdated() const {
@@ -259,9 +264,19 @@ void WarAndPeaceAI::Team::doWar() {
 		closeReport();
 		return;
 	}
-	if(reviewWarPlans())
+	WarAndPeaceCache& cache = leaderCache();
+	if(reviewWarPlans()) {
 		scheme();
-	else report->log("No scheming b/c clearly busy with current wars");
+		for(int i = 0; i < MAX_CIV_TEAMS; i++) {
+			if(agent.AI_isSneakAttackPreparing((TeamTypes)i))
+				cache.setCanBeHiredAgainst((TeamTypes)i, true);
+		}
+	}
+	else {
+		report->log("No scheming b/c clearly busy with current wars");
+		for(int i = 0; i < MAX_CIV_TEAMS; i++)
+			cache.setCanBeHiredAgainst((TeamTypes)i, false);
+	}
 	closeReport();
 }
 
@@ -453,8 +468,10 @@ bool WarAndPeaceAI::Team::reviewPlan(TeamTypes targetId, int u, int prepTime) {
 		if(!canSchemeAgainst(targetId, true)) {
 			report->log("War plan \"%s\" canceled b/c %s is no longer a legal target",
 					report->warPlanName(wp), report->teamName(targetId));
-			if(!inBackgr)
+			if(!inBackgr) {
 				agent.AI_setWarPlan(targetId, NO_WARPLAN);
+				showWarPlanAbandonedMsg(targetId);
+			}
 			return false;
 		}
 		if(wp != WARPLAN_PREPARING_LIMITED && wp != WARPLAN_PREPARING_TOTAL) {
@@ -465,14 +482,36 @@ bool WarAndPeaceAI::Team::reviewPlan(TeamTypes targetId, int u, int prepTime) {
 					(inBackgr && wp == WARPLAN_DOGPILE));
 			if(u < 0) {
 				report->log("Imminent war canceled; no longer worthwhile");
-				if(!inBackgr)
+				if(!inBackgr) {
 					agent.AI_setWarPlan(targetId, NO_WARPLAN);
+					showWarPlanAbandonedMsg(targetId);
+				}
 				return false;
+			}
+			else {
+				// Consider switching when war remains imminent for a long time
+				double pr = std::min(0.33, wpAge * 0.04);
+				report->log("pr of considering to switch target: %d",
+						::round(100 * pr));
+				if(::bernoulliSuccess(pr, "advc.104 (switch while imminent)")) {
+					/*  considerSwitchTarget was written under the assumption
+						that no war is imminent. Could be difficult to rectify;
+						instead, change the war plan temporarily. */
+					agent.setWarPlanNoUpdate(targetId, WARPLAN_PREPARING_LIMITED);
+					bool bSwitch = !considerSwitchTarget(targetId, u, 0);
+					/*  If we do switch, then considerSwitchTarget has
+						already reset the war plan against targetId --
+						except when running in the background. */
+					if(!bSwitch || inBackgr)
+						agent.setWarPlanNoUpdate(targetId, wp);
+					if(bSwitch)
+						return false;
+				}
 			}
 			CvMap const& m = GC.getMapINLINE();
 			// 12 turns for a Standard-size map, 9 on Small
 			int timeout = std::max(m.getGridWidth(), m.getGridHeight()) / 7;
-			// Checking missions is a bit costly, don't do it if timeout isn't near
+			// Checking missions is a bit costly, don't do it if timeout isn't near.
 			if(wpAge > timeout) {
 				// Akin to code in CvTeamAI::AI_endWarVal
 				for(size_t i = 0; i < members.size(); i++) {
@@ -485,8 +524,10 @@ bool WarAndPeaceAI::Team::reviewPlan(TeamTypes targetId, int u, int prepTime) {
 			if(wpAge > timeout) {
 				report->log("Imminent war canceled b/c of timeout (%d turns)",
 						timeout);
-				if(!inBackgr)
+				if(!inBackgr) {
 					agent.AI_setWarPlan(targetId, NO_WARPLAN);
+					showWarPlanAbandonedMsg(targetId);
+				}
 				return false;
 			}
 			report->log("War remains imminent (%d turns until timeout)",
@@ -512,16 +553,47 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 	CvTeamAI& target = GET_TEAM(targetId);
 	double peaceThresh = peaceThreshold(targetId);
 	report->log("Threshold for seeking peace: %d", ::round(peaceThresh));
-	if(u > peaceThresh) {
-		report->log("No peace sought b/c war utility is above the peace threshold");
-		return true;
+	bool human = target.isHuman();
+	if(u >= peaceThresh) {
+		/*  Peace so we can free our hands for a different war.
+			(The "distraction" war utility aspect also deals with this,
+			but it's normally not enough to get the AI to stop a successful
+			war before starting one that looks even more worthwhile.) */
+		if(!human) {
+			for(size_t i = 0; i < getWPAI._properTeams.size(); i++) {
+				TeamTypes otherId = getWPAI._properTeams[i];
+				if(agent.AI_isSneakAttackReady(otherId)) {
+					report->log("Considering peace with %s to focus on"
+							" imminent war against %s; evaluating two-front war:",
+							report->teamName(targetId), report->teamName(otherId));
+					WarEvalParameters params(agentId, otherId, *report, true);
+					params.addExtraTarget(targetId);
+					/*  We're sure that we want to attack otherId. Only consider
+						peace with the ExtraTarget. */
+					params.setNotConsideringPeace();
+					WarEvaluator eval(params);
+					/*  Check both limited and total war instead of agent
+						.AI_getWarPlan(otherId) in order to avoid a preference for
+						the two-front case on account of greater military build-up. */
+					int uLim = eval.evaluate(WARPLAN_LIMITED, 0) -
+							GC.getUWAI_MULTI_WAR_RELUCTANCE();
+					int uTot = eval.evaluate(WARPLAN_TOTAL, 0) -
+							GC.getUWAI_MULTI_WAR_RELUCTANCE();
+					u = std::min(uLim, uTot);
+					// Tbd.: If the war plan against otherId is TOTAL
+					report->log("Utility of a two-front war compared with a war "
+							"only against %s: %d", report->teamName(otherId), u);
+					break; // Only one war can be imminent at a time
+				}
+			}
+		}
+		if(u >= peaceThresh) {
+			report->log("No peace sought b/c war utility is above the peace threshold");
+			return true;
+		}
 	}
-	bool human = false;
-	// Don't try to ask human for peace
-	if(target.isHuman()) {
+	if(human) // Don't try to ask human for peace
 		report->log("Can't ask human for peace (bug in EXE)");
-		human = true;
-	}
 	CvPlayerAI& targetLeader = GET_PLAYER(target.getLeaderID());
 	CvPlayerAI& agentLeader = GET_PLAYER(agent.getLeaderID());
 	// We refuse to talk for 1 turn
@@ -531,11 +603,11 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 				report->leaderName(targetLeader.getID()));
 		return true; // Can't contact them for capitulation either
 	}
-	if(!human && u < 0) {
-		double pr = std::sqrt((double)-u) * 0.03; // 30% at u=-100
+	if(!human) {
+		double pr = std::sqrt(peaceThresh - u) * 0.03;
 		report->log("Probability for peace negotiation: %d percent",
 				::round(pr * 100));
-		if(::bernoulliSuccess(1 - pr)) {
+		if(::bernoulliSuccess(1 - pr, "advc.104 (peace)")) {
 			report->log("Peace negotiation randomly skipped");
 			return true; // Don't consider capitulation w/o having tried peace negot.
 		}
@@ -612,7 +684,7 @@ bool WarAndPeaceAI::Team::considerCapitulation(TeamTypes masterId, int ourWarUti
 	prSkip = ::dRange(prSkip, 0.0, 0.87);
 	report->log("%d percent probability to delay capitulation based on master's "
 			"reluctance to peace (%d)", ::round(100 * prSkip), masterReluctancePeace);
-	if(::bernoulliSuccess(prSkip)) {
+	if(::bernoulliSuccess(prSkip, "advc.104 (cap)")) {
 		if(prSkip < 1)
 			report->log("No capitulation this turn");
 		return true;
@@ -778,7 +850,7 @@ bool WarAndPeaceAI::Team::considerPlanTypeChange(TeamTypes targetId, int u) {
 	report->log("Probability of switching: %d percent", ::round(pr * 100));
 	if(pr <= 0)
 		return true;
-	if(::bernoulliSuccess(pr)) {
+	if(::bernoulliSuccess(pr, "advc.104 (sw plan)")) {
 		report->log("Switching to war plan \"%s\"", report->warPlanName(altWarPlan));
 		if(!inBackgr) {
 			agent.AI_setWarPlan(targetId, altWarPlan);
@@ -799,8 +871,10 @@ bool WarAndPeaceAI::Team::considerAbandonPreparations(TeamTypes targetId, int u,
 			(WarEvaluator doesn't handle this properly, i.e. would ignore the
 			all but one plan). Can only occur here if UWAI was running in the
 			background for some time. */
-		if(!inBackgr)
+		if(!inBackgr) {
 			agent.AI_setWarPlan(targetId, NO_WARPLAN);
+			showWarPlanAbandonedMsg(targetId);
+		}
 		report->log("More than one war in preparation, canceling the one against %s",
 				report->teamName(targetId));
 		return false;
@@ -809,8 +883,10 @@ bool WarAndPeaceAI::Team::considerAbandonPreparations(TeamTypes targetId, int u,
 		return true;
 	if(timeRemaining <= 0 && u < 0) {
 		report->log("Time limit for preparations reached; plan abandoned");
-		if(!inBackgr)
+		if(!inBackgr) {
 			agent.AI_setWarPlan(targetId, NO_WARPLAN);
+			showWarPlanAbandonedMsg(targetId);
+		}
 		return false;
 	}
 	WarPlanTypes wp = agent.AI_getWarPlan(targetId);
@@ -828,10 +904,12 @@ bool WarAndPeaceAI::Team::considerAbandonPreparations(TeamTypes targetId, int u,
 	double pr = std::min(1.0, -u * warRand / 7500.0);
 	report->log("Abandoning preparations with probability %d percent (warRand=%d)",
 			::round(pr * 100), warRand);
-	if(::bernoulliSuccess(pr)) {
+	if(::bernoulliSuccess(pr, "advc.104 (aband)")) {
 		report->log("Preparations abandoned");
-		if(!inBackgr)
+		if(!inBackgr) {
 			agent.AI_setWarPlan(targetId, NO_WARPLAN);
+			showWarPlanAbandonedMsg(targetId);
+		}
 		return false;
 	}
 	else report->log("Preparations not abandoned");
@@ -845,30 +923,43 @@ bool WarAndPeaceAI::Team::considerSwitchTarget(TeamTypes targetId, int u,
 	WarPlanTypes wp = agent.AI_getWarPlan(targetId);
 	TeamTypes bestAltTargetId = NO_TEAM;
 	int bestUtility = 0;
+	bool qualms = (timeRemaining > 0 && GC.getLeaderHeadInfo(GET_PLAYER(agent.getLeaderID()).
+			getPersonalityType()).getNoWarAttitudeProb(
+			agent.AI_getAttitude(targetId)) >= 100);
+	bool altQualms = false;
 	for(size_t i = 0; i < getWPAI._properTeams.size(); i++) {
 		TeamTypes altTargetId = getWPAI._properTeams[i];
-		if(!canSchemeAgainst(altTargetId) ||
+		if(!canSchemeAgainst(altTargetId, false) ||
 				agent.turnsOfForcedPeaceRemaining(altTargetId) > timeRemaining)
 			continue;
+		bool loopQualms = (GC.getLeaderHeadInfo(GET_PLAYER(agent.getLeaderID()).
+				getPersonalityType()).getNoWarAttitudeProb(
+				agent.AI_getAttitude(altTargetId)) >= 100);
+		if(loopQualms && !qualms)
+			continue;
 		WarAndPeaceReport silentReport(true);
-		WarEvalParameters params(agentId, altTargetId, silentReport);
+		WarEvalParameters params(agentId, altTargetId, silentReport, true);
 		WarEvaluator eval(params);
 		int uSwitch = eval.evaluate(wp, timeRemaining);
-		if(uSwitch > std::max(bestUtility, u)) {
+		if(uSwitch > std::max(bestUtility, qualms ? 0 : u)) {
 			bestAltTargetId = altTargetId;
 			bestUtility = uSwitch;
+			altQualms = loopQualms;
 		}
 	}
 	if(bestAltTargetId == NO_TEAM) {
-		report->log("No better target for war preparations found");
+		report->log("No other promising target for war preparations found");
 		return true;
 	}
 	double padding = 0;
-	if(u < 20) padding += 20 - u;
+	if(std::min(u, bestUtility) < 20)
+		padding += 20 - std::min(u, bestUtility);
 	double pr = 0.75 * (1 - (u + padding) / (bestUtility + padding));
+	if(qualms && !altQualms)
+		pr += 1.8;
 	report->log("Switching target for war preparations to %s (u=%d) with pr=%d percent",
 			report->teamName(bestAltTargetId), bestUtility, ::round(100 * pr));
-	if(!::bernoulliSuccess(pr)) {
+	if(!::bernoulliSuccess(pr, "advc.104 (sw target)")) {
 		report->log("Target not switched");
 		return true;
 	}
@@ -876,7 +967,9 @@ bool WarAndPeaceAI::Team::considerSwitchTarget(TeamTypes targetId, int u,
 	if(!inBackgr) {
 		int wpAge = agent.AI_getWarPlanStateCounter(targetId);
 		agent.AI_setWarPlan(targetId, NO_WARPLAN);
+		showWarPlanAbandonedMsg(targetId);
 		agent.AI_setWarPlan(bestAltTargetId, wp);
+		showWarPrepStartedMsg(bestAltTargetId);
 		agent.AI_setWarPlanStateCounter(bestAltTargetId, timeRemaining);
 	}
 	return false;
@@ -1001,14 +1094,16 @@ int WarAndPeaceAI::Team::tradeValJointWar(TeamTypes targetId,
 	/*  This function could handle a human ally, but the AI isn't supposed to
 		pay humans for war (and I've no plans for changing that). */
 	FAssert(!GET_TEAM(allyId).isHuman());
-	// That's already a comparison between joint war and solo war
-	int u = uJointWar(targetId, allyId);
-	if(u < 0)
+	PROFILE_FUNC();
+	int u = uJointWar(targetId, allyId); // Compares joint war with solo war
+	/*  Low u suggests that we're not sure that we'll need help. Also,
+		war evaluation doesn't account for MEMORY_HIRED_WAR_ALLY and
+		CvTeam::makeUnwillingToTalk (advc.104o). */
+	if(u < 5 + 9 * ::hash(GC.getGameINLINE().getGameTurn(),
+			GET_TEAM(agentId).getLeaderID()))
 		return 0;
-	/*  Same as in declareWarTrade. But could allow higher values in
-		AI-AI trades ... */
-	int const thresh = 35;
-	return ::round(utilityToTradeVal(std::min(u, thresh)));
+	// NB: declareWarTrade applies an additional threshold
+	return ::round(utilityToTradeVal(std::min(u, -dwtUtilityThresh)));
 }
 
 int WarAndPeaceAI::Team::reluctanceToPeace(TeamTypes otherId,
@@ -1033,7 +1128,7 @@ bool WarAndPeaceAI::Team::canSchemeAgainst(TeamTypes targetId,
 	/*  advc.130o: Shouldn't attack right after peace from demand; therefore
 		don't plan war during the peace treaty. */
 	if(agent.isForcePeace(targetId) && agent.AI_getMemoryCount(
-				targetId, MEMORY_ACCEPT_DEMAND) > 0)
+			targetId, MEMORY_ACCEPT_DEMAND) > 0)
 		return false;
 	return target.isAlive() && !target.isMinorCiv() && agent.isHasMet(targetId) &&
 			!target.isAVassal() && target.getNumCities() > 0 && (assumeNoWarPlan ||
@@ -1070,9 +1165,15 @@ void WarAndPeaceAI::Team::scheme() {
 		}
 	}
 	vector<TargetData> targets;
+	double totalDrive = 0;
+	CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(GET_PLAYER(agent.getLeaderID()).
+			getPersonalityType());
+	WarAndPeaceCache& cache = leaderCache();
 	for(size_t i = 0; i < getWPAI._properTeams.size(); i++) {
 		TeamTypes targetId = getWPAI._properTeams[i];
-		if(!canSchemeAgainst(targetId))
+		if(!canSchemeAgainst(targetId, true))
+			cache.setCanBeHiredAgainst(targetId, false);
+		if(!canSchemeAgainst(targetId, false))
 			continue;
 		report->log("Scheming against %s", report->teamName(targetId));
 		bool shortWork = isPushover(targetId);
@@ -1113,19 +1214,24 @@ void WarAndPeaceAI::Team::scheme() {
 		else report->log("%s %s war has %d utility", (total ? "total" : "limited"),
 				(((total && totalNaval) || (!total && limitedNaval)) ?
 				"naval" : ""), u);
+		bool const canHireOld = cache.canBeHiredAgainst(targetId);
+		cache.updateCanBeHiredAgainst(targetId, u, dwtUtilityThresh);
+		bool const canHireNew = cache.canBeHiredAgainst(targetId);
+		if(canHireOld != canHireNew) {
+			if(canHireNew)
+				report->log("Can now (possibly) be hired for war");
+			else report->log("Can no longer be hired for war");
+		}
 		if(u <= 0)
 			continue;
 		double drive = u;
-		CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(GET_PLAYER(agent.getLeaderID()).
-				getPersonalityType());
 		/*  WarRand of e.g. Alexander and Montezuma 50 for total war, else 40;
 			Gandhi and Mansa Musa 400 for total, else 200.
 			I.e. peaceful leaders hesitate longer before starting war preparations;
 			warlike leaders have more drive. */
 		double div = total ? lh.getMaxWarRand() : lh.getLimitedWarRand();
-		/*  Let's make the AI a little less patient, especially the peaceful
-			types. */
-		div = std::pow(div, 0.97); // This maps e.g. 400 to 334 and 40 to 36
+		// Let's make the AI a bit less patient, especially the peaceful types
+		div = std::pow(div, 0.95); // This maps e.g. 400 to 296 and 40 to 33
 		if(div < 0.01)
 			drive = 0;
 		else drive /= div;
@@ -1134,8 +1240,9 @@ void WarAndPeaceAI::Team::scheme() {
 		double peacePortionRemaining = agent.turnsOfForcedPeaceRemaining(targetId) /
 				// +1.0 b/c I don't want 0 drive at this point
 				(GC.getDefineINT("PEACE_TREATY_LENGTH") + 1.0);
-		drive *= std::pow(1 - peacePortionRemaining, 1.5);
+		drive *= std::pow(1 - peacePortionRemaining, 1.0); // was ^1.5; let's try it w/o exponentiation
 		targets.push_back(TargetData(drive, targetId, total, u));
+		totalDrive += drive;
 	}
 	// Descending by drive
 	std::sort(targets.begin(), targets.end());
@@ -1143,18 +1250,26 @@ void WarAndPeaceAI::Team::scheme() {
 	for(size_t i = 0; i < targets.size(); i++) {
 		TeamTypes targetId = targets[i].id;
 		double drive = targets[i].drive;
+		// Conscientious hesitation
+		if(lh.getNoWarAttitudeProb(agent.AI_getAttitude(targetId)) >= 100) {
+			drive -= totalDrive / 2;
+			if(drive <= 0)
+				continue;
+		}
 		WarPlanTypes wp = (targets[i].total ? WARPLAN_PREPARING_TOTAL :
 				WARPLAN_PREPARING_LIMITED);
 		report->log("Drive for war preparations against %s: %d percent",
 				report->teamName(targetId), ::round(100 * drive));
-		if(::bernoulliSuccess(drive)) {
-			if(!inBackgr)
+		if(::bernoulliSuccess(drive, "advc.104 (drive)")) {
+			if(!inBackgr) {
 				agent.AI_setWarPlan(targetId, wp);
+				showWarPrepStartedMsg(targetId);
+			}
 			report->log("War plan initiated (%s)", report->warPlanName(wp));
 			break; // Prepare only one war at a time
 		}
 		report->log("No preparations begun this turn");
-		if(GET_TEAM(targetId).isHuman() && targets[i].u <= 25) {
+		if(GET_TEAM(targetId).isHuman() && targets[i].u <= 23) {
 			PlayerTypes theirLeaderId = GET_TEAM(targetId).getLeaderID();
 			if(GET_PLAYER(agent.getLeaderID()).canContactAndTalk(theirLeaderId)) {
 				report->log("Trying to amend tensions with human %s",
@@ -1176,21 +1291,41 @@ DenialTypes WarAndPeaceAI::Team::declareWarTrade(TeamTypes targetId,
 
 	if(!canReach(targetId))
 		return DENIAL_NO_GAIN;
-	WarAndPeaceReport silentReport(true);
-	WarEvalParameters params(agentId, targetId, silentReport, false,
-			GET_TEAM(sponsorId).getLeaderID());
-	WarEvaluator eval(params, true);
-	int u = eval.evaluate(WARPLAN_LIMITED);
-	int const utilityThresh = -32;
-	if(u > utilityThresh)
-		return NO_DENIAL;
-	/* "Maybe we'll change our mind" when it's (very) close?
-		No, don't provide this info after all. */
-	/*if(u > utilityThresh - 5)
-		return DENIAL_RECENT_CANCEL;*/
+	CvTeam const& sponsor = GET_TEAM(sponsorId);
+	/*  Check canBeHiredAgainst only in large games (to reduce the number of
+		war trade alerts seen by humans) */
+	if(!sponsor.isHuman() || sponsor.getHasMetCivCount() < 8 ||
+			leaderCache().canBeHiredAgainst(targetId)) {
+		int utilityThresh = dwtUtilityThresh + 2;
+		WarAndPeaceReport silentReport(true);
+		PlayerTypes const sponsorLeaderId = sponsor.getLeaderID();
+		WarEvalParameters params(agentId, targetId, silentReport, false,
+				sponsorLeaderId);
+		WarEvaluator eval(params, true);
+		int u = eval.evaluate(WARPLAN_LIMITED);
+		if(u > utilityThresh) {
+			if(GET_TEAM(sponsorId).isHuman()) {
+				int humanTradeVal = -1;
+				leaderWpai().canTradeAssets(::round(utilityToTradeVal(
+						utilityThresh)), sponsorLeaderId, &humanTradeVal,
+						true); // AI doesn't accept cities as payment for war
+				// Don't return NO_DENIAL if human can't pay enough
+				utilityThresh = std::max(utilityThresh,
+						// Add 5 for gold that the human might be able to procure
+						-::round(tradeValToUtility(humanTradeVal) + 5));
+			}
+			if(u > utilityThresh)
+				return NO_DENIAL;
+		}
+		/* "Maybe we'll change our mind" when it's (very) close?
+			No, don't provide this info after all. */
+		/*if(u > utilityThresh - 5)
+			return DENIAL_RECENT_CANCEL;*/
+	}
 	CvTeamAI const& agent = GET_TEAM(agentId);
-	// We don't know why utility is so small; can only guess
-	if(4 * agent.getPower(true) < 3 * GET_TEAM(targetId).getPower(true))
+	// We don't know why utility is so small; can only guess.
+	if(4 * agent.getPower(true) + (sponsor.isAtWar(targetId) ?
+			2 * sponsor.getPower(true) : 0) < 3 * GET_TEAM(targetId).getPower(true))
 		return DENIAL_POWER_THEM;
 	if(agent.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CULTURE4) ||
 			agent.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_SPACE4))
@@ -1209,6 +1344,10 @@ int WarAndPeaceAI::Team::declareWarTradeVal(TeamTypes targetId,
 		rep.log("%s is considering to declare war on %s at the request of %s",
 				rep.teamName(agentId), rep.teamName(targetId),
 				rep.teamName(sponsorId));
+		/*  Will see the above lines multiple times in the log when this team
+			agrees to declare war b/c CvGame::implementDeal causes the dealValue
+			to be recomputed twice for diplomatic consequences ("traded with enemy",
+			"fair and forthright"). */
 	}
 	CvTeamAI const& sponsor = GET_TEAM(sponsorId);
 	// Don't log details of war evaluation
@@ -1219,7 +1358,7 @@ int WarAndPeaceAI::Team::declareWarTradeVal(TeamTypes targetId,
 	/*  Sponsored war results in a peace treaty with the sponsor. Don't check if
 		we're planning war against the sponsor - too easy to read (b/c there are
 		just two possibilities). Instead check war utility against the sponsor. */
-	if(canSchemeAgainst(sponsorId)) {
+	if(canSchemeAgainst(sponsorId, true)) {
 		WarEvalParameters params2(agentId, sponsorId, silentReport);
 		WarEvaluator eval2(params2);
 		int uVsSponsor = eval2.evaluate(WARPLAN_LIMITED, 3);
@@ -1232,7 +1371,7 @@ int WarAndPeaceAI::Team::declareWarTradeVal(TeamTypes targetId,
 		a decent price, even if we don't mind declaring war. */
 	int lowerBound = -2;
 	if(!sponsor.isAtWar(targetId))
-		lowerBound -= 5;
+		lowerBound -= 4;
 	// War utility esp. unreliable when things get desperate
 	int wsr = GET_TEAM(agentId).AI_getWarSuccessRating();
 	if(wsr < 0)
@@ -1258,7 +1397,7 @@ int WarAndPeaceAI::Team::declareWarTradeVal(TeamTypes targetId,
 	// 0.25 if pleased, 0.5 cautious, 1 furious
 	double attitudeModifier = (ATTITUDE_FRIENDLY - towardSponsor) /
 			(double)ATTITUDE_FRIENDLY;
-	// Freundschaftspreis, but still obscured (!= 0)
+	// Mates' rates, but still obscured (!= 0).
 	if(towardSponsor == ATTITUDE_FRIENDLY)
 		attitudeModifier = -0.25;
 	/*  Put our money where our mouth is: discount for war on our worst enemy
@@ -1269,8 +1408,8 @@ int WarAndPeaceAI::Team::declareWarTradeVal(TeamTypes targetId,
 		if(attitudeModifier == 0) // Avoid 0 for obscurity
 			attitudeModifier -= 0.25;
 	}
-	double obscured = price + price * attitudeModifier * h;
-	int r = ::round(obscured);
+	double obscured = price + price * attitudeModifier * 0.6 * h;
+	int r = ::roundToMultiple(obscured, 5);
 	rep.log("Obscured price: %d (attitude modifier: %d percent)\n", r,
 			::round(100 * attitudeModifier));
 	return r;
@@ -1524,9 +1663,11 @@ double WarAndPeaceAI::Team::reparationsToHuman(double u) const {
 
 void WarAndPeaceAI::Team::respondToRebuke(TeamTypes targetId, bool prepare) {
 
-	if(!canSchemeAgainst(targetId))
-		return;
 	CvTeamAI& agent = GET_TEAM(agentId);
+	if(!canSchemeAgainst(targetId, true) || (prepare ?
+			agent.AI_isSneakAttackPreparing(targetId) :
+			agent.AI_isSneakAttackReady(targetId)))
+		return;
 	if(!prepare && !agent.canDeclareWar(targetId))
 		return;
 	CvTeam const& target = GET_TEAM(targetId);
@@ -1547,8 +1688,10 @@ DenialTypes WarAndPeaceAI::Team::acceptVassal(TeamTypes vassalId) const {
 	vector<TeamTypes> warEnemies; // Just the new ones
 	for(size_t i = 0; i < getWPAI.properTeams().size(); i++) {
 		CvTeam const& t = GET_TEAM(getWPAI.properTeams()[i]);
-		if(!t.isAVassal() && t.isAtWar(vassalId) && !t.isAtWar(agentId))
+		if(!t.isAVassal() && t.isAtWar(vassalId) && !t.isAtWar(agentId)) {
 			warEnemies.push_back(t.getID());
+			FAssert(t.isHasMet(agentId)); // vassalId shouldn't ask us then
+		}
 	}
 	if(warEnemies.empty()) {
 		FAssert(!warEnemies.empty());
@@ -1696,6 +1839,43 @@ bool WarAndPeaceAI::Team::isReportTurn() const {
 	return (reportInterval > 0 && turnNumber % reportInterval == 0);
 }
 
+void WarAndPeaceAI::Team::showWarPrepStartedMsg(TeamTypes targetId) {
+
+	showWarPlanMsg(targetId, "TXT_KEY_WAR_PREPARATION_STARTED");
+}
+
+void WarAndPeaceAI::Team::showWarPlanAbandonedMsg(TeamTypes targetId) {
+
+	showWarPlanMsg(targetId, "TXT_KEY_WAR_PLAN_ABANDONED");
+}
+
+void WarAndPeaceAI::Team::showWarPlanMsg(TeamTypes targetId, char const* txtKey) {
+
+	CvPlayer& activePl = GET_PLAYER(GC.getGameINLINE().getActivePlayer());
+	if(!activePl.isSpectator() || GC.getDefineINT("UWAI_SPECTATOR_ENABLED") <= 0)
+		return;
+	CvWString szBuffer = gDLL->getText(txtKey,
+			GET_TEAM(agentId).getName().GetCString(),
+			GET_TEAM(targetId).getName().GetCString());
+	gDLL->getInterfaceIFace()->addHumanMessage(activePl.getID(), false,
+			GC.getEVENT_MESSAGE_TIME(), szBuffer, 0, MESSAGE_TYPE_MAJOR_EVENT,
+			// <advc.127b>
+			NULL, NO_COLOR, GET_TEAM(agentId).getCapitalX(),
+			GET_TEAM(agentId).getCapitalY()); // </advc.127b>
+}
+
+WarAndPeaceCache& WarAndPeaceAI::Team::leaderCache() {
+
+	return GET_PLAYER(GET_TEAM(agentId).getLeaderID()).warAndPeaceAI().
+			getCache();
+}
+
+WarAndPeaceCache const& WarAndPeaceAI::Team::leaderCache() const {
+	// Duplicate code; see also WarAndPeaceCache::leaderCache
+	return GET_PLAYER(GET_TEAM(agentId).getLeaderID()).warAndPeaceAI().
+			getCache();
+}
+
 double WarAndPeaceAI::Team::confidenceFromWarSuccess(TeamTypes targetId) const {
 
 	/*  Need to be careful not to overestimate
@@ -1715,15 +1895,16 @@ double WarAndPeaceAI::Team::confidenceFromWarSuccess(TeamTypes targetId) const {
 	int theirSuccess = std::max(1, target.AI_getWarSuccess(agentId));
 	float successRatio = ((float)ourSuccess) / theirSuccess;
 	float const fixedBound = 0.5;
-	// Reaches fixedBound after 25 turns
-	float timeBasedBound = (100 - 2 * timeAtWar) / 100.0f;
+	// Reaches fixedBound after 20 turns
+	float timeBasedBound = (100 - 2.5f * timeAtWar) / 100.0f;
 	/*  Total-based bound: Becomes relevant once a war lasts long; e.g. after
 		25 turns, in the Industrial era, will need a total war success of 250
 		in order to reach fixedBound. Neither side should feel confident if there
 		isn't much action. */
-	float progressFactor = 11 - GET_TEAM(agentId).getCurrentEra() * 1.5f;
-	float totalBasedBound = (100 - (5.0f * (ourSuccess + theirSuccess)) / timeAtWar)
-			/ 100;
+	float progressFactor = std::max(3.0f,
+			11 - GET_TEAM(agentId).getCurrentEra() * 1.5f);
+	float totalBasedBound = (100 - (progressFactor *
+			(ourSuccess + theirSuccess)) / timeAtWar) / 100;
 	float r = successRatio;
 	r = ::range(r, fixedBound, 2 - fixedBound);
 	r = ::range(r, timeBasedBound, 2 - timeBasedBound);
@@ -1787,8 +1968,16 @@ double WarAndPeaceAI::Team::computeVotesToGoForVictory(double* voteTarget,
 		}
 	}
 	if(popThresh < 0) {
-		FAssertMsg(false, "Could not determine vote threshold");
-		if(voteTarget != NULL) voteTarget = NULL;
+		// OK if a mod removes the UN victory vote
+		for(int i = 0; i < GC.getNumVoteInfos(); i++) {
+			CvVoteInfo& vote = GC.getVoteInfo((VoteTypes)i);
+			if(vote.getStateReligionVotePercent() == 0 && vote.isVictory()) {
+				FAssertMsg(false, "Could not determine vote threshold");
+				break;
+			}
+		}
+		if(voteTarget != NULL)
+			*voteTarget = -1;
 		return -1;
 	}
 	double totalPop = g.getTotalPopulation();
@@ -1921,24 +2110,6 @@ void WarAndPeaceAI::Civ::read(FDataStreamBase* stream) {
 	cache.read(stream);
 }
 
-int WarAndPeaceAI::Civ::limitedWarRand() const {
-
-	return GC.getLeaderHeadInfo(GET_PLAYER(weId).getPersonalityType()).
-			getLimitedWarRand();
-}
-
-int WarAndPeaceAI::Civ::totalWarRand() const {
-
-	return GC.getLeaderHeadInfo(GET_PLAYER(weId).getPersonalityType()).
-			getMaxWarRand();
-}
-
-int WarAndPeaceAI::Civ::dogpileWarRand() const {
-
-	return GC.getLeaderHeadInfo(GET_PLAYER(weId).getPersonalityType()).
-			getDogpileWarRand();
-}
-
 bool WarAndPeaceAI::Civ::considerDemand(PlayerTypes theyId, int tradeVal) const {
 
 	CvPlayerAI const& we = GET_PLAYER(weId);
@@ -1992,7 +2163,7 @@ bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 					the probability. */
 				double pr = (8.5 - era) / cr;
 				// Excludes Gandhi (cr=10000 => pr=0.001)
-				if(pr > 0.005 && ::bernoulliSuccess(pr) &&
+				if(pr > 0.005 && ::bernoulliSuccess(pr, "advc.104 (trib)") &&
 						we.demandTribute(humanId, i))
 				return true;
 			}
@@ -2004,7 +2175,7 @@ bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 		if(cr > 0) {
 			// test in askHelp halves this probability
 			double pr = (5.5 - era) / cr;
-			if(::bernoulliSuccess(pr) && we.askHelp(humanId))
+			if(::bernoulliSuccess(pr, "advc.104 (help)") && we.askHelp(humanId))
 				return true;
 		}
 		else FAssert(cr > 0);
@@ -2015,7 +2186,8 @@ bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 		if(crReligion > 0) {
 			// Doesn't get reduced further in contactReligion
 			double pr = (8.0 - era) / crReligion;
-			if(::bernoulliSuccess(pr) && we.contactReligion(humanId))
+			if(::bernoulliSuccess(pr, "advc.104 (relig)") &&
+					we.contactReligion(humanId))
 				return true;
 		}
 		else FAssert(crReligion > 0);
@@ -2023,7 +2195,8 @@ bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 		if(crCivics > 0) {
 			double pr = 2.5 / crCivics;
 			// Exclude Saladin (cr=10000)
-			if(pr > 0.001 && ::bernoulliSuccess(pr) && we.contactCivics(humanId))
+			if(pr > 0.001 && ::bernoulliSuccess(pr, "advc.104 (civic)") &&
+					we.contactCivics(humanId))
 				return true;
 		}
 		else FAssert(crCivics > 0);
@@ -2054,7 +2227,10 @@ bool WarAndPeaceAI::Civ::considerGiftRequest(PlayerTypes theyId,
 	/*  Accept probabilistically regardless of war utility (so long as we're
 		not planning war yet, which the caller ensures).
 		Probability to accept is 45% for Gandhi, 0% for Tokugawa. */
-	if(::bernoulliSuccess(0.5 - we.prDenyHelp()))
+	if(::bernoulliSuccess(0.5 - we.prDenyHelp(), "advc.104 (gift)"))
+		return true;
+	// Probably won't want to attack theyId then
+	if(TEAMREF(weId).AI_isSneakAttackReady())
 		return true;
 	WarAndPeaceReport silentReport(true);
 	WarEvalParameters params(we.getTeam(), TEAMID(theyId), silentReport);
@@ -2062,7 +2238,8 @@ bool WarAndPeaceAI::Civ::considerGiftRequest(PlayerTypes theyId,
 	double u = eval.evaluate(WARPLAN_LIMITED, 5) - 5; // minus 5 for goodwill
 	if(u >= 0)
 		return false;
-	return utilityToTradeVal(-u) < tradeVal;
+	double thresh = utilityToTradeVal(-u);
+	return thresh >= tradeVal;
 }
 
 bool WarAndPeaceAI::Civ::isPeaceDealPossible(PlayerTypes humanId) const {
@@ -2088,7 +2265,7 @@ bool WarAndPeaceAI::Civ::isPeaceDealPossible(PlayerTypes humanId) const {
 }
 
 bool WarAndPeaceAI::Civ::canTradeAssets(int targetTradeVal, PlayerTypes humanId,
-		int* r) const {
+		int* r, bool ignoreCities) const {
 
 	int totalTradeVal = 0;
 	CvPlayer const& human = GET_PLAYER(humanId);
@@ -2107,20 +2284,30 @@ bool WarAndPeaceAI::Civ::canTradeAssets(int targetTradeVal, PlayerTypes humanId,
 				return true;
 		}
 	}
-	int dummy = -1;
-	for(CvCity* c = human.firstCity(&dummy); c != NULL; c = human.nextCity(&dummy)) {
-		setTradeItem(&item, TRADE_CITIES, c->getID());
-		if(human.canTradeItem(weId, item, true)) {
-			totalTradeVal += GET_PLAYER(weId).AI_cityTradeVal(c);
-			if(totalTradeVal >= targetTradeVal && r == NULL)
-				return true;
+	int cityLimit = (int)std::ceil(human.getNumCities() / 6.0);
+	int cityCount = 0;
+	if(!ignoreCities) {
+		int dummy = -1;
+		for(CvCity* c = human.firstCity(&dummy); c != NULL; c = human.nextCity(&dummy)) {
+			setTradeItem(&item, TRADE_CITIES, c->getID());
+			if(human.canTradeItem(weId, item, true)) {
+				if(totalTradeVal < targetTradeVal)
+					cityCount++;
+				totalTradeVal += GET_PLAYER(weId).AI_cityTradeVal(c);
+				if(cityCount > cityLimit) {
+					if(r == NULL)
+						return false;
+				}
+				else if(totalTradeVal >= targetTradeVal && r == NULL)
+					return true;
+			}
 		}
 	}
 	if(r != NULL) {
 		*r = totalTradeVal;
 		return false;
 	}
-	return (totalTradeVal >= targetTradeVal);
+	return (cityCount <= cityLimit && totalTradeVal >= targetTradeVal);
 }
 
 double WarAndPeaceAI::Civ::tradeValUtilityConversionRate() const {
@@ -2131,8 +2318,9 @@ double WarAndPeaceAI::Civ::tradeValUtilityConversionRate() const {
 			getTrainPercent();
 	if(trainPercent > 0)
 		speedFactor = 100.0 / trainPercent;
-	return (3 * speedFactor) / (std::max(10.0, estimateYieldRate(YIELD_COMMERCE))
-			+ 2 * std::max(1.0, estimateYieldRate(YIELD_PRODUCTION)));
+	CvPlayer const& we = GET_PLAYER(weId);
+	return (3 * speedFactor) / (std::max(10.0, we.estimateYieldRate(YIELD_COMMERCE))
+			+ 2 * std::max(1.0, we.estimateYieldRate(YIELD_PRODUCTION)));
 	/*  Note that change advc.004s excludes espionage and culture from the
 		Economy history, and estimateYieldRate(YIELD_COMMERCE) doesn't account
 		for these yields either. Not a problem for culture, I think, which is
@@ -2151,21 +2339,10 @@ double WarAndPeaceAI::Civ::tradeValToUtility(double tradeVal) const {
 	return TEAMREF(weId).warAndPeaceAI().tradeValToUtility(tradeVal);
 }
 
-/*  Assets provide mostly per-turn effects, which become less valuable
-	over the course of a game b/c there are fewer and fewer turns to go.
-	Not worth considering in the first half of the game, but e.g. after
-	300 turns (normal settings), the multiplier will have decreased to 0.7.
-
-	Current implementation isn't specific to this civ, but this could change;
-	could estimate end turn based on knowledge of this civ. */
 double WarAndPeaceAI::Civ::amortizationMultiplier() const {
 
-	return std::min(1.0, 2 * // Use this multiplier to fine-tune the effect
-	/*  The 25-turn delay is there b/c this function is used to evaluate assets
-		acquired in the medium-term future. Would be cleaner to pass the 25
-		as a "delay" parameter to this function, but that turned out to be
-		awkward to implement. */
-			(1 - GC.getGameINLINE().gameTurnProgress(25)));
+	// 25 turns delay b/c war planning is generally about a medium-term future
+	return GET_PLAYER(weId).amortizationMultiplier(25);
 }
 
 bool WarAndPeaceAI::Civ::isNearMilitaryVictory(int stage) const {
@@ -2212,23 +2389,6 @@ int WarAndPeaceAI::Civ::getDominationStage() const {
 	if(we.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4))
 		return 4;
 	return 0;
-}
-
-int WarAndPeaceAI::Civ::closeBordersAttitudeChangePercent(
-		PlayerTypes civId) const {
-
-	/* A bit of a hack. The attitude-change value is first factored in by 
-	   AI_getCloseBordersAttitude, then factored out again. This causes
-	   rounding errors too.
-	   It's fast, though, b/c AI_getCloseBordersAttitude uses caching. The
-	   clean solution would be to cache the result of this function instead.
-	   That's too laborious to program considering what this function is used
-	   for. */
-	CvPlayerAI& we = GET_PLAYER(weId);
-	int cbac = GC.getLeaderHeadInfo(we.getPersonalityType()).
-			getCloseBordersAttitudeChange();
-	if(cbac == 0) return 0;
-	return (we.AI_getCloseBordersAttitude(civId) * 100) / cbac;
 }
 
 double WarAndPeaceAI::Civ::militaryPower(CvUnitInfo const& u,
@@ -2278,6 +2438,12 @@ double WarAndPeaceAI::Civ::buildUnitProb() const {
 	return GC.getLeaderHeadInfo(we.getPersonalityType()).getBuildUnitProb() / 100.0;
 }
 
+double WarAndPeaceAI::Civ::shipSpeed() const {
+
+	// Tbd.: Use the actual speed of our typical LOGISTICS unit
+	return ::dRange(GET_PLAYER(weId).getCurrentEra() + 1.0, 3.0, 5.0);
+}
+
 double WarAndPeaceAI::Civ::humanBuildUnitProb() const {
 
 	CvPlayer& human = GET_PLAYER(weId);
@@ -2288,43 +2454,6 @@ double WarAndPeaceAI::Civ::humanBuildUnitProb() const {
 			human.getCurrentEra() <= 2)
 		r += 0.05;
 	return r;
-}
-
-// Inspired by CvTeamAI::AI_estimateTotalYieldRate.
-double WarAndPeaceAI::Civ::estimateYieldRate(YieldTypes yield, int nSamples) const {
-
-	CvPlayerAI& we = GET_PLAYER(weId);
-	CvGame& g = GC.getGameINLINE();
-	int turnNumber = g.getGameTurn();
-	int turnsPlayed = turnNumber - g.getStartTurn();
-	nSamples = std::min(nSamples, turnsPlayed - 1);
-	vector<double> samples; // ::median works with double
-	/* When anarchy lasts several turns, the sample may not contain a single
-	   non-revolution turn. In this case, increase the sample size gradually. */
-	while(samples.empty() && nSamples < turnsPlayed) {
-		for(int i = 1; i <= nSamples; i++) {
-			int sampleIndex = turnNumber - i;
-			int h = 0;
-			switch(yield) {
-			case YIELD_COMMERCE:
-				h = we.getEconomyHistory(sampleIndex);
-				break;
-			case YIELD_PRODUCTION:
-				h = we.getIndustryHistory(sampleIndex);
-				break;
-			case YIELD_FOOD:
-				h = we.getAgricultureHistory(sampleIndex);
-				break;
-			default: FAssert(false);
-			}
-			if(h > 0) // Omit revolution turns
-				samples.push_back(h);
-		}
-		nSamples++;
-	}
-	if(samples.empty())
-		return 0;
-	return ::median(samples);
 }
 
 /*  Doesn't currently use any members of this object, but perhaps it will in the
@@ -2418,22 +2547,22 @@ double WarAndPeaceAI::Civ::warConfidenceAllies() const {
 	CvPlayerAI const& we = GET_PLAYER(weId);
 	// AI assumes that humans have normal confidence
 	if(we.isHuman())
-		return 1;
+		return 0.8;
 	double dpwr = GC.getLeaderHeadInfo(we.getPersonalityType()).getDogpileWarRand();
 	if(dpwr <= 0)
 		return 0;
 	/* dpwr is between 20 (DeGaulle, high confidence) and
 	   150 (Lincoln, low confidence). These values are too far apart to convert
-	   them proportionally. Hence the square root. The result is between
+	   them proportionally. Hence the square root. The result is normally between
 	   1 and 0.23. */
-	double r = std::max(0.0, std::sqrt(30 / dpwr) - 0.22);
+	double r = ::dRange(std::sqrt(30 / dpwr) - 0.22, 0.0, 1.8);
 	/*  Should have much greater confidence in civs on our team, but
 		can't tell in this function who the ally is. Hard to rewrite
 		InvasionGraph such that each ally is evaluated individually; wasn't
 		written with team games in mind. As a temporary measure, just generally
 		increase confidence when part of a team: */
 	if(GET_TEAM(we.getTeam()).getNumMembers() > 1)
-		r = ::dRange(2 * r, 0.6, 1.2);
+		r = std::max(r, ::dRange(2 * r, 0.6, 1.2));
 	return r;
 }
 
@@ -2484,7 +2613,7 @@ double WarAndPeaceAI::Civ::protectiveInstinct() const {
 		common. Subtract WarMongerRespect to sort out the ones that just like
 		DP because they're fearful, e.g. Boudica or de Gaulle. */
 	CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(we.getPersonalityType());
-	int dpVal = 2* (ATTITUDE_FRIENDLY - lh.getDefensivePactRefuseAttitudeThreshold());
+	int dpVal = 2 * (ATTITUDE_FRIENDLY - lh.getDefensivePactRefuseAttitudeThreshold());
 	int wmrVal = lh.getWarmongerRespect();
 	wmrVal *= wmrVal;
 	return 0.9 + (dpVal - wmrVal) / 10.0;

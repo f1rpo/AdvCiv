@@ -60,7 +60,7 @@
 	<Define>
 		<!-- Protect our partners because we want to continue trading with
 			 them, and don't want to become isolated. Assistance for more
-			 principled reasons is covered by FIDELITY; the "mutual strugle"
+			 principled reasons is covered by FIDELITY, the "mutual struggle"
 			 diplo bonus by SUCKING_UP. -->
 		<DefineName>UWAI_WEIGHT_PRESERVATION_OF_PARTNERS</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
@@ -85,13 +85,13 @@
 	</Define>
 	<Define>
 		<!-- By declaring war on a civ that recently attacked one of our
-			 partners, we demonstrate that its worthwhile to be our partner,
+			 partners, we demonstrate that it's worthwhile to be our partner,
 			 and dangerous to attack our partners. -->
 		<DefineName>UWAI_WEIGHT_FIDELITY</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
 	</Define>
 	<Define>
-		<!-- We continue a war because we've been paid for it. (Or maybe rather
+		<!-- We continue a war because we've been paid for it. (Or maybe, rather,
 			 to prove that we're a reliable hireling.) -->
 		<DefineName>UWAI_WEIGHT_HIRED_HAND</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
@@ -107,7 +107,7 @@
 		<iDefineIntVal>100</iDefineIntVal>
 	</Define>
 	<Define>
-		<!-- To weaken a civ that we perceive as a long-term threat. -->
+		<!-- To weaken a civ that we perceive as a long-term military threat. -->
 		<DefineName>UWAI_WEIGHT_PREEMPTIVE_WAR</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
 	</Define>
@@ -122,7 +122,7 @@
 	</Define>
 	<Define>
 		<!-- Our military build-up, lost units and ravages of war. Adjusted
-			 based on our opportunities for peaceful development (i.e. an
+			 based on our opportunities for peaceful development (i.e. it's an
 			 opportunity cost). Also takes into account whether we'll have
 			 further use of units surviving the war and whether lost units
 			 will have to be replaced. -->
@@ -144,13 +144,14 @@
 	<Define>
 		<!-- Don't want to plan war against civs that we like. This is only
 			 role-playing; ILL_WILL handles the rational reasons for not
-			 attacking partners. -->
+			 attacking partners.
+			 v0.90: Let's try 90. -->
 		<DefineName>UWAI_WEIGHT_AFFECTION</DefineName>
-		<iDefineIntVal>100</iDefineIntVal>
+		<iDefineIntVal>90</iDefineIntVal>
 	</Define>
 	<Define>
 		<!-- Distractions from fighting multiple wars are already covered by
-			 the military analysis, but not quite reliably so, so this is an
+			 the military analysis, but not quite reliably, so this is an
 			 extra cost to discourage wars on multiple fronts. -->
 		<DefineName>UWAI_WEIGHT_DISTRACTION</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
@@ -163,8 +164,8 @@
 	<Define>
 		<!-- War leaves fewer units stationed in cities, which can lead to
 			 revolts in cities conquered in some previous war. Due to the
-			 "Immortal Culture" changes, this can be a significant considera-
-			 tion sometimes. -->
+			 "Immortal Culture" changes, this consideration is sometimes
+			 significant. -->
 		<DefineName>UWAI_WEIGHT_REVOLTS</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
 	</Define>
@@ -183,8 +184,9 @@
 	</Define>
 	<Define>
 		<!-- War as its own purpose. Before this aspect was added, there was too
-			 little war before the Medieval era. Especially affects AI
-			 leaders with aggressive/ suicidal personalities. -->
+			 little war before the Medieval era on spacious maps.
+			 Especially affects AI leaders with aggressive/ suicidal
+			 personalities. -->
 		<DefineName>UWAI_WEIGHT_BELLICOSITY</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
 	</Define>
@@ -199,6 +201,14 @@
 		<iDefineIntVal>100</iDefineIntVal>
 	</Define>
 	<!-- [/advc.104x] -->
+	<!-- [advc.104] Misc. UWAI parameters -->
+	<Define>
+		<!-- Added to the utility threshold for starting a war while already in
+			 a war. Recommended: 10 (or sth. between 0 and 25). -->
+		<DefineName>UWAI_MULTI_WAR_RELUCTANCE</DefineName>
+		<iDefineIntVal>10</iDefineIntVal>
+	</Define>
+	<!-- [/advc.104] -->
 
 	<!-- -->
 	<!-- Better BTS AI / K-Mod variables to allow easy AI tweaking -->
@@ -222,18 +232,21 @@
 	</Define>
 	<Define>
 		<!-- Minimum attack odds of best attacker for AI to skip bombarding a city and just attack.  BBAI default: 12 -->
+		<!-- advc.114c: Was 10 in K-Mod, now 9. -->
 		<DefineName>BBAI_SKIP_BOMBARD_BEST_ATTACK_ODDS</DefineName>
-		<iDefineIntVal>10</iDefineIntVal>
+		<iDefineIntVal>9</iDefineIntVal>
 	</Define>
 	<Define>
 		<!-- Base ratio of stack strengths for AI considering skipping bombard and just attacking enemy city.
 		This ratio is reduced by the AI's best attacker odds and how long it will take to bombard the city.
 		Lower means AI will more readily skip bombarding.  BBAI default: 300 -->
+		<!-- advc.114c: Was 260 in K-Mod, now 250. -->
 		<DefineName>BBAI_SKIP_BOMBARD_BASE_STACK_RATIO</DefineName>
-		<iDefineIntVal>260</iDefineIntVal>
+		<iDefineIntVal>250</iDefineIntVal>
 	</Define>
 	<Define>
 		<!-- Minimum stack strength ratio for AI to skip bombarding city and just attack, higher is more conservative.  BBAI default: 150 -->
+		<!-- advc.114c: Was 140 in K-Mod, now 135. -->
 		<DefineName>BBAI_SKIP_BOMBARD_MIN_STACK_RATIO</DefineName>
 		<iDefineIntVal>140</iDefineIntVal>
 	</Define>

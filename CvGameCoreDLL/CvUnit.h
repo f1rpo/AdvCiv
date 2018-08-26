@@ -124,6 +124,7 @@ public:
 	bool canMoveInto(const CvPlot* pPlot, bool bAttack = false, bool bDeclareWar = false, bool bIgnoreLoad = false, bool bAssumeVisible = true) const; // K-Mod added bAssumeVisible. Exposed to Python
 	bool canMoveOrAttackInto(const CvPlot* pPlot, bool bDeclareWar = false) const;								// Exposed to Python
 	// bool canMoveThrough(const CvPlot* pPlot, bool bDeclareWar = false) const; // disabled by K-Mod (was exposed to Python)
+	bool canEnterArea(CvArea const& a) const; // advc.030
 	void attack(CvPlot* pPlot, bool bQuick);
 	void attackForDamage(CvUnit *pDefender, int attackerDamageChange, int defenderDamageChange);
 	void fightInterceptor(const CvPlot* pPlot, bool bQuick);
@@ -414,6 +415,7 @@ public:
 	int cityAttackModifier() const;																					// Exposed to Python
 	int cityDefenseModifier() const;																				// Exposed to Python
 	int animalCombatModifier() const;																				// Exposed to Python
+	int barbarianCombatModifier() const; // advc.315c
 	int hillsAttackModifier() const;																				// Exposed to Python
 	int hillsDefenseModifier() const;																				// Exposed to Python
 	int terrainAttackModifier(TerrainTypes eTerrain) const;								// Exposed to Python
@@ -686,7 +688,7 @@ public:
 
 	DllExport CvUnit* getCombatUnit() const;
 	void setCombatUnit(CvUnit* pUnit, bool bAttacking = false);
-	bool showSeigeTower(CvUnit* pDefender) const; // K-Mod
+	bool showSiegeTower(CvUnit* pDefender) const; // K-Mod
 
 	CvUnit* getTransportUnit() const;																							// Exposed to Python
 	bool isCargo() const;																													// Exposed to Python
@@ -696,7 +698,9 @@ public:
 	void changeExtraDomainModifier(DomainTypes eIndex, int iChange);
 
 	DllExport const CvWString getName(uint uiForm = 0) const;																// Exposed to Python
+	CvWString const getReplayName() const; // advc.106
 	DllExport const wchar* getNameKey() const;																							// Exposed to Python
+	wchar const* getNameKeyNoGG() const; // advc.004u
 	const CvWString& getNameNoDesc() const;																				// Exposed to Python
 	void setName(const CvWString szNewValue);																			// Exposed to Python
 

@@ -82,31 +82,14 @@ public:
 		InterfaceMessageTypes eType = MESSAGE_TYPE_INFO, LPCSTR pszIcon = NULL, ColorTypes eFlashColor = NO_COLOR,
 		int iFlashX = -1, int iFlashY = -1, bool bShowOffScreenArrows = false, bool bShowOnScreenArrows = false) = 0;
 	// K-Mod - block messages from being send to AI players. (because the game doesn't ever clear AI messages)
-	inline void addHumanMessage(PlayerTypes ePlayer, bool bForce, int iLength, CvWString szString, LPCTSTR pszSound = NULL,
-		InterfaceMessageTypes eType = MESSAGE_TYPE_INFO, LPCSTR pszIcon = NULL, ColorTypes eFlashColor = NO_COLOR,
-		int iFlashX = -1, int iFlashY = -1, bool bShowOffScreenArrows = false, bool bShowOnScreenArrows = false)
-	{
-		if (GET_PLAYER(ePlayer).isHuman()
-				/*  <advc.700> Want message archive to be available when human
-					takes over. AI messages expire just like human messages. */
-				|| (GC.getGameINLINE().isOption(GAMEOPTION_RISE_FALL) &&
-				!GET_PLAYER(ePlayer).isHumanDisabled() &&
-				GC.getGameINLINE().getRiseFall().isDeliverMessages(ePlayer)))
-				// </advc.700>
-		{
-			addMessage(ePlayer, bForce, iLength, szString, pszSound, eType, pszIcon, eFlashColor, iFlashX, iFlashY, bShowOffScreenArrows, bShowOnScreenArrows);
-		}
-		//else if (GC.getGameINLINE().getActivePlayer() == ePlayer)
-		// advc.700: Replacing the above
-		else if(!GET_PLAYER(ePlayer).isHuman() && GET_PLAYER(ePlayer).isHumanDisabled())
-		{
-			// this means ePlayer is human, but currently using auto-play
-			if (eType == MESSAGE_TYPE_MAJOR_EVENT || eType == MESSAGE_TYPE_CHAT ||
-					eType == MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY) // advc.106b
-				addMessage(ePlayer, bForce, iLength, szString, pszSound, eType, NULL, NO_COLOR, -1, -1, false, false);
-		}
-	}
-	// K-Mod end
+	void addHumanMessage(PlayerTypes ePlayer, bool bForce, int iLength,
+			CvWString szString, LPCTSTR pszSound = NULL,
+			InterfaceMessageTypes eType = MESSAGE_TYPE_INFO,
+			LPCSTR pszIcon = NULL, ColorTypes eFlashColor = NO_COLOR,
+			int iFlashX = -1, int iFlashY = -1, bool bShowOffScreenArrows = false,
+			bool bShowOnScreenArrows = false);
+		// advc.127: Definition moved into a new file: CvDLLInterfaceIBase2.cpp
+
 	virtual void addCombatMessage(PlayerTypes ePlayer, CvWString szString) = 0;
 	virtual void addQuestMessage(PlayerTypes ePlayer, CvWString szString, int iQuestId) = 0;
 	virtual void showMessage(CvTalkingHeadMessage& msg) = 0;

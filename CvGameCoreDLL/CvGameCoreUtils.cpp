@@ -41,7 +41,7 @@ using std::vector;
 
 int roundToMultiple(double d, int modulus) {
 
-	int r = round(d + 0.5 * modulus);
+	int r = (int)(d + 0.5 * modulus);
 	return r - r % modulus;
 }
 
@@ -150,13 +150,14 @@ float hash(long x, PlayerTypes civId) {
 	return hash(v, civId);
 }
 
-void fatCross(CvPlot const& p, vector<CvPlot const*>& r) {
+void fatCross(CvPlot const& p, vector<CvPlot*>& r) {
 
 	FAssert(r.empty());
 	r.reserve(21);
 	for(int i = 0; i < 21; i++)
 		r.push_back(NULL);
-	r[0] = &p;
+	// Perhaps better just r[0]=const_cast<CvPlot*>(&p)
+	r[0] = GC.getMapINLINE().plot(p.getX_INLINE(), p.getY_INLINE());
 	int pos = 1;
 	CvMap& map = GC.getMap();
 	for(int dx = -CITY_PLOTS_RADIUS; dx <= CITY_PLOTS_RADIUS; dx++) {
@@ -171,7 +172,71 @@ void fatCross(CvPlot const& p, vector<CvPlot const*>& r) {
 	}
 	FAssert(pos == 21);
 } // </advc.003>
+// <advc.035>
+void contestedPlots(std::vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2) {
 
+	if(GC.getOWN_EXCLUSIVE_RADIUS() <= 0)
+		return;
+	// Enough to check plots around the teams' cities
+	std::vector<CvCity*> cities;
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+		CvPlayer& member = GET_PLAYER((PlayerTypes)i);
+		if(!member.isAlive() || (member.getTeam() != t1 && member.getTeam() != t2))
+			continue;
+		int dummy=-1;
+		for(CvCity* c = member.firstCity(&dummy); c != NULL; c = member.nextCity(&dummy))
+			cities.push_back(c);
+	}
+	std::set<int> seenPlots; // To avoid duplicates
+	for(size_t i = 0; i < cities.size(); i++) {
+		CvCity const& c = *cities[i];
+		std::vector<CvPlot*> cross;
+		fatCross(*c.plot(), cross);
+		for(size_t j = 1; j < cross.size(); j++) {
+			if(cross[j] == NULL) continue;
+			CvPlot& p = *cross[j];
+			if(p.isCity())
+				continue;
+			PlayerTypes secondOwner = p.getSecondOwner();
+			PlayerTypes owner = p.getOwnerINLINE();
+			if(owner == NO_PLAYER || secondOwner == NO_PLAYER)
+				continue;
+			TeamTypes team = TEAMID(owner);
+			TeamTypes secondTeam = TEAMID(secondOwner);
+			if(team == secondTeam)
+				continue;
+			if((team == t1 && secondTeam == t2) || (team == t2 && secondTeam == t1)) {
+				int plotId = p.getX_INLINE() * 1000 + p.getY_INLINE();
+				if(seenPlots.count(plotId) <= 0) {
+					seenPlots.insert(plotId);
+					r.push_back(&p);
+				}
+			}
+		}
+	}
+} // </advc.035>
+
+// <advc.008e>
+bool isArticle(BuildingTypes bt) {
+
+	CvBuildingInfo const& bi = GC.getBuildingInfo(bt);
+	if(!isWorldWonderClass((BuildingClassTypes)bi.getBuildingClassType()))
+		return false; // Should only be called for wonders really
+	CvWString txtKey = bi.getTextKeyWide();
+	CvWString txt = gDLL->getText(txtKey + L"_NA");
+	/*  If an _NA key exists, then gDLL will return a dot. If it doesn't, then
+		an article should be used. */
+	return (txt.compare(L".") != 0);
+}
+bool isArticle(ProjectTypes pt) {
+
+	CvProjectInfo const& pi = GC.getProjectInfo(pt);
+	if(!isLimitedProject(pt))
+		return false;
+	CvWString txtKey = pi.getTextKeyWide();
+	CvWString txt = gDLL->getText(txtKey + L"_NA");
+	return (txt.compare(L".") != 0);
+} // </advc.008e>
 
 CvPlot* plotCity(int iX, int iY, int iIndex)
 {
@@ -429,7 +494,11 @@ int groupCycleDistance(const CvSelectionGroup* pFirstGroup, const CvSelectionGro
 			{
 				if (pFirstHead->getUnitCombatType() != pSecondHead->getUnitCombatType())
 					iPenalty += 2;
-				if (pFirstHead->canAttack() != pSecondHead->canAttack())
+				if (pFirstHead->canAttack() != pSecondHead->canAttack()
+						// <advc.315>
+						|| ::isMostlyDefensive(pFirstHead->getUnitInfo()) !=
+						::isMostlyDefensive(pSecondHead->getUnitInfo()))
+						// </advc.315>
 					iPenalty += 1;
 			}
 			else
@@ -1149,7 +1218,7 @@ int estimateCollateralWeight(const CvPlot* pPlot, TeamTypes eAttackTeam, TeamTyp
 			// Or we could check all types... But the reality is, there are always going to be mods and fringe cases where
 			// the esitmate is inaccurate. And currently in K-Mod, all instances of immunity are to the units own type anyway.
 			// Whichever way we do the estimate, cho-ku-nu is going to mess it up anyway. (Unless I change the game mechanics.)
-			if ( // advc.001: Animals have no unit combat type
+			if ( // advc.001: Animals have no unit combat type (K146 also fixes this)
 				pLoopUnit->getUnitCombatType() != NO_UNITCOMBAT &&
 				pLoopUnit->getUnitInfo().getUnitCombatCollateralImmune(pLoopUnit->getUnitCombatType()))
 				iResistanceSum += 100;
@@ -1778,7 +1847,9 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 	int iWorstMaxMoves = MAX_INT;
 
 	TeamTypes eTeam = pSelectionGroup->getHeadTeam();
-
+	// <advc.035>
+	int const flipModifierDiv = 7;
+	int flipModifier = flipModifierDiv; // </advc.035>
 	// K-Mod
 	int iExploreModifier = 3; // (in thirds)
 	if (!pToPlot->isRevealed(eTeam, false))
@@ -1794,7 +1865,31 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 		}
 	}
 	// K-Mod end
-
+	// <advc.035>
+	else if(GC.getOWN_EXCLUSIVE_RADIUS() > 0 && (iFlags & MOVE_DECLARE_WAR) &&
+			eTeam != BARBARIAN_TEAM) {
+		PlayerTypes const secondOwner = pToPlot->getSecondOwner();
+		PlayerTypes const firstOwner = pToPlot->getOwnerINLINE();
+		if(secondOwner != NO_PLAYER && firstOwner != NO_PLAYER &&
+				((pSelectionGroup->getDomainType() == DOMAIN_SEA) == pToPlot->isWater())) {
+			// Avoid tiles that flip from us to the enemy upon DoW
+			if(TEAMID(firstOwner) == eTeam && (GET_TEAM(eTeam).isHuman() ?
+					(!GET_TEAM(eTeam).isFriendlyTerritory(TEAMID(secondOwner)) &&
+					!GET_TEAM(eTeam).isAtWar(TEAMID(secondOwner))) :
+					GET_TEAM(eTeam).AI_isSneakAttackReady(TEAMID(secondOwner))))
+				flipModifier++;
+			// Seek out enemy tiles that will flip to us upon DoW
+			if(TEAMID(secondOwner) == eTeam && (GET_TEAM(eTeam).isHuman() ?
+					(!GET_TEAM(eTeam).isFriendlyTerritory(TEAMID(firstOwner)) &&
+					!GET_TEAM(eTeam).isAtWar(TEAMID(firstOwner))) :
+					GET_TEAM(eTeam).AI_isSneakAttackReady(TEAMID(firstOwner))))
+				flipModifier--;
+			/*  This could be done much more accurately, taking into account
+				vassal agreements, defensive pacts, and going through the entire
+				selection group, but I worry about the performance, and it's OK
+				if it doesn't always work correctly. */
+		}
+	} // </advc.035>
 	{
 		CLLNode<IDInfo>* pUnitNode = pSelectionGroup->headUnitNode();
 		while (pUnitNode != NULL)
@@ -1811,7 +1906,8 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 			iWorstMaxMoves = std::min(iWorstMaxMoves, iMaxMoves);
 
 			int iCost = PATH_MOVEMENT_WEIGHT * (iMovesLeft == 0 ? iMaxMoves : iMoveCost);
-			iCost = iCost * iExploreModifier / 3;
+			iCost = (iCost * iExploreModifier) / 3;
+			iCost = (iCost * flipModifier) / flipModifierDiv; // advc.035
 			if (iCost > iWorstCost)
 			{
 				iWorstCost = iCost;
@@ -1907,8 +2003,12 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 				(Actually, not so exotic b/c I'm allowing animals to survive
 				in continents w/o civ cities (advc.300). */
 			CvUnit* up = pToPlot->getUnitByIndex(0);
-			if(up != NULL && !up->isAnimal()) // </advc.001>
-				iEnemyDefence = GET_PLAYER(pSelectionGroup->getOwnerINLINE()).AI_localDefenceStrength(pToPlot, NO_TEAM, pSelectionGroup->getDomainType(), 0, true, false, pSelectionGroup->isHuman());
+			if(up != NULL && !up->isAnimal()) { // </advc.001>
+				iEnemyDefence = GET_PLAYER(pSelectionGroup->getOwnerINLINE()).
+						AI_localDefenceStrength(pToPlot, NO_TEAM,
+						pSelectionGroup->getDomainType(), 0, true, false,
+						pSelectionGroup->isHuman());
+			}
 		}
 		else
 		{
@@ -2418,7 +2518,10 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 			!m.plotINLINE(node->m_iX, parent->m_iY)->isWater())
 		return FALSE;
 	TeamTypes ePlotTeam = pNewPlot->getTeam();
-	std::vector<int> v = *((std::vector<int> *)pointer);
+	int* v = (int*)pointer;
+	int iMaxPath = v[5];
+	if(iMaxPath > 0 && node->m_iHeuristicCost + node->m_iKnownCost > iMaxPath)
+		return FALSE;
 	TeamTypes eTeam = (TeamTypes)v[0];
 	TeamTypes eTargetTeam = (TeamTypes)v[1];
 	DomainTypes dom = (DomainTypes)v[2];
@@ -2569,7 +2672,7 @@ int teamStepValid(FAStarNode* parent, FAStarNode* node, int data, const void* po
 		return TRUE;
 	}
 
-	// advc.001: Was just ePlotTeam == eTargetTeam; anticipate DoW on/ by vassals
+	// advc.001: Was just ePlotTeam == eTargetTeam; anticipate DoW on/ by vassals.
 	if(eTargetTeam != NO_TEAM && GET_TEAM(ePlotTeam).getMasterTeam() == GET_TEAM(eTargetTeam).getMasterTeam())
 	{
 		return TRUE;
@@ -2585,7 +2688,8 @@ int teamStepValid(FAStarNode* parent, FAStarNode* node, int data, const void* po
 		return TRUE;
 	}
 
-	if (kTeam.isOpenBorders(ePlotTeam))
+	if (kTeam.isOpenBorders(ePlotTeam)
+			|| kTeam.isDisengage(ePlotTeam)) // advc.034
 	{
 		return TRUE;
 	}

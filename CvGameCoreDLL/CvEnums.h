@@ -264,8 +264,9 @@ enum InterfaceMessageTypes	// Exposed to Python
 	MESSAGE_TYPE_CHAT,
 	MESSAGE_TYPE_COMBAT_MESSAGE,
 	MESSAGE_TYPE_QUEST,
-	MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, // advc.106b
-
+	// <advc.106b>
+	MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, 
+	MESSAGE_TYPE_EOT, // </advc.106b>
 #ifdef _USRDLL
 	NUM_INTERFACE_MESSAGE_TYPES
 #endif
@@ -762,6 +763,7 @@ enum GameOptionTypes				// Exposed to Python
 	GAMEOPTION_NO_ESPIONAGE,
 	GAMEOPTION_NO_CITY_RAZING, // advc.250b: Moved down
 	GAMEOPTION_NO_ANIMALS, // advc.309
+	GAMEOPTION_NO_SLAVERY, // advc.912d
 
 #ifdef _USRDLL
 	NUM_GAMEOPTION_TYPES
@@ -1886,6 +1888,9 @@ enum TradeableItems						// Exposed to Python
 
 	NUM_TRADEABLE_ITEMS = NUM_TRADEABLE_HEADINGS,
 #endif
+	/*  advc.034: Don't need to include this in iterations over TradeableItems
+		(although I suppose it wouldn't hurt) */
+	TRADE_DISENGAGE,
 };
 
 enum DiploEventTypes					// Exposed to Python
@@ -2766,6 +2771,11 @@ enum GlobeLayerUnitOptionTypes
 {
 	SHOW_ALL_MILITARY,
 	SHOW_TEAM_MILITARY,
+	/*  advc.004z: The third position is the default, which, apparently, cannot
+		be changed properly with the SDK. Put a dummy option in that position,
+		have it behave like SHOW_ALL_MILITARY and hide it from the player
+		(through CvMainInterface.py). */
+	GLOBE_LAYER_UNIT_DUMMY,
 	SHOW_ENEMIES_IN_TERRITORY,
 	SHOW_ENEMIES,
 	SHOW_PLAYER_DOMESTICS,

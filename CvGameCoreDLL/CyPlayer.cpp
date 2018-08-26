@@ -126,6 +126,10 @@ bool CyPlayer::isHumanDisabled()
 {
 	return m_pPlayer ? m_pPlayer->isHumanDisabled() : false;
 }
+bool CyPlayer::isAutoPlayJustEnded()
+{
+	return m_pPlayer ? m_pPlayer->isAutoPlayJustEnded() : false;
+}
 // </advc.127>
 bool CyPlayer::isBarbarian()
 {
@@ -899,6 +903,32 @@ int CyPlayer::getEspionageMissionCost(int /*EspionageMissionTypes*/ eMission, in
 {
 	return m_pPlayer ? m_pPlayer->getEspionageMissionCost((EspionageMissionTypes) eMission, (PlayerTypes) eTargetPlayer, NULL != pPlot ? pPlot->getPlot() : NULL, iExtraData) : -1;
 }
+// <advc.120d>
+int CyPlayer::getEspionageGoldQuantity(int eMission, int eTargetPlayer,
+		CyCity* pCity) {
+	if(m_pPlayer == NULL)
+		return -1;
+	return m_pPlayer->getEspionageGoldQuantity((EspionageMissionTypes)eMission,
+			(PlayerTypes)eTargetPlayer, pCity == NULL ? NULL : pCity->getCity());
+}
+
+int CyPlayer::getStealCostTech(int eTargetPlayer) {
+	if(m_pPlayer == NULL)
+		return NO_TECH;
+	return m_pPlayer->getStealCostTech((PlayerTypes)eTargetPlayer);
+}
+
+bool CyPlayer::canSeeTech(int eTargetPlayer) {
+	if(m_pPlayer == NULL)
+		return false;
+	return m_pPlayer->canSeeTech((PlayerTypes)eTargetPlayer);
+}
+
+bool CyPlayer::canSpy() {
+	if(m_pPlayer == NULL)
+		return false;
+	return m_pPlayer->canSpy();
+} // <advc.120d>
 
 void CyPlayer::doEspionageMission(int /*EspionageMissionTypes*/ eMission, int /*PlayerTypes*/ eTargetPlayer, CyPlot* pPlot, int iExtraData, CyUnit* pUnit)
 {
@@ -2190,7 +2220,6 @@ void CyPlayer::AI_setExtraGoldTarget(int iNewValue)
 	}
 }
 
-
 int CyPlayer::getScoreHistory(int iTurn) const
 {
 	return (NULL != m_pPlayer ? m_pPlayer->getScoreHistory(iTurn) : 0);
@@ -2306,8 +2335,28 @@ void  CyPlayer::forcePeace(int iPlayer)
 		m_pPlayer->forcePeace((PlayerTypes)iPlayer);
 }
 
+// <advc.038>
+int CyPlayer::estimateYieldRate(YieldTypes yield) const {
+
+	if(m_pPlayer == NULL)
+		return -1;
+	return ::round(m_pPlayer->estimateYieldRate(yield));
+} // </advc.038>
+
 // <advc.210>
 void CyPlayer::checkAlert(int alertId, bool silent) {
 
-	m_pPlayer->checkAlert(alertId, silent);
+	if(m_pPlayer != NULL)
+		m_pPlayer->checkAlert(alertId, silent);
 } // </advc.210>
+
+// <advc.210e>
+int CyPlayer::AI_corporationBonusVal(int eBonus) const {
+
+	if(m_pPlayer == NULL)
+		return -1;
+	/*  Adding AI_corporationBonusVal as a pure virtual function to CvPlayer
+		causes the EXE to crash during initialization. Will have to down-cast
+		instead. */
+	return dynamic_cast<CvPlayerAI*>(m_pPlayer)->AI_corporationBonusVal((BonusTypes)eBonus);
+} // </advc.210e>

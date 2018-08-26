@@ -21,15 +21,15 @@
 					type="boolean" default="False"
 					help="Set to True the first time the player opens the BUG Options screen"/>
 		</section>
-		
+		<!-- k146: Defaults were 2 and 0 -->
 		<section id="Logging">
 			<list   id="ScreenLogLevel" key="Screen Level" 
-					type="int" default="2" listType="string" 
+					type="int" default="3" listType="string" 
 					values="Debug|Info|Warning|Error|None">
 				<change module="BugUtil" function="readLoggingOptions"/>
 			</list>
 			<list   id="FileLogLevel" key="File Level" 
-					type="int" default="0" listType="string" 
+					type="int" default="2" listType="string" 
 					values="Debug|Info|Warning|Error|None">
 				<change module="BugUtil" function="readLoggingOptions"/>
 			</list>
@@ -77,7 +77,7 @@
 			"kbdEvent"
 		</arg>
 	</init>
-	
+
 	<!-- BUG Options Screen UI control handlers -->
 	<export module="BugOptionsScreen" function="handleBugExitButtonInput" to="CvOptionsScreenCallbackInterface"/>
 	<export module="BugOptionsScreen" function="handleBugHelpButtonInput" to="CvOptionsScreenCallbackInterface"/>
@@ -113,4 +113,6 @@
 		 BugOptionsScreen module (although it affects a player option,
 		 not a BUG option). -->
 	<shortcut module="BugOptionsScreen" function="toggleShowFriendlyMoves" keys="Shift M"/>
+	<!-- advc.135c -->
+	<shortcut module="BugOptionsScreen" function="toggleDebugMode" keys="Ctrl Z"/>
 </mod>

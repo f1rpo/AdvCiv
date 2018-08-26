@@ -122,6 +122,9 @@ class ReminderEventManager:
 
 	def showReminders(self, endOfTurn):
 		global g_turnReminderTexts
+		# <advc.127> Don't show reminder during Auto Play
+		if gc.getPlayer(PlayerUtil.getActivePlayerID()).isHumanDisabled():
+			return # </advc.127>
 		thisTurn = gc.getGame().getGameTurn()
 		if (endOfTurn):
 			prompt = BugUtil.getPlainText("TXT_KEY_REMIND_NEXT_TURN_PROMPT")

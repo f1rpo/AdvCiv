@@ -43,7 +43,11 @@ public:
 	/* Getting a UnitTypes value out of CvUnitInfo is quite an ordeal, hence the
 	   extra function. */
 	UnitTypes getTypicalUnitType() const;
-	double getTypicalUnitPower() const;
+	/*  pov: The player from whose point of view the typical power/ cost is
+		estimated. If NO_PLAYER or equal to ownerId, the true values are
+		returend. */
+	  double getTypicalUnitPower(PlayerTypes pov = NO_PLAYER) const;
+	  int getTypicalUnitCost(PlayerTypes pov = NO_PLAYER) const;
 	// Military power value of the entire branch.
 	double power() const;
 	void changePower(double delta);
@@ -79,6 +83,7 @@ protected:
 	/* Can a unit of this branch have domain 'd'? */
 	virtual bool isValidDomain(DomainTypes d) const;
 	int countUnitsWithAI(std::vector<UnitAITypes> aiTypes) const;
+	bool canKnowTypicalUnit(PlayerTypes pov) const;
 
 	PlayerTypes ownerId;
 	UnitTypes typicalUnitType;

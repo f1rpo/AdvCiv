@@ -97,8 +97,8 @@ class CvVictoryScreen:
 		self.TABLE2_WIDTH_1 = 265
 		# <advc.703>
 		self.RF_TABLEW_0 = 125
-		self.RF_TABLEW_1 = 180
-		self.RF_TABLEW_2 = 220
+		self.RF_TABLEW_1 = 150
+		self.RF_TABLEW_2 = 250
 		self.RF_TABLEW_3 = 260
 		self.RF_TABLEW_4 = 205
 		# </advc.703>
@@ -961,9 +961,13 @@ class CvVictoryScreen:
 			appendText = localText.getText("TXT_KEY_SETTINGS_SEA_LEVEL", (s,))
 			screen.appendListBoxStringNoUpdate(szSettingsTable, appendText, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		# </advc.137>
+		# advc.004:
+		screen.appendListBoxStringNoUpdate(szSettingsTable, str(gc.getGame().countCivPlayersEverAlive()) + " " + localText.getText("TXT_KEY_MAIN_MENU_PLAYERS", ()), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		screen.appendListBoxStringNoUpdate(szSettingsTable, " ", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_STARTING_ERA", (gc.getEraInfo(gc.getGame().getStartEra()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_GAME_SPEED", (gc.getGameSpeedInfo(gc.getGame().getGameSpeedType()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
+		# advc.106i
+		screen.appendListBoxStringNoUpdate(szSettingsTable, BugPath.getModName() + " Mod", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 
 		screen.updateListBox(szSettingsTable)
 
@@ -1008,15 +1012,14 @@ class CvVictoryScreen:
 			displayString = "Non-aggressive AI"
 		if not displayString is None: # Copy-pasted from above
 			screen.appendListBoxStringNoUpdate(szOptionsTable, displayString, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		# </advri.104>
+		# </advc.104>
 
 		if (gc.getGame().isOption(GameOptionTypes.GAMEOPTION_ADVANCED_START)):
 			if not isSPaH: # advc.250b
 				szNumPoints = u"%s %d" % (localText.getText("TXT_KEY_ADVANCED_START_POINTS", ()), gc.getGame().getNumAdvancedStartPoints())
 			# <advc.250b>
 			else:
-				# Could be done directly in Python, and probably
-				# more easily, but I'm more comfortable in C++.
+				# Could be done directly in Python, but also need it for advc.106i
 				szNumPoints = gc.getGame().SPaHPointsForSettingsScreen()
 			# </advc.250b>
 			screen.appendListBoxStringNoUpdate(szOptionsTable, szNumPoints, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
@@ -1577,7 +1580,7 @@ class CvVictoryScreen:
 		if (CyGame().isDebugMode()):
 			self.szDropdownName = self.DEBUG_DROPDOWN_ID
 			screen.addDropDownBoxGFC(self.szDropdownName, 22, 12, 300, WidgetTypes.WIDGET_GENERAL, -1, -1, FontTypes.GAME_FONT)
-			for j in range(gc.getMAX_PLAYERS()):
+			for j in range(gc.getMAX_CIV_PLAYERS()): # advc.007: barbs excluded
 				if (gc.getPlayer(j).isAlive()):
 					screen.addPullDownString(self.szDropdownName, gc.getPlayer(j).getName(), j, j, False )
 		
@@ -1600,8 +1603,8 @@ class CvVictoryScreen:
 				continue
 			# otherwise, loop through their cities
 			(loopCity, iter) = loopPlayer.firstCity(false)
-			while(loopCity):
-				if (not loopCity.isNone() and loopCity.getTeam() == iTeam):
+			while(loopCity): # advc.001d: isRevealed clause added
+				if (not loopCity.isNone() and loopCity.getTeam() == iTeam and loopCity.isRevealed(gc.getGame().getActiveTeam(), True)):
 					iRate = loopCity.getCommerceRateTimes100(CommerceTypes.COMMERCE_CULTURE)
 					if iRate == 0:
 						iTurns = -1

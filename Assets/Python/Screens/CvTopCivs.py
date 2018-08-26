@@ -69,20 +69,40 @@ class CvTopCivs:
 		# Text
 		self.TITLE_TEXT = u"<font=3>" + localText.getText("TXT_KEY_TOPCIVS_TITLE", ()).upper() + u"</font>"
 		self.EXIT_TEXT = localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ()).upper()
-		
-		self.HistorianList = [	localText.getText("TXT_KEY_TOPCIVS_HISTORIAN1", ()),
-					localText.getText("TXT_KEY_TOPCIVS_HISTORIAN2", ()),
-					localText.getText("TXT_KEY_TOPCIVS_HISTORIAN3", ()),
-					localText.getText("TXT_KEY_TOPCIVS_HISTORIAN4", ()),
-					localText.getText("TXT_KEY_TOPCIVS_HISTORIAN5", ()),
-					localText.getText("TXT_KEY_TOPCIVS_HISTORIAN6", ()),
-					localText.getText("TXT_KEY_TOPCIVS_HISTORIAN7", ()),
-					localText.getText("TXT_KEY_TOPCIVS_HISTORIAN8", ()),
-					localText.getText("TXT_KEY_TOPCIVS_HISTORIAN9", ()),
-					localText.getText("TXT_KEY_TOPCIVS_HISTORIAN10", ()),
-					localText.getText("TXT_KEY_TOPCIVS_HISTORIAN11", ())
+		# advc.038: Moved up
+		self.TypeList =    [	localText.getText("TXT_KEY_TOPCIVS_WEALTH", ()),
+					localText.getText("TXT_KEY_TOPCIVS_POWER", ()),
+					localText.getText("TXT_KEY_TOPCIVS_TECH", ()),
+					localText.getText("TXT_KEY_TOPCIVS_CULTURE", ()),
+					localText.getText("TXT_KEY_TOPCIVS_SIZE", ()),
 				    ]
-					
+		# <advc.038>
+		randIndex = gc.getGame().getSorenRandNum(len(self.TypeList), "advc.038")
+		if(randIndex == 0): # Wealth: Herodotus, Thucydides
+			self.HistorianList = [	localText.getText("TXT_KEY_TOPCIVS_HISTORIAN1", ()), localText.getText("TXT_KEY_TOPCIVS_HISTORIAN2", ()) ]
+		elif(randIndex == 1): # Power: Tacitus, Machiavelli
+			self.HistorianList = [	localText.getText("TXT_KEY_TOPCIVS_HISTORIAN9", ()), localText.getText("TXT_KEY_TOPCIVS_HISTORIAN11", ()) ]
+		elif(randIndex == 2): # Tech: Gibbon, Pliny
+			self.HistorianList = [	localText.getText("TXT_KEY_TOPCIVS_HISTORIAN3", ()), localText.getText("TXT_KEY_TOPCIVS_HISTORIAN5", ()) ]
+		elif(randIndex == 3): # Culture: Bede, McCauley
+			self.HistorianList = [	localText.getText("TXT_KEY_TOPCIVS_HISTORIAN7", ()), localText.getText("TXT_KEY_TOPCIVS_HISTORIAN10", ()) ]
+		else: # Size: Livy, Toynbee
+			self.HistorianList = [	localText.getText("TXT_KEY_TOPCIVS_HISTORIAN6", ()), localText.getText("TXT_KEY_TOPCIVS_HISTORIAN8", ()) ]
+		# Unassigned: St. Augustine - is he really considered a historian? He's also in the game as a Great Prophet.
+		# </advc.038>
+		#self.HistorianList = [	localText.getText("TXT_KEY_TOPCIVS_HISTORIAN1", ()),
+					#localText.getText("TXT_KEY_TOPCIVS_HISTORIAN2", ()),
+					#localText.getText("TXT_KEY_TOPCIVS_HISTORIAN3", ()),
+					#localText.getText("TXT_KEY_TOPCIVS_HISTORIAN4", ()),
+					#localText.getText("TXT_KEY_TOPCIVS_HISTORIAN5", ()),
+					#localText.getText("TXT_KEY_TOPCIVS_HISTORIAN6", ()),
+					#localText.getText("TXT_KEY_TOPCIVS_HISTORIAN7", ()),
+					#localText.getText("TXT_KEY_TOPCIVS_HISTORIAN8", ()),
+					#localText.getText("TXT_KEY_TOPCIVS_HISTORIAN9", ()),
+					#localText.getText("TXT_KEY_TOPCIVS_HISTORIAN10", ()),
+					#localText.getText("TXT_KEY_TOPCIVS_HISTORIAN11", ())
+				    #]
+				
 		self.RankList =     [	localText.getText("TXT_KEY_TOPCIVS_RANK1", ()),
 					localText.getText("TXT_KEY_TOPCIVS_RANK2", ()),
 					localText.getText("TXT_KEY_TOPCIVS_RANK3", ()),
@@ -93,17 +113,20 @@ class CvTopCivs:
 					localText.getText("TXT_KEY_TOPCIVS_RANK8", ())
 				    ]
 
-		self.TypeList =    [	localText.getText("TXT_KEY_TOPCIVS_WEALTH", ()),
-					localText.getText("TXT_KEY_TOPCIVS_POWER", ()),
-					localText.getText("TXT_KEY_TOPCIVS_TECH", ()),
-					localText.getText("TXT_KEY_TOPCIVS_CULTURE", ()),
-					localText.getText("TXT_KEY_TOPCIVS_SIZE", ()),
-				    ]
+		#self.TypeList =    [	localText.getText("TXT_KEY_TOPCIVS_WEALTH", ()),
+					#localText.getText("TXT_KEY_TOPCIVS_POWER", ()),
+					#localText.getText("TXT_KEY_TOPCIVS_TECH", ()),
+					#localText.getText("TXT_KEY_TOPCIVS_CULTURE", ()),
+					#localText.getText("TXT_KEY_TOPCIVS_SIZE", ()),
+				    #]
 
 		# Randomly choose what category and what historian will be used
-		szTypeRand = random.choice(self.TypeList)
-		szHistorianRand = random.choice(self.HistorianList)
-		
+		#szTypeRand = random.choice(self.TypeList)
+		#szHistorianRand = random.choice(self.HistorianList)
+		# <advc.038> Replacing the two lines above
+		szTypeRand = self.TypeList[randIndex]
+		szHistorianRand = self.HistorianList[gc.getGame().getSorenRandNum(len(self.HistorianList), "advc.038")]
+		# </advc.038>
 		# Create screen
 		
 		self.screen = CyGInterfaceScreen( "CvTopCivs", CvScreenEnums.TOP_CIVS )
@@ -163,9 +186,12 @@ class CvTopCivs:
 			if (gc.getPlayer(iPlayerLoop).isAlive()):
 				
 				if (szType == localText.getText("TXT_KEY_TOPCIVS_WEALTH", ())):
-
-					self.aiTopCivsValues.append([gc.getPlayer(iPlayerLoop).getGold(), iPlayerLoop])
-					print("Player %d Num Gold: %d" %(iPlayerLoop, gc.getPlayer(iPlayerLoop).getGold()))
+					# <advc.038> Replacing the two lines below
+					gnp = gc.getPlayer(iPlayerLoop).estimateYieldRate(YieldTypes.YIELD_COMMERCE)
+					self.aiTopCivsValues.append([gnp, iPlayerLoop])
+					# </advc.038>
+					#self.aiTopCivsValues.append([gc.getPlayer(iPlayerLoop).getGold(), iPlayerLoop])
+					#print("Player %d Num Gold: %d" %(iPlayerLoop, gc.getPlayer(iPlayerLoop).getGold()))
 					
 				if (szType == localText.getText("TXT_KEY_TOPCIVS_POWER", ())):
 
@@ -174,6 +200,7 @@ class CvTopCivs:
 				if (szType == localText.getText("TXT_KEY_TOPCIVS_TECH", ())):
 
 					iPlayerNumTechs = 0
+					iPlayerTechCosts = 0 # advc.038
 					iNumTotalTechs = gc.getNumTechInfos()
 
 					for iTechLoop in range(iNumTotalTechs):
@@ -182,9 +209,11 @@ class CvTopCivs:
 
 						if (bPlayerHasTech):
 							iPlayerNumTechs = iPlayerNumTechs + 1
-							
-					self.aiTopCivsValues.append([iPlayerNumTechs, iPlayerLoop])
-
+							# advc.038:
+							iPlayerTechCosts += gc.getTechInfo(iTechLoop).getResearchCost()
+					#self.aiTopCivsValues.append([iPlayerNumTechs, iPlayerLoop])
+					#advc.038: Replacing the above
+					self.aiTopCivsValues.append([iPlayerTechCosts, iPlayerLoop])
 				if (szType == localText.getText("TXT_KEY_TOPCIVS_CULTURE", ())):
 
 					self.aiTopCivsValues.append([gc.getPlayer(iPlayerLoop).countTotalCulture(), iPlayerLoop])
@@ -203,7 +232,11 @@ class CvTopCivs:
 	def printList(self, szType):
 		
 		# Print out the list
-		for iRankLoop in range(8):
+		# <advc.038> Confusing when all civs but 1 are ranked
+		iRanks = 8
+		if gc.getGame().countCivPlayersAlive() == iRanks + 1:
+			iRanks = iRanks - 1
+		for iRankLoop in range(iRanks): # </advc.038>
 			
 			if (iRankLoop > len(self.aiTopCivsValues)-1):
 				return
@@ -235,11 +268,19 @@ class CvTopCivs:
 				
 	def turnChecker(self, iTurnNum):
 
-		# Check to see if this is a turn when the screen should pop up (every 50 turns)
-		if (not CyGame().isNetworkMultiPlayer() and CyGame().getActivePlayer()>=0
-		and gc.getDefineINT("SHOW_TOP_CIVS") > 0 # advc.102
-		):
-			if (iTurnNum % 50 == 0 and iTurnNum > 0 and gc.getPlayer(CyGame().getActivePlayer()).isAlive()):
+		# Check to see if this is a turn when the screen should pop up
+		if (not CyGame().isNetworkMultiPlayer() and CyGame().getActivePlayer()>=0):
+			# <advc.038>
+			interval = gc.getDefineINT("TOP_CIVS_INTERVAL") # 50 in BtS
+			minTurn = 75 # 2 in BtS
+			speedAdjustPercent = gc.getGameSpeedInfo(gc.getGame().getGameSpeedType()).getGrowthPercent()
+			interval = (interval * speedAdjustPercent) / 100
+			minTurn = (minTurn * speedAdjustPercent) / 100
+			otherTeamsMet = gc.getTeam(gc.getPlayer(CyGame().getActivePlayer()).getTeam()).getHasMetCivCount(true)
+			otherTeamsTotal = gc.getGame().countCivTeamsEverAlive() - 1
+			# Subtract 1 from turn num b/c the popup is triggered one turn before it appears. Nicer to have it show up on turn 50 than on turn 51
+			if ((iTurnNum-1) % interval == 0 and iTurnNum+1 >= minTurn and gc.getPlayer(CyGame().getActivePlayer()).isAlive() and otherTeamsTotal > 0 and otherTeamsMet <= otherTeamsTotal / 2):
+				# </advc.038>
 				self.showScreen()
 
 	#####################################################################################################################################

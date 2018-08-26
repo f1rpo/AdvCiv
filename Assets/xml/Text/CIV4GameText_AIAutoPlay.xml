@@ -2,7 +2,7 @@
 <!-- Sid Meier's Civilization 4 Beyond the Sword -->
 <!-- Modified by the RevolutionDCM Team -->
 <!-- Game Text -->
-<!-- -->
+<!-- advc.004g: Some misc. changes -->
 <Civ4GameText xmlns="http://www.firaxis.com">
 	<TEXT>
 		<Tag>TXT_KEY_AIAUTOPLAY_CANCEL</Tag>
@@ -16,7 +16,7 @@
 		<Tag>TXT_KEY_AIAUTOPLAY_PICK_CIV</Tag>
 		<English>Pick a civ</English>
 		<French>Choisir une civilisation</French>
-		<German>W&#228;hlen Sie eine Civ aus</German>
+		<German>Wählen Sie eine Zivilisation</German>
 		<Italian>Selezioni un civ</Italian>
 		<Spanish>Elige una civilización</Spanish>
 	</TEXT>
@@ -24,7 +24,7 @@
 		<Tag>TXT_KEY_AIAUTOPLAY_CIV_DIED</Tag>
 		<English>Your civ has died.[NEWLINE]Would you like to lead another civ?[NEWLINE]</English>
 		<French>Votre civilisation est morte.[NEWLINE]Voulez-vous diriger une autre civilisation ?[NEWLINE]</French>
-		<German>Ihre Civ ist gestorben.[NEWLINE]M&#246;chten Sie eine andere Civ f&#252;hren?[NEWLINE]</German>
+		<German>Ihre Zivilisation wurde besiegt.[NEWLINE]Möchten Sie eine andere Zivilisation f&#252;hren?[NEWLINE]</German>
 		<Italian>Il vostro civ &#232; morto.[NEWLINE]gradite condurre un altro civ?[NEWLINE]</Italian>
 		<Spanish>Tu civilización ha muerto.[NEWLINE]¿Le gustaría dirigir otra civilización?[NEWLINE]</Spanish>
 	</TEXT>
@@ -32,7 +32,7 @@
 		<Tag>TXT_KEY_AIAUTOPLAY_TAKE_CONTROL_CIV</Tag>
 		<English>Take control of this civ ...</English>
 		<French>Prendre le contrôle de la civilisation ...</French>
-		<German>Kontrollieren Sie diese Civ ...</German>
+		<German>Übernehmen Sie diese Zivilisation ...</German>
 		<Italian>Prenda il controllo di questo civ ...</Italian>
 		<Spanish>Coge el control de esta civilización ...</Spanish>
 	</TEXT>
@@ -48,7 +48,7 @@
 		<Tag>TXT_KEY_AIAUTOPLAY_NOW_CONTROL</Tag>
 		<English>You now control the %s</English>
 		<French>Vous dirigez maintenant les %s</French>
-		<German>Sie steuern jetzt %s</German>
+		<German>Sie kontrollieren jetzt %s</German>
 		<Italian>Ora controllate %s</Italian>
 		<Spanish>Ahora controlas %s</Spanish>
 	</TEXT>
@@ -62,25 +62,25 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_AIAUTOPLAY_TURN_ON</Tag>
-		<English>Turn on AI Auto Control?</English>
+		<English>Turn on AI Auto Play?</English>
 		<French>Basculer en mode Jeu Automatique ?</French>
-		<German>AI-Autosteuerung einschalten?</German>
+		<German>Auto Play einschalten?</German>
 		<Italian>Accenda il controllo dell'automobile di AI?</Italian>
-		<Spanish>¿Activar el Auto Control de la IA?</Spanish>
+		<Spanish>¿Activar el Auto Play de la IA?</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_AIAUTOPLAY_TURNS</Tag>
 		<English>How many turns would you like the AI to control?</English>
 		<French>Combien de tours souhaitez-vous que l'ordinateur joue en mode Jeu Automatique ?</French>
 		<German>Wieviele Runden m&#246;chten Sie die AI kontrollieren lassen?</German>
-		<Italian>Wieviele Umdrehungen wurden, m&#246;gen Sie den AI steuern</Italian>
+		<Italian>Quanti turni vuole lasciare all'IA?</Italian>
 		<Spanish>¿Cuántos turnos quieres que coja el control la IA?</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_AIAUTOPLAY_AUTOMATION</Tag>
 		<English>Choose type of automation</English>
 		<French>Choisissez le type d'automatisation</French>
-		<German>W&#228;hlen Sie die Art der Automatisierung</German>
+		<German>Wählen Sie die Art der Automatisierung</German>
 		<Italian>Scelga il tipo di automazione</Italian>
 		<Spanish>Elige tipo de automatización</Spanish>
 	</TEXT>
@@ -94,9 +94,9 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_AIAUTOPLAY_LIMIT_DIPLO</Tag>
-		<English>Limit diplomacy changes</English>
+		<English>Limit diplomacy</English>
 		<French>Limiter des changements de diplomatie</French>
-		<German>Diplomatie&#228;nderungen begrenzen</German>
+		<German>Diplomatie begrenzen</German>
 		<Italian>Limit diplomacy changes</Italian>
 		<Spanish>Limitar cambios de la diplomacia</Spanish>
 	</TEXT>
@@ -118,9 +118,9 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_AIAUTOPLAY_DEBUG</Tag>
-		<English>Debug Mode (will reveal entire world!!!)</English>
+		<English>Debug Mode (will reveal map!!!)</English>
 		<French>Mode Debug (Révellera la carte du monde !!!)</French>
-		<German>Fehlerpr&#252;fungsmodus (deckt ganze Welt auf!!!)</German>
+		<German>Debug-Modus (deckt Karte auf!!!)</German>
 		<Italian>Metta a punto il modo (riveler&#224; il mondo intero!!!)</Italian>
 		<Spanish>Modo Debug (¡¡¡Revelará el mundo entero!!!)</Spanish>
 	</TEXT>
@@ -128,7 +128,7 @@
 		<Tag>TXT_KEY_AIAUTOPLAY_NEW_LEADER</Tag>
 		<English>There is a new leader!!!</English>
 		<French>Il y a un nouveau leader !!!</French>
-		<German>Es gibt einen neuen Anf&#252;hrer!!!</German>
+		<German>Es gibt einen neuen Anführer!!!</German>
 		<Italian>Ci &#232; un nuovo capo!!!</Italian>
 		<Spanish>¡¡¡Hay un nuevo líder!!!</Spanish>
 	</TEXT>
@@ -136,7 +136,7 @@
 		<Tag>TXT_KEY_AIAUTOPLAY_ABDICATE</Tag>
 		<English>Old age has finally caught up with you and you decide to abdicate rule.</English>
 		<French>La vieillesse a fini par vous rattrapper et vous avez décidez d'abandonner le pouvoir.</French>
-		<German>Hohes Alter hat Sie schlie&#223;lich eingeholt und Sie entscheiden sich, die Herrschaft abzugeben.</German>
+		<German>Hohes Alter hat Sie schließlich eingeholt und Sie entscheiden sich, die Herrschaft abzugeben.</German>
 		<Italian>La vecchiaia infine ha preso con voi e decidete alla regola abdicata.</Italian>
 		<Spanish>Los viejos tiempos finalmente te han alcanzado y decides abdicar del poder.</Spanish>
 	</TEXT>

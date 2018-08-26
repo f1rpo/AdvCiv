@@ -1,0 +1,281 @@
+<?xml version="1.0"?>
+<!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by Jesse Smith (Firaxis Games) -->
+<!-- Sid Meier's Civilization 4 -->
+<!-- Copyright Firaxis Games 2005 -->
+<!-- -->
+<!-- Goody Infos -->
+<Civ4GoodyInfo xmlns="x-schema:CIV4GameInfoSchema.xml">
+	<GoodyInfos>
+		<GoodyInfo>
+			<Type>GOODY_LOW_GOLD</Type>
+			<Description>TXT_KEY_GOODY_GOLD</Description>
+			<Sound>AS2D_GOODY_GOLD</Sound>
+			<iGold>20</iGold>
+			<iGoldRand1>21</iGoldRand1>
+			<iGoldRand2>21</iGoldRand2>
+			<iMapOffset>0</iMapOffset>
+			<iMapRange>0</iMapRange>
+			<iMapProb>0</iMapProb>
+			<iExperience>0</iExperience>
+			<iHealing>0</iHealing>
+			<iDamagePrereq>0</iDamagePrereq>
+			<bTech>0</bTech>
+			<bBad>0</bBad>
+			<UnitClass>NONE</UnitClass>
+			<BarbarianClass>NONE</BarbarianClass>
+			<iBarbarianUnitProb>0</iBarbarianUnitProb>
+			<iMinBarbarians>0</iMinBarbarians>
+		</GoodyInfo>
+		<GoodyInfo>
+			<Type>GOODY_HIGH_GOLD</Type>
+			<Description>TXT_KEY_GOODY_GOLD</Description>
+			<Sound>AS2D_GOODY_GOLD</Sound>
+			<!-- advc.314: was 20 / 51 / 51 -->
+			<iGold>40</iGold>
+			<iGoldRand1>31</iGoldRand1>
+			<iGoldRand2>31</iGoldRand2>
+			<iMapOffset>0</iMapOffset>
+			<iMapRange>0</iMapRange>
+			<iMapProb>0</iMapProb>
+			<iExperience>0</iExperience>
+			<iHealing>0</iHealing>
+			<iDamagePrereq>0</iDamagePrereq>
+			<bTech>0</bTech>
+			<bBad>0</bBad>
+			<UnitClass>NONE</UnitClass>
+			<BarbarianClass>NONE</BarbarianClass>
+			<iBarbarianUnitProb>0</iBarbarianUnitProb>
+			<iMinBarbarians>0</iMinBarbarians>
+		</GoodyInfo>
+		<GoodyInfo>
+			<Type>GOODY_MAP</Type>
+			<Description>TXT_KEY_GOODY_MAP</Description>
+			<Sound>AS2D_GOODY_MAP</Sound>
+			<iGold>0</iGold>
+			<iGoldRand1>0</iGoldRand1>
+			<iGoldRand2>0</iGoldRand2>
+			<iMapOffset>4</iMapOffset>
+			<iMapRange>4</iMapRange>
+			<iMapProb>80</iMapProb>
+			<iExperience>0</iExperience>
+			<iHealing>0</iHealing>
+			<iDamagePrereq>0</iDamagePrereq>
+			<bTech>0</bTech>
+			<bBad>0</bBad>
+			<UnitClass>NONE</UnitClass>
+			<BarbarianClass>NONE</BarbarianClass>
+			<!-- advc.314: Together with bBad=0, this means that there is a
+				 chance for triggering an additional event. The chance is
+				 iBarbarianUnitProb percent times a probability based on the
+				 game turn. Set to 0 for BtS behavior. -->
+			<iBarbarianUnitProb>100</iBarbarianUnitProb>
+			<iMinBarbarians>0</iMinBarbarians>
+		</GoodyInfo>
+		<GoodyInfo>
+			<Type>GOODY_SETTLER</Type>
+			<Description>TXT_KEY_GOODY_SETTLER</Description>
+			<Sound>AS2D_GOODY_SETTLER</Sound>
+			<iGold>0</iGold>
+			<iGoldRand1>0</iGoldRand1>
+			<iGoldRand2>0</iGoldRand2>
+			<iMapOffset>0</iMapOffset>
+			<iMapRange>0</iMapRange>
+			<iMapProb>0</iMapProb>
+			<iExperience>0</iExperience>
+			<iHealing>0</iHealing>
+			<iDamagePrereq>0</iDamagePrereq>
+			<bTech>0</bTech>
+			<bBad>0</bBad>
+			<UnitClass>UNITCLASS_SETTLER</UnitClass>
+			<BarbarianClass>NONE</BarbarianClass>
+			<iBarbarianUnitProb>0</iBarbarianUnitProb>
+			<iMinBarbarians>0</iMinBarbarians>
+		</GoodyInfo>
+		<GoodyInfo>
+			<Type>GOODY_WARRIOR</Type>
+			<Description>TXT_KEY_GOODY_WARRIOR</Description>
+			<Sound>AS2D_GOODY_WARRIOR</Sound>
+			<iGold>0</iGold>
+			<iGoldRand1>0</iGoldRand1>
+			<iGoldRand2>0</iGoldRand2>
+			<iMapOffset>0</iMapOffset>
+			<iMapRange>0</iMapRange>
+			<iMapProb>0</iMapProb>
+			<iExperience>0</iExperience>
+			<iHealing>0</iHealing>
+			<iDamagePrereq>0</iDamagePrereq>
+			<bTech>0</bTech>
+			<bBad>0</bBad>
+			<!-- advc.314: Together with bBad=0 and iMinBarbarians>0, NONE
+				 lets the game pick the best unit that the Barbarians can
+				 currently train. Set to UNITCLASS_WARRIOR for BtS behavior. -->
+			<UnitClass>NONE</UnitClass>
+			<BarbarianClass>NONE</BarbarianClass>
+			<!-- advc.314: Together with bBad=0 and BarbarianClass=NONE,
+				 this gives the free unit a chance of receiving a free
+				 promotion. The probability is multiplied by a factor based on
+				 the game turn. -->
+			<iBarbarianUnitProb>50</iBarbarianUnitProb>
+			<!-- advc.314: Together with bBad=false, this indicates the number of
+				 units to be created, and a value above 0 creates a unit even if
+				 UnitClass is set to NONE. -->
+			<iMinBarbarians>1</iMinBarbarians>
+		</GoodyInfo>
+		<GoodyInfo>
+			<Type>GOODY_SCOUT</Type>
+			<Description>TXT_KEY_GOODY_SCOUT</Description>
+			<Sound>AS2D_GOODY_SCOUT</Sound>
+			<iGold>0</iGold>
+			<iGoldRand1>0</iGoldRand1>
+			<iGoldRand2>0</iGoldRand2>
+			<iMapOffset>0</iMapOffset>
+			<iMapRange>0</iMapRange>
+			<iMapProb>0</iMapProb>
+			<iExperience>0</iExperience>
+			<iHealing>0</iHealing>
+			<iDamagePrereq>0</iDamagePrereq>
+			<bTech>0</bTech>
+			<bBad>0</bBad>
+			<UnitClass>UNITCLASS_SCOUT</UnitClass>
+			<!-- advc.314: Together with bBad=0 and iBarbarianUnitProb>0,
+				 this means that the Scout has a chance of being replaced by a
+				 Worker. Set to NONE for BtS behavior (no chance of
+				 replacement). -->
+			<BarbarianClass>UNITCLASS_WORKER</BarbarianClass>
+			<!-- advc.314: see GOODY_MAP -->
+			<iBarbarianUnitProb>100</iBarbarianUnitProb>
+			<iMinBarbarians>0</iMinBarbarians>
+		</GoodyInfo>
+		<GoodyInfo>
+			<Type>GOODY_WORKER</Type>
+			<Description>TXT_KEY_GOODY_WORKER</Description>
+			<Sound>AS2D_GOODY_WORKER</Sound>
+			<iGold>0</iGold>
+			<iGoldRand1>0</iGoldRand1>
+			<iGoldRand2>0</iGoldRand2>
+			<iMapOffset>0</iMapOffset>
+			<iMapRange>0</iMapRange>
+			<iMapProb>0</iMapProb>
+			<iExperience>0</iExperience>
+			<iHealing>0</iHealing>
+			<iDamagePrereq>0</iDamagePrereq>
+			<bTech>0</bTech>
+			<bBad>0</bBad>
+			<UnitClass>UNITCLASS_WORKER</UnitClass>
+			<BarbarianClass>NONE</BarbarianClass>
+			<iBarbarianUnitProb>0</iBarbarianUnitProb>
+			<iMinBarbarians>0</iMinBarbarians>
+		</GoodyInfo>
+		<GoodyInfo>
+			<Type>GOODY_EXPERIENCE</Type>
+			<Description>TXT_KEY_GOODY_EXPERIENCE</Description>
+			<Sound>AS2D_GOODY_XP</Sound>
+			<iGold>0</iGold>
+			<iGoldRand1>0</iGoldRand1>
+			<iGoldRand2>0</iGoldRand2>
+			<iMapOffset>0</iMapOffset>
+			<iMapRange>0</iMapRange>
+			<iMapProb>0</iMapProb>
+			<iExperience>5</iExperience>
+			<iHealing>0</iHealing>
+			<iDamagePrereq>0</iDamagePrereq>
+			<bTech>0</bTech>
+			<bBad>0</bBad>
+			<UnitClass>NONE</UnitClass>
+			<BarbarianClass>NONE</BarbarianClass>
+			<!-- advc.314: see GOODY_MAP -->
+			<iBarbarianUnitProb>100</iBarbarianUnitProb>
+			<iMinBarbarians>0</iMinBarbarians>
+		</GoodyInfo>
+		<GoodyInfo>
+			<Type>GOODY_HEALING</Type>
+			<Description>TXT_KEY_GOODY_HEALING</Description>
+			<Sound>AS2D_GOODY_HEAL</Sound>
+			<iGold>0</iGold>
+			<iGoldRand1>0</iGoldRand1>
+			<iGoldRand2>0</iGoldRand2>
+			<iMapOffset>0</iMapOffset>
+			<iMapRange>0</iMapRange>
+			<iMapProb>0</iMapProb>
+			<iExperience>0</iExperience>
+			<iHealing>100</iHealing>
+			<iDamagePrereq>60</iDamagePrereq>
+			<bTech>0</bTech>
+			<bBad>0</bBad>
+			<UnitClass>NONE</UnitClass>
+			<BarbarianClass>NONE</BarbarianClass>
+			<!-- advc.314: see GOODY_MAP -->
+			<iBarbarianUnitProb>100</iBarbarianUnitProb>
+			<iMinBarbarians>0</iMinBarbarians>
+		</GoodyInfo>
+		<GoodyInfo>
+			<Type>GOODY_TECH</Type>
+			<Description>TXT_KEY_GOODY_TECH</Description>
+			<Sound/>
+			<!-- advc.314: Together with bTech=1, this means that research
+				 progress is granted toward a random tech. Set to all three
+				 iGolds to 0 to restore BtS behavior: an entire tech that has
+				 to be flagged bGoodyTech in Civ4TechInfos.xml. -->
+			<iGold>30</iGold>
+			<iGoldRand1>21</iGoldRand1>
+			<iGoldRand2>21</iGoldRand2>
+			<iMapOffset>0</iMapOffset>
+			<iMapRange>0</iMapRange>
+			<iMapProb>0</iMapProb>
+			<iExperience>0</iExperience>
+			<iHealing>0</iHealing>
+			<iDamagePrereq>0</iDamagePrereq>
+			<bTech>1</bTech>
+			<bBad>0</bBad>
+			<UnitClass>NONE</UnitClass>
+			<BarbarianClass>NONE</BarbarianClass>
+			<iBarbarianUnitProb>0</iBarbarianUnitProb>
+			<iMinBarbarians>0</iMinBarbarians>
+		</GoodyInfo>
+		<GoodyInfo>
+			<Type>GOODY_BARBARIANS_WEAK</Type>
+			<Description>TXT_KEY_GOODY_BARBARIANS</Description>
+			<Sound>AS2D_GOODY_HOSTILE</Sound>
+			<iGold>0</iGold>
+			<iGoldRand1>0</iGoldRand1>
+			<iGoldRand2>0</iGoldRand2>
+			<iMapOffset>0</iMapOffset>
+			<iMapRange>0</iMapRange>
+			<iMapProb>0</iMapProb>
+			<iExperience>0</iExperience>
+			<iHealing>0</iHealing>
+			<iDamagePrereq>0</iDamagePrereq>
+			<bTech>0</bTech>
+			<bBad>1</bBad>
+			<UnitClass>NONE</UnitClass>
+			<!-- advc.314: Together with bBad=1, iBarbarianUnitProb>0 and
+				 iMinBarbarians>0, NONE lets the game pick the best unit that
+				 the Barbarians can currently train. Set to UNITCLASS_WARRIOR
+				 for BtS behavior. -->
+			<BarbarianClass>NONE</BarbarianClass>
+			<iBarbarianUnitProb>20</iBarbarianUnitProb>
+			<iMinBarbarians>1</iMinBarbarians>
+		</GoodyInfo>
+		<GoodyInfo>
+			<Type>GOODY_BARBARIANS_STRONG</Type>
+			<Description>TXT_KEY_GOODY_BARBARIANS</Description>
+			<Sound>AS2D_GOODY_HOSTILE</Sound>
+			<iGold>0</iGold>
+			<iGoldRand1>0</iGoldRand1>
+			<iGoldRand2>0</iGoldRand2>
+			<iMapOffset>0</iMapOffset>
+			<iMapRange>0</iMapRange>
+			<iMapProb>0</iMapProb>
+			<iExperience>0</iExperience>
+			<iHealing>0</iHealing>
+			<iDamagePrereq>0</iDamagePrereq>
+			<bTech>0</bTech>
+			<bBad>1</bBad>
+			<UnitClass>NONE</UnitClass>
+			<!-- advc.134: see GOODY_BARBARIANS_WEAK -->
+			<BarbarianClass>NONE</BarbarianClass>
+			<iBarbarianUnitProb>40</iBarbarianUnitProb>
+			<iMinBarbarians>2</iMinBarbarians>
+		</GoodyInfo>
+	</GoodyInfos>
+</Civ4GoodyInfo>

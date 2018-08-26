@@ -114,6 +114,7 @@ class Civ4lerts:
 		
 		WarTrade(eventManager) # advc.210a
 		Revolt(eventManager) # advc.210b
+		BonusThirdParties(eventManager) # advc.210d
 		GoldTrade(eventManager)
 		GoldPerTurnTrade(eventManager)
 		RefusesToTalk(eventManager)
@@ -152,11 +153,13 @@ def addMessage(iPlayer, szString, szIcon, iFlashX=-1, iFlashY=-1, bOffArrow=Fals
 	Culture:  Zoom to City, Ignore
 	"""
 	# <advc.706>
-	if gc.getGame().isRFBlockPopups():
+	# advc.127: No alerts during or right after Auto Play
+	if gc.getGame().isRFBlockPopups() or gc.getPlayer(iPlayer).isHumanDisabled() or gc.getPlayer(iPlayer).isAutoPlayJustEnded():
 		return # </advc.706>
 	# advc.106c: Reduced time from LONG to normal
+	# advc.106: Set bForce to False
 	eventMessageTimeLong = gc.getDefineINT("EVENT_MESSAGE_TIME")
-	CyInterface().addMessage(iPlayer, True, eventMessageTimeLong,
+	CyInterface().addMessage(iPlayer, False, eventMessageTimeLong,
 							 szString, None, InterfaceMessageTypes.MESSAGE_TYPE_INFO, 
 							 szIcon, ColorTypes(-1),
 							 iFlashX, iFlashY, bOffArrow, bOnArrow)
@@ -769,6 +772,8 @@ class GoldTrade(AbstractStatefulAlert):
 		# the gold currently offered is close enough.
 		for playerID in range(gc.getMAX_PLAYERS()):
 			self.maxGoldTrade[playerID] = {}
+			for rivalID in range(gc.getMAX_PLAYERS()):
+				self._setMaxGoldTrade(playerID, rivalID, 0)
 			for rival in TradeUtil.getGoldTradePartners(playerID):
 				rivalID = rival.getID()
 				self._setMaxGoldTrade(playerID, rivalID, rival.AI_maxGoldTrade(playerID))
@@ -811,6 +816,8 @@ class GoldPerTurnTrade(AbstractStatefulAlert):
 		# <advc.106c> See comment on maxGoldTrade
 		for playerID in range(gc.getMAX_PLAYERS()):
 			self.maxGoldPerTurnTrade[playerID] = {}
+			for rivalID in range(gc.getMAX_PLAYERS()):
+				self._setMaxGoldPerTurnTrade(playerID, rivalID, 0)
 			for rival in TradeUtil.getGoldTradePartners(playerID):
 				rivalID = rival.getID()
 				self._setMaxGoldPerTurnTrade(playerID, rivalID, rival.AI_maxGoldPerTurnTrade(playerID))
@@ -878,7 +885,11 @@ class RefusesToTalk(AbstractStatefulAlert):
 		if (not Civ4lertsOpt.isShowRefusesToTalkAlert()):
 			return
 		eActivePlayer, activePlayer = PlayerUtil.getActivePlayerAndID()
-		refusals = self.refusals[eActivePlayer]
+		try: # advc.009b
+			refusals = self.refusals[eActivePlayer]
+		# <advc.009b>
+		except AttributeError:
+			return # </advc.009b>
 		newRefusals = set()
 		for player in PlayerUtil.players(True, False, False, False):
 			if DiplomacyUtil.canContact(activePlayer, player) and not DiplomacyUtil.isWillingToTalk(player, eActivePlayer):
@@ -890,7 +901,8 @@ class RefusesToTalk(AbstractStatefulAlert):
 	def display(self, eActivePlayer, key, players):
 		for ePlayer in players:
 			player = gc.getPlayer(ePlayer)
-			if player.isAlive():
+			# advc.106d: Don't report refusal to talk when war just begun, nor when stopped trading.
+			if player.isAlive() and gc.getTeam(gc.getPlayer(eActivePlayer).getTeam()).isAtWar(player.getTeam()) and gc.getTeam(gc.getPlayer(eActivePlayer).getTeam()).AI_getAtWarCounter(player.getTeam()) > 1:
 				message = BugUtil.getText(key, player.getName())
 				addMessageNoIcon(eActivePlayer, message)
 
@@ -966,7 +978,11 @@ class WorstEnemy(AbstractStatefulAlert):
 			return
 		eActivePlayer = PlayerUtil.getActivePlayerID()
 		eActiveTeam, activeTeam = PlayerUtil.getActiveTeamAndID()
-		enemies = self.enemies[eActivePlayer]
+		try: # advc.009b
+			enemies = self.enemies[eActivePlayer]
+		# <advc.009b>
+		except AttributeError:
+			return # </advc.009b>
 		newEnemies = AttitudeUtil.getWorstEnemyTeams()
 		delayedMessages = {}
 		for eTeam, eNewEnemy in newEnemies.iteritems():
@@ -1061,3 +1077,23 @@ class Revolt(AbstractStatefulAlert):
 	def _reset(self):
 		self.check(True)
 # </advc.210b>
+
+# <advc.210d>
+class BonusThirdParties(AbstractStatefulAlert):
+
+	def __init__(self, eventManager):
+		AbstractStatefulAlert.__init__(self, eventManager)
+		eventManager.addEventHandler("BeginActivePlayerTurn", self.onBeginActivePlayerTurn)
+		self.id = 2
+
+	def onBeginActivePlayerTurn(self, argsList):
+		self.check()
+
+	def check(self, silent=False):
+		if not Civ4lertsOpt.isShowBonusThirdPartiesAlert():
+			return
+		gc.getPlayer(PlayerUtil.getActivePlayerID()).checkAlert(self.id, silent)
+
+	def _reset(self):
+		self.check(True)
+# </advc.210d>

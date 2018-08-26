@@ -6,6 +6,7 @@
 #define CIV4_UNIT_AI_H
 
 #include "CvUnit.h"
+#include <utility> // advc.033
 
 class CvCity;
 
@@ -300,7 +301,11 @@ protected:
 	bool AI_followBombard();
 
 	bool AI_potentialEnemy(TeamTypes eTeam, const CvPlot* pPlot = NULL);
-
+	// <advc.033>
+	std::pair<int,int> countPiracyTargets(CvPlot const& p,
+			bool stopIfAnyTarget = false) const;
+	bool isAnyPiracyTarget(CvPlot const& p) const;
+	// </advc.033>
 	bool AI_defendPlot(CvPlot* pPlot);
 	int AI_pillageValue(CvPlot* pPlot, int iBonusValueThreshold = 0);
 	//int AI_nukeValue(CvCity* pCity);
@@ -338,6 +343,7 @@ protected:
 
 	bool AI_canGroupWithAIType(UnitAITypes eUnitAI) const;
 	bool AI_allowGroup(const CvUnit* pUnit, UnitAITypes eUnitAI) const;
+	bool moveSettlerToCoast(int iMaxPathTurns = 5); // advc.040
 
 	// added so under cheat mode we can call protected functions for testing
 	friend class CvGameTextMgr;

@@ -77,6 +77,7 @@ public:
 protected:
 	bool isValidPlayer(int i) const;
 	bool isValidTurn(int i) const;
+	void addSettingsMsg(); // advc.106h
 
 	static int REPLAY_VERSION;
 

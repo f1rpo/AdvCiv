@@ -33,6 +33,36 @@ void CvGameAI::AI_init()
 	sortOutWPAIOptions(false); // advc.104
 }
 
+// <advc.104u>
+/*  Parts of the AI don't seem to get properly initialized in scenarios. Not
+	sure if this has always been the case, if it has to do with K-Mod changes to
+	the turn order (team turns vs. player turns) or is only a problem for UWAI. */
+void CvGameAI::AI_initScenario() {
+
+	// Citizens not properly assigned
+	for(int i = 0; i < MAX_PLAYERS; i++) {
+		CvPlayerAI& pl = GET_PLAYER((PlayerTypes)i);
+		if(!pl.isAlive())
+			continue; int dummy=-1;
+		for(CvCity* c = pl.firstCity(&dummy); c != NULL; c = pl.nextCity(&dummy)) {
+			/*  After getting failed assertions in CvCity::doTurn in the
+				Europe1000AD scenario (I'm guessing due to production from
+				Apostolic Palace). */
+			for(int j = 0; j < NUM_YIELD_TYPES; j++) {
+				YieldTypes y = (YieldTypes)j;
+				c->setBaseYieldRate(y, c->calculateBaseYieldRate(y));
+			}
+			c->AI_assignWorkingPlots();
+		}
+	}
+	// Ensure UWAI initialization
+	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
+		CvTeamAI& t = GET_TEAM((TeamTypes)i);
+		if(t.isAlive())
+			t.AI_doTurnPre();
+	}
+} // </advc.104u>
+
 // <advc.104>
 WarAndPeaceAI& CvGameAI::warAndPeaceAI() {
 

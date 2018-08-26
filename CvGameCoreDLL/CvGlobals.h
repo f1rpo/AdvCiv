@@ -704,6 +704,18 @@ public:
 	inline int getNUM_WARNING_REVOLTS() { return m_iNUM_WARNING_REVOLTS; }
 	// advc.140:
 	inline int getMAX_DISTANCE_CITY_MAINTENANCE() { return m_iMAX_DISTANCE_CITY_MAINTENANCE; }
+	// advc.035:
+	inline int getOWN_EXCLUSIVE_RADIUS() { return m_iOWN_EXCLUSIVE_RADIUS; }
+	// advc.003b:
+	inline int getDIPLOMACY_VALUE_REMAINDER() { return m_iDIPLOMACY_VALUE_REMAINDER; }
+	// advc.099b:
+	inline int getCITY_RADIUS_DECAY() { return m_iCITY_RADIUS_DECAY; }
+	// advc.005f:
+	inline int getENABLE_005F() { return m_iENABLE_005F; }
+	// advc.007:
+	inline int getPER_PLAYER_MESSAGE_CONTROL_LOG() { return m_iPER_PLAYER_MESSAGE_CONTROL_LOG; }
+	// advc.104
+	inline int getUWAI_MULTI_WAR_RELUCTANCE() { return m_iUWAI_MULTI_WAR_RELUCTANCE; }
 	int getMOVE_DENOMINATOR();
 	int getNUM_UNIT_PREREQ_OR_BONUSES();
 	int getNUM_BUILDING_PREREQ_OR_BONUSES();
@@ -731,6 +743,7 @@ public:
 	int getMIN_WATER_SIZE_FOR_OCEAN();
 	int getFORTIFY_MODIFIER_PER_TURN();
 	int getMAX_CITY_DEFENSE_DAMAGE();
+	int getCITY_DEFENSE_DAMAGE_HEAL_RATE(); // cdtw.2
 	int getNUM_CORPORATION_PREREQ_BONUSES();
 	int getPEAK_SEE_THROUGH_CHANGE();
 	int getHILLS_SEE_THROUGH_CHANGE();
@@ -1158,6 +1171,12 @@ protected:
 	int m_iTILE_CULTURE_DECAY_PER_MILL; // advc.099
 	int m_iNUM_WARNING_REVOLTS; // advc.101
 	int m_iMAX_DISTANCE_CITY_MAINTENANCE; // advc.140
+	int m_iOWN_EXCLUSIVE_RADIUS; // advc.035
+	int m_iDIPLOMACY_VALUE_REMAINDER; // advc.003b
+	int m_iCITY_RADIUS_DECAY; // advc.099b
+	int m_iENABLE_005F; // advc.005f
+	int m_iPER_PLAYER_MESSAGE_CONTROL_LOG; // advc.007
+	int m_iUWAI_MULTI_WAR_RELUCTANCE; // advc.104
 	int m_iMOVE_DENOMINATOR;
 	int m_iNUM_UNIT_PREREQ_OR_BONUSES;
 	int m_iNUM_BUILDING_PREREQ_OR_BONUSES;
@@ -1185,6 +1204,7 @@ protected:
 	int m_iMIN_WATER_SIZE_FOR_OCEAN;
 	int m_iFORTIFY_MODIFIER_PER_TURN;
 	int m_iMAX_CITY_DEFENSE_DAMAGE;
+	int m_iCITY_DEFENSE_DAMAGE_HEAL_RATE; // cdtw.2
 	int m_iNUM_CORPORATION_PREREQ_BONUSES;
 	int m_iPEAK_SEE_THROUGH_CHANGE;
 	int m_iHILLS_SEE_THROUGH_CHANGE;
@@ -1306,6 +1326,8 @@ public:
 	int getTECH_COST_FIRST_KNOWN_PREREQ_MODIFIER();
 	int getTECH_COST_KNOWN_PREREQ_MODIFIER();
 	int getTECH_COST_MODIFIER();
+	// advc.550d: Not tech diffusion, but related.
+	int getTECH_COST_NOTRADE_MODIFIER();
 
 protected:
 	bool m_bTECH_DIFFUSION_ENABLE;
@@ -1315,6 +1337,7 @@ protected:
 	int m_iTECH_COST_FIRST_KNOWN_PREREQ_MODIFIER;
 	int m_iTECH_COST_KNOWN_PREREQ_MODIFIER;
 	int m_iTECH_COST_MODIFIER;
+	int m_iTECH_COST_NOTRADE_MODIFIER; // advc.550d
 	
 // From Lead From Behind by UncutDragon. (edited for K-Mod)
 public:

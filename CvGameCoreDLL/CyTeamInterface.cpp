@@ -19,6 +19,8 @@ void CyTeamPythonInterface()
 		.def("canDeclareWar", &CyTeam::canDeclareWar, "bool (int /*TeamTypes*/ eTeam)")
 		.def("canEventuallyDeclareWar", &CyTeam::canEventuallyDeclareWar, "bool (int /*TeamTypes*/ eTeam)") // K-Mod
 		.def("declareWar", &CyTeam::declareWar, "void (int /*TeamTypes*/ eTeam, bool bNewDiplo, int /*WarPlanTypes*/ eWarPlan) - Forces your team to declare War on iTeam")
+		// advc.106g:
+		.def("declareWarEvent", &CyTeam::declareWarEvent, "void (int /*TeamTypes*/ eTeam, bool bNewDiplo, int /*WarPlanTypes*/ eWarPlan) - Forces your team to declare War on iTeam. Use this function when war is declared in response to a random event.")
 		.def("makePeace", &CyTeam::makePeace, "void (int /*TeamTypes*/ eTeam) - Forces peace between your team and iTeam")
 		.def("canContact", &CyTeam::canContact, "bool (int /*TeamTypes*/ eTeam)")
 		.def("meet", &CyTeam::meet, "void (int /*TeamTypes*/ eTeam, bool bNewDiplo) - forces team to meet iTeam")
@@ -71,6 +73,10 @@ void CyTeamPythonInterface()
 		.def("getName", &CyTeam::getName, "str ()")
 
 		.def("getNumMembers", &CyTeam::getNumMembers, "int (); # of people on team")
+		// <advc.155>
+		.def("getAliveCount", &CyTeam::getAliveCount, "int ()")
+		.def("getMasterTeam", &CyTeam::getMasterTeam, "int ()")
+		// </advc.155>
 		.def("isAlive", &CyTeam::isAlive, "bool ()")
 		.def("isEverAlive", &CyTeam::isEverAlive, "bool ()")
 		.def("getNumCities", &CyTeam::getNumCities, "int (); # of cities controlled by team")
@@ -157,6 +163,8 @@ void CyTeamPythonInterface()
 		.def("setVassal", &CyTeam::setVassal, "void (TeamTypes, bool)")
 		.def("assignVassal", &CyTeam::assignVassal, "void (TeamTypes, bool)")
 		.def("freeVassal", &CyTeam::freeVassal, "void (TeamTypes)")
+		// advc.130v:
+		.def("isCapitulated", &CyTeam::isCapitulated, "bool ()")
 		.def("isDefensivePact", &CyTeam::isDefensivePact, "bool (TeamTypes)")
 		.def("getRouteChange", &CyTeam::getRouteChange,	"int (RouteType) - Route Change caused by RouteType")
 		.def("changeRouteChange", &CyTeam::changeRouteChange, "void (int /*RouteType*/ eIndex, int iChange)")

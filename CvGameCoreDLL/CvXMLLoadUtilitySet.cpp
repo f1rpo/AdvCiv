@@ -201,6 +201,8 @@ bool CvXMLLoadUtility::SetGlobalDefines()
 	   configuration file something_GlobalDefines.xml.
 	   I can't get that to work, though, and it appears neither could
 	   the other modders. Hence: hard-coded filenames. */
+	if(!ReadGlobalDefines("xml\\GlobalDefines_devel.xml", cache))
+		return false;
 	if(!ReadGlobalDefines("xml\\GlobalDefines_advc.xml", cache))
 		return false; // </advc.009>
 

@@ -26,7 +26,12 @@
 #include "CvEventReporter.h"
 
 #include "BetterBTSAI.h"
-
+#include <iterator> // advc.036
+// <k146>
+#include <vector>
+#include <set>
+#include <queue>
+// </k146>
 //#define GREATER_FOUND_RANGE			(5)
 #define CIVIC_CHANGE_DELAY			(20) // was 25
 #define RELIGION_CHANGE_DELAY		(15)
@@ -136,6 +141,43 @@ bool CvPlayerAI::isThreatFromMinorCiv() const {
 	return false;
 } // </advc.109>
 
+// <dlph.16> (Though DarkLunaPhantom didn't put this in a separate function)
+int CvPlayerAI::nukeDangerDivisor() const {
+
+	if(GC.getGameINLINE().isNoNukes())
+		return 15;
+	// "we're going to cheat a little bit, by counting nukes that we probably shouldn't know about."
+	bool bDanger = false;
+	bool bRemoteDanger = false;
+	CvLeaderHeadInfo& ourPers = GC.getLeaderHeadInfo(getPersonalityType());
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+		CvPlayerAI const& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
+		// Vassals can't have nukes b/c of change advc.143b
+		if(!kLoopPlayer.isAlive() || kLoopPlayer.isAVassal() ||
+				!GET_TEAM(getTeam()).isHasMet(kLoopPlayer.getTeam()) ||
+				kLoopPlayer.getTeam() == getTeam())
+			continue;
+		/*  advc: Avoid building shelters against friendly
+			nuclear powers. This is mostly role-playing. */
+		CvLeaderHeadInfo& theirPers = GC.getLeaderHeadInfo(
+				kLoopPlayer.getPersonalityType());
+		AttitudeTypes towardThem = AI_getAttitude(kLoopPlayer.getID());
+		if(ourPers.getNoWarAttitudeProb(towardThem) >= 100 &&
+				(kLoopPlayer.isHuman() ?
+				towardThem >= ATTITUDE_FRIENDLY :
+				theirPers.getNoWarAttitudeProb(kLoopPlayer.
+				AI_getAttitude(getID())) >= 100))
+			continue;
+		if(kLoopPlayer.getNumNukeUnits() > 0)
+			return 1; // Greatest danger, smallest divisor.
+		if(kLoopPlayer.getCurrentEra() >= 5)
+			bRemoteDanger = true;
+	}
+	if(bRemoteDanger)
+		return 10;
+	return 20;
+} // </dlph.16>
+
 // <advc.001> Mostly copy-pasted from the homonymous CvTeamAI function
 bool CvPlayerAI::AI_hasSharedPrimaryArea(PlayerTypes pId) const {
 
@@ -183,6 +225,7 @@ CvPlayerAI::CvPlayerAI()
 	m_aiAverageCommerceExchange = new int[NUM_COMMERCE_TYPES];
 	
 	m_aiBonusValue = NULL;
+	m_aiBonusValueTrade = NULL; // advc.036
 	m_aiUnitClassWeights = NULL;
 	m_aiUnitCombatWeights = NULL;
 	//m_aiCloseBordersAttitudeCache = new int[MAX_PLAYERS];
@@ -255,6 +298,7 @@ void CvPlayerAI::AI_init()
 void CvPlayerAI::AI_uninit()
 {
 	SAFE_DELETE_ARRAY(m_aiBonusValue);
+	SAFE_DELETE_ARRAY(m_aiBonusValueTrade); // advc.036
 	SAFE_DELETE_ARRAY(m_aiUnitClassWeights);
 	SAFE_DELETE_ARRAY(m_aiUnitCombatWeights);
 }
@@ -369,9 +413,11 @@ void CvPlayerAI::AI_reset(bool bConstructor)
 	
 	FAssert(m_aiBonusValue == NULL);
 	m_aiBonusValue = new int[GC.getNumBonusInfos()];
+	m_aiBonusValueTrade = new int[GC.getNumBonusInfos()]; // advc.036
 	for (iI = 0; iI < GC.getNumBonusInfos(); iI++)
 	{
-		m_aiBonusValue[iI] = -1;		
+		m_aiBonusValue[iI] = -1;
+		m_aiBonusValueTrade[iI] = -1; // advc.036
 	}
 	
 	FAssert(m_aiUnitClassWeights == NULL);
@@ -434,7 +480,7 @@ void CvPlayerAI::updateCacheData()
 		AI_updateNeededExplorers(); // advc.003b
 		AI_calculateAverages();
 		AI_updateVictoryStrategyHash();
-		//if (!isHuman()) // advc.104: Human strategies are interesting to know for
+		//if (!isHuman()) // advc.104: Human strategies are interesting to know
 						  //           for UWAI.
 		{
 			AI_updateStrategyHash();
@@ -467,7 +513,12 @@ void CvPlayerAI::AI_doTurnPre()
 	FAssertMsg(getPersonalityType() != NO_LEADER, "getPersonalityType() is not expected to be equal with NO_LEADER");
 	FAssertMsg(getLeaderType() != NO_LEADER, "getLeaderType() is not expected to be equal with NO_LEADER");
 	FAssertMsg(getCivilizationType() != NO_CIVILIZATION, "getCivilizationType() is not expected to be equal with NO_CIVILIZATION");
-
+	CvGameAI& g = GC.getGameINLINE(); // advc.003
+	// <advc.104u>
+	if(getID() == 0 && g.getElapsedGameTurns() <= 0 && GC.getInitCore().isScenario()) {
+		g.AI_initScenario(); // </advc.104u>
+		g.setScenario(true);
+	}
 	//AI_invalidateCloseBordersAttitudeCache();
 
 	AI_doCounter();
@@ -479,7 +530,7 @@ void CvPlayerAI::AI_doTurnPre()
 	// K-Mod. Update commerce weight before calculating great person weight
 	AI_updateCommerceWeights(); // (perhaps this should be done again after AI_doCommerce, or when sliders change?)
 	// GP weights can take a little bit of time, so lets only do it once every 3 turns.
-	if ((GC.getGameINLINE().getGameTurn() + AI_getStrategyRand(0))%3 == 0)
+	if ((g.getGameTurn() + AI_getStrategyRand(0))%3 == 0)
 		AI_updateGreatPersonWeights();
 	// K-Mod end
 	
@@ -518,6 +569,7 @@ void CvPlayerAI::AI_doTurnPost()
 
 	if (isBarbarian())
 	{
+		foldDeals();
 		return;
 	}
 
@@ -1985,7 +2037,13 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)
 					else
 					{
 						iRazeValue += 15; // advc.116: was 40
-
+						// <cdtw.1>
+						CvTeam const& ourTeam = GET_TEAM(getTeam());
+						if(ourTeam.isAVassal()) {
+							iRazeValue -= 5;
+							if(ourTeam.isCapitulated())
+								iRazeValue -= 10;
+						} // </cdtw.1>
 						CvCity* pNearestTeamAreaCity = GC.getMapINLINE().findCity(pCity->getX_INLINE(), pCity->getY_INLINE(), NO_PLAYER, getTeam(), true, false, NO_TEAM, NO_DIRECTION, pCity);
 
 						/*if( pNearestTeamAreaCity == NULL )
@@ -2468,11 +2526,11 @@ int CvPlayerAI::AI_commerceWeight(CommerceTypes eCommerce, const CvCity* pCity) 
 		}
 		break;
 	case COMMERCE_GOLD:
-		if (getCommercePercent(COMMERCE_GOLD) > 80) // originally == 100
+		if (getCommercePercent(COMMERCE_GOLD) >= 80) // originally == 100
 		{
 			//avoid strikes
 			//if (getGoldPerTurn() < -getGold()/100)
-			if (calculateGoldRate() < -getGold()/100) // K-Mod
+			if (getGold()+80*calculateGoldRate() < 0) // k146
 			{
 				iWeight += 15;
 			}
@@ -2698,7 +2756,27 @@ void CvPlayerAI::AI_updateCommerceWeights()
 	//
 	// Espionage weight
 	//
-	{
+	{	// <k146>
+		int iWeightThreshold = 0; // For human players, what amount of espionage weight indicates that we care about a civ?
+		if (isHuman())
+		{
+			int iTotalWeight = 0;
+			int iTeamCount = 0;
+			for (int iTeam = 0; iTeam < MAX_CIV_TEAMS; ++iTeam)
+			{
+				if (GET_TEAM(getTeam()).isHasMet((TeamTypes)iTeam) && GET_TEAM((TeamTypes)iTeam).isAlive())
+				{
+					iTotalWeight += getEspionageSpendingWeightAgainstTeam((TeamTypes)iTeam);
+					iTeamCount++;
+				}
+			}
+
+			if (iTeamCount > 0)
+			{
+				iWeightThreshold = iTotalWeight / (iTeamCount +  8); // pretty arbitrary. But as an example, 90 points on 1 player out of 10 -> threshold is 5.
+			}
+		} // </k146>
+
 		int iWeight = GC.getCommerceInfo(COMMERCE_ESPIONAGE).getAIWeightPercent();
 
 		int iEspBehindWeight = 0;
@@ -2722,7 +2800,9 @@ void CvPlayerAI::AI_updateCommerceWeights()
 				int iAttitude = range(GET_TEAM(getTeam()).AI_getAttitudeVal((TeamTypes)iTeam), -12, 12);
 				iTheirPoints -= (iTheirPoints*iAttitude)/(2*12);
 
-				if (iTheirPoints > iOurPoints && (!isHuman() || getEspionageSpendingWeightAgainstTeam((TeamTypes)iTeam) > 0))
+				if (iTheirPoints > iOurPoints && (!isHuman() ||
+						getEspionageSpendingWeightAgainstTeam((TeamTypes)iTeam) >
+						iWeightThreshold)) // k146
 				{
 					iEspBehindWeight += 1;
 					if (kLoopTeam.AI_getAttitude(getTeam()) <= ATTITUDE_CAUTIOUS
@@ -2810,6 +2890,7 @@ CvPlayerAI::CvFoundSettings::CvFoundSettings(const CvPlayerAI& kPlayer, bool bSt
 	bExpansive = false;
 	bAllSeeing = bStartingLoc || kPlayer.isBarbarian();
 	barbDiscouragedRange = 8; // advc.303
+	bDebug = false; // advc.007
 
 	if (!bStartingLoc)
 	{
@@ -2937,7 +3018,13 @@ CvPlayerAI::CvFoundSettings::CvFoundSettings(const CvPlayerAI& kPlayer, bool bSt
 	{
 		iGreed = 200; // overruling previous value;
 	}
-
+	/*  advc.031: Disable Greed except in Advanced Start. (Not sure if it's useful
+		for Advanced Start either.) In BtS, Greed had the role of bEasyCulture;
+		old comment: "Greedy founding means getting the best possible sites -
+		fitting maximum resources into the fat cross."
+		In K-Mod, it seems to be more about founding many
+		cities, although Creative trait still factors in ... */
+	else iGreed = 100;
 	if (kPlayer.isHuman())
 	{
 		// don't use personality based traits for human players.
@@ -2964,41 +3051,23 @@ CvPlayerAI::CvFoundSettings::CvFoundSettings(const CvPlayerAI& kPlayer, bool bSt
 // Heavily edited for K-Mod (some changes marked, others not.)
 // note, this function is called for every revealed plot for every player at the start of every turn.
 // try to not make it too slow!
+/*  advc.003: Uppercase comments added and code rearranged a bit in order to
+	structure this 1000 LoC function better. Should really be in a separate class. */
 short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet) const
 {
 	PROFILE_FUNC();
-
-	int iResourceValue = 0;
-	int iSpecialFood = 0;
-	int iSpecialFoodPlus = 0;
-	int iSpecialFoodMinus = 0;
-	int iSpecialProduction = 0;
-	int iSpecialCommerce = 0;
-	int iBaseProduction = 0; // K-Mod. (used to devalue cities which are unable to get any production.)
-
-	bool bNeutralTerritory = true;
-	bool firstColony = false; // advc.040
-
-	if (!canFound(iX, iY))
-	{
+	if(!canFound(iX, iY))
 		return 0;
-	}
-
-	CvPlot* pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
-	CvArea* pArea = pPlot->area();
-	bool bIsCoastal = pPlot->isCoastalLand(GC.getMIN_WATER_SIZE_FOR_OCEAN());
-	int iNumAreaCities = pArea->getCitiesPerPlayer(getID());
-	// <advc.040>
-	if(bIsCoastal && iNumAreaCities <= 0 && !isBarbarian() &&
-			(pPlot->isFreshWater() ||
-			/*  Don't apply special rules for first colony to Tundra and Ice b/c
-				these are likely surrounded by more (unrevealed) Tundra and Ice.
-				(non-river Desert also excluded, perhaps unfortunately.) */
-			pPlot->calculateNatureYield(YIELD_FOOD, getTeam(), true) +
-			pPlot->calculateNatureYield(YIELD_PRODUCTION, getTeam(), true) > 1))
-		firstColony = true; // </advc.040>
+// CONSTS
+	CvGame const& g = GC.getGameINLINE();
+	CvPlot* const pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
+	CvArea* const pArea = pPlot->area();
+	bool const bIsCoastal = pPlot->isCoastalLand(GC.getMIN_WATER_SIZE_FOR_OCEAN());
+	int const iNumAreaCities = pArea->getCitiesPerPlayer(getID());
+	CvCity const* const pCapital = getCapitalCity();
+// END OF CONSTS
+// INITIAL DON'T-FOUND-HERE CHECKS
 	bool bAdvancedStart = (getAdvancedStartPoints() >= 0);
-
 	if (!kSet.bStartingLoc && !bAdvancedStart)
 	{
 		if (!bIsCoastal && iNumAreaCities == 0)
@@ -3006,20 +3075,15 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			return 0;
 		}
 	}
-
 	if (bAdvancedStart)
 	{
 		//FAssert(!bStartingLoc);
-		FAssert(GC.getGameINLINE().isOption(GAMEOPTION_ADVANCED_START));
+		FAssert(g.isOption(GAMEOPTION_ADVANCED_START));
 		if (kSet.bStartingLoc)
 		{
 			bAdvancedStart = false;
 		}
 	}
-
-	// K-Mod. city site radius check used to be here. I've moved it down a bit.
-	// ... and also the bonus vector initializtion
-
 	if (kSet.iMinRivalRange != -1)
 	{
 		for (int iDX = -(kSet.iMinRivalRange); iDX <= kSet.iMinRivalRange; iDX++)
@@ -3038,7 +3102,6 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			}
 		}
 	}
-
 	if (kSet.bStartingLoc)
 	{
 		if (pPlot->isGoody())
@@ -3056,32 +3119,46 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			}
 		}
 	}
-
-	int iOwnedTiles = 0;
-
-	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
-	{
-		CvPlot* pLoopPlot = plotCity(iX, iY, iI);
-
-		if (pLoopPlot == NULL || (pLoopPlot->isOwned() && pLoopPlot->getTeam() != getTeam()))
-		{
-			iOwnedTiles++;
+	else { // advc.031: Not relevant for StartingLoc
+		int iOwnedTiles = 0;
+		for(int i = 0; i < NUM_CITY_PLOTS; i++) {
+			CvPlot* pLoopPlot = plotCity(iX, iY, i);
+			if(pLoopPlot == NULL || (pLoopPlot->isOwned() &&
+					pLoopPlot->getTeam() != getTeam())) {
+				/*  advc.035 (comment): Would be good to check abFlip[i] here,
+					but that's costly to compute, and I see the OwnedTiles check
+					mostly as a timesaver. */
+				iOwnedTiles++;
+				/*  <advc.031> Count tiles only half if they're in our inner ring
+					and can't be worked by any foreign city. */
+				if(!::isInnerRing(pLoopPlot, pPlot) || pLoopPlot->isCityRadius())
+					iOwnedTiles++; // </advc.031>
+			}
 		}
+		//if(iOwnedTiles > NUM_CITY_PLOTS / 3)
+		/*  advc.031: Most owned tiles are counted twice now, and I want sth.
+			closer to half of the tiles being owned. */
+		if(iOwnedTiles > 0.82 * NUM_CITY_PLOTS)
+			return 0;
 	}
-
-	if (iOwnedTiles > (NUM_CITY_PLOTS / 3))
-	{
-		return 0;
-	}
-
-	// (K-Mod this site radius check code was moved from higher up)
-	//Explaination of city site adjustment:
-	//Any plot which is otherwise within the radius of a city site
-	//is basically treated as if it's within an existing city radius
-	std::vector<bool> abCitySiteRadius(NUM_CITY_PLOTS, false);
-
+// END OF INITIAL CHECKS
+// COMPUTE OVERLAP WITH OTHER CITY SITES
+	/*  (K-Mod this site radius check code was moved from higher up)
+		Explanation of city site adjustment:
+		Any plot which is otherwise within the radius of a city site is basically
+		treated as if it's within an existing city radius */
+	/*  advc.031: Changed to int in order to store the site id
+		(though it seems I won't need it after all) */
+	std::vector<int> aiCitySiteRadius(NUM_CITY_PLOTS, -1);
+	/*  <advc.035>
+		Need to distinguish tiles within the radius of one of our team's cities
+		from those within just any city radius. */
+	std::vector<bool> abOwnCityRadius(NUM_CITY_PLOTS, false);
+	// Whether the tile flips to us once we settle near it
+	std::vector<bool> abFlip(NUM_CITY_PLOTS, false); // </advc.035>
 	// K-Mod. bug fixes etc. (original code deleted)
-	if (!kSet.bStartingLoc)
+	if (!kSet.bStartingLoc
+			&& !kSet.bDebug) // advc.007
 	{
 		for (int iJ = 0; iJ < AI_getNumCitySites(); iJ++)
 		{
@@ -3089,8 +3166,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			if (pCitySitePlot == pPlot)
 				continue;
 			FAssert(pCitySitePlot != NULL);
-
-			if (plotDistance(iX, iY, pCitySitePlot->getX_INLINE(), pCitySitePlot->getY_INLINE()) <= GC.getMIN_CITY_RANGE() &&
+			if (!kSet.bDebug && // advc.007
+				plotDistance(iX, iY, pCitySitePlot->getX_INLINE(), pCitySitePlot->getY_INLINE()) <= GC.getMIN_CITY_RANGE() &&
 				pPlot->area() == pCitySitePlot->area())
 			{
 				// this tile is too close to one of the sites we've already chosen.
@@ -3104,18 +3181,52 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					if (plotDistance(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), pCitySitePlot->getX_INLINE(), pCitySitePlot->getY_INLINE()) <= CITY_PLOTS_RADIUS)
 					{
 						//Plot is inside the radius of a city site
-						abCitySiteRadius[iI] = true;
+						aiCitySiteRadius[iI] = iJ;
 					}
 				}
 			}
 		}
+	} // K-Mod (bugfixes etc.) end
+	// <advc.035>
+	if(!kSet.bStartingLoc) { // (Also using this for advc.031 now)
+		int foo=-1;
+		for(CvCity* c = firstCity(&foo); c != NULL; c = nextCity(&foo)) {
+			for(int i = 0; i < NUM_CITY_PLOTS; i++) {
+				CvPlot* p = plotCity(iX, iY, i);
+				if(p != NULL && plotDistance(p->getX_INLINE(), p->getY_INLINE(),
+						c->getX_INLINE(), c->getY_INLINE()) <= CITY_PLOTS_RADIUS)
+					abOwnCityRadius[i] = true;
+			}
+		}
+		if(GC.getOWN_EXCLUSIVE_RADIUS() > 0) {
+			for(int i = 0; i < NUM_CITY_PLOTS; i++) {
+				CvPlot* p = plotCity(iX, iY, i);
+				abFlip[i] = (!abOwnCityRadius[i] && p != NULL &&
+						p->isOwned() && p->isCityRadius() &&
+						p->getTeam() != getTeam() &&
+						(p->getSecondOwner() == getID() ||
+						/*  The above is enough b/c the tile may not be within the
+							culture range of one of our cities; but it will be once
+							the new city is founded. */
+						p->findHighestCulturePlayer(true) == getID()));
+			}
+		} // </advc.035>
 	}
-	// K-Mod end
-
-	std::vector<int> viBonusCount(GC.getNumBonusInfos(), 0);
+// END OF OVERLAP COMPUTATION
+// COUNT BAD TILES
+	// <advc.040>
+	bool firstColony = false; // advc.040
+	if(bIsCoastal && iNumAreaCities <= 0 && !isBarbarian() &&
+			(pPlot->isFreshWater() ||
+			/*  Don't apply first-colony logic to tundra, snow and desert b/c
+				these are likely surrounded by more (unrevealed) bad terrain. */
+			pPlot->calculateNatureYield(YIELD_FOOD, getTeam(), true) +
+			pPlot->calculateNatureYield(YIELD_PRODUCTION, getTeam(), true) > 1))
+		firstColony = true; // </advc.040>
 
 	int iBadTile = 0;
 	int unrev = 0, revDecentLand = 0; // advc.040
+	int iLand = 0; // advc.031
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 	{
 		CvPlot* pLoopPlot = plotCity(iX, iY, iI);
@@ -3129,48 +3240,83 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				iBadTile++;
 			continue;
 		} // </advc.303>
-
 		if (iI != CITY_HOME_PLOT)
 		{
-			if ((pLoopPlot == NULL) || pLoopPlot->isImpassable())
-			{
+			/*  <advc.031> NULL and impassable count as 2 bad tiles (as in BtS),
+				but don't cheat with unrevealed tiles. */
+			if(pLoopPlot == NULL) {
 				iBadTile += 2;
+				continue; 
 			}
+			if(!kSet.bAllSeeing && !pLoopPlot->isRevealed(getTeam(), false)) {
+				// <advc.040>
+				if(firstColony)
+					unrev++; // </advc.040>
+				continue;
+			}
+			if(!pLoopPlot->isWater())
+				iLand++;
+			if(pLoopPlot->isImpassable()) {
+				iBadTile += 2;
+				continue;
+			} // </advc.031>
 			// K-Mod (original code deleted)
-			else if (!pLoopPlot->isFreshWater() && !pLoopPlot->isHills() &&
-				(pLoopPlot->calculateBestNatureYield(YIELD_FOOD, getTeam()) == 0 || pLoopPlot->calculateTotalBestNatureYield(getTeam()) <= 1))
-			{
-				iBadTile += 2;
+			if (//!pLoopPlot->isFreshWater() &&
+			/*  advc.031: Flood plains have high nature yield anyway,
+				so this is about snow.
+				Bonus check added (Incense). */
+				pLoopPlot->getBonusType() == NO_BONUS &&
+				(pLoopPlot->calculateBestNatureYield(YIELD_FOOD, getTeam()) == 0 ||
+				pLoopPlot->calculateTotalBestNatureYield(getTeam()) <= 1))
+			{	// <advc.031>
+				iBadTile++; /*  Snow hills had previously not been counted as bad,
+				but they are. Worthless even unless the city is desperate for
+				production or has plenty of food. */
+				/*if(!pLoopPlot->isHills() || (baseProduction >= 10 &&
+						iSpecialFoodPlus - iSpecialFoodMinus < 5))
+					iBadTile++;*/
+				/*  But we can't tell here whether that's the case
+					(baseProduction and special food haven't been computed) */
+				iBadTile++; // </advc.031>
 			}
-			else if (pLoopPlot->isWater() && !bIsCoastal && pLoopPlot->calculateBestNatureYield(YIELD_FOOD, getTeam()) <= 1)
-			{
-				iBadTile++;
+			else if (pLoopPlot->isWater() && pLoopPlot->calculateBestNatureYield(YIELD_FOOD, getTeam()) <= 1)
+			{	/* <advc.031> Removed the bIsCoastal check from the
+				   condition above b/c I want to count ocean tiles as
+				   half bad even when the city is at the coast. */
+				if(!kSet.bSeafaring && pLoopPlot->calculateBestNatureYield(
+						YIELD_COMMERCE, getTeam()) <= 1)
+					iBadTile++;
+				if(!bIsCoastal)
+					iBadTile++; // </advc.031>
 			}
 			else if (pLoopPlot->isOwned())
 			{
-				if (pLoopPlot->getTeam() != getTeam() || pLoopPlot->isBeingWorked())
-				{
-					iBadTile++;
-				}
-				// note: this final condition is... not something I intend to keep permanently.
-				else if (pLoopPlot->isCityRadius() || abCitySiteRadius[iI])
-				{
-					iBadTile++;
-				}
+				if(!abFlip[iI]) { // advc.035
+					if (pLoopPlot->getTeam() != getTeam() || pLoopPlot->isBeingWorked())
+					{
+						iBadTile++;
+					}
+					/*  (K-Mod) note: this final condition is...
+						not something I intend to keep permanently. */
+					// advc.031: poof
+					/*else if (pLoopPlot->isCityRadius() || aiCitySiteRadius[iI] >= 0)
+					{
+						iBadTile++;
+					}*/
+				} // advc.035
 			}
 			// K-Mod end
 			// <advc.040>
-			else if(firstColony && pLoopPlot->isRevealed(getTeam(), false))
-				revDecentLand++;
-			if(pLoopPlot != NULL && firstColony && !pLoopPlot->isRevealed(getTeam(), false))
-				unrev++; // </advc.040>
+			else if(firstColony)
+				revDecentLand++; // </advc.040>
 		}
-	} /* <advc.040> Make sure we do naval exploration near the spot before sending
-		 a Settler */
+	} /* <advc.040> Make sure we do naval exploration near the spot before
+		 sending a Settler */
 	if(revDecentLand < 4)
 		firstColony = false; // </advc.040>
 	iBadTile /= 2;
-
+// END OF BAD TILE COUNTING
+// CHECK IF TOO MANY BAD TILES
 	if (!kSet.bStartingLoc)
 	{
 		if ((iBadTile > (NUM_CITY_PLOTS / 2)) || (pArea->getNumTiles() <= 2)
@@ -3219,103 +3365,185 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			}
 		}
 	}
-
-	int iTakenTiles = 0;
-	int iTeammateTakenTiles = 0;
-	int iHealth = 0;
-	int iValue = 800; // was 1000
+// END OF BAD-TILES CHECK
+// PLOT EVALUATION LOOP
+	// advc.031: was 800 in K-Mod and 1000 before K-Mod
+	int iValue = 500;
 	// <advc.040>
 	if(firstColony)
-		iValue += 40 * std::min(5, unrev); // </advc.040>
+		iValue += 55 * std::min(5, unrev); // </advc.040>
+	int iTakenTiles = 0;
+	// TeamMateTakenTiles code deleted (was dead code b/c of K-Mod changes)
+	//int iTeammateTakenTiles = 0;
+	int iHealth = 0;
+	// <advc.031>
+	int iRiver = 0;
+	int iGreen = 0;
+	std::vector<int> aiPlotValues(NUM_CITY_PLOTS, 0);
+	int iStealPercent = 0; // </advc.031>
 	int iYieldLostHere = 0;
-
+	int iResourceValue = 0;
+	int iSpecialFood = 0;
+	int iSpecialFoodPlus = 0;
+	int iSpecialFoodMinus = 0;
+	int iSpecialProduction = 0;
+	int iSpecialCommerce = 0;
+	std::vector<int> viBonusCount(GC.getNumBonusInfos(), 0);
+	// advc.031: int->double
+	double baseProduction = 0; // K-Mod. (used to devalue cities which are unable to get any production.)
+	double specials = 0; // advc.031: Number of tiles with special yield
+	//bool bNeutralTerritory = true;
+	bool bAnyForeignOwned = false; // advc.040: Replacing the above
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 	{
+// SKIP UNWORKABLE TILES
 		CvPlot* pLoopPlot = plotCity(iX, iY, iI);
+		bool const bInnerRing = ::isInnerRing(pLoopPlot, pPlot);
 		// <advc.303>
-		if(isBarbarian() && !::isInnerRing(pLoopPlot, pPlot))
+		if(isBarbarian() && !bInnerRing)
 			continue; // </advc.303>
-		if (pLoopPlot == NULL)
-		{
+		if(pLoopPlot == NULL) {
 			iTakenTiles++;
-		}
-		//else if (pLoopPlot->isCityRadius() || abCitySiteRadius[iI])
-		else if (iI != CITY_HOME_PLOT && (pLoopPlot->isCityRadius() || abCitySiteRadius[iI])) // K-Mod
-		{
-			iTakenTiles++;
-
-			if (abCitySiteRadius[iI])
-			{
-				iTeammateTakenTiles++;
+			continue; 
+		} /* advc.031: Moved up. If we can't see the tile, we don't really know
+			 if it's already taken by a rival. (Will find out when our Settler
+			 gets there.) */
+		if(!kSet.bAllSeeing && !pLoopPlot->isRevealed(getTeam(), false))
+			continue;
+		// <advc.031>
+		bool const bCityRadius = pLoopPlot->isCityRadius();
+		PlayerTypes const eOwner = pLoopPlot->getOwnerINLINE();
+		bool const bForeignOwned = (eOwner != NO_PLAYER && eOwner != getID());
+		bool const bSteal = (bCityRadius && bForeignOwned);
+		bool bShare = false; // </advc.031>
+		/*  advc.035: The own-exclusive-radius rule only helps if the radii 
+			don't overlap. */
+		bool const bOwnExl = (GC.getOWN_EXCLUSIVE_RADIUS() > 0 && !bCityRadius &&
+				bForeignOwned);
+		if(iI != CITY_HOME_PLOT
+				&& !abFlip[iI]) { // advc.035
+			if(bCityRadius || aiCitySiteRadius[iI] >= 0) {
+				iTakenTiles++;
+				// <advc.040>
+				if(bForeignOwned)
+					bAnyForeignOwned = true; // </advc.040>
+				//continue;
 			}
-		}
-		// K-Mod Note: it kind of sucks that no value is counted for taken tiles. Tile sharing / stealing should be allowed.
-		else if (kSet.bAllSeeing || pLoopPlot->isRevealed(getTeam(), false))
-		{
-			int iPlotValue = 0; // K-Mod note. this use to be called iTempValue. I've renamed it throughout this section to improve clarity.
-
-			FeatureTypes eFeature = pLoopPlot->getFeatureType();
-			BonusTypes eBonus = pLoopPlot->getBonusType((kSet.bStartingLoc
-				  // advc.108: Don't factor in unrevealed bonuses
-				  && GC.getGame().getNormalizationLevel() > 1)
+			/*  K-Mod Note: it kind of sucks that no value is counted for taken tiles.
+				Tile sharing / stealing should be allowed. */
+			// <advc.031> ^Exactly
+			/*  Still don't allow tiles to be shared between (planned) city sites
+				-- too difficult to estimate how many tiles each site will need.
+				I don't think it's really necessary either; sites will be updated
+				after founding a city. */
+			if(aiCitySiteRadius[iI] >= 0)
+				continue;
+			bool bOtherInnerRing = false;
+			CvCityAI const* pOtherCity = NULL;
+			if(bCityRadius) {
+				if(isBarbarian())
+					continue;
+				pOtherCity = static_cast<CvCityAI*>(pLoopPlot->getWorkingCity());
+				/*  NULL means its borders haven't expanded yet. Difficult to
+					judge then whether tile sharing makes sense. Better wait
+					for border expansion. */
+				if(pOtherCity == NULL && abOwnCityRadius[iI])
+					continue;
+				if(pOtherCity != NULL && AI_deduceCitySite(pOtherCity)) {
+					bOtherInnerRing = ::isInnerRing(pLoopPlot, pOtherCity->plot());
+					FAssert(!bInnerRing || !bOtherInnerRing || pOtherCity->area() != pPlot->area());
+					if(bForeignOwned && (bOtherInnerRing ||
+							// Don't try to overlap with team member or master
+							TEAMID(eOwner) == getTeam() ||
+							GET_TEAM(getTeam()).isVassal(TEAMID(eOwner))))
+						continue;
+					if(!bForeignOwned)
+						bShare = true;
+					// Else let iCultureMultiplier handle bSteal
+				}
+			}
+			if(bShare) {
+				if(pLoopPlot->isBeingWorked() || bOtherInnerRing)
+					continue;
+				CvPlot* pOtherPlot = pOtherCity->plot();
+				int const iOtherPlotIndex = pOtherCity->getCityPlotIndex(pLoopPlot);
+				if(GC.getCityPlotPriority()[iI] >= GC.getCityPlotPriority()[iOtherPlotIndex])
+					continue;
+				/*  Check if the other city is going to need the tile in the
+					medium term */
+				if(pOtherCity->AI_isGoodPlot(iOtherPlotIndex) &&
+						pOtherCity->AI_countGoodPlots() -
+						pOtherCity->getPopulation() +
+						pOtherCity->getSpecialistPopulation() <= 3)
+					continue;
+				// Else let the code below deal with bShare
+				/*  (No special treatment for bShare&&bSteal; we'll
+					probably win the tile if we have two cities near it.) */
+			}
+		} // </advc.031>
+// END OF TILE SKIPPING
+		int iPlotValue = 0; // K-Mod note. This used to be called iTempValue. I've renamed it throughout this section to improve clarity.
+// DETERMINE FEATURE, BONUS, IMPROVEMENT
+		FeatureTypes const eFeature = pLoopPlot->getFeatureType();
+		BonusTypes const eBonus = pLoopPlot->getBonusType((kSet.bStartingLoc
+				// advc.108: Don't factor in unrevealed bonuses
+				&& g.getNormalizationLevel() > 1)
 				? NO_TEAM : getTeam());
-			ImprovementTypes eBonusImprovement = NO_IMPROVEMENT;
-
-			// K-Mod
-			bool bRemoveableFeature = false;
-			bool bEventuallyRemoveableFeature = false;
-			if (eFeature != NO_FEATURE)
+		CvTeamAI const& kTeam = GET_TEAM(getTeam());
+		// K-Mod
+		bool bRemoveableFeature = false;
+		bool bEventuallyRemoveableFeature = false;
+		if (eFeature != NO_FEATURE)
+		{
+			for (int i = 0; i < GC.getNumBuildInfos(); ++i)
 			{
-				for (int i = 0; i < GC.getNumBuildInfos(); ++i)
+				CvBuildInfo const& bi = GC.getBuildInfo((BuildTypes)i);
+				if (bi.isFeatureRemove(eFeature))
 				{
-					if (GC.getBuildInfo((BuildTypes)i).isFeatureRemove(eFeature))
-					{
-						bEventuallyRemoveableFeature = true;
-						if (GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getBuildInfo((BuildTypes)i).getTechPrereq()))
-						{
-							bRemoveableFeature = true;
-							break;
-						}
+					bEventuallyRemoveableFeature = true;
+					// <advc.031> CurrentResearch should be good enough
+					TechTypes tech1 = (TechTypes)bi.getTechPrereq();
+					TechTypes tech2 = (TechTypes)bi.getFeatureTech(eFeature);
+					if((kTeam.isHasTech(tech1) || getCurrentResearch() == tech1) &&
+							// advc.001: This check was missing
+							(kTeam.isHasTech(tech2) || getCurrentResearch() == tech2)) {
+						// </advc.031>
+						bRemoveableFeature = true;
+						break;
 					}
 				}
-
-				if (iI != CITY_HOME_PLOT && (!bRemoveableFeature || GC.getFeatureInfo(eFeature).getHealthPercent() > 0))
-					iHealth += GC.getFeatureInfo(eFeature).getHealthPercent(); // note, this will be reduced by some factor before being added to the total value.
 			}
-			// K-Mod end
-
-			// K-Mod note: iClaimThreshold is bigger for bEasyCulture and bAmbitious civs.
-			// Also note, if the multiplier was to be properly used for unowned plots, it would need
-			// to take into account the proximity of foreign cities and so on.
-			// (similar to the calculation at the end of this function!)
-			int iCultureMultiplier;
-			if (!pLoopPlot->isOwned() || pLoopPlot->getOwnerINLINE() == getID())
-				iCultureMultiplier = 100;
-			else
-			{
-				bNeutralTerritory = false;
-
-				int iOurCulture = pLoopPlot->getCulture(getID());
-				int iOtherCulture = std::max(1, pLoopPlot->getCulture(pLoopPlot->getOwnerINLINE()));
-				iCultureMultiplier = 100 * (iOurCulture + kSet.iClaimThreshold);
-				iCultureMultiplier /= (iOtherCulture + kSet.iClaimThreshold);
-				iCultureMultiplier = std::min(100, iCultureMultiplier);
+			int const featHealth = GC.getFeatureInfo(eFeature).getHealthPercent();
+			if(iI != CITY_HOME_PLOT && (!bRemoveableFeature || featHealth > 0)) {
+				/* (K-Mod) Note, this will be reduced by some factor before
+					being added to the total value. */
+				iHealth += featHealth;
 			}
-
-			//
-
-			if (iCultureMultiplier < ((iNumAreaCities > 0) ? 25 : 50))
-			{
-				//discourage hopeless cases, especially on other continents.
-				iTakenTiles += (iNumAreaCities > 0) ? 1 : 2;
-			}
-
-			if (eBonus != NO_BONUS)
-			{
+		}
+		// K-Mod end
+		ImprovementTypes eBonusImprovement = NO_IMPROVEMENT;
+		if(eBonus != NO_BONUS) {
+			/*  <advc.031> Some bonuses become revealed long before they can be
+				improved or traded. We're not checking the tech reqs of the
+				improvement (would have to go through Worker builds); at least
+				check the CityTrade tech. If we don't have it, eBonusImprovement
+				remains at -1. AI_bonusValue is then still counted, but no
+				special bonus yields. */
+			TechTypes tradeTech = (TechTypes)GC.getBonusInfo(eBonus).
+					getTechCityTrade();
+			if(tradeTech == NO_TECH || GET_TEAM(getTeam()).isHasTech(tradeTech) ||
+					getCurrentResearch() == tradeTech ||
+					/*  The HasTech and CurrentResearch checks are redundant,
+						I think, but faster. */
+					canResearchBulk(tradeTech, false, false, true)) {
+					// </advc.031>
 				for (int iImprovement = 0; iImprovement < GC.getNumImprovementInfos(); ++iImprovement)
 				{
+				/*  advc.031 (comment): Should not set eBonusImprovement to Fort
+					if there is an improvement that increases the tile yield.
+					Since Fort comes last in the ImprovementInfos XML, it should
+					be OK as it is. */
 					CvImprovementInfo& kImprovement = GC.getImprovementInfo((ImprovementTypes)iImprovement);
-
 					//if (kImprovement.isImprovementBonusMakesValid(eBonus))
 					if (kImprovement.isImprovementBonusTrade(eBonus)) // K-Mod. (!!)
 					{
@@ -3324,235 +3552,514 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					}
 				}
 			}
-
-			int aiYield[NUM_YIELD_TYPES];
-
-			for (int iYieldType = 0; iYieldType < NUM_YIELD_TYPES; ++iYieldType)
+		}
+// END OF FEATURE/BONUS/IMPROVEMENT
+// CULTURE MULTIPLIER
+		int iCultureMultiplier = 100;
+		/*  K-Mod note: iClaimThreshold is bigger for bEasyCulture and
+			bAmbitious civs.
+			Also note, if the multiplier was to be properly used for unowned plots,
+			it would need to take into account the proximity of foreign cities
+			and so on. (similar to the calculation at the end of this function!) */
+		/*  advc.031: I'm including unowned plots, but only those in a foreign
+			city radius. */
+		if ((bForeignOwned || (!bShare && bCityRadius))
+				&& !abFlip[iI]) { // advc.035
+			int iOurCulture = pLoopPlot->getCulture(getID());
+			int iOtherCulture = std::max(1,
+					/*  advc.031: Could find out the owner of the bCityRadius
+						city in the loop that computes abFlip, but it should be
+						fine to assume that the owner has very little tile culture. */
+					(!bForeignOwned ? 1 :
+					pLoopPlot->getCulture(eOwner)));
+			/*  <advc.031> AI cities near OCC capital are annoying and don't
+				fare well */
+			if(bForeignOwned && GET_PLAYER(eOwner).isHuman() &&
+					g.isOption(GAMEOPTION_ONE_CITY_CHALLENGE))
+				iOtherCulture = (3 * iOtherCulture) / 2; // </advc.031>
+			iCultureMultiplier = 100 * (iOurCulture + kSet.iClaimThreshold);
+			iCultureMultiplier /= (iOtherCulture + kSet.iClaimThreshold
+				// advc.035: The above is OK if cities own their exclusive radius ...
+					+ (bOwnExl ? 0 :
+					// advc.031: ... but w/o that rule, it's too optimistic.
+					::round(0.72 * (iOurCulture + kSet.iClaimThreshold))));
+			// <advc.031>
+			if(bCityRadius && !bShare) {
+				// Extra pessimism about tiles that another civ is able to work
+				if(bSteal)
+					iCultureMultiplier = ::round(0.62 * iCultureMultiplier);
+				// Less pessimism if their borders haven't expanded yet
+				else iCultureMultiplier = ::round(0.8 * iCultureMultiplier);
+				iStealPercent += std::min(75, iCultureMultiplier);
+			} // </advc.031>
+			iCultureMultiplier = std::min(100, iCultureMultiplier);
+			// advc.031: Moved up
+			if (iCultureMultiplier < ((iNumAreaCities > 0) ? 25 : 50)
+					&& !bSteal) // advc.031: Already counted as iTakenTiles
 			{
-				YieldTypes eYield = (YieldTypes)iYieldType;
-				//aiYield[eYield] = pLoopPlot->getYield(eYield);
-				aiYield[eYield] = pLoopPlot->calculateNatureYield(eYield, getTeam(), bEventuallyRemoveableFeature); // K-Mod
-
-				if (iI == CITY_HOME_PLOT)
+				//discourage hopeless cases, especially on other continents.
+				iTakenTiles += (iNumAreaCities > 0) ? 1 : 2;
+			}
+			// <advc.099b>
+			if(!bCityRadius && bForeignOwned) {
+				double exclRadiusWeight = exclusiveRadiusWeight(
+						::plotDistance(pLoopPlot, pPlot));
+				iCultureMultiplier = std::min(100, ::round(iCultureMultiplier *
+						(1 + exclRadiusWeight))); // </advc.099b>
+				if(bOwnExl) {
+					/*  <advc.035> (The discouragement above is still useful for
+						avoiding revolts) */
+					iCultureMultiplier = std::max(iCultureMultiplier, 65);
+				} // </advc.035>
+			}
+		}
+// END OF CULTURE MULTIPLIER
+// YIELD OF HOME TILE
+		int aiYield[NUM_YIELD_TYPES];
+		for (int iYieldType = 0; iYieldType < NUM_YIELD_TYPES; ++iYieldType)
+		{
+			YieldTypes eYield = (YieldTypes)iYieldType;
+			//aiYield[eYield] = pLoopPlot->getYield(eYield);
+			aiYield[eYield] = pLoopPlot->calculateNatureYield(eYield, getTeam(), bEventuallyRemoveableFeature); // K-Mod
+			if (iI == CITY_HOME_PLOT)
+			{
+				// (this section has been rewritten for K-Mod. The original code was bork.)
+				int iBasePlotYield = aiYield[eYield];
+				if (eFeature != NO_FEATURE && !bEventuallyRemoveableFeature) // note: if the feature is removable, was ignored already
+					aiYield[eYield] -= GC.getFeatureInfo(eFeature).getYieldChange(eYield);
+				aiYield[eYield] += GC.getYieldInfo(eYield).getCityChange();
+				aiYield[eYield] = std::max(aiYield[eYield], GC.getYieldInfo(eYield).getMinCity());
+				/*  K-Mod. Before we make special adjustments, there are
+					some things we need to do with the true values. */
+				if (eYield == YIELD_PRODUCTION)
+					baseProduction += aiYield[YIELD_PRODUCTION];
+				else if (eYield == YIELD_FOOD)
+					iSpecialFoodPlus += std::max(0, aiYield[YIELD_FOOD] - GC.getFOOD_CONSUMPTION_PER_POPULATION());
+				/*  (K-Mod) Subtract the special yield we'd get from a
+					bonus improvement, because we'd miss out on that by settling
+					a city here.
+					Exception: the improvement might be something dud which we
+					wouldn't normally build. eg. +1 food from a plantation should
+					not be counted, because a farm would be just as good. But +1
+					hammers from a mine should be counted, because we'd build the
+					mine anyway. I haven't thought of a good way to deal with
+					this issue. */
+				if (eBonusImprovement != NO_IMPROVEMENT)
 				{
-					// (this section has been rewritten for K-Mod. The original code was bork.)
-					int iBasePlotYield = aiYield[eYield];
-
-					if (eFeature != NO_FEATURE && !bEventuallyRemoveableFeature) // note: if the feature is removable, was ignored already
-						aiYield[eYield] -= GC.getFeatureInfo(eFeature).getYieldChange(eYield);
-
-					aiYield[eYield] += GC.getYieldInfo(eYield).getCityChange();
-
-					aiYield[eYield] = std::max(aiYield[eYield], GC.getYieldInfo(eYield).getMinCity());
-
-					// K-Mod. Before we make special adjustments, there are some things we need to do with the true values.
-					if (eYield == YIELD_PRODUCTION)
-						iBaseProduction += aiYield[YIELD_PRODUCTION];
-					else if (eYield == YIELD_FOOD)
-						iSpecialFoodPlus += std::max(0, aiYield[YIELD_FOOD] - GC.getFOOD_CONSUMPTION_PER_POPULATION());
-					//
-
-					// Subtract the special yield we'd get from a bonus improvement, because we'd miss out on that by settling a city here.
-					// Exception: the improvement might be something dud which we wouldn't normally build.
-					// eg. +1 food from a plantation should not be counted, because a farm would be just as good.
-					// But +1 hammers from a mine should be counted, because we'd build the mine anyway. I haven't thought of a good way to deal with this issue.
-					if (eBonusImprovement != NO_IMPROVEMENT)
-					{
-						aiYield[eYield] -= GC.getImprovementInfo(eBonusImprovement).getImprovementBonusYield(eBonus, eYield);
-					}
-
-					// and subtract the base yield, so as to emphasise city plots which add yield rather than remove it. (eg. plains-hill vs floodplain)
-					aiYield[eYield] -= iBasePlotYield;
+					//aiYield[eYield] -= GC.getImprovementInfo(eBonusImprovement).getImprovementBonusYield(eBonus, eYield);
+					// <advc.031> Replacing the above
+					CvImprovementInfo& impr = GC.getImprovementInfo(eBonusImprovement);
+					int imprYieldChg = impr.getImprovementBonusYield(eBonus, eYield);
+					double const exp = 1.41;
+					/*  Add this, exponentiate, then subtract it again.
+						This should discourage the AI from settling on
+						tiles with a high total yield.
+						(E.g. 1 production lost from settling on Copper
+						can't be evened out by fitting a plains hill instead
+						of a desert hill into the BFC -- the Copper would be
+						worked much sooner than the plains hill!) */
+					int nonBonusYieldChg = impr.getYieldChange(eYield) +
+							iBasePlotYield;
+					aiYield[eYield] -= imprYieldChg <= 0 ? imprYieldChg :
+							::round(std::pow((double)imprYieldChg +
+							nonBonusYieldChg, exp) - nonBonusYieldChg);
+				} // </advc.031>
+				/*  (K-Mod) and subtract the base yield, so as to emphasise
+					city plots which add yield rather than remove it.
+					(eg. plains-hill vs floodplain) */
+				aiYield[eYield] -= iBasePlotYield;
+			}
+// END HOME TILE YIELD
+// PROPER TILE YIELDS
+			else if (bEventuallyRemoveableFeature) // adjust for removable features
+			{
+				const CvFeatureInfo& kFeature = GC.getFeatureInfo(eFeature);
+				if (bRemoveableFeature)
+				{
+					iPlotValue += 10 * kFeature.getYieldChange(eYield);
 				}
-				else if (bEventuallyRemoveableFeature) // (not city tile). adjust for removable features
+				else
 				{
-					const CvFeatureInfo& kFeature = GC.getFeatureInfo(eFeature);
-
-					if (bRemoveableFeature)
+					if (kFeature.getYieldChange(eYield) < 0)
 					{
-						iPlotValue += 10 * kFeature.getYieldChange(eYield);
+						iPlotValue -= (eBonus != NO_BONUS ? 25 : 5);
+						// advc.031: was 30 *...
+						iPlotValue += 25 * kFeature.getYieldChange(eYield);
 					}
-					else
-					{
-						if (kFeature.getYieldChange(eYield) < 0)
-						{
-							iPlotValue -= eBonus != NO_BONUS ? 25 : 5;
-							iPlotValue += 30 * kFeature.getYieldChange(eYield);
+				}
+			}
+			// K-Mod end
+			// <advc.031>
+			else if(getExtraYieldThreshold(eYield) > 0 &&
+					aiYield[eYield] >= getExtraYieldThreshold(eYield))
+				aiYield[eYield] += GC.getEXTRA_YIELD(); // </advc.031>
+		}
+		// K-Mod. add non city plot production to the base production count. (city plot has already been counted)
+		if (iI != CITY_HOME_PLOT && !bShare)
+			baseProduction += aiYield[YIELD_PRODUCTION];
+		// (note: these numbers have been adjusted for K-Mod)
+		if ((iI == CITY_HOME_PLOT || aiYield[YIELD_FOOD] >= GC.getFOOD_CONSUMPTION_PER_POPULATION())
+				/*  advc.031: Lighthouse isn't yet taken into account here,
+					but seafood tiles do satisfy the conditions above, and
+					are being a bit overrated. */
+				&& !pLoopPlot->isWater())
+		{
+			iPlotValue += 10;
+			iPlotValue += aiYield[YIELD_FOOD] * 40;
+			iPlotValue += aiYield[YIELD_PRODUCTION] * 30;
+			iPlotValue += aiYield[YIELD_COMMERCE] * 20;
+			/* original bts code
+			if (kSet.bStartingLoc)
+			{
+				iPlotValue *= 2;
+			} */
+		}
+		else if (aiYield[YIELD_FOOD] == GC.getFOOD_CONSUMPTION_PER_POPULATION() - 1)
+		{
+			iPlotValue += aiYield[YIELD_FOOD] * 30;
+			iPlotValue += aiYield[YIELD_PRODUCTION] * 25;
+			iPlotValue += aiYield[YIELD_COMMERCE] * 12;
+		}
+		else
+		{
+			iPlotValue += aiYield[YIELD_FOOD] * 15;
+			iPlotValue += aiYield[YIELD_PRODUCTION] * 15;
+			iPlotValue += aiYield[YIELD_COMMERCE] * 8;
+		}
+
+		if (pLoopPlot->isWater())
+		{
+			// K-Mod. kludge to account for lighthouse and lack of improvements.
+			iPlotValue /= (bIsCoastal ? 2 : 3);
+			iPlotValue += bIsCoastal ? 8*(aiYield[YIELD_COMMERCE]+aiYield[YIELD_PRODUCTION]) : 0;
+			// (K-Mod note, I've moved the iSpecialFoodPlus adjustment elsewhere.)
+
+			//if (kSet.bStartingLoc && !pPlot->isStartingPlot())
+			if (kSet.bStartingLoc && getStartingPlot() != pPlot) // K-Mod
+			{
+				// I'm pretty much forbidding starting 1 tile inland non-coastal.
+				// with more than a few coast tiles.
+				//iPlotValue += bIsCoastal ? 0 : -120; // was -400 (reduced by K-Mod)
+				iPlotValue += bIsCoastal ? 0 : -75; // advc.031
+			}
+		}
+		else // is land
+		{
+			if (iI != CITY_HOME_PLOT && !bSteal) {
+				//iBaseProduction += pLoopPlot->isHills() ? 2 : 1;
+				/*  <advc.031> The above is pretty bad: We're not going to build
+					Workshops everywhere, and it doesn't check for Peak or Desert. */
+				FeatureTypes ft = pLoopPlot->getFeatureType();
+				/*  If not event. removeable, then production from feature
+					is already counted above */
+				if(bEventuallyRemoveableFeature && ft != NO_FEATURE &&
+						GC.getFeatureInfo(ft).getYieldChange(
+						YIELD_PRODUCTION) > 0) {
+					baseProduction += GC.getFeatureInfo(ft).
+							/*  For chopping or Lumbermill.
+								(I shouldn't hardcode it like this, but, god,
+								is this stuff awkward to implement.) */
+							getYieldChange(YIELD_PRODUCTION) + 0.5;
+				}
+				else if(getNumCities() <= 2) { // Fair enough early on
+					if(pLoopPlot->isHills())
+						baseProduction += 2;
+				}
+				else {
+					int maxProd = 0;
+					for(int j = 0; j < GC.getNumImprovementInfos(); j++) {
+						ImprovementTypes imprId = (ImprovementTypes)j;
+						/*  Not a perfectly safe way to check if we can
+							build the improvement, but fast. */
+						if(getImprovementCount(imprId) <= 0)
+							continue;
+						CvImprovementInfo& impr = GC.getImprovementInfo(imprId);
+						int yc = impr.getYieldChange(YIELD_PRODUCTION) +
+								kTeam.getImprovementYieldChange(imprId,
+								YIELD_PRODUCTION);
+						/*  Note that any additional yield from putting impr on a
+							bonus resource is already counted as iSpecialProduction */
+						for(int k = 0; k < NUM_YIELD_TYPES && k != YIELD_PRODUCTION; k++) {
+							int otherYield = impr.getYieldChange((YieldTypes)k);
+							if(otherYield < 0) // Will be less inclined to build it then
+								yc += otherYield;
 						}
+						/*  I'm not bothering with civics and routes here.
+							It's OK to undercount b/c more production is needed
+							by the time railroads become available.
+							A Workshop may also remove a Forest; in this case,
+							production is overcounted. */
+						// Not fast; loops through all builds.
+						if(yc <= 0 || !pLoopPlot->canHaveImprovement(imprId, getTeam()))
+							continue;
+						FAssertMsg(yc <= 3, "is this much production possible?");
+						maxProd = std::max(maxProd, yc);
+					}
+					baseProduction += maxProd; // </advc.031>
+				}
+			} // <advc.031>
+			if(iI != CITY_HOME_PLOT) { // Health is counted separately
+				int iFreshWaterVal = 0;
+				// <advc.053>
+				bool bLowYield = (aiYield[YIELD_FOOD] + aiYield[YIELD_PRODUCTION] +
+						aiYield[YIELD_COMMERCE] / 2 < 2); // </advc.053>
+				if(pLoopPlot->isRiver()) {
+					//iPlotValue += 10; // BtS
+					// <K-Mod>
+					//iPlotValue += (kSet.bFinancial || kSet.bStartingLoc) ? 30 : 10;
+					//iPlotValue += (pPlot->isRiver() ? 15 : 0); // </K-Mod>
+					// </advc.031> Replaced by the code below
+					// <advc.053>
+					if(bLowYield) {
+						if(kSet.bFinancial)
+							iFreshWaterVal += 5;
+					}
+					else { // </advc.053>
+						// <advc.031>
+						if(kSet.bFinancial)
+							iFreshWaterVal += 8;
+						if(!bSteal) {
+							iRiver++;
+							if(kSet.bStartingLoc)
+								iFreshWaterVal += 10;
+							/*  I'm guessing this K-Mod clause is supposed to
+								steer the AI toward settling at rivers rather
+								than trying to make all river plots workable. */
+							if(pPlot->isRiver())
+								iFreshWaterVal += (kSet.bStartingLoc ? 10 : 4);
+						} // </advc.031>
+					}
+				} // in addition to the river bonus:
+				if(pLoopPlot->canHavePotentialIrrigation() &&
+						!bLowYield) { // advc.053
+					// <advc.031> was 5/5
+					iPlotValue += 4;
+					if(pLoopPlot->isFreshWater()) {
+						iPlotValue += 6;
+						if(aiYield[YIELD_FOOD] >= GC.getFOOD_CONSUMPTION_PER_POPULATION()
+								&& !bSteal)
+							iGreen++;
 					}
 				}
-				// K-Mod end
+				iPlotValue += iFreshWaterVal;  // <advc.031>
 			}
-			// K-Mod. add non city plot production to the base production count. (city plot has already been counted)
-			if (iI != CITY_HOME_PLOT)
-				iBaseProduction += aiYield[YIELD_PRODUCTION];
-			//
-
-			// (note: these numbers have been adjusted for K-Mod)
-			if (iI == CITY_HOME_PLOT || aiYield[YIELD_FOOD] >= GC.getFOOD_CONSUMPTION_PER_POPULATION())
-			{
-				iPlotValue += 10;
-				iPlotValue += aiYield[YIELD_FOOD] * 40;
-				iPlotValue += aiYield[YIELD_PRODUCTION] * 30;
-				iPlotValue += aiYield[YIELD_COMMERCE] * 20;
-
-				/* original bts code
-				if (kSet.bStartingLoc)
-				{
-					iPlotValue *= 2;
-				} */
-			}
-			else if (aiYield[YIELD_FOOD] == GC.getFOOD_CONSUMPTION_PER_POPULATION() - 1)
-			{
-				iPlotValue += aiYield[YIELD_FOOD] * 30;
-				iPlotValue += aiYield[YIELD_PRODUCTION] * 25;
-				iPlotValue += aiYield[YIELD_COMMERCE] * 12;
-			}
-			else
-			{
-				iPlotValue += aiYield[YIELD_FOOD] * 15;
-				iPlotValue += aiYield[YIELD_PRODUCTION] * 15;
-				iPlotValue += aiYield[YIELD_COMMERCE] * 8;
-			}
-
-			if (pLoopPlot->isWater())
-			{
-				// K-Mod. kludge to account for lighthouse and lack of improvements.
-				iPlotValue /= (bIsCoastal ? 2 : 3);
-				iPlotValue += bIsCoastal ? 8*(aiYield[YIELD_COMMERCE]+aiYield[YIELD_PRODUCTION]) : 0;
-				// (K-Mod note, I've moved the iSpecialFoodPlus adjustment elsewhere.)
-
-				//if (kSet.bStartingLoc && !pPlot->isStartingPlot())
-				if (kSet.bStartingLoc && getStartingPlot() != pPlot) // K-Mod
-				{
-					// I'm pretty much forbidding starting 1 tile inland non-coastal.
-					// with more than a few coast tiles.
-					iPlotValue += bIsCoastal ? 0 : -120; // was -400 (reduced by K-Mod)
-				}
-			}
-			else // is land
-			{
-				if (iI != CITY_HOME_PLOT)
-					iBaseProduction += pLoopPlot->isHills() ? 2 : 1;
-
-				if (pLoopPlot->isRiver())
-				{
-					//iPlotValue += 10; // (original)
-					// K-Mod
-					iPlotValue += (kSet.bFinancial || kSet.bStartingLoc) ? 30 : 10;
-					iPlotValue += (pPlot->isRiver() ? 15 : 0);
-				}
-				if (pLoopPlot->canHavePotentialIrrigation())
-				{
-					// in addition to the river bonus
-					iPlotValue += 5 + (pLoopPlot->isFreshWater() ? 5 : 0);
-				}
-			}
-
+		}
+		if(iI == CITY_HOME_PLOT) // Culture and Greed shouldn't apply to home plot
+			iValue += iPlotValue;
+		else { // </advc.031>
 			// K-Mod version (original code deleted)
-			if (kSet.bEasyCulture)
-			{
+			if(kSet.bEasyCulture) {
 				// 5/4 * 21 ~= 9 * 1.5 + 12 * 1;
 				iPlotValue *= 5;
 				iPlotValue /= 4;
 			}
-			else
-			{
-				if ((pLoopPlot->getOwnerINLINE() == getID()) || (stepDistance(iX, iY, pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) <= 1))
-				{
-					iPlotValue *= 3;
-					iPlotValue /= 2;
-				}
+			else if(pLoopPlot != NULL &&
+					(pLoopPlot->getOwnerINLINE() == getID() ||
+					stepDistance(iX, iY, pLoopPlot->getX_INLINE(),
+					pLoopPlot->getY_INLINE()) <= 1)) {
+				iPlotValue *= 3;
+				iPlotValue /= 2;
 			}
 			iPlotValue *= kSet.iGreed;
 			iPlotValue /= 100;
 			// K-Mod end
-
 			iPlotValue *= iCultureMultiplier;
 			iPlotValue /= 100;
-
-			iValue += iPlotValue;
-
-			if (iCultureMultiplier > 33) //ignore hopelessly entrenched tiles.
-			{
-
-				if (eBonus != NO_BONUS && // K-Mod added water case (!!)
-					((pLoopPlot->isWater() && bIsCoastal) || pLoopPlot->area() == pPlot->area() || pLoopPlot->area()->getCitiesPerPlayer(getID()) > 0))
-				{
-					//iBonusValue = AI_bonusVal(eBonus, 1, true) * ((!kSet.bStartingLoc && (getNumTradeableBonuses(eBonus) == 0) && (paiBonusCount[eBonus] == 1)) ? 80 : 20);
-					// K-Mod
-					int iCount = getNumTradeableBonuses(eBonus) == 0 + viBonusCount[eBonus];
-					int iBonusValue = AI_bonusVal(eBonus, 0, true) * 80 / (1 + 2*iCount);
-					// Note: 1. the value of starting bonuses is reduced later.
-					//       2. iTempValue use to be used throughout this section. I've replaced all references with iBonusValue, for clarity.
-					viBonusCount[eBonus]++; // (this use to be above the iBonusValue initialization)
-					FAssert(viBonusCount[eBonus] > 0);
-					//
-
-					iBonusValue *= (kSet.bStartingLoc ? 100 : kSet.iGreed);
-					iBonusValue /= 100;
-
-					if (!kSet.bStartingLoc)
-					{
-						// K-Mod. (original code deleted)
-						if (iI != CITY_HOME_PLOT)
-						{
-							if (pLoopPlot->isWater())
-								iBonusValue /= 2;
-
-							if (pLoopPlot->getOwnerINLINE() != getID() && stepDistance(pPlot->getX_INLINE(),pPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) > 1)
-							{
-								if (!kSet.bEasyCulture)
-									iBonusValue = iBonusValue * 3/4;
-							}
-							FAssert(iCultureMultiplier <= 100);
-							iBonusValue = iBonusValue * (kSet.bAmbitious ? 110 : iCultureMultiplier) / 100;
-						}
-						else if (kSet.bAmbitious)
-							iBonusValue = iBonusValue * 110 / 100;
-						// K-Mod end
+			// <advc.031>
+			if(bShare) // bSteal is already factored into iCultureMultiplier
+				iPlotValue = ::round(iPlotValue * 0.375);
+			// Sum these up later
+			aiPlotValues[iI] = iPlotValue;
+		} // </advc.031>
+// END OF PROPER TILE YIELDS
+// NON-YIELD BONUS VALUE (ResourceValue)
+		// advc.031: Was 33, but now computed differently.
+		if ((iCultureMultiplier <= 20 //ignore hopelessly entrenched tiles.
+				&& !bOwnExl) || bSteal || bShare) // advc.035
+			continue;
+		if (eBonus != NO_BONUS && // K-Mod added water case (!!)
+				((pLoopPlot->isWater() && bIsCoastal) ||
+				pLoopPlot->area() == pPlot->area() ||
+				pLoopPlot->area()->getCitiesPerPlayer(getID()) > 0))
+		{
+			//iBonusValue = AI_bonusVal(eBonus, 1, true) * ((!kSet.bStartingLoc && (getNumTradeableBonuses(eBonus) == 0) && (paiBonusCount[eBonus] == 1)) ? 80 : 20);
+			// K-Mod
+			//int iCount = getNumTradeableBonuses(eBonus) == 0 + viBonusCount[eBonus];
+			//int iBonusValue = AI_bonusVal(eBonus, 0, true) * 80 / (1 + 2*iCount);
+			/*  <advc.031> The "==0" looks like an error. Rather than correct
+				this, I'm going to let AI_bonusVal handle the number of
+				bonuses already connected. Just doing a division by iCount
+				here won't work well for strategic resources. */
+			/*  Don't assume that the bonus is enabled.
+				And the coefficient was 80, halved. */
+			int iBonusValue = ::round((AI_bonusVal(eBonus, 1) * 40.0) /
+					(1 + viBonusCount[eBonus]));
+			/*  Note (K-Mod):
+				1. the value of starting bonuses is reduced later.
+			    2. iTempValue used to be used throughout this section. I've
+				   replaced all references with iBonusValue, for clarity. */
+			viBonusCount[eBonus]++; // (this used to be above the iBonusValue initialization)
+			/*  advc (comment): ^Perhaps all bonuses should be counted in a
+				separate loop. As it is, the viBonusCount used above is only a
+				partial count. */
+			iBonusValue *= (kSet.bStartingLoc ? 100 :
+				// advc.031: Reduced impact of Greed (though it's disabled anyway)
+				(kSet.iGreed + 200) / 3);
+			iBonusValue /= 100;
+			// <advc.031>
+			if(pLoopPlot->getOwnerINLINE() == getID())
+				iBonusValue = 0; // We've already got it
+			/*  Stop the AI from securing more than one Oil
+				source when Oil is revealed but not yet workable */
+			if(eBonusImprovement == NO_IMPROVEMENT &&
+					getNumAvailableBonuses(eBonus) <= 0) { int foo=-1;
+				/*  CvPlayer::countOwnedBonuses is too expensive I think,
+					but I'm copying a bit of code from there. */
+				for(CvCity* c = firstCity(&foo); c != NULL; c = nextCity(&foo)) {
+					if(c->AI_countNumBonuses(eBonus, true, true, -1) > 0) {
+					/*  AI_bonusVal already reduces its result when the resource
+						can't be worked, but strategic resources can still have
+						bonus values of 500 and more, so this needs to be reduced
+						much more. */
+						iBonusValue = std::min(125, ::round(iBonusValue * 0.3));
+						break;
 					}
-
-					//iValue += (iBonusValue + 10);
-					iResourceValue += iBonusValue; // K-Mod
-
-					if (iI != CITY_HOME_PLOT)
-					{
-						if (eBonusImprovement != NO_IMPROVEMENT)
-						{
-							int iSpecialFoodTemp;
-							iSpecialFoodTemp = pLoopPlot->calculateBestNatureYield(YIELD_FOOD, getTeam()) + GC.getImprovementInfo(eBonusImprovement).getImprovementBonusYield(eBonus, YIELD_FOOD);
-
-							iSpecialFood += iSpecialFoodTemp;
-
-							iSpecialFoodTemp -= GC.getFOOD_CONSUMPTION_PER_POPULATION();
-
-							iSpecialFoodPlus += std::max(0,iSpecialFoodTemp);
-							iSpecialFoodMinus -= std::min(0,iSpecialFoodTemp);
-							iSpecialProduction += pLoopPlot->calculateBestNatureYield(YIELD_PRODUCTION, getTeam()) + GC.getImprovementInfo(eBonusImprovement).getImprovementBonusYield(eBonus, YIELD_PRODUCTION);
-							iSpecialCommerce += pLoopPlot->calculateBestNatureYield(YIELD_COMMERCE, getTeam()) + GC.getImprovementInfo(eBonusImprovement).getImprovementBonusYield(eBonus, YIELD_COMMERCE);
-						}
-
-						/*if (pLoopPlot->isWater())
-							iValue += (bIsCoastal ? 0 : -800);*/ // (was ? 100 : -800)
-						// <advc.031> Replacing the above
-						if(pLoopPlot->isWater() && !bIsCoastal)
-							iValue -= 100; // </advc.031>
-					}
-				} // end if usable bonus
-				if (eBonusImprovement == NO_IMPROVEMENT && iI != CITY_HOME_PLOT)
-				{
-					// non bonus related special food. (Note: the city plot is counted elsewhere.)
-					int iEffectiveFood = aiYield[YIELD_FOOD];
-
-					if (bIsCoastal && pLoopPlot->isWater() && aiYield[YIELD_COMMERCE] > 1) // lighthouse kludge.
-						iEffectiveFood += 1;
-
-					iSpecialFoodPlus += std::max(0, iEffectiveFood - GC.getFOOD_CONSUMPTION_PER_POPULATION());
 				}
 			}
+			// </advc.031>
+			if (!kSet.bStartingLoc)
+			{
+				// K-Mod. (original code deleted)
+				if (iI != CITY_HOME_PLOT)
+				{	/*  advc.031: Why halve the value of water bonuses?
+						Perhaps because they're costly to improve. But
+						that's only true in the early game.
+						Because they tend to be common? AI_bonusVal takes
+						care of that. */
+					if (pLoopPlot->isWater()/*) {
+						//iBonusValue /= 2;*/
+							&& getCurrentEra() < 3) {
+						iBonusValue -= (3 - getCurrentEra()) * 20;
+						iBonusValue = std::max(iBonusValue, 0);
+					} // </advc.031>
+					if (pLoopPlot->getOwnerINLINE() != getID() && stepDistance(pPlot->getX_INLINE(),pPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) > 1)
+					{
+						if (!kSet.bEasyCulture)
+							iBonusValue = iBonusValue * 3/4;
+					}
+					FAssert(iCultureMultiplier <= 100);
+					iBonusValue = iBonusValue * (kSet.bAmbitious ? 110 : iCultureMultiplier) / 100;
+				}
+				else if (kSet.bAmbitious)
+					iBonusValue = iBonusValue * 110 / 100;
+				// K-Mod end
+			}
+			//iValue += (iBonusValue + 10);
+			iResourceValue += iBonusValue; // K-Mod
+// END OF RESOURCE VALUE
+// SPECIAL YIELDS
+			if (iI != CITY_HOME_PLOT)
+			{
+				if (eBonusImprovement != NO_IMPROVEMENT)
+				{
+					int iSpecialFoodTemp = pLoopPlot->calculateBestNatureYield(
+							YIELD_FOOD, getTeam()) + GC.getImprovementInfo(
+							eBonusImprovement).getImprovementBonusYield(eBonus,
+							YIELD_FOOD);
+					iSpecialFood += iSpecialFoodTemp;
+					iSpecialFoodTemp -= GC.getFOOD_CONSUMPTION_PER_POPULATION();
+					iSpecialFoodPlus += std::max(0,iSpecialFoodTemp);
+					iSpecialFoodMinus -= std::min(0,iSpecialFoodTemp);
+					// <advc.031>
+					int iSpecialProdTemp = pLoopPlot->calculateBestNatureYield(
+							YIELD_PRODUCTION, getTeam()) +
+							GC.getImprovementInfo(eBonusImprovement).
+							getImprovementBonusYield(eBonus, YIELD_PRODUCTION);
+					iSpecialProduction += iSpecialProdTemp;
+					int iSpecialCommTemp = pLoopPlot->calculateBestNatureYield(
+							YIELD_COMMERCE, getTeam()) +
+							GC.getImprovementInfo(eBonusImprovement).
+							getImprovementBonusYield(eBonus, YIELD_COMMERCE);
+					iSpecialCommerce += iSpecialCommTemp;
+					// No functional change above. Now count the tile as special.
+					if(iSpecialFoodTemp > 0 || iSpecialCommTemp + iSpecialProdTemp > 0)
+						specials++;
+					// </advc.031>
+				}
+
+				/*if (pLoopPlot->isWater())
+					iValue += (bIsCoastal ? 0 : -800);*/ // (was ? 100 : -800)
+				// <advc.031> Replacing the above
+				if(pLoopPlot->isWater() && !bIsCoastal)
+					iValue -= 100; // </advc.031>
+			}
+		} // end if usable bonus
+		if (eBonusImprovement == NO_IMPROVEMENT && iI != CITY_HOME_PLOT
+			/*  <advc.031> Need to account for foreign culture somehow, and I
+				don't want to divide SpecialFoodPlus, b/c it's usually just 1 or 2. */
+				&& iCultureMultiplier >
+				(bOwnExl ? 40 : // advc.035
+				55)) // </advc.031>
+		{
+			// non bonus related special food. (Note: the city plot is counted elsewhere.)
+			int iEffectiveFood = aiYield[YIELD_FOOD];
+			if (bIsCoastal && pLoopPlot->isWater() && aiYield[YIELD_COMMERCE] > 1) // lighthouse kludge.
+				iEffectiveFood += 1;
+			iSpecialFoodPlus += std::max(0, iEffectiveFood - GC.getFOOD_CONSUMPTION_PER_POPULATION());
+		}
+// END OF SPECIAL YIELDS
+	}
+// END OF PLOT EVALUATION LOOP
+// WEIGHTING OF PLOT VALUES
+	// <advc.031>
+	std::sort(aiPlotValues.begin(), aiPlotValues.end(), std::greater<int>());
+	// CITY_HOME_PLOT should have 0 value here, others could have negative values.
+	FAssert(aiPlotValues[NUM_CITY_PLOTS - 1] <= 0);
+	/*  advc.test:
+		iTotalPlotVal[0] is the value I'll add to iValue.
+		For comparison in the debugger:
+		iTotalPlotVal[1] is the value K-Mod would count and
+		iTotalPlotVal[2] is the value AdvCiv 0.92 used to count. */
+	int iTotalPlotVal[3];
+	for(int k = 0; k < (kSet.bDebug ? 3 : 1); k++) {
+		iTotalPlotVal[k] = 0;
+		for(int i = 0; i < NUM_CITY_PLOTS; i++) {
+			int iPlotValue = aiPlotValues[i];
+			// <advc.test>
+			if(k == 2) {
+				double const subtr = 35;
+				if(iPlotValue > 0) {
+					/*  Details chosen so that iPlotValue=150 is a fixpoint;
+						150 seems like a pretty average plot value to me. */
+					iPlotValue = ::round(std::max(iPlotValue/3.0,
+							std::pow(std::max(0.0, iPlotValue - subtr), 1.25) / 2.5));
+				}
+			} // </advc.test>
+			if(k == 0) {
+				if(iPlotValue > 0) {
+					double const maxMultPercent = 150;
+					double const minMultPercent = 50;
+					double const normalizMult = 1.13;
+					double const subtr = 28;
+					double exp = std::log(maxMultPercent - minMultPercent) /
+							std::log(NUM_CITY_PLOTS - 1.0);
+					iPlotValue = std::max(iPlotValue / 3,
+							::round(std::max(0.0, iPlotValue - subtr) * 0.01 *
+							// Linearly decreasing multiplier:
+							/*(maxMultPercent - i * ((maxMultPercent -
+							minMultPercent) / (NUM_CITY_PLOTS - 1))));*/
+							// Try power law instead:
+							normalizMult * (minMultPercent + std::pow((double)
+							std::abs(NUM_CITY_PLOTS - 1 - i), exp))));
+				}
+			} 
+			iTotalPlotVal[k] += iPlotValue;
 		}
 	}
+	iValue += iTotalPlotVal[0];
+	// </advc.031>
+// END OF PLOT WEIGHTS
+// SPECIAL EVALUATION OF BONUS YIELDS
 
 	/* original bts code
 	iResourceValue += iSpecialFood * 50;
@@ -3564,29 +4071,88 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	} */
 	// K-mod. It's tricky to get this right. Special commerce is great in the early game, but not so great later on.
 	//        Food is always great - unless we already have too much; and food already affects a bunch of other parts of the site evaluation...
-	if (kSet.bStartingLoc)
-		iResourceValue /= 4; // try not to make the value of strategic resources too overwhelming. (note: I removed a bigger value reduction from the original code higher up.)
-	iResourceValue += iSpecialFood * 20; // Note: iSpecialFood is whatever food happens to be asscioated with bonuses. Don't value it highly, because it's also counted in a bunch of other ways.
-	iResourceValue += iSpecialProduction * 40;
-	iResourceValue += iSpecialCommerce * 35;
-	//
-
+	if (kSet.bStartingLoc) {
+		/*  try not to make the value of strategic resources too overwhelming.
+			(note: I removed a bigger value reduction from the original code
+			higher up.) */
+		iResourceValue /= 4;
+	}
+	// Note: iSpecialFood is whatever food happens to be associated with bonuses. Don't value it highly, because it's also counted in a bunch of other ways.
+	// <advc.031>
+	// Preserve this for later
+	int nonYieldResourceVal = std::max(0, iResourceValue);
+	if(specials > 0.01) {
+		double perSpecial[NUM_YIELD_TYPES] = {0.0};
+		perSpecial[YIELD_FOOD] = iSpecialFood / specials;
+		perSpecial[YIELD_PRODUCTION] = iSpecialProduction / specials;
+		perSpecial[YIELD_COMMERCE] = iSpecialCommerce / specials;
+		double coefficients[NUM_YIELD_TYPES] = {0.24, 0.36, 0.32};
+		double fromSpecial = 0;
+		for(int i = 0; i < NUM_YIELD_TYPES; i++)
+			fromSpecial += perSpecial[i] * coefficients[i];
+		if(fromSpecial > 0)
+			fromSpecial = std::pow(fromSpecial, 1.5) * 75 * specials;
+		// advc.test: The K-Mod value for comparison in debugger
+		int fromSpecialKmod=iSpecialFood*20+iSpecialProduction*40+iSpecialCommerce*35;
+		iResourceValue += ::round(fromSpecial); // </advc.031>
+	}
 	iValue += std::max(0, iResourceValue);
-
-	if ((iTakenTiles > (NUM_CITY_PLOTS / 3)
+// END OF BONUS YIELD EVAL
+// TAKEN TILES CHECK
+	if (((iTakenTiles > (NUM_CITY_PLOTS / 3)
 		|| (isBarbarian() && iTakenTiles > 2)) // advc.303
-		&& iResourceValue < 250)
+		&& iResourceValue < 250 && iValue < 780) // <advc.031>
+		|| (iTakenTiles > (2 * NUM_CITY_PLOTS) / 3 &&
+		iResourceValue < 800)) // </advc.031>
 	{
 		return 0;
 	}
-
-	/* original bts code (K-Mod: just go look at what "iTeammateTakenTiles" actually is...)
-	if (iTeammateTakenTiles > 1)
-	{
-		return 0;
-	}*/
-
-	iValue += (iHealth / 5);
+// END OF TAKEN TILES CHECK
+// LOW FOOD ADJUSTMENT
+	if(!kSet.bStartingLoc) {
+		/*  <advc.031> Unlike the K-Mod/BtS special food multiplier below, this
+			one takes into account grassland farms. Also, I'm not rewarding
+			surplus food, just punishing deficit. */
+		if(getCurrentEra() < 4) {
+			double lowFoodFactor = (7 + iGreen + iSpecialFoodPlus -
+					iSpecialFoodMinus) / 10.0;
+			lowFoodFactor = ::dRange(lowFoodFactor, 0.5, 1.0);
+			// Don't apply this to the value from happiness/health/strategic
+			iValue = ::round((iValue - nonYieldResourceVal) * lowFoodFactor)
+					+ nonYieldResourceVal;
+		} // </advc.031>
+		int iFoodSurplus = std::max(0, iSpecialFoodPlus - iSpecialFoodMinus);
+		int iFoodDeficit = std::max(0, iSpecialFoodMinus - iSpecialFoodPlus);
+		/* original bts code
+		iValue *= 100 + 20 * std::max(0, std::min(iFoodSurplus, 2 * GC.getFOOD_CONSUMPTION_PER_POPULATION()));
+		iValue /= 100 + 20 * std::max(0, iFoodDeficit); */
+		// K-Mod. (note that iFoodSurplus and iFoodDeficit already have the "max(0, x)" built in.
+		/*iValue *= 100 + (kSet.bExpansive ? 20 : 15) * std::min(
+				(iFoodSurplus + iSpecialFoodPlus)/2,
+				2 * GC.getFOOD_CONSUMPTION_PER_POPULATION());
+		iValue /= 100 + (kSet.bExpansive ? 20 : 15) * iFoodDeficit;*/
+		// K-Mod end
+		// <advc.031> Moved this up so that I can exclude nonYieldResourceVal.
+		// The formula looks interesting; just turn it into a single multiplier ...
+		double foodFactor = (100.0 + (kSet.bExpansive ? 20 : 15) * std::min(
+				(iFoodSurplus + iSpecialFoodPlus)/2,
+				2 * GC.getFOOD_CONSUMPTION_PER_POPULATION())) /
+				(100.0 + (kSet.bExpansive ? 20 : 15) * iFoodDeficit);
+		// ... and reduce the impact b/c of the lowFoodFactor added above.
+		foodFactor = (foodFactor + 1) / 2;
+		iValue = ::round((iValue - nonYieldResourceVal) * foodFactor)
+				+ nonYieldResourceVal; // </advc.031>
+	}
+// END OF LOW FOOD ADJUSTMENT
+// NON-YIELD BENEFITS OF HOME TILE: health, chopping, coastal, hill, freshwater
+	/*  <advc.031> Bad health in the early game needs to be discouraged more
+		rigorously. Treat that case toward the end of this function. */
+	if(iHealth > 0 || getCurrentEra() > 1) {
+		iValue += std::min(iHealth, 350) / 6;
+		// A quick and dirty treatment of chopping opportunities
+		if(getCurrentEra() > 0 && iHealth > 200)
+			iValue += (iHealth - 200) / (getCurrentEra() + 2);
+	} // </advc.031>
 
 	if (bIsCoastal)
 	{
@@ -3594,10 +4160,15 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		{
 			if (pArea->getCitiesPerPlayer(getID()) == 0)
 			{
-				if (bNeutralTerritory)
+				//if (bNeutralTerritory)
+				if(!bAnyForeignOwned) // advc.040
 				{
-					//iValue += (iResourceValue > 0) ? 800 : 100;
-					iValue += iResourceValue > 0 ? (kSet.bSeafaring ? 600 : 400) : 100; // K-Mod
+					//iValue += (iResourceValue > 0) ? 800 : 100; // (BtS code)
+					// K-Mod replacement:
+					//iValue += iResourceValue > 0 ? (kSet.bSeafaring ? 600 : 400) : 100;
+					// advc.040: Mostly handled by the firstColony code now
+					if(iResourceValue > 0 && kSet.bSeafaring)
+						iValue += 250;
 				}
 			}
 			else
@@ -3608,28 +4179,58 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 /* Settler AI           (edited by K-Mod)                                                       */
 /************************************************************************************************/
 				//iValue += 200;
-				int iSeaValue = 50;
-
+				int iSeaValue = 0; // advc.031: was 50; instead:
+				iValue += 50;
 				// Push players to get more coastal cities so they can build navies
 				CvArea* pWaterArea = pPlot->waterArea(true);
 				if( pWaterArea != NULL )
-				{
-					iSeaValue += 120 + (kSet.bSeafaring ? 160 : 0);
-
-					if( GET_TEAM(getTeam()).AI_isWaterAreaRelevant(pWaterArea) )
-					{
-						iSeaValue += 120 + (kSet.bSeafaring ? 160 : 0);
-
+				{	// advc.031: Replacing the line below
+					iSeaValue += (kSet.bSeafaring ? 140 : 80);
+					//120 + (kSet.bSeafaring ? 160 : 0);
+					if( GET_TEAM(getTeam()).AI_isWaterAreaRelevant(pWaterArea)
+							/*  advc.031: Don't worry about coastal production if we
+								already have many coastal cities. */
+							&& countNumCoastalCities() <= getNumCities() / 3)
+					{	// advc.031: Replacing the line below
+						iSeaValue += (kSet.bSeafaring ? 240 : 125);
+						//iSeaValue += 120 + (kSet.bSeafaring ? 160 : 0);
 						//if( (countNumCoastalCities() < (getNumCities()/4)) || (countNumCoastalCitiesByArea(pPlot->area()) == 0) )
-						if (countNumCoastalCities() < getNumCities()/4 ||
+						if (
+							// advc.031: Disabled this clause
+							//countNumCoastalCities() < getNumCities()/4 ||
 							(pPlot->area()->getCitiesPerPlayer(getID()) > 0 && countNumCoastalCitiesByArea(pPlot->area()) == 0))
 						{
 							iSeaValue += 200;
 						}
 					}
+				} /* <advc.031> Apply greed only half. (Why is settling at the
+					 coast greedy at all?). */
+				int halfGreed = 100 + (kSet.iGreed - 100) / 2;
+				if(halfGreed > 100) {
+					iSeaValue *= halfGreed;
+					iSeaValue /= 100;
 				}
-				iSeaValue *= kSet.iGreed;
-				iSeaValue /= 100;
+				// Modify based on production (since the point is to build a navy)
+				double mult = (baseProduction + iSpecialProduction) / 18.0;
+				mult = 0.7 * ::dRange(mult, 0.1, 2.0);
+				// That's the name of the .py file; not language-dependent.
+				if(GC.getInitCore().getMapScriptName().compare(L"Pangaea") == 0)
+					mult /= 2;
+				iSeaValue = ::round(iSeaValue * mult);
+				// Encourage canals
+				if(pWaterArea != NULL &&
+						/*  ... but not if there is so little land that some city
+							will probably create a canal in any case */
+						iLand >= 8) {
+					CvArea* water2 = pPlot->secondWaterArea();
+					if(water2 != NULL && water2 != pWaterArea) {
+						int sz1 = pWaterArea->getNumTiles();
+						int sz2 = water2->getNumTiles();
+						int szFactor = std::min(30, std::min(sz1, sz2));
+						if(szFactor >= GC.getMIN_WATER_SIZE_FOR_OCEAN())
+							iSeaValue += 9 * szFactor;
+					}
+				} // </advc.031>
 				iValue += iSeaValue;
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
@@ -3639,13 +4240,13 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		else
 		{
 			//let other penalties bring this down.
-			iValue += 500; // was 600
+			iValue += 380; // advc.031: was 600 in BtS, 500 in K-Mod
 			//if (!pPlot->isStartingPlot())
 			if (getStartingPlot() != pPlot) // K-Mod
 			{
 				if (pArea->getNumStartingPlots() == 0)
 				{
-					iValue += 600; // was 1000
+					iValue += 500; // advc.031: was 1000 in BtS, 600 in K-Mod
 				}
 			}
 		}
@@ -3654,8 +4255,9 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	if (pPlot->isHills())
 	{
 		// iValue += 200;
-		// K-Mod
-		iValue += 100 + (kSet.bDefensive ? 100 : 0);
+		// K-Mod	// advc.031: Reduced from 100+100 to 75+75 b/c counted again
+					// for diploFactor below
+		iValue += 75 + (kSet.bDefensive ? 75 : 0);
 	}
 
 	if (pPlot->isFreshWater())
@@ -3663,7 +4265,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		// iValue += 40; // K-Mod (commented this out, compensated by the river bonuses I added.)
 		iValue += (GC.getDefineINT("FRESH_WATER_HEALTH_CHANGE") * 30);
 	}
-
+// END OF NON-YIELD BENEFITS
+// SURROUNDINGS OF STARTING LOCATION
 	if (kSet.bStartingLoc)
 	{
 		//int iRange = GREATER_FOUND_RANGE;
@@ -3776,64 +4379,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			// K-Mod end
 		}
 
-		/* original bts code
-		int iWaterCount = 0;
-
-		for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
-		{
-			CvPlot* pLoopPlot = plotCity(iX, iY, iI);
-
-			if (pLoopPlot != NULL)
-			{
-				if (pLoopPlot->isWater())
-				{
-					iWaterCount ++;
-					if (pLoopPlot->getYield(YIELD_FOOD) <= 1)
-					{
-						iWaterCount++;
-					}
-				}
-			}
-		}
-		iWaterCount /= 2;
-
-		int iLandCount = (NUM_CITY_PLOTS - iWaterCount);
-
-		if (iLandCount < (NUM_CITY_PLOTS / 2))
-		{
-			//discourage very water-heavy starts.
-			iValue *= 1 + iLandCount;
-			iValue /= (1 + (NUM_CITY_PLOTS / 2));
-		} */ // disabled by K-Mod (water starts are discouraged in other ways)
-	/*}
-	// advc.003: Same condition as the previous block
-	if (kSet.bStartingLoc)
-	{*/
-		/* original bts code
-		if (pPlot->getMinOriginalStartDist() == -1)
-		{
-			iValue += (GC.getMapINLINE().maxStepDistance() * 100);
-		}
-		else
-		{
-			iValue *= (1 + 4 * pPlot->getMinOriginalStartDist());
-			iValue /= (1 + 2 * GC.getMapINLINE().maxStepDistance());
-		} */
-		// K-Mod. In the original code, getMinOriginalStartDist was always zero once the
-		// starting positions had been assigned; and so this factor didn't work correctly.
-		// I've fixed it (see change in updateMinOriginalStartDist.)
-		// But I've now disabled it completely because this stuff is handled elsewhere anyway.
-		/* int iMinRange = startingPlotRange();
-		{
-			int iScale = std::min(4*iMinRange, GC.getMapINLINE().maxStepDistance());
-			int iExistingDist = pPlot->getMinOriginalStartDist() > 0
-				? std::min(pPlot->getMinOriginalStartDist(), iScale)
-				: iScale;
-			FAssert(iScale > 2 && iExistingDist > 2); // sanity check
-			iValue *= (1 + iScale + 4 * iExistingDist);
-			iValue /= (1 + 3 * iScale);
-		} */
-		// K-Mod end
+		/*  advc.003: Unused BtS and K-Mod code dealing with WaterCount and
+			MinOriginalStartDist deleted */
 
 		//nice hacky way to avoid this messing with normalizer, use elsewhere?
 		//if (!pPlot->isStartingPlot())
@@ -3854,8 +4401,11 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 
 						if (iClosenessFactor < 1000)
 						{
-							iValue *= 2000 + iClosenessFactor;
-							iValue /= 3000;
+							/*iValue = 2000 + iClosenessFactor;
+							iValue /= 3000;*/
+							// <advc.031> If overflow is a concern ...
+							iValue = ::round(iValue * ((2000 +
+									iClosenessFactor) / 3000.0)); // </advc.031>
 						}
 					}
 				}
@@ -3883,7 +4433,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			}
 		}
 	}
-
+// END OF STARTING SURROUNDINGS
 	if (bAdvancedStart)
 	{
 		if (pPlot->getBonusType() != NO_BONUS)
@@ -3892,30 +4442,40 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			iValue /= 100;
 		}
 	}
-
+// LOW PRODUCTION CHECK
 	// K-Mod. reduce value of cities which will struggle to get any productivity.
 	{
-		iBaseProduction += iSpecialProduction;
-		FAssert(!pPlot->isRevealed(getTeam(), false) || iBaseProduction >= GC.getYieldInfo(YIELD_PRODUCTION).getMinCity());
+		baseProduction += iSpecialProduction;
+		// <advc.040>
+		baseProduction += std::max(unrev / 2, ::round(
+				baseProduction * (unrev / (double)NUM_CITY_PLOTS)));
+		// </advc.040>
+		/*  advc.031: The assertion below can fail when there are gems under
+			jungle. Something's not quite correct in the baseProduction
+			computation, but it isn't worth fretting over. */
+		baseProduction = std::max(baseProduction, (double)GC.getYieldInfo(YIELD_PRODUCTION).getMinCity());
+		//FAssert(!pPlot->isRevealed(getTeam(), false) || baseProduction >= GC.getYieldInfo(YIELD_PRODUCTION).getMinCity());
 		int iThreshold = 9; // pretty arbitrary
-		// advc.303: Can't expect that much production from just the inner ring.
-		if(isBarbarian()) iThreshold = 4;
-		if (iBaseProduction < iThreshold)
-		{
-			iValue *= iBaseProduction;
-			iValue /= iThreshold;
+		// <advc.303> Can't expect that much production from just the inner ring.
+		if(isBarbarian())
+			iThreshold = 4; // </advc.303>
+		if (baseProduction < iThreshold)
+		{	// advc.031: Replacing the two lines below
+			iValue = ::round(iValue * baseProduction / iThreshold);
+			/*iValue *= iBaseProduction;
+			iValue /= iThreshold;*/
 		}
 	}
 	// K-Mod end
-
+// END OF LOW PRODUCTION CHECK
+// SURROUNDINGS FOR NON-STARTING LOCATIONS
 	//CvCity* pNearestCity = GC.getMapINLINE().findCity(iX, iY, ((isBarbarian()) ? NO_PLAYER : getID()));
 	// K-Mod. Adjust based on proximity to other players, and the shape of our empire.
-	if (isBarbarian())
-	{
+	if(isBarbarian()) {
 		CvCity* pNearestCity = GC.getMapINLINE().findCity(iX, iY, NO_PLAYER);
 		/* <advc.303>, advc.300. Now that the outer ring isn't counted, I worry
-		   that an absolute penalty would reduce iValue to 0 too often. Also want to
-		   discourage touching borders a bit more, which the relative penalty
+		   that an absolute penalty would reduce iValue to 0 too often. Also want
+		   to discourage touching borders a bit more, which the relative penalty
 		   should accomplish better.
 		   Don't see the need for special treatment of nearest city in a
 		   different area. CvGame avoids settling uninhabited areas anyway.
@@ -3940,53 +4500,43 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			}
 		}*/ // </advc.303>
 	}
-	else if (!kSet.bStartingLoc)
-	{
+	else if(!kSet.bStartingLoc) { // advc.003: Misc. refactoring in this block
 		int iForeignProximity = 0;
 		int iOurProximity = 0;
-		CvCity* pNearestCity = 0;
-		CvCity* pCapital = getCapitalCity();
+		CvCity* pNearestCity = NULL;
+		//CvCity* pCapital = getCapitalCity(); // advc.031: Moved up
 		int iMaxDistanceFromCapital = 0;
-
-		for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i = (PlayerTypes)(i+1))
-		{
-			const CvPlayer& kLoopPlayer = GET_PLAYER(i);
-			if (pArea->getCitiesPerPlayer(i) > 0 && GET_TEAM(getTeam()).isHasMet(kLoopPlayer.getTeam()) && !GET_TEAM(kLoopPlayer.getTeam()).isVassal(getTeam()))
-			{
-				int iProximity = 0;
-
-				int iLoop;
-				for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
-				{
-					if (i == getID())
-					{
-						if (pCapital)
-							iMaxDistanceFromCapital = std::max(iMaxDistanceFromCapital, plotDistance(pCapital->plot(), pLoopCity->plot()));
-					}
-
-					if (pLoopCity->getArea() == pArea->getID())
-					{
-						int iDistance = plotDistance(iX, iY, pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
-
-						if (i == getID())
-						{
-							if (!pNearestCity || iDistance < plotDistance(iX, iY, pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE()))
-								pNearestCity = pLoopCity;
-						}
-
-						int iCultureRange = pLoopCity->getCultureLevel() + 3;
-						if (iDistance <= iCultureRange && AI_deduceCitySite(pLoopCity))
-						{
-							// cf. culture distribution in CvCity::doPlotCultureTimes100
-							iProximity += 90*(iDistance-iCultureRange)*(iDistance-iCultureRange)/(iCultureRange*iCultureRange) + 10;
-						}
+		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+			CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)i);
+			if(pArea->getCitiesPerPlayer(kLoopPlayer.getID()) <= 0 ||
+					!GET_TEAM(getTeam()).isHasMet(kLoopPlayer.getTeam()) ||
+					GET_TEAM(kLoopPlayer.getTeam()).isVassal(getTeam()))
+				continue;
+			int iProximity = 0; int foo=-1;
+			// <advc.001> was this->first/nextCity
+			for(CvCity* pLoopCity = kLoopPlayer.firstCity(&foo); pLoopCity != NULL;
+					pLoopCity = kLoopPlayer.nextCity(&foo)) { // </advc.001>
+				if(kLoopPlayer.getID() == getID() && pCapital != NULL) {
+					iMaxDistanceFromCapital = std::max(iMaxDistanceFromCapital,
+							plotDistance(pCapital->plot(), pLoopCity->plot()));
+				}
+				if(pLoopCity->getArea() == pArea->getID()) {
+					int iDistance = plotDistance(iX, iY,
+							pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
+					if(kLoopPlayer.getID() == getID() && (pNearestCity == NULL ||
+							iDistance < plotDistance(iX, iY,
+							pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE())))
+						pNearestCity = pLoopCity;
+					int iCultureRange = pLoopCity->getCultureLevel() + 3;
+					if(iDistance <= iCultureRange && AI_deduceCitySite(pLoopCity)) {
+						// cf. culture distribution in CvCity::doPlotCultureTimes100
+						iProximity += 90*(iDistance-iCultureRange)*(iDistance-iCultureRange)/(iCultureRange*iCultureRange) + 10;
 					}
 				}
-				if (kLoopPlayer.getTeam() == getTeam())
-					iOurProximity = std::max(iOurProximity, iProximity);
-				else
-					iForeignProximity = std::max(iForeignProximity, iProximity);
 			}
+			if(kLoopPlayer.getTeam() == getTeam())
+				iOurProximity = std::max(iOurProximity, iProximity);
+			else iForeignProximity = std::max(iForeignProximity, iProximity);
 		}
 		// Reduce the value if we are going to get squeezed out by culture.
 		// Increase the value if we are hoping to block the other player!
@@ -4002,9 +4552,17 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 
 			if (iDelta > -20 && iDelta <= (kSet.bAmbitious ? 10 : 0) * (kSet.bEasyCulture ? 2 : 1))
 			{
+				int iTmp = iValue; // advc.031
 				// we want to get this spot before our opponents do. The lower our advantage, the more urgent the site is.
 				iValue *= 120 + iDelta/2 + (kSet.bAmbitious ? 5 : 0);
 				iValue /= 100;
+				/*  <advc.031> Don't rush to settle marginal spots (which might
+					not even make the MinFoundValue cut w/o the boost above). */
+				if(iTmp < 2000) {
+					iValue *= iTmp;
+					iValue /= 2000;
+					iValue = std::max(iTmp, iValue);
+				} // </advc.031>
 			}
 			iDelta -= kSet.bEasyCulture ? 20 : 10;
 			if (iDelta > 0)
@@ -4012,6 +4570,26 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				iValue *= 100 - iDelta*3/2;
 				iValue /= 100;
 			}
+			/*  <advc.031> This is not about being squeezed, but squeezing
+				others and thereby angering them. StealPercent says how much
+				we squeeze them (cultural strength is already taken into account). */
+			if(iStealPercent >= 100) {
+				/*  Between 130 (Alexander, G. Khan, Louis, Montezuma) and
+					80 (Gandhi, Joao, Justinian). A leader who likes limited war
+					should be less concerned about creating border troubles. */
+				double diploFactor = (isHuman() ? 100 :
+						GC.getLeaderHeadInfo(getPersonalityType()).
+						getLimitedWarPowerRatio());
+				if(kSet.bDefensive)
+					diploFactor += 33;
+				if(pPlot->isHills())
+					diploFactor += 16;
+				// The importance of a few stolen tiles decreases over time
+				diploFactor += getCurrentEra() * 13;
+				diploFactor = 1.6 * diploFactor / iStealPercent;
+				diploFactor = ::dRange(diploFactor, 0.6, 1.0);
+				iValue = ::round(iValue * diploFactor);
+			} // </advc.031>
 		}
 	// K-Mod end (the rest of this block existed in the original code - but I've made some edits...)
 
@@ -4019,26 +4597,9 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		{
 			int iDistance = plotDistance(iX, iY, pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE());
 			int iNumCities = getNumCities();
-			/* original bts code
-			if (iDistance > 5)
-			{
-				iValue -= (iDistance - 5) * 500;
-			}
-			else if (iDistance < 4)
-			{
-				iValue -= (4 - iDistance) * 2000;
-			}
-			iValue *= (8 + iNumCities * 4);
-			iValue /= (2 + (iNumCities * 4) + iDistance);
-
-			if (pNearestCity->isCapital())
-			{
-				iValue *= 150;
-				iValue /= 100;
-			}
-			else if (getCapitalCity() != NULL) */
+			/*  advc.003: BtS code dealing with iDistance deleted;
+				K-Mod comment: Close cities are penalised in other ways */
 			// K-Mod.
-			// Close cities are penalised in other ways
 			int iTargetRange = (kSet.bExpansive ? 6 : 5);
 			if (iDistance > iTargetRange)
 			{
@@ -4050,24 +4611,33 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			if (!pNearestCity->isCapital() && pCapital)
 			// K-Mod end
 			{
-				//Provide up to a 50% boost to value (80% for adv.start)
-				//for city sites which are relatively close to the core
-				//compared with the most distance city from the core
-				//(having a boost rather than distance penalty avoids some distortion)
-
-				//This is not primarly about maitenance but more about empire 
-				//shape as such forbidden palace/state property are not big deal.
+				/*  Provide up to a 50% boost to value (80% for adv.start) for
+					city sites which are relatively close to the core compared
+					with the most distant city from the core (having a boost
+					rather than distance penalty avoids some distortion).
+					This is not primarly about maintenance but more about empire 
+					shape as such[, so] forbidden palace/state property are not
+					[a] big deal. */ // advc.003: "so" added b/c the comment didn't make sense to me
 				int iDistanceToCapital = plotDistance(pCapital->plot(), pPlot);
-
 				FAssert(iMaxDistanceFromCapital > 0);
 				/* original bts code
 				iValue *= 100 + (((bAdvancedStart ? 80 : 50) * std::max(0, (iMaxDistanceFromCapital - iDistance))) / iMaxDistanceFromCapital);
 				iValue /= 100; */
-				// K-Mod. just a touch of flavour. (note, for a long time this adjustment used iDistance instead of iDistanceToCaptial; and so I've reduced the scale to compensate)
-				int iShapeWeight = bAdvancedStart ? 50 : (kSet.bAmbitious ? 15 : 30);
+				/*  K-Mod. just a touch of flavour. (note, for a long time this
+					adjustment used iDistance instead of iDistanceToCaptial; and
+					so I've reduced the scale to compensate) */
+				/*int iShapeWeight = bAdvancedStart ? 50 : (kSet.bAmbitious ? 15 : 30);
 				iValue *= 100 + iShapeWeight * std::max(0, iMaxDistanceFromCapital - iDistanceToCapital) / iMaxDistanceFromCapital;
-				iValue /= 100 + iShapeWeight;
+				iValue /= 100 + iShapeWeight;*/
 				// K-Mod end
+				/*  <advc.003> I'm folding this into a single multiplier for
+					easier debugging */
+				double const shapeWeight = (bAdvancedStart ? 0.5 :
+						(kSet.bAmbitious ? 0.15 : 0.3));
+				double shapeFactor = (1 + shapeWeight * std::max(0,
+						iMaxDistanceFromCapital - iDistanceToCapital) /
+						iMaxDistanceFromCapital) / (1 + shapeWeight);
+				iValue = ::round(iValue * shapeFactor); // </advc.003>
 			}
 		}
 		else
@@ -4077,14 +4647,21 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			{
 				int iDistance = // advc.031:
 						std::min(GC.getMapINLINE().maxMaintenanceDistance(),
-						plotDistance(iX, iY, pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE()));
-				iValue -= std::min(500 * iDistance, (//8000
-						std::max(8000 - getCurrentEra() * 1000, 4000) // advc.031
-						* iDistance) / GC.getMapINLINE().maxPlotDistance());
+						plotDistance(iX, iY, pNearestCity->getX_INLINE(),
+						pNearestCity->getY_INLINE()));
+				// <advc.031> Don't discourage settling on small nearby landmasses
+				if(pCapital == NULL || pArea == pCapital->area() ||
+						plotDistance(pPlot, pCapital->plot()) >= 10 ||
+						pArea->getNumTiles() >= NUM_CITY_PLOTS) { // </advc.031>
+					iValue -= std::min(500 * iDistance, (//8000
+							std::max(8000 - getCurrentEra() * 1000, 4000) // advc.031
+							* iDistance) / GC.getMapINLINE().maxPlotDistance());
+				}
 			}
 		}
 	}
-
+// END OF NON-STARTING SURROUNDINGS
+// CITIES-PER-AREA CHECKS
 	if (iValue <= 0)
 	{
 		return 1;
@@ -4106,59 +4683,69 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	else
 	{
 		int iTeamAreaCities = GET_TEAM(getTeam()).countNumCitiesByArea(pArea);
-
-		if (pArea->getNumCities() == iTeamAreaCities)
-		{
-			iValue *= 3;
+		/*  advc.040: Don't let a single rival city make all the difference.
+			Btw, the AI shouldn't magically know iTeamAreaCities. This entire
+			"stick to your continent" block should perhaps be removed. */
+		if(10*pArea->getNumCities() > 7*iTeamAreaCities)
+		//if (pArea->getNumCities() == iTeamAreaCities)
+		{	// advc.040: Why care about barb cities? And times 3/2 is huge.
+			/*iValue *= 3;
 			iValue /= 2;
 		}
 		else if (pArea->getNumCities() == (iTeamAreaCities + GET_TEAM(BARBARIAN_TEAM).countNumCitiesByArea(pArea)))
-		{
-			iValue *= 4;
-			iValue /= 3;
-		}
-		else if (iTeamAreaCities > 0)
-		{
-			iValue *= 5;
+		{*/
+			iValue *= 5; // advc.031: was *=4 and /=3
 			iValue /= 4;
 		}
+		else if (iTeamAreaCities > 0
+				/*  advc.040: One city isn't a good enough reason for
+					discriminating against new colonies */
+				&& AI_isPrimaryArea(pArea))
+		{
+			//iValue *= 5;
+			//iValue /= 4;
+			; // advc.031: Instead reduce the value in the else branch
+		}
+		else iValue = ::round(iValue * 0.8); // advc.031
 	}
   } // </advc.130v>
-	if (!kSet.bStartingLoc)
-	{
-		int iFoodSurplus = std::max(0, iSpecialFoodPlus - iSpecialFoodMinus);
-		int iFoodDeficit = std::max(0, iSpecialFoodMinus - iSpecialFoodPlus);
-
-		/* original bts code
-		iValue *= 100 + 20 * std::max(0, std::min(iFoodSurplus, 2 * GC.getFOOD_CONSUMPTION_PER_POPULATION()));
-		iValue /= 100 + 20 * std::max(0, iFoodDeficit); */
-		// K-Mod. (note that iFoodSurplus and iFoodDeficit already have the "max(0, x)" built in.
-		iValue *= 100 + (kSet.bExpansive ? 20 : 15) * std::min((iFoodSurplus + iSpecialFoodPlus)/2, 2 * GC.getFOOD_CONSUMPTION_PER_POPULATION());
-		iValue /= 100 + (kSet.bExpansive ? 20 : 15) * iFoodDeficit;
-		// K-Mod end
-	}
-
+// END OF AREA CHECKS
+// BONUS COUNT CHECKS
 	if (!kSet.bStartingLoc && getNumCities() > 0)
 	{
 		int iBonusCount = 0;
+		/*  <advc.052> Count bonus in the city tile double, as settling on a bonus
+			is especially greedy. (I think this section is about not grabbing all
+			the resources with a single city when there are a lot of resources
+			in one place.) */
+		if(pPlot->getBonusType(kSet.bAllSeeing ? NO_TEAM : getTeam()) != NO_BONUS)
+			iBonusCount++; // </advc.052>
 		int iUniqueBonusCount = 0;
 		for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
 		{
 			iBonusCount += viBonusCount[iI];
 			iUniqueBonusCount += (viBonusCount[iI] > 0) ? 1 : 0;
 		}
-		if (iBonusCount > 4)
-		{
-			iValue *= 5;
-			iValue /= (1 + iBonusCount);
-		}
-		else if (iUniqueBonusCount > 2)
+		if(iBonusCount > 4) // advc.003: No functional change except rounding
+			iValue = ::round(iValue * (5.0 / (1 + iBonusCount)));
+		/*else if (iUniqueBonusCount > 2)
 		{
 			iValue *= 5;
 			iValue /= (3 + iUniqueBonusCount);
+		}*/
+		/*  <advc.031> Replacing the above. I can see how multiple
+			bonuses of the same type could help city specialization and thus
+			shouldn't be discouraged as much, but iBonus < 5 (unique or not)
+			shouldn't be discouraged at all. */
+		if(iBonusCount + iUniqueBonusCount >= 10) {
+			iValue = ::round(iValue * std::max(0.7, (1 - 0.08 *
+					(iBonusCount + iUniqueBonusCount - 9))));
 		}
+		// Discourage sites that offer nothing special
+		if(iResourceValue <= 0 && iSpecialFoodPlus <= 0 && iRiver < 4 &&
+				unrev < 5) // advc.040
+			iValue = ::round(0.65 * iValue); // </advc.031>
 	}
-
 	if (!kSet.bStartingLoc)
 	{
 		int iDeadLockCount = AI_countDeadlockedBonuses(pPlot);
@@ -4166,30 +4753,36 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		{
 			iDeadLockCount += 2;
 		}
-		iValue /= (1 + iDeadLockCount);
+		//iValue /= (1 + iDeadLockCount);
+		// advc.031: Replacing the above, which is too harsh.
+		iValue = (2 * iValue) / (2 + iDeadLockCount);
 	}
+// END OF BONUS COUNT CHECKS
+// ACCOUNT FOR BAD TILES
+	int subtr = (isBarbarian() ? 2 : (4 + iGreen + iSpecialFoodPlus)); // advc.303
+	iBadTile += unrev / 2; // advc.040
+	// <advc.031>
+	iBadTile -= subtr;
+	if(iBadTile > 0) {
+		iValue -= ::round(std::pow((double)iBadTile, 1.25) *
+				(35.0 + (kSet.bStartingLoc ? 100 : 0)));
+		iValue = std::max(0, iValue);
+	}
+// END OF BAD TILES
+// BAD HEALTH CHECK
+	int bonusHealth = 0;
+	if(getCapitalCity() != NULL)
+		bonusHealth += getCapitalCity()->getBonusGoodHealth();
+	int iBadHealth = -iHealth/100 - bonusHealth -
+			GC.getHandicapInfo(getHandicapType()).getHealthBonus();
+	if(iBadHealth >= -1) // I.e. can only grow once
+		iValue /= std::max(1, (3 - getCurrentEra() + iBadHealth));
+	// </advc.031>
+// END OF BAD HEALTH CHECK
 
-	int subtr = (isBarbarian() ? 2 : (NUM_CITY_PLOTS / 4)); // advc.303
-	iValue /= (std::max(0, (iBadTile - subtr)) + 3);
-
-	/* original bts code
-	if (kSet.bStartingLoc)
-	{
-		int iDifferentAreaTile = 0;
-
-		for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
-		{
-			CvPlot* pLoopPlot = plotCity(iX, iY, iI);
-
-			if ((pLoopPlot == NULL) || !(pLoopPlot->isWater() || pLoopPlot->area() == pArea))
-			{
-				iDifferentAreaTile++;
-			}
-		}
-
-		iValue /= (std::max(0, (iDifferentAreaTile - ((NUM_CITY_PLOTS * 2) / 3))) + 2);
-	} */ // disabled by K-Mod. This kind of stuff is already taken into account.
-
+	// advc.003: BtS code (iDifferentAreaTile) deleted
+	// disabled by K-Mod. This kind of stuff is already taken into account.
+	
 	// K-Mod. Note: iValue is an int, but this function only return a short - so we need to be careful.
 	FAssert(iValue >= 0);
 	FAssert(iValue < MAX_SHORT);
@@ -4201,6 +4794,10 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 
 bool CvPlayerAI::AI_isAreaAlone(CvArea* pArea) const
 {
+	// <advc.131> Don't cheat with visibility early on (hurts more than it helps)
+	if(4 * pArea->getNumRevealedTiles(getTeam()) < 3 * pArea->getNumTiles() &&
+			getCurrentEra() <= GC.getGameINLINE().getStartEra())
+		return (GET_TEAM(getTeam()).getHasMetCivCount() <= 0); // </advc.131>
 	return ((pArea->getNumCities() - GET_TEAM(BARBARIAN_TEAM).countNumCitiesByArea(pArea)) == GET_TEAM(getTeam()).countNumCitiesByArea(pArea));
 }
 
@@ -4222,8 +4819,6 @@ bool CvPlayerAI::AI_isCapitalAreaAlone() const
 
 bool CvPlayerAI::AI_isPrimaryArea(CvArea* pArea) const
 {
-	CvCity* pCapitalCity;
-
 	if (pArea->isWater())
 	{
 		return false;
@@ -4234,7 +4829,7 @@ bool CvPlayerAI::AI_isPrimaryArea(CvArea* pArea) const
 		return true;
 	}
 
-	pCapitalCity = getCapitalCity();
+	CvCity* pCapitalCity = getCapitalCity(); // advc.003
 
 	if (pCapitalCity != NULL)
 	{
@@ -4295,7 +4890,15 @@ int CvPlayerAI::AI_targetCityValue(CvCity* pCity, bool bRandomize, bool bIgnoreA
 			}
 		}
 	}*/ // </advc.104d>
-
+	// <cdtw.2>
+	if(pCity->plot()->defenseModifier(pCity->getTeam(), false) <=
+			GC.getCITY_DEFENSE_DAMAGE_HEAL_RATE()) {
+		if(AI_isDoStrategy(AI_STRATEGY_AIR_BLITZ) || AI_isDoStrategy(AI_STRATEGY_LAND_BLITZ))
+			iValue += 8;
+		else if(AI_isDoStrategy(AI_STRATEGY_FASTMOVERS))
+			iValue += 3;
+		else iValue++;
+	} // </cdtw.2>
 	if (pCity->isEverOwned(getID()))
 	{
 		iValue += 4;
@@ -4400,10 +5003,10 @@ int CvPlayerAI::AI_targetCityValue(CvCity* pCity, bool bRandomize, bool bIgnoreA
 	return iValue;
 }
 
-/*  <advc.104d> Adopted from K-Mod's AI_warSpoilsValue. I'm not calling cityWonderVal
-	from there though b/c advc.104 bypasses startWarVal, i.e. AI_warSpoilsValue
-	is obsolete (or will be eventually). Also, AI_warSpoilsVal is a
-	team-level function, but I need this to be a civ-level function so that the
+/*  <advc.104d> Adopted from K-Mod's AI_warSpoilsValue. I'm not calling
+	cityWonderVal from there though b/c advc.104 bypasses startWarVal,
+	i.e. AI_warSpoilsValue is obsolete. Also, AI_warSpoilsVal is a team-level
+	function, but I need this to be a civ-level function so that the
 	city owner's state religion can be factored in. */
 int CvPlayerAI::cityWonderVal(CvCity* cp) const {
 
@@ -4417,8 +5020,8 @@ int CvPlayerAI::cityWonderVal(CvCity* cp) const {
 			int nRelCities = g.countReligionLevels(rel);
 			/*  Account for cities we may still convert to our state religion.
 				Hard to estimate. If we have a lot of cities, some of them may
-				still not have the religion. Or if they do, we can use these cities
-				to build missionaries to convert foreign cities. */
+				still not have the religion. Or if they do, we can use these
+				cities to build missionaries to convert foreign cities. */
 			if(getStateReligion() == rel)
 				nRelCities += ::round(getNumCities() / 2.5);
 			/* K-Mod comment: "the -4 at the end is mostly there to offset the
@@ -4505,11 +5108,11 @@ bool CvPlayerAI::AI_isCommercePlot(CvPlot* pPlot) const
 // K-Mod. The cache also needs to be reset when routes are destroyed, because distance 2 border danger only counts when there is a route.
 // Actually, the cache doesn't need to be cleared when war is declared; because false negatives have no impact with this cache.
 // The safe plot cache can be invalid if we kill an enemy unit. Currently this is unaccounted for, and so the cache doesn't always match the true state.
-// In general, I think this cache is a poorly planned idea. It's prone to subtle bugs if there are rule changes in seemingly independant parts of the games.
+// In general, I think this cache is a poorly planned idea. It's prone to subtle bugs if there are rule changes in seemingly independent parts of the games.
 //
 // I've done a bit of speed profiling and found that although the safe plot cache does shortcut around 50% of calls to AI_getAnyPlotDanger,
 // that only ends up saving a few milliseconds each turn anyway. I don't really think that's worth risking of getting problems from bad cache.
-// So even though I've put a bit of work into make the cache work better, I'm not just going to disable it.
+// So even though I've put a bit of work into make the cache work better, I'm just going to disable it.
 
 bool CvPlayerAI::isSafeRangeCacheValid() const
 {
@@ -4569,11 +5172,15 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 			pLoopPlot	= plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
 
 			if (pLoopPlot != NULL)
-			{
-				if (pLoopPlot->area() == pPlotArea)
+			{	// <advc.030>
+				CvArea const& fromArea = *pLoopPlot->area();
+				if(pPlotArea->canBeEntered(fromArea)) // Replacing:
+				//if (pLoopPlot->area() == pPlotArea) // </advc.030>
 				{
 				    iDistance = stepDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
-				    if( bCheckBorder )
+				    if( bCheckBorder
+							// advc.030: For CheckBorder, it's a helpful precondition.
+							&& pLoopPlot->area() == pPlotArea)
 					{
 						if (atWar(pLoopPlot->getTeam(), eTeam))
 						{
@@ -4639,16 +5246,14 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 						}
 
 						if (pLoopUnit->isEnemy(eTeam))
-						{
-							if (pLoopUnit->canAttack())
+						{	// advc.315: was pLoopUnit->canAttack()
+							if (canBeAttackedBy(*pLoopUnit))
 							{
 								if (!(pLoopUnit->isInvisible(eTeam, false)))
-								{
+								{ /* advc.030, advc.001k: Replacing the line below
+									 (which calls isMadeAttack) */
+									if(pPlotArea->canBeEntered(fromArea, pLoopUnit))
 								    //if (pLoopUnit->canMoveOrAttackInto(pPlot))
-									/*  <advc.001k> Replacing the above
-										(which calls isMadeAttack) */
-									if((pLoopUnit->getDomainType() == DOMAIN_SEA) ==
-											pPlot->isWater()) // </advc.001k>
 									{
                                         if (!bTestMoves)
                                         {
@@ -4711,21 +5316,19 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves
 {
 	PROFILE_FUNC();
 	// <advc.104>
-	if(limitCount == 0 || hpLimit <= 0) return 0;
-	if(lowHealth != NULL) *lowHealth = 0; // </advc.104>
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
-	CvPlot* pLoopPlot;
-	int iCount;
-	int iDistance;
-	int iBorderDanger;
-	int iDX, iDY;
+	if(limitCount == 0 || hpLimit <= 0)
+		return 0;
+	if(lowHealth != NULL)
+		*lowHealth = 0; // </advc.104>
+	// <advc.003> Initialization added or definition moved
+	CLLNode<IDInfo>* pUnitNode=NULL;
+	CvUnit* pLoopUnit=NULL;
+	CvPlot* pLoopPlot=NULL;
+	int iCount=0;
+	int iBorderDanger=0;
+	int iDX=-1, iDY=-1; // </advc.003>
 	CvArea *pPlotArea = pPlot->area();
-	int iDangerRange;
 	TeamTypes eTeam = getTeam();
-
-	iCount = 0;
-	iBorderDanger = 0;
 
 	if (iRange == -1)
 	{
@@ -4752,11 +5355,16 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves
 			pLoopPlot	= plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
 
 			if (pLoopPlot != NULL)
-			{
-				if (pLoopPlot->area() == pPlotArea)
-				{
-					if(bCheckBorder) { // advc.104
-						iDistance = stepDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+			{	// <advc.030>
+				CvArea const& fromArea = *pLoopPlot->area();
+				if(pPlotArea->canBeEntered(fromArea)) // Replacing:
+				//if (pLoopPlot->area() == pPlotArea) // </advc.030>
+				{	// <avc.030> Moved up
+					int iDistance = stepDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(),
+							pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+					// </advc.030>
+					if(bCheckBorder // advc.104
+							&& pLoopPlot->area() == pPlotArea) { // advc.030
 						if (atWar(pLoopPlot->getTeam(), eTeam))
 						{
 							if (iDistance == 1)
@@ -4776,7 +5384,6 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves
 					{
 						pLoopUnit = ::getUnit(pUnitNode->m_data);
 						pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
-
 						// No need to loop over tiles full of our own units
 						if( pLoopUnit->getTeam() == eTeam )
 						{
@@ -4786,21 +5393,23 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves
 							}
 						}
 						// <advc.003> Some indentation removed
-						if (pLoopUnit->isEnemy(eTeam) && pLoopUnit->canAttack() &&
+						if (pLoopUnit->isEnemy(eTeam) &&
+								// advc.315: was pLoopUnit->canAttack()
+								canBeAttackedBy(*pLoopUnit) &&
 								!pLoopUnit->isInvisible(eTeam, false)) {
 							// </advc.003>
+							/*  advc.030, advc.001k: Replacing the line below
+								(which calls isMadeAttack) */
+							if(pPlotArea->canBeEntered(fromArea, pLoopUnit))
 							//if (pLoopUnit->canMoveOrAttackInto(pPlot))
-							/*  <advc.001k> Replacing the above (which calls
-								isMadeAttack) */
-							if((pLoopUnit->getDomainType() == DOMAIN_SEA) ==
-									pPlot->isWater())// </advc.001k>
 							{	// <advc.104>
 								if(enemyId == NO_PLAYER || pLoopUnit->getOwnerINLINE() == enemyId)
 									plotUnits.push_back(pLoopUnit);
 							}
 						}
 					}
-					if(lowHealth != NULL) // Don't waste time with this otherwise
+					// Don't waste time with this otherwise
+					if(lowHealth != NULL && !plotUnits.empty())
 						std::sort(plotUnits.begin(), plotUnits.end(), byDamage);
 					for(size_t i = 0; i < plotUnits.size(); i++) {
 						pLoopUnit = plotUnits[i];
@@ -4812,7 +5421,7 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves
 						}
 						else
 						{
-							iDangerRange = pLoopUnit->baseMoves();
+							int iDangerRange = pLoopUnit->baseMoves();
 							iDangerRange += ((pLoopPlot->isValidRoute(pLoopUnit)) ? 1 : 0);
 							if (iDangerRange >= iDistance)
 							{
@@ -4925,7 +5534,7 @@ int CvPlayerAI::AI_getUnitDanger(CvUnit* pUnit, int iRange, bool bTestMoves, boo
                                         }
                                         else
                                         {
-                                            int iDangerRange = pLoopUnit->baseMoves();
+                                            iDangerRange = pLoopUnit->baseMoves();
                                             iDangerRange += ((pLoopPlot->isValidRoute(pLoopUnit)) ? 1 : 0);
                                             if (iDangerRange >= iDistance)
                                             {
@@ -4997,8 +5606,8 @@ int CvPlayerAI::AI_getWaterDanger(CvPlot* pPlot, int iRange, bool bTestMoves) co
 							pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
 
 							if (pLoopUnit->isEnemy(getTeam()))
-							{
-								if (pLoopUnit->canAttack())
+							{	// advc.315: was pLoopUnit->canAttack()
+								if (canBeAttackedBy(*pLoopUnit))
 								{
 									if (!(pLoopUnit->isInvisible(getTeam(), false)))
 									{
@@ -5237,21 +5846,40 @@ int CvPlayerAI::AI_goldTarget(bool bUpgradeBudgetOnly) const
 	return iGold + AI_getExtraGoldTarget();
 }
 
+// <k146>
+// Functors used by AI_bestTech. (I wish we had lambdas.)
+template <typename A, typename B>
+struct PairSecondEq : public std::binary_function<std::pair<A, B>,std::pair<A, B>,bool>
+{
+	PairSecondEq(B t) : _target(t) {}
+
+	bool operator()(const std::pair<A, B>& o1)
+	{
+		return o1.second == _target;
+	}
+private:
+	B _target;
+};
+template <typename A, typename B>
+struct PairFirstLess : public std::binary_function<std::pair<A, B>,std::pair<A, B>,bool>
+{
+	bool operator()(const std::pair<A, B>& o1, const std::pair<A, B>& o2)
+	{
+		return o1.first < o2.first;
+	}
+}; // </k146>
+
 // edited by K-Mod and BBAI
-TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bIgnoreCost, bool bAsync, TechTypes eIgnoreTech, AdvisorTypes eIgnoreAdvisor) const
+TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsync, TechTypes eIgnoreTech, AdvisorTypes eIgnoreAdvisor) const
 {
 	PROFILE("CvPlayerAI::AI_bestTech");
 
-	int iValue;
-	int iBestValue = 0;
-	TechTypes eBestTech = NO_TECH;
-	int iPathLength;
 	CvTeam& kTeam = GET_TEAM(getTeam());
 	
 	std::vector<int> viBonusClassRevealed(GC.getNumBonusClassInfos(), 0);
 	std::vector<int> viBonusClassUnrevealed(GC.getNumBonusClassInfos(), 0);
 	std::vector<int> viBonusClassHave(GC.getNumBonusClassInfos(), 0);
-	
+	// k146 (comment): Find make lists of which bonuses we have / don't have / can see. This is used for tech evaluation
 	for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
 	{
 	    TechTypes eRevealTech = (TechTypes)GC.getBonusInfo((BonusTypes)iI).getTechReveal();
@@ -5282,8 +5910,8 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bIgnoreCost, bool bAs
 	CvWString szPlayerName = getName();
 	DEBUGLOG("AI_bestTech:%S\n", szPlayerName.GetCString());
 #endif
-
-	for (int iI = 0; iI < GC.getNumTechInfos(); iI++)
+	// k146: Commented out
+	/*for (int iI = 0; iI < GC.getNumTechInfos(); iI++)
 	{
 		if ((eIgnoreTech == NO_TECH) || (iI != eIgnoreTech))
 		{
@@ -5317,28 +5945,542 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bIgnoreCost, bool bAs
 				}
 			}
 		}
-	}
+	}*/
+	// <k146>
+	/*  Instead of choosing a tech anywhere inside the max path length with no
+		adjustments for how deep the tech is, we'll evaluate all techs inside
+		the max path length; but instead of just picking the highest value one
+		irrespective of depth, we'll use the evaluatations to add value to the
+		prereq techs, and then choose the best depth 1 tech at the end. */
+	std::vector<std::pair<int,TechTypes> > techs; // (value, tech) pairs)
+	//std::vector<TechTypes> techs;
+	//std::vector<int> values;
+	// cumulative number of techs for each depth of the search. (techs_to_depth[0] == 0)
+	std::vector<int> techs_to_depth;
 
-	if( gPlayerLogLevel >= 1 && eBestTech != NO_TECH )
+	int iTechCount = 0;
+	for (int iDepth = 0; iDepth < iMaxPathLength; ++iDepth)
 	{
-		logBBAI("  Player %d (%S) selects tech %S with value %d", getID(), getCivilizationDescription(0), GC.getTechInfo(eBestTech).getDescription(), iBestValue );
+		techs_to_depth.push_back(iTechCount);
+
+		for (TechTypes eTech = (TechTypes)0; eTech < GC.getNumTechInfos();
+				eTech=(TechTypes)(eTech+1))
+		{
+			const CvTechInfo& kTech = GC.getTechInfo(eTech);
+			const std::vector<std::pair<int,TechTypes> >::iterator
+					// Evaluated techs before the current depth
+					tech_search_end = techs.begin()+techs_to_depth[iDepth];
+			if (eTech == eIgnoreTech)
+				continue;
+			if (eIgnoreAdvisor != NO_ADVISOR && kTech.getAdvisorType() == eIgnoreAdvisor)
+				continue;
+			if (!canEverResearch(eTech))
+				continue;
+			if (kTeam.isHasTech(eTech))
+				continue;
+
+			if (GC.getTechInfo(eTech).getEra() > (getCurrentEra() + 1))
+				continue; // too far in the future to consider. (This condition is only for efficiency.)
+
+			if (std::find_if(techs.begin(), tech_search_end, PairSecondEq<int, TechTypes>(eTech)) != tech_search_end)
+				continue; // already evaluated
+
+			// Check "or" prereqs
+			bool bMissingPrereq = false;
+			for (int p = 0; p < GC.getNUM_OR_TECH_PREREQS(); ++p)
+			{
+				TechTypes ePrereq = (TechTypes)kTech.getPrereqOrTechs(p);
+				if (ePrereq != NO_TECH)
+				{
+					if (kTeam.isHasTech(ePrereq) || std::find_if(techs.begin(), tech_search_end, PairSecondEq<int, TechTypes>(ePrereq)) != tech_search_end)
+					{
+						bMissingPrereq = false; // we have a prereq
+						break;
+					}
+					bMissingPrereq = true; // A prereq exists, and we don't have it.
+				}
+			}
+			if (bMissingPrereq)
+				continue; // We don't have any of the "or" prereqs
+
+			// Check "and" prereqs
+			for (int p = 0; p < GC.getNUM_AND_TECH_PREREQS(); ++p)
+			{
+				TechTypes ePrereq = (TechTypes)kTech.getPrereqAndTechs(p);
+				if (ePrereq != NO_TECH)
+				{
+					if (!GET_TEAM(getTeam()).isHasTech(ePrereq) && std::find_if(techs.begin(), tech_search_end, PairSecondEq<int, TechTypes>(ePrereq)) == tech_search_end)
+					{
+						bMissingPrereq = true;
+						break;
+					}
+				}
+			}
+			if (bMissingPrereq)
+				continue; // We're missing at least one "and" prereq
+			//
+
+			/*  Otherwise, all the prereqs are either researched, or on our list
+				from lower depths. We're ready to evaluate this tech and add it
+				to the list. */
+			int iValue = AI_techValue(eTech, iDepth+1, iDepth == 0 && bFreeTech, bAsync, viBonusClassRevealed, viBonusClassUnrevealed, viBonusClassHave);
+
+			techs.push_back(std::make_pair(iValue, eTech));
+			//techs.push_back(eTech);
+			//values.push_back(iValue);
+			++iTechCount;
+
+			if (iDepth == 0 && gPlayerLogLevel >= 3)
+			{
+				logBBAI("      Player %d (%S) consider tech %S with value %d", getID(), getCivilizationDescription(0), GC.getTechInfo(eTech).getDescription(), iValue );
+			}
+		}
+	}
+	// We need this to ensure techs_to_depth[1] exists.
+	techs_to_depth.push_back(iTechCount);
+
+	FAssert(techs_to_depth.size() == iMaxPathLength+1);
+	//FAssert(techs.size() == values.size());
+
+#ifdef USE_OLD_TECH_STUFF
+	bool bPathways = false && getID() < GC.getGameINLINE().countCivPlayersEverAlive()/2; // testing (temp)
+	bool bNewWays = true || getID() < GC.getGameINLINE().countCivPlayersEverAlive()/2; // testing (temp)
+
+	if (!bPathways)
+	{
+	/*  Ok. All techs have been evaluated up to the given search depth.
+		Now we just have to add a percentage the deep tech values to their
+		prereqs. First, lets calculate what the percentage should be!
+		Note: the fraction compounds for each depth level.
+		eg. 1, 1/3, 1/9, 1/27, etc. */
+	if (iMaxPathLength > 1 && iTechCount > techs_to_depth[1])
+	{
+		int iPrereqPercent = bNewWays ? 50 : 0;
+		iPrereqPercent += (AI_getFlavorValue(FLAVOR_SCIENCE) > 0) ? 5 +
+				AI_getFlavorValue(FLAVOR_SCIENCE) : 0;
+		iPrereqPercent += AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS) ? 10 : 0;
+		iPrereqPercent += AI_isDoVictoryStrategy(AI_VICTORY_SPACE1) ? 5 : 0;
+		iPrereqPercent += AI_isDoVictoryStrategy(AI_VICTORY_SPACE2) ? 10 : 0;
+		iPrereqPercent += AI_isDoStrategy(AI_STRATEGY_BIG_ESPIONAGE) ? -5 : 0;
+		iPrereqPercent += kTeam.getAnyWarPlanCount(true) > 0 ? -10 : 0;
+		// more modifiers to come?
+
+		iPrereqPercent = range(iPrereqPercent, 0, 80);
+
+		/*  I figure that if I go through the techs in reverse order to add
+			value to their prereqs, I don't double-count or miss anything.
+			Is that correct? */
+		int iDepth = iMaxPathLength-1;
+		for (int i = iTechCount-1; i >= techs_to_depth[1]; --i)
+		{
+			const CvTechInfo& kTech = GC.getTechInfo(techs[i].second);
+
+			if (i < techs_to_depth[iDepth])
+			{
+				--iDepth;
+			}
+			FAssert(iDepth > 0);
+
+			/*  We only want to award points to the techs directly below this
+				level. We don't want, for example, Chemistry getting points
+				from Biology when we haven't researched Scientific Method. */
+			const std::vector<std::pair<int,TechTypes> >::iterator
+					prereq_search_begin = techs.begin()+techs_to_depth[iDepth-1];
+			const std::vector<std::pair<int,TechTypes> >::iterator
+					prereq_search_end = techs.begin()+techs_to_depth[iDepth];
+			/*  Also; for the time being, I only want to add value to prereqs
+				from the best following tech, rather than from all following
+				techs. (The logic is that we will only research one thing at a
+				time anyway; so although opening lots of options is good, we
+				shouldn't overvalue it.) */
+			std::vector<int> prereq_bonus(techs.size(), 0);
+
+			FAssert(techs[i].first*iPrereqPercent/100 > 0 &&
+					techs[i].first*iPrereqPercent/100 < 100000);
+
+			for (int p = 0; p < GC.getNUM_OR_TECH_PREREQS(); ++p)
+			{
+				TechTypes ePrereq = (TechTypes)kTech.getPrereqOrTechs(p);
+				if (ePrereq != NO_TECH)
+				{
+					std::vector<std::pair<int,TechTypes> >::iterator tech_it =
+							std::find_if(prereq_search_begin, prereq_search_end,
+							PairSecondEq<int,TechTypes>(ePrereq));
+					if (tech_it != prereq_search_end)
+					{
+						const size_t prereq_i = tech_it - techs.begin();
+						//values[index] += values[i]*iPrereqPercent/100;
+						prereq_bonus[prereq_i] = std::max(prereq_bonus[prereq_i],
+								techs[i].first*iPrereqPercent/100);
+
+						if (gPlayerLogLevel >= 3)
+						{
+							logBBAI("      %S adds %d to %S (depth %d)",
+									GC.getTechInfo(techs[i].second).
+									getDescription(),
+									techs[i].first*iPrereqPercent/100,
+									GC.getTechInfo(techs[prereq_i].second).
+									getDescription(), iDepth-1);
+						}
+					}
+				}
+			}
+			for (int p = 0; p < GC.getNUM_AND_TECH_PREREQS(); ++p)
+			{
+				TechTypes ePrereq = (TechTypes)kTech.getPrereqAndTechs(p);
+				if (ePrereq != NO_TECH)
+				{
+					std::vector<std::pair<int,TechTypes> >::iterator tech_it =
+							std::find_if(prereq_search_begin, prereq_search_end,
+							PairSecondEq<int, TechTypes>(ePrereq));
+					if (tech_it != prereq_search_end)
+					{
+						const size_t prereq_i = tech_it - techs.begin();
+
+						//values[prereq_i] += values[i]*iPrereqPercent/100;
+						prereq_bonus[prereq_i] = std::max(prereq_bonus[prereq_i],
+								techs[i].first*iPrereqPercent/100);
+						if (gPlayerLogLevel >= 3)
+						{
+							logBBAI("      %S adds %d to %S (depth %d)",
+									GC.getTechInfo(techs[i].second).
+									getDescription(),
+									techs[i].first*iPrereqPercent/100,
+									GC.getTechInfo(techs[prereq_i].second).
+									getDescription(), iDepth-1);
+						}
+					}
+				}
+			}
+
+			// Apply the prereq_bonuses
+			for (size_t p = 0; p < prereq_bonus.size(); ++p)
+			{
+				/*  Kludge: Under this system, dead-end techs (such as rifling)
+					can be avoided due to the high value of follow-on techs.
+					So here's what we're going to do... */
+				techs[p].first += std::max(prereq_bonus[p],
+						(techs[p].first - 80)*iPrereqPercent*3/400);
+				/*  Note, the "-80" is meant to represent removing the
+					random value bonus. cf. AI_techValue (divided by ~5 turns).
+					(bonus is 0-80*cities) */
+			}
+		}
+	}
+	// All the evaluations are now complete. Now we just have to find the best tech.
+	std::vector<std::pair<int, TechTypes> >::iterator tech_it = std::max_element(techs.begin(), (bNewWays ? techs.begin()+techs_to_depth[1] : techs.end()),PairFirstLess<int, TechTypes>());
+	if (tech_it == (bNewWays ? techs.begin()+techs_to_depth[1] : techs.end()))
+	{
+		FAssert(iTechCount == 0);
+		return NO_TECH;
+	}
+	TechTypes eBestTech = tech_it->second;
+	FAssert(canResearch(eBestTech));
+
+	if (gPlayerLogLevel >= 1)
+	{
+		logBBAI("  Player %d (%S) selects tech %S with value %d", getID(), getCivilizationDescription(0), GC.getTechInfo(eBestTech).getDescription(), tech_it->first );
 	}
 
+	return eBestTech;
+	}
+#endif
+
+	/*  Yet another version!
+		pathways version
+		We've evaluated all the techs up to the given depth. Now we want to
+		choose the highest value pathway. eg. suppose iMaxPathLength = 3; we
+		will then look for the best three techs to research, in order.
+		It could be three techs for which we already have all prereqs, or it
+		could be techs leading to new techs.
+
+		Algorithm:
+		* Build list of techs at each depth.
+		* Sort lists by value at each depth.
+		We don't want to consider every possible set of three techs.
+		Many combos can be disregarded easily.
+		For explanation purposes, assume a depth of 3.
+		* The 3rd highest value at depth = 0 is a threshold for the next depth.
+		  No techs lower than the threshold need to be considered in any combo.
+		* The max of the old threshold and the (max_depth-cur_depth)th value
+		  becomes the new threshold. eg. at depth=1, the 2nd highest value
+		  becomes the new threshold (if it is higher than the old).
+		* All techs above the threshold are viable end points.
+		* For each end point, pick the highest value prereqs which allow us to
+		  reach the endpoint.
+		* If that doesn't fill all the full path, pick the highest value
+		  available techs. (eg. if our end-point is not a the max depth, we can
+		  pick an arbitrary tech at depth=0) */
+
+	// Sort the techs at each depth:
+	FAssert(techs_to_depth[0] == 0); // No techs before depth 0.
+	// max depth is after all techs
+	FAssert(techs.size() == techs_to_depth[techs_to_depth.size()-1]);
+	for (size_t i = 1; i < techs_to_depth.size(); ++i)
+	{
+		std::sort(techs.begin()+techs_to_depth[i-1],
+				techs.begin()+techs_to_depth[i],
+				std::greater<std::pair<int,TechTypes> >());
+	}
+
+	// First deal with the trivial cases...
+	// no Techs
+	if (techs.empty())
+		return NO_TECH;
+	// path length of 1.
+	if (iMaxPathLength < 2)
+	{
+		FAssert(techs.size() > 0);
+		return techs[0].second;
+	}
+	// ... and the case where there are not enough techs in the list.
+	if ((int)techs.size() < iMaxPathLength)
+	{
+		return techs[0].second;
+	}
+
+	// Create a list of possible tech paths.
+	std::vector<std::pair<int,std::vector<int> > > tech_paths; // (total_value, path)
+	// Note: paths are a vector of indices referring to `techs`.
+	/*  Paths are in reverse order, for convinience in constructing them.
+		(ie. the first tech to research is at the end of the list.) */
+
+	// Initial threshold
+	FAssert(techs_to_depth.size() > 1);
+	int iThreshold = techs[std::min(iMaxPathLength-1,
+			(int)techs.size()-1)].first;
+	// Note: this works even if depth=0 isn't big enough.
+
+	double fDepthRate = 0.62; // advc: 0.8 in k146
+
+	for (int end_depth = 0; end_depth < iMaxPathLength; ++end_depth)
+	{
+		// Note: at depth == 0, there are no prereqs, so we only need to consider the best option.
+		for (int i = (end_depth == 0 ? iMaxPathLength - 1 :
+				techs_to_depth[end_depth]); i < techs_to_depth[end_depth+1]; ++i)
+		{
+			if (techs[i].first < iThreshold)
+				break; /* Note: the techs are sorted, so if we're below the
+						  threshold, we're done. */
+
+			// This is a valid end point. So start a new tech path.
+			tech_paths.push_back(std::make_pair(techs[i].first,
+					std::vector<int>()));
+			tech_paths.back().second.push_back(i);
+			// A set of techs that will be in our path
+			std::set<TechTypes> techs_in_path;
+			// A queue of techs that we still need to check prereqs for
+			std::queue<TechTypes> techs_to_check;
+
+			techs_in_path.insert(techs[i].second);
+			if (end_depth != 0)
+			{
+				techs_to_check.push(techs[i].second);
+			}
+			while (!techs_to_check.empty() && (int)techs_in_path.size()
+					<= iMaxPathLength)
+			{
+				bool bMissingPrereq = false;
+
+				// AndTech prereqs:
+				for (int p = 0; p < GC.getNUM_AND_TECH_PREREQS() &&
+						!bMissingPrereq; ++p)
+				{
+					TechTypes ePrereq = (TechTypes)GC.getTechInfo(
+							techs_to_check.front()).getPrereqAndTechs(p);
+					if (!kTeam.isHasTech(ePrereq) &&
+							techs_in_path.find(ePrereq) == techs_in_path.end())
+					{
+						bMissingPrereq = true;
+						// find the tech. (Lambda would be nice...)
+						//std::find_if(techs.begin(), techs.end(),[](std::pair<int, TechTypes> &t){return t.second == ePrereq;});
+						/*  really we should use current depth instead of end_depth;
+							but that's harder... */
+						for (int j = 0; j < techs_to_depth[end_depth]; ++j)
+						{
+							if (techs[j].second == ePrereq)
+							{
+								// add it to the path.
+								tech_paths.back().first = (int)(fDepthRate *
+										tech_paths.back().first);
+								tech_paths.back().first += techs[j].first;
+								tech_paths.back().second.push_back(j);
+								techs_in_path.insert(ePrereq);
+								techs_to_check.push(ePrereq);
+								bMissingPrereq = false;
+								break;
+							}
+						}
+					}
+				}
+				if (bMissingPrereq)
+				{
+					// This path is invalid, because we can't get the prereqs.
+					break;
+				}
+				// OrTechs:
+				int iBestOrIndex = -1;
+				int iBestOrValue = -1;
+				for (int p = 0; p < GC.getNUM_OR_TECH_PREREQS(); ++p)
+				{
+					TechTypes ePrereq = (TechTypes)GC.getTechInfo(
+							techs_to_check.front()).getPrereqOrTechs(p);
+					if (ePrereq == NO_TECH)
+						continue;
+
+					if (!kTeam.isHasTech(ePrereq) &&
+							techs_in_path.find(ePrereq) == techs_in_path.end())
+					{
+						bMissingPrereq = true;
+						// find the tech.
+						for (int j = 0; j < techs_to_depth[end_depth]; ++j)
+						{
+							if (techs[j].second == ePrereq)
+							{
+								if (techs[j].first > iBestOrValue)
+								{
+									iBestOrIndex = j;
+									iBestOrValue = techs[j].first;
+								}
+							}
+						}
+					}
+					else
+					{
+						// We have one of the orPreqs.
+						iBestOrIndex = -1;
+						iBestOrValue = -1;
+						bMissingPrereq = false;
+						break;
+					}
+				}
+				// Add the best OrPrereq to the path
+				if (iBestOrIndex >= 0)
+				{
+					FAssert(bMissingPrereq);
+
+					tech_paths.back().first = (int)(fDepthRate *
+							tech_paths.back().first);
+					tech_paths.back().first += techs[iBestOrIndex].first;
+					tech_paths.back().second.push_back(iBestOrIndex);
+					techs_in_path.insert(techs[iBestOrIndex].second);
+					techs_to_check.push(techs[iBestOrIndex].second);
+					bMissingPrereq = false;
+				}
+
+				if (bMissingPrereq)
+				{
+					break; // failured to add prereqs to the path
+				}
+				else
+				{
+					techs_to_check.pop(); // prereqs are satisfied
+				}
+			} // end techs_to_check (prereqs loop)
+
+			/*  If we couldn't add all the prereqs (eg. too many),
+				abort the path. */
+			if ((int)techs_in_path.size() > iMaxPathLength ||
+					!techs_to_check.empty())
+			{
+				tech_paths.pop_back();
+				continue;
+			}
+
+			/*  If we haven't already filled the path with prereqs,
+				fill the remaining slots with the highest value unused techs. */
+			if (((int)techs_in_path.size() < iMaxPathLength))
+			{
+				/*  todo: consider backfilling the list with deeper techs if
+					we've matched their prereqs already. */
+				for (int j = 0; j < techs_to_depth[1] && (int)techs_in_path.size() <
+						iMaxPathLength; j++)
+				{
+					if (techs_in_path.count(techs[j].second) == 0)
+					{
+						techs_in_path.insert(techs[j].second);
+						int k = 0;
+						/*  Note: since this tech isn't a prereqs, it can go any-
+							where in our path. Try to research highest values first. */
+						for (; k < (int)tech_paths.back().second.size(); k++)
+						{
+							if (techs[j].first < techs[tech_paths.back().
+									second[k]].first)
+							{
+								
+								// Note: we'll need to recalculate the total value.
+								tech_paths.back().second.insert(
+										tech_paths.back().second.begin()+k, j);
+								break;
+							}
+						}
+						if (k == tech_paths.back().second.size())
+						{
+							// haven't added it yet
+							tech_paths.back().second.push_back(j);
+						}
+					}
+				}
+				// Recalculate total value;
+				tech_paths.back().first = 0;
+				for (int k = 0; k < (int)tech_paths.back().second.size(); ++k)
+				{
+					tech_paths.back().first = (int)(fDepthRate *
+							tech_paths.back().first);
+					tech_paths.back().first +=
+							techs[tech_paths.back().second[k]].first;
+				}
+			}
+		} // end loop through techs at given end depth
+
+		/*  TODO: at this point we should update the threshold for the
+			next depth... But I don't want to do that until the back-fill stage
+			is fixed to consider deeper techs. */
+	} // end loop through possible end depths
+
+	/*  Return the tech corresponding to the back (first step) of the tech path
+		with the highest value. */
+	std::vector<std::pair<int, std::vector<int> > >::iterator best_path_it =
+			std::max_element(tech_paths.begin(), tech_paths.end(),
+			PairFirstLess<int, std::vector<int> >());
+
+	if (best_path_it == tech_paths.end())
+	{
+		FAssertMsg(0, "Failed to create a tech path");
+		return NO_TECH;
+	}
+
+	TechTypes eBestTech = techs[best_path_it->second.back()].second;
+	if( gPlayerLogLevel >= 1)
+	{
+		logBBAI("  Player %d (%S) selects tech %S with value %d. (Aiming for %S)",
+				getID(), getCivilizationDescription(0),
+				GC.getTechInfo(eBestTech).getDescription(),
+				techs[best_path_it->second.back()].first,
+				GC.getTechInfo(techs[best_path_it->second.front()].second).
+				getDescription());
+	}
+	FAssert(!isResearch() || getAdvancedStartPoints() < 0 ||
+			canResearchBulk(eBestTech, false, bFreeTech));
+	// </k146>
 	return eBestTech;
 }
 
 // This function has been mostly rewritten for K-Mod.
 // Note: many of the values used in this function are arbitrary; but adjusted them all to get closer to having a common scale.
-// The scale is roughly 4 = 1 commerce per turn.
+// The scale before research time is taken into account is roughly 4 = 1 commerce per turn. Afterwards it is arbitrary.
 // (Compared to the original numbers, this is * 1/100 * 7 * 4. 28/100)
-int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost, bool bAsync, const std::vector<int>& viBonusClassRevealed, const std::vector<int>& viBonusClassUnrevealed, const std::vector<int>& viBonusClassHave) const
+int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
+		bool bAsync, const std::vector<int>& viBonusClassRevealed,
+		const std::vector<int>& viBonusClassUnrevealed,
+		const std::vector<int>& viBonusClassHave) const
 {
 	PROFILE_FUNC();
 	FAssert(viBonusClassRevealed.size() == GC.getNumBonusClassInfos());
 	FAssert(viBonusClassUnrevealed.size() == GC.getNumBonusClassInfos());
 	FAssert(viBonusClassHave.size() == GC.getNumBonusClassInfos());
 
-	long iValue; // K-Mod. (the int was overflowing in parts of the calculation)
+	long iValue = 1; // K-Mod. (the int was overflowing in parts of the calculation)
 
 	CvCity* pCapitalCity = getCapitalCity();
 	const CvTeamAI& kTeam = GET_TEAM(getTeam());
@@ -5353,15 +6495,23 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 
 	int iCityCount = getNumCities();
 	int iCityTarget = GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getTargetNumCities();
-
-	iValue = 1;
-
-	int iRandomFactor = ((bAsync) ? GC.getASyncRand().get(80*iCityCount, "AI Research ASYNC") : GC.getGameINLINE().getSorenRandNum(80*iCityCount, "AI Research"));
-	int iRandomMax = 80*iCityCount;
-	iValue += iRandomFactor;
-
-	iValue += kTeam.getResearchProgress(eTech)/4;
-
+	// <k146>
+	int iRandomFactor = 0; // Amount of random value in the answer.
+	int iRandomMax = 0;   // Max random value. (These randomness trackers aren't actually used, and may not even be accurate.)
+	//if (iPathLength <= 1) // Don't include random bonus for follow-on tech values.
+	{/*  </k146> advc.131: Decrease the random summand (was 80), but increase the
+		random multiplier at the end of the function. */
+		int const iRandPlusMax = 26; //80
+		iRandomFactor = (bAsync ?
+				GC.getASyncRand().get(iRandPlusMax*iCityCount, "AI Research ASYNC") :
+				GC.getGameINLINE().getSorenRandNum(iRandPlusMax*iCityCount, "AI Research"));
+		iRandomMax = iRandPlusMax*iCityCount;
+		iValue += iRandomFactor;
+	}
+	if(!bFreeTech) // k146
+		iValue += kTeam.getResearchProgress(eTech)/4;
+	// advc.007: Might need this again
+	//FAssert(!canResearch(eTech) || std::wcscmp(kTechInfo.getDescription(), L"Feudalism") != 0);
 	// Map stuff
 	if (kTechInfo.isExtraWaterSeeFrom())
 	{
@@ -5384,7 +6534,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 	if (kTechInfo.isMapVisible())
 	{
 		iValue += (3*GC.getMapINLINE().getLandPlots() + GC.getMapINLINE().numPlots())/400; // (3 * 1100 + 4400)/400 = 14. ~3 commerce/turn
-		// Note, the world is usually thoroghly explored by the time of satilites. So this is low value.
+		// Note, the world is usually thoroughly explored by the time of satellites. So this is low value.
 		// If we wanted to evaluate this properly, we'd need to calculate at how much of the world is still unexplored.
 	}
 
@@ -5456,8 +6606,9 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 	{
 		// K-Mod. The key value of gold trading is to facilitate tech trades.
 		int iBaseValue =  (!GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_TRADING) && !kTeam.isTechTrading())
-			? getTotalPopulation()
-			: getTotalPopulation()/3;
+			// <k146>
+			? (getTotalPopulation() + 10)
+			: (getTotalPopulation()/3 + 3); // </k146>
 		int iNewTrade = 0;
 		int iExistingTrade = 0;
 		for (TeamTypes i = (TeamTypes)0; i < MAX_CIV_TEAMS; i = (TeamTypes)(i+1))
@@ -5473,7 +6624,9 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 			else
 				iExistingTrade += kLoopTeam.getAliveCount();
 		}
-		iValue += iBaseValue * std::max(0, 3*iNewTrade - iExistingTrade);
+		iValue += iBaseValue * std::max(
+				iNewTrade, // k146: was 0
+				3*iNewTrade - iExistingTrade);
 	}
 
 	if (kTechInfo.isOpenBordersTrading())
@@ -5529,13 +6682,15 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 
 	if (kTechInfo.isPermanentAllianceTrading() && (GC.getGameINLINE().isOption(GAMEOPTION_PERMANENT_ALLIANCES)))
 	{
-		iValue += 56;
+		//iValue += 56;
+		iValue += 8*iCityTarget; // k146: Replacing the above
 		// todo: check for friendly civs
 	}
 
 	if (kTechInfo.isVassalStateTrading() && !(GC.getGameINLINE().isOption(GAMEOPTION_NO_VASSAL_STATES)))
 	{
-		iValue += 56;
+		//iValue += 56;
+		iValue += 8*iCityTarget; // k146: Replacing the above
 		// todo: check anyone is small enough to vassalate. Check for conquest / domination strategies.
 	}
 
@@ -5557,7 +6712,11 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 
 	if (kTechInfo.isWaterWork())
 	{
-		iValue += 6 * iCoastalCities * getAveragePopulation();
+		//iValue += 6 * iCoastalCities * getAveragePopulation();
+		// <advc.131> Need large populations before water tiles become worthwhile
+		iValue += iCoastalCities * std::min(45, (int)
+				std::ceil(std::pow((double)getAveragePopulation(), 2) / 2));
+		// </advc.131>
 	}
 
 	//iValue += (kTechInfo.getFeatureProductionModifier() * 2);
@@ -5611,6 +6770,8 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 
 	// K-Mod. Extra specialist commerce. (Based on my civic evaluation code)
 	bool bSpecialistCommerce = false;
+	int iTotalBonusSpecialists = -1;
+	int iTotalCurrentSpecialists = -1;
 	for (CommerceTypes i = (CommerceTypes)0; i < NUM_COMMERCE_TYPES; i=(CommerceTypes)(i+1))
 	{
 		bSpecialistCommerce = kTechInfo.getSpecialistExtraCommerce(i) != 0;
@@ -5618,8 +6779,9 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 
 	if (bSpecialistCommerce)
 	{
-		int iTotalBonusSpecialists = 0;
-		int iTotalCurrentSpecialists = 0;
+		// If there are any bonuses, we need to count our specialists.
+ 		// (The value from the bonuses will be applied later.)
+		iTotalBonusSpecialists = iTotalCurrentSpecialists = 0;
 
 		int iLoop;
 		CvCity* pLoopCity;
@@ -5631,26 +6793,45 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 			iTotalCurrentSpecialists += pLoopCity->getNumGreatPeople();
 			iTotalCurrentSpecialists += pLoopCity->getSpecialistPopulation();
 		}
-
-		for (CommerceTypes i = (CommerceTypes)0; i < NUM_COMMERCE_TYPES; i=(CommerceTypes)(i+1))
-		{
-			iValue += 4*AI_averageCommerceMultiplier(i)*(kTechInfo.getSpecialistExtraCommerce(i) * std::max((getTotalPopulation()+12*iTotalBonusSpecialists) / 12, iTotalCurrentSpecialists));
-		}
 	}
 	// K-Mod end
-
-	for (int iJ = 0; iJ < NUM_COMMERCE_TYPES; iJ++)
-	{
-		if (kTechInfo.isCommerceFlexible(iJ))
-		{
-			iValue += 4 * iCityCount * (3*AI_averageCulturePressure()-200) / 100;
-			if ((iJ == COMMERCE_CULTURE) && (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2)))
-			{
-				iValue += 280;
-			}
-		}
-	}
-
+	// <k146>
+	for (CommerceTypes i = (CommerceTypes)0; i < NUM_COMMERCE_TYPES; i=(CommerceTypes)(i+1))
+ 	{
+ 		int iCommerceValue = 0;
+ 
+ 		// Commerce for specialists
+ 		if (bSpecialistCommerce)
+ 		{
+			// If there are any bonuses, we need to count our specialists.
+ 			// (The value from the bonuses will be applied later.)
+			iTotalBonusSpecialists = iTotalCurrentSpecialists = 0;
+ 			iCommerceValue += 4*AI_averageCommerceMultiplier(i)*
+					(kTechInfo.getSpecialistExtraCommerce(i) *
+					std::max((getTotalPopulation()+12*iTotalBonusSpecialists) / 
+					12, iTotalCurrentSpecialists));
+ 		}
+ 
+ 		// Flexible commerce. (This is difficult to evaluate accurately without checking a lot of things - which I'm not going to do right now.)
+ 		if (kTechInfo.isCommerceFlexible(i))
+ 		{
+			iCommerceValue += 40 + 4 * iCityCount;
+ 			/* original
+ 			iValue += 4 * iCityCount * (3*AI_averageCulturePressure()-200) / 100;
+ 			if (i == COMMERCE_CULTURE && AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2))
+ 			{
+ 				iValue += 280;
+ 			} */
+ 		}
+ 
+ 		if (iCommerceValue)
+ 		{
+ 			iCommerceValue *= AI_commerceWeight(i);
+ 			iCommerceValue /= 100;
+ 
+ 			iValue += iCommerceValue;
+ 		}
+	} // </k146>
 	for (int iJ = 0; iJ < GC.getNumTerrainInfos(); iJ++)
 	{
 		if (kTechInfo.isTerrainTrade(iJ))
@@ -5666,12 +6847,16 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 					int iNewForeignRoutes = AI_countPotentialForeignTradeCities(false, AI_getFlavorValue(FLAVOR_GOLD) == 0) - iCurrentForeignRoutes;
 
 					int iNewOverseasRoutes = std::max(0, AI_countPotentialForeignTradeCities(false, AI_getFlavorValue(FLAVOR_GOLD) == 0, pCapitalCity->area()) - iCurrentForeignRoutes);
-					int iLocalRoutes = std::max(0, iCityCount*3 - iCurrentForeignRoutes);
+					/*  advc.131: Subtract 1 from city count (capital alone is
+						not going to have domestic trade routes). */
+					int iLocalRoutes = std::max(0, (iCityCount-1)*3 - iCurrentForeignRoutes);
 
 					// TODO: multiply by average commerce multiplier?
 
 					// 4 for upgrading local to foreign. 2 for upgrading to overseas. Divide by 3 if we don't have coastal cities.
-					iValue += (std::min(iLocalRoutes, iNewForeignRoutes) * 16  + std::min(iNewOverseasRoutes, iCityCount*3) * 8) / (iCoastalCities > 0 ? 1 : 3);
+					iValue += (std::min(iLocalRoutes, iNewForeignRoutes) * 16 +
+							std::min(iNewOverseasRoutes, iCityCount*3) * 8) /
+							(iCoastalCities > 0 ? 1 : 3);
 					// K-Mod end
 				}
 
@@ -5699,10 +6884,12 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 
 			/* original code
 			iTempValue += (GC.getImprovementInfo((ImprovementTypes)iJ).getTechYieldChanges(eTech, iK) * getImprovementCount((ImprovementTypes)iJ) * 50); */
-			// Often, an improvment only becomes viable after it gets the tech bonus.
+			// Often, an improvement only becomes viable after it gets the tech bonus.
 			// So it's silly to score the bonus proportionally to how many of the improvements we already have.
 			iTempValue += GC.getImprovementInfo((ImprovementTypes)iJ).getTechYieldChanges(eTech, iK)
-				* std::max(getImprovementCount((ImprovementTypes)iJ), 3*getNumCities()/2) * 4;
+					* std::max(getImprovementCount((ImprovementTypes)iJ)
+					+iCityCount, // k146
+					3*iCityCount/2) * 4;
 			// This new version is still bork, but at least it won't be worthless.
 			iTempValue *= AI_averageYieldMultiplier((YieldTypes)iK);
 			iTempValue /= 100;
@@ -5765,7 +6952,12 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 					eFinalImprovement = eBuildImprovement;
 				const CvImprovementInfo& kFinalImprovement = GC.getImprovementInfo(eFinalImprovement);
 				if (iAccessibility > 0)
-				{
+				{  /* <advc.036> Don't need to improve every tile; just those
+					  we expect to work in the near future. */
+					if(pCapitalCity != NULL) {
+						iAccessibility = std::min(iAccessibility, 100 *
+								(1 + getTotalPopulation() / getNumCities()));
+					} // </advc.036>
 					iYieldValue += iBestFeatureValue;
 
 					for (int iK = 0; iK < NUM_YIELD_TYPES; iK++)
@@ -5800,8 +6992,9 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 
 					if (getCurrentEra() > GC.getGameINLINE().getStartEra())
 						iYieldValue -= 100; // compare to a hypothetical low-value improvement
-
-					iBuildValue += std::max(0, iYieldValue) * iAccessibility * (kFinalImprovement.isWater() ? iCoastalCities : std::max(2, iCityCount)) / 2500;
+					iBuildValue += std::max(0, iYieldValue) * iAccessibility *
+							(kFinalImprovement.isWater() ? iCoastalCities :
+							std::max(2, iCityCount)) / 2500;
 					// Note: we're converting from O(100)*O(100) to O(4)
 				}
 
@@ -5817,55 +7010,83 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 					int iNumBonuses = bRevealed
 						? countOwnedBonuses((BonusTypes)iK) // actual count
 						: std::max(1, 2*getNumCities() / std::max(1, 3*iCityTarget)); // a guess
-
+					// <advc.131> Don't jump for fish when settled one off the coast
+					if(iNumBonuses > 0 && GC.getImprovementInfo(eBuildImprovement).
+							isWater() && iCoastalCities <= 0)
+						iNumBonuses = iNumBonuses / 2; // </advc.131>
 					//iNumBonuses += std::max(0, (iCityTarget - iCityCount)*(kFinalImprovement.isWater() ? 2 : 3)/8); // future expansion
+					// <advc.003>
+					if (iNumBonuses <= 0 || (!bRevealed && kBonusInfo.getTechReveal() != eTech))
+						continue; // </advc.003>
+					int iBonusValue = 0;
 
-					if (iNumBonuses > 0 && (bRevealed || kBonusInfo.getTechReveal() == eTech))
-					{
-						int iBonusValue = 0;
-
-						TechTypes eConnectTech = (TechTypes)kBonusInfo.getTechCityTrade();
-						if ((kTeam.isHasTech(eConnectTech) || eConnectTech == eTech) && !kTeam.isBonusObsolete((BonusTypes)iK) && kBonusInfo.getTechObsolete() != eTech)
-						{
-							// note: this is in addition to the getTechCityTrade evaluation lower in this function.
-							iBonusValue += AI_bonusVal((BonusTypes)iK, 1, true) * iCityCount;
-							if (bRevealed)
-								iBonusValue += (iNumBonuses-1) * iBonusValue / 10;
-							else
-								iBonusValue /= 2;
-						}
-
-						int iYieldValue = 0;
-						for (YieldTypes y = (YieldTypes)0; y < NUM_YIELD_TYPES; y=(YieldTypes)(y+1))
-						{
-							int iTempValue = 0;
-
-							iTempValue += kFinalImprovement.getImprovementBonusYield(iK, y) * 100;
-							iTempValue += kFinalImprovement.getIrrigatedYieldChange(y) * 75;
-
-							iTempValue *= AI_yieldWeight(y);
-							iTempValue /= 100;
-							iTempValue *= AI_averageYieldMultiplier(y);
-							iTempValue /= 100;
-
-							iYieldValue += iTempValue;
-						}
-
-						if (getCurrentEra() > GC.getGameINLINE().getStartEra())
-							iYieldValue -= 100; // compare to a hypothetical low-value improvement
-
-						// Bonuses might be outside of our city borders.
-						iYieldValue *= 2*iNumBonuses;
-						iYieldValue /= (bRevealed ? 3 : 4);
-
-						if (kFinalImprovement.isWater())
-							iYieldValue = iYieldValue * 2/3;
-
-						// Convert to O(4)
-						iYieldValue /= 25;
-
-						iBuildValue += iBonusValue + std::max(0, iYieldValue);
+					TechTypes eConnectTech = (TechTypes)kBonusInfo.getTechCityTrade();
+					if((kTeam.isHasTech(eConnectTech) || eConnectTech == eTech) &&
+							!kTeam.isBonusObsolete((BonusTypes)iK) &&
+							kBonusInfo.getTechObsolete() != eTech) {
+						// note: this is in addition to the getTechCityTrade evaluation lower in this function.
+						iBonusValue += AI_bonusVal((BonusTypes)iK, 1, true) * iCityCount;
+						if (bRevealed)
+							iBonusValue += (iNumBonuses-1) * iBonusValue / 10;
+						else iBonusValue /= 2;
 					}
+					int iYieldValue = 0;
+					for (YieldTypes y = (YieldTypes)0; y < NUM_YIELD_TYPES; y=(YieldTypes)(y+1))
+					{
+						int iTempValue = 0;
+
+						iTempValue += kFinalImprovement.getImprovementBonusYield(iK, y) * 100;
+						iTempValue += kFinalImprovement.getIrrigatedYieldChange(y) * 75;
+
+						iTempValue *= AI_yieldWeight(y);
+						iTempValue /= 100;
+						iTempValue *= AI_averageYieldMultiplier(y);
+						iTempValue /= 100;
+
+						iYieldValue += iTempValue;
+					}
+					// advc.036: Apply this to later-era start too
+					if (getCurrentEra() > 0)//GC.getGameINLINE().getStartEra())
+						iYieldValue -= 100; // compare to a hypothetical low-value improvement
+
+					// Bonuses might be outside of our city borders.
+					iYieldValue *= 2*iNumBonuses;
+					iYieldValue /= (bRevealed ? 3 : 4);
+
+					if (kFinalImprovement.isWater())
+						iYieldValue = iYieldValue * 2/3;
+					/*  <advc.036> Since iBonusVal no longer overestimates
+						early-game health, high-yield tiles need to be
+						appreciated more. */
+					// This makes iYieldValue=225 a fixpoint
+					iYieldValue = ::round(std::pow((double)iYieldValue, 1.5) / 15);
+					/*  At the start of the game, extra yields are very important,
+						but we need to be sure that the tile isn't blocked by a
+						feature before increasing iYieldValue further. Will have
+						to check each tile -- OK, performance isn't an issue
+						this early on. */
+					if(pCapitalCity != NULL && getNumCities() == 1) {
+						bool bValid = false;
+						for(int i = 0; i < NUM_CITY_PLOTS; i++) {
+							if(i == CITY_HOME_PLOT)
+								continue;
+							CvPlot* p = ::plotCity(pCapitalCity->getX_INLINE(), pCapitalCity->getY_INLINE(), i);
+							if(p != NULL && p->getBonusType() == iK) {
+								FeatureTypes ft = p->getFeatureType();
+								if(ft == NO_FEATURE || GET_TEAM(getTeam()).
+										hasTechToClear(ft, eTech)) {
+									bValid = true;
+									break;
+								}
+							}
+						}
+						if(bValid)
+							iYieldValue = ::round(iYieldValue * 1.5);
+					} // </advc.036>
+					// Convert to O(4)
+					iYieldValue /= 25;
+
+					iBuildValue += iBonusValue + std::max(0, iYieldValue);
 				}
 			}
 
@@ -5967,19 +7188,27 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 			if (GC.getBuildInfo((BuildTypes)iK).getFeatureTech(iJ) == eTech)
 			{
 				bIsFeatureRemove = true;
-				iChopProduction = GC.getBuildInfo((BuildTypes)iK).getFeatureProduction(iJ); // I'll assume it's the same for all builds
+				// I'll assume it's the same for all builds
+				iChopProduction = GC.getBuildInfo((BuildTypes)iK).getFeatureProduction(iJ);
 				break;
 			}
 		}
 
 		if (bIsFeatureRemove)
-		{
-			int iChopValue = iChopProduction / 8;
-
-			if ((GC.getFeatureInfo(FeatureTypes(iJ)).getHealthPercent() < 0) ||
-				((GC.getFeatureInfo(FeatureTypes(iJ)).getYieldChange(YIELD_FOOD) + GC.getFeatureInfo(FeatureTypes(iJ)).getYieldChange(YIELD_PRODUCTION) + GC.getFeatureInfo(FeatureTypes(iJ)).getYieldChange(YIELD_COMMERCE)) < 0))
-			{
+		{	// k146: Divisor was 8, K-Mod sets it to 4, advc: 7.
+			int iChopValue = iChopProduction / 7;
+			// <advc.003>
+			CvFeatureInfo const& fi = GC.getFeatureInfo(FeatureTypes(iJ));
+			if(fi.getHealthPercent() < 0 || fi.getYieldChange(YIELD_FOOD) +
+				fi.getYieldChange(YIELD_PRODUCTION) +
+				fi.getYieldChange(YIELD_COMMERCE) < 0) { // </advc.003>
+				// (k146 wants to set this to 8; advc: leaving it at 6)
 				iChopValue += 6;
+				/*  k146: Want to add value for the new city sites which become
+					available due to this tech - but it isn't easy to evaluate.
+					Perhaps we should go as far as counting features at our
+					planned sites - but even that isn't exactly what we want. */
+				iBuildValue += 28; // advc: 27 instead of 40
 			}
 			iBuildValue += 4 + iChopValue * (countCityFeatures((FeatureTypes)iJ) + 4);
 		}
@@ -5994,10 +7223,10 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 		{
 			int iRevealValue = 8;
 			iRevealValue += AI_bonusVal((BonusTypes)iJ, 1, true) * iCityCount * 2/3;
-		
-			BonusClassTypes eBonusClass = (BonusClassTypes)GC.getBonusInfo((BonusTypes)iJ).getBonusClassType();
-			int iBonusClassTotal = (viBonusClassRevealed[eBonusClass] + viBonusClassUnrevealed[eBonusClass]);
-		
+			BonusClassTypes eBonusClass = (BonusClassTypes)GC.getBonusInfo(
+					(BonusTypes)iJ).getBonusClassType();
+			int iBonusClassTotal = (viBonusClassRevealed[eBonusClass] +
+					viBonusClassUnrevealed[eBonusClass]);
 			//iMultiplier is basically a desperation value
 			//it gets larger as the AI runs out of options
 			//Copper after failing to get horses is +66%
@@ -6006,17 +7235,17 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 			int iMultiplier = 0;
 			if (iBonusClassTotal > 0)
 			{
-                iMultiplier = (viBonusClassRevealed[eBonusClass] - viBonusClassHave[eBonusClass]);
+                iMultiplier = (viBonusClassRevealed[eBonusClass] -
+						viBonusClassHave[eBonusClass]);
                 iMultiplier *= 100;
                 iMultiplier /= iBonusClassTotal;
                 
                 iMultiplier *= (viBonusClassRevealed[eBonusClass] + 1);
-                iMultiplier /= ((viBonusClassHave[eBonusClass] * iBonusClassTotal) + 1);
+                iMultiplier /= ((viBonusClassHave[eBonusClass] *
+						iBonusClassTotal) + 1);
 			}
-		
 			iMultiplier *= std::min(3, getNumCities());
 			iMultiplier /= 3;
-		
 			iRevealValue *= 100 + iMultiplier;
 			iRevealValue /= 100;
 
@@ -6053,13 +7282,18 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 	bool bEnablesUnitWonder;
 	iValue += AI_techUnitValue( eTech, iPathLength, bEnablesUnitWonder );
 	
-	if (bEnablesUnitWonder)
-	{
-		int iWonderRandom = ((bAsync) ? GC.getASyncRand().get(112, "AI Research Wonder Unit ASYNC") : GC.getGameINLINE().getSorenRandNum(112, "AI Research Wonder Unit"));
-		int iFactor = 100 * std::min(iCityCount, iCityTarget) / std::max(1, iCityTarget);
-		iValue += (iWonderRandom + (bCapitalAlone ? 56 : 0)) * iFactor / 100;
-
-		iRandomMax += 112 * iFactor / 100;
+	if (bEnablesUnitWonder
+			&& getTotalPopulation() > 5) // k146
+	{	// <k146>
+		const int iBaseRand = std::max(10, 110-30*iPathLength); // 80, 50, 20, 10
+		int iWonderRandom = (bAsync ?
+				GC.getASyncRand().get(iBaseRand, "AI Research Wonder Unit ASYNC") :
+				GC.getGameINLINE().getSorenRandNum(iBaseRand, "AI Research Wonder Unit"));
+		int iFactor = 100 * std::min(iCityCount, iCityTarget) /
+				std::max(1, iCityTarget);
+		iValue += (iWonderRandom + (bCapitalAlone ? 50 : 0)) * iFactor / 100;
+		iRandomMax += iBaseRand * iFactor / 100;
+		// </k146>
 		iRandomFactor += iWonderRandom * iFactor / 100;
 	}
 
@@ -6073,79 +7307,28 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 	iValue -= AI_obsoleteBuildingPenalty(eTech, bAsync); // K-Mod!
 
 	// K-Mod. Scale the random wonder bonus based on leader personality.
-	if (bEnablesWonder && iPathLength <= 1 && getTotalPopulation() > 5)
+	/*  k146 (note): the value of the building itself was already counted by
+		AI_techBuildingValue. This extra value is just because we like wonders. */
+	if (bEnablesWonder && getTotalPopulation() > 5)
 	{
-		const int iBaseRand = 300;
+		const int iBaseRand = std::max(10, 110-30*iPathLength); // 80, 50, 20, 10 (was 300)
 		int iWonderRandom = ((bAsync) ? GC.getASyncRand().get(iBaseRand, "AI Research Wonder Building ASYNC") : GC.getGameINLINE().getSorenRandNum(iBaseRand, "AI Research Wonder Building"));
 		int iFactor = 10 + GC.getLeaderHeadInfo(getPersonalityType()).getWonderConstructRand(); // note: highest value of iWonderConstructRand 50 in the default xml.
 		iFactor += AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1) ? 15 : 0;
 		iFactor += AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2) ? 10 : 0;
 		iFactor /= bAdvancedStart ? 4 : 1;
 		iFactor = iFactor * std::min(iCityCount, iCityTarget) / std::max(1, iCityTarget);
-		iValue += (200 + iWonderRandom) * iFactor / 100;
-
+		iFactor += 50; // k146: This puts iFactor around 100, roughly.
+		iValue += (40 // k146: was 200
+				+ iWonderRandom) * iFactor / 100;
 		iRandomMax += iBaseRand * iFactor / 100;
 		iRandomFactor += iWonderRandom * iFactor / 100;
 	}
 	// K-Mod end
 
-	/* ------------------ Project Value  ------------------ */
 	bool bEnablesProjectWonder = false;
-	for (int iJ = 0; iJ < GC.getNumProjectInfos(); iJ++)
-	{
-		const CvProjectInfo& kProjectInfo = GC.getProjectInfo((ProjectTypes)iJ); // K-Mod
-
-		if (kProjectInfo.getTechPrereq() == eTech)
-		{
-			iValue += 280;
-
-			if( (VictoryTypes)kProjectInfo.getVictoryPrereq() != NO_VICTORY )
-			{
-				if( !(kProjectInfo.isSpaceship()) )
-				{
-					// Apollo
-					iValue += (AI_isDoVictoryStrategy(AI_VICTORY_SPACE2) ? 580 : 28);
-				}
-				else
-				{
-					// Space ship parts (changed by K-Mod)
-					// Note: ideally this would take into account the production cost of each item,
-					//       and the total number / production of a completed space-ship, and a
-					//       bunch of other things. But I think this is good enough for now.
-					if (AI_isDoVictoryStrategy(AI_VICTORY_SPACE2))
-					{
-						iValue += 336;
-						if (AI_isDoVictoryStrategy(AI_VICTORY_SPACE3))
-						{
-							iValue += 336; // (additional)
-							iValue += kProjectInfo.getMaxTeamInstances() > 0
-								? kProjectInfo.getMaxTeamInstances() * 84
-								: 112;
-						}
-					}
-				}
-			}
-
-			if (iPathLength <= 1)
-			{
-				if (getTotalPopulation() > 5)
-				{
-					if (isWorldProject((ProjectTypes)iJ))
-					{
-						if (!(GC.getGameINLINE().isProjectMaxedOut((ProjectTypes)iJ)))
-						{
-							bEnablesProjectWonder = true;
-
-							if (bCapitalAlone)
-							{
-								iValue += 28;
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+	// k146: Code moved into auxiliary function
+	iValue += AI_techProjectValue(eTech, iPathLength, bEnablesProjectWonder);
 	if (bEnablesProjectWonder)
 	{
 		int iWonderRandom = ((bAsync) ? GC.getASyncRand().get(56, "AI Research Wonder Project ASYNC") : GC.getGameINLINE().getSorenRandNum(56, "AI Research Wonder Project"));
@@ -6182,15 +7365,26 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 				}
 				else if ((iK == COMMERCE_CULTURE) && AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1))
 				{
-					iTempValue *= 3;
+					iTempValue *= 2; // k146: was 3
 				}
 
 				iValue += iTempValue * iCityCount / 100;
 			}
 		}
 	}
-
-	if (bIsGoodProcess && bFinancialTrouble)
+	// <cdtw.3>
+	bool bHighUnitCost = false;
+	// After some testing and tweaking, this still doesn't seem useful:
+	/*if(bIsGoodProcess && !bFinancialTrouble && !isFocusWar() && getCurrentEra() < 2 &&
+			GET_TEAM(getTeam()).AI_getTotalWarOddsTimes100() <= 400) {
+		int iNetCommerce = 1 + getCommerceRate(COMMERCE_GOLD) +
+				getCommerceRate(COMMERCE_RESEARCH) + std::max(0, getGoldPerTurn());
+		int iUnitCost = calculateUnitCost();
+		if(iUnitCost * 20 > iNetCommerce)
+			bHighUnitCost = true;
+	}*/ // </cdtw.3>
+	if (bIsGoodProcess && (bFinancialTrouble
+			|| bHighUnitCost)) // cdtw.3
 	{
 		bool bHaveGoodProcess = false;
 		for (int iJ = 0; iJ < GC.getNumProcessInfos(); iJ++)
@@ -6206,14 +7400,15 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 		}
 		if (!bHaveGoodProcess)
 		{
-			iValue += 6*iCityCount;
+			iValue += (8*iCityCount // k146: was 6*...
+				/ (bHighUnitCost ? 2 : 1)); // cdtw.3
 		}
 	}
-
 	/* ------------------ Civic Value  ------------------ */
 	for (int iJ = 0; iJ < GC.getNumCivicInfos(); iJ++)
 	{
-		if (GC.getCivicInfo((CivicTypes)iJ).getTechPrereq() == eTech)
+		if (GC.getCivicInfo((CivicTypes)iJ).getTechPrereq() == eTech
+				 && !canDoCivics((CivicTypes)iJ)) // k146
 		{
 			CivicTypes eCivic = getCivics((CivicOptionTypes)(GC.getCivicInfo((CivicTypes)iJ).getCivicOptionType()));
 
@@ -6223,11 +7418,20 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 			if (iNewCivicValue > iCurrentCivicValue)
 			{
 				//iValue += std::min(2400, (2400 * (iNewCivicValue - iCurrentCivicValue)) / std::max(1, iCurrentCivicValue));
-				iValue += 3 * (iNewCivicValue - iCurrentCivicValue);
+				/*  <k146> This should be 4 *, but situational values like civics
+					are more interesting than static values */
+				iValue += 5 * (iNewCivicValue - iCurrentCivicValue);
+				/*  just a little something extra for the early game...
+					to indicate that we may have undervalued the civic's
+					long term appeal. */
+				iValue += 4 * std::min(iCityCount, iCityTarget); // </k146>
 			}
 
-			if (eCivic == GC.getLeaderHeadInfo(getPersonalityType()).getFavoriteCivic())
-				iValue += 20*iCityCount;
+			if (eCivic == GC.getLeaderHeadInfo(getPersonalityType()).getFavoriteCivic()) {
+				/*  k146: favourite civic is already taken into account in the
+					civic evaluation above. */
+				iValue += 6*iCityCount;
+			}
 			else
 				iValue += 4*iCityCount;
 		}
@@ -6386,7 +7590,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 				{
 					if (!(GC.getGameINLINE().isReligionSlotTaken((ReligionTypes)iJ)))
 					{
-						int iRoll = 400;
+						int iRoll = 150; // k146: was 400
 
 						if (!GC.getGame().isOption(GAMEOPTION_PICK_RELIGION))
 						{
@@ -6416,11 +7620,13 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 			{
 				if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1))
 				{
-					iReligionValue += 100;
+					iReligionValue += 50; // k146: was 100
 
 					if (countHolyCities() < 1)
 					{
-						iReligionValue += 200;
+						//iReligionValue += 200;
+						// k146: Replacing the line above
+						iReligionValue += (iCityCount > 1 ? 100 : 0);
 					}
 				}
 				else
@@ -6497,20 +7703,44 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 			}
 
 			//iValue += (kTechInfo.getFirstFreeTechs() * (200 + ((bCapitalAlone) ? 400 : 0) + ((bAsync) ? GC.getASyncRand().get(3200, "AI Research Free Tech ASYNC") : GC.getGameINLINE().getSorenRandNum(3200, "AI Research Free Tech"))));
-			// K-Mod
+			// K-Mod. Very rough evaluation of free tech.
 			if (kTechInfo.getFirstFreeTechs() > 0)
-			{
-				int iRoll = 1600;
-				iRoll *= 200 + iRaceModifier + (AI_getFlavorValue(FLAVOR_SCIENCE) ? 50 : 0);
-				iRoll /= 200;
-				if (iRaceModifier > 30 && iRaceModifier < 100) // save the free tech if we have no competition!
-					iValue += iRoll * (iRaceModifier-20) / 400; // this is potentially big.
+			{	// <k146>
+				//int iRoll = 1600; // previous base value - which we'll now calculate based on costs of currently researchable tech
+				int iBase = 100;
 
-				int iTempValue = (iRaceModifier >= 0 ? 196 : 98) + (bCapitalAlone ? 28 : 0); // some value regardless of race or random.
+				{ // cf. free tech in AI_buildingValue
+					int iTotalTechCost = 0;
+					int iMaxTechCost = 0;
+					int iTechCount = 0;
 
-				iTempValue += bAsync ? GC.getASyncRand().get(iRoll, "AI Research Free Tech ASYNC") : GC.getGameINLINE().getSorenRandNum(iRoll, "AI Research Free Tech");
+					for (TechTypes iI = (TechTypes)0; iI < GC.getNumTechInfos(); iI=(TechTypes)(iI+1))
+					{
+						if (canResearchBulk(iI, false, true))
+						{
+							int iTechCost = kTeam.getResearchCost(iI);
+							iTotalTechCost += iTechCost;
+							iTechCount++;
+							iMaxTechCost = std::max(iMaxTechCost, iTechCost);
+						}
+					}
+					if (iTechCount > 0)
+					{
+						int iTechValue =  ((iTotalTechCost / iTechCount) + iMaxTechCost)/2;
+
+						iBase += iTechValue * 20 / GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getResearchPercent();
+					}
+				} // I'm expecting iRoll to be ~600.
+				iBase *= 200 + iRaceModifier + (AI_getFlavorValue(FLAVOR_SCIENCE) ? 50 : 0);
+				iBase /= 200;
+				int iTempValue = iBase; // value for each free tech
+				if (iRaceModifier > 20 && iRaceModifier < 100) // save the free tech if we have no competition!
+					iTempValue += iBase * (iRaceModifier-20) / 200;
+				//int iTempValue = (iRaceModifier >= 0 ? 196 : 98) + (bCapitalAlone ? 28 : 0); // some value regardless of race or random.
+				iTempValue += bAsync ? GC.getASyncRand().get(iBase, "AI Research Free Tech ASYNC") : GC.getGameINLINE().getSorenRandNum(iBase, "AI Research Free Tech");
+				// </k146>
 				iValue += iTempValue * kTechInfo.getFirstFreeTechs();
-				iRandomMax += iRoll * kTechInfo.getFirstFreeTechs();
+				iRandomMax += iBase * kTechInfo.getFirstFreeTechs();
 			}
 			// K-Mod end
 		}
@@ -6518,7 +7748,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 
 	iValue += kTechInfo.getAIWeight();
 
-	if (!isHuman())
+	/*if (!isHuman())
 	{
 		int iFlavorValue = 0;
 		for (int iJ = 0; iJ < GC.getNumFlavorTypes(); iJ++)
@@ -6526,18 +7756,33 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 			iFlavorValue += AI_getFlavorValue((FlavorTypes)iJ) * kTechInfo.getFlavorValue(iJ) * 5;
 		}
 		iValue += iFlavorValue * std::min(iCityCount, iCityTarget) / std::max(1, iCityTarget);
+	}*/
+	// <advc.020> Replacing the above
+	double flavorFactor = 1.0;
+	for(int i = 0; i < GC.getNumFlavorTypes(); i++) {
+		flavorFactor += 0.22 * AI_getFlavorValue((FlavorTypes)i) *
+				kTechInfo.getFlavorValue(i) * std::min(iCityCount, iCityTarget) /
+				(100.0 * std::max(1, iCityTarget));
 	}
-
+	if(iValue > 0) {
+		/*  Don't want a higher overall value on account of flavor. Therefore,
+			divide by a sort of median flavor multiplier (1.03).
+			(Although e.g. tech-for-gold trades aren't made based on
+			AI_techValue, so I don't think this is crucial.)*/
+		iValue = ::round(iValue * flavorFactor / 1.03);
+	} // </advc.020>
 	if (kTechInfo.isRepeat())
 	{
 		iValue /= 4;
 	}
-
-	if (bIgnoreCost)
+	// <k146>
+	if (bFreeTech)
 	{
-		iValue *= (1 + (getResearchTurnsLeft((eTech), false)));
-		iValue /= 10;
-	}
+		iValue += getResearchTurnsLeft(eTech, false) / 5;
+		iValue *= 1000; // roughly normalise with usual value. (cf. code below)
+		iValue /= 10 * GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).
+				getResearchPercent();
+	} // </k146>
 	else
 	{
 		if (iValue > 0)
@@ -6551,49 +7796,20 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 			
 			
 			//iValue *= 100000;
-			iValue *= 2000; // K-Mod
+			iValue *= 1000; // k146
 			
             iValue /= (iTurnsLeft + (bCheapBooster ? 1 : 5) * iAdjustment);
 		}
 	}
 	
-	//Tech Whore								
+	//Tech Groundbreaker
 	//if (!GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_TRADING))
-	if (!GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_TRADING) && !isBarbarian()) // K-Mod
+	if (!GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_TRADING) && !isBarbarian() // K-Mod
+			 && iPathLength <= 1) // k146
 	{
 		if (kTechInfo.isTechTrading() || kTeam.isTechTrading())
 		{
-			/* original bts code
-			if (((bAsync) ? GC.getASyncRand().get(100, "AI Tech Whore ASYNC") : GC.getGameINLINE().getSorenRandNum(100, "AI Tech Whore")) < (GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_BROKERING) ? 20 : 10))
-			{
-				int iKnownCount = 0;
-				int iPossibleKnownCount = 0;
-				for (int iTeam = 0; iTeam < MAX_CIV_TEAMS; iTeam++)
-				{
-					if (GET_TEAM((TeamTypes)iTeam).isAlive())
-					{
-						if (GET_TEAM(getTeam()).isHasMet((TeamTypes)iTeam))
-						{
-							if (GET_TEAM((TeamTypes)iTeam).isHasTech(eTech))
-							{
-								iKnownCount++;
-							}
-						}
-						iPossibleKnownCount++;
-					}
-				}
-				
-				if (iKnownCount == 0)
-				{
-					if (iPossibleKnownCount > 2)
-					{
-						int iTradeModifier = std::min(150, 25 * (iPossibleKnownCount - 2));
-						iValue *= 100 + iTradeModifier;
-						iValue /= 100;
-					}
-				}
-			}*/
-			// K-Mod. We should either consider 'tech whoring' for all techs this turn, or none at all - otherwise it will just mess things up.
+			// K-Mod. We should either consider 'tech ground breaking' for all techs this turn, or none at all - otherwise it will just mess things up.
 			// Also, if the value adjustment isn't too big, it should be ok to do this most of the time.
 			if (AI_getStrategyRand(GC.getGameINLINE().getGameTurn()) % std::max(1, GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_TRADE_TECH)) == 0)
 			{
@@ -6611,7 +7827,8 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 					}
 				}
 
-				int iTradeModifier = iPotentialTrade * (GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_BROKERING) ? 20 : 12);
+				int iTradeModifier = iPotentialTrade * (GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_BROKERING) ?
+						30 : 15); // k146: was 20:12
 				iTradeModifier *= 200 - GC.getLeaderHeadInfo(getPersonalityType()).getTechTradeKnownPercent();
 				iTradeModifier /= 150;
 				iTradeModifier /= 1 + 2 * iAlreadyKnown;
@@ -6638,8 +7855,12 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost,
 **** K-Mod, 12/sep/10, Karadoc
 **** Use a random _factor_ at the end.
 ***/
-	iRandomFactor = ((bAsync) ? GC.getASyncRand().get(100, "AI Research factor ASYNC") : GC.getGameINLINE().getSorenRandNum(100, "AI Research factor"));
-	iValue *= (950 + iRandomFactor); // between 95% and 105%
+	iRandomFactor = (bAsync ? GC.getASyncRand().get(
+			200, "AI Research factor ASYNC") : // k146: was 100
+			GC.getGameINLINE().getSorenRandNum(
+			200, "AI Research factor")); // k146: was 100
+	// k146: was 950+...
+	iValue *= (900 + iRandomFactor); // between 90% and 110%
 	iValue /= 1000;
 /***
 **** END
@@ -6703,6 +7924,7 @@ int CvPlayerAI::AI_obsoleteBuildingPenalty(TechTypes eTech, bool bConstCache) co
 // one another, their individual evaluation will greatly undervalue them. Another example: catherals can't
 // be built in every city, but this function will evaluate them as if they could, thus overvaluing them.
 // But still, the original code was far worse - so I think I'll just tolerate such flaws for now.
+// The scale is roughly 4 = 1 commerce per turn.
 int CvPlayerAI::AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bEnablesWonder) const
 {
 	PROFILE_FUNC();
@@ -6762,7 +7984,7 @@ int CvPlayerAI::AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bE
 
 			if (relevant_cities.empty())
 			{
-				FAssertMsg(isBarbarian(), "No revelent cities in AI_techBuildingValue");
+				FAssertMsg(isBarbarian(), "No relevant cities in AI_techBuildingValue");
 				return 0;
 			}
 		}
@@ -6773,7 +7995,11 @@ int CvPlayerAI::AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bE
 		for (size_t i = 0; i < relevant_cities.size(); i++)
 		{
 			if (relevant_cities[i]->canConstruct(eLoopBuilding, false, false, true, true) ||
-				isNationalWonderClass(eClass)) // (ad-hoc). National wonders often require something which is unlocked by the same tech. So I'll disregard the construction requirements.
+				/*  (ad-hoc). National wonders often require something which is
+					unlocked by the same tech. So I'll disregard the construction
+					requirements. */
+				(isNationalWonderClass(eClass) &&
+				!relevant_cities[i]->isNationalWondersMaxed())) // advc.131
 			{
 				if (bLimitedBuilding) // TODO: don't assume 'limited' means 'only one'.
 					iBuildingValue = std::max(iBuildingValue, relevant_cities[i]->AI_buildingValue(eLoopBuilding, 0, 0, bConstCache));
@@ -6825,13 +8051,18 @@ int CvPlayerAI::AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bE
 			//
 			iTotalValue += iBuildingValue;
 		}
-	}
-
-	int iScale = AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS) ? 180 : 100;
-
-	if (getNumCities() == 1 && getCurrentEra() == GC.getGameINLINE().getStartEra())
-		iScale/=2; // I expect we'll want to be building mostly units until we get a second city.
-
+	} // <advc.131>
+	bool const bVeryEarly = (getNumCities() == 1 && getCapitalCity() != NULL &&
+			getCapitalCity()->getPopulation() < 4); // </advc.131>
+	int iScale = (AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS) 
+			&& !bVeryEarly) // advc.131
+			? 180 : 100;
+	/*if (getNumCities() == 1 && getCurrentEra() == GC.getGameINLINE().getStartEra())
+		iScale/=2;*/ // I expect we'll want to be building mostly units until we get a second city.
+	// <advc.131> Replacing the above
+	if(bVeryEarly)
+		iScale = ::round(iScale / (5.0 - getCapitalCity()->getPopulation()));
+	// </advc.131>
 	iTotalValue *= iScale;
 	iTotalValue /= 120;
 
@@ -6839,7 +8070,8 @@ int CvPlayerAI::AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bE
 }
 // K-Mod end
 
-// This function has been mostly rewriten for K-Mod
+// This function has been mostly rewritten for K-Mod
+// The final scale is roughly 4 = 1 commerce per turn.
 int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnablesUnitWonder) const
 {
 	PROFILE_FUNC();
@@ -6855,11 +8087,37 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 			bWarPlan = true;
 		}
 	}
-
-	bool bCapitalAlone = (GC.getGameINLINE().getElapsedGameTurns() > 0) ? AI_isCapitalAreaAlone() : false;
-	int iHasMetCount = kTeam.getHasMetCivCount(true);
-	int iCoastalCities = countNumCoastalCities();
-	CvCity* pCapitalCity = getCapitalCity();
+	// <k146> Get some basic info.
+	bool bLandWar = false;
+	bool bIsAnyAssault = false;
+	{
+		int iLoop;
+		for (CvArea* pLoopArea = GC.getMapINLINE().firstArea(&iLoop); pLoopArea != NULL; pLoopArea = GC.getMapINLINE().nextArea(&iLoop))
+		{
+			if (AI_isPrimaryArea(pLoopArea))
+			{
+				switch (pLoopArea->getAreaAIType(getTeam()))
+				{
+					case AREAAI_OFFENSIVE:
+					case AREAAI_DEFENSIVE:
+					case AREAAI_MASSING:
+						bLandWar = true;
+						break;
+					case AREAAI_ASSAULT:
+					case AREAAI_ASSAULT_MASSING:
+					case AREAAI_ASSAULT_ASSIST:
+						bIsAnyAssault = true;
+						break;
+					default:
+						break;
+				};
+			}
+		}
+	} // </k146>
+	int const iHasMetCount = kTeam.getHasMetCivCount(true);
+	int const iCoastalCities = countNumCoastalCities();
+	CvCity* const pCapitalCity = getCapitalCity();
+	bool const bCapitalAlone = AI_isCapitalAreaAlone();
 
 	int iValue = 0;
 
@@ -6872,14 +8130,18 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 			continue;
 
 		CvUnitInfo& kLoopUnit = GC.getUnitInfo(eLoopUnit);
-		iValue += 200;
-		int iTotalUnitValue = 0;
+		/*  <k146> Raw value moved here, so that it is adjusted by missing
+			techs / resources */
+		//iValue += 200;
+		int iTotalUnitValue = 200; // </k146>
 
 		int iNavalValue = 0;
 		int iOffenceValue = 0;
 		int iDefenceValue = 0;
+		/*  k146: Total military value. Offence and defence are added to this
+			after all roles have been considered. */
+		int iMilitaryValue = 0;
 		int iUtilityValue = 0;
-		// iMilitaryValue = iAttackValue + iDefenceValue;
 
 		if (GC.getUnitClassInfo(eLoopClass).getDefaultUnitIndex() != GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(eLoopClass))
 		{
@@ -6887,17 +8149,20 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 			iTotalUnitValue += 600;
 		}
 
-		if (kLoopUnit.getPrereqAndTech() == eTech || kTeam.isHasTech((TechTypes)kLoopUnit.getPrereqAndTech()) || canResearch((TechTypes)kLoopUnit.getPrereqAndTech()))
+		if (kLoopUnit.getPrereqAndTech() == eTech ||
+				kTeam.isHasTech((TechTypes)kLoopUnit.getPrereqAndTech()) ||
+				canResearch((TechTypes)kLoopUnit.getPrereqAndTech()))
 		{
 			// (note, we already checked that this tech is required for the unit.)
-
 			for (UnitAITypes eAI = (UnitAITypes)0; eAI < NUM_UNITAI_TYPES; eAI = (UnitAITypes)(eAI+1))
 			{
 				int iWeight = 0;
 				if (eAI == kLoopUnit.getDefaultUnitAIType())
 				{
 					// Score the default AI type as a direct competitor to the current best.
-					iWeight = std::min(100, 100 * AI_unitValue(eLoopUnit, eAI, 0) / std::max(1, AI_bestAreaUnitAIValue(eAI, 0)));
+					iWeight = std::min(250, 70 * // k146
+							AI_unitValue(eLoopUnit, eAI, 0) /
+							std::max(1, AI_bestAreaUnitAIValue(eAI, 0)));
 				}
 				else if (kLoopUnit.getUnitAIType(eAI)) // only consider types which are flagged in the xml. (??)
 				{
@@ -6906,12 +8171,13 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 					if (iTypeValue > 0)
 					{
 						int iOldValue = AI_bestAreaUnitAIValue(eAI, 0);
-						iWeight = std::min(100, 100 * (iTypeValue - iOldValue) / std::max(1, iOldValue));
+						iWeight = std::min(150, // k146
+								100 * (iTypeValue - iOldValue) / std::max(1, iOldValue));
 					}
 				}
 				if (iWeight <= 0)
 					continue;
-				FAssert(iWeight <= 100);
+				FAssert(iWeight <= 250); // k146
 
 				switch (eAI)
 				{
@@ -6929,29 +8195,53 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 
 				case UNITAI_ATTACK:
 					iOffenceValue = std::max(iOffenceValue, (bWarPlan ? 7 : 4)*iWeight + (AI_isDoStrategy(AI_STRATEGY_DAGGER) ? 5*iWeight : 0));
-					iTotalUnitValue += 1*iWeight;
+					iMilitaryValue += (bWarPlan ? 3 : 1)*iWeight; // k146
 					break;
 
 				case UNITAI_ATTACK_CITY:
 					iOffenceValue = std::max(iOffenceValue, (bWarPlan ? 8 : 4)*iWeight + (AI_isDoStrategy(AI_STRATEGY_DAGGER) ? 6*iWeight : 0));
-					iTotalUnitValue += 1*iWeight;
+					iMilitaryValue += (bWarPlan ? 1 : 0)*iWeight; // k146
 					break;
 
 				case UNITAI_COLLATERAL:
-					iDefenceValue = std::max(iDefenceValue, (bWarPlan ? 6 : 4)*iWeight + (AI_isDoStrategy(AI_STRATEGY_ALERT1) ? 2 : 0)*iWeight);
+					iDefenceValue = std::max(iDefenceValue, (bWarPlan ? 6 :
+							3) // k146: was 4
+							*iWeight + (AI_isDoStrategy(AI_STRATEGY_ALERT1) ? 2 : 0)*iWeight);
+					// k146:
+					iMilitaryValue += (bWarPlan ? 1 : 0)*iWeight + (bLandWar ? 2 : 0)*iWeight;
 					break;
 
 				case UNITAI_PILLAGE:
-					iOffenceValue = std::max(iOffenceValue, (bWarPlan ? 2 : 1)*iWeight);
+					iOffenceValue = std::max(iOffenceValue, (bWarPlan ?
+							4 : // k146: was 2
+							1)*iWeight);
+					// <k146>
+					iMilitaryValue += (bWarPlan ? 2 : 0)*iWeight +
+							(bLandWar ? 2 : 0)*iWeight; // </k146>
 					break;
 
 				case UNITAI_RESERVE:
-					iDefenceValue = std::max(iDefenceValue, (bWarPlan ? 2 : 1)*iWeight);
+					iDefenceValue = std::max(iDefenceValue, (bWarPlan ?
+							4 : 3 // k146: was 2:1
+							)*iWeight);
+					// <k146>
+					iMilitaryValue += (iHasMetCount > 0 ? 2 : 1)*iWeight +
+							(bWarPlan ? 2 : 0); // </k146>
 					break;
 
 				case UNITAI_COUNTER:
-					iDefenceValue = std::max(iDefenceValue, (bWarPlan ? 5 : 3)*iWeight);
-					iOffenceValue = std::max(iOffenceValue, (bWarPlan ? 2 : 1)*iWeight + (AI_isDoStrategy(AI_STRATEGY_DAGGER) ? 3*iWeight : 0));
+					iDefenceValue = std::max(iDefenceValue, (bWarPlan ?
+							6 // k146: was 5
+							: 3)*iWeight
+							// k146:
+							+ (AI_isDoStrategy(AI_STRATEGY_ALERT1) ? 2 : 0)*iWeight);
+					iOffenceValue = std::max(iOffenceValue, (bWarPlan ?
+							4 : // k146: was 2
+							1)*iWeight + (AI_isDoStrategy(AI_STRATEGY_DAGGER) ? 3*iWeight : 0));
+					// <k146>
+					iMilitaryValue += (AI_isDoStrategy(AI_STRATEGY_ALERT1) ||
+							bWarPlan ? 1 : 0)*iWeight + (bLandWar ? 1 : 0)*iWeight;
+					// </k146>
 					break;
 
 				case UNITAI_PARADROP:
@@ -6959,12 +8249,17 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 					break;
 
 				case UNITAI_CITY_DEFENSE:
-					iDefenceValue = std::max(iDefenceValue, (bWarPlan ? 7 : 4)*iWeight + (bCapitalAlone ? 2 : 4)*iWeight);
-					iTotalUnitValue += (iHasMetCount > 0 ? 4 : 0)*iWeight;
+					// k146:
+					iDefenceValue = std::max(iDefenceValue, (bWarPlan ? 8 : 6)*iWeight + (bCapitalAlone ? 0 : 2)*iWeight);
+					// <k146>
+					iMilitaryValue += (iHasMetCount > 0 ? 4 : 1)*iWeight +
+							(AI_isDoStrategy(AI_STRATEGY_ALERT1) ||
+							bWarPlan ? 3 : 0)*iWeight; // </k146>
 					break;
 
 				case UNITAI_CITY_COUNTER:
-					iDefenceValue = std::max(iDefenceValue, (bWarPlan ? 8 : 4)*iWeight);
+					iDefenceValue = std::max(iDefenceValue, (bWarPlan ? 8 :
+							5)*iWeight); // k146: was 4)*...
 					break;
 
 				case UNITAI_CITY_SPECIAL:
@@ -7002,8 +8297,12 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 				case UNITAI_SPY:
 					//iMilitaryValue += (bWarPlan ? 100 : 50);
 					// K-Mod
-					if (iHasMetCount > 0)
-						iUtilityValue = std::max(iUtilityValue, (bCapitalAlone ? 1 : 2)*iWeight/2);
+					if (iHasMetCount > 0) {
+						iUtilityValue = std::max(iUtilityValue, (bCapitalAlone ? 1 : 2)*iWeight/2
+								// <k146>
+								+ (AI_isDoStrategy(AI_STRATEGY_BIG_ESPIONAGE) ?
+								2 : 0)* iWeight); // </k146>
+					}
 					// K-Mod end
 					break;
 
@@ -7013,7 +8312,9 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 					if (!GC.getGameINLINE().isNoNukes())
 					{
 						iOffenceValue = std::max(iOffenceValue, (bWarPlan ? 2 : 1)*iWeight + (GC.getGameINLINE().isNukesValid() ? 2*AI_nukeWeight() : 0)*iWeight/100);
-						FAssert(!GC.getGameINLINE().isNukesValid() || AI_nukeWeight() > 0);
+						FAssert(!GC.getGameINLINE().isNukesValid() || 
+								kTeam.isCapitulated() || // advc.143b
+								AI_nukeWeight() > 0);
 					}
 					// K-Mod end
 					break;
@@ -7030,7 +8331,11 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 					if (iCoastalCities > 0)
 					{
 						//iMilitaryValue += ((bWarPlan) ? 200 : 100);
-						iOffenceValue = std::max(iOffenceValue, (bWarPlan ? 2 : 1) * (100 + kLoopUnit.getCollateralDamage()/2) * iWeight / 100);// K-Mod
+						// K-Mod
+						iOffenceValue = std::max(iOffenceValue,
+								(bWarPlan ? 2 : 1) *
+								(100 + kLoopUnit.getCollateralDamage()/2) *
+								iWeight / 100);
 					}
 					iNavalValue = std::max(iNavalValue, 1*iWeight);
 					break;
@@ -7057,7 +8362,10 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 					if (iCoastalCities > 0)
 					{
 						//iTotalUnitValue += (bCapitalAlone ? 18 : 6)*iWeight;
-						iUtilityValue = std::max(iUtilityValue, (6 + (bCapitalAlone ? 4 : 0) + (iHasMetCount > 0 ? 0 : 6))*iWeight);
+						iUtilityValue = std::max(iUtilityValue,
+								(4 + // k146: was 6+
+								(bCapitalAlone ? 4 : 0) + (iHasMetCount > 0 ? 0 :
+								4))*iWeight); // k146: was 6))...
 					}
 					break;
 
@@ -7072,7 +8380,9 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 				case UNITAI_SETTLER_SEA:
 					if (iCoastalCities > 0)
 					{
-						iUtilityValue = std::max(iUtilityValue, (bWarPlan || bCapitalAlone ? 1 : 2)*iWeight);
+						iUtilityValue = std::max(iUtilityValue,
+								// k146:
+								(bWarPlan ? 0 : 1)*iWeight + (bCapitalAlone ? 1 : 0)*iWeight);
 					}
 					iNavalValue = std::max(iNavalValue, 2*iWeight);
 					break;
@@ -7142,15 +8452,22 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 				}
 			}
 			iTotalUnitValue += iUtilityValue;
-
-			int iMilitaryValue = iOffenceValue + iDefenceValue;
-			if (kLoopUnit.getBombardRate() > 0) // block moved from UNITAI_ATTACK_CITY:
-			{
-				iMilitaryValue += 200;
-
+			// <advc.131> Haven't met anyone yet, and not yet sure if alone.
+			if(iHasMetCount <= 0 && !bCapitalAlone && !GC.getGameINLINE().
+					isOption(GAMEOPTION_RAGING_BARBARIANS)) {
+				iDefenceValue /= 2;
+				iOffenceValue /= 3;
+			} // </advc.131>
+			// <k146>
+			iMilitaryValue += iOffenceValue + iDefenceValue;
+			if (kLoopUnit.getBombardRate() > 0 &&
+					!AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS))
+			{	// block moved from UNITAI_ATTACK_CITY:
+				iMilitaryValue += std::min(iOffenceValue, 100); // was straight 200
+				// </k146>
 				if (AI_calculateTotalBombard(DOMAIN_LAND) == 0)
 				{
-					iMilitaryValue += 800;
+					iMilitaryValue += 600; // k146: was 800
 					if (AI_isDoStrategy(AI_STRATEGY_DAGGER))
 					{
 						iMilitaryValue += 400; // was 1000
@@ -7158,59 +8475,29 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 				}
 			}
 
-			/* if (kLoopUnit.getUnitAIType(UNITAI_COLLATERAL) && kLoopUnit.getCollateralDamage() > 0)
-			{
-				// note: the following boost is for land units only.
-				// Sea and air units get their collateral bonus in the switch section above.
-				int iOldValue = getTypicalUnitValue(UNITAI_COLLATERAL);
-				if (iOldValue > 0)
-				{
-					int iDelta = std::max(0, GC.getGameINLINE().AI_combatValue(eLoopUnit) - iOldValue);
-					iMilitaryValue += 150 * iDelta / iOldValue;
-					// this boost is a bit ad hoc. But so is the rest of the stuff in here!
-					// my goal with this component is to boost the value of canons.
-				}
-				else if (kLoopUnit.getDefaultUnitAIType() == getTypicalUnitValue(UNITAI_COLLATERAL))
-				{
-					// currently there are no units with this default AI; but anyway...
-					iMilitaryValue += 150;
-				}
-			} */ // I don't think we'll need this anymore.
-
 			if (kLoopUnit.getUnitAIType(UNITAI_ASSAULT_SEA) && iCoastalCities > 0)
 			{
 				int iAssaultValue = 0;
 				UnitTypes eExistingUnit = NO_UNIT;
 				if (AI_bestAreaUnitAIValue(UNITAI_ASSAULT_SEA, NULL, &eExistingUnit) == 0)
 				{
-					iAssaultValue += 250;
+					iAssaultValue += 100; // k146: was 250
 				}
 				else if( eExistingUnit != NO_UNIT )
 				{
-					iAssaultValue += 1000 * std::max(0, AI_unitImpassableCount(eLoopUnit) - AI_unitImpassableCount(eExistingUnit));
+					iAssaultValue += 500 * // k146: was 1000*
+							std::max(0, AI_unitImpassableCount(eLoopUnit) - AI_unitImpassableCount(eExistingUnit));
 
 					int iNewCapacity = kLoopUnit.getMoves() * kLoopUnit.getCargoSpace();
 					int iOldCapacity = GC.getUnitInfo(eExistingUnit).getMoves() * GC.getUnitInfo(eExistingUnit).getCargoSpace();
 
-					iAssaultValue += (800 * (iNewCapacity - iOldCapacity)) / std::max(1, iOldCapacity);
+					iAssaultValue += (200 * // k146: was 800*
+							(iNewCapacity - iOldCapacity)) / std::max(1, iOldCapacity);
 				}
 
 				if (iAssaultValue > 0)
 				{
-					int iLoop;
-					CvArea* pLoopArea;
-					bool bIsAnyAssault = false;
-					for(pLoopArea = GC.getMapINLINE().firstArea(&iLoop); pLoopArea != NULL; pLoopArea = GC.getMapINLINE().nextArea(&iLoop))
-					{
-						if (AI_isPrimaryArea(pLoopArea))
-						{
-							if (pLoopArea->getAreaAIType(getTeam()) == AREAAI_ASSAULT)
-							{
-								bIsAnyAssault = true;
-								break;
-							}
-						}
-					}
+					// k146: (bIsAnyAssault calculation removed; now done earlier)
 					if (bIsAnyAssault)
 					{
 						iTotalUnitValue += iAssaultValue * 4;
@@ -7224,17 +8511,17 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 
 			if (iNavalValue > 0)
 			{
-				if (getCapitalCity() != NULL)
+				if (pCapitalCity != NULL)
 				{
 					// BBAI TODO: A little odd ... naval value is 0 if have no colonies.
-					iNavalValue *= 2 * (getNumCities() - getCapitalCity()->area()->getCitiesPerPlayer(getID()));
+					iNavalValue *= 2 * (getNumCities() - pCapitalCity->area()->getCitiesPerPlayer(getID()));
 					iNavalValue /= getNumCities();
 
 					iTotalUnitValue += iNavalValue;
 				}
 			}
-
-			if (AI_totalUnitAIs((UnitAITypes)kLoopUnit.getDefaultUnitAIType()) == 0)
+			// k146: Disabled
+			/*if (AI_totalUnitAIs((UnitAITypes)kLoopUnit.getDefaultUnitAIType()) == 0)
 			{
 				// do not give bonus to seagoing units if they are worthless
 				if (iTotalUnitValue > 0)
@@ -7255,26 +8542,28 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 					iTotalUnitValue += 400;
 					iTotalUnitValue += ((GC.getGameINLINE().countCivTeamsAlive() - iHasMetCount) * 200);
 				}
-			}
+			}*/
 
 			if (kLoopUnit.getUnitAIType(UNITAI_SETTLER_SEA))
 			{
-				if (getCapitalCity() != NULL)
+				if (pCapitalCity != NULL)
 				{
 					UnitTypes eExistingUnit = NO_UNIT;
 					int iBestAreaValue = 0;
-					AI_getNumAreaCitySites(getCapitalCity()->getArea(), iBestAreaValue);
+					AI_getNumAreaCitySites(pCapitalCity->getArea(), iBestAreaValue);
 
 					//Early Expansion by sea
 					if (AI_bestAreaUnitAIValue(UNITAI_SETTLER_SEA, NULL, &eExistingUnit) == 0)
 					{
-						CvArea* pWaterArea = getCapitalCity()->waterArea();
+						CvArea* pWaterArea = pCapitalCity->waterArea();
 						if (pWaterArea != NULL)
 						{
 							int iBestOtherValue = 0;
-							AI_getNumAdjacentAreaCitySites(pWaterArea->getID(), getCapitalCity()->getArea(), iBestOtherValue);
+							AI_getNumAdjacentAreaCitySites(pWaterArea->getID(), pCapitalCity->getArea(), iBestOtherValue);
 
-							if (iBestAreaValue == 0)
+							if (iBestAreaValue == 0
+									// k146: Give us a chance to see our land first.
+									&& GC.getGameINLINE().getElapsedGameTurns() > 20)
 							{
 								iTotalUnitValue += 2000;
 							}
@@ -7356,20 +8645,10 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 				iTotalUnitValue += iMilitaryValue;
 			}
 		}
-
-		if (iPathLength <= 1)
-		{
-			if (getTotalPopulation() > 5)
-			{
-				if (isWorldUnitClass(eLoopClass))
-				{
-					if (!GC.getGameINLINE().isUnitClassMaxedOut(eLoopClass))
-					{
-						bEnablesUnitWonder = true;
-					}
-				}
-			}
-		}
+		// <k146>
+		if(isWorldUnitClass(eLoopClass) &&
+				!GC.getGameINLINE().isUnitClassMaxedOut(eLoopClass))
+			bEnablesUnitWonder = true; // </k146>
 		// K-Mod
 		// Decrease the value if we are missing other prereqs.
 		{
@@ -7393,6 +8672,8 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 		// Decrease the value if we don't have the resources
 		bool bMaybeMissing = false; // if we don't know if we have the bonus or not
 		bool bDefinitelyMissing = false; // if we can see the bonuses, and we know we don't have any.
+		// k146: if the 'maybe missing' resource is revealed by eTech
+		bool bWillReveal = false;
 
 		for (int iI = 0; iI < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); ++iI)
 		{
@@ -7414,6 +8695,12 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 					else
 					{
 						bMaybeMissing = true;
+						// <k146>
+						bDefinitelyMissing = false;
+						if (GC.getBonusInfo(ePrereqBonus).getTechReveal() == eTech)
+						{
+							bWillReveal = true;
+						} // </k146>
 					}
 				}
 			}
@@ -7429,6 +8716,12 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 			else
 			{
 				bMaybeMissing = true;
+				// <k146>
+				if (GC.getBonusInfo(ePrereqBonus).getTechReveal() == eTech)
+				{
+					// assuming that we aren't also missing an "or" prereq.
+					bWillReveal = true;
+				} // </k146>
 			}
 		}
 		if (bDefinitelyMissing)
@@ -7436,9 +8729,20 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 			iTotalUnitValue /= 4; // advc.131: was /=3
 		}
 		else if (bMaybeMissing)
-		{
-			iTotalUnitValue *= 2;
-			iTotalUnitValue /= 3;
+		{	// <k146>
+			if (bWillReveal)
+			{
+				// We're quite optimistic... mostly because otherwise we'd risk undervaluing axemen in the early game! (Kludge, sorry.)
+				/*  <advc.036> Need to reduce the value of military tech compared
+					with food tech in the early game. Was *=4 and /=5. */
+				iTotalUnitValue *= ::range(2 * getNumCities(), 1, 4);
+				iTotalUnitValue /= 6; // </advc.036>
+			}
+			else
+			{
+				//iTotalUnitValue = 2*iTotalUnitValue/3;
+				iTotalUnitValue = iTotalUnitValue/2; // better get the reveal tech first
+			} // </k146>
 		}
 		// K-Mod end
 
@@ -7446,11 +8750,71 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 	}
 
 	// K-Mod. Rescale to match AI_techValue
-	iValue *= 4 * getNumCities();
-	iValue /= 100;
+	iValue *= (4 * (getNumCities()
+			+ 2)); // k146
+	// k146: was /=100. This entire calculation is quite arbitrary. :(
+	iValue /= 120;
 	//
 	return iValue;
 }
+
+/*  <k146> A (very rough) estimate of the value of projects enabled by eTech.
+	Note: not a lot of thought has gone into this. I've basically just copied
+	the original code [from AI_techValue] and tweaked it a little bit.
+	The scale is roughly 4 = 1 commerce per turn. */
+int CvPlayerAI::AI_techProjectValue(TechTypes eTech, int iPathLength, bool& bEnablesProjectWonder) const
+{
+	int iValue = 0;
+	bEnablesProjectWonder = false;
+	for (int iJ = 0; iJ < GC.getNumProjectInfos(); iJ++)
+	{
+		const CvProjectInfo& kProjectInfo = GC.getProjectInfo((ProjectTypes)iJ);
+		// <advc.003> Compacted
+		if(kProjectInfo.getTechPrereq() != eTech)
+			continue;
+		if(getTotalPopulation() > 5 &&  isWorldProject((ProjectTypes)iJ) &&
+				!GC.getGameINLINE().isProjectMaxedOut((ProjectTypes)iJ))
+			bEnablesProjectWonder = true;
+		iValue += 280;
+		if((VictoryTypes)kProjectInfo.getVictoryPrereq() == NO_VICTORY)
+			continue; // </advc.003>
+		// Victory condition values need to be scaled by number of cities to compete with other tech.
+		// Total value with be roughly iBaseValue * cities.
+		int iBaseValue = 0;
+		if( !kProjectInfo.isSpaceship() )
+		{
+			// Apollo
+			iBaseValue += (AI_isDoVictoryStrategy(AI_VICTORY_SPACE2) ? 50 : 2);
+		}
+		else
+		{
+			// Space ship parts (changed by K-Mod)
+			// Note: ideally this would take into account the production cost of each item,
+			//       and the total number / production of a completed space-ship, and a
+			//       bunch of other things. But I think this is good enough for now.
+			if (AI_isDoVictoryStrategy(AI_VICTORY_SPACE2))
+			{
+				iBaseValue += 40;
+				if (AI_isDoVictoryStrategy(AI_VICTORY_SPACE3))
+				{
+					iBaseValue += 40;
+					if (kProjectInfo.getMaxTeamInstances() > 0)
+					{
+						iBaseValue += (kProjectInfo.
+								getMaxTeamInstances()-1) * 10;
+					}
+				}
+			}
+		}
+		if (iBaseValue > 0)
+		{
+			iValue += iBaseValue * (3 + std::max(getNumCities(),
+					GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).
+					getTargetNumCities()));
+		}
+	}
+	return iValue;
+} // </k146>
 
 int CvPlayerAI::AI_cultureVictoryTechValue(TechTypes eTech) const
 {
@@ -7610,24 +8974,17 @@ void CvPlayerAI::AI_chooseResearch()
 		}
 
 		if (eBestTech == NO_TECH)
-		{
-			int iAIResearchDepth;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      03/08/10                                jdog5000      */
-/*                                                                                              */
-/* Victory Strategy AI                                                                          */
-/************************************************************************************************/
-			iAIResearchDepth = AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3) ? 1 : 3;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-			
-			eBestTech = AI_bestTech((isHuman()) ? 1 : iAIResearchDepth);
+		{	// <k146>
+			int iResearchDepth = (isHuman() || isBarbarian() || AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3) || AI_isDoStrategy(AI_STRATEGY_ESPIONAGE_ECONOMY))
+				? 1
+				: 3;
+			eBestTech = AI_bestTech(iResearchDepth); // </k146>
 		}
 
 		if (eBestTech != NO_TECH)
-		{
-			pushResearch(eBestTech);
+		{	/*  advc.004x: Don't kill popup when AI chooses tech for human
+				(instead prod the human each turn to pick a tech him/herself) */
+			pushResearchBulk(eBestTech, false, false);
 		}
 	}
 }
@@ -7715,21 +9072,31 @@ bool CvPlayerAI::AI_isWillingToTalk(PlayerTypes ePlayer) const
 
 	// <advc.104i>
 	int atWarCounter = kOurTeam.AI_getAtWarCounter(TEAMID(ePlayer));
-	if(getWPAI.isEnabled() && AI_getMemoryCount(ePlayer,
-			MEMORY_STOPPED_TRADING_RECENT) <= 0) { // else RTT as in BtS
+	if(getWPAI.isEnabled()) {
 		if(GET_TEAM(getTeam()).AI_surrenderTrade(TEAMID(ePlayer)) == NO_DENIAL)
 			return true;
 		// 1 turn RTT and let the team leader handle peace negotiation
 		if(atWarCounter <= 1 || GET_TEAM(getTeam()).getLeaderID() != getID())
 			return false;
+		// valid=true: want to return true, but still need to check for embargo.
+		bool valid = false;
+		/*  Checking for a possible peace deal only serves as a convenience for
+			human players; no need to do it for AI-AI peace. */
 		if(!GET_PLAYER(ePlayer).isHuman())
-			return true;
-		/*  The EXE keeps calling this function when the diplo screen is
-			already open, and isPossiblePeaceDeal is an expensive function */
-		if(gDLL->isDiplomacy())
-			return true;
-		return kOurTeam.AI_surrenderTrade(TEAMID(ePlayer)) == NO_DENIAL ||
-				warAndPeaceAI().isPeaceDealPossible(ePlayer);
+			valid = true;
+		else {
+			/*  The EXE keeps calling this function when the diplo screen is
+				already open, and isPeaceDealPossible is an expensive function. */
+			if(gDLL->isDiplomacy())
+				return true;
+			valid = (kOurTeam.AI_surrenderTrade(TEAMID(ePlayer)) == NO_DENIAL ||
+					warAndPeaceAI().isPeaceDealPossible(ePlayer));
+		}
+		if(AI_getMemoryCount(ePlayer, MEMORY_STOPPED_TRADING_RECENT) > 0) {
+			if(!valid)
+				return false; // else RTT as in BtS
+		}
+		else return valid;
 	}
 	if(!getWPAI.isEnabled()) // </advc.104i>
 		// K-Mod
@@ -7864,15 +9231,15 @@ AttitudeTypes CvPlayerAI::AI_getAttitudeFromValue(int iAttitudeVal)
 	{
 		return ATTITUDE_FRIENDLY;
 	}
-	else if (iAttitudeVal >= 3)
+	else if (iAttitudeVal >= 4) // advc.148: was 3
 	{
 		return ATTITUDE_PLEASED;
 	}
-	else if (iAttitudeVal <= -10)
+	else if (iAttitudeVal <= -8) // advc.148: was -10
 	{
 		return ATTITUDE_FURIOUS;
 	}
-	else if (iAttitudeVal <= -3)
+	else if (iAttitudeVal <= -2) // advc.148: was -3
 	{
 		return ATTITUDE_ANNOYED;
 	}
@@ -7911,7 +9278,7 @@ void CvPlayerAI::AI_updateAttitudeCache(PlayerTypes ePlayer
 		m_aiAttitudeCache[ePlayer] = 0;
 		return;
 	}
-	// <advc.sha> Now computed in subroutines.
+	// <advc.sha> Now computed in subroutines
 	int iAttitude = AI_getFirstImpressionAttitude(ePlayer);
 	iAttitude += AI_getTeamSizeAttitude(ePlayer);
 	//iAttitude += AI_getLostWarAttitude(ePlayer);
@@ -7952,7 +9319,9 @@ void CvPlayerAI::AI_updateAttitudeCache(PlayerTypes ePlayer
 	iAttitude += AI_getWarAttitude(ePlayer, iAttitude);
 
 	m_aiAttitudeCache[ePlayer] = range(iAttitude, -100, 100);
-	if(updateWorstEnemy) GET_TEAM(getTeam()).AI_updateWorstEnemy(); // advc.130e
+	// <advc.130e>
+	if(updateWorstEnemy)
+		GET_TEAM(getTeam()).AI_updateWorstEnemy(); // </advc.130e>
 }
 
 // for making minor adjustments
@@ -8004,15 +9373,17 @@ int CvPlayerAI::AI_getAttitudeVal(PlayerTypes ePlayer, bool bForced) const
 		{
 			return -100;
 		}
-	}
-	if(isHuman()) return 0; // advc.130u
+	} // <advc.130u>
+	if(isHuman())
+		return 0; // </advc.130u>
 	return m_aiAttitudeCache[ePlayer];
 }
 
 
-int CvPlayerAI::AI_calculateStolenCityRadiusPlots(PlayerTypes ePlayer) const
+int CvPlayerAI::AI_calculateStolenCityRadiusPlots(PlayerTypes ePlayer,
+		bool onlyNonWorkable) const // advc.147
 {
-	PROFILE_FUNC(); // <advc.003> Refactored
+	PROFILE_FUNC(); // <advc.003>
 	FAssert(ePlayer != getID());
 	int iCount = 0; // </advc.003>
 	// <advc.147> Replacing the code below
@@ -8021,16 +9392,22 @@ int CvPlayerAI::AI_calculateStolenCityRadiusPlots(PlayerTypes ePlayer) const
 	int dummy=-1;
 	for(CvCity* cp = firstCity(&dummy); cp != NULL; cp = nextCity(&dummy)) {
 		CvCity const& c = *cp;
-		std::vector<CvPlot const*> radius;
+		std::vector<CvPlot*> radius;
 		::fatCross(*c.plot(), radius);
 		int perCityCount = 0;
-		int upperBound = std::max(6, c.getPopulation());
+		int upperBound = std::max(6,
+				(c.getPopulation() + c.getHighestPopulation()) / 2);
 		for(size_t i = 1; i < radius.size(); i++) {
 			CvPlot const* pp = radius[i];
 			if(pp == NULL)
 				continue;
 			CvPlot const& p = *pp;
-			if(p.getOwnerINLINE() == ePlayer) {
+			/*  Don't count tiles in the outer ring as stolen when borders
+				haven't expanded yet. */
+			if(::plotDistance(pp, c.plot()) > c.getCultureLevel())
+				continue;
+			if(p.getOwnerINLINE() == ePlayer
+					&& (!onlyNonWorkable || p.getCityRadiusCount() <= 1)) {
 				perCityCount++;
 				if(perCityCount >= upperBound)
 					break;
@@ -8083,33 +9460,79 @@ void CvPlayerAI::AI_updateCloseBorderAttitudeCache(PlayerTypes ePlayer)
 		m_aiCloseBordersAttitudeCache[ePlayer] = 0;
 		return;
 	} // </advc.130v>
-	int iPercent = std::min(60, (AI_calculateStolenCityRadiusPlots(ePlayer) * 3));
-
-	//if (GET_TEAM(getTeam()).AI_isLandTarget(GET_PLAYER(ePlayer).getTeam()))
+	// <advc.147>
+	int const iLand = getTotalLand();
+	if(iLand < 5) {
+		m_aiCloseBordersAttitudeCache[ePlayer] = 0;
+		return;
+	}
+	double theySteal_weight = 8;
+	double weSteal_weight = 4;
+	double adj_weight = 4;
+	// </advc.147>
+	// <advc.035>
+	double flip_weight = 6;
+	int weOwnCulturally = 0;
+	if(GC.getOWN_EXCLUSIVE_RADIUS() > 0) {
+		bool bWar = kOurTeam.isAtWar(eTheirTeam);
+		if(!bWar) {
+			std::vector<CvPlot*> contested;
+			::contestedPlots(contested, kOurTeam.getID(), eTheirTeam);
+			for(size_t i = 0; i < contested.size(); i++)
+				if(contested[i]->getSecondOwner() == getID())
+					weOwnCulturally++;
+		}
+		weSteal_weight = 0;
+		if(!bWar)
+			theySteal_weight *= 1.5;
+	} // </advc.035>
+	// <advc.147>
+	double const landFactor = ::dRange(GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).
+			getTargetNumCities() / std::sqrt((double)iLand), 0.3, 1.0);
+	theySteal_weight *= landFactor;
+	weSteal_weight *= landFactor;
+	adj_weight *= landFactor;
+	flip_weight *= landFactor; // advc.035
+	int theySteal = AI_calculateStolenCityRadiusPlots(ePlayer);
+	int weSteal = 0;
+	if(weSteal_weight > 0.01) { // A little costly; don't do it if we don't have to.
+		weSteal = GET_PLAYER(ePlayer).
+				AI_calculateStolenCityRadiusPlots(getID(), true);
+	} // </advc.147>
+	int iPercent = ::round(std::min(65.0, theySteal * theySteal_weight +
+			flip_weight * weOwnCulturally // advc.035
+			+ weSteal_weight * weSteal)); // advc.147
 	// K-Mod. I've rewritten AI_isLandTarget. The condition I'm using here is equivalent to the original function.
-	if (kOurTeam.AI_hasCitiesInPrimaryArea(eTheirTeam) && kOurTeam.AI_calculateAdjacentLandPlots(eTheirTeam) >= 8)
-	// K-Mod end
-	{
-		iPercent += 40;
-	}
-
-	// bbai
-	if( AI_isDoStrategy(AI_VICTORY_CONQUEST3) )
-	{
-		iPercent = std::min( 120, (3 * iPercent)/2 );
-	}
-	// bbai end
+	/*if (kOurTeam.AI_hasCitiesInPrimaryArea(eTheirTeam) && kOurTeam.AI_calculateAdjacentLandPlots(eTheirTeam) >= 8) // K-Mod end
+		iPercent += 40;*/
+	// <advc.147> Replacing the above
+	if (kOurTeam.AI_hasCitiesInPrimaryArea(eTheirTeam)) {
+		int adjLand = kOurTeam.AI_calculateAdjacentLandPlots(eTheirTeam);
+		if(adjLand > 5)
+			iPercent += std::min(35, ::round(adjLand * adj_weight));
+	} // </advc.147>
 	// <advc.130v>
-	if(TEAMREF(ePlayer).isCapitulated()) iPercent /= 2;
+	if(TEAMREF(ePlayer).isCapitulated())
+		iPercent /= 2; // </advc.130v>
 	/*  A bit messy to access other entries of the BordersAttitudeCache while
 		updating, but shouldn't have any noticeable side-effect. */
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 		CvPlayerAI const& civ = GET_PLAYER((PlayerTypes)i);
 		if(civ.isAlive() && !civ.isMinorCiv() && civ.getTeam() != getTeam() &&
 				GET_TEAM(civ.getTeam()).isVassal(TEAMID(ePlayer)) &&
-				GET_TEAM(civ.getTeam()).isCapitulated())
-			iPercent += (m_aiCloseBordersAttitudeCache[civ.getID()] * 100) / limit;
-	} // </advc.130v>
+				GET_TEAM(civ.getTeam()).isCapitulated()) {
+			int fromVassal = (m_aiCloseBordersAttitudeCache[civ.getID()] * 100) / limit;
+			if(fromVassal > 0)
+				iPercent += fromVassal;
+		}
+	}
+	iPercent = std::min(iPercent, 100); // </advc.130v>
+	// advc.147: Disabling this
+	// bbai
+	/*if( AI_isDoStrategy(AI_VICTORY_CONQUEST3) )
+	{
+		iPercent = std::min( 120, (3 * iPercent)/2 );
+	}*/
 	m_aiCloseBordersAttitudeCache[ePlayer] = (limit * iPercent) / 100;
 }
 // K-Mod end
@@ -8165,13 +9588,16 @@ int CvPlayerAI::AI_getPeaceAttitude(PlayerTypes ePlayer) const
 	if (GC.getLeaderHeadInfo(getPersonalityType()).getAtPeaceAttitudeDivisor() != 0)
 	{
 		/*  <advc.130a> Use the minimum of peace counter and has-met counter, but
-			reduce the dvisisor based on game progress, meaning that civs who meet
+			reduce the divisor based on game progress, meaning that civs who meet
 			late have to wait only 30 turns instead of 60. */
 		// As in BtS:
 		int metAndAtPeace = GET_TEAM(getTeam()).AI_getAtPeaceCounter(TEAMID(ePlayer));
+
 		metAndAtPeace = std::min(metAndAtPeace, GET_TEAM(getTeam()).AI_getHasMetCounter(TEAMID(ePlayer)));
+
 		// As in BtS:
 		int divisor = GC.getLeaderHeadInfo(getPersonalityType()).getAtPeaceAttitudeDivisor();
+
 		divisor = ::round(divisor * std::max(0.5, 1 -
 				GC.getGameINLINE().gameTurnProgress()));
 		/*  Rounded down as in BtS; at least 'divisor' turns need to pass before
@@ -8404,7 +9830,7 @@ int CvPlayerAI::defensivePactAttitude(PlayerTypes ePlayer, bool vassalPacts) con
 				(!vassalPacts && TEAMREF(ePlayer).isDefensivePact(t.getID()) &&
 				!ourTeam.isDefensivePact(t.getID()) &&
 				ourTeam.getPower(true) / (double)t.getPower(true) > 0.7)) {
-			// Score up to -4 per pact - too much? Cap at ATTITUDE_FRIENDLY - 2?
+			// Score up to -4 per pact -- too much? Cap at ATTITUDE_FRIENDLY-2?
 			score += std::max(0, std::min((int)ATTITUDE_FRIENDLY - 1,
 					(GC.getLeaderHeadInfo(getPersonalityType()).
 					getDeclareWarThemRefuseAttitudeThreshold() + 1) -
@@ -8429,7 +9855,7 @@ double CvPlayerAI::expansionistHate(PlayerTypes civId) const {
 	double powRatio = GET_TEAM(getTeam()).getPower(true) / (double)
 			TEAMREF(civId).getPower(true);
 	r = std::min(r, powRatio);
-	return dRange(r, 0.0, 1.0);
+	return ::dRange(r, 0.0, 1.0);
 } // </advc.130w>
 
 int CvPlayerAI::AI_getShareWarAttitude(PlayerTypes ePlayer) const
@@ -8545,8 +9971,9 @@ int CvPlayerAI::AI_getRivalTradeAttitude(PlayerTypes ePlayer) const {
 		/*dualDealCounter += std::min(20.0,
 				std::min((double)ourTeam.AI_getHasMetCounter(theirId),
 				GET_PLAYER(ePlayer).AI_getBonusTradeCounter(enemyId) / 2.0));*/
-		// advc.130v: Blame it on the master instead
-		if(TEAMREF(ePlayer).isCapitulated()) dualDealCounter /= 2;
+		// <advc.130v> Blame it on the master instead
+		if(TEAMREF(ePlayer).isCapitulated())
+			dualDealCounter /= 2; // </advc.130v>
 		/*  Our enemy could be liked by everyone else, but we can't afford to hate
 			everyone. */
 		int const counterBound = 15;
@@ -8571,9 +9998,13 @@ int CvPlayerAI::AI_getRivalTradeAttitude(PlayerTypes ePlayer) const {
 		for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 			CvTeamAI const& t = GET_TEAM((TeamTypes)i);
 			if(t.isCapitulated() && t.getID() != getTeam() &&
+					enemyId != TEAMID(ePlayer) && // Master mustn't be the enemy
 					t.isVassal(TEAMID(ePlayer)) && t.isAlive() && !t.isMinorCiv() &&
-					t.isOpenBorders(enemyId))
-				vassalDealCounter += t.AI_getOpenBordersCounter(enemyId) / 2;
+					t.isOpenBorders(enemyId)) {
+				int fromVassal = t.AI_getOpenBordersCounter(enemyId) / 2;
+				if(fromVassal > 0)
+					vassalDealCounter += fromVassal;
+			}
 		}
 		dualDealCounter += std::min(vassalDealCounter, 10);
 		// </advc.130v>
@@ -8608,7 +10039,7 @@ int CvPlayerAI::AI_getMemoryAttitude(PlayerTypes ePlayer, MemoryTypes eMemory) c
 			return 0;
 	} // </advc.130s>
 	// <advc.145>
-	// Fav. civic and religion are based on LeaderType, not PersonalityType
+	// Fav. civic and religion are based on LeaderType, not PersonalityType.
 	CvLeaderHeadInfo const& lh = GC.getLeaderHeadInfo(getLeaderType());
 	if(eMemory == MEMORY_ACCEPTED_CIVIC) {
 		CivicTypes fav = (CivicTypes)lh.getFavoriteCivic();
@@ -8617,9 +10048,8 @@ int CvPlayerAI::AI_getMemoryAttitude(PlayerTypes ePlayer, MemoryTypes eMemory) c
 			return 0;
 	}
 	if(eMemory == MEMORY_ACCEPTED_RELIGION) {
-		ReligionTypes fav = (ReligionTypes)lh.getFavoriteReligion();
-		if(fav != NO_RELIGION && (GET_PLAYER(ePlayer).getStateReligion() != fav ||
-				getStateReligion() != fav))
+		if(isStateReligion() && GET_PLAYER(ePlayer).getStateReligion() !=
+				getStateReligion())
 			return 0;
 	}
 	if(eMemory == MEMORY_DENIED_CIVIC) {
@@ -8628,17 +10058,17 @@ int CvPlayerAI::AI_getMemoryAttitude(PlayerTypes ePlayer, MemoryTypes eMemory) c
 			return 0;
 	}
 	if(eMemory == MEMORY_DENIED_RELIGION) {
-		ReligionTypes fav = (ReligionTypes)lh.getFavoriteReligion();
-		if(fav == NO_RELIGION || GET_PLAYER(ePlayer).getStateReligion() == fav ||
-				getStateReligion() != fav)
+		if(!isStateReligion() || GET_PLAYER(ePlayer).getStateReligion() ==
+				getStateReligion())
 			return 0;
 	} // </advc.145>
 	/* <advc.130j> Was 100. Effect halved b/c diplo actions now counted twice.
 		195 (instead of 200) to make sure that 0.5 gets rounded up. BtS rounded down,
 		but this rarely mattered. Now rounding down would often result in no effect
 		on relations. */
-	double div = 195; // Finer granularity for DoW:
-	if(eMemory == MEMORY_DECLARED_WAR) div = 295; // </advc.130j>
+	double div = 195;
+	if(eMemory == MEMORY_DECLARED_WAR) // Finer granularity for DoW
+		div = 295; // </advc.130j>
 	return ::round((AI_getMemoryCount(ePlayer, eMemory) *
 			GC.getLeaderHeadInfo(getPersonalityType()).
 			getMemoryAttitudePercent(eMemory)) / div); 
@@ -8662,19 +10092,24 @@ int CvPlayerAI::AI_getColonyAttitude(PlayerTypes ePlayer) const
 int CvPlayerAI::AI_getFirstImpressionAttitude(PlayerTypes ePlayer) const {
 
 	CvPlayerAI& kPlayer = GET_PLAYER(ePlayer);
-	int iAttitude = GC.getLeaderHeadInfo(getPersonalityType()).getBaseAttitude();
-	iAttitude += GC.getHandicapInfo(kPlayer.getHandicapType()).getAttitudeChange();
+	CvHandicapInfo& h = GC.getHandicapInfo(kPlayer.getHandicapType());
+	CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(getPersonalityType());
+	int iAttitude = lh.getBaseAttitude();
+	iAttitude += h.getAttitudeChange();
 	if(!kPlayer.isHuman()) {
-		// <advc.130b> New variable; initial value from original code.
-		int peaceWeightModifier = 4 - abs(AI_getPeaceWeight() - GET_PLAYER(ePlayer).AI_getPeaceWeight());
-		if(peaceWeightModifier > 0)
-			peaceWeightModifier++;
-		else peaceWeightModifier--;
-		/* Halve the modifier. Increasing the absolute value (above) is equivalent
-		   to rounding up. */
-		peaceWeightModifier /= 2;
-        iAttitude += peaceWeightModifier; // </advc.130b>
-		iAttitude += std::min(GC.getLeaderHeadInfo(getPersonalityType()).getWarmongerRespect(), GC.getLeaderHeadInfo(kPlayer.getPersonalityType()).getWarmongerRespect());
+		// <advc.130b>
+		// Original peace weight modifier
+		int peaceWeightModifier = 4 - abs(AI_getPeaceWeight() -
+				kPlayer.AI_getPeaceWeight());
+		double personalityModifier = peaceWeightModifier * 0.45;
+		// Original warmonger respect modifier
+		int respectModifier = std::min(lh.getWarmongerRespect(),
+				GC.getLeaderHeadInfo(kPlayer.getPersonalityType()).
+				getWarmongerRespect());
+		personalityModifier += respectModifier * 0.75;
+		iAttitude += ::round(personalityModifier);
+		iAttitude = ::range(iAttitude, -3, 3); // </advc.130b>
+		iAttitude += h.getAIAttitudeChange(); // advc.148
 	}
     return iAttitude;
 }
@@ -8708,7 +10143,8 @@ int CvPlayerAI::AI_getRankDifferenceAttitude(PlayerTypes ePlayer) const {
 		   near 0 when greater than 50% of nCivs. */
 		multiplier = 1 - (2.0 * std::abs(
 				iRankDifference - 0.35 * maxRankDifference) / maxRankDifference);
-		if(multiplier < 0) multiplier = 0;
+		if(multiplier < 0)
+			multiplier = 0;
 	}
 	/* If we're ranked better, as in BtS, the modifier is proportional
 	   to the relative rank difference. */
@@ -8724,7 +10160,10 @@ int CvPlayerAI::AI_getRankDifferenceAttitude(PlayerTypes ePlayer) const {
 			g.getPlayerScore(ePlayer) - g.getPlayerScore(getID()) < 25))
 		return 0;
 	// Don't like them if we're still in the first era
-	if(r > 0 && getCurrentEra() <= g.getStartEra())
+	if(r > 0 && (getCurrentEra() <= g.getStartEra() ||
+			GET_PLAYER(ePlayer).AI_isDoVictoryStrategyLevel3()))
+		return 0;
+	if(r < 0 && AI_isDoVictoryStrategyLevel3() && !GET_PLAYER(ePlayer).AI_isDoVictoryStrategyLevel4())
 		return 0;
 	return r;
 } // </advc.130c>
@@ -8745,9 +10184,11 @@ int CvPlayerAI::knownRankDifference(PlayerTypes otherId) const {
 	int ourRank = g.getPlayerRank(getID());
 	int theirRank = g.getPlayerRank(otherId);
 	int delta = ourRank - theirRank;
-	// We know who's ranked better, but (perhaps) not the exact rank difference
-	if(delta < -1) delta = -1;
-	if(delta > 1) delta = 1;
+	// We know who's ranked better, but (perhaps) not the exact rank difference.
+	if(delta < -1)
+		delta = -1;
+	if(delta > 1)
+		delta = 1;
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 		PlayerTypes thirdId = (PlayerTypes)i;
 		CvPlayer const& thirdCiv = GET_PLAYER(thirdId);
@@ -8766,66 +10207,61 @@ int CvPlayerAI::knownRankDifference(PlayerTypes otherId) const {
 PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, VoteSourceTypes eVoteSource, bool bPropose)
 {
 	PROFILE_FUNC();
-
-	CivicTypes eBestCivic;
-	int iOpenCount;
-	int iClosedCount;
-	int iValue;
-	int iBestValue;
-	int iI;
-
+	// <advc.003> Moved the other declarations
+	int iValue=0;
+	int iI=0;
+	// Replacing getGame calls throughout this function
+	CvGame& g = GC.getGame(); // </advc.003>
 	VoteTypes eVote = kVoteData.eVote;
 
 	CvTeamAI& kOurTeam = GET_TEAM(getTeam()); // K-Mod
 
-	if (GC.getGameINLINE().isTeamVote(eVote))
+	if (g.isTeamVote(eVote))
 	{
-		if (GC.getGameINLINE().isTeamVoteEligible(getTeam(), eVoteSource))
+		if (g.isTeamVoteEligible(getTeam(), eVoteSource))
 		{
 			return (PlayerVoteTypes)getTeam();
-		}
-
-		if (GC.getVoteInfo(eVote).isVictory())
-		{
-			iBestValue = 7;
-		}
-		else
-		{
-			iBestValue = 0;
-		}
-
+		} // <advc.148>
+		int iBestValue = 0;
+		if(GC.getVoteInfo(eVote).isVictory())
+			iBestValue = 9; // was 7 </advc.148>
 		PlayerVoteTypes eBestTeam = PLAYER_VOTE_ABSTAIN;
 		int secondBestVal = iBestValue; // advc.115b
 		for (iI = 0; iI < MAX_TEAMS; iI++)
-		{
-			if (GET_TEAM((TeamTypes)iI).isAlive())
+		{	// <advc.003>
+			if(!GET_TEAM((TeamTypes)iI).isAlive() ||
+					!g.isTeamVoteEligible((TeamTypes)iI, eVoteSource))
+				continue; // </advc.003>
+			if (kOurTeam.isVassal((TeamTypes)iI))
 			{
-				if (GC.getGameINLINE().isTeamVoteEligible((TeamTypes)iI, eVoteSource))
-				{
-					if (kOurTeam.isVassal((TeamTypes)iI))
-					{
-						return (PlayerVoteTypes)iI;
-					}
-
-					iValue = kOurTeam.AI_getAttitudeVal((TeamTypes)iI);
-					if(iValue > secondBestVal) { // advc.115b
-						if (iValue > iBestValue)
-						{
-							secondBestVal = iBestValue; // advc.115b
-							iBestValue = iValue;
-							eBestTeam = (PlayerVoteTypes)iI;
-						}
-						else secondBestVal = iValue; // advc.115b
-					}
-				}
+				return (PlayerVoteTypes)iI;
 			}
-		}
-		if(iBestValue == secondBestVal) return PLAYER_VOTE_ABSTAIN; // advc.115b
+
+			iValue = kOurTeam.AI_getAttitudeVal((TeamTypes)iI);
+			/*  <advc.130v> Capitulated vassals don't just vote for
+				their master, but also for civs that the master likes.
+				(Human masters aren't going to like anyone.) */
+			if(kOurTeam.isCapitulated()) {
+				iValue = GET_TEAM(kOurTeam.getMasterTeam()).
+						AI_getAttitudeVal((TeamTypes)iI);
+			} // </advc.130v>
+			if(iValue > secondBestVal) { // advc.115b
+				if (iValue > iBestValue)
+				{
+					secondBestVal = iBestValue; // advc.115b
+					iBestValue = iValue;
+					eBestTeam = (PlayerVoteTypes)iI;
+				}
+				else secondBestVal = iValue; // advc.115b
+			}
+		} // <advc.115b>
+		if(iBestValue == secondBestVal)
+			return PLAYER_VOTE_ABSTAIN; // </advc.115b>
 		return eBestTeam;
 	}
 	else
 	{
-		TeamTypes eSecretaryGeneral = GC.getGameINLINE().getSecretaryGeneral(eVoteSource);
+		TeamTypes eSecretaryGeneral = g.getSecretaryGeneral(eVoteSource);
 
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      12/30/08                                jdog5000      */
@@ -8846,13 +10282,22 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 */
 		// Remove blanket auto approval for friendly secretary
 		bool bFriendlyToSecretary = false;
+		// dlph.25: (The bRepeal code is really advc code)
+		bool bRepeal = false;
 		if (!bPropose)
-		{
+		{	// dlph.25:
+			bRepeal = (g.getVoteOutcome(eVote) == PLAYER_VOTE_YES);
 			if (eSecretaryGeneral != NO_TEAM)
 			{
-				if (eSecretaryGeneral == getTeam())
-				{
-					return PLAYER_VOTE_YES;
+				if (eSecretaryGeneral == getTeam()
+						// <advc.130v>
+						|| (GET_TEAM(getTeam()).isVassal(eSecretaryGeneral)
+						&& GET_TEAM(getTeam()).isCapitulated())) // </advc.130v>
+				{	// <dlph.25>
+					if(bRepeal)
+						return PLAYER_VOTE_NO;
+					else // </dlph.25>
+						return PLAYER_VOTE_YES;
 				}
 				else
 				{
@@ -8876,7 +10321,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 				{
 					if (!isCivic((CivicTypes)iI))
 					{
-						eBestCivic = AI_bestCivic((CivicOptionTypes)(GC.getCivicInfo((CivicTypes)iI).getCivicOptionType()));
+						CivicTypes eBestCivic = AI_bestCivic((CivicOptionTypes)(GC.getCivicInfo((CivicTypes)iI).getCivicOptionType()));
 
 						if (eBestCivic != NO_CIVIC)
 						{
@@ -8896,7 +10341,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 									if (iBestCivicValue > ((iNewCivicValue * (140 + (GC.getGame().getSorenRandNum(120, "AI Erratic Defiance (Force Civic)"))) / 100)))
 */
 								// Increase threshold of voting for friend's proposal
-								if( bFriendlyToSecretary )
+								if (bFriendlyToSecretary)
 								{
 									iNewCivicValue *= 6;
 									iNewCivicValue /= 5;
@@ -8907,7 +10352,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 									bValid = false;
 
 									// Increase odds of defiance, particularly on AggressiveAI
-									if (iBestCivicValue > ((iNewCivicValue * (140 + (GC.getGame().getSorenRandNum((GC.getGameINLINE().isOption(GAMEOPTION_AGGRESSIVE_AI) ? 60 : 80), "AI Erratic Defiance (Force Civic)"))) / 100)))
+									if (iBestCivicValue > ((iNewCivicValue * (140 + (g.getSorenRandNum((g.isOption(GAMEOPTION_AGGRESSIVE_AI) ? 60 : 80), "AI Erratic Defiance (Force Civic)"))) / 100)))
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
@@ -8932,14 +10377,17 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 /*                                                                                              */
 /* Diplomacy AI                                                                                 */
 /************************************************************************************************/
-				if( bFriendlyToSecretary )
-				{
-					return PLAYER_VOTE_YES;
+				if (bFriendlyToSecretary)
+				{	// <dlph.25>
+					if(bRepeal)
+						return PLAYER_VOTE_NO;
+					else // </dlph.25>
+						return PLAYER_VOTE_YES;
 				}
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
-				if (getNumCities() > ((GC.getGameINLINE().getNumCities() * 2) / (GC.getGameINLINE().countCivPlayersAlive() + 1)))
+				if (getNumCities() > ((g.getNumCities() * 2) / (g.countCivPlayersAlive() + 1)))
 				{
 					bValid = false;
 				}
@@ -8954,7 +10402,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 				iVoteBanThreshold += kOurTeam.getNukeInterception() / 3;
 				iVoteBanThreshold += GC.getLeaderHeadInfo(getPersonalityType()).getBuildUnitProb();
 				iVoteBanThreshold *= std::max(1, GC.getLeaderHeadInfo(getPersonalityType()).getWarmongerRespect());
-				if (GC.getGameINLINE().isOption(GAMEOPTION_AGGRESSIVE_AI))
+				if (g.isOption(GAMEOPTION_AGGRESSIVE_AI))
 				{
 					iVoteBanThreshold *= 2;
 				}
@@ -8982,28 +10430,34 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 /*                                                                                              */
 /* Diplomacy AI                                                                                 */
 /************************************************************************************************/
-				if( bFriendlyToSecretary )
-				{
-					iVoteBanThreshold *= 2;
-					iVoteBanThreshold /= 3;
+				if (bFriendlyToSecretary)
+				{	// <dlph.25>
+					if(bRepeal) {
+						iVoteBanThreshold *= 3;
+						iVoteBanThreshold /= 2;
+					}
+					else { // </dlph.25>
+						iVoteBanThreshold *= 2;
+						iVoteBanThreshold /= 3;
+					}
 				}
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
 
-				bValid = (GC.getGameINLINE().getSorenRandNum(100, "AI nuke ban vote") > iVoteBanThreshold);
+				bValid = (g.getSorenRandNum(100, "AI nuke ban vote") > iVoteBanThreshold);
 				
 				if (AI_isDoStrategy(AI_STRATEGY_OWABWNW))
 				{
 					bValid = false;
 				}
-				else if ((kOurTeam.getNumNukeUnits() / std::max(1, kOurTeam.getNumMembers())) < (GC.getGameINLINE().countTotalNukeUnits() / std::max(1, GC.getGameINLINE().countCivPlayersAlive())))
+				else if ((kOurTeam.getNumNukeUnits() / std::max(1, kOurTeam.getNumMembers())) < (g.countTotalNukeUnits() / std::max(1, g.countCivPlayersAlive())))
 				{
 					bValid = false;
 				}
 				if (!bValid && AI_getNumTrainAIUnits(UNITAI_ICBM) > 0)
 				{
-					if (GC.getGame().getSorenRandNum(AI_isDoStrategy(AI_STRATEGY_OWABWNW) ? 2 : 3, "AI Erratic Defiance (No Nukes)") == 0)
+					if (g.getSorenRandNum(AI_isDoStrategy(AI_STRATEGY_OWABWNW) ? 2 : 3, "AI Erratic Defiance (No Nukes)") == 0)
 					{
 						bDefy = true;
 					}
@@ -9020,16 +10474,19 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 /*                                                                                              */
 /* Diplomacy AI                                                                                 */
 /************************************************************************************************/
-				if( bFriendlyToSecretary )
-				{
-					return PLAYER_VOTE_YES;
+				if (bFriendlyToSecretary)
+				{	// <dlph.25>
+					if(bRepeal)
+						return PLAYER_VOTE_NO;
+					else // </dlph.25>
+						return PLAYER_VOTE_YES;
 				}
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
 
-				iOpenCount = 0;
-				iClosedCount = 0;
+				int iOpenCount = 0;
+				int iClosedCount = 0;
 
 				for (iI = 0; iI < MAX_TEAMS; iI++)
 				{
@@ -9070,9 +10527,12 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 /*                                                                                              */
 /* Diplomacy AI                                                                                 */
 /************************************************************************************************/
-				if( bFriendlyToSecretary )
-				{
-					return PLAYER_VOTE_YES;
+				if (bFriendlyToSecretary)
+				{	// <dlph.25>
+					if(bRepeal)
+						return PLAYER_VOTE_NO;
+					else // </dlph.25>
+						return PLAYER_VOTE_YES;
 				}
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
@@ -9102,9 +10562,12 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 /*                                                                                              */
 /* Diplomacy AI                                                                                 */
 /************************************************************************************************/
-				if( bFriendlyToSecretary )
-				{
-					return PLAYER_VOTE_YES;
+				if (bFriendlyToSecretary)
+				{	// <dlph.25>
+					if(bRepeal)
+						return PLAYER_VOTE_NO;
+					else // </dlph.25>
+						return PLAYER_VOTE_YES;
 				}
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
@@ -9144,7 +10607,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 
 				int iSuccessScale = GET_PLAYER(kVoteData.ePlayer).getNumMilitaryUnits() * GC.getDefineINT("WAR_SUCCESS_ATTACKING") / 5;
 
-				bool bAggressiveAI = GC.getGameINLINE().isOption(GAMEOPTION_AGGRESSIVE_AI);
+				bool bAggressiveAI = g.isOption(GAMEOPTION_AGGRESSIVE_AI);
 				if (bAggressiveAI)
 				{
 					iSuccessScale *= 3;
@@ -9254,7 +10717,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 					if(bLosingBig &&
 						/*  advc.104n: The BtS code can have us randomly vote
 							against our own proposal. */
-						::hash(GC.getGameINLINE().getGameTurn(), getID()) < prPeace)
+						::hash(g.getGameTurn(), getID()) < prPeace)
 						//(GC.getGame().getSorenRandNum(iPeaceRand, "AI Force Peace to avoid loss") || bPropose) )
 					{
 						// Non-warmongers want peace to escape loss
@@ -9280,7 +10743,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 						// Can we continue this war with defiance penalties?
 						if( !AI_isFinancialTrouble() )
 						{
-							if (!GC.getGame().getSorenRandNum(iPeaceRand, "AI defy Force Peace!"))
+							if (!g.getSorenRandNum(iPeaceRand, "AI defy Force Peace!"))
 							{
 								bDefy = true;
 							}
@@ -9318,7 +10781,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 									int iDefyRand = GC.getLeaderHeadInfo(getPersonalityType()).getBasePeaceWeight();
 									iDefyRand /= (bAggressiveAI ? 2 : 1);
 
-									if (GC.getGame().getSorenRandNum(iDefyRand, "AI Erratic Defiance (Force Peace)") == 0)
+									if (g.getSorenRandNum(iDefyRand, "AI Erratic Defiance (Force Peace)") == 0)
 									{
 										bDefy = true;
 									}
@@ -9408,7 +10871,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 
 					if( !bValid )
 					{
-						if( bFriendlyToSecretary && !kOurTeam.isVassal(ePeaceTeam) )
+						if (bFriendlyToSecretary && !kOurTeam.isVassal(ePeaceTeam))
 						{
 							// Influence by secretary
 							bValid = true;
@@ -9441,7 +10904,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 /************************************************************************************************/
 				else
 				{
-					if( bFriendlyToSecretary )
+					if (bFriendlyToSecretary)
 					{
 						return PLAYER_VOTE_YES;
 					}
@@ -9540,7 +11003,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 					{
 						if(!getWPAI.isEnabled()) { // advc.104n
 							int iNoWarOdds = GC.getLeaderHeadInfo(getPersonalityType()).getNoWarAttitudeProb((kOurTeam.AI_getAttitude(eWarTeam)));
-							bValid = ((iNoWarOdds < 30) || (GC.getGame().getSorenRandNum(100, "AI War Vote Attitude Check (Force War)") > iNoWarOdds));						
+							bValid = ((iNoWarOdds < 30) || (g.getSorenRandNum(100, "AI War Vote Attitude Check (Force War)") > iNoWarOdds));						
 						// <advc.104n>
 						} 
 						if(getWPAI.isEnabled()) {
@@ -9609,7 +11072,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 						{
 							bValid = false;
 							// BBAI TODO: Wonders, holy city, aggressive AI?
-							if (GC.getGame().getSorenRandNum(3, "AI Erratic Defiance (Assign City)") == 0)
+							if (g.getSorenRandNum(3, "AI Erratic Defiance (Assign City)") == 0)
 							{
 								bDefy = true;
 							}
@@ -9671,17 +11134,21 @@ int CvPlayerAI::AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pLis
 	for (pNode = pList->head(); pNode; pNode = pList->next(pNode))
 	{
 		FAssertMsg(!(pNode->m_data.m_bHidden), "(pNode->m_data.m_bHidden) did not return false as expected");
-		switch (pNode->m_data.m_eItemType)
+		/*  <advc.130p> Replacing the checks in the individual cases. Previously,
+			OB and DP were not counted as annual, but GPT and resources were;
+			now it's the other way around. */
+		TradeableItems ti = pNode->m_data.m_eItemType;
+		if(bIgnoreAnnual && CvDeal::isAnnual(ti) && ti != TRADE_GOLD_PER_TURN &&
+				ti != TRADE_RESOURCES)
+			continue;
+		switch(ti) // </advc.130p>
 		{
 		case TRADE_TECHNOLOGIES:
 			iValue += GET_TEAM(getTeam()).AI_techTradeVal((TechTypes)(pNode->m_data.m_iData), GET_PLAYER(ePlayer).getTeam()
 					, ignoreDiscount); // advc.550a
 			break;
 		case TRADE_RESOURCES:
-			if (!bIgnoreAnnual)
-			{
-				iValue += AI_bonusTradeVal(((BonusTypes)(pNode->m_data.m_iData)), ePlayer, iChange);
-			}
+			iValue += AI_bonusTradeVal(((BonusTypes)(pNode->m_data.m_iData)), ePlayer, iChange);
 			break;
 		case TRADE_CITIES:
 			pCity = GET_PLAYER(ePlayer).getCity(pNode->m_data.m_iData);
@@ -9694,25 +11161,16 @@ int CvPlayerAI::AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pLis
 			iValue += (pNode->m_data.m_iData * AI_goldTradeValuePercent()) / 100;
 			break;
 		case TRADE_GOLD_PER_TURN:
-			if (!bIgnoreAnnual)
-			{
-				iValue += AI_goldPerTurnTradeVal(pNode->m_data.m_iData);
-			}
+			iValue += AI_goldPerTurnTradeVal(pNode->m_data.m_iData);
 			break;
 		case TRADE_MAPS:
 			iValue += GET_TEAM(getTeam()).AI_mapTradeVal(GET_PLAYER(ePlayer).getTeam());
 			break;
 		case TRADE_SURRENDER:
-			if (!bIgnoreAnnual)
-			{
-				iValue += GET_TEAM(getTeam()).AI_surrenderTradeVal(GET_PLAYER(ePlayer).getTeam());
-			}
+			iValue += GET_TEAM(getTeam()).AI_surrenderTradeVal(GET_PLAYER(ePlayer).getTeam());
 			break;
 		case TRADE_VASSAL:
-			if (!bIgnoreAnnual)
-			{
-				iValue += GET_TEAM(getTeam()).AI_vassalTradeVal(GET_PLAYER(ePlayer).getTeam());
-			}
+			iValue += GET_TEAM(getTeam()).AI_vassalTradeVal(GET_PLAYER(ePlayer).getTeam());
 			break;
 		case TRADE_OPEN_BORDERS:
 			iValue += GET_TEAM(getTeam()).AI_openBordersTradeVal(GET_PLAYER(ePlayer).getTeam());
@@ -9785,16 +11243,23 @@ bool CvPlayerAI::isAnnualDeal(CLinkList<TradeData> const& itemList) const {
 /// considering proposals from the human player made in the diplomacy window as well as a couple other places.
 // advc.130o: Removed const qualifier
 bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList, int iChange)
-{
+{	// <advc.133>
+	return AI_considerOfferBulk(ePlayer, pTheirList, pOurList, iChange);
+}
+
+bool CvPlayerAI::AI_considerOfferBulk(PlayerTypes ePlayer,
+		CLinkList<TradeData> const* pTheirList,
+		CLinkList<TradeData> const* pOurList, int iChange, int dealAge) {
+	// </advc.133>
 	const CvTeamAI& kOurTeam = GET_TEAM(getTeam()); // K-Mod
-
+	// <advc.003> Plugged in throughout this function (or sometimes TEAMREF instead)
+	CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer);
+	bool bHuman = kPlayer.isHuman(); // </advc.003>
 	FAssertMsg(ePlayer != getID(), "shouldn't call this function on ourselves");
-
-	if (AI_goldDeal(pTheirList) && AI_goldDeal(pOurList))
-	{
-		return false;
-	}
-
+	// <advc.003>
+	bool const bOurGoldDeal = AI_goldDeal(pOurList);
+	if(AI_goldDeal(pTheirList) && bOurGoldDeal)
+		return false; // </advc.003>
 	if (iChange > -1)
 	{
 		for (CLLNode<TradeData>* pNode = pOurList->head(); pNode; pNode = pOurList->next(pNode))
@@ -9803,17 +11268,34 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData
 			{
 				return false;
 			}
-		}
+		} /* <advc.036> Denial from the human pov should prevent resource trades.
+			 This matters for "Care to negotiate". */
+		if(bHuman) {
+			for (CLLNode<TradeData>* tdn = pTheirList->head(); tdn != NULL;
+					tdn = pTheirList->next(tdn)) {
+				TradeData tdata = tdn->m_data;
+				if(tdata.m_eItemType == TRADE_RESOURCES &&
+						kPlayer.getTradeDenial(getID(), tdata) != NO_DENIAL)
+					return false;
+			}
+		} // </advc.036>
+		// <advc.026>
+		else if(bOurGoldDeal && !checkMaxGold(*pOurList, ePlayer))
+			return false; // </advc.026>
 	}
-
-	if (GET_PLAYER(ePlayer).getTeam() == getTeam())
+	/*if (kPlayer.getTeam() == getTeam())
 	{
 		return true;
-	}
-
+	}*/
+	// advc.155: Replacing the above
+	bool bSameTeam = (getTeam() == kPlayer.getTeam());
 	// K-Mod. Refuse all war-time offers unless it's part of a peace deal
-	if (atWar(getTeam(), GET_PLAYER(ePlayer).getTeam()))
+	if (atWar(getTeam(), kPlayer.getTeam()))
 	{
+		/*  <advc.003> Could treat Cease Fire here. The K-Mod code below always
+			refuses. */
+		/*if(pTheirList->getLength() + pOurList->getLength() <= 0)
+			;*/ // </advc.003>
 		bool bEndWar = false;
 		CLLNode<TradeData>* pNode;
 		for (pNode = pTheirList->head(); !bEndWar && pNode; pNode = pTheirList->next(pNode))
@@ -9851,9 +11333,9 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData
 				{
 					if (GET_TEAM((TeamTypes)iTeam).isAlive())
 					{
-						if (iTeam != getTeam() && iTeam != GET_PLAYER(ePlayer).getTeam() && atWar(GET_PLAYER(ePlayer).getTeam(), (TeamTypes)iTeam) && !atWar(getTeam(), (TeamTypes)iTeam))
+						if (iTeam != getTeam() && iTeam != kPlayer.getTeam() && atWar(kPlayer.getTeam(), (TeamTypes)iTeam) && !atWar(getTeam(), (TeamTypes)iTeam))
 						{
-							if (kOurTeam.AI_declareWarTrade((TeamTypes)iTeam, GET_PLAYER(ePlayer).getTeam(), false) != NO_DENIAL)
+							if (kOurTeam.AI_declareWarTrade((TeamTypes)iTeam, kPlayer.getTeam(), false) != NO_DENIAL)
 							{
 								return false;
 							}
@@ -9865,7 +11347,7 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData
 			{
 				bVassalTrade = true;
 
-				if( !(kOurTeam.AI_acceptSurrender(GET_PLAYER(ePlayer).getTeam())) )
+				if( !(kOurTeam.AI_acceptSurrender(kPlayer.getTeam())) )
 				{
 					return false;
 				}
@@ -9883,7 +11365,7 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData
 
 				// The trade denial calculation for vassal trades is actually a bit nuanced.
 				// Rather than trying to restructure it, or write new code and risk inconsistencies, I'm just going use it.
-				if (kOurTeam.AI_surrenderTrade(GET_PLAYER(ePlayer).getTeam(), pNode->m_data.m_eItemType == TRADE_SURRENDER ? 125
+				if (kOurTeam.AI_surrenderTrade(kPlayer.getTeam(), pNode->m_data.m_eItemType == TRADE_SURRENDER ? 125
 						/*  advc.112, advc.143: Changed iPowerMultiplier from 75
 							to 100, which is the default. Multiplier for cancelation
 							now set inside AI_surrenderTrade. */
@@ -9899,13 +11381,14 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData
 	// <advc.705>
 	CvGame& g = GC.getGameINLINE();
 	bool possibleCollusion = g.isOption(GAMEOPTION_RISE_FALL) &&
-			GET_PLAYER(ePlayer).isHuman() && g.getRiseFall().
+			bHuman && g.getRiseFall().
 			isCooperationRestricted(getID()); // </advc.705>
 	if( !bVassalTrade )
 	{
 		if ((pOurList->getLength() == 0) && (pTheirList->getLength() > 0))
 		{	// <advc.705>
-			if(possibleCollusion) {
+			if(possibleCollusion && !g.getRiseFall().isSquareDeal(
+					*pOurList, *pTheirList, getID())) {
 				g.getRiseFall().substituteDiploText(true);
 				return false;
 			}
@@ -9920,7 +11403,7 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData
 	if (iChange < 0)
 	{
 		// There are only a few cases where the AI will allow ongoing trade with its worst enemy...
-		if (kOurTeam.AI_getWorstEnemy() == GET_PLAYER(ePlayer).getTeam() && !kOurTeam.isVassal(GET_PLAYER(ePlayer).getTeam()))
+		if (kOurTeam.AI_getWorstEnemy() == kPlayer.getTeam() && !kOurTeam.isVassal(kPlayer.getTeam()))
 		{
 			if (pOurList->getLength() > 1 || pOurList->head()->m_data.m_eItemType != TRADE_GOLD_PER_TURN)
 			{
@@ -9933,29 +11416,29 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData
 
 	/*  <advc.132> Don't agree to accept two civics of the same column.
 		Would be better to rule this out through denial (e.g. "must be joking"),
-		but the trade screen isn't modable. */
+		but the trade screen isn't mod-able. */
 	if(!checkCivicReligionConsistency(pOurList) ||
 			!checkCivicReligionConsistency(pTheirList)) 
 		return false; // </advc.132>
 	/*  advc.003: iOurValue is the value of what we give; how much they value what
 		we give, more specifically.
 		(Elsewhere in this class, it's the other way around.) */
-	int iOurValue = GET_PLAYER(ePlayer).AI_dealVal(getID(), pOurList, false, iChange);
+	int iOurValue = kPlayer.AI_dealVal(getID(), pOurList, false, iChange);
 	// <advc.705>
 	int pessimisticVal = (possibleCollusion ? g.getRiseFall().pessimisticDealVal(
 			getID(), iOurValue, *pOurList) : -1); // </advc.705>
 	int iTheirValue = AI_dealVal(ePlayer, pTheirList, false, iChange);
-
+	int iThreshold = -1; // advc.155: Declaration moved up
 	if (iOurValue > 0 && 0 == pTheirList->getLength() && 0 == iTheirValue)
 	{	// <advc.130v> Vassal mustn't force a peace treaty on its master
 		if(kOurTeam.isAVassal() && !kOurTeam.isVassal(TEAMID(ePlayer)))
 			return false; // </advc.130v>
 		// K-Mod
 		// Don't give any gifts to civs that you are about to go to war with.
-		if (kOurTeam.AI_getWarPlan(GET_PLAYER(ePlayer).getTeam()) != NO_WARPLAN)
+		if (kOurTeam.AI_getWarPlan(kPlayer.getTeam()) != NO_WARPLAN)
 			return false;
 		//Don't cancel gift deals to vassals that you like, unless you need the gift back.
-		if (iChange < 0 && GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isVassal(getTeam()))
+		if (iChange < 0 && TEAMREF(ePlayer).isVassal(getTeam()))
 		{
 			/*if (iOurValue > AI_dealVal(ePlayer, pOurList, false, 1))
 				return true;
@@ -9966,7 +11449,7 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData
 			if (pOurList->getLength() == 1 && pOurList->head()->m_data.m_eItemType == TRADE_RESOURCES)
 			{
 				BonusTypes eBonus = (BonusTypes)pOurList->head()->m_data.m_iData;
-				if (GET_PLAYER(ePlayer).AI_bonusVal(eBonus, -1) > AI_bonusVal(eBonus, 1))
+				if (kPlayer.AI_bonusVal(eBonus, -1) > AI_bonusVal(eBonus, 1))
 					return true;
 				else
 					return false;
@@ -9977,21 +11460,22 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData
 		/*  <advc.133> isVassalTributeDeal can't distinguish between freebies from
 			a granted help request and those from vassal tribute. That's fine,
 			cancel gifts too. */
-		if(kOurTeam.getMasterTeam() != TEAMID(ePlayer) &&
-				CvDeal::isVassalTributeDeal(pOurList) && iChange <= 0)
+		if(iChange <= 0 && kOurTeam.getMasterTeam() != TEAMID(ePlayer) &&
+				CvDeal::isVassalTributeDeal(pOurList))
 			return false; // </advc.133>
 		// <advc.130o>
 		bool demand = false;
-		bool accept = true; // </advc.130o>
-		if (kOurTeam.isVassal(GET_PLAYER(ePlayer).getTeam()) && CvDeal::isVassalTributeDeal(pOurList))
+		bool accept = true;
+		bool vassal = kOurTeam.isVassal(kPlayer.getTeam()); // </advc.130o>
+		if(vassal && CvDeal::isVassalTributeDeal(pOurList))
 		{
 			if (AI_getAttitude(ePlayer, false) <= GC.getLeaderHeadInfo(getPersonalityType()).getVassalRefuseAttitudeThreshold()
 				//&& kOurTeam.getAtWarCount(true) == 0
 				&& !isFocusWar() // advc.105: Replacing the above
-				&& GET_TEAM(GET_PLAYER(ePlayer).getTeam()).getDefensivePactCount() == 0)
+				&& TEAMREF(ePlayer).getDefensivePactCount() == 0)
 			{
 				iOurValue *= (kOurTeam.getPower(false) + 10);
-				iOurValue /= (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).getPower(false) + 10);
+				iOurValue /= (TEAMREF(ePlayer).getPower(false) + 10);
 			}
 			else
 			{
@@ -10005,45 +11489,58 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData
 			if(mc > 0)
 				return false; // </advc.130o>
 			/*  <advc.130o> Was hard-coded, but the XML value is CAUTIOUS for all
-				leaders, so, no functional change. */
+				leaders, so no functional change. */
 			AttitudeTypes const noGiveHelpThresh = (AttitudeTypes)GC.getLeaderHeadInfo(
 					getPersonalityType()).getNoGiveHelpAttitudeThreshold();
-			demand = AI_getAttitude(ePlayer) <= noGiveHelpThresh;
+			demand = (AI_getAttitude(ePlayer) <= noGiveHelpThresh);
 			if (demand) // </advc.130o>
 			{
-				FAssert(GET_PLAYER(ePlayer).isHuman());
-				if (kOurTeam.getPower(false) > ((GET_TEAM(GET_PLAYER(ePlayer).getTeam()).getPower(false) * 4) / 3))
+				FAssert(bHuman);
+				if (kOurTeam.getPower(false) > ((TEAMREF(ePlayer).getPower(false) * 4) / 3))
 				{	// advc.130o: Don't return just yet
 					accept = false;
 				}
-			} // <advc.130o>
-			// </advc.130o> <advc.144>
-			else if(::hash(GC.getGameINLINE().getGameTurn(), getID()) < prDenyHelp())
-				return false; // </advc.144>
+			} // <advc.144>
+			else { // <advc.130v>
+				if(AI_getAttitude(ePlayer, false) <= noGiveHelpThresh)
+					return false; // </advc.130v>
+				if(!bSameTeam && // advc.155
+						!vassal && // advc.130v
+						::hash(GC.getGameINLINE().getGameTurn(), getID()) <
+						prDenyHelp())
+					return false; // </advc.144>
+			}
 			// <advc.104m>
-			if(accept && demand && getWPAI.isEnabled())
+			if(accept && demand && getWPAI.isEnabled() &&
+					!bSameTeam) // advc.155
 				accept = warAndPeaceAI().considerDemand(ePlayer, iOurValue);
 			// </advc.104m>
 		}
 		// advc.130o: Do this only if UWAI hasn't already handled the offer
 		if(!demand || (!getWPAI.isEnabled() && accept)) {
-			int iThreshold = (kOurTeam.AI_getHasMetCounter(GET_PLAYER(ePlayer).getTeam()) + 50);
-
+			iThreshold = (kOurTeam.AI_getHasMetCounter(kPlayer.getTeam()) + 50);
 			iThreshold *= 2;
-
-			if (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).AI_isLandTarget(getTeam()))
-			{
-				iThreshold *= 3;
-			}
-
-			iThreshold *= (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).getPower(false) + 100);
-			iThreshold /= (kOurTeam.getPower(false) + 100);
-
-			iThreshold -= GET_PLAYER(ePlayer).AI_getPeacetimeGrantValue(getID());
+			// <advc.155>
+			if(bSameTeam)
+				iThreshold *= 5; // </advc.155>
+			else if(!vassal) { // advc.130v
+				if (TEAMREF(ePlayer).AI_isLandTarget(getTeam()))
+				{
+					iThreshold *= 3;
+				} 
+				iThreshold *= (TEAMREF(ePlayer).getPower(false) + 100);
+				iThreshold /= (kOurTeam.getPower(false) + 100);
+			} // <advc.155>
+			int randExtra = ::round((::hash(g.getGameTurn(), getID()) - 0.5) *
+					iThreshold * 0.2);
+			iThreshold += randExtra; // </advc.155>
+			iThreshold -= kPlayer.AI_getPeacetimeGrantValue(getID());
 
 			accept = (iOurValue < iThreshold); // advc.130o: Don't return yet
 			// <advc.144>
-			if(accept && !demand && getWPAI.isEnabled())
+			if(accept && !demand &&
+					!vassal && // advc.130v
+					getWPAI.isEnabled())
 				accept = warAndPeaceAI().considerGiftRequest(ePlayer, iOurValue);
 			// </advc.144>
 		}
@@ -10052,27 +11549,38 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData
 			/*  Moved here from CvPlayer::handleDiploEvent b/c that handler
 				can't distinguish whether the AI accepts a human demand */
 			if(accept) {
-				// ePlayer is human, but still let the proxy AI remember 
-				GET_PLAYER(ePlayer).AI_rememberEvent(getID(), MEMORY_ACCEPT_DEMAND);
+				/*  ePlayer is human; could still let the proxy AI remember,
+					but that gets confusing in R&F games when a human demands
+					tribute from a civ and later takes control of that civ.
+					So don't do this after all: */
+				  //GET_PLAYER(ePlayer).AI_rememberEvent(getID(), MEMORY_ACCEPT_DEMAND);
 				AI_rememberEvent(ePlayer, MEMORY_MADE_DEMAND);
 			}
 			else {
-				// Again, not important
-				GET_PLAYER(ePlayer).AI_rememberEvent(getID(), MEMORY_REJECTED_DEMAND);
+				// See above
+				  //GET_PLAYER(ePlayer).AI_rememberEvent(getID(), MEMORY_REJECTED_DEMAND);
 				/*  Here's where we don't increase MEMORY_MADE_DEMAND b/c the
 					demand isn't accepted. CvPlayer::handleDiploEvent deals
 					with the MADE_DEMAND_RECENT memory. */
 			}
-		}
+		} // <advc.155> Previously handled by CvPlayer::handleDiploEvent
+		else if(accept && bSameTeam)
+			AI_changeMemoryCount(ePlayer, MEMORY_MADE_DEMAND_RECENT, 1);
+		// </advc.155>
 		return accept; // </advc.130o>
-	} // <advc.705>
-	if(g.isOption(GAMEOPTION_RISE_FALL) && GET_PLAYER(ePlayer).isHuman()) {
+	} // <advc.036>
+	if(!checkResourceLimits(pOurList, pTheirList, ePlayer, iChange))
+		return false; // </advc.036>
+	// <advc.705>
+	if(g.isOption(GAMEOPTION_RISE_FALL) && bHuman) {
 		if(possibleCollusion) {
 			double thresh = g.getRiseFall().dealThresh(isAnnualDeal(*pOurList));
 			if(iChange < 0)
 				thresh = std::min(thresh, std::max(0.4, thresh - 0.15));
-			if(pessimisticVal / (iTheirValue + 0.01) < thresh)
-				return g.getRiseFall().isSquareDeal(*pOurList, *pTheirList, getID());
+			if(pessimisticVal / (iTheirValue + 0.01) < thresh) {
+				return (g.getRiseFall().isSquareDeal(*pOurList, *pTheirList, getID()) ||
+						g.getRiseFall().isNeededWarTrade(*pOurList));
+			}
 		}
 		if(!kOurTeam.isGoldTrading() && !TEAMREF(ePlayer).isGoldTrading())
 			iOurValue = ::round(0.9 * iOurValue);
@@ -10080,10 +11588,47 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData
 	if (iChange < 0)
 	{
 		//return (iTheirValue * 110 >= iOurValue * 100);
-		return (iTheirValue * 125 >= iOurValue * 100); // K-Mod
+		// <advc.133> Always 125 in K-Mod
+		int tolerance = (bHuman ? 145 : 155) - std::min(35, dealAge);
+		// <advc.155>
+		if(bSameTeam) {
+			if(iOurValue < iThreshold)
+				return true;
+			tolerance = 150;
+		} // </advc.155>
+		if(tolerance * // </advc.133>
+				iTheirValue >= iOurValue * 100) // K-Mod
+			return true;
+		/*  <advc.036> Need to make trades more stable in large games,
+			even to the detriment of the AI. But mustn't cling to a bad deal
+			indefinitely -> randomize it. */
+		if(!bHuman)
+			return false;
+		double prCancel = (0.025 * tolerance) /
+				(GET_TEAM(kPlayer.getTeam()).getHasMetCivCount() *
+				iOurValue / (double)iTheirValue);
+		return (prCancel < ::hash(g.getGameTurn(), getID()));
+		// </advc.036>
 	}
-
-	return (iTheirValue >= iOurValue);
+	// <advc.136b>
+	else {
+		if(iTheirValue < 2 * GC.getDIPLOMACY_VALUE_REMAINDER() &&
+				!bVassalTrade &&
+				!AI_goldDeal(pTheirList) && (pTheirList->getLength() <= 0 ||
+				!CvDeal::isDual(pTheirList->head()->m_data.m_eItemType)))
+			return false;
+	} // </advc.136b>
+	
+	if(iTheirValue >= iOurValue)
+		return true;
+	// <advc.036>
+	if(bHuman && iTheirValue + singleBonusTradeTolerance >= iOurValue &&
+			pOurList->getLength() == 1 && pTheirList->getLength() == 1 &&
+			pOurList->head()->m_data.m_eItemType == TRADE_RESOURCES &&
+			pTheirList->head()->m_data.m_eItemType == TRADE_RESOURCES)
+		return true;
+	// </advc.036>
+	return false;
 }
 
 double CvPlayerAI::prDenyHelp() const {
@@ -10102,6 +11647,7 @@ bool maxValueCompare(const std::pair<TradeData*, int>& a, const std::pair<TradeD
 
 bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirInventory, CLinkList<TradeData>* pOurInventory, CLinkList<TradeData>* pTheirCounter, CLinkList<TradeData>* pOurCounter) const
 {
+	//PROFILE_FUNC(); // advc.003b: Did a profiler run; neglible.
 	// advc.705: Content moved into counterProposeBulk
 	return counterProposeBulk(ePlayer, pTheirList, pOurList, pTheirInventory, pOurInventory, pTheirCounter, pOurCounter, 1);
 }
@@ -10115,8 +11661,21 @@ bool CvPlayerAI::counterProposeBulk(PlayerTypes ePlayer, const CLinkList<TradeDa
 	if (bOurGoldDeal && bTheirGoldDeal)
 	{
 		return false;
-	}
-
+	} /* <advc.036> Check trade denial. Should only be needed when renegotiating
+		 a canceled deal with a human. */
+	if(GET_PLAYER(ePlayer).isHuman()) {
+		for(CLLNode<TradeData>* tdn = pOurList->head(); tdn != NULL;
+				tdn = pOurList->next(tdn)) {
+			TradeData tdata = tdn->m_data;
+			if(getTradeDenial(ePlayer, tdata) != NO_DENIAL)
+				return false;
+		} for(CLLNode<TradeData>* tdn = pTheirList->head(); tdn != NULL;
+				tdn = pTheirList->next(tdn)) {
+			TradeData tdata = tdn->m_data;
+			if(GET_PLAYER(ePlayer).getTradeDenial(getID(), tdata) != NO_DENIAL)
+				return false;
+		}
+	} // </advc.036>
 	/* original bts code
 	iHumanDealWeight = AI_dealVal(ePlayer, pTheirList);
 	iAIDealWeight = GET_PLAYER(ePlayer).AI_dealVal(getID(), pOurList); */
@@ -10127,13 +11686,10 @@ bool CvPlayerAI::counterProposeBulk(PlayerTypes ePlayer, const CLinkList<TradeDa
 	int iValueForThem =
 			::round(leniency * // advc.705
 			GET_PLAYER(ePlayer).AI_dealVal(getID(), pOurList));
-	int iGoldValuePercent = AI_goldTradeValuePercent();
-	// <advc.001l>
-	if(iValueForThem <= iValueForUs)
-		iGoldValuePercent = GET_PLAYER(ePlayer).AI_goldTradeValuePercent();
-	// </advc.001>
-	bool weReceiveTech = false; // advc.550b
-
+	/*  advc.001l: Moved into balanceDeal; has to be called on whichever side
+		receives gold. */
+	//int iGoldValuePercent = AI_goldTradeValuePercent();
+	
 	pTheirCounter->clear();
 	pOurCounter->clear();
 
@@ -10196,506 +11752,87 @@ bool CvPlayerAI::counterProposeBulk(PlayerTypes ePlayer, const CLinkList<TradeDa
 	if(!checkCivicReligionConsistency(pOurList) ||
 			!checkCivicReligionConsistency(pTheirList)) 
 		return false; // </advc.132>
-
+	// <advc.036>
+	if(!checkResourceLimits(pOurList, pTheirList, ePlayer, 1)) 
+		return false;
+	/*  The above makes sure that not too many non-surplus resources are already
+		in either list, but we also need to know how many more can be added to
+		the list that needs further items. */
+	CLinkList<TradeData> const* giverList = (iValueForThem < iValueForUs ?
+			pOurList : pTheirList);
+	CvPlayer const& giver = (iValueForThem < iValueForUs ? *this : GET_PLAYER(ePlayer));
+	CvPlayer const& recipient = (giver.getID() == ePlayer ? *this : GET_PLAYER(ePlayer));
+	// Count how many more can be traded
+	int happyLeft, healthLeft;
+	happyLeft = healthLeft = 2;
+	if(GET_TEAM(giver.getTeam()).isCapitulated())
+		happyLeft = healthLeft = INT_MAX;
+	else {
+		for(CLLNode<TradeData>* tdn = giverList->head(); tdn != NULL;
+				tdn = giverList->next(tdn)) {
+			if(tdn->m_data.m_eItemType != TRADE_RESOURCES)
+				continue;
+			BonusTypes eBonus = (BonusTypes)tdn->m_data.m_iData;
+			CvBonusInfo& bi = GC.getBonusInfo(eBonus);
+			if(!recipient.isHuman()) {
+				/*  AI mustn't accept too many resources of the same kind
+					(happy or health) at once */
+				if(bi.getHappiness() > 0)
+					happyLeft--;
+				if(bi.getHealth() > 0)
+					healthLeft--;
+			}
+			else {
+				/*  Non-capitulated AI mustn't give too many non-surplus resources
+					of the same kind (happy or health) at once */
+				if(giver.getNumAvailableBonuses(eBonus) <= 1) {
+					if(bi.getHappiness() > 0)
+						happyLeft--;
+					if(bi.getHealth() > 0)
+						healthLeft--;
+				}
+			}
+		}
+		happyLeft = std::max(0, happyLeft);
+		healthLeft = std::max(0, healthLeft);
+	} // </advc.036>
+	// <advc.136b>
+	if(!isHuman() && iValueForUs > iValueForThem &&
+			iValueForUs < 2 * GC.getDIPLOMACY_VALUE_REMAINDER())
+		return false; // </advc.136b>
 	// <advc.026>
-	CvPlayerAI const& they = GET_PLAYER(ePlayer);
-	int theirMaxGold = (isHuman() ? they.maxGoldTradeGenerous(getID()) :
-			they.AI_maxGoldTrade(getID()));
-	int theirMaxGPT = (isHuman() ? they.maxGoldPerTurnTradeGenerous(getID()) :
-			they.AI_maxGoldPerTurnTrade(getID())); // </advc.026>
-
+	if(bOurGoldDeal && !checkMaxGold(*pOurList, ePlayer))
+		return false; // </advc.026>
+	bool bDeal = false; // advc.036: Moved up
 	// When counterProposing, we want balance the deal - but if we can't balance it, we want to make sure it favours us; not them.
 	// So if their value is greater, we don't mind suggesting items which take them past balance.
 	// But if our value is greater, we will never suggest adding items which overshoot the balance.
 	if (iValueForThem > iValueForUs)
-	{
-		// First, try to make up the difference with gold.
-		CLLNode<TradeData>* pGoldPerTurnNode = NULL;
-		CLLNode<TradeData>* pGoldNode = NULL;
-
-		if (!bOurGoldDeal)
-		{
-			for (CLLNode<TradeData>* pNode = pTheirInventory->head(); pNode; pNode = pTheirInventory->next(pNode))
-			{
-				if (pNode->m_data.m_bOffering || pNode->m_data.m_bHidden)
-					continue;
-				/*  <advc.104> Avoid a potentially costly TradeDenial check for
-					items that aren't covered by the switch block anyway. */
-				TradeableItems it = pNode->m_data.m_eItemType;
-				if(it != TRADE_GOLD && it != TRADE_GOLD_PER_TURN)
-					continue; // </advc.104>
-				if (GET_PLAYER(ePlayer).getTradeDenial(getID(), pNode->m_data) != NO_DENIAL)
-					continue;
-
-				FAssert(GET_PLAYER(ePlayer).canTradeItem(getID(), pNode->m_data));
-
-				switch (pNode->m_data.m_eItemType)
-				{
-				case TRADE_GOLD:
-					pGoldNode = pNode;
-					break;
-				case TRADE_GOLD_PER_TURN:
-					pGoldPerTurnNode = pNode;
-					break;
-				}
-			}
-		}
-
-		if (pGoldNode)
-		{
-			int iGoldData = ((iValueForThem - iValueForUs) * 100 + (iGoldValuePercent - 1)) / iGoldValuePercent; // round up
-
-			//if (GET_PLAYER(ePlayer).AI_maxGoldTrade(getID()) >= iGoldData)
-			if(theirMaxGold >= iGoldData) // advc.026: Replacing the above
-			{
-				pGoldNode->m_data.m_iData = iGoldData;
-				iValueForUs += (iGoldData * iGoldValuePercent) / 100;
-				pTheirCounter->insertAtEnd(pGoldNode->m_data);
-				pGoldNode = NULL;
-			}
-		}
-
-		std::pair<TradeData*, int> final_item(NULL, 0); // An item we may or may not use to finalise the deal. (See later)
-		if (iValueForThem > iValueForUs)
-		{
-			// We were unable to balance the trade with just gold. So lets look at all the other items.
-
-			// Exclude bonuses that we've already put on the table
-			std::vector<bool> vbBonusDeal(GC.getNumBonusInfos(), false);
-			for (CLLNode<TradeData>* pNode = pOurList->head(); pNode; pNode = pOurList->next(pNode))
-			{
-				FAssert(!(pNode->m_data.m_bHidden));
-
-				if (pNode->m_data.m_eItemType == TRADE_RESOURCES)
-					vbBonusDeal[pNode->m_data.m_iData] = true;
-			}
-
-			// We're only going to allow one city on the list. (For flavour reasons.)
-			int iBestCityValue = 0;
-			int iBestCityWeight = 0;
-			CLLNode<TradeData>* pBestCityNode = NULL;
-
-			// Evaluate everything they're willing to trade.
-			std::vector<std::pair<TradeData*, int> > item_value_list; // (item*, value)
-
-			for (CLLNode<TradeData>* pNode = pTheirInventory->head(); pNode; pNode = pTheirInventory->next(pNode))
-			{
-				if (pNode->m_data.m_bOffering || pNode->m_data.m_bHidden)
-					continue;
-				/*  <advc.104> Avoid a potentially costly TradeDenial check for
-					items that aren't covered by the switch block anyway. */
-				TradeableItems it = pNode->m_data.m_eItemType;
-				if(it != TRADE_MAPS && it != TRADE_TECHNOLOGIES &&
-						it != TRADE_RESOURCES && it != TRADE_CITIES)
-					continue; // </advc.104>
-				if (GET_PLAYER(ePlayer).getTradeDenial(getID(), pNode->m_data) != NO_DENIAL)
-					continue;
-
-				FAssert(GET_PLAYER(ePlayer).canTradeItem(getID(), pNode->m_data));
-
-				int iItemValue = 0;
-
-				switch (pNode->m_data.m_eItemType)
-				{
-				case TRADE_MAPS:
-					iItemValue = GET_TEAM(getTeam()).AI_mapTradeVal(GET_PLAYER(ePlayer).getTeam());
-					break;
-				case TRADE_TECHNOLOGIES:
-					iItemValue = GET_TEAM(getTeam()).AI_techTradeVal((TechTypes)(pNode->m_data.m_iData), GET_PLAYER(ePlayer).getTeam());
-					break;
-				case TRADE_RESOURCES:
-					if (!vbBonusDeal[pNode->m_data.m_iData])
-					{
-						// Don't ask for the last of a resource, or corporation resources; because we're not going to evaluate losses.
-						if (GET_PLAYER(ePlayer).getNumTradeableBonuses((BonusTypes)(pNode->m_data.m_iData)) > 1)
-						{
-							if (GET_PLAYER(ePlayer).AI_corporationBonusVal((BonusTypes)pNode->m_data.m_iData) == 0)
-							{
-								iItemValue = AI_bonusTradeVal((BonusTypes)pNode->m_data.m_iData, ePlayer, 1);
-								vbBonusDeal[pNode->m_data.m_iData] = true;
-							}
-						}
-					}
-					break;
-				case TRADE_CITIES:
-					if (atWar(getTeam(), GET_PLAYER(ePlayer).getTeam()))
-					{
-						CvCity* pCity = GET_PLAYER(ePlayer).getCity(pNode->m_data.m_iData);
-
-						if (pCity != NULL)
-						{
-							int iWeight = AI_targetCityValue(pCity, false);
-
-							if (iWeight > iBestCityWeight)
-							{
-								int iValue = AI_cityTradeVal(pCity);
-
-								if (iValue > 0)
-								{
-									iBestCityValue = iValue;
-									iBestCityWeight = iWeight;
-									pBestCityNode = pNode;
-								}
-							}
-						}
-					}
-					break;
-				}
-
-				if (iItemValue > 0)
-				{
-					item_value_list.push_back(std::make_pair(&pNode->m_data, iItemValue));
-				}
-			}
-
-			if (pBestCityNode != NULL)
-			{
-				item_value_list.push_back(std::make_pair(&pBestCityNode->m_data, iBestCityValue));
-			}
-
-			// We want to get as close as we can to a balanced trade - but ensure that the deal favours us!
-			// Find the best item, add it to the list; and repeat until we've closed the game in the trade values.
-			while (iValueForThem > iValueForUs && !item_value_list.empty())
-			{
-				int value_gap = iValueForThem - iValueForUs;
-
-				// Find the best item to put us ahead, but as close to fair as possible.
-				// Note: We're not doing this for perfect balance. We're counter-proposing so that the deal favours us!
-				//   If we wanted to get closer to a balanced deal, we just remove that first condition.
-				//   (Maybe that's what we should be doing for AI-AI trades; but there are still flavour considersations...)
-				std::vector<std::pair<TradeData*, int> >::iterator it, best_it;
-				for (best_it = it = item_value_list.begin(); it != item_value_list.end(); ++it)
-				{
-					if ((it->second > value_gap && best_it->second < value_gap) ||
-						(std::abs(it->second - value_gap) < std::abs(best_it->second - value_gap)))
-					{
-						best_it = it;
-					}
-				}
-
-				// Only add the item if it will get us closer to balance.
-				if (best_it->second <= 2*(iValueForThem - iValueForUs))
-				{
-					pTheirCounter->insertAtEnd(*best_it->first);
-					iValueForUs += best_it->second;
-					item_value_list.erase(best_it);
-				}
-				else
-				{
-					// If nothing on the list can bring us closer to balance; we'll try to balance it with gold.
-					// But if that doesn't work, we may need to add this last item. So lets bookmark it.
-					final_item = *best_it;
-					break;
-				}
-			}
-		}
-
-		// If their value is still higher, try one more time to make up the difference with gold.
-		// If this we're counter-proposing an AI deal, just get as close to the right value as we can.
-		// But for humans, if they don't have enough gold then ask for one final item, to favour us.
-		bool bAddFinalItem = false;
-		if (iValueForThem > iValueForUs)
-		{
-			if (pGoldNode)
-			{
-				int iGoldData = ((iValueForThem - iValueForUs) * 100 + (iGoldValuePercent - 1)) / iGoldValuePercent; // round up
-				//int iGoldAvailable = GET_PLAYER(ePlayer).AI_maxGoldTrade(getID());
-				int iGoldAvailable = theirMaxGold; // advc.026: Replacing the above
-
-				if (GET_PLAYER(ePlayer).isHuman() && iGoldData > iGoldAvailable)
-				{
-					bAddFinalItem = true;
-				}
-				else
-				{
-					iGoldData = std::min(iGoldData, iGoldAvailable);
-					if (iGoldData > 0)
-					{
-						pGoldNode->m_data.m_iData = iGoldData;
-						iValueForUs += (iGoldData * iGoldValuePercent) / 100;
-						pTheirCounter->insertAtEnd(pGoldNode->m_data);
-						pGoldNode = NULL;
-					}
-				}
-			}
-			/*  <advc.001> If human asks for gold, then pGoldNode is NULL here,
-				and the AI won't ask e.g. for a tech in exchange */
-			else if(GET_PLAYER(ePlayer).isHuman() && iValueForThem > iValueForUs)
-				bAddFinalItem = true; // </advc.001>
-		}
-
-		if (iValueForThem > iValueForUs)
-		{
-			if (pGoldPerTurnNode)
-			{
-				int iGoldData = 0;
-				//int iGoldAvailable = GET_PLAYER(ePlayer).AI_maxGoldPerTurnTrade(getID());
-				int iGoldAvailable = theirMaxGPT; // advc.026: Replacing the above
-				while (AI_goldPerTurnTradeVal(iGoldData) < (iValueForThem - iValueForUs))
-				{
-					iGoldData++;
-				}
-
-				if (GET_PLAYER(ePlayer).isHuman() && iGoldData > iGoldAvailable)
-				{
-					bAddFinalItem = true;
-				}
-				else
-				{
-					iGoldData = std::min(iGoldData, iGoldAvailable);
-					if (iGoldData > 0)
-					{
-						pGoldPerTurnNode->m_data.m_iData = iGoldData;
-						iValueForUs += AI_goldPerTurnTradeVal(pGoldPerTurnNode->m_data.m_iData);
-						pTheirCounter->insertAtEnd(pGoldPerTurnNode->m_data);
-						pGoldPerTurnNode = NULL;
-					}
-				}
-			}
-		}
-
-		// When counter proposing a suggestion from a human, the AI will insist on having the better value.
-		// So lets add the cheapest item still on our list.
-		// We would have added the item already if it was going to be 'fair'. So we can be sure will favour us.
-		if (bAddFinalItem && final_item.first != NULL)
-		{
-			FAssert(iValueForThem > iValueForUs && GET_PLAYER(ePlayer).isHuman());
-			pTheirCounter->insertAtEnd(*final_item.first);
-			iValueForUs += final_item.second;
-			FAssert(iValueForUs >= iValueForThem);
-		}
+	{	// <advc.003> Moved into auxiliary function
+		bDeal = balanceDeal(bOurGoldDeal, pTheirInventory, ePlayer,
+			iValueForThem, iValueForUs, pTheirCounter, pOurList, 1, true,
+			// </advc.003> <advc.036>
+			happyLeft, healthLeft, pTheirList->getLength());
+			// </advc.036>
 	}
 	else if (iValueForUs > iValueForThem)
 	{
-		// First, try to make up the difference with gold.
-		CLLNode<TradeData>* pGoldPerTurnNode = NULL;
-		CLLNode<TradeData>* pGoldNode = NULL;
-
-		if (!bTheirGoldDeal)
-		{
-			for (CLLNode<TradeData>* pNode = pOurInventory->head(); pNode; pNode = pOurInventory->next(pNode))
-			{
-				if (pNode->m_data.m_bOffering || pNode->m_data.m_bHidden)
-					continue;
-				// <advc.104> Same as for pTheirInventory
-				TradeableItems it = pNode->m_data.m_eItemType;
-				if(it != TRADE_GOLD && it != TRADE_GOLD_PER_TURN)
-					continue; // </advc.104>
-				if (getTradeDenial(ePlayer, pNode->m_data) != NO_DENIAL)
-					continue;
-
-				FAssert(canTradeItem(ePlayer, pNode->m_data));
-
-				switch (pNode->m_data.m_eItemType)
-				{
-				case TRADE_GOLD:
-					pGoldNode = pNode;
-					break;
-				case TRADE_GOLD_PER_TURN:
-					pGoldPerTurnNode = pNode;
-					break;
-				}
-			}
-		}
-
-		if (pGoldNode)
-		{
-			int iGoldData = (iValueForUs - iValueForThem) * 100 / iGoldValuePercent; // round down
-
-			if (AI_maxGoldTrade(ePlayer) >= iGoldData) 
-			{
-				pGoldNode->m_data.m_iData = iGoldData;
-				iValueForThem += 
-					::round(leniency * // advc.705
-						((iGoldData * iGoldValuePercent) / 100));
-				pOurCounter->insertAtEnd(pGoldNode->m_data);
-				pGoldNode = NULL;
-			}
-		}
-
-		if (iValueForUs > iValueForThem)
-		{
-			// We were unable to balance the trade with just gold. So lets look at all the other items.
-
-			// Exclude bonuses that they've already put on the table
-			std::vector<bool> vbBonusDeal(GC.getNumBonusInfos(), false);
-			for (CLLNode<TradeData>* pNode = pTheirList->head(); pNode; pNode = pTheirList->next(pNode))
-			{
-				FAssert(!(pNode->m_data.m_bHidden));
-
-				if (pNode->m_data.m_eItemType == TRADE_RESOURCES)
-					vbBonusDeal[pNode->m_data.m_iData] = true;
-			}
-
-			// We're only going to allow one city on the list. (For flavour reasons.)
-			int iBestCityValue = 0;
-			int iBestCityWeight = 0;
-			CLLNode<TradeData>* pBestCityNode = NULL;
-
-			// Build the value list!
-			std::vector<std::pair<TradeData*, int> > item_value_list; // (item*, value)
-			// Note: unlike the previous version, the numbers in this list are the actual values - not deltas.
-			// We want to balance the trade without letting their value get higher than ours.
-
-			for (CLLNode<TradeData>* pNode = pOurInventory->head(); pNode; pNode = pOurInventory->next(pNode))
-			{
-				if (pNode->m_data.m_bOffering || pNode->m_data.m_bHidden)
-					continue;
-				// <advc.104> Same as for pTheirInventory
-				TradeableItems it = pNode->m_data.m_eItemType;
-				if(it != TRADE_MAPS && it != TRADE_TECHNOLOGIES &&
-						it != TRADE_RESOURCES && it != TRADE_CITIES)
-					continue; // </advc.104>
-				if (getTradeDenial(ePlayer, pNode->m_data) != NO_DENIAL)
-					continue;
-
-				FAssert(canTradeItem(ePlayer, pNode->m_data));
-
-				int iItemValue = 0;
-
-				switch (pNode->m_data.m_eItemType)
-				{
-				case TRADE_MAPS:
-					iItemValue = GET_TEAM(GET_PLAYER(ePlayer).getTeam()).AI_mapTradeVal(getTeam());
-					break;
-				case TRADE_TECHNOLOGIES:
-					iItemValue = GET_TEAM(GET_PLAYER(ePlayer).getTeam()).AI_techTradeVal((TechTypes)(pNode->m_data.m_iData), getTeam());
-					weReceiveTech = true; // advc.550b
-					break;
-				case TRADE_RESOURCES:
-					if (!vbBonusDeal[pNode->m_data.m_iData])
-					{
-						// Don't offer the last of a resource, or corporation resources; because we're not going to evaluate losses.
-						if (getNumTradeableBonuses((BonusTypes)(pNode->m_data.m_iData)) > 1)
-						{
-							if (AI_corporationBonusVal((BonusTypes)pNode->m_data.m_iData) == 0)
-							{
-								iItemValue = GET_PLAYER(ePlayer).AI_bonusTradeVal((BonusTypes)pNode->m_data.m_iData, getID(), 1);
-								vbBonusDeal[pNode->m_data.m_iData] = true;
-							}
-						}
-					}
-					break;
-				case TRADE_CITIES:
-					if (atWar(getTeam(), GET_PLAYER(ePlayer).getTeam()))
-					{
-						CvCity* pCity = getCity(pNode->m_data.m_iData);
-
-						if (pCity != NULL)
-						{
-							int iWeight = GET_PLAYER(ePlayer).AI_targetCityValue(pCity, false);
-							if (iWeight > iBestCityWeight)
-							{
-								int iValue = GET_PLAYER(ePlayer).AI_cityTradeVal(pCity);
-								if (iValue > 0 && iValueForUs >= (iValueForThem + iValue))
-								{
-									iBestCityValue = iValue;
-									iBestCityWeight = iWeight;
-									pBestCityNode = pNode;
-								}
-							}
-						}
-					}
-					break;
-				}
-				if (iItemValue > 0 && iValueForUs >= (iValueForThem + iItemValue))
-				{
-					item_value_list.push_back(std::make_pair(&pNode->m_data, iItemValue));
-				}
-			}
-			if (pBestCityNode != NULL)
-			{
-				FAssert(iValueForUs >= (iValueForThem + iBestCityValue));
-				item_value_list.push_back(std::make_pair(&pBestCityNode->m_data, iBestCityValue));
-			}
-
-			// Sort the values from largest to smallest
-			std::sort(item_value_list.begin(), item_value_list.end(), maxValueCompare);
-
-			// Use the list to balance the trade.
-			for (std::vector<std::pair<TradeData*, int> >::iterator it = item_value_list.begin(); it != item_value_list.end() && iValueForUs > iValueForThem; ++it)
-			{
-				int iItemValue = it->second;
-
-				if (iValueForUs >= (iValueForThem + iItemValue))
-				{
-					pOurCounter->insertAtEnd(*it->first);
-					iValueForThem +=
-						::round(leniency * // advc.705
-							iItemValue);
-				}
-			}
-		}
-
-		// If our value is still higher, try one more time to make up the difference with gold.
-		// This time add the gold even if it isn't enough to balance the deal.
-		// ... But first, consider the special case of a human player auto-counter-proposing a deal from an AI.
-		// Humans are picky with trades. They turn down most AI deals. So to increase the chance of the human
-		// ultimately accepting, lets see if the AI would allow the deal without any added gold. If the AI will
-		// accept, then we won't add the gold. And this will be a rare example of the AI favouring the human.
-		if (isHuman() && 100*iValueForThem >= GET_PLAYER(ePlayer).AI_tradeAcceptabilityThreshold(getID())*iValueForUs)
-		{
-			// The AI would accept! So lets not add any gold.
-		}
-		else // If we don't add some gold, there will be no deal.
-		{
-			if (iValueForUs > iValueForThem)
-			{
-				if (pGoldNode)
-				{
-					int iGoldData = (iValueForUs - iValueForThem) * 100 / // round down
-							//AI_goldTradeValuePercent();
-							iGoldValuePercent; // advc.001l: Replacing the above
-					iGoldData = std::min(iGoldData, AI_maxGoldTrade(ePlayer));
-
-					if (iGoldData > 0)
-					{
-						pGoldNode->m_data.m_iData = iGoldData;
-						iValueForThem +=
-							::round(leniency * // advc.705
-								((iGoldData * iGoldValuePercent) / 100));
-						pOurCounter->insertAtEnd(pGoldNode->m_data);
-						pGoldNode = NULL;
-					}
-				}
-			}
-
-			if (iValueForUs > iValueForThem)
-			{
-				if (pGoldPerTurnNode)
-				{
-					int iGoldData = 0;
-
-					while (GET_PLAYER(ePlayer).AI_goldPerTurnTradeVal(iGoldData + 1) <= (iValueForUs - iValueForThem))
-					{
-						iGoldData++;
-					}
-
-					iGoldData = std::min(iGoldData, AI_maxGoldPerTurnTrade(ePlayer));
-
-					if (iGoldData > 0)
-					{
-						pGoldPerTurnNode->m_data.m_iData = iGoldData;
-						iValueForThem +=
-							::round(leniency * // advc.705
-								GET_PLAYER(ePlayer).AI_goldPerTurnTradeVal(pGoldPerTurnNode->m_data.m_iData));
-						pOurCounter->insertAtEnd(pGoldPerTurnNode->m_data);
-						pGoldPerTurnNode = NULL;
-					}
-				}
-			}
-		}
+		// <advc.003> Moved into auxiliary function
+		bDeal = GET_PLAYER(ePlayer).balanceDeal(bTheirGoldDeal, pOurInventory,
+				getID(), iValueForUs, iValueForThem, pOurCounter, pTheirList,
+				leniency, false, // </advc.003> <advc.036>
+				happyLeft, healthLeft, pOurList->getLength());
+				// </advc.036>
 	}
-
 	/* original bts code
 	return ((iValueForThem <= iValueForUs) && ((pOurList->getLength() > 0) || (pOurCounter->getLength() > 0) || (pTheirCounter->getLength() > 0))); */
 
 	// K-Mod. This function now needs to handle AI - AI deals, and human auto-counters to AI suggested deals.
 	if (pOurList->getLength() == 0 && pOurCounter->getLength() == 0 && pTheirCounter->getLength() == 0)
 		return false;
-
-	bool bDeal = false;
-
+	// <advc.036> Don't double-check if balanceDeal says we should accept
+	if(bDeal)
+		return true; // </advc.036>
 	if (GET_PLAYER(ePlayer).isHuman())
 	{
 		// AI counting a human proposal:
@@ -10714,9 +11851,17 @@ bool CvPlayerAI::counterProposeBulk(PlayerTypes ePlayer, const CLinkList<TradeDa
 				100*iValueForThem >= GET_PLAYER(ePlayer).AI_tradeAcceptabilityThreshold(getID())*iValueForUs;
 			/*  <advc.550b> About the really bad deals: 4 to 1 is OK
 				when the human doesn't give away tech. */
-			if(!weReceiveTech && 4 * iValueForUs < iValueForThem)
+			bool bTech = false;
+			for(CLLNode<TradeData>* node = pOurCounter->head(); node != NULL;
+					node = pOurCounter->next(node)) {
+				if(node->m_data.m_eItemType == TRADE_TECHNOLOGIES) {
+					bTech = true;
+					break;
+				}
+			}
+			if(!bTech && 4 * iValueForUs < iValueForThem)
 				bDeal = false;
-			if(weReceiveTech  && 3 * iValueForUs < iValueForThem * 2)
+			if(bTech  && 3 * iValueForUs < iValueForThem * 2)
 				bDeal = false;
 			// </advc.550b>
 		}
@@ -10731,12 +11876,14 @@ bool CvPlayerAI::counterProposeBulk(PlayerTypes ePlayer, const CLinkList<TradeDa
 	CvGame const& g = GC.getGameINLINE();
 	if(g.isOption(GAMEOPTION_RISE_FALL) && GET_PLAYER(ePlayer).isHuman()) {
 		if(g.getRiseFall().isCooperationRestricted(getID())) {
-			double thresh = g.getRiseFall().dealThresh(isAnnualDeal(*pOurList));
-			if(bDeal && g.getRiseFall().pessimisticDealVal(
-					getID(), iValueForThem, *pOurList) / (iValueForUs + 0.01) <
-					thresh)
-				bDeal = (g.getRiseFall().isSquareDeal(*pOurList, *pTheirList, getID()) &&
-						 g.getRiseFall().isSquareDeal(*pOurCounter, *pTheirCounter, getID()));
+			CLinkList<TradeData> const& ourListCounter =
+					(pOurList->getLength() <= 0 ? *pOurCounter : *pOurList);
+			double thresh = g.getRiseFall().dealThresh(isAnnualDeal(ourListCounter));
+			if(bDeal && g.getRiseFall().pessimisticDealVal(getID(), iValueForThem,
+					ourListCounter) / (iValueForUs + 0.01) < thresh)
+				bDeal = ((g.getRiseFall().isSquareDeal(*pOurList, *pTheirList, getID()) &&
+						 g.getRiseFall().isSquareDeal(*pOurCounter, *pTheirCounter, getID())) ||
+						 g.getRiseFall().isNeededWarTrade(*pOurList));
 		}
 		double const secondAttempt = 0.9;
 		if(!bDeal && !GET_TEAM(getTeam()).isGoldTrading() &&
@@ -10749,6 +11896,411 @@ bool CvPlayerAI::counterProposeBulk(PlayerTypes ePlayer, const CLinkList<TradeDa
 	return bDeal;
 	// K-Mod end
 }
+
+/*  <advc.003> Moved and refactored from AI_counterProposeBulk in order to reduce
+	code duplication. 
+	ePlayer is the owner of pInventory, the one who needs to give more.
+	The callee is the one who needs to receive more.
+	bGenerous means that the callee is willing to accept an unfavorable trade.
+	The comments in the function body are from K-Mod.
+	advc.036: Returning true means force-accept. */
+bool CvPlayerAI::balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInventory,
+		PlayerTypes ePlayer, int& iGreaterVal, int& iSmallerVal,
+		CLinkList<TradeData>* pCounter, CLinkList<TradeData> const* pList,
+		double leniency, // advc.705
+		bool bGenerous,
+		int happyLeft, int healthLeft, int iOtherListLength) const { // advc.036
+
+	CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer);
+	// First, try to make up the difference with gold.
+	int iGoldValuePercent = kPlayer.AI_goldTradeValuePercent(); // advc.001l
+	CLLNode<TradeData>* pGoldPerTurnNode = NULL;
+	CLLNode<TradeData>* pGoldNode = NULL;
+	if(!bGoldDeal) {
+		for(CLLNode<TradeData>* pNode = pInventory->head(); pNode != NULL;
+				pNode = pInventory->next(pNode)) {
+			TradeData data = pNode->m_data;
+			if(data.m_bOffering || data.m_bHidden)
+				continue;
+			/*  <advc.104> Avoid a potentially costly TradeDenial check for
+				items that aren't covered by the switch block anyway. */
+			TradeableItems ti = data.m_eItemType;
+			if(ti != TRADE_GOLD && ti != TRADE_GOLD_PER_TURN)
+				continue; // </advc.104>
+			if (kPlayer.getTradeDenial(getID(), data) != NO_DENIAL)
+				continue;
+			FAssert(kPlayer.canTradeItem(getID(), data));
+			switch(ti) {
+			case TRADE_GOLD:
+				pGoldNode = pNode;
+				break;
+			case TRADE_GOLD_PER_TURN:
+				pGoldPerTurnNode = pNode;
+				break;
+			}
+		}
+	}
+	if(pGoldNode != NULL) {
+		int iGoldData = ((iGreaterVal - iSmallerVal) * 100 +
+				// bGenerous: round up or down
+				(bGenerous ? (iGoldValuePercent - 1) : 0)) /
+				iGoldValuePercent;
+		// <advc.026>
+		if(isHuman() && !bGenerous)
+			iGoldData -= (iGoldData % GC.getDIPLOMACY_VALUE_REMAINDER());
+		int iMaxGold = ((isHuman() && bGenerous) ?
+				kPlayer.maxGoldTradeGenerous(getID()) :
+				kPlayer.AI_maxGoldTrade(getID())); 
+		if(iMaxGold >= iGoldData) { // Replacing: </advc.026>
+						// if(kPlayer.AI_maxGoldTrade(getID()) >= iGoldData) {
+			pGoldNode->m_data.m_iData = iGoldData;
+			iSmallerVal +=
+				::round((leniency * // advc.705
+				(iGoldData * iGoldValuePercent)) / 100);
+			pCounter->insertAtEnd(pGoldNode->m_data);
+			pGoldNode = NULL;
+		}
+	}
+	/*  <advc.036> Try gpt before resources when trading with a human with
+		negative income. Based on the "try one more time" code chunk below. */
+	if(isHuman() && pGoldPerTurnNode != NULL && iGreaterVal > iSmallerVal &&
+			calculateGoldRate() < 0) {
+		int iGoldData = 0;
+		int iGoldAvailable = kPlayer.AI_maxGoldPerTurnTrade(getID());
+		while(AI_goldPerTurnTradeVal(iGoldData) < iGreaterVal - iSmallerVal &&
+				iGoldData < iGoldAvailable)
+			iGoldData++;
+		int gptTradeVal = AI_goldPerTurnTradeVal(iGoldData);
+		if(gptTradeVal >= iGreaterVal - iSmallerVal) {
+			if(!bGenerous && gptTradeVal > iGreaterVal - iSmallerVal) {
+				iGoldData--;
+				gptTradeVal = AI_goldPerTurnTradeVal(iGoldData);
+			}
+			if(iGoldData > 0) {
+				pGoldPerTurnNode->m_data.m_iData = iGoldData;
+				iSmallerVal +=
+						::round(leniency * // advc.705
+						gptTradeVal);
+				pCounter->insertAtEnd(pGoldPerTurnNode->m_data);
+				pGoldPerTurnNode = NULL;
+			}
+		}
+	} // </advc.036>
+	std::pair<TradeData*, int> final_item(NULL, 0); // An item we may or may not use to finalise the deal. (See later)
+	// <advc.036>
+	bool bSingleResource = (iOtherListLength <= 1 && (isHuman() || kPlayer.isHuman()) &&
+			pList->getLength() == 1 && 
+			pList->head()->m_data.m_eItemType == TRADE_RESOURCES);
+	std::vector<std::pair<TradeData*, int> > nonsurplusItems; // </advc.036>
+	if(iGreaterVal > iSmallerVal) {
+		// We were unable to balance the trade with just gold. So lets look at all the other items.
+		// Exclude bonuses that we've already put on the table
+		std::vector<bool> vbBonusDeal(GC.getNumBonusInfos(), false);
+		for(CLLNode<TradeData>* pNode = pList->head(); pNode != NULL;
+				pNode = pList->next(pNode)) {
+			TradeData data = pNode->m_data;
+			FAssert(!data.m_bHidden);
+			if(data.m_eItemType == TRADE_RESOURCES)
+				vbBonusDeal[pNode->m_data.m_iData] = true;
+		}
+		// We're only going to allow one city on the list. (For flavour reasons.)
+		int iBestCityValue = 0;
+		int iBestCityWeight = 0;
+		CLLNode<TradeData>* pBestCityNode = NULL;
+		// Evaluate everything they're willing to trade.
+		std::vector<std::pair<TradeData*, int> > item_value_list; // (item*, value)
+		CvGame& g = GC.getGameINLINE();
+		for(CLLNode<TradeData>* pNode = pInventory->head(); pNode != NULL;
+				pNode = pInventory->next(pNode)) {
+			TradeData data = pNode->m_data;
+			if(data.m_bOffering || data.m_bHidden)
+				continue;
+			/*  <advc.104> Avoid a potentially costly TradeDenial check for
+				items that aren't covered by the switch block anyway. */
+			TradeableItems ti = data.m_eItemType;
+			if(ti != TRADE_MAPS && ti != TRADE_TECHNOLOGIES &&
+					ti != TRADE_RESOURCES && ti != TRADE_CITIES)
+				continue; // </advc.104>
+			if(kPlayer.getTradeDenial(getID(), data) != NO_DENIAL)
+				continue;
+			FAssert(kPlayer.canTradeItem(getID(), data));
+			bool bNonsurplus = false; // advc.036
+			int iItemValue = 0;
+			switch(ti) {
+			case TRADE_MAPS:
+				iItemValue = GET_TEAM(getTeam()).AI_mapTradeVal(kPlayer.getTeam());
+				break;
+			case TRADE_TECHNOLOGIES:
+				iItemValue = GET_TEAM(getTeam()).AI_techTradeVal((TechTypes)
+						data.m_iData, kPlayer.getTeam());
+				break;
+			case TRADE_RESOURCES:
+				if(!vbBonusDeal[data.m_iData]) {
+					// Don't ask for the last of a resource, or corporation resources; because we're not going to evaluate losses.
+					// <advc.036> AI_bonusTradeVal evaluates losses now; moved up:
+					BonusTypes eBonus = (BonusTypes)data.m_iData;
+					iItemValue = AI_bonusTradeVal(eBonus, ePlayer, 1);
+					/*  Bias AI-AI trades against resources that are of low value
+						to the recipient; should rather try to trade these to
+						someone else. */
+					if(!isHuman() && !kPlayer.isHuman() &&
+							// Don't skip items that fill the gap very well
+							iGreaterVal - iSmallerVal - iItemValue > 10) {
+						/*  I think randomness in this function could lead to
+							OOS problems */
+						std::vector<long> hashInputs;
+						hashInputs.push_back(g.getGameTurn());
+						hashInputs.push_back(eBonus);
+						if(::hash(hashInputs, getID()) > iItemValue / 100.0)
+							continue;
+					}
+					vbBonusDeal[data.m_iData] = true;
+					bNonsurplus = true;
+					if((kPlayer.getNumTradeableBonuses(eBonus) > 1 && 
+							kPlayer.AI_corporationBonusVal(eBonus) == 0)
+							/*  Prefer to give non-surplus resources
+								over gpt in AI-AI trades (i.e. no special
+								treatment of nonsurplus resources needed).
+								If a human is involved, gpt needs to be preferred
+								b/c we don't want humans to minmax the gpt
+								through trial and error. */
+							|| (!isHuman() && !kPlayer.isHuman()))
+						bNonsurplus = false;
+					CvBonusInfo& bi = GC.getBonusInfo(eBonus);
+					/*  Don't worry about happyLeft and healthLeft when there's
+						just 1 item on the table */
+					if(iOtherListLength > 1 || pList->getLength() > 1) {
+						/*  Would be better to decrement the -left counters only
+							once eBonus is added to pCounter, but that's compli-
+							cated to implement. The important thing is to enforce
+							the limits. */
+						if(!kPlayer.isHuman()) {
+							/*  AI mustn't give too many non-surplus resources of
+								a kind (happy, health) at once */
+							if(kPlayer.getNumAvailableBonuses(eBonus) <= 1) {
+								if(bi.getHappiness() > 0 && happyLeft <= 0)
+									continue;
+								else happyLeft--;
+								if(bi.getHealth() > 0 && healthLeft <= 0)
+									continue;
+								else healthLeft--;
+							}
+						} else { /* AI mustn't accept too many resources of
+									a kind (happy, health) at once */
+							if(bi.getHappiness() > 0 && happyLeft <= 0)
+								continue;
+							else happyLeft--;
+							if(bi.getHealth() > 0 && healthLeft <= 0)
+								continue;
+							else healthLeft--;
+						}
+					} // </advc.036>
+				}
+				break;
+			case TRADE_CITIES:
+				if(::atWar(kPlayer.getTeam(), getTeam())) {
+					CvCity* pCity = kPlayer.getCity(data.m_iData);
+					if(pCity != NULL) {
+						int iWeight = AI_targetCityValue(pCity, false);
+						if(iWeight > iBestCityWeight) {
+							int iValue = AI_cityTradeVal(pCity);
+							if(iValue > 0) {
+								iBestCityValue = iValue;
+								iBestCityWeight = iWeight;
+								pBestCityNode = pNode;
+							}
+						}
+					}
+				}
+				break;
+			}
+			if(iItemValue > 0 && (bGenerous ||
+					iGreaterVal >= iSmallerVal + iItemValue
+					// <advc.036>
+					|| (iGreaterVal + singleBonusTradeTolerance >= iItemValue &&
+					pCounter->getLength() <= 0 && iOtherListLength <= 0 &&
+					bSingleResource && ti == TRADE_RESOURCES))) {
+				std::pair<TradeData*,int> itemValue = std::make_pair(
+						&pNode->m_data, iItemValue);
+				if(bNonsurplus)
+					nonsurplusItems.push_back(itemValue);
+				else item_value_list.push_back(itemValue); // </advc.036>
+			}
+		}
+		if(pBestCityNode != NULL) {
+			item_value_list.push_back(std::make_pair(&pBestCityNode->m_data,
+					iBestCityValue));
+		}
+		if(bGenerous) {
+			// We want to get as close as we can to a balanced trade - but ensure that the deal favours us!
+			// Find the best item, add it to the list; and repeat until we've closed the game in the trade values.
+			while(iGreaterVal > iSmallerVal && !item_value_list.empty()) {
+				int value_gap = iGreaterVal - iSmallerVal;
+				// Find the best item to put us ahead, but as close to fair as possible.
+				// Note: We're not doing this for perfect balance. We're counter-proposing so that the deal favours us!
+				//   If we wanted to get closer to a balanced deal, we just remove that first condition.
+				//   (Maybe that's what we should be doing for AI-AI trades; but there are still flavour considersations...)
+				std::vector<std::pair<TradeData*, int> >::iterator it, best_it;
+				for(best_it = it = item_value_list.begin();
+						it != item_value_list.end(); it++) {
+					if((it->second > value_gap && best_it->second < value_gap) ||
+							std::abs(it->second - value_gap) <
+							std::abs(best_it->second - value_gap))
+						best_it = it;
+				}
+				// Only add the item if it will get us closer to balance.
+				if(best_it->second <= 2*(iGreaterVal - iSmallerVal)) {
+					pCounter->insertAtEnd(*best_it->first);
+					iSmallerVal += best_it->second;
+					item_value_list.erase(best_it);
+				}
+				else {
+					// If nothing on the list can bring us closer to balance; we'll try to balance it with gold.
+					// But if that doesn't work, we may need to add this last item. So lets bookmark it.
+					final_item = *best_it;
+					break;
+				}
+			}
+		}
+		else {
+			// Sort the values from largest to smallest
+			std::sort(item_value_list.begin(), item_value_list.end(), maxValueCompare);
+			// Use the list to balance the trade.
+			for (std::vector<std::pair<TradeData*, int> >::iterator it =
+					item_value_list.begin(); it != item_value_list.end() &&
+					iGreaterVal > iSmallerVal; it++) {
+				int iItemValue = it->second;
+				if(iGreaterVal >= iSmallerVal + iItemValue
+						// <advc.036>
+						|| (bSingleResource && iGreaterVal +
+						singleBonusTradeTolerance >= iSmallerVal &&
+						pCounter->getLength() <= 0 && iOtherListLength <= 0 &&
+						it->first->m_eItemType == TRADE_RESOURCES)) {
+						// </advc.036>
+					pCounter->insertAtEnd(*it->first);
+					iSmallerVal +=
+							::round(leniency * // advc.705
+							iItemValue);
+				}
+			}
+		}
+	} // <advc.036> Special treatment for one-for-one resource trades
+	if(bSingleResource && iGreaterVal - iSmallerVal <= singleBonusTradeTolerance &&
+			((pCounter->getLength() <= 0 && iOtherListLength == 1 &&
+			pGoldPerTurnNode != NULL) ||
+			(pCounter->getLength() == 1 &&
+			pCounter->head()->m_data.m_eItemType == TRADE_RESOURCES)))
+		return true; // </advc.036>
+	// If their value is still higher, try one more time to make up the difference with gold.
+	// If we're counter-proposing an AI deal, just get as close to the right value as we can.
+	// But for humans, if they don't have enough gold then ask for one final item, to favour us.
+	bool bAddFinalItem = false;
+	if(iGreaterVal > iSmallerVal && (bGenerous ||
+			// Consider the special case of a human player auto-counter-proposing a deal from an AI.
+			// Humans are picky with trades. They turn down most AI deals. So to increase the chance of the human
+			// ultimately accepting, lets see if the AI would allow the deal without any added gold. If the AI will
+			// accept, then we won't add the gold. And this will be a rare example of the AI favouring the human.
+			!kPlayer.isHuman() || 100*iSmallerVal >=
+			AI_tradeAcceptabilityThreshold(ePlayer) * iGreaterVal)) {
+		if(pGoldNode != NULL) {
+			int iGoldData = ((iGreaterVal - iSmallerVal) * 100 +
+					// bGenerous: round up or down
+					(bGenerous ? (iGoldValuePercent - 1) : 0)) /
+					iGoldValuePercent;
+			//int iGoldAvailable = kPlayer.AI_maxGoldTrade(getID());
+			// <advc.026> Replacing the above
+			int iGoldAvailable = ((bGenerous && isHuman()) ?
+					kPlayer.maxGoldTradeGenerous(getID()) :
+					kPlayer.AI_maxGoldTrade(getID())); // </advc.026>
+			if(bGenerous && kPlayer.isHuman() && iGoldData > iGoldAvailable)
+				bAddFinalItem = true;
+			else {
+				iGoldData = std::min(iGoldData, iGoldAvailable);
+				if(iGoldData > 0) {
+					pGoldNode->m_data.m_iData = iGoldData;
+					iSmallerVal +=
+							::round(leniency * // advc.705
+							((iGoldData * iGoldValuePercent) / 100));
+					pCounter->insertAtEnd(pGoldNode->m_data);
+					pGoldNode = NULL;
+				}
+			}
+		}
+		/*  <advc.001> If human asks for gold, then pGoldNode is NULL here,
+			and the AI won't ask e.g. for a tech in exchange */
+		else if(bGenerous && kPlayer.isHuman() && iGreaterVal > iSmallerVal &&
+				(pList->getLength() <= 0 ||
+				!CvDeal::isAnnual(pList->head()->m_data.m_eItemType)))
+			bAddFinalItem = true; // </advc.001>
+	}
+	if(iGreaterVal > iSmallerVal) {
+		if(pGoldPerTurnNode != NULL) {
+			int iGoldData = 0;
+			while(AI_goldPerTurnTradeVal(iGoldData) < iGreaterVal - iSmallerVal)
+				iGoldData++;
+			if(!bGenerous && AI_goldPerTurnTradeVal(iGoldData) >
+					iGreaterVal - iSmallerVal)
+				iGoldData--;
+			//int iGoldAvailable = kPlayer.AI_maxGoldPerTurnTrade(getID());
+			// <advc.026> Replacing the above
+			int iMaxGPT = ((isHuman() && bGenerous) ?
+					kPlayer.maxGoldPerTurnTradeGenerous(getID()) :
+					kPlayer.AI_maxGoldPerTurnTrade(getID()));
+			int iGoldAvailable = iMaxGPT; // </advc.026>
+			if(bGenerous && kPlayer.isHuman() && iGoldData > iGoldAvailable)
+				bAddFinalItem = true;
+			else {
+				iGoldData = std::min(iGoldData, iGoldAvailable);
+				if(iGoldData > 0) {
+					pGoldPerTurnNode->m_data.m_iData = iGoldData;
+					iSmallerVal +=
+							::round(leniency * // advc.705
+							AI_goldPerTurnTradeVal(pGoldPerTurnNode->
+							m_data.m_iData));
+					pCounter->insertAtEnd(pGoldPerTurnNode->m_data);
+					pGoldPerTurnNode = NULL;
+				}
+			}
+		}
+		// <advc.001> See above at if(pGoldNode)...else
+		else if(bGenerous && kPlayer.isHuman() && iGreaterVal > iSmallerVal &&
+				(pList->getLength() <= 0 ||
+				CvDeal::isAnnual(pList->head()->m_data.m_eItemType)))
+			bAddFinalItem = true; // </advc.001>
+	} // <advc.036> A mix of the two K-Mod algorithms for item selection
+	if(iGreaterVal > iSmallerVal && final_item.first == NULL) {
+		while(iGreaterVal > iSmallerVal && !nonsurplusItems.empty()) {
+			int value_gap = iGreaterVal - iSmallerVal;
+			std::vector<std::pair<TradeData*, int> >::iterator it, best_it;
+			for(best_it = it = nonsurplusItems.begin();
+					it != nonsurplusItems.end(); it++) {
+				if(!bGenerous && iSmallerVal + it->second > iGreaterVal)
+					continue;
+				if((bGenerous && it->second > value_gap &&
+						best_it->second < value_gap) ||
+						std::abs(it->second - value_gap) <
+						std::abs(best_it->second - value_gap))
+					best_it = it;
+			}
+			if(best_it->second <= 2 * (iGreaterVal - iSmallerVal) ||
+					bGenerous) {
+				pCounter->insertAtEnd(*best_it->first);
+				iSmallerVal += best_it->second;
+			}
+			nonsurplusItems.erase(best_it);
+		}
+	} // </advc.036>
+	// When counter proposing a suggestion from a human, the AI will insist on having the better value.
+	// So lets add the cheapest item still on our list.
+	// We would have added the item already if it was going to be 'fair'. So we can be sure will favour us.
+	if(bAddFinalItem && final_item.first != NULL) {
+		FAssert(iGreaterVal > iSmallerVal && kPlayer.isHuman());
+		pCounter->insertAtEnd(*final_item.first);
+		iSmallerVal += final_item.second;
+		FAssert(iSmallerVal >= iGreaterVal);
+	}
+	return false; // advc.036
+} // </advc.003>
 
 // K-Mod. Minimum percentage of trade value that this player will accept.
 // ie. Accept trades if 100 * value_for_us >= residual * value_for_them .
@@ -10806,6 +12358,63 @@ bool CvPlayerAI::checkCivicReligionConsistency(CLinkList<TradeData> const* trade
 	return true;
 } // </advc.132>
 
+// <advc.036>
+bool CvPlayerAI::checkResourceLimits(CLinkList<TradeData> const* weGive,
+		CLinkList<TradeData> const* theyGive, PlayerTypes theyId, int iChange)
+		const {
+
+	/*  Resources in lists mustn't overlap. TradeDenial should already ensure
+		this, but I don't think that's totally reliable. */
+	std::set<int> resources1;
+	std::set<int> resources2;
+	std::set<int>* resources[] = { &resources1, &resources2 };
+	CLinkList<TradeData> const* tradeItems[] = {weGive, theyGive};
+	CvPlayer const* giver[] = {this,&GET_PLAYER(theyId)};
+	for(int i = 0; i < 2; i++) {
+
+		int nonSurplusHappy = 0;
+		int nonSurplusHealth = 0;
+		int happy, health;
+		happy = health = 0;
+		for(CLLNode<TradeData>* tdn = tradeItems[i]->head(); tdn != NULL;
+				tdn = tradeItems[i]->next(tdn)) {
+			if(tdn->m_data.m_eItemType != TRADE_RESOURCES)
+				continue;
+			BonusTypes eBonus = (BonusTypes)tdn->m_data.m_iData;
+			resources[i]->insert(eBonus);
+			CvBonusInfo& bi = GC.getBonusInfo(eBonus);
+			bool bAvail = (giver[i]->getNumAvailableBonuses(eBonus) - iChange > 0);
+			if(bi.getHappiness() > 0) {
+				happy++;
+				if(!bAvail)
+					nonSurplusHappy++;
+			}
+			if(bi.getHealth() > 0) {
+				health++;
+				if(!bAvail)
+					nonSurplusHealth++;
+			}
+		}
+		/*  AI mustn't trade away too many non-surplus resources of a kind
+			(happy, health) at once */
+		if(!giver[i]->isHuman() && !GET_TEAM(giver[i]->getTeam()).isCapitulated() &&
+				(nonSurplusHappy > 2 || nonSurplusHealth > 2))
+			return false;
+		/*  giver[(i + 1) % 2] is the recipient. AI mustn't accept too many
+			resource of a kind (happy, health) at once. */
+		if(!giver[(i + 1) % 2]->isHuman() && (happy > 2 || health > 2))
+			return false;
+	}
+	if(resources1.empty() || resources2.empty()) // for speed
+		return true;
+	std::vector<int> intersection;
+	std::set_intersection(resources1.begin(), resources1.end(),
+			resources2.begin(), resources2.end(), std::back_inserter(
+			intersection));
+	return intersection.empty();
+} // </advc.036>
+
+
 int CvPlayerAI::AI_maxGoldTrade(PlayerTypes ePlayer) const
 {
 	PROFILE_FUNC();
@@ -10813,100 +12422,282 @@ int CvPlayerAI::AI_maxGoldTrade(PlayerTypes ePlayer) const
 	int iMaxGold;
 
 	FAssert(ePlayer != getID());
-
+	// <advc.104w>
+	if(getWPAI.isEnabled() && TEAMREF(ePlayer).isAtWar(getTeam())) {
+		int r = std::max(0, getGold());
+		// Don't tell them exactly how much we can afford
+		return r - (r % (2 * GC.getDIPLOMACY_VALUE_REMAINDER()));
+	} // </advc.104w>
 	if (isHuman() || (GET_PLAYER(ePlayer).getTeam() == getTeam()))
 	{
 		iMaxGold = getGold();
+		// <advc.003>
+		return std::max(0, iMaxGold);
 	}
-	else
+	/*else
+	{*/ // </advc.003>
+	/* original bts code
+	iMaxGold = getTotalPopulation();
+	iMaxGold *= (GET_TEAM(getTeam()).AI_getHasMetCounter(GET_PLAYER(ePlayer).getTeam()) + 10);
+	iMaxGold *= GC.getLeaderHeadInfo(getPersonalityType()).getMaxGoldTradePercent();
+	iMaxGold /= 100;
+	iMaxGold -= AI_getGoldTradedTo(ePlayer);
+	iResearchBuffer = -calculateGoldRate() * 12;
+	iResearchBuffer *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getResearchPercent();
+	iResearchBuffer /= 100;
+	iMaxGold = std::min(iMaxGold, getGold() - iResearchBuffer);
+	iMaxGold = std::min(iMaxGold, getGold());
+	iMaxGold -= (iMaxGold % GC.getDefineINT("DIPLOMACY_VALUE_REMAINDER")); */
+	
+	// K-Mod. Similar, but with more personality, and with better handling of situations where the AI has lots of spare gold.
+	int iTradePercent = GC.getLeaderHeadInfo(getPersonalityType()).getMaxGoldTradePercent();
+	iMaxGold = getTotalPopulation();
+
+	iMaxGold *= (GET_TEAM(getTeam()).AI_getHasMetCounter(GET_PLAYER(ePlayer).getTeam()) + 10);
+
+	iMaxGold *= iTradePercent;
+	iMaxGold /= 100;
+
+	/*iMaxGold -= AI_getGoldTradedTo(ePlayer);
+	iMaxGold = std::max(0, iMaxGold);*/
+	//int iGoldRate = calculateGoldRate();
+	// <advc.036> Replacing the above
+	int iGoldRate = (AI_getAvailableIncome() - calculateInflatedCosts() -
+			std::max(0, -getGoldPerTurn())) / 5; // </advc.036>
+	if (iGoldRate > 0)
 	{
-		/* original bts code
-		iMaxGold = getTotalPopulation();
-
-		iMaxGold *= (GET_TEAM(getTeam()).AI_getHasMetCounter(GET_PLAYER(ePlayer).getTeam()) + 10);
-
-		iMaxGold *= GC.getLeaderHeadInfo(getPersonalityType()).getMaxGoldTradePercent();
-		iMaxGold /= 100;
-
-		iMaxGold -= AI_getGoldTradedTo(ePlayer);
-
-        iResearchBuffer = -calculateGoldRate() * 12;
-        iResearchBuffer *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getResearchPercent();
-        iResearchBuffer /= 100;
-
-		iMaxGold = std::min(iMaxGold, getGold() - iResearchBuffer);
-
-		iMaxGold = std::min(iMaxGold, getGold());
-
-		iMaxGold -= (iMaxGold % GC.getDefineINT("DIPLOMACY_VALUE_REMAINDER")); */
-		// K-Mod. Similar, but with more personality, and with better handling of situations where the AI has lots of spare gold.
-		int iTradePercent = GC.getLeaderHeadInfo(getPersonalityType()).getMaxGoldTradePercent();
-		iMaxGold = getTotalPopulation();
-
-		iMaxGold *= (GET_TEAM(getTeam()).AI_getHasMetCounter(GET_PLAYER(ePlayer).getTeam()) + 10);
-
-		iMaxGold *= iTradePercent;
-		iMaxGold /= 100;
-
-		iMaxGold -= AI_getGoldTradedTo(ePlayer);
-		iMaxGold = std::max(0, iMaxGold);
-
-		int iGoldRate = calculateGoldRate();
-		if (iGoldRate > 0)
+		PROFILE("AI_maxGoldTrade: gold rate adjustment");
+		int iTarget = AI_goldTarget();
+		if (getGold() < iTarget)
 		{
-			PROFILE("AI_maxGoldTrade: gold rate adjustment");
-			int iTarget = AI_goldTarget();
-			if (getGold() < iTarget)
-			{
-				iGoldRate -= (iTarget - getGold())/3;
-				iGoldRate = std::max(0, iGoldRate);
-			}
-			else
-			{
-				iMaxGold += (getGold() - iTarget) * iTradePercent / 100;
-			}
-			iMaxGold += iGoldRate * 2 * iTradePercent / 100;
+			iGoldRate -= (iTarget - getGold())/3;
+			iGoldRate = std::max(0, iGoldRate);
 		}
 		else
 		{
-			int iAdjustment = iGoldRate * 12;
-			iAdjustment *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getResearchPercent();
-			iAdjustment /= 100;
-
-			iMaxGold += iAdjustment;
+			iMaxGold += (getGold() - iTarget) * iTradePercent / 100;
 		}
-
-		iMaxGold = range(iMaxGold, 0, getGold());
-
-		iMaxGold -= (iMaxGold % GC.getDefineINT("DIPLOMACY_VALUE_REMAINDER"));
-		// K-Mod end
-	}
-
-	return std::max(0, iMaxGold);
-}
-
-
-int CvPlayerAI::AI_maxGoldPerTurnTrade(PlayerTypes ePlayer) const
-{
-	int iMaxGoldPerTurn;
-
-	FAssert(ePlayer != getID());
-
-	if (isHuman() || (GET_PLAYER(ePlayer).getTeam() == getTeam()))
-	{
-		iMaxGoldPerTurn = (calculateGoldRate() + (getGold() / GC.getDefineINT("PEACE_TREATY_LENGTH")));
+		iMaxGold += iGoldRate * 2 * iTradePercent / 100;
 	}
 	else
 	{
-		iMaxGoldPerTurn = getTotalPopulation();
+		int iAdjustment = iGoldRate * 12;
+		iAdjustment *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getResearchPercent();
+		iAdjustment /= 100;
 
-		iMaxGoldPerTurn *= GC.getLeaderHeadInfo(getPersonalityType()).getMaxGoldPerTurnTradePercent();
-		iMaxGoldPerTurn /= 100;
+		iMaxGold += iAdjustment;
+	} // <advc.036>
+	iMaxGold = adjustTradeGoldToDiplo(iMaxGold, ePlayer);
+	// Moved from above the gold rate adjustment
+	iMaxGold -= AI_getGoldTradedTo(ePlayer); // </advc.036>
+	iMaxGold = range(iMaxGold, 0, getGold());
+	// <advc.550f>
+	if(GET_PLAYER(ePlayer).isHuman() && GET_TEAM(getTeam()).isTechTrading() ||
+			TEAMREF(ePlayer).isTechTrading()) {
+		TechTypes cr = getCurrentResearch();
+		double techProgr = (cr == NO_TECH ? 0 : GET_TEAM(getTeam()).
+				getResearchProgress(cr) / (double)std::max(1,
+				GET_TEAM(getTeam()).getResearchCost(cr)));
+		double goldRatio = std::min(1.0, 1.4 *
+				(1 - std::min(std::abs(techProgr - 0.75),
+				std::abs(techProgr + 0.25))) - 0.33);
+		iMaxGold = (int)(iMaxGold * goldRatio);
+	} // </advc.550f>
+	iMaxGold -= (iMaxGold % GC.getDIPLOMACY_VALUE_REMAINDER());
+	// K-Mod end
+	return std::max(0, iMaxGold);
+}
 
-		iMaxGoldPerTurn += std::min(0, getGoldPerTurnByPlayer(ePlayer));
+// <advc.036>
+int CvPlayerAI::adjustTradeGoldToDiplo(int gold, PlayerTypes civId) const {
+
+	double mult = 1;
+	if(!TEAMREF(civId).isAtWar(getTeam()) &&
+			!GET_TEAM(getTeam()).isCapitulated()) {
+		AttitudeTypes att = AI_getAttitude(civId);
+		switch(att) {
+		case ATTITUDE_FURIOUS: mult = 0.33; break;
+		case ATTITUDE_ANNOYED: mult = 0.67; break;
+		case ATTITUDE_PLEASED: mult = 1.2; break;
+		case ATTITUDE_FRIENDLY: mult = 1.4; break;
+		}
 	}
+	return ::round(gold * mult);
+}
 
-	return std::max(0, std::min(iMaxGoldPerTurn, calculateGoldRate()));
+void CvPlayerAI::foldDeals() const {
+
+	/*  This is called on the barb turn, i.e. at the end of a round, and goes
+		through all gold-for-resource deals between AI civs. */
+	CvGame& g = GC.getGame(); int foo=-1;
+	// [i][j]: i pays gpt to j
+	std::queue<CvDeal*> dealsPerPair[MAX_CIV_PLAYERS][MAX_CIV_PLAYERS];
+	for(CvDeal* d = g.firstDeal(&foo); d != NULL; d = g.nextDeal(&foo)) {
+		if(!d->isCancelable())
+			continue;
+		int len1 = d->getLengthFirstTrades();
+		int len2 = d->getLengthSecondTrades();
+		if(len1 != 1 || len2 != 1) // Only consider gpt-for-single-resource deals
+			continue;
+		CvPlayer* civ[2] = { &GET_PLAYER(d->getFirstPlayer()),
+				&GET_PLAYER(d->getSecondPlayer()) };
+		if(civ[0]->isHuman() || civ[1]->isHuman())
+			continue;
+		if(d->getFirstTrades() == NULL || d->getSecondTrades() == NULL)
+			continue;
+		CLinkList<TradeData> const* tdList[2] = {
+				d->getFirstTrades(), d->getSecondTrades() };
+		int gptCount = 0;
+		int bonusCount = 0;
+		bool valid = true;
+		int gptIndex = -1;
+		for(int i = 0; i < 2; i++) {
+			CLLNode<TradeData>* tdn = tdList[i]->head();
+			if(tdn != NULL) {
+				TradeableItems tdata = tdn->m_data.m_eItemType;
+				if(tdata == TRADE_GOLD_PER_TURN) {
+					gptCount++;
+					gptIndex = i;
+				}
+				else if(tdata == TRADE_RESOURCES)
+					bonusCount++;
+				else valid = false;
+			}
+			if(!valid)
+				break;
+		}
+		if(valid && gptCount == bonusCount) {
+			FAssert(gptIndex >= 0);
+			dealsPerPair[civ[gptIndex]->getID()]
+					[civ[(gptIndex + 1) % 2]->getID()].push(d);
+		}
+	}
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+		CvPlayer& civ1 = GET_PLAYER((PlayerTypes)i);
+		if(!civ1.isAlive())
+			continue;
+		for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
+			if(i >= j) // Process each pair of civs only once
+				continue;
+			CvPlayer& civ2 = GET_PLAYER((PlayerTypes)j);
+			if(!civ2.isAlive())
+				continue;
+			std::queue<CvDeal*> q1 = dealsPerPair[civ1.getID()][civ2.getID()];
+			std::queue<CvDeal*> q2 = dealsPerPair[civ2.getID()][civ1.getID()];
+			while(!q1.empty() && !q2.empty()) {
+				foldDeals(*q1.front(), *q2.front());
+				q1.pop(); q2.pop();
+			}
+		}
+	}
+}
+
+void CvPlayerAI::foldDeals(CvDeal& d1, CvDeal& d2) const {
+
+	CvPlayer& civ1 = GET_PLAYER(d1.getFirstPlayer());
+	CvPlayer& civ2 = GET_PLAYER(d1.getSecondPlayer());
+	int gpt1 = -1, gpt2 = -1;
+	BonusTypes bonus1 = NO_BONUS, bonus2 = NO_BONUS;
+	if(d1.headFirstTradesNode()->m_data.m_eItemType == TRADE_GOLD_PER_TURN) {
+		gpt1 = d1.headFirstTradesNode()->m_data.m_iData;
+		bonus2 = (BonusTypes)d1.headSecondTradesNode()->m_data.m_iData;
+	}
+	else {
+		gpt2 = d1.headSecondTradesNode()->m_data.m_iData;
+		bonus1 = (BonusTypes)d1.headFirstTradesNode()->m_data.m_iData;
+	}
+	if(d2.headFirstTradesNode()->m_data.m_eItemType == TRADE_GOLD_PER_TURN) {
+		if(d2.getFirstPlayer() == d1.getFirstPlayer()) {
+			gpt1 = d2.headFirstTradesNode()->m_data.m_iData;
+			bonus2 = (BonusTypes)d2.headSecondTradesNode()->m_data.m_iData;
+		}
+		else {
+			gpt2 = d2.headFirstTradesNode()->m_data.m_iData;
+			bonus1 = (BonusTypes)d2.headSecondTradesNode()->m_data.m_iData;
+		}
+	}
+	else {
+		if(d2.getFirstPlayer() == d1.getFirstPlayer()) {
+			gpt2 = d2.headSecondTradesNode()->m_data.m_iData;
+			bonus1 = (BonusTypes)d2.headFirstTradesNode()->m_data.m_iData;
+		}
+		else {
+			gpt1 = d2.headSecondTradesNode()->m_data.m_iData;
+			bonus2 = (BonusTypes)d2.headFirstTradesNode()->m_data.m_iData;
+		}
+	}
+	FAssert(gpt1 > 0 && gpt2 > 0 && bonus1 != NO_BONUS && bonus2 != NO_BONUS);
+	int delta = gpt1 - gpt2;
+	// Got enough info for the new deal
+	d1.killSilent(false, false);
+	d2.killSilent(false, false);
+	CLinkList<TradeData> give1;
+	CLinkList<TradeData> give2;
+	TradeData tmp;
+	setTradeItem(&tmp, TRADE_RESOURCES, bonus1);
+	give1.insertAtEnd(tmp);
+	setTradeItem(&tmp, TRADE_RESOURCES, bonus2);
+	give2.insertAtEnd(tmp);
+	if(delta > 0) {
+		setTradeItem(&tmp, TRADE_GOLD_PER_TURN, delta);
+		give1.insertAtEnd(tmp);
+	}
+	else if(delta < 0) {
+		setTradeItem(&tmp, TRADE_GOLD_PER_TURN, -delta);
+		give2.insertAtEnd(tmp);
+	}
+	CvGame& g = GC.getGame();
+	// Call counterPropose?
+	CvDeal* newDeal = g.implementDealBulk(civ1.getID(), civ2.getID(),
+			&give1, &give2, true);
+	// Allow new deal to be canceled right away?
+	/*newDeal->setInitialGameTurn(g.getGameTurn() -
+			GC.getDefineINT("PEACE_TREATY_LENGTH"));*/
+} // </advc.036>
+
+
+int CvPlayerAI::AI_maxGoldPerTurnTrade(PlayerTypes ePlayer) const {
+
+	FAssert(ePlayer != getID()); // advc.003: Some refactoring in this function
+	/*if (isHuman() || (GET_PLAYER(ePlayer).getTeam() == getTeam()))
+	{
+		iMaxGoldPerTurn = (calculateGoldRate() + (getGold() / GC.getDefineINT("PEACE_TREATY_LENGTH")));
+	}*/
+	// <advc.036>
+	// Replacing the above:
+	if(isHuman())
+		return std::max(0, calculateGoldRate());
+	// Don't pay gold to our capitulated vassal
+	if(TEAMREF(ePlayer).isVassal(getTeam()) && TEAMREF(ePlayer).isCapitulated())
+		return 0;
+	/*  BtS caps the return value at calculateGoldRate, so the getGold()...
+		part had no effect. The AI shouldn't make assumptions about human
+		finances anyway. Let human use the gold slider to communicate how much
+		gpt the AI can ask for in trade proposals. */
+	int availableGold = (AI_getAvailableIncome() - getGoldPerTurn() -
+			calculateInflatedCosts()) / 3;
+	// Included in AvailableIncome, but don't want to divide it by 3.
+	availableGold += getGoldPerTurn();
+	availableGold = std::max(calculateGoldRate(), availableGold); // </advc.036>
+	//availableGold = calculateGoldRate(); // BtS behavior
+	// <advc.104w>
+	if(getWPAI.isEnabled() && TEAMREF(ePlayer).isAtWar(getTeam())) {
+		int r = std::max(0, availableGold);
+		return r - (r % 5);
+	} // </advc.104w>
+	int iMaxGoldPerTurn = getTotalPopulation();
+	iMaxGoldPerTurn *= 4; // advc.036
+	iMaxGoldPerTurn *= GC.getLeaderHeadInfo(getPersonalityType()).
+			getMaxGoldPerTurnTradePercent();
+	iMaxGoldPerTurn /= 100;
+	iMaxGoldPerTurn += std::min(0, getGoldPerTurnByPlayer(ePlayer));
+	// <advc.036>
+	iMaxGoldPerTurn = adjustTradeGoldToDiplo(iMaxGoldPerTurn, ePlayer);
+	int r = ::range(iMaxGoldPerTurn, 0, std::max(0, availableGold));
+	// This will only be relevant in the late game
+	if(r > 10 * GC.getDIPLOMACY_VALUE_REMAINDER())
+		r -= (r % GC.getDIPLOMACY_VALUE_REMAINDER());
+	return r; // </advc.036>
 }
 
 
@@ -10927,7 +12718,7 @@ int CvPlayerAI::maxGoldTradeGenerous(PlayerTypes theyId) const {
 	dr *= multiplier;
 	int r = ::round(dr);
 	r = std::min(getGold(), r);
-	return std::max(0, r - (r % GC.getDefineINT("DIPLOMACY_VALUE_REMAINDER")));
+	return std::max(0, r - (r % GC.getDIPLOMACY_VALUE_REMAINDER()));
 }
 
 int CvPlayerAI::maxGoldPerTurnTradeGenerous(PlayerTypes theyId) const {
@@ -10935,22 +12726,36 @@ int CvPlayerAI::maxGoldPerTurnTradeGenerous(PlayerTypes theyId) const {
 	double r = AI_maxGoldPerTurnTrade(theyId);
 	double multiplier = 1 + GC.getDefineINT("AI_OFFER_EXTRA_GOLD_PERCENT") / 100.0;
 	r *= multiplier;
-	return std::max(0, std::min(calculateGoldRate(), ::round(r)));
+	return std::max(0, ::round(r));
 }// </advc.026>
 
 // (very roughly 4x gold / turn / city)
-int CvPlayerAI::AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled) const
+int CvPlayerAI::AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled,
+		bool bTrade) const // advc.036
 {
 	int iValue = 0;
 	int iBonusCount = getNumAvailableBonuses(eBonus);
+	// <advc.036>
+	int tradeVal = 0;
+	// More valuable if we have few resources for trade
+	int surplus = 0;
+	if(!bTrade) { /* Importing resources is not going to give us more resources
+					to trade with b/c we can't wheel and deal */
+		for(int i = 0; i < GC.getNumBonusInfos(); i++)
+			surplus += std::max(0, getNumTradeableBonuses((BonusTypes)i) - 1);
+	}
+	tradeVal = ::round(4 / std::sqrt((double)std::max(1, std::max(surplus,
+			2 * (iBonusCount + iChange))))); // </advc.036>
 	if ((iChange == 0) || ((iChange == 1) && (iBonusCount == 0)) || ((iChange == -1) && (iBonusCount == 1))
-			// advc.121: Cover all strange cases here
-			|| iChange + iBonusCount <= 1)
+			// advc.036: Cover all strange cases here
+			|| iChange + iBonusCount < 1)
 	{
 		//This is assuming the none-to-one or one-to-none case.
-		iValue += AI_baseBonusVal(eBonus);
+		iValue += AI_baseBonusVal(eBonus,
+				bTrade); // advc.036
 		iValue += AI_corporationBonusVal(eBonus);
-
+		if(!bTrade)
+			iValue = std::max(iValue, tradeVal); // advc.036
 		// K-Mod.
 		if (!bAssumeEnabled)
 		{
@@ -10959,428 +12764,503 @@ int CvPlayerAI::AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled)
 			//if (!kTeam.isBonusRevealed(eBonus))
 			// note. the tech is used here as a kind of proxy for the civ's readiness to use the bonus.
 			if (!kTeam.isHasTech((TechTypes)GC.getBonusInfo(eBonus).getTechReveal()))
-				iValue /= 2;
+				iValue /= (bTrade ? 3 : 2); // advc.036: was /=2
 			if (!kTeam.isHasTech((TechTypes)GC.getBonusInfo(eBonus).getTechCityTrade()))
-				iValue /= 2;
+				iValue /= (bTrade ? 3 : 2); // advc.036: was /=2
 		}
 		// K-Mod end
 	}
 	else
 	{
-		int corpVal = AI_corporationBonusVal(eBonus); // advc.121: New variable, old value
-		iValue += corpVal;
+		iValue += AI_corporationBonusVal(eBonus);
 		//This is basically the marginal value of an additional instance of a bonus.
-		// <advc.121> The potential for trades isn't marginal. Commented out:
 		//iValue += AI_baseBonusVal(eBonus) / 5;
-		// instead:
-		if(corpVal == 0) {
-			/*  Surplus resources are more valuable if we have few resources for
-				trade */
-			int surplus = 0;
-			for(int i = 0; i < GC.getNumBonusInfos(); i++)
-				surplus += std::max(0, getNumTradeableBonuses((BonusTypes)i) - 1);
-			int div = std::max(surplus, 4 * (iBonusCount + iChange - 1));
-			iValue = (AI_baseBonusVal(eBonus) * 2) / div;
-		} // </advc.121>
+		/*  advc.036: The potential for trades isn't that marginal, and the
+			base value (for the first copy of a resource) is unhelpful. */
+		iValue = std::max(iValue, tradeVal);
 	}
 	return iValue;
 }
 
 //Value sans corporation
 // (K-Mod note: very vague units. roughly 4x gold / turn / city.)
-int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus) const
+int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
+		bool bTrade) const // advc.036
 {
-	PROFILE_FUNC();
-
+	// advc.003: Reduced indentation throughout this function
 	//recalculate if not defined
-	if(m_aiBonusValue[eBonus] == -1)
-	{
-		PROFILE("CvPlayerAI::AI_baseBonusVal::recalculate");
+	if(!bTrade && // advc.036
+			m_aiBonusValue[eBonus] != -1)
+		return m_aiBonusValue[eBonus];
+	// <advc.036>
+	if(bTrade && m_aiBonusValueTrade[eBonus] != -1)
+		return m_aiBonusValueTrade[eBonus]; // </advc.036>
 
-		int iValue = 0;
-
-		if (!GET_TEAM(getTeam()).isBonusObsolete(eBonus))
-		{
-			iValue += (GC.getBonusInfo(eBonus).getHappiness() * 100);
-			iValue += (GC.getBonusInfo(eBonus).getHealth() * 100);
-
-			CvTeam& kTeam = GET_TEAM(getTeam());
-
-			CvCity* pCapital = getCapitalCity();
-			int iCityCount = getNumCities();
-			int iCoastalCityCount = countNumCoastalCities();
-			
-			// find the first coastal city
-			CvCity* pCoastalCity = NULL;
-			CvCity* pUnconnectedCoastalCity = NULL;
-			if (iCoastalCityCount > 0)
-			{
-				int iLoop;
-					for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
-				{
-					if (pLoopCity->isCoastal())
-					{
-						if (pLoopCity->isConnectedToCapital(getID()))
-						{
-							pCoastalCity = pLoopCity;
-								break;
-						}
-						else if (pUnconnectedCoastalCity == NULL)
-						{
-							pUnconnectedCoastalCity = pLoopCity;
-						}
-					}
-				}
-			}
-			if (pCoastalCity == NULL && pUnconnectedCoastalCity != NULL)
-			{
-				pCoastalCity = pUnconnectedCoastalCity;
-			}
-
-
-			for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
-			{
-				UnitTypes eLoopUnit = ((UnitTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(iI)));
-
-				if (eLoopUnit != NO_UNIT)
-				{
-					CvUnitInfo& kLoopUnit = GC.getUnitInfo(eLoopUnit);
-
-					/* original bts code
-					int iTempValue = 0;
-
-					if (kLoopUnit.getPrereqAndBonus() == eBonus)
-					{
-						iTempValue += 50;
-					}
-
-					for (int iJ = 0; iJ < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); iJ++)
-					{
-						if (kLoopUnit.getPrereqOrBonuses(iJ) == eBonus)
-						{
-							iTempValue += 40;
-						}
-					}
-
-					iTempValue += kLoopUnit.getBonusProductionModifier(eBonus) / 10;
-
-					if (iTempValue > 0)
-					{
-						bool bIsWater = (kLoopUnit.getDomainType() == DOMAIN_SEA);
-						
-						// if non-limited water unit, weight by coastal cities
-						if (bIsWater && !isLimitedUnitClass((UnitClassTypes)(kLoopUnit.getUnitClassType())))
-						{
-							iTempValue *= std::min(iCoastalCityCount * 2, iCityCount);	// double coastal cities, cap at total cities
-							iTempValue /= std::max(1, iCityCount);
-						}
-
-						if (canTrain(eLoopUnit))
-						{
-							// is it a water unit and no coastal cities or our coastal city cannot build because its obsolete
-							if ((bIsWater && (pCoastalCity == NULL || (pCoastalCity->allUpgradesAvailable(eLoopUnit) != NO_UNIT))) ||
-								// or our capital cannot build because its obsolete (we can already build all its upgrades)
-								(pCapital != NULL && pCapital->allUpgradesAvailable(eLoopUnit) != NO_UNIT))
-							{
-								// its worthless
-								iTempValue = 2;
-							}
-							// otherwise, value units we could build if we had this bonus double
-							else
-							{
-								iTempValue *= 2;
-							}
-						}
-
-						if (kLoopUnit.getPrereqAndTech() != NO_TECH)
-						{
-							int iDiff = abs(GC.getTechInfo((TechTypes)(kLoopUnit.getPrereqAndTech())).getEra() - getCurrentEra());
-
-							if (iDiff == 0)
-							{
-								iTempValue *= 3;
-								iTempValue /= 2;
-							}
-							else
-							{
-								iTempValue /= iDiff;
-							}
-						}
-
-						iValue += iTempValue;
-					}*/
-					// K-Mod. Similar, but much better. (maybe)
-					const int iBaseValue = 30;
-					int iUnitValue = 0;
-					if (kLoopUnit.getPrereqAndBonus() == eBonus)
-					{
-						iUnitValue = iBaseValue;
-					}
-					else
-					{
-						int iOrBonuses = 0;
-						int iOrBonusesWeHave = 0; // excluding eBonus itself. (disabled for now. See comments below.)
-						bool bIsOrBonus = false; // is eBonus one of the OrBonuses for this unit.
-
-						for (int iJ = 0; iJ < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); iJ++)
-						{
-							BonusTypes ePrereqBonus = (BonusTypes)kLoopUnit.getPrereqOrBonuses(iJ);
-
-							if (ePrereqBonus != NO_BONUS)
-							{
-								iOrBonuses++;
-								//iOrBonusesWeHave += (ePrereqBonus != eBonus && getNumAvailableBonuses(ePrereqBonus)) ? 1 : 0;
-								// @*#!  It occurs to me that using state-dependant stuff such as NumAvailableBonuses here could result in OOS errors.
-								// This is because the code here can be trigged by local UI events, and then the value could be cached...
-								// It's very frustrating - because including the effect from iOrBonusesWeHave was going to be a big improvment.
-								// The only way I can think of working around this is to add a 'bConstCache' argument to this function...
-								bIsOrBonus = bIsOrBonus || ePrereqBonus == eBonus;
-							}
-						}
-						if (bIsOrBonus)
-						{
-							// 1: 1, 2: 2/3, 3: 1/2, ...
-							iUnitValue = iBaseValue * 2 / (1+iOrBonuses+2*iOrBonusesWeHave);
-						}
-					}
-					bool bCanTrain = false;
-					if (iUnitValue > 0)
-					{
-						// devalue the unit if we wouldn't be able to build it anyway
-						if (canTrain(eLoopUnit))
-						{
-							// is it a water unit and no coastal cities or our coastal city cannot build because its obsolete
-							if ((kLoopUnit.getDomainType() == DOMAIN_SEA && (pCoastalCity == NULL || pCoastalCity->allUpgradesAvailable(eLoopUnit) != NO_UNIT)) ||
-								// or our capital cannot build because its obsolete (we can already build all its upgrades)
-								(pCapital != NULL && pCapital->allUpgradesAvailable(eLoopUnit) != NO_UNIT))
-							{
-								// its worthless
-								iUnitValue = 0;
-							}
-							bCanTrain = true;
-						}
-						else
-						{
-							// there is some other reason why we can't build it. (maybe the unit is maxed out, or maybe we don't have the techs)
-							iUnitValue /= 2;
-						}
-					}
-					if (iUnitValue > 0)
-					{
-						// devalue units for which we already have a better replacement.
-						UnitAITypes eDefaultAI = (UnitAITypes)kLoopUnit.getDefaultUnitAIType();
-						int iNewTypeValue = AI_unitValue(eLoopUnit, eDefaultAI, 0);
-						int iBestTypeValue = AI_bestAreaUnitAIValue(eDefaultAI, 0);
-						if (iBestTypeValue > 0)
-						{
-							int iNewValue = AI_unitValue(eLoopUnit, eDefaultAI, 0);
-							iUnitValue = iUnitValue * std::max(0, std::min(100, 120*iNewValue / iBestTypeValue - 20)) / 100;
-						}
-
-						// devalue units which are related to our current era. (but not if it is still our best unit!)
-						if (kLoopUnit.getPrereqAndTech() != NO_TECH)
-						{
-							int iDiff = GC.getTechInfo((TechTypes)(kLoopUnit.getPrereqAndTech())).getEra() - getCurrentEra();
-							if (iDiff > 0 || !bCanTrain || iNewTypeValue < iBestTypeValue)
-								iUnitValue = iUnitValue * 2/(2 + std::abs(iDiff));
-						}
-						iValue += iUnitValue;
-					}
-					// K-Mod end
-				}
-			}
-
-			for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
-			{
-				BuildingTypes eLoopBuilding = ((BuildingTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(iI)));
-
-				if (eLoopBuilding != NO_BUILDING)
-				{
-					CvBuildingInfo& kLoopBuilding = GC.getBuildingInfo(eLoopBuilding);
-					
-					int iTempValue = 0;
-
-					if (kLoopBuilding.getPrereqAndBonus() == eBonus)
-					{
-						iTempValue += 30;
-					}
-
-					for (int iJ = 0; iJ < GC.getNUM_BUILDING_PREREQ_OR_BONUSES(); iJ++)
-					{
-						if (kLoopBuilding.getPrereqOrBonuses(iJ) == eBonus)
-						{
-							iTempValue += 20;
-						}
-					}
-
-					iTempValue += kLoopBuilding.getBonusProductionModifier(eBonus) / 10;
-
-					if (kLoopBuilding.getPowerBonus() == eBonus)
-					{
-						iTempValue += 60;
-					}
-					
-					for (int iJ = 0; iJ < NUM_YIELD_TYPES; iJ++)
-					{
-						iTempValue += kLoopBuilding.getBonusYieldModifier(eBonus, iJ) / 2;
-						if (kLoopBuilding.getPowerBonus() == eBonus)
-						{
-							iTempValue += kLoopBuilding.getPowerYieldModifier(iJ);
-						}
-					}
-					
-					{
-						// determine whether we have the tech for this building
-						bool bHasTechForBuilding = true;
-						if (!(kTeam.isHasTech((TechTypes)(kLoopBuilding.getPrereqAndTech()))))
-						{
-							bHasTechForBuilding = false;
-						}
-						for (int iPrereqIndex = 0; bHasTechForBuilding && iPrereqIndex < GC.getNUM_BUILDING_AND_TECH_PREREQS(); iPrereqIndex++)
-						{
-							if (kLoopBuilding.getPrereqAndTechs(iPrereqIndex) != NO_TECH)
-							{
-								if (!(kTeam.isHasTech((TechTypes)(kLoopBuilding.getPrereqAndTechs(iPrereqIndex)))))
-								{
-									bHasTechForBuilding = false;
-								}
-							}
-						}
-						
-						bool bIsStateReligion = (((ReligionTypes) kLoopBuilding.getStateReligion()) != NO_RELIGION);
-
-						//check if function call is cached
-						bool bCanConstruct = canConstruct(eLoopBuilding, false, /*bTestVisible*/ true, /*bIgnoreCost*/ true);
-						
-						// bCanNeverBuild when true is accurate, it may be false in some cases where we will never be able to build 
-						bool bCanNeverBuild = (bHasTechForBuilding && !bCanConstruct && !bIsStateReligion);
-
-						// if we can never build this, it is worthless
-						if (bCanNeverBuild)
-						{
-							iTempValue = 0;
-						}
-						// double value if we can build it right now
-						else if (bCanConstruct)
-						{
-							iTempValue *= 2;
-						}
-
-						// if non-limited water building, weight by coastal cities
-						if (kLoopBuilding.isWater() && !isLimitedWonderClass((BuildingClassTypes)(kLoopBuilding.getBuildingClassType())))
-						{
-							iTempValue *= iCoastalCityCount;
-							iTempValue /= std::max(1, iCityCount/2);
-						}
-
-						if (kLoopBuilding.getPrereqAndTech() != NO_TECH)
-						{
-							int iDiff = abs(GC.getTechInfo((TechTypes)(kLoopBuilding.getPrereqAndTech())).getEra() - getCurrentEra());
-
-							if (iDiff == 0)
-							{
-								iTempValue *= 3;
-								iTempValue /= 2;
-							}
-							else
-							{
-								iTempValue /= iDiff;
-							}
-						}
-
-						iValue += iTempValue;
-					}
-				}
-			}
-
-			for (int iI = 0; iI < GC.getNumProjectInfos(); iI++)
-			{
-				ProjectTypes eProject = (ProjectTypes) iI;
-				CvProjectInfo& kLoopProject = GC.getProjectInfo(eProject);
-				int iTempValue = 0;
-
-				iTempValue += kLoopProject.getBonusProductionModifier(eBonus) / 10;
-
-				if (iTempValue > 0)
-				{
-					bool bMaxedOut = (GC.getGameINLINE().isProjectMaxedOut(eProject) || kTeam.isProjectMaxedOut(eProject));
-
-					if (bMaxedOut)
-					{
-						// project worthless
-						iTempValue = 0;
-					}
-					else if (canCreate(eProject))
-					{
-						iTempValue *= 2;
-					}
-
-					if (kLoopProject.getTechPrereq() != NO_TECH)
-					{
-						int iDiff = abs(GC.getTechInfo((TechTypes)(kLoopProject.getTechPrereq())).getEra() - getCurrentEra());
-
-						if (iDiff == 0)
-						{
-							iTempValue *= 3;
-							iTempValue /= 2;
-						}
-						else
-						{
-							iTempValue /= iDiff;
-						}
-					}
-
-					iValue += iTempValue;
-				}
-			}
-
-			RouteTypes eBestRoute = getBestRoute();
-			for (int iI = 0; iI < GC.getNumBuildInfos(); iI++)
-			{
-				RouteTypes eRoute = (RouteTypes)(GC.getBuildInfo((BuildTypes)iI).getRoute());
-
-				if (eRoute != NO_ROUTE)
-				{
-					int iTempValue = 0;
-					if (GC.getRouteInfo(eRoute).getPrereqBonus() == eBonus)
-					{
-						iTempValue += 80;
-					}
-					for (int iJ = 0; iJ < GC.getNUM_ROUTE_PREREQ_OR_BONUSES(); iJ++)
-					{
-						if (GC.getRouteInfo(eRoute).getPrereqOrBonus(iJ) == eBonus)
-						{
-							iTempValue += 40;
-						}
-					}
-					if ((eBestRoute != NO_ROUTE) && (GC.getRouteInfo(getBestRoute()).getValue() <= GC.getRouteInfo(eRoute).getValue()))
-					{
-						iValue += iTempValue;
-					}
-					else
-					{
-						iValue += iTempValue / 2;
-					}
-				}
-			}
-
-			//	int iCorporationValue = AI_corporationBonusVal(eBonus);
-			//	iValue += iCorporationValue;
-			//
-			//	if (iCorporationValue <= 0 && getNumAvailableBonuses(eBonus) > 0)
-			//	{
-			//		iValue /= 3;
-			//	}
-
-			iValue /= 10;
+	if(GET_TEAM(getTeam()).isBonusObsolete(eBonus)) {
+		m_aiBonusValue[eBonus] = 0;
+		m_aiBonusValueTrade[eBonus] = 0; // advc.036
+		return m_aiBonusValue[eBonus];
+	}
+	PROFILE("CvPlayerAI::AI_baseBonusVal::recalculate");
+	// <advc.036>
+	double dValue = 0; // was int
+	int happy = GC.getBonusInfo(eBonus).getHappiness();
+	int health = GC.getBonusInfo(eBonus).getHealth();
+	int buildingHappy = 0;
+	int buildingHealth = 0;
+	for(int i = 0; i < GC.getNumBuildingClassInfos(); i++) {
+		BuildingClassTypes bct = (BuildingClassTypes)i;
+		int bcc = getBuildingClassCount(bct);
+		if(bcc <= 0)
+			continue;
+		BuildingTypes bt = (BuildingTypes)GC.getCivilizationInfo(
+				getCivilizationType()).getCivilizationBuildings(bct);
+		if(bt == NO_BUILDING)
+			continue;
+		buildingHappy += bcc * GC.getBuildingInfo(bt).getBonusHappinessChanges(eBonus);
+		buildingHealth += bcc * GC.getBuildingInfo(bt).getBonusHealthChanges(eBonus);
+	}
+	if(buildingHappy > 0.55 * getNumCities())
+		happy++;
+	if(buildingHealth > 0.55 * getNumCities())
+		health++;
+	// What BtS did:
+	/*iValue += (happy * 100);
+	iValue += (health * 100);*/
+	/*  Weight appears to be 100 when a city needs extra happiness or health
+		to grow, a bit more when citizens are already angry or food is being
+		lost. Generally lower than 100 because not all cities will need
+		happiness or health for growth.
+		Resource tiles can generally be worked without extra happiness or
+		health. Being able to work an extra non-resource tile should be worth
+		some 10 gpt per city. Improvement and building yields increase over the
+		course of the game, but the service life of a citizen becomes shorter,
+		the food needed for growth increases and the natural tile yields tend to
+		decrease (worst tiles saved for last). Also, when a city near the
+		happiness cap receives another luxury, it may still be unable to grow
+		for lack of health. Tbd.: Could check whether health or happiness is
+		the bottleneck and adjust BonusVal accordingly.
+		5 gpt per 1 happiness could be reasonable; can still reduce that further
+		in AI_bonusTradeVal. There's a division by 10 at the end of this function,
+		and it's supposed to return 4 times the gpt per city, so everything still
+		needs to be multiplied by 2: */
+	double const scaleFactor = 2.1; // plus a little extra now that ExtraPop1 and ExtraPop2 no longer have equal weight
+	/*  The weight functions always assign some value to happiness and health
+		beyond what is needed for the current population, but the AI should
+		secure bonuses some time before they're needed so that CvCityAI can
+		tell when there is room for growth and prioritize food accordingly.
+		2 is a bit much though, and 1 too little, so take a weighted mean
+		of the two. */
+	int iExtraPop1 = 1, iExtraPop2 = 2;
+	if(!bTrade) // Look ahead farther then (trades are fickle)
+		iExtraPop1 = iExtraPop2;
+	// Don't want iExtraPop to increase resource prices on the whole
+	double extraPopFactor = std::max(0.5, 0.1 * (10 - (0.7 * iExtraPop1 +
+			0.3 * iExtraPop2)));
+	bool bAvailable = (getNumAvailableBonuses(eBonus) > 0);
+	if(happy > 0) {
+		/*  advc.912c: Better ignore getLuxuryModifier; don't want civs with a
+			luxury modifier to trade for more luxuries, and don't want them to
+			pay more more for luxuries. */
+		double const civicsMod = 0;//getLuxuryModifier() / 200.0;
+		// Considering to cancel a trade
+		if(bTrade && bAvailable) { /* HappinessWeight can't handle iHappy=0;
+									  increase extra pop instead */
+			iExtraPop1 += happy;
+			iExtraPop2 += happy;
 		}
+		dValue += scaleFactor *
+			((0.7 + 0.5 * civicsMod) * AI_getHappinessWeight(happy, iExtraPop1) +
+			 (0.3 + 0.5 * civicsMod) * AI_getHappinessWeight(happy, iExtraPop2));
+	}
+	if(health > 0) {
+		if(bTrade && bAvailable) {
+			iExtraPop1 += health;
+			iExtraPop2 += health;
+		}
+		// Lower multiplier b/c bad health is not as painful as anger
+		dValue += (scaleFactor - 0.5) * 0.5 * (AI_getHealthWeight(health, iExtraPop1) +
+				AI_getHealthWeight(health, iExtraPop2));
+	}
+	dValue *= extraPopFactor;
+	// </advc.036>
+	CvTeam& kTeam = GET_TEAM(getTeam());
+	CvCity* pCapital = getCapitalCity();
+	int iCityCount = getNumCities();
+	int iCoastalCityCount = countNumCoastalCities();
 
-
-		//clamp value non-negative
-		m_aiBonusValue[eBonus] = std::max(0, iValue);
+	// find the first coastal city
+	CvCity* pCoastalCity = NULL;
+	CvCity* pUnconnectedCoastalCity = NULL;
+	if (iCoastalCityCount > 0)
+	{
+		int iLoop;
+		for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+		{
+			if(!pLoopCity->isCoastal())
+				continue;
+			if (pLoopCity->isConnectedToCapital(getID()))
+			{
+				pCoastalCity = pLoopCity;
+				break;
+			}
+			else if (pUnconnectedCoastalCity == NULL)
+			{
+				pUnconnectedCoastalCity = pLoopCity;
+			}
+		}
+	}
+	if (pCoastalCity == NULL && pUnconnectedCoastalCity != NULL)
+	{
+		pCoastalCity = pUnconnectedCoastalCity;
 	}
 
-	return m_aiBonusValue[eBonus];
+
+	for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
+	{
+		UnitTypes eLoopUnit = ((UnitTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(iI)));
+
+		if(eLoopUnit == NO_UNIT)
+			continue;
+		CvUnitInfo& kLoopUnit = GC.getUnitInfo(eLoopUnit);
+		/* original bts code
+		... */ // advc.003: deleted
+		// K-Mod. Similar, but much better. (maybe)
+		const int iBaseValue = //30;
+			/*  <advc.031> This value gets multiplied by the number of cities
+				when converted to gold per turn, but AI_foundValue does not do
+				this, and a civ that never expands beyond 6 cities should still
+				value access to e.g. nukes more than to Swordsmen, if only
+				because gold is more readily available in the late game. */
+				std::max(10,
+				::round(12 * std::pow((double)kLoopUnit.getPowerValue(), 0.5)));
+				// </advc.031>
+		int iUnitValue = 0;
+		if (kLoopUnit.getPrereqAndBonus() == eBonus)
+		{
+			iUnitValue = iBaseValue;
+		}
+		else
+		{
+			int iOrBonuses = 0;
+			int iOrBonusesWeHave = 0; // excluding eBonus itself. (disabled for now. See comments below.)
+			bool bIsOrBonus = false; // is eBonus one of the OrBonuses for this unit.
+
+			for (int iJ = 0; iJ < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); iJ++)
+			{
+				BonusTypes ePrereqBonus = (BonusTypes)kLoopUnit.getPrereqOrBonuses(iJ);
+
+				if (ePrereqBonus != NO_BONUS)
+				{
+					iOrBonuses++;
+					// advc.036: Uncommented. Should be fine now.
+					iOrBonusesWeHave += (ePrereqBonus != eBonus &&
+							getNumAvailableBonuses(ePrereqBonus) > 0) ? 1 : 0;
+					// @*#!  It occurs to me that using state-dependant stuff such as NumAvailableBonuses here could result in OOS errors.
+					// This is because the code here can be trigged by local UI events, and then the value could be cached...
+					// It's very frustrating - because including the effect from iOrBonusesWeHave was going to be a big improvment.
+					// The only way I can think of working around this is to add a 'bConstCache' argument to this function...
+					bIsOrBonus = bIsOrBonus || ePrereqBonus == eBonus;
+				}
+			}
+			if (bIsOrBonus)
+			{
+				// 1: 1, 2: 2/3, 3: 1/2, ...
+				iUnitValue = iBaseValue * 2 / (1+iOrBonuses+2*iOrBonusesWeHave);
+			}
+		}
+		bool bCanTrain = false;
+		if (iUnitValue > 0)
+		{
+			// devalue the unit if we wouldn't be able to build it anyway
+			if (canTrain(eLoopUnit))
+			{
+				// is it a water unit and no coastal cities or our coastal city cannot build because its obsolete
+				if ((kLoopUnit.getDomainType() == DOMAIN_SEA && (pCoastalCity == NULL || pCoastalCity->allUpgradesAvailable(eLoopUnit) != NO_UNIT)) ||
+					// or our capital cannot build because its obsolete (we can already build all its upgrades)
+					(pCapital != NULL && pCapital->allUpgradesAvailable(eLoopUnit) != NO_UNIT))
+				{
+					// its worthless
+					iUnitValue = 0;
+				}
+				bCanTrain = true;
+			}
+			else
+			{
+				// there is some other reason why we can't build it. (maybe the unit is maxed out, or maybe we don't have the techs)
+				iUnitValue /= 2;
+				/*  <advc.036> Evaluation for trade should be short-term; if we
+					can't use it right away, we shouldn't trade for it. */
+				if(bTrade) {
+					/*  This makes sure that we're not very close to the unit.
+						Otherwise, a human could e.g. trade for Ivory one turn
+						before finishing Construction. */
+					TechTypes mainReq = (TechTypes)kLoopUnit.getPrereqAndTech();
+					if(!isHuman() || (mainReq != NO_TECH &&
+							!kTeam.isHasTech(mainReq) &&
+							kTeam.getResearchProgress(mainReq) <= 0))
+						iUnitValue /= 3;
+				} // </advc.036>
+			}
+		}
+		if (iUnitValue > 0)
+		{
+			// devalue units for which we already have a better replacement.
+			UnitAITypes eDefaultAI = (UnitAITypes)kLoopUnit.getDefaultUnitAIType();
+			int iNewTypeValue = AI_unitValue(eLoopUnit, eDefaultAI, 0);
+			int iBestTypeValue = AI_bestAreaUnitAIValue(eDefaultAI, 0);
+			if (iBestTypeValue > 0)
+			{
+				int iNewValue = AI_unitValue(eLoopUnit, eDefaultAI, 0);
+				iUnitValue = iUnitValue * std::max(0, std::min(100, 120*iNewValue / iBestTypeValue - 20)) / 100;
+			}
+
+			// devalue units which are related to our current era. (but not if it is still our best unit!)
+			if (kLoopUnit.getPrereqAndTech() != NO_TECH)
+			{
+				int iDiff = GC.getTechInfo((TechTypes)(kLoopUnit.getPrereqAndTech())).getEra() - getCurrentEra();
+				if (iDiff > 0
+					//|| !bCanTrain || iNewTypeValue < iBestTypeValue) {
+					/*  advc.036: The assignment below doesn't do anything
+						if iDiff is 0, so alternative conditions have no effect.
+						"but not if it is still our best unit!" sounds like it
+						should be an AND. !bCanTrain is sufficiently penalized
+						above. */
+						&& iNewTypeValue < iBestTypeValue) {
+					/*  advc.031: Replacing the line below b/c Horse was valued
+						too highly in the late game */
+					iUnitValue = iUnitValue/(1 + std::abs(iDiff));
+					//iUnitValue = iUnitValue * 2/(2 + std::abs(iDiff));
+				}
+			}
+			dValue += iUnitValue;
+		}
+		// K-Mod end
+	}
+
+	for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+	{
+		BuildingTypes eLoopBuilding = ((BuildingTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(iI)));
+
+		if(eLoopBuilding == NO_BUILDING)
+			continue;
+		CvBuildingInfo& kLoopBuilding = GC.getBuildingInfo(eLoopBuilding);
+
+		int iTempValue = 0;
+
+		if (kLoopBuilding.getPrereqAndBonus() == eBonus)
+		{
+			iTempValue += 25; // advc.036: was 30
+		}
+
+		for (int iJ = 0; iJ < GC.getNUM_BUILDING_PREREQ_OR_BONUSES(); iJ++)
+		{
+			if (kLoopBuilding.getPrereqOrBonuses(iJ) == eBonus)
+			{
+				iTempValue += 15; // advc.036: was 20
+			}
+		}
+
+		iTempValue += kLoopBuilding.getBonusProductionModifier(eBonus) / 10;
+
+		if (kLoopBuilding.getPowerBonus() == eBonus)
+		{
+			iTempValue += 40; // advc.036: was 60
+		}
+
+		for (int iJ = 0; iJ < NUM_YIELD_TYPES; iJ++)
+		{	// <advc.003> Easier to debug this way
+			int const bym = kLoopBuilding.getBonusYieldModifier(eBonus, iJ);
+			if(bym > 0) { // </advc.003>
+				iTempValue += kLoopBuilding.getBonusYieldModifier(eBonus, iJ) /
+						/*  <advc.036> 25 for Ironworks is normally too much;
+							need to take into account that we can build it in
+							only one city. Then again, if we have very few cities,
+							we may not be able to build it at all ...
+							Too tedious to check getPrereqNumOfBuildingClass,
+							so just use a constant divisor. */
+						(::isNationalWonderClass((BuildingClassTypes)iI) ? 5 :
+						2);
+			}
+			if (kLoopBuilding.getPowerBonus() == eBonus)
+			{
+				iTempValue += kLoopBuilding.getPowerYieldModifier(iJ);
+			}
+		}
+		if(iTempValue > 0) // advc.003b
+		{
+			// determine whether we have the tech for this building
+			bool bHasTechForBuilding = true;
+			if (!(kTeam.isHasTech((TechTypes)(kLoopBuilding.getPrereqAndTech()))))
+			{
+				bHasTechForBuilding = false;
+			}
+			for (int iPrereqIndex = 0; bHasTechForBuilding && iPrereqIndex < GC.getNUM_BUILDING_AND_TECH_PREREQS(); iPrereqIndex++)
+			{
+				if (kLoopBuilding.getPrereqAndTechs(iPrereqIndex) != NO_TECH)
+				{
+					if (!(kTeam.isHasTech((TechTypes)(kLoopBuilding.getPrereqAndTechs(iPrereqIndex)))))
+					{
+						bHasTechForBuilding = false;
+					}
+				}
+			}
+
+			bool bIsStateReligion = (((ReligionTypes) kLoopBuilding.getStateReligion()) != NO_RELIGION);
+
+			//check if function call is cached
+			bool bCanConstruct = canConstruct(eLoopBuilding, false, /*bTestVisible*/ true, /*bIgnoreCost*/ true);
+
+			// bCanNeverBuild when true is accurate, it may be false in some cases where we will never be able to build 
+			bool bCanNeverBuild = (bHasTechForBuilding && !bCanConstruct && !bIsStateReligion);
+
+			// if we can never build this, it is worthless
+			if (bCanNeverBuild)
+			{
+				iTempValue = 0;
+			}
+			// double value if we can build it right now
+			else if (bCanConstruct)
+			{
+				if(!bTrade) // advc.036
+					iTempValue *= 2;
+				/*  advc.036: Even if we can start building right now, the
+					bonus can be taken away again during construction. */
+				else iTempValue = ::round(iTempValue * 1.5);
+			} // <advc.036> Don't trade for the bonus until we need it
+			if(bTrade && !bCanConstruct)
+				iTempValue = 0; // </advc.036>
+			// if non-limited water building, weight by coastal cities
+			if (kLoopBuilding.isWater() && !isLimitedWonderClass((BuildingClassTypes)(kLoopBuilding.getBuildingClassType())))
+			{
+				iTempValue *= iCoastalCityCount;
+				iTempValue /= std::max(1, iCityCount/2);
+			}
+
+			if (kLoopBuilding.getPrereqAndTech() != NO_TECH)
+			{
+				int iDiff = abs(GC.getTechInfo((TechTypes)(kLoopBuilding.getPrereqAndTech())).getEra() - getCurrentEra());
+
+				if (iDiff == 0)
+				{
+					iTempValue *= 3;
+					iTempValue /= 2;
+				}
+				else
+				{
+					iTempValue /= iDiff;
+					// <advc.036>
+					if(bTrade)
+						iTempValue = 0; // </advc.036>
+				}
+			}
+			dValue += iTempValue;
+		}
+	}
+
+	for (int iI = 0; iI < GC.getNumProjectInfos(); iI++)
+	{
+		ProjectTypes eProject = (ProjectTypes) iI;
+		CvProjectInfo& kLoopProject = GC.getProjectInfo(eProject);
+		int iTempValue = 0;
+
+		iTempValue += kLoopProject.getBonusProductionModifier(eBonus) / 10;
+
+		if(iTempValue <= 0)
+			continue;
+		bool bMaxedOut = (GC.getGameINLINE().isProjectMaxedOut(eProject) || kTeam.isProjectMaxedOut(eProject));
+
+		if (bMaxedOut)
+		{
+			// project worthless
+			iTempValue = 0;
+		}
+		else if (canCreate(eProject))
+		{
+			iTempValue *= 2;
+		}
+
+		if (kLoopProject.getTechPrereq() != NO_TECH)
+		{
+			int iDiff = abs(GC.getTechInfo((TechTypes)(kLoopProject.getTechPrereq())).getEra() - getCurrentEra());
+
+			if (iDiff == 0)
+			{
+				iTempValue *= 3;
+				iTempValue /= 2;
+			}
+			else
+			{
+				iTempValue /= iDiff;
+				// <advc.036>
+				if(bTrade)
+					iTempValue = 0; // <advc.036>
+			}
+		}
+
+		dValue += iTempValue;
+	}
+
+	RouteTypes eBestRoute = getBestRoute();
+	for (int iI = 0; iI < GC.getNumBuildInfos(); iI++)
+	{
+		RouteTypes eRoute = (RouteTypes)(GC.getBuildInfo((BuildTypes)iI).getRoute());
+		if(eRoute == NO_ROUTE)
+			continue;
+		int iTempValue = 0;
+		if (GC.getRouteInfo(eRoute).getPrereqBonus() == eBonus)
+		{
+			iTempValue += 80;
+		}
+		for (int iJ = 0; iJ < GC.getNUM_ROUTE_PREREQ_OR_BONUSES(); iJ++)
+		{
+			if (GC.getRouteInfo(eRoute).getPrereqOrBonus(iJ) == eBonus)
+			{
+				iTempValue += 40;
+			}
+		}
+		if ((eBestRoute != NO_ROUTE) && (GC.getRouteInfo(getBestRoute()).getValue() <= GC.getRouteInfo(eRoute).getValue()))
+		{
+			dValue += iTempValue;
+		}
+		else
+		{
+			dValue += iTempValue / 2;
+		} // <advc.036> The usual tech checks
+		TechTypes tech = (TechTypes)GC.getBuildInfo((BuildTypes)iI).getTechPrereq();
+		if(tech != NO_TECH && !GET_TEAM(getTeam()).isHasTech(tech)) {
+			iTempValue /= 2;
+			EraTypes techEra = (EraTypes)GC.getTechInfo(tech).getEra();
+			int eraDiff = techEra - getCurrentEra();
+			if(eraDiff > 0)
+				iTempValue /= eraDiff;
+			if(bTrade)
+				iTempValue = 0;
+		} // </advc.036>
+	}
+
+	//	int iCorporationValue = AI_corporationBonusVal(eBonus);
+	//	iValue += iCorporationValue;
+	//
+	//	if (iCorporationValue <= 0 && getNumAvailableBonuses(eBonus) > 0)
+	//	{
+	//		iValue /= 3;
+	//	}
+
+	dValue /= 10;
+	// <advc.036>
+	int iValue = ::round(dValue);
+	iValue = std::max(0, iValue);
+	/*  To address karadoc's "@*#!" comment in the middle of this function;
+		coupled with a change in AI_updateBonusValue(BonusTypes). */
+	if(GC.getGameINLINE().isNetworkMultiPlayer())
+		return iValue;
+	if(!bTrade) {
+		m_aiBonusValue[eBonus] = iValue;
+		return iValue;
+	}
+	m_aiBonusValueTrade[eBonus] = iValue;
+	return iValue; // </advc.036>
 }
 
 int CvPlayerAI::AI_corporationBonusVal(BonusTypes eBonus) const
@@ -11433,88 +13313,209 @@ int CvPlayerAI::AI_corporationBonusVal(BonusTypes eBonus) const
 	return iValue;
 }
 
+// <advc.036> Rewritten
+int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer,
+		int iChange) const {
 
-int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer, int iChange) const
-{
-	int iValue;
-
-	FAssertMsg(ePlayer != getID(), "shouldn't call this function on ourselves");
-
-	iValue = AI_bonusVal(eBonus, iChange);
-
-	iValue *= ((std::min(getNumCities(), GET_PLAYER(ePlayer).getNumCities()) + 3) * 25); // was * 30
-	iValue /= 100;
-
-	iValue *= std::max(0, (GC.getBonusInfo(eBonus).getAITradeModifier() + 100));
-	iValue /= 100;
-
-	if (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isVassal(getTeam()) && !GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isCapitulated())
-	{
-		iValue /= 2;
+	PROFILE_FUNC();
+	FAssert(ePlayer != getID());
+	bool useOurBonusVal = true;
+	if(isHuman()) {
+		/*  If this CvPlayer is human and ePlayer an AI, then this function
+			needs to say how much the human values eBonus in ePlayer's
+			estimation. Can't just use this->AI_bonusVal b/c this uses
+			information that ePlayer might not have. */
+		CvBonusInfo& bi = GC.getBonusInfo(eBonus);
+		// I can live with cheating when it comes to strategic bonuses
+		useOurBonusVal = (bi.getHappiness() + bi.getHealth() == 0);
+		// Also don't worry about the value of additional copies (for corps)
+		if(!useOurBonusVal && ((getNumAvailableBonuses(eBonus) > 0 && iChange > 0) ||
+				(getNumAvailableBonuses(eBonus) - iChange > 1)))
+			useOurBonusVal = true;
+		// Otherwise ePlayer needs to know most of the human's territory
+		if(!useOurBonusVal) {
+			int revThresh = 2 * getNumCities() / 3;
+			int revCount = 0;
+			TeamTypes eTeam = TEAMID(ePlayer); int dummy=-1;
+			for(CvCity* c = firstCity(&dummy); c != NULL; c = nextCity(&dummy)) {
+				if(c->isRevealed(eTeam, false)) {
+					revCount++;
+					if(revCount >= revThresh) {
+						useOurBonusVal = true;
+						break;
+					}
+				}
+			}
+		}
 	}
+	CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer);
+	double ourVal = useOurBonusVal ? AI_bonusVal(eBonus, iChange, false, true) :
+			// Use ePlayer's value as a substitute
+			kPlayer.AI_bonusVal(eBonus, 0, false, true);
+	ourVal *= getNumCities(); // bonusVal is per city
+	/*  Don't pay fully b/c trade doesn't give us permanent access to the
+		resource, and b/c it tends to be (and should be) a buyer's market. */
+	ourVal = std::pow(ourVal, 0.7);
+	/*  What else could ePlayer do with the resource? Trade it to somebody else.
+		I'm assuming that trade denial has already filtered out resources that
+		ePlayer (really) needs domestically. */
+	int cityCount = 0;
+	int knownCivs = 0;
+	int otherTakers = 0;
+	/*  Can't check here if eBonus is strategic; use the strategic thresh minus 1
+		as a compromise. */
+	int refuseThresh = std::max(0, GC.getLeaderHeadInfo(kPlayer.getPersonalityType()).
+			getStrategicBonusRefuseAttitudeThreshold() - 1);
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+		CvPlayerAI const& civ = GET_PLAYER((PlayerTypes)i);
+		if(!civ.isAlive() || !GET_TEAM(getTeam()).isHasMet(civ.getTeam()) ||
+				!TEAMREF(ePlayer).isHasMet(civ.getTeam()))
+			continue;
+		/*  The trade partners don't necessarily know all those cities, but the
+			city count wouldn't be difficult to estimate. */
+		cityCount += civ.getNumCities();
+		knownCivs++;
+		if(civ.getID() == ePlayer || civ.getID() == getID())
+			continue;
+		/*  Based on a profiler test, too slow:
+			(maybe b/c of the is-strategic check in AI_bonusTrade) */
+		/*TradeData item;
+		item.m_eItemType = TRADE_RESOURCES;
+		item.m_iData = eBonus;
+		if(kPlayer.canTradeItem(civ.getID(), item, true))
+			otherTakers++;*/
+		// Also a little slow b/c of advc.124
+		//if(!kPlayer.canTradeNetworkWith(civ.getID())
+		// Checking just the essentials is fine though; it's only a heuristic.
+		if((civ.getCapitalCity() != NULL &&
+				!civ.getCapitalCity()->isConnectedToCapital(ePlayer)) ||
+				civ.getNumAvailableBonuses(eBonus) > 0)
+			continue;
+		if(!kPlayer.isHuman() && kPlayer.AI_getAttitude(civ.getID()) <= refuseThresh)
+			continue;
+		if(!civ.isHuman() && civ.AI_getAttitude(ePlayer) <= std::max(0,
+				GC.getLeaderHeadInfo(civ.getPersonalityType()).
+				getStrategicBonusRefuseAttitudeThreshold() - 1))
+			continue;
+		otherTakers++;
+	}
+	int avail = kPlayer.getNumAvailableBonuses(eBonus);
+	// Decrease marketVal if we have multiple spare copies
+	otherTakers = ::range(otherTakers - avail + 2, 0, otherTakers);
+	FAssert(knownCivs >= 2);
+	/*  Hard to say how much a third party needs eBonus, but it'd certainly
+		factor in its number of cities. */
+	double marketVal = (5.0 * cityCount) / (3.0 * knownCivs) +
+			std::sqrt((double)otherTakers);
+	double const marketWeight = 2/3.0;
+	/*  Want luxuries and food resources to be cheap, but not necessarily
+		strategic resources. At 1/3 weight for ourVal, crucial strategics
+		are still going to be expensive. */
+	double r = marketWeight * marketVal + (1 - marketWeight) * ourVal;
+	/*  Trade denial already ensures that ePlayer doesn't really need the
+		resource. Don't want to factor in ePlayer's AI_bonusVal; just a little
+		nudge to make sure that the AI doesn't offer unneeded nonsurplus resources at
+		the same price as surplus resources. Exception for human b/c I don't
+		want humans to keep their surplus resources and sell unneeded nonsurplus
+		resources instead for a slightly higher price. */
+	if(!kPlayer.isHuman() && (avail - iChange == 0 ||
+			avail == 0 || // when considering cancelation
+			kPlayer.AI_corporationBonusVal(eBonus) > 0))
+		r++;
+	if(!isHuman()) // Never pay more than it's worth to us
+		r = std::min(r, ourVal);
+	r *= std::max(0, GC.getBonusInfo(eBonus).getAITradeModifier() + 100) / 100.0;
+	if(TEAMREF(ePlayer).isVassal(getTeam()) && !TEAMREF(ePlayer).isCapitulated())
+		r *= 0.67; // advc.037: 0.5 in BtS
+	int const treatyLength = GC.getDefineINT("PEACE_TREATY_LENGTH");
+	int ir = ::round(r);
+	/*  To make resource vs. resource trades more compatible. A multiple of 5
+		would lead to a rounding error when gold is paid for a resource b/c
+		2 gpt correspond to 1 tradeVal. */
+	if(r >= 3 && !GET_TEAM(getTeam()).isGoldTrading() &&
+			!TEAMREF(ePlayer).isGoldTrading())
+		ir = ::roundToMultiple(ir, 4);
+	return ir * treatyLength;
+}  // </advc.036>
 
-	return (iValue * GC.getDefineINT("PEACE_TREATY_LENGTH"));
-}
-
-
-DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer) const
+DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
+		int iChange) const // advc.133
 {
 	PROFILE_FUNC();
 
 	AttitudeTypes eAttitude;
 	bool bStrategic;
 	int iI, iJ;
-
+	CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer); // advc.003
 	FAssertMsg(ePlayer != getID(), "shouldn't call this function on ourselves");
 
-	if (isHuman() && GET_PLAYER(ePlayer).isHuman())
+	if (isHuman() && kPlayer.isHuman())
 	{
 		return NO_DENIAL;
 	}
-
-	if (GET_TEAM(getTeam()).isVassal(GET_PLAYER(ePlayer).getTeam()))
+	/*  <advc.036> No wheeling and dealing, not even when it involves
+		vassal/master or team mates. */
+	if(kPlayer.getBonusExport(eBonus) + getBonusImport(eBonus) > 0) {
+		/*  So that AI_buildTradeTable filters these out (b/c it's not easy
+			to see when the AI is already exporting a resource; can be puzzling) */
+		return DENIAL_JOKING;
+	} // </advc.036>
+	// advc.133:
+	int iAvailThem = kPlayer.getNumAvailableBonuses(eBonus) + iChange;
+	// advc.036: Moved this clause up
+	if (iAvailThem > 0 && kPlayer.AI_corporationBonusVal(eBonus) <= 0)
 	{
+		return DENIAL_JOKING;
+	} // <advc.037> This used to apply to all vassals
+	bool bVassal = GET_TEAM(getTeam()).isVassal(TEAMID(ePlayer));
+	if(bVassal && GET_TEAM(getTeam()).isCapitulated()) // </advc.037>
 		return NO_DENIAL;
-	}
 
-	if (atWar(getTeam(), GET_PLAYER(ePlayer).getTeam()))
-	{
+	if (atWar(getTeam(), TEAMID(ePlayer)))
+	{	/*  advc.036 (comment): Doesn't help b/c there is no trade network while
+			at war, and no feasible way to ensure that it will exist after
+			making peace. */
 		return NO_DENIAL;
 	}
 
 	//if (GET_PLAYER(ePlayer).getTeam() == getTeam())
-	if (GET_PLAYER(ePlayer).getTeam() == getTeam() && GET_PLAYER(ePlayer).isHuman()) // K-Mod
+	// advc.155: Commented out
+	/*if (TEAMID(ePlayer) == getTeam() && kPlayer.isHuman()) // K-Mod
 	{
 		return NO_DENIAL;
-	}
-
-	if (GET_PLAYER(ePlayer).getNumAvailableBonuses(eBonus) > 0 && GET_PLAYER(ePlayer).AI_corporationBonusVal(eBonus) <= 0)
-	{
-		return (GET_PLAYER(ePlayer).isHuman() ? DENIAL_JOKING : DENIAL_NO_GAIN);
-	}
-
+	}*/
 	// K-Mod (The above case should be tested for humans trying to give stuff to AI teammates
 	// - otherwise the human won't know if the AI can actually use the resource.)
-	if (GET_PLAYER(ePlayer).getTeam() == getTeam())
-		return NO_DENIAL;
+	/*if (TEAMID(ePlayer) == getTeam())
+		return NO_DENIAL;*/
 	// K-Mod end
-
-	if (isHuman())
-	{
-		return NO_DENIAL;
+	// <advc.036>
+	int const tradeValThresh = 3;
+	int valueForThem = -1;
+	/*  advc.133: Don't bother checking the value-based clauses when considering
+		cancelation. AI_considerOffer handles that. */
+	if(iChange >= 0) {
+		valueForThem = kPlayer.AI_bonusVal(eBonus, 0, false, true); // </advc.036>
+		if (isHuman()
+				/*  advc.036: No deal if they (AI) don't need the resource, but
+					check attitude before giving the human that info. */
+				&& valueForThem >= tradeValThresh)
+		{
+			return NO_DENIAL;
+		}
 	}
-
-	if (GET_TEAM(getTeam()).AI_getWorstEnemy() == GET_PLAYER(ePlayer).getTeam())
+	if (GET_TEAM(getTeam()).AI_getWorstEnemy() == TEAMID(ePlayer))
 	{
 		return DENIAL_WORST_ENEMY;
 	}
-
-	if (AI_corporationBonusVal(eBonus) > 0)
+	// advc.036: Commented out
+	/*if (AI_corporationBonusVal(eBonus) > 0)
 	{
 		return DENIAL_JOKING;
-	}
+	}*/
 
 	bStrategic = false;
+	bool crucialStrategic = false; // advc.036
 // <advc.001>
 /************************************************************************************************/
 /* Fuyu                    Start		 22.07.2010                                             */
@@ -11525,7 +13526,8 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer) co
 	CvCity* pCapitalCity = getCapitalCity();
 	for (iI = 0; iI < GC.getNumUnitInfos(); iI++)
 	{
-		if (pCapitalCity->allUpgradesAvailable((UnitTypes)iI) != NO_UNIT)
+		if (pCapitalCity != NULL && pCapitalCity->allUpgradesAvailable(
+				(UnitTypes)iI) != NO_UNIT)
 		{
 			continue;
 		}
@@ -11536,13 +13538,18 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer) co
 		if (GC.getUnitInfo((UnitTypes) iI).getPrereqAndBonus() == eBonus)
 		{
 			bStrategic = true;
+			crucialStrategic = true; // advc.036
 		}
-
 		for (iJ = 0; iJ < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); iJ++)
 		{
-			if (GC.getUnitInfo((UnitTypes) iI).getPrereqOrBonuses(iJ) == eBonus)
+			if (GC.getUnitInfo((UnitTypes)iI).getPrereqOrBonuses(iJ) == eBonus)
 			{
 				bStrategic = true;
+				/*  Could check if we have one of the alternative OR-prereqs
+					(getCapitalCity()->hasBonus(...), but then a human could
+					try to trade for both OR-prereqs at once (e.g. Bronze and
+					Iron, leaving us unable to train Axemen). */
+				crucialStrategic = true;
 			}
 		}
 	}
@@ -11565,32 +13572,86 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer) co
 
 	// XXX marble and stone???
 
-	eAttitude = AI_getAttitude(ePlayer);
-
-	if (bStrategic)
-	{
-		if (eAttitude <= GC.getLeaderHeadInfo(getPersonalityType()).getStrategicBonusRefuseAttitudeThreshold())
-		{
-			return DENIAL_ATTITUDE;
+	if(!isHuman() // advc.036: No longer guaranteed (b/c of the tradeValThresh clause)
+			&& !bVassal) { // advc.037
+		eAttitude = AI_getAttitude(ePlayer);
+		if (bStrategic)
+		{	// <advc.036>
+			int iRefusalThresh = GC.getLeaderHeadInfo(getPersonalityType()).
+					getStrategicBonusRefuseAttitudeThreshold();
+			if(iAvailThem - kPlayer.getBonusImport(eBonus) > 0) 
+				iRefusalThresh--;
+			if(eAttitude <= iRefusalThresh) // </advc.036>
+			{
+				return DENIAL_ATTITUDE;
+			}
 		}
-	}
-
-	if (GC.getBonusInfo(eBonus).getHappiness() > 0)
-	{
-		if (eAttitude <= GC.getLeaderHeadInfo(getPersonalityType()).getHappinessBonusRefuseAttitudeThreshold())
-		{
-			return DENIAL_ATTITUDE;
+		if (GC.getBonusInfo(eBonus).getHappiness() > 0)
+		{	// advc.036: Treat Ivory as non-crucial
+			crucialStrategic = false;
+			if (eAttitude <= GC.getLeaderHeadInfo(getPersonalityType()).getHappinessBonusRefuseAttitudeThreshold())
+			{
+				return DENIAL_ATTITUDE;
+			}
 		}
-	}
 
-	if (GC.getBonusInfo(eBonus).getHealth() > 0)
-	{
-		if (eAttitude <= GC.getLeaderHeadInfo(getPersonalityType()).getHealthBonusRefuseAttitudeThreshold())
+		if (GC.getBonusInfo(eBonus).getHealth() > 0)
 		{
-			return DENIAL_ATTITUDE;
+			crucialStrategic = false; // advc.036
+			if (eAttitude <= GC.getLeaderHeadInfo(getPersonalityType()).getHealthBonusRefuseAttitudeThreshold())
+			{
+				return DENIAL_ATTITUDE;
+			}
 		}
+	} // <advc.036>
+	int iAvailUs = getNumAvailableBonuses(eBonus) - iChange;
+	/*  Doesn't seem necessary after all; the valueForUs clauses rule out such
+		trades anyway. By returning DENIAL_JOKING, crucial strategic resources
+		could be excluded from the trade table (see changes in buildTradeTable),
+		but it's perhaps confusing to show some non-surplus resources on the
+		trade table and not others. */
+	/*if(!isHuman() && crucialStrategic && iAvailUs <= 1 && (!bVassal ||
+			iAvailThem > 0))
+		return DENIAL_JOKING;
+	*/// </advc.036>
+	// <advc.133> See the previous 133-comment
+	if(iChange < 0)
+		return NO_DENIAL; // </advc.133>
+	// <advc.036>
+	if(!kPlayer.isHuman()) {
+		/*  Allow human to import resources that they probably don't need,
+			but make sure that the AI doesn't. */
+		if(valueForThem < tradeValThresh)
+			return DENIAL_NO_GAIN;
+		if(isHuman())
+			return NO_DENIAL;
 	}
-
+	int valueForUs = AI_corporationBonusVal(eBonus);
+	if(iAvailUs - getBonusImport(eBonus) == 1)
+		valueForUs = AI_bonusVal(eBonus, 0);
+	/*  Don't want city counts to matter much b/c large civs are supposed to
+		export to small (tall) ones. But selling to tiny civs often doesn't make
+		sense; could get a much better deal from some larger buyer. */
+	valueForUs += std::min(2 * valueForUs,
+			getNumCities() / std::max(1, kPlayer.getNumCities()));
+	// <advc.037>
+	if(bVassal) {
+		if(valueForUs >= 2 * (kPlayer.isHuman() ? tradeValThresh : valueForThem))
+			return DENIAL_NO_GAIN;
+		else return NO_DENIAL;
+	} // </advc.037>
+	// Replacing the JOKING clause further up
+	if((kPlayer.isHuman()) ?
+			// Don't presume value for human
+			(valueForUs >= tradeValThresh +
+			/*  bonusVal gives every city equal weight, but early on,
+				it's mostly about the capital, which can grow fast. */
+			std::min(2, (getNumCities() - 1) / 2)) :
+			(3 * valueForUs >= 2 * valueForThem ||
+			valueForThem - valueForUs < tradeValThresh ||
+			valueForUs > tradeValThresh + 2))
+		return DENIAL_NO_GAIN;
+	// </advc.036>
 	return NO_DENIAL;
 }
 
@@ -11664,7 +13725,7 @@ int CvPlayerAI::AI_cityTradeVal(CvCity* pCity) const
 	iValue += cityWonderVal(pCity) * 10;
 	// <advc.139>
 	if(pCity->isEvacuating())
-		iValue = ::round(0.5 * iValue); // </advc.139>
+		iValue = ::round(0.33 * iValue); // </advc.139>
 	return GET_TEAM(getTeam()).roundTradeVal(iValue); // advc.104k
 }
 
@@ -11697,55 +13758,58 @@ DenialTypes CvPlayerAI::AI_cityTrade(CvCity* pCity, PlayerTypes ePlayer) const {
 	}
 	if(isHuman() || atWar(getTeam(), kPlayer.getTeam()))
 		return NO_DENIAL;
-	if(kPlayer.getTeam() != getTeam())
-		return DENIAL_NEVER;
-	if(pCity->calculateCulturePercent(getID()) > 50)
-		return DENIAL_TOO_MUCH;
-	return NO_DENIAL;
+	if(kPlayer.getTeam() == getTeam()) {
+		if(pCity->calculateCulturePercent(getID()) > 50)
+			return DENIAL_TOO_MUCH;
+		return NO_DENIAL;
+	}
+	return DENIAL_NEVER;
 } // </advc.003>
 
-
-int CvPlayerAI::AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer) const
+/*  advc.003 (comment): This object pays for the embargo and ePlayer stops trading
+	with eTradeTeam. */
+int CvPlayerAI::AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer,
+		bool bWarTrade) const // advc.104o
 {
-	CvDeal* pLoopDeal;
-	int iModifier;
-	int iValue;
-	int iLoop;
-
-	FAssertMsg(ePlayer != getID(), "shouldn't call this function on ourselves");
-	FAssertMsg(GET_PLAYER(ePlayer).getTeam() != getTeam(), "shouldn't call this function on ourselves");
-	FAssertMsg(eTradeTeam != getTeam(), "shouldn't call this function on ourselves"); // advc.003: The next two asserts had nonsensical messages (copy-paste error apparently)
-	FAssertMsg(GET_TEAM(eTradeTeam).isAlive(), "GET_TEAM(eTradeTeam).isAlive is expected to be true");
-	FAssertMsg(!atWar(eTradeTeam, GET_PLAYER(ePlayer).getTeam()), "ePlayer should be at peace with eTradeTeam");
+	CvDeal* pLoopDeal=NULL;
+	int iLoop=-1;
+	// advc.003: Moved some declarations
+	FAssert(ePlayer != getID());
+	FAssert(TEAMID(ePlayer) != getTeam());
+	FAssert(eTradeTeam != getTeam());
+	FAssert(GET_TEAM(eTradeTeam).isAlive());
+	FAssert(!atWar(eTradeTeam, TEAMID(ePlayer)));
 	// <advc.130f>
 	if(TEAMREF(ePlayer).isCapitulated() && TEAMREF(ePlayer).isVassal(getTeam()))
 		return 0; // </advc.130f>
-	iValue = (50 + (GC.getGameINLINE().getGameTurn() / 2));
-	iValue += (GET_TEAM(eTradeTeam).getNumCities() * 5);
-
-	iModifier = 0;
-
-	switch (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).AI_getAttitude(eTradeTeam))
-	{
+	int iValue = 50 + GC.getGameINLINE().getGameTurn() / 2;
+	//iValue += GET_TEAM(eTradeTeam).getNumCities() * 5;
+	// <advc.130f>
+	iValue += std::max(GET_TEAM(getTeam()).getNumCities(),
+			GET_TEAM(eTradeTeam).getNumCities()) * 4;
+	int iModifier = 0;
+	if(!bWarTrade) {
+		int iPowRatioPercent = (100 * GET_TEAM(eTradeTeam).getPower(true)) /
+				(TEAMREF(ePlayer).getPower(false) +
+				(GET_TEAM(eTradeTeam).isAtWar(getTeam()) ?
+				GET_TEAM(getTeam()).getPower(false) / 4 : 0));
+		iModifier += iPowRatioPercent;
+	} // </advc.130f>
+	switch(TEAMREF(ePlayer).AI_getAttitude(eTradeTeam)) {
 	case ATTITUDE_FURIOUS:
 		break;
-
 	case ATTITUDE_ANNOYED:
 		iModifier += 25;
 		break;
-
 	case ATTITUDE_CAUTIOUS:
 		iModifier += 50;
 		break;
-
 	case ATTITUDE_PLEASED:
 		iModifier += 100;
 		break;
-
 	case ATTITUDE_FRIENDLY:
 		iModifier += 200;
 		break;
-
 	default:
 		FAssert(false);
 		break;
@@ -11758,10 +13822,16 @@ int CvPlayerAI::AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer
 		iModifier -= 25;
 	CvTeam const& kTeam = TEAMREF(ePlayer); // The team that'll have to cancel OB
 	if(kTeam.isOpenBorders(eTradeTeam)) {
+		iModifier += 50;
 		if(kTeam.getAtWarCount() > 0 && GET_PLAYER(ePlayer).isFocusWar() &&
-				!kTeam.allWarsShared(getTeam(), false))
-			iModifier += towardUs < ATTITUDE_FRIENDLY ? 150 : 100;
-		else iModifier += 50;
+				!kTeam.allWarsShared(getTeam(), false)) {
+			/*  <advc.104o> Will probably want to focus on the new war then.
+				(Though with a human sponsor, we shouldn't be too sure.) */
+			if(bWarTrade)
+				iModifier += ((isHuman() && towardUs < ATTITUDE_FRIENDLY) ? 50 : 25);
+			// </advc.104o>
+			else iModifier += (towardUs < ATTITUDE_FRIENDLY ? 100 : 50);
+		}
 	} // Lower bound was 0% in BtS, now 50%
 	iValue *= std::max(50, iModifier + 100); // </advc.130f>
 	iValue /= 100;
@@ -11778,30 +13848,55 @@ int CvPlayerAI::AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer
 
 	for(pLoopDeal = GC.getGameINLINE().firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = GC.getGameINLINE().nextDeal(&iLoop))
 	{
-		if (pLoopDeal->isCancelable(getID()) && !(pLoopDeal->isPeaceDeal()))
+		//if (pLoopDeal->isCancelable(getID()) && !(pLoopDeal->isPeaceDeal()))
+		// <advc.130f>
+		if(pLoopDeal->isPeaceDeal() ||
+				/*  OB don't have a proper trade value and have already been
+					covered above */
+				pLoopDeal->headFirstTradesNode() != NULL &&
+				pLoopDeal->headFirstTradesNode()->m_data.m_eItemType ==
+				TRADE_OPEN_BORDERS)
+			continue; // </advc.130f>
+		if (GET_PLAYER(pLoopDeal->getFirstPlayer()).getTeam() == TEAMID(ePlayer)
+				// advc.001q:
+				&& TEAMID(pLoopDeal->getSecondPlayer()) == eTradeTeam)
 		{
-			if (GET_PLAYER(pLoopDeal->getFirstPlayer()).getTeam() == GET_PLAYER(ePlayer).getTeam())
+			if (pLoopDeal->getLengthSecondTrades() > 0)
 			{
-				if (pLoopDeal->getLengthSecondTrades() > 0)
-				{
-					iValue += (GET_PLAYER(pLoopDeal->getFirstPlayer()).AI_dealVal(pLoopDeal->getSecondPlayer(), pLoopDeal->getSecondTrades()) * ((pLoopDeal->getLengthFirstTrades() == 0) ? 2 : 1));
-				}
+				iValue += GET_PLAYER(pLoopDeal->getFirstPlayer()).AI_dealVal(
+						pLoopDeal->getSecondPlayer(), pLoopDeal->getSecondTrades()) *
+						/*  advc.130f: Was ... 2 : 1.
+							dealVal is based on the peace treaty duration,
+							but we're likely to lose the trade permanently.
+							A gift is better than a trade, but what we give away
+							is less valuable than what we get; 3:2 captures this
+							better than 2:1 I think. */
+						(pLoopDeal->getLengthFirstTrades() == 0 ? 3 : 2);
 			}
+		}
 
-			if (GET_PLAYER(pLoopDeal->getSecondPlayer()).getTeam() == GET_PLAYER(ePlayer).getTeam())
+		if (GET_PLAYER(pLoopDeal->getSecondPlayer()).getTeam() == TEAMID(ePlayer)
+				// advc.001q:
+				&& TEAMID(pLoopDeal->getFirstPlayer()) == eTradeTeam)
+		{
+			if (pLoopDeal->getLengthFirstTrades() > 0)
 			{
-				if (pLoopDeal->getLengthFirstTrades() > 0)
-				{
-					iValue += (GET_PLAYER(pLoopDeal->getSecondPlayer()).AI_dealVal(pLoopDeal->getFirstPlayer(), pLoopDeal->getFirstTrades()) * ((pLoopDeal->getLengthSecondTrades() == 0) ? 2 : 1));
-				}
+				iValue += GET_PLAYER(pLoopDeal->getSecondPlayer()).AI_dealVal(
+						pLoopDeal->getFirstPlayer(), pLoopDeal->getFirstTrades()) *
+						// advc.130f: See above
+						(pLoopDeal->getLengthSecondTrades() == 0 ? 3 : 2);
 			}
 		}
 	}
 
-	if (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isVassal(getTeam()))
+	if (TEAMREF(ePlayer).isVassal(getTeam()))
 	{
 		iValue /= 2;
-	}
+	} // <advc.130f>
+	double embargoLengthMult = GC.getLeaderHeadInfo(GET_PLAYER(GET_TEAM(
+			eTradeTeam).getLeaderID()).getPersonalityType()).
+			getMemoryDecayRand(MEMORY_STOPPED_TRADING_RECENT) / 20.0;
+	iValue = ::round(embargoLengthMult * iValue); // </advc.130f>
 	return GET_TEAM(getTeam()).roundTradeVal(iValue); // advc.104k
 }
 
@@ -11877,28 +13972,33 @@ DenialTypes CvPlayerAI::AI_stopTradingTrade(TeamTypes eTradeTeam, PlayerTypes eP
 /* advc.003: Clarification: This CvPlayer asks ePlayer to switch to eCivic.
    What price should this CvPlayer be willing to pay for that? */
 int CvPlayerAI::AI_civicTradeVal(CivicTypes eCivic, PlayerTypes ePlayer) const
-{
-	CivicTypes eBestCivic;
-	int iValue;
+{	// <advc.003>
+	CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer);
+	int iValue = 0;
+	/*CivicTypes eBestCivic;
+	int iValue;*/ // </advc.003>
+	//int iValue = (2 * (getTotalPopulation() + GET_PLAYER(ePlayer).getTotalPopulation())); // XXX
+	// advc.132: Replacing the above
+	int anarchyCost = kPlayer.anarchyTradeVal(eCivic);
 
-	iValue = (2 * (getTotalPopulation() + GET_PLAYER(ePlayer).getTotalPopulation())); // XXX
-
-	eBestCivic = GET_PLAYER(ePlayer).AI_bestCivic((CivicOptionTypes)(GC.getCivicInfo(eCivic).getCivicOptionType()));
+	CivicTypes eBestCivic = kPlayer.AI_bestCivic((CivicOptionTypes)(GC.getCivicInfo(eCivic).getCivicOptionType()));
 
 	if (eBestCivic != NO_CIVIC)
 	{
 		if (eBestCivic != eCivic)
 		{
-			iValue += std::max(0, ((GET_PLAYER(ePlayer).AI_civicValue(eBestCivic) - GET_PLAYER(ePlayer).AI_civicValue(eCivic)) * 2));
+			iValue += //std::max(0, // advc.132: Handle that below
+					2 * (kPlayer.AI_civicValue(eBestCivic) - kPlayer.AI_civicValue(eCivic));
 		}
 	}
-
-	if (GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isVassal(getTeam()))
-	{
+	/*  advc.132: ePlayer charges less than the anarchyCost if they were going to
+		switch anyway. */
+	iValue = std::max(iValue + anarchyCost, anarchyCost / 2);
+	if(TEAMREF(ePlayer).isVassal(getTeam())) // advc.003
 		iValue /= 2;
-	}
-
-	if(!isCivic(eCivic)) iValue *= 2; // advc.132
+	// <advc.132>
+	if(!isCivic(eCivic))
+		iValue *= 2; // </advc.132>
 	return GET_TEAM(getTeam()).roundTradeVal(iValue); // advc.104k
 }
 
@@ -11954,13 +14054,15 @@ DenialTypes CvPlayerAI::AI_civicTrade(CivicTypes eCivic, PlayerTypes ePlayer) co
 
 
 int CvPlayerAI::AI_religionTradeVal(ReligionTypes eReligion, PlayerTypes ePlayer) const
-{
-	ReligionTypes eBestReligion;
-	int iValue;
+{	// <advc.003>
+	CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer);
+	/*ReligionTypes eBestReligion;
+	int iValue;*/ // </advc.003>
+	//int iValue = (3 * (getTotalPopulation() + GET_PLAYER(ePlayer).getTotalPopulation())); // XXX
+	// advc.132: Replacing the above
+	int iValue = kPlayer.anarchyTradeVal();
 
-	iValue = (3 * (getTotalPopulation() + GET_PLAYER(ePlayer).getTotalPopulation())); // XXX
-
-	eBestReligion = GET_PLAYER(ePlayer).AI_bestReligion();
+	ReligionTypes eBestReligion = GET_PLAYER(ePlayer).AI_bestReligion();
 
 	if (eBestReligion != NO_RELIGION)
 	{
@@ -11979,8 +14081,9 @@ int CvPlayerAI::AI_religionTradeVal(ReligionTypes eReligion, PlayerTypes ePlayer
 	{
 		iValue /= 2;
 	}
-
-	if(getStateReligion() != eReligion) iValue *= 2; // advc.132
+	// <advc.132>
+	if(getStateReligion() != eReligion)
+		iValue *= 2; // </advc.132>
 	return GET_TEAM(getTeam()).roundTradeVal(iValue); // advc.104k
 }
 
@@ -11991,7 +14094,10 @@ DenialTypes CvPlayerAI::AI_religionTrade(ReligionTypes eReligion, PlayerTypes eP
 	{
 		return NO_DENIAL;
 	}
-
+	// <advc.132>
+	if(GET_PLAYER(ePlayer).isStateReligion() && eReligion != GET_PLAYER(ePlayer).
+			getStateReligion())
+		return DENIAL_JOKING; // </advc.132>
 	if (GET_TEAM(getTeam()).isVassal(GET_PLAYER(ePlayer).getTeam()))
 	{
 		return NO_DENIAL;
@@ -12069,8 +14175,8 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 
 	FAssertMsg(eUnit != NO_UNIT, "Unit is not assigned a valid value");
 	FAssertMsg(eUnitAI != NO_UNITAI, "UnitAI is not assigned a valid value");
-
-	if (GC.getUnitInfo(eUnit).getDomainType() != AI_unitAIDomainType(eUnitAI))
+	CvUnitInfo const& u = GC.getUnitInfo(eUnit); // advc.003
+	if (u.getDomainType() != AI_unitAIDomainType(eUnitAI))
 	{
 		if (eUnitAI != UNITAI_ICBM)//XXX
 		{
@@ -12078,12 +14184,12 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		}
 	}
 
-	if (GC.getUnitInfo(eUnit).getNotUnitAIType(eUnitAI))
+	if (u.getNotUnitAIType(eUnitAI))
 	{
 		return 0;
 	}
 
-	bValid = GC.getUnitInfo(eUnit).getUnitAIType(eUnitAI);
+	bValid = u.getUnitAIType(eUnitAI);
 
 	if (!bValid)
 	{
@@ -12093,14 +14199,14 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			break;
 
 		case UNITAI_ANIMAL:
-			if (GC.getUnitInfo(eUnit).isAnimal())
+			if (u.isAnimal())
 			{
 				bValid = true;
 			}
 			break;
 
 		case UNITAI_SETTLE:
-			if (GC.getUnitInfo(eUnit).isFound())
+			if (u.isFound())
 			{
 				bValid = true;
 			}
@@ -12109,7 +14215,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		case UNITAI_WORKER:
 			for (iI = 0; iI < GC.getNumBuildInfos(); iI++)
 			{
-				if (GC.getUnitInfo(eUnit).getBuilds(iI))
+				if (u.getBuilds(iI))
 				{
 					bValid = true;
 					break;
@@ -12118,9 +14224,9 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			break;
 
 		case UNITAI_ATTACK:
-			if (GC.getUnitInfo(eUnit).getCombat() > 0)
+			if (u.getCombat() > 0)
 			{
-				if (!(GC.getUnitInfo(eUnit).isOnlyDefensive()))
+				if (!::isMostlyDefensive(u)) // advc.315
 				{
 					bValid = true;
 				}
@@ -12128,11 +14234,11 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			break;
 
 		case UNITAI_ATTACK_CITY:
-			if (GC.getUnitInfo(eUnit).getCombat() > 0)
+			if (u.getCombat() > 0)
 			{
-				if (!(GC.getUnitInfo(eUnit).isOnlyDefensive()))
+				if (!::isMostlyDefensive(u)) // advc.315
 				{
-					if (!(GC.getUnitInfo(eUnit).isNoCapture()))
+					if (!u.isNoCapture())
 					{
 						bValid = true;
 					}
@@ -12141,11 +14247,11 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			break;
 
 		case UNITAI_COLLATERAL:
-			if (GC.getUnitInfo(eUnit).getCombat() > 0)
+			if (u.getCombat() > 0)
 			{
-				if (!(GC.getUnitInfo(eUnit).isOnlyDefensive()))
+				if (!::isMostlyDefensive(u)) // advc.315
 				{
-					if (GC.getUnitInfo(eUnit).getCollateralDamage() > 0)
+					if (u.getCollateralDamage() > 0)
 					{
 						bValid = true;
 					}
@@ -12154,9 +14260,9 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			break;
 
 		case UNITAI_PILLAGE:
-			if (GC.getUnitInfo(eUnit).getCombat() > 0)
+			if (u.getCombat() > 0)
 			{
-				if (!(GC.getUnitInfo(eUnit).isOnlyDefensive()))
+				if (!::isMostlyDefensive(u)) // advc.315
 				{
 					bValid = true;
 				}
@@ -12164,9 +14270,9 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			break;
 
 		case UNITAI_RESERVE:
-			if (GC.getUnitInfo(eUnit).getCombat() > 0)
+			if (u.getCombat() > 0)
 			{
-				if (!(GC.getUnitInfo(eUnit).isOnlyDefensive()))
+				if (!::isMostlyDefensive(u)) // advc.315
 				{
 						bValid = true;
 					}
@@ -12174,11 +14280,11 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			break;
 
 		case UNITAI_COUNTER:
-			if (GC.getUnitInfo(eUnit).getCombat() > 0)
+			if (u.getCombat() > 0)
 			{
-				if (!(GC.getUnitInfo(eUnit).isOnlyDefensive()))
+				if (!::isMostlyDefensive(u)) // advc.315
 				{
-					if (GC.getUnitInfo(eUnit).getInterceptionProbability() > 0)
+					if (u.getInterceptionProbability() > 0)
 					{
 						bValid = true;
 					}
@@ -12187,13 +14293,13 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 					{
 						for (iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
 						{
-							if (GC.getUnitInfo(eUnit).getUnitClassAttackModifier(iI) > 0)
+							if (u.getUnitClassAttackModifier(iI) > 0)
 							{
 								bValid = true;
 								break;
 							}
 
-							if (GC.getUnitInfo(eUnit).getTargetUnitClass(iI))
+							if (u.getTargetUnitClass(iI))
 							{
 								bValid = true;
 								break;
@@ -12205,13 +14311,13 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 					{
 						for (iI = 0; iI < GC.getNumUnitCombatInfos(); iI++)
 						{
-							if (GC.getUnitInfo(eUnit).getUnitCombatModifier(iI) > 0)
+							if (u.getUnitCombatModifier(iI) > 0)
 							{
 								bValid = true;
 								break;
 							}
 
-							if (GC.getUnitInfo(eUnit).getTargetUnitCombat(iI))
+							if (u.getTargetUnitCombat(iI))
 							{
 								bValid = true;
 								break;
@@ -12224,14 +14330,14 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 
 						for (iI = 0; iI < GC.getNumUnitInfos(); iI++)
 						{
-							int iUnitClass = GC.getUnitInfo(eUnit).getUnitClassType();
+							int iUnitClass = u.getUnitClassType();
 							if (NO_UNITCLASS != iUnitClass && GC.getUnitInfo((UnitTypes)iI).getDefenderUnitClass(iUnitClass))
 							{
 								bValid = true;
 								break;
 							}
 
-							int iUnitCombat = GC.getUnitInfo(eUnit).getUnitCombatType();
+							int iUnitCombat = u.getUnitCombatType();
 							if (NO_UNITCOMBAT !=  iUnitCombat && GC.getUnitInfo((UnitTypes)iI).getDefenderUnitCombat(iUnitCombat))
 							{
 								bValid = true;
@@ -12244,11 +14350,11 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			break;
 
 		case UNITAI_CITY_DEFENSE:
-			if (GC.getUnitInfo(eUnit).getCombat() > 0)
+			if (u.getCombat() > 0)
 			{
-				if (!(GC.getUnitInfo(eUnit).isNoDefensiveBonus()))
+				if (!u.isNoDefensiveBonus())
 				{
-					if (GC.getUnitInfo(eUnit).getCityDefenseModifier() > 0)
+					if (u.getCityDefenseModifier() > 0)
 					{
 						bValid = true;
 					}
@@ -12257,11 +14363,11 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			break;
 
 		case UNITAI_CITY_COUNTER:
-			if (GC.getUnitInfo(eUnit).getCombat() > 0)
+			if (u.getCombat() > 0)
 			{
-				if (!(GC.getUnitInfo(eUnit).isNoDefensiveBonus()))
+				if (!u.isNoDefensiveBonus())
 				{
-					if (GC.getUnitInfo(eUnit).getInterceptionProbability() > 0)
+					if (u.getInterceptionProbability() > 0)
 					{
 						bValid = true;
 					}
@@ -12270,7 +14376,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 					{
 						for (iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
 						{
-							if (GC.getUnitInfo(eUnit).getUnitClassDefenseModifier(iI) > 0)
+							if (u.getUnitClassDefenseModifier(iI) > 0)
 							{
 								bValid = true;
 								break;
@@ -12282,7 +14388,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 					{
 						for (iI = 0; iI < GC.getNumUnitCombatInfos(); iI++)
 						{
-							if (GC.getUnitInfo(eUnit).getUnitCombatModifier(iI) > 0)
+							if (u.getUnitCombatModifier(iI) > 0)
 							{
 								bValid = true;
 								break;
@@ -12297,15 +14403,15 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			break;
 
 		case UNITAI_PARADROP:
-			if (GC.getUnitInfo(eUnit).getDropRange() > 0)
+			if (u.getDropRange() > 0)
 			{
 				bValid = true;
 			}
 			break;
 
 		case UNITAI_EXPLORE:
-			// if (GC.getUnitInfo(eUnit).getCombat() > 0)
-			if (!GC.getUnitInfo(eUnit).isNoRevealMap() && (GC.getUnitInfo(eUnit).getCombat() > 0 || GC.getUnitInfo(eUnit).isInvisible())) // K-Mod
+			// if (u.getCombat() > 0)
+			if (!u.isNoRevealMap() && (u.getCombat() > 0 || u.isInvisible())) // K-Mod
 			{
 				if (0 == AI_unitImpassableCount(eUnit))
 				{
@@ -12319,7 +14425,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			{
 				for (iI = 0; iI < GC.getNumReligionInfos(); iI++)
 				{
-					if (GC.getUnitInfo(eUnit).getReligionSpreads((ReligionTypes)iI) > 0)
+					if (u.getReligionSpreads((ReligionTypes)iI) > 0)
 					{
 						iNeededMissionaries = AI_neededMissionaries(pArea, ((ReligionTypes)iI));
 
@@ -12336,7 +14442,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 
 				for (iI = 0; iI < GC.getNumCorporationInfos(); iI++)
 				{
-					if (GC.getUnitInfo(eUnit).getCorporationSpreads((CorporationTypes)iI) > 0)
+					if (u.getCorporationSpreads((CorporationTypes)iI) > 0)
 					{
 						iNeededMissionaries = AI_neededExecutives(pArea, ((CorporationTypes)iI));
 
@@ -12364,7 +14470,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			break;
 
 		case UNITAI_ICBM:
-			if (GC.getUnitInfo(eUnit).getNukeRange() != -1)
+			if (u.getNukeRange() != -1)
 			{
 				bValid = true;
 			}
@@ -12373,7 +14479,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		case UNITAI_WORKER_SEA:
 			for (iI = 0; iI < GC.getNumBuildInfos(); iI++)
 			{
-				if (GC.getUnitInfo(eUnit).getBuilds(iI))
+				if (u.getBuilds(iI))
 				{
 					bValid = true;
 					break;
@@ -12382,11 +14488,11 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			break;
 
 		case UNITAI_ATTACK_SEA:
-			if (GC.getUnitInfo(eUnit).getCombat() > 0)
+			if (u.getCombat() > 0)
 			{
-				if (GC.getUnitInfo(eUnit).getCargoSpace() == 0)
+				if (u.getCargoSpace() == 0)
 				{
-					if (!(GC.getUnitInfo(eUnit).isInvisible()) && (GC.getUnitInfo(eUnit).getInvisibleType() == NO_INVISIBLE))
+					if (!(u.isInvisible()) && (u.getInvisibleType() == NO_INVISIBLE))
 					{
 						bValid = true;
 					}
@@ -12395,9 +14501,9 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			break;
 
 		case UNITAI_RESERVE_SEA:
-			if (GC.getUnitInfo(eUnit).getCombat() > 0)
+			if (u.getCombat() > 0)
 			{
-				if (GC.getUnitInfo(eUnit).getCargoSpace() == 0)
+				if (u.getCargoSpace() == 0)
 				{
 					bValid = true;
 				}
@@ -12405,9 +14511,9 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			break;
 
 		case UNITAI_ESCORT_SEA:
-			if (GC.getUnitInfo(eUnit).getCombat() > 0)
+			if (u.getCombat() > 0)
 			{
-				if (GC.getUnitInfo(eUnit).getCargoSpace() == 0)
+				if (u.getCargoSpace() == 0)
 				{
 					if (0 == AI_unitImpassableCount(eUnit))
 					{
@@ -12423,7 +14529,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 /*                                                                                              */
 /* Unit AI                                                                                      */
 /************************************************************************************************/
-			if (GC.getUnitInfo(eUnit).getCargoSpace() <= 1 && !(GC.getUnitInfo(eUnit).isNoRevealMap()))
+			if (u.getCargoSpace() <= 1 && !(u.isNoRevealMap()))
 			{
 				bValid = true;
 			}
@@ -12434,9 +14540,9 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 
 		case UNITAI_ASSAULT_SEA:
 		case UNITAI_SETTLER_SEA:
-			if (GC.getUnitInfo(eUnit).getCargoSpace() > 0)
+			if (u.getCargoSpace() > 0)
 			{
-				if (GC.getUnitInfo(eUnit).getSpecialCargo() == NO_SPECIALUNIT)
+				if (u.getSpecialCargo() == NO_SPECIALUNIT)
 				{
 					bValid = true;
 				}
@@ -12447,13 +14553,13 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		case UNITAI_SPY_SEA:
 		case UNITAI_CARRIER_SEA:
 		case UNITAI_MISSILE_CARRIER_SEA:
-			if (GC.getUnitInfo(eUnit).getCargoSpace() > 0)
+			if (u.getCargoSpace() > 0)
 			{
-				if (GC.getUnitInfo(eUnit).getSpecialCargo() != NO_SPECIALUNIT)
+				if (u.getSpecialCargo() != NO_SPECIALUNIT)
 				{
 					for (int i = 0; i < NUM_UNITAI_TYPES; ++i)
 					{
-						if (GC.getSpecialUnitInfo((SpecialUnitTypes)GC.getUnitInfo(eUnit).getSpecialCargo()).isCarrierUnitAIType(eUnitAI))
+						if (GC.getSpecialUnitInfo((SpecialUnitTypes)u.getSpecialCargo()).isCarrierUnitAIType(eUnitAI))
 						{
 							bValid = true;
 							break;
@@ -12464,16 +14570,16 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			break;
 
 		case UNITAI_PIRATE_SEA:
-			if (GC.getUnitInfo(eUnit).isAlwaysHostile() && GC.getUnitInfo(eUnit).isHiddenNationality())
+			if (u.isAlwaysHostile() && u.isHiddenNationality())
 			{
 				bValid = true;
 			}
 			break;
 
 		case UNITAI_ATTACK_AIR:
-			if (GC.getUnitInfo(eUnit).getAirCombat() > 0)
+			if (u.getAirCombat() > 0)
 			{
-				if (!GC.getUnitInfo(eUnit).isSuicide())
+				if (!u.isSuicide())
 				{
 					bValid = true;
 				}
@@ -12481,16 +14587,16 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			break;
 
 		case UNITAI_DEFENSE_AIR:
-			if (GC.getUnitInfo(eUnit).getInterceptionProbability() > 0)
+			if (u.getInterceptionProbability() > 0)
 			{
 				bValid = true;
 			}
 			break;
 
 		case UNITAI_CARRIER_AIR:
-			if (GC.getUnitInfo(eUnit).getAirCombat() > 0)
+			if (u.getAirCombat() > 0)
 			{
-				if (GC.getUnitInfo(eUnit).getInterceptionProbability() > 0)
+				if (u.getInterceptionProbability() > 0)
 				{
 					bValid = true;
 				}
@@ -12498,9 +14604,9 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			break;
 
 		case UNITAI_MISSILE_AIR:
-			if (GC.getUnitInfo(eUnit).getAirCombat() > 0)
+			if (u.getAirCombat() > 0)
 			{
-				if (GC.getUnitInfo(eUnit).isSuicide())
+				if (u.isSuicide())
 				{
 					bValid = true;
 				}
@@ -12526,7 +14632,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 
 	iValue = 1;
 
-	iValue += GC.getUnitInfo(eUnit).getAIWeight();
+	iValue += u.getAIWeight();
 	
 	switch (eUnitAI)
 	{
@@ -12535,39 +14641,39 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		break;
 
 	case UNITAI_SETTLE:
-		iValue += (GC.getUnitInfo(eUnit).getMoves() * 100);
+		iValue += (u.getMoves() * 100);
 		break;
 
 	case UNITAI_WORKER:
 		for (iI = 0; iI < GC.getNumBuildInfos(); iI++)
 		{
-			if (GC.getUnitInfo(eUnit).getBuilds(iI))
+			if (u.getBuilds(iI))
 			{
 				iValue += 50;
 			}
 		}
-		iValue += (GC.getUnitInfo(eUnit).getMoves() * 100);
+		iValue += (u.getMoves() * 100);
 		break;
 
 	case UNITAI_ATTACK:
 		
 		iValue += iCombatValue;
 
-		iValue += ((iCombatValue * GC.getUnitInfo(eUnit).getWithdrawalProbability()) / 100);
-		if (GC.getUnitInfo(eUnit).getCombatLimit() < 100)
+		iValue += ((iCombatValue * u.getWithdrawalProbability()) / 100);
+		if (u.getCombatLimit() < 100)
 		{
-			iValue -= (iCombatValue * (125 - GC.getUnitInfo(eUnit).getCombatLimit())) / 100;
+			iValue -= (iCombatValue * (125 - u.getCombatLimit())) / 100;
 		}
 
 		// K-Mod
-		if (GC.getUnitInfo(eUnit).getMoves() > 1)
+		if (u.getMoves() > 1)
 		{
 			// (the bts / bbai bonus was too high)
 			int iFastMoverMultiplier = AI_isDoStrategy(AI_STRATEGY_FASTMOVERS) ? 3 : 1;
-			iValue += iCombatValue * iFastMoverMultiplier * GC.getUnitInfo(eUnit).getMoves() / 8;
+			iValue += iCombatValue * iFastMoverMultiplier * u.getMoves() / 8;
 		}
 
-		if (GC.getUnitInfo(eUnit).isNoCapture())
+		if (u.isNoCapture())
 		{
 			iValue -= iCombatValue * 30 / 100;
 		}
@@ -12582,37 +14688,37 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		
 		iTempValue = ((iCombatValue * iCombatValue) / 75) + (iCombatValue / 2);
 		iValue += iTempValue;
-		if (GC.getUnitInfo(eUnit).isNoDefensiveBonus())
+		if (u.isNoDefensiveBonus())
 		{
 			//iValue -= iTempValue / 2;
 			iValue -= iTempValue / 3; // K-Mod
 		}
-		if (GC.getUnitInfo(eUnit).getDropRange() > 0)
+		if (u.getDropRange() > 0)
 		{
 			//iValue -= iTempValue / 2;
 			// disabled by K-Mod (how is drop range a disadvantage?)
 		}
-		if (GC.getUnitInfo(eUnit).isFirstStrikeImmune())
+		if (u.isFirstStrikeImmune())
 		{
 			iValue += (iTempValue * 8) / 100;
 		}
-		iValue += ((iCombatValue * GC.getUnitInfo(eUnit).getCityAttackModifier()) / 75); // bbai (was 100).
-		// iValue += ((iCombatValue * GC.getUnitInfo(eUnit).getCollateralDamage()) / 400); // (moved)
-		iValue += ((iCombatValue * GC.getUnitInfo(eUnit).getWithdrawalProbability()) / 150); // K-Mod (was 100)
-		// iValue += ((iCombatValue * GC.getUnitInfo(eUnit).getMoves() * iFastMoverMultiplier) / 4);
+		iValue += ((iCombatValue * u.getCityAttackModifier()) / 75); // bbai (was 100).
+		// iValue += ((iCombatValue * u.getCollateralDamage()) / 400); // (moved)
+		iValue += ((iCombatValue * u.getWithdrawalProbability()) / 150); // K-Mod (was 100)
+		// iValue += ((iCombatValue * u.getMoves() * iFastMoverMultiplier) / 4);
 		// K-Mod
-		if (GC.getUnitInfo(eUnit).getMoves() > 1)
+		if (u.getMoves() > 1)
 		{
 			int iFastMoverMultiplier = AI_isDoStrategy(AI_STRATEGY_FASTMOVERS) ? 4 : 1;
-			iValue += iCombatValue * iFastMoverMultiplier * GC.getUnitInfo(eUnit).getMoves() / 10;
+			iValue += iCombatValue * iFastMoverMultiplier * u.getMoves() / 10;
 		}
 		// K-Mod end
 
 
 		/* if (!AI_isDoStrategy(AI_STRATEGY_AIR_BLITZ))
 		{
-			int iBombardValue = GC.getUnitInfo(eUnit).getBombardRate() * 8;
-			//int iBombardValue = GC.getUnitInfo(eUnit).getBombardRate() * (GC.getUnitInfo(eUnit).isIgnoreBuildingDefense()?12 :8);
+			int iBombardValue = u.getBombardRate() * 8;
+			//int iBombardValue = u.getBombardRate() * (u.isIgnoreBuildingDefense()?12 :8);
 			if (iBombardValue > 0)
 			{
 				int iGoalTotalBombardRate = (AI_totalUnitAIs(UNITAI_ATTACK) + AI_totalUnitAIs(UNITAI_ATTACK_CITY)) * (getCurrentEra()+3) / 2;
@@ -12651,10 +14757,10 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		// Note: The original bts bombard evaluation has been deleted.
 		// The commented code above is K-Mod code from before the more recent changes; kept for comparison.
 		int iSiegeValue = 0;
-		iSiegeValue += iCombatValue * GC.getUnitInfo(eUnit).getCollateralDamage() * (4+GC.getUnitInfo(eUnit).getCollateralDamageMaxUnits()) / 600;
-		if (GC.getUnitInfo(eUnit).getBombardRate() > 0 && !AI_isDoStrategy(AI_STRATEGY_AIR_BLITZ))
+		iSiegeValue += iCombatValue * u.getCollateralDamage() * (4+u.getCollateralDamageMaxUnits()) / 600;
+		if (u.getBombardRate() > 0 && !AI_isDoStrategy(AI_STRATEGY_AIR_BLITZ))
 		{
-			int iBombardValue = (GC.getUnitInfo(eUnit).getBombardRate()+3) * 6;
+			int iBombardValue = (u.getBombardRate()+3) * 6;
 			// Decrease the bombard value if we own every city in the area, or if we are fighting an overseas war
 			if (pArea &&
 				(pArea->getNumCities() == pArea->getCitiesPerPlayer(getID()) ||
@@ -12665,7 +14771,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			}
 			iSiegeValue += iBombardValue;
 		}
-		if (GC.getUnitInfo(eUnit).getCombatLimit() < 100)
+		if (u.getCombatLimit() < 100)
 		{
 			PROFILE("AI_unitValue, UNITAI_ATTACK_CITY combat limit adjustment");
 			// count the number of existing combat-limited units.
@@ -12684,7 +14790,8 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 					continue;
 				const CvUnitInfo& kLoopInfo = GC.getUnitInfo(eLoopUnit);
 
-				if (kLoopInfo.getDomainType() == DOMAIN_LAND && kLoopInfo.getCombat() > 0 && !kLoopInfo.isOnlyDefensive())
+				if (kLoopInfo.getDomainType() == DOMAIN_LAND && kLoopInfo.getCombat() > 0 &&
+						!::isMostlyDefensive(kLoopInfo)) // advc.315
 				{
 					if (kLoopInfo.getCombatLimit() < 100)
 						iLimitedUnits += getUnitClassCount(i);
@@ -12696,7 +14803,11 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			iLimitedUnits -= range(AI_totalUnitAIs(UNITAI_COLLATERAL) - iNoLimitCollateral / 2, 0, iLimitedUnits);
 			FAssert(iLimitedUnits >= 0);
 			int iAttackUnits = std::max(1, AI_totalUnitAIs(UNITAI_ATTACK) + AI_totalUnitAIs(UNITAI_ATTACK_CITY)); // floor value is just to avoid divide-by-zero
-			FAssert(iAttackUnits >= iLimitedUnits || iLimitedUnits <= 3); // this is not strictly guarenteed, but I expect it to always be true under normal playing conditions.
+			/*  advc.006: +1 added and replaced iLimitedUnits with iAttackUnits
+				in the 2nd  clause b/c this assert kept failing for a capitulated
+				Renaissance civ w/o access to Horses (not sure if that's what's
+				causing the failed assertion). */
+			FAssert(iAttackUnits+1 >= iLimitedUnits || iAttackUnits <= 3); // this is not strictly guaranteed, but I expect it to always be true under normal playing conditions.
 
 			iValue *= std::max(1, iAttackUnits - iLimitedUnits);
 			iValue /= iAttackUnits;
@@ -12711,41 +14822,41 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 
 	case UNITAI_COLLATERAL:
 		iValue += iCombatValue;
-		//iValue += ((iCombatValue * GC.getUnitInfo(eUnit).getCollateralDamage()) / 50);
-		iValue += iCombatValue * GC.getUnitInfo(eUnit).getCollateralDamage() * (1 + GC.getUnitInfo(eUnit).getCollateralDamageMaxUnits()) / 350; // K-Mod (max units is 6-8 in the current xml)
-		iValue += ((iCombatValue * GC.getUnitInfo(eUnit).getMoves()) / 4);
-		iValue += ((iCombatValue * GC.getUnitInfo(eUnit).getWithdrawalProbability()) / 25);
-		iValue -= ((iCombatValue * GC.getUnitInfo(eUnit).getCityAttackModifier()) / 100);
+		//iValue += ((iCombatValue * u.getCollateralDamage()) / 50);
+		iValue += iCombatValue * u.getCollateralDamage() * (1 + u.getCollateralDamageMaxUnits()) / 350; // K-Mod (max units is 6-8 in the current xml)
+		iValue += ((iCombatValue * u.getMoves()) / 4);
+		iValue += ((iCombatValue * u.getWithdrawalProbability()) / 25);
+		iValue -= ((iCombatValue * u.getCityAttackModifier()) / 100);
 		break;
 
 	case UNITAI_PILLAGE:
 		iValue += iCombatValue;
-		//iValue += (iCombatValue * GC.getUnitInfo(eUnit).getMoves());
-		iValue += iCombatValue * (GC.getUnitInfo(eUnit).getMoves()-1) / 2;
+		//iValue += (iCombatValue * u.getMoves());
+		iValue += iCombatValue * (u.getMoves()-1) / 2;
 		break;
 
 	case UNITAI_RESERVE:
 		iValue += iCombatValue;
-		// iValue -= ((iCombatValue * GC.getUnitInfo(eUnit).getCollateralDamage()) / 200); // disabled by K-Mod (collateral damage is never 'bad')
+		// iValue -= ((iCombatValue * u.getCollateralDamage()) / 200); // disabled by K-Mod (collateral damage is never 'bad')
 		for (iI = 0; iI < GC.getNumUnitCombatInfos(); iI++)
 		{
-//			int iCombatModifier = GC.getUnitInfo(eUnit).getUnitCombatModifier(iI);
+//			int iCombatModifier = u.getUnitCombatModifier(iI);
 //			iCombatModifier = (iCombatModifier < 40) ? iCombatModifier : (40 + (iCombatModifier - 40) / 2);
 //			iValue += ((iCombatValue * iCombatModifier) / 100);
-			iValue += ((iCombatValue * GC.getUnitInfo(eUnit).getUnitCombatModifier(iI) * AI_getUnitCombatWeight((UnitCombatTypes)iI)) / 12000);
+			iValue += ((iCombatValue * u.getUnitCombatModifier(iI) * AI_getUnitCombatWeight((UnitCombatTypes)iI)) / 12000);
 		}
-		//iValue += ((iCombatValue * GC.getUnitInfo(eUnit).getMoves()) / 2);
+		//iValue += ((iCombatValue * u.getMoves()) / 2);
 		// K-Mod
-		if (GC.getUnitInfo(eUnit).getMoves() > 1)
+		if (u.getMoves() > 1)
 		{
-			iValue += iCombatValue * GC.getUnitInfo(eUnit).getMoves() / (GC.getUnitInfo(eUnit).isNoDefensiveBonus() ? 7 : 5);
+			iValue += iCombatValue * u.getMoves() / (u.isNoDefensiveBonus() ? 7 : 5);
 		}
 
-		iValue -= (GC.getUnitInfo(eUnit).isNoDefensiveBonus() ? iCombatValue / 4 : 0);
+		iValue -= (u.isNoDefensiveBonus() ? iCombatValue / 4 : 0);
 
 		for (UnitClassTypes i = (UnitClassTypes)0; i < GC.getNumUnitClassInfos(); i=(UnitClassTypes)(i+1))
 		{
-			iValue += iCombatValue * GC.getUnitInfo(eUnit).getFlankingStrikeUnitClass(i) * AI_getUnitClassWeight(i) / 20000; // (this is pretty small)
+			iValue += iCombatValue * u.getFlankingStrikeUnitClass(i) * AI_getUnitClassWeight(i) / 20000; // (this is pretty small)
 		}
 		// K-Mod end
 		break;
@@ -12754,50 +14865,57 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		iValue += (iCombatValue / 2);
 		for (iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
 		{
-			iValue += ((iCombatValue * GC.getUnitInfo(eUnit).getUnitClassAttackModifier(iI) * AI_getUnitClassWeight((UnitClassTypes)iI)) / 7500);
-			iValue += ((iCombatValue * (GC.getUnitInfo(eUnit).getTargetUnitClass(iI) ? 50 : 0)) / 100);
+			iValue += ((iCombatValue * u.getUnitClassAttackModifier(iI) * AI_getUnitClassWeight((UnitClassTypes)iI)) /
+					10000); // k146: was 7500
+			// <k146>
+			iValue += ((iCombatValue * u.getUnitClassDefenseModifier(iI) *
+					AI_getUnitClassWeight((UnitClassTypes)iI)) / 10000);
+			// </k146>
+			iValue += ((iCombatValue * (u.getTargetUnitClass(iI) ? 50 : 0)) / 100);
 		}
 		for (iI = 0; iI < GC.getNumUnitCombatInfos(); iI++)
 		{
-//			int iCombatModifier = GC.getUnitInfo(eUnit).getUnitCombatModifier(iI);
+//			int iCombatModifier = u.getUnitCombatModifier(iI);
 //			iCombatModifier = (iCombatModifier < 40) ? iCombatModifier : (40 + (iCombatModifier - 40) / 2);
 //			iValue += ((iCombatValue * iCombatModifier) / 100);
-			iValue += ((iCombatValue * GC.getUnitInfo(eUnit).getUnitCombatModifier(iI) * AI_getUnitCombatWeight((UnitCombatTypes)iI)) / 10000);
-			iValue += ((iCombatValue * (GC.getUnitInfo(eUnit).getTargetUnitCombat(iI) ? 50 : 0)) / 100);
+			iValue += ((iCombatValue * u.getUnitCombatModifier(iI) * AI_getUnitCombatWeight((UnitCombatTypes)iI)) /
+					7500); // k146: was 10000
+			iValue += ((iCombatValue * (u.getTargetUnitCombat(iI) ? 50 : 0)) / 100);
 		}
 		for (iI = 0; iI < GC.getNumUnitInfos(); iI++)
 		{
-			int eUnitClass = GC.getUnitInfo(eUnit).getUnitClassType();
+			int eUnitClass = u.getUnitClassType();
 			if (NO_UNITCLASS != eUnitClass && GC.getUnitInfo((UnitTypes)iI).getDefenderUnitClass(eUnitClass))
 			{
 				iValue += (50 * iCombatValue) / 100;
 			}
 
-			int eUnitCombat = GC.getUnitInfo(eUnit).getUnitCombatType();
+			int eUnitCombat = u.getUnitCombatType();
 			if (NO_UNITCOMBAT != eUnitCombat && GC.getUnitInfo((UnitTypes)iI).getDefenderUnitCombat(eUnitCombat))
 			{
 				iValue += (50 * iCombatValue) / 100;
 			}
 		}
 
-		//iValue += ((iCombatValue * GC.getUnitInfo(eUnit).getMoves()) / 2);
+		//iValue += ((iCombatValue * u.getMoves()) / 2);
 		// K-Mod
-		if (GC.getUnitInfo(eUnit).getMoves() > 1)
+		if (u.getMoves() > 1)
 		{
-			iValue += iCombatValue * GC.getUnitInfo(eUnit).getMoves() / 6;
+			iValue += iCombatValue * u.getMoves() /
+					8; // k146: was 6
 		}
 		// K-Mod end
 
-		iValue += ((iCombatValue * GC.getUnitInfo(eUnit).getWithdrawalProbability()) / 100);
+		iValue += ((iCombatValue * u.getWithdrawalProbability()) / 100);
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      03/20/10                                jdog5000      */
 /*                                                                                              */
 /* War strategy AI                                                                              */
 /************************************************************************************************/
-		//iValue += (GC.getUnitInfo(eUnit).getInterceptionProbability() * 2);
-		if( GC.getUnitInfo(eUnit).getInterceptionProbability() > 0 )
+		//iValue += (u.getInterceptionProbability() * 2);
+		if( u.getInterceptionProbability() > 0 )
 		{
-			int iTempValue = GC.getUnitInfo(eUnit).getInterceptionProbability();
+			int iTempValue = u.getInterceptionProbability();
 
 			iTempValue *= (25 + std::min(175, GET_TEAM(getTeam()).AI_getRivalAirPower()));
 			iTempValue /= 100;
@@ -12811,16 +14929,18 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 
 	case UNITAI_CITY_DEFENSE:
 		iValue += ((iCombatValue * 2) / 3);
-		iValue += ((iCombatValue * GC.getUnitInfo(eUnit).getCityDefenseModifier()) / 75);
+		iValue += ((iCombatValue * u.getCityDefenseModifier()) / 75);
 		// K-Mod. Value for collateral immunity
 		for (iI = 0; iI < GC.getNumUnitCombatInfos(); iI++)
 		{
-			if (GC.getUnitInfo(eUnit).getUnitCombatCollateralImmune(iI))
+			if (u.getUnitCombatCollateralImmune(iI))
 			{
 				iValue += iCombatValue*30/100;
 				break;
 			}
 		}
+		// k146: Other bonuses
+		iValue += iCombatValue * u.getHillsDefenseModifier() / 200;
 		// K-Mod end
 		break;
 
@@ -12828,26 +14948,26 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 	case UNITAI_CITY_SPECIAL:
 	case UNITAI_PARADROP:
 		iValue += (iCombatValue / 2);
-		iValue += ((iCombatValue * GC.getUnitInfo(eUnit).getCityDefenseModifier()) / 100);
+		iValue += ((iCombatValue * u.getCityDefenseModifier()) / 100);
 		for (iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
 		{
-			iValue += ((iCombatValue * GC.getUnitInfo(eUnit).getUnitClassAttackModifier(iI) * AI_getUnitClassWeight((UnitClassTypes)iI)) / 10000);
-			iValue += ((iCombatValue * (GC.getUnitInfo(eUnit).getDefenderUnitClass(iI) ? 50 : 0)) / 100);
+			iValue += ((iCombatValue * u.getUnitClassAttackModifier(iI) * AI_getUnitClassWeight((UnitClassTypes)iI)) / 10000);
+			iValue += ((iCombatValue * (u.getDefenderUnitClass(iI) ? 50 : 0)) / 100);
 		}
 		for (iI = 0; iI < GC.getNumUnitCombatInfos(); iI++)
 		{
-			iValue += ((iCombatValue * GC.getUnitInfo(eUnit).getUnitCombatModifier(iI) * AI_getUnitCombatWeight((UnitCombatTypes)iI)) / 10000);
-			iValue += ((iCombatValue * (GC.getUnitInfo(eUnit).getDefenderUnitCombat(iI) ? 50 : 0)) / 100);
+			iValue += ((iCombatValue * u.getUnitCombatModifier(iI) * AI_getUnitCombatWeight((UnitCombatTypes)iI)) / 10000);
+			iValue += ((iCombatValue * (u.getDefenderUnitCombat(iI) ? 50 : 0)) / 100);
 		}
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      03/20/10                                jdog5000      */
 /*                                                                                              */
 /* War strategy AI                                                                              */
 /************************************************************************************************/
-		//iValue += (GC.getUnitInfo(eUnit).getInterceptionProbability() * 3);
-		if( GC.getUnitInfo(eUnit).getInterceptionProbability() > 0 )
+		//iValue += (u.getInterceptionProbability() * 3);
+		if( u.getInterceptionProbability() > 0 )
 		{
-			int iTempValue = GC.getUnitInfo(eUnit).getInterceptionProbability();
+			int iTempValue = u.getInterceptionProbability();
 
 			iTempValue *= (25 + std::min(125, GET_TEAM(getTeam()).AI_getRivalAirPower()));
 			iTempValue /= 50;
@@ -12861,8 +14981,8 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 
 	case UNITAI_EXPLORE:
 		iValue += (iCombatValue / 2);
-		iValue += (GC.getUnitInfo(eUnit).getMoves() * 200);
-		if (GC.getUnitInfo(eUnit).isNoBadGoodies())
+		iValue += (u.getMoves() * 200);
+		if (u.isNoBadGoodies())
 		{
 			iValue += 100;
 		}
@@ -12871,17 +14991,17 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		break;
 
 	case UNITAI_MISSIONARY:
-		iValue += (GC.getUnitInfo(eUnit).getMoves() * 100);
+		iValue += (u.getMoves() * 100);
 		if (getStateReligion() != NO_RELIGION)
 		{
-			if (GC.getUnitInfo(eUnit).getReligionSpreads(getStateReligion()) > 0)
+			if (u.getReligionSpreads(getStateReligion()) > 0)
 			{
-				iValue += (5 * GC.getUnitInfo(eUnit).getReligionSpreads(getStateReligion())) / 2;
+				iValue += (5 * u.getReligionSpreads(getStateReligion())) / 2;
 			}
 		}
 		for (iI = 0; iI < GC.getNumReligionInfos(); iI++)
 		{
-			if (GC.getUnitInfo(eUnit).getReligionSpreads((ReligionTypes)iI) && hasHolyCity((ReligionTypes)iI))
+			if (u.getReligionSpreads((ReligionTypes)iI) && hasHolyCity((ReligionTypes)iI))
 			{
 				iValue += 80;
 				break;
@@ -12900,7 +15020,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		    int iTempValue = 0;
 		    for (iI = 0; iI < GC.getNumReligionInfos(); iI++)
 		    {
-                if (GC.getUnitInfo(eUnit).getReligionSpreads((ReligionTypes)iI))
+                if (u.getReligionSpreads((ReligionTypes)iI))
                 {
                     iTempValue += (50 * getNumCities()) / (1 + getHasReligionCount((ReligionTypes)iI));
                 }
@@ -12911,9 +15031,9 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		{
 			if (hasHeadquarters((CorporationTypes)iI))
 			{
-				if (GC.getUnitInfo(eUnit).getCorporationSpreads(iI) > 0)
+				if (u.getCorporationSpreads(iI) > 0)
 				{
-					iValue += (5 * GC.getUnitInfo(eUnit).getCorporationSpreads(iI)) / 2;
+					iValue += (5 * u.getCorporationSpreads(iI)) / 2;
 /************************************************************************************************/
 /* UNOFFICIAL_PATCH                       06/03/09                                jdog5000      */
 /*                                                                                              */
@@ -12942,40 +15062,40 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		break;
 
 	case UNITAI_SPY:
-		iValue += (GC.getUnitInfo(eUnit).getMoves() * 100);
-		if (GC.getUnitInfo(eUnit).isSabotage())
+		iValue += (u.getMoves() * 100);
+		if (u.isSabotage())
 		{
 			iValue += 50;
 		}
-		if (GC.getUnitInfo(eUnit).isDestroy())
+		if (u.isDestroy())
 		{
 			iValue += 50;
 		}
-		if (GC.getUnitInfo(eUnit).isCounterSpy())
+		if (u.isCounterSpy())
 		{
 			iValue += 100;
 		}
 		break;
 
 	case UNITAI_ICBM:
-		if (GC.getUnitInfo(eUnit).getNukeRange() != -1)
+		if (u.getNukeRange() != -1)
 		{
 			/* original bts code
-			iTempValue = 40 + (GC.getUnitInfo(eUnit).getNukeRange() * 40);
-			if (GC.getUnitInfo(eUnit).getAirRange() == 0)
+			iTempValue = 40 + (u.getNukeRange() * 40);
+			if (u.getAirRange() == 0)
 			{
 				iValue += iTempValue;
 			}
 			else
 			{
-				iValue += (iTempValue * std::min(10, GC.getUnitInfo(eUnit).getAirRange())) / 10;
+				iValue += (iTempValue * std::min(10, u.getAirRange())) / 10;
 			}
-			iValue += (iTempValue * (60 + GC.getUnitInfo(eUnit).getEvasionProbability())) / 100; */
+			iValue += (iTempValue * (60 + u.getEvasionProbability())) / 100; */
 			// K-Mod
-			iTempValue = 100 + (GC.getUnitInfo(eUnit).getNukeRange() * 40);
-			if (GC.getUnitInfo(eUnit).getAirRange() > 0)
+			iTempValue = 100 + (u.getNukeRange() * 40);
+			if (u.getAirRange() > 0)
 			{
-				iTempValue = iTempValue * std::min(8, GC.getUnitInfo(eUnit).getAirRange()) / 10;
+				iTempValue = iTempValue * std::min(8, u.getAirRange()) / 10;
 			}
 			// estimate the expected loss from being shot down.
 			{
@@ -12996,7 +15116,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 				if (iInterceptTally > 0)
 				{
 					FAssert(iPowerTally > 0);
-					iTempValue -= iTempValue * (iInterceptTally / iPowerTally) * (100 - GC.getUnitInfo(eUnit).getEvasionProbability()) / 10000;
+					iTempValue -= iTempValue * (iInterceptTally / iPowerTally) * (100 - u.getEvasionProbability()) / 10000;
 				}
 			}
 			iValue += iTempValue;
@@ -13007,30 +15127,30 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 	case UNITAI_WORKER_SEA:
 		for (iI = 0; iI < GC.getNumBuildInfos(); iI++)
 		{
-			if (GC.getUnitInfo(eUnit).getBuilds(iI))
+			if (u.getBuilds(iI))
 			{
 				iValue += 50;
 			}
 		}
-		iValue += (GC.getUnitInfo(eUnit).getMoves() * 100);
+		iValue += (u.getMoves() * 100);
 		break;
 
 	case UNITAI_ATTACK_SEA:
 		iValue += iCombatValue;
-		iValue += ((iCombatValue * GC.getUnitInfo(eUnit).getMoves()) / 2);
-		iValue += (GC.getUnitInfo(eUnit).getBombardRate() * 4);
+		iValue += ((iCombatValue * u.getMoves()) / 2);
+		iValue += (u.getBombardRate() * 4);
 		break;
 
 	case UNITAI_RESERVE_SEA:
 		iValue += iCombatValue;
-		iValue += (iCombatValue * GC.getUnitInfo(eUnit).getMoves());
+		iValue += (iCombatValue * u.getMoves());
 		break;
 
 	case UNITAI_ESCORT_SEA:
 		iValue += iCombatValue;
-		iValue += (iCombatValue * GC.getUnitInfo(eUnit).getMoves());
-		iValue += (GC.getUnitInfo(eUnit).getInterceptionProbability() * 3);
-		if (GC.getUnitInfo(eUnit).getNumSeeInvisibleTypes() > 0)
+		iValue += (iCombatValue * u.getMoves());
+		iValue += (u.getInterceptionProbability() * 3);
+		if (u.getNumSeeInvisibleTypes() > 0)
 		{
 			iValue += 200;
 		}
@@ -13042,7 +15162,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		// Boats which can't be seen don't play defense, don't make good escorts
 		/*  <advc.028> They can defend now. Stats of subs and Stealth Destroyer
 			aren't great for escorting, but there's other code to check this. */
-		/*if (GC.getUnitInfo(eUnit).getInvisibleType() != NO_INVISIBLE)
+		/*if (u.getInvisibleType() != NO_INVISIBLE)
 		{
 			iValue /= 2;
 		}*/ // </advc.028>
@@ -13064,8 +15184,8 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 					}
 				}
 			}
-			iValue += (GC.getUnitInfo(eUnit).getMoves() * iExploreValue);
-			if (GC.getUnitInfo(eUnit).isAlwaysHostile())
+			iValue += (u.getMoves() * iExploreValue);
+			if (u.isAlwaysHostile())
 			{
 				iValue /= 2;
 			}
@@ -13078,8 +15198,8 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 	case UNITAI_MISSIONARY_SEA:
 	case UNITAI_SPY_SEA:
 		iValue += (iCombatValue / 2);
-		iValue += (GC.getUnitInfo(eUnit).getMoves() * 200);
-		iValue += (GC.getUnitInfo(eUnit).getCargoSpace() * 300);
+		iValue += (u.getMoves() * 200);
+		iValue += (u.getCargoSpace() * 300);
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      05/18/09                                jdog5000      */
 /*                                                                                              */
@@ -13094,43 +15214,43 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 
 	case UNITAI_CARRIER_SEA:
 		iValue += iCombatValue;
-		iValue += (GC.getUnitInfo(eUnit).getMoves() * 50);
-		iValue += (GC.getUnitInfo(eUnit).getCargoSpace() * 400);
+		iValue += (u.getMoves() * 50);
+		iValue += (u.getCargoSpace() * 400);
 		break;
 
 	case UNITAI_MISSILE_CARRIER_SEA:
-		iValue += iCombatValue * GC.getUnitInfo(eUnit).getMoves();
-		iValue += (25 + iCombatValue) * (3 + (GC.getUnitInfo(eUnit).getCargoSpace()));
+		iValue += iCombatValue * u.getMoves();
+		iValue += (25 + iCombatValue) * (3 + (u.getCargoSpace()));
 		break;
 
 	case UNITAI_PIRATE_SEA:
 		iValue += iCombatValue;
-		iValue += (iCombatValue * GC.getUnitInfo(eUnit).getMoves());
+		iValue += (iCombatValue * u.getMoves());
 		break;
 
 	case UNITAI_ATTACK_AIR:
 		iValue += iCombatValue;
-		iValue += (GC.getUnitInfo(eUnit).getCollateralDamage() * iCombatValue) / 100;
-		iValue += 4 * GC.getUnitInfo(eUnit).getBombRate();
-		iValue += (iCombatValue * (100 + 2 * GC.getUnitInfo(eUnit).getCollateralDamage()) * GC.getUnitInfo(eUnit).getAirRange()) / 100;
+		iValue += (u.getCollateralDamage() * iCombatValue) / 100;
+		iValue += 4 * u.getBombRate();
+		iValue += (iCombatValue * (100 + 2 * u.getCollateralDamage()) * u.getAirRange()) / 100;
 		break;
 
 	case UNITAI_DEFENSE_AIR:
 		iValue += iCombatValue;
-		iValue += (GC.getUnitInfo(eUnit).getInterceptionProbability() * 3);
-		iValue += (GC.getUnitInfo(eUnit).getAirRange() * iCombatValue);
+		iValue += (u.getInterceptionProbability() * 3);
+		iValue += (u.getAirRange() * iCombatValue);
 		break;
 
 	case UNITAI_CARRIER_AIR:
 		iValue += (iCombatValue);
-		iValue += (GC.getUnitInfo(eUnit).getInterceptionProbability() * 2);
-		iValue += (GC.getUnitInfo(eUnit).getAirRange() * iCombatValue);
+		iValue += (u.getInterceptionProbability() * 2);
+		iValue += (u.getAirRange() * iCombatValue);
 		break;
 
 	case UNITAI_MISSILE_AIR:
 		iValue += iCombatValue;
-		iValue += 4 * GC.getUnitInfo(eUnit).getBombRate();
-		iValue += GC.getUnitInfo(eUnit).getAirRange() * iCombatValue;
+		iValue += 4 * u.getBombRate();
+		iValue += u.getAirRange() * iCombatValue;
 		break;
 
 	case UNITAI_ATTACK_CITY_LEMMING:
@@ -13151,7 +15271,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			{
 				for (int iI = 0; iI < GC.getNumPromotionInfos(); iI++)
 				{
-					if (GC.getUnitInfo(eUnit).getFreePromotions(iI))
+					if (u.getFreePromotions(iI))
 					{
 						if (GC.getPromotionInfo((PromotionTypes)iI).isAmphib())
 						{
@@ -13261,8 +15381,9 @@ void CvPlayerAI::AI_updateNeededExplorers() {
 // Body cut and pasted from AI_neededExplorers
 int CvPlayerAI::AI_neededExplorersBulk(CvArea const* pArea) const {
 
-	// advc.305: Be sure not to build Workboats for exploration
-	if(isBarbarian()) return 0;
+	// <advc.305> Be sure not to build Workboats for exploration
+	if(isBarbarian())
+		return 0; // </advc.305>
 
 	int iNeeded = 0;
 
@@ -13315,18 +15436,19 @@ int CvPlayerAI::AI_neededExplorersBulk(CvArea const* pArea) const {
 	return iNeeded;
 } // </advc.003b>
 
-/* advc.003, advc.117, advc.121: This function appears to be expensive:
-   countUnimprovedBonuses loops over all plots. Called each time a
-   Worker moves or production is chosen. Could be worthwhile to cache the result.
-   For now, I've added a private data member to CvUnitAI b/c I'm using the
-   value repeatedly during a Worker move. */
+
 int CvPlayerAI::AI_neededWorkers(CvArea* pArea) const
 {
-	CvCity* pLoopCity;
-	int iCount;
-	int iLoop;
+	/*  advc.003b: This function is called each time a Worker moves or a city
+		chooses production, and countUnimprovedBonuses loops over all plots.
+		In the single profiler run I did, the computing time was completely
+		negligible though. */
+	PROFILE_FUNC();
 
-	iCount = countUnimprovedBonuses(pArea) * 2;
+	CvCity* pLoopCity=NULL;
+	int iLoop=-1;
+	// advc.113: Let's focus on the workable bonuses (CvCityAI::AI_getWorkersNeeded)
+	int iCount = countUnimprovedBonuses(pArea);// * 2;
 
 	for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
@@ -13335,53 +15457,44 @@ int CvPlayerAI::AI_neededWorkers(CvArea* pArea) const
 			iCount += pLoopCity->AI_getWorkersNeeded() * 3;
 		}
 	}
-	
-	if (iCount == 0)
+	/*  advc.113: Commented out. Training Workers ahead of time is
+		not so unimportant. */
+	/*if (iCount == 0)
 	{
 		return 0;
+	}*/
+	if(iCount < 5 * getNumCities()) { // advc.113
+		// K-Mod. Some additional workers if for 'growth' flavour AIs who are still growing...
+		if (/*  advc.113: Growth is about tall cities. Factor Growth flavor into
+				the number of Workers per existing city, and add Workers for
+				future cities regardless of flavor. */
+				// AI_getFlavorValue(FLAVOR_GROWTH) > 0 &&
+				AI_isPrimaryArea(pArea)) {
+			int iDummy=-1; // advc.113: Changed to floating point arithmetic
+			double extraCities = std::min(GC.getWorldInfo(GC.getMapINLINE().
+					getWorldSize()).getTargetNumCities()*(4.0/3) - getNumCities(),
+					(double)AI_getNumAreaCitySites(pArea->getID(), iDummy));
+			extraCities = ::dRange(extraCities, 0.0, getNumCities()*(2.0/3));
+			/*  advc.113: Was 3*iExtraCities, which can be a lot. In K-Mod,
+				CvCityAI didn't actually train all those Workers, but now it might. */
+			iCount += ::round(1.4 * extraCities);
+		}
+		// K-Mod end
+		if(getBestRoute() != NO_ROUTE)
+			iCount += pArea->getCitiesPerPlayer(getID()) / 2;
 	}
-
-	// K-Mod. Some additional workers if for 'growth' flavour AIs who are still growing...
-	if (
-		// AI_getFlavorValue(FLAVOR_GROWTH) > 0 && // advc.113: All civs need those extra workers
-		AI_isPrimaryArea(pArea))
-	{
-		int iDummy;
-		int iExtraCities = std::min(GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getTargetNumCities()*4/3 - getNumCities(), AI_getNumAreaCitySites(pArea->getID(), iDummy));
-		iExtraCities = range(iExtraCities, 0, getNumCities()*2/3);
-		/* <advc.113> Used to be 3 indiscriminately. Factoring in Growth flavor
-		   here now, but only to a minor effect b/c Growth is mostly about
-		   tall cities, which doesn't actually fit well with additional Workers. */
-		iCount += iExtraCities * (AI_getFlavorValue(FLAVOR_GROWTH) > 0 ? 2 : 1);
-		// </advc.113>
-	}
-	// K-Mod end
-
-	if (getBestRoute() != NO_ROUTE)
-	{
-		iCount += pArea->getCitiesPerPlayer(getID()) / 2;
-	}
-
-
+	/*  advc.113: To account for future tasks other than new cities:
+		population growth and new techs, and try to err on the side of too
+		many Workers (b/c the AI is pretty bad at sharing them between cities). */
+	iCount = (iCount * (100 + GC.getDefineINT("WORKER-RESERVE_PERCENT"))) / 100;
 	iCount += 1;
 	iCount /= 3;
-
-	/* <advc.113> The AI built too few workers. More specifically, the calculation
-	   of needed workers focuses on immediate tasks, and, hence, lags behind
-	   the true workload when new tasks come up, e.g. when founding a city.
-	   The 25% increase (new XML parameter) leads to extra workers being trained
-	   ahead of time. (Probably too many workers in the later eras this way, but
-	   that's a minor concern.)
-	   Then, the std::min bounds: I made the first one stricter,
-	   i.e. at most 2.5 workers per city instead of 3, and removed
-	   the second one. Current population should have no bearing on workers. */
-	iCount = (iCount * (100 + GC.getDefineINT("WORKER-RESERVE_PERCENT"))) / 100;
-
-	iCount = std::min(iCount, (5 * pArea->getCitiesPerPlayer(getID())) / 2);
-	//iCount = std::min(iCount, (1 + getTotalPopulation()) / 2); // </advc.113>
-
+	//iCount = std::min(iCount, (1 + getTotalPopulation()) / 2);
+	// <advc.113> Current population should have no bearing on Workers
+	int iCities = pArea->getCitiesPerPlayer(getID());
+	iCount = std::min(iCount, (iCities <= 1 ? 3 : ::round(2.2 * iCities)));
+	// </advc.113>
 	return std::max(1, iCount);
-
 }
 
 
@@ -13651,7 +15764,7 @@ bool CvPlayerAI::isFocusWar(CvArea* ap) const {
 	CvCity* capital = getCapitalCity();
 	if(capital == NULL || capital->area() == NULL)
 		return false;
-	CvArea const&  a = (ap == NULL ? *capital->area() : *ap);
+	CvArea const& a = (ap == NULL ? *capital->area() : *ap);
 	/*  Chosen wars (ongoing or in preparation) are always worth focusing on;
 		others only when on the defensive. */
 	return (t.isAnyChosenWar() || a.getAreaAIType(getTeam()) == AREAAI_DEFENSIVE ||
@@ -13667,36 +15780,46 @@ int CvPlayerAI::AI_adjacentPotentialAttackers(CvPlot* pPlot, bool bTestCanMove) 
 	int iI;
 
 	iCount = 0;
-
+	CvArea const& plotArea = *pPlot->area(); // advc.030
 	for (iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 	{
 		pLoopPlot = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), ((DirectionTypes)iI));
+		// <advc.003>
+		if(pLoopPlot == NULL)
+			continue; // </advc.003>
+		// <advc.030>
+		CvArea const& fromArea = *pLoopPlot->area();
+		//if (pLoopPlot->area() == pPlot->area())
+		// Replacing the above (negated):
+		if(!plotArea.canBeEntered(fromArea))
+			continue; // </advc.030>
+		pUnitNode = pLoopPlot->headUnitNode();
 
-		if (pLoopPlot != NULL)
+		while (pUnitNode != NULL)
 		{
-			if (pLoopPlot->area() == pPlot->area())
+			pLoopUnit = ::getUnit(pUnitNode->m_data);
+			pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
+			// <advc.003>
+			if (pLoopUnit->getOwnerINLINE() != getID())
+				continue; // </advc.003>
+			// advc.030: Replacing the line below
+			if(plotArea.canBeEntered(fromArea, pLoopUnit))
+			//if (pLoopUnit->getDomainType() == ((pPlot->isWater()) ? DOMAIN_SEA : DOMAIN_LAND))
 			{
-				pUnitNode = pLoopPlot->headUnitNode();
-
-				while (pUnitNode != NULL)
+				if (pLoopUnit->canAttack()
+						/*  advc.315: This way, no units with OnlyAttackBarbarians
+							are counted as potential attackers. Could check if
+							the CenterUnit of pPlot is Barbarian, but only
+							Explorer has OnlyAttackBarbarians and I don't think
+							the AI will or should use Explorers for any
+							coordinated attacks anyway. */
+						&& !::isMostlyDefensive(pLoopUnit->getUnitInfo()))
 				{
-					pLoopUnit = ::getUnit(pUnitNode->m_data);
-					pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
-
-					if (pLoopUnit->getOwnerINLINE() == getID())
+					if (!bTestCanMove || pLoopUnit->canMove())
 					{
-						if (pLoopUnit->getDomainType() == ((pPlot->isWater()) ? DOMAIN_SEA : DOMAIN_LAND))
+						if (!pLoopUnit->AI_isCityAIType())
 						{
-							if (pLoopUnit->canAttack())
-							{
-								if (!bTestCanMove || pLoopUnit->canMove())
-								{
-									if (!(pLoopUnit->AI_isCityAIType()))
-									{
-										iCount++;
-									}
-								}
-							}
+							iCount++;
 						}
 					}
 				}
@@ -14306,7 +16429,9 @@ int CvPlayerAI::AI_localAttackStrength(const CvPlot* pTargetPlot, TeamTypes eAtt
 					{
 						if (!pLoopUnit->canAttack()) // bCheckCanAttack means something else.
 							continue;
-
+						// <advc.315> See comment in AI_adjacentPotentialAttackers
+						if(::isMostlyDefensive(pLoopUnit->getUnitInfo()))
+							continue; // </advc.315>
 						if (bCheckMoves)
 						{
 							// unfortunately, we can't use the global pathfinder here
@@ -14348,7 +16473,7 @@ int CvPlayerAI::AI_localAttackStrength(const CvPlot* pTargetPlot, TeamTypes eAtt
 						if(attackerCount != NULL && pLoopUnit->getDamage() < 30) {
 							CvUnitInfo& u = GC.getUnitInfo(pLoopUnit->getUnitType());
 							// 80 is Cannon; don't count the early siege units
-							if(!u.isOnlyDefensive() && u.getCombatLimit() >= 80)
+							if(u.getCombatLimit() >= 80)
 								(*attackerCount)++;
 						} // </advc.139>
 					}
@@ -14949,7 +17074,20 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		iValue += ((kCivic.getExpInBorderModifier() * getNumMilitaryUnits()) / 200);
 	}
 	iValue += ((kCivic.isBuildingOnlyHealthy()) ? (iCities * 3) : 0);
-	iValue += -((kCivic.getWarWearinessModifier() * iCities) / ((bWarPlan) ? 10 : 50));
+	//iValue += -((kCivic.getWarWearinessModifier() * getNumCities()) / ((bWarPlan) ? 10 : 50));
+	// <cdtw.4> Replacing the above
+	if(kCivic.getWarWearinessModifier() != 0) {
+		// comment Dave_uk:
+		/*  lets take into account how bad war weariness actually is for us.
+			this is actually double counting since we already account for how
+			happiness will be affected below, however, if war weariness is
+			really killing us we need to take action and switch */
+		int iTempValue = -kCivic.getWarWearinessModifier() * getNumCities();
+		iTempValue *= std::max(getWarWearinessPercentAnger(), 100);
+		iTempValue /= 100;
+		iTempValue /= ((bWarPlan) ? 10 : 50);
+		iValue += iTempValue;
+	} // </cdtw.4>
 	//iValue += (kCivic.getFreeSpecialist() * iCities * 12);
 	// K-Mod. A rough approximation is ok, but perhaps not quite /that/ rough.
 	// Here's some code that I wrote for specialists in AI_buildingValue. (note. building value uses 4x commerce; but here we just use 1x commerce)
@@ -15021,8 +17159,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		// Unfortunately, it's not easy to tell whether or not we'll foreign trade when we switch to this civic.
 		// for example, if we are considering a switch from mercantilism to free market, we'd currently have "noForeignTrade", but if we actually make the switch then we wouldn't.
 		//  ... So for simplicity I'm going to just assume that there is only one civic with noForeignTrade, and therefore the value of iConnectedForeignCities is unchanged.
-
-		CvCity* pCapital = getCapitalCity();
+		//CvCity* pCapital = getCapitalCity(); // advc.003: Redundant
 		if (pCapital)
 		{
 			// add an estimate of our own overseas cities (even though they are not really "foreign".
@@ -15270,11 +17407,22 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		iValue += (iCities * 6 * iS * AI_getHealthWeight(iS*kCivic.getExtraHealth(), 1)) / 100;
 
 	if (kCivic.getExtraHappiness() != 0) // New K-Mod effect
-		iValue += (iCities * 10 * iS * AI_getHappinessWeight(iS*kCivic.getExtraHappiness(), 0)) / 100; // (zero extra citizens... as a kind of kludge to get the value closer to where I want it)
+		iValue += (iCities * 10 * iS * AI_getHappinessWeight(iS *
+				/*  (zero extra citizens... as a kind of kludge to get the
+					value closer to where I want it) */
+				kCivic.getExtraHappiness(), 0)) / 100;
 
 	if (kCivic.getHappyPerMilitaryUnit() != 0)
-		iValue += (iCities * 9 * iS * AI_getHappinessWeight(iS*kCivic.getHappyPerMilitaryUnit() * 3, 1)) / 100;
-
+		iValue += (iCities * 9 * iS * AI_getHappinessWeight(iS*kCivic.getHappyPerMilitaryUnit() * 3, 1))
+				// <advc.912c>
+				/ 200; // divisor was 100
+	if (kCivic.getLuxuryModifier() > 0 && pCapital != NULL) {
+		int luxMod = kCivic.getLuxuryModifier();
+		int happyChangeCapital = (pCapital->getBonusGoodHappiness(true) *
+				luxMod) / 100;
+		iValue += (iCities * 9 * iS * AI_getHappinessWeight(iS *
+				happyChangeCapital, 1)) / 100;
+	} // </advc.912c>
 	if (kCivic.getLargestCityHappiness() != 0)
 		iValue += (16 * std::min(iCities, GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getTargetNumCities()) * iS * AI_getHappinessWeight(iS*kCivic.getLargestCityHappiness(), 1)) / 100; // Higher weight, because it affects the best cities (was 14)
 
@@ -15482,12 +17630,15 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 			// K-Mod end
 		}
 		iTempValue += ((kCivic.getTradeYieldModifier(iI) * iCities) / 11);
-		// (K-Mod note: that denominator is bogus, but since no civics currently have this modifier anyway, I'm just going to leave it.)
+		/*  (K-Mod note: that denominator is bogus, but since no civics
+			currently have this modifier anyway, I'm just going to leave it.) */
 
 		for (int iJ = 0; iJ < GC.getNumImprovementInfos(); iJ++)
 		{
-			// Free Speech
-			iTempValue += (AI_averageYieldMultiplier((YieldTypes)iI) * (kCivic.getImprovementYieldChanges(iJ, iI) * (getImprovementCount((ImprovementTypes)iJ) + iCities/2))) / 100;
+			iTempValue += (AI_averageYieldMultiplier((YieldTypes)iI) *
+					(kCivic.getImprovementYieldChanges(iJ, iI) *
+					(getImprovementCount((ImprovementTypes)iJ) + iCities/2))) /
+					100;
 		}
 
 		/* original code
@@ -15634,8 +17785,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 			if (kHurryInfo.getProductionPerPopulation() > 0)
 			{
 				// <advc.121>
-				int multiplier = 3;
-				if(bWarPlan) multiplier++;
+				int multiplier = (bWarPlan ? 4 : 3);
 				if(pCapital != NULL && pCapital->area()->getAreaAIType(getTeam()) ==
 						AREAAI_DEFENSIVE && isFocusWar())
 					multiplier++; // </advc.121>
@@ -15861,7 +18011,7 @@ int CvPlayerAI::AI_religionValue(ReligionTypes eReligion) const
 	// also, most civs with a high base modifier also have iReligionFlavor > 0; and so their final modifier will be reduced.
 	int iDiplomaticModifier = 10 * iDiplomaticBase * iLikedReligionCivs / std::max(1, iTotalCivs);
 	iDiplomaticModifier /= 10 + iReligionFlavor;
-	// advc.131: AP matter even if diplo modifier already high
+	// advc.131: AP matters even if diplo modifier already high
 	//if (iDiplomaticModifier < iDiplomaticBase/3)
 	{
 		for (VoteSourceTypes i = (VoteSourceTypes)0; i < GC.getNumVoteSourceInfos(); i = (VoteSourceTypes)(i+1))
@@ -15891,44 +18041,39 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 {
 	TeamTypes eTargetTeam = GET_PLAYER(eTargetPlayer).getTeam();
 
-	if (eTargetPlayer == NO_PLAYER)
-	{
+	if(eTargetPlayer == NO_PLAYER ||
+			!canDoEspionageMission(eMission, eTargetPlayer, pPlot, iData, NULL))
+		return 0;
+	// <advc.003> I'm removing the other pPlot checks in this function
+	if(pPlot == NULL) {
+		FAssert(pPlot != NULL);
 		return 0;
 	}
-
-	//int iCost = getEspionageMissionCost(eMission, eTargetPlayer, pPlot, iData);
-
-	if (!canDoEspionageMission(eMission, eTargetPlayer, pPlot, iData, NULL))
-	{
-		return 0;
-	}
-
-	bool bMalicious = AI_isMaliciousEspionageTarget(eTargetPlayer);
+	CvCity* const pCity = pPlot->getPlotCity(); // </advc.003>
+	bool const bMalicious = AI_isMaliciousEspionageTarget(eTargetPlayer);
+	bool const bDisorder = (pCity != NULL && pCity->isDisorder()); // advc.120b
 
 	int iValue = 0;
 	if (bMalicious && GC.getEspionageMissionInfo(eMission).isDestroyImprovement())
 	{
-		if (NULL != pPlot)
+		if (pPlot->getOwnerINLINE() == eTargetPlayer)
 		{
-			if (pPlot->getOwnerINLINE() == eTargetPlayer)
+			ImprovementTypes eImprovement = pPlot->getImprovementType();
+			if (eImprovement != NO_IMPROVEMENT)
 			{
-				ImprovementTypes eImprovement = pPlot->getImprovementType();
-				if (eImprovement != NO_IMPROVEMENT)
+				BonusTypes eBonus = pPlot->getNonObsoleteBonusType(GET_PLAYER(eTargetPlayer).getTeam());
+				if (NO_BONUS != eBonus)
 				{
-					BonusTypes eBonus = pPlot->getNonObsoleteBonusType(GET_PLAYER(eTargetPlayer).getTeam());
-					if (NO_BONUS != eBonus)
+					iValue += 2*GET_PLAYER(eTargetPlayer).AI_bonusVal(eBonus, -1); // was 1*
+
+					int iTempValue = 0;
+					if (NULL != pPlot->getWorkingCity())
 					{
-						iValue += 2*GET_PLAYER(eTargetPlayer).AI_bonusVal(eBonus, -1); // was 1*
-						
-						int iTempValue = 0;
-						if (NULL != pPlot->getWorkingCity())
-						{
-							iTempValue += (pPlot->calculateImprovementYieldChange(eImprovement, YIELD_FOOD, pPlot->getOwnerINLINE()) * 2);
-							iTempValue += (pPlot->calculateImprovementYieldChange(eImprovement, YIELD_PRODUCTION, pPlot->getOwnerINLINE()) * 1);
-							iTempValue += (pPlot->calculateImprovementYieldChange(eImprovement, YIELD_COMMERCE, pPlot->getOwnerINLINE()) * 2);
-							iTempValue += GC.getImprovementInfo(eImprovement).getUpgradeTime() / 2;
-							iValue += iTempValue;
-						}
+						iTempValue += (pPlot->calculateImprovementYieldChange(eImprovement, YIELD_FOOD, pPlot->getOwnerINLINE()) * 2);
+						iTempValue += (pPlot->calculateImprovementYieldChange(eImprovement, YIELD_PRODUCTION, pPlot->getOwnerINLINE()) * 1);
+						iTempValue += (pPlot->calculateImprovementYieldChange(eImprovement, YIELD_COMMERCE, pPlot->getOwnerINLINE()) * 2);
+						iTempValue += GC.getImprovementInfo(eImprovement).getUpgradeTime() / 2;
+						iValue += iTempValue;
 					}
 				}
 			}
@@ -15940,26 +18085,20 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 		FAssert(iData >= 0 && iData < GC.getNumBuildingInfos());
 		if (canSpyDestroyBuilding(eTargetPlayer, (BuildingTypes)iData))
 		{
-			if (NULL != pPlot)
+			if (NULL != pCity)
 			{
-				CvCity* pCity = pPlot->getPlotCity();
-
-				if (NULL != pCity)
+				if (pCity->getNumRealBuilding((BuildingTypes)iData) > 0)
 				{
-					if (pCity->getNumRealBuilding((BuildingTypes)iData) > 0)
+					CvBuildingInfo& kBuilding = GC.getBuildingInfo((BuildingTypes)iData);
+					if (!bDisorder) // K-Mod: disorder messes up the evaluation of production and of building value. That's the only reason for this condition.
 					{
-						CvBuildingInfo& kBuilding = GC.getBuildingInfo((BuildingTypes)iData);
-						// K-Mod
-						if (!pCity->isDisorder()) // disorder messes up the evaluation of production and of building value. That's the only reason for this condition.
-						{
-							// Note: I'm not allowing recursion in the building evaluation.
-							// This may cause the cached value to be inaccurate, but it doesn't really matter, because the building is already built!
-							// (AI_buildingValue gives units of 4x commerce/turn)
-							iValue += kBuilding.getProductionCost() / 2;
-							iValue += (2 + pCity->getProductionTurnsLeft((BuildingTypes)iData, 1)) * pCity->AI_buildingValue((BuildingTypes)iData, 0, 0, false, false) / 5;
-						}
-						// K-Mod end
+						// Note: I'm not allowing recursion in the building evaluation.
+						// This may cause the cached value to be inaccurate, but it doesn't really matter, because the building is already built!
+						// (AI_buildingValue gives units of 4x commerce/turn)
+						iValue += kBuilding.getProductionCost() / 2;
+						iValue += (2 + pCity->getProductionTurnsLeft((BuildingTypes)iData, 1)) * pCity->AI_buildingValue((BuildingTypes)iData, 0, 0, false, false) / 5;
 					}
+					// K-Mod end
 				}
 			}
 		}
@@ -15978,76 +18117,69 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 
 	if (bMalicious && GC.getEspionageMissionInfo(eMission).getDestroyProductionCostFactor() > 0)
 	{
-		if (NULL != pPlot)
+		FAssert(pCity != NULL);
+		if (pCity != NULL)
 		{
-			CvCity* pCity = pPlot->getPlotCity();
-			FAssert(pCity != NULL);
-			if (pCity != NULL)
+			int iTempValue = pCity->getProduction();
+			if (iTempValue > 0)
 			{
-				int iTempValue = pCity->getProduction();
-				if (iTempValue > 0)
+				if (pCity->getProductionProject() != NO_PROJECT)
 				{
-					if (pCity->getProductionProject() != NO_PROJECT)
+					CvProjectInfo& kProject = GC.getProjectInfo(pCity->getProductionProject());
+					iValue += iTempValue * ((kProject.getMaxTeamInstances() == 1) ? 6 : 3);	// was 4 : 2
+				}
+				else if (pCity->getProductionBuilding() != NO_BUILDING)
+				{
+					CvBuildingInfo& kBuilding = GC.getBuildingInfo(pCity->getProductionBuilding());
+					if (isWorldWonderClass((BuildingClassTypes)kBuilding.getBuildingClassType()))
 					{
-						CvProjectInfo& kProject = GC.getProjectInfo(pCity->getProductionProject());
-						iValue += iTempValue * ((kProject.getMaxTeamInstances() == 1) ? 6 : 3);	// was 4 : 2
+						iValue += 3 * iTempValue;
 					}
-					else if (pCity->getProductionBuilding() != NO_BUILDING)
-					{
-						CvBuildingInfo& kBuilding = GC.getBuildingInfo(pCity->getProductionBuilding());
-						if (isWorldWonderClass((BuildingClassTypes)kBuilding.getBuildingClassType()))
-						{
-							iValue += 3 * iTempValue;
-						}
-						iValue += iTempValue;
-					}
-					else
-					{
-						iValue += iTempValue;
-					}
+					iValue += iTempValue;
+				}
+				else
+				{
+					iValue += iTempValue;
 				}
 			}
 		}
 	}
 
 
-	if (bMalicious && (GC.getEspionageMissionInfo(eMission).getDestroyUnitCostFactor() > 0 || GC.getEspionageMissionInfo(eMission).getBuyUnitCostFactor() > 0) )
+	if (bMalicious && GC.getEspionageMissionInfo(eMission).getDestroyUnitCostFactor() > 0 || GC.getEspionageMissionInfo(eMission).getBuyUnitCostFactor() > 0 )
 	{
-		if (NULL != pPlot)
+		CvUnit* pUnit = GET_PLAYER(eTargetPlayer).getUnit(iData);
+
+		if (NULL != pUnit)
 		{
-			CvUnit* pUnit = GET_PLAYER(eTargetPlayer).getUnit(iData);
+			UnitTypes eUnit = pUnit->getUnitType();
 
-			if (NULL != pUnit)
+			iValue += GET_PLAYER(eTargetPlayer).AI_unitValue(eUnit, (UnitAITypes)GC.getUnitInfo(eUnit).getDefaultUnitAIType(), pUnit->area());
+
+			if (GC.getEspionageMissionInfo(eMission).getBuyUnitCostFactor() > 0)
 			{
-				UnitTypes eUnit = pUnit->getUnitType();
-
-				iValue += GET_PLAYER(eTargetPlayer).AI_unitValue(eUnit, (UnitAITypes)GC.getUnitInfo(eUnit).getDefaultUnitAIType(), pUnit->area());
-
-				if (GC.getEspionageMissionInfo(eMission).getBuyUnitCostFactor() > 0)
+				/*if (!canTrain(eUnit) || getProductionNeeded(eUnit) > iCost)
 				{
-					/*if (!canTrain(eUnit) || getProductionNeeded(eUnit) > iCost)
-					{
-						iValue += AI_unitValue(eUnit, (UnitAITypes)GC.getUnitInfo(eUnit).getDefaultUnitAIType(), pUnit->area());
-					}*/
-					// K-Mod. AI_unitValue is a relative rating value. It shouldn't be used for this.
-					// (The espionage mission is not enabled anyway, so I'm not going to put a lot of effort into it.)
-					iValue += GC.getUnitInfo(eUnit).getProductionCost() * (canTrain(eUnit) ? 4 : 8); // kmodx: Parentheses added; not sure if needed
-					//
-				}
+				iValue += AI_unitValue(eUnit, (UnitAITypes)GC.getUnitInfo(eUnit).getDefaultUnitAIType(), pUnit->area());
+				}*/
+				// K-Mod. AI_unitValue is a relative rating value. It shouldn't be used for this.
+				// (The espionage mission is not enabled anyway, so I'm not going to put a lot of effort into it.)
+				iValue += GC.getUnitInfo(eUnit).getProductionCost() * (canTrain(eUnit) ? 4 : 8); // kmodx: Parentheses added; not sure if needed
+				//
 			}
 		}
 	}
 
 	if (bMalicious && GC.getEspionageMissionInfo(eMission).getStealTreasuryTypes() > 0)
 	{
-		if( pPlot != NULL && pPlot->getPlotCity() != NULL )
+		if(pCity != NULL)
 		{
 			/* int iGoldStolen = (GET_PLAYER(eTargetPlayer).getGold() * GC.getEspionageMissionInfo(eMission).getStealTreasuryTypes()) / 100;
 			iGoldStolen *= pPlot->getPlotCity()->getPopulation();
 			iGoldStolen /= std::max(1, GET_PLAYER(eTargetPlayer).getTotalPopulation());
 			iValue += ((GET_PLAYER(eTargetPlayer).AI_isFinancialTrouble() || AI_isFinancialTrouble()) ? 4 : 2) * (2 * std::max(0, iGoldStolen - iCost));*/
 			// K-Mod
-			int iGoldStolen = getEspionageGoldQuantity(eMission, eTargetPlayer, pPlot->getPlotCity());
+			int iGoldStolen = getEspionageGoldQuantity(eMission, eTargetPlayer, pCity);
 			iValue += (GET_PLAYER(eTargetPlayer).AI_isFinancialTrouble() || AI_isFinancialTrouble() ? 6 : 4) * iGoldStolen;
 		}
 	}
@@ -16072,118 +18204,102 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 
 	if (bMalicious && GC.getEspionageMissionInfo(eMission).getBuyCityCostFactor() > 0)
 	{
-		if (NULL != pPlot)
+		if (NULL != pCity)
 		{
-			CvCity* pCity = pPlot->getPlotCity();
-
-			if (NULL != pCity)
-			{
-				iValue += AI_cityTradeVal(pCity);
-			}
+			iValue += AI_cityTradeVal(pCity);
 		}
 	}
 
 	if (GC.getEspionageMissionInfo(eMission).getCityInsertCultureAmountFactor() > 0)
 	{
-		if (NULL != pPlot)
+		if (NULL != pCity)
 		{
-			CvCity* pCity = pPlot->getPlotCity();
-			if (NULL != pCity)
+			if (pCity->getOwner() != getID())
 			{
-				if (pCity->getOwner() != getID())
+				int iCultureAmount = GC.getEspionageMissionInfo(eMission).getCityInsertCultureAmountFactor() * pPlot->getCulture(getID());
+				iCultureAmount /= 100;
+				/* if (pCity->calculateCulturePercent(getID()) > 40)
 				{
-					int iCultureAmount = GC.getEspionageMissionInfo(eMission).getCityInsertCultureAmountFactor() * pPlot->getCulture(getID());
-					iCultureAmount /= 100;
-					/* if (pCity->calculateCulturePercent(getID()) > 40)
+				iValue += iCultureAmount * 3;
+				}*/
+				// K-Mod - both offensive & defensive use of spread culture mission. (The first "if" is really just for effeciency.)
+				if (pCity->calculateCulturePercent(getID()) >= 8)
+				{
+					const CvCity* pOurClosestCity = GC.getMap().findCity(pPlot->getX(), pPlot->getY(), getID());
+					if (pOurClosestCity != NULL)
 					{
-						iValue += iCultureAmount * 3;
-					}*/
-					// K-Mod - both offensive & defensive use of spread culture mission. (The first "if" is really just for effeciency.)
-					if (pCity->calculateCulturePercent(getID()) >= 8)
-					{
-						const CvCity* pOurClosestCity = GC.getMap().findCity(pPlot->getX(), pPlot->getY(), getID());
-						if (pOurClosestCity != NULL)
+						int iDistance = pCity->cultureDistance(xDistance(pPlot->getX(), pOurClosestCity->getX()), yDistance(pPlot->getY(), pOurClosestCity->getY()));
+						if (iDistance < 6)
 						{
-							int iDistance = pCity->cultureDistance(xDistance(pPlot->getX(), pOurClosestCity->getX()), yDistance(pPlot->getY(), pOurClosestCity->getY()));
-							if (iDistance < 6)
-							{
-								int iPressure = std::max(pCity->AI_culturePressureFactor() - 100, pOurClosestCity->AI_culturePressureFactor());
-								int iMultiplier = std::min(2, (6 - iDistance) * iPressure / 500);
-								iValue += iCultureAmount * iMultiplier;
-							}
+							int iPressure = std::max(pCity->AI_culturePressureFactor() - 100, pOurClosestCity->AI_culturePressureFactor());
+							int iMultiplier = std::min(2, (6 - iDistance) * iPressure / 500);
+							iValue += iCultureAmount * iMultiplier;
 						}
 					}
-					// K-Mod end
 				}
+				// K-Mod end
 			}
 		}
 	}
 
 	if (bMalicious && GC.getEspionageMissionInfo(eMission).getCityPoisonWaterCounter() > 0)
 	{
-		if (NULL != pPlot)
+		if (NULL != pCity &&
+				!bDisorder) // advc.120b
 		{
-			CvCity* pCity = pPlot->getPlotCity();
+			int iCityHealth = pCity->goodHealth() - pCity->badHealth(false, 0);
+			//int iBaseUnhealth = GC.getEspionageMissionInfo(eMission).getCityPoisonWaterCounter();
+			int iBaseUnhealth = GC.getEspionageMissionInfo(eMission).getCityPoisonWaterCounter() - std::max(pCity->getOccupationTimer(), GET_PLAYER(eTargetPlayer).getAnarchyTurns());
 
-			if (NULL != pCity)
+			// K-Mod: fixing some "wtf".
+			/*
+			int iAvgFoodShortage = std::max(0, iBaseUnhealth - iCityHealth) - pCity->foodDifference();
+			iAvgFoodShortage += std::max(0, iBaseUnhealth/2 - iCityHealth) - pCity->foodDifference();
+
+			iAvgFoodShortage /= 2;
+
+			if( iAvgFoodShortage > 0 )
 			{
-				int iCityHealth = pCity->goodHealth() - pCity->badHealth(false, 0);
-				//int iBaseUnhealth = GC.getEspionageMissionInfo(eMission).getCityPoisonWaterCounter();
-				int iBaseUnhealth = GC.getEspionageMissionInfo(eMission).getCityPoisonWaterCounter() - std::max(pCity->getOccupationTimer(), GET_PLAYER(eTargetPlayer).getAnarchyTurns());
+			iValue += 8 * iAvgFoodShortage * iAvgFoodShortage;
+			}*/
+			int iAvgFoodShortage = (std::max(0, iBaseUnhealth - iCityHealth) + std::max(0, -iCityHealth))/2 - pCity->foodDifference(true, true);
 
-				// K-Mod: fixing some "wtf".
-				/*
-				int iAvgFoodShortage = std::max(0, iBaseUnhealth - iCityHealth) - pCity->foodDifference();
-				iAvgFoodShortage += std::max(0, iBaseUnhealth/2 - iCityHealth) - pCity->foodDifference();
-				
-				iAvgFoodShortage /= 2;
-				
-				if( iAvgFoodShortage > 0 )
-				{
-					iValue += 8 * iAvgFoodShortage * iAvgFoodShortage;
-				}*/
-				int iAvgFoodShortage = (std::max(0, iBaseUnhealth - iCityHealth) + std::max(0, -iCityHealth))/2 - pCity->foodDifference(true, true);
-
-				if (iAvgFoodShortage > 0)
-				{
-					iValue += 3 * iAvgFoodShortage * iBaseUnhealth;
-					/*  advc.160: Prefer large cities w/o Granaries.
-						Too little impact? iValue culd be sth. like 100,
-						threshold e.g. 30, food kept 12. */
-					iValue += pCity->growthThreshold() - pCity->getFoodKept();
-				}
-				// K-Mod end
+			if (iAvgFoodShortage > 0)
+			{
+				iValue += 3 * iAvgFoodShortage * iBaseUnhealth;
+				/*  advc.160: Prefer large cities w/o Granaries.
+				Too little impact?
+				iValue could be sth. like 100, threshold e.g. 30,
+				food kept 12. */
+				iValue += pCity->growthThreshold() - pCity->getFoodKept();
 			}
+			// K-Mod end
 		}
 	}
 
 	if (bMalicious && GC.getEspionageMissionInfo(eMission).getCityUnhappinessCounter() > 0)
 	{
-		if (NULL != pPlot)
+		if (NULL != pCity &&
+				!bDisorder) // advc.120b
 		{
-			CvCity* pCity = pPlot->getPlotCity();
+			int iCityCurAngerLevel = pCity->happyLevel() - pCity->unhappyLevel(0);
+			//int iBaseAnger = GC.getEspionageMissionInfo(eMission).getCityUnhappinessCounter();
+			// K-Mod
+			int iBaseAnger = GC.getEspionageMissionInfo(eMission).getCityUnhappinessCounter() - std::max(pCity->getOccupationTimer(), GET_PLAYER(eTargetPlayer).getAnarchyTurns());
+			// K-Mod end
+			int iAvgUnhappy = iCityCurAngerLevel - iBaseAnger/2;
 
-			if (NULL != pCity)
+			if (iAvgUnhappy < 0)
 			{
-				int iCityCurAngerLevel = pCity->happyLevel() - pCity->unhappyLevel(0);
-				//int iBaseAnger = GC.getEspionageMissionInfo(eMission).getCityUnhappinessCounter();
-				// K-Mod
-				int iBaseAnger = GC.getEspionageMissionInfo(eMission).getCityUnhappinessCounter() - std::max(pCity->getOccupationTimer(), GET_PLAYER(eTargetPlayer).getAnarchyTurns());
-				// K-Mod end
-				int iAvgUnhappy = iCityCurAngerLevel - iBaseAnger/2;
-				
-				if (iAvgUnhappy < 0)
-				{
-					iValue += 7 * abs(iAvgUnhappy) * iBaseAnger;// down from 14
-				}
+				iValue += 7 * abs(iAvgUnhappy) * iBaseAnger;// down from 14
 			}
 		}
 	}
 
-	if (bMalicious && GC.getEspionageMissionInfo(eMission).getCityRevoltCounter() > 0)
+	/*if (bMalicious && GC.getEspionageMissionInfo(eMission).getCityRevoltCounter() > 0)
 	{
 		// Handled elsewhere
-	}
+	}*/
 
 	if (GC.getEspionageMissionInfo(eMission).getBuyTechCostFactor() > 0)
 	{
@@ -16213,10 +18329,10 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 		iValue += AI_religionTradeVal((ReligionTypes)iData, eTargetPlayer);
 	}
 
-	if (bMalicious && GC.getEspionageMissionInfo(eMission).getPlayerAnarchyCounter() > 0)
+	/*if (bMalicious && GC.getEspionageMissionInfo(eMission).getPlayerAnarchyCounter() > 0)
 	{
 		// AI doesn't use Player Anarchy
-	}
+	}*/
 
 	return iValue;
 }
@@ -16227,9 +18343,8 @@ bool CvPlayerAI::AI_isMaliciousEspionageTarget(PlayerTypes eTarget) const
 	if (GET_PLAYER(eTarget).getTeam() == getTeam())
 		return false;
 	return
-		// <advc.120b>: Replaceing ...
 		//AI_getAttitude(eTarget) <= (GC.getGameINLINE().isOption(GAMEOPTION_AGGRESSIVE_AI) ? ATTITUDE_PLEASED : ATTITUDE_CAUTIOUS) ||
-		// ... with:
+		// <advc.120b>: Replacing the above:
 		GC.getLeaderHeadInfo(getPersonalityType()).getNoWarAttitudeProb(std::min(
 				AI_getAttitude(eTarget) + 1, NUM_ATTITUDE_TYPES - 1)) < 100 ||
 		// </advc.120b>
@@ -16466,7 +18581,7 @@ void CvPlayerAI::AI_changePeaceTimeValue(PlayerTypes eIndex, int iChange,
 		scores, times 2 b/c "fair trade" is twice as sensitive as "traded with
 		worst enemy" (it's this way too in BtS) */
 	int incr = ::round((val * 4000)
-			/*  BtS adjusted trade and grant values to the game progress only when
+			/*  BtS adjusted trade and grant values to the game progress when
 				computing the effect on relations. Now that progress is measured
 				by score, it's better to do it here, based on the scores at the time
 				that the trade happens. */
@@ -16485,7 +18600,8 @@ void CvPlayerAI::AI_changePeaceTimeValue(PlayerTypes eIndex, int iChange,
 	for(int iI = 0; iI < MAX_CIV_TEAMS; iI++) {
 		TeamTypes tId = (TeamTypes)iI;
 		CvTeamAI& t = GET_TEAM(tId);
-		if(tId != TEAMID(eIndex) && t.isAlive() && t.AI_getWorstEnemy() == getTeam() &&
+		if(tId != TEAMID(eIndex) && (masterId == NO_TEAM || tId != TEAMID(masterId)) &&
+				t.isAlive() && t.AI_getWorstEnemy() == getTeam() &&
 				t.isHasMet(TEAMID(eIndex))) { // unoffical patch bugfix, by Sephi.
 			double mult = 2000;
 			// Avoid oscillation of worst enemy
@@ -16494,6 +18610,8 @@ void CvPlayerAI::AI_changePeaceTimeValue(PlayerTypes eIndex, int iChange,
 			mult *= delta / 5.0;
 			int enemyIncr = ::round((val * mult) /
 					(g.getTeamScore(getTeam()) + g.getTeamScore(tId)));
+			if(enemyIncr <= 0)
+				continue;
 			// <advc.130v>
 			if(TEAMREF(eIndex).isCapitulated() && !isGrant) { // Vassals don't make gifts
 				enemyIncr /= 2;
@@ -16516,7 +18634,22 @@ void CvPlayerAI::AI_setPeacetimeGrantValue(PlayerTypes eIndex, int iVal) {
 	m_aiPeacetimeGrantValue[eIndex] = iVal;
 } // </advc.130p>
 
-// <advc.130x> 0: same religion, 1 differing religion, 2 fav civic
+// <advc.130k>
+void CvPlayerAI::AI_setSameReligionCounter(PlayerTypes eIndex, int iValue) {
+	m_aiSameReligionCounter[eIndex] = iValue;
+}
+void CvPlayerAI::AI_setDifferentReligionCounter(PlayerTypes eIndex, int iValue) {
+	m_aiDifferentReligionCounter[eIndex] = iValue;
+}
+void CvPlayerAI::AI_setFavoriteCivicCounter(PlayerTypes eIndex, int iValue) {
+	m_aiFavoriteCivicCounter[eIndex] = iValue;
+}
+void CvPlayerAI::AI_setBonusTradeCounter(PlayerTypes eIndex, int iValue) {
+	m_aiBonusTradeCounter[eIndex] = iValue;
+} // </advc.130k>
+
+/*  <advc.130x> modes:
+	0: same religion, 1 differing religion, 2 fav civic */
 int CvPlayerAI::ideologyDiploLimit(PlayerTypes theyId, int mode) const {
 
 	if(mode < 0 && mode > 2) {
@@ -16533,7 +18666,8 @@ int CvPlayerAI::ideologyDiploLimit(PlayerTypes theyId, int mode) const {
 	}
 	lhLimit = abs(lhLimit);
 	// Don't further reduce a limit of 1
-	if(lhLimit <= 1) return lhLimit;
+	if(lhLimit <= 1)
+		return lhLimit;
 	int total = 0;
 	int count = 0;
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
@@ -16663,7 +18797,6 @@ void CvPlayerAI::AI_changeMemoryCount(PlayerTypes eIndex1, MemoryTypes eIndex2, 
 	FAssertMsg(eIndex1 < MAX_PLAYERS, "eIndex1 is expected to be within maximum bounds (invalid Index)");
 	FAssertMsg(eIndex2 >= 0, "eIndex2 is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex2 < NUM_MEMORY_TYPES, "eIndex2 is expected to be within maximum bounds (invalid Index)");
-
 	int iAttitude = AI_getMemoryAttitude(eIndex1, eIndex2); // K-Mod
 	m_aaiMemoryCount[eIndex1][eIndex2] += iChange;
 	FAssert(AI_getMemoryCount(eIndex1, eIndex2) >= 0);
@@ -16686,7 +18819,10 @@ void CvPlayerAI::AI_rememberEvent(PlayerTypes civId, MemoryTypes mem) {
 	}
 	int delta = 2;
 	// Need a finer granularity for DoW
-	if(mem == MEMORY_DECLARED_WAR) delta = 3;
+	if(mem == MEMORY_DECLARED_WAR)
+		delta = 3;
+// This disables the bulk of change 130j:
+#if 0
 	// We're surprised by the actions of civId
 	if((sign < 0 && (AI_getAttitude(civId) >= ATTITUDE_FRIENDLY ||
 			// <advc.130o> Surprised by war despite tribute
@@ -16698,6 +18834,7 @@ void CvPlayerAI::AI_rememberEvent(PlayerTypes civId, MemoryTypes mem) {
 	if((sign > 0 && AI_getAttitude(civId) >= ATTITUDE_FRIENDLY) ||
 			(sign < 0 && AI_getAttitude(civId) <= ATTITUDE_ANNOYED))
 		delta--;
+#endif
 	// <advc.130y> Cap DoW penalty for vassals
 	if(mem == MEMORY_DECLARED_WAR && (GET_TEAM(getTeam()).isAVassal() ||
 			TEAMREF(civId).isAVassal()))
@@ -16714,7 +18851,7 @@ void CvPlayerAI::AI_rememberEvent(PlayerTypes civId, MemoryTypes mem) {
 		{MEMORY_ACCEPTED_CIVIC, MEMORY_DENIED_CIVIC},
 		{MEMORY_ACCEPTED_JOIN_WAR, MEMORY_DENIED_JOIN_WAR},
 		{MEMORY_ACCEPTED_STOP_TRADING, MEMORY_DENIED_STOP_TRADING},
-		/*  All the others are AI requests, so, this one is odd, and
+		/*  All the others are AI requests, so this one is odd, and
 			it decays very quickly anyway. */
 		//{MEMORY_VOTED_FOR_US, MEMORY_VOTED_AGAINST_US},
 		/*  Could let a +2 event erase e.g. half of a remembered -2 event,
@@ -16723,7 +18860,7 @@ void CvPlayerAI::AI_rememberEvent(PlayerTypes civId, MemoryTypes mem) {
 		//{MEMORY_EVENT_GOOD_TO_US, MEMORY_EVENT_BAD_TO_US},
 		// Not worth complicating things for:
 		//{MEMORY_DECLARED_WAR, MEMORY_INDEPENDENCE},
-		// !! Update nPairs when adding/removing pairs
+		// !! Update nPairs when adding/removing pairs !!
 	};
 	for(int i = 0; i < nPairs; i++)
 		for(int j = 0; j < 2; j++)
@@ -16734,23 +18871,6 @@ void CvPlayerAI::AI_rememberEvent(PlayerTypes civId, MemoryTypes mem) {
 			} // </advc.130l>
 } // </advc.130j>
 
-// <advc.130z>
-void CvPlayerAI::rememberWar(PlayerTypes formerEnemyId) {
-
-	CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(getPersonalityType());
-	AttitudeTypes towardThem = AI_getAttitude(formerEnemyId);
-	// Typically Annoyed (attitude needs to strictly better for OB)
-	AttitudeTypes obThresh = (AttitudeTypes)lh.
-			getOpenBordersRefuseAttitudeThreshold();
-	AttitudeTypes dpThresh = (AttitudeTypes)lh.
-			getDefensivePactRefuseAttitudeThreshold();
-	if(AI_getMemoryCount(formerEnemyId, MEMORY_CANCELLED_OPEN_BORDERS) == 0 &&
-			towardThem <= obThresh + 1) // not strictly better than obThresh plus 1
-		AI_changeMemoryCount(formerEnemyId, MEMORY_CANCELLED_OPEN_BORDERS, 1);
-	if(AI_getMemoryCount(formerEnemyId, MEMORY_CANCELLED_DEFENSIVE_PACT) == 0 &&
-			towardThem <= dpThresh + 1)
-		AI_changeMemoryCount(formerEnemyId, MEMORY_CANCELLED_DEFENSIVE_PACT, 1);
-}// </advc.130z>
 
 // K-Mod. Note, unlike some other timers, this timer is internally stored as the turn number that the timer will expire.
 // With this system, the timer doesn't have to be decremented every turn.
@@ -16842,9 +18962,8 @@ int CvPlayerAI::AI_calculateGoldenAgeValue(bool bConsiderRevolution) const
 
 void CvPlayerAI::AI_doCounter()
 {
-	int iBonusImports;
-	int iI, iJ;
-
+	int iI=0, iJ=0; // advc.003
+	double mult = 1 - GET_TEAM(getTeam()).getDiploDecay(); // advc.130k
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
 	{	// <advc.130k>
 		PlayerTypes civId = (PlayerTypes)iI;
@@ -16856,45 +18975,81 @@ void CvPlayerAI::AI_doCounter()
 		if(getStateReligion() != NO_RELIGION &&
 				getStateReligion() == civ.getStateReligion())
 			AI_changeSameReligionCounter(civId, t.randomCounterChange());
-		else AI_changeSameReligionCounter(civId, -t.randomCounterChange(
-				AI_getSameReligionCounter(civId)));
+		else AI_setSameReligionCounter(civId, (int)(
+				mult * AI_getSameReligionCounter(civId)));
 		CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(getPersonalityType());
 		if(getStateReligion() != NO_RELIGION &&
 				civ.getStateReligion() != NO_RELIGION &&
 				getStateReligion() != civ.getStateReligion() &&
 				// Delay religion hate if just met
 				t.AI_getHasMetCounter(civ.getTeam()) >
-				// This is 10 (given the BtS value in XML)
+				// This is 10 (given the XML value in BtS)
 				2 * -lh.getDifferentReligionAttitudeDivisor())
 			AI_changeDifferentReligionCounter(civId, t.randomCounterChange());
-		else AI_changeDifferentReligionCounter(civId, -t.randomCounterChange(
-				AI_getDifferentReligionCounter(civId)));
+		else AI_setDifferentReligionCounter(civId, (int)(
+				mult * AI_getDifferentReligionCounter(civId)));
 		if(lh.getFavoriteCivic() != NO_CIVIC) {
 			CivicTypes favCivic = (CivicTypes)lh.getFavoriteCivic();
 			if(isCivic(favCivic) && civ.isCivic(favCivic))
 				AI_changeFavoriteCivicCounter(civId, t.randomCounterChange());
-			else AI_changeFavoriteCivicCounter(civId, -t.randomCounterChange(
-					AI_getFavoriteCivicCounter(civId)));
-		}
-		/*  This one can increase and decrease by more than one in BtS;
-			simply call t.randomCounterChange repeatedly to randomize this. */
-		iBonusImports = getNumTradeBonusImports(civId);
-		for(int i = 0; i < 2 * iBonusImports; i++)
-			AI_changeBonusTradeCounter(civId, t.randomCounterChange());
-		if(iBonusImports == 0) {
-			int c = AI_getBonusTradeCounter(civId);
-			int expectedDecrease = 1 + std::min(c, civ.getNumCities() / 4);
-			for(int i = 0; i < expectedDecrease; i++)
-				AI_changeBonusTradeCounter(civId, t.randomCounterChange(c));
-		} // </advc.130k>
-		// <advc.130p>
-		double mult = 1 - GET_TEAM(getTeam()).getDiploDecay();
+			else AI_setFavoriteCivicCounter(civId, (int)(
+				mult * AI_getFavoriteCivicCounter(civId)));
+		} // <advc.130p>
 		AI_setPeacetimeGrantValue(civId, (int)(
 				mult * AI_getPeacetimeGrantValue(civId)));
 		AI_setPeacetimeTradeValue(civId, (int)(
 				mult * AI_getPeacetimeTradeValue(civId)));
 		// </advc.130p>
-	} 
+		// <advc.149>
+		int attitudeDiv = lh.getBonusTradeAttitudeDivisor();
+		if(attitudeDiv <= 0)
+			continue;
+		//int iBonusImports = getNumTradeBonusImports(civId);
+		// Same scale as the above, but taking into account utility.
+		double bonusVal = bonusImportValue(civId);
+		int c = AI_getBonusTradeCounter(civId);
+		if(bonusVal <= c / (1.2 * attitudeDiv)) {
+			/*  BtS decreases the BonusTradeCounter by 1 + civ.getNumCities() / 4,
+				but let's just do exponential decay instead. */
+			AI_setBonusTradeCounter(civId, (int)(
+					mult * AI_getBonusTradeCounter(civId)));
+		}
+		else {
+			double incr = bonusVal;
+			if(bonusVal > 0.01) {
+				CvCity* capital = getCapitalCity();
+				double capBonuses = 0;
+				if(capital != NULL) {
+					capBonuses = std::max(0.0,
+							capital->countUniqueBonuses() - bonusVal);
+				}
+				double exportable = 0;
+				for(int j = 0; j < GC.getNumBonusInfos(); j++) {
+					BonusTypes bt = (BonusTypes)j;
+					int avail = civ.getNumAvailableBonuses(bt)
+							+ civ.getBonusExport(bt);
+					if(avail > 1)
+						exportable += std::min(avail - 1, 3);
+				} /* Mean of capBonuses and a multiple of exportable, but
+					 no more than 1.5 times capBonuses. */
+				double weight1 = (capBonuses + std::min(capBonuses * 2,
+						2.4 * std::max(bonusVal, exportable))) / 2;
+				/*  Rather than changing attitudeDiv in XML for every leader,
+					do the fine-tuning here. */
+				double weight2 = 350.0 / attitudeDiv;
+				if(weight1 >= weight2)
+					incr = (bonusVal / weight1) * weight2;
+			}
+			AI_changeBonusTradeCounter(civId, t.randomCounterChange(::round(
+					1.25 * attitudeDiv * lh.getBonusTradeAttitudeChangeLimit()),
+					incr / 2)); // Halved b/c it's a binomial distrib w/ 2 trials
+			// <advc.036>
+			int oldGoldTraded = AI_getGoldTradedTo(civId);
+			int newGoldTraded = (int)(mult * oldGoldTraded);
+			AI_changeGoldTradedTo(civId, newGoldTraded - oldGoldTraded);
+			// </advc.036>
+		} // </advc.149></advc.130k>
+	}
 
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
 	{
@@ -16942,6 +19097,9 @@ void CvPlayerAI::AI_doCounter()
 			if(mId == MEMORY_DECLARED_WAR_ON_FRIEND &&
 					atWarWithPartner(TEAMID(civId)))
 				continue;
+			if((mId == MEMORY_STOPPED_TRADING || mId == MEMORY_HIRED_TRADE_EMBARGO) &&
+					AI_getMemoryCount(civId, MEMORY_STOPPED_TRADING_RECENT) > 0)
+				continue;
 			// </advc.130r><advc.130j>
 			/*  Need to decay at least twice as fast b/c each
 				request now counts twice (on average). */
@@ -16965,7 +19123,7 @@ void CvPlayerAI::AI_doCounter()
 			decayRand = ::round(decayRand / (100 * div)); // </advc.130r>
 			if(decayRand != 0 && /*  advc.130r: Interpret 0 as no decay. Otherwise, you'd
 									 have to delete the whole MemoryDecay entry from the
-									 Leaderhead XML to prevent decay. */
+									 Leaderhead XML to prevent decay via XML. */
 					g.getSorenRandNum(decayRand, "Memory Decay") == 0) // </advc.130j>
 				AI_changeMemoryCount(civId, mId, -1);
 		}
@@ -16979,6 +19137,32 @@ void CvPlayerAI::AI_doCounter()
 	}
 }
 
+// <advc.149> Based on CvPlayer::getNumTradeBonusImports
+double CvPlayerAI::bonusImportValue(PlayerTypes fromId) const {
+
+	double r = 0;
+	CvGame& g = GC.getGameINLINE(); int dummy=-1;
+	for(CvDeal* d = g.firstDeal(&dummy); d != NULL; d = g.nextDeal(&dummy)) {
+		if(d->isVassalTributeDeal())
+			continue;
+		CLinkList<TradeData> const* list = NULL;
+		if(d->getFirstPlayer() == getID() && d->getSecondPlayer() == fromId)
+			list = d->getSecondTrades();
+		else if(d->getSecondPlayer() == getID() && d->getFirstPlayer() == fromId)
+			list = d->getFirstTrades();
+		if(list == NULL)
+			continue;
+		CLLNode<TradeData>* node=NULL;
+		for(node = list->head(); node != NULL; node = list->next(node)) {
+			if(node->m_data.m_eItemType == TRADE_RESOURCES) {
+				r += GET_PLAYER(getID()).AI_bonusVal((BonusTypes)
+						node->m_data.m_iData, -1);
+			}
+		}
+	}
+	// The divisor should be the typical gpt value of a somewhat useful bonus
+	return r / 5;
+} // </advc.149>
 
 void CvPlayerAI::AI_doMilitary()
 {
@@ -17034,7 +19218,9 @@ void CvPlayerAI::AI_doMilitary()
 
 				iCost = AI_unitCostPerMil();
 			} while (iCost > 0 && (iCost > iMaxCost || calculateGoldRate() < 0) && AI_isFinancialTrouble()
-				&& iDisbandCount <= 2); // advc.110: Disband at most 2 units per turn.
+					// <advc.110> Limit the number of units disbanded per turn
+					&& ((int)iDisbandCount <= std::max(1, (int)getCurrentEra()) ||
+					isStrike())); // </advc.110>
 		}
 	}
 	// K-Mod end
@@ -17071,6 +19257,35 @@ void CvPlayerAI::AI_doCommerce()
 	CvTeamAI& kTeam = GET_TEAM(getTeam());
 
 	int iGoldTarget = AI_goldTarget();
+	/*  <advc.550f> Some extra gold for trade. Don't put this into AI_goldTarget
+		for performance reasons, and b/c AI_maxGoldForTrade shouldn't take this
+		extra budget into account. */
+	if(!AI_isFinancialTrouble() && !AI_isDoVictoryStrategyLevel4()) {
+		bool isTechTr = GET_TEAM(getTeam()).isTechTrading();
+		double partnerScore = 0;
+		int partners = 0;
+		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+			CvPlayerAI const& civ = GET_PLAYER((PlayerTypes)i);
+			if(!civ.isAlive() || civ.getID() == getID() || !GET_TEAM(getTeam()).
+					isHasMet(civ.getTeam()) || GET_TEAM(getTeam()).
+					// Don't stockpile gold for reparations; pay gpt instead.
+					isAtWar(civ.getTeam()))
+				continue;
+			if(!isTechTr && !GET_TEAM(civ.getTeam()).isTechTrading())
+				continue;
+			if(civ.getCurrentEra() < getCurrentEra() || (!civ.isHuman() && 
+					civ.AI_getAttitude(getID()) <= GC.getLeaderHeadInfo(
+					civ.getPersonalityType()).getTechRefuseAttitudeThreshold()))
+				continue;
+			partnerScore += std::sqrt((double)civ.getTotalPopulation()) *
+					civ.getCurrentEra() * 10;
+			partners++;
+		}
+		if(partners > 0) {
+			int iScore = ::round(partnerScore / std::sqrt((double)partners));
+			iGoldTarget = std::max(iGoldTarget, iScore);
+		}
+	} // </advc.550f>
 	int iTargetTurns = 4 * GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getResearchPercent();
 	iTargetTurns /= 100;
 	iTargetTurns = std::max(3, iTargetTurns);
@@ -17308,51 +19523,51 @@ void CvPlayerAI::AI_doCommerce()
 					for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; ++iPlayer)
 					{
 						CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
-						if (kLoopPlayer.getTeam() == iTeam && kLoopPlayer.getNumCities() > 0)
+						// <advc.003>
+						if (kLoopPlayer.getTeam() != iTeam || kLoopPlayer.getNumCities() <= 0)
+							continue; // </advc.003>
+						std::vector<int> cityModifiers;
+						CvCity* pLoopCity;
+						int iLoop;
+						int iTargetCities = 0;
+						for (pLoopCity = kLoopPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kLoopPlayer.nextCity(&iLoop))
 						{
-							std::vector<int> cityModifiers;
-							CvCity* pLoopCity;
-							int iLoop;
-							int iTargetCities = 0;
-							for (pLoopCity = kLoopPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kLoopPlayer.nextCity(&iLoop))
+							if (pLoopCity->isRevealed(getTeam(), false) && pLoopCity->area() != NULL && AI_isPrimaryArea(pLoopCity->area()))
 							{
-								if (pLoopCity->isRevealed(getTeam(), false) && pLoopCity->area() != NULL && AI_isPrimaryArea(pLoopCity->area()))
-								{
-									cityModifiers.push_back(getEspionageMissionCostModifier(NO_ESPIONAGEMISSION, (PlayerTypes)iPlayer, pLoopCity->plot()));
-								}
+								cityModifiers.push_back(getEspionageMissionCostModifier(NO_ESPIONAGEMISSION, (PlayerTypes)iPlayer, pLoopCity->plot()));
 							}
-							if (cityModifiers.size() > 0)
+						}
+						if (cityModifiers.size() > 0)
+						{
+							// Get the average of the lowest 3 cities.
+							int iSampleSize = std::min(3, (int)cityModifiers.size());
+							std::partial_sort(cityModifiers.begin(), cityModifiers.begin()+iSampleSize, cityModifiers.end());
+							int iModifier = 0;
+							for (std::vector<int>::iterator it = cityModifiers.begin(); it != cityModifiers.begin()+iSampleSize; ++it)
 							{
-								// Get the average of the lowest 3 cities.
-								int iSampleSize = std::min(3, (int)cityModifiers.size());
-								std::partial_sort(cityModifiers.begin(), cityModifiers.begin()+iSampleSize, cityModifiers.end());
-								int iModifier = 0;
-								for (std::vector<int>::iterator it = cityModifiers.begin(); it != cityModifiers.begin()+iSampleSize; ++it)
-								{
-									iModifier += *it;
-								}
-								iModifier /= iSampleSize;
+								iModifier += *it;
+							}
+							iModifier /= iSampleSize;
 
-								if (iModifier < iMinModifier ||
-									(iModifier == iMinModifier && iAttitude < kTeam.AI_getAttitudeVal(eMinModTeam)))
+							if (iModifier < iMinModifier ||
+								(iModifier == iMinModifier && iAttitude < kTeam.AI_getAttitudeVal(eMinModTeam)))
+							{
+								// do they have any techs we can steal?
+								bool bValid = false;
+								for (int iT = 0; iT < GC.getNumTechInfos(); iT++)
 								{
-									// do they have any techs we can steal?
-									bool bValid = false;
-									for (int iT = 0; iT < GC.getNumTechInfos(); iT++)
+									if (canStealTech((PlayerTypes)iPlayer, (TechTypes)iT))
 									{
-										if (canStealTech((PlayerTypes)iPlayer, (TechTypes)iT))
-										{
-											bValid = iApproxTechCost > 0; // don't set it true unless there are at least 2 stealable techs.
-											// get a (very rough) approximation of how much it will cost to steal a tech.
-											iApproxTechCost = (kTeam.getResearchCost((TechTypes)iT) + iApproxTechCost) / (iApproxTechCost != 0 ? 2 : 1);
-											break;
-										}
+										bValid = iApproxTechCost > 0; // don't set it true unless there are at least 2 stealable techs.
+										// get a (very rough) approximation of how much it will cost to steal a tech.
+										iApproxTechCost = (kTeam.getResearchCost((TechTypes)iT) + iApproxTechCost) / (iApproxTechCost != 0 ? 2 : 1);
+										break;
 									}
-									if (bValid)
-									{
-										iMinModifier = iModifier;
-										eMinModTeam = (TeamTypes)iTeam;
-									}
+								}
+								if (bValid)
+								{
+									iMinModifier = iModifier;
+									eMinModTeam = (TeamTypes)iTeam;
 								}
 							}
 						}
@@ -17734,6 +19949,74 @@ void CvPlayerAI::AI_doReligion()
 		} // advc.131
 	}
 }
+// <advc.003>
+/*  advc.133: 1 means d should be canceled, -1 it shouldn't be canceled,
+	0 it should be renegotiated. */
+int CvPlayerAI::checkCancel(CvDeal const& d, PlayerTypes otherId, bool flip) {
+
+	PlayerTypes c1 = (flip ? d.getSecondPlayer() : d.getFirstPlayer());
+	PlayerTypes c2 = (flip ? d.getFirstPlayer() : d.getSecondPlayer());
+	CLinkList<TradeData> const* trades1 = (flip ? d.getSecondTrades() :
+			d.getFirstTrades());
+	CLinkList<TradeData> const* trades2 = (flip ? d.getFirstTrades() :
+			d.getSecondTrades());
+	if(c1 != getID() || c2 != otherId)
+		return -1;
+	// Cut and pasted from AI_doDiplo:
+	// K-Mod. getTradeDenial is not equipped to consider deal cancelation properly.
+	if(!AI_considerOfferBulk(otherId, trades2, trades1, -1, // <advc.133>
+			d.getAge()))
+		return 0;
+	/*  @"not equipped"-comment above: Resource trades do need special treatment.
+		For duals (Open Borders, Def. Pact, Perm. Alliance), getTradeDenial
+		is all right. AI_considerOffer will not cancel these b/c the trade values
+		of dual trades are always considered fair.
+		Worst enmity is treated separately elsewhere. */
+	if(trades1 == NULL)
+		return -1;
+	CLLNode<TradeData>* tdn = trades1->head();
+	if(tdn != NULL && CvDeal::isDual(tdn->m_data.m_eItemType, true)) {
+		DenialTypes tden = getTradeDenial(otherId, tdn->m_data);
+		if(tden != NO_DENIAL &&
+				// <dlph.3> Cancel DP immediately when war no longer shared
+				(((tdn->m_data.m_eItemType == TRADE_DEFENSIVE_PACT &&
+				tden == DENIAL_JOKING)) || // </dlph.3>
+				::bernoulliSuccess(0.2, "advc.133")))
+			return 1;
+		else return -1;
+	}
+	/*  getTradeDenial will always return DENIAL_JOKING. Instead, call
+		AI_bonusTrade explicitly and tell it that this is about cancelation. */
+	if(trades2 == NULL)
+		return -1;
+	for(CLLNode<TradeData>* tdn = trades1->head(); tdn != NULL;
+			tdn = trades1->next(tdn)) {
+		TradeData tdata = tdn->m_data;
+		if(tdata.m_eItemType != TRADE_RESOURCES)
+			continue;
+		BonusTypes bId = (BonusTypes)tdata.m_iData;
+		if(AI_bonusTrade(bId, otherId, -1) != NO_DENIAL)
+			return 1;
+	} // </advc.133>
+	return -1;
+} // </advc.003>
+
+// <advc.026>
+bool CvPlayerAI::checkMaxGold(CLinkList<TradeData> const& items,
+		PlayerTypes toId) const {
+
+	int const iMaxGold = AI_maxGoldTrade(toId);
+	int const iMaxGPT = AI_maxGoldPerTurnTrade(toId);
+	for(CLLNode<TradeData>* tdn = items.head(); tdn != NULL;
+			tdn = items.next(tdn)) {
+		if(tdn->m_data.m_eItemType == TRADE_GOLD && tdn->m_data.m_iData > iMaxGold)
+			return false;
+		if(tdn->m_data.m_eItemType == TRADE_GOLD_PER_TURN && tdn->m_data.m_iData > iMaxGPT)
+			return false;
+	}
+	return true;
+} // </advc.026>
+
 
 void CvPlayerAI::AI_doDiplo()
 {
@@ -17748,12 +20031,13 @@ void CvPlayerAI::AI_doDiplo()
 	CLinkList<TradeData> theirList;
 	bool abContacted[MAX_TEAMS];
 	TradeData item;
-	BonusTypes eBestReceiveBonus;
+	// advc.133: Moved into proposeResourceTrade
+	//BonusTypes eBestReceiveBonus;
 	BonusTypes eBestGiveBonus;
 	TechTypes eBestReceiveTech;
 	TechTypes eBestGiveTech;
 	TeamTypes eBestTeam;
-	bool bCancelDeal;
+	//bool bCancelDeal; // advc.003: Moved into checkCancel
 	int iReceiveGold;
 	int iGiveGold;
 	int iGold;
@@ -17791,12 +20075,14 @@ void CvPlayerAI::AI_doDiplo()
 	for (iI = 0; iI < MAX_TEAMS; iI++)
 	{
 		abContacted[iI] = false;
-	}
+	} // <advc.003> Replaced everywhere
+	CvGame& g = GC.getGame();
+	CvTeamAI const& ourTeam = GET_TEAM(getTeam()); // </advc.003>
 	// <advc.024>
 	int contacts[MAX_CIV_PLAYERS];
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
 		contacts[i] = i;
-	::shuffleArray(contacts, MAX_CIV_PLAYERS, GC.getGameINLINE().getSorenRand());
+	::shuffleArray(contacts, MAX_CIV_PLAYERS, g.getSorenRand());
 	// </advc.024>
 	for (iPass = 0; iPass < 2; iPass++)
 	{
@@ -17812,59 +20098,31 @@ void CvPlayerAI::AI_doDiplo()
 				continue;
 			/*  <advc.706> Don't want player to receive diplo msgs on the
 				first turn of a chapter. */
-			if(civ.isHuman()) {
-				CvGame& g = GC.getGame();
-				if(g.isOption(GAMEOPTION_RISE_FALL) &&
-						g.getRiseFall().isBlockPopups())
-					continue;
-			} // </advc.706>
+			if(civ.isHuman() && g.isOption(GAMEOPTION_RISE_FALL) &&
+					g.getRiseFall().isBlockPopups())
+				continue;
+			// </advc.706>
 			//if (GET_PLAYER((PlayerTypes)iI).getTeam() != getTeam()) // disabled by K-Mod
-			for(pLoopDeal = GC.getGameINLINE().firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = GC.getGameINLINE().nextDeal(&iLoop))
+			for(pLoopDeal = g.firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = g.nextDeal(&iLoop))
 			{
 				if(!pLoopDeal->isCancelable(getID()))
 					continue;
-				// if ((GC.getGameINLINE().getGameTurn() - pLoopDeal->getInitialGameTurn()) >= (GC.getDefineINT("PEACE_TREATY_LENGTH") * 2)) // K-Mod disabled
-				bCancelDeal = false;
-
-				if (pLoopDeal->getFirstPlayer() == getID() && pLoopDeal->getSecondPlayer() == civId)
-				{
-					// (original bts code deleted)
-					// K-Mod. getTradeDenial is not equipped to consider deal cancelation properly.
-					if(!AI_considerOffer(civId, pLoopDeal->getSecondTrades(), pLoopDeal->getFirstTrades(), -1))
-						bCancelDeal = true;
-					/*  <advc.133> @"not equipped"-comment above: True for some trades. E.g.
-						for active resource trades, getTradeDenial always returns DENIAL_JOKING
-						(and this is difficult to fix).
-						For duals (Open Borders, Def. Pact, Perm. Alliance), getTradeDenial should
-						be all right. AI_considerOffer will not cancel these b/c the trade values
-						of dual trades are always considered fair.
-						Worst enmity is treated separately elsewhere, but doesn't always apply. */
-					CLLNode<TradeData>* tdn = pLoopDeal->headFirstTradesNode();
-					if(!bCancelDeal && tdn != NULL &&
-							CvDeal::isDual(tdn->m_data.m_eItemType, true) &&
-							getTradeDenial(civId, tdn->m_data) != NO_DENIAL &&
-							::bernoulliSuccess(0.2, "advc.133"))
-						bCancelDeal = true;
-					// </advc.133>
-				}
-				else if (pLoopDeal->getFirstPlayer() == civId && pLoopDeal->getSecondPlayer() == getID())
-				{
-					// (original bts code deleted)
-					// K-Mod
-					if (!AI_considerOffer(civId, pLoopDeal->getFirstTrades(), pLoopDeal->getSecondTrades(), -1))
-						bCancelDeal = true;
-					/* <advc.133> As above. */
-					CLLNode<TradeData>* tdn = pLoopDeal->headSecondTradesNode();
-					if(!bCancelDeal && tdn != NULL &&
-							CvDeal::isDual(tdn->m_data.m_eItemType, true) &&
-							getTradeDenial(civId, tdn->m_data) != NO_DENIAL &&
-							::bernoulliSuccess(0.2, "advc.133"))
-						bCancelDeal = true;
-					// </advc.133>
-				}
-
-				if(!bCancelDeal)
+				// if ((g.getGameTurn() - pLoopDeal->getInitialGameTurn()) >= (GC.getDefineINT("PEACE_TREATY_LENGTH") * 2)) // K-Mod disabled
+				// (original bts code deleted)
+				/*  advc.003: Cancelation checks moved into a subfunction
+					to reduce code duplication */
+				// <advc.133>
+				int cancelCode1 = checkCancel(*pLoopDeal, civId, false);
+				int cancelCode2 = checkCancel(*pLoopDeal, civId, true);
+				if(cancelCode1 < 0 && cancelCode2 < 0)
 					continue;
+				bool renegotiate = ((cancelCode1 == 0 || cancelCode2 == 0) &&
+						/*  Canceled AI-human deals bring up the trade table
+							anyway (except when a trade becomes invalid);
+							this is about AI-AI trades. */
+						!isHuman() && !GET_PLAYER(civId).isHuman() &&
+						// The rest is covered by proposeResourceTrade
+						canContactAndTalk(civId)); // </advc.133>
 				if (civ.isHuman() && canContactAndTalk(civId))
 				{
 					ourList.clear();
@@ -17884,7 +20142,6 @@ void CvPlayerAI::AI_doDiplo()
 						else theirList.insertAtEnd(pNode->m_data);
 					}
 					pLoopDeal->kill(); // K-Mod. Kill the old deal first.
-
 					pDiplo = new CvDiploParameters(getID());
 					FAssert(pDiplo != NULL);
 
@@ -17905,8 +20162,12 @@ void CvPlayerAI::AI_doDiplo()
 					abContacted[civ.getTeam()] = true;
 				}
 				// K-Mod.
-				else pLoopDeal->kill();
-				// K-Mod end
+				else {
+					pLoopDeal->kill(); // K-Mod end
+					// <advc.133>
+					if(renegotiate)
+						proposeResourceTrade(civId); // </advc.133>
+				}
 				//pLoopDeal->kill(); // XXX test this for AI...
 				// K-Mod. I've rearranged stuff so that we can kill the deal before a diplomacy window.
 			}
@@ -17937,7 +20198,7 @@ void CvPlayerAI::AI_doDiplo()
 
 							if (canTradeItem(civId, item, true))
 							{
-								iValue = (1 + GC.getGameINLINE().getSorenRandNum(10000, "AI Bonus Trading #1"));
+								iValue = (1 + g.getSorenRandNum(10000, "AI Bonus Trading #1"));
 
 								if (iValue > iBestValue)
 								{
@@ -17970,11 +20231,12 @@ void CvPlayerAI::AI_doDiplo()
 							abContacted[civ.getTeam()] = true;
 						}
 					}
-					else GC.getGameINLINE().implementDeal(getID(), civId, &ourList, &theirList);
+					else g.implementDeal(getID(), civId, &ourList, &theirList);
 				}
 			}
 
-			if (civ.getTeam() != getTeam() && TEAMREF(civId).isVassal(getTeam()))
+			if (civ.getTeam() != getTeam() && (TEAMREF(civId).isVassal(getTeam())
+					|| GET_TEAM(getTeam()).isVassal(TEAMID(civId)))) // advc.112
 			{
 				iBestValue = 0;
 				eBestGiveTech = NO_TECH;
@@ -17995,17 +20257,21 @@ void CvPlayerAI::AI_doDiplo()
 				double pr = 1 - techScoreRatio;
 				if(TEAMREF(civId).isCapitulated())
 					pr = std::max(pr, 1/3.0);
+				else if(GET_TEAM(getTeam()).isAVassal()) {
+					pr *= 0.67 * (AI_getAttitude(civId, false) -
+							(GET_TEAM(getTeam()).isCapitulated() ? 1 : 2));
+				}
 				if(techScoreRatio <= 1 && ::bernoulliSuccess(pr, "advc.112"))
 				{	// </advc.112>
 					for (iJ = 0; iJ < GC.getNumTechInfos(); iJ++)
 					{
-						if (GET_TEAM(getTeam()).AI_techTrade((TechTypes)iJ, civ.getTeam()) == NO_DENIAL)
+						if (ourTeam.AI_techTrade((TechTypes)iJ, civ.getTeam()) == NO_DENIAL)
 						{
 							setTradeItem(&item, TRADE_TECHNOLOGIES, iJ);
 
 							if (canTradeItem(civId, item, true))
 							{
-								iValue = (1 + GC.getGameINLINE().getSorenRandNum(10000, "AI Vassal Tech gift"));
+								iValue = (1 + g.getSorenRandNum(10000, "AI Vassal Tech gift"));
 
 								if (iValue > iBestValue)
 								{
@@ -18041,15 +20307,14 @@ void CvPlayerAI::AI_doDiplo()
 							abContacted[civ.getTeam()] = true;
 						}
 					}
-					else GC.getGameINLINE().implementDeal(getID(), civId, &ourList, &theirList);
+					else g.implementDeal(getID(), civId, &ourList, &theirList);
 				}
 			}
 
-			if(civ.getTeam() == getTeam() || GET_TEAM(getTeam()).isHuman() ||
+			if(civ.getTeam() == getTeam() || ourTeam.isHuman() ||
 					(!civ.isHuman() && TEAMREF(civId).isHuman()) ||
-					GET_TEAM(getTeam()).isAtWar(civ.getTeam()))
+					ourTeam.isAtWar(civ.getTeam()))
 				continue;
-
 			FAssert(!civ.isBarbarian());
 
 			if (TEAMREF(civId).isVassal(getTeam()))
@@ -18091,7 +20356,7 @@ void CvPlayerAI::AI_doDiplo()
 							}
 						}
 					}
-					else GC.getGameINLINE().implementDeal(getID(), civId, &ourList, &theirList);
+					else g.implementDeal(getID(), civId, &ourList, &theirList);
 				}
 			}
 
@@ -18101,7 +20366,7 @@ void CvPlayerAI::AI_doDiplo()
 				{
 					if (pLoopCity->getPreviousOwner() != civId)
 					{
-						if (((pLoopCity->getGameTurnAcquired() + 4) % 20) == (GC.getGameINLINE().getGameTurn() % 20))
+						if (((pLoopCity->getGameTurnAcquired() + 4) % 20) == (g.getGameTurn() % 20))
 						{
 							iCount = 0;
 							iPossibleCount = 0;
@@ -18139,7 +20404,7 @@ void CvPlayerAI::AI_doDiplo()
 										gDLL->beginDiplomacy(pDiplo, civId);
 										abContacted[civ.getTeam()] = true;
 									}
-									else GC.getGameINLINE().implementDeal(getID(), civId, &ourList, NULL);
+									else g.implementDeal(getID(), civId, &ourList, NULL);
 								}
 							}
 						}
@@ -18147,14 +20412,14 @@ void CvPlayerAI::AI_doDiplo()
 				}
 			}
 
-			if (GET_TEAM(getTeam()).getLeaderID() == getID() &&
+			if (ourTeam.getLeaderID() == getID() &&
 					// advc.003b: Avoid costly TradeDenial check (in canTradeItem)
-					!GET_TEAM(getTeam()).isAVassal())
+					!ourTeam.isAVassal())
 			{
 				if (AI_getContactTimer(civId, CONTACT_PERMANENT_ALLIANCE) == 0)
 				{
 					bool bOffered = false;
-					if (GC.getGameINLINE().getSorenRandNum(GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_PERMANENT_ALLIANCE), "AI Diplo Alliance") == 0)
+					if (g.getSorenRandNum(GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_PERMANENT_ALLIANCE), "AI Diplo Alliance") == 0)
 					{
 						setTradeItem(&item, TRADE_PERMANENT_ALLIANCE);
 
@@ -18183,7 +20448,7 @@ void CvPlayerAI::AI_doDiplo()
 							}
 							else
 							{
-								GC.getGameINLINE().implementDeal(getID(), civId, &ourList, &theirList);
+								g.implementDeal(getID(), civId, &ourList, &theirList);
 								break; // move on to next player since we are on the same team now
 							}
 						}
@@ -18192,14 +20457,13 @@ void CvPlayerAI::AI_doDiplo()
 					if(bOffered)
 						continue;
 					// <advc.112>
-					CvGame const& g = GC.getGameINLINE();
 					int div = GC.getLeaderHeadInfo(getPersonalityType()).
 							getContactRand(CONTACT_PERMANENT_ALLIANCE); // 80
 					double prVassal = 0;
 					if(div > 0) {
 						prVassal = (8.0 / div) * ::dRange(g.getPlayerRank(civId) /
 								(double)g.countCivPlayersAlive(), 0.25, 0.5);
-						if(GET_TEAM(getTeam()).getAtWarCount() > 0)
+						if(ourTeam.getAtWarCount() > 0)
 							prVassal *= 4;
 					}
 					if(::bernoulliSuccess(prVassal, "advc.112")) { // </advc.112>
@@ -18228,9 +20492,10 @@ void CvPlayerAI::AI_doDiplo()
 							else
 							{
 								bool bAccepted = true;
-								/*  advc.104o: Already checked by canTradeItem
-									(actually regardless of whether UWAI is enabled,
-									I think) */
+								/*  advc.104o: The bAccepted condition below is
+									already checked by canTradeItem I think.
+									(Should perhaps skip it regardless of
+									whether UWAI is enabled.) */
 								if(!getWPAI.isEnabled()) {
 									TeamTypes eMasterTeam = civ.getTeam();
 									for (int iTeam = 0; iTeam < MAX_CIV_TEAMS; iTeam++)
@@ -18247,32 +20512,33 @@ void CvPlayerAI::AI_doDiplo()
 										}
 									}
 								}
-								if (bAccepted) GC.getGameINLINE().implementDeal(getID(), civId, &ourList, &theirList);
+								if(bAccepted)
+									g.implementDeal(getID(), civId, &ourList, &theirList);
 							}
 						}
 					} // advc.112
 				}
 			}
 
-			if (civ.isHuman() && (GET_TEAM(getTeam()).getLeaderID() == getID()) && !GET_TEAM(getTeam()).isVassal(civ.getTeam()))
+			if (civ.isHuman() && (ourTeam.getLeaderID() == getID()) && !ourTeam.isVassal(civ.getTeam()))
 			{
 				if (!abContacted[civ.getTeam()])
 				{
-					if (GC.getGameINLINE().getSorenRandNum(GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_RELIGION_PRESSURE), "AI Diplo Religion Pressure") == 0)
+					if (g.getSorenRandNum(GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_RELIGION_PRESSURE), "AI Diplo Religion Pressure") == 0)
 					{
 						abContacted[civ.getTeam()] = contactReligion(civId);
 					}
 				}
 				if (!abContacted[civ.getTeam()])
 				{
-					if (GC.getGameINLINE().getSorenRandNum(GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_CIVIC_PRESSURE), "AI Diplo Civic Pressure") == 0)
+					if (g.getSorenRandNum(GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_CIVIC_PRESSURE), "AI Diplo Civic Pressure") == 0)
 					{
 						abContacted[civ.getTeam()] = contactCivics(civId);
 					}
 				}
 			}
 
-			if (civ.isHuman() && (GET_TEAM(getTeam()).getLeaderID() == getID()))
+			if (civ.isHuman() && (ourTeam.getLeaderID() == getID()))
 			{
 				if(!abContacted[civ.getTeam()])
 				{	/*  advc.130m: ContactRand check moved into proposeJointWar;
@@ -18281,18 +20547,20 @@ void CvPlayerAI::AI_doDiplo()
 				}
 			}
 
-			if (civ.isHuman() && GET_TEAM(getTeam()).getLeaderID() == getID() && !GET_TEAM(getTeam()).isVassal(civ.getTeam()))
+			if (civ.isHuman() && ourTeam.getLeaderID() == getID() && !ourTeam.isVassal(civ.getTeam()))
 			{
-				if (GC.getGameINLINE().getSorenRandNum(GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_STOP_TRADING), "AI Diplo Stop Trading") == 0)
+				if (g.getSorenRandNum(GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_STOP_TRADING), "AI Diplo Stop Trading") == 0)
 				{
-					// advc.003: Moved into new function
-					abContacted[civ.getTeam()] = proposeEmbargo(civId);
+					// <advc.003> Moved into new function
+					if(!abContacted[civ.getTeam()])
+						abContacted[civ.getTeam()] = proposeEmbargo(civId);
+					// </advc.003>
 				}
 			}
 
-			if (civ.isHuman() && GET_TEAM(getTeam()).getLeaderID() == getID())
+			if (civ.isHuman() && ourTeam.getLeaderID() == getID())
 			{
-				if (TEAMREF(civId).getAssets() < (GET_TEAM(getTeam()).getAssets() / 2))
+				if (TEAMREF(civId).getAssets() < (ourTeam.getAssets() / 2))
 				{
 					if (AI_getAttitude(civId) > GC.getLeaderHeadInfo(
 							/*  advc.001: NoGiveHelpAttitudeThreshold is the same for all leaders,
@@ -18303,7 +20571,7 @@ void CvPlayerAI::AI_doDiplo()
 					{
 						if (AI_getContactTimer(civId, CONTACT_GIVE_HELP) == 0)
 						{
-							if (GC.getGameINLINE().getSorenRandNum(GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_GIVE_HELP), "AI Diplo Give Help") == 0)
+							if (g.getSorenRandNum(GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_GIVE_HELP), "AI Diplo Give Help") == 0)
 							{
 								// XXX maybe do gold instead???
 
@@ -18316,7 +20584,7 @@ void CvPlayerAI::AI_doDiplo()
 
 									if (canTradeItem(civId, item, true))
 									{
-										iValue = (1 + GC.getGameINLINE().getSorenRandNum(10000, "AI Giving Help"));
+										iValue = (1 + g.getSorenRandNum(10000, "AI Giving Help"));
 
 										if (iValue > iBestValue)
 										{
@@ -18351,8 +20619,7 @@ void CvPlayerAI::AI_doDiplo()
 				
 				if (!abContacted[civ.getTeam()] &&
 						// <advc.130v> 
-						(!GET_TEAM(getTeam()).isAVassal() ||
-						GET_TEAM(getTeam()).getMasterTeam() == civ.getTeam())) {
+						(!ourTeam.isAVassal() || ourTeam.getMasterTeam() == civ.getTeam())) {
 						// </advc.130v>
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      02/12/10                                jdog5000      */
@@ -18360,14 +20627,14 @@ void CvPlayerAI::AI_doDiplo()
 /* Diplomacy                                                                                    */
 /************************************************************************************************/
 					int iRand = GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_ASK_FOR_HELP);
-					int iTechPerc = GET_TEAM(getTeam()).getBestKnownTechScorePercent();
+					int iTechPerc = ourTeam.getBestKnownTechScorePercent();
 					if( iTechPerc < 90 )
 					{
 						iRand *= std::max(1, iTechPerc - 60);
 						iRand /= 30;
 					}
 					
-					if (GC.getGameINLINE().getSorenRandNum(iRand, "AI Diplo Ask For Help") == 0)
+					if (g.getSorenRandNum(iRand, "AI Diplo Ask For Help") == 0)
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
@@ -18376,29 +20643,31 @@ void CvPlayerAI::AI_doDiplo()
 					}
 				}
 /* original bts code
-				if (GET_TEAM(getTeam()).canDeclareWar(GET_PLAYER((PlayerTypes)iI).getTeam()) && !GET_TEAM(getTeam()).AI_isSneakAttackPreparing(GET_PLAYER((PlayerTypes)iI).getTeam()))
+				if (ourTeam.canDeclareWar(GET_PLAYER((PlayerTypes)iI).getTeam()) && !ourTeam.AI_isSneakAttackPreparing(GET_PLAYER((PlayerTypes)iI).getTeam()))
 */
 				// Bug fix: when team was sneak attack ready but hadn't declared, could demand tribute
 				// If other team accepted, it blocked war declaration for 10 turns but AI didn't react.
-				if (GET_TEAM(getTeam()).canDeclareWar(civ.getTeam()) && !GET_TEAM(getTeam()).AI_isChosenWar(civ.getTeam()))
+				if (ourTeam.canDeclareWar(civ.getTeam()) && !ourTeam.AI_isChosenWar(civ.getTeam()))
 /************************************************************************************************/
 /* UNOFFICIAL_PATCH                        END                                                  */
 /************************************************************************************************/
 				{
-					if (TEAMREF(civId).getDefensivePower() < GET_TEAM(getTeam()).getPower(true)
+					if (TEAMREF(civId).getDefensivePower() < ourTeam.getPower(true)
 							&& !isFocusWar()  // advc.105
+							&& !ourTeam.isForcePeace(TEAMID(civId)) // advc.104m
 							// advc.104g:
 							&& (!getWPAI.isEnabled() || warAndPeaceAI().getCache().numReachableCities(civId) > 0))
 					{
 						if (!abContacted[civ.getTeam()])
 						{	// Each type of tribute request uses the same probability
-							for(int i = 0; i < 4; i++) {
-								if(GC.getGameINLINE().getSorenRandNum(
+							for(int i = 0; i < 5; i++) {
+								if(g.getSorenRandNum(
 										GC.getLeaderHeadInfo(getPersonalityType()).
 										getContactRand(CONTACT_DEMAND_TRIBUTE),
 										"AI Diplo Demand Tribute") == 0) {
 									abContacted[civ.getTeam()] = demandTribute(civId, i);
-									break;
+									if(abContacted[civ.getTeam()])
+										break;
 								}
 							}
 						}
@@ -18409,11 +20678,11 @@ void CvPlayerAI::AI_doDiplo()
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
 
-			if(GET_TEAM(getTeam()).getLeaderID() == getID())
+			if(ourTeam.getLeaderID() == getID())
 			{
 				if (AI_getContactTimer(civId, CONTACT_OPEN_BORDERS) == 0)
 				{
-					if (GC.getGameINLINE().getSorenRandNum(GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_OPEN_BORDERS), "AI Diplo Open Borders") == 0)
+					if (g.getSorenRandNum(GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_OPEN_BORDERS), "AI Diplo Open Borders") == 0)
 					{
 						setTradeItem(&item, TRADE_OPEN_BORDERS);
 
@@ -18427,8 +20696,13 @@ void CvPlayerAI::AI_doDiplo()
 							if (civ.isHuman())
 							{
 								if (!abContacted[civ.getTeam()])
-								{
-									AI_changeContactTimer(civId, CONTACT_OPEN_BORDERS, GC.getLeaderHeadInfo(getPersonalityType()).getContactDelay(CONTACT_OPEN_BORDERS));
+								{	// <advc.124>
+									double speedAdjust = ::range(GC.getGameSpeedInfo(g.getGameSpeedType()).
+											getResearchPercent(), 100, 200) / 100.0;
+											// </advc.124>
+									AI_changeContactTimer(civId, CONTACT_OPEN_BORDERS,
+											::round(speedAdjust * // advc.124
+											GC.getLeaderHeadInfo(getPersonalityType()).getContactDelay(CONTACT_OPEN_BORDERS)));
 									pDiplo = new CvDiploParameters(getID());
 									FAssert(pDiplo != NULL);
 									pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_OFFER_DEAL"));
@@ -18439,14 +20713,22 @@ void CvPlayerAI::AI_doDiplo()
 									abContacted[civ.getTeam()] = true;
 								}
 							}
-							else GC.getGameINLINE().implementDeal(getID(), civId, &ourList, &theirList);
+							else g.implementDeal(getID(), civId, &ourList, &theirList);
 						}
 					}
 				}
 
 				if (AI_getContactTimer(civId, CONTACT_DEFENSIVE_PACT) == 0)
-				{
-					if (GC.getGameINLINE().getSorenRandNum(GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_DEFENSIVE_PACT), "AI Diplo Defensive Pact") == 0)
+				{	// <cdtw.5>
+					int iRand = GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_DEFENSIVE_PACT);
+					if(AI_isDoStrategy(AI_STRATEGY_ALERT2) && !isFocusWar() &&
+							!civ.isHuman()) {
+						iRand = iRand / std::max(1, 10 - 2 *
+								ourTeam.getDefensivePactCount());
+					}
+					if(g.getSorenRandNum(iRand, "AI Diplo Defensive Pact") == 0)
+					// Replacing this: // </cdtw.5>
+					//if (g.getSorenRandNum(GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_DEFENSIVE_PACT), "AI Diplo Defensive Pact") == 0)
 					{
 						setTradeItem(&item, TRADE_DEFENSIVE_PACT);
 
@@ -18472,13 +20754,13 @@ void CvPlayerAI::AI_doDiplo()
 									abContacted[civ.getTeam()] = true;
 								}
 							}
-							else GC.getGameINLINE().implementDeal(getID(), civId, &ourList, &theirList);
+							else g.implementDeal(getID(), civId, &ourList, &theirList);
 						}
 					}
 				}
 			}
 
-			if (!civ.isHuman() || GET_TEAM(getTeam()).getLeaderID() == getID())
+			if (!civ.isHuman() || ourTeam.getLeaderID() == getID())
 			{
 				if (AI_getContactTimer(civId, CONTACT_TRADE_TECH) == 0)
 				{
@@ -18488,42 +20770,58 @@ void CvPlayerAI::AI_doDiplo()
 /* Diplomacy                                                                                    */
 /************************************************************************************************/
 					int iRand = GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_TRADE_TECH);
-					int iTechPerc = GET_TEAM(getTeam()).getBestKnownTechScorePercent();
+					int iTechPerc = ourTeam.getBestKnownTechScorePercent();
 					if( iTechPerc < 90 )
 					{
 						/* BBAI
 						iRand *= std::max(1, iTechPerc - 60);
 						iRand /= 30; */
 						// K-Mod. not so extreme.
-						iRand = (iRand * (10 + iTechPerc) + 50)/100;
+						//iRand = (iRand * (10 + iTechPerc) + 50)/100;
+						// advc.003: Equivalent I think, but easier to read.
+						iRand = ::round(iRand * (10 + iTechPerc) / 100.0);
 						// K-Mod end
 					}
 
-					if( AI_isDoVictoryStrategy(AI_VICTORY_SPACE1) )
-						iRand /= 2;
-						
+					if( AI_isDoVictoryStrategy(AI_VICTORY_SPACE1) ) {
+						//iRand /= 2;
+						/*  advc.550a: That seems like a bit of an unfair advantage
+							for civs pursuing a Space victory. */
+						iRand = ::round(0.75 * iRand);
+					}
 					iRand = std::max(1, iRand);
-					if (GC.getGameINLINE().getSorenRandNum(iRand, "AI Diplo Trade Tech") == 0)
+					if (g.getSorenRandNum(iRand, "AI Diplo Trade Tech") == 0)
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
 					{
 						iBestValue = 0;
 						eBestReceiveTech = NO_TECH;
-
+						/*  <advc.550f> This is normally going to be
+							getCurrentResearch, but it doesn't hurt to check if
+							we have more progress on some other tech. */
+						TechTypes eBestProgressTech = NO_TECH;
+						int iBestProgress = 0; // </advc.550f>
 						for (iJ = 0; iJ < GC.getNumTechInfos(); iJ++)
 						{
 							setTradeItem(&item, TRADE_TECHNOLOGIES, iJ);
-
+							TechTypes eTech = (TechTypes)iJ; // advc.003
 							if (civ.canTradeItem(getID(), item, true))
 							{
 								/*  advc.001: Value can be 0 if tech already almost researched
 									and iI is human. Will then ask human to impart the tech for
 									nothing in return, which is pointless and confusing. */
-								if(GET_TEAM(getTeam()).AI_techTradeVal((TechTypes)iJ,  civ.getTeam()) == 0)
+								if(ourTeam.AI_techTradeVal(eTech, civ.getTeam()) == 0)
 									continue;
-								iValue = (1 + GC.getGameINLINE().getSorenRandNum(10000, "AI Tech Trading #1"));
-
+								iValue = (1 + g.getSorenRandNum(10000, "AI Tech Trading #1"));
+								// <advc.550f>
+								int iProgress = ourTeam.getResearchProgress(eTech);
+								if(iProgress > iBestProgress &&
+										// This is only for inter-AI deals
+										!civ.isHuman()) {
+									iBestProgress = iProgress;
+									eBestProgressTech = eTech;
+								} // </advc.550f>
 								if (iValue > iBestValue)
 								{
 									iBestValue = iValue;
@@ -18535,7 +20833,7 @@ void CvPlayerAI::AI_doDiplo()
 						if (eBestReceiveTech != NO_TECH)
 						{
 							// K-Mod
-							iOurValue = GET_TEAM(getTeam()).AI_techTradeVal(eBestReceiveTech, civ.getTeam());
+							iOurValue = ourTeam.AI_techTradeVal(eBestReceiveTech, civ.getTeam());
 							iTheirValue = 0;
 							int iBestDelta = iOurValue;
 							// K-Mod end
@@ -18549,7 +20847,7 @@ void CvPlayerAI::AI_doDiplo()
 								if (canTradeItem(civId, item, true))
 								{
 									/* original bts code
-									iValue = (1 + GC.getGameINLINE().getSorenRandNum(10000, "AI Tech Trading #2"));
+									iValue = (1 + g.getSorenRandNum(10000, "AI Tech Trading #2"));
 									if (iValue > iBestValue)
 									{
 										iBestValue = iValue;
@@ -18557,7 +20855,7 @@ void CvPlayerAI::AI_doDiplo()
 									} */
 									// K-Mod
 									iValue = TEAMREF(civId).AI_techTradeVal((TechTypes)iJ, getTeam());
-									int iDelta = std::abs(iOurValue - (90 + GC.getGameINLINE().getSorenRandNum(21, "AI Tech Trading #2"))*iValue / 100);
+									int iDelta = std::abs(iOurValue - (90 + g.getSorenRandNum(21, "AI Tech Trading #2"))*iValue / 100);
 									if (iDelta < iBestDelta) // aim to trade values as close as possible
 									{
 										iBestDelta = iDelta;
@@ -18600,7 +20898,13 @@ void CvPlayerAI::AI_doDiplo()
 								: 3*iOurValue > 2*iTheirValue && 3*iTheirValue > 2*iOurValue; */
 							bool bDeal = 100*iOurValue >= AI_tradeAcceptabilityThreshold(civId)*iTheirValue
 									&& 100*iTheirValue >= civ.AI_tradeAcceptabilityThreshold(getID())*iOurValue;
-							if (!bDeal)
+							if (!bDeal
+									/*  <advc.550b> Unlikely to lead to an
+										attractive offer */
+									&& (!civ.isHuman() || iTheirValue /
+									(double)iOurValue > 0.5 ||
+									::bernoulliSuccess(0.36, "advc.550b")))
+									// </advc.550b>
 							{
 								PROFILE("AI_doDiplo self-counter-propose");
 								// let the other team counter-propose (even if the other team is a human player)
@@ -18646,119 +20950,53 @@ void CvPlayerAI::AI_doDiplo()
 										abContacted[civ.getTeam()] = true;
 									}
 								}
-								else GC.getGameINLINE().implementDeal(getID(), civId, &ourList, &theirList);
+								else {
+									g.implementDeal(getID(), civId, &ourList, &theirList);
+									// advc.550f: I.e. we're done trading tech
+									eBestProgressTech = NO_TECH;
+								}
 							}
 						}
+						// <advc.550f>
+						if(eBestProgressTech != NO_TECH &&
+							eBestProgressTech != eBestReceiveTech) {
+							iOurValue = ourTeam.AI_techTradeVal(eBestProgressTech,
+									civ.getTeam());
+							int price = (100 * iOurValue) / civ.AI_goldTradeValuePercent();
+							if(price <= AI_maxGoldTrade(civ.getID())) {
+								setTradeItem(&item, TRADE_GOLD, price);
+								if(canTradeItem(civ.getID(), item)) {
+									ourList.clear();
+									ourList.insertAtEnd(item);
+									theirList.clear();
+									setTradeItem(&item, TRADE_TECHNOLOGIES, eBestProgressTech);
+									theirList.insertAtEnd(item);
+									g.implementDeal(getID(), civId, &ourList, &theirList);
+								}
+							}
+						} // </advc.550f>
 					}
 				}
 			}
-
-			if (AI_getContactTimer(civId, CONTACT_TRADE_BONUS) == 0)
-			{
-				if (GC.getGameINLINE().getSorenRandNum(GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_TRADE_BONUS), "AI Diplo Trade Bonus") == 0)
-				{
-					iBestValue = 0;
-					eBestReceiveBonus = NO_BONUS;
-
-					for (iJ = 0; iJ < GC.getNumBonusInfos(); iJ++)
-					{
-						if (civ.getNumTradeableBonuses((BonusTypes)iJ) > 1)
-						{
-							if (civ.AI_corporationBonusVal((BonusTypes)iJ) == 0)
-							{
-								if (AI_bonusTradeVal(((BonusTypes)iJ), civId, 1) > 0)
-								{
-									setTradeItem(&item, TRADE_RESOURCES, iJ);
-
-									if (civ.canTradeItem(getID(), item, true))
-									{
-										iValue = (1 + GC.getGameINLINE().getSorenRandNum(10000, "AI Bonus Trading #1"));
-
-										if (iValue > iBestValue)
-										{
-											iBestValue = iValue;
-											eBestReceiveBonus = ((BonusTypes)iJ);
-										}
-									}
-								}
-							}
-						}
-					}
-
-					if (eBestReceiveBonus != NO_BONUS)
-					{
-						iBestValue = 0;
-						eBestGiveBonus = NO_BONUS;
-
-						for (iJ = 0; iJ < GC.getNumBonusInfos(); iJ++)
-						{
-							if (iJ != eBestReceiveBonus)
-							{
-								if (getNumTradeableBonuses((BonusTypes)iJ) > 1)
-								{
-									if (civ.AI_bonusTradeVal(((BonusTypes)iJ), getID(), 1) > 0)
-									{
-										setTradeItem(&item, TRADE_RESOURCES, iJ);
-
-										if (canTradeItem(civId, item, true))
-										{
-											iValue = (1 + GC.getGameINLINE().getSorenRandNum(10000, "AI Bonus Trading #2"));
-
-											if (iValue > iBestValue)
-											{
-												iBestValue = iValue;
-												eBestGiveBonus = ((BonusTypes)iJ);
-											}
-										}
-									}
-								}
-							}
-						}
-
-						if (eBestGiveBonus != NO_BONUS)
-						{
-							if (!civ.isHuman() || AI_bonusTradeVal(eBestReceiveBonus, civId, -1) >= civ.AI_bonusTradeVal(eBestGiveBonus, getID(), 1))
-							{
-								ourList.clear();
-								theirList.clear();
-								setTradeItem(&item, TRADE_RESOURCES, eBestGiveBonus);
-								ourList.insertAtEnd(item);
-								setTradeItem(&item, TRADE_RESOURCES, eBestReceiveBonus);
-								theirList.insertAtEnd(item);
-
-								if (civ.isHuman())
-								{
-									if (!abContacted[civ.getTeam()])
-									{
-										AI_changeContactTimer(civId, CONTACT_TRADE_BONUS, GC.getLeaderHeadInfo(getPersonalityType()).getContactDelay(CONTACT_TRADE_BONUS));
-										pDiplo = new CvDiploParameters(getID());
-										FAssert(pDiplo != NULL);
-										pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_OFFER_DEAL"));
-										pDiplo->setAIContact(true);
-										pDiplo->setOurOfferList(theirList);
-										pDiplo->setTheirOfferList(ourList);
-										gDLL->beginDiplomacy(pDiplo, civId);
-										abContacted[civ.getTeam()] = true;
-									}
-								}
-								else GC.getGameINLINE().implementDeal(getID(), civId, &ourList, &theirList);
-							}
-						}
-					}
-				}
-			}
-
+			/*  <advc.133> Moved the cheap abContacted check up, and the rest
+				of the resource trade code into a new function. */
+			if((!abContacted[civ.getTeam()] || !civ.isHuman()) &&
+					g.getSorenRandNum(GC.getLeaderHeadInfo(getPersonalityType()).
+					getContactRand(CONTACT_TRADE_BONUS),
+					"AI Diplo Trade Bonus") == 0)
+				abContacted[civ.getTeam()] = proposeResourceTrade(civId);
+			// </advc.133>
 			if (AI_getContactTimer(civId, CONTACT_TRADE_MAP) == 0)
 			{
-				if (GC.getGameINLINE().getSorenRandNum(GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_TRADE_MAP), "AI Diplo Trade Map") == 0)
+				if (g.getSorenRandNum(GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_TRADE_MAP), "AI Diplo Trade Map") == 0)
 				{
 					setTradeItem(&item, TRADE_MAPS);
 					if (civ.canTradeItem(getID(), item, true) && canTradeItem(civId, item, true))
 					{
 						// <advc.136b>
 						int valForThem = TEAMREF(civId).AI_mapTradeVal(getTeam());
-						int thresh = GC.getDefineINT("DIPLOMACY_VALUE_REMAINDER");
-						if (!civ.isHuman() || (GET_TEAM(getTeam()).AI_mapTradeVal(civ.getTeam()) >= valForThem
+						int thresh = GC.getDIPLOMACY_VALUE_REMAINDER();
+						if (!civ.isHuman() || (ourTeam.AI_mapTradeVal(civ.getTeam()) >= valForThem
 								&& valForThem > thresh)) // <advc.136b>
 						{
 							ourList.clear();
@@ -18783,7 +21021,7 @@ void CvPlayerAI::AI_doDiplo()
 									abContacted[civ.getTeam()] = true;
 								}
 							}
-							else GC.getGameINLINE().implementDeal(getID(), civId, &ourList, &theirList);
+							else g.implementDeal(getID(), civId, &ourList, &theirList);
 						}
 					}
 				}
@@ -18798,7 +21036,7 @@ void CvPlayerAI::AI_doDiplo()
 				war allies. Peace vassals would be OK if it weren't for
 				advc.146 which implements a peace treaty between the war allies;
 				can't have a vassal force its master into a peace treaty. */
-			if(GET_TEAM(getTeam()).isAVassal())
+			if(ourTeam.isAVassal())
 				continue; // </advc.130v>
 			int iMinAtWarCounter = MAX_INT;
 			for (iJ = 0; iJ < MAX_CIV_TEAMS; iJ++)
@@ -18807,8 +21045,8 @@ void CvPlayerAI::AI_doDiplo()
 				{
 					if (atWar(((TeamTypes)iJ), getTeam()))
 					{
-						int iAtWarCounter = GET_TEAM(getTeam()).AI_getAtWarCounter((TeamTypes)iJ);
-						if (GET_TEAM(getTeam()).AI_getWarPlan((TeamTypes)iJ) == WARPLAN_DOGPILE)
+						int iAtWarCounter = ourTeam.AI_getAtWarCounter((TeamTypes)iJ);
+						if (ourTeam.AI_getWarPlan((TeamTypes)iJ) == WARPLAN_DOGPILE)
 						{
 							iAtWarCounter *= 2;
 							iAtWarCounter += 5;
@@ -18817,36 +21055,36 @@ void CvPlayerAI::AI_doDiplo()
 					}
 				}
 			}
-			// 40 for all leaders
-			int iDeclareWarTradeRand = GC.getLeaderHeadInfo(getPersonalityType()).getDeclareWarTradeRand();							
-			if (iMinAtWarCounter < 10)
+			
+			int iDeclareWarTradeRand = GC.getLeaderHeadInfo(getPersonalityType()).getDeclareWarTradeRand();
+			/*if (iMinAtWarCounter < 10)
 			{
 				iDeclareWarTradeRand *= iMinAtWarCounter;
 				iDeclareWarTradeRand /= 10;
 				iDeclareWarTradeRand ++;
 			}
-										
 			if (iMinAtWarCounter < 4)
 			{
 				iDeclareWarTradeRand /= 4;
 				iDeclareWarTradeRand ++;
-			}
-			// <advc.104o>
-			// Same probability as in BtS (so far)
+			}*/
+			// <advc.161> Replacing the above
+			if(iMinAtWarCounter == MAX_INT)
+				continue;
+			iDeclareWarTradeRand = iDeclareWarTradeRand / 10 +
+					std::min(10, iMinAtWarCounter);
 			double pr = (iDeclareWarTradeRand <= 0 ? 1.0 :
 					1.0 / iDeclareWarTradeRand);
-			/*  pr is 1 if iMinAtWarCounter is 0, i.e. we've just declared war
-				ourselves. That's a bit too predictable I think. */
-			if(getWPAI.isEnabled())
-				pr = std::min(pr, 0.75);
 			// Commented out: BtS probability test
-			//if(GC.getGameINLINE().getSorenRandNum(iDeclareWarTradeRand, "AI Diplo Declare War Trade") != 0)
-			if(!::bernoulliSuccess(pr, "advc.104o"))
-				continue;
-			int iBestTargetValue = 0; // </advc.104o>
+			//if(g.getSorenRandNum(iDeclareWarTradeRand, "AI Diplo Declare War Trade") != 0)
+			if(!::bernoulliSuccess(pr, "advc.161"))
+				continue; // </advc.161>
+			// <advc.104o>
+			int iBestTargetValue = 0;
+			int iBestTeamPrice = -1;
+			// </advc.104o>
 			iBestValue = 0;
 			eBestTeam = NO_TEAM;
-
 			for (iJ = 0; iJ < MAX_CIV_TEAMS; iJ++)
 			{
 				if(!GET_TEAM((TeamTypes)iJ).isAlive() ||
@@ -18872,7 +21110,7 @@ void CvPlayerAI::AI_doDiplo()
 					if(TEAMREF(civId).AI_declareWarTrade(target.getID(), getTeam())
 							!= NO_DENIAL)
 						continue;
-					iValue = GET_TEAM(getTeam()).warAndPeaceAI().tradeValJointWar(
+					iValue = ourTeam.warAndPeaceAI().tradeValJointWar(
 							target.getID(), civ.getTeam());
 					if(iValue <= iBestTargetValue)
 						continue;
@@ -18880,23 +21118,24 @@ void CvPlayerAI::AI_doDiplo()
 						by civ (that's iValue), it computes how much civ needs to be
 						payed for the Dow. Has to work this way b/c AI_declareWarTradeVal
 						is also used for human-AI war trades. */
-					int theirPrice = GET_TEAM(getTeam()).AI_declareWarTradeVal(
+					int theirPrice = ourTeam.AI_declareWarTradeVal(
 							target.getID(), civ.getTeam());
 					/*  Don't try to make the trade if the DoW by civId isn't
 						nearly as valuable to us as what they'll charge */
-					if(iValue >= (3 * theirPrice) / 4) {
+					if(4 * iValue >= 3 * theirPrice) {
 						iBestTargetValue = iValue;
 						eBestTeam = target.getID();
+						iBestTeamPrice = theirPrice;
 					}
 				}
 				else // </advc.104o>
-				if (GET_TEAM((TeamTypes)iJ).getAtWarCount(true) < std::max(2, (GC.getGameINLINE().countCivTeamsAlive() / 2)))
+				if (GET_TEAM((TeamTypes)iJ).getAtWarCount(true) < std::max(2, (g.countCivTeamsAlive() / 2)))
 				{
 					setTradeItem(&item, TRADE_WAR, iJ);
 
 					if (civ.canTradeItem(getID(), item, true))
 					{
-						iValue = (1 + GC.getGameINLINE().getSorenRandNum(1000, "AI Declare War Trading"));
+						iValue = (1 + g.getSorenRandNum(1000, "AI Declare War Trading"));
 
 						iValue *= (101 + GET_TEAM((TeamTypes)iJ).AI_getAttitudeWeight(getTeam()));
 						iValue /= 100;
@@ -18921,7 +21160,7 @@ void CvPlayerAI::AI_doDiplo()
 
 					if (canTradeItem(civId, item, true))
 					{
-						iValue = (1 + GC.getGameINLINE().getSorenRandNum(100, "AI Tech Trading #2"));
+						iValue = (1 + g.getSorenRandNum(100, "AI Tech Trading #2"));
 														
 						iValue *= GET_TEAM(eBestTeam).getResearchLeft((TechTypes)iJ);
 
@@ -18932,8 +21171,7 @@ void CvPlayerAI::AI_doDiplo()
 						}
 					}
 				}
-
-				iOurValue = GET_TEAM(getTeam()).AI_declareWarTradeVal(eBestTeam, civ.getTeam());
+				iOurValue = iBestTeamPrice;
 				if(eBestGiveTech != NO_TECH)
 					iTheirValue = TEAMREF(civId).AI_techTradeVal(eBestGiveTech, getTeam());
 				else iTheirValue = 0;
@@ -18952,7 +21190,7 @@ void CvPlayerAI::AI_doDiplo()
 
 						if (canTradeItem(civId, item, true))
 						{
-							iValue = (1 + GC.getGameINLINE().getSorenRandNum(100, "AI Tech Trading #2"));
+							iValue = (1 + g.getSorenRandNum(100, "AI Tech Trading #2"));
 																
 							iValue *= GET_TEAM(eBestTeam).getResearchLeft((TechTypes)iJ);
 
@@ -19037,8 +21275,7 @@ void CvPlayerAI::AI_doDiplo()
 						setTradeItem(&item, TRADE_GOLD, iReceiveGold);
 						theirList.insertAtEnd(item);
 					}
-
-					GC.getGameINLINE().implementDeal(getID(), civId, &ourList, &theirList);
+					g.implementDeal(getID(), civId, &ourList, &theirList);
 				}
 			}
 		}
@@ -19046,7 +21283,7 @@ void CvPlayerAI::AI_doDiplo()
 }
 
 // <advc.003> Refactored code from AI_doDiplo
-/*  Caller ensures that human isn't us, not on our team, not a vassal
+/*  Caller ensures that humanId isn't us, not on our team, not a vassal
 	and can be contacted. We're alive, not human, not a vassal, team leader. */
 bool CvPlayerAI::proposeJointWar(PlayerTypes humanId) {
 
@@ -19082,8 +21319,8 @@ bool CvPlayerAI::proposeJointWar(PlayerTypes humanId) {
 	if(g.getSorenRandNum(::round(GC.getLeaderHeadInfo(getPersonalityType()).
 			/*  That's one tenth of the BtS probability on turn one of a war,
 				the BtS probability after 10 turns, and then grows to twice that. */
-			getContactRand(CONTACT_JOIN_WAR) * 10 / avgAtWarTurns) // </advc.130m>
-			, "AI Diplo Join War") != 0)
+			getContactRand(CONTACT_JOIN_WAR) * 10 / avgAtWarTurns), // </advc.130m>
+			"AI Diplo Join War") != 0)
 		return false;
 	int bestTargetVal = -1;
 	TeamTypes bestTarget = NO_TEAM;
@@ -19121,6 +21358,11 @@ bool CvPlayerAI::proposeJointWar(PlayerTypes humanId) {
 		if(ourTeam.AI_getWorstEnemy() == bestTarget && towardsHuman == ATTITUDE_ANNOYED)
  			return proposeEmbargo(humanId);
 		return false;
+	}
+	if(getWPAI.isEnabled() && bestTarget != NO_TEAM) {
+		if(TEAMREF(humanId).warAndPeaceAI().
+				declareWarTrade(bestTarget, getTeam()) != NO_DENIAL)
+			return proposeEmbargo(humanId);
 	} // </advc.130m>
 	if(bestTarget == NO_TEAM)
 		return false;
@@ -19143,16 +21385,33 @@ bool CvPlayerAI::proposeJointWar(PlayerTypes humanId) {
 	Same assumptions as for contactReligion, plus can't be between vassal + master. */
 bool CvPlayerAI::proposeEmbargo(PlayerTypes humanId) {
 
-	if(AI_getContactTimer(humanId, CONTACT_STOP_TRADING) > 0)
+	if(AI_getContactTimer(humanId, CONTACT_STOP_TRADING) > 0 ||
+			AI_getAttitude(humanId) <= ATTITUDE_FURIOUS) // advc.130f
 		return false;
-	TeamTypes eBestTeam = GET_TEAM(getTeam()).AI_getWorstEnemy();
+	CvTeamAI const& ourTeam = GET_TEAM(getTeam());
+	TeamTypes eBestTeam = ourTeam.AI_getWorstEnemy();
 	if(eBestTeam == NO_TEAM || !TEAMREF(humanId).isHasMet(eBestTeam) ||
 			GET_TEAM(eBestTeam).isVassal(TEAMID(humanId)) ||
-			!GET_PLAYER(humanId).canStopTradingWithTeam(eBestTeam))
+			!GET_PLAYER(humanId).canStopTradingWithTeam(eBestTeam) ||
+			// advc.104m:
+			ourTeam.AI_isSneakAttackReady(TEAMID(humanId)) ||
+			// <advc.130f>
+			ourTeam.AI_getAttitudeVal(TEAMID(humanId)) -
+			ourTeam.AI_getAttitudeVal(eBestTeam) < 2) // </advc.130f>
 		return false;
 	FAssert(!atWar(TEAMID(humanId), eBestTeam));
 	FAssert(TEAMID(humanId) != eBestTeam);
-	/*  <advc.130f> Mustn't propose embargo if our deals can't be canceled.
+	// <advc.130f>
+	/*  During war preparation against human, ask to stop trading only if this
+		will improve our attitude. */
+	/*if(GET_TEAM(getTeam()).AI_getWarPlan(TEAMID(humanId)) != NO_WARPLAN &&
+			AI_getAttitude(humanId) >= AI_getAttitudeFromValue(AI_getAttitudeVal(humanId))
+			+ GC.getLeaderHeadInfo(getPersonalityType()).
+			getMemoryAttitudePercent(MEMORY_ACCEPTED_STOP_TRADING) / 100)
+		return false;*/
+	/*  ^ Never mind; leave it up to the human to figure out if the AI might
+		declare war anyway. */
+	/*  Mustn't propose embargo if our deals can't be canceled.
 		Perhaps this check should be in CvPlayer::canTradeItem instead? */
 	CvGame& g = GC.getGameINLINE(); int dummy;
 	for(CvDeal* d = g.firstDeal(&dummy); d != NULL; d = g.nextDeal(&dummy)) {
@@ -19175,6 +21434,143 @@ bool CvPlayerAI::proposeEmbargo(PlayerTypes humanId) {
 	gDLL->beginDiplomacy(pDiplo, humanId);
 	return true;
 }
+
+
+/*  Cut, pasted and refactored from AI_doDiplo; no functional change.
+	Caller ensures isAlive, canContactAndTalk, not at war, not minor/ barb,
+	!this->isHuman. If civId is human, !abContacted is ensured, but civId may
+	also be an AI civ. */
+bool CvPlayerAI::proposeResourceTrade(PlayerTypes civId) {
+
+	if(AI_getContactTimer(civId, CONTACT_TRADE_BONUS) > 0)
+		return false;
+	CvPlayerAI const& civ = GET_PLAYER(civId);
+	CvGame& g = GC.getGame();
+	int iBestValue = 0;
+	BonusTypes eBestReceiveBonus = NO_BONUS;
+	TradeData item;
+	for(int i = 0; i < GC.getNumBonusInfos(); i++) {
+		BonusTypes eBonus = (BonusTypes)i;
+		/*  <advc.036> For AI-AI trades the conditions below are better handled
+			by AI_getTradeDenial. */
+		if(civ.isHuman() && (civ.getNumTradeableBonuses(eBonus) <= 1 ||
+				civ.AI_corporationBonusVal(eBonus) != 0))
+				// || AI_bonusTradeVal(eBonus, civId, 1) <= 0)
+			continue;
+		int bias = AI_bonusTradeVal(eBonus, civId, 1) -
+				civ.AI_bonusTradeVal(eBonus, getID(), -1);
+		if(!::bernoulliSuccess((bias - 15) / 100.0, "advc.036"))
+			continue; // </advc.036>
+		setTradeItem(&item, TRADE_RESOURCES, eBonus);
+		if(civ.canTradeItem(getID(), item, true)) {
+			// <advc.036> Was completely random before
+			int iValue = g.getSorenRandNum(25, "AI Bonus Trading #1")
+					+ bias; // </advc.036>
+			if(iValue > iBestValue) {
+				iBestValue = iValue;
+				eBestReceiveBonus = eBonus;
+			}
+		}
+	}
+	// <advc.036> Commented out
+	/*if(eBestReceiveBonus != NO_BONUS) {
+	iBestValue = 0;*/
+	/*  If human doesn't have a surplus resource we want, then don't try to sell
+		him/her something. */
+	if(eBestReceiveBonus == NO_BONUS && civ.isHuman())
+		return false;
+	BonusTypes eBestGiveBonus = NO_BONUS;
+	for(int i = 0; i < GC.getNumBonusInfos(); i++) {
+		BonusTypes eBonus = (BonusTypes)i;
+		// <advc.036> See comment about eBestReceiveBonus
+		/*if(i == eBestReceiveBonus || getNumTradeableBonuses(eBonus) <= 1 ||
+				civ.AI_bonusTradeVal(eBonus, getID(), 1) <= 0)
+			continue;*/
+		int bias = civ.AI_bonusTradeVal(eBonus, getID(), 1) -
+				AI_bonusTradeVal(eBonus, civId, -1);
+		if(!::bernoulliSuccess((bias - 15)/100.0, "advc.036"))
+			continue; // </advc.036>
+		setTradeItem(&item, TRADE_RESOURCES, eBonus);
+		if(canTradeItem(civId, item, true)) {
+			// <advc.036>
+			int iValue = (g.getSorenRandNum(30, "AI Bonus Trading #2")
+					+ bias); // </advc.036>
+			if(iValue > iBestValue) {
+				iBestValue = iValue;
+				eBestGiveBonus = eBonus;
+			}
+		}
+	}
+	CLinkList<TradeData> ourList;
+	CLinkList<TradeData> theirList;
+	/*if(eBestGiveBonus != NO_BONUS && (!civ.isHuman() ||
+			AI_bonusTradeVal(eBestReceiveBonus, civId, -1) >=
+			civ.AI_bonusTradeVal(eBestGiveBonus, getID(), 1))) {
+		ourList.clear();
+		theirList.clear();
+		setTradeItem(&item, TRADE_RESOURCES, eBestGiveBonus);
+		ourList.insertAtEnd(item);
+		setTradeItem(&item, TRADE_RESOURCES, eBestReceiveBonus);
+		theirList.insertAtEnd(item);
+	}*/
+	/*  <advc.036> Replacing the above.
+		Rather than trying to trade eBestGiveBonus against eBestReceiveBonus,
+		pick the one with the higher trade value difference (iBestValue) and let
+		AI_counterPropose produce an offer. */
+	bool bDeal = false;
+	if(eBestGiveBonus != NO_BONUS) {
+		ourList.clear();
+		theirList.clear();
+		setTradeItem(&item, TRADE_RESOURCES, eBestGiveBonus);
+		ourList.insertAtEnd(item);
+		/*  Code (K-Mod) copied from the tech trade block above.
+			Can't move this stuff into AI_counterPropose b/c
+			the lists need to be allocated here. */
+		CLinkList<TradeData> ourInventory, theirInventory, ourCounter, theirCounter;
+		// Leave our inventory empty; we're not giving anything else.
+		civ.buildTradeTable(getID(), theirInventory);
+		civ.markTradeOffers(theirInventory, theirList);
+		civ.updateTradeList(getID(), theirInventory, theirList, ourList);
+		if(AI_counterPropose(civId, &theirList, &ourList,
+				&theirInventory, &ourInventory,
+				&theirCounter, &ourCounter)) {
+			theirList.concatenate(theirCounter);
+			bDeal = true;
+		}
+	}
+	if(!bDeal && eBestReceiveBonus != NO_BONUS) {
+		ourList.clear();
+		theirList.clear();
+		setTradeItem(&item, TRADE_RESOURCES, eBestReceiveBonus);
+		theirList.insertAtEnd(item);
+		CLinkList<TradeData> ourInventory, theirInventory, ourCounter, theirCounter;
+		// Leave their inventory empty
+		buildTradeTable(civId, ourInventory);
+		markTradeOffers(ourInventory, ourList);
+		updateTradeList(civId, ourInventory, ourList, theirList);
+		if(civ.AI_counterPropose(getID(), &ourList, &theirList,
+				&ourInventory, &theirInventory,
+				&ourCounter, &theirCounter)) {
+			ourList.concatenate(ourCounter);
+			bDeal = true;
+		}
+	}
+	if(!bDeal)
+		return false; // </advc.036>
+	if(civ.isHuman()) {
+		AI_changeContactTimer(civId, CONTACT_TRADE_BONUS, GC.getLeaderHeadInfo(getPersonalityType()).getContactDelay(CONTACT_TRADE_BONUS));
+		CvDiploParameters* pDiplo = new CvDiploParameters(getID());
+		pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString(
+				"AI_DIPLOCOMMENT_OFFER_DEAL"));
+		pDiplo->setAIContact(true);
+		pDiplo->setOurOfferList(theirList);
+		pDiplo->setTheirOfferList(ourList);
+		gDLL->beginDiplomacy(pDiplo, civId);
+		return true;
+	}
+	g.implementDeal(getID(), civId, &ourList, &theirList);
+	return false; // Only true when a human was contacted
+} // </advc.133>
 
 /*  Cut, pasted and refactored from AI_doDiplo; no functional change.
 	Caller ensures isHuman/ !isHuman, isAlive, canContactAndTalk, 
@@ -19223,11 +21619,13 @@ bool CvPlayerAI::contactCivics(PlayerTypes humanId) {
 	return true;
 }
 
-/*  Same conditions as contactReligion (AI::doDiplo checks additional ones,
+/*  Same conditions as contactReligion (AI_doDiplo checks additional ones,
 	but these aren't necessary for this function to work correctly) */
 bool CvPlayerAI::askHelp(PlayerTypes humanId) {
 
 	// <advc.104m>
+	if(GET_TEAM(getTeam()).AI_isSneakAttackReady(TEAMID(humanId)))
+		return false;
 	if(getWPAI.isEnabled() && ::bernoulliSuccess(0.2, "advc.130m"))
 		return false; // </advc.104m>
 	// <advc.705>
@@ -19270,10 +21668,12 @@ bool CvPlayerAI::askHelp(PlayerTypes humanId) {
 	return true;
 }
 
-// Same necessary conditions as the others
+// Same necessary conditions as the functions above
 bool CvPlayerAI::demandTribute(PlayerTypes humanId, int tributeType) {
 
 	// <advc.104m>
+	if(GET_TEAM(getTeam()).AI_isSneakAttackReady(TEAMID(humanId)))
+		return false;
 	if(getWPAI.isEnabled() && ::bernoulliSuccess(0.5, "advc.104m"))
 		return false; // </advc.104m>
 	if(AI_getContactTimer(humanId, CONTACT_DEMAND_TRIBUTE) > 0 ||
@@ -19286,16 +21686,20 @@ bool CvPlayerAI::demandTribute(PlayerTypes humanId, int tributeType) {
 	switch(tributeType) {
 	case 0: {
 		int iReceiveGold = range(human.getGold() - 50, 0, human.AI_goldTarget());
-		iReceiveGold -= iReceiveGold % GC.getDefineINT("DIPLOMACY_VALUE_REMAINDER");
+		iReceiveGold -= (iReceiveGold % GC.getDIPLOMACY_VALUE_REMAINDER());
 		if(iReceiveGold <= 50)
 			break;
 		setTradeItem(&item, TRADE_GOLD, iReceiveGold);
-		theirList.insertAtEnd(item);
+		/*  advc.001: BtS checks this only for some of the items, and it does so
+			with bTestDenial, which seems pointless when the callee is human. */
+		if(human.canTradeItem(getID(), item))
+			theirList.insertAtEnd(item);
 		break;
 	} case 1: {
-		if(GET_TEAM(getTeam()).AI_mapTradeVal(human.getTeam()) > 100) {
-			setTradeItem(&item, TRADE_MAPS);
-			theirList.insertAtEnd(item);
+		setTradeItem(&item, TRADE_MAPS);
+		if(human.canTradeItem(getID(), item)) { // advc.001
+			if(GET_TEAM(getTeam()).AI_mapTradeVal(human.getTeam()) > 100)
+				theirList.insertAtEnd(item);
 		}
 		break;
 	} case 2: {
@@ -19303,7 +21707,7 @@ bool CvPlayerAI::demandTribute(PlayerTypes humanId, int tributeType) {
 		TechTypes eBestReceiveTech = NO_TECH;
 		for(int i = 0; i < GC.getNumTechInfos(); i++) {
 			setTradeItem(&item, TRADE_TECHNOLOGIES, i);
-			if(!human.canTradeItem(getID(), item, true))
+			if(!human.canTradeItem(getID(), item))
 				continue;
 			TechTypes eTech = (TechTypes)i;
 			if(GC.getGameINLINE().countKnownTechNumTeams(eTech) <= 1)
@@ -19325,7 +21729,7 @@ bool CvPlayerAI::demandTribute(PlayerTypes humanId, int tributeType) {
 		BonusTypes eBestReceiveBonus = NO_BONUS;
 		for(int i = 0; i < GC.getNumBonusInfos(); i++) {
 			setTradeItem(&item, TRADE_RESOURCES, i);
-			if(!human.canTradeItem(getID(), item, true))
+			if(!human.canTradeItem(getID(), item))
 				continue;
 			BonusTypes eBonus = (BonusTypes)i;
 			if(human.getNumTradeableBonuses(eBonus) <= 1 ||
@@ -19342,7 +21746,18 @@ bool CvPlayerAI::demandTribute(PlayerTypes humanId, int tributeType) {
 			setTradeItem(&item, TRADE_RESOURCES, eBestReceiveBonus);
 			theirList.insertAtEnd(item);
 		}
-		break;
+		break; // <advc.104m> New: demand gpt
+	} case 4: {
+		int gpt = (human.AI_getAvailableIncome() -
+				human.calculateInflatedCosts()) / 10;
+		int mod = GC.getDIPLOMACY_VALUE_REMAINDER();
+		if(gpt >= mod) {
+			gpt -= gpt % mod;
+			setTradeItem(&item, TRADE_GOLD_PER_TURN, gpt);
+			if(human.canTradeItem(getID(), item))
+				theirList.insertAtEnd(item);
+		}
+		break; // </advc.104m>
 	} default:
 		return false;
 	}
@@ -19366,6 +21781,21 @@ bool CvPlayerAI::demandTribute(PlayerTypes humanId, int tributeType) {
 	gDLL->beginDiplomacy(pDiplo, humanId);
 	return true;
 } // </advc.003>
+
+// <advc.104><advc.031>
+/*  Assets like additional cities become less valuable over the course of a game
+	b/c there are fewer and fewer turns to go. Not worth considering in the
+	first half of the game, but e.g. after 300 turns (normal settings),
+	the multiplier will have decreased to 0.8. The current implementation isn't
+	specific to a CvPlayerAI, but this could change, i.e. one could estimate the
+	end turn based on the knowledge of this CvPlayerAI.
+	delay: When an asset is not immediately acquired. */
+double CvPlayerAI::amortizationMultiplier(int delay) const {
+
+	return ::dRange(2 * // Use this coefficient to fine-tune the effect
+			(1 - GC.getGameINLINE().gameTurnProgress(std::max(0, delay))),
+			0.15, 1.0);
+} // </advc.104></advc.031>
 
 //
 // read object from a stream
@@ -19456,6 +21886,9 @@ void CvPlayerAI::read(FDataStreamBase* pStream)
 	}
 
 	pStream->Read(GC.getNumBonusInfos(), m_aiBonusValue);
+	// <advc.036>
+	if(uiFlag >= 10)
+		pStream->Read(GC.getNumBonusInfos(), m_aiBonusValueTrade); // </advc.036>
 	pStream->Read(GC.getNumUnitClassInfos(), m_aiUnitClassWeights);
 	pStream->Read(GC.getNumUnitCombatInfos(), m_aiUnitCombatWeights);
 	// K-Mod
@@ -19495,9 +21928,18 @@ void CvPlayerAI::read(FDataStreamBase* pStream)
 		/*  Would be enough to do this once after all players have been
 			loaded, but don't know which function, if any, the EXE calls
 			after loading all players and before calling CvPlayerAI::isWillingToTalk,
-			which requires WarAndPeaceAI to be up-to-date. */
+			which requires WarAndPeaceAI to be up-to-date.
+			Perhaps enough to do it once after loading BARBARIAN_PLAYER? */
 		getWPAI.update();
 	} // </advc.104>
+	// <advc.148>
+	if(uiFlag < 9 && getID() == MAX_PLAYERS - 1) {
+		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+			CvPlayerAI& civ = GET_PLAYER((PlayerTypes)i);
+			if(civ.isAlive())
+				civ.AI_updateAttitudeCache();
+		}
+	} // </advc.148>
 }
 
 
@@ -19513,7 +21955,10 @@ void CvPlayerAI::write(FDataStreamBase* pStream)
 	uint uiFlag=0;
 */
 	// Flag for type of save
-	uint uiFlag=8; // advc.003b: 8 for neededExplorersByArea
+	uint uiFlag=7;
+	uiFlag = 8; // advc.003b
+	uiFlag = 9; // advc.148
+	uiFlag = 10; // advc.036
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iPeaceWeight);
@@ -19581,6 +22026,7 @@ void CvPlayerAI::write(FDataStreamBase* pStream)
 	}
 
 	pStream->Write(GC.getNumBonusInfos(), m_aiBonusValue);
+	pStream->Write(GC.getNumBonusInfos(), m_aiBonusValueTrade); // advc.036
 	pStream->Write(GC.getNumUnitClassInfos(), m_aiUnitClassWeights);
 	pStream->Write(GC.getNumUnitCombatInfos(), m_aiUnitCombatWeights);
 	// K-Mod. save great person weights. (uiFlag >= 5)
@@ -20131,7 +22577,7 @@ int CvPlayerAI::AI_eventValue(EventTypes eEvent, const EventTriggeredData& kTrig
 			// So whatever I do here is completely new.
 
 			// Note: the event will make the other team declare war on us.
-			// Also, I've decided nto to multiply this by number of turns or anything like that.
+			// Also, I've decided not to multiply this by number of turns or anything like that.
 			// The war evaluation is rough, and optimistic... and besides, we can always declare war ourselves if we want to.
 			int iWarValue = kTeam.AI_startWarVal(GET_PLAYER(kTriggeredData.m_eOtherPlayer).getTeam(), WARPLAN_ATTACKED);
 
@@ -20293,6 +22739,26 @@ void CvPlayerAI::AI_doSplit(bool force) // advc.104r: Param added
 	}
 }
 
+// <advc.099b>
+double CvPlayerAI::exclusiveRadiusWeight(int dist) const {
+
+	if(dist > 2)
+		return 0;
+	double mult = 1.5;
+	if(dist == 0 || dist == 1)
+		mult = 2;
+	else if(dist == 2)
+		mult = 1;
+	/*  Between 0 and 1. Expresses our confidence about winning culturally
+		contested tiles that are within the working radius of our cities
+		exclusively. Since the decay of tile culture isn't based on game speed,
+		that confidence is greater on the slower speed settings. */
+	return 1 - std::pow(1 - (mult * GC.getCITY_RADIUS_DECAY() /
+			1000.0), 25 * GC.getGameSpeedInfo(GC.getGameINLINE().
+			getGameSpeedType()).getGoldenAgePercent() / 100.0);
+} // </advc.099b>
+
+
 void CvPlayerAI::AI_launch(VictoryTypes eVictory)
 {
 	if (GET_TEAM(getTeam()).isHuman())
@@ -20448,7 +22914,7 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(
 				iHighCultureCount++;
 			}
 
-			// <advc.115> Threshold was 50%, now 67%, still 60% for human.
+			// <advc.115> Threshold was 50%, now 67%, 60% for human.
 			double thresh = 0.67;
 			if(isHuman())
 				thresh = 0.6;
@@ -20473,7 +22939,9 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(
 
 	// K-Mod. Originally, the BBAI condition for culture4 was just "iCloseToLegendaryCount >= iVictoryCities".
 	// I think that is far too simplistic for the AI players; so I've removed that clause.
-	if (isHuman() && !GC.getGameINLINE().isDebugMode())
+	if (isHuman())
+			// advc.115d: Commented out
+			//&& !GC.getGameINLINE().isDebugMode())
 	{
 		if (iCloseToLegendaryCount >= iVictoryCities)
 		{
@@ -20489,7 +22957,7 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(
 
 	// K-Mod, disabling some stuff.
 	// It is still possible to get a cultural victory in advanced start games.
-	// and moving your captial city certainly does not indicate that you shouldn't go for a cultural victory!
+	// and moving your capital city certainly does not indicate that you shouldn't go for a cultural victory!
 	// ... and colonies don't get their capital on turn 1 anyway.
 	/* original code
 	if (GC.getGame().getStartEra() > 1)
@@ -20805,7 +23273,9 @@ int CvPlayerAI::AI_calculateSpaceVictoryStage() const
 		// K-Mod end
 	}
 
-	if( isHuman() && !(GC.getGameINLINE().isDebugMode()) )
+	if( isHuman())
+			// advc.115d: Commented out
+			//&& !(GC.getGameINLINE().isDebugMode()) )
 	{
 		return 0;
 	}
@@ -20942,8 +23412,9 @@ int CvPlayerAI::AI_calculateConquestVictoryStage() const
 		const CvTeamAI& kLoopTeam = GET_TEAM(i);
 
 		if (i == getTeam() || !kLoopTeam.isAlive() || kLoopTeam.isMinorCiv())
-			continue;
-		if(!kLoopTeam.isAVassal()) nRemaining++; // advc.104c
+			continue; // <advc.104c>
+		if(!kLoopTeam.isAVassal())
+			nRemaining++; // </advc.104c>
 		if (kTeam.isHasMet(i) && !kLoopTeam.isAVassal())
 		{
 			iRivalTeams++;
@@ -21099,30 +23570,32 @@ int CvPlayerAI::AI_calculateDominationVictoryStage() const
 				(theirPopPercent >= popObjective - iOurPopPercent ||
 				theirLandPercent >= landObjective - iOurLandPercent))
 			blockedByFriend = true;
-	} // </avdri.104c>
+	} // </advc.104c>
 	
 	iPercentOfDomination = (100 * iOurPopPercent) / 
 			popObjective; // advc.104c
-	iPercentOfDomination = std::min( iPercentOfDomination, (100 * iOurLandPercent) /
-			landObjective ); // advc.104c
+	iPercentOfDomination = std::min(iPercentOfDomination, (100 * iOurLandPercent) /
+			landObjective); // advc.104c
 
 	if(!blockedByFriend) { // advc.104c
 		// <advc.115>
 		int civs = GC.getGameINLINE().countCivPlayersEverAlive();
-		if( iPercentOfDomination > 87 - civs ) // was simply 80
-		{ // </advc.115>
+		if(iPercentOfDomination > 87 - civs) // was simply 80
+		{	// </advc.115>
 			return 4;
 		}
 
 		if( iPercentOfDomination >
 				// advc.115: was simply 50
-				62 - civs )
+				62 - civs)
 		{
 			return 3;
 		}
 	}
 
-	if( isHuman() && !(GC.getGameINLINE().isDebugMode()) )
+	if( isHuman())
+			// advc.115d: Commented out
+			//&& !(GC.getGameINLINE().isDebugMode()) )
 	{
 		return 0;
 	}
@@ -21153,7 +23626,7 @@ int CvPlayerAI::AI_calculateDominationVictoryStage() const
 
 int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 {
-	int iValue = 0;
+	//int iValue = 0; // advc.115b
 
 	if( GC.getDefineINT("BBAI_VICTORY_STRATEGY_DIPLOMACY") <= 0 )
 	{
@@ -21180,7 +23653,7 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 		return 0;
 	}
 
-	// Check for whether we are elligible for election
+	// Check for whether we are eligible for election
 	bool bVoteEligible = false;
 	for( int iVoteSource = 0; iVoteSource < GC.getNumVoteSourceInfos(); iVoteSource++ )
 	{
@@ -21197,11 +23670,17 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 	//bool bDiploInclined = false; // advc.115b: No longer used
 
 	// Check for whether we are inclined to pursue a diplomacy strategy
-	iValue = GC.getLeaderHeadInfo(getPersonalityType()).getDiplomacyVictoryWeight();
 	// <advc.115b>
-	double voteTarget = -1;
+	int iValue = 0;
+	if(isHuman()) // Perhaps not inclined, but very capable.
+		iValue += 100;
+	else iValue += GC.getLeaderHeadInfo(getPersonalityType()).getDiplomacyVictoryWeight();
+	iValue = ::round(iValue * 0.67); // Victory weight too high
+	double voteTarget = -2;
 	double votesToGo = GET_TEAM(getTeam()).warAndPeaceAI().
 			computeVotesToGoForVictory(&voteTarget);
+	if(voteTarget == -1)
+		return 0;
 	FAssert(voteTarget > 0);
 	double progressRatio = ::dRange((voteTarget - votesToGo) / voteTarget,
 			0.0, 1.0);
@@ -21223,14 +23702,15 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 					computeVotesToGoForVictory(&voteTarget, true); // force UN
 			progressRatio = ::dRange((voteTarget - votesToGo) / voteTarget, 0.0, 1.0);
 			bVoteEligible = false;
+			membersProgress = 1; // not a concern for UN
 		}
 	}
 	/*  LeaderHead weight is between 0 and 70. We're adding a hash between
-		0 and 50 below. These are for flavor and randomness. This is the
-		intelligent part; put that between 0 and 180.
-		Square because having e.g. 50% of the necessary votes isn't nearly
-		enough; need to get close to the vote target. */
-	iValue += ::round(180 * progressRatio * progressRatio);
+		0 and 50 below. These are for flavor and randomness.
+		This here is the intelligent part; put it between 0 and 180.
+		Square b/c having e.g. 50% of the necessary votes isn't nearly enough;
+		need to get close to the vote target. */
+	iValue += ::round(200 * progressRatio * progressRatio * membersProgress * membersProgress);
 	// </advc.115b>
 
 	// <advc.115b> Commented out.
@@ -21243,7 +23723,7 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 	*/ // </advc.115b>
 
 	//int iNonsense = AI_getStrategyRand() + 90;
-	iValue += (AI_getStrategyRand(6) % 50); // advc.115b: was %100 - too random
+	iValue += (AI_getStrategyRand(6) % 30); // advc.115b: was %100 - way too random
 
 	// BBAI TODO: Level 2?
 
@@ -21253,9 +23733,8 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 		bDiploInclined = true;
 	}*/
 
-	if( bVoteEligible && (
-		iValue > 130 // advc.115b: was bDiploInclined
-		|| isHuman()) )
+	if( bVoteEligible &&
+		iValue > 150) // advc.115b: was bDiploInclined; isHuman clause removed
 	{
 		// BBAI TODO: Level 4 - close to enough to win a vote?
 		// <advc.115b>
@@ -21264,15 +23743,18 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 
 		return 3;
 	}
-
-	if( isHuman() && !(GC.getGameINLINE().isDebugMode()) )
+	
+	if( isHuman())
+			// advc.115d: Commented out
+			//&& !(GC.getGameINLINE().isDebugMode()) )
 	{
 		return 0;
 	}
+	// <advc.115b>
+	if(iValue > 140)
+		return 2; // </advc.115b>
 
-	if(iValue > 140) return 2; // advc.115b
-
-	if(iValue > 120) // advc.115b: was bDiploInclined
+	if(iValue > 110) // advc.115b: was bDiploInclined
 	{
 		return 1;
 	}
@@ -21284,7 +23766,7 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 ///
 /// Victory strategies are computed on demand once per turn and stored for the rest
 /// of the turn.  Each victory strategy type has 4 levels, the first two are
-/// determined largely from AI tendencies and randomn dice rolls.  The second
+/// determined largely from AI tendencies and random dice rolls.  The second
 /// two are based on measurables and past actions, so the AI can use them to
 /// determine what other players (including the human player) are doing.
 bool CvPlayerAI::AI_isDoVictoryStrategy(int iVictoryStrategy) const
@@ -21946,7 +24428,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 			// K-Mod. Paranoia gets scaled by relative power anyway...
 			iTempParanoia += std::max(0, iAttitudeWarProb/2);
 			/*  <advc.022> This is about us attacking someone (not relevant for
-				Paranoia, but for Dagger, so our attitude should be used.
+				Paranoia, but for Dagger), so our attitude should be used.
 				K-Mod already did that, but iAttitudeWarProb now refers to
 				kLoopPlayer. */
 			//if (iAttitudeWarProb > 10 && iCloseness > 0)
@@ -22740,65 +25222,65 @@ void CvPlayerAI::AI_nowHasTech(TechTypes eTech)
 }
 
 
-int CvPlayerAI::AI_countDeadlockedBonuses(CvPlot* pPlot) const
+int CvPlayerAI::AI_countDeadlockedBonuses(CvPlot const* pPlot) const
 {
     CvPlot* pLoopPlot;
-    CvPlot* pLoopPlot2;
-    int iDX, iDY;
-    int iI;
-    
     int iMinRange = GC.getMIN_CITY_RANGE();
     int iRange = iMinRange * 2;
     int iCount = 0;
 
-    for (iDX = -(iRange); iDX <= iRange; iDX++)
+    for (int iDX = -(iRange); iDX <= iRange; iDX++)
     {
-        for (iDY = -(iRange); iDY <= iRange; iDY++)
+        for (int iDY = -(iRange); iDY <= iRange; iDY++)
         {
             if (plotDistance(iDX, iDY, 0, 0) > CITY_PLOTS_RADIUS)
             {
                 pLoopPlot = plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
 
                 if (pLoopPlot != NULL)
-                {
-                    if (pLoopPlot->getBonusType(getTeam()) != NO_BONUS)
-                    {
-                        if (!pLoopPlot->isCityRadius() && ((pLoopPlot->area() == pPlot->area()) || pLoopPlot->isWater()))
-                        {
-                            bool bCanFound = false;
-                            bool bNeverFound = true;
-                            //potentially blockable resource
-                            //look for a city site within a city radius
-                            for (iI = 0; iI < NUM_CITY_PLOTS; iI++)
-                            {
-                                pLoopPlot2 = plotCity(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), iI);
-                                if (pLoopPlot2 != NULL)
-                                {
-                                    //canFound usually returns very quickly
-                                    if (canFound(pLoopPlot2->getX_INLINE(), pLoopPlot2->getY_INLINE(), false))
-                                    {
-                                        bNeverFound = false;
-                                        if (stepDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pLoopPlot2->getX_INLINE(), pLoopPlot2->getY_INLINE()) > iMinRange)
-                                        {
-                                            bCanFound = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                            if (!bNeverFound && !bCanFound)
-                            {
-                                iCount++;
-                            }
-                        }
-                    }
+                {	// <advc.003> Code moved into subroutine
+					if(AI_isDeadlockedBonus(*pLoopPlot, *pPlot, iMinRange))
+						iCount++; // </advc.003>
                 }
             }
         }
     }
-    
     return iCount;
 }
+
+
+/*  <advc.003> Cut, pasted and refactored from AI_countDeadlockedBonuses.
+	(I mistakenly thought I needed this for advc.052.) */
+bool CvPlayerAI::AI_isDeadlockedBonus(CvPlot const& p, CvPlot const& cityPlot,
+		int iMinRange) const {
+
+	if(p.getBonusType(getTeam()) == NO_BONUS || p.isCityRadius())
+		return false;
+	if((p.area() != cityPlot.area()) && !p.isWater())
+		return false;
+	bool bCanFound = false;
+	bool bNeverFound = true;
+	//look for a city site [cityPlot2] within a city radius [around p]
+	for(int i = 0; i < NUM_CITY_PLOTS; i++) {
+		CvPlot* pp = plotCity(p.getX_INLINE(), p.getY_INLINE(), i);
+		if(pp == NULL ||
+				// advc.031: Don't want to settle on top of the bonus
+				i == CITY_HOME_PLOT)
+			continue;
+		CvPlot const& cityPlot2 = *pp;
+		//canFound usually returns very quickly
+		if(canFound(cityPlot2.getX_INLINE(), cityPlot2.getY_INLINE(), false)) {
+			bNeverFound = false;
+			if(stepDistance(cityPlot.getX_INLINE(), cityPlot.getY_INLINE(),
+					cityPlot2.getX_INLINE(), cityPlot2.getY_INLINE()) >
+					iMinRange) {
+				bCanFound = true;
+				break;
+			}
+		}
+	}
+	return (!bNeverFound && !bCanFound);
+} // </advc.003>
 
 // K-Mod. This function use to be the bulk of AI_goldToUpgradeAllUnits()
 void CvPlayerAI::AI_updateGoldToUpgradeAllUnits()
@@ -22952,10 +25434,11 @@ int CvPlayerAI::AI_estimateBreakEvenGoldPercent() const
 int CvPlayerAI::AI_goldTradeValuePercent() const
 {
 	int iValue = 2;
-	if (AI_isFinancialTrouble())
+	// advc.036: Commented out
+	/*if (AI_isFinancialTrouble())
 	{
 		iValue += 1;
-	}
+	}*/
 	return 100 * iValue;
 	
 }
@@ -23175,7 +25658,10 @@ void CvPlayerAI::AI_convertUnitAITypesForCrush()
 			|| pLoopUnit->AI_isCityAIType() && (pLoopUnit->getExtraCityDefensePercent() <= 0)) */
 		// K-Mod, protective leaders might still want to use their gunpowder units...
 		if (pLoopUnit->AI_getUnitAIType() == UNITAI_RESERVE || pLoopUnit->AI_getUnitAIType() == UNITAI_COLLATERAL
-			|| (pLoopUnit->AI_isCityAIType() && pLoopUnit->getExtraCityDefensePercent() <= 30))
+			|| (pLoopUnit->AI_isCityAIType() && pLoopUnit->getExtraCityDefensePercent()
+					// cdtw:
+					+ pLoopUnit->getUnitInfo().getCityDefenseModifier() / 2
+					<= 30))
 		{
 			bValid = true;
 		}
@@ -23186,7 +25672,8 @@ void CvPlayerAI::AI_convertUnitAITypesForCrush()
 			bValid = false;
 		}*/
 		
-		if (!pLoopUnit->canAttack() || (pLoopUnit->AI_getUnitAIType() == UNITAI_CITY_SPECIAL))
+		if (!pLoopUnit->canAttack() || (pLoopUnit->AI_getUnitAIType() == UNITAI_CITY_SPECIAL)
+				|| ::isMostlyDefensive(pLoopUnit->getUnitInfo())) // advc.315
 		{
 			bValid = false;
 		}
@@ -23404,14 +25891,14 @@ int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea* pArea) const
     if(GC.getGame().isOption(GAMEOPTION_RAGING_BARBARIANS)
             && !GC.getEraInfo(getCurrentEra()).isNoBarbUnits()) {
         int startEra = GC.getGameINLINE().getStartEra();
-        if(iCurrentEra <= 1 + startEra)
+		if(GC.getGameINLINE().getCurrentEra() <= 1 + startEra)
            iDefenders += 1 + startEra;
     }
     /*if ((iCurrentEra < 3) && (GC.getGameINLINE().isOption(GAMEOPTION_RAGING_BARBARIANS)))
     {
         iDefenders += 2;
     }*/ // </advc.107>
-	
+
 	if (getCapitalCity() != NULL)
 	{
 		if (getCapitalCity()->area() != pArea)
@@ -24575,7 +27062,10 @@ int CvPlayerAI::AI_getMinFoundValue() const
 	//int iNetCommerce = 1 + getCommerceRate(COMMERCE_GOLD) + getCommerceRate(COMMERCE_RESEARCH) + std::max(0, getGoldPerTurn());
 	int iNetCommerce = AI_getAvailableIncome(); // K-Mod
 	int iNetExpenses = calculateInflatedCosts() + std::max(0, -getGoldPerTurn());
-
+	/*  <advc.031> Prevent the AI from stopping to expand once corporation
+		maintenance becomes a major factor */
+	iNetExpenses = std::max(0, iNetExpenses -
+			countHeadquarters() * getNumCities() * 4); // </advc.031>
 	iValue *= iNetCommerce;
 	iValue /= std::max(std::max(1, iNetCommerce / 4), iNetCommerce - iNetExpenses);
 
@@ -24606,22 +27096,22 @@ int CvPlayerAI::AI_getMinFoundValue() const
 	iValue += (iNumCitiesPercent * getNumCities() * //60) / 100;
 			/*  advc.130v: We may not be paying much for cities, but our master
 				will have to pay as well. */
-			(60 + (GET_TEAM(getTeam()).isCapitulated() ? 33 : 0))) / 100;
+			// advc.031: Also raise the MinFoundValue a bit overall (60->67)
+			(67 + (GET_TEAM(getTeam()).isCapitulated() ? 33 : 0))) / 100;
 	// K-Mod end
-	
+	// advc.031:
+	iValue = ::round(iValue / std::min(1.0, 1.65 * amortizationMultiplier(15)));
 	return iValue;
 }
 	
 void CvPlayerAI::AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites)
 {
 	// kmodx: redundant code removed
-	int iValue;
-	int iI;
+	int iI=0;
 
 	// K-Mod. Always recommend the starting location on the first turn.
 	// (because we don't have enough information to overrule what the game has cooked for us.)
-	if (
-		isHuman() &&  /* advc.108: OK for recommendations, but allow AI to evaluate
+	if (isHuman() &&  /* advc.108: OK for recommendations, but allow AI to evaluate
 					     plots and settle elsewhere - in principle;
 						 CvUnitAI::AI_settleMove still always settles in the
 						 plot. updateCitySites isn't the place to enforce this
@@ -24647,13 +27137,28 @@ void CvPlayerAI::AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites)
 			CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
 			if (pLoopPlot->isRevealed(getTeam(), false))
 			{
-				iValue = pLoopPlot->getFoundValue(getID());
+				int iValue = pLoopPlot->getFoundValue(getID());
 				if (iValue > iMinFoundValueThreshold)
-				{
+				{	// <advc.052>
+					if(!isHuman() && GC.getGameINLINE().isScenario()) {
+						// Randomly change the value by +/- 1.5%
+						double const plusMinus = 0.015;
+						std::vector<long> hashInput;
+						/*  Base the random multiplier on a number that is unique
+							per game, but doesn't change throughout a game. */
+						hashInput.push_back(GC.getGameINLINE().getSorenRand().
+								getSeed());
+						hashInput.push_back(pLoopPlot->getX_INLINE());
+						hashInput.push_back(pLoopPlot->getY_INLINE());
+						hashInput.push_back(getID());
+						double randMult = 1 - plusMinus + 2 * plusMinus *
+								::hash(hashInput);
+						iValue = ::round(iValue * randMult);
+					} // </advc.052>
 					if (!AI_isPlotCitySite(pLoopPlot))
 					{
-						iValue *= std::min(NUM_CITY_PLOTS * 2, pLoopPlot->area()->getNumUnownedTiles());					
-
+						iValue *= std::min(NUM_CITY_PLOTS * 2,
+								pLoopPlot->area()->getNumUnownedTiles());
 						if (iValue > iBestFoundValue)
 						{
 							iBestFoundValue = iValue;
@@ -24909,7 +27414,9 @@ int CvPlayerAI::AI_bestCityUnitAIValue(UnitAITypes eUnitAI, CvCity* pCity, UnitT
 		{
 			//if (!isHuman() || (GC.getUnitInfo(eLoopUnit).getDefaultUnitAIType() == eUnitAI)) // disabled by K-Mod
 			{
-				if (NULL == pCity ? canTrain(eLoopUnit) : pCity->canTrain(eLoopUnit))
+				if (NULL == pCity ? (canTrain(eLoopUnit)
+						&& AI_haveResourcesToTrain(eLoopUnit)) : // k146
+						pCity->canTrain(eLoopUnit))
 				{
 					iValue = AI_unitValue(eLoopUnit, eUnitAI, (pCity == NULL) ? NULL : pCity->area());
 					if (iValue > iBestValue)
@@ -24968,9 +27475,20 @@ int CvPlayerAI::AI_calculateTotalBombard(DomainTypes eDomain) const
 void CvPlayerAI::AI_updateBonusValue(BonusTypes eBonus)
 {
 	FAssert(m_aiBonusValue != NULL);
-
-	//reset
-    m_aiBonusValue[eBonus] = -1;
+	/*  <advc.036> Don't just reset; recompute them all, and never update the
+		cache in AI_baseBonusVal. This should make sure we're not getting OOS. */
+	if(GC.getGameINLINE().isNetworkMultiPlayer()) {
+		m_aiBonusValue[eBonus] = AI_baseBonusVal(eBonus);
+		m_aiBonusValueTrade[eBonus] = AI_baseBonusVal(eBonus, true);
+	} else { // Reset and update on demand is faster
+	/*  Tbd.: Could lead to undesirable side-effects in singleplayer, and
+		the multiplayer code is perhaps not just slower, but also less
+		accurate. Implement a bConstCache param for AI_baseBonusVal?
+		Would have to add the param to AI_bonusVal and AI_corporationValue too. */
+	// </advc.036>
+		m_aiBonusValue[eBonus] = -1;
+		m_aiBonusValueTrade[eBonus] = -1;
+	}
 }
 
 void CvPlayerAI::AI_updateBonusValue()
@@ -25041,6 +27559,10 @@ void CvPlayerAI::AI_doEnemyUnitData()
 						if ((pLoopPlot->getOwnerINLINE() == getID()))
 						{
 							iUnitValue += 15;
+							// <cdtw> try a little harder to counter city attack units
+							if(pLoopUnit->combatLimit() == GC.getMAX_HIT_POINTS())
+								iUnitValue += pLoopUnit->cityAttackModifier() / 10;
+							// </cdtw>
 						}
 						else if (atWar(getTeam(), pLoopPlot->getTeam()))
 						{
@@ -25056,10 +27578,15 @@ void CvPlayerAI::AI_doEnemyUnitData()
 					}
 					else if (pLoopUnit->getOwnerINLINE() != getID())
 					{
-						iUnitValue += pLoopUnit->canAttack() ? 4 : 1;
+						int tmp = ((pLoopUnit->canAttack() &&
+								// advc.315:
+								!::isMostlyDefensive(pLoopUnit->getUnitInfo())) ?
+								4 : 1);
+						iUnitValue += tmp;
 						if (pLoopPlot->getCulture(getID()) > 0)
 						{
-							iUnitValue += pLoopUnit->canAttack() ? 4 : 1;
+							//iUnitValue += pLoopUnit->canAttack() ? 4 : 1;
+							iUnitValue += tmp; // advc.315
 						}
 					}
 					
@@ -25639,8 +28166,11 @@ int CvPlayerAI::AI_getHappinessWeight(int iHappy, int iExtraPop, bool bPercent) 
 	int iTotalHappy = 0;
 	int iLoop;
 	CvCity* pLoopCity;
-	int iCount = 0;
-	
+	/*  advc.036: This was counting all our cities except Globe Theater (GT).
+		I think they should all count; happiness in the GT city just won't
+		provide any value. */
+	int iCount = getNumCities();
+
 	if (0 == iHappy)
 	{
 		iHappy = 1;
@@ -25671,7 +28201,16 @@ int CvPlayerAI::AI_getHappinessWeight(int iHappy, int iExtraPop, bool bPercent) 
 		// So lets try it my way.
 		if (pLoopCity->isNoUnhappiness())
 			continue;
-		int iCurrentHappy = 100*(pLoopCity->happyLevel() - pLoopCity->unhappyLevel(iExtraPop));
+		/*  <advc.036> By the time iExtraPop matters, the espionage effect will
+			be gone. */
+		if(iExtraPop > 0) {
+			iExtraPop = std::max(0, iExtraPop -
+					pLoopCity->getEspionageHappinessCounter() / 2);
+		} // </advc.036>
+		int iCurrentHappy = 100*(pLoopCity->happyLevel() - pLoopCity->unhappyLevel(iExtraPop)
+				/*  advc.036: Subtract half the anger from espionage b/c it is
+					fleeting */
+				+ pLoopCity->getEspionageHappinessCounter() / 2);
 		// I'm only going to subtract half of the commerce happiness, because we might not be using that commerce for only happiness.
 		iCurrentHappy -= 50*std::max(0, pLoopCity->getCommerceHappiness());
 		int iTestHappy = iCurrentHappy +
@@ -25680,8 +28219,12 @@ int CvPlayerAI::AI_getHappinessWeight(int iHappy, int iExtraPop, bool bPercent) 
 		// a small bonus for happiness beyond what we need
 		iValue += 100*(std::max(0, iTestHappy) - std::max(0, iCurrentHappy))/(400 + std::max(0, iTestHappy) + std::max(0, iCurrentHappy));
 		// K-Mod end
-		
-		iCount++;
+		/*  <advc.036> A little extra when unhappiness is very high because that
+			may lead to good tiles not getting worked. */
+		// Not sure how bPercent works; better exclude that.
+		if(iCurrentHappy < 0 && !bPercent)
+			iValue += ::round(std::pow(-iCurrentHappy/100 - 1.0 - iExtraPop, 1.5));
+		// </advc.036>
 		/* original bts code - (huh?)
 		if (iCount > 6)
 		{
@@ -25700,8 +28243,7 @@ int CvPlayerAI::AI_getHealthWeight(int iHealth, int iExtraPop, bool bPercent) co
 	int iTotalHealth = 0;
 	int iLoop;
 	CvCity* pLoopCity;
-	int iCount = 0;
-	
+	int iCount = getNumCities(); // advc.036: See AI_getHappinessWeight
 	if (0 == iHealth)
 	{
 		iHealth = 1;
@@ -25709,34 +28251,29 @@ int CvPlayerAI::AI_getHealthWeight(int iHealth, int iExtraPop, bool bPercent) co
 	int iValue = 0;
 	for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
-		/* original bts code
-		int iCityHealth = pLoopCity->goodHealth() - pLoopCity->badHealth(false, iExtraPop);
-		
-		int iHealthNow = iCityHealth;
-		int iHealthThen = iCityHealth +
-			(bPercent ? ROUND_DIVIDE(pLoopCity->getPopulation()*iHealth, 100) : iHealth);
-		
-		//Integration
-		int iTempValue = (((100 * iHealthThen - 6 * iHealthThen * iHealthThen)) - (100 * iHealthNow - 6 * iHealthNow * iHealthNow));
-		if (iHealth > 0)
-		{
-			iValue += std::max(0, iTempValue);
-		}
-		else
-		{
-			iValue += std::min(0, iTempValue);
-		} */
-
+		// original bts code: [...] deleted (advc)
+		// <advc.036> See HappinessWeight
+		if(iExtraPop > 0) {
+			iExtraPop = std::max(0, iExtraPop -
+					pLoopCity->getEspionageHealthCounter() / 2);
+		} // </advc.036>
 		// K-Mod. Changed to match the happiness function.
-		int iCurrentHealth = 100*(pLoopCity->goodHealth() - pLoopCity->badHealth(false, iExtraPop));
+		int iCurrentHealth = 100*(pLoopCity->goodHealth() - pLoopCity->badHealth(false, iExtraPop)
+				/*  advc.036: Subtract half the bad health from espionage b/c
+					it is fleeting */
+				+ pLoopCity->getEspionageHealthCounter() / 2);
 		int iTestHealth = iCurrentHealth +
 			(bPercent ? ((pLoopCity->getPopulation()+iExtraPop)*iHealth) : 100 * iHealth);
-		iValue += std::max(0, -iCurrentHealth) - std::max(0, -iTestHealth); // change in the number of angry citizens
-		// a small bonus for happiness beyond what we need
+		iValue += std::max(0, -iCurrentHealth) - std::max(0, -iTestHealth); // change in the number of unhealthy citizens
+		// a small bonus for health beyond what we need
 		iValue += 100*(std::max(0, iTestHealth) - std::max(0, iCurrentHealth))/(400 + std::max(0, iTestHealth) + std::max(0, iCurrentHealth));
 		// K-Mod end
-
-		iCount++;
+		/*  <advc.036> A little extra when health is very poor because that may
+			well lead to population loss and good tiles not getting worked. */
+		// Not sure how bPercent works; better exclude that.
+		if(iCurrentHealth < 0 && !bPercent)
+			iValue += ::round(std::pow(-iCurrentHealth/100 - 1.0 - iExtraPop, 1.5));
+		// </advc.036>
 		/* original bts code
 		if (iCount > 6)
 		{
@@ -25785,19 +28322,22 @@ bool CvPlayerAI::AI_isPlotThreatened(CvPlot* pPlot, int iRange, bool bTestMoves)
 			CvPlot* pLoopPlot = plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
 
 			if (pLoopPlot != NULL)
-			{
-				if (pLoopPlot->area() == pPlotArea)
+			{	// <advc.030>
+				CvArea const& fromArea = *pLoopPlot->area();
+				if(pPlotArea->canBeEntered(fromArea)) // Replacing:
+				//if (pLoopPlot->area() == pPlotArea) // </advc.030>
 				{
 					for (CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode(); pUnitNode != NULL; pUnitNode = pLoopPlot->nextUnitNode(pUnitNode))
 					{
 						CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-						if (pLoopUnit->isEnemy(getTeam()) && pLoopUnit->canAttack() && !pLoopUnit->isInvisible(getTeam(), false))
-						{
+						if (pLoopUnit->isEnemy(getTeam()) &&
+								// advc.315: was pLoopUnit->canAttack()
+								canBeAttackedBy(*pLoopUnit) &&
+								!pLoopUnit->isInvisible(getTeam(), false))
+						{ /* advc.030, advc.001k: Replacing the line below
+							 (which calls isMadeAttack) */
+							if(pPlotArea->canBeEntered(fromArea, pLoopUnit))
 							//if (pLoopUnit->canMoveOrAttackInto(pPlot))
-							/*  <advc.001k> Replacing the above
-								(which calls isMadeAttack) */
-							if((pLoopUnit->getDomainType() == DOMAIN_SEA) ==
-									pPlot->isWater()) // </advc.001k>
 							{
 								int iPathTurns = 0;
 								if (bTestMoves)
@@ -25830,6 +28370,21 @@ bool CvPlayerAI::AI_isPlotThreatened(CvPlot* pPlot, int iRange, bool bTestMoves)
 
 	return false;
 }
+
+// <advc.315>
+bool CvPlayerAI::canBeAttackedBy(CvUnit const& u) const {
+
+	if(!u.canAttack() ||
+			/*  advc.315a: Since animals don't worry about being attacked,
+				OnlyAttackAnimals can be treated like !canAttack here. */
+			u.getUnitInfo().isOnlyAttackAnimals())
+		return false;
+	// <advc.315b>
+	if(isBarbarian())
+		return true;
+	return !u.getUnitInfo().isOnlyAttackBarbarians();
+	// </advc.315b>
+} // </advc.315>
 
 bool CvPlayerAI::AI_isFirstTech(TechTypes eTech) const
 {
@@ -25874,6 +28429,68 @@ void CvPlayerAI::AI_ClearConstructionValueCache()
 	}
 }
 // K-Mod end
+/*  <k146> Check that we have the required bonuses to train the given unit.
+	This isn't for any particular city. It's just a rough guide for whether or
+	not we could build the unit. */
+bool CvPlayerAI::AI_haveResourcesToTrain(UnitTypes eUnit) const
+{
+	FASSERT_BOUNDS(0, GC.getNumUnitInfos(), eUnit, "CvPlayer::haveResourcesToTrain");
+
+	const CvUnitInfo& kUnit = GC.getUnitInfo(eUnit);
+	//const CvTeam& kTeam = GET_TEAM(getTeam());
+
+	// "and" bonus
+	BonusTypes ePrereqBonus = (BonusTypes)kUnit.getPrereqAndBonus();
+	if (ePrereqBonus != NO_BONUS)
+	{
+		if (!hasBonus(ePrereqBonus) && countOwnedBonuses(ePrereqBonus) == 0)
+		{
+			return false;
+		}
+	}
+
+	// "or" bonuses
+	bool bMissingBonus = false;
+	for (int i = 0; i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); ++i)
+	{
+		BonusTypes ePrereqBonus = (BonusTypes)kUnit.getPrereqOrBonuses(i);
+
+		if (ePrereqBonus == NO_BONUS)
+			continue;
+
+		if (hasBonus(ePrereqBonus) || countOwnedBonuses(ePrereqBonus) > 0)
+		{
+			bMissingBonus = false;
+			break;
+		}
+		bMissingBonus = true;
+	}
+
+	return !bMissingBonus;
+} // </k146>
+
+// <advc.033> Are we willing to attack/pillage them with hidden-nationality units
+bool CvPlayerAI::isPiracyTarget(PlayerTypes targetId) const {
+
+	if(targetId == NO_PLAYER) {
+		FAssert(targetId != NO_PLAYER);
+		return false;
+	}
+	if(TEAMID(targetId) == getTeam())
+		return false;
+	if(getID() == BARBARIAN_PLAYER || targetId == BARBARIAN_PLAYER) {
+		/*  Can't plunder Barbs, but this function shouldn't be used for
+			deciding whether to plunder. */
+		return true;
+	}
+	if(TEAMREF(targetId).isAtWar(getTeam()))
+		return true;
+	if(GET_TEAM(getTeam()).isVassal(TEAMID(targetId)) ||
+			TEAMREF(targetId).isVassal(getTeam()))
+		return false;
+	return (AI_getAttitude(targetId) <= GC.getLeaderHeadInfo(getPersonalityType()).
+			getDeclareWarThemRefuseAttitudeThreshold());
+} // </advc.033>
 
 // <advc.130r><advc.130h>
 bool CvPlayerAI::atWarWithPartner(TeamTypes theyId, bool checkPartnerAttacked) const {
@@ -25956,12 +28573,49 @@ bool CvPlayerAI::isDefenseFocusOnBarbarians(int areaId) const {
 	if(ap == NULL) return false; CvArea const& a = *ap;
 	CvGame& g = GC.getGameINLINE();
 	return a.getAreaAIType(getTeam()) != AREAAI_DEFENSIVE &&
-			!AI_isDoStrategy(AI_STRATEGY_ALERT2) &&
-			GC.getGame().isOption(GAMEOPTION_RAGING_BARBARIANS) &&
+			getNumCities() > 1 &&
+			!AI_isDoStrategy(AI_STRATEGY_ALERT1) && !isFocusWar() &&
+			!GC.getGame().isOption(GAMEOPTION_NO_BARBARIANS) &&
 			g.getGameTurn() >= g.getBarbarianStartTurn() &&
 			g.getCurrentEra() < g.getStartEra() + 2;
-		return false;	
 } // </advc.300>
+
+/*  <advc.132> This function is going to overestimate the cost of anarchy
+	when multiple TRADE_CIVIC and TRADE_RELIGION items are on the table.
+	Would have to know the full list of trade items for an accurate cost. */
+int CvPlayerAI::anarchyTradeVal(CivicTypes eCivic) const {
+
+	// This omits food surplus and GPP, but also expenses.
+	double r = estimateYieldRate(YIELD_COMMERCE) +
+			2 * estimateYieldRate(YIELD_PRODUCTION);
+	int anarchyLength = -1;
+	int switchBackAnarchyLength = -1;
+	if(eCivic != NO_CIVIC) {
+		CivicTypes* civics = new CivicTypes[GC.getNumCivicOptionInfos()];
+		for(int i = 0; i < GC.getNumCivicOptionInfos(); i++)
+			civics[i] = getCivics((CivicOptionTypes)i);
+		CivicOptionTypes eOption = (CivicOptionTypes)GC.getCivicInfo(eCivic).getCivicOptionType();
+		if(eOption != NO_CIVICOPTION)
+			civics[eOption] = eCivic;
+		else FAssert(eOption != NO_CIVICOPTION);
+		anarchyLength = getCivicAnarchyLength(civics);
+		switchBackAnarchyLength = getCivicAnarchyLengthBulk(civics, true);
+		SAFE_DELETE_ARRAY(civics);
+	}
+	else {
+		anarchyLength = getReligionAnarchyLength();
+		switchBackAnarchyLength = getReligionAnarchyLengthBulk(true);
+	}
+	/*  Uncertain whether we'll want to switch back; fair chance that it can
+		be piggybacked on another revolution. */
+	r *= (anarchyLength + 0.36 * switchBackAnarchyLength);
+	/*  Going to get only half the trade val as gpt. But we're also going to
+		benefit from denying gold from a competitor. So far, only humans can
+		trade for religion and civics changes, and they're strong competitors.
+		Therefore multiply by a factor smaller than 2. */
+	r *= 1.73;
+	return ::round(r);
+} // </advc.132>
 
 // <advc.104>
 WarAndPeaceAI::Civ& CvPlayerAI::warAndPeaceAI() {

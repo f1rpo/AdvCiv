@@ -106,8 +106,11 @@ public:
 /*                                                                                              */
 /************************************************************************************************/
 	void setHumanDisabled( bool newVal );
-	bool isHumanDisabled( )
-		const; // advc.127: const and exposed to Python
+	bool isHumanDisabled( ) // <advc.127>
+		const; // const and exposed to Python
+	bool isSpectator() const;
+	// Exposed to Python (and only needed there):
+	bool isAutoPlayJustEnded() const; // </advc.127>
 /************************************************************************************************/
 /* AI_AUTO_PLAY_MOD                        END                                                  */
 /************************************************************************************************/
@@ -226,8 +229,11 @@ public:
 	void disband(CvCity* pCity);																																		// Exposed to Python
 
 	bool canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) const;													// Exposed to Python
-	void receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit);															// Exposed to Python
-	void doGoody(CvPlot* pPlot, CvUnit* pUnit);																											// Exposed to Python
+	void receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,															// Exposed to Python
+			bool noRecursion = false); // advc.314
+	void doGoody(CvPlot* pPlot, CvUnit* pUnit,																											// Exposed to Python
+			// advc.314: Set this when rolling an additional outcome
+			GoodyTypes taboo = NO_GOODY);
 
 	DllExport bool canFound(int iX, int iY, bool bTestVisible = false) const;															// Exposed to Python			
 	void found(int iX, int iY);																																			// Exposed to Python			
@@ -312,6 +318,8 @@ public:
 	DllExport int getResearchTurnsLeft(TechTypes eTech, bool bOverflow) const;														// Exposed to Python
 	bool canSeeResearch(PlayerTypes ePlayer) const; // K-Mod, Exposed to Python
 	bool canSeeDemographics(PlayerTypes ePlayer) const; // K-Mod, Exposed to Python
+	// advc.550e; also need it for advc.314
+	bool isSignificantDiscovery(TechTypes eTech) const;
 
 	bool isCivic(CivicTypes eCivic) const;																																// Exposed to Python
 	bool canDoCivics(CivicTypes eCivic) const;																														// Exposed to Python
@@ -335,7 +343,10 @@ public:
 
 	DllExport int getCivicAnarchyLength(CivicTypes* paeNewCivics) const;																	// Exposed to Python
 	DllExport int getReligionAnarchyLength() const;																												// Exposed to Python
-
+	// <advc.132>
+	int getCivicAnarchyLengthBulk(CivicTypes* paeNewCivics, bool ignoreGoldenAge) const;
+	int getReligionAnarchyLengthBulk(bool ignoreGoldenAge) const;
+	// </advc.132>
 	DllExport int unitsRequiredForGoldenAge() const;																											// Exposed to Python
 	int unitsGoldenAgeCapable() const;																																		// Exposed to Python
 	DllExport int unitsGoldenAgeReady() const;																														// Exposed to Python
@@ -374,6 +385,11 @@ public:
 	DllExport bool canDoEspionageMission(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvPlot* pPlot, int iExtraData, const CvUnit* pUnit) const;		// Exposed to Python
 	int getEspionageMissionBaseCost(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvPlot* pPlot, int iExtraData, const CvUnit* pSpyUnit) const;
 	int getEspionageMissionCost(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvPlot* pPlot = NULL, int iExtraData = -1, const CvUnit* pSpyUnit = NULL) const;		// Exposed to Python
+	// <advc.120d> New functions, all exposed to Python
+	TechTypes getStealCostTech(PlayerTypes eTargetPlayer) const;
+	bool canSeeTech(PlayerTypes otherId) const;
+	bool canSpy() const;
+	// </advc.120d>
 	int getEspionageMissionCostModifier(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvPlot* pPlot = NULL, int iExtraData = -1, const CvUnit* pSpyUnit = NULL) const;
 	bool doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, CvPlot* pPlot, int iExtraData, CvUnit* pUnit);
 
@@ -388,6 +404,7 @@ public:
 	bool canSpyBribeUnit(PlayerTypes eTarget, CvUnit& kUnit) const;
 	bool canSpyDestroyBuilding(PlayerTypes eTarget, BuildingTypes eBuilding) const;
 	bool canSpyDestroyProject(PlayerTypes eTarget, ProjectTypes eProject) const;
+	// advc.120d: Exposed to Python
 	int getEspionageGoldQuantity(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvCity* pCity) const; // K-Mod
 
 	DllExport void doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, int iY, int iData, bool bAdd);
@@ -520,7 +537,9 @@ public:
 
 	int getHappyPerMilitaryUnit() const;																																			// Exposed to Python
 	void changeHappyPerMilitaryUnit(int iChange);												
-
+	// <advc.912c>
+	int getLuxuryModifier() const;																																			// Exposed to Python
+	void changeLuxuryModifier(int iChange); // </advc.912c>
 	int getMilitaryFoodProductionCount() const;														
 	bool isMilitaryFoodProduction() const;																																		// Exposed to Python
 	void changeMilitaryFoodProductionCount(int iChange);
@@ -748,15 +767,16 @@ public:
 	void setParent(PlayerTypes eParent);
 	TeamTypes getMasterTeam() const; // advc.003
 	bool isAVassal() const; // advc.003
-	DllExport TeamTypes getTeam() const;																												// Exposed to Python					
-	void setTeam(TeamTypes eTeam);		
+	DllExport TeamTypes getTeam() const;																												// Exposed to Python
+	void setTeam(TeamTypes eTeam);
 	void updateTeamType();
-																																																							
-	DllExport PlayerColorTypes getPlayerColor() const;																								// Exposed to Python									
-	DllExport int getPlayerTextColorR() const;																												// Exposed to Python								
-	DllExport int getPlayerTextColorG() const;																												// Exposed to Python									
-	DllExport int getPlayerTextColorB() const;																												// Exposed to Python									
-	DllExport int getPlayerTextColorA() const;																												// Exposed to Python									
+													
+	DllExport PlayerColorTypes getPlayerColor() const;																								// Exposed to Python
+	DllExport int getPlayerTextColorR() const;																												// Exposed to Python
+	DllExport int getPlayerTextColorG() const;																												// Exposed to Python
+	DllExport int getPlayerTextColorB() const;																												// Exposed to Python
+	DllExport int getPlayerTextColorA() const;																												// Exposed to Python
+	ColorTypes getPlayerTextColor() const; // advc.106
 																																									
 	int getSeaPlotYield(YieldTypes eIndex) const;																											// Exposed to Python
 	void changeSeaPlotYield(YieldTypes eIndex, int iChange);
@@ -923,6 +943,9 @@ public:
 	int getQueuePosition(TechTypes eTech) const;																											// Exposed to Python
 	DllExport void clearResearchQueue();																												// Exposed to Python
 	DllExport bool pushResearch(TechTypes eTech, bool bClear = false);													// Exposed to Python
+	// <advc.004x> Safer not to add a param to DLLExport
+	bool pushResearchBulk(TechTypes eTech, bool bClear = false,
+			bool bKillPopup = true); // </advc.004x>
 	void popResearch(TechTypes eTech);																													// Exposed to Python
 	int getLengthResearchQueue() const;																																// Exposed to Python
 	CLLNode<TechTypes>* nextResearchQueueNode(CLLNode<TechTypes>* pNode) const;
@@ -986,6 +1009,7 @@ public:
 	void clearPopups();
 	DllExport CvPopupInfo* popFrontPopup();
 	DllExport const CvPopupQueue& getPopups() const;
+	void killAll(ButtonPopupTypes bpt, int data1 = -1); // advc.004x
 	DllExport void addDiplomacy(CvDiploParameters* pDiplo);
 	void clearDiplomacy();
 	DllExport const CvDiploQueue& getDiplomacy() const;
@@ -1091,7 +1115,12 @@ public:
 	TeamTypes offeringPeace; bool expectingPeaceOffer;
 	// </advc.134a>
 	void checkAlert(int alertId, bool silent); // advc.210
-
+	// advc.104, advc.038, advc.132; exposed to Python.
+	double estimateYieldRate(YieldTypes yield, int nSamples = 5) const;
+	// <advc.127b> Both return -1 if no capital
+	int getCapitalX() const;
+	int getCapitalY() const;
+	// </advc.127b>
 	DllExport void buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& ourList) const;
 	DllExport bool getHeadingTradeString(PlayerTypes eOtherPlayer, TradeableItems eItem, CvWString& szString, CvString& szIcon) const;
 	DllExport bool getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer, bool bShowingCurrent, const TradeData& zTradeData, CvWString& szString, CvString& szIcon) const;
@@ -1144,9 +1173,11 @@ public:
 	// advc.130o: Removed const qualifier
 	virtual bool AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList, int iChange = 1) = 0;
 	virtual bool AI_counterPropose(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirInventory, CLinkList<TradeData>* pOurInventory, CLinkList<TradeData>* pTheirCounter, CLinkList<TradeData>* pOurCounter) const = 0;
-	virtual int AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled = false) const = 0; // K-Mod added bAssumeEnabled
+	virtual int AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled = false, // K-Mod added bAssumeEnabled
+			bool bTrade = false) const = 0; // advc.036
 	virtual int AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer, int iChange = 0) const = 0;
-	virtual DenialTypes AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer) const = 0;
+	virtual DenialTypes AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
+			int iChange = 0) const = 0; // advc.133
 	virtual int AI_cityTradeVal(CvCity* pCity) const = 0;
 	virtual DenialTypes AI_cityTrade(CvCity* pCity, PlayerTypes ePlayer) const = 0;
 	virtual DenialTypes AI_stopTradingTrade(TeamTypes eTradeTeam, PlayerTypes ePlayer) const = 0;
@@ -1228,6 +1259,7 @@ protected:
 	int m_iExtraUnitCost;
 	int m_iNumMilitaryUnits;
 	int m_iHappyPerMilitaryUnit;
+	int m_iLuxuryModifier; // advc.912c
 	int m_iMilitaryFoodProductionCount;
 	int m_iConscriptCount;
 	int m_iMaxConscript;
@@ -1299,6 +1331,7 @@ protected:
 /*                                                                                              */
 /************************************************************************************************/
 	bool m_bDisableHuman;				// Set to true to disable isHuman() check
+	bool autoPlayJustEnded; // advc.127
 /************************************************************************************************/
 /* AI_AUTO_PLAY_MOD                        END                                                  */
 /************************************************************************************************/
@@ -1394,12 +1427,17 @@ protected:
 
 	WarTradeAlert warTradeAlert; // advc.210a
 	RevoltAlert revoltAlert; // advc.210b
+	BonusThirdPartiesAlert bonusThirdPartiesAlert; // advc.210d
 	// <advc.106b>
 	std::vector<CvTalkingHeadMessage*> majorMsgs;
 	int iNewMessages;
 	void postProcessBeginTurnEvents();
+	int getStartOfTurnMessageLimit() const;
 	// </advc.106b>
-
+	// <advc.106i>
+	bool bSavingReplay;
+	public: void setSavingReplay(bool b); protected:
+	// </advc.106i>
 	CvTurnScoreMap m_mapScoreHistory;
 	CvTurnScoreMap m_mapEconomyHistory;
 	CvTurnScoreMap m_mapIndustryHistory;
@@ -1415,7 +1453,11 @@ protected:
 	void doEvents();
 	void decayBuildProgress(); // advc.011
 	void showForeignPromoGlow(bool b); // advc.002e
-
+	// <advc.314>
+	bool isGoodyTech(TechTypes techId, bool bProgress) const;
+	void addGoodyMsg(CvWString s, CvPlot const& p, TCHAR const* sound);
+	void promoteFreeUnit(CvUnit& u, double pr);
+	// </advc.314>
 	bool checkExpireEvent(EventTypes eEvent, const EventTriggeredData& kTriggeredData) const;
 	void expireEvent(EventTypes eEvent, const EventTriggeredData& kTriggeredData, bool bFail);
 	bool isValidTriggerReligion(const CvEventTriggerInfo& kTrigger, CvCity* pCity, ReligionTypes eReligion) const;

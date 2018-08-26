@@ -21,7 +21,8 @@ public:
 	void reset(int iID = 0, PlayerTypes eFirstPlayer = NO_PLAYER, PlayerTypes eSecondPlayer = NO_PLAYER);
 
 	DllExport void kill(bool bKillTeam = true);
-
+	// advc.036:
+	void killSilent(bool bKillTeam = true, bool bUpdateAttitude = true);
 	void addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* pSecondList, bool bCheckAllowed);
 
 	void doTurn();
@@ -33,16 +34,22 @@ public:
 	bool isVassalDeal() const;
 	bool isUncancelableVassalDeal(PlayerTypes eByPlayer, CvWString* pszReason = NULL) const;
 	DllExport static bool isVassalTributeDeal(const CLinkList<TradeData>* pList);
-
+	/*  advc.003: The above checks if pList contains only TRADE_RESSOURCE items;
+		I need a function that actually checks if this deal is a tribute deal
+		between a vassal and a master.  */
+	bool isVassalTributeDeal() const;
+	bool isDisengage() const; // advc.034
 	DllExport int getID() const;
 	void setID(int iID);
 
 	int getInitialGameTurn() const;
 	void setInitialGameTurn(int iNewValue);
-
+	int getAge() const; // advc.133
 	DllExport PlayerTypes getFirstPlayer() const;
 	DllExport PlayerTypes getSecondPlayer() const;
-
+	// <advc.003>
+	bool isBetween(PlayerTypes civ1, PlayerTypes civ2) const;
+	bool isBetween(TeamTypes t1, TeamTypes t2) const; // </advc.003>
 	void clearFirstTrades();
 	void insertAtEndFirstTrades(TradeData trade);
 	DllExport CLLNode<TradeData>* nextFirstTradesNode(CLLNode<TradeData>* pNode) const;
@@ -83,7 +90,8 @@ public:
 protected:
 
 	bool startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer);
-	void endTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer, bool bTeam);
+	void endTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer, bool bTeam,
+			bool bUpdateAttitude = true); // advc.036
 	// advc.130p:
 	static void addEndTradeMemory(PlayerTypes eFromPlayer, PlayerTypes eToPlayer,
 			TradeableItems dealType);

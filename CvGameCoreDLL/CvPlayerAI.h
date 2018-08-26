@@ -32,6 +32,7 @@ public:
     bool isLonely() const;
 	bool feelsSafe() const;
 	bool isThreatFromMinorCiv() const; // </advc.109>
+	int nukeDangerDivisor() const; // dlph.16
 	// <advc.104>
 	WarAndPeaceAI::Civ& warAndPeaceAI();
 	WarAndPeaceAI::Civ const& warAndPeaceAI() const; // </advc.104>
@@ -112,6 +113,7 @@ public:
 		bool bSeafaring; // special affection for coast cities due to unique building or unit.
 		bool bExpansive; // willing to place cities further apart. (not based on the expansive trait)
 		bool bAllSeeing; // doesn't need vision of a plot to know what's there.
+		bool bDebug; // advc.007: Ignore other city sites; not: AllSeeing
 	};
 	short AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet) const;
 	// K-Mod end
@@ -160,19 +162,21 @@ public:
 	//int AI_goldTarget() const;
 	int AI_goldTarget(bool bUpgradeBudgetOnly = false) const; // K-Mod
 
-	TechTypes AI_bestTech(int iMaxPathLength = 1, bool bIgnoreCost = false, bool bAsync = false, TechTypes eIgnoreTech = NO_TECH, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR) const;
+	TechTypes AI_bestTech(int iMaxPathLength = 1, bool bFreeTech = false, bool bAsync = false, TechTypes eIgnoreTech = NO_TECH, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR) const;
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      03/18/10                                jdog5000      */
 /*                                                                                              */
 /* Tech AI                                                                                      */
 /************************************************************************************************/
-	int AI_techValue(TechTypes eTech, int iPathLength, bool bIgnoreCost, bool bAsync, const std::vector<int>& viBonusClassRevealed, const std::vector<int>& viBonusClassUnrevealed, const std::vector<int>& viBonusClassHave) const;
+	int AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech, bool bAsync, const std::vector<int>& viBonusClassRevealed, const std::vector<int>& viBonusClassUnrevealed, const std::vector<int>& viBonusClassHave) const;
 	int AI_obsoleteBuildingPenalty(TechTypes eTech, bool bConstCache) const; // K-Mod
 	int AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bEnablesWonder) const; // Rewritten for K-Mod
 	int AI_techUnitValue( TechTypes eTech, int iPathLength, bool &bEnablesUnitWonder ) const;
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
+	// k146:
+	int AI_techProjectValue(TechTypes eTech, int iPathLength, bool &bEnablesProjectWonder) const;
 	int AI_cultureVictoryTechValue(TechTypes eTech) const;
 
 	void AI_chooseFreeTech();
@@ -193,7 +197,8 @@ public:
 	int AI_getAttitudeVal(PlayerTypes ePlayer, bool bForced = true) const;
 	static AttitudeTypes AI_getAttitudeFromValue(int iAttitudeVal);
 
-	int AI_calculateStolenCityRadiusPlots(PlayerTypes ePlayer) const;
+	int AI_calculateStolenCityRadiusPlots(PlayerTypes ePlayer,
+			bool onlyNonWorkable = false) const; // advc.147
 	void AI_updateCloseBorderAttitudeCache(); // K-Mod
 	void AI_updateCloseBorderAttitudeCache(PlayerTypes ePlayer); // K-Mod
 	int AI_getCloseBordersAttitude(PlayerTypes ePlayer) const;
@@ -238,36 +243,47 @@ public:
 	bool AI_goldDeal(const CLinkList<TradeData>* pList) const;
 	bool isAnnualDeal(CLinkList<TradeData> const& itemList) const; // advc.705
 	/*  advc.130o: Removed const qualifier - function may now change diplo memory.
-		Note that this function, despite lacking the DLLEport macro, gets called
-		directly from Civ4BeyondSword.exe.
-		Changing const-ness of such functions can cause problems, but fortunately
-		doesn't appear to in this case. (Well, could always cast it away in
-		the body.) */
+		While this function lacks the DLLExport macro, it still gets called from
+		outside the SDK. Changing const-ness seems to be OK. */
 	bool AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList, int iChange = 1);
+	// <advc.133> Adding a param causes problems though, so ...
+	bool AI_considerOfferBulk(PlayerTypes ePlayer,
+			CLinkList<TradeData> const* pTheirList,
+			CLinkList<TradeData> const* pOurList,
+			int iChange = 1, int dealAge = 0); // </advc.133>
 	double prDenyHelp() const; // advc.144
 	bool AI_counterPropose(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirInventory, CLinkList<TradeData>* pOurInventory, CLinkList<TradeData>* pTheirCounter, CLinkList<TradeData>* pOurCounter) const;
 	int AI_tradeAcceptabilityThreshold(PlayerTypes eTrader) const; // K-Mod
 	// advc.132:
 	bool checkCivicReligionConsistency(CLinkList<TradeData> const* tradeItems) const;
-
+	// <advc.036>
+	bool checkResourceLimits(CLinkList<TradeData> const* weGive,
+			CLinkList<TradeData> const* theyGive, PlayerTypes theyId,
+			int iChange) const; // </advc.036>
+	// advc.003 (comment): These two are exposed to Python
 	DllExport int AI_maxGoldTrade(PlayerTypes ePlayer) const;
-
 	DllExport int AI_maxGoldPerTurnTrade(PlayerTypes ePlayer) const;
 	int AI_goldPerTurnTradeVal(int iGoldPerTurn) const;
 	// <advc.026>
 	int maxGoldTradeGenerous(PlayerTypes theyId) const;
 	int maxGoldPerTurnTradeGenerous(PlayerTypes theyId) const;
 	// </advc.026>
-	int AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled = false) const; // K-Mod added bAssumeEnabled
-	int AI_baseBonusVal(BonusTypes eBonus) const;
+	int AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled = false, // K-Mod added bAssumeEnabled
+			// advc.036: Whether baseBonusVal is computed for a resource trade
+			bool bTrade = false) const;
+	int AI_baseBonusVal(BonusTypes eBonus,
+			bool bTrade = false) const; // advc.036
 	int AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer, int iChange) const;
-	DenialTypes AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer) const;
+	DenialTypes AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
+			int iChange = 0) const; // advc.133
+	// advc.210e: Exposed to Python
 	int AI_corporationBonusVal(BonusTypes eBonus) const;
 
 	int AI_cityTradeVal(CvCity* pCity) const;
 	DenialTypes AI_cityTrade(CvCity* pCity, PlayerTypes ePlayer) const;
 
-	int AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer) const;
+	int AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer,
+			bool bWarTrade = false) const; // advc.104o
 	DenialTypes AI_stopTradingTrade(TeamTypes eTradeTeam, PlayerTypes ePlayer) const;
 
 	int AI_civicTradeVal(CivicTypes eCivic, PlayerTypes ePlayer) const;
@@ -367,7 +383,7 @@ public:
 
 	int AI_getSameReligionCounter(PlayerTypes eIndex) const;
 	void AI_changeSameReligionCounter(PlayerTypes eIndex, int iChange);
-
+	
 	int AI_getDifferentReligionCounter(PlayerTypes eIndex) const;
 	void AI_changeDifferentReligionCounter(PlayerTypes eIndex, int iChange);
 
@@ -386,7 +402,12 @@ public:
 		on EnemyTrade and EnemyGrant values. These here are simple setters. */
 	void AI_setPeacetimeTradeValue(PlayerTypes eIndex, int iVal);
 	void AI_setPeacetimeGrantValue(PlayerTypes eIndex, int iVal);
-	// </advc.130p>
+	// </advc.130p><advc.130k> To make exponential decay more convenient
+	void AI_setSameReligionCounter(PlayerTypes eIndex, int iValue);
+	void AI_setDifferentReligionCounter(PlayerTypes eIndex, int iValue);
+	void AI_setFavoriteCivicCounter(PlayerTypes eIndex, int iValue);
+	void AI_setBonusTradeCounter(PlayerTypes eIndex, int iValue);
+	// </advc.130k>
 	int AI_getGoldTradedTo(PlayerTypes eIndex) const;
 	void AI_changeGoldTradedTo(PlayerTypes eIndex, int iChange);
 
@@ -404,7 +425,6 @@ public:
 	void AI_changeMemoryCount(PlayerTypes eIndex1, MemoryTypes eIndex2, int iChange);
 	// advc.130j: Increases memory count based on current attitude
 	void AI_rememberEvent(PlayerTypes civId, MemoryTypes mem);
-	void rememberWar(PlayerTypes formerEnemyId); // advc.130z
 
 	// K-Mod
 	int AI_getCityTargetTimer() const;
@@ -447,8 +467,10 @@ public:
 
 	void AI_nowHasTech(TechTypes eTech);
 
-	int AI_countDeadlockedBonuses(CvPlot* pPlot) const;
-
+	int AI_countDeadlockedBonuses(CvPlot const* pPlot) const;
+	// <advc.052>
+	bool AI_isDeadlockedBonus(CvPlot const& p, CvPlot const& cityPlot,
+			int iMinRange) const; // </advc.052>
 	//int AI_goldToUpgradeAllUnits(int iExpThreshold = 0) const;
 	// K-Mod
 	inline int AI_getGoldToUpgradeAllUnits() const { return m_iUpgradeUnitsCachedGold; }
@@ -541,6 +563,7 @@ public:
 	bool atWarWithPartner(TeamTypes theyId, bool checkPartnerAttacked = false) const;
 	// advc.001: needed for bNeighbouringReligion in AI_techValue
 	bool AI_hasSharedPrimaryArea(PlayerTypes pId) const;
+	bool proposeResourceTrade(PlayerTypes otherId); // advc.133
 	// <advc.003><advc.104m>
 	bool proposeEmbargo(PlayerTypes humanId);
 	bool contactReligion(PlayerTypes humanId);
@@ -549,8 +572,13 @@ public:
 	// tribute type: 0 for gold, 1 for map, 2 for tech and 3 for bonus resource
 	bool demandTribute(PlayerTypes humanId, int tributeType);
 	// </advc.104m></advc.003>
+	double amortizationMultiplier(int delay) const; // advc.104, advc.031
 	// advc.104r: public, and added parameter
 	void AI_doSplit(bool force = false);
+	double exclusiveRadiusWeight(int dist = -1) const; // advc.099b
+	// k146: Used in conjuction with canTrain
+	bool AI_haveResourcesToTrain(UnitTypes eUnit) const;
+	bool isPiracyTarget(PlayerTypes targetId) const; // advc.033
 	// for serialization
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);
@@ -576,6 +604,24 @@ protected:
 			CLinkList<TradeData>* pTheirInventory, CLinkList<TradeData>* pOurInventory,
 			CLinkList<TradeData>* pTheirCounter, CLinkList<TradeData>* pOurCounter,
 			double leniency) const; // </advc.705>
+	// <advc.003>
+	bool balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInventory,
+			PlayerTypes ePlayer, int& iGreaterVal, int& iSmallerVal,
+			CLinkList<TradeData>* pCounter,
+			CLinkList<TradeData> const* pList,
+			double leniency, // advc.705
+			bool bGenerous,
+			// advc.036:
+			int happyLeft, int healthLeft, int iOtherListLength) const;
+	int checkCancel(CvDeal const& d, PlayerTypes otherId, bool flip);
+	// </advc.003> <advc.036>
+	// advc.026:
+	bool checkMaxGold(CLinkList<TradeData> const& items, PlayerTypes toId) const;
+	int adjustTradeGoldToDiplo(int gold, PlayerTypes civId) const;
+	void foldDeals() const;
+	void foldDeals(CvDeal& d1, CvDeal& d2) const; // </advc.036>
+	int anarchyTradeVal(CivicTypes eCivic = NO_CIVIC) const; // advc.132
+	double bonusImportValue(PlayerTypes fromId) const; // advc.149
 
 	static CvPlayerAI* m_aPlayers;
 
@@ -634,10 +680,11 @@ protected:
 	int* m_aiGoldTradedTo;
 	int* m_aiAttitudeExtra;
 	int* m_aiBonusValue;
+	int* m_aiBonusValueTrade; // advc.036
 	int* m_aiUnitClassWeights;
 	int* m_aiUnitCombatWeights;
 	std::map<UnitClassTypes, int> m_GreatPersonWeights; // K-Mod
-
+	static int const singleBonusTradeTolerance = 20; // advc.036
 	//mutable int* m_aiCloseBordersAttitudeCache;
 	std::vector<int> m_aiCloseBordersAttitudeCache; // K-Mod. (the original system was prone to mistakes.)
 
@@ -665,6 +712,7 @@ protected:
 	double expansionistHate(PlayerTypes civId) const;
 	//void AI_doSplit(); // advc.104r: Moved to public section
 	void AI_doCheckFinancialTrouble();
+	bool canBeAttackedBy(CvUnit const& u) const; // advc.315
 
 	// K-Mod. I've moved the bulk of AI_getStrategyHash into a new function: AI_updateStrategyHash.
 	inline int AI_getStrategyHash() const { return m_iStrategyHash; }

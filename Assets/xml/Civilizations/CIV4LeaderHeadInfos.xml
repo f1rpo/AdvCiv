@@ -342,8 +342,9 @@
 					<iContactRand>250</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -432,6 +433,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -536,7 +541,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -969,8 +974,9 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -1059,6 +1065,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -1163,7 +1173,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -1606,8 +1616,9 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -1696,6 +1707,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -1800,7 +1815,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -2236,8 +2251,9 @@
 					<iContactRand>250</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -2329,8 +2345,12 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
-					<iMemoryRand>0</iMemoryRand>
+					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
 				<!-- advc.143 -->
 				<MemoryDecay>
@@ -2430,7 +2450,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -2871,8 +2891,9 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -2961,6 +2982,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -3065,7 +3090,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -3508,8 +3533,9 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -3598,6 +3624,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -3702,7 +3732,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -4151,8 +4181,9 @@
 					<iContactRand>50</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -4241,6 +4272,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -4345,7 +4380,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -4778,8 +4813,9 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -4868,6 +4904,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -4972,7 +5012,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -5408,8 +5448,9 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -5498,6 +5539,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -5602,7 +5647,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -6048,8 +6093,9 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -6138,6 +6184,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -6242,7 +6292,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -6595,7 +6645,8 @@
 			<iAttackOddsChangeRand>8</iAttackOddsChangeRand>
 			<iWorseRankDifferenceAttitudeChange>-1</iWorseRankDifferenceAttitudeChange>
 			<iBetterRankDifferenceAttitudeChange>1</iBetterRankDifferenceAttitudeChange>
-			<iCloseBordersAttitudeChange>-2</iCloseBordersAttitudeChange>
+			<!-- advc.005a: was -2 -->
+			<iCloseBordersAttitudeChange>-3</iCloseBordersAttitudeChange>
 			<iLostWarAttitudeChange>-1</iLostWarAttitudeChange>
 			<iAtWarAttitudeDivisor>-5</iAtWarAttitudeDivisor>
 			<iAtWarAttitudeChangeLimit>5</iAtWarAttitudeChangeLimit>
@@ -6690,8 +6741,9 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -6780,6 +6832,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -6884,7 +6940,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -7329,8 +7385,9 @@
 					<iContactRand>25</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -7419,6 +7476,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -7523,7 +7584,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -7964,8 +8025,9 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -8054,6 +8116,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -8158,7 +8224,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -8599,8 +8665,9 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -8689,6 +8756,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -8793,7 +8864,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -9232,8 +9303,9 @@
 					<iContactRand>10000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -9322,6 +9394,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -9426,7 +9502,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -9530,6 +9606,9 @@
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryAttitudePercent>-100</iMemoryAttitudePercent>
 				</MemoryAttitudePercent>
+				<!-- advc.003 (comment): No MEMORY_STOPPED_TRADING, nor
+					 DENIED_JOIN_WAR, HIRED_TRADE_EMBARGO, maybe some more
+					 missing. Probably deliberate; treated as 0. -->
 				<!-- advc.143 -->
 				<MemoryAttitudePercent>
 					<MemoryType>MEMORY_CANCELLED_VASSAL_AGREEMENT</MemoryType>
@@ -9839,8 +9918,9 @@
 					<iContactRand>25</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -9929,6 +10009,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -10033,7 +10117,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -10474,8 +10558,9 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -10564,6 +10649,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -10668,7 +10757,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -11100,8 +11189,9 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -11190,6 +11280,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -11294,7 +11388,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -11739,8 +11833,9 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -11829,6 +11924,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -11933,7 +12032,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -12380,8 +12479,9 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -12470,6 +12570,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -12574,7 +12678,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -13012,8 +13116,9 @@
 					<iContactRand>250</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -13102,6 +13207,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -13206,7 +13315,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -13645,8 +13754,9 @@
 					<iContactRand>50</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -13735,6 +13845,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -13839,7 +13953,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -14291,8 +14405,9 @@
 					<iContactRand>50</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -14381,6 +14496,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -14485,7 +14604,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -14930,8 +15049,9 @@
 					<iContactRand>50</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -15020,6 +15140,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -15124,7 +15248,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -15560,8 +15684,9 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -15650,6 +15775,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -15754,7 +15883,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -16190,8 +16319,9 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -16280,6 +16410,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -16384,7 +16518,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -16825,8 +16959,9 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -16915,6 +17050,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -17019,7 +17158,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -17464,8 +17603,9 @@
 					<iContactRand>50</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -17554,6 +17694,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -17658,7 +17802,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -18090,8 +18234,9 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -18180,6 +18325,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -18284,7 +18433,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -18634,7 +18783,8 @@
 			<iAttackOddsChangeRand>8</iAttackOddsChangeRand>
 			<iWorseRankDifferenceAttitudeChange>0</iWorseRankDifferenceAttitudeChange>
 			<iBetterRankDifferenceAttitudeChange>0</iBetterRankDifferenceAttitudeChange>
-			<iCloseBordersAttitudeChange>-2</iCloseBordersAttitudeChange>
+			<!-- advc.005a: was -2 -->
+			<iCloseBordersAttitudeChange>-3</iCloseBordersAttitudeChange>
 			<iLostWarAttitudeChange>-1</iLostWarAttitudeChange>
 			<iAtWarAttitudeDivisor>-5</iAtWarAttitudeDivisor>
 			<iAtWarAttitudeChangeLimit>5</iAtWarAttitudeChangeLimit>
@@ -18729,8 +18879,9 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -18819,6 +18970,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -18923,7 +19078,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -19364,8 +19519,9 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -19454,6 +19610,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -19558,7 +19718,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -20005,8 +20165,9 @@
 					<iContactRand>25</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -20095,6 +20256,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -20199,7 +20364,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -20639,8 +20804,9 @@
 					<iContactRand>25</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -20729,6 +20895,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -20833,7 +21003,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -21278,8 +21448,9 @@
 					<iContactRand>250</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -21368,6 +21539,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -21472,7 +21647,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -21917,8 +22092,9 @@
 					<iContactRand>250</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -22007,6 +22183,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -22111,7 +22291,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -22556,8 +22736,9 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -22646,6 +22827,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -22750,7 +22935,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -23107,7 +23292,8 @@
 			<iAttackOddsChangeRand>8</iAttackOddsChangeRand>
 			<iWorseRankDifferenceAttitudeChange>-1</iWorseRankDifferenceAttitudeChange>
 			<iBetterRankDifferenceAttitudeChange>0</iBetterRankDifferenceAttitudeChange>
-			<iCloseBordersAttitudeChange>-4</iCloseBordersAttitudeChange>
+			<!-- advc.005a: was -4 -->
+			<iCloseBordersAttitudeChange>-3</iCloseBordersAttitudeChange>
 			<iLostWarAttitudeChange>-1</iLostWarAttitudeChange>
 			<iAtWarAttitudeDivisor>-5</iAtWarAttitudeDivisor>
 			<iAtWarAttitudeChangeLimit>5</iAtWarAttitudeChangeLimit>
@@ -23202,8 +23388,9 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -23292,6 +23479,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -23396,7 +23587,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -23830,8 +24021,9 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -23920,6 +24112,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -24024,7 +24220,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -24463,8 +24659,9 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -24553,6 +24750,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -24657,7 +24858,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -25002,7 +25203,8 @@
 			<iAttackOddsChangeRand>8</iAttackOddsChangeRand>
 			<iWorseRankDifferenceAttitudeChange>-1</iWorseRankDifferenceAttitudeChange>
 			<iBetterRankDifferenceAttitudeChange>2</iBetterRankDifferenceAttitudeChange>
-			<iCloseBordersAttitudeChange>-3</iCloseBordersAttitudeChange>
+			<!-- advc.005a: was -3 -->
+			<iCloseBordersAttitudeChange>-2</iCloseBordersAttitudeChange>
 			<iLostWarAttitudeChange>-1</iLostWarAttitudeChange>
 			<iAtWarAttitudeDivisor>-5</iAtWarAttitudeDivisor>
 			<iAtWarAttitudeChangeLimit>5</iAtWarAttitudeChangeLimit>
@@ -25097,8 +25299,9 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -25187,6 +25390,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -25291,7 +25498,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -25731,8 +25938,9 @@
 					<iContactRand>250</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -25821,6 +26029,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -25925,7 +26137,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -26364,8 +26576,9 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -26454,6 +26667,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -26558,7 +26775,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -26997,8 +27214,9 @@
 					<iContactRand>25</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -27087,6 +27305,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -27191,7 +27413,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -27532,7 +27754,8 @@
 			<iAttackOddsChangeRand>8</iAttackOddsChangeRand>
 			<iWorseRankDifferenceAttitudeChange>-3</iWorseRankDifferenceAttitudeChange>
 			<iBetterRankDifferenceAttitudeChange>0</iBetterRankDifferenceAttitudeChange>
-			<iCloseBordersAttitudeChange>-2</iCloseBordersAttitudeChange>
+			<!-- advc.005a: was -2 -->
+			<iCloseBordersAttitudeChange>-3</iCloseBordersAttitudeChange>
 			<iLostWarAttitudeChange>-1</iLostWarAttitudeChange>
 			<iAtWarAttitudeDivisor>-5</iAtWarAttitudeDivisor>
 			<iAtWarAttitudeChangeLimit>5</iAtWarAttitudeChangeLimit>
@@ -27627,8 +27850,9 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -27717,6 +27941,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -27821,7 +28049,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -28273,8 +28501,9 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -28363,6 +28592,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -28467,7 +28700,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -28917,8 +29150,9 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -29007,6 +29241,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -29111,7 +29349,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -29550,8 +29788,9 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>80</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -29640,6 +29879,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -29744,7 +29987,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -30184,8 +30427,9 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -30277,8 +30521,12 @@
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
-					<iMemoryRand>0</iMemoryRand>
+					<iMemoryRand>30</iMemoryRand>
 				</MemoryDecay>
 				<!-- advc.143 -->
 				<MemoryDecay>
@@ -30378,7 +30626,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -30817,8 +31065,9 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -30907,6 +31156,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -31011,7 +31264,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -31142,7 +31395,9 @@
 					<iMemoryAttitudePercent>-100</iMemoryAttitudePercent>
 				</MemoryAttitudePercent>
 				<!-- advc.001g: Deleted duplicates of the next 2 entries.
-					 Using 8 for TRADED_TECH_TO_US (was 10 and 5). -->
+					 Using 8 for TRADED_TECH_TO_US (was 10 and 5).
+					 Also delted duplicate of MEMORY_STOPPED_TRADING
+					 and HIRED_TRADE_EMBARGO. -->
 				<MemoryAttitudePercent>
 					<MemoryType>MEMORY_MADE_DEMAND</MemoryType>
 					<iMemoryAttitudePercent>-100</iMemoryAttitudePercent>
@@ -31155,14 +31410,6 @@
 				<MemoryAttitudePercent>
 					<MemoryType>MEMORY_TRADED_TECH_TO_US</MemoryType>
 					<iMemoryAttitudePercent>8</iMemoryAttitudePercent>
-				</MemoryAttitudePercent>
-				<MemoryAttitudePercent>
-					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
-					<iMemoryAttitudePercent>-100</iMemoryAttitudePercent>
-				</MemoryAttitudePercent>
-				<MemoryAttitudePercent>
-					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
-					<iMemoryAttitudePercent>-100</iMemoryAttitudePercent>
 				</MemoryAttitudePercent>
 				<MemoryAttitudePercent>
 					<MemoryType>MEMORY_VOTED_AGAINST_US</MemoryType>
@@ -31464,8 +31711,9 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -31554,6 +31802,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -31658,7 +31910,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -32118,8 +32370,9 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -32208,6 +32461,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -32312,7 +32569,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -32487,6 +32744,7 @@
 					<iMemoryAttitudePercent>100</iMemoryAttitudePercent>
 				</MemoryAttitudePercent>
 			</MemoryAttitudePercents>
+			<!-- advc.005a: was 80 at PLEASED -->
 			<NoWarAttitudeProbs>
 				<NoWarAttitudeProb>
 					<AttitudeType>ATTITUDE_ANNOYED</AttitudeType>
@@ -32498,7 +32756,7 @@
 				</NoWarAttitudeProb>
 				<NoWarAttitudeProb>
 					<AttitudeType>ATTITUDE_PLEASED</AttitudeType>
-					<iNoWarProb>80</iNoWarProb>
+					<iNoWarProb>90</iNoWarProb>
 				</NoWarAttitudeProb>
 				<NoWarAttitudeProb>
 					<AttitudeType>ATTITUDE_FRIENDLY</AttitudeType>
@@ -32763,8 +33021,9 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.124: was 20 -->
 					<ContactType>CONTACT_OPEN_BORDERS</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>10</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_DEFENSIVE_PACT</ContactType>
@@ -32853,6 +33112,10 @@
 				<!-- advc.130r BEGIN -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_TRADE_EMBARGO</MemoryType>
+					<iMemoryRand>60</iMemoryRand>
+				</MemoryDecay>
+				<MemoryDecay>
+					<MemoryType>MEMORY_STOPPED_TRADING</MemoryType>
 					<iMemoryRand>60</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
@@ -32957,7 +33220,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>25</iMemoryRand>
+					<iMemoryRand>22</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>

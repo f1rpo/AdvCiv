@@ -61,6 +61,7 @@ public:
 	int getNumBonuses(int /*BonusTypes*/ eBonus);
 	int getNumTotalBonuses();
 	int getNumImprovements(int /*ImprovementTypes*/ eImprovement);
+	int getNumHabitableTiles(); // advc.021b
 
 protected:
 

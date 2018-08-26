@@ -309,7 +309,7 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 		if (CyGame().isDebugMode()):
 			self.szDropdownName = self.getWidgetName(self.DEBUG_DROPDOWN_ID)
 			screen.addDropDownBoxGFC(self.szDropdownName, 22, 12, 300, WidgetTypes.WIDGET_GENERAL, -1, -1, FontTypes.GAME_FONT)
-			for j in range(gc.getMAX_PLAYERS()):
+			for j in range(gc.getMAX_CIV_PLAYERS()): # advc.007: excluded barbs
 				if (gc.getPlayer(j).isAlive()):
 					bSelected = False
 					if j == self.iActiveLeader:
@@ -776,13 +776,13 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 		self.nCount = 0
 		self.ltPlayerRelations = [[0] * gc.getMAX_PLAYERS() for i in range (gc.getMAX_PLAYERS())]
 		self.ltPlayerMet = [False] * gc.getMAX_PLAYERS()
-
+		# advc.130v: isCapitulated check added
 		for iLoopPlayer in range(gc.getMAX_PLAYERS()):
 			if (gc.getPlayer(iLoopPlayer).isAlive()
 			and (gc.getTeam(gc.getPlayer(iLoopPlayer).getTeam()).isHasMet(gc.getPlayer(self.iActiveLeader).getTeam())
 			or gc.getGame().isDebugMode())
 			and not gc.getPlayer(iLoopPlayer).isBarbarian()
-			and not gc.getPlayer(iLoopPlayer).isMinorCiv()):
+			and not gc.getPlayer(iLoopPlayer).isMinorCiv() and (not gc.getTeam(gc.getPlayer(iLoopPlayer).getTeam()).isCapitulated() or gc.getPlayer(iLoopPlayer).isHuman())):
 
 #				ExoticForPrint ("Player = %d" % iLoopPlayer)
 				self.ltPlayerMet [iLoopPlayer] = True
@@ -1207,7 +1207,9 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 										 and gc.getTeam(currentPlayer.getTeam()).isHasMet(activePlayer.getTeam()) 
 										 and iLoopPlayer != self.iActiveLeader ):
 				message = ""
-				if ( not gc.getTeam(activePlayer.getTeam()).isTechTrading() and not gc.getTeam(currentPlayer.getTeam()).isTechTrading() ):
+				# advc.120d: Replacing the line below
+				if not activePlayer.canSeeTech(iLoopPlayer):
+				#if ( not gc.getTeam(activePlayer.getTeam()).isTechTrading() and not gc.getTeam(currentPlayer.getTeam()).isTechTrading() ):
 					message = localText.getText("TXT_KEY_FOREIGN_ADVISOR_NO_TECH_TRADING", ())
 
 				self.techIconGrid.appendRow(currentPlayer.getName(), message)

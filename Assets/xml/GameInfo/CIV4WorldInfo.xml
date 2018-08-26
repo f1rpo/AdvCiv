@@ -16,16 +16,21 @@
 			<iTargetNumCities>4</iTargetNumCities>
 			<iNumFreeBuildingBonuses>1</iNumFreeBuildingBonuses>
 			<iBuildingClassPrereqModifier>0</iBuildingClassPrereqModifier>
-			<iMaxConscriptModifier>-50</iMaxConscriptModifier>
-			<iWarWearinessModifier>50</iWarWearinessModifier>
+			<!-- advc.140: was -50 -->
+			<iMaxConscriptModifier>-30</iMaxConscriptModifier>
+			<!-- advc.140: was 37 -->
+			<iWarWearinessModifier>30</iWarWearinessModifier>
 			<iGridWidth>10</iGridWidth>
 			<iGridHeight>6</iGridHeight>
 			<iTerrainGrainChange>-1</iTerrainGrainChange>
 			<iFeatureGrainChange>-1</iFeatureGrainChange>
 			<iResearchPercent>100</iResearchPercent>
-			<iTradeProfitPercent>80</iTradeProfitPercent>
-			<iDistanceMaintenancePercent>50</iDistanceMaintenancePercent>
-			<iNumCitiesMaintenancePercent>45</iNumCitiesMaintenancePercent>
+			<!-- advc.140: was 80 -->
+			<iTradeProfitPercent>70</iTradeProfitPercent>
+			<!-- advc.140: was 50 -->
+			<iDistanceMaintenancePercent>60</iDistanceMaintenancePercent>
+			<!-- advc.140: was 45 -->
+			<iNumCitiesMaintenancePercent>40</iNumCitiesMaintenancePercent>
 			<iColonyMaintenancePercent>67</iColonyMaintenancePercent>
 			<iCorporationMaintenancePercent>400</iCorporationMaintenancePercent>
 			<iNumCitiesAnarchyPercent>11</iNumCitiesAnarchyPercent>
@@ -41,16 +46,21 @@
 			<iTargetNumCities>4</iTargetNumCities>
 			<iNumFreeBuildingBonuses>1</iNumFreeBuildingBonuses>
 			<iBuildingClassPrereqModifier>0</iBuildingClassPrereqModifier>
-			<iMaxConscriptModifier>-25</iMaxConscriptModifier>
-			<iWarWearinessModifier>30</iWarWearinessModifier>
+			<!-- advc.140: was -25 -->
+			<iMaxConscriptModifier>-15</iMaxConscriptModifier>
+			<!-- advc.140: was 30 -->
+			<iWarWearinessModifier>20</iWarWearinessModifier>
 			<iGridWidth>13</iGridWidth>
 			<iGridHeight>8</iGridHeight>
 			<iTerrainGrainChange>-1</iTerrainGrainChange>
 			<iFeatureGrainChange>-1</iFeatureGrainChange>
 			<iResearchPercent>110</iResearchPercent>
-			<iTradeProfitPercent>70</iTradeProfitPercent>
-			<iDistanceMaintenancePercent>60</iDistanceMaintenancePercent>
-			<iNumCitiesMaintenancePercent>40</iNumCitiesMaintenancePercent>
+			<!-- advc.140: was 70 -->
+			<iTradeProfitPercent>63</iTradeProfitPercent>
+			<!-- advc.140: was 60 -->
+			<iDistanceMaintenancePercent>67</iDistanceMaintenancePercent>
+			<!-- advc.140: was 40 -->
+			<iNumCitiesMaintenancePercent>37</iNumCitiesMaintenancePercent>
 			<iColonyMaintenancePercent>60</iColonyMaintenancePercent>
 			<iCorporationMaintenancePercent>200</iCorporationMaintenancePercent>
 			<iNumCitiesAnarchyPercent>10</iNumCitiesAnarchyPercent>
@@ -67,15 +77,19 @@
 			<iNumFreeBuildingBonuses>3</iNumFreeBuildingBonuses>
 			<iBuildingClassPrereqModifier>25</iBuildingClassPrereqModifier>
 			<iMaxConscriptModifier>0</iMaxConscriptModifier>
-			<iWarWearinessModifier>10</iWarWearinessModifier>
+			<!-- advc.140: was 10 -->
+			<iWarWearinessModifier>12</iWarWearinessModifier>
 			<iGridWidth>16</iGridWidth>
 			<iGridHeight>10</iGridHeight>
 			<iTerrainGrainChange>0</iTerrainGrainChange>
 			<iFeatureGrainChange>0</iFeatureGrainChange>
 			<iResearchPercent>120</iResearchPercent>
-			<iTradeProfitPercent>60</iTradeProfitPercent>
-			<iDistanceMaintenancePercent>70</iDistanceMaintenancePercent>
-			<iNumCitiesMaintenancePercent>35</iNumCitiesMaintenancePercent>
+			<!-- advc.140: was 60 -->
+			<iTradeProfitPercent>55</iTradeProfitPercent>
+			<!-- advc.140: was 70 -->
+			<iDistanceMaintenancePercent>75</iDistanceMaintenancePercent>
+			<!-- advc.140: was 35 -->
+			<iNumCitiesMaintenancePercent>34</iNumCitiesMaintenancePercent>
 			<iColonyMaintenancePercent>52</iColonyMaintenancePercent>
 			<iCorporationMaintenancePercent>150</iCorporationMaintenancePercent>
 			<iNumCitiesAnarchyPercent>9</iNumCitiesAnarchyPercent>
@@ -90,18 +104,27 @@
 			<iDefaultPlayers>8</iDefaultPlayers>
 			<iUnitNameModifier>20</iUnitNameModifier>
 			<iTargetNumCities>5</iTargetNumCities>
-			<iNumFreeBuildingBonuses>5</iNumFreeBuildingBonuses>
-			<iBuildingClassPrereqModifier>50</iBuildingClassPrereqModifier>
-			<iMaxConscriptModifier>25</iMaxConscriptModifier>
-			<iWarWearinessModifier>-10</iWarWearinessModifier>
+			<!-- advc.140: was 5 -->
+			<iNumFreeBuildingBonuses>4</iNumFreeBuildingBonuses>
+			<!-- advc.054: Was 50. Doesn't actually make a difference b/c of
+				 rounding and b/c the base number of req. buildings is always
+				 1, 2 or 4 (never 3). -->
+			<iBuildingClassPrereqModifier>38</iBuildingClassPrereqModifier>
+			<!-- advc.140: was 25 -->
+			<iMaxConscriptModifier>15</iMaxConscriptModifier>
+			<!-- advc.140: was -10 -->
+			<iWarWearinessModifier>0</iWarWearinessModifier>
 			<iGridWidth>21</iGridWidth>
 			<iGridHeight>13</iGridHeight>
 			<iTerrainGrainChange>0</iTerrainGrainChange>
 			<iFeatureGrainChange>0</iFeatureGrainChange>
 			<iResearchPercent>130</iResearchPercent>
-			<iTradeProfitPercent>50</iTradeProfitPercent>
-			<iDistanceMaintenancePercent>80</iDistanceMaintenancePercent>
-			<iNumCitiesMaintenancePercent>30</iNumCitiesMaintenancePercent>
+			<!-- advc.140: was 50 -->
+			<iTradeProfitPercent>48</iTradeProfitPercent>
+			<!-- advc.140: was 80 -->
+			<iDistanceMaintenancePercent>82</iDistanceMaintenancePercent>
+			<!-- advc.140: was 30 -->
+			<iNumCitiesMaintenancePercent>31</iNumCitiesMaintenancePercent>
 			<iColonyMaintenancePercent>45</iColonyMaintenancePercent>
 			<iCorporationMaintenancePercent>100</iCorporationMaintenancePercent>
 			<iNumCitiesAnarchyPercent>8</iNumCitiesAnarchyPercent>
@@ -115,19 +138,25 @@
 			<iDefaultPlayers>11</iDefaultPlayers>
 			<iUnitNameModifier>10</iUnitNameModifier>
 			<iTargetNumCities>6</iTargetNumCities>
-			<iNumFreeBuildingBonuses>6</iNumFreeBuildingBonuses>
-			<iBuildingClassPrereqModifier>75</iBuildingClassPrereqModifier>
-			<iMaxConscriptModifier>50</iMaxConscriptModifier>
-			<iWarWearinessModifier>-30</iWarWearinessModifier>
+			<!-- advc.140: was 6 -->
+			<iNumFreeBuildingBonuses>5</iNumFreeBuildingBonuses>
+			<!-- advc.054: was 75 -->
+			<iBuildingClassPrereqModifier>50</iBuildingClassPrereqModifier>
+			<!-- advc.140: was 50 -->
+			<iMaxConscriptModifier>30</iMaxConscriptModifier>
+			<!-- advc.140: was -30 -->
+			<iWarWearinessModifier>-13</iWarWearinessModifier>
 			<iGridWidth>26</iGridWidth>
 			<iGridHeight>16</iGridHeight>
 			<iTerrainGrainChange>1</iTerrainGrainChange>
 			<iFeatureGrainChange>1</iFeatureGrainChange>
-			<!-- advc.137: was 140 -->
-			<iResearchPercent>150</iResearchPercent>
+			<!-- advc.140: was 140 -->
+			<iResearchPercent>148</iResearchPercent>
 			<iTradeProfitPercent>40</iTradeProfitPercent>
-			<iDistanceMaintenancePercent>90</iDistanceMaintenancePercent>
-			<iNumCitiesMaintenancePercent>25</iNumCitiesMaintenancePercent>
+			<!-- advc.140: was 90 -->
+			<iDistanceMaintenancePercent>89</iDistanceMaintenancePercent>
+			<!-- advc.140: was 25 -->
+			<iNumCitiesMaintenancePercent>28</iNumCitiesMaintenancePercent>
 			<iColonyMaintenancePercent>37</iColonyMaintenancePercent>
 			<iCorporationMaintenancePercent>75</iCorporationMaintenancePercent>
 			<iNumCitiesAnarchyPercent>7</iNumCitiesAnarchyPercent>
@@ -142,19 +171,26 @@
 			<iDefaultPlayers>16</iDefaultPlayers>
 			<iUnitNameModifier>0</iUnitNameModifier>
 			<iTargetNumCities>6</iTargetNumCities>
-			<iNumFreeBuildingBonuses>7</iNumFreeBuildingBonuses>
-			<iBuildingClassPrereqModifier>100</iBuildingClassPrereqModifier>
-			<iMaxConscriptModifier>75</iMaxConscriptModifier>
-			<iWarWearinessModifier>-50</iWarWearinessModifier>
+			<!-- advc.140: was 7 -->
+			<iNumFreeBuildingBonuses>6</iNumFreeBuildingBonuses>
+			<!-- advc.054: was 100 -->
+			<iBuildingClassPrereqModifier>75</iBuildingClassPrereqModifier>
+			<!-- advc.140: was 75 -->
+			<iMaxConscriptModifier>45</iMaxConscriptModifier>
+			<!-- advc.140: was -50 -->
+			<iWarWearinessModifier>-25</iWarWearinessModifier>
 			<iGridWidth>32</iGridWidth>
 			<iGridHeight>20</iGridHeight>
 			<iTerrainGrainChange>1</iTerrainGrainChange>
 			<iFeatureGrainChange>1</iFeatureGrainChange>
-			<!-- advc.137: was 150 -->
-			<iResearchPercent>170</iResearchPercent>
-			<iTradeProfitPercent>30</iTradeProfitPercent>
-			<iDistanceMaintenancePercent>100</iDistanceMaintenancePercent>
-			<iNumCitiesMaintenancePercent>20</iNumCitiesMaintenancePercent>
+			<!-- advc.140: was 150 -->
+			<iResearchPercent>165</iResearchPercent>
+			<!-- advc.140: was 30 -->
+			<iTradeProfitPercent>33</iTradeProfitPercent>
+			<!-- advc.140: was 100 -->
+			<iDistanceMaintenancePercent>97</iDistanceMaintenancePercent>
+			<!-- advc.140: was 20 -->
+			<iNumCitiesMaintenancePercent>25</iNumCitiesMaintenancePercent>
 			<iColonyMaintenancePercent>30</iColonyMaintenancePercent>
 			<iCorporationMaintenancePercent>50</iCorporationMaintenancePercent>
 			<iNumCitiesAnarchyPercent>6</iNumCitiesAnarchyPercent>

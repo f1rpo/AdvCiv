@@ -138,6 +138,8 @@ void RFTotalScore::updateString() {
 			RiseFall::fillWS(fromVictory), RiseFall::fillWS(fromInitialRank),
 			RiseFall::fillWS(fromRemainingTime), RiseFall::fillWS(fromDifficulty),
 			RiseFall::fillWS(total)));
+	/*  Would be nice to show the Dan Quayle title after the total, but that title
+		is computed in CvDanQuayle.py and can't be accessed from here. */
 	if(GC.getGame().getGameState() == GAMESTATE_EXTENDED) {
 		int normScore = getNormalizedScore();
 		(*breakdownString) += L"\n" + gDLL->getText("TXT_KEY_RF_NORMALIZED",

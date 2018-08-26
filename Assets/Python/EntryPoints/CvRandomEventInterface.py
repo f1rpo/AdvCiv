@@ -345,8 +345,8 @@ def doWeddingFeud3(argsList):
 			popupInfo.addPythonButton(localText.getText("TXT_KEY_POPUP_YES", ()), "")
 			popupInfo.addPythonButton(localText.getText("TXT_KEY_POPUP_NO", ()), "")
 			popupInfo.addPopup(kTriggeredData.eOtherPlayer)
-		else:
-			gc.getTeam(destPlayer.getTeam()).declareWar(player.getTeam(), false, WarPlanTypes.WARPLAN_LIMITED)
+		else: # advc.106g: Let the DLL know that this is through an event
+			gc.getTeam(destPlayer.getTeam()).declareWarEvent(player.getTeam(), false, WarPlanTypes.WARPLAN_LIMITED)
 			
 	return 1
 
@@ -363,7 +363,8 @@ def weddingFeud3Callback(argsList):
 	if iButton == 0:
 		destPlayer = gc.getPlayer(iData1)
 		player = gc.getPlayer(iData2)
-		gc.getTeam(destPlayer.getTeam()).declareWar(player.getTeam(), false, WarPlanTypes.WARPLAN_LIMITED)
+		# advc.106g: Let the DLL know that this is through an event
+		gc.getTeam(destPlayer.getTeam()).declareWarEvent(player.getTeam(), false, WarPlanTypes.WARPLAN_LIMITED)
 	
 	return 0
 

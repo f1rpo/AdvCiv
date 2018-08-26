@@ -111,10 +111,11 @@
 		<Italian>Templi:</Italian>
 		<Spanish>Templos:</Spanish>
 	</TEXT>
+	<!-- advc.004g: was misspelled -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_RELIGIOUS_MONASTARY</Tag>
-		<English>Monastaries:</English>
-		<French>Monastaries:</French>
+		<English>Monasteries:</English>
+		<French>Monasteries:</French>
 		<German>Klöster:</German>
 		<Italian>Monasteri:</Italian>
 		<Spanish>Monasterios:</Spanish>

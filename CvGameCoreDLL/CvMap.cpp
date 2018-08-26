@@ -631,13 +631,13 @@ void CvMap::combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvP
 CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTimeout,
 		int* legalCount) // advc.304
 {
-	CvPlot* pTestPlot;
-	bool bValid;
 	/*  <advc.304> The standard 100 trials for monte-carlo selection often fail to
 		find a plot when only handful of tiles are legal on large maps.
 		10000 trials would probably do, but that isn't much faster anymore than
 		gathering all valid plots upfront - which is what I'm doing. */
-	/*CvPlot* pPlot;
+	/*CvPlot* pTestPlot;
+	bool bValid;
+	CvPlot* pPlot;
 	int iCount;
 
 	pPlot = NULL;
@@ -653,11 +653,12 @@ CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTi
 	std::vector<CvPlot*> legalPlots;
 	CvMap const& m = GC.getMap();
 	for(int i = 0; i < m.numPlots(); i++) {
-		pTestPlot = m.plotByIndexINLINE(i);
-		if(pTestPlot == NULL) continue; // </advc.304>
+		CvPlot* pTestPlot = m.plotByIndexINLINE(i);
+		if(pTestPlot == NULL)
+			continue; // </advc.304>
 		if ((iArea == -1) || (pTestPlot->getArea() == iArea))
 		{
-			bValid = true;
+			bool bValid = true;
 
 			/* advc.300: Moved the horribly nested loop here to a new function
 			   b/c I need it again elsewhere. Now ignores barbarians on
@@ -712,7 +713,7 @@ CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTi
 
 			if (bValid)
 			{
-				if (iFlags & RANDPLOT_PASSIBLE)
+				if (iFlags & RANDPLOT_PASSABLE)
 				{
 					if (pTestPlot->isImpassable())
 					{
@@ -744,8 +745,11 @@ CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTi
 			}
 
 			// <advc.300>
-			if((iFlags & RANDPLOT_HABITABLE) &&
+			if(bValid && (iFlags & RANDPLOT_HABITABLE) &&
 					pTestPlot->getYield(YIELD_FOOD) <= 0)
+				bValid = false;
+			if(bValid && (iFlags & RANDPLOT_WATERSOURCE) &&
+					!pTestPlot->isFreshWater() && pTestPlot->getYield(YIELD_FOOD) <= 0)
 				bValid = false; // </advc.300>
 
 			if (bValid)
@@ -1479,56 +1483,128 @@ void CvMap::rebuild(int iGridW, int iGridH, int iTopLatitude, int iBottomLatitud
 
 void CvMap::calculateAreas()
 {
-	PROFILE("CvMap::calculateAreas");
-	if(GC.getDefineINT("PASSABLE_AREAS") <= 0) { // advc.030
-		CvPlot* pLoopPlot;
-		CvArea* pArea;
-		int iArea;
-		int iI;
+	PROFILE("CvMap::calculateAreas"); // <advc.030>
+	if(GC.getDefineINT("PASSABLE_AREAS") > 0) {
+		/*  Will recalculate from CvGame::setinitialItems once normalization is
+			through. But need preliminary areas because normalization is done
+			based on areas. Also, some scenarios don't call CvGame::
+			setInitialItems; these only get the initial calculation based on
+			land, sea and peaks (not ice). */
+		calculateAreas_030();
+		calculateReprAreas();
+		return;
+	} // </advc.030>
+	CvPlot* pLoopPlot;
+	CvArea* pArea;
+	int iArea;
+	int iI;
 
-		for (iI = 0; iI < numPlotsINLINE(); iI++)
+	for (iI = 0; iI < numPlotsINLINE(); iI++)
+	{
+		pLoopPlot = plotByIndexINLINE(iI);
+		gDLL->callUpdater();
+		FAssertMsg(pLoopPlot != NULL, "LoopPlot is not assigned a valid value");
+
+		if (pLoopPlot->getArea() == FFreeList::INVALID_INDEX)
 		{
-			pLoopPlot = plotByIndexINLINE(iI);
-			gDLL->callUpdater();
-			FAssertMsg(pLoopPlot != NULL, "LoopPlot is not assigned a valid value");
+			pArea = addArea();
+			pArea->init(pArea->getID(), pLoopPlot->isWater());
 
-			if (pLoopPlot->getArea() == FFreeList::INVALID_INDEX)
-			{
-				pArea = addArea();
-				pArea->init(pArea->getID(), pLoopPlot->isWater());
+			iArea = pArea->getID();
 
-				iArea = pArea->getID();
+			pLoopPlot->setArea(iArea);
 
-				pLoopPlot->setArea(iArea);
-
-				gDLL->getFAStarIFace()->GeneratePath(&GC.getAreaFinder(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), -1, -1, pLoopPlot->isWater(), iArea);
-			}
+			gDLL->getFAStarIFace()->GeneratePath(&GC.getAreaFinder(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), -1, -1, pLoopPlot->isWater(), iArea);
 		}
-	// <advc.030>
-	}
-	else for(int pass = 0; pass <= 1; pass++) {
+	} // <advc.030>
+	int dummy=-1;
+	updateLakes(); // </advc.030>
+}
+
+// <advc.030>
+void CvMap::calculateAreas_030() {
+
+	for(int pass = 0; pass <= 1; pass++) {
 		for(int i = 0; i < numPlotsINLINE(); i++) {
-			CvPlot* pp = plotByIndexINLINE(i); FAssert(pp != NULL);
+			CvPlot* pp = plotByIndexINLINE(i);
 			CvPlot& p = *pp;
 			if(pass == 0) { // No idea what this does; better do it only once.
 				gDLL->callUpdater();
-				// Second pass for peaks; can't handle all-peak areas otherwise.
-				if(p.isPeak())
+				/*  Second pass for impassables; can't handle
+					all-peak/ice areas otherwise. */
+				if(p.isImpassable())
 					continue;
 			}
 			if(p.getArea() != FFreeList::INVALID_INDEX)
 				continue;
-			FAssert(pass == 0 || p.isPeak());
+			FAssert(pass == 0 || p.isImpassable());
 			CvArea& a = *addArea();
 			int aId = a.getID();
 			a.init(aId, p.isWater());
 			p.setArea(aId);
 			calculateAreas_visit(p);
 		}
-	} // </advc.030>
+	}
+}
 
+void CvMap::updateLakes() {
+
+	// CvArea::getNumTiles no longer sufficient for identifying lakes
+	int dummy=-1;
+	for(CvArea* a = firstArea(&dummy); a != NULL; a = nextArea(&dummy))
+		a->updateLake();
+	for(int i = 0; i < numPlotsINLINE(); i++) {
+		CvPlot* pp = plotByIndexINLINE(i);
+		if(pp->isLake())
+			pp->updateYield();
+	}
 	computeShelves(); // advc.300
 }
+
+void CvMap::calculateReprAreas() {
+
+	/*  Still need areas as in BtS for submarine movement. Store at each CvArea
+		an area id representing all areas that would be encompassed by the same
+		BtS area. To decide if a submarine move is possible, only need to
+		check if the representative id of the submarine's current area equals
+		that of its target area. That's done in CvArea::canBeEntered. */
+	int loopCounter = 0;
+	int reprChanged = 0; // For debugging; otherwise a bool would suffice.
+	do {
+		reprChanged = 0;
+		for(int i = 0; i < numPlotsINLINE(); i++) {
+			CvPlot* pp = plotByIndexINLINE(i);
+			CvPlot& p = *pp;
+			int const x = p.getX_INLINE();
+			int const y = p.getY_INLINE();
+			for(int j = 0; j < NUM_DIRECTION_TYPES; j++) {
+				CvPlot* qp = ::plotDirection(x, y, (DirectionTypes)j);
+				if(qp == NULL)
+					continue;
+				CvPlot& q = *qp;
+				// Only orthogonal adjacency for water tiles
+				if(p.isWater() && x != q.getX_INLINE() && y != q.getY_INLINE())
+					continue;
+				int const pReprArea = p.area()->getRepresentativeArea();
+				int const qReprArea = q.area()->getRepresentativeArea();
+				if(pReprArea != qReprArea && p.isWater() == q.isWater()) {
+					if(qReprArea < pReprArea)
+						p.area()->setRepresentativeArea(qReprArea);
+					else q.area()->setRepresentativeArea(pReprArea);
+					reprChanged++;
+				}
+			}
+		}
+		if(++loopCounter > 10) {
+			FAssert(loopCounter <= 10);
+			/*  Will have to write a faster algorithm then, based on the BtS code at
+				the beginning of this function. Would also make it easier to set the
+				lakes. */
+			break;
+		}
+	} while(reprChanged > 0);
+	updateLakes();
+} // </advc.030>
 
 
 // Private Functions...
@@ -1543,12 +1619,20 @@ void CvMap::calculateAreas_visit(CvPlot const& p) {
 		if(qp == NULL)
 			continue;
 		CvPlot& q = *qp;
+		/*  The two neighbors that p and q have in common if p and q are
+			diagonally adjacent: */
+		CvPlot* s = plot(p.getX_INLINE(), q.getY_INLINE());
+		CvPlot* t = plot(q.getX_INLINE(), p.getY_INLINE());
+		FAssertMsg(s != NULL && t != NULL, "Map appears to be non-convex");
 		if(q.getArea() == FFreeList::INVALID_INDEX && p.isWater() == q.isWater() &&
-				// Check only orthogonal adjacency of water tiles
-				(!p.isWater() || x == q.getX_INLINE() || y == q.getY_INLINE()) &&
-				/*  Depth-first search that doesn't continue at peaks except to
-					other peaks so that mountain ranges end up in the same CvArea). */
-				(!p.isPeak() || q.isPeak())) {
+				// For water tiles, orthogonal adjacency is unproblematic
+				(!p.isWater() || x == q.getX_INLINE() || y == q.getY_INLINE()
+				// Diagonal adjacency only works if either s or t are water 
+				|| s == NULL || s->isWater() || t == NULL || t->isWater()) &&
+				/*  Depth-first search that doesn't continue at impassables
+					except to other impassables so that mountain ranges and
+					ice packs end up in one CvArea. */
+				(!p.isImpassable() || q.isImpassable())) {
 			q.setArea(p.getArea());
 			calculateAreas_visit(q);
 		}

@@ -52,6 +52,7 @@ public:
 	/*  Modifier for human payments for peace, i.e what the AI asks a human to pay
 		(no modifier for brokering, i.e. 100%) */
 	static int const reparationsHumanPercent = 75;
+	static int const dwtUtilityThresh = -35;
 
 private:
 	std::vector<PlayerTypes> _properCivs;
@@ -180,10 +181,15 @@ public:
 		  bool considerConcludePreparations(TeamTypes targetId, int u,
 				int timeRemaining);
 		void scheme(); // Consider new war plans
-		bool canSchemeAgainst(TeamTypes targetId, bool assumeNoWarPlan = false) const;
+		bool canSchemeAgainst(TeamTypes targetId, bool assumeNoWarPlan) const;
 		void startReport();
 		void closeReport();
 		bool isReportTurn() const;
+		void showWarPrepStartedMsg(TeamTypes targetId);
+		void showWarPlanAbandonedMsg(TeamTypes targetId);
+		void showWarPlanMsg(TeamTypes targetId, char const* txtKey);
+		WarAndPeaceCache& leaderCache();
+		WarAndPeaceCache const& leaderCache() const;
 		TeamTypes diploVoteCounterCandidate(VoteSourceTypes voteSource) const;
 		/*  Not in WarAndPeaceAI::Civ b/c I want these to be private. They're
 			only auxiliary functions for their team-level counterparts, and should
@@ -214,10 +220,6 @@ public:
 		  void write(FDataStreamBase* stream);
 		  void read(FDataStreamBase* stream);
 		WarAndPeaceCache const& getCache() const; WarAndPeaceCache& getCache();
-	    // WarRand: CvTeamAI only provides averaged values per team
-		  int totalWarRand() const;
-		  int limitedWarRand() const;
-		  int dogpileWarRand() const;
 		// Request and demands. BtS handles these in CvPlayerAI::AI_considerOffer.
 		bool considerDemand(PlayerTypes theyId, int tradeVal) const;
 		bool considerGiftRequest(PlayerTypes theyId, int tradeVal) const;
@@ -230,14 +232,11 @@ public:
 				/*  If this is not NULL, it is used to return the trade value of
 					all assets that the human can trade, but only up to
 					targetTradeVal. */
-				int* r = NULL) const;
+				int* r = NULL, bool ignoreCities = false) const;
 		double amortizationMultiplier() const;
 		bool isNearMilitaryVictory(int stage) const;
 		int getConquestStage() const;
 		int getDominationStage() const;
-		/* Only the percentage that says how much pressure there is at the borders;
-		   without the leader-specific factor (CloseBordersAttitudeChange). */
-		int closeBordersAttitudeChangePercent(PlayerTypes civId) const;
 		/* This function isn't specific to a given civ. Should perhaps
 		   be in a wrapper/ subclass of CvUnitInfo. Leaving it here for now.
 		   At least it's easily accessible this way.
@@ -248,7 +247,7 @@ public:
 		   (Slavery, Univ. Suffrage) */
 		bool canHurry() const;
 		double buildUnitProb() const;
-		double estimateYieldRate(YieldTypes yield, int nSamples = 5) const;
+		double shipSpeed() const;
 		/*  period: Build-up over how many turns? Will be adjusted to game speed
 			by this function! */
 		double estimateBuildUpRate(PlayerTypes civId, int period = 10) const;

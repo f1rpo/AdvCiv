@@ -25,6 +25,8 @@ public:
 	bool canDeclareWar(int /*TeamTypes*/ eTeam);
 	bool canEventuallyDeclareWar(int /*TeamTypes*/ eTeam); // K-Mod
 	void declareWar(int /*TeamTypes*/ eTeam, bool bNewDiplo, int /*WarPlanTypes*/ eWarPlan);
+	// advc.106g:
+	void declareWarEvent(int /*TeamTypes*/ eTeam, bool bNewDiplo, int /*WarPlanTypes*/ eWarPlan);
 	void makePeace(int /*TeamTypes*/ eTeam);
 	bool canContact(int /*TeamTypes*/ eTeam);
 	void meet(int /*TeamTypes*/ eTeam, bool bNewDiplo);
@@ -77,6 +79,9 @@ public:
 	std::wstring getName();
 
 	int getNumMembers();
+	// <advc.155>
+	int getAliveCount();
+	int getMasterTeam(); // </advc.155>
 	bool isAlive();
 	bool isEverAlive();
 	int getNumCities();
@@ -164,6 +169,7 @@ public:
 	void setVassal(int /*TeamTypes*/ eIndex, bool bVassal, bool bCapitulated);
 	void assignVassal(int /*TeamTypes*/ eIndex, bool bSurrender);
 	void freeVassal(int /*TeamTypes*/ eIndex);
+	bool isCapitulated(); // advc.130v
 	bool isDefensivePact(int /*TeamTypes*/ eIndex);
 	int getRouteChange(int /*RouteTypes*/ eIndex);
 	void changeRouteChange(int /*RouteTypes*/ eIndex, int iChange);

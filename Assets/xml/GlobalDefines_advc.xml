@@ -5,45 +5,6 @@
 	 BtS GlobalDefines.xml. -->
 
 <Civ4Defines xmlns="x-schema:CIV4GlobalDefinesSchema.xml">
-
-	<!-- [advc.104]
-		 If logging is enabled in /My Games/
-		 Beyond The Sword/CivilizationIV.ini, a log file is written to
-		 /My Games/Beyond The Sword/Logs every REPORT_INTERVAL turns.
-		 It's not necessary to compile a debug DLL in order
-		 to see the reports. Each report records the war planning of all
-		 AI civs during a single turn. It's only intended for developers. Set to 0 or less to disable logging. -->
-    <Define>
-        <DefineName>REPORT_INTERVAL</DefineName>
-        <iDefineIntVal>0</iDefineIntVal>
-    </Define>
-	
-	<!-- [advc.104]
-		 If UWAI reports are enabled (see above), no details about a AI war plan
-		 are logged unless that war plan has greater utility than this
-		 threshold. There's a separate threshold for war plans against
-		 human players. Recommended: -10/-50; use sth. like -1000/-1000 to log
-		 details always. -->
-    <Define>
-        <DefineName>UWAI_REPORT_THRESH</DefineName>
-        <iDefineIntVal>-10</iDefineIntVal>
-    </Define>
-    <Define>
-        <DefineName>UWAI_REPORT_THRESH_HUMAN</DefineName>
-        <iDefineIntVal>-50</iDefineIntVal>
-    </Define>
-	
-	<!-- [advc.104]
-		If set to 1 or greater, and UWAI is enabled in Game Options
-		(i.e. "Aggressive AI" not checked), UWAI runs in the background and
-		writes a logfile (depending in REPORT_INTERVAL), but lets the K-Mod AI
-		make all decisions. No impact if UWAI disabled in Game Options ("Aggressive AI" checked), or through DISABLE_UWAI.
-		For testing, or for (temporarily or permanently) switching off UWAI
-		mid-game, otherwise, recommended: 0 -->
-	<Define>
-		<DefineName>UWAI_IN_BACKGROUND</DefineName>
-		<iDefineIntVal>0</iDefineIntVal>
-	</Define>
 	
 	<!-- [advc.104, advc.019]
 		A value of 1 or greater enables K-Mod's AI for decisions on war
@@ -54,21 +15,9 @@
 		whether "Aggressive AI (K-Mod)" is selected in the Custom Game screen.
 		Also affects loaded savegames, and will permanently disable UWAI
 		in subsequent savegames.
-		Recommended: 0. -->
+		Recommended: 0 -->
 	<Define>
 		<DefineName>USE_KMOD_AI_NONAGGRESSIVE</DefineName>
-		<iDefineIntVal>0</iDefineIntVal>
-	</Define>
-
-	<!-- [advc.104] Fully disables UWAI if set to 1 or greater (unlike
-		 UWAI_IN_BACKGROUND which still lets it run in the background).
-		 Same effect as selecting "Aggressive AI (K-Mod) in the Custom Game
-		 screen, but can use this XML switch to disable UWAI in a running game.
-		 There's no way to (re-)enable UWAI in a running game once it has been
-		 disabled.
-		 Recommended: 0 -->
-	<Define>
-		<DefineName>DISABLE_UWAI</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 
@@ -80,7 +29,7 @@
 		 power values are squared. POWER_CORRECTION = 1 is the BtS behavior;
 		 power values then typically equal unit strength, e.g. two Warriors are
 		 as good as one Spearman. When squaring, one Spearman is as good as
-		 four Warriors. (That seems a bit much.)
+		 four Warriors. (That seems too much.)
          Recommended: 1.7; one Spearman then corresponds to 3.25 Warriors, and
 		 one Grenadier (base power 12) to 6.5 Axemen (base power 6) . -->
     <Define>
@@ -91,7 +40,7 @@
     <!-- [advc.100]
 		 Only relevant if UWAI disabled (or only in the background).
 		 When an AI civ is willing to declare war in exchange for gold or tech,
-		 the price depends (among many other factors)on the power ratio between
+		 the price depends (among many other factors) on the power ratio between
 		 aggressor and defender. This parameter is a percentage by which the
 		 power ratio is multiplied in CvTeamAI::AI_declareWarTradeVal.
 		 Recommended: 300% to make the AI more reluctant to DoW a more powerful
@@ -106,7 +55,7 @@
 		 [advc.101]  Value increased to 200 (recommended) in an effort to
 		 restore the original BtS revolt probabilities without undoing K-Mod's
 		 overhaul of the culture system. This essentially doubles the strength
-		 of foreign culture. Original value: 100. -->
+		 of foreign culture. Original value: 100 -->
 	<Define>
 		<DefineName>REVOLT_TOTAL_CULTURE_MODIFIER</DefineName>
 		<iDefineIntVal>200</iDefineIntVal>
@@ -116,7 +65,7 @@
 		 owner of the foreign culture is eliminated and there is a "suppressed"
 		 religion in the city, i.e. a religion that differs from the city owner's
 		 state religion (no suppression if no state religion).
-		 Recommended: 50 b/c doubling is a bit much. -->
+		 Recommended: 50 because doubling is a bit much. -->
 	<Define>
 		<DefineName>REVOLT_OFFENSE_STATE_RELIGION_MODIFIER</DefineName>
 		<iDefineIntVal>50</iDefineIntVal>
@@ -125,7 +74,7 @@
 		 and applies half if the owner has no state religion. Was combined
 		 multiplicatively with the OFFENSE_MODIFIER above in such a way
 		 that the modifiers canceled out when both applied. Now combined
-		 additively, meaning that they still cancel out b/c I've reduced the
+		 additively, meaning that they still cancel out because I've reduced the
 		 OFFENSE_MODIFIER. The DEFENSE_MODIFIER remains -50. -->
 	<Define>
 		<DefineName>REVOLT_DEFENSE_STATE_RELIGION_MODIFIER</DefineName>
@@ -133,11 +82,10 @@
 	</Define>
 
 	<!-- [advc.102]
-		 If set to 0, the moves of friendly civs' workers are not shown to the 
+		 If set to 0, the moves of friendly Workers are not shown to the 
 		 player, even if the "show friendly moves" option is enabled.
 		 Exception: Workers outside of their owners' cultural borders are still
-		 shown moving.
-		 Recommended: 0; 1 for BtS behavior. -->
+		 shown moving. Recommended: 0; 1 for BtS behavior. -->
 	<Define>
 		<DefineName>SHOW_FRIENDLY_WORKER_MOVES</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
@@ -152,11 +100,10 @@
 	</Define>
 
 	<!-- [advc.102]
-		 If set to 0, the moves of friendly civs' Missionaries and Executives
+		 If set to 0, the moves of friendly Missionaries and Executives
 		 are not shown to the player, even if the "show friendly moves" option
 		 is enabled. Exception: You still see foreign Missionaries and Executives
-		 move within your borders.
-		 Recommended: 0; 1 for original behavior. -->
+		 move within your borders. Recommended: 0; 1 for original behavior. -->
 	<Define>
 		<DefineName>SHOW_FRIENDLY_MISSIONARY_MOVES</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
@@ -171,12 +118,15 @@
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 	
-	<!-- [advc.102]
-		 0 or less (recommended) disables the "Top Civs" pop-up ("... has
-		 completed his greatest work: The [e.g.] wealthiest civilizations"). -->
+	<!-- [advc.038]
+		 The "Top Civs" pop-up ("... has completed his greatest work: The
+		 [e.g.] wealthiest civilizations") appears every TOP_CIVS_INTERVAL
+		 turns, though not before turn 75 (hardcoded). The interval gets
+		 adjusted to the game speed setting. Set to e.g. 10000 to disable
+		 the popup. Recommended: 40. BtS: 50. -->
 	<Define>
-		<DefineName>SHOW_TOP_CIVS</DefineName>
-		<iDefineIntVal>0</iDefineIntVal>
+		<DefineName>TOP_CIVS_INTERVAL</DefineName>
+		<iDefineIntVal>40</iDefineIntVal>
 	</Define>
 
     <!-- [advc.107]
@@ -184,7 +134,7 @@
 		 its cities. The era codes are:
          -1: no era (no extra defender, bare minimum remains 1 for the entire
 		  game)
-          0: ancient era (have an extra defender from the start; would hamper
+          0: ancient era (an extra defender from the start; this would hamper
 		  AI scouting)
           1: classical era (this is the BtS behavior)
           2: medieval era
@@ -196,19 +146,19 @@
     </Define>
 
 	<!-- [advc.108]
-		 If set to 1 or greater, starting plots are "normalized" as in K-Mod, i.e. highly improved and balanced. 0 or less (recommended)
-		 means that normalization is toned down considerably, except for multi-
-		 player games (normalization reduced only a little). -->
+		 If set to 1 or greater, starting plots are improved ("normalized") as
+		 aggressively as in BtS. 0 or less (recommended) means that normalization
+		 is toned down (toned down only a little bit in multiplayer). -->
 	<Define>
         <DefineName>NORMALIZE_STARTPLOTS_AGGRESSIVELY</DefineName>
         <iDefineIntVal>0</iDefineIntVal>
     </Define>
 
 	<!-- [advc.108]
-	     The game ensures that no starting position is far better than any
-		 other starting position: the "found" value of each starting
-		 position is raised to at least STARTVAL_LOWER_BOUND-PERCENT of
-		 the best found value. Recommended: 70%.
+	     The game ensures that no starting position is far better than another
+		 starting position by raising the (city-)found value of each
+		 starting position to at least STARTVAL_LOWER_BOUND-PERCENT of the best
+		 found value. Recommended: 70%.
 		 K-Mod uses 80%, and this value is also used if
 		 NORMALIZE_STARTPLOTS_AGGRESSIVELY is set. (I.e. this setting only
 		 matters if NORMALIZE_STARTPLOTS_AGGRESSIVELY isn't set.) -->
@@ -222,7 +172,7 @@
 		 parameter has no effect. NSA removes jungle and shelf ice ("bad
 		 features") entirely in the city radius around each starting plot,
 		 and with 50% probability 1 plot beyond the city range. (See
-		 CvGame.ccp, normalizeRemoveBadFeatures; it's a bit more 
+		 CvGame.cpp, normalizeRemoveBadFeatures; it's a bit more 
 		 complicated than this.)
          Without NSA, plots in the inner city radius are still cleared
 		 entirely, whereas plots in the outer radius are only cleared if
@@ -249,8 +199,7 @@
 		 Terrain with 0 food (Desert, Snow) gets two removal
          chances, e.g. 94% when REMOVAL_CHANCE_BAD_TERRAIN is 75
 		 (recommended). Use 100 for BtS/ K-Mod behavior.
-		 No effect if NORMALIZE_STARTPLOTS_AGGRESSIVELY is set.
-		 -->
+		 No effect if NORMALIZE_STARTPLOTS_AGGRESSIVELY is set. -->
     <Define>
         <DefineName>REMOVAL_CHANCE_BAD_TERRAIN</DefineName>
         <iDefineIntVal>75</iDefineIntVal>
@@ -269,7 +218,7 @@
 		 of the initial Settler are revealed. (Unless playing with
 		 Advanced Start, in which case ADVANCED_START_SIGHT_RANGE in
 		 BtS GlobalDefines applies instead; that's 4.) For the distance
-		 metric see plotDistance in CvGameCoreUtils; 2 corresponds to the
+		 metric see plotDistance in CvGameCoreUtils.cpp; 2 corresponds to the
 		 city cross. Set to 0 for BtS behavior - then, only the tiles
 		 visible by the initial units are revealed. -->
 	<Define>
@@ -284,7 +233,7 @@
 		 canceled immediately, but probabilistically within some 10 turns.
 		 NB: Usually, due to tile culture values, significant territory is only
 		 lost once several cities are lost.
-         Recommended: 65; use 0 or less for original BtS behavior.
+         Recommended: 65; use 0 or less for BtS behavior.
 		 -->
     <Define>
         <DefineName>VASSAL_DENY_OWN_LOSSES_FACTOR</DefineName>
@@ -292,15 +241,14 @@
     </Define>
 
 	<!-- [advc.113]
-		 The upper bound for the number of workers that the AI builds is
+		 The upper bound for the number of Workers that the AI builds is
 		 increased by this percentage. It's there to account for various
-		 worker tasks that the AI calculation omits, such as future cities
-		 and clearing jungle.
-         Recommended: 25; 0 is close to the original BtS/ K-Mod behavior.
-		 -->
+		 Worker tasks that the AI calculations omit.
+         Recommended: 13; a small negative value like -10 might be closest to
+		 BtS behavior. -->
     <Define>
         <DefineName>WORKER-RESERVE_PERCENT</DefineName>
-        <iDefineIntVal>25</iDefineIntVal>
+        <iDefineIntVal>13</iDefineIntVal>
     </Define>
 
 	<!-- [advc.125]
@@ -311,9 +259,7 @@
 		 city, i.e. only civs who's culture is already present (due to
 		 vicinity) can benefit from trade-based culture, and only these
 		 civs take up room in the plot text.
-         Recommended: 0 because I think at this point it adds complexity
-		 and further clutters the city screen for hardly any gameplay
-		 value. -->
+         Recommended: 0 (see change 125 in manual) -->
     <Define>
         <DefineName>USE_KMOD_TRADE_CULTURE</DefineName>
         <iDefineIntVal>0</iDefineIntVal>
@@ -321,7 +267,7 @@
 
 	<!-- [advc.129]
 		 If set to 1 or greater, fewer bonus resources may be placed
-		 during map generation. The number of resources of that
+		 during map generation: The frequency of resources that
 		 would normally occur very frequently is reduced a bit, e.g. seafood
 		 on an Archipelago map.
 		 0 or less means unmodded resource placement.
@@ -333,18 +279,21 @@
 	
 	<!-- [advc.002a]
 		 Determines the color of cultural borders of water tiles on the
-		 minimap. 5 (recommended; or any other value except 3 and 4) means
-		 that the tile is colored at 50% opactiy. 4 is the BtS behavior:
-		 full color. 3 leaves the tiles uncolored (as in Civ 3). -->
+		 minimap.
+		 5 means that the tile is colored at 50% opactiy.
+		 6 (recommended) is like 5 but doesn't show units on the minimap.
+		 4 is the BtS behavior: full color.
+		 3 leaves the tiles uncolored (as in Civ 3). -->
     <Define>
         <DefineName>MINIMAP_WATER_MODE</DefineName>
-        <iDefineIntVal>5</iDefineIntVal>
+        <iDefineIntVal>6</iDefineIntVal>
     </Define>
 
 	<!-- [advc.004f]
 		 City celebrations ("we-love-the-king day") trigger only in cities
-		 with at least this much population. The chance is population / 1000 (also configurable through XML). A value above 50
-		 effectively disables celebrations.
+		 with at least this much population. The chance is population / 1000
+		 (also configurable through XML). A value above 50 effectively disables
+		 celebrations.
 		 Recommended: a high value in order to disable celebrations;
 		 original value from GlobalDefines.xml: 8 -->
 	<Define>
@@ -354,15 +303,15 @@
 	
 	<!-- [advc.004m]
 	     No clue how this is measured. Original value is 2200
-		 (GlobalDefines.xml), recommended: 4200. -->
+		 (GlobalDefines.xml), recommended: 4600. -->
 	<Define>
 		<DefineName>CAMERA_START_DISTANCE</DefineName>
-		<fDefineFloatVal>4200</fDefineFloatVal>
+		<fDefineFloatVal>4600</fDefineFloatVal>
 	</Define>
 
 	<!-- [advc.004m]
 	     At 1 (recommended) or greater, the Resource Layer (bubbles)
-		 are shown at the beginning of a new game. 0 or less for
+		 is shown at the beginning of a new game. 0 or less for
 		 original behavior: bubbles not shown. -->
 	<Define>
 		<DefineName>SHOW_RESOURCE_BUBBLES_AT_GAME_START</DefineName>
@@ -370,35 +319,86 @@
 	</Define>
 	
 	<!-- [advc.500b]
-		 If this is set to a value greater than 0 (recommended), anger for
-		 lack of military units is computed based on defensive strength (see
-		 manual). Otherwise, the BtS computation is used (i.e. any combat
-		 unit suffices as protection). (0 for now, until some accompanying
-		 changes to civil anger are implemented.) -->
+		 If this is set to a value greater than 0, unhappiness for lack of
+		 military protection is computed based on defensive strength (see
+		 manual). Otherwise, the BtS computation is used, i.e. any combat unit
+		 suffices as protection. (0 for now, until some accompanying changes to
+		 unhappiness are implemented.) -->
 	<Define>
 		<DefineName>DEMAND_BETTER_PROTECTION</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	
+	<!-- [advc.106]
+		 If set to 1, era transitions are recorded in replays.
+		 Set to 0 for BtS behavior (no era transitions in replays).
+		 Recommended: 0, rather use SHOW_FIRST_TO_DISCOVER_IN_REPLAY. -->
+	<Define>
+		<DefineName>SHOW_ENTERED_ERA_IN_REPLAY</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<!-- [advc.106]
+		 If set to 1 (recommended), the first discovery of each tech is recorded
+		 in replays. If set to 0, only Liberalism is recorded (BtS behavior). -->
+	<Define>
+		<DefineName>SHOW_FIRST_TO_DISCOVER_IN_REPLAY</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 
 	<!-- [advc.106b]
 		 If more than this many messages are queued at the beginning of a
 		 turn, no (staggered) messages are shown, and instead the Event Log
-		 is opened. Set to a negative value for BtS behavior. When using a
-		 very high value, the Event Log will still open when there is
-		 a diplo popup.
+		 is opened. Set to -1 for BtS behavior. When using a very high value,
+		 the Event Log will still open when there is a diplo popup.
 		 Recommended: 3. -->
 	<Define>
 		<DefineName>START_OF_TURN_MESSAGE_LIMIT</DefineName>
 		<iDefineIntVal>3</iDefineIntVal>
 	</Define>
+
+	<!-- [advc.106b]
+		 0 (recommended) disables the message limit (equivalent to
+		 START_OF_TURN_MESSAGE_LIMIT=-1) when playing without "Minimize
+		 Pop-Ups" (MPU). This setting has no effect if MPU is enabled.
+		 Set to 1 to use the message limit when playing without MPU. -->
+	<Define>
+		<DefineName>MESSAGE_LIMIT_WITHOUT_MPU</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	
+	<!-- advc.106e: 4 (recommended) means that religion spread in foreign
+		 cities is no longer announced once the player enters the Industrial era
+		 (unless the player owns the respective holy city). Set to -1 to
+		 disable those announcements in all eras or to 7 or greater to enable
+		 them in all eras. -->
+	<Define>
+		<DefineName>STOP_RELIGION_SPREAD_ANNOUNCE_ERA</DefineName>
+		<iDefineIntVal>4</iDefineIntVal>
+	</Define>
+
+	<!-- advc.106e: 0 (recommended) means that there is no announcement to
+		 other civs when a civ's state religion spreads in one of that civ's
+		 cities. Set to 1 to receive such announcements. -->
+	<Define>
+		<DefineName>ANNOUNCE_STATE_RELIGION_SPREAD</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	
+	<!-- advc.106h: 1 (recommended) means that the game settings are recorded
+		 in replay files (as the first replay message). 0 (BtS) behavior means
+		 that the game settings are partly stored in the replay file, but not
+		 in a human-readable form. -->
+	<Define>
+		<DefineName>SETTINGS_IN_REPLAYS</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
 	
 	<!-- [advc.099]
-		 New parameter: The default value for culture-based anger
-		 now assumes Open Borders; with closed borders, the anger is
-		 x% greater. The increased anger also applies when the
-		 foreign civ has capitulated to the city owner or has been
-		 eliminated (by anyone).
-		 Recommended: 50 -->
+		 The default value for culture-based anger assumes Open Borders in
+		 AdvCiv. With closed borders, the anger is CLOSED_BORDERS_CULTURE_
+		 ANGER_MODIFIER percent greater. The increased anger also applies when
+		 the foreign civ has capitulated to the city owner or has been 
+		 eliminated (by anyone). Recommended: 50 -->
 	<Define>
 		<DefineName>CLOSED_BORDERS_CULTURE_ANGER_MODIFIER</DefineName>
 		<iDefineIntVal>50</iDefineIntVal>
@@ -406,7 +406,7 @@
 	
 	<!-- [advc.099]
 	     Copied from GlobalDefines.xml only for reference; the value
-		 there is 50, and no change recommended.
+		 there is 50, and no change is recommended.
 		 Anger from foreign culture is greater while at war. 
 		 Now (additively) cumulative with
 		 CLOSED_BORDERS_CULTURE_ANGER_MODIFIER (see above).
@@ -449,30 +449,38 @@
 	</Define>
 	
 	<!-- [advc.099]
-	     If set to 1 or greater, barbarian culture can cause cities to
-		 revolt. 0 or less: barbarian culture cannot cause revolts.
-		 In any case, barbarian revolts can never flip a city.
-		 Not an issue in BtS b/c it's practically impossible for a barbarian
-		 city to extend its culture range to more than two tiles.
-		 Recommended: 1. -->
+	     If set to 1 (recommended), Barbarian culture can cause cities to
+		 revolt. 0 or less: Barbarian culture cannot cause revolts.
+		 In any case, Barbarian revolts can never flip a city.
+		 Not an issue in BtS because it's practically impossible for a Barbarian
+		 city to extend its culture range to more than two tiles. -->
 	<Define>
 		<DefineName>BARBS_REVOLT</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 
-		<!-- [advc.099]
-	     Each round, the culture value of each player (civ and barbarian)
+	<!-- [advc.099b]
+	     Each round, the tile culture value of each player (civ and barbarian)
 		 is decreased by this permillage. 0 to disable decay.
+		 (Will also have to set CITY_RADIUS_DECAY=0 to disable decay in
+		 foreign city radii.)
 		 Recommended: 10 (1% decay). -->
 	<Define>
 		<DefineName>TILE_CULTURE_DECAY_PER_MILL</DefineName>
 		<iDefineIntVal>10</iDefineIntVal>
 	</Define>
+	<!-- Per-mill decay rate of foreign culture on tiles within a city radius.
+		 The value gets doubled for tiles in the inner radius. Set to 0 to have
+		 foreign culture decay normally. Recommended: 20 -->
+	<Define>
+		<DefineName>CITY_RADIUS_DECAY</DefineName>
+		<iDefineIntVal>20</iDefineIntVal>
+	</Define>
 	
 	<!-- [advc.300]
 	     Determines at which percentage of owned tiles (per continent)
-		 barbarian spawning peaks. In AdvCiv, the formula for the target
-		 number B of barbarian units on a continent (or shelf) is 
+		 Barbarian spawning peaks. In AdvCiv, the formula for the target
+		 number B of Barbarian units on a continent (or shelf) is 
 		 B = ownedTiles / (peak * tilesPerUnit)
 		 if ownedTiles / totalTiles < peak, and otherwise
 		 B = unownedTiles / ((1 - peak) * tilesPerUnit), where
@@ -486,8 +494,8 @@
 		   Civ4HandicapInfo.xml; and
 		 * peak = BARB_PEAK_PERCENT / 100.
 		 The idea is to make B maximal when the ratio of owned tiles equals
-		 the peak percentage. Setting BARB_PEAK_PERCENT results in the BtS
-		 behavior, with B maximal when barbarians first appear and then
+		 the peak percentage. Setting BARB_PEAK_PERCENT to 0 results in the BtS
+		 behavior, with B maximal when Barbarians first appear and then
 		 decreasing as the civs expand.
 		 Recommended: 67. -->
     <Define>
@@ -496,10 +504,10 @@
     </Define>
 
 	<!-- [advc.300]
-	     Modifies the upper limit for the number of barbarian units created
+	     Modifies the upper limit for the number of Barbarian units created
 		 per continent or shelf (not: cities, animals), called "B" in the
 		 comment above. BARB_ACTIVITY_ADJUSTMENT is intended for adjusting
-		 the overall barbarian activity (rather than changing the
+		 the overall Barbarian activity (rather than changing the
 		 per-difficulty values in Civ4HandicapInfox.xml).
 		 A positive value, say, 25, increases B by 25%, whereas -25 would
 		 decrease B by 25%.
@@ -513,20 +521,40 @@
 	     From (Vanilla) GlobalDefines.xml.
 		 (There's also MIN_ANIMAL_STARTING_DISTANCE, which remains
 		 unchanged at 2.)
-		 Set to 2 there, meaning that barbarians can't appear within 2
+		 Set to 2 there, meaning that Barbarians can't appear within 2
 		 tiles from a civ unit or borders. The other restriction is
-		 that barbarians can't appear on tiles visible to a civ, but this
+		 that Barbarians can't appear on tiles visible to a civ, but this
 		 hardly matters in BtS, because even from a hill, the viewing
 		 distance is only 2 (unless Sentry-promoted).
-		 AdvCiv adds a restriction that prevents barbarians from appearing
-		 on tiles with 0 food yield (regardless of this parameter).
 		 Recommended: 1.
-		 "Fogbusting" should still work this way, but will have to make
-		 use of hills for visibility, and will often not be possible to
-		 cover every angle. -->
+		 NB: AdvCiv adds a restriction that prevents barbarians from appearing
+		 on tiles with 0 food yield (regardless of this parameter). -->
 	<Define>
 		<DefineName>MIN_BARBARIAN_STARTING_DISTANCE</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	
+	<!-- [advc.314] Settings for goody hut outcomes. See also Civ4GoodyInfo.xml
+		 and Civ4HandicapInfo.xml. -->
+	<!-- Turn after which effects of goody huts begin to increase. Recommended:
+		 50; use a high value like 5000 for BtS behavior (hut effects not based
+		 on game turn), and increase GOODY_BUFF_PEAK_TURN accordingly. -->
+	<Define>
+		<DefineName>GOODY_BUFF_START_TURN</DefineName>
+		<iDefineIntVal>50</iDefineIntVal>
+	</Define>
+	<!-- Turn after which effects of goody huts do not increase further.
+		 Recommended: 225. Has to be greater than or equal to
+		 GOODY_BUFF_START_TURN. -->
+	<Define>
+		<DefineName>GOODY_BUFF_PEAK_TURN</DefineName>
+		<iDefineIntVal>225</iDefineIntVal>
+	</Define>
+	<!-- Factor by which the effects of goody huts are increased on
+		 GOODY_BUFF_PEAK_TURN. Recommended: 10 -->
+	<Define>
+		<DefineName>GOODY_BUFF_PEAK_MULTIPLIER</DefineName>
+		<iDefineIntVal>10</iDefineIntVal>
 	</Define>
 	
 	<!-- [advc.139]
@@ -534,22 +562,20 @@
 		 strength" against the city divided by the local "defense strength"
 		 is more than 150 (recommended) percent.
 		 If the threshold is met, there is still a unit-specific evacuation
-		 test that factors in defense modifiers and Unit AI type.
-		 The BtS routine for withdrawal of noncombatants isn't affected by
+		 test that takes into account defense modifiers and Unit AI type.
+		 The BtS routine for protecting noncombatants isn't affected by
 		 this. Set to 0 or less for BtS behavior: combat units never
-		 evacuate.
-		 Recommended: 0. -->
+		 evacuate. -->
     <Define>
         <DefineName>AI_EVACUATION_THRESH</DefineName>
         <iDefineIntVal>150</iDefineIntVal>
     </Define>
 
 	<!-- [advc.136b]
-	     Originally in GlobalDefines.xml; set to 10 there. When
-		 considering a trade with a human civ and evaluating the trade items
-		 that the human side receives, the AI rounds the result to a
-		 multiple of DIPLOMACY_VALUE_REMAINDER. This ensures that the AI
-		 charges round amounts of gold. The AI also assumes that any item
+	     Originally set to 10 in GlobalDefines.xml. When considering a trade
+		 with a human civ and evaluating the trade items that the human side
+		 receives, the AI rounds the result to a multiple of
+		 DIPLOMACY_VALUE_REMAINDER. The AI also assumes that any item
 		 received by the human side is worth at least
 		 DIPLOMACY_VALUE_REMAINDER. This behavior gets in the way of my
 		 change to map trades offered by the AI. I could work around it,
@@ -590,10 +616,9 @@
 	</Define>
 	
 	<!-- [advc.250c][advc.251]
-		 If set to 1 or greater, games on Immortal, Deity or King difficulty,
-		 or any difficulty and Advanced Start, begin with a turn number
-		 computed from the number of free AI Settlers and Workers or the number
-		 of assigned start points.
+		 If set to 1 or greater, games on Immortal or Deity difficulty,
+		 or with Advanced Start, start on a turn computed from the number of
+		 free AI Settlers and Workers or the number of assigned start points.
 		 If set to 0 or less, the turn number is only determined by the
 		 start era (0 in Ancient era) as in BtS.
 		 Recommended: 1 -->
@@ -609,7 +634,7 @@
 		 show the randomized distribution (SPAH_SHOW_RANDOMIZED > 0;
 		 recommended), or show the distribution before randomization, which
 		 hides the exact start point values.
-		 If there are less than 4 AI civs, points aren't randomized
+		 If there are fewer than 4 AI civs, points aren't randomized
 		 regardless of SPAH_RANDOMIZE. -->
 	<Define>
 		<DefineName>SPAH_RANDOMIZE</DefineName>
@@ -621,8 +646,7 @@
     </Define>
 	
 	<!-- [advc.sha] Set to 1 or greater (recommended) to enable the
-		 Hidden Attitude Mod. Shows all effects then, including those that
-		 DaveMcW calls "minor spoilers".
+		 Hidden Attitude Mod.
 		 0 for BtS behavior, i.e. some hidden relations modifiers. -->
 	<Define>
 		<DefineName>SHOW_HIDDEN_ATTITUDE</DefineName>
@@ -686,8 +710,8 @@
 		 MADE_DEMAND_RECENT memory causes the AI to reject demands and pleas,
 		 and takes 10 turns on average to decrease by 1. (But it doesn't decrease
 		 while there is a peace treaty.)
-		 0 or less means that MADE_DEMAND_RECENT remains unchanged; won't fully
-		 restore the BtS behavior.
+		 0 or less means that MADE_DEMAND_RECENT remains unchanged (but won't
+		 fully restore the BtS behavior).
 		 Recommended: 8 (for an expected 80 turns of rejection) -->
 	<Define>
 		<DefineName>WAR_DESPITE_TRIBUTE_MEMORY</DefineName>
@@ -744,8 +768,9 @@
 	</Define>
 	
 	<!-- [advc.030] Set this to 1 or greater (recommended) to treat plot groups
-		 that are separated by mountain peaks as separate map areas. 0 or less
-		 for BtS behavior (only land/water partition the map). -->
+		 that are separated by mountain peaks or shelf ice as separate map
+		 areas. 0 or less for BtS behavior (only land/water partition the map).
+		 -->
 	<Define>
 		<DefineName>PASSABLE_AREAS</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
@@ -805,6 +830,142 @@
 	<Define>
 		<DefineName>RF_ENABLE_FINAL_TURN_POPUP</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+
+	<!-- [advc.002h] 0 only hides the clouds. Their shadows are hidden through
+		 BML.fpk. Original value: 1. -->
+	<Define>
+		<DefineName>RENDER_GLOBEVIEW_CLOUDS</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	
+	<!-- [advc.550d] This modifier is applied to research rates when playing
+		 with the "No tech trading" option. The modifier is reduced in the
+		 early and late game. Recommended: 28. Use 0 for BtS behavior (research
+		 rate not modified when playing without tech trading). -->
+	<Define>
+		<DefineName>TECH_COST_NOTRADE_MODIFIER</DefineName>
+		<iDefineIntVal>28</iDefineIntVal>
+	</Define>
+
+	<!-- [advc.034] The number of turns with Open Borders after making peace.
+		 The turn on which peace is made counts as the first turn with Open
+		 Borders. Can't be more than 10 turns (PEACE_TREATY_LENGTH in the
+		 original GlobalDefines.xml). 0 means no Open Borders (BtS behavior).
+		 Recommended: 0 or 3 to 5 -->
+	<Define>
+		<DefineName>DISENGAGE_LENGTH</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+
+	<!-- [advc.035] If set to 1, tiles that are only within the
+		 radius of one city belong to the owner of that city regardless of
+		 culture. Recommended: 0 (ownership determined only by
+		 culture range and tile culture as in BtS). Rather increase
+		 CITY_RADIUS_DECAY. -->
+	<Define>
+		<DefineName>OWN_EXCLUSIVE_RADIUS</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+
+	<!-- [advc.039] If set to 1 (recommended), reparations made for peace are
+		 announced to third parties. 0 for BtS behavior (only e.g "Gandhi has
+		 made peace with Alexander" is announced). -->
+	<Define>
+		<DefineName>ANNOUNCE_REPARATIONS</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	
+	<!-- [advc.155] If set to 1 or greater (recommended), then the leaderboard
+		 shows civ scores in the color of that civ's team leader. The scores of
+		 civs without other team members are shown in white, so this setting
+		 only affects team games and Permanent Alliances. Set to 0 for BtS
+		 behavior: all scores shown in white. -->
+	<Define>
+		<DefineName>COLOR_CODE_TEAM_SCORE</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+
+	<!-- [advc.005f] If set to 1 , change 005f (see manual) is enabled. 0
+		 disables the change (recommended). -->
+	<Define>
+		<DefineName>ENABLE_005F</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	
+	<!-- [advc.123f] BtS sets this to 100 in GlobalDefines.xml.
+		 Recommended: 0 to make sure that civs can't receive fail gold from
+		 units with a national limit.
+		 NB: MAXED_PROJECT_GOLD_PERCENT is no longer used; instead,
+		 MAXED_BUILDING_GOLD_PERCENT applies to both buildings and projects. -->
+	<Define>
+		<DefineName>MAXED_UNIT_GOLD_PERCENT</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	
+	<!-- [advc.004z] -->
+	<!-- If set to 1, the scoreboard remains visible in Globe view when a layer
+		 is selected that has no options to display. E.g. the BUG Strategy
+		 layer has options for drawing lines etc., so there is no room for the
+		 scoreboard, whereas e.g. the Culture layer has no such options.
+		 0 (BtS behavior) means that the scoreboard is never shown in
+		 Globe View. -->
+	<Define>
+		<DefineName>SHOW_SCORE_IN_GLOBE_VIEW</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	<!-- If set to 0, no options are shown for the Resource layer; all types of
+		 resources are indicated on the map. If set to 1 (BtS behavior),
+		 options for displaying only happiness, health or strategic resources
+		 are shown when in Globe view (meaning also that there is no room for
+		 the scoreboard). -->
+	<Define>
+		<DefineName>SHOW_RESOURCE_LAYER_OPTIONS</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<!-- If set to 0, no options are shown for the Unit layer; all units are
+		 indicated on the map. If set to 1 (BtS behavior), options
+		 for displaying e.g. only domestic or hostile units are shown
+		 when in Globe view (meaning that there is no room for the
+		 scoreboard). -->
+	<Define>
+		<DefineName>SHOW_UNIT_LAYER_OPTIONS</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	<!-- If set to 1, the Trade layer (Globe view) colors tiles connected	
+		 through trade regardless of the tile owner. If set to 0 (BtS
+		 behavior), only tiles owned by the human player's team are colored. -->
+	<Define>
+		<DefineName>FOREIGN_GROUPS_ON_TRADE_LAYER</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	<!-- If set to 1, the Trade layer (Globe view) blackens tiles with an
+		 actively visible city that isn't connected to its owner's capital.
+		 If set to 0 (BtS behavior), connection to the capital is not 
+		 indicated. -->
+	<Define>
+		<DefineName>CONNECTION_TO_CAPITAL_ON_TRADE_LAYER</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	<!-- If set to 1, and unit action recommendations are disabled, the
+		 Resource layer highlights Tribal Villages in addition to resources
+		 when showing "All Resources". If set to 0 (BtS behavior), the Resource
+		 layer never highlights Tribal Villages. -->
+	<Define>
+		<DefineName>SHOW_GOODY_HUTS_ON_RESOURCE_LAYER</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+
+	<!-- advc.210a: If set to 1 and if the War Trades alert is enabled, a
+		 message is shown when a civ can no longer be convinced to start a war
+		 against some other civ. If set to 0, the War Trades alert only
+		 triggers when a civ becomes willing to start a war
+		 Recommended: 0, at least in games with more than 10 civs. War trades
+		 are offered only for a couple of turns most of the time, so an alert
+		 about the trade becoming available should be sufficient. -->
+	<Define>
+		<DefineName>ALERT_ON_NO_LONGER_WAR_TRADE</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 
 </Civ4Defines>

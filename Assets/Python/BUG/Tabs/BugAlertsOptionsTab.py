@@ -25,7 +25,7 @@ class BugAlertsOptionsTab(BugOptionsTab.BugOptionsTab):
 		
 		# Cities
 		self.addLabel(screen, left, "Alerts_City", "Cities:")
-		leftL, leftR = self.addTwoColumnLayout(screen, left, "Civ4lerts_TableGrowth")		
+		leftL, leftR = self.addTwoColumnLayout(screen, left, "Civ4lerts_TableGrowth")
 		self.addCheckbox(screen, leftL, "Civ4lerts__CityPendingGrowth")
 		self.addCheckbox(screen, leftR, "Civ4lerts__CityGrowth")		
 		self.addCheckbox(screen, leftL, "Civ4lerts__CityPendingHealthiness")
@@ -40,7 +40,8 @@ class BugAlertsOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addCheckbox(screen, left, "MoreCiv4lerts__CityPendingBorderExpansion")
 		self.addCheckbox(screen, left, "Civ4lerts__CityCanHurryPop")
 		self.addCheckbox(screen, left, "Civ4lerts__CityCanHurryGold")
-		self.addCheckbox(screen, left, "MoreCiv4lerts__CityFounded")
+		# advc.210c: Disabled
+		#self.addCheckbox(screen, left, "MoreCiv4lerts__CityFounded")
 		
 		# Diplomacy
 		self.addLabel(screen, center, "Alerts_Diplomacy", "Diplomacy:")
@@ -56,12 +57,15 @@ class BugAlertsOptionsTab(BugOptionsTab.BugOptionsTab):
 		# Trades
 		self.addLabel(screen, right, "Alerts_Trade", "Trading:")
 		self.addCheckbox(screen, right, "MoreCiv4lerts__TechTrade")
-		self.addCheckbox(screen, right, "MoreCiv4lerts__BonusTrade")
 		self.addCheckbox(screen, right, "MoreCiv4lerts__MapTrade")
 		# advc.210a:
 		self.addCheckbox(screen, right, "Civ4lerts__WarTrade")
-		
+	
 		rightL, rightR = self.addTwoColumnLayout(screen, right, "Alerts_Trade_Column")
+		# <advc.210d> Moved down b/c now part of the two-column layout
+		self.addCheckbox(screen, rightL, "MoreCiv4lerts__BonusTrade")
+		self.addCheckbox(screen, rightR, "Civ4lerts__BonusThirdParties")
+		# </advc.210d>
 		self.addCheckboxIntDropdown(screen, rightL, rightR, "Civ4lerts__GoldTrade", "Civ4lerts__GoldTradeThresh", "LAYOUT_LEFT")
 		self.addCheckboxIntDropdown(screen, rightL, rightR, "Civ4lerts__GoldPerTurnTrade", "Civ4lerts__GoldPerTurnTradeThresh", "LAYOUT_LEFT")
 		

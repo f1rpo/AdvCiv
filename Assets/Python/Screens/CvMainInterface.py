@@ -301,11 +301,15 @@ class CvMainInterface:
 #########################################################################################
 
 	def numPlotListButtonsPerRow(self):
-		return self.m_iNumPlotListButtonsPerRow
+		try: # advc.009b
+			return self.m_iNumPlotListButtonsPerRow
+		# <advc.009b>
+		except AttributeError:
+			return 0 # </advc.009b>
 
-# I know that this is redundent, but CyInterface().getPlotListOffset() (and prob the column one too)
+# I know that this is redundant, but CyInterface().getPlotListOffset() (and prob the column one too)
 # uses this function
-# it is also used in "...\EntryPoints\CvScreensInterface.py" too
+# it is also used in "...\EntryPoints\CvScreensInterface.py"
 	def numPlotListButtons(self):
 		return self.numPlotListButtonsPerRow()
 
@@ -363,17 +367,26 @@ class CvMainInterface:
 		self.iX_FoVSlider = self.xResolution - 120
 		self.iY_FoVSlider = iBtnY + 30
 		self.sFieldOfView_Text = localText.getText("TXT_KEY_BUG_OPT_MAININTERFACE__FIELDOFVIEW_TEXT", ())
-		self.DEFAULT_FIELD_OF_VIEW = max(40, min(80, self.xResolution / 30)) # K-Mod (bigger FoW for bigger monitors. They'll appreciate it. Trust me.)
-		if MainOpt.isRememberFieldOfView():
-			self.iField_View = int(MainOpt.getFieldOfView())
+		#self.DEFAULT_FIELD_OF_VIEW = max(40, min(80, self.xResolution / 30)) # K-Mod (bigger FoW for bigger monitors. They'll appreciate it. Trust me.)
+		#if MainOpt.isRememberFieldOfView():
+			#self.iField_View = int(MainOpt.getFieldOfView())
 			# K-Mod
-			if self.iField_View < 0:
-				self.iField_View = self.DEFAULT_FIELD_OF_VIEW
+			#if self.iField_View < 0:
+				#self.iField_View = self.DEFAULT_FIELD_OF_VIEW
 			# K-Mod end
-		else:
-			self.iField_View = self.DEFAULT_FIELD_OF_VIEW
-# BUG - field of view slider - end
+		#else:
+			#self.iField_View = self.DEFAULT_FIELD_OF_VIEW
 
+		# <advc.004m> Replacing the above. Will have to ignore the XML setting (like K-Mod does) to avoid recursion - BUG stores the value computed for self.DEFAULT_FIELD_OF_VIEW in CvGlobals, overwriting the FIELD_OF_VIEW set through XML until the game is restarted.
+		self.DEFAULT_FIELD_OF_VIEW = 35.0 # 42.0 originally (FIELD_OF_VIEW in GlobalDefines)
+		aspectFactor = pow((0.8 * self.xResolution) / self.yResolution, 0.72)
+		if (not MainOpt.isRememberFieldOfView() and not MainOpt.isShowFieldOfView()) or int(MainOpt.getFieldOfView()) < 0:
+			self.DEFAULT_FIELD_OF_VIEW = int(max(self.DEFAULT_FIELD_OF_VIEW, min(2 * self.DEFAULT_FIELD_OF_VIEW, (aspectFactor * self.xResolution) / max(70 - self.DEFAULT_FIELD_OF_VIEW, 10))))
+			self.iField_View = self.DEFAULT_FIELD_OF_VIEW
+		else:
+			self.iField_View = int(MainOpt.getFieldOfView())
+		# </advc.004m>
+# BUG - field of view slider - end
 
 # BUG - Progress Bar - Tick Marks - start
 		xCoord = 268 + (self.xResolution - 1024) / 2
@@ -1110,7 +1123,8 @@ class CvMainInterface:
 					#screen.modifyLabel( "EndTurnText", acOutput, CvUtil.FONT_CENTER_JUSTIFY )
 					screen.setEndTurnState( "EndTurnText", acOutput )
 					bShow = True
-				elif ( CyInterface().shouldDisplayWaitingOthers() ):
+				# advc.127: No "Waiting" message during Auto Play
+				elif CyInterface().shouldDisplayWaitingOthers() and not gc.getPlayer(gc.getGame().getActivePlayer()).isHumanDisabled():
 					acOutput = localText.getText("SYSTEM_WAITING", ())
 					#screen.modifyLabel( "EndTurnText", acOutput, CvUtil.FONT_CENTER_JUSTIFY )
 					screen.setEndTurnState( "EndTurnText", acOutput )
@@ -1280,6 +1294,10 @@ class CvMainInterface:
 			# Globeview and Globelayer buttons
 			CyInterface().setDirty(InterfaceDirtyBits.GlobeInfo_DIRTY_BIT, False)
 			self.updateGlobeviewButtons()
+			# <advc.004z>
+			if gc.getDefineINT("SHOW_SCORE_IN_GLOBE_VIEW") > 0:
+				# Show/hide scoreboard depending on whether the layer has options
+				self.updateScoreStrings() # </advc.004z>
 
 		return 0
 
@@ -1658,7 +1676,7 @@ class CvMainInterface:
 			screen.show( "VictoryAdvisorButton" )
 			screen.show( "InfoAdvisorButton" )
 # BUG - City Arrows - start advc.042: commented out
-			if false: #(MainOpt.isShowCityCycleArrows()):
+			if False: #(MainOpt.isShowCityCycleArrows()):
 				screen.show( "MainCityScrollMinus" )
 				screen.show( "MainCityScrollPlus" )
 			else:
@@ -4025,7 +4043,6 @@ class CvMainInterface:
 				g_iNumRightBonus = iRightCount
 				
 				#iMaintenance = pHeadSelectedCity.getMaintenanceTimes100()
-				# advc.201:
 				iMaintenance = pHeadSelectedCity.getMaintenanceTimes100() * (100+gc.getPlayer(pHeadSelectedCity.getOwner()).calculateInflationRate()) / 100 # K-Mod
 
 				szBuffer = localText.getText("INTERFACE_CITY_MAINTENANCE", ())
@@ -4883,7 +4900,7 @@ class CvMainInterface:
 		
 	# Will update the scores
 	def updateScoreStrings( self ):
-	
+
 		screen = CyGInterfaceScreen( "MainInterface", CvScreenEnums.MAIN_INTERFACE )
 
 		xResolution = screen.getXResolution()
@@ -4907,7 +4924,14 @@ class CvMainInterface:
 		iBtnHeight = 22
 		
 		if ((CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_HIDE_ALL and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_MINIMAP_ONLY)):
-			if (CyInterface().isScoresVisible() and not CyInterface().isCityScreenUp() and CyEngine().isGlobeviewUp() == false):
+			# <advc.004z>
+			kGLM = CyGlobeLayerManager()
+			iCurrentLayerID = kGLM.getCurrentLayerID()
+			# Copy-pasted from updateGlobeviewButtons
+			bGlobeViewOptions = (iCurrentLayerID != -1 and kGLM.getLayer(iCurrentLayerID).getNumOptions() != 0 and (gc.getDefineINT("SHOW_RESOURCE_LAYER_OPTIONS") > 0 or kGLM.getLayer(iCurrentLayerID).getName() != "RESOURCES") and (gc.getDefineINT("SHOW_UNIT_LAYER_OPTIONS") > 0 or kGLM.getLayer(iCurrentLayerID).getName() != "UNITS"))
+			# </advc.004z>
+			# advc.004z: Globe view options clause added
+			if CyInterface().isScoresVisible() and not CyInterface().isCityScreenUp() and (not CyEngine().isGlobeviewUp() or (not bGlobeViewOptions and gc.getDefineINT("SHOW_SCORE_IN_GLOBE_VIEW") > 0)):
 
 # BUG - Align Icons - start
 				bAlignIcons = ScoreOpt.isAlignIcons()
@@ -4991,6 +5015,11 @@ class CvMainInterface:
 											else:
 												iScore = gc.getGame().getPlayerScore(ePlayer)
 												szPlayerScore = u"%d" % iScore
+												# <advc.155>
+												eMaster = gc.getTeam(eTeam).getMasterTeam()
+												if gc.getTeam(eMaster).getAliveCount() > 1 and gc.getDefineINT("COLOR_CODE_TEAM_SCORE") > 0:
+													szPlayerScore = u"<color=%d,%d,%d,%d>%s</color>" %(gc.getPlayer(gc.getTeam(eMaster).getLeaderID()).getPlayerTextColorR(), gc.getPlayer(gc.getTeam(eMaster).getLeaderID()).getPlayerTextColorG(), gc.getPlayer(gc.getTeam(eMaster).getLeaderID()).getPlayerTextColorB(), gc.getPlayer(gc.getTeam(eMaster).getLeaderID()).getPlayerTextColorA(), szPlayerScore)
+												# </advc.155>
 												if (bAlignIcons):
 													scores.setScore(szPlayerScore)
 # BUG - Score Delta - start
@@ -5226,7 +5255,8 @@ class CvMainInterface:
 					scores.draw(screen)
 				else:
 					if ( CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_SHOW or CyInterface().isInAdvancedStart()):
-						yCoord = yResolution - 186
+						# advc.106d: Was yResolution-168. That position is actually just fine, but I can't figure out how to move the contents of the Scoreboard there.
+						yCoord = yResolution - 184
 					else:
 						yCoord = yResolution - 68
 					screen.setPanelSize( "ScoreBackground", xResolution - 21 - iWidth, yCoord - (iBtnHeight * iCount) - 4, iWidth + 12, (iBtnHeight * iCount) + 8 )
@@ -5300,7 +5330,7 @@ class CvMainInterface:
 		kGLM = CyGlobeLayerManager()
 		iNumLayers = kGLM.getNumLayers()
 		iCurrentLayerID = kGLM.getCurrentLayerID()
-		
+
 		# Positioning things based on the visibility of the globe
 		if kEngine.isGlobeviewUp():
 			screen.setHelpTextArea( 350, FontTypes.SMALL_FONT, 7, yResolution - 50, -0.1, False, "", True, False, CvUtil.FONT_LEFT_JUSTIFY, HELP_TEXT_MINIMUM_WIDTH )
@@ -5326,7 +5356,8 @@ class CvMainInterface:
 		iNumLayers = kGLM.getNumLayers()
 		if kEngine.isGlobeviewUp() and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_HIDE_ALL:
 			# set up panel
-			if iCurrentLayerID != -1 and kGLM.getLayer(iCurrentLayerID).getNumOptions() != 0:
+			# advc.004z: Clauses for RESOURCES and UNITS added. Would rather set NumOptions to 0, but GlobeLayerManager is not part of the SDK, apparently.
+			if iCurrentLayerID != -1 and kGLM.getLayer(iCurrentLayerID).getNumOptions() != 0 and (gc.getDefineINT("SHOW_RESOURCE_LAYER_OPTIONS") > 0 or kGLM.getLayer(iCurrentLayerID).getName() != "RESOURCES") and (gc.getDefineINT("SHOW_UNIT_LAYER_OPTIONS") > 0 or kGLM.getLayer(iCurrentLayerID).getName() != "UNITS"):
 				bHasOptions = True		
 			else:
 				bHasOptions = False
@@ -5350,9 +5381,13 @@ class CvMainInterface:
 				iMaxTextWidth = -1
 				for iTmp in range(iNumOptions):
 					iOption = iTmp # iNumOptions - iTmp - 1
+					# <advc.004z> Skip dummy option (see CvEnums.h)
+					if iOption == 2:
+						continue # </advc.004z>
 					szName = "GlobeLayerOption" + str(iOption)
-					szCaption = kLayer.getOptionName(iOption)			
-					if(iOption == iCurOption):
+					szCaption = kLayer.getOptionName(iOption)
+					# advc.004z: Highlight "All Units" option when the default (2) is selected. This is the case when none of the options has been clicked yet.
+					if iOption == iCurOption or (iCurOption == 2 and iOption == 0):
 						szBuffer = "  <color=0,255,0>%s</color>  " % (szCaption)
 					else:
 						szBuffer = "  %s  " % (szCaption)
@@ -5615,11 +5650,16 @@ class CvMainInterface:
 
 # BUG - field of view slider - start
 	def setFieldofView(self, screen, bDefault):
-		#if bDefault or not MainOpt.isShowFieldOfView():
-		if bDefault or (not MainOpt.isShowFieldOfView() and not MainOpt.isRememberFieldOfView()): # K-Mod
-			self._setFieldofView(screen, self.DEFAULT_FIELD_OF_VIEW)
-		else:
-			self._setFieldofView(screen, self.iField_View)
+		try: # advc.009b
+			# K-Mod
+			#if bDefault or not MainOpt.isShowFieldOfView():
+			if bDefault or (not MainOpt.isShowFieldOfView() and not MainOpt.isRememberFieldOfView()) or int(MainOpt.getFieldOfView()) < 10: # advc.004m: Only remember sensible values
+				self._setFieldofView(screen, self.DEFAULT_FIELD_OF_VIEW)
+			else:
+				self._setFieldofView(screen, self.iField_View)
+		# <advc.009b>
+		except AttributeError:
+			pass # </advc.009b>
 
 	def _setFieldofView(self, screen, iFoV):
 		if self.iField_View_Prev != iFoV:

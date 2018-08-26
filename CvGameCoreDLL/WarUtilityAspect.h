@@ -100,6 +100,8 @@ protected:
 			TeamTypes ignoreGains = NO_TEAM);
 	 double lossesFromBlockade(PlayerTypes victimId, PlayerTypes to);
 	 double lossesFromNukes(PlayerTypes victimId, PlayerTypes sourceId);
+	 // advc.035:
+	 double lossesFromFlippedTiles(PlayerTypes victimId, PlayerTypes sourceId = NO_PLAYER);
 	 /* Score for assets conquered by us from them (as set by evaluate(void)).
 		'mute' disables logging within the function body. */
 	 double conqAssetScore(bool mute = true);
@@ -148,6 +150,7 @@ private:
 	double medianDistFromOurConquests(PlayerTypes civId);
 	double threatToCities(PlayerTypes civId);
 	double competitionMultiplier();
+	double teamSizeMultiplier();
 	std::map<int,int>* citiesPerArea[MAX_CIV_PLAYERS];
 	double ourDist;
 };
@@ -315,6 +318,7 @@ public:
 class Risk : public WarUtilityAspect {
 public:
 	Risk(WarEvalParameters& params);
+	int preEvaluate();
 	void evaluate();
 	char const* aspectName() const;
 	int xmlId() const;

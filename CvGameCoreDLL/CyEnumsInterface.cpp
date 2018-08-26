@@ -551,6 +551,7 @@ void CyEnumsPythonInterface()
 		.value("GAMEOPTION_NO_ESPIONAGE", GAMEOPTION_NO_ESPIONAGE)
 		.value("GAMEOPTION_NO_CITY_RAZING", GAMEOPTION_NO_CITY_RAZING) // advc.250b
 		.value("GAMEOPTION_NO_ANIMALS", GAMEOPTION_NO_ANIMALS) // advc.309
+		.value("GAMEOPTION_NO_SLAVERY", GAMEOPTION_NO_SLAVERY) // advc.912d
 		.value("NUM_GAMEOPTION_TYPES", NUM_GAMEOPTION_TYPES)
 		;
 
@@ -1316,6 +1317,9 @@ void CyEnumsPythonInterface()
 		.value("TRADE_RELIGION", TRADE_RELIGION)
 		.value("NUM_TRADEABLE_HEADINGS", NUM_TRADEABLE_HEADINGS)
 		.value("NUM_TRADEABLE_ITEMS", NUM_TRADEABLE_ITEMS)
+		/*  advc.034: After NUM_TRADEABLE_ITEMS because it's not supposed to be
+			included in iterations over TradeableItems */
+		.value("TRADE_DISENGAGE", TRADE_DISENGAGE)
 		;
 
 	python::enum_<DiploEventTypes>("DiploEventTypes")

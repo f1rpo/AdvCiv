@@ -386,3 +386,17 @@ class Tech:
 					str += ", "
 				str += pTech.getName()
 		return str
+		
+	# <advc.004a> Is this tech a necessary requirement for pForTech, i.e. is there no path to pForTech that doesn't include this tech?
+	# Recursive function that will run OOM if the tech tree has a cycle.
+	def isInevitableReq(self, pForTech):
+		for pTech in pForTech.sAndPrereqs:
+			if pTech == self or self.isInevitableReq(pTech):
+				return True
+		if len(pForTech.sOrPrereqs) <= 0:
+			return False
+		for pTech in pForTech.sOrPrereqs:
+			if pTech != self and not self.isInevitableReq(pTech):
+				return False
+		return True
+	# </advc.004a>

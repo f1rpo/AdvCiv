@@ -52,17 +52,22 @@ public:
 	bool canEventuallyDeclareWar(TeamTypes eTeam) const; // bbai, Exposed to Python
 	//DllExport void declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan); // Exposed to Python
 	void declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, bool bPrimaryDoW = true, // K-Mod added bPrimaryDoW, Exposed to Python
-			PlayerTypes sponsor = NO_PLAYER); // advc.100
+			PlayerTypes sponsor = NO_PLAYER, // advc.100
+			bool bRandomEvent = false); // advc.106g
 	DllExport void makePeace(TeamTypes eTeam, bool bBumpUnits = true);																		// Exposed to Python
-	// advc.100b: To avoid changing the signature of the function above:
-	void makePeaceBulk(TeamTypes eTeam, bool bBumpUnits = true, TeamTypes broker = NO_TEAM);
+	// advc.100b To avoid changing the signature of the function above:
+	void makePeaceBulk(TeamTypes eTeam, bool bBumpUnits = true, TeamTypes broker = NO_TEAM,
+			bool bCapitulate = false, // advc.034
+			CLinkList<TradeData>* reparations = NULL); // advc.039
 	//bool canContact(TeamTypes eTeam) const; // Exposed to Python
 	bool canContact(TeamTypes eTeam, bool bCheckWillingness = false) const; // K-Mod, Exposed to Python
 	void meet(TeamTypes eTeam, bool bNewDiplo);																		// Exposed to Python
 	void signPeaceTreaty(TeamTypes eTeam); // K-Mod
 	void signOpenBorders(TeamTypes eTeam);																				// Exposed to Python
+	void signDisengage(TeamTypes otherId); // advc.034
 	void signDefensivePact(TeamTypes eTeam);																			// Exposed to Python
-	bool canSignDefensivePact(TeamTypes eTeam);
+	// advc.003: const qualifier added
+	bool canSignDefensivePact(TeamTypes eTeam) const;
 
 	int getAssets() const;																															// Exposed to Python
 	int getPower(bool bIncludeVassals) const;																																// Exposed to Python
@@ -152,7 +157,7 @@ public:
 	DllExport int getNumMembers() const;																								// Exposed to Python
 	void changeNumMembers(int iChange);
 
-	DllExport int getAliveCount() const;
+	DllExport int getAliveCount() const; // advc.155: Exposed to Python
 	DllExport int isAlive() const;																											// Exposed to Python
 	void changeAliveCount(int iChange);
 
@@ -275,7 +280,11 @@ public:
 	bool isFreeTrade(TeamTypes eIndex) const;																	// Exposed to Python
 	bool isOpenBorders(TeamTypes eIndex) const;																// Exposed to Python
 	void setOpenBorders(TeamTypes eIndex, bool bNewValue);
-
+	// <advc.034>
+	bool isDisengage(TeamTypes eIndex) const;
+	void setDisengage(TeamTypes eIndex, bool bNewValue);
+	void cancelDisengage(TeamTypes otherId);
+	// </advc.034>
 	bool isDefensivePact(TeamTypes eIndex) const;															// Exposed to Python
 	void setDefensivePact(TeamTypes eIndex, bool bNewValue);
 
@@ -285,13 +294,13 @@ public:
 	int turnsOfForcedPeaceRemaining(TeamTypes tId) const;
 	bool isVassal(TeamTypes eIndex) const;																// Exposed to Python
 	void setVassal(TeamTypes eIndex, bool bNewValue, bool bCapitulated);
-
+	// advc.155: Exposed to Python
 	TeamTypes getMasterTeam() const; // K-Mod
 
 	void assignVassal(TeamTypes eVassal, bool bSurrender) const;																// Exposed to Python
 	void freeVassal(TeamTypes eVassal) const;																// Exposed to Python
 
-	bool isCapitulated() const;
+	bool isCapitulated() const; // advc.130v: Exposed to Python
 
 	int getRouteChange(RouteTypes eIndex) const;																				// Exposed to Python
 	void changeRouteChange(RouteTypes eIndex, int iChange);												// Exposed to Python
@@ -362,12 +371,10 @@ public:
 	/* advc.004a: A hack that allows other classes to pretend that a team knows
 	   a tech for some computation. Should be toggled back afterwards. */
 	void setHasTechTemporarily(TechTypes tt, bool b);
-	/* <advc.134a> NB: Looks like the several stages (finite state machine)
+	/* advc.134a: (Looks like the several stages (finite state machine)
 	   aren't needed after all; i.e. would work with just offeringPeace
-	   set to either the team whose peace offer is incoming or NO_TEAM otherwise. */
+	   set to either the team whose peace offer is incoming or NO_TEAM otherwise.) */
 	void advancePeaceOfferStage(TeamTypes aiTeam = NO_TEAM);
-	private: TeamTypes offeringPeace; int peaceOfferStage;
-	public: // </advc.134a>
 
 	bool isNoTradeTech(TechTypes eIndex) const;																														// Exposed to Python
 	void setNoTradeTech(TechTypes eIndex, bool bNewValue);																					// Exposed to Python
@@ -416,10 +423,16 @@ public:
 	DllExport void getCompletedSpaceshipProjects(std::map<ProjectTypes, int>& mapProjects) const;
 	DllExport int getProjectPartNumber(ProjectTypes projectType, bool bAssert) const;
 	DllExport bool hasLaunched() const;
-
+	// advc.003:
+	bool hasTechToClear(FeatureTypes ft, TechTypes currentResearch = NO_TECH) const;
 	// advc.136a: Made public
 	void testCircumnavigated();
-
+	// <advc.127b> Both return -1 if no team member has a capital
+	int getCapitalX() const;
+	int getCapitalY() const;
+	private: CvCity* getLeaderCapital() const; public:
+	// </advc.127b>
+	void makeUnwillingToTalk(TeamTypes otherId); // advc.104i
 	virtual void AI_init() = 0;
 	virtual void AI_reset(bool bConstructor) = 0;
 	virtual void AI_doTurnPre() = 0;
@@ -498,6 +511,7 @@ protected:
 	bool* m_abHasSeen; // K-Mod
 	bool* m_abPermanentWarPeace;
 	bool* m_abOpenBorders;
+	bool m_abDisengage[MAX_CIV_PLAYERS]; // advc.034
 	bool* m_abDefensivePact;
 	bool* m_abForcePeace;
 	bool* m_abVassal;
@@ -531,6 +545,8 @@ protected:
 
 	std::vector<BonusTypes> m_aeRevealedBonuses;
 
+	TeamTypes offeringPeace; int peaceOfferStage; // advc.134a
+
 	void doWarWeariness();
 
 	void updateTechShare(TechTypes eTech);
@@ -540,7 +556,9 @@ protected:
 
 	void cancelDefensivePacts();
 	void allowDefensivePactsToBeCanceled(); // dlph.3
-	void makeUnwillingToTalk(TeamTypes otherId); // advc.104i
+	// <advc.039>
+	CvWString const tradeItemString(TradeableItems itemType, int data,
+			TeamTypes fromId) const; // </advc.039>
 	void announceTechToPlayers(TechTypes eIndex, bool bPartial = false);
 
 	virtual void read(FDataStreamBase* pStream);

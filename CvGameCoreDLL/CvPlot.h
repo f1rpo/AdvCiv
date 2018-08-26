@@ -158,7 +158,9 @@ public:
 	bool isHasPathToEnemyCity( TeamTypes eAttackerTeam, bool bIgnoreBarb = true );
 	bool isHasPathToPlayerCity( TeamTypes eMoveTeam, PlayerTypes eOtherPlayer = NO_PLAYER );
 	int calculatePathDistanceToPlot( TeamTypes eTeam, CvPlot* pTargetPlot,
-			TeamTypes eTargetTeam = NO_TEAM, DomainTypes dom = NO_DOMAIN); // advc.104b
+			// <advc.104b>
+			TeamTypes eTargetTeam = NO_TEAM, DomainTypes dom = NO_DOMAIN,
+			int iMaxPath = -1); // </advc.104b>
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
@@ -179,7 +181,8 @@ public:
 /************************************************************************************************/
 
 	PlayerTypes calculateCulturalOwner(
-		bool ignoreCultureRange = false // advc.099c
+		bool ignoreCultureRange = false, // advc.099c
+		bool ownExclusiveRadius = false // advc.035
 		) const;
 
 	void plotAction(PlotUnitFunc func, int iData1 = -1, int iData2 = -1, PlayerTypes eOwner = NO_PLAYER, TeamTypes eTeam = NO_TEAM);
@@ -343,7 +346,12 @@ public:
 	}
 #endif
 	void setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotGroup);
-
+	/*  <advc.035> The returned civ becomes the owner if war/peace changes
+		between that civ and the current owner */
+	PlayerTypes getSecondOwner() const;
+	void setSecondOwner(PlayerTypes eNewValue);
+	bool isContestedByRival(PlayerTypes rivalId = NO_PLAYER) const;
+	// </advc.035>
 	PlotTypes getPlotType() const;																																			// Exposed to Python
 	DllExport bool isWater() const;																																								// Exposed to Python
 	bool isFlatlands() const;																																											// Exposed to Python
@@ -421,7 +429,8 @@ public:
 	int countTotalCulture() const;																														// Exposed to Python
 	int countFriendlyCulture(TeamTypes eTeam) const;
 	TeamTypes findHighestCultureTeam() const;																														// Exposed to Python
-	PlayerTypes findHighestCulturePlayer() const;
+	PlayerTypes findHighestCulturePlayer(
+			bool bAlive = false) const; // advc.035
 	int calculateCulturePercent(PlayerTypes eIndex) const;																		// Exposed to Python
 	int calculateTeamCulturePercent(TeamTypes eIndex) const;																						// Exposed to Python
 	void setCulture(PlayerTypes eIndex, int iNewValue, bool bUpdate, bool bUpdatePlotGroups);																		// Exposed to Python
@@ -554,6 +563,7 @@ public:
 	DllExport float getAqueductSourceWeight() const;  // used to place aqueducts on the map
 	DllExport bool shouldDisplayBridge(CvPlot* pToPlot, PlayerTypes ePlayer) const;
 	DllExport bool checkLateEra() const;
+	void killRandomUnit(PlayerTypes eOwner, DomainTypes eDomain); // advc.300
 	static bool activeVisibility; // advc.706
 
 	void read(FDataStreamBase* pStream);
@@ -596,7 +606,7 @@ protected:
 	short /*RouteTypes*/ m_eRouteType;
 	char /*CardinalDirectionTypes*/ m_eRiverNSDirection;
 	char /*CardinalDirectionTypes*/ m_eRiverWEDirection;
-
+	char /*PlayerTypes*/ m_eSecondOwner; // advc.035
 	IDInfo m_plotCity;
 	IDInfo m_workingCity;
 	IDInfo m_workingCityOverride;
@@ -657,7 +667,9 @@ protected:
 
 	void processArea(CvArea* pArea, int iChange);
 	void doImprovementUpgrade();
-
+	// <advc.099b>
+	void doCultureDecay();
+	int exclusiveRadius(PlayerTypes ePlayer) const; // </advc.099b>
 	ColorTypes plotMinimapColor();
 
 	// added so under cheat mode we can access protected stuff

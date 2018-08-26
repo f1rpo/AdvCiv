@@ -134,7 +134,7 @@ class EconomicsAdvisor:
 		numCities = player.getNumCities()	
 
 		# K-Mod - I've changed these costs to include inflation.
-		inflationFactor = 100+player.calculateInflationRate() # advc.201
+		inflationFactor = 100+player.calculateInflationRate()
 		totalUnitCost = (player.calculateUnitCost() * inflationFactor + 50)/100
 		totalUnitSupply = (player.calculateUnitSupply() * inflationFactor + 50)/100
 		totalMaintenance = (player.getTotalMaintenance() * inflationFactor + 50)/100

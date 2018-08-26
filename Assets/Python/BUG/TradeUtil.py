@@ -334,7 +334,7 @@ def getTradeableBonuses(fromPlayerOrID, toPlayerOrID):
 	"""
 	fromPlayer = PlayerUtil.getPlayer(fromPlayerOrID)
 	eToPlayer = PlayerUtil.getPlayerID(toPlayerOrID)
-	fromPlayerIsHuman = fromPlayer.isHuman()
+	#fromPlayerIsHuman = fromPlayer.isHuman() # advc.306: Now unused
 	will = set()
 	wont = set()
 	tradeData = TradeData()
@@ -342,7 +342,8 @@ def getTradeableBonuses(fromPlayerOrID, toPlayerOrID):
 	for eBonus in range(gc.getNumBonusInfos()):
 		tradeData.iData = eBonus
 		if fromPlayer.canTradeItem(eToPlayer, tradeData, False):
-			if fromPlayerIsHuman or fromPlayer.canTradeItem(eToPlayer, tradeData, True):
+			# adcv.036: Removed 'fromPlayerIsHuman or'. Human trade denial checks whether eToPlayer needs eBonus.
+			if fromPlayer.canTradeItem(eToPlayer, tradeData, True):
 				will.add(eBonus)
 			else:
 				wont.add(eBonus)

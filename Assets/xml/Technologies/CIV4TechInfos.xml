@@ -670,7 +670,8 @@
 			<Help/>
 			<Strategy>TXT_KEY_TECH_FEUDALISM_STRATEGY</Strategy>
 			<Advisor>ADVISOR_ECONOMY</Advisor>
-			<iAIWeight>0</iAIWeight>
+			<!-- advc.131b -->
+			<iAIWeight>-135</iAIWeight>
 			<iAITradeModifier>10</iAITradeModifier>
 			<iCost>700</iCost>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
@@ -4835,7 +4836,8 @@
 			<Help/>
 			<Strategy>TXT_KEY_TECH_IRON_WORKING_STRATEGY</Strategy>
 			<Advisor>ADVISOR_MILITARY</Advisor>
-			<iAIWeight>0</iAIWeight>
+			<!-- advc.131b -->
+			<iAIWeight>-70</iAIWeight>
 			<iAITradeModifier>0</iAITradeModifier>
 			<iCost>200</iCost>
 			<iAdvancedStartCost>100</iAdvancedStartCost>

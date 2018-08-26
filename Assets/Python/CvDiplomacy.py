@@ -204,13 +204,11 @@ class CvDiplomacy:
 							self.addUserComment("USER_DIPLOCOMMENT_PROPOSE", -1, -1)
 
 						# Otherwise (during peacetime) ask what they want for our item or demand they give it to us
-						else:
+						else: # <advc.155> Rearranged so that OFFER always appears
+							self.addUserComment("USER_DIPLOCOMMENT_OFFER", -1, -1)
 							if (gc.getGame().getActiveTeam() == gc.getPlayer(self.diploScreen.getWhoTradingWith()).getTeam()):
 								self.addUserComment("USER_DIPLOCOMMENT_DEMAND_TEAM", -1, -1)
-
-							else:
-								self.addUserComment("USER_DIPLOCOMMENT_OFFER", -1, -1)
-
+							else: # </advc.155>
 								if (gc.getTeam(gc.getPlayer(self.diploScreen.getWhoTradingWith()).getTeam()).isVassal(gc.getGame().getActiveTeam()) and self.diploScreen.theirVassalTribute()):
 									self.addUserComment("USER_DIPLOCOMMENT_VASSAL_TRIBUTE", -1, -1)
 								elif (gc.getPlayer(self.diploScreen.getWhoTradingWith()).AI_getAttitude(gc.getGame().getActivePlayer()) >= AttitudeTypes.ATTITUDE_PLEASED):
@@ -226,9 +224,9 @@ class CvDiplomacy:
 							self.addUserComment("USER_DIPLOCOMMENT_PROPOSE", -1, -1)
 
 						# During peace, see what we can get for these items or simply gift them to the AI
-						else:
-							if (gc.getGame().getActiveTeam() != gc.getPlayer(self.diploScreen.getWhoTradingWith()).getTeam()):
-								self.addUserComment("USER_DIPLOCOMMENT_FISH_FOR_DEAL", -1, -1)
+						else: # advc.155: Commented out
+							#if (gc.getGame().getActiveTeam() != gc.getPlayer(self.diploScreen.getWhoTradingWith()).getTeam()):
+							self.addUserComment("USER_DIPLOCOMMENT_FISH_FOR_DEAL", -1, -1)
 
 							self.addUserComment("USER_DIPLOCOMMENT_GIFT", -1, -1)
 
@@ -576,7 +574,8 @@ class CvDiplomacy:
 				self.setAIComment(self.getCommentID("AI_DIPLOCOMMENT_NO_DEAL"))
 
 		# if we are asking for something
-		elif (self.isComment(eComment, "USER_DIPLOCOMMENT_ASK")):
+		# advc.155: Treat DEMAND_TEAM here as well
+		elif (self.isComment(eComment, "USER_DIPLOCOMMENT_ASK")  or self.isComment(eComment, "USER_DIPLOCOMMENT_DEMAND_TEAM")):
 			diploScreen.diploEvent(DiploEventTypes.DIPLOEVENT_ASK_HELP, -1, -1)
 			if (diploScreen.offerDeal()):
 				self.setAIComment(self.getCommentID("AI_DIPLOCOMMENT_ACCEPT_ASK"))
@@ -602,9 +601,10 @@ class CvDiplomacy:
 
 
 		# if we are demanding something from our teammate
-		elif (self.isComment(eComment, "USER_DIPLOCOMMENT_DEMAND_TEAM")):
-			diploScreen.offerDeal()
-			self.setAIComment(self.getCommentID("AI_DIPLOCOMMENT_ACCEPT_DEMAND_TEAM"))
+		# advc.155: Commented out
+		#elif (self.isComment(eComment, "USER_DIPLOCOMMENT_DEMAND_TEAM")):
+			#diploScreen.offerDeal()
+			#self.setAIComment(self.getCommentID("AI_DIPLOCOMMENT_ACCEPT_DEMAND_TEAM"))
 
 		# If we are giving a gift
 		elif (self.isComment(eComment, "USER_DIPLOCOMMENT_GIFT")):

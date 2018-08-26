@@ -44,7 +44,13 @@ public:
 	DllExport void initDiplomacy();
 	DllExport void initFreeState();
 	DllExport void initFreeUnits();
-
+	// <advc.051>
+	void initScenario();
+	void initFreeUnitsBulk(); // </advc.051>
+	/*  This declaration lead to strange, erroneous behavior. Mustn't add any
+		(pure?) virtual functions to this class, apparently.
+		Not really necessary either. */
+	//virtual void AI_initScenario()=0; // advc.104u
 	DllExport void assignStartingPlots();
 	DllExport void normalizeStartingPlots();
 
@@ -98,6 +104,8 @@ public:
 	// K-Mod end
 
 	DllExport void implementDeal(PlayerTypes eWho, PlayerTypes eOtherWho, CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirList, bool bForce = false);
+	// advc.036:
+	CvDeal* implementDealBulk(PlayerTypes eWho, PlayerTypes eOtherWho, CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirList, bool bForce = false);
 	void verifyDeals();
 
 	DllExport void getGlobeviewConfigurationParameters(TeamTypes eTeam, bool& bStarsVisible, bool& bWorldIsRound);
@@ -305,7 +313,7 @@ public:
 	DllExport bool isDebugMode() const;																			// Exposed to Python
 	DllExport void toggleDebugMode();																				// Exposed to Python
 	DllExport void updateDebugModeCache();
-
+	bool isDebugToolsAllowed(bool wb) const; // advc.135c
 	DllExport int getPitbossTurnTime() const;																			// Exposed to Python
 	DllExport void setPitbossTurnTime(int iHours);																			// Exposed to Python
 
@@ -617,10 +625,20 @@ public:
 	DllExport void handleDiplomacySetAIComment(DiploCommentTypes eComment) const;
 
 	std::set<int> m_ActivePlayerCycledGroups; // K-Mod. This is used to track which groups have been cycled through in the current turn. Note: it does not need to be kept in sync for multiplayer games.
+	double goodyHutEffectFactor(bool speedAdjust = true) const; // advc.314
 	// <advc.004m>
 	bool isResourceLayer() const;
 	void reportResourceLayerToggled();
 	// </advc.004m>
+	// <advc.052>
+	bool isScenario() const;
+	void setScenario(bool b);
+	// </advc.052>
+	// <advc.127b> Both return -1 if 'vs' doesn't exist in any city
+	std::pair<int,int> getVoteSourceXY(VoteSourceTypes vs) const;
+	BuildingTypes getVoteSourceBuilding(VoteSourceTypes vs) const;
+	CvCity* getVoteSourceCity(VoteSourceTypes vs) const;
+	// </advc.127b>
 	/* advc.104: Doesn't belong here, but I didn't want to add Python wrapper
 	   classes just for that one function. */
 	bool useKModAI() const; // Exposed to Python
@@ -633,7 +651,6 @@ public:
 	// <advc.703>
 	RiseFall const& getRiseFall() const;
 	RiseFall& getRiseFall(); // </advc.703>
-
 	/* <advc.108>: Three levels of start plot normalization:
 	   1: low (weak starting plots on average, high variance);
 	      for single-player
@@ -792,6 +809,8 @@ protected:
 	// Use of PRNG makes this non-const
 	UnitTypes randomBarbUnit(UnitAITypes ai, CvArea const& a);
 	// </advc.300>
+	bool feignSP; // advc.135c
+	bool bScenario; // advc.052
 
 	void verifyCivics();
 

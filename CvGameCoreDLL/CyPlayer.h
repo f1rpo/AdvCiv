@@ -51,7 +51,10 @@ public:
 	void killUnits();
 	bool hasTrait(int /*TraitTypes*/ iIndex);
 	bool isHuman();
-	bool isHumanDisabled(); // advc.127
+	// <advc.127>
+	bool isHumanDisabled();
+	bool isAutoPlayJustEnded();
+	// </advc.127>
 	bool isBarbarian();
 	std::wstring getName();
 	std::wstring getNameForm(int iForm);
@@ -226,6 +229,12 @@ public:
 	int getEspionageSpending(int /*PlayerTypes*/ ePlayer);
 	bool canDoEspionageMission(int /*EspionageMissionTypes*/ eMission, int /*PlayerTypes*/ eTargetPlayer, CyPlot* pPlot, int iExtraData);
 	int getEspionageMissionCost(int /*EspionageMissionTypes*/ eMission, int /*PlayerTypes*/ eTargetPlayer, CyPlot* pPlot, int iExtraData);
+	// <advc.120d>
+	int getEspionageGoldQuantity(int /*EspionageMissionTypes*/ eMission,
+			int /*PlayerTypes*/ eTargetPlayer, CyCity* pCity);
+	int getStealCostTech(int eTargetPlayer);
+	bool canSeeTech(int eTargetPlayer);
+	bool canSpy(); // </advc.120d>
 	void doEspionageMission(int /*EspionageMissionTypes*/ eMission, int /*PlayerTypes*/ eTargetPlayer, CyPlot* pPlot, int iExtraData, CyUnit* pUnit);
 
 	int getEspionageSpendingWeightAgainstTeam(int /*TeamTypes*/ eIndex);
@@ -496,7 +505,6 @@ public:
 	int AI_getExtraGoldTarget() const;
 	void AI_setExtraGoldTarget(int iNewValue);
 
-
 	int getScoreHistory(int iTurn) const;
 	int getEconomyHistory(int iTurn) const;
 	int getIndustryHistory(int iTurn) const;
@@ -518,7 +526,10 @@ public:
 	bool canHaveTradeRoutesWith(int iPlayer);
 
 	void forcePeace(int iPlayer);
+	// advc.038: returns int b/c I'm not sure if double would cause problems
+	int estimateYieldRate(YieldTypes yield) const;
 	void checkAlert(int alertId, bool silent); // advc.210
+	int AI_corporationBonusVal(int eBonus) const; // advc.210e
 
 private:
 	CvPlayer* m_pPlayer;

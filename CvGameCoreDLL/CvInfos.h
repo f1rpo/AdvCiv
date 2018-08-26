@@ -854,6 +854,7 @@ public:
 	int getCityAttackModifier() const;				// Exposed to Python
 	int getCityDefenseModifier() const;				// Exposed to Python
 	int getAnimalCombatModifier() const;			// Exposed to Python
+	int getBarbarianCombatModifier() const; // advc.315c
 	int getHillsAttackModifier() const;			// Exposed to Python
 	int getHillsDefenseModifier() const;			// Exposed to Python
 	int getBombRate() const;									// Exposed to Python
@@ -897,6 +898,8 @@ public:
 	bool isFoodProduction() const;				// Exposed to Python
 	bool isNoBadGoodies() const;				// Exposed to Python
 	bool isOnlyDefensive() const;				// Exposed to Python
+	bool isOnlyAttackAnimals() const; // advc.315a
+	bool isOnlyAttackBarbarians() const; // advc.315b
 	bool isNoCapture() const;				// Exposed to Python
 	bool isQuickCombat() const;				// Exposed to Python
 	bool isRivalTerritory() const;				// Exposed to Python
@@ -1038,6 +1041,7 @@ protected:
 	int m_iCityAttackModifier;
 	int m_iCityDefenseModifier;
 	int m_iAnimalCombatModifier;
+	int m_iBarbarianCombatModifier; // advc.315
 	int m_iHillsAttackModifier;
 	int m_iHillsDefenseModifier;
 	int m_iBombRate;
@@ -1079,6 +1083,8 @@ protected:
 	bool m_bFoodProduction;
 	bool m_bNoBadGoodies;
 	bool m_bOnlyDefensive;
+	bool m_bOnlyAttackAnimals; // advc.315a
+	bool m_bOnlyAttackBarbarians; // advc.315b
 	bool m_bNoCapture;
 	bool m_bQuickCombat;
 	bool m_bRivalTerritory;
@@ -1336,6 +1342,7 @@ public:
 	int getGoldPerUnit() const;				// Exposed to Python
 	int getGoldPerMilitaryUnit() const;				// Exposed to Python
 	int getHappyPerMilitaryUnit() const;				// Exposed to Python
+	int getLuxuryModifier() const; // advc.912c
 	int getLargestCityHappiness() const;					// Exposed to Python
 	int getWarWearinessModifier() const;					// Exposed to Python
 	int getFreeSpecialist() const;				// Exposed to Python
@@ -1420,6 +1427,7 @@ protected:
 	int m_iGoldPerUnit;												
 	int m_iGoldPerMilitaryUnit;									
 	int m_iHappyPerMilitaryUnit;
+	int m_iLuxuryModifier; // advc.912c
 	int m_iLargestCityHappiness;
 	int m_iWarWearinessModifier;
 	int m_iFreeSpecialist;
@@ -2419,6 +2427,7 @@ public:
 	int getAIInflationPercent() const;				// Exposed to Python
 	int getAIWarWearinessPercent() const;				// Exposed to Python
 	int getAIPerEraModifier() const;						// Exposed to Python
+	int getAIAttitudeChange() const; // advc.148
 	int getAIAdvancedStartPercent() const;						// Exposed to Python
 	int getNumGoodies() const;				// Exposed to Python
 	int getDifficulty() const; // advc.250a; exposed to Python
@@ -2496,6 +2505,7 @@ protected:
 	int m_iAIWarWearinessPercent;
 	int m_iAIPerEraModifier;
 	int m_iAIAdvancedStartPercent;
+	int m_iAIAttitudeChange; // advc.148
 	int m_iNumGoodies;
 	int m_iDifficulty; // advc.250a
 

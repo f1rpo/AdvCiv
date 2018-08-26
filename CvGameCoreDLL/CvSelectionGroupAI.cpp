@@ -254,7 +254,7 @@ bool CvSelectionGroupAI::AI_update()
 
 	if (!bDead)
 	{
-		// K-Mod. this is how we deal with force update when some group memebers can't move.
+		// K-Mod. this is how we deal with force update when some group members can't move.
 		if (isForceUpdate())
 		{
 			setForceUpdate(false);
@@ -265,37 +265,38 @@ bool CvSelectionGroupAI::AI_update()
 		if (!isHuman())
 		{
 			bool bFollow = false;
-
-			// if we not group attacking, then check for follow action
-			if (!AI_isGroupAttack())
+			// <k146>
+			// if we're not group attacking, then check for 'follow' action
+			if (!AI_isGroupAttack() && readyToMove(true)) 
 			{
-				CLLNode<IDInfo>* pEntityNode = headUnitNode();
-				// K-Mod note: I've rearranged a few things below, and added 'bFirst'.
+				/*  What we do here might split the group. So to avoid problems,
+					lets make a list of our units. */
+				std::vector<IDInfo> originalGroup;
+				for(CLLNode<IDInfo>* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode))
+ 				{
+					originalGroup.push_back(pUnitNode->m_data);
+				}
+				FAssert(originalGroup.size() == getNumUnits());
 				bool bFirst = true;
-
-				while ((pEntityNode != NULL) && readyToMove(true))
+				path_finder.Reset();
+				for (std::vector<IDInfo>::iterator it = originalGroup.begin(); it != originalGroup.end(); ++it)
 				{
-					CvUnit* pLoopUnit = ::getUnit(pEntityNode->m_data);
-					/*  advc.001: Got a crash here once that I couldn't
-						reproduce after reloading. Assertion added. */
-					FAssert(pLoopUnit != NULL);
-					pEntityNode = nextUnitNode(pEntityNode);
-					if(pLoopUnit == NULL) continue; // advc.001
-					if (bFirst)
-						path_finder.Reset();
-
-					if (pLoopUnit->canMove())
+					CvUnit* pLoopUnit = ::getUnit(*it);
+					if (pLoopUnit && pLoopUnit->getGroupID() == getID() &&
+							pLoopUnit->canMove())
 					{
 						if (pLoopUnit->AI_follow(bFirst))
 						{
 							bFollow = true;
 							bFirst = true; // let the next unit start fresh.
+							path_finder.Reset();
+							if (!readyToMove(true))
+								break;
 						}
 						else
 							bFirst = false;
 					}
-				}
-				// K-Mod end
+				} // </k146>
 			}
 
 			if (doDelayedDeath())

@@ -56,7 +56,8 @@ void CvGame::updateColoredPlots()
 	// Moved up
 	pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
 	// See comment in CvUnit.cpp
-	if(pHeadSelectedUnit != NULL) pHeadSelectedUnit->showCityCross();
+	if(pHeadSelectedUnit != NULL)
+		pHeadSelectedUnit->showCityCross();
 	// </advc.004h>
 
 /************************************************************************************************/
@@ -343,9 +344,14 @@ void CvGame::updateColoredPlots()
 			}
 
 			// goody huts
-			if (pHeadSelectedUnit->isNoBadGoodies())
+			//if (pHeadSelectedUnit->isNoBadGoodies())
+			if(pHeadSelectedUnit->canFight()) // advc.004z: Replacing the above
 			{
 				iRange = 4;
+				// <advc.004z>
+				if(pHeadSelectedUnit->isNoBadGoodies())
+					iRange++;
+				else iRange--; // </advc.004z>
 				site_path.SetSettings(pHeadSelectedUnit->getGroup(), 0, iRange, GC.getMOVE_DENOMINATOR()); // just a smaller range.
 
 				for (iDX = -(iRange); iDX <= iRange; iDX++)
@@ -403,7 +409,9 @@ void CvGame::updateColoredPlots()
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
 
-										if (pLoopPlot->isWater() && pLoopPlot->area() == pLoopUnit->area())
+										if (pLoopPlot->isWater())
+												// advc.033: PathDistance check suffices
+												//&& pLoopPlot->area() == pLoopUnit->area())
 										{
 											NiColorA color(GC.getColorInfo((ColorTypes)GC.getPlayerColorInfo(GET_PLAYER(getActivePlayer()).getPlayerColor()).getColorTypePrimary()).getColor());
 											color.a = 0.5f;
@@ -1606,10 +1614,11 @@ bool CvGame::canDoControl(ControlTypes eControl) const
 		break;
 
 	case CONTROL_WORLD_BUILDER:
-		if (!(isGameMultiPlayer()) && GC.getInitCore().getAdminPassword().empty() && !gDLL->getInterfaceIFace()->isInAdvancedStart())
+		return isDebugToolsAllowed(true); // advc.135c
+		/*if (!(isGameMultiPlayer()) && GC.getInitCore().getAdminPassword().empty() && !gDLL->getInterfaceIFace()->isInAdvancedStart())
 		{
 			return true;
-		}
+		}*/
 		break;
 
 	case CONTROL_ENDTURN:
@@ -2134,8 +2143,14 @@ void CvGame::enterWorldBuilder()
 {
 	FAssert(canDoControl(CONTROL_WORLD_BUILDER));
 	if (GC.getInitCore().getAdminPassword().empty())
-	{
+	{	// <advc.315c>
+		/*  In multiplayer, setWorldBuilder apparently checks ChtLvl>0 and
+			setChtLvl doesn't work. Need to make the EXE believe that we're
+			in singleplayer. */
+		feignSP = true;
+		gDLL->setChtLvl(1); // </advc.315c>
 		gDLL->getInterfaceIFace()->setWorldBuilder(!(gDLL->GetWorldBuilderMode()));
+		feignSP = false; // advc.315c
 	}
 	else
 	{

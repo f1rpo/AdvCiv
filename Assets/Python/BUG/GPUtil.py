@@ -169,6 +169,7 @@ def getCityTurns(city):
 	return None
 
 def calcPercentages(city):
+	# advc.001c (comment): Would be better to predict the probabilities based on GPP per turn like in CvGameTextMgr::parseGreatPeopleHelp.
 	# Calc total rate
 	iTotal = 0
 	for iUnit in g_gpUnitTypes:

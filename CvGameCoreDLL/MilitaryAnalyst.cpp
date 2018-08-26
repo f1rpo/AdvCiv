@@ -85,10 +85,10 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 	ourSide.insert(weAndOurVassals.begin(), weAndOurVassals.end());
 	ourSide.insert(ourAllies.begin(), ourAllies.end());
 	theirSide.insert(theyAndTheirVassals.begin(), theyAndTheirVassals.end());
+	bool const noWarVsExtra = (peaceScenario && warEvalParams.isNoWarVsExtra());
 	set<PlayerTypes>& declaringWar = ((agent.isAtWar(theyId) &&
-			!warEvalParams.isConsideringPeace()) ?
-			ourAllies : ourSide);
-	if(!peaceScenario && !warEvalParams.isConsideringPeace()) {
+			!warEvalParams.isConsideringPeace()) ? ourAllies : ourSide);
+	if((!peaceScenario && !warEvalParams.isConsideringPeace()) || noWarVsExtra) {
 		// Store war-scenario DoW for getWarsDeclaredOn/By
 		for(set<PlayerTypes>::iterator it = declaringWar.begin();
 				it != declaringWar.end(); it++) {
@@ -161,7 +161,14 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 		FAssert(!agent.isAtWar(theyId) || !GET_TEAM(theyId).isAVassal()); /*
 				Master isn't included in the removed war opponents
 				(theirSide) then. */
-		ig->removeWar(declaringWar, theirSide);
+		if(noWarVsExtra) { // diff = theirSide - theyAndTheirVassals
+			std::set<PlayerTypes> diff;
+			std::set_difference(theirSide.begin(), theirSide.end(),
+					theyAndTheirVassals.begin(), theyAndTheirVassals.end(),
+					std::inserter(diff, diff.begin()));
+			ig->removeWar(declaringWar, diff);
+		}
+		else ig->removeWar(declaringWar, theirSide);
 	}
 	int timeHorizon = 25;
 	// Look a bit farther into the future when in a total war
@@ -173,7 +180,7 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 		timeHorizon += 5;
 	/*  Skip phase 1 if it would be short (InvasionGraph::Node::isSneakAttack
 		will still read the actual prep time from the WarEvalParameters) */
-	if(prepTime < 6) {
+	if(prepTime < 4) {
 		if(prepTime > 0)
 			report.log("Skipping short prep. time (%d turns):", prepTime);
 		timeHorizon += prepTime; // Prolong 2nd phase instead
@@ -188,11 +195,12 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 		ig->simulate(prepTime);
 		turnsSim += prepTime;
 	}
-	if(!peaceScenario)
+	if(!peaceScenario || noWarVsExtra)
 		ig->addFutureWarParties(declaringWar, ourFutureOpponents);
 	/*  Force update of targets (needed even if no parties were added b/c of
 		defeats in phase I. */
-	else ig->updateTargets();
+	if(peaceScenario)
+		ig->updateTargets();
 	report.log("Phase 2%s%s (%d turns)",
 			(!peaceScenario && !agent.isAtWar(theyId) ?
 			": Simulation assuming DoW by " : ""),
@@ -350,8 +358,12 @@ double MilitaryAnalyst::interceptionMultiplier(TeamTypes tId) {
 	int nukeInterception = std::max(GET_TEAM(tId).getNukeInterception(),
 			// advc.143b:
 			GET_TEAM(GET_TEAM(tId).getMasterTeam()).getNukeInterception());
-	// Assume 1/3 of their nukes are Tactical, which can't be intercepted
-	return 1 - (2 * nukeInterception / 300.0);
+	double const evasionPr = 0.5; // Fixme: Shouldn't hardcode this
+	// Percentage of Tactical Nukes
+	double tactRatio = (GET_TEAM(tId).isHuman() ? 0.5 : 0.33);
+	return ::dRange(100 -
+			(nukeInterception * ((1 - tactRatio) + evasionPr * tactRatio)),
+			0.0, 100.0) / 100.0;
 }
 
 void MilitaryAnalyst::prepareResults() {

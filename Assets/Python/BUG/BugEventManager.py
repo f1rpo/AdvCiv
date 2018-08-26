@@ -597,8 +597,10 @@ def configure(logging=None, noLogEvents=None):
 	# K-Mod end
 
 	# --------- Better BTS AI (2/2) (moved by K-Mod) -------------
-	# K-Mod, only enable these feature if the cheat mode is enabled.
-	if getChtLvl():
+	# K-Mod, only enable these features if the cheat mode is enabled.
+	#if getChtLvl():
+	# advc.127: Replacing the above. ChtLvl is always 0 in multiplayer.
+	if getChtLvl() or (CyGame().isGameMultiPlayer() and gc.getDefineINT("ENABLE_AUTOPLAY_MULTIPLAYER") > 0):
 		AIAutoPlay.AIAutoPlay(g_eventManager)
 		ChangePlayer.ChangePlayer(g_eventManager)
 		Tester.Tester(g_eventManager)

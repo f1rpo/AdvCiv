@@ -9,8 +9,10 @@
 <Civ4GameText xmlns="http://www.firaxis.com">
 
 <!-- advc.008c: Added "(K-Mod)" to hints that describe K-Mod changes
-	(even those that are just included in K-Mod because, without further
-	context, players may not know that e.g. "BUG" is the name of a mod). -->
+	(even those that are just included in K-Mod because players may not know
+	that e.g. "BUG" is the name of a mod).
+	I'm also putting any corrections of BtS hints into K-Mod hints.xml, so that
+	CIV4GameText_advc.008d.xml only contains hints about AdvCiv changes. -->
 
 <!-- advc.008c: Now also hints at menu button -->
 <TEXT>
@@ -24,11 +26,11 @@
 <!-- advc.008c: Just stylistic changes -->
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_1</Tag>
-	<English>(K-Mod) Aqueduct and Hospital increase a city's health, whereas Public Transportation and Recycling Center reduce its pollution ...</English>
-	<French>(K-Mod) Aqueduct and Hospital increase a city's health, whereas Public Transportation and Recycling Center reduce its pollution ...</French>
-	<German>(K-Mod) Aquädukt und Krankenhaus erhöhen den Gesundheitswert einer Stadt, wohingegen öffentliche Verkehrsmittel und Recyclinganlagen die Umweltverschmutzung lindern ...</German>
-	<Italian>(K-Mod) Un acquedotto o un ospedale aumentano la salute della città, ma il trasporto pubblico o il centro riciclaggio ne riducono l'inquinamento...</Italian>
-	<Spanish>(K-Mod) Un acueducto o un hospital aumentará la salud de una ciudad, pero el transporte público o un centro de reciclaje reduce su polución...</Spanish>
+	<English>(K-Mod) Aqueduct and Hospital increase a city's health, whereas Public Transportation and Recycling Center reduce its pollution.</English>
+	<French>(K-Mod) Aqueduct and Hospital increase a city's health, whereas Public Transportation and Recycling Center reduce its pollution.</French>
+	<German>(K-Mod) Aquädukt und Krankenhaus erhöhen den Gesundheitswert einer Stadt, wohingegen öffentliche Verkehrsmittel und Recyclinganlagen die Umweltverschmutzung lindern.</German>
+	<Italian>(K-Mod) Un acquedotto o un ospedale aumentano la salute della città, ma il trasporto pubblico o il centro riciclaggio ne riducono l'inquinamento.</Italian>
+	<Spanish>(K-Mod) Un acueducto o un hospital aumentará la salud de una ciudad, pero el transporte público o un centro de reciclaje reduce su polución.</Spanish>
 </TEXT>
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_2</Tag>
@@ -38,7 +40,8 @@
 	<Italian>(K-Mod) L'influenza culturale di ogni città si estende oltre i suoi bordi. Se sei pressato culturalmente da un'altra civiltà prendi in considerazione di aumentare l'output culturale delle città vicine e non solo di quella pressata.</Italian>
 	<Spanish>(K-Mod) La influencia clultural de cada ciudad se extiende más alla de su frontera. Si estás siendo presionado culturalmente por otra civilización, considera adquirir más cultura en todas las ciudades cercanas; no solo en las ciudades que están siendo presionadas.</Spanish>
 </TEXT>
-<!-- advc.008c: Qualified this one a bit. Global warming isn't normally a good reason not to chop. -->
+<!-- advc.008c: Qualified this one a bit. Global warming isn't normally a good
+	 reason not to chop. -->
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_3</Tag>
 	<English>In the late game, forests and jungles help offset the pollution caused by your civilization. If you don't need to chop them down, consider keeping them to reduce the effects of global warming.</English>
@@ -137,9 +140,9 @@
 	 original hint ("Barbarians can appear anywhere a tile is obscured by fog
 	 of war, so never assume a tile you can't see is safe, even if you checked
 	 it the turn before!") is correct again. I'm overwriting hint 14 instead
-	 because it's very bad advice: "Be careful in signing Open Border
-	 agreements - make sure your 'friend' isn't mapping out your land for sale
-	 to the highest bidder!" -->
+	 because it's bad advice: "Be careful in signing Open Border agreements -
+	 make sure your 'friend' isn't mapping out your land for sale to the 
+	 highest bidder!" -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_14</Tag>
 	<English>Barbarians do not appear in tiles that are visible to any civilization. Carefully positioned lookouts can significantly reduce the barbarian activity in an area.</English>
@@ -159,11 +162,11 @@
 </TEXT>
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_14</Tag>
-	<English>(K-Mod) Hold the 'X' key when issuing a command to temporarily suppress automatic unit cycling.</English>
-	<French>(K-Mod) Hold the 'X' key when issuing a command to temporarily suppress automatic unit cycling.</French>
-	<German>(K-Mod) Halten Sie 'X' gedrückt, um den automatischen Einheitenwechsel zu unterdrücken.</German>
-	<Italian>(K-Mod) Hold the 'X' key when issuing a command to temporarily suppress automatic unit cycling.</Italian>
-	<Spanish>(K-Mod) Mantener la tecla 'X' presionada cuando das una órden para suprimir temporalmente el ciclo de unidades.</Spanish>
+	<English>(K-Mod) Hold the [X] key when issuing a command to temporarily suppress automatic unit cycling.</English>
+	<French>(K-Mod) Hold the [X] key when issuing a command to temporarily suppress automatic unit cycling.</French>
+	<German>(K-Mod) Halten Sie [X] gedrückt, um den automatischen Einheitenwechsel zu unterdrücken.</German>
+	<Italian>(K-Mod) Hold the [X] key when issuing a command to temporarily suppress automatic unit cycling.</Italian>
+	<Spanish>(K-Mod) Mantener la tecla [X] presionada cuando das una órden para suprimir temporalmente el ciclo de unidades.</Spanish>
 </TEXT>
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_15</Tag>
@@ -172,6 +175,17 @@
 	<German>Die Handelsraten und Spinonagegewichtungen können durch einen Rechtsklick auf die Plus- oder Minusknöpfe schnell maximiert beziehungsweise minimiert werden.</German>
 	<Italian>Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</Italian>
 	<Spanish>Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</Spanish>
+</TEXT>
+
+<!-- k146: I've changed the wording a little and added the German translation.
+	 -->
+<TEXT>
+	<Tag>TXT_KEY_KMOD_HINT_16</Tag>
+	<English>Hold [ALT] when clicking the 'Wake' command in order to wake all your units of the same type around the world.</English>
+	<French>Hold [ALT] when clicking the 'Wake' command in order to wake all your units of the same type around the world.</French>
+	<German>Halten Sie beim Wecken einer Einheit [ALT] gedrückt, so werden weltweit alle Ihre Einheiten dieses Typs geweckt.</German>
+	<Italian>Hold [ALT] when clicking the 'Wake' command in order to wake all your units of the same type around the world.</Italian>
+	<Spanish>Hold [ALT] when clicking the 'Wake' command in order to wake all your units of the same type around the world.</Spanish>
 </TEXT>
 
 <!-- advc.008c: Thought it'd be nice to mention the small K-Mod change to
@@ -203,7 +217,7 @@
 	<Spanish>Mant&#233;n algunos esp&#237;as en tus fronteras para practicar el contraespionaje. &#161;Los esp&#237;as enemigos pueden sembrar el caos!</Spanish>
 </TEXT>
 
-<!-- advc.008c: Nudge players towards disabling Random Events -->
+<!-- advc.008c: Nudge players toward disabling Random Events -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_69</Tag>
 	<English>If you play with the Random Events option, you may be wise to keep some reserve gold in your treasury. Your savings could help mitigate the effects of a disastrous event or grant you access to additional opportunities when a positive event rolls around.</English>
@@ -213,15 +227,16 @@
 	<Spanish>Debes ser prudente y guardar algunas reservas de oro en tu tesoro. Nunca se sabe cuándo tus ahorros pueden servir para mitigar los efectos de un suceso desastroso o para darte acceso a oportunidades adicionales cuando se produzca un suceso positivo.</Spanish>
 </TEXT>
 
-<!-- advc.008c: It's good to point out the BtS Concepts page, but since it's no
-	 longer a novelty, the players don't need to "be sure to check" it out. -->
+<!-- advc.008c, advc.002g: It's good to point out the BtS Concepts page, but
+	 since it's no longer a novelty, the players don't need to "be sure to
+	 check" it out. -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_59</Tag>
-	<English>The "Beyond the Sword Concepts" page in the Civilopedia summarizes the changes introduced by that expansion.</English>
-	<French>Pensez &#224; lire la page "Concepts de Beyond the Sword" dans la Civilop&#233;die pour conna&#238;tre toutes les modifications apport&#233;es par cette extension.</French>
-	<German>Die Seite "Beyond The Sword-Konzepte" in der Zivilop&#228;die fasst die &#196;nderungen dieser Erweiterung zusammen.</German>
-	<Italian>Consulta la pagina "Nozioni di Beyond the Sword" nella Civilopedia per leggere tutte le modifiche effettuate in questa espansione.</Italian>
-	<Spanish>Aseg&#250;rate de consultar la p&#225;gina "Conceptos de Beyond the Sword" en la Civilopedia para conocer todos los cambios que incorpora esta expansi&#243;n.</Spanish>
+	<English>The "BtS Concepts" page in the Civilopedia summarizes the changes introduced by the "Beyond the Sword" expansion.</English>
+	<French>Pensez &#224; lire la page "Concepts de BtS" dans la Civilop&#233;die pour conna&#238;tre toutes les modifications apport&#233;es par cette extension.</French>
+	<German>Die Seite "BtS-Konzepte" in der Zivilop&#228;die fasst die &#196;nderungen der "Beyond the Sword"-Erweiterung zusammen.</German>
+	<Italian>Consulta la pagina "Nozioni di BtS" nella Civilopedia per leggere tutte le modifiche effettuate in questa espansione.</Italian>
+	<Spanish>Aseg&#250;rate de consultar la p&#225;gina "Conceptos de BtS" en la Civilopedia para conocer todos los cambios que incorpora esta expansi&#243;n.</Spanish>
 </TEXT>
 
 <!-- advc.008c: Removed "now" as it's longer news. -->
@@ -269,7 +284,7 @@
 	 should normally be built. -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_27</Tag>
-	<English>Make sure you need every building your city creates. Cities bringing in no research can sometimes skip libraries, just as cities that don't train units can skip barracks.</English>
+	<English>Make sure you need every building your city creates. Cities bringing in no research can sometimes skip Libraries, just as cities that don't train units can skip Barracks.</English>
 	<French>Ne construisez que les b&#226;timents dont vos villes ont besoin. Celles qui ne produisent pas de commerce peuvent se passer de biblioth&#232;que, celles qui ne verront jamais le combat n'ont besoin ni de remparts ni de ch&#226;teaux.</French>
 	<German>Achten Sie darauf, nur Geb&#228;ude zu errichten, die Ihre Stadt auch wirklich braucht. Bei geringem Forschungsertrag brauchen Sie nicht unbedingt eine Bibliothek, und Städte, die keine Einheiten trainieren, kommen ohne Kaserne aus.</German>
 	<Italian>Assicurati di aver davvero bisogno degli edifici che costruisci: le citt&#224; che non generano commercio possono fare a meno delle biblioteche, cos&#236; come una citt&#224; che non viene mai attaccata pu&#242; rinunciare a mura e castello.</Italian>
@@ -280,7 +295,7 @@
 	 "Colony". -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_54</Tag>
-	<English>To reduce your city maintenance, consider turning your cities on distant continents into colonies. To form a colony, go to the Domestic Advisor screen and press the first button.</English>
+	<English>To reduce your city maintenance, consider turning your cities on distant continents into colonies. To form a colony, go to the Domestic Advisor screen and press the button with the fist icon.</English>
 	<French>Si vous cherchez &#224; r&#233;duire le co&#251;t d'entretien de vos villes, pensez &#224; transformer en colonies vos villes situ&#233;es sur des continents lointains. Pour former une colonie, ouvrez l'&#233;cran du conseiller aux affaires int&#233;rieures et cliquez sur le bouton "Colonie".</French>
 	<German>Um Ihre Unterhaltskosten f&#252;r St&#228;dte zu senken, k&#246;nnen Sie Ihre St&#228;dte auf entfernten Kontinenten in Kolonien umwandeln. &#214;ffnen Sie dazu den Inlandsberater und klicken Sie auf den Knopf mit dem Faustsymbol.</German>
 	<Italian>Se stai cercando di ridurre i costi di manutenzione della tua citt&#224;, considera di trasformare quelle lontane in Colonie. Per formare una Colonia, vai nella schermata del consigliere interno e seleziona la voce "Colonia".</Italian>
@@ -323,11 +338,11 @@
 	 produce better results..." -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_1</Tag>
-	<English>Scouts and explorers get better results from tribal villages than other units.</English>
+	<English>Scouts and Explorers get better results from tribal villages than other units.</English>
 	<French>Envoyez des &#233;claireurs dans les villages indig&#232;nes pour obtenir de meilleurs r&#233;sultats.</French>
 	<German>Betreten Sie Stammesd&#246;rfer mit einem Sp&#228;her oder Kundschafter, um bessere Ergebnisse zu erzielen.</German>
-	<Italian>Si ottengono migliori risultati entrando nei villaggi indigeni con gli scout...</Italian>
-	<Spanish>Dar&#225; mejores resultados entrar en las aldeas de los nativos con batidores...</Spanish>
+	<Italian>Si ottengono migliori risultati entrando nei villaggi indigeni con gli scout.</Italian>
+	<Spanish>Dar&#225; mejores resultados entrar en las aldeas de los nativos con batidores.</Spanish>
 </TEXT>
 
 <!-- advc.008c: "More great people will appear in cities that build ancient
@@ -348,7 +363,7 @@
 <!-- advc.008c: Shortened this a bit -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_67</Tag>
-	<English>While the HQ of a corporation generates extra income, each city hosting a corporation branch suffers increased maintenance costs. Unless you build courthouses in your branch cities and a bank in the HQ city, you may actually run at a net loss.</English>
+	<English>While the HQ of a corporation generates extra income, each city hosting a corporation branch suffers increased maintenance costs. Unless you build Courthouses in your branch cities and a Bank in the HQ city, you may actually run at a net loss.</English>
 	<French>Si vous choisissez de fonder une soci&#233;t&#233; commerciale, sachez que m&#234;me si le si&#232;ge social b&#233;n&#233;ficiera de revenus suppl&#233;mentaires, chaque ville abritant cette soci&#233;t&#233; subira une hausse de ses co&#251;ts d'entretien. Construisez des tribunaux dans toutes ces villes et des banques pr&#232;s de vos si&#232;ges sociaux, sous peine de subir une banqueroute.</French>
 	<German>Ein Unternehmenssitz liefert zwar Zusatzeinnahmen, aber gleichzeitig verursachen die Niederlassungen Unterhaltskosten. Errichten Sie in Städten mit Niederlassungen Gerichtsgebäude und in der Stadt mit dem Unternehmenssitz eine Bank, um nicht unterm Strich einen Verlust zu machen.</German>
 	<Italian>Se decidi di fondare una Corporazione, ricorda che sebbene i quartieri generali beneficeranno di rendite extra, ogni città che ospita una corporazione vedrà aumentare i suoi costi di mantenimento. Costruisci Palazzi di giustizia nelle città con le Corporazioni e Banche nei quartieri generali, altrimenti la Corporazione potrebbe andare in passivo.</Italian>
@@ -362,8 +377,28 @@
 	<English>Press [CTRL + I] to play with a minimized interface. Press [ALT + I] to play without interface.</English>
 	<French>Appuyez sur [CTRL + I] pour jouer avec une interface r&#233;duite. Appuyez sur [ALT + I] pour jouer sans interface.</French>
 	<German>Dr&#252;cken Sie [STRG + I], um die Bedienoberfläche zu minimieren oder [ALT + I], um sie ganz auszublenden.</German>
-	<Italian>Premi [CTRL + I] per giocare con l'interfaccia minimizzata. Premi [ALT + I] per giocare senza interfaccia...</Italian>
+	<Italian>Premi [CTRL + I] per giocare con l'interfaccia minimizzata. Premi [ALT + I] per giocare senza interfaccia.</Italian>
 	<Spanish>Pulsar [CTRL + I] para jugar con una interfaz minimizada. Pulsar [ALT + I] para jugar sin interfaz.</Spanish>
+</TEXT>
+
+<!-- advc.008c: Info about Alt key added. -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_INTERFACE_39</Tag>
+	<English>To view combat odds, hold down the right mouse button on the target tile. By holding down [ALT], you can view combat odds even when not at war.</English>
+	<French>Pour conna&#238;tre vos chances en cas de combat, maintenez le bouton droit de la souris enfonc&#233; sur la case vis&#233;e.</French>
+	<German>Um die Kampfchancen Ihrer Einheit zu sehen, halten Sie die rechte Maustaste über dem Zielfeld gedrückt. Wenn Sie [ALT] gedrückt halten, werden die Kampfchancen auch dann angezeigt, wenn Sie nicht im Krieg sind.</German>
+	<Italian>Per visualizzare le probabilit&#224; di vittoria di uno scontro, tieni premuto il pulsante destro del mouse su una casella bersaglio.</Italian>
+	<Spanish>Mantener el cursor encima de la casilla objetivo para ver las probabilidades del combate.</Spanish>
+</TEXT>
+
+<!-- advc.008c: "take damage" instead of "get damage" -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_61</Tag>
+	<English>Your Fighters can intercept multiple enemy planes per turn, but become less effective at it as they take damage, so take care to repair your defensive planes.</English>
+	<French>Vos chasseurs peuvent intercepter plusieurs avions ennemis par tour, mais sont moins efficaces quand ils sont endommag&#233;s. Pensez donc bien &#224; r&#233;parer vos avions de d&#233;fense.</French>
+	<German>Ihre J&#228;ger k&#246;nnen in jeder Runde mehrere feindliche Lufteinheiten abfangen, Ihre Schlagkraft sinkt allerdings, wenn sie besch&#228;digt werden. Sie sollten Ihre defensiven Lufteinheiten daher reparieren.</German>
+	<Italian>I tuoi caccia possono intercettare pi&#249; aerei per turno, ma diventano meno efficaci se subiscono danni, perci&#242; premurati di riparare i tuoi velivoli difensivi.</Italian>
+	<Spanish>Tus cazas pueden interceptar varios aviones por turno, pero se vuelven menos eficaces a medida que sufren da&#241;os, por lo que debes preocuparte de reparar tus aviones defensivos.</Spanish>
 </TEXT>
 
 </Civ4GameText>

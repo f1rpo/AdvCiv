@@ -384,7 +384,8 @@
 			<GlobalCorporationCommerce>NONE</GlobalCorporationCommerce>
 			<VictoryPrereq>NONE</VictoryPrereq>
 			<FreeStartEra>NONE</FreeStartEra>
-			<MaxStartEra>ERA_INDUSTRIAL</MaxStartEra>
+			<!-- advc.008a: was ERA_INDUSTRIAL -->
+			<MaxStartEra>ERA_RENAISSANCE</MaxStartEra>
 			<ObsoleteTech>NONE</ObsoleteTech>
 			<PrereqTech>TECH_DIVINE_RIGHT</PrereqTech>
 			<TechTypes/>
@@ -7817,7 +7818,7 @@
 			<BonusYieldModifiers/>
 			<ImprovementFreeSpecialists/>
 			<!-- advc.020: Was 10 Science. While Monuments should be the
-				 preferred method of popping borders fro Culture-flavored
+				 preferred method of popping borders for Culture-flavored
 				 leaders, they should eventually also be interested in
 				 Libraries (and more so than the average leader). -->
 			<Flavors>
@@ -26324,7 +26325,8 @@
 			<GlobalCorporationCommerce>NONE</GlobalCorporationCommerce>
 			<VictoryPrereq>NONE</VictoryPrereq>
 			<FreeStartEra>NONE</FreeStartEra>
-			<MaxStartEra>ERA_ANCIENT</MaxStartEra>
+			<!-- advc.310: was ERA_ANCIENT -->
+			<MaxStartEra>ERA_CLASSICAL</MaxStartEra>
 			<!-- advc.310: Was NONE -->
 			<ObsoleteTech>TECH_CORPORATION</ObsoleteTech>
 			<!-- advc.310: Was TECH_MASONRY -->
@@ -26368,7 +26370,7 @@
 			<bCenterInCity>0</bCenterInCity>
 			<iAIWeight>0</iAIWeight>
 			<!-- advc.310: Was 150 -->
-			<iCost>250</iCost>
+			<iCost>300</iCost>
 			<iHurryCostModifier>100</iHurryCostModifier>
 			<iAdvancedStartCost>-1</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
@@ -26471,10 +26473,9 @@
 			<DomainFreeExperiences/>
 			<DomainProductionModifiers/>
 			<BuildingHappinessChanges/>
-			<!-- advc.310: Walls as prereq. Num-Needed refers to Tiny/Duel
-				 map size; scaled up for other sizes. A change to the
-				 rounding method in CvPlayer.cpp makes it so that the req.
-				 number is 2 on Small, Normal, Large and Huge. -->
+			<!-- advc.310: i...Needed refers to Duel map size. Note that
+				 advc.054 changes the map-size adjustment so that 2 Walls are
+				 required on all map sizes above Tiny.  -->
 			<PrereqBuildingClasses>
 				<PrereqBuildingClass>
 					<BuildingClassType>BUILDINGCLASS_WALLS</BuildingClassType>
@@ -26525,7 +26526,8 @@
 			<GlobalCorporationCommerce>NONE</GlobalCorporationCommerce>
 			<VictoryPrereq>NONE</VictoryPrereq>
 			<FreeStartEra>NONE</FreeStartEra>
-			<MaxStartEra>ERA_ANCIENT</MaxStartEra>
+			<!-- advc.008a: was ERA_ANCIENT -->
+			<MaxStartEra>ERA_CLASSICAL</MaxStartEra>
 			<ObsoleteTech>NONE</ObsoleteTech>
 			<PrereqTech>TECH_AESTHETICS</PrereqTech>
 			<TechTypes/>
@@ -27074,7 +27076,8 @@
 			<GlobalCorporationCommerce>NONE</GlobalCorporationCommerce>
 			<VictoryPrereq>NONE</VictoryPrereq>
 			<FreeStartEra>NONE</FreeStartEra>
-			<MaxStartEra>ERA_RENAISSANCE</MaxStartEra>
+			<!-- advc.008a: was ERA_RENAISSANCE -->
+			<MaxStartEra>ERA_MEDIEVAL</MaxStartEra>
 			<ObsoleteTech>NONE</ObsoleteTech>
 			<PrereqTech>TECH_AESTHETICS</PrereqTech>
 			<TechTypes>

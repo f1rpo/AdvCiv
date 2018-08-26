@@ -107,6 +107,10 @@
 	<ElementType name="bFood" content="textOnly" dt:type="boolean"/>
 	<ElementType name="bNoBadGoodies" content="textOnly" dt:type="boolean"/>
 	<ElementType name="bOnlyDefensive" content="textOnly" dt:type="boolean"/>
+	<!-- advc.315a -->
+	<ElementType name="bOnlyAttackAnimals" content="textOnly" dt:type="boolean"/>
+	<!-- advc.315b -->
+	<ElementType name="bOnlyAttackBarbarians" content="textOnly" dt:type="boolean"/>
 	<ElementType name="bNoCapture" content="textOnly" dt:type="boolean"/>
 	<ElementType name="bQuickCombat" content="textOnly" dt:type="boolean"/>
 	<ElementType name="bRivalTerritory" content="textOnly" dt:type="boolean"/>
@@ -357,6 +361,8 @@
 	<ElementType name="iCityAttack" content="textOnly" dt:type="int"/>
 	<ElementType name="iCityDefense" content="textOnly" dt:type="int"/>
 	<ElementType name="iAnimalCombat" content="textOnly" dt:type="int"/>
+	<!-- advc.315c -->
+	<ElementType name="iBarbarianCombat" content="textOnly" dt:type="int"/>
 	<ElementType name="iHillsAttack" content="textOnly" dt:type="int"/>
 	<ElementType name="iHillsDefense" content="textOnly" dt:type="int"/>
 	<ElementType name="iKamikazePercent" content="textOnly" dt:type="int"/>
@@ -529,6 +535,10 @@
 		<element type="bFood"/>
 		<element type="bNoBadGoodies"/>
 		<element type="bOnlyDefensive"/>
+		<!-- advc.315a -->
+		<element type="bOnlyAttackAnimals"/>
+		<!-- advc.315b -->
+		<element type="bOnlyAttackBarbarians"/>
 		<element type="bNoCapture"/>
 		<element type="bQuickCombat"/>
 		<element type="bRivalTerritory"/>
@@ -630,6 +640,8 @@
 		<element type="iCityAttack"/>
 		<element type="iCityDefense"/>
 		<element type="iAnimalCombat"/>
+		<!-- advc.315c -->
+		<element type="iBarbarianCombat"/>
 		<element type="iHillsAttack"/>
 		<element type="iHillsDefense"/>
 		<element type="TerrainNatives"/>

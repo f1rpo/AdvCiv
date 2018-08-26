@@ -300,14 +300,22 @@ class CvHallOfFameScreen:
 					iValue = replayInfo.getFinalTurn()
 				elif self.iSortBy == SORT_BY_GAME_SCORE:
 					iValue = -replayInfo.getFinalScore()
-
+				# <advc.250a> Legacy support for King difficulty
+				handicapDescr = "(invalid)"
+				diffic = replayInfo.getDifficulty()
+				if diffic >= 0 and diffic < gc.getNumHandicapInfos():
+					handicapDescr = gc.getHandicapInfo(diffic).getDescription()
+				# The 10th handicap (ids start at 0) used to be King
+				elif diffic == 9:
+					handicapDescr = "King"
+				# </advc.250a>
 				self.infoList[iItem] = (iValue,
 						localText.getText("TXT_KEY_LEADER_CIV_DESCRIPTION", (replayInfo.getLeaderName(), replayInfo.getShortCivDescription())),
 						replayInfo.getNormalizedScore(),
 						replayInfo.getFinalDate(),
 						replayInfo.getFinalScore(), 
 						szVictory,
-						gc.getHandicapInfo(replayInfo.getDifficulty()).getDescription(),
+						handicapDescr, # advc.250a
 						gc.getWorldInfo(replayInfo.getWorldSize()).getDescription(),
 #						gc.getClimateInfo(replayInfo.getClimate()).getDescription(),
 #						gc.getSeaLevelInfo(replayInfo.getSeaLevel()).getDescription(),

@@ -55,5 +55,7 @@ void CyAreaPythonInterface()
 		.def("getNumBonuses", &CyArea::getNumBonuses, "int(BonusID) - total # of BonusID")
 		.def("getNumTotalBonuses", &CyArea::getNumTotalBonuses, "int () - total number of bonuses, of all types")
 		.def("getNumImprovements", &CyArea::getNumImprovements, "int(ImprovementID) - total # of ImprovementID")
+		// advc.021b:
+		.def("getNumHabitableTiles", &CyArea::getNumHabitableTiles, "int ()")
 	;
 }

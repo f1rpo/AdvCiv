@@ -17,7 +17,8 @@ CvTalkingHeadMessage::CvTalkingHeadMessage(int iMessageTurn, int iLen, LPCWSTR p
 	m_eMessageType(eType),
 	m_eFromPlayer(NO_PLAYER),
 	m_eTarget(NO_CHATTARGET),
-	m_bShown(false)
+	m_bShown(false),
+	bSoundPlayed(false) // advc.106b
 {
 }
 
@@ -48,6 +49,9 @@ void CvTalkingHeadMessage::read(FDataStreamBase& stream)
 	stream.Read(&iType);
 	m_eTarget = (ChatTargetTypes)iType;
 	stream.Read(&m_bShown);
+	/*  advc.106b: I don't think we ever want to play a sound after loading
+		a savegame */
+	bSoundPlayed = true;
 }
 
 void CvTalkingHeadMessage::write(FDataStreamBase& stream) const
@@ -80,6 +84,9 @@ void CvTalkingHeadMessage::setDescription(CvWString pszDescription)
 
 const CvString& CvTalkingHeadMessage::getSound() const
 {
+	/*  advc.106b: A hack that relies on the EXE playing the sound after calling
+		getSound */
+	const_cast<CvTalkingHeadMessage*>(this)->bSoundPlayed = true;
 	return (m_szSound);
 }
 
@@ -220,12 +227,17 @@ int CvTalkingHeadMessage::getExpireTurn(bool human) // advc.700: param added
 	case MESSAGE_TYPE_MAJOR_EVENT:
 	case MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY: // advc.106b
 		// never expires
-		iExpireTurn = GC.getGameINLINE().getGameTurn() + 1;
+		//iExpireTurn = GC.getGameINLINE().getGameTurn() + 1;
+		iExpireTurn += 100; // advc.106b
 		break;
 	case MESSAGE_TYPE_DISPLAY_ONLY:
 		// never saved
 		iExpireTurn = GC.getGameINLINE().getGameTurn() - 1;
 		break;
+	// <advc.106b>
+	case MESSAGE_TYPE_EOT:
+		iExpireTurn++;
+		break; // </advc.106b>
 	default:
 		FAssert(false);
 		break;
@@ -262,3 +274,9 @@ void CvTalkingHeadMessage::setShown(bool bShown)
 {
 	m_bShown = bShown;
 }
+
+// <advc.106b>
+bool CvTalkingHeadMessage::getSoundPlayed() const
+{
+	return bSoundPlayed;
+} // </advc.106b>

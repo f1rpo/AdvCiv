@@ -1313,14 +1313,6 @@ void CvDLLWidgetData::doResearch(CvWidgetDataStruct &widgetDataStruct)
 void CvDLLWidgetData::doChangePercent(CvWidgetDataStruct &widgetDataStruct)
 {
 	CvMessageControl::getInstance().sendPercentChange(((CommerceTypes)widgetDataStruct.m_iData1), widgetDataStruct.m_iData2);
-	// <advc.120c>
-	// For slider on Espionage screen:
-	gDLL->getInterfaceIFace()->setDirty(Espionage_Advisor_DIRTY_BIT, true);
-	// Redraw +/- buttons on if espionage set to 0
-	gDLL->getInterfaceIFace()->setDirty(PercentButtons_DIRTY_BIT, true);
-	/*  Caveat: For some reason, the order of these two calls matters. The espionage
-		bit needs to be set first. */
-	// </advc.120c>
 }
 
 // K-Mod. Right click on "change percent" buttons will set them to min / max.
@@ -3377,7 +3369,8 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 	CvTeamAI& kActiveTeam = GET_TEAM(eActiveTeam);
 
 	// if alt down and cheat on, show extra info
-	if (GC.altKey() && gDLL->getChtLvl() > 0)
+	if (GC.altKey() && //gDLL->getChtLvl() > 0)
+			GC.getGameINLINE().isDebugMode()) // advc.135c
 	{
 		// K-Mod. I've moved the code from here into its own function, just to get it out of the way.
 		parseScoreboardCheatText(widgetDataStruct, szBuffer);
@@ -3385,7 +3378,8 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 	}
 
 	//	Show score info instead if we are trying to contact ourselves...
-	if ( eActivePlayer == ePlayer || (GC.ctrlKey() && gDLL->getChtLvl() > 0) )
+	if ( eActivePlayer == ePlayer || (GC.ctrlKey() && //gDLL->getChtLvl() > 0) )
+			GC.getGameINLINE().isDebugMode())) // advc.135c
 	{
 		parseScoreHelp(widgetDataStruct, szBuffer);
 		return;
@@ -3450,7 +3444,8 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_REFUSES_TO_TALK"));
 		}
-		if (!((GC.altKey() || GC.ctrlKey()) && gDLL->getChtLvl() > 0))
+		if (!((GC.altKey() || GC.ctrlKey()) && //gDLL->getChtLvl() > 0))
+			GC.getGameINLINE().isDebugMode())) // advc.135c
 		{
 			GAMETEXT.getAttitudeString(szBuffer, ePlayer, eActivePlayer);
 			GAMETEXT.getWarWearinessString(szBuffer, ePlayer, eActivePlayer); // K-Mod
@@ -3462,7 +3457,13 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 			}*/
 		}
 		// K-Mod end
-
+		// <advc.034>
+		if(GET_TEAM(eActiveTeam).isDisengage(eTeam)) {
+			CvWString szString;
+			GAMETEXT.buildDisengageString(szString, eActivePlayer, ePlayer);
+			szBuffer.append(NEWLINE);
+			szBuffer.append(szString);
+		} // </advc.034>
 		if (eTeam != eActiveTeam )
 		{
 			// Show which civs this player is at war with
@@ -3505,8 +3506,9 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 				szBuffer.append(gDLL->getText(L"TXT_KEY_AT_WAR_WITH", szWarWithString.getCString()));
 			}
 			// <advc.004v> Moved here from above
-			bool showCtrlTrade = !((GC.altKey() || GC.ctrlKey()) && gDLL->getChtLvl() > 0) &&
-					!kPlayer.isHuman() && willTalk;
+			bool showCtrlTrade = !((GC.altKey() || GC.ctrlKey()) && //gDLL->getChtLvl() > 0)
+					GC.getGameINLINE().isDebugMode()) // advc.135c
+					&& !kPlayer.isHuman() && willTalk;
 			if (showCtrlTrade) {
 				szBuffer.append(NEWLINE);
 				szBuffer.append(gDLL->getText("TXT_KEY_MISC_CTRL_TRADE"));
@@ -4693,6 +4695,10 @@ void CvDLLWidgetData::parseTradeItem(CvWidgetDataStruct &widgetDataStruct, CvWSt
 		case TRADE_PEACE_TREATY:
 			szBuffer.append(gDLL->getText("TXT_KEY_TRADE_PEACE_TREATY", GC.getDefineINT("PEACE_TREATY_LENGTH")));
 			break;
+			// <advc.034>
+		case TRADE_DISENGAGE:
+			szBuffer.append(gDLL->getText("TXT_KEY_TRADE_DISENGAGE"));
+			break;
 		}
 
 		setTradeItem(&item, ((TradeableItems)(widgetDataStruct.m_iData1)), widgetDataStruct.m_iData2);
@@ -4765,11 +4771,17 @@ void CvDLLWidgetData::parseUnitModelHelp(CvWidgetDataStruct &widgetDataStruct, C
 void CvDLLWidgetData::parseFlagHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
 	CvWString szTempBuffer;
-
+	// <advc.135c>
+	CvGame const& g = GC.getGame();
+	if(g.isNetworkMultiPlayer() && g.isDebugToolsAllowed(false)) {
+		szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_WARNING_TEXT"),
+				L"Cheats enabled");
+		szBuffer.append(szTempBuffer);
+		szBuffer.append(NEWLINE);
+	} // </advc.135c>
 	szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), GC.getCivilizationInfo(GC.getGameINLINE().getActiveCivilizationType()).getDescription());
 	szBuffer.append(szTempBuffer);
 	// <advc.700>
-	CvGame const& g = GC.getGame();
 	if(g.isOption(GAMEOPTION_RISE_FALL)) {
 		std::pair<int,int> rfCountdown = g.getRiseFall().getChapterCountdown();
 		if(rfCountdown.second >= 0)
@@ -4799,7 +4811,6 @@ void CvDLLWidgetData::parseMaintenanceHelp(CvWidgetDataStruct &widgetDataStruct,
 		}
 		else
 		{
-			// advc.201:
 			int iInflationFactor = 100 + GET_PLAYER(pHeadSelectedCity->getOwnerINLINE()).calculateInflationRate(); // K-Mod
 
 			//		szBuffer = "Maintenance represents the total cost of governing this city.\n";
@@ -5997,9 +6008,13 @@ CvWString CvDLLWidgetData::getFoundCostText(CvPlot* p, PlayerTypes ownerId)
 	int deltaMaintOther = 0; int dummy;
 	for(CvCity* c = owner.firstCity(&dummy); c != NULL; c = owner.nextCity(&dummy)) {
 		int current = CvCity::calculateNumCitiesMaintenanceTimes100(
-				c->plot(), ownerId, c->getPopulation());
+				c->plot(), ownerId, c->getPopulation()) +
+				CvCity::calculateColonyMaintenanceTimes100(c->plot(),
+				ownerId, c->getPopulation());
 		int projected = CvCity::calculateNumCitiesMaintenanceTimes100(
-				c->plot(), ownerId, c->getPopulation(), 1);
+				c->plot(), ownerId, c->getPopulation(), 1) +
+				CvCity::calculateColonyMaintenanceTimes100(c->plot(),
+				ownerId, c->getPopulation(), 1);
 		int delta = projected - current;
 		/* Reduced maintenance from buildings isn't considered by the above
 	       functions. Using a snippet from CvCity::updateMaintenance: */

@@ -11,7 +11,8 @@
 	 advc.305: Removed (now allowed) Workboat.
 	 advc.307: Allowed War Elephant (still can't spawn), Musketman,
 	 Cavalry, Anti-Tank, SAM Infantry.
-	 Disallowed Frigate, Privateer, Rifleman, Grenadier, Spy (dlph.6). -->
+	 Disallowed Frigate, Privateer, Paratrooper, Rifleman, Grenadier,
+	 Spy (dlph.6). -->
 <Civ4CivilizationInfos xmlns="x-schema:CIV4CivilizationsSchema.xml">
 	<CivilizationInfos>
 		<CivilizationInfo>
@@ -3876,7 +3877,8 @@
 				<City>TXT_KEY_CITY_NAME_HARAPPAN</City>
 				<City>TXT_KEY_CITY_NAME_MAURYAN</City>
 				<City>TXT_KEY_CITY_NAME_PARTHIAN</City>
-				<City>TXT_KEY_CITY_NAME_HARAPPAN</City>
+				<!-- advc.003: Duplicate removed -->
+				<!--City>TXT_KEY_CITY_NAME_HARAPPAN</City-->
 				<City>TXT_KEY_CITY_NAME_NUBIAN</City>
 				<City>TXT_KEY_CITY_NAME_BACTRIAN</City>
 				<City>TXT_KEY_CITY_NAME_CIRCASSIAN</City>
@@ -4566,6 +4568,10 @@
 				</Unit>
 				<Unit>
 					<UnitClassType>UNITCLASS_MARINE</UnitClassType>
+					<UnitType>NONE</UnitType>
+				</Unit>
+				<Unit>
+					<UnitClassType>UNITCLASS_PARATROOPER</UnitClassType>
 					<UnitType>NONE</UnitType>
 				</Unit>
 				<Unit>

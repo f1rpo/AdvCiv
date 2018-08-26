@@ -65,6 +65,9 @@
 			<bDefault>0</bDefault>
 			<bVisible>1</bVisible>
 		</GameOptionInfo>
+		<!-- advc.003: According to DarkLunaPhantom, this option has to remain
+			 in the eighth position.
+			 https://github.com/DarkLunaPhantom/Civ4-K-Mod/commit/908160ecea97d427cc24736fb4fb1e1b51f282f3 -->
 		<GameOptionInfo>
 			<Type>GAMEOPTION_RANDOM_PERSONALITIES</Type>
 			<Description>TXT_KEY_GAME_OPTION_RANDOM_PERSONALITIES</Description>
@@ -192,6 +195,14 @@
 			<Type>GAMEOPTION_NO_ANIMALS</Type>
 			<Description>TXT_KEY_GAME_OPTION_NO_ANIMALS</Description>
 			<Help>TXT_KEY_GAME_OPTION_NO_ANIMALS_HELP</Help>
+			<bDefault>0</bDefault>
+			<bVisible>1</bVisible>
+		</GameOptionInfo>
+		<!-- advc.912d -->
+		<GameOptionInfo>
+			<Type>GAMEOPTION_NO_SLAVERY</Type>
+			<Description>TXT_KEY_GAME_OPTION_NO_SLAVERY</Description>
+			<Help>TXT_KEY_GAME_OPTION_NO_SLAVERY_HELP</Help>
 			<bDefault>0</bDefault>
 			<bVisible>1</bVisible>
 		</GameOptionInfo>

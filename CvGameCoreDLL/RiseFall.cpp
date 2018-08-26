@@ -351,6 +351,7 @@ void RiseFall::atTurnEnd(PlayerTypes civId) {
 
 void RiseFall::atGameTurnStart() {
 
+	CvGame& g = GC.getGame();
 	int currentChPos = getCurrentChapter();
 	if(currentChPos < 0 || interludeCountdown > 0) {
 		interludeCountdown--;
@@ -359,7 +360,6 @@ void RiseFall::atGameTurnStart() {
 		//centerCamera(g.getActivePlayer());
 		return;
 	}
-	CvGame& g = GC.getGame();
 	int gameTurn = g.getGameTurn();
 	RFChapter& currentCh = *chapters[currentChPos];
 	if(currentCh.getStartTurn() >= gameTurn) {
@@ -399,11 +399,14 @@ void RiseFall::atActiveTurnStart() {
 		if(chapters[i]->isScored() && !chapters[i]->isScoreShown()) {
 			CvPopupInfo* popup = new CvPopupInfo(BUTTONPOPUP_TEXT);
 			CvWString text;
+			/*  Bypass CvPlayer::getCivilizationDescription
+				(which obscures unknown civs) */
+			wchar const* civDescr = GC.getCivilizationInfo(
+					GET_PLAYER(chapters[i]->getCiv()).getCivilizationType()).
+					getShortDescription();
 			if(GET_PLAYER(chapters[i]->getCiv()).isAlive())
-				text = gDLL->getText("TXT_KEY_RF_POPUP_SCORE", i + 1,
-						GET_PLAYER(chapters[i]->getCiv()).getCivilizationShortDescription());
-			else text = gDLL->getText("TXT_KEY_RF_POPUP_SCORE_EARLY",  i + 1,
-						GET_PLAYER(chapters[i]->getCiv()).getCivilizationShortDescription());
+				text = gDLL->getText("TXT_KEY_RF_POPUP_SCORE", i + 1, civDescr);
+			else text = gDLL->getText("TXT_KEY_RF_POPUP_SCORE_EARLY",  i + 1, civDescr);
 			text.append(L":\n\n" +
 					*chapters[i]->computeScoreBreakdown().getString());
 			popup->setText(text);
@@ -488,7 +491,7 @@ void RiseFall::setUIHidden(bool b) {
 
 	if(gDLL->getInterfaceIFace()->isBareMapMode() != b)
 		gDLL->getInterfaceIFace()->toggleBareMapMode();
-	/*  toggleScoresVisible(): Isn't acutally hidden b/c CvMainInterface.py doesn't
+	/*  toggleScoresVisible(): Isn't actually hidden b/c CvMainInterface.py doesn't
 		update itself during interlude.
 		toggleTurnLog(): Can't check if it's open. */
 	gDLL->getInterfaceIFace()->setDiplomacyLocked(b);
@@ -539,9 +542,12 @@ void RiseFall::centerCamera(PlayerTypes civId) {
 	if(capitalPlot != NULL) {
 		/*  Apparently, this has no effect, at least not at the time that I call
 			this function. Misplaced camera is also an issue when regenerating
-			the map or using Civ Changer (Ctrl+Z); perhaps can't be fixed. */
+			the map or using Civ Changer (Alt+Z); perhaps can't be fixed. */
 		gDLL->getInterfaceIFace()->lookAt(capitalPlot->getPoint(),
 				CAMERALOOKAT_NORMAL);
+		// This doesn't seem to help either:
+		/*NiPoint3 p3 = capitalPlot->getPoint();
+		gDLL->getEngineIFace()->ClampToWorldCoords(&p3);*/
 	}
 }
 
@@ -560,7 +566,8 @@ void RiseFall::showDoW() {
 				GC.getEVENT_MESSAGE_TIME(),
 				gDLL->getText("TXT_KEY_YOU_AT_WAR", enemy.getName()),
 				NULL, MESSAGE_TYPE_INFO, NULL, (ColorTypes)
-				GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
+				GC.getInfoTypeForString("COLOR_WARNING_TEXT"),
+				enemy.getCapitalX(), enemy.getCapitalY()); // advc.127b
 	}
 }
 
@@ -596,23 +603,29 @@ void RiseFall::abandonPlans(PlayerTypes civId) {
 		if(gr->getHeadUnit() == NULL)
 			continue;
 		gr->setAutomateType(NO_AUTOMATE);
+		// Remove all but the current mission
+		while(gr->headMissionQueueNode() != NULL &&
+				gr->nextMissionQueueNode(gr->headMissionQueueNode()) != NULL)
+			gr->deleteMissionQueueNode(gr->nextMissionQueueNode(gr->headMissionQueueNode()));
+		/*  If it's not a BUILD mission, remove the current mission too. Also
+			remove MISSION_ROUTE_TO b/c it's not really just a single mission. */
 		if(gr->getActivityType() != ACTIVITY_MISSION ||
 				gr->getMissionType(0) != MISSION_BUILD) {
 			gr->setActivityType(ACTIVITY_AWAKE);
 			gr->clearMissionQueue();
 			if(!active)
 				continue;
-			// Not really the job of this function, but while we're at it:
-			if(!unitSelected && capital != NULL && gr->atPlot(capital->plot())) {
-				gDLL->getInterfaceIFace()->selectGroup(gr->getHeadUnit(),
-					false, false, false);
-				unitSelected = true;
-				gDLL->getInterfaceIFace()->lookAtSelectionPlot();
-			}
-			// Otherwise, units outside owner's borders don't appear on the main interface
-			if(gr->plot()->getOwnerINLINE() != civId)
-				gr->plot()->updateCenterUnit();
 		}
+		// Not really the job of this function, but while we're at it:
+		if(!unitSelected && capital != NULL && gr->atPlot(capital->plot())) {
+			gDLL->getInterfaceIFace()->selectGroup(gr->getHeadUnit(),
+					false, false, false);
+			unitSelected = true;
+			gDLL->getInterfaceIFace()->lookAtSelectionPlot();
+		}
+		// Without this, units outside owner's borders don't appear on the main interface.
+		if(gr->plot()->getOwnerINLINE() != civId)
+			gr->plot()->updateCenterUnit();
 	}
 	// Set research slider to a balanced-budget position
 	int incr = GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS");
@@ -634,6 +647,7 @@ void RiseFall::abandonPlans(PlayerTypes civId) {
 			c->AI_setEmphasize((EmphasizeTypes)i, false);
 		// Clear production queue
 		c->setProductionAutomated(false, true);	
+		c->setCitizensAutomated(true);
 	}
 }
 
@@ -721,8 +735,8 @@ bool RiseFall::isDeliverMessages(PlayerTypes civId) const {
 bool RiseFall::isCooperationRestricted(PlayerTypes aiCiv) const {
 
 	PlayerTypes masterId = GET_TEAM(GET_PLAYER(aiCiv).getMasterTeam()).getLeaderID();
-	if(masterId != aiCiv && isCooperationRestricted(masterId))
-		return true;
+	if(masterId != aiCiv)
+		return isCooperationRestricted(masterId);
 	PlayerTypes human = GC.getGameINLINE().getActivePlayer();
 	if(aiCiv == human)
 		return false;
@@ -739,11 +753,17 @@ bool RiseFall::isCooperationRestricted(PlayerTypes aiCiv) const {
 			prevChCiv = chapters[currentChPos - 1]->getCiv();
 		return prevChCiv == aiCiv;
 	}
-	// Assume that each civ is played only once
 	for(int i = 0; i <= currentChPos; i++)
-		if(chapters[i]->isScored() && chapters[i]->getCiv() == aiCiv)
-			return false;
-	return true;
+		if(chapters[i]->getCiv() == aiCiv)
+			return !chapters[i]->isScored();
+	if(GET_PLAYER(aiCiv).AI_isDoVictoryStrategyLevel3())
+		return true;
+	CvGame const& g = GC.getGameINLINE();
+	if(g.getCurrentEra() >= 4)
+		return true;
+	int const iRank = g.getPlayerRank(aiCiv);
+	int const iKnown = TEAMREF(human).getHasMetCivCount() + 1; // +1 for human
+	return (iRank >= iKnown / 2);
 }
 
 RFChapter* RiseFall::mostRecentlyFinished() const {
@@ -1037,13 +1057,15 @@ CvWString RiseFall::knownName(PlayerTypes civId, bool nameNumber) const {
 				unique = false;
 				break;
 			}
-		}
+		} // Bypass CvPlayer::getCivDescription
+		wchar const* civDescr = GC.getCivilizationInfo(civ.getCivilizationType()).
+				getShortDescription();
 		/*  Nicer to show civ names, but if one civ is in the game multiple times,
 			will have to show the leader name. */
 		if(unique)
-			return civ.getCivilizationShortDescription();
+			return civDescr;
 		return CvWString(GC.getLeaderHeadInfo(civ.getLeaderType()).getDescription()) +
-				L"'s " + civ.getCivilizationShortDescription();
+				L"'s " + civDescr;
 	}
 	if(!nameNumber)
 		return gDLL->getText("TXT_KEY_TOPCIVS_UNKNOWN");
@@ -1068,7 +1090,7 @@ void RiseFall::eligibleByRecommendation(vector<PlayerTypes>& r) const {
 	r.insert(r.begin(), noRepeat.begin(), noRepeat.end());
 	vector<PlayerTypes> all;
 	computeEligibleCivs(all, true);
-	/*  Sort those in all minus noRepeat separately and append the result to r.
+	/*  Sort those in 'all' minus 'noRepeat' separately and append the result to 'r'.
 		(Would be nicer to let byRecommendation handle this, but that's difficult
 		w/o accessing non-static functions, and I don't want to turn
 		byRecommendation into a functor.) */
@@ -1245,6 +1267,26 @@ bool RiseFall::isSquareDeal(CLinkList<TradeData> const& humanReceives,
 	return false;
 }
 
+bool RiseFall::isNeededWarTrade(CLinkList<TradeData> const& humanReceives) const {
+
+	CvPlayerAI const& human = GET_PLAYER(GC.getGameINLINE().getActivePlayer());
+	for(CLLNode<TradeData>* node = humanReceives.head();
+			node != NULL; node = humanReceives.next(node)) {
+		if(node->m_data.m_eItemType == TRADE_WAR) {
+			TeamTypes targetId = (TeamTypes)node->m_data.m_iData;
+			if(targetId == NO_PLAYER) {
+				FAssert(targetId != NO_PLAYER);
+				return false;
+			}
+			if(GET_TEAM(targetId).AI_getWarSuccess(human.getTeam()) >
+					GC.getWAR_SUCCESS_CITY_CAPTURING() && 
+					GET_TEAM(human.getTeam()).AI_getEnemyPowerPercent() > 100)
+				return true;
+		}
+	}
+	return false;
+}
+
 bool RiseFall::allSquare(CLinkList<TradeData> const& list, PlayerTypes from,
 		PlayerTypes to) const {
 
@@ -1260,9 +1302,7 @@ bool RiseFall::allSquare(CLinkList<TradeData> const& list, PlayerTypes from,
 			allVassal = false;
 		if(item == TRADE_CITIES) {
 			CvCity* c = GET_PLAYER(from).getCity(node->m_data.m_iData);
-			if(c == NULL)
-				allLiberation = false;
-			else if(c->getLiberationPlayer(false) == to)
+			if(c == NULL || c->getLiberationPlayer(false) != to)
 				allLiberation = false;
 		}
 		else allLiberation = false;
@@ -1291,7 +1331,7 @@ int RiseFall::pessimisticDealVal(PlayerTypes aiCivId, int dealVal,
 		int itemVal = 0;
 		/*  What the AI thinks that the item should be worth to the human civ.
 			In most cases, there is no code for this, and then replVal has to
-			be set based on itemVal (what the AI normally demands fot the item). */
+			be set based on itemVal (what the AI normally demands for the item). */
 		int replVal = -1;
 		int data = node->m_data.m_iData;
 		switch(node->m_data.m_eItemType) {
@@ -1327,7 +1367,7 @@ int RiseFall::pessimisticDealVal(PlayerTypes aiCivId, int dealVal,
 
 double RiseFall::dealThresh(bool annual) const {
 
-	if(annual) // Resource trades are less problematic
+	if(annual) // Resource trades (and peace treaties) are less problematic
 		return 0.35;
 	return 0.65;
 }

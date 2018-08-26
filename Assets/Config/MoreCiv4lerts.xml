@@ -57,8 +57,9 @@
 			<option id="SurrenderTrade" key="Surrender Trades" 
 					type="boolean" default="True" and="Enabled" 
 					get="isShowSurrenderTradeAlert" set="setShowSurrenderTradeAlert"/>
+			<!-- advc.106d: Set to False by default -->
 			<option id="PeaceTrade" key="Peace Trades" 
-					type="boolean" default="True" and="Enabled" 
+					type="boolean" default="False" and="Enabled" 
 					get="isShowPeaceTradeAlert" set="setShowPeaceTradeAlert"/>
 			
 			<!-- Victory -->

@@ -122,7 +122,7 @@ bool KmodPathFinder::GeneratePath(int x1, int y1, int x2, int y2)
 			Reset();
 			FAssert(!GetNode(x1,  y1).m_bOnStack);
 		}
-		// Note: This condition isn't actually enough to catch all signifiant changes.
+		// Note: This condition isn't actually enough to catch all significant changes.
 		// We really need to check max moves /and/ moves left /and/ base moves.
 		// but I don't feel like doing all that at the moment.
 	}

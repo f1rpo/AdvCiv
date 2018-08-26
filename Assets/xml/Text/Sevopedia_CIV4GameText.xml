@@ -60,14 +60,10 @@
 		<Italian>Grandi Merav.</Italian>
 		<Spanish>Maravillas del Mundo</Spanish>
 	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_PEDIA_CATEGORY_CONCEPT_NEW</Tag>
-		<English>BTS Concepts</English>
-		<French>Conceptes BTS</French>
-		<German>Beyond the Sword-Konzepte</German>
-		<Italian>Concetti di BTS</Italian>
-		<Spanish>Conceptos BtS</Spanish>
-	</TEXT>
+	<!-- advc.002g: Deleted TXT_KEY_PEDIA_CATEGORY_CONCEPT_NEW
+		 (en. BTS Concepts, fr. Conceptes BTS, dt. Beyond the Sword-Konzepte,
+		 it. Concetti di BTS, es. Conceptos BtS)
+		 because I'm replacing this key in CIV4GameText_advc.008.xml. -->
 	<TEXT>
 		<Tag>TXT_KEY_UNIQUE_BUILDINGS</Tag>
 		<English>Unique Buildings</English>

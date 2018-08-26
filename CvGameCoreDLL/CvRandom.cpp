@@ -56,11 +56,20 @@ unsigned short CvRandom::get(unsigned short usNum, const TCHAR* pszLog)
 	{
 		if (GC.getLogging() && GC.getRandLogging())
 		{
-			if (GC.getGameINLINE().getTurnSlice() > 0)
+			CvGame const& g = GC.getGameINLINE(); // advc.003
+			if (g.getTurnSlice() > 0)
 			{
 				TCHAR szOut[1024];
 				sprintf(szOut, "Rand = %ul / %hu (%s) on %d\n", getSeed(), usNum, pszLog, GC.getGameINLINE().getTurnSlice());
-				gDLL->messageControlLog(szOut);
+				// <advc.007>
+				if(GC.getPER_PLAYER_MESSAGE_CONTROL_LOG() > 0 &&
+						g.isNetworkMultiPlayer()) {
+					CvString logName = CvString::format("MPLog%d.log",
+							(int)g.getActivePlayer());
+					gDLL->logMsg(logName.c_str(), szOut, false, false);
+				}
+				else // </advc.007>
+					gDLL->messageControlLog(szOut);
 			}
 		}
 	}

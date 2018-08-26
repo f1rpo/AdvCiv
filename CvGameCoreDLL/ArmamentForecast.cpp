@@ -16,8 +16,8 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		report(m.evaluationParameters().getReport()),
 		military(military), timeHorizon(timeHorizon) {
 
-	// advc.test: Clogs up the log too much for the moment
-	if(!GET_PLAYER(civId).isHuman())
+	bool const bLogAI = false; // Clogs up the log too much
+	if(!bLogAI && !GET_PLAYER(civId).isHuman())
 	  report.setMute(true);
 	report.log("Armament forecast for *%s*",
 			report.leaderName(civId));
@@ -25,8 +25,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 	/* The current production rate. It's probably going to increase a bit
 	   over the planning interval, but not much since the forecast doesn't
 	   reach far into the future; ignore that increase. */
-	double productionEstimate = GET_PLAYER(civId).warAndPeaceAI().
-			estimateYieldRate(YIELD_PRODUCTION);
+	double productionEstimate = GET_PLAYER(civId).estimateYieldRate(YIELD_PRODUCTION);
 	/* A very rough estimate of hurry hammers. Would be nicer to base this on
 	   the actual hurry effect, e.g., for Slavery, per-use production divided
 	   by anger duration. */
@@ -70,7 +69,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 	TeamTypes ourMaster = GET_PLAYER(weId).getMasterTeam();
 	TeamTypes targetMaster = GET_TEAM(targetTeamId).getMasterTeam();
 	TeamTypes master = GET_PLAYER(civId).getMasterTeam();
-	int nTotalWars = 0, nWars = 0;
+	int iTotalWars = 0, iWars = 0;
 	// Whether simulation assumes peace between civId and any other civ
 	bool peaceAssumed = false;
 	// Whether simulation assumes civId to have been recently attacked by anyone
@@ -78,6 +77,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 	// Any war or peace assumed that involves civId, or war preparations by civId
 	bool fictionalScenario = false;
 	TeamTypes singleWarEnemy = NO_TEAM; // Only relevant if there is just one enemy
+	bool const noWarVsExtra = peaceScenario && params.isNoWarVsExtra();
 	for(size_t i = 0; i < getWPAI.properTeams().size(); i++) {
 		TeamTypes loopTeamId = getWPAI.properTeams()[i];
 		if(loopTeamId == tId)
@@ -87,7 +87,8 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		// Whether the simulation assumes peace between loopTeam and t
 		bool peaceAssumedLoop = peaceScenario && ((m.isOnOurSide(tId) &&
 				m.isOnTheirSide(loopTeamId)) || (m.isOnOurSide(loopTeamId) &&
-				m.isOnTheirSide(tId)));
+				m.isOnTheirSide(tId))) &&
+				(tId != weId || !noWarVsExtra || loopTeamId != params.targetId());
 		/* Important to check warplan (not just war) when
 		   second-guessing preparations underway */
 		if(peaceAssumedLoop && t.AI_getWarPlan(loopTeamId) != NO_WARPLAN)
@@ -107,8 +108,8 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 				/* If neither side can reach the other, the war doesn't count
 				   because it doesn't (or shouldn't) lead to additional buildup. */
 			    reachEither) {
-			nWars++;
-			if(nWars <= 1)
+			iWars++;
+			if(iWars <= 1)
 				singleWarEnemy = loopTeam.getID();
 			else singleWarEnemy = NO_TEAM;
 			if(intensity == NORMAL)
@@ -131,10 +132,10 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 					   under consideration if adopted. */
 					(TEAMID(weId) != tId || loopTeamId != targetTeamId)) ||
 					totalWarAssumed)
-				nTotalWars++;
+				iTotalWars++;
 		}
 	}
-	int nWarPlans = t.getAnyWarPlanCount(true);
+	int iWarPlans = t.getAnyWarPlanCount(true);
 	/*  Assume that we don't pursue any (aggressive) war preparations in the
 		peace scenario. (Should only be relevant when considering an immediate DoW,
 		e.g. on request of another civ, while already planning war. I think the
@@ -142,12 +143,12 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		WarAndPeaceAI::Team::scheme should compare the utility of the immediate war
 		with that of the war in preparation. */
 	if(peaceScenario && civId == m.ourId())
-		nWarPlans = nWars;
+		iWarPlans = iWars;
 	report.log("War plans: %d; assuming %d wars, %d total wars%s%s",
-				nWarPlans, nWars, nTotalWars,
+				iWarPlans, iWars, iTotalWars,
 				(peaceAssumed ? ", peace assumed" : ""),
 				(attackedRecently ? ", attacked recently" : ""));
-	if(nTotalWars > 0 ||
+	if(iTotalWars > 0 ||
 			/* When planning for limited war while being alert2 or dagger,
 		       the strategies take precedence. However, shouldn't trust
 			   alert2 when assuming peace b/c alert2 may well be caused
@@ -160,13 +161,13 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 			   [Check obsolete now that Dagger is disabled.] */
 			(civ.AI_isDoStrategy(AI_STRATEGY_DAGGER) && !civ.isHuman()) ||
 			/* Concurrent war preparations: probably shouldn't be possible anyway.
-			   Must be definitely be disregarded for weId b/c the war preparations
+			   Must definitely be disregarded for weId b/c the war preparations
 			   currently under consideration may lead to abandonment of
 			   concurrent war preparations. */
 			(t.getWarPlanCount(WARPLAN_PREPARING_TOTAL) > 0 &&
 			master != ourMaster))
 		intensity = FULL;
-	bool attackedUnprepared = attackedRecently && nWarPlans == 0;
+	bool attackedUnprepared = attackedRecently && iWarPlans == 0;
 		    // Count preparing limited as unprepared?
 			//nWarPlans <= t.getWarPlanCount(WARPLAN_PREPARING_LIMITED);
 	bool defensive = false;
@@ -178,7 +179,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 			   defensive AreaAI?), assume that t will be able to get on the
 			   offensive, or that defenses reach a saturation point. */
 			(intensity == NORMAL || !allPartiesKnown)) ||
-			attackedUnprepared || (nWars == 0 && nWarPlans == 0 &&
+			attackedUnprepared || (iWars == 0 && iWarPlans == 0 &&
 			(civ.AI_isDoStrategy(AI_STRATEGY_ALERT1) ||
 			civ.AI_isDoStrategy(AI_STRATEGY_ALERT2))))
 		defensive = true;
@@ -198,7 +199,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 	   be war vs. (attempted) peace.
 	   Can't trust Area AI when war preparations are supposed to be
 	   abandoned. */
-	if(m.isOnOurSide(tId) && peaceScenario && nWarPlans > nWars)
+	if(m.isOnOurSide(tId) && peaceScenario && iWarPlans > iWars)
 		fictionalScenario = true;
 	// During war preparations, params take precedence when it comes to naval armament
 	if(!peaceScenario && fictionalScenario && civ.getID() == weId &&
@@ -208,8 +209,8 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		build-up intensity. Otherwise, the AI will tend to leave 1 or 2 cities
 		alive. Would be cleaner to assume a shorter time horizon, but that's a
 		can of worms. */
-	if(singleWarEnemy != NO_TEAM && !navalArmament && nTotalWars <= 0 &&
-			nWarPlans <= 1 && !civ.AI_isDoStrategy(AI_STRATEGY_ALERT1
+	if(singleWarEnemy != NO_TEAM && !navalArmament && iTotalWars <= 0 &&
+			iWarPlans <= 1 && !civ.AI_isDoStrategy(AI_STRATEGY_ALERT1
 			| AI_STRATEGY_ALERT2) && t.warAndPeaceAI().isPushover(singleWarEnemy)) {
 		intensity = NORMAL;
 		fictionalScenario = true; // Don't check AreAI either
@@ -225,14 +226,14 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		if(aai == AREAAI_OFFENSIVE || aai == AREAAI_ASSAULT_ASSIST ||
 				aai == AREAAI_ASSAULT || ((aai == AREAAI_MASSING ||
 				aai == AREAAI_ASSAULT_MASSING || aai == AREAAI_DEFENSIVE) &&
-				nTotalWars == 0 && nWars > 0) ||
+				iTotalWars == 0 && iWars > 0) ||
 				civ.AI_isDoStrategy(AI_STRATEGY_ALERT1) ||
 				// advc.018: Crush now actually trains fewer units
 				civ.AI_isDoStrategy(AI_STRATEGY_CRUSH))
 			intensity = INCREASED;
 		if(civ.isFocusWar() &&
 				(aai == AREAAI_MASSING || aai == AREAAI_ASSAULT_MASSING ||
-				(aai == AREAAI_DEFENSIVE && nTotalWars > 0) ||
+				(aai == AREAAI_DEFENSIVE && iTotalWars > 0) ||
 				civ.AI_isDoStrategy(AI_STRATEGY_ALERT2) ||
 				// [Obsolete check; Dagger disabled.]
 				(civ.AI_isDoStrategy(AI_STRATEGY_DAGGER) && !civ.isHuman() &&
@@ -249,14 +250,17 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 			   match the war plan. Make a projection based on the human power curve. */
 			double bur = GET_PLAYER(weId).warAndPeaceAI().estimateBuildUpRate(civId);
 			Intensity basedOnBUR = INCREASED;
-			if(bur > 0.25) basedOnBUR = FULL;
-			else if(bur < 18) basedOnBUR = NORMAL;
+			if(bur > 0.25)
+				basedOnBUR = FULL;
+			else if(bur < 0.18)
+				basedOnBUR = NORMAL;
 			report.log("Build-up intensity based on power curve: %d", (int)basedOnBUR);
 			if(civ.isHuman()) {
 				intensity = basedOnBUR;
 				report.log("Using estimated intensity for forecast");
 				if(intensity <= NORMAL && GET_TEAM(civ.getTeam()).
-						isAtWar(TEAMID(weId))) {
+						isAtWar(TEAMID(weId)) && !GET_TEAM(civ.getTeam()).
+						warAndPeaceAI().isPushover(TEAMID(weId))) {
 					// Have to expect that human will increase build-up as necessary
 					intensity = INCREASED;
 					report.log("Increased intensity for human at war with us");
@@ -282,7 +286,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 		predictArmament(timeHorizon, productionEstimate, prodFromUpgrades,
 				intensity, defensive, navalArmament);
 	}
-	if(!GET_PLAYER(civId).isHuman())
+	if(!bLogAI && !GET_PLAYER(civId).isHuman())
 		report.setMute(false); // advc.test
 }
 
@@ -362,9 +366,7 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 	}
 	armamentPortion = ::dRange(armamentPortion, 0.0, 0.8);
 	// Portions of the military branches
-	double branchPortions[NUM_BRANCHES];
-	for(int i = 0; i < NUM_BRANCHES; i++)
-		branchPortions[i] = 0;
+	double branchPortions[NUM_BRANCHES] = {0.0};
 	// Little defense by default
 	branchPortions[HOME_GUARD] = 0.13;
 	if(navalArmament) {
@@ -386,12 +388,27 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 			double coastRatio = revCoast / (double)rev;
 			branchPortions[FLEET] = std::min(0.08 + coastRatio / 2.8, 0.35);
 		}
-		/* As the game progresses, the production portion needed for cargo units
-		   decreases. Factoring in the typical cargo capacity also makes the code
-		   robust to XML changes to cargo capacities. */
-		if(military[LOGISTICS]->getTypicalUnit() != NULL) {
+		double typicalCargo = military[LOGISTICS]->getTypicalUnitPower(m.ourId());
+		if(typicalCargo > 0.1 && military[LOGISTICS]->getTypicalUnit() != NULL) {
 			branchPortions[LOGISTICS] = std::min(branchPortions[FLEET],
-					1.0 / military[LOGISTICS]->getTypicalUnitPower());
+			/*  As the game progresses, the production portion needed for cargo
+				units decreases. Factoring in the typical cargo capacity also
+				makes the code robust against XML changes to cargo capacities. */
+					1.0 / typicalCargo);
+			if(!defensive && intensity > NORMAL && civ.getCurrentEra() > 0)  {
+				/*  Need to assume more naval build-up if 'civ' hardly has any
+					navy; otherwise, the AI may assume that a naval assault is
+					hopeless. */
+				double mult = (::dRange(2 - military[LOGISTICS]->power() /
+						(typicalCargo * civ.getCurrentEra()), 1, 1.5) + 1) / 2;
+				branchPortions[LOGISTICS] *= mult;
+				double typicalFleetPow = military[FLEET]->getTypicalUnitPower(m.ourId());
+				if(typicalFleetPow > 0.1) {
+					mult = (::dRange(2 - military[FLEET]->power() /
+							(typicalFleetPow * civ.getCurrentEra()), 1, 1.5) + 1) / 2;
+					branchPortions[FLEET] *= mult;
+				}
+			}
 		}
 	}
 	branchPortions[ARMY] = 1 - branchPortions[HOME_GUARD] - branchPortions[FLEET] -
@@ -488,14 +505,13 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 	//report.log("\nbq."); // Textile block quote (takes up too much space)
 	for(int i = 0; i < NUM_BRANCHES; i++) {
 		MilitaryBranch& mb = *military[i];
-		CvUnitInfo const* uptr = mb.getTypicalUnit();
-		if(uptr == NULL)
+		int typicalProd = mb.getTypicalUnitCost(m.ourId());
+		if(typicalProd <= 0)
 			continue;
-		CvUnitInfo const& u = *uptr;
-		double pow = mb.getTypicalUnitPower();
+		double pow = mb.getTypicalUnitPower(m.ourId());
 		CvPlayerAI& civ = GET_PLAYER(civId);
 		double incr = branchPortions[i] * totalProductionForBuildUp * pow /
-				civ.getProductionNeeded(mb.getTypicalUnitType());
+				typicalProd;
 		mb.changePower(incr);
 		int iincr = ::round(incr);
 		if(iincr > 0)
@@ -539,11 +555,12 @@ double ArmamentForecast::productionFromUpgrades() {
 	/* 'civ' may not have the funds to make all the upgrades in the
 	   medium term. Think of a human player keeping stacks of Warriors around,
 	   or a vassal receiving tech quickly from its master.
-	   Spend at most five turns worth of income on upgrades. The subtrahend
+	   Spend at most incomeTurns turns worth of income on upgrades. The subtrahend
 	   will be 0 during anarchy -- not a big problem I think. */
-	double income = civ.warAndPeaceAI().estimateYieldRate(YIELD_COMMERCE, 3) -
+	double const incomeTurns = 4;
+	double income = civ.estimateYieldRate(YIELD_COMMERCE, 3) -
 			civ.calculateInflatedCosts();
-	double incomeBound = 5 * income;
+	double incomeBound = incomeTurns * income;
 	if(incomeBound < r)
 		report.log("Upgrades bounded by income (%d gpt)", ::round(income));
 	r = std::min(incomeBound, r);
@@ -560,9 +577,9 @@ double ArmamentForecast::productionFromUpgrades() {
 	if(!civ.isHuman()) {
 		CvHandicapInfo& gameHandicap = GC.getHandicapInfo(GC.getGameINLINE().
 				getHandicapType());
-		double aiUpgradeFactor = gameHandicap.getAIUnitUpgradePercent() +
-				// NB: The modifier is negative
-				gameHandicap.getAIPerEraModifier() * civ.getCurrentEra();
+		double aiUpgradeFactor = gameHandicap.getAIUnitUpgradePercent();
+			// advc.250d: The per-era modifier no longer applies to upgrade cost
+			// + gameHandicap.getAIPerEraModifier() * civ.getCurrentEra();
 		aiUpgradeFactor /= 100.0;
 		/* Shouldn't draw conclusions from AI_getGoldToUpgradeAllUnits when
 		   AI upgrades are (modded to be) free or almost free. */

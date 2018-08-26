@@ -34,6 +34,13 @@ public:
 
 	int getNumTiles() const;																									// Exposed to Python
 	bool isLake() const;																											// Exposed to Python
+	// <advc.030>
+	void updateLake(bool checkRepr = true);
+	void setRepresentativeArea(int areaId);
+	// Should only be needed for computing the equivalence classes
+	int getRepresentativeArea() const;
+	bool canBeEntered(CvArea const& from, CvUnit const* u = NULL) const;
+	// </advc.030>
 	void changeNumTiles(int iChange);
 
 	int getNumOwnedTiles() const;																							// Exposed to Python
@@ -41,6 +48,7 @@ public:
 	void changeNumOwnedTiles(int iChange);
 
 	// <advc.300>
+	// advc.021b: Exposed to Python as getNumHabitableTiles
 	std::pair<int,int> countOwnedUnownedHabitableTiles(
 			bool ignoreBarb = false) const;
 	int countCivCities() const;
@@ -70,7 +78,8 @@ public:
 	int getAnimalsPerPlayer(PlayerTypes eIndex) const;												// Exposed to Python
 	void changeAnimalsPerPlayer(PlayerTypes eIndex, int iChange);
 
-	int getCitiesPerPlayer(PlayerTypes eIndex) const;													// Exposed to Python
+	int getCitiesPerPlayer(PlayerTypes eIndex,													// Exposed to Python
+			bool checkAdjacentCoast = false) const; // advc.030b
 	void changeCitiesPerPlayer(PlayerTypes eIndex, int iChange);
 
 	int getPopulationPerPlayer(PlayerTypes eIndex) const;											// Exposed to Python
@@ -144,7 +153,9 @@ protected:
 	int nBarbCitiesEver; // advc.300
 
 	bool m_bWater;
-
+	// <advc.030>
+	bool m_bLake;
+	int reprAreaId; // </advc.030>
 	int* m_aiUnitsPerPlayer;
 	int* m_aiAnimalsPerPlayer;
 	int* m_aiCitiesPerPlayer;

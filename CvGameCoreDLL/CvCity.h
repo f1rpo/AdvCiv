@@ -77,6 +77,7 @@ public:
 	bool isWorldWondersMaxed() const;																							// Exposed to Python
 	bool isTeamWondersMaxed() const;																							// Exposed to Python
 	bool isNationalWondersMaxed() const;																					// Exposed to Python
+	int getNumNationalWondersLeft() const; // advc.004w, advc.131
 	bool isBuildingsMaxed() const;																								// Exposed to Python
 
 	bool canTrain(UnitTypes eUnit, bool bContinue = false, bool bTestVisible = false, bool bIgnoreCost = false, bool bIgnoreUpgrades = false
@@ -142,6 +143,10 @@ public:
 
 	bool canHurry(HurryTypes eHurry, bool bTestVisible = false) const;		// Exposed to Python
 	void hurry(HurryTypes eHurry);																						// Exposed to Python
+	// <advc.912d>
+	bool canPopRush() const;
+	protected: int m_iPopRushHurryCount; public:
+	void changePopRushCount(int iChange); // </advc.912d>
 
 	UnitTypes getConscriptUnit() const;																// Exposed to Python
 	CvUnit* initConscriptedUnit();
@@ -395,7 +400,7 @@ public:
 	static int calculateNumCitiesMaintenanceTimes100(CvPlot* cityPlot,
 			PlayerTypes owner, int population = -1, int extraCities = 0);
 	static int calculateColonyMaintenanceTimes100(CvPlot* cityPlot,
-			PlayerTypes owner, int population = -1);
+			PlayerTypes owner, int population = -1, int extraCities = 0);
 	static int initialPopulation();
 	private: 
 	  static int calculateMaintenanceDistance(CvPlot* cityPlot, PlayerTypes owner);
@@ -499,7 +504,8 @@ public:
 	int getFeatureBadHappiness() const;																		// Exposed to Python
 	void updateFeatureHappiness();
 
-	int getBonusGoodHappiness() const;																		// Exposed to Python  
+	int getBonusGoodHappiness(																		// Exposed to Python  
+			bool ignoreModifier = false) const; // advc.912c
 	int getBonusBadHappiness() const;																			// Exposed to Python  
 	void changeBonusGoodHappiness(int iChange);
 	void changeBonusBadHappiness(int iChange);
@@ -677,7 +683,7 @@ public:
 	bool isProductionAutomated() const;											// Exposed to Python
 	void setProductionAutomated(bool bNewValue, bool bClear);					// Exposed to Python 
 
-	/* allows you to programatically specify a cities walls rather than having them be generated automagically */
+	/* allows you to programmatically specify a cities walls rather than having them be generated automagically */
 	DllExport bool isWallOverride() const; 
 	void setWallOverride(bool bOverride);
 
@@ -733,7 +739,7 @@ public:
 	int getYieldRate(YieldTypes eIndex) const;									// Exposed to Python
 	void setBaseYieldRate(YieldTypes eIndex, int iNewValue);					// Exposed to Python
 	void changeBaseYieldRate(YieldTypes eIndex, int iChange);					// Exposed to Python
-
+	int calculateBaseYieldRate(YieldTypes eIndex); // advc.104u
 	int getYieldRateModifier(YieldTypes eIndex) const;							// Exposed to Python
 	void changeYieldRateModifier(YieldTypes eIndex, int iChange);
 
@@ -881,7 +887,7 @@ public:
 	int getNumBonuses(BonusTypes eIndex) const;																		// Exposed to Python
 	bool hasBonus(BonusTypes eIndex) const;															// Exposed to Python
 	void changeNumBonuses(BonusTypes eIndex, int iChange);
-
+	int countUniqueBonuses() const; // advc.149
 	int getNumCorpProducedBonuses(BonusTypes eIndex) const;
 	bool isCorporationBonus(BonusTypes eBonus) const;
 	bool isActiveCorporation(CorporationTypes eCorporation) const;
@@ -975,7 +981,8 @@ public:
 	void setNumFreeBuilding(BuildingTypes eIndex, int iNewValue);
 
 	bool isHasReligion(ReligionTypes eIndex) const;
-	void setHasReligion(ReligionTypes eIndex, bool bNewValue, bool bAnnounce, bool bArrows = true);
+	void setHasReligion(ReligionTypes eIndex, bool bNewValue, bool bAnnounce, bool bArrows = true,
+			PlayerTypes missionaryOwner = NO_PLAYER); // advc.106e
 	int getReligionGrip(ReligionTypes eReligion) const; // K-Mod
 
 	bool isHasCorporation(CorporationTypes eIndex) const;
@@ -1087,9 +1094,9 @@ public:
 /**		BETTER_BTS_AI_MOD						END								*/
 /********************************************************************************/
 	virtual bool AI_isDanger() = 0;
-	// advc.139: param added
-	virtual int AI_neededDefenders(bool ignoreEvac = false) = 0;
 	// <advc.139>
+	virtual int AI_neededDefenders(bool ignoreEvac = false) = 0;
+	virtual int AI_neededFloatingDefenders(bool ignoreEvac = false) = 0;
 	virtual void updateEvacuating(double relativeCityVal)=0;
 	virtual bool isEvacuating() const=0; // </advc.139>
 	virtual int AI_neededAirDefenders() = 0;
@@ -1280,7 +1287,9 @@ protected:
 	bool* m_abTradeRoute;
 	bool* m_abRevealed;
 	bool* m_abEspionageVisibility;
-
+	// <advc.004x> Most recently completed order
+	int mrOrder;
+	bool mrWasUnit; // </advc.004x>
 	//CvWString m_szName; // advc.003: Moved up
 	CvString m_szScriptData;
 
@@ -1370,6 +1379,8 @@ protected:
 
 	double garrisonStrength() const; // advc.500b
 	void damageGarrison(PlayerTypes revoltSource);
+	// advc.123f:
+	void failProduction(int orderData, int investedProduction, bool bProject = false);
 };
 
 #endif

@@ -287,7 +287,6 @@ def changeHuman( newHumanIdx, oldHumanIdx ) :
     game.changeHumanPlayer( newHumanIdx )
     
     doRefortify( newHumanIdx )
-    
     return True
 
 ########################## Utility functions ###########################################

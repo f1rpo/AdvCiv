@@ -17,6 +17,7 @@ public:
   virtual ~CvGameAI();
 
   void AI_init();
+  void AI_initScenario(); // advc.104u
   void AI_uninit();
   void AI_reset();
 

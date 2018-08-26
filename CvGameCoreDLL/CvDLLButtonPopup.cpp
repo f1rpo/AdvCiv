@@ -212,10 +212,20 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 			CvMessageControl::getInstance().sendChangeWar((TeamTypes)info.getData1(), true);
 		}
 		if (((pPopupReturn->getButtonClicked() == 0) || info.getOption2()) && info.getFlags() == 0)
-		{
-			//GC.getGameINLINE().selectionListGameNetMessage(GAMEMESSAGE_PUSH_MISSION, MISSION_MOVE_TO, info.getData2(), info.getData3(), info.getFlags(), false, info.getOption1());
-			GC.getGameINLINE().selectionListGameNetMessage(GAMEMESSAGE_PUSH_MISSION, MISSION_MOVE_TO, info.getData2(), info.getData3(), info.getFlags() | MOVE_DECLARE_WAR, false, info.getOption1()); // K-Mod
-			// (See comments in CvGame::selectionListGameNetMessage for an explanation for the MOVE_DECLARE_WAR flag. Basically, it's a kludge.)
+		{	// <advc.035>
+			CvUnit* u = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+			CvPlot* at = (u == NULL ? NULL : u->plot());
+			// Don't move ahead if the tile we're on is going to flip
+			if(at != NULL && (!at->isOwned() ||
+					(TEAMREF(at->getSecondOwner()).getMasterTeam() !=
+					GET_TEAM((TeamTypes)info.getData1()).getMasterTeam() &&
+					!GET_TEAM(TEAMREF(at->getSecondOwner()).getMasterTeam()).
+					isDefensivePact(GET_TEAM((TeamTypes)info.getData1()).
+					getMasterTeam())))) { // </advc.035>
+				//GC.getGameINLINE().selectionListGameNetMessage(GAMEMESSAGE_PUSH_MISSION, MISSION_MOVE_TO, info.getData2(), info.getData3(), info.getFlags(), false, info.getOption1());
+				GC.getGameINLINE().selectionListGameNetMessage(GAMEMESSAGE_PUSH_MISSION, MISSION_MOVE_TO, info.getData2(), info.getData3(), info.getFlags() | MOVE_DECLARE_WAR, false, info.getOption1()); // K-Mod
+				// (See comments in CvGame::selectionListGameNetMessage for an explanation for the MOVE_DECLARE_WAR flag. Basically, it's a kludge.)
+			}
 		}
 		break;
 
@@ -1115,7 +1125,13 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 			if(GC.getProjectInfo(eCreateProject).isSpaceship())
 				szBuffer = gDLL->getText("TXT_KEY_POPUP_CREATED_WORK_ON_NEXT_SPACESHIP", GC.getProjectInfo(eCreateProject).getTextKeyWide(), pCity->getNameKey());
 			else
-				szBuffer = gDLL->getText(((isLimitedProject(eCreateProject)) ? "TXT_KEY_POPUP_CREATED_WORK_ON_NEXT_LIMITED" : "TXT_KEY_POPUP_CREATED_WORK_ON_NEXT"), GC.getProjectInfo(eCreateProject).getTextKeyWide(), pCity->getNameKey());
+				szBuffer = gDLL->getText(((isLimitedProject(eCreateProject)) ?
+						// <advc.108e>
+						(::isArticle(eCreateProject) ?
+						"TXT_KEY_POPUP_CREATED_WORK_ON_NEXT_LIMITED_THE" :
+						"TXT_KEY_POPUP_CREATED_WORK_ON_NEXT_LIMITED")
+						// </advc.108e>
+						: "TXT_KEY_POPUP_CREATED_WORK_ON_NEXT"), GC.getProjectInfo(eCreateProject).getTextKeyWide(), pCity->getNameKey());
 		}
 		else
 		{
@@ -1652,9 +1668,8 @@ bool CvDLLButtonPopup::launchChooseTechPopup(CvPopup* pPopup, CvPopupInfo &info)
 	}
 
 	gDLL->getInterfaceIFace()->popupSetPopupType(pPopup, POPUPEVENT_TECHNOLOGY, ARTFILEMGR.getInterfaceArtInfo("INTERFACE_POPUPBUTTON_TECH")->getPath());
-
 	gDLL->getInterfaceIFace()->popupLaunch(pPopup, false, ((iDiscover > 0) ? POPUPSTATE_QUEUED : POPUPSTATE_MINIMIZED));
-
+	
 	return (true);
 }
 
@@ -1669,7 +1684,9 @@ bool CvDLLButtonPopup::launchChangeCivicsPopup(CvPopup* pPopup, CvPopupInfo &inf
 	CivicOptionTypes eCivicOptionType = (CivicOptionTypes)info.getData1();
 	CivicTypes eCivicType = (CivicTypes)info.getData2();
 	bool bValid = false;
-
+	bool bStartButton = true; // advc.004o
+	// advc.003:
+	CvPlayer const& activePl = GET_PLAYER(GC.getGameINLINE().getActivePlayer());
 	if (eCivicType != NO_CIVIC)
 	{
 		for (int iI = 0; iI < GC.getNumCivicOptionInfos(); iI++)
@@ -1680,11 +1697,22 @@ bool CvDLLButtonPopup::launchChangeCivicsPopup(CvPopup* pPopup, CvPopupInfo &inf
 			}
 			else
 			{
-				paeNewCivics[iI] = GET_PLAYER(GC.getGameINLINE().getActivePlayer()).getCivics((CivicOptionTypes)iI);
+				paeNewCivics[iI] = activePl.getCivics((CivicOptionTypes)iI);
+				// <advc.004o>
+				if(bStartButton) {
+					for(int j = 0; j < GC.getNumCivicInfos(); j++) {
+						CivicTypes ct = (CivicTypes)j;
+						if(GC.getCivicInfo(ct).getCivicOptionType() == iI &&
+								paeNewCivics[iI] != ct && activePl.canDoCivics(ct)) {
+							bStartButton = false;
+							break;
+						}
+					}
+				} // </advc.004o>
 			}
 		}
 
-		if (GET_PLAYER(GC.getGameINLINE().getActivePlayer()).canRevolution(paeNewCivics))
+		if (activePl.canRevolution(paeNewCivics))
 		{
 			bValid = true;
 		}
@@ -1709,11 +1737,11 @@ bool CvDLLButtonPopup::launchChangeCivicsPopup(CvPopup* pPopup, CvPopupInfo &inf
 			szBuffer += gDLL->getText("TXT_KEY_POPUP_START_REVOLUTION");
 			gDLL->getInterfaceIFace()->popupSetBodyString(pPopup, szBuffer);
 			// <advc.004o>
-			if(GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).
+			if(bStartButton || GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).
 					/*  "> 100" would leave the get-started button alone on Epic and
-						Marathon. That's what I meant to do initially, but now I
-						I think the button shouldn't be there in any case, so, 1000
-						is just an arbitrary high number. */
+						Marathon. That's what I meant to do initially, but now
+						I think the button shouldn't be there in any case, so,
+						1000 is just an arbitrary high number. */
 					getAnarchyPercent() > 1000) { // </advc.004o>
 				szBuffer = gDLL->getText("TXT_KEY_POPUP_YES_START_REVOLUTION");
 				int iAnarchyLength = GET_PLAYER(GC.getGameINLINE().getActivePlayer()).getCivicAnarchyLength(paeNewCivics);

@@ -152,6 +152,7 @@ friend class Node;
 		 bool isSneakAttack(Node const& other) const;
 		 bool isContinuedWar(Node const& other) const;
 		 bool canReachByLand(int cityId) const;
+		 CvArea* clashArea(PlayerTypes otherId) const;
 
 		 std::vector<WarAndPeaceCache::City const*> conquests;
 		 std::set<int> losses; // WarAndPeaceCache::City IDs
@@ -203,13 +204,12 @@ public:
 	/* Makes sure these (possibly uninvolved) parties have nodes in the graph
 	   (and ArmamentForecasts). */
 	void addUninvolvedParties(std::set<PlayerTypes> const& parties);
-	/* Duration: Time horizon of the simulation. Affects the estimated military
-	   armament (if addFutureWarParties is called beforehand). Not suitable
-	   for long-term predictions (e.g. > 50 turns).
-	   	   Simulation covers build-up and losses. 
-	   No military build-up is assumed for the first phase.
-	   Simulates conquests and unit losses (expressed as a loss of power).
-	   These results are stored in the affected Nodes. */
+	/*  Duration: Time horizon of the simulation. Affects the estimated military
+		armament (if addFutureWarParties is called beforehand). Not suitable
+		for long-term predictions (e.g. > 50 turns).
+		No military build-up is assumed for the first phase.
+		Simulates conquests and unit losses (expressed as a loss of power).
+		These results are stored in the affected Nodes. */
 	void simulate(int duration);
 
 private:
@@ -222,6 +222,7 @@ private:
 	int timeLimit; // for simulateLosses
 	bool isPeaceScenario;
 	bool lossesDone; // for deciding on recentlyAttacked
+	bool firstSimulateCall;
 
 	void simulateArmament(int duration, bool noUpgrading = false);
 	void simulateLosses();

@@ -2,6 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "WarUtilityAspect.h"
+#include "CvStatistics.h"
 
 using std::vector;
 using std::string;
@@ -186,6 +187,7 @@ double WarUtilityAspect::lostAssetScore(PlayerTypes to, double* returnTotal,
 	double blockadeMultiplier = lossesFromBlockade(theyId, to);
 	double fromBlockade = 0.1 * blockadeMultiplier * (total - r);
 	r += fromBlockade;
+	r += lossesFromFlippedTiles(theyId, to); // advc.035
 	if(returnTotal != NULL)
 		*returnTotal = total;
 	return r;
@@ -264,11 +266,42 @@ double WarUtilityAspect::lossesFromNukes(PlayerTypes victimId, PlayerTypes srcId
 	double r = hits * (victimCache.canScrubFallout() ?
 			lossRate - 0.05 : lossRate + 0.05) * scorePerCity;
 	if(r > 0.5)
-		log("Lost score of %d for cities hit: %d; assets per city: %d; cities hit: %.2f; ",
+		log("Lost score of %s for cities hit: %d; assets per city: %d; cities hit: %.2f; ",
 				report.leaderName(victimId), ::round(r),
 				::round(scorePerCity), hits);
 	return r;
 }
+
+// <advc.035>
+double WarUtilityAspect::lossesFromFlippedTiles(PlayerTypes victimId,
+		PlayerTypes srcId) {
+	
+	if(GC.getOWN_EXCLUSIVE_RADIUS() <= 0)
+		return 0;
+	double r = 0;
+	int victimLostTiles = 0;
+	std::vector<TeamTypes> sources;
+	if(srcId == NO_PLAYER) {
+		for(size_t i = 0; i < properTeams.size(); i++)
+			sources.push_back(properTeams[i]);
+	}
+	else sources.push_back(TEAMID(srcId));
+	WarAndPeaceCache const& victimCache = GET_PLAYER(victimId).warAndPeaceAI().
+			getCache();
+	for(size_t i = 0; i < sources.size(); i++) {
+		if(m->isWar(sources[i], TEAMID(victimId))) {
+			victimLostTiles += victimCache.numLostTilesAtWar(sources[i]);
+		}
+	}
+	int const teamSz = TEAMREF(theyId).getNumMembers();
+	if(std::abs(victimLostTiles) <= 4 * teamSz)
+		return 0;
+	int victimLandTiles = GET_PLAYER(victimId).getTotalLand();
+	double const weight = 125;
+	r = (weight * victimLostTiles) / std::max(5, victimLandTiles);
+	r /= teamSz; // Tiles are counted per team, but this is a per-civ function.
+	return r;
+} // </advc.035>
 
 double WarUtilityAspect::conqAssetScore(bool mute) {
 
@@ -360,8 +393,8 @@ double WarUtilityAspect::partnerUtilFromTech() {
 	if(humanBonus > 0)
 		log("Tech trade bonus for human civs: %d", ::round(humanBonus));
 	// Use their commerce to determine potential for future tech trade
-	double commRatio = theyAI->estimateYieldRate(YIELD_COMMERCE) /
-			weAI->estimateYieldRate(YIELD_COMMERCE);
+	double commRatio = they->estimateYieldRate(YIELD_COMMERCE) /
+			we->estimateYieldRate(YIELD_COMMERCE);
 	if(commRatio > 1)
 		commRatio = 1 / commRatio;
 	double r = std::pow(commRatio, 2) * (20 + humanBonus);
@@ -534,8 +567,11 @@ void GreedForAssets::evaluate() {
 	if(conqScore < 0.01)
 		return;
 	double compMult = competitionMultiplier();
-	if(compMult != 1)
+	if(compMult < 0.99 || compMult > 1.01)
 		log("Competition multiplier: %d percent", ::round(compMult * 100));
+	double teamSzMult = teamSizeMultiplier();
+	if(teamSzMult < 0.99 || teamSzMult > 1.01)
+		log("Team size multiplier: %d percent", ::round(teamSzMult * 100));
 	double presentScore = ourCache->totalAssetScore();
 	log("Score for present assets: %d", ::round(presentScore));
 	/*  Count mundane buildings for presentScore? May build these in the
@@ -546,7 +582,8 @@ void GreedForAssets::evaluate() {
 	double defCost = defensibilityCost();
 	log("Cost modifiers: %d percent for overextension, %d for defensibility",
 			::round(100 * overextCost), ::round(100 * defCost));
-	double uPlus = baseUtility * (1 - overextCost - defCost);
+	double uPlus = compMult * teamSzMult * baseUtility *
+			(1 - overextCost - defCost);
 	// Greed shouldn't motivate peaceful leaders too much
 	if(we->AI_getPeaceWeight() >= 7) {
 		double cap = 260 - 10 * we->AI_getPeaceWeight();
@@ -568,7 +605,7 @@ double GreedForAssets::overextensionCost() {
 		Look at our current expenses: are we already overextended? */
 	// Don't mind paying 25% for city maintenance
 	double r = -0.25;
-	double ourIncome = weAI->estimateYieldRate(YIELD_COMMERCE);
+	double ourIncome = we->estimateYieldRate(YIELD_COMMERCE);
 	// Expenses excluding unit cost and supply
 	double ourMaintenance = (we->getTotalMaintenance() +
 			we->getCivicUpkeep(NULL, true)) *
@@ -708,7 +745,7 @@ double GreedForAssets::competitionMultiplier() {
 		based on just one simulation trajectory, and if they (the target) have
 		few cities, we might actually get none at all. Compute a reduction rate
 		for our GreedForAssets to account for that risk.
-		Should reduce early-game dogpiling (which can be very unfair). */
+		Should reduce early-game dogpiling. */
 	int competitors = 0;
 	for(size_t i = 0; i < properCivs.size(); i++) {
 		CvPlayer const& competitor = GET_PLAYER(properCivs[i]);
@@ -729,6 +766,17 @@ double GreedForAssets::competitionMultiplier() {
 	}
 	FAssert(theirCities > competitors); // B/c we conquer at least 1 as well
 	return std::max(0.0, 1 - competitors / (double)theirCities);
+}
+
+double GreedForAssets::teamSizeMultiplier() {
+
+	/*  To account for team-on-team warfare having a somewhat slower pace than
+		civ-on-civ, meaning that further conquests tend to happen after the
+		time horizon of the simulation. (A longer horizon could be too costly
+		computationally.) And to account for military assistance within a team
+		being a bit underestimated by InvasionGraph (which can't be helped). */
+	double teamSz = std::min(agent.getAliveCount(), TEAMREF(theyId).getAliveCount());
+	return std::min(1.43, (1 + std::sqrt(teamSz)) / 2);
 }
 
 void GreedForAssets::initCitiesPerArea() {
@@ -769,14 +817,14 @@ void GreedForVassals::evaluate() {
 	// Will need their capital later
 	if(newVassals.count(TEAMID(theyId)) == 0 || they->getCapitalCity() == NULL)
 		return;
-	double ourIncome = std::max(8.0, weAI->estimateYieldRate(YIELD_COMMERCE));
+	double ourIncome = std::max(8.0, we->estimateYieldRate(YIELD_COMMERCE));
 	double totalUtility = 0;
 	/*  Their commerce may be lower than now at the end of the war.
 		(Don't try to estimate our own post-war commerce though.) */
 	double cr = cityRatio(theyId);
 	log("Ratio of cities kept by the vassal: cr=%d percent", ::round(cr * 100));
 	// Vassal commerce to account for tech they might research for us
-	double vassalIncome = theyAI->estimateYieldRate(YIELD_COMMERCE);
+	double vassalIncome = they->estimateYieldRate(YIELD_COMMERCE);
 	double relIncome = vassalIncome * cr / ourIncome;
 	log("Rel. income of vassal %s = %d percent = cr * %d / %d",
 			report.leaderName(theyId), ::round(100 * relIncome),
@@ -942,7 +990,8 @@ void Loathing::evaluate() {
 	log("Loss rating for %s: %d", report.leaderName(theyId), ::round(lr));
 	log("Our vengefulness: %d", veng);
 	int nNonVassalCivs = numRivals;
-	if(!agent.isAVassal()) nNonVassalCivs += agent.getNumMembers();
+	if(!agent.isAVassal())
+		nNonVassalCivs += agent.getNumMembers();
 	/*  Obsessing over one enemy is unwise if there are many potential enemies.
 		Rounded down deliberately b/c it would be a bit too high otherwise. */
 	int rivalDivisor = (int)std::sqrt((double)nNonVassalCivs);
@@ -1076,19 +1125,16 @@ void MilitaryVictory::evaluate() {
 		log("Rivals remaining: %d", numRivals);
 		log("Pursued mil. victory conditions: %d", nVictories);
 	}
-	if(numRivals <= 0) return;
+	if(numRivals <= 0)
+		return;
 	/*  Division by (sqrt of) nVictories because it's not so useful to pursue
 		several victory conditions at once. But don't go below the max of the
 		progress values. */
 	double prgr = std::max(maxProgress, progressRating /
 			std::sqrt((double)nVictories));
 	// The fewer rivals remain, the more we're willing to go all-in for victory
-	double div = numRivals;
-	/*  Worry less about rivals if we think we'll make it within the time horizon
-		of war evaluation */
-	if(maxProgress > 0.95)
-		div = std::sqrt((double)numRivals);
-	double uPlus = 180 * prgr / div;
+	double div = 2 + std::sqrt((double)numRivals);
+	double uPlus = 540 * prgr / div;
 	/*  May lose votes if nuked. This could be better integrated with the progress
 		ratings above. First had it as a separate class, now kind of tacked on. */
 	double voteCost = 0;
@@ -1189,7 +1235,7 @@ double MilitaryVictory::progressRatingDomination() {
 	targetCities = (targetCities +
 			0.01 * g.getAdjustedLandPercent(dom) * g.getNumCities()) / 2;
 	double citiesToGo = targetCities - agent.getNumCities();
-	double popGained = 0; // double is more convenient later on
+	double popGained = 0;
 	double citiesGained = 0;
 	set<int> const& conq = m->conqueredCities(weId);
 	for(iSetIt it = conq.begin(); it != conq.end(); it++) {
@@ -1201,6 +1247,24 @@ double MilitaryVictory::progressRatingDomination() {
 			as well) */
 		popGained += c.city()->getPopulation() - 0.5;
 		citiesGained = citiesGained + 1;
+	}
+	if(m->getCapitulationsAccepted(agentId).count(TEAMID(theyId)) > 0) {
+		int theirPopRemaining = they->getTotalPopulation();
+		set<int> const& lost = m->lostCities(theyId);
+		FAssertMsg(!lost.empty(), "They capitulated w/o losing a city?");
+		int theirCitiesRemaining = they->getNumCities() - lost.size();
+		for(iSetIt it = lost.begin(); it != lost.end(); it++) {
+			City* cp = ourCache->lookupCity(*it);
+			if(cp == NULL)
+				continue;
+			theirPopRemaining -= cp->city()->getPopulation();
+		}
+		if(theirCitiesRemaining > 0) {
+			log("%d vassal pop gained, and %d cities", theirPopRemaining,
+					theirCitiesRemaining);
+		}
+		citiesGained += 0.5 * theirCitiesRemaining;
+		popGained += 0.5 * theirPopRemaining;
 	}
 	if(citiesGained == 0)
 		return 0;
@@ -1273,15 +1337,15 @@ double MilitaryVictory::progressRatingDiplomacy() {
 					conquestsWithWeights.insert(pair<int,double>(*it, weight));
 			continue;
 		}
-		// These are civs we need to deal with somehow for AP victory
-		if(!isUN && !GET_PLAYER(civId).isVotingMember(voteSource)) {
-			if(m->isEliminated(civId))
-				apObstaclesRemoved++;
-		}
+	}
+	// Need to deal with them somehow for AP victory
+	if(!isUN && !they->isVotingMember(voteSource)) {
+		if(m->isEliminated(theyId))
+			apObstaclesRemoved++;
 	}
 	double obstacleProgress = 0;
 	if(apObstacles > 0) {
-		obstacleProgress = apObstaclesRemoved / apObstacles;
+		obstacleProgress = apObstaclesRemoved / (double)apObstacles;
 		if(obstacleProgress > 0)
 			log("Progress on AP obstacles: %d percent",
 					::round(100 * obstacleProgress));
@@ -1348,14 +1412,14 @@ double MilitaryVictory::progressRatingDiplomacy() {
 		popGained += newVassalVotes;
 	}
 	if(popGained > 0.5)
-		log("Total expected votes: %d, current votes-to-go: %d", ::round(popGained),
-				::round(votesToGo));
+		log("Total expected votes: %d, current votes-to-go: %d",
+				::round(popGained), ::round(votesToGo));
 	FAssert(votesToGo > 0);
 	popGained = std::min(popGained, votesToGo);
 	double r = popGained / votesToGo;
 	if(apObstacles < 1)
 		return r;
-	// If there are AP obstacles, give the progress rate on those 25% weight
+	// If there are AP obstacles, give the progress rate on those 25% weight.
 	return 0.25 * obstacleProgress + 0.75 * r;
 }
 
@@ -1396,6 +1460,8 @@ void Assistance::evaluate() {
 		I'm adopting a bit of code in partnerUtilFromTrade. */
 	if(TEAMREF(theyId).isAVassal() || /* Don't want to end up helping a potentially
 										 dangerous master. */
+			// Their utility is added to ours in the end; don't count it here.
+			they->getTeam() == agentId ||
 			/*  These checks can make us inclined to attack a friend if it's already
 				under attack; b/c the peace scenario will have reduced utility from
 				Assistance and the war scenario won't. I guess that's OK.
@@ -1533,8 +1599,8 @@ void Rebuke::evaluate() {
 		deny us end up paying more than was asked. */
 	double punishmentRatio = 0.5 * (theirLoss / theirTotal +
 			conqAssetScore() / std::max(10.0, ourCache->totalAssetScore()));
-	if(punishmentRatio > 0) {
-		log("Punishment ratio): %d percent, rebuke diplo: %d",
+	if(punishmentRatio > 0.001) {
+		log("Punishment ratio: %d percent, rebuke diplo: %d",
 				::round(100 * punishmentRatio), rebukeDiplo);
 		u += ::round(std::min(30.0, std::sqrt((double)rebukeDiplo)
 				* 100 * punishmentRatio));
@@ -1713,7 +1779,7 @@ void BorderDisputes::evaluate() {
 	if(we->isHuman() && cbac != 0)
 		diplo = ::round((-4.0 * diplo) / cbac);
 	if(m->getCapitulationsAccepted(agentId).count(TEAMID(theyId)) > 0) {
-		int uPlus = diplo * 10;
+		int uPlus = diplo * 8;
 		log("They capitulate; shared-borders diplo%s: %d",
 				(we->isHuman() ? " (human)" : ""), diplo);
 		return;
@@ -1847,7 +1913,7 @@ void PreEmptiveWar::evaluate() {
 		return;
 	double threat = ourCache->threatRating(theyId);
 	/*  War evaluation should always assume minor threats; not worth addressing here
-		explicitly */
+		explicitly. */
 	if(threat < 0.15)
 		return;
 	// threatRating includes their vassals, so include vassals here as well
@@ -1970,7 +2036,11 @@ int KingMaking::preEvaluate() {
 		AI needs to be able to respond quickly when a civ starts running away with
 		the game; can't wait until rival conquests have actually happened. */
 	addLeadingCivs(winning, scoreMargin);
-	if(winning.count(weId) > 0 && winning.size() <= 1) {
+	if(winning.count(weId) > 0 && winning.size() <= 1 &&
+			// We don't want to be the only winner if it means betraying our partners
+			(params.targetId() == NO_TEAM || agent.isAtWar(params.targetId()) ||
+			agent.AI_isChosenWar(params.targetId()) || GC.getLeaderHeadInfo(we->getPersonalityType()).
+			getNoWarAttitudeProb(agent.AI_getAttitude(params.targetId())) < 100)) {
 		log("We'll be the only winners");
 		return 45;
 	}
@@ -1983,14 +2053,24 @@ void KingMaking::addLeadingCivs(set<PlayerTypes>& r, double margin,
 	CvGame& g = GC.getGameINLINE();
 	double bestScore = 1;
 	for(size_t i = 0; i < civs.size(); i++) {
-		double sc = predictScore ? m->predictedGameScore(properCivs[i]) :
-				g.getPlayerScore(properCivs[i]);
-		if(sc > bestScore) bestScore = sc;
+		double sc = predictScore ? m->predictedGameScore(civs[i]) :
+				g.getPlayerScore(civs[i]);
+		/*  Count extra score for commerce so that civs that are getting far
+			ahead in tech are identified as a threat */
+		CvPlayerAI const& civ = GET_PLAYER(civs[i]);
+		if(civ.getCurrentEra() >= 3 &&
+				// The late game is covered by victory stages
+				civ.getCurrentEra() <= 4 && g.getCurrentEra() <= 4) {
+			double commerceRate = civ.estimateYieldRate(YIELD_COMMERCE);
+			sc += commerceRate / 2;
+		}
+		if(sc > bestScore)
+			bestScore = sc;
 	}
 	for(size_t i = 0; i < civs.size(); i++) {
-		if((predictScore ? m->predictedGameScore(properCivs[i]) :
-				g.getPlayerScore(properCivs[i])) / bestScore >= 0.75)
-			r.insert(properCivs[i]);
+		if((predictScore ? m->predictedGameScore(civs[i]) :
+				g.getPlayerScore(civs[i])) / bestScore >= 0.75)
+			r.insert(civs[i]);
 	}
 }
 
@@ -2004,17 +2084,17 @@ void KingMaking::evaluate() {
 	AttitudeTypes att = towardsThem;
 	/*  As humans we are very much not OK with rivals winning the game,
 		so ATTITUDE_FURIOUS would be the smarter assumption, however, I don't want
-		a leading AI to be extremely alert about a human runner up; could make it too
+		a leading AI to be extremely alert about a human runner-up; could make it too
 		difficult to catch up. */
 	if(we->isHuman())
 		att = ATTITUDE_ANNOYED;
-	/*  We don't go so far to help our friendy win (only indirectly by trying to
+	/*  We don't go as far as helping a friend win (only indirectly by trying to
 		thwart the victory of a disliked civ) */
 	if(att >= ATTITUDE_FRIENDLY)
 		return;
-	// NB: The two conditions above are superfluous; just for performance
+	// NB: The two conditions above are superfluous; just for performance.
 	double attitudeMultiplier = 0.03 + 0.25 * (ATTITUDE_PLEASED - att);
-	// If we're human and did not believe we could win, we would've quit already
+	// If we're human and did not believe we could win, we would've quit already.
 	if(we->isHuman())
 		winning.insert(weId);
 	// We're less inclined to interfere if several rivals are in competition
@@ -2022,13 +2102,14 @@ void KingMaking::evaluate() {
 	double caughtUpBonus = 0;
 	set<PlayerTypes> presentWinners;
 	addLeadingCivs(presentWinners, scoreMargin, false);
-	double const catchUpVal = 24.0 / std::pow((double)winning.size(), 0.75);
+	double catchUpVal = 24.0 / std::pow((double)winning.size(), 0.75);
+	catchUpVal *= std::pow((1 + weAI->amortizationMultiplier()) / 2, 2);
 	if(winning.count(weId) > 0) {
 		winningRivals--;
 		/*  If we're among the likely winners, then it's a showdown between us
-			and them, and, then, we try to prevent their victory despite being
-			Pleased. If we're out of contention (for the time being), we don't mind
-			if they win at Pleased. */
+			and them, and we try to prevent their victory despite being Pleased.
+			If we're out of contention (for the time being), we don't mind if
+			they win at Pleased. */
 		attitudeMultiplier += 0.25;
 		if(presentWinners.count(weId) == 0) {
 			/*  We're not presently winning, but our predicted conquests bring us
@@ -2167,7 +2248,7 @@ int Effort::preEvaluate() {
 		else {
 			/*  Reduced cost for long-distance war; less disturbance of Workers
 				and Settlers, and less danger of pillaging */
-			uMinus += m->turnsSimulated() / ((allWarsLongDist ? 5.0 : 3.5) +
+			uMinus += m->turnsSimulated() / ((allWarsLongDist ? 8.0 : 5.5) +
 					// Workers not much of a concern later on
 					we->getCurrentEra() / 2);
 			log("Cost for wartime economy and ravages: %d%s", ::round(uMinus),
@@ -2307,6 +2388,53 @@ int Effort::xmlId() const { return 15; }
 
 Risk::Risk(WarEvalParameters& params) : WarUtilityAspect(params) {}
 
+int Risk::preEvaluate() {
+
+	// Handle potential losses of our vassals here
+	double uMinus = 0;
+	for(size_t i = 0; i < properCivs.size(); i++) {
+		PlayerTypes const vId = properCivs[i];
+		CvPlayerAI const& vassal = GET_PLAYER(vId);
+		if(TEAMID(vId) == TEAMID(weId) || vassal.getMasterTeam() != agentId)
+			continue;
+		// OK to peek into our vassal's cache
+		WarAndPeaceCache const& vassalCache = vassal.warAndPeaceAI().getCache();
+		double relativeVassalLoss = 1;
+		if(!m->isEliminated(vId)) {
+			double lostVassalScore = 0;
+			for(iSetIt it = m->lostCities(vId).begin();
+					it != m->lostCities(vId).end(); it++) {
+				City* c = vassalCache.lookupCity(*it);
+				if(c == NULL) continue;
+				lostVassalScore += c->getAssetScore();
+			}
+			relativeVassalLoss = lostVassalScore /
+					(vassalCache.totalAssetScore() + 0.01);
+		}
+		double vassalCost = 0;
+		if(relativeVassalLoss > 0) {
+			vassalCost = relativeVassalLoss * 33;
+			log("Cost for losses of vassal %s: %d", report.leaderName(vId),
+					::round(vassalCost));
+		}
+		if(!TEAMREF(vId).isCapitulated()) {
+			double relativePow = (m->gainedPower(vId, ARMY) +
+					vassalCache.getPowerValues()[ARMY]->power()) /
+					(m->gainedPower(weId, ARMY) +
+					ourCache->getPowerValues()[ARMY]->power()) - 0.9;
+			if(relativePow > 0) {
+				double breakAwayCost = std::min(20.0, std::sqrt(relativePow) * 40);
+				if(breakAwayCost > 0.5)
+					log("Cost for %s breaking free: %d", report.leaderName(vId),
+							::round(breakAwayCost));
+				vassalCost += breakAwayCost;
+			}
+		}
+		uMinus += vassalCost;
+	}
+	return ::round(uMinus);
+}
+
 void Risk::evaluate() {
 
 	double lostAssets = 0;
@@ -2334,6 +2462,8 @@ void Risk::evaluate() {
 		fromNukes = scareCost;
 	}
 	uMinus += fromNukes;
+	/*  advc.035 (comment): Don't consider lossFromFlippedTiles here. We might
+	capture the very cities that steal our tiles by continuing the war. */
 	uMinus /= total;
 	if(uMinus > 0.5) {
 		if(fromBlockade > 0.5)
@@ -2352,44 +2482,6 @@ void Risk::evaluate() {
 		uMinus += costForCapitulation;
 		log("Cost halved because of capitulation; %d added", costForCapitulation);
 	}
-	/*  Above, 'they' are the ones we're losing cities too. Below, they're
-		our vassal that's losing cities itself. */
-	if(they->getMasterTeam() == agentId) {
-		// OK to peek into our vassal's cache
-		WarAndPeaceCache* theirCache = &theyAI->getCache();
-		double relativeVassalLoss = 1;
-		if(!m->isEliminated(theyId)) {
-			double lostVassalScore = 0;
-			for(iSetIt it = m->lostCities(theyId).begin();
-					it != m->lostCities(theyId).end(); it++) {
-				City* c = theirCache->lookupCity(*it);
-				if(c == NULL) continue;
-				lostVassalScore += c->getAssetScore();
-			}
-			relativeVassalLoss = lostVassalScore /
-					(theyAI->getCache().totalAssetScore() + 0.01);
-		}
-		double vassalCost = 0;
-		if(relativeVassalLoss > 0) {
-			vassalCost = relativeVassalLoss * 40;
-			log("Cost for losses of vassal %s: %d", report.leaderName(theyId),
-					::round(vassalCost));
-		}
-		if(!TEAMREF(theyId).isCapitulated()) {
-			double relativePow = (m->gainedPower(theyId, ARMY) +
-					theirCache->getPowerValues()[ARMY]->power()) /
-					(m->gainedPower(weId, ARMY) +
-					ourCache->getPowerValues()[ARMY]->power()) - 0.9;
-			if(relativePow > 0) {
-				double breakAwayCost = std::min(20.0, std::sqrt(relativePow) * 40);
-				if(breakAwayCost > 0.5)
-					log("Cost for %s breaking free: %d", report.leaderName(theyId),
-							::round(breakAwayCost));
-				vassalCost += breakAwayCost;
-			}
-		}
-		uMinus += vassalCost;
-	}
 	u -= ::round(uMinus);
 }
 
@@ -2406,7 +2498,7 @@ int IllWill::preEvaluate() {
 				GET_PLAYER(properCivs[i]).AI_getAttitude(weId) <= ATTITUDE_ANNOYED))
 			hostiles++;
 	int partners = numKnownRivals - hostiles;
-	altPartnerFactor = std::sqrt(1.0 / std::max(1, partners - 4));
+	altPartnerFactor = std::sqrt(1.0 / std::max(1, partners - 3));
 	return 0;
 }
 
@@ -2472,7 +2564,7 @@ double IllWill::nukeCost(double nukes) {
 
 void IllWill::evalLostPartner() {
 
-	if(numRivals < 2) // Zero-sum game then, and our loss is equally their loss
+	if(numRivals < 2) // Zero-sum game then, and our loss is equally their loss.
 		return;
 	// Only master attitude matters for capitulated vassals (b/c of change 130v)
 	bool theyCapit = TEAMREF(theyId).isAVassal() || m->hasCapitulated(TEAMID(theyId));
@@ -2490,8 +2582,9 @@ void IllWill::evalLostPartner() {
 			diploFactor -= 0.15;
 	}
 	/*  Humans are forgiving and tend to end wars quickly. This special treatment
-		should lead to slightly greater willingness to declare war against human,
-		but also slightly greater willingness to make peace again. */
+		should lead to slightly greater willingness to declare war against human
+		(handled at the end of this function), but also slightly greater 
+		willingness to make peace again. */
 	else diploFactor -= 0.15;
 	// Don't expect much from reconciling with minor players
 	if(m->isEliminated(theyId) || theyCapit)
@@ -2519,13 +2612,21 @@ void IllWill::evalLostPartner() {
 	log("Base partner utility from %s: %d", report.leaderName(theyId),
 			::round(partnerUtil));
 	log("Modifier for alt. partners: %d percent", ::round(100 * altPartnerFactor));
-	uMinus += partnerUtil * altPartnerFactor;
+	double uMinusTmp = partnerUtil * altPartnerFactor;
 	// They may help us again in the future (if we don't go to war with them)
 	if(we->AI_getMemoryCount(theyId, MEMORY_GIVE_HELP) > 0) {
 		double giftUtility = 5 * weAI->amortizationMultiplier();
 		log("%d for given help", ::round(giftUtility));
-		uMinus += giftUtility;
+		uMinusTmp += giftUtility;
 	}
+	double const humanMult = 0.81;
+	if(they->isHuman()) {
+		log("Lost-partner cost reduced b/c humans are forgiving");
+		uMinusTmp *= humanMult;
+	}
+	if(we->isHuman())
+		uMinusTmp *= humanMult;
+	uMinus += uMinusTmp;
 }
 
 void IllWill::evalRevenge() {
@@ -2574,6 +2675,7 @@ void IllWill::evalAngeredPartners() {
 
 	if(they->isHuman() || m->isWar(weId, theyId) ||
 			valTowardsUs > 12 || // Nothing can alienate them
+			they->getTeam() == agentId ||
 			towardsThem <= ATTITUDE_FURIOUS) // We don't mind angering them
 		return;
 	// 2 only for Gandhi; else 1
@@ -2582,23 +2684,28 @@ void IllWill::evalAngeredPartners() {
 	int penalties = 0;
 	for(set<PlayerTypes>::const_iterator it = m->getWarsDeclaredBy(weId).begin();
 			it != m->getWarsDeclaredBy(weId).end(); it++) {
-		if(TEAMREF(*it).isAVassal()) continue;
-		FAssert(*it != theyId); // Ruled out upfront
+		if(TEAMREF(*it).isAVassal() || they->getTeam() == TEAMID(*it))
+			continue;
 		if(they->AI_getAttitude(*it) >= ATTITUDE_PLEASED) {
 			log("-%d relations with %s for DoW on %s", penaltyPerDoW,
 					report.leaderName(theyId), report.leaderName(*it));
 			penalties += penaltyPerDoW;
 		}
 	}
-	if(penalties <= 0) return;
+	if(penalties <= 0)
+		return;
 	double costPerPenalty = (partnerUtilFromTrade() + partnerUtilFromTech() +
 			partnerUtilFromMilitary() + (agent.isOpenBorders(TEAMID(theyId)) ?
 			partnerUtilFromOB : 0)) /
 			/*  We lose only a little bit of goodwill, but we're also exposing
 				ourselves to a dogpile war. Menace handles that, but doesn't factor
 				in the diplo penalties from our DoW. */
-			(they->AI_getAttitudeFromValue(valTowardsUs - penalties) <=
-			ATTITUDE_CAUTIOUS ? 3.5 : 5);
+			((they->AI_getAttitudeFromValue(valTowardsUs - penalties) <=
+			ATTITUDE_CAUTIOUS ? 3.5 : 5) *
+			/*  Don't worry quite as much about diplo in team games. AI DoW
+				aren't as dynamic, and sufficient for tech trading if some
+				team members get along. */
+			std::sqrt((double)agent.getNumMembers()));
 	log("Cost per -1 relations: %d", ::round(costPerPenalty));
 	/*  costPerPenalty already adjusted to game progress, but want to dilute
 		the impact of leader personality in addition to that. diploWeight is
@@ -2685,15 +2792,19 @@ void Affection::evaluate() {
 		if(towardsThem >= ATTITUDE_FRIENDLY)
 			uMinus += 45;
 	}
+	bool const ignDistr = params.isIgnoreDistraction();
 	/*  The Catherine clause - doesn't make sense for her to consider sponsored
 		war on a friend if the cost is always prohibitive. */
-	bool hiredAgainstFriend = towardsThem >= ATTITUDE_FRIENDLY &&
-			params.getSponsor() != NO_PLAYER;
+	bool hiredAgainstFriend = (towardsThem >= ATTITUDE_FRIENDLY &&
+			(params.getSponsor() != NO_PLAYER ||
+			/*  The computations ignoring distraction are also used for decisions
+				on joint wars (see WarAndPeaceAI::Team::declareWarTrade) */
+			ignDistr));
 	if(hiredAgainstFriend)
 		uMinus = 50;
 	uMinus *= linkedWarFactor;
 	// When there's supposed to be uncertainty
-	if((noWarPercent > 0 && noWarPercent < 100) || hiredAgainstFriend) {
+	if(!ignDistr && ((noWarPercent > 0 && noWarPercent < 100) || hiredAgainstFriend)) {
 		vector<long> hashInputs;
 		hashInputs.push_back(theyId);
 		hashInputs.push_back(towardsThem);
@@ -2747,6 +2858,7 @@ void Distraction::evaluate() {
 	for(size_t i = 0; i < properCivs.size(); i++) {
 		TeamTypes tId = TEAMID(properCivs[i]);
 		if(tId == TEAMID(theyId) || !agent.isHasMet(tId) ||
+				agent.warAndPeaceAI().isPushover(tId) ||
 				// Making peace with the master won't help us to focus on the vassal
 				GET_TEAM(tId).isAVassal() ||
 				(!agent.warAndPeaceAI().canReach(tId) &&
@@ -2778,6 +2890,7 @@ void Distraction::evaluate() {
 				log("%d extra cost for distraction from war in preparation",
 						::round(ut));
 			}
+			// NB: Imminent war against tId is covered by WarAndPeaceAI::Team::considerPeace
 		}
 		/*  tId as a potential alternative war target. 'ut' is the utility of
 			fighting both theyId and tId. Won't be able to tell how worthwhile war
@@ -2793,7 +2906,7 @@ void Distraction::evaluate() {
 					agent.canDeclareWar(tId) &&
 				ut > -warDuration) {
 			double costForPotential = std::min(15.0,
-					(ut - std::max(0.0, utilityVsThem) + warDuration) / 1.5);
+					(ut - std::max(0.0, utilityVsThem) + warDuration) / 1.55);
 			if(costForPotential > 0.5) {
 				log("War against %s (%d turns) distracts us from potential war plan "
 						"against %s. Current utilities: %d/%d; Distraction cost: %d",
@@ -2806,32 +2919,31 @@ void Distraction::evaluate() {
 			}
 		}
 	}
-	if(numPotentialWars <= 0) {
-		u -= ::round(uMinus);
-		return;
+	if(numPotentialWars > 0) {
+		/*  We're going start at most one of the potential wars, but having more
+			candidates is good */
+		double adjustedCostForPotential = maxPotential +
+				(totalCostForPotential - maxPotential) /
+				std::sqrt((double)numPotentialWars);
+		if(adjustedCostForPotential > 0.5) {
+			log("Adjusted cost for all (%d) potential wars: %d", numPotentialWars,
+					::round(adjustedCostForPotential));
+			uMinus += adjustedCostForPotential;
+		}
 	}
-	/*  We're going start at most one of the potential wars, but having more
-		candidates is good */
-	double adjustedCostForPotential = maxPotential + totalCostForPotential /
-			std::sqrt((double)numPotentialWars);
 	/*  If we expect to knock them out, the current war may be over before the
 		time horizon of the simulation; then it's a smaller distraction.
 		(InvasionGraph could store elimination timestamps, but seems too much work
 		to implement. Can guess the time well enough here by counting their remaining
 		cities.) */
-	if(m->isEliminated(theyId) ||
-			m->getCapitulationsAccepted(agentId).count(TEAMID(theyId)) > 0) {
+	if(uMinus > 0.01 && (m->isEliminated(theyId) ||
+			m->getCapitulationsAccepted(agentId).count(TEAMID(theyId)) > 0)) {
 		double mult = they->getNumCities() / 3.0;
 		if(mult < 1) {
 			log("Distraction cost reduced to %d percent b/c we're almost done "
 					"with %s", ::round(mult * 100), report.leaderName(theyId));
-			adjustedCostForPotential *= mult;
+			uMinus *= mult;
 		}
-	}
-	if(adjustedCostForPotential > 0.5) {
-		log("Adjusted cost for all (%d) potential wars: %d", numPotentialWars,
-				::round(adjustedCostForPotential));
-		uMinus += adjustedCostForPotential;
 	}
 	u -= ::round(uMinus);
 }
@@ -2851,16 +2963,18 @@ PublicOpposition::PublicOpposition(WarEvalParameters& params) : WarUtilityAspect
 
 void PublicOpposition::evaluate() {
 
-	if(!m->isWar(weId, theyId) || m->isEliminated(weId))
+	if(we->isAnarchy() || !m->isWar(weId, theyId) || m->isEliminated(weId))
 		return;
 	int pop = we->getTotalPopulation();
-	if(pop <= 0) return; // at game start
+	if(pop <= 0) // at game start
+		return;
 	double faithAnger = 0;
 	int dummy; for(CvCity* cp = we->firstCity(&dummy); cp != NULL;
 			cp = we->nextCity(&dummy)) { CvCity const& c = *cp;
+		if(c.isDisorder())
+			continue;
 		double angry = c.angryPopulation(0,
-				!we->AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3) &&
-				!we->AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4));
+				!we->AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3));
 		faithAnger += std::min(angry, c.getReligionPercentAnger(theyId) *
 				c.getPopulation() / (double)GC.getPERCENT_ANGER_DIVISOR());
 	}
@@ -2983,9 +3097,14 @@ void UlteriorMotives::evaluate() {
 	CvTeamAI const& target = GET_TEAM(targetId);
 	bool jointWar = m->isWar(TEAMID(theyId), targetId);
 	// If they're in a hot war, their motives seem clear (and honest) enough
-	if(jointWar && target.AI_getWarSuccess(TEAMID(theyId)) +
+	if(jointWar && (target.AI_getWarSuccess(TEAMID(theyId)) +
 			TEAMREF(theyId).AI_getWarSuccess(targetId) >
-			(3 * GC.getWAR_SUCCESS_CITY_CAPTURING()) / 2 &&
+			(3 * GC.getWAR_SUCCESS_CITY_CAPTURING()) / 2 ||
+			/*  An AI sponsor can, in principle, have ulterior motives. For example,
+				if they expect the war to hurt us, this could result in positive
+				utility from Kingmaking for them. This is a bit farfetched though,
+				so I'm going to skip the war success check if the sponsor is an AI. */
+			!they->isHuman()) &&
 			// Perhaps no longer hot?
 			target.warAndPeaceAI().canReach(TEAMID(theyId)) &&
 			// If the target is in our area but not theirs, that's fishy
@@ -2998,8 +3117,9 @@ void UlteriorMotives::evaluate() {
 		suspicious we are. */
 	int delta = GC.getLeaderHeadInfo(we->getPersonalityType()).
 			getDeclareWarRefuseAttitudeThreshold() - towardsThem + 1;
-	int uMinus = 15 + 5 * (delta - (towardsThem == ATTITUDE_FRIENDLY ? 1 : 0));
-	if(!jointWar) uMinus += 5;
+	int uMinus = 8 + 4 * (delta - (towardsThem == ATTITUDE_FRIENDLY ? 1 : 0));
+	if(!jointWar)
+		uMinus += 4;
 	if(uMinus > 0) {
 		log("Difference between attitude towards %s (%d) and refuse-thresh: %d",
 				report.leaderName(theyId), towardsThem, -delta);
@@ -3014,14 +3134,67 @@ FairPlay::FairPlay(WarEvalParameters& params) : WarUtilityAspect(params) {}
 
 void FairPlay::evaluate() {
 
-	CvGame& g = GC.getGameINLINE();
-	/*  Assume that AI-on-AI wars are always fair b/c they have the same handicap.
-		Not actually true in e.g. EarthAD1000 scenario. Still, early attacks on
-		AI civs aren't a serious problem. */
-	if(g.getCurrentEra() > 0 || !they->isHuman() || we->isHuman() ||
+	if(TEAMREF(theyId).isAVassal() ||
+			// Once we've gone through the trouble of preparing war, it's too late.
 			m->getWarsDeclaredBy(weId).count(theyId) <= 0 ||
-			// No kid gloves if they've attacked us or a friend
+			agent.AI_isSneakAttackReady(TEAMID(theyId)) ||
+			// No kid gloves if they've attacked us before
 			we->AI_getMemoryAttitude(theyId, MEMORY_DECLARED_WAR) < 0 ||
+			they->AI_isDoVictoryStrategyLevel3())
+		return;
+	// Avoid big dogpiles (or taking turns attacking a single target)
+	double otherEnemies = 0;
+	int potentialOtherEnemies = 0;
+	CvGame& g = GC.getGameINLINE();
+	int theirRank = g.getPlayerRank(theyId);
+	for(size_t i = 0; i < properCivs.size(); i++) {
+		CvPlayerAI const& other = GET_PLAYER(properCivs[i]);
+		if(other.getTeam() == agentId || other.getID() == theyId || other.isAVassal())
+			continue;
+		potentialOtherEnemies++;
+		bool immediateWar = (TEAMREF(theyId).isAtWar(other.getTeam()) ||
+				m->getWarsDeclaredBy(other.getID()).count(theyId) > 0);
+		if(immediateWar || they->AI_getMemoryAttitude(other.getID(),
+				MEMORY_DECLARED_WAR) <= -2) {
+			double incr = 1.15;
+			if(!immediateWar) {
+				incr *= 0.73;
+				if(they->AI_getMemoryAttitude(other.getID(),
+						MEMORY_DECLARED_WAR) == -2)
+					incr *= 0.85;
+			}
+			// Ganging up on the leader is less problematic
+			if(theirRank < g.getPlayerRank(other.getID()))
+				incr /= 2;
+			otherEnemies += incr;
+			log("Another enemy of %s: %s; increment: %d percent",
+					report.leaderName(theyId),
+					report.leaderName(other.getID()), ::round(incr * 100));
+		}
+		else if(TEAMREF(theyId).AI_shareWar(other.getTeam())) {
+			log("An ally of %s: %s", report.leaderName(theyId),
+					report.leaderName(other.getID()));
+			otherEnemies--;
+		}
+		if(other.AI_getMemoryAttitude(theyId,
+				MEMORY_DECLARED_WAR) <= -2) {
+			log("They've attacked %s before", report.leaderName(other.getID()));
+			otherEnemies -= 0.5;
+		}
+	}
+	if(potentialOtherEnemies > 0 && otherEnemies > 0) {
+		double fromOtherEnemies = 30 * (otherEnemies /
+				std::sqrt((double)potentialOtherEnemies) - 0.5);
+		if(fromOtherEnemies > 0.5) {
+			log("From other enemies: %d", ::round(fromOtherEnemies));
+			u -= ::round(fromOtherEnemies);
+		}
+	}
+	// The rest of this function deals with the early game
+	/*  Assume that early AI-on-AI wars are always fair b/c they have the same
+		handicap. Not actually true in e.g. EarthAD1000 scenario. Still, early
+		attacks on AI civs aren't a serious problem. */
+	if(!they->isHuman() || we->isHuman() ||
 			we->AI_getMemoryAttitude(theyId, MEMORY_DECLARED_WAR_ON_FRIEND) < 0)
 		return;
 	CvHandicapInfo& h = GC.getHandicapInfo(g.getHandicapType());
@@ -3049,6 +3222,33 @@ void FairPlay::evaluate() {
 	/*  All bets off by turn 100, but, already by turn 50, the cost may
 		no longer be prohibitive. */
 	double uMinus = std::pow((100 - t) / 2.0, 1.28);
+	if(g.getCurrentEra() > 0) // The above only matters in the Ancient era
+		uMinus = 0;
+	// ... but dogpiling remains an issue in the Classical era
+	if(g.getCurrentEra() > 1)
+		return;
+	// Don't dogpile when human has lost cities in the early game
+	int citiesBuilt = they->getPlayerRecord()->getNumCitiesBuilt();
+	double fromCityLoss = 0;
+	if(citiesBuilt > 0) {
+		fromCityLoss = 100 * std::pow((1 -
+				they->getNumCities() / (double)citiesBuilt), 0.85);
+	}
+	if(fromCityLoss >= 0.5) {
+		log("From lost human cities: %d", ::round(fromCityLoss));
+		uMinus += fromCityLoss;
+	}
+	// If no cities gained nor lost, at least don't DoW in quick succession.
+	else if(they->getNumCities() == citiesBuilt) {
+		int fromRecentDoW = 35 * TEAMREF(theyId).getWarPlanCount(WARPLAN_ATTACKED_RECENT);
+		log("From recent DoW: %d", fromRecentDoW);
+		uMinus += fromRecentDoW;
+	}
+	int div = 3 - towardsThem + we->AI_getMemoryAttitude(theyId, MEMORY_REJECTED_DEMAND);
+	if(div > 1) {
+		log("Divided by %d because of attitude", div);
+		uMinus /= div;
+	}
 	u -= std::max(0, ::round(uMinus));
 }
 
@@ -3069,7 +3269,8 @@ Bellicosity::Bellicosity(WarEvalParameters& params) : WarUtilityAspect(params) {
 
 void Bellicosity::evaluate() {
 
-	if(we->isHuman() || !m->isWar(agentId, TEAMID(theyId)))
+	if(we->isHuman() || !m->isWar(agentId, TEAMID(theyId)) ||
+			!agent.warAndPeaceAI().canReach(TEAMID(theyId)))
 		return;
 	// One war is enough
 	if(agent.getAtWarCount() > 0 && !agent.isAtWar(TEAMID(theyId)))
@@ -3090,7 +3291,12 @@ void Bellicosity::evaluate() {
 		// Included in other branches, and we never itch for nuclear war
 		if(mb == CAVALRY || mb == LOGISTICS || mb == NUCLEAR)
 			continue;
-		deltaLostPow += m->lostPower(theyId, mb) - 0.75 * m->lostPower(weId, mb);
+		double ourLostPow = m->lostPower(weId, mb);
+		/*  If they lose much more than we do, chances are that a third party is
+			causing this. And don't want a warlike AI to attack a weak civ just
+			for sport. */
+		deltaLostPow += std::min(2.35 * ourLostPow,
+				m->lostPower(theyId, mb)) - 0.75 * ourLostPow;
 		if(mb != HOME_GUARD) // Not tracked by cache, and not really relevant here
 			presentAggrPow += ourCache->getPowerValues()[mb]->power();
 	}
@@ -3103,7 +3309,7 @@ void Bellicosity::evaluate() {
 	u += ::round(2 * bellicosity * gloryRate);
 }
 
-char const* Bellicosity::aspectName() const { return "Bellicostiy"; }
+char const* Bellicosity::aspectName() const { return "Bellicosity"; }
 int Bellicosity::xmlId() const { return 24; }
 
 TacticalSituation::TacticalSituation(WarEvalParameters& params)
@@ -3207,12 +3413,14 @@ void TacticalSituation::evalEngagement() {
 	}
 	int ourEvac = evacPop(weId, theyId);
 	int theirEvac = evacPop(theyId, weId);
-	/*  If a human is involved or if it's our turn, then we shouldn't worry too much
-		about our units being exposed - humans may well have already made all
-		attacks against vulnerable units before contacting us. If it's our turn,
-		it's still the beginning of the turn, so we can probably save our units. */
+	/*  If a human is involved or if it's our turn, then we shouldn't worry too
+		much about our units being exposed - humans may well have already made
+		all attacks against vulnerable units before contacting us. If it's our
+		turn, it's still the beginning of the turn, so we can probably save
+		our units. */
 	double initiativeFactor = 0.25; // Low if they have the initiative
-	if(GC.getGameINLINE().getActivePlayer() == weId || we->isHuman() || they->isHuman())
+	if(gDLL->isDiplomacy() || // I.e. we're negotiating with a human
+			we->isHuman() || they->isHuman())
 		initiativeFactor = 0.5;
 	double uPlus = (4.0 * (initiativeFactor * theirExposed -
 			(1 - initiativeFactor) * ourExposed) +

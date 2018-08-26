@@ -76,9 +76,8 @@ GLOBAL_CFLAGS=/GR /Gy /W3 /WX /EHsc /Gd /Gm- /DWIN32 /D_WINDOWS /DCVGAMECOREDLL_
 #            Important to also set _NO_DEBUG_HEAP=1 in Visual Studio ->
 #            Project Properties -> Debug -> Environment. Should in fact always
 #            use that setting - catches more memory issues, and runs faster.
-DebugMem_CFLAGS=/MD /Zi /O2 /Oi /Og /G7 /DFINAL_RELEASE /Fp"$(DebugMem_PCH)" $(GLOBAL_CFLAGS)
+DebugMem_CFLAGS=/MD /Zi /O2 /Oi /Og /G7 /DFASSERT_ENABLE /DFINAL_RELEASE /Fp"$(DebugMem_PCH)" $(GLOBAL_CFLAGS)
 Debug_CFLAGS=/MD /Zi /Od /D_DEBUG /RTC1 /Fp"$(Debug_PCH)" $(GLOBAL_CFLAGS)
-# advc.make: FASSERT_ENABLE currently not used for Release
 Release_CFLAGS=/MD /O2 /Oy /Oi /Og /G7 /DNDEBUG /DFINAL_RELEASE /Fp"$(Release_PCH)" $(GLOBAL_CFLAGS)
 Profile_CFLAGS=/MD /O2 /Oy /Oi /Og /G7 /DNDEBUG /DFP_PROFILE_ENABLE /DUSE_INTERNAL_PROFILER /Fp"$(Profile_PCH)" $(GLOBAL_CFLAGS)
 

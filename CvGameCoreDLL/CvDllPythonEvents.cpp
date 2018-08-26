@@ -18,7 +18,8 @@ bool CvDllPythonEvents::postEvent(CyArgsList& eventData)
 	eventData.add(GC.altKey());
 	eventData.add(GC.ctrlKey());
 	eventData.add(GC.shiftKey());
-	eventData.add(gDLL->getChtLvl() > 0);
+	eventData.add(gDLL->getChtLvl() > 0
+			|| GC.getGameINLINE().isDebugMode()); // advc.135c
 
 	long lResult = -1;
 	bool bOK = gDLL->getPythonIFace()->callFunction(PYEventModule, "onEvent", eventData.makeFunctionArgs(), &lResult);

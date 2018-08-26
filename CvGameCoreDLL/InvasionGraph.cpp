@@ -22,6 +22,7 @@ InvasionGraph::InvasionGraph(MilitaryAnalyst& m,
 
 	lossesDone = false;
 	allWarPartiesKnown = false;
+	firstSimulateCall = true;
 	timeLimit= -1;
 	weId = m.ourId();
 	report.log("Constructing invasion graph");
@@ -125,6 +126,7 @@ void InvasionGraph::addUninvolvedParties(std::set<PlayerTypes> const& parties) {
 
 InvasionGraph::Node::Node(PlayerTypes civId, InvasionGraph& outer) :
 	outer(outer), report(outer.report),
+	// I.e. weId is going to cheat by using info from other civs' caches
 	cache(GET_PLAYER(civId).warAndPeaceAI().getCache()) {
 
 	// Properly initialized in prepareForSimulation
@@ -423,7 +425,7 @@ void InvasionGraph::Node::prepareForSimulation() {
 
 	PROFILE_FUNC();
 	cacheIndex = 0;
-	cache.sortCitiesByAttackPriority();
+	//cache.sortCitiesByAttackPriority(); // Done in WarAndPeaceCache now
 	componentDone = false;
 	emergencyDefPow = 0;
 	distractionByConquest = 0;
@@ -452,12 +454,18 @@ void InvasionGraph::Node::logTypicalUnits() {
 		if(uptr == NULL)
 			continue;
 		CvUnitInfo const& u = *uptr;
-		/*  No, better to show the base cost b/c that's how the typical units
-			are chosen */
-		//int cost = GET_PLAYER(id).getProductionNeeded(mb.getTypicalUnitType());
-		report.log("%s: %d (%s, cost: %d)", mb.str(),
-				::round(mb.getTypicalUnitPower()),
-		report.unitName(u), u.getProductionCost());
+		int actualCost = u.getProductionCost();
+		int actualPow = ::round(mb.getTypicalUnitPower());
+		report.log("%s: %d (%s, cost: %d)", mb.str(), actualPow,
+				report.unitName(u), actualCost);
+		int povCost = mb.getTypicalUnitCost(outer.weId);
+		int povPow = ::round(mb.getTypicalUnitPower(outer.weId));
+		if(povPow != actualPow) {
+			/*  povCost and actualCost often won't match b/c actualCost here
+				ignores handicap */
+			report.log("(%s's estimate: %d cost, %d power)",
+					report.leaderName(outer.weId), povCost, povPow);
+		}
 	}
 	report.log("");
 }
@@ -508,14 +516,29 @@ double InvasionGraph::Node::productionPortion() const {
 	return (originalPop - lostPop) / ((double)originalPop);
 }
 
+/*  Some notes based on re-reading this function some months after writing it:
+	clashOnly: isNaval if neither side can reach its target city by land; then
+	  the clash is between fleets only. If !isNaval, then the two armies are
+	  assumed to meet each other halfway in the largest shared area and fleets
+	  don't play any role.
+	!clashOnly: isNaval if the attacker (*this) can't reach its target city by
+	  land. Then there is a naval battle (same as fleet clash above) and the
+	  surviving cargo of the attacker proceeds as described under !isNaval:
+	  If !isNaval, then some naval fighting can happen along the coast. A clash
+	  may occur near the target city, but it's skipped if the defending army is
+	  too weak. If the attacker wins the clash, a siege of the target city is
+	  simulated. */
 SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		double armyPortionAttacker, bool clashOnly) const {
 
 	PROFILE_FUNC();
-	WarAndPeaceCache::City const* c = clashOnly ? NULL : targetCity();
+	WarAndPeaceCache::City const* const c = (clashOnly ? NULL : targetCity());
 	if(c == NULL && !clashOnly)
 		return NULL;
+	CvCity const* const cvCity = (c == NULL ? NULL : c->city());
 	Node& defender = *primaryTarget;
+	int const defCities = GET_PLAYER(defender.id).getNumCities();
+	int const attCities = GET_PLAYER(id).getNumCities();
 	double confAlliesAtt = 1, confAlliesDef = 1;
 	// If the portion is 0, then the army should be ignored by all leaders
 	if(id == weId && armyPortionDefender > 0.001)
@@ -527,8 +550,10 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		computing the army portions. */
 	/* Adjust the portion of the army that is assumed to be absent,
 	   i.e. 1 minus portion */
-	armyPortionDefender = 1 - (1 - armyPortionDefender) * confAlliesAtt;
-	armyPortionAttacker = 1 - (1 - armyPortionAttacker) * confAlliesDef;
+	armyPortionDefender = std::max(0.0, 1 - (1 - armyPortionDefender) *
+			confAlliesAtt);
+	armyPortionAttacker = std::max(0.0, 1 - (1 - armyPortionAttacker) *
+			confAlliesDef);
 	// No clash if no mutual reachability
 	FAssert(!clashOnly || (targetCity() != NULL && defender.targetCity() != NULL));
 	if(clashOnly) {
@@ -538,7 +563,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	}
 	else {
 		report.log("Attack on *%s* by %s",
-				report.cityName(*c->city()), report.leaderName(id));
+				report.cityName(*cvCity), report.leaderName(id));
 	}
 	report.log("Employing %d (%s) and %d (%s) percent of armies",
 			::round(100 * armyPortionAttacker), report.leaderName(getId()),
@@ -557,9 +582,10 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	SimulationStep& r = *rptr;
 	double armyPowRaw = military[ARMY]->power() - lostPower[ARMY];
 	double cavPowRaw = military[CAVALRY]->power() - lostPower[CAVALRY];
-	double cavRatioRaw = armyPowRaw <= 0 ? 0 : cavPowRaw / armyPowRaw;
+	double cavRatioRaw = ::dRange(armyPowRaw <= 0 ? 0 : cavPowRaw / (armyPowRaw +
+			military[HOME_GUARD]->power() - lostPower[HOME_GUARD]), 0.0, 1.0);
 	armyPowRaw -= tempArmyLosses;
-	cavPowRaw -= tempArmyLosses * (armyPowRaw <= 0 ? 0 : cavPowRaw / armyPowRaw);
+	cavPowRaw -= tempArmyLosses * cavRatioRaw;
 	double armyPow = armyPowRaw * armyPortionAttacker;
 	armyPow = std::max(0.0, armyPow);
 	double cavPow = cavPowRaw * armyPortionAttacker;
@@ -590,7 +616,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		if(military[i]->canBombard()) {
 			if(mb != FLEET)
 				canBombard = true;
-			else if(!clashOnly && c->city()->isCoastal())
+			else if(!clashOnly && cvCity->isCoastal())
 				canBombardFromSea = true;
 		}
 	}
@@ -635,13 +661,13 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		/*  Only defender is assumed to bring cargo units into battle.
 			Fixme: [LOGISTICS]->power is the cargo capacity. The military power
 			is greater, but currently not tracked. */
-		double fleetPow = (military[FLEET]->power() - military[LOGISTICS]->power()
+		double fleetPow = std::max(0.0, (military[FLEET]->power() - military[LOGISTICS]->power()
 				- lostPower[FLEET] + lostPower[LOGISTICS]) * confAtt
 				// Use attacker/ defender portion also for fleet
-				* armyPortionAttacker;
-		double targetFleetPow = (defender.military[FLEET]->power()
+				* armyPortionAttacker);
+		double targetFleetPow = std::max(0.0, (defender.military[FLEET]->power()
 				- defender.lostPower[FLEET]) * confDef
-				* armyPortionDefender;
+				* armyPortionDefender);
 		/* Don't factor in distance; naval units tend to be fast;
 		   would have to use a special metric b/c City::getDistance is
 		   for land units only. */
@@ -686,6 +712,13 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	bool attackerUnprepared = defender.isSneakAttack(*this);
 	double deploymentDistDefender = 0;
 	double deploymentDistAttacker;
+	double mwmalpFactor = 1;
+	if(id == weId) {
+		int mwmalp = GC.getLeaderHeadInfo(GET_PLAYER(id). // in the interval [0,4]
+				getPersonalityType()).getMaxWarMinAdjacentLandPercent();
+		mwmalpFactor = std::max(1, mwmalp + 5 - (mwmalp == 0 ? 1 : 0)) / 6.0;
+		// NB: mwmalp also factors into defensibilityCost (WarUtilityAspect::Greed)
+	}
 	int healDuration = 0;
 	/* The city-based distances are deliberately not updated upon the simulated
 	   conquest of a city -- a conquered city won't immediately start producing
@@ -696,17 +729,22 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 			will ever happen, which is probably incorrect. Better to assume a
 			shorter distance in this case. */
 		deploymentDistAttacker = std::min(getWPAI.maxSeaDist(), c->getDistance());
+		deploymentDistAttacker *= mwmalpFactor; /* If this makes leaders with a
+			high mwmalp assume that they can't reach a very distant target -- OK. */
 		/* Often, the attacker can move from one conquered city to the next.
 		   Too complicated to do the distance measurements. The code above
 		   assumes that the attacking units always start at a city owned in the
 		   actual game. Reduce distance for subsequent attacks a bit in order to
 		   match an average case. */
-		if(!conquests.empty() &&
-				conquests[conquests.size() - 1]->cityOwner() == defender.id) {
-			deploymentDistAttacker *= 0.6;
-			// Will have to wait for some units to heal then though
-			healDuration = 2;
-			report.log("Deployment distance reduced b/c of prior conquest");
+		if(!conquests.empty()) {
+			CvCity const& latestConq = *conquests[conquests.size() - 1]->city();
+			if(latestConq.getOwnerINLINE() == defender.id &&
+					latestConq.area() == cvCity->area()) {
+				deploymentDistAttacker *= 0.6;
+				// Will have to wait for some units to heal then though
+				healDuration = 2;
+				report.log("Deployment distance reduced b/c of prior conquest");
+			}
 		}
 	}
 	else {
@@ -718,6 +756,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		// Can't rule out that both armies are eliminated at this point
 		if(armyPow + targetArmyPow > 1) {
 			deploymentDistAttacker *= armyPow / (armyPow + targetArmyPow);
+			deploymentDistAttacker *= mwmalpFactor;
 			deploymentDistDefender -= deploymentDistAttacker;
 		}
 	}
@@ -738,7 +777,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		/* This often allows sneak attackers to attack a city before civs that
 		   have been at war for some time. These civs already get a chance to
 		   conquer cities during the simulation prolog. That said, no build-up
-		   is assumed during the prolog, so, the sneak-attacking AI may over-
+		   is assumed during the prolog, so the sneak-attacking AI may over-
 		   estimate its chances when it comes to grabbing cities. The proper
 		   solution would be to interleave the simulation and build-up steps. */
 		deploymentDuration = 3;
@@ -747,6 +786,10 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		/*  War that is already being fought in the actual game state. Assume that
 			units are already being deployed then. */
 		deploymentDuration /= 2;
+	}
+	if(cavalryAttack) {
+		deploymentDuration = ::round(0.6 * deploymentDuration);
+		deploymentDistAttacker = ::round(0.75 * deploymentDistAttacker);
 	}
 	report.log("Deployment distances (%s/%s): %d/%d",
 				report.leaderName(getId()),
@@ -763,8 +806,8 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 				 * armyPortionAttacker;
 		double targetFleetPow = (defender.military[FLEET]->power()
 				- defender.lostPower[FLEET]) * confDef * armyPortionDefender;
-		// Only relevant for attacker
-		double cargoCap = (military[LOGISTICS]->power() - lostPower[LOGISTICS]);
+		// Reduced b/c not all cargo ships are available for military purposes
+		double cargoCap = 0.73 * (military[LOGISTICS]->power() - lostPower[LOGISTICS]);
 		double logisticsPortion = 0;
 		/*  Fixme: This logistics portion is way too small; cargoCap counts
 			cargo space, whereas fleetPow is a power rating (strength^1.7).
@@ -777,15 +820,26 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		cargoCap *= 1 + 1 / std::max(2.0, reinforcementDist);
 		double logisticsPortionTarget = 0;
 		if(targetFleetPow > 1)
-			logisticsPortionTarget = (military[LOGISTICS]->power() -
+			logisticsPortionTarget = (defender.military[LOGISTICS]->power() -
 					defender.lostPower[LOGISTICS]) * confDef / targetFleetPow;
-		bool attWin = (fleetPow > 1 && fleetPow > targetFleetPow);
+		// +30% for attacker b/c only a clear victory can prevent a naval landing
+		double fleetPowMult = 1.3;
+		if(clashOnly) {
+			fleetPowMult = 1;
+			/*  In a clash, let every civ overestimate its own chances; this
+				should make it harder to deter the AI through naval build-up. */
+			if(id == weId)
+				fleetPowMult *= 1.25;
+			else if(defender.id == weId)
+				fleetPowMult /= 1.25;
+		}
+		bool attWin = (fleetPow > 1 && fleetPowMult * fleetPow > targetFleetPow);
 		std::pair<double,double> lwl = clashLossesWinnerLoser(fleetPow,
 				targetFleetPow, false, true);
 		double lossesAtt, lossesDef;
-		double typicalArmyUnitPow = military[ARMY]->getTypicalUnitPower();
+		double typicalArmyUnitPow = military[ARMY]->getTypicalUnitPower(outer.weId);
 		if(military[ARMY]->getTypicalUnit() == NULL) {
-			FAssertMsg(false, "No typical army unit found");
+			FAssertMsg(attCities <= 0, "No typical army unit found");
 			typicalArmyUnitPow = 3.25; // That's a Warrior
 		}
 		/* Tend to underestimate the head count b/c of outdated
@@ -848,6 +902,67 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 			/ 100;
 	targetArmyPow *= defDeploymentMod;
 	armyPow *= std::max(100 -  2 * deploymentDistAttacker, 50.0) / 100;
+   // Units available in battle area
+	CvArea* battleArea = NULL;
+	if(c != NULL)
+		battleArea = cvCity->area();
+	else if(!isNaval) {
+		battleArea = clashArea(defender.id);
+		/*  This can happen when a civ has just lost its foothold in an area
+			and reachability hasn't been updated yet. */
+		//FAssertMsg(battleArea != NULL, "No shared area should imply isNaval");
+	} // (Else only naval battle; assume that fleets are fully deployed.)
+	int const remainingCitiesAtt = attCities - losses.size();
+	int const remainingCitiesDef = defCities - defender.losses.size();
+	double areaWeightAtt, areaWeightDef;
+	areaWeightAtt = areaWeightDef = 1;
+	/*  Don't base the weight on battleArea->getPower(id); too fleeting
+		(and hidden knowledge unless id==weId). */
+	if(battleArea != NULL) {
+		if(remainingCitiesAtt > 0) {
+			if(!isNaval) {
+				/*  Fixme(?): getCitiesPerPlayer should be reduced based on lost
+					cities */
+				areaWeightAtt = battleArea->getCitiesPerPlayer(id) /
+						(double)remainingCitiesAtt;
+				CvCity* capital = GET_PLAYER(id).getCapitalCity();
+				if(capital != NULL && capital->area() == battleArea)
+					areaWeightAtt *= (GET_PLAYER(id).isHuman() ? 1.5 : 1.33);
+				areaWeightAtt = std::min(1.0, areaWeightAtt);
+			}
+			/*  For a human attacker, leave areaWeightAtt at 100% and assume that
+				the naval attack focuses the entire human army (as many as are
+				supported by LOGISTICS). Would like to assume that about the AI
+				as well, but it struggles badly with deploying units from
+				different areas. */
+			else if(!GET_PLAYER(id).isHuman()) {
+				CvCity* capital = GET_PLAYER(id).getCapitalCity();
+				if(capital != NULL) {
+					areaWeightAtt = ::dRange(capital->area()->getCitiesPerPlayer(id) /
+							(double)GET_PLAYER(id).getNumCities(), 0.5, 1.0);
+				}
+			}
+			if(areaWeightAtt < 0.99) {
+				report.log("Area weight attacker: %d percent",
+						::round(areaWeightAtt * 100));
+				armyPow *= areaWeightAtt;
+			}
+		}
+		if(remainingCitiesDef > 0) {
+			areaWeightDef = battleArea->getCitiesPerPlayer(defender.id) /
+					(double)remainingCitiesDef;
+			CvCity* capital = GET_PLAYER(defender.id).getCapitalCity();
+			if(capital != NULL && capital->area() == battleArea)
+				areaWeightDef *= (GET_PLAYER(defender.id).isHuman() ? 1.5 : 1.33);
+			areaWeightDef = std::min(1.0, areaWeightDef);
+			if(areaWeightDef < 0.99) {
+				report.log("Area weight defender: %d percent",
+						::round(areaWeightDef * 100));
+				targetArmyPow *= areaWeightDef;
+			}
+		}
+	}
+   // Combat bonuses
 	/* Aggressive trait; should probably exclude cavalry in any case or check the
 	   combat type of the typical army unit; tedious to implement. */
 	double armyModAtt = 0, armyModDef = 0;
@@ -877,10 +992,15 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 				targetArmyPowMod, !clashOnly, false);
 		double cavRatio = 0;
 		double targetCavRatio = 0;
-		if(armyPow > 0.5)
-			cavRatio = cavPow / armyPow;
-		if(targetArmyPow > 0.5)
-			targetCavRatio = targetCavPow / targetArmyPow;
+		if(armyPow > 0.5) {
+			cavRatio = ::dRange(cavPow / (armyPow + military[HOME_GUARD]->power() -
+					lostPower[HOME_GUARD]), 0.0, 1.0);
+		}
+		if(targetArmyPow > 0.5) {
+			targetCavRatio = ::dRange(targetCavPow / (targetArmyPow +
+					defender.military[HOME_GUARD]->power() -
+					defender.lostPower[HOME_GUARD]), 0.0, 1.0);
+		}
 		double lossesWinner = lwl.first;
 		double lossesLoser = lwl.second;
 		double tempLosses = clashLossesTemporary(armyPowMod, targetArmyPowMod);
@@ -924,17 +1044,16 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		}
 	}
 	else targetArmyPow /= defDeploymentMod; // Retreated army has depl. dist. 0
-	// Attackers normally assumed to have city raider promotions; cavalry doesn't
+	/*  Attackers normally assumed to have city raider promotions;
+		cavalry doesn't, but might ignore first strikes. */
 	if(cavalryAttack) {
-		armyModAtt -= 0.2;
+		armyModAtt -= 0.12;
 		armyModAttCorr = powerCorrect(1 + armyModAtt);
 	}
 	/* Needs to be updated in any case in order to take into account potential
 	   losses from clash. */
 	armyPowMod = armyPow * armyModAttCorr * confAtt;
-	int remainingCities = GET_PLAYER(defender.id).getNumCities()
-			- defender.losses.size();
-	FAssert(remainingCities > 0);
+	FAssert(remainingCitiesDef > 0);
 	/* Assume that the defenders stationed in a city are 50% static city defenders
 	   and 50% floating defenders that can move to reinforce a nearby city that is
 	   threatened. To this end, assume that each city has two garrisons; a
@@ -942,17 +1061,22 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	   the other can't. */
 	double powerPerGarrison = 0.5 * (defender.military[HOME_GUARD]->power() -
 			defender.lostPower[HOME_GUARD] + defender.emergencyDefPow)
-			/ remainingCities;
+			/ remainingCitiesDef;
 	int nLocalGarrisons = 2; // Could also make this fractional
 	/* Extra garrisons assumed to be stationed in important cities
 	   (similar to code in CvCityAI::AI_neededDefenders) */
-	bool isCityImportant = c->city()->isCapital() || c->city()->isHolyCity()
-			|| c->city()->hasActiveWorldWonder();
+	bool isCityImportant = cvCity->isCapital() || cvCity->isHolyCity()
+			|| cvCity->hasActiveWorldWonder();
 	if(isCityImportant)
 		nLocalGarrisons += 2;
-	double typicalGarrisonPow = defender.military[HOME_GUARD]->getTypicalUnitPower();
+	/*  If a civ has only 3 cities, then the code above assigns 4 (of the 6)
+		garrisons to an important city (e.g. the capital). That adds up
+		(1 garrisons remains for each of the other cities), but CvCityAI doesn't
+		distribute defenders quite as unevenly. */
+	nLocalGarrisons = std::min(nLocalGarrisons, 2 + remainingCitiesDef / 2);
+	double typicalGarrisonPow = defender.military[HOME_GUARD]->getTypicalUnitPower(outer.weId);
 	if(defender.military[HOME_GUARD]->getTypicalUnit() == NULL) {
-		FAssertMsg(false, "No typical garrison unit found");
+		FAssertMsg(defCities <= 0, "No typical garrison unit found");
 		typicalGarrisonPow = 3.25; // That's a Warrior
 	}
 	// Fewer rallies if all spread thin
@@ -960,37 +1084,50 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	// Upper bound for rallies based on importance of city
 	int rallyBound = 0;
 	// Population above 75% of the average
-	if(c->city()->getPopulation() > 0.75 *
+	if(cvCity->getPopulation() > 0.75 *
 			GET_PLAYER(defender.id).getTotalPopulation() /
-			(double)GET_PLAYER(defender.id).getNumCities())
+			std::max(1.0, (double)defCities))
 		rallyBound = 1;
 	if(isCityImportant)
 		rallyBound = 2;
+	if(battleArea != NULL) { /*  -1: garrison of c already counted as local.
+			Fixme(?): Should subtract lost cities in battleArea. */
+		rallyBound = std::min(battleArea->getCitiesPerPlayer(defender.id) - 1,
+				rallyBound);
+		rallyBound = std::min(remainingCitiesDef - 1, rallyBound);
+		rallyBound = std::max(0, rallyBound);
+	}
+	else FAssert(false);
 	nRallied = std::min(rallyBound, nRallied);
 	if(cavalryAttack) // Swift attack
 		nRallied = 0;
 	int nGarrisons = nLocalGarrisons + nRallied;
 	/* Example: Just 2 cities left, i.e. 4 garrisons. 1 has to stay
 	   in the other city, therefore only 3 in the attacked city. */
-	nGarrisons = std::min(remainingCities + 1, nGarrisons);
+	nGarrisons = std::min(remainingCitiesDef + 1, nGarrisons);
+	// Recently conquered city likely to lack a garrison
+	if(cvCity->isEverOwned(id) && cvCity->isOccupation() &&
+			TEAMREF(id).isAtWar(TEAMID(defender.id)))
+		nGarrisons = 1;
 	nLocalGarrisons = std::min(nGarrisons, nLocalGarrisons);
 	double guardPowUnmodified = nGarrisons * powerPerGarrison;
 	// Only for local garrisons
 	double fortificationBonus = 0.25;
 	MilitaryBranch* g = defender.military[HOME_GUARD];
 	bool noGuardUnit = (g->getTypicalUnit() == NULL);
-	FAssert(!noGuardUnit);
+	FAssert(!noGuardUnit || defCities <= 0);
 	// For all garrisons
 	double cityDefenderBonus = noGuardUnit ? 0 :
 			g->getTypicalUnit()->getCityDefenseModifier() / 100.0;
 	// Would be nicer to check all traits for defense bonuses
 	if(GET_PLAYER(defender.weId).warAndPeaceAI().getCache().hasProtectiveTrait())
 		cityDefenderBonus += 0.3;
-	bool isGunp = military[ARMY]->getTypicalUnit()->isIgnoreBuildingDefense();
+	bool isGunp = military[ARMY]->getTypicalUnit() != NULL &&
+			military[ARMY]->getTypicalUnit()->isIgnoreBuildingDefense();
 	// Normal defensive promotions are assumed to be countered by city raider
 	// For all non-mounted defenders
 	double tileBonus = military[ARMY]->getTypicalUnit() == NULL ? 0 :
-			c->city()->getDefenseModifier(isGunp);
+			cvCity->getDefenseModifier(isGunp);
 	/* AI tends to run low on siege after a while. era+1 based on assumption that
 	   AI tends to bring enough siege to bomb. twice per turn on average
 	   (on the final turn, some siege units will also attack, i.e. can't bomb).
@@ -1016,7 +1153,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	double bombDuration = canBombard ? bombDmg / bombPerTurn : 0;
 	/* Walls and Castle slow down bombardment.
 	   min(75...: A mod could grant 100% bombard defense; treat >75% as 75% */
-	int bombDefPercent = std::min(75, c->city()->getBuildingBombardDefense());
+	int bombDefPercent = std::min(75, cvCity->getBuildingBombardDefense());
 	if(isGunp)
 		bombDefPercent = 0;
 	FAssert(bombDefPercent >= 0);
@@ -1026,7 +1163,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	}
 	else bombDuration *= 100.0 / (100 - bombDefPercent);
     // Just the hill defense (help=true skips city defense)
-	tileBonus += c->city()->plot()->defenseModifier(NO_TEAM, true, NO_TEAM, true);
+	tileBonus += cvCity->plot()->defenseModifier(NO_TEAM, true, NO_TEAM, true);
 	tileBonus /= 100.0;
 	double localGarrisonPow = (nLocalGarrisons * powerPerGarrison
 			* powerCorrect(
@@ -1038,7 +1175,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	double defArmyPortion = std::min(1.0,
 			// More units rallied at the first few cities that are attacked
 			0.5 / std::sqrt((defender.losses.size() + 1.0)) + nRallied * 0.25);
-	if(GET_PLAYER(defender.id).getNumCities() - defender.losses.size() == 1)
+	if(remainingCitiesDef == 1)
 		defArmyPortion = 1;
 	else if(!defender.hasClashed) {
 		/*  If their army hasn't been engaged yet, expect the bulk of it to be
@@ -1147,6 +1284,46 @@ bool InvasionGraph::Node::canReachByLand(int cityId) const {
 			!cache.canTrainDeepSeaCargo());
 }
 
+CvArea* InvasionGraph::Node::clashArea(PlayerTypes otherId) const {
+
+	// Lots of const here b/c I'm a bit worried about performance
+	CvPlayer const& civ1 = GET_PLAYER(id);
+	CvPlayer const& civ2 = GET_PLAYER(otherId);
+	/*  For better performance, treat the very common case of a common
+		capital area upfront. */
+	CvCity* cap1 = civ1.getCapitalCity();
+	if(cap1 != NULL) {
+		CvCity* cap2 = civ2.getCapitalCity();
+		CvArea* const r = cap1->area();
+		if(cap2 != NULL && r == cap2->area())
+			return r;
+	}
+	CvArea* r = NULL;
+	int maxCities = 0;
+	// Going through cities should be faster than going through all areas
+	CvPlayer const& fewerCitiesCiv = (civ1.getNumCities() < civ2.getNumCities() ?
+			civ1 : civ2); int dummy=-1;
+	for(CvCity* c = fewerCitiesCiv.firstCity(&dummy); c != NULL;
+			c = fewerCitiesCiv.nextCity(&dummy)) {
+		CvArea* const a = c->area();
+		int citiesMin = std::min(a->getCitiesPerPlayer(civ1.getID()),
+				a->getCitiesPerPlayer(civ2.getID()));
+		if(citiesMin <= 0)
+			continue;
+		if(c->isCapital()) {
+			if(c->getOwnerINLINE() == civ1.getID())
+				citiesMin++;
+			if(c->getOwnerINLINE() == civ2.getID())
+				citiesMin++;
+		}
+		if(citiesMin > maxCities) {
+			maxCities = citiesMin;
+			r = a;
+		}
+	}
+	return r;
+}
+
 void InvasionGraph::Node::applyStep(SimulationStep const& step) {
 
 	Node& attacker = *outer.nodeMap[step.getAttacker()];
@@ -1205,7 +1382,7 @@ void InvasionGraph::Node::applyStep(SimulationStep const& step) {
 			int nUnitsLeftBehind = 2 + GET_PLAYER(id).getCurrentEra();
 			if(GET_PLAYER(attacker.id).isHuman())
 				nUnitsLeftBehind = (2 * nUnitsLeftBehind) / 3;
-			double powLeftBehind = military[ARMY]->getTypicalUnitPower()
+			double powLeftBehind = military[ARMY]->getTypicalUnitPower(outer.weId)
 					* nUnitsLeftBehind;
 			powLeftBehind = std::min(powLeftBehind, attacker.military[ARMY]->power()
 					- attacker.lostPower[ARMY]);
@@ -1235,20 +1412,35 @@ void InvasionGraph::Node::applyStep(SimulationStep const& step) {
 				}
 				int nConqueredByOther = (int)losses.size() - nConqueredByAtt;
 				FAssert(nConqueredByOther >= 0);
+				/*  If at war, attacker may already have war successes outside
+					the simulation that could scare this node into capitulation. */
+				bool bWar = attackerTeam.isAtWar(TEAMID(id));
 				if(!GET_PLAYER(id).isHuman() &&
+						// Last team member standing
+						TEAMREF(id).getAliveCount() <= 1 &&
+						GET_PLAYER(id).getNumNukeUnits() <= 0 && // advc.143b
 						/*  To decide whether to capitulate to a given team, we need
 							to know what will happen if we don't capitulate. */
 						(id != weId || TEAMID(attacker.id) !=
 						outer.m.evaluationParameters().getCapitulationTeam()) &&
-						nConqueredByAtt >= std::max(std::max(nConqueredByOther,
-						/*  If already at war, attacker may already have
-							war successes outside the simulation that could
-							scare this node into capitulation. */
-						(attackerTeam.isAtWar(TEAMID(id)) ? 1 : 2)),
-						(nCurrentActualCities - nConqueredByOther) / 2)) {
-					setCapitulated(TEAMID(attacker.id));
-					report.log("%s has *capitulated* to %s", report.leaderName(id),
-							report.leaderName(attacker.id));
+						nConqueredByAtt >= std::max(nConqueredByOther + 1,
+						(bWar ? 1 : 2))) {
+					double powModPercent = GC.getLeaderHeadInfo(GET_PLAYER(id).
+							getPersonalityType()).getVassalPowerModifier();
+					bool powModNegative = (powModPercent < 0);
+					powModPercent = (powModNegative ? -1 : 1) *
+							std::pow((powModNegative ? -1 : 1) *
+							powModPercent , 0.75);
+					/*  Need to conquer about half of the cities; a bit fewer if
+						there are a lot of them. */
+					double thresh = std::pow((double)nCurrentActualCities -
+							nConqueredByOther, 0.95) * std::max(36.0,
+							55 + (bWar ? -10 : 0) + powModPercent) / 100.0;
+					if(nConqueredByAtt >= ::round(thresh)) {
+						setCapitulated(TEAMID(attacker.id));
+						report.log("%s has *capitulated* to %s", report.leaderName(id),
+								report.leaderName(attacker.id));
+					}
 				}
 			}
 			/* Assume that some defenders are built upon the loss of a city.
@@ -1260,7 +1452,7 @@ void InvasionGraph::Node::applyStep(SimulationStep const& step) {
 				double div = 3.0;
 				if(GET_PLAYER(id).getMaxConscript() > 0)
 					div = 2.0;
-				emergencyDefPow += military[HOME_GUARD]->getTypicalUnitPower()
+				emergencyDefPow += military[HOME_GUARD]->getTypicalUnitPower(outer.weId)
 						* (step.getDuration() / div);
 				report.log("Emergency defender power for %s: %d",
 						report.leaderName(id), ::round(emergencyDefPow));
@@ -1307,10 +1499,19 @@ void InvasionGraph::Node::setCapitulated(TeamTypes masterId) {
 	   wars of its master, but that gets too complicated. */
 	setEliminated(true);
 	for(int i = 0; i < MAX_PLAYERS; i++) {
-		if(outer.nodeMap[i] == NULL)
+		if(outer.nodeMap[i] == NULL || i == id || outer.nodeMap[i]->isEliminated())
 			continue;
-		if(TEAMID((PlayerTypes)i) == masterId)
+		TeamTypes tId = (TeamTypes)TEAMID((PlayerTypes)i);
+		if(tId == masterId)
 			outer.nodeMap[i]->capitulationsAccepted.insert(TEAMID(id));
+		else if(tId == TEAMID(id)) {
+			bool const hasCap = outer.nodeMap[i]->hasCapitulated();
+			if(hasCap) { // Make sure not to produce a stack overflow
+				FAssert(!hasCap);
+				continue;
+			}
+			outer.nodeMap[i]->setCapitulated(masterId);
+		}
 	}
 }
 
@@ -1326,8 +1527,11 @@ WarAndPeaceCache::City const* InvasionGraph::Node::targetCity(
 		return NULL;
 	for(int i = cacheIndex; i < cache.size(); i++) {
 		WarAndPeaceCache::City* r = cache.getCity(i);
-		if(r != NULL && (r->cityOwner() == owner ||
-				(owner == NO_PLAYER && r->cityOwner() == primaryTarget->getId())) &&
+		if(r == NULL)
+			continue;
+		PlayerTypes const cityOwner = r->cityOwner();
+		if((cityOwner == owner ||
+				(owner == NO_PLAYER && cityOwner == primaryTarget->getId())) &&
 				/* Target may also have conquered the city; however,
 				   cities being won and lost within one military analysis
 				   gets too complicated. */
@@ -1620,7 +1824,9 @@ void InvasionGraph::simulate(int duration) {
 		}
 	}
 	report.log("Simulating initial build-up (%d turns)", t1);
-	simulateArmament(t1);
+	// Assume that upgrades are done in the prolog, if any, and only in phase I.
+	simulateArmament(t1, !firstSimulateCall);
+	firstSimulateCall = false;
 	// Simulation of losses over the whole duration
 	timeLimit = duration;
 	simulateLosses();
@@ -1630,7 +1836,6 @@ void InvasionGraph::simulate(int duration) {
 	   cities have been lost. */
 	report.log("Simulating concurrent build-up (%d turns)", t2);
 	report.setMute(true); // Some more build-up isn't very interesting
-	// Assume that all upgrades were already done in phase I
 	simulateArmament(t2, true);
 	report.setMute(false);
 }
@@ -1779,7 +1984,7 @@ void InvasionGraph::breakCycle(vector<Node*> const& cyc) {
 	war allies, regardless of circumstances. This function is about gauging
 	rationally whether a war party ('agg') is willing to commit resources
 	against another ('def').
-	This is to make sure that the AI can't be goaded into a joint war by a human civ,
+	This is to make sure that the AI can't be goaded into a joint war by a human,
 	and that joint wars are generally expensive enough. */
 double InvasionGraph::willingness(PlayerTypes agg, PlayerTypes def) const {
 
@@ -1819,6 +2024,7 @@ void SimulationStep::reducePower(PlayerTypes id, MilitaryBranchTypes mb,
 	if(ofAttacker)
 		lostPowerAttacker[mb] += subtrahend;
 	else lostPowerDefender[mb] += subtrahend;
+	FAssert(lostPowerAttacker[mb]>-0.0001 && lostPowerDefender[mb]>-0.0001);
 }
 
 void SimulationStep::setSuccess(bool b) {

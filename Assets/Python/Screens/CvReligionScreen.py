@@ -244,7 +244,7 @@ class CvReligionScreen:
 		
 		screen = self.getScreen()
 		szArea = "ReligionList"
-		
+
 		## johny smith
 		## This attaches the text to the panel
 		## This is for every line of font
@@ -271,7 +271,7 @@ class CvReligionScreen:
 				if pHolyCity.isNone():
 					szFounded = localText.getText("TXT_KEY_NONE", ())
 					screen.setLabelAt("", szArea, szFounded, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_HOLY_CITY, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
-				elif not pHolyCity.isRevealed(gc.getPlayer(self.iActivePlayer).getTeam(), False):
+				elif not pHolyCity.isRevealed(gc.getPlayer(self.iActivePlayer).getTeam(), True): # advc.001d: Call isRevealed with bDebug=True to compensate for the problems with switching iActivePlayer (see comment in handleInput)
 					szFounded = localText.getText("TXT_KEY_UNKNOWN", ())
 					screen.setLabelAt("", szArea, szFounded, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_HOLY_CITY, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 				else:
@@ -646,6 +646,8 @@ class CvReligionScreen:
 			iIndex = screen.getSelectedPullDownID(self.DEBUG_DROPDOWN_ID)
 			self.iActivePlayer = screen.getPullDownData(self.DEBUG_DROPDOWN_ID, iIndex)
 			self.drawReligionInfo()
+			# advc.001d: Help info isn't currently updated when switching iActivePlayer. Would have to delete the old info first, and I don't know how to do that.
+			#self.drawHelpInfo()
 			self.drawCityInfo(self.iReligionSelected)
 			return 1
 

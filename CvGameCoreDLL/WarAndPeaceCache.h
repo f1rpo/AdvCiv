@@ -47,10 +47,13 @@ public:
 	void read(FDataStreamBase* stream);
 	int numReachableCities(PlayerTypes civId) const ;
 	int size() const;
+		private: /* These shouldn't be used anymore. Always keep the cache
+					sorted by AttackPriority instead. */
 	void sortCitiesByOwnerAndDistance();
 	void sortCitiesByOwnerAndTargetValue();
 	void sortCitiesByDistance();
 	void sortCitiesByTargetValue();
+		public:
 	void sortCitiesByAttackPriority();
 	City* getCity(int index) const;
 	// Use CvCity::plotNum for the plotIndex of a given CvCity
@@ -69,6 +72,7 @@ public:
 	 int vassalTechScore(PlayerTypes civId) const;
 	 int vassalResourceScore(PlayerTypes civId) const;
 	int numAdjacentLandPlots(PlayerTypes civId) const;
+	int numLostTilesAtWar(TeamTypes tId) const; // advc.035
 	double relativeNavyPower(PlayerTypes civId) const;
 	int pastWarScore(TeamTypes tId) const;
 	// Trade value paid to us for declaring war against tId
@@ -78,6 +82,10 @@ public:
 	/*  Other classes should base the actual war utility computations on this
 		preliminary result */
 	int warUtilityIgnoringDistraction(TeamTypes tId) const;
+	// Not a _sufficient_ condition for agreeing to a joint war
+	bool canBeHiredAgainst(TeamTypes tId) const;
+	void setCanBeHiredAgainst(TeamTypes tId, bool b);
+	void updateCanBeHiredAgainst(TeamTypes tId, int u, int thresh);
 	bool canTrainDeepSeaCargo() const;
 	bool canTrainAnyCargo() const;
 
@@ -95,6 +103,7 @@ public:
 	void reportUnitCreated(CvUnitInfo const& u);
 	void reportUnitDestroyed(CvUnitInfo const& u);
 	void reportWarEnding(TeamTypes enemyId);
+	void reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId);
 	/*  Would prefer to pass a CvDeal object, but no suitable one is available
 		at the call location */
 	void reportSponsoredWar(CLinkList<TradeData> const& sponsorship,
@@ -120,6 +129,7 @@ private:
 	void updateThreatRatings();
 	void updateVassalScores();
 	void updateAdjacentLand();
+	void updateLostTilesAtWar(); // advc.035
 	void updateRelativeNavyPower();
 	void updateTargetMissionCount(PlayerTypes civId);
 	double calculateThreatRating(PlayerTypes civId) const;
@@ -139,6 +149,7 @@ private:
 	void updateTrainCargo();
 	// To supply team-on-team data
 	WarAndPeaceCache const& leaderCache() const;
+	WarAndPeaceCache& leaderCache();
 
 	PlayerTypes ownerId;
 	std::vector<City*> v;
@@ -166,12 +177,14 @@ private:
 	 int adjacentLand[MAX_CIV_PLAYERS];
 	 double relativeNavyPow[MAX_CIV_PLAYERS];
 	// per team
+	 int lostTilesAtWar[MAX_CIV_TEAMS]; // advc.035
 	 int pastWarScores[MAX_CIV_TEAMS];
 	 // Value of the sponsorship
 	 int sponsorshipsAgainst[MAX_CIV_TEAMS];
 	 // Identity of the sponsor (PlayerTypes)
 	 int sponsorsAgainst[MAX_CIV_TEAMS];
 	 int warUtilityIgnDistraction[MAX_CIV_TEAMS];
+	 bool hireAgainst[MAX_CIV_TEAMS];
 	
 public:
 	/* Information to be cached about a CvCity and scoring functions useful
@@ -188,6 +201,9 @@ public:
 			currently reachable. */
 		int getDistance(bool forceCurrentVal = false) const;
 		int getTargetValue() const;
+		/* A mix of target value and distance. Target value alone would
+		   ignore opportunistic attacks. */
+		double attackPriority() const;
 		bool canReachByLand() const;
 		// Use canReachByLand instead for military analysis
 		bool canCurrentlyReachBySea() const;
@@ -200,7 +216,7 @@ public:
 		CvCity* city() const;
 		/*  See ::fatCross in CvGameCoreUtils. If the underlying CvCity
 			no longer exists, all entries are NULL. */
-		void fatCross(std::vector<CvPlot const*>& r);
+		void fatCross(std::vector<CvPlot*>& r);
 		void write(FDataStreamBase* stream);
 		void read(FDataStreamBase* stream);
 	    static CvCity* cityById(int id);
@@ -225,13 +241,10 @@ public:
 		void updateDistance(CvCity* targetCity);
 		void updateAssetScore();
 
-		/* A mix of target value and distance. Target value alone would
-		   ignore opportunistic attacks. */
-		double attackPriority() const;
-
 		int plotIndex, assetScore, distance, targetValue;
 		bool reachByLand;
 		bool reachBySea;
+		bool canDeduce;
 		PlayerTypes cacheOwnerId;
 	};
 };
