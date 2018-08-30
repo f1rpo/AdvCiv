@@ -4563,14 +4563,14 @@ void CvTeam::setOpenBorders(TeamTypes eIndex, bool bNewValue)
 // <advc.034>
 bool CvTeam::isDisengage(TeamTypes eIndex) const {
 
-	if(eIndex >= MAX_CIV_PLAYERS || eIndex < 0)
+	if(eIndex >= MAX_CIV_TEAMS || eIndex < 0)
 		return false;
 	return m_abDisengage[eIndex];
 }
 
 void CvTeam::setDisengage(TeamTypes eIndex, bool bNewValue) {
 
-	if(eIndex >= MAX_CIV_PLAYERS || eIndex < 0)
+	if(eIndex >= MAX_CIV_TEAMS || eIndex < 0)
 		return;
 	m_abDisengage[eIndex] = bNewValue;
 	if(!bNewValue && !isFriendlyTerritory(eIndex) && !isAtWar(eIndex))
