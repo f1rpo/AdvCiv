@@ -511,7 +511,7 @@ protected:
 	bool* m_abHasSeen; // K-Mod
 	bool* m_abPermanentWarPeace;
 	bool* m_abOpenBorders;
-	bool m_abDisengage[MAX_CIV_PLAYERS]; // advc.034
+	bool m_abDisengage[MAX_TEAMS];
 	bool* m_abDefensivePact;
 	bool* m_abForcePeace;
 	bool* m_abVassal;
