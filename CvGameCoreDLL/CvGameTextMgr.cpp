@@ -5394,7 +5394,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 		area score computed in CvPlayer::findStartingArea. */
 	CvArea* a = pPlot->area();
 	PlayerTypes activePl = GC.getGame().getActivePlayer();
-	if(!a->isWater() && bShift && bCtrl && !bAlt && !pPlot->isUnit() &&
+	if(bDebug && !a->isWater() && bShift && bCtrl && !bAlt && !pPlot->isUnit() &&
 			activePl != NO_PLAYER) {
 		int total = 0; int tmp = 0;
 		tmp=a->calculateTotalBestNatureYield();total+=tmp;szTempBuffer.Format(L"\nTotalBestNatureYield: %d", tmp); szString.append(szTempBuffer);

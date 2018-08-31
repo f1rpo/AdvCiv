@@ -3249,6 +3249,24 @@ int CvGame::getAdjustedLandPercent(VictoryTypes eVictory) const
 	return std::max(iPercent, GC.getVictoryInfo(eVictory).getMinLandPercent());
 }
 
+// <advc.178> Mostly cut and pasted from CvPlayerAI::AI_calculateDiplomacyVictoryStage
+bool CvGame::isDiploVictoryValid() const {
+
+	std::vector<VictoryTypes> veDiplomacy;
+	for (int iI = 0; iI < GC.getNumVictoryInfos(); iI++)
+	{
+		if (isVictoryValid((VictoryTypes) iI))
+		{
+			CvVictoryInfo& kVictoryInfo = GC.getVictoryInfo((VictoryTypes) iI);
+			if( kVictoryInfo.isDiploVote() )
+			{
+				veDiplomacy.push_back((VictoryTypes)iI);
+			}
+		}
+	}
+	return (veDiplomacy.size() > 0);
+} // </advc.178>
+
 
 bool CvGame::isTeamVote(VoteTypes eVote) const
 {

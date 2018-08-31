@@ -459,7 +459,7 @@
 		<Tag>TXT_KEY_VICTORY_DISABLED</Tag>
 		<English>Victory Disabled</English>
 		<French>(victoire) d&#233;sactiv&#233;e</French>
-		<German>-Sieg deaktiviert</German>
+		<German>- Sieg deaktiviert</German>
 		<Italian>(vittoria) disattivata</Italian>
 		<Spanish>(victoria) desactivada</Spanish>
 	</TEXT>
@@ -791,6 +791,18 @@
 			<Gender>Male</Gender>
 			<Plural>0</Plural>
 		</Spanish>
+	</TEXT>
+	
+	<!-- advc.004g: Originally in CIV4GameText_Misc1.xml. Correcting the
+		 comically bad German translation ("verlassen Wälder"). Not sure about
+		 Spanish (was "abandonan bosques"). -->
+	<TEXT>
+		<Tag>TXT_KEY_PLAYEROPTION_LEAVE_FORESTS</Tag>
+		<English>Automated Workers Leave Forests</English>
+		<French>Ouvriers auto. d&#233;laissent for&#234;ts</French>
+		<German>Automatisierte Bautrupps schonen W&#228;lder</German>
+		<Italian>I lavoratori automatizzati non toccano le foreste</Italian>
+		<Spanish>Trabajadores automatizados no tocan bosques</Spanish>
 	</TEXT>
 	
 	<!-- advc.004s: Originally in CIV4GameTextInfos.xml;

@@ -182,6 +182,7 @@ public:
 				int timeRemaining);
 		void scheme(); // Consider new war plans
 		bool canSchemeAgainst(TeamTypes targetId, bool assumeNoWarPlan) const;
+		double limitedWarWeight() const;
 		void startReport();
 		void closeReport();
 		bool isReportTurn() const;

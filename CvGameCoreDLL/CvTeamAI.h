@@ -242,7 +242,17 @@ public: // <advc.104>
 	void setWarPlanNoUpdate(TeamTypes eIndex, WarPlanTypes eNewValue);
 	int AI_teamCloseness(TeamTypes eIndex, int iMaxDistance = -1,
 			bool considerLandTarget = false) const; // advc.104o
-	
+	// <advc.104> These were protected
+	int AI_maxWarRand() const;
+	int AI_maxWarNearbyPowerRatio() const;
+	int AI_maxWarDistantPowerRatio() const;
+	int AI_maxWarMinAdjacentLandPercent() const;
+	int AI_limitedWarRand() const;
+	int AI_limitedWarPowerRatio() const;
+	int AI_dogpileWarRand() const;
+	int AI_makePeaceRand() const;
+	int AI_noWarAttitudeProb(AttitudeTypes eAttitude) const;
+	// </advc.104>
 	bool AI_performNoWarRolls(TeamTypes eTeam);
 	
 	int AI_getAttitudeWeight(TeamTypes eTeam) const;
@@ -305,15 +315,6 @@ protected:
 
 	int AI_noTechTradeThreshold() const;
 	int AI_techTradeKnownPercent() const;
-	int AI_maxWarRand() const;
-	int AI_maxWarNearbyPowerRatio() const;
-	int AI_maxWarDistantPowerRatio() const;
-	int AI_maxWarMinAdjacentLandPercent() const;
-	int AI_limitedWarRand() const;
-	int AI_limitedWarPowerRatio() const;
-	int AI_dogpileWarRand() const;
-	int AI_makePeaceRand() const;
-	int AI_noWarAttitudeProb(AttitudeTypes eAttitude) const;
 	int AI_getOpenBordersAttitudeDivisor() const; // advc.130i
 	double OBcounterIncrement(TeamTypes tId) const; // advc.130z
 

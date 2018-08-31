@@ -19756,7 +19756,7 @@
 					<iFreeSpecialistCount>1</iFreeSpecialistCount>
 				</ImprovementFreeSpecialist>
 			</ImprovementFreeSpecialists>
-			<!-- advc.020: Was 10 Growth, but m useful for Production. -->
+			<!-- advc.020: Was 10 Growth, but more useful for Production. -->
 			<Flavors>
 				<Flavor>
 					<FlavorType>FLAVOR_GROWTH</FlavorType>
@@ -25435,7 +25435,8 @@
 			<FoundsCorporation>NONE</FoundsCorporation>
 			<GlobalReligionCommerce>NONE</GlobalReligionCommerce>
 			<GlobalCorporationCommerce>NONE</GlobalCorporationCommerce>
-			<VictoryPrereq>VICTORY_DIPLOMATIC</VictoryPrereq>
+			<!-- advc.178: was VICTORY_DIPLOMATIC -->
+			<VictoryPrereq>NONE</VictoryPrereq>
 			<FreeStartEra>NONE</FreeStartEra>
 			<MaxStartEra>NONE</MaxStartEra>
 			<ObsoleteTech>NONE</ObsoleteTech>
@@ -28733,7 +28734,8 @@
 			<FoundsCorporation>NONE</FoundsCorporation>
 			<GlobalReligionCommerce>NONE</GlobalReligionCommerce>
 			<GlobalCorporationCommerce>NONE</GlobalCorporationCommerce>
-			<VictoryPrereq>VICTORY_DIPLOMATIC</VictoryPrereq>
+			<!-- advc.178: was VICTORY_DIPLOMATIC -->
+			<VictoryPrereq>NONE</VictoryPrereq>
 			<FreeStartEra>NONE</FreeStartEra>
 			<MaxStartEra>ERA_INDUSTRIAL</MaxStartEra>
 			<ObsoleteTech>TECH_MASS_MEDIA</ObsoleteTech>

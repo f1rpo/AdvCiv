@@ -847,6 +847,14 @@ bool WarAndPeaceAI::Team::considerPlanTypeChange(TeamTypes targetId, int u) {
 			padding += 20 - u;
 		pr = (altU + padding) / (4.0 * (u + padding));
 	}
+	if(pr > 0) {
+		double const lww = limitedWarWeight();
+		if(altWarPlan == WARPLAN_LIMITED)
+			pr *= lww;
+		else pr = (lww < 0.01 ? 1 : pr / lww);
+		if(lww < 0.99 || lww > 1.01)
+			report->log("Bias for/against limited war: %d percent", ::round(100 * lww));
+	}
 	report->log("Probability of switching: %d percent", ::round(pr * 100));
 	if(pr <= 0)
 		return true;
@@ -892,13 +900,11 @@ bool WarAndPeaceAI::Team::considerAbandonPreparations(TeamTypes targetId, int u,
 	WarPlanTypes wp = agent.AI_getWarPlan(targetId);
 	if(inBackgr && wp == WARPLAN_DOGPILE)
 		wp = WARPLAN_PREPARING_LIMITED;
-	CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(GET_PLAYER(agent.getLeaderID()).
-			getPersonalityType());
 	int warRand = -1;
 	if(wp == WARPLAN_PREPARING_LIMITED)
-		warRand = lh.getLimitedWarRand();
+		warRand = agent.AI_limitedWarRand();
 	if(wp == WARPLAN_PREPARING_TOTAL)
-		warRand = lh.getMaxWarRand();
+		warRand = agent.AI_maxWarRand();
 	FAssert(warRand >= 0);
 	// WarRand is between 40 (aggro) and 400 (chilled)
 	double pr = std::min(1.0, -u * warRand / 7500.0);
@@ -1136,6 +1142,19 @@ bool WarAndPeaceAI::Team::canSchemeAgainst(TeamTypes targetId,
 			agent.canEventuallyDeclareWar(targetId);
 }
 
+double WarAndPeaceAI::Team::limitedWarWeight() const {
+
+	int const limitedWarRand = GET_TEAM(agentId).AI_limitedWarRand();
+	if(limitedWarRand <= 0)
+		return 0;
+	/*  The higher exp, the greater the impact of personal preference for
+		limited or total war. */
+	double const exp = 0.75;
+	// Bias for total war b/c the WarRand values are biased toward limited war
+	return 0.8 * std::pow((double)GET_TEAM(agentId).AI_maxWarRand(), exp) /
+			std::pow((double)limitedWarRand, exp);
+}
+
 struct TargetData {
 	TargetData(double drive, TeamTypes id, bool total, int u) :
 			drive(drive),id(id),total(total),u(u) {}
@@ -1199,7 +1218,19 @@ void WarAndPeaceAI::Team::scheme() {
 				eval.evaluate(WARPLAN_PREPARING_LIMITED, 0);
 		bool limitedNaval = params.isNaval();
 		int limitedPrepTime = params.getPreparationTime();
-		bool total = (uTotal > uLimited);
+		bool total = false;
+		if(uLimited < 0 && uTotal > 0)
+			total = true;
+		if(uLimited < 0 && uTotal < 0) // Only relevant for logging
+			total = (uTotal > uLimited);
+		if(uLimited > 0 && uTotal > 0) {
+			double const lww = limitedWarWeight();
+			if(lww < 0.99 || lww > 1.01)
+				report->log("Bias for/against limited war: %d percent", ::round(100 * lww));
+			int const padding = GC.getGameINLINE().getSorenRandNum(40,
+					"advc.104 (total vs. limited)");
+			total = (uTotal + padding > (padding + uLimited) * lww);
+		}
 		int u = std::max(uLimited, uTotal);
 		report->setMute(false);
 		int reportThresh = (GET_TEAM(targetId).isHuman() ?
@@ -1229,7 +1260,7 @@ void WarAndPeaceAI::Team::scheme() {
 			Gandhi and Mansa Musa 400 for total, else 200.
 			I.e. peaceful leaders hesitate longer before starting war preparations;
 			warlike leaders have more drive. */
-		double div = total ? lh.getMaxWarRand() : lh.getLimitedWarRand();
+		double div = (total ? agent.AI_maxWarRand() : agent.AI_limitedWarRand());
 		// Let's make the AI a bit less patient, especially the peaceful types
 		div = std::pow(div, 0.95); // This maps e.g. 400 to 296 and 40 to 33
 		if(div < 0.01)
@@ -1251,7 +1282,7 @@ void WarAndPeaceAI::Team::scheme() {
 		TeamTypes targetId = targets[i].id;
 		double drive = targets[i].drive;
 		// Conscientious hesitation
-		if(lh.getNoWarAttitudeProb(agent.AI_getAttitude(targetId)) >= 100) {
+		if(agent.AI_noWarAttitudeProb(agent.AI_getAttitude(targetId)) >= 100) {
 			drive -= totalDrive / 2;
 			if(drive <= 0)
 				continue;
@@ -2153,7 +2184,7 @@ bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 	CvPlayerAI& we = GET_PLAYER(weId);
 	// Lower contact probabilities in later eras
 	int era = we.getCurrentEra();
-	CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(we.getPersonalityType());
+	CvLeaderHeadInfo const& lh = GC.getLeaderHeadInfo(we.getPersonalityType());
 	if(we.AI_getAttitude(humanId) <= lh.getDemandTributeAttitudeThreshold()) {
 		// Try all four types of tribute demands
 		for(int i = 0; i < 4; i++) {
@@ -2503,10 +2534,10 @@ double WarAndPeaceAI::Civ::warConfidencePersonal(bool isNaval, PlayerTypes vs) c
 	CvLeaderHeadInfo const& lh = GC.getLeaderHeadInfo(we.getPersonalityType());
 	if(isNaval)
 		/* distantWar refers to intercontinental war. The values in LeaderHead are
-		   between 30 (Tokugawa) and 100 (Isabella), i.e. almost everyone is
+		   between 0 (Sitting Bull) and 100 (Isabella), i.e. almost everyone is
 		   reluctant to fight cross-ocean wars. That reluctance is now covered
 		   elsewhere (e.g. army power reduced based on cargo capacity in
-		   simulations); hence the +35. The result is between 0.65 and 1.35. */
+		   simulations); hence the +35. The result is between 0.35 and 1.35. */
 		return (lh.getMaxWarDistantPowerRatio() + 35) / 100.0;
 	/* Preferences for or against limited war are captured by the "Effort" war cost.
 	   Need a general notion of confidence here b/c it doesn't make sense to be
@@ -2618,20 +2649,27 @@ double WarAndPeaceAI::Civ::protectiveInstinct() const {
 double WarAndPeaceAI::Civ::diploWeight() const {
 
 	CvPlayerAI const& we = GET_PLAYER(weId);
-	if(we.isHuman()) return 0;
+	if(we.isHuman())
+		return 0;
 	CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(we.getPersonalityType());
 	int ctr = lh.getContactRand(CONTACT_TRADE_TECH);
-	if(ctr <= 1) return 1.75;
-	if(ctr <= 3) return 1.5;
-	if(ctr <= 7) return 1;
-	if(ctr <= 15) return 0.5;
+	if(ctr <= 1)
+		return 1.75;
+	if(ctr <= 3)
+		return 1.5;
+	if(ctr <= 7)
+		return 1;
+	if(ctr <= 15)
+		return 0.5;
 	return 0.25;
 }
 
 double WarAndPeaceAI::Civ::prideRating() const {
 
+	// Fixme: Should be a Team function and call CvTeamAI::AI_makePeaceRand
 	CvPlayerAI const& we = GET_PLAYER(weId);
-	if(we.isHuman()) return 0;
+	if(we.isHuman())
+		return 0;
 	CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(we.getPersonalityType());
 	return ::dRange(lh.getMakePeaceRand() / 110.0 - 0.09, 0.0, 1.0);
 }

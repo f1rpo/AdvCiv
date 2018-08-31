@@ -23627,39 +23627,24 @@ int CvPlayerAI::AI_calculateDominationVictoryStage() const
 int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 {
 	//int iValue = 0; // advc.115b
-
+	CvGame const& g = GC.getGameINLINE(); // advc.003
 	if( GC.getDefineINT("BBAI_VICTORY_STRATEGY_DIPLOMACY") <= 0 )
 	{
 		return 0;
 	}
 	// <advc.115c>
-	if(GC.getGameINLINE().countCivTeamsAlive() <= 2)
+	if(g.countCivTeamsAlive() <= 2)
 		return 0; // </advc.115c>
-	std::vector<VictoryTypes> veDiplomacy;
-	for (int iI = 0; iI < GC.getNumVictoryInfos(); iI++)
-	{
-		if (GC.getGameINLINE().isVictoryValid((VictoryTypes) iI))
-		{
-			CvVictoryInfo& kVictoryInfo = GC.getVictoryInfo((VictoryTypes) iI);
-			if( kVictoryInfo.isDiploVote() )
-			{
-				veDiplomacy.push_back((VictoryTypes)iI);
-			}
-		}
-	}
-
-	if( veDiplomacy.size() == 0 )
-	{
-		return 0;
-	}
-
+	// <advc.178> Code moved into subroutine
+	if(!g.isDiploVictoryValid())
+		return false; // </advc.178>
 	// Check for whether we are eligible for election
 	bool bVoteEligible = false;
 	for( int iVoteSource = 0; iVoteSource < GC.getNumVoteSourceInfos(); iVoteSource++ )
 	{
-		if( GC.getGameINLINE().isDiploVote((VoteSourceTypes)iVoteSource) )
+		if( g.isDiploVote((VoteSourceTypes)iVoteSource) )
 		{
-			if( GC.getGameINLINE().isTeamVoteEligible(getTeam(),(VoteSourceTypes)iVoteSource) )
+			if( g.isTeamVoteEligible(getTeam(),(VoteSourceTypes)iVoteSource) )
 			{
 				bVoteEligible = true;
 				break;
@@ -23691,7 +23676,7 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 		// If AP religion hasn't spread far, our high voter portion doesn't help
 		int nonMembers = GET_TEAM(getTeam()).warAndPeaceAI().
 				countNonMembers(voteSource);
-		int targetMembers = GC.getGameINLINE().countCivPlayersAlive();
+		int targetMembers = g.countCivPlayersAlive();
 		membersProgress = (targetMembers - nonMembers) / ((double)targetMembers);
 		progressRatio = std::min(membersProgress, progressRatio);
 		/*  WarAndPeaceAI uses the UN vote target if neither vote source is
@@ -23714,12 +23699,12 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 	// </advc.115b>
 
 	// <advc.115b> Commented out.
-	/*if (GC.getGameINLINE().isOption(GAMEOPTION_ALWAYS_PEACE))
+	/*if (g.isOption(GAMEOPTION_ALWAYS_PEACE))
 	{
     	iValue += 30;
 	}
 		
-	iValue += (GC.getGameINLINE().isOption(GAMEOPTION_AGGRESSIVE_AI) ? -20 : 0);
+	iValue += (g.isOption(GAMEOPTION_AGGRESSIVE_AI) ? -20 : 0);
 	*/ // </advc.115b>
 
 	//int iNonsense = AI_getStrategyRand() + 90;
@@ -23746,7 +23731,7 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 	
 	if( isHuman())
 			// advc.115d: Commented out
-			//&& !(GC.getGameINLINE().isDebugMode()) )
+			//&& !(g.isDebugMode()) )
 	{
 		return 0;
 	}

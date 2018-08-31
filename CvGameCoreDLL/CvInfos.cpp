@@ -3485,9 +3485,7 @@ int CvUnitInfo::getConscriptionValue() const
 }
 
 int CvUnitInfo::getCultureGarrisonValue() const
-{	// <advc.101> Will probably make these changes in XML eventually; for now here.
-	if(isMechUnit())
-		return m_iCultureGarrisonValue / 2; // </advc.101>
+{
 	return m_iCultureGarrisonValue;
 }
 

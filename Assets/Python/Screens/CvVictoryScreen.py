@@ -308,7 +308,8 @@ class CvVictoryScreen:
 				for iLoop in range(gc.getNumVoteInfos()):
 					if gc.getGame().countPossibleVote(iLoop, i) > 0:
 						info = gc.getVoteInfo(iLoop)
-						if gc.getGame().isChooseElection(iLoop):
+						# advc.178: Clauses for diplo victory added
+						if gc.getGame().isChooseElection(iLoop) and (gc.getGame().isDiploVictoryValid() or not info.isVictory()):
 							iRow = screen.appendTableRow(szTable)
 							screen.setTableText(szTable, 0, iRow, info.getDescription(), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 							if gc.getGame().isVotePassed(iLoop):
@@ -1001,6 +1002,11 @@ class CvVictoryScreen:
 						descr += " " + str(barbStart) + ")"
 				# Next line: Plug in descr </advc.300>
 				screen.appendListBoxStringNoUpdate(szOptionsTable, descr, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# <advc.004> Disabled victory conditions. Some overlap with CvReplayInfo::addSettingsMsg
+		for i in range(gc.getNumVictoryInfos()):
+			if not gc.getGame().isVictoryValid(i):
+				screen.appendListBoxStringNoUpdate(szOptionsTable, gc.getVictoryInfo(i).getDescription() + " " + localText.getText("TXT_KEY_VICTORY_DISABLED",()), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# </advc.004>
 
 		# <advc.104> AI settings
 		isAggro = gc.getGame().isOption(GameOptionTypes.GAMEOPTION_AGGRESSIVE_AI)

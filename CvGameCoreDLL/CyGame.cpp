@@ -98,6 +98,11 @@ int CyGame::getAdjustedLandPercent(int /* VictoryTypes*/ eVictory)
 {
 	return m_pGame ? m_pGame->getAdjustedLandPercent((VictoryTypes) eVictory) : -1;
 }
+// <advc.178>
+bool CyGame::isDiploVictoryValid()
+{
+	return m_pGame ? m_pGame->isDiploVictoryValid() : false;
+} // </advc.178>
 
 bool CyGame::isTeamVote(int /*VoteTypes*/ eVote) const
 {

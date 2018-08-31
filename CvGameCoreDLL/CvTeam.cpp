@@ -4633,10 +4633,10 @@ void CvTeam::setDefensivePact(TeamTypes eIndex, bool bNewValue)
 	// <advc.106f> Based on the previous block
 	else if(!bNewValue && other.isDefensivePact(getID())) {
 		CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYERS_CANCEL_DEFENSIVE_PACT",
-				getReplayName().GetCString(), other.getReplayName().GetCString(),
-				-1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+				getReplayName().GetCString(), other.getReplayName().GetCString());
 		GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT,
-				getLeaderID(), szBuffer);
+				getLeaderID(), szBuffer, -1, -1,
+				(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 			CvPlayer& civ = GET_PLAYER((PlayerTypes)i);
 			if(!civ.isAlive())

@@ -22953,8 +22953,8 @@ bool CvPlayer::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionS
 			return false;
 		}
 	}
-
-	if (GC.getVoteInfo(kData.eVote).isOpenBorders())
+	CvVoteInfo const& vi = GC.getVoteInfo(kData.eVote); // advc.003
+	if (vi.isOpenBorders())
 	{
 		for (int iTeam2 = 0; iTeam2 < MAX_CIV_TEAMS; ++iTeam2)
 		{
@@ -22972,7 +22972,7 @@ bool CvPlayer::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionS
 			}
 		}
 	}
-	else if (GC.getVoteInfo(kData.eVote).isDefensivePact())
+	else if (vi.isDefensivePact())
 	{
 		for (int iTeam2 = 0; iTeam2 < MAX_CIV_TEAMS; ++iTeam2)
 		{
@@ -23001,7 +23001,7 @@ bool CvPlayer::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionS
 			}
 		}
 	}
-	else if (GC.getVoteInfo(kData.eVote).isForcePeace())
+	else if (vi.isForcePeace())
 	{
 		FAssert(NO_PLAYER != kData.ePlayer);
 		CvPlayer& kPlayer = GET_PLAYER(kData.ePlayer);
@@ -23030,7 +23030,7 @@ bool CvPlayer::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionS
 			}
 		}
 	}
-	else if (GC.getVoteInfo(kData.eVote).isForceWar())
+	else if (vi.isForceWar())
 	{
 		FAssert(NO_PLAYER != kData.ePlayer);
 		CvPlayer& kPlayer = GET_PLAYER(kData.ePlayer);
@@ -23056,7 +23056,7 @@ bool CvPlayer::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionS
 			}
 		}
 	}
-	else if (GC.getVoteInfo(kData.eVote).isForceNoTrade())
+	else if (vi.isForceNoTrade())
 	{
 		FAssert(NO_PLAYER != kData.ePlayer);
 		CvPlayer& kPlayer = GET_PLAYER(kData.ePlayer);
@@ -23066,14 +23066,15 @@ bool CvPlayer::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionS
 		}
 
 	}
-	else if (GC.getVoteInfo(kData.eVote).isAssignCity())
+	else if (vi.isAssignCity())
 	{
 		if (GET_TEAM(GET_PLAYER(kData.eOtherPlayer).getTeam()).isVassal(GET_PLAYER(kData.ePlayer).getTeam()))
 		{
 			return false;
 		}
-	}
-
+	} // <advc.178>
+	else if(vi.isVictory() && !GC.getGameINLINE().isDiploVictoryValid())
+		return false; // </advc.178>
 	return true;
 }
 
@@ -23457,11 +23458,11 @@ bool CvPlayer::canSpyDestroyProject(PlayerTypes eTarget, ProjectTypes eProject) 
 	}
 	else
 	{
-		VictoryTypes eVicotry = (VictoryTypes)kProject.getVictoryPrereq();
-		if (NO_VICTORY != eVicotry)
+		VictoryTypes eVictory = (VictoryTypes)kProject.getVictoryPrereq();
+		if (NO_VICTORY != eVictory)
 		{
 			// Can't destroy spaceship components if we have already launched
-			if (GET_TEAM(GET_PLAYER(eTarget).getTeam()).getVictoryCountdown(eVicotry) >= 0)
+			if (GET_TEAM(GET_PLAYER(eTarget).getTeam()).getVictoryCountdown(eVictory) >= 0)
 			{
 				return false;
 			}

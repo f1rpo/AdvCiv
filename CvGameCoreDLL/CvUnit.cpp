@@ -2853,7 +2853,8 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 		}
 	}
 
-	if (isNoCapture())
+	if (isNoCapture()
+			|| m_pUnitInfo->isOnlyAttackAnimals()) // advc.315a
 	{
 		if (!bAttack)
 		{

@@ -2993,8 +2993,11 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 	aiUnitAIVal[UNITAI_COLLATERAL] *= 5;
 	aiUnitAIVal[UNITAI_PILLAGE] *= 3;
 	aiUnitAIVal[UNITAI_RESERVE] *= 3;
-	aiUnitAIVal[UNITAI_COUNTER] *= 3;
-	aiUnitAIVal[UNITAI_COUNTER] *= 2;
+	/*aiUnitAIVal[UNITAI_COUNTER] *= 3;
+	aiUnitAIVal[UNITAI_COUNTER] *= 2;*/
+	/*  advc.131: The two weights look unintentional, but apparently, they somewhat
+		work. Let's use 4 as a compromise. */
+	aiUnitAIVal[UNITAI_COUNTER] *= 4;
 	aiUnitAIVal[UNITAI_CITY_DEFENSE] *= 2;
 	aiUnitAIVal[UNITAI_CITY_COUNTER] *= 2;
 	aiUnitAIVal[UNITAI_CITY_SPECIAL] *= 2;
@@ -3032,11 +3035,14 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 		aiUnitAIVal[UNITAI_DEFENSE_AIR] /= 4;
 	}
 	// K-Mod end
-
 	for (iI = 0; iI < NUM_UNITAI_TYPES; iI++)
 	{
-		aiUnitAIVal[iI] *= std::max(0, (GC.getLeaderHeadInfo(getPersonalityType()).getUnitAIWeightModifier(iI) + 100));
-		aiUnitAIVal[iI] /= 100;
+		if(aiUnitAIVal[iI] > 0) { /* advc.131: AIWeight would have the opposite
+									 effect on negative vAIVal */
+			aiUnitAIVal[iI] *= std::max(0, GC.getLeaderHeadInfo(getPersonalityType()).
+					getUnitAIWeightModifier(iI) + 100);
+			aiUnitAIVal[iI] /= 100;
+		}
 	} // <advc.033>
 	if(TEAMREF(getOwnerINLINE()).isCapitulated()) {
 		aiUnitAIVal[UNITAI_PIRATE_SEA] = 0;
@@ -7752,14 +7758,21 @@ int CvCityAI::AI_getImprovementValue(CvPlot* pPlot, ImprovementTypes eImprovemen
 			iHappyValue /= 2;
 			//
 			iValue += iHappyValue * iHappiness;
-		}
-
-		if (!isHuman())
+		} /* <advc.131> When considering to replace an improvement, iValue is
+			 based on the yield difference. A small negative value means that the
+			 new improvement is almost as good as the old one. Temporarily increase
+			 the value to allow ImprovementWeightModifier to tip the scales. */
+		int const padding = 50;
+		iValue += padding; // </advc.131>
+		if (!isHuman()
+				&& iValue > 0) // advc.131
 		{
-			iValue *= std::max(0, (GC.getLeaderHeadInfo(getPersonalityType()).getImprovementWeightModifier(eFinalImprovement) + 200));
-			iValue /= 200;
+			iValue *= std::max(0, GC.getLeaderHeadInfo(getPersonalityType()).
+					// advc.005a: was +200
+					getImprovementWeightModifier(eFinalImprovement) + 100);
+			iValue /= 100; // advc.005a: was /=200
 		}
-
+		iValue -= padding; // advc.131
 		if (pPlot->getImprovementType() == NO_IMPROVEMENT)
 		{
 			//if (pPlot->isBeingWorked())
@@ -12992,7 +13005,7 @@ void CvCityAI::AI_updateWorkersNeededHere()
 			// <advc.113>
 			::round(((std::min(iUnimprovedUnworkedPlotCount, iFutureWork)+1) / 2.0)
 				* ((GC.getDefineINT("WORKER-RESERVE_PERCENT") + 100
-				// Flavor was previously counted in CvPlayerAI::workersNeededHere
+				// Flavor was previously counted in CvPlayerAI::AI_neededWorkers
 				+ 2 * GET_PLAYER(getOwnerINLINE()).
 				AI_getFlavorValue(FLAVOR_GROWTH)) / 100.0)); // </advc.113>
 	}

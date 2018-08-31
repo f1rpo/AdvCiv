@@ -4810,7 +4810,8 @@
 			<Capture>NONE</Capture>
 			<Combat>UNITCOMBAT_MELEE</Combat>
 			<Domain>DOMAIN_LAND</Domain>
-			<DefaultUnitAI>UNITAI_ATTACK</DefaultUnitAI>
+			<!-- advc.131: was UNITAI_ATTACK -->
+			<DefaultUnitAI>UNITAI_ATTACK_CITY</DefaultUnitAI>
 			<Invisible>NONE</Invisible>
 			<SeeInvisible>NONE</SeeInvisible>
 			<Description>TXT_KEY_UNIT_SWORDSMAN</Description>
@@ -5387,7 +5388,8 @@
 			<Capture>NONE</Capture>
 			<Combat>UNITCOMBAT_MELEE</Combat>
 			<Domain>DOMAIN_LAND</Domain>
-			<DefaultUnitAI>UNITAI_ATTACK</DefaultUnitAI>
+			<!-- advc.131: was UNITAI_ATTACK -->
+			<DefaultUnitAI>UNITAI_ATTACK_CITY</DefaultUnitAI>
 			<Invisible>NONE</Invisible>
 			<SeeInvisible>NONE</SeeInvisible>
 			<!-- advc.907a: Renamed to Legionary in game text XML -->
@@ -16107,7 +16109,8 @@
 			<DomainCargo>NONE</DomainCargo>
 			<iCargo>0</iCargo>
 			<iConscription>0</iConscription>
-			<iCultureGarrison>4</iCultureGarrison>
+			<!-- advc.101: was 4 -->
+			<iCultureGarrison>2</iCultureGarrison>
 			<iExtraCost>0</iExtraCost>
 			<iAsset>2</iAsset>
 			<iPower>5</iPower>
@@ -16303,7 +16306,8 @@
 			<DomainCargo>NONE</DomainCargo>
 			<iCargo>0</iCargo>
 			<iConscription>0</iConscription>
-			<iCultureGarrison>4</iCultureGarrison>
+			<!-- advc.101: was 4 -->
+			<iCultureGarrison>2</iCultureGarrison>
 			<iExtraCost>0</iExtraCost>
 			<iAsset>2</iAsset>
 			<iPower>5</iPower>
@@ -16495,7 +16499,8 @@
 			<DomainCargo>NONE</DomainCargo>
 			<iCargo>0</iCargo>
 			<iConscription>0</iConscription>
-			<iCultureGarrison>4</iCultureGarrison>
+			<!-- advc.101: was 2 -->
+			<iCultureGarrison>2</iCultureGarrison>
 			<iExtraCost>0</iExtraCost>
 			<iAsset>3</iAsset>
 			<!-- advc.104: Was 8, which seems to assume that Trebs always have strength 8. -->
@@ -16683,7 +16688,8 @@
 			<DomainCargo>NONE</DomainCargo>
 			<iCargo>0</iCargo>
 			<iConscription>0</iConscription>
-			<iCultureGarrison>7</iCultureGarrison>
+			<!-- advc.101: was 7 -->
+			<iCultureGarrison>4</iCultureGarrison>
 			<iExtraCost>0</iExtraCost>
 			<iAsset>3</iAsset>
 			<iPower>12</iPower>
@@ -17075,7 +17081,8 @@
 			<DomainCargo>NONE</DomainCargo>
 			<iCargo>0</iCargo>
 			<iConscription>0</iConscription>
-			<iCultureGarrison>10</iCultureGarrison>
+			<!-- advc.101: was 10 -->
+			<iCultureGarrison>5</iCultureGarrison>
 			<iExtraCost>0</iExtraCost>
 			<iAsset>4</iAsset>
 			<iPower>18</iPower>
@@ -17266,7 +17273,8 @@
 			<DomainCargo>NONE</DomainCargo>
 			<iCargo>0</iCargo>
 			<iConscription>0</iConscription>
-			<iCultureGarrison>12</iCultureGarrison>
+			<!-- advc.101: was 12 -->
+			<iCultureGarrison>6</iCultureGarrison>
 			<iExtraCost>0</iExtraCost>
 			<iAsset>5</iAsset>
 			<iPower>26</iPower>
@@ -19934,6 +19942,11 @@
 				</UnitAI>
 				<UnitAI>
 					<UnitAIType>UNITAI_RESERVE_SEA</UnitAIType>
+					<bUnitAI>1</bUnitAI>
+				</UnitAI>
+				<!-- advc.131 -->
+				<UnitAI>
+					<UnitAIType>UNITAI_ESCORT_SEA</UnitAIType>
 					<bUnitAI>1</bUnitAI>
 				</UnitAI>
 			</UnitAIs>

@@ -588,7 +588,7 @@ protected:
 		AI_changePeacetimeGrantValue. The third parameter says which
 		of the two should be changed. */
 	void AI_changePeaceTimeValue(PlayerTypes eIndex, int iChange, bool isGrant);
-	static int const peacetimeTradeValDivisor = 1000;
+	static int const peacetimeTradeValDivisor = 1200;
 	static int const peacetimeTradeRelationsLimit = 4;
 	/*  </advc.130p> advc.130x: Mode 0: same religion, 1: different religion,
 		2: favorite civic. Returns the absolute value of the limit for the

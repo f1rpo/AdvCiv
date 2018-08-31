@@ -42,7 +42,7 @@ public:
 
 	int getAdjustedPopulationPercent(int /*VictoryTypes*/ eVictory);
 	int getAdjustedLandPercent(int /* VictoryTypes*/ eVictory);
-
+	bool isDiploVictoryValid(); // advc.178
 	bool isTeamVote(int /*VoteTypes*/ eVote) const;
 	bool isChooseElection(int /*VoteTypes*/ eVote) const;
 	bool isTeamVoteEligible(int /*TeamTypes*/ eTeam, int /*VoteSourceTypes*/ eVoteSource) const;

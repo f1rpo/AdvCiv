@@ -2162,7 +2162,8 @@ int CvTeamAI::AI_knownTechValModifier(TechTypes eTech) const
 	for (TeamTypes i = (TeamTypes)0; i < MAX_CIV_TEAMS; i=(TeamTypes)(i+1))
 	{
 		const CvTeam& kLoopTeam = GET_TEAM(i);
-		if (i != getID() && kLoopTeam.isAlive() && isHasMet(i))
+		if (i != getID() && kLoopTeam.isAlive() && isHasMet(i)
+				&& !kLoopTeam.isCapitulated()) // advc.551
 		{
 			if (kLoopTeam.isHasTech(eTech))
 				iTechCivs++;
@@ -2170,8 +2171,11 @@ int CvTeamAI::AI_knownTechValModifier(TechTypes eTech) const
 			iCivsMet++;
 		}
 	}
-
-	return 50 * (iCivsMet - iTechCivs) / std::max(1, iCivsMet);
+	//return 50 * (iCivsMet - iTechCivs) / std::max(1, iCivsMet);
+	// <advc.551> Replacing the above
+	double const maxModifierPercent = 34;
+	return::round((maxModifierPercent * (iCivsMet - iTechCivs)) /
+			std::max(1, iCivsMet) - maxModifierPercent / 2); // </advc.551>
 }
 // K-Mod end
 
@@ -2218,8 +2222,10 @@ int CvTeamAI::AI_techTradeVal(TechTypes eTech, TeamTypes eTeam,
 	int iValue = (
 		125 // advc.551: was 150
 			// K-Mod. Standardized the modifier for # of teams with the tech; and removed the effect of team size.
-			+ AI_knownTechValModifier(eTech)) * std::max(0, (getResearchCost(eTech, true, false) - getResearchProgress(eTech))) / 100;
-	// K-Mod end
+			+ AI_knownTechValModifier(eTech)) *
+			std::max(0, (getResearchCost(eTech, true, false) -
+			getResearchProgress(eTech))) / 100;
+			// K-Mod end
 	/*  <advc.104h> Peace for tech isn't that attractive for the receiving side
 		b/c they could continue the war and still get the tech when making peace
 		later on. Doesn't work the same way with gold b/c the losing side may well
@@ -2254,7 +2260,12 @@ int CvTeamAI::AI_techTradeVal(TechTypes eTech, TeamTypes eTeam,
 		gameProgressFactor = ::range(gameProgressFactor, 0.0f, 0.5f);
 		powerRatio = ::range(powerRatio, 1 - gameProgressFactor, 1 + gameProgressFactor);
 		techRatio = ::range(techRatio, 1 - gameProgressFactor, 1 + gameProgressFactor);
-		float modifier = 0.5f * (powerRatio + techRatio);
+		// Powerful civs shouldn't grant large discounts to advanced civs
+		if(techRatio < 1 && powerRatio > 1)
+			powerRatio = std::max(1.f, powerRatio * techRatio * techRatio);
+		else if(techRatio > 1 && powerRatio < 1)
+			powerRatio = std::min(1.f, powerRatio * techRatio * techRatio);
+		float modifier = (powerRatio + 2 * techRatio) / 3.f;
 		/*  Not sure about this guard: Should weak civs charge more for their techs?
 			In tech-vs-tech trades, the modifier would then take effect twice,
 			resulting in one side demanding up to twice as much as the other;

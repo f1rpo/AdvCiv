@@ -116,7 +116,7 @@ public:
 
 	int getAdjustedPopulationPercent(VictoryTypes eVictory) const;								// Exposed to Python
 	int getAdjustedLandPercent(VictoryTypes eVictory) const;											// Exposed to Python
-
+	bool isDiploVictoryValid() const; // advc.178 (exposed to Python)
 	bool isTeamVote(VoteTypes eVote) const;												// Exposed to Python
 	bool isChooseElection(VoteTypes eVote) const;									// Exposed to Python
 	bool isTeamVoteEligible(TeamTypes eTeam, VoteSourceTypes eVoteSource) const;								// Exposed to Python
