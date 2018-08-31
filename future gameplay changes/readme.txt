@@ -39,7 +39,7 @@ See also: https://forums.civfanatics.com/threads/advanced-civ.614217/page-5#post
 
 12. Ravages of war:
 * Razing a city takes one attack per population; each attack reduces the population by one and has a chance of destroying a building.
-* Bombardment increases war weariness for the city owner and has a chance of destroying a building (Civ 4 Reimagined already does this). Each attack against a city defender has a chance of destroying a building. Upon entering the city, few buildings or none are destroyed (unless razed).
+* Bombardment increases war weariness for the city owner and has a small chance of destroying a building (Civ 4 Reimagined already does this). Each attack against a city defender has a chance of destroying a building. Upon entering the city, few buildings or none are destroyed (unless razed).
 * Reduce capture gold; perhaps only grant it when razing.
 
 13. City garrisons need to have sufficient (defensive) combat strength in order to quell "fear for safety" anger. (Already implemented as change 500b, but currently disabled through an XML switch.)
