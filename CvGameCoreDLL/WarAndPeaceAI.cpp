@@ -91,17 +91,17 @@ void WarAndPeaceAI::write(FDataStreamBase* stream) {
 
 int WarAndPeaceAI::maxLandDist() const {
 
-	return maxSeaDist() - 2;
+	// Faster speed of ships now covered by estimateMovementSpeed
+	return maxSeaDist(); //- 2;
 }
 
 int WarAndPeaceAI::maxSeaDist() const {
 
-	CvWorldInfo const& wi = GC.getWorldInfo(GC.getMapINLINE().getWorldSize());
-	int r = 15;
-	// That's true for Large and Huge maps
-	if(wi.getGridWidth() > 100 || wi.getGridHeight() > 100)
-		r = 20;
 	CvMap const& m = GC.getMapINLINE();
+	int r = 14;
+	// That's true for Large and Huge maps
+	if(m.getGridWidth() > 100 || m.getGridHeight() > 100)
+		r = 18;
 	if(!m.isWrapXINLINE() && !m.isWrapYINLINE())
 		r = (r * 6) / 5;
 	return r;
@@ -976,7 +976,7 @@ bool WarAndPeaceAI::Team::considerSwitchTarget(TeamTypes targetId, int u,
 		showWarPlanAbandonedMsg(targetId);
 		agent.AI_setWarPlan(bestAltTargetId, wp);
 		showWarPrepStartedMsg(bestAltTargetId);
-		agent.AI_setWarPlanStateCounter(bestAltTargetId, timeRemaining);
+		agent.AI_setWarPlanStateCounter(bestAltTargetId, wpAge);
 	}
 	return false;
 }
@@ -1061,7 +1061,7 @@ int WarAndPeaceAI::Team::peaceThreshold(TeamTypes targetId) const {
 }
 
 int WarAndPeaceAI::Team::uJointWar(TeamTypes targetId, TeamTypes allyId) const {
-	
+
 	// Only log about inter-AI war trades
 	bool silent = GET_TEAM(agentId).isHuman() || GET_TEAM(allyId).isHuman() ||
 			!isReportTurn();
@@ -1091,6 +1091,12 @@ int WarAndPeaceAI::Team::uJointWar(TeamTypes targetId, TeamTypes allyId) const {
 	WarEvaluator eval(params);
 	int r = eval.evaluate(wp);
 	rep.log(""); // newline
+	/*  Military analysis may conclude that ally is going to send ships, perhaps
+		just a few, but enough to tip the scales. Highly unlikely in the first half
+		of the game. */
+	if(!GET_TEAM(allyId).warAndPeaceAI().isLandTarget(targetId) &&
+			GET_TEAM(allyId).getCurrentEra() < 3)
+		return std::min(0, r);
 	return r;
 }
 
@@ -1151,8 +1157,7 @@ double WarAndPeaceAI::Team::limitedWarWeight() const {
 		limited or total war. */
 	double const exp = 0.75;
 	// Bias for total war b/c the WarRand values are biased toward limited war
-	return 0.8 * std::pow((double)GET_TEAM(agentId).AI_maxWarRand(), exp) /
-			std::pow((double)limitedWarRand, exp);
+	return std::pow(0.8 * GET_TEAM(agentId).AI_maxWarRand() / limitedWarRand, exp);
 }
 
 struct TargetData {
@@ -2519,7 +2524,8 @@ double WarAndPeaceAI::Civ::distrustRating() const {
 	return std::max(0, result) / 100.0;
 }
 
-double WarAndPeaceAI::Civ::warConfidencePersonal(bool isNaval, PlayerTypes vs) const {
+double WarAndPeaceAI::Civ::warConfidencePersonal(bool isNaval, bool isTotal,
+		PlayerTypes vs) const {
 
 	// (param 'vs' currently unused)
 	CvPlayerAI const& we = GET_PLAYER(weId);
@@ -2532,21 +2538,25 @@ double WarAndPeaceAI::Civ::warConfidencePersonal(bool isNaval, PlayerTypes vs) c
 		// e.g. 0.63 at Settler, 1.67 at Deity
 		return 100.0 / GC.getHandicapInfo(we.getHandicapType()).getAITrainPercent();
 	CvLeaderHeadInfo const& lh = GC.getLeaderHeadInfo(we.getPersonalityType());
-	if(isNaval)
-		/* distantWar refers to intercontinental war. The values in LeaderHead are
-		   between 0 (Sitting Bull) and 100 (Isabella), i.e. almost everyone is
-		   reluctant to fight cross-ocean wars. That reluctance is now covered
-		   elsewhere (e.g. army power reduced based on cargo capacity in
-		   simulations); hence the +35. The result is between 0.35 and 1.35. */
+	if(isNaval) {
+		/*  distantWar refers to intercontinental war. The values in LeaderHead are
+			between 0 (Sitting Bull) and 100 (Isabella), i.e. almost everyone is
+			reluctant to fight cross-ocean wars. That reluctance is now covered
+			elsewhere (e.g. army power reduced based on cargo capacity in
+			simulations); hence the +35. The result is between 0.35 and 1.35. */
 		return (lh.getMaxWarDistantPowerRatio() + 35) / 100.0;
-	/* Preferences for or against limited war are captured by the "Effort" war cost.
-	   Need a general notion of confidence here b/c it doesn't make sense to be
-	   more optimistic about military success based on limited/ total. Limited and
-	   total mostly affect the military build-up, not how the war is conducted. */
+	}
 	int maxWarNearbyPR = lh.getMaxWarNearbyPowerRatio();
 	int limWarPR = lh.getLimitedWarPowerRatio();
 	// Montezuma: 1.3; Elizabeth: 0.85
-	return (maxWarNearbyPR + limWarPR) / 200.0;
+	//return (maxWarNearbyPR + limWarPR) / 200.0;
+	/*  Limited and total mostly affect the military build-up, not how the war is
+		conducted. So it may not make much sense for a leader to be e.g. more
+		optimistic about limited than total war. But the difference between the
+		PowerRatio values should somehow matter. Perhaps some leaders think e.g.
+		that they can't use large stacks so effectively ... */
+	return 0.01 * (isTotal ? lh.getMaxWarNearbyPowerRatio() : lh.getLimitedWarPowerRatio());
+	// Or perhaps use a weighted mean as a compromise
 }
 
 double WarAndPeaceAI::Civ::warConfidenceLearned(PlayerTypes targetId,

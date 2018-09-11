@@ -216,7 +216,7 @@
 				 progress is granted toward a random tech. Set to all three
 				 iGolds to 0 to restore BtS behavior: an entire tech that has
 				 to be flagged bGoodyTech in Civ4TechInfos.xml. -->
-			<iGold>30</iGold>
+			<iGold>35</iGold>
 			<iGoldRand1>21</iGoldRand1>
 			<iGoldRand2>21</iGoldRand2>
 			<iMapOffset>0</iMapOffset>

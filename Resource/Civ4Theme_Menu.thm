@@ -216,13 +216,13 @@ with GFC_Control_Menu
 		{	
 			.CheckItem_Default					=	GBitmap();
 			.CheckItem_Disable					=	.CheckItem_Default;
-			.CheckItem_Toggle					=	GBitmap("../../../../Resources/Civ4/Menu_Checkbox.tga", Vertical, 3, 0);
-			.CheckItem_ToggleDisable			=	GBitmap("../../../../Resources/Civ4/Menu_Checkbox.tga", Vertical, 3, 2);
+			.CheckItem_Toggle					=	GBitmap("../../../../Resource/Civ4/Menu_Checkbox.tga", Vertical, 3, 0);
+			.CheckItem_ToggleDisable			=	GBitmap("../../../../Resource/Civ4/Menu_Checkbox.tga", Vertical, 3, 2);
 
 			.RadioItem_Default					=	.CheckItem_Default;
 			.RadioItem_Disable					=	.RadioItem_Default;
-			.RadioItem_Toggle					=	GBitmap("../../../../Resources/Civ4/Menu_Radiobutton.tga", Vertical, 3, 0);
-			.RadioItem_ToggleDisable			=	GBitmap("../../../../Resources/Civ4/Menu_Radiobutton.tga", Vertical, 3, 2);
+			.RadioItem_Toggle					=	GBitmap("../../../../Resource/Civ4/Menu_Radiobutton.tga", Vertical, 3, 0);
+			.RadioItem_ToggleDisable			=	GBitmap("../../../../Resource/Civ4/Menu_Radiobutton.tga", Vertical, 3, 2);
 		}
 		
 		// Fonts
@@ -296,7 +296,7 @@ style SF_CtrlTheme_Civ4_Control_Menu_Standard_Border_Style
 				DestCombine		=	GColorCombine(BlendSource,Disable);
 				FactorCombine	= 	GColorCombine(Modulate,Modulate);
 				FactorColor		= 	SF_CtrlTheme_Civ4_Control_Color_BG;		
-				Image			=	GBitmap("../../../../Resources/Civ4/menu_bg_TB.tga", HVGrid, 1, 1, 0, 0);
+				Image			=	GBitmap("../../../../Resource/Civ4/menu_bg_TB.tga", HVGrid, 1, 1, 0, 0);
 				Margin			=	GRectMargin(2,2,2,2);
 				Indent			=	GRectMargin(1,4,1,4);
 				LeftFlags		=	GFlags(GCtrlBitmapSkinSection, GFC_BITMAPSKIN_SECTION_EMPTY);
@@ -308,7 +308,7 @@ style SF_CtrlTheme_Civ4_Control_Menu_Standard_Border_Style
 				DestCombine		=	GColorCombine(BlendSource,Disable);
 				FactorCombine	= 	GColorCombine(Modulate,Modulate);
 				FactorColor		= 	SF_CtrlTheme_Civ4_Control_Color_BG;		
-				Image			=	GBitmap("../../../../Resources/Civ4/menu_bg_LR.tga", HVGrid, 1, 1, 0, 0);
+				Image			=	GBitmap("../../../../Resource/Civ4/menu_bg_LR.tga", HVGrid, 1, 1, 0, 0);
 				Margin			=	GRectMargin(5,30,5,30);
 				Indent			=	GRectMargin(1,6,1,6);
 			}
@@ -317,21 +317,21 @@ style SF_CtrlTheme_Civ4_Control_Menu_Standard_Border_Style
 			{
 				LayerFlags		= 	GFlags(GCtrlBitmapSkin, GFC_BITMAPSKIN_CENTER_EMPTY, GFC_BITMAPSKIN_SIDES_BILINEAR, GFC_BITMAPSKIN_BACKCAPS_PARTIAL);
 				DestCombine		= 	GColorCombine(BlendSource,Disable);
-				Image			= 	GBitmap("../../../../Resources/Civ4/menu.tga", HVGrid, 1, 3, 0, 0);
+				Image			= 	GBitmap("../../../../Resource/Civ4/menu.tga", HVGrid, 1, 3, 0, 0);
 				Margin			= 	GRectMargin(6,6,6,6);
 			}
 			layer
 			{
 				LayerFlags		= 	GFlags(GCtrlBitmapSkin, GFC_BITMAPSKIN_CENTER_EMPTY, GFC_BITMAPSKIN_SIDES_BILINEAR, GFC_BITMAPSKIN_BACKCAPS_REGION);
 				DestCombine		= 	GColorCombine(BlendSource,Disable);
-				Image			= 	GBitmap("../../../../Resources/Civ4/menu.tga", HVGrid, 1, 3, 0, 1);
+				Image			= 	GBitmap("../../../../Resource/Civ4/menu.tga", HVGrid, 1, 3, 0, 1);
 				Margin			= 	GRectMargin(6,6,6,6);
 			}
 			layer					
 			{					
 				LayerFlags  	=	GFlags(GCtrlBitmapSkin, GFC_BITMAPSKIN_CENTER_EMPTY, GFC_BITMAPSKIN_SIDES_SCALE, GFC_BITMAPSKIN_NOTVISIBLE, GFC_BITMAPSKIN_NOHITTEST, 
 															GFC_BITMAPSKIN_BACKCAPS_REGION, GFC_BITMAPSKIN_REGION_TRANSPARENT, GFC_BITMAPSKIN_COLORKEY);
-				Image			= 	GBitmap("../../../../Resources/Civ4/menu.tga", HVGrid, 1, 3, 0, 2);
+				Image			= 	GBitmap("../../../../Resource/Civ4/menu.tga", HVGrid, 1, 3, 0, 2);
 				Margin			= 	GRectMargin(6,6,6,6);
 				ColorKey		= 	GColor(0,0,0,0);
 				ColorKeyMax		= 	GColor(0,0,0,128);
@@ -384,7 +384,7 @@ style SF_CtrlTheme_Civ4_Control_Menu_Standard_Table_Style
 					DestCombine		=	GColorCombine(BlendSource, Disable);
 					FactorCombine	= 	GColorCombine(Modulate,Modulate);
 					FactorColor		= 	SF_CtrlTheme_Civ4_Control_Color_BG;
-					Image			=	GBitmap("../../../../Resources/Civ4/menu_bg_inner.tga", HVGrid, 1, 1, 0, 0);
+					Image			=	GBitmap("../../../../Resource/Civ4/menu_bg_inner.tga", HVGrid, 1, 1, 0, 0);
 					Margin			=	GRectMargin(1,30,1,30); // (L, T, R, B)
 				}
 			}
@@ -401,7 +401,7 @@ style SF_CtrlTheme_Civ4_Control_Menu_Standard_Table_Style
 				layer
 				{
 					DestCombine 	=	GColorCombine(BlendSource,Disable);
-					Center			=	GBitmap("../../../../Resources/Civ4/menu_arrow.tga", Vertical, 3, 0);
+					Center			=	GBitmap("../../../../Resource/Civ4/menu_arrow.tga", Vertical, 3, 0);
 				}				
 			}					
 			.Select					
@@ -411,7 +411,7 @@ style SF_CtrlTheme_Civ4_Control_Menu_Standard_Table_Style
 					DestCombine 	=	GColorCombine(BlendSource,Disable);
 					FactorCombine	= 	GColorCombine(Modulate,Modulate);
 					FactorColor		= 	SF_CtrlTheme_Civ4_Control_Color_SelectText;
-					Center			=	GBitmap("../../../../Resources/Civ4/menu_arrow.tga", Vertical, 3, 1);
+					Center			=	GBitmap("../../../../Resource/Civ4/menu_arrow.tga", Vertical, 3, 1);
 				}				
 			}					
 			.Submenuselect			=	.Select;
@@ -422,7 +422,7 @@ style SF_CtrlTheme_Civ4_Control_Menu_Standard_Table_Style
 					DestCombine 	=	GColorCombine(BlendSource,Disable);
 					FactorCombine	= 	GColorCombine(Modulate,Modulate);
 					FactorColor		= 	GFC_Control_Color_Text_Disable;
-					Center			=	GBitmap("../../../../Resources/Civ4/menu_arrow.tga", Vertical, 3, 2);
+					Center			=	GBitmap("../../../../Resource/Civ4/menu_arrow.tga", Vertical, 3, 2);
 				}
 			}
 			.DisableSelect			=	.Disable;
@@ -448,7 +448,7 @@ style SF_CtrlTheme_Civ4_Control_Menu_Standard_Table_Style
 					DestCombine						= GColorCombine(BlendSource,Disable);
 					FactorCombine					= GColorCombine(Modulate,Modulate);
 					FactorColor						= SF_CtrlTheme_Civ4_Control_Color_Select;
-					Image							= GBitmap("../../../../Resources/Civ4/menu_selection.tga", HVGrid, 1, 1, 0, 0);
+					Image							= GBitmap("../../../../Resource/Civ4/menu_selection.tga", HVGrid, 1, 1, 0, 0);
 					Margin							= GRectMargin(48,0,48,0);
 				}	
 			}
@@ -461,7 +461,7 @@ style SF_CtrlTheme_Civ4_Control_Menu_Standard_Table_Style
 					DestCombine						= GColorCombine(BlendSource,Disable);
 					FactorCombine					= GColorCombine(Modulate,Modulate);
 					FactorColor						= SF_CtrlTheme_Civ4_Control_Color_DisableSelect;
-					Image							= GBitmap("../../../../Resources/Civ4/menu_selection.tga", HVGrid, 1, 1, 0, 0);
+					Image							= GBitmap("../../../../Resource/Civ4/menu_selection.tga", HVGrid, 1, 1, 0, 0);
 					Margin							= GRectMargin(48,0,48,0);
 				}	
 			}
@@ -477,7 +477,7 @@ style SF_CtrlTheme_Civ4_Control_Menu_Standard_Table_Style
 				{
 					DestCombine		= GColorCombine(BlendSource,Disable);
 					LayerFlags		= GFlags(GCtrlBitmapSkin, GFC_BITMAPSKIN_CENTER_BILINEAR, GFC_BITMAPSKIN_SIDES_BILINEAR);
-					Image			= GBitmap("../../../../Resources/Civ4/separator_h.tga", HVGrid, 1, 1, 0, 0);
+					Image			= GBitmap("../../../../Resource/Civ4/separator_h.tga", HVGrid, 1, 1, 0, 0);
 					Margin			= GRectMargin(48,0,48,0);
 				}
 			}		
@@ -735,7 +735,7 @@ style SF_CtrlTheme_Civ4_Control_MenuBar_Standard_Table_Style
 					DestCombine						= GColorCombine(BlendSource,Disable);
 					FactorCombine					= GColorCombine(Modulate,Modulate);
 					FactorColor						= SF_CtrlTheme_Civ4_Control_Color_Select;
-					Image							= GBitmap("../../../../Resources/Civ4/menubar_selection.tga", HVGrid, 1, 1, 0, 0);
+					Image							= GBitmap("../../../../Resource/Civ4/menubar_selection.tga", HVGrid, 1, 1, 0, 0);
 					Margin							= GRectMargin(0,0,0,0);
 				}	
 			}
@@ -746,7 +746,7 @@ style SF_CtrlTheme_Civ4_Control_MenuBar_Standard_Table_Style
 					DestCombine						= GColorCombine(BlendSource,Disable);
 					FactorCombine					= GColorCombine(Modulate,Modulate);
 					FactorColor						= SF_CtrlTheme_Civ4_Control_Color_Select;
-					Image							= GBitmap("../../../../Resources/Civ4/menubar_selection.tga", HVGrid, 1, 1, 0, 0);
+					Image							= GBitmap("../../../../Resource/Civ4/menubar_selection.tga", HVGrid, 1, 1, 0, 0);
 					Margin							= GRectMargin(0,0,0,0);
 				}	
 			}
@@ -757,7 +757,7 @@ style SF_CtrlTheme_Civ4_Control_MenuBar_Standard_Table_Style
 					DestCombine						= GColorCombine(BlendSource,Disable);
 					FactorCombine					= GColorCombine(Modulate,Modulate);
 					FactorColor						= SF_CtrlTheme_Civ4_Control_Color_Select;
-					Image							= GBitmap("../../../../Resources/Civ4/menubar_selection.tga", HVGrid, 1, 1, 0, 0);
+					Image							= GBitmap("../../../../Resource/Civ4/menubar_selection.tga", HVGrid, 1, 1, 0, 0);
 					Margin							= GRectMargin(0,0,0,0);
 				}	
 			}

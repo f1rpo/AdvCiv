@@ -75,7 +75,7 @@
 			<iAIPerEraModifier>0</iAIPerEraModifier>
 			<iAIAdvancedStartPercent>100</iAIAdvancedStartPercent>
 			<!-- advc.148 -->
-			<iAIAttitudeChange>0</iAIAttitudeChange>
+			<iAIAttitudeChangePercent>30</iAIAttitudeChangePercent>
 			<Goodies>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
@@ -223,12 +223,13 @@
 			<iAIPerEraModifier>0</iAIPerEraModifier>
 			<iAIAdvancedStartPercent>100</iAIAdvancedStartPercent>
 			<!-- advc.148 -->
-			<iAIAttitudeChange>0</iAIAttitudeChange>
+			<iAIAttitudeChangePercent>30</iAIAttitudeChangePercent>
 			<Goodies>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
-				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
+				<!-- advc.314: was HIGH_GOLD -->
+				<GoodyType>GOODY_TECH</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
@@ -348,14 +349,15 @@
 			<iAIPerEraModifier>0</iAIPerEraModifier>
 			<iAIAdvancedStartPercent>100</iAIAdvancedStartPercent>
 			<!-- advc.148 -->
-			<iAIAttitudeChange>0</iAIAttitudeChange>
+			<iAIAttitudeChangePercent>30</iAIAttitudeChangePercent>
 			<Goodies>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
-				<GoodyType>GOODY_LOW_GOLD</GoodyType>
+				<!-- advc.314: was LOW_GOLD -->
+				<GoodyType>GOODY_TECH</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<!-- advc.314: GOODY_SETTLER entry removed -->
@@ -448,7 +450,7 @@
 			<iAIPerEraModifier>0</iAIPerEraModifier>
 			<iAIAdvancedStartPercent>100</iAIAdvancedStartPercent>
 			<!-- advc.148 -->
-			<iAIAttitudeChange>1</iAIAttitudeChange>
+			<iAIAttitudeChangePercent>30</iAIAttitudeChangePercent>
 			<Goodies>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
@@ -456,7 +458,8 @@
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
-				<GoodyType>GOODY_LOW_GOLD</GoodyType>
+				<!-- advc.314: was LOW_GOLD -->
+				<GoodyType>GOODY_TECH</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<GoodyType>GOODY_WARRIOR</GoodyType>
@@ -544,14 +547,15 @@
 			<!-- advc.250c: was 110 -->
 			<iAIAdvancedStartPercent>125</iAIAdvancedStartPercent>
 			<!-- advc.148 -->
-			<iAIAttitudeChange>1</iAIAttitudeChange>
+			<iAIAttitudeChangePercent>40</iAIAttitudeChangePercent>
 			<Goodies>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
-				<GoodyType>GOODY_LOW_GOLD</GoodyType>
+				<!-- advc.314: was LOW_GOLD -->
+				<GoodyType>GOODY_TECH</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<GoodyType>GOODY_WARRIOR</GoodyType>
@@ -643,13 +647,14 @@
 			<!-- advc.250c: was 120 -->
 			<iAIAdvancedStartPercent>145</iAIAdvancedStartPercent>
 			<!-- advc.148 -->
-			<iAIAttitudeChange>1</iAIAttitudeChange>
+			<iAIAttitudeChangePercent>50</iAIAttitudeChangePercent>
 			<Goodies>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
-				<GoodyType>GOODY_LOW_GOLD</GoodyType>
+				<!-- advc.314: was LOW_GOLD -->
+				<GoodyType>GOODY_TECH</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<GoodyType>GOODY_WARRIOR</GoodyType>
@@ -767,14 +772,15 @@
 			<!-- advc.250c: was 135 -->
 			<iAIAdvancedStartPercent>175</iAIAdvancedStartPercent>
 			<!-- advc.148 -->
-			<iAIAttitudeChange>1</iAIAttitudeChange>
+			<iAIAttitudeChangePercent>60</iAIAttitudeChangePercent>
 			<Goodies>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
-				<GoodyType>GOODY_LOW_GOLD</GoodyType>
+				<!-- advc.314: was LOW_GOLD -->
+				<GoodyType>GOODY_TECH</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<GoodyType>GOODY_WARRIOR</GoodyType>
@@ -895,13 +901,14 @@
 			<!-- advc.250c: was 150 -->
 			<iAIAdvancedStartPercent>210</iAIAdvancedStartPercent>
 			<!-- advc.148 -->
-			<iAIAttitudeChange>1</iAIAttitudeChange>
+			<iAIAttitudeChangePercent>70</iAIAttitudeChangePercent>
 			<Goodies>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
-				<GoodyType>GOODY_LOW_GOLD</GoodyType>
+				<!-- advc.314: was LOW_GOLD -->
+				<GoodyType>GOODY_TECH</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<GoodyType>GOODY_WARRIOR</GoodyType>
@@ -1026,13 +1033,14 @@
 			<!-- advc.250c: was 170 -->
 			<iAIAdvancedStartPercent>270</iAIAdvancedStartPercent>
 			<!-- advc.148 -->
-			<iAIAttitudeChange>1</iAIAttitudeChange>
+			<iAIAttitudeChangePercent>90</iAIAttitudeChangePercent>
 			<Goodies>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
-				<GoodyType>GOODY_LOW_GOLD</GoodyType>
+				<!-- advc.314: was LOW_GOLD -->
+				<GoodyType>GOODY_TECH</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<GoodyType>GOODY_WARRIOR</GoodyType>
 				<GoodyType>GOODY_SCOUT</GoodyType>
@@ -1174,14 +1182,14 @@
 			<iAIWarWearinessPercent>80</iAIWarWearinessPercent>
 			<iAIPerEraModifier>-3</iAIPerEraModifier>
 			<iAIAdvancedStartPercent>200</iAIAdvancedStartPercent>
-			<iAIAttitudeChange>1</iAIAttitudeChange>
+			<iAIAttitudeChangePercent>60</iAIAttitudeChangePercent>
 			<Goodies>
                 <GoodyType>GOODY_HIGH_GOLD</GoodyType>
                 <GoodyType>GOODY_HIGH_GOLD</GoodyType>
                 <GoodyType>GOODY_LOW_GOLD</GoodyType>
                 <GoodyType>GOODY_LOW_GOLD</GoodyType>
-                <GoodyType>GOODY_LOW_GOLD</GoodyType>
-                <GoodyType>GOODY_LOW_GOLD</GoodyType>
+                <GoodyType>GOODY_BARBARIANS_STRONG</GoodyType>
+				<GoodyType>GOODY_TECH</GoodyType>
                 <GoodyType>GOODY_MAP</GoodyType>
                 <GoodyType>GOODY_MAP</GoodyType>
                 <GoodyType>GOODY_WARRIOR</GoodyType>

@@ -622,11 +622,18 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	}
 	// Optimism/ pessimism, learning from past success/ failure
 	double confAttPers = 1, confDefPers = 1;
-	if(id == weId)
-		confAttPers = GET_PLAYER(weId).warAndPeaceAI().warConfidencePersonal(isNaval);
-	else if(defender.id == weId)
-		confDefPers = GET_PLAYER(weId).warAndPeaceAI().warConfidencePersonal(
-				false); // Defense doesn't hinge on navies and fighting in faraway lands
+	if(id == weId || defender.id == weId) {
+		bool const bTotal = outer.m.evaluationParameters().isTotal();
+		if(id == weId) {
+			confAttPers = GET_PLAYER(weId).warAndPeaceAI().warConfidencePersonal(
+					isNaval, bTotal);
+		}
+		else if(defender.id == weId) {
+			confDefPers = GET_PLAYER(weId).warAndPeaceAI().warConfidencePersonal(
+					// Defense doesn't hinge on navies and fighting in faraway lands
+					false, bTotal);
+		}
+	}
 	if(GET_PLAYER(id).isHuman())
 		confDefPers *= GET_PLAYER(defender.id).warAndPeaceAI().confidenceAgainstHuman();
 	if(GET_PLAYER(defender.id).isHuman())
@@ -708,10 +715,10 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		else report.log("Attacker power: %d", ::round(armyPow));
 		report.log("Defending army's power: %d", ::round(targetArmyPow));
 	}
-	bool sneakAttack = isSneakAttack(defender);
-	bool attackerUnprepared = defender.isSneakAttack(*this);
+	bool sneakAttack = isSneakAttack(defender, clashOnly);
+	bool attackerUnprepared = defender.isSneakAttack(*this, false);
 	double deploymentDistDefender = 0;
-	double deploymentDistAttacker;
+	double deploymentDistAttacker = 0;
 	double mwmalpFactor = 1;
 	if(id == weId) {
 		int mwmalp = GC.getLeaderHeadInfo(GET_PLAYER(id). // in the interval [0,4]
@@ -769,11 +776,17 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	   a) Produced units become available with a delay.
 	   b) The combat AI tends to form smaller stacks when distances are long; they
 	      arrive in a trickle.
-	   a) is also true when sneak attacking, b) isn't. The divison by two says
-	   that distance is "half as bad" when sneak attacking. */
+	   When sneak attacking, b) is less of a concern, but don't want to encourage
+	   early long-distance wars; reduce deploymentDist only slightly. */
 	if(sneakAttack) {
-		deploymentDistAttacker /= 2;
-		deploymentDistDefender = 0;
+		if(clashOnly && defender.id == weId) {
+			deploymentDistDefender *= 0.8;
+			deploymentDistAttacker = 0;
+		}
+		else if(!clashOnly) {
+			deploymentDistAttacker *= 0.8;
+			deploymentDistDefender = 0;
+		}
 		/* This often allows sneak attackers to attack a city before civs that
 		   have been at war for some time. These civs already get a chance to
 		   conquer cities during the simulation prolog. That said, no build-up
@@ -901,7 +914,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	double defDeploymentMod = std::max(100 -  2 * deploymentDistDefender, 50.0)
 			/ 100;
 	targetArmyPow *= defDeploymentMod;
-	armyPow *= std::max(100 -  2 * deploymentDistAttacker, 50.0) / 100;
+	armyPow *= std::max(100 - 1.55 * std::pow(deploymentDistAttacker, 1.15), 50.0) / 100;
    // Units available in battle area
 	CvArea* battleArea = NULL;
 	if(c != NULL)
@@ -1172,9 +1185,9 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 			* powerPerGarrison
 			* powerCorrect(1 + cityDefenderBonus + tileBonus)) * confDef;
 	double defendingArmyPow = 0;
-	double defArmyPortion = std::min(1.0,
+	double defArmyPortion = std::min(1.0, (sneakAttack ? 0.375 : 0.5) /
 			// More units rallied at the first few cities that are attacked
-			0.5 / std::sqrt((defender.losses.size() + 1.0)) + nRallied * 0.25);
+			std::sqrt((defender.losses.size() + 1.0)) + nRallied * 0.25);
 	if(remainingCitiesDef == 1)
 		defArmyPortion = 1;
 	else if(!defender.hasClashed) {
@@ -1747,13 +1760,16 @@ double InvasionGraph::Node::clashDistance(InvasionGraph::Node const& other) cons
 	}
 }
 
-bool InvasionGraph::Node::isSneakAttack(InvasionGraph::Node const& other) const {
+bool InvasionGraph::Node::isSneakAttack(InvasionGraph::Node const& other,
+		bool bClash) const {
 
-	if(id != weId || TEAMREF(id).isAtWar(TEAMID(other.getId())))
+	if((id != weId && (!bClash || other.id != weId)) || TEAMREF(id).isAtWar(TEAMID(other.getId())))
 		return false;
-	for(size_t i = 0; i < conquests.size(); i++)
-		if(conquests[i]->cityOwner() == other.getId())
-			return false;
+	if(!bClash) {
+		for(size_t i = 0; i < conquests.size(); i++)
+			if(conquests[i]->cityOwner() == other.getId())
+				return false;
+	}
 	WarEvalParameters const& params = outer.m.evaluationParameters();
 	// Can't ready our units then
 	return !params.isImmediateDoW();

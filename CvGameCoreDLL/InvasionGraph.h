@@ -149,7 +149,7 @@ friend class Node;
 		 // Vassals that break free are currently not modeled.
 		 void setCapitulated(TeamTypes masterId);
 		 double clashDistance(Node const& other) const;
-		 bool isSneakAttack(Node const& other) const;
+		 bool isSneakAttack(Node const& other, bool bClash) const;
 		 bool isContinuedWar(Node const& other) const;
 		 bool canReachByLand(int cityId) const;
 		 CvArea* clashArea(PlayerTypes otherId) const;

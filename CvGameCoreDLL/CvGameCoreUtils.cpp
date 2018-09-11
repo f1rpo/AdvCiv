@@ -2520,7 +2520,12 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 	TeamTypes ePlotTeam = pNewPlot->getTeam();
 	int* v = (int*)pointer;
 	int iMaxPath = v[5];
-	if(iMaxPath > 0 && node->m_iHeuristicCost + node->m_iKnownCost > iMaxPath)
+	/*  As far as I understand the code, node (the pToPlot) is still set to 0
+		cost if it's visited for the first time, so we should look at parent
+		(pFromPlot) when enforcing the upper bound (iMaxPath). But it doesn't
+		hurt to check node's cost too. */
+	if(iMaxPath > 0 && (parent->m_iHeuristicCost + parent->m_iKnownCost > iMaxPath ||
+			node->m_iHeuristicCost + node->m_iKnownCost > iMaxPath))
 		return FALSE;
 	TeamTypes eTeam = (TeamTypes)v[0];
 	TeamTypes eTargetTeam = (TeamTypes)v[1];

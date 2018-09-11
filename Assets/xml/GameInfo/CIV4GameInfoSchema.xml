@@ -369,7 +369,7 @@
 	<ElementType name="iAIPerEraModifier" content="textOnly" dt:type="int"/>
 	<ElementType name="iAIAdvancedStartPercent" content="textOnly" dt:type="int"/>
 	<!-- advc.148 -->
-	<ElementType name="iAIAttitudeChange" content="textOnly" dt:type="int"/>
+	<ElementType name="iAIAttitudeChangePercent" content="textOnly" dt:type="int"/>
 	<ElementType name="GoodyType" content="textOnly"/>
 	<ElementType name="Goodies" content="eltOnly">
 		<element type="GoodyType" maxOccurs="*"/>
@@ -452,7 +452,7 @@
 		<element type="iAIPerEraModifier"/>
 		<element type="iAIAdvancedStartPercent"/>
 		<!-- advc.148 -->
-		<element type="iAIAttitudeChange"/>
+		<element type="iAIAttitudeChangePercent"/>
 		<element type="Goodies" maxOccurs="*"/>
 		<element type="FreeTechs" maxOccurs="*"/>
 		<element type="AIFreeTechs" maxOccurs="*"/>

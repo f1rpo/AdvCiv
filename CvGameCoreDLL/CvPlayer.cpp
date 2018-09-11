@@ -6018,10 +6018,10 @@ bool CvPlayer::canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) 
 	CvGoodyInfo const& goody = GC.getGoodyInfo(eGoody); // advc.003
 	// <advc.314>
 	CvGame& g = GC.getGameINLINE();
-	bool veryEarlyGame = (100 * g.getGameTurn() <
-			20 * GC.getGameSpeedInfo(g.getGameSpeedType()).getTrainPercent());
-	bool veryVeryEarlyGame = (100 * g.getGameTurn() <
-			10 * GC.getGameSpeedInfo(g.getGameSpeedType()).getTrainPercent());
+	int const trainHalved = (GC.getGameSpeedInfo(g.getGameSpeedType()).
+			getTrainPercent() + 100) / 2;
+	bool veryEarlyGame = (100 * g.getGameTurn() < 20 * trainHalved);
+	bool veryVeryEarlyGame = (100 * g.getGameTurn() < 10 * trainHalved);
 	if (goody.getExperience() > 0)
 	{
 		if ((pUnit == NULL) || !(pUnit->canAcquirePromotionAny()) ||
@@ -6050,12 +6050,12 @@ bool CvPlayer::canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) 
 			if(isGoodyTech((TechTypes)iI, anyGold)) {
 			/*if (GC.getTechInfo((TechTypes) iI).isGoodyTech())
 			{
-				//if (canResearch((TechTypes)iI), false, true) // K-Mod
+				//if (canResearch((TechTypes)iI), false, true)*/ // K-Mod
 				if (canResearchBulk((TechTypes)iI, false, true)) // advc.003
-				{*/
+				{
 					bTechFound = true;
 					break;
-				//}
+				}
 			}
 		}
 
@@ -6119,7 +6119,7 @@ bool CvPlayer::canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) 
 		return false; // </advc.314>
 	if ((goody.getBarbarianUnitClass() != NO_UNITCLASS
 			// <advc.314> Hostile unit w/o any UnitClassType given
-			|| goody.getMinBarbarians() > 0 && goody.getBarbarianUnitProb() > 0)
+			|| (goody.getMinBarbarians() > 0 && goody.getBarbarianUnitProb() > 0))
 			// BarbarianUnitClass has a different use now when !isBad
 			&& goody.isBad()) // </advc.314>
 	{
@@ -6148,8 +6148,16 @@ bool CvPlayer::canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) 
 				}
 			}
 		}
-	}
-
+	} // <advc.315d> No Scout from a Scout if already 2 Scouts
+	if(pUnit != NULL && pUnit->isNoBadGoodies() && AI_getNumAIUnits(UNITAI_EXPLORE) >= 2) {
+		UnitClassTypes uct = (UnitClassTypes)goody.getUnitClassType();
+		if(uct != NO_UNITCLASS) {
+			UnitTypes ut = (UnitTypes)GC.getCivilizationInfo(getCivilizationType()).
+					getCivilizationUnits(uct);
+			if(ut != NO_UNIT && GC.getUnitInfo(ut).isNoBadGoodies())
+				return false;
+		}
+	} // </advc.315d>
 	return true;
 }
 

@@ -10358,8 +10358,8 @@ bool CvCity::canCultureFlip(PlayerTypes eToPlayer
 	, bool checkPriorRevolts // advc.101: default true
 	) const
 {
-	if (isBarbarian())
-		return true;
+	/*if (isBarbarian()) // advc.101: Commented out
+		return true;*/
 	// <advc.099c> Actually still guaranteed by caller, but shouldn't rely on it
 	if(eToPlayer == NO_PLAYER || !GET_PLAYER(eToPlayer).isAlive() ||
 			eToPlayer == BARBARIAN_PLAYER || // Not guaranteed by caller
@@ -10371,7 +10371,8 @@ bool CvCity::canCultureFlip(PlayerTypes eToPlayer
 		getPreviousOwner() == NO_PLAYER ||
 		TEAMID(getPreviousOwner()) != TEAMID(eToPlayer)) && // advc.003
 		(!checkPriorRevolts || // advc.101
-		getNumRevolts(eToPlayer) >= GC.getNUM_WARNING_REVOLTS());
+		getNumRevolts(eToPlayer) >= GC.getNUM_WARNING_REVOLTS()
+		- (isBarbarian() ? 1 : 0)); // advc.101
 }
 // K-Mod end
 

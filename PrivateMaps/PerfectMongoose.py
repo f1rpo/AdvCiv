@@ -5420,7 +5420,7 @@ def getCustomMapOptionDescAt(argsList):
 			return "Flat"
 	elif optionID == 1:
 		# advc.021b: was just "Old World"
-		owMsg = "Old World (unless Pangaea); -25% players recommended"
+		owMsg = "Old World (unless Pangaea); -35% players recommended"
 		if mc.AllowNewWorld:
 			if selectionID == 0:
 				return owMsg

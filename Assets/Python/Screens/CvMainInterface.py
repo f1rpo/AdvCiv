@@ -291,7 +291,6 @@ class CvMainInterface:
 # BUG - field of view slider - end
 
 
-		
 
 ############## Basic operational functions ###################
 
@@ -5328,7 +5327,7 @@ class CvMainInterface:
 
 		kEngine = CyEngine()
 		kGLM = CyGlobeLayerManager()
-		iNumLayers = kGLM.getNumLayers()
+		#iNumLayers = kGLM.getNumLayers() # advc.003: unused
 		iCurrentLayerID = kGLM.getCurrentLayerID()
 
 		# Positioning things based on the visibility of the globe
@@ -5339,7 +5338,6 @@ class CvMainInterface:
 				screen.setHelpTextArea( 350, FontTypes.SMALL_FONT, 7, yResolution - 172, -0.1, False, "", True, False, CvUtil.FONT_LEFT_JUSTIFY, HELP_TEXT_MINIMUM_WIDTH )
 			else:
 				screen.setHelpTextArea( 350, FontTypes.SMALL_FONT, 7, yResolution - 50, -0.1, False, "", True, False, CvUtil.FONT_LEFT_JUSTIFY, HELP_TEXT_MINIMUM_WIDTH )
-
 		
 		# Set base Y position for the LayerOptions, if we find them	
 		if CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_HIDE:
@@ -5353,7 +5351,7 @@ class CvMainInterface:
 			screen.hide(szName)
 
 		# Setup the GlobeLayer panel
-		iNumLayers = kGLM.getNumLayers()
+		#iNumLayers = kGLM.getNumLayers() # advc.003: unused
 		if kEngine.isGlobeviewUp() and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_HIDE_ALL:
 			# set up panel
 			# advc.004z: Clauses for RESOURCES and UNITS added. Would rather set NumOptions to 0, but GlobeLayerManager is not part of the SDK, apparently.
@@ -5444,8 +5442,8 @@ class CvMainInterface:
 
 		if ( CyInterface().isCityScreenUp() ):
 			bVisible = False
-		
-		kMainButtons = ["UnitIcons", "Grid", "BareMap", "Yields", "ScoresVisible", "ResourceIcons"]
+		# advc.004z: Moved ResourceIcons from last position to second and swappend BareMap and Yields
+		kMainButtons = ["UnitIcons", "ResourceIcons", "Grid", "Yields", "BareMap", "ScoresVisible"]
 		kGlobeButtons = []
 		for i in range(kGLM.getNumLayers()):
 			szButtonID = "GlobeLayer" + str(i)
@@ -5498,7 +5496,7 @@ class CvMainInterface:
 		
 		kEngine = CyEngine()
 		kGLM = CyGlobeLayerManager()
-		iNumLayers = kGLM.getNumLayers()
+		#iNumLayers = kGLM.getNumLayers() # advc.003: unused
 
 		for i in range (kGLM.getNumLayers()):
 			szButtonID = "GlobeLayer" + str(i)

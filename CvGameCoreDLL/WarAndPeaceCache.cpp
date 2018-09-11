@@ -283,7 +283,7 @@ void WarAndPeaceCache::updateGoldPerProduction() {
 	goldPerProduction = std::max(goldPerProdVictory(), goldPerProduction);
 }
 
-double const WarAndPeaceCache::goldPerProdUpperLimit = 4.25;
+double const WarAndPeaceCache::goldPerProdUpperLimit = 4.5;
 double WarAndPeaceCache::goldPerProdBuildings() {
 	int dummy; // For unused out-parameters
 	vector<double> buildingCounts; // excluding wonders
@@ -323,30 +323,53 @@ double WarAndPeaceCache::goldPerProdBuildings() {
 	}
 	if(buildingCounts.empty()) // No city founded yet
 		return 2;
+	// Cities about to be founded; will soon need buildings.
+	for(int i = 0; i < ::round(0.6 * std::min(owner.AI_getNumAIUnits(UNITAI_SETTLE),
+			owner.AI_getNumCitySites())); i++)
+		buildingCounts.push_back(::max(buildingCounts));
 	int era = owner.getCurrentEra();
-	double missing = ::median(buildingCounts) +
-	// Assume one useless (national) wonder per era
-	std::max(0.0, ::median(wonderCounts) - era);
+	CvLeaderHeadInfo const& lh = GC.getLeaderHeadInfo(owner.getPersonalityType());
+	double missing = ::median(buildingCounts) + std::max(0.0, ::median(wonderCounts) -
+			/*  Assume one useless (small or great) wonder per era, but two for
+				Classical and none for Future. */
+			(std::min(5, era) + (era > 0 ? 1 : 0))) *
+			((lh.getWonderConstructRand() + 20) / 50); // wcr=30 is typical
 	// Assume 6 buildings made available per era
 	int maxBuildings = (era + 1) * 6;
-	double missingRatio = std::min(1.0, missing / maxBuildings);
+	double missingRatio = missing / maxBuildings;
+	missingRatio *= (100 - lh.getBuildUnitProb()) / 75.0; // bup=25 is typical
+	missingRatio = std::min(missingRatio, 1.0);
 	double r = std::max(1.0, goldPerProdUpperLimit * missingRatio);
 	return r;
 }
 double WarAndPeaceCache::goldPerProdSites() {
 
 	CvPlayerAI const& owner = GET_PLAYER(ownerId);
-	double sites = std::max(0, owner.AI_getNumCitySites() -
-			owner.AI_getNumAIUnits(UNITAI_SETTLE));
-	CvPlayer const& barb = GET_PLAYER(BARBARIAN_PLAYER);
-	/*  Don't want to count faraway barb cities. From looking at some sample
-		numbers, a threshold of 30 might accomplish this. */
-	int const thresh = 30; int dummy;
-	for(CvCity* c = barb.firstCity(&dummy); c != NULL;
-			c = barb.nextCity(&dummy)) {
-		if(GET_TEAM(owner.getTeam()).AI_deduceCitySite(c) &&
-				owner.AI_targetCityValue(c, false, true) > thresh)
-			sites++;
+	std::vector<double> foundVals;
+	for(int i = 0; i < owner.AI_getNumCitySites(); i++) {
+		CvPlot* site = owner.AI_getCitySite(i);
+		if(site != NULL)
+			foundVals.push_back(site->getFoundValue(owner.getID()));
+	}
+	std::sort(foundVals.begin(), foundVals.end(), std::greater<double>());
+	int const sitesMax = 5;
+	double weights[sitesMax] = { 1, 0.8, 0.6, 0.4, 0.2 };
+	double sites = 0;
+	int const settlers = owner.AI_getNumAIUnits(UNITAI_SETTLE);
+	for(int i = settlers; i < std::min(sitesMax, (int)foundVals.size()); i++) {
+		/*  Once the settlers have been used, the found value of more remote sites
+			may increase a bit (see shapeWeight in AI_foundValue_bulk) */
+		sites += foundVals[i] * (weights[i] + settlers / 10.0) / 2500;
+	}
+	CvPlayer const& barb = GET_PLAYER(BARBARIAN_PLAYER); int foo=-1;
+	/*  Don't want to count faraway barb cities. Reference value set after
+		looking at some sample targetCityValues; let's hope these generalize. */
+	double const refVal = 50; 
+	for(CvCity* c = barb.firstCity(&foo); c != NULL; c = barb.nextCity(&foo)) {
+		if(GET_TEAM(owner.getTeam()).AI_deduceCitySite(c)) {
+			int const targetVal = owner.AI_targetCityValue(c, false, true);
+			sites += std::pow(std::min((double)targetVal, refVal) / refVal, 3.0);
+		}
 	}
 	CvGame& g = GC.getGameINLINE();
 	int gameEra = g.getCurrentEra();
@@ -362,6 +385,7 @@ double WarAndPeaceCache::goldPerProdSites() {
 	double r = std::min(goldPerProdUpperLimit, goldPerProdUpperLimit * sites / cities);
 	return r;
 }
+
 double WarAndPeaceCache::goldPerProdVictory() {
 	CvTeamAI const& ourTeam = TEAMREF(ownerId);
 	int ourVictLevel = 0;
@@ -1500,7 +1524,7 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 	reachByLand = false;
 	reachBySea = false;
 	bool human = cacheOwner.isHuman();
-	EraTypes era = cacheOwner.getCurrentEra();
+	EraTypes const era = cacheOwner.getCurrentEra();
 	// Assume that humans can always locate cities
 	if(!human && !cacheOwner.AI_deduceCitySite(targetCity))
 		return;
@@ -1509,7 +1533,6 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 	bool trainAnyCargo = cacheOwner.warAndPeaceAI().getCache().
 			canTrainAnyCargo();
 	int const seaPenalty = (human ? 2 : 4);
-	double shipSpeed = cacheOwner.warAndPeaceAI().shipSpeed();
 	vector<int> pairwDurations;
 	/*  If we find no land path and no sea path from a city c to the target,
 		but at least one other city that does have a path to the target, then there
@@ -1526,21 +1549,9 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 		int pwd = -1; // pairwise (travel) duration
 		int d = -1; // set by measureDistance
 		if(measureDistance(DOMAIN_LAND, p, targetCity->plot(), &d)) {
-			double speed = 1;
-			if(era >= 6) // Future era; to account for very high mobility in endgame
-				speed++;
-			/*  Difficult to account for routes; c could be a border city, but the
-				route could still lead through friendly territory, and the owner
-				of that territory may or may not have Engineering or Railroad. */
-			// 4 is Industrial era
-			else if((era >= 4 && GC.getGameINLINE().getCurrentEra() >= 4) || era >= 5)
-				speed *= 4.5; // Railroads are faster, but don't expect them everywhere
-			else if(GET_TEAM(cacheOwner.getTeam()).warAndPeaceAI().isFastRoads())
-				speed *= 2;
-			else if(era >= 1) // Some roads in Classical era
-				speed *= 1.5;
+			double speed = estimateMovementSpeed(DOMAIN_LAND, d);
 			// Will practically always have to move through some foreign tiles
-			d = std::max(1, ::round(d / speed));
+			d = std::min(d, 2) + ::round((d - std::min(d, 2)) / speed);
 			pwd = d;
 			/*  reachByLand refers to our (AI) capital. This is to ensure that the
 				AI can still detect the need for a naval assault when it has a
@@ -1556,7 +1567,8 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 				dom = DOMAIN_IMMOBILE; // Encode non-ocean as IMMOBILE
 			if(measureDistance(dom, p, targetCity->plot(), &d)) {
 				FAssert(d >= 0);
-				d = (int)std::ceil(d / shipSpeed) + seaPenalty;
+				d = (int)std::ceil(d / estimateMovementSpeed(DOMAIN_SEA, d)) +
+						seaPenalty;
 				if(pwd < 0 || d < pwd) {
 					pwd = d;
 					rbsLoop = true;
@@ -1599,6 +1611,31 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 	//* std::max(1.0, 0.75 + mixedPath / ((double)pairwDistances.size() + mixedPath)));
 }
 
+
+double WarAndPeaceCache::City::estimateMovementSpeed(DomainTypes dom, int dist) const {
+
+	CvPlayerAI const& cacheOwner = GET_PLAYER(cacheOwnerId);
+	if(dom != DOMAIN_LAND)
+		return cacheOwner.warAndPeaceAI().shipSpeed();
+	EraTypes const era = cacheOwner.getCurrentEra();
+	double r = 1;
+	if(era >= 6) // Future era; to account for very high mobility in endgame
+		r++;
+	/*  Difficult to account for routes; c could be a border city, but the
+		route could still lead through friendly territory and the owner
+		of that territory may or may not have Engineering or Railroad. */
+		// 4 is Industrial era
+	if((era >= 4 && GC.getGameINLINE().getCurrentEra() >= 4) || era >= 5)
+		r *= 4.5; // Railroads are faster than this, but don't expect them everywhere.
+	else if(GET_TEAM(cacheOwner.getTeam()).warAndPeaceAI().isFastRoads())
+		r *= 2;
+	/*  Some roads in Classical era; the longer the path, the higher the
+		chance of it traversing unpaved ground. */
+	else if(era >= 1)
+		r *= ::dRange(26.0 / (dist + 10), 1.0, 2.0);
+	return r;
+}
+
 // <advc.104b>
 bool WarAndPeaceCache::City::measureDistance(DomainTypes dom, CvPlot* start,
 		CvPlot* dest, int* r) {
@@ -1617,12 +1654,12 @@ bool WarAndPeaceCache::City::measureDistance(DomainTypes dom, CvPlot* start,
 	// AI needs to be able to target even very remote rivals eventually
 	if(GET_PLAYER(cacheOwnerId).getCurrentEra() >= 4)
 		maxDist = (4 * maxDist) / 3;
-	// stepDistance sanity check to avoid costly distance measurement
-	double stepDist = ::stepDistance(start, dest);
-	if(dom == DOMAIN_LAND)
-		stepDist /= 2; // Effect of roads
-	stepDist /= GET_PLAYER(cacheOwnerId).warAndPeaceAI().shipSpeed();
-	if(stepDist > maxDist)
+	/*  stepDistance sanity check to avoid costly distance measurement
+		(though ::teamStepValid_advc now performs the same check through
+		::stepHeuristic I think) */
+	int stepDist = ::stepDistance(start, dest);
+	double speedEstimate = estimateMovementSpeed(dom, stepDist);
+	if(stepDist / speedEstimate > maxDist)
 		return false;
 	// dest is guaranteed to be owned; get the owner before possibly changing dest
 	TeamTypes destTeam = dest->getTeam();
@@ -1636,10 +1673,10 @@ bool WarAndPeaceCache::City::measureDistance(DomainTypes dom, CvPlot* start,
 		for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
 			CvPlot* adj = ::plotDirection(x, y, (DirectionTypes)i);
 			if(adj != NULL && adj->isCoastalLand(minSz)) {
-				int stepDist = ::stepDistance(start, adj);
-				if(stepDist < shortestStepDist) {
+				int d = ::stepDistance(start, adj);
+				if(d < shortestStepDist) {
 					dest = adj;
-					shortestStepDist = stepDist;
+					shortestStepDist = d;
 				}
 			}
 		}
@@ -1654,10 +1691,10 @@ bool WarAndPeaceCache::City::measureDistance(DomainTypes dom, CvPlot* start,
 		for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
 			CvPlot* adj = ::plotDirection(destx, desty, (DirectionTypes)i);
 			if(adj != NULL && adj->isWater()) {
-				int stepDist = ::stepDistance(start, adj);
-				if(stepDist < shortestStepDist) {
+				int d = ::stepDistance(start, adj);
+				if(d < shortestStepDist) {
 					dest = adj;
-					shortestStepDist = stepDist;
+					shortestStepDist = d;
 				}
 			}
 		}
@@ -1667,7 +1704,9 @@ bool WarAndPeaceCache::City::measureDistance(DomainTypes dom, CvPlot* start,
 	if(dom != DOMAIN_LAND && !start->isAdjacentToArea(dest->area()))
 		return false;
 	*r = start->calculatePathDistanceToPlot(start->getTeam(), dest, destTeam,
-			dom, maxDist);
+			/*  Path distance counts each step as 1 move; upper bound needs to
+				account for faster movement. */
+			dom, (int)::ceil(maxDist * speedEstimate));
 	return (*r >= 0);
 } // </advc.104b>
 

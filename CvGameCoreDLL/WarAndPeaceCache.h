@@ -235,7 +235,7 @@ public:
 		/* Auxiliary function for sorting. -1 means one < two, +1 two < one and 0
 		   neither. */
 		static int byOwner(City* one, City* two);
-
+		double estimateMovementSpeed(DomainTypes dom, int dist) const;
 		// Wrapper for CvUnit::generatePath
 	    bool measureDistance(DomainTypes dom, CvPlot* start, CvPlot* dest, int* r);
 		void updateDistance(CvCity* targetCity);

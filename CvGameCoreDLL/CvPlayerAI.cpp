@@ -4600,13 +4600,17 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			/*  advc.003: BtS code dealing with iDistance deleted;
 				K-Mod comment: Close cities are penalised in other ways */
 			// K-Mod.
-			int iTargetRange = (kSet.bExpansive ? 6 : 5);
-			if (iDistance > iTargetRange)
-			{
-				iValue -= std::min(5, iDistance - iTargetRange) * 400; // with that max distance, we could fit a city in the middle!
+			/*  advc.031: Make expansive leaders indifferent about iDistance=5 vs.
+				iDifference=6, but don't encourage iDistance>6. */
+			int const iTargetRange = 5;//(kSet.bExpansive ? 6 : 5);
+			if (iDistance > iTargetRange
+					+ (kSet.bExpansive ? 1 : 0)) // advc.031
+			{	// with that max distance, we could fit a city in the middle!
+				iValue -= std::min(iTargetRange, iDistance - iTargetRange) * 400;
 			}
 			iValue *= 8 + 4*iNumCities;
-			iValue /= 2 + 4*iNumCities + std::max(5, iDistance); // 5, not iTargetRange, because 5 is better.
+			// 5, not iTargetRange, because 5 is better. (advc: iTargetRange is 5 now)
+			iValue /= 2 + 4*iNumCities + std::max(iTargetRange, iDistance);
 
 			if (!pNearestCity->isCapital() && pCapital)
 			// K-Mod end
@@ -9932,12 +9936,19 @@ int CvPlayerAI::AI_getFavoriteCivicAttitude(PlayerTypes ePlayer) const
 int CvPlayerAI::AI_getTradeAttitude(PlayerTypes ePlayer) const {
 
 	int r = AI_getPeacetimeGrantValue(ePlayer)
-		+ std::max(0, (AI_getPeacetimeTradeValue(ePlayer)
-		- GET_PLAYER(ePlayer).AI_getPeacetimeTradeValue(getID())));
+			+ std::max(0, (AI_getPeacetimeTradeValue(ePlayer)
+			- GET_PLAYER(ePlayer).AI_getPeacetimeTradeValue(getID())));
 	/*  Adjustment to game progress now happens when recording grant and trade values;
 		decay happens explicitly in AI_doCounter. */
 	return range(::round(r * TEAMREF(ePlayer).recentlyMetMultiplier(getTeam()))
-			/ peacetimeTradeValDivisor, 0, peacetimeTradeRelationsLimit);
+			/ AI_peacetimeTradeValDivisor(), 0, peacetimeTradeRelationsLimit);
+}
+
+
+int CvPlayerAI::AI_peacetimeTradeValDivisor() const {
+
+	return 120000 / ::range(GC.getLeaderHeadInfo(getPersonalityType()).
+			getMemoryAttitudePercent(MEMORY_EVENT_GOOD_TO_US), 1, 1000);
 }
 
 
@@ -10012,7 +10023,7 @@ int CvPlayerAI::AI_getRivalTradeAttitude(PlayerTypes ePlayer) const {
 	/*  Adjustment to game progress now happens when recording grant and trade values;
 		decay happens explicitly in AI_doCounter. */
 	r = (::round(r * TEAMREF(ePlayer).recentlyMetMultiplier(getTeam())) +
-			75 * ::round(dualDealCounter)) / peacetimeTradeValDivisor;
+			75 * ::round(dualDealCounter)) / AI_peacetimeTradeValDivisor();
 	return -range(r, 0, peacetimeTradeRelationsLimit);
 }
 
@@ -10107,9 +10118,9 @@ int CvPlayerAI::AI_getFirstImpressionAttitude(PlayerTypes ePlayer) const {
 				GC.getLeaderHeadInfo(kPlayer.getPersonalityType()).
 				getWarmongerRespect());
 		personalityModifier += respectModifier * 0.75;
+		personalityModifier += h.getAIAttitudeChangePercent() / 100.0; // advc.148
 		iAttitude += ::round(personalityModifier);
-		iAttitude = ::range(iAttitude, -3, 3); // </advc.130b>
-		iAttitude += h.getAIAttitudeChange(); // advc.148
+		// </advc.130b>
 	}
     return iAttitude;
 }
@@ -18575,8 +18586,12 @@ void CvPlayerAI::AI_changePeaceTimeValue(PlayerTypes eIndex, int iChange,
 	/*  Trade values are higher in slow games b/c everything is more expensive.
 		Game scores aren't much affected by speed. Adjust trade value to
 		speed to make trade value comparable with score. */
-	double val = (100.0 * iChange) /
-			GC.getGameSpeedInfo(g.getGameSpeedType()).getResearchPercent();
+	double val = (100.0 * iChange) / std::max(
+			GC.getGameSpeedInfo(g.getGameSpeedType()).getResearchPercent() +
+			/*  The tech cost modifier from map size also inflates trade values
+				(though arguably not as much as the speed modifier; add only a
+				fraction of the map size modifier?) */
+			GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getResearchPercent(), 1);
 	/*  Times 1000 for increased precision, times 2 for an average of the player
 		scores, times 2 b/c "fair trade" is twice as sensitive as "traded with
 		worst enemy" (it's this way too in BtS) */
@@ -27882,22 +27897,34 @@ ReligionTypes CvPlayerAI::AI_chooseReligion()
 	{
 		return eFavorite;
 	}
-
-	std::vector<ReligionTypes> aeReligions;
+	//std::vector<ReligionTypes> aeReligions;
+	// <advc.171>
+	int iSmallest = INT_MAX;
+	ReligionTypes bestRel = NO_RELIGION; // </advc.171>
 	for (int iReligion = 0; iReligion < GC.getNumReligionInfos(); ++iReligion)
 	{
-		if (!GC.getGameINLINE().isReligionFounded((ReligionTypes)iReligion))
+		ReligionTypes rel = (ReligionTypes)iReligion; // advc.003
+		if (!GC.getGameINLINE().isReligionFounded(rel))
 		{
-			aeReligions.push_back((ReligionTypes)iReligion);
+			//aeReligions.push_back((ReligionTypes)iReligion);
+			// <advc.171> Replacing the above
+			int iValue = 0;
+			TechTypes relTech = (TechTypes)GC.getReligionInfo(rel).getTechPrereq();
+			if(relTech != NO_TECH)
+				iValue = GC.getTechInfo(relTech).getResearchCost();
+			if(iValue < iSmallest) {
+				bestRel = rel;
+				iSmallest = iValue;
+			}
 		}
 	}
-
-	if (aeReligions.size() > 0)
+	return bestRel; // </advc.171> // BtS code:
+	/*if (aeReligions.size() > 0)
 	{
 		return aeReligions[GC.getGameINLINE().getSorenRandNum(aeReligions.size(), "AI pick religion")];
 	}
 
-	return NO_RELIGION;
+	return NO_RELIGION;*/
 }
 
 int CvPlayerAI::AI_getAttitudeWeight(PlayerTypes ePlayer) const

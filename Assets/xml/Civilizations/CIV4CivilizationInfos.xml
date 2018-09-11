@@ -2095,7 +2095,8 @@
 				<City>TXT_KEY_CITY_NAME_YASODHARAPURA</City>
 				<City>TXT_KEY_CITY_NAME_HARIHARALAYA</City>
 				<City>TXT_KEY_CITY_NAME_ANGKOR_THOM</City>
-				<City>TXT_KEY_CITY_NAME_ANGKOR_WAT</City>
+				<!-- advc.005e: Commented out -->
+				<!--City>TXT_KEY_CITY_NAME_ANGKOR_WAT</City-->
 				<City>TXT_KEY_CITY_NAME_NAGARA_JAYASRI</City>
 				<City>TXT_KEY_CITY_NAME_RAJAVIHARA</City>
 				<City>TXT_KEY_CITY_NAME_ISVARAPURA</City>
@@ -4014,7 +4015,8 @@
 				<City>TXT_KEY_CITY_NAME_HARAPPAN</City>
 				<City>TXT_KEY_CITY_NAME_MAURYAN</City>
 				<City>TXT_KEY_CITY_NAME_PARTHIAN</City>
-				<City>TXT_KEY_CITY_NAME_HARAPPAN</City>
+				<!-- advc.003: Duplicate removed -->
+				<!--City>TXT_KEY_CITY_NAME_HARAPPAN</City-->
 				<City>TXT_KEY_CITY_NAME_NUBIAN</City>
 				<City>TXT_KEY_CITY_NAME_BACTRIAN</City>
 				<City>TXT_KEY_CITY_NAME_CIRCASSIAN</City>

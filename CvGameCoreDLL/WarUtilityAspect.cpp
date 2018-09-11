@@ -1713,10 +1713,10 @@ void HiredHand::evaluate() {
 				log("... but we don't like our hireling enough to care");
 				continue;
 			}
-			/*  Behave as if someone had paid us the equivalent of 20 utility;
+			/*  Behave as if someone had paid us the equivalent of 25 utility;
 				feel obliged to fight along the ally for 10 turns.
 				Or should it matter how much we've paid the ally? */
-			uPlus += eval(ally.getID(), 20, 10);
+			uPlus += eval(ally.getID(), 25, 10);
 		}
 	}
 	/*  Have we been at war since the start of the game? Then it's a scenario
@@ -1738,10 +1738,14 @@ double HiredHand::eval(PlayerTypes allyId, int originalUtility, int obligationTh
 		log("We don't feel obliged to fight for %s", report.leaderName(allyId));
 		return 0;
 	}
+	int agentAtWarCounter = agent.AI_getAtWarCounter(TEAMID(theyId));
+	if(!agent.isAtWar(TEAMID(theyId)))
+		agentAtWarCounter = INT_MAX;
+	int allyAtWarCounter = ((allyId == NO_PLAYER ||
+			!TEAMREF(allyId).isAtWar(TEAMID(theyId)) ? INT_MAX :
+			TEAMREF(allyId).AI_getAtWarCounter(TEAMID(theyId))));
 	// Whoever has been hired must have the smaller AtWarCounter
-	int turnsFought = std::min(agent.AI_getAtWarCounter(TEAMID(theyId)),
-			allyId == NO_PLAYER ? INT_MAX :
-			TEAMREF(allyId).AI_getAtWarCounter(TEAMID(theyId)));
+	int turnsFought = std::min(agentAtWarCounter, allyAtWarCounter);
 	log("Hired team has fought %d turns against %s", turnsFought,
 			report.leaderName(theyId));
 	if(turnsFought >= obligationThresh) {
@@ -2323,7 +2327,11 @@ int Effort::preEvaluate() {
 			anyWar = true;
 	if(!anyWar) futureUse = 1;*/
 	double invested = m->militaryProduction(weId);
-	double totalLostProduction = lostProduction * futureUse + invested * (1 - futureUse);
+	double totalLostProduction = lostProduction * futureUse + invested *
+		/*  isTotal is already reflected by ArmamentForecast, but a strong focus
+			on military build-up is extra harmful b/c even essential buildings may
+			not get built then. */
+			(1 - futureUse) * (params.isTotal() ? 1.1 : 1);
 	log("Production value of lost units: %d, invested production: %d,"
 			" multiplier for future use of trained units: %d percent, "
 			"adjusted production value of build-up and losses: %d",
@@ -3095,19 +3103,15 @@ void UlteriorMotives::evaluate() {
 	}
 	TeamTypes targetId = params.targetId();
 	CvTeamAI const& target = GET_TEAM(targetId);
-	bool jointWar = m->isWar(TEAMID(theyId), targetId);
-	// If they're in a hot war, their motives seem clear (and honest) enough
-	if(jointWar && (target.AI_getWarSuccess(TEAMID(theyId)) +
+	bool const jointWar = m->isWar(TEAMID(theyId), targetId);
+	// If they're in a hot war, their motives seem clear (and honest) enough.
+	bool const bHot = (jointWar && target.AI_getWarSuccess(TEAMID(theyId)) +
 			TEAMREF(theyId).AI_getWarSuccess(targetId) >
-			(3 * GC.getWAR_SUCCESS_CITY_CAPTURING()) / 2 ||
-			/*  An AI sponsor can, in principle, have ulterior motives. For example,
-				if they expect the war to hurt us, this could result in positive
-				utility from Kingmaking for them. This is a bit farfetched though,
-				so I'm going to skip the war success check if the sponsor is an AI. */
-			!they->isHuman()) &&
-			// Perhaps no longer hot?
-			target.warAndPeaceAI().canReach(TEAMID(theyId)) &&
-			// If the target is in our area but not theirs, that's fishy
+			(3 * GC.getWAR_SUCCESS_CITY_CAPTURING()) / 2 &&
+			// Perhaps no longer hot
+			target.warAndPeaceAI().canReach(TEAMID(theyId)));
+	if(bHot &&
+			// If the target is in our area but not theirs, that's fishy.
 			target.AI_isPrimaryArea(we->getCapitalCity()->area()) <=
 			target.AI_isPrimaryArea(they->getCapitalCity()->area()))
 		return;
@@ -3115,11 +3119,16 @@ void UlteriorMotives::evaluate() {
 		demand extra payment to allay our suspicions. Use DWRAT (greater than
 		Annoyed, Cautious or Pleased respectively) as an indicator of how
 		suspicious we are. */
-	int delta = GC.getLeaderHeadInfo(we->getPersonalityType()).
+	int const delta = GC.getLeaderHeadInfo(we->getPersonalityType()).
 			getDeclareWarRefuseAttitudeThreshold() - towardsThem + 1;
 	int uMinus = 8 + 4 * (delta - (towardsThem == ATTITUDE_FRIENDLY ? 1 : 0));
 	if(!jointWar)
 		uMinus += 4;
+	/*  An AI sponsor can, in principle, have ulterior motives. For example,
+		if they expect the war to hurt us, this could result in positive utility
+		from Kingmaking for them. This is a bit farfetched though, so ... */
+	if(!bHot && !they->isHuman())
+		uMinus /= 2;
 	if(uMinus > 0) {
 		log("Difference between attitude towards %s (%d) and refuse-thresh: %d",
 				report.leaderName(theyId), towardsThem, -delta);
@@ -3569,7 +3578,8 @@ void TacticalSituation::evalOperational() {
 	double passedPortion = 0.5;
 	if(initialPrepTime > 0)
 		passedPortion = 1 - std::min(1.0, remaining / (double)initialPrepTime);
-	if(passedPortion < 0.01) return;
+	if(passedPortion < 0.01)
+		return;
 	if(canBombard)
 		log("Extra attackers needed for mixed siege/attack stacks");
 	log("Readiness %d percent (%d of %d attackers, %d of %d cargo, "
@@ -3578,7 +3588,7 @@ void TacticalSituation::evalOperational() {
 			::round(cargo), ::round(targetCargo), escort, ::round(targetEscort), 
 			remaining, initialPrepTime);
 	int uMinus = ::round(100 * std::pow(passedPortion, 1.5) *
-			(1 - std::pow(readiness, 4)));
+			(1 - std::pow(readiness, 3.7)));
 	if(uMinus == 0)
 		log("Cost for lack of readiness vs. %s negligible",
 				report.leaderName(theyId));
