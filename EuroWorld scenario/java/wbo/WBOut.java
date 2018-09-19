@@ -21,8 +21,13 @@ public class WBOut {
 				"BeginGame",
 				"\tSpeed=GAMESPEED_EPIC",
 				"\tCalendar=CALENDAR_DEFAULT",
+				"\tOption=GAMEOPTION_PICK_RELIGION",
 				//"\tOption=GAMEOPTION_RAGING_BARBARIANS",
+				/* No problems w/ events, but I don't want to play w/ them and the
+				   Custom Scenario screen doesn't remember this preference. */
 				"\tOption=GAMEOPTION_NO_EVENTS",
+				// Just to give players a hint that I've mixed and matched a bit
+				"\tOption=GAMEOPTION_LEAD_ANY_CIV",
 				"\tGameTurn=0",
 				"\tStartYear=-3600",
 				"\tDescription=Eurocentric world map to replace Earth18Civs. " +
@@ -33,33 +38,36 @@ public class WBOut {
 		};
 		for(String line : preamble)
 			pr(line);
-		String[] blockedReligions = {"HINDUISM","CONFUCIANISM","TAOISM"};
+		String[] blockedReligions = {/*"HINDUISM","CONFUCIANISM","TAOISM"*/};
 		final boolean placeBarbs = false;
-		Civ civs[] = {
+		Civ civs[] = {	// Gandhi's fav religion agrees with that of Sury; apart from that, I prefer Asoka.
 				new Civ("ASOKA", "INDIA", 82, 36, "MYSTICISM", "THE_WHEEL",
 						new String[]{"PATALIPUTRA","AMARAVATI",/*"UJJAIN"*/}),
 				new Civ("JULIUS_CAESAR"/*"AUGUSTUS"*/, "ROME", 46, 40, "FISHING", "MINING",
 						new String[]{"ROME"/*,"SYRACUSE"*/,"LUGDUNUM"}), // MARSEILLES?
-				new Civ("CHARLEMAGNE", "CELT", 47, 46, "MINING", "THE_WHEEL",
+				new Civ("CHARLEMAGNE", "CELT", 47, 46, "THE_WHEEL", "HUNTING", // "MINING" makes much more sense, but need to slow the Celts down; BW allows them to clear food bonuses and then they expand fast. 
 						new String[]{"PRAGUE"}),
 				new Civ("DARIUS"/*"CYRUS"*/, "PERSIA", 67, 32, "THE_WHEEL", "MYSTICISM",
 						new String[]{"PERSEPOLIS","ECBATANA","MERV","KANDAHAR"/*,"SAMARQAND"*/}),
-				new Civ("GENGHIS_KHAN", "MONGOL", 20, 10, "MINING", "HUNTING",
-						new String[]{"TARTAR"}),
+				new Civ("GENGHIS_KHAN", "MONGOL", /*76,49,*/ 78, 52, "MINING", "HUNTING",
+						new String[]{"TARTAR","BEIJING",/*"KARAKORUM","PYONGYANG"*/}), // Doesn't seem to found Pyongyang reliably, and Japan might reach Korea first once Tokugawa is on the map.
 				new Civ(placeBarbs ? "HATSHEPSUT" : "RAMESSES", "EGYPT", 56, 31, "AGRICULTURE", "MINING",
 						new String[]{"MEMPHIS","THEBES","PHEONICIAN"}),
-				new Civ("CHINESE_LEADER", "CHINA", 30, 10, "AGRICULTURE", "THE_WHEEL",
-						new String[]{"XIAN"}),
+				// "QIN_SHI_HUANG" might work better if he's given him a higher peace weight; he shouldn't be pleased toward the "barbarians" surrounding China.
+				new Civ("CHINESE_LEADER", "CHINA", 82, 46, "AGRICULTURE", "THE_WHEEL",
+						new String[]{"XIAN","KAIFENG"}),
 				new Civ(placeBarbs ? "JUSTINIAN" : "PERICLES"/*"ALEXANDER"*/, "GREECE", 52, 37, "FISHING", "AGRICULTURE",
 						new String[]{"ATHENS","THRACIAN"}),
-				new Civ("PETER", "RUSSIA", 61, 47, "HUNTING", "THE_WHEEL",
-						new String[]{"SAMARA","MOSCOW","ROSTOV"}),
+						// Start in SAMARA yields more accurate results in the first three eras, but, after that, Russia rarely manages to reach its historical Western extent.
+				new Civ("PETER", "RUSSIA", 61, 47/*57,48 (Moscow)*/, "HUNTING", "THE_WHEEL",
+						new String[]{"SAMARA","MOSCOW","ROSTOV"}, "WARLORD"),
 				new Civ("RAGNAR", "ENGLAND", 45, 53, "FISHING", "HUNTING",
 						new String[]{"OSLO","ROSKILDE","UPPSALA","NIDAROS","JORVIK"}),
 				new Civ("SALADIN", "ARABIA", 63, 33, "AGRICULTURE", "THE_WHEEL",
 						new String[]{"BABYLON","NINEVEH","MECCA","HITTITE","VAN"}),
-				new Civ("SURYAVARMAN", "KHMER", 40, 10, "FISHING", "AGRICULTURE",
-						new String[]{"NINGBO"}),//"GUANGZHOU"?
+				new Civ("SURYAVARMAN", "KHMER", 91,37/*89,45 (Guangzhou)*//*88, 47 (Fuzhou)*/ /*87, 49(NINGBO)*/, "FISHING", "MYSTICISM", // for Hinduism; else AGRICULTURE
+						new String[]{"YASODHARAPURA","Nakhon Pathom","Hanoi"/*"Fuzhou""NINGBO"*//*"GUANGZHOU","XINYU","MAOMING","KUNMING"*//*,"TAIPEI",*/},
+						"PRINCE"),
 				new Civ("TOKUGAWA", "JAPAN", 45, 10, "FISHING", "MYSTICISM",
 						new String[]{"AOMORI"}, "", true, true, blockedReligions),
 				new Civ("ZARA_YAQOB", "ETHIOPIA", 59, 24, "AGRICULTURE", "",
@@ -81,8 +89,9 @@ public class WBOut {
 			pr(civs[i].civEntry(i));
 		pr("");
 		int numPlots = w * h;
-		// Only territory for 10 leaders so far
-		String worldSz = "LARGE"; // "HUGE"
+		/* Huge (which matches the dimensions) or Large should mostly be
+		 * a question of tech pace. */
+		String worldSz = "LARGE";
 		String mapStr[] = {
 				"BeginMap",
 				"\tgrid width=" + w,
@@ -103,7 +112,7 @@ public class WBOut {
 		Set<Point2D> euStarts = new HashSet<Point2D>();
 		for(Civ c : civs)
 			euStarts.add(c.getStart());
-		final String[] barbGarrison = { "ARCHER", "WARRIOR" };
+		final String[] barbGarrison = { "ARCHER"/*, "WARRIOR"*/ };
 		final Set<BarbCity> barbs = placeBarbs ? new HashSet<BarbCity>(
 				Arrays.asList(new BarbCity[] {
 				new BarbCity("SAMARQAND",71,41),
@@ -296,14 +305,10 @@ public class WBOut {
 				new Point(64,21),
 				new Point(62,44), // Volga Delta
 				// Caspian
-				new Point(66,45),
-				new Point(70,45),
 				new Point(65,44),
 				new Point(66,44),
 				new Point(67,44),
 				new Point(68,44),
-				new Point(69,44),
-				new Point(70,44),
 				new Point(65,43),
 				new Point(66,43),
 				new Point(68,43),
@@ -337,6 +342,31 @@ public class WBOut {
 				// Gobi
 				new Point(78,43),
 				new Point(79,43),
+				new Point(78,51),
+				new Point(78,50),
+				new Point(79,50),
+				new Point(77,49),
+				new Point(78,49),
+				new Point(79,49),
+				new Point(77,48),
+				new Point(78,48),
+				new Point(75,48),
+				new Point(75,47),
+				new Point(76,47),
+				new Point(77,47),
+				new Point(78,47),
+				new Point(79,47),
+				new Point(76,46),
+				new Point(77,46),
+				new Point(78,46),
+				new Point(74,45),
+				new Point(75,45),
+				new Point(76,45),
+				new Point(77,45),
+				new Point(78,45),
+				new Point(75,44),
+				new Point(77,44),
+				new Point(74,48), // Uvs (salt lake)
 				// Iran, Afghanistan, Indus, Thar
 				new Point(66,37),
 				new Point(67,37),
@@ -582,10 +612,26 @@ public class WBOut {
 				new Point(82,28),
 				new Point(81,27),
 				new Point(82,27),
-				// Burma
+				// Indochina
 				new Point(85,36),
 				new Point(86,36),
-				// China
+				new Point(87,41),
+				new Point(88,41),
+				new Point(88,40),
+				new Point(91,40),
+				new Point(88,39),
+				new Point(89,38),
+				new Point(90,38),
+				new Point(91,38),
+				new Point(92,38),
+				new Point(88,37),
+				new Point(89,37),
+				new Point(87,36),
+				new Point(88,36),
+				new Point(89,36),
+				new Point(87,35),
+				new Point(90,35),
+				// W China
 				new Point(77,43),
 				new Point(80,43),
 				new Point(81,43),
@@ -604,6 +650,47 @@ public class WBOut {
 				new Point(84,39),
 				new Point(86,39),
 				new Point(86,38),
+				// Korea
+				new Point(84,53),
+				new Point(85,53),
+				new Point(86,53),
+				// N China
+				new Point(78,53),
+				new Point(79,54),
+				new Point(80,54),
+				new Point(82,54),
+				new Point(79,52),
+				new Point(79,51),
+				new Point(81,51),
+				new Point(84,51),
+				new Point(80,50),
+				new Point(79,55),
+				new Point(81,55),
+				new Point(82,55),
+				new Point(81,56),
+				new Point(82,56), // Vladivostok
+				// Central, S China
+				new Point(83,49),
+				new Point(79,48),
+				new Point(80,48),
+				new Point(82,48),
+				new Point(80,47),
+				new Point(81,47),
+				new Point(79,46),
+				new Point(80,46),
+				new Point(85,46),
+				new Point(86,46),
+				new Point(80,45),
+				new Point(81,45),
+				new Point(86,45),
+				new Point(89,45),
+				new Point(84,44),
+				new Point(86,44),
+				new Point(87,44),
+				new Point(88,44),
+				new Point(88,42),
+				new Point(89,42),
+				new Point(91,47),
 				// Arabian Peninsula
 				new Point(62,27),
 				new Point(62,26),
@@ -640,6 +727,10 @@ public class WBOut {
 				new Point(43,42),
 				new Point(40,45),
 				new Point(42,45),
+				/* Based on soil fertility, these two should be grassland, but
+				 * with food resources on top, it's too much food. */
+				new Point(42,47),
+				new Point(44,48),
 				// Germany
 				new Point(44,45),
 				new Point(46,46),
@@ -684,7 +775,7 @@ public class WBOut {
 				new Point(57,39),
 				new Point(63,38),
 				new Point(62,37),
-				// Ukraine, Russia, Kazakhstan
+				// Ukraine, Russia, Kazakhstan, Mongolia
 				new Point(57,42),
 				new Point(59,42),
 				new Point(54,43),
@@ -770,6 +861,34 @@ public class WBOut {
 				new Point(69,45),
 				new Point(63,44),
 				new Point(64,44),
+				new Point(72,52),
+				new Point(73,52),
+				new Point(74,52),
+				new Point(71,50),
+				new Point(72,50),
+				new Point(74,50),
+				new Point(75,50),
+				new Point(76,50),
+				new Point(71,49),
+				new Point(72,49),
+				new Point(75,49),
+				new Point(76,49),
+				new Point(71,48),
+				new Point(72,48),
+				new Point(73,48),
+				new Point(76,48),
+				new Point(71,47),
+				new Point(72,47),
+				new Point(74,47),
+				new Point(71,46),
+				new Point(72,46),
+				new Point(73,46),
+				new Point(73,44),
+				new Point(74,44),
+				new Point(77,53),
+				new Point(76,52),
+				new Point(77,52),
+				new Point(78,52),
 				// Caucasus
 				new Point(61,42),
 				new Point(61,41),
@@ -918,12 +1037,24 @@ public class WBOut {
 				// Sri Lanka
 				new Point(85,27),
 				new Point(85,26),
-				// Burma
+				// Indochina
 				new Point(85,38),
 				new Point(85,37),
 				new Point(86,37),
-				// W China
 				new Point(85,39),
+				new Point(87,40),
+				new Point(87,39),
+				new Point(89,39),
+				new Point(90,39),
+				new Point(91,39),
+				new Point(92,39),
+				new Point(87,38),
+				new Point(88,38),
+				new Point(87,37),
+				new Point(90,37),
+				new Point(91,37),
+				new Point(92,37),
+				// W China
 				new Point(85,40),
 				new Point(85,41),
 				new Point(85,42),
@@ -931,6 +1062,76 @@ public class WBOut {
 				new Point(84,41),
 				new Point(84,42),
 				new Point(82,42),
+				new Point(74,46),
+				new Point(73,45), // Kazakhstan
+				// Korea
+				new Point(83,55),
+				new Point(83,54),
+				new Point(84,54),
+				new Point(85,54),
+				new Point(86,54),
+				new Point(83,53),
+				// N China
+				new Point(78,54),
+				new Point(78,55),
+				new Point(80,55),
+				new Point(81,54),
+				new Point(79,53),
+				new Point(80,53),
+				new Point(81,53),
+				new Point(82,53),
+				new Point(80,52),
+				new Point(81,52),
+				new Point(82,52),
+				new Point(80,51),
+				new Point(81,50),
+				new Point(83,50),
+				new Point(90,48), // Taiwan
+				// Hainan
+				new Point(91,43),
+				new Point(91,42),
+				// Central, S China
+				new Point(80,49),
+				new Point(81,49),
+				new Point(82,49),
+				new Point(84,49),
+				new Point(85,49),
+				new Point(86,49),
+				new Point(87,49),
+				new Point(81,48),
+				new Point(83,48),
+				new Point(84,48),
+				new Point(85,48),
+				new Point(86,48),
+				new Point(87,48),
+				new Point(82,47),
+				new Point(83,47),
+				new Point(84,47),
+				new Point(85,47),
+				new Point(86,47),
+				new Point(87,47),
+				new Point(88,47),
+				new Point(81,46),
+				new Point(82,46),
+				new Point(83,46),
+				new Point(84,46),
+				new Point(87,46),
+				new Point(88,46),
+				new Point(89,46),
+				new Point(82,45),
+				new Point(83,45),
+				new Point(84,45),
+				new Point(85,45),
+				new Point(87,45),
+				new Point(88,45),
+				new Point(81,44),
+				new Point(83,44),
+				new Point(85,44),
+				new Point(89,44),
+				new Point(87,43),
+				new Point(88,43),
+				new Point(89,43),
+				new Point(87,42),
 				// Arabian Peninsula
 				new Point(61,27),
 				new Point(63,25),
@@ -969,7 +1170,6 @@ public class WBOut {
 				new Point(45,50),
 				new Point(45,49),
 				new Point(43,48),
-				new Point(44,48),
 				new Point(45,48),
 				new Point(46,48),
 				new Point(47,48),
@@ -977,7 +1177,6 @@ public class WBOut {
 				new Point(50,48),
 				new Point(39,47),
 				new Point(41,47),
-				new Point(42,47),
 				new Point(43,47),
 				new Point(44,47),
 				new Point(45,47),
@@ -1087,6 +1286,7 @@ public class WBOut {
 				new Point(61,44),
 				new Point(61,43),
 				new Point(62,43),
+				new Point(76,53), // Buryatia
 		}));
 		/* Dummy continents to reduce Barb city spawn on the British
 		 * Isles. Shouldn't be needed anymore once America is
@@ -1111,6 +1311,11 @@ public class WBOut {
 				new Point(73,42),
 				new Point(74,43),
 				new Point(75,43),
+				new Point(76,44), // Bogda Shan
+				// Qilian Mts.
+				new Point(78,44),
+				new Point(80,44),
+				new Point(79,45), // Riyue Mts.
 				// Hindu Kush - Himalaya - Kunlun
 				new Point(73,40),
 				new Point(74,40),
@@ -1141,6 +1346,9 @@ public class WBOut {
 				new Point(79,37),
 				new Point(80,37),
 				//new Point(75,39), // Karakorum pass
+				// Altai Mts.
+				new Point(73,47),
+				new Point(75,46),
 				// Alps
 				new Point(44,43),
 				new Point(45,44),
@@ -1236,6 +1444,56 @@ public class WBOut {
 				new Point(68,49),
 				new Point(69,49),
 				new Point(66,48),
+				new Point(71,54),
+				new Point(72,54),
+				new Point(73,54),
+				new Point(74,54),
+				new Point(75,54),
+				new Point(76,54),
+				new Point(77,54),
+				new Point(71,53),
+				new Point(72,53),
+				new Point(73,53),
+				new Point(74,53),
+				new Point(71,52),
+				new Point(71,51),
+				new Point(72,51),
+				new Point(73,51),
+				new Point(74,51),
+				new Point(75,51),
+				new Point(73,50),
+				new Point(73,49),
+				new Point(74,49),
+				new Point(71,56),
+				new Point(72,56),
+				new Point(73,56),
+				new Point(74,56),
+				new Point(75,56),
+				new Point(76,56),
+				new Point(77,56),
+				new Point(78,56),
+				new Point(79,56),
+				new Point(80,56),
+				new Point(71,55),
+				new Point(72,55),
+				new Point(73,55),
+				new Point(74,55),
+				new Point(75,55),
+				new Point(76,55),
+				new Point(77,55),
+				// Kazakhstan (arid steppe - had set these to desert at first)
+				new Point(70,45),
+				new Point(66,45),
+				new Point(69,44),
+				new Point(70,44),
+				new Point(71,45),
+				new Point(72,45),
+				new Point(71,44),
+				// Mongolia (Gobi)
+				new Point(76,51),
+				new Point(77,51),
+				new Point(77,50),
+				new Point(82,44), // Zhoigê marsh
 				// African rainforest
 				new Point(36,26),
 				new Point(36,25),
@@ -1292,6 +1550,7 @@ public class WBOut {
 				new Point(66,55),
 				new Point(69,55),
 				new Point(70,55),
+				new Point(70,56),
 				new Point(63,54),
 				new Point(64,54),
 				new Point(65,54),
@@ -1538,9 +1797,6 @@ public class WBOut {
 				new River(S,58,48,E),
 				new River(E,58,48,N),
 				// Siberia
-				new River(E,69,55,N),
-				new River(S,69,55,W),
-				new River(S,70,55,W),
 				new River(S,65,52,W),
 				new River(S,66,52,W),
 				new River(S,67,52,W),
@@ -1572,6 +1828,74 @@ public class WBOut {
 				new River(E,69,47,N),
 				new River(S,68,47,W),
 				new River(S,70,47,W),
+				new River(E,66,54,N), // Khatanga
+				// Yenisei
+				new River(S,62,53,W),
+				new River(S,63,53,W),
+				new River(S,64,53,W),
+				new River(S,65,53,W),
+				new River(S,66,53,W),
+				new River(S,67,53,W),
+				new River(S,68,53,W),
+				new River(S,69,53,W),
+				new River(S,70,53,W),
+				new River(S,71,53,W),
+				new River(E,71,52,N),
+				new River(S,72,52,W),
+				new River(E,72,51,N),
+				new River(E,72,50,N),
+				// Angara
+				new River(S,73,52,W),
+				new River(S,74,52,W),
+				// Lena
+				new River(E,69,55,N),
+				new River(S,69,55,W),
+				new River(S,70,55,W),
+				new River(S,71,55,W),
+				new River(E,71,55,S),
+				new River(S,72,56,W),
+				new River(E,72,56,S),
+				new River(S,73,57,W),
+				new River(S,74,57,W),
+				new River(E,74,56,N),
+				new River(S,74,56,E),
+				new River(E,73,55,N),
+				new River(S,74,53,W),
+				new River(E,73,53,N),
+				new River(E,73,54,N), // Vitim: superfluous
+				new River(E,77,52,N), // Kherlen and Lake Hulun
+				// Aldan
+				new River(E,75,56,N),
+				new River(S,76,57,W), // Maya/ Ulya
+				// Yana: frozen more than half the year
+				// Shilka
+				new River(E,76,54,N), // Ingoda: frozen half the year
+				new River(S,77,55,E),
+				// Argun
+				new River(E,77,54,N),
+				new River(S,78,54,W),
+				// Amur
+				new River(E,77,55,N),
+				new River(S,78,56,E),
+				new River(S,79,56,E),
+				new River(S,80,56,E),
+				new River(E,80,56,N),
+				new River(S,80,55,E), // Nen
+				new River(S,81,57,W), // Ussuri
+				new River(E,81,56,N), // Bolshaya Ussurka
+				// Songhua
+				new River(S,81,55,W),
+				new River(E,80,55,N),
+				new River(E,81,52,S), // Trident river
+				new River(E,82,53,S), // Yalu
+				new River(E,84,53,S), // Han (Korea)
+				new River(S,80,50,E), // Yongding
+				new River(S,81,50,E), // Hai
+				new River(S,86,54,E), // Nakdong
+				// Selenga/ Orkhon
+				new River(E,75,49,N),
+				new River(E,75,50,N),
+				new River(E,75,51,N),
 				// Uralsk
 				new River(E,63,46,S),
 				new River(E,63,45,S),
@@ -1642,13 +1966,77 @@ public class WBOut {
 				new River(E,64,33,S), // Karun
 				new River(S,65,35,E), // Zayandé
 				new River(S,67,33,E), // Kor
+				// Hunaghe
+				new River(S,80,45,E),
+				new River(E,80,45,N),
+				new River(S,80,46,W),
+				new River(E,79,46,N),
+				new River(E,79,47,N),
+				new River(E,79,48,N),
+				new River(S,80,49,E),
+				new River(E,80,48,S),
+				new River(S,81,48,E),
+				new River(E,81,47,S),
+				new River(S,82,47,E),
+				new River(E,82,47,N),
+				new River(E,82,48,N),
+				new River(E,82,49,N),
+				// Wei/ Jie
+				new River(E,82,46,N),
+				new River(S,82,46,E),
+				// Huai (old course)
+				new River(E,84,48,N),
+				new River(E,84,49,N),
+				// Jialing
+				new River(S,83,44,E), 
+				new River(S,84,44,E),
 				// Yangtze
-				new River(S,83,44,E), // Jialing
-				new River(S,84,44,E), // Jialing
 				new River(E,84,43,N),
+				new River(E,84,44,N),
+				new River(E,84,45,N),
+				new River(S,85,46,E),
+				new River(E,85,46,N),
+				new River(E,85,47,N),
+				new River(E,85,48,N),
+				new River(E,85,49,N),
+				new River(S,84,47,E), // Han
+				new River(S,85,47,E), // Wuhan Lake
+				new River(S,86,47,W), // Poyang Lake
+				new River(E,86,46,N), // Gan
+				// Xiang
+				new River(S,86,45,W),
+				new River(E,85,45,N), // Yuan: usable part too short
+				// Qiantang
+				new River(E,86,49,N),
+				new River(E,86,48,N), // also Tai Lake
+				new River(S,88,47,E), // Min
+				// Xi
+				new River(S,89,45,E),
+				new River(E,88,44,N),
+				new River(E,88,43,N), // Yu
+				// Hongshui/ Liu
+				new River(E,87,43,N),
+				new River(S,88,44,E),
+				// Red River
+				new River(S,87,41,E),
+				new River(S,88,41,E),
 				// Mekong
-				new River(S,86,40,E), // Lancang
+				/*new River(S,86,40,E), Don't want the game to show Lancang
+										and Salween as a single river
+										(the Yangtze, the third of the
+										"three parallel rivers", isn't
+										navigable in its upper course anyway) */
 				new River(E,86,39,S), // Lancang
+				new River(S,87,39,E),
+				new River(E,87,38,S),
+				new River(S,88,38,E),
+				new River(E,88,38,N),
+				new River(S,89,39,E),
+				new River(S,90,39,E),
+				new River(E,90,38,S),
+				new River(S,91,38,E),
+				new River(S,92,38,E),
+				new River(E,91,39,N), // Da Rang
 				// Irawaddy
 				new River(E,85,39,S),
 				new River(E,85,38,S),
@@ -1657,6 +2045,10 @@ public class WBOut {
 				new River(S,85,38,E), // Chindwin
 				new River(S,86,37,E),
 				new River(E,86,36,S),
+				// Salween
+				new River(S,87,37,E),
+				new River(E,87,36,S),
+				new River(S,89,37,E), // Chao Phraya
 				// Brahmaputra (Jamuna)
 				new River(E,83,38,S),
 				new River(E,83,37,S),
@@ -1899,6 +2291,67 @@ public class WBOut {
 				new Point(57,51),
 				new Point(58,54),
 				new Point(59,55),
+				new Point(75,54),
+				new Point(76,53),
+				new Point(71,56),
+				new Point(72,56),
+				new Point(73,56),
+				new Point(76,56),
+				new Point(75,55),
+				// Korea
+				new Point(83,55),
+				new Point(83,54),
+				new Point(84,54),
+				new Point(85,54),
+				// N China
+				new Point(78,55),
+				new Point(80,55),
+				new Point(78,54),
+				new Point(79,53),
+				new Point(82,53),
+				new Point(80,52),
+				new Point(90,48), // Taiwan
+				new Point(91,42), // Hainan
+				// Central, S China
+				new Point(79,49),
+				new Point(80,49),
+				new Point(78,48),
+				new Point(81,48),
+				new Point(86,48),
+				new Point(87,48),
+				new Point(82,47),
+				new Point(85,47),
+				new Point(86,47),
+				new Point(87,47),
+				new Point(88,47),
+				new Point(83,46),
+				new Point(87,46),
+				new Point(88,46),
+				new Point(89,46),
+				new Point(80,45),
+				new Point(82,45),
+				new Point(83,45),
+				new Point(84,45),
+				new Point(85,45),
+				new Point(87,45),
+				new Point(88,45),
+				new Point(81,44),
+				new Point(83,44),
+				new Point(85,44),
+				new Point(87,43),
+				new Point(88,43),
+				new Point(87,42),
+				// Indochina w/o Burma
+				new Point(87,40),
+				new Point(87,39),
+				new Point(89,39),
+				new Point(90,39),
+				new Point(91,39),
+				new Point(92,39),
+				new Point(87,38),
+				new Point(88,38),
+				new Point(87,37),
+				new Point(88,36),
 				// Urals
 				new Point(59,52),
 				new Point(60,51),
@@ -1935,8 +2388,33 @@ public class WBOut {
 				// Taklamakan
 				new Point(74,42),
 				new Point(75,40),
-				// W China, Burma
+				// Kazakhstan, Mongolia, W China, Burma
 				new Point(75,39), // Karakorum pass
+				new Point(77,52),
+				new Point(72,51),
+				new Point(73,51),
+				new Point(74,51),
+				new Point(75,51),
+				new Point(74,50),
+				new Point(73,49),
+				new Point(74,49),
+				new Point(75,49),
+				new Point(71,48),
+				new Point(72,48),
+				new Point(73,48),
+				new Point(76,48),
+				new Point(77,48),
+				new Point(72,47),
+				new Point(74,47),
+				new Point(75,47),
+				new Point(76,47),
+				new Point(77,47),
+				new Point(73,46),
+				new Point(74,46),
+				new Point(77,46),
+				new Point(73,45),
+				new Point(76,45),
+				new Point(77,45),
 				new Point(80,43),
 				new Point(81,43),
 				new Point(82,43),
@@ -2227,7 +2705,7 @@ public class WBOut {
 				new Point(54,47),
 				new Point(52,46),
 				new Point(53,46),
-				// N Russia 
+				// NW Russia 
 				new Point(53,49),
 				new Point(53,51),
 				new Point(54,50),
@@ -2302,7 +2780,49 @@ public class WBOut {
 				new Point(66,49),
 				new Point(67,49),
 				new Point(68,49),
-				new Point(67,47), // Kazakhstan
+				new Point(72,54),
+				new Point(73,54),
+				new Point(74,54),
+				new Point(75,54),
+				new Point(76,54),
+				new Point(77,54),
+				new Point(72,53),
+				new Point(73,53),
+				new Point(74,53),
+				new Point(76,53),
+				new Point(71,52),
+				new Point(72,52),
+				new Point(74,52),
+				new Point(76,52),
+				new Point(71,51),
+				new Point(72,51),
+				new Point(73,51),
+				new Point(74,51),
+				new Point(75,51),
+				new Point(71,50),
+				new Point(72,50),
+				new Point(73,50),
+				new Point(74,50),
+				new Point(71,49),
+				new Point(72,49),
+				new Point(73,49),
+				new Point(74,49),
+				new Point(71,48),
+				new Point(72,48),
+				new Point(72,55),
+				new Point(74,55),
+				new Point(76,55),
+				new Point(77,55),
+				new Point(75,56),
+				new Point(76,56),
+				new Point(77,56),
+				new Point(78,56),
+				new Point(79,56),
+				new Point(80,56),
+				// N Kazakhstan
+				new Point(72,47),
+				new Point(67,47),
+				new Point(76,51), // Mongolia
 				// Around Hindu Kush - Himalaya
 				new Point(71,41),
 				//new Point(71,40), // not clear if logging feasible at great steepness 
@@ -2312,7 +2832,6 @@ public class WBOut {
 				new Point(73,38),
 				new Point(76,37),
 				new Point(76,36),
-				new Point(75,36),
 				new Point(83,38),
 				new Point(84,38),
 				new Point(81,37),
@@ -2321,7 +2840,57 @@ public class WBOut {
 				new Point(78,36),
 				new Point(79,36),
 				new Point(80,36),
+				// Korea
+				new Point(83,55),
+				new Point(83,54),
+				new Point(84,54),
+				new Point(85,54),
+				new Point(84,53),
+				new Point(85,53),
+				// N China
+				new Point(78,55),
+				new Point(79,55),
+				new Point(80,55),
+				new Point(81,55),
+				new Point(82,55),
+				new Point(81,56),
+				new Point(77,54),
+				new Point(78,54),
+				new Point(81,54),
+				new Point(82,54),
+				new Point(79,53),
+				new Point(82,53),
+				new Point(80,52),
+				new Point(81,52),
+				new Point(82,52),
+				new Point(81,51),
+				new Point(84,51),
+				new Point(80,50),
+				// Central China
+				new Point(80,49),
+				new Point(81,49),
+				new Point(84,49),
+				new Point(81,48),
+				new Point(83,48),
+				new Point(84,48),
+				new Point(85,48),
+				new Point(86,48),
+				new Point(87,48),
+				new Point(81,47),
+				new Point(82,47),
+				new Point(87,47),
+				new Point(88,47),
+				new Point(81,46),
+				new Point(83,46),
+				new Point(86,46),
+				new Point(87,46),
 				// W China
+				new Point(80,45),
+				new Point(82,45),
+				new Point(83,45),
+				new Point(81,44),
+				new Point(83,44),
+				new Point(85,44),
 				new Point(82,43),
 				new Point(83,43),
 				new Point(84,43),
@@ -2333,9 +2902,7 @@ public class WBOut {
 				new Point(84,41),
 				new Point(85,41),
 				new Point(84,39),
-				new Point(85,39),
 				new Point(86,39),
-				new Point(85,38), // Burma
 				// India (rest)
 				new Point(84,37),
 				new Point(81,36),
@@ -2356,6 +2923,19 @@ public class WBOut {
 				new Point(79,30),
 				new Point(81,30),
 				new Point(81,28),
+				// Indochina
+				new Point(85,38),
+				new Point(85,39),
+				new Point(87,41),
+				new Point(87,40),
+				new Point(87,39),
+				new Point(91,39),
+				new Point(87,38),
+				new Point(88,38),
+				new Point(91,38),
+				new Point(87,37),
+				new Point(88,37),
+				new Point(89,37),
 		}));
 		final Set<Point2D> jungle = new HashSet<Point2D>(
 				Arrays.asList(new Point[] {
@@ -2415,13 +2995,51 @@ public class WBOut {
 				new Point(52,22),
 				new Point(53,22),
 				new Point(56,21),
+				// Taiwan
+				new Point(90,48),
+				new Point(91,47),
+				// Hainan
+				new Point(91,43),
+				new Point(91,42),
 				// Burma, S China
 				new Point(86,38),
 				new Point(85,37),
 				new Point(86,37),
 				new Point(85,36),
 				new Point(86,36),
+				new Point(84,45),
+				new Point(85,45),
+				new Point(86,45),
+				new Point(88,45),
+				new Point(84,44),
+				new Point(86,44),
+				new Point(87,44),
+				new Point(88,44),
+				new Point(87,43),
+				new Point(88,43),
+				new Point(89,43),
+				new Point(87,42),
+				new Point(88,42),
+				new Point(89,42),
+				// Indochina w/o Burma
+				new Point(88,41),
+				new Point(88,40),
+				new Point(91,40),
+				new Point(88,39),
+				new Point(89,39),
+				new Point(90,39),
+				new Point(92,39),
+				new Point(92,38),
+				new Point(90,37),
+				new Point(91,37),
+				new Point(92,37), // Earliest Khmer settlements; clear this?
+				new Point(87,36),
+				new Point(88,36),
+				new Point(89,36),
+				new Point(87,35),
+				new Point(90,35),
 				// India
+				new Point(75,36), // Lakhi jungle; today totally cleared. Forest would probably be more accurate, but want to discourage early Persian cities.
 				new Point(77,32),
 				new Point(77,31),
 				new Point(78,30),
@@ -2446,6 +3064,7 @@ public class WBOut {
 				new Point(44,31),
 				new Point(42,28), // Ingall
 				new Point(60,34), // Damascus
+				new Point(75,45), // Dzungarian Basin; moved 1 up to make it unreachable from within the Taklanmakan
 				// Libya
 				new Point(52,30), // Siwa, Qara
 				new Point(50,28), // Kufra, Tazirbu
@@ -2534,7 +3153,6 @@ public class WBOut {
 				new Point(65,56),
 				new Point(66,56),
 				new Point(69,56),
-				new Point(70,56),
 				new Point(61,55),
 				new Point(63,55),
 				new Point(64,55),
@@ -2544,7 +3162,7 @@ public class WBOut {
 			if(x < 50 || x > 53) // Hole above Spitsbergen
 				ice.add(new Point(x,62));
 		}
-		for(int x = 61; x <= 70; x++) {
+		for(int x = 61; x <= 69; x++) {
 			for(int y = 57; y <= 63; y++) {
 				if(x == 63 && y == 57) // Severnaya Zemlya
 					continue;
@@ -2553,18 +3171,10 @@ public class WBOut {
 				ice.add(new Point(x,y));
 			}
 		}
-		// Seal off Asia for testing
-		for(int y = 56; y >= 44; y--) { // Northern Asia
-			ice.add(new Point(71,y));
-			ice.add(new Point(72,y));
-		}
-		for(int y = 44; y >= 35; y--) { // Southern Asia
-			ice.add(new Point(87,y));
-			ice.add(new Point(88,y));
-		}
-		for(int x = 73; x <= 86; x++) { // Connect the two
-			ice.add(new Point(x,44));
-			ice.add(new Point(x,45));
+		// Seal off Siberia for testing
+		for(int x = 70; x <= 82; x++) {
+			ice.add(new Point(x,57));
+			ice.add(new Point(x,58));
 		}
 		for(int x = 44; x <= 65; x++) { // Seal off Africa for testing
 			ice.add(new Point(x,20));
@@ -2596,6 +3206,11 @@ public class WBOut {
 				//new Point(73,41), // Kokand (Silk Road)
 				new Point(79,43), // Golmud (salts)
 				new Point(81,39), // Lhasa
+				new Point(91,39), // Cham Pa
+				new Point(90,48), // Taiwan
+				//new Point(81,50), // Beijing
+				new Point(76,49), // Karakorum
+				new Point(83,53), // Pyongyang
 		}));
 		for(Point2D p : hills)
 			p.setLocation(p.getX() + offsetX, p.getY() + offsetY);
@@ -2760,7 +3375,7 @@ public class WBOut {
 				new Bonus("IRON",56,44),
 				new Bonus("COAL",57,44),
 				new Bonus("WINE",56,43),
-				// W Russia
+				// W Russia (Wheat and Horse will have to move one up if Moscow is the capital)
 				new Bonus("STONE",56,48),
 				new Bonus("IRON",57,47),
 				new Bonus("WHEAT",57,45), // Chernozem; moved from S Denmark
@@ -2772,7 +3387,7 @@ public class WBOut {
 				new Bonus("IRON",64,46),
 				new Bonus("COPPER",64,47),
 				new Bonus("FUR",63,48),
-				// Siberia and Kazakhstan
+				// Siberia, Kazakhstan, Mongolia
 				new Bonus("OIL",65,43),
 				new Bonus("OIL",61,51),
 				new Bonus("OIL",62,50),
@@ -2785,6 +3400,16 @@ public class WBOut {
 				new Bonus("COAL",69,47),
 				new Bonus("HORSE",70,47),
 				new Bonus("ALUMINUM",67,46),
+				new Bonus("COPPER",75,54),
+				new Bonus("FUR",73,54),
+				new Bonus("URANIUM",76,53),
+				//new Bonus("GOLD",71,52), // Olimpiada, not until 1991
+				new Bonus("COAL",72,51),
+				new Bonus("DEER",74,51),
+				new Bonus("HORSE",75,50),
+				new Bonus("HORSE",76,50),
+				new Bonus("FUR",74,49),
+				new Bonus("SILVER",72,56), // Moved one for proximity to Yakutsk
 				// BMAC
 				new Bonus("URANIUM",70,42),
 				new Bonus("SHEEP",70,40),
@@ -2793,7 +3418,9 @@ public class WBOut {
 				new Bonus("OIL",70,38),
 				new Bonus("HORSE",72,41),
 				new Bonus("IRON",73,41),
-				new Bonus("GEMS",75,40), // Taklamakan
+				// Taklamakan
+				new Bonus("GEMS",75,40),
+				new Bonus("WINE",76,43),
 				// Afghanistan
 				new Bonus("COPPER",71,37),
 				new Bonus("GEMS",72,37),
@@ -2846,14 +3473,69 @@ public class WBOut {
 				new Bonus("GEMS",84,27),
 				new Bonus("IVORY",85,27),
 				new Bonus("SPICES",85,26),
-				// Burma
-				new Bonus("GEMS",86,38),
-				new Bonus("IVORY",85,36),
-				// W China
+				// Korea
+				new Bonus("CLAM",87,52),
+				new Bonus("RICE",86,53),
+				// China
 				new Bonus("SILK",84,43),
 				new Bonus("ALUMINUM",85,42),
 				new Bonus("HORSE",83,41),
 				new Bonus("SILVER",86,40),
+				new Bonus("COW",78,53),
+				new Bonus("SHEEP",79,52),
+				new Bonus("WHEAT",84,51),
+				new Bonus("URANIUM",79,50),
+				new Bonus("OIL",82,50),
+				new Bonus("CRAB",87,50),
+				new Bonus("IRON",79,49),
+				new Bonus("COAL",80,49),
+				new Bonus("SILK",81,49),
+				new Bonus("IRON",83,49),
+				new Bonus("RICE",86,49),
+				new Bonus("SHEEP",76,48),
+				new Bonus("STONE",78,48),
+				new Bonus("COAL",80,48),
+				new Bonus("ALUMINUM",81,48),
+				new Bonus("MARBLE",82,48),
+				new Bonus("SILK",85,48),
+				new Bonus("SILK",86,48),
+				new Bonus("COW",80,47),
+				new Bonus("PIG",81,47),
+				new Bonus("COPPER",82,47),
+				new Bonus("URANIUM",86,47),
+				new Bonus("IRON",85,46),
+				new Bonus("HORSE",81,45),
+				new Bonus("PIG",88,45),
+				new Bonus("OIL",74,44),
+				new Bonus("RICE",84,44),
+				new Bonus("GOLD",85,44),
+				new Bonus("BANANA",88,44),
+				new Bonus("RICE",89,44),
+				new Bonus("INCENSE",88,43),
+				new Bonus("SPICES",88,42),
+				new Bonus("SUGAR",91,47),
+				// Indochina
+				new Bonus("GEMS",86,38),
+				new Bonus("IVORY",85,36),
+				new Bonus("SUGAR",87,41),
+				new Bonus("PIG",88,41),
+				new Bonus("DYE",87,40),
+				new Bonus("INCENSE",91,40),
+				new Bonus("IVORY",87,39),
+				new Bonus("COW",88,39),
+				new Bonus("COPPER",90,39),
+				new Bonus("ALUMINUM",92,39),
+				new Bonus("SILK",87,38),
+				new Bonus("IRON",89,38),
+				new Bonus("STONE",91,38),
+				new Bonus("IVORY",92,38),
+				new Bonus("IVORY",87,37),
+				new Bonus("SUGAR",89,37),
+				new Bonus("RICE",90,37),
+				new Bonus("RICE",92,37),
+				new Bonus("SPICES",88,36),
+				new Bonus("FISH",92,36),
+				new Bonus("FISH",88,35),
 				// Iran
 				new Bonus("HORSE",65,36),
 				new Bonus("COW",64,35),
@@ -2869,11 +3551,11 @@ public class WBOut {
 				// Gulf oil
 				new Bonus("OIL",65,34),
 				new Bonus("OIL",64,33),
-				new Bonus("OIL",64,32),
+				new Bonus("OIL",63,32),
 				new Bonus("OIL",65,31),
 				new Bonus("OIL",66,31),
 				new Bonus("OIL",65,30),
-				new Bonus("OIL",66,30),
+				//new Bonus("OIL",66,30), // Bu Hasa; removed in favor of Libyan oil
 				new Bonus("OIL",65,29),
 				new Bonus("OIL",66,27),
 				// Arabian Peninsula
@@ -2882,6 +3564,7 @@ public class WBOut {
 				new Bonus("INCENSE",63,25),
 				new Bonus("CLAM",66,29),
 				new Bonus("DYE",64,24),
+				new Bonus("OIL",49,29), // Libya
 				// Somalia
 				new Bonus("INCENSE",64,22),
 				new Bonus("INCENSE",65,22),
