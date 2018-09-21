@@ -227,7 +227,10 @@ void WarAndPeaceCache::update() {
 		updateCities(getWPAI.properCivs()[i]);
 	sortCitiesByAttackPriority();
 	updateTotalAssetScore();
-	updateLatestTurnReachableBySea();
+	/*  advc.003b: Disable latestTurnReachable fallback
+		(The update is actually cheap, but I'm not sure about the very numerous
+		getDistance calls.) */
+	//updateLatestTurnReachableBySea(); 
 	updateTargetMissionCounts();
 	updateTypicalUnits();
 	updateThreatRatings();
@@ -249,6 +252,7 @@ void WarAndPeaceCache::update() {
 
 void WarAndPeaceCache::updateCities(PlayerTypes civId) {
 
+	PROFILE_FUNC();
 	CvPlayerAI& civ = GET_PLAYER(civId); int foo=-1;
 	for(CvCity* c = civ.firstCity(&foo); c != NULL; c = civ.nextCity(&foo)) {
 		// c.isRevealed() impedes the AI too much
@@ -285,7 +289,9 @@ void WarAndPeaceCache::updateGoldPerProduction() {
 
 double const WarAndPeaceCache::goldPerProdUpperLimit = 4.5;
 double WarAndPeaceCache::goldPerProdBuildings() {
-	int dummy; // For unused out-parameters
+
+	PROFILE_FUNC();
+	int dummy=-1; // For unused out-parameters
 	vector<double> buildingCounts; // excluding wonders
 	vector<double> wonderCounts;
 	CvPlayerAI const& owner = GET_PLAYER(ownerId);
@@ -344,6 +350,7 @@ double WarAndPeaceCache::goldPerProdBuildings() {
 }
 double WarAndPeaceCache::goldPerProdSites() {
 
+	PROFILE_FUNC();
 	CvPlayerAI const& owner = GET_PLAYER(ownerId);
 	std::vector<double> foundVals;
 	for(int i = 0; i < owner.AI_getNumCitySites(); i++) {
@@ -387,6 +394,7 @@ double WarAndPeaceCache::goldPerProdSites() {
 }
 
 double WarAndPeaceCache::goldPerProdVictory() {
+
 	CvTeamAI const& ourTeam = TEAMREF(ownerId);
 	int ourVictLevel = 0;
 	if(ourTeam.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CULTURE3) ||
@@ -416,6 +424,7 @@ double WarAndPeaceCache::goldPerProdVictory() {
 
 void WarAndPeaceCache::updateWarUtility() {
 
+	PROFILE_FUNC();
 	if(!getWPAI.isUpdated())
 		return;
 	/*  Not nice. War utility is computed per team, and the computation is
@@ -456,7 +465,7 @@ void WarAndPeaceCache::updateWarAnger() {
 	if(owner.isAnarchy())
 		return;
 	double totalWWAnger = 0;
-	int dummy; for(CvCity* cp = owner.firstCity(&dummy); cp != NULL;
+	int dummy=-1; for(CvCity* cp = owner.firstCity(&dummy); cp != NULL;
 			cp = owner.nextCity(&dummy)) { CvCity const& c = *cp;
 		if(c.isDisorder())
 			continue;
@@ -704,7 +713,6 @@ void WarAndPeaceCache::sortCitiesByTargetValue() {
 void WarAndPeaceCache::sortCitiesByAttackPriority() {
 
 	//sort(v.begin(), v.end(), City::byAttackPriority);
-	PROFILE_FUNC();
 	/*  Selection sort b/c I want to factor in city areas. An invading army tends
 		to stay in one area until all cities there are conquered. */
 	for(int i = 0; i < ((int)v.size()) - 1; i++) {
@@ -814,14 +822,12 @@ bool WarAndPeaceCache::hasProtectiveTrait() const {
 
 void WarAndPeaceCache::updateTargetMissionCounts() {
 
-	PROFILE_FUNC();
 	for(size_t i = 0; i < getWPAI.properCivs().size(); i++)
 		updateTargetMissionCount(getWPAI.properCivs()[i]);
 }
 
 void WarAndPeaceCache::updateThreatRatings() {
 
-	PROFILE_FUNC();
 	for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
 		PlayerTypes civId = getWPAI.properCivs()[i];
 		threatRatings[civId] = calculateThreatRating(civId);
@@ -830,7 +836,6 @@ void WarAndPeaceCache::updateThreatRatings() {
 
 void WarAndPeaceCache::updateVassalScores() {
 
-	PROFILE_FUNC();
 	for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
 		PlayerTypes civId = getWPAI.properCivs()[i];
 		if(TEAMREF(civId).isHasMet(TEAMID(ownerId)))
@@ -840,7 +845,6 @@ void WarAndPeaceCache::updateVassalScores() {
 
 void WarAndPeaceCache::updateAdjacentLand() {
 
-	PROFILE_FUNC();
 	CvMap& m = GC.getMapINLINE();
 	for(int i = 0; i < m.numPlotsINLINE(); i++) {
 		CvPlot* p = m.plotByIndexINLINE(i);
@@ -1310,14 +1314,16 @@ bool WarAndPeaceCache::City::canReach() const {
 		return false;
 	if(distance >= 0)
 		return true;
+	return false; // advc.003b: Disable latestTurnReachable fallback
+
 	// Should perhaps pass outer object in constructor instead
-	std::map<int,std::pair<int,int> > const& ltr = GET_PLAYER(cacheOwnerId).
+	/*std::map<int,std::pair<int,int> > const& ltr = GET_PLAYER(cacheOwnerId).
 			warAndPeaceAI().getCache().latestTurnReachableBySea;
 	std::map<int,std::pair<int,int> >::const_iterator pos = ltr.find(plotIndex);
 	if(pos == ltr.end())
 		return false;
-	int turnsUnreachable = pos->second.first - GC.getGame().getGameTurn();
-	return (turnsUnreachable < 10);
+	int turnsUnreachable = GC.getGame().getGameTurn() - pos->second.first;
+	return (turnsUnreachable < 10);*/
 	/*  If this isn't enough time for naval stacks to reach their target,
 		consider adding a stackEnRoute flag to City that is updated in
 		updateTargetMissionCount. Not sure if AI_getMissionAIPlot points directly
@@ -1326,14 +1332,13 @@ bool WarAndPeaceCache::City::canReach() const {
 
 int WarAndPeaceCache::City::getDistance(bool forceCurrentVal) const {
 
-	if(distance < 0 && !forceCurrentVal && !reachByLand) { /* latestTurnReachable
-												is only for reachability via sea */
+	/*if(distance < 0 && !forceCurrentVal && !reachByLand) { // latestTurnReachable is only for reachability via sea
 		std::map<int,std::pair<int,int> > const& ltr = GET_PLAYER(cacheOwnerId).
 			warAndPeaceAI().getCache().latestTurnReachableBySea;
 		std::map<int,std::pair<int,int> >::const_iterator pos = ltr.find(plotIndex);
 		if(pos != ltr.end())
 			return pos->second.second;
-	}
+	}*/  // advc.003b: Disable latestTurnReachable fallback
 	return distance;
 }
 
@@ -1518,7 +1523,6 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 		reachBySea = true;
 		return;
 	}
-
 	int const maxDist = getWPAI.maxSeaDist();
 	distance = -1;
 	reachByLand = false;
@@ -1618,6 +1622,7 @@ double WarAndPeaceCache::City::estimateMovementSpeed(DomainTypes dom, int dist) 
 	if(dom != DOMAIN_LAND)
 		return cacheOwner.warAndPeaceAI().shipSpeed();
 	EraTypes const era = cacheOwner.getCurrentEra();
+	EraTypes const gameEra = GC.getGameINLINE().getCurrentEra();
 	double r = 1;
 	if(era >= 6) // Future era; to account for very high mobility in endgame
 		r++;
@@ -1625,14 +1630,15 @@ double WarAndPeaceCache::City::estimateMovementSpeed(DomainTypes dom, int dist) 
 		route could still lead through friendly territory and the owner
 		of that territory may or may not have Engineering or Railroad. */
 		// 4 is Industrial era
-	if((era >= 4 && GC.getGameINLINE().getCurrentEra() >= 4) || era >= 5)
+	if((era >= 4 && gameEra >= 4) || era >= 5)
 		r *= 4.5; // Railroads are faster than this, but don't expect them everywhere.
-	else if(GET_TEAM(cacheOwner.getTeam()).warAndPeaceAI().isFastRoads())
-		r *= 2;
 	/*  Some roads in Classical era; the longer the path, the higher the
 		chance of it traversing unpaved ground. */
-	else if(era >= 1)
-		r *= ::dRange(26.0 / (dist + 10), 1.0, 2.0);
+	else if(era >= 1) {
+		r *= ::dRange((20.0 + 6 * gameEra) / (dist + 10), 1.0, 2.0);
+		if(GET_TEAM(cacheOwner.getTeam()).warAndPeaceAI().isFastRoads())
+			r *= 1.4;
+	}
 	return r;
 }
 
@@ -1655,8 +1661,8 @@ bool WarAndPeaceCache::City::measureDistance(DomainTypes dom, CvPlot* start,
 	if(GET_PLAYER(cacheOwnerId).getCurrentEra() >= 4)
 		maxDist = (4 * maxDist) / 3;
 	/*  stepDistance sanity check to avoid costly distance measurement
-		(though ::teamStepValid_advc now performs the same check through
-		::stepHeuristic I think) */
+		(::teamStepValid_advc now performs the same check through ::stepHeuristic,
+		but still need stepDistance here for the speed estimate.) */
 	int stepDist = ::stepDistance(start, dest);
 	double speedEstimate = estimateMovementSpeed(dom, stepDist);
 	if(stepDist / speedEstimate > maxDist)

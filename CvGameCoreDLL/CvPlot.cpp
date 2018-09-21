@@ -3258,7 +3258,7 @@ int CvPlot::calculatePathDistanceToPlot( TeamTypes eTeam, CvPlot* pTargetPlot,
 	// Imitate instatiation of irrigated finder, pIrrigatedFinder
 	// Can't mimic step finder initialization because it requires creation from the exe
 	/*  <advc.104b> vector type changed to int[]; dom, eTargetTeam (instead of
-		NO_TEAM), iMaxPath and target coordinates added */
+		NO_TEAM), iMaxPath and target coordinates added. */
 	int teamVec[6] = {0};
 	teamVec[0] = eTeam;
 	teamVec[1] = eTargetTeam;
@@ -9166,11 +9166,14 @@ void CvPlot::doCulture() {
 void CvPlot::doCultureDecay() {
 
 	PROFILE_FUNC();
+	int const exclDecay = GC.getCITY_RADIUS_DECAY();
+	int const baseDecayPerMill = GC.getTILE_CULTURE_DECAY_PER_MILL();
 	bool inRadius[MAX_CIV_PLAYERS] = {false};
 	bool inAnyRadius = false;
 	int maxRadiusCulture = 0;
 	int minDist = 10;
-	if(isOwned() && !isCity()) {
+	if(exclDecay != 0 && isOwned() && !isCity() &&
+			!isBeingWorked()) { // advc.003b: Just for performance
 		for(int i = 0; i < NUM_CITY_PLOTS; i++) {
 			CvPlot* pp = ::plotCity(getX_INLINE(), getY_INLINE(), i);
 			if(pp == NULL) continue; CvPlot& p = *pp;
@@ -9186,13 +9189,12 @@ void CvPlot::doCultureDecay() {
 			}
 		}
 	}
-	int const exclDecay = GC.getCITY_RADIUS_DECAY();
 	for(int i = 0; i < MAX_PLAYERS; i++) {
 		PlayerTypes civId = (PlayerTypes)i;
-		if(!GET_PLAYER(civId).isEverAlive())
-			continue;
-		int decayPerMill = GC.getTILE_CULTURE_DECAY_PER_MILL();
 		int culture = getCulture(civId);
+		if(culture <= 0)
+			continue;
+		int decayPerMill = baseDecayPerMill;
 		if(inAnyRadius && !inRadius[i] &&
 				// Times 0.95 to avoid ownership oscillation
 				culture > 0.95 * maxRadiusCulture) {
@@ -10491,6 +10493,7 @@ void CvPlot::applyEvent(EventTypes eEvent)
 bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 		bool checkAirUnitCap) const // advc.001b
 {
+	PROFILE_FUNC(); // advc.003b
 	CvCity* pCity = getPlotCity();
 
 	if (GC.getUnitInfo(eUnit).isPrereqReligion())

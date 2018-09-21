@@ -98,7 +98,7 @@ int WarAndPeaceAI::maxLandDist() const {
 int WarAndPeaceAI::maxSeaDist() const {
 
 	CvMap const& m = GC.getMapINLINE();
-	int r = 14;
+	int r = 15;
 	// That's true for Large and Huge maps
 	if(m.getGridWidth() > 100 || m.getGridHeight() > 100)
 		r = 18;
@@ -1330,6 +1330,7 @@ DenialTypes WarAndPeaceAI::Team::declareWarTrade(TeamTypes targetId,
 	CvTeam const& sponsor = GET_TEAM(sponsorId);
 	/*  Check canBeHiredAgainst only in large games (to reduce the number of
 		war trade alerts seen by humans) */
+	bool bInsufficientPayment = false;
 	if(!sponsor.isHuman() || sponsor.getHasMetCivCount() < 8 ||
 			leaderCache().canBeHiredAgainst(targetId)) {
 		int utilityThresh = dwtUtilityThresh + 2;
@@ -1352,6 +1353,7 @@ DenialTypes WarAndPeaceAI::Team::declareWarTrade(TeamTypes targetId,
 			}
 			if(u > utilityThresh)
 				return NO_DENIAL;
+			else bInsufficientPayment = true;
 		}
 		/* "Maybe we'll change our mind" when it's (very) close?
 			No, don't provide this info after all. */
@@ -1360,8 +1362,9 @@ DenialTypes WarAndPeaceAI::Team::declareWarTrade(TeamTypes targetId,
 	}
 	CvTeamAI const& agent = GET_TEAM(agentId);
 	// We don't know why utility is so small; can only guess.
-	if(4 * agent.getPower(true) + (sponsor.isAtWar(targetId) ?
-			2 * sponsor.getPower(true) : 0) < 3 * GET_TEAM(targetId).getPower(true))
+	if(!bInsufficientPayment && 4 * agent.getPower(true) +
+			(sponsor.isAtWar(targetId) ? 2 * sponsor.getPower(true) : 0) <
+			3 * GET_TEAM(targetId).getPower(true))
 		return DENIAL_POWER_THEM;
 	if(agent.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CULTURE4) ||
 			agent.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_SPACE4))
@@ -1445,7 +1448,7 @@ int WarAndPeaceAI::Team::declareWarTradeVal(TeamTypes targetId,
 			attitudeModifier -= 0.25;
 	}
 	double obscured = price + price * attitudeModifier * 0.6 * h;
-	int r = ::roundToMultiple(obscured, 5);
+	int r = ::roundToMultiple(obscured, 10); // Makes gold cost a multiple of 5
 	rep.log("Obscured price: %d (attitude modifier: %d percent)\n", r,
 			::round(100 * attitudeModifier));
 	return r;

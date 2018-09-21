@@ -18335,7 +18335,8 @@ void CvPlayer::processCivics(CivicTypes eCivic, int iChange)
 	changeHappyPerMilitaryUnit(GC.getCivicInfo(eCivic).getHappyPerMilitaryUnit() * iChange);
 	// <advc.912c>
 	changeLuxuryModifier(GC.getCivicInfo(eCivic).getLuxuryModifier() * iChange);
-	GET_PLAYER(getID()).AI_updateBonusValue(); // </advc.912c>
+	if(GC.getCivicInfo(eCivic).getLuxuryModifier() != 0)
+		GET_PLAYER(getID()).AI_updateBonusValue(); // </advc.912c>
 	changeMilitaryFoodProductionCount((GC.getCivicInfo(eCivic).isMilitaryFoodProduction()) ? iChange : 0);
 	changeMaxConscript(getWorldSizeMaxConscript(eCivic) * iChange);
 	//changeNoUnhealthyPopulationCount((GC.getCivicInfo(eCivic).isNoUnhealthyPopulation()) ? iChange : 0);
@@ -23662,9 +23663,10 @@ UnitTypes CvPlayer::getTechFreeUnit(TechTypes eTech) const
 
 void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& ourList) const
 {
+	PROFILE_FUNC(); // advc.003b
 	TradeData item;
 	int iLoop;
-
+	bool const bOtherHuman = GET_PLAYER(eOtherPlayer).isHuman(); // advc.003b
 	//	Put the gold and maps into the table
 	setTradeItem(&item, TRADE_GOLD);
 	if (canTradeItem(eOtherPlayer, item))
@@ -23752,28 +23754,30 @@ void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 		case TRADE_RESOURCES:
 			for (int j = 0; j < GC.getNumBonusInfos(); j++)
 			{
-				// <advc.004>
-				if(AI_bonusTrade((BonusTypes)j, eOtherPlayer) == DENIAL_JOKING)
-					continue; // </advc.004>
 				setTradeItem(&item, TRADE_RESOURCES, j);
 				if (canTradeItem(eOtherPlayer, item))
 				{
-					bFoundItemUs = true;
-					ourList.insertAtEnd(item);
+					// <advc.004>
+					if(!bOtherHuman || getTradeDenial(eOtherPlayer, item) !=
+							DENIAL_JOKING) { // </advc.004>
+						bFoundItemUs = true;
+						ourList.insertAtEnd(item);
+					}
 				}
 			}
 			break;
 
 		case TRADE_CITIES:
 			for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
-			{
-				// K-Mod
-				if (AI_cityTrade(pLoopCity, eOtherPlayer) != DENIAL_NEVER)
-				// K-Mod end
-				{
-					setTradeItem(&item, TRADE_CITIES, pLoopCity->getID());
-					if (canTradeItem(eOtherPlayer, item))
-					{
+			{	/*  advc.003b: Replaced below b/c TradeDenial tests are slower than
+					canTradeItem -- though in this case the difference should be
+					negligible. */
+				//if (AI_cityTrade(pLoopCity, eOtherPlayer) != DENIAL_NEVER) // K-Mod
+				setTradeItem(&item, TRADE_CITIES, pLoopCity->getID());
+				if (canTradeItem(eOtherPlayer, item))
+				{	// <advc.003b>
+					if(!bOtherHuman || getTradeDenial(eOtherPlayer, item)
+							!= DENIAL_NEVER) { // </advc.003b>
 						bFoundItemUs = true;
 						ourList.insertAtEnd(item);
 					}

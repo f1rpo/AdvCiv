@@ -160,20 +160,12 @@ void CvTeamAI::AI_doTurnPre()
 {
 	AI_doCounter();
 	// advc.003: Commented out b/c pointless
-	/*if (isHuman())
-	{
+	/*if(isHuman())
 		return;
-	}
-
-	if (isBarbarian())
-	{
+	if(isBarbarian())
 		return;
-	}
-
-	if (isMinorCiv())
-	{
-		return;
-	}*/
+	if(isMinorCiv())
+		return;*/
 	// <advc.104>
 	if((getWPAI.isEnabled() || getWPAI.isEnabled(true)) && !isBarbarian() &&
 			!isMinorCiv() && isAlive()) {
@@ -183,6 +175,16 @@ void CvTeamAI::AI_doTurnPre()
 			WarAndPeaceAI::Team::doWar requires the members to be up-to-date. */
 		wpai.turnPre();
 	} // </advc.104>
+	/*  <advc.130n> Game turn increment can affect attitudes now. Might also be
+		a good idea in general to update before a human turn. Outdated attitude cache
+		doesn't really hurt, it just confuses humans. */
+	if(isHuman()) {
+		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+			CvPlayerAI& civ = GET_PLAYER((PlayerTypes)i);
+			if(civ.isAlive())
+				civ.AI_updateAttitudeCache();
+		}
+	} // </advc.130n>
 }
 
 
@@ -198,13 +200,13 @@ void CvTeamAI::AI_doTurnPost()
 		CvPlayerAI& kLoopPlayer = GET_PLAYER(i);
 		if (kLoopPlayer.getTeam() == getID() && kLoopPlayer.isAlive())
 		{
-			GET_PLAYER(i).AI_updateCloseBorderAttitudeCache();
-			GET_PLAYER(i).AI_updateAttitudeCache();
+			kLoopPlayer.AI_updateCloseBorderAttitudeCache();
+			kLoopPlayer.AI_updateAttitudeCache();
 		}
 	}
 	// K-Mod end
 
-	AI_updateWorstEnemy();
+	//AI_updateWorstEnemy(); // advc.130e: Covered by AI_updateAttitudeCache now
 
 	AI_updateAreaStrategies(false);
 

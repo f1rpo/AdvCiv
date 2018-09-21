@@ -1577,8 +1577,9 @@ void CvCityAI::AI_chooseProduction()
 	if( !(bDefenseWar && iWarSuccessRating < -50) )
 	{
 		if ((iAreaBestFoundValue > iMinFoundValue) || (iWaterAreaBestFoundValue > iMinFoundValue))
-		{
-			// BBAI TODO: Needs logic to check for early settler builds, settler builds in small cities, whether settler sea exists for water area sites?
+		{	/*  BBAI TODO: Needs logic to check for early settler builds,
+				settler builds in small cities, whether settler sea exists
+				for water area sites? */
 			if (pWaterArea != NULL)
 			{
 				int iTotalCities = kPlayer.getNumCities();
@@ -2340,13 +2341,13 @@ void CvCityAI::AI_chooseProduction()
 					invaderTypes.push_back(std::make_pair(UNITAI_PILLAGE, 30));
 				}
 			}
-			// <cdtw.8> Moved up
-			UnitTypes eCityAttackUnit = NO_UNIT;
-			kPlayer.AI_bestCityUnitAIValue(UNITAI_ATTACK_CITY, this, &eCityAttackUnit);
-			// </cdtw.8>
 			// K-Mod - get more siege units for crush
 			if (bCrushStrategy && GC.getGameINLINE().getSorenRandNum(100, "City AI extra crush bombard") < iTrainInvaderChance)
 			{
+				// <cdtw.8> Moved up
+				UnitTypes eCityAttackUnit = NO_UNIT;
+				kPlayer.AI_bestCityUnitAIValue(UNITAI_ATTACK_CITY, this, &eCityAttackUnit);
+				// </cdtw.8>
 				if (eCityAttackUnit != NO_UNIT && GC.getUnitInfo(eCityAttackUnit).getBombardRate() > 0)
 				{
 					if (AI_chooseUnit(eCityAttackUnit, UNITAI_ATTACK_CITY))
@@ -3395,6 +3396,7 @@ BuildingTypes CvCityAI::AI_bestBuilding(int iFocusFlags, int iMaxTurns, bool bAs
 
 BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns, int iMinThreshold, bool bAsync, AdvisorTypes eIgnoreAdvisor)
 {
+	PROFILE_FUNC(); // advc.003b
 	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE()); // K-Mod (and I've replaced all other GET_PLAYER calls in this function)
 
 	bool bAreaAlone = kOwner.AI_isAreaAlone(area());
@@ -6757,55 +6759,41 @@ CvCity* CvCityAI::AI_getRouteToCity() const
 	return getCity(m_routeToCity);
 }
 
-
+// advc.003: Refactored a bit
 void CvCityAI::AI_updateRouteToCity()
 {
-	CvCity* pLoopCity;
-	CvCity* pBestCity;
-	int iValue;
-	int iBestValue;
-	int iLoop;
-	int iI;
+	PROFILE_FUNC(); // advc.003b
 
 	gDLL->getFAStarIFace()->ForceReset(&GC.getRouteFinder());
 
-	iBestValue = MAX_INT;
-	pBestCity = NULL;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	int iBestValue = INT_MAX;
+	CvCity* pBestCity = NULL; int iLoop=-1;
+	
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).getTeam() == getTeam())
+		if(GET_PLAYER((PlayerTypes)iI).getTeam() != getTeam())
+			continue;
+		for (CvCity* pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
 		{
-			for (pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
+			if(pLoopCity == this || pLoopCity->area() != area())
+				continue;
+			if (!gDLL->getFAStarIFace()->GeneratePath(&GC.getRouteFinder(),
+				getX_INLINE(), getY_INLINE(), pLoopCity->getX_INLINE(),
+				pLoopCity->getY_INLINE(), false, getOwnerINLINE(), true))
 			{
-				if (pLoopCity != this)
+				int iValue = plotDistance(getX_INLINE(), getY_INLINE(),
+						pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
+				if (iValue < iBestValue)
 				{
-					if (pLoopCity->area() == area())
-					{
-						if (!(gDLL->getFAStarIFace()->GeneratePath(&GC.getRouteFinder(), getX_INLINE(), getY_INLINE(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), false, getOwnerINLINE(), true)))
-						{
-							iValue = plotDistance(getX_INLINE(), getY_INLINE(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
-
-							if (iValue < iBestValue)
-							{
-								iBestValue = iValue;
-								pBestCity = pLoopCity;
-							}
-						}
-					}
+					iBestValue = iValue;
+					pBestCity = pLoopCity;
 				}
 			}
 		}
 	}
-
-	if (pBestCity != NULL)
-	{
+	if(pBestCity != NULL)
 		m_routeToCity = pBestCity->getIDInfo();
-	}
-	else
-	{
-		m_routeToCity.reset();
-	}
+	else m_routeToCity.reset();
 }
 
 

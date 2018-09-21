@@ -324,18 +324,18 @@ PlayerTypes InvasionGraph::Node::findTarget(TeamTypes include) const {
 				outer.nodeMap[owner]->hasCapitulated())
 			continue;
 		// First hit is best target b/c cache is sorted
-		if(likeliestTarget == NO_PLAYER)
+		if(likeliestTarget == NO_PLAYER) {
 			likeliestTarget = owner;
+			/*  W/e the current target is according to unit missions, assume it
+				will change once war is declared. */
+			if((outer.allWarPartiesKnown || include != NO_TEAM) &&
+					!TEAMREF(id).isAtWar(TEAMID(likeliestTarget)))
+				return likeliestTarget;
+		}
 		canTarget[owner] = true;
 	}
-	// Can't reach any target
-	if(likeliestTarget == NO_PLAYER)
+	if(likeliestTarget == NO_PLAYER) // Can't reach any target
 		return NO_PLAYER;
-	/* W/e the current target is according to unit missions, assume it'll switch
-	   once war is declared. */
-	if((outer.allWarPartiesKnown || include != NO_TEAM) &&
-			!TEAMREF(id).isAtWar(TEAMID(likeliestTarget)))
-		return likeliestTarget;
 	// Against whom does this Node have the most missions?
 	PlayerTypes mostMissions = NO_PLAYER;
 	int maxCount = -1;

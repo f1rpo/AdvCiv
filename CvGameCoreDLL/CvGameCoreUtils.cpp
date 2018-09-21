@@ -1999,7 +1999,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 		{
 			/*  <advc.001> In the rare case that the AI plans war while animals
 				still roam the map, the DefenceStrength computation will crash
-				when it gets to the point where the UniCombatType is accessed.
+				when it gets to the point where the UnitCombatType is accessed.
 				(Actually, not so exotic b/c I'm allowing animals to survive
 				in continents w/o civ cities (advc.300). */
 			CvUnit* up = pToPlot->getUnitByIndex(0);

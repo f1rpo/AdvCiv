@@ -74,7 +74,7 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 		self.X_LINK = 0
 		self.Y_LINK = 726
 		
-		self.X_GLANCE_OFFSET = 10
+		self.X_GLANCE_OFFSET = 6 # advc.004: was 10
 		self.Y_GLANCE_OFFSET = 3
 		self.GLANCE_BUTTON_SIZE = 46
 		self.PLUS_MINUS_SIZE = 25
@@ -801,7 +801,7 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 				self.nCount += 1
 
 		self.X_Spread = (self.W_SCREEN - 20) / self.nCount
-		if self.X_Spread < 58: self.X_Spread = 58
+		if self.X_Spread < 57: self.X_Spread = 57 # advc.004: Lower bound was 58
 
 		self.Y_Spread = (self.H_SCREEN - 50) / (self.nCount + 2)
 		self.Y_Text_Offset = (self.Y_Spread - 36) / 2

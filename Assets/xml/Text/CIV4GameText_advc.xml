@@ -2028,9 +2028,33 @@
 		<Tag>TXT_KEY_TECH_STEAM_POWER_QUOTE</Tag>
 		<English>"You would make a ship sail against the winds and currents by lighting a bon-fire under her deck? I have no time for such nonsense." - Napoleon, on Robert Fulton's Steamship (anecdote)</English>
 		<French>"Vous feriez avancer un navire contre vents et courants en allumant un brasier sous le pont ? Je n'ai pas de temps &#224; perdre avec de telles inepties." - Napol&#233;on parlant du bateau &#224; vapeur de Robert Fulton</French>
-		<German>"Was veranlasst Sie zu der Annahme, dass ein Schiff gegen den Wind und gegen die Str&#246;mung segeln k&#246;nnte, wenn man nur ein Feuer unter Deck anz&#252;nde? Ich habe keine Zeit, mir so einen Unsinn anzuh&#246;ren." - Napoleon &#252;ber Robert Fultons Dampfschiff</German>
+		<German>"Was veranlasst Sie zu der Annahme, dass ein Schiff gegen den Wind und gegen die Str&#246;mung segeln k&#246;nnte, wenn man nur ein Feuer unter Deck anz&#252;nde? Ich habe keine Zeit, mir so einen Unsinn anzuh&#246;ren." - Napoleon &#252;ber Robert Fultons Dampfschiff (Anekdote)</German>
 		<Italian>"Quindi per far andare una nave controvento dovresti accendere un fuoco nella stiva? Non ho tempo per queste idiozie." - Napoleone a proposito della nave a vapore di Robert Fulton</Italian>
 		<Spanish>"-&#191;Usted har&#237;a barcos que navegaran contra las corrientes y los vientos con solo encender una caldera bajo la cubierta? &#173;Disc&#250;lpeme, no tengo tiempo para escuchar tonter&#237;as." - Napole&#243;n, hablando del barco a vapor de Robert Fulton</Spanish>
+	</TEXT>
+		<TEXT>
+		<Tag>TXT_KEY_TECH_NATIONALISM_QUOTE</Tag>
+		<English>"A man does not have himself killed for a half-pence a day or for a petty distinction. You must speak to the soul in order to electrify him." - ascribed to Napoleon Bonaparte</English>
+		<French>"Un homme n'accepte pas de risquer sa vie pour deux sous par jour ou pour une m&#233;daille. Il faut parler &#224; son &#226;me, le galvaniser !" - Napol&#233;on Bonaparte</French>
+		<German>"Ein Mann riskiert nicht f&#252;r einen j&#228;mmerlichen Sold sein Leben. Man muss seine Seele ansprechen, um ihn zu elektrisieren!" - Napoleon Bonaparte (zugeschrieben)</German>
+		<Italian>"Un uomo non rischia la vita per pochi soldi o per promozioni insignificanti. Per infervorarlo, bisogna parlare alla sua anima." - Napoleone Bonaparte</Italian>
+		<Spanish>"Un hombre no est&#225; dispuesto a morir por medio penique al d&#237;a ni por un qu&#237;tame all&#225; esas penas. Debes hablarle al alma para conmoverlo." - Napole&#243;n Bonaparte</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TECH_BIOLOGY_QUOTE</Tag>
+		<English>"It is not the strongest of the species that survive, but the one most responsive to change." - Charles Darwin (paraphrase)</English>
+		<French>"Ce n'est pas l'esp&#232;ce la plus puissante qui survit mais celle qui s'adapte le mieux au changement." - Charles Darwin</French>
+		<German>"Nicht die st&#228;rksten Spezies werden &#252;berleben, sondern jene, die sich Ver&#228;nderungen am besten anpassen k&#246;nnen." - frei nach Charles Darwin</German>
+		<Italian>"Non sopravvive la specie pi&#249; forte, ma quella pi&#249; adatta al cambiamento." - Charles Darwin</Italian>
+		<Spanish>"No sobrevive la especie m&#225;s fuerte, sino la m&#225;s adaptable al cambio." - Charles Darwin</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TECH_COMPASS_QUOTE</Tag>
+		<English>"The wisest men follow their own direction." - ascribed to Euripides</English>
+		<French>"L'homme avis&#233; suit sa propre direction." - Euripide</French>
+		<German>"Ein weiser Mann folgt nur sich selbst." - Euripides (zugeschrieben)</German>
+		<Italian>"Gli uomini pi&#249; saggi conoscono la direzione in cui andare." - Euripide</Italian>
+		<Spanish>"Los hombres m&#225;s sabios siguen su propio rumbo." - Eur&#237;pides</Spanish>
 	</TEXT>
 	
 	<!-- advc.004i: Originally in CIV4GameText_BTS.xml. Added a variable

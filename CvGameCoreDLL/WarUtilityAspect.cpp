@@ -2889,6 +2889,9 @@ void Distraction::evaluate() {
 			log("War plan against %s distracts us from (actual)"
 					" war plan against %s", report.leaderName(theyId),
 					report.leaderName(properCivs[i]));
+			/*  The cached value is for limited war in 5 turns, which isn't
+				necessarily the best war plan against tId. */
+			ut += 7.5;
 			if(ut > 0.5 && !m->isOnTheirSide(tId, true) && !agent.isAtWar(tId)) {
 			/*  This means, war against tId is still in preparation or imminent,
 				and we're considering peace with theyId; or there's a special offer
@@ -2907,11 +2910,11 @@ void Distraction::evaluate() {
 			was the better target. But the longer the war against theyId lasts, the
 			likelier a change in circumstances. */
 		else if(agent.isAtWar(TEAMID(theyId)) &&
-					// If tId==targetId, then tId isn't a "potential" target
-					params.targetId() != tId &&
-					/*  If there's a peace treaty, we probably don't want to
-						attack them urgently */
-					agent.canDeclareWar(tId) &&
+				// If tId==targetId, then tId isn't a "potential" target
+				params.targetId() != tId &&
+				/*  If there's a peace treaty, we probably don't want to
+					attack them urgently */
+				agent.canDeclareWar(tId) &&
 				ut > -warDuration) {
 			double costForPotential = std::min(15.0,
 					(ut - std::max(0.0, utilityVsThem) + warDuration) / 1.55);
@@ -3489,7 +3492,8 @@ void TacticalSituation::evalOperational() {
 		return;
 	/*  When taking the human pov, we mustn't assume to know their exact unit counts.
 		Whether they're ready for an attack is secret info. */
-	if(we->isHuman()) return;
+	if(we->isHuman())
+		return;
 	if(ourCache->numReachableCities(theyId) <= 0 || (params.isNaval() &&
 			// Won't need invaders then
 			ourCache->getPowerValues()[LOGISTICS]->getTypicalUnitType() == NO_UNIT))

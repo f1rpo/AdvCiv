@@ -1865,6 +1865,7 @@ int CvCity::findCommerceRateRank(CommerceTypes eCommerce) const
 // Returns one of the upgrades...
 UnitTypes CvCity::allUpgradesAvailable(UnitTypes eUnit, int iUpgradeCount) const
 {
+	PROFILE_FUNC(); // advc.003b
 	UnitTypes eUpgradeUnit;
 	UnitTypes eTempUnit;
 	UnitTypes eLoopUnit;
@@ -2055,12 +2056,24 @@ bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool b
 			return true;
 		}
 	}
-
+	/*  <advc.041> Don't allow any ships to be trained at lakes, except
+		Workboat if there are resources in the lake. */
+	CvUnitInfo& u = GC.getUnitInfo(eUnit);
+	if(u.getDomainType() == DOMAIN_SEA && !isCoastal() &&
+			(!u.isPrereqBonuses() || (u.isPrereqBonuses() && !isPrereqBonusSea())))
+		return false; // </advc.041>
 	if (!(GET_PLAYER(getOwnerINLINE()).canTrain(eUnit, bContinue, bTestVisible, bIgnoreCost)))
 	{
 		return false;
 	}
 
+	if (!plot()->canTrain(eUnit, bContinue, bTestVisible,
+			checkAirUnitCap)) // advc.001b
+	{
+		return false;
+	}
+
+	// advc.003b: Moved down. Seems a bit slower than CvPlot::canTrain.
 	if (!bIgnoreUpgrades)
 	{
 		if (allUpgradesAvailable(eUnit) != NO_UNIT)
@@ -2069,17 +2082,6 @@ bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool b
 		}
 	}
 
-	if (!plot()->canTrain(eUnit, bContinue, bTestVisible,
-			checkAirUnitCap)) // advc.001b
-	{
-		return false;
-	}
-	/*  <advc.041> Don't allow any ships to be trained at lakes, except
-		Workboat if there are resources in the lake. */
-	CvUnitInfo& u = GC.getUnitInfo(eUnit);
-	if(u.getDomainType() == DOMAIN_SEA && !isCoastal() &&
-			(!u.isPrereqBonuses() || (u.isPrereqBonuses() && !isPrereqBonusSea())))
-		return false; // </advc.041>
 	if(GC.getUSE_CANNOT_TRAIN_CALLBACK())
 	{
 		CyCity *pyCity = new CyCity((CvCity*)this);
