@@ -16268,14 +16268,15 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
-			<!-- advc.005a: Was Attack 100. Want to stress the conquests more.-->
+			<!-- advc.005a: Was Attack 100. Want to stress the (naval)
+				 conquests more.-->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
 					<UnitAIType>UNITAI_ATTACK_CITY</UnitAIType>
 					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_COLLATERAL</UnitAIType>
+					<UnitAIType>UNITAI_ASSAULT_SEA</UnitAIType>
 					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>

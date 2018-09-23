@@ -554,6 +554,7 @@ enum WidgetTypes					// Exposed to Python
 	WIDGET_HELP_EXTRA_SPECIALIST_COMMERCE,
 	// K-Mod end
 	WIDGET_RF_CIV_CHOICE, // advc.706
+	WIDGET_LH_GLANCE, // advc.152
 
 #ifdef _USRDLL
 	NUM_WIDGET_TYPES

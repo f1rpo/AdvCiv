@@ -4590,7 +4590,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 			{
 				if (GC.getUnitInfo((UnitTypes)iI).getPrereqBuilding() == eBuilding)
 				{
-					// BBAI TODO: Smarter monastary construction, better support for mods
+					// BBAI TODO: Smarter monastery construction, better support for mods
 
 					if (kOwner.AI_totalAreaUnitAIs(area(), ((UnitAITypes)(GC.getUnitInfo((UnitTypes)iI).getDefaultUnitAIType()))) == 0)
 					{

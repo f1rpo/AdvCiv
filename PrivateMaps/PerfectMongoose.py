@@ -3752,10 +3752,15 @@ class ContinentMap:
 		#If this was the only continent than we have a pangaea. Oh well.
 		if len(continentList) == 0:
 			return -1
-		#get the next largest continent and temporarily remove from list
-		#add it back later and is automatically 'New World'
-		biggestNewWorld = continentList[0]
-		del continentList[0]
+		# <advc.021> Only reserve the second largest continent if this still leaves enough room per civ in the Old World
+		reservedSecondBiggest = False
+		iCivs = CyGlobalContext().getGame().countCivPlayersEverAlive()
+		if float(totalLand - continentList[0].size) / float(iCivs) > 100:
+			reservedSecondBiggest = True # </advc.021>
+			#get the next largest continent and temporarily remove from list
+			#add it back later and is automatically 'New World'
+			biggestNewWorld = continentList[0]
+			del continentList[0]
 		#sort list by ID rather than size to make things
 		#interesting and possibly bigger new worlds
 		continentList.sort(lambda x, y:cmp(x.ID, y.ID))
@@ -3771,8 +3776,10 @@ class ContinentMap:
 			# Was > 0.6. A larger Old World plays better, while the true ratio (Africa+Eurasia)/(Africa+EurasiaAmerica+Oceania) is indeed just 62.5%. Use randomness to make a realistic size possible but rather unlikely.
 			if float(oldWorldSize) / float(totalLand) > (60 + PRand.randint(0, 9)) / 100.0:
 				break
-		#add back the biggestNewWorld continent
-		continentList.append(biggestNewWorld)
+		# advc.021b: A too small Old World is going to be unplayable; rather reserve no New World then (or just some islands).
+		if reservedSecondBiggest and float(oldWorldSize) / float(iCivs) > 85:
+			#add back the biggestNewWorld continent
+			continentList.append(biggestNewWorld)
 		#what remains in the list will be considered 'New World'
 		#get ID for the next continent, we will use this ID for 'New World'
 		#designation

@@ -567,6 +567,13 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 	case WIDGET_LEADERHEAD:
 		parseLeaderheadHelp(widgetDataStruct, szBuffer);
 		break;
+	// <advc.152>
+	case WIDGET_LH_GLANCE:
+		parseLeaderheadHelp(widgetDataStruct, szBuffer);
+		// Might as well call GAMETEXT right here
+		GAMETEXT.parseWarTradesHelp(szBuffer, (PlayerTypes)widgetDataStruct.m_iData1,
+				(PlayerTypes)widgetDataStruct.m_iData2);
+		break; // </advc.152>
 
 	case WIDGET_LEADER_LINE:
 		parseLeaderLineHelp(widgetDataStruct, szBuffer);
@@ -1018,6 +1025,7 @@ bool CvDLLWidgetData::executeAltAction( CvWidgetDataStruct &widgetDataStruct )
 		widgetData.m_iData1 = widgetData.m_iData2;
 		doPediaCivicJump(widgetData);
 		break;
+	case WIDGET_LH_GLANCE: // advc.152
 	case WIDGET_LEADERHEAD:
 		doContactCiv(widgetDataStruct);
 		break;

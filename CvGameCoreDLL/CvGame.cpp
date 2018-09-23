@@ -10672,7 +10672,9 @@ void CvGame::deleteVoteTriggered(int iID)
 
 void CvGame::doVoteResults()
 {
-	int iLoop;
+	// advc.150b: To make sure it doesn't go out of scope
+	static CvWString targetCityName;
+	int iLoop=-1;
 	for (VoteTriggeredData* pVoteTriggered = m_votesTriggered.beginIter(&iLoop); NULL != pVoteTriggered; pVoteTriggered = m_votesTriggered.nextIter(&iLoop))
 	{
 		CvWString szBuffer;
@@ -10725,7 +10727,7 @@ void CvGame::doVoteResults()
 			{
 				continue;
 			} // <advc.150b>
-			wchar const* targetCityNameKey = NULL;
+			targetCityName = "";
 			int voteCount = -1; // </advc.150b>
 			if (isTeamVote(eVote))
 			{
@@ -10783,7 +10785,7 @@ void CvGame::doVoteResults()
 				if(subd.ePlayer != NO_PLAYER && subd.iCityId >= 0) {
 					CvCity* targetCity = GET_PLAYER(subd.ePlayer).getCity(subd.iCityId);
 					if(targetCity != NULL)
-						targetCityNameKey = targetCity->getNameKey();
+						targetCityName = targetCity->getNameKey();
 				}
 				voteCount = countVote(*pVoteTriggered, PLAYER_VOTE_YES);
 				bPassed = (voteCount >= getVoteRequired(eVote, eVoteSource));
@@ -10868,11 +10870,11 @@ void CvGame::doVoteResults()
 						resolutionStr = gDLL->getText(key, GET_PLAYER(subd.ePlayer).
 								getReplayName(), 0, 0);
 					}
-					else if(kVote.isAssignCity() && targetCityNameKey != NULL &&
+					else if(kVote.isAssignCity() && !targetCityName.empty() &&
 							subd.eOtherPlayer != NO_PLAYER) {
 						resolutionStr = gDLL->getText("TXT_KEY_POPUP_ELECTION_ASSIGN_CITY",
 								GET_PLAYER(subd.ePlayer).getCivilizationAdjectiveKey(),
-								targetCityNameKey,
+								targetCityName.GetCString(),
 								GET_PLAYER(subd.eOtherPlayer).getReplayName(), 0, 0);
 					}
 				}

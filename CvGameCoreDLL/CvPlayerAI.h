@@ -235,11 +235,12 @@ public:
 
 	PlayerVoteTypes AI_diploVote(const VoteSelectionSubData& kVoteData, VoteSourceTypes eVoteSource, bool bPropose);
 
-	int AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pList, bool bIgnoreAnnual = false,
-		int iChange = 1 /*  advc.003: was called iExtra, which didn't make sense
+	int AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pList,
+		bool bIgnoreAnnual = false,
+		int iChange = 1, /*  advc.003: was called iExtra, which didn't make sense
 							and differed from the parameter name in CvPlayerAI.cpp. */
-		, bool ignoreDiscount = false // advc.550a
-		) const;
+		bool ignoreDiscount = false, // advc.550a
+		bool ignorePeace = false) const; // advc.130p
 	bool AI_goldDeal(const CLinkList<TradeData>* pList) const;
 	bool isAnnualDeal(CLinkList<TradeData> const& itemList) const; // advc.705
 	/*  advc.130o: Removed const qualifier - function may now change diplo memory.
@@ -392,17 +393,17 @@ public:
 
 	int AI_getBonusTradeCounter(PlayerTypes eIndex) const;
 	void AI_changeBonusTradeCounter(PlayerTypes eIndex, int iChange);
-
+	/* <advc.130p> For code shared by AI_changePeacetimeTradeValue and
+		AI_changePeacetimeGrantValue. The third parameter says which of the two
+		should be changed. */
+	void AI_changePeacetimeValue(PlayerTypes eIndex, int iChange, bool isGrant,
+			bool bPeace = false, TeamTypes peaceTradeTarget = NO_TEAM,
+			TeamTypes warTradeTarget = NO_TEAM); // </advc.130p>
 	int AI_getPeacetimeTradeValue(PlayerTypes eIndex) const;
 	void AI_changePeacetimeTradeValue(PlayerTypes eIndex, int iChange);
-
 	int AI_getPeacetimeGrantValue(PlayerTypes eIndex) const;
 	void AI_changePeacetimeGrantValue(PlayerTypes eIndex, int iChange);
-	/*  <advc.130p> The change functions apply adjustments and have a side-effect
-		on EnemyTrade and EnemyGrant values. These here are simple setters. */
-	void AI_setPeacetimeTradeValue(PlayerTypes eIndex, int iVal);
-	void AI_setPeacetimeGrantValue(PlayerTypes eIndex, int iVal);
-	// </advc.130p><advc.130k> To make exponential decay more convenient
+	// <advc.130k> To make exponential decay more convenient
 	void AI_setSameReligionCounter(PlayerTypes eIndex, int iValue);
 	void AI_setDifferentReligionCounter(PlayerTypes eIndex, int iValue);
 	void AI_setFavoriteCivicCounter(PlayerTypes eIndex, int iValue);
@@ -584,13 +585,15 @@ public:
 	virtual void write(FDataStreamBase* pStream);
 
 protected:
-	/*  <advc.130p> For code shared by AI_changePeacetimeTradeValue and
-		AI_changePeacetimeGrantValue. The third parameter says which
-		of the two should be changed. */
-	void AI_changePeaceTimeValue(PlayerTypes eIndex, int iChange, bool isGrant);
-	int AI_peacetimeTradeValDivisor() const;
+	// <advc.130p>
+	int AI_peacetimeTradeValDivisor(bool bRival) const;
 	static int const peacetimeTradeRelationsLimit = 4;
-	/*  </advc.130p> advc.130x: Mode 0: same religion, 1: different religion,
+	/*  The change functions apply adjustments and have a side-effect
+		on EnemyTrade and EnemyGrant values. These here are simple setters. */
+	void AI_setPeacetimeTradeValue(PlayerTypes eIndex, int iVal);
+	void AI_setPeacetimeGrantValue(PlayerTypes eIndex, int iVal);
+	// </advc.130p>
+	/*	advc.130x: Mode 0: same religion, 1: different religion,
 		2: favorite civic. Returns the absolute value of the limit for the
 		time based religion/civics relations modifier. */
 	int ideologyDiploLimit(PlayerTypes theyId, int mode) const;

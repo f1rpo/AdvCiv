@@ -35,6 +35,8 @@ class BugAdvisorOptionsTab(BugOptionsTab.BugOptionsTab):
 		screen.attachHBox(left, comboBox)
 		self.addCheckbox(screen, comboBox, "Advisors__EFAGlanceTab")
 		self.addTextDropdown(screen, None, comboBox, "Advisors__EFAGlanceAttitudes")
+		# advc.152:
+		self.addCheckbox(screen, left, "Advisors__EFAWarTrades")
 		self.addCheckbox(screen, left, "Advisors__EFAImprovedInfo")
 		self.addCheckbox(screen, left, "Advisors__EFADealTurnsLeft")
 		#self.addCheckbox(screen, left, "MiscHover__TechTradeDenial")

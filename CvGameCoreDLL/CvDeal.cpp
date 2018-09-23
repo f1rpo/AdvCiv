@@ -136,15 +136,21 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 	if (isVassalTrade(pFirstList) && isVassalTrade(pSecondList))
 	{
 		return;
-	}
-
+	} // <advc.130p>
+	TeamTypes warTradeTarget = NO_TEAM; 
+	TeamTypes peaceTradeTarget = NO_TEAM; // </advc.130p>
 	if (pFirstList != NULL)
 	{
 		for (CLLNode<TradeData>* pNode = pFirstList->head(); pNode; pNode = pFirstList->next(pNode))
-		{
+		{	// <advc.130p>
+			if(pNode->m_data.m_eItemType == TRADE_WAR)
+				warTradeTarget = (TeamTypes)pNode->m_data.m_iData;
+			else if(pNode->m_data.m_eItemType == TRADE_PEACE)
+				peaceTradeTarget = (TeamTypes)pNode->m_data.m_iData;
+			// </advc.130p>
 			if (bCheckAllowed)
 			{
-				if (!(GET_PLAYER(getFirstPlayer()).canTradeItem(getSecondPlayer(), pNode->m_data)))
+				if (!GET_PLAYER(getFirstPlayer()).canTradeItem(getSecondPlayer(), pNode->m_data))
 				{
 					return;
 				}
@@ -155,8 +161,13 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 	if (pSecondList != NULL)
 	{
 		for (CLLNode<TradeData>* pNode = pSecondList->head(); pNode; pNode = pSecondList->next(pNode))
-		{
-			if (bCheckAllowed && !(GET_PLAYER(getSecondPlayer()).canTradeItem(getFirstPlayer(), pNode->m_data)))
+		{	// <advc.130p>
+			if(pNode->m_data.m_eItemType == TRADE_WAR)
+				warTradeTarget = (TeamTypes)pNode->m_data.m_iData;
+			else if(pNode->m_data.m_eItemType == TRADE_PEACE)
+				peaceTradeTarget = (TeamTypes)pNode->m_data.m_iData;
+			// </advc.130p>
+			if (bCheckAllowed && !GET_PLAYER(getSecondPlayer()).canTradeItem(getFirstPlayer(), pNode->m_data))
 			{
 				return;
 			}
@@ -166,52 +177,35 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 	TeamTypes eFirstTeam = GET_PLAYER(getFirstPlayer()).getTeam();
 	TeamTypes eSecondTeam = GET_PLAYER(getSecondPlayer()).getTeam();
 	bool bBumpUnits = false; // K-Mod
-
-	if (atWar(eFirstTeam, eSecondTeam))
-	{
+	/*  <advc.130p> MakePeace calls moved down. Want to count trade value (partially)
+		for peace deals, and I don't think AI_dealValue will work correctly when no
+		longer at war. */
+	bool const bPeace = atWar(eFirstTeam, eSecondTeam);
+	bool bUpd = false;
+	/*  Calls to changePeacetimeTradeValue moved into a subroutine to avoid
+		code duplication */
+	if(recordTradeValue(pSecondList, pFirstList, getSecondPlayer(),
+			getFirstPlayer(), bPeace, peaceTradeTarget, warTradeTarget))
+		bUpd = true;
+	if(recordTradeValue(pFirstList, pSecondList, getFirstPlayer(),
+			getSecondPlayer(), bPeace, peaceTradeTarget, warTradeTarget))
+		bUpd = true;
+	if(bPeace) {
+		bUpd = true; // </advc.130p>
 		// free vassals of capitulating team before peace is signed
-		/*  advc.130y: Commented out; let CvTeam::setVassal free the vassals
+		/*  advc.130y: Deleted; let CvTeam::setVassal free the vassals
 			after signing peace */
 		/*if (isVassalTrade(pSecondList))
-		{
-			for (int iI = 0; iI < MAX_TEAMS; iI++)
-			{
-				TeamTypes eLoopTeam = (TeamTypes) iI;
-				CvTeam& kLoopTeam = GET_TEAM(eLoopTeam);
-				if ((eLoopTeam != eFirstTeam) && (eLoopTeam != eSecondTeam))
-				{
-					if (kLoopTeam.isAlive() && kLoopTeam.isVassal(eSecondTeam))
-					{
-						GET_TEAM(eSecondTeam).freeVassal(eLoopTeam);
-						int iSecondSuccess = GET_TEAM(eFirstTeam).AI_getWarSuccess(eSecondTeam) + GC.getWAR_SUCCESS_CITY_CAPTURING() * GET_TEAM(eSecondTeam).getNumCities();
-						GET_TEAM(eFirstTeam).AI_setWarSuccess(eLoopTeam, std::max(iSecondSuccess, GET_TEAM(eFirstTeam).AI_getWarSuccess(eLoopTeam)));
-					}
-				}
-			}
-		}
+		{ ... }
 		else if (isVassalTrade(pFirstList)) // K-Mod added 'else'
-		{
-			for (int iI = 0; iI < MAX_TEAMS; iI++)
-			{
-				TeamTypes eLoopTeam = (TeamTypes) iI;
-				CvTeam& kLoopTeam = GET_TEAM(eLoopTeam);
-				if ((eLoopTeam != eFirstTeam) && (eLoopTeam != eSecondTeam))
-				{
-					if (kLoopTeam.isAlive() && kLoopTeam.isVassal(eFirstTeam))
-					{
-						GET_TEAM(eFirstTeam).freeVassal(eLoopTeam);
-						int iFirstSuccess = GET_TEAM(eSecondTeam).AI_getWarSuccess(eFirstTeam) + GC.getWAR_SUCCESS_CITY_CAPTURING() * GET_TEAM(eFirstTeam).getNumCities();
-						GET_TEAM(eSecondTeam).AI_setWarSuccess(eLoopTeam, std::max(iFirstSuccess, GET_TEAM(eSecondTeam).AI_getWarSuccess(eLoopTeam)));
-					}
-				}
-			}
-		}*/
+		{ ... }*/
 
 		//GET_TEAM(eFirstTeam).makePeace(eSecondTeam, !isVassalTrade(pFirstList) && !isVassalTrade(pSecondList));
-
-		// K-Mod. Bump units only after all trades are completed, because some deals (such as city gifts) may affect which units get bumped.
-		// (originally, units were bumped automatically while executing the peace deal trades)
-		// Note: the original code didn't bump units for vassal trades. This is can erroneously allow the vassal's units to stay in the master's land.
+		/*  K-Mod. Bump units only after all trades are completed, because some deals 
+			(such as city gifts) may affect which units get bumped. (originally,
+			units were bumped automatically while executing the peace deal trades)
+			Note: the original code didn't bump units for vassal trades. This can
+			erroneously allow the vassal's units to stay in the master's land. */
 		// <advc.039>
 		bool bSurrender = isVassalTrade(pFirstList) || isVassalTrade(pSecondList);
 		bool bDone = false;
@@ -239,66 +233,14 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 		bBumpUnits = true;
 		// K-Mod end
 	}
-	else
-	{
-		if (!isPeaceDealBetweenOthers(pFirstList, pSecondList))
-		{
-			bool bUpd = false; // advc.003: Don't update attitude cache unnecessarily
-			if ((pSecondList != NULL) && (pSecondList->getLength() > 0))
-			{
-				int iValue =
-				/*  <advc.550a> Ignore discounts when it comes to fair-trade
-					diplo bonuses? Hard to decide, apply half the discount for now. */
-						::round((GET_PLAYER(getFirstPlayer()).AI_dealVal(
-						getSecondPlayer(), pSecondList, true, 1, true) + // </advc.550a>
-						GET_PLAYER(getFirstPlayer()).AI_dealVal(
-						getSecondPlayer(), pSecondList, true)
-						/ 2.0)); // advc.550a
-				// <advc.003>
-				if(iValue > 0) {
-					bUpd = true; // </advc.003>
-					if ((pFirstList != NULL) && (pFirstList->getLength() > 0))
-					{
-						GET_PLAYER(getFirstPlayer()).AI_changePeacetimeTradeValue(getSecondPlayer(), iValue);
-					}
-					else
-					{
-						GET_PLAYER(getFirstPlayer()).AI_changePeacetimeGrantValue(getSecondPlayer(), iValue);
-					}
-				} // advc.003
-			}
-			if ((pFirstList != NULL) && (pFirstList->getLength() > 0))
-			{
-				int iValue = // <advc.550a>
-						::round((GET_PLAYER(getSecondPlayer()).AI_dealVal(
-						getFirstPlayer(), pFirstList, true, 1, true) + // </advc.550a>
-						GET_PLAYER(getSecondPlayer()).AI_dealVal(
-						getFirstPlayer(), pFirstList, true)
-						/ 2.0)); // advc.550a
-				// <advc.003>
-				if(iValue > 0) {
-					bUpd = true; // </advc.003>
-					if ((pSecondList != NULL) && (pSecondList->getLength() > 0))
-					{
-						GET_PLAYER(getSecondPlayer()).AI_changePeacetimeTradeValue(getFirstPlayer(), iValue);
-					}
-					else
-					{
-						GET_PLAYER(getSecondPlayer()).AI_changePeacetimeGrantValue(getFirstPlayer(), iValue);
-					}
-				} // advc.003
-			}
-			if(bUpd) { // advc.003
-				// K-Mod
-				GET_PLAYER(getFirstPlayer()).AI_updateAttitudeCache(getSecondPlayer());
-				GET_PLAYER(getSecondPlayer()).AI_updateAttitudeCache(getFirstPlayer());
-				// K-Mod end
-			} // advc.003
-		}
+	if(bUpd) { // advc.003b: Don't update cache unnecessarily
+		// K-Mod
+		GET_PLAYER(getFirstPlayer()).AI_updateAttitudeCache(getSecondPlayer());
+		GET_PLAYER(getSecondPlayer()).AI_updateAttitudeCache(getFirstPlayer());
+		// K-Mod end
 	}
 
 	bool bAlliance = false;
-
 	if (pFirstList != NULL)
 	{
 		// K-Mod. Vassal deals need to be implemented last, so that master/vassal power is set correctly.
@@ -378,27 +320,52 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 	// K-Mod end
 }
 
+/*  <advc.130p> Based on code cut from addTrades. Return values says whether
+	attitude cache needs to be updated. */
+bool CvDeal::recordTradeValue(CLinkList<TradeData>* list1, CLinkList<TradeData>* list2,
+		PlayerTypes p1, PlayerTypes p2, bool bPeace, TeamTypes peaceTradeTarget,
+		TeamTypes warTradeTarget) {
+
+	if(list1 == NULL || list1->getLength() <= 0 ||
+			/*  Given reparations should matter for RivalTrade; given Peace shouldn't.
+				Brokered peace (TRADE_PEACE) can't be filtered out here b/c other
+				items could be traded along with TRADE_PEACE. */
+			(list1->getLength() == 1 && list1->head()->m_data.m_eItemType ==
+			TRADE_PEACE_TREATY))
+		return false;
+	/*  <advc.550a> Ignore discounts when it comes to fair-trade diplo bonuses?
+		Hard to decide, apply half the discount for now. */
+	int iValue = ::round((GET_PLAYER(p2).AI_dealVal(p1, list1, true, 1, true, true) +
+			GET_PLAYER(p2).AI_dealVal(p1, list1, true, false, true) / 2.0));
+	if(iValue <= 0) 
+		return false;
+	GET_PLAYER(p2).AI_changePeacetimeValue(p1, iValue,
+			list2 == NULL || list2->getLength() <= 0, bPeace, peaceTradeTarget,
+			warTradeTarget);
+	return true;
+} // </advc.130p>
+
 
 void CvDeal::doTurn()
 {
 	int iValue;
 
 	if (!isPeaceDeal()
-		/*  <advc.130p> Open Borders and Defensive Pact have very small
-			AI_dealVals. In (most?) other places, this doesn't matter b/c the AI
-			never pays for these deals, but, here, it means that OB and DP
-			have practically no impact on Grant and Trade values. This could be
-			rectified by multiplying the return values of CvPlayerAI::
-			AI_openBordersTradeVal and AI_defensivePactTradeVal by
-			PEACE_TREATY_LENGTH, but I prefer to handle the issue entirely in the
-			CvPlayerAI::AI_get...Attitude functions, and skip all dual deals here.
-			In multiplayer, dual deals can be mixed with e.g. gold per turn,
-			which is why I only skip single-item deals. For mixed multiplayer
-			deals, OB and DP will be counted as some value between 0 and 5, which is
-			a bit messy, not really a problem. */
+	/*  <advc.130p> Open Borders and Defensive Pact have very small AI_dealVals.
+		In (most?) other places, this doesn't matter b/c the AI never pays for
+		these deals, but here it means that OB and DP have practically no impact
+		on Grant and Trade values. I'm going to handle all isDual deals entirely
+		in the CvPlayerAI::AI_get...Attitude functions and skip them here.
+		In multiplayer, dual deals can be mixed with e.g. gold per turn, which is
+		why I'm only skipping single-item deals. For mixed multiplayer deals,
+		OB and DP will be counted as some value between 0 and 5, which is a bit
+		messy, but not really a problem. */
 			&& (getLengthSecondTrades() != getLengthFirstTrades() ||
 			getLengthSecondTrades() > 1 ||
-			!isDual(getFirstTrades()->head()->m_data.m_eItemType))) // </advc.130p>
+			!isDual(getFirstTrades()->head()->m_data.m_eItemType)) &&
+			/*  The first ten turns of an annual deal are already counted when
+				the deal is implemented */
+			isCancelable()) // </advc.130p>
 	{
 		if (getLengthSecondTrades() > 0)
 		{

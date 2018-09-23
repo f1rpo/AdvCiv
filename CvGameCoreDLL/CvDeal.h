@@ -92,10 +92,13 @@ protected:
 	bool startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer);
 	void endTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer, bool bTeam,
 			bool bUpdateAttitude = true); // advc.036
-	// advc.130p:
+	// <advc.130p>
 	static void addEndTradeMemory(PlayerTypes eFromPlayer, PlayerTypes eToPlayer,
 			TradeableItems dealType);
-
+	bool recordTradeValue(CLinkList<TradeData>* list1, CLinkList<TradeData>* list2,
+			PlayerTypes p1, PlayerTypes p2, bool bPeace,
+			TeamTypes peaceTradeTarget = NO_TEAM, TeamTypes warTradeTarget = NO_TEAM);
+	// </advc.130p>
 	void startTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes eToTeam, bool bDual);
 	void endTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes eToTeam);
 

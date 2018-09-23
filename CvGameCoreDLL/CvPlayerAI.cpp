@@ -9943,14 +9943,15 @@ int CvPlayerAI::AI_getTradeAttitude(PlayerTypes ePlayer) const {
 	/*  Adjustment to game progress now happens when recording grant and trade values;
 		decay happens explicitly in AI_doCounter. */
 	return range(::round(r * TEAMREF(ePlayer).recentlyMetMultiplier(getTeam()))
-			/ AI_peacetimeTradeValDivisor(), 0, peacetimeTradeRelationsLimit);
+			/ AI_peacetimeTradeValDivisor(false), 0, peacetimeTradeRelationsLimit);
 }
 
 
-int CvPlayerAI::AI_peacetimeTradeValDivisor() const {
+int CvPlayerAI::AI_peacetimeTradeValDivisor(bool bRival) const {
 
 	return 120000 / ::range(GC.getLeaderHeadInfo(getPersonalityType()).
-			getMemoryAttitudePercent(MEMORY_EVENT_GOOD_TO_US), 1, 1000);
+			getMemoryAttitudePercent(bRival ? MEMORY_EVENT_BAD_TO_US :
+			MEMORY_EVENT_GOOD_TO_US) * (bRival ? -1 : 1), 1, 1000);
 }
 
 
@@ -10025,7 +10026,7 @@ int CvPlayerAI::AI_getRivalTradeAttitude(PlayerTypes ePlayer) const {
 	/*  Adjustment to game progress now happens when recording grant and trade values;
 		decay happens explicitly in AI_doCounter. */
 	r = (::round(r * TEAMREF(ePlayer).recentlyMetMultiplier(getTeam())) +
-			75 * ::round(dualDealCounter)) / AI_peacetimeTradeValDivisor();
+			75 * ::round(dualDealCounter)) / AI_peacetimeTradeValDivisor(true);
 	return -range(r, 0, peacetimeTradeRelationsLimit);
 }
 
@@ -11124,7 +11125,8 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 }
 
 int CvPlayerAI::AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pList, bool bIgnoreAnnual, int iChange,
-		bool ignoreDiscount) const // advc.550a
+		bool ignoreDiscount, // advc.550a
+		bool ignorePeace) const // advc.130p
 {
 	CLLNode<TradeData>* pNode;
 	CvCity* pCity;
@@ -11151,8 +11153,9 @@ int CvPlayerAI::AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pLis
 			OB and DP were not counted as annual, but GPT and resources were;
 			now it's the other way around. */
 		TradeableItems ti = pNode->m_data.m_eItemType;
-		if(bIgnoreAnnual && CvDeal::isAnnual(ti) && ti != TRADE_GOLD_PER_TURN &&
-				ti != TRADE_RESOURCES)
+		if((bIgnoreAnnual && CvDeal::isAnnual(ti) && ti != TRADE_GOLD_PER_TURN &&
+				ti != TRADE_RESOURCES) || (ignorePeace && (ti == TRADE_PEACE ||
+				ti == TRADE_PEACE_TREATY)))
 			continue;
 		switch(ti) // </advc.130p>
 		{
@@ -14967,10 +14970,19 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		iValue += iCombatValue * u.getHillsDefenseModifier() / 200;
 		// K-Mod end
 		break;
-
-	case UNITAI_CITY_COUNTER:
-	case UNITAI_CITY_SPECIAL:
+	/*  <advc.005a> I've assigned these as favorite units in LeaderHead XML
+		and don't want them to be treated exactly like City Counter. */
 	case UNITAI_PARADROP:
+		if(u.getDropRange() <= 0)
+			iValue -= iCombatValue/3;
+		else
+			iValue += (iCombatValue * u.getDropRange() * 10) / 100;
+		// Fall through to Counter (as was already the case in BtS)
+	case UNITAI_CITY_SPECIAL:
+		iValue += (iCombatValue * u.getInterceptionProbability()) / 100;
+		// Fall through to Counter (no change)
+		// </advc.005a>
+	case UNITAI_CITY_COUNTER:
 		iValue += (iCombatValue / 2);
 		iValue += ((iCombatValue * u.getCityDefenseModifier()) / 100);
 		for (iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
@@ -14994,8 +15006,8 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 			int iTempValue = u.getInterceptionProbability();
 
 			iTempValue *= (25 + std::min(125, GET_TEAM(getTeam()).AI_getRivalAirPower()));
-			iTempValue /= 50;
-
+			iTempValue /= 57; /* advc.005a: Was 50; hopefully compensated for by 
+								 the bonus for UNITAI_CITY_SPECIAL. */
 			iValue += iTempValue;
 		}
 /************************************************************************************************/
@@ -18188,7 +18200,7 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 				}*/
 				// K-Mod. AI_unitValue is a relative rating value. It shouldn't be used for this.
 				// (The espionage mission is not enabled anyway, so I'm not going to put a lot of effort into it.)
-				iValue += GC.getUnitInfo(eUnit).getProductionCost() * (canTrain(eUnit) ? 4 : 8); // kmodx: Parentheses added; not sure if needed
+				iValue += GC.getUnitInfo(eUnit).getProductionCost() * (canTrain(eUnit) ? 4 : 8); // kmodx: Parentheses added; not sure if needed.
 				//
 			}
 		}
@@ -18581,15 +18593,16 @@ int CvPlayerAI::AI_getPeacetimeGrantValue(PlayerTypes eIndex) const
 
 // <advc.130p> Merged the following two functions
 void CvPlayerAI::AI_changePeacetimeTradeValue(PlayerTypes eIndex, int iChange) {
-	AI_changePeaceTimeValue(eIndex, iChange, false);
+	AI_changePeacetimeValue(eIndex, iChange, false);
 }
 void CvPlayerAI::AI_changePeacetimeGrantValue(PlayerTypes eIndex, int iChange) {
-	AI_changePeaceTimeValue(eIndex, iChange, true);
+	AI_changePeacetimeValue(eIndex, iChange, true);
 }
 
 // Based on the old AI_changePeacetimeGrantValue
-void CvPlayerAI::AI_changePeaceTimeValue(PlayerTypes eIndex, int iChange,
-		bool isGrant) {
+void CvPlayerAI::AI_changePeacetimeValue(PlayerTypes eIndex, int iChange,
+		bool isGrant, bool bPeace, TeamTypes peaceTradeTarget,
+		TeamTypes warTradeTarget) {
 
 	PROFILE_FUNC(); FAssert(eIndex >= 0); FAssert(eIndex < MAX_PLAYERS);
 	if(iChange == 0)
@@ -18619,23 +18632,52 @@ void CvPlayerAI::AI_changePeaceTimeValue(PlayerTypes eIndex, int iChange,
 	if(TEAMREF(eIndex).isCapitulated()) {
 		incr /= 2;
 		masterId = GET_TEAM(GET_PLAYER(eIndex).getMasterTeam()).getLeaderID();
-		aiPeacetimeValue[masterId] = aiPeacetimeValue[masterId] + incr;
-	} // </advc.130v>
-	aiPeacetimeValue[eIndex] = aiPeacetimeValue[eIndex] + incr;
-	FAssert(aiPeacetimeValue[eIndex] >= 0 && iChange > 0);
+	} // advc.130p: No PeacetimeTrade for reparations; only RivalTrade.
+	if(!bPeace && peaceTradeTarget == NO_TEAM) {
+		if(masterId != NO_PLAYER)
+			aiPeacetimeValue[masterId] = aiPeacetimeValue[masterId] + incr;
+		// </advc.130v>
+		aiPeacetimeValue[eIndex] = aiPeacetimeValue[eIndex] + incr;
+		FAssert(aiPeacetimeValue[eIndex] >= 0 && iChange > 0);
+	}
 	if(iChange <= 0 || TEAMID(eIndex) == getTeam())
 		return;
 	for(int iI = 0; iI < MAX_CIV_TEAMS; iI++) {
 		TeamTypes tId = (TeamTypes)iI;
 		CvTeamAI& t = GET_TEAM(tId);
 		if(tId != TEAMID(eIndex) && (masterId == NO_TEAM || tId != TEAMID(masterId)) &&
-				t.isAlive() && t.AI_getWorstEnemy() == getTeam() &&
+				t.isAlive() &&
 				t.isHasMet(TEAMID(eIndex))) { // unoffical patch bugfix, by Sephi.
+			// <advc.130p>
+			bool bWorstEnemy = (t.AI_getWorstEnemy() == getTeam());
+			// Special treatment for war enemies trading among each other
+			bool bOtherWar = (t.isAtWar(TEAMID(eIndex)) || warTradeTarget == tId);
+			bool bWar = t.isAtWar(getTeam());
+			if(!bWorstEnemy && !(bWar && !bOtherWar))
+				continue;
+			// No anger among vassal-master when they make peace
+			if(bPeace && TEAMREF(eIndex).getMasterTeam() == tId)
+				continue;
+			/*  Don't mind if t's worst enemy is paid to make peace with a civ that
+				t likes. Unless t is at war with its worst enemy because, then,
+				the peace deals means that t loses a war ally. */
+			if(peaceTradeTarget == t.getMasterTeam() || (peaceTradeTarget != NO_TEAM &&
+					t.AI_getAttitude(peaceTradeTarget) >= ATTITUDE_PLEASED && !bWar &&
+					!t.isAtWar(peaceTradeTarget))) // Should be implied by attitude, but let's make sure.
+				continue; // </advc.130p>
 			double mult = 2000;
 			// Avoid oscillation of worst enemy
-			int delta = std::max(0, t.AI_getAttitudeVal(TEAMID(eIndex)) -
-					t.AI_getAttitudeVal(t.AI_getWorstEnemy()));
+			int delta = ::range(t.AI_getAttitudeVal(TEAMID(eIndex)) -
+					t.AI_getAttitudeVal(t.AI_getWorstEnemy()), 0, 7);
 			mult *= delta / 5.0;
+			// <advc.130p>
+			if(bPeace) // But count brokered peace in full
+				mult *= 0.4;
+			if(bWar && bWorstEnemy && !bOtherWar)
+				mult *= 1.33;
+			else if(bWorstEnemy && !bOtherWar)
+				mult *= 0.9;
+			else mult *= 0.67; // </advc.130p>
 			int enemyIncr = ::round((val * mult) /
 					(g.getTeamScore(getTeam()) + g.getTeamScore(tId)));
 			if(enemyIncr <= 0)

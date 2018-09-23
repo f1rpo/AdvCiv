@@ -106,10 +106,9 @@ public: // <advc.104>
 
 	int CvTeamAI::AI_knownTechValModifier(TechTypes eTech) const; // K-Mod
 
-	int AI_techTradeVal(TechTypes eTech, TeamTypes eTeam
-		, bool ignoreDiscount = false // advc.550a
-		, bool peaceDeal = false // advc.140h
-		) const;
+	int AI_techTradeVal(TechTypes eTech, TeamTypes eTeam,
+			bool ignoreDiscount = false, // advc.550a
+			bool peaceDeal = false) const; // advc.140h
 	DenialTypes AI_techTrade(TechTypes eTech, TeamTypes eTeam) const;
 
 	int AI_mapTradeVal(TeamTypes eTeam) const;
@@ -148,6 +147,7 @@ public: // <advc.104>
 
 	int AI_declareWarTradeVal(TeamTypes eWarTeam, TeamTypes eTeam) const;
 	DenialTypes AI_declareWarTrade(TeamTypes eWarTeam, TeamTypes eTeam, bool bConsiderPower = true) const;
+
 	int roundTradeVal(int val) const; //advc.104k
 
 	int AI_openBordersTradeVal(TeamTypes eTeam) const;

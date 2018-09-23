@@ -1017,3 +1017,12 @@ int CyTeam::AI_getWarSuccess(int /*TeamTypes*/ eIndex) const
 {
 	return m_pTeam ? m_pTeam->AI_getWarSuccess((TeamTypes)eIndex) : -1;
 }
+
+// <advc.152>
+int /*DenialTypes*/ CyTeam::AI_declareWarTrade(int /*TeamTypes*/ eWarTeam,
+		int /*TeamTypes*/ eTeam) const {
+
+	// Can't add AI_declareWarTrade to CvTeam
+	return m_pTeam ? dynamic_cast<CvTeamAI*>(m_pTeam)->AI_declareWarTrade(
+			(TeamTypes)eWarTeam, (TeamTypes)eTeam) : -1;
+} // </advc.152>

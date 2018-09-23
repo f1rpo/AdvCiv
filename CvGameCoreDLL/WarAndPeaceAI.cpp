@@ -2380,6 +2380,7 @@ double WarAndPeaceAI::Civ::amortizationMultiplier() const {
 	return GET_PLAYER(weId).amortizationMultiplier(25);
 }
 
+// Currently unused; don't remember what I wanted to use it for.
 bool WarAndPeaceAI::Civ::isNearMilitaryVictory(int stage) const {
 
 	if(stage <= 0)

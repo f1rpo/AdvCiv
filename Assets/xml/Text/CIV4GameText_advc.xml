@@ -2230,9 +2230,9 @@
 		 in CIV4GameText_BetterBTSAI.xml. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__WARTRADE_TEXT</Tag>
-		<English>War Plans</English>
+		<English>War Trades</English>
 		<French>Plans de guerre</French>
-		<German>Kriegspl&#228;ne</German>
+		<German>Kriegsbereitschaft</German>
 		<Italian>Programmi di guerra</Italian>
 		<Spanish>Planes della guerra</Spanish>
 	</TEXT>
@@ -2318,6 +2318,35 @@
 		<German>Die Unruhen in %s1 sind beendet!</German>
 		<Italian>%s1 è stata pacificata.</Italian>
 		<Spanish>%s1 ha sido pacificada.</Spanish>
+	</TEXT>
+
+	<!-- advc.152 -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_ADVISORS__EFAWARTRADES_TEXT</Tag>
+		<English>War Trades</English>
+		<French>Guerres commanditées</French>
+		<German>Kriegsbereitschaft</German>
+		<Italian>Volontà di guerra</Italian>
+		<Spanish>Guerras patrocinadas</Spanish>
+	</TEXT>
+	<!-- Translations based on deepl.com and 
+		 TXT_KEY_BUG_OPT_ADVISORS__EFAGLANCETAB_TEXT in
+		 BUG Advisors Options.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_ADVISORS__EFAWARTRADES_HOVER</Tag>
+		<English>When checked, the Glance tab shows fist icons to indicate which leaders are currently willing to start a war at your request.</English>
+		<French>La page Coup d'Oeil affiche les icônes poings pour indiquer quels héros sont prêts à commencer une guerre à votre demande.</French>
+		<German>Zeigt auf dem Reiter "Überblick" durch Faust-Symbole an, welche Gegner bereit sind, auf Ihr Geheiß einen Krieg zu beginnen.</German>
+		<Italian>Mostra dei pugni nella tabella "Occhiata" per indicare quali leader sono disposti ad iniziare una guerra su vostra richiesta.</Italian>
+		<Spanish>Si se activa, la pestaña Mirar muestra iconos de puño para indicar qué líderes están dispuestos a iniciar una guerra a su petición.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_WILLING_START_WAR</Tag>
+		<English>Willing to [COLOR_NEGATIVE_TEXT]declare war[COLOR_REVERT] on %s1_LdrName</English>
+		<French>Prêt à [COLOR_NEGATIVE_TEXT]déclarer la guerre[COLOR_REVERT] à %s1_LdrName</French>
+		<German>[COLOR_NEGATIVE_TEXT]Bereit zum Krieg[COLOR_REVERT] gegen %s1_LdrName</German>
+		<Italian>[NUM1:Disposto:Disposta] a [COLOR_NEGATIVE_TEXT]dichiarare guerra[COLOR_REVERT] a %s1_LdrName</Italian>
+		<Spanish>[NUM1:Dispuesto:Dispuesta] a [COLOR_NEGATIVE_TEXT]declarar la guerra[COLOR_REVERT] a %s1_LdrName</Spanish>
 	</TEXT>
 	
 	<!-- advc.023: Based on INTERFACE_CITY_GROWING in Civ4GameTextInfos.xml -->
@@ -2430,7 +2459,7 @@
 		<Spanish>%s1 ya no está exportando recursos a %s2 (cancelado: %s3).</Spanish>
 	</TEXT>
 
-	<!-- advc.004q] Based on TXT_KEY_ATTITUDE_TOWARDS in
+	<!-- advc.004q: Based on TXT_KEY_ATTITUDE_TOWARDS in
 		 CIV4GameText_Misc1.xml -->
 	<TEXT>
 		<Tag>TXT_KEY_GOOD_ATTITUDE_TOWARDS</Tag>

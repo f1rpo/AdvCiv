@@ -237,6 +237,8 @@ public:
 	int AI_getAtWarCounter(int /*TeamTypes*/ eTeam) const;
 	int AI_getAtPeaceCounter(int /*TeamTypes*/ eTeam) const;
 	int AI_getWarSuccess(int /*TeamTypes*/ eIndex) const;
+	// advc.152:
+	int /*DenialTypes*/ AI_declareWarTrade(int /*TeamTypes*/ eWarTeam, int /*TeamTypes*/ eTeam) const;
 
 protected:
 

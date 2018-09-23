@@ -2186,43 +2186,9 @@ int CvTeamAI::AI_techTradeVal(TechTypes eTech, TeamTypes eTeam,
 	bool peaceDeal) const // advc.140h
 {
 	FAssert(eTeam != getID());
-	/* original bts code
-	int iKnownCount;
-	int iPossibleKnownCount;
-	int iCost;
-	int iValue;
-	int iI;
-
-	iCost = std::max(0, (getResearchCost(eTech) - getResearchProgress(eTech)));
-
-	iValue = ((iCost * 3) / 2);
-
-	iKnownCount = 0;
-	iPossibleKnownCount = 0;
-
-	for (iI = 0; iI < MAX_CIV_TEAMS; iI++)
-	{
-		if (GET_TEAM((TeamTypes)iI).isAlive())
-		{
-			if (iI != getID())
-			{
-				if (isHasMet((TeamTypes)iI))
-				{
-					if (GET_TEAM((TeamTypes)iI).isHasTech(eTech))
-					{
-						iKnownCount++;
-					}
-
-					iPossibleKnownCount++;
-				}
-			}
-		}
-	}
-
-	iValue += (((iCost / 2) * (iPossibleKnownCount - iKnownCount)) / iPossibleKnownCount);
-	*/
-	int iValue = (
-		125 // advc.551: was 150
+	// advc.003: Original BtS code deleted; K-Mod replaced it with AI_knownTechValModifier.
+	CvTechInfo const& kTech = GC.getTechInfo(eTech);
+	int iValue = (125 // advc.551: was 150
 			// K-Mod. Standardized the modifier for # of teams with the tech; and removed the effect of team size.
 			+ AI_knownTechValModifier(eTech)) *
 			std::max(0, (getResearchCost(eTech, true, false) -
@@ -2234,10 +2200,9 @@ int CvTeamAI::AI_techTradeVal(TechTypes eTech, TeamTypes eTeam,
 		spend the gold if the war continues */
 	if(peaceDeal)
 		iValue = ::round(0.7 * iValue); // </advc.104h>
-
-	iValue *= std::max(0, (GC.getTechInfo(eTech).getAITradeModifier() + 100));
+	iValue *= std::max(0, (kTech.getAITradeModifier() + 100));
 	iValue /= 100;
-	//  <advc.550a>
+	// <advc.550a>
 	// No discounts for vassals
 	if(!ignoreDiscount && !isVassal(eTeam) && !GET_TEAM(eTeam).isVassal(getID())) {
 		/*  If they're more advanced/powerful, they shouldn't mind giving us
@@ -2274,8 +2239,7 @@ int CvTeamAI::AI_techTradeVal(TechTypes eTech, TeamTypes eTeam,
 			too much I think. */
 		if(modifier < 1)
 			iValue = ::round(iValue * modifier);
-	}
-	// </advc.550a>
+	} // </advc.550a>
 	return roundTradeVal(iValue); // advc.104k
 }
 

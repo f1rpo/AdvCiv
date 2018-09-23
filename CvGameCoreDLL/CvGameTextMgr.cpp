@@ -15603,6 +15603,25 @@ void CvGameTextMgr::parseLeaderHeadHelp(CvWStringBuffer &szBuffer, PlayerTypes e
 		getWarWearinessString(szBuffer, eThisPlayer, NO_PLAYER); // total war weariness
 }
 
+// <advc.152>
+void CvGameTextMgr::parseWarTradesHelp(CvWStringBuffer& szBuffer,
+		PlayerTypes eThisPlayer, PlayerTypes eOtherPlayer) {
+
+	/*  Same checks as in getAttitudeText (AttitudeUtil.py), which displays
+		the fist icon. */
+	PlayerTypes activeId = GC.getGame().getActivePlayer();
+	if(eOtherPlayer == activeId || eOtherPlayer == NO_PLAYER ||
+			eThisPlayer == eOtherPlayer || eThisPlayer == NO_PLAYER ||
+			TEAMREF(eThisPlayer).isAtWar(TEAMID(eOtherPlayer)))
+		return;
+	if(TEAMREF(eThisPlayer).AI_declareWarTrade(TEAMID(eOtherPlayer),
+			TEAMID(activeId)) == NO_DENIAL) {
+		szBuffer.append(NEWLINE);
+		szBuffer.append(gDLL->getText("TXT_KEY_WILLING_START_WAR",
+				GET_PLAYER(eOtherPlayer).getName()));
+	}
+} // </advc.152>
+
 
 void CvGameTextMgr::parseLeaderLineHelp(CvWStringBuffer &szBuffer, PlayerTypes eThisPlayer, PlayerTypes eOtherPlayer)
 {

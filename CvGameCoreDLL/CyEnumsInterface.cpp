@@ -400,6 +400,7 @@ void CyEnumsPythonInterface()
 		// Extra specialist commerce (from tech)
 		.value("WIDGET_HELP_EXTRA_SPECIALIST_COMMERCE", WIDGET_HELP_EXTRA_SPECIALIST_COMMERCE)
 		// K-Mod end
+		.value("WIDGET_LH_GLANCE", WIDGET_LH_GLANCE) // advc.152
 		.value("NUM_WIDGET_TYPES", NUM_WIDGET_TYPES)
 		;
 /*
