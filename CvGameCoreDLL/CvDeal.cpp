@@ -336,7 +336,7 @@ bool CvDeal::recordTradeValue(CLinkList<TradeData>* list1, CLinkList<TradeData>*
 	/*  <advc.550a> Ignore discounts when it comes to fair-trade diplo bonuses?
 		Hard to decide, apply half the discount for now. */
 	int iValue = ::round((GET_PLAYER(p2).AI_dealVal(p1, list1, true, 1, true, true) +
-			GET_PLAYER(p2).AI_dealVal(p1, list1, true, false, true) / 2.0));
+			GET_PLAYER(p2).AI_dealVal(p1, list1, true, 1, false, true) / 2.0));
 	if(iValue <= 0) 
 		return false;
 	GET_PLAYER(p2).AI_changePeacetimeValue(p1, iValue,

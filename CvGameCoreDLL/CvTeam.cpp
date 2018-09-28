@@ -7385,7 +7385,9 @@ void CvTeam::processTech(TechTypes eTech, int iChange)
 			kLoopPlayer.changeExtraHealth(GC.getTechInfo(eTech).getHealth() * iChange);
 			kLoopPlayer.changeExtraHappiness(GC.getTechInfo(eTech).getHappiness() * iChange);
 
-			kLoopPlayer.changeAssets(GC.getTechInfo(eTech).getAssetValue() * iChange);
+			kLoopPlayer.changeAssets(((GC.getTechInfo(eTech).getAssetValue()
+					* 6) / 8) // advc.131: Makes it 6 per era instead of 8
+					* iChange);
 			kLoopPlayer.changePower(GC.getTechInfo(eTech).getPowerValue() * iChange);
 			kLoopPlayer.changeTechScore(getTechScore(eTech) * iChange);
 			// K-Mod. Extra commerce for specialist (new xml field)

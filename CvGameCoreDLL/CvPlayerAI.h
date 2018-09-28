@@ -586,6 +586,8 @@ public:
 
 protected:
 	// <advc.130p>
+	double peacetimeTradeMultiplier(PlayerTypes otherCivId,
+			TeamTypes otherTeamId = NO_TEAM) const;
 	int AI_peacetimeTradeValDivisor(bool bRival) const;
 	static int const peacetimeTradeRelationsLimit = 4;
 	/*  The change functions apply adjustments and have a side-effect

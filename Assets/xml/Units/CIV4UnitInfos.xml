@@ -9791,7 +9791,8 @@
 			<iConscription>6</iConscription>
 			<iCultureGarrison>10</iCultureGarrison>
 			<iExtraCost>0</iExtraCost>
-			<iAsset>3</iAsset>
+			<!-- advc.131: was 3 -->
+			<iAsset>4</iAsset>
 			<iPower>20</iPower>
 			<UnitMeshGroups>
 				<iGroupSize>3</iGroupSize>

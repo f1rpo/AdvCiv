@@ -6731,12 +6731,22 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	iValue += kTechInfo.getWorkerSpeedModifier() * 2 * std::max(iCityCount, iCityTarget/2) / 25;
 
 	//iValue += (kTechInfo.getTradeRoutes() * (std::max((getNumCities() + 2), iConnectedForeignCities) + 1) * ((bFinancialTrouble) ? 200 : 100));
-	// K-Mod. A very rough estimate assuming each city has ~2 trade routes; new local trade routes worth ~2 commerce, and foreign worth ~6.
+	/*  K-Mod. A very rough estimate assuming each city has ~2 trade routes;
+		new local trade routes worth ~2 commerce, and foreign worth ~6. */
 	if (kTechInfo.getTradeRoutes() != 0)
 	{
-		int iConnectedForeignCities = AI_countPotentialForeignTradeCities(true, AI_getFlavorValue(FLAVOR_GOLD) == 0);
-		int iAddedCommerce = (2*iCityCount*kTechInfo.getTradeRoutes() + 4*range(iConnectedForeignCities-2*getNumCities(), 0, iCityCount*kTechInfo.getTradeRoutes()));
-		iValue += iAddedCommerce * (bFinancialTrouble ? 6 : 4) * AI_averageYieldMultiplier(YIELD_COMMERCE)/100;
+		int iConnectedForeignCities = AI_countPotentialForeignTradeCities(
+				true, AI_getFlavorValue(FLAVOR_GOLD) == 0);
+		// <advc.131>
+		int iSites = std::min(AI_getNumCitySites(), iCityCount);
+		int iSettler = std::min(AI_totalUnitAIs(UNITAI_SETTLE), iSites); 
+		// </advc.131>
+		int iAddedCommerce = 2*iCityCount*kTechInfo.getTradeRoutes() +
+				4*range(iConnectedForeignCities-2*iCityCount, 0,
+				iCityCount*kTechInfo.getTradeRoutes())
+				+ 2 * iSettler + (iSites - iSettler); // advc.131
+		iValue += iAddedCommerce * (bFinancialTrouble ? 6 : 4) *
+				AI_averageYieldMultiplier(YIELD_COMMERCE)/100;
 		//iValue += (2*iCityCount*kTechInfo.getTradeRoutes() + 4*range(iConnectedForeignCities-2*getNumCities(), 0, iCityCount*kTechInfo.getTradeRoutes())) * (bFinancialTrouble ? 6 : 4);
 	}
 	// K-Mod end
@@ -9934,12 +9944,16 @@ int CvPlayerAI::AI_getFavoriteCivicAttitude(PlayerTypes ePlayer) const
 	return iAttitude;
 }
 
-// <advc.130p> Not much BtS code left here
+// <advc.130p> No BtS code left here
 int CvPlayerAI::AI_getTradeAttitude(PlayerTypes ePlayer) const {
 
-	int r = AI_getPeacetimeGrantValue(ePlayer)
-			+ std::max(0, (AI_getPeacetimeTradeValue(ePlayer)
-			- GET_PLAYER(ePlayer).AI_getPeacetimeTradeValue(getID())));
+	double r = AI_getPeacetimeGrantValue(ePlayer);
+	double const returnValueMultiplier = 5/6.0; // 1 in BtS
+	double tradeVal = AI_getPeacetimeTradeValue(ePlayer);
+	tradeVal -= returnValueMultiplier * GET_PLAYER(ePlayer).
+			AI_getPeacetimeTradeValue(getID());
+	r += std::max(0.0, tradeVal);
+	r = 11.5 * std::pow((double)r, 2/3.0); // Diminishing returns
 	/*  Adjustment to game progress now happens when recording grant and trade values;
 		decay happens explicitly in AI_doCounter. */
 	return range(::round(r * TEAMREF(ePlayer).recentlyMetMultiplier(getTeam()))
@@ -9949,7 +9963,8 @@ int CvPlayerAI::AI_getTradeAttitude(PlayerTypes ePlayer) const {
 
 int CvPlayerAI::AI_peacetimeTradeValDivisor(bool bRival) const {
 
-	return 120000 / ::range(GC.getLeaderHeadInfo(getPersonalityType()).
+	int const tuningFactor = 95;
+	return (tuningFactor * 1000) / ::range(GC.getLeaderHeadInfo(getPersonalityType()).
 			getMemoryAttitudePercent(bRival ? MEMORY_EVENT_BAD_TO_US :
 			MEMORY_EVENT_GOOD_TO_US) * (bRival ? -1 : 1), 1, 1000);
 }
@@ -9961,6 +9976,7 @@ int CvPlayerAI::AI_getRivalTradeAttitude(PlayerTypes ePlayer) const {
 	TeamTypes theirId = TEAMID(ePlayer);
 	int r = ourTeam.AI_getEnemyPeacetimeGrantValue(theirId) +
 			(ourTeam.AI_getEnemyPeacetimeTradeValue(theirId) / 2);
+	r = ::round(11.5 * std::pow((double)r, 2/3.0)); // Diminishing returns
 	// OB hurt our feelings also
 	TeamTypes enemyId = ourTeam.AI_getWorstEnemy();
 	/*  Checking enemyValue here should - hopefully - fix an oscillation problem,
@@ -11138,7 +11154,7 @@ int CvPlayerAI::AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pLis
 
 	if (atWar(getTeam(), GET_PLAYER(ePlayer).getTeam()))
 	{	// <advc.104i>
-		if(getWPAI.isEnabled())
+		if(getWPAI.isEnabled() && (isHuman() || GET_PLAYER(ePlayer).isHuman()))
 			iValue += GET_TEAM(getTeam()).warAndPeaceAI().endWarVal(TEAMID(ePlayer));
 		else // </advc.104>
 		iValue += GET_TEAM(getTeam()).AI_endWarVal(GET_PLAYER(ePlayer).getTeam());
@@ -18609,24 +18625,22 @@ void CvPlayerAI::AI_changePeacetimeValue(PlayerTypes eIndex, int iChange,
 		return;
 	int* aiPeacetimeValue = isGrant ? m_aiPeacetimeGrantValue : m_aiPeacetimeTradeValue;
 	CvGame& g = GC.getGameINLINE();
-	/*  Trade values are higher in slow games b/c everything is more expensive.
-		Game scores aren't much affected by speed. Adjust trade value to
-		speed to make trade value comparable with score. */
-	double val = (100.0 * iChange) / std::max(
-			GC.getGameSpeedInfo(g.getGameSpeedType()).getResearchPercent() +
-			/*  The tech cost modifier from map size also inflates trade values
-				(though arguably not as much as the speed modifier; add only a
-				fraction of the map size modifier?) */
-			GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getResearchPercent(), 1);
-	/*  Times 1000 for increased precision, times 2 for an average of the player
-		scores, times 2 b/c "fair trade" is twice as sensitive as "traded with
-		worst enemy" (it's this way too in BtS) */
-	int incr = ::round((val * 4000)
-			/*  BtS adjusted trade and grant values to the game progress when
-				computing the effect on relations. Now that progress is measured
-				by score, it's better to do it here, based on the scores at the time
-				that the trade happens. */
-			/ (g.getPlayerScore(eIndex) + g.getPlayerScore(getID())));
+	double val = (1000000.0 * iChange) / std::max(
+			// Trade values are higher relative to game progress in slow games
+			GC.getGameSpeedInfo(g.getGameSpeedType()).getResearchPercent() *
+			/*  Larger maps have higher tech costs (game progress should also be
+				a little faster though; apply only a fraction of the map size
+				modifier?) */
+			GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getResearchPercent() *
+			// Other AI modifiers have the opposite effect (see peacetimeTradeMultiplier)
+			GC.getHandicapInfo(g.getHandicapType()).getAIResearchPercent(), 1);
+	/*  Times 1000 for increased precision, times 2 b/c "fair trade" is twice as
+		sensitive as "traded with worst enemy" (it's this way too in BtS) */
+	int incr = ::round(val * 2000 *
+			/*  In BtS, trade and grant values were adjusted to the game progress
+				when computing relations modifiers. Better do it here, based on the
+				game progress at the time when the trade happens. */
+			peacetimeTradeMultiplier(eIndex));
 	// <advc.130v>
 	PlayerTypes masterId = NO_PLAYER;
 	if(TEAMREF(eIndex).isCapitulated()) {
@@ -18635,9 +18649,9 @@ void CvPlayerAI::AI_changePeacetimeValue(PlayerTypes eIndex, int iChange,
 	} // advc.130p: No PeacetimeTrade for reparations; only RivalTrade.
 	if(!bPeace && peaceTradeTarget == NO_TEAM) {
 		if(masterId != NO_PLAYER)
-			aiPeacetimeValue[masterId] = aiPeacetimeValue[masterId] + incr;
+			aiPeacetimeValue[masterId] += incr;
 		// </advc.130v>
-		aiPeacetimeValue[eIndex] = aiPeacetimeValue[eIndex] + incr;
+		aiPeacetimeValue[eIndex] += incr;
 		FAssert(aiPeacetimeValue[eIndex] >= 0 && iChange > 0);
 	}
 	if(iChange <= 0 || TEAMID(eIndex) == getTeam())
@@ -18678,8 +18692,7 @@ void CvPlayerAI::AI_changePeacetimeValue(PlayerTypes eIndex, int iChange,
 			else if(bWorstEnemy && !bOtherWar)
 				mult *= 0.9;
 			else mult *= 0.67; // </advc.130p>
-			int enemyIncr = ::round((val * mult) /
-					(g.getTeamScore(getTeam()) + g.getTeamScore(tId)));
+			int enemyIncr = ::round(val * mult * peacetimeTradeMultiplier(NO_PLAYER, tId));
 			if(enemyIncr <= 0)
 				continue;
 			// <advc.130v>
@@ -18692,6 +18705,25 @@ void CvPlayerAI::AI_changePeacetimeValue(PlayerTypes eIndex, int iChange,
 			else t.AI_changeEnemyPeacetimeTradeValue(TEAMID(eIndex), enemyIncr);
 		}
 	}
+}
+
+/*  Adjust assets to the scale of trade values (formula determined
+	through trial and error) */
+double CvPlayerAI::peacetimeTradeMultiplier(PlayerTypes otherCivId,
+		TeamTypes otherTeamId) const {
+
+	FAssert(otherCivId == NO_PLAYER || otherTeamId == NO_TEAM);
+	bool bTeam = (otherCivId == NO_PLAYER);
+	int iAssets = (bTeam ? GET_TEAM(getTeam()).getAssets() : getAssets());
+	int iOtherAssets = (bTeam ? GET_TEAM(otherTeamId).getAssets() :
+			GET_PLAYER(otherCivId).getAssets());
+	CvHandicapInfo const& h = GC.getHandicapInfo(GC.getGameINLINE().getHandicapType());
+	/*  Far more AI assets if difficulty is high; trade values not affected
+		by difficulty as much. */
+	double r = 1000000.0 / (h.getAIGrowthPercent() * h.getAITrainPercent() *
+							h.getAIConstructPercent());
+	r *= 3.5 / std::pow((iAssets + iOtherAssets) / 2.0, 1.33);
+	return r;
 }
 
 void CvPlayerAI::AI_setPeacetimeTradeValue(PlayerTypes eIndex, int iVal) {
@@ -20696,7 +20728,8 @@ void CvPlayerAI::AI_doDiplo()
 /*                                                                                              */
 /* Diplomacy                                                                                    */
 /************************************************************************************************/
-					int iRand = GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_ASK_FOR_HELP);
+					int iRand = GC.getLeaderHeadInfo(getPersonalityType()).
+							getContactRand(CONTACT_ASK_FOR_HELP);
 					int iTechPerc = ourTeam.getBestKnownTechScorePercent();
 					if( iTechPerc < 90 )
 					{
@@ -21712,7 +21745,8 @@ bool CvPlayerAI::askHelp(PlayerTypes humanId) {
 			::bernoulliSuccess(0.5, "advc.705"))
 		return false; // </advc.705>
 	if(AI_getContactTimer(humanId, CONTACT_ASK_FOR_HELP) > 0 ||
-			TEAMREF(humanId).getAssets() <= (GET_TEAM(getTeam()).getAssets() / 2))
+			TEAMREF(humanId).getAssets() <=
+			(2 * GET_TEAM(getTeam()).getAssets()) / 3) // advc.131: was 1/2
 		return false;
 	int iBestValue = 0;
 	TechTypes eBestReceiveTech = NO_TECH;
