@@ -8,12 +8,9 @@
 using std::ostringstream;
 using std::string;
 
-WarAndPeaceReport::WarAndPeaceReport(bool silent) : // default : false
-		silent(silent) {
+WarAndPeaceReport::WarAndPeaceReport(bool silent) { // default : false
 
-	if(silent)
-		muted = 1;
-	else muted = 0;
+	setSilent(silent);
 }
 
 WarAndPeaceReport::~WarAndPeaceReport() {
@@ -174,6 +171,14 @@ void WarAndPeaceReport::setMute(bool b) {
 bool WarAndPeaceReport::isMute() const {
 
 	return muted > 0;
+}
+
+void WarAndPeaceReport::setSilent(bool b) {
+
+	silent = b;
+	if(silent)
+		muted = 1;
+	else muted = 0;
 }
 
 // </advc.104>

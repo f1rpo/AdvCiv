@@ -1680,41 +1680,54 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 			for (iI = 0; iI < MAX_PLAYERS; iI++)
 			{	// advc.003
 				CvPlayer const& observer = GET_PLAYER((PlayerTypes)iI);
-				if (observer.isAlive())
+				if(!observer.isAlive())
+					continue;
+				// <advc.106b>
+				LPCTSTR sndYou = "AS2D_DECLAREWAR";
+				LPCTSTR sndThey = "AS2D_THEIRDECLAREWAR";
+				if((isAVassal() && !isHuman()) || (GET_TEAM(eTeam).isAVassal() &&
+						!GET_TEAM(eTeam).isHuman()))
+					sndYou = sndThey = NULL; // </advc.106b>
+				if (observer.getTeam() == getID())
 				{
-					if (observer.getTeam() == getID())
-					{
-						szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_DECLARED_WAR_ON", GET_TEAM(eTeam).getName().GetCString());
-						gDLL->getInterfaceIFace()->addHumanMessage(observer.getID(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_DECLAREWAR", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"),
-								// <advc.127b>
-								GET_TEAM(eTeam).getCapitalX(),
-								GET_TEAM(eTeam).getCapitalY()); // </advc.127b>
-					}
-					else if (observer.getTeam() == eTeam)
-					{	// <advc.100> Inform the target of the DoW about the sponsor
-						if(sponsor != NO_PLAYER)
-							szBuffer = gDLL->getText("TXT_KEY_MISC_HIRED_WAR_ON_YOU", 
-									getName().GetCString(), sponsorName);
-						else // </advc.100>
+					szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_DECLARED_WAR_ON", GET_TEAM(eTeam).getName().GetCString());
+					gDLL->getInterfaceIFace()->addHumanMessage(observer.getID(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer,
+							sndYou, // advc.106b
+							MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"),
+							// <advc.127b>
+							GET_TEAM(eTeam).getCapitalX(),
+							GET_TEAM(eTeam).getCapitalY()); // </advc.127b>
+				}
+				else if (observer.getTeam() == eTeam)
+				{	// <advc.100> Inform the target of the DoW about the sponsor
+					if(sponsor != NO_PLAYER)
+						szBuffer = gDLL->getText("TXT_KEY_MISC_HIRED_WAR_ON_YOU", 
+								getName().GetCString(), sponsorName);
+					else // </advc.100>
 						szBuffer = gDLL->getText("TXT_KEY_MISC_DECLARED_WAR_ON_YOU", getName().GetCString());
-						gDLL->getInterfaceIFace()->addHumanMessage((PlayerTypes)iI, true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_DECLAREWAR", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"),
+						gDLL->getInterfaceIFace()->addHumanMessage((PlayerTypes)iI, true, GC.getEVENT_MESSAGE_TIME(), szBuffer,
+								sndYou, // advc.106b
+								MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"),
 								getCapitalX(), getCapitalY()); // advc.127b
-					}
-					else if ((isHasMet(observer.getTeam()) && GET_TEAM(eTeam).isHasMet(observer.getTeam()))
-								|| observer.isSpectator()) // advc.127
-					{	// <advc.100> Inform third parties about sponsor
-						if(sponsor != NO_PLAYER && sponsor != (PlayerTypes)iI &&
-								(TEAMREF(sponsor).isHasMet(observer.getTeam()) ||
-								observer.isSpectator())) // advc.127
-							szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_HIRED_WAR",
-									getName().GetCString(),
-									GET_TEAM(eTeam).getName().GetCString(),
-									sponsorName);
-						else // </advc.100>
-							szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_DECLARED_WAR", getName().GetCString(), GET_TEAM(eTeam).getName().GetCString());
-						gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_THEIRDECLAREWAR", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"),
-								getCapitalX(), getCapitalY()); // advc.127b
-					}
+				}
+				else if ((isHasMet(observer.getTeam()) && GET_TEAM(eTeam).isHasMet(observer.getTeam()))
+						|| observer.isSpectator()) // advc.127
+				{	// <advc.100> Inform third parties about sponsor
+					if(sponsor != NO_PLAYER && sponsor != (PlayerTypes)iI &&
+							(TEAMREF(sponsor).isHasMet(observer.getTeam()) ||
+							observer.isSpectator())) // advc.127
+						szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_HIRED_WAR",
+								getName().GetCString(),
+								GET_TEAM(eTeam).getName().GetCString(),
+								sponsorName);
+					else // </advc.100>
+						szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_DECLARED_WAR", getName().GetCString(), GET_TEAM(eTeam).getName().GetCString());
+					gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
+							// <advc.106b>
+							sndThey, (isAVassal() || GET_TEAM(eTeam).isAVassal() ?
+							MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY : // </advc.106b>
+							MESSAGE_TYPE_MAJOR_EVENT), NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"),
+							getCapitalX(), getCapitalY()); // advc.127b
 				}
 			}
 
@@ -1829,12 +1842,13 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 // <advc.100b>
 void CvTeam::makePeace(TeamTypes eTeam, bool bBumpUnits) {
 
-	return makePeaceBulk(eTeam, bBumpUnits);
+	makePeaceBulk(eTeam, bBumpUnits);
 }
 
 void CvTeam::makePeaceBulk(TeamTypes eTeam, bool bBumpUnits, TeamTypes broker,
 		bool bCapitulate, // advc.034
-		CLinkList<TradeData>* reparations) // advc.039
+		CLinkList<TradeData>* reparations, // advc.039
+		bool bRandomEvent) // advc.106g
 { // </advc.100b>
 	CvWString szBuffer;
 	int iI;
@@ -1870,12 +1884,12 @@ void CvTeam::makePeaceBulk(TeamTypes eTeam, bool bBumpUnits, TeamTypes broker,
 				if(!member.isAlive() || (member.getTeam() != eTeam &&
 						member.getTeam() != getID()))
 					continue;
-				int mem = civ.AI_getMemoryCount(member.getID(), MEMORY_STOPPED_TRADING_RECENT);
+				int mem = civ.AI_getMemoryCount(member.getID(), MEMORY_DECLARED_WAR_RECENT);
 				if(mem > 0) // Checked only for testing through the debugger
-					civ.AI_changeMemoryCount(member.getID(), MEMORY_STOPPED_TRADING_RECENT, -mem);
-				mem = member.AI_getMemoryCount(civ.getID(), MEMORY_STOPPED_TRADING_RECENT);
+					civ.AI_changeMemoryCount(member.getID(), MEMORY_DECLARED_WAR_RECENT, -mem);
+				mem = member.AI_getMemoryCount(civ.getID(), MEMORY_DECLARED_WAR_RECENT);
 				if(mem > 0)
-					member.AI_changeMemoryCount(civ.getID(), MEMORY_STOPPED_TRADING_RECENT, -mem);
+					member.AI_changeMemoryCount(civ.getID(), MEMORY_DECLARED_WAR_RECENT, -mem);
 			}
 		}
 	} // </advc.130i>
@@ -2007,17 +2021,27 @@ void CvTeam::makePeaceBulk(TeamTypes eTeam, bool bBumpUnits, TeamTypes broker,
 		CvPlayer const& civ = GET_PLAYER((PlayerTypes)iI);
 		if(!civ.isAlive())
 			continue; // </advc.003>
+		// <advc.106b>
+		LPCTSTR sndYou = "AS2D_MAKEPEACE";
+		LPCTSTR sndThey = "AS2D_THEIRMAKEPEACE";
+		if((isAVassal() && !isHuman()) || (GET_TEAM(eTeam).isAVassal() &&
+				!GET_TEAM(eTeam).isHuman()))
+			sndYou = sndThey = NULL; // </advc.106b>
 		bool bWarTeam = false; // advc.039
 		if(civ.getTeam() == getID()) {
 			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_MADE_PEACE_WITH", GET_TEAM(eTeam).getName().GetCString());
-			gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_MAKEPEACE", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
+			gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), true, GC.getEVENT_MESSAGE_TIME(), szBuffer,
+					sndYou, // advc.106b
+					MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
 					// advc.127b:
 					GET_TEAM(eTeam).getCapitalX(), GET_TEAM(eTeam).getCapitalY());
 			bWarTeam = true; // advc.039
 		}
 		else if(civ.getTeam() == eTeam) {
 			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_MADE_PEACE_WITH", getName().GetCString());
-			gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_MAKEPEACE", MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
+			gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), true, GC.getEVENT_MESSAGE_TIME(), szBuffer,
+					sndYou, // advc.106b
+					MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
 					getCapitalX(), getCapitalY()); // advc.127b
 			/*  <advc.039> Show message about reparations also to non-leading
 				members of a (human) team (in addition to YOU_MADE_PEACE) */
@@ -2055,20 +2079,32 @@ void CvTeam::makePeaceBulk(TeamTypes eTeam, bool bBumpUnits, TeamTypes broker,
 				szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_MADE_PEACE",
 						getName().GetCString(), GET_TEAM(eTeam).getName().GetCString());
 			}
-			gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_THEIRMAKEPEACE", MESSAGE_TYPE_MAJOR_EVENT, NULL,
+			gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
+					// <advc.106b>
+					sndThey, (isAVassal() || GET_TEAM(eTeam).isAVassal() ?
+					MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY : // </advc.106b>
+					MESSAGE_TYPE_MAJOR_EVENT), NULL,
 					(bReparations ? NO_COLOR : // advc.039
 					(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT")),
 					getCapitalX(), getCapitalY()); // advc.127b
 		}
 	}
-	szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_MADE_PEACE", getReplayName().GetCString(), GET_TEAM(eTeam).getReplayName().GetCString());
-	// <advc.100b>
+	// <advc.106g>
+	if(bRandomEvent) {
+		szBuffer = gDLL->getText("TXT_KEY_MISC_PEACE_VIA_EVENT", getReplayName().
+				GetCString(), GET_TEAM(eTeam).getReplayName().GetCString());
+	}
+	else { // </advc.106g>
+		szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_MADE_PEACE", getReplayName().
+				GetCString(), GET_TEAM(eTeam).getReplayName().GetCString());
+	} // <advc.100b>
 	if(broker != NO_TEAM && broker != eTeam && broker != getID())
 		szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_BROKERED_PEACE",
 				getReplayName().GetCString(),
 				GET_TEAM(eTeam).getReplayName().GetCString(),
 				GET_TEAM(broker).getReplayName().GetCString()); // </advc.100b>
-	GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getLeaderID(), szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+	GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getLeaderID(),
+			szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 
 	CvEventReporter::getInstance().changeWar(false, getID(), eTeam);
 
@@ -5128,12 +5164,18 @@ void CvTeam::setVassal(TeamTypes eIndex, bool bNewValue, bool bCapitulated)
 				mem = ourMember.AI_getMemoryCount(theirMember.getID(), MEMORY_STOPPED_TRADING_RECENT);
 				if(mem > 0)
 					ourMember.AI_changeMemoryCount(theirMember.getID(), MEMORY_STOPPED_TRADING_RECENT, -mem);
+				mem = ourMember.AI_getMemoryCount(theirMember.getID(), MEMORY_DECLARED_WAR_RECENT);
+				if(mem > 0)
+					ourMember.AI_changeMemoryCount(theirMember.getID(), MEMORY_DECLARED_WAR_RECENT, -mem);
 				mem = theirMember.AI_getMemoryCount(ourMember.getID(), MEMORY_STOPPED_TRADING);
 				if(mem > 0)
 					theirMember.AI_changeMemoryCount(ourMember.getID(), MEMORY_STOPPED_TRADING, -mem);
 				mem = theirMember.AI_getMemoryCount(ourMember.getID(), MEMORY_STOPPED_TRADING_RECENT);
 				if(mem > 0)
 					theirMember.AI_changeMemoryCount(ourMember.getID(), MEMORY_STOPPED_TRADING_RECENT, -mem);
+				mem = theirMember.AI_getMemoryCount(ourMember.getID(), MEMORY_DECLARED_WAR_RECENT);
+				if(mem > 0)
+					theirMember.AI_changeMemoryCount(ourMember.getID(), MEMORY_DECLARED_WAR_RECENT, -mem);
 			}
 		}
 	} // </advc.130f
@@ -7531,17 +7573,17 @@ void CvTeam::makeUnwillingToTalk(TeamTypes otherId) {
 				continue;
 			if(!ourMember.isHuman() &&
 					ourMember.AI_getMemoryCount(theirMember.getID(),
-					MEMORY_STOPPED_TRADING_RECENT) <= 0) {
+					MEMORY_DECLARED_WAR_RECENT) <= 0) {
 				ourMember.AI_changeMemoryCount(theirMember.getID(),
-						MEMORY_STOPPED_TRADING_RECENT, 1);
+						MEMORY_DECLARED_WAR_RECENT, 1);
 			}
-			/*  STOPPED_TRADING memory has no effect on humans. Make the other
-				side unwilling to talk then. Could simply always make both sides
-				unwilling, but then, the expected RTT duration would become longer. */
+			/*  Memory has no effect on humans. Make the other side unwilling then.
+				Could simply always make both sides unwilling, but then, the
+				expected RTT duration would become longer. */
 			else if(ourMember.isHuman() && theirMember.AI_getMemoryCount(
-					ourMember.getID(), MEMORY_STOPPED_TRADING_RECENT) <= 0) {
+					ourMember.getID(), MEMORY_DECLARED_WAR_RECENT) <= 0) {
 				theirMember.AI_changeMemoryCount(ourMember.getID(),
-						MEMORY_STOPPED_TRADING_RECENT, 1);
+						MEMORY_DECLARED_WAR_RECENT, 1);
 			}
 		}
 	}

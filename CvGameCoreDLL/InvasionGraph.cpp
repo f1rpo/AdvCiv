@@ -2043,7 +2043,7 @@ void SimulationStep::reducePower(PlayerTypes id, MilitaryBranchTypes mb,
 	if(ofAttacker)
 		lostPowerAttacker[mb] += subtrahend;
 	else lostPowerDefender[mb] += subtrahend;
-	FAssert(lostPowerAttacker[mb]>-0.0001 && lostPowerDefender[mb]>-0.0001);
+	FAssert(lostPowerAttacker[mb]>-0.001 && lostPowerDefender[mb]>-0.001);
 }
 
 void SimulationStep::setSuccess(bool b) {

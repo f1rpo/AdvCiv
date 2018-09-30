@@ -1159,7 +1159,10 @@ public:
 		, bool bCheckBorder = true, int* lowHealth = NULL, int hpLimit = 60, int limitCount = -1, PlayerTypes enemyId = NO_PLAYER
 		) const = 0;
 	virtual bool AI_isFinancialTrouble() const = 0;																											// Exposed to Python
-	virtual TechTypes AI_bestTech(int iMaxPathLength = 1, bool bIgnoreCost = false, bool bAsync = false, TechTypes eIgnoreTech = NO_TECH, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR) const = 0;
+	virtual TechTypes AI_bestTech(int iMaxPathLength = 1, bool bIgnoreCost = false,
+			bool bAsync = false, TechTypes eIgnoreTech = NO_TECH,
+			AdvisorTypes eIgnoreAdvisor = NO_ADVISOR,
+			PlayerTypes eFromCiv = NO_PLAYER) const = 0; // advc.144
 	virtual void AI_chooseFreeTech() = 0;
 	virtual void AI_chooseResearch() = 0;
 	virtual bool AI_isWillingToTalk(PlayerTypes ePlayer) const = 0; // Exposed to Python

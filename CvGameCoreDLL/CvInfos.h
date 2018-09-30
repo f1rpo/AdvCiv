@@ -3176,6 +3176,7 @@ public:
 	bool isNoAdjacent() const;				// Exposed to Python
 	bool isRequiresFlatlands() const;	// Exposed to Python
 	bool isRequiresRiver() const;			// Exposed to Python
+	bool isRequiresRiverSide() const; // advc.129b
 	bool isAddsFreshWater() const;		// Exposed to Python
 	bool isImpassable() const;				// Exposed to Python
 	bool isNoCity() const;						// Exposed to Python
@@ -3228,6 +3229,7 @@ protected:
 	bool m_bNoAdjacent;			
 	bool m_bRequiresFlatlands;
 	bool m_bRequiresRiver;
+	bool m_bRequiresRiverSide; // advc.129b
 	bool m_bAddsFreshWater;	
 	bool m_bImpassable;			
 	bool m_bNoCity;					

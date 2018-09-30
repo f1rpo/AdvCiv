@@ -1,4 +1,4 @@
-Draft of balance/historicity changes for the AdvCiv mod. Aug2018
+Draft of balance/historicity changes for the AdvCiv mod. Sept2018
 **************************************************************************
 
 tech-tree.pdf: The proposed tech tree
@@ -16,7 +16,7 @@ Those specific changes should be accompanied by the following general rule chang
 * Limited free healing; when land units are badly damaged, some need to be disbanded in order to heal the others. Or some other cost on healing. Perhaps unlimited free healing for the AI, as a player handicap.
 See also: https://forums.civfanatics.com/threads/advanced-civ.614217/page-5#post-15157996
 
-2. Lower the production bonuses from traits and resources to 80%. Let production modifiers and special commerce modifiers apply to Processes (Wealth, Research, Culture), but halve both modifiers. Reduce the production-to-commerce conversion rate of Processes to 80%. Possibly award 50:50 gold and culture when a great wonder fails. 
+2. Lower the production bonuses from traits and resources to 80%. Let production modifiers and special commerce modifiers apply to Processes (Wealth, Research, Culture), but halve both modifiers. Reduce the production-to-commerce conversion rate of Processes to 80%.
 
 3. Better scaling of Great Person effects (e.g. Discover ability, Trade Mission) with the game progress - currently too powerful in the early game and midgame. Revise the progression of birth thresholds. Settled Great People grant a free building, but have a limited lifetime. Hurry-wonder mission for Great Prophet (religious wonders).
 
@@ -50,6 +50,6 @@ See also: https://forums.civfanatics.com/threads/advanced-civ.614217/page-5#post
 * Stronger impact of upkeep class on civic upkeep costs.
 * Overhaul of trade route profit modifiers (rewarding trade between coastal cities, even if on the same continent) and matching of partner cities.
 
-15. A slight waste effect when a commerce slider is in an extreme position (akin to Alpha Centauri).
+15. A slight waste effect when a commerce slider is in an extreme position (akin to Alpha Centauri) or a small cost for adjusting a slider.
 
 16. Reduce the AI production bonuses on the high difficulty settings and instead make human civs pay higher production costs. This should help reduce overcrowding of the map.

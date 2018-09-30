@@ -116,9 +116,7 @@ bool CvPlayerAI::feelsSafe() const {
 			continue;
 		if(t.isHuman())
 			return false;
-		CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(GET_PLAYER(t.getLeaderID()).
-				getPersonalityType());
-		if(lh.getNoWarAttitudeProb(t.AI_getAttitude(getTeam())) < 100 &&
+		if(!t.AI_isAvoidWar(getTeam()) && // advc.104y
 				3 * t.getPower(true) > 2 * ourTeam.getPower(false) &&
 				(t.getCurrentEra() >= 3 || // seafaring
 				t.AI_isPrimaryArea(getCapitalCity()->area())))
@@ -165,8 +163,8 @@ int CvPlayerAI::nukeDangerDivisor() const {
 		if(ourPers.getNoWarAttitudeProb(towardThem) >= 100 &&
 				(kLoopPlayer.isHuman() ?
 				towardThem >= ATTITUDE_FRIENDLY :
-				theirPers.getNoWarAttitudeProb(kLoopPlayer.
-				AI_getAttitude(getID())) >= 100))
+				// advc.104y:
+				GET_TEAM(kLoopPlayer.getTeam()).AI_isAvoidWar(getTeam())))
 			continue;
 		if(kLoopPlayer.getNumNukeUnits() > 0)
 			return 1; // Greatest danger, smallest divisor.
@@ -5876,7 +5874,8 @@ struct PairFirstLess : public std::binary_function<std::pair<A, B>,std::pair<A, 
 }; // </k146>
 
 // edited by K-Mod and BBAI
-TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsync, TechTypes eIgnoreTech, AdvisorTypes eIgnoreAdvisor) const
+TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsync, TechTypes eIgnoreTech, AdvisorTypes eIgnoreAdvisor,
+		PlayerTypes eFromCiv) const // advc.144
 {
 	PROFILE("CvPlayerAI::AI_bestTech");
 
@@ -5984,7 +5983,13 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 				continue;
 			if (kTeam.isHasTech(eTech))
 				continue;
-
+			// <advc.144>
+			if(eFromCiv != NO_PLAYER) {
+				TradeData item;
+				setTradeItem(&item, TRADE_TECHNOLOGIES, eTech);
+				if(!GET_PLAYER(eFromCiv).canTradeItem(getID(), item))
+					continue;
+			} // </advc.144>
 			if (GC.getTechInfo(eTech).getEra() > (getCurrentEra() + 1))
 				continue; // too far in the future to consider. (This condition is only for efficiency.)
 
@@ -6029,7 +6034,9 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 			/*  Otherwise, all the prereqs are either researched, or on our list
 				from lower depths. We're ready to evaluate this tech and add it
 				to the list. */
-			int iValue = AI_techValue(eTech, iDepth+1, iDepth == 0 && bFreeTech, bAsync, viBonusClassRevealed, viBonusClassUnrevealed, viBonusClassHave);
+			int iValue = AI_techValue(eTech, iDepth+1, iDepth == 0 && bFreeTech, bAsync,
+					viBonusClassRevealed, viBonusClassUnrevealed, viBonusClassHave,
+					eFromCiv); // advc.144
 
 			techs.push_back(std::make_pair(iValue, eTech));
 			//techs.push_back(eTech);
@@ -6479,7 +6486,8 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 		bool bAsync, const std::vector<int>& viBonusClassRevealed,
 		const std::vector<int>& viBonusClassUnrevealed,
-		const std::vector<int>& viBonusClassHave) const
+		const std::vector<int>& viBonusClassHave,
+		PlayerTypes eFromCiv) const // advc.144
 {
 	PROFILE_FUNC();
 	FAssert(viBonusClassRevealed.size() == GC.getNumBonusClassInfos());
@@ -7808,9 +7816,14 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	
 			// Shouldn't run this during anarchy
 			int iTurnsLeft = getResearchTurnsLeftTimes100((eTech), false);
-			bool bCheapBooster = ((iTurnsLeft < (2 * iAdjustment)) && (0 == ((bAsync) ? GC.getASyncRand().get(5, "AI Choose Cheap Tech") : GC.getGameINLINE().getSorenRandNum(5, "AI Choose Cheap Tech"))));
-			
-			
+			bool bCheapBooster = (iTurnsLeft < (2 * iAdjustment) &&
+					eFromCiv == NO_PLAYER && // advc.144
+					(0 == (bAsync ? GC.getASyncRand().get(5, "AI Choose Cheap Tech") :
+					GC.getGameINLINE().getSorenRandNum(5, "AI Choose Cheap Tech"))));
+			/*  <advc.144> Will get it immediately, but eFromCiv is less likely to
+				give it to us if it's an expensive tech. */
+			if(eFromCiv != NO_PLAYER)
+				iTurnsLeft /= 2; // </advc.144>
 			//iValue *= 100000;
 			iValue *= 1000; // k146
 			
@@ -7821,7 +7834,9 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	//Tech Groundbreaker
 	//if (!GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_TRADING))
 	if (!GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_TRADING) && !isBarbarian() // K-Mod
-			 && iPathLength <= 1) // k146
+			 && iPathLength <= 1 // k146
+			 // advc.144: Ask for a tech that we need, not one we could trade with.
+			 && eFromCiv == NO_PLAYER)
 	{
 		if (kTechInfo.isTechTrading() || kTeam.isTechTrading())
 		{
@@ -9094,7 +9109,7 @@ bool CvPlayerAI::AI_isWillingToTalk(PlayerTypes ePlayer) const
 		// 1 turn RTT and let the team leader handle peace negotiation
 		if(atWarCounter <= 1 || GET_TEAM(getTeam()).getLeaderID() != getID())
 			return false;
-		// valid=true: want to return true, but still need to check for embargo.
+		// valid=true: want to return true, but still need to check for DECLARED_WAR_RECENT.
 		bool valid = false;
 		/*  Checking for a possible peace deal only serves as a convenience for
 			human players; no need to do it for AI-AI peace. */
@@ -9108,13 +9123,13 @@ bool CvPlayerAI::AI_isWillingToTalk(PlayerTypes ePlayer) const
 			valid = (kOurTeam.AI_surrenderTrade(TEAMID(ePlayer)) == NO_DENIAL ||
 					warAndPeaceAI().isPeaceDealPossible(ePlayer));
 		}
-		if(AI_getMemoryCount(ePlayer, MEMORY_STOPPED_TRADING_RECENT) > 0) {
+		if(AI_getMemoryCount(ePlayer, MEMORY_DECLARED_WAR_RECENT) > 0) {
 			if(!valid)
 				return false; // else RTT as in BtS
 		}
 		else return valid;
 	}
-	if(!getWPAI.isEnabled()) // </advc.104i>
+	if(!getWPAI.isEnabled()) { // </advc.104i>
 		// K-Mod
 		if (kOurTeam.AI_refusePeace(GET_PLAYER(ePlayer).getTeam()))
 		{
@@ -9125,7 +9140,7 @@ bool CvPlayerAI::AI_isWillingToTalk(PlayerTypes ePlayer) const
 				return false; // if they can't (or won't) capitulate, don't talk to them.
 		}
 		// K-Mod end
-
+	}
 	int iRefuseDuration = (GC.getLeaderHeadInfo(getPersonalityType()).getRefuseToTalkWarThreshold() * ((kOurTeam.AI_isChosenWar(GET_PLAYER(ePlayer).getTeam())) ? 2 : 1));
 		
 	int iOurSuccess = 1 + kOurTeam.AI_getWarSuccess(GET_PLAYER(ePlayer).getTeam());
@@ -11032,7 +11047,8 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 							getWPAI.isEnabled()) // advc.104n
 					{
 						if(!getWPAI.isEnabled()) { // advc.104n
-							int iNoWarOdds = GC.getLeaderHeadInfo(getPersonalityType()).getNoWarAttitudeProb((kOurTeam.AI_getAttitude(eWarTeam)));
+							// advc.104y:
+							int iNoWarOdds = kOurTeam.AI_noWarProbAdjusted(eWarTeam);
 							bValid = ((iNoWarOdds < 30) || (g.getSorenRandNum(100, "AI War Vote Attitude Check (Force War)") > iNoWarOdds));						
 						// <advc.104n>
 						} 
@@ -19177,8 +19193,9 @@ void CvPlayerAI::AI_doCounter()
 		for (iJ = 0; iJ < NUM_MEMORY_TYPES; iJ++) {
 			MemoryTypes mId = (MemoryTypes)iJ;
 			int c = AI_getMemoryCount(civId, mId);
-			if(c <= 0 || GC.getLeaderHeadInfo(getPersonalityType()).
-					getMemoryDecayRand(mId) <= 0)
+			int iDecayRand = GC.getLeaderHeadInfo(getPersonalityType()).
+					getMemoryDecayRand(mId);
+			if(c <= 0 || iDecayRand <= 0)
 				continue; // </advc.003>
 			// <advc.144> No decay of MADE_DEMAND_RECENT while peace treaty
 			if(mId == MEMORY_MADE_DEMAND_RECENT &&
@@ -19216,17 +19233,16 @@ void CvPlayerAI::AI_doCounter()
 			// <advc.130r> Faster yet if multiple requests remembered
 			if(c > 3) // c==3 could stem from a single request
 				div = 2 * std::sqrt(c / 2.0); // </advc.130r>
-			int decayRand = GC.getLeaderHeadInfo(getPersonalityType()).
-					getMemoryDecayRand(mId);
 			CvGame& g = GC.getGameINLINE();
 			// <advc.130r> Moderate game-speed adjustment
-			decayRand *= GC.getGameSpeedInfo(g.getGameSpeedType()).
+			iDecayRand *= GC.getGameSpeedInfo(g.getGameSpeedType()).
 					getGoldenAgePercent();
-			decayRand = ::round(decayRand / (100 * div)); // </advc.130r>
-			if(decayRand != 0 && /*  advc.130r: Interpret 0 as no decay. Otherwise, you'd
-									 have to delete the whole MemoryDecay entry from the
-									 Leaderhead XML to prevent decay via XML. */
-					g.getSorenRandNum(decayRand, "Memory Decay") == 0) // </advc.130j>
+			iDecayRand = ::round(iDecayRand / (100 * div)); // </advc.130r>
+			/*  0 in XML should mean no decay (already handled above). But if the
+				division above makes it 0, it should mean fast decay. */
+			if(iDecayRand == 0)
+				iDecayRand = 1;
+			if(g.getSorenRandNum(iDecayRand, "Memory Decay") == 0) // </advc.130j>
 				AI_changeMemoryCount(civId, mId, -1);
 		}
 		// <advc.130g>
@@ -20737,7 +20753,7 @@ void CvPlayerAI::AI_doDiplo()
 						iRand /= 30;
 					}
 					
-					if (g.getSorenRandNum(iRand, "AI Diplo Ask For Help") == 0)
+				if (g.getSorenRandNum(iRand, "AI Diplo Ask For Help") == 0)
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
@@ -21748,18 +21764,22 @@ bool CvPlayerAI::askHelp(PlayerTypes humanId) {
 			TEAMREF(humanId).getAssets() <=
 			(2 * GET_TEAM(getTeam()).getAssets()) / 3) // advc.131: was 1/2
 		return false;
-	int iBestValue = 0;
-	TechTypes eBestReceiveTech = NO_TECH;
-	TradeData item;
 	CvPlayer const& human = GET_PLAYER(humanId);
-	for(int i = 0; i < GC.getNumTechInfos(); i++) {	
-		setTradeItem(&item, TRADE_TECHNOLOGIES, i);
-		if(!human.canTradeItem(getID(), item, true))
-			continue;
-		int iValue = 1 + GC.getGameINLINE().getSorenRandNum(10000, "AI Asking For Help");
-		if(iValue > iBestValue) {
-			iBestValue = iValue;
-			eBestReceiveTech = (TechTypes)i;
+	TradeData item;
+	int iBestValue = 0;
+	// <advc.144>
+	TechTypes eBestReceiveTech = AI_bestTech(1, false, false, NO_TECH, NO_ADVISOR,
+			humanId);
+	if(eBestReceiveTech == NO_TECH) { // </advc.144>
+		for(int i = 0; i < GC.getNumTechInfos(); i++) {	
+			setTradeItem(&item, TRADE_TECHNOLOGIES, i);
+			if(!human.canTradeItem(getID(), item))
+				continue;
+			int iValue = 1 + GC.getGameINLINE().getSorenRandNum(10000, "AI Asking For Help");
+			if(iValue > iBestValue) {
+				iBestValue = iValue;
+				eBestReceiveTech = (TechTypes)i;
+			}
 		}
 	}
 	if(eBestReceiveTech == NO_TECH)
@@ -21976,11 +21996,18 @@ void CvPlayerAI::read(FDataStreamBase* pStream)
 	{
 		pStream->Read(NUM_CONTACT_TYPES, m_aaiContactTimer[i]);
 	}
-	for (int i = 0; i < MAX_PLAYERS; i++)
-	{	
-		pStream->Read(NUM_MEMORY_TYPES, m_aaiMemoryCount[i]);
-	}
-
+	// <advc.104i>
+	for(int i = 0; i < MAX_PLAYERS; i++) {
+		int iNumMemoryTypesToRead = NUM_MEMORY_TYPES;
+		if(uiFlag < 11)
+			iNumMemoryTypesToRead--;
+		pStream->Read(iNumMemoryTypesToRead, m_aaiMemoryCount[i]);
+		if(uiFlag < 11) { // DECLARED_WAR_RECENT takes over for STOPPED_TRADING_RECENT
+			FAssert(iNumMemoryTypesToRead == MEMORY_DECLARED_WAR_RECENT);
+			m_aaiMemoryCount[i][iNumMemoryTypesToRead] = m_aaiMemoryCount[i]
+					[MEMORY_STOPPED_TRADING_RECENT];
+		}
+	} // </advc.104i>
 	pStream->Read(&m_bWasFinancialTrouble);
 	pStream->Read(&m_iTurnLastProductionDirty);
 	
@@ -22070,6 +22097,7 @@ void CvPlayerAI::write(FDataStreamBase* pStream)
 	uiFlag = 8; // advc.003b
 	uiFlag = 9; // advc.148
 	uiFlag = 10; // advc.036
+	uiFlag = 11; // advc.104i
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iPeaceWeight);
@@ -22598,10 +22626,31 @@ int CvPlayerAI::AI_eventValue(EventTypes eEvent, const EventTriggeredData& kTrig
 		CvPlayerAI& kOtherPlayer = GET_PLAYER(kTriggeredData.m_eOtherPlayer);
 
 		int iDiploValue = 0;
-		//if we like this player then value positive attitude, if however we really hate them then
-		//actually value negative attitude.
-		iDiploValue += ((iOtherPlayerAttitudeWeight + 50) * kEvent.getAttitudeModifier() * GET_PLAYER(kTriggeredData.m_eOtherPlayer).getPower()) / std::max(1, getPower());
-		
+		// BtS comment:
+		/*  if we like this player then value positive attitude, if however we
+			really hate them then actually value negative attitude. */
+		/*iDiploValue += ((iOtherPlayerAttitudeWeight + 50) *
+				kEvent.getAttitudeModifier() *
+				GET_PLAYER(kTriggeredData.m_eOtherPlayer).getPower()) /
+				std::max(1, getPower());*/
+		/*  <advc.104z> Replacing the above. iOtherPlayerAttitudeWeight <= 50
+			needs to be handled differently. And use team power instead of
+			player power. Tagging advc.001 b/c the BtS code is probably not
+			working as had been intended. */
+		int iAttitudeMod = kEvent.getAttitudeModifier();
+		if(iAttitudeMod != 0) {
+			double tempValue = iOtherPlayerAttitudeWeight + 50;
+			double powRatio = TEAMREF(kTriggeredData.m_eOtherPlayer).getPower(true) /
+					(double)std::max(1, GET_TEAM(getTeam()).getPower(true));
+			if(tempValue > 0)
+				tempValue *= powRatio;
+			else tempValue += 100 * (powRatio - 1);
+			/*  Make sure that angering a more powerful team is never treated as a
+				good thing. */
+			if(iAttitudeMod < 0 && tempValue < 0 && powRatio > 1)
+				tempValue = 1;
+			iDiploValue += ::round(tempValue * iAttitudeMod);
+		} // </advc.104z>
 		if (kEvent.getTheirEnemyAttitudeModifier() != 0)
 		{
 			//Oh wow this sure is mildly complicated.
@@ -24516,9 +24565,8 @@ void CvPlayerAI::AI_updateStrategyHash()
 			int humanWarProb = 70 - AI_getAttitude(kLoopPlayer.getID()) * 10;
 			int iAttitudeWarProb = (kLoopPlayer.isHuman() ? humanWarProb :
 					// Now based on kLoopPlayer's personality and attitude
-					100 - GC.getLeaderHeadInfo(
-					kLoopPlayer.getPersonalityType()).
-					getNoWarAttitudeProb(kLoopPlayer.AI_getAttitude(getID())));
+					100 - GET_TEAM(kLoopPlayer.getTeam()).
+					AI_noWarProbAdjusted(getTeam())); // advc.104y
 			// </advc.022>
 			// (original BBAI code deleted) // advc.003
 			// K-Mod. Paranoia gets scaled by relative power anyway...
@@ -24528,8 +24576,8 @@ void CvPlayerAI::AI_updateStrategyHash()
 				K-Mod already did that, but iAttitudeWarProb now refers to
 				kLoopPlayer. */
 			//if (iAttitudeWarProb > 10 && iCloseness > 0)
-			if(iCloseness > 0 && 100 - GC.getLeaderHeadInfo(getPersonalityType()).
-					getNoWarAttitudeProb(AI_getAttitude(kLoopPlayer.getID())) > 10)
+			if(iCloseness > 0 && 100 - GET_TEAM(getTeam()).
+					AI_noWarProbAdjusted(kLoopPlayer.getTeam()) > 10) // advc.104y
 			{ // </advc.022>
 				iCloseTargets++;
 			}

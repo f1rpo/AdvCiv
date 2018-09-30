@@ -22,6 +22,8 @@
 			<bNoAdjacent>0</bNoAdjacent>
 			<bRequiresFlatlands>0</bRequiresFlatlands>
 			<bRequiresRiver>0</bRequiresRiver>
+			<!-- advc.129b -->
+			<bRequiresRiverSide>0</bRequiresRiverSide>
 			<bAddsFreshWater>0</bAddsFreshWater>
 			<bImpassable>1</bImpassable>
 			<bNoCity>0</bNoCity>
@@ -140,6 +142,8 @@
 			<bNoAdjacent>0</bNoAdjacent>
 			<bRequiresFlatlands>0</bRequiresFlatlands>
 			<bRequiresRiver>0</bRequiresRiver>
+			<!-- advc.129b -->
+			<bRequiresRiverSide>0</bRequiresRiverSide>
 			<bAddsFreshWater>0</bAddsFreshWater>
 			<bImpassable>0</bImpassable>
 			<bNoCity>0</bNoCity>
@@ -259,6 +263,8 @@
 			<bNoAdjacent>1</bNoAdjacent>
 			<bRequiresFlatlands>1</bRequiresFlatlands>
 			<bRequiresRiver>0</bRequiresRiver>
+			<!-- advc.129b -->
+			<bRequiresRiverSide>0</bRequiresRiverSide>
 			<bAddsFreshWater>1</bAddsFreshWater>
 			<bImpassable>0</bImpassable>
 			<bNoCity>1</bNoCity>
@@ -377,6 +383,8 @@
 			<bNoAdjacent>0</bNoAdjacent>
 			<bRequiresFlatlands>1</bRequiresFlatlands>
 			<bRequiresRiver>1</bRequiresRiver>
+			<!-- advc.129b -->
+			<bRequiresRiverSide>1</bRequiresRiverSide>
 			<bAddsFreshWater>0</bAddsFreshWater>
 			<bImpassable>0</bImpassable>
 			<bNoCity>0</bNoCity>
@@ -491,6 +499,8 @@
 			<bNoAdjacent>0</bNoAdjacent>
 			<bRequiresFlatlands>0</bRequiresFlatlands>
 			<bRequiresRiver>0</bRequiresRiver>
+			<!-- advc.129b -->
+			<bRequiresRiverSide>0</bRequiresRiverSide>
 			<bAddsFreshWater>0</bAddsFreshWater>
 			<bImpassable>0</bImpassable>
 			<bNoCity>0</bNoCity>
@@ -613,6 +623,8 @@
 			<bNoAdjacent>0</bNoAdjacent>
 			<bRequiresFlatlands>0</bRequiresFlatlands>
 			<bRequiresRiver>0</bRequiresRiver>
+			<!-- advc.129b -->
+			<bRequiresRiverSide>0</bRequiresRiverSide>
 			<bAddsFreshWater>0</bAddsFreshWater>
 			<bImpassable>0</bImpassable>
 			<bNoCity>0</bNoCity>

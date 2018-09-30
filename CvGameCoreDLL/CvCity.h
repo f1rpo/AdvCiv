@@ -1291,6 +1291,7 @@ protected:
 	int mrOrder;
 	bool mrWasUnit; // </advc.004x>
 	//CvWString m_szName; // advc.003: Moved up
+	CvWString m_szPreviousName; // advc.106k
 	CvString m_szScriptData;
 
 	int* m_paiNoBonus;

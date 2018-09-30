@@ -2094,49 +2094,17 @@ CvCity* CvPlayer::initCity(int iX, int iY, bool bBumpUnits, bool bUpdatePlotGrou
 
 void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool bUpdatePlotGroups)
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvCity* pNewCity;
-	CvUnit* pLoopUnit;
-	CvPlot* pCityPlot;
-	CvPlot* pLoopPlot;
-	bool* pabHasReligion;
-	bool* pabHolyCity;
-	bool* pabHasCorporation;
-	bool* pabHeadquarters;
-	int* paiNumRealBuilding;
-	int* paiBuildingOriginalOwner;
-	int* paiBuildingOriginalTime;
+	// advc.003: Moved most of the declarations
 	CvWString szBuffer;
 	CvWString szName;
-	bool abEverOwned[MAX_PLAYERS];
-	int aiCulture[MAX_PLAYERS];
-	PlayerTypes eOldOwner;
-	PlayerTypes eOriginalOwner;
-	PlayerTypes eHighestCulturePlayer;
-	BuildingTypes eBuilding;
-	bool bRecapture;
-	bool bRaze;
-	bool bGift;
-	int iRange;
-	int iCaptureGold;
-	int iGameTurnFounded;
-	int iPopulation;
-	int iHighestPopulation;
-	int iHurryAngerTimer;
-	int iConscriptAngerTimer;
-	int iDefyResolutionAngerTimer;
-	int iOccupationTimer;
-	int iTeamCulturePercent;
-	int iDamage;
-	int iDX, iDY;
-	int iI;
+	bool bRaze = false;
+	bool bGift = false;
+	int iI=-1;
+
+	CvPlot* pCityPlot = pOldCity->plot();
+
+	CLLNode<IDInfo>* pUnitNode = pCityPlot->headUnitNode();
 	CLinkList<IDInfo> oldUnits;
-	std::vector<int> aeFreeSpecialists;
-
-	pCityPlot = pOldCity->plot();
-
-	pUnitNode = pCityPlot->headUnitNode();
-
 	while (pUnitNode != NULL)
 	{
 		oldUnits.insertAtEnd(pUnitNode->m_data);
@@ -2147,7 +2115,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 
 	while (pUnitNode != NULL)
 	{
-		pLoopUnit = ::getUnit(pUnitNode->m_data);
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = oldUnits.next(pUnitNode);
 
 		if (pLoopUnit && pLoopUnit->getTeam() != getTeam())
@@ -2161,15 +2129,15 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 
 	if (bConquest)
 	{
-		iRange = pOldCity->getCultureLevel();
+		int iRange = pOldCity->getCultureLevel();
 
-		for (iDX = -(iRange); iDX <= iRange; iDX++)
+		for (int iDX = -(iRange); iDX <= iRange; iDX++)
 		{
-			for (iDY = -(iRange); iDY <= iRange; iDY++)
+			for (int iDY = -(iRange); iDY <= iRange; iDY++)
 			{
 				if (pOldCity->cultureDistance(iDX, iDY) <= iRange)
 				{
-					pLoopPlot = plotXY(pOldCity->getX_INLINE(),pOldCity-> getY_INLINE(), iDX, iDY);
+					CvPlot* pLoopPlot = plotXY(pOldCity->getX_INLINE(),pOldCity-> getY_INLINE(), iDX, iDY);
 
 					if (pLoopPlot != NULL)
 					{
@@ -2245,7 +2213,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szBuffer, pOldCity->getX_INLINE(), pOldCity->getY_INLINE(), (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
 	}
 
-	iCaptureGold = 0;
+	int iCaptureGold = 0;
 
 	if (bConquest)
 	{
@@ -2267,38 +2235,39 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 
 	changeGold(iCaptureGold);
 
-	pabHasReligion = new bool[GC.getNumReligionInfos()];
-	pabHolyCity = new bool[GC.getNumReligionInfos()];
-	pabHasCorporation = new bool[GC.getNumCorporationInfos()];
-	pabHeadquarters = new bool[GC.getNumCorporationInfos()];
-	paiNumRealBuilding = new int[GC.getNumBuildingInfos()];
-	paiBuildingOriginalOwner = new int[GC.getNumBuildingInfos()];
-	paiBuildingOriginalTime = new int[GC.getNumBuildingInfos()];
+	bool* pabHasReligion = new bool[GC.getNumReligionInfos()];
+	bool* pabHolyCity = new bool[GC.getNumReligionInfos()];
+	bool* pabHasCorporation = new bool[GC.getNumCorporationInfos()];
+	bool* pabHeadquarters = new bool[GC.getNumCorporationInfos()];
+	int* paiNumRealBuilding = new int[GC.getNumBuildingInfos()];
+	int* paiBuildingOriginalOwner = new int[GC.getNumBuildingInfos()];
+	int* paiBuildingOriginalTime = new int[GC.getNumBuildingInfos()];
 
 	for (iI = 0; iI < GC.getNumVoteSourceInfos(); ++iI)
 	{
 		pOldCity->processVoteSourceBonus((VoteSourceTypes)iI, false);
 	}
 
-	eOldOwner = pOldCity->getOwnerINLINE();
-	eOriginalOwner = pOldCity->getOriginalOwner();
-	eHighestCulturePlayer = pOldCity->findHighestCulture();
-	iGameTurnFounded = pOldCity->getGameTurnFounded();
-	iPopulation = pOldCity->getPopulation();
-	iHighestPopulation = pOldCity->getHighestPopulation();
-	iHurryAngerTimer = pOldCity->getHurryAngerTimer();
-	iConscriptAngerTimer = pOldCity->getConscriptAngerTimer();
-	iDefyResolutionAngerTimer = pOldCity->getDefyResolutionAngerTimer();
-	iOccupationTimer = pOldCity->getOccupationTimer();
+	PlayerTypes eOldOwner = pOldCity->getOwnerINLINE();
+	PlayerTypes eOriginalOwner = pOldCity->getOriginalOwner();
+	PlayerTypes eHighestCulturePlayer = pOldCity->findHighestCulture();
+	int iGameTurnFounded = pOldCity->getGameTurnFounded();
+	int iPopulation = pOldCity->getPopulation();
+	int iHighestPopulation = pOldCity->getHighestPopulation();
+	int iHurryAngerTimer = pOldCity->getHurryAngerTimer();
+	int iConscriptAngerTimer = pOldCity->getConscriptAngerTimer();
+	int iDefyResolutionAngerTimer = pOldCity->getDefyResolutionAngerTimer();
+	int iOccupationTimer = pOldCity->getOccupationTimer();
 	szName = pOldCity->getNameKey();
-	iDamage = pOldCity->getDefenseDamage();
+	int iDamage = pOldCity->getDefenseDamage();
 	int iOldCityId = pOldCity->getID();
-
+	std::vector<int> aeFreeSpecialists;
 	for (iI = 0; iI < GC.getNumSpecialistInfos(); ++iI)
 	{
 		aeFreeSpecialists.push_back(pOldCity->getAddedFreeSpecialistCount((SpecialistTypes)iI));
 	}
-
+	bool abEverOwned[MAX_PLAYERS];
+	int aiCulture[MAX_PLAYERS];
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		abEverOwned[iI] = pOldCity->isEverOwned((PlayerTypes)iI);
@@ -2373,7 +2342,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		}
 	}
 
-	bRecapture = ((eHighestCulturePlayer != NO_PLAYER) ? (GET_PLAYER(eHighestCulturePlayer).getTeam() == getTeam()) : false);
+	bool bRecapture = ((eHighestCulturePlayer != NO_PLAYER) ? (GET_PLAYER(eHighestCulturePlayer).getTeam() == getTeam()) : false);
 
 	pOldCity->kill(false);
 
@@ -2397,11 +2366,11 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 			p.changeCulture(getID(), convertedCulture, false);
 		} 
 		// BtS code replaced with the loop above // </advc.122>
-		/*for (iDX = -1; iDX <= 1; iDX++)
+		/*for (int iDX = -1; iDX <= 1; iDX++)
 		{
-			for (iDY = -1; iDY <= 1; iDY++)
+			for (int iDY = -1; iDY <= 1; iDY++)
 			{
-				pLoopPlot	= plotXY(pCityPlot->getX_INLINE(), pCityPlot->getY_INLINE(), iDX, iDY);
+				CvPlot* pLoopPlot = plotXY(pCityPlot->getX_INLINE(), pCityPlot->getY_INLINE(), iDX, iDY);
 
 				if (pLoopPlot != NULL)
 				{
@@ -2432,7 +2401,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		// </advc.123d>
 	}
 
-	pNewCity = initCity(pCityPlot->getX_INLINE(), pCityPlot->getY_INLINE(), !bConquest, false);
+	CvCity* pNewCity = initCity(pCityPlot->getX_INLINE(), pCityPlot->getY_INLINE(), !bConquest, false);
 
 	FAssertMsg(pNewCity != NULL, "NewCity is not assigned a valid value");
 
@@ -2460,6 +2429,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		pNewCity->setCultureTimes100(eOldOwner,
 				oldOwnerCulture - convertedCulture, true, false);
     } // </dlph.23>
+
 	for (iI = 0; iI < GC.getNumBuildingInfos(); iI++)
 	{
 		int iNum = 0;
@@ -2467,6 +2437,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		if (paiNumRealBuilding[iI] > 0)
 		{
 			BuildingClassTypes eBuildingClass = (BuildingClassTypes)GC.getBuildingInfo((BuildingTypes)iI).getBuildingClassType();
+			BuildingTypes eBuilding = NO_BUILDING;
 			if (::isWorldWonderClass(eBuildingClass))
 			{
 				eBuilding = (BuildingTypes)iI;
@@ -2566,7 +2537,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 
 	if (bConquest)
 	{
-		iTeamCulturePercent = pNewCity->calculateTeamCulturePercent(getTeam());
+		int iTeamCulturePercent = pNewCity->calculateTeamCulturePercent(getTeam());
 
 		if (iTeamCulturePercent < GC.getDefineINT("OCCUPATION_CULTURE_PERCENT_THRESHOLD"))
 		{
@@ -2623,7 +2594,6 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
-
 	SAFE_DELETE_ARRAY(pabHasReligion);
 	SAFE_DELETE_ARRAY(pabHolyCity);
 	SAFE_DELETE_ARRAY(pabHasCorporation);
@@ -3240,8 +3210,14 @@ void CvPlayer::setHumanDisabled( bool newVal )
 {
 	// <advc.127>
 	autoPlayJustEnded = true;
-	if(newVal && !m_bDisableHuman)
+	CvGame& g = GC.getGameINLINE();
+	// Not sure if this is needed:
+	bool const bActive = (g.getActivePlayer() == getID());
+	CvWString replayText;
+	if(newVal && !m_bDisableHuman && bActive) {
 		gDLL->getInterfaceIFace()->clearQueuedPopups();
+		replayText = gDLL->getText("TXT_KEY_AUTO_PLAY_STARTED");
+	}
 	if(!newVal && m_bDisableHuman) {
 		/*  Remove the inter-AI diplo modifiers; would otherwise happen during
 			the next round of AI turns, i.e. with a 1-turn delay. */
@@ -3251,6 +3227,12 @@ void CvPlayer::setHumanDisabled( bool newVal )
 				p.AI_updateAttitudeCache();
 		}
 		iNewMessages = 0; // Don't open Event Log when coming out of Auto Play
+		if(bActive)
+			replayText = gDLL->getText("TXT_KEY_AUTO_PLAY_ENDED");
+	}
+	if(!replayText.empty()) {
+		g.addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), replayText, -1, -1,
+				(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 	} // </advc.127>
 	m_bDisableHuman = newVal;
 	updateHuman();
@@ -4798,6 +4780,11 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 			demands sth., DIPLOEVENT_MADE_DEMAND triggers (and that one doesn't
 			trigger when the AI demands sth.). */
 		forcePeace(ePlayer);
+		/*  advc.104m (comment): Sadly, we can't reliably identify the CvDeal object
+			here that corresponds to the tribute demand. Otherwise, that deal could
+			be marked as a tribute deal and be canceled automatically after 10 turns.
+			Getting the necessary data from CvPlayer::demandTribute to here is
+			awkward. */
 		break;
 
 	case DIPLOEVENT_REJECTED_DEMAND:

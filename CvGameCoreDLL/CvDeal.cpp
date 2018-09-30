@@ -990,12 +990,12 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 				continue; // </advc.003>
 			// advc.130j:
 			attacked.AI_rememberEvent(eToPlayer, MEMORY_HIRED_WAR_ALLY);
-			// <advc.104i> Same code as in CvPlayer::handleDiploEvent
-			if(attacked.AI_getMemoryCount(eFromPlayer, MEMORY_STOPPED_TRADING_RECENT) <= 0)
-				attacked.AI_changeMemoryCount(eFromPlayer, MEMORY_STOPPED_TRADING_RECENT, 1);
+			// <advc.104i> Similar to code in CvTeam::makeUnwillingToTalk
+			if(attacked.AI_getMemoryCount(eFromPlayer, MEMORY_DECLARED_WAR_RECENT) <= 0)
+				attacked.AI_changeMemoryCount(eFromPlayer, MEMORY_DECLARED_WAR_RECENT, 1);
 			if(TEAMREF(eToPlayer).isAtWar(attacked.getTeam()) && attacked.
-					AI_getMemoryCount(eToPlayer, MEMORY_STOPPED_TRADING_RECENT) <= 0)
-				attacked.AI_changeMemoryCount(eToPlayer, MEMORY_STOPPED_TRADING_RECENT, 1);
+					AI_getMemoryCount(eToPlayer, MEMORY_DECLARED_WAR_RECENT) <= 0)
+				attacked.AI_changeMemoryCount(eToPlayer, MEMORY_DECLARED_WAR_RECENT, 1);
 			// </advc.104i>
 		}
 		break;

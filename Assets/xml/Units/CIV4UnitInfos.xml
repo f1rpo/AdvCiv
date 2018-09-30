@@ -4654,6 +4654,7 @@
 			<bSuicide>0</bSuicide>
 			<bHiddenNationality>0</bHiddenNationality>
 			<bAlwaysHostile>0</bAlwaysHostile>
+			<!-- advc.907b: Upgrade to MACEMAN disabled -->
 			<UnitClassUpgrades>
 				<UnitClassUpgrade>
 					<UnitClassUpgradeType>UNITCLASS_AXEMAN</UnitClassUpgradeType>
@@ -4665,7 +4666,7 @@
 				</UnitClassUpgrade>
 				<UnitClassUpgrade>
 					<UnitClassUpgradeType>UNITCLASS_MACEMAN</UnitClassUpgradeType>
-					<bUnitClassUpgrade>1</bUnitClassUpgrade>
+					<bUnitClassUpgrade>0</bUnitClassUpgrade>
 				</UnitClassUpgrade>
 			</UnitClassUpgrades>
 			<UnitClassTargets/>
@@ -4704,7 +4705,8 @@
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
-			<iCost>20</iCost>
+			<!-- advc.907b: was 20 -->
+			<iCost>15</iCost>
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
@@ -4757,10 +4759,11 @@
 			<FeatureDefenses/>
 			<UnitClassAttackMods/>
 			<UnitClassDefenseMods/>
+			<!-- advc.907b: Combat bonus vs. Archer (100) removed -->
 			<UnitCombatMods>
 				<UnitCombatMod>
 					<UnitCombatType>UNITCOMBAT_ARCHER</UnitCombatType>
-					<iUnitCombatMod>100</iUnitCombatMod>
+					<iUnitCombatMod>0</iUnitCombatMod>
 				</UnitCombatMod>
 			</UnitCombatMods>
 			<UnitCombatCollateralImmunes/>
@@ -9793,7 +9796,8 @@
 			<iExtraCost>0</iExtraCost>
 			<!-- advc.131: was 3 -->
 			<iAsset>4</iAsset>
-			<iPower>20</iPower>
+			<!-- advc.131: was 20 -->
+			<iPower>22</iPower>
 			<UnitMeshGroups>
 				<iGroupSize>3</iGroupSize>
 				<fMaxSpeed>1.75</fMaxSpeed>

@@ -561,6 +561,9 @@ double ArmamentForecast::productionFromUpgrades() {
 	double income = civ.estimateYieldRate(YIELD_COMMERCE, 3) -
 			civ.calculateInflatedCosts();
 	double incomeBound = incomeTurns * income;
+	// Also take into account current gold stockpile
+	int iGold = civ.getGold();
+	incomeBound = std::max((2 * incomeBound + iGold) / 3, (2 * iGold + incomeBound) / 3);
 	if(incomeBound < r)
 		report.log("Upgrades bounded by income (%d gpt)", ::round(income));
 	r = std::min(incomeBound, r);

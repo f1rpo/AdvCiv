@@ -4637,9 +4637,12 @@ void CvSelectionGroup::mergeIntoGroup(CvSelectionGroup* pSelectionGroup)
 	while (bChangedUnitAI);
 }
 
-// split this group into two new groups, one of iSplitSize, the other the remaining units
-// split up each unit AI type as evenly as possible
-// K-Mod. I've rewriten most of this function. The new version is faster, gives a more even split, and does not create a dummy group. (unless I've made a mistake.)
+/*  split this group into two new groups, one of iSplitSize,
+	the other the remaining units.
+	split up each unit AI type as evenly as possible. */
+/*  K-Mod. I've rewritten most of this function. The new version is faster,
+	gives a more even split, and does not create a dummy group.
+	(unless I've made a mistake.) */
 CvSelectionGroup* CvSelectionGroup::splitGroup(int iSplitSize, CvUnit* pNewHeadUnit, CvSelectionGroup** ppOtherGroup)
 {
 	FAssert(pNewHeadUnit == 0 || pNewHeadUnit->getGroup() == this);

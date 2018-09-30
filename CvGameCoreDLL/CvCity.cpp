@@ -542,6 +542,7 @@ void CvCity::reset(int iID, PlayerTypes eOwner, int iX, int iY, bool bConstructo
 	mrWasUnit = false;
 	mrOrder = -1; // </advc.004x>
 	m_szName.clear();
+	m_szPreviousName.clear(); // advc.106k
 	m_szScriptData = "";
 
 	m_bPopulationRankValid = false;
@@ -933,7 +934,14 @@ void CvCity::doTurn()
 	setCurrAirlift(0);
 
 	AI_doTurn();
-
+	// <advc.106k>
+	if(!m_szPreviousName.empty() && m_szName.compare(m_szPreviousName) != 0) {
+		GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getOwnerINLINE(),
+				gDLL->getText("TXT_KEY_MISC_CITY_RENAMED",
+				m_szPreviousName.GetCString(), m_szName.GetCString()), getX_INLINE(),
+				getY_INLINE(), GET_PLAYER(getOwnerINLINE()).getPlayerTextColor());
+		m_szPreviousName.clear();
+	} // </advc.106k>
 	bool bAllowNoProduction = !doCheckProduction();
 
 	doGrowth();
@@ -10712,7 +10720,9 @@ void CvCity::setName(const wchar* szNewValue, bool bFound)
 	if (!szName.empty())
 	{
 		if (GET_PLAYER(getOwnerINLINE()).isCityNameValid(szName, false))
-		{
+		{	// <advc.106k>
+			if(m_szPreviousName.empty())
+				m_szPreviousName = m_szName; // </advc.106k>
 			m_szName = szName;
 
 			setInfoDirty(true);
@@ -14296,6 +14306,9 @@ void CvCity::read(FDataStreamBase* pStream)
 	pStream->Read(MAX_TEAMS, m_abEspionageVisibility);
 
 	pStream->ReadString(m_szName);
+	// <advc.106k>
+	if(uiFlag >= 5)
+		pStream->ReadString(m_szPreviousName); // </advc.106k>
 	pStream->ReadString(m_szScriptData);
 
 	pStream->Read(GC.getNumBonusInfos(), m_paiNoBonus);
@@ -14414,6 +14427,7 @@ void CvCity::write(FDataStreamBase* pStream)
 	uiFlag = 2; // advc.004x
 	uiFlag = 3; // advc.030b
 	uiFlag = 4; // advc.912d
+	uiFlag = 5; // advc.106k
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iID);
@@ -14550,6 +14564,7 @@ void CvCity::write(FDataStreamBase* pStream)
 	pStream->Write(MAX_TEAMS, m_abEspionageVisibility);
 
 	pStream->WriteString(m_szName);
+	pStream->WriteString(m_szPreviousName); // advc.106k
 	pStream->WriteString(m_szScriptData);
 
 	pStream->Write(GC.getNumBonusInfos(), m_paiNoBonus);

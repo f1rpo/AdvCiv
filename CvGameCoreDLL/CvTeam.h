@@ -58,7 +58,8 @@ public:
 	// advc.100b To avoid changing the signature of the function above:
 	void makePeaceBulk(TeamTypes eTeam, bool bBumpUnits = true, TeamTypes broker = NO_TEAM,
 			bool bCapitulate = false, // advc.034
-			CLinkList<TradeData>* reparations = NULL); // advc.039
+			CLinkList<TradeData>* reparations = NULL, // advc.039
+			bool bRandomEvent = false); // advc.106g
 	//bool canContact(TeamTypes eTeam) const; // Exposed to Python
 	bool canContact(TeamTypes eTeam, bool bCheckWillingness = false) const; // K-Mod, Exposed to Python
 	void meet(TeamTypes eTeam, bool bNewDiplo);																		// Exposed to Python

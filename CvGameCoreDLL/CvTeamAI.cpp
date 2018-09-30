@@ -2249,8 +2249,8 @@ DenialTypes CvTeamAI::AI_techTrade(TechTypes eTech, TeamTypes eTeam) const
 	PROFILE_FUNC();
 
 	FAssertMsg(eTeam != getID(), "shouldn't call this function on ourselves");
-
-	if (GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_BROKERING))
+	// advc.550e: No longer needed
+	/*if (GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_BROKERING))
 	{
 		CvTeam& kTeam = GET_TEAM(eTeam);
 
@@ -2264,22 +2264,10 @@ DenialTypes CvTeamAI::AI_techTrade(TechTypes eTech, TeamTypes eTeam) const
 				}
 			}
 		}
-	}
-
-	if (isHuman())
-	{
+	}*/
+	// advc.003:
+	if(isHuman() || isVassal(eTeam) || isAtWar(eTeam))
 		return NO_DENIAL;
-	}
-
-	if (isVassal(eTeam))
-	{
-		return NO_DENIAL;
-	}
-
-	if (isAtWar(eTeam))
-	{
-		return NO_DENIAL;
-	}
 
 	if (AI_getWorstEnemy() == eTeam)
 	{
@@ -3547,11 +3535,10 @@ bool CvTeamAI::AI_refuseWar(TeamTypes eWarTeam) const
 {
 	if (isHuman())
 		return false;
-
-	AttitudeTypes eAttitude = AI_getAttitude(eWarTeam);
-
-	if (AI_noWarAttitudeProb(eAttitude) >= 100)
+	// <advc.104y>
+	if (AI_isAvoidWar(eWarTeam))
 	{
+		AttitudeTypes eAttitude = AI_getAttitude(eWarTeam); // </advc.104y>
 		// ok, so we wouldn't independently choose this war, but could we be bought into it?
 		// If any of our team would refuse, then the team refuses. (cf. AI_declareWarTrade)
 		for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
@@ -5366,7 +5353,7 @@ int CvTeamAI::AI_plotDefense(CvPlot const& p, bool bIgnoreBuilding) const {
 // <advc.130y>
 void CvTeamAI::forgiveEnemy(TeamTypes enemyId, bool capitulated, bool freed) {
 
-	/*  capitulated refers to us, the callee. This function is called when
+	/*  'capitulated' refers to us, the callee. This function is called when
 		making peace but also when breaking free. Can therefore not rely on
 		this->isCapitulated (but GET_TEAM(enemyId).isCapitulated() is fine).
 		If we make peace after having broken free, it's called twice for each
@@ -5383,19 +5370,18 @@ void CvTeamAI::forgiveEnemy(TeamTypes enemyId, bool capitulated, bool freed) {
 		// No vassal-related forgiveness when war success high
 		delta = std::min(0, delta + ws / member.warSuccessAttitudeDivisor());
 		for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
-			CvPlayer const& enemyMember = GET_PLAYER((PlayerTypes)j);
-			if(!enemyMember.isAlive() || enemyMember.getTeam() != enemyId)
+			if(!GET_PLAYER((PlayerTypes)j).isAlive())
 				continue;
-			/*  <104i> Need to remove recent-embargo memory; it's only supposed
-				to prevent a peace treaty. Could in rare cases erase normal
-				recent-embargo memory, but it's OK for that to be purged by the war
-				too. */
-			if(member.AI_getMemoryCount(enemyMember.getID(),
-					MEMORY_STOPPED_TRADING) < member.AI_getMemoryCount(
-					enemyMember.getID(), MEMORY_STOPPED_TRADING_RECENT))
-				member.AI_changeMemoryCount(enemyMember.getID(),
-						MEMORY_STOPPED_TRADING_RECENT, -1);
-			// </advc.104i>
+			// <advc.104i> Be willing to talk to everyone, not just 'enemyId'.
+			int mem = member.AI_getMemoryCount((PlayerTypes)j,
+					MEMORY_DECLARED_WAR_RECENT);
+			if(mem > 0) { // To allow debugger break
+				member.AI_changeMemoryCount((PlayerTypes)j,
+						MEMORY_DECLARED_WAR_RECENT, -mem);
+			} // </advc.104i>
+			CvPlayer const& enemyMember = GET_PLAYER((PlayerTypes)j);
+			if(enemyMember.getTeam() != enemyId)
+				continue;
 			int limit = -member.AI_getMemoryCount(enemyMember.getID(),
 					MEMORY_DECLARED_WAR);
 			int deltaLoop = delta;
@@ -5853,6 +5839,21 @@ int CvTeamAI::AI_noWarAttitudeProb(AttitudeTypes eAttitude) const
 
 	return iProb;
 }
+
+// <advc.104y>
+int CvTeamAI::AI_noWarProbAdjusted(TeamTypes tId) const {
+
+	AttitudeTypes towardThem = AI_getAttitude(tId);
+	int r = AI_noWarAttitudeProb(towardThem);
+	if(r < 100 || isOpenBorders(tId) || towardThem == ATTITUDE_FURIOUS)
+		return r;
+	return AI_noWarAttitudeProb((AttitudeTypes)(towardThem - 1));
+} // </advc.104y>
+
+bool CvTeamAI::AI_isAvoidWar(TeamTypes tId) const {
+
+	return (AI_noWarProbAdjusted(tId) >= 100);
+} // </advc.104y>
 
 // <advc.130i>
 int CvTeamAI::AI_getOpenBordersAttitudeDivisor() const {

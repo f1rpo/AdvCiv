@@ -2043,8 +2043,8 @@ int KingMaking::preEvaluate() {
 	if(winning.count(weId) > 0 && winning.size() <= 1 &&
 			// We don't want to be the only winner if it means betraying our partners
 			(params.targetId() == NO_TEAM || agent.isAtWar(params.targetId()) ||
-			agent.AI_isChosenWar(params.targetId()) || GC.getLeaderHeadInfo(we->getPersonalityType()).
-			getNoWarAttitudeProb(agent.AI_getAttitude(params.targetId())) < 100)) {
+			agent.AI_isChosenWar(params.targetId()) ||
+			!agent.AI_isAvoidWar(params.targetId()))) {
 		log("We'll be the only winners");
 		return 45;
 	}
@@ -2766,14 +2766,14 @@ void Affection::evaluate() {
 		linkedWarFactor = 0.4;
 	if(linkedWarFactor <= 0)
 		return;
-	CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(we->getPersonalityType());
-	int noWarPercent = lh.getNoWarAttitudeProb(towardsThem);
+	int noWarPercent = agent.AI_noWarProbAdjusted(TEAMID(theyId));
 	/*  Capitulated vassals don't interest us, but a voluntary vassal can reduce
 		our affection for its master. This function also gets called with theyId
 		set to the vassal, but that call only accounts for our scruples about
 		attacking the vassal.
 		There's already a diplo penalty for having an unpopular vassal, so
 		I'm only applying a minor penalty here. */
+	CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(we->getPersonalityType());
 	if(noWarPercent > 0) { // for efficiency
 		double vassalPenalty = 0;
 		for(size_t i = 0; i < properCivs.size(); i++) {
@@ -2831,7 +2831,7 @@ void Affection::evaluate() {
 	/*  In team games, the pairwise affection adds up more than the
 		pairwise conquests; need to correct that a bit. */
 	if(agent.getNumMembers() > 1)
-		uMinus = normalizeUtility(uMinus) * agent.getNumMembers() * 0.75;
+		uMinus = normalizeUtility(uMinus) * agent.getNumMembers() * 2/3.0;
 	if(uMinus > 0.5) {
 		log("NoWarAttProb: %d percent, our attitude: %d, for linked war: %d percent",
 				::round(100 * pr), towardsThem, ::round(100 * linkedWarFactor));

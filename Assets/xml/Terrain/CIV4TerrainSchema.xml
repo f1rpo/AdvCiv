@@ -162,6 +162,8 @@
 		<element type="bNoAdjacent"/>
 		<element type="bRequiresFlatlands"/>
 		<element type="bRequiresRiver"/>
+		<!-- advc.129b -->
+		<element type="bRequiresRiverSide"/>
 		<element type="bAddsFreshWater"/>
 		<element type="bImpassable"/>
 		<element type="bNoCity"/>

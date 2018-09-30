@@ -1662,97 +1662,93 @@ void CvGame::normalizeRemoveBadFeatures()
 void CvGame::normalizeRemoveBadTerrain()
 {
 	// <advc.108>
-	double prRemoval = 1;
+	double prKeep = 0;
 	if(normalizationLevel <= 1)
-		prRemoval = GC.getDefineINT("REMOVAL_CHANCE_BAD_TERRAIN") / 100.0;
+		prKeep = 1 - GC.getDefineINT("REMOVAL_CHANCE_BAD_TERRAIN") / 100.0;
 	// </advc.108>
 
-	CvPlot* pStartingPlot;
 	CvPlot* pLoopPlot;
 	int iI, iK;
 	int iX, iY;
-	
-	int iTargetFood;
-	int iTargetTotal;
-	int iPlotFood;
-	int iPlotProduction;
-	
-	
+	// advc.003: Moved some declarations
 	int iCityRange = CITY_PLOTS_RADIUS;
 	int iExtraRange = 1;
 	int iMaxRange = iCityRange + iExtraRange;
 
-	for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+	for (iI = 0; iI < MAX_CIV_PLAYERS; iI++) // advc.003: Some refactoring in this loop
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
+		CvPlayerAI const& civ = GET_PLAYER((PlayerTypes)iI);
+		if(!civ.isAlive())
+			continue;
+		CvPlot* pStartingPlot = civ.getStartingPlot();
+		if(pStartingPlot == NULL)
+			continue;
+		for (iX = -iMaxRange; iX <= iMaxRange; iX++)
 		{
-			pStartingPlot = GET_PLAYER((PlayerTypes)iI).getStartingPlot();
-
-			if (pStartingPlot != NULL)
+			for (iY = -iMaxRange; iY <= iMaxRange; iY++)
 			{
-			    for (iX = -iMaxRange; iX <= iMaxRange; iX++)
-			    {
-			        for (iY = -iMaxRange; iY <= iMaxRange; iY++)
-			        {
-			            pLoopPlot = plotXY(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), iX, iY);
-                        if (pLoopPlot != NULL)
-                        {
-                            int iDistance = plotDistance(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
-                            if (iDistance <= iMaxRange)
-                            {
-                                if (!(pLoopPlot->isWater()) && ((iDistance <= iCityRange) || (pLoopPlot->isCoastalLand()) || (0 == getSorenRandNum(1 + iDistance - iCityRange, "Map Upgrade Terrain Food"))))
-                                {
-                                    iPlotFood = GC.getTerrainInfo(pLoopPlot->getTerrainType()).getYield(YIELD_FOOD);
-                                    iPlotProduction = GC.getTerrainInfo(pLoopPlot->getTerrainType()).getYield(YIELD_PRODUCTION);
-                                    if ((iPlotFood + iPlotProduction) <= 1)
-                                    {
-										// <advc.108>
-										double prCont = 1 - prRemoval;
-										bool cont = ::bernoulliSuccess(prCont, "advc.108");
-										if(iPlotFood == 1) {
-											if(cont)
-												continue;
-											else if(::bernoulliSuccess(prCont, "advc.108"))
-												continue;
-										} // </advc.108>
-                                        iTargetFood = 1;
-                                        iTargetTotal = 1;
-                                        if (pLoopPlot->getBonusType(GET_PLAYER((PlayerTypes)iI).getTeam()) != NO_BONUS)
-                                        {
-                                            iTargetFood = 1;
-                                            iTargetTotal = 2;
-                                        }
-                                        else if ((iPlotFood == 1) || (iDistance <= iCityRange))
-                                        {
-                                            iTargetFood = 1 + getSorenRandNum(2, "Map Upgrade Terrain Food");
-                                            iTargetTotal = 2;
-                                        }
-                                        else
-                                        {
-                                            iTargetFood = pLoopPlot->isCoastalLand() ? 2 : 1;
-                                            iTargetTotal = 2;
-                                        }
-                                        
-                                        for (iK = 0; iK < GC.getNumTerrainInfos(); iK++)
-                                        {
-                                            if (!(GC.getTerrainInfo((TerrainTypes)iK).isWater()))
-                                            {
-                                                if ((GC.getTerrainInfo((TerrainTypes)iK).getYield(YIELD_FOOD) >= iTargetFood) && 
-                                                    (GC.getTerrainInfo((TerrainTypes)iK).getYield(YIELD_FOOD) + GC.getTerrainInfo((TerrainTypes)iK).getYield(YIELD_PRODUCTION)) == iTargetTotal)
-                                                {
-                                                    if ((pLoopPlot->getFeatureType() == NO_FEATURE) || GC.getFeatureInfo(pLoopPlot->getFeatureType()).isTerrain(iK))
-                                                    {
-                                                        pLoopPlot->setTerrainType((TerrainTypes)iK);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-  
-			            }
-			        }
+				pLoopPlot = plotXY(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), iX, iY);
+				if(pLoopPlot == NULL)
+					continue;
+				int iDistance = plotDistance(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+				if(iDistance > iMaxRange)
+					continue;
+				if(!pLoopPlot->isWater() && (iDistance <= iCityRange ||
+						pLoopPlot->isCoastalLand() || getSorenRandNum(
+						1 + iDistance - iCityRange, "Map Upgrade Terrain Food") == 0))
+				{
+					CvTerrainInfo const& ti = GC.getTerrainInfo(pLoopPlot->getTerrainType());
+					int iPlotFood = ti.getYield(YIELD_FOOD);
+					int iPlotProduction = ti.getYield(YIELD_PRODUCTION);
+					if (iPlotFood + iPlotProduction > 1)
+						continue;
+					/*  <advc.003> I think the BtS code ends up replacing
+						Desert with Desert when there's a feature, but let's
+						rather handle Desert features explicitly. */
+					if(pLoopPlot->getFeatureType() != NO_FEATURE &&
+							GC.getFeatureInfo(pLoopPlot->getFeatureType()).
+							getYieldChange(YIELD_FOOD) + iPlotFood >= 2)
+						continue; // </advc.003>
+					// <advc.108>
+					if(::bernoulliSuccess(prKeep, "advc.108")) {
+						if(iPlotFood > 0 ||
+							/*  advc.129b: Two chances of removal for Snow river
+								(BuildModifier=50), but not for Desert river. */
+								(pLoopPlot->isRiver() && ti.getBuildModifier() < 30) ||
+								::bernoulliSuccess(prKeep, "advc.108"))
+							continue;
+					} // </advc.108>
+					int const iTargetTotal = 2;
+					int iTargetFood = 1;
+					if (pLoopPlot->getBonusType(civ.getTeam()) != NO_BONUS)
+					{
+						iTargetFood = 1;
+					}
+					else if (iPlotFood == 1 || iDistance <= iCityRange)
+					{
+						iTargetFood = 1 + getSorenRandNum(2, "Map Upgrade Terrain Food");
+					}
+					else
+					{
+						iTargetFood = pLoopPlot->isCoastalLand() ? 2 : 1;
+					}
+					for (iK = 0; iK < GC.getNumTerrainInfos(); iK++)
+					{
+						CvTerrainInfo const& repl = GC.getTerrainInfo((TerrainTypes)iK);
+						if (repl.isWater())
+							continue;
+						if (repl.getYield(YIELD_FOOD) >= iTargetFood &&
+								repl.getYield(YIELD_FOOD) +
+								repl.getYield(YIELD_PRODUCTION) == iTargetTotal)
+						{
+							if (pLoopPlot->getFeatureType() == NO_FEATURE ||
+									GC.getFeatureInfo(pLoopPlot->getFeatureType()).
+									isTerrain(iK))
+							{
+								pLoopPlot->setTerrainType((TerrainTypes)iK);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -4606,7 +4602,7 @@ void CvGame::setAIAutoPlay(int iNewValue
 	m_iAIAutoPlay = std::max(0, iNewValue);
 	// <advc.127>
 	if(!changePlayerStatus)
-		return; // <advc.127>
+		return; // </advc.127>
 /************************************************************************************************/
 /* AI_AUTO_PLAY_MOD                           07/09/08                            jdog5000      */
 /*                                                                                              */
@@ -4614,9 +4610,10 @@ void CvGame::setAIAutoPlay(int iNewValue
 /************************************************************************************************/
 // Multiplayer compatibility idea from Jeckel
 	// <advc.127> To make sure I'm not breaking anything in singleplayer
-	if(!isGameMultiPlayer())
+	if(!isGameMultiPlayer()) {
 		GET_PLAYER(getActivePlayer()).setHumanDisabled((getAIAutoPlay() != 0));
-	// </advc.127>
+		return;
+	} // </advc.127>
 	for( int iI = 0; iI < MAX_CIV_PLAYERS; iI++ )
 	{
 		if( GET_PLAYER((PlayerTypes)iI).isHuman() || GET_PLAYER((PlayerTypes)iI).isHumanDisabled() )
@@ -6612,6 +6609,9 @@ void CvGame::doTurn()
 
 	incrementGameTurn();
 	incrementElapsedGameTurns();
+	/*  advc.004: Already done in doDeals, but that's before incrementing the
+		turn counter. Want to kill peace treaties asap. */
+	verifyDeals();
 	// <advc.700>
 	if(isOption(GAMEOPTION_RISE_FALL))
 		riseFall.atGameTurnStart(); // </advc.700>

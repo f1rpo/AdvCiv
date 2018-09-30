@@ -3996,9 +3996,7 @@ bool CvPlot::isFighting() const
 
 bool CvPlot::canHaveFeature(FeatureTypes eFeature) const
 {
-	CvPlot* pAdjacentPlot;
-	int iI;
-
+	// advc.003: Declarations moved
 	FAssertMsg(getTerrainType() != NO_TERRAIN, "TerrainType is not assigned a valid value");
 
 	if (eFeature == NO_FEATURE)
@@ -4020,32 +4018,32 @@ bool CvPlot::canHaveFeature(FeatureTypes eFeature) const
 	{
 		return false;
 	}
-
-	if (!(GC.getFeatureInfo(eFeature).isTerrain(getTerrainType())))
+	CvFeatureInfo const& fi = GC.getFeatureInfo(eFeature); // advc.003
+	if (!fi.isTerrain(getTerrainType()))
 	{
 		return false;
 	}
 
-	if (GC.getFeatureInfo(eFeature).isNoCoast() && isCoastalLand())
+	if (fi.isNoCoast() && isCoastalLand())
 	{
 		return false;
 	}
 
-	if (GC.getFeatureInfo(eFeature).isNoRiver() && isRiver())
+	if (fi.isNoRiver() && isRiver())
 	{
 		return false;
 	}
 
-	if (GC.getFeatureInfo(eFeature).isRequiresFlatlands() && isHills())
+	if (fi.isRequiresFlatlands() && isHills())
 	{
 		return false;
 	}
 
-	if (GC.getFeatureInfo(eFeature).isNoAdjacent())
+	if (fi.isNoAdjacent())
 	{
-		for (iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+		for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
 		{
-			pAdjacentPlot = plotDirection(getX_INLINE(), getY_INLINE(), ((DirectionTypes)iI));
+			CvPlot* pAdjacentPlot = plotDirection(getX_INLINE(), getY_INLINE(), ((DirectionTypes)iI));
 
 			if (pAdjacentPlot != NULL)
 			{
@@ -4057,10 +4055,13 @@ bool CvPlot::canHaveFeature(FeatureTypes eFeature) const
 		}
 	}
 
-	if (GC.getFeatureInfo(eFeature).isRequiresRiver() && !isRiver())
+	if (fi.isRequiresRiver() && !isRiver())
 	{
 		return false;
 	}
+	// <advc.129b>
+	if(fi.isRequiresRiverSide() && !isRiverSide())
+		return false; // </advc.129b>
 
 	return true;
 }

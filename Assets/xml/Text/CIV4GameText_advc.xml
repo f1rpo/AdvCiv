@@ -33,6 +33,18 @@
 		<Italian>%s1_PlyrName dichiara guerra a %s2_PlyrName! (In risposta a un evento casuale.)</Italian>
 		<Spanish>%s1_PlyrName le declara la guerra a %s2_PlyrName. (En respuesta a un suceso al azar.)</Spanish>
 	</TEXT>
+	
+	<!-- advc.106g: Based on TXT_KEY_MISC_SOMEONE_MADE_PEACE
+		 (CIV4GameTextInfos.xml) and TXT_KEY_GAME_OPTION_NO_EVENTS
+		 (CIV4GameText_BTS.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_PEACE_VIA_EVENT</Tag>
+		<English>%s1_PlyrName has made peace with %s2_PlyrName! (Through a random event.)</English>
+		<French>%s1_PlyrName a fait la paix avec %s2_PlyrName !  (En réponse à un événement aléatoire.)</French>
+		<German>%s1_PlyrName hat mit %s2_PlyrName Frieden geschlossen! (Durch ein Zufallsereignis.)</German>
+		<Italian>%s1_PlyrName ha siglato la pace con %s2_PlyrName! (In risposta a un evento casuale.)</Italian>
+		<Spanish>%s1_PlyrName ha firmado la paz con %s2_PlyrName. (En respuesta a un suceso al azar.)</Spanish>
+	</TEXT>
 
 	<!-- advc.100b: Replay message for brokered peace. Based on
 		 TXT_KEY_MISC_SOMEONE_MADE_PEACE from CIV4GameTextInfos.xml.
@@ -464,6 +476,16 @@
 		<Spanish>(victoria) desactivada</Spanish>
 	</TEXT>
 
+	<!-- advc.106k: Romance languages: deepl.com -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_CITY_RENAMED</Tag>
+		<English>%s1_CityName has been renamed to %s2_CityName.</English>
+		<French>%s1_CityName a été renommé %s2_CityName.</French>
+		<German>%s1_CityName wurde umbenannt in %s2_CityName.</German>
+		<Italian>%s1_CityName è stata ribattezzata %s2_CityName.</Italian>
+		<Spanish>%s1_CityName ha sido rebautizada como %s2_CityName.</Spanish>
+	</TEXT>
+
 	<!-- advc.004b
 		 Help text for projected city costs (city maintenance, civic upkeep,
 		 unit cost, inflation) before founding a city. -->
@@ -740,7 +762,7 @@
 		<Spanish>Para ver los radios urbanos al seleccionar a un colono</Spanish>
 	</TEXT>
 	
-	<!-- advc.004g: Original in CIV4GameTextInfos_Objects.xml -->
+	<!-- advc.907b: Original in CIV4GameTextInfos_Objects.xml -->
 	<TEXT>
 		<Tag>TXT_KEY_UNIT_INCAN_QUECHUA</Tag>
 		<English>Quechua Warrior</English>
@@ -3170,6 +3192,14 @@
 		<Italian>Your civilization is on a quest. Check the Quest log (Ctrl + Tab).</Italian>
 		<Spanish>Your civilization is on a quest. Check the Quest log (Ctrl + Tab).</Spanish>
 	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_INTERLUDE_STARTED</Tag>
+		<English>Start of intermediate period</English>
+		<French>Start of intermediate period</French>
+		<German>Beginn der Zwischenzeit</German>
+		<Italian>Start of intermediate period</Italian>
+		<Spanish>Start of intermediate period</Spanish>
+	</TEXT>
 
 	<!-- advc.004w: Based on keys in CIV4GameTextInfos.xml. -->
 	<TEXT>
@@ -3637,7 +3667,7 @@
 		 based on TXT_KEY_GLOBELAYER_UNITS_ENEMYMILITARY. -->
 	<TEXT>
 		<Tag>TXT_KEY_GLOBELAYER_UNITS_DOMESTICS</Tag>
-		<English>Non-Military</English>
+		<English>Civilians</English>
 		<French>Unités non militaires</French>
 		<German>Zivilisten</German>
 		<Italian>Eserciti non militari</Italian>
@@ -3699,6 +3729,24 @@
 		<German>Es wird f&#252;r die Dauer von %d1_Num [NUM1:Runde:Runden] ein nicht aufl&#246;sbarer Friedensvertrag geschlossen</German>
 		<Italian>Stabilisce un trattato di pace infrangibile per %d1_Num [NUM1:turno:turni]</Italian>
 		<Spanish>Establece un tratado de paz inquebrantable durante %d1_Num [NUM1:turno:turnos].</Spanish>
+	</TEXT>
+	
+	<!-- advc.127: Treating AI Auto Play as a proper name -->
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_PLAY_STARTED</Tag>
+		<English>AI Auto Play started</English>
+		<French>Début de AI Auto Play</French>
+		<German>Start von AI Auto Play</German>
+		<Italian>Inizio di AI Auto Play</Italian>
+		<Spanish>Inicio de AI Auto Play</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTO_PLAY_ENDED</Tag>
+		<English>AI Auto Play ended</English>
+		<French>Fin de AI Auto Play</French>
+		<German>AI Auto Play beendet</German>
+		<Italian>Fine di AI Auto Play</Italian>
+		<Spanish>Fin de AI Auto Play</Spanish>
 	</TEXT>
 	
 </Civ4GameText>

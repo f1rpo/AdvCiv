@@ -12988,6 +12988,7 @@ m_bNoRiver(false),
 m_bNoAdjacent(false),			
 m_bRequiresFlatlands(false),
 m_bRequiresRiver(false),
+m_bRequiresRiverSide(false), // advc.129b
 m_bAddsFreshWater(false),	
 m_bImpassable(false),			
 m_bNoCity(false),					
@@ -13094,6 +13095,11 @@ bool CvFeatureInfo::isRequiresRiver() const
 {
 	return m_bRequiresRiver; 
 }
+// <advc.129b>
+bool CvFeatureInfo::isRequiresRiverSide() const			
+{
+	return m_bRequiresRiverSide; 
+} // </advc.129b>
 
 bool CvFeatureInfo::isAddsFreshWater() const
 {
@@ -13272,6 +13278,8 @@ bool CvFeatureInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_bNoAdjacent, "bNoAdjacent");
 	pXML->GetChildXmlValByName(&m_bRequiresFlatlands, "bRequiresFlatlands");
 	pXML->GetChildXmlValByName(&m_bRequiresRiver, "bRequiresRiver");
+	// advc.129b:
+	pXML->GetChildXmlValByName(&m_bRequiresRiverSide, "bRequiresRiverSide");
 	pXML->GetChildXmlValByName(&m_bAddsFreshWater, "bAddsFreshWater");
 	pXML->GetChildXmlValByName(&m_bImpassable, "bImpassable");
 	pXML->GetChildXmlValByName(&m_bNoCity, "bNoCity");
@@ -14540,7 +14548,13 @@ int CvLeaderHeadInfo::getMemoryDecayRand(int i) const
 {
 	FAssertMsg(i < NUM_MEMORY_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piMemoryDecayRand ? m_piMemoryDecayRand[i] : -1;	
+	// <advc.104i>
+	if(m_piMemoryDecayRand == NULL)
+		return -1;
+	// The "clean" approach would be to set this 52 times in LeaderHead XML
+	if(i == MEMORY_DECLARED_WAR_RECENT && m_piMemoryDecayRand[i] == 0)
+		return 22;
+	return m_piMemoryDecayRand[i]; // </advc.104i>
 }
 
 int CvLeaderHeadInfo::getMemoryAttitudePercent(int i) const
@@ -14736,7 +14750,13 @@ void CvLeaderHeadInfo::read(FDataStreamBase* stream)
 
 	SAFE_DELETE_ARRAY(m_piMemoryAttitudePercent);
 	m_piMemoryAttitudePercent = new int[NUM_MEMORY_TYPES];
-	stream->Read(NUM_MEMORY_TYPES, m_piMemoryAttitudePercent);
+	// <advc.104i>
+	int iNumMemoryTypesToRead = NUM_MEMORY_TYPES;
+	if(uiFlag < 2) {
+		iNumMemoryTypesToRead--;
+		m_piMemoryAttitudePercent[iNumMemoryTypesToRead] = 0;
+	}
+	stream->Read(iNumMemoryTypesToRead, m_piMemoryAttitudePercent); // </advc.104i>
 
 	SAFE_DELETE_ARRAY(m_piNoWarAttitudeProb);
 	m_piNoWarAttitudeProb = new int[NUM_ATTITUDE_TYPES];
@@ -14780,7 +14800,7 @@ void CvLeaderHeadInfo::write(FDataStreamBase* stream)
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
-
+	uiFlag = 2; // advc.104i
 	stream->Write(uiFlag);		// flag for expansion
 
 	stream->Write(m_iWonderConstructRand);

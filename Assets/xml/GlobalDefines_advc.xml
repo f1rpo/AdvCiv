@@ -196,7 +196,7 @@
 		 Terrain with a base yield of exactly 1 food and 0 production
          (i.e. Tundra) is removed from the city radius around
 		 starting plots with this probability.
-		 Terrain with 0 food (Desert, Snow) gets two removal
+		 Terrain with 0 food (Snow, non-river Desert) gets two removal
          chances, e.g. 94% when REMOVAL_CHANCE_BAD_TERRAIN is 75
 		 (recommended). Use 100 for BtS/ K-Mod behavior.
 		 No effect if NORMALIZE_STARTPLOTS_AGGRESSIVELY is set. -->

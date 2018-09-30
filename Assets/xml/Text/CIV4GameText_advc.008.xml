@@ -186,8 +186,18 @@
 		<Spanish>El [COLOR_UNIT_TEXT]Buque blindado[COLOR_REVERT] es lento, aunque poderoso. Puede ca&#241;onear las fortificaciones de las ciudades enemigas, pero no puede entrar en las casillas de oc&#233;ano.</Spanish>
 	</TEXT>
 
-	<!-- Overwrites CIV4GameText_Strategy.
-		 Removed concrete bonus stated about Space Elevator
+	<!-- advc.907b: No more anti-Archery bonus, and added mention of the free
+		 promotion. -->
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_INCAN_QUECHUA_STRATEGY</Tag>
+		<English>The special Incan melee combat unit; it gets a big bonus when fighting archery units and starts with a free promotion. [BOLD]AdvCiv[\BOLD]: The anti-Archery bonus has been removed.</English>
+		<French>Cette unit&#233; inca de combat rapproch&#233; b&#233;n&#233;ficie d'un fort bonus lorsqu'elle combat des unit&#233;s &#233;quip&#233;es d'un arc.</French>
+		<German>Diese Nahkampfeinheit der Inka hat im Kampf gegen Bogensch&#252;tzen einen enormen Bonus, und startet mit einer Beförderung. [BOLD]AdvCiv[\BOLD]: Der Bonus gegen Bogenschützen wurde entfernt.</German>
+		<Italian>L'unit&#224; speciale da combattimento corpo a corpo degli Inca; ottiene un grande bonus quando combatte contro gli arcieri.</Italian>
+		<Spanish>La unidad especial inca de cuerpo a cuerpo. Obtiene una gran bonificaci&#243;n cuando lucha contra unidades con armas de proyectil.</Spanish>
+	</TEXT>
+
+	<!-- Removed concrete bonus stated about Space Elevator
 		 (K-Mod increases the percentage). -->
 	<TEXT>
 		<Tag>TXT_KEY_BUILDING_SPACE_ELEVATOR_STRATEGY</Tag>

@@ -890,7 +890,8 @@
 			<Strategy>TXT_KEY_TECH_CIVIL_SERVICE_STRATEGY</Strategy>
 			<Advisor>ADVISOR_GROWTH</Advisor>
 			<iAIWeight>0</iAIWeight>
-			<iAITradeModifier>0</iAITradeModifier>
+			<!-- advc.552: was 0 -->
+			<iAITradeModifier>10</iAITradeModifier>
 			<iCost>800</iCost>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
@@ -978,7 +979,8 @@
 			<Strategy>TXT_KEY_TECH_GUILDS_STRATEGY</Strategy>
 			<Advisor>ADVISOR_MILITARY</Advisor>
 			<iAIWeight>0</iAIWeight>
-			<iAITradeModifier>10</iAITradeModifier>
+			<!-- advc.552: was 10 -->
+			<iAITradeModifier>0</iAITradeModifier>
 			<iCost>1000</iCost>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
@@ -1127,7 +1129,8 @@
 			<Strategy>TXT_KEY_TECH_NATIONALISM_STRATEGY</Strategy>
 			<Advisor>ADVISOR_MILITARY</Advisor>
 			<iAIWeight>0</iAIWeight>
-			<iAITradeModifier>0</iAITradeModifier>
+			<!-- advc.552: was 0 -->
+			<iAITradeModifier>10</iAITradeModifier>
 			<iCost>1800</iCost>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
@@ -1207,7 +1210,8 @@
 			<Strategy>TXT_KEY_TECH_MILITARY_TRADITION_STRATEGY</Strategy>
 			<Advisor>ADVISOR_MILITARY</Advisor>
 			<iAIWeight>0</iAIWeight>
-			<iAITradeModifier>10</iAITradeModifier>
+			<!-- advc.552: Was 10; rather give this weight to Nationalism -->
+			<iAITradeModifier>0</iAITradeModifier>
 			<iCost>2000</iCost>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
@@ -1794,7 +1798,8 @@
 			<Strategy>TXT_KEY_TECH_ECOLOGY_STRATEGY</Strategy>
 			<Advisor>ADVISOR_GROWTH</Advisor>
 			<iAIWeight>0</iAIWeight>
-			<iAITradeModifier>10</iAITradeModifier>
+			<!-- advc.552: was 10 -->
+			<iAITradeModifier>0</iAITradeModifier>
 			<iCost>5500</iCost>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
@@ -3185,7 +3190,8 @@
 			<Strategy>TXT_KEY_TECH_CHEMISTRY_STRATEGY</Strategy>
 			<Advisor>ADVISOR_MILITARY</Advisor>
 			<iAIWeight>0</iAIWeight>
-			<iAITradeModifier>0</iAITradeModifier>
+			<!-- advc.552: was 0 -->
+			<iAITradeModifier>10</iAITradeModifier>
 			<iCost>1800</iCost>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
@@ -3551,7 +3557,8 @@
 			<Strategy>TXT_KEY_TECH_ELECTRICITY_STRATEGY</Strategy>
 			<Advisor>ADVISOR_ECONOMY</Advisor>
 			<iAIWeight>0</iAIWeight>
-			<iAITradeModifier>10</iAITradeModifier>
+			<!-- advc.552: was 10 -->
+			<iAITradeModifier>0</iAITradeModifier>
 			<iCost>4500</iCost>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
@@ -3840,7 +3847,8 @@
 			<Strategy>TXT_KEY_TECH_ADVANCED_FLIGHT_STRATEGY</Strategy>
 			<Advisor>ADVISOR_MILITARY</Advisor>
 			<iAIWeight>0</iAIWeight>
-			<iAITradeModifier>10</iAITradeModifier>
+			<!-- advc.552: was 10 -->
+			<iAITradeModifier>0</iAITradeModifier>
 			<iCost>5000</iCost>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
@@ -3978,7 +3986,8 @@
 			<Strategy>TXT_KEY_TECH_COMPOSITES_STRATEGY</Strategy>
 			<Advisor>ADVISOR_MILITARY</Advisor>
 			<iAIWeight>0</iAIWeight>
-			<iAITradeModifier>10</iAITradeModifier>
+			<!-- advc.552: was 10 -->
+			<iAITradeModifier>0</iAITradeModifier>
 			<iCost>7500</iCost>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
@@ -4045,7 +4054,8 @@
 			<Strategy>TXT_KEY_TECH_STEALTH_STRATEGY</Strategy>
 			<Advisor>ADVISOR_MILITARY</Advisor>
 			<iAIWeight>0</iAIWeight>
-			<iAITradeModifier>10</iAITradeModifier>
+			<!-- advc.552: was 10 -->
+			<iAITradeModifier>0</iAITradeModifier>
 			<iCost>8000</iCost>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
@@ -4112,7 +4122,8 @@
 			<Strategy>TXT_KEY_TECH_GENETICS_STRATEGY</Strategy>
 			<Advisor>ADVISOR_GROWTH</Advisor>
 			<iAIWeight>0</iAIWeight>
-			<iAITradeModifier>10</iAITradeModifier>
+			<!-- advc.552: was 10 -->
+			<iAITradeModifier>0</iAITradeModifier>
 			<iCost>7000</iCost>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
@@ -4183,7 +4194,8 @@
 			<Strategy>TXT_KEY_TECH_FIBER_OPTICS_STRATEGY</Strategy>
 			<Advisor>ADVISOR_SCIENCE</Advisor>
 			<iAIWeight>0</iAIWeight>
-			<iAITradeModifier>10</iAITradeModifier>
+			<!-- advc.552: was 10 -->
+			<iAITradeModifier>0</iAITradeModifier>
 			<iCost>7500</iCost>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
@@ -4458,7 +4470,8 @@
 			<Strategy>TXT_KEY_TECH_ARCHERY_STRATEGY</Strategy>
 			<Advisor>ADVISOR_MILITARY</Advisor>
 			<iAIWeight>0</iAIWeight>
-			<iAITradeModifier>10</iAITradeModifier>
+			<!-- advc.552: was 10 -->
+			<iAITradeModifier>0</iAITradeModifier>
 			<iCost>60</iCost>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
@@ -4760,7 +4773,8 @@
 			<Strategy>TXT_KEY_TECH_HORSEBACK_RIDING_STRATEGY</Strategy>
 			<Advisor>ADVISOR_MILITARY</Advisor>
 			<iAIWeight>0</iAIWeight>
-			<iAITradeModifier>10</iAITradeModifier>
+			<!-- advc.552: was 10 -->
+			<iAITradeModifier>0</iAITradeModifier>
 			<iCost>250</iCost>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
@@ -5516,7 +5530,8 @@
 			<Strategy>TXT_KEY_TECH_MILITARY_SCIENCE_STRATEGY</Strategy>
 			<Advisor>ADVISOR_MILITARY</Advisor>
 			<iAIWeight>0</iAIWeight>
-			<iAITradeModifier>0</iAITradeModifier>
+			<!-- advc.552: was 0 -->
+			<iAITradeModifier>10</iAITradeModifier>
 			<iCost>2000</iCost>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
@@ -6516,7 +6531,8 @@
 			<Strategy>TXT_KEY_TECH_SATELLITES_STRATEGY</Strategy>
 			<Advisor>ADVISOR_MILITARY</Advisor>
 			<iAIWeight>0</iAIWeight>
-			<iAITradeModifier>10</iAITradeModifier>
+			<!-- advc.552: was 10 -->
+			<iAITradeModifier>0</iAITradeModifier>
 			<iCost>6000</iCost>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
@@ -6587,7 +6603,8 @@
 			<Strategy>TXT_KEY_TECH_ROBOTICS_STRATEGY</Strategy>
 			<Advisor>ADVISOR_SCIENCE</Advisor>
 			<iAIWeight>0</iAIWeight>
-			<iAITradeModifier>10</iAITradeModifier>
+			<!-- advc.552: was 10 -->
+			<iAITradeModifier>0</iAITradeModifier>
 			<iCost>8000</iCost>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>

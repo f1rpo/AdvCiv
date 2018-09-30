@@ -346,6 +346,10 @@ void RiseFall::atTurnEnd(PlayerTypes civId) {
 		g.setAIAutoPlay(0); // In case that the player has retired
 		setPlayerControl(currentCh.getCiv(), false);
 		abandonPlans(currentCh.getCiv());
+		CvWString replayText = gDLL->getText("TXT_KEY_RF_INTERLUDE_STARTED");
+		g.addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, g.getActivePlayer(),
+				replayText, -1, -1, (ColorTypes)GC.getInfoTypeForString(
+				"COLOR_HIGHLIGHT_TEXT"));
 	}
 }
 
@@ -756,14 +760,18 @@ bool RiseFall::isCooperationRestricted(PlayerTypes aiCiv) const {
 	for(int i = 0; i <= currentChPos; i++)
 		if(chapters[i]->getCiv() == aiCiv)
 			return !chapters[i]->isScored();
-	if(GET_PLAYER(aiCiv).AI_isDoVictoryStrategyLevel3())
-		return true;
 	CvGame const& g = GC.getGameINLINE();
-	if(g.getCurrentEra() >= 4)
-		return true;
-	int const iRank = g.getPlayerRank(aiCiv);
-	int const iKnown = TEAMREF(human).getHasMetCivCount() + 1; // +1 for human
-	return (iRank >= iKnown / 2);
+	int aiVictStage = victoryStage(aiCiv);
+	/*if(aiVictStage >= 4)
+		return true; */
+	int humanVictStage = victoryStage(human);
+	if(aiVictStage < 3)
+		aiVictStage = 0;
+	if(humanVictStage < 3)
+		humanVictStage = 0;
+	if(aiVictStage != humanVictStage)
+		return (aiVictStage < humanVictStage);
+	return (g.getPlayerRank(aiCiv) > g.getPlayerRank(human));
 }
 
 RFChapter* RiseFall::mostRecentlyFinished() const {
@@ -1275,8 +1283,8 @@ bool RiseFall::isNeededWarTrade(CLinkList<TradeData> const& humanReceives) const
 				FAssert(targetId != NO_PLAYER);
 				return false;
 			}
-			if(GET_TEAM(targetId).AI_getWarSuccess(human.getTeam()) >
-					GC.getWAR_SUCCESS_CITY_CAPTURING() && 
+			if(/*GET_TEAM(targetId).AI_getWarSuccess(human.getTeam()) >
+					GC.getWAR_SUCCESS_CITY_CAPTURING() &&*/
 					GET_TEAM(human.getTeam()).AI_getEnemyPowerPercent() > 100)
 				return true;
 		}
@@ -1384,7 +1392,7 @@ void RiseFall::substituteDiploText(bool gift) {
 		replacement += (char)noThanks.at(k);
 	clearDiploStrings();
 	for(int j = 0; j < resp->getNumDiplomacyText(); j++) {
-		originalThanks.push_back(new CvString(*resp->getDiplomacyText()));
+		originalThanks.push_back(new CvString(resp->getDiplomacyText(j)));
 		resp->setDiplomacyText(j, replacement);
 	}
 }

@@ -252,7 +252,9 @@ public: // <advc.104>
 	int AI_dogpileWarRand() const;
 	int AI_makePeaceRand() const;
 	int AI_noWarAttitudeProb(AttitudeTypes eAttitude) const;
-	// </advc.104>
+	// </advc.104><advc.104y>
+	int AI_noWarProbAdjusted(TeamTypes tId) const;
+	bool AI_isAvoidWar(TeamTypes tId) const; // </advc.104y>
 	bool AI_performNoWarRolls(TeamTypes eTeam);
 	
 	int AI_getAttitudeWeight(TeamTypes eTeam) const;

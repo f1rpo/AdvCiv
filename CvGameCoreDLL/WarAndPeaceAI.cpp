@@ -929,18 +929,14 @@ bool WarAndPeaceAI::Team::considerSwitchTarget(TeamTypes targetId, int u,
 	WarPlanTypes wp = agent.AI_getWarPlan(targetId);
 	TeamTypes bestAltTargetId = NO_TEAM;
 	int bestUtility = 0;
-	bool qualms = (timeRemaining > 0 && GC.getLeaderHeadInfo(GET_PLAYER(agent.getLeaderID()).
-			getPersonalityType()).getNoWarAttitudeProb(
-			agent.AI_getAttitude(targetId)) >= 100);
+	bool qualms = (timeRemaining > 0 && agent.AI_isAvoidWar(targetId));
 	bool altQualms = false;
 	for(size_t i = 0; i < getWPAI._properTeams.size(); i++) {
 		TeamTypes altTargetId = getWPAI._properTeams[i];
 		if(!canSchemeAgainst(altTargetId, false) ||
 				agent.turnsOfForcedPeaceRemaining(altTargetId) > timeRemaining)
 			continue;
-		bool loopQualms = (GC.getLeaderHeadInfo(GET_PLAYER(agent.getLeaderID()).
-				getPersonalityType()).getNoWarAttitudeProb(
-				agent.AI_getAttitude(altTargetId)) >= 100);
+		bool loopQualms = agent.AI_isAvoidWar(altTargetId);
 		if(loopQualms && !qualms)
 			continue;
 		WarAndPeaceReport silentReport(true);
@@ -1287,7 +1283,7 @@ void WarAndPeaceAI::Team::scheme() {
 		TeamTypes targetId = targets[i].id;
 		double drive = targets[i].drive;
 		// Conscientious hesitation
-		if(agent.AI_noWarAttitudeProb(agent.AI_getAttitude(targetId)) >= 100) {
+		if(agent.AI_isAvoidWar(targetId)) {
 			drive -= totalDrive / 2;
 			if(drive <= 0)
 				continue;

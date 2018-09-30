@@ -4127,18 +4127,24 @@ int CvUnit::healRate(const CvPlot* pPlot, bool bLocation, bool bUnits) const
 	iTotalHeal = 0;
 
 	if (bLocation) // K-Mod
-	{
+	{	// advc.003:
+		bool bFriendly = GET_TEAM(getTeam()).isFriendlyTerritory(pPlot->getTeam());
 		if (pPlot->isCity(true, getTeam()))
 		{
-			iTotalHeal += GC.getDefineINT("CITY_HEAL_RATE") + (GET_TEAM(getTeam()).isFriendlyTerritory(pPlot->getTeam()) ? getExtraFriendlyHeal() : getExtraNeutralHeal());
+			
+			iTotalHeal += //GC.getDefineINT("CITY_HEAL_RATE") + // advc.023: Moved
+					(bFriendly ? getExtraFriendlyHeal() : getExtraNeutralHeal());
 			if (pCity && !pCity->isOccupation())
 			{
-				iTotalHeal += pCity->getHealRate();
+				iTotalHeal += pCity->getHealRate() // <advc.023>
+						+ GC.getDefineINT("CITY_HEAL_RATE");
 			}
+			else iTotalHeal += (bFriendly ? GC.getDefineINT("FRIENDLY_HEAL_RATE") :
+					GC.getDefineINT("NEUTRAL_HEAL_RATE")); // </advc.023>
 		}
 		else
 		{
-			if (!GET_TEAM(getTeam()).isFriendlyTerritory(pPlot->getTeam()))
+			if (!bFriendly)
 			{
 				if (isEnemy(pPlot->getTeam(), pPlot))
 				{
