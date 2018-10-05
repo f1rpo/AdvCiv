@@ -653,7 +653,10 @@ void CvCityAI::AI_chooseProduction()
 	bool bLandWar = kPlayer.AI_isLandWar(pArea); // K-Mod
 	bool bDefenseWar = (pArea->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE);
 	bool bAssaultAssist = (pArea->getAreaAIType(getTeam()) == AREAAI_ASSAULT_ASSIST);
-	bool bTotalWar = GET_TEAM(getTeam()).getWarPlanCount(WARPLAN_TOTAL, true); // K-Mod
+	bool bTotalWar = GET_TEAM(getTeam()).getWarPlanCount(WARPLAN_TOTAL) // K-Mod
+			// <advc.104s>
+			+ (getWPAI.isEnabled() ? GET_TEAM(getTeam()).
+			getWarPlanCount(WARPLAN_PREPARING_TOTAL) : 0); // </advc.104s>
 	bool bAssault = bAssaultAssist || (pArea->getAreaAIType(getTeam()) == AREAAI_ASSAULT) || (pArea->getAreaAIType(getTeam()) == AREAAI_ASSAULT_MASSING);
 	bool bPrimaryArea = kPlayer.AI_isPrimaryArea(pArea);
 	bool bFinancialTrouble = kPlayer.AI_isFinancialTrouble();
@@ -986,7 +989,7 @@ void CvCityAI::AI_chooseProduction()
 			{
 				if (iExistingSeaWorkers == 0)
 				{
-					// Build workboat first since it doesn't stop growth
+					// Build Work Boat first since it doesn't stop growth
 					if (AI_chooseUnit(UNITAI_WORKER_SEA))
 					{
 						if( gCityLogLevel >= 2 ) logBBAI("      City %S uses choose worker sea 1a", getName().GetCString());
@@ -1688,10 +1691,13 @@ void CvCityAI::AI_chooseProduction()
 
 		if (iNumSpies < iNeededSpies)
 		{
-			int iOdds = (kPlayer.AI_isDoStrategy(AI_STRATEGY_ESPIONAGE_ECONOMY) ||
-				GET_PLAYER(getOwnerINLINE()).isFocusWar(area()) // advc.105
-				//GET_TEAM(getTeam()).getAnyWarPlanCount(true)
-				) ?45 : 35;
+			int iOdds = (kPlayer.AI_isDoStrategy(AI_STRATEGY_ESPIONAGE_ECONOMY)
+					//|| GET_TEAM(getTeam()).getAnyWarPlanCount(true)
+					// advc.105: If anything
+					//|| GET_PLAYER(getOwnerINLINE()).isFocusWar(area())
+					/*  advc.120 ... but actually, I don't think training spies
+						for war is a good idea at all. */
+				) ? 45 : 35;
 			iOdds *= 50 + std::max(iProjectValue, iBestBuildingValue);
 			iOdds /= 20 + 2 * std::max(iProjectValue, iBestBuildingValue);
 			iOdds *= iNeededSpies;

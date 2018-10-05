@@ -299,6 +299,7 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 		double additionalProduction, Intensity intensity, bool defensive,
 		bool navalArmament) {
 
+	PROFILE_FUNC();
 	CvPlayerAI const& civ = GET_PLAYER(civId);
 	if(!defensive) {
 		/*  Space and culture victory tend to overrule military build-up (even when

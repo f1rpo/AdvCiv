@@ -499,6 +499,8 @@ bool CvTeamAI::AI_hasSharedPrimaryArea(TeamTypes eTeam) const
 }
 // K-Mod end
 
+/*  advc.104s (comment): If UWAI is enabled, AI_doWar may (in rare cases) adjust the
+	result of this calculation through WarAndPeaceAI::Team::alignAreaAI. */
 AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal) const
 {
 	PROFILE_FUNC();
@@ -513,14 +515,18 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 	if (isBarbarian())
 	{
 		if ((pArea->getNumCities() - pArea->getCitiesPerPlayer(BARBARIAN_PLAYER)) == 0
-			// advc.300: (New World) barbs relatively peaceable unless outnumbered.
+			// advc.300: (New World) Barbs relatively peaceable unless outnumbered
 			|| pArea->countCivCities() < pArea->getCitiesPerPlayer(BARBARIAN_PLAYER)
 			)
 		{
 			return AREAAI_ASSAULT;
 		}
 
-		if ((countNumAIUnitsByArea(pArea, UNITAI_ATTACK) + countNumAIUnitsByArea(pArea, UNITAI_ATTACK_CITY) + countNumAIUnitsByArea(pArea, UNITAI_PILLAGE) + countNumAIUnitsByArea(pArea, UNITAI_ATTACK_AIR)) > (((AI_countMilitaryWeight(pArea) * 20) / 100) + 1))
+		if (countNumAIUnitsByArea(pArea, UNITAI_ATTACK) +
+				countNumAIUnitsByArea(pArea, UNITAI_ATTACK_CITY) +
+				countNumAIUnitsByArea(pArea, UNITAI_PILLAGE) +
+				countNumAIUnitsByArea(pArea, UNITAI_ATTACK_AIR) >
+				1 + (AI_countMilitaryWeight(pArea) * 20) / 100)
 		{
 			return AREAAI_OFFENSIVE; // XXX does this ever happen?
 			/*  advc.003: Does this ever NOT happen? Only once a continent
@@ -557,13 +563,14 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 					bRecentAttack = true;
 				}
 
-				//if ((GET_TEAM((TeamTypes)iI).countNumCitiesByArea(pArea) > 0) || (GET_TEAM((TeamTypes)iI).countNumUnitsByArea(pArea) > 4))
-				/*  advc.104s: Replacing the above. isLandTarget checks if there's
-					a city, and also if there's a path. As for the NumUnits
-					condition: Setting AreaAI to ASSAULT won't stop the AI from
-					fighting these units, but the focus should be on naval assault
-					when there are no reachable enemy cities.
-					Speed shouldn't be an issue; only updated once a turn. */
+				/*if ((GET_TEAM((TeamTypes)iI).countNumCitiesByArea(pArea) > 0) ||
+						(GET_TEAM((TeamTypes)iI).countNumUnitsByArea(pArea) > 4)) */
+			/*  advc.104s: Replacing the above. isLandTarget checks if there's
+				a city, and also if there's a path. As for the NumUnits
+				condition: Setting AreaAI to ASSAULT won't stop the AI from
+				fighting these units, but the focus should be on naval assault
+				when there are no reachable enemy cities.
+				Speed shouldn't be an issue; only updated once a turn. */
 				if(AI_isLandTarget((TeamTypes)iI))
 				{
 					bTargets = true;
@@ -572,7 +579,9 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 					{
 						bChosenTargets = true;
 
-						if ((isAtWar((TeamTypes)iI)) ? (AI_getAtWarCounter((TeamTypes)iI) < 10) : AI_isSneakAttackReady((TeamTypes)iI))
+						if ((isAtWar((TeamTypes)iI)) ?
+								(AI_getAtWarCounter((TeamTypes)iI) < 10) :
+								AI_isSneakAttackReady((TeamTypes)iI))
 						{
 							bDeclaredTargets = true;
 						}
@@ -604,7 +613,8 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 				|| !bRecentAttack) // advc.107
 				? 100 : 70); // advc.107: Was 100 : 50
 			iEnemyPower *= 100;
-			// it would be nice to put some personality modifiers into this. But this is a Team function. :(
+			/*  it would be nice to put some personality modifiers into this.
+				But this is a Team function. :( */
 			if (iPower < iEnemyPower)
 			{
 				return AREAAI_DEFENSIVE;
@@ -622,9 +632,11 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 	{
 		/* BBAI code. -- This code has two major problems.
 		* Firstly, it makes offense more likely when we are in more wars.
-		* Secondly, it chooses offense based on how many offense units we have -- but offense units are built for offense areas!
+		* Secondly, it chooses offense based on how many offense units we have --
+		* but offense units are built for offense areas!
 		*
-		// AI_countMilitaryWeight is based on this team's pop and cities ... if this team is the biggest, it will over estimate needed units
+		// AI_countMilitaryWeight is based on this team's pop and cities ...
+		// if this team is the biggest, it will over estimate needed units
 		int iMilitaryWeight = AI_countMilitaryWeight(pArea);
 		int iCount = 1;
 
@@ -632,11 +644,13 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 		{
 			if( iJ != getID() && GET_TEAM((TeamTypes)iJ).isAlive() )
 			{
-				if( !(GET_TEAM((TeamTypes)iJ).isBarbarian() || GET_TEAM((TeamTypes)iJ).isMinorCiv()) )
+				if( !(GET_TEAM((TeamTypes)iJ).isBarbarian() ||
+						GET_TEAM((TeamTypes)iJ).isMinorCiv()) )
 				{
 					if( AI_getWarPlan((TeamTypes)iJ) != NO_WARPLAN )
 					{
-						iMilitaryWeight += GET_TEAM((TeamTypes)iJ).AI_countMilitaryWeight(pArea);
+						iMilitaryWeight += GET_TEAM((TeamTypes)iJ).
+								AI_countMilitaryWeight(pArea);
 						iCount++;
 
 						if( GET_TEAM((TeamTypes)iJ).isAVassal() )
@@ -647,7 +661,8 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 								{
 									if( GET_TEAM((TeamTypes)iJ).isVassal((TeamTypes)iK) )
 									{
-										iMilitaryWeight += GET_TEAM((TeamTypes)iK).AI_countMilitaryWeight(pArea);
+										iMilitaryWeight += GET_TEAM((TeamTypes)iK).
+												AI_countMilitaryWeight(pArea);
 									}
 								}
 							}
@@ -658,15 +673,22 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 		}
 
 		iMilitaryWeight /= iCount;
-		if ((countNumAIUnitsByArea(pArea, UNITAI_ATTACK) + countNumAIUnitsByArea(pArea, UNITAI_ATTACK_CITY) + countNumAIUnitsByArea(pArea, UNITAI_PILLAGE) + countNumAIUnitsByArea(pArea, UNITAI_ATTACK_AIR)) > (((iMilitaryWeight * iOffensiveThreshold) / 100) + 1))
+		if ((countNumAIUnitsByArea(pArea, UNITAI_ATTACK) +
+				countNumAIUnitsByArea(pArea, UNITAI_ATTACK_CITY) +
+				countNumAIUnitsByArea(pArea, UNITAI_PILLAGE) +
+				countNumAIUnitsByArea(pArea, UNITAI_ATTACK_AIR)) >
+				(((iMilitaryWeight * iOffensiveThreshold) / 100) + 1))
 		{
 			return AREAAI_OFFENSIVE;
 		}
 		*/
-		// K-Mod. I'm not sure how best to do this yet. Let me just try a rough idea for now.
-		// I'm using AI_countMilitaryWeight; but what I really want is "border terriory which needs defending"
-		int iOurRelativeStrength = 100 * countPowerByArea(pArea) / (AI_countMilitaryWeight(pArea) + 20);
-		iOurRelativeStrength *= 100 + (bDeclaredTargets ? 30 : 0) + (bPreparingTotal ? -20 : 0) + iWarSuccessRating/2;
+		/*  K-Mod. I'm not sure how best to do this yet. Let me just try a rough
+			idea for now. I'm using AI_countMilitaryWeight; but what I really
+			want is "border territory which needs defending" */
+		int iOurRelativeStrength = 100 * countPowerByArea(pArea) /
+				(AI_countMilitaryWeight(pArea) + 20);
+		iOurRelativeStrength *= 100 + (bDeclaredTargets ? 30 : 0) +
+				(bPreparingTotal ? -20 : 0) + iWarSuccessRating/2;
 		iOurRelativeStrength /= 100;
 		int iEnemyRelativeStrength = 0;
 		bool bEnemyCities = false;
@@ -677,7 +699,10 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 			if (iJ != getID() && kLoopTeam.isAlive() && AI_getWarPlan((TeamTypes)iJ) != NO_WARPLAN)
 			{
 				int iPower = 100 * kLoopTeam.countPowerByArea(pArea);
-				int iCommitment = (bPreparingTotal ? 30 : 20) + kLoopTeam.AI_countMilitaryWeight(pArea) * ((isAtWar((TeamTypes)iJ) ? 1 : 2) + kLoopTeam.getAtWarCount(true, true)) / 2;
+				int iCommitment = (bPreparingTotal ? 30 : 20) + 
+						kLoopTeam.AI_countMilitaryWeight(pArea) *
+						((isAtWar((TeamTypes)iJ) ? 1 : 2) +
+						kLoopTeam.getAtWarCount(true, true)) / 2;
 				iPower /= iCommitment;
 				iEnemyRelativeStrength += iPower;
 				if (kLoopTeam.countNumCitiesByArea(pArea) > 0)
@@ -699,7 +724,8 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 			{
 				if (kPlayer.getTeam() == getID())
 				{
-					if (kPlayer.AI_isDoStrategy(AI_STRATEGY_DAGGER) || kPlayer.AI_isDoStrategy(AI_STRATEGY_FINAL_WAR))
+					if (kPlayer.AI_isDoStrategy(AI_STRATEGY_DAGGER) ||
+							kPlayer.AI_isDoStrategy(AI_STRATEGY_FINAL_WAR))
 					{
 						if (pArea->getCitiesPerPlayer((PlayerTypes)iPlayer) > 0)
 						{
@@ -738,7 +764,10 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 	{
 		if (iAreaCities > (getNumMembers() * 3))
 		{
-			if (GC.getGameINLINE().isOption(GAMEOPTION_AGGRESSIVE_AI) || GC.getGameINLINE().isOption(GAMEOPTION_ALWAYS_WAR) || (countPowerByArea(pArea) > ((countEnemyPowerByArea(pArea) * 3) / 2)))
+			if (GC.getGameINLINE().isOption(GAMEOPTION_AGGRESSIVE_AI) ||
+					GC.getGameINLINE().isOption(GAMEOPTION_ALWAYS_WAR) ||
+					(countPowerByArea(pArea) >
+					((countEnemyPowerByArea(pArea) * 3) / 2)))
 			{
 				return AREAAI_MASSING;
 			}

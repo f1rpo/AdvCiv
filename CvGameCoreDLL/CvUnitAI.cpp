@@ -3232,7 +3232,7 @@ void CvUnitAI::AI_attackCityMove()
 	// K-Mod. Lets have some slightly smarter stack vs. stack AI.
 	// it would be nice to have some personality effection here...
 	// eg. protective leaders have a lower risk threshold.   -- Maybe later.
-	// Note. This stackVsStack stuff use to be a bit lower, after the group and the heal stuff.
+	// Note. This stackVsStack stuff used to be a bit lower, after the group and the heal stuff.
 	if (getGroup()->getNumUnits() > 1)
 	{
 		if (bAtWar) // recall that "bAtWar" just means we are in enemy territory.
@@ -3260,9 +3260,10 @@ void CvUnitAI::AI_attackCityMove()
 				return;
 		}
 	}
-	//
-	// K-Mod. The loading of units for assault needs to be before the following omnigroup - otherwise the units may leave the boat to join their friends.
-	if (bAssault && (!pTargetCity || pTargetCity->area() != area()))
+
+	/*  K-Mod. The loading of units for assault needs to be before the following
+		omnigroup - otherwise the units may leave the boat to join their friends. */
+	if (bAssault && (pTargetCity == NULL || pTargetCity->area() != area()))
 	{
 		if (AI_load(UNITAI_ASSAULT_SEA, MISSIONAI_LOAD_ASSAULT, NO_UNITAI, -1, -1, -1, -1, iMoveFlags, 6)) // was 4 max-turns
 		{
@@ -3346,7 +3347,8 @@ void CvUnitAI::AI_attackCityMove()
 			}
 			if (generatePath(pMissionPlot, iMoveFlags, true, 0, 6))
 			{
-				// the max path turns is arbitrary, but it should be at least as big as the pillage sections higher up.
+				/*  the max path turns is arbitrary, but it should be at least as
+					big as the pillage sections higher up. */
 				CvPlot* pEndTurnPlot = getPathEndTurnPlot();
 				FAssert(!atPlot(pEndTurnPlot));
 				// warning: this command may attack something. We haven't checked!
@@ -3575,11 +3577,14 @@ void CvUnitAI::AI_attackCityMove()
 				// See if we can get there faster by boat..
 				if (iPathTurns > 5)// && !pTargetCity->isBarbarian())
 				{
-					// note: if the only land path to our target happens to go through a tough line of defence...
-					// we probably want to take the boat even if our iPathTurns is low.
-					// Here's one way to account for that:
-					// iPathTurns = std::max(iPathTurns, getPathLastNode()->m_iTotalCost / (2000*GC.getMOVE_DENOMINATOR()));
-					// Unfortunately, that "2000"... well I think you know what the problem is. So maybe next time.
+				/*  note: if the only land path to our target happens to go
+					through a tough line of defence...
+					we probably want to take the boat even if our iPathTurns is
+					low. Here's one way to account for that:
+					iPathTurns = std::max(iPathTurns, getPathLastNode()->
+					m_iTotalCost / (2000*GC.getMOVE_DENOMINATOR()));
+					Unfortunately, that "2000"... well I think you know what the
+					problem is. So maybe next time. */
 					int iLoadTurns = std::max(3, iPathTurns/3 - 1); // k146
 					int iMaxTransportTurns = iPathTurns - iLoadTurns - 2;
 
@@ -6258,8 +6263,8 @@ void CvUnitAI::AI_spyMove()
 		int iTotalPoints = 0;
 
 		if (kOwner.AI_isDoStrategy(AI_STRATEGY_ESPIONAGE_ECONOMY))
-		{
-			iScale += 50 * kOwner.getCurrentEra() * (kOwner.getCurrentEra()+1);
+		{	// advc.120b: was 50*
+			iScale += 80 * kOwner.getCurrentEra() * (kOwner.getCurrentEra()+1);
 		}
 
 		for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)

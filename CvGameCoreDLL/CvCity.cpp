@@ -2065,7 +2065,7 @@ bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool b
 		}
 	}
 	/*  <advc.041> Don't allow any ships to be trained at lakes, except
-		Workboat if there are resources in the lake. */
+		Work Boat if there are resources in the lake. */
 	CvUnitInfo& u = GC.getUnitInfo(eUnit);
 	if(u.getDomainType() == DOMAIN_SEA && !isCoastal() &&
 			(!u.isPrereqBonuses() || (u.isPrereqBonuses() && !isPrereqBonusSea())))

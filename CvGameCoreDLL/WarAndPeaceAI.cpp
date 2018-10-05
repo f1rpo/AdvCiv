@@ -380,11 +380,13 @@ vector<PlayerTypes>& WarAndPeaceAI::Team::teamMembers() {
 }
 
 struct PlanData {
-	PlanData(int u, TeamTypes id, int t) : u(u), id(id), t(t) {}
+	PlanData(int u, TeamTypes id, int t, bool isNaval) :
+		u(u), id(id), t(t), isNaval(isNaval) {}
 	bool operator<(PlanData const& o) { return u < o.u; }
 	int u;
 	TeamTypes id;
 	int t;
+	bool isNaval;
 };
 bool WarAndPeaceAI::Team::reviewWarPlans() {
 
@@ -417,8 +419,9 @@ bool WarAndPeaceAI::Team::reviewWarPlans() {
 			WarEvalParameters params(agentId, targetId, *report);
 			WarEvaluator eval(params);
 			int u = eval.evaluate(wp);
-			// evaluate sets preparation time on params
-			plans.push_back(PlanData(u, targetId, params.getPreparationTime()));
+			// 'evaluate' sets preparation time and isNaval in params
+			plans.push_back(PlanData(u, targetId, params.getPreparationTime(),
+					params.isNaval()));
 			/*  Skip scheming when in a very bad war. Very unlikely that another war
 				could help then. And I worry that, in rare situations, when the
 				outcome of a war is close, but potentially disastrous, that an
@@ -437,9 +440,38 @@ bool WarAndPeaceAI::Team::reviewWarPlans() {
 							report->teamName(plans[i].id));
 				break;
 			}
+			/*  As CvTeamAI::AI_updateAreaStrategies is called before
+				CvTeamAI::AI_doWar, this is going to be the last word on AreaAI.
+				Leave Area AI alone though if we're not even sure about the war
+				(low utility). */
+			else if(plans[i].u > 5)
+				alignAreaAI(plans[i].isNaval);
 		}
 	} while(planChanged);
 	return r;
+}
+
+void WarAndPeaceAI::Team::alignAreaAI(bool isNaval) {
+
+	/*  CvTeamAI::AI_calculateAreaAIType errs on the side of land war
+		(it decides based on WarAndPeaceAI::Team::isLandTarget), so if
+		isNaval is false, no action should be needed. */
+	if(!isNaval)
+		return;
+	for(size_t i = 0; i < members.size(); i++) {
+		CvPlayerAI const& member = GET_PLAYER(members[i]);
+		CvCity* capital = member.getCapitalCity();
+		if(capital == NULL)
+			continue;
+		CvArea& a = *capital->area();
+		AreaAITypes oldAAI = a.getAreaAIType(agentId);
+		AreaAITypes newAAI = oldAAI;
+		if(oldAAI == AREAAI_MASSING)
+			newAAI = AREAAI_ASSAULT_MASSING;
+		else if(oldAAI == AREAAI_OFFENSIVE)
+			newAAI = AREAAI_ASSAULT;
+		a.setAreaAIType(agentId, newAAI);
+	}
 }
 
 bool WarAndPeaceAI::Team::reviewPlan(TeamTypes targetId, int u, int prepTime) {

@@ -44,7 +44,7 @@ public:
 	void cacheXML(); // Can't do this in constructor b/c not yet loaded
 	double aspectWeight(int xmlId) const;
 	static int const preparationTimeLimited = 8;
-	static int const preparationTimeLimitedNaval = 12;
+	static int const preparationTimeLimitedNaval = 10;
 	static int const preparationTimeTotal = 15;
 	static int const preparationTimeTotalNaval = 20;
 	// Modifier for all AI payments for peace
@@ -167,6 +167,7 @@ public:
 		/*  Review plan vs. targetId. Returns true if plan continues unchanged,
 			false if any change (abandoned, peace made, target changed). */
 		bool reviewPlan(TeamTypes targetId, int u, int prepTime);
+		void alignAreaAI(bool isNaval);
 		int peaceThreshold(TeamTypes targetId) const;
 		// All these return true if the war plan remains unchanged, false otherwise
 		  bool considerPeace(TeamTypes targetId, int u);
