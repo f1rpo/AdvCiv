@@ -2157,7 +2157,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_NETHERLANDS_OOSTINDIEVAARDER</Type>
 			<Button>,Art/Interface/Buttons/Units/ICBM.dds,Art/Interface/Buttons/Beyond_the_Sword_Atlas.dds,8,10</Button>
-			<fScale>0.2</fScale>
+			<!-- advc.905b: was 0.2 -->
+			<fScale>0.2275</fScale>
 			<fInterfaceScale>0.5</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>

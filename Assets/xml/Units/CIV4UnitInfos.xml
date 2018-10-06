@@ -17602,13 +17602,13 @@
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
-			<!-- advc.905: was 50 -->
+			<!-- advc.905a: was 50 -->
 			<iCost>45</iCost>
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
 			<iMinAreaSize>20</iMinAreaSize>
-			<!-- advc.905: Was 2 -->
+			<!-- advc.905a: Was 2 -->
 			<iMoves>3</iMoves>
 			<bNoRevealMap>0</bNoRevealMap>
 			<iAirRange>0</iAirRange>
@@ -17751,7 +17751,7 @@
 			<bSuicide>0</bSuicide>
 			<bHiddenNationality>0</bHiddenNationality>
 			<bAlwaysHostile>0</bAlwaysHostile>
-			<!-- advc.905: Changed upgrade to Frigate into upgrade to Privateer
+			<!-- advc.905a: Changed upgrade to Frigate into upgrade to Privateer
 				 -->
 			<UnitClassUpgrades>
 				<UnitClassUpgrade>
@@ -17810,13 +17810,13 @@
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
-			<!-- advc.905: was 50 -->
+			<!-- advc.905a: was 50 -->
 			<iCost>45</iCost>
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
 			<iMinAreaSize>20</iMinAreaSize>
-			<!-- advc.905: was 2 -->
+			<!-- advc.905a: was 2 -->
 			<iMoves>3</iMoves>
 			<bNoRevealMap>0</bNoRevealMap>
 			<iAirRange>0</iAirRange>
@@ -17841,7 +17841,7 @@
 			<FeatureImpassables/>
 			<TerrainPassableTechs/>
 			<FeaturePassableTechs/>
-			<!-- advc.905: was 2 -->
+			<!-- advc.905a: was 2 -->
 			<iCombat>3</iCombat>
 			<iCombatLimit>100</iCombatLimit>
 			<iAirCombat>0</iAirCombat>
@@ -17869,7 +17869,7 @@
 			<TerrainDefenses/>
 			<FeatureAttacks/>
 			<FeatureDefenses/>
-			<!-- advc.905: Removed AttackMod and DefenseMod vs.
+			<!-- advc.905a: Removed AttackMod and DefenseMod vs.
 				 UNITCLASS_GALLEY (both 50%) -->
 			<UnitClassAttackMods/>
 			<UnitClassDefenseMods/>
@@ -17981,7 +17981,7 @@
 			<UnitClassDefenders/>
 			<UnitCombatDefenders/>
 			<FlankingStrikes/>
-			<!-- advc.905: Removed RESERVE_SEA and ESCORT_SEA -->
+			<!-- advc.905a: Removed RESERVE_SEA and ESCORT_SEA -->
 			<UnitAIs>
 				<UnitAI>
 					<UnitAIType>UNITAI_ATTACK_SEA</UnitAIType>
@@ -18025,7 +18025,7 @@
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
 			<iMinAreaSize>20</iMinAreaSize>
-			<!-- advc.905: was 3 -->
+			<!-- advc.905a: was 3 -->
 			<iMoves>4</iMoves>
 			<bNoRevealMap>0</bNoRevealMap>
 			<iAirRange>0</iAirRange>
@@ -18182,7 +18182,7 @@
 			<UnitClassDefenders/>
 			<UnitCombatDefenders/>
 			<FlankingStrikes/>
-			<!-- advc.905: Removed RESERVE_SEA (should use Trireme for that) -->
+			<!-- advc.905a: Removed RESERVE_SEA (should use Trireme for that) -->
 			<UnitAIs>
 				<UnitAI>
 					<UnitAIType>UNITAI_ATTACK_SEA</UnitAIType>
@@ -18238,7 +18238,7 @@
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
 			<iMinAreaSize>20</iMinAreaSize>
-			<!-- advc.905: was 3 -->
+			<!-- advc.905a: was 3 -->
 			<iMoves>4</iMoves>
 			<bNoRevealMap>0</bNoRevealMap>
 			<iAirRange>0</iAirRange>
@@ -18295,7 +18295,7 @@
 			<iBombardRate>0</iBombardRate>
 			<SpecialCargo>NONE</SpecialCargo>
 			<DomainCargo>DOMAIN_LAND</DomainCargo>
-			<!-- advc.905: 3 in K-Mod, 2 in BtS -->
+			<!-- advc.905a: 3 in K-Mod, 2 in BtS -->
 			<iCargo>2</iCargo>
 			<iConscription>0</iConscription>
 			<iCultureGarrison>0</iCultureGarrison>
@@ -18511,14 +18511,17 @@
 			<iLeaderExperience>0</iLeaderExperience>
 		</UnitInfo>
 		<UnitInfo>
-			<Class>UNITCLASS_GALLEON</Class>
+			<!-- advc.905b: was GALLEON -->
+			<Class>UNITCLASS_FRIGATE</Class>
 			<Type>UNIT_NETHERLANDS_OOSTINDIEVAARDER</Type>
 			<UniqueNames/>
 			<Special>NONE</Special>
 			<Capture>NONE</Capture>
 			<Combat>UNITCOMBAT_NAVAL</Combat>
 			<Domain>DOMAIN_SEA</Domain>
-			<DefaultUnitAI>UNITAI_ASSAULT_SEA</DefaultUnitAI>
+			<!-- advc.905b: Was ASSAULT_SEA (same as Galleon); Frigate has
+				 RESERVE_SEA. -->
+			<DefaultUnitAI>UNITAI_ESCORT_SEA</DefaultUnitAI>
 			<Invisible>NONE</Invisible>
 			<SeeInvisible>NONE</SeeInvisible>
 			<Description>TXT_KEY_UNIT_NETHERLANDS_OOSTINDIEVAARDER</Description>
@@ -18535,7 +18538,8 @@
 			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
 			<bNoCapture>0</bNoCapture>
 			<bQuickCombat>0</bQuickCombat>
-			<bRivalTerritory>1</bRivalTerritory>
+			<!-- advc.905b: was 1 -->
+			<bRivalTerritory>0</bRivalTerritory>
 			<bMilitaryHappiness>0</bMilitaryHappiness>
 			<bMilitarySupport>1</bMilitarySupport>
 			<bMilitaryProduction>1</bMilitaryProduction>
@@ -18564,9 +18568,10 @@
 			<bSuicide>0</bSuicide>
 			<bHiddenNationality>0</bHiddenNationality>
 			<bAlwaysHostile>0</bAlwaysHostile>
+			<!-- advc.905b -->
 			<UnitClassUpgrades>
 				<UnitClassUpgrade>
-					<UnitClassUpgradeType>UNITCLASS_TRANSPORT</UnitClassUpgradeType>
+					<UnitClassUpgradeType>UNITCLASS_DESTROYER</UnitClassUpgradeType>
 					<bUnitClassUpgrade>1</bUnitClassUpgrade>
 				</UnitClassUpgrade>
 			</UnitClassUpgrades>
@@ -18575,7 +18580,17 @@
 			<UnitClassDefenders/>
 			<UnitCombatDefenders/>
 			<FlankingStrikes/>
+			<!-- advc.905b: Added RESERVE_SEA and EXPLORE_SEA. Now it's the union
+				 of Galleon and Frigate AI types. It's a very flexible unit. -->
 			<UnitAIs>
+				<UnitAI>
+					<UnitAIType>UNITAI_RESERVE_SEA</UnitAIType>
+					<bUnitAI>1</bUnitAI>
+				</UnitAI>
+				<UnitAI>
+					<UnitAIType>UNITAI_EXPLORE_SEA</UnitAIType>
+					<bUnitAI>1</bUnitAI>
+				</UnitAI>
 				<UnitAI>
 					<UnitAIType>UNITAI_ESCORT_SEA</UnitAIType>
 					<bUnitAI>1</bUnitAI>
@@ -18606,19 +18621,26 @@
 			<PrereqReligion>NONE</PrereqReligion>
 			<PrereqCorporation>NONE</PrereqCorporation>
 			<PrereqBuilding>NONE</PrereqBuilding>
-			<PrereqTech>TECH_ASTRONOMY</PrereqTech>
-			<TechTypes/>
+			<!-- advc.905b: Was just ASTRONOMY. Same as Frigate now. -->
+			<PrereqTech>TECH_CHEMISTRY</PrereqTech>
+			<TechTypes>
+				<PrereqTech>TECH_ASTRONOMY</PrereqTech>
+				<PrereqTech>NONE</PrereqTech>
+				<PrereqTech>NONE</PrereqTech>
+			</TechTypes>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
-			<iCost>80</iCost>
+			<!-- advc.905b: Was 80, now same as Frigate. -->
+			<iCost>90</iCost>
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
 			<iMinAreaSize>20</iMinAreaSize>
-			<iMoves>4</iMoves>
+			<!-- advc.905b: was 4 -->
+			<iMoves>5</iMoves>
 			<bNoRevealMap>0</bNoRevealMap>
 			<iAirRange>0</iAirRange>
 			<iAirUnitCap>0</iAirUnitCap>
@@ -18637,7 +18659,8 @@
 			<FeatureImpassables/>
 			<TerrainPassableTechs/>
 			<FeaturePassableTechs/>
-			<iCombat>6</iCombat>
+			<!-- advc.905b: Was 6, now same as Frigate. -->
+			<iCombat>8</iCombat>
 			<iCombatLimit>100</iCombatLimit>
 			<iAirCombat>0</iAirCombat>
 			<iAirCombatLimit>0</iAirCombatLimit>
@@ -18671,15 +18694,18 @@
 			<DomainMods/>
 			<BonusProductionModifiers/>
 			<iBombRate>0</iBombRate>
-			<iBombardRate>0</iBombardRate>
+			<!-- advc.905b: Was 0, now same as Frigate. -->
+			<iBombardRate>12</iBombardRate>
 			<SpecialCargo>NONE</SpecialCargo>
 			<DomainCargo>DOMAIN_LAND</DomainCargo>
-			<iCargo>5</iCargo>
+			<!-- advc.905b: Was 5 in K-Mod, 4 in BtS. -->
+			<iCargo>3</iCargo>
 			<iConscription>0</iConscription>
 			<iCultureGarrison>0</iCultureGarrison>
 			<iExtraCost>0</iExtraCost>
 			<iAsset>3</iAsset>
-			<iPower>6</iPower>
+			<!-- advc.905b: Was 6, now same as Frigate. -->
+			<iPower>8</iPower>
 			<UnitMeshGroups>
 				<iGroupSize>1</iGroupSize>
 				<fMaxSpeed>2.25</fMaxSpeed>
@@ -19072,7 +19098,8 @@
 			<DomainMods/>
 			<BonusProductionModifiers/>
 			<iBombRate>0</iBombRate>
-			<iBombardRate>8</iBombardRate>
+			<!-- advc.905b: was 8 -->
+			<iBombardRate>12</iBombardRate>
 			<SpecialCargo>NONE</SpecialCargo>
 			<DomainCargo>DOMAIN_LAND</DomainCargo>
 			<iCargo>0</iCargo>
@@ -19274,7 +19301,8 @@
 			<DomainMods/>
 			<BonusProductionModifiers/>
 			<iBombRate>0</iBombRate>
-			<iBombardRate>12</iBombardRate>
+			<!-- advc.905b: was 12 -->
+			<iBombardRate>16</iBombardRate>
 			<SpecialCargo>NONE</SpecialCargo>
 			<DomainCargo>DOMAIN_LAND</DomainCargo>
 			<iCargo>0</iCargo>
@@ -19519,7 +19547,8 @@
 			<bAnimal>0</bAnimal>
 			<bFood>0</bFood>
 			<bNoBadGoodies>0</bNoBadGoodies>
-			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.905b: was 0 -->
+			<bOnlyDefensive>1</bOnlyDefensive>
 			<!-- advc.315a -->
 			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
 			<!-- advc.315b -->
@@ -19530,7 +19559,8 @@
 			<bMilitaryHappiness>0</bMilitaryHappiness>
 			<bMilitarySupport>1</bMilitarySupport>
 			<bMilitaryProduction>1</bMilitaryProduction>
-			<bPillage>1</bPillage>
+			<!-- advc.905b: was 1 -->
+			<bPillage>0</bPillage>
 			<bSpy>0</bSpy>
 			<bSabotage>0</bSabotage>
 			<bDestroy>0</bDestroy>
@@ -19587,16 +19617,18 @@
 			<PrereqTech>TECH_COMBUSTION</PrereqTech>
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
+			<!-- advc.905b: Removed BONUS_URANIUM -->
 			<PrereqBonuses>
 				<BonusType>BONUS_OIL</BonusType>
-				<BonusType>BONUS_URANIUM</BonusType>
+				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
-			<iCost>125</iCost>
+			<!-- advc.905b: was 125 -->
+			<iCost>100</iCost>
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
@@ -19620,7 +19652,8 @@
 			<FeatureImpassables/>
 			<TerrainPassableTechs/>
 			<FeaturePassableTechs/>
-			<iCombat>16</iCombat>
+			<!-- advc.905b: was 16 -->
+			<iCombat>14</iCombat>
 			<iCombatLimit>100</iCombatLimit>
 			<iAirCombat>0</iAirCombat>
 			<iAirCombatLimit>0</iAirCombatLimit>
