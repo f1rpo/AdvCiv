@@ -690,6 +690,11 @@ WarAndPeaceCache::City* WarAndPeaceCache::lookupCity(int plotIndex) const {
 	return pos->second;
 }
 
+WarAndPeaceCache::City* WarAndPeaceCache::lookupCity(CvCity const& cvCity) const {
+
+	return lookupCity(cvCity.plotNum());
+}
+
 void WarAndPeaceCache::sortCitiesByOwnerAndDistance() {
 
 	sort(v.begin(), v.end(), City::byOwnerAndDistance);
@@ -947,7 +952,7 @@ double WarAndPeaceCache::calculateThreatRating(PlayerTypes civId) const {
 	CvCity* cc = GET_PLAYER(ownerId).getCapitalCity();
 	City* c = NULL;
 	if(cc != NULL)
-		c = GET_PLAYER(civId).warAndPeaceAI().getCache().lookupCity(cc->plotNum());
+		c = GET_PLAYER(civId).warAndPeaceAI().getCache().lookupCity(*cc);
 	if(c != NULL && !c->canReach())
 		return 0;
 	double r = 0;
@@ -1098,6 +1103,8 @@ void WarAndPeaceCache::reportWarEnding(TeamTypes enemyId) {
 
 	int ourSuccess = TEAMREF(ownerId).AI_getWarSuccess(enemyId);
 	int theirSuccess = GET_TEAM(enemyId).AI_getWarSuccess(TEAMID(ownerId));
+	if(ourSuccess + theirSuccess < GC.getWAR_SUCCESS_CITY_CAPTURING())
+		return;
 	// Use our era as the baseline for what is significant war success
 	EraTypes ourTechEra = GET_PLAYER(ownerId).getCurrentEra();
 	double successRatio = ourSuccess / (double)std::max(1, theirSuccess);
@@ -1552,8 +1559,8 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 		CvPlot* p = c->plot();
 		int pwd = -1; // pairwise (travel) duration
 		int d = -1; // set by measureDistance
-		if(measureDistance(DOMAIN_LAND, p, targetCity->plot(), &d)) {
-			double speed = estimateMovementSpeed(DOMAIN_LAND, d);
+		if(measureDistance(cacheOwnerId, DOMAIN_LAND, p, targetCity->plot(), &d)) {
+			double speed = estimateMovementSpeed(cacheOwnerId, DOMAIN_LAND, d);
 			// Will practically always have to move through some foreign tiles
 			d = std::min(d, 2) + ::round((d - std::min(d, 2)) / speed);
 			pwd = d;
@@ -1569,9 +1576,9 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 			DomainTypes dom = DOMAIN_SEA;
 			if(!trainDeepSeaCargo)
 				dom = DOMAIN_IMMOBILE; // Encode non-ocean as IMMOBILE
-			if(measureDistance(dom, p, targetCity->plot(), &d)) {
+			if(measureDistance(cacheOwnerId, dom, p, targetCity->plot(), &d)) {
 				FAssert(d >= 0);
-				d = (int)std::ceil(d / estimateMovementSpeed(DOMAIN_SEA, d)) +
+				d = (int)std::ceil(d / estimateMovementSpeed(cacheOwnerId, DOMAIN_SEA, d)) +
 						seaPenalty;
 				if(pwd < 0 || d < pwd) {
 					pwd = d;
@@ -1616,12 +1623,13 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 }
 
 
-double WarAndPeaceCache::City::estimateMovementSpeed(DomainTypes dom, int dist) const {
+double WarAndPeaceCache::City::estimateMovementSpeed(PlayerTypes civId,
+		DomainTypes dom, int dist) {
 
-	CvPlayerAI const& cacheOwner = GET_PLAYER(cacheOwnerId);
+	CvPlayerAI const& civ = GET_PLAYER(civId);
 	if(dom != DOMAIN_LAND)
-		return cacheOwner.warAndPeaceAI().shipSpeed();
-	EraTypes const era = cacheOwner.getCurrentEra();
+		return civ.warAndPeaceAI().shipSpeed();
+	EraTypes const era = civ.getCurrentEra();
 	EraTypes const gameEra = GC.getGameINLINE().getCurrentEra();
 	double r = 1;
 	if(era >= 6) // Future era; to account for very high mobility in endgame
@@ -1636,15 +1644,15 @@ double WarAndPeaceCache::City::estimateMovementSpeed(DomainTypes dom, int dist) 
 		chance of it traversing unpaved ground. */
 	else if(era >= 1) {
 		r *= ::dRange((20.0 + 6 * gameEra) / (dist + 10), 1.0, 2.0);
-		if(GET_TEAM(cacheOwner.getTeam()).warAndPeaceAI().isFastRoads())
+		if(TEAMREF(civId).warAndPeaceAI().isFastRoads())
 			r *= 1.4;
 	}
 	return r;
 }
 
 // <advc.104b>
-bool WarAndPeaceCache::City::measureDistance(DomainTypes dom, CvPlot* start,
-		CvPlot* dest, int* r) {
+bool WarAndPeaceCache::City::measureDistance(PlayerTypes civId, DomainTypes dom,
+		CvPlot* start, CvPlot* dest, int* r) {
 
 	PROFILE_FUNC();
 	/*  Caveat: dom can be IMMOBILE, which means Galley. Should compare dom
@@ -1658,13 +1666,13 @@ bool WarAndPeaceCache::City::measureDistance(DomainTypes dom, CvPlot* start,
 	int maxDist = (dom == DOMAIN_LAND ? getWPAI.maxLandDist() :
 			getWPAI.maxSeaDist());
 	// AI needs to be able to target even very remote rivals eventually
-	if(GET_PLAYER(cacheOwnerId).getCurrentEra() >= 4)
+	if(GET_PLAYER(civId).getCurrentEra() >= 4)
 		maxDist = (4 * maxDist) / 3;
 	/*  stepDistance sanity check to avoid costly distance measurement
 		(::teamStepValid_advc now performs the same check through ::stepHeuristic,
 		but still need stepDistance here for the speed estimate.) */
 	int stepDist = ::stepDistance(start, dest);
-	double speedEstimate = estimateMovementSpeed(dom, stepDist);
+	double speedEstimate = estimateMovementSpeed(civId, dom, stepDist);
 	if(stepDist / speedEstimate > maxDist)
 		return false;
 	// dest is guaranteed to be owned; get the owner before possibly changing dest

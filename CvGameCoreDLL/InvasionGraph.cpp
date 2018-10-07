@@ -972,6 +972,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 				report.log("Area weight defender: %d percent",
 						::round(areaWeightDef * 100));
 				targetArmyPow *= areaWeightDef;
+				targetCavPow *= areaWeightDef;
 			}
 		}
 	}

@@ -12030,8 +12030,16 @@ int CvCityAI::AI_countGoodSpecialists(bool bHealthy) const
 			// K-Mod
 			if (kPlayer.isSpecialistValid(eSpecialist) || eSpecialist == GC.getDefineINT("DEFAULT_SPECIALIST"))
 				return getPopulation(); // unlimited
-			iCount += getMaxSpecialistCount(eSpecialist) - getSpecialistCount(eSpecialist);
-			FAssert(getMaxSpecialistCount(eSpecialist) - getSpecialistCount(eSpecialist) >= 0);
+			int delta = getMaxSpecialistCount(eSpecialist) - getSpecialistCount(eSpecialist);
+			/*  <advc.006> CvTeam::doResearch can obsolete a building
+				(Egyptian Obelisk; any others?) and then, apparently,
+				CvCityAI::AI_updateAssignWork isn't called soon enough.
+				Not really a problem I guess. */
+			if(delta < 0) {
+				FAssert(AI_isAssignWorkDirty());
+				delta = 0;
+			} // </advc.006>
+			iCount += delta;
 			// K-Mod end
 		}
 	}

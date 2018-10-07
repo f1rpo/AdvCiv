@@ -819,7 +819,9 @@ protected:
 
 	int m_iID;
 	int m_iGroupID;
-	int m_iHotKeyNumber;
+	// <advc.003> Moved up for easier access in debugger
+	PlayerTypes m_eOwner;
+	CvUnitInfo *m_pUnitInfo; // </advc.003>
 	int m_iX;
 	int m_iY;
 	int m_iLastMoveTurn;
@@ -827,6 +829,7 @@ protected:
 	int m_iReconY;
 	int m_iLastReconTurn; // advc.029
 	int m_iGameTurnCreated;
+	int m_iHotKeyNumber;
 	int m_iDamage;
 	int m_iMoves;
 	int m_iExperience;
@@ -887,11 +890,9 @@ protected:
 	bool m_bAirCombat;
 	bool initiallyVisible; // advc.102
 
-	PlayerTypes m_eOwner;
 	PlayerTypes m_eCapturingPlayer;
 	UnitTypes m_eUnitType;
 	UnitTypes m_eLeaderUnitType;
-	CvUnitInfo *m_pUnitInfo;
 
 	IDInfo m_combatUnit;
 	IDInfo m_transportUnit;

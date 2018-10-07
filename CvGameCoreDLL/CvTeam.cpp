@@ -2348,30 +2348,27 @@ int CvTeam::getPower(bool bIncludeVassals) const
 	return iCount;
 }
 
-
+// advc.003: Minor refactoring
 int CvTeam::getDefensivePower(TeamTypes eExcludeTeam) const
 {
-	int iCount;
-	int iI;
-
-	iCount = 0;
+	int iCount = 0;
 
 	FAssert(eExcludeTeam != getID());
+	// K-Mod. only our master will have defensive pacts.
+	const CvTeam& kMasterTeam = GET_TEAM(getMasterTeam());
 
-	const CvTeam& kMasterTeam = GET_TEAM(getMasterTeam()); // K-Mod. only our master will have defensive pacts.
-
-	for (iI = 0; iI < MAX_CIV_TEAMS; iI++)
+	for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 	{
 		const CvTeam& kLoopTeam = GET_TEAM((TeamTypes)iI);
+		/*  K-Mod. (vassal check unnecessary, b/c vassals can't be the master team,
+			and they can't have a pact.) */
 		//if (kLoopTeam.isAlive() && !kLoopTeam.isAVassal())
-		if (kLoopTeam.isAlive()) // K-Mod. (vassal check unnecessary, b/c vassals can't be the master team, and they can't have a pact.)
-		{
-			//if (getID() == iI || isVassal((TeamTypes)iI) || isDefensivePact((TeamTypes)iI))
-			if (iI != eExcludeTeam && (kMasterTeam.getID() == iI || kMasterTeam.isDefensivePact((TeamTypes)iI))) // K-Mod
-			{
-				iCount += kLoopTeam.getPower(true);
-			}
-		}
+		if(!kLoopTeam.isAlive() || iI == eExcludeTeam)
+			continue;
+		//if (getID() == iI || isVassal((TeamTypes)iI) || isDefensivePact((TeamTypes)iI))
+		if (kMasterTeam.getID() == iI ||
+				kMasterTeam.isDefensivePact(kLoopTeam.getID())) // K-Mod
+			iCount += kLoopTeam.getPower(true);
 	}
 
 	return iCount;

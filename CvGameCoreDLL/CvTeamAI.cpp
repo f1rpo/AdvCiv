@@ -563,15 +563,14 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 					bRecentAttack = true;
 				}
 
-				/*if ((GET_TEAM((TeamTypes)iI).countNumCitiesByArea(pArea) > 0) ||
-						(GET_TEAM((TeamTypes)iI).countNumUnitsByArea(pArea) > 4)) */
-			/*  advc.104s: Replacing the above. isLandTarget checks if there's
-				a city, and also if there's a path. As for the NumUnits
-				condition: Setting AreaAI to ASSAULT won't stop the AI from
-				fighting these units, but the focus should be on naval assault
-				when there are no reachable enemy cities.
-				Speed shouldn't be an issue; only updated once a turn. */
-				if(AI_isLandTarget((TeamTypes)iI))
+				if (GET_TEAM((TeamTypes)iI).countNumCitiesByArea(pArea) > 0
+						//|| GET_TEAM((TeamTypes)iI).countNumUnitsByArea(pArea) > 4)
+			/*  advc.104s: Replacing the above. Setting AreaAI to ASSAULT won't stop
+				the AI from fighting any landed units. Need to focus on cities.
+				isLandTarget makes sure that there are reachable cities. Still check
+				city count for efficiency (there can be a lot of land areas to
+				calculate AI types for). */
+						&& AI_isLandTarget((TeamTypes)iI))
 				{
 					bTargets = true;
 
@@ -3438,35 +3437,34 @@ int CvTeamAI::AI_getWarSuccessRating() const
 /* War Strategy AI                                                                              */
 /************************************************************************************************/
 /// \brief Compute power of enemies as percentage of our power.
-///
-///
 int CvTeamAI::AI_getEnemyPowerPercent( bool bConsiderOthers ) const
 {
 	int iEnemyPower = 0;
-
-	for( int iI = 0; iI < MAX_CIV_TEAMS; iI++ )
-	{
-		if( iI != getID() )
-		{
-			if( GET_TEAM((TeamTypes)iI).isAlive() && isHasMet((TeamTypes)iI) )
-			{
-				if( isAtWar((TeamTypes)iI) )
-				{
-					int iTempPower = 220 * GET_TEAM((TeamTypes)iI).getPower(false);
-					iTempPower /= (AI_hasCitiesInPrimaryArea((TeamTypes)iI) ? 2 : 3);
-					iTempPower /= (GET_TEAM((TeamTypes)iI).isMinorCiv() ? 3 : 1);
-					iTempPower /= std::max(1, (bConsiderOthers ? GET_TEAM((TeamTypes)iI).getAtWarCount(true,true) : 1));
-					iEnemyPower += iTempPower;
-				}
-				else if( AI_isChosenWar((TeamTypes)iI) )
-				{
-					// Haven't declared war yet
-					int iTempPower = 240 * GET_TEAM((TeamTypes)iI).getDefensivePower(getID());
-					iTempPower /= (AI_hasCitiesInPrimaryArea((TeamTypes)iI) ? 2 : 3);
-					iTempPower /= 1 + (bConsiderOthers ? GET_TEAM((TeamTypes)iI).getAtWarCount(true,true) : 0);
-					iEnemyPower += iTempPower;
-				}
-			}
+	// advc.003: Refactoring
+	for( int iI = 0; iI < MAX_CIV_TEAMS; iI++ ) {
+		CvTeamAI const& t = GET_TEAM((TeamTypes)iI);
+		if(!t.isAlive() || !t.isHasMet(getID()))
+			continue;
+		if(isAtWar(t.getID())) {
+			int iTempPower = 220 * t.getPower(false);
+			iTempPower /= (AI_hasCitiesInPrimaryArea(t.getID()) ? 2 : 3);
+			iTempPower /= (t.isMinorCiv() ? 3 : 1);
+			iTempPower /= std::max(1, (bConsiderOthers ?
+					t.getAtWarCount(true, true) : 1));
+			iEnemyPower += iTempPower;
+		}
+		else if(AI_isChosenWar(t.getID()) &&
+				!t.isAVassal()) { /*  advc.104j: getDefensivePower counts those already.
+				If planning war against multiple civs, DP allies could also be
+				double counted (fixme). Could collect the war enemies in a std::set
+				in a first pass; though it sucks to implement the vassal/DP logic
+				multiple times (already in getDefensivePower and MilitaryAnalyst).
+				Also, the computation for bConsiderOthers above can be way off. */
+			// Haven't declared war yet
+			int iTempPower = 240 * t.getDefensivePower(getID());
+			iTempPower /= (AI_hasCitiesInPrimaryArea(t.getID()) ? 2 : 3);
+			iTempPower /= 1 + (bConsiderOthers ? t.getAtWarCount(true, true) : 0);
+			iEnemyPower += iTempPower;
 		}
 	}
 	//return (iEnemyPower/std::max(1, (isAVassal() ? getCurrentMasterPower(true) : getPower(true))));
@@ -4360,11 +4358,10 @@ DenialTypes CvTeamAI::AI_declareWarTrade(TeamTypes eWarTeam, TeamTypes eTeam, bo
 		int defPower = GET_TEAM(eWarTeam).getDefensivePower(getID());
 		int pow = getPower(true);
 		int aggPower = pow + ((atWar(eWarTeam, eTeam)) ? GET_TEAM(eTeam).getPower(true) : 0);
-		/* <advc.100> Introduced variables pow, aggPower, defPower.
+		/*  <advc.100>
+			Introduced variables pow, aggPower, defPower.
 			Made the comparison stricter (more reluctant to declare war).
-			Added a second clause: don't gang up on enemies with far greater power.
-			A quick fix until I get around to sponsored war in WarAndPeaceAI::Team,
-			but I'll probably leave it in b/c I'm pretty sure it's an improvement. */
+			Added a second clause: don't gang up on enemies with far greater power. */
 		if (defPower  / (bLandTarget ?
 			1.5 : 1.0) // used to be 2 : 1
 					> aggPower ||
@@ -5148,7 +5145,8 @@ WarPlanTypes CvTeamAI::AI_getWarPlan(TeamTypes eIndex) const
 
 bool CvTeamAI::AI_isChosenWar(TeamTypes eIndex) const
 {
-	switch (AI_getWarPlan(eIndex))
+	switch (AI_getWarPlan(
+			GET_TEAM(eIndex).getMasterTeam())) // advc.104j
 	{
 	case WARPLAN_ATTACKED_RECENT:
 	case WARPLAN_ATTACKED:
@@ -5180,7 +5178,8 @@ bool CvTeamAI::isAnyChosenWar() const {
 
 bool CvTeamAI::AI_isSneakAttackPreparing(TeamTypes eIndex) const
 {
-	return ((AI_getWarPlan(eIndex) == WARPLAN_PREPARING_LIMITED) || (AI_getWarPlan(eIndex) == WARPLAN_PREPARING_TOTAL));
+	WarPlanTypes wp = AI_getWarPlan(GET_TEAM(eIndex).getMasterTeam()); // advc.104j
+	return (wp == WARPLAN_PREPARING_LIMITED || wp == WARPLAN_PREPARING_TOTAL);
 }
 
 
@@ -6032,6 +6031,8 @@ void CvTeamAI::AI_doCounter()
 /* War Strategy AI                                                                              */
 /************************************************************************************************/
 // Block AI from declaring war on a distant vassal if it shares an area with the master
+/*  advc.104j (comment): Since a war plan against a master implies a war plan
+	against its vassal, I don't think this function is relevant anymore. */
 bool CvTeamAI::AI_isOkayVassalTarget( TeamTypes eTeam ) const
 {
 	/* if( GET_TEAM(eTeam).isAVassal() )
@@ -6052,7 +6053,9 @@ bool CvTeamAI::AI_isOkayVassalTarget( TeamTypes eTeam ) const
 	}
 
 	return true; */
-	if(GET_TEAM(eTeam).isCapitulated()) return false; // advc.130v
+	// <advc.130v>
+	if(GET_TEAM(eTeam).isCapitulated())
+		return false; // </advc.130v>
 	// K-Mod version. Same functionality (but without support for multiple masters)
 	TeamTypes eMasterTeam = GET_TEAM(eTeam).getMasterTeam();
 	if (eMasterTeam == eTeam)

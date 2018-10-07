@@ -366,18 +366,18 @@ bool isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam)
 	{
 		return false;
 	}
-
+	return (atWar(eOurTeam, eTheirTeam) || (GET_TEAM(eOurTeam).AI_isSneakAttackReady(
+			//eTheirTeam)
+			GET_TEAM(eTheirTeam).getMasterTeam()) // advc.104j
 /************************************************************************************************/
 /* UNOFFICIAL_PATCH                       05/05/09                                jdog5000      */
 /*                                                                                              */
 /* Bugfix, General AI                                                                           */
 /************************************************************************************************/
-/* original bts code
-	return (atWar(eOurTeam, eTheirTeam) || GET_TEAM(eOurTeam).AI_isSneakAttackReady(eTheirTeam));
-*/
-	// Fixes bug where AI would launch invasion while unable to declare war
-	// which caused units to be bumped once forced peace expired
-	return (atWar(eOurTeam, eTheirTeam) || (GET_TEAM(eOurTeam).AI_isSneakAttackReady(eTheirTeam) && GET_TEAM(eOurTeam).canDeclareWar(eTheirTeam)));
+			// Fixes bug where AI would launch invasion while unable to declare war
+			// which caused units to be bumped once forced peace expired
+			&& GET_TEAM(GET_TEAM(eOurTeam).getMasterTeam()). // advc.104j
+					canDeclareWar(eTheirTeam)));
 /************************************************************************************************/
 /* UNOFFICIAL_PATCH                        END                                                  */
 /************************************************************************************************/

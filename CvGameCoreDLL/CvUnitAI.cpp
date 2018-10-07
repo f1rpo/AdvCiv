@@ -4071,7 +4071,11 @@ void CvUnitAI::AI_pillageMove()
 		return;
 	}
 
-	if( !isHuman() && plot()->isCoastalLand() && GET_PLAYER(getOwnerINLINE()).AI_unitTargetMissionAIs(this, MISSIONAI_PICKUP) > 0 )
+	if( !isHuman() && plot()->isCoastalLand() &&
+			/*  advc.046: SKIP w/o setting eMissionAI would make the group forget
+				that it's stranded, and then AI_pickupStranded won't find it. */ 
+			!getGroup()->isStranded() &&
+			GET_PLAYER(getOwnerINLINE()).AI_unitTargetMissionAIs(this, MISSIONAI_PICKUP) > 0 )
 	{
 		getGroup()->pushMission(MISSION_SKIP);
 		return;
@@ -8363,8 +8367,16 @@ void CvUnitAI::AI_assaultSeaMove()
 				return;
 			}
 		}
-	}
-
+	} // <advc.046>
+	bool bHasCargo = getGroup()->hasCargo(); // Moved up
+	/*  If we have room, or are in a city where we could unload, check if there is
+		a good stranded target. This is more important than drawing units together
+		when no naval attack is planned (!bAttack). */
+	bool const bGoodCity = (plot()->isCity(false, getTeam()) &&
+			GET_TEAM(getTeam()).AI_isPrimaryArea(plot()->area()));
+	if((bGoodCity || !bHasCargo) && !bAttack &&
+			AI_pickupStranded())
+		return; // </advc.046>
 	if ((bFull || bReinforce) && !bAttack)
 	{
 		// Group with nearby transports with units on board
@@ -8383,7 +8395,6 @@ void CvUnitAI::AI_assaultSeaMove()
 	else if( !bFull )
 	{
 		bool bHasOneLoad = (getGroup()->getCargo() >= cargoSpace());
-		bool bHasCargo = getGroup()->hasCargo();
 
 		if (AI_pickup(UNITAI_ATTACK_CITY, !bHasCargo, (bHasOneLoad ? 3 : 7)))
 		{
@@ -11301,7 +11312,11 @@ CvUnit* CvUnitAI::AI_findTransport(UnitAITypes eUnitAI, int iFlags, int iMaxPath
 						if ((iMaxCargoSpace == -1) || (iCargoSpaceAvailable <= iMaxCargoSpace))
 						{
 							if ((iMaxCargoOurUnitAI == -1) || (pLoopUnit->getUnitAICargo(AI_getUnitAIType()) <= iMaxCargoOurUnitAI))
-							{
+							{	// <advc.046> Don't join a pickup-stranded mission
+								CvUnit* u = pLoopUnit->getGroup()->AI_getMissionAIUnit();
+								if(u != NULL && u->plot()->getTeam() != getTeam() &&
+										u->plot() != plot())
+									continue; // </advc.046>
 								if (!(pLoopUnit->plot()->isVisibleEnemyUnit(this)))
 								{
 									CvPlot* pUnitTargetPlot = pLoopUnit->getGroup()->AI_getMissionAIPlot();
@@ -17748,7 +17763,7 @@ static int estimateAndCacheCityDefence(CvPlayerAI& kPlayer, CvCity* pCity, std::
 // K-Mod end
 
 // Returns true if a mission was pushed...
-// This fucntion has been mostly rewritten for K-Mod.
+// This function has been mostly rewritten for K-Mod.
 bool CvUnitAI::AI_assaultSeaTransport(bool bAttackBarbs, bool bLocal)
 {
 	PROFILE_FUNC();
@@ -21786,7 +21801,19 @@ bool CvUnitAI::AI_pickupStranded(UnitAITypes eUnitAI, int iMaxPath)
 	}
 
 	if (pBestUnit)
-	{
+	{	/*  <advc.046> Previously, the caller ensured that we have space. Now
+			ensures that we have space or can unload. */
+		int iCargo = getGroup()->getCargo();
+		if(iCargo > 0) {
+			/*  Only unload the current cargo if the stranded units aren't too few
+				or too far away. */
+			if(iCargo * 150 > iBestValue || atPlot(pEndTurnPlot))
+				return false;
+			FAssert(plot()->isCity(false, getTeam()));
+			getGroup()->unloadAll();
+			if(getGroup()->hasCargo())
+				return false;
+		} // </advc.046>
 		FAssert(pEndTurnPlot);
 		if (atPlot(pEndTurnPlot))
 		{
@@ -23888,13 +23915,17 @@ bool CvUnitAI::AI_cityOffenseSpy(int iMaxPath, CvCity* pSkipCity)
 
 			iTeamWeight *= 400 - kTeam.AI_getAttitudeWeight(kLoopPlayer.getTeam());
 			iTeamWeight /= 500;
-
-			iTeamWeight *= kTeam.AI_getWarPlan(kLoopPlayer.getTeam()) != NO_WARPLAN ? 2 : 1;
-			iTeamWeight *= kTeam.AI_isSneakAttackPreparing(kLoopPlayer.getTeam()) ? 2 : 1;
-
+			/*  <advc.120> The "else" is the only functional change; don't want to
+				communicate too loudly that we're preparing war. */
+			if(kTeam.AI_getWarPlan(kLoopPlayer.getTeam()) != NO_WARPLAN)
+				iTeamWeight *= 2;
+			else if(kTeam.AI_isSneakAttackPreparing(kLoopPlayer.getTeam()))
+				iTeamWeight *= 2; // </advc.120>
 			iTeamWeight *= kOwner.AI_isMaliciousEspionageTarget((PlayerTypes)iPlayer) ? 3 : 2;
 			iTeamWeight /= 2;
-
+			// <advc.130v>
+			if(GET_TEAM(kLoopPlayer.getTeam()).isCapitulated())
+				iTeamWeight /= 2; // </advc.130v>
 			if (iTeamWeight < 200 && GC.getGame().getSorenRandNum(10, "AI team target saving throw") != 0)
 			{
 				// low weight. Probably friendly attitude and below average points.

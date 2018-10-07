@@ -669,7 +669,8 @@ bool CvSelectionGroupAI::AI_isDeclareWar(const CvPlot* pPlot)
 			TeamTypes ePlotTeam = pPlot->getTeam();
 			if (ePlotTeam != NO_TEAM)
 			{
-				WarPlanTypes eWarplan = GET_TEAM(getTeam()).AI_getWarPlan(ePlotTeam);
+				WarPlanTypes eWarplan = GET_TEAM(getTeam()).AI_getWarPlan(
+						GET_TEAM(ePlotTeam).getMasterTeam()); // advc.104j
 				if (eWarplan == WARPLAN_LIMITED)
 				{
 					bLimitedWar = true;

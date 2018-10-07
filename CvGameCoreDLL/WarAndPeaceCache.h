@@ -58,6 +58,7 @@ public:
 	City* getCity(int index) const;
 	// Use CvCity::plotNum for the plotIndex of a given CvCity
 	City* lookupCity(int plotIndex) const;
+	City* lookupCity(CvCity const& cvCity) const;
 	// Referring to cache owner
 	 bool hasAggressiveTrait() const;
 	 bool hasProtectiveTrait() const;
@@ -220,6 +221,10 @@ public:
 		void write(FDataStreamBase* stream);
 		void read(FDataStreamBase* stream);
 	    static CvCity* cityById(int id);
+		// Wrapper for CvUnit::generatePath
+	    static bool measureDistance(PlayerTypes civId, DomainTypes dom,
+				CvPlot* start, CvPlot* dest, int* r);
+		static double estimateMovementSpeed(PlayerTypes civId, DomainTypes dom, int dist);
 		/* For sorting cities. The ordering of owners is arbitrary, just
 		   ensures that each civ's cities are ordered consecutively.
 		   For cities of the same owner: true if 'one' is closer to us than 'two'
@@ -235,9 +240,6 @@ public:
 		/* Auxiliary function for sorting. -1 means one < two, +1 two < one and 0
 		   neither. */
 		static int byOwner(City* one, City* two);
-		double estimateMovementSpeed(DomainTypes dom, int dist) const;
-		// Wrapper for CvUnit::generatePath
-	    bool measureDistance(DomainTypes dom, CvPlot* start, CvPlot* dest, int* r);
 		void updateDistance(CvCity* targetCity);
 		void updateAssetScore();
 

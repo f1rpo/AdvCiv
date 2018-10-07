@@ -3298,38 +3298,35 @@ void CvUnit::move(CvPlot* pPlot, bool bShow)
 // K-Mod, added bForceMove and bGroup
 bool CvUnit::jumpToNearestValidPlot(bool bGroup, bool bForceMove)
 {
-	CvCity* pNearestCity;
-	CvPlot* pLoopPlot;
-	CvPlot* pBestPlot;
-	int iValue;
-	int iBestValue;
-	int iI;
-
 	FAssertMsg(!isAttacking(), "isAttacking did not return false as expected");
 	FAssertMsg(!isFighting(), "isFighting did not return false as expected");
+	// advc.003: Declarations moved
+	CvCity* pNearestCity = GC.getMapINLINE().findCity(getX_INLINE(), getY_INLINE(), getOwnerINLINE());
 
-	pNearestCity = GC.getMapINLINE().findCity(getX_INLINE(), getY_INLINE(), getOwnerINLINE());
+	int iBestValue = MAX_INT;
+	CvPlot* pBestPlot = NULL;
 
-	iBestValue = MAX_INT;
-	pBestPlot = NULL;
-
-	for (iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
+	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 	{
-		pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
 
 		if (pLoopPlot->isValidDomainForLocation(*this))
 		{
 			if (canMoveInto(pLoopPlot))
 			{
-				if (canEnterArea(pLoopPlot->getTeam(), pLoopPlot->area()) && !isEnemy(pLoopPlot->getTeam(), pLoopPlot))
+				if (canEnterArea(pLoopPlot->getTeam(), pLoopPlot->area()) &&
+						!isEnemy(pLoopPlot->getTeam(), pLoopPlot))
 				{
 					FAssertMsg(!atPlot(pLoopPlot), "atPlot(pLoopPlot) did not return false as expected");
 
-					if ((getDomainType() != DOMAIN_AIR) || pLoopPlot->isFriendlyCity(*this, true))
+					if (getDomainType() != DOMAIN_AIR ||
+							pLoopPlot->isFriendlyCity(*this, true))
 					{
 						if (pLoopPlot->isRevealed(getTeam(), false))
 						{
-							iValue = (plotDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) * 2);
+							int iValue = (plotDistance(getX_INLINE(), getY_INLINE(),
+									pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE())
+									* 2);
 							// K-mod, 2/jan/11, karadoc - bForceMove functionality
 							if (bForceMove && iValue == 0)
 								continue;
@@ -3338,8 +3335,10 @@ bool CvUnit::jumpToNearestValidPlot(bool bGroup, bool bForceMove)
 							if (pNearestCity != NULL)
 							{
 								iValue += plotDistance(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE());
-							}
-
+							} /* <advc.003b> Apart from performance, this also
+								 makes it easier to test advc.046 through the debugger. */
+							if(iValue >= iBestValue)
+								continue; // </advc.003b>
 							if (getDomainType() == DOMAIN_SEA && !plot()->isWater())
 							{
 								if (!pLoopPlot->isWater() || !pLoopPlot->isAdjacentToArea(area()))
@@ -3351,7 +3350,17 @@ bool CvUnit::jumpToNearestValidPlot(bool bGroup, bool bForceMove)
 							{
 								if (pLoopPlot->area() != area())
 								{
-									iValue *= 3;
+									//iValue *= 3;
+									// <advc.046>
+									int iMult = 3;
+									if(pLoopPlot->area()->getCitiesPerPlayer(
+											getOwnerINLINE()) <= 0) {
+										iValue += 4;
+										iMult += 1;
+										if(pLoopPlot->area()->getNumCities() == 0)
+											iValue += 6;
+									}
+									iValue *= iMult; // </advc.046>
 								}
 							}
 

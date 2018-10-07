@@ -5104,7 +5104,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 		{
 			CvCity* pCityTraded = getCity(item.m_iData);
 
-			if (NULL != pCityTraded && pCityTraded->getLiberationPlayer(false) == eWhoTo)
+			if (pCityTraded != NULL && pCityTraded->getLiberationPlayer(false) == eWhoTo)
 			{
 				return true;
 			}
@@ -5116,28 +5116,36 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 			if(pCityTraded == NULL || pCityTraded->isCapital() ||
 					!pCityTraded->isRevealed(theirTeam.getID(), false))
 				break;
-			CvPlot const* cityPlot = pCityTraded->plot();
-			// Allow ceding a city that is about to be conquered
-			/*if(pCityTraded->isEvacuating() && theirTeam.isAtWar(getTeam()) &&
-					// For performance
-					pCityTraded->isVisible(theirTeam.getID(), false)) {
-				int attCount = -1;
-				GET_PLAYER(getID()).AI_localAttackStrength(cityPlot,
-						theirTeam.getID(), DOMAIN_LAND, 1, true, false, false,
-						&attCount);
-				int defCount = pCityTraded->getMilitaryHappinessUnits();
-				if(attCount >= defCount)
-					return true;
-			} */ // Don't want to allow this after all
-			if(cityPlot->calculateCulturePercent(eWhoTo) <
-					GC.getDefineINT("CITY_TRADE_CULTURE_THRESH"))
+			// Can't trade so long as the previous owner hasn't accepted the loss
+			int const iNumPrevOwners = 1;
+			bool bValid = true;
+			PlayerTypes aePrevOwners[iNumPrevOwners] = {
+					pCityTraded->getPreviousOwner(),
+					// Let's ignore the original owner
+					//pCityTraded->getOriginalOwner(),
+			};
+			for(int i = 0; i < iNumPrevOwners; i++) {
+				if(aePrevOwners[i] != NO_PLAYER &&
+						TEAMREF(aePrevOwners[i]).isAtWar(getTeam()) &&
+						!TEAMREF(aePrevOwners[i]).isAtWar(TEAMID(eWhoTo))) {
+					bValid = false;
+					break;
+				}
+			}
+			if(!bValid)
+				break;
+			CvPlot const& cityPlot = *pCityTraded->plot();
+			// Can't trade an endangered city to a third party
+			if(!TEAMREF(eWhoTo).isAtWar(getTeam()) && cityPlot.isVisibleEnemyCityAttacker(getID()))
+				break;
+			if(cityPlot.calculateCulturePercent(eWhoTo) < GC.getCITY_TRADE_CULTURE_THRESH())
 				break;
 			// The BtS condition:
 			if ((!ourTeam.isAVassal() && !theirTeam.isVassal(getTeam())) ||
 					// Alternative condition:
 					(theirTeam.isVassal(getTeam()) &&
 					// Tile culture, not city culture.
-					cityPlot->getCulture(eWhoTo) > cityPlot->getCulture(getID()))) {
+					cityPlot.getCulture(eWhoTo) > cityPlot.getCulture(getID()))) {
 				return true;
 			} // </advc.122>
 		}
@@ -20046,8 +20054,9 @@ EventTriggeredData* CvPlayer::initTriggeredData(EventTriggerTypes eEventTrigger,
 		if (NO_PLAYER == eOtherPlayer)
 		{
 			for (int i = 0; i < MAX_CIV_PLAYERS; i++)
-			{
-				if (GET_PLAYER((PlayerTypes)i).canTrigger(eEventTrigger, getID(), eReligion))
+			{	// advc.001: (from the RFC:DoC mod)
+				if (!GET_PLAYER((PlayerTypes)i).isMinorCiv() && 
+						GET_PLAYER((PlayerTypes)i).canTrigger(eEventTrigger, getID(), eReligion))
 				{
 					if (kTrigger.isPickOtherPlayerCity())
 					{
@@ -24161,12 +24170,15 @@ void CvPlayer::updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 			if (!::atWar(getTeam(), GET_PLAYER(eOtherPlayer).getTeam())) // K-Mod
 			{
 				for (CLLNode<TradeData>* pNode = ourInventory.head(); pNode != NULL; pNode = ourInventory.next(pNode))
-				{
-					if (pFirstOffer->m_data.m_eItemType == TRADE_CITIES || pNode->m_data.m_eItemType == TRADE_CITIES)
+				{	// advc.122: Allow cities to be bought
+					/*if (pFirstOffer->m_data.m_eItemType == TRADE_CITIES || pNode->m_data.m_eItemType == TRADE_CITIES)
 					{
 						pNode->m_data.m_bHidden = true;
 					}
-					else if (CvDeal::isAnnual(pFirstOffer->m_data.m_eItemType) != CvDeal::isAnnual(pNode->m_data.m_eItemType))
+					else*/
+// advc.tmp:
+if(pFirstOffer->m_data.m_eItemType == TRADE_CITIES || pNode->m_data.m_eItemType == TRADE_CITIES) pNode->m_data.m_bHidden = true; else
+					if (CvDeal::isAnnual(pFirstOffer->m_data.m_eItemType) != CvDeal::isAnnual(pNode->m_data.m_eItemType))
 					{
 						pNode->m_data.m_bHidden = true;
 					}

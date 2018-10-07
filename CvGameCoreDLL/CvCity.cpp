@@ -16108,7 +16108,8 @@ PlayerTypes CvCity::getLiberationPlayer(bool bConquest) const
 		if (pCapital == NULL)
 			continue;
 
-		int iCapitalDistance = ::plotDistance(getX_INLINE(), getY_INLINE(), pCapital->getX_INLINE(), pCapital->getY_INLINE());
+		int iCapitalDistance = ::plotDistance(getX_INLINE(), getY_INLINE(),
+				pCapital->getX_INLINE(), pCapital->getY_INLINE());
 		if (area() != pCapital->area())
 		{
 			iCapitalDistance *= 2;
@@ -16127,12 +16128,14 @@ PlayerTypes CvCity::getLiberationPlayer(bool bConquest) const
 		}
 
 		if (kLoopPlayer.getTeam() == getTeam()
-			|| GET_TEAM(kLoopPlayer.getTeam()).isVassal(getTeam())
-			|| GET_TEAM(getTeam()).isVassal(kLoopPlayer.getTeam()))
+				|| GET_TEAM(kLoopPlayer.getTeam()).isVassal(getTeam())
+				|| GET_TEAM(getTeam()).isVassal(kLoopPlayer.getTeam()))
 		{
 			// K-Mod: I don't see why the total culture should be used in this way. (I haven't changed anything)
-			iCultureTimes100 *= 2;
-			iCultureTimes100 = (iCultureTimes100 + iTotalCultureTimes100) / 2;
+			/*iCultureTimes100 *= 2;
+			iCultureTimes100 = (iCultureTimes100 + iTotalCultureTimes100) / 2;*/
+			// advc.003: Simplified (no functional change)
+			iCultureTimes100 += iTotalCultureTimes100 / 2;
 		}
 
 		// K-Mod - adjust culture score based on plot ownership.

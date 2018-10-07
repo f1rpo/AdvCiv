@@ -399,6 +399,8 @@ bool WarAndPeaceAI::Team::reviewWarPlans() {
 	report->log("%s reviews its war plans", report->teamName(agentId));
 	set<TeamTypes> done; // Don't review these for a second time
 	bool planChanged = false;
+	bool allNaval = true, anyNaval = false;
+	bool allLand = true, anyLand = false;
 	do {
 		vector<PlanData> plans;
 		for(size_t i = 0; i < getWPAI._properTeams.size(); i++) {
@@ -431,6 +433,7 @@ bool WarAndPeaceAI::Team::reviewWarPlans() {
 		}
 		std::sort(plans.begin(), plans.end());
 		planChanged = false;
+
 		for(size_t i = 0; i < plans.size(); i++) {
 			planChanged = !reviewPlan(plans[i].id, plans[i].u, plans[i].t);
 			if(planChanged) {
@@ -439,24 +442,34 @@ bool WarAndPeaceAI::Team::reviewWarPlans() {
 					report->log("War plan against %s has changed, repeating review",
 							report->teamName(plans[i].id));
 				break;
+			} // Ignore isNaval if we're not sure about the war (low utility)
+			else if(plans[i].u > 5) {
+				if(plans[i].isNaval) {
+					anyNaval = true;
+					allLand = false;
+				}
+				else {
+					anyLand = true;
+					allNaval = false;
+				}
 			}
-			/*  As CvTeamAI::AI_updateAreaStrategies is called before
-				CvTeamAI::AI_doWar, this is going to be the last word on AreaAI.
-				Leave Area AI alone though if we're not even sure about the war
-				(low utility). */
-			else if(plans[i].u > 5)
-				alignAreaAI(plans[i].isNaval);
 		}
 	} while(planChanged);
+	/*  As CvTeamAI::AI_updateAreaStrategies is called before CvTeamAI::AI_doWar,
+		this is going to be the last word on AreaAI. */
+	if(allNaval && anyNaval)
+		alignAreaAI(true);
+	if(allLand && anyLand)
+		alignAreaAI(false);
 	return r;
 }
 
 void WarAndPeaceAI::Team::alignAreaAI(bool isNaval) {
 
-	/*  CvTeamAI::AI_calculateAreaAIType errs on the side of land war
-		(it decides based on WarAndPeaceAI::Team::isLandTarget), so if
-		isNaval is false, no action should be needed. */
-	if(!isNaval)
+	PROFILE_FUNC();
+	/*  Since isNaval refers to all team members alike, it's better to
+		trust the member-specific CvTeamAI in team games. */
+	if(members.size() > 1)
 		return;
 	for(size_t i = 0; i < members.size(); i++) {
 		CvPlayerAI const& member = GET_PLAYER(members[i]);
@@ -464,12 +477,49 @@ void WarAndPeaceAI::Team::alignAreaAI(bool isNaval) {
 		if(capital == NULL)
 			continue;
 		CvArea& a = *capital->area();
+		CvCity* targetCity = a.getTargetCity(member.getID());
+		if(isNaval && targetCity != NULL && (GET_TEAM(targetCity->getTeam()).
+				AI_isPrimaryArea(&a) || 3 * a.getCitiesPerPlayer(
+				targetCity->getOwnerINLINE()) > a.getCitiesPerPlayer(
+				member.getID()))) {
+			WarPlanTypes wp = GET_TEAM(agentId).AI_getWarPlan(targetCity->getTeam());
+			if(!isPushover(targetCity->getTeam()) || (wp != WARPLAN_TOTAL && wp != WARPLAN_PREPARING_TOTAL)) {
+				// Make sure there isn't an easily reachable target in the capital area
+				int d=-1;
+				WarAndPeaceCache::City::measureDistance(member.getID(), DOMAIN_LAND,
+						capital->plot(), targetCity->plot(), &d);
+				if(::round(d / WarAndPeaceCache::City::estimateMovementSpeed(
+						member.getID(), DOMAIN_LAND, d)) <= 8)
+					continue;
+			}
+		}
+		if(!isNaval) {
+			// Make sure some city can be attacked in the capital area
+			if(targetCity == NULL) {
+				// Target city is sometimes randomly set to NULL
+				targetCity = member.AI_findTargetCity(&a);
+			}
+			if(targetCity == NULL)
+				continue;
+			WarAndPeaceCache::City* c = member.warAndPeaceAI().getCache().
+					lookupCity(*targetCity);
+			if(c == NULL || !c->canReachByLand())
+				continue;
+		}
 		AreaAITypes oldAAI = a.getAreaAIType(agentId);
 		AreaAITypes newAAI = oldAAI;
-		if(oldAAI == AREAAI_MASSING)
-			newAAI = AREAAI_ASSAULT_MASSING;
-		else if(oldAAI == AREAAI_OFFENSIVE)
-			newAAI = AREAAI_ASSAULT;
+		if(isNaval) {
+			if(oldAAI == AREAAI_MASSING)
+				newAAI = AREAAI_ASSAULT_MASSING;
+			else if(oldAAI == AREAAI_OFFENSIVE)
+				newAAI = AREAAI_ASSAULT;
+		}
+		else {
+			if(oldAAI == AREAAI_ASSAULT_MASSING)
+				newAAI = AREAAI_MASSING;
+			else if(oldAAI == AREAAI_ASSAULT)
+				newAAI = AREAAI_OFFENSIVE;
+		}
 		a.setAreaAIType(agentId, newAAI);
 	}
 }
@@ -594,29 +644,30 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 		if(!human) {
 			for(size_t i = 0; i < getWPAI._properTeams.size(); i++) {
 				TeamTypes otherId = getWPAI._properTeams[i];
-				if(agent.AI_isSneakAttackReady(otherId)) {
-					report->log("Considering peace with %s to focus on"
-							" imminent war against %s; evaluating two-front war:",
-							report->teamName(targetId), report->teamName(otherId));
-					WarEvalParameters params(agentId, otherId, *report, true);
-					params.addExtraTarget(targetId);
-					/*  We're sure that we want to attack otherId. Only consider
-						peace with the ExtraTarget. */
-					params.setNotConsideringPeace();
-					WarEvaluator eval(params);
-					/*  Check both limited and total war instead of agent
-						.AI_getWarPlan(otherId) in order to avoid a preference for
-						the two-front case on account of greater military build-up. */
-					int uLim = eval.evaluate(WARPLAN_LIMITED, 0) -
-							GC.getUWAI_MULTI_WAR_RELUCTANCE();
-					int uTot = eval.evaluate(WARPLAN_TOTAL, 0) -
-							GC.getUWAI_MULTI_WAR_RELUCTANCE();
-					u = std::min(uLim, uTot);
-					// Tbd.: If the war plan against otherId is TOTAL
-					report->log("Utility of a two-front war compared with a war "
-							"only against %s: %d", report->teamName(otherId), u);
-					break; // Only one war can be imminent at a time
-				}
+				if(GET_TEAM(otherId).isAVassal() ||
+						!agent.AI_isSneakAttackReady(otherId))
+					continue;
+				report->log("Considering peace with %s to focus on"
+						" imminent war against %s; evaluating two-front war:",
+						report->teamName(targetId), report->teamName(otherId));
+				WarEvalParameters params(agentId, otherId, *report, true);
+				params.addExtraTarget(targetId);
+				/*  We're sure that we want to attack otherId. Only consider
+					peace with the ExtraTarget. */
+				params.setNotConsideringPeace();
+				WarEvaluator eval(params);
+				/*  Check both limited and total war instead of agent
+					.AI_getWarPlan(otherId) in order to avoid a preference for
+					the two-front case on account of greater military build-up. */
+				int uLim = eval.evaluate(WARPLAN_LIMITED, 0) -
+						GC.getUWAI_MULTI_WAR_RELUCTANCE();
+				int uTot = eval.evaluate(WARPLAN_TOTAL, 0) -
+						GC.getUWAI_MULTI_WAR_RELUCTANCE();
+				u = std::min(uLim, uTot);
+				// Tbd.: If the war plan against otherId is TOTAL
+				report->log("Utility of a two-front war compared with a war "
+						"only against %s: %d", report->teamName(otherId), u);
+				break; // Only one war can be imminent at a time
 			}
 		}
 		if(u >= peaceThresh) {

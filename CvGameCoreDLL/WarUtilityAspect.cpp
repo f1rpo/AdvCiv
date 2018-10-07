@@ -20,6 +20,7 @@ WarUtilityAspect::WarUtilityAspect(WarEvalParameters& params) :
 	properTeams(getWPAI.properTeams()), properCivs(getWPAI.properCivs()),
 	report(params.getReport()) {
 
+	gameEra = GC.getGameINLINE().getCurrentEra();
 	u = 0;
 	// In case a sub-class tries to access these before 'evaluate' is called
 	reset();
@@ -634,7 +635,7 @@ double GreedForAssets::defensibilityCost() {
 	freeCitiesPerArea();
 	CvGame const& g = GC.getGameINLINE();
 	if(ourDist > 5 && !g.isOption(GAMEOPTION_NO_BARBARIANS) &&
-			g.getCurrentEra() < 2) {
+			gameEra < 2) {
 		double barbThreat = 1;
 		if(g.isOption(GAMEOPTION_RAGING_BARBARIANS))
 			barbThreat *= 1.5;
@@ -1096,15 +1097,19 @@ void MilitaryVictory::evaluate() {
 	double maxProgress = -1;
 	/*  The distinction between stage 3 and 4 is too coarse to be useful; treat
 		them the same way. */
-	if(we->AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3 | AI_VICTORY_CONQUEST4)) {
+	if(we->AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST2)) {
 		double prgr = ::dRange(progressRatingConquest(), 0.0, 1.0);
+		if(!we->AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3))
+			prgr /= 1.5;
 		if(prgr > maxProgress)
 			maxProgress = prgr;
 		progressRating += prgr;
 		nVictories++;
 	}
-	if(we->AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3 | AI_VICTORY_DOMINATION4)) {
+	if(we->AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION2)) {
 		double prgr = ::dRange(progressRatingDomination(), 0.0, 1.0);
+		if(!we->AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3))
+			prgr /= 1.5;
 		if(prgr > maxProgress)
 			maxProgress = prgr;
 		progressRating += prgr;
@@ -2010,10 +2015,7 @@ KingMaking::KingMaking(WarEvalParameters& params)
 
 int KingMaking::preEvaluate() {
 
-	/*  Never too early to think about winning, but need to reduce the frequency
-		of very early wars. */
-	if(GC.getGameINLINE().getCurrentEra() <= GC.getGameINLINE().getStartEra() &&
-			we->getCurrentEra() < 3)
+	if(gameEra <= GC.getGameINLINE().getStartEra())
 		return 0;
 	/*  Three classes of civs; all in the best non-empty category are likely
 		winners in our book. */
@@ -2046,7 +2048,7 @@ int KingMaking::preEvaluate() {
 			agent.AI_isChosenWar(params.targetId()) ||
 			!agent.AI_isAvoidWar(params.targetId()))) {
 		log("We'll be the only winners");
-		return 45;
+		return we->getCurrentEra() * 9;
 	}
 	return 0;
 }
@@ -2080,7 +2082,7 @@ void KingMaking::addLeadingCivs(set<PlayerTypes>& r, double margin,
 
 void KingMaking::evaluate() {
 
-	if(winning.empty() || winning.count(theyId) <= 0)
+	if(gameEra <= 0 || winning.empty() || winning.count(theyId) <= 0)
 		return;
 	// Vassals are assumed to be out of contention
 	if(TEAMREF(theyId).isAVassal())
@@ -2106,7 +2108,7 @@ void KingMaking::evaluate() {
 	double caughtUpBonus = 0;
 	set<PlayerTypes> presentWinners;
 	addLeadingCivs(presentWinners, scoreMargin, false);
-	double catchUpVal = 24.0 / std::pow((double)winning.size(), 0.75);
+	double catchUpVal = std::pow((16.0 * gameEra) / winning.size(), 0.75);
 	catchUpVal *= std::pow((1 + weAI->amortizationMultiplier()) / 2, 2);
 	if(winning.count(weId) > 0) {
 		winningRivals--;
@@ -2154,7 +2156,8 @@ void KingMaking::evaluate() {
 		}
 		double weight = 5; // So that 25% loss correspond to 125 utility
 		// We're a bit less worried about helping them indirectly
-		if(uPlus < 0) weight = 3.5;
+		if(uPlus < 0)
+			weight = 3.5;
 		uPlus *= 100 * weight;
 		log("%d base utility for change in asset ratio", ::round(uPlus));
 	}
@@ -2317,8 +2320,13 @@ int Effort::preEvaluate() {
 		upgrade soon if we didn't lose them. */
 	double futureUse = ::dRange(highestRivalPower / (ourPower + 0.01), 0.35, 1.65) /
 			2.6; // Division by 2.2 means survivors can be valued up to 75%; 2.75: 60%
-	if(!we->isHuman())
-		futureUse = std::pow(futureUse, 0.75); // sqrt would be a bit much
+	bool bHuman = we->isHuman();
+	futureUse = std::pow(futureUse, bHuman ? 0.9 : 0.74); // sqrt would be a bit much
+	if(!bHuman) {
+		futureUse += std::max(0.0, GC.getLeaderHeadInfo(we->getPersonalityType()).
+				// I.e. add between 3 (Gandhi) and 8 (Ragnar) percentage points
+				getBuildUnitProb() / 500.0);
+	}
 	/*  If we're at peace, units trained are apparently deemed useful by CvCityAI;
 		we still shouldn't assume that they'll _certainly_ be useful. */
 	/*bool anyWar = false;
@@ -2516,22 +2524,18 @@ void IllWill::evaluate() {
 	// We can't trade with our war enemies
 	evalLostPartner();
 	bool endNigh = agent.AI_isAnyMemberDoVictoryStrategyLevel4() ||
-			TEAMREF(theyId).AI_isAnyMemberDoVictoryStrategyLevel4();
-	// Reasons we might not care about diplo effects
-	if(!agent.isAVassal() && !TEAMREF(theyId).isAVassal() &&
+				TEAMREF(theyId).AI_isAnyMemberDoVictoryStrategyLevel4();
+	if((!endNigh && !agent.isAVassal() && !TEAMREF(theyId).isAVassal()) ||
+			we->AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY4) ||
+			they->AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY4)) {
+		// Civs (our potential partners) don't like when we attack their (other) partners
+		evalAngeredPartners();
+	}
+	if(!endNigh && !agent.isAVassal() && !TEAMREF(theyId).isAVassal() &&
 			!m->hasCapitulated(agentId) && !m->isEliminated(weId) &&
-			!m->hasCapitulated(TEAMID(theyId)) && !m->isEliminated(theyId) &&
-			towardsUs > ATTITUDE_FURIOUS && // Lost cause
-			towardsThem > ATTITUDE_FURIOUS) { // We don't even want to appease them
-		if(!endNigh) {
-			// Ill will from war makes them more likely to attack us in the future
-			evalRevenge();
-		}
-		if(!endNigh || we->AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY4) ||
-				they->AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY4)) {
-			// Civs (our potential partners) don't like when we attack their (other) partners
-			evalAngeredPartners();
-		}
+			!m->hasCapitulated(TEAMID(theyId)) && !m->isEliminated(theyId)) {
+		// Ill will from war makes them more likely to attack us in the future
+		evalRevenge();
 	}
 	double nc = 0;
 	// Fired but intercepted nukes don't cause bad diplo
@@ -2665,10 +2669,13 @@ void IllWill::evalRevenge() {
 	double revengeCost = 0;
 	/*  Even if they're not a major threat, they may well cause us some inconvenience,
 		in particular, as part of a coalition. */
-	if(powRatio > 0.7) revengeCost += 4;
+	if(powRatio > 0.7)
+		revengeCost += 4;
 	powRatio = ::dRange(powRatio - 1, 0.0, 1.0);
 	double attitudeMultiplier = 1;
-	if(towardsUs == ATTITUDE_ANNOYED)
+	if(towardsUs <= ATTITUDE_FURIOUS)
+		attitudeMultiplier = 0.2;
+	else if(towardsUs == ATTITUDE_ANNOYED)
 		attitudeMultiplier = 0.5;
 	else if(towardsUs == ATTITUDE_CAUTIOUS)
 		attitudeMultiplier = 0.85;
@@ -2720,6 +2727,9 @@ void IllWill::evalAngeredPartners() {
 		mostly about trading, and trading becomes less relevant in the lategame. */
 	double diploWeight = 1 + (weAI->diploWeight() - 1) *
 			weAI->amortizationMultiplier();
+	// The bad diplo hurts us, but our anger at theyId is difficult to contain.
+	if(towardsThem <= ATTITUDE_FURIOUS)
+		diploWeight /= 2;
 	/*  We've actually one partner less b/c we're considering alternatives to a
 		partner that (probably) isn't counted by preEvaluate as hostile. */
 	uMinus += costPerPenalty * penalties * diploWeight * altPartnerFactor;
@@ -3041,7 +3051,7 @@ void Revolts::evaluate() {
 		for(CvCity* c = we->firstCity(&bar); c != NULL; c = we->nextCity(&bar)) {
 			if(c->area()->getID() != a->getID())
 				continue;
-			City* cacheCity = ourCache->lookupCity(c->plotNum());
+			City* cacheCity = ourCache->lookupCity(*c);
 			// Count each city only once
 			if(cacheCity == NULL || countedCities.count(c->plotNum()) > 0)
 				continue;
@@ -3234,10 +3244,10 @@ void FairPlay::evaluate() {
 	/*  All bets off by turn 100, but, already by turn 50, the cost may
 		no longer be prohibitive. */
 	double uMinus = std::pow((100 - t) / 2.0, 1.28);
-	if(g.getCurrentEra() > 0) // The above only matters in the Ancient era
+	if(gameEra > 0) // The above only matters in the Ancient era
 		uMinus = 0;
 	// ... but dogpiling remains an issue in the Classical era
-	if(g.getCurrentEra() > 1)
+	if(gameEra > 1)
 		return;
 	// Don't dogpile when human has lost cities in the early game
 	int citiesBuilt = they->getPlayerRecord()->getNumCitiesBuilt();
