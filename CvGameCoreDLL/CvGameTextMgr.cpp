@@ -14729,7 +14729,7 @@ void CvGameTextMgr::getTradeString(CvWStringBuffer& szBuffer, const TradeData& t
 	case TRADE_PEACE_TREATY:
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_PEACE_TREATY",
 				// <advc.004w>
-				(turnsToCancel < 0 ? GC.getDefineINT("PEACE_TREATY_LENGTH") :
+				(turnsToCancel < 0 ? GC.getPEACE_TREATY_LENGTH() :
 				turnsToCancel))); // </advc.004w>
 		break;
 	case TRADE_TECHNOLOGIES:
@@ -15610,8 +15610,9 @@ void CvGameTextMgr::parseWarTradesHelp(CvWStringBuffer& szBuffer,
 	/*  Same checks as in getAttitudeText (AttitudeUtil.py), which displays
 		the fist icon. */
 	PlayerTypes activeId = GC.getGame().getActivePlayer();
-	if(eOtherPlayer == activeId || eOtherPlayer == NO_PLAYER ||
-			eThisPlayer == eOtherPlayer || eThisPlayer == NO_PLAYER ||
+	if(TEAMID(eOtherPlayer) == TEAMID(activeId) ||
+			eOtherPlayer == NO_PLAYER || TEAMID(eThisPlayer) == TEAMID(activeId) ||
+			TEAMID(eThisPlayer) == TEAMID(eOtherPlayer) || eThisPlayer == NO_PLAYER ||
 			TEAMREF(eThisPlayer).isAtWar(TEAMID(eOtherPlayer)))
 		return;
 	if(TEAMREF(eThisPlayer).AI_declareWarTrade(TEAMID(eOtherPlayer),
@@ -18507,7 +18508,7 @@ void CvGameTextMgr::getTurnTimerText(CvWString& strText)
 				}
 			}
 
-			if (GC.getGameINLINE().isOption(GAMEOPTION_ADVANCED_START) && !GC.getGameINLINE().isOption(GAMEOPTION_ALWAYS_WAR) && GC.getGameINLINE().getElapsedGameTurns() <= GC.getDefineINT("PEACE_TREATY_LENGTH")
+			if (GC.getGameINLINE().isOption(GAMEOPTION_ADVANCED_START) && !GC.getGameINLINE().isOption(GAMEOPTION_ALWAYS_WAR) && GC.getGameINLINE().getElapsedGameTurns() <= GC.getPEACE_TREATY_LENGTH()
 				/*  advc.250b: No need to (constantly) remind human of
 					"universal" peace when the AI civs have big headstarts. */
 				&& !GC.getGameINLINE().isOption(GAMEOPTION_SPAH)
@@ -18518,7 +18519,7 @@ void CvGameTextMgr::getTurnTimerText(CvWString& strText)
 					strText += L" -- ";
 				}
 
-				strText += gDLL->getText("TXT_KEY_MISC_ADVANCED_START_PEACE_REMAINING", GC.getDefineINT("PEACE_TREATY_LENGTH") - GC.getGameINLINE().getElapsedGameTurns());
+				strText += gDLL->getText("TXT_KEY_MISC_ADVANCED_START_PEACE_REMAINING", GC.getPEACE_TREATY_LENGTH() - GC.getGameINLINE().getElapsedGameTurns());
 			}
 			else if (iMinVictoryTurns < MAX_INT)
 			{
@@ -18752,7 +18753,7 @@ void CvGameTextMgr::getCityDataForAS(std::vector<CvWBData>& mapCityList, std::ve
 
 		if (eBuilding != NO_BUILDING)
 		{
-			if (GC.getBuildingInfo(eBuilding).getFreeStartEra() == NO_ERA || GC.getGameINLINE().getStartEra() < GC.getBuildingInfo(eBuilding).getFreeStartEra())
+			if(!GC.getGameINLINE().isFreeStartEraBuilding(eBuilding)) // advc.003
 			{
 				// Building cost -1 denotes unit which may not be purchased
 				iCost = kActivePlayer.getAdvancedStartBuildingCost(eBuilding, true);

@@ -3453,14 +3453,13 @@ int CvTeamAI::AI_getEnemyPowerPercent( bool bConsiderOthers ) const
 					t.getAtWarCount(true, true) : 1));
 			iEnemyPower += iTempPower;
 		}
-		else if(AI_isChosenWar(t.getID()) &&
+		else if(AI_isChosenWar(t.getID()) && // Haven't declared war yet
 				!t.isAVassal()) { /*  advc.104j: getDefensivePower counts those already.
 				If planning war against multiple civs, DP allies could also be
 				double counted (fixme). Could collect the war enemies in a std::set
 				in a first pass; though it sucks to implement the vassal/DP logic
 				multiple times (already in getDefensivePower and MilitaryAnalyst).
 				Also, the computation for bConsiderOthers above can be way off. */
-			// Haven't declared war yet
 			int iTempPower = 240 * t.getDefensivePower(getID());
 			iTempPower /= (AI_hasCitiesInPrimaryArea(t.getID()) ? 2 : 3);
 			iTempPower /= 1 + (bConsiderOthers ? t.getAtWarCount(true, true) : 0);

@@ -634,10 +634,10 @@ class CvEspionageAdvisor:
 			if (inputClass.getFunctionName() == self.DEBUG_DROPDOWN_ID):
 				iIndex = screen.getSelectedPullDownID(self.DEBUG_DROPDOWN_ID)
 				self.iActivePlayer = screen.getPullDownData(self.DEBUG_DROPDOWN_ID, iIndex)
-				self.iTargetPlayer = -1 # advc.001
+				self.iTargetPlayer = -1 # advc.001d
 				self.drawContents()
 				CyInterface().setDirty(InterfaceDirtyBits.Espionage_Advisor_DIRTY_BIT, True)
-		# advc.001: Moved from above the Debug menu
+		# advc.001d: Moved from above the Debug menu
 		pActivePlayer = gc.getPlayer(self.iActivePlayer)
 
 		if (self.iTargetPlayer != -1):

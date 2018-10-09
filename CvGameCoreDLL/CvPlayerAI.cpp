@@ -2182,9 +2182,8 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)
 					continue;
 				if (pLoopPlot->getBonusType(getTeam()) != NO_BONUS)
 				{
-					iRazeValue -= std::max(3, // advc.116: was 2
-							AI_bonusVal(pLoopPlot->
-							getBonusType(getTeam()), 1, true)
+					iRazeValue -= std::max(2, AI_bonusVal(pLoopPlot->getBonusType(
+							getTeam()), 1, true)
 							); ///2); // advc.116: Don't halve the bonus value
 				}
 
@@ -12717,7 +12716,7 @@ void CvPlayerAI::foldDeals(CvDeal& d1, CvDeal& d2) const {
 			&give1, &give2, true);
 	// Allow new deal to be canceled right away?
 	/*newDeal->setInitialGameTurn(g.getGameTurn() -
-			GC.getDefineINT("PEACE_TREATY_LENGTH"));*/
+			GC.getPEACE_TREATY_LENGTH());*/
 } // </advc.036>
 
 
@@ -12726,7 +12725,7 @@ int CvPlayerAI::AI_maxGoldPerTurnTrade(PlayerTypes ePlayer) const {
 	FAssert(ePlayer != getID()); // advc.003: Some refactoring in this function
 	/*if (isHuman() || (GET_PLAYER(ePlayer).getTeam() == getTeam()))
 	{
-		iMaxGoldPerTurn = (calculateGoldRate() + (getGold() / GC.getDefineINT("PEACE_TREATY_LENGTH")));
+		iMaxGoldPerTurn = (calculateGoldRate() + (getGold() / GC.getPEACE_TREATY_LENGTH()));
 	}*/
 	// <advc.036>
 	// Replacing the above:
@@ -12743,7 +12742,10 @@ int CvPlayerAI::AI_maxGoldPerTurnTrade(PlayerTypes ePlayer) const {
 			calculateInflatedCosts()) / 3;
 	// Included in AvailableIncome, but don't want to divide it by 3.
 	availableGold += getGoldPerTurn();
-	availableGold = std::max(calculateGoldRate(), availableGold); // </advc.036>
+	int iGoldRate = calculateGoldRate();
+	availableGold = std::max(std::min(iGoldRate, iGoldRate / 3 +
+			(getGold() / GC.getPEACE_TREATY_LENGTH())), availableGold);
+	// </advc.036>
 	//availableGold = calculateGoldRate(); // BtS behavior
 	// <advc.104w>
 	if(getWPAI.isEnabled() && TEAMREF(ePlayer).isAtWar(getTeam())) {
@@ -12768,7 +12770,7 @@ int CvPlayerAI::AI_maxGoldPerTurnTrade(PlayerTypes ePlayer) const {
 
 int CvPlayerAI::AI_goldPerTurnTradeVal(int iGoldPerTurn) const
 {
-	int iValue = iGoldPerTurn * GC.getDefineINT("PEACE_TREATY_LENGTH");
+	int iValue = iGoldPerTurn * GC.getPEACE_TREATY_LENGTH();
 	iValue *= AI_goldTradeValuePercent();
 	iValue /= 100;
 	
@@ -13500,7 +13502,6 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer,
 	r *= std::max(0, GC.getBonusInfo(eBonus).getAITradeModifier() + 100) / 100.0;
 	if(TEAMREF(ePlayer).isVassal(getTeam()) && !TEAMREF(ePlayer).isCapitulated())
 		r *= 0.67; // advc.037: 0.5 in BtS
-	int const treatyLength = GC.getDefineINT("PEACE_TREATY_LENGTH");
 	int ir = ::round(r);
 	/*  To make resource vs. resource trades more compatible. A multiple of 5
 		would lead to a rounding error when gold is paid for a resource b/c
@@ -13508,7 +13509,7 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer,
 	if(r >= 3 && !GET_TEAM(getTeam()).isGoldTrading() &&
 			!TEAMREF(ePlayer).isGoldTrading())
 		ir = ::roundToMultiple(ir, 4);
-	return ir * treatyLength;
+	return ir *  GC.getPEACE_TREATY_LENGTH();
 }  // </advc.036>
 
 DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
@@ -20161,6 +20162,84 @@ int CvPlayerAI::checkCancel(CvDeal const& d, PlayerTypes otherId, bool flip) {
 			return 1;
 	} // </advc.133>
 	return -1;
+}
+
+// Body cut and pasted from AI_doDiplo. Returns true iff otherId contacted.
+bool CvPlayerAI::doDeals(PlayerTypes otherId) {
+
+	bool r = false;
+	CvGame& g = GC.getGameINLINE(); int iLoop=-1;
+	for(CvDeal* pLoopDeal = g.firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = g.nextDeal(&iLoop))
+	{
+		if(!pLoopDeal->isCancelable(getID()))
+			continue;
+		// if ((g.getGameTurn() - pLoopDeal->getInitialGameTurn()) >= (GC.getPEACE_TREATY_LENGTH() * 2)) // K-Mod disabled
+		// (original bts code deleted)
+		/*  advc.003: Cancelation checks moved into a subfunction
+			to reduce code duplication */
+		// <advc.133>
+		int cancelCode1 = checkCancel(*pLoopDeal, otherId, false);
+		int cancelCode2 = checkCancel(*pLoopDeal, otherId, true);
+		if(cancelCode1 < 0 && cancelCode2 < 0)
+			continue;
+		bool renegotiate = ((cancelCode1 == 0 || cancelCode2 == 0) &&
+				/*  Canceled AI-human deals bring up the trade table anyway
+					(except when a trade becomes invalid); this is about AI-AI trades. */
+				!isHuman() && !GET_PLAYER(otherId).isHuman() &&
+				// The rest is covered by proposeResourceTrade
+				canContactAndTalk(otherId)); // </advc.133>
+		if (GET_PLAYER(otherId).isHuman() && canContactAndTalk(otherId))
+		{
+			CLinkList<TradeData> ourList;
+			CLinkList<TradeData> theirList;
+			bool bVassalDeal = pLoopDeal->isVassalDeal(); // K-Mod
+			CLLNode<TradeData>* pNode=NULL;
+			for (pNode = pLoopDeal->headFirstTradesNode(); pNode != NULL; pNode = pLoopDeal->nextFirstTradesNode(pNode))
+			{
+				if (pLoopDeal->getFirstPlayer() == getID())
+					ourList.insertAtEnd(pNode->m_data);
+				else theirList.insertAtEnd(pNode->m_data);
+			}
+			for (pNode = pLoopDeal->headSecondTradesNode(); pNode != NULL; pNode = pLoopDeal->nextSecondTradesNode(pNode))
+			{
+				if (pLoopDeal->getSecondPlayer() == getID())
+					ourList.insertAtEnd(pNode->m_data);
+				else theirList.insertAtEnd(pNode->m_data);
+			}
+			pLoopDeal->kill(); // K-Mod. Kill the old deal first.
+			CvDiploParameters* pDiplo = new CvDiploParameters(getID());
+			FAssert(pDiplo != NULL);
+
+			if (bVassalDeal)
+			{
+				pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString(
+						"AI_DIPLOCOMMENT_NO_VASSAL"));
+				pDiplo->setAIContact(true);
+				gDLL->beginDiplomacy(pDiplo, otherId);
+			}
+			else
+			{
+				pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString(
+						"AI_DIPLOCOMMENT_CANCEL_DEAL"));
+				pDiplo->setAIContact(true);
+				pDiplo->setOurOfferList(theirList);
+				pDiplo->setTheirOfferList(ourList);
+				gDLL->beginDiplomacy(pDiplo, otherId);
+			}
+			r = true;
+		}
+		// K-Mod.
+		else {
+			pLoopDeal->kill(); // K-Mod end
+			// <advc.133>
+			if(renegotiate)
+				r = (proposeResourceTrade(otherId) || r); // </advc.133>
+		}
+		//pLoopDeal->kill(); // XXX test this for AI...
+		/*  K-Mod. I've rearranged stuff so that we can kill the deal
+			before a diplomacy window. */
+	}
+	return r;
 } // </advc.003>
 
 // <advc.026>
@@ -20183,10 +20262,9 @@ bool CvPlayerAI::checkMaxGold(CLinkList<TradeData> const& items,
 void CvPlayerAI::AI_doDiplo()
 {
 	PROFILE_FUNC();
-
-	CLLNode<TradeData>* pNode;
 	CvDiploParameters* pDiplo;
-	CvDeal* pLoopDeal;
+	/*CLLNode<TradeData>* pNode; // advc.003: Moved into doDeals
+	CvDeal* pLoopDeal;*/
 	CvCity* pLoopCity;
 	CvPlot* pLoopPlot;
 	CLinkList<TradeData> ourList;
@@ -20264,75 +20342,7 @@ void CvPlayerAI::AI_doDiplo()
 				continue;
 			// </advc.706>
 			//if (GET_PLAYER((PlayerTypes)iI).getTeam() != getTeam()) // disabled by K-Mod
-			for(pLoopDeal = g.firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = g.nextDeal(&iLoop))
-			{
-				if(!pLoopDeal->isCancelable(getID()))
-					continue;
-				// if ((g.getGameTurn() - pLoopDeal->getInitialGameTurn()) >= (GC.getDefineINT("PEACE_TREATY_LENGTH") * 2)) // K-Mod disabled
-				// (original bts code deleted)
-				/*  advc.003: Cancelation checks moved into a subfunction
-					to reduce code duplication */
-				// <advc.133>
-				int cancelCode1 = checkCancel(*pLoopDeal, civId, false);
-				int cancelCode2 = checkCancel(*pLoopDeal, civId, true);
-				if(cancelCode1 < 0 && cancelCode2 < 0)
-					continue;
-				bool renegotiate = ((cancelCode1 == 0 || cancelCode2 == 0) &&
-						/*  Canceled AI-human deals bring up the trade table
-							anyway (except when a trade becomes invalid);
-							this is about AI-AI trades. */
-						!isHuman() && !GET_PLAYER(civId).isHuman() &&
-						// The rest is covered by proposeResourceTrade
-						canContactAndTalk(civId)); // </advc.133>
-				if (civ.isHuman() && canContactAndTalk(civId))
-				{
-					ourList.clear();
-					theirList.clear();
-					bool bVassalDeal = pLoopDeal->isVassalDeal(); // K-Mod
-
-					for (pNode = pLoopDeal->headFirstTradesNode(); pNode != NULL; pNode = pLoopDeal->nextFirstTradesNode(pNode))
-					{
-						if (pLoopDeal->getFirstPlayer() == getID())
-							ourList.insertAtEnd(pNode->m_data);
-						else theirList.insertAtEnd(pNode->m_data);
-					}
-					for (pNode = pLoopDeal->headSecondTradesNode(); pNode != NULL; pNode = pLoopDeal->nextSecondTradesNode(pNode))
-					{
-						if (pLoopDeal->getSecondPlayer() == getID())
-							ourList.insertAtEnd(pNode->m_data);
-						else theirList.insertAtEnd(pNode->m_data);
-					}
-					pLoopDeal->kill(); // K-Mod. Kill the old deal first.
-					pDiplo = new CvDiploParameters(getID());
-					FAssert(pDiplo != NULL);
-
-					if (bVassalDeal)
-					{
-						pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_NO_VASSAL"));
-						pDiplo->setAIContact(true);
-						gDLL->beginDiplomacy(pDiplo, civId);
-					}
-					else
-					{
-						pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_CANCEL_DEAL"));
-						pDiplo->setAIContact(true);
-						pDiplo->setOurOfferList(theirList);
-						pDiplo->setTheirOfferList(ourList);
-						gDLL->beginDiplomacy(pDiplo, civId);
-					}
-					abContacted[civ.getTeam()] = true;
-				}
-				// K-Mod.
-				else {
-					pLoopDeal->kill(); // K-Mod end
-					// <advc.133>
-					if(renegotiate)
-						proposeResourceTrade(civId); // </advc.133>
-				}
-				//pLoopDeal->kill(); // XXX test this for AI...
-				// K-Mod. I've rearranged stuff so that we can kill the deal before a diplomacy window.
-			}
-
+			abContacted[civId] = doDeals(civId); // advc.003
 			if(!canContactAndTalk(civId))
 				continue;
 			if(civ.getTeam() == getTeam() || TEAMREF(civId).isVassal(getTeam()))
@@ -21503,7 +21513,7 @@ bool CvPlayerAI::proposeJointWar(PlayerTypes humanId) {
 			continue;
 		// Avoid asking if they've recently made peace
 		double prSkip = 1 - (TEAMREF(humanId).AI_getAtPeaceCounter(targetId) -
-				GC.getDefineINT("PEACE_TREATY_LENGTH")) * 0.067;
+				GC.getPEACE_TREATY_LENGTH()) * 0.067;
 		if(::bernoulliSuccess(prSkip, "advc.130m (peace)"))
 			continue; // </advc.130m>
 		int targetVal = g.getSorenRandNum(10000, "AI Joining War");
@@ -22736,12 +22746,12 @@ int CvPlayerAI::AI_eventValue(EventTypes eEvent, const EventTriggeredData& kTrig
 			int iBonusValue = -AI_bonusVal((BonusTypes)kEvent.getBonusGift(), -1);
 			iBonusValue += (iOtherPlayerAttitudeWeight - 40) * kOtherPlayer.AI_bonusVal((BonusTypes)kEvent.getBonusGift(), +1);
 			//Positive for friends, negative for enemies.
-			iDiploValue += (iBonusValue * GC.getDefineINT("PEACE_TREATY_LENGTH")) / 60; */
+			iDiploValue += (iBonusValue * GC.getPEACE_TREATY_LENGTH()) / 60; */
 
 			// K-Mod. The original code undervalued our loss of bonus by a factor of 100.
-			iValue -= AI_bonusVal((BonusTypes)kEvent.getBonusGift(), -1) * GC.getDefineINT("PEACE_TREATY_LENGTH") / 4;
+			iValue -= AI_bonusVal((BonusTypes)kEvent.getBonusGift(), -1) * GC.getPEACE_TREATY_LENGTH() / 4;
 			int iGiftValue = kOtherPlayer.AI_bonusVal((BonusTypes)kEvent.getBonusGift(), +1) * (iOtherPlayerAttitudeWeight - 40) / 100;
-			iDiploValue += iGiftValue * GC.getDefineINT("PEACE_TREATY_LENGTH") / 4;
+			iDiploValue += iGiftValue * GC.getPEACE_TREATY_LENGTH() / 4;
 			// K-Mod end
 		}
 		

@@ -432,7 +432,6 @@ AttitudeTypes WarUtilityAspect::techRefuseThresh(PlayerTypes civId) {
 double WarUtilityAspect::partnerUtilFromTrade() {
 
 	CvGame& g = GC.getGameINLINE();
-	int const treatyLength = GC.getDefineINT("PEACE_TREATY_LENGTH");
 	double goldVal = 0;
 	int resourceTradeCount = 0;
 	double tradeValFromGold = 0;
@@ -482,8 +481,8 @@ double WarUtilityAspect::partnerUtilFromTrade() {
 			}
 		}
 		/*  AI_dealVal is supposed to be gold-per-turn, but seems a bit high for
-			that; hence divide by 1.5. Time horizon is ten turns (treatyLength). */
-		double dealVal = we->AI_dealVal(theyId, weReceive) / (1.5 * treatyLength);
+			that; hence divide by 1.5. Time horizon is ten turns (treaty length). */
+		double dealVal = we->AI_dealVal(theyId, weReceive) / (1.5 * GC.getPEACE_TREATY_LENGTH());
 		if(!weReceiveResource) {
 			int const maxTradeValFromGold = 40;
 			if(tradeValFromGold + dealVal > maxTradeValFromGold) {
@@ -2524,7 +2523,7 @@ void IllWill::evaluate() {
 	// We can't trade with our war enemies
 	evalLostPartner();
 	bool endNigh = agent.AI_isAnyMemberDoVictoryStrategyLevel4() ||
-				TEAMREF(theyId).AI_isAnyMemberDoVictoryStrategyLevel4();
+			TEAMREF(theyId).AI_isAnyMemberDoVictoryStrategyLevel4();
 	if((!endNigh && !agent.isAVassal() && !TEAMREF(theyId).isAVassal()) ||
 			we->AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY4) ||
 			they->AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY4)) {

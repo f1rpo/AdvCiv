@@ -1030,6 +1030,6 @@ int /*DenialTypes*/ CyTeam::AI_declareWarTrade(int /*TeamTypes*/ eWarTeam,
 		int /*TeamTypes*/ eTeam) const {
 
 	// Can't add AI_declareWarTrade to CvTeam
-	return m_pTeam ? dynamic_cast<CvTeamAI*>(m_pTeam)->AI_declareWarTrade(
+	return m_pTeam ? GET_TEAM(m_pTeam->getID()).AI_declareWarTrade(
 			(TeamTypes)eWarTeam, (TeamTypes)eTeam) : -1;
 } // </advc.152>

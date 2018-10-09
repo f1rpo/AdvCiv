@@ -1524,12 +1524,11 @@ void CvPlayer::initFreeState()
 
 
 void CvPlayer::initFreeUnits()
-{
-	UnitTypes eLoopUnit;
-	int iFreeCount;
-	int iI, iJ;
-	CvGame& g = GC.getGame(); // advc.003
-
+{	// <advc.003> Declarations moved
+	CvGame& g = GC.getGame();
+	int const iStartingUnitMultiplier = GC.getEraInfo(g.getStartEra()).
+			getStartingUnitMultiplier();
+	// </advc.003>
 	if (g.isOption(GAMEOPTION_ADVANCED_START) && !isBarbarian() &&
 			(!isHuman() || !g.isOption(GAMEOPTION_SPAH))) // advc.250b
 	{
@@ -1544,7 +1543,7 @@ void CvPlayer::initFreeUnits()
 			)
 		{	/*  advc.250b, advc.001: Was this->getHandicapType(), i.e. Noble, which
 				means that this code block did nothing. */
-			iPoints *= GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIAdvancedStartPercent();
+			iPoints *= GC.getHandicapInfo(g.getHandicapType()).getAIAdvancedStartPercent();
 			iPoints /= 100;
 		}
 		/*  <advc.250c> Civs in Advanced Start can place a city even if they don't
@@ -1567,51 +1566,49 @@ void CvPlayer::initFreeUnits()
 		}
 	}
 	else
-	{
-		for (iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
+	{	// advc.003:
+		CvCivilizationInfo const& ci = GC.getCivilizationInfo(getCivilizationType());
+		for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
 		{
-			eLoopUnit = (UnitTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(iI);
-
+			UnitTypes eLoopUnit = (UnitTypes)ci.getCivilizationUnits(iI);
+			
 			if (eLoopUnit != NO_UNIT)
 			{
-				iFreeCount = GC.getCivilizationInfo(getCivilizationType()).getCivilizationFreeUnitsClass(iI);
-
-				iFreeCount *= (GC.getEraInfo(g.getStartEra()).getStartingUnitMultiplier() + ((!isHuman()) ? GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIStartingUnitMultiplier() : 0));
-
-				for (iJ = 0; iJ < iFreeCount; iJ++)
-				{
+				int iFreeCount = ci.getCivilizationFreeUnitsClass(iI);
+				iFreeCount *= (iStartingUnitMultiplier + (!isHuman() ?
+						GC.getHandicapInfo(g.getHandicapType()).
+						getAIStartingUnitMultiplier() : 0));
+				for (int iJ = 0; iJ < iFreeCount; iJ++)
 					addFreeUnit(eLoopUnit);
-				}
 			}
 		}
-
-		iFreeCount = GC.getEraInfo(GC.getGameINLINE().getStartEra()).getStartingDefenseUnits();
+		int iFreeCount = GC.getEraInfo(g.getStartEra()).getStartingDefenseUnits();
 		iFreeCount += GC.getHandicapInfo(getHandicapType()).getStartingDefenseUnits();
 		// <advc.126>
 		CvHandicapInfo& h = GC.getHandicapInfo(g.getHandicapType());
-		int freeAIDefenders = 0;
+		int iFreeAIDefenders = 0;
 		// </advc.126>
 		if (!isHuman())
 		{   // <advc.126>
-			freeAIDefenders = h.getAIStartingDefenseUnits();
-			if(freeAIDefenders > 0) freeAIDefenders += g.getStartEra();
-			iFreeCount += freeAIDefenders;
+			iFreeAIDefenders = h.getAIStartingDefenseUnits();
+			if(iFreeAIDefenders > 0)
+				iFreeAIDefenders += g.getStartEra();
+			iFreeCount += iFreeAIDefenders;
 			// <advc.126>
 		}
 
-		if (iFreeCount > 0)
-		{
+		if(iFreeCount > 0)
 			addFreeUnitAI(UNITAI_CITY_DEFENSE, iFreeCount);
-		}
 
 		iFreeCount = GC.getEraInfo(g.getStartEra()).getStartingWorkerUnits();
 		iFreeCount += GC.getHandicapInfo(getHandicapType()).getStartingWorkerUnits();
 
 		if (!isHuman())
 		{   // <advc.126>
-			int freeAIWorkers = h.getAIStartingWorkerUnits();
-			if(freeAIWorkers > 0) freeAIWorkers += g.getStartEra() / 2;
-			iFreeCount += freeAIWorkers;
+			int iFreeAIWorkers = h.getAIStartingWorkerUnits();
+			if(iFreeAIWorkers > 0)
+				iFreeAIWorkers += g.getStartEra() / 2;
+			iFreeCount += iFreeAIWorkers;
 			// <advc.126>
 		}
 
@@ -1625,11 +1622,12 @@ void CvPlayer::initFreeUnits()
 
 		if (!isHuman())
 		{   // <advc.126>
-			int freeAIExplorers = h.getAIStartingExploreUnits();
+			int iFreeAIExplorers = h.getAIStartingExploreUnits();
 			/*  Need at least one addl. when starting in Classical era or later
 				b/c the AI doesn't use its free defenders for exploration. */
-			if(freeAIDefenders > 0) freeAIExplorers += (g.getStartEra() + 2)  / 3;
-			iFreeCount += freeAIExplorers;
+			if(iFreeAIDefenders > 0)
+				iFreeAIExplorers += (g.getStartEra() + 2)  / 3;
+			iFreeCount += iFreeAIExplorers;
 			// <advc.126>
 		}
 
@@ -4936,7 +4934,8 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 		if (pCity != NULL)
 		{
 			pCity->area()->setTargetCity(getID(), pCity);
-			GET_PLAYER(getID()).AI_setCityTargetTimer(GC.getDefineINT("PEACE_TREATY_LENGTH")); // K-Mod. (I'd make it a virtual function, but that causes problems.)
+			// K-Mod. (I'd make it a virtual function, but that causes problems.)
+			GET_PLAYER(getID()).AI_setCityTargetTimer(GC.getPEACE_TREATY_LENGTH());
 		}
 		break;
 	// K-Mod
@@ -6676,15 +6675,12 @@ void CvPlayer::found(int iX, int iY)
 		eLoopBuilding = ((BuildingTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(iI)));
 
 		if (eLoopBuilding != NO_BUILDING)
-		{
-			if (GC.getBuildingInfo(eLoopBuilding).getFreeStartEra() != NO_ERA)
+		{	// advc.003:
+			if(GC.getGameINLINE().isFreeStartEraBuilding(eLoopBuilding))
 			{
-				if (GC.getGameINLINE().getStartEra() >= GC.getBuildingInfo(eLoopBuilding).getFreeStartEra())
+				if (pCity->canConstruct(eLoopBuilding))
 				{
-					if (pCity->canConstruct(eLoopBuilding))
-					{
-						pCity->setNumRealBuilding(eLoopBuilding, 1);
-					}
+					pCity->setNumRealBuilding(eLoopBuilding, 1);
 				}
 			}
 		}
@@ -8308,12 +8304,8 @@ int CvPlayer::calculateGoldRate() const
 
 	return iRate; */
 	// K-Mod. (Just moved from calculateBaseNetGold.)
-	int iNetGold;
-
-	iNetGold = (getCommerceRate(COMMERCE_GOLD) + getGoldPerTurn());
-
+	int iNetGold = getCommerceRate(COMMERCE_GOLD) + getGoldPerTurn();
 	iNetGold -= calculateInflatedCosts();
-
 	return iNetGold;
 	// K-Mod end
 }
@@ -9476,26 +9468,27 @@ int CvPlayer::greatPeopleThreshold(bool bMilitary) const
 
 	if (bMilitary)
 	{
-		iThreshold = ((GC.getDefineINT("GREAT_GENERALS_THRESHOLD") * std::max(0, (getGreatGeneralsThresholdModifier() + 100))) / 100);
+		iThreshold = ((GC.getDefineINT("GREAT_GENERALS_THRESHOLD") *
+				std::max(0, (getGreatGeneralsThresholdModifier() + 100))) / 100);
 	}
 	else
 	{
-		iThreshold = ((GC.getDefineINT("GREAT_PEOPLE_THRESHOLD") * std::max(0, (getGreatPeopleThresholdModifier() + 100))) / 100);
+		iThreshold = ((GC.getDefineINT("GREAT_PEOPLE_THRESHOLD") *
+				std::max(0, (getGreatPeopleThresholdModifier() + 100))) / 100);
 	}
-
-	iThreshold *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getGreatPeoplePercent();
+	CvGame const& g = GC.getGameINLINE(); // advc.003
+	iThreshold *= GC.getGameSpeedInfo(g.getGameSpeedType()).getGreatPeoplePercent();
 	if (bMilitary)
 	{
-		iThreshold /= std::max(1, GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getTrainPercent());
+		iThreshold /= std::max(1, GC.getGameSpeedInfo(g.getGameSpeedType()).getTrainPercent());
 	}
 	else
 	{
 		iThreshold /= 100;
 	}
 
-	iThreshold *= GC.getEraInfo(GC.getGameINLINE().getStartEra()).getGreatPeoplePercent();
+	iThreshold *= GC.getEraInfo(g.getStartEra()).getGreatPeoplePercent();
 	iThreshold /= 100;
-
 
 	return std::max(1, iThreshold);
 }
@@ -15273,7 +15266,13 @@ void CvPlayer::doGold()
 
 	iGoldChange = calculateGoldRate();
 
-	FAssert(isHuman() || isBarbarian() || ((getGold() + iGoldChange) >= 0) || isAnarchy());
+	//FAssert(isHuman() || isBarbarian() || ((getGold() + iGoldChange) >= 0) || isAnarchy());
+	// <advc.133> I don't think anarchy should lead to negative gold
+	if(getGold() + iGoldChange < 0 && !isHuman() && !isBarbarian()) {
+		FAssert(getGold() + iGoldChange >= 0);
+		/* Can't rule out that an AI civ goes broke. Should uncancelable deals
+			be force-canceled then? No change so far ... (AI goes into strike) */
+	} // </advc.133>
 
 	changeGold(iGoldChange);
 
@@ -15283,7 +15282,7 @@ void CvPlayer::doGold()
 	{
 		setGold(0);
 
-		if (!isBarbarian() && (getNumCities() > 0))
+		if (!isBarbarian() && getNumCities() > 0)
 		{
 			bStrike = true;
 		}
@@ -17655,7 +17654,7 @@ int CvPlayer::getAdvancedStartBuildingCost(BuildingTypes eBuilding, bool bAdd, C
 		return -1;
 	}
 
-	if (GC.getBuildingInfo(eBuilding).getFreeStartEra() != NO_ERA && GC.getGameINLINE().getStartEra() >=  GC.getBuildingInfo(eBuilding).getFreeStartEra())
+	if (GC.getGameINLINE().isFreeStartEraBuilding(eBuilding)) // advc.003
 	{
 		// you get this building for free
 		return -1;
@@ -19378,7 +19377,8 @@ void CvPlayer::write(FDataStreamBase* pStream)
 	pStream->Write(m_iInflationModifier);
 }
 
-void CvPlayer::createGreatPeople(UnitTypes eGreatPersonUnit, bool bIncrementThreshold, bool bIncrementExperience, int iX, int iY)
+void CvPlayer::createGreatPeople(UnitTypes eGreatPersonUnit,
+		bool bIncrementThreshold, bool bIncrementExperience, int iX, int iY)
 {
 	CvPlot* pPlot = GC.getMapINLINE().plot(iX, iY);
 	if (pPlot == NULL)
@@ -19398,13 +19398,17 @@ void CvPlayer::createGreatPeople(UnitTypes eGreatPersonUnit, bool bIncrementThre
 	{
 		incrementGreatPeopleCreated();
 
-		changeGreatPeopleThresholdModifier(GC.getDefineINT("GREAT_PEOPLE_THRESHOLD_INCREASE") * ((getGreatPeopleCreated() / 10) + 1));
+		changeGreatPeopleThresholdModifier(
+				GC.getDefineINT("GREAT_PEOPLE_THRESHOLD_INCREASE") *
+				((getGreatPeopleCreated() / 10) + 1));
 
 		for (int iI = 0; iI < MAX_PLAYERS; iI++)
 		{
-			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getTeam())
+			if (TEAMID((PlayerTypes)iI) == getTeam())
 			{
-				GET_PLAYER((PlayerTypes)iI).changeGreatPeopleThresholdModifier(GC.getDefineINT("GREAT_PEOPLE_THRESHOLD_INCREASE_TEAM") * ((getGreatPeopleCreated() / 10) + 1));
+				GET_PLAYER((PlayerTypes)iI).changeGreatPeopleThresholdModifier(
+						GC.getDefineINT("GREAT_PEOPLE_THRESHOLD_INCREASE_TEAM") *
+						((getGreatPeopleCreated() / 10) + 1));
 			}
 		}
 	}
@@ -19413,13 +19417,17 @@ void CvPlayer::createGreatPeople(UnitTypes eGreatPersonUnit, bool bIncrementThre
 	{
 		incrementGreatGeneralsCreated();
 
-		changeGreatGeneralsThresholdModifier(GC.getDefineINT("GREAT_GENERALS_THRESHOLD_INCREASE") * ((getGreatGeneralsCreated() / 10) + 1));
+		changeGreatGeneralsThresholdModifier(
+				GC.getDefineINT("GREAT_GENERALS_THRESHOLD_INCREASE") *
+				((getGreatGeneralsCreated() / 10) + 1));
 
 		for (int iI = 0; iI < MAX_PLAYERS; iI++)
 		{
-			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getTeam())
+			if (TEAMID((PlayerTypes)iI) == getTeam())
 			{
-				GET_PLAYER((PlayerTypes)iI).changeGreatGeneralsThresholdModifier(GC.getDefineINT("GREAT_GENERALS_THRESHOLD_INCREASE_TEAM") * ((getGreatGeneralsCreated() / 10) + 1));
+				GET_PLAYER((PlayerTypes)iI).changeGreatGeneralsThresholdModifier(
+						GC.getDefineINT("GREAT_GENERALS_THRESHOLD_INCREASE_TEAM") *
+						((getGreatGeneralsCreated() / 10) + 1));
 			}
 		}
 	}
@@ -23577,12 +23585,10 @@ int CvPlayer::getNewCityProductionValue() const
 
 		if (NO_BUILDING != eBuilding)
 		{
-			if (GC.getBuildingInfo(eBuilding).getFreeStartEra() != NO_ERA)
+			if(GC.getGameINLINE().isFreeStartEraBuilding(eBuilding)) // advc.003
 			{
-				if (GC.getGameINLINE().getStartEra() >= GC.getBuildingInfo(eBuilding).getFreeStartEra())
-				{
-					iValue += (100 * getProductionNeeded(eBuilding)) / std::max(1, 100 + getProductionModifier(eBuilding));
-				}
+				iValue += (100 * getProductionNeeded(eBuilding)) /
+						std::max(1, 100 + getProductionModifier(eBuilding));
 			}
 		}
 	}
@@ -23966,7 +23972,7 @@ bool CvPlayer::getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer, bool bS
 		// advc.034: Don't show turns-to-cancel when negotiating peace
 		if(TEAMREF(eOtherPlayer).isAtWar(getTeam())) {
 			szString = gDLL->getText("TXT_KEY_TRADE_PEACE_TREATY_STRING",
-					GC.getDefineINT("PEACE_TREATY_LENGTH"));
+					GC.getPEACE_TREATY_LENGTH());
 		} /* <advc.034> In order to be consistent with the TRADE_DISENGAGE case,
 			 which also shows the turns-to-cancel. */
 		else {

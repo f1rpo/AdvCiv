@@ -624,6 +624,7 @@ protected:
 			// advc.036:
 			int happyLeft, int healthLeft, int iOtherListLength) const;
 	int checkCancel(CvDeal const& d, PlayerTypes otherId, bool flip);
+	bool doDeals(PlayerTypes otherId);
 	// </advc.003> <advc.036>
 	// advc.026:
 	bool checkMaxGold(CLinkList<TradeData> const& items, PlayerTypes toId) const;

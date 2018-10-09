@@ -11267,6 +11267,18 @@ CvCity* CvGame::getVoteSourceCity(VoteSourceTypes vs) const {
 	return NULL;
 }
 
+// <advc.003> Used in several places and I want to make a small change
+bool CvGame::isFreeStartEraBuilding(BuildingTypes bId) const {
+
+	CvBuildingInfo const& bi = GC.getBuildingInfo(bId);
+	return (bi.getFreeStartEra() != NO_ERA &&
+			getStartEra() >= bi.getFreeStartEra() &&
+			// <advc.126>
+			(bi.getMaxStartEra() == NO_ERA ||
+			bi.getMaxStartEra() >= getStartEra())); // </advc.126>
+} // </advc.003>
+
+
 BuildingTypes CvGame::getVoteSourceBuilding(VoteSourceTypes vs) const {
 
 	for(int i = 0; i < GC.getNumBuildingInfos(); i++) {

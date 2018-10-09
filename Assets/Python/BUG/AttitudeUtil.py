@@ -185,7 +185,7 @@ def getAttitudeText (nPlayer, nTarget, bNumber, bSmily, bWorstEnemy, bWarPeace, 
 			if bPeace:
 				szIcons += FontUtil.getChar("peace")
 	# <advc.152>
-	if bWarTrades and not bPeace and nTargetTeam != gc.getGame().getActiveTeam() and not pTeam.isAtWar(nTargetTeam) and pTeam.AI_declareWarTrade(nTargetTeam, gc.getGame().getActiveTeam()) == -1:
+	if bWarTrades and not bPeace and nTargetTeam != gc.getGame().getActiveTeam()and nTeam != gc.getGame().getActiveTeam() and nTeam != nTargetTeam and not pTeam.isAtWar(nTargetTeam) and pTeam.AI_declareWarTrade(nTargetTeam, gc.getGame().getActiveTeam()) == -1:
 		szIcons += FontUtil.getChar("occupation")
 	# </advc.152>
 	if szIcons:

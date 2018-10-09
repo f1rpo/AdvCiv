@@ -369,7 +369,7 @@ void CvDeal::doTurn()
 	{
 		if (getLengthSecondTrades() > 0)
 		{
-			iValue = (GET_PLAYER(getFirstPlayer()).AI_dealVal(getSecondPlayer(), getSecondTrades()) / GC.getDefineINT("PEACE_TREATY_LENGTH"));
+			iValue = (GET_PLAYER(getFirstPlayer()).AI_dealVal(getSecondPlayer(), getSecondTrades()) / GC.getPEACE_TREATY_LENGTH());
 
 			if (getLengthFirstTrades() > 0)
 			{
@@ -383,7 +383,7 @@ void CvDeal::doTurn()
 
 		if (getLengthFirstTrades() > 0)
 		{
-			iValue = (GET_PLAYER(getSecondPlayer()).AI_dealVal(getFirstPlayer(), getFirstTrades()) / GC.getDefineINT("PEACE_TREATY_LENGTH"));
+			iValue = (GET_PLAYER(getSecondPlayer()).AI_dealVal(getFirstPlayer(), getFirstTrades()) / GC.getPEACE_TREATY_LENGTH());
 
 			if (getLengthSecondTrades() > 0)
 			{
@@ -1038,9 +1038,9 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 
 		GET_PLAYER(eFromPlayer).revolution(paeNewCivics, true);
 
-		if (GET_PLAYER(eFromPlayer).AI_getCivicTimer() < GC.getDefineINT("PEACE_TREATY_LENGTH"))
+		if (GET_PLAYER(eFromPlayer).AI_getCivicTimer() < GC.getPEACE_TREATY_LENGTH())
 		{
-			GET_PLAYER(eFromPlayer).AI_setCivicTimer(GC.getDefineINT("PEACE_TREATY_LENGTH"));
+			GET_PLAYER(eFromPlayer).AI_setCivicTimer(GC.getPEACE_TREATY_LENGTH());
 		}
 		if( gTeamLogLevel >= 2 )
 		{
@@ -1053,9 +1053,9 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 	case TRADE_RELIGION:
 		GET_PLAYER(eFromPlayer).convert((ReligionTypes)trade.m_iData);
 
-		if (GET_PLAYER(eFromPlayer).AI_getReligionTimer() < GC.getDefineINT("PEACE_TREATY_LENGTH"))
+		if (GET_PLAYER(eFromPlayer).AI_getReligionTimer() < GC.getPEACE_TREATY_LENGTH())
 		{
-			GET_PLAYER(eFromPlayer).AI_setReligionTimer(GC.getDefineINT("PEACE_TREATY_LENGTH"));
+			GET_PLAYER(eFromPlayer).AI_setReligionTimer(GC.getPEACE_TREATY_LENGTH());
 		}
 		if( gTeamLogLevel >= 2 )
 		{
@@ -1323,7 +1323,9 @@ void CvDeal::endTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes e
 }
 
 bool CvDeal::isCancelable(PlayerTypes eByPlayer, CvWString* pszReason)
-{
+{	// <advc.001> Not really a bug, but you'd really expect this function to check this.
+	if(eByPlayer != NO_PLAYER && getFirstPlayer() != eByPlayer && getSecondPlayer() != eByPlayer)
+		return false; // </advc.001>
 	if (isUncancelableVassalDeal(eByPlayer, pszReason))
 	{
 		return false;
@@ -1353,7 +1355,7 @@ bool CvDeal::isEverCancelable(PlayerTypes eByPlayer) const {
 
 int CvDeal::turnsToCancel(PlayerTypes eByPlayer)
 {	// <advc.034>
-	int len = GC.getDefineINT("PEACE_TREATY_LENGTH");
+	int len = GC.getPEACE_TREATY_LENGTH();
 	if(isDisengage())
 		len = std::min(GC.getDefineINT("DISENGAGE_LENGTH"), len);
 	return (getInitialGameTurn() + len - // </advc.034>

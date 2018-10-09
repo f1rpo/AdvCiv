@@ -41,7 +41,7 @@ public class WBOut {
 		String[] blockedReligions = {/*"HINDUISM","CONFUCIANISM","TAOISM"*/};
 		final boolean placeBarbs = false;
 		Civ civs[] = {	// Gandhi's fav religion agrees with that of Sury; apart from that, I prefer Asoka.
-				new Civ("ASOKA", "INDIA", 82, 36, "MYSTICISM", "THE_WHEEL",
+				new Civ("ASOKA", "INDIA", 82, 36, "MYSTICISM", "THE_WHEEL", // The wheel was also of philosophical importance to Ancient India
 						new String[]{"PATALIPUTRA","AMARAVATI",/*"UJJAIN"*/}),
 				new Civ("JULIUS_CAESAR"/*"AUGUSTUS"*/, "ROME", 46, 40, "FISHING", "MINING",
 						new String[]{"ROME"/*,"SYRACUSE"*/,"LUGDUNUM"}), // MARSEILLES?
@@ -55,7 +55,7 @@ public class WBOut {
 						new String[]{"MEMPHIS","THEBES","PHEONICIAN"}),
 				// "QIN_SHI_HUANG" might work better if he's given him a higher peace weight; he shouldn't be pleased toward the "barbarians" surrounding China.
 				new Civ("CHINESE_LEADER", "CHINA", 82, 46, "AGRICULTURE", "THE_WHEEL",
-						new String[]{"XIAN","KAIFENG"}),
+						new String[]{"XIAN","KAIFENG","NANJING","NINGBO"}),
 				new Civ(placeBarbs ? "JUSTINIAN" : "PERICLES"/*"ALEXANDER"*/, "GREECE", 52, 37, "FISHING", "AGRICULTURE",
 						new String[]{"ATHENS","THRACIAN"}),
 						// Start in SAMARA yields more accurate results in the first three eras, but, after that, Russia rarely manages to reach its historical Western extent.
@@ -2162,7 +2162,7 @@ public class WBOut {
 				new Point(61,21),
 				// Nile
 				new Point(56,30),
-				new Point(57,30),
+				//new Point(57,30), // Pretty rocky, but don't want hills on both banks of the Nile here (and the other one is needed for the Giza Plateau).
 				new Point(58,29),
 				new Point(58,28),
 				new Point(56,26),
@@ -3108,6 +3108,7 @@ public class WBOut {
 				new Point(55,30), // Faiyum
 				new Point(56,29),
 				new Point(57,29),
+				new Point(57,30), // See under hills; actually rocky.
 				new Point(56,28),
 				new Point(57,28),
 				new Point(57,27),

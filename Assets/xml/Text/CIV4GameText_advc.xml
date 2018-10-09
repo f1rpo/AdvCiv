@@ -2252,11 +2252,11 @@
 		 in CIV4GameText_BetterBTSAI.xml. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__WARTRADE_TEXT</Tag>
-		<English>War Trades</English>
-		<French>Plans de guerre</French>
-		<German>Kriegsbereitschaft</German>
-		<Italian>Programmi di guerra</Italian>
-		<Spanish>Planes della guerra</Spanish>
+		<English>Wars</English>
+		<French>Guerres</French>
+		<German>Kriege</German>
+		<Italian>Guerre</Italian>
+		<Spanish>Guerras</Spanish>
 	</TEXT>
 	<!-- Based on TXT_KEY_BUG_OPT_CIV4LERTS__WORSTENEMY_HOVER in
 		 Civ4lerts Options.xml. Romance languages through Google Translate. -->

@@ -639,6 +639,7 @@ public:
 	BuildingTypes getVoteSourceBuilding(VoteSourceTypes vs) const;
 	CvCity* getVoteSourceCity(VoteSourceTypes vs) const;
 	// </advc.127b>
+	bool isFreeStartEraBuilding(BuildingTypes bId) const; // advc.003
 	/* advc.104: Doesn't belong here, but I didn't want to add Python wrapper
 	   classes just for that one function. */
 	bool useKModAI() const; // Exposed to Python
@@ -659,8 +660,7 @@ public:
 	   3: very high (very strong starting plots, low variance);
 	      BtS/ K-Mod behavior
 	   Only used during game initialization, hence not serialized. */
-	int getNormalizationLevel() const;
-	private: int normalizationLevel; // </advc.108>
+	int getNormalizationLevel() const; // </advc.108>
 
 protected:
 	int m_iElapsedGameTurns;
@@ -809,6 +809,7 @@ protected:
 	// Use of PRNG makes this non-const
 	UnitTypes randomBarbUnit(UnitAITypes ai, CvArea const& a);
 	// </advc.300>
+	int normalizationLevel; // advc.108
 	bool feignSP; // advc.135c
 	bool bScenario; // advc.052
 

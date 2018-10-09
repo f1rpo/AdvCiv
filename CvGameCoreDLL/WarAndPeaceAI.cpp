@@ -5,6 +5,7 @@
 #include "WarEvaluator.h"
 #include "CvDiploParameters.h"
 #include "CvDLLInterfaceIFaceBase.h"
+#include <iterator>
 
 /*  advc.make: Include this for debugging with Visual Leak Detector
 	(if installed). Doesn't matter which file includes it; preferrable a cpp file
@@ -467,10 +468,8 @@ bool WarAndPeaceAI::Team::reviewWarPlans() {
 void WarAndPeaceAI::Team::alignAreaAI(bool isNaval) {
 
 	PROFILE_FUNC();
-	/*  Since isNaval refers to all team members alike, it's better to
-		trust the member-specific CvTeamAI in team games. */
-	if(members.size() > 1)
-		return;
+	std::set<int> areasToAlign;
+	std::set<int> areasNotToAlign;
 	for(size_t i = 0; i < members.size(); i++) {
 		CvPlayerAI const& member = GET_PLAYER(members[i]);
 		CvCity* capital = member.getCapitalCity();
@@ -478,34 +477,51 @@ void WarAndPeaceAI::Team::alignAreaAI(bool isNaval) {
 			continue;
 		CvArea& a = *capital->area();
 		CvCity* targetCity = a.getTargetCity(member.getID());
-		if(isNaval && targetCity != NULL && (GET_TEAM(targetCity->getTeam()).
-				AI_isPrimaryArea(&a) || 3 * a.getCitiesPerPlayer(
-				targetCity->getOwnerINLINE()) > a.getCitiesPerPlayer(
-				member.getID()))) {
-			WarPlanTypes wp = GET_TEAM(agentId).AI_getWarPlan(targetCity->getTeam());
-			if(!isPushover(targetCity->getTeam()) || (wp != WARPLAN_TOTAL && wp != WARPLAN_PREPARING_TOTAL)) {
-				// Make sure there isn't an easily reachable target in the capital area
-				int d=-1;
-				WarAndPeaceCache::City::measureDistance(member.getID(), DOMAIN_LAND,
-						capital->plot(), targetCity->plot(), &d);
-				if(::round(d / WarAndPeaceCache::City::estimateMovementSpeed(
-						member.getID(), DOMAIN_LAND, d)) <= 8)
-					continue;
+		bool bAlign = true;
+		if(isNaval) {
+			if(targetCity!= NULL && (GET_TEAM(targetCity->getTeam()).
+					AI_isPrimaryArea(&a) || 3 * a.getCitiesPerPlayer(
+					targetCity->getOwnerINLINE()) > a.getCitiesPerPlayer(
+					member.getID()))) {
+				WarPlanTypes wp = GET_TEAM(agentId).AI_getWarPlan(targetCity->getTeam());
+				if(!isPushover(targetCity->getTeam()) ||
+						(wp != WARPLAN_TOTAL && wp != WARPLAN_PREPARING_TOTAL)) {
+					// Make sure there isn't an easily reachable target in the capital area
+					int d=-1;
+					WarAndPeaceCache::City::measureDistance(member.getID(), DOMAIN_LAND,
+							capital->plot(), targetCity->plot(), &d);
+					if(::round(d / WarAndPeaceCache::City::estimateMovementSpeed(
+							member.getID(), DOMAIN_LAND, d)) <= 8)
+						bAlign = false;
+				}
 			}
 		}
-		if(!isNaval) {
+		else {
 			// Make sure some city can be attacked in the capital area
 			if(targetCity == NULL) {
 				// Target city is sometimes randomly set to NULL
 				targetCity = member.AI_findTargetCity(&a);
 			}
 			if(targetCity == NULL)
-				continue;
-			WarAndPeaceCache::City* c = member.warAndPeaceAI().getCache().
-					lookupCity(*targetCity);
-			if(c == NULL || !c->canReachByLand())
-				continue;
+				bAlign = false;
+			else {
+				WarAndPeaceCache::City* c = member.warAndPeaceAI().getCache().
+						lookupCity(*targetCity);
+				if(c == NULL || !c->canReachByLand())
+					bAlign = false;
+			}
 		}
+		if(bAlign)
+			areasToAlign.insert(a.getID());
+		else areasNotToAlign.insert(a.getID());
+	}
+	std::set<int> diff;
+	std::set_difference(areasToAlign.begin(), areasToAlign.end(),
+					areasNotToAlign.begin(), areasNotToAlign.end(),
+					std::inserter(diff, diff.begin()));
+	CvMap& m = GC.getMapINLINE();
+	for(std::set<int>::const_iterator it = diff.begin(); it != diff.end(); it++) {
+		CvArea& a = *m.getArea(*it);
 		AreaAITypes oldAAI = a.getAreaAIType(agentId);
 		AreaAITypes newAAI = oldAAI;
 		if(isNaval) {
@@ -520,7 +536,8 @@ void WarAndPeaceAI::Team::alignAreaAI(bool isNaval) {
 			else if(oldAAI == AREAAI_ASSAULT)
 				newAAI = AREAAI_OFFENSIVE;
 		}
-		a.setAreaAIType(agentId, newAAI);
+		if(newAAI != oldAAI)
+			a.setAreaAIType(agentId, newAAI);
 	}
 }
 
@@ -1354,7 +1371,7 @@ void WarAndPeaceAI::Team::scheme() {
 			still a peace treaty */
 		double peacePortionRemaining = agent.turnsOfForcedPeaceRemaining(targetId) /
 				// +1.0 b/c I don't want 0 drive at this point
-				(GC.getDefineINT("PEACE_TREATY_LENGTH") + 1.0);
+				(GC.getPEACE_TREATY_LENGTH() + 1.0);
 		drive *= std::pow(1 - peacePortionRemaining, 1.0); // was ^1.5; let's try it w/o exponentiation
 		targets.push_back(TargetData(drive, targetId, total, u));
 		totalDrive += drive;
