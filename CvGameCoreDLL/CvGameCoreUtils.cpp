@@ -36,7 +36,7 @@
 // Note: there will also be other combat penalties added, for example from defence weight and city weight.
 
 
-// <advc.003>
+// <advc.003g>
 using std::vector;
 
 int roundToMultiple(double d, int modulus) {
@@ -117,8 +117,8 @@ double percentileRank(vector<double>& distribution, double score,
 	}
 	else if(n == 0) return 1;
 	return nLEq / (double)n;
-}
-
+} // </advc.003g>
+// <advc.003>
 float hash(vector<long> const& x, PlayerTypes civId) {
 
 	int const prime = 31;

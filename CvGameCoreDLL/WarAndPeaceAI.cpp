@@ -1902,6 +1902,7 @@ DenialTypes WarAndPeaceAI::Team::acceptVassal(TeamTypes vassalId) const {
 
 bool WarAndPeaceAI::Team::isLandTarget(TeamTypes theyId) const {
 
+	PROFILE_FUNC();
 	bool hasCoastalCity = false;
 	bool canReachAnyByLand = false;
 	int distLimit = getWPAI.maxLandDist();
@@ -2592,12 +2593,12 @@ double WarAndPeaceAI::Civ::humanBuildUnitProb() const {
 	future. Could e.g. check if 'weId' is able to see the demographics of 'civId'. */
 double WarAndPeaceAI::Civ::estimateBuildUpRate(PlayerTypes civId, int period) const {
 
-	CvGame& g = GC.getGameINLINE();
+	CvGame const& g = GC.getGameINLINE();
 	period *= GC.getGameSpeedInfo(g.getGameSpeedType()).getTrainPercent();
 	period /= 100;
 	if(g.getElapsedGameTurns() < period + 1)
 		return 0;
-	int turnNumber = g.getGameTurn();
+	int turnNumber = g.gameTurn();
 	CvPlayerAI& civ = GET_PLAYER(civId);
 	int pastPow = std::max(1, civ.getPowerHistory(turnNumber - 1 - period));
 	double delta = civ.getPowerHistory(turnNumber - 1) - pastPow;

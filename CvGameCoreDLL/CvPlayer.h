@@ -29,6 +29,7 @@ typedef std::vector< std::pair<UnitClassTypes, PromotionTypes> > UnitClassPromot
 typedef std::vector< std::pair<CivilizationTypes, LeaderHeadTypes> > CivLeaderArray;
 
 class CvPlayer
+		: private boost::noncopyable // advc.003e
 {
 public:
 	CvPlayer();
@@ -1155,7 +1156,9 @@ public:
 	virtual int AI_getPlotDanger(CvPlot* pPlot, int iRange = -1, bool bTestMoves = true
 		/*  advc.104: These pure virtual AI_... functions are pointless b/c
 			GET_PLAYER yields a CvPlayerAI reference anyway, but see karadoc's
-			warning above. */
+			warning above. Also: Shouldn't add params to virtual functions b/c
+			the EXE might call them. However, most AI functions are never
+			called by the EXE. */
 		, bool bCheckBorder = true, int* lowHealth = NULL, int hpLimit = 60, int limitCount = -1, PlayerTypes enemyId = NO_PLAYER
 		) const = 0;
 	virtual bool AI_isFinancialTrouble() const = 0;																											// Exposed to Python

@@ -1644,6 +1644,17 @@ void CvCityAI::AI_chooseProduction()
 			}
 		}
 	}
+	// <advc.rom1> Koshling: increased priority for economic builds
+	if (AI_chooseBuilding(BUILDINGFOCUS_PRODUCTION | BUILDINGFOCUS_GOLD |
+			BUILDINGFOCUS_RESEARCH |
+			// advc: Let's omit these
+			//BUILDINGFOCUS_MAINTENANCE | BUILDINGFOCUS_HAPPY | BUILDINGFOCUS_HEALTHY |
+			// wonders in if they appear best
+			BUILDINGFOCUS_WONDEROK, 20, 0, 50))
+	{
+		if( gCityLogLevel >= 2 ) logBBAI("      City %S uses choose Economy Flags (Koshling)", getName().GetCString());
+		return;
+	} // </advc.rom1>
 
 	// don't build frivolous things if this is an important city unless we at war
     if (!bImportantCity || bLandWar || bAssault)
@@ -5569,7 +5580,18 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 
 			if (iFocusFlags & BUILDINGFOCUS_RESEARCH)
 			{
-				int iTempValue = ((kBuilding.getCommerceModifier(COMMERCE_RESEARCH) * getBaseCommerceRate(COMMERCE_RESEARCH)) / 40);
+				int iTempValue = ((kBuilding.getCommerceModifier(COMMERCE_RESEARCH) *
+						getBaseCommerceRate(COMMERCE_RESEARCH)) / 40);
+				// <advc.rom1> (koshling; comments by him)
+				if(iTempValue > 0)
+				{
+					iTempValue += 3; //	Discounted futures
+					iTempValue += (2 * iTempValue * (1 +
+							getBaseCommerceRate(COMMERCE_RESEARCH))) /
+							// Proportion of whole
+							(1 + GET_PLAYER(getOwnerINLINE()).
+							getCommerceRate(COMMERCE_RESEARCH));
+				} // </advc.rom1>
 
 				if (iTempValue != 0)
 				{

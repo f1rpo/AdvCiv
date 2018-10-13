@@ -1137,8 +1137,6 @@ public:
 	virtual int AI_getWorkersHave() = 0;
 	virtual int AI_getWorkersNeeded() = 0;
 	virtual void AI_changeWorkersHave(int iChange) = 0;
-	// advc.003: To get rid of a K-Mod cast
-	virtual void AI_ClearConstructionValueCache()=0;
 	virtual bool isAwfulSite(PlayerTypes futureOwnerId) const=0; // advc.122
 
 	bool hasShrine(ReligionTypes eReligion) const;

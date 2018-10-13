@@ -12980,6 +12980,7 @@ m_iAppearanceProbability(0),
 m_iDisappearanceProbability(0),
 m_iGrowthProbability(0),
 m_iDefenseModifier(0),
+m_iRivalDefenseModifier(0), // advc.012
 m_iAdvancedStartRemoveCost(0),
 m_iTurnDamage(0),
 m_iWarmingDefense(0), //GWMod new xml field M.A.
@@ -13055,6 +13056,11 @@ int CvFeatureInfo::getDefenseModifier() const
 {
 	return m_iDefenseModifier; 
 }
+// <advc.012>
+int CvFeatureInfo::getRivalDefenseModifier() const			
+{
+	return m_iRivalDefenseModifier; 
+} // </advc.012>
 
 int CvFeatureInfo::getAdvancedStartRemoveCost() const			
 {
@@ -13267,6 +13273,8 @@ bool CvFeatureInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iSeeThroughChange, "iSeeThrough");
 	pXML->GetChildXmlValByName(&m_iHealthPercent, "iHealthPercent");
 	pXML->GetChildXmlValByName(&m_iDefenseModifier, "iDefense");
+	// advc.012:
+	pXML->GetChildXmlValByName(&m_iRivalDefenseModifier, "iRivalDefense");
 	pXML->GetChildXmlValByName(&m_iAdvancedStartRemoveCost, "iAdvancedStartRemoveCost");
 	pXML->GetChildXmlValByName(&m_iTurnDamage, "iTurnDamage");
 	pXML->GetChildXmlValByName(&m_iWarmingDefense, "iWarmingDefense"); //GWMod new xml field M.A.

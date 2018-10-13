@@ -2860,11 +2860,14 @@ int CvPlot::defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding,
 
 	FAssertMsg(getTerrainType() != NO_TERRAIN, "TerrainType is not assigned a valid value");
 	iModifier = GC.getTerrainInfo(getTerrainType()).getDefenseModifier();
-	// <advc.012>
-	if(getFeatureType() != NO_FEATURE && (eAttacker == NO_TEAM 
-				|| getTeam() != eAttacker))
-		iModifier += GC.getFeatureInfo(getFeatureType()).getDefenseModifier();
-	// </advc.012>
+	FeatureTypes eFeature = getFeatureType();
+	if(eFeature != NO_FEATURE) {
+		iModifier += GC.getFeatureInfo(eFeature).getDefenseModifier();
+		// <advc.012>
+		if(eAttacker == NO_TEAM  || getTeam() != eAttacker)
+			iModifier += GC.getFeatureInfo(eFeature).getRivalDefenseModifier();
+		// </advc.012>
+	}
 	if (isHills())
 	{
 		iModifier += GC.getHILLS_EXTRA_DEFENSE();

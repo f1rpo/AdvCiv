@@ -1027,7 +1027,7 @@
 		<English>[ICON_BULLET]%D1_Change%% from Difficulty Level</English>
 		<French>[ICON_BULLET]%D1_Change%% (niveau de difficulté)</French>
 		<German>[ICON_BULLET]%D1_Change%% durch Schwierigkeitsgrad</German>
-		<Italian>[ICON_BULLET]%D1_Change%% per il livello di difficoltá</Italian>
+		<Italian>[ICON_BULLET]%D1_Change%% per il livello di difficolt&#224;</Italian>
 		<Spanish>[ICON_BULLET]%D1_Change%% por nivel de dificultad</Spanish>
 	</TEXT>
 
@@ -1970,7 +1970,7 @@
 	<!-- advc.012: Plot help text to be used along with TXT_KEY_PLOT_BONUS
 		 (Civ4GameTextInfos.xml). -->
 	<TEXT>
-		<Tag>TXT_KEY_FEATUREDEF</Tag>
+		<Tag>TXT_KEY_FEATURE_RIVALDEF</Tag>
 		<English>%D1_Mod%% for tile owner</English>
 		<French>%D1_Mod%% pour le proprio</French>
 		<German>%D1_Mod%% für Besitzer</German>
@@ -1978,7 +1978,7 @@
 		<Spanish>%D1_Mod%% si posee la casilla</Spanish>
 	</TEXT>
 	<TEXT>
-		<Tag>TXT_KEY_TILEDEF</Tag>
+		<Tag>TXT_KEY_TILE_RIVALDEF</Tag>
 		<English>Defense Bonus: </English>
 		<French>Bonus de d&#233;fense :</French>
 		<German>Defensivbonus: </German>
@@ -2320,7 +2320,7 @@
 		<English>%s1_CityName has a positive revolt chance (%s2_Chance%%).</English>
 		<French>%s1_CityName a une probabilité positive de se révolter (%s2_Chance%%).</French>
 		<German>In %s1_CityName besteht die Gefahr einer Revolte (%s2_Chance%%).</German>
-		<Italian>%s1_CityName ha una probabilitá positiva di rivoltarsi (%s2_Chance%%).</Italian>
+		<Italian>%s1_CityName ha una probabilità positiva di rivoltarsi (%s2_Chance%%).</Italian>
 		<Spanish>%s1_CityName hay una probabilidad positiva de rebelarse (%s2_Chance%%).</Spanish>
 	</TEXT>
 	<TEXT>
@@ -2328,7 +2328,7 @@
 		<English>The revolt chance in %s1_CityName is now 0.</English>
 		<French>La probabilité d'une révolte en %s1_CityName alors est 0.</French>
 		<German>In %s1_CityName droht nun keine Revolte mehr.</German>
-		<Italian>La probabilitá di rivolta a %s1_CityName ora è 0.</Italian>
+		<Italian>La probabilità di rivolta a %s1_CityName ora è 0.</Italian>
 		<Spanish>La probabilidad de revuelta en %s1_CityName ahora es 0.</Spanish>
 	</TEXT>
 	<!-- Just like TXT_KEY_CIV4LERTS_ON_CITY_PACIFIED in
@@ -2385,7 +2385,7 @@
 		<English>Chance to decrease timer: %d1%%</English>
 		<French>Chance de réduir le compteur: %d1%%</French>
 		<German>Chance den Timer zu verringern: %d1%%</German>
-		<Italian>Probabilitá di ridurre il timer: %d1%%</Italian>
+		<Italian>Probabilità di ridurre il timer: %d1%%</Italian>
 		<Spanish>Probabilidad de disminuir el timer: %d1%%</Spanish>
 	</TEXT>
 	

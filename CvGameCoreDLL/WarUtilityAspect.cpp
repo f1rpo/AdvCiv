@@ -146,13 +146,19 @@ int WarUtilityAspect::utility() const {
 double WarUtilityAspect::lostAssetScore(PlayerTypes to, double* returnTotal,
 		TeamTypes ignoreGains) {
 
+	PROFILE_FUNC();
 	double r = 0;
 	double total = 0;
-	for(int i = 0; i < theyAI->getCache().size(); i++) {
-		City* cp = theyAI->getCache().getCity(i);
-		if(cp == NULL) continue; City const& c = *cp;
-		if(!agent.AI_deduceCitySite(c.city()))
+	/*for(int i = 0; i < theyAI->getCache().size(); i++) {
+		City* cp = theyAI->getCache().getCity(i);*/
+	/*  In large games, looking up their cities is faster than a pass through their
+		whole cache. */
+	int foo=-1;
+	for(CvCity* cvCity = they->firstCity(&foo); cvCity != NULL; cvCity = they->nextCity(&foo)) {
+		if(!agent.AI_deduceCitySite(cvCity))
 			continue;
+		City* cp = theyAI->getCache().lookupCity(*cvCity);
+		if(cp == NULL) continue; City const& c = *cp;
 		/*  Their cached value accounts for GP, but we're not supposed to see those.
 			(Their cache contains some other info we shouldn't see, but nothing
 			crucial.) */
@@ -166,7 +172,7 @@ double WarUtilityAspect::lostAssetScore(PlayerTypes to, double* returnTotal,
 		}
 		else if(m->conqueredCities(theyId).count(c.id()) > 0 &&
 				(to == NO_PLAYER || m->lostCities(to).count(c.id()) > 0) &&
-				c.city()->getTeam() != ignoreGains) {
+				cvCity->getTeam() != ignoreGains) {
 			/*  Their cache doesn't account for GP settled in cities of a third
 				party (unless espionage visibility), so we don't subtract
 				NumGreatPeople.
@@ -178,7 +184,7 @@ double WarUtilityAspect::lostAssetScore(PlayerTypes to, double* returnTotal,
 				(oldOwner, newOwner) seems excessive. */
 			r -= c.getAssetScore();
 		}
-		else if(c.city()->isCapital())
+		else if(cvCity->isCapital())
 			sc += 8;
 		// National wonders other than Palace are invisible to us
 		total += sc;
@@ -196,11 +202,12 @@ double WarUtilityAspect::lostAssetScore(PlayerTypes to, double* returnTotal,
 
 double WarUtilityAspect::lossesFromBlockade(PlayerTypes victimId, PlayerTypes to) {
 
+	PROFILE_FUNC();
 	// Blockades can be painful for maritime empires
 	CvPlayerAI const& victim = GET_PLAYER(victimId);
 	double enemyNavy = 0;
 	for(size_t i = 0; i < properCivs.size(); i++) {
-		PlayerTypes enemyId =  properCivs[i];
+		PlayerTypes enemyId = properCivs[i];
 		if(!m->isWar(victimId, enemyId) || (to != NO_PLAYER && to != enemyId))
 			continue;
 		MilitaryBranch const* fleet = victim.warAndPeaceAI().getCache().
@@ -563,6 +570,7 @@ int GreedForAssets::xmlId() const { return 0; }
 
 void GreedForAssets::evaluate() {
 
+	PROFILE_FUNC();
 	double conqScore = conqAssetScore(false);
 	if(conqScore < 0.01)
 		return;
@@ -781,6 +789,7 @@ double GreedForAssets::teamSizeMultiplier() {
 
 void GreedForAssets::initCitiesPerArea() {
 
+	PROFILE_FUNC();
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
 		citiesPerArea[i] = new map<int,int>();
 	for(int i = 0; i < ourCache->size(); i++) {
@@ -964,6 +973,7 @@ Loathing::Loathing(WarEvalParameters& params)
 
 void Loathing::evaluate() {
 
+	PROFILE_FUNC();
 	/*  Only count this if at war with them? No, that could lead to us joining 
 		a war despite not contributing anything to their losses.
 		Can't tell who causes their losses. */
@@ -998,8 +1008,9 @@ void Loathing::evaluate() {
 	log("Divisor from number of rivals (%d): %d",
 			nNonVassalCivs, rivalDivisor);
 	// Utility proportional to veng and lr would be too extreme
-	double fromLosses = 5 * std::sqrt(veng * abs(lr));
-	if(lr < 0) fromLosses *= -1;
+	double fromLosses = 4 * std::sqrt(veng * abs(lr));
+	if(lr < 0)
+		fromLosses *= -1;
 	// We like to bring in war allies against our nemesis
 	int nJointDoW = 0;
 	for(size_t i = 0; i < properCivs.size(); i++) {
@@ -1088,6 +1099,7 @@ MilitaryVictory::MilitaryVictory(WarEvalParameters& params)
 
 void MilitaryVictory::evaluate() {
 
+	PROFILE_FUNC();
 	// Vassals shouldn't strive for victory; not until breaking free.
 	if(agent.isAVassal())
 		return;
@@ -1390,17 +1402,14 @@ double MilitaryVictory::progressRatingDiplomacy() {
 		popGained += pop;
 	}
 	if(m->getCapitulationsAccepted(agentId).count(TEAMID(theyId)) > 0) {
-		double newVassalVotes = 0;
-		for(int i = 0; i < ourCache->size(); i++) {
-			City* cp = ourCache->getCity(i); if(cp == NULL) continue;
-			if(m->lostCities(theyId).count(cp->id()) > 0)
+		double newVassalVotes = 0; int foo=-1;
+		// Faster than a full pass through ourCache
+		for(CvCity* cvCity = they->firstCity(&foo); cvCity != NULL; cvCity = they->nextCity(&foo)) {
+			City* c = ourCache->lookupCity(*cvCity);
+			if(c == NULL || m->lostCities(theyId).count(c->id()) > 0)
 				continue;
-			CvCity const& c = *cp->city();
-			if(c.getOwnerINLINE() != theyId &&
-					m->conqueredCities(theyId).count(cp->id()) <= 0)
-				continue;
-			double pop = c.getPopulation();
-			if(!isUN && !c.isHasReligion(apRel))
+			double pop = cvCity->getPopulation();
+			if(!isUN && !cvCity->isHasReligion(apRel))
 				pop *= 0.5;
 			newVassalVotes += pop;
 		}
@@ -1459,6 +1468,7 @@ Assistance::Assistance(WarEvalParameters& params)
 
 void Assistance::evaluate() {
 
+	PROFILE_FUNC();
 	/*  Could use CvPlayerAI::AI_stopTradingTradeVal, but that also accounts for
 		angering the civ we stop trading with, and it's a bit too crude.
 		I'm adopting a bit of code in partnerUtilFromTrade. */
@@ -1619,6 +1629,7 @@ Fidelity::Fidelity(WarEvalParameters& params)
 
 void Fidelity::evaluate() {
 
+	PROFILE_FUNC();
 	/*  Don't care about our success here at all. If we declared war, we've proved
 		that we don't tolerate attacks on our (declared) friends. */
 	if(m->getWarsDeclaredBy(weId).count(theyId) <= 0)
@@ -1776,6 +1787,7 @@ BorderDisputes::BorderDisputes(WarEvalParameters& params)
 
 void BorderDisputes::evaluate() {
 
+	PROFILE_FUNC();
 	int diplo = -1 * we->AI_getCloseBordersAttitude(theyId);
 	if(diplo <= 0)
 		return;
@@ -2014,6 +2026,7 @@ KingMaking::KingMaking(WarEvalParameters& params)
 
 int KingMaking::preEvaluate() {
 
+	PROFILE_FUNC();
 	if(gameEra <= GC.getGameINLINE().getStartEra())
 		return 0;
 	/*  Three classes of civs; all in the best non-empty category are likely
@@ -2178,6 +2191,7 @@ void KingMaking::evaluate() {
 
 double KingMaking::theirRelativeLoss() {
 
+	PROFILE_FUNC();
 	if(!m->isPartOfAnalysis(theyId)) // To save time
 		return 0;
 	bool humanTarget = false;
@@ -2452,6 +2466,7 @@ int Risk::preEvaluate() {
 
 void Risk::evaluate() {
 
+	PROFILE_FUNC();
 	double lostAssets = 0;
 	for(iSetIt it = m->lostCities(weId).begin(); it != m->lostCities(weId).end(); it++) {
 		/*  It doesn't matter here whom the city is lost to, but looking at
@@ -2519,6 +2534,7 @@ int IllWill::preEvaluate() {
 
 void IllWill::evaluate() {
 
+	PROFILE_FUNC();
 	uMinus = 0; // Have the subroutines use this instead of u to avoid rounding
 	// We can't trade with our war enemies
 	evalLostPartner();
@@ -3347,9 +3363,8 @@ void TacticalSituation::evaluate() {
 
 void TacticalSituation::evalEngagement() {
 
-	/*  Probably the most computationally expensive part of war evaluation.
-		Still pretty sure that's it's not a performance bottleneck by any means.
-		Can't move this to WarAndPeaceCache (to compute it only once at the start
+	PROFILE_FUNC();
+	/*  Can't move this to WarAndPeaceCache (to compute it only once at the start
 		of a turn) b/c it needs to be up-to-date during the turns of other civs,
 		in particular the humans that could propose peace at any point of their
 		turns.

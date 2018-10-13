@@ -55,7 +55,12 @@ public:
 	void sortCitiesByTargetValue();
 		public:
 	void sortCitiesByAttackPriority();
-	City* getCity(int index) const;
+	inline City* getCity(int index) const {
+		// Verify that the city still exists
+		if(v[index] == NULL || v[index]->city() == NULL)
+			return NULL;
+		return v[index];
+	};
 	// Use CvCity::plotNum for the plotIndex of a given CvCity
 	City* lookupCity(int plotIndex) const;
 	City* lookupCity(CvCity const& cvCity) const;
@@ -195,6 +200,7 @@ public:
 		City(PlayerTypes cacheOwnerId, CvCity* c);
 		City(PlayerTypes cacheOwnerId); // for reading from savegame
 		PlayerTypes cityOwner() const;
+		bool isOwnCity() const;
 		int getAssetScore() const;
 		bool canReach() const;
 		/*  -1 if unreachable
@@ -225,16 +231,17 @@ public:
 	    static bool measureDistance(PlayerTypes civId, DomainTypes dom,
 				CvPlot* start, CvPlot* dest, int* r);
 		static double estimateMovementSpeed(PlayerTypes civId, DomainTypes dom, int dist);
-		/* For sorting cities. The ordering of owners is arbitrary, just
-		   ensures that each civ's cities are ordered consecutively.
-		   For cities of the same owner: true if 'one' is closer to us than 'two'
-		   in terms of getDistance. */
-		static bool byOwnerAndDistance(City* one, City* two);
-		static bool byDistance(City* one, City* two);
-	   // Unreachable cities are treated as having targetValue minus infinity.
-		static bool byOwnerAndTargetValue(City* one, City* two);
-		static bool byTargetValue(City* one, City* two);
-		static bool byAttackPriority(City* one, City* two);
+		/* For sorting cities. None of these are currently used, and I'm not
+			sure if they handle -1 distance/attackPriority/targetValue correctly. */
+		 /*	The ordering of owners is arbitrary, just ensures that each civ's cities
+			are ordered consecutively. For cities of the same owner: true if 'one'
+			is closer to us than 'two' in terms of getDistance. */
+		 static bool byOwnerAndDistance(City* one, City* two);
+		 static bool byDistance(City* one, City* two);
+	    // Unreachable cities are treated as having targetValue -1
+		 static bool byOwnerAndTargetValue(City* one, City* two);
+		 static bool byTargetValue(City* one, City* two);
+		 static bool byAttackPriority(City* one, City* two);
 
 	private:
 		/* Auxiliary function for sorting. -1 means one < two, +1 two < one and 0
@@ -243,10 +250,11 @@ public:
 		void updateDistance(CvCity* targetCity);
 		void updateAssetScore();
 
-		int plotIndex, assetScore, distance, targetValue;
+		int distance, targetValue, assetScore;
 		bool reachByLand;
 		bool reachBySea;
 		bool canDeduce;
+		int plotIndex;
 		PlayerTypes cacheOwnerId;
 	};
 };

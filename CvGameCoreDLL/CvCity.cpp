@@ -5269,7 +5269,7 @@ int CvCity::cultureStrength(PlayerTypes ePlayer) const
 	//iStrength += (getHighestPopulation() * 2);
 	// <advc.101> Replacing the above
 	double pop = getPopulation();
-	CvGame& g = GC.getGameINLINE();
+	CvGame const& g = GC.getGameINLINE();
 	/*  Would make more sense to use owner's era (if ePlayer is dead) b/c the
 		insurgents would mostly use the owner's military tech. But don't want
 		human owner to have to pay attention to his/her tech era. */
@@ -5279,7 +5279,7 @@ int CvCity::cultureStrength(PlayerTypes ePlayer) const
 	double eraFactor = 1 + std::pow((double)era, 1.3);
 	// To put a cap on the initial revolt chance in large cities:
 	pop = std::min(pop, 1.5 * eraFactor);
-	int time = g.getGameTurn() - getGameTurnAcquired();
+	int time = g.gameTurn() - getGameTurnAcquired();
 	double div = 0.75 * GC.getGameSpeedInfo(g.getGameSpeedType()).
 			getGoldenAgePercent();
 	double timeRatio = std::min(1.0, time / div);

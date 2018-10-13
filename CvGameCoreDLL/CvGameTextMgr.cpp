@@ -5003,20 +5003,20 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 		TeamTypes defender = (eRevealOwner != NO_PLAYER ?
 				GET_PLAYER(eRevealOwner).getTeam() :
 				NO_TEAM);
-		int defWithFeatures = pPlot->defenseModifier(defender, true, NO_TEAM, true);
-		int defWithoutFeatures = pPlot->defenseModifier(defender, true,
+		int iDefWithFeatures = pPlot->defenseModifier(defender, true, NO_TEAM, true);
+		int iDefWithoutFeatures = pPlot->defenseModifier(defender, true,
 				pPlot->getTeam(), true);
-		int delta = defWithFeatures - defWithoutFeatures;
-		if(defWithoutFeatures != 0 || defWithFeatures != 0) {
-			if(defWithoutFeatures != 0) {
-				szString.append(gDLL->getText("TXT_KEY_PLOT_BONUS", defWithoutFeatures));
-				if(delta != 0)
+		int iDelta = iDefWithFeatures - iDefWithoutFeatures;
+		if(iDefWithoutFeatures != 0 || iDefWithFeatures != 0) {
+			if(iDefWithoutFeatures != 0) {
+				szString.append(gDLL->getText("TXT_KEY_PLOT_BONUS", iDefWithoutFeatures));
+				if(iDelta != 0)
 					szString.append(L", ");
 			}
-			if(delta != 0) {
-				if(defWithoutFeatures == 0)
-					szString.append(gDLL->getText("TXT_KEY_TILEDEF"));
-				szString.append(gDLL->getText("TXT_KEY_FEATUREDEF", delta));
+			if(iDelta != 0) {
+				if(iDefWithoutFeatures == 0)
+					szString.append(gDLL->getText("TXT_KEY_TILE_RIVALDEF"));
+				szString.append(gDLL->getText("TXT_KEY_FEATURE_RIVALDEF", iDelta));
 			}
 			szString.append(NEWLINE);
 		} // </advc.012>
@@ -19089,7 +19089,7 @@ void CvGameTextMgr::appendNegativeModifiers(CvWStringBuffer& szString,
 				getTextKeyWide()));
 	}
 
-	if (!(pDefender->noDefensiveBonus()))
+	if (!pDefender->noDefensiveBonus())
 	{
 		// <advc.012> Show feature defense unless in a hostile tile
 		if(pAttacker == NULL)

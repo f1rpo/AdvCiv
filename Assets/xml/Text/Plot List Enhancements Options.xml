@@ -283,7 +283,7 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_PLE__WOUNDED_INDICATOR_TEXT</Tag>
 		<English>Wounded Dot</English>
-		<French>Point Endommagé</French>
+		<French>Point Endommag&#233;</French>
 		<German>Verwundung</German>
 		<Italian>Disco di stato</Italian>
 		<Spanish>Indicador Salud</Spanish>
@@ -347,9 +347,9 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_PLE__MISSION_INFO_TEXT</Tag>
 		<English>Mission Tag</English>
-		<French>Actions d'Unité</French>
+		<French>Actions d'Unit&#233;</French>
 		<German>Einheitenaktion</German>
-		<Italian>Azioni delle Unità</Italian>
+		<Italian>Azioni delle Unit&#224;</Italian>
 		<Spanish>Indicador Acción</Spanish>
 	</TEXT>
 	<TEXT>
@@ -395,7 +395,7 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_PLE__INFO_PANE_TEXT</Tag>
 		<English>Enabled</English>
-		<French>Activé</French>
+		<French>Activ&#233;</French>
 		<German>Aktivieren</German>
 		<Italian>Attivato</Italian>
 		<Spanish>Activado</Spanish>

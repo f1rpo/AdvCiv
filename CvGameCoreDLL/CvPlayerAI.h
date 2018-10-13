@@ -126,7 +126,7 @@ public:
 
 	int AI_targetCityValue(CvCity* pCity, bool bRandomize, bool bIgnoreAttackers = false) const;
 	CvCity* AI_findTargetCity(CvArea* pArea) const;
-	int cityWonderVal(CvCity* c) const; // advc.104d
+	int cityWonderVal(CvCity const& c) const; // advc.104d
 
 	bool AI_isCommercePlot(CvPlot* pPlot) const;
 /************************************************************************************************/

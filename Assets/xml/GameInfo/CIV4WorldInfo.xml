@@ -197,5 +197,34 @@
 			<!-- advc.250c: was 120 -->
 			<iAdvancedStartPointsMod>100</iAdvancedStartPointsMod>
 		</WorldInfo>
+		<!-- advc.test: From vincentz's 34-civs micro mod. For testing
+			 MAX_CIV_PLAYERS > 18. I haven't made any adjustments except
+			 increase iDefaultPlayers to the highest number that I think
+			 this map size can accomodate at Low sea level. -->
+		<!--WorldInfo>
+			<Type>WORLDSIZE_GIANT</Type>
+			<Description>Giant</Description>
+			<Help>No help text available</Help>
+			<iDefaultPlayers>36</iDefaultPlayers>
+			<iUnitNameModifier>0</iUnitNameModifier>
+			<iTargetNumCities>6</iTargetNumCities>
+			<iNumFreeBuildingBonuses>7</iNumFreeBuildingBonuses>
+			<iBuildingClassPrereqModifier>100</iBuildingClassPrereqModifier>
+			<iMaxConscriptModifier>75</iMaxConscriptModifier>
+			<iWarWearinessModifier>-50</iWarWearinessModifier>
+			<iGridWidth>40</iGridWidth>
+			<iGridHeight>25</iGridHeight>
+			<iTerrainGrainChange>2</iTerrainGrainChange>
+			<iFeatureGrainChange>2</iFeatureGrainChange>
+			<iResearchPercent>150</iResearchPercent>
+			<iTradeProfitPercent>30</iTradeProfitPercent>
+			<iDistanceMaintenancePercent>100</iDistanceMaintenancePercent>
+			<iNumCitiesMaintenancePercent>20</iNumCitiesMaintenancePercent>
+			<iColonyMaintenancePercent>30</iColonyMaintenancePercent>
+			<iCorporationMaintenancePercent>50</iCorporationMaintenancePercent>
+			<iNumCitiesAnarchyPercent>6</iNumCitiesAnarchyPercent>
+			<iAdvancedStartPointsMod>120</iAdvancedStartPointsMod>
+		</WorldInfo-->
+		
 	</WorldInfos>
 </Civ4WorldInfo>

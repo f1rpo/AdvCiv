@@ -2249,8 +2249,8 @@ int CvTeamAI::AI_techTradeVal(TechTypes eTech, TeamTypes eTeam,
 			that eTeam has met (unless this team has also met them). */
 		float techRatio = GET_PLAYER(getLeaderID()).getTechScore() /
 				((float)GET_PLAYER(GET_TEAM(eTeam).getLeaderID()).getTechScore() + 1);
-		CvGame& g = GC.getGameINLINE();
-		float gameProgressFactor = (g.getGameTurn() - g.getStartTurn()) /
+		CvGame const& g = GC.getGameINLINE();
+		float gameProgressFactor = (g.gameTurn() - g.getStartTurn()) /
 				((float)g.getEstimateEndTurn() - g.getStartTurn());
 		gameProgressFactor = ::range(gameProgressFactor, 0.0f, 0.5f);
 		powerRatio = ::range(powerRatio, 1 - gameProgressFactor, 1 + gameProgressFactor);
@@ -5374,8 +5374,7 @@ int CvTeamAI::AI_plotDefense(CvPlot const& p, bool bIgnoreBuilding) const {
 	if(p.getOwnerINLINE() != NO_PLAYER && GET_TEAM(getID()).isAtWar(p.getTeam()))
 		attacker = p.getTeam();
 	return p.defenseModifier(getID(), bIgnoreBuilding, attacker);
-}
-// </advc.012>
+} // </advc.012>
 
 // <advc.130y>
 void CvTeamAI::forgiveEnemy(TeamTypes enemyId, bool capitulated, bool freed) {

@@ -27,13 +27,10 @@ public:
 	int countCoastalLand() const;																							// Exposed to Python
 	int countNumUniqueBonusTypes() const;																			// Exposed to Python
 	int countHasReligion(ReligionTypes eReligion, PlayerTypes eOwner = NO_PLAYER) const;		// Exposed to Python
-	int countHasCorporation(CorporationTypes eCorporation, PlayerTypes eOwner = NO_PLAYER) const;		// Exposed to Python
-
-	int getID() const;																							// Exposed to Python
+	int countHasCorporation(CorporationTypes eCorporation, PlayerTypes eOwner = NO_PLAYER) const;		// Exposed to Python																					// Exposed to Python
+	
 	void setID(int iID);
-
-	int getNumTiles() const;																									// Exposed to Python
-	bool isLake() const;																											// Exposed to Python
+																										// Exposed to Python
 	// <advc.030>
 	void updateLake(bool checkRepr = true);
 	void setRepresentativeArea(int areaId);
@@ -42,9 +39,6 @@ public:
 	bool canBeEntered(CvArea const& from, CvUnit const* u = NULL) const;
 	// </advc.030>
 	void changeNumTiles(int iChange);
-
-	int getNumOwnedTiles() const;																							// Exposed to Python
-	int getNumUnownedTiles() const;																						// Exposed to Python
 	void changeNumOwnedTiles(int iChange);
 
 	// <advc.300>
@@ -57,20 +51,12 @@ public:
 	int numBarbCitiesEver() const;
 	void barbCityCreated();
 	// </advc.300>
-
-	int getNumRiverEdges() const;																							// Exposed to Python
-	void changeNumRiverEdges(int iChange);
-
-	int getNumCities() const;																									// Exposed to Python
-
-	int getNumUnits() const;																									// Exposed to Python
+																						// Exposed to Python
+	void changeNumRiverEdges(int iChange);																								// Exposed to Python
 
 	int getTotalPopulation() const;																						// Exposed to Python
 
-	int getNumStartingPlots() const;																					// Exposed to Python
 	void changeNumStartingPlots(int iChange);
-
-	bool isWater() const;																											// Exposed to Python
 
 	int getUnitsPerPlayer(PlayerTypes eIndex) const;													// Exposed to Python
 	void changeUnitsPerPlayer(PlayerTypes eIndex, int iChange);
@@ -107,7 +93,6 @@ public:
 	void setBestFoundValue(PlayerTypes eIndex, int iNewValue);
 
 	int getNumRevealedTiles(TeamTypes eIndex) const;													// Exposed to Python
-	int getNumUnrevealedTiles(TeamTypes eIndex) const;												// Exposed to Python
 	void changeNumRevealedTiles(TeamTypes eIndex, int iChange);
 
 	int getCleanPowerCount(TeamTypes eIndex) const;
@@ -187,7 +172,26 @@ public:
 	// for serialization
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);
-
+	// <advc.003f> Inlined. All exposed to Python.
+	inline int  CvArea::getID() const { return m_iID; }
+	inline int  CvArea::getNumTiles() const { return m_iNumTiles; }
+	inline bool CvArea::isLake() const { 
+			return m_bLake; // <advc.030> Replacing the line below
+			//return (isWater() && (getNumTiles() <= GC.getLAKE_MAX_AREA_SIZE()));
+	}
+	inline int  CvArea::getNumOwnedTiles() const { return m_iNumOwnedTiles; }
+	inline int  CvArea::getNumUnownedTiles() const {
+		return getNumTiles() - getNumOwnedTiles();
+	}
+	inline int  CvArea :: getNumRiverEdges() const { return m_iNumRiverEdges; }
+	inline int  CvArea :: getNumUnits() const { return m_iNumUnits; }
+	inline int  CvArea :: getNumCities() const { return m_iNumCities; }
+	inline int  CvArea :: getNumStartingPlots() const { return m_iNumStartingPlots; }
+	inline bool CvArea :: isWater() const { return m_bWater; }
+	inline int  CvArea :: getNumUnrevealedTiles(TeamTypes eIndex) const {
+		return getNumTiles() - getNumRevealedTiles(eIndex);
+	}
+	// </advc.003f>
 };
 
 #endif

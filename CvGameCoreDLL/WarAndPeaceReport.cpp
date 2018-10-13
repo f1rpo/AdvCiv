@@ -42,11 +42,11 @@ void WarAndPeaceReport::writeToFile() {
 
 	if(muted > 0)
 		return;
-	CvGame& g = GC.getGameINLINE();
+	CvGame const& g = GC.getGameINLINE();
 	ostringstream logFileName;
 	//if(g.isNetworkMultiPlayer()) // For OOS debugging on a single PC
 		//logFileName << (int)g.getActivePlayer() << "_";
-	logFileName << "uwai" << g.getGameTurn() << ".log";
+	logFileName << "uwai" << g.gameTurn() << ".log";
 	gDLL->logMsg(logFileName.str().c_str(), report, false, false);
 	report.clear();
 }

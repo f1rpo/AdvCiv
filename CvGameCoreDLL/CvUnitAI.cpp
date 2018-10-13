@@ -1103,10 +1103,12 @@ bool CvUnitAI::AI_bestCityBuild(CvCity* pCity, CvPlot** ppBestPlot, BuildTypes* 
 
 bool CvUnitAI::AI_isCityAIType() const
 {
-	return ((AI_getUnitAIType() == UNITAI_CITY_DEFENSE) ||
-		      (AI_getUnitAIType() == UNITAI_CITY_COUNTER) ||
-					(AI_getUnitAIType() == UNITAI_CITY_SPECIAL) ||
-						(AI_getUnitAIType() == UNITAI_RESERVE));
+	return (AI_getUnitAIType() == UNITAI_CITY_DEFENSE ||
+		AI_getUnitAIType() == UNITAI_CITY_COUNTER ||
+		AI_getUnitAIType() == UNITAI_CITY_SPECIAL ||
+		AI_getUnitAIType() == UNITAI_RESERVE ||
+		//advc.rom (Afforess): count units on guard mission as city defenders
+		getGroup()->AI_getMissionAIType() == MISSIONAI_GUARD_CITY);
 }
 
 
@@ -8762,7 +8764,11 @@ void CvUnitAI::AI_settlerSeaMove()
 		}
 	}
 	
-	if( cargoSpace() - 2 < getCargo() + iWorkerCount )
+	//if( cargoSpace() - 2 < getCargo() + iWorkerCount )
+	// advc.rom: (Koshling); relevant excerpt of his comment:
+	/*	old condition here was broken for transports with a max capacity of 1 [...],
+		and (after reading the old code) I think more generally anyway. [...] */
+	if( iWorkerCount > 0 && cargoSpace() > 1 && cargoSpace() - getCargo() < 2 )
 	{
 		// If full of workers and not going anywhere, dump them if a settler is available
 		if( (iSettlerCount == 0) && (plot()->plotCount(PUF_isAvailableUnitAITypeGroupie, UNITAI_SETTLE, -1, getOwnerINLINE(), NO_TEAM, PUF_isFiniteRange) > 0) )
@@ -17504,53 +17510,13 @@ bool CvUnitAI::AI_pillageRange(int iRange, int iBonusValueThreshold, int iFlags)
 bool CvUnitAI::AI_found(int iFlags)
 {
 	PROFILE_FUNC();
-//
+//	advc.003: Most of the original code deleted
 //	CvPlot* pLoopPlot;
-//	CvPlot* pBestPlot;
-//	CvPlot* pBestFoundPlot;
-//	int iPathTurns;
-//	int iValue;
-//	int iBestValue;
-//	int iI;
-//
-//	iBestValue = 0;
-//	pBestPlot = NULL;
-//	pBestFoundPlot = NULL;
-//
+//	...
 //	for (iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 //	{
 //		pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
-//
-//		if (AI_plotValid(pLoopPlot) && (pLoopPlot != plot() || GET_PLAYER(getOwnerINLINE()).AI_getPlotDanger(pLoopPlot, 1) <= pLoopPlot->plotCount(PUF_canDefend, -1, -1, getOwnerINLINE())))
-//		{
-//			if (canFound(pLoopPlot))
-//			{
-//				iValue = pLoopPlot->getFoundValue(getOwnerINLINE());
-//
-//				if (iValue > 0)
-//				{
-//					if (!(pLoopPlot->isVisibleEnemyUnit(this)))
-//					{
-//						if (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_FOUND, getGroup(), 3) == 0)
-//						{
-//							if (generatePath(pLoopPlot, MOVE_SAFE_TERRITORY, true, &iPathTurns))
-//							{
-//								iValue *= 1000;
-//
-//								iValue /= (iPathTurns + 1);
-//
-//								if (iValue > iBestValue)
-//								{
-//									iBestValue = iValue;
-//									pBestPlot = getPathEndTurnPlot();
-//									pBestFoundPlot = pLoopPlot;
-//								}
-//							}
-//						}
-//					}
-//				}
-//			}
-//		}
+//		...
 //	}
 
 	int iPathTurns;
@@ -19601,7 +19567,6 @@ bool CvUnitAI::AI_improveCity(CvCity* pCity)
 
 bool CvUnitAI::AI_improveLocalPlot(int iRange, CvCity* pIgnoreCity)
 {
-	
 	int iX, iY;
 	
 	int iBestValue = 0;

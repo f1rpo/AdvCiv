@@ -123,7 +123,7 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPTLABEL_INIFILENOTFOUND</Tag>
 		<English>Cannot Find INI File</English>
-		<French>Fichier INI Non Trouvé</French>
+		<French>Fichier INI Non Trouv&#233;</French>
 		<German>INI-Datei nicht gefunden</German>
 		<Italian>Il file 'BUG Mod.ini' non è stato trovato</Italian>
 		<Spanish>No se pudo encontrar fichero INI</Spanish>
@@ -286,7 +286,7 @@
 		<English>City Screen</English>
 		<French>City Screen</French>
 		<German>Stadt-Bildschirm</German>
-		<Italian>Città</Italian>
+		<Italian>Citt&#224;</Italian>
 		<Spanish>Pantalla de Ciudad</Spanish>
 	</TEXT>
 	<TEXT>
@@ -439,7 +439,7 @@
 		<English>Plot List</English>
 		<French>Plot List</French>
 		<German>Einheitenliste</German>
-		<Italian>Icone Unità</Italian>
+		<Italian>Icone Unit&#224;</Italian>
 		<Spanish>Lista</Spanish>
 	</TEXT>
 	<TEXT>
@@ -482,7 +482,7 @@
 		<English>Odds</English>
 		<French>Odds</French>
 		<German>Siegchancen</German>
-		<Italian>Probabilità</Italian>
+		<Italian>Probabilit&#224;</Italian>
 		<Spanish>Probabilidades</Spanish>
 	</TEXT>
 	
@@ -595,7 +595,7 @@
 		<English>Unit Naming</English>
 		<French>Noms des Unités</French>
 		<German>Einheitennamen</German>
-		<Italian>Nomi Unità</Italian>
+		<Italian>Nomi Unit&#224;</Italian>
 		<Spanish>Nombres Unidad</Spanish>
 	</TEXT>
 	

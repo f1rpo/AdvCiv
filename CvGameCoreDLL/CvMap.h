@@ -70,6 +70,7 @@ struct CvMapInitData
 //
 class CvSelectionGroup;
 class CvMap
+		: private boost::noncopyable // advc.003e
 {
 
 	friend class CyMap;

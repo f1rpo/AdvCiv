@@ -40,7 +40,7 @@ class CvInfoBase;
 #undef max
 #undef min
 
-// <advc.003> floating point utility
+// <advc.003g> floating point utility
 inline int round(double d) { return (int)((d >= 0 ? 0.5 : -0.5) + d); }
 int roundToMultiple(double d, int modulus);
 bool bernoulliSuccess(double pr, char const* pszLog = ""); // 0 <= pr <= 1
@@ -56,6 +56,8 @@ double percentileRank(std::vector<double>& distribution, double score,
 		   if yes, the percentile rank is going to be positive.
 		   either way, the value of 'score' shouldn't be added to
 		   the distribution by the caller. */
+// </advc.003g>
+// <advc.003>
 /*  Hash based on the components of x. Plot index of capital factored in for
 	increased range if civId given.
 	Result between 0 and 1. Returns float b/c CvRandom uses float (not double). */
@@ -112,14 +114,14 @@ inline float range(float fNum, float fLow, float fHigh)
 	}
 }
 
-/*  <advc.003> Don't want to work with float in places where memory usage isn't a
+/*  <advc.003g> Don't want to work with float in places where memory usage isn't a
 	concern. */
 inline double dRange(double d, double low, double high) {
 
 	if(d < low) return low;
 	if(d > high) return high;
 	return d;
-} // </advc.003>
+} // </advc.003g>
 
 inline int coordDistance(int iFrom, int iTo, int iRange, bool bWrap)
 {

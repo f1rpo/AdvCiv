@@ -270,13 +270,18 @@ void WarAndPeaceCache::updateTotalAssetScore() {
 
 	// For Palace; it's counted as a national wonder below, but it's worth another 5.
 	totalAssets = 5;
-	for(int i = 0; i < size(); i++) {
+	for(int i = size() - 1; i >= 0; i--) {
 		City const& c = *getCity(i);
+		if(!c.isOwnCity())
+			break; // Sorted so that owner's cities are at the end
 		CvCity* cp = c.city();
 		if(cp != NULL && cp->getOwnerINLINE() == ownerId)
 			/*  National wonders aren't included in the per-city asset score b/c
 				they shouldn't count for rival cities. */
 			totalAssets += c.getAssetScore() + cp->getNumNationalWonders() * 4;
+		/*  Cached cities have just been updated, so ownership info can't be
+			out of date. */
+		else FAssert(false);
 	}
 }
 
@@ -673,14 +678,6 @@ int WarAndPeaceCache::numReachableCities(PlayerTypes civId) const {
 	return nReachableCities[civId];
 }
 
-WarAndPeaceCache::City* WarAndPeaceCache::getCity(int index) const {
-
-	// Verify that the city still exists
-	if(v[index] == NULL || v[index]->city() == NULL)
-		return NULL;
-	return v[index];
-}
-
 WarAndPeaceCache::City* WarAndPeaceCache::lookupCity(int plotIndex) const {
 
 	std::map<int,City*>::const_iterator pos = cityMap.find(plotIndex);
@@ -697,26 +694,31 @@ WarAndPeaceCache::City* WarAndPeaceCache::lookupCity(CvCity const& cvCity) const
 
 void WarAndPeaceCache::sortCitiesByOwnerAndDistance() {
 
+	FAssertMsg(false, "function no longer used");
 	sort(v.begin(), v.end(), City::byOwnerAndDistance);
 }
 
 void WarAndPeaceCache::sortCitiesByOwnerAndTargetValue() {
 
+	FAssertMsg(false, "function no longer used");
 	sort(v.begin(), v.end(), City::byOwnerAndTargetValue);
 }
 
 void WarAndPeaceCache::sortCitiesByDistance() {
 
+	FAssertMsg(false, "function no longer used");
 	sort(v.begin(), v.end(), City::byDistance);
 }
 
 void WarAndPeaceCache::sortCitiesByTargetValue() {
 
+	FAssertMsg(false, "function no longer used");
 	sort(v.begin(), v.end(), City::byTargetValue);
 }
 
 void WarAndPeaceCache::sortCitiesByAttackPriority() {
 
+	PROFILE_FUNC();
 	//sort(v.begin(), v.end(), City::byAttackPriority);
 	/*  Selection sort b/c I want to factor in city areas. An invading army tends
 		to stay in one area until all cities there are conquered. */
@@ -724,8 +726,6 @@ void WarAndPeaceCache::sortCitiesByAttackPriority() {
 		CvCity* cvc = NULL;
 		if(i > 0)
 			cvc = v[i - 1]->city();
-		/*  I don't think it's guaranteed here that the city still exists on the
-			map. */
 		CvArea* a = (cvc == NULL ? NULL : cvc->area());
 		double maxPriority = (v[i]->city() == NULL ? -1 : v[i]->attackPriority());
 		int maxIndex = i;
@@ -1309,7 +1309,6 @@ int WarAndPeaceCache::City::getAssetScore() const {
 
 bool WarAndPeaceCache::City::canReach() const {
 
-	PROFILE_FUNC();
 	CvCity* const cp = city();
 	if(cp == NULL ||
 			// A bit slow:
@@ -1472,6 +1471,8 @@ double WarAndPeaceCache::City::attackPriority() const {
 
 	if(distance < 0)
 		return -1;
+	if(isOwnCity())
+		return -2; // updateTotalAssetScore relies on own cities having minimal priority
 	/*  targetValue is something like 10 to 100, distance 1 to 20 perhaps.
 		Add 1000 b/c negative values should be reserved for error conditions. */
 	return std::max(0.0, 1000 + getTargetValue() -
@@ -1494,6 +1495,12 @@ PlayerTypes WarAndPeaceCache::City::cityOwner() const {
 	if(city() == NULL)
 		return NO_PLAYER;
 	return city()->getOwner();
+}
+
+bool WarAndPeaceCache::City::isOwnCity() const {
+
+	// Check distance==0 first b/c that's faster
+	return (distance == 0 && cityOwner() == cacheOwnerId);
 }
 
 void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
@@ -1739,7 +1746,9 @@ void WarAndPeaceCache::City::fatCross(vector<CvPlot*>& r) {
 void WarAndPeaceCache::City::updateAssetScore() {
 
 	PROFILE_FUNC();
-	if(city() == NULL) return;
+	if(city() == NULL)
+		return;
+	CvCity const& c = *city();
 	/*  Scale: cityWonderVal relies on K-Mod functions that supposedly express
 		utility as gold per turn. That said, active wonders are only valued as
 		4 gpt, which seems too low (even for wonders we can't pick and that could
@@ -1749,9 +1758,8 @@ void WarAndPeaceCache::City::updateAssetScore() {
 		maintenance.*/
 	CvPlayerAI& cacheOwner = GET_PLAYER(cacheOwnerId);
 	CvTeam& t = TEAMREF(cacheOwnerId);
-	double r = cacheOwner.cityWonderVal(city());
+	double r = cacheOwner.cityWonderVal(c);
 	r += 1.4 * cacheOwner.getTradeRoutes();
-	CvCity const& c = *city();
 	PlayerTypes cityOwnerId = c.getOwnerINLINE();
 	/*  If we already own the city, then the score says how much we don't want
 		to lose it. Lost buildings hurt. Since most buildings don't survive
@@ -1779,7 +1787,7 @@ void WarAndPeaceCache::City::updateAssetScore() {
 		if(pp == NULL)
 			continue;
 		CvPlot const& p = *pp;
-		// If no working city, we should be able to get the tile by popping borders
+		// If no working city, we should be able to get the tile by popping borders.
 		if(p.getWorkingCity() != city() && p.getWorkingCity() != NULL && i != 0)
 			continue;
 		// Fall back on city tile for cultureModifier if p unrevealed

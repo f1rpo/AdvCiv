@@ -590,10 +590,10 @@
 
 	<!-- [advc.250c]
 	     Originally in GlobalDefines.xml; set to 25 there. Essentially the
-		 number of start points charged per 10 culture. Recommended: 10. -->
+		 number of start points charged per 10 culture. Recommended: 15. -->
 	<Define>
 		<DefineName>ADVANCED_START_CULTURE_COST</DefineName>
-		<iDefineIntVal>10</iDefineIntVal>
+		<iDefineIntVal>15</iDefineIntVal>
 	</Define>
 
 	<!-- [advc.250c] The number of start points charged for routes

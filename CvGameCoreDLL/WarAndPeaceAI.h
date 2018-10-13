@@ -19,7 +19,8 @@
 
 #define getWPAI GC.getGame().warAndPeaceAI()
 
-class WarAndPeaceAI {
+class WarAndPeaceAI 
+		: private boost::noncopyable { // advc.003e
 
 public:
 

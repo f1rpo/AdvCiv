@@ -5160,7 +5160,8 @@
 			<iCultureGarrison>5</iCultureGarrison>
 			<iExtraCost>0</iExtraCost>
 			<iAsset>2</iAsset>
-			<iPower>6</iPower>
+			<!-- advc.104e: was 6 -->
+			<iPower>5</iPower>
 			<UnitMeshGroups>
 				<iGroupSize>3</iGroupSize>
 				<fMaxSpeed>1.75</fMaxSpeed>
@@ -9796,7 +9797,7 @@
 			<iExtraCost>0</iExtraCost>
 			<!-- advc.131: was 3 -->
 			<iAsset>4</iAsset>
-			<!-- advc.131: was 20 -->
+			<!-- advc.104e: was 20 -->
 			<iPower>22</iPower>
 			<UnitMeshGroups>
 				<iGroupSize>3</iGroupSize>
@@ -18568,10 +18569,15 @@
 			<bSuicide>0</bSuicide>
 			<bHiddenNationality>0</bHiddenNationality>
 			<bAlwaysHostile>0</bAlwaysHostile>
-			<!-- advc.905b -->
+			<!-- advc.905b: Destroyer added (same as Frigate), Transport kept
+				 from BtS (same as Galleon) -->
 			<UnitClassUpgrades>
 				<UnitClassUpgrade>
 					<UnitClassUpgradeType>UNITCLASS_DESTROYER</UnitClassUpgradeType>
+					<bUnitClassUpgrade>1</bUnitClassUpgrade>
+				</UnitClassUpgrade>
+				<UnitClassUpgrade>
+					<UnitClassUpgradeType>UNITCLASS_TRANSPORT</UnitClassUpgradeType>
 					<bUnitClassUpgrade>1</bUnitClassUpgrade>
 				</UnitClassUpgrade>
 			</UnitClassUpgrades>

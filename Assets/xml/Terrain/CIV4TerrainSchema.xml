@@ -30,6 +30,8 @@
 	<ElementType name="iSeeThrough" content="textOnly" dt:type="int"/>
 	<ElementType name="iBuildModifier" content="textOnly" dt:type="int"/>
 	<ElementType name="iDefense" content="textOnly" dt:type="int"/>
+	<!-- advc.012 -->
+	<ElementType name="iRivalDefense" content="textOnly" dt:type="int"/>
 	<ElementType name="Button" content="textOnly"/>
 	<ElementType name="FootstepAudioType" content="textOnly"/>
 	<ElementType name="FootstepAudioScript" content="textOnly"/>
@@ -152,6 +154,8 @@
 		<element type="iSeeThrough"/>
 		<element type="iHealthPercent"/>
 		<element type="iDefense"/>
+		<!-- advc.012 -->
+		<element type="iRivalDefense"/>
 		<element type="iAppearance"/>
 		<element type="iDisappearance"/>
 		<element type="iGrowth"/>

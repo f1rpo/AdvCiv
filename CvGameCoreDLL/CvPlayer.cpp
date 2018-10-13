@@ -2637,8 +2637,8 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 				bGift = ((eHighestCulturePlayer != NO_PLAYER) 
 						&& (eHighestCulturePlayer != getID()) 
 						&& ((getTeam() == GET_PLAYER(eHighestCulturePlayer).getTeam()) 
-							|| GET_TEAM(getTeam()).isOpenBorders(GET_PLAYER(eHighestCulturePlayer).getTeam()) 
-							|| GET_TEAM(GET_PLAYER(eHighestCulturePlayer).getTeam()).isVassal(getTeam())));
+						|| GET_TEAM(getTeam()).isOpenBorders(GET_PLAYER(eHighestCulturePlayer).getTeam()) 
+						|| GET_TEAM(GET_PLAYER(eHighestCulturePlayer).getTeam()).isVassal(getTeam())));
 
 				if (bRaze || bGift)
 				{
@@ -3314,7 +3314,9 @@ void CvPlayer::setSavingReplay(bool b) {
 
 const wchar* CvPlayer::getName(uint uiForm) const
 {
-	if (GC.getInitCore().getLeaderName(getID(), uiForm).empty() || (GC.getGameINLINE().isMPOption(MPOPTION_ANONYMOUS) && isAlive() && GC.getGameINLINE().getGameState() == GAMESTATE_ON))
+	if (GC.getInitCore().getLeaderName(getID(), uiForm).empty() ||
+			(GC.getGameINLINE().isMPOption(MPOPTION_ANONYMOUS) && isAlive() &&
+			GC.getGameINLINE().getGameState() == GAMESTATE_ON))
 	{
 		//return GC.getLeaderHeadInfo(getLeaderType()).getDescription(uiForm);
 		// K-Mod. Conceal the leader name of unmet players.
@@ -6011,11 +6013,11 @@ bool CvPlayer::canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) 
 	int iI;
 	CvGoodyInfo const& goody = GC.getGoodyInfo(eGoody); // advc.003
 	// <advc.314>
-	CvGame& g = GC.getGameINLINE();
+	CvGame const& g = GC.getGameINLINE();
 	int const trainHalved = (GC.getGameSpeedInfo(g.getGameSpeedType()).
 			getTrainPercent() + 100) / 2;
-	bool veryEarlyGame = (100 * g.getGameTurn() < 20 * trainHalved);
-	bool veryVeryEarlyGame = (100 * g.getGameTurn() < 10 * trainHalved);
+	bool veryEarlyGame = (100 * g.gameTurn() < 20 * trainHalved);
+	bool veryVeryEarlyGame = (100 * g.gameTurn() < 10 * trainHalved);
 	if (goody.getExperience() > 0)
 	{
 		if ((pUnit == NULL) || !(pUnit->canAcquirePromotionAny()) ||
@@ -9826,74 +9828,60 @@ bool CvPlayer::isAnarchy() const
 	return (getAnarchyTurns() > 0);
 }
 
-
+// advc.003: Refactored
 void CvPlayer::changeAnarchyTurns(int iChange)
 {
-	bool bOldAnarchy;
+	if(iChange == 0)
+		return;
+	CvGame& g = GC.getGameINLINE();
+	if(getID() == g.getActivePlayer())
+		gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true);
 
-	if (iChange != 0)
+	bool bOldAnarchy = isAnarchy();
+	m_iAnarchyTurns = (m_iAnarchyTurns + iChange);
+	FAssert(getAnarchyTurns() >= 0);
+
+	if(bOldAnarchy == isAnarchy())
+		return;
+
+	if(getID() == g.getActivePlayer())
+		gDLL->getInterfaceIFace()->setDirty(MiscButtons_DIRTY_BIT, true);
+	if(getTeam() == g.getActiveTeam())
+		gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
+	
+	updateCommerce();
+	updateMaintenance();
+	updateTradeRoutes();
+	updateCorporation();
+
+	AI_makeAssignWorkDirty();
+
+	if (isAnarchy())
 	{
-		bOldAnarchy = isAnarchy();
-
-		m_iAnarchyTurns = (m_iAnarchyTurns + iChange);
-		FAssert(getAnarchyTurns() >= 0);
-
-		if (bOldAnarchy != isAnarchy())
+		gDLL->getInterfaceIFace()->addHumanMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), gDLL->getText("TXT_KEY_MISC_REVOLUTION_HAS_BEGUN").GetCString(), "AS2D_REVOLTSTART",
+				MESSAGE_TYPE_MINOR_EVENT, // advc.106b: was MAJOR
+				NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"),
+				getCapitalX(), getCapitalY()); // advc.127b
+	}
+	else
+	{
+		gDLL->getInterfaceIFace()->addHumanMessage(getID(), false, GC.getEVENT_MESSAGE_TIME(), gDLL->getText("TXT_KEY_MISC_REVOLUTION_OVER").GetCString(), "AS2D_REVOLTEND", MESSAGE_TYPE_MINOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString(
+				"COLOR_WHITE"), // advc.004g: Was COLOR_WARNING_TEXT
+				getCapitalX(), getCapitalY()); // advc.127b
+		// K-Mod. trigger production/research popups that have been suppressed.
+		if(isHuman())
 		{
-			updateCommerce();
-			updateMaintenance();
-			updateTradeRoutes();
-			updateCorporation();
-
-			AI_makeAssignWorkDirty();
-
-			if (isAnarchy())
+			if(isResearch() && getCurrentResearch() == NO_TECH)
+				chooseTech();
+			int iLoop=-1;
+			for(CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 			{
-				gDLL->getInterfaceIFace()->addHumanMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), gDLL->getText("TXT_KEY_MISC_REVOLUTION_HAS_BEGUN").GetCString(), "AS2D_REVOLTSTART",
-						MESSAGE_TYPE_MINOR_EVENT, // advc.106b: was MAJOR
-						NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"),
-						getCapitalX(), getCapitalY()); // advc.127b
+				if (pLoopCity->AI_isChooseProductionDirty() &&
+						!pLoopCity->isProduction() && !pLoopCity->isDisorder() &&
+						!pLoopCity->isProductionAutomated())
+					pLoopCity->chooseProduction();
 			}
-			else
-			{
-				gDLL->getInterfaceIFace()->addHumanMessage(getID(), false, GC.getEVENT_MESSAGE_TIME(), gDLL->getText("TXT_KEY_MISC_REVOLUTION_OVER").GetCString(), "AS2D_REVOLTEND", MESSAGE_TYPE_MINOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString(
-						"COLOR_WHITE"), // advc.004g: Was COLOR_WARNING_TEXT
-						getCapitalX(), getCapitalY()); // advc.127b
-				// K-Mod. trigger production/research popups that have been suppressed.
-				if (isHuman())
-				{
-					if (isResearch() && getCurrentResearch() == NO_TECH)
-					{
-						chooseTech();
-					}
-
-					int iLoop;
-					for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
-					{
-						if (pLoopCity->AI_isChooseProductionDirty() && !pLoopCity->isProduction() && !pLoopCity->isDisorder() && !pLoopCity->isProductionAutomated())
-						{
-							pLoopCity->chooseProduction();
-						}
-					}
-				}
-				// K-Mod end
-			}
-
-			if (getID() == GC.getGameINLINE().getActivePlayer())
-			{
-				gDLL->getInterfaceIFace()->setDirty(MiscButtons_DIRTY_BIT, true);
-			}
-
-			if (getTeam() == GC.getGameINLINE().getActiveTeam())
-			{
-				gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
-			}
-		}
-
-		if (getID() == GC.getGameINLINE().getActivePlayer())
-		{
-			gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true);
-		}
+		} // K-Mod end
 	}
 }
 
@@ -14057,6 +14045,9 @@ void CvPlayer::setCivics(CivicOptionTypes eIndex, CivicTypes eNewValue)
 							szBuffer += L" " + gDLL->getText("TXT_KEY_MISC_AND_ABOLISH_CIVIC",
 									GC.getCivicInfo(eOldCivic).getTextKeyWide());
 						} // </advc.151>
+						// <advc.106>
+						bool bRenounce = (!GC.getCivicInfo(getCivics(eIndex)).isStateReligion() &&
+								GC.getCivicInfo(eOldCivic).isStateReligion()); // </advc.106>
 						for (iI = 0; iI < MAX_PLAYERS; iI++)
 						{
 							if (GET_PLAYER((PlayerTypes)iI).isAlive())
@@ -14064,16 +14055,14 @@ void CvPlayer::setCivics(CivicOptionTypes eIndex, CivicTypes eNewValue)
 								if (GET_TEAM(getTeam()).isHasMet(GET_PLAYER((PlayerTypes)iI).getTeam()))
 								{
 									gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CIVIC_ADOPT",
+											bRenounce ? MESSAGE_TYPE_MAJOR_EVENT : // advc.106
 											MESSAGE_TYPE_MINOR_EVENT, // advc.106b
 											// advc.127b:
 											NULL, NO_COLOR, getCapitalX(), getCapitalY());
 								}
 							}
 						}
-						// <advc.106> Only record civics change if renounced state religion implied
-						if(!GC.getCivicInfo(getCivics(eIndex)).isStateReligion() &&
-								GC.getCivicInfo(eOldCivic).isStateReligion()) {
-									// </advc.106>
+						if(bRenounce) { // advc.106
 							szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYER_ADOPTED_CIVIC", getNameKey(), GC.getCivicInfo(getCivics(eIndex)).getTextKeyWide());
 							// <advc.106>
 							if(bWasStateReligion && getLastStateReligion() != NO_RELIGION) {
@@ -15249,34 +15238,27 @@ void CvPlayer::setSmtpHost(const char* szHost)
 // Protected Functions...
 
 void CvPlayer::doGold()
-{
-	bool bStrike;
-	int iGoldChange;
-	int iDisbandUnit;
-	int iI;
-
+{	// advc.003: Declarations moved
 	CyArgsList argsList;
 	argsList.add(getID());
 	long lResult=0;
 	gDLL->getPythonIFace()->callFunction(PYGameModule, "doGold", argsList.makeFunctionArgs(), &lResult);
-	if (lResult == 1)
-	{
+	if(lResult == 1)
 		return;
-	}
 
-	iGoldChange = calculateGoldRate();
+	// <advc.300> Let CvGame::killBarb handle overcrowding
+	if(isBarbarian())
+		return; // </advc.300>
 
+	int iGoldChange = calculateGoldRate();
+	
 	//FAssert(isHuman() || isBarbarian() || ((getGold() + iGoldChange) >= 0) || isAnarchy());
-	// <advc.133> I don't think anarchy should lead to negative gold
-	if(getGold() + iGoldChange < 0 && !isHuman() && !isBarbarian()) {
-		FAssert(getGold() + iGoldChange >= 0);
-		/* Can't rule out that an AI civ goes broke. Should uncancelable deals
-			be force-canceled then? No change so far ... (AI goes into strike) */
-	} // </advc.133>
+	/*  advc.131: Disabled b/c all of these can be OK (except isBarbarian, which is
+		now handled upfront) */
 
 	changeGold(iGoldChange);
 
-	bStrike = false;
+	bool bStrike = false;
 
 	if (getGold() < 0)
 	{
@@ -15295,9 +15277,10 @@ void CvPlayer::doGold()
 
 		if (getStrikeTurns() > 1)
 		{
-			iDisbandUnit = (getStrikeTurns() / 2); // XXX mod?
-
-			for (iI = 0; iI < iDisbandUnit; iI++)
+			int iDisbandUnit = (getStrikeTurns() / 2); // XXX mod?
+			// advc.131: Can happen, but hints at a problem with AI gold trading.
+			FAssert(isHuman())
+			for (int iI = 0; iI < iDisbandUnit; iI++)
 			{
 				disbandUnit(true);
 
@@ -17588,48 +17571,35 @@ int CvPlayer::getAdvancedStartPopCost(bool bAdd, CvCity* pCity) const
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 int CvPlayer::getAdvancedStartCultureCost(bool bAdd, CvCity* pCity) const
-{
-	if (0 == getNumCities())
-	{
+{	// <advc.003>
+	if(getNumCities() == 0)
 		return -1;
-	}
-
 	int iCost = GC.getDefineINT("ADVANCED_START_CULTURE_COST");
-	if (iCost < 0)
-	{
+	if(iCost < 0)
 		return -1;
-	}
+	if(pCity == NULL)
+		return adjustAdvStartPtsToSpeed(iCost); // advc.250c
+	if(pCity->getOwnerINLINE() != getID())
+		return -1; // </advc.003>
 
-	if (NULL != pCity)
+	// Need to have enough culture to remove it
+	if(!bAdd && pCity->getCultureLevel() <= 0)
+		return -1;
+
+	int iCulture=-1;
+	if (bAdd)
 	{
-		if (pCity->getOwnerINLINE() != getID())
-		{
-			return -1;
-		}
-
-		// Need to have enough culture to remove it
-		if (!bAdd)
-		{
-			if (pCity->getCultureLevel() <= 0)
-			{
-				return -1;
-			}
-		}
-
-		int iCulture;
-		if (bAdd)
-		{
-			iCulture = CvCity::getCultureThreshold((CultureLevelTypes)(pCity->getCultureLevel() + 1)) - pCity->getCulture(getID());
-		}
-		else
-		{
-			iCulture = pCity->getCulture(getID()) - CvCity::getCultureThreshold((CultureLevelTypes)(pCity->getCultureLevel() - 1));
-		}
-
-		iCost *= iCulture;
-		iCost /= std::max(1, GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getHurryPercent());
+		iCulture = CvCity::getCultureThreshold((CultureLevelTypes)
+				(pCity->getCultureLevel() + 1)) - pCity->getCulture(getID());
 	}
-
+	else
+	{
+		iCulture = pCity->getCulture(getID()) - CvCity::getCultureThreshold((CultureLevelTypes)
+				(pCity->getCultureLevel() - 1));
+	}
+	iCost *= iCulture;
+	iCost /= std::max(1, GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).
+			getHurryPercent());
 	return adjustAdvStartPtsToSpeed(iCost); // advc.250c
 }
 
@@ -20062,7 +20032,7 @@ EventTriggeredData* CvPlayer::initTriggeredData(EventTriggerTypes eEventTrigger,
 		if (NO_PLAYER == eOtherPlayer)
 		{
 			for (int i = 0; i < MAX_CIV_PLAYERS; i++)
-			{	// advc.001: (from the RFC:DoC mod)
+			{	// advc.001: (from Leoreth's RFC:DoC mod)
 				if (!GET_PLAYER((PlayerTypes)i).isMinorCiv() && 
 						GET_PLAYER((PlayerTypes)i).canTrigger(eEventTrigger, getID(), eReligion))
 				{
@@ -24837,8 +24807,8 @@ void CvPlayer::checkAlert(int alertId, bool silent)  {
 // <advc.104> Inspired by CvTeamAI::AI_estimateTotalYieldRate
 double CvPlayer::estimateYieldRate(YieldTypes yield, int nSamples) const {
 
-	CvGame& g = GC.getGameINLINE();
-	int turnNumber = g.getGameTurn();
+	CvGame const& g = GC.getGameINLINE();
+	int turnNumber = g.gameTurn();
 	int turnsPlayed = turnNumber - g.getStartTurn();
 	nSamples = std::min(nSamples, turnsPlayed - 1);
 	std::vector<double> samples; // ::median works with double

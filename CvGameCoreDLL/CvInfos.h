@@ -3167,6 +3167,7 @@ public:
 	int getDisappearanceProbability() const;	// Exposed to Python
 	int getGrowthProbability() const;					// Exposed to Python
 	int getDefenseModifier() const;						// Exposed to Python
+	int getRivalDefenseModifier() const; // advc.012
 	int getAdvancedStartRemoveCost() const;						// Exposed to Python
 	int getTurnDamage() const;						// Exposed to Python
 	int getWarmingDefense() const; //GWmod	
@@ -3220,6 +3221,7 @@ protected:
 	int m_iDisappearanceProbability;
 	int m_iGrowthProbability;
 	int m_iDefenseModifier;
+	int m_iRivalDefenseModifier; // advc.012
 	int m_iAdvancedStartRemoveCost;
 	int m_iTurnDamage;
 	int m_iWarmingDefense; //GWMod new xml field M.A.

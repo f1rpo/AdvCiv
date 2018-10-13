@@ -1587,11 +1587,11 @@ void CvPlayerAI::AI_makeAssignWorkDirty()
 
 
 void CvPlayerAI::AI_assignWorkingPlots()
-{
-	CvCity* pLoopCity;
-	int iLoop;
-
-	for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+{	// <advc.rom2>
+	if(isAnarchy())
+		return; // </advc.rom2>
+	int iLoop=-1;
+	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
 		pLoopCity->AI_assignWorkingPlots();
 	}
@@ -2255,11 +2255,9 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)
 	}
 
 	if( bRaze )
-	{
+	{	// K-Mod moved the log message up - otherwise it will crash due to pCity being deleted!
 		logBBAI("    Player %d (%S) decides to to raze city %S!!!", getID(), getCivilizationDescription(0), pCity->getName().GetCString() );
 		pCity->doTask(TASK_RAZE);
-		//logBBAI("    Player %d (%S) decides to to raze city %S!!!", getID(), getCivilizationDescription(0), pCity->getName().GetCString() );
-		// K-Mod moved the log message up - otherwise it will crash due to pCity being deleted!
 	}
 	else
 	{
@@ -4888,7 +4886,7 @@ int CvPlayerAI::AI_targetCityValue(CvCity* pCity, bool bRandomize, bool bIgnoreA
 	}
 
 	// <advc.104d> Replacing the BBAI code below (essentially with K-Mod code)
-	iValue += cityWonderVal(pCity);
+	iValue += cityWonderVal(*pCity);
 	/*iValue += 4*pCity->getNumActiveWorldWonders();
 
 	for (int iI = 0; iI < GC.getNumReligionInfos(); iI++)
@@ -5025,10 +5023,8 @@ int CvPlayerAI::AI_targetCityValue(CvCity* pCity, bool bRandomize, bool bIgnoreA
 	i.e. AI_warSpoilsValue is obsolete. Also, AI_warSpoilsVal is a team-level
 	function, but I need this to be a civ-level function so that the
 	city owner's state religion can be factored in. */
-int CvPlayerAI::cityWonderVal(CvCity* cp) const {
+int CvPlayerAI::cityWonderVal(CvCity const& c) const {
 
-	if(cp == NULL) return 0;
-	CvCity const& c = *cp;
 	CvGame& g = GC.getGameINLINE();
 	int r = 0;
 	for(int i = 0; i < GC.getNumReligionInfos(); i++) {
@@ -10776,7 +10772,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 					if(bLosingBig &&
 						/*  advc.104n: The BtS code can have us randomly vote
 							against our own proposal. */
-						::hash(g.getGameTurn(), getID()) < prPeace)
+						::hash(g.gameTurn(), getID()) < prPeace)
 						//(GC.getGame().getSorenRandNum(iPeaceRand, "AI Force Peace to avoid loss") || bPropose) )
 					{
 						// Non-warmongers want peace to escape loss
@@ -12073,7 +12069,7 @@ bool CvPlayerAI::balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInvent
 		CLLNode<TradeData>* pBestCityNode = NULL;
 		// Evaluate everything they're willing to trade.
 		std::vector<std::pair<TradeData*, int> > item_value_list; // (item*, value)
-		CvGame& g = GC.getGameINLINE();
+		CvGame const& g = GC.getGameINLINE();
 		for(CLLNode<TradeData>* pNode = pInventory->head(); pNode != NULL;
 				pNode = pInventory->next(pNode)) {
 			TradeData data = pNode->m_data;
@@ -12113,7 +12109,7 @@ bool CvPlayerAI::balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInvent
 						/*  I think randomness in this function could lead to
 							OOS problems */
 						std::vector<long> hashInputs;
-						hashInputs.push_back(g.getGameTurn());
+						hashInputs.push_back(g.gameTurn());
 						hashInputs.push_back(eBonus);
 						if(::hash(hashInputs, getID()) > iItemValue / 100.0)
 							continue;
@@ -13740,33 +13736,42 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 // Ideally the value of receiving the city and the cost of giving the city away would be
 // separate things; but that's currently not how trades are made.
 int CvPlayerAI::AI_cityTradeVal(CvCity* pCity) const
-{
-	FAssert(pCity->getOwnerINLINE() != getID());
+{	// <advc.003>
+	CvCity const& kCity = *pCity;
+	CvGame const& g = GC.getGameINLINE();
+	PlayerTypes const eOwner = kCity.getOwnerINLINE();
+	// </advc.003>
+	FAssert(eOwner != getID());
 
 	int iValue = 300;
 
-	//iValue += (pCity->getPopulation() * 50);
-	iValue += pCity->getPopulation()*20 + pCity->getHighestPopulation()*30; // K-Mod
+	//iValue += (kCity.getPopulation() * 50);
+	int iPopValue = // advc.003
+			kCity.getPopulation() * 20 + kCity.getHighestPopulation() * 30; // K-Mod
+	iValue += iPopValue;
 
-	iValue += (pCity->getCultureLevel() * 200);
-	iValue += (200 * pCity->getCultureLevel() * pCity->getCulture(getID())) /
-			std::max(1, pCity->getCulture(pCity->getOwnerINLINE())
+	iValue += 200 * kCity.getCultureLevel();
+	iValue += (200 * kCity.getCultureLevel() * kCity.getCulture(getID())) /
+			std::max(1, kCity.getCulture(eOwner)
 			/*  advc.001: I think karadoc's intention was to add at most
 				200 * CultureLevel, namely when the city owner has 0 culture,
 				but without the addition below, the increment would actually be
 				200 * CultureLevel * this player's city culture, i.e. millions. */
-			+ pCity->getCulture(getID()));
+			+ kCity.getCulture(getID()));
 
-	//iValue += (((((pCity->getPopulation() * 50) + GC.getGameINLINE().getElapsedGameTurns() + 100) * 4) * pCity->plot()->calculateCulturePercent(pCity->getOwnerINLINE())) / 100);
+	//iValue += (((((kCity.getPopulation() * 50) + g.getElapsedGameTurns() + 100) * 4) * kCity.plot()->calculateCulturePercent(eOwner)) / 100);
 	// K-Mod
-	int iCityTurns = GC.getGameINLINE().getGameTurn() - (pCity->getGameTurnFounded() + pCity->getGameTurnAcquired())/2;
-	iCityTurns = iCityTurns * GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getVictoryDelayPercent() / 100;
-	iValue += ((pCity->getPopulation()*20 + pCity->getHighestPopulation()*30 + iCityTurns*3/2 + 80) * 4 * (pCity->plot()->calculateCulturePercent(pCity->getOwnerINLINE())+10)) / 110;
+	int iCityTurns = g.gameTurn() - (kCity.getGameTurnFounded() +
+			kCity.getGameTurnAcquired()) / 2;
+	iCityTurns = iCityTurns * GC.getGameSpeedInfo(g.getGameSpeedType()).
+			getVictoryDelayPercent() / 100;
+	iValue += ((iPopValue + iCityTurns * 3 / 2 + 80) * 4 * (kCity.plot()->
+			calculateCulturePercent(eOwner) + 10)) / 110;
 	// K-Mod end
 
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 	{
-		CvPlot* pLoopPlot = plotCity(pCity->getX_INLINE(), pCity->getY_INLINE(), iI);
+		CvPlot* pLoopPlot = plotCity(kCity.getX_INLINE(), kCity.getY_INLINE(), iI);
 
 		if (pLoopPlot != NULL)
 		{
@@ -13780,16 +13785,17 @@ int CvPlayerAI::AI_cityTradeVal(CvCity* pCity) const
 
 			if (pLoopPlot->getBonusType(getTeam()) != NO_BONUS)
 				iBonusValue += AI_bonusVal(pLoopPlot->getBonusType(getTeam()), 1, true);
-			if (pLoopPlot->getBonusType(pCity->getTeam()) != NO_BONUS)
-				iBonusValue += GET_PLAYER(pCity->getOwnerINLINE()).AI_bonusVal(pLoopPlot->getBonusType(pCity->getTeam()), -1, true);
-
-			iBonusValue *= plotDistance(pLoopPlot, pCity->plot()) <= 1 ? 5 : 4;
+			if (pLoopPlot->getBonusType(TEAMID(eOwner)) != NO_BONUS) {
+				iBonusValue += GET_PLAYER(eOwner).AI_bonusVal(
+						pLoopPlot->getBonusType(TEAMID(eOwner)), -1, true);
+			}
+			iBonusValue *= plotDistance(pLoopPlot, kCity.plot()) <= 1 ? 5 : 4;
 			iValue += iBonusValue;
 			// K-Mod end
 		}
 	}
 
-	if (!(pCity->isEverOwned(getID())))
+	if (!kCity.isEverOwned(getID()))
 	{
 		iValue *= 3;
 		iValue /= 2;
@@ -13797,9 +13803,9 @@ int CvPlayerAI::AI_cityTradeVal(CvCity* pCity) const
 
 	/*  advc.104d: Moved the K-Mod code here into a new function
 		cityWonderVal (with some tweaks). */
-	iValue += cityWonderVal(pCity) * 10;
+	iValue += cityWonderVal(kCity) * 10;
 	// <advc.139>
-	if(pCity->isEvacuating())
+	if(kCity.isEvacuating())
 		iValue = ::round(0.33 * iValue); // </advc.139>
 	return GET_TEAM(getTeam()).roundTradeVal(iValue); // advc.104k
 }
@@ -13840,22 +13846,29 @@ DenialTypes CvPlayerAI::AI_cityTrade(CvCity* pCity, PlayerTypes ePlayer) const {
 			return DENIAL_TOO_MUCH;
 		return NO_DENIAL;
 	}*/
-	// <advc.122> work in progress (advc.tmp)
-	if(pCity->isCapital()) // Tbd.: Other major cities, DENIAL_VICTORY
-		return DENIAL_NEVER;
-	/*  TOO_MUCH would be nicer than NEVER if on the same team, but these cities
-		are hidden by CvPlayer::buildTradeTable anyway. */
+	// <advc.122> work in progress
 	CvPlot const& kCityPlot = *pCity->plot();
 	if(kCityPlot.getCulture(getID()) > kCityPlot.getCulture(ePlayer))
+		return DENIAL_NEVER; // Tbd.: This condition is too coarse
+// <advc.tmp>
+if(kPlayer.getTeam() == getTeam()||bLib) return NO_DENIAL;
+return DENIAL_NEVER;
+// </advc.tmp>
+	/*  TOO_MUCH would be nicer than NEVER if on the same team, but these cities
+		are hidden by CvPlayer::buildTradeTable anyway. */
+	if(pCity->isCapital())
 		return DENIAL_NEVER;
+	/*  Tbd.: Other major cities, DENIAL_VICTORY, vassal-related clauses,
+		DENIAL_RECENT_CANCEL if recently acquired. */
 	AttitudeTypes towardThem = AI_getAttitude(ePlayer, false);
-	if(towardThem < ATTITUDE_ANNOYED)
+	if(towardThem < ATTITUDE_ANNOYED) // Liberation threshold
 		return DENIAL_ATTITUDE;
-return DENIAL_NEVER; // advc.tmp
-	// Will make those thresholds personality-based eventually
+	// Tbd.: Make these thresholds personality-based
 	if(!bLib && towardThem < ATTITUDE_PLEASED)
 		return DENIAL_ATTITUDE;
-	if(!bLib && pCity->plot()->calculateCulturePercent(getID()) > 10 &&
+	if(!bLib && pCity->plot()->calculateCulturePercent(getID()) >
+			// Tbd.: Mention this use of the threshold in a comment in GlobalDefines
+			GC.getDefineINT("CITY_TRADE_CULTURE_THRESH") &&
 			towardThem < ATTITUDE_FRIENDLY)
 		return DENIAL_ATTITUDE;
 	return NO_DENIAL;
@@ -13943,7 +13956,8 @@ int CvPlayerAI::AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer
 	}
 
 	for(pLoopDeal = GC.getGameINLINE().firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = GC.getGameINLINE().nextDeal(&iLoop))
-	{
+	{	/*  advc.001q: Should be pLoopDeal->isCancelable(ePlayer), but the param
+			doesn't really have an effect, and I'm disabling this check anyway. */
 		//if (pLoopDeal->isCancelable(getID()) && !(pLoopDeal->isPeaceDeal()))
 		// <advc.130f>
 		if(pLoopDeal->isPeaceDeal() ||
@@ -15784,9 +15798,9 @@ int CvPlayerAI::AI_maxUnitCostPerMil(CvArea* pArea, int iBuildProb) const
 			if(isFocusWar()) // advc.105
 			//if (GET_TEAM(getTeam()).getAnyWarPlanCount(true))
 				iMaxUnitSpending += 55;
-			else
+			else if(!bTotalWar) // advc.105: isFocusWar doesn't guarantee this
 			{
-				FAssert(!bTotalWar);
+				//FAssert(!bTotalWar);
 				iMaxUnitSpending += AI_isDoStrategy(AI_STRATEGY_DAGGER) ? 20 + iBuildProb*2/3 : 0;
 			}
 		}
@@ -16863,14 +16877,12 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 
 	int iCities = getNumCities();
 
+	// Circumvents crash bug in simultaneous turns MP games
+	if(eCivic == NO_CIVIC) // advc.006: Moved above the assertions
+		return 1;
+
 	FAssertMsg(eCivic < GC.getNumCivicInfos(), "eCivic is expected to be within maximum bounds (invalid Index)");
 	FAssertMsg(eCivic >= 0, "eCivic is expected to be non-negative (invalid Index)");
-
-	// Circumvents crash bug in simultaneous turns MP games
-	if( eCivic == NO_CIVIC )
-	{
-		return 1;
-	}
 
 	if( isBarbarian() )
 	{
@@ -19972,28 +19984,30 @@ void CvPlayerAI::AI_doCivics()
 		{
 			int iBestValue=-1;
 			CivicTypes eNewCivic = AI_bestCivic((CivicOptionTypes)iI, &iBestValue);
-
+			/*  advc.001r: Same thing as under karadoc's "temporary switch" comment
+				in the loop below */
+			CivicTypes eOtherCivic = aeBestCivic[iI];
+			// <advc.003>
+			if(eOtherCivic == eNewCivic)
+				continue; // </advc.003>
+			aeBestCivic[iI] = eNewCivic; // advc.001r
 			int iTestAnarchy = getCivicAnarchyLength(&aeBestCivic[0]);
+			aeBestCivic[iI] = eOtherCivic; // advc.001r
 			/*  using ~30 percent as a rough estimate of revolution cost, and
 				a low threshold regardless of anarchy just for a bit of inertia.
 				reduced threshold if we are already going to have a revolution. */
-			// <advc.003>
 			int iThreshold = 5;
-			if(iTestAnarchy > iAnarchyLength)
-				iThreshold += (!bFirstPass || bWantSwitch ? 20 : 30); // </advc.003>
-			/*  <advc.132b> If vassal, increase threshold unless switching is
-				(permanently) free. */
-			if(getAnarchyModifier() > -100 && getMaxAnarchyTurns() != 0) {
+			if(iTestAnarchy > iAnarchyLength) {
+				iThreshold = (!bFirstPass || bWantSwitch ? 20 : 30);
+				// <advc.132b>
 				TeamTypes masterTeamId = getMasterTeam();
 				if(getTeam() != masterTeamId && GET_TEAM(masterTeamId).isHuman())
 					iThreshold += 15;
-			} // </advc.132b>
-			//if (100*iBestValue > (100+iThreshold)*aiCurrentValue[iI])
-			// <advc.131> Replacement:
-			double pr = std::pow((100.0 * iBestValue) /
-					((100.0 + iThreshold) * aiCurrentValue[iI]) - 1.0, 0.7);
-			if(((!bFirstPass || bWantSwitch || bWantSwitch) && pr > 0.01) ||
-					::bernoulliSuccess(pr, "advc.131")) // </advc.131>
+				// </advc.132b>
+			}
+			if (100*iBestValue > (100+
+					(iBestValue >= 0 ? 1 : -1) * // advc.131
+					iThreshold)*aiCurrentValue[iI])
 			{
 				FAssert(aeBestCivic[iI] != NO_CIVIC);
 				if (gPlayerLogLevel > 0) logBBAI("    %S decides to switch to %S (value: %d vs %d%S)", getCivilizationDescription(0), GC.getCivicInfo(eNewCivic).getDescription(0), iBestValue, aiCurrentValue[iI], bFirstPass?"" :", on recheck");
@@ -20004,7 +20018,9 @@ void CvPlayerAI::AI_doCivics()
 			}
 			else
 			{
-				if (100*iBestValue > 120*aiCurrentValue[iI])
+				if (100 * iBestValue >
+						(iBestValue >= 0 ? 120 : 80) // advc.131
+						* aiCurrentValue[iI])
 					bWantSwitch = true;
 			}
 		}
@@ -20026,12 +20042,14 @@ void CvPlayerAI::AI_doCivics()
 				if (kCivic.getTechPrereq() == eResearch && !canDoCivics((CivicTypes)iI))
 				{
 					CivicTypes eOtherCivic = aeBestCivic[kCivic.getCivicOptionType()];
-					aeBestCivic[kCivic.getCivicOptionType()] = (CivicTypes)iI; // temporary switch just to test the anarchy length
+					// temporary switch just to test the anarchy length
+					aeBestCivic[kCivic.getCivicOptionType()] = (CivicTypes)iI;
 					if (getCivicAnarchyLength(&aeBestCivic[0]) <= iAnarchyLength)
 					{
 						// if the anarchy length would be the same, consider waiting for the new civic..
 						int iValue = AI_civicValue((CivicTypes)iI);
-						if (100 * iValue > (102+2*iResearchTurns) * aiCurrentValue[kCivic.getCivicOptionType()])
+						if (100 * iValue > (102+2*iResearchTurns) * aiCurrentValue[kCivic.getCivicOptionType()]
+								&& iValue > 0) // advc.131: Better to be safe
 						{
 							if (gPlayerLogLevel > 0)
 								logBBAI("    %S delays revolution to wait for %S (value: %d vs %d)", getCivilizationDescription(0), kCivic.getDescription(0), iValue, aiCurrentValue[kCivic.getCivicOptionType()]);
@@ -20043,6 +20061,11 @@ void CvPlayerAI::AI_doCivics()
 				}
 			}
 		}
+		// <advc.131>
+		if(isAnarchy() || iAnarchyLength > 1) {
+			if(getGold() < (iAnarchyLength - 1) * -getGoldPerTurn())
+				return;
+		} // </advc.131>
 	}
 	//
 
@@ -20084,6 +20107,13 @@ void CvPlayerAI::AI_doReligion()
 
 	FAssertMsg(AI_getReligionTimer() == 0, "AI Religion timer is expected to be 0");
 
+	// <advc.131>
+	int const iAnarchyLength = getReligionAnarchyLength();
+	if(isAnarchy() || iAnarchyLength > 1) {
+		if(getGold() < (iAnarchyLength - 1) * -getGoldPerTurn())
+			return;
+	} // </advc.131>
+
 	eBestReligion = AI_bestReligion();
 
 	if (eBestReligion == NO_RELIGION)
@@ -20093,7 +20123,7 @@ void CvPlayerAI::AI_doReligion()
 	if (canConvert(eBestReligion))
 	{	// <advc.131>
 		double pr = 1;
-		if(getReligionAnarchyLength() > 0 && eBestReligion != NO_RELIGION &&
+		if(iAnarchyLength > 0 && eBestReligion != NO_RELIGION &&
 				getStateReligion() != NO_RELIGION)
 			pr = 1 - AI_religionValue(getStateReligion()) /
 					(double)AI_religionValue(eBestReligion);
@@ -20555,7 +20585,7 @@ void CvPlayerAI::AI_doDiplo()
 								}
 							}
 
-							if (iCount >= (iPossibleCount / 2))
+							if (iCount >= iPossibleCount / 2)
 							{
 								setTradeItem(&item, TRADE_CITIES, pLoopCity->getID());
 
@@ -26546,9 +26576,12 @@ bool CvPlayerAI::AI_advancedStartPlaceCity(CvPlot* pPlot)
 			return false;
 		}
 	}
-	
-	if (pCity->getCultureLevel() <= 1)
-	{
+	int iCultureCost = getAdvancedStartCultureCost(true, pCity); // advc.250c
+	if (pCity->getCultureLevel() <= 1 &&
+		// <advc.250c>
+			(pCity->getCommerceRate(COMMERCE_CULTURE) <= 0 ||
+			(iCultureCost >= 0 && getAdvancedStartPoints() > iCultureCost * 100)))
+	{	// </advc.250c>
 		doAdvancedStartAction(ADVANCEDSTARTACTION_CULTURE, pPlot->getX(), pPlot->getY(), -1, true);
 	}
 	
@@ -26572,7 +26605,7 @@ bool CvPlayerAI::AI_advancedStartPlaceCity(CvPlot* pPlot)
 	}
 
 	int iTargetPopulation = pCity->happyLevel() + (getCurrentEra() / 2);
-	
+
 	while (iPlotsImproved < iTargetPopulation)
 	{
 		CvPlot* pBestPlot;
@@ -28641,10 +28674,7 @@ void CvPlayerAI::AI_ClearConstructionValueCache()
 	for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
 		// Have I meantioned that the way the "AI" classes are used in this code is an abomination and an insult to OO programming?
-		//static_cast<CvCityAI*>(pLoopCity)->AI_ClearConstructionValueCache();
-		/*  advc.003: Declared it as a CvCity member. (Lots of these - most likely
-			harmless - casts in CvGameTextMgr; I'm leaving those alone.) */
-		pLoopCity->AI_ClearConstructionValueCache();
+		static_cast<CvCityAI*>(pLoopCity)->AI_ClearConstructionValueCache();
 	}
 }
 // K-Mod end
@@ -28790,12 +28820,12 @@ bool CvPlayerAI::isDefenseFocusOnBarbarians(int areaId) const {
 
 	CvArea* ap = GC.getMapINLINE().getArea(areaId);
 	if(ap == NULL) return false; CvArea const& a = *ap;
-	CvGame& g = GC.getGameINLINE();
+	CvGame const& g = GC.getGameINLINE();
 	return a.getAreaAIType(getTeam()) != AREAAI_DEFENSIVE &&
 			getNumCities() > 1 &&
 			!AI_isDoStrategy(AI_STRATEGY_ALERT1) && !isFocusWar() &&
 			!GC.getGame().isOption(GAMEOPTION_NO_BARBARIANS) &&
-			g.getGameTurn() >= g.getBarbarianStartTurn() &&
+			g.gameTurn() >= g.getBarbarianStartTurn() &&
 			g.getCurrentEra() < g.getStartEra() + 2;
 } // </advc.300>
 

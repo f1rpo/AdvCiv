@@ -168,18 +168,18 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 	def onBeginActivePlayerTurn(self, argsList):
 		"Called when the active player can start making their moves."
 		#iGameTurn = argsList[0] # advc.003: Unused
-		# <advc.706>
+		# <advc.127>
 		if not gc.getPlayer(self.iOwner).isHuman():
-			return # </advc.706>
+			return # </advc.127>
 		iPlayer = gc.getGame().getActivePlayer()
 		if iPlayer == self.iOwner: # advc.135b
 			self.CheckForAlerts(iPlayer, PyPlayer(iPlayer).getTeam(), True)
 
 	def OnCityAcquired(self, argsList):
 		owner, playerType, city, bConquest, bTrade = argsList
-		# <advc.706>
+		# <advc.127>
 		if not gc.getPlayer(self.iOwner).isHuman():
-			return # </advc.706>
+			return # </advc.127>
 		iPlayer = city.getOwner()
 		if (not self.getCheckForDomVictory()): return
 		if (iPlayer == self.iOwner): # advc.135b
@@ -187,9 +187,9 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 
 	def OnCityBuilt(self, argsList):
 		city = argsList[0]
-		# <advc.706>
+		# <advc.127>
 		if not gc.getPlayer(self.iOwner).isHuman():
-			return # </advc.706>
+			return # </advc.127>
 		iPlayer = city.getOwner()
 		# advc.135b: All uses replaced with self.iOwner
 		#iActivePlayer = gc.getGame().getActivePlayer()
@@ -219,17 +219,17 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 	def OnCityRazed(self, argsList):
 		city, iPlayer = argsList
 		if (not self.getCheckForDomVictory()): return
-		# <advc.706>
+		# <advc.127>
 		if not gc.getPlayer(self.iOwner).isHuman():
-			return # </advc.706>
+			return # </advc.127>
 		if (iPlayer == self.iOwner): # advc.135b
 			self.CheckForAlerts(iPlayer, PyPlayer(iPlayer).getTeam(), False)
 
 	def OnCityLost(self, argsList):
 		city = argsList[0]
-		# <advc.706>
+		# <advc.127>
 		if not gc.getPlayer(self.iOwner).isHuman():
-			return # </advc.706>
+			return # </advc.127>
 		iPlayer = city.getOwner()
 		if (not self.getCheckForDomVictory()): return
 		if (iPlayer == self.iOwner): # advc.135b

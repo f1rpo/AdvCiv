@@ -208,12 +208,6 @@ void CvArea::reset(int iID, bool bWater, bool bConstructorCall)
 }
 
 
-int CvArea::getID() const						
-{
-	return m_iID;
-}
-
-
 void CvArea::setID(int iID)														
 {
 	m_iID = iID;
@@ -356,18 +350,6 @@ int CvArea::countHasCorporation(CorporationTypes eCorporation, PlayerTypes eOwne
 }
 
 
-int CvArea::getNumTiles() const
-{
-	return m_iNumTiles;
-}
-
-
-bool CvArea::isLake() const
-{
-	return m_bLake; // <advc.030> Replacing the line below
-	//return (isWater() && (getNumTiles() <= GC.getLAKE_MAX_AREA_SIZE()));
-}
-
 void CvArea::updateLake(bool checkRepr) {
 
 	PROFILE("CvArea::updateLake");
@@ -447,18 +429,6 @@ void CvArea::changeNumTiles(int iChange)
 }
 
 
-int CvArea::getNumOwnedTiles() const
-{
-	return m_iNumOwnedTiles;
-}
-
-
-int CvArea::getNumUnownedTiles() const
-{
-	return (getNumTiles() - getNumOwnedTiles());
-}
-
-
 void CvArea::changeNumOwnedTiles(int iChange)									
 {
 	m_iNumOwnedTiles = (m_iNumOwnedTiles + iChange);
@@ -526,28 +496,10 @@ void CvArea::barbCityCreated() { nBarbCitiesEver++; }
 // </advc.300>
 
 
-int CvArea::getNumRiverEdges() const												
-{
-	return m_iNumRiverEdges;
-}
-
-
 void CvArea::changeNumRiverEdges(int iChange)									
 {
 	m_iNumRiverEdges = (m_iNumRiverEdges + iChange);
 	FAssert(getNumRiverEdges() >= 0);
-}
-
-
-int CvArea::getNumUnits() const					
-{
-	return m_iNumUnits;
-}
-
-
-int CvArea::getNumCities() const					
-{
-	return m_iNumCities;
 }
 
 
@@ -557,22 +509,10 @@ int CvArea::getTotalPopulation() const
 }
 
 
-int CvArea::getNumStartingPlots() const
-{
-	return m_iNumStartingPlots;
-}
-
-
 void CvArea::changeNumStartingPlots(int iChange)
 {
 	m_iNumStartingPlots = m_iNumStartingPlots + iChange;
 	FAssert(getNumStartingPlots() >= 0);
-}
-
-
-bool CvArea::isWater() const							
-{
-	return m_bWater;
 }
 
 
@@ -799,12 +739,6 @@ int CvArea::getNumRevealedTiles(TeamTypes eIndex) const
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be >= 0");
 	FAssertMsg(eIndex < MAX_PLAYERS, "eIndex is expected to be < MAX_PLAYERS");
 	return m_aiNumRevealedTiles[eIndex];
-}
-
-
-int CvArea::getNumUnrevealedTiles(TeamTypes eIndex) const
-{
-	return (getNumTiles() - getNumRevealedTiles(eIndex));
 }
 
 

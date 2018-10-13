@@ -10,6 +10,7 @@
 class CvArea;
 
 class CvTeam
+		: private boost::noncopyable // advc.003e
 {
 
 public:
@@ -466,7 +467,7 @@ public:
 	virtual bool AI_isSneakAttackPreparing(TeamTypes eIndex) const = 0;
 	virtual bool AI_isSneakAttackReady(TeamTypes eIndex) const = 0;
 	virtual void AI_setWarPlan(TeamTypes eIndex, WarPlanTypes eNewValue, bool bWar = true) = 0;
-	// advc.003 (caveat): Adding virtual functions to this class seems to break sth.
+	// advc.003 (caveat): Mustn't add virtual functions to this class
 
 protected:
 

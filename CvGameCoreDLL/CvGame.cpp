@@ -3960,7 +3960,7 @@ bool CvGame::isTeamGame() const
 }
 
 
-bool CvGame::isModem()
+bool CvGame::isModem() const // advc.003: const
 {
 	return gDLL->IsModem();
 }
@@ -3983,7 +3983,7 @@ void CvGame::reviveActivePlayer()
 {
 	if (!(GET_PLAYER(getActivePlayer()).isAlive()))
 	{
-		setAIAutoPlay(0, false); // advc.127: false flag added
+		setAIAutoPlayBulk(0, false); // advc.127: false flag added
 
 		GC.getInitCore().setSlotStatus(getActivePlayer(), SS_TAKEN);
 		
@@ -4011,7 +4011,10 @@ int CvGame::getNumHumanPlayers()
 int CvGame::getGameTurn()
 {
 	return GC.getInitCore().getGameTurn();
-}
+} // <advc.003> const replacement
+int CvGame::gameTurn() const {
+	return GC.getInitCore().getGameTurn();
+} // </advc.003>
 
 
 void CvGame::setGameTurn(int iNewValue)
@@ -4037,16 +4040,17 @@ void CvGame::incrementGameTurn()
 }
 
 
-int CvGame::getTurnYear(int iGameTurn)
+int CvGame::getTurnYear(int iGameTurn) const // advc.003: const
 {
 	// moved the body of this method to Game Core Utils so we have access for other games than the current one (replay screen in HOF)
 	return getTurnYearForGame(iGameTurn, getStartYear(), getCalendar(), getGameSpeedType());
 }
 
 
-int CvGame::getGameTurnYear()
+int CvGame::getGameTurnYear() const // advc.003: const
 {
-	return getTurnYear(getGameTurn());
+	//return getTurnYear(getGameTurn()); // To work aorund non-const getGameTurn
+	return getTurnYear(gameTurn());
 }
 
 
@@ -4595,10 +4599,12 @@ int CvGame::getAIAutoPlay() const // advc.003: made const
 	return m_iAIAutoPlay;
 }
 
-
-void CvGame::setAIAutoPlay(int iNewValue
-		, bool changePlayerStatus) // advc.127
-{
+void CvGame::setAIAutoPlay(int iNewValue) {
+	// <advc.127>
+	setAIAutoPlayBulk(iNewValue);
+}
+void CvGame::setAIAutoPlayBulk(int iNewValue, bool changePlayerStatus)
+{	// advc.127
 	m_iAIAutoPlay = std::max(0, iNewValue);
 	// <advc.127>
 	if(!changePlayerStatus)
@@ -4631,8 +4637,8 @@ void CvGame::setAIAutoPlay(int iNewValue
 void CvGame::changeAIAutoPlay(int iChange
 		, bool changePlayerStatus) // advc.127
 {
-	setAIAutoPlay(getAIAutoPlay() + iChange
-		, changePlayerStatus); // advc.127
+	setAIAutoPlayBulk(getAIAutoPlay() + iChange,
+			changePlayerStatus); // advc.127
 }
 
 /*
@@ -10646,14 +10652,42 @@ VoteTriggeredData* CvGame::addVoteTriggered(VoteSourceTypes eVoteSource, const V
 			if (kPlayer.isVotingMember(eVoteSource))
 			{
 				if (kPlayer.isHuman())
-				{
-					CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_DIPLOVOTE);
-					if (NULL != pInfo)
+				{	// <dlph.25>
+					bool bForced = false;
+					if (isTeamVote(kOptionData.eVote))
 					{
-						pInfo->setData1(pData->getID());
-						gDLL->getInterfaceIFace()->addPopup(pInfo, (PlayerTypes)iI);
+						for (int iJ = 0; iJ < MAX_CIV_TEAMS; iJ++)
+						{
+							if(!GET_TEAM((TeamTypes)iJ).isAlive())
+								continue;
+							if (isTeamVoteEligible((TeamTypes)iJ, eVoteSource))
+							{
+								if (GET_TEAM(kPlayer.getTeam()).isVassal((TeamTypes)iJ)
+										// advc:
+										&& GET_TEAM(kPlayer.getTeam()).isCapitulated())
+								{
+									if (!isTeamVoteEligible(kPlayer.getTeam(), eVoteSource))
+									{
+										castVote((PlayerTypes)iI, pData->getID(),
+												GET_PLAYER((PlayerTypes)iI).
+												AI_diploVote(kOptionData, eVoteSource, false));
+										bForced = true;
+										break;
+									}
+								}
+							}
+						}
 					}
-				}
+					if (!bForced) // </dlph.25>
+ 					{
+						CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_DIPLOVOTE);
+						if (NULL != pInfo)
+						{
+							pInfo->setData1(pData->getID());
+							gDLL->getInterfaceIFace()->addPopup(pInfo, (PlayerTypes)iI);
+						}
+ 					}
+ 				}
 				else
 				{
 					castVote(((PlayerTypes)iI), pData->getID(), GET_PLAYER((PlayerTypes)iI).AI_diploVote(kOptionData, eVoteSource, false));
@@ -11219,7 +11253,7 @@ double CvGame::goodyHutEffectFactor(
 	// (or rather: the inverse of the gradient)
 	double gradient = std::pow(peakTurn - startTurn, exponent) / (peakMult - 1);
 	gradient = ::dRange(gradient, 1.0, 500.0);
-	double t = GC.getInitCore().getGameTurn(); // (CvGame::getGameTurn isn't const)
+	double t = gameTurn();
 	/*  Function through (startTurn, 1) and (peakTurn, peakMult)
 		[^that's assuming speedAdjust=false] */
 	double r = speedMultFinal * std::min(peakMult,

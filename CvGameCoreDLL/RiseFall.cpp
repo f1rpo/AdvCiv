@@ -252,7 +252,7 @@ void RiseFall::retire() {
 		return;
 	CvGame& g = GC.getGame();
 	if(chapters[pos]->getRetireTurn() < 0) // Don't store multiple timestamps
-		chapters[pos]->setRetireTurn(g.getGameTurn());
+		chapters[pos]->setRetireTurn(g.gameTurn());
 	g.setAIAutoPlay(t);
 	/*  Don't do this. CvPlayer not yet loaded. No need either - plans already
 		abandoned at start of retirement. */
@@ -307,7 +307,7 @@ void RiseFall::atTurnEnd(PlayerTypes civId) {
 	CvGame& g = GC.getGame();
 	if(g.getGameState() == GAMESTATE_EXTENDED)
 		return;
-	int gameTurn = g.getGameTurn();
+	int gameTurn = g.gameTurn();
 	/*  Conduct scoring exactly as scheduled at the end of a turn of the
 		civ being scored; show the score popup at the start of the next
 		active player turn. */
@@ -355,7 +355,7 @@ void RiseFall::atTurnEnd(PlayerTypes civId) {
 
 void RiseFall::atGameTurnStart() {
 
-	CvGame& g = GC.getGame();
+	CvGame const& g = GC.getGame();
 	int currentChPos = getCurrentChapter();
 	if(currentChPos < 0 || interludeCountdown > 0) {
 		interludeCountdown--;
@@ -364,7 +364,7 @@ void RiseFall::atGameTurnStart() {
 		//centerCamera(g.getActivePlayer());
 		return;
 	}
-	int gameTurn = g.getGameTurn();
+	int gameTurn = g.gameTurn();
 	RFChapter& currentCh = *chapters[currentChPos];
 	if(currentCh.getStartTurn() >= gameTurn) {
 		FAssert(currentCh.getStartTurn() == gameTurn);
@@ -378,8 +378,8 @@ void RiseFall::atActiveTurnStart() {
 	int pos = getCurrentChapter();
 	if(pos < 0)
 		return; // Happens on turn 0 b/c not yet initialized
-	CvGame& g = GC.getGame();
-	int gameTurn = g.getGameTurn();
+	CvGame const& g = GC.getGame();
+	int gameTurn = g.gameTurn();
 	PlayerTypes activeId = g.getActivePlayer();
 	if(activeId == NO_PLAYER)
 		return;
@@ -946,9 +946,9 @@ void RiseFall::handleDefeatPopup(int buttonClicked) {
 		FAssert(false);
 		pos = -1;
 	}
-	CvGame& g = GC.getGame();
+	CvGame const& g = GC.getGame();
 	// -1: Current turn already passed
-	interludeCountdown = chapters[pos + 1]->getStartTurn() - g.getGameTurn() - 1;
+	interludeCountdown = chapters[pos + 1]->getStartTurn() - g.gameTurn() - 1;
 	FAssert(interludeCountdown >= 0);
 	CvPlayer& h = GET_PLAYER(g.getActivePlayer());
 	h.setIsHuman(false);

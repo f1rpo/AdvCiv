@@ -21,6 +21,7 @@ class CvReplayInfo;
 typedef std::vector<const CvReplayMessage*> ReplayMessageList;
 
 class CvGame
+		: private boost::noncopyable // advc.003e
 {
 
 public:
@@ -171,19 +172,21 @@ public:
 	DllExport bool isGameMultiPlayer() const;																			// Exposed to Python
 	DllExport bool isTeamGame() const;																						// Exposed to Python
 
-	bool isModem();
+	bool isModem() const; // advc.003: const
 	void setModem(bool bModem);
 
 	DllExport void reviveActivePlayer();																		// Exposed to Python
-
-	DllExport int getNumHumanPlayers();																			// Exposed to Python
-
+	// <advc.003> Making these const leads to a crash (or at least getGameTurn)
+	DllExport int getNumHumanPlayers();													// Exposed to Python
 	DllExport int getGameTurn();																						// Exposed to Python
+	int gameTurn() const; // Replacement for getGameTurn
+	// </advc.003>
 	DllExport void setGameTurn(int iNewValue);															// Exposed to Python
 	void incrementGameTurn();
-	int getTurnYear(int iGameTurn);																// Exposed to Python
-	int getGameTurnYear();																				// Exposed to Python
-
+	// <advc.003> const
+	int getTurnYear(int iGameTurn) const;																// Exposed to Python
+	int getGameTurnYear() const;																				// Exposed to Python
+	// </advc.003>
 	int getElapsedGameTurns() const;																		// Exposed to Python
 	void incrementElapsedGameTurns();
 
@@ -271,8 +274,9 @@ public:
 	DllExport void initScoreCalculation();
 
 	int getAIAutoPlay() const; // advc.003: made const																// Exposed to Python
-	DllExport void setAIAutoPlay(int iNewValue																// Exposed to Python
-			, bool changePlayerStatus = true); // advc.127
+	DllExport void setAIAutoPlay(int iNewValue);										// Exposed to Python
+	// advc.127:
+	void setAIAutoPlayBulk(int iNewValue, bool changePlayerStatus = true);
 	void changeAIAutoPlay(int iChange
 			, bool changePlayerStatus = true); // advc.127
 /*
