@@ -1467,27 +1467,9 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 					kPlayer_j.AI_rememberEvent(i, MEMORY_DECLARED_WAR); // advc.130j
 				// advc.130y:
 				else kPlayer_j.AI_changeMemoryCount(i, MEMORY_DECLARED_WAR, 2);
-			}
-			else if (kPlayer_j.getTeam() != getID())
-			{
-				const CvTeamAI& kTeam_j = GET_TEAM(kPlayer_j.getTeam());
-
-				if (kTeam_j.isHasMet(eTeam) && !kTeam_j.isAtWar(eTeam))
-				{
-					if (kTeam_j.AI_getAttitude(eTeam) >= ATTITUDE_PLEASED &&
-							// <advc.130h>
-							!GET_TEAM(eTeam).isCapitulated() &&
-							GET_TEAM(eTeam).getMasterTeam() != kTeam_j.getMasterTeam() &&
-							/*  Not if eTeam is also fighting a partner and
-								(appears to have) started it. */
-							((kTeam_j.AI_getMemoryCount(eTeam, MEMORY_DECLARED_WAR_ON_FRIEND) <= 0) ||
-							!kPlayer_j.atWarWithPartner(eTeam, true)))
-							// </advc.130h>
-					{   // advc.130j:
-						kPlayer_j.AI_rememberEvent(i, MEMORY_DECLARED_WAR_ON_FRIEND);
-					}
-				}
-			}
+			} // advc.130h:
+			if(kPlayer_j.disapprovesOfDoW(getID(), eTeam)) // advc.130j:
+				kPlayer_j.AI_rememberEvent(i, MEMORY_DECLARED_WAR_ON_FRIEND);
 		}
 	}
 	// K-Mod end.

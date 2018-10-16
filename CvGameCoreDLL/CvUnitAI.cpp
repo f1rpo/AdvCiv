@@ -2074,7 +2074,7 @@ void CvUnitAI::AI_workerMove()
 void CvUnitAI::AI_barbAttackMove()
 {
 	PROFILE_FUNC();
-
+	CvGame& g = GC.getGameINLINE();
 	if (AI_guardCity(false, true, 1))
 	{
 		return;
@@ -2102,7 +2102,7 @@ void CvUnitAI::AI_barbAttackMove()
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/		
 
-	if (GC.getGameINLINE().getSorenRandNum(2, "AI Barb") == 0)
+	if (g.getSorenRandNum(2, "AI Barb") == 0)
 	{
 		if (AI_pillageRange(1))
 		{
@@ -2119,7 +2119,6 @@ void CvUnitAI::AI_barbAttackMove()
 	   all those stats are precomputed. */
 	int nCivsInArea = area()->countCivs(true);
 	int nCivCitiesInArea = area()->countCivCities();
-	CvGame& g = GC.getGameINLINE();
 
   // Docile unless outnumbered (matters mostly for the New World)
   if(area()->getAreaAIType(getTeam()) != AREAAI_ASSAULT) {
@@ -2129,7 +2128,7 @@ void CvUnitAI::AI_barbAttackMove()
 			(2 * g.getNumCivCities() > 3 * g.countCivPlayersAlive())) ||
 			GC.getGameSpeedInfo(g.getGameSpeedType()).getBarbPercent() <= 100) &&
 	  // </advc.300>
-			GC.getGameINLINE().isOption(GAMEOPTION_RAGING_BARBARIANS))
+			g.isOption(GAMEOPTION_RAGING_BARBARIANS))
 	{
 		if (AI_pillageRange(4))
 		{
@@ -2172,8 +2171,7 @@ void CvUnitAI::AI_barbAttackMove()
 	   Barb cities no longer count, but threshold lowered to 2.5. */
 	else if(nCivsInArea > 1 ? (2 * nCivCitiesInArea > 5 * nCivsInArea) :
 			// Else, the BtS condition:
-			(GC.getGameINLINE().getNumCivCities() >
-			(GC.getGameINLINE().countCivPlayersAlive() * 3)))
+			(g.getNumCivCities() > g.countCivPlayersAlive() * 3))
 	{
 		if (AI_cityAttack(1, 15))
 		{
@@ -2218,18 +2216,12 @@ void CvUnitAI::AI_barbAttackMove()
 	}
 	// advc.300: See previous comment
 	else if(nCivsInArea > 1 ? (nCivCitiesInArea > 2 * nCivsInArea) :
-		(GC.getGameINLINE().getNumCivCities() >
-		(GC.getGameINLINE().countCivPlayersAlive() * 2)))
+		(g.getNumCivCities() > g.countCivPlayersAlive() * 2))
 	{
-		if (AI_pillageRange(2))
-		{
+		if(AI_pillageRange(2))
 			return;
-		}
-
-		if (AI_cityAttack(1, 10))
-		{
+		if(AI_cityAttack(1, 10))
 			return;
-		}
 	}
   }
 	
@@ -12388,7 +12380,33 @@ bool CvUnitAI::AI_guardCitySite()
 			}
 		}
 	}
-	
+	// <advc.300> Guard an adjacent plot if it's better for fogbusting
+	if(pBestGuardPlot != NULL) {
+		CvMap const& m = GC.getMapINLINE();
+		int iBestGuardVal = 0;
+		CvPlot* pBetterGuardPlot = pBestGuardPlot;
+		for(int dx = -1; dx <= 1; dx++) {
+			for(int dy = -1; dy <= 1; dy++) {
+				CvPlot* adj = m.plot(pBestGuardPlot->getX_INLINE() + dx,
+						pBestGuardPlot->getY_INLINE() + dy);
+				if(adj == NULL || adj->isImpassable())
+					continue;
+				int iGuardVal = adj->defenseModifier(getTeam(), true);
+				iGuardVal += adj->seeFromLevel(getTeam()) * 30;
+				if(adj == pBestGuardPlot)
+					iGuardVal += 1; // Tiebreaker
+				if(iGuardVal > iBestGuardVal) {
+					iBestGuardVal = iGuardVal;
+					pBetterGuardPlot = adj;
+				}
+			}
+		}
+		if(pBetterGuardPlot != pBestGuardPlot && 
+				generatePath(pBetterGuardPlot, 0, true, &iPathTurns)) {
+			pBestPlot = getPathEndTurnPlot();
+			pBestGuardPlot = pBetterGuardPlot;
+		}
+	} // </advc.300>
 	if ((pBestPlot != NULL) && (pBestGuardPlot != NULL))
 	{
 

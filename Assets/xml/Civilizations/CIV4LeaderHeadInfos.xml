@@ -42,8 +42,10 @@
 			<iDemandRebukedWarProb>0</iDemandRebukedWarProb>
 			<iRazeCityProb>10</iRazeCityProb>
 			<iBuildUnitProb>50</iBuildUnitProb>
-			<iBaseAttackOddsChange>0</iBaseAttackOddsChange>
-			<iAttackOddsChangeRand>16</iAttackOddsChangeRand>
+			<!-- advc.114d: was 0 -->
+			<iBaseAttackOddsChange>2</iBaseAttackOddsChange>
+			<!-- advc.114d: was 16 -->
+			<iAttackOddsChangeRand>18</iAttackOddsChangeRand>
 			<iWorseRankDifferenceAttitudeChange>0</iWorseRankDifferenceAttitudeChange>
 			<iBetterRankDifferenceAttitudeChange>0</iBetterRankDifferenceAttitudeChange>
 			<iCloseBordersAttitudeChange>0</iCloseBordersAttitudeChange>

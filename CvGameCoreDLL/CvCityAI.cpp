@@ -1552,16 +1552,19 @@ void CvCityAI::AI_chooseProduction()
 			if( gCityLogLevel >= 2 ) logBBAI("      City %S uses choose project 1. (project value: %d, building value: %d, odds: %d)", getName().GetCString(), iProjectValue, iBestBuildingValue, iOdds);
 			return;
 		}
-	}
-	// K-Mod end
-
+	} // K-Mod end
+	// <advc.003>
+	int const iMinDefenders = AI_minDefenders() + iPlotSettlerCount;
+	bool const bSpendingExempt = (bUnitExempt ||
+			(bFinancialTrouble && iUnitSpending > iMaxUnitSpending));
+	// </advc.003>
 	//minimal defense.
 	//if (!bUnitExempt && iPlotCityDefenderCount < (AI_minDefenders() + iPlotSettlerCount))
 	// K-Mod.. take into account any defenders that are on their way. (recall that in AI_guardCityMinDefender, defenders can be shuffled around)
 	// (I'm doing the min defender check twice for efficiency - so that we don't count targetmissionAIs when we don't need to)
-	if (!bUnitExempt && !(bFinancialTrouble && iUnitSpending > iMaxUnitSpending)
-		&& iPlotCityDefenderCount < (AI_minDefenders() + iPlotSettlerCount)
-		&& iPlotCityDefenderCount < (AI_minDefenders() + iPlotSettlerCount - kPlayer.AI_plotTargetMissionAIs(plot(), MISSIONAI_GUARD_CITY)))
+	if (!bSpendingExempt &&
+			iPlotCityDefenderCount < iMinDefenders &&
+			iPlotCityDefenderCount < iMinDefenders - kPlayer.AI_plotTargetMissionAIs(plot(), MISSIONAI_GUARD_CITY))
 	// K-Mod end
 	{
 		if (AI_chooseUnit(UNITAI_CITY_DEFENSE))
@@ -1576,7 +1579,7 @@ void CvCityAI::AI_chooseProduction()
 			return;
 		}
 	}
-	
+
 	if( !(bDefenseWar && iWarSuccessRating < -50) )
 	{
 		if ((iAreaBestFoundValue > iMinFoundValue) || (iWaterAreaBestFoundValue > iMinFoundValue))
@@ -1644,17 +1647,6 @@ void CvCityAI::AI_chooseProduction()
 			}
 		}
 	}
-	// <advc.rom1> Koshling: increased priority for economic builds
-	if (AI_chooseBuilding(BUILDINGFOCUS_PRODUCTION | BUILDINGFOCUS_GOLD |
-			BUILDINGFOCUS_RESEARCH |
-			// advc: Let's omit these
-			//BUILDINGFOCUS_MAINTENANCE | BUILDINGFOCUS_HAPPY | BUILDINGFOCUS_HEALTHY |
-			// wonders in if they appear best
-			BUILDINGFOCUS_WONDEROK, 20, 0, 50))
-	{
-		if( gCityLogLevel >= 2 ) logBBAI("      City %S uses choose Economy Flags (Koshling)", getName().GetCString());
-		return;
-	} // </advc.rom1>
 
 	// don't build frivolous things if this is an important city unless we at war
     if (!bImportantCity || bLandWar || bAssault)
@@ -5582,17 +5574,6 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 			{
 				int iTempValue = ((kBuilding.getCommerceModifier(COMMERCE_RESEARCH) *
 						getBaseCommerceRate(COMMERCE_RESEARCH)) / 40);
-				// <advc.rom1> (koshling; comments by him)
-				if(iTempValue > 0)
-				{
-					iTempValue += 3; //	Discounted futures
-					iTempValue += (2 * iTempValue * (1 +
-							getBaseCommerceRate(COMMERCE_RESEARCH))) /
-							// Proportion of whole
-							(1 + GET_PLAYER(getOwnerINLINE()).
-							getCommerceRate(COMMERCE_RESEARCH));
-				} // </advc.rom1>
-
 				if (iTempValue != 0)
 				{
 					/*if (MAX_INT == aiCommerceRank[COMMERCE_RESEARCH])

@@ -3749,4 +3749,25 @@
 		<Spanish>Fin de AI Auto Play</Spanish>
 	</TEXT>
 	
+	<!-- advc.130h: Romance-language translations via deepl.com -->
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_DOW_PENALTIES</Tag>
+		<English>These third parties will disapprove:</English>
+		<French>Ces tiers vont désapprouver :</French>
+		<German>Außenstehende, die diesen Krieg ablehnen werden:</German>
+		<Italian>Queste terze parti disapproveranno:</Italian>
+		<Spanish>Estos terceros lo van a desaprobar:</Spanish>
+	</TEXT>
+	<!-- Originally in Vanilla Civ4GameTextInfos.xml
+		 Color added so that the war target stands out more when third parties
+		 are listed. And Italian was missing the "contro" part. -->
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_DOES_THIS_MEAN_WAR</Tag>
+		<English>Does this mean WAR?!? (vs. [COLOR_HIGHLIGHT_TEXT]%s1_Team[COLOR_REVERT])</English>
+		<French>Cela signifie la GUERRE ?! (contre : [COLOR_HIGHLIGHT_TEXT]%s1_Team[COLOR_REVERT])</French>
+		<German>Soll das KRIEG bedeuten?!? (gegen [COLOR_HIGHLIGHT_TEXT]%s1_Team[COLOR_REVERT])</German>
+		<Italian>Ci&#242; vuol dire GUERRA? (contro [COLOR_HIGHLIGHT_TEXT]%s1_Team[COLOR_REVERT])</Italian>
+		<Spanish>&#191;Esto es la GUERRA? (contra [COLOR_HIGHLIGHT_TEXT]%s1_Team[COLOR_REVERT])</Spanish>
+	</TEXT>
+	
 </Civ4GameText>

@@ -567,6 +567,7 @@ public:
 	/*  advc.130h: If checkPartnerAttacked==true, then only partners w/ war plan
 		"attacked" or "attacked recent" count. */
 	bool atWarWithPartner(TeamTypes theyId, bool checkPartnerAttacked = false) const;
+	bool disapprovesOfDoW(TeamTypes aggressorId, TeamTypes victimId) const;
 	// advc.001: needed for bNeighbouringReligion in AI_techValue
 	bool AI_hasSharedPrimaryArea(PlayerTypes pId) const;
 	bool proposeResourceTrade(PlayerTypes otherId); // advc.133

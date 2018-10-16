@@ -1799,11 +1799,13 @@ bool CvDLLButtonPopup::launchDeclareWarMovePopup(CvPopup* pPopup, CvPopupInfo &i
 	CvPlot* pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
 
 	CvWString szBuffer;
-	if ((pPlot != NULL) && (pPlot->getTeam() == eRivalTeam))
+	// advc.130h:
+	CvTeam const& activeTeam = GET_TEAM(GC.getGameINLINE().getActiveTeam());
+	if (pPlot != NULL && pPlot->getTeam() == eRivalTeam)
 	{
 		szBuffer = gDLL->getText("TXT_KEY_POPUP_ENTER_LANDS_WAR", GET_PLAYER(pPlot->getOwnerINLINE()).getCivilizationAdjective());
 
-		if (GET_TEAM(GC.getGameINLINE().getActiveTeam()).isOpenBordersTrading())
+		if (activeTeam.isOpenBordersTrading())
 		{
 			szBuffer += gDLL->getText("TXT_KEY_POPUP_ENTER_WITH_OPEN_BORDERS");
 		}
@@ -1812,6 +1814,22 @@ bool CvDLLButtonPopup::launchDeclareWarMovePopup(CvPopup* pPopup, CvPopupInfo &i
 	{
 		szBuffer = gDLL->getText("TXT_KEY_POPUP_DOES_THIS_MEAN_WAR", GET_TEAM(eRivalTeam).getName().GetCString());
 	}
+	// <advc.130h>
+	std::vector<PlayerTypes> disapproving;
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+		CvPlayerAI const& aiCiv = GET_PLAYER((PlayerTypes)i);
+		if(!aiCiv.isHuman() && activeTeam.isHasMet(aiCiv.getTeam()) &&
+				aiCiv.disapprovesOfDoW(activeTeam.getID(), eRivalTeam))
+			disapproving.push_back(aiCiv.getID());
+	}
+	if(!disapproving.empty()) {
+		szBuffer += NEWLINE + gDLL->getText("TXT_KEY_POPUP_DOW_PENALTIES") + NEWLINE;
+		for(size_t i = 0; i < disapproving.size(); i++) {
+			szBuffer += GET_PLAYER(disapproving[i]).getName();
+			if(i < disapproving.size() - 1)
+				szBuffer += L", ";
+		}
+	} // </advc.130h>
 	gDLL->getInterfaceIFace()->popupSetBodyString(pPopup, szBuffer);
 	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_DECLARE_WAR_YES").c_str(), NULL, 0);
 	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_DECLARE_WAR_NO").c_str());

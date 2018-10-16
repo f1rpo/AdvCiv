@@ -9452,6 +9452,13 @@ int CvPlayerAI::AI_calculateStolenCityRadiusPlots(PlayerTypes ePlayer,
 				perCityCount++;
 				if(perCityCount >= upperBound)
 					break;
+				if(p.getNonObsoleteBonusType(
+					/*  onlyNonWorkable implies that we're interested in tiles
+						ePlayer would like to be able to work */
+						onlyNonWorkable ? TEAMID(ePlayer) : getTeam()) != NO_BONUS)
+					perCityCount++;
+				if(perCityCount >= upperBound)
+					break;
 			}
 		}
 		iCount += perCityCount;
@@ -9508,8 +9515,8 @@ void CvPlayerAI::AI_updateCloseBorderAttitudeCache(PlayerTypes ePlayer)
 		return;
 	}
 	double theySteal_weight = 8;
-	double weSteal_weight = 4;
-	double adj_weight = 4;
+	double weSteal_weight = 5;
+	double adj_weight = 5;
 	// </advc.147>
 	// <advc.035>
 	double flip_weight = 6;
@@ -9550,7 +9557,7 @@ void CvPlayerAI::AI_updateCloseBorderAttitudeCache(PlayerTypes ePlayer)
 	if (kOurTeam.AI_hasCitiesInPrimaryArea(eTheirTeam)) {
 		int adjLand = kOurTeam.AI_calculateAdjacentLandPlots(eTheirTeam);
 		if(adjLand > 5)
-			iPercent += std::min(35, ::round(adjLand * adj_weight));
+			iPercent += std::min(40, ::round(adjLand * adj_weight));
 	} // </advc.147>
 	// <advc.130v>
 	if(TEAMREF(ePlayer).isCapitulated())
@@ -19397,12 +19404,16 @@ void CvPlayerAI::AI_doMilitary()
 					&& ((int)iDisbandCount <= std::max(1, (int)getCurrentEra()) ||
 					isStrike())); // </advc.110>
 		}
-	}
-	// K-Mod end
-
-	AI_setAttackOddsChange(GC.getLeaderHeadInfo(getPersonalityType()).getBaseAttackOddsChange() +
-		GC.getGameINLINE().getSorenRandNum(GC.getLeaderHeadInfo(getPersonalityType()).getAttackOddsChangeRand(), "AI Attack Odds Change #1") +
-		GC.getGameINLINE().getSorenRandNum(GC.getLeaderHeadInfo(getPersonalityType()).getAttackOddsChangeRand(), "AI Attack Odds Change #2"));
+	} // K-Mod end
+	// <advc.003>
+	CvGame& g = GC.getGameINLINE();
+	CvLeaderHeadInfo const& lh = GC.getLeaderHeadInfo(getPersonalityType());
+	int const iAttackOddsChangeRand = lh.getAttackOddsChangeRand();
+	// </advc.003>
+	AI_setAttackOddsChange(lh.getBaseAttackOddsChange() +
+			g.getSorenRandNum(iAttackOddsChangeRand, "AI Attack Odds Change #1") +
+			g.getSorenRandNum(iAttackOddsChangeRand, "AI Attack Odds Change #2")
+			/ 2); // advc.114d
 }
 
 
@@ -21864,7 +21875,7 @@ bool CvPlayerAI::askHelp(PlayerTypes humanId) {
 				eBestReceiveTech = (TechTypes)i;
 			}
 		}
-FAssert(eBestReceiveTech == NULL); // advc.tmp: Throw the random choice loop out once it's certain that it isn't needed
+FAssert(eBestReceiveTech == NO_TECH); // advc.tmp: Throw the random choice loop out once it's certain that it isn't needed
 	}
 	if(eBestReceiveTech == NO_TECH)
 		return false;
@@ -21922,6 +21933,9 @@ bool CvPlayerAI::demandTribute(PlayerTypes humanId, int tributeType) {
 	} case 2: {
 		int iBestValue = 0;
 		TechTypes eBestReceiveTech = NO_TECH;
+		// <advc.144>
+		TechTypes eMostUsefulTech = AI_bestTech(1, false, false, NO_TECH, NO_ADVISOR,
+				humanId); // </advc.144>
 		for(int i = 0; i < GC.getNumTechInfos(); i++) {
 			setTradeItem(&item, TRADE_TECHNOLOGIES, i);
 			if(!human.canTradeItem(getID(), item))
@@ -21929,8 +21943,11 @@ bool CvPlayerAI::demandTribute(PlayerTypes humanId, int tributeType) {
 			TechTypes eTech = (TechTypes)i;
 			if(GC.getGameINLINE().countKnownTechNumTeams(eTech) <= 1)
 				continue;
-			int iValue = (1 + GC.getGameINLINE().getSorenRandNum(10000,
-					"AI Demanding Tribute (Tech)"));
+			int iValue = 1 + GC.getGameINLINE().getSorenRandNum(10000,
+					"AI Demanding Tribute (Tech)");
+			// <advc.144>
+			if(eTech == eMostUsefulTech)
+				iValue *= 3; // </advc.144>
 			if(iValue > iBestValue) {
 				iBestValue = iValue;
 				eBestReceiveTech = eTech;
@@ -28741,7 +28758,7 @@ bool CvPlayerAI::isPiracyTarget(PlayerTypes targetId) const {
 			getDeclareWarThemRefuseAttitudeThreshold());
 } // </advc.033>
 
-// <advc.130r><advc.130h>
+// <advc.130h><advc.130r>
 bool CvPlayerAI::atWarWithPartner(TeamTypes theyId, bool checkPartnerAttacked) const {
 
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
@@ -28758,7 +28775,33 @@ bool CvPlayerAI::atWarWithPartner(TeamTypes theyId, bool checkPartnerAttacked) c
 		}
 	}
 	return false;
-} // </advc.130h></advc.130r>
+} // </advc.130r>
+
+/*  Only a CvPlayer-level function b/c I want to call atWarWithPartner
+	(which should probably be at CvTeamAI -- tbd.) */
+bool CvPlayerAI::disapprovesOfDoW(TeamTypes aggressorId, TeamTypes victimId) const {
+
+	if(!isAlive() || isBarbarian() || isMinorCiv() || aggressorId == getID() ||
+			victimId == getID())
+		return false;
+	CvTeamAI const& aggressor = GET_TEAM(aggressorId);
+	if(!aggressor.isAlive() || aggressor.isBarbarian() || aggressor.isMinorCiv())
+		return false;
+	CvTeamAI const& victim = GET_TEAM(victimId);
+	if(!victim.isAlive() || victim.isBarbarian() || victim.isMinorCiv() ||
+			victim.isCapitulated())
+		return false;
+	CvTeamAI const& ourTeam = GET_TEAM(getTeam());
+	if(//!ourTeam.isHasMet(aggressorId) || // Not checked by BtS either
+			!ourTeam.isHasMet(victimId) || ourTeam.isAtWar(victimId) ||
+			victim.getMasterTeam() == ourTeam.getMasterTeam())
+		return false;
+	// Not if eTeam is also fighting a partner and (appears to have) started it
+	if((ourTeam.AI_getMemoryCount(victimId, MEMORY_DECLARED_WAR_ON_FRIEND) > 0) &&
+			atWarWithPartner(victimId, true))
+		return false;
+	return (ourTeam.AI_getAttitude(victimId) >= ATTITUDE_PLEASED);
+} // </advc.130h>
 
 // <advc.651>
 void CvPlayerAI::checkDangerFromSubmarines() {
