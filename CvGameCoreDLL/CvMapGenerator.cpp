@@ -42,131 +42,81 @@ CvMapGenerator::~CvMapGenerator()
 {
 }
 
-
+// advc.003: Refactored
 bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY, bool bIgnoreLatitude)
 {
 	PROFILE_FUNC();
 
-	CvArea* pArea;
-	CvPlot* pPlot;
-	CvPlot* pLoopPlot;
-	int iRange;
-	int iDX, iDY;
-	int iI;
-
-	pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
-	pArea = pPlot->area();
-
-	if (!(pPlot->canHaveBonus(eBonus, bIgnoreLatitude)))
-	{
+	CvPlot* pLoopPlot=NULL;
+	int iDX, iDY, iI;
+	iI=iDX=iDY=-1;
+	CvMap& m = GC.getMapINLINE();
+	CvPlot* pPlot = m.plotINLINE(iX, iY);
+	if(pPlot == NULL)
 		return false;
-	}
+	CvArea* pArea = pPlot->area();
+
+	if(!pPlot->canHaveBonus(eBonus, bIgnoreLatitude))
+		return false;
 
 	long result = 0;
 	CyPlot kPlot = CyPlot(pPlot);
 	CyArgsList argsList;
 	argsList.add(gDLL->getPythonIFace()->makePythonObject(&kPlot));
-	if (gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "canPlaceBonusAt", argsList.makeFunctionArgs(), &result))
-	{
-		if (!gDLL->getPythonIFace()->pythonUsingDefaultImpl())
-		{
-			if (result >= 0)
-			{
+	if(gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "canPlaceBonusAt", argsList.makeFunctionArgs(), &result)) {
+		if(!gDLL->getPythonIFace()->pythonUsingDefaultImpl()) {
+			if(result >= 0)
 				return result;
-			}
-			else
-			{
-				FAssertMsg(false, "canPlaceBonusAt() must return >= 0");
-			}
+			else FAssertMsg(false, "canPlaceBonusAt() must return >= 0");
 		}
 	}
 
-	for (iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
-	{
+	for (iI = 0; iI < NUM_DIRECTION_TYPES; iI++) {
 		pLoopPlot = plotDirection(iX, iY, ((DirectionTypes)iI));
-
-		if (pLoopPlot != NULL)
-		{
-			if ((pLoopPlot->getBonusType() != NO_BONUS) && (pLoopPlot->getBonusType() != eBonus))
-			{
-				return false;
-			}
-		}
+		if(pLoopPlot == NULL)
+			continue;
+		BonusTypes eLoopBonus = pLoopPlot->getBonusType();
+		if(eLoopBonus != NO_BONUS && eLoopBonus != eBonus)
+			return false;
 	}
 
 	CvBonusInfo& pInfo = GC.getBonusInfo(eBonus);
-	CvBonusClassInfo& pClassInfo = GC.getBonusClassInfo((BonusClassTypes) pInfo.getBonusClassType());
+	CvBonusClassInfo& pClassInfo = GC.getBonusClassInfo((BonusClassTypes)
+			pInfo.getBonusClassType());
 
-	if (pPlot->isWater())
-	{
-		if (((GC.getMapINLINE().getNumBonusesOnLand(eBonus) * 100) / (GC.getMapINLINE().getNumBonuses(eBonus) + 1)) < pInfo.getMinLandPercent())
-		{
+	if(pPlot->isWater()) {
+		if(((m.getNumBonusesOnLand(eBonus) * 100) / (m.getNumBonuses(eBonus) + 1)) <
+				pInfo.getMinLandPercent())
 			return false;
-		}
 	}
 
-	// Make sure there are no bonuses of the same class (but a different type) nearby:
-
-	iRange = pClassInfo.getUniqueRange();
-
-	for (iDX = -(iRange); iDX <= iRange; iDX++)
-	{
-		for (iDY = -(iRange); iDY <= iRange; iDY++)
-		{
-			pLoopPlot	= plotXY(iX, iY, iDX, iDY);
-
-			if (pLoopPlot != NULL)
-			{
-				if (pLoopPlot->area() == pArea)
-				{
-					if (plotDistance(iX, iY, pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) <= iRange)
-					{
-						BonusTypes eOtherBonus = pLoopPlot->getBonusType();
-						if (eOtherBonus != NO_BONUS)
-						{
-							if (GC.getBonusInfo(eOtherBonus).getBonusClassType() == pInfo.getBonusClassType())
-							{
-								return false;
-							}
-						}
-					}
-				}
-			}
+	int const iRange = pClassInfo.getUniqueRange();
+	for (iDX = -iRange; iDX <= iRange; iDX++)
+	for (iDY = -iRange; iDY <= iRange; iDY++) {
+		pLoopPlot = plotXY(iX, iY, iDX, iDY);
+		if(pLoopPlot == NULL || pLoopPlot->area() != pArea)
+			continue;
+		if (plotDistance(iX, iY, pLoopPlot->getX_INLINE(),
+				pLoopPlot->getY_INLINE()) <= iRange) {
+			BonusTypes eOtherBonus = pLoopPlot->getBonusType();
+			if(eOtherBonus == NO_BONUS)
+				continue;
+			// Make sure there are none of the same bonus nearby:
+			if(eBonus == eOtherBonus)
+				return false;
+			// Make sure there are no bonuses of the same class nearby:
+			if(GC.getBonusInfo(eOtherBonus).getBonusClassType() ==
+					pInfo.getBonusClassType())
+				return false;
 		}
 	}
-
-	// Make sure there are none of the same bonus nearby:
-
-	iRange = pInfo.getUniqueRange();
-
-	for (iDX = -(iRange); iDX <= iRange; iDX++)
-	{
-		for (iDY = -(iRange); iDY <= iRange; iDY++)
-		{
-			pLoopPlot	= plotXY(iX, iY, iDX, iDY);
-
-			if (pLoopPlot != NULL)
-			{
-				if (pLoopPlot->area() == pArea)
-				{
-					if (plotDistance(iX, iY, pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) <= iRange)
-					{
-						if (pLoopPlot->getBonusType() == eBonus)
-						{
-							return false;
-						}
-					}
-				}
-			}
-		}
-	}
-
-	// <advc.129> Also prevent more than one adjacent copy regardless of range.
+	// <advc.129> Prevent more than one adjacent copy regardless of range.
 	int nFound = 0;
 	for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
 		CvPlot* pp = plotDirection(iX, iY, (DirectionTypes)i);
 		if(pp == NULL) continue; CvPlot const& p = *pp;
-		if(p.area() != pArea) continue;
+		if(p.area() != pArea)
+			continue;
 		if(p.getBonusType() == eBonus) {
 			nFound++;
 			if(nFound >= 2)
@@ -819,7 +769,7 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 						bool skip = false;
 						/*  Can't use pClassInfo.getUniqueRange() b/c this has to be
 							0 for bonuses that appear in clusters. 5 hardcoded. */
-						int dist = 5;
+						int const dist = 5;
 						CvPlot const& randPlot = *pPlot;
 						int const x = randPlot.getX_INLINE();
 						int const y = randPlot.getY_INLINE();
@@ -1290,23 +1240,24 @@ int CvMapGenerator::calculateNumBonusesToAdd(BonusTypes eBonusType)
 			}
 		}
 		// <advc.129>
-		int subtrahend = pBonusInfo.getTilesPer(); // Typically 16 or 32
-		int remainder = iNumPossible;
-		int result = 0;
-		/* Place one for the first, say, 16 tiles, the next after 17, then 18 ...
-		   i.e. number of resources placed grows sublinearly with the number of
-		   eligible plots. */
-		while(true) {
-			remainder -= subtrahend;
-			if(remainder < 0)
-				break;
-			result++;
-			subtrahend++;
-		}
-		if(GC.getDefineINT("SUBLINEAR_BONUS_QUANTITIES") > 0)
+		if(GC.getDefineINT("SUBLINEAR_BONUS_QUANTITIES") > 0) {
+			int subtrahend = pBonusInfo.getTilesPer(); // Typically 16 or 32
+			int remainder = iNumPossible;
+			int result = 0;
+			/* Place one for the first, say, 16 tiles, the next after 17, then 18 ...
+			   i.e. number of resources placed grows sublinearly with the number of
+			   eligible plots. */
+			while(true) {
+				remainder -= subtrahend;
+				if(remainder < 0)
+					break;
+				result++;
+				subtrahend++;
+			}
 			iLandTiles += result;
+		}
 		else // </advc.129>
-		iLandTiles += (iNumPossible / pBonusInfo.getTilesPer());
+			iLandTiles += (iNumPossible / pBonusInfo.getTilesPer());
 	}
 
 	int iPlayers = (GC.getGameINLINE().countCivPlayersAlive() * pBonusInfo.getPercentPerPlayer()) / 100;

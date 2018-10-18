@@ -118,7 +118,7 @@
 		 in Civ4\Assets\CIV4GameTextInfos.xml. -->
     <TEXT>
 		<Tag>TXT_KEY_GAME_OPTION_AGGRESSIVE_AI</Tag>
-		<English>Aggressive AI (K-Mod)</English>
+		<English>Aggressive AI (Legacy)</English>
 		<French>IA agressive (K-Mod)</French>
 		<German>Aggressive KI (K-Mod)</German>
 		<Italian>IA aggressiva (K-Mod)</Italian>
@@ -129,7 +129,7 @@
 		 CIV4GameText_Misc1.xml. -->
     <TEXT>
 		<Tag>TXT_KEY_GAME_OPTION_AGGRESSIVE_AI_HELP</Tag>
-		<English>Use the K-Mod AI for decisions on war and peace (instead of the newer and less aggressive AdvCiv AI). </English>
+		<English>Use the older K-Mod AI for decisions on war and peace instead of the newer and less aggressive AdvCiv AI. </English>
 		<French>Emploie l'IA agressive de K-Mod pour les d&#233;cisions de guerre et paix.</French>
 		<German>Verwende die K-Mod-KI f&#252;r Entscheidungen &#252;ber Krieg und Frieden (anstatt der neueren und weniger aggressiven AdvCiv-KI).</German>
 		<Italian>Usa l'IA aggressiva di K-Mod per le decisioni di guerra e pace.</Italian>
@@ -2569,27 +2569,6 @@
 		<German>[ICON_BULLET]Speichert %d1_Mod%% [ICON_FOOD] nach Wachstum oder Hungersnot</German>
 		<Italian>[ICON_BULLET]Immagazzina %d1_Mod%% di [ICON_FOOD] dopo la crescita o fame</Italian>
 		<Spanish>[ICON_BULLET]Almacena el %d1_Mod%% de los [ICON_FOOD] tras el crecimiento o inanición.</Spanish>
-	</TEXT>
-
-	<!-- advc.104t: Warning hopefully no longer needed -->
-	<!--TEXT>
-		<Tag>TXT_KEY_GAME_OPTION_PERMANENT_ALLIANCES_HELP</Tag>
-		<English>(WARNING: This option hasn't been tested with the AdvCiv mod.) Two civilizations can form a Permanent Alliance which lasts the rest of the game.</English>
-		<French>(WARNING: This option hasn't been tested with the AdvCiv mod.) Deux civilisations peuvent former une alliance permanente qui dure jusqu'&#224; la fin du jeu.</French>
-		<German>(WARNING: This option hasn't been tested with the AdvCiv mod.) Zwei Zivilisationen k&#246;nnen eine Allianz schlie&#223;en, die die restliche Spielzeit &#252;berdauert.</German>
-		<Italian>(WARNING: This option hasn't been tested with the AdvCiv mod.) Due civilt&#224; possono formare una alleanza permanente che duri fino alla fine della partita.</Italian>
-		<Spanish>(WARNING: This option hasn't been tested with the AdvCiv mod.) Dos civilizaciones pueden formar una alianza permanente que dure hasta que acabe la partida.</Spanish>
-	</TEXT-->
-	
-	<!-- advc.004t: Shortened version of TXT_KEY_POPUP_RECOMMENDED in
-		 CIV4GameTextInfos.xml. -->
-	<TEXT>
-		<Tag>TXT_KEY_POPUP_NO_RECOMMENDATION</Tag>
-		<English>%s1_ProdName (%d2_NumTurns)</English>
-		<French>%s1_ProdName (%d2_NumTurns) </French>
-		<German>%s1_ProdName (%d2_NumTurns)</German>
-		<Italian>%s1_ProdName (%d2_NumTurns)</Italian>
-		<Spanish>%s1_ProdName (%d2_NumTurns [NUM2:turno:turnos])</Spanish>
 	</TEXT>
 
 	<!-- advc.004u: Originally in CIV4GameText_Warlords.xml without the Civ

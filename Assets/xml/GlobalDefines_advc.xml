@@ -775,12 +775,11 @@
 		<DefineName>PASSABLE_AREAS</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
-	
-	<!-- [advc.004t] Set to 0 to enable change 004t (not recommended; see
-		 manual). -->
+
+	<!-- [advc.004t] Copied from BtS GlobalDefines.xml where it's set to 1. -->
 	<Define>
-		<DefineName>ENABLE_POPUP_RECOMMENDATIONS</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
+		<DefineName>CITY_SCREEN_CLICK_WILL_EXIT</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 	
 	<!-- [advc.700] Rise & Fall parameters. The first four are applied at game

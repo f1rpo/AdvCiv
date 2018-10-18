@@ -9615,7 +9615,7 @@ int CvPlayerAI::AI_getWarAttitude(PlayerTypes ePlayer,
 		iAttitudeChange = (GET_TEAM(getTeam()).AI_getAtWarCounter(GET_PLAYER(ePlayer).getTeam()) / GC.getLeaderHeadInfo(getPersonalityType()).getAtWarAttitudeDivisor());
 		// <advc.sha> Factor war success into WarAttitude
 		iAttitudeChange = ((-iAttitudeChange) +
-				// Mean of time based penalty and a penalty based on success and era
+				// Mean of time-based penalty and a penalty based on success and era
 				TEAMREF(ePlayer).AI_getWarSuccess(getTeam()) /
 				warSuccessAttitudeDivisor()) / -2; // </advc.sha>
 		int limit = abs(GC.getLeaderHeadInfo(getPersonalityType()).
@@ -9917,7 +9917,7 @@ int CvPlayerAI::AI_getShareWarAttitude(PlayerTypes ePlayer) const
 	int div = lh.getShareWarAttitudeDivisor();
 	if(div == 0)
 		return 0;
-	bool isShare = ourTeam.AI_shareWar(GET_PLAYER(ePlayer).getTeam());
+	bool isShare = ourTeam.AI_shareWar(TEAMID(ePlayer));
 	if(!isShare && ourTeam.getAtWarCount() > 0) {
 		/*  Only suspend the relations bonus from past shared war if the current war
 			is at least 5 turns old, and only if we could use help. */
@@ -9928,7 +9928,9 @@ int CvPlayerAI::AI_getShareWarAttitude(PlayerTypes ePlayer) const
 				AtWarCounter is the number of turns we've been at war. Oh my! */
 			if(t.isAlive() && !t.isMinorCiv() &&
 					ourTeam.AI_getAtWarCounter(t.getID()) >= 5 &&
-					ourTeam.AI_getWarSuccessRating() < 80 &&
+					ourTeam.AI_getWarSuccess(t.getID()) +
+					t.AI_getWarSuccess(ourTeam.getID()) > wsThresh &&
+					ourTeam.AI_getWarSuccessRating() < 25 &&
 					(ourTeam.AI_getWarPlan(t.getID()) != WARPLAN_DOGPILE ||
 					ourTeam.AI_getAtWarCounter(t.getID()) >= 15))
 				return 0;
@@ -10255,6 +10257,9 @@ int CvPlayerAI::knownRankDifference(PlayerTypes otherId) const {
 		PlayerTypes thirdId = (PlayerTypes)i;
 		CvPlayer const& thirdCiv = GET_PLAYER(thirdId);
 		if(!thirdCiv.isAlive() || thirdCiv.isBarbarian() || thirdCiv.isMinorCiv() ||
+				/*  This would deny otherId info about civs that we have met and they
+					haven't -- not crucial I think. */
+				//!TEAMREF(otherId).isHasMet(TEAMID(thirdId))
 				!GET_TEAM(getTeam()).isHasMet(TEAMID(thirdId)))
 			continue;
 		int thirdRank = g.getPlayerRank(thirdId);
@@ -28777,8 +28782,8 @@ bool CvPlayerAI::atWarWithPartner(TeamTypes theyId, bool checkPartnerAttacked) c
 	return false;
 } // </advc.130r>
 
-/*  Only a CvPlayer-level function b/c I want to call atWarWithPartner
-	(which should probably be at CvTeamAI -- tbd.) */
+/*  Not a CvTeamAI function b/c I want to call atWarWithPartner, which I'd rather
+	keep at CvPlayerAI. */
 bool CvPlayerAI::disapprovesOfDoW(TeamTypes aggressorId, TeamTypes victimId) const {
 
 	if(!isAlive() || isBarbarian() || isMinorCiv() || aggressorId == getID() ||

@@ -1118,7 +1118,8 @@ class CvMainInterface:
 			else:
 				# Flash select messages if no popups are present
 				if ( CyInterface().shouldDisplayReturn() ):
-					acOutput = localText.getText("SYSTEM_RETURN", ())
+					# advc.004t: Disable flashing "Press Esc to return"
+					acOutput = ""#localText.getText("SYSTEM_RETURN", ())
 					#screen.modifyLabel( "EndTurnText", acOutput, CvUtil.FONT_CENTER_JUSTIFY )
 					screen.setEndTurnState( "EndTurnText", acOutput )
 					bShow = True

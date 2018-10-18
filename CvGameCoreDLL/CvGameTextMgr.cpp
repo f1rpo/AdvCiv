@@ -14541,19 +14541,19 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 		if(g.isOption(GAMEOPTION_RANDOM_PERSONALITIES) && !g.isDebugMode())
 			continue;
 		iAttitudeChange = kPlayer.AI_getRankDifferenceAttitude(eTargetPlayer);
+		CvWString szRankText = gDLL->getText((g.getPlayerRank(ePlayer) <
+				g.getPlayerRank(eTargetPlayer) ?
+				"TXT_KEY_MISC_ATTITUDE_BETTER_RANK" :
+				"TXT_KEY_MISC_ATTITUDE_WORSE_RANK"), iAttitudeChange);
 		if(iAttitudeChange > 0 && iPass == 0) {
 			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR,
-					TEXT_COLOR("COLOR_POSITIVE_TEXT"),
-					gDLL->getText("TXT_KEY_MISC_ATTITUDE_BETTER_RANK",
-					iAttitudeChange).GetCString());
+					TEXT_COLOR("COLOR_POSITIVE_TEXT"), szRankText.GetCString());
 			szBuffer.append(NEWLINE);
 			szBuffer.append(szTempBuffer);
 		}
 		if(iAttitudeChange < 0 && iPass != 0) {
 			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR,
-					TEXT_COLOR("COLOR_NEGATIVE_TEXT"),
-					gDLL->getText("TXT_KEY_MISC_ATTITUDE_WORSE_RANK",
-					iAttitudeChange).GetCString());
+					TEXT_COLOR("COLOR_NEGATIVE_TEXT"), szRankText.GetCString());
 			szBuffer.append(NEWLINE);
 			szBuffer.append(szTempBuffer);
 		}

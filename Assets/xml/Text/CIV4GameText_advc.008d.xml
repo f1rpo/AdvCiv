@@ -460,4 +460,16 @@
 	<Spanish>Most announcements can be located on the map by opening the Event Log [Ctrl+Tab] and clicking on the announcement text.</Spanish>
 </TEXT>
 
+<!-- advc.008c: Was "Snacks are good in moderation" - the joke got old.
+	 It also works in the tech tree; however, right-click in the tech tree also
+	 sets a research target, so this is not recommendable. -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_35</Tag>
+	<English>In the city screen, a right-click on a production button opens the Civilopedia. The Civilopedia can also be accessed via right-click from the tech-chooser and the civics screen.</English>
+	<French>In the city screen, a right-click on a production button opens the Civilopedia. The Civilopedia can also be accessed via right-click from the tech-chooser and the civics screen.</French>
+	<German>Ein Rechtsklick auf eine Einheiten- oder Gebäude-Schaltfläche im Stadtbildschirm öffnet die Zivilopädie. Auch von der Technologieauswahl und dem Staatsform-Bildschirm aus ist die Zivilopädie per Rechtsklick erreichbar.</German>
+	<Italian>In the city screen, a right-click on a production button opens the Civilopedia. The Civilopedia can also be accessed via right-click from the tech-chooser and the civics screen.</Italian>
+	<Spanish>In the city screen, a right-click on a production button opens the Civilopedia. The Civilopedia can also be accessed via right-click from the tech-chooser and the civics screen.</Spanish>
+</TEXT>
+
 </Civ4GameText>

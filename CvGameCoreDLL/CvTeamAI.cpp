@@ -5000,9 +5000,9 @@ void CvTeamAI::reportSharedWarSuccess(int intensity, TeamTypes agentId,
 			std::max(1, GET_TEAM(agentId).getNumCities()));
 	FAssert(newValue >= oldValue);
 	setSharedWarSuccess(agentId, newValue);
-	/*  Would prefer to just record 'intensity' and do the rest when computing the
-		our attitude. However, I want to factor in the number of cities at the
-		moment that the war success occurs; and our distress will become 0 once the
+	/*  Would prefer to just record 'intensity' and do the rest when computing
+		our attitude. However, I want to count the number of cities at the moment
+		that the war success occurs; and our distress will become 0 once the
 		shared war ends, whereas SharedWarSuccess should still be remembered
 		after the war has ended. Could track numbers of cities and distress
 		separately, but this would be less efficient and more work to implement. */
