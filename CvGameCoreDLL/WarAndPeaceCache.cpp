@@ -408,7 +408,12 @@ double WarAndPeaceCache::goldPerProdVictory() {
 	else if(ourTeam.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CULTURE4) ||
 			ourTeam.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_SPACE4))
 		ourVictLevel = 4;
-	if(ourVictLevel < 3) return 0;
+	if(ourVictLevel < 3) {
+		if(ourTeam.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CULTURE2) ||
+				ourTeam.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_SPACE2))
+			return 1;
+		return 0.5;
+	}
 	double r = ourVictLevel + 1;
 	for(size_t i = 0; i < getWPAI.properTeams().size(); i++) {
 		TeamTypes rivalId = getWPAI.properTeams()[i];

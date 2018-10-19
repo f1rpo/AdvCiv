@@ -298,11 +298,15 @@ public:
 	char const* aspectName() const;
 	int xmlId() const;
 private:
+	void addWinning(std::set<PlayerTypes>& r, bool bPredict);
+	bool anyVictory(PlayerTypes civId, int iVictoryFlags, int stage,
+			bool bPredict = true) const;
 	void addLeadingCivs(std::set<PlayerTypes>& r, double margin,
-			bool predictScore = true) const;
+			bool bPredict = true) const;
 	double theirRelativeLoss();
 	std::vector<PlayerTypes> civs; // excluding vassals
-	std::set<PlayerTypes> winning;
+	std::set<PlayerTypes> winningFuture;
+	std::set<PlayerTypes> winningPresent;
 	static double const scoreMargin;
 };
 

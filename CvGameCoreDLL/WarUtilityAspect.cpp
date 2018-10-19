@@ -170,9 +170,17 @@ double WarUtilityAspect::lostAssetScore(PlayerTypes to, double* returnTotal,
 			if(c.city()->isCapital())
 				r += 4;
 		}
-		else if(m->conqueredCities(theyId).count(c.id()) > 0 &&
-				(to == NO_PLAYER || m->lostCities(to).count(c.id()) > 0) &&
-				cvCity->getTeam() != ignoreGains) {
+		else if(cvCity->isCapital())
+			sc += 8;
+		// National wonders other than Palace are invisible to us
+		total += sc;
+	}
+	std::set<int> const& conq = m->conqueredCities(theyId);
+	for(iSetIt it = conq.begin(); it != conq.end(); it++) {
+		City* cp = theyAI->getCache().lookupCity(*it);
+		if(cp == NULL) continue; City const& c = *cp;
+		if((to == NO_PLAYER || m->lostCities(to).count(c.id()) > 0) &&
+				c.city()->getTeam() != ignoreGains) {
 			/*  Their cache doesn't account for GP settled in cities of a third
 				party (unless espionage visibility), so we don't subtract
 				NumGreatPeople.
@@ -184,10 +192,6 @@ double WarUtilityAspect::lostAssetScore(PlayerTypes to, double* returnTotal,
 				(oldOwner, newOwner) seems excessive. */
 			r -= c.getAssetScore();
 		}
-		else if(cvCity->isCapital())
-			sc += 8;
-		// National wonders other than Palace are invisible to us
-		total += sc;
 	}
 	r += lossesFromNukes(theyId, to);
 	total = std::max(r, total);
@@ -2029,49 +2033,145 @@ int KingMaking::preEvaluate() {
 	PROFILE_FUNC();
 	if(gameEra <= GC.getGameINLINE().getStartEra())
 		return 0;
-	/*  Three classes of civs; all in the best non-empty category are likely
-		winners in our book. */
-	// I: Civs at victory stage 4
-	for(size_t i = 0; i < civs.size(); i++) {
-		CvPlayerAI const& civ = GET_PLAYER(properCivs[i]);
-		// Tbd.: Merge with code in RiseFall::victoryStage
-		if(civ.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4 | AI_VICTORY_DOMINATION4 |
-				 AI_VICTORY_DIPLOMACY4 | AI_VICTORY_SPACE4) ||
-				 /*  Check isDoStrategy first in order to avoid the costlier
-					calculate... call */
-				 (civ.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4) &&
-				  civ.AI_calculateCultureVictoryStage(55) >= 4))
-			winning.insert(civ.getID());
-	}
-	if(!winning.empty())
-		return 0;
-	//  II: Civs at victory stage 3 or game score near the top
-	for(size_t i = 0; i < civs.size(); i++)
-		if(GET_PLAYER(properCivs[i]).AI_isDoVictoryStrategyLevel3())
-			winning.insert(properCivs[i]);
-	// III: Civs with a competitive game score
-	/*  Important to use scores predicted based on military analysis because the
-		AI needs to be able to respond quickly when a civ starts running away with
-		the game; can't wait until rival conquests have actually happened. */
-	addLeadingCivs(winning, scoreMargin);
-	if(winning.count(weId) > 0 && winning.size() <= 1 &&
+	addWinning(winningFuture, true);
+	addWinning(winningPresent, false);
+	if(winningFuture.count(agent.getLeaderID()) > 0 && winningFuture.size() <= 1 &&
 			// We don't want to be the only winner if it means betraying our partners
 			(params.targetId() == NO_TEAM || agent.isAtWar(params.targetId()) ||
 			agent.AI_isChosenWar(params.targetId()) ||
 			!agent.AI_isAvoidWar(params.targetId()))) {
 		log("We'll be the only winners");
-		return we->getCurrentEra() * 9;
+		return agent.getCurrentEra() * 9;
 	}
 	return 0;
 }
 
-void KingMaking::addLeadingCivs(set<PlayerTypes>& r, double margin,
-		bool predictScore) const {
+void KingMaking::addWinning(std::set<PlayerTypes>& r, bool bPredict) {
+
+	/*  Three classes of civs; all in the best non-empty category are likely
+		winners in our book. Important to base this on the game state predicted
+		by the military analysis so that the AI can tell when its actions thwart
+		a rival victory or prevent a rival from getting way ahead in score.
+		anyVictory and addLeadingCivs take care of this. */
+	// I: Civs at victory stage 4
+	for(size_t i = 0; i < civs.size(); i++) {
+		CvPlayerAI const& civ = GET_PLAYER(properCivs[i]);
+		int const iVictHash = civ.AI_getVictoryStrategyHash();
+		int iFlags = iVictHash;
+		if((iFlags & AI_VICTORY_CULTURE4) &&
+				civ.AI_calculateCultureVictoryStage(167) < 4)
+			iFlags &= ~AI_VICTORY_CULTURE4;
+		if(anyVictory(civ.getID(), iFlags, 4, bPredict))
+			r.insert(civ.getID());
+	}
+	if(!r.empty())
+		return;
+	//  II: Civs at victory stage 3 or game score near the top
+	for(size_t i = 0; i < civs.size(); i++) {
+		CvPlayerAI const& civ = GET_PLAYER(properCivs[i]);
+		if(anyVictory(civ.getID(), civ.AI_getVictoryStrategyHash(), 3, bPredict))
+			r.insert(civ.getID());
+	}
+	// III: Civs with a competitive game score
+	addLeadingCivs(r, scoreMargin, bPredict);
+}
+
+bool KingMaking::anyVictory(PlayerTypes civId, int iVictoryFlags, int stage,
+		bool bPredict) const {
+
+	FAssert(stage == 3 || stage == 4);
+	CvPlayerAI const& civ = GET_PLAYER(civId);
+	if(!bPredict) {
+		if(stage == 3)
+			return civ.AI_isDoVictoryStrategyLevel3();
+		return (iVictoryFlags & (AI_VICTORY_SPACE4 | AI_VICTORY_CONQUEST4 |
+				AI_VICTORY_DIPLOMACY4 | AI_VICTORY_DOMINATION4 | AI_VICTORY_CULTURE4));
+	}
+	if(m->isEliminated(civId) || m->hasCapitulated(TEAMID(civId)))
+		return false;
+	if((iVictoryFlags & AI_VICTORY_SPACE4) && stage == 4) {
+		CvCity* capital = civ.getCapitalCity();
+		if(capital != NULL && m->lostCities(civId).count(capital->plotNum()) <= 0)
+			return true;
+	}
+	if(iVictoryFlags & AI_VICTORY_CONQUEST3) {
+		/*  Very coarse -- consider a civ whose power stagnates to be no longer
+			on course to a conquest victory */
+		if(m->gainedPower(civId, ARMY) > 0) {
+			if(((iVictoryFlags & AI_VICTORY_CONQUEST3) && stage == 3) ||
+			   ((iVictoryFlags & AI_VICTORY_CONQUEST4) && stage == 4))
+				  return true;
+		}
+	}
+	// Space4 and Conq already handled above
+	bool bCultValid = (stage == 4 && (iVictoryFlags & AI_VICTORY_CULTURE4)) ||
+			(stage == 3 && (iVictoryFlags & AI_VICTORY_CULTURE3));
+	bool bSpaceValid = (stage == 3 && (iVictoryFlags & AI_VICTORY_SPACE3));
+	bool bDomValid = (stage == 4 && (iVictoryFlags & AI_VICTORY_DOMINATION4)) ||
+			(stage == 3 && (iVictoryFlags & AI_VICTORY_DOMINATION3));
+	bool bDiploValid = (stage == 4 && (iVictoryFlags & AI_VICTORY_DIPLOMACY4)) ||
+			(stage == 3 && (iVictoryFlags & AI_VICTORY_DIPLOMACY3));
+	/*  Conquests could bring civ closer to a military victory, but that seems
+		difficult to predict. Only looking at setbacks here -- which are also
+		a bit difficult to predict; the main point of this function is really
+		thwarted Culture/Space victory. */
+	if(!bCultValid && !bSpaceValid && !bDomValid && !bDiploValid)
+		return false;
+	CvMap const& map = GC.getMapINLINE();
+	CvGame const& g = GC.getGameINLINE();
+	int lostPop = 0;
+	int lostNtlWonders = 0;
+	std::set<int> const& lostCities = m->lostCities(civId);
+	for(iSetIt it = lostCities.begin(); it != lostCities.end(); it++) {
+		CvPlot* pp = map.plotByIndexINLINE(*it); if(pp == NULL) { FAssert(false); continue; }
+		CvCity* cp = pp->getPlotCity(); if(cp == NULL) continue;
+		CvCity const& c = *cp;
+		/*  civ could have enough other high-culture cities, but I don't mind if the
+			AI is a bit too optimistic about thwarting a rival's victory
+			(or extra worried about jeopardizing its own victory). */
+		if((stage == 3 && c.getCultureLevel() >= g.culturalVictoryCultureLevel() - 1) ||
+			(stage == 4 && 2 * c.getCulture(civId) >= c.getCultureThreshold(
+					g.culturalVictoryCultureLevel())))
+			bCultValid = false;
+		lostNtlWonders += c.getNumNationalWonders();
+		if(c.isCapital())
+			lostNtlWonders += 2;
+		lostPop += c.getPopulation();
+	}
+	if(lostNtlWonders > 1)
+		bSpaceValid = false;
+	std::set<int> const& gainedCities = m->conqueredCities(civId);
+	for(iSetIt it = gainedCities.begin(); it != gainedCities.end(); it++) {
+		CvPlot* pp = map.plotByIndexINLINE(*it); if(pp == NULL) continue;
+		CvCity* cp = pp->getPlotCity(); if(cp == NULL) continue;
+		lostPop -= cp->getPopulation();
+	}
+	if(lostPop > 0) {
+		double popRatio = std::max(0, civ.getTotalPopulation() - lostPop) /
+				(g.getTotalPopulation() + 0.01);
+		if(stage == 3) {
+			if(popRatio < 0.35) {
+				bDomValid = false;
+				if(popRatio < 0.3)
+					bDiploValid = false;
+			}
+		}
+		else if(popRatio < 0.45) {
+			bDomValid = false;
+			if(popRatio < 0.35)
+				bDiploValid = false;
+		}
+	}
+	return (bCultValid || bSpaceValid || bDomValid || bDiploValid);
+}
+
+void KingMaking::addLeadingCivs(set<PlayerTypes>& r, double margin, bool bPredict)
+		const {
 
 	CvGame& g = GC.getGameINLINE();
 	double bestScore = 1;
 	for(size_t i = 0; i < civs.size(); i++) {
-		double sc = predictScore ? m->predictedGameScore(civs[i]) :
+		double sc = bPredict ? m->predictedGameScore(civs[i]) :
 				g.getPlayerScore(civs[i]);
 		/*  Count extra score for commerce so that civs that are getting far
 			ahead in tech are identified as a threat */
@@ -2086,15 +2186,16 @@ void KingMaking::addLeadingCivs(set<PlayerTypes>& r, double margin,
 			bestScore = sc;
 	}
 	for(size_t i = 0; i < civs.size(); i++) {
-		if((predictScore ? m->predictedGameScore(civs[i]) :
-				g.getPlayerScore(civs[i])) / bestScore >= 0.75)
+		if((bPredict ? m->predictedGameScore(civs[i]) :
+				g.getPlayerScore(civs[i])) / bestScore >=
+				(GET_PLAYER(civs[i]).isHuman() ? 0.7 : 0.75))
 			r.insert(civs[i]);
 	}
 }
 
 void KingMaking::evaluate() {
 
-	if(gameEra <= 0 || winning.empty() || winning.count(theyId) <= 0)
+	if(gameEra <= 0 || winningPresent.empty() || winningPresent.count(theyId) <= 0)
 		return;
 	// Vassals are assumed to be out of contention
 	if(TEAMREF(theyId).isAVassal())
@@ -2112,34 +2213,33 @@ void KingMaking::evaluate() {
 		return;
 	// NB: The two conditions above are superfluous; just for performance.
 	double attitudeMultiplier = 0.03 + 0.25 * (ATTITUDE_PLEASED - att);
-	// If we're human and did not believe we could win, we would've quit already.
-	if(we->isHuman())
-		winning.insert(weId);
 	// We're less inclined to interfere if several rivals are in competition
-	int winningRivals = winning.size();
+	int winningRivals = winningFuture.size();
 	double caughtUpBonus = 0;
-	set<PlayerTypes> presentWinners;
-	addLeadingCivs(presentWinners, scoreMargin, false);
-	double catchUpVal = std::pow((16.0 * gameEra) / winning.size(), 0.75);
+	double catchUpVal = std::pow((16.0 * gameEra) / winningPresent.size(), 0.75);
 	catchUpVal *= std::pow((1 + weAI->amortizationMultiplier()) / 2, 2);
-	if(winning.count(weId) > 0) {
+	bool bCaughtUp = false;
+	if(winningFuture.count(weId) > 0) {
 		winningRivals--;
-		/*  If we're among the likely winners, then it's a showdown between us
-			and them, and we try to prevent their victory despite being Pleased.
-			If we're out of contention (for the time being), we don't mind if
-			they win at Pleased. */
-		attitudeMultiplier += 0.25;
-		if(presentWinners.count(weId) == 0) {
+		if(winningPresent.count(weId) <= 0) {
 			/*  We're not presently winning, but our predicted conquests bring us
 				back in competition.
 				Note that this code block isn't reached if we're Friendly
 				with them. */
 			caughtUpBonus += catchUpVal;
+			bCaughtUp = true;
 			log("%d for catching up with %s", ::round(caughtUpBonus),
 					report.leaderName(theyId));
 		}
+		else {
+		/*  If we're among the likely winners, then it's a showdown between us
+			and them, and we try to prevent their victory despite being Pleased.
+			If we're out of contention (for the time being), we don't mind if
+			they win at Pleased. */
+			attitudeMultiplier += 0.25;
+		}
 	}
-	else if(presentWinners.count(weId) > 0) {
+	else if(winningPresent.count(weId) > 0) {
 		caughtUpBonus -= catchUpVal;
 		log("%d for falling behind %s", ::round(caughtUpBonus),
 				report.leaderName(theyId));
@@ -2150,36 +2250,28 @@ void KingMaking::evaluate() {
 	}
 	CvCity* cap = they->getCapitalCity();
 	double uPlus = 0;
-	/*  Foiled Space Race; other anti-victory conditions would be more elaborate to
-		implement (even culture). */
-	if(they->AI_isDoVictoryStrategy(AI_VICTORY_SPACE4) && cap != NULL) {
-		if(m->lostCities(theyId).count(cap->plotNum()) > 0)
-			uPlus = 100;
-		else uPlus = -70;
-		log("%d for Space victory", ::round(uPlus));
-	}
 	/*  If they (or their vassals) make a net asset gain, we incur a cost;
 		if they make a net asset loss, that's our war gain. */
-	else {
-		uPlus = theirRelativeLoss();
-		if(abs(uPlus) < 0.01) { // Don't pollute the log then
-			u += ::round(caughtUpBonus);
-			return;
-		}
-		double weight = 5; // So that 25% loss correspond to 125 utility
-		// We're a bit less worried about helping them indirectly
-		if(uPlus < 0)
-			weight = 3.5;
-		uPlus *= 100 * weight;
-		log("%d base utility for change in asset ratio", ::round(uPlus));
+	uPlus = theirRelativeLoss();
+	if(abs(uPlus) < 0.01) { // Don't pollute the log then
+		u += ::round(caughtUpBonus);
+		return;
 	}
+	double weight = 4.5; // So that 25% loss correspond to 100 utility
+	// We're a bit less worried about helping them indirectly
+	if(uPlus < 0) // If we'll catch up despite their progress, we're even less worried.
+		weight = (bCaughtUp ? 2 : 3);
+	uPlus *= 100 * weight;
+	log("%d base utility for change in asset ratio", ::round(uPlus));
 	/*  winningRivals seems too big a divisor when there are just 2 or 3
 		competitors */
 	double div = 1 + std::pow(winningRivals / 3.0, 2.0);
 	double competitionMultiplier = 1.0 / div;
 	// It doesn't get more competitive than this:
-	if(winningRivals == 1) competitionMultiplier = 1;
-	log("Winning civs: %d (%d rivals)", ::round(winning.size()), ::round(winningRivals));
+	if(winningRivals == 1)
+		competitionMultiplier = 1;
+	log("Winning civs: %d (%d rivals)", ::round(winningFuture.size()),
+			::round(winningRivals));
 	uPlus = ::dRange(uPlus, -100.0, 100.0);
 	log("Attitude multiplier: %d percent, competition multiplier: %d percent",
 			::round(100 * attitudeMultiplier), ::round(100 * competitionMultiplier));
@@ -2203,7 +2295,8 @@ double KingMaking::theirRelativeLoss() {
 	for(size_t i = 0; i < properCivs.size(); i++) {
 		CvTeam const& t = TEAMREF(properCivs[i]);
 		double vassalFactor = 1;
-		if(t.isAVassal()) vassalFactor *= 0.5;
+		if(t.isAVassal())
+			vassalFactor *= 0.5;
 		double assets = 0;
 		if(t.getMasterTeam() != TEAMID(theyId)) {
 			if(m->getCapitulationsAccepted(TEAMID(theyId)).count(t.getID()) > 0) {
@@ -2467,6 +2560,13 @@ int Risk::preEvaluate() {
 void Risk::evaluate() {
 
 	PROFILE_FUNC();
+	/*  Thwarted victory is mainly handled by Kingmaking::anyVictory, but, so long
+		as one victory condition remains feasible/imminent, that function won't
+		yield negative utility. Therefore count some extra lost assets for lost cities
+		that are important for a victory condition. */
+	bool const bSpace4 = we->AI_isDoVictoryStrategy(AI_VICTORY_SPACE4);
+	bool const bCulture3 = we->AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3);
+	bool const bCulture4 = bCulture3 && we->AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4);
 	double lostAssets = 0;
 	for(iSetIt it = m->lostCities(weId).begin(); it != m->lostCities(weId).end(); it++) {
 		/*  It doesn't matter here whom the city is lost to, but looking at
@@ -2476,7 +2576,19 @@ void Risk::evaluate() {
 		City* c = ourCache->lookupCity(*it);
 		if(c == NULL) continue;
 		double sc = c->getAssetScore();
-		log("%s: %d lost assets", report.cityName(*c->city()), ::round(sc));
+		if(bSpace4) {
+			if(c->city()->isCapital() && we->AI_isDoVictoryStrategy(AI_VICTORY_SPACE4))
+				sc += 15;
+		}
+		if(bCulture3) {
+			CvCity const& cvc = *c->city();
+			// Same condition as in CvPlayerAI::AI_conquerCity
+			if(2 * cvc.getCulture(cvc.getOwnerINLINE()) >= cvc.getCultureThreshold(
+					GC.getGameINLINE().culturalVictoryCultureLevel()))
+				sc += (bCulture4 ? 15 : 8);
+		}
+		log("%s: %d lost assets%s", report.cityName(*c->city()), ::round(sc),
+				(bCulture3 || bSpace4 ? " (important for victory)" : ""));
 		lostAssets += sc;
 	}
 	double uMinus = 400 * lostAssets;
@@ -2496,10 +2608,10 @@ void Risk::evaluate() {
 	capture the very cities that steal our tiles by continuing the war. */
 	uMinus /= total;
 	if(uMinus > 0.5) {
-		if(fromBlockade > 0.5)
-			log("From naval blockade: %d", ::round(fromBlockade));
-		if(fromNukes > 0.5)
-			log("From nukes: %d", ::round(fromNukes));
+		if(fromBlockade / total > 0.5)
+			log("From naval blockade: %d", ::round(fromBlockade / total));
+		if(fromNukes / total > 0.5)
+			log("From nukes: %d", ::round(fromNukes / total));
 		log("Cost for lost assets: %d (loss: %d, present: %d)", ::round(uMinus),
 				::round(lostAssets), ::round(total));
 	}

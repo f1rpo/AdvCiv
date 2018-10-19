@@ -907,13 +907,22 @@
 	<!-- advc.099: Overwrites CIV4GameTextInfos.xml. Since its culture
 	     remains in the game, it isn't accurate to say the civ was
 		 "destroyed". (Or better "vanquished"?) --> 
-	<TEXT>
+	<!--TEXT>
         <Tag>TXT_KEY_MISC_CIV_DESTROYED</Tag>
         <English>The %s1_CivAdj civilization has been conquered!!</English>
         <French>Les %s1_CivAdj est &#233;t&#233; conquis!!</French>
         <German>Die %s1:3_CivAdj Zivilisation wurde erobert!!</German>
         <Italian>La civilt&#224; %s1:4_CivAdj &#232; stato conquistata!!</Italian>
         <Spanish>&#161;La civilizaci&#243;n %s1:2_CivAdj ha sido conquistada!</Spanish>
+    </TEXT-->
+	<!-- Next try; similar to TXT_KEY_MISC_DEFEAT in CIV4GameText_Misc1.xml: -->
+	<TEXT>
+        <Tag>TXT_KEY_PLAYER_ELIMINATED</Tag>
+        <English>%s1_Plyr has been defeated!!</English>
+        <French>%s1_Plyr a été [NUM1:défait:défaite] !!</French>
+        <German>%s1_Plyr wurde besiegt!!</German>
+        <Italian>%s1_Plyr è stat[NUM1:o:a] sconfitt[NUM1:o:a]!!</Italian>
+        <Spanish>%s1_Plyr ha sido derrotad[NUM1:o:a]!!</Spanish>
     </TEXT>
 	
 	<!-- advc.099: Used to say "we yearn to join our motherland", which

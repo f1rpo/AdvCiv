@@ -1171,7 +1171,7 @@ int RiseFall::victoryStage(PlayerTypes civId) {
 			!civ.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4) &&
 			!civ.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4) &&
 			!civ.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4))
-		r = std::max(3, civ.AI_calculateCultureVictoryStage(55));
+		r = std::max(3, civ.AI_calculateCultureVictoryStage(167));
 	return r;
 }
 

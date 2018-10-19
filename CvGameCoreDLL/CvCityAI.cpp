@@ -6549,7 +6549,7 @@ int CvCityAI::AI_neededDefenders(bool ignoreEvac) // advc.139: param added
 			iDefenders += 6;
 		}
 	}
-	// <advc.023>
+	// <advc.099c>
 	PlayerTypes culturalOwner = calculateCulturalOwner();
 	CvPlayerAI const& owner = GET_PLAYER(getOwnerINLINE());
 	if(culturalOwner != owner.getID() && !owner.isFocusWar(area()) &&
@@ -6562,7 +6562,7 @@ int CvCityAI::AI_neededDefenders(bool ignoreEvac) // advc.139: param added
 		iDefenders = std::max(iDefenders, std::min(::round(getPopulation() / 2.0 +
 				1.5 * priorRevolts + cultureFactor * getPopulation()),
 				getPopulation()));
-	} // </advc.023>
+	} // </advc.099c>
 	iDefenders = std::max(iDefenders, AI_minDefenders());
 
 	return iDefenders;

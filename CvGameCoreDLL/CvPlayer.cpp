@@ -11672,8 +11672,9 @@ void CvPlayer::setAlive(bool bNewValue)
 		{
 			if (!isBarbarian())
 			{
-				szBuffer = gDLL->getText("TXT_KEY_MISC_CIV_DESTROYED", getCivilizationAdjectiveKey());
-
+				//szBuffer = gDLL->getText("TXT_KEY_MISC_CIV_DESTROYED", getCivilizationAdjectiveKey());
+				// advc.099: Replacing the above
+				szBuffer = gDLL->getText("TXT_KEY_PLAYER_ELIMINATED", getNameKey());
 				for (iI = 0; iI < MAX_PLAYERS; iI++)
 				{
 					if (GET_PLAYER((PlayerTypes)iI).isAlive())
@@ -14040,14 +14041,20 @@ void CvPlayer::setCivics(CivicOptionTypes eIndex, CivicTypes eNewValue)
 					{	// <advc.151> Moved out of the loop
 						szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYER_ADOPTED_CIVIC", getNameKey(),
 								GC.getCivicInfo(getCivics(eIndex)).getTextKeyWide());
-						if(eOldCivic != GC.getCivilizationInfo(getCivilizationType()).
+						// <advc.106>
+						bool bRenounce = (!GC.getCivicInfo(getCivics(eIndex)).isStateReligion() &&
+								GC.getCivicInfo(eOldCivic).isStateReligion() && bWasStateReligion &&
+								getLastStateReligion() != NO_RELIGION);
+						if(bRenounce) {
+							szBuffer += L" " +  gDLL->getText("TXT_KEY_MISC_AND_RENOUNCE_RELIGION",
+									GC.getReligionInfo(getLastStateReligion()).getTextKeyWide());
+						}
+						else // </advc.106>
+							if(eOldCivic != GC.getCivilizationInfo(getCivilizationType()).
 								getCivilizationInitialCivics(eIndex)) {
 							szBuffer += L" " + gDLL->getText("TXT_KEY_MISC_AND_ABOLISH_CIVIC",
 									GC.getCivicInfo(eOldCivic).getTextKeyWide());
 						} // </advc.151>
-						// <advc.106>
-						bool bRenounce = (!GC.getCivicInfo(getCivics(eIndex)).isStateReligion() &&
-								GC.getCivicInfo(eOldCivic).isStateReligion()); // </advc.106>
 						for (iI = 0; iI < MAX_PLAYERS; iI++)
 						{
 							if (GET_PLAYER((PlayerTypes)iI).isAlive())
@@ -14065,10 +14072,9 @@ void CvPlayer::setCivics(CivicOptionTypes eIndex, CivicTypes eNewValue)
 						if(bRenounce) { // advc.106
 							szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYER_ADOPTED_CIVIC", getNameKey(), GC.getCivicInfo(getCivics(eIndex)).getTextKeyWide());
 							// <advc.106>
-							if(bWasStateReligion && getLastStateReligion() != NO_RELIGION) {
-								szBuffer += L" " + gDLL->getText("TXT_KEY_MISC_AND_RENOUNCE_RELIGION",
-										GC.getReligionInfo(getLastStateReligion()).getTextKeyWide());
-							} // </advc.106>
+							szBuffer += L" " + gDLL->getText("TXT_KEY_MISC_AND_RENOUNCE_RELIGION",
+									GC.getReligionInfo(getLastStateReligion()).getTextKeyWide());
+							// </advc.106>
 							GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szBuffer);
 						}
 					}

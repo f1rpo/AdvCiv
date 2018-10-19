@@ -557,10 +557,10 @@ public:
 	int getShrineBuildingCount(ReligionTypes eReligion = NO_RELIGION);
 	BuildingTypes getShrineBuilding(int eIndex, ReligionTypes eReligion = NO_RELIGION);
 	void changeShrineBuilding(BuildingTypes eBuilding, ReligionTypes eReligion, bool bRemove = false);
-
-	bool culturalVictoryValid();
-	int culturalVictoryNumCultureCities();
-	CultureLevelTypes culturalVictoryCultureLevel();
+	// advc.003: Made these three const
+	 bool culturalVictoryValid() const;
+	 int culturalVictoryNumCultureCities() const;
+	 CultureLevelTypes culturalVictoryCultureLevel() const;
 	int getCultureThreshold(CultureLevelTypes eLevel) const;
 
 	int getPlotExtraYield(int iX, int iY, YieldTypes eYield) const;   // exposed to Python (K-Mod)

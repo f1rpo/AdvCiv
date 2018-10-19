@@ -1758,8 +1758,6 @@ int pathDestValid(int iToX, int iToY, const void* pointer, FAStar* finder)
 /************************************************************************************************/
 	}
 
-	if(CvUnit::measuringDistance != NO_TEAM) return TRUE; // advc.104b
-
 	if (bAIControl || pToPlot->isRevealed(pSelectionGroup->getHeadTeam(), false))
 	{
 		if (pSelectionGroup->isAmphibPlot(pToPlot))

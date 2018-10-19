@@ -10386,7 +10386,7 @@ void CvGame::changeShrineBuilding(BuildingTypes eBuilding, ReligionTypes eReligi
 	
 }
 
-bool CvGame::culturalVictoryValid()
+bool CvGame::culturalVictoryValid() const // advc.003: const added
 {
 	if (m_iNumCultureVictoryCities > 0)
 	{
@@ -10396,12 +10396,12 @@ bool CvGame::culturalVictoryValid()
 	return false;
 }
 
-int CvGame::culturalVictoryNumCultureCities()
+int CvGame::culturalVictoryNumCultureCities() const // advc.003: const added
 {
 	return m_iNumCultureVictoryCities;
 }
 
-CultureLevelTypes CvGame::culturalVictoryCultureLevel()
+CultureLevelTypes CvGame::culturalVictoryCultureLevel() const // advc.003: const added
 {
 	if (m_iNumCultureVictoryCities > 0)
 	{

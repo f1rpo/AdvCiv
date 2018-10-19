@@ -2020,11 +2020,9 @@ double WarAndPeaceAI::Team::confidenceFromWarSuccess(TeamTypes targetId) const {
 	CvTeamAI const& t = GET_TEAM(agentId);
 	CvTeamAI const& target = GET_TEAM(targetId);
 	int timeAtWar = t.AI_getAtWarCounter(targetId);
-	{ /* Can differ by 1 b/c of turn difference. Can apparently also differ by 2
-		 somehow, which I don't understand, but it's not a problem really. */
-		int taw2 = target.AI_getAtWarCounter(agentId);
-		FAssert(std::abs(timeAtWar - taw2) <= 2);
-	}
+	/*  Can differ by 1 b/c of turn difference. Can apparently also differ by 2
+		somehow, which I don't understand, but it's not a problem really. */
+	FAssert(std::abs(timeAtWar - target.AI_getAtWarCounter(agentId)) <= 2);
 	if(timeAtWar <= 0)
 		return -1;
 	int ourSuccess = std::max(1, t.AI_getWarSuccess(targetId));
@@ -2639,25 +2637,29 @@ double WarAndPeaceAI::Civ::warConfidencePersonal(bool isNaval, bool isTotal,
 		// e.g. 0.63 at Settler, 1.67 at Deity
 		return 100.0 / GC.getHandicapInfo(we.getHandicapType()).getAITrainPercent();
 	CvLeaderHeadInfo const& lh = GC.getLeaderHeadInfo(we.getPersonalityType());
-	if(isNaval) {
-		/*  distantWar refers to intercontinental war. The values in LeaderHead are
-			between 0 (Sitting Bull) and 100 (Isabella), i.e. almost everyone is
-			reluctant to fight cross-ocean wars. That reluctance is now covered
-			elsewhere (e.g. army power reduced based on cargo capacity in
-			simulations); hence the +35. The result is between 0.35 and 1.35. */
-		return (lh.getMaxWarDistantPowerRatio() + 35) / 100.0;
-	}
-	int maxWarNearbyPR = lh.getMaxWarNearbyPowerRatio();
-	int limWarPR = lh.getLimitedWarPowerRatio();
-	// Montezuma: 1.3; Elizabeth: 0.85
-	//return (maxWarNearbyPR + limWarPR) / 200.0;
+	int const maxWarNearbyPR = lh.getMaxWarNearbyPowerRatio();
+	int const maxWarDistPR = lh.getMaxWarDistantPowerRatio();
+	int const limWarPR = lh.getLimitedWarPowerRatio();
+	double r = // Montezuma: 1.3; Elizabeth: 0.85
+	//(maxWarNearbyPR + limWarPR) / 200.0;
 	/*  Limited and total mostly affect the military build-up, not how the war is
 		conducted. So it may not make much sense for a leader to be e.g. more
 		optimistic about limited than total war. But the difference between the
 		PowerRatio values should somehow matter. Perhaps some leaders think e.g.
 		that they can't use large stacks so effectively ... */
-	return 0.01 * (isTotal ? lh.getMaxWarNearbyPowerRatio() : lh.getLimitedWarPowerRatio());
-	// Or perhaps use a weighted mean as a compromise
+			(isTotal ? maxWarNearbyPR : limWarPR);
+			// Or perhaps use a weighted mean as a compromise?
+	if(isNaval) {
+		/*  distantWar refers to intercontinental war. The values in LeaderHead are
+			between 0 (Sitting Bull) and 100 (Isabella), i.e. almost everyone is
+			reluctant to fight cross-ocean wars. That reluctance is now covered
+			elsewhere (e.g. army power reduced based on cargo capacity in
+			simulations); hence the +35. This puts the return value between 0.35 and
+			1.35. Exceeding the PR for land war is dangerous though; could cause
+			the AI to plan for naval war when ships aren't needed at all. */
+		r = std::min(r + 3, maxWarDistPR + 35.0);
+	}
+	return r / 100.0;
 }
 
 double WarAndPeaceAI::Civ::warConfidenceLearned(PlayerTypes targetId,

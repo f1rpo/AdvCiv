@@ -4401,9 +4401,7 @@ bool CvSelectionGroup::generatePath( const CvPlot* pFromPlot, const CvPlot* pToP
 {
 	// K-Mod - if I can stop the UI from messing with this pathfinder, I might be able to reduce OOS bugs.
 	// (note, the const-cast is just to get around the bad code from the original developers)
-	FAssert(const_cast<CvSelectionGroup*>(this)->AI_isControlled()
-		|| CvUnit::measuringDistance != NO_TEAM // advc.104b
-		);
+	FAssert(const_cast<CvSelectionGroup*>(this)->AI_isControlled());
 	// K-Mod end
 
 	PROFILE("CvSelectionGroup::generatePath()")

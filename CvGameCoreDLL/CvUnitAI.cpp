@@ -1376,16 +1376,100 @@ void CvUnitAI::AI_animalMove()
 void CvUnitAI::AI_settleMove()
 {
 	PROFILE_FUNC();
-
-	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE()); // K-Mod
+	CvGame const& g = GC.getGameINLINE(); // advc.003
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE()); // K-Mod
 	int iMoveFlags = MOVE_NO_ENEMY_TERRITORY; // K-Mod
 
-	/*  advc.108 (comment only): Removing this branch would allow the AI to roam
-		initially, but would require custom code for early exploration.
-		BBAI code for checking "for Good City Sites Near Starting Location"
-		could be inserted here, but doesn't handle exploration. */
 	if (kOwner.getNumCities() == 0)
-	{
+	{	// advc.108: Merged this from the Better BUG AI mod
+/************************************************************************************************/
+/* Afforess & Fuyu	                  Start      09/18/10                                       */
+/*                                                                                              */
+/* Check for Good City Sites Near Starting Location                                             */
+/************************************************************************************************/
+		// <advc>
+		CvGameSpeedInfo const& gsi = GC.getGameSpeedInfo(g.getGameSpeedType());
+		/*  Earlier exploreMove may have revealed more tiles. Don't set bStartingLoc;
+			that setting rules out e.g. plots with a goody hut or at the edge of a
+			flat map. I've added some getNumCities()<=0 checks to AI_foundValue. */
+		kOwner.AI_updateFoundValues(false); // </advc>
+		int iGameSpeedPercent = ( (2 * gsi.getTrainPercent())
+				+ gsi.getConstructPercent() + gsi.getResearchPercent() ) / 4;
+		int iMaxFoundTurn = (iGameSpeedPercent + 50) / 150; //quick 0, normal/epic 1, marathon 2
+		if(!g.isScenario() && /* advc: Let the creator of the scenario decide where
+								 the AI settles */
+				canMove() && !kOwner.AI_isPlotCitySite(plot()) &&
+				g.getElapsedGameTurns() <= iMaxFoundTurn)
+		{
+			int iBestValue = 0;
+			int iBestFoundTurn = 0;
+			CvPlot* pBestPlot = NULL;
+
+			for (int iCitySite = 0; iCitySite < kOwner.AI_getNumCitySites(); iCitySite++)
+			{
+				CvPlot* pCitySite = kOwner.AI_getCitySite(iCitySite);
+				if(pCitySite->getArea() != getArea() && !canMoveAllTerrain())
+					continue;
+				//int iPlotValue = kOwner.AI_foundValue(pCitySite->getX_INLINE(), pCitySite->getY_INLINE());
+				int iPlotValue = pCitySite->getFoundValue(kOwner.getID());
+				if(iPlotValue <= iBestValue)
+					continue;
+				//Can this unit reach the plot this turn? (getPathLastNode()->m_iData2 == 1)
+				//Will this unit still have movement points left to found the city the same turn? (getPathLastNode()->m_iData1 > 0))
+				if (generatePath(pCitySite))
+				{
+					int iFoundTurn = g.getElapsedGameTurns() +
+							/*getPathLastNode()->m_iData2 -
+							(getPathLastNode()->m_iData1 > 0 ? 1 : 0);*/
+							// advc: Adapted to K-Mod pathfinder
+							getPathFinder().GetPathTurns() -
+							(getPathFinder().GetFinalMoves() > 0 ? 1 : 0);
+					if (iFoundTurn <= iMaxFoundTurn)
+					{
+						iPlotValue *= 100; //more precision
+						/*  the slower the game speed, the less penality the plotvalue
+							gets for long walks towards it.
+							On normal it's -18% per turn */
+						/*  advc: 18% seems a bit much; try 15%. K-Mod found values
+							aren't quite on the same scale as BBAI. */
+						iPlotValue *= 100 - std::min(100, ((1500/
+								std::max(1, iGameSpeedPercent)) * iFoundTurn));
+						iPlotValue /= 100;
+						if (iPlotValue > iBestValue)
+						{
+							iBestValue = iPlotValue;
+							iBestFoundTurn = iFoundTurn;
+							pBestPlot = pCitySite;
+						}
+					}
+				}
+			}
+			if (pBestPlot != NULL)
+			{
+				//Don't give up coast or river, don't settle on bonus with food
+				/*if ( (plot()->isRiver() && !pBestPlot->isRiver())
+					|| (plot()->isCoastalLand(GC.getMIN_WATER_SIZE_FOR_OCEAN()) && !pBestPlot->isCoastalLand(GC.getMIN_WATER_SIZE_FOR_OCEAN()))
+					|| (pBestPlot->getBonusType(NO_TEAM) != NO_BONUS && pBestPlot->calculateNatureYield(YIELD_FOOD, getTeam(), true) > 0) )*/
+				// advc: I think AI_foundValue can handle the other stuff
+				if(plot()->isFreshWater() && !pBestPlot->isFreshWater()) 
+				{
+					pBestPlot = NULL;
+				}
+			}
+
+			if (pBestPlot != NULL)
+			{
+				if( gUnitLogLevel >= 2 )
+				{
+					logBBAI("    Settler not founding in place but moving %d, %d to nearby city site at %d, %d (%d turns away) with value %d)", (pBestPlot->getX_INLINE() - plot()->getX_INLINE()), (pBestPlot->getY_INLINE() - plot()->getY_INLINE()), pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), iBestFoundTurn, iBestValue);
+				}
+				getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), MOVE_SAFE_TERRITORY, false, false, MISSIONAI_FOUND, pBestPlot);
+				return;
+			}
+		}
+/************************************************************************************************/
+/* Afforess & Fuyu	                     END                                                    */
+/************************************************************************************************/
 		if (canFound(plot()))
 		{
 /************************************************************************************************/
@@ -1407,7 +1491,7 @@ void CvUnitAI::AI_settleMove()
 	}
 
 	/* original bts code
-	int iDanger = GET_PLAYER(getOwnerINLINE()).AI_getPlotDanger(plot(), 3);
+	int iDanger = kOwner.AI_getPlotDanger(plot(), 3);
 	
 	if (iDanger > 0)
 	{

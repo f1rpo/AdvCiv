@@ -764,10 +764,11 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		confDefPers *= GET_PLAYER(defender.id).warAndPeaceAI().confidenceAgainstHuman();
 	if(GET_PLAYER(defender.id).isHuman())
 		confAttPers *= GET_PLAYER(id).warAndPeaceAI().confidenceAgainstHuman();
-	if(confAttPers > 1.001 || confDefPers > 1.001 || confAttPers < 0.999 || confDefPers < 0.999)
+	if(confAttPers > 1.001 || confDefPers > 1.001 || confAttPers < 0.999 || confDefPers < 0.999) {
 		report.log("Personal confidence (%s/%s): %d/%d percent",
 				report.leaderName(id), report.leaderName(defender.id),
 				::round(confAttPers * 100), ::round(confDefPers * 100));
+	}
 	double confAtt = confAttPers;
 	double confDef = confDefPers;
 	// Assume that we don't know war successes of third parties
@@ -783,7 +784,12 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 					report.leaderName(id), report.leaderName(defender.id),
 					::round(confAttLearned * 100 + 100),
 					::round(confDefLearned * 100 + 100));
-		// Don't multiply with conf...Pers; avoid extreme confidence this way
+		/*  To avoid extreme bias, don't multiply with conf...Pers unless
+			learned and personal confidence contradict each other. */
+		if((confAttLearned < 0) != (confAtt < 1) && confAtt != 1 && confAttLearned != 0)
+			confAttLearned *= (1 + std::abs(1 - confAtt));
+		if((confDefLearned < 0) != (confDef < 1) && confDef != 1 && confDefLearned != 0)
+			confDefLearned *= (1 + std::abs(1 - confDef));
 		confAtt += confAttLearned;
 		confDef += confDefLearned;
 	}
@@ -1059,7 +1065,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		(and hidden knowledge unless id==weId). */
 	if(battleArea != NULL) {
 		if(remainingCitiesAtt > 0) {
-			if(!isNaval) {
+			if(!isNaval && !clashOnly) {
 				/*  Fixme(?): getCitiesPerPlayer should be reduced based on lost
 					cities */
 				areaWeightAtt = battleArea->getCitiesPerPlayer(id) /
@@ -1069,17 +1075,18 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 					areaWeightAtt *= (GET_PLAYER(id).isHuman() ? 1.5 : 1.33);
 				areaWeightAtt = std::min(1.0, areaWeightAtt);
 			}
-			/*  For a human attacker, leave areaWeightAtt at 100% and assume that
-				the naval attack focuses the entire human army (as many as are
-				supported by LOGISTICS). Would like to assume that about the AI
-				as well, but it struggles badly with deploying units from
-				different areas. */
-			else if(!GET_PLAYER(id).isHuman()) {
+			else {
 				CvCity* capital = GET_PLAYER(id).getCapitalCity();
 				if(capital != NULL) {
-					areaWeightAtt = ::dRange(capital->area()->getCitiesPerPlayer(id) /
-							(double)GET_PLAYER(id).getNumCities(), 0.5, 1.0);
+					areaWeightAtt = capital->area()->getCitiesPerPlayer(id) /
+							(double)GET_PLAYER(id).getNumCities();
 				}
+				/*  A human naval attack focuses much of the army (if supported by
+					LOGISTICS), while the AI struggles with deploying units from
+					different areas. */
+				if(GET_PLAYER(id).isHuman())
+					areaWeightAtt += 0.25;
+				areaWeightAtt = ::dRange(areaWeightAtt, 0.5, 1.0);
 			}
 			if(areaWeightAtt < 0.99) {
 				report.log("Area weight attacker: %d percent",
@@ -1093,7 +1100,9 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 			CvCity* capital = GET_PLAYER(defender.id).getCapitalCity();
 			if(capital != NULL && capital->area() == battleArea)
 				areaWeightDef *= (GET_PLAYER(defender.id).isHuman() ? 1.5 : 1.33);
-			areaWeightDef = std::min(1.0, areaWeightDef);
+			/*  Even if the local army is too small to prevent the (temporary)
+				capture of a city, reinforcements will arrive before long. */
+			areaWeightDef = ::dRange(areaWeightDef, 0.33, 1.0);
 			if(areaWeightDef < 0.99) {
 				report.log("Area weight defender: %d percent",
 						::round(areaWeightDef * 100));

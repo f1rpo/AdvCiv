@@ -2694,8 +2694,6 @@ bool CvUnit::willRevealByMove(const CvPlot* pPlot) const
 	return false;
 }
 
-TeamTypes CvUnit::measuringDistance = NO_TEAM; // advc.104b
-
 // K-Mod. I've rearranged a few things to make the function slightly faster, and added "bAssumeVisible" which signals that we should check for units on the plot regardless of whether we can actually see.
 bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bool bIgnoreLoad, bool bAssumeVisible) const
 {
@@ -3007,14 +3005,7 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 		if (!bCanEnterArea)
 		{
 			FAssert(ePlotTeam != NO_TEAM);
-			// <advc.104b> Can't move across closed border of third-party
-			if(measuringDistance != NO_TEAM && measuringDistance != ePlotTeam)
-				return false; // </advc.104b>
-			if (!(GET_TEAM(getTeam()).canDeclareWar(ePlotTeam))
-				 /* advc.104b: Otherwise, distances can't be measured
-				    by vassals or while there is a peace treaty. */
-				&& measuringDistance == NO_TEAM
-				)
+			if (!GET_TEAM(getTeam()).canDeclareWar(ePlotTeam))
 			{
 				return false;
 			}
@@ -3047,9 +3038,7 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 			{
 				return false;
 			}
-			else if (!isHuman()
-				&& measuringDistance == NO_TEAM // advc.104b
-			)
+			else if (!isHuman())
 			{
 				if (!GET_TEAM(getTeam()).AI_isSneakAttackReady(ePlotTeam) || !getGroup()->AI_isDeclareWar(pPlot))
 				{
@@ -4140,13 +4129,12 @@ int CvUnit::healRate(const CvPlot* pPlot, bool bLocation, bool bUnits) const
 		bool bFriendly = GET_TEAM(getTeam()).isFriendlyTerritory(pPlot->getTeam());
 		if (pPlot->isCity(true, getTeam()))
 		{
-			
 			iTotalHeal += //GC.getDefineINT("CITY_HEAL_RATE") + // advc.023: Moved
 					(bFriendly ? getExtraFriendlyHeal() : getExtraNeutralHeal());
 			if (pCity && !pCity->isOccupation())
 			{
-				iTotalHeal += pCity->getHealRate() // <advc.023>
-						+ GC.getDefineINT("CITY_HEAL_RATE");
+				iTotalHeal += pCity->getHealRate()
+						+ GC.getDefineINT("CITY_HEAL_RATE"); // <advc.023>
 			}
 			else iTotalHeal += (bFriendly ? GC.getDefineINT("FRIENDLY_HEAL_RATE") :
 					GC.getDefineINT("NEUTRAL_HEAL_RATE")); // </advc.023>
@@ -5264,17 +5252,17 @@ bool CvUnit::canPillage(const CvPlot* pPlot) const
 /************************************************************************************************/
 /* UNOFFICIAL_PATCH                        END                                                  */
 /************************************************************************************************/
-	// <advc.111>
-	if(pPlot->getOwnerINLINE() == NO_PLAYER &&
-				pPlot->isVisibleOtherUnit(getOwnerINLINE()))
-		return false; // </advc.111>
 
 	if (pPlot->getImprovementType() == NO_IMPROVEMENT)
 	{
-		if (!(pPlot->isRoute()))
+		if(!pPlot->isRoute())
 		{
 			return false;
 		}
+		// <advc.111>
+		if(pPlot->getOwnerINLINE() == NO_PLAYER &&
+				pPlot->isVisibleOtherUnit(getOwnerINLINE()))
+			return false; // </advc.111>
 	}
 	else
 	{
@@ -8431,10 +8419,6 @@ bool CvUnit::isGoldenAge() const
 
 bool CvUnit::canCoexistWithEnemyUnit(TeamTypes eTeam) const
 {
-	/* advc.104b: Without this, the AI can consider cities unreachable
-	   when enemy units block a choke point. */
-	if(measuringDistance != NO_TEAM) return true;
-
 	if (NO_TEAM == eTeam)
 	{
 		if(alwaysInvisible())

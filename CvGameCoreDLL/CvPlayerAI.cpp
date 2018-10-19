@@ -1166,7 +1166,9 @@ void CvPlayerAI::AI_updateFoundValues(bool bStartingLoc)
 		{
 			//AI_invalidateCitySites(AI_getMinFoundValue());
 			AI_invalidateCitySites(-1); // K-Mod
-		}
+		} // <advc.108>
+		int const iCities = getNumCities();
+		CvPlot const* const pStartPlot = getStartingPlot(); // </advc.108>
 		for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 		{
 			CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
@@ -1187,6 +1189,9 @@ void CvPlayerAI::AI_updateFoundValues(bool bStartingLoc)
 				{
 					//iValue = AI_foundValue(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
 					iValue = AI_foundValue_bulk(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), kFoundSet); // K-Mod
+					// <advc.108> Slight preference for the assigned starting plot
+					if(iCities <= 0 && pStartPlot != NULL && pLoopPlot == pStartPlot)
+						iValue = ::round(1.05 * iValue); // </advc.108>
 				}
 
 				FAssert(iValue <= MAX_SHORT); // K-Mod. If this assert fails, the foundValue calculation may need to be changed.
@@ -3079,7 +3084,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 // END OF CONSTS
 // INITIAL DON'T-FOUND-HERE CHECKS
 	bool bAdvancedStart = (getAdvancedStartPoints() >= 0);
-	if (!kSet.bStartingLoc && !bAdvancedStart)
+	//if (!kSet.bStartingLoc && !bAdvancedStart)
+	if(getNumCities() > 0) // advc.108
 	{
 		if (!bIsCoastal && iNumAreaCities == 0)
 		{
@@ -3544,6 +3550,10 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					getTechCityTrade();
 			if(tradeTech == NO_TECH || GET_TEAM(getTeam()).isHasTech(tradeTech) ||
 					getCurrentResearch() == tradeTech ||
+					/*  <advc.108> With our first city, we can wait a bit a longer
+						for the proper tech. */
+					(getNumCities() <= 0 && getCurrentEra() >=
+					GC.getTechInfo(tradeTech).getEra()) || // </advc.108>
 					/*  The HasTech and CurrentResearch checks are redundant,
 						I think, but faster. */
 					canResearchBulk(tradeTech, false, false, true)) {
@@ -3736,8 +3746,10 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			iPlotValue += aiYield[YIELD_FOOD] * 15;
 			iPlotValue += aiYield[YIELD_PRODUCTION] * 15;
 			iPlotValue += aiYield[YIELD_COMMERCE] * 8;
-		}
-
+		} /* <advc.108> For moving the starting Settler and for more
+			early-game commerce in general */
+		if(getNumCities() <= 1 && getCurrentEra() <= 0)
+			iPlotValue += aiYield[YIELD_COMMERCE] * 5; // </advc.108>
 		if (pLoopPlot->isWater())
 		{
 			// K-Mod. kludge to account for lighthouse and lack of improvements.
@@ -3831,13 +3843,16 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 							iFreshWaterVal += 8;
 						if(!bSteal) {
 							iRiver++;
-							if(kSet.bStartingLoc)
+							if(getNumCities() <= 0) // advc.108
 								iFreshWaterVal += 10;
 							/*  I'm guessing this K-Mod clause is supposed to
 								steer the AI toward settling at rivers rather
 								than trying to make all river plots workable. */
-							if(pPlot->isRiver())
-								iFreshWaterVal += (kSet.bStartingLoc ? 10 : 4);
+							if(pPlot->isRiver()) {
+								iFreshWaterVal += (
+										getNumCities() <= 0 // advc.108
+										? 10 : 4);
+							}
 						} // </advc.031>
 					}
 				} // in addition to the river bonus:
@@ -4087,7 +4102,9 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			(note: I removed a bigger value reduction from the original code
 			higher up.) */
 		iResourceValue /= 4;
-	}
+	} // <advc.108> For moving the starting Settler
+	else if(getNumCities() <= 0)
+		iResourceValue = ::round(iResourceValue / 1.5); // </advc.108>
 	// Note: iSpecialFood is whatever food happens to be associated with bonuses. Don't value it highly, because it's also counted in a bunch of other ways.
 	// <advc.031>
 	// Preserve this for later
@@ -4097,7 +4114,10 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		perSpecial[YIELD_FOOD] = iSpecialFood / specials;
 		perSpecial[YIELD_PRODUCTION] = iSpecialProduction / specials;
 		perSpecial[YIELD_COMMERCE] = iSpecialCommerce / specials;
-		double coefficients[NUM_YIELD_TYPES] = {0.24, 0.36, 0.32};
+		double coefficients[NUM_YIELD_TYPES] = {0.24, 0.36,
+				/*  advc.108: For moving the starting Settler. Though a commercial
+					resource at the second city is also valuable, so: */
+				getNumCities() <= 1 && getCurrentEra() <= 0 ? 0.48 : 0.32};
 		double fromSpecial = 0;
 		for(int i = 0; i < NUM_YIELD_TYPES; i++)
 			fromSpecial += perSpecial[i] * coefficients[i];
@@ -4167,7 +4187,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 
 	if (bIsCoastal)
 	{
-		if (!kSet.bStartingLoc)
+		//if (!kSet.bStartingLoc)
+		if(getNumCities() > 0) // advc.108
 		{
 			if (pArea->getCitiesPerPlayer(getID()) == 0)
 			{
@@ -4780,7 +4801,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	iBadTile -= subtr;
 	if(iBadTile > 0) {
 		iValue -= ::round(std::pow((double)iBadTile, 1.25) *
-				(35.0 + (kSet.bStartingLoc ? 100 : 0)));
+				(35.0 + (kSet.bStartingLoc ?
+				50 : 0) + (getNumCities() <= 0 ? 50 : 0))); // advc.108
 		iValue = std::max(0, iValue);
 	}
 // END OF BAD TILES
@@ -9917,33 +9939,40 @@ int CvPlayerAI::AI_getShareWarAttitude(PlayerTypes ePlayer) const
 	int div = lh.getShareWarAttitudeDivisor();
 	if(div == 0)
 		return 0;
-	bool isShare = ourTeam.AI_shareWar(TEAMID(ePlayer));
-	if(!isShare && ourTeam.getAtWarCount() > 0) {
-		/*  Only suspend the relations bonus from past shared war if the current war
-			is at least 5 turns old, and only if we could use help. */
+	bool bShareAny = ourTeam.AI_shareWar(TEAMID(ePlayer));
+	double nonSharedModifier = 1;
+	if(ourTeam.getAtWarCount() > 0) {
 		int wsThresh = ::round((3.0 * warSuccessAttitudeDivisor()) / 4);
 		for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 			CvTeamAI const& t = GET_TEAM((TeamTypes)i);
 			/*  AtWarCount is the number of teams we're at war with, whereas
-				AtWarCounter is the number of turns we've been at war. Oh my! */
+				AtWarCounter is the number of turns we've been at war. */
 			if(t.isAlive() && !t.isMinorCiv() &&
+					!t.isAtWar(TEAMID(ePlayer)) &&
 					ourTeam.AI_getAtWarCounter(t.getID()) >= 5 &&
 					ourTeam.AI_getWarSuccess(t.getID()) +
 					t.AI_getWarSuccess(ourTeam.getID()) > wsThresh &&
-					ourTeam.AI_getWarSuccessRating() < 25 &&
 					(ourTeam.AI_getWarPlan(t.getID()) != WARPLAN_DOGPILE ||
-					ourTeam.AI_getAtWarCounter(t.getID()) >= 15))
-				return 0;
+					ourTeam.AI_getAtWarCounter(t.getID()) >= 15) &&
+					TEAMREF(ePlayer).AI_isLandTarget(t.getID()) &&
+					t.AI_isLandTarget(ourTeam.getID())) {
+				int wsr = ourTeam.AI_getWarSuccessRating();
+				int const wsrThresh = 25;
+				if(wsr < wsrThresh) {
+					nonSharedModifier += (wsr - wsrThresh -
+							ourTeam.AI_getAtWarCounter(t.getID())) / 100.0;
+				}
+			}
 		}
 	}
 	int r = 0;
-	if(isShare) // No functional change here
+	if(bShareAny) // No functional change here
 		r += lh.getShareWarAttitudeChange();
 	int turnsShared = ourTeam.AI_getShareWarCounter(TEAMID(ePlayer));
 	int theirContribution = ourTeam.getSharedWarSuccess(TEAMID(ePlayer));
 	int limit = abs(lh.getShareWarAttitudeChangeLimit());
 	limit = std::min(limit, 1 + turnsShared / div);
-	r += range((int)(theirContribution /
+	r += range((int)((theirContribution * std::max(0.0, nonSharedModifier)) /
 			// This divisor seems to produce roughly the result I have in mind
 			(3.5 * GC.getWAR_SUCCESS_CITY_CAPTURING() * div)), 0, limit);
 	return r;
@@ -22031,9 +22060,9 @@ bool CvPlayerAI::demandTribute(PlayerTypes humanId, int tributeType) {
 	delay: When an asset is not immediately acquired. */
 double CvPlayerAI::amortizationMultiplier(int delay) const {
 
-	return ::dRange(2 * // Use this coefficient to fine-tune the effect
+	return ::dRange(2.0 * // Use this coefficient to fine-tune the effect
 			(1 - GC.getGameINLINE().gameTurnProgress(std::max(0, delay))),
-			0.15, 1.0);
+			0.2, 1.0);
 } // </advc.104></advc.031>
 
 //
@@ -23131,7 +23160,8 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(
 {
 	PROFILE_FUNC();
 
-	if( GC.getDefineINT("BBAI_VICTORY_STRATEGY_CULTURE") <= 0 )
+	if( GC.getDefineINT("BBAI_VICTORY_STRATEGY_CULTURE") <= 0
+			&& !isHuman()) // advc.115
 	{
 		return 0;
 	}
@@ -23344,8 +23374,8 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(
 			}*/
 			// K-Mod. Do full culture if our winning countdown is below the countdown target.
 			/*  <advc.115> Was 180. Now set to the countdownThresh param if
-				it is provided, otherwise 100. */
-			int iCountdownTarget = 100;
+				it is provided, otherwise 115. */
+			int iCountdownTarget = 115;
 			if(countdownThresh >= 0)
 				iCountdownTarget = countdownThresh; // </advc.115>
 			{
@@ -23401,7 +23431,8 @@ int CvPlayerAI::AI_calculateSpaceVictoryStage() const
 {
     int iValue;
 
-	if( GC.getDefineINT("BBAI_VICTORY_STRATEGY_SPACE") <= 0 )
+	if(!isHuman() && // advc.115
+			GC.getDefineINT("BBAI_VICTORY_STRATEGY_SPACE") <= 0 )
 	{
 		return 0;
 	}
@@ -23459,9 +23490,10 @@ int CvPlayerAI::AI_calculateSpaceVictoryStage() const
 		most tech that could boost production is already known by the time
 		Apollo is built. If it'll take more than 100 turns, then it's hopeless
 		(and not all production is going to go into spaceship parts either). */
-	int totalProduction = calculateTotalYield(YIELD_PRODUCTION);
-	bool enoughProduction = (totalProduction > (240 * GC.getGameSpeedInfo(
-			GC.getGameINLINE().getGameSpeedType()).getCreatePercent()) / 100);
+	int iTotalProduction = ::round((estimateYieldRate(YIELD_PRODUCTION) * 100) /
+			std::max(1, GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).
+			getCreatePercent()));
+	bool bEnoughProduction = (iTotalProduction > 240);
 	// </advc.115>
 	if( bHasApollo )
 	{
@@ -23488,7 +23520,7 @@ int CvPlayerAI::AI_calculateSpaceVictoryStage() const
 			{
 				return 4;
 			}
-			if(enoughProduction || iOurCountdown > 0) // advc.115
+			if(bEnoughProduction || iOurCountdown > 0) // advc.115
 				return 3;
 		}
 
@@ -23536,7 +23568,7 @@ int CvPlayerAI::AI_calculateSpaceVictoryStage() const
 		if (200 * iSpaceTeams / (1+iKnownTeams)
 				<= GC.getLeaderHeadInfo(getPersonalityType()).getSpaceVictoryWeight() +
 				AI_getStrategyRand(3) % 100 && // note, correlated with number used lower down.
-				(enoughProduction || iOurProgress > 10)) // advc.115
+				(bEnoughProduction || iOurProgress > 10)) // advc.115
 			return 3;
 		// K-Mod end
 	}
@@ -23548,7 +23580,7 @@ int CvPlayerAI::AI_calculateSpaceVictoryStage() const
 		return 0;
 	}
 	/*  <advc.115>*/
-	if(!enoughProduction)
+	if(!bEnoughProduction)
 		return 0; // </advc.115>
 	// If can't build Apollo yet, then consider making player push for this victory type
 	{
@@ -23585,7 +23617,8 @@ int CvPlayerAI::AI_calculateSpaceVictoryStage() const
 		//int iNonsense = AI_getStrategyRand() + 50;
 		iValue += (AI_getStrategyRand(3) % 100);
 
-		if (iValue >= 100)
+		if (iValue >= 100
+				|| bNearAllTechs && iTotalProduction > 1000) // advc.115
 		{
 			if( getCurrentEra() >= GC.getNumEraInfos() - 3 )
 			{
@@ -23607,7 +23640,9 @@ int CvPlayerAI::AI_calculateConquestVictoryStage() const
 	const CvTeamAI& kTeam = GET_TEAM(getTeam());
 
 	// check for validity of conquest victory
-	if (GC.getGameINLINE().isOption(GAMEOPTION_ALWAYS_PEACE) || kTeam.isAVassal() || GC.getDefineINT("BBAI_VICTORY_STRATEGY_CONQUEST") <= 0)
+	if (GC.getGameINLINE().isOption(GAMEOPTION_ALWAYS_PEACE) || kTeam.isAVassal() ||
+			(GC.getDefineINT("BBAI_VICTORY_STRATEGY_CONQUEST") <= 0 &&
+			!isHuman())) // advc.115
 		return 0;
 
 	{
@@ -23750,7 +23785,9 @@ int CvPlayerAI::AI_calculateConquestVictoryStage() const
 					&& (nFriends == 0 || (nFriends == nRemaining && nFriends == 1)))
 			{
 				// finally, before confirming level 4, check that there is at least one team that we can declare war on.
-				if(iConqueredCivs >= iKnownCivs/2) { // advc.115
+				// <advc.115>
+				if(iConqueredCivs >= iKnownCivs/2 && GET_TEAM(getTeam()).getNumCities() * 2 >=
+						GC.getGameINLINE().getNumCities()) { // </advc.115>
 					for (TeamTypes i = (TeamTypes)0; i < MAX_CIV_TEAMS; i=(TeamTypes)(i+1))
 					{
 						const CvTeamAI& kLoopTeam = GET_TEAM(i);
@@ -23789,7 +23826,8 @@ int CvPlayerAI::AI_calculateDominationVictoryStage() const
 		return 0;
 	}
 
-	if( GC.getDefineINT("BBAI_VICTORY_STRATEGY_DOMINATION") <= 0 )
+	if( GC.getDefineINT("BBAI_VICTORY_STRATEGY_DOMINATION") <= 0
+			&& !isHuman()) // advc.115
 	{
 		return 0;
 	}
@@ -23896,7 +23934,8 @@ int CvPlayerAI::AI_calculateDiplomacyVictoryStage() const
 {
 	//int iValue = 0; // advc.115b
 	CvGame const& g = GC.getGameINLINE(); // advc.003
-	if( GC.getDefineINT("BBAI_VICTORY_STRATEGY_DIPLOMACY") <= 0 )
+	if( GC.getDefineINT("BBAI_VICTORY_STRATEGY_DIPLOMACY") <= 0
+			&& !isHuman()) // advc.115
 	{
 		return 0;
 	}
