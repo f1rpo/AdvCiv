@@ -432,7 +432,8 @@ void CvGame::regenerateMap()
 		{
 			/*  advc.003 (comment): This appears to have no effect. Perhaps the
 				camera can't be moved at this point. Would have to be done at some
-				later point I guess. */
+				later point I guess. Setting SelectionCamera_DIRTY_BIT doesn't
+				seem to help either. */
 			gDLL->getInterfaceIFace()->lookAt(pPlot->getPoint(), CAMERALOOKAT_NORMAL);
 		}
 	}
@@ -7519,11 +7520,11 @@ void CvGame::createBarbCity(bool skipCivAreas, float prMod) {
 		   Keep counting them for now. */
 		std::pair<int,int> ownedUnowned = a.countOwnedUnownedHabitableTiles();
 				//a.countOwnedUnownedHabitableTiles(true);
-		int unowned = ownedUnowned.second;
+		int iUnowned = ownedUnowned.second;
 		std::vector<Shelf*> shelves; GC.getMap().getShelves(a.getID(), shelves);
 		for(size_t i = 0; i < shelves.size(); i++)
-			unowned += shelves[i]->countUnownedPlots() / 2;
-		unownedPerArea.insert(std::make_pair(a.getID(), unowned));
+			iUnowned += shelves[i]->countUnownedPlots() / 2;
+		unownedPerArea.insert(std::make_pair(a.getID(), iUnowned));
 	}
 	bool isRage = GC.getGame().isOption(GAMEOPTION_RAGING_BARBARIANS);
 	// </advc.300>
@@ -7563,13 +7564,13 @@ void CvGame::createBarbCity(bool skipCivAreas, float prMod) {
 		if(iAreaSz < iUnownedTilesThreshold / 3) {
 			iTargetCities *= iTargetCitiesMultiplier;
 			iTargetCities /= 100;
-		} // <advc.300>
+		} // <advc.304>
 		CvArea& a = *pLoopPlot->area();
-		int nDestroyedCities = a.numBarbCitiesEver() -
+		int iDestroyedCities = a.numBarbCitiesEver() -
 				a.getCitiesPerPlayer(BARBARIAN_PLAYER);
-		FAssert(nDestroyedCities >= 0);
-		nDestroyedCities = std::max(0, nDestroyedCities);
-		iUnownedTilesThreshold += nDestroyedCities * 3; // </advc.300>
+		FAssert(iDestroyedCities >= 0);
+		iDestroyedCities = std::max(0, iDestroyedCities);
+		iUnownedTilesThreshold += iDestroyedCities * 3; // </advc.304>
 		iTargetCities /= std::max(1, iUnownedTilesThreshold);
 
 		if (pLoopPlot->area()->getCitiesPerPlayer(BARBARIAN_PLAYER) < iTargetCities)
@@ -7588,10 +7589,10 @@ void CvGame::createBarbCity(bool skipCivAreas, float prMod) {
 				placed randomly b/c each found value gets multipied with 0,
 				which is apparently a bug. Let's instead use the projected number
 				of owned tiles after placing the city (by adding 9). */
-				int nOwned = pLoopPlot->area()->getNumOwnedTiles();
+				int iOwned = pLoopPlot->area()->getNumOwnedTiles();
 				if(skipCivAreas)
-					iValue += nOwned;
-				else iValue *= nOwned + 9; // advc.001 </advc.300>
+					iValue += iOwned;
+				else iValue *= iOwned + 9; // advc.001 </advc.300>
 			}
 			/*  advc.300, advc.001: Looks like another bug.
 				Good spots have found values in the thousands; adding between 0
@@ -8169,26 +8170,27 @@ UnitTypes CvGame::randomBarbUnit(UnitAITypes ai, CvArea const& a) {
 				(dom == DOMAIN_SEA) != sea ||
 				!GET_PLAYER(BARBARIAN_PLAYER).canTrain(ut))
 			continue;
-		/*  <advc.301> No units from more than 1 era ago (obsoletion too difficult
-			to test).
+		// <advc.301>
+		BonusTypes andReq = (BonusTypes)u.getPrereqAndBonus();
+		TechTypes andReqTech = NO_TECH;
+		if(andReq != NO_BONUS) {
+			andReqTech = (TechTypes)GC.getBonusInfo(andReq).getTechCityTrade();
+			if((andReqTech != NO_TECH && !GET_TEAM(BARBARIAN_TEAM).
+					isHasTech(andReqTech)) || !a.hasAnyAreaPlayerBonus(andReq))
+				continue;
+		}
+		/*  No units from more than 1 era ago (obsoletion too difficult to test).
 			hasTech already tested by canTrain, but era shouldn't be
-			tested there b/c it's OK for barbs to train outdated units
-			(they only do that if they can't train anything better). */
+			tested there b/c it's OK for Barbarian cities to train outdated units
+			(they only will if they can't train anything better). */
 		TechTypes reqTech = (TechTypes)u.getPrereqAndTech();
 		int unitEra = 0;
 		if(reqTech != NO_TECH)
 			unitEra = GC.getTechInfo(reqTech).getEra();
+		if(andReqTech != NO_TECH)
+			unitEra = std::max(unitEra, GC.getTechInfo(andReqTech).getEra());
 		if(unitEra + 1 < getCurrentEra())
-			continue;
-		// </advc.301>
-		BonusTypes andReq = (BonusTypes)u.getPrereqAndBonus();
-		if(andReq != NO_BONUS && (!GET_TEAM(BARBARIAN_TEAM).
-				isHasTech((TechTypes)GC.getBonusInfo(andReq).getTechCityTrade()) ||
-				!a.hasAnyAreaPlayerBonus(andReq))) // advc.301
-			continue;
-		// <advc.307> Can't spawn elephants
-		if(andReq != NO_BONUS && GC.getBonusInfo(andReq).getHappiness() > 0)
-			continue; // </advc.307>
+			continue; // </advc.301>
 		bool bFound = false;
 		bool bRequires = false;
 		for(int j = 0; j < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); j++) {
@@ -8290,11 +8292,11 @@ void CvGame::updateMoves()
 		{
 			if (player.isTurnActive())
 			{
-				if (!(player.isAutoMoves()))
+				if (!player.isAutoMoves())
 				{
 					player.AI_unitUpdate();
 
-					if (!(player.isHuman()))
+					if (!player.isHuman())
 					{
 						if (!(player.hasBusyUnit()) && !(player.hasReadyUnit(true)))
 						{
@@ -8321,7 +8323,7 @@ void CvGame::updateMoves()
 								break;
 							}
 						}
-						// Refresh the gorup cycle for human players.
+						// Refresh the group cycle for human players.
 						// Non-human players can wait for their units to wake up, or regain moves - group cycle isn't very important for them anyway.
 						player.refreshGroupCycleList();
 					}

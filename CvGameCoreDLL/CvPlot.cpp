@@ -6434,10 +6434,12 @@ void CvPlot::updateWorkingCity()
 		{
 			if (gDLL->getGraphicOption(GRAPHICOPTION_CITY_RADIUS))
 			{
-				if (gDLL->getInterfaceIFace()->canSelectionListFound())
-				{
+				//if (gDLL->getInterfaceIFace()->canSelectionListFound())
+				// <advc.004h>
+				CvUnit* pHeadSelectedUnit = pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+				if(pHeadSelectedUnit != NULL && pHeadSelectedUnit->canFound())
+					// </advc.004h>
 					gDLL->getInterfaceIFace()->setDirty(ColoredPlots_DIRTY_BIT, true);
-				}
 			}
 		}
 	}

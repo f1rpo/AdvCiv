@@ -20480,10 +20480,7 @@ bool CvUnitAI::AI_improveBonus() // K-Mod. (all that junk wasn't being used anyw
 												/* Prioritize Forts on tiles with high natural defense and on important
 												   resources that may later be guarded. */
 												if(defenseUtility > 0) {
-													if(ft != NO_FEATURE)
-														defenseUtility += GC.getFeatureInfo(ft).getDefenseModifier();
-													if(tt != NO_TERRAIN)
-														defenseUtility += GC.getTerrainInfo(tt).getDefenseModifier();
+													defenseUtility += pLoopPlot->defenseModifier(getTeam(), true);
 													// BonusVal is usually just a single digit; can be a few dozen if it's the only resource of a type
 													defenseUtility += GET_PLAYER(getOwnerINLINE()).AI_bonusVal(eNonObsoleteBonus, 0);
 													/* (Since this loop only applies to unworkable tiles, we can assume

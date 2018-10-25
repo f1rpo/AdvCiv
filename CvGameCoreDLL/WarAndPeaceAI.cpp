@@ -2385,7 +2385,7 @@ bool WarAndPeaceAI::Civ::isPeaceDealPossible(PlayerTypes humanId) const {
 	CvGame const& g = GC.getGameINLINE();
 	if(g.isOption(GAMEOPTION_RISE_FALL) &&
 			g.getRiseFall().isCooperationRestricted(weId) &&
-			TEAMREF(weId).warAndPeaceAI().reluctanceToPeace(TEAMID(humanId)) >= 10)
+			TEAMREF(weId).warAndPeaceAI().reluctanceToPeace(TEAMID(humanId)) >= 20)
 		return false;
 	// </advc.705>
 	int targetTradeVal = TEAMREF(humanId).warAndPeaceAI().endWarVal(TEAMID(weId));

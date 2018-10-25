@@ -995,8 +995,8 @@ class CvVictoryScreen:
 				descr = gc.getGameOptionInfo(i).getDescription()
 				if gc.getGameOptionInfo(i).getTextKey() =="TXT_KEY_GAME_OPTION_RAGING_BARBARIANS":
 					barbStart = gc.getGame().getBarbarianStartTurn()
-					# Stop displaying after some time
-					if barbStart + 25 > gc.getGame().getGameTurn():
+					# Stop displaying after some time [Since v0.94: Don't show the start turn at all.]
+					if False and barbStart + 25 > gc.getGame().getGameTurn():
 						descr += "\n\t("
 						descr += localText.getText("TXT_KEY_BARB_START", ())
 						descr += " " + str(barbStart) + ")"

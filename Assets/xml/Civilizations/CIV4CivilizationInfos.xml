@@ -9,7 +9,7 @@
 	 starting at Monument (still called "Obelisk" internally) until
 	 Supermarket.
 	 advc.305: Removed (now allowed) Workboat.
-	 advc.307: Allowed War Elephant (still can't spawn) and Musketman.
+	 advc.307: Allowed Musketman
 	 Disallowed Frigate, Privateer, Paratrooper, Rifleman, Grenadier,
 	 Spy (dlph.6). -->
 <Civ4CivilizationInfos xmlns="x-schema:CIV4CivilizationsSchema.xml">
@@ -4589,6 +4589,10 @@
 				</Unit>
 				<Unit>
 					<UnitClassType>UNITCLASS_KNIGHT</UnitClassType>
+					<UnitType>NONE</UnitType>
+				</Unit>
+				<Unit>
+					<UnitClassType>UNITCLASS_WAR_ELEPHANT</UnitClassType>
 					<UnitType>NONE</UnitType>
 				</Unit>
 				<Unit>

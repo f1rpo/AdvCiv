@@ -440,7 +440,11 @@ public:
 	int getAdditionalSpoiledFood(int iGood, int iBad) const;
 	int getAdditionalStarvation(int iSpoiledFood) const;
 // BUG - Actual Effects - end
-
+	// <advc.001c>
+	int GPTurnsLeft() const;
+	void GPProjection(std::vector<std::pair<UnitTypes,int> >& r) const;
+			// (exposed to Python)
+	// </advc.001c>
 	int getBuildingGoodHealth() const;																		// Exposed to Python
 	int getBuildingBadHealth() const;																			// Exposed to Python
 	int getBuildingHealth(BuildingTypes eBuilding) const;									// Exposed to Python

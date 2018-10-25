@@ -1110,11 +1110,8 @@ public:
 
 	void verifyUnitStacksValid();
 	UnitTypes getTechFreeUnit(TechTypes eTech) const;
-
-	// <advc.134a>
-	void setOfferingPeace(TeamTypes aiTeam);
-	TeamTypes offeringPeace; bool expectingPeaceOffer;
-	// </advc.134a>
+	
+	void setOfferingPeace(TeamTypes aiTeam); // advc.134a
 	void checkAlert(int alertId, bool silent); // advc.210
 	// advc.104, advc.038, advc.132; exposed to Python.
 	double estimateYieldRate(YieldTypes yield, int nSamples = 5) const;
@@ -1443,8 +1440,11 @@ protected:
 	// </advc.106b>
 	// <advc.106i>
 	bool bSavingReplay;
-	public: void setSavingReplay(bool b); protected:
-	// </advc.106i>
+	public: void setSavingReplay(bool b); protected: // </advc.106i>
+	// <advc.134a>
+	TeamTypes offeringPeace;
+	bool expectingPeaceOffer;
+	// </advc.134a>
 	CvTurnScoreMap m_mapScoreHistory;
 	CvTurnScoreMap m_mapEconomyHistory;
 	CvTurnScoreMap m_mapIndustryHistory;

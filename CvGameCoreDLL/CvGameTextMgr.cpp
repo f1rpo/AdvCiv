@@ -5075,7 +5075,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 			szString.append(gDLL->getText("TXT_KEY_PLOT_FRESH_WATER"));
 			// <advc.004b>
 			CvUnit* u = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
-			if(u != NULL && u->isFound() && u->atPlot(pPlot)) {
+			if(u != NULL && /* advc.004h: */ u->canFound() && u->atPlot(pPlot)) {
 				szTempBuffer = CvWString::format(L" +%d%c",
 						GC.getDefineINT("FRESH_WATER_HEALTH_CHANGE"),
 						gDLL->getSymbolID(HEALTHY_CHAR));
@@ -5097,7 +5097,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 		}
 		// <advc.004b>
 		CvUnit* u = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
-		if(u != NULL && u->isFound() && pPlot->getFeatureType() != NO_FEATURE) {
+		if(u != NULL && /* advc.004h: */ u->canFound() && pPlot->getFeatureType() != NO_FEATURE) {
 			int healthPercent = GC.getFeatureInfo(pPlot->getFeatureType()).
 					getHealthPercent();
 			if(healthPercent != 0) {
@@ -16266,44 +16266,32 @@ void CvGameTextMgr::setVassalRevoltHelp(CvWStringBuffer& szBuffer, TeamTypes eMa
 	}
 }
 
+// advc.003: Some refactoring
 void CvGameTextMgr::parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity& city)
 {
-	int iTotalGreatPeopleUnitProgress;
-	int iI;
-
-	if (NO_PLAYER == city.getOwnerINLINE())
-	{
+	if(NO_PLAYER == city.getOwnerINLINE())
 		return;
-	}
-	CvPlayer& owner = GET_PLAYER(city.getOwnerINLINE());
-	int iTurnsLeft = 0; // advc.001c: Need this again for the probabilities
-
-	szBuffer.assign(gDLL->getText("TXT_KEY_MISC_GREAT_PERSON", city.getGreatPeopleProgress(), owner.greatPeopleThreshold(false)));
-
+	CvPlayer const& kOwner = GET_PLAYER(city.getOwnerINLINE());
+	szBuffer.assign(gDLL->getText("TXT_KEY_MISC_GREAT_PERSON", city.getGreatPeopleProgress(),
+			kOwner.greatPeopleThreshold(false)));
+	int iTurnsLeft = city.GPTurnsLeft(); // advc.001c:
 	if (city.getGreatPeopleRate() > 0)
 	{
-		int iGPPLeft = owner.greatPeopleThreshold(false) - city.getGreatPeopleProgress();
-
+		int iGPPLeft = kOwner.greatPeopleThreshold(false) - city.getGreatPeopleProgress();
 		if (iGPPLeft > 0)
-		{
-			iTurnsLeft = iGPPLeft / city.getGreatPeopleRate();
-
+		{	// advc.001c: Moved into CvCity::GPTurnsLeft
+			/*iTurnsLeft = iGPPLeft / city.getGreatPeopleRate();
 			if (iTurnsLeft * city.getGreatPeopleRate() <  iGPPLeft)
-			{
-				iTurnsLeft++;
-			}
-
+				iTurnsLeft++;*/
 			szBuffer.append(NEWLINE);
-			szBuffer.append(gDLL->getText("INTERFACE_CITY_TURNS", std::max(1, iTurnsLeft)));
+			szBuffer.append(gDLL->getText("INTERFACE_CITY_TURNS",
+					std::max(1, iTurnsLeft)));
 		}
 	}
 
-	iTotalGreatPeopleUnitProgress = 0;
-
-	for (iI = 0; iI < GC.getNumUnitInfos(); ++iI)
-	{
+	int iTotalGreatPeopleUnitProgress = 0;
+	for (int iI = 0; iI < GC.getNumUnitInfos(); iI++)
 		iTotalGreatPeopleUnitProgress += city.getGreatPeopleUnitProgress((UnitTypes)iI);
-	}
 
 	if (iTotalGreatPeopleUnitProgress > 0)
 	{
@@ -16311,38 +16299,13 @@ void CvGameTextMgr::parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity& city
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_PROB"));
 
-		std::vector< std::pair<UnitTypes, int> > aUnitProgress;
-		int iTotalTruncated = 0;
-		/*  advc.001c: This should be owner.greatPeopleThreshold(false), but
-			I don't want to predict GPP overflow here. */
-		int target = std::max(1, city.getGreatPeopleProgress() +
-				iTurnsLeft * city.getGreatPeopleRate());
-		for (iI = 0; iI < GC.getNumUnitInfos(); ++iI)
-		{
-			// <advc.001c>
-			UnitTypes gpType = (UnitTypes)iI;
-			int iProgress = city.getGreatPeopleUnitProgress(gpType) +
-					(iTurnsLeft * city.getGreatPeopleUnitRate(gpType)
-					* city.getTotalGreatPeopleRateModifier()) / 100;
-			iProgress *= 100;
-			iProgress /= target;
-			//int iProgress = ((city.getGreatPeopleUnitProgress((UnitTypes)iI) * 100) / iTotalGreatPeopleUnitProgress);
-			// </advc.001c>
-			if (iProgress > 0)
-			{
-				iTotalTruncated += iProgress;
-				aUnitProgress.push_back(std::make_pair((UnitTypes)iI, iProgress));
-			}
-		}
-
-		if (iTotalTruncated < 100 && aUnitProgress.size() > 0)
-		{
-			aUnitProgress[0].second += 100 - iTotalTruncated;			
-		}
-
-		for (iI = 0; iI < (int)aUnitProgress.size(); ++iI)
-		{
-			szBuffer.append(CvWString::format(L"%s%s - %d%%", NEWLINE, GC.getUnitInfo(aUnitProgress[iI].first).getDescription(), aUnitProgress[iI].second));
+		std::vector<std::pair<UnitTypes,int> > aUnitProgress;
+		// advc.001c: BtS code moved into CvCity::GPProjection
+		city.GPProjection(aUnitProgress);
+		for(int iI = 0; iI < (int)aUnitProgress.size(); ++iI) {
+			szBuffer.append(CvWString::format(L"%s%s - %d%%", NEWLINE,
+					GC.getUnitInfo(aUnitProgress[iI].first).getDescription(),
+					aUnitProgress[iI].second));
 		}
 	}
 
@@ -16378,7 +16341,7 @@ void CvGameTextMgr::parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity& city
 		{
 			if (GET_PLAYER((PlayerTypes)j).isAlive())
 			{
-				if (GET_PLAYER((PlayerTypes)j).getTeam() == owner.getTeam())
+				if (GET_PLAYER((PlayerTypes)j).getTeam() == kOwner.getTeam())
 				{
 					int iLoop;
 					for (CvCity* pLoopCity = GET_PLAYER((PlayerTypes)j).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)j).nextCity(&iLoop))
@@ -16406,12 +16369,12 @@ void CvGameTextMgr::parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity& city
 	int iCivicMod = 0;
 	for (int i = 0; i < GC.getNumCivicOptionInfos(); i++)
 	{
-		if (NO_CIVIC != owner.getCivics((CivicOptionTypes)i))
+		if (NO_CIVIC != kOwner.getCivics((CivicOptionTypes)i))
 		{
-			iCivicMod += GC.getCivicInfo(owner.getCivics((CivicOptionTypes)i)).getGreatPeopleRateModifier();
-			if (owner.getStateReligion() != NO_RELIGION && city.isHasReligion(owner.getStateReligion()))
+			iCivicMod += GC.getCivicInfo(kOwner.getCivics((CivicOptionTypes)i)).getGreatPeopleRateModifier();
+			if (kOwner.getStateReligion() != NO_RELIGION && city.isHasReligion(kOwner.getStateReligion()))
 			{
-				iCivicMod += GC.getCivicInfo(owner.getCivics((CivicOptionTypes)i)).getStateReligionGreatPeopleRateModifier();
+				iCivicMod += GC.getCivicInfo(kOwner.getCivics((CivicOptionTypes)i)).getStateReligionGreatPeopleRateModifier();
 			}
 		}
 	}
@@ -16438,7 +16401,7 @@ void CvGameTextMgr::parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity& city
 		}
 	}
 
-	if (owner.isGoldenAge())
+	if (kOwner.isGoldenAge())
 	{
 		int iGoldenAgeMod = GC.getDefineINT("GOLDEN_AGE_GREAT_PEOPLE_MODIFIER");
 

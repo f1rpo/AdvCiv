@@ -3213,6 +3213,8 @@ void CvPlayer::setHumanDisabled( bool newVal )
 	bool const bActive = (g.getActivePlayer() == getID());
 	CvWString replayText;
 	if(newVal && !m_bDisableHuman && bActive) {
+		// advc.004h:
+		gDLL->getEngineIFace()->clearAreaBorderPlots(AREA_BORDER_LAYER_FOUNDING_BORDER);
 		gDLL->getInterfaceIFace()->clearQueuedPopups();
 		replayText = gDLL->getText("TXT_KEY_AUTO_PLAY_STARTED");
 	}
@@ -24920,7 +24922,8 @@ void CvPlayer::promoteFreeUnit(CvUnit& u, double pr) {
 
 	FeatureTypes defFeat = NO_FEATURE;
 	for(int i = 0; i < GC.getNumFeatureInfos(); i++) {
-		if(GC.getFeatureInfo((FeatureTypes)i).getDefenseModifier() > 0) {
+		if(GC.getFeatureInfo((FeatureTypes)i).getDefenseModifier() +
+		   GC.getFeatureInfo((FeatureTypes)i).getRivalDefenseModifier() > 0) {
 			defFeat = (FeatureTypes)i;
 			break;
 		}

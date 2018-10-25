@@ -55,9 +55,8 @@ void CvGame::updateColoredPlots()
 	// <advc.004h>
 	// Moved up
 	pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
-	// See comment in CvUnit.cpp
-	if(pHeadSelectedUnit != NULL)
-		pHeadSelectedUnit->showCityCross();
+	if(pHeadSelectedUnit != NULL && pHeadSelectedUnit->isHuman())
+		pHeadSelectedUnit->updateFoundingBorder();
 	// </advc.004h>
 
 /************************************************************************************************/
@@ -214,7 +213,8 @@ void CvGame::updateColoredPlots()
 	{
 		if (gDLL->getGraphicOption(GRAPHICOPTION_CITY_RADIUS))
 		{
-			if (gDLL->getInterfaceIFace()->canSelectionListFound())
+			//if (gDLL->getInterfaceIFace()->canSelectionListFound())
+			if(pHeadSelectedUnit->canFound()) // advc.004h
 			{
 				for (iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 				{
@@ -298,7 +298,7 @@ void CvGame::updateColoredPlots()
 
 		FAssert(getActivePlayer() != NO_PLAYER);
 
-		if (!(GET_PLAYER(getActivePlayer()).isOption(PLAYEROPTION_NO_UNIT_RECOMMENDATIONS)))
+		if (!GET_PLAYER(getActivePlayer()).isOption(PLAYEROPTION_NO_UNIT_RECOMMENDATIONS))
 		{
 			if ((pHeadSelectedUnit->AI_getUnitAIType() == UNITAI_WORKER) || (pHeadSelectedUnit->AI_getUnitAIType() == UNITAI_WORKER_SEA))
 			{
@@ -330,7 +330,7 @@ void CvGame::updateColoredPlots()
 			const CvPlayerAI& kActivePlayer = GET_PLAYER(getActivePlayer());
 			KmodPathFinder site_path;
 			site_path.SetSettings(pHeadSelectedUnit->getGroup(), 0, 7, GC.getMOVE_DENOMINATOR());
-			if (pHeadSelectedUnit->isFound())
+			if (pHeadSelectedUnit->canFound()) // advc.004h: was isFound
 			{
 
 				for (int i = 0; i < kActivePlayer.AI_getNumCitySites(); i++)

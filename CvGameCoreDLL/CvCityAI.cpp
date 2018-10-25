@@ -1694,12 +1694,15 @@ void CvCityAI::AI_chooseProduction()
 
 		if (iNumSpies < iNeededSpies)
 		{
-			int iOdds = (kPlayer.AI_isDoStrategy(AI_STRATEGY_ESPIONAGE_ECONOMY)
-					//|| GET_TEAM(getTeam()).getAnyWarPlanCount(true)
+			int iOdds = (kPlayer.AI_isDoStrategy(AI_STRATEGY_ESPIONAGE_ECONOMY) ||
+					//GET_TEAM(getTeam()).getAnyWarPlanCount(true)
 					// advc.105: If anything
-					//|| GET_PLAYER(getOwnerINLINE()).isFocusWar(area())
-					/*  advc.120 ... but actually, I don't think training spies
-						for war is a good idea at all. */
+					//GET_PLAYER(getOwnerINLINE()).isFocusWar(area())
+					/*  <advc.120> ... but actually, I don't think training extra
+						spies during war is a good idea at all. */
+					GET_TEAM(getTeam()).getWarPlanCount(WARPLAN_PREPARING_LIMITED) +
+					GET_TEAM(getTeam()).getWarPlanCount(WARPLAN_PREPARING_TOTAL) > 0
+					// </advc.120>
 				) ? 45 : 35;
 			iOdds *= 50 + std::max(iProjectValue, iBestBuildingValue);
 			iOdds /= 20 + 2 * std::max(iProjectValue, iBestBuildingValue);
@@ -7016,6 +7019,11 @@ int CvCityAI::AI_clearFeatureValue(int iIndex)
 	iValue += iHealthValue;
 
 	// K-Mod
+	// We don't want defensive features adjacent to our city
+	if (iIndex <= 8) // inner ring
+	{
+		iValue -= kFeatureInfo.getDefenseModifier()/2;
+	}
 	if (GC.getGame().getGwEventTally() >= 0) // if GW Threshold has been reached
 	{
 		iValue += kFeatureInfo.getWarmingDefense() * (150 + 5 * GET_PLAYER(getOwner()).getGwPercentAnger()) / 100;
@@ -8092,11 +8100,6 @@ void CvCityAI::AI_updateBestBuild()
 
 						int iValue = AI_yieldValue(aiYields, 0, false, false, true, true, iGrowthValue);
 						aiValues[iI] = iValue;
-						/* original bts code
-						if ((iValue > 0) && (pLoopPlot->getRouteType() != NO_ROUTE))
-						{
-							iValue++;
-						} */
 						// K-Mod
 						// Also evaluate the _change_ in yield, so that we aren't always tinkering with our best plots.
 						for (int iJ = 0; iJ < NUM_YIELD_TYPES; iJ++)
@@ -8113,22 +8116,29 @@ void CvCityAI::AI_updateBestBuild()
 							//bChop &&
 							pLoopPlot->getFeatureType() != NO_FEATURE && GC.getBuildInfo(m_aeBestBuild[iI]).isFeatureRemove(pLoopPlot->getFeatureType()))
 						{
-							CvCity* pCity;
+							CvCity* pCity=NULL;
 							/* <advc.117> Increase factor from 2 to 3;
 							   handle non-urgent constructions. */
-							int chopValue
-								= pLoopPlot->getFeatureProduction(m_aeBestBuild[iI], getTeam(), &pCity) * 3;
-							// advc.300: Have barbs chop less
-							if(isBarbarian()) bChop = false;
+							int iChopValue = pLoopPlot->getFeatureProduction(
+									m_aeBestBuild[iI], getTeam(), &pCity) * 3;
+							// Based on K-Mod 1.45
+							if(iI <= 8 && iChopValue > 0 && GC.getFeatureInfo(pLoopPlot->
+									getFeatureType()).getDefenseModifier() > 0)
+								iChopValue += 10;
+							// advc.300: Have Barbarians chop less
+							if(isBarbarian())
+								bChop = false;
 							if(bChop)
-								iValue += chopValue;
+								iValue += iChopValue;
 							else if(getProductionBuilding() != NO_BUILDING)
-								iValue += chopValue / 3;
+								iValue += iChopValue / 3;
 							// </advc.117>
-							// note: the scale of iValue here is roughly 4x commerce per turn. So a boost of 40 would be signficant.
+							/*  note: the scale of iValue here is roughly 4x commerce per turn.
+								So a boost of 40 would be signficant. */
 							FAssert(pCity == this);
 						}
-						// make some minor adjustments to prioritize plots that are easy to access, and plots which aren't already improved.
+						/*  make some minor adjustments to prioritize plots that are easy to access,
+							and plots which aren't already improved. */
 						if (iValue > 0)
 						{
 							if (pLoopPlot->getRouteType() != NO_ROUTE)
@@ -10468,8 +10478,8 @@ int CvCityAI::AI_jobChangeValue(std::pair<bool, int> new_job, std::pair<bool, in
 				// each successive great person costs more points. So the points are effectively worth less...
 				// (note: I haven't tried to match this value decrease with the actual cost increase,
 				// because the value of the great people changes as well.)
-				iGPPValue *= 138; // advc.131: was *=100
-				// advc.131: was 90+7*...
+				iGPPValue *= 138; // advc.121: was *=100
+				// advc.121: was 90+7*...
 				iGPPValue /= 90 + 9 * kOwner.getGreatPeopleCreated(); // it would be nice if we had a flavour modifier for this.
 			}
 

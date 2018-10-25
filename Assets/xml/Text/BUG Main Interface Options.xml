@@ -305,12 +305,15 @@
 		<Italian>When checked, shows the number of units in a stack that possess each promotion if more than one.</Italian>
 		<Spanish>Muestra el número de unidades del grupo que poseen una determinada promoción, en el caso de que haya más de una.</Spanish>
 	</TEXT>
-	
+
+	<!-- 002b: This option column gets a bit too wide with the larger fonts.
+		 Also, "Action button" is clearer than "Build/Action Icon".
+		 I didn't change the Romanic translations. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__BUILDICONSIZE_TEXT</Tag>
-		<English>Build/Action Icon Size</English>
-		<French>Build/Action Icon Size</French>
-		<German>Größe der Bau-/Befehlssymbole</German>
+		<English>Action Button Size</English>
+		<French>Action Button Size</French>
+		<German>Größe der Befehlsschaltflächen</German>
 		<Italian>Dimensione Icona Costruisci/Azione</Italian>
 		<Spanish>Tamaño de Iconos de acción/construcción</Spanish>
 	</TEXT>

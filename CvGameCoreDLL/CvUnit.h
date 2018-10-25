@@ -91,9 +91,7 @@ public:
 	void updateAirStrike(CvPlot* pPlot, bool bQuick, bool bFinish);
 
 	bool isActionRecommended(int iAction);
-
-	// advc.004h
-	void showCityCross() const;
+	void updateFoundingBorder() const; // advc.004h
 
 	bool isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker) const;						// Exposed to Python 
 
@@ -320,6 +318,8 @@ public:
 	bool isCounterSpy() const;																						// Exposed to Python
 	bool isSpy() const;
 	bool isFound() const;																				// Exposed to Python
+	// advc.004h: Let only the EXE use isFound
+	bool canFound() const;
 	bool isGoldenAge() const;																							// Exposed to Python
 	bool canCoexistWithEnemyUnit(TeamTypes eTeam) const;																				// Exposed to Python
 

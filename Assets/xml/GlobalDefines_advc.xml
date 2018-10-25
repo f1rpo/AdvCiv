@@ -966,5 +966,23 @@
 		<DefineName>ALERT_ON_NO_LONGER_WAR_TRADE</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
+	
+	<!-- advc.004h: This setting controls the borders shown around a selected
+		 Settler. Recommended: 0; BtS behavior: 1.
+		 0: The full city radius ("big fat cross") is highlighted.
+		 1: Only the inner ring of the city radius is highlighted.
+		 2: No tiles are highlighted. -->
+	<Define>
+		<DefineName>FOUNDING_BORDER_MODE</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	
+	<!-- advc.004h: If set to 1 (BtS) behavior, yield icons are shown whenever
+		 a Settler is selected. If set to 0 (recommended), yield icons are only
+		 shown if "Yield Display" is enabled above the mini-map. -->
+	<Define>
+		<DefineName>FOUNDING_SHOW_YIELDS</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
 
 </Civ4Defines>

@@ -1846,19 +1846,9 @@ bool CvUnit::isActionRecommended(int iAction)
 	{
 		return false;
 	}
-
-	/* advc.004h: When the go-to tile changes, the EXE appears to call
-	   isActionRecommended before coloring the 1-tile radius around the
-	   go-to tile (if a Settler is selected). Perhaps some DLL function
-	   is called before displaying the map - then this call should be moved
-	   into that function - but I doubt it. This also means that the 1-tile
-	   radius can't be cleared from the DLL. What might work is temporarily
-	   changing the player color to sth. transparent, or some property of
-	   the go-to tile so that the EXE decides not to color it.
-	   I've tried unrevealing the tile, but that didn't stop the coloring.
-	   Since it doesn't work as intended (both radi are drawn), showCityCross
-	   currently does nothing. */
-	if(gDLL->getInterfaceIFace()->canSelectionListFound()) showCityCross();
+	// <advc.004h> Hack for replacing the founding borders shown around Settlers
+	if(iAction == 0 && canFound())
+		updateFoundingBorder(); // </advc.004h>
 
 	if (GET_PLAYER(getOwnerINLINE()).isOption(PLAYEROPTION_NO_UNIT_RECOMMENDATIONS))
 	{
@@ -2088,36 +2078,39 @@ bool CvUnit::isActionRecommended(int iAction)
 }
 
 // <advc.004h>
-void CvUnit::showCityCross() const {
+void CvUnit::updateFoundingBorder() const {
 
-	// Uncomment in order to enable change 004h:
-	return;
-	// Both needed?
-	gDLL->getEngineIFace()->clearColoredPlots(PLOT_LANDSCAPE_LAYER_BASE);
-	gDLL->getEngineIFace()->clearAreaBorderPlots(
-			AREA_BORDER_LAYER_CITY_RADIUS);
+	int iMode = GC.getDefineINT("FOUNDING_BORDER_MODE");
+	if(GC.getFOUNDING_SHOW_YIELDS() && iMode == 1) // BtS behavior
+		return;
+	gDLL->getEngineIFace()->clearAreaBorderPlots(AREA_BORDER_LAYER_FOUNDING_BORDER);
+	gDLL->getInterfaceIFace()->setDirty(ColoredPlots_DIRTY_BIT, true);
+	if(iMode >= 2 || !canFound())
+		return;
+	CvSelectionGroup* gr = getGroup();
+	for(CLLNode<IDInfo>* node = gr->headUnitNode(); node != NULL; node = gr->nextUnitNode(node)) {
+		CvUnit* u = ::getUnit(node->m_data);
+		if(u == NULL || (u->IsSelected() && !u->canFound()))
+			return;
+	}
 	CvPlot* goToPlot = gDLL->getInterfaceIFace()->getGotoPlot();
 	CvPlot* center;
 	if(goToPlot == NULL)
 		center = plot();
 	else center = goToPlot;
 	if(center == NULL || !center->isRevealed(TEAMID(getOwner()), false) ||
-			!(atPlot(center) && !canMoveInto(center)))
+			(!atPlot(center) && !canMoveInto(center)) || !canFound(center))
 		return;
 	int colorId = GC.getPlayerColorInfo(GET_PLAYER(getOwner()).
 			getPlayerColor()).getColorTypePrimary();
-	const NiColorA& col = GC.getColorInfo((ColorTypes)colorId).getColor();
-	NiColorA blank(GC.getColorInfo((ColorTypes)GC.getInfoTypeForString("COLOR_WHITE")).getColor());
-	blank.a = 0.f;
+	NiColorA const& col = GC.getColorInfo((ColorTypes)colorId).getColor();
 	for(int i = 0; i < GC.getMapINLINE().numPlots(); i++) {
 		CvPlot const& p = *GC.getMapINLINE().plotByIndexINLINE(i);
-		if(::plotDistance(center, &p) <= CITY_PLOTS_RADIUS) {
-			gDLL->getEngineIFace()->fillAreaBorderPlot(p.getX_INLINE(),
-					p.getY_INLINE(), col, AREA_BORDER_LAYER_CITY_RADIUS);
+		if(::plotDistance(center, &p) <= (iMode == 1 ? 1 : CITY_PLOTS_RADIUS)) {
+			gDLL->getEngineIFace()->fillAreaBorderPlot(p.getX(), p.getY(),
+					col, AREA_BORDER_LAYER_FOUNDING_BORDER);
 		}
 	}
-	// Needed?
-	gDLL->getInterfaceIFace()->setDirty(ColoredPlots_DIRTY_BIT, true);
 } // </advc.004h>
 
 // From Lead From Behind by UncutDragon
@@ -6098,12 +6091,12 @@ bool CvUnit::stealPlans()
 
 bool CvUnit::canFound(const CvPlot* pPlot, bool bTestVisible) const
 {
-	if (!isFound())
+	if (!canFound()) // advc.004h: was isFound
 	{
 		return false;
 	}
 
-	if (!(GET_PLAYER(getOwnerINLINE()).canFound(pPlot->getX_INLINE(), pPlot->getY_INLINE(), bTestVisible)))
+	if (!GET_PLAYER(getOwnerINLINE()).canFound(pPlot->getX_INLINE(), pPlot->getY_INLINE(), bTestVisible))
 	{
 		return false;
 	}
@@ -8400,8 +8393,15 @@ bool CvUnit::isSpy() const
 	return m_pUnitInfo->isSpy();
 }
 
+// <advc.004h>
+bool CvUnit::isFound() const {
 
-bool CvUnit::isFound() const
+	if(GC.getFOUNDING_SHOW_YIELDS())
+		return canFound();
+	return false;
+}
+
+bool CvUnit::canFound() const // </advc.004h>
 {
 	return m_pUnitInfo->isFound();
 }
@@ -10702,10 +10702,11 @@ void CvUnit::setXY(int iX, int iY, bool bGroup, bool bUpdate, bool bShow, bool b
 
 	if (IsSelected())
 	{
-		if (isFound())
+		if (canFound()) // advc.004h: was isFound
 		{
 			gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
 			gDLL->getEngineIFace()->updateFoundingBorder();
+			// advc.004h (comment): No need to call CvUnit::updateFoundingBorder here
 		}
 
 		gDLL->getInterfaceIFace()->setDirty(ColoredPlots_DIRTY_BIT, true);
@@ -13657,8 +13658,10 @@ void CvUnit::getDefenderCombatValues(CvUnit& kDefender, const CvPlot* pPlot, int
 	FAssert((iOurFirepower + iTheirFirepower) > 0);
 
 	iTheirOdds = ((GC.getCOMBAT_DIE_SIDES() * iTheirStrength) / (iOurStrength + iTheirStrength));
-
-	if(!GC.getGameINLINE().isOption(GAMEOPTION_SPAH)) { // advc.250b
+	// <advc.250b>
+	CvGame const& g = GC.getGameINLINE();
+	if(!g.isOption(GAMEOPTION_SPAH) && !g.isOption(GAMEOPTION_RISE_FALL)) {
+			// </advc.250b>
 	 if (kDefender.isBarbarian())
 	 {
 		if (GET_PLAYER(getOwnerINLINE()).getWinsVsBarbs() < GC.getHandicapInfo(GET_PLAYER(getOwnerINLINE()).getHandicapType()).getFreeWinsVsBarbs())

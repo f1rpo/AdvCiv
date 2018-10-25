@@ -6690,8 +6690,55 @@ int CvCity::getAdditionalStarvation(int iSpoiledFood) const
 	}
 
 	return 0;
+} // BUG - Actual Effects - end
+
+/*  <advc.001c> These two function bodies are mostly cut and pasted from
+	CvGameTextMgr::parseGreatPeopleHelp */
+int CvCity::GPTurnsLeft() const {
+
+	if(getGreatPeopleRate() <= 0)
+		return -1;
+	int iGPPLeft = GET_PLAYER(getOwnerINLINE()).greatPeopleThreshold(false) -
+			getGreatPeopleProgress();
+	if(iGPPLeft <= 0)
+		return 0;
+	int r = iGPPLeft / getGreatPeopleRate();
+	if(r * getGreatPeopleRate() <  iGPPLeft)
+		r++;
+	return r;
 }
-// BUG - Actual Effects - start
+
+void CvCity::GPProjection(std::vector<std::pair<UnitTypes,int> >& r) const {
+
+	CvPlayer& kOwner = GET_PLAYER(getOwnerINLINE());
+	int iTotalGreatPeopleUnitProgress = 0;
+	for(int iI = 0; iI < GC.getNumUnitInfos(); iI++)
+		iTotalGreatPeopleUnitProgress += getGreatPeopleUnitProgress((UnitTypes)iI);
+	if(iTotalGreatPeopleUnitProgress <= 0)
+		return;
+	int iTurnsLeft = GPTurnsLeft();
+	int iTotalTruncated = 0;
+	/*  This should be kOwner.greatPeopleThreshold(false), but I don't want to
+		predict GPP overflow here. */
+	int iTarget = std::max(1, getGreatPeopleProgress() + iTurnsLeft *
+			getGreatPeopleRate());
+	for(int iI = 0; iI < GC.getNumUnitInfos(); iI++) {
+		UnitTypes gpType = (UnitTypes)iI;
+		int iProgress = getGreatPeopleUnitProgress(gpType) +
+				(iTurnsLeft * getGreatPeopleUnitRate(gpType) *
+				getTotalGreatPeopleRateModifier()) / 100;
+		iProgress *= 100;
+		iProgress /= iTarget;
+		// BtS code was:
+		//int iProgress = ((city.getGreatPeopleUnitProgress((UnitTypes)iI) * 100) / iTotalGreatPeopleUnitProgress);
+		if(iProgress > 0) {
+			iTotalTruncated += iProgress;
+			r.push_back(std::make_pair((UnitTypes)iI, iProgress));
+		}
+	}
+	if(iTotalTruncated < 100 && !r.empty())
+		r[0].second += 100 - iTotalTruncated;
+} // </advc.001c>
 
 int CvCity::getBuildingGoodHealth() const
 {

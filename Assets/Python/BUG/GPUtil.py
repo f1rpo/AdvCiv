@@ -169,7 +169,7 @@ def getCityTurns(city):
 	return None
 
 def calcPercentages(city):
-	# advc.001c (comment): Would be better to predict the probabilities based on GPP per turn like in CvGameTextMgr::parseGreatPeopleHelp.
+
 	# Calc total rate
 	iTotal = 0
 	for iUnit in g_gpUnitTypes:
@@ -179,15 +179,22 @@ def calcPercentages(city):
 	if (iTotal > 0):
 		iLeftover = 100
 		for iUnit in range(gc.getNumUnitInfos()):
-#			iUnit = getUnitType(gpType)
-			iProgress = city.getGreatPeopleUnitProgress(iUnit)
-			if (iProgress > 0):
-				iPercent = 100 * iProgress / iTotal
-				iLeftover -= iPercent
-				percents.append((iPercent, iUnit))
+			#iProgress = city.getGreatPeopleUnitProgress(iUnit)
+			#if (iProgress > 0):
+			#	iPercent = 100 * iProgress / iTotal
+			#	iLeftover -= iPercent
+			#	percents.append((iPercent, iUnit))
+			# <advc.001c> Replacing the above
+			# In principle, any unit can be born as a GP if CvBuildingInfos.xml says so, but GPProjection is inefficiently coded, so I don't want to call it more often than necessary, and arbitrary units wouldn't have an icon to display on the GP bar anyway.
+			if gc.getUnitInfo(iUnit).getSpecialUnitType() >= 0 and gc.getUnitInfo(iUnit).getProductionCost() < 0:
+				iPercent = city.GPProjection(iUnit)
+				if iPercent > 0:
+					percents.append((iPercent, iUnit))
+			# </advc.001c>
 		# Add remaining from 100 to first in list to match Civ4
-		if (iLeftover > 0):
-			percents[0] = (percents[0][0] + iLeftover, percents[0][1])
+		# advc.001c: No longer needed
+		#if (iLeftover > 0):
+		#	percents[0] = (percents[0][0] + iLeftover, percents[0][1])
 	return percents
 
 

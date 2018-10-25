@@ -1912,6 +1912,19 @@ void CyCity::changeGreatPeopleUnitProgress(int /*UnitTypes*/ iIndex, int iChange
 		m_pCity->changeGreatPeopleUnitProgress((UnitTypes) iIndex, iChange);
 }
 
+// <advc.001c>
+int CyCity::GPProjection(int /*UnitTypes*/ iIndex) {
+
+	if(m_pCity == NULL)
+		return -1;
+	std::vector<std::pair<UnitTypes, int> > aProj;
+	m_pCity->GPProjection(aProj);
+	for(size_t i = 0; i < aProj.size(); i++)
+		if(aProj[i].first == iIndex)
+			return aProj[i].second;
+	return -1;
+} // </advc.001c>
+
 int CyCity::getSpecialistCount(int /*SpecialistTypes*/ eIndex)
 {
 	return m_pCity ? m_pCity->getSpecialistCount((SpecialistTypes)eIndex) : -1;

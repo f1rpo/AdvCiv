@@ -1140,10 +1140,12 @@ bool CvPlayerAI::willOfferPeace(PlayerTypes toId) const {
 void CvPlayerAI::AI_updateFoundValues(bool bStartingLoc)
 {
 	PROFILE_FUNC();
-
-	// bool bCitySiteCalculations = (GC.getGame().getGameTurn() > GC.getGame().getStartTurn()); // disabled by K-Mod (unused)
-	
-	int iLoop;
+	// disabled by K-Mod (unused):
+	// bool bCitySiteCalculations = (GC.getGame().getGameTurn() > GC.getGame().getStartTurn());
+	// <advc.303>
+	if(isBarbarian())
+		return; // </advc.303>
+	int iLoop=-1;
 	for (CvArea* pLoopArea = GC.getMapINLINE().firstArea(&iLoop); pLoopArea != NULL; pLoopArea = GC.getMapINLINE().nextArea(&iLoop))
 	{
 		pLoopArea->setBestFoundValue(getID(), 0);
@@ -1162,7 +1164,7 @@ void CvPlayerAI::AI_updateFoundValues(bool bStartingLoc)
 		CvFoundSettings kFoundSet(*this, false);
 		//
 
-		if (!isBarbarian())
+		//if (!isBarbarian()) // advc.303: Already ensured
 		{
 			//AI_invalidateCitySites(AI_getMinFoundValue());
 			AI_invalidateCitySites(-1); // K-Mod
@@ -1190,7 +1192,9 @@ void CvPlayerAI::AI_updateFoundValues(bool bStartingLoc)
 					//iValue = AI_foundValue(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
 					iValue = AI_foundValue_bulk(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), kFoundSet); // K-Mod
 					// <advc.108> Slight preference for the assigned starting plot
-					if(iCities <= 0 && pStartPlot != NULL && pLoopPlot == pStartPlot)
+					if(iCities <= 0 && pStartPlot != NULL && pLoopPlot == pStartPlot
+							// Unless it doesn't have fresh water
+							&& pLoopPlot->isFreshWater())
 						iValue = ::round(1.05 * iValue); // </advc.108>
 				}
 
@@ -1212,7 +1216,7 @@ void CvPlayerAI::AI_updateFoundValues(bool bStartingLoc)
 			}
 			// K-Mod end
 		}
-		if (!isBarbarian())
+		//if (!isBarbarian()) // advc.303
 		{
 			//int iMaxCityCount = 4;
 			int iMaxCityCount = isHuman() ? 6 : 4; // K-Mod - because humans don't always walk towards the AI's top picks..
@@ -3081,11 +3085,13 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	bool const bIsCoastal = pPlot->isCoastalLand(GC.getMIN_WATER_SIZE_FOR_OCEAN());
 	int const iNumAreaCities = pArea->getCitiesPerPlayer(getID());
 	CvCity const* const pCapital = getCapitalCity();
+	// advc.108: Barbarians shouldn't distinguish between earlier and later cities
+	int const iCities = (isBarbarian() ? 5 : getNumCities());
 // END OF CONSTS
 // INITIAL DON'T-FOUND-HERE CHECKS
 	bool bAdvancedStart = (getAdvancedStartPoints() >= 0);
 	//if (!kSet.bStartingLoc && !bAdvancedStart)
-	if(getNumCities() > 0) // advc.108
+	if(iCities > 0 && !isBarbarian()) // advc.108
 	{
 		if (!bIsCoastal && iNumAreaCities == 0)
 		{
@@ -3174,8 +3180,9 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	// Whether the tile flips to us once we settle near it
 	std::vector<bool> abFlip(NUM_CITY_PLOTS, false); // </advc.035>
 	// K-Mod. bug fixes etc. (original code deleted)
-	if (!kSet.bStartingLoc
-			&& !kSet.bDebug) // advc.007
+	if (!kSet.bStartingLoc &&
+			!kSet.bDebug && // advc.007
+			!isBarbarian()) // advc.303: Barbarians don't have city sites
 	{
 		for (int iJ = 0; iJ < AI_getNumCitySites(); iJ++)
 		{
@@ -3205,7 +3212,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		}
 	} // K-Mod (bugfixes etc.) end
 	// <advc.035>
-	if(!kSet.bStartingLoc) { // (Also using this for advc.031 now)
+	if(!kSet.bStartingLoc && !isBarbarian()) { // (Also using this for advc.031 now)
 		int foo=-1;
 		for(CvCity* c = firstCity(&foo); c != NULL; c = nextCity(&foo)) {
 			for(int i = 0; i < NUM_CITY_PLOTS; i++) {
@@ -3232,17 +3239,17 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 // END OF OVERLAP COMPUTATION
 // COUNT BAD TILES
 	// <advc.040>
-	bool firstColony = false; // advc.040
+	bool bFirstColony = false; // advc.040
 	if(bIsCoastal && iNumAreaCities <= 0 && !isBarbarian() &&
 			(pPlot->isFreshWater() ||
 			/*  Don't apply first-colony logic to tundra, snow and desert b/c
 				these are likely surrounded by more (unrevealed) bad terrain. */
 			pPlot->calculateNatureYield(YIELD_FOOD, getTeam(), true) +
 			pPlot->calculateNatureYield(YIELD_PRODUCTION, getTeam(), true) > 1))
-		firstColony = true; // </advc.040>
+		bFirstColony = true; // </advc.040>
 
 	int iBadTile = 0;
-	int unrev = 0, revDecentLand = 0; // advc.040
+	int iUnrev = 0, iRevDecentLand = 0; // advc.040
 	int iLand = 0; // advc.031
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 	{
@@ -3266,9 +3273,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				continue; 
 			}
 			if(!kSet.bAllSeeing && !pLoopPlot->isRevealed(getTeam(), false)) {
-				// <advc.040>
-				if(firstColony)
-					unrev++; // </advc.040>
+				iUnrev++; // advc.040
 				continue;
 			}
 			if(!pLoopPlot->isWater())
@@ -3323,14 +3328,12 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				} // advc.035
 			}
 			// K-Mod end
-			// <advc.040>
-			else if(firstColony)
-				revDecentLand++; // </advc.040>
+			else iRevDecentLand++; // advc.040
 		}
 	} /* <advc.040> Make sure we do naval exploration near the spot before
 		 sending a Settler */
-	if(revDecentLand < 4)
-		firstColony = false; // </advc.040>
+	if(iRevDecentLand < 4)
+		bFirstColony = false; // </advc.040>
 	iBadTile /= 2;
 // END OF BAD TILE COUNTING
 // CHECK IF TOO MANY BAD TILES
@@ -3376,7 +3379,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 
 			if (!bHasGoodBonus
 					&& freshw < 3 // advc.031
-					&& !firstColony) // advc.040
+					&& !bFirstColony) // advc.040
 			{
 				return 0;
 			}
@@ -3387,8 +3390,11 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	// advc.031: was 800 in K-Mod and 1000 before K-Mod
 	int iValue = 500;
 	// <advc.040>
-	if(firstColony)
-		iValue += 55 * std::min(5, unrev); // </advc.040>
+	if(bFirstColony)
+		iValue += 55 * std::min(5, iUnrev); // </advc.040>
+	// <advc.108>
+	else if(iCities <= 0)
+		iValue += ::round(50 * std::sqrt((double)iUnrev)); // </advc.108>
 	int iTakenTiles = 0;
 	// TeamMateTakenTiles code deleted (was dead code b/c of K-Mod changes)
 	//int iTeammateTakenTiles = 0;
@@ -3748,7 +3754,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			iPlotValue += aiYield[YIELD_COMMERCE] * 8;
 		} /* <advc.108> For moving the starting Settler and for more
 			early-game commerce in general */
-		if(getNumCities() <= 1 && getCurrentEra() <= 0)
+		if(iCities <= 1 && getCurrentEra() <= 0)
 			iPlotValue += aiYield[YIELD_COMMERCE] * 5; // </advc.108>
 		if (pLoopPlot->isWater())
 		{
@@ -3843,14 +3849,14 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 							iFreshWaterVal += 8;
 						if(!bSteal) {
 							iRiver++;
-							if(getNumCities() <= 0) // advc.108
+							if(iCities <= 0) // advc.108
 								iFreshWaterVal += 10;
 							/*  I'm guessing this K-Mod clause is supposed to
 								steer the AI toward settling at rivers rather
 								than trying to make all river plots workable. */
 							if(pPlot->isRiver()) {
 								iFreshWaterVal += (
-										getNumCities() <= 0 // advc.108
+										iCities <= 0 // advc.108
 										? 10 : 4);
 							}
 						} // </advc.031>
@@ -3908,80 +3914,80 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				pLoopPlot->area() == pPlot->area() ||
 				pLoopPlot->area()->getCitiesPerPlayer(getID()) > 0))
 		{
-			//iBonusValue = AI_bonusVal(eBonus, 1, true) * ((!kSet.bStartingLoc && (getNumTradeableBonuses(eBonus) == 0) && (paiBonusCount[eBonus] == 1)) ? 80 : 20);
-			// K-Mod
-			//int iCount = getNumTradeableBonuses(eBonus) == 0 + viBonusCount[eBonus];
-			//int iBonusValue = AI_bonusVal(eBonus, 0, true) * 80 / (1 + 2*iCount);
-			/*  <advc.031> The "==0" looks like an error. Rather than correct
-				this, I'm going to let AI_bonusVal handle the number of
-				bonuses already connected. Just doing a division by iCount
-				here won't work well for strategic resources. */
-			/*  Don't assume that the bonus is enabled.
-				And the coefficient was 80, halved. */
-			int iBonusValue = ::round((AI_bonusVal(eBonus, 1) * 40.0) /
-					(1 + viBonusCount[eBonus]));
-			/*  Note (K-Mod):
-				1. the value of starting bonuses is reduced later.
-			    2. iTempValue used to be used throughout this section. I've
-				   replaced all references with iBonusValue, for clarity. */
-			viBonusCount[eBonus]++; // (this used to be above the iBonusValue initialization)
-			/*  advc (comment): ^Perhaps all bonuses should be counted in a
-				separate loop. As it is, the viBonusCount used above is only a
-				partial count. */
-			iBonusValue *= (kSet.bStartingLoc ? 100 :
-				// advc.031: Reduced impact of Greed (though it's disabled anyway)
-				(kSet.iGreed + 200) / 3);
-			iBonusValue /= 100;
-			// <advc.031>
-			if(pLoopPlot->getOwnerINLINE() == getID())
-				iBonusValue = 0; // We've already got it
-			/*  Stop the AI from securing more than one Oil
-				source when Oil is revealed but not yet workable */
-			if(eBonusImprovement == NO_IMPROVEMENT &&
-					getNumAvailableBonuses(eBonus) <= 0) { int foo=-1;
-				/*  CvPlayer::countOwnedBonuses is too expensive I think,
-					but I'm copying a bit of code from there. */
-				for(CvCity* c = firstCity(&foo); c != NULL; c = nextCity(&foo)) {
-					if(c->AI_countNumBonuses(eBonus, true, true, -1) > 0) {
-					/*  AI_bonusVal already reduces its result when the resource
-						can't be worked, but strategic resources can still have
-						bonus values of 500 and more, so this needs to be reduced
-						much more. */
-						iBonusValue = std::min(125, ::round(iBonusValue * 0.3));
-						break;
+			if(!isBarbarian() && // advc.303: Barbarians don't care about bonus trade
+					// advc.031: We've already got it
+					pLoopPlot->getOwnerINLINE() != getID()) {
+				//iBonusValue = AI_bonusVal(eBonus, 1, true) * ((!kSet.bStartingLoc && (getNumTradeableBonuses(eBonus) == 0) && (paiBonusCount[eBonus] == 1)) ? 80 : 20);
+				// K-Mod
+				//int iCount = getNumTradeableBonuses(eBonus) == 0 + viBonusCount[eBonus];
+				//int iBonusValue = AI_bonusVal(eBonus, 0, true) * 80 / (1 + 2*iCount);
+				/*  <advc.031> The "==0" looks like an error. Rather than correct
+					this, I'm going to let AI_bonusVal handle the number of
+					bonuses already connected. Just doing a division by iCount
+					here won't work well for strategic resources. */
+				/*  Don't assume that the bonus is enabled.
+					And the coefficient was 80, halved. */
+				int iBonusValue = ::round((AI_bonusVal(eBonus, 1) * 40.0) /
+						(1 + viBonusCount[eBonus]));
+				/*  Note (K-Mod):
+					1. the value of starting bonuses is reduced later.
+					2. iTempValue used to be used throughout this section. I've
+					   replaced all references with iBonusValue, for clarity. */
+				viBonusCount[eBonus]++; // (this used to be above the iBonusValue initialization)
+				/*  advc (comment): ^Perhaps all bonuses should be counted in a
+					separate loop. As it is, the viBonusCount used above is only a
+					partial count. */
+				iBonusValue *= (kSet.bStartingLoc ? 100 :
+						// advc.031: Reduced impact of Greed (though it's disabled anyway)
+						(kSet.iGreed + 200) / 3);
+				iBonusValue /= 100;
+				/*  <advc.031> Stop the AI from securing more than one Oil
+					source when Oil is revealed but not yet workable */
+				if(eBonusImprovement == NO_IMPROVEMENT &&
+						getNumAvailableBonuses(eBonus) <= 0) { int foo=-1;
+					/*  CvPlayer::countOwnedBonuses is too expensive I think,
+						but I'm copying a bit of code from there. */
+					for(CvCity* c = firstCity(&foo); c != NULL; c = nextCity(&foo)) {
+						if(c->AI_countNumBonuses(eBonus, true, true, -1) > 0) {
+						/*  AI_bonusVal already reduces its result when the resource
+							can't be worked, but strategic resources can still have
+							bonus values of 500 and more, so this needs to be reduced
+							much more. */
+							iBonusValue = std::min(125, ::round(iBonusValue * 0.3));
+							break;
+						}
 					}
-				}
-			}
-			// </advc.031>
-			if (!kSet.bStartingLoc)
-			{
-				// K-Mod. (original code deleted)
-				if (iI != CITY_HOME_PLOT)
-				{	/*  advc.031: Why halve the value of water bonuses?
-						Perhaps because they're costly to improve. But
-						that's only true in the early game.
-						Because they tend to be common? AI_bonusVal takes
-						care of that. */
-					if (pLoopPlot->isWater()/*) {
-						//iBonusValue /= 2;*/
-							&& getCurrentEra() < 3) {
-						iBonusValue -= (3 - getCurrentEra()) * 20;
-						iBonusValue = std::max(iBonusValue, 0);
-					} // </advc.031>
-					if (pLoopPlot->getOwnerINLINE() != getID() && stepDistance(pPlot->getX_INLINE(),pPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) > 1)
-					{
-						if (!kSet.bEasyCulture)
-							iBonusValue = iBonusValue * 3/4;
+				} // </advc.031>
+				if (!kSet.bStartingLoc)
+				{
+					// K-Mod. (original code deleted)
+					if (iI != CITY_HOME_PLOT)
+					{	/*  advc.031: Why halve the value of water bonuses?
+							Perhaps because they're costly to improve. But
+							that's only true in the early game.
+							Because they tend to be common? AI_bonusVal takes
+							care of that. */
+						if (pLoopPlot->isWater()/*) {
+							//iBonusValue /= 2;*/
+								&& getCurrentEra() < 3) {
+							iBonusValue -= (3 - getCurrentEra()) * 20;
+							iBonusValue = std::max(iBonusValue, 0);
+						} // </advc.031>
+						if (pLoopPlot->getOwnerINLINE() != getID() && stepDistance(pPlot->getX_INLINE(),pPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) > 1)
+						{
+							if (!kSet.bEasyCulture)
+								iBonusValue = iBonusValue * 3/4;
+						}
+						FAssert(iCultureMultiplier <= 100);
+						iBonusValue = iBonusValue * (kSet.bAmbitious ? 110 : iCultureMultiplier) / 100;
 					}
-					FAssert(iCultureMultiplier <= 100);
-					iBonusValue = iBonusValue * (kSet.bAmbitious ? 110 : iCultureMultiplier) / 100;
+					else if (kSet.bAmbitious)
+						iBonusValue = iBonusValue * 110 / 100;
+					// K-Mod end
 				}
-				else if (kSet.bAmbitious)
-					iBonusValue = iBonusValue * 110 / 100;
-				// K-Mod end
-			}
-			//iValue += (iBonusValue + 10);
-			iResourceValue += iBonusValue; // K-Mod
+				//iValue += (iBonusValue + 10);
+				iResourceValue += iBonusValue; // K-Mod
+			} // advc.031
 // END OF RESOURCE VALUE
 // SPECIAL YIELDS
 			if (iI != CITY_HOME_PLOT)
@@ -4103,7 +4109,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			higher up.) */
 		iResourceValue /= 4;
 	} // <advc.108> For moving the starting Settler
-	else if(getNumCities() <= 0)
+	else if(iCities <= 0)
 		iResourceValue = ::round(iResourceValue / 1.5); // </advc.108>
 	// Note: iSpecialFood is whatever food happens to be associated with bonuses. Don't value it highly, because it's also counted in a bunch of other ways.
 	// <advc.031>
@@ -4117,7 +4123,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		double coefficients[NUM_YIELD_TYPES] = {0.24, 0.36,
 				/*  advc.108: For moving the starting Settler. Though a commercial
 					resource at the second city is also valuable, so: */
-				getNumCities() <= 1 && getCurrentEra() <= 0 ? 0.48 : 0.32};
+				iCities <= 1 && getCurrentEra() <= 0 ? 0.48 : 0.32};
 		double fromSpecial = 0;
 		for(int i = 0; i < NUM_YIELD_TYPES; i++)
 			fromSpecial += perSpecial[i] * coefficients[i];
@@ -4188,7 +4194,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	if (bIsCoastal)
 	{
 		//if (!kSet.bStartingLoc)
-		if(getNumCities() > 0) // advc.108
+		if(iCities > 0 // advc.108
+				&& !isBarbarian()) // advc.303
 		{
 			if (pArea->getCitiesPerPlayer(getID()) == 0)
 			{
@@ -4479,9 +4486,10 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	{
 		baseProduction += iSpecialProduction;
 		// <advc.040>
-		baseProduction += std::max(unrev / 2, ::round(
-				baseProduction * (unrev / (double)NUM_CITY_PLOTS)));
-		// </advc.040>
+		if(bFirstColony) {
+			baseProduction += std::max(iUnrev / 2, ::round(
+					baseProduction * (iUnrev / (double)NUM_CITY_PLOTS)));
+		} // </advc.040>
 		/*  advc.031: The assertion below can fail when there are gems under
 			jungle. Something's not quite correct in the baseProduction
 			computation, but it isn't worth fretting over. */
@@ -4703,7 +4711,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		return 1;
 	}
   if(!GET_TEAM(getTeam()).isCapitulated()) { // advc.130v
-	if (pArea->countCivCities() == 0) // advc.031: Had been counting barb cities
+	if (pArea->countCivCities() == 0) // advc.031: Had been counting Barb cities
 	{
 		//iValue *= 2;
 		// K-Mod: presumably this is meant to be a bonus for being the first on a new continent.
@@ -4779,10 +4787,11 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		}
 		// Discourage sites that offer nothing special
 		if(iResourceValue <= 0 && iSpecialFoodPlus <= 0 && iRiver < 4 &&
-				unrev < 5) // advc.040
+				(bFirstColony && iUnrev < 5)) // advc.040
 			iValue = ::round(0.65 * iValue); // </advc.031>
 	}
-	if (!kSet.bStartingLoc)
+	if (!kSet.bStartingLoc
+			&& !isBarbarian()) // advc.303
 	{
 		int iDeadLockCount = AI_countDeadlockedBonuses(pPlot);
 		if (bAdvancedStart && (iDeadLockCount > 0))
@@ -4796,13 +4805,15 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 // END OF BONUS COUNT CHECKS
 // ACCOUNT FOR BAD TILES
 	int subtr = (isBarbarian() ? 2 : (4 + iGreen + iSpecialFoodPlus)); // advc.303
-	iBadTile += unrev / 2; // advc.040
+	// <advc.040>
+	if(bFirstColony)
+		iBadTile += iUnrev / 2; // </advc.040>
 	// <advc.031>
 	iBadTile -= subtr;
 	if(iBadTile > 0) {
 		iValue -= ::round(std::pow((double)iBadTile, 1.25) *
 				(35.0 + (kSet.bStartingLoc ?
-				50 : 0) + (getNumCities() <= 0 ? 50 : 0))); // advc.108
+				50 : 0) + (iCities <= 0 ? 50 : 0))); // advc.108
 		iValue = std::max(0, iValue);
 	}
 // END OF BAD TILES
@@ -4820,7 +4831,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	// advc.003: BtS code (iDifferentAreaTile) deleted
 	// disabled by K-Mod. This kind of stuff is already taken into account.
 	
-	// K-Mod. Note: iValue is an int, but this function only return a short - so we need to be careful.
+	// K-Mod. Note: iValue is an int, but this function only returns a short - so we need to be careful.
 	FAssert(iValue >= 0);
 	FAssert(iValue < MAX_SHORT);
 	iValue = std::min(iValue, MAX_SHORT);

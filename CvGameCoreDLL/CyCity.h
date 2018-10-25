@@ -412,6 +412,7 @@ public:
 	int getGreatPeopleUnitProgress(int /*UnitTypes*/ iIndex);
 	void setGreatPeopleUnitProgress(int /*UnitTypes*/ iIndex, int iNewValue);
 	void changeGreatPeopleUnitProgress(int /*UnitTypes*/ iIndex, int iChange);
+	int GPProjection(int /*UnitTypes*/ iIndex); // advc.001c
 	int getSpecialistCount(int /*SpecialistTypes*/ eIndex);
 	void alterSpecialistCount(int /*SpecialistTypes*/ eIndex, int iChange);
 	int getMaxSpecialistCount(int /*SpecialistTypes*/ eIndex);
