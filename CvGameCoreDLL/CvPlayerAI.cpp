@@ -24797,8 +24797,8 @@ void CvPlayerAI::AI_updateStrategyHash()
 			double multiplier = 2;
 			/*  I don't think closeness is intended to be a percentage, but based on
 				some sample values (Ctrl key on the capital in debug mode; closeness
-				is shown in square brackets), it tends to between 0 and 100. */
-			multiplier *= ::dRange(iCloseness / 100.0, 0.0, 1.0) + 0.3;;
+				is shown in square brackets), it tends to be between 0 and 100. */
+			multiplier *= ::dRange(iCloseness / 100.0, 0.0, 1.0) + 0.3;
 			// <advc.022> Reduced paranoia if resistance futile
 			double powRatio = iTheirPower / (double)iOurDefensivePower;
 			/*  No change if ratio is 165% or less; 215% -> 50% reduced paranoia;

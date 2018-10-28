@@ -14815,7 +14815,7 @@ bool CvUnitAI::AI_patrol()
 									u.getFeatureNative(p.getFeatureType()) :
 									u.getTerrainNative(p.getTerrainType()))
 								iValue += GC.getGameINLINE().getSorenRandNum(
-										10000, "advc.309");;
+										10000, "advc.309");
 						} else { // Animals shouldn't follow a consistent direction
 						// </advc.309>
 							/*  <advc.102> Prefer facedPlot or a plot that's

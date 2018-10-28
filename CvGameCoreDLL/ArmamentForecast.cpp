@@ -588,7 +588,7 @@ double ArmamentForecast::productionFromUpgrades() {
 		/* Shouldn't draw conclusions from AI_getGoldToUpgradeAllUnits when
 		   AI upgrades are (modded to be) free or almost free. */
 		if(aiUpgradeFactor > 0.1)
-			r /= aiUpgradeFactor;;
+			r /= aiUpgradeFactor;
 	}
 	return std::max(0.0, r);
 }

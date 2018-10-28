@@ -929,7 +929,7 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 			m_paiHasReligionCount[iI] = 0;
 		}
 	
-		FAssertMsg(m_paiHasCorporationCount==NULL, "about to leak memory, CvPlayer::m_paiHasReligionCount");
+		FAssertMsg(m_paiHasCorporationCount==NULL, "about to leak memory, CvPlayer::m_paiHasCorporationCount");
 		m_paiHasCorporationCount = new int[GC.getNumCorporationInfos()];
 		for (iI = 0;iI < GC.getNumCorporationInfos();iI++)
 		{
@@ -1712,12 +1712,12 @@ void CvPlayer::addFreeUnit(UnitTypes eUnit, UnitAITypes eUnitAI)
 	int iI;
 
 	// advc.108: Right-hand side cut-and-pasted from below
-	bool isSettler = (eUnitAI == UNITAI_SETTLE) ||
+	bool bFound = (eUnitAI == UNITAI_SETTLE) ||
 			(GC.getUnitInfo(eUnit).getDefaultUnitAIType() == UNITAI_SETTLE);
 
 	if (GC.getGameINLINE().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) && isHuman())
 	{
-		if (isSettler) // advc.108: No functional change
+		if (bFound) // advc.108: No functional change
 		{
 			if (AI_getNumAIUnits(UNITAI_SETTLE) >= 1)
 			{
@@ -1732,13 +1732,14 @@ void CvPlayer::addFreeUnit(UnitTypes eUnit, UnitAITypes eUnitAI)
 		return;
 	pBestPlot = NULL;
 
-	if (isHuman())
+	//if (isHuman())
+	if(eUnitAI == UNITAI_EXPLORE) // advc.108
 	{
 		long lResult=0;
 		gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "startHumansOnSameTile", NULL, &lResult);
 		if (lResult == 0)
 		{
-			if (!(GC.getUnitInfo(eUnit).isFound()))
+			if (!GC.getUnitInfo(eUnit).isFound())
 			{
 				iRandOffset = GC.getGameINLINE().getSorenRandNum(NUM_CITY_PLOTS, "Place Units (Player)");
 
@@ -1750,11 +1751,11 @@ void CvPlayer::addFreeUnit(UnitTypes eUnit, UnitAITypes eUnitAI)
 					{
 						if (pLoopPlot->getArea() == pStartingPlot->getArea())
 						{
-							if (!(pLoopPlot->isImpassable()))
+							if (!pLoopPlot->isImpassable())
 							{
-								if (!(pLoopPlot->isUnit()))
+								if (!pLoopPlot->isUnit())
 								{
-									if (!(pLoopPlot->isGoody()))
+									if (!pLoopPlot->isGoody())
 									{
 										pBestPlot = pLoopPlot;
 										break;
@@ -1773,8 +1774,8 @@ void CvPlayer::addFreeUnit(UnitTypes eUnit, UnitAITypes eUnitAI)
 		pBestPlot = pStartingPlot;
 	}
 
-	// <advc.108> Centered on the Settler, not on the starting plot
-	if(isSettler)
+	// <advc.108> Centered on the Settler, not on the starting plot.
+	if(bFound)
 		TEAMREF(getID()).revealSurroundingPlots(*pBestPlot,
 				GC.getDefineINT("START_SIGHT_RANGE"));
 	// </advc.108>
@@ -12303,7 +12304,7 @@ HandicapTypes CvPlayer::getHandicapType() const
 {
 	// <advc.127>
 	if(isHumanDisabled() && // <advc.706>
-			// Even with R&F, Ctrl+Shift+X still leads to Auto Play with AI handicap
+			// With R&F, Ctrl+Shift+X still leads to Auto Play with AI handicap.
 			(!GC.getGameINLINE().isOption(GAMEOPTION_RISE_FALL) ||
 			!GC.getGameINLINE().getRiseFall().hasRetired()))
 			// </advc.706>

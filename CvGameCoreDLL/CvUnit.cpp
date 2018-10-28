@@ -9504,7 +9504,7 @@ int CvUnit::experienceNeeded() const
 int CvUnit::attackXPValue() const
 {
 	return m_pUnitInfo->getXPValueAttack()
-			- (isBarbarian() ? 1 : 0); // advc.312;;
+			- (isBarbarian() ? 1 : 0); // advc.312
 }
 
 

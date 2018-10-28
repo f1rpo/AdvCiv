@@ -52,7 +52,7 @@ public:
 	int getUnitClassMaking(int /*UnitClassTypes*/ eUnitClass);
 	int getUnitClassCountPlusMaking(int /*UnitClassTypes*/ eUnitClass);
 	int getBuildingClassMaking(int /*BuildingClassTypes*/ eBuildingClass);
-	int getBuildingClassCountPlusMaking(int /*BuildingClassTypes*/ eUnitClass);
+	int getBuildingClassCountPlusMaking(int /*BuildingClassTypes*/ eBuildingClass);
 	int getHasReligionCount(int /*ReligionTypes*/ eReligion);
 	int getHasCorporationCount(int /*CorporationTypes*/ eCorporation);
 

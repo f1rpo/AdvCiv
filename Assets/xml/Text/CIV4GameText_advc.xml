@@ -129,7 +129,7 @@
 		 CIV4GameText_Misc1.xml. -->
     <TEXT>
 		<Tag>TXT_KEY_GAME_OPTION_AGGRESSIVE_AI_HELP</Tag>
-		<English>Use the older K-Mod AI for decisions on war and peace instead of the newer and less aggressive AdvCiv AI. </English>
+		<English>Use the older K-Mod AI for decisions on war and peace instead of the newer (and less aggressive) AdvCiv AI. </English>
 		<French>Emploie l'IA agressive de K-Mod pour les d&#233;cisions de guerre et paix.</French>
 		<German>Verwende die K-Mod-KI f&#252;r Entscheidungen &#252;ber Krieg und Frieden (anstatt der neueren und weniger aggressiven AdvCiv-KI).</German>
 		<Italian>Usa l'IA aggressiva di K-Mod per le decisioni di guerra e pace.</Italian>
