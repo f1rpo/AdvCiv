@@ -1423,6 +1423,10 @@ void CvMap::read(FDataStreamBase* pStream)
 
 	setup();
 	computeShelves(); // advc.300
+	/*  advc.004z: Not sure if this is the ideal place for this, but it works.
+		(The problem was that goody huts weren't always highlighted by the
+		Resource layer after loading a game.) */
+	gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
 }
 
 // save object to a stream

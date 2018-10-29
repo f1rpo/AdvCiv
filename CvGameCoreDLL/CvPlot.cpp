@@ -6055,117 +6055,116 @@ ImprovementTypes CvPlot::getImprovementType() const
 
 
 void CvPlot::setImprovementType(ImprovementTypes eNewValue)
-{
-	int iI;
+{	// <advc.003>
+	int iI=-1;
 	ImprovementTypes eOldImprovement = getImprovementType();
+	if(getImprovementType() == eNewValue)
+		return; // </advc.003>
 
-	if (getImprovementType() != eNewValue)
+	if (getImprovementType() != NO_IMPROVEMENT)
 	{
-		if (getImprovementType() != NO_IMPROVEMENT)
+		if (area())
 		{
-			if (area())
-			{
-				area()->changeNumImprovements(getImprovementType(), -1);
-			}
-			if (isOwned())
-			{
-				GET_PLAYER(getOwnerINLINE()).changeImprovementCount(getImprovementType(), -1);
-			}
+			area()->changeNumImprovements(getImprovementType(), -1);
 		}
-
-		updatePlotGroupBonus(false);
-		m_eImprovementType = eNewValue;
-		updatePlotGroupBonus(true);
-
-		if (getImprovementType() == NO_IMPROVEMENT)
+		if (isOwned())
 		{
-			setImprovementDuration(0);
+			GET_PLAYER(getOwnerINLINE()).changeImprovementCount(getImprovementType(), -1);
 		}
-
-		setUpgradeProgress(0);
-
-		for (iI = 0; iI < MAX_TEAMS; ++iI)
-		{
-			if (GET_TEAM((TeamTypes)iI).isAlive())
-			{
-				if (isVisible((TeamTypes)iI, false))
-				{
-					setRevealedImprovementType((TeamTypes)iI, getImprovementType());
-				}
-			}
-		}
-
-		if (getImprovementType() != NO_IMPROVEMENT)
-		{
-			if (area())
-			{
-				area()->changeNumImprovements(getImprovementType(), 1);
-			}
-			if (isOwned())
-			{
-				GET_PLAYER(getOwnerINLINE()).changeImprovementCount(getImprovementType(), 1);
-			}
-		}
-
-		updateIrrigated();
-		updateYield();
-
-		for (iI = 0; iI < NUM_CITY_PLOTS; ++iI)
-		{
-			CvPlot* pLoopPlot = plotCity(getX_INLINE(), getY_INLINE(), iI);
-
-			if (pLoopPlot != NULL)
-			{
-				CvCity* pLoopCity = pLoopPlot->getPlotCity();
-
-				if (pLoopCity != NULL)
-				{
-					pLoopCity->updateFeatureHappiness();
-				}
-			}
-		}
-
-		// Building or removing a fort will now force a plotgroup update to verify resource connections.
-		if ( (NO_IMPROVEMENT != getImprovementType() && GC.getImprovementInfo(getImprovementType()).isActsAsCity()) !=
-			 (NO_IMPROVEMENT != eOldImprovement && GC.getImprovementInfo(eOldImprovement).isActsAsCity()) )
-		{
-			updatePlotGroup();
-		}
-
-		if (NO_IMPROVEMENT != eOldImprovement && GC.getImprovementInfo(eOldImprovement).isActsAsCity())
-		{
-			verifyUnitValidPlot();
-		}
-
-		if (GC.getGameINLINE().isDebugMode())
-		{
-			setLayoutDirty(true);
-		}
-
-		if (getImprovementType() != NO_IMPROVEMENT)
-		{
-			CvEventReporter::getInstance().improvementBuilt(getImprovementType(), getX_INLINE(), getY_INLINE());
-		}
-
-		if (getImprovementType() == NO_IMPROVEMENT)
-		{
-			CvEventReporter::getInstance().improvementDestroyed(eOldImprovement, getOwnerINLINE(), getX_INLINE(), getY_INLINE());
-		}
-
-		CvCity* pWorkingCity = getWorkingCity();
-		if (NULL != pWorkingCity)
-		{
-			if ((NO_IMPROVEMENT != eNewValue && pWorkingCity->getImprovementFreeSpecialists(eNewValue) > 0)	|| 
-				(NO_IMPROVEMENT != eOldImprovement && pWorkingCity->getImprovementFreeSpecialists(eOldImprovement) > 0))
-			{
-
-				pWorkingCity->AI_setAssignWorkDirty(true);
-
-			}
-		}
-
-		gDLL->getInterfaceIFace()->setDirty(CitizenButtons_DIRTY_BIT, true);
 	}
+
+	updatePlotGroupBonus(false);
+	m_eImprovementType = eNewValue;
+	updatePlotGroupBonus(true);
+
+	if (getImprovementType() == NO_IMPROVEMENT)
+	{
+		setImprovementDuration(0);
+	}
+
+	setUpgradeProgress(0);
+
+	for (iI = 0; iI < MAX_TEAMS; ++iI)
+	{
+		if (GET_TEAM((TeamTypes)iI).isAlive())
+		{
+			if (isVisible((TeamTypes)iI, false))
+			{
+				setRevealedImprovementType((TeamTypes)iI, getImprovementType());
+			}
+		}
+	}
+
+	if (getImprovementType() != NO_IMPROVEMENT)
+	{
+		if (area())
+		{
+			area()->changeNumImprovements(getImprovementType(), 1);
+		}
+		if (isOwned())
+		{
+			GET_PLAYER(getOwnerINLINE()).changeImprovementCount(getImprovementType(), 1);
+		}
+	}
+
+	updateIrrigated();
+	updateYield();
+
+	for (iI = 0; iI < NUM_CITY_PLOTS; ++iI)
+	{
+		CvPlot* pLoopPlot = plotCity(getX_INLINE(), getY_INLINE(), iI);
+
+		if (pLoopPlot != NULL)
+		{
+			CvCity* pLoopCity = pLoopPlot->getPlotCity();
+
+			if (pLoopCity != NULL)
+			{
+				pLoopCity->updateFeatureHappiness();
+			}
+		}
+	}
+
+	// Building or removing a fort will now force a plotgroup update to verify resource connections.
+	if ( (NO_IMPROVEMENT != getImprovementType() && GC.getImprovementInfo(getImprovementType()).isActsAsCity()) !=
+		(NO_IMPROVEMENT != eOldImprovement && GC.getImprovementInfo(eOldImprovement).isActsAsCity()) )
+	{
+		updatePlotGroup();
+	}
+
+	if (NO_IMPROVEMENT != eOldImprovement && GC.getImprovementInfo(eOldImprovement).isActsAsCity())
+	{
+		verifyUnitValidPlot();
+	}
+
+	if (GC.getGameINLINE().isDebugMode())
+	{
+		setLayoutDirty(true);
+	}
+
+	if (getImprovementType() != NO_IMPROVEMENT)
+	{
+		CvEventReporter::getInstance().improvementBuilt(getImprovementType(), getX_INLINE(), getY_INLINE());
+	}
+
+	if (getImprovementType() == NO_IMPROVEMENT)
+	{
+		CvEventReporter::getInstance().improvementDestroyed(eOldImprovement, getOwnerINLINE(), getX_INLINE(), getY_INLINE());
+	}
+
+	CvCity* pWorkingCity = getWorkingCity();
+	if (NULL != pWorkingCity)
+	{
+		if ((NO_IMPROVEMENT != eNewValue && pWorkingCity->getImprovementFreeSpecialists(eNewValue) > 0)	|| 
+			(NO_IMPROVEMENT != eOldImprovement && pWorkingCity->getImprovementFreeSpecialists(eOldImprovement) > 0))
+		{
+
+			pWorkingCity->AI_setAssignWorkDirty(true);
+
+		}
+	}
+
+	gDLL->getInterfaceIFace()->setDirty(CitizenButtons_DIRTY_BIT, true);
 }
 
 

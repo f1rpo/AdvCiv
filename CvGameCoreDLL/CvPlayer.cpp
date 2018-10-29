@@ -759,6 +759,7 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	iNewMessages = 0; // advc.106b
 	autoPlayJustEnded = false; // advc.127
 	bSavingReplay = false; // advc.106i
+	eReminderPending = NO_CIVIC; // advc.004x
 	
 	m_eID = eID;
 	updateTeamType();
@@ -3598,11 +3599,8 @@ void CvPlayer::doTurn()
 	CvGame& g = GC.getGame();
 	/* <advc.106b> Can't figure out from within CvGame whether it's an AI turn,
 	   need assistance from CvPlayer.
-	   doTurn contains the entire sequence of an AI turn, but is
-	   also called when a human player ends his/her turn. As soon as that happens,
-	   the AI should be considered in control b/c the player can't view
-	   messages. (Well, if a player unit is attacked, messages are displayed
-	   immediately.) */
+	   doTurn contains the entire sequence of an AI turn, but is also called when
+	   a human player ends his/her turn. */
 	g.setAITurn(true);
 	if(isHuman() && getStartOfTurnMessageLimit() >= 0 &&
 			g.getElapsedGameTurns() > 0 && !m_listGameMessages.empty()) {
@@ -3675,6 +3673,9 @@ void CvPlayer::doTurn()
 	}
 
 	verifyCivics();
+	// <advc.004x>
+	if(eReminderPending != NO_CIVIC)
+		doChangeCivicsPopup(eReminderPending); // </advc.004x>
 	//verifyStateReligion(); // dlph.10: disabled for now
 	updateTradeRoutes();
 
@@ -7539,8 +7540,25 @@ void CvPlayer::processBuilding(BuildingTypes eBuilding, int iChange, CvArea* pAr
 	}
 
 	if (GC.getBuildingInfo(eBuilding).getCivicOption() != NO_CIVICOPTION)
-	{
-		changeHasCivicOptionCount(((CivicOptionTypes)GC.getBuildingInfo(eBuilding).getCivicOption()), iChange);
+	{	// <advc.004x>
+		CivicOptionTypes eCivicOption = (CivicOptionTypes)GC.getBuildingInfo(eBuilding).
+				getCivicOption();
+		CivicTypes eNewCivic = NO_CIVIC;
+		if(iChange > 0 && isHuman() && !gDLL->GetWorldBuilderMode()) {
+			for(int i = 0; i < GC.getNumCivicInfos(); i++) {
+				CivicTypes eCivic = (CivicTypes)i;
+				if(GC.getCivicInfo(eCivic).getCivicOptionType() == eCivicOption) {
+					if(!canDoCivics(eCivic)) {
+						eNewCivic = eCivic;
+						break;
+					}
+				}
+			}
+		} // </advc.004x>
+		changeHasCivicOptionCount(eCivicOption, iChange);
+		// <advc.004x>
+		if(eNewCivic != NO_CIVIC)
+			doChangeCivicsPopup(eNewCivic); // </advc.004x>
 	}
 
 	changeGreatPeopleRateModifier(GC.getBuildingInfo(eBuilding).getGlobalGreatPeopleRateModifier() * iChange);
@@ -8794,8 +8812,6 @@ bool CvPlayer::canDoCivics(CivicTypes eCivic) const
 
 bool CvPlayer::canRevolution(CivicTypes* paeNewCivics) const
 {
-	int iI;
-
 	if (isAnarchy())
 	{
 		return false;
@@ -8807,9 +8823,9 @@ bool CvPlayer::canRevolution(CivicTypes* paeNewCivics) const
 	}
 
 	if (paeNewCivics == NULL)
-	{
-		// XXX is this necessary?
-		for (iI = 0; iI < GC.getNumCivicInfos(); iI++)
+	{	// XXX is this necessary?
+		// ^advc.003: Only for the call in CvPlayer::doAdvancedStartAction I think
+		for (int iI = 0; iI < GC.getNumCivicInfos(); iI++)
 		{
 			if (canDoCivics((CivicTypes)iI))
 			{
@@ -8822,7 +8838,7 @@ bool CvPlayer::canRevolution(CivicTypes* paeNewCivics) const
 	}
 	else
 	{
-		for (iI = 0; iI < GC.getNumCivicOptionInfos(); ++iI)
+		for (int iI = 0; iI < GC.getNumCivicOptionInfos(); ++iI)
 		{
 			if (GC.getGameINLINE().isForceCivicOption((CivicOptionTypes)iI))
 			{
@@ -9522,37 +9538,37 @@ void CvPlayer::setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist)
 	CvPlot* pOldStartingPlot;
 
 	pOldStartingPlot = getStartingPlot();
-
-	if (pOldStartingPlot != pNewValue)
+	// <advc.003>
+	if(pOldStartingPlot == pNewValue)
+		return; // </advc.003>
+	if (pOldStartingPlot != NULL)
 	{
-		if (pOldStartingPlot != NULL)
+		pOldStartingPlot->area()->changeNumStartingPlots(-1);
+
+		if (bUpdateStartDist)
 		{
-			pOldStartingPlot->area()->changeNumStartingPlots(-1);
-
-			if (bUpdateStartDist)
-			{
-				GC.getMapINLINE().updateMinOriginalStartDist(pOldStartingPlot->area());
-			}
-		}
-
-		if (pNewValue == NULL)
-		{
-			m_iStartingX = INVALID_PLOT_COORD;
-			m_iStartingY = INVALID_PLOT_COORD;
-		}
-		else
-		{
-			m_iStartingX = pNewValue->getX_INLINE();
-			m_iStartingY = pNewValue->getY_INLINE();
-
-			getStartingPlot()->area()->changeNumStartingPlots(1);
-
-			if (bUpdateStartDist)
-			{
-				GC.getMapINLINE().updateMinOriginalStartDist(getStartingPlot()->area());
-			}
+			GC.getMapINLINE().updateMinOriginalStartDist(pOldStartingPlot->area());
 		}
 	}
+
+	if (pNewValue == NULL)
+	{
+		m_iStartingX = INVALID_PLOT_COORD;
+		m_iStartingY = INVALID_PLOT_COORD;
+	}
+	else
+	{
+		m_iStartingX = pNewValue->getX_INLINE();
+		m_iStartingY = pNewValue->getY_INLINE();
+
+		getStartingPlot()->area()->changeNumStartingPlots(1);
+
+		if (bUpdateStartDist)
+		{
+			GC.getMapINLINE().updateMinOriginalStartDist(getStartingPlot()->area());
+		}
+	}
+	FAssert(pNewValue==NULL || !pNewValue->isWater()); // advc.021b
 }
 
 
@@ -15074,6 +15090,29 @@ void CvPlayer::clearSpaceShipPopups()
 	}
 }
 
+// <advc.004x> Partly cut and pasted from CvTeam::setHasTech
+void CvPlayer::doChangeCivicsPopup(CivicTypes eCivic) {
+
+	if(!isHuman()) { // Forget reminder during Auto Play
+		eReminderPending = NO_CIVIC;
+		return;
+	}
+	if(!canRevolution(NULL)) {
+		eReminderPending = eCivic;
+		return;
+	}
+	eReminderPending = NO_CIVIC;
+	CivicOptionTypes eCivicOption = (CivicOptionTypes)GC.getCivicInfo(eCivic).
+			getCivicOptionType();
+	CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_CHANGECIVIC);
+	if(pInfo != NULL) {
+		pInfo->setData1(eCivicOption);
+		pInfo->setData2(eCivic);
+		gDLL->getInterfaceIFace()->addPopup(pInfo, getID());
+	}
+} // </advc.004x>
+
+
 int CvPlayer::getScoreHistory(int iTurn) const
 {
 	CvTurnScoreMap::const_iterator it = m_mapScoreHistory.find(iTurn);
@@ -18528,7 +18567,12 @@ void CvPlayer::read(FDataStreamBase* pStream)
 	pStream->Read(&m_iWondersScore);
 	pStream->Read(&m_iTechScore);
 	pStream->Read(&m_iCombatExperience);
-
+	// <advc.004x>
+	if(uiFlag >= 8) {
+		int tmp=-1;
+		pStream->Read(&tmp);
+		eReminderPending = (CivicTypes)tmp;
+	} // </advc.004x>
 	pStream->Read(&m_bAlive);
 	pStream->Read(&m_bEverAlive);
 	pStream->Read(&m_bTurnActive);
@@ -18943,6 +18987,7 @@ void CvPlayer::write(FDataStreamBase* pStream)
 	uint uiFlag = 4;
 	uiFlag = 5; // advc.908a
 	uiFlag = 7; // advc.912c (6 used up for a test version)
+	uiFlag = 8; // advc.004x
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iStartingX);
@@ -19040,6 +19085,7 @@ void CvPlayer::write(FDataStreamBase* pStream)
 	pStream->Write(m_iWondersScore);
 	pStream->Write(m_iTechScore);
 	pStream->Write(m_iCombatExperience);
+	pStream->Write(eReminderPending); // advc.004x
 
 	pStream->Write(m_bAlive);
 	pStream->Write(m_bEverAlive);

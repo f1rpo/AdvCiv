@@ -6128,8 +6128,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 	CvCity* pCity;
 	CvPlot* pLoopPlot;
 	CvWString szBuffer;
-	CivicOptionTypes eCivicOptionType;
-	CivicTypes eCivicType;
+	// advc.003: Some declarations moved
 	PlayerTypes eBestPlayer;
 	BonusTypes eBonus;
 	UnitTypes eFreeUnit;
@@ -6490,7 +6489,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 			}
 
 			if (bAnnounce && GC.getGameINLINE().isFinalInitialized() &&
-					!(gDLL->GetWorldBuilderMode())) // advc.003
+					!gDLL->GetWorldBuilderMode()) // advc.003
 			{
 				announceTechToPlayers(eIndex);
 				bool messageSent = false; // advc.004r
@@ -6552,53 +6551,40 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 						}
 					}
 				} // </advc.004r>
-				for (iI = 0; iI < MAX_PLAYERS; iI++)
-				{
-					if (GET_PLAYER((PlayerTypes)iI).isAlive())
-					{
-						if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
+				for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+				{	// <advc.003> Un-nested the ifs to reduce indentation
+					CvPlayer& civ = GET_PLAYER((PlayerTypes)iI);
+					if (civ.isAlive() &&
+							civ.getTeam() == getID() &&
+							civ.isHuman() &&
+							(!bReligionFounded ||
+							civ.getLastStateReligion() != NO_RELIGION ||
+							civ.getID() != ePlayer) /*&&
+							civ.canRevolution(NULL)*/) { // advc.004x
+						CivicOptionTypes eCivicOption = NO_CIVICOPTION;
+						CivicTypes eCivic = NO_CIVIC;
+						// </advc.003>
+						for (iJ = 0; iJ < GC.getNumCivicOptionInfos(); iJ++)
 						{
-							if (GET_PLAYER((PlayerTypes)iI).isHuman())
+							if (!civ.isHasCivicOption((CivicOptionTypes)iJ))
 							{
-								if (!bReligionFounded || (GET_PLAYER((PlayerTypes)iI).getLastStateReligion() != NO_RELIGION) || (iI != ePlayer))
+								for (iK = 0; iK < GC.getNumCivicInfos(); iK++)
 								{
-									if (GET_PLAYER((PlayerTypes)iI).canRevolution(NULL))
+									if (GC.getCivicInfo((CivicTypes)iK).getCivicOptionType() == iJ)
 									{
-										eCivicOptionType = NO_CIVICOPTION;
-										eCivicType = NO_CIVIC;
-
-										for (iJ = 0; iJ < GC.getNumCivicOptionInfos(); iJ++)
+										if (GC.getCivicInfo((CivicTypes)iK).getTechPrereq() == eIndex)
 										{
-											if (!(GET_PLAYER((PlayerTypes)iI).isHasCivicOption((CivicOptionTypes)iJ)))
-											{
-												for (iK = 0; iK < GC.getNumCivicInfos(); iK++)
-												{
-													if (GC.getCivicInfo((CivicTypes)iK).getCivicOptionType() == iJ)
-													{
-														if (GC.getCivicInfo((CivicTypes)iK).getTechPrereq() == eIndex)
-														{
-															eCivicOptionType = ((CivicOptionTypes)iJ);
-															eCivicType = ((CivicTypes)iK);
-														}
-													}
-												}
-											}
-										}
-
-										if ((eCivicOptionType != NO_CIVICOPTION) && (eCivicType != NO_CIVIC))
-										{
-											CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_CHANGECIVIC);
-											if (NULL != pInfo)
-											{
-												pInfo->setData1(eCivicOptionType);
-												pInfo->setData2(eCivicType);
-												gDLL->getInterfaceIFace()->addPopup(pInfo, (PlayerTypes)iI);
-											}
+											eCivicOption = (CivicOptionTypes)iJ;
+											eCivic = (CivicTypes)iK;
 										}
 									}
 								}
 							}
-						}
+						} // <advc.004x>
+						if(eCivic != NO_CIVIC && civ.canDoCivics(eCivic)) {
+							// BtS code moved into subroutine
+							civ.doChangeCivicsPopup(eCivic);
+						} // </advc.004x>
 					}
 				}
 			}

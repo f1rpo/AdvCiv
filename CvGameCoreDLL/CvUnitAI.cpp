@@ -12442,14 +12442,27 @@ bool CvUnitAI::AI_guardCitySite()
 	CvPlot* pBestGuardPlot = NULL;
 	// advc.003: Moved all the other declarations
 	CvPlayerAI const& owner = GET_PLAYER(getOwnerINLINE());
-	//iBestValue = 0;
-	/*  advc.300: Don't guard any ole tile with a positive found value;
-		only actual city sites. */
+	//iBestValue = 0; // <advc.300>
+	// Don't guard any ole tile with a positive found value; only actual city sites. */
 	int iBestValue = owner.AI_getMinFoundValue() - 1;
+	CvMap const& m = GC.getMapINLINE(); // </advc.300>
 	for (int iI = 0; iI < owner.AI_getNumCitySites(); iI++)
 	{
 		CvPlot* pLoopPlot = owner.AI_getCitySite(iI);
-		if (owner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_GUARD_CITY, getGroup()) == 0)
+		//if (owner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_GUARD_CITY, getGroup()) == 0)
+		// <advc.300> Need to check the adjacent tiles too
+		bool bValid = true;
+		for(int dx = -1; dx <= 1; dx++)
+		for(int dy = -1; dy <= 1; dy++) {
+			CvPlot* adj = m.plot(pLoopPlot->getX_INLINE() + dx,
+					pLoopPlot->getY_INLINE() + dy);
+			if(adj != NULL && owner.AI_plotTargetMissionAIs(adj,
+					MISSIONAI_GUARD_CITY, getGroup()) > 0) {
+				bValid = false;
+				dx = dy = 2; // break x2
+			}
+		}
+		if(bValid) // </advc.300>
 		{
 			// K-Mod. I've switched the order of the following two if statements, for efficiency.
 			int iValue = pLoopPlot->getFoundValue(owner.getID());
@@ -12466,7 +12479,6 @@ bool CvUnitAI::AI_guardCitySite()
 	}
 	// <advc.300> Guard an adjacent plot if it's better for fogbusting
 	if(pBestGuardPlot != NULL) {
-		CvMap const& m = GC.getMapINLINE();
 		int iBestGuardVal = 0;
 		CvPlot* pBetterGuardPlot = pBestGuardPlot;
 		for(int dx = -1; dx <= 1; dx++) {

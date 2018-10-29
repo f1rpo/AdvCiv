@@ -1017,6 +1017,8 @@ public:
 	DllExport CvDiploParameters* popFrontDiplomacy();
 	DllExport void showSpaceShip();
 	DllExport void clearSpaceShipPopups();
+	// advc.004x:
+	void doChangeCivicsPopup(CivicTypes eCivic);
 
 	int getScoreHistory(int iTurn) const;																								// Exposed to Python
 	void updateScoreHistory(int iTurn, int iBestScore);
@@ -1445,6 +1447,7 @@ protected:
 	TeamTypes offeringPeace;
 	bool expectingPeaceOffer;
 	// </advc.134a>
+	CivicTypes eReminderPending; // advc.004x
 	CvTurnScoreMap m_mapScoreHistory;
 	CvTurnScoreMap m_mapEconomyHistory;
 	CvTurnScoreMap m_mapIndustryHistory;

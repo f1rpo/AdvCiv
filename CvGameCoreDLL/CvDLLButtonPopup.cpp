@@ -864,7 +864,8 @@ void CvDLLButtonPopup::OnFocus(CvPopup* pPopup, CvPopupInfo &info)
 		break;
 
 	case BUTTONPOPUP_CHANGECIVIC:
-		if (!(GET_PLAYER(GC.getGameINLINE().getActivePlayer()).canRevolution(NULL)) || (GC.getGameINLINE().getGameState() == GAMESTATE_OVER))
+		if (!GET_PLAYER(GC.getGameINLINE().getActivePlayer()).canRevolution(NULL) ||
+				GC.getGameINLINE().getGameState() == GAMESTATE_OVER)
 		{
 			gDLL->getInterfaceIFace()->popupSetAsCancelled(pPopup);
 		}
@@ -1670,23 +1671,22 @@ bool CvDLLButtonPopup::launchChangeCivicsPopup(CvPopup* pPopup, CvPopupInfo &inf
 			else
 			{
 				paeNewCivics[iI] = activePl.getCivics((CivicOptionTypes)iI);
-				// <advc.004o>
-				if(bStartButton) {
-					for(int j = 0; j < GC.getNumCivicInfos(); j++) {
-						CivicTypes ct = (CivicTypes)j;
-						if(GC.getCivicInfo(ct).getCivicOptionType() == iI &&
-								paeNewCivics[iI] != ct && activePl.canDoCivics(ct)) {
-							bStartButton = false;
-							break;
-						}
-					}
-				} // </advc.004o>
 			}
 		}
 
 		if (activePl.canRevolution(paeNewCivics))
 		{
 			bValid = true;
+			// <advc.004o>
+			for(int i = 0; i < GC.getNumCivicInfos(); i++) {
+				CivicTypes ct = (CivicTypes)i;
+				if(ct != paeNewCivics[GC.getCivicInfo(ct).getCivicOptionType()] &&
+						!activePl.isCivic(ct) &&
+						activePl.canDoCivics(ct)) {
+					bStartButton = false;
+					break;
+				}
+			} // </advc.004o>
 		}
 	}
 	else

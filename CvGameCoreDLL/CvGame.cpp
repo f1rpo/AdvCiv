@@ -350,8 +350,13 @@ void CvGame::regenerateMap()
 	setScriptData("");
 	for(int i = 0; i < GC.getMapINLINE().numPlots(); ++i) {
 		CvPlot* p = GC.getMapINLINE().plotByIndexINLINE(i);
-		if(p != NULL)
+		if(p != NULL) {
 			p->setScriptData("");
+			/*  advc.021b: Otherwise, assignStartingPlots runs into trouble upon
+				map regeneration when a script calls allowDefaultImpl after
+				assigning starting plots. */
+			p->setStartingPlot(false);
+		}
 	} // </advc.004j>
 
 	setFinalInitialized(false);
@@ -998,7 +1003,7 @@ void CvGame::assignStartingPlots()
 	// K-Mod end
 
 	if (gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "assignStartingPlots"))
-	{ 
+	{
 		if (!gDLL->getPythonIFace()->pythonUsingDefaultImpl())
 		{
 			// Python override

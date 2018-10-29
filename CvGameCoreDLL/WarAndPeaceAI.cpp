@@ -2351,7 +2351,8 @@ bool WarAndPeaceAI::Civ::considerGiftRequest(PlayerTypes theyId,
 
 	/*  Just check war utility and peace treaty here; all the other conditions
 		are handled by CvPlayerAI::AI_considerOffer. */
-	if(TEAMREF(weId).isForcePeace(TEAMID(theyId)))
+	if(TEAMREF(weId).isForcePeace(TEAMID(theyId)) && GET_PLAYER(weId).
+			AI_getMemoryAttitude(theyId, MEMORY_GIVE_HELP) <= 0)
 		return false;
 	// If war not possible, might as well sign a peace treaty
 	if(!TEAMREF(weId).canDeclareWar(TEAMID(theyId)) ||
