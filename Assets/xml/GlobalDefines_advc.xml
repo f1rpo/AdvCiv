@@ -984,5 +984,14 @@
 		<DefineName>FOUNDING_SHOW_YIELDS</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
+	
+	<!-- advc.120f: When a spy switches the civics or religion of a target civ,
+		 third parties that know the target are notified of the spy mission
+		 (without revealing the spy owner).
+		 1 (recommended) enables this behavior, 0 disables it (as in BtS). -->
+	<Define>
+		<DefineName>ANNOUNCE_ESPIONAGE_REVOLUTION</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
 
 </Civ4Defines>

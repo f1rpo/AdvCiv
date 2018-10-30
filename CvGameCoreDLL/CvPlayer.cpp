@@ -9568,7 +9568,7 @@ void CvPlayer::setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist)
 			GC.getMapINLINE().updateMinOriginalStartDist(getStartingPlot()->area());
 		}
 	}
-	FAssert(pNewValue==NULL || !pNewValue->isWater()); // advc.021b
+	FAssert(pNewValue == NULL || !pNewValue->isWater()); // advc.021b
 }
 
 
@@ -16235,6 +16235,7 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 	bool bSomethingHappened = false;
 	bool bShowExplosion = false;
 	CvWString szBuffer;
+
 	int iMissionCost = getEspionageMissionCost(eMission, eTargetPlayer, pPlot, iExtraData, pSpyUnit);
 
 	
@@ -16575,8 +16576,8 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 	{
 		if (NO_PLAYER != eTargetPlayer)
 		{
+			announceEspionageToThirdParties(eMission, eTargetPlayer); // advc.120f
 			int iCivic = iExtraData;
-
 			szBuffer = gDLL->getText("TXT_KEY_ESPIONAGE_TARGET_SWITCH_CIVIC", GC.getCivicInfo((CivicTypes) iCivic).getDescription()).GetCString();
 			GET_PLAYER(eTargetPlayer).setCivics((CivicOptionTypes) GC.getCivicInfo((CivicTypes) iCivic).getCivicOptionType(), (CivicTypes) iCivic);
 			GET_PLAYER(eTargetPlayer).setRevolutionTimer(std::max(1, ((100 + GET_PLAYER(eTargetPlayer).getAnarchyModifier()) * GC.getDefineINT("MIN_REVOLUTION_TURNS")) / 100));
@@ -16591,8 +16592,8 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 	{
 		if (NO_PLAYER != eTargetPlayer)
 		{
+			announceEspionageToThirdParties(eMission, eTargetPlayer); // advc.120f
 			int iReligion = iExtraData;
-
 			szBuffer = gDLL->getText("TXT_KEY_ESPIONAGE_TARGET_SWITCH_RELIGION", GC.getReligionInfo((ReligionTypes) iReligion).getDescription()).GetCString();
 			GET_PLAYER(eTargetPlayer).setLastStateReligion((ReligionTypes) iReligion);
 			GET_PLAYER(eTargetPlayer).setConversionTimer(std::max(1, ((100 + GET_PLAYER(eTargetPlayer).getAnarchyModifier()) * GC.getDefineINT("MIN_CONVERSION_TURNS")) / 100));
@@ -23783,9 +23784,8 @@ void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 			{
 				setTradeItem(&item, TRADE_RESOURCES, j);
 				if (canTradeItem(eOtherPlayer, item))
-				{
-					// <advc.004>
-					if(!bOtherHuman || getTradeDenial(eOtherPlayer, item) !=
+				{	// <advc.004>
+					if((!bOtherHuman && !isHuman()) || getTradeDenial(eOtherPlayer, item) !=
 							DENIAL_JOKING) { // </advc.004>
 						bFoundItemUs = true;
 						ourList.insertAtEnd(item);
@@ -25042,3 +25042,38 @@ void CvPlayer::promoteFreeUnit(CvUnit& u, double pr) {
 		ePrevPromo = eBestPromo;
 	}
 } // </advc.314>
+
+// <advc.120f>
+void CvPlayer::announceEspionageToThirdParties(EspionageMissionTypes eMission, PlayerTypes eTarget) {
+
+	bool bReligion = (GC.getEspionageMissionInfo(eMission).
+			getSwitchReligionCostFactor() > 0);
+	CvWString szBuffer = szBuffer = gDLL->getText((bReligion ?
+			"TXT_KEY_ESPIONAGE_3RD_PARTY_SWITCH_RELIGION" :
+			"TXT_KEY_ESPIONAGE_3RD_PARTY_SWITCH_CIVIC"),
+			GET_PLAYER(eTarget).getCivilizationAdjectiveKey()).GetCString();
+	int x = -1, y = -1;
+	CvCity* cap = GET_PLAYER(eTarget).getCapitalCity();
+	if(cap != NULL) {
+		x = cap->getX_INLINE();
+		y = cap->getY_INLINE();
+	}
+	if(GC.getDefineINT("ANNOUNCE_ESPIONAGE_REVOLUTION") > 0) {
+		for(int i = 0; i < MAX_CIV_PLAYERS; i++){
+			CvPlayer const& obs = GET_PLAYER((PlayerTypes)i);
+			if(obs.isAlive() && obs.getID() != getID() && obs.getID() != eTarget &&
+					TEAMREF(eTarget).isHasMet(obs.getTeam())) {
+				gDLL->getInterfaceIFace()->addHumanMessage(obs.getID(),
+						false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
+						NULL, MESSAGE_TYPE_INFO, NULL, NO_COLOR, x, y);
+			}
+		}
+	}
+	if(bReligion) {
+		CvWString tmp = gDLL->getText("TXT_KEY_ESPIONAGE_REVEAL_OWNER",
+				getCivilizationAdjectiveKey()).GetCString();
+		tmp += L" " + szBuffer;
+		GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT,
+				eTarget, tmp);
+	}
+} // </advc.120f>

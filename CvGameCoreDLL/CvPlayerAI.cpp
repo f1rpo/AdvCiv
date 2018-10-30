@@ -3609,7 +3609,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				// advc.035: The above is OK if cities own their exclusive radius ...
 					+ (bOwnExl ? 0 :
 					// advc.031: ... but w/o that rule, it's too optimistic.
-					::round(0.72 * (iOurCulture + kSet.iClaimThreshold))));
+					(iOurCulture + kSet.iClaimThreshold)));
 			// <advc.031>
 			if(bCityRadius && !bShare) {
 				// Extra pessimism about tiles that another civ is able to work
@@ -4000,6 +4000,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 							YIELD_FOOD);
 					iSpecialFood += iSpecialFoodTemp;
 					iSpecialFoodTemp -= GC.getFOOD_CONSUMPTION_PER_POPULATION();
+					// advc.031:
+					iSpecialFoodTemp = ::round(iSpecialFoodTemp * iCultureMultiplier / 100.0);
 					iSpecialFoodPlus += std::max(0,iSpecialFoodTemp);
 					iSpecialFoodMinus -= std::min(0,iSpecialFoodTemp);
 					// <advc.031>
@@ -4007,15 +4009,22 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 							YIELD_PRODUCTION, getTeam()) +
 							GC.getImprovementInfo(eBonusImprovement).
 							getImprovementBonusYield(eBonus, YIELD_PRODUCTION);
-					iSpecialProduction += iSpecialProdTemp;
 					int iSpecialCommTemp = pLoopPlot->calculateBestNatureYield(
 							YIELD_COMMERCE, getTeam()) +
 							GC.getImprovementInfo(eBonusImprovement).
 							getImprovementBonusYield(eBonus, YIELD_COMMERCE);
-					iSpecialCommerce += iSpecialCommTemp;
-					// No functional change above. Now count the tile as special.
+					/*  No functional change above. Now count the tile as special
+						and apply culture modifier. */
 					if(iSpecialFoodTemp > 0 || iSpecialCommTemp + iSpecialProdTemp > 0)
 						specials++;
+					/*  To avoid rounding all yields to 0, don't reduce production
+						and commerce to less than 1. */
+					iSpecialProdTemp = std::max(std::min(1, iSpecialProdTemp),
+							::round(iSpecialProdTemp * iCultureMultiplier / 100.0));
+					iSpecialProduction += iSpecialProdTemp;
+					iSpecialCommTemp = std::max(std::min(1, iSpecialCommTemp),
+							::round(iSpecialCommTemp * iCultureMultiplier / 100.0));
+					iSpecialCommerce += iSpecialCommTemp;
 					// </advc.031>
 				}
 
@@ -4026,18 +4035,16 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					iValue -= 100; // </advc.031>
 			}
 		} // end if usable bonus
-		if (eBonusImprovement == NO_IMPROVEMENT && iI != CITY_HOME_PLOT
-			/*  <advc.031> Need to account for foreign culture somehow, and I
-				don't want to divide SpecialFoodPlus, b/c it's usually just 1 or 2. */
-				&& iCultureMultiplier >
-				(bOwnExl ? 40 : // advc.035
-				55)) // </advc.031>
+		if (eBonusImprovement == NO_IMPROVEMENT && iI != CITY_HOME_PLOT)
 		{
 			// non bonus related special food. (Note: the city plot is counted elsewhere.)
 			int iEffectiveFood = aiYield[YIELD_FOOD];
 			if (bIsCoastal && pLoopPlot->isWater() && aiYield[YIELD_COMMERCE] > 1) // lighthouse kludge.
 				iEffectiveFood += 1;
-			iSpecialFoodPlus += std::max(0, iEffectiveFood - GC.getFOOD_CONSUMPTION_PER_POPULATION());
+			iSpecialFoodPlus += 
+					::round( // advc.031
+					std::max(0, iEffectiveFood - GC.getFOOD_CONSUMPTION_PER_POPULATION())
+					* (iCultureMultiplier / 100.0)); // advc.031
 		}
 // END OF SPECIAL YIELDS
 	}
@@ -19263,7 +19270,7 @@ void CvPlayerAI::AI_doCounter()
 						2.4 * std::max(bonusVal, exportable))) / 2;
 				/*  Rather than changing attitudeDiv in XML for every leader,
 					do the fine-tuning here. */
-				double weight2 = 350.0 / attitudeDiv;
+				double weight2 = 400.0 / attitudeDiv;
 				if(weight1 >= weight2)
 					incr = (bonusVal / weight1) * weight2;
 			}
@@ -21906,22 +21913,18 @@ bool CvPlayerAI::askHelp(PlayerTypes humanId) {
 	CvPlayer const& human = GET_PLAYER(humanId);
 	TradeData item;
 	int iBestValue = 0;
-	// <advc.144>
-	TechTypes eBestReceiveTech = AI_bestTech(1, false, false, NO_TECH, NO_ADVISOR,
-			humanId);
-	if(eBestReceiveTech == NO_TECH) { // </advc.144>
-		for(int i = 0; i < GC.getNumTechInfos(); i++) {	
-			setTradeItem(&item, TRADE_TECHNOLOGIES, i);
-			if(!human.canTradeItem(getID(), item))
-				continue;
-			int iValue = 1 + GC.getGameINLINE().getSorenRandNum(10000, "AI Asking For Help");
-			if(iValue > iBestValue) {
-				iBestValue = iValue;
-				eBestReceiveTech = (TechTypes)i;
-			}
+	// advc.144: Replacing the loop below
+	TechTypes eBestReceiveTech = AI_bestTech(1, false, false, NO_TECH, NO_ADVISOR, humanId);
+	/*for(int i = 0; i < GC.getNumTechInfos(); i++) {	
+		setTradeItem(&item, TRADE_TECHNOLOGIES, i);
+		if(!human.canTradeItem(getID(), item))
+			continue;
+		int iValue = 1 + GC.getGameINLINE().getSorenRandNum(10000, "AI Asking For Help");
+		if(iValue > iBestValue) {
+			iBestValue = iValue;
+			eBestReceiveTech = (TechTypes)i;
 		}
-FAssert(eBestReceiveTech == NO_TECH); // advc.tmp: Throw the random choice loop out once it's certain that it isn't needed
-	}
+	}*/
 	if(eBestReceiveTech == NO_TECH)
 		return false;
 	CLinkList<TradeData> theirList;

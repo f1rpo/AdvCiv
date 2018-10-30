@@ -4952,7 +4952,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 							(1 - c.probabilityOccupationDecrement()); // advc.023
 					if(pr > 0) {
 						wchar floatBuffer[1024];
-						swprintf(floatBuffer, L"%.2f", (float)(100 * pr));
+						swprintf(floatBuffer, L"%.1f", (float)(100 * pr));
 						szString.append(gDLL->getText("TXT_KEY_MISC_CHANCE_OF_REVOLT",
 								floatBuffer));
 						szString.append(NEWLINE);

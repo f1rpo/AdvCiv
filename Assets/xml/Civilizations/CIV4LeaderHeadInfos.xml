@@ -532,9 +532,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -1176,9 +1177,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -1835,9 +1837,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -2486,9 +2489,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -3138,9 +3142,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -3782,9 +3787,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -4428,9 +4434,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -5071,9 +5078,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -5717,9 +5725,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -6369,9 +6378,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -7019,9 +7029,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -7670,9 +7681,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -8322,9 +8334,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -8970,9 +8983,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -9616,9 +9630,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -10235,9 +10250,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -10882,9 +10898,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -11521,9 +11538,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -12164,9 +12182,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -12812,9 +12831,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -13467,9 +13487,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -14117,9 +14138,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -14779,9 +14801,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -15425,9 +15448,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -16072,9 +16096,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -16723,9 +16748,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -17374,9 +17400,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -18021,9 +18048,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -18664,9 +18692,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -19309,9 +19338,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -19956,9 +19986,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -20600,9 +20631,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -21246,9 +21278,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -21897,9 +21930,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -22547,9 +22581,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -23199,9 +23234,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -23859,9 +23895,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -24508,9 +24545,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -25157,9 +25195,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -25807,9 +25846,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -26465,9 +26505,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -27114,9 +27155,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -27754,9 +27796,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -28399,9 +28442,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -29056,9 +29100,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -29709,9 +29754,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -30354,9 +30400,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -31009,9 +31056,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -31649,9 +31697,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -32302,9 +32351,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -32968,9 +33018,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -33622,9 +33673,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>

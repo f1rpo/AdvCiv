@@ -13011,21 +13011,23 @@ bool CvUnitAI::AI_heal(int iDamagePercent, int iMaxPath)
 	}	
 
 	bRetreat = false;
-	
-    if (getGroup()->getNumUnits() == 1)
+	// <advc.306>
+	// isAlwaysHeal check moved up
+    if (getGroup()->getNumUnits() == 1 && !isAlwaysHeal() && getDamage() > 0)
 	{
-	    if (getDamage() > 0)
-        {
-        	
-            if (plot()->isCity() || (healTurns(plot()) == 1))
-            {
-                if (!(isAlwaysHeal()))
-                {
-                    getGroup()->pushMission(MISSION_HEAL, -1, -1, 0, false, false, MISSIONAI_HEAL);
-                    return true;
-                }
-            }
-        }
+		bool bHeal = false;
+		if(plot()->isCity() || healTurns(plot()) == 1) // Like in BtS
+			bHeal = true;
+		else if(isBarbarian()) {
+			int iHeal = healRate(plot());
+			double div = (getDomainType() == DOMAIN_SEA ? 17.5 : 22.5);
+			if(iHeal >= 5 && ::bernoulliSuccess(iHeal / div, "advc.306 (heal)"))
+				bHeal = true;
+		}
+		if(bHeal) {
+			getGroup()->pushMission(MISSION_HEAL, -1, -1, 0, false, false, MISSIONAI_HEAL);
+			return true;
+		} // </advc.306>
         return false;
 	}
 	

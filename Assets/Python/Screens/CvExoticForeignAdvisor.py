@@ -1097,12 +1097,12 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 					self.resIconGrid.setText(currentRow, self.canPayCol, sAmount)
 				
 				# bonuses
+				importFromPlayer = [] # advc.036
 				for iLoopBonus in range(gc.getNumBonusInfos()):
 					tradeData.iData = iLoopBonus
 					if (activePlayer.canTradeItem(iLoopPlayer, tradeData, False)):
 						if (activePlayer.canTradeItem(iLoopPlayer, tradeData, (not currentPlayer.isHuman()))): # surplus
-							self.resIconGrid.addIcon( currentRow, self.surplusCol, gc.getBonusInfo(iLoopBonus).getButton()
-													, 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS, iLoopBonus )
+							importFromPlayer.append(iLoopBonus) # advc.036
 						else: # used
 							self.resIconGrid.addIcon( currentRow, self.usedCol, gc.getBonusInfo(iLoopBonus).getButton()
 													, 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS, iLoopBonus )
@@ -1113,6 +1113,18 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 						else: # won't trade
 							self.resIconGrid.addIcon( currentRow, self.wontTradeCol, gc.getBonusInfo(iLoopBonus).getButton()
 													, 64, *BugDll.widget("WIDGET_PEDIA_JUMP_TO_BONUS_TRADE", iLoopBonus, iLoopPlayer, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS, iLoopBonus, -1) )
+				# <advc.036> Sorting both listSurplus and importSurplusFromPlayer by the number of copies owned by the active player would be even better, but would take me too long to write in Python.
+				importSurplusFromPlayer = []
+				rest = []
+				for iBonus in importFromPlayer:
+					if iBonus in listSurplus:
+						importSurplusFromPlayer.append(iBonus)
+					else: rest.append(iBonus)
+				importSorted = importSurplusFromPlayer + rest
+				for iLoopBonus in importSorted:
+					# Cut and pasted from the "bonuses" loop above
+					self.resIconGrid.addIcon( currentRow, self.surplusCol, gc.getBonusInfo(iLoopBonus).getButton(), 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS, iLoopBonus )
+				# </advc.036>
 				if (self.RES_SHOW_ACTIVE_TRADE):
 					amount = 0
 					for iLoopDeal in range(gc.getGame().getIndexAfterLastDeal()):

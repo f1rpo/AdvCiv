@@ -4954,14 +4954,14 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 	double prDisplay = c.revoltProbability(true, false, true);
 	if(prDisplay > 0) {
 		double truePr = c.revoltProbability() * (1 - prDecr);
-		swprintf(szTempBuffer, (truePr == 0 ? L"%.0f" : L"%.2f"),
+		swprintf(szTempBuffer, (truePr == 0 ? L"%.0f" : L"%.1f"),
 				(float)(100 * truePr)); // </advc.023></advc.101>
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_CHANCE_OF_REVOLT", szTempBuffer));
 		// <advc.023> Probability after occupation
 		if(truePr != prDisplay) {
 			szBuffer.append(NEWLINE);
-			swprintf(szTempBuffer, L"%.2f", (float)(100 * prDisplay));
+			swprintf(szTempBuffer, L"%.1f", (float)(100 * prDisplay));
 			if(eCulturalOwner == BARBARIAN_PLAYER || !GET_PLAYER(eCulturalOwner).isAlive())
 				szBuffer.append(gDLL->getText("TXT_KEY_NO_BARB_REVOLT_IN_OCCUPATION",
 						szTempBuffer));

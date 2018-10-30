@@ -399,12 +399,12 @@ void CvGame::regenerateMap()
 	CvMapGenerator::GetInstance().addGameElements();
 
 	gDLL->getEngineIFace()->RebuildAllPlots();
-	// <advc.004j><advc.251>
+	// <advc.251>
 	setGameTurn(0);
 	setStartTurn(0);
 	setStartTurnYear();
 	m_iElapsedGameTurns = 0;
-	// </advc.151><advc.004j>
+	// </advc.251>
 	CvEventReporter::getInstance().resetStatistics();
 
 	setInitialItems();

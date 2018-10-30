@@ -113,46 +113,46 @@
 		<Spanish>%s1_CityName (%s3_CivName) se ha rebelado y se ha unido al %s2_CivName.</Spanish>
 	</TEXT>
 
-    <!-- advc.104: Renaming the Aggressive AI option to indicate that it's now
+	<!-- advc.104: Renaming the Aggressive AI option to indicate that it's now
 		 linked with K-Mod's war-and-peace AI. Originally named
 		 in Civ4\Assets\CIV4GameTextInfos.xml. -->
-    <TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_GAME_OPTION_AGGRESSIVE_AI</Tag>
 		<English>Aggressive AI (Legacy)</English>
 		<French>IA agressive (K-Mod)</French>
 		<German>Aggressive KI (K-Mod)</German>
 		<Italian>IA aggressiva (K-Mod)</Italian>
 		<Spanish>IA agresiva (K-Mod)</Spanish>
-    </TEXT>
+	</TEXT>
 
-    <!-- advc.104: New help text for the Aggressive AI option. Original text in
+	<!-- advc.104: New help text for the Aggressive AI option. Original text in
 		 CIV4GameText_Misc1.xml. -->
-    <TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_GAME_OPTION_AGGRESSIVE_AI_HELP</Tag>
 		<English>Use the older K-Mod AI for decisions on war and peace instead of the newer (and less aggressive) AdvCiv AI. </English>
 		<French>Emploie l'IA agressive de K-Mod pour les d&#233;cisions de guerre et paix.</French>
 		<German>Verwende die K-Mod-KI f&#252;r Entscheidungen &#252;ber Krieg und Frieden (anstatt der neueren und weniger aggressiven AdvCiv-KI).</German>
 		<Italian>Usa l'IA aggressiva di K-Mod per le decisioni di guerra e pace.</Italian>
 		<Spanish>Emplea IA de K-Mod por las decisiones de guerra e paz.</Spanish>
-    </TEXT>
+	</TEXT>
 	
 	<!-- advc.250b: New game option. -->
-    <TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_GAME_OPTION_SPAH</Tag>
 		<English>Start Points as Handicap</English>
 		<French>Points de d&#233;marrage comme handicap</French>
 		<German>Startpunkte als Handicap</German>
 		<Italian>Punti di avvio come handicap</Italian>
 		<Spanish>Puntos de inicio como handicap</Spanish>
-    </TEXT>
-    <TEXT>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_GAME_OPTION_SPAH_HELP</Tag>
 		<English>Assign start points only to the AI civs in order to handicap the human players. (No effect without Advanced Start.)</English>
 		<French>Assigne des points de d&#233;marrage seulement à l'IA pour handicaper les joueurs humains.</French>
 		<German>Startpunkte nur für die KI, um die menschlichen Spieler zu handicapen.</German>
 		<Italian>Assegna i punti di avvio solo all'IA per handicappare i giocatori umani.</Italian>
 		<Spanish>Asigna los puntos de inicio solo a la IA por handicapar los jugadores humanos.</Spanish>
-    </TEXT>
+	</TEXT>
 	
 	<!-- advc.250b: Dawn-of-Man text from Civ4GameTextInfos.xml split
 		 in two. -->
@@ -174,44 +174,44 @@
 	</TEXT>
 	
 	<!-- advc.250a: Help text for added difficulty setting King.
-	     Help text for the other (unmodded) handicaps is located in
+		 Help text for the other (unmodded) handicaps is located in
 		 CIV4GameText_Help.xml. -->
 	<TEXT>
-        <Tag>TXT_KEY_HANDICAP_KING_HELP</Tag>
-        <English>Subtle advantages for the AI akin to Monarch and Prince; difficult human starting location (like Deity); AI starts with a
+		<Tag>TXT_KEY_HANDICAP_KING_HELP</Tag>
+		<English>Subtle advantages for the AI akin to Monarch and Prince; difficult human starting location (like Deity); AI starts with a
 		Worker, Pottery and an additional Warrior</English>
-        <French>Avantages subtils pour l'IA similaire de Prince et Monarque; difficile situation initiale pour le joueur (comme D&#233;it&#233;); l'IA commence avec un Ouvrier, la Poterie et un additionnel Guerrier</French>
-        <German>Unauff&#228;llige KI-Vorteile ähnlich wie bei Prinz und Monarch; schwierige Startposition f&#252;r den Spieler (wie Gottheit); die KI startet mit einem Arbeiter, T&#246;pferei und einem zus&#228;tzlichen Krieger</German>
-        <Italian>Vantaggi sottili per l'IA simile a Principe e Monarca; difficile posizione iniziale per il giocatore (come Deit&#224;); l'IA comincia con un Operaio, Ceramica e un aggiuntivo	Guerriero</Italian>
-        <Spanish>Ventajas sutiles per l'IA similar a Pr&#237;ncipe e Monarca; dif&#237;cil posici&#243;n inicial por el jugador (como Deidad); l'IA comenza con un Operario, Alfarer&#237;a y un adicional Guerrero</Spanish>
-    </TEXT>
+		<French>Avantages subtils pour l'IA similaire de Prince et Monarque; difficile situation initiale pour le joueur (comme D&#233;it&#233;); l'IA commence avec un Ouvrier, la Poterie et un additionnel Guerrier</French>
+		<German>Unauff&#228;llige KI-Vorteile ähnlich wie bei Prinz und Monarch; schwierige Startposition f&#252;r den Spieler (wie Gottheit); die KI startet mit einem Arbeiter, T&#246;pferei und einem zus&#228;tzlichen Krieger</German>
+		<Italian>Vantaggi sottili per l'IA simile a Principe e Monarca; difficile posizione iniziale per il giocatore (come Deit&#224;); l'IA comincia con un Operaio, Ceramica e un aggiuntivo	Guerriero</Italian>
+		<Spanish>Ventajas sutiles per l'IA similar a Pr&#237;ncipe e Monarca; dif&#237;cil posici&#243;n inicial por el jugador (como Deidad); l'IA comenza con un Operario, Alfarer&#237;a y un adicional Guerrero</Spanish>
+	</TEXT>
 
-    <!-- advc.250a: The names of the other (unmodded) handicaps are defined in
+	<!-- advc.250a: The names of the other (unmodded) handicaps are defined in
 		 CIV4GameTextInfos_Objects.xml -->
-    <TEXT>
-        <Tag>TXT_KEY_HANDICAP_KING</Tag>
-        <English>King</English>
-        <French>
-            <Text>Roi</Text>
-            <Gender>Male</Gender>
-            <Plural>0</Plural>
-        </French>
-        <German>
-            <Text>K&#246;nig</Text>
-            <Gender>Male</Gender>
-            <Plural>0</Plural>
-        </German>
-        <Italian>
-            <Text>R&#224;</Text>
-            <Gender>Male</Gender>
-            <Plural>0</Plural>
-        </Italian>
-        <Spanish>
-            <Text>Rey</Text>
-            <Gender>Male</Gender>
-            <Plural>0</Plural>
-        </Spanish>
-    </TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_HANDICAP_KING</Tag>
+		<English>King</English>
+		<French>
+			<Text>Roi</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</French>
+		<German>
+			<Text>K&#246;nig</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</German>
+		<Italian>
+			<Text>R&#224;</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</Italian>
+		<Spanish>
+			<Text>Rey</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</Spanish>
+	</TEXT>
 	<!-- Only changing the German text. Was "Koenig"; need that for KING. -->
 	<TEXT>
 		<Tag>TXT_KEY_HANDICAP_MONARCH</Tag>
@@ -239,8 +239,8 @@
 	</TEXT>
 	
 	<!-- advc.004a: Used in help text of promotion buttons.
-	     Akin to TXT_KEY_PEDIA_LEADS_TO in CIV4GameTextInfos.xml.
-         The "Leads to" translations are taken from there. -->
+		 Akin to TXT_KEY_PEDIA_LEADS_TO in CIV4GameTextInfos.xml.
+		 The "Leads to" translations are taken from there. -->
 	<TEXT>
 		<Tag>TXT_KEY_LEADS_TO</Tag>
 		<English>Leads to</English>
@@ -259,7 +259,7 @@
 	</TEXT>
 	
 	<!-- advc.004a
-	     Text fragments used for showing bulb paths as help text
+		 Text fragments used for showing bulb paths as help text
 		 when a GP is selected.
 		 Flavor types: Don't have text keys; presumably,
 		 because flavors are an under-the-hood mechanism in BtS. -->
@@ -540,7 +540,7 @@
 	
 	<!-- advc.550
 		 Just added the word "better"; the rest is copied from vanilla
-         Civ4GameTextInfos.xml. -->
+		 Civ4GameTextInfos.xml. -->
 	<TEXT>
 		<Tag>TXT_KEY_ANGER_MILITARY_PROTECTION</Tag>
 		<English>+%d1_Change[ICON_UNHAPPY]: "We fear for our safety. We demand better military protection!"</English>
@@ -551,7 +551,7 @@
 	</TEXT>
 	
 	<!-- advc.004g: "close" borders sounds too similar to "closed".
-         That would be tolerable, but the German and Spanish translation
+		 That would be tolerable, but the German and Spanish translation
 		 actually get it wrong (geschlossen, cerrada). -->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_ATTITUDE_LAND_TARGET</Tag>
@@ -563,7 +563,7 @@
 	</TEXT>
 
 	<!-- advc.004g: "just don't like you enough" suggests that there
-	     is no other obstacle. -->
+		 is no other obstacle. -->
 	<TEXT>
 		<Tag>TXT_KEY_DENIAL_ATTITUDE</Tag>
 		<English>"We don't like you enough."</English>
@@ -673,7 +673,7 @@
 	</TEXT>
 
 	<!-- advc.004g: Originally in CIV4GameTextInfos.xml; info about right-click
-		 shorthand added.  -->
+		 shorthand added. -->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_INCREASE_RATE</Tag>
 		<English>Increase %s1_CmrcType Rate by %d2_Mod%%. (Right-click to set to 100%.)</English>
@@ -760,6 +760,192 @@
 		<German>Zeigt die Umkreise bisheriger Städte an, wenn ein Siedler ausgewählt ist.</German>
 		<Italian>Mostra i raggi d'azione delle citt&#224; selezionando un colono</Italian>
 		<Spanish>Para ver los radios urbanos al seleccionar a un colono</Spanish>
+	</TEXT>
+	
+	<!-- advc.137: Originally in Civ4GameText_Help.xml. Changed only English and
+		 German. -->
+	<TEXT>
+		<Tag>TXT_KEY_HANDICAP_SETTLER_HELP</Tag>
+		<English>The easiest level. To help you against your AI opponents, your technologies are much cheaper than theirs, your expenses are greatly reduced and your citizens stay happy and healthy longer. You also receive some additional technologies at the start of the game. The AI players are easy to please (also among themselves), reluctant to start wars and receive production and city growth penalties. Few Barbarians and wild animals appear and the civilizations are guaranteed to win the first few encounters with them.</English>
+		<French>C'est le niveau de difficult&#233; le plus facile et le choix id&#233;al pour votre premi&#232;re partie ou pour essayer une nouvelle strat&#233;gie. Au niveau Chef tribal, les barbares et les animaux sauvages sont moins agressifs, vos citoyens restent heureux et en bonne sant&#233; plus longtemps et de nombreux bonus de production sont pr&#233;vus pour vous aider.</French>
+		<German>Die einfachste Schwierigkeitsstufe. Als Hilfestellung gegenüber der KI erhalten Sie Rabatte auf alle Technologien, zahlen stark reduzierte Ausgaben und Ihre Bürger bleiben länger zufrieden und gesund. Außerdem erhalten Sie zusätzliche Gratis-Technologien zu Beginn des Spiels. Die KI-Spieler sind kooperativ (auch untereinander), zögern lange, ehe sie einen Krieg beginnen, und erhalten Mali auf Produktion und Wachstum. Nur wenige Barbaren und wilde Tiere erscheinen und sind kaum eine Bedrohung für Ihre Krieger.</German>
+		<Italian>Il livello di difficolt&#224; pi&#249; semplice e il modo migliore per iniziare la tua prima partita oppure se desideri provare una nuova strategia. Giocando al livello Colono, i Barbari e gli animali selvaggi saranno meno aggressivi, i tuoi cittadini saranno pi&#249; felici, godranno di buona salute pi&#249; a lungo e potrai contare su molti bonus produttivi.</Italian>
+		<Spanish>El nivel de dificultad m&#225;s f&#225;cil y una manera excelente de empezar con vuestra primera partida o probar una estrategia nueva.  Como Colono, ver&#233;is que los b&#225;rbaros y animales salvajes son menos agresivos, que los ciudadanos est&#225;n m&#225;s felices y sanos y que habr&#225; muchas bonificaciones a la producci&#243;n para ayudaros.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_HANDICAP_CHIEFTAIN_HELP</Tag>
+		<English>An easy level. The research, growth and production advantages you receive over the AI players are quite a bit lower than on Settler difficulty, but still sizable. As on Settler, the game tries to assign one of the best starting locations to you. The AI players are mostly cooperative, but not entirely unlikely to start wars and somewhat reluctant to trade technologies (to anyone). Barbarians appear already fairly frequently, but are still easily defeated.</English>
+		<French>C'est un niveau de difficult&#233; relativement facile et un bon choix pour essayer une nouvelle strat&#233;gie. Les barbares et les animaux sauvages sont plus agressifs et vous ne disposez d'aucun bonus.</French>
+		<German>Eine einfache Schwierigkeitsstufe. Die Vorteile, die Sie bei Forschung, Wachstum und Produktion gegenüber den KI-Spielern erhalten, sind deutlich geringer als auf "Siedler"-Schwierigkeit, aber immer noch beträchtlich. Die KI-Spieler sind i. W. umgänglich, halten sich aber beim Handel mit Technologien etwas zurück und Kriegserklärungen sind nicht ganz unwahrscheinlich. Barbaren treten bereits recht zahlreich auf, sind aber immer noch leicht zu besiegen.</German>
+		<Italian>Un livello di difficolt&#224; abbastanza basso, utile per provare una nuova strategia. I barbari e gli animali selvaggi sono pi&#249; forti e aggressivi, inoltre non otterrai molti bonus.</Italian>
+		<Spanish>Un nivel de dificultad relativamente bajo, bueno para probar nuevas estrategias.  Los b&#225;rbaros y animales salvajes son m&#225;s fuertes y agresivos y no se reciben tantas bonificaciones.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_HANDICAP_WARLORD_HELP</Tag>
+		<English>A bit easier than medium. As on Chieftain difficulty, various player advantages (research, growth, production) apply, but they're mostly just 10% discounts for you or 10% penalties for the AI players. Health and happiness already work the same way as on all the higher levels. The AI is only slightly more cooperative than on Noble difficulty. Unlike on the lower levels, tribal villages can't yield Settlers.</English>
+		<French>Les Seigneurs de guerre rencontreront davantage de difficult&#233;s. Vos adversaires sont plus coriaces et agressifs. Surveillez vos arri&#232;res !</French>
+		<German>Eine mittlere bis leichte Schwierigkeitsstufe. Wie auf "Häuptling" erhalten Sie zwar diverse Vorteile gegenüber den KI-Spielern (Forschung, Wachstum, Produktion), aber das sind in der Regel nur noch 10%-Rabatte für Sie oder 10%-Aufschläge für die KI. Zufriedenheit und Gesundheit werden schon genau so streng behandelt wie auf den höheren Schwierigkeitsstufen. Die KI ist etwas kooperativer als auf "Adliger". Anders als auf den niedrigeren Stufen können Stammesdörfer keine Siedler liefern.</German>
+		<Italian>I guerrieri hanno una vita un po' pi&#249; difficile: i tuoi avversari sono meno permissivi e pi&#249; aggressivi. Fai attenzione!</Italian>
+		<Spanish>Los Caudillos lo tienen un poco m&#225;s crudo.  Los oponentes son menos clementes y m&#225;s peligrosos. &#161;Mucho cuidado!</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_HANDICAP_NOBLE_HELP</Tag>
+		<English>This level puts you and the AI players on equal footing. Caveat: Regardless of the difficulty setting, humans receive some special treatment by the AI players in diplomacy, and the AI players receive a few advantages to help them defend their cities, mainly a discount on unit upgrade costs. The higher difficulty levels do not make the AI any smarter.</English>
+		<French>Les R&#233;gents doivent faire face &#224; leurs nombreuses responsabilit&#233;s. Il s'agit donc d'un niveau de difficult&#233; tr&#232;s &#233;quilibr&#233; et id&#233;al comme point de d&#233;part pour les v&#233;t&#233;rans de Civilization.</French>
+		<German>Auf dieser Schwierigkeitsstufe spielen Sie und Ihre KI-Gegner weitgehend nach gleichen Regeln, allerdings mit einigen Ausnahmen, die auf allen Schwierigkeitsstufen gelten: So erfahren menschliche Spieler in Handel und Diplomatie in manchen Fällen eine Sonderbehandlung, und die KI-Spieler erhalten einige Vorteile (vor allem einen Rabatt bei der Modernisierung von Einheiten), die es ihnen erleichtern, ihre Städte zu verteidigen.</German>
+		<Italian>I Nobili devono saper bilanciare le loro grandi responsabilit&#224; e, per questo motivo, questo &#232; il livello pi&#249; equilibrato. I veterani di Civilization lo troveranno il livello ideale per iniziare.</Italian>
+		<Spanish>Los Nobles tienen que equilibrar sus diversas responsabilidades, as&#237; que &#233;ste es el nivel m&#225;s equilibrado.  Los veteranos del Civi comprobar&#225;n que este nivel es un punto estupendo por el que empezar. </Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_HANDICAP_PRINCE_HELP</Tag>
+		<English>This is the median difficulty level. The AI players receive subtle bonuses on research, growth and production, just 5% initially and increasing very slightly with each era, whereas your costs for technologies and expenses are increased a bit, essentially by 10%. Barbarians keep getting more numerous with every difficulty level, and, on Prince, your combat bonus against Barbarians is only 5%.</English>
+		<French>En tant que Prince, vous devrez prouver que vous avez du sang royal. Avec un handicap contre l'I.A., dont la production et la recherche sont bien plus rapides que les v&#244;tres. Il faudra tr&#232;s bien jouer pour remporter la victoire.</French>
+		<German>Diese Schwierigkeitsstufe liegt genau in der Mitte. Die KI-Spieler erhalten kleine Boni (5%) auf Forschung, Wachstum und Produktion, die sich mit jedem Zeitalter ein klein wenig erhöhen. Dagegen sind Ihre Technologiekosten und Ausgaben etwas erhöht, i. W. um 10%. Barbaren werden mit dieser (und jeder weiteren) Stufe noch zahlreicher, und Ihr Kampfbonus gegen Barbaren beträgt nur noch 5%.</German>
+		<Italian>Come Principe, dovrai saper dimostrare di essere di vera stirpe reale. Quest'ultima pu&#242; produrre e fare ricerche pi&#249; velocemente di te, pertanto dovrai giocare con maggior impegno per poter vincere.</Italian>
+		<Spanish>Como Pr&#237;ncipe, tendr&#233;is que demostrar que ten&#233;is sangre real de verdad.  La IA producir&#225; e investigar&#225; algo m&#225;s deprisa que vos, por lo que tendr&#233;is que jugar mucho mejor para lograr la victoria.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_HANDICAP_MONARCH_HELP</Tag>
+		<English>A challenging level. The AI advantages are higher than on Prince (by another 5 percentage points) and increase more noticeably with each era. The AI players start the game with Archery, which makes early attacks on the AI much harder than on Prince. You should also expect the Barbarians to adopt Archery before long.</English>
+		<French>Pour les Monarques, les d&#233;fis qui se pr&#233;sentent sont d'une toute autre ampleur. L'entretien est plus cher, la recherche plus lente, votre peuple plus exigeant et vos adversaires I.A. tout simplement plus intelligents.</French>
+		<German>Eine anspruchsvolle Schwierigkeitsstufe. Die KI-Vorteile sind höher als auf "Prinz" (um weitere 5 Prozentpunkte) und steigen im Laufe der Zeitalter merklich. Die KI-Spieler beherrschen von Anfang an das Bogenschießen; dadurch ist es deutlich schwieriger als auf "Prinz", die KI im frühen Spiel anzugreifen. Sie müssen auch damit rechnen, dass die Barbaren sich das Bogenschießen recht bald aneignen.</German>
+		<Italian>Per i Monarchi, la sfida comincia a farsi impegnativa. Il costo di mantenimento &#232; superiore, la ricerca pi&#249; lenta, la gente pi&#249; difficile da accontentare e gli avversari computerizzati pi&#249; scaltri.</Italian>
+		<Spanish>Para los Monarcas, el reto empieza a ponerse serio en este nivel.  El mantenimiento es m&#225;s alto, la investigaci&#243;n, m&#225;s lenta, vuestro pueblo es m&#225;s dif&#237;cil de complacer y los oponentes que lleva el ordenador son m&#225;s astutos.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_HANDICAP_EMPEROR_HELP</Tag>
+		<English>A hard level, but beatable without resorting to any dirty tricks. The ongoing AI bonuses become very noticeable on this level and make it difficult to match the AI in military power. The AI players start with Hunting and a free Scout and two Archers, so don't be surprised if you find few unexplored tribal villages.</English>
+		<French>Vous vous sentez l'&#226;me d'un empereur ? Si tel est le cas, vous devrez le prouver en terrassant des ennemis rapides et agressifs et en r&#233;gnant sur une population de plus en plus difficile &#224; motiver et &#224; satisfaire. C'est un vrai d&#233;fi pour les experts de Civilization.</French>
+		<German>Eine schwierige Stufe, aber auch ohne unfaire Mittel machbar. Angesichts der deutlichen Boni für die KI-Spieler ist es allerdings schwierig, militärisch mitzuhalten. Die KI-Spieler beginnen das Spiel mit je einem Kundschafter und zwei Bogenschützen; wundern Sie sich also nicht, wenn kaum Stammesdörfer für Sie übrigbleiben.</German>
+		<Italian>Sei pronto per diventare Imperatore? Se s&#236;, dovrai affrontare con coraggio gli avversari, rapidi e aggressivi, e allo stesso tempo cercare di soddisfare la tua popolazione, pi&#249; difficile da compiacere e motivare. Una vera sfida per gli esperti di Civilization.</Italian>
+		<Spanish>&#191;Est&#225;is listo para ser emperador?  De ser as&#237;, tendr&#233;is que demostrar vuestra val&#237;a derrotando a adversarios m&#225;s r&#225;pidos y agresivos a la vez que cuid&#225;is de una poblaci&#243;n m&#225;s dif&#237;cil de motivar y complacer. Esto es una prueba de verdad para los expertos en Civilization.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_HANDICAP_IMMORTAL_HELP</Tag>
+		<English>Very hard. Apart from receiving high ongoing bonuses, the AI players start the game with a Worker, two Scouts, three Archers and, in total, up to five technologies. The game starts on turn 10 in order to match this big head start. Your units receive no combat bonus against Barbarians.</English>
+		<French>Peu nombreux sont ceux qui peuvent revendiquer une place parmi les Immortels. C'est l&#224; un d&#233;fi que seuls les plus exp&#233;riment&#233;s sauront relever.</French>
+		<German>Sehr schwierig. Zusätzlich zu hohen andauernden Boni erhalten die KI-Spieler zu Spielbeginn einen Bautrupp, zwei Kundschafter, drei Bogesnchützen und, insgesamt, bis zu fünf Technologien. Die Barbaren sind Ihren Einheiten voll ebenbürtig (kein Kampfbonus mehr).</German>
+		<Italian>Solo in pochi possono appartenere alla schiera degli Immortali. Una prova molto impegnativa, anche per i pi&#249; esperti.</Italian>
+		<Spanish>Solo unos cuantos pueden contarse entre las filas de los inmortales.  Esto resulta una prueba demoledora para todos, excepto para los m&#225;s experimentados.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_HANDICAP_DEITY_HELP</Tag>
+		<English>Extremely hard. The bonuses for the AI are much higher than on Immortal difficulty, to the point that, after the first two eras, the AI gets units and technologies at half their normal cost. In addition to other free items (see Immortal), the AI starts the game with a second Settler. With the AdvCiv mod, hopefully Immortal is hard enough for nearly everyone.</English>
+		<French>L'ultime &#233;preuve, r&#233;serv&#233;e aux meilleurs joueurs. Serez-vous &#224; la hauteur ?</French>
+		<German>Extrem schwierig. Die Vorteile der KI sind noch einmal deutlich höher als auf "Unsterblicher". Schon nach zwei Zeitaltern sind die Boni so hoch, dass die KI-Spieler z.B. Technologien und Einheiten zum halben Preis bekommen. Zu den Starteinheiten für die KI gehört ein zweiter Siedler. Mit dem AdvCiv-Mod sollte "Unsterblicher" für fast jeden schwierig genug sein.</German>
+		<Italian>La prova definitiva per i migliori giocatori di Civilization. Ce la farai?</Italian>
+		<Spanish>La prueba definitiva, solo para los mejores jugadores del Civi. &#191;Podr&#225; superarla alguien?</Spanish>
+	</TEXT>
+	<!-- From Civ4GameText_Misc1.xml (because Marathon speed was added by
+		 patch 1.52) -->
+	<TEXT>
+		<Tag>TXT_KEY_GAMESPEED_MARATHON_HELP</Tag>
+		<English>Up to 1500 turns. Research, growth and building production take three times longer than on normal speed, but unit production takes only two times longer. This setting favors warfare and demands a lot of patience.</English>
+		<French>Cette vitesse de jeu tr&#232;s lente permet de faire entrer dans chaque &#232;re le m&#234;me nombre de tours que pour une partie classique.</French>
+		<German>Bis zu 1500 Züge. Forschung, Wachstum und Bau dauern dreimal so lange wie bei normaler Geschwindigkeit, während Einheitenproduktion nur zweimal so lange dauert, was Eroberungskriege begünstigt. Diese Option erfordert ein hohes Durchhaltevermögen.</German>
+		<Italian>Questa velocit&#224; di gioco incredibilmente lunga permetter&#224; una quantit&#224; di turni pari a quelli di una partita normale per ogni era.</Italian>
+		<Spanish>A esta velocidad prolongada, se tarda casi tantos turnos en completar cada &#233;poca como en una partida normal.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GAMESPEED_EPIC_HELP</Tag>
+		<English>Up to 750 turns. Research, growth and production take 50% longer than on normal speed. As unit movement is unaffected by game speed, this setting allows more time for warfare in each era.</English>
+		<French>Si vous choisissez cette vitesse, le temps passera tr&#232;s lentement. Le jeu est &#233;quilibr&#233; pour durer plus longtemps, mais vous aurez l'impression de jouer &#224; une partie normale.</French>
+		<German>Bis zu 750 Züge. Forschung, Wachstum und Produktion dauern 50% länger als bei normaler Geschwindigkeit. Da die Bewegung von Einheiten nicht von der Spielgeschwindigkeit abhängt, bleibt in jedem Zeitalter mehr Zeit für Kriege.</German>
+		<Italian>Scegliendo questa velocit&#224;, potrai provare l'esperienza dello scorrere del tempo. Il gioco &#232; bilanciato per durare pi&#249; a lungo, ma avrai la sensazione di giocare una partita normale.</Italian>
+		<Spanish>Experimentar&#233;is todo el transcurso del tiempo si escog&#233;is esta velocidad.  La partida est&#225; equilibrada para durar m&#225;s, aunque seguir&#225; pareciendo normal.</Spanish>
+	</TEXT>
+	<!-- I've only added the turn number here (assuming Ancient-era start and
+		 enabled Time victory) -->
+	<TEXT>
+		<Tag>TXT_KEY_GAMESPEED_NORMAL_HELP</Tag>
+		<English>Up to 500 turns. This is the traditional game speed for Civ.</English>
+		<French>La vitesse par d&#233;faut utilis&#233;e dans le jeu.</French>
+		<German>Bis zu 500 Züge. Die traditionelle Spielgeschwindigkeit von Civilization.</German>
+		<Italian>Questa &#232; la velocit&#224; di gioco tradizionale di Civilization.</Italian>
+		<Spanish>Es la velocidad de juego tradicional del Civi.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GAMESPEED_QUICK_HELP</Tag>
+		<English>Up to 335 turns. Research, growth and production are 33% faster than on normal speed. As unit movement is unaffected by game speed, warfare is relatively slow. This setting is worth considering especially for multiplayer games and small maps.</English>
+		<French>Tout se d&#233;roulera plus vite &#224; cette vitesse. Le jeu sera plus rapide, mais toujours &#233;quilibr&#233; pour conserver l'impression d'une partie normale.</French>
+		<German>Bis zu 335 Züge. Forschung, Wachstum und Produktion dauern 33% kürzer als bei normaler Geschwindigkeit. Da die Bewegung von Einheiten nicht von der Spielgeschwindigkeit abhängt, dauert das Erobern von Städten verhältnismäßig lange. Diese Option is besonders für den Mehrspielermodus und für kleine Karten attraktiv.</German>
+		<Italian>Scegli questa opzione per avviare una partita nella quale le cose avvengono pi&#249; rapidamente. La partita sar&#224; pi&#249; veloce, ma bilanciata in modo da sembrare una partita normale.</Italian>
+		<Spanish>Escoged &#233;sta si quer&#233;is una partida en la que todo suceda un poco m&#225;s deprisa.  La partida ser&#225; m&#225;s r&#225;pida pero estar&#225; equilibrada para seguir pareciendo normal.</Spanish>
+	</TEXT>
+	<!-- I don't think these are shown anywhere, but I still wanted to correct
+		 the recommended player counts (in English and German only).-->
+	<TEXT>
+		<Tag>TXT_KEY_WORLDSIZE_DUEL_HELP</Tag>
+		<English>A map with for just 2 players (or also 3 with low sea level).</English>
+		<French>Cette carte minuscule n'abrite qu'un seul adversaire. Elle est plus difficile qu'il n'y para&#238;t, car vous devrez mener vos recherches sans le recours &#224; plusieurs partenaires commerciaux.</French>
+		<German>Eine Karte für 2 Spieler (oder auch drei bei niedrigem Meeresspiegel).</German>
+		<Italian>Una mappa molto piccola con un solo avversario. &#200; pi&#249; dura di quanto possa sembrare, poich&#233; dovrai svolgere del lavoro extra per sopperire alla mancanza di civilt&#224; con cui commerciare.</Italian>
+		<Spanish>Un mapa muy diminuto, con un solo adversario.  Es m&#225;s dif&#237;cil de lo que parece porque tendr&#233;is que trabajar m&#225;s duro e investigar sin el beneficio de tener varios socios con los que realizar intercambios.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_WORLDSIZE_TINY_HELP</Tag>
+		<English>A map for 2 to 4 players (depending on sea level).</English>
+		<French>Une carte tr&#232;s petite avec deux adversaires. Vous d&#233;couvrirez vite les autres civilisations et les parties de type Conqu&#234;te sont plus rapides.</French>
+		<German>Eine Karte für 2 bis 4 Spieler (je nach Meeresspiegel).</German>
+		<Italian>Una mappa molto piccola con due avversari. Incontrerai presto le altre civilt&#224;, perci&#242; le partite a conquista sono pi&#249; rapide.</Italian>
+		<Spanish>Un mapa muy peque&#241;o, con dos oponentes.  Os encontrar&#233;is a otras civilizaciones enseguida y las partidas de conquista ir&#225;n m&#225;s r&#225;pido.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_WORLDSIZE_SMALL_HELP</Tag>
+		<English>A map for 3 to 7 players. That is, with low sea level, this map is large enough to host CIV's default number of players.</English>
+		<French>Une carte l&#233;g&#232;rement plus grande pouvant accueillir 4 adversaires.</French>
+		<German>Eine Karte für 3 bis 7 Spieler. Bei niedrigem Meeresspiegel ist diese Karte also groß genug für die Standard-Spielerzahl.</German>
+		<Italian>Una mappa leggermente pi&#249; grande, studiata per ospitare fino a quattro rivali per te.</Italian>
+		<Spanish>Un mapa algo mayor, con el tama&#241;o justo para albergar a cuatro rivales.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_WORLDSIZE_STANDARD_HELP</Tag>
+		<English>A map for 5 to 12 players, depending on sea level and preference.</English>
+		<French>C'est la taille de carte par d&#233;faut, con&#231;ue pour abriter 7 civilisations. Vous avez de grandes &#233;tendues &#224; explorer, mais la solitude ne vous p&#232;sera pas tr&#232;s longtemps.</French>
+		<German>Eine Karte für 5 bis 12 Spieler, je nach Meeresspiegel und Vorlieben.</German>
+		<Italian>Questa &#232; la mappa predefinita, disegnata per ospitare un totale di sette civilt&#224;. Ci sono molte opportunit&#224; di esplorazione, ma presto non ti sentirai pi&#249; solo.</Italian>
+		<Spanish>Este mapa es la elecci&#243;n predeterminada y est&#225; dise&#241;ado para albergar a siete civilizaciones en total.  Hay muchas posibilidades de explorar, pero es posible que no tard&#233;is mucho en dejar de sentiros solo.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_WORLDSIZE_LARGE_HELP</Tag>
+		<English>A map for 7 to 16 players, depending on sea level and preference.</English>
+		<French>Pour ceux qui aiment l'exploration et qui veulent beaucoup d'espace. La taille de cette carte lui permet d'accueillir 9 civilisations.</French>
+		<German>Eine Karte für 7 bis 16 Spieler, je nach Meeresspiegel und Vorlieben.</German>
+		<Italian>Per gente che vuole spazio per espandersi ed esplorare. Questa mappa supporta tranquillamente fino a nove civilt&#224;.</Italian>
+		<Spanish>Para los que quieran tener m&#225;s espacio que explorar y por el que expandirse.  El tama&#241;o de este mapa permite albergar nueve civilizaciones con facilidad.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_WORLDSIZE_HUGE_HELP</Tag>
+		<English>A map for 10 to 18 players, depending on sea level and preference. (With low sea level, even up to 25 players could be accommodated, but the normal version of the AdvCiv mod doesn't support that many players.) Domination victory is difficult to achieve on such an expansive map unless the game speed is lowered. AI turn times may require some patience in the late game.</English>
+		<French>Si vous voulez vivre une v&#233;ritable &#233;pop&#233;e, cette carte est faite pour vous. Elle est immense et oppose 10 adversaires.</French>
+		<German>Eine Karte für 10 bis 18 Spieler, je nach Meeresspiegel und Vorlieben. (Bei niedrigem Meeresspiegel könnten sogar bis zu 25 Spieler untergebracht werden, aber in der Standardversion des AdvCiv-Mods ist 18 die Obergrenze.) Ein Sieg durch Vorherrschaft ist auf einer so ausgedehnten Karte bei normaler Spielgeschwindigkeit kaum machbar. In den letzten Zeitaltern des Spiels könnten etwas Geduld erfordern, auch wegen der KI-Rechenzeiten.</German>
+		<Italian>Se sei alla ricerca di un'esperienza davvero epica, la dimensione di questa mappa &#232; quello che fa per te, poich&#233; oltre a te c'&#232; posto per altri dieci rivali.</Italian>
+		<Spanish>Si quer&#233;is una experiencia &#233;pica de verdad, el tama&#241;o de este mapa es lo que and&#225;is buscando.  Tiene espacio suficiente para vos y para otros diez rivales.</Spanish>
+	</TEXT>
+	<!-- Also unused I think. Only German and English changed. -->
+	<TEXT>
+		<Tag>TXT_KEY_SEALEVEL_LOW_HELP</Tag>
+		<English>A low sea level implies a higher percentage (about 30%) of land tiles and thus more space for cities and smaller distances between continents.</English>
+		<French>Si le niveau de la mer est bas, de grands continents appara&#238;tront sur la carte.</French>
+		<German>Ein niedriger Meeresspiegel bedeutet einen höheren Anteil von Landfeldern (ca. 30%) und damit mehr Platz für Städte und kleinere Abstände zwischen Kontinenten.</German>
+		<Italian>Quando il livello delle acque del mare &#232; basso, sulla mappa appaiono grandi continenti.</Italian>
+		<Spanish>Cuando el nivel del mar es bajo, aparecen en el mapa grandes continentes.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_SEALEVEL_MEDIUM_HELP</Tag>
+		<English>The default setting. About 25% of the tiles are land tiles, which is close to the Earth's land ratio (29%) considering that no land is placed at the South Pole.</English>
+		<French>Le r&#233;glage par d&#233;faut, avec une proportion normale de terres et d'eau.</French>
+		<German>Die Standardeinstellung: Etwa 25% der Felder sind Land. Dies kommt dem Landanteil der Erde (29%) nahe, wenn man berücksichtigt, dass der Südpol im Spiel aus Meereis besteht.</German>
+		<Italian>Questa &#232; l'impostazione predefinita per le normali quantit&#224; di terra e acqua. </Italian>
+		<Spanish>&#201;ste es el ajuste predeterminado, con la mezcla normal de agua y tierra.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_SEALEVEL_HIGH_HELP</Tag>
+		<English>A high sea level implies a lower percentage (about 20%) of land tiles and thus less space for cities and greater distances between continents.</English>
+		<French>Vous aurez besoin d'une flotte puissante si les oc&#233;ans sont vastes et parsem&#233;s de nombreuses &#238;les.</French>
+		<German>Ein hoher Meeresspiegel bedeutet einen niedrigeren Anteil von Landfeldern (ca. 20%) und damit weniger Platz für Städte und größere Abstände zwischen den Kontinenten.</German>
+		<Italian>Avrai bisogno di una flotta molto potente per affrontare l'alto mare e raggiungere la moltitudine di isole.</Italian>
+		<Spanish>Necesitar&#233;is una gran armada para jugar con todos estos mares e islas.</Spanish>
 	</TEXT>
 	
 	<!-- advc.907b: Original in CIV4GameTextInfos_Objects.xml -->
@@ -877,7 +1063,7 @@
 	</TEXT>
 	
 	<!-- advc.150a: Akin to TXT_KEY_MISC_PLAYER_CONVERT_RELIGION in
-	     (Vanilla) Civ4GameTextInfos. -->
+		 (Vanilla) Civ4GameTextInfos. -->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_PLAYER_RENOUNCE_RELIGION</Tag>
 		<English>%s1_PlyrName renounces %s2_RelName!</English>
@@ -905,30 +1091,30 @@
 	</TEXT>
 	
 	<!-- advc.099: Overwrites CIV4GameTextInfos.xml. Since its culture
-	     remains in the game, it isn't accurate to say the civ was
+		 remains in the game, it isn't accurate to say the civ was
 		 "destroyed". (Or better "vanquished"?) --> 
 	<!--TEXT>
-        <Tag>TXT_KEY_MISC_CIV_DESTROYED</Tag>
-        <English>The %s1_CivAdj civilization has been conquered!!</English>
-        <French>Les %s1_CivAdj est &#233;t&#233; conquis!!</French>
-        <German>Die %s1:3_CivAdj Zivilisation wurde erobert!!</German>
-        <Italian>La civilt&#224; %s1:4_CivAdj &#232; stato conquistata!!</Italian>
-        <Spanish>&#161;La civilizaci&#243;n %s1:2_CivAdj ha sido conquistada!</Spanish>
-    </TEXT-->
+		<Tag>TXT_KEY_MISC_CIV_DESTROYED</Tag>
+		<English>The %s1_CivAdj civilization has been conquered!!</English>
+		<French>Les %s1_CivAdj est &#233;t&#233; conquis!!</French>
+		<German>Die %s1:3_CivAdj Zivilisation wurde erobert!!</German>
+		<Italian>La civilt&#224; %s1:4_CivAdj &#232; stato conquistata!!</Italian>
+		<Spanish>&#161;La civilizaci&#243;n %s1:2_CivAdj ha sido conquistada!</Spanish>
+	</TEXT-->
 	<!-- Next try; similar to TXT_KEY_MISC_DEFEAT in CIV4GameText_Misc1.xml: -->
 	<TEXT>
-        <Tag>TXT_KEY_PLAYER_ELIMINATED</Tag>
-        <English>%s1_Plyr has been defeated!!</English>
-        <French>%s1_Plyr a été [NUM1:défait:défaite] !!</French>
-        <German>%s1_Plyr wurde besiegt!!</German>
-        <Italian>%s1_Plyr è stat[NUM1:o:a] sconfitt[NUM1:o:a]!!</Italian>
-        <Spanish>%s1_Plyr ha sido derrotad[NUM1:o:a]!!</Spanish>
-    </TEXT>
+		<Tag>TXT_KEY_PLAYER_ELIMINATED</Tag>
+		<English>%s1_Plyr has been defeated!!</English>
+		<French>%s1_Plyr a été [NUM1:défait:défaite] !!</French>
+		<German>%s1_Plyr wurde besiegt!!</German>
+		<Italian>%s1_Plyr è stat[NUM1:o:a] sconfitt[NUM1:o:a]!!</Italian>
+		<Spanish>%s1_Plyr ha sido derrotad[NUM1:o:a]!!</Spanish>
+	</TEXT>
 	
 	<!-- advc.099: Used to say "we yearn to join our motherland", which
-	     may suggest to players that this was somehow possible, but isn't
-	     when their civ has been eliminated, and I guess the barbarian civ
-	     also isn't supposed to be perceived as a "motherland". My attempt
+		 may suggest to players that this was somehow possible, but isn't
+		 when their civ has been eliminated, and I guess the barbarian civ
+		 also isn't supposed to be perceived as a "motherland". My attempt
 		 is descriptive, but a little dry and maybe too similar to "down
 		 with foreign influence" (vassal civs receive that penalty). -->
 	<TEXT>
@@ -940,7 +1126,7 @@
 		<Spanish>+%d1_Change [ICON_UNHAPPY]: "Rehusamos de estar gobernados por una cultura extra&#241;a."</Spanish>
 	</TEXT>
 	<!-- More subtle attempt (not currently used) with especially shaky
-	     Italian and Spanish -->
+		 Italian and Spanish -->
 	<TEXT>
 		<Tag>UNUSED_TXT_KEY_ANGER_OCCUPIED</Tag>
 		<English>+%d1_Change[ICON_UNHAPPY]: "We yearn for our Motherland!"</English>
@@ -951,11 +1137,10 @@
 	</TEXT>
 
 	<!-- advc.001: Deleted duplicate German entry. Probably harmless
-         b/c the text is apparently never displayed (just an example/
+		 b/c the text is apparently never displayed (just an example/
 		 template), and if does cause problems, I'm not sure if
 		 overwriting it here would fix them.
-		 Pointed out by Ramkhamhaeng and AbsintheRed in the
-		 K-Mod thread. -->
+		 Pointed out by Ramkhamhaeng and AbsintheRed in the K-Mod thread. -->
 	<TEXT>
 		<Tag>TXT_KEY_EVENT_CIV_GAME_1</Tag>
 		<English>Send congratulations to the developers. Our people should enjoy this game.</English>
@@ -966,7 +1151,7 @@
 	</TEXT>
 
 	<!-- advc.001b: Explanation why aircraft can't be built when
-         the city's capacity would be exceeded upon completion.
+		 the city's capacity would be exceeded upon completion.
 		 Couldn't do Spanish. -->
 	<TEXT>
 		<Tag>TXT_KEY_NOT_ENOUGH_SPACE</Tag>
@@ -1020,7 +1205,7 @@
 		<Spanish>[ICON_BULLET]Puede atacar solo a los bárbaros</Spanish>
 	</TEXT>
 	<!-- advc.315c: The parentheses are there in order to teach players that
-		 it's correct when combat help says "vs. Barbarians"  - since Animals
+		 it's correct when combat help says "vs. Barbarians" - since Animals
 		 count as Barbarians. -->
 	<TEXT>
 		<Tag>TXT_KEY_UNIT_BARBARIAN_COMBAT_MOD</Tag>
@@ -1079,7 +1264,7 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_SEALEVEL_HIGH</Tag>
-		<English>High - fewer players recommended (-25%%)</English>
+		<English>High - fewer players recommended (-30%%)</English>
 		<French>Haut</French>
 		<German>Hoch</German>
 		<Italian>Alto</Italian>
@@ -2247,7 +2432,7 @@
 		</Spanish>
 	</TEXT>
 	
-	<!-- advc.130o (No longer used)  -->
+	<!-- advc.130o (No longer used) -->
 	<TEXT>
 		<Tag>TXT_KEY_MEMORY_EXACTED_TRIBUTE</Tag>
 		<English>"You've exacted tribute from us."</English>
@@ -3334,6 +3519,41 @@
 		<Italian>Soglia</Italian>
 		<Spanish>Límite</Spanish>
 	</TEXT>
+	
+	<!-- advc.120f -->
+	<!-- Based on TXT_KEY_ESPIONAGE_TARGET_SWITCH_CIVIC in
+		 CIV4GameText_BTS.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_ESPIONAGE_3RD_PARTY_SWITCH_CIVIC</Tag>
+		<English>Infiltrators have taken control of the %s1_CivAdjective government.</English>
+		<French>Infiltr&#233;s ont pris le contr&#244;le du gouvernement %s1_CivAdjective.</French>
+		<German>Spione haben die Kontrolle &#252;ber die %s1_CivAdjective Regierung &#252;bernommen.</German>
+		<Italian>Infiltrati hanno preso il controllo del governo %s1_CivAdjective.</Italian>
+		<Spanish>Infiltrados se han hecho con el control del gobierno %s1_CivAdjective.</Spanish>
+	</TEXT>
+	<!-- Based on TXT_KEY_ESPIONAGE_TARGET_SWITCH_RELIGION in
+		 CIV4GameText_BTS.xml. (Says "gobierno" there in Spanish, but that's
+		 not worth correcting.) -->
+	<TEXT>
+		<Tag>TXT_KEY_ESPIONAGE_3RD_PARTY_SWITCH_RELIGION</Tag>
+		<English>Infiltrators have taken control of the %s1_CivAdjective clergy.</English>
+		<French>Infiltr&#233;s ont pris le contr&#244;le du clerg&#233; %s1_CivAdjective.</French>
+		<German>Spione haben die Kontrolle &#252;ber die %s1_CivAdjective Geistlichkeit &#252;bernommen.</German>
+		<Italian>Infiltrati hanno preso il controllo del clero %s1_CivAdjective.</Italian>
+		<Spanish>Infiltrados se han hecho con el control del clero %s1_CivAdjective.</Spanish>
+	</TEXT>
+	<!-- Use of civ_adjective copied from
+		 TXT_KEY_EVENT_NUM_CITY_IMPROVEMENTS_DESTROYED in CIV4GameText_BTS.xml.
+		 The adjective would normally be placed behind the noun in the Romance
+		 languages, but I guess "Cinesi infiltrati" is acceptable. -->
+	<TEXT>
+		<Tag>TXT_KEY_ESPIONAGE_REVEAL_OWNER</Tag>
+		<English>%s1:3_civ_adjective</English>
+		<French>%s1:3_civ_adjective</French>
+		<German>%s1:3_civ_adjective</German>
+		<Italian>%s1:3_civ_adjective</Italian>
+		<Spanish>%s1:3_civ_adjective</Spanish>
+	</TEXT>
 
 	<!-- advc.002g -->
 	<!-- See CIV4ColorVals.xml for the available colors. PLAYER_GRAY is,
@@ -3438,7 +3658,7 @@
 		<Spanish>Derecho temporal de paso para permitir que las unidades sean reposicionadas después de una guerra.</Spanish>
 	</TEXT>
 
-	<!-- advc.912c: Based on  and TXT_KEY_MISC_HELP_YIELD_BONUS
+	<!-- advc.912c: Based on TXT_KEY_MISC_HELP_YIELD_BONUS
 		TXT_KEY_CIVIC_UNIT_HAPPINESS in CIV4GameTextInfos.xml.
 		"Luxury" was a game term in Civ 3, but in Civ 4 it's only slang;
 		can't use "from Luxuries" in help text. -->

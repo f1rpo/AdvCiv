@@ -531,7 +531,7 @@ class MapConstants:
 
 		#This value is used to decide if enough water has accumulated to form a river.
 		#A lower value creates more rivers over the entire map.
-		self.RiverThreshold3 = 0.075 # advc.021b: was 0.05
+		self.RiverThreshold3 = 0.055 # advc.021b: was 0.05
 
 
 		##############################################################################
@@ -775,7 +775,6 @@ class MapConstants:
 			delta = -0.02
 		elif worldSz == 1:
 			delta = -0.01
-		self.landPercent += delta
 		if mc.AllowNewWorld:
 			# Far fewer than the 15 in PerfectMongoose. Now only a best effort.
 			self.maximumMeteorCount = 2 * (worldSz - 1)
@@ -784,6 +783,8 @@ class MapConstants:
 			self.maximumMeteorCount = max(1, self.maximumMeteorCount)
 		else:
 			self.maximumMeteorCount = 0
+			delta -= 0.05
+		self.landPercent += delta
 		# </advc.021b>
 
 mc = MapConstants()
