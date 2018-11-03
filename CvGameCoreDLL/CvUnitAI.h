@@ -151,6 +151,7 @@ protected:
 	bool AI_pickupTargetSpy();
 	bool AI_chokeDefend();
 	bool AI_heal(int iDamagePercent = 0, int iMaxPath = MAX_INT);
+	bool AI_isThreatenedFromLand() const; // advc.139
 	bool AI_afterAttack();
 	bool AI_goldenAge();
 	bool AI_spreadReligion();

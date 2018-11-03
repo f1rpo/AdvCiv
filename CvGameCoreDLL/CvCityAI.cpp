@@ -164,7 +164,7 @@ void CvCityAI::AI_reset()
 	
 	m_iNeededFloatingDefenders = -1;
 	m_iNeededFloatingDefendersCacheTurn = -1;
-	bEvacuate = false; // advc.139
+	bEvacuate = bSafe = false; // advc.139
 
 	m_iWorkersNeeded = 0;
 	m_iWorkersHave = 0;
@@ -6685,9 +6685,11 @@ bool CvCityAI::AI_isDanger()
 
 
 // <advc.139>
-void CvCityAI::updateEvacuating(double relativeCityVal) {
+void CvCityAI::updateSafety(double relativeCityVal) {
 
+	PROFILE_FUNC();
 	bEvacuate = false;
+	bSafe = true;
 	CvPlayerAI const& o = GET_PLAYER(getOwner());
 	if(o.getNumCities() <= 1)
 		return;
@@ -6698,23 +6700,36 @@ void CvCityAI::updateEvacuating(double relativeCityVal) {
 	int attackerCount = 0;
 	int attStr = o.AI_localAttackStrength(plot(), NO_TEAM, DOMAIN_LAND, 1,
 			true, false, false, &attackerCount);
-	if(attStr <= 0 || // shortcut
-			// Only bail if they can take the city in one turn or almost
-			attackerCount < plot()->getNumDefenders(getOwnerINLINE()) + 1)
+	if(attStr <= 0) // shortcut
 		return;
 	int defStr = o.AI_localDefenceStrength(plot(), getTeam(), DOMAIN_LAND, 3);
-	int thresh = GC.getDefineINT("AI_EVACUATION_THRESH");
-	//  Higher threshold for important cities
-	if(relativeCityVal > 0.5)
-		thresh = ::round(thresh * (0.5 + relativeCityVal));
-	if(o.getNumCities() <= 2 && isCapital())
-		thresh *= 2;
-	bEvacuate = (::round((attStr * 100) / (defStr + 1.0)) > thresh);
+	bSafe = (attStr * 2 < defStr);
+	// Potentially expensive
+	if(bSafe && GET_TEAM(getTeam()).getAtWarCount(false, true) > 0) {
+		int attStrWiderRange = o.AI_localAttackStrength(plot(), NO_TEAM, DOMAIN_LAND,
+				3);
+		bSafe = (attStrWiderRange * 2 < defStr);
+	}
+	// Only bail if they can take the city in one turn or almost
+	if(attackerCount + 1 >= plot()->getNumDefenders(getOwnerINLINE())) {
+		int thresh = GC.getDefineINT("AI_EVACUATION_THRESH");
+		//  Higher threshold for important cities
+		if(relativeCityVal > 0.5)
+			thresh = ::round(thresh * (0.5 + relativeCityVal));
+		if(o.getNumCities() <= 2 && isCapital())
+			thresh *= 2;
+		bEvacuate = (::round((attStr * 100) / (defStr + 1.0)) > thresh);
+	}
 }
 
 bool CvCityAI::isEvacuating() const {
 
 	return bEvacuate;
+}
+
+bool CvCityAI::isSafe() const {
+
+	return bSafe;
 } // </advc.139>
 
 

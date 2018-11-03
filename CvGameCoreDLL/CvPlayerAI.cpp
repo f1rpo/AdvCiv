@@ -498,7 +498,7 @@ void CvPlayerAI::updateCacheData()
 		// i appears to be unreliable, skips numbers
 		int j = 0;
 		for(CvCity* c = firstCity(&i); c != NULL; c = nextCity(&i), j++)
-			c->updateEvacuating(1 - ::percentileRank(cityValues, cityValues[j]));
+			c->updateSafety(1 - ::percentileRank(cityValues, cityValues[j]));
 		// </advc.139>
 	}
 }

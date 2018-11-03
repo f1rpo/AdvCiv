@@ -6914,17 +6914,7 @@ void CvUnitAI::AI_attackSeaMove()
 /********************************************************************************/
 	if (plot()->isCity(true))
 	{
-		// K-Mod
-		int iOurDefense = kOwner.AI_localDefenceStrength(plot(), getTeam(), DOMAIN_LAND, 0);
-		int iEnemyOffense = kOwner.AI_localAttackStrength(plot(), NO_TEAM, DOMAIN_LAND, 2);
-		// K-Mod end
-
-		if( getDamage() > 0 )	// extra risk to leaving when wounded
-		{
-			iOurDefense *= 2;
-		}
-
-		if (iEnemyOffense > iOurDefense/2) // was 1 vs 1/4
+		if(AI_isThreatenedFromLand()) // advc.139: Code moved into subroutine
 		{
 			if (AI_anyAttack(2, 50))
 			{
@@ -7183,17 +7173,7 @@ void CvUnitAI::AI_reserveSeaMove()
 /********************************************************************************/
 	if (plot()->isCity(true))
 	{
-		// K-Mod
-		int iOurDefense = kOwner.AI_localDefenceStrength(plot(), getTeam(), DOMAIN_LAND, 0);
-		int iEnemyOffense = kOwner.AI_localAttackStrength(plot(), NO_TEAM, DOMAIN_LAND, 2);
-		// K-Mod end
-
-		if( getDamage() > 0 )	// extra risk to leaving when wounded
-		{
-			iOurDefense *= 2;
-		}
-
-		if (iEnemyOffense > iOurDefense/2) // was 1 vs 1/4
+		if(AI_isThreatenedFromLand()) // advc.139: Code moved into subroutine
 		{
 			if (AI_anyAttack(2, 60))
 			{
@@ -7409,17 +7389,7 @@ void CvUnitAI::AI_escortSeaMove()
 /********************************************************************************/
 	if (plot()->isCity(true)) //prioritize getting outta there
 	{
-		// K-Mod
-		int iOurDefense = kOwner.AI_localDefenceStrength(plot(), getTeam(), DOMAIN_LAND, 0);
-		int iEnemyOffense = kOwner.AI_localAttackStrength(plot(), NO_TEAM, DOMAIN_LAND, 2);
-		// K-Mod end
-
-		if( getDamage() > 0 )	// extra risk to leaving when wounded
-		{
-			iOurDefense *= 2;
-		}
-
-		if (iEnemyOffense > iOurDefense/2) // was 1 vs 1/4
+		if(AI_isThreatenedFromLand()) // advc.139: Code moved into subroutine
 		{
 			if (AI_anyAttack(1, 60))
 			{
@@ -7628,17 +7598,7 @@ void CvUnitAI::AI_exploreSeaMove()
 /********************************************************************************/
 	if (plot()->isCity(true)) //prioritize getting outta there
 	{
-		// K-Mod
-		int iOurDefense = kOwner.AI_localDefenceStrength(plot(), getTeam(), DOMAIN_LAND, 0);
-		int iEnemyOffense = kOwner.AI_localAttackStrength(plot(), NO_TEAM, DOMAIN_LAND, 2);
-		// K-Mod end
-
-		if( getDamage() > 0 )	// extra risk to leaving when wounded
-		{
-			iOurDefense *= 2;
-		}
-
-		if (iEnemyOffense > iOurDefense/2) // was 1 vs 1/4
+		if(AI_isThreatenedFromLand()) // advc.139: Code moved into subroutine
 		{
 			if (!isHuman())
 			{
@@ -8582,17 +8542,7 @@ void CvUnitAI::AI_settlerSeaMove()
 /********************************************************************************/
 	if (plot()->isCity(true))
 	{
-		// K-Mod
-		int iOurDefense = kOwner.AI_localDefenceStrength(plot(), getTeam(), DOMAIN_LAND, 0);
-		int iEnemyOffense = kOwner.AI_localAttackStrength(plot(), NO_TEAM, DOMAIN_LAND, 2);
-		// K-Mod end
-
-		if( getDamage() > 0 )	// extra risk to leaving when wounded
-		{
-			iOurDefense *= 2;
-		}
-
-		if (iEnemyOffense > iOurDefense/2) // was 1 vs 1/4
+		if(AI_isThreatenedFromLand()) // advc.139: Code moved into subroutine
 		{
 			if( bEmpty )
 			{
@@ -8975,17 +8925,7 @@ void CvUnitAI::AI_missionarySeaMove()
 /********************************************************************************/
 	if (plot()->isCity(true))
 	{
-		// K-Mod
-		int iOurDefense = kOwner.AI_localDefenceStrength(plot(), getTeam(), DOMAIN_LAND, 0);
-		int iEnemyOffense = kOwner.AI_localAttackStrength(plot(), NO_TEAM, DOMAIN_LAND, 2);
-		// K-Mod end
-
-		if( getDamage() > 0 )	// extra risk to leaving when wounded
-		{
-			iOurDefense *= 2;
-		}
-
-		if (iEnemyOffense > iOurDefense/2) // was 1 vs 1/4
+		if(AI_isThreatenedFromLand()) // advc.139: Code moved into subroutine
 		{
 			// Retreat to primary area first
 			if (AI_retreatToCity(true))
@@ -9086,17 +9026,7 @@ void CvUnitAI::AI_spySeaMove()
 /********************************************************************************/
 	if (plot()->isCity(true))
 	{
-		// K-Mod
-		int iOurDefense = kOwner.AI_localDefenceStrength(plot(), getTeam(), DOMAIN_LAND, 0);
-		int iEnemyOffense = kOwner.AI_localAttackStrength(plot(), NO_TEAM, DOMAIN_LAND, 2);
-		// K-Mod end
-
-		if( getDamage() > 0 )	// extra risk to leaving when wounded
-		{
-			iOurDefense *= 2;
-		}
-
-		if (iEnemyOffense > iOurDefense/2) // was 1 vs 1/4
+		if(AI_isThreatenedFromLand()) // advc.139: Code moved into subroutine
 		{
 			// Retreat to primary area first
 			if (AI_retreatToCity(true))
@@ -9200,17 +9130,7 @@ void CvUnitAI::AI_carrierSeaMove()
 /********************************************************************************/
 	if (plot()->isCity(true))
 	{
-		// K-Mod
-		int iOurDefense = kOwner.AI_localDefenceStrength(plot(), getTeam(), DOMAIN_LAND, 0);
-		int iEnemyOffense = kOwner.AI_localAttackStrength(plot(), NO_TEAM, DOMAIN_LAND, 2);
-		// K-Mod end
-
-		if( getDamage() > 0 )	// extra risk to leaving when wounded
-		{
-			iOurDefense *= 2;
-		}
-
-		if (iEnemyOffense > iOurDefense/2) // was 1 vs 1/4
+		if(AI_isThreatenedFromLand()) // advc.139: Code moved into subroutine
 		{
 			if (AI_retreatToCity(true))
 			{
@@ -9328,17 +9248,7 @@ void CvUnitAI::AI_missileCarrierSeaMove()
 /********************************************************************************/
 	if (plot()->isCity(true))
 	{
-		// K-Mod
-		int iOurDefense = kOwner.AI_localDefenceStrength(plot(), getTeam(), DOMAIN_LAND, 0);
-		int iEnemyOffense = kOwner.AI_localAttackStrength(plot(), NO_TEAM, DOMAIN_LAND, 2);
-		// K-Mod end
-
-		if( getDamage() > 0 )	// extra risk to leaving when wounded
-		{
-			iOurDefense *= 2;
-		}
-
-		if (iEnemyOffense > iOurDefense/2) // was 1 vs 1/4
+		if(AI_isThreatenedFromLand()) // advc.139: Code moved into subroutine
 		{
 			if (AI_shadow(UNITAI_ASSAULT_SEA, 1, 50, false, true, baseMoves()))
 			{
@@ -9431,7 +9341,8 @@ void CvUnitAI::AI_attackAirMove()
 	//int iDX, iDY;
 
 	// Check for sufficient defenders to stay
-	int iDefenders = plot()->plotCount(PUF_canDefend, -1, -1, plot()->getOwner());
+	int iDefenders = plot()->plotCount(PUF_canDefend, -1, -1, plot()->getOwner(),
+			NO_TEAM, PUF_isDomainType, DOMAIN_LAND); // advc.001s
 
 	int iAttackAirCount = plot()->plotCount(PUF_canAirAttack, -1, -1, NO_PLAYER, getTeam());
 	iAttackAirCount += 2 * plot()->plotCount(PUF_isUnitAIType, UNITAI_ICBM, -1, NO_PLAYER, getTeam());
@@ -13119,6 +13030,37 @@ bool CvUnitAI::AI_heal(int iDamagePercent, int iMaxPath)
 	return bPushedMission;
 }
 
+/*  <advc.139> Mostly cut and pasted from AI_escortSeaMove, AI_attackSeaMove,
+	AI_reserveSeaMove, AI_exploreSeaMove, AI_settlerSeaMove, AI_missionarySeaMove,
+	AI_spySeaMove and AI_missileCarrierSeaMove (duplicate code).
+	AI_assaultSeaMove, AI_attackAirMove, AI_defenseAirMove and AI_missileAirMove
+	still contain similar code. */
+bool CvUnitAI::AI_isThreatenedFromLand() const {
+
+	FAssert(getDomainType() != DOMAIN_LAND);
+	bool bDamaged = (getDamage() > 0);
+	if(!bDamaged) { // Can save some computing time then
+		CvCity* pPlotCity = plot()->getPlotCity();
+		if(pPlotCity != NULL)
+			return !pPlotCity->isSafe();
+	}
+	/********************************************************************************/
+	/* 	BETTER_BTS_AI_MOD						06/14/09	Solver & jdog5000		*/
+	/* 																				*/
+	/* 	Naval AI																	*/
+	/********************************************************************************/
+	// (with K-Mod adjustments)
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwnerINLINE());
+	int iOurDefense = kOwner.AI_localDefenceStrength(plot(), getTeam(), DOMAIN_LAND, 0);
+	int iEnemyOffense = kOwner.AI_localAttackStrength(plot(), NO_TEAM, DOMAIN_LAND, 2);
+	// (was based on AI_getOurPlotStrength in BBAI)
+	if(bDamaged) // extra risk to leaving when wounded
+		iOurDefense *= 2;
+	return (iEnemyOffense > iOurDefense/2); // (was 1 vs 1/4 in BBAI)
+	/********************************************************************************/
+	/* 	BETTER_BTS_AI_MOD						END									*/
+	/********************************************************************************/
+} // </advc.139>
 
 // Returns true if a mission was pushed...
 bool CvUnitAI::AI_afterAttack()
@@ -15020,7 +14962,7 @@ bool CvUnitAI::AI_safety()
 				if (pLoopPlot && AI_plotValid(pLoopPlot) && !pLoopPlot->isVisibleEnemyUnit(this))
 				{
 					/*  <advc.306> Consider only unobserved plots (and cities) safe
-						for barb sea units. This should help them receive spawned
+						for Barbarian sea units. This should help them receive spawned
 						cargo. */
 					if(isBarbarian() && pLoopPlot->isWater() &&
 							pLoopPlot->isVisibleToCivTeam())
@@ -16417,7 +16359,9 @@ bool CvUnitAI::AI_leaveAttack(int iRange, int iOddsThreshold, int iStrengthThres
 				// K-Mod end
 					return false;
 			}
-			if (plot()->plotCount(PUF_canDefendGroupHead, -1, -1, getOwnerINLINE()) <= getGroup()->getNumUnits())
+			if (plot()->plotCount(PUF_canDefendGroupHead, -1, -1, getOwnerINLINE(),
+					NO_TEAM, PUF_isDomainType, DOMAIN_LAND) // advc.001s
+					<= getGroup()->getNumUnits())
 			{
 				return false;
 			}
@@ -19403,6 +19347,7 @@ bool CvUnitAI::AI_carrierSeaTransport()
 											{
 												// BBAI: Support/air defense for land troops
 												iValue += pLoopPlotAir->plotCount(PUF_canDefend, -1, -1, getOwnerINLINE());
+												// advc.001s (comment): Also counts ships, but I guess that's OK.
 											}
 										}
 									}
@@ -21165,7 +21110,7 @@ bool CvUnitAI::AI_travelToUpgradeCity()
 		bool bCanAirliftUnit = (getDomainType() == DOMAIN_LAND);
 		bool bShouldSkipToUpgrade = (getDomainType() != DOMAIN_AIR);
 
-		// if we at the upgrade city, stop, wait to get upgraded
+		// if we are at the upgrade city, stop, wait to get upgraded
 		if (pUpgradeCity->plot() == pPlot)
 		{
 			if (!bShouldSkipToUpgrade)
@@ -21295,48 +21240,58 @@ bool CvUnitAI::AI_retreatToCity(bool bPrimary, bool bPrioritiseAirlift, int iMax
 	}
 
 	//for (iPass = 0; iPass < 4; iPass++)
-	// K-Mod. originally; pass 0 required the dest to have less plot danger unless the unit could fight; pass 1 was just an ordinary move; 
-	// pass 2 was a 1 turn move with "ignore plot danger" and pass 3 was the full iMaxPath with ignore plot danger.
-	// I've changed it so that if the unit can fight, the pass 0 just skipped (because it's the same as the pass 1)
-	// and pass 2 is always skipped because it's a useless test.
-	// -- and I've renumbered the passes.
+	/*  K-Mod. originally; pass 0 required the dest to have less plot danger
+		unless the unit could fight;
+		pass 1 was just an ordinary move; 
+		pass 2 was a 1 turn move with "ignore plot danger" and
+		pass 3 was the full iMaxPath with ignore plot danger.
+		I've changed it so that if the unit can fight, the pass 0 just skipped
+		(because it's the same as the pass 1) and
+		pass 2 is always skipped because it's a useless test.
+		-- and I've renumbered the passes. */
 	CvPlot* pBestPlot = NULL;
 	int iShortestPath = MAX_INT;
-	bool evac = (pCity != NULL && pCity->isEvacuating()); // advc.139
-	/*  advc.003: Used after the loop (pushMission MISSION_MOVE_TO). I don't see
-		how the K-Mod code (iPass declared in the loop's init statement) even
-		compiles. */
-	int iPass = 0;
-	for (iPass = (getGroup()->canDefend() ? 1 : 0) ; iPass < 3; iPass++)
-	{
-		int iLoop;
+	// <advc.139>
+	bool bEvac = (pCity != NULL && pCity->isEvacuating());
+	bool bSafe = (pCity != NULL && pCity->isSafe());
+	// </advc.139>
+	// <advc.003>
+	int iPass = 0; // Used after the loop
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwnerINLINE()); // </advc.003>
+	for (iPass = ((getGroup()->canDefend()
+			&& getDomainType() == DOMAIN_LAND) // advc.001s
+			? 1 : 0); iPass < 3; iPass++)
+	{	int iLoop=-1;
 		bool bNeedsAirlift = false;
-		for (CvCity* pLoopCity = GET_PLAYER(getOwnerINLINE()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwnerINLINE()).nextCity(&iLoop))
-		{
+		for(CvCity* pLoopCity = kOwner.firstCity(&iLoop); pLoopCity != NULL;
+				pLoopCity = kOwner.nextCity(&iLoop)) {
 			if (!AI_plotValid(pLoopCity->plot()))
 				continue;
-
-			if (bPrimary && !GET_PLAYER(getOwnerINLINE()).AI_isPrimaryArea(pLoopCity->area()))
+			if (bPrimary && !kOwner.AI_isPrimaryArea(pLoopCity->area()))
 				continue;
-
 			if (bNeedsAirlift && pLoopCity->getMaxAirlift() == 0)
 				continue;
-
-			/*  <advc.139> When evacuating, exclude other cities that also evacuate
+			// <advc.139>
+			/*  When evacuating, exclude other cities that also evacuate
 				(and exclude the current city). */
-			CvPlayerAI& o = GET_PLAYER(getOwnerINLINE());
-			if(evac && pLoopCity->isEvacuating())
-				continue; // </advc.139>
-
-			int iPathTurns;
+			if(bEvac && pLoopCity->isEvacuating())
+				continue;
+			/*  Avoid path and danger computation if we already know that we're safer
+				where we are. */
+			if(!pLoopCity->isSafe() && (bSafe || iCurrentDanger <= 0 ||
+					/*  Even when threatened at sea, a ship won't seek refuge in
+						an unsafe city. */
+					getDomainType() != DOMAIN_LAND))
+				continue;
+			// </advc.139>
+			int iPathTurns=-1;
 			if (generatePath(pLoopCity->plot(), (iPass >= 2 ? MOVE_IGNORE_DANGER : 0), true, &iPathTurns, iMaxPath)) // was iPass >= 3
-			{
-				// Water units can't defend a city
-				// Any unthreatened city acceptable on 0th pass, solves problem where sea units
-				// would oscillate in and out of threatened city because they had iCurrentDanger = 0
-				// on turns outside city
-
-				if (iPass > 0 || o.AI_getPlotDanger(pLoopCity->plot()) <= iCurrentDanger)
+			{/* (comment by jdog5000, 08/19/09)
+				Water units can't defend a city
+				Any unthreatened city acceptable on 0th pass, solves problem where sea units
+				would oscillate in and out of threatened city because they had iCurrentDanger = 0
+				on turns outside city */
+				if (iPass > 0 || kOwner.AI_getPlotDanger(pLoopCity->plot()) <= iCurrentDanger)
 				{
 					// If this is the first viable air-lift city, then reset iShortestPath.
 					if (bPrioritiseAirlift && !bNeedsAirlift && pLoopCity->getMaxAirlift() > 0)
@@ -21356,8 +21311,8 @@ bool CvUnitAI::AI_retreatToCity(bool bPrimary, bool bPrioritiseAirlift, int iMax
 							not any detours that could be safer.
 							Adding a maxDanger parameter to generatePath
 							(or generalizing MOVE_IGNORE_DANGER) could help. */
-						&& (!evac || o.AI_getPlotDanger(getPathEndTurnPlot())
-						<= o.getCurrentEra())
+						&& (!bEvac || kOwner.AI_getPlotDanger(getPathEndTurnPlot())
+						<= kOwner.getCurrentEra())
 						// </advc.139>
 						)
 					{
@@ -22000,7 +21955,8 @@ int CvUnitAI::AI_airOffenseBaseValue( CvPlot* pPlot )
 	CvPlot* pLoopPlot = NULL;
 	CvCity* pCity = pPlot->getPlotCity();
 
-	int iDefenders = pPlot->plotCount(PUF_canDefend, -1, -1, pPlot->getOwner());
+	int iDefenders = pPlot->plotCount(PUF_canDefend, -1, -1, pPlot->getOwner(),
+			NO_TEAM, PUF_isDomainType, DOMAIN_LAND); // advc.001s
 
 	int iAttackAirCount = pPlot->plotCount(PUF_canAirAttack, -1, -1, NO_PLAYER, getTeam());
 	iAttackAirCount += 2 * pPlot->plotCount(PUF_isUnitAIType, UNITAI_ICBM, -1, NO_PLAYER, getTeam());
@@ -24661,9 +24617,16 @@ bool CvUnitAI::AI_defendPlot(CvPlot* pPlot)
 	}
 	else
 	{
-		if (pPlot->plotCount(PUF_canDefendGroupHead, -1, -1, getOwnerINLINE()) <= ((atPlot(pPlot)) ? 1 : 0))
+		if (pPlot->plotCount(PUF_canDefendGroupHead, -1, -1, getOwnerINLINE(),
+				// advc.001s: Want up to 1 defender per domain type
+				NO_TEAM, PUF_isDomainType, getDomainType())
+				<= ((atPlot(pPlot)) ? 1 : 0))
 		{
-			if (pPlot->plotCount(PUF_cannotDefend, -1, -1, getOwnerINLINE()) > 0)
+			if (pPlot->plotCount(PUF_cannotDefend, -1, -1, getOwnerINLINE(),
+					/*  advc.001s: A land unit can defend non-land units in a Fort,
+						but not vice versa. */
+					NO_TEAM, getDomainType() == DOMAIN_LAND ? NULL : PUF_isDomainType, getDomainType())
+					> 0)
 			{
 				return true;
 			}

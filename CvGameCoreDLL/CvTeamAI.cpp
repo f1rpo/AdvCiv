@@ -5077,9 +5077,9 @@ void CvTeamAI::AI_changeEnemyPeacetimeTradeValue(TeamTypes eIndex, int iChange)
 // <advc.130p><advc.130m> To keep the rate consistent between TeamAI and PlayerAI
 double CvTeamAI::getDiploDecay() const {
 
-	/*  On Normal speed, this decay rate halves a value in about 40 turns:
-		0.983^40 = 0.501 */
-	return 1.7 / GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).
+	/*  On Normal speed, this decay rate halves a value in about 50 turns:
+		0.9865^50 = 0.507 */
+	return 1.45 / GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).
 			getGoldenAgePercent();
 } // </advc.130m>
 // Needed for both RivalTrade and "fair trade"

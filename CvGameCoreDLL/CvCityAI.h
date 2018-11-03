@@ -75,9 +75,10 @@ public:
 	int AI_neededFloatingDefenders(bool ignoreEvac = false);
 	void AI_updateNeededFloatingDefenders();
 	// <advc.139>
-	void updateEvacuating(double relativeCityVal);
-	bool isEvacuating() const; // </advc.139>
-
+	void updateSafety(double relativeCityVal);
+	bool isEvacuating() const;
+	bool isSafe() const;
+	// </advc.139>
 	int AI_getEmphasizeAvoidGrowthCount() const;
 	bool AI_isEmphasizeAvoidGrowth() const;
 
@@ -181,8 +182,10 @@ protected:
 
 	int m_iNeededFloatingDefenders;
 	int m_iNeededFloatingDefendersCacheTurn;
-	// advc.139: Updated during AI turns; no need for serialization
+	// <advc.139>
+	// Updated during AI turns; no need for serialization
 	bool bEvacuate;
+	bool bSafe; // </advc.139>
 
 	int m_iWorkersNeeded;
 	int m_iWorkersHave;

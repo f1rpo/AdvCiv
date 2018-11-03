@@ -76,31 +76,48 @@ void CvDeal::reset(int iID, PlayerTypes eFirstPlayer, PlayerTypes eSecondPlayer)
 
 void CvDeal::kill(bool bKillTeam)
 {
-	if ((getLengthFirstTrades() > 0) || (getLengthSecondTrades() > 0))
-	{
+	if (getLengthFirstTrades() > 0 || getLengthSecondTrades() > 0)
+	{	// <advc.106j>
+		bool bForce = false;
+		for(CLLNode<TradeData>* node = headFirstTradesNode(); node != NULL; node =
+				nextFirstTradesNode(node)) {
+			if(isDual(node->m_data.m_eItemType) ||
+					(node->m_data.m_eItemType == TRADE_RESOURCES &&
+					!GET_PLAYER(getFirstPlayer()).canTradeNetworkWith(
+					getSecondPlayer()))) {
+				bForce = true;
+				break;
+			}
+		} // </advc.106j>
 		CvWString szString;
 		CvWStringBuffer szDealString;
 		CvWString szCancelString = gDLL->getText("TXT_KEY_POPUP_DEAL_CANCEL");
-		if (GET_TEAM(GET_PLAYER(getFirstPlayer()).getTeam()).isHasMet(GET_PLAYER(getSecondPlayer()).getTeam()))
+		if (TEAMREF(getFirstPlayer()).isHasMet(TEAMID(getSecondPlayer())))
 		{
 			szDealString.clear();
 			GAMETEXT.getDealString(szDealString, *this, getFirstPlayer(),
 					true); // advc.004w
 			szString.Format(L"%s: %s", szCancelString.GetCString(), szDealString.getCString());
-			gDLL->getInterfaceIFace()->addHumanMessage(getFirstPlayer(), true, GC.getEVENT_MESSAGE_TIME(), szString, "AS2D_DEAL_CANCELLED",
+			gDLL->getInterfaceIFace()->addHumanMessage(getFirstPlayer(),
+					bForce, // advc.106j
+					GC.getEVENT_MESSAGE_TIME(), szString,
+					bForce ? "AS2D_DEAL_CANCELLED" : NULL, // advc.106j
 					// <advc.127b>
 					MESSAGE_TYPE_INFO, NULL, NO_COLOR,
 					GET_PLAYER(getSecondPlayer()).getCapitalX(),
 					GET_PLAYER(getSecondPlayer()).getCapitalY()); // </advc.127b>
 		}
 
-		if (GET_TEAM(GET_PLAYER(getSecondPlayer()).getTeam()).isHasMet(GET_PLAYER(getFirstPlayer()).getTeam()))
+		if (TEAMREF(getSecondPlayer()).isHasMet(TEAMID(getFirstPlayer())))
 		{
 			szDealString.clear();
 			GAMETEXT.getDealString(szDealString, *this, getSecondPlayer(),
 					true); // advc.004w
 			szString.Format(L"%s: %s", szCancelString.GetCString(), szDealString.getCString());
-			gDLL->getInterfaceIFace()->addHumanMessage(getSecondPlayer(), true, GC.getEVENT_MESSAGE_TIME(), szString, "AS2D_DEAL_CANCELLED",
+			gDLL->getInterfaceIFace()->addHumanMessage(getSecondPlayer(),
+					bForce, // advc.106j
+					GC.getEVENT_MESSAGE_TIME(), szString,
+					bForce ? "AS2D_DEAL_CANCELLED" : NULL, // advc.106j
 					// <advc.127b>
 					MESSAGE_TYPE_INFO, NULL, NO_COLOR,
 					GET_PLAYER(getFirstPlayer()).getCapitalX(),

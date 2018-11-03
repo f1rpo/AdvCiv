@@ -1101,8 +1101,9 @@ public:
 	// <advc.139>
 	virtual int AI_neededDefenders(bool ignoreEvac = false) = 0;
 	virtual int AI_neededFloatingDefenders(bool ignoreEvac = false) = 0;
-	virtual void updateEvacuating(double relativeCityVal)=0;
-	virtual bool isEvacuating() const=0; // </advc.139>
+	virtual void updateSafety(double relativeCityVal)=0;
+	virtual bool isEvacuating() const=0;
+	virtual bool isSafe() const=0; // </advc.139>
 	virtual int AI_neededAirDefenders() = 0;
 	virtual int AI_minDefenders() = 0;
 	virtual bool AI_isEmphasizeAvoidGrowth() const = 0;

@@ -7997,8 +7997,14 @@ CvCity* CvUnit::getUpgradeCity(UnitTypes eUnit, bool bSearch, int* iSearchValue)
 							if (!generatePath(pLoopCity->plot(), 0, true))
 							{
 								iValue *= 16;
-							}
-
+							} /* <advc.139> This should really be checked in a
+								 CvUnitAI function. That said, the whole search part
+								 of this function is really AI code; I don't think
+								 it's ever used for human units. */
+							if((!canFight() || getDomainType() != DOMAIN_LAND) &&
+									!pLoopCity->isSafe())
+								iValue *= (pLoopCity->isEvacuating() ? 12 : 6);
+							// </advc.139>
 							if (iValue < iBestValue)
 							{
 								iBestValue = iValue;
@@ -9066,16 +9072,11 @@ bool CvUnit::canAttack(const CvUnit& defender) const
 }
 
 bool CvUnit::canDefend(const CvPlot* pPlot) const
-{
-	if (pPlot == NULL)
-	{
-		pPlot = plot();
-	}
-
-	if (!canFight())
-	{
+{	// <advc.003> Swapped these two
+	if(!canFight())
 		return false;
-	}
+	if(pPlot == NULL)
+		pPlot = plot(); // </advc.003>
 
 	if (!pPlot->isValidDomainForAction(*this))
 	{

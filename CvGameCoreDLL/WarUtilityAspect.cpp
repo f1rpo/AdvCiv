@@ -3284,37 +3284,43 @@ FairPlay::FairPlay(WarEvalParameters& params) : WarUtilityAspect(params) {}
 void FairPlay::evaluate() {
 
 	if(TEAMREF(theyId).isAVassal() ||
-			// Once we've gone through the trouble of preparing war, it's too late.
 			m->getWarsDeclaredBy(weId).count(theyId) <= 0 ||
-			agent.AI_isSneakAttackReady(TEAMID(theyId)) ||
-			// No kid gloves if they've attacked us before
-			we->AI_getMemoryAttitude(theyId, MEMORY_DECLARED_WAR) < 0 ||
-			they->AI_isDoVictoryStrategyLevel3())
+			// No kid gloves if they've attacked us recently or repeatedly
+			we->AI_getMemoryAttitude(theyId, MEMORY_DECLARED_WAR) < -2 ||
+			they->AI_isDoVictoryStrategyLevel3() ||
+			// Then our attack dooms them regardless of other war parties
+			agent.warAndPeaceAI().isPushover(TEAMID(theyId)) ||
+			/*  If they can't win anymore, we shouldn't hold back. Don't want to
+				leave all the loot to others. A human with such poor war success
+				isn't going to win either, but if the human is a good sport and
+				keeps playing, the AI shouldn't punish that. */
+			(!they->isHuman() && TEAMREF(theyId).AI_getWarSuccessRating() <= -60))
 		return;
 	// Avoid big dogpiles (or taking turns attacking a single target)
-	double otherEnemies = 0;
-	int potentialOtherEnemies = 0;
-	CvGame& g = GC.getGameINLINE();
-	int theirRank = g.getPlayerRank(theyId);
+	double otherEnemies = 0; // Apart from us
+	int iPotentialOtherEnemies = 0;
+	CvGame const& g = GC.getGameINLINE();
+	int iTheirRank = g.getPlayerRank(theyId);
 	for(size_t i = 0; i < properCivs.size(); i++) {
 		CvPlayerAI const& other = GET_PLAYER(properCivs[i]);
 		if(other.getTeam() == agentId || other.getID() == theyId || other.isAVassal())
 			continue;
-		potentialOtherEnemies++;
-		bool immediateWar = (TEAMREF(theyId).isAtWar(other.getTeam()) ||
+		iPotentialOtherEnemies++;
+		bool bWar = (TEAMREF(theyId).isAtWar(other.getTeam()) ||
 				m->getWarsDeclaredBy(other.getID()).count(theyId) > 0);
-		if(immediateWar || they->AI_getMemoryAttitude(other.getID(),
+		if(bWar || they->AI_getMemoryAttitude(other.getID(),
 				MEMORY_DECLARED_WAR) <= -2) {
 			double incr = 1.15;
-			if(!immediateWar) {
+			if(!bWar) {
 				incr *= 0.73;
 				if(they->AI_getMemoryAttitude(other.getID(),
 						MEMORY_DECLARED_WAR) == -2)
 					incr *= 0.85;
 			}
+			int iOtherRank = g.getPlayerRank(other.getID());
 			// Ganging up on the leader is less problematic
-			if(theirRank < g.getPlayerRank(other.getID()))
-				incr /= 2;
+			if(iTheirRank < iOtherRank)
+				incr *= (iTheirRank + 1.0) / (iOtherRank + 1.0);
 			otherEnemies += incr;
 			log("Another enemy of %s: %s; increment: %d percent",
 					report.leaderName(theyId),
@@ -3323,7 +3329,7 @@ void FairPlay::evaluate() {
 		else if(TEAMREF(theyId).AI_shareWar(other.getTeam())) {
 			log("An ally of %s: %s", report.leaderName(theyId),
 					report.leaderName(other.getID()));
-			otherEnemies--;
+			otherEnemies -= 1.0 / std::max(1, GET_TEAM(other.getTeam()).getAtWarCount(true, true));
 		}
 		if(other.AI_getMemoryAttitude(theyId,
 				MEMORY_DECLARED_WAR) <= -2) {
@@ -3331,9 +3337,21 @@ void FairPlay::evaluate() {
 			otherEnemies -= 0.5;
 		}
 	}
-	if(potentialOtherEnemies > 0 && otherEnemies > 0) {
-		double fromOtherEnemies = 30 * (otherEnemies /
-				std::sqrt((double)potentialOtherEnemies) - 0.5);
+	if(otherEnemies > 0.1) {
+		double fromOtherEnemies = 30 * ((otherEnemies + std::sqrt((double)std::max(0,
+				/*  The number of cities we expect them to lose to others.
+					The subtracted conquests of ours could include cities of
+					other civs, but, in that case, we're apparently busy with
+					another enemy and our DoW won't really hurt. */
+				((int)m->lostCities(theyId).size()) -
+				((int)m->conqueredCities(weId).size())))) /
+				std::sqrt((double)std::max(1, iPotentialOtherEnemies)) - 0.33);
+		/*  Once we've gone through the trouble of preparing war, we'd like to go
+			through with it, but if there are many civs in the game, there's a good
+			chance that several of them start plotting at the same time, so
+			enforcing fairness only before and during preparations isn't enough. */
+		if(agent.AI_isSneakAttackReady(TEAMID(theyId)))
+			fromOtherEnemies *= ::dRange(iPotentialOtherEnemies / 10.0, 0.25, 0.75);
 		if(fromOtherEnemies > 0.5) {
 			log("From other enemies: %d", ::round(fromOtherEnemies));
 			u -= ::round(fromOtherEnemies);

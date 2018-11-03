@@ -2912,7 +2912,10 @@ void CvPlayer::disbandUnit(bool bAnnounce)
 						iValue += (pLoopUnit->getExperience() * 20);
 						iValue += (pLoopUnit->getLevel() * 100);
 
-						if (pLoopUnit->canDefend() && pLoopUnit->plot()->isCity())
+						if (pLoopUnit->canDefend() && pLoopUnit->plot()->isCity()
+								/*  advc.001s: I suppose this clause is intended for
+									potential city defenders */
+								&& pLoopUnit->getDomainType() == DOMAIN_LAND)
 						{
 							iValue *= 2;
 						}
@@ -25048,7 +25051,7 @@ void CvPlayer::announceEspionageToThirdParties(EspionageMissionTypes eMission, P
 
 	bool bReligion = (GC.getEspionageMissionInfo(eMission).
 			getSwitchReligionCostFactor() > 0);
-	CvWString szBuffer = szBuffer = gDLL->getText((bReligion ?
+	CvWString szBuffer = gDLL->getText((bReligion ?
 			"TXT_KEY_ESPIONAGE_3RD_PARTY_SWITCH_RELIGION" :
 			"TXT_KEY_ESPIONAGE_3RD_PARTY_SWITCH_CIVIC"),
 			GET_PLAYER(eTarget).getCivilizationAdjectiveKey()).GetCString();
