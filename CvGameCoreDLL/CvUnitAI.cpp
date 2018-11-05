@@ -6254,7 +6254,8 @@ void CvUnitAI::AI_spyMove()
 			// cf. approximation used in AI_attackCityMove. (here we are slightly more pessimistic)
 
 			//if( 5*iOurPower > 6*iEnemyPower && eWarPlan != NO_WARPLAN )
-			if (95*iOurPower > GC.getBBAI_ATTACK_CITY_STACK_RATIO()*iEnemyPower && eWarPlan != NO_WARPLAN)
+			if (95*iOurPower > GC.getBBAI_ATTACK_CITY_STACK_RATIO()*iEnemyPower && eWarPlan != NO_WARPLAN
+					&& iOurPower < 8 * iEnemyPower) // advc.120b
 			{
 				bTargetCity = true;
 

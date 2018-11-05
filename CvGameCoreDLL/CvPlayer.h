@@ -895,8 +895,8 @@ public:
 	int countTotalHasReligion() const;																																// Exposed to Python
 	int findHighestHasReligionCount() const;																													// Exposed to Python
 	void changeHasReligionCount(ReligionTypes eIndex, int iChange);
-	// advc.132: No longer just an AI concept b/c spies can switch to non-minority
-	bool isMinorityReligion(ReligionTypes rel) const;
+	// advc.132: No longer just an AI concept b/c spies can only switch to major now
+	bool isMajorReligion(ReligionTypes rel) const;
 
 	int getHasCorporationCount(CorporationTypes eIndex) const;																							// Exposed to Python
 	int countTotalHasCorporation() const;																																// Exposed to Python

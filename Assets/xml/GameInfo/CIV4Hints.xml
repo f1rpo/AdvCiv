@@ -633,7 +633,7 @@
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_21</Description>
 		</HintInfo>
-		<!-- Skip 22-26; shouldn't be as frequent. -->
+		<!-- Skip 22-26 and 31; shouldn't be as frequent. -->
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_27</Description>
 		</HintInfo>
@@ -730,6 +730,9 @@
 		</HintInfo>
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_30</Description>
+		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_31</Description>
 		</HintInfo>
 	</HintInfos>
 </Civ4Hints>

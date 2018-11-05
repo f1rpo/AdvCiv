@@ -13791,14 +13791,19 @@ void CvPlayer::changeHasReligionCount(ReligionTypes eIndex, int iChange)
 }
 
 
-// <advc.132> Body adopted from CvPlayerAI::AI_religionTrade
-bool CvPlayer::isMinorityReligion(ReligionTypes rel) const {
+// <advc.132> Body basically from CvPlayerAI::AI_religionTrade (thresholds tweaked)
+bool CvPlayer::isMajorReligion(ReligionTypes eReligion) const {
 
+	int iReligionCities = getHasReligionCount(eReligion);
 	if(getStateReligion() == NO_RELIGION)
-		return true;
-	int const relCount = getHasReligionCount(rel);
-	return relCount < getNumCities() / 2 &&
-		   relCount < getHasReligionCount(getStateReligion()) - 1;
+		return iReligionCities > getNumCities() / 3;
+	int iOldReligionCities = (getStateReligion() == NO_RELIGION ? 0 :
+			getHasReligionCount(getStateReligion()));
+	/*  Not necessarily equal to the number of cities with neither religion,
+		but close enough. */
+	int iOtherCities = getNumCities() - iReligionCities - iOldReligionCities;
+	return (iReligionCities > iOtherCities / 3 +
+			std::max(0, iOldReligionCities - 1) / 2);
 } // </advc.132>
 
 
@@ -15751,7 +15756,7 @@ int CvPlayer::getEspionageMissionBaseCost(EspionageMissionTypes eMission, Player
 		// Switch Civics
 		CivicTypes eCivic = (CivicTypes)iExtraData;
 
-		if (NO_CIVIC == eCivic)
+		/*if (NO_CIVIC == eCivic)
 		{
 			for (int iCivic = 0; iCivic < GC.getNumCivicInfos(); ++iCivic)
 			{
@@ -15763,26 +15768,34 @@ int CvPlayer::getEspionageMissionBaseCost(EspionageMissionTypes eMission, Player
 			}
 		}
 
-		if (NO_CIVIC != eCivic)
-		{
-			if (canForceCivics(eTargetPlayer, eCivic))
+		if (NO_CIVIC != eCivic)*/
+		/*  <advc.132> Replacing the above: Need to compute a cost for every civic
+			(like for the DestroyBuilding mission) */
+		int iMinCost = INT_MAX;
+		for(int i = 0; i < GC.getNumCivicInfos(); i++) {
+			CivicTypes eLoopCivic = (CivicTypes)i;
+			if(eCivic != NO_CIVIC && eLoopCivic != eCivic)
+				continue; // </advc.132>
+			if (canForceCivics(eTargetPlayer, eLoopCivic))
 			{
 				//iMissionCost = iBaseMissionCost + (kMission.getSwitchCivicCostFactor() * GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getAnarchyPercent()) / 10000;
 				// K-Mod
-				iMissionCost = iBaseMissionCost + (kMission.getSwitchCivicCostFactor() * GET_PLAYER(eTargetPlayer).getTotalPopulation() * (GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getAnarchyPercent()
+				int iLoopCost = iBaseMissionCost + (kMission.getSwitchCivicCostFactor() * GET_PLAYER(eTargetPlayer).getTotalPopulation() * (GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getAnarchyPercent()
 						/* advc.132: Add 100 to one of the modifiers
 						   (doesn't matter which). */
-						+ (isCivic(eCivic) ? 0 : 100))
+						+ (isCivic(eLoopCivic) ? 0 : 100))
 					) / 10000;
+				iMinCost = std::min(iMinCost, iLoopCost); // advc.132
 			}
-		}
+		} // <advc.132>
+		if(iMinCost < INT_MAX)
+			iMissionCost = iMinCost; // </advc.132>
 	}
 	else if (kMission.getSwitchReligionCostFactor() > 0)
 	{
 		// Switch Religions
 		ReligionTypes eReligion = (ReligionTypes)iExtraData;
-
-		if (NO_RELIGION == eReligion)
+		/*if (NO_RELIGION == eReligion)
 		{
 			for (int iReligion = 0; iReligion < GC.getNumReligionInfos(); ++iReligion)
 			{
@@ -15795,14 +15808,21 @@ int CvPlayer::getEspionageMissionBaseCost(EspionageMissionTypes eMission, Player
 		}
 
 		if (NO_RELIGION != eReligion)
-		{
-			if (canForceReligion(eTargetPlayer, eReligion))
-			{
+		{*/
+		// <advc.132> Replacing the above: Need to compute a cost for every religion
+		int iMinCost = INT_MAX;
+		for(int i = 0; i < GC.getNumReligionInfos(); i++) {
+			ReligionTypes eLoopReligion = (ReligionTypes)i;
+			if(eReligion != NO_RELIGION && eLoopReligion != eReligion)
+				continue; 
+			if (canForceReligion(eTargetPlayer, eLoopReligion)
+					&& (pCity == NULL || pCity->isHasReligion(eLoopReligion)))
+			{// </advc.132>
 				//iMissionCost = iBaseMissionCost + (kMission.getSwitchReligionCostFactor() * GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getAnarchyPercent()) / 10000;
 				// K-Mod
-				iMissionCost = iBaseMissionCost + (kMission.getSwitchReligionCostFactor() * GET_PLAYER(eTargetPlayer).getTotalPopulation() * (GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getAnarchyPercent()
+				int iLoopCost = iBaseMissionCost + (kMission.getSwitchReligionCostFactor() * GET_PLAYER(eTargetPlayer).getTotalPopulation() * (GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getAnarchyPercent()
 						// advc.132: As above for civics
-						+ (getStateReligion() == eReligion ? 0 : 100))
+						+ (getStateReligion() == eLoopReligion ? 0 : 100))
 					) / 10000;
 				ReligionTypes eCurrentReligion = GET_PLAYER(eTargetPlayer).getStateReligion();
 				// amplify the mission cost if we are trying to switch to a minority religion.
@@ -15810,17 +15830,24 @@ int CvPlayer::getEspionageMissionBaseCost(EspionageMissionTypes eMission, Player
 				{
 					// maybe getReligionPopulation would be slightly better, but it's a bit slower.
 					int iCurrent = GET_PLAYER(eTargetPlayer).getHasReligionCount(eCurrentReligion);
-					int iNew = GET_PLAYER(eTargetPlayer).getHasReligionCount(eReligion);
+					int iNew = GET_PLAYER(eTargetPlayer).getHasReligionCount(eLoopReligion);
 					int iCitiesTarget = GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getTargetNumCities();
 					FAssert(//iCurrent > 0 && // advc.006: Possible to lose all
 											  // cities of the current state religion.
 						iNew > 0);
-					iMissionCost *= std::max(iCurrent, iNew) + iCitiesTarget;
-					iMissionCost /= iNew + iCitiesTarget;
-				}
-				// K-Mod end
+					/*iMissionCost *= std::max(iCurrent, iNew) + iCitiesTarget;
+					iMissionCost /= iNew + iCitiesTarget;*/
+					/*  <advc.132> Replacing the above (to increase the impact of
+						the iCurrent/iNew ratio) */
+					iLoopCost *= iCurrent + iCitiesTarget;
+					iLoopCost /= std::max(1, iNew + iCitiesTarget / 2);
+					// </advc.132>
+				} // K-Mod end
+				iMinCost = std::min(iMinCost, iLoopCost); // advc.132
 			}
-		}
+		} // <advc.132>
+		if(iMinCost < INT_MAX)
+			iMissionCost = iMinCost; // </advc.132>
 	}
 	else if (kMission.getDestroyUnitCostFactor() > 0)
 	{
@@ -23389,16 +23416,17 @@ bool CvPlayer::canForceReligion(PlayerTypes eTarget, ReligionTypes eReligion) co
 	//return (GET_PLAYER(eTarget).canDoReligion(eReligion) && GET_PLAYER(eTarget).getStateReligion() != eReligion && getStateReligion() == eReligion);
 	// K-Mod - You shouldn't be able to force a religion on an irreligious civ.
 	//return (GET_PLAYER(eTarget).isStateReligion() && GET_PLAYER(eTarget).canDoReligion(eReligion) && GET_PLAYER(eTarget).getStateReligion() != eReligion && getStateReligion() == eReligion);
-    // <advc.132> Rewritten based on the K-Mod condition (commented out above).
+    // <advc.132> Rewritten based on the K-Mod condition (commented out above)
 	CvPlayer const& they = GET_PLAYER(eTarget);
-	// Just the conditions from above.
+	/*  Just the conditions from above. (Better use canConvert, which checks recent
+		religion change? Would also have to use canRevolution then in canForceCivics.) */
 	if(!they.isStateReligion() || !they.canDoReligion(eReligion) ||
 			they.getStateReligion() == eReligion)
 		return false;
 	if(getStateReligion() == eReligion)
 		return true;
-	// New: Accept any non-minority religion
-	return !they.isMinorityReligion(eReligion); // </advc.132>
+	// New: Accept any major religion
+	return they.isMajorReligion(eReligion); // </advc.132>
 }
 
 bool CvPlayer::canSpyDestroyUnit(PlayerTypes eTarget, CvUnit& kUnit) const

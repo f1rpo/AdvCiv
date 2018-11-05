@@ -4796,9 +4796,10 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 						owner.AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY2))
 					diploStage++;
 				// (3 and 4 aren't possible without the respective vote source)
-				iValue += iTempValue * 3 * diploStage;
+				//iValue += iTempValue * 3 * diploStage;
+				iTempValue *= 3 * diploStage;
 				/*  K-Mod code didn't factor in AI_VICTORY_DIPLOMACY2 b/c that
-				stage wasn't used at the time */
+					stage wasn't used at the time */
 				//iValue += (iTempValue * (kOwner.AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY1) ? 5 : 1));
 				// Don't pave the way for rival victory
 				int highestRivalStage = 0;
@@ -4822,9 +4823,13 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 							humanRival = rival.isHuman();
 					}
 				}
-				if(highestRivalStage > diploStage || (humanRival &&
-						highestRivalStage >= diploStage))
-					return 0; // Discouraging enough I hope
+				if(highestRivalStage > diploStage ||
+						(humanRival && highestRivalStage >= diploStage)) {
+					iTempValue = 0;
+					if(highestRivalStage >= 3)
+						return 0;
+				}
+				iValue += iTempValue;
 				// </advc.115b>
 
 				// Value religion buildings based on AP gains

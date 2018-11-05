@@ -460,6 +460,16 @@
 	<Spanish>Most announcements can be located on the map by opening the Event Log [Ctrl+Tab] and clicking on the announcement text.</Spanish>
 </TEXT>
 
+<!-- advc.124 -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_31</Tag>
+	<English>(AdvCiv) When a war disrupts your maritime trade connections, a naval blockade can override this: tiles blockaded by your ships block enemy trade and enable friendly trade.</English>
+	<French>(AdvCiv) When a war disrupts your maritime trade connections, a naval blockade can override this: tiles blockaded by your ships block enemy trade and enable friendly trade.</French>
+	<German>(AdvCiv) Wenn ein Krieg Ihre maritimen Handelswege unterbricht, kann eine Blockade Ihrerseits ein Gegenmittel sein: Die blockierten Felder erlauben freundlichen Handel und stoppen feindlichen Handel.</German>
+	<Italian>(AdvCiv) When a war disrupts your maritime trade connections, a naval blockade can override this: tiles blockaded by your ships block enemy trade and enable friendly trade.</Italian>
+	<Spanish>(AdvCiv) When a war disrupts your maritime trade connections, a naval blockade can override this: tiles blockaded by your ships block enemy trade and enable friendly trade.</Spanish>
+</TEXT>
+
 <!-- advc.008c: Was "Snacks are good in moderation" - the joke got old.
 	 It also works in the tech tree; however, right-click in the tech tree also
 	 sets a research target, so this is not recommendable. -->

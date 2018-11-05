@@ -12975,11 +12975,12 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 		2 is a bit much though, and 1 too little, so take a weighted mean
 		of the two. */
 	int iExtraPop1 = 1, iExtraPop2 = 2;
-	if(!bTrade) // Look ahead farther then (trades are fickle)
-		iExtraPop1 = iExtraPop2;
 	// Don't want iExtraPop to increase resource prices on the whole
 	double extraPopFactor = std::max(0.5, 0.1 * (10 - (0.7 * iExtraPop1 +
 			0.3 * iExtraPop2)));
+	// Look farther ahead only when not trading for a resource (trades are fickle)
+	if(!bTrade)
+		iExtraPop1 = iExtraPop2;
 	bool bAvailable = (getNumAvailableBonuses(eBonus) > 0);
 	if(happy > 0) {
 		/*  advc.912c: Better ignore getLuxuryModifier; don't want civs with a
@@ -13758,7 +13759,7 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 	}
 	int valueForUs = AI_corporationBonusVal(eBonus);
 	if(iAvailUs - getBonusImport(eBonus) == 1)
-		valueForUs = AI_bonusVal(eBonus, 0);
+		valueForUs = AI_bonusVal(eBonus, 0, false, true);
 	/*  Don't want city counts to matter much b/c large civs are supposed to
 		export to small (tall) ones. But selling to tiny civs often doesn't make
 		sense; could get a much better deal from some larger buyer. */
@@ -14284,8 +14285,8 @@ DenialTypes CvPlayerAI::AI_religionTrade(ReligionTypes eReligion, PlayerTypes eP
 
 	if (getStateReligion() != NO_RELIGION)
 	{
-		// advc.132: Original code moved into isMinorityReligion
-		if(isMinorityReligion(eReligion))
+		// advc.132: Original code moved into isMajorReligion
+		if(!isMajorReligion(eReligion))
 		{
 			return DENIAL_MINORITY_RELIGION;
 		}
@@ -18220,7 +18221,9 @@ int CvPlayerAI::AI_religionValue(ReligionTypes eReligion) const
 /// \brief Value of espionage mission at this plot.
 ///
 /// Assigns value to espionage mission against ePlayer at pPlot, where iData can provide additional information about mission.
-// K-Mod note: A rough rule of thumb for this evaluation is that depriving the enemy of 1 commerce is worth 1 point; gaining 1 commerce for ourself is worth 2 points.
+/*  K-Mod note: A rough rule of thumb for this evaluation is that
+	depriving the enemy of 1 commerce is worth 1 point;
+	gaining 1 commerce for ourself is worth 2 points. */
 int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes eMission, CvPlot* pPlot, int iData) const
 {
 	TeamTypes eTargetTeam = GET_PLAYER(eTargetPlayer).getTeam();
@@ -18509,8 +18512,10 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 	}
 
 	if (bMalicious && GC.getEspionageMissionInfo(eMission).getSwitchReligionCostFactor() > 0)
-	{
-		iValue += AI_religionTradeVal((ReligionTypes)iData, eTargetPlayer);
+	{	// <advc.132>
+		ReligionTypes eReligion = (ReligionTypes)iData;
+		if(GET_PLAYER(eTargetPlayer).isMajorReligion(eReligion)) // </advc.132>
+			iValue += AI_religionTradeVal(eReligion, eTargetPlayer);
 	}
 
 	/*if (bMalicious && GC.getEspionageMissionInfo(eMission).getPlayerAnarchyCounter() > 0)
@@ -19073,6 +19078,9 @@ void CvPlayerAI::AI_rememberEvent(PlayerTypes civId, MemoryTypes mem) {
 	if(mem == MEMORY_DECLARED_WAR && (GET_TEAM(getTeam()).isAVassal() ||
 			TEAMREF(civId).isAVassal()))
 		delta = std::min(3, delta); // </advc.130y>
+	// <advc.130f>
+	if(mem == MEMORY_HIRED_TRADE_EMBARGO && GET_TEAM(getTeam()).isAtWar(TEAMID(civId)))
+		delta--; // </advc.130f>
 	AI_changeMemoryCount(civId, mem, delta);
 	// <advc.130l>
 	if(GC.getDefineINT("ENABLE_130L") <= 0)

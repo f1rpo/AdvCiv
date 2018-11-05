@@ -2213,12 +2213,12 @@ void KingMaking::evaluate() {
 		return;
 	// NB: The two conditions above are superfluous; just for performance.
 	double attitudeMultiplier = 0.03 + 0.25 * (ATTITUDE_PLEASED - att);
-	// We're less inclined to interfere if several rivals are in competition
-	int winningRivals = winningFuture.size();
 	double caughtUpBonus = 0;
 	double catchUpVal = std::pow((16.0 * gameEra) / winningPresent.size(), 0.75);
 	catchUpVal *= std::pow((1 + weAI->amortizationMultiplier()) / 2, 2);
 	bool bCaughtUp = false;
+	// We're less inclined to interfere if several rivals are in competition
+	int winningRivals = winningFuture.size();
 	if(winningFuture.count(weId) > 0) {
 		winningRivals--;
 		if(winningPresent.count(weId) <= 0) {
@@ -2241,6 +2241,7 @@ void KingMaking::evaluate() {
 	}
 	else if(winningPresent.count(weId) > 0) {
 		caughtUpBonus -= catchUpVal;
+		attitudeMultiplier += 0.25;
 		log("%d for falling behind %s", ::round(caughtUpBonus),
 				report.leaderName(theyId));
 	}
