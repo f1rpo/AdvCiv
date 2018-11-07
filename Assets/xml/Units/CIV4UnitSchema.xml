@@ -274,6 +274,17 @@
 	<ElementType name="PrereqBonuses" content="eltOnly">
 		<element type="BonusType" minOccurs="0" maxOccurs="*"/>
 	</ElementType>
+	<!-- advc.905b -->
+	<ElementType name="iExtraMoves" content="textOnly" dt:type="int"/>
+	<!-- advc.905b -->
+	<ElementType name="SpeedBonus" content="eltOnly">
+		<element type="BonusType"/>
+		<element type="iExtraMoves"/>
+	</ElementType>
+	<!-- advc.905b -->
+	<ElementType name="SpeedBonuses" content="eltOnly">
+		<element type="SpeedBonus" minOccurs="0" maxOccurs="*"/>
+	</ElementType>
 	<ElementType name="ProductionTraitType" content="textOnly"/>
 	<ElementType name="iProductionTrait" content="textOnly" dt:type="int"/>
 	<ElementType name="ProductionTrait" content="eltOnly">
@@ -596,6 +607,8 @@
 		<element type="TechTypes"/>
 		<element type="BonusType"/>
 		<element type="PrereqBonuses"/>
+		<!-- advc.905b -->
+		<element type="SpeedBonuses"/>
 		<element type="ProductionTraits"/>
 		<element type="Flavors"/>
 		<element type="iAIWeight"/>

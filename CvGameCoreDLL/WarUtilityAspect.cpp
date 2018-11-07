@@ -2777,24 +2777,8 @@ void IllWill::evalRevenge() {
 			// Looks like they won't be a threat for long
 			m->lostCities(theyId).size() > 1)
 		return;
-	double ourPow = ourCache->getPowerValues()[ARMY]->power() +
-			// (Included in ARMY)
-			//ourCache->getPowerValues()[NUCLEAR]->power() +
-			m->gainedPower(weId, ARMY);
-	if(they->isHuman())
-		ourPow *= weAI->confidenceAgainstHuman();
-	/*  Don't count vassals; they're not a reliable defense (and it's easier
-		to exclude them). */
-	WarAndPeaceCache* theirCache = &theyAI->getCache();
-	double theirPow = theirCache->getPowerValues()[ARMY]->power() +
-			//theirCache->getPowerValues()[NUCLEAR]->power() +
-			m->gainedPower(theyId, ARMY);
-	if(we->isHuman())
-		theirPow *= theyAI->confidenceAgainstHuman();
-	double powRatio = theirPow / std::max(10.0, ourPow);
-	log("Power ratio they:us after military analysis: %d percent",
-			::round(100 * powRatio));
 	double revengeCost = 0;
+	double powRatio = powerRatio();
 	/*  Even if they're not a major threat, they may well cause us some inconvenience,
 		in particular, as part of a coalition. */
 	if(powRatio > 0.7)
@@ -2814,12 +2798,34 @@ void IllWill::evalRevenge() {
 	uMinus += revengeCost;
 }
 
+double IllWill::powerRatio() { // theirs divided by ours
+
+	double ourPow = ourCache->getPowerValues()[ARMY]->power() +
+			// (Included in ARMY)
+			//ourCache->getPowerValues()[NUCLEAR]->power() +
+			m->gainedPower(weId, ARMY);
+	if(they->isHuman())
+		ourPow *= weAI->confidenceAgainstHuman();
+	/*  Don't count vassals; they're not a reliable defense (and it's easier
+		to exclude them). */
+	WarAndPeaceCache* theirCache = &theyAI->getCache();
+	double theirPow = theirCache->getPowerValues()[ARMY]->power() +
+			//theirCache->getPowerValues()[NUCLEAR]->power() +
+			m->gainedPower(theyId, ARMY);
+	if(we->isHuman())
+		theirPow *= theyAI->confidenceAgainstHuman();
+	double r = theirPow / std::max(10.0, ourPow);
+	log("Power ratio %s:%s after military analysis: %d percent",
+			report.leaderName(theyId), report.leaderName(weId),
+			::round(100 * r));
+	return r;
+}
+
 void IllWill::evalAngeredPartners() {
 
 	if(they->isHuman() || m->isWar(weId, theyId) ||
 			valTowardsUs > 12 || // Nothing can alienate them
-			they->getTeam() == agentId ||
-			towardsThem <= ATTITUDE_FURIOUS) // We don't mind angering them
+			they->getTeam() == agentId)
 		return;
 	// 2 only for Gandhi; else 1
 	int penaltyPerDoW = ::round(GC.getLeaderHeadInfo(they->getPersonalityType()).
@@ -2837,24 +2843,24 @@ void IllWill::evalAngeredPartners() {
 	}
 	if(penalties <= 0)
 		return;
+	bool bDispleased = (they->AI_getAttitudeFromValue(
+			// -1 b/c barely Pleased could quickly tip to Cautious
+			valTowardsUs - penalties - 1) <= ATTITUDE_CAUTIOUS);
+	double powRatio = powerRatio();
 	double costPerPenalty = (partnerUtilFromTrade() + partnerUtilFromTech() +
 			partnerUtilFromMilitary() + (agent.isOpenBorders(TEAMID(theyId)) ?
-			partnerUtilFromOB : 0)) /
-			/*  We lose only a little bit of goodwill, but we're also exposing
-				ourselves to a dogpile war. Menace handles that, but doesn't factor
-				in the diplo penalties from our DoW. */
-			((they->AI_getAttitudeFromValue(valTowardsUs - penalties) <=
-			ATTITUDE_CAUTIOUS ? 3.5 : 5) *
+			partnerUtilFromOB : 0) +
+			(bDispleased ? std::min(14.5, 9 * powRatio * powRatio) : 0)) /
+			((bDispleased && towardsUs >= ATTITUDE_CAUTIOUS ? 3.75 : 5.25) *
 			/*  Don't worry quite as much about diplo in team games. AI DoW
-				aren't as dynamic, and sufficient for tech trading if some
+				aren't as dynamic, and it's sufficient for tech trading if some
 				team members get along. */
 			std::sqrt((double)agent.getNumMembers()));
 	log("Cost per -1 relations: %d", ::round(costPerPenalty));
 	/*  costPerPenalty already adjusted to game progress, but want to dilute
 		the impact of leader personality in addition to that. diploWeight is
 		mostly about trading, and trading becomes less relevant in the lategame. */
-	double diploWeight = 1 + (weAI->diploWeight() - 1) *
-			weAI->amortizationMultiplier();
+	double diploWeight = 1 + (weAI->diploWeight() - 1) * weAI->amortizationMultiplier();
 	// The bad diplo hurts us, but our anger at theyId is difficult to contain.
 	if(towardsThem <= ATTITUDE_FURIOUS)
 		diploWeight /= 2;

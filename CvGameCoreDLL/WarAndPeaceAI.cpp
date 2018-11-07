@@ -2607,7 +2607,7 @@ double WarAndPeaceAI::Civ::estimateBuildUpRate(PlayerTypes civId, int period) co
 double WarAndPeaceAI::Civ::confidenceFromPastWars(TeamTypes targetId) const {
 
 	int sign = 1;
-	double sc = cache.pastWarScore(targetId);
+	double sc = cache.pastWarScore(targetId) / 100.0;
 	if(sc < 0)
 		sign = -1;
 	// -15% for the first lost war, less from further wars

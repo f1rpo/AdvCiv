@@ -560,7 +560,8 @@
 			<iCityUnhappinessCounter>0</iCityUnhappinessCounter>
 			<iCityRevoltCounter>0</iCityRevoltCounter>
 			<iBuyTechCostFactor>0</iBuyTechCostFactor>
-			<iSwitchCivicCostFactor>800</iSwitchCivicCostFactor>
+			<!-- advc.132: was 800 -->
+			<iSwitchCivicCostFactor>1000</iSwitchCivicCostFactor>
 			<iSwitchReligionCostFactor>0</iSwitchReligionCostFactor>
 			<iPlayerAnarchyCounter>0</iPlayerAnarchyCounter>
 			<iCounterespionageNumTurns>0</iCounterespionageNumTurns>
@@ -596,7 +597,8 @@
 			<iCityRevoltCounter>0</iCityRevoltCounter>
 			<iBuyTechCostFactor>0</iBuyTechCostFactor>
 			<iSwitchCivicCostFactor>0</iSwitchCivicCostFactor>
-			<iSwitchReligionCostFactor>800</iSwitchReligionCostFactor>
+			<!-- advc.132: was 800 -->
+			<iSwitchReligionCostFactor>1000</iSwitchReligionCostFactor>
 			<iPlayerAnarchyCounter>0</iPlayerAnarchyCounter>
 			<iCounterespionageNumTurns>0</iCounterespionageNumTurns>
 			<iCounterespionageMod>0</iCounterespionageMod>

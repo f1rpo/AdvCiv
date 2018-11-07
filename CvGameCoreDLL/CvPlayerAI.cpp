@@ -12385,9 +12385,12 @@ bool CvPlayerAI::balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInvent
 		else if(bGenerous && kPlayer.isHuman() && iGreaterVal > iSmallerVal &&
 				(pList->getLength() <= 0 ||
 				CvDeal::isAnnual(pList->head()->m_data.m_eItemType)))
-			bAddFinalItem = true; // </advc.001>
-	} // <advc.036> A mix of the two K-Mod algorithms for item selection
-	if(iGreaterVal > iSmallerVal && final_item.first == NULL) {
+			bAddFinalItem = true;
+	} // When iGoldAvailable is too small but iMaxGPT isn't
+	if(iSmallerVal >= iGreaterVal)
+		bAddFinalItem = false; // </advc.001>
+	// <advc.036> A mix of the two K-Mod algorithms for item selection
+	else if(final_item.first == NULL) {
 		while(iGreaterVal > iSmallerVal && !nonsurplusItems.empty()) {
 			int value_gap = iGreaterVal - iSmallerVal;
 			std::vector<std::pair<TradeData*, int> >::iterator it, best_it;
@@ -20131,14 +20134,13 @@ void CvPlayerAI::AI_doCivics()
 					aeBestCivic[kCivic.getCivicOptionType()] = eOtherCivic;
 				}
 			}
-		}
-		// <advc.131>
-		if(isAnarchy() || iAnarchyLength > 1) {
-			if(getGold() < (iAnarchyLength - 1) * -getGoldPerTurn())
+		} // <advc.131>
+		if(iAnarchyLength > 0) {
+			if(getGold() < (iAnarchyLength + std::min(0, getStrikeTurns() - 1)) *
+					-getGoldPerTurn())
 				return;
 		} // </advc.131>
 	}
-	//
 
 	if (canRevolution(&aeBestCivic[0]))
 	{

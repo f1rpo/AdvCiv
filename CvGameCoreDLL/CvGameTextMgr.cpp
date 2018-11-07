@@ -7943,10 +7943,58 @@ void CvGameTextMgr::setBasicUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit,
 				szBuffer.append(szTempBuffer);
 			}
 		}
-
-		szTempBuffer.Format(L"%d%c", u.getMoves(), gDLL->getSymbolID(MOVES_CHAR));
+		// <advc.905b>
+		bool bAllSpeedBonusesAvailable = true;
+		CvCity* pCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
+		if(pCity == NULL)
+			bAllSpeedBonusesAvailable = false;
+		// "3 MOVES_CHAR (+1 with Coal)" when not all bonuses available
+		CvWStringBuffer szSpeedBonuses;
+		// "4 MOVES_CHAR (with Coal)" for city screen when all bonuses available
+		CvWStringBuffer szSpeedBonusesCompact;
+		int iTotalExtraMoves = 0;
+		for(int i = 0; i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); i++) {
+			if(u.getSpeedBonuses(i) < 0)
+				continue;
+			int iExtraMoves = u.getExtraMoves(i);
+			if(iExtraMoves == 0)
+				continue;
+			if(i > 0) {
+				szSpeedBonuses.append(L", ");
+				szSpeedBonusesCompact.append(L",");
+			}
+			else {
+				szSpeedBonusesCompact.append(gDLL->getText("TXT_KEY_WITH"));
+				szSpeedBonusesCompact.append(L" ");
+			}
+			if(iExtraMoves > 0)
+				szSpeedBonuses.append(L"+");
+			szTempBuffer.Format(L"%d", iExtraMoves);
+			iTotalExtraMoves += iExtraMoves;
+			szSpeedBonuses.append(szTempBuffer);
+			szSpeedBonuses.append(gDLL->getText("TXT_KEY_WITH_SPACE"));
+			BonusTypes eBonus = (BonusTypes)u.getSpeedBonuses(i);
+			szTempBuffer.Format(L"%c", GC.getBonusInfo(eBonus).getChar());
+			szSpeedBonuses.append(szTempBuffer);
+			szSpeedBonusesCompact.append(szTempBuffer);
+			if(bAllSpeedBonusesAvailable && !pCity->hasBonus(eBonus))
+				bAllSpeedBonusesAvailable = false;
+		}
+		int iMoves = u.getMoves();
+		if(bAllSpeedBonusesAvailable)
+			iMoves = std::max(0, iMoves + iTotalExtraMoves);
+		// </advc.905b>
+		szTempBuffer.Format(L"%d%c", iMoves, gDLL->getSymbolID(MOVES_CHAR));
 		szBuffer.append(szTempBuffer);
-
+		// <advc.905b>
+		if(!szSpeedBonuses.isEmpty()) {
+			// No space b/c there's already a bit of a space after MOVES_CHAR
+			szBuffer.append(L"(");
+			if(bAllSpeedBonusesAvailable)
+				szBuffer.append(szSpeedBonusesCompact);
+			else szBuffer.append(szSpeedBonuses);
+			szBuffer.append(L")");
+		} // </advc.905b>
 		if (u.getAirRange() > 0)
 		{
 			szBuffer.append(L", ");
@@ -8627,7 +8675,27 @@ void CvGameTextMgr::setBasicUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit,
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_UNIT_BOMBARD_RATE", ((u.getBombardRate() * 100) / GC.getMAX_CITY_DEFENSE_DAMAGE())));
 	}
-
+	// <advc.905b>
+	if(bCivilopediaText) {
+		for(int i = 0; i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); i++) {
+			if(u.getSpeedBonuses(i) < 0)
+				continue;
+			int iExtraMoves = u.getExtraMoves(i);
+			if(iExtraMoves == 0)
+				continue;
+			szBuffer.append(NEWLINE);
+			szTempBuffer.Format(L"%c", gDLL->getSymbolID(BULLET_CHAR));
+			szBuffer.append(szTempBuffer);
+			if(iExtraMoves > 0)
+				szBuffer.append(L"+");
+			szTempBuffer.Format(L"%d%c", iExtraMoves, gDLL->getSymbolID(MOVES_CHAR));
+			szBuffer.append(szTempBuffer);
+			szBuffer.append(gDLL->getText("TXT_KEY_WITH") + L" ");
+			szTempBuffer.Format(L"<link=literal>%s</link>", GC.getBonusInfo((BonusTypes)
+					u.getSpeedBonuses(i)).getDescription());
+			szBuffer.append(szTempBuffer);
+		}
+	} // </advc.905b>
 	bFirst = true;
 
 	for (iI = 0; iI < GC.getNumPromotionInfos(); ++iI)

@@ -15334,7 +15334,7 @@ void CvPlayer::doGold()
 		if (getStrikeTurns() > 1)
 		{
 			int iDisbandUnit = (getStrikeTurns() / 2); // XXX mod?
-			// advc.131: Can happen, but hints at a problem with AI gold trading.
+			// advc.131: Can happen, but should be quite rare.
 			FAssert(isHuman())
 			for (int iI = 0; iI < iDisbandUnit; iI++)
 			{

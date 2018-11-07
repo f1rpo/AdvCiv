@@ -341,6 +341,7 @@ public:
 private:
 	void evalLostPartner();
 	void evalRevenge();
+	double powerRatio();
 	void evalAngeredPartners();
 	double nukeCost(double nukes);
 	double uMinus;

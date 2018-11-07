@@ -412,4 +412,16 @@
 	<Spanish>No tem&#225;is atacar con unidades de combate a distancia. Puede que los arqueros y saeteros no sean las mejores unidades de ataque, pero cumplen bien cuando se las asciende adecuadamente.</Spanish>
 </TEXT>
 
+<!-- advc.906: Just plugged in the new name. Perhaps this hint should be
+	 replaced though; it suggests that the cheap 2-nukes-on-every-coastal-city
+	 tactic is fair game. -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_62</Tag>
+		<English>Use the Nuclear Submarine's stealth along with its ability to carry conventional and tactical nuclear missiles to launch a devastating opening attack on another landmass.</English>
+		<French>Tirez parti de la furtivit&#233; du sous-marin et de sa capacit&#233; &#224; transporter des missiles conventionnels et des missiles nucl&#233;aires pour lancer une attaque d&#233;vastatrice contre un autre continent.</French>
+		<German>Nutzen Sie die Tarnung Ihrer Atom-U-Boote und ihre F&#228;higkeit, konventionelle und taktische Atomraketen zu bef&#246;rdern, um vernichtende Startoffensiven auf gegnerische Landmassen auszuf&#252;hren.</German>
+		<Italian>Usa l'invisibilit&#224; del sottomarino oltre all'abilit&#224; di trasportare missili tattici e nucleari per lanciarli e scatenare l'inferno sulla terraferma.</Italian>
+		<Spanish>Utiliza la invisibilidad ante el radar del submarino junto a su capacidad para transportar misiles nucleares convencionales y t&#225;cticos para lanzar un devastador ataque inicial sobre otra masa de tierra.</Spanish>
+	</TEXT>
+
 </Civ4GameText>

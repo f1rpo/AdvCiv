@@ -798,7 +798,7 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_HANDICAP_PRINCE_HELP</Tag>
-		<English>This is the median difficulty level. The AI players receive subtle bonuses on research, growth and production, just 5% initially and increasing very slightly with each era, whereas your costs for technologies and expenses are increased a bit, essentially by 10%. Barbarians keep getting more numerous with every difficulty level, and, on Prince, your combat bonus against Barbarians is only 5%.</English>
+		<English>This is the median difficulty level. The AI players receive subtle bonuses on research, growth and production, just 5% initially and increasing very slightly with each era, whereas your costs for technologies and expenses are 10% higher. Barbarians keep getting more numerous with every difficulty level, and, on Prince, your combat bonus against Barbarians is only 5%.</English>
 		<French>En tant que Prince, vous devrez prouver que vous avez du sang royal. Avec un handicap contre l'I.A., dont la production et la recherche sont bien plus rapides que les v&#244;tres. Il faudra tr&#232;s bien jouer pour remporter la victoire.</French>
 		<German>Diese Schwierigkeitsstufe liegt genau in der Mitte. Die KI-Spieler erhalten kleine Boni (5%) auf Forschung, Wachstum und Produktion, die sich mit jedem Zeitalter ein klein wenig erhöhen. Dagegen sind Ihre Technologiekosten und Ausgaben etwas erhöht, i. W. um 10%. Barbaren werden mit dieser (und jeder weiteren) Stufe noch zahlreicher, und Ihr Kampfbonus gegen Barbaren beträgt nur noch 5%.</German>
 		<Italian>Come Principe, dovrai saper dimostrare di essere di vera stirpe reale. Quest'ultima pu&#242; produrre e fare ricerche pi&#249; velocemente di te, pertanto dovrai giocare con maggior impegno per poter vincere.</Italian>
@@ -946,6 +946,32 @@
 		<German>Ein hoher Meeresspiegel bedeutet einen niedrigeren Anteil von Landfeldern (ca. 20%) und damit weniger Platz für Städte und größere Abstände zwischen den Kontinenten.</German>
 		<Italian>Avrai bisogno di una flotta molto potente per affrontare l'alto mare e raggiungere la moltitudine di isole.</Italian>
 		<Spanish>Necesitar&#233;is una gran armada para jugar con todos estos mares e islas.</Spanish>
+	</TEXT>
+
+	<!-- advc.906: Originally in CIV4GameTextInfos_Objects.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_SUBMARINE</Tag>
+		<English>Nuclear Submarine</English>
+		<French>
+			<Text>Sous-marin nucléaire</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</French>
+		<German>
+			<Text>Atom-U-Boot</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</German>
+		<Italian>
+			<Text>Sottomarino nucleare:Sottomarini nucleari</Text>
+			<Gender>Male</Gender>
+			<Plural>0:1</Plural>
+		</Italian>
+		<Spanish>
+			<Text>Submarino nuclear:Submarinos nucleares</Text>
+			<Gender>Male</Gender>
+			<Plural>0:1</Plural>
+		</Spanish>
 	</TEXT>
 	
 	<!-- advc.907b: Original in CIV4GameTextInfos_Objects.xml -->
@@ -3483,6 +3509,16 @@
 		<Italian>%s1 con %s2</Italian>
 		<Spanish>%s1 con %s2</Spanish>
 	</TEXT>
+	
+	<!-- advc.905b: No spaces -->
+	<TEXT>
+		<Tag>TXT_KEY_WITH</Tag>
+		<English>with</English>
+		<French>avec</French>
+		<German>mit</German>
+		<Italian>con</Italian>
+		<Spanish>con</Spanish>
+	</TEXT>
 
 	<!-- advc.120d -->
 	<TEXT>
@@ -3814,6 +3850,26 @@
 		<German>[ICON_BULLET]Liefert %d1_Num-%d2_Num des Bonusguts [COLOR_HIGHLIGHT_TEXT][LINK=literal]%s3_BonusName[\LINK][COLOR_REVERT] (%F4_BonusIcon)</German>
 		<Italian>[ICON_BULLET]Fornisce %d1_Num-%d2_Num [COLOR_HIGHLIGHT_TEXT][LINK=literal]%s3_BonusName[\LINK][COLOR_REVERT] (%F4_BonusIcon)</Italian>
 		<Spanish>[ICON_BULLET]Da %d1_Num-%d2_Num de [COLOR_HIGHLIGHT_TEXT][LINK=literal]%s3_BonusName[\LINK][COLOR_REVERT] (%F4_BonusIcon)</Spanish>
+	</TEXT>
+	<!-- Swapped these two; one is from CIV4GameText_Misc1.xml, the other from
+		 CIV4GameText_BTS.xml. I think they're only used for Civilopedia and
+		 Sevopedia. No change in the Romance languages because both use the
+		 same term (and I can't think of a better one). -->
+	<TEXT>
+		<Tag>TXT_KEY_CIVILOPEDIA_HISTORY</Tag>
+		<English>Background</English>
+		<French>Histoire</French>
+		<German>Hintergrund</German>
+		<Italian>Storia</Italian>
+		<Spanish>Historia</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CIVILOPEDIA_BACKGROUND</Tag>
+		<English>[BOLD]History:[\BOLD][NEWLINE]</English>
+		<French>[BOLD]Histoire :[\BOLD][NEWLINE]</French>
+		<German>[BOLD]Geschichte:[\BOLD][NEWLINE]</German>
+		<Italian>[BOLD]Storia:[\BOLD][NEWLINE]</Italian>
+		<Spanish>[BOLD]Historia:[\BOLD][NEWLINE]</Spanish>
 	</TEXT>
 
 	<!-- advc.106: Based on TXT_KEY_ERA_SPLASH_SCREEN in

@@ -5,9 +5,8 @@
 <!-- -->
 <!-- Global Defines -->
 <Civ4Defines xmlns="x-schema:CIV4GlobalDefinesSchema.xml">
-	<!-- advc.009: Probably doesn't matter. Is 302 in BtS, 303 in K-Mod,
-		 I guess b/c they're not savegame-compatible. Neither are AdvCiv
-		 and K-Mod. Picking 14223 as a unique id (that's A-D-V-C in numbers). -->
+	<!-- advc.009: 302 in BtS, 303 in K-Mod. Picking 14223 as a unique id
+		 (that's A-D-V-C in numbers). -->
 	<Define>
 		<DefineName>SAVE_VERSION</DefineName>
 		<iDefineIntVal>14223</iDefineIntVal>

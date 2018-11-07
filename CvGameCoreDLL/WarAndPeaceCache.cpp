@@ -102,6 +102,7 @@ void WarAndPeaceCache::write(FDataStreamBase* stream) {
 	int savegameVersion = 1;
 	savegameVersion = 2; // advc.035
 	savegameVersion = 3; // hireAgainst added
+	savegameVersion = 4; // granularity of pastWarScore increased
 	/*  I hadn't thought of a version number in the initial release. Need
 		to fold it into ownerId now to avoid breaking compatibility. */
 	stream->Write(ownerId + 100 * savegameVersion);
@@ -175,6 +176,9 @@ void WarAndPeaceCache::read(FDataStreamBase* stream) {
 	if(savegameVersion >= 2)
 		stream->Read(MAX_CIV_TEAMS, lostTilesAtWar); // </advc.035>
 	stream->Read(MAX_CIV_TEAMS, pastWarScores);
+	if(savegameVersion < 4)
+		for(int i = 0; i < MAX_CIV_TEAMS; i++)
+			pastWarScores[i] *= 100;
 	stream->Read(MAX_CIV_TEAMS, sponsorshipsAgainst);
 	stream->Read(MAX_CIV_TEAMS, sponsorsAgainst);
 	stream->Read(MAX_CIV_TEAMS, warUtilityIgnDistraction);
@@ -1106,29 +1110,31 @@ void WarAndPeaceCache::reportUnitDestroyed(CvUnitInfo const& u) {
 
 void WarAndPeaceCache::reportWarEnding(TeamTypes enemyId) {
 
-	int ourSuccess = TEAMREF(ownerId).AI_getWarSuccess(enemyId);
-	int theirSuccess = GET_TEAM(enemyId).AI_getWarSuccess(TEAMID(ownerId));
-	if(ourSuccess + theirSuccess < GC.getWAR_SUCCESS_CITY_CAPTURING())
+	int iOurSuccess = TEAMREF(ownerId).AI_getWarSuccess(enemyId);
+	int iTheirSuccess = GET_TEAM(enemyId).AI_getWarSuccess(TEAMID(ownerId));
+	if(iOurSuccess + iTheirSuccess < GC.getWAR_SUCCESS_CITY_CAPTURING())
 		return;
 	// Use our era as the baseline for what is significant war success
 	EraTypes ourTechEra = GET_PLAYER(ownerId).getCurrentEra();
-	double successRatio = ourSuccess / (double)std::max(1, theirSuccess);
-	if((successRatio > 1 && ourSuccess < GC.getWAR_SUCCESS_CITY_CAPTURING()
+	double successRatio = iOurSuccess / (double)std::max(1, iTheirSuccess);
+	if((successRatio > 1 && iOurSuccess < GC.getWAR_SUCCESS_CITY_CAPTURING()
 			* ourTechEra) ||
-			(successRatio < 1 && theirSuccess < GC.getWAR_SUCCESS_CITY_CAPTURING()
+			(successRatio < 1 && iTheirSuccess < GC.getWAR_SUCCESS_CITY_CAPTURING()
 			* ourTechEra))
 		successRatio = 1;
 	// Be less critically about our performance if we fought a human
 	if(GET_TEAM(enemyId).isHuman())
 		successRatio += 0.25;
-	bool isChosenWar = TEAMREF(ownerId).AI_isChosenWar(enemyId);
+	bool bChosenWar = TEAMREF(ownerId).AI_isChosenWar(enemyId);
+	int iDuration = TEAMREF(ownerId).AI_getAtWarCounter(enemyId);
+	double durationFactor = 0.4 * std::sqrt((double)std::max(1, iDuration));
 	/*  Don't be easily emboldened by winning a defensive war. Past war score is
 		intended to discourage war more than encourage it. */
-	if((successRatio > 1.3 && isChosenWar) || successRatio > 1.5)
-		pastWarScores[enemyId]++;
+	if((successRatio > 1.3 && bChosenWar) || successRatio > 1.5)
+		pastWarScores[enemyId] += ::round(100 / durationFactor);
 	// Equal war success not good enough if we started it
-	else if(TEAMREF(ownerId).AI_isChosenWar(enemyId) || successRatio < 0.7)
-		pastWarScores[enemyId]--;
+	else if(bChosenWar || successRatio < 0.7)
+		pastWarScores[enemyId] -= ::round(100 * durationFactor);
 	// Forget sponsorship once a war ends
 	sponsorshipsAgainst[enemyId] = 0;
 	sponsorsAgainst[enemyId] = NO_PLAYER;

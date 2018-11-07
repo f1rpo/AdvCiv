@@ -88,6 +88,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -274,6 +276,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -452,6 +456,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -630,6 +636,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -818,6 +826,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits>
 				<ProductionTrait>
 					<ProductionTraitType>TRAIT_IMPERIALIST</ProductionTraitType>
@@ -1086,6 +1096,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits>
 				<ProductionTrait>
 					<ProductionTraitType>TRAIT_EXPANSIVE</ProductionTraitType>
@@ -1347,6 +1359,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits>
 				<ProductionTrait>
 					<ProductionTraitType>TRAIT_EXPANSIVE</ProductionTraitType>
@@ -1531,6 +1545,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -1707,6 +1723,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -1883,6 +1901,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors>
 				<Flavor>
@@ -2067,6 +2087,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -2241,6 +2263,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -2415,6 +2439,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -2589,6 +2615,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -2763,6 +2791,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -2937,6 +2967,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -3111,6 +3143,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -3285,6 +3319,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -3458,6 +3494,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -3631,6 +3669,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -3804,6 +3844,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -3977,6 +4019,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -4150,6 +4194,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -4323,6 +4369,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -4510,6 +4558,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -4702,6 +4752,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -4901,6 +4953,8 @@
 			<TechTypes/>
 			<BonusType>BONUS_IRON</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -5091,6 +5145,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -5288,6 +5344,8 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -5493,6 +5551,8 @@
 			<TechTypes/>
 			<BonusType>BONUS_IRON</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -5698,6 +5758,8 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -5906,6 +5968,8 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -6111,6 +6175,8 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -6306,6 +6372,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -6519,6 +6587,8 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -6727,6 +6797,8 @@
 			</TechTypes>
 			<BonusType>BONUS_IRON</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -6944,6 +7016,8 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -7146,6 +7220,8 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -7346,6 +7422,8 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -7546,6 +7624,8 @@
 			</TechTypes>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -7741,6 +7821,8 @@
 			<TechTypes/>
 			<BonusType>BONUS_IRON</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -7940,6 +8022,8 @@
 			<TechTypes/>
 			<BonusType>BONUS_IRON</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -8135,6 +8219,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -8325,6 +8411,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -8511,6 +8599,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -8710,6 +8800,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -8921,6 +9013,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -9120,6 +9214,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -9323,6 +9419,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -9514,6 +9612,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -9722,6 +9822,8 @@
 			</TechTypes>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -9915,6 +10017,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -10105,6 +10209,8 @@
 			</TechTypes>
 			<BonusType>BONUS_OIL</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -10299,6 +10405,8 @@
 			</TechTypes>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -10502,6 +10610,8 @@
 			</TechTypes>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -10697,6 +10807,8 @@
 			</TechTypes>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -10886,6 +10998,8 @@
 			</TechTypes>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -11077,6 +11191,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -11263,6 +11379,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -11449,6 +11567,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -11640,6 +11760,8 @@
 			</TechTypes>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -11838,6 +11960,8 @@
 			</TechTypes>
 			<BonusType>BONUS_IRON</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -12041,6 +12165,8 @@
 			</TechTypes>
 			<BonusType>BONUS_IRON</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -12232,6 +12358,8 @@
 			<TechTypes/>
 			<BonusType>BONUS_HORSE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -12423,6 +12551,8 @@
 			<TechTypes/>
 			<BonusType>BONUS_HORSE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -12619,6 +12749,8 @@
 			<TechTypes/>
 			<BonusType>BONUS_HORSE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -12824,6 +12956,8 @@
 			</TechTypes>
 			<BonusType>BONUS_HORSE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -13028,6 +13162,8 @@
 			</TechTypes>
 			<BonusType>BONUS_HORSE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -13238,6 +13374,8 @@
 			</TechTypes>
 			<BonusType>BONUS_HORSE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -13443,6 +13581,8 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -13638,6 +13778,8 @@
 			</TechTypes>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -13838,6 +13980,8 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -14055,6 +14199,8 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -14264,6 +14410,8 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -14463,6 +14611,8 @@
 			</TechTypes>
 			<BonusType>BONUS_HORSE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -14667,6 +14817,8 @@
 			</TechTypes>
 			<BonusType>BONUS_HORSE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -14863,6 +15015,8 @@
 			</TechTypes>
 			<BonusType>BONUS_IVORY</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -15059,6 +15213,8 @@
 			</TechTypes>
 			<BonusType>BONUS_IVORY</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -15254,6 +15410,8 @@
 			</TechTypes>
 			<BonusType>BONUS_OIL</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -15449,6 +15607,8 @@
 			</TechTypes>
 			<BonusType>BONUS_OIL</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -15653,6 +15813,8 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -15852,6 +16014,8 @@
 			<TechTypes/>
 			<BonusType>BONUS_OIL</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -16044,6 +16208,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -16236,6 +16402,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -16434,6 +16602,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -16623,6 +16793,8 @@
 			<TechTypes/>
 			<BonusType>BONUS_IRON</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -16815,6 +16987,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -17011,6 +17185,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -17203,6 +17379,8 @@
 			</TechTypes>
 			<BonusType>BONUS_OIL</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -17401,6 +17579,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -17600,6 +17780,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -17808,6 +17990,8 @@
 			</TechTypes>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -18018,6 +18202,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -18231,6 +18417,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -18420,6 +18608,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -18636,6 +18826,8 @@
 			</TechTypes>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -18843,6 +19035,8 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -19043,6 +19237,8 @@
 			</TechTypes>
 			<BonusType>BONUS_IRON</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -19230,16 +19426,25 @@
 				<PrereqTech>NONE</PrereqTech>
 			</TechTypes>
 			<BonusType>NONE</BonusType>
+			<!-- advc.200, advc.905b: Removed COPPER -->
 			<PrereqBonuses>
 				<BonusType>BONUS_IRON</BonusType>
-				<BonusType>BONUS_COPPER</BonusType>
+				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses>
+				<SpeedBonus>
+					<BonusType>BONUS_COAL</BonusType>
+					<iExtraMoves>1</iExtraMoves>
+				</SpeedBonus>
+			</SpeedBonuses>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
-			<iCost>120</iCost>
+			<!-- advc.905b -->
+			<iCost>110</iCost>
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
@@ -19290,16 +19495,17 @@
 			<TerrainDefenses/>
 			<FeatureAttacks/>
 			<FeatureDefenses/>
+			<!-- advc.905b: was 20/20 in K-Mod and 50/50 in BtS -->
 			<UnitClassAttackMods>
 				<UnitClassAttackMod>
 					<UnitClassType>UNITCLASS_FRIGATE</UnitClassType>
-					<iUnitClassMod>20</iUnitClassMod>
+					<iUnitClassMod>25</iUnitClassMod>
 				</UnitClassAttackMod>
 			</UnitClassAttackMods>
 			<UnitClassDefenseMods>
 				<UnitClassDefenseMod>
 					<UnitClassType>UNITCLASS_FRIGATE</UnitClassType>
-					<iUnitClassMod>20</iUnitClassMod>
+					<iUnitClassMod>25</iUnitClassMod>
 				</UnitClassDefenseMod>
 			</UnitClassDefenseMods>
 			<UnitCombatMods/>
@@ -19316,7 +19522,8 @@
 			<iCultureGarrison>0</iCultureGarrison>
 			<iExtraCost>0</iExtraCost>
 			<iAsset>3</iAsset>
-			<iPower>10</iPower>
+			<!-- advc.905b: was 10 -->
+			<iPower>11</iPower>
 			<UnitMeshGroups>
 				<iGroupSize>1</iGroupSize>
 				<fMaxSpeed>2.25</fMaxSpeed>
@@ -19426,9 +19633,11 @@
 			<PrereqReligion>NONE</PrereqReligion>
 			<PrereqCorporation>NONE</PrereqCorporation>
 			<PrereqBuilding>NONE</PrereqBuilding>
-			<PrereqTech>TECH_STEEL</PrereqTech>
+			<!-- advc.905b: was STEEL -->
+			<PrereqTech>TECH_STEAM_POWER</PrereqTech>
+			<!-- advc.905b: was STEAM_POWER -->
 			<TechTypes>
-				<PrereqTech>TECH_STEAM_POWER</PrereqTech>
+				<PrereqTech>NONE</PrereqTech>
 				<PrereqTech>NONE</PrereqTech>
 				<PrereqTech>NONE</PrereqTech>
 			</TechTypes>
@@ -19439,6 +19648,8 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -19495,7 +19706,13 @@
 			<TerrainNatives/>
 			<FeatureNatives/>
 			<TerrainAttacks/>
-			<TerrainDefenses/>
+			<!-- advc.905b -->
+			<TerrainDefenses>
+				<TerrainDefense>
+					<TerrainType>TERRAIN_COAST</TerrainType>
+					<iTerrainDefense>25</iTerrainDefense>
+				</TerrainDefense>
+			</TerrainDefenses>
 			<FeatureAttacks/>
 			<FeatureDefenses/>
 			<UnitClassAttackMods/>
@@ -19630,6 +19847,8 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -19762,7 +19981,8 @@
 			<bFound>0</bFound>
 			<bGoldenAge>0</bGoldenAge>
 			<bInvisible>0</bInvisible>
-			<bFirstStrikeImmune>0</bFirstStrikeImmune>
+			<!-- advc.906: was 0 -->
+			<bFirstStrikeImmune>1</bFirstStrikeImmune>
 			<bNoDefensiveBonus>0</bNoDefensiveBonus>
 			<bIgnoreBuildingDefense>1</bIgnoreBuildingDefense>
 			<bCanMoveImpassable>0</bCanMoveImpassable>
@@ -19823,6 +20043,8 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -20016,6 +20238,8 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -20204,6 +20428,8 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -20335,7 +20561,8 @@
 			<bFound>0</bFound>
 			<bGoldenAge>0</bGoldenAge>
 			<bInvisible>0</bInvisible>
-			<bFirstStrikeImmune>0</bFirstStrikeImmune>
+			<!-- advc.906: was 0 -->
+			<bFirstStrikeImmune>1</bFirstStrikeImmune>
 			<bNoDefensiveBonus>0</bNoDefensiveBonus>
 			<bIgnoreBuildingDefense>1</bIgnoreBuildingDefense>
 			<bCanMoveImpassable>0</bCanMoveImpassable>
@@ -20369,6 +20596,11 @@
 					<UnitAIType>UNITAI_EXPLORE_SEA</UnitAIType>
 					<bUnitAI>1</bUnitAI>
 				</UnitAI>
+				<!-- advc.906: added -->
+				<UnitAI>
+					<UnitAIType>UNITAI_MISSILE_CARRIER_SEA</UnitAIType>
+					<bUnitAI>1</bUnitAI>
+				</UnitAI>
 			</UnitAIs>
 			<NotUnitAIs/>
 			<Builds/>
@@ -20384,8 +20616,9 @@
 			<PrereqCorporation>NONE</PrereqCorporation>
 			<PrereqBuilding>NONE</PrereqBuilding>
 			<PrereqTech>TECH_STEALTH</PrereqTech>
+			<!-- advc.906: was ROBOTICS -->
 			<TechTypes>
-				<PrereqTech>TECH_ROBOTICS</PrereqTech>
+				<PrereqTech>NONE</PrereqTech>
 				<PrereqTech>NONE</PrereqTech>
 				<PrereqTech>NONE</PrereqTech>
 			</TechTypes>
@@ -20396,11 +20629,13 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
 			<!-- advc.906: was 220 -->
-			<iCost>240</iCost>
+			<iCost>270</iCost>
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
@@ -20424,16 +20659,18 @@
 			<FeatureImpassables/>
 			<TerrainPassableTechs/>
 			<FeaturePassableTechs/>
-			<!-- advc.200: was 30 in BtS, 36 in K-Mod -->
-			<iCombat>33</iCombat>
+			<!-- advc.200,advc.906: As in BtS, was 36 in K-Mod. -->
+			<iCombat>30</iCombat>
 			<iCombatLimit>100</iCombatLimit>
 			<iAirCombat>0</iAirCombat>
 			<iAirCombatLimit>0</iAirCombatLimit>
 			<iXPValueAttack>4</iXPValueAttack>
 			<iXPValueDefense>2</iXPValueDefense>
-			<iFirstStrikes>2</iFirstStrikes>
+			<!-- advc.906: was 2 -->
+			<iFirstStrikes>1</iFirstStrikes>
 			<iChanceFirstStrikes>0</iChanceFirstStrikes>
-			<iInterceptionProbability>0</iInterceptionProbability>
+			<!-- advc.906: was 0 -->
+			<iInterceptionProbability>30</iInterceptionProbability>
 			<iEvasionProbability>0</iEvasionProbability>
 			<iWithdrawalProb>0</iWithdrawalProb>
 			<iCollateralDamage>0</iCollateralDamage>
@@ -20460,14 +20697,18 @@
 			<BonusProductionModifiers/>
 			<iBombRate>0</iBombRate>
 			<iBombardRate>0</iBombardRate>
-			<SpecialCargo>NONE</SpecialCargo>
-			<DomainCargo>NONE</DomainCargo>
-			<iCargo>0</iCargo>
+			<!-- advc.906: was NONE -->
+			<SpecialCargo>SPECIALUNIT_MISSILE</SpecialCargo>
+			<!-- advc.906: was NONE -->
+			<DomainCargo>DOMAIN_AIR</DomainCargo>
+			<!-- advc.906: was 0 -->
+			<iCargo>1</iCargo>
 			<iConscription>0</iConscription>
 			<iCultureGarrison>0</iCultureGarrison>
 			<iExtraCost>0</iExtraCost>
 			<iAsset>5</iAsset>
-			<iPower>30</iPower>
+			<!-- advc.906: was 30 -->
+			<iPower>36</iPower>
 			<UnitMeshGroups>
 				<iGroupSize>1</iGroupSize>
 				<fMaxSpeed>2.25</fMaxSpeed>
@@ -20477,209 +20718,6 @@
 				<UnitMeshGroup>
 					<iRequired>1</iRequired>
 					<EarlyArtDefineTag>ART_DEF_UNIT_STEALTH_DESTROYER</EarlyArtDefineTag>
-				</UnitMeshGroup>
-			</UnitMeshGroups>
-			<FormationType>FORMATION_TYPE_MACHINE</FormationType>
-			<HotKey/>
-			<bAltDown>0</bAltDown>
-			<bShiftDown>0</bShiftDown>
-			<bCtrlDown>0</bCtrlDown>
-			<iHotKeyPriority>0</iHotKeyPriority>
-			<FreePromotions/>
-			<LeaderPromotion>NONE</LeaderPromotion>
-			<iLeaderExperience>0</iLeaderExperience>
-		</UnitInfo>
-		<UnitInfo>
-			<Class>UNITCLASS_SUBMARINE</Class>
-			<Type>UNIT_SUBMARINE</Type>
-			<UniqueNames/>
-			<Special>NONE</Special>
-			<Capture>NONE</Capture>
-			<Combat>UNITCOMBAT_NAVAL</Combat>
-			<Domain>DOMAIN_SEA</Domain>
-			<DefaultUnitAI>UNITAI_RESERVE_SEA</DefaultUnitAI>
-			<Invisible>INVISIBLE_SUBMARINE</Invisible>
-			<SeeInvisible>INVISIBLE_SUBMARINE</SeeInvisible>
-			<Description>TXT_KEY_UNIT_SUBMARINE</Description>
-			<Civilopedia>TXT_KEY_UNIT_SUBMARINE_PEDIA</Civilopedia>
-			<Strategy>TXT_KEY_UNIT_SUBMARINE_STRATEGY</Strategy>
-			<Advisor>ADVISOR_MILITARY</Advisor>
-			<bAnimal>0</bAnimal>
-			<bFood>0</bFood>
-			<bNoBadGoodies>0</bNoBadGoodies>
-			<bOnlyDefensive>0</bOnlyDefensive>
-			<!-- advc.315a -->
-			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
-			<!-- advc.315b -->
-			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
-			<bNoCapture>0</bNoCapture>
-			<bQuickCombat>0</bQuickCombat>
-			<bRivalTerritory>1</bRivalTerritory>
-			<bMilitaryHappiness>0</bMilitaryHappiness>
-			<bMilitarySupport>1</bMilitarySupport>
-			<bMilitaryProduction>1</bMilitaryProduction>
-			<bPillage>1</bPillage>
-			<bSpy>0</bSpy>
-			<bSabotage>0</bSabotage>
-			<bDestroy>0</bDestroy>
-			<bStealPlans>0</bStealPlans>
-			<bInvestigate>0</bInvestigate>
-			<bCounterSpy>0</bCounterSpy>
-			<bFound>0</bFound>
-			<bGoldenAge>0</bGoldenAge>
-			<bInvisible>0</bInvisible>
-			<bFirstStrikeImmune>0</bFirstStrikeImmune>
-			<bNoDefensiveBonus>0</bNoDefensiveBonus>
-			<bIgnoreBuildingDefense>1</bIgnoreBuildingDefense>
-			<bCanMoveImpassable>1</bCanMoveImpassable>
-			<bCanMoveAllTerrain>0</bCanMoveAllTerrain>
-			<bFlatMovementCost>0</bFlatMovementCost>
-			<bIgnoreTerrainCost>0</bIgnoreTerrainCost>
-			<bNukeImmune>0</bNukeImmune>
-			<bPrereqBonuses>0</bPrereqBonuses>
-			<bPrereqReligion>0</bPrereqReligion>
-			<bMechanized>1</bMechanized>
-			<bRenderBelowWater>1</bRenderBelowWater>
-			<bSuicide>0</bSuicide>
-			<bHiddenNationality>0</bHiddenNationality>
-			<bAlwaysHostile>0</bAlwaysHostile>
-			<UnitClassUpgrades/>
-			<UnitClassTargets/>
-			<UnitCombatTargets/>
-			<UnitClassDefenders/>
-			<UnitCombatDefenders/>
-			<FlankingStrikes/>
-			<UnitAIs>
-				<UnitAI>
-					<UnitAIType>UNITAI_RESERVE_SEA</UnitAIType>
-					<bUnitAI>1</bUnitAI>
-				</UnitAI>
-				<UnitAI>
-					<UnitAIType>UNITAI_EXPLORE_SEA</UnitAIType>
-					<bUnitAI>1</bUnitAI>
-				</UnitAI>
-				<UnitAI>
-					<UnitAIType>UNITAI_MISSILE_CARRIER_SEA</UnitAIType>
-					<bUnitAI>1</bUnitAI>
-				</UnitAI>
-			</UnitAIs>
-			<NotUnitAIs/>
-			<Builds/>
-			<ReligionSpreads/>
-			<CorporationSpreads/>
-			<GreatPeoples/>
-			<Buildings/>
-			<ForceBuildings/>
-			<HolyCity>NONE</HolyCity>
-			<ReligionType>NONE</ReligionType>
-			<StateReligion>NONE</StateReligion>
-			<PrereqReligion>NONE</PrereqReligion>
-			<PrereqCorporation>NONE</PrereqCorporation>
-			<PrereqBuilding>NONE</PrereqBuilding>
-			<PrereqTech>TECH_RADIO</PrereqTech>
-			<TechTypes>
-				<PrereqTech>NONE</PrereqTech>
-				<PrereqTech>NONE</PrereqTech>
-				<PrereqTech>NONE</PrereqTech>
-			</TechTypes>
-			<BonusType>NONE</BonusType>
-			<PrereqBonuses>
-				<BonusType>BONUS_OIL</BonusType>
-				<BonusType>BONUS_URANIUM</BonusType>
-				<BonusType>NONE</BonusType>
-				<BonusType>NONE</BonusType>
-			</PrereqBonuses>
-			<ProductionTraits/>
-			<Flavors/>
-			<iAIWeight>0</iAIWeight>
-			<iCost>150</iCost>
-			<iHurryCostModifier>0</iHurryCostModifier>
-			<iAdvancedStartCost>100</iAdvancedStartCost>
-			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
-			<iMinAreaSize>20</iMinAreaSize>
-			<iMoves>6</iMoves>
-			<bNoRevealMap>0</bNoRevealMap>
-			<iAirRange>0</iAirRange>
-			<iAirUnitCap>0</iAirUnitCap>
-			<iDropRange>0</iDropRange>
-			<iNukeRange>-1</iNukeRange>
-			<iWorkRate>0</iWorkRate>
-			<iBaseDiscover>0</iBaseDiscover>
-			<iDiscoverMultiplier>0</iDiscoverMultiplier>
-			<iBaseHurry>0</iBaseHurry>
-			<iHurryMultiplier>0</iHurryMultiplier>
-			<iBaseTrade>0</iBaseTrade>
-			<iTradeMultiplier>0</iTradeMultiplier>
-			<iGreatWorkCulture>0</iGreatWorkCulture>
-			<iEspionagePoints>0</iEspionagePoints>
-			<TerrainImpassables/>
-			<FeatureImpassables/>
-			<TerrainPassableTechs/>
-			<FeaturePassableTechs/>
-			<iCombat>24</iCombat>
-			<iCombatLimit>100</iCombatLimit>
-			<iAirCombat>0</iAirCombat>
-			<iAirCombatLimit>0</iAirCombatLimit>
-			<iXPValueAttack>4</iXPValueAttack>
-			<iXPValueDefense>2</iXPValueDefense>
-			<!-- advc.906: was 0 -->
-			<iFirstStrikes>2</iFirstStrikes>
-			<iChanceFirstStrikes>0</iChanceFirstStrikes>
-			<iInterceptionProbability>0</iInterceptionProbability>
-			<iEvasionProbability>0</iEvasionProbability>
-			<!-- advc.906: was 50 -->
-			<iWithdrawalProb>60</iWithdrawalProb>
-			<iCollateralDamage>0</iCollateralDamage>
-			<iCollateralDamageLimit>0</iCollateralDamageLimit>
-			<iCollateralDamageMaxUnits>0</iCollateralDamageMaxUnits>
-			<iCityAttack>0</iCityAttack>
-			<iCityDefense>0</iCityDefense>
-			<iAnimalCombat>0</iAnimalCombat>
-			<!-- advc.315c -->
-			<iBarbarianCombat>0</iBarbarianCombat>
-			<iHillsAttack>0</iHillsAttack>
-			<iHillsDefense>0</iHillsDefense>
-			<TerrainNatives/>
-			<FeatureNatives/>
-			<!-- advc.906: both 25 in K-Mod 1.45 -->
-			<TerrainAttacks>
-				<TerrainAttack>
-					<TerrainType>TERRAIN_OCEAN</TerrainType>
-					<iTerrainAttack>0</iTerrainAttack>
-				</TerrainAttack>
-				<TerrainAttack>
-					<TerrainType>TERRAIN_COAST</TerrainType>
-					<iTerrainAttack>0</iTerrainAttack>
-				</TerrainAttack>
-			</TerrainAttacks>
-			<TerrainDefenses/>
-			<FeatureAttacks/>
-			<FeatureDefenses/>
-			<UnitClassAttackMods/>
-			<UnitClassDefenseMods/>
-			<UnitCombatMods/>
-			<UnitCombatCollateralImmunes/>
-			<DomainMods/>
-			<BonusProductionModifiers/>
-			<iBombRate>0</iBombRate>
-			<iBombardRate>0</iBombardRate>
-			<SpecialCargo>SPECIALUNIT_MISSILE</SpecialCargo>
-			<DomainCargo>DOMAIN_AIR</DomainCargo>
-			<iCargo>3</iCargo>
-			<iConscription>0</iConscription>
-			<iCultureGarrison>0</iCultureGarrison>
-			<iExtraCost>0</iExtraCost>
-			<iAsset>4</iAsset>
-			<iPower>28</iPower>
-			<UnitMeshGroups>
-				<iGroupSize>1</iGroupSize>
-				<fMaxSpeed>2.25</fMaxSpeed>
-				<fPadTime>1</fPadTime>
-				<iMeleeWaveSize>1</iMeleeWaveSize>
-				<iRangedWaveSize>1</iRangedWaveSize>
-				<UnitMeshGroup>
-					<iRequired>1</iRequired>
-					<EarlyArtDefineTag>ART_DEF_UNIT_SUBMARINE</EarlyArtDefineTag>
 				</UnitMeshGroup>
 			</UnitMeshGroups>
 			<FormationType>FORMATION_TYPE_MACHINE</FormationType>
@@ -20783,23 +20821,34 @@
 			<PrereqReligion>NONE</PrereqReligion>
 			<PrereqCorporation>NONE</PrereqCorporation>
 			<PrereqBuilding>NONE</PrereqBuilding>
-			<PrereqTech>TECH_ROCKETRY</PrereqTech>
+			<!-- advc.906: was ROCKETRY plus RADIO and COMBUSTION -->
+			<PrereqTech>TECH_RADIO</PrereqTech>
 			<TechTypes>
-				<PrereqTech>TECH_RADIO</PrereqTech>
-				<PrereqTech>TECH_COMBUSTION</PrereqTech>
+				<PrereqTech>NONE</PrereqTech>
+				<PrereqTech>NONE</PrereqTech>
 				<PrereqTech>NONE</PrereqTech>
 			</TechTypes>
-			<BonusType>BONUS_URANIUM</BonusType>
-			<PrereqBonuses/>
+			<!-- advc.906: was URANIUM (mandatory) -->
+			<BonusType>NONE</BonusType>
+			<PrereqBonuses>
+				<BonusType>BONUS_OIL</BonusType>
+				<BonusType>BONUS_URANIUM</BonusType>
+				<BonusType>NONE</BonusType>
+				<BonusType>NONE</BonusType>
+			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
-			<iCost>200</iCost>
+			<!-- advc.906: was 200 -->
+			<iCost>160</iCost>
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
 			<iMinAreaSize>20</iMinAreaSize>
-			<iMoves>7</iMoves>
+			<!-- advc.906: was 7 -->
+			<iMoves>6</iMoves>
 			<bNoRevealMap>0</bNoRevealMap>
 			<iAirRange>0</iAirRange>
 			<iAirUnitCap>0</iAirUnitCap>
@@ -20819,19 +20868,18 @@
 			<TerrainPassableTechs/>
 			<FeaturePassableTechs/>
 			<!-- advc.906: was 30 -->
-			<iCombat>28</iCombat>
+			<iCombat>24</iCombat>
 			<iCombatLimit>100</iCombatLimit>
 			<iAirCombat>0</iAirCombat>
 			<iAirCombatLimit>0</iAirCombatLimit>
 			<iXPValueAttack>4</iXPValueAttack>
 			<iXPValueDefense>2</iXPValueDefense>
 			<!-- advc.906: was 0 -->
-			<iFirstStrikes>2</iFirstStrikes>
+			<iFirstStrikes>6</iFirstStrikes>
 			<iChanceFirstStrikes>0</iChanceFirstStrikes>
 			<iInterceptionProbability>0</iInterceptionProbability>
 			<iEvasionProbability>0</iEvasionProbability>
-			<!-- advc.906: was 50 -->
-			<iWithdrawalProb>60</iWithdrawalProb>
+			<iWithdrawalProb>50</iWithdrawalProb>
 			<iCollateralDamage>0</iCollateralDamage>
 			<iCollateralDamageLimit>0</iCollateralDamageLimit>
 			<iCollateralDamageMaxUnits>0</iCollateralDamageMaxUnits>
@@ -20858,16 +20906,17 @@
 			<TerrainDefenses/>
 			<FeatureAttacks/>
 			<FeatureDefenses/>
+			<!-- advc.906: was 50-50 -->
 			<UnitClassAttackMods>
 				<UnitClassAttackMod>
 					<UnitClassType>UNITCLASS_SUBMARINE</UnitClassType>
-					<iUnitClassMod>50</iUnitClassMod>
+					<iUnitClassMod>0</iUnitClassMod>
 				</UnitClassAttackMod>
 			</UnitClassAttackMods>
 			<UnitClassDefenseMods>
 				<UnitClassDefenseMod>
 					<UnitClassType>UNITCLASS_SUBMARINE</UnitClassType>
-					<iUnitClassMod>50</iUnitClassMod>
+					<iUnitClassMod>0</iUnitClassMod>
 				</UnitClassDefenseMod>
 			</UnitClassDefenseMods>
 			<UnitCombatMods/>
@@ -20882,8 +20931,10 @@
 			<iConscription>0</iConscription>
 			<iCultureGarrison>0</iCultureGarrison>
 			<iExtraCost>0</iExtraCost>
-			<iAsset>5</iAsset>
-			<iPower>30</iPower>
+			<!-- advc.906: was 5 -->
+			<iAsset>4</iAsset>
+			<!-- advc.906: was 30 -->
+			<iPower>28</iPower>
 			<UnitMeshGroups>
 				<iGroupSize>1</iGroupSize>
 				<fMaxSpeed>2.25</fMaxSpeed>
@@ -20892,6 +20943,219 @@
 				<iRangedWaveSize>1</iRangedWaveSize>
 				<UnitMeshGroup>
 					<iRequired>1</iRequired>
+					<!-- advc.906: was ART_DEF_UNIT_ATTACK_SUBMARINE -->
+					<EarlyArtDefineTag>ART_DEF_UNIT_SUBMARINE</EarlyArtDefineTag>
+				</UnitMeshGroup>
+			</UnitMeshGroups>
+			<FormationType>FORMATION_TYPE_MACHINE</FormationType>
+			<HotKey/>
+			<bAltDown>0</bAltDown>
+			<bShiftDown>0</bShiftDown>
+			<bCtrlDown>0</bCtrlDown>
+			<iHotKeyPriority>0</iHotKeyPriority>
+			<FreePromotions/>
+			<LeaderPromotion>NONE</LeaderPromotion>
+			<iLeaderExperience>0</iLeaderExperience>
+		</UnitInfo>
+		<!-- advc.906: Position switched with ATTACK_SUBMARINE -->
+		<UnitInfo>
+			<Class>UNITCLASS_SUBMARINE</Class>
+			<Type>UNIT_SUBMARINE</Type>
+			<UniqueNames/>
+			<Special>NONE</Special>
+			<Capture>NONE</Capture>
+			<Combat>UNITCOMBAT_NAVAL</Combat>
+			<Domain>DOMAIN_SEA</Domain>
+			<DefaultUnitAI>UNITAI_RESERVE_SEA</DefaultUnitAI>
+			<Invisible>INVISIBLE_SUBMARINE</Invisible>
+			<SeeInvisible>INVISIBLE_SUBMARINE</SeeInvisible>
+			<Description>TXT_KEY_UNIT_SUBMARINE</Description>
+			<Civilopedia>TXT_KEY_UNIT_SUBMARINE_PEDIA</Civilopedia>
+			<Strategy>TXT_KEY_UNIT_SUBMARINE_STRATEGY</Strategy>
+			<Advisor>ADVISOR_MILITARY</Advisor>
+			<bAnimal>0</bAnimal>
+			<bFood>0</bFood>
+			<bNoBadGoodies>0</bNoBadGoodies>
+			<bOnlyDefensive>0</bOnlyDefensive>
+			<!-- advc.315a -->
+			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
+			<!-- advc.315b -->
+			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
+			<bNoCapture>0</bNoCapture>
+			<bQuickCombat>0</bQuickCombat>
+			<bRivalTerritory>1</bRivalTerritory>
+			<bMilitaryHappiness>0</bMilitaryHappiness>
+			<bMilitarySupport>1</bMilitarySupport>
+			<bMilitaryProduction>1</bMilitaryProduction>
+			<bPillage>1</bPillage>
+			<bSpy>0</bSpy>
+			<bSabotage>0</bSabotage>
+			<bDestroy>0</bDestroy>
+			<bStealPlans>0</bStealPlans>
+			<bInvestigate>0</bInvestigate>
+			<bCounterSpy>0</bCounterSpy>
+			<bFound>0</bFound>
+			<bGoldenAge>0</bGoldenAge>
+			<bInvisible>0</bInvisible>
+			<bFirstStrikeImmune>0</bFirstStrikeImmune>
+			<bNoDefensiveBonus>0</bNoDefensiveBonus>
+			<bIgnoreBuildingDefense>1</bIgnoreBuildingDefense>
+			<bCanMoveImpassable>1</bCanMoveImpassable>
+			<bCanMoveAllTerrain>0</bCanMoveAllTerrain>
+			<bFlatMovementCost>0</bFlatMovementCost>
+			<bIgnoreTerrainCost>0</bIgnoreTerrainCost>
+			<bNukeImmune>0</bNukeImmune>
+			<bPrereqBonuses>0</bPrereqBonuses>
+			<bPrereqReligion>0</bPrereqReligion>
+			<bMechanized>1</bMechanized>
+			<bRenderBelowWater>1</bRenderBelowWater>
+			<bSuicide>0</bSuicide>
+			<bHiddenNationality>0</bHiddenNationality>
+			<bAlwaysHostile>0</bAlwaysHostile>
+			<UnitClassUpgrades/>
+			<UnitClassTargets/>
+			<UnitCombatTargets/>
+			<UnitClassDefenders/>
+			<UnitCombatDefenders/>
+			<FlankingStrikes/>
+			<UnitAIs>
+				<UnitAI>
+					<UnitAIType>UNITAI_RESERVE_SEA</UnitAIType>
+					<bUnitAI>1</bUnitAI>
+				</UnitAI>
+				<UnitAI>
+					<UnitAIType>UNITAI_EXPLORE_SEA</UnitAIType>
+					<bUnitAI>1</bUnitAI>
+				</UnitAI>
+				<UnitAI>
+					<UnitAIType>UNITAI_MISSILE_CARRIER_SEA</UnitAIType>
+					<bUnitAI>1</bUnitAI>
+				</UnitAI>
+			</UnitAIs>
+			<NotUnitAIs/>
+			<Builds/>
+			<ReligionSpreads/>
+			<CorporationSpreads/>
+			<GreatPeoples/>
+			<Buildings/>
+			<ForceBuildings/>
+			<HolyCity>NONE</HolyCity>
+			<ReligionType>NONE</ReligionType>
+			<StateReligion>NONE</StateReligion>
+			<PrereqReligion>NONE</PrereqReligion>
+			<PrereqCorporation>NONE</PrereqCorporation>
+			<PrereqBuilding>NONE</PrereqBuilding>
+			<!-- advc.906: was just RADIO -->
+			<PrereqTech>TECH_ROCKETRY</PrereqTech>
+			<TechTypes>
+				<PrereqTech>TECH_RADIO</PrereqTech>
+				<PrereqTech>NONE</PrereqTech>
+				<PrereqTech>NONE</PrereqTech>
+			</TechTypes>
+			<!-- advc.906: was NONE -->
+			<BonusType>BONUS_URANIUM</BonusType>
+			<!-- advc.906: was OIL or URANIUM -->
+			<PrereqBonuses>
+				<BonusType>NONE</BonusType>
+				<BonusType>NONE</BonusType>
+				<BonusType>NONE</BonusType>
+				<BonusType>NONE</BonusType>
+			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
+			<ProductionTraits/>
+			<Flavors/>
+			<iAIWeight>0</iAIWeight>
+			<!-- advc.906: was 150 -->
+			<iCost>210</iCost>
+			<iHurryCostModifier>0</iHurryCostModifier>
+			<iAdvancedStartCost>100</iAdvancedStartCost>
+			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
+			<iMinAreaSize>20</iMinAreaSize>
+			<!-- advc.906: was 6 -->
+			<iMoves>7</iMoves>
+			<bNoRevealMap>0</bNoRevealMap>
+			<iAirRange>0</iAirRange>
+			<iAirUnitCap>0</iAirUnitCap>
+			<iDropRange>0</iDropRange>
+			<iNukeRange>-1</iNukeRange>
+			<iWorkRate>0</iWorkRate>
+			<iBaseDiscover>0</iBaseDiscover>
+			<iDiscoverMultiplier>0</iDiscoverMultiplier>
+			<iBaseHurry>0</iBaseHurry>
+			<iHurryMultiplier>0</iHurryMultiplier>
+			<iBaseTrade>0</iBaseTrade>
+			<iTradeMultiplier>0</iTradeMultiplier>
+			<iGreatWorkCulture>0</iGreatWorkCulture>
+			<iEspionagePoints>0</iEspionagePoints>
+			<TerrainImpassables/>
+			<FeatureImpassables/>
+			<TerrainPassableTechs/>
+			<FeaturePassableTechs/>
+			<iCombat>24</iCombat>
+			<iCombatLimit>100</iCombatLimit>
+			<iAirCombat>0</iAirCombat>
+			<iAirCombatLimit>0</iAirCombatLimit>
+			<iXPValueAttack>4</iXPValueAttack>
+			<iXPValueDefense>2</iXPValueDefense>
+			<!-- advc.906: was 0 -->
+			<iFirstStrikes>6</iFirstStrikes>
+			<iChanceFirstStrikes>0</iChanceFirstStrikes>
+			<iInterceptionProbability>0</iInterceptionProbability>
+			<iEvasionProbability>0</iEvasionProbability>
+			<iWithdrawalProb>50</iWithdrawalProb>
+			<iCollateralDamage>0</iCollateralDamage>
+			<iCollateralDamageLimit>0</iCollateralDamageLimit>
+			<iCollateralDamageMaxUnits>0</iCollateralDamageMaxUnits>
+			<iCityAttack>0</iCityAttack>
+			<iCityDefense>0</iCityDefense>
+			<iAnimalCombat>0</iAnimalCombat>
+			<!-- advc.315c -->
+			<iBarbarianCombat>0</iBarbarianCombat>
+			<iHillsAttack>0</iHillsAttack>
+			<iHillsDefense>0</iHillsDefense>
+			<TerrainNatives/>
+			<FeatureNatives/>
+			<!-- advc.906: both 25 in K-Mod 1.45 -->
+			<TerrainAttacks>
+				<TerrainAttack>
+					<TerrainType>TERRAIN_OCEAN</TerrainType>
+					<iTerrainAttack>0</iTerrainAttack>
+				</TerrainAttack>
+				<TerrainAttack>
+					<TerrainType>TERRAIN_COAST</TerrainType>
+					<iTerrainAttack>0</iTerrainAttack>
+				</TerrainAttack>
+			</TerrainAttacks>
+			<TerrainDefenses/>
+			<FeatureAttacks/>
+			<FeatureDefenses/>
+			<UnitClassAttackMods/>
+			<UnitClassDefenseMods/>
+			<UnitCombatMods/>
+			<UnitCombatCollateralImmunes/>
+			<DomainMods/>
+			<BonusProductionModifiers/>
+			<iBombRate>0</iBombRate>
+			<iBombardRate>0</iBombardRate>
+			<SpecialCargo>SPECIALUNIT_MISSILE</SpecialCargo>
+			<DomainCargo>DOMAIN_AIR</DomainCargo>
+			<iCargo>3</iCargo>
+			<iConscription>0</iConscription>
+			<iCultureGarrison>0</iCultureGarrison>
+			<iExtraCost>0</iExtraCost>
+			<iAsset>4</iAsset>
+			<!-- advc.906: was 28 -->
+			<iPower>29</iPower>
+			<UnitMeshGroups>
+				<iGroupSize>1</iGroupSize>
+				<fMaxSpeed>2.25</fMaxSpeed>
+				<fPadTime>1</fPadTime>
+				<iMeleeWaveSize>1</iMeleeWaveSize>
+				<iRangedWaveSize>1</iRangedWaveSize>
+				<UnitMeshGroup>
+					<iRequired>1</iRequired>
+					<!-- advc.906: was ART_DEF_UNIT_SUBMARINE -->
 					<EarlyArtDefineTag>ART_DEF_UNIT_ATTACK_SUBMARINE</EarlyArtDefineTag>
 				</UnitMeshGroup>
 			</UnitMeshGroups>
@@ -20993,6 +21257,8 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -21171,6 +21437,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -21353,6 +21621,8 @@
 			<TechTypes/>
 			<BonusType>BONUS_OIL</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -21535,6 +21805,8 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -21717,6 +21989,8 @@
 			</TechTypes>
 			<BonusType>BONUS_OIL</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -21903,6 +22177,8 @@
 				<BonusType>NONE</BonusType>
 				<BonusType>NONE</BonusType>
 			</PrereqBonuses>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -22085,6 +22361,8 @@
 			</TechTypes>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -22262,6 +22540,8 @@
 			</TechTypes>
 			<BonusType>BONUS_URANIUM</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -22439,6 +22719,8 @@
 			</TechTypes>
 			<BonusType>BONUS_URANIUM</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
@@ -22674,6 +22956,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors>
 				<Flavor>
@@ -22899,6 +23183,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors>
 				<Flavor>
@@ -23137,6 +23423,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors>
 				<Flavor>
@@ -23361,6 +23649,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors>
 				<Flavor>
@@ -23587,6 +23877,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors>
 				<Flavor>
@@ -23817,6 +24109,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors>
 				<Flavor>
@@ -24060,6 +24354,8 @@
 			<TechTypes/>
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses/>
+			<!-- advc.905b -->
+			<SpeedBonuses/>
 			<ProductionTraits/>
 			<Flavors>
 				<Flavor>

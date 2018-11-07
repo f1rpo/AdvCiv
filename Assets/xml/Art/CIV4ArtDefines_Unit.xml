@@ -1924,8 +1924,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_WORKBOAT</Type>
 			<Button>,Art/Interface/Buttons/Units/WorkBoat.dds,Art/Interface/Buttons/Unit_Resource_Atlas.dds,4,9</Button>
-			<!-- was 0.19 -->
-			<fScale>0.18</fScale>
+			<!-- advc.002j: was 0.19 -->
+			<fScale>0.165</fScale>
 			<fInterfaceScale>1.0</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>
@@ -2118,7 +2118,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_GALLEON</Type>
 			<Button>,Art/Interface/Buttons/Units/Galleon.dds,Art/Interface/Buttons/Unit_Resource_Atlas.dds,5,9</Button>
-			<fScale>0.2</fScale>
+			<!-- advc.002j: was 0.2 -->
+			<fScale>0.19</fScale>
 			<fInterfaceScale>0.5</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>
@@ -2197,7 +2198,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_PRIVATEER</Type>
 			<Button>,Art/Interface/Buttons/Units/ICBM.dds,Art/Interface/Buttons/Beyond_the_Sword_Atlas.dds,8,11</Button>
-			<fScale>0.2</fScale>
+			<!-- advc.002j: was 0.2 -->
+			<fScale>0.24</fScale>
 			<fInterfaceScale>0.5</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>
@@ -2236,7 +2238,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_FRIGATE</Type>
 			<Button>,Art/Interface/Buttons/Units/Frigate.dds,Art/Interface/Buttons/Unit_Resource_Atlas.dds,2,9</Button>
-			<fScale>0.24</fScale>
+			<!-- advc.002j: was 0.24 -->
+			<fScale>0.25</fScale>
 			<fInterfaceScale>0.5</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>

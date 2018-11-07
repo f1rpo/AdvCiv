@@ -5045,7 +5045,9 @@ bool CvUnit::airBomb(int iX, int iY)
 				if (pPlot->isOwned())
 				{
 					szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_IMP_WAS_DESTROYED", GC.getImprovementInfo(pPlot->getImprovementType()).getTextKeyWide(), getNameKey(), getVisualCivAdjective(pPlot->getTeam()));
-					gDLL->getInterfaceIFace()->addHumanMessage(pPlot->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
+					gDLL->getInterfaceIFace()->addHumanMessage(pPlot->getOwnerINLINE(),
+							true, // advc.106j
+							GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
 				}
 
 				pPlot->setImprovementType((ImprovementTypes)(GC.getImprovementInfo(pPlot->getImprovementType()).getImprovementPillage()));
@@ -5407,7 +5409,9 @@ bool CvUnit::pillage()
 				if (pPlot->isOwned())
 				{
 					szBuffer = gDLL->getText("TXT_KEY_MISC_IMP_DESTROYED", GC.getImprovementInfo(pPlot->getImprovementType()).getTextKeyWide(), getNameKey(), getVisualCivAdjective(pPlot->getTeam()));
-					gDLL->getInterfaceIFace()->addHumanMessage(pPlot->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
+					gDLL->getInterfaceIFace()->addHumanMessage(pPlot->getOwnerINLINE(),
+							true, // advc.106j
+							GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_PILLAGED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
 				}
 			}
 		}
@@ -8171,7 +8175,20 @@ int CvUnit::visibilityRange() const
 
 int CvUnit::baseMoves() const
 {
-	return (m_pUnitInfo->getMoves() + getExtraMoves() + GET_TEAM(getTeam()).getExtraMoves(getDomainType()));
+	//return (m_pUnitInfo->getMoves() + getExtraMoves() + GET_TEAM(getTeam()).getExtraMoves(getDomainType()));
+	// <advc.905b>
+	int r = m_pUnitInfo->getMoves() + getExtraMoves() + GET_TEAM(getTeam()).getExtraMoves(getDomainType());
+	for(int i = 0; i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); i++) {
+		if(m_pUnitInfo->getSpeedBonuses(i) >= 0) {
+			BonusTypes eBonus = (BonusTypes)m_pUnitInfo->getSpeedBonuses(i);
+			CvPlotGroup* pPlotGroup = plot()->getPlotGroup(getOwnerINLINE());
+			CvCity* pCapital = GET_PLAYER(getOwnerINLINE()).getCapitalCity();
+			if((pPlotGroup != NULL && pPlotGroup->getNumBonuses(eBonus) > 0) ||
+					(pCapital != NULL && pCapital->hasBonus(eBonus)))
+				r += m_pUnitInfo->getExtraMoves(i);
+		}
+	}
+	return r; // </advc.905b>
 }
 
 

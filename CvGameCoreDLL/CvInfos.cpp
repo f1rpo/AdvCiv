@@ -3196,6 +3196,7 @@ m_paszLateArtDefineTags(NULL),
 m_paszMiddleArtDefineTags(NULL),
 m_paszUnitNames(NULL)
 {
+	m_piSpeedBonuses[0] = m_piSpeedBonuses[1] = NULL; // advc.905b
 }
 
 //------------------------------------------------------------------------------------------------------
@@ -3227,6 +3228,10 @@ CvUnitInfo::~CvUnitInfo()
 	SAFE_DELETE_ARRAY(m_pbFeatureImpassable);
 	SAFE_DELETE_ARRAY(m_piPrereqAndTechs);
 	SAFE_DELETE_ARRAY(m_piPrereqOrBonuses);
+	// <advc.905b>
+	SAFE_DELETE_ARRAY(m_piSpeedBonuses[0]);
+	SAFE_DELETE_ARRAY(m_piSpeedBonuses[1]);
+	// </advc.905b>
 	SAFE_DELETE_ARRAY(m_piProductionTraits);
 	SAFE_DELETE_ARRAY(m_piFlavorValue);
 	SAFE_DELETE_ARRAY(m_piTerrainAttackModifier);
@@ -3863,6 +3868,21 @@ int CvUnitInfo::getPrereqOrBonuses(int i) const
 	return m_piPrereqOrBonuses ? m_piPrereqOrBonuses[i] : -1;
 }
 
+// <advc.905b>
+int CvUnitInfo::getSpeedBonuses(int i) const {
+
+	FAssertMsg(i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(), "Index out of bounds");
+	FAssertMsg(i > -1, "Index out of bounds");
+	return m_piSpeedBonuses[0] ? m_piSpeedBonuses[0][i] : -1;
+}
+
+int CvUnitInfo::getExtraMoves(int i) const {
+
+	FAssertMsg(i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(), "Index out of bounds");
+	FAssertMsg(i > -1, "Index out of bounds");
+	return m_piSpeedBonuses[1] ? m_piSpeedBonuses[1][i] : -1;
+} // </advc.905b>
+
 int CvUnitInfo::getProductionTraits(int i) const			
 {
 	FAssertMsg(i < GC.getNumTraitInfos(), "Index out of bounds");
@@ -4380,7 +4400,19 @@ void CvUnitInfo::read(FDataStreamBase* stream)
 	SAFE_DELETE_ARRAY(m_piPrereqOrBonuses);
 	m_piPrereqOrBonuses = new int[GC.getNUM_UNIT_PREREQ_OR_BONUSES()];
 	stream->Read(GC.getNUM_UNIT_PREREQ_OR_BONUSES(), m_piPrereqOrBonuses);
-
+	// <advc.905b>
+	SAFE_DELETE_ARRAY(m_piSpeedBonuses[0]);
+	SAFE_DELETE_ARRAY(m_piSpeedBonuses[1]);
+	m_piSpeedBonuses[0] = new int[GC.getNUM_UNIT_PREREQ_OR_BONUSES()];
+	m_piSpeedBonuses[1] = new int[GC.getNUM_UNIT_PREREQ_OR_BONUSES()];
+	if(uiFlag >= 3) {
+		stream->Read(GC.getNUM_UNIT_PREREQ_OR_BONUSES(), m_piSpeedBonuses[0]);
+		stream->Read(GC.getNUM_UNIT_PREREQ_OR_BONUSES(), m_piSpeedBonuses[1]);
+	}
+	else for(int i = 0; i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); i++) {
+		m_piSpeedBonuses[0][i] = -1;
+		m_piSpeedBonuses[1][i] = 0;
+	} // </advc.905b>
 	SAFE_DELETE_ARRAY(m_piProductionTraits);
 	m_piProductionTraits = new int[GC.getNumTraitInfos()];
 	stream->Read(GC.getNumTraitInfos(), m_piProductionTraits);
@@ -4546,7 +4578,8 @@ void CvUnitInfo::write(FDataStreamBase* stream)
 	CvHotkeyInfo::write(stream);
 
 	uint uiFlag=1;
-	uiFlag++; // advc.315
+	uiFlag = 2; // advc.315
+	uiFlag = 3; // advc.905b
 	stream->Write(uiFlag);		// flag for expansion
 
 	stream->Write(m_iAIWeight);
@@ -4675,6 +4708,10 @@ void CvUnitInfo::write(FDataStreamBase* stream)
 
 	stream->Write(GC.getNUM_UNIT_AND_TECH_PREREQS(), m_piPrereqAndTechs);
 	stream->Write(GC.getNUM_UNIT_PREREQ_OR_BONUSES(), m_piPrereqOrBonuses);
+	// <advc.905b>
+	stream->Write(GC.getNUM_UNIT_PREREQ_OR_BONUSES(), m_piSpeedBonuses[0]);
+	stream->Write(GC.getNUM_UNIT_PREREQ_OR_BONUSES(), m_piSpeedBonuses[1]);
+	// </advc.905b>
 	stream->Write(GC.getNumTraitInfos(), m_piProductionTraits);
 	stream->Write(GC.getNumFlavorTypes(), m_piFlavorValue);
 	stream->Write(GC.getNumTerrainInfos(), m_piTerrainAttackModifier);
@@ -4934,7 +4971,33 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 		}
 
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
-	}
+	} /* <advc.905b> Could implement this like e.g. BonusHappinessChanges, but that
+		 would mean storing one int for every (unit type, bonus type) pair. Instead,
+		 do sth. similar to the code for PrereqOrBonuses above. */
+	if(gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "SpeedBonuses")) {
+		if(pXML->SkipToNextVal()) {
+			pXML->InitList(&m_piSpeedBonuses[0], GC.getNUM_UNIT_PREREQ_OR_BONUSES(), -1);
+			pXML->InitList(&m_piSpeedBonuses[1], GC.getNUM_UNIT_PREREQ_OR_BONUSES(), 0);
+			iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
+			if(iNumSibs > 0 && gDLL->getXMLIFace()->SetToChild(pXML->GetXML())) {
+				FAssert(iNumSibs <= GC.getNUM_UNIT_PREREQ_OR_BONUSES());
+				for(j = 0; j < iNumSibs; j++) {
+					pXML->GetChildXmlValByName(szTextVal, "BonusType");
+					int iBonus = pXML->FindInInfoClass(szTextVal);
+					if(iBonus > -1) {
+						m_piSpeedBonuses[0][j] = iBonus;
+						int iExtraMoves = 0;
+						pXML->GetChildXmlValByName(&iExtraMoves, "iExtraMoves");
+						m_piSpeedBonuses[1][j] = iExtraMoves;
+					}
+					if(!gDLL->getXMLIFace()->NextSibling(pXML->GetXML()))
+						break;
+				}
+				gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
+			}
+		}
+		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
+	} // </advc.905b>
 
 	pXML->SetVariableListTagPair(&m_piProductionTraits, "ProductionTraits", sizeof(GC.getTraitInfo((TraitTypes)0)), GC.getNumTraitInfos());
 

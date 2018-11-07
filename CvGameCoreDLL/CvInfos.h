@@ -943,6 +943,10 @@ public:
 
 	int getPrereqAndTechs(int i) const;				// Exposed to Python
 	int getPrereqOrBonuses(int i) const;				// Exposed to Python
+	// <advc.905b>
+	int getSpeedBonuses(int i) const;
+	int getExtraMoves(int i) const;
+	// </advc.905b>
 	int getProductionTraits(int i) const;				// Exposed to Python
 	int getFlavorValue(int i) const;				// Exposed to Python
 	int getTerrainAttackModifier(int i) const;				// Exposed to Python
@@ -1128,6 +1132,7 @@ protected:
 
 	int* m_piPrereqAndTechs;
 	int* m_piPrereqOrBonuses;
+	int* m_piSpeedBonuses[2]; // advc.905b
 	int* m_piProductionTraits;
 	int* m_piFlavorValue;
 	int* m_piTerrainAttackModifier;
