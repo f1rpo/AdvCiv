@@ -525,7 +525,7 @@ public:
 	void AI_invalidateCitySites(int iMinFoundValueThreshold);
 
 	int AI_getNumCitySites() const;
-	bool AI_isPlotCitySite(CvPlot* pPlot) const;
+	bool AI_isPlotCitySite(CvPlot const& kPlot) const; // advc.003: Made plot param const
 	int AI_getNumAreaCitySites(int iAreaID, int& iBestValue) const;
 	int AI_getNumAdjacentAreaCitySites(int iWaterAreaID, int iExcludeArea, int& iBestValue) const;
 	int AI_getNumPrimaryAreaCitySites(int iMinimumValue = 0) const; // K-Mod

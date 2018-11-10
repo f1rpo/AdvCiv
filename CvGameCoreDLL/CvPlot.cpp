@@ -3119,6 +3119,7 @@ int CvPlot::getNumCultureRangeCities(PlayerTypes ePlayer) const
 /* General AI                                                                                   */
 /************************************************************************************************/
 bool CvPlot::isHasPathToEnemyCity( TeamTypes eAttackerTeam, bool bIgnoreBarb )
+	const // advc.003
 {
 	PROFILE_FUNC();
 
@@ -3198,6 +3199,7 @@ bool CvPlot::isHasPathToEnemyCity( TeamTypes eAttackerTeam, bool bIgnoreBarb )
 }
 
 bool CvPlot::isHasPathToPlayerCity( TeamTypes eMoveTeam, PlayerTypes eOtherPlayer )
+	const // advc.003
 {
 	PROFILE_FUNC();
 
@@ -7093,6 +7095,7 @@ void CvPlot::changeCulture(PlayerTypes eIndex, int iChange, bool bUpdate)
 
 
 int CvPlot::getFoundValue(PlayerTypes eIndex)
+		const // advc.003
 {
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < MAX_PLAYERS, "eIndex is expected to be within maximum bounds (invalid Index)");

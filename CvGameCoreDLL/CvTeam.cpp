@@ -1841,8 +1841,8 @@ void CvTeam::makePeaceBulk(TeamTypes eTeam, bool bBumpUnits, TeamTypes broker,
 	if(!isAtWar(eTeam))
 		return; // </advc.003>
 	// <advc.104> To record who won the war, before war success is reset.
-	GET_TEAM(getID()).warAndPeaceAI().reportWarEnding(eTeam);
-	GET_TEAM(eTeam).warAndPeaceAI().reportWarEnding(getID());
+	GET_TEAM(getID()).warAndPeaceAI().reportWarEnding(eTeam, reparations, NULL);
+	GET_TEAM(eTeam).warAndPeaceAI().reportWarEnding(getID(), NULL, reparations);
 	// </advc.104>
 	/*  <advc.130y> Don't know if they started the war, but if we did, and they had
 		started a war against us some time earlier, we may as well forgive them for

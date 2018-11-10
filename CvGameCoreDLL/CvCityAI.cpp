@@ -7475,7 +7475,8 @@ void CvCityAI::AI_getYieldMultipliers(int &iFoodMultiplier, int &iProductionMult
 	}
 }
 
-int CvCityAI::AI_getImprovementValue(CvPlot* pPlot, ImprovementTypes eImprovement, int iFoodPriority, int iProductionPriority, int iCommercePriority, int iDesiredFoodChange, int iClearFeatureValue, bool bEmphasizeIrrigation, BuildTypes* peBestBuild) const
+// advc.003: Made the plot param const
+int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImprovement, int iFoodPriority, int iProductionPriority, int iCommercePriority, int iDesiredFoodChange, int iClearFeatureValue, bool bEmphasizeIrrigation, BuildTypes* peBestBuild) const
 {
 	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE()); // K-Mod
 
@@ -7486,10 +7487,10 @@ int CvCityAI::AI_getImprovementValue(CvPlot* pPlot, ImprovementTypes eImprovemen
 
 	bool bIgnoreFeature = false;
 	bool bValid = false;
-	BonusTypes eBonus = pPlot->getBonusType(getTeam());
-	BonusTypes eNonObsoleteBonus = pPlot->getNonObsoleteBonusType(getTeam());
+	BonusTypes eBonus = kPlot.getBonusType(getTeam());
+	BonusTypes eNonObsoleteBonus = kPlot.getNonObsoleteBonusType(getTeam());
 
-	if (eImprovement == pPlot->getImprovementType())
+	if (eImprovement == kPlot.getImprovementType())
 	{
 		bValid = true;
 	}
@@ -7502,7 +7503,7 @@ int CvCityAI::AI_getImprovementValue(CvPlot* pPlot, ImprovementTypes eImprovemen
 
 			if (GC.getBuildInfo(eBuild).getImprovement() == eImprovement)
 			{
-				if (kOwner.canBuild(pPlot, eBuild, false))
+				if (kOwner.canBuild(&kPlot, eBuild, false))
 				{
 					iValue = 10000;
 
@@ -7523,13 +7524,13 @@ int CvCityAI::AI_getImprovementValue(CvPlot* pPlot, ImprovementTypes eImprovemen
 		{
 			bValid = true;
 
-			if (pPlot->getFeatureType() != NO_FEATURE)
+			if (kPlot.getFeatureType() != NO_FEATURE)
 			{
-				if (GC.getBuildInfo(eBestTempBuild).isFeatureRemove(pPlot->getFeatureType()))
+				if (GC.getBuildInfo(eBestTempBuild).isFeatureRemove(kPlot.getFeatureType()))
 				{
 					bIgnoreFeature = true;
 
-					if (GC.getFeatureInfo(pPlot->getFeatureType()).getYieldChange(YIELD_PRODUCTION) > 0)
+					if (GC.getFeatureInfo(kPlot.getFeatureType()).getYieldChange(YIELD_PRODUCTION) > 0)
 					{
 						if (eNonObsoleteBonus == NO_BONUS)
 						{
@@ -7537,11 +7538,11 @@ int CvCityAI::AI_getImprovementValue(CvPlot* pPlot, ImprovementTypes eImprovemen
 							{
 								bValid = false;
 							}
-							else if (healthRate() < 0 && GC.getFeatureInfo(pPlot->getFeatureType()).getHealthPercent() > 0)
+							else if (healthRate() < 0 && GC.getFeatureInfo(kPlot.getFeatureType()).getHealthPercent() > 0)
 							{
 								bValid = false;
 							}
-							else if (kOwner.getFeatureHappiness(pPlot->getFeatureType()) > 0)
+							else if (kOwner.getFeatureHappiness(kPlot.getFeatureType()) > 0)
 							{
 								bValid = false;
 							}
@@ -7591,7 +7592,7 @@ int CvCityAI::AI_getImprovementValue(CvPlot* pPlot, ImprovementTypes eImprovemen
 				int impYieldChange = 0;
 				for(int i = 0; i < NUM_YIELD_TYPES; i++)
 					impYieldChange += imp.getYieldChange(i);
-				if(impYieldChange <= 0 && pPlot->getWorkingCity() != NULL)
+				if(impYieldChange <= 0 && kPlot.getWorkingCity() != NULL)
 					iValue /= 5;
 				// </advc.121>
 			}
@@ -7599,7 +7600,7 @@ int CvCityAI::AI_getImprovementValue(CvPlot* pPlot, ImprovementTypes eImprovemen
 			{
 				// K-Mod, bug fix. (original code deleted now.)
 				// Presumablly the original author wanted to subtract 1000 if eBestBuild would take away the bonus; not ... the nonsense they actually wrote.
-				if (kOwner.doesImprovementConnectBonus(pPlot->getImprovementType(), eNonObsoleteBonus))
+				if (kOwner.doesImprovementConnectBonus(kPlot.getImprovementType(), eNonObsoleteBonus))
 				{
 					// By the way, AI_bonusVal is typically 10 for the first bonus, and 2 for subsequent.
 					iValue -= (kOwner.AI_bonusVal(eNonObsoleteBonus, -1) * 50);
@@ -7641,12 +7642,12 @@ int CvCityAI::AI_getImprovementValue(CvPlot* pPlot, ImprovementTypes eImprovemen
 		std::vector<float> weighted_yield_diffs(NUM_YIELD_TYPES);
 
 		// Getting the time-weighted yields for the new and old improvements; then use them to calculate the final yield and yield difference.
-		AI_timeWeightedImprovementYields(pPlot, eImprovement, iTimeScale, weighted_final_yields);
-		AI_timeWeightedImprovementYields(pPlot, pPlot->getImprovementType(), iTimeScale, weighted_yield_diffs);
+		AI_timeWeightedImprovementYields(&kPlot, eImprovement, iTimeScale, weighted_final_yields);
+		AI_timeWeightedImprovementYields(&kPlot, kPlot.getImprovementType(), iTimeScale, weighted_yield_diffs);
 		for (int iJ = 0; iJ < NUM_YIELD_TYPES; iJ++)
 		{
-			weighted_final_yields[iJ] += pPlot->calculateNatureYield((YieldTypes)iJ, getTeam(), bIgnoreFeature);
-			weighted_yield_diffs[iJ] = weighted_final_yields[iJ] - (weighted_yield_diffs[iJ] + pPlot->calculateNatureYield((YieldTypes)iJ, getTeam()));
+			weighted_final_yields[iJ] += kPlot.calculateNatureYield((YieldTypes)iJ, getTeam(), bIgnoreFeature);
+			weighted_yield_diffs[iJ] = weighted_final_yields[iJ] - (weighted_yield_diffs[iJ] + kPlot.calculateNatureYield((YieldTypes)iJ, getTeam()));
 		}
 
 		// K-Mod
@@ -7657,7 +7658,7 @@ int CvCityAI::AI_getImprovementValue(CvPlot* pPlot, ImprovementTypes eImprovemen
 		So I'll just use a very rough approximation. Hopefully it will be better than nothing.
 		*/
 		int iCorrectedFoodPriority = iFoodPriority;
-		if (weighted_yield_diffs[YIELD_FOOD] != 0 && isWorkingPlot(pPlot))
+		if (weighted_yield_diffs[YIELD_FOOD] != 0 && isWorkingPlot(&kPlot))
 		{
 			int iTotalFood = 16 * GC.getFOOD_CONSUMPTION_PER_POPULATION();
 			// 16 is arbitrary. It would be possible to get something better using targetPop and so on, but that would be slower...
@@ -7750,7 +7751,7 @@ int CvCityAI::AI_getImprovementValue(CvPlot* pPlot, ImprovementTypes eImprovemen
 		{
 			//int iHappyLevel = iHappyAdjust + (happyLevel() - unhappyLevel(0));
 			int iHappyLevel = happyLevel() - unhappyLevel(0); // iHappyAdjust isn't currently being used.
-			if (eImprovement == pPlot->getImprovementType())
+			if (eImprovement == kPlot.getImprovementType())
 			{
 				iHappyLevel -= iHappiness;
 			}
@@ -7772,14 +7773,14 @@ int CvCityAI::AI_getImprovementValue(CvPlot* pPlot, ImprovementTypes eImprovemen
 			{
 				iHappyValue += 200 * std::max(0, (bCanGrow ? 1 : 0) - iHappyLevel);
 			}
-			if (!pPlot->isBeingWorked())
+			if (!kPlot.isBeingWorked())
 			{
 				iHappyValue *= 4;
 				iHappyValue /= 3;
 			}
-			//iHappyValue += std::max(0, (pPlot->getCityRadiusCount() - 1)) * ((iHappyValue > 0) ? iHappyLevel / 2 : 200);
+			//iHappyValue += std::max(0, (kPlot.getCityRadiusCount() - 1)) * ((iHappyValue > 0) ? iHappyLevel / 2 : 200);
 			// K-Mod
-			iHappyValue *= (pPlot->getPlayerCityRadiusCount(getOwner()) + 1);
+			iHappyValue *= (kPlot.getPlayerCityRadiusCount(getOwner()) + 1);
 			iHappyValue /= 2;
 			//
 			iValue += iHappyValue * iHappiness;
@@ -7798,11 +7799,11 @@ int CvCityAI::AI_getImprovementValue(CvPlot* pPlot, ImprovementTypes eImprovemen
 			iValue /= 100; // advc.005a: was /=200
 		}
 		iValue -= padding; // advc.131
-		if (pPlot->getImprovementType() == NO_IMPROVEMENT)
+		if (kPlot.getImprovementType() == NO_IMPROVEMENT)
 		{
-			//if (pPlot->isBeingWorked())
-			if (pPlot->isBeingWorked()  // K-Mod. (don't boost the value if it means removing a good feature.)
-				&& (iClearFeatureValue >= 0 || eBestTempBuild == NO_BUILD || !GC.getBuildInfo(eBestTempBuild).isFeatureRemove(pPlot->getFeatureType())))
+			//if (kPlot.isBeingWorked())
+			if (kPlot.isBeingWorked()  // K-Mod. (don't boost the value if it means removing a good feature.)
+				&& (iClearFeatureValue >= 0 || eBestTempBuild == NO_BUILD || !GC.getBuildInfo(eBestTempBuild).isFeatureRemove(kPlot.getFeatureType())))
 			{
 				iValue *= 5;
 				iValue /= 4;
@@ -7811,12 +7812,12 @@ int CvCityAI::AI_getImprovementValue(CvPlot* pPlot, ImprovementTypes eImprovemen
 			/* original bts code
 			if (eBestTempBuild != NO_BUILD)
 			{
-				if (pPlot->getFeatureType() != NO_FEATURE)
+				if (kPlot.getFeatureType() != NO_FEATURE)
 				{
-					if (GC.getBuildInfo(eBestTempBuild).isFeatureRemove(pPlot->getFeatureType()))
+					if (GC.getBuildInfo(eBestTempBuild).isFeatureRemove(kPlot.getFeatureType()))
 					{
 						CvCity* pCity;
-						iValue += pPlot->getFeatureProduction(eBestTempBuild, getTeam(), &pCity) * 2;
+						iValue += kPlot.getFeatureProduction(eBestTempBuild, getTeam(), &pCity) * 2;
 						FAssert(pCity == this);
 
 						iValue += iClearFeatureValue;
@@ -7827,7 +7828,7 @@ int CvCityAI::AI_getImprovementValue(CvPlot* pPlot, ImprovementTypes eImprovemen
 		else
 		{
 			// cottage/villages (don't want to chop them up if turns have been invested)
-			ImprovementTypes eImprovementDowngrade = (ImprovementTypes)GC.getImprovementInfo(pPlot->getImprovementType()).getImprovementPillage();
+			ImprovementTypes eImprovementDowngrade = (ImprovementTypes)GC.getImprovementInfo(kPlot.getImprovementType()).getImprovementPillage();
 			/* original bts code
 			while (eImprovementDowngrade != NO_IMPROVEMENT)
 			{
@@ -7848,16 +7849,16 @@ int CvCityAI::AI_getImprovementValue(CvPlot* pPlot, ImprovementTypes eImprovemen
 			}
 			// K-Mod end
 
-			if (GC.getImprovementInfo(pPlot->getImprovementType()).getImprovementUpgrade() != NO_IMPROVEMENT)
+			if (GC.getImprovementInfo(kPlot.getImprovementType()).getImprovementUpgrade() != NO_IMPROVEMENT)
 			{
-				iValue -= (GC.getImprovementInfo(pPlot->getImprovementType()).getUpgradeTime() * 8 * (pPlot->getUpgradeProgress())) / std::max(1, GC.getGameINLINE().getImprovementUpgradeTime(pPlot->getImprovementType()));
+				iValue -= (GC.getImprovementInfo(kPlot.getImprovementType()).getUpgradeTime() * 8 * (kPlot.getUpgradeProgress())) / std::max(1, GC.getGameINLINE().getImprovementUpgradeTime(kPlot.getImprovementType()));
 			}
 
 			if (eNonObsoleteBonus == NO_BONUS)
 			{
-				if (isWorkingPlot(pPlot))
+				if (isWorkingPlot(&kPlot))
 				{
-					if (((iCorrectedFoodPriority < 100) && (weighted_final_yields[YIELD_FOOD] >= GC.getFOOD_CONSUMPTION_PER_POPULATION())) || (GC.getImprovementInfo(pPlot->getImprovementType()).getImprovementPillage() != NO_IMPROVEMENT))
+					if (((iCorrectedFoodPriority < 100) && (weighted_final_yields[YIELD_FOOD] >= GC.getFOOD_CONSUMPTION_PER_POPULATION())) || (GC.getImprovementInfo(kPlot.getImprovementType()).getImprovementPillage() != NO_IMPROVEMENT))
 					{
 						iValue -= 70;
 						iValue *= 2;
@@ -7872,10 +7873,10 @@ int CvCityAI::AI_getImprovementValue(CvPlot* pPlot, ImprovementTypes eImprovemen
 			}
 		}
 		// K-Mod. Feature value. (moved from the 'no improvement' block above.)
-		if (pPlot->getFeatureType() != NO_FEATURE && eBestTempBuild != NO_BUILD && GC.getBuildInfo(eBestTempBuild).isFeatureRemove(pPlot->getFeatureType()))
+		if (kPlot.getFeatureType() != NO_FEATURE && eBestTempBuild != NO_BUILD && GC.getBuildInfo(eBestTempBuild).isFeatureRemove(kPlot.getFeatureType()))
 		{
 			//CvCity* pCity;
-			//iValue += pPlot->getFeatureProduction(eBestTempBuild, getTeam(), &pCity) * 2; // handle chop value elsewhere
+			//iValue += kPlot.getFeatureProduction(eBestTempBuild, getTeam(), &pCity) * 2; // handle chop value elsewhere
 			//FAssert(pCity == this);
 			iValue += iClearFeatureValue;
 		}
@@ -10301,7 +10302,7 @@ int CvCityAI::AI_yieldValue(short* piYields, short* piCommerceYields, bool bRemo
 }
 
 // units of 400x commerce
-int CvCityAI::AI_plotValue(CvPlot* pPlot, bool bRemove, bool bIgnoreFood, bool bIgnoreStarvation, int iGrowthValue) const
+int CvCityAI::AI_plotValue(CvPlot const* pPlot, bool bRemove, bool bIgnoreFood, bool bIgnoreStarvation, int iGrowthValue) const
 {
 	// K-Mod. To reduce code duplication, this function now uses AI_jobChangeValue. (original code deleted)
 	FAssert(pPlot);
@@ -10557,7 +10558,9 @@ int CvCityAI::AI_jobChangeValue(std::pair<bool, int> new_job, std::pair<bool, in
 // K-Mod. Difference between current yields and yields after plot improvement reaches final upgrade.
 // piYields will have final yields added to it, and current yields subtracted.
 // Return true iff any yields are changed.
-bool CvCityAI::AI_finalImprovementYieldDifference(CvPlot* pPlot, short* piYields) const
+bool CvCityAI::AI_finalImprovementYieldDifference(
+		CvPlot const* pPlot, // advc.003
+		short* piYields) const
 {
 	FAssert(pPlot);
 	FAssert(piYields);
@@ -11015,7 +11018,7 @@ void CvCityAI::AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peB
 	{
 		ImprovementTypes eImprovement = ((ImprovementTypes)iI);
 		BuildTypes eBestTempBuild;
-		int iValue = AI_getImprovementValue(pPlot, eImprovement, iFoodPriority, iProductionPriority, iCommercePriority, iDesiredFoodChange, iClearFeatureValue, bEmphasizeIrrigation, &eBestTempBuild);
+		int iValue = AI_getImprovementValue(*pPlot, eImprovement, iFoodPriority, iProductionPriority, iCommercePriority, iDesiredFoodChange, iClearFeatureValue, bEmphasizeIrrigation, &eBestTempBuild);
 		if (iValue > iBestValue)
 		{
 			iBestValue = iValue;
@@ -11926,32 +11929,31 @@ int CvCityAI::AI_getYieldMagicValue(const int* piYieldsTimes100, bool bHealthy) 
 //50-100 means it's okay.
 //Above 100 means it's definitely decent - seriously question ever not working it.
 //This function deliberately doesn't use emphasize settings.
-int CvCityAI::AI_getPlotMagicValue(CvPlot* pPlot, bool bHealthy, bool bWorkerOptimization) const
+int CvCityAI::AI_getPlotMagicValue(CvPlot const& kPlot, bool bHealthy, bool bWorkerOptimization) const
 {	// <k146>
 	int aiYields[NUM_YIELD_TYPES];
 	bool bFinalBuildAssumed = bWorkerOptimization &&
-			pPlot->getWorkingCity() == this &&
-			AI_getBestBuild(getCityPlotIndex(pPlot)) != NO_BUILD;
-	FAssert(pPlot != NULL);
+			kPlot.getWorkingCity() == this &&
+			AI_getBestBuild(getCityPlotIndex(&kPlot)) != NO_BUILD;
 
 	for (int iI = 0; iI < NUM_YIELD_TYPES; iI++)
 	{
 		if (bFinalBuildAssumed)
 		{
-			aiYields[iI] = pPlot->getYieldWithBuild(AI_getBestBuild(getCityPlotIndex(pPlot)), (YieldTypes)iI, true);
+			aiYields[iI] = kPlot.getYieldWithBuild(AI_getBestBuild(getCityPlotIndex(&kPlot)), (YieldTypes)iI, true);
 		}
 		else
 		{
-			aiYields[iI] = pPlot->getYield((YieldTypes)iI) * 100;
+			aiYields[iI] = kPlot.getYield((YieldTypes)iI) * 100;
 		}
 	}
 
-	ImprovementTypes eCurrentImprovement = pPlot->getImprovementType();
+	ImprovementTypes eCurrentImprovement = kPlot.getImprovementType();
 
 	if (eCurrentImprovement != NO_IMPROVEMENT  && !bFinalBuildAssumed)
 	{
 		short aiYieldDiffs[NUM_YIELD_TYPES] = {};
-		AI_finalImprovementYieldDifference(pPlot, aiYieldDiffs);
+		AI_finalImprovementYieldDifference(&kPlot, aiYieldDiffs);
 		// Remember, aiYields has values *100.
 		for (int iI = 0; iI < NUM_YIELD_TYPES; ++iI)
 		{
@@ -11982,7 +11984,7 @@ int CvCityAI::AI_countGoodTiles(bool bHealthy, bool bUnworkedOnly, int iThreshol
 			{
 				if (!bUnworkedOnly || !(pLoopPlot->isBeingWorked()))
 				{
-					if (AI_getPlotMagicValue(pLoopPlot, bHealthy,
+					if (AI_getPlotMagicValue(*pLoopPlot, bHealthy,
 							bWorkerOptimization // k146
 							) > iThreshold)
 					{

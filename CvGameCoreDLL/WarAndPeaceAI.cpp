@@ -2046,12 +2046,15 @@ double WarAndPeaceAI::Team::confidenceFromWarSuccess(TeamTypes targetId) const {
 	return r;
 }
 
-void WarAndPeaceAI::Team::reportWarEnding(TeamTypes enemyId) {
+void WarAndPeaceAI::Team::reportWarEnding(TeamTypes enemyId, CLinkList<TradeData>* weReceive,
+		CLinkList<TradeData>* wePay) {
 
 	/*  This isn't really team-on-team data b/c each team member can have its
 		own interpretation of whether the war was successful. */
-	for(size_t i = 0; i < members.size(); i++)
-		GET_PLAYER(members[i]).warAndPeaceAI().getCache().reportWarEnding(enemyId);
+	for(size_t i = 0; i < members.size(); i++) {
+		GET_PLAYER(members[i]).warAndPeaceAI().getCache().reportWarEnding(enemyId,
+				weReceive, wePay);
+	}
 }
 
 int WarAndPeaceAI::Team::countNonMembers(VoteSourceTypes voteSource) const {

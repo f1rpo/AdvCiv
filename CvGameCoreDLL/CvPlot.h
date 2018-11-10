@@ -155,8 +155,9 @@ public:
 /*                                                                                              */
 /* General AI                                                                                   */
 /************************************************************************************************/
-	bool isHasPathToEnemyCity( TeamTypes eAttackerTeam, bool bIgnoreBarb = true );
-	bool isHasPathToPlayerCity( TeamTypes eMoveTeam, PlayerTypes eOtherPlayer = NO_PLAYER );
+	// advc.003: const qualifier added to these two
+	bool isHasPathToEnemyCity( TeamTypes eAttackerTeam, bool bIgnoreBarb = true ) const;
+	bool isHasPathToPlayerCity( TeamTypes eMoveTeam, PlayerTypes eOtherPlayer = NO_PLAYER ) const;
 	int calculatePathDistanceToPlot( TeamTypes eTeam, CvPlot* pTargetPlot,
 			// <advc.104b>
 			TeamTypes eTargetTeam = NO_TEAM, DomainTypes dom = NO_DOMAIN,
@@ -438,8 +439,8 @@ public:
 
 	int countNumAirUnits(TeamTypes eTeam) const;																					// Exposed to Python
 	int airUnitSpaceAvailable(TeamTypes eTeam) const;
-
-	int getFoundValue(PlayerTypes eIndex);							// Exposed to Python
+		// advc.003: const
+	int getFoundValue(PlayerTypes eIndex) const;							// Exposed to Python
 	bool isBestAdjacentFound(PlayerTypes eIndex);						// Exposed to Python
 	void setFoundValue(PlayerTypes eIndex, short iNewValue);
 	// K-Mod: I've changed iNewValue to be 'short' instead of 'int', so that it matches the cache.

@@ -822,9 +822,9 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_HANDICAP_IMMORTAL_HELP</Tag>
-		<English>Very hard. Apart from receiving high ongoing bonuses, the AI players start the game with a Worker, two Scouts, three Archers and, in total, up to five technologies. The game starts on turn 10 in order to match this big head start. Your units receive no combat bonus against Barbarians.</English>
+		<English>Very hard. Apart from receiving high ongoing bonuses, the AI players start the game with a Worker, two Scouts, three Archers and, in total, up to five technologies. The game starts on turn 10 in order to match this big head start.</English>
 		<French>Peu nombreux sont ceux qui peuvent revendiquer une place parmi les Immortels. C'est l&#224; un d&#233;fi que seuls les plus exp&#233;riment&#233;s sauront relever.</French>
-		<German>Sehr schwierig. Zusätzlich zu hohen andauernden Boni erhalten die KI-Spieler zu Spielbeginn einen Bautrupp, zwei Kundschafter, drei Bogesnchützen und, insgesamt, bis zu fünf Technologien. Die Barbaren sind Ihren Einheiten voll ebenbürtig (kein Kampfbonus mehr).</German>
+		<German>Sehr schwierig. Zusätzlich zu hohen andauernden Boni erhalten die KI-Spieler zu Spielbeginn einen Bautrupp, zwei Kundschafter, drei Bogesnchützen und, insgesamt, bis zu fünf Technologien.</German>
 		<Italian>Solo in pochi possono appartenere alla schiera degli Immortali. Una prova molto impegnativa, anche per i pi&#249; esperti.</Italian>
 		<Spanish>Solo unos cuantos pueden contarse entre las filas de los inmortales.  Esto resulta una prueba demoledora para todos, excepto para los m&#225;s experimentados.</Spanish>
 	</TEXT>
@@ -3510,7 +3510,18 @@
 		<Spanish>%s1 con %s2</Spanish>
 	</TEXT>
 	
-	<!-- advc.905b: No spaces -->
+	<!-- advc.047: From CIV4GameTextInfos.xml. Color added; now only shown
+		 when the improvement is absent. -->
+	<TEXT>
+		<Tag>TXT_KEY_BONUS_WITH_IMPROVEMENT</Tag>
+		<English>(with [COLOR_WARNING_TEXT]%s1_ImpName[COLOR_REVERT])</English>
+		<French>(avec [COLOR_WARNING_TEXT]%s1_ImpName[COLOR_REVERT])</French>
+		<German>([COLOR_WARNING_TEXT]%s1_ImpName[COLOR_REVERT] benötigt)</German>
+		<Italian>(con [NUM1:il:la:gli:le] [COLOR_WARNING_TEXT]%s1_ImpName[COLOR_REVERT])</Italian>
+		<Spanish>(con [COLOR_WARNING_TEXT]%s1_ImpName[COLOR_REVERT])</Spanish>
+	</TEXT>
+	
+	<!-- advc.905b, advc.047: No spaces -->
 	<TEXT>
 		<Tag>TXT_KEY_WITH</Tag>
 		<English>with</English>

@@ -1108,36 +1108,79 @@ void WarAndPeaceCache::reportUnitDestroyed(CvUnitInfo const& u) {
 	updateMilitaryPower(u, false);
 }
 
-void WarAndPeaceCache::reportWarEnding(TeamTypes enemyId) {
+void WarAndPeaceCache::reportWarEnding(TeamTypes enemyId,
+		CLinkList<TradeData>* weReceive, CLinkList<TradeData>* wePay) {
 
-	int iOurSuccess = TEAMREF(ownerId).AI_getWarSuccess(enemyId);
-	int iTheirSuccess = GET_TEAM(enemyId).AI_getWarSuccess(TEAMID(ownerId));
-	if(iOurSuccess + iTheirSuccess < GC.getWAR_SUCCESS_CITY_CAPTURING())
-		return;
-	// Use our era as the baseline for what is significant war success
-	EraTypes ourTechEra = GET_PLAYER(ownerId).getCurrentEra();
-	double successRatio = iOurSuccess / (double)std::max(1, iTheirSuccess);
-	if((successRatio > 1 && iOurSuccess < GC.getWAR_SUCCESS_CITY_CAPTURING()
-			* ourTechEra) ||
-			(successRatio < 1 && iTheirSuccess < GC.getWAR_SUCCESS_CITY_CAPTURING()
-			* ourTechEra))
-		successRatio = 1;
-	// Be less critically about our performance if we fought a human
-	if(GET_TEAM(enemyId).isHuman())
-		successRatio += 0.25;
-	bool bChosenWar = TEAMREF(ownerId).AI_isChosenWar(enemyId);
-	int iDuration = TEAMREF(ownerId).AI_getAtWarCounter(enemyId);
-	double durationFactor = 0.4 * std::sqrt((double)std::max(1, iDuration));
-	/*  Don't be easily emboldened by winning a defensive war. Past war score is
-		intended to discourage war more than encourage it. */
-	if((successRatio > 1.3 && bChosenWar) || successRatio > 1.5)
-		pastWarScores[enemyId] += ::round(100 / durationFactor);
-	// Equal war success not good enough if we started it
-	else if(bChosenWar || successRatio < 0.7)
-		pastWarScores[enemyId] -= ::round(100 * durationFactor);
 	// Forget sponsorship once a war ends
 	sponsorshipsAgainst[enemyId] = 0;
 	sponsorsAgainst[enemyId] = NO_PLAYER;
+	// Evaluate reparations
+	bool bForceSuccess = false;
+	bool bForceFailure = false;
+	bool bForceNoFailure = false;
+	bool bForceNoSuccess = false;
+	CLLNode<TradeData>* node = NULL;
+	TradeableItems ti;
+	if(weReceive != NULL) {
+		int iTechs = 0;
+		int iCities = 0;
+		// Ignore gold for simplicity (although a large sum could of course be relevant)
+		for(node = weReceive->head(); node != NULL; node = weReceive->next(node)) {
+			ti = node->m_data.m_eItemType;
+			if(ti == TRADE_TECHNOLOGIES)
+				iTechs++;
+			else if(ti == TRADE_CITIES)
+				iCities++;
+		}
+		if(iTechs + iCities > 0)
+			bForceNoFailure = true;
+		if(iTechs >= 2 || iCities > 0)
+			bForceSuccess = true;
+	} else if(wePay != NULL) {
+		int iTechs = 0;
+		int iCities = 0;
+		for(node = wePay->head(); node != NULL; node = wePay->next(node)) {
+			ti = node->m_data.m_eItemType;
+			if(ti == TRADE_TECHNOLOGIES)
+				iTechs++;
+			else if(ti == TRADE_CITIES)
+				iCities++;
+		}
+		if(iTechs + iCities > 0)
+			bForceNoSuccess = true;
+		if(iTechs >= 2 || iCities > 0)
+			bForceFailure = true;
+	}
+	// Evaluate war success
+	int iOurSuccess = TEAMREF(ownerId).AI_getWarSuccess(enemyId);
+	int iTheirSuccess = GET_TEAM(enemyId).AI_getWarSuccess(TEAMID(ownerId));
+	if(iOurSuccess + iTheirSuccess < GC.getWAR_SUCCESS_CITY_CAPTURING() &&
+			!bForceFailure && !bForceSuccess)
+		return;
+	// Use our era as the baseline for what is significant war success
+	int iOurTechEra = GET_PLAYER(ownerId).getCurrentEra();
+	double successRatio = iOurSuccess / (double)std::max(1, iTheirSuccess);
+	double successThresh = GC.getWAR_SUCCESS_CITY_CAPTURING() * iOurTechEra * 0.7;
+	if(	  (successRatio > 1 && iOurSuccess < successThresh) ||
+		  (successRatio < 1 && iTheirSuccess < successThresh))
+		successRatio = 1;
+	// Be less critical about our performance if we fought a human
+	if(GET_TEAM(enemyId).isHuman())
+		successRatio *= 1.33;
+	if(GET_PLAYER(ownerId).isHuman())
+		successRatio /= 1.33;
+	bool bChosenWar = TEAMREF(ownerId).AI_isChosenWar(enemyId);
+	int iDuration = TEAMREF(ownerId).AI_getAtWarCounter(enemyId);
+	double durationFactor = 0.365 * std::sqrt((double)std::max(1, iDuration));
+	/*  Don't be easily emboldened by winning a defensive war. Past war score is
+		intended to discourage war more than encourage it. */
+	if((((successRatio > 1.3 && bChosenWar) || successRatio > 1.5) &&
+			!bForceNoSuccess) || bForceSuccess)
+		pastWarScores[enemyId] += ::round(100 / durationFactor);
+	// Equal war success not good enough if we started it
+	else if(((bChosenWar || successRatio < 0.7) &&
+			!bForceNoFailure) || bForceFailure)
+		pastWarScores[enemyId] -= ::round(100 * durationFactor);
 }
 
 void WarAndPeaceCache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId) {

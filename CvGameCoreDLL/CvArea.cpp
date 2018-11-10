@@ -713,7 +713,13 @@ void CvArea::changePower(PlayerTypes eIndex, int iChange)
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be >= 0");
 	FAssertMsg(eIndex < MAX_PLAYERS, "eIndex is expected to be < MAX_PLAYERS");
 	m_aiPower[eIndex] = (m_aiPower[eIndex] + iChange);
-	FAssert(getPower(eIndex) >= 0);
+	/*  <advc.006> Can happen when continuing a game after changing a
+		unit power value in XML */
+	if(m_aiPower[eIndex] < 0) {
+		m_aiPower[eIndex] = 0; // </advc.006>
+		FAssertMsg(getPower(eIndex) >= 0, "OK when playing from an old savegame "
+				"with an updated version of the mod");
+	}
 }
 
 

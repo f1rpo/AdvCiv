@@ -1398,7 +1398,7 @@ void CvUnitAI::AI_settleMove()
 		int iMaxFoundTurn = (iGameSpeedPercent + 50) / 150; //quick 0, normal/epic 1, marathon 2
 		if(!g.isScenario() && /* advc: Let the creator of the scenario decide where
 								 the AI settles */
-				canMove() && !kOwner.AI_isPlotCitySite(plot()) &&
+				canMove() && !kOwner.AI_isPlotCitySite(*plot()) &&
 				g.getElapsedGameTurns() <= iMaxFoundTurn)
 		{
 			int iBestValue = 0;

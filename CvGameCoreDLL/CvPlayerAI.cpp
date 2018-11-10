@@ -20513,7 +20513,7 @@ void CvPlayerAI::AI_doDiplo()
 			if (civ.getTeam() != getTeam() && (TEAMREF(civId).isVassal(getTeam())
 					|| GET_TEAM(getTeam()).isVassal(TEAMID(civId)))) // advc.112
 			{
-				iBestValue = 0;
+				iBestValue = INT_MIN; // advc.112
 				eBestGiveTech = NO_TECH;
 
 /************************************************************************************************/
@@ -20540,14 +20540,18 @@ void CvPlayerAI::AI_doDiplo()
 				{	// </advc.112>
 					for (int iJ = 0; iJ < GC.getNumTechInfos(); iJ++)
 					{
-						if (ourTeam.AI_techTrade((TechTypes)iJ, civ.getTeam()) == NO_DENIAL)
+						TechTypes eTech = (TechTypes)iJ; // advc.003
+						if (ourTeam.AI_techTrade(eTech, civ.getTeam()) == NO_DENIAL)
 						{
-							setTradeItem(&item, TRADE_TECHNOLOGIES, iJ);
+							setTradeItem(&item, TRADE_TECHNOLOGIES, eTech);
 
 							if (canTradeItem(civId, item, true))
 							{
-								iValue = (1 + g.getSorenRandNum(10000, "AI Vassal Tech gift"));
-
+								//iValue = (1 + g.getSorenRandNum(10000, "AI Vassal Tech gift"));
+								// <advc.112> Replacing the above
+								int iCost = GC.getTechInfo(eTech).getResearchCost();
+								iValue = -g.getSorenRandNum(iCost, "AI Vassal Tech gift");
+								// </advc.112>
 								if (iValue > iBestValue)
 								{
 									iBestValue = iValue;
@@ -20831,25 +20835,48 @@ void CvPlayerAI::AI_doDiplo()
 					// </advc.003>
 				}
 			}
-
-			if (civ.isHuman() && ourTeam.getLeaderID() == getID())
+			// <advc.130z> Do this for non-humans too
+			if (/*civ.isHuman() &&*/ ourTeam.getLeaderID() == getID() &&
+					// Vassal-master handled above
+					!TEAMREF(civId).isAVassal() && !ourTeam.isAVassal() &&
+					ourTeam.getID() != civ.getTeam() &&
+					!civ.AI_isDoVictoryStrategyLevel3()) // </advc.130z>
 			{
-				if (TEAMREF(civId).getAssets() < (ourTeam.getAssets() / 2))
+				if (TEAMREF(civId).getAssets() < ourTeam.getAssets() / 2)
 				{
 					if (AI_getAttitude(civId) > GC.getLeaderHeadInfo(
-							/*  advc.001: NoGiveHelpAttitudeThreshold is the same for all leaders,
-								so it doesn't really matter. On principle, the personality of the
-								human leader shouldn't matter. */
+							/*  advc.001: (Doesn't really matter b/c NoGiveHelpAttitudeThreshold
+								is the same for all leaders.) */
 							//GET_PLAYER((PlayerTypes)iI).
 							getPersonalityType()).getNoGiveHelpAttitudeThreshold())
 					{
-						if (AI_getContactTimer(civId, CONTACT_GIVE_HELP) == 0)
-						{
-							if (g.getSorenRandNum(GC.getLeaderHeadInfo(getPersonalityType()).getContactRand(CONTACT_GIVE_HELP), "AI Diplo Give Help") == 0)
-							{
-								// XXX maybe do gold instead???
-
-								iBestValue = 0;
+						if (AI_getContactTimer(civId, CONTACT_GIVE_HELP) == 0 ||
+								!civ.isHuman()) // advc.130z
+						{	// <advc.130z>
+							int iRandMax = GC.getLeaderHeadInfo(getPersonalityType()).
+									getContactRand(CONTACT_GIVE_HELP);
+							double div = 0.85;
+							if(GC.getHandicapInfo(civ.getHandicapType()).getDifficulty() < 30 ||
+									AI_getAttitude(civId) >= ATTITUDE_FRIENDLY)
+								div = 1.25;
+							else if(AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY1)) {
+								div += 0.1;
+								if(AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY2)) {
+									div += 0.1;
+									if(AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY3)) {
+										div += 0.1;
+										if(AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY4))
+											div += 0.1;
+									}
+								}
+							}
+							iRandMax = ::round(iRandMax / div);
+							// </advc.130z>
+							if (g.getSorenRandNum(iRandMax, "AI Diplo Give Help") == 0)
+							{	// XXX maybe do gold instead???
+								/*  advc.130z: The values are going to be negative.
+									Btw the XXX above is a bad idea I think. */
+								iBestValue = INT_MIN;//0;
 								eBestGiveTech = NO_TECH;
 
 								for (int iJ = 0; iJ < GC.getNumTechInfos(); iJ++)
@@ -20858,8 +20885,11 @@ void CvPlayerAI::AI_doDiplo()
 
 									if (canTradeItem(civId, item, true))
 									{
-										iValue = (1 + g.getSorenRandNum(10000, "AI Giving Help"));
-
+										//iValue = (1 + g.getSorenRandNum(10000, "AI Giving Help"));
+										// <advc.130z> Replacing the above
+										int iCost = GC.getTechInfo((TechTypes)iJ).getResearchCost();
+										iValue = -g.getSorenRandNum(iCost, "AI Giving Help");
+										// </advc.130z>
 										if (iValue > iBestValue)
 										{
 											iBestValue = iValue;
@@ -20873,28 +20903,34 @@ void CvPlayerAI::AI_doDiplo()
 									ourList.clear();
 									setTradeItem(&item, TRADE_TECHNOLOGIES, eBestGiveTech);
 									ourList.insertAtEnd(item);
-
-									if (!abContacted[civ.getTeam()])
-									{
-										AI_changeContactTimer(civId, CONTACT_GIVE_HELP, GC.getLeaderHeadInfo(getPersonalityType()).getContactDelay(CONTACT_GIVE_HELP));
-										pDiplo = new CvDiploParameters(getID());
-										FAssert(pDiplo != NULL);
-										pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_GIVE_HELP"));
-										pDiplo->setAIContact(true);
-										pDiplo->setTheirOfferList(ourList);
-										gDLL->beginDiplomacy(pDiplo, civId);
-										abContacted[civ.getTeam()] = true;
-									}
+									if(civ.isHuman()) { // advc.130z
+										if (!abContacted[civ.getTeam()])
+										{
+											AI_changeContactTimer(civId, CONTACT_GIVE_HELP, GC.getLeaderHeadInfo(getPersonalityType()).getContactDelay(CONTACT_GIVE_HELP));
+											pDiplo = new CvDiploParameters(getID());
+											FAssert(pDiplo != NULL);
+											pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_GIVE_HELP"));
+											pDiplo->setAIContact(true);
+											pDiplo->setTheirOfferList(ourList);
+											gDLL->beginDiplomacy(pDiplo, civId);
+											abContacted[civ.getTeam()] = true;
+										}
+										// <avdc.130z>
+									} else {
+										g.implementDeal(getID(), civId, &ourList, &theirList);
+									} // </advc.130z>
 								}
 							}
 						}
 					}
 				}
-				
+			} /* advc.130z: Same condition as in BtS, but no longer applied to
+				 to the part above. */
+			if(civ.isHuman() && ourTeam.getLeaderID() == getID())
+			{
 				if (!abContacted[civ.getTeam()] &&
-						// <advc.130v> 
+						// advc.130v:
 						(!ourTeam.isAVassal() || ourTeam.getMasterTeam() == civ.getTeam())) {
-						// </advc.130v>
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      02/12/10                                jdog5000      */
 /*                                                                                              */
@@ -27331,18 +27367,18 @@ void CvPlayerAI::AI_recalculateFoundValues(int iX, int iY, int iInnerRadius, int
 		for (iLoopY = -iOuterRadius; iLoopY <= iOuterRadius; iLoopY++)
 		{
 			pLoopPlot = plotXY(iX, iY, iLoopX, iLoopY);
-			if ((NULL != pLoopPlot) && !AI_isPlotCitySite(pLoopPlot))
+			if (NULL != pLoopPlot && !AI_isPlotCitySite(*pLoopPlot))
 			{
 				if (stepDistance(0, 0, iLoopX, iLoopY) <= iInnerRadius)
 				{
-					if (!((iLoopX == 0) && (iLoopY == 0)))
+					if (!(iLoopX == 0 && iLoopY == 0))
 					{
 						pLoopPlot->setFoundValue(getID(), 0);
 					}
 				}
 				else
 				{
-					if ((pLoopPlot != NULL) && (pLoopPlot->isRevealed(getTeam(), false)))
+					if (pLoopPlot != NULL && pLoopPlot->isRevealed(getTeam(), false))
 					{
 						long lResult=-1;
 						if(GC.getUSE_GET_CITY_FOUND_VALUE_CALLBACK())
@@ -27480,7 +27516,7 @@ void CvPlayerAI::AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites)
 								::hash(hashInput);
 						iValue = ::round(iValue * randMult);
 					} // </advc.052>
-					if (!AI_isPlotCitySite(pLoopPlot))
+					if (!AI_isPlotCitySite(*pLoopPlot))
 					{
 						iValue *= std::min(NUM_CITY_PLOTS * 2,
 								pLoopPlot->area()->getNumUnownedTiles());
@@ -27529,10 +27565,11 @@ int CvPlayerAI::AI_getNumCitySites() const
 	return m_aiAICitySites.size();
 }
 
-bool CvPlayerAI::AI_isPlotCitySite(CvPlot* pPlot) const
+bool CvPlayerAI::AI_isPlotCitySite(
+		CvPlot const& kPlot) const // advc.003
 {
 	std::vector<int>::const_iterator it;
-	int iPlotIndex = GC.getMapINLINE().plotNumINLINE(pPlot->getX_INLINE(), pPlot->getY_INLINE());
+	int iPlotIndex = GC.getMapINLINE().plotNumINLINE(kPlot.getX_INLINE(), kPlot.getY_INLINE());
 	
 	for (it = m_aiAICitySites.begin(); it != m_aiAICitySites.end(); it++)
 	{

@@ -43,9 +43,11 @@
 			<iBarbarianCreationTurnsElapsed>50</iBarbarianCreationTurnsElapsed>
 			<iBarbarianCityCreationTurnsElapsed>55</iBarbarianCityCreationTurnsElapsed>
 			<iBarbarianCityCreationProb>4</iBarbarianCityCreationProb>
-			<iAnimalBonus>-70</iAnimalBonus>
+			<!-- advc.313: was -70 -->
+			<iAnimalBonus>-60</iAnimalBonus>
 			<iBarbarianBonus>-40</iBarbarianBonus>
-			<iAIAnimalBonus>-40</iAIAnimalBonus>
+			<!-- advc.313: was -40 -->
+			<iAIAnimalBonus>-25</iAIAnimalBonus>
 			<iAIBarbarianBonus>-25</iAIBarbarianBonus>
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
 			<iStartingWorkerUnits>0</iStartingWorkerUnits>
@@ -191,9 +193,11 @@
 			<iBarbarianCreationTurnsElapsed>45</iBarbarianCreationTurnsElapsed>
 			<iBarbarianCityCreationTurnsElapsed>50</iBarbarianCityCreationTurnsElapsed>
 			<iBarbarianCityCreationProb>5</iBarbarianCityCreationProb>
-			<iAnimalBonus>-60</iAnimalBonus>
+			<!-- advc.313: was -60 -->
+			<iAnimalBonus>-45</iAnimalBonus>
 			<iBarbarianBonus>-30</iBarbarianBonus>
-			<iAIAnimalBonus>-40</iAIAnimalBonus>
+			<!-- advc.313: was -40 -->
+			<iAIAnimalBonus>-25</iAIAnimalBonus>
 			<iAIBarbarianBonus>-25</iAIBarbarianBonus>
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
 			<iStartingWorkerUnits>0</iStartingWorkerUnits>
@@ -317,9 +321,11 @@
 			<iBarbarianCreationTurnsElapsed>40</iBarbarianCreationTurnsElapsed>
 			<iBarbarianCityCreationTurnsElapsed>45</iBarbarianCityCreationTurnsElapsed>
 			<iBarbarianCityCreationProb>5</iBarbarianCityCreationProb>
-			<iAnimalBonus>-50</iAnimalBonus>
+			<!-- advc.313: was -50 -->
+			<iAnimalBonus>-30</iAnimalBonus>
 			<iBarbarianBonus>-20</iBarbarianBonus>
-			<iAIAnimalBonus>-40</iAIAnimalBonus>
+			<!-- advc.313: was -40 -->
+			<iAIAnimalBonus>-25</iAIAnimalBonus>
 			<iAIBarbarianBonus>-25</iAIBarbarianBonus>
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
 			<iStartingWorkerUnits>0</iStartingWorkerUnits>
@@ -418,9 +424,11 @@
 			<iBarbarianCreationTurnsElapsed>35</iBarbarianCreationTurnsElapsed>
 			<iBarbarianCityCreationTurnsElapsed>40</iBarbarianCityCreationTurnsElapsed>
 			<iBarbarianCityCreationProb>6</iBarbarianCityCreationProb>
-			<iAnimalBonus>-40</iAnimalBonus>
+			<!-- advc.313: was -40 -->
+			<iAnimalBonus>-25</iAnimalBonus>
 			<iBarbarianBonus>-10</iBarbarianBonus>
-			<iAIAnimalBonus>-40</iAIAnimalBonus>
+			<!-- advc.313: was -40 -->
+			<iAIAnimalBonus>-25</iAIAnimalBonus>
 			<iAIBarbarianBonus>-25</iAIBarbarianBonus>
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
 			<iStartingWorkerUnits>0</iStartingWorkerUnits>
@@ -514,9 +522,11 @@
 			<iBarbarianCreationTurnsElapsed>30</iBarbarianCreationTurnsElapsed>
 			<iBarbarianCityCreationTurnsElapsed>35</iBarbarianCityCreationTurnsElapsed>
 			<iBarbarianCityCreationProb>6</iBarbarianCityCreationProb>
-			<iAnimalBonus>-30</iAnimalBonus>
+			<!-- advc.313: was -30 -->
+			<iAnimalBonus>-20</iAnimalBonus>
 			<iBarbarianBonus>-5</iBarbarianBonus>
-			<iAIAnimalBonus>-40</iAIAnimalBonus>
+			<!-- advc.313: was -40 -->
+			<iAIAnimalBonus>-25</iAIAnimalBonus>
 			<iAIBarbarianBonus>-25</iAIBarbarianBonus>
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
 			<iStartingWorkerUnits>0</iStartingWorkerUnits>
@@ -613,10 +623,12 @@
 			<iBarbarianCreationTurnsElapsed>25</iBarbarianCreationTurnsElapsed>
 			<iBarbarianCityCreationTurnsElapsed>30</iBarbarianCityCreationTurnsElapsed>
 			<iBarbarianCityCreationProb>7</iBarbarianCityCreationProb>
-			<iAnimalBonus>-20</iAnimalBonus>
+			<!-- advc.313: was -20 -->
+			<iAnimalBonus>-15</iAnimalBonus>
 			<!-- advc.313: was 0 -->
 			<iBarbarianBonus>-5</iBarbarianBonus>
-			<iAIAnimalBonus>-40</iAIAnimalBonus>
+			<!-- advc.313: was -40 -->
+			<iAIAnimalBonus>-25</iAIAnimalBonus>
 			<iAIBarbarianBonus>-25</iAIBarbarianBonus>
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
 			<iStartingWorkerUnits>0</iStartingWorkerUnits>
@@ -740,7 +752,8 @@
 			<iAnimalBonus>-10</iAnimalBonus>
 			<!-- advc.313: was 0 -->
 			<iBarbarianBonus>-5</iBarbarianBonus>
-			<iAIAnimalBonus>-40</iAIAnimalBonus>
+			<!-- advc.313: was -40 -->
+			<iAIAnimalBonus>-25</iAIAnimalBonus>
 			<iAIBarbarianBonus>-25</iAIBarbarianBonus>
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
 			<iStartingWorkerUnits>0</iStartingWorkerUnits>
@@ -870,7 +883,8 @@
 			<iAnimalBonus>-5</iAnimalBonus>
 			<!-- advc.313: was 0 -->
 			<iBarbarianBonus>-5</iBarbarianBonus>
-			<iAIAnimalBonus>-40</iAIAnimalBonus>
+			<!-- advc.313: was -40 -->
+			<iAIAnimalBonus>-25</iAIAnimalBonus>
 			<iAIBarbarianBonus>-25</iAIBarbarianBonus>
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
 			<iStartingWorkerUnits>0</iStartingWorkerUnits>
@@ -1002,7 +1016,8 @@
 			<iBarbarianCityCreationProb>8</iBarbarianCityCreationProb>
 			<iAnimalBonus>0</iAnimalBonus>
 			<iBarbarianBonus>0</iBarbarianBonus>
-			<iAIAnimalBonus>-40</iAIAnimalBonus>
+			<!-- advc.313: was -40 -->
+			<iAIAnimalBonus>-25</iAIAnimalBonus>
 			<iAIBarbarianBonus>-25</iAIBarbarianBonus>
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
 			<iStartingWorkerUnits>0</iStartingWorkerUnits>
@@ -1120,7 +1135,7 @@
 			<!-- advc.250a -->
 			<iDifficulty>90</iDifficulty>
 		</HandicapInfo>
-		<!-- advc.250a: Uncomment this to re-enable the King difficulty: -->
+		<!-- advc.250a: Uncomment this to enable the King difficulty: -->
 		<!--<HandicapInfo>
 			<Type>HANDICAP_KING</Type>
 			<Description>TXT_KEY_HANDICAP_KING</Description>
@@ -1155,7 +1170,7 @@
 			<iBarbarianCityCreationProb>6</iBarbarianCityCreationProb>
 			<iAnimalBonus>-20</iAnimalBonus>
 			<iBarbarianBonus>-5</iBarbarianBonus>
-			<iAIAnimalBonus>-40</iAIAnimalBonus>
+			<iAIAnimalBonus>-25</iAIAnimalBonus>
 			<iAIBarbarianBonus>-25</iAIBarbarianBonus>
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
 			<iStartingWorkerUnits>0</iStartingWorkerUnits>
