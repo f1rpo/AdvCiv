@@ -780,10 +780,7 @@ class GoldTrade(AbstractStatefulAlert):
 
 	def _reset(self):
 		self.maxGoldTrade = {}
-		# <advc.106c> maxGoldForTrade is supposed to be the gold offered
-		# by the AI when an alert was last displayed. This value can't
-		# be restored after loading; it'd have to be saved. I think using
-		# the gold currently offered is close enough.
+		# <advc.106c>
 		for playerID in range(gc.getMAX_PLAYERS()):
 			self.maxGoldTrade[playerID] = {}
 			for rivalID in range(gc.getMAX_PLAYERS()):
@@ -828,7 +825,7 @@ class GoldPerTurnTrade(AbstractStatefulAlert):
 
 	def _reset(self):
 		self.maxGoldPerTurnTrade = {}
-		# <advc.106c> See comment on maxGoldTrade
+		# <advc.106c>
 		for playerID in range(gc.getMAX_PLAYERS()):
 			self.maxGoldPerTurnTrade[playerID] = {}
 			for rivalID in range(gc.getMAX_PLAYERS()):
@@ -856,10 +853,11 @@ class RefusesToTalk(AbstractStatefulAlert):
 		eventManager.addEventHandler("BeginActivePlayerTurn", self.onBeginActivePlayerTurn)
 ##
 # K-Mod, 15/jan/11, karadoc
-# I've disabled the following event handlers, because apparently the arugment list isn't what the author of this code thought it was.
-# (Note: I've only tested OnDealCanceled. But I don't trust the other's either.)
+# I've disabled the following event handlers, because apparently the argument list isn't what the author of this code thought it was.
+# (Note: I've only tested OnDealCanceled. But I don't trust the others either.)
 ##
-#		eventManager.addEventHandler("changeWar", self.onChangeWar)
+		# advc.106d: This one looks fine and it's needed when an AI civ becomes willing to talk during the human turn and peace is made on the same turn. Don't want to see an alert on the next turn in that case. The others might be dispensable.
+		eventManager.addEventHandler("changeWar", self.onChangeWar)
 #		eventManager.addEventHandler("cityRazed", self.onCityRazed)
 #		eventManager.addEventHandler("DealCanceled", self.onDealCanceled)
 #		eventManager.addEventHandler("EmbargoAccepted", self.onEmbargoAccepted)
@@ -915,21 +913,22 @@ class RefusesToTalk(AbstractStatefulAlert):
 			if DiplomacyUtil.canContact(activePlayer, player) and not DiplomacyUtil.isWillingToTalk(player, eActivePlayer):
 				newRefusals.add(player.getID())
 		self.display(eActivePlayer, "TXT_KEY_CIV4LERTS_ON_WILLING_TO_TALK", refusals.difference(newRefusals))
-		self.display(eActivePlayer, "TXT_KEY_CIV4LERTS_ON_REFUSES_TO_TALK", newRefusals.difference(refusals))
+		# advc.106d: Don't report refusal when war just begun, nor when stopped trading (i.e. when not at war).
+		if gc.getTeam(gc.getPlayer(eActivePlayer).getTeam()).isAtWar(player.getTeam()) and gc.getTeam(gc.getPlayer(eActivePlayer).getTeam()).AI_getAtWarCounter(player.getTeam()) > 1:
+			self.display(eActivePlayer, "TXT_KEY_CIV4LERTS_ON_REFUSES_TO_TALK", newRefusals.difference(refusals))
 		self.refusals[eActivePlayer] = newRefusals
 	
 	def display(self, eActivePlayer, key, players):
 		for ePlayer in players:
 			player = gc.getPlayer(ePlayer)
-			# advc.106d: Don't report refusal to talk when war just begun, nor when stopped trading.
-			if player.isAlive() and gc.getTeam(gc.getPlayer(eActivePlayer).getTeam()).isAtWar(player.getTeam()) and gc.getTeam(gc.getPlayer(eActivePlayer).getTeam()).AI_getAtWarCounter(player.getTeam()) > 1:
+			if player.isAlive():
 				message = BugUtil.getText(key, player.getName())
 				addMessageNoIcon(eActivePlayer, message)
 
 	def _reset(self):
 		self.refusals = {}
 		for player in PlayerUtil.players():
-			# <advc.106c> See comment on maxGoldTrade
+			# <advc.106c>
 			playerID = player.getID()
 			self.refusals[playerID] = set()
 			for rival in PlayerUtil.players(True, False, False, False):

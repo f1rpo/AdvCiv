@@ -432,7 +432,7 @@ public:
 	// <advc.127b> Both return -1 if no team member has a capital
 	int getCapitalX() const;
 	int getCapitalY() const;
-	private: CvCity* getLeaderCapital() const; public:
+	CvCity* getLeaderCapital() const;
 	// </advc.127b>
 	void makeUnwillingToTalk(TeamTypes otherId); // advc.104i
 	virtual void AI_init() = 0;

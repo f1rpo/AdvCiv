@@ -30,9 +30,11 @@
 		<Italian>[COLOR_NEGATIVE_TEXT]%s1 rifiuta di parlare.[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_NEGATIVE_TEXT]%s1 se niega a hablar.[COLOR_REVERT]</Spanish>
 	</TEXT>
+	<!-- advc.106d: Was "negotiate" in English, which isn't quite right when an
+		 embargo ends at peacetime. -->
 	<TEXT>
 		<Tag>TXT_KEY_CIV4LERTS_ON_WILLING_TO_TALK</Tag>
-		<English>[COLOR_POSITIVE_TEXT]%s1 is willing to negotiate.[COLOR_REVERT]</English>
+		<English>[COLOR_POSITIVE_TEXT]%s1 is willing to talk.[COLOR_REVERT]</English>
 		<French>[COLOR_POSITIVE_TEXT]%s1 est disposé à négocier.[COLOR_REVERT]</French>
 		<German>[COLOR_POSITIVE_TEXT]%s1 ist bereit zu verhandeln.[COLOR_REVERT]</German>
 		<Italian>[COLOR_POSITIVE_TEXT]%s1 è disposto a negoziare.[COLOR_REVERT]</Italian>

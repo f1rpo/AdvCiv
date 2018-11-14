@@ -516,8 +516,7 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 	{
 		if ((pArea->getNumCities() - pArea->getCitiesPerPlayer(BARBARIAN_PLAYER)) == 0
 			// advc.300: (New World) Barbs relatively peaceable unless outnumbered
-			|| pArea->countCivCities() < pArea->getCitiesPerPlayer(BARBARIAN_PLAYER)
-			)
+			|| pArea->countCivCities() < pArea->getCitiesPerPlayer(BARBARIAN_PLAYER))
 		{
 			return AREAAI_ASSAULT;
 		}
@@ -529,7 +528,7 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal
 				1 + (AI_countMilitaryWeight(pArea) * 20) / 100)
 		{
 			return AREAAI_OFFENSIVE; // XXX does this ever happen?
-			/*  advc.003: Does this ever NOT happen? Only once a continent
+			/*  advc (comment): Does this ever NOT happen? Only once a continent
 				is almost entirely owned by civs. */
 		}
 
@@ -5396,15 +5395,20 @@ void CvTeamAI::forgiveEnemy(TeamTypes enemyId, bool capitulated, bool freed) {
 		// No vassal-related forgiveness when war success high
 		delta = std::min(0, delta + ws / member.warSuccessAttitudeDivisor());
 		for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
-			if(!GET_PLAYER((PlayerTypes)j).isAlive())
+			PlayerTypes otherId = (PlayerTypes)j;
+			if(!GET_PLAYER(otherId).isAlive())
 				continue;
 			// <advc.104i> Be willing to talk to everyone, not just 'enemyId'.
-			int mem = member.AI_getMemoryCount((PlayerTypes)j,
-					MEMORY_DECLARED_WAR_RECENT);
-			if(mem > 0) { // To allow debugger break
-				member.AI_changeMemoryCount((PlayerTypes)j,
-						MEMORY_DECLARED_WAR_RECENT, -mem);
-			} // </advc.104i>
+			int mem = member.AI_getMemoryCount(otherId, MEMORY_DECLARED_WAR_RECENT);
+			if(mem > 0) // To allow debugger break
+				member.AI_changeMemoryCount(otherId, MEMORY_DECLARED_WAR_RECENT, -mem);
+			// </advc.104i>
+			// <advc.130f>
+			mem = member.AI_getMemoryCount(otherId, MEMORY_STOPPED_TRADING_RECENT);
+			if(mem > 1) {
+				member.AI_changeMemoryCount(otherId, MEMORY_STOPPED_TRADING_RECENT,
+						1 - mem);
+			} // </advc.130f>
 			CvPlayer const& enemyMember = GET_PLAYER((PlayerTypes)j);
 			if(enemyMember.getTeam() != enemyId)
 				continue;

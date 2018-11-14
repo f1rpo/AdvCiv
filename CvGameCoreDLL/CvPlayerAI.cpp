@@ -5093,36 +5093,33 @@ int CvPlayerAI::cityWonderVal(CvCity const& c) const {
 	return r;
 }// </advc.104d>
 
+// advc.003: Some refactoring
 CvCity* CvPlayerAI::AI_findTargetCity(CvArea* pArea) const
 {
-	CvCity* pLoopCity;
-	CvCity* pBestCity;
-	int iValue;
-	int iBestValue;
-	int iLoop;
-	int iI;
+	CvCity* pBestCity = NULL;
+	int iBestValue = 0;
+	int iLoop=-1;
 
-	iBestValue = 0;
-	pBestCity = NULL;
-
-	for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
-		{
-			if (isPotentialEnemy(getTeam(), TEAMID((PlayerTypes)iI)))
+		CvPlayer const& civ = GET_PLAYER((PlayerTypes)iI);
+		if(!civ.isAlive())
+			continue;
+		// <advc.001>
+		if(isBarbarian() && pArea->isBorderObstacle(civ.getTeam()))
+			continue; // </advc.001>
+		if(!isPotentialEnemy(getTeam(), civ.getTeam()))
+			continue;
+		for(CvCity* pLoopCity = civ.firstCity(&iLoop); pLoopCity != NULL;
+				pLoopCity = civ.nextCity(&iLoop)) {
+			if (pLoopCity->area() == pArea)
 			{
-				for (pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
-				{
-					if (pLoopCity->area() == pArea)
-					{
-						iValue = AI_targetCityValue(pLoopCity, true);
+				int iValue = AI_targetCityValue(pLoopCity, true);
 
-						if (iValue > iBestValue)
-						{
-							iBestValue = iValue;
-							pBestCity = pLoopCity;
-						}
-					}
+				if (iValue > iBestValue)
+				{
+					iBestValue = iValue;
+					pBestCity = pLoopCity;
 				}
 			}
 		}
@@ -9131,14 +9128,9 @@ bool CvPlayerAI::AI_isWillingToTalk(PlayerTypes ePlayer) const
 	/* advc.134a: Switched arguments to avoid calling isAtWar on the human team
 	   when an AI offers peace to a human. */
 	// advc.104i: Moved the !atWar branch up
-	if (!atWar(GET_PLAYER(ePlayer).getTeam(), getTeam()))
-	{
-		if (AI_getMemoryCount(ePlayer, MEMORY_STOPPED_TRADING_RECENT) > 0)
-		{
-			return false;
-		}
-		return true;
-	}
+	if(!atWar(TEAMID(ePlayer), getTeam())) // advc.003:
+		return (AI_getMemoryCount(ePlayer, MEMORY_STOPPED_TRADING_RECENT) <= 0);
+	
 	// advc.104i: Moved up
 	if (kOurTeam.isAVassal()
 			|| kTheirTeam.isAVassal()) // advc.104i: Get this out of the way
@@ -10908,10 +10900,27 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 					if(getWPAI.isEnabled()) {
 						int u = -GET_TEAM(getTeam()).warAndPeaceAI().uEndWar(ePeaceTeam);
 						bValid = (u < 0);
+						CvCity* capital = getCapitalCity();
 						bDefy = false;
-						if(!AI_isFinancialTrouble()) {
-							double pr = (u - 50 - 5 * GC.getLeaderHeadInfo(getPersonalityType()).
-									getBasePeaceWeight()) / 100.0;
+						if(capital != NULL) {
+							double cityRatio = 1;
+							// Based on CvPlayer::setDefiedResolution
+							ReligionTypes eReligion = g.getVoteSourceReligion(eVoteSource);
+							if(eReligion != NO_RELIGION) {
+								cityRatio = getHasReligionCount(eReligion) /
+										(double)getNumCities();
+							}
+							/*  NB: Low city ratio doesn't just mean that defying
+								won't hurt much - also makes it unlikely that our
+								side will win the vote. */
+							CvLeaderHeadInfo const& lh = GC.getLeaderHeadInfo(getPersonalityType());
+							int iDefyCost = ::round(5 * (12 +
+									capital->getDefyResolutionAngerTimer() +
+									lh.getBasePeaceWeight() / 2 +
+									lh.getDiplomacyVictoryWeight() / 10) * cityRatio);
+							if(AI_isFinancialTrouble())
+								iDefyCost *= 2;
+							double pr = (u - iDefyCost) / 45.0;
 							if(::bernoulliSuccess(pr, "advc.104n"))
 								bDefy = true;
 						}
@@ -13965,9 +13974,13 @@ int CvPlayerAI::AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer
 				(TEAMREF(ePlayer).getPower(false) +
 				(GET_TEAM(eTradeTeam).isAtWar(getTeam()) ?
 				GET_TEAM(getTeam()).getPower(false) / 4 : 0));
-		iModifier += iPowRatioPercent;
-	} // </advc.130f>
-	switch(TEAMREF(ePlayer).AI_getAttitude(eTradeTeam)) {
+		iModifier += ::round(std::pow((double)iPowRatioPercent, 1.9) / 100);
+	}
+	int iAlive = GC.getGameINLINE().countCivPlayersAlive();
+	iModifier += 200 / iAlive - 10;
+	AttitudeTypes towardTarget = TEAMREF(ePlayer).AI_getAttitude(eTradeTeam);
+	// </advc.130f>
+	switch(towardTarget) {
 	case ATTITUDE_FURIOUS:
 		break;
 	case ATTITUDE_ANNOYED:
@@ -13986,6 +13999,10 @@ int CvPlayerAI::AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer
 		FAssert(false);
 		break;
 	} // <advc.130f>
+	// When threshold relaxed as a special favor
+	if(towardTarget > GC.getLeaderHeadInfo(GET_PLAYER(ePlayer).
+			getPersonalityType()).getStopTradingThemRefuseAttitudeThreshold())
+		iModifier *= 2;
 	// towardUs - i.e. toward the civ who pays for the embargo
 	AttitudeTypes towardUs = GET_PLAYER(ePlayer).AI_getAttitude(getID());
 	if(towardUs >= ATTITUDE_PLEASED)
@@ -14073,71 +14090,70 @@ int CvPlayerAI::AI_stopTradingTradeVal(TeamTypes eTradeTeam, PlayerTypes ePlayer
 	return GET_TEAM(getTeam()).roundTradeVal(iValue); // advc.104k
 }
 
+// advc.003: Refactored; functional changes tagged with advc.130f
+DenialTypes CvPlayerAI::AI_stopTradingTrade(TeamTypes eTradeTeam,
+		PlayerTypes ePlayer) const {
 
-DenialTypes CvPlayerAI::AI_stopTradingTrade(TeamTypes eTradeTeam, PlayerTypes ePlayer) const
-{
-	AttitudeTypes eAttitude;
-	AttitudeTypes eAttitudeThem;
-	int iI;
+	FAssert(ePlayer != getID());
+	FAssert(TEAMID(ePlayer) != getTeam());
+	FAssert(eTradeTeam != getTeam());
+	FAssert(GET_TEAM(eTradeTeam).isAlive());
+	FAssert(!atWar(getTeam(), eTradeTeam));
+	CvTeamAI const& kOurTeam = GET_TEAM(getTeam());
 
-	FAssertMsg(ePlayer != getID(), "shouldn't call this function on ourselves");
-	FAssertMsg(GET_PLAYER(ePlayer).getTeam() != getTeam(), "shouldn't call this function on ourselves");
-	FAssertMsg(eTradeTeam != getTeam(), "shouldn't call this function on ourselves");
-	FAssertMsg(GET_TEAM(eTradeTeam).isAlive(), "GET_TEAM(eTradeTeam).isAlive is expected to be true");
-	FAssertMsg(!atWar(getTeam(), eTradeTeam), "should be at peace with eTradeTeam");
+	if(kOurTeam.isVassal(eTradeTeam) ||
+		/*  <advc.130f> (Should actually be unnecessary b/c of a check in
+			CvPlayer::canStopTradingWithTeam) */
+			GET_TEAM(eTradeTeam).isVassal(getTeam())) {
+		/*  "It's out of our hands" b/c the vassal treaty can't be canceled. Need
+			DENIAL_POWER_THEM for sth. else. */
+		return DENIAL_VASSAL;
+	}
 
-	if (isHuman())
-	{
+	if(isHuman() || kOurTeam.isVassal(TEAMID(ePlayer)))
 		return NO_DENIAL;
-	}
 
-	if (GET_TEAM(getTeam()).isVassal(GET_PLAYER(ePlayer).getTeam()))
-	{
-		return NO_DENIAL;
-	}
+	bool bWar = kOurTeam.isAtWar(TEAMID(ePlayer));
+	/*  Use capitals for a quick distance check
+		(instead check AI_getCloseBordersAttitude?) */
+	CvCity* pOurCapital = getCapitalCity();
+	CvCity* pTargetCapital = GET_TEAM(eTradeTeam).getLeaderCapital();
+	CvCity* pPlayerCapital = GET_PLAYER(ePlayer).getCapitalCity();
+	if(pOurCapital != NULL && pTargetCapital != NULL && pPlayerCapital != NULL &&
+			kOurTeam.isOpenBorders(eTradeTeam) &&
+			kOurTeam.getPower(true) *
+			(::stepDistance(pOurCapital->plot(), pTargetCapital->plot()) <
+			::stepDistance(pPlayerCapital->plot(), pTargetCapital->plot()) ?
+			130 : 200) < 100 * GET_TEAM(eTradeTeam).getPower(true) &&
+			// When suing for peace: whom do we fear more?
+			(!bWar || TEAMREF(ePlayer).getPower(true) * 115 <
+			GET_TEAM(eTradeTeam).getPower(true)) &&
+			GET_TEAM(eTradeTeam).AI_isLandTarget(getTeam()))
+		return DENIAL_POWER_THEM;
 
-	if (GET_TEAM(getTeam()).isVassal(eTradeTeam))
-	{
-		return DENIAL_POWER_THEM;
-	}
-	// <advc.130f>
-	// "It's out of our hands" b/c the vassal treaty can't be canceled
-	if(GET_TEAM(eTradeTeam).isVassal(getTeam()))
-		return DENIAL_POWER_THEM;
-	if(GET_TEAM(getTeam()).isAtWar(TEAMID(ePlayer)))
+	if(bWar)
 		return NO_DENIAL; // </advc.130f>
-	eAttitude = GET_TEAM(getTeam()).AI_getAttitude(GET_PLAYER(ePlayer).getTeam());
 
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
-	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
-		{
-			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getTeam())
-			{
-				if (eAttitude <= GC.getLeaderHeadInfo(GET_PLAYER((PlayerTypes)iI).getPersonalityType()).getStopTradingRefuseAttitudeThreshold())
-				{
-					return DENIAL_ATTITUDE;
-				}
-			}
-		}
+	AttitudeTypes eAttitude = kOurTeam.AI_getAttitude(TEAMID(ePlayer));
+	AttitudeTypes eAttitudeThem = kOurTeam.AI_getAttitude(eTradeTeam);
+
+	for(int i = 0; i < MAX_PLAYERS; i++) {
+		CvPlayerAI const& kMember = GET_PLAYER((PlayerTypes)i);
+		if(!kMember.isAlive() || kMember.getTeam() != getTeam())
+			continue;
+		// <advc.130f>
+		CvLeaderHeadInfo const& lh = GC.getLeaderHeadInfo(kMember.getPersonalityType());
+		int iDelta = lh.getStopTradingRefuseAttitudeThreshold() - eAttitude;
+		if(iDelta >= 0) // </advc.130f>
+			return DENIAL_ATTITUDE;
+		int iThreshThem = lh.getStopTradingThemRefuseAttitudeThreshold();
+		// <advc.130f>
+		if(iDelta >= 1 && iThreshThem < ATTITUDE_CAUTIOUS)
+			iThreshThem++; // </advc.130f>
+		if(eAttitudeThem > iThreshThem)
+			return DENIAL_ATTITUDE_THEM;
 	}
-
-	eAttitudeThem = GET_TEAM(getTeam()).AI_getAttitude(eTradeTeam);
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
-	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
-		{
-			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getTeam())
-			{
-				if (eAttitudeThem > GC.getLeaderHeadInfo(GET_PLAYER((PlayerTypes)iI).getPersonalityType()).getStopTradingThemRefuseAttitudeThreshold())
-				{
-					return DENIAL_ATTITUDE_THEM;
-				}
-			}
-		}
-	}
-
+	
 	return NO_DENIAL;
 }
 
@@ -18820,9 +18836,13 @@ void CvPlayerAI::AI_changePeacetimeValue(PlayerTypes eIndex, int iChange,
 					!t.isAtWar(peaceTradeTarget))) // Should be implied by attitude, but let's make sure.
 				continue; // </advc.130p>
 			double mult = 2000;
-			// Avoid oscillation of worst enemy
+			/*  Avoid oscillation of worst enemy, but still punish non-war party
+				for helping a war enemy. */
 			int delta = ::range(t.AI_getAttitudeVal(TEAMID(eIndex)) -
-					t.AI_getAttitudeVal(t.AI_getWorstEnemy()), 0, 7);
+					(bOtherWar ? 2 : 0) -
+					(t.AI_getAttitudeVal(t.AI_getWorstEnemy()) -
+					(bWar ? 2 : 0)),
+					0, 7);
 			mult *= delta / 5.0;
 			// <advc.130p>
 			if(bPeace) // But count brokered peace in full

@@ -11986,7 +11986,7 @@ void CvCity::setNumRealBuildingTimed(BuildingTypes eIndex, int iNewValue, bool b
 		if (bFirst)
 		{
 			if (GC.getBuildingInfo(eIndex).isAreaBorderObstacle()
-				/*  advc.310: Show GW as 3D model even when playing w/o barbs
+				/*  advc.310: Show GW as 3D model even when playing w/o Barbarians
 					(BorderObstacle ability disabled through CvInfos then). */
 				|| GC.getBuildingInfo(eIndex).getGlobalTradeRoutes() > 0
 				)

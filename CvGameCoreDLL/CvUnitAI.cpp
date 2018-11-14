@@ -2002,7 +2002,7 @@ void CvUnitAI::AI_workerMove()
 		return;
 	//
 
-	// <advc.300> None of the stuff below seems relevant for barb workers
+	// <advc.300> None of the stuff below seems relevant for Barbarian workers
 	if(isBarbarian()) {
 		if(!AI_retreatToCity(false, true))
 			getGroup()->pushMission(MISSION_SKIP);
@@ -2199,20 +2199,24 @@ void CvUnitAI::AI_barbAttackMove()
 		return;
 	}
 
-	/* <advc.300> Needed in the else branches. Performance should be fine -
-	   all those stats are precomputed. */
-	int nCivsInArea = area()->countCivs(true);
-	int nCivCitiesInArea = area()->countCivCities();
-
-  // Docile unless outnumbered (matters mostly for the New World)
+  // <advc.300>
+  // See CvTeamAI::AI_calculateAreaAIType
   if(area()->getAreaAIType(getTeam()) != AREAAI_ASSAULT) {
-	  /* On slower than Normal game speed, don't start to rage until 3 in 5
-		 civs have founded a second city. */
-	  if(((nCivsInArea > 1 ? (3 * nCivCitiesInArea > 5 * nCivsInArea) :
-			(2 * g.getNumCivCities() > 3 * g.countCivPlayersAlive())) ||
-			GC.getGameSpeedInfo(g.getGameSpeedType()).getBarbPercent() <= 100) &&
+	  int iCivsInArea = area()->countCivs(true);
+	  int iCivCitiesInArea = area()->countCivCities();
+	  int iBabarianCitiesInArea = area()->getNumCities() - iCivCitiesInArea;
+	  int iCivCities = g.getNumCivCities();
+	  int iCivs = g.countCivPlayersAlive();
 	  // </advc.300>
-			g.isOption(GAMEOPTION_RAGING_BARBARIANS))
+	  if(g.isOption(GAMEOPTION_RAGING_BARBARIANS) &&
+			// <advc.300>
+			/*  On slower than Normal game speed, don't start to rage until 3 in 5
+				civs have founded a second city. */
+			((iCivsInArea > 1 ?
+			(3 * iCivCitiesInArea > 5 * iCivsInArea) :
+			(2 * iCivCities > 3 * iCivs)) ||
+			GC.getGameSpeedInfo(g.getGameSpeedType()).getBarbPercent() <= 100))
+			// </advc.300>
 	{
 		if (AI_pillageRange(4))
 		{
@@ -2250,12 +2254,13 @@ void CvUnitAI::AI_barbAttackMove()
 /************************************************************************************************/		
 		}
 	}
-	/* advc.300: Now checked per area unless there is only one civ (to avoid an
-	   isolated human civ deliberately steering barb activity in its area).
-	   Barb cities no longer count, but threshold lowered to 2.5. */
-	else if(nCivsInArea > 1 ? (2 * nCivCitiesInArea > 5 * nCivsInArea) :
-			// Else, the BtS condition:
-			(g.getNumCivCities() > g.countCivPlayersAlive() * 3))
+	/* <advc.300> Now checked per area unless there is only one civ (to avoid an
+	   isolated human civ deliberately steering Barbarian activity in its area).
+	   Barbarian cities no longer count, but threshold lowered to 2.5. */
+	else if(iCivsInArea > 1 ?
+			(2 * iCivCitiesInArea > 5 * iCivsInArea) :
+			// The BtS condition: // </advc.300>
+			(iCivCities > iCivs * 3))
 	{
 		if (AI_cityAttack(1, 15))
 		{
@@ -2298,9 +2303,12 @@ void CvUnitAI::AI_barbAttackMove()
 /************************************************************************************************/		
 		}
 	}
-	// advc.300: See previous comment
-	else if(nCivsInArea > 1 ? (nCivCitiesInArea > 2 * nCivsInArea) :
-		(g.getNumCivCities() > g.countCivPlayersAlive() * 2))
+	// <advc.300>
+	else if(iCivsInArea > 1 ?
+		(iCivCitiesInArea > 2 * iCivsInArea ||
+		// For continents that have only room for 2 or 3 cities
+		(iBabarianCitiesInArea <= 0 && iCivCities > 3 * iCivs)) : // </advc.300>
+		(iCivCities > iCivs * 2))
 	{
 		if(AI_pillageRange(2))
 			return;
@@ -2972,10 +2980,11 @@ void CvUnitAI::AI_attackCityMove()
 	PROFILE_FUNC();
 	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE()); // K-Mod
 
-	AreaAITypes eAreaAIType = area()->getAreaAIType(getTeam());
+	AreaAITypes eAreaAI = area()->getAreaAIType(getTeam());
     //bool bLandWar = !isBarbarian() && ((eAreaAIType == AREAAI_OFFENSIVE) || (eAreaAIType == AREAAI_DEFENSIVE) || (eAreaAIType == AREAAI_MASSING));
 	bool bLandWar = !isBarbarian() && kOwner.AI_isLandWar(area()); // K-Mod
-	bool bAssault = !isBarbarian() && ((eAreaAIType == AREAAI_ASSAULT) || (eAreaAIType == AREAAI_ASSAULT_ASSIST) || (eAreaAIType == AREAAI_ASSAULT_MASSING));
+	bool bAssault = !isBarbarian() && (eAreaAI == AREAAI_ASSAULT ||
+			eAreaAI == AREAAI_ASSAULT_ASSIST || eAreaAI == AREAAI_ASSAULT_MASSING);
 
 	bool bTurtle = kOwner.AI_isDoStrategy(AI_STRATEGY_TURTLE);
 	bool bAlert1 = kOwner.AI_isDoStrategy(AI_STRATEGY_ALERT1);
@@ -3038,54 +3047,30 @@ void CvUnitAI::AI_attackCityMove()
 	bool bAtWar = isEnemy(plot()->getTeam());
 
 	bool bHuntBarbs = false;
+	bool bReadyToAttack = false;
 	// <advc.300>
-	double barbGarrisonRatio = 2;
-	// Consider all areas instead of just this->area
-	CvMap& m = GC.getMapINLINE();
-	int i; for(CvArea* ap = m.firstArea(&i); ap != NULL; ap = m.nextArea(&i)) {
-		CvArea const& a = *ap;
-		if(a.getCitiesPerPlayer(BARBARIAN_PLAYER) == 0 || isBarbarian())
-			continue;
-		AreaAITypes areaAI = a.getAreaAIType(getTeam());
-		// These are the BtS conditions (no change)
-		bHuntBarbs = (
-			areaAI != AREAAI_OFFENSIVE &&
-			areaAI != AREAAI_DEFENSIVE &&
-			!bAlert1 && !bTurtle);
-		/*  New: Increased willingness to attack barb cities when nothing
-			else to attack and in later eras (when it doesn't take much effort). */
-		barbGarrisonRatio = a.getUnitsPerPlayer(BARBARIAN_PLAYER) /
-				((double)a.getCitiesPerPlayer(BARBARIAN_PLAYER));
-		if(!bHuntBarbs &&
-				(areaAI != AREAAI_DEFENSIVE ||
-				barbGarrisonRatio < 2 * GET_PLAYER(getOwner()).getCurrentEra()) &&
-				!bTurtle && !kOwner.AI_isDoStrategy(AI_STRATEGY_ALERT2))
-			bHuntBarbs = true;
-	}
-	CvTeamAI const& owner = GET_TEAM(getTeam());
-	/*  Don't yet know if we'll actually target a barb city, so it's hard to
+	int iOurEra = GET_PLAYER(getOwnerINLINE()).getCurrentEra();
+	int iBarbarianEra = GET_PLAYER(BARBARIAN_PLAYER).getCurrentEra();
+	int iBarbarianGarrison = 2 + iBarbarianEra;
+	if(!isBarbarian() && !bTurtle && ((eAreaAI != AREAAI_DEFENSIVE && eAreaAI != AREAAI_OFFENSIVE &&
+			!bAlert1) || iBarbarianGarrison < 2 * iOurEra))
+		bHuntBarbs = true;
+	/*  Don't yet know if we'll actually target a Barbarian city, so it's hard to
 		decide on the proper size of the attack stack. But if there is nothing else
 		to attack, it's easy. */
-	bool huntOnlyBarbs = bHuntBarbs && !owner.AI_isSneakAttackReady() &&
-			/*  Would prefer isFocusWar, but need to be sure that we're not
-				sending a hunting party to attack a non-barb city. */
-			owner.getAtWarCount() <= 0;
-	// </advc.300>
-
-	bool bReadyToAttack = false;
-	if( !bTurtle )
-	{	// <advc.300>
-		int const groupSz = getGroup()->getNumUnits();
-		if(!huntOnlyBarbs && groupSz >= AI_stackOfDoomExtra())
+	bool bHuntOnlyBarbs = (bHuntBarbs && !GET_TEAM(getTeam()).AI_isSneakAttackReady() &&
+			GET_TEAM(getTeam()).getAtWarCount() <= 0);
+	if(!bTurtle) {
+		int iGroupSz = getGroup()->getNumUnits();
+		if(!bHuntOnlyBarbs && iGroupSz >= AI_stackOfDoomExtra())
 			bReadyToAttack = true;
-		else if(huntOnlyBarbs && groupSz >=
-				(barbGarrisonRatio * 3) / (2 + owner.getCurrentEra()/2) &&
+		else if(bHuntOnlyBarbs &&
+			iGroupSz + iOurEra >= 1.25 * iBarbarianGarrison + iBarbarianEra &&
 				/*  Don't send a giant stack. (Tbd.: Should perhaps
-					split up the group then.) */
-				groupSz < 2.75 * barbGarrisonRatio)
+					split the group up then.) */
+				iGroupSz < 3 * iBarbarianGarrison)
 			bReadyToAttack = true;
-		// </advc.300>
-	}
+	} // </advc.300>
 
 	if( isBarbarian() )
 	{
@@ -3327,7 +3312,7 @@ void CvUnitAI::AI_attackCityMove()
 			int searchRange = 4;
 			if(isBarbarian() && area()->getAreaAIType(getTeam()) == AREAAI_ASSAULT)
 				searchRange = 1; // </advc.300>
-			if (eAreaAIType == AREAAI_DEFENSIVE && plot()->getOwnerINLINE() == getOwnerINLINE())
+			if (eAreaAI == AREAAI_DEFENSIVE && plot()->getOwnerINLINE() == getOwnerINLINE())
 			{
 				if (AI_stackVsStack(searchRange, 110, 55, iMoveFlags))
 					return;
@@ -3506,7 +3491,7 @@ void CvUnitAI::AI_attackCityMove()
 					return;
 				}
 			}
-			else if (!isBarbarian() && eAreaAIType == AREAAI_DEFENSIVE)
+			else if (!isBarbarian() && eAreaAI == AREAAI_DEFENSIVE)
 			{
 				// Use smaller attack city stacks on defense
 				// K-Mod
@@ -4269,7 +4254,7 @@ void CvUnitAI::AI_reserveMove()
 		return;
 	}
 
-	// <advc.300> Protect high-yield tiles from barbs
+	// <advc.300> Protect high-yield tiles from Barbarians
 	CvCity* c = plot()->getPlotCity();
 	if(GET_PLAYER(getOwnerINLINE()).isDefenseFocusOnBarbarians(
 			area()->getID()) && AI_guardYield())
@@ -15904,17 +15889,29 @@ bool CvUnitAI::AI_goToTargetCity(int iFlags, int iMaxPathTurns, CvCity* pTargetC
 				// K-Mod
 				if (AI_considerPathDOW(pEndTurnPlot, iFlags))
 				{
-					// regenerate the path, just incase we want to take a different route after the DOW
+					// regenerate the path, just in case we want to take a different route after the DOW
 					// (but don't bother recalculating the best destination)
-					// Note. if the best destination happens to be on the border, and have a stack of defenders on it, this will make us attack them.\
+					// Note. if the best destination happens to be on the border,
+					// and has a stack of defenders on it, this will make us attack them.
 					// That's bad. I'll try to fix that in the future.
 					if (!generatePath(pBestPlot, iFlags, false))
 						return false;
+					CvPlot* pEnemyPlot = pEndTurnPlot; // advc.001t
 					pEndTurnPlot = getPathEndTurnPlot();
 					// <advc.139> Don't move through city that is about to be lost
 					if(pEndTurnPlot->getPlotCity() != NULL &&
 							pEndTurnPlot->getPlotCity()->isEvacuating())
 						return false; // </advc.139>
+					// <advc.001t>
+					if(!isEnemy(pEndTurnPlot->getTeam())) {
+						FAssertMsg(isEnemy(pEndTurnPlot->getTeam()),
+							"Known issue: AI may change its mind about the path to"
+							" the target city after declaring war; temporary fix:"
+							" stick to the original path.");
+						if(isEnemy(pEnemyPlot->getTeam()))
+							pEndTurnPlot = pEnemyPlot;
+						else FAssert(isEnemy(pEnemyPlot->getTeam()));
+					} // </advc.001t>
 				}
 				// I'm going to use MISSIONAI_ASSAULT signal to our spies and other units that we're attacking this city.
 				getGroup()->pushMission(MISSION_MOVE_TO, pEndTurnPlot->getX_INLINE(), pEndTurnPlot->getY_INLINE(), iFlags, false, false, MISSIONAI_ASSAULT, pTargetCity->plot());
@@ -17499,7 +17496,7 @@ bool CvUnitAI::AI_pillageRange(int iRange, int iBonusValueThreshold, int iFlags)
 					at all. At any rate, they should not exclude that city from
 					pillaging. Barbarians are supposed to be destructive and
 					shortsighted. More importantly, it's inexplicable for most
-					human players when the barbarians repeatedly spare improvements. */
+					human players when the Barbarians repeatedly spare improvements. */
 					|| isBarbarian())
 					&& canPillage(pLoopPlot)) { // <advc.003>
 				if(pLoopPlot->isVisibleEnemyUnit(this) ||
@@ -20304,7 +20301,7 @@ bool CvUnitAI::AI_improveBonus() // K-Mod. (all that junk wasn't being used anyw
 
 		if (pLoopPlot->getOwnerINLINE() == getOwnerINLINE() && AI_plotValid(pLoopPlot))
 		{
-			/* <advc.300> Barb workers mustn't improve bonuses around
+			/* <advc.300> Barbarian workers mustn't improve bonuses around
 			   far-away cities. */
 			if(isBarbarian() && (pLoopPlot->getWorkingCity() == NULL ||
 					pLoopPlot->getWorkingCity() != plot()->getWorkingCity()))
@@ -20918,8 +20915,9 @@ bool CvUnitAI::AI_connectCity()
             }
         }
     }
-
-	if(isBarbarian()) return false; // advc.300
+	// <advc.300>
+	if(isBarbarian())
+		return false; // </advc.300>
 
 	for (pLoopCity = GET_PLAYER(getOwnerINLINE()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwnerINLINE()).nextCity(&iLoop))
 	{
