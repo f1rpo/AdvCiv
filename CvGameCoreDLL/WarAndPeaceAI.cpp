@@ -168,6 +168,7 @@ WarAndPeaceAI::Team::Team() {
 	agentId = NO_TEAM;
 	inBackgr = false;
 	report = NULL;
+	bForceReport = false;
 }
 
 WarAndPeaceAI::Team::~Team() {
@@ -361,6 +362,18 @@ double WarAndPeaceAI::Team::tradeValToUtility(double tradeVal,
 
 	return tradeVal * GET_PLAYER(memberId).warAndPeaceAI().
 			tradeValUtilityConversionRate();
+}
+
+void WarAndPeaceAI::Team::doWarReport() {
+
+	if(!getWPAI.isEnabled())
+		return;
+	bool bInBackgr = getWPAI.isEnabled(true); // To be restored in the end
+	getWPAI.setInBackground(true);
+	setForceReport(true);
+	doWar();
+	setForceReport(false);
+	getWPAI.setInBackground(bInBackgr);
 }
 
 void WarAndPeaceAI::Team::updateMembers() {
@@ -1968,8 +1981,15 @@ void WarAndPeaceAI::Team::closeReport() {
 	delete report;
 }
 
+void WarAndPeaceAI::Team::setForceReport(bool b) {
+
+	bForceReport = b;
+}
+
 bool WarAndPeaceAI::Team::isReportTurn() const {
 
+	if(bForceReport)
+		return true;
 	int turnNumber = GC.getGameINLINE().getGameTurn();
 	int reportInterval = GC.getDefineINT("REPORT_INTERVAL");
 	return (reportInterval > 0 && turnNumber % reportInterval == 0);

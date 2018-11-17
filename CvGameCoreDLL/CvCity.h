@@ -73,16 +73,18 @@ public:
 	int findYieldRateRank(YieldTypes eYield) const;								// Exposed to Python					
 	int findCommerceRateRank(CommerceTypes eCommerce) const;			// Exposed to Python					
 
-	UnitTypes allUpgradesAvailable(UnitTypes eUnit, int iUpgradeCount = 0) const;						// Exposed to Python
+	UnitTypes allUpgradesAvailable(UnitTypes eUnit, int iUpgradeCount = 0,						// Exposed to Python
+			BonusTypes eAssumeVailable = NO_BONUS) const; // advc.001u
 	bool isWorldWondersMaxed() const;																							// Exposed to Python
 	bool isTeamWondersMaxed() const;																							// Exposed to Python
 	bool isNationalWondersMaxed() const;																					// Exposed to Python
 	int getNumNationalWondersLeft() const; // advc.004w, advc.131
 	bool isBuildingsMaxed() const;																								// Exposed to Python
 
-	bool canTrain(UnitTypes eUnit, bool bContinue = false, bool bTestVisible = false, bool bIgnoreCost = false, bool bIgnoreUpgrades = false
-		, bool checkAirUnitCap = true // advc.001b
-		) const;					// Exposed to Python
+	bool canTrain(UnitTypes eUnit, bool bContinue = false, bool bTestVisible = false,					// Exposed to Python
+			bool bIgnoreCost = false, bool bIgnoreUpgrades = false,
+			bool checkAirUnitCap = true, // advc.001b
+			BonusTypes eAssumeVailable = NO_BONUS) const; // advc.001u
 	bool canUpgradeTo(UnitTypes eUnit) const; // advc.001b
 	bool canTrain(UnitCombatTypes eUnitCombat) const;
 	bool canConstruct(BuildingTypes eBuilding, bool bContinue = false, bool bTestVisible = false, bool bIgnoreCost = false, bool bIgnoreTech = false) const; // Exposed to Python, K-Mod added bIgnoreTech

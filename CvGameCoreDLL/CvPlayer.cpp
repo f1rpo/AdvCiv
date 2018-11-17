@@ -5761,7 +5761,9 @@ void CvPlayer::stopTradingWithTeam(TeamTypes eTeam,
 				if(diploPenalty) // advc.130f: RECENT causes only refusal to talk
 					civ.AI_rememberEvent(getID(), MEMORY_STOPPED_TRADING);
 				// Don't rememberEvent - not supposed to be based on attitude
-				civ.AI_changeMemoryCount(getID(), MEMORY_STOPPED_TRADING_RECENT, 2);
+				int mem = civ.AI_getMemoryCount(getID(), MEMORY_STOPPED_TRADING_RECENT);
+				civ.AI_changeMemoryCount(getID(), MEMORY_STOPPED_TRADING_RECENT,
+						2 - mem); // sets it to 2
 			}   // </advc.130j>
 		}
 	}
@@ -23104,25 +23106,27 @@ bool CvPlayer::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionS
 		FAssert(NO_PLAYER != kData.ePlayer);
 		CvPlayer& kPlayer = GET_PLAYER(kData.ePlayer);
 
-		if (!kOurTeam.isAtWar(kPlayer.getTeam()))
+		if (!kOurTeam.isAtWar(kPlayer.getTeam())
+				&& kOurTeam.isFullMember(eVoteSource)) // dlph.25/advc
 		{
 			TeamTypes eMaster = getTeam();
 			for (int iMaster = 0; iMaster < MAX_CIV_TEAMS; ++iMaster)
 			{
 				if (iMaster != getID() && kOurTeam.isVassal((TeamTypes)iMaster))
-				{
-					if (GET_TEAM((TeamTypes)iMaster).isVotingMember(eVoteSource))
+				{	// dlph.25/advc: was isVotingMember
+					if (GET_TEAM((TeamTypes)iMaster).isFullMember(eVoteSource))
 					{
 						eMaster = (TeamTypes)iMaster;
 						break;
 					}
 				}
 			}
-
-			if (!GET_TEAM(eMaster).canDeclareWar(kPlayer.getTeam()))
-			{
+			if ((!GET_TEAM(eMaster).canDeclareWar(kPlayer.getTeam()) &&
+					// <dlph.25/advc>
+					GC.getGameINLINE().getSecretaryGeneral(eVoteSource) == eMaster) ||
+					!GET_TEAM(eMaster).canEventuallyDeclareWar(kPlayer.getTeam()))
+					// </advc.25/advc>
 				return false;
-			}
 		}
 	}
 	else if (vi.isForceNoTrade())
@@ -23154,11 +23158,12 @@ bool CvPlayer::canDefyResolution(VoteSourceTypes eVoteSource, const VoteSelectio
 		return false;
 	}
 	CvVoteInfo const& vi = GC.getVoteInfo(kData.eVote); // advc.003
-	// <dlph.25> advc: Kek-Mod just checks isAVassal
+	// <dlph.25/advc> Kek-Mod just checks isAVassal
 	if(GET_TEAM(getTeam()).isCapitulated()
 			|| (GET_TEAM(getTeam()).isAVassal() &&
 			(vi.isForceWar() || vi.isForcePeace())))
-		return false; // </dlph.25>
+		return false;
+	// </dlph.25/advc>
 	if (vi.isOpenBorders())
 	{
 		for (int iTeam = 0; iTeam < MAX_CIV_TEAMS; ++iTeam)
@@ -23201,7 +23206,8 @@ bool CvPlayer::canDefyResolution(VoteSourceTypes eVoteSource, const VoteSelectio
 	{
 		if (!::atWar(getTeam(), TEAMID(kData.ePlayer))
 				// dlph.25: 'Cannot defy war declaration against itself'
-				&& TEAMREF(kData.ePlayer).getMasterTeam() != getMasterTeam())
+				&& TEAMREF(kData.ePlayer).getMasterTeam() != getMasterTeam()
+				&& isFullMember(eVoteSource)) // advc
 		{
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      12/31/08                                jdog5000      */

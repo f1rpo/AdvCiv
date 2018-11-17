@@ -4870,15 +4870,16 @@ void CvGame::changeDiploVote(VoteSourceTypes eVoteSource, int iChange)
 
 bool CvGame::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionSubData& kData) const
 {
-	if (GC.getVoteInfo(kData.eVote).isVictory())
+	CvVoteInfo const& vi = GC.getVoteInfo(kData.eVote); // advc.003
+	if (vi.isVictory())
 	{
-		int iVotesRequired = getVoteRequired(kData.eVote, eVoteSource); // K-Mod - for efficiency
+		int iVotesRequired = getVoteRequired(kData.eVote, eVoteSource); // K-Mod
 		for (int iTeam = 0; iTeam < MAX_CIV_TEAMS; ++iTeam)
 		{
 			CvTeam& kTeam = GET_TEAM((TeamTypes)iTeam);
 
-			if (kTeam.getVotes(kData.eVote, eVoteSource) >= iVotesRequired) // K-Mod. same, but faster.
-				return false;
+			if (kTeam.getVotes(kData.eVote, eVoteSource) >= iVotesRequired)
+				return false; // K-Mod. same, but faster.
 			/* original bts code
 			if (kTeam.isVotingMember(eVoteSource))
 			{
@@ -4896,7 +4897,13 @@ bool CvGame::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionSub
 		CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iPlayer);
 
 		if (kPlayer.isVotingMember(eVoteSource))
-		{
+		{	// <dlph.25/advc>
+			if(vi.isForceWar()) {
+				if(GET_TEAM(kPlayer.getTeam()).isFullMember(eVoteSource) &&
+						!kPlayer.canDoResolution(eVoteSource, kData))
+					return false;
+			}
+			else // </dlph.25/advc>
 			if (!kPlayer.canDoResolution(eVoteSource, kData))
 			{
 				return false;
@@ -4905,7 +4912,7 @@ bool CvGame::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionSub
 		else if (kPlayer.isAlive() && !kPlayer.isBarbarian() && !kPlayer.isMinorCiv())
 		{
 			// all players need to be able to vote for a diplo victory
-			if (GC.getVoteInfo(kData.eVote).isVictory())
+			if (vi.isVictory())
 			{
 				return false;
 			}
@@ -8981,7 +8988,9 @@ void CvGame::processVote(const VoteTriggeredData& kData, int iChange)
 			for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; ++iPlayer)
 			{
 				CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
-				if (kLoopPlayer.isVotingMember(kData.eVoteSource))
+				//if (kLoopPlayer.isVotingMember(kData.eVoteSource))
+				// dlph.25/advc:
+				if(GET_TEAM(kLoopPlayer.getTeam()).isFullMember(kData.eVoteSource))
 				{
 					if (GET_TEAM(kLoopPlayer.getTeam()).canChangeWarPeace(kPlayer.getTeam()))
 					{

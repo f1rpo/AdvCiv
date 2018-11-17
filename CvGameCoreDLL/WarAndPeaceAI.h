@@ -160,6 +160,13 @@ public:
 		/*  tradeVal should roughly correspond to gold per turn; converted into
 			war utility based on our current commerce rate. */
 		double tradeValToUtility(double tradeVal) const;
+		/*  Runs 'scheme' as if UWAI was running in the background and writes a
+			report file regardless of the REPORT_INTERVAL set in XML.
+			Intended for debugging. Could insert a call like
+			GET_TEAM((TeamTypes)1).warAndPeaceAI().doWarReport()
+			in e.g. CvUnit::kill, load the savegame to be debugged, disband a unit,
+			read the report and remove the doWarReport call again. */
+		void doWarReport();
 
 	private:
 		void reset();
@@ -188,6 +195,7 @@ public:
 		double limitedWarWeight() const;
 		void startReport();
 		void closeReport();
+		void setForceReport(bool b);
 		bool isReportTurn() const;
 		void showWarPrepStartedMsg(TeamTypes targetId);
 		void showWarPlanAbandonedMsg(TeamTypes targetId);
@@ -206,6 +214,7 @@ public:
 		TeamTypes agentId;
 		bool inBackgr;
 		std::vector<PlayerTypes> members;
+		bool bForceReport;
 		// Only to be used in doWar and its subroutines
 		WarAndPeaceReport* report;
 	};

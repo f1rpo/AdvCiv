@@ -169,11 +169,12 @@
 			<bDefault>0</bDefault>
 			<bVisible>1</bVisible>
 		</GameOptionInfo>
+		<!-- advc.104z: bDefault was 0 -->
 		<GameOptionInfo>
 			<Type>GAMEOPTION_NO_EVENTS</Type>
 			<Description>TXT_KEY_GAME_OPTION_NO_EVENTS</Description>
 			<Help>TXT_KEY_GAME_OPTION_NO_EVENTS_HELP</Help>
-			<bDefault>0</bDefault>
+			<bDefault>1</bDefault>
 			<bVisible>1</bVisible>
 		</GameOptionInfo>
 		<GameOptionInfo>

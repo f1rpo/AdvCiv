@@ -554,8 +554,8 @@ public:
 	void applyEvent(EventTypes eEvent);
 
 	bool canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
-			bool checkAirUnitCap = true) const; // advc.001b
-
+			bool checkAirUnitCap = true, // advc.001b
+			BonusTypes eAssumeAvailable = NO_BONUS) const; // advc.001u
 	bool isEspionageCounterSpy(TeamTypes eTeam) const;
 
 	DllExport int getAreaIdForGreatWall() const;

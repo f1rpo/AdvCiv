@@ -11073,7 +11073,9 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 				{
 					// Explicit rejection by all who will definitely be attacked
 					bValid = false;
-				}
+				} // <dlph.25/advc> Try to honor peace treaty
+				else if(kOurTeam.isForcePeace(eWarTeam))
+					bValid = false; // </dlph.25/advc>
 				else if ( kOurTeam.AI_getWarPlan(eWarTeam) != NO_WARPLAN )
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
@@ -11546,8 +11548,8 @@ bool CvPlayerAI::AI_considerOfferBulk(PlayerTypes ePlayer,
 	if(!checkCivicReligionConsistency(pOurList) ||
 			!checkCivicReligionConsistency(pTheirList)) 
 		return false; // </advc.132>
-	/*  advc.003: iOurValue is the value of what we give; how much they value what
-		we give, more specifically.
+	/*  advc.003 (comment): iOurValue is the value of what we give; how much
+		they value what we give, more specifically.
 		(Elsewhere in this class, it's the other way around.) */
 	int iOurValue = kPlayer.AI_dealVal(getID(), pOurList, false, iChange);
 	// <advc.705>
@@ -13111,18 +13113,21 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 			// devalue the unit if we wouldn't be able to build it anyway
 			if (canTrain(eLoopUnit))
 			{
-				// is it a water unit and no coastal cities or our coastal city cannot build because its obsolete
-				if ((kLoopUnit.getDomainType() == DOMAIN_SEA &&
-						(pCoastalCity == NULL || pCoastalCity->allUpgradesAvailable(
-						eLoopUnit) != NO_UNIT)) ||
-						// or our capital cannot build because its obsolete (we can already build all its upgrades)
-						(pCapital != NULL && pCapital->allUpgradesAvailable(
-						eLoopUnit) != NO_UNIT))
-				{
-					// its worthless
-					iUnitValue = 0;
-				}
 				bCanTrain = true;
+				/*  is it a water unit and no coastal cities or our coastal city
+					cannot build because it's obsolete */
+				if ((kLoopUnit.getDomainType() == DOMAIN_SEA &&
+						(pCoastalCity == NULL ||
+						pCoastalCity->allUpgradesAvailable(eLoopUnit,
+						0, eBonus) // advc.001u
+						!= NO_UNIT)) ||
+						/*  or our capital cannot build because it's obsolete
+							(we can already build all its upgrades) */
+						(pCapital != NULL &&
+						pCapital->allUpgradesAvailable(eLoopUnit,
+						0, eBonus)// advc.001u
+						!= NO_UNIT))
+					iUnitValue = 0; // its worthless
 			}
 			else
 			{
@@ -13462,7 +13467,7 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer,
 
 	PROFILE_FUNC();
 	FAssert(ePlayer != getID());
-	bool useOurBonusVal = true;
+	bool bUseOurBonusVal = true;
 	if(isHuman()) {
 		/*  If this CvPlayer is human and ePlayer an AI, then this function
 			needs to say how much the human values eBonus in ePlayer's
@@ -13470,21 +13475,21 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer,
 			information that ePlayer might not have. */
 		CvBonusInfo& bi = GC.getBonusInfo(eBonus);
 		// I can live with cheating when it comes to strategic bonuses
-		useOurBonusVal = (bi.getHappiness() + bi.getHealth() == 0);
+		bUseOurBonusVal = (bi.getHappiness() + bi.getHealth() == 0);
 		// Also don't worry about the value of additional copies (for corps)
-		if(!useOurBonusVal && ((getNumAvailableBonuses(eBonus) > 0 && iChange > 0) ||
+		if(!bUseOurBonusVal && ((getNumAvailableBonuses(eBonus) > 0 && iChange > 0) ||
 				(getNumAvailableBonuses(eBonus) - iChange > 1)))
-			useOurBonusVal = true;
+			bUseOurBonusVal = true;
 		// Otherwise ePlayer needs to know most of the human's territory
-		if(!useOurBonusVal) {
-			int revThresh = 2 * getNumCities() / 3;
-			int revCount = 0;
-			TeamTypes eTeam = TEAMID(ePlayer); int dummy=-1;
-			for(CvCity* c = firstCity(&dummy); c != NULL; c = nextCity(&dummy)) {
+		if(!bUseOurBonusVal) {
+			int iRevThresh = 2 * getNumCities() / 3;
+			int iRevCount = 0;
+			TeamTypes eTeam = TEAMID(ePlayer); int foo=-1;
+			for(CvCity* c = firstCity(&foo); c != NULL; c = nextCity(&foo)) {
 				if(c->isRevealed(eTeam, false)) {
-					revCount++;
-					if(revCount >= revThresh) {
-						useOurBonusVal = true;
+					iRevCount++;
+					if(iRevCount >= iRevThresh) {
+						bUseOurBonusVal = true;
 						break;
 					}
 				}
@@ -13492,7 +13497,7 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer,
 		}
 	}
 	CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer);
-	double ourVal = useOurBonusVal ? AI_bonusVal(eBonus, iChange, false, true) :
+	double ourVal = bUseOurBonusVal ? AI_bonusVal(eBonus, iChange, false, true) :
 			// Use ePlayer's value as a substitute
 			kPlayer.AI_bonusVal(eBonus, 0, false, true);
 	ourVal *= getNumCities(); // bonusVal is per city
@@ -13502,9 +13507,9 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer,
 	/*  What else could ePlayer do with the resource? Trade it to somebody else.
 		I'm assuming that trade denial has already filtered out resources that
 		ePlayer (really) needs domestically. */
-	int cityCount = 0;
-	int knownCivs = 0;
-	int otherTakers = 0;
+	int iCities = 0;
+	int iMetCivs = 0;
+	int iOtherTakers = 0;
 	/*  Can't check here if eBonus is strategic; use the strategic thresh minus 1
 		as a compromise. */
 	int refuseThresh = std::max(0, GC.getLeaderHeadInfo(kPlayer.getPersonalityType()).
@@ -13516,8 +13521,8 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer,
 			continue;
 		/*  The trade partners don't necessarily know all those cities, but the
 			city count wouldn't be difficult to estimate. */
-		cityCount += civ.getNumCities();
-		knownCivs++;
+		iCities += civ.getNumCities();
+		iMetCivs++;
 		if(civ.getID() == ePlayer || civ.getID() == getID())
 			continue;
 		/*  Based on a profiler test, too slow:
@@ -13540,16 +13545,16 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer,
 				GC.getLeaderHeadInfo(civ.getPersonalityType()).
 				getStrategicBonusRefuseAttitudeThreshold() - 1))
 			continue;
-		otherTakers++;
+		iOtherTakers++;
 	}
-	int avail = kPlayer.getNumAvailableBonuses(eBonus);
+	int iAvail = kPlayer.getNumAvailableBonuses(eBonus);
 	// Decrease marketVal if we have multiple spare copies
-	otherTakers = ::range(otherTakers - avail + 2, 0, otherTakers);
-	FAssert(knownCivs >= 2);
+	iOtherTakers = ::range(iOtherTakers - iAvail + 2, 0, iOtherTakers);
+	FAssert(iMetCivs >= 2);
 	/*  Hard to say how much a third party needs eBonus, but it'd certainly
 		factor in its number of cities. */
-	double marketVal = (5.0 * cityCount) / (3.0 * knownCivs) +
-			std::sqrt((double)otherTakers);
+	double marketVal = (5.0 * iCities) / (3.0 * iMetCivs) +
+			std::sqrt((double)iOtherTakers);
 	double const marketWeight = 2/3.0;
 	/*  Want luxuries and food resources to be cheap, but not necessarily
 		strategic resources. At 1/3 weight for ourVal, crucial strategics
@@ -13561,8 +13566,8 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer,
 		the same price as surplus resources. Exception for human b/c I don't
 		want humans to keep their surplus resources and sell unneeded nonsurplus
 		resources instead for a slightly higher price. */
-	if(!kPlayer.isHuman() && (avail - iChange == 0 ||
-			avail == 0 || // when considering cancelation
+	if(!kPlayer.isHuman() && (iAvail - iChange == 0 ||
+			iAvail == 0 || // when considering cancelation
 			kPlayer.AI_corporationBonusVal(eBonus) > 0))
 		r++;
 	if(!isHuman()) // Never pay more than it's worth to us
@@ -13570,14 +13575,14 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer,
 	r *= std::max(0, GC.getBonusInfo(eBonus).getAITradeModifier() + 100) / 100.0;
 	if(TEAMREF(ePlayer).isVassal(getTeam()) && !TEAMREF(ePlayer).isCapitulated())
 		r *= 0.67; // advc.037: 0.5 in BtS
-	int ir = ::round(r);
+	int iR = ::round(r);
 	/*  To make resource vs. resource trades more compatible. A multiple of 5
 		would lead to a rounding error when gold is paid for a resource b/c
 		2 gpt correspond to 1 tradeVal. */
 	if(r >= 3 && !GET_TEAM(getTeam()).isGoldTrading() &&
 			!TEAMREF(ePlayer).isGoldTrading())
-		ir = ::roundToMultiple(ir, 4);
-	return ir *  GC.getPEACE_TREATY_LENGTH();
+		iR = ::roundToMultiple(iR, 4);
+	return iR *  GC.getPEACE_TREATY_LENGTH();
 }  // </advc.036>
 
 DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,

@@ -1871,7 +1871,8 @@ int CvCity::findCommerceRateRank(CommerceTypes eCommerce) const
 
 
 // Returns one of the upgrades...
-UnitTypes CvCity::allUpgradesAvailable(UnitTypes eUnit, int iUpgradeCount) const
+UnitTypes CvCity::allUpgradesAvailable(UnitTypes eUnit, int iUpgradeCount,
+		BonusTypes eAssumeAvailable) const // advc.001u
 {
 	PROFILE_FUNC(); // advc.003b
 	UnitTypes eUpgradeUnit;
@@ -1905,8 +1906,8 @@ UnitTypes CvCity::allUpgradesAvailable(UnitTypes eUnit, int iUpgradeCount) const
 			{
 				bUpgradeFound = true;
 
-				eTempUnit = allUpgradesAvailable(eLoopUnit, (iUpgradeCount + 1));
-
+				eTempUnit = allUpgradesAvailable(eLoopUnit, iUpgradeCount + 1,
+						eAssumeAvailable); // advc.001u
 				if (eTempUnit != NO_UNIT)
 				{
 					eUpgradeUnit = eTempUnit;
@@ -1927,11 +1928,10 @@ UnitTypes CvCity::allUpgradesAvailable(UnitTypes eUnit, int iUpgradeCount) const
 			FAssertMsg(eUpgradeUnit != NO_UNIT, "eUpgradeUnit is expected to be assigned (not NO_UNIT)");
 			return eUpgradeUnit;
 		}
-
-		if (canTrain(eUnit, false, false, false, true))
-		{
+		if(canTrain(eUnit, false, false, false, true,
+				false, // advc.001b
+				eAssumeAvailable)) // advc.001u
 			return eUnit;
-		}
 	}
 	else
 	{
@@ -2039,7 +2039,8 @@ bool CvCity::isBuildingsMaxed() const
 
 
 bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool bIgnoreCost, bool bIgnoreUpgrades,
-		bool checkAirUnitCap) const // advc.001b
+		bool checkAirUnitCap, // advc.001b
+		BonusTypes eAssumeAvailable) const // advc.001u
 {
 	if (eUnit == NO_UNIT)
 	{
@@ -2070,16 +2071,15 @@ bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool b
 	if(u.getDomainType() == DOMAIN_SEA && !isCoastal() &&
 			(!u.isPrereqBonuses() || (u.isPrereqBonuses() && !isPrereqBonusSea())))
 		return false; // </advc.041>
-	if (!(GET_PLAYER(getOwnerINLINE()).canTrain(eUnit, bContinue, bTestVisible, bIgnoreCost)))
+	if (!GET_PLAYER(getOwnerINLINE()).canTrain(eUnit, bContinue, bTestVisible, bIgnoreCost))
 	{
 		return false;
 	}
 
-	if (!plot()->canTrain(eUnit, bContinue, bTestVisible,
-			checkAirUnitCap)) // advc.001b
-	{
+	if(!plot()->canTrain(eUnit, bContinue, bTestVisible,
+			checkAirUnitCap, // advc.001b
+			eAssumeAvailable)) // advc.001u
 		return false;
-	}
 
 	// advc.003b: Moved down. Seems a bit slower than CvPlot::canTrain.
 	if (!bIgnoreUpgrades)

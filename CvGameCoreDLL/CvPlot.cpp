@@ -10499,7 +10499,8 @@ void CvPlot::applyEvent(EventTypes eEvent)
 }
 
 bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
-		bool checkAirUnitCap) const // advc.001b
+		bool checkAirUnitCap, // advc.001b
+		BonusTypes eAssumeAvailable) const // advc.001u
 {
 	PROFILE_FUNC(); // advc.003b
 	CvCity* pCity = getPlotCity();
@@ -10647,38 +10648,38 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 					return false;
 				}
 			}
-		}
-
-		if (GC.getUnitInfo(eUnit).getPrereqAndBonus() != NO_BONUS)
-		{
+		} // <advc.003>
+		BonusTypes ePrereqAndBonus = (BonusTypes)GC.getUnitInfo(eUnit).
+				getPrereqAndBonus(); // </advc.003>
+		if(ePrereqAndBonus != NO_BONUS
+				&& ePrereqAndBonus != eAssumeAvailable) // advc.001u
+		{	
 			if (NULL == pCity)
 			{
-				if (!isPlotGroupConnectedBonus(getOwnerINLINE(), (BonusTypes)GC.getUnitInfo(eUnit).getPrereqAndBonus()))
+				if (!isPlotGroupConnectedBonus(getOwnerINLINE(), ePrereqAndBonus))
 				{
 					return false;
 				}
 			}
-			else
-			{
-				if (!pCity->hasBonus((BonusTypes)GC.getUnitInfo(eUnit).getPrereqAndBonus()))
-				{
-					return false;
-				}
-			}
+			else if (!pCity->hasBonus(ePrereqAndBonus))
+				return false;
 		}
 
 		bool bRequiresBonus = false;
 		bool bNeedsBonus = true;
 
 		for (int iI = 0; iI < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); ++iI)
-		{
-			if (GC.getUnitInfo(eUnit).getPrereqOrBonuses(iI) != NO_BONUS)
+		{	// <advc.003>
+			BonusTypes ePrereqOrBonus = (BonusTypes)GC.getUnitInfo(eUnit).
+					getPrereqOrBonuses(iI); // </advc.003>
+			if(ePrereqOrBonus != NO_BONUS &&
+					ePrereqOrBonus != eAssumeAvailable) // advc.001u
 			{
 				bRequiresBonus = true;
 
 				if (NULL == pCity)
 				{
-					if (isPlotGroupConnectedBonus(getOwnerINLINE(), (BonusTypes)GC.getUnitInfo(eUnit).getPrereqOrBonuses(iI)))
+					if (isPlotGroupConnectedBonus(getOwnerINLINE(), ePrereqOrBonus))
 					{
 						bNeedsBonus = false;
 						break;
@@ -10686,7 +10687,7 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 				}
 				else
 				{
-					if (pCity->hasBonus((BonusTypes)GC.getUnitInfo(eUnit).getPrereqOrBonuses(iI)))
+					if (pCity->hasBonus(ePrereqOrBonus))
 					{
 						bNeedsBonus = false;
 						break;

@@ -4654,7 +4654,7 @@ void CvTeam::setDefensivePact(TeamTypes eIndex, bool bNewValue)
 				(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 			CvPlayer& civ = GET_PLAYER((PlayerTypes)i);
-			if(!civ.isAlive())
+			if(!civ.isAlive() || civ.getTeam() == getID())
 				continue;
 			if((isHasMet(civ.getTeam()) && other.isHasMet(civ.getTeam()))
 					|| civ.isSpectator()) { // advc.127
