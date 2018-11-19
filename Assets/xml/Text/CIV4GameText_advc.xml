@@ -58,8 +58,8 @@
 		<Spanish>%s1_PlyrName ha firmado la paz con %s2_PlyrName. (A petici&#243;n de %s3_PlyrName.)</Spanish>
 	</TEXT>
 
-	<!-- advc.101: Additional text for Nationality help. Similar BtS keys
-		 are located in CIV4GameTextInfos.xml. -->
+	<!-- advc.101: Additional text for Nationality and tile help. Similar
+		 BtS keys are located in CIV4GameTextInfos.xml. -->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_PRIOR_REVOLTS</Tag>
 		<English>Prior revolts: %s1_Num</English>
@@ -69,12 +69,28 @@
 		<Spanish>Rebeliones anteriores: %s1_Num</Spanish>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_MISC_PRIOR</Tag>
+		<English>%d1_Num prior revol[NUM1:t:ts]</English>
+		<French>%d1_Num r#233;volt[NUM1:e:es] pr&#233;c&#233;dent[NUM1:e:es]</French>
+		<German>%d1_Num bisher</German>
+		<Italian>%d1_Num precedent[NUM1:e:i]</Italian>
+		<Spanish>%d1_Num anterio[NUM1:r:res]</Spanish>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_MISC_FLIP_WARNING</Tag>
 		<English>Will flip on revolt!</English>
-		<French>Convertira en cas de r&#233;volte!</French>
-		<German>Besitzer wechselt bei Revolte!</German>
+		<French>Convertira en cas de r&#233;volte !</French>
+		<German>Läuft bei Revolte zum Gegner über!</German>
 		<Italian>Convertir&#224; se rivolta!</Italian>
 		<Spanish>&#161;Convertir&#225; en casa de rebeli&#243;n!</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_WILL_FLIP</Tag>
+		<English>will flip!</English>
+		<French>convertira !</French>
+		<German>wird überlaufen!</German>
+		<Italian>convertir&#224;!</Italian>
+		<Spanish>&#161;convertir&#225;!</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_NO_REVOLT_IN_OCCUPATION</Tag>
@@ -1362,6 +1378,17 @@
 		<Spanish>No aparecer&#225;n animales.</Spanish>
 	</TEXT>
 	
+	<!-- advc.912b: Based on TXT_KEY_DOMESTIC_ADVISOR_MOUSEOVER_PROD_NOCHANGE in
+		 CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_CURRENTLY</Tag>
+		<English>currently</English>
+		<French>actuellement</French>
+		<German>zurzeit</German>
+		<Italian>al momento</Italian>
+		<Spanish>en este momento</Spanish>
+	</TEXT>
+	
 	<!-- advc.912d -->
 	<TEXT>
 		<Tag>TXT_KEY_GAME_OPTION_NO_SLAVERY</Tag>
@@ -2526,11 +2553,11 @@
 	<!-- Romance languages: Google Translate -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__REVOLT_HOVER</Tag>
-		<English>Displays an alert when a city can (or can no longer) revolt, and when occupation ends after a revolt or after conquest.</English>
-		<French>Affiche une alerte quand une ville peut (ou ne peut plus) se révolter, et quand l'occupation se termine après une révolte ou après une conquête.</French>
-		<German>Mitteilung, wenn eine Revolte droht (oder nicht mehr droht), und wenn nach einer Revolte oder bei Besatzung die Ruhe wiederhergestellt wurde.</German>
-		<Italian>Visualizza un avviso quando una città può (o non può più) sollevarsi e quando l'occupazione termina dopo una rivolta o dopo la conquista.</Italian>
-		<Spanish>Muestra una alerta cuando una ciudad puede (o no puede) rebelarse, y cuando la ocupación termina después de una revuelta o después de la conquista.</Spanish>
+		<English>Displays an alert when a city can revolt, and when occupation ends after a revolt or after conquest.</English>
+		<French>Affiche une alerte quand une ville peut se révolter, et quand l'occupation se termine après une révolte ou après une conquête.</French>
+		<German>Mitteilung, wenn eine Revolte droht oder wenn nach einer Revolte oder bei Besatzung die Ruhe wiederhergestellt wurde.</German>
+		<Italian>Visualizza un avviso quando una città può sollevarsi e quando l'occupazione termina dopo una rivolta o dopo la conquista.</Italian>
+		<Spanish>Muestra una alerta cuando una ciudad puede rebelarse, y cuando la ocupación termina después de una revuelta o después de la conquista.</Spanish>
 	</TEXT>
 	<!-- I've tried it with [COLOR_WARNING_TEXT] ... [COLOR_REVERT], i.e. in red,
 		 but this draws too much attention. Same for [COLOR_POSITIVE_TEXT]
@@ -2621,12 +2648,20 @@
 		<Spanish>Timer de ocupaci&#243;n: %d1 [NUM1:turno:turnos]</Spanish>
 	</TEXT>
 	<TEXT>
-		<Tag>TXT_KEY_OCCUPATION_DECREASE_CHANCE</Tag>
+		<Tag>TXT_KEY_TIMER_DECREASE_CHANCE</Tag>
 		<English>Chance to decrease timer: %d1%%</English>
 		<French>Chance de réduir le compteur: %d1%%</French>
 		<German>Chance den Timer zu verringern: %d1%%</German>
 		<Italian>Probabilità di ridurre il timer: %d1%%</Italian>
 		<Spanish>Probabilidad de disminuir el timer: %d1%%</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_OCCUPATION_DECREASE_CHANCE</Tag>
+		<English>Chance to decrease occupation timer: %s1_Chance%%</English>
+		<French>Chance de réduir le compteur d'occupation: %s1_Chance%%</French>
+		<German>Chance den Besatzungstimer zu verringern: %s1_Chance%%</German>
+		<Italian>Probabilità di ridurre il timer di occupazione: %s1_Chance%% </Italian>
+		<Spanish>Probabilidad de disminuir el timer de ocupaci&#243;n: %s1_Chance%%</Spanish>
 	</TEXT>
 	
 	<!-- advc.210d -->
@@ -3510,10 +3545,10 @@
 		<Spanish>%s1 con %s2</Spanish>
 	</TEXT>
 	
-	<!-- advc.047: From CIV4GameTextInfos.xml. Color added; now only shown
-		 when the improvement is absent. -->
+	<!-- advc.047: Like TXT_KEY_BONUS_WITH_IMPROVEMENT in
+		 CIV4GameTextInfos.xml, but with color. -->
 	<TEXT>
-		<Tag>TXT_KEY_BONUS_WITH_IMPROVEMENT</Tag>
+		<Tag>TXT_KEY_BONUS_WITH_IMPROVEMENT_WARNING</Tag>
 		<English>(with [COLOR_WARNING_TEXT]%s1_ImpName[COLOR_REVERT])</English>
 		<French>(avec [COLOR_WARNING_TEXT]%s1_ImpName[COLOR_REVERT])</French>
 		<German>([COLOR_WARNING_TEXT]%s1_ImpName[COLOR_REVERT] benötigt)</German>

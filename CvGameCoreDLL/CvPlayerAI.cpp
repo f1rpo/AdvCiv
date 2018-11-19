@@ -11257,7 +11257,7 @@ int CvPlayerAI::AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pLis
 	}
 
 	// advc.104o: Can't be hired for more than one war at a time
-	int wars = 0;
+	int iWars = 0;
 	for (pNode = pList->head(); pNode; pNode = pList->next(pNode))
 	{
 		FAssertMsg(!(pNode->m_data.m_bHidden), "(pNode->m_data.m_bHidden) did not return false as expected");
@@ -11312,8 +11312,8 @@ int CvPlayerAI::AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pLis
 		case TRADE_WAR:
 			// <advc.104o>
 			if(getWPAI.isEnabled()) {
-				wars++;
-				if(wars > 1)
+				iWars++;
+				if(iWars > 1)
 					iValue += 100000; // More than they can pay
 			} // </advc.104o>
 			iValue += GET_TEAM(getTeam()).AI_declareWarTradeVal(((TeamTypes)(pNode->m_data.m_iData)), GET_PLAYER(ePlayer).getTeam());
@@ -19429,9 +19429,8 @@ double CvPlayerAI::bonusImportValue(PlayerTypes fromId) const {
 						node->m_data.m_iData, -1);
 			}
 		}
-	}
-	// The divisor should be the typical gpt value of a somewhat useful bonus
-	return r / 5;
+	} // The divisor should be the typical gpt value of a somewhat useful bonus
+	return r / ::range(getNumCities(), 3, 10);
 } // </advc.149>
 
 void CvPlayerAI::AI_doMilitary()

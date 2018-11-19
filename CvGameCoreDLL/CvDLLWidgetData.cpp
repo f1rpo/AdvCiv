@@ -4990,7 +4990,7 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 			// But don't claim it's 0% or 100% if it isn't quite
 			if(prDecr > 0) prDecrPercent = std::max(1, prDecrPercent);
 			if(prDecr < 1) prDecrPercent = std::min(99, prDecrPercent);
-			szBuffer.append(gDLL->getText("TXT_KEY_OCCUPATION_DECREASE_CHANCE",
+			szBuffer.append(gDLL->getText("TXT_KEY_TIMER_DECREASE_CHANCE",
 					prDecrPercent));
 		}
 	} // </advc.023>

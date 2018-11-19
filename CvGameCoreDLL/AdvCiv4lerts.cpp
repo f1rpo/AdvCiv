@@ -166,7 +166,7 @@ void RevoltAlert::check() {
 			/*  Report only change in revolt chance OR change in occupation status;
 				the latter takes precedence. */
 			if(!couldPreviouslyRevolt && wasOccupation == c->isOccupation()) {
-				// Looks precarious; copied this from CvDLLWidgetData::parseNationalityHelp
+				// Copied this from CvDLLWidgetData::parseNationalityHelp
 				wchar szTempBuffer[1024];
 				swprintf(szTempBuffer, L"%.2f", (float)(100 * pr));
 				msg(gDLL->getText("TXT_KEY_CIV4LERTS_REVOLT", c->getName().
@@ -178,6 +178,7 @@ void RevoltAlert::check() {
 						0);
 			}
 		}
+#if 0 // Disabled: Message when revolt chance becomes 0
 		else if(couldPreviouslyRevolt && wasOccupation == c->isOccupation() &&
 				/*  Don't report 0 revolt chance when in occupation b/c
 					revolt chance will increase a bit when occupation ends. */
@@ -188,6 +189,7 @@ void RevoltAlert::check() {
 						c->getX_INLINE(), c->getY_INLINE(),
 						1); // Important and rare enough to be shown in green
 		}
+#endif
 		if(c->isOccupation())
 			updatedOccupation.insert(c->plotNum());
 		/*  If there's no order queued, the city will come to the player's attention

@@ -278,22 +278,16 @@ public:
 	void setGwPercentAnger(int iNewValue); // K-Mod
 
 	int getUnitCostMultiplier() const; // K-Mod
-	int calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& iPaidUnits, int& iPaidMilitaryUnits, int& iUnitCost, int& iMilitaryCost, int& iExtraCost
-		// advc.004b Added optional parameter
-		, int extraPop = 0
-		) const; // (K-Mod changed iBaseUnitCost to iUnitCost)
-	int calculateUnitCost(
-		// advc.004b Added optional parameter
-		int extraPop = 0
-		) const;																																				// Exposed to Python
-	int calculateUnitSupply(int& iPaidUnits, int& iBaseSupplyCost
-		// advc.004b Added optional parameter
-		, int extraOutsideUnits = 0
-		) const;																	// Exposed to Python
-	int calculateUnitSupply(
-		// advc.004b Added optional parameter
-		int extraOutsideUnits = 0
-		) const;																																			// Exposed to Python
+	int calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& iPaidUnits,
+			// K-Mod: changed iBaseUnitCost to iUnitCost
+			int& iPaidMilitaryUnits, int& iUnitCost, int& iMilitaryCost, int& iExtraCost,
+			int extraPop = 0) const; // advc.004b
+	int calculateUnitCost(																																				// Exposed to Python
+			int extraPop = 0) const; // advc.004b
+	int calculateUnitSupply(int& iPaidUnits, int& iBaseSupplyCost,																// Exposed to Python
+			int extraOutsideUnits = 0) const; // advc.004b
+	int calculateUnitSupply(																																			// Exposed to Python	
+			int extraOutsideUnits = 0) const; // advc.004b
 	int calculatePreInflatedCosts() const;																																// Exposed to Python
 	int calculateInflationRate() const;																																		// Exposed to Python
 	int calculateInflatedCosts() const;																																		// Exposed to Python

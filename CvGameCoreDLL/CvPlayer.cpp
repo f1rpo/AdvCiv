@@ -7941,9 +7941,9 @@ int CvPlayer::getUnitCostMultiplier() const
 }
 // K-Mod end
 
-int CvPlayer::calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& iPaidUnits, int& iPaidMilitaryUnits, int& iUnitCost, int& iMilitaryCost, int& iExtraCost
-	, int extraPop // advc.004b
-	) const
+int CvPlayer::calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& iPaidUnits,
+		int& iPaidMilitaryUnits, int& iUnitCost, int& iMilitaryCost, int& iExtraCost,
+		int extraPop) const // advc.004b
 {
 	//int iSupport;
 
@@ -7970,8 +7970,7 @@ int CvPlayer::calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& i
 	} */ // Hidden AI bonus removed by BBAI.
 
 	iPaidUnits = std::max(0, getNumUnits() - iFreeUnits
-		- (extraPop > 0 ? 1 : 0) // advc.004b: The Settler is gone after founding
-		);
+		- (extraPop > 0 ? 1 : 0)); // advc.004b: The Settler is gone after founding
 	iPaidMilitaryUnits = std::max(0, getNumMilitaryUnits() - iFreeMilitaryUnits);
 
 	//iSupport = 0;
@@ -8017,8 +8016,7 @@ int CvPlayer::calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& i
 
 
 int CvPlayer::calculateUnitCost(
-	int extraPop // advc.004b
-	) const
+		int extraPop) const // advc.004b
 {
 	if (isAnarchy())
 	{
@@ -8033,14 +8031,13 @@ int CvPlayer::calculateUnitCost(
 	int iBaseUnitCost;
 	int iExtraCost;
 
-	return calculateUnitCost(iFreeUnits, iFreeMilitaryUnits, iPaidUnits, iPaidMilitaryUnits, iBaseUnitCost, iMilitaryCost, iExtraCost
-		, extraPop // advc.004b
-		);
+	return calculateUnitCost(iFreeUnits, iFreeMilitaryUnits, iPaidUnits, iPaidMilitaryUnits,
+			iBaseUnitCost, iMilitaryCost, iExtraCost,
+			extraPop); // advc.004b
 }
 
 int CvPlayer::calculateUnitSupply(
-	int extraOutsideUnits // advc.004b
-	) const
+		int extraOutsideUnits) const // advc.004b	
 {
 	int iPaidUnits;
 	int iBaseSupplyCost;
@@ -8050,14 +8047,12 @@ int CvPlayer::calculateUnitSupply(
 		return 0;
 	}
 
-	return calculateUnitSupply(iPaidUnits, iBaseSupplyCost
-		, extraOutsideUnits // advc.004b
-		);
+	return calculateUnitSupply(iPaidUnits, iBaseSupplyCost,
+			extraOutsideUnits); // advc.004b
 }
 
-int CvPlayer::calculateUnitSupply(int& iPaidUnits, int& iBaseSupplyCost
-	, int extraOutsideUnits // advc.004b
-	) const
+int CvPlayer::calculateUnitSupply(int& iPaidUnits, int& iBaseSupplyCost,
+		int extraOutsideUnits) const // advc.004b
 {
 	int iSupply;
 
@@ -13939,9 +13934,8 @@ CivicTypes CvPlayer::getCivics(CivicOptionTypes eIndex) const
 }
 
 
-int CvPlayer::getSingleCivicUpkeep(CivicTypes eCivic, bool bIgnoreAnarchy
-	, int extraCities // advc.004b
-	) const
+int CvPlayer::getSingleCivicUpkeep(CivicTypes eCivic, bool bIgnoreAnarchy,
+	int extraCities) const // advc.004b
 {
 	int iUpkeep;
 
@@ -13996,9 +13990,8 @@ int CvPlayer::getSingleCivicUpkeep(CivicTypes eCivic, bool bIgnoreAnarchy
 }
 
 
-int CvPlayer::getCivicUpkeep(CivicTypes* paeCivics, bool bIgnoreAnarchy
-	, int extraCities // advc.004b
-	) const
+int CvPlayer::getCivicUpkeep(CivicTypes* paeCivics, bool bIgnoreAnarchy,
+		int extraCities) const // advc.004b
 {
 	int iTotalUpkeep;
 	int iI;

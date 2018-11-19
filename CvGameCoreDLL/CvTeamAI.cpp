@@ -5226,7 +5226,9 @@ void CvTeamAI::AI_setWarPlan(TeamTypes eIndex, WarPlanTypes eNewValue, bool bWar
 	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 		CvTeamAI& t = GET_TEAM((TeamTypes)i);
 		if(t.isAlive() && t.getID() != getID() && t.getMasterTeam() == getID() &&
-				!t.isHuman())
+				!t.isHuman() &&
+				// Don't set NO_WARPLAN before the vassal has been set to !isAtWar
+				(vassalWp != NO_WARPLAN || !t.isAtWar(eIndex)))
 			t.AI_setWarPlan(eIndex, vassalWp);
 	} // </advc.104j>
 } // </advc.003>
