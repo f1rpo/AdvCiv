@@ -4100,4 +4100,24 @@
 		<Spanish>&#191;Esto es la GUERRA? (contra [COLOR_HIGHLIGHT_TEXT]%s1_Team[COLOR_REVERT])</Spanish>
 	</TEXT>
 	
+	<!-- advc.048: Based on TXT_KEY_PROMOTION_VERSUS_TEXT in
+		 CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_VS</Tag>
+		<English>vs.</English>
+		<French>contre</French>
+		<German>gegen</German>
+		<Italian>contro</Italian>
+		<Spanish>contra</Spanish>
+	</TEXT>
+	<!-- advc.048b: Overwrites CIV4GameText_Warlords.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_COMBAT_PLOT_ODDS_RETREAT</Tag>
+		<English>Withdrawal odds: %s1%%</English>
+		<French>Chances de retraite : %s1 %%</French>
+		<German>R&#252;ckzugschance: %s1%%</German>
+		<Italian>Probabilit&#224; di ritirata: %s1%%</Italian>
+		<Spanish>Probabilidades de retirada: %s1%%</Spanish>
+	</TEXT>
+	
 </Civ4GameText>

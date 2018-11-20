@@ -452,7 +452,13 @@ void CvGameTextMgr::setEspionageMissionHelp(CvWStringBuffer &szBuffer, const CvU
 
 
 void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit, bool bOneLine, bool bShort)
-{
+{	// <advc.048>
+	setUnitHelpBulk(szString, pUnit, bOneLine, bShort, false);
+}
+
+void CvGameTextMgr::setUnitHelpBulk(CvWStringBuffer &szString, const CvUnit* pUnit,
+		bool bOneLine, bool bShort, bool bColorHostile) { // </advc.048>
+
 	PROFILE_FUNC();
 
 	CvWString szTempBuffer;
@@ -466,8 +472,15 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit, 
 	// <advc.007> Make info more compact in debug mode
 	if(GC.getGameINLINE().isDebugMode() && bOneLine)
 		bShort = true; // </advc.007>
-
-	szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_UNIT_TEXT"), pUnit->getName().GetCString());
+	// <advc.048>
+	char const* szColTag = "COLOR_UNIT_TEXT";
+	if(bColorHostile) {
+		szColTag = (pUnit->isEnemy(GC.getGameINLINE().getActiveTeam()) ?
+				"COLOR_WARNING_TEXT" : "COLOR_POSITIVE_TEXT");
+	} // </advc.048>
+	szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR(
+			szColTag), // advc.048
+			pUnit->getName().GetCString());
 	szString.append(szTempBuffer);
 
 	szString.append(L", ");
@@ -2112,8 +2125,9 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 	CvWString szOffenseOdds;
 	CvWString szDefenseOdds;
 	int iModifier;
-
-	if (gDLL->getInterfaceIFace()->getLengthSelectionList() == 0)
+	// advc.048:
+	int iLengthSelectionList = gDLL->getInterfaceIFace()->getLengthSelectionList();
+	if (iLengthSelectionList == 0)
 	{
 		return false;
 	}
@@ -2161,7 +2175,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 		return false;
 
 	// K-Mod. If the plot's center unit isn't one of our own units, then use this defender as the plot's center unit.
-	// With this, the map will accurately shows who we're up against.
+	// With this, the map will accurately show who we're up against.
 	if (gDLL->getInterfaceIFace()->getSelectionPlot() != pPlot)
 	{
 		if (pDefender->getOwnerINLINE() == GC.getGameINLINE().getActivePlayer() ||
@@ -2170,8 +2184,8 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 		{
 			pPlot->setCenterUnit(pDefender);
 		}
-	}
-	// K-Mod end
+		
+	} // K-Mod end
 
 	if (pAttacker->getDomainType() != DOMAIN_AIR)
 	{
@@ -2785,7 +2799,8 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 				szString.append(NEWLINE);
 				szTempBuffer.Format(L": " SETCOLR L"%.2f%% " ENDCOLR SETCOLR L"%d" ENDCOLR,
 					TEXT_COLOR("COLOR_UNIT_TEXT"),100.0f*RetreatOdds,TEXT_COLOR("COLOR_POSITIVE_TEXT"),GC.getDefineINT("EXPERIENCE_FROM_WITHDRAWL"));
-				szString.append(gDLL->getText("TXT_ACO_Retreat"));
+				//szString.append(gDLL->getText("TXT_ACO_Retreat"));
+				szString.append(gDLL->getText("TXT_ACO_Withdraw")); // advc.048b
 				szString.append(szTempBuffer.GetCString());
 				if (iAttackerExperienceModifier > 0)
 				{
@@ -3569,6 +3584,13 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 /** ADVANCED COMBAT ODDS                      3/11/09                           PieceOfMind      */
 /** END                                                                         v2.0             */
 /*************************************************************************************************/
+
+		// <advc.048>
+		if(iLengthSelectionList > 1) {
+			szString.append(NEWLINE);
+			setUnitHelpBulk(szString, pAttacker, true, true, true);
+		} // </advc.048>
+
 		szOffenseOdds.Format(L"%.2f", ((pAttacker->getDomainType() == DOMAIN_AIR) ? pAttacker->airCurrCombatStrFloat(pDefender) : pAttacker->currCombatStrFloat(NULL, NULL)));
 		szDefenseOdds.Format(L"%.2f", pDefender->currCombatStrFloat(pPlot, pAttacker));
 		szString.append(NEWLINE);
@@ -3615,12 +3637,12 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 				}
 			}
 		}
-
-		if (pAttacker->isHurt())
+		// advc.048: Commented out
+		/*if (pAttacker->isHurt())
 		{
 			szString.append(NEWLINE);
 			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_HP", pAttacker->currHitPoints(), pAttacker->maxHitPoints()));
-		}
+		}*/
 
 		szString.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
 
@@ -3656,13 +3678,18 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 					szString.append(gDLL->getText("TXT_KEY_UNIT_FIRST_STRIKE_CHANCES", pDefender->firstStrikes(), pDefender->maxFirstStrikes()));
 				}
 			}
-		}
-
-		if (pDefender->isHurt())
+		} // <advc.048>
+		szString.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
+		szString.append(NEWLINE);
+		szString.append(gDLL->getText("TXT_KEY_MISC_VS"));
+		szString.append(L' ');
+		setUnitHelpBulk(szString, pDefender, true, true, true);
+		// Commented out: </advc.048>
+		/*if (pDefender->isHurt())
 		{
 			szString.append(NEWLINE);
 			szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_HP", pDefender->currHitPoints(), pDefender->maxHitPoints()));
-		}
+		}*/
 	}
 
 	szString.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));

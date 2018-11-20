@@ -14,11 +14,12 @@
 	 
 	<link id="WhipAssistOverflowCountCurrentProduction" 
 		  to="CityScreen__WhipAssistOverflowCountCurrentProduction"/>
-	
+	<!-- advc (comment): I don't think the help text from this file is used when
+		 there is text in 'Civ4lerts Options.xml' -->
 	<options id="Civ4lerts" file="Civ4lerts.ini">
 		<section id="Civ4lerts">
 			<!-- Move this outside of INI once Mod objects hold options -->
-			<!-- advc.106d: Enabled by default. -->
+			<!-- advc.106d: default was False in K-Mod -->
 			<option id="Enabled" key="Enabled" 
 					type="boolean" default="True" 
 					get="isEnabled" set="setEnabled" 
@@ -36,8 +37,9 @@
 					get="isShowCityGrowthAlert" set="setShowCityGrowthAlert" 
 					label="Growth" 
 					help="When checked, displays an alert when a city's population has grown or shrunk."/>
+			<!-- advc.106d: default was False in K-Mod -->
 			<option id="CityPendingHappiness" key="City Pending Happiness" 
-					type="boolean" default="False" and="Enabled" 
+					type="boolean" default="True" and="Enabled" 
 					get="isShowCityPendingHappinessAlert" set="setShowCityPendingHappinessAlert" 
 					label="Pending" 
 					help="When checked, displays an alert when a city will become happy or unhappy next turn."/>

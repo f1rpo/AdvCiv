@@ -214,12 +214,13 @@ public:
 	DllExport int getNumTradeableBonuses(BonusTypes eBonus) const;																				// Exposed to Python
 	int getNumTradeBonusImports(PlayerTypes ePlayer) const;																								// Exposed to Python
 	bool hasBonus(BonusTypes eBonus) const;									// Exposed to Python
-	// advc.003: Said "IncludeCancelable" but it actually does the opposite
+	// advc.003: Said "IncludeCancelable", but actually does the opposite.
 	bool isTradingWithTeam(TeamTypes eTeam, bool bIncludeUncancelable) const;
 	bool canStopTradingWithTeam(TeamTypes eTeam, bool bContinueNotTrading = false) const;																										// Exposed to Python
-	void stopTradingWithTeam(TeamTypes eTeam
-		, bool diploPenalty = true // advc.130f
-		);																											// Exposed to Python
+	void stopTradingWithTeam(TeamTypes eTeam,																										// Exposed to Python
+			// <advc.130f>
+			bool diploPenalty = true);
+	bool isAnyDealTooRecentToCancel(TeamTypes eTeam) const; // </advc.130f>
 	void killAllDeals();																																						// Exposed to Python
 
 	void findNewCapital();																																					// Exposed to Python 

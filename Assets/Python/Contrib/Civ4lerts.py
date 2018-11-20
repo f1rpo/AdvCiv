@@ -356,7 +356,7 @@ class AbstractCityTestAlert(AbstractCityAlert):
 		elif (self._isShowPendingAlert(passes)):
 			# See if city will switch next turn
 			willPass = self._willPassTest(city)
-			if (passed != willPass):
+			if passed != willPass and willPass: # avdc.106d: 'and willPass' added
 				message, icon = self._getPendingAlertMessageIcon(city, willPass)
 		if (message):
 			addMessageAtCity(iPlayer, message, icon, city)
@@ -412,11 +412,13 @@ class CityPendingGrowth(AbstractCityAlert):
 	def checkCity(self, cityId, city, iPlayer, player):
 		if (Civ4lertsOpt.isShowCityPendingGrowthAlert()):
 			if (CityUtil.willGrowThisTurn(city)):
-				message = localText.getText(
-						"TXT_KEY_CIV4LERTS_ON_CITY_PENDING_GROWTH",
-						(city.getName(), city.getPopulation() + 1))
-				icon = "Art/Interface/Symbols/Food/food05.dds"
-				addMessageAtCity(iPlayer, message, icon, city)
+				#message = localText.getText(
+				#		"TXT_KEY_CIV4LERTS_ON_CITY_PENDING_GROWTH",
+				#		(city.getName(), city.getPopulation() + 1))
+				#icon = "Art/Interface/Symbols/Food/food05.dds"
+				#addMessageAtCity(iPlayer, message, icon, city)
+				# advc.106d: Don't show pending growth
+				pass
 			elif (CityUtil.willShrinkThisTurn(city)):
 				message = localText.getText(
 						"TXT_KEY_CIV4LERTS_ON_CITY_PENDING_SHRINKAGE",

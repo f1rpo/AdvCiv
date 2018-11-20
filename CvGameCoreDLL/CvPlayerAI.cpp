@@ -11007,7 +11007,9 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 			{
 				FAssert(kVoteData.ePlayer != NO_PLAYER);
 				TeamTypes eEmbargoTeam = GET_PLAYER(kVoteData.ePlayer).getTeam();
-
+				// <advc.130f> Try to honor commitments
+				if(isAnyDealTooRecentToCancel(eEmbargoTeam))
+					return PLAYER_VOTE_NO; // </advc.130f>
 				if (eSecretaryGeneral == getTeam() && !bPropose)
 				{
 					bValid = true;
@@ -11258,6 +11260,9 @@ int CvPlayerAI::AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pLis
 
 	// advc.104o: Can't be hired for more than one war at a time
 	int iWars = 0;
+	// <advc.036>
+	int iHealthBonuses = 0;
+	int iHappyBonuses = 0; // </advc.036>
 	for (pNode = pList->head(); pNode; pNode = pList->next(pNode))
 	{
 		FAssertMsg(!(pNode->m_data.m_bHidden), "(pNode->m_data.m_bHidden) did not return false as expected");
@@ -11275,9 +11280,21 @@ int CvPlayerAI::AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pLis
 			iValue += GET_TEAM(getTeam()).AI_techTradeVal((TechTypes)(pNode->m_data.m_iData), GET_PLAYER(ePlayer).getTeam()
 					, ignoreDiscount); // advc.550a
 			break;
-		case TRADE_RESOURCES:
-			iValue += AI_bonusTradeVal(((BonusTypes)(pNode->m_data.m_iData)), ePlayer, iChange);
+		case TRADE_RESOURCES: {
+			// <advc.036>
+			BonusTypes eBonus = (BonusTypes)pNode->m_data.m_iData;
+			CvBonusInfo const& bi = GC.getBonusInfo(eBonus);
+			if(bi.getHappiness() > 0)
+				iHappyBonuses += iChange;
+			if(bi.getHealth() > 0)
+				iHealthBonuses += iChange; // </advc.036>
+			iValue += AI_bonusTradeValBulk(eBonus, ePlayer, iChange,
+					// <advc.036>
+					(std::abs(iHappyBonuses) > 1 && bi.getHappiness() > 0) ||
+					(std::abs(iHealthBonuses) > 1 && bi.getHealth() > 0));
+					// <advc.036>
 			break;
+		}
 		case TRADE_CITIES:
 			pCity = GET_PLAYER(ePlayer).getCity(pNode->m_data.m_iData);
 			if (pCity != NULL)
@@ -11314,7 +11331,7 @@ int CvPlayerAI::AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pLis
 			if(getWPAI.isEnabled()) {
 				iWars++;
 				if(iWars > 1)
-					iValue += 100000; // More than they can pay
+					iValue += 1000000; // More than they can pay
 			} // </advc.104o>
 			iValue += GET_TEAM(getTeam()).AI_declareWarTradeVal(((TeamTypes)(pNode->m_data.m_iData)), GET_PLAYER(ePlayer).getTeam());
 			break;
@@ -12169,7 +12186,10 @@ bool CvPlayerAI::balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInvent
 					// Don't ask for the last of a resource, or corporation resources; because we're not going to evaluate losses.
 					// <advc.036> AI_bonusTradeVal evaluates losses now; moved up:
 					BonusTypes eBonus = (BonusTypes)data.m_iData;
-					iItemValue = AI_bonusTradeVal(eBonus, ePlayer, 1);
+					CvBonusInfo& bi = GC.getBonusInfo(eBonus);
+					iItemValue = AI_bonusTradeValBulk(eBonus, ePlayer, 1,
+							(bi.getHealth() > 0 && healthLeft == 1) ||
+							(bi.getHappiness() > 0 && happyLeft == 1));
 					/*  Bias AI-AI trades against resources that are of low value
 						to the recipient; should rather try to trade these to
 						someone else. */
@@ -12196,7 +12216,6 @@ bool CvPlayerAI::balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInvent
 								through trial and error. */
 							|| (!isHuman() && !kPlayer.isHuman()))
 						bNonsurplus = false;
-					CvBonusInfo& bi = GC.getBonusInfo(eBonus);
 					/*  Don't worry about happyLeft and healthLeft when there's
 						just 1 item on the table */
 					if(iOtherListLength > 1 || pList->getLength() > 1) {
@@ -13461,9 +13480,15 @@ int CvPlayerAI::AI_corporationBonusVal(BonusTypes eBonus) const
 	return iValue;
 }
 
-// <advc.036> Rewritten
-int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer,
-		int iChange) const {
+int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer, int iChange) const {
+
+	// <advc.036>
+	return AI_bonusTradeValBulk(eBonus, ePlayer, iChange, false);
+}
+
+// Rewritten
+int CvPlayerAI::AI_bonusTradeValBulk(BonusTypes eBonus, PlayerTypes ePlayer, int iChange,
+		bool bExtraHappyOrHealth) const {
 
 	PROFILE_FUNC();
 	FAssert(ePlayer != getID());
@@ -13500,6 +13525,15 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer,
 	double ourVal = bUseOurBonusVal ? AI_bonusVal(eBonus, iChange, false, true) :
 			// Use ePlayer's value as a substitute
 			kPlayer.AI_bonusVal(eBonus, 0, false, true);
+	if(!isHuman() && kPlayer.isHuman()) {
+		/*  For now, only address the case of a human civ receiving two health
+			resources or two happiness resources from an AI civ (and cancelation
+			of such a deal). More than 2 is ruled out by the caller. */
+		if(bExtraHappyOrHealth && iChange > 0)
+			ourVal *= 0.75;
+		if(bExtraHappyOrHealth && iChange < 0)
+			ourVal /= 0.75;
+	}
 	ourVal *= getNumCities(); // bonusVal is per city
 	/*  Don't pay fully b/c trade doesn't give us permanent access to the
 		resource, and b/c it tends to be (and should be) a buyer's market. */
@@ -14126,7 +14160,8 @@ DenialTypes CvPlayerAI::AI_stopTradingTrade(TeamTypes eTradeTeam,
 	CvCity* pPlayerCapital = GET_PLAYER(ePlayer).getCapitalCity();
 	if(pOurCapital != NULL && pTargetCapital != NULL && pPlayerCapital != NULL &&
 			kOurTeam.isOpenBorders(eTradeTeam) &&
-			kOurTeam.getPower(true) *
+			!GET_TEAM(eTradeTeam).isAVassal() &&
+			GET_TEAM(kOurTeam.getMasterTeam()).getPower(true) *
 			(::stepDistance(pOurCapital->plot(), pTargetCapital->plot()) <
 			::stepDistance(pPlayerCapital->plot(), pTargetCapital->plot()) ?
 			130 : 200) < 100 * GET_TEAM(eTradeTeam).getPower(true) &&
@@ -14153,12 +14188,36 @@ DenialTypes CvPlayerAI::AI_stopTradingTrade(TeamTypes eTradeTeam,
 			return DENIAL_ATTITUDE;
 		int iThreshThem = lh.getStopTradingThemRefuseAttitudeThreshold();
 		// <advc.130f>
-		if(iDelta >= 1 && iThreshThem < ATTITUDE_CAUTIOUS)
+		if(iDelta <= -1 && iThreshThem < ATTITUDE_CAUTIOUS)
 			iThreshThem++; // </advc.130f>
 		if(eAttitudeThem > iThreshThem)
 			return DENIAL_ATTITUDE_THEM;
-	}
-	
+	} // <advc.130f> Avoid canceling reparations
+	if(GET_TEAM(getTeam()).isForcePeace(eTradeTeam)) { // Check this first for performance
+		CvGame& g = GC.getGameINLINE(); int foo=-1;
+		for(CvDeal* d = g.firstDeal(&foo); d != NULL; d = g.nextDeal(&foo)) {
+			if(!d->isBetween(getTeam(), eTradeTeam))
+				continue;
+			CLinkList<TradeData> const* lists[2] = {
+				d->getFirstTrades(), d->getSecondTrades() };
+			for(int i = 0; i < 2; i++) {
+				if(lists[i] == NULL)
+					continue;
+				bool bPeaceTreaty = false;
+				bool bAnnualPayment = false;
+				CLLNode<TradeData>* node;
+				for(node = lists[i]->head(); node != NULL; node = lists[i]->next(node)) {
+					TradeableItems eItem = node->m_data.m_eItemType;
+					if(eItem == TRADE_PEACE_TREATY)
+						bPeaceTreaty = true;
+					if(eItem == TRADE_RESOURCES || eItem == TRADE_GOLD_PER_TURN)
+						bAnnualPayment = true;
+				}
+				if(bPeaceTreaty && bAnnualPayment)
+					return DENIAL_RECENT_CANCEL;
+			}
+		}
+	} // </advc.130f>
 	return NO_DENIAL;
 }
 

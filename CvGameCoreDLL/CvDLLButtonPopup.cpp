@@ -1795,6 +1795,7 @@ bool CvDLLButtonPopup::launchDeclareWarMovePopup(CvPopup* pPopup, CvPopupInfo &i
 			disapproving.push_back(aiCiv.getID());
 	}
 	if(!disapproving.empty()) {
+		szBuffer += NEWLINE;
 		szBuffer += NEWLINE + gDLL->getText("TXT_KEY_POPUP_DOW_PENALTIES") + NEWLINE;
 		for(size_t i = 0; i < disapproving.size(); i++) {
 			szBuffer += GET_PLAYER(disapproving[i]).getName();

@@ -4502,7 +4502,7 @@ int CvCity::getCulturePercentAnger() const
 {
 	// advc.003: Removed C-style declarations
 
-	int iTotalCulture = plot()->countTotalCulture();
+	int iTotalCulture = plot()->getTotalCulture(); // advc.003b: was countTotalCulture
 
 	if (iTotalCulture == 0)
 	{

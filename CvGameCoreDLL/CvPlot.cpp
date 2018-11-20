@@ -246,6 +246,7 @@ void CvPlot::reset(int iX, int iY, bool bConstructorCall)
 /************************************************************************************************/
 	turnsBuildsInterrupted = -2; // advc.011: Meaning none in progress
 	mostRecentCityName = ""; // advc.005c
+	int m_iTotalCulture = 0; // advc.003b
 }
 
 
@@ -783,35 +784,42 @@ void CvPlot::updateCenterUnit()
 
 	setCenterUnit(getSelectedUnit());
 
+	/*if (getCenterUnit() == NULL)
+	{
+		setCenterUnit(getBestDefender(GC.getGameINLINE().getActivePlayer(), NO_PLAYER,
+				NULL, false, false, true));
+	}*/
+	PlayerTypes eActivePlayer = GC.getGameINLINE().getActivePlayer(); // advc.003
 	if (getCenterUnit() == NULL)
 	{
-		setCenterUnit(getBestDefender(GC.getGameINLINE().getActivePlayer(), NO_PLAYER, NULL, false, false, true));
+		setCenterUnit(getBestDefender(eActivePlayer));
 	}
-
-	if (getCenterUnit() == NULL)
-	{
-		setCenterUnit(getBestDefender(GC.getGameINLINE().getActivePlayer()));
-	}
-
-	/* if (getCenterUnit() == NULL)
-	{
-		setCenterUnit(getBestDefender(NO_PLAYER, GC.getGameINLINE().getActivePlayer(), gDLL->getInterfaceIFace()->getHeadSelectedUnit(), true));
-	} */ // disabled by K-Mod. I don't think its relevent whether or not the best defender can move.
 
 	if (getCenterUnit() == NULL)
 	{	// <advc.028>
-		CvUnit* bestDef = getBestDefender(NO_PLAYER, GC.getGameINLINE().getActivePlayer(), gDLL->getInterfaceIFace()->getHeadSelectedUnit());
-		if(bestDef != NULL && !bestDef->isInvisible(GC.getGameINLINE().getActiveTeam(), true))
-			setCenterUnit(bestDef);
+		CvUnit* pBestDef = getBestDefender(NO_PLAYER, eActivePlayer,
+				gDLL->getInterfaceIFace()->getHeadSelectedUnit(), true);
+		if(pBestDef != NULL && !pBestDef->isInvisible(TEAMID(eActivePlayer), true))
+			setCenterUnit(pBestDef); // </advc.028>
+	} // disabled by K-Mod. I don't think it's relevant whether or not the best defender can move.
+	/*  advc.001: Enabled again, instead disabled the one with bTestCanMove=true --
+		I think that's the one karadoc had meant to disable. */
+
+	if (getCenterUnit() == NULL)
+	{	// <advc.028>
+		CvUnit* pBestDef = getBestDefender(NO_PLAYER, eActivePlayer,
+				gDLL->getInterfaceIFace()->getHeadSelectedUnit());
+		if(pBestDef != NULL && !pBestDef->isInvisible(TEAMID(eActivePlayer), true))
+			setCenterUnit(pBestDef);
 		//setCenterUnit(getBestDefender(NO_PLAYER, GC.getGameINLINE().getActivePlayer(), gDLL->getInterfaceIFace()->getHeadSelectedUnit()));
 		// (Replaced by the above) // </advc.028>
 	}
 
 	if (getCenterUnit() == NULL)
 	{	// <advc.028>
-		CvUnit* bestDef = getBestDefender(NO_PLAYER, GC.getGameINLINE().getActivePlayer());
-		if(bestDef != NULL && !bestDef->isInvisible(GC.getGameINLINE().getActiveTeam(), true))
-			setCenterUnit(bestDef);
+		CvUnit* pBestDef = getBestDefender(NO_PLAYER, eActivePlayer);
+		if(pBestDef != NULL && !pBestDef->isInvisible(TEAMID(eActivePlayer), true))
+			setCenterUnit(pBestDef);
 		//setCenterUnit(getBestDefender(NO_PLAYER, GC.getGameINLINE().getActivePlayer()));
 		// (Replaced by the above) // </advc.028>
 	}
@@ -5431,7 +5439,7 @@ bool CvPlot::isContestedByRival(PlayerTypes rivalId) const {
 	else if(GC.getCITY_RADIUS_DECAY() > 0) {
 		if(firstOwner == rivalId) // No longer contested; they own it.
 			return false;
-		int totalCulture = countTotalCulture();
+		int totalCulture = getTotalCulture();
 		double exclWeight = GET_PLAYER(firstOwner).exclusiveRadiusWeight();
 		int ourCulture = getCulture(firstOwner);
 		// Just for efficiency
@@ -6950,23 +6958,25 @@ int CvPlot::getCulture(PlayerTypes eIndex) const
 
 int CvPlot::countTotalCulture() const
 {
-	int iTotalCulture;
-	int iI;
+	int iTotal = 0;
 
-	iTotalCulture = 0;
-
-	for (iI = 0; iI < MAX_PLAYERS; ++iI)
+	for (int iI = 0; iI < MAX_PLAYERS; ++iI)
 	{
 		// advc.099: Replaced "Alive" with "EverAlive"
 		if (GET_PLAYER((PlayerTypes)iI).isEverAlive())
 		{
-			iTotalCulture += getCulture((PlayerTypes)iI);
+			iTotal += getCulture((PlayerTypes)iI);
 		}
 	}
 
-	return iTotalCulture;
+	return iTotal;
 }
 
+// <advc.003b>
+int CvPlot::getTotalCulture() const {
+
+	return m_iTotalCulture;
+} // </advc.003b>
 
 TeamTypes CvPlot::findHighestCultureTeam() const
 {
@@ -7010,9 +7020,7 @@ PlayerTypes CvPlot::findHighestCulturePlayer(
 
 int CvPlot::calculateCulturePercent(PlayerTypes eIndex) const
 {
-	int iTotalCulture;
-
-	iTotalCulture = countTotalCulture();
+	int iTotalCulture = getTotalCulture(); // advc.003b: was countTotalCulture
 
 	if (iTotalCulture > 0)
 	{
@@ -7046,42 +7054,35 @@ int CvPlot::calculateTeamCulturePercent(TeamTypes eIndex) const
 	return iTeamCulturePercent;
 }
 
-
+// advc.003: Refactored
 void CvPlot::setCulture(PlayerTypes eIndex, int iNewValue, bool bUpdate, bool bUpdatePlotGroups)
 {
 	PROFILE_FUNC();
 
-	CvCity* pCity;
+	FAssert(eIndex >= 0);
+	FAssert(eIndex < MAX_PLAYERS);
 
-	FAssertMsg(eIndex >= 0, "iIndex is expected to be non-negative (invalid Index)");
-	FAssertMsg(eIndex < MAX_PLAYERS, "iIndex is expected to be within maximum bounds (invalid Index)");
-
-	if (getCulture(eIndex) != iNewValue)
+	if(getCulture(eIndex) == iNewValue)
+		return;
+	
+	if(m_aiCulture == NULL)
 	{
-		if(NULL == m_aiCulture)
-		{
-			m_aiCulture = new int[MAX_PLAYERS];
-			for (int iI = 0; iI < MAX_PLAYERS; ++iI)
-			{
-				m_aiCulture[iI] = 0;
-			}
-		}
+		m_aiCulture = new int[MAX_PLAYERS];
+		for(int iI = 0; iI < MAX_PLAYERS; ++iI)
+			m_aiCulture[iI] = 0;
+		m_iTotalCulture = 0; // advc.003b
+	} // <advc.003b>
+	if(GET_PLAYER(eIndex).isEverAlive())
+		m_iTotalCulture += iNewValue - m_aiCulture[eIndex]; // </advc.003b>
+	m_aiCulture[eIndex] = iNewValue;
+	FAssert(getCulture(eIndex) >= 0);
 
-		m_aiCulture[eIndex] = iNewValue;
-		FAssert(getCulture(eIndex) >= 0);
+	if(bUpdate)
+		updateCulture(true, bUpdatePlotGroups);
 
-		if (bUpdate)
-		{
-			updateCulture(true, bUpdatePlotGroups);
-		}
-
-		pCity = getPlotCity();
-
-		if (pCity != NULL)
-		{
-			pCity->AI_setAssignWorkDirty(true);
-		}
-	}
+	CvCity* pCity = getPlotCity();
+	if(pCity != NULL)
+		pCity->AI_setAssignWorkDirty(true);
 }
 
 
@@ -9174,45 +9175,60 @@ void CvPlot::doCulture() {
 void CvPlot::doCultureDecay() {
 
 	PROFILE_FUNC();
-	int const exclDecay = GC.getCITY_RADIUS_DECAY();
-	int const baseDecayPerMill = GC.getTILE_CULTURE_DECAY_PER_MILL();
-	bool inRadius[MAX_CIV_PLAYERS] = {false};
-	bool inAnyRadius = false;
-	int maxRadiusCulture = 0;
-	int minDist = 10;
-	if(exclDecay != 0 && isOwned() && !isCity() &&
-			!isBeingWorked()) { // advc.003b: Just for performance
-		for(int i = 0; i < NUM_CITY_PLOTS; i++) {
-			CvPlot* pp = ::plotCity(getX_INLINE(), getY_INLINE(), i);
-			if(pp == NULL) continue; CvPlot& p = *pp;
-			if(!p.isCity())
-				continue;
-			PlayerTypes const cityOwnerId = p.getOwnerINLINE();
-			if(cityOwnerId != NO_PLAYER && cityOwnerId != BARBARIAN_PLAYER) {
-				minDist = std::min(minDist, ::plotDistance(&p, this));
-				maxRadiusCulture = std::max(maxRadiusCulture,
-						getCulture(cityOwnerId));
-				inRadius[cityOwnerId] = true;
-				inAnyRadius = true;
+	if(getTotalCulture() <= 0)
+		return;
+	int const iExclDecay = GC.getCITY_RADIUS_DECAY();
+	int const iBaseDecayPerMill = GC.getTILE_CULTURE_DECAY_PER_MILL();
+	bool abInRadius[MAX_CIV_PLAYERS] = {false};
+	bool bInAnyRadius = false;
+	int iMaxRadiusCulture = 0;
+	int iMinDist = 10;
+	/*  To avoid ownership oscillation and to avoid making players worried that a
+		tile might flip */
+	int const iCulturePercentThresh = 55;
+	if(iExclDecay != 0 && isOwned() && !isCity()) {
+		CvCity* pWorkingCity = getWorkingCity();
+		if(pWorkingCity == NULL || calculateCulturePercent(
+				// Check this only for performance reasons
+				pWorkingCity->getOwnerINLINE()) < iCulturePercentThresh) {
+			for(int i = 0; i < NUM_CITY_PLOTS; i++) {
+				CvPlot* pp = ::plotCity(getX_INLINE(), getY_INLINE(), i);
+				if(pp == NULL) continue; CvPlot& p = *pp;
+				if(!p.isCity())
+					continue;
+				PlayerTypes const eCityOwnerId = p.getOwnerINLINE();
+				if(eCityOwnerId != NO_PLAYER && eCityOwnerId != BARBARIAN_PLAYER) {
+					iMinDist = std::min(iMinDist, ::plotDistance(&p, this));
+					iMaxRadiusCulture = std::max(iMaxRadiusCulture,
+							getCulture(eCityOwnerId));
+					abInRadius[eCityOwnerId] = true;
+					bInAnyRadius = true;
+				}
 			}
 		}
 	}
 	for(int i = 0; i < MAX_PLAYERS; i++) {
 		PlayerTypes civId = (PlayerTypes)i;
-		int culture = getCulture(civId);
-		if(culture <= 0)
+		int iCulture = getCulture(civId);
+		if(iCulture <= 0)
 			continue;
-		int decayPerMill = baseDecayPerMill;
-		if(inAnyRadius && !inRadius[i] &&
-				// Times 0.95 to avoid ownership oscillation
-				culture > 0.95 * maxRadiusCulture) {
-			if(minDist <= 2)
-				decayPerMill += exclDecay;
-			if(minDist <= 1)
-				decayPerMill += exclDecay;
+		int iDecayPerMill = iBaseDecayPerMill;
+		if(bInAnyRadius && !abInRadius[i] && iCulture >
+				((100.0 - iCulturePercentThresh) /
+				iCulturePercentThresh) * iMaxRadiusCulture) {
+			double exclDecay = 0;
+			if(iMinDist <= 2)
+				exclDecay += iExclDecay;
+			if(iMinDist <= 1)
+				exclDecay += iExclDecay;
+			if(iCulture < iMaxRadiusCulture) {
+				// Gradually throttle decay when approaching the threshold
+				exclDecay *= iCulture / (double)iMaxRadiusCulture;
+			}
+			iDecayPerMill += ::round(exclDecay);
 		}
-		culture -= (culture * decayPerMill) / 1000;
-		setCulture(civId, culture, false, false);
+		iCulture -= (iCulture * iDecayPerMill) / 1000;
+		setCulture(civId, iCulture, false, false);
 	}
 } // </advc.099b>
 
@@ -9606,7 +9622,16 @@ void CvPlot::read(FDataStreamBase* pStream)
 	}
 	pStream->Read(&turnsBuildsInterrupted); // advc.011
 	pStream->ReadString(mostRecentCityName); // advc.005c
-
+	// <advc.003b>
+	if(uiFlag >= 2)
+		pStream->Read(&m_iTotalCulture);
+	else if(m_aiCulture != NULL) {//m_iTotalCulture = countTotalCulture();
+		/*  countTotalCulture checks CvPlayer::isEverAlive, but CvPlayer objects
+			aren't loaded yet. I'm pretty sure though that the isEverAlive check
+			can't make a difference in this case. */
+		for(int i = 0; i < MAX_PLAYERS; i++)
+			m_iTotalCulture += m_aiCulture[i];
+	} // </advc.003b>
 	if (NULL != m_apaiCultureRangeCities)
 	{
 		for (int iI = 0; iI < MAX_PLAYERS; ++iI)
@@ -9674,6 +9699,7 @@ void CvPlot::write(FDataStreamBase* pStream)
 
 	uint uiFlag=0;
 	uiFlag = 1; // advc.035
+	uiFlag = 2; // advc.003b
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iX);
@@ -9854,6 +9880,7 @@ void CvPlot::write(FDataStreamBase* pStream)
 	}
 	pStream->Write(turnsBuildsInterrupted); // advc.011
 	pStream->WriteString(mostRecentCityName); // advc.005c
+	pStream->Write(m_iTotalCulture); // advc.003b
 
 	if (NULL == m_apaiCultureRangeCities)
 	{
@@ -10712,7 +10739,7 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 
 int CvPlot::countFriendlyCulture(TeamTypes eTeam) const
 {
-	int iTotalCulture = 0;
+	int iTotal = 0;
 
 	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
 	{
@@ -10723,12 +10750,12 @@ int CvPlot::countFriendlyCulture(TeamTypes eTeam) const
 			CvTeam& kLoopTeam = GET_TEAM(kLoopPlayer.getTeam());
 			if (kLoopPlayer.getTeam() == eTeam || kLoopTeam.isVassal(eTeam) || kLoopTeam.isOpenBorders(eTeam))
 			{
-				iTotalCulture += getCulture((PlayerTypes)iPlayer);
+				iTotal += getCulture((PlayerTypes)iPlayer);
 			}
 		}
 	}
 
-	return iTotalCulture;
+	return iTotal;
 }
 
 int CvPlot::countNumAirUnits(TeamTypes eTeam) const

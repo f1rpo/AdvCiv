@@ -15,9 +15,11 @@
 		<Italian>Abilita Avvisi</Italian>
 		<Spanish>Activar Civ4lerts</Spanish>
 	</TEXT>
+	<!-- advc.106d: Credits to Dr. Elmer Jiggle removed; have the BUG help file
+		 for that. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__ENABLED_HOVER</Tag>
-		<English>When checked, messages are displayed to alert you to various pending and existing conditions using Dr. Elmer Jiggle's Civ4lerts mod.</English>
+		<English>When checked, messages are displayed to alert you to various pending and existing conditions.</English>
 		<French>En activant, des messages apparaissent pour vous informer de l'état de plusieurs éléments du jeu, grâce au mod Civ4lerts de Dr. Elmer Jiggle.</French>
 		<German>Lässt Warnungen erscheinen, die bevorstehende oder bereits eingetretene Ereignisse melden (verwendet Dr. Elmer Jiggles "Civ4lerts"-Mod)</German>
 		<Italian>Quando è selezionato, vengono visualizzati dei messaggi per avvertirti di varie condizioni presenti o imminenti (utilizzando il Civ4lerts Mod di Dr. Elmer Jiggle's).</Italian>
@@ -34,13 +36,14 @@
 		<Italian>Imminente</Italian>
 		<Spanish>Pendiente</Spanish>
 	</TEXT>
+	<!-- advc.106d: No longer triggers on growth -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__CITYPENDINGGROWTH_HOVER</Tag>
-		<English>When checked, displays an alert when a city's population will grow or shrink next turn.</English>
-		<French>En activant, une alerte sera montrée quand la population d'une ville grandira ou retrécira au prochain tour.</French>
-		<German>Lässt eine Warnung erscheinen, wenn die Bevölkerung einer Stadt in der nächsten Runde wächst oder schrumpft</German>
-		<Italian>Quando è selezionato, viene visualizzato un avviso quando la popolazione di una città crescerà o si ridurrà al turno successivo.</Italian>
-		<Spanish>Muestra un aviso cuando la población de una ciudad vaya a crecer o a reducirse en el próximo turno.</Spanish>
+		<English>When checked, displays an alert when a city's population will shrink next turn.</English>
+		<French>En activant, une alerte sera montrée quand la population d'une ville retrécira au prochain tour.</French>
+		<German>Lässt eine Warnung erscheinen, wenn die Bevölkerung einer Stadt in der nächsten Runde schrumpft</German>
+		<Italian>Quando è selezionato, viene visualizzato un avviso quando la popolazione di una città si ridurrà al turno successivo.</Italian>
+		<Spanish>Muestra un aviso cuando la población de una ciudad vaya a reducirse en el próximo turno.</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__CITYGROWTH_TEXT</Tag>
@@ -67,13 +70,15 @@
 		<Italian>Imminente</Italian>
 		<Spanish>Pendiente</Spanish>
 	</TEXT>
+	<!-- advc.106d: No longer triggers on will-become-happy. And German text
+		 was misleading and too long. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__CITYPENDINGHAPPINESS_HOVER</Tag>
-		<English>When checked, displays an alert when a city will become happy or unhappy next turn.</English>
-		<French>En activant, une alerte sera montrée quand une ville deviendra heureuse ou malheureuse au prochain tour.</French>
-		<German>Lässt eine Warnung erscheinen, wenn sich die Zufriedenheit der Bevölkerung einer Stadt in der nächsten Runde verbessert oder verschlechtert</German>
-		<Italian>Quando è selezionato,viene visualizzato un avviso quando la popolazione di una città diverrà felice o infelice al turno successivo.</Italian>
-		<Spanish>Muestra un aviso cuando la felicidad de una ciudad vaya a cambiar en el próximo turno.</Spanish>
+		<English>When checked, displays an alert when a city will become unhappy next turn.</English>
+		<French>En activant, une alerte sera montrée quand une ville deviendra malheureuse au prochain tour.</French>
+		<German>Meldet, wenn die Bevölkerung einer Stadt in der nächsten Runde unzufrieden werden wird.</German>
+		<Italian>Quando è selezionato, viene visualizzato un avviso quando la popolazione di una città diverrà infelice al turno successivo.</Italian>
+		<Spanish>Muestra un aviso cuando una ciudad se vuelve infeliz en el próximo turno.</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__CITYHAPPINESS_TEXT</Tag>
@@ -100,13 +105,15 @@
 		<Italian>Imminente</Italian>
 		<Spanish>Pendiente</Spanish>
 	</TEXT>
+	<!-- advc.106d: No longer triggers on will-become-healthy. And German text
+		 was misleading and too long. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__CITYPENDINGHEALTHINESS_HOVER</Tag>
-		<English>When checked, displays an alert when a city will become healthy or unhealthy next turn.</English>
-		<French>En activant, une alerte sera montrée quand une ville deviendra saine ou malsaine au prochain tour.</French>
-		<German>Lässt eine Warnung erscheinen, wenn sich die Gesundheit der Bevölkerung einer Stadt in der nächsten Runde verbessert oder verschlechtert</German>
-		<Italian>Quando è selezionato, viene visualizzato un avviso quando una città diverrà salubre o insalubre al turno successivo.</Italian>
-		<Spanish>Muestra un aviso cuando la salud de una ciudad vaya a cambiar en el próximo turno.</Spanish>
+		<English>When checked, displays an alert when a city will become unhealthy next turn.</English>
+		<French>En activant, une alerte sera montrée quand une ville deviendra malsaine au prochain tour.</French>
+		<German>Meldet, wenn die Bevölkerung einer Stadt in der nächsten Runde krank werden wird.</German>
+		<Italian>Quando è selezionato, viene visualizzato un avviso quando una città diverrà insalubre al turno successivo.</Italian>
+		<Spanish>Muestra un aviso cuando una ciudad se vuelve insalubre en el próximo turno.</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__CITYHEALTHINESS_TEXT</Tag>

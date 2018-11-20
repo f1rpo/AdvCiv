@@ -1431,8 +1431,12 @@ void CvUnit::updateCombat(bool bQuick)
 	bool bVisible = false;
 
 	if (getCombatTimer() > 0)
-	{
-		FAssert(getCombatUnit() && getCombatUnit()->getAttackPlot() == NULL); // K-Mod
+	{	/*  advc.006: Assertion
+			getCombatUnit() && ...
+			fails for air strikes when "Quick Combat (Offense)" is disabled,
+			but I don't think there's a problem. */
+		FAssert(getCombatUnit() == NULL ||
+				getCombatUnit()->getAttackPlot() == NULL); // K-Mod
 		changeCombatTimer(-1);
 
 		if (getCombatTimer() > 0)
@@ -2929,7 +2933,7 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 						/* original bts code
 						if (!bDeclareWar || (pPlot->isVisibleOtherUnit(getOwnerINLINE()) != bAttack && !(bAttack && pPlot->getPlotCity() && !isNoCapture()))) */
 						// K-Mod. I'm not entirely sure I understand what they were trying to do here. But I'm pretty sure it's wrong.
-						// I think the rule should be that bAttack means we have to actually fight an enemy unit. Capturing an undefended city doesn't not count.
+						// I think the rule should be that bAttack means we have to actually fight an enemy unit. Capturing an undefended city doesn't count.
 						// (there is no "isVisiblePotentialEnemyUnit" function, so I just wrote the code directly.)
 						if (!bAttack || !bDeclareWar || !pPlot->isVisiblePotentialEnemyUnit(getOwnerINLINE()))
 						// K-Mod end
@@ -13378,7 +13382,7 @@ bool CvUnit::rangeStrike(int iX, int iY)
 //! \retval     The number of game turns that the battle should be given.
 //------------------------------------------------------------------------------------------------
 
-// Rewriten for K-Mod!
+// Rewritten for K-Mod!
 int CvUnit::planBattle(CvBattleDefinition& kBattle, const std::vector<int>& combat_log_argument) const
 {
 	const int BATTLE_TURNS_SETUP = 4;
@@ -13414,9 +13418,22 @@ int CvUnit::planBattle(CvBattleDefinition& kBattle, const std::vector<int>& comb
 	// int iFirstStrikeRounds = kBattle.getFirstStrikes(BATTLE_UNIT_ATTACKER) + kBattle.getFirstStrikes(BATTLE_UNIT_DEFENDER);
 	bool bRanged = true;
 
-	const static int iStandardNumRounds = GC.getDefineINT("STANDARD_BATTLE_ANIMATION_ROUNDS", 6);
-
-	int iTotalBattleRounds = (iStandardNumRounds * (int)combat_log.size() * GC.getCOMBAT_DAMAGE() + GC.getMAX_HIT_POINTS()) / (2*GC.getMAX_HIT_POINTS());
+	static const int iStandardNumRounds = GC.getDefineINT("STANDARD_BATTLE_ANIMATION_ROUNDS", 6);
+	// <advc.002m>
+	static const int iPerEraNumRounds = GC.getDefineINT("PER_ERA_BATTLE_ANIMATION_ROUNDS");
+	CvGame const& g = GC.getGameINLINE();
+	bool bNetworkedMP = g.isNetworkMultiPlayer();
+	/*  I prefer using the player era, but karadoc's comment at the end of
+		this function suggests that this could cause OOS problems. */
+	int iEra = (bNetworkedMP ? g.getCurrentEra() :	
+			GET_PLAYER(g.getActivePlayer()).getCurrentEra());
+	int iBaseRounds = iStandardNumRounds + iPerEraNumRounds * iEra;
+	iBaseRounds = std::max(2, iBaseRounds);
+	if(!bNetworkedMP && gDLL->getGraphicOption(GRAPHICOPTION_SINGLE_UNIT_GRAPHICS))
+		iBaseRounds /= 2; 
+	int iTotalBattleRounds = (iBaseRounds * // </advc.002m>
+		   (int)combat_log.size() * GC.getCOMBAT_DAMAGE() + GC.getMAX_HIT_POINTS()) /
+		   (2*GC.getMAX_HIT_POINTS());
 
 	// Reduce number of rounds if both units have groupSize == 1, because nothing much happens in those battles.
 	if (pAttackUnit->getGroupSize() == 1 && pDefenceUnit->getGroupSize() == 1)
@@ -13522,7 +13539,21 @@ int CvUnit::planBattle(CvBattleDefinition& kBattle, const std::vector<int>& comb
 	//   gDLL->getEntityIFace()->GetSiegeTower(pAttackUnit->getUnitEntity()) || gDLL->getEntityIFace()->GetSiegeTower(pDefenceUnit->getUnitEntity())
 	// I've changed that to use showSiegeTower, because GetSiegeTower does not work for the Pitboss host, and therefore can cause OOS errors.
 
-	return BATTLE_TURNS_SETUP + BATTLE_TURNS_ENDING + kBattle.getNumMeleeRounds() * BATTLE_TURNS_MELEE + kBattle.getNumRangedRounds() * BATTLE_TURNS_MELEE + extraTime;
+	int r = BATTLE_TURNS_SETUP + BATTLE_TURNS_ENDING +
+			kBattle.getNumMeleeRounds() * BATTLE_TURNS_MELEE +
+			kBattle.getNumRangedRounds() * BATTLE_TURNS_MELEE +
+			extraTime;
+	// <advc.002m>
+	static int const iTruncate = GC.getDefineINT("TRUNCATE_ANIMATIONS");
+	static int const iTruncateEra = GC.getDefineINT("TRUNCATE_ANIMATIONS_ERA");
+	static int const iTruncateTurns = std::max(2, GC.getDefineINT("TRUNCATE_ANIMATION_TURNS"));
+	if(iTruncate <= 0 || iEra < iTruncateEra)
+		return r;
+	bool bHumanDefense = pDefenceUnit->isHuman();
+	if(iTruncate < 3 && (iTruncate == 1 != bHumanDefense))
+		return r;
+	return std::min(iTruncateTurns, r);
+	// </advc.002m>
 }
 
 //------------------------------------------------------------------------------------------------

@@ -5702,18 +5702,14 @@ bool CvPlayer::canStopTradingWithTeam(TeamTypes eTeam, bool bContinueNotTrading)
 	{
 		return false;
 	}*/
-	/*  <advc.130f> ContinueNotTrading is only set when checking if
-		a ForceNoTrade resolution is legal. Can propose it when having no
-		deals or when all deals can be canceled, but not when there is an
-		uncancelable deal. I'm handling this case upfront to make things
-		easier below. */
 	if(bContinueNotTrading) {
-		if(isTradingWithTeam(eTeam, false) || !isTradingWithTeam(eTeam, true))
-			return true;
-		return false;
-	} // The easy part:
+		// <advc.130f>
+		// Allow resolutions to overrule turns-to-cancel
+		return true;
+	}
 	return isTradingWithTeam(eTeam, true);
-	// BtS code commented out: // </advc.130f>
+	// BtS code: // </advc.130f>
+
 	/*if (!isTradingWithTeam(eTeam, false))
 	{
 		if (bContinueNotTrading && !isTradingWithTeam(eTeam, true))
@@ -5769,6 +5765,17 @@ void CvPlayer::stopTradingWithTeam(TeamTypes eTeam,
 	}
 }
 
+// <advc.130f>
+bool CvPlayer::isAnyDealTooRecentToCancel(TeamTypes eTeam) const {
+
+	CvGame& g = GC.getGameINLINE(); int foo=-1;
+	for(CvDeal* d = g.firstDeal(&foo); d != NULL; d = g.nextDeal(&foo)) {
+		if(d->isBetween(getTeam(), eTeam) && !d->isCancelable(getID()) &&
+				!d->isPeaceDeal() && !d->isDisengage()) // advc.034
+			return true;
+	}
+	return false;
+} // </advc.130f>
 
 void CvPlayer::killAllDeals()
 {
@@ -23009,7 +23016,7 @@ int CvPlayer::getVotes(VoteTypes eVote, VoteSourceTypes eVoteSource) const
 bool CvPlayer::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionSubData& kData) const
 {
 	CvTeam& kOurTeam = GET_TEAM(getTeam());
-
+	CvGame const& g = GC.getGameINLINE(); // advc.003
 	if (NO_PLAYER != kData.ePlayer)
 	{
 		if (!kOurTeam.isHasMet(GET_PLAYER(kData.ePlayer).getTeam()))
@@ -23116,7 +23123,7 @@ bool CvPlayer::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionS
 			}
 			if ((!GET_TEAM(eMaster).canDeclareWar(kPlayer.getTeam()) &&
 					// <dlph.25/advc>
-					GC.getGameINLINE().getSecretaryGeneral(eVoteSource) == eMaster) ||
+					g.getSecretaryGeneral(eVoteSource) == eMaster) ||
 					!GET_TEAM(eMaster).canEventuallyDeclareWar(kPlayer.getTeam()))
 					// </advc.25/advc>
 				return false;
@@ -23126,6 +23133,11 @@ bool CvPlayer::canDoResolution(VoteSourceTypes eVoteSource, const VoteSelectionS
 	{
 		FAssert(NO_PLAYER != kData.ePlayer);
 		CvPlayer& kPlayer = GET_PLAYER(kData.ePlayer);
+		/*  <advc.130f> Don't allow players to propose resolutions that would cancel
+			deals with turnsToCancel > 0 */
+		if(g.getSecretaryGeneral(eVoteSource) == getID() && 
+				isAnyDealTooRecentToCancel(kPlayer.getTeam()))
+			return false; // </advc.130f>
 		if (!canStopTradingWithTeam(kPlayer.getTeam(), true))
 		{
 			return false;
@@ -24777,7 +24789,7 @@ void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector
 	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 	{
 		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
-		int iTotalCulture = pLoopPlot->countTotalCulture();
+		int iTotalCulture = pLoopPlot->getTotalCulture(); // advc.003b: was countTotalCulture
 		if (iTotalCulture > iMaxTotalCulture)
 		{
 			iMaxTotalCulture = iTotalCulture;
@@ -24799,7 +24811,7 @@ void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector
 		std::vector < std::pair<int,int> > plot_owners;
 		//int iNumNonzeroOwners = 0;
 		// K-Mod
-		int iTotalCulture = pLoopPlot->countTotalCulture();
+		int iTotalCulture = pLoopPlot->getTotalCulture(); // advc.003b: was countTotalCulture
 		if (iTotalCulture == 0)
 			continue;
 		// K-Mod end

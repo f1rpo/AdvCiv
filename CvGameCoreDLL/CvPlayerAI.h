@@ -280,6 +280,9 @@ public:
 	int AI_baseBonusVal(BonusTypes eBonus,
 			bool bTrade = false) const; // advc.036
 	int AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer, int iChange) const;
+	// <advc.036> Not safe to add parameters to AI_bonusTradeVal
+	int AI_bonusTradeValBulk(BonusTypes eBonus, PlayerTypes ePlayer, int iChange,
+			bool bExtraHappyOrHealth) const; // <advc.036>
 	DenialTypes AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 			int iChange = 0) const; // advc.133
 	// advc.210e: Exposed to Python

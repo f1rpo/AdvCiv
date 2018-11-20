@@ -1173,13 +1173,20 @@ void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, i
 						while (pSelectedUnitNode != NULL)
 						{
 							pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-							/*  advc.001 Player apparently wants to attack the
-								enemy unit if there is one (rather than declare war
-								against a third party): */
-							if(!pPlot->isVisibleEnemyUnit(pSelectedUnit)) {
-								TeamTypes eRivalTeam = pSelectedUnit->getDeclareWarMove(pPlot);
-								if (eRivalTeam != NO_TEAM)
-								{
+							TeamTypes eRivalTeam = pSelectedUnit->getDeclareWarMove(pPlot);
+							if (eRivalTeam != NO_TEAM)
+							{/* <advc.001> If an enemy unit is stacked with a
+								neutral one, then the player apparently wants to
+								attack the enemy unit (rather than declare war on
+								the neutral party). However, if the enemy unit is on
+								a tile owned by a third party that the player
+								doesn't have OB or a vassal treaty with, then only
+								a DoW on the third party makes sense. */
+								if((pPlot->getTeam() != NO_TEAM &&
+										!GET_TEAM(pSelectedUnit->getTeam()).
+										isFriendlyTerritory(pPlot->getTeam())) ||
+										!pPlot->isVisibleEnemyUnit(pSelectedUnit))
+								{ // </advc.001>
 									CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_DECLAREWARMOVE);
 									if (NULL != pInfo)
 									{
