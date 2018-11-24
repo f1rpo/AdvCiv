@@ -6,13 +6,22 @@
 	Copyright (c) 2009 The BUG Mod.
 -->
 <Civ4GameText xmlns="http://www.firaxis.com">
-	<TEXT>
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_TECHWINDOW__VIEWTYPE_TEXT</Tag>
 		<English>View</English>
 		<French>View</French>
 		<German>Ansicht</German>
 		<Italian>Visualizzazione</Italian>
 		<Spanish>Vista</Spanish>
+	</TEXT-->
+	<!-- advc.060: Replacing the above b/c the heading no longer says "Tech" -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_TECHWINDOW__VIEWTYPE_TEXT</Tag>
+		<English>Tech</English>
+		<French>Tech</French>
+		<German>Tech</German>
+		<Italian>Tech</Italian>
+		<Spanish>Tech</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_TECHWINDOW__VIEWTYPE_HOVER</Tag>
@@ -45,5 +54,23 @@
 		<German>Zeigt den kompletten Eintrag einer erforschten oder erworbenen Technolgie aus der Civilopedia zusätzlich zu deren Zitat an</German>
 		<Italian>Quando è selezionato, include il testo della Civilopedia dopo la citazione per la tecnologia scoperta.</Italian>
 		<Spanish>Si se activa, se muestra el texto de Civilopedia después de la cita para la tecnología descubierta.</Spanish>
+	</TEXT>
+		<!-- advc.060 -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_TECHWINDOW__SHOWSSSCREEN_TEXT</Tag>
+		<English>Always Show Spaceship</English>
+		<French>Afficher vaisseau spatial</French>
+		<German>Raumschiff immer anzeigen</German>
+		<Italian>Mostra schermata astronave</Italian>
+		<Spanish>Mostrar nave espacial</Spanish>
+	</TEXT>
+	<!-- Romance languages through deepl.com -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_TECHWINDOW__SHOWSSSCREEN_HOVER</Tag>
+		<English>Shows the Spaceship screen after every completed part (as in BtS). If unchecked, the Spaceship screen is only shown when ready to launch.</English>
+		<French>Affiche l'écran du vaisseau spatial après chaque pièce terminée (comme dans BtS). Si cette case n'est pas cochée, l'écran du vaisseau spatial ne s'affiche que lorsqu'il est prêt au lancement.</French>
+		<German>Zeigt den Raumschiff-Bildschirm nach jedem fertiggstellten Teil (wie in BtS). Falls deaktiviert, wird der Raumschiff-Bildschirm nur dann angezeigt, wenn das Raumschiff startbereit ist.</German>
+		<Italian>Mostra la schermata astronave dopo ogni parte completata (come in BtS). Se non spuntata, la schermata astronave viene mostrata solo se pronta per il lancio.</Italian>
+		<Spanish>Muestra la pantalla de la nave espacial después de cada pieza terminada (como en BtS). Si no está seleccionada, la pantalla de la nave espacial sólo se muestra cuando lista para iniciarse.</Spanish>
 	</TEXT>
 </Civ4GameText>

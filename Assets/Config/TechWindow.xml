@@ -26,6 +26,9 @@
 			<option id="CivilopediaText" key="Civilopedia Text" 
 					type="boolean" default="False"
 					get="isShowCivilopediaText"/>
+			<!-- advc.060 -->
+			<option id="ShowSSScreen" key="Show SS Screen" 
+					type="boolean" default="False"/>
 		</section>
 	</options>
 </mod>

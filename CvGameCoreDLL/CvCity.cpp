@@ -19,6 +19,7 @@
 #include "CyArgsList.h"
 #include "FProfiler.h"
 #include "CvGameTextMgr.h"
+#include "CvBugOptions.h" // advc.060
 
 // interfaces used
 #include "CvDLLEngineIFaceBase.h"
@@ -13071,7 +13072,9 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 				else
 				{
 					//show the spaceship progress
-					if(isHuman())
+					if(isHuman() &&
+							// advc.060:
+							getBugOptionBOOL("TechWindow__ShowSSScreen", false, "TechWindow_SHOW_SS_SCREEN"))
 					{
 						if(!GC.getGameINLINE().isNetworkMultiPlayer())
 						{

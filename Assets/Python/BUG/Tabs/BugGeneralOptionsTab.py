@@ -70,6 +70,7 @@ class BugGeneralOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addLabel(screen, panel, "TechWindow", "Tech Splash Screen:")
 		self.addTextDropdown(screen, panel, panel, "TechWindow__ViewType", True)
 		self.addCheckbox(screen, panel, "TechWindow__CivilopediaText")
+		self.addCheckbox(screen, panel, "TechWindow__ShowSSScreen") # advc.060
 
 #	def createBuffyPanel(self, screen, panel):
 #		self.addLabel(screen, panel, "BUFFY", "BUFFY:")

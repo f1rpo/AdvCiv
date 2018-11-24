@@ -11758,7 +11758,9 @@ bool CvPlayerAI::AI_considerOfferBulk(PlayerTypes ePlayer,
 	// <advc.136b>
 	else {
 		if(iTheirValue < 2 * GC.getDIPLOMACY_VALUE_REMAINDER() &&
-				!bVassalTrade &&
+			/*  NB: bVassalTrade is currently only true if ePlayer offers to become
+				a vassal, not when this player considers becoming a vassal. (fixme?) */
+				!bVassalTrade && !kOurTeam.isAtWar(TEAMID(ePlayer)) &&
 				!AI_goldDeal(pTheirList) && (pTheirList->getLength() <= 0 ||
 				!CvDeal::isDual(pTheirList->head()->m_data.m_eItemType)))
 			return false;
@@ -12207,7 +12209,7 @@ bool CvPlayerAI::balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInvent
 					vbBonusDeal[data.m_iData] = true;
 					bNonsurplus = true;
 					if((kPlayer.getNumTradeableBonuses(eBonus) > 1 && 
-							kPlayer.AI_corporationBonusVal(eBonus) == 0)
+							kPlayer.AI_corporationBonusVal(eBonus, true) == 0)
 							/*  Prefer to give non-surplus resources
 								over gpt in AI-AI trades (i.e. no special
 								treatment of nonsurplus resources needed).
@@ -12892,26 +12894,27 @@ int CvPlayerAI::AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled,
 	int iValue = 0;
 	int iBonusCount = getNumAvailableBonuses(eBonus);
 	// <advc.036>
-	int tradeVal = 0;
+	int iTradeVal = 0;
 	// More valuable if we have few resources for trade
-	int surplus = 0;
+	int iSurplus = 0;
 	if(!bTrade) { /* Importing resources is not going to give us more resources
 					to trade with b/c we can't wheel and deal */
 		for(int i = 0; i < GC.getNumBonusInfos(); i++)
-			surplus += std::max(0, getNumTradeableBonuses((BonusTypes)i) - 1);
+			iSurplus += std::max(0, getNumTradeableBonuses((BonusTypes)i) - 1);
 	}
-	tradeVal = ::round(4 / std::sqrt((double)std::max(1, std::max(surplus,
+	iTradeVal = ::round(4 / std::sqrt((double)std::max(1, std::max(iSurplus,
 			2 * (iBonusCount + iChange))))); // </advc.036>
-	if ((iChange == 0) || ((iChange == 1) && (iBonusCount == 0)) || ((iChange == -1) && (iBonusCount == 1))
+	if (iChange == 0 || (iChange == 1 && iBonusCount == 0) || (iChange == -1 && iBonusCount == 1)
 			// advc.036: Cover all strange cases here
 			|| iChange + iBonusCount < 1)
 	{
 		//This is assuming the none-to-one or one-to-none case.
 		iValue += AI_baseBonusVal(eBonus,
 				bTrade); // advc.036
-		iValue += AI_corporationBonusVal(eBonus);
+		iValue += AI_corporationBonusVal(eBonus,
+				bTrade); // advc.036
 		if(!bTrade)
-			iValue = std::max(iValue, tradeVal); // advc.036
+			iValue = std::max(iValue, iTradeVal); // advc.036
 		// K-Mod.
 		if (!bAssumeEnabled)
 		{
@@ -12928,12 +12931,13 @@ int CvPlayerAI::AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled,
 	}
 	else
 	{
-		iValue += AI_corporationBonusVal(eBonus);
+		iValue += AI_corporationBonusVal(eBonus,
+				true); // advc.036
 		//This is basically the marginal value of an additional instance of a bonus.
 		//iValue += AI_baseBonusVal(eBonus) / 5;
 		/*  advc.036: The potential for trades isn't that marginal, and the
 			base value (for the first copy of a resource) is unhelpful. */
-		iValue = std::max(iValue, tradeVal);
+		iValue = std::max(iValue, iTradeVal);
 	}
 	return iValue;
 }
@@ -13430,7 +13434,8 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 	return iValue; // </advc.036>
 }
 
-int CvPlayerAI::AI_corporationBonusVal(BonusTypes eBonus) const
+int CvPlayerAI::AI_corporationBonusVal(BonusTypes eBonus,
+		bool bTrade) const // advc.036
 {
 	int iValue = 0;
 	int iCityCount = getNumCities();
@@ -13440,7 +13445,12 @@ int CvPlayerAI::AI_corporationBonusVal(BonusTypes eBonus) const
 	{
 		int iCorpCount = getHasCorporationCount((CorporationTypes)iCorporation);
 		if (iCorpCount > 0)
-		{
+		{	/*  <advc.036> Human could spread the corp rapidly. I also want to push
+				the price for humans a bit in order to stop the AI from offering 1-ofs
+				as soon as a player founds a corporation. */
+			if(bTrade && isHuman())
+				iCorpCount = std::min(getNumCities(), ::round(1 + (iCorpCount * 4/3.0)));
+			// </advc.036>
 			int iNumCorpBonuses = 0;
 			iCorpCount += getNumCities() / 6 + 1;
 			CvCorporationInfo& kCorp = GC.getCorporationInfo((CorporationTypes)iCorporation);
@@ -13460,7 +13470,7 @@ int CvPlayerAI::AI_corporationBonusVal(BonusTypes eBonus) const
 					iValue += (20 * kCorp.getCommerceProduced(COMMERCE_ESPIONAGE) * iCorpCount) / iCityCount;
 					
 					//Disabled since you can't found/spread a corp unless there is already a bonus,
-					//and that bonus will provide the entirity of the bonusProduced benefit.
+					//and that bonus will provide the entirety of the bonusProduced benefit.
 
 					/*if (NO_BONUS != kCorp.getBonusProduced())
 					{
@@ -13474,10 +13484,11 @@ int CvPlayerAI::AI_corporationBonusVal(BonusTypes eBonus) const
 		}
 	}
 
-	iValue /= 100;	//percent
+	/*iValue /= 100;	//percent
 	iValue /= 10;	//match AI_baseBonusVal
-
-	return iValue;
+	return iValue;*/
+	// advc.036: To increase accuracy
+	return ::round(iValue / 1000.0);
 }
 
 int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer, int iChange) const {
@@ -13602,7 +13613,7 @@ int CvPlayerAI::AI_bonusTradeValBulk(BonusTypes eBonus, PlayerTypes ePlayer, int
 		resources instead for a slightly higher price. */
 	if(!kPlayer.isHuman() && (iAvail - iChange == 0 ||
 			iAvail == 0 || // when considering cancelation
-			kPlayer.AI_corporationBonusVal(eBonus) > 0))
+			kPlayer.AI_corporationBonusVal(eBonus, true) > 0))
 		r++;
 	if(!isHuman()) // Never pay more than it's worth to us
 		r = std::min(r, ourVal);
@@ -13624,9 +13635,7 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 {
 	PROFILE_FUNC();
 
-	AttitudeTypes eAttitude;
-	//bool bStrategic;
-	int iI, iJ;
+	int iI=-1, iJ=-1; // advc.003: Other declarations moved
 	CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer); // advc.003
 	FAssertMsg(ePlayer != getID(), "shouldn't call this function on ourselves");
 
@@ -13642,9 +13651,9 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 		return DENIAL_JOKING;
 	} // </advc.036>
 	// advc.133:
-	int iAvailThem = kPlayer.getNumAvailableBonuses(eBonus) + iChange;
+	int iAvailThem = kPlayer.getNumAvailableBonuses(eBonus);
 	// advc.036: Moved this clause up
-	if (iAvailThem > 0 && kPlayer.AI_corporationBonusVal(eBonus) <= 0)
+	if (iAvailThem + iChange > 1 && kPlayer.AI_corporationBonusVal(eBonus, true) <= 0)
 	{
 		return DENIAL_JOKING;
 	} // <advc.037> This used to apply to all vassals
@@ -13671,16 +13680,17 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 		return NO_DENIAL;*/
 	// K-Mod end
 	// <advc.036>
-	int const tradeValThresh = 3;
-	int valueForThem = -1;
+	int const iTradeValThresh = 3;
+	int iValueForThem = -1;
 	/*  advc.133: Don't bother checking the value-based clauses when considering
 		cancelation. AI_considerOffer handles that. */
 	if(iChange >= 0) {
-		valueForThem = kPlayer.AI_bonusVal(eBonus, 0, false, true); // </advc.036>
+		iValueForThem = kPlayer.AI_bonusVal(eBonus, iChange, false, true);
+	// </advc.036>
 		if (isHuman()
 				/*  advc.036: No deal if they (AI) don't need the resource, but
 					check attitude before giving the human that info. */
-				&& valueForThem >= tradeValThresh)
+				&& iValueForThem >= iTradeValThresh)
 		{
 			return NO_DENIAL;
 		}
@@ -13696,7 +13706,7 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 	}*/
 
 	bool bStrategic = false;
-	bool crucialStrategic = false; // advc.036
+	bool bCrucialStrategic = false; // advc.036
 
 	CvCity* pCapitalCity = getCapitalCity();
 	for (iI = 0; iI < GC.getNumUnitInfos(); iI++)
@@ -13704,7 +13714,7 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 		if (GC.getUnitInfo((UnitTypes) iI).getPrereqAndBonus() == eBonus)
 		{
 			bStrategic = true;
-			crucialStrategic = true; // advc.036
+			bCrucialStrategic = true; // advc.036
 		}
 		for (iJ = 0; iJ < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); iJ++)
 		{
@@ -13715,7 +13725,7 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 					(getCapitalCity()->hasBonus(...), but then a human could
 					try to trade for both OR-prereqs at once (e.g. Bronze and
 					Iron, leaving us unable to train Axemen). */
-				crucialStrategic = true;
+				bCrucialStrategic = true;
 			}
 		}
 		// <advc.001>
@@ -13756,7 +13766,7 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 					break; // </advc.003b>
 			} // XXX marble and stone??? // advc (comment): Handled above, no?
 		}
-		eAttitude = AI_getAttitude(ePlayer);
+		AttitudeTypes eAttitude = AI_getAttitude(ePlayer);
 		if (bStrategic)
 		{	// <advc.036>
 			int iRefusalThresh = GC.getLeaderHeadInfo(getPersonalityType()).
@@ -13770,7 +13780,7 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 		}
 		if (GC.getBonusInfo(eBonus).getHappiness() > 0)
 		{	// advc.036: Treat Ivory as non-crucial
-			crucialStrategic = false;
+			bCrucialStrategic = false;
 			if (eAttitude <= GC.getLeaderHeadInfo(getPersonalityType()).getHappinessBonusRefuseAttitudeThreshold())
 			{
 				return DENIAL_ATTITUDE;
@@ -13779,21 +13789,21 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 
 		if (GC.getBonusInfo(eBonus).getHealth() > 0)
 		{
-			crucialStrategic = false; // advc.036
+			bCrucialStrategic = false; // advc.036
 			if (eAttitude <= GC.getLeaderHeadInfo(getPersonalityType()).getHealthBonusRefuseAttitudeThreshold())
 			{
 				return DENIAL_ATTITUDE;
 			}
 		}
 	} // <advc.036>
-	int iAvailUs = getNumAvailableBonuses(eBonus) - iChange;
-	/*  Doesn't seem necessary after all; the valueForUs clauses rule out such
+	int iAvailUs = getNumAvailableBonuses(eBonus);
+	/*  Doesn't seem necessary after all; the iValueForUs clauses rule out such
 		trades anyway. By returning DENIAL_JOKING, crucial strategic resources
 		could be excluded from the trade table (see changes in buildTradeTable),
 		but it's perhaps confusing to show some non-surplus resources on the
 		trade table and not others. */
-	/*if(!isHuman() && crucialStrategic && iAvailUs <= 1 && (!bVassal ||
-			iAvailThem > 0))
+	/*if(!isHuman() && bCrucialStrategic && iAvailUs - iChange <= 1 && (!bVassal ||
+			iAvailThem + iChange > 1))
 		return DENIAL_JOKING;
 	*/// </advc.036>
 	// <advc.133> See the previous 133-comment
@@ -13803,35 +13813,37 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes ePlayer,
 	if(!kPlayer.isHuman()) {
 		/*  Allow human to import resources that they probably don't need,
 			but make sure that the AI doesn't. */
-		if(valueForThem < tradeValThresh)
+		if(iValueForThem < iTradeValThresh)
 			return DENIAL_NO_GAIN;
 		if(isHuman())
 			return NO_DENIAL;
 	}
-	int valueForUs = AI_corporationBonusVal(eBonus);
-	if(iAvailUs - getBonusImport(eBonus) == 1)
-		valueForUs = AI_bonusVal(eBonus, 0, false, true);
+	int iValueForUs = AI_corporationBonusVal(eBonus, true);
+	/*  This guard ensures that iTradeVal isn't added in AI_bonusVal (is that really
+		important?). The max isn't actually necessary; we know that iChange>=0. */
+	if(iAvailUs - getBonusImport(eBonus) - std::max(0, iChange) <= 0)
+		iValueForUs = AI_bonusVal(eBonus, 0, false, true);
 	/*  Don't want city counts to matter much b/c large civs are supposed to
 		export to small (tall) ones. But selling to tiny civs often doesn't make
 		sense; could get a much better deal from some larger buyer. */
-	valueForUs += std::min(2 * valueForUs,
+	iValueForUs += std::min(2 * iValueForUs,
 			getNumCities() / std::max(1, kPlayer.getNumCities()));
 	// <advc.037>
 	if(bVassal) {
-		if(valueForUs >= 2 * (kPlayer.isHuman() ? tradeValThresh : valueForThem))
+		if(iValueForUs >= 2 * (kPlayer.isHuman() ? iTradeValThresh : iValueForThem))
 			return DENIAL_NO_GAIN;
 		else return NO_DENIAL;
 	} // </advc.037>
 	// Replacing the JOKING clause further up
-	if((kPlayer.isHuman()) ?
-			// Don't presume value for human
-			(valueForUs >= tradeValThresh +
+	if(kPlayer.isHuman() && iAvailThem <= 0 ? /*  Don't presume value
+			for human unless human only needs the resource for a corp */
+			(iValueForUs >= iTradeValThresh +
 			/*  bonusVal gives every city equal weight, but early on,
 				it's mostly about the capital, which can grow fast. */
 			std::min(2, (getNumCities() - 1) / 2)) :
-			(3 * valueForUs >= 2 * valueForThem ||
-			valueForThem - valueForUs < tradeValThresh ||
-			valueForUs > tradeValThresh + 2))
+			(3 * iValueForUs >= 2 * iValueForThem ||
+			iValueForThem - iValueForUs < iTradeValThresh ||
+			iValueForUs > iTradeValThresh + 2))
 		return DENIAL_NO_GAIN;
 	// </advc.036>
 	return NO_DENIAL;
@@ -20316,13 +20328,13 @@ int CvPlayerAI::checkCancel(CvDeal const& d, PlayerTypes otherId, bool flip) {
 	if(!AI_considerOfferBulk(otherId, trades2, trades1, -1, // <advc.133>
 			d.getAge()))
 		return 0;
+	if(trades1 == NULL)
+		return -1;
 	/*  @"not equipped"-comment above: Resource trades do need special treatment.
 		For duals (Open Borders, Def. Pact, Perm. Alliance), getTradeDenial
 		is all right. AI_considerOffer will not cancel these b/c the trade values
 		of dual trades are always considered fair.
 		Worst enmity is treated separately elsewhere. */
-	if(trades1 == NULL)
-		return -1;
 	CLLNode<TradeData>* tdn = trades1->head();
 	if(tdn != NULL && CvDeal::isDual(tdn->m_data.m_eItemType, true)) {
 		DenialTypes tden = getTradeDenial(otherId, tdn->m_data);
@@ -20334,10 +20346,10 @@ int CvPlayerAI::checkCancel(CvDeal const& d, PlayerTypes otherId, bool flip) {
 			return 1;
 		else return -1;
 	}
-	/*  getTradeDenial will always return DENIAL_JOKING. Instead, call
-		AI_bonusTrade explicitly and tell it that this is about cancelation. */
 	if(trades2 == NULL)
 		return -1;
+	/*  getTradeDenial will always return DENIAL_JOKING. Instead, call
+		AI_bonusTrade explicitly and tell it that this is about cancelation. */
 	for(CLLNode<TradeData>* tdn = trades1->head(); tdn != NULL;
 			tdn = trades1->next(tdn)) {
 		TradeData tdata = tdn->m_data;
@@ -21849,7 +21861,7 @@ bool CvPlayerAI::proposeResourceTrade(PlayerTypes civId) {
 		/*  <advc.036> For AI-AI trades the conditions below are better handled
 			by AI_getTradeDenial. */
 		if(civ.isHuman() && (civ.getNumTradeableBonuses(eBonus) <= 1 ||
-				civ.AI_corporationBonusVal(eBonus) != 0))
+				civ.AI_corporationBonusVal(eBonus, true) != 0))
 				// || AI_bonusTradeVal(eBonus, civId, 1) <= 0)
 			continue;
 		/*  Probably cheaper to check canTradeItem before calling AI_bonusTradeVal;
@@ -27923,7 +27935,7 @@ void CvPlayerAI::AI_updateBonusValue(BonusTypes eBonus)
 	/*  <advc.036> Don't just reset; recompute them all, and never update the
 		cache in AI_baseBonusVal. This should make sure we're not getting OOS. */
 	if(GC.getGameINLINE().isNetworkMultiPlayer()) {
-		m_aiBonusValue[eBonus] = AI_baseBonusVal(eBonus);
+		m_aiBonusValue[eBonus] = AI_baseBonusVal(eBonus, false);
 		m_aiBonusValueTrade[eBonus] = AI_baseBonusVal(eBonus, true);
 	} else { // Reset and update on demand is faster
 	/*  Tbd.: Could lead to undesirable side-effects in singleplayer, and

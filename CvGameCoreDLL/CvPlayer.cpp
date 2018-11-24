@@ -5459,7 +5459,8 @@ DenialTypes CvPlayer::getTradeDenial(PlayerTypes eWhoTo, TradeData item) const
 		break;
 
 	case TRADE_RESOURCES:
-		return AI_bonusTrade(((BonusTypes)(item.m_iData)), eWhoTo);
+		return AI_bonusTrade(((BonusTypes)(item.m_iData)), eWhoTo,
+				1); // advc.036
 		break;
 
 	case TRADE_CITIES:

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<!-- advc: This file contains only in-game text added by the mod. -->
+<!-- advc: This file contains only in-game text added by the mod.
+	 A few of the Romance-language translations are based on www.deepl.com. -->
 <Civ4GameText>
 
 	<!-- advc.100: In-game text for displaying and logging messages about
@@ -492,7 +493,7 @@
 		<Spanish>(victoria) desactivada</Spanish>
 	</TEXT>
 
-	<!-- advc.106k: Romance languages: deepl.com -->
+	<!-- advc.106k -->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_CITY_RENAMED</Tag>
 		<English>%s1_CityName has been renamed to %s2_CityName.</English>
@@ -1398,7 +1399,6 @@
 		<Italian>No schiavismo</Italian>
 		<Spanish>Sin esclavitud</Spanish>
 	</TEXT>
-	<!-- Romance languages: based on deepl.com -->
 	<TEXT>
 		<Tag>TXT_KEY_GAME_OPTION_NO_SLAVERY_HELP</Tag>
 		<English>Human players cannot change their civics to Slavery. Only the Aztec Sacrificial Altar allows humans to sacrifice population.</English>
@@ -2598,8 +2598,7 @@
 		<Italian>Volontà di guerra</Italian>
 		<Spanish>Guerras patrocinadas</Spanish>
 	</TEXT>
-	<!-- Translations based on deepl.com and 
-		 TXT_KEY_BUG_OPT_ADVISORS__EFAGLANCETAB_TEXT in
+	<!-- Translations based on TXT_KEY_BUG_OPT_ADVISORS__EFAGLANCETAB_TEXT in
 		 BUG Advisors Options.xml -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__EFAWARTRADES_HOVER</Tag>
@@ -2620,7 +2619,7 @@
 	
 	<!-- advc.120c: Translations based on TXT_KEY_TECH_DRAMA_STRATEGY in
 		 CIV4GameText_Strategy.xml ("slider"), TXT_KEY_CONCEPT_DIPLOMACY_PEDIA
-		 in CIV4GameText_Civilopedia_Concepts.xml ("screen") and deepl.com. -->
+		 in CIV4GameText_Civilopedia_Concepts.xml ("screen"). -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__HIDE_ESPSLIDER_TEXT</Tag>
 		<English>Hide Espionage Slider when 0</English>
@@ -4079,7 +4078,7 @@
 		<Spanish>Fin de AI Auto Play</Spanish>
 	</TEXT>
 	
-	<!-- advc.130h: Romance-language translations via deepl.com -->
+	<!-- advc.130h -->
 	<TEXT>
 		<Tag>TXT_KEY_POPUP_DOW_PENALTIES</Tag>
 		<English>These third parties will disapprove:</English>
@@ -4118,6 +4117,16 @@
 		<German>R&#252;ckzugschance: %s1%%</German>
 		<Italian>Probabilit&#224; di ritirata: %s1%%</Italian>
 		<Spanish>Probabilidades de retirada: %s1%%</Spanish>
+	</TEXT>
+	
+	<!-- advc.178: Based on TXT_KEY_NONE in CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_EARLY_ELECTION</Tag>
+		<English>None (causes an early election)</English>
+		<French>Rien (entraîne des élections anticipées)</French>
+		<German>Keine (führt zu vorgezogener Wahl)</German>
+		<Italian>Nessuno (causa un'elezione anticipata)</Italian>
+		<Spanish>Ninguno (provoca una elección anticipada)</Spanish>
 	</TEXT>
 	
 </Civ4GameText>

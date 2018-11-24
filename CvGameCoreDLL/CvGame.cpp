@@ -4991,13 +4991,15 @@ bool CvGame::isValidVoteSelection(VoteSourceTypes eVoteSource, const VoteSelecti
 		bool bPactWithEveryone = true;
 		for (int iTeam1 = 0; iTeam1 < MAX_CIV_TEAMS; ++iTeam1)
 		{
-			if (GET_TEAM((TeamTypes)iTeam1).isFullMember(eVoteSource))
+			CvTeam& kTeam1 = GET_TEAM((TeamTypes)iTeam1);
+			if (kTeam1.isFullMember(eVoteSource)
+					&& !kTeam1.isAVassal()) // advc.001
 			{
 				for (int iTeam2 = iTeam1 + 1; iTeam2 < MAX_CIV_TEAMS; ++iTeam2)
 				{
 					CvTeam& kTeam2 = GET_TEAM((TeamTypes)iTeam2);
-
-					if (kTeam2.isFullMember(eVoteSource))
+					if (kTeam2.isFullMember(eVoteSource)
+							&& !kTeam2.isAVassal()) // advc.001
 					{
 						if (!kTeam2.isDefensivePact((TeamTypes)iTeam1))
 						{

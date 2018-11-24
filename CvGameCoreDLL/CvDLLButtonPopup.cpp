@@ -6,7 +6,7 @@
 #include "CvPlayerAI.h"
 #include "CvGameAI.h"
 #include "CvTeamAI.h"
-#include "CvMap.h" 
+#include "CvMap.h"
 #include "CvPlot.h"
 #include "CvArtFileMgr.h"
 #include "CyCity.h"
@@ -1370,24 +1370,20 @@ bool CvDLLButtonPopup::launchChangeReligionPopup(CvPopup* pPopup, CvPopupInfo &i
 
 bool CvDLLButtonPopup::launchChooseElectionPopup(CvPopup* pPopup, CvPopupInfo &info)
 {
-	VoteSelectionData* pVoteSelectionData = GC.getGameINLINE().getVoteSelection(info.getData1());
-	if (NULL == pVoteSelectionData)
-	{
+	VoteSelectionData* pVoteSelectionData = GC.getGame().getVoteSelection(info.getData1());
+	if(NULL == pVoteSelectionData)
 		return false;
-	}
-
 	VoteSourceTypes eVoteSource = pVoteSelectionData->eVoteSource;
-
 	gDLL->getInterfaceIFace()->popupSetBodyString(pPopup, GC.getVoteSourceInfo(eVoteSource).getPopupText());
-
-	for (int iI = 0; iI < (int)pVoteSelectionData->aVoteOptions.size(); ++iI)
-	{
+	for(int iI = 0; iI < (int)pVoteSelectionData->aVoteOptions.size(); iI++)
 		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, pVoteSelectionData->aVoteOptions[iI].szText, NULL, iI, WIDGET_GENERAL);
-	}
-
-	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_NONE").c_str(), NULL, GC.getNumVoteInfos(), WIDGET_GENERAL);
+	// advc.178:
+	bool bEarlyElection = (GC.getGame().getSecretaryGeneralTimer(eVoteSource) > 0);
+	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText(
+			bEarlyElection ? "TXT_KEY_EARLY_ELECTION" : // advc.178
+			"TXT_KEY_NONE").c_str(), NULL, GC.getNumVoteInfos(), WIDGET_GENERAL);
 	gDLL->getInterfaceIFace()->popupLaunch(pPopup, false, POPUPSTATE_IMMEDIATE);
-	return (true);
+	return true;
 }
 
 

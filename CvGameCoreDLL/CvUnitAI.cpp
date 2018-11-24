@@ -19492,7 +19492,9 @@ bool CvUnitAI::AI_connectPlot(CvPlot* pPlot, int iRange)
 	{
 		if (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pPlot, MISSIONAI_BUILD, getGroup(), iRange) == 0)
 		{
-			if (generatePath(pPlot, MOVE_SAFE_TERRITORY, true))
+			if (generatePath(pPlot, MOVE_SAFE_TERRITORY
+					| MOVE_ROUTE_TO, // advc.049
+					true))
 			{
 				/* <advc.300> Barb behavior should just be to put roads on the
 				   bonuses adjacent to their cities. */
@@ -19514,7 +19516,12 @@ bool CvUnitAI::AI_connectPlot(CvPlot* pPlot, int iRange)
 
 						if (plot()->getPlotGroup(getOwnerINLINE()) == pLoopCity->plot()->getPlotGroup(getOwnerINLINE()))
 						{
-							getGroup()->pushMission(MISSION_ROUTE_TO, pPlot->getX_INLINE(), pPlot->getY_INLINE(), MOVE_SAFE_TERRITORY, false, false, MISSIONAI_BUILD, pPlot);
+							getGroup()->pushMission(MISSION_ROUTE_TO,
+									pPlot->getX_INLINE(),
+									pPlot->getY_INLINE(),
+									MOVE_SAFE_TERRITORY
+									| MOVE_ROUTE_TO, // advc.049
+									false, false, MISSIONAI_BUILD, pPlot);
 							return true;
 						}
 					}
@@ -19542,17 +19549,34 @@ bool CvUnitAI::AI_connectPlot(CvPlot* pPlot, int iRange)
 
 						if (!(pLoopCity->plot()->isVisibleEnemyUnit(this)))
 						{
-							if (generatePath(pLoopCity->plot(), MOVE_SAFE_TERRITORY, true))
+							if (generatePath(pLoopCity->plot(), MOVE_SAFE_TERRITORY
+									| MOVE_ROUTE_TO, // advc.049
+									true))
 							{
 								if (atPlot(pPlot)) // need to test before moving...
 								{
-									getGroup()->pushMission(MISSION_ROUTE_TO, pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), MOVE_SAFE_TERRITORY, false, false, MISSIONAI_BUILD, pPlot);
+									getGroup()->pushMission(MISSION_ROUTE_TO,
+											pLoopCity->getX_INLINE(),
+											pLoopCity->getY_INLINE(),
+											MOVE_SAFE_TERRITORY
+											| MOVE_ROUTE_TO, // advc.049
+											false, false, MISSIONAI_BUILD, pPlot);
 								}
 								else
 								{
-									getGroup()->pushMission(MISSION_ROUTE_TO, pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), MOVE_SAFE_TERRITORY, false, false, MISSIONAI_BUILD, pPlot);
+									getGroup()->pushMission(MISSION_ROUTE_TO,
+											pLoopCity->getX_INLINE(),
+											pLoopCity->getY_INLINE(),
+											MOVE_SAFE_TERRITORY
+											| MOVE_ROUTE_TO, // advc.049
+											false, false, MISSIONAI_BUILD, pPlot);
 									//getGroup()->pushMission(MISSION_ROUTE_TO, pPlot->getX_INLINE(), pPlot->getY_INLINE(), MOVE_SAFE_TERRITORY, (getGroup()->getLengthMissionQueue() > 0), false, MISSIONAI_BUILD, pPlot);
-									getGroup()->pushMission(MISSION_ROUTE_TO, pPlot->getX_INLINE(), pPlot->getY_INLINE(), MOVE_SAFE_TERRITORY, true, false, MISSIONAI_BUILD, pPlot); // K-Mod
+									getGroup()->pushMission(MISSION_ROUTE_TO,
+											pPlot->getX_INLINE(),
+											pPlot->getY_INLINE(),
+											MOVE_SAFE_TERRITORY
+											| MOVE_ROUTE_TO, // advc.049
+											true, false, MISSIONAI_BUILD, pPlot); // K-Mod
 								}
 
 								return true;
@@ -20973,16 +20997,30 @@ bool CvUnitAI::AI_routeCity()
 					{
 						if (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pRouteToCity->plot(), MISSIONAI_BUILD, getGroup()) == 0)
 						{
-							if (generatePath(pLoopCity->plot(), MOVE_SAFE_TERRITORY, true))
+							if (generatePath(pLoopCity->plot(), MOVE_SAFE_TERRITORY
+									| MOVE_ROUTE_TO, // advc.049
+									true))
 							{
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
-								if (generatePath(pRouteToCity->plot(), MOVE_SAFE_TERRITORY, true))
+								if (generatePath(pRouteToCity->plot(), MOVE_SAFE_TERRITORY
+										| MOVE_ROUTE_TO, // advc.049
+										true))
 								{
-									getGroup()->pushMission(MISSION_ROUTE_TO, pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), MOVE_SAFE_TERRITORY, false, false, MISSIONAI_BUILD, pRouteToCity->plot());
+									getGroup()->pushMission(MISSION_ROUTE_TO,
+											pLoopCity->getX_INLINE(),
+											pLoopCity->getY_INLINE(),
+											MOVE_SAFE_TERRITORY
+											| MOVE_ROUTE_TO, // advc.049
+											false, false, MISSIONAI_BUILD, pRouteToCity->plot());
 									//getGroup()->pushMission(MISSION_ROUTE_TO, pRouteToCity->getX_INLINE(), pRouteToCity->getY_INLINE(), MOVE_SAFE_TERRITORY, (getGroup()->getLengthMissionQueue() > 0), false, MISSIONAI_BUILD, pRouteToCity->plot());
-									getGroup()->pushMission(MISSION_ROUTE_TO, pRouteToCity->getX_INLINE(), pRouteToCity->getY_INLINE(), MOVE_SAFE_TERRITORY, true, false, MISSIONAI_BUILD, pRouteToCity->plot()); // K-Mod
+									getGroup()->pushMission(MISSION_ROUTE_TO,
+											pRouteToCity->getX_INLINE(),
+											pRouteToCity->getY_INLINE(),
+											MOVE_SAFE_TERRITORY
+											| MOVE_ROUTE_TO, // advc.049
+											true, false, MISSIONAI_BUILD, pRouteToCity->plot()); // K-Mod
 
 									return true;
 								}
@@ -21063,7 +21101,9 @@ bool CvUnitAI::AI_routeTerritory(bool bImprovementOnly)
 							{
 								if (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_BUILD, getGroup(), 1) == 0)
 								{
-									if (generatePath(pLoopPlot, MOVE_SAFE_TERRITORY, true, &iPathTurns))
+									if (generatePath(pLoopPlot, MOVE_SAFE_TERRITORY
+											| MOVE_ROUTE_TO, // advc.049
+											true, &iPathTurns))
 									{
 										iValue = 10000;
 
@@ -21086,7 +21126,10 @@ bool CvUnitAI::AI_routeTerritory(bool bImprovementOnly)
 
 	if (pBestPlot != NULL)
 	{
-		getGroup()->pushMission(MISSION_ROUTE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), MOVE_SAFE_TERRITORY, false, false, MISSIONAI_BUILD, pBestPlot);
+		getGroup()->pushMission(MISSION_ROUTE_TO, pBestPlot->getX_INLINE(),
+				pBestPlot->getY_INLINE(), MOVE_SAFE_TERRITORY
+				| MOVE_ROUTE_TO, // advc.049
+				false, false, MISSIONAI_BUILD, pBestPlot);
 		return true;
 	}
 

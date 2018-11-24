@@ -96,13 +96,23 @@
 		<Italian>Azioni:</Italian>
 		<Spanish>Acciones:</Spanish>
 	</TEXT>
-	<TEXT>
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPTLABEL_TECHWINDOW</Tag>
 		<English>Tech Splash Screen:</English>
 		<French>Tech Splash Screen:</French>
 		<German>Technologie-Popup:</German>
 		<Italian>Scheda della scoperta tecnologica:</Italian>
 		<Spanish>Tecnologías:</Spanish>
+	</TEXT-->
+	<!-- advc.060: Replacing the above b/c I want to list the SS screen as a
+		 kind of splash screen (though it really isn't) -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPTLABEL_TECHWINDOW</Tag>
+		<English>Splash Screens:</English>
+		<French>Splash Screens:</French>
+		<German>Splash-Screens:</German>
+		<Italian>Splash Screens:</Italian>
+		<Spanish>Splash Screens:</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPTLABEL_BUFFY</Tag>

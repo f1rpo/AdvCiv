@@ -2225,6 +2225,14 @@ int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int 
 			return FALSE;
 		}
 	}
+	// <advc.049> No new AI routes in human territory (but upgrade to railroad OK)
+	if(iFlags & MOVE_ROUTE_TO) {
+		if(!pFromPlot->isRoute() && !pSelectionGroup->isHuman()) {
+			PlayerTypes eOwner = pFromPlot->getOwnerINLINE();
+			if(eOwner != NO_PLAYER && GET_PLAYER(eOwner).isHuman())
+				return FALSE;
+		}
+	} // </advc.049>
 
 	if (iFlags & MOVE_NO_ENEMY_TERRITORY)
 	{
