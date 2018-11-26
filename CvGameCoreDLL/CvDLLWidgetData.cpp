@@ -2447,12 +2447,24 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 					if (pSelectedUnit->canDiscover(pMissionPlot))
 					{
 						eTech = pSelectedUnit->getDiscoveryTech();
-	
-						if (pSelectedUnit->getDiscoverResearch(eTech) >= GET_TEAM(pSelectedUnit->getTeam()).getResearchLeft(eTech))
+						// advc.003:
+						int iResearchLeft = GET_TEAM(pSelectedUnit->getTeam()).getResearchLeft(eTech);
+						if (pSelectedUnit->getDiscoverResearch(eTech) >= iResearchLeft)
 						{
-							szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_TECH_TEXT"), GC.getTechInfo(eTech).getDescription());
 							szBuffer.append(NEWLINE);
+							szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_TECH_TEXT"), GC.getTechInfo(eTech).getDescription());
 							szBuffer.append(szTempBuffer);
+							// <advc.004a>
+							/*  Probably not a good idea after all. Players might
+								not get that this is the amount of research left;
+								they could assume that they're only getting
+								(partial) progress toward eTech. */
+							/*if(iResearchLeft > 0) {
+								szTempBuffer.Format(L" (%d%c)", iResearchLeft,
+										GC.getCommerceInfo(COMMERCE_RESEARCH).
+										getChar());
+								szBuffer.append(szTempBuffer);
+							}*/ // </advc.004a>
 						}
 						else
 						{

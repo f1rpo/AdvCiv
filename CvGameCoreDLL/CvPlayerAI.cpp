@@ -100,15 +100,18 @@ bool CvPlayerAI::feelsSafe() const {
 	if(ourTeam.getAnyWarPlanCount(false) > 0)
 		return false;
 	CvGame& g = GC.getGameINLINE();
+	CvCity* pCapital = getCapitalCity();
 	EraTypes gameEra = g.getCurrentEra();
 	/*  >=3: Anyone could attack across the sea, and can't fully trust friends
 		anymore either as the game progresses */
-	if(getCapitalCity() == NULL || gameEra >= 3 ||
-			(((gameEra <= 2 && gameEra > 0) ||
+	if(pCapital == NULL || gameEra >= 3 || isThreatFromMinorCiv())
+		return false;
+	if(!pCapital->area()->isBorderObstacle(getTeam()) &&
+			((((gameEra <= 2 && gameEra > 0) ||
 			(gameEra > 2 && gameEra == g.getStartEra())) &&
 			g.isOption(GAMEOPTION_RAGING_BARBARIANS)) ||
 			GET_TEAM(BARBARIAN_TEAM).countNumCitiesByArea(getCapitalCity()->area()) >
-			::round(getNumCities() / 3.0) || isThreatFromMinorCiv())
+			::round(getNumCities() / 3.0)))
 		return false;
 	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 		CvTeamAI const& t = GET_TEAM((TeamTypes)i);
@@ -16411,7 +16414,7 @@ int CvPlayerAI::AI_executiveValue(CvArea* pArea, CorporationTypes eCorporation, 
 	return 10 * iBestValue;
 }
 
-// This function has been completely rewriten for K-Mod. The original code has been deleted. (it was junk)
+// This function has been completely rewritten for K-Mod. The original code has been deleted. (it was junk)
 // Returns approximately 100 x gpt value of the corporation, for one city.
 int CvPlayerAI::AI_corporationValue(CorporationTypes eCorporation, const CvCity* pCity) const
 {
@@ -17019,7 +17022,7 @@ CivicTypes CvPlayerAI::AI_bestCivic(CivicOptionTypes eCivicOption, int* piBestVa
 	return eBestCivic;
 }
 
-// The bulk of this function has been rewriten for K-Mod. (some original code deleted, some edited by BBAI)
+// The bulk of this function has been rewritten for K-Mod. (some original code deleted, some edited by BBAI)
 // Note: the value is roughly in units of commerce per turn.
 // Also, this function could probably be made a bit more accurate and perhaps even faster if it calculated effects on a city-by-city basis,
 // rather than averaging effects across all cities. (certainly this would work better for happiness modifiers.)
@@ -18231,7 +18234,7 @@ ReligionTypes CvPlayerAI::AI_bestReligion() const
 	return eBestReligion;
 }
 
-// This function has been completely rewriten for K-Mod
+// This function has been completely rewritten for K-Mod
 int CvPlayerAI::AI_religionValue(ReligionTypes eReligion) const
 {
 	PROFILE_FUNC();
@@ -20105,7 +20108,7 @@ void CvPlayerAI::AI_doCommerce()
 	verifyGoldCommercePercent();
 }
 
-// K-Mod. I've rewriten most of this function, based on edits from BBAI. I don't know what's original bts code and what's not.
+// K-Mod. I've rewritten most of this function, based on edits from BBAI. I don't know what's original bts code and what's not.
 // (the BBAI implementation had some bugs)
 void CvPlayerAI::AI_doCivics()
 {

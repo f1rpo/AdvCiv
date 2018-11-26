@@ -95,7 +95,6 @@ class BugGeneralOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addCheckbox(screen, panel, "MainInterface__Hide_EspSlider")
 		self.addCheckbox(screen, panel, "MainInterface__ProgressBarsTickMarks")
 		self.addTextDropdown(screen, panel, panel, "MainInterface__BuildIconSize", True)
-		# advc.042
-		#self.addCheckbox(screen, panel, "MainInterface__CityArrows")
+		self.addCheckbox(screen, panel, "MainInterface__CityArrows")
 		self.addCheckbox(screen, panel, "MainInterface__RapidUnitCycling")
 		self.addCheckbox(screen, panel, "MainInterface__SimpleSelection")

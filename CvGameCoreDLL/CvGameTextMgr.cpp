@@ -16442,12 +16442,14 @@ void CvGameTextMgr::setConvertHelp(CvWStringBuffer& szBuffer, PlayerTypes ePlaye
 	{
 		szBuffer.append(L". ");
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_ALREADY_STATE_REL"));
+		szBuffer.append(L"."); // advc.004g
 	}
 	else if (GET_PLAYER(ePlayer).getConversionTimer() > 0)
 	{
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_ANOTHER_REVOLUTION_RECENTLY"));
 		szBuffer.append(L". ");
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_WAIT_MORE_TURNS", GET_PLAYER(ePlayer).getConversionTimer()));
+		szBuffer.append(L"."); // advc.004g
 	}
 }
 

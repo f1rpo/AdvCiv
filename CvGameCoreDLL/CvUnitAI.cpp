@@ -456,7 +456,7 @@ bool CvUnitAI::AI_update()
 
 
 // Returns true if took an action or should wait to move later...
-// K-Mod. I've basically rewriten this function.
+// K-Mod. I've basically rewritten this function.
 // bFirst should be "true" if this is the first unit in the group to use this follow function.
 // the point is that there are some calculations and checks in here which only depend on the group, not the unit
 // so for efficiency, we should only check them once.
@@ -2592,7 +2592,7 @@ void CvUnitAI::AI_attackMove()
 
 		if (bDanger)
 		{
-			// K-Mod. This block has been rewriten. (original code deleted)
+			// K-Mod. This block has been rewritten. (original code deleted)
 
 			// slightly more reckless than last time
 			if (getGroup()->getNumUnits() > 1 && AI_stackVsStack(3, 90, 40, 0))
@@ -3198,7 +3198,7 @@ void CvUnitAI::AI_attackCityMove()
 
 		if (iStepDistToTarget <= 2)
 		{
-			// K-Mod. I've rearranged and rewriten most of this section - removing the bbai code.
+			// K-Mod. I've rearranged and rewritten most of this section - removing the bbai code.
 			if (bTargetTooStrong)
 			{
 				if (AI_stackVsStack(2, iAttackRatio, 80, iMoveFlags))
@@ -15880,11 +15880,21 @@ bool CvUnitAI::AI_goToTargetCity(int iFlags, int iMaxPathTurns, CvCity* pTargetC
 
 		if (pBestPlot != NULL)
 		{
-			/*  advc.123b: Disabled. Better a blind attack on units blocking the path
-				than just treating the city as unreachable */
-			//FAssertMsg(!(pTargetCity->at(pEndTurnPlot)) || 0 != (iFlags & MOVE_THROUGH_ENEMY), "no suicide missions...");
+			FAssertMsg(
+					isBarbarian() || // advc.123b
+					!pTargetCity->at(pEndTurnPlot) || 0 != (iFlags & MOVE_THROUGH_ENEMY), "no suicide missions...");
 			if (!atPlot(pEndTurnPlot))
-			{
+			{	/*  <advc.001t> Needed for the call in AI_attackMove. These stacks
+					aren't supposed to declare war, and they shouldn't move into
+					enemy cities when war is imminent. */
+				if(!(iFlags & MOVE_DECLARE_WAR) && GET_TEAM(getTeam()).
+						AI_isSneakAttackReady(pTargetCity->getTeam())) {
+					TeamTypes eBestPlotTeam = pBestPlot->getTeam();
+					if(eBestPlotTeam != NO_TEAM && GET_TEAM(eBestPlotTeam).
+							getMasterTeam() == GET_TEAM(pTargetCity->getTeam()).
+							getMasterTeam())
+						return false;
+				} // </advc.001t>
 				//getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), iFlags);
 				// K-Mod
 				if (AI_considerPathDOW(pEndTurnPlot, iFlags))
@@ -16046,7 +16056,7 @@ bool CvUnitAI::AI_pillageAroundCity(CvCity* pTargetCity, int iBonusValueThreshol
 }
 
 // Returns true if a mission was pushed...
-// This function has been completely rewriten (and greatly simplified) for K-Mod
+// This function has been completely rewritten (and greatly simplified) for K-Mod
 bool CvUnitAI::AI_bombardCity()
 {
 	// check if we need to declare war before bombarding!
@@ -19126,7 +19136,7 @@ bool CvUnitAI::AI_specialSeaTransportMissionary()
 }
 
 
-// The body of this function has been completely deleted and rewriten for K-Mod
+// The body of this function has been completely deleted and rewritten for K-Mod
 bool CvUnitAI::AI_specialSeaTransportSpy()
 {
 	const CvTeamAI& kOurTeam = GET_TEAM(getTeam());
@@ -25659,7 +25669,7 @@ bool CvUnitAI::AI_poach()
 	return false;
 }
 
-// K-Mod. I've rewriten most of this function.
+// K-Mod. I've rewritten most of this function.
 bool CvUnitAI::AI_choke(int iRange, bool bDefensive, int iFlags)
 {
 	PROFILE_FUNC();

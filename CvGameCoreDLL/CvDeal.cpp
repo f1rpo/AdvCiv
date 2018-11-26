@@ -1068,8 +1068,8 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 		break;
 
 	case TRADE_RELIGION:
-		GET_PLAYER(eFromPlayer).convert((ReligionTypes)trade.m_iData);
-
+		GET_PLAYER(eFromPlayer).convert((ReligionTypes)trade.m_iData,
+				true); // advc.001v
 		if (GET_PLAYER(eFromPlayer).AI_getReligionTimer() < GC.getPEACE_TREATY_LENGTH())
 		{
 			GET_PLAYER(eFromPlayer).AI_setReligionTimer(GC.getPEACE_TREATY_LENGTH());

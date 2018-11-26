@@ -9020,16 +9020,13 @@ bool CvPlayer::canConvert(ReligionTypes eReligion) const
 }
 
 
-void CvPlayer::convert(ReligionTypes eReligion)
+void CvPlayer::convert(ReligionTypes eReligion, // <advc.001v>
+		bool bForce) 
 {
-	int iAnarchyLength;
-
-	if (!canConvert(eReligion))
-	{
+	if(!bForce && /* </advc.001v> */ !canConvert(eReligion))
 		return;
-	}
 
-	iAnarchyLength = getReligionAnarchyLength();
+	int iAnarchyLength = getReligionAnarchyLength();
 
 	changeAnarchyTurns(iAnarchyLength);
 
@@ -9401,7 +9398,7 @@ int CvPlayer::unitsGoldenAgeCapable() const
 	return iCount;
 }
 
-// Rewriten for K-Mod. (The only functionality difference is that unit class is now used rather unit type. But this version is far more efficient.)
+// Rewritten for K-Mod. (The only functionality difference is that unit class is now used rather unit type. But this version is far more efficient.)
 int CvPlayer::unitsGoldenAgeReady() const
 {
 	PROFILE_FUNC();
@@ -14181,7 +14178,7 @@ void CvPlayer::changeImprovementYieldChange(ImprovementTypes eIndex1, YieldTypes
 
 
 // K-Mod. I've changed this function from using pUnit to using pGroup.
-// I've also rewriten most of the code, to give more natural ordering, and to be more robust and readable code.
+// I've also rewritten most of the code, to give more natural ordering, and to be more robust and readable code.
 void CvPlayer::updateGroupCycle(CvSelectionGroup* pGroup)
 {
 	PROFILE_FUNC();

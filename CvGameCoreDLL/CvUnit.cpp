@@ -5376,7 +5376,7 @@ bool CvUnit::pillage()
 			//lPillageGold = 0;
 			lPillageGold = -1; // K-Mod
 
-			if (GC.getUSE_DO_PILLAGE_GOLD_CALLBACK()) // K-Mod. I've writen C to replace the python callback.
+			if (GC.getUSE_DO_PILLAGE_GOLD_CALLBACK()) // K-Mod. I've written C to replace the python callback.
 			{
 				CyPlot* pyPlot = new CyPlot(pPlot);
 				CyUnit* pyUnit = new CyUnit(this);
@@ -9490,7 +9490,7 @@ int CvUnit::fortifyModifier() const
 
 int CvUnit::experienceNeeded() const
 {
-	if (GC.getUSE_GET_EXPERIENCE_NEEDED_CALLBACK()) // K-Mod. I've writen C to replace the python callback.
+	if (GC.getUSE_GET_EXPERIENCE_NEEDED_CALLBACK()) // K-Mod. I've written C to replace the python callback.
 	{
 		// Use python to determine pillage amounts...
 		long lExperienceNeeded;

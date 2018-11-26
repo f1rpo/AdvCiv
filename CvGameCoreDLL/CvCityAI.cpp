@@ -7280,19 +7280,20 @@ void CvCityAI::AI_getYieldMultipliers(int &iFoodMultiplier, int &iProductionMult
 		   food surplus is desirable. The original formula doesn't seem to grow
 		   the cities fast enough. (The proper TargetSize is a different
 		   question, but if you want to grow, do so quickly.) */
-		int delta = iTargetSize - getPopulation();
-		if(delta <= 0) iExtraFoodForGrowth = 0;
-		if(delta == 1) iExtraFoodForGrowth = 2;
-		if(delta == 2) iExtraFoodForGrowth = 3;
-		if(delta == 3) iExtraFoodForGrowth = 4;
-		if(delta > 3) iExtraFoodForGrowth = delta;
-		// K-Mod formula now only for barbarians:
+		int delta = iTargetSize - getPopulation() - 1; /*  TargetSize is often
+				one greater than what the current happiness supports. Not what I
+				want here, so subtract 1. */
+		if(delta <= 3)
+			iExtraFoodForGrowth = std::max(0, delta + 1);
+		else iExtraFoodForGrowth = delta;
+		// K-Mod formula now only for Barbarians:
 		if(isBarbarian()) // advc.300:
 			iExtraFoodForGrowth = (iTargetSize - getPopulation())/2 + 1;
 		// </advc.121>
 	}
 
-	int iFoodDifference = iFoodTotal - (iTargetSize * GC.getFOOD_CONSUMPTION_PER_POPULATION() + iExtraFoodForGrowth);
+	int iFoodDifference = iFoodTotal - (iTargetSize *
+			GC.getFOOD_CONSUMPTION_PER_POPULATION() + iExtraFoodForGrowth);
 
 	iDesiredFoodChange = -iFoodDifference + std::max(0, -iHealth);
 	//
@@ -7330,10 +7331,9 @@ void CvCityAI::AI_getYieldMultipliers(int &iFoodMultiplier, int &iProductionMult
 		iCommerceMultiplier /= 113 + 2 * kPlayer.AI_getFlavorValue(FLAVOR_PRODUCTION) + kPlayer.AI_getFlavorValue(FLAVOR_MILITARY);
 	}
 	// K-Mod end
-
-	// advc.300: The remaining adjustments don't make immediate sense for barbs ...
-	if(isBarbarian()) return;
-
+	// <advc.300>
+	if(isBarbarian())
+		return; // </advc.300>
 	int iNetCommerce = kPlayer.AI_getAvailableIncome(); // K-Mod
 	int iNetExpenses = kPlayer.calculateInflatedCosts() + std::max(0, -kPlayer.getGoldPerTurn()); // unofficial patch
 

@@ -326,7 +326,7 @@ public:
 	bool canDoReligion(ReligionTypes eReligion) const;																										// Exposed to Python
 	bool canChangeReligion() const;																																				// Exposed to Python
 	DllExport bool canConvert(ReligionTypes eReligion) const;																							// Exposed to Python
-	DllExport void convert(ReligionTypes eReligion);																								// Exposed to Python
+	void convert(ReligionTypes eReligion, bool bForce = false); // advc.001v																						// Exposed to Python
 	bool hasHolyCity(ReligionTypes eReligion) const;																											// Exposed to Python
 	int countHolyCities() const;																																					// Exposed to Python
 	DllExport void foundReligion(ReligionTypes eReligion, ReligionTypes eSlotReligion, bool bAward);																										// Exposed to Python

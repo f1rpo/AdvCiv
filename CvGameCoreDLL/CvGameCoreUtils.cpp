@@ -1822,7 +1822,7 @@ int pathHeuristic(int iFromX, int iFromY, int iToX, int iToY)
 	return (stepDistance(iFromX, iFromY, iToX, iToY) * PATH_MOVEMENT_WEIGHT);
 }
 
-// This function has been completely rewriten for K-Mod. (the rewrite includes some bug fixes as well as some new features)
+// This function has been completely rewritten for K-Mod. (the rewrite includes some bug fixes as well as some new features)
 int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)
 {
 	PROFILE_FUNC();
