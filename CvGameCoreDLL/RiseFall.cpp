@@ -198,7 +198,7 @@ void RiseFall::read(FDataStreamBase* pStream) {
 		chapters.push_back(new RFChapter());
 		chapters[i]->read(pStream);
 	}
-	// E.g. CvPlot::activeVisibility not saved
+	// E.g. CvPlot::m_bAllFog not saved
 	FAssertMsg(interludeCountdown < 0, "Mustn't load into interlude");
 	riseScore.read(pStream);
 }
@@ -474,7 +474,7 @@ void RiseFall::setPlayerControl(PlayerTypes civId, bool b) {
 		gDLL->getInterfaceIFace()->clearSelectionList();
 	}
 	// (Un)fog the map
-	CvPlot::activeVisibility = b;
+	CvPlot::setAllFog(!b);
 	if(!b)
 		g.updateActiveVisibility();
 	setUIHidden(!b);

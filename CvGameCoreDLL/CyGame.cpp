@@ -1222,15 +1222,20 @@ void CyGame::doControl(int iControl)
 		m_pGame->doControl((ControlTypes) iControl);
 	}
 }
-
 // <advc.104>
 bool CyGame::useKModAI() {
 
-	return m_pGame->useKModAI();
-}
-// </advc.104>
-// advc.300:
-int CyGame::getBarbarianStartTurn() { return m_pGame->getBarbarianStartTurn(); }
+	if(m_pGame == NULL)
+		return false;
+	return !getWPAI.isEnabled();
+} // </advc.104>
+// <advc.300>
+int CyGame::getBarbarianStartTurn() {
+
+	if(m_pGame == NULL)
+		return -1;
+	return m_pGame->getBarbarianStartTurn();
+} // </advc.300>
 // <advc.250b>
 std::wstring CyGame::SPaHPointsForSettingsScreen() {
 
@@ -1243,10 +1248,12 @@ std::wstring CyGame::SPaHPointsForSettingsScreen() {
 } // </advc.250b>
 // <advc.250>
 int CyGame::getDifficultyForEndScore() {
+
 	if(m_pGame == NULL)
 		return 0;
 	return m_pGame->getDifficultyForEndScore();
-} // </advc.250><advc.703>
+} // </advc.250>
+// <advc.703>
 int CyGame::getMaxChapters() {
 	return m_pGame ? m_pGame->getRiseFall().getMaxChapters() : -1;
 }
@@ -1285,7 +1292,8 @@ std::wstring CyGame::riseScoreBreakdown() {
 	if(r == NULL)
 		return L"";
 	return *r;
-} // </advc.703><advc.706>
+} // </advc.703>
+// <advc.706>
 bool CyGame::isRFInterlude() {
 	if(m_pGame == NULL)
 		return false;

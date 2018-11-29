@@ -63,7 +63,11 @@ protected:
 	UnitAITypes m_eUnitAIType;
 
 	int m_iAutomatedAbortTurn;
-	int searchRangeRandPercent; // advc.128
+	int m_iSearchRangeRandPercent; // advc.128
+	/* advc.117, advc.121: Need this value repeatedly within a Worker move and
+	   it might be costly to recompute. No need for serialization b/c it all
+	   happens within the same AI move. */
+	int m_iNeededWorkers;
 
 	bool AI_considerDOW(CvPlot* pPlot); // K-Mod
 	bool AI_considerPathDOW(CvPlot* pPlot, int iFlags); // K-Mod
@@ -117,15 +121,12 @@ protected:
 
 	int AI_promotionValue(PromotionTypes ePromotion);
 
+	bool AI_shadow(UnitAITypes eUnitAI, int iMax = -1, int iMaxRatio = -1, bool bWithCargoOnly = true,
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      04/01/10                                jdog5000      */
-/*                                                                                              */
 /* Unit AI                                                                                      */
 /************************************************************************************************/
-/* original bts code
-	bool AI_shadow(UnitAITypes eUnitAI, int iMax = -1, int iMaxRatio = -1, bool bWithCargoOnly = true);
-*/
-	bool AI_shadow(UnitAITypes eUnitAI, int iMax = -1, int iMaxRatio = -1, bool bWithCargoOnly = true, bool bOutsideCityOnly = false, int iMaxPath = MAX_INT);
+			bool bOutsideCityOnly = false, int iMaxPath = MAX_INT);
 	// K-Mod. I've created AI_omniGroup with the intention of using it to phase out AI_group and AI_groupMergeRange.
 	bool AI_omniGroup(UnitAITypes eUnitAI, int iMaxGroup = -1, int iMaxOwnUnitAI = -1, bool bStackOfDoom = false, int iFlags = 0, int iMaxPath = -1, bool bMergeGroups = true, bool bSafeOnly = true, bool bIgnoreFaster = false, bool bIgnoreOwnUnitType = false, bool bBiggerOnly = true, int iMinUnitAI = -1, bool bWithCargoOnly = false, bool bIgnoreBusyTransports = false);
 	bool AI_group(UnitAITypes eUnitAI, int iMaxGroup = -1, int iMaxOwnUnitAI = -1, int iMinUnitAI = -1, bool bIgnoreFaster = false, bool bIgnoreOwnUnitType = false, bool bStackOfDoom = false, int iMaxPath = MAX_INT, bool bAllowRegrouping = false, bool bWithCargoOnly = false, bool bInCityOnly = false, MissionAITypes eIgnoreMissionAIType = NO_MISSIONAI);
@@ -177,7 +178,6 @@ protected:
 	bool AI_exploreRange(int iRange);
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      03/29/10                                jdog5000      */
-/*                                                                                              */
 /* War tactics AI                                                                               */
 /************************************************************************************************/
 	CvCity* AI_pickTargetCity(int iFlags = 0, int iMaxPathTurns = MAX_INT, bool bHuntBarbs = false);
@@ -234,7 +234,6 @@ protected:
 	bool AI_handleStranded(int iFlags = 0); // K-mod
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      01/15/09                                jdog5000      */
-/*                                                                                              */
 /* Naval AI                                                                                     */
 /************************************************************************************************/
 	bool AI_pickup(UnitAITypes eUnitAI, bool bCountProduction = false, int iMaxPath = MAX_INT);
@@ -249,7 +248,6 @@ protected:
 	bool AI_airStrike(int iThreshold = 0); // K-Mod note. this function now handles bombing defences, and defensive strikes.
 /********************************************************************************/
 /* 	BETTER_BTS_AI_MOD						9/26/08				jdog5000	    */
-/* 																			    */
 /* 	Air AI																	    */
 /********************************************************************************/
 	int AI_airOffenseBaseValue( CvPlot* pPlot );
@@ -263,7 +261,6 @@ protected:
 	bool AI_exploreAir();
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      01/12/09                                jdog5000      */
-/*                                                                                              */
 /* Player Interface                                                                             */
 /************************************************************************************************/
 	int AI_exploreAirPlotValue( CvPlot* pPlot );
@@ -283,7 +280,6 @@ protected:
 	bool AI_reconSpy(int iRange);
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      10/20/09                                jdog5000      */
-/*                                                                                              */
 /* Espionage AI                                                                                 */
 /************************************************************************************************/
 	bool AI_revoltCitySpy();
@@ -303,9 +299,9 @@ protected:
 
 	bool AI_potentialEnemy(TeamTypes eTeam, const CvPlot* pPlot = NULL);
 	// <advc.033>
-	std::pair<int,int> countPiracyTargets(CvPlot const& p,
-			bool stopIfAnyTarget = false) const;
-	bool isAnyPiracyTarget(CvPlot const& p) const;
+	std::pair<int,int> AI_countPiracyTargets(CvPlot const& p,
+			bool bStopIfAnyTarget = false) const;
+	bool AI_isAnyPiracyTarget(CvPlot const& p) const;
 	// </advc.033>
 	bool AI_defendPlot(CvPlot* pPlot);
 	int AI_pillageValue(CvPlot* pPlot, int iBonusValueThreshold = 0);
@@ -324,13 +320,13 @@ protected:
 	int AI_stackOfDoomExtra() const;
 
 	//bool AI_stackAttackCity(int iRange, int iPowerThreshold, bool bFollow = true);
-	bool AI_stackAttackCity(int iPowerThreshold = -1); // K-Mod. used for adjacent cities only. Negative threshold means 'automatic'.
+	// K-Mod. used for adjacent cities only. Negative threshold means 'automatic'.
+	bool AI_stackAttackCity(int iPowerThreshold = -1);
 	bool AI_moveIntoCity(int iRange);
 
 	bool AI_groupMergeRange(UnitAITypes eUnitAI, int iRange, bool bBiggerOnly = true, bool bAllowRegrouping = false, bool bIgnoreFaster = false);
 	
 	//bool AI_artistCultureVictoryMove(); // disabled by K-Mod
-
 	bool AI_poach();
 	bool AI_choke(int iRange = 1, bool bDefensive = false, int iFlags = 0);
 	// advc.012: Current plot if p=NULL; cf. CvTeamAI::plotDefense
@@ -348,11 +344,6 @@ protected:
 
 	// added so under cheat mode we can call protected functions for testing
 	friend class CvGameTextMgr;
-
-	/* advc.117, advc.121: Need this value repeatedly within a worker move and
-	   it might be costly to recompute. No need for serialization b/c it all
-	   happens within the same AI move. */
-	private: int neededWorkers;
 
 // Lead From Behind by UncutDragon. (edited for K-Mod)
 public:

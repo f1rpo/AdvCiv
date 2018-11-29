@@ -94,7 +94,7 @@ std::pair<int,int> RFChapterScore::computeRank(bool storeCivScores,
 	int ourRivals = 0;
 	CvGame const& g = GC.getGame();
 	CvPlayerAI const& we = GET_PLAYER(chapter->getCiv());
-	bool weVassal = GET_TEAM(we.getTeam()).isAVassal();
+	bool weVassal = we.isAVassal();
 	int ourVictStage = g.getRiseFall().victoryStage(we.getID());
 	int ourScore = modifiedCivScore(we.getID());
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {

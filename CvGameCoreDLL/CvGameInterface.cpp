@@ -51,7 +51,6 @@ void CvGame::updateColoredPlots()
 	{
 		return;
 	}
-
 	// <advc.004h>
 	// Moved up
 	pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
@@ -789,9 +788,8 @@ void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers) con
 		// so I can't change the constness of either of them to fix the problem.
 		// <advc.002e> Hide glow when all units moved
 		if(GC.getDefineINT("SHOW_PROMOTION_GLOW") <= 0) {
-			CvPlayer const& owner = GET_PLAYER(pCycleUnit->getOwnerINLINE());
-			int dummy;
-			for(CvUnit* u = owner.firstUnit(&dummy); u != NULL; u = owner.nextUnit(&dummy))
+			CvPlayer const& owner = GET_PLAYER(pCycleUnit->getOwnerINLINE()); int foo=-1;
+			for(CvUnit* u = owner.firstUnit(&foo); u != NULL; u = owner.nextUnit(&foo))
 				gDLL->getEntityIFace()->showPromotionGlow(u->getUnitEntity(), false);
 		} // </advc.002e>
 	}
@@ -1041,28 +1039,9 @@ void CvGame::selectionListMove(CvPlot* pPlot, bool bAlt, bool bShift, bool bCtrl
 
 	/* original bts code
 	pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-
 	while (pSelectedUnitNode != NULL)
 	{
-		pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-
-		eRivalTeam = pSelectedUnit->getDeclareWarMove(pPlot);
-
-		if (eRivalTeam != NO_TEAM)
-		{
-			CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_DECLAREWARMOVE);
-			if (NULL != pInfo)
-			{
-				pInfo->setData1(eRivalTeam);
-				pInfo->setData2(pPlot->getX());
-				pInfo->setData3(pPlot->getY());
-				pInfo->setOption1(bShift);
-				pInfo->setOption2(pPlot->getTeam() != eRivalTeam);
-				gDLL->getInterfaceIFace()->addPopup(pInfo);
-			}
-			return;
-		}
-
+		// advc: Rest deleted
 		pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
 	} */ // K-Mod has moved this to selectionListGameNetMessage.
 
@@ -1487,7 +1466,7 @@ bool CvGame::canDoControl(ControlTypes eControl) const
 	}
 	/*  <advc.706> I don't think loading is possible in between turns, but there
 		would be no harm in it. */
-	if(!CvPlot::activeVisibility && eControl != CONTROL_LOAD_GAME &&
+	if(CvPlot::isAllFog() && eControl != CONTROL_LOAD_GAME &&
 			eControl != CONTROL_QUICK_LOAD && eControl != CONTROL_OPTIONS_SCREEN)
 		return false;
 	// </advc.706>
@@ -1898,7 +1877,7 @@ void CvGame::doControl(ControlTypes eControl)
 		break;
 
 	case CONTROL_QUICK_LOAD:
-		if (!(isNetworkMultiPlayer()))	// SP only!
+		if (!isNetworkMultiPlayer())	// SP only!
 		{	// <advc.003d>
 			/*  Loading works fine in windowed mode, and when a debugger is
 				attached, exitingToMainMenu can actually be quite slow.
@@ -2150,10 +2129,10 @@ void CvGame::enterWorldBuilder()
 		/*  In multiplayer, setWorldBuilder apparently checks ChtLvl>0 and
 			setChtLvl doesn't work. Need to make the EXE believe that we're
 			in singleplayer. */
-		feignSP = true;
+		m_bFeignSP = true;
 		gDLL->setChtLvl(1); // </advc.315c>
 		gDLL->getInterfaceIFace()->setWorldBuilder(!(gDLL->GetWorldBuilderMode()));
-		feignSP = false; // advc.315c
+		m_bFeignSP = false; // advc.315c
 	}
 	else
 	{
@@ -2933,7 +2912,7 @@ bool CvGame::shouldDisplayEndTurn() const
 
 bool CvGame::shouldDisplayWaitingOthers() const
 {	// <advc.706>
-	if(!CvPlot::activeVisibility)
+	if(CvPlot::isAllFog())
 		return false; // </advc.706>
 	if (!gDLL->getInterfaceIFace()->isCitySelection())
 	{
@@ -3160,7 +3139,7 @@ void CvGame::handleDiplomacySetAIComment(DiploCommentTypes eComment) const
 	if (GC.getInfoTypeForString("AI_DIPLOCOMMENT_ACCEPT_ASK") == eComment || 
 		GC.getInfoTypeForString("AI_DIPLOCOMMENT_ACCEPT_DEMAND") == eComment)
 	{
-		if (!GET_TEAM(getActiveTeam()).isAVassal() && !GET_TEAM(GET_PLAYER(eOtherPlayer).getTeam()).isAVassal())
+		if (!GET_TEAM(getActiveTeam()).isAVassal() && !TEAMREF(eOtherPlayer).isAVassal())
 		{
 			CLinkList<TradeData> playerList;
 			CLinkList<TradeData> loopPlayerList;

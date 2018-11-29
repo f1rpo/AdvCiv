@@ -126,14 +126,11 @@ public:
 	bool canGift(bool bTestVisible = false, bool bTestTransport = true);																											// Exposed to Python 
 	void gift(bool bTestTransport = true);
 
-	bool canLoadUnit(const CvUnit* pUnit, const CvPlot* pPlot
-		, bool checkMoves = false // advc.123c
-		) const;															// Exposed to Python
+	bool canLoadUnit(const CvUnit* pUnit, const CvPlot* pPlot, 															// Exposed to Python
+			bool bCheckMoves = false) const; // advc.123c
 	void loadUnit(CvUnit* pUnit);
-
-	bool canLoad(const CvPlot* pPlot
-		, bool checkMoves = false // advc.123c
-		) const;																											// Exposed to Python
+	bool canLoad(const CvPlot* pPlot,																											// Exposed to Python
+			bool bCheckMoves = false) const; // advc.123c
 	void load();
 	bool shouldLoadOnMove(const CvPlot* pPlot) const;
 
@@ -154,8 +151,8 @@ public:
 	bool canHeal(const CvPlot* pPlot) const;																											// Exposed to Python
 	bool canSentry(const CvPlot* pPlot) const;																										// Exposed to Python
 
-	//int healRate(const CvPlot* pPlot) const;
-	int healRate(const CvPlot* pPlot, bool bLocation = true, bool bUnits = true) const; // K-Mod
+	int healRate(const CvPlot* pPlot,
+			bool bLocation = true, bool bUnits = true) const; // K-Mod
 	int healTurns(const CvPlot* pPlot) const;
 	void doHeal();
 
@@ -410,7 +407,7 @@ public:
 	int featureAttackModifier(FeatureTypes eFeature) const;								// Exposed to Python
 	int featureDefenseModifier(FeatureTypes eFeature) const;								// Exposed to Python
 	int unitClassAttackModifier(UnitClassTypes eUnitClass) const;						// Exposed to Python
-	int unitClassDefenseModifier(UnitClassTypes eUnitClass) const;					// Exposed to Python
+	int unitClassDefenseModifier(UnitClassTypes eUnitClass) const;						// Exposed to Python
 	int unitCombatModifier(UnitCombatTypes eUnitCombat) const;							// Exposed to Python
 	int domainModifier(DomainTypes eDomain) const;													// Exposed to Python
 
@@ -779,8 +776,8 @@ public:
 	virtual void AI_uninit() = 0;
 	virtual void AI_reset(UnitAITypes eUnitAI = NO_UNITAI) = 0;
 	virtual bool AI_update() = 0;
-	//virtual bool AI_follow() = 0;
-	virtual bool AI_follow(bool bFirst = true) = 0; // K-Mod
+	virtual bool AI_follow(
+			bool bFirst = true) = 0; // K-Mod
 	virtual void AI_upgrade() = 0;
 	virtual void AI_promote() = 0;
 	virtual int AI_groupFirstVal() = 0;
@@ -791,7 +788,6 @@ public:
 	virtual UnitAITypes AI_getUnitAIType() const = 0;																				// Exposed to Python
 	virtual void AI_setUnitAIType(UnitAITypes eNewValue) = 0;
     virtual int AI_sacrificeValue(const CvPlot* pPlot) const = 0;
-
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      04/05/10                                jdog5000      */
 /*                                                                                              */
@@ -875,7 +871,7 @@ protected:
 	bool m_bInfoBarDirty;
 	bool m_bBlockading;
 	bool m_bAirCombat;
-	bool initiallyVisible; // advc.102
+	bool m_bInitiallyVisible; // advc.102
 
 	PlayerTypes m_eCapturingPlayer;
 	UnitTypes m_eUnitType;
@@ -908,15 +904,13 @@ protected:
 	bool canAirStrike(const CvPlot* pPlot) const;
 	bool airStrike(CvPlot* pPlot);
 
-	//int planBattle( CvBattleDefinition & kBattleDefinition ) const;
-	int planBattle(CvBattleDefinition& kBattle, const std::vector<int>& combat_log) const; // K-Mod
-	int computeUnitsToDie( const CvBattleDefinition & kDefinition, bool bRanged, BattleUnitTypes iUnit ) const;
-	bool verifyRoundsValid( const CvBattleDefinition & battleDefinition ) const;
-	void increaseBattleRounds( CvBattleDefinition & battleDefinition ) const;
-	int computeWaveSize( bool bRangedRound, int iAttackerMax, int iDefenderMax ) const;
-
+	int planBattle(CvBattleDefinition& kBattle,
+			const std::vector<int>& combat_log) const; // K-Mod
+	int computeUnitsToDie(const CvBattleDefinition & kDefinition, bool bRanged, BattleUnitTypes iUnit) const;
+	bool verifyRoundsValid(const CvBattleDefinition & battleDefinition) const;
+	void increaseBattleRounds(CvBattleDefinition & battleDefinition) const;
+	int computeWaveSize(bool bRangedRound, int iAttackerMax, int iDefenderMax) const;
 	void getDefenderCombatValues(CvUnit& kDefender, const CvPlot* pPlot, int iOurStrength, int iOurFirepower, int& iTheirOdds, int& iTheirStrength, int& iOurDamage, int& iTheirDamage, CombatDetails* pTheirDetails = NULL) const;
-
 	bool isCombatVisible(const CvUnit* pDefender) const;
 	//void resolveCombat(CvUnit* pDefender, CvPlot* pPlot, CvBattleDefinition& kBattle);
 	void resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible); // K-Mod

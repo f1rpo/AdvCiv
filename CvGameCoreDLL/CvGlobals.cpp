@@ -144,7 +144,7 @@ m_aeTurnRightDirection(NULL),
 //m_aPlayerOptionsInfo(NULL),
 m_Profiler(NULL),
 m_VarSystem(NULL),
-cachingDone(false),
+m_bCachingDone(false),
 m_iEXTRA_YIELD(0), // K-Mod
 m_bJOIN_WAR_DIPLO_BONUS(false), // advc.130s
 m_iTILE_CULTURE_DECAY_PER_MILL(0), // advc.099
@@ -161,6 +161,8 @@ m_iPER_PLAYER_MESSAGE_CONTROL_LOG(0), // advc.007
 m_iUWAI_MULTI_WAR_RELUCTANCE(0), // advc.104
 m_iCITY_TRADE_CULTURE_THRESH(0), // advc.122
 m_iFOUNDING_SHOW_YIELDS(0), // advc.004h
+m_iMINIMAP_WATER_MODE(0), // advc.002a
+m_iDELAY_UNTIL_BUILD_DECAY(0), // advc.011
 m_iMOVE_DENOMINATOR(0),
 m_iNUM_UNIT_PREREQ_OR_BONUSES(0),
 m_iNUM_BUILDING_PREREQ_OR_BONUSES(0),
@@ -2694,6 +2696,10 @@ void CvGlobals::cacheGlobals()
 	m_iCITY_TRADE_CULTURE_THRESH = GC.getDefineINT("CITY_TRADE_CULTURE_THRESH");
 	// advc.004h:
 	m_iFOUNDING_SHOW_YIELDS = GC.getDefineINT("FOUNDING_SHOW_YIELDS");
+	// advc.002a:
+	m_iMINIMAP_WATER_MODE = GC.getDefineINT("MINIMAP_WATER_MODE");
+	// advc.011:
+	m_iDELAY_UNTIL_BUILD_DECAY = GC.getDefineINT("DELAY_UNTIL_BUILD_DECAY");
 	m_iMOVE_DENOMINATOR = getDefineINT("MOVE_DENOMINATOR");
 	m_iNUM_UNIT_PREREQ_OR_BONUSES = getDefineINT("NUM_UNIT_PREREQ_OR_BONUSES");
 	m_iNUM_BUILDING_PREREQ_OR_BONUSES = getDefineINT("NUM_BUILDING_PREREQ_OR_BONUSES");
@@ -2843,7 +2849,7 @@ void CvGlobals::cacheGlobals()
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
 	getWPAI.cacheXML(); // advc.104x
-	cachingDone = true; // advc.003c
+	m_bCachingDone = true; // advc.003c
 }
 
 /************************************************************************************************/
@@ -3699,7 +3705,7 @@ void CvGlobals::deleteInfoArrays()
 // <advc.003c>
 bool CvGlobals::isCachingDone() const {
 
-	return cachingDone;
+	return m_bCachingDone;
 } // </advc.003c>
 
 //

@@ -722,6 +722,10 @@ public:
 	inline int getCITY_TRADE_CULTURE_THRESH() { return m_iCITY_TRADE_CULTURE_THRESH; }
 	// advc.004h
 	inline int getFOUNDING_SHOW_YIELDS() { return m_iFOUNDING_SHOW_YIELDS; }
+	// advc.002a
+	inline int getMINIMAP_WATER_MODE() { return m_iMINIMAP_WATER_MODE; }
+	// advc.011
+	inline int getDELAY_UNTIL_BUILD_DECAY() { return m_iDELAY_UNTIL_BUILD_DECAY; }
 	int getMOVE_DENOMINATOR();
 	int getNUM_UNIT_PREREQ_OR_BONUSES();
 	int getNUM_BUILDING_PREREQ_OR_BONUSES();
@@ -1165,7 +1169,7 @@ protected:
 	int m_iNumFootstepAudioTags;
 
 	CvString m_szCurrentXMLFile;
-	bool cachingDone; // advc.003c
+	bool m_bCachingDone; // advc.003c
 	//////////////////////////////////////////////////////////////////////////
 	// Formerly Global Defines
 	//////////////////////////////////////////////////////////////////////////
@@ -1188,6 +1192,8 @@ protected:
 	int m_iUWAI_MULTI_WAR_RELUCTANCE; // advc.104
 	int m_iCITY_TRADE_CULTURE_THRESH; // advc.122
 	int m_iFOUNDING_SHOW_YIELDS; // advc.004h
+	int m_iMINIMAP_WATER_MODE; // advc.002a
+	int m_iDELAY_UNTIL_BUILD_DECAY; // advc.011
 	int m_iMOVE_DENOMINATOR;
 	int m_iNUM_UNIT_PREREQ_OR_BONUSES;
 	int m_iNUM_BUILDING_PREREQ_OR_BONUSES;

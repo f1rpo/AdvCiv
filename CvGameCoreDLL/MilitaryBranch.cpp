@@ -67,7 +67,7 @@ void MilitaryBranch::updateTypicalUnit() {
 		/* Could call this for land units as well, but relying on the capital for
 		   those is faster, and perhaps more accurate as well. */
 		if(u.getDomainType() == DOMAIN_SEA) {
-			if(!GET_PLAYER(ownerId).canBeExpectedToTrain(ut))
+			if(!GET_PLAYER(ownerId).AI_canBeExpectedToTrain(ut))
 				continue;
 		}
 		else {
@@ -463,7 +463,7 @@ bool MilitaryBranch::Army::canTrainSiege() const {
 		CvUnitInfo const& u = GC.getUnitInfo(ut);
 		if(((u.getBombardRate() > 0 && u.getDomainType() == DOMAIN_LAND) ||
 				(u.getBombardRate() > 0 && u.getDomainType() == DOMAIN_AIR)) &&
-				civ.canBeExpectedToTrain(ut))
+				civ.AI_canBeExpectedToTrain(ut))
 			return true;
 	}
 	return false;
@@ -480,7 +480,7 @@ bool MilitaryBranch::Army::canTrainCollateral() const {
 		CvUnitInfo const& u = GC.getUnitInfo(ut);
 		if(u.getCollateralDamage() > 0 &&
 				isValidDomain((DomainTypes)u.getDomainType()) &&
-				civ.canBeExpectedToTrain(ut))
+				civ.AI_canBeExpectedToTrain(ut))
 			return true;
 	}
 	return false;

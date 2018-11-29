@@ -6020,8 +6020,7 @@ CvWString CvDLLWidgetData::getDiscoverPathText(UnitTypes ut, PlayerTypes pt)
 } // </advc.004a>
 
 // <advc.004b>
-CvWString CvDLLWidgetData::getFoundCostText(CvPlot* p, PlayerTypes ownerId) 
-		const {
+CvWString CvDLLWidgetData::getFoundCostText(CvPlot* p, PlayerTypes ownerId) const {
 
 	CvPlayer& owner = GET_PLAYER(ownerId);
 	// The increase in other cities' maintenance caused by founding the new city
@@ -6082,7 +6081,7 @@ CvWString CvDLLWidgetData::getFoundCostText(CvPlot* p, PlayerTypes ownerId)
 }
 
 CvWString CvDLLWidgetData::getNetFeatureHealthText(CvPlot* cityPlot,
-		PlayerTypes owner) const {
+		PlayerTypes ownerId) const {
 
 	int goodHealthPercent = 0;
 	int badHealthPercent = 0;
@@ -6091,7 +6090,7 @@ CvWString CvDLLWidgetData::getNetFeatureHealthText(CvPlot* cityPlot,
 			continue;
 		CvPlot* pp = plotCity(cityPlot->getX(), cityPlot->getY(), i);
 		if(pp == NULL) continue; CvPlot const& p = *pp;
-		if(p.getFeatureType() == NO_FEATURE || !p.isRevealed(TEAMID(owner), false))
+		if(p.getFeatureType() == NO_FEATURE || !p.isRevealed(TEAMID(ownerId), false))
 			continue;
 		int healthPercent = GC.getFeatureInfo(p.getFeatureType()).getHealthPercent();
 		if(healthPercent > 0)
@@ -6127,7 +6126,7 @@ CvWString CvDLLWidgetData::getNetFeatureHealthText(CvPlot* cityPlot,
 		}
 		r.append(gDLL->getText("TXT_KEY_FROM_FEATURES"));
 	}
-	int extraHealth = GET_PLAYER(owner).getExtraHealth();
+	int extraHealth = GET_PLAYER(ownerId).getExtraHealth();
 	if(extraHealth != 0) {
 		r.append(NEWLINE);
 		int icon = 0;
@@ -6145,8 +6144,7 @@ CvWString CvDLLWidgetData::getNetFeatureHealthText(CvPlot* cityPlot,
 	return r;
 }
 
-CvWString CvDLLWidgetData::getHomePlotYieldText(CvPlot* p, PlayerTypes ownerId)
-		const {
+CvWString CvDLLWidgetData::getHomePlotYieldText(CvPlot* p, PlayerTypes ownerId) const {
 
 	CvWString r = NEWLINE;
 	r.append(gDLL->getText("TXT_KEY_HOME_TILE_YIELD"));

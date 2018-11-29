@@ -13,6 +13,7 @@ class CvPlotGroup;
 class CvArea;
 class CvGenericBuilding;
 class CvArtInfoBuilding;
+class CvCityAI; // advc.003: Needed for AI(void) functions
 
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      02/24/10                            EmperorFool       */
@@ -42,7 +43,9 @@ public:
 
 	void doTurn();
 	void doRevolt(); // advc.003: previously in CvPlot::doCulture
-
+	/*  K-Mod. I've made this function public so that I can use it for the "insert culture" espionage mission.
+		(I've also changed the functionality of it quite a bit.) */
+	void doPlotCultureTimes100(bool bUpdate, PlayerTypes ePlayer, int iCultureRateTimes100, bool bCityCulture);
 	bool isCitySelected();
 	DllExport bool canBeSelected() const;
 	DllExport void updateSelectedCity(bool bTestProduction);
@@ -83,7 +86,7 @@ public:
 
 	bool canTrain(UnitTypes eUnit, bool bContinue = false, bool bTestVisible = false,					// Exposed to Python
 			bool bIgnoreCost = false, bool bIgnoreUpgrades = false,
-			bool checkAirUnitCap = true, // advc.001b
+			bool bCheckAirUnitCap = true, // advc.001b
 			BonusTypes eAssumeVailable = NO_BONUS) const; // advc.001u
 	bool canUpgradeTo(UnitTypes eUnit) const; // advc.001b
 	bool canTrain(UnitCombatTypes eUnitCombat) const;
@@ -147,9 +150,8 @@ public:
 	void hurry(HurryTypes eHurry);																						// Exposed to Python
 	// <advc.912d>
 	bool canPopRush() const;
-	protected: int m_iPopRushHurryCount; public:
-	void changePopRushCount(int iChange); // </advc.912d>
-
+	void changePopRushCount(int iChange);
+	// </advc.912d>
 	UnitTypes getConscriptUnit() const;																// Exposed to Python
 	CvUnit* initConscriptedUnit();
 	int getConscriptPopulation() const;																// Exposed to Python
@@ -183,8 +185,8 @@ public:
 
 	bool isCapital() const;																				// Exposed to Python
 	bool isPrereqBonusSea() const; // advc.041
-	/* advc.003: Global default used for -1. Also removed that default from all
-	   calls to this function (except those from Python). */
+	/* advc.003: -1 means use MIN_WATER_SIZE_FOR_OCEAN. Removed MIN_WATER_SIZE_FOR_OCEAN
+	   from all calls to this function (except those from Python). */
 	bool isCoastal(int iMinWaterSize = -1) const;																									// Exposed to Python
 	bool isDisorder() const;																			// Exposed to Python				 
 	bool isHolyCity(ReligionTypes eIndex) const;									// Exposed to Python				
@@ -210,10 +212,8 @@ public:
 	int getVassalUnhappiness() const;																		// Exposed to Python
 	int unhappyLevel(int iExtra = 0) const;																	// Exposed to Python 
 	int happyLevel() const;																				// Exposed to Python				
-	int angryPopulation(int iExtra = 0
-		, bool ignoreCultureRate = false // advc.104
-		) const;										// Exposed to Python
-
+	int angryPopulation(int iExtra = 0,												// Exposed to Python
+			bool bIgnoreCultureRate = false) const; // advc.104
 	int visiblePopulation() const;
 	int totalFreeSpecialists() const;															// Exposed to Python				 
 	int extraPopulation() const;																						// Exposed to Python
@@ -242,13 +242,8 @@ public:
 
 	int cultureDistance(int iDX, int iDY) const;														// Exposed to Python
 	int cultureStrength(PlayerTypes ePlayer) const;								// Exposed to Python					 
-	int cultureGarrison(PlayerTypes ePlayer) const;								// Exposed to Python					 
-	/*  advc.003: Renamed this function to make clear that's it's part of the
-		AI code and doesn't affect revolt probabilities. (Could move it to CvCityAI,
-		but that class isn't really usable b/c of the flawed object-oriented design.) */
-	int AI_culturePressureFactor() const; // K-Mod
-	// advc.099c:
-	PlayerTypes calculateCulturalOwner() const;
+	int cultureGarrison(PlayerTypes ePlayer) const;								// Exposed to Python
+	PlayerTypes calculateCulturalOwner() const; // advc.099c
 																																		
 	int getNumBuilding(BuildingTypes eIndex) const;									// Exposed to Python					
 	int getNumActiveBuilding(BuildingTypes eIndex) const;						// Exposed to Python
@@ -259,8 +254,7 @@ public:
 /* Bugfix                                                                                       */
 /************************************************************************************************/
 	int getNumActiveWorldWonders(
-		PlayerTypes ownerId = NO_PLAYER // advc.104d: Allow a hypothetical owner
-		) const;
+			PlayerTypes ownerId = NO_PLAYER) const; // advc.104d: Hypothetical owner
 /************************************************************************************************/
 /* UNOFFICIAL_PATCH                        END                                                  */
 /************************************************************************************************/
@@ -272,9 +266,7 @@ public:
 	DllExport int getIndex() const;
 	DllExport IDInfo getIDInfo() const;
 	void setID(int iID);
-	/*  advc.104: The same as getID? setID is only called in the EXE, so one can't
-		be sure. */
-	int plotNum() const;
+	int plotNum() const; // advc.104
 
 	DllExport int getX() const;																			// Exposed to Python
 #ifdef _USRDLL
@@ -389,24 +381,18 @@ public:
 	int calculateCorporationMaintenance() const;									// Exposed to Python
 	/* <advc.104> Added an optional parameter to allow the computation of
 	   projected maintenance for cities yet to be conquered. */
-	  /* advc.004b: Replaced this K-Mod-introduced function entirely with a
-	     private static function (was only used internally). */
-	  //int calculateMaintenanceDistance() const;
 	int calculateDistanceMaintenanceTimes100(PlayerTypes owner = NO_PLAYER) const;										// Exposed to Python
 	int calculateColonyMaintenanceTimes100(PlayerTypes owner = NO_PLAYER) const;
 	int calculateNumCitiesMaintenanceTimes100(PlayerTypes owner = NO_PLAYER) const;									// Exposed to Python									// Exposed to Python
 	// </advc.104>
-	// <advc.004b> A projection for cities yet to be founded */
-	static int calculateDistanceMaintenanceTimes100(CvPlot* cityPlot,
-			PlayerTypes owner, int population = -1);
-	static int calculateNumCitiesMaintenanceTimes100(CvPlot* cityPlot,
-			PlayerTypes owner, int population = -1, int extraCities = 0);
-	static int calculateColonyMaintenanceTimes100(CvPlot* cityPlot,
-			PlayerTypes owner, int population = -1, int extraCities = 0);
+	// <advc.004b> A projection for cities yet to be founded
+	static int calculateDistanceMaintenanceTimes100(CvPlot* pCityPlot,
+			PlayerTypes eOwner, int iPopulation = -1);
+	static int calculateNumCitiesMaintenanceTimes100(CvPlot* pCityPlot,
+			PlayerTypes eOwner, int iPopulation = -1, int iExtraCities = 0);
+	static int calculateColonyMaintenanceTimes100(CvPlot* pCityPlot,
+			PlayerTypes eOwner, int iPopulation = -1, int iExtraCities = 0);
 	static int initialPopulation();
-	private: 
-	  static int calculateMaintenanceDistance(CvPlot* cityPlot, PlayerTypes owner);
-	public:
 	// </advc.004b>
 	int calculateCorporationMaintenanceTimes100(CorporationTypes eCorporation) const;									// Exposed to Python
 	int calculateCorporationMaintenanceTimes100() const;									// Exposed to Python
@@ -444,8 +430,7 @@ public:
 // BUG - Actual Effects - end
 	// <advc.001c>
 	int GPTurnsLeft() const;
-	void GPProjection(std::vector<std::pair<UnitTypes,int> >& r) const;
-			// (exposed to Python)
+	void GPProjection(std::vector<std::pair<UnitTypes,int> >& r) const; // (exposed to Python)
 	// </advc.001c>
 	int getBuildingGoodHealth() const;																		// Exposed to Python
 	int getBuildingBadHealth() const;																			// Exposed to Python
@@ -500,7 +485,7 @@ public:
 /************************************************************************************************/
 // From BUG
 	int getAdditionalHealthByBuilding(BuildingTypes eBuilding, int& iGood, int& iBad,
-			bool assumeStrategicBonuses = false) const; // advc.001h
+			bool bAssumeStrategicBonuses = false) const; // advc.001h
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
@@ -511,7 +496,7 @@ public:
 	void updateFeatureHappiness();
 
 	int getBonusGoodHappiness(																		// Exposed to Python  
-			bool ignoreModifier = false) const; // advc.912c
+			bool bIgnoreModifier = false) const; // advc.912c
 	int getBonusBadHappiness() const;																			// Exposed to Python  
 	void changeBonusGoodHappiness(int iChange);
 	void changeBonusBadHappiness(int iChange);
@@ -836,23 +821,13 @@ public:
 	int getCultureTimes100(PlayerTypes eIndex) const;													// Exposed to Python
 	int countTotalCultureTimes100() const;																							// Exposed to Python
 	PlayerTypes findHighestCulture() const;																			// Exposed to Python
-	/*  advc.101: Doesn't check if it will flip. Difference from
-		getRevoltTestProbability: that function only returns the probability
-		of the first revolt test, not the second one based on culture garrison.
-		If ignoreWar is set, a probability is returned even if the city can't revolt
-		b/c it's already in occupation and at war with the cultural owner.
-		If ignoreGarrison is set, culture garrison strength is treated as 0.
-		If ignoreOccupation is set, then the probability is computed assuming that
-		the city isn't in occupation.
-		Not factored in: That the revolt test is skipped after decreasing the
-		occupation timer. */
-	double revoltProbability(bool ignoreWar = false,
-			bool ignoreGarrison = false,
-			bool ignoreOccupation = false) const; // advc.023
-	double probabilityOccupationDecrement() const; // advc.023
-	bool canCultureFlip(PlayerTypes eToPlayer
-		, bool checkPriorRevolts = true // advc.101
-		) const; // K-Mod
+	// advc.101:
+	double revoltProbability( // <advc.023>
+			bool bIgnoreWar = false, bool biIgnoreGarrison = false,
+			bool bIgnoreOccupation = false) const; 
+	double probabilityOccupationDecrement() const; // </advc.023>
+	bool canCultureFlip(PlayerTypes eToPlayer, // K-Mod
+			bool bCheckPriorRevolts = true) const; // advc.101
 	int calculateCulturePercent(PlayerTypes eIndex) const;											// Exposed to Python
 	int calculateTeamCulturePercent(TeamTypes eIndex) const;										// Exposed to Python
 	void setCulture(PlayerTypes eIndex, int iNewValue, bool bPlots, bool bUpdatePlotGroups);			// Exposed to Python
@@ -988,7 +963,7 @@ public:
 
 	bool isHasReligion(ReligionTypes eIndex) const;
 	void setHasReligion(ReligionTypes eIndex, bool bNewValue, bool bAnnounce, bool bArrows = true,
-			PlayerTypes missionaryOwner = NO_PLAYER); // advc.106e
+			PlayerTypes eSpreadPlayer = NO_PLAYER); // advc.106e
 	int getReligionGrip(ReligionTypes eReligion) const; // K-Mod
 
 	bool isHasCorporation(CorporationTypes eIndex) const;
@@ -1001,7 +976,8 @@ public:
 
 	void clearOrderQueue();																														// Exposed to Python
 	//void pushOrder(OrderTypes eOrder, int iData1, int iData2, bool bSave, bool bPop, bool bAppend, bool bForce = false);		// Exposed to Python
-	void pushOrder(OrderTypes eOrder, int iData1, int iData2 = -1, bool bSave = false, bool bPop = false, int iPosition = 0, bool bForce = false); // K-Mod. (the old version is still exposed to Python)
+	// K-Mod. (the old version is still exposed to Python)
+	void pushOrder(OrderTypes eOrder, int iData1, int iData2 = -1, bool bSave = false, bool bPop = false, int iPosition = 0, bool bForce = false);
 	void popOrder(int iNum, bool bFinish = false, bool bChoose = false);		// Exposed to Python
 	void startHeadOrder();
 	void stopHeadOrder();
@@ -1031,7 +1007,8 @@ public:
 	DllExport bool isStarCity() const;
 
 	// Exposed to Python
-	DllExport void setWallOverridePoints(const std::vector< std::pair<float, float> >& kPoints); /* points are given in world space ... i.e. PlotXToPointX, etc */
+	DllExport void setWallOverridePoints(const std::vector< std::pair<float, float> >&
+			kPoints); // points are given in world space ... i.e. PlotXToPointX, etc
 	DllExport const std::vector< std::pair<float, float> >& getWallOverridePoints() const;
 
 	int getTriggerValue(EventTriggerTypes eTrigger) const;
@@ -1068,7 +1045,17 @@ public:
 
 	void read(FDataStreamBase* pStream);
 	void write(FDataStreamBase* pStream);
-
+	// <advc.003>
+	inline CvCityAI& AI() {
+		//return *static_cast<CvCityAI*>(const_cast<CvCity*>(this));
+		/*  The above won't work in an inline function b/c the compiler doesn't know
+			that CvCityAI is derived from CvCity */
+		return *reinterpret_cast<CvCityAI*>(this);
+	}
+	inline CvCityAI const& AI() const {
+		//return *static_cast<CvCityAI const*>(this);
+		return *reinterpret_cast<CvCityAI const*>(this);
+	} // </advc.003>
 	virtual void AI_init() = 0;
 	virtual void AI_reset() = 0;
 	virtual void AI_doTurn() = 0;
@@ -1089,23 +1076,23 @@ public:
 	virtual bool AI_isDefended(int iExtra = 0) = 0;
 /********************************************************************************/
 /**		BETTER_BTS_AI_MOD							9/19/08		jdog5000		*/
-/**																				*/
 /**		Air AI																	*/
 /********************************************************************************/
-/* original BTS code
-	virtual bool AI_isAirDefended(int iExtra = 0) = 0;
-*/
+	//virtual bool AI_isAirDefended(int iExtra = 0) = 0;
 	virtual bool AI_isAirDefended(bool bCountLand = 0, int iExtra = 0) = 0;
 /********************************************************************************/
 /**		BETTER_BTS_AI_MOD						END								*/
 /********************************************************************************/
 	virtual bool AI_isDanger() = 0;
-	// <advc.139>
-	virtual int AI_neededDefenders(bool ignoreEvac = false) = 0;
-	virtual int AI_neededFloatingDefenders(bool ignoreEvac = false) = 0;
-	virtual void updateSafety(double relativeCityVal)=0;
-	virtual bool isEvacuating() const=0;
-	virtual bool isSafe() const=0; // </advc.139>
+	
+	virtual int AI_neededDefenders(
+			bool bIgnoreEvac = false) = 0; // advc.139
+	virtual int AI_neededFloatingDefenders(
+			bool bIgnoreEvac = false) = 0; // advc.139
+	// <advc.139> Frequently used, so I don't want to have to downcast all the time.
+	virtual bool AI_isEvacuating() const = 0;
+	virtual bool AI_isSafe() const = 0;
+	// </advc.139>
 	virtual int AI_neededAirDefenders() = 0;
 	virtual int AI_minDefenders() = 0;
 	virtual bool AI_isEmphasizeAvoidGrowth() const = 0;
@@ -1145,7 +1132,6 @@ public:
 	virtual int AI_getWorkersHave() = 0;
 	virtual int AI_getWorkersNeeded() = 0;
 	virtual void AI_changeWorkersHave(int iChange) = 0;
-	virtual bool isAwfulSite(PlayerTypes futureOwnerId) const=0; // advc.122
 
 	bool hasShrine(ReligionTypes eReligion) const;
 	void processVoteSourceBonus(VoteSourceTypes eVoteSource, bool bActive);
@@ -1262,7 +1248,6 @@ protected:
 	bool m_bLayoutDirty;
 	bool m_bPlundered;
 
-	//PlayerTypes m_eOwner; // advc.003: Moved up
 	PlayerTypes m_ePreviousOwner;
 	PlayerTypes m_eOriginalOwner;
 	CultureLevelTypes m_eCultureLevel;
@@ -1293,10 +1278,10 @@ protected:
 	bool* m_abTradeRoute;
 	bool* m_abRevealed;
 	bool* m_abEspionageVisibility;
+	int m_iPopRushHurryCount; // advc.912d
 	// <advc.004x> Most recently completed order
 	int mrOrder;
 	bool mrWasUnit; // </advc.004x>
-	//CvWString m_szName; // advc.003: Moved up
 	CvWString m_szPreviousName; // advc.106k
 	CvString m_szScriptData;
 
@@ -1353,12 +1338,6 @@ protected:
 
 	void doGrowth();
 	void doCulture();
-	//void doPlotCulture(bool bUpdate, PlayerTypes ePlayer, int iCultureRate, bool bCityCulture = true);
-	// K-Mod. I've made this function public so that I can use it for the "insert culture" espionage mission. (I've also changed the functionality of it quite a bit.)
-public:
-	void doPlotCultureTimes100(bool bUpdate, PlayerTypes ePlayer, int iCultureRateTimes100, bool bCityCulture);
-protected:
-	// K-Mod end
 	bool doCheckProduction();
 	void doProduction(bool bAllowNoProduction);
 	void doDecay();
@@ -1385,9 +1364,12 @@ protected:
 	virtual bool AI_removeWorstCitizen(SpecialistTypes eIgnoreSpecialist = NO_SPECIALIST) = 0;
 
 	double garrisonStrength() const; // advc.500b
-	void damageGarrison(PlayerTypes revoltSource);
+	//int calculateMaintenanceDistance() const;
+	// advc.004b: Replacing the above (which was public, but is only used internally)
+	static int calculateMaintenanceDistance(CvPlot* cityPlot, PlayerTypes owner);
+	void damageGarrison(PlayerTypes eRevoltSource);
 	// advc.123f:
-	void failProduction(int orderData, int investedProduction, bool bProject = false);
+	void failProduction(int iOrderData, int iInvestedProduction, bool bProject = false);
 };
 
 #endif

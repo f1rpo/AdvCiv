@@ -629,7 +629,7 @@ void CvMap::combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvP
 }
 
 CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTimeout,
-		int* legalCount) // advc.304
+		int* iLegal) // advc.304
 {
 	/*  <advc.304> The standard 100 trials for monte-carlo selection often fail to
 		find a plot when only handful of tiles are legal on large maps.
@@ -656,7 +656,7 @@ CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTi
 		CvPlot* pTestPlot = m.plotByIndexINLINE(i);
 		if(pTestPlot == NULL)
 			continue; // </advc.304>
-		if ((iArea == -1) || (pTestPlot->getArea() == iArea))
+		if (iArea == -1 || pTestPlot->getArea() == iArea)
 		{
 			bool bValid = true;
 
@@ -765,8 +765,8 @@ CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTi
 	}
 	//return pPlot;
 	int nLegal = (int)legalPlots.size();
-	if(legalCount != NULL)
-		*legalCount = nLegal;
+	if(iLegal != NULL)
+		*iLegal = nLegal;
     if(nLegal == 0)
         return NULL;
     return legalPlots[GC.getGame().getSorenRandNum(nLegal, "advc.304")];

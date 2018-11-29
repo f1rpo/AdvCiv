@@ -30,13 +30,13 @@ void CvGameAI::AI_init()
 	//--------------------------------
 	// Init other game data
 
-	sortOutWPAIOptions(false); // advc.104
+	AI_sortOutWPAIOptions(false); // advc.104
 }
 
 // <advc.104u>
 /*  Parts of the AI don't seem to get properly initialized in scenarios. Not
 	sure if this has always been the case, if it has to do with K-Mod changes to
-	the turn order (team turns vs. player turns) or is only a problem for UWAI. */
+	the turn order (team turns vs. player turns) or is a problem I introduced. */
 void CvGameAI::AI_initScenario() {
 
 	// Citizens not properly assigned
@@ -63,13 +63,12 @@ void CvGameAI::AI_initScenario() {
 	}
 } // </advc.104u>
 
-// <advc.104>
-WarAndPeaceAI& CvGameAI::warAndPeaceAI() {
-
-	return wpai;
-}
-
-void CvGameAI::sortOutWPAIOptions(bool fromSaveGame) {
+/*  <advc.104> I'm repurposing the Aggressive AI option so that it enables the
+	(legacy) war/peace behavior from K-Mod in addition to the option's normal effect.
+	A bit of a hack, but less invasive than changing all the
+	isOption(AGGRESSIVE_AI) checks. And I don't want two separate options because
+	the new war/peace AI implies Aggressive AI. */
+void CvGameAI::AI_sortOutWPAIOptions(bool bFromSaveGame) {
 
 	if(GC.getDefineINT("USE_KMOD_AI_NONAGGRESSIVE")) {
 		wpai.setUseKModAI(true);
@@ -82,17 +81,18 @@ void CvGameAI::sortOutWPAIOptions(bool fromSaveGame) {
 		return;
 	}
 	wpai.setInBackground(GC.getDefineINT("UWAI_IN_BACKGROUND") > 0);
-	if(fromSaveGame) {
+	if(bFromSaveGame) {
 		if(wpai.isEnabled() || wpai.isEnabled(true))
 			setOption(GAMEOPTION_AGGRESSIVE_AI, true);
 		return;
 	}
 	// If still not returned: settings according to Custom Game screen
-	bool useKModAI = isOption(GAMEOPTION_AGGRESSIVE_AI);
-	wpai.setUseKModAI(useKModAI);
-	if(!useKModAI)
+	bool bUseKModAI = isOption(GAMEOPTION_AGGRESSIVE_AI);
+	wpai.setUseKModAI(bUseKModAI);
+	if(!bUseKModAI)
 		setOption(GAMEOPTION_AGGRESSIVE_AI, true);
 } // </advc.104>
+
 
 void CvGameAI::AI_uninit()
 {
@@ -183,7 +183,7 @@ void CvGameAI::read(FDataStreamBase* pStream)
 	pStream->Read(&m_iPad);
 	// <advc.104>
 	wpai.read(pStream);
-	sortOutWPAIOptions(true);
+	AI_sortOutWPAIOptions(true);
 	// </advc.104>
 }
 

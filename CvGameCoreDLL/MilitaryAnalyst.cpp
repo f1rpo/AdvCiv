@@ -288,17 +288,18 @@ void MilitaryAnalyst::simulateNuclearWar() {
 	for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
 		CvPlayer const& target = GET_PLAYER(getWPAI.properCivs()[i]);
 		if(isWar(weId, target.getID())) {
-			double v = (GET_TEAM(target.getTeam()).isAVassal() ? 0.5 : 1);
+			double v = (target.isAVassal() ? 0.5 : 1);
 			ourTargets += v;
 		}
 	}
 	for(size_t j = 0; j < getWPAI.properCivs().size(); j++) {
 		// Can't call it "they" b/c that's what this class calls the primary war target
 		CvPlayerAI const& civ = GET_PLAYER(getWPAI.properCivs()[j]);
-		if(civ.getMasterTeam() == agent.getMasterTeam() || !isWar(weId, civ.getID()))
+		if(!isWar(weId, civ.getID()))
 			continue;
-		double civNukes = civ.warAndPeaceAI().getCache().getPowerValues()
-				[NUCLEAR]->num();
+		FAssert(civ.getMasterTeam() != agent.getMasterTeam());
+		double civNukes = civ.warAndPeaceAI().getCache().
+				getPowerValues()[NUCLEAR]->num();
 		if(ourNukes + civNukes < 0.5)
 			return;
 		// The AI is (much) more willing to fire nukes in total war than in limited war
@@ -313,7 +314,7 @@ void MilitaryAnalyst::simulateNuclearWar() {
 		if(warEvalParams.targetId() == civ.getTeam())
 			isTotal = warEvalParams.isTotal();
 		double portionFired = isTotal ? 0.75 : 0.25;
-		// Assume that vassals are hit by fewer nukes, and fire fewer nukes
+		// Assume that vassals are hit by fewer nukes, and fire fewer nukes.
 		double vassalFactorWe = 1;
 		if(agent.isAVassal())
 			vassalFactorWe = 0.5;
@@ -322,9 +323,9 @@ void MilitaryAnalyst::simulateNuclearWar() {
 			vassalFactorCiv = 0.5;
 		double civTargets = 0;
 		for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
-			CvPlayer const& vassal = GET_PLAYER(getWPAI.properCivs()[i]);
-			if(isWar(civ.getID(), vassal.getID())) {
-				double v = (GET_TEAM(vassal.getTeam()).isAVassal() ? 0.5 : 1);
+			CvPlayer const& target = GET_PLAYER(getWPAI.properCivs()[i]);
+			if(isWar(civ.getID(), target.getID())) {
+				double v = (target.isAVassal() ? 0.5 : 1);
 				civTargets += v;
 			}
 		}

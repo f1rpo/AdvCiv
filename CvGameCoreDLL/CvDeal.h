@@ -35,8 +35,7 @@ public:
 	bool isUncancelableVassalDeal(PlayerTypes eByPlayer, CvWString* pszReason = NULL) const;
 	DllExport static bool isVassalTributeDeal(const CLinkList<TradeData>* pList);
 	/*  advc.003: The above checks if pList contains only TRADE_RESSOURCE items;
-		I need a function that actually checks if this deal is a tribute deal
-		between a vassal and a master.  */
+		need a function that checks if this deal is a tribute deal between a vassal and a master. */
 	bool isVassalTributeDeal() const;
 	bool isDisengage() const; // advc.034
 	DllExport int getID() const;
@@ -49,7 +48,8 @@ public:
 	DllExport PlayerTypes getSecondPlayer() const;
 	// <advc.003>
 	bool isBetween(PlayerTypes civ1, PlayerTypes civ2) const;
-	bool isBetween(TeamTypes t1, TeamTypes t2) const; // </advc.003>
+	bool isBetween(TeamTypes t1, TeamTypes t2) const;
+	// </advc.003>
 	void clearFirstTrades();
 	void insertAtEndFirstTrades(TradeData trade);
 	DllExport CLLNode<TradeData>* nextFirstTradesNode(CLLNode<TradeData>* pNode) const;
@@ -65,10 +65,7 @@ public:
 	const CLinkList<TradeData>* getSecondTrades() const;
 
 	DllExport bool isCancelable(PlayerTypes eByPlayer = NO_PLAYER, CvWString* pszReason = NULL);
-	/*  advc.130f: Adding a bool param with default value to isCancelable leads to
-		a crash from the EXE when canceling a deal through the Trade Screen.
-		New function instead: */
-	bool isEverCancelable(PlayerTypes eByPlayer) const;
+	bool isEverCancelable(PlayerTypes eByPlayer) const; // advc.130f
 	DllExport int turnsToCancel(PlayerTypes eByPlayer = NO_PLAYER);
 
 	DllExport static bool isAnnual(TradeableItems eItem);

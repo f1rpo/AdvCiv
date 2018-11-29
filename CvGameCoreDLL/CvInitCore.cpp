@@ -1956,7 +1956,6 @@ void CvInitCore::read(FDataStreamBase* pStream)
 		m_abVictories = new bool[m_iNumVictories];
 		pStream->Read(m_iNumVictories, m_abVictories);
 	}
-
 	// <advc.912d>
 	if(uiSaveFlag <= 0)	{
 		pStream->Read(NUM_GAMEOPTION_TYPES - 2, m_abOptions);

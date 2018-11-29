@@ -42,20 +42,18 @@ class CvInfoBase;
 
 // <advc.003g> floating point utility
 inline int round(double d) { return (int)((d >= 0 ? 0.5 : -0.5) + d); }
-int roundToMultiple(double d, int modulus);
+int roundToMultiple(double d, int iModulus);
 bool bernoulliSuccess(double pr, char const* pszLog = ""); // 0 <= pr <= 1
-double median(std::vector<double>& distribution, bool sorted = false);
+double median(std::vector<double>& distribution, bool bSorted = false);
 double mean(std::vector<double>& distribution);
 double max(std::vector<double>& distribution);
 double min(std::vector<double>& distribution);
 // see e.g. wikipedia: "percentile rank"
 double percentileRank(std::vector<double>& distribution, double score,
-		bool sorted = false, bool isScorePartOfDistribution = true);
-	    // is the distribution sorted (ascending)?
-		/* is 'score' to be considered as a part of the distribution?
-		   if yes, the percentile rank is going to be positive.
-		   either way, the value of 'score' shouldn't be added to
-		   the distribution by the caller. */
+		bool bSorted = false, // Is the distribution sorted (ascending)?
+		bool bScorePartOfDistribution = true); /* Is 'score' to be considered as
+		an element of the distribution? If yes, the percentile rank is going to be
+		positive. Either way, the caller shouldn't include 'score' in the distribution. */
 // </advc.003g>
 // <advc.003>
 /*  Hash based on the components of x. Plot index of capital factored in for
@@ -69,8 +67,8 @@ float hash(long x, PlayerTypes civId = NO_PLAYER);
 	order. If the fat cross has fewer than 21 plots (edge of the map),
 	NULL entries will be included. */
 void fatCross(CvPlot const& p, std::vector<CvPlot*>& r);
-// </advc.003> // advc.035:
-void contestedPlots(std::vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2);
+// </advc.003>
+void contestedPlots(std::vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2); // advc.035
 // <advc.008e>
 bool isArticle(BuildingTypes bt);
 bool isArticle(ProjectTypes pt); // </advc.008e>

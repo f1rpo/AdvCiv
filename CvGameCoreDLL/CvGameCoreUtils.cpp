@@ -39,10 +39,10 @@
 // <advc.003g>
 using std::vector;
 
-int roundToMultiple(double d, int modulus) {
+int roundToMultiple(double d, int iModulus) {
 
-	int r = (int)(d + 0.5 * modulus);
-	return r - r % modulus;
+	int r = (int)(d + 0.5 * iModulus);
+	return r - r % iModulus;
 }
 
 bool bernoulliSuccess(double pr, char const* pszLog) {
@@ -58,10 +58,10 @@ bool bernoulliSuccess(double pr, char const* pszLog) {
     return GC.getGameINLINE().getSorenRandNum(10000, pszLog) < chancePerMyriad;
 }
 
-double median(vector<double>& distribution, bool sorted) {
+double median(vector<double>& distribution, bool bSorted) {
 
 	FAssert(!distribution.empty());
-	if(!sorted)
+	if(!bSorted)
 		std::sort(distribution.begin(), distribution.end());
 	int medianIndex = distribution.size() / 2;
 	if(distribution.size() % 2 != 0)
@@ -99,10 +99,10 @@ double min(vector<double>& distribution) {
 }
 
 double percentileRank(vector<double>& distribution, double score,
-		bool sorted, bool isScorePartOfDistribution) {
+		bool bSorted, bool bScorePartOfDistribution) {
   // default: false, true
 
-	if(!sorted)
+	if(!bSorted)
 		std::sort(distribution.begin(), distribution.end());
 	int n = (int)distribution.size();
 	int nLEq = 0; // less or equal
@@ -111,11 +111,12 @@ double percentileRank(vector<double>& distribution, double score,
 			nLEq++;
 		else break;
 	}
-	if(isScorePartOfDistribution) {
+	if(bScorePartOfDistribution) {
 		nLEq++;
 		n++;
 	}
-	else if(n == 0) return 1;
+	else if(n == 0)
+		return 1;
 	return nLEq / (double)n;
 } // </advc.003g>
 // <advc.003>
@@ -156,8 +157,7 @@ void fatCross(CvPlot const& p, vector<CvPlot*>& r) {
 	r.reserve(21);
 	for(int i = 0; i < 21; i++)
 		r.push_back(NULL);
-	// Perhaps better just r[0]=const_cast<CvPlot*>(&p)
-	r[0] = GC.getMapINLINE().plot(p.getX_INLINE(), p.getY_INLINE());
+	r[0] = const_cast<CvPlot*>(&p);
 	int pos = 1;
 	CvMap& map = GC.getMap();
 	for(int dx = -CITY_PLOTS_RADIUS; dx <= CITY_PLOTS_RADIUS; dx++) {
@@ -1559,8 +1559,9 @@ bool PUF_isMilitaryHappiness(const CvUnit* pUnit, int iData1, int iData2)
 }
 
 bool PUF_isInvestigate(const CvUnit* pUnit, int iData1, int iData2)
-{
-	if(pUnit->hasMoved()) return false; // advc.103
+{	// <advc.103>
+	if(pUnit->hasMoved())
+		return false; // </advc.103>
 	return pUnit->isInvestigate();
 }
 
@@ -1846,8 +1847,9 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 
 	TeamTypes eTeam = pSelectionGroup->getHeadTeam();
 	// <advc.035>
-	int const flipModifierDiv = 7;
-	int flipModifier = flipModifierDiv; // </advc.035>
+	int const iFlipModifierDiv = 7;
+	int iFlipModifier = iFlipModifierDiv;
+	// </advc.035>
 	// K-Mod
 	int iExploreModifier = 3; // (in thirds)
 	if (!pToPlot->isRevealed(eTeam, false))
@@ -1875,13 +1877,13 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 					(!GET_TEAM(eTeam).isFriendlyTerritory(TEAMID(secondOwner)) &&
 					!GET_TEAM(eTeam).isAtWar(TEAMID(secondOwner))) :
 					GET_TEAM(eTeam).AI_isSneakAttackReady(TEAMID(secondOwner))))
-				flipModifier++;
+				iFlipModifier++;
 			// Seek out enemy tiles that will flip to us upon DoW
 			if(TEAMID(secondOwner) == eTeam && (GET_TEAM(eTeam).isHuman() ?
 					(!GET_TEAM(eTeam).isFriendlyTerritory(TEAMID(firstOwner)) &&
 					!GET_TEAM(eTeam).isAtWar(TEAMID(firstOwner))) :
 					GET_TEAM(eTeam).AI_isSneakAttackReady(TEAMID(firstOwner))))
-				flipModifier--;
+				iFlipModifier--;
 			/*  This could be done much more accurately, taking into account
 				vassal agreements, defensive pacts, and going through the entire
 				selection group, but I worry about the performance, and it's OK
@@ -1905,7 +1907,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 
 			int iCost = PATH_MOVEMENT_WEIGHT * (iMovesLeft == 0 ? iMaxMoves : iMoveCost);
 			iCost = (iCost * iExploreModifier) / 3;
-			iCost = (iCost * flipModifier) / flipModifierDiv; // advc.035
+			iCost = (iCost * iFlipModifier) / iFlipModifierDiv; // advc.035
 			if (iCost > iWorstCost)
 			{
 				iWorstCost = iCost;

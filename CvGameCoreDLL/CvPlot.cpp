@@ -36,7 +36,7 @@
 /************************************************************************************************/
 
 #define STANDARD_MINIMAP_ALPHA		(0.75f) // advc.002a: was 0.6
-bool CvPlot::activeVisibility = true; // advc.706
+bool CvPlot::m_bAllFog = false; // advc.706
 
 // Public Functions...
 
@@ -244,8 +244,8 @@ void CvPlot::reset(int iX, int iY, bool bConstructorCall)
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
-	turnsBuildsInterrupted = -2; // advc.011: Meaning none in progress
-	mostRecentCityName = ""; // advc.005c
+	m_iTurnsBuildsInterrupted = -2; // advc.011: Meaning none in progress
+	m_szMostRecentCityName = ""; // advc.005c
 	int m_iTotalCulture = 0; // advc.003b
 }
 
@@ -760,10 +760,9 @@ void CvPlot::updateMinimapColor()
 		return;
 	}
 	// <advc.002a>
-	int const mwm = GC.getGameINLINE().getMinimapWaterMode();
+	int const mwm = GC.getMINIMAP_WATER_MODE();
 	if(mwm == 3 && isWater())
-		return;
-	// </advc.002a>
+		return; // </advc.002a>
 	gDLL->getInterfaceIFace()->setMinimapColor(MINIMAPMODE_TERRITORY, getX_INLINE(), getY_INLINE(), plotMinimapColor(), STANDARD_MINIMAP_ALPHA
 			/ ((isWater() && mwm != 4) ? 2.3f : 1.f)); // advc.002a
 }
@@ -3339,9 +3338,8 @@ void CvPlot::invalidateBorderDangerCache()
 // K-Mod end
 
 PlayerTypes CvPlot::calculateCulturalOwner(
-	bool ignoreCultureRange, // advc.099c
-	bool ownExclusiveRadius // advc.035
-	) const
+		bool bIgnoreCultureRange, // advc.099c
+		bool bOwnExclusiveRadius) const // advc.035
 {
 	PROFILE("CvPlot::calculateCulturalOwner()")
 
@@ -3369,7 +3367,7 @@ PlayerTypes CvPlot::calculateCulturalOwner(
 	// <advc.035>
 	bool inCityRadius[MAX_PLAYERS];
 	bool anyCityRadius = false;
-	if(ownExclusiveRadius) {
+	if(bOwnExclusiveRadius) {
 		for(int i = 0; i < MAX_PLAYERS; i++)
 			inCityRadius[i] = false;
 		std::vector<CvPlot*> cross;
@@ -3392,18 +3390,16 @@ PlayerTypes CvPlot::calculateCulturalOwner(
 
 	for (iI = 0; iI < MAX_PLAYERS; ++iI)
 	{	// <advc.035>
-		if(ownExclusiveRadius && anyCityRadius && !inCityRadius[iI])
+		if(bOwnExclusiveRadius && anyCityRadius && !inCityRadius[iI])
 			continue; // </advc.035>
-		if (GET_PLAYER((PlayerTypes)iI).isAlive()
-			|| ignoreCultureRange // advc.099c
-			)
+		if(GET_PLAYER((PlayerTypes)iI).isAlive()
+				|| bIgnoreCultureRange) // advc.099c
 		{
 			iCulture = getCulture((PlayerTypes)iI);
 
 			if (iCulture > 0)
 			{
-				if (
-					ignoreCultureRange || // advc.099c
+				if (bIgnoreCultureRange || // advc.099c
 					isWithinCultureRange((PlayerTypes)iI))
 				{
 					if ((iCulture > iBestCulture) || ((iCulture == iBestCulture) && (getOwnerINLINE() == iI)))
@@ -3435,10 +3431,9 @@ PlayerTypes CvPlot::calculateCulturalOwner(
 					continue;
 				if(getCulture(pLoopCity->getOwnerINLINE()) <= 0)
 					continue;
-				if (!ignoreCultureRange && /* advc.099c: 099c cares only for
-											 city tile culture, but for consistency,
-											 I'm also implementing the ignoreCultureRange
-											 switch for non-city tiles. */
+				if (!bIgnoreCultureRange && /* advc.099c: 099c cares only about
+						city tile culture, but for consistency, I'm also implementing
+						the IgnoreCultureRange switch for non-city tiles. */
 						!isWithinCultureRange(pLoopCity->getOwnerINLINE()))
 					continue;
 				// </advc.003>
@@ -3639,13 +3634,13 @@ void CvPlot::getAdjacentLandAreaIds(std::set<int>& r) const {
 
 
 /*  Mostly cut-and-pasted from CvMap::syncRandPlot b/c now also used in
-	Shelf::randPlot. Now ignores barbarian units. */
-bool CvPlot::isCivUnitNearby(int radius) const {
+	Shelf::randPlot. Now ignores Barbarian units. */
+bool CvPlot::isCivUnitNearby(int iRadius) const {
 
-	if(radius < 0)
+	if(iRadius < 0)
 		return false;
-	for(int deltaX = -(radius); deltaX <= radius; deltaX++) {
-		for(int deltaY = -(radius); deltaY <= radius; deltaY++) {
+	for(int deltaX = -iRadius; deltaX <= iRadius; deltaX++) {
+		for(int deltaY = -iRadius; deltaY <= iRadius; deltaY++) {
 			CvPlot* plot = plotXY(getX_INLINE(), getY_INLINE(), deltaX, deltaY);
 			if(plot != NULL && plot->isUnit()) {
 				CvUnit* anyUnit = plot->plotCheck(PUF_isVisible, BARBARIAN_PLAYER);
@@ -3659,7 +3654,7 @@ bool CvPlot::isCivUnitNearby(int radius) const {
 	return false;
 }
 
-CvPlot const* CvPlot::nearestInvisiblePlot(bool onlyLand, int maxPlotDist,
+CvPlot const* CvPlot::nearestInvisiblePlot(bool bOnlyLand, int iMaxPlotDist,
 		TeamTypes observer) const {
 
 	if(!isVisible(observer, false))
@@ -3667,15 +3662,15 @@ CvPlot const* CvPlot::nearestInvisiblePlot(bool onlyLand, int maxPlotDist,
 	CvPlot* r = NULL;
 	CvMap const& m = GC.getMapINLINE();
 	//  Process plots in a spiral pattern (for performance reasons)
-	for(int d = 1; d <= maxPlotDist; d++) {
-		int shortestDist = maxPlotDist + 1;
+	for(int d = 1; d <= iMaxPlotDist; d++) {
+		int shortestDist = iMaxPlotDist + 1;
 		for(int dx = -d; dx <= d; dx++) {
 			for(int dy = -d; dy <= d; dy++) {
 				// Don't process plots repeatedly:
 				if(::abs(dx) < d && ::abs(dy) < d) continue;
 				CvPlot* pp = m.plot(getX_INLINE() + dx, getY_INLINE() + dy);
 				if(pp == NULL) continue; CvPlot const& p = *pp;
-				if(p.isVisible(observer, false) || (onlyLand && p.isWater()) ||
+				if(p.isVisible(observer, false) || (bOnlyLand && p.isWater()) ||
 						(p.isOwned() && p.getOwnerINLINE() != BARBARIAN_PLAYER))
 					continue;
 				int plotDist = ::plotDistance(pp, this);
@@ -3694,7 +3689,7 @@ CvPlot const* CvPlot::nearestInvisiblePlot(bool onlyLand, int maxPlotDist,
 
 bool CvPlot::isActiveVisible(bool bDebug) const
 {	// <advc.706>
-	if(!activeVisibility)
+	if(m_bAllFog)
 		return false; // </advc.706>
 	return isVisible(GC.getGameINLINE().getActiveTeam(), bDebug); 
 }
@@ -3720,6 +3715,17 @@ bool CvPlot::isVisibleToCivTeam() const
 
 	return false;
 }
+
+// <advc.706>
+bool CvPlot::isAllFog() {
+
+	return m_bAllFog;
+}
+
+void CvPlot::setAllFog(bool b) {
+
+	m_bAllFog = b;
+} // </advc.706>
 
 
 bool CvPlot::isVisibleToWatchingHuman() const
@@ -5440,7 +5446,7 @@ bool CvPlot::isContestedByRival(PlayerTypes rivalId) const {
 		if(firstOwner == rivalId) // No longer contested; they own it.
 			return false;
 		int totalCulture = getTotalCulture();
-		double exclWeight = GET_PLAYER(firstOwner).exclusiveRadiusWeight();
+		double exclWeight = GET_PLAYER(firstOwner).AI_exclusiveRadiusWeight();
 		int ourCulture = getCulture(firstOwner);
 		// Just for efficiency
 		if(ourCulture * exclWeight >= 0.5 * totalCulture)
@@ -5457,7 +5463,7 @@ bool CvPlot::isContestedByRival(PlayerTypes rivalId) const {
 				continue;
 			int dist = exclusiveRadius(pl.getID());
 			if(dist >= 0 && getCulture(pl.getID()) >=
-					ourCulture * pl.exclusiveRadiusWeight(dist))
+					ourCulture * pl.AI_exclusiveRadiusWeight(dist))
 				return true;
 		}
 		return false;
@@ -6344,9 +6350,13 @@ void CvPlot::setPlotCity(CvCity* pNewValue)
 
 // <advc.005c>
 void CvPlot::setRuinsName(const CvWString& name) {
-	mostRecentCityName = name;
-} const wchar* CvPlot::getRuinsName() const {
-	return mostRecentCityName;
+
+	m_szMostRecentCityName = name;
+}
+
+const wchar* CvPlot::getRuinsName() const {
+
+	return m_szMostRecentCityName;
 } // </advc.005c>
 
 CvCity* CvPlot::getWorkingCity() const
@@ -6530,23 +6540,23 @@ void CvPlot::changeRiverCrossingCount(int iChange)
 }
 
 
-bool CvPlot::isHabitable(bool ignoreSea) const {
+bool CvPlot::isHabitable(bool bIgnoreSea) const {
 
 	if(getYield(YIELD_FOOD) == 0)
 		return false;
 	if(!isWater() || isLake())
 		return true;
-	if(ignoreSea)
+	if(bIgnoreSea)
 		return false;
 	// Count shelf as habitable, but not arctic shelf or adj. only to one land corner
-	int nAdjHabitableLand = 0;
+	int iAdjHabitableLand = 0;
 	for(int i = 0; i < GC.getNumDirections(); i++) {
 		DirectionTypes dir = (DirectionTypes)i;
 		CvPlot* adjP = plotDirection(getX_INLINE(), getY_INLINE(), dir);
 		if(adjP == NULL) continue; CvPlot const& adj = *adjP;
 		if(adj.isHabitable(true))
-			nAdjHabitableLand++;
-		if(nAdjHabitableLand >= 2)
+			iAdjHabitableLand++;
+		if(iAdjHabitableLand >= 2)
 			return true;
 	}
 	return false;
@@ -8108,24 +8118,19 @@ void CvPlot::setRevealed(TeamTypes eTeam, bool bNewValue, bool bTerrainOnly, Tea
 	}
 }
 
-bool CvPlot::isAdjacentRevealed(TeamTypes eTeam
-	, bool skipOcean  // advc.205c
-	) const
+bool CvPlot::isAdjacentRevealed(TeamTypes eTeam,
+		bool bSkipOcean) const  // advc.205c
 {
-	CvPlot* pAdjacentPlot;
-	int iI;
-
-	for (iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
 	{
-		pAdjacentPlot = plotDirection(getX_INLINE(), getY_INLINE(), ((DirectionTypes)iI));
+		CvPlot* pAdjacentPlot = plotDirection(getX_INLINE(), getY_INLINE(), ((DirectionTypes)iI));
 
 		if (pAdjacentPlot != NULL)
 		{
 			if (pAdjacentPlot->isRevealed(eTeam, false)
 				// <advc.250c>
-				&& (!skipOcean || pAdjacentPlot->getTerrainType() !=
-				(TerrainTypes)GC.getDefineINT("DEEP_WATER_TERRAIN")) // </advc.250c>
-				)
+				&& (!bSkipOcean || pAdjacentPlot->getTerrainType() !=
+				(TerrainTypes)GC.getDefineINT("DEEP_WATER_TERRAIN"))) // </advc.250c>
 			{
 				return true;
 			}
@@ -8290,7 +8295,7 @@ bool CvPlot::changeBuildProgress(BuildTypes eBuild, int iChange, TeamTypes eTeam
 		FAssert(getBuildProgress(eBuild) >= 0);
 		/*  advc.011: Meaning that the interruption timer is reset, and starts
 			counting again next turn. */
-		turnsBuildsInterrupted = -1;
+		m_iTurnsBuildsInterrupted = -1;
 
 		if (getBuildProgress(eBuild) >= getBuildTime(eBuild))
 		{
@@ -8339,22 +8344,24 @@ bool CvPlot::changeBuildProgress(BuildTypes eBuild, int iChange, TeamTypes eTeam
 // <advc.011>
 void CvPlot::decayBuildProgress() {
 
-	int delay = GC.getGameINLINE().getDelayUntilBuildDecay();
-	if(turnsBuildsInterrupted > -2 && turnsBuildsInterrupted < delay)
-		turnsBuildsInterrupted++;
-	if(turnsBuildsInterrupted < delay)
+	int iDelay = GC.getDELAY_UNTIL_BUILD_DECAY();
+	if(m_iTurnsBuildsInterrupted > -2 && m_iTurnsBuildsInterrupted < iDelay)
+		m_iTurnsBuildsInterrupted++;
+	if(m_iTurnsBuildsInterrupted < iDelay)
 		return;
-	bool anyInProgress = false;
+	bool bAnyInProgress = false;
 	for(int i = 0; i < GC.getNumBuildInfos(); i++) {
 		if(m_paiBuildProgress[i] > 0) {
 			m_paiBuildProgress[i]--;
-			if(m_paiBuildProgress[i] > 0)
-				anyInProgress = true;
+			if(m_paiBuildProgress[i] > 0) {
+				bAnyInProgress = true;
+				break;
+			}
 		}
 	}
 	// Suspend decay (just for better performance)
-	if(!anyInProgress)
-		turnsBuildsInterrupted = -2;
+	if(!bAnyInProgress)
+		m_iTurnsBuildsInterrupted = -2;
 } // </advc.011>
 
 void CvPlot::updateFeatureSymbolVisibility()
@@ -9404,7 +9411,7 @@ ColorTypes CvPlot::plotMinimapColor()
 
 		if (isActiveVisible(true)
 				// advc.002a
-				&& GC.getGameINLINE().getMinimapWaterMode() != 6)
+				&& GC.getMINIMAP_WATER_MODE() != 6)
 		{
 			pCenterUnit = getDebugCenterUnit();
 
@@ -9620,8 +9627,8 @@ void CvPlot::read(FDataStreamBase* pStream)
 		m_paiBuildProgress = new short[iCount];
 		pStream->Read(iCount, m_paiBuildProgress);
 	}
-	pStream->Read(&turnsBuildsInterrupted); // advc.011
-	pStream->ReadString(mostRecentCityName); // advc.005c
+	pStream->Read(&m_iTurnsBuildsInterrupted); // advc.011
+	pStream->ReadString(m_szMostRecentCityName); // advc.005c
 	// <advc.003b>
 	if(uiFlag >= 2)
 		pStream->Read(&m_iTotalCulture);
@@ -9878,8 +9885,8 @@ void CvPlot::write(FDataStreamBase* pStream)
 		pStream->Write((int)GC.getNumBuildInfos());
 		pStream->Write(GC.getNumBuildInfos(), m_paiBuildProgress);
 	}
-	pStream->Write(turnsBuildsInterrupted); // advc.011
-	pStream->WriteString(mostRecentCityName); // advc.005c
+	pStream->Write(m_iTurnsBuildsInterrupted); // advc.011
+	pStream->WriteString(m_szMostRecentCityName); // advc.005c
 	pStream->Write(m_iTotalCulture); // advc.003b
 
 	if (NULL == m_apaiCultureRangeCities)
@@ -10526,7 +10533,7 @@ void CvPlot::applyEvent(EventTypes eEvent)
 }
 
 bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
-		bool checkAirUnitCap, // advc.001b
+		bool bCheckAirUnitCap, // advc.001b
 		BonusTypes eAssumeAvailable) const // advc.001u
 {
 	PROFILE_FUNC(); // advc.003b
@@ -10730,7 +10737,7 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 	}
 
 	// <advc.001b> Enforce air unit cap
-	if(checkAirUnitCap && !bTestVisible && GC.getUnitInfo(eUnit).getAirUnitCap() > 0 &&
+	if(bCheckAirUnitCap && !bTestVisible && GC.getUnitInfo(eUnit).getAirUnitCap() > 0 &&
 			airUnitSpaceAvailable(getTeam()) < 1)
 		return false; // </advc.001b>
 

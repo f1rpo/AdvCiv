@@ -451,13 +451,9 @@ void CvGameTextMgr::setEspionageMissionHelp(CvWStringBuffer &szBuffer, const CvU
 }
 
 
-void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit, bool bOneLine, bool bShort)
-{	// <advc.048>
-	setUnitHelpBulk(szString, pUnit, bOneLine, bShort, false);
-}
-
-void CvGameTextMgr::setUnitHelpBulk(CvWStringBuffer &szString, const CvUnit* pUnit,
-		bool bOneLine, bool bShort, bool bColorHostile) { // </advc.048>
+void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
+		bool bOneLine, bool bShort,
+		bool bColorHostile) { // advc.048
 
 	PROFILE_FUNC();
 
@@ -3588,7 +3584,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 		// <advc.048>
 		if(iLengthSelectionList > 1) {
 			szString.append(NEWLINE);
-			setUnitHelpBulk(szString, pAttacker, true, true, true);
+			setUnitHelp(szString, pAttacker, true, true, true);
 		} // </advc.048>
 
 		szOffenseOdds.Format(L"%.2f", ((pAttacker->getDomainType() == DOMAIN_AIR) ? pAttacker->airCurrCombatStrFloat(pDefender) : pAttacker->currCombatStrFloat(NULL, NULL)));
@@ -3683,7 +3679,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 		szString.append(NEWLINE);
 		szString.append(gDLL->getText("TXT_KEY_MISC_VS"));
 		szString.append(L' ');
-		setUnitHelpBulk(szString, pDefender, true, true, true);
+		setUnitHelp(szString, pDefender, true, true, true);
 		// Commented out: </advc.048>
 		/*if (pDefender->isHurt())
 		{
@@ -4697,7 +4693,7 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 		tmp=a->calculateTotalBestNatureYield();total+=tmp;szTempBuffer.Format(L"\nTotalBestNatureYield: %d", tmp); szString.append(szTempBuffer);
 		tmp=a->countCoastalLand() * 2;szTempBuffer.Format(L"\n(CoastalLand*2: %d)", tmp); szString.append(szTempBuffer);
 		tmp=a->getNumRiverEdges();szTempBuffer.Format(L"\n(RiverEdges: %d)", tmp); szString.append(szTempBuffer);
-		tmp=GET_PLAYER(activePl).coastRiverStartingAreaScore(a);total+=tmp;szTempBuffer.Format(L"\nCoastRiverScore: %d", tmp); szString.append(szTempBuffer);
+		tmp=GET_PLAYER(activePl).coastRiverStartingAreaScore(*a);total+=tmp;szTempBuffer.Format(L"\nCoastRiverScore: %d", tmp); szString.append(szTempBuffer);
 		tmp=a->getNumTiles()/2;total+=tmp;szTempBuffer.Format(L"\nTiles*0.5: %d", tmp); szString.append(szTempBuffer);
 		tmp=::round(a->getNumTotalBonuses() * 1.5);total+=tmp;szTempBuffer.Format(L"\nBonuses*1.5: %d", tmp); szString.append(szTempBuffer);
 		tmp=100*::round(std::min(NUM_CITY_PLOTS + 1, a->getNumTiles() + 1)/ (NUM_CITY_PLOTS + 1.0));total+=tmp;szTempBuffer.Format(L"\nTilePercent: %d", tmp); szString.append(szTempBuffer);
@@ -4990,7 +4986,7 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 			int iUnitCostPercentage = (iUnitCost * 100) / std::max(1, iTotalCosts);
 			szString.append(CvWString::format(L"\nUnit cost percentage: %d (%d / %d)", iUnitCostPercentage, iUnitCost, iTotalCosts)); */
 			// K-Mod
-			int iBuildUnitProb = static_cast<CvCityAI*>(pCity)->AI_buildUnitProb();
+			int iBuildUnitProb = pCity->AI().AI_buildUnitProb(); // advc.003 (cast)
 			szString.append(CvWString::format(L"\nUnit Cost: %d (max: %d)",
 					kCityOwner.AI_unitCostPerMil(), kCityOwner.AI_maxUnitCostPerMil(pCity->area(), iBuildUnitProb)));
 			// K-Mod end
@@ -5013,7 +5009,7 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 
 				//
 				szString.append(CvWString::format(L"\nBuild unit prob: %d%%", iBuildUnitProb));
-				BuildingTypes eBestBuilding = static_cast<CvCityAI*>(pCity)->AI_bestBuildingThreshold(0, 0, 0, true);
+				BuildingTypes eBestBuilding = pCity->AI().AI_bestBuildingThreshold(0, 0, 0, true); // advc.003 (cast)
 				int iBestBuildingValue = (eBestBuilding == NO_BUILDING) ? 0 : pCity->AI_buildingValue(eBestBuilding, 0, 0, true);
 
 				// Note. cf. adjustments made in AI_chooseProduction
@@ -5323,12 +5319,12 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftAltOnly(CvWStringBuffer& szString, CvP
 	if (pCity != NULL)
 	{
 		// some functions we want to call are not in CvCity, worse some are protected, so made us a friend
-		CvCityAI* pCityAI = static_cast<CvCityAI*>(pCity);
+		CvCityAI const& kCityAI = pCity->AI(); // advc.003
 		// advc.003:
 		CvPlayerAI const& kCityOwner = GET_PLAYER(pCity->getOwnerINLINE());
-		//bool bAvoidGrowth = pCity->AI_avoidGrowth();
-		//bool bIgnoreGrowth = pCityAI->AI_ignoreGrowth();
-		int iGrowthValue = pCityAI->AI_growthValuePerFood();
+		//bool bAvoidGrowth = kCity.AI_avoidGrowth();
+		//bool bIgnoreGrowth = kCityAI.AI_ignoreGrowth();
+		int iGrowthValue = kCityAI.AI_growthValuePerFood();
 
 		// if we over the city, then do an array of all the plots
 		if (kPlot.getPlotCity() != NULL)
@@ -5423,7 +5419,7 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftAltOnly(CvWStringBuffer& szString, CvP
 					szString.append(CvWString::format(L": (%d/%d) ", iSpecialistCount, iMaxThisSpecialist));
 
 					// add value
-					int iValue = pCityAI->AI_specialistValue((SpecialistTypes)iI, bUsingSpecialist, false, iGrowthValue);
+					int iValue = kCityAI.AI_specialistValue((SpecialistTypes)iI, bUsingSpecialist, false, iGrowthValue);
 					setYieldValueString(szString, iValue, bUsingSpecialist);
 				}
 			}
@@ -5440,9 +5436,9 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftAltOnly(CvWStringBuffer& szString, CvP
 				
 				szString.append(CvWString::format(L"\nCity yield mults: (f%d, h%d, c%d)", iFood, iHammer, iCommerce));
 				
-				iFood = pCityAI->AI_specialYieldMultiplier(YIELD_FOOD);
-				iHammer = pCityAI->AI_specialYieldMultiplier(YIELD_PRODUCTION);
-				iCommerce = pCityAI->AI_specialYieldMultiplier(YIELD_COMMERCE);
+				iFood = kCityAI.AI_specialYieldMultiplier(YIELD_FOOD);
+				iHammer = kCityAI.AI_specialYieldMultiplier(YIELD_PRODUCTION);
+				iCommerce = kCityAI.AI_specialYieldMultiplier(YIELD_COMMERCE);
 				
 				szString.append(CvWString::format(L"\nCity spec mults:  (f%d, h%d, c%d)", iFood, iHammer, iCommerce)); */
 				
@@ -5459,7 +5455,7 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftAltOnly(CvWStringBuffer& szString, CvP
 
 				szString.append(L"\nCity spec mults:  (");
 				for (YieldTypes i = (YieldTypes)0; i < NUM_YIELD_TYPES; i = (YieldTypes)(i+1))
-					szString.append(CvWString::format(L"%s%d%c", i == 0 ? L"" : L", ", pCityAI->AI_specialYieldMultiplier(i), GC.getYieldInfo(i).getChar()));
+					szString.append(CvWString::format(L"%s%d%c", i == 0 ? L"" : L", ", kCityAI.AI_specialYieldMultiplier(i), GC.getYieldInfo(i).getChar()));
 				szString.append(L")");
 				szString.append(CvWString::format(L"\nCity weights: ("));
 				for (CommerceTypes i = (CommerceTypes)0; i < NUM_COMMERCE_TYPES; i=(CommerceTypes)(i+1))
@@ -5507,9 +5503,9 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftAltOnly(CvWStringBuffer& szString, CvP
 				szTempBuffer.Format( SETCOLR L"%s not working" ENDCOLR, TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), pCity->getName().GetCString());
 			szString.append(szTempBuffer);
 
-			int iValue = pCityAI->AI_plotValue(&kPlot, bWorkingPlot, false, false, iGrowthValue);
-			int iRawValue = pCityAI->AI_plotValue(&kPlot, bWorkingPlot, true, false, iGrowthValue);
-			int iMagicValue = pCityAI->AI_getPlotMagicValue(kPlot, pCityAI->healthRate() == 0);
+			int iValue = kCityAI.AI_plotValue(&kPlot, bWorkingPlot, false, false, iGrowthValue);
+			int iRawValue = kCityAI.AI_plotValue(&kPlot, bWorkingPlot, true, false, iGrowthValue);
+			int iMagicValue = kCityAI.AI_getPlotMagicValue(kPlot, kCityAI.healthRate() == 0);
 
 			szTempBuffer.Format(L"\nvalue = %d\nraw value = %d\nmagic value = %d", iValue, iRawValue, iMagicValue);
 			szString.append(szTempBuffer);
@@ -5572,10 +5568,10 @@ void CvGameTextMgr::setCityPlotYieldValueString(CvWStringBuffer &szString, CvCit
 
 	if (pPlot != NULL && pPlot->getWorkingCity() == pCity)
 	{
-		CvCityAI* pCityAI = static_cast<CvCityAI*>(pCity);
+		CvCityAI const& kCityAI = pCity->AI(); // advc.003
 		bool bWorkingPlot = pCity->isWorkingPlot(iIndex);
 
-		int iValue = pCityAI->AI_plotValue(pPlot, bWorkingPlot, bIgnoreFood, false, iGrowthValue);
+		int iValue = kCityAI.AI_plotValue(pPlot, bWorkingPlot, bIgnoreFood, false, iGrowthValue);
 		
 		setYieldValueString(szString, iValue, /*bActive*/ bWorkingPlot);
 	}
@@ -11716,7 +11712,7 @@ void CvGameTextMgr::setProjectHelp(CvWStringBuffer &szBuffer, ProjectTypes eProj
 		int iValue = pCity->AI_projectValue(eProject);
 		szBuffer.append(CvWString::format(L"\nProject Value (base) = %d", iValue));
 
-		ProjectTypes eBestProject = ((CvCityAI*)pCity)->AI_bestProject(&iValue,
+		ProjectTypes eBestProject = pCity->AI().AI_bestProject(&iValue, // advc.003
 				true); // advc.001n
 		if (eBestProject == eProject)
 		{
@@ -14938,11 +14934,6 @@ void CvGameTextMgr::getEspionageString(CvWStringBuffer& szBuffer, PlayerTypes eP
 	}
 }
 
-// <advc.004w>
-void CvGameTextMgr::getTradeString(CvWStringBuffer& szBuffer, const TradeData& tradeData, PlayerTypes ePlayer1, PlayerTypes ePlayer2) {
-
-	return getTradeString(szBuffer, tradeData, ePlayer1, ePlayer2, -1);
-} // </advc.004w>
 
 void CvGameTextMgr::getTradeString(CvWStringBuffer& szBuffer, const TradeData& tradeData, PlayerTypes ePlayer1, PlayerTypes ePlayer2,
 		int turnsToCancel) // advc.004w

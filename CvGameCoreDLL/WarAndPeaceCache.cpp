@@ -1812,7 +1812,7 @@ void WarAndPeaceCache::City::updateAssetScore() {
 		maintenance.*/
 	CvPlayerAI& cacheOwner = GET_PLAYER(cacheOwnerId);
 	CvTeam& t = TEAMREF(cacheOwnerId);
-	double r = cacheOwner.cityWonderVal(c);
+	double r = cacheOwner.AI_cityWonderVal(c);
 	r += 1.4 * cacheOwner.getTradeRoutes();
 	PlayerTypes cityOwnerId = c.getOwnerINLINE();
 	/*  If we already own the city, then the score says how much we don't want
@@ -1882,7 +1882,7 @@ void WarAndPeaceCache::City::updateAssetScore() {
 			inner ring, and increase it based on the weight for the outer ring. */
 		if(::plotDistance(pp, c.plot()) == 1) {
 			double exclMult = 1 + 0.5 * GET_PLAYER(cityOwnerId).
-					exclusiveRadiusWeight(2);
+					AI_exclusiveRadiusWeight(2);
 			cultureModifier = std::min(1.0, cultureModifier * exclMult);
 		} // </advc.099b>
 		r += baseTileScore * cultureModifier;

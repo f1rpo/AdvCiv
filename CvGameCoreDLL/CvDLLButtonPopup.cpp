@@ -912,7 +912,7 @@ bool CvDLLButtonPopup::launchButtonPopup(CvPopup* pPopup, CvPopupInfo &info)
 			return GC.getGameINLINE().getRiseFall().launchCivSelectionPopup(pPopup, info);
 		if(bpt == BUTTONPOPUP_RF_DEFEAT)
 			return GC.getGameINLINE().getRiseFall().launchDefeatPopup(pPopup, info);
-		if(!CvPlot::activeVisibility)
+		if(CvPlot::isAllFog())
 			return false;
 		/*  The EXE launches these popups after human takeover; afterwards(?),
 			the AI makes a choice, and the popup is killed once the player clicks
@@ -1787,7 +1787,7 @@ bool CvDLLButtonPopup::launchDeclareWarMovePopup(CvPopup* pPopup, CvPopupInfo &i
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 		CvPlayerAI const& aiCiv = GET_PLAYER((PlayerTypes)i);
 		if(!aiCiv.isHuman() && activeTeam.isHasMet(aiCiv.getTeam()) &&
-				aiCiv.disapprovesOfDoW(activeTeam.getID(), eRivalTeam))
+				aiCiv.AI_disapprovesOfDoW(activeTeam.getID(), eRivalTeam))
 			disapproving.push_back(aiCiv.getID());
 	}
 	if(!disapproving.empty()) {

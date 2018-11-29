@@ -409,7 +409,7 @@ void CvUnit::reset(int iID, UnitTypes eUnit, PlayerTypes eOwner, bool bConstruct
 
 	m_szName.clear();
 	m_szScriptData ="";
-	initiallyVisible = true; // advc.102
+	m_bInitiallyVisible = true; // advc.102
 	m_iLastReconTurn = -1; // advc.029
 
 	if (!bConstructorCall)
@@ -1663,7 +1663,7 @@ void CvUnit::updateCombat(bool bQuick)
 						plotMasterId != GET_TEAM(getTeam()).getMasterTeam() &&
 						(isBarbarian() || m_pUnitInfo->isHiddenNationality() ||
 						GET_TEAM(getTeam()).isAtWar(pPlot->getTeam())))
-					TEAMREF(plotOwner).reportSharedWarSuccess(
+					TEAMREF(plotOwner).AI_reportSharedWarSuccess(
 							ws, pDefender->getTeam(), getTeam(), true);
 				// Same for the owner of the dead unit
 				if(plotMasterId != GET_TEAM(pDefender->getTeam()).getMasterTeam() &&
@@ -1671,7 +1671,7 @@ void CvUnit::updateCombat(bool bQuick)
 						(pDefender->isBarbarian() ||
 						pDefender->m_pUnitInfo->isHiddenNationality() ||
 						GET_TEAM(pDefender->getTeam()).isAtWar(pPlot->getTeam())))
-					TEAMREF(plotOwner).reportSharedWarSuccess(
+					TEAMREF(plotOwner).AI_reportSharedWarSuccess(
 							ws, getTeam(), pDefender->getTeam(), true);
 			} // <advc.130m>
 
@@ -1720,14 +1720,14 @@ void CvUnit::updateCombat(bool bQuick)
 						plotMasterId != GET_TEAM(getTeam()).getMasterTeam() &&
 						(isBarbarian() || m_pUnitInfo->isHiddenNationality() ||
 						GET_TEAM(getTeam()).isAtWar(pPlot->getTeam())))
-					TEAMREF(plotOwner).reportSharedWarSuccess(
+					TEAMREF(plotOwner).AI_reportSharedWarSuccess(
 							ws, pDefender->getTeam(), getTeam(), true);
 				if(plotMasterId != GET_TEAM(pDefender->getTeam()).getMasterTeam() &&
 						plotMasterId != GET_TEAM(getTeam()).getMasterTeam() &&
 						(pDefender->isBarbarian() ||
 						pDefender->m_pUnitInfo->isHiddenNationality() ||
 						GET_TEAM(pDefender->getTeam()).isAtWar(pPlot->getTeam())))
-					TEAMREF(plotOwner).reportSharedWarSuccess(
+					TEAMREF(plotOwner).AI_reportSharedWarSuccess(
 							ws, getTeam(), pDefender->getTeam(), true);
 			} // <advc.130m>
 
@@ -3637,13 +3637,13 @@ void CvUnit::gift(bool bTestTransport)
 		{
 			iGiftValue /= 2;
 		}
-		kRecievingPlayer.AI_changePeacetimeGrantValue(eOwner, iGiftValue);
+		kRecievingPlayer.AI_processPeacetimeGrantValue(eOwner, iGiftValue);
 		// TODO: It would nice if there was some way this could also reduce "you refused to help us during war time", and stuff like that.
 		//       But I think that would probably require some additional AI memory.
 	}
 	else
 	{
-		kRecievingPlayer.AI_changePeacetimeGrantValue(eOwner, pGiftUnit->getUnitInfo().getProductionCost() / 2);
+		kRecievingPlayer.AI_processPeacetimeGrantValue(eOwner, pGiftUnit->getUnitInfo().getProductionCost() / 2);
 	}
 	// K-Mod end
 
@@ -3655,9 +3655,8 @@ void CvUnit::gift(bool bTestTransport)
 }
 
 
-bool CvUnit::canLoadUnit(const CvUnit* pUnit, const CvPlot* pPlot
-	, bool checkMoves // advc.123c
-	) const
+bool CvUnit::canLoadUnit(const CvUnit* pUnit, const CvPlot* pPlot,
+		bool bCheckMoves) const // advc.123c
 {
 	FAssert(pUnit != NULL);
 	FAssert(pPlot != NULL);
@@ -3696,12 +3695,12 @@ bool CvUnit::canLoadUnit(const CvUnit* pUnit, const CvPlot* pPlot
 		return false;
 	}
 
-	if (!(pUnit->cargoSpaceAvailable(getSpecialUnitType(), getDomainType())))
+	if (!pUnit->cargoSpaceAvailable(getSpecialUnitType(), getDomainType()))
 	{
 		return false;
 	}
 
-	if (!(pUnit->atPlot(pPlot)))
+	if (!pUnit->atPlot(pPlot))
 	{
 		return false;
 	}
@@ -3720,9 +3719,8 @@ bool CvUnit::canLoadUnit(const CvUnit* pUnit, const CvPlot* pPlot
 				return false;
 			}
 		}
-	}
-	// <advc.123c>
-	if(checkMoves && getDomainType() != DOMAIN_AIR && movesLeft() <= 0)
+	} // <advc.123c>
+	if(bCheckMoves && getDomainType() != DOMAIN_AIR && movesLeft() <= 0)
 		return false; // </advc.123>
 	return true;
 }
@@ -3796,9 +3794,8 @@ bool CvUnit::shouldLoadOnMove(const CvPlot* pPlot) const
 }
 
 
-bool CvUnit::canLoad(const CvPlot* pPlot
-	, bool checkMoves // advc.123c
-	) const
+bool CvUnit::canLoad(const CvPlot* pPlot,
+		bool bCheckMoves) const // advc.123c
 {
 	PROFILE_FUNC();
 
@@ -3810,12 +3807,9 @@ bool CvUnit::canLoad(const CvPlot* pPlot
 		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = pPlot->nextUnitNode(pUnitNode);
 
-		if (canLoadUnit(pLoopUnit, pPlot
-			, checkMoves // advc.123c
-			))
-		{
+		if(canLoadUnit(pLoopUnit, pPlot,
+				bCheckMoves)) // advc.123c
 			return true;
-		}
 	}
 
 	return false;
@@ -4609,7 +4603,7 @@ bool CvUnit::nuke(int iX, int iY)
 				nukedCity = &c; // </advc.106>
 			if(c.getTeam() != tId)
 				continue;
-			score += GET_PLAYER(c.getOwnerINLINE()).razeAngerRating(c);
+			score += GET_PLAYER(c.getOwnerINLINE()).AI_razeAngerRating(c);
 		}
 		if(score >= 1)
 			abTeamsAffected[tId] = 2;
@@ -6121,7 +6115,7 @@ bool CvUnit::found()
 	}
 
 	if (GC.getGameINLINE().getActivePlayer() == getOwnerINLINE()
-			&& CvPlot::activeVisibility) // advc.706
+			&& !CvPlot::isAllFog()) // advc.706
 	{
 		gDLL->getInterfaceIFace()->lookAt(plot()->getPoint(), CAMERALOOKAT_NORMAL);
 	}
@@ -8010,8 +8004,8 @@ CvCity* CvUnit::getUpgradeCity(UnitTypes eUnit, bool bSearch, int* iSearchValue)
 								 of this function is really AI code; I don't think
 								 it's ever used for human units. */
 							if((!canFight() || getDomainType() != DOMAIN_LAND) &&
-									!pLoopCity->isSafe())
-								iValue *= (pLoopCity->isEvacuating() ? 12 : 6);
+									!pLoopCity->AI_isSafe())
+								iValue *= (pLoopCity->AI_isEvacuating() ? 12 : 6);
 							// </advc.139>
 							if (iValue < iBestValue)
 							{
@@ -13989,12 +13983,12 @@ bool CvUnit::verifyStackValid()
 // <advc.102> Really belongs in CvSelectionGroup, but can't add members there.
 void CvUnit::setInitiallyVisible(bool b) {
 
-	initiallyVisible = b;
+	m_bInitiallyVisible = b;
 }
 
 bool CvUnit::isInitiallyVisible() const {
 
-	return initiallyVisible;
+	return m_bInitiallyVisible;
 }// </advc.102>
 
 // Private Functions...

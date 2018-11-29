@@ -55,7 +55,7 @@ void CyTeam::declareWarEvent(int /*TeamTypes*/ eTeam, bool bNewDiplo, int /*WarP
 void CyTeam::makePeaceEvent(int /*TeamTypes*/ eTeam)
 {
 	if (m_pTeam)
-		m_pTeam->makePeaceBulk((TeamTypes)eTeam, true, NO_TEAM, false, NULL, true);
+		m_pTeam->makePeace((TeamTypes)eTeam, true, NO_TEAM, false, NULL, true);
 } // </advc.106g>
 
 

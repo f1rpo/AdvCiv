@@ -215,9 +215,9 @@ public:
 	 // Discover ("bulb") button
 	CvWString getDiscoverPathText(UnitTypes ut, PlayerTypes pt) const;
 	// </advc.004a> <advc.004b> Found button
-	CvWString getFoundCostText(CvPlot* p, PlayerTypes owner) const;
-	CvWString getHomePlotYieldText(CvPlot* p, PlayerTypes owner) const;
-	CvWString getNetFeatureHealthText(CvPlot* cityPlot, PlayerTypes owner) const;
+	CvWString getFoundCostText(CvPlot* p, PlayerTypes ownerId) const;
+	CvWString getHomePlotYieldText(CvPlot* p, PlayerTypes ownerId) const;
+	CvWString getNetFeatureHealthText(CvPlot* cityPlot, PlayerTypes ownerId) const;
 	// </advc.004b>
 
 protected:

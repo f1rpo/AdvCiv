@@ -681,7 +681,7 @@ double GreedForAssets::threatToCities(PlayerTypes civId) {
 
 	CvPlayerAI& civ = GET_PLAYER(civId);
 	if(civ.getTeam() == agentId || civ.getTeam() == TEAMID(theyId) ||
-			GET_TEAM(civ.getTeam()).isAVassal() ||
+			civ.isAVassal() ||
 			!agent.isHasMet(civ.getTeam()) ||
 			we->getCapitalCity() == NULL ||
 			civ.getCapitalCity() == NULL ||
@@ -762,7 +762,7 @@ double GreedForAssets::competitionMultiplier() {
 	for(size_t i = 0; i < properCivs.size(); i++) {
 		CvPlayer const& competitor = GET_PLAYER(properCivs[i]);
 		if(competitor.getTeam() == agentId ||
-				GET_TEAM(competitor.getTeam()).isAVassal() ||
+				competitor.isAVassal() ||
 				!m->isWar(competitor.getID(), theyId))
 			continue;
 		/*  Only worry if MilitaryAnalyst says that civ conquers at least as much
@@ -1323,7 +1323,7 @@ double MilitaryVictory::progressRatingDiplomacy() {
 		log("Votes for diplo victory already secured");
 		return 0;
 	}
-	VoteSourceTypes voteSource = agent.getLatestVictoryVoteSource();
+	VoteSourceTypes voteSource = agent.AI_getLatestVictoryVoteSource();
 	if(voteSource == NO_VOTESOURCE) {
 		log("No vote source yet"); // DIPLO3 should normally rule that out
 		return 0;
@@ -1945,7 +1945,7 @@ void PreEmptiveWar::evaluate() {
 	for(size_t i = 0; i < properCivs.size(); i++) {
 		CvPlayer const& civ = GET_PLAYER(properCivs[i]);
 		double vassalFactor = 1;
-		if(GET_TEAM(civ.getTeam()).isAVassal())
+		if(civ.isAVassal())
 			vassalFactor = 0.5;
 		if(civ.getMasterTeam() == GET_PLAYER(theyId).getMasterTeam() ||
 				m->getCapitulationsAccepted(TEAMID(theyId)).
@@ -2685,7 +2685,7 @@ double IllWill::nukeCost(double nukes) {
 	for(size_t i = 0; i < properCivs.size(); i++) {
 		CvPlayerAI const& civ = GET_PLAYER(properCivs[i]);
 		if(civ.getTeam() == agentId || civ.getTeam() == TEAMID(theyId) ||
-				civ.isHuman() || GET_TEAM(civ.getTeam()).isAVassal() ||
+				civ.isHuman() || civ.isAVassal() ||
 				m->isWar(weId, civ.getID()) || civ.AI_getAttitudeVal(weId) > 12 ||
 				civ.AI_getAttitude(theyId) < ATTITUDE_PLEASED)
 			continue;
@@ -3638,7 +3638,7 @@ int TacticalSituation::evacPop(PlayerTypes ownerId, PlayerTypes invaderId) {
 	for(CvCity* c = o.firstCity(&dummy); c != NULL; c = o.nextCity(&dummy)) {
 		/*  Check PlotDanger b/c we don't want to count cities that are threatened
 			by a third party */
-		if(c->isEvacuating() && o.AI_getPlotDanger(c->plot(),
+		if(c->AI_isEvacuating() && o.AI_getPlotDanger(c->plot(),
 				1, false, false, NULL, 60, 2, invaderId) >= 2)
 			r += c->getPopulation();
 	}

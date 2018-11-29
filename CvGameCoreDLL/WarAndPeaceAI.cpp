@@ -609,13 +609,13 @@ bool WarAndPeaceAI::Team::reviewPlan(TeamTypes targetId, int u, int prepTime) {
 					/*  considerSwitchTarget was written under the assumption
 						that no war is imminent. Could be difficult to rectify;
 						instead, change the war plan temporarily. */
-					agent.setWarPlanNoUpdate(targetId, WARPLAN_PREPARING_LIMITED);
+					agent.AI_setWarPlanNoUpdate(targetId, WARPLAN_PREPARING_LIMITED);
 					bool bSwitch = !considerSwitchTarget(targetId, u, 0);
 					/*  If we do switch, then considerSwitchTarget has
 						already reset the war plan against targetId --
 						except when running in the background. */
 					if(!bSwitch || inBackgr)
-						agent.setWarPlanNoUpdate(targetId, wp);
+						agent.AI_setWarPlanNoUpdate(targetId, wp);
 					if(bSwitch)
 						return false;
 				}
@@ -738,7 +738,7 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 				tradeVal);
 		bool r = true;
 		if(!inBackgr)
-			r = !agentLeader.negotiatePeace(targetLeader.getID(), 0, tradeVal);
+			r = !agentLeader.AI_negotiatePeace(targetLeader.getID(), 0, tradeVal);
 		report->log("Peace negotiation %s", (r ? "failed" : "succeeded"));
 		return r;
 	}
@@ -828,7 +828,7 @@ bool WarAndPeaceAI::Team::considerCapitulation(TeamTypes masterId, int ourWarUti
 	}
 	// Checks our willingness and that of the master
 	DenialTypes denial = GET_TEAM(agentId).AI_surrenderTrade(
-			masterId, CvTeamAI::vassalPowerModSurrender, checkAccept);
+			masterId, CvTeamAI::VASSAL_POWER_MOD_SURRENDER, checkAccept);
 	if(denial != NO_DENIAL) {
 		report->log("Not ready to capitulate%s; denial code: %d",
 				checkAccept ? " (or master refuses)" : "", (int)denial);
@@ -1611,8 +1611,7 @@ int WarAndPeaceAI::Team::makePeaceTradeVal(TeamTypes enemyId,
 	double timeModifier = std::max(0.75, (5.5 - agent.getCurrentEra() / 2.0) /
 			std::sqrt(warDuration + 1.0));
 	r = r * attitudeModifier * timeModifier;
-	// Round to a multiple of 5
-	return agent.roundTradeVal(::round(r));
+	return agent.AI_roundTradeVal(::round(r));
 }
 
 int WarAndPeaceAI::Team::endWarVal(TeamTypes enemyId) const {
@@ -1660,7 +1659,7 @@ int WarAndPeaceAI::Team::endWarVal(TeamTypes enemyId) const {
 		if(!agentHuman)
 			return 0;
 		// Don't demand payment if willing to capitulate to human
-		if(ai.AI_surrenderTrade(human.getID(), CvTeamAI::vassalPowerModSurrender,
+		if(ai.AI_surrenderTrade(human.getID(), CvTeamAI::VASSAL_POWER_MOD_SURRENDER,
 				false) == NO_DENIAL)
 			return 0;
 		reparations = 0;
@@ -2104,7 +2103,7 @@ double WarAndPeaceAI::Team::computeVotesToGoForVictory(double* voteTarget,
 		bool forceUN) const {
 
 	CvGame& g = GC.getGameINLINE();
-	VoteSourceTypes voteSource = GET_TEAM(agentId).getLatestVictoryVoteSource();
+	VoteSourceTypes voteSource = GET_TEAM(agentId).AI_getLatestVictoryVoteSource();
 	bool isUN = false;
 	if(voteSource == NO_VOTESOURCE)
 		isUN = true;
@@ -2321,7 +2320,7 @@ bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 				double pr = (8.5 - era) / cr;
 				// Excludes Gandhi (cr=10000 => pr=0.001)
 				if(pr > 0.005 && ::bernoulliSuccess(pr, "advc.104 (trib)") &&
-						we.demandTribute(humanId, i))
+						we.AI_demandTribute(humanId, i))
 				return true;
 			}
 			else FAssert(cr > 0);
@@ -2332,7 +2331,7 @@ bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 		if(cr > 0) {
 			// test in askHelp halves this probability
 			double pr = (5.5 - era) / cr;
-			if(::bernoulliSuccess(pr, "advc.104 (help)") && we.askHelp(humanId))
+			if(::bernoulliSuccess(pr, "advc.104 (help)") && we.AI_askHelp(humanId))
 				return true;
 		}
 		else FAssert(cr > 0);
@@ -2344,7 +2343,7 @@ bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 			// Doesn't get reduced further in contactReligion
 			double pr = (8.0 - era) / crReligion;
 			if(::bernoulliSuccess(pr, "advc.104 (relig)") &&
-					we.contactReligion(humanId))
+					we.AI_contactReligion(humanId))
 				return true;
 		}
 		else FAssert(crReligion > 0);
@@ -2353,7 +2352,7 @@ bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 			double pr = 2.5 / crCivics;
 			// Exclude Saladin (cr=10000)
 			if(pr > 0.001 && ::bernoulliSuccess(pr, "advc.104 (civic)") &&
-					we.contactCivics(humanId))
+					we.AI_contactCivics(humanId))
 				return true;
 		}
 		else FAssert(crCivics > 0);
@@ -2362,7 +2361,7 @@ bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 	/*int cr = lh.getContactRand(CONTACT_STOP_TRADING);
 	if(cr > 0) {
 		double pr = ?;
-		if(::bernoulliSuccess(pr) && we.proposeEmbargo(humanId))
+		if(::bernoulliSuccess(pr) && we.AI_proposeEmbargo(humanId))
 			return true;
 	}
 	else FAssert(cr > 0); */
@@ -2385,7 +2384,7 @@ bool WarAndPeaceAI::Civ::considerGiftRequest(PlayerTypes theyId,
 	/*  Accept probabilistically regardless of war utility (so long as we're
 		not planning war yet, which the caller ensures).
 		Probability to accept is 45% for Gandhi, 0% for Tokugawa. */
-	if(::bernoulliSuccess(0.5 - we.prDenyHelp(), "advc.104 (gift)"))
+	if(::bernoulliSuccess(0.5 - we.AI_prDenyHelp(), "advc.104 (gift)"))
 		return true;
 	// Probably won't want to attack theyId then
 	if(TEAMREF(weId).AI_isSneakAttackReady())
@@ -2496,7 +2495,7 @@ double WarAndPeaceAI::Civ::tradeValToUtility(double tradeVal) const {
 double WarAndPeaceAI::Civ::amortizationMultiplier() const {
 
 	// 25 turns delay b/c war planning is generally about a medium-term future
-	return GET_PLAYER(weId).amortizationMultiplier(25);
+	return GET_PLAYER(weId).AI_amortizationMultiplier(25);
 }
 
 // Currently unused; don't remember what I wanted to use it for.

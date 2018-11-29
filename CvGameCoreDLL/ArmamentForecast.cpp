@@ -231,7 +231,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 				// advc.018: Crush now actually trains fewer units
 				civ.AI_isDoStrategy(AI_STRATEGY_CRUSH))
 			intensity = INCREASED;
-		if(civ.isFocusWar() &&
+		if(civ.AI_isFocusWar() &&
 				(aai == AREAAI_MASSING || aai == AREAAI_ASSAULT_MASSING ||
 				(aai == AREAAI_DEFENSIVE && iTotalWars > 0) ||
 				civ.AI_isDoStrategy(AI_STRATEGY_ALERT2) ||

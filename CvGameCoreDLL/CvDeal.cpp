@@ -230,21 +230,21 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 				GC.getDefineINT("ANNOUNCE_REPARATIONS") > 0) {
 			int l1 = pFirstList->getLength();
 			int l2 = pSecondList->getLength();
-			// Call makePeaceBulk on the recipient of reparations
+			// Call makePeace on the recipient of reparations
 			if(l1 == 1 && l2 > 1) {
-				GET_TEAM(eFirstTeam).makePeaceBulk(eSecondTeam, false, NO_TEAM,
+				GET_TEAM(eFirstTeam).makePeace(eSecondTeam, false, NO_TEAM,
 						false, pSecondList);
 				bDone = true;
 			}
 			else if(l2 == 1 && l1 > 1) {
-				GET_TEAM(eSecondTeam).makePeaceBulk(eFirstTeam, false, NO_TEAM,
+				GET_TEAM(eSecondTeam).makePeace(eFirstTeam, false, NO_TEAM,
 						false, pFirstList);
 				bDone = true;
 			}
 		}
 		if(!bDone) // </advc.039>
 		// <advc.034>
-			GET_TEAM(eFirstTeam).makePeaceBulk(eSecondTeam, false, NO_TEAM,
+			GET_TEAM(eFirstTeam).makePeace(eSecondTeam, false, NO_TEAM,
 					bSurrender); // advc.039
 		// </advc.034>
 		bBumpUnits = true;
@@ -356,7 +356,7 @@ bool CvDeal::recordTradeValue(CLinkList<TradeData>* list1, CLinkList<TradeData>*
 			GET_PLAYER(p2).AI_dealVal(p1, list1, true, 1, false, true) / 2.0));
 	if(iValue <= 0) 
 		return false;
-	GET_PLAYER(p2).AI_changePeacetimeValue(p1, iValue,
+	GET_PLAYER(p2).AI_processPeacetimeValue(p1, iValue,
 			list2 == NULL || list2->getLength() <= 0, bPeace, peaceTradeTarget,
 			warTradeTarget);
 	return true;
@@ -390,11 +390,11 @@ void CvDeal::doTurn()
 
 			if (getLengthFirstTrades() > 0)
 			{
-				GET_PLAYER(getFirstPlayer()).AI_changePeacetimeTradeValue(getSecondPlayer(), iValue);
+				GET_PLAYER(getFirstPlayer()).AI_processPeacetimeTradeValue(getSecondPlayer(), iValue);
 			}
 			else
 			{
-				GET_PLAYER(getFirstPlayer()).AI_changePeacetimeGrantValue(getSecondPlayer(), iValue);
+				GET_PLAYER(getFirstPlayer()).AI_processPeacetimeGrantValue(getSecondPlayer(), iValue);
 			}
 		}
 
@@ -404,11 +404,11 @@ void CvDeal::doTurn()
 
 			if (getLengthSecondTrades() > 0)
 			{
-				GET_PLAYER(getSecondPlayer()).AI_changePeacetimeTradeValue(getFirstPlayer(), iValue);
+				GET_PLAYER(getSecondPlayer()).AI_processPeacetimeTradeValue(getFirstPlayer(), iValue);
 			}
 			else
 			{
-				GET_PLAYER(getSecondPlayer()).AI_changePeacetimeGrantValue(getFirstPlayer(), iValue);
+				GET_PLAYER(getSecondPlayer()).AI_processPeacetimeGrantValue(getFirstPlayer(), iValue);
 			}
 		}
 		// K-Mod note: for balance reasons this function should probably be called at the boundry of some particular player's turn,
@@ -985,7 +985,7 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 		//GET_TEAM(GET_PLAYER(eFromPlayer).getTeam()).makePeace((TeamTypes)trade.m_iData);
 		// K-Mod. (units will be bumped after the rest of the trade deals are completed.)
 		// <advc.100b>
-		TEAMREF(eFromPlayer).makePeaceBulk((TeamTypes)trade.m_iData, false, TEAMID(eToPlayer));
+		TEAMREF(eFromPlayer).makePeace((TeamTypes)trade.m_iData, false, TEAMID(eToPlayer));
 		TEAMREF(eFromPlayer).signPeaceTreaty((TeamTypes)trade.m_iData); // K-Mod. Use a standard peace treaty rather than a simple cease-fire.
 		// </advc.100b>
 		// K-Mod todo: this team should offer something fair to the peace-team if this teams endWarVal is higher.

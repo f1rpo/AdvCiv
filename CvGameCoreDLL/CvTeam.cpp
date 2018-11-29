@@ -54,8 +54,9 @@ CvTeam::CvTeam()
 	m_abForcePeace = new bool[MAX_TEAMS];
 	m_abVassal = new bool[MAX_TEAMS];
 	// <advc.003b>
-	masterId = NO_TEAM;
-	leaderId = NO_PLAYER; // </advc.003b>
+	m_eMaster = NO_TEAM;
+	m_eLeader = NO_PLAYER;
+	// </advc.003b>
 	m_abCanLaunch = NULL;
 
 	m_paiRouteChange = NULL;
@@ -218,12 +219,14 @@ void CvTeam::reset(TeamTypes eID, bool bConstructorCall)
 	m_bCapitulated = false;
 
 	m_eID = eID;
-
-	// advc.134a:
-	offeringPeace = NO_TEAM; peaceOfferStage = 0;
+	// <advc.134a>
+	m_eOfferingPeace = NO_TEAM;
+	m_iPeaceOfferStage = 0;
+	// </advc.134a>
 	// <advc.003b>
-	masterId = NO_TEAM;
-	leaderId = NO_PLAYER; // </advc.003b>
+	m_eMaster = NO_TEAM;
+	m_eLeader = NO_PLAYER;
+	// </advc.003b>
 	for (iI = 0; iI < MAX_TEAMS; iI++)
 	{
 		m_aiStolenVisibilityTimer[iI] = 0;
@@ -768,9 +771,9 @@ void CvTeam::addTeam(TeamTypes eTeam)
 			kLoopTeam.AI_setShareWarCounter(getID(), ((kLoopTeam.AI_getShareWarCounter(getID()) + kLoopTeam.AI_getShareWarCounter(eTeam)) / 2));
 			kLoopTeam.AI_setWarSuccess(getID(), ((kLoopTeam.AI_getWarSuccess(getID()) + kLoopTeam.AI_getWarSuccess(eTeam)) / 2));
 			// <advc.130m>
-			kLoopTeam.setSharedWarSuccess(getID(),
-					(kLoopTeam.getSharedWarSuccess(getID()) +
-					kLoopTeam.getSharedWarSuccess(eTeam)) / 2); // </advc.130m>
+			kLoopTeam.AI_setSharedWarSuccess(getID(),
+					(kLoopTeam.AI_getSharedWarSuccess(getID()) +
+					kLoopTeam.AI_getSharedWarSuccess(eTeam)) / 2); // </advc.130m>
 			kLoopTeam.AI_setEnemyPeacetimeTradeValue(getID(), ((kLoopTeam.AI_getEnemyPeacetimeTradeValue(getID()) + kLoopTeam.AI_getEnemyPeacetimeTradeValue(eTeam)) / 2));
 			kLoopTeam.AI_setEnemyPeacetimeGrantValue(getID(), ((kLoopTeam.AI_getEnemyPeacetimeGrantValue(getID()) + kLoopTeam.AI_getEnemyPeacetimeGrantValue(eTeam)) / 2));
 			kLoopTeam.setEspionagePointsAgainstTeam(getID(), std::max(kLoopTeam.getEspionagePointsAgainstTeam(getID()), kLoopTeam.getEspionagePointsAgainstTeam(eTeam))); // unofficial patch
@@ -1093,8 +1096,7 @@ void CvTeam::doTurn()
 				//if (!isHasTech((TechTypes)iI))
 				if (!isHasTech(i) && 
 					(ignorePrereqs || // advc.307
-					// advc.003:
-					kBarbPlayer.canResearchBulk(i, false, true))) // K-Mod. Make no progress on techs until prereqs are researched.
+					kBarbPlayer.canResearch(i, false, true))) // K-Mod. Make no progress on techs until prereqs are researched.
 				{
 					int iCount = 0;
 					int iPossibleCount = 0;
@@ -1375,7 +1377,7 @@ bool CvTeam::canEventuallyDeclareWar(TeamTypes eTeam) const
 
 // K-Mod note: I've shuffled things around a bit in this function.
 void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, bool bPrimaryDoW,
-		PlayerTypes sponsor, // advc.100
+		PlayerTypes eSponsor, // advc.100
 		bool bRandomEvent) // advc.106g
 {
 	PROFILE_FUNC();
@@ -1386,8 +1388,8 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 	FAssertMsg(eTeam != NO_TEAM, "eTeam is not assigned a valid value");
 	FAssertMsg(eTeam != getID(), "eTeam is not expected to be equal with getID()");
 	// <advc.100>
-	FAssert(sponsor == NO_PLAYER || (TEAMID(sponsor) != getID() &&
-			TEAMID(sponsor) != eTeam)); // </advc.100>
+	FAssert(eSponsor == NO_PLAYER || (TEAMID(eSponsor) != getID() &&
+			TEAMID(eSponsor) != eTeam)); // </advc.100>
 	if (isAtWar(eTeam))
 		return;
 
@@ -1468,16 +1470,16 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 				// advc.130y:
 				else kPlayer_j.AI_changeMemoryCount(i, MEMORY_DECLARED_WAR, 2);
 			} // advc.130h:
-			if(kPlayer_j.disapprovesOfDoW(getID(), eTeam)) // advc.130j:
+			if(kPlayer_j.AI_disapprovesOfDoW(getID(), eTeam)) // advc.130j:
 				kPlayer_j.AI_rememberEvent(i, MEMORY_DECLARED_WAR_ON_FRIEND);
 		}
 	}
 	// K-Mod end.
 	// <advc.104i>
-	if(sponsor != NO_PLAYER) {
+	if(eSponsor != NO_PLAYER) {
 		makeUnwillingToTalk(eTeam);
-		if(TEAMREF(sponsor).isAtWar(eTeam))
-			TEAMREF(sponsor).makeUnwillingToTalk(eTeam);
+		if(TEAMREF(eSponsor).isAtWar(eTeam))
+			TEAMREF(eSponsor).makeUnwillingToTalk(eTeam);
 	} // </advc.104i>
 
 	setAtWar(eTeam, true);
@@ -1654,11 +1656,11 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 			// <advc.100>
 			CvWString szSponsorName("");
 			wchar const* sponsorName = L"";
-			if(sponsor != NO_PLAYER) {
+			if(eSponsor != NO_PLAYER) {
 				/*  Need to make a local copy b/c the thing returned by getName
 					gets somehow overwritten with an empty string before the
 					message is sent. */
-				szSponsorName = GET_PLAYER(sponsor).getName();
+				szSponsorName = GET_PLAYER(eSponsor).getName();
 				sponsorName = szSponsorName.GetCString();
 			} // </advc.100>
 			for (iI = 0; iI < MAX_PLAYERS; iI++)
@@ -1684,7 +1686,7 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 				}
 				else if (observer.getTeam() == eTeam)
 				{	// <advc.100> Inform the target of the DoW about the sponsor
-					if(sponsor != NO_PLAYER)
+					if(eSponsor != NO_PLAYER)
 						szBuffer = gDLL->getText("TXT_KEY_MISC_HIRED_WAR_ON_YOU", 
 								getName().GetCString(), sponsorName);
 					else // </advc.100>
@@ -1697,8 +1699,8 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 				else if ((isHasMet(observer.getTeam()) && GET_TEAM(eTeam).isHasMet(observer.getTeam()))
 						|| observer.isSpectator()) // advc.127
 				{	// <advc.100> Inform third parties about sponsor
-					if(sponsor != NO_PLAYER && sponsor != (PlayerTypes)iI &&
-							(TEAMREF(sponsor).isHasMet(observer.getTeam()) ||
+					if(eSponsor != NO_PLAYER && eSponsor != (PlayerTypes)iI &&
+							(TEAMREF(eSponsor).isHasMet(observer.getTeam()) ||
 							observer.isSpectator())) // advc.127
 						szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_HIRED_WAR",
 								getName().GetCString(),
@@ -1716,8 +1718,8 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 			}
 
 			// <advc.100> Put info about hired wars in the replay log
-			if(sponsor != NO_PLAYER) {
-				szSponsorName = GET_PLAYER(sponsor).getReplayName();
+			if(eSponsor != NO_PLAYER) {
+				szSponsorName = GET_PLAYER(eSponsor).getReplayName();
 				sponsorName = szSponsorName.GetCString();
 				szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_HIRED_WAR",
 						getReplayName().GetCString(),
@@ -1823,19 +1825,15 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 	// K-Mod end
 }
 
-// <advc.100b>
-void CvTeam::makePeace(TeamTypes eTeam, bool bBumpUnits) {
 
-	makePeaceBulk(eTeam, bBumpUnits);
-}
-
-void CvTeam::makePeaceBulk(TeamTypes eTeam, bool bBumpUnits, TeamTypes broker,
+void CvTeam::makePeace(TeamTypes eTeam, bool bBumpUnits,
+		TeamTypes eBroker, // advc.100b
 		bool bCapitulate, // advc.034
 		CLinkList<TradeData>* reparations, // advc.039
 		bool bRandomEvent) // advc.106g
-{ // </advc.100b>
+{
 	CvWString szBuffer;
-	int iI;
+	int iI=-1;
 
 	FAssertMsg(eTeam != NO_TEAM, "eTeam is not assigned a valid value");
 	FAssertMsg(eTeam != getID(), "eTeam is not expected to be equal with getID()");
@@ -1850,8 +1848,8 @@ void CvTeam::makePeaceBulk(TeamTypes eTeam, bool bBumpUnits, TeamTypes broker,
 		started a war against us some time earlier, we may as well forgive them for
 		that. (If there's no declared-war-on-us memory, then this call has no effect.)
 		advc.104i also does sth. in forgiveEnemy. */
-	GET_TEAM(getID()).forgiveEnemy(eTeam, isCapitulated(), false);
-	GET_TEAM(eTeam).forgiveEnemy(getID(), GET_TEAM(eTeam).isCapitulated(), false);
+	GET_TEAM(getID()).AI_forgiveEnemy(eTeam, isCapitulated(), false);
+	GET_TEAM(eTeam).AI_forgiveEnemy(getID(), GET_TEAM(eTeam).isCapitulated(), false);
 	// </advc.130y>
 	// <advc.130i>
 	if(getWPAI.isEnabled() && !isAVassal() && !GET_TEAM(eTeam).isAVassal()) {
@@ -2082,11 +2080,11 @@ void CvTeam::makePeaceBulk(TeamTypes eTeam, bool bBumpUnits, TeamTypes broker,
 		szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_MADE_PEACE", getReplayName().
 				GetCString(), GET_TEAM(eTeam).getReplayName().GetCString());
 	} // <advc.100b>
-	if(broker != NO_TEAM && broker != eTeam && broker != getID())
+	if(eBroker != NO_TEAM && eBroker != eTeam && eBroker != getID())
 		szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_BROKERED_PEACE",
 				getReplayName().GetCString(),
 				GET_TEAM(eTeam).getReplayName().GetCString(),
-				GET_TEAM(broker).getReplayName().GetCString()); // </advc.100b>
+				GET_TEAM(eBroker).getReplayName().GetCString()); // </advc.100b>
 	GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getLeaderID(),
 			szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 
@@ -2484,12 +2482,12 @@ int CvTeam::getAtWarCount(bool bIgnoreMinors, bool bIgnoreVassals) const
 
 // <dlph.3> (actually an advc change)
 bool CvTeam::allWarsShared(TeamTypes otherId,
-		bool checkBothWays) const { // advc.130f
+		bool bCheckBothWays) const { // advc.130f
 
 	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 		TeamTypes tId = (TeamTypes)i; CvTeam const& t = GET_TEAM(tId);
 		if(!t.isAlive()) continue;
-		if(checkBothWays && // advc.130f
+		if(bCheckBothWays && // advc.130f
 				t.isAtWar(getID()) != t.isAtWar(otherId))
 			return false;
 		// <advc.130f>
@@ -2498,6 +2496,7 @@ bool CvTeam::allWarsShared(TeamTypes otherId,
 	}
 	return true;
 } // </dlph.3>
+
 // <advc.130s>
 bool CvTeam::anyWarShared(TeamTypes otherId) const {
 
@@ -2697,7 +2696,7 @@ int CvTeam::getVassalCount(TeamTypes eTeam) const
 
 bool CvTeam::isAVassal() const
 {
-	return masterId != NO_TEAM; // advc.003b
+	return (m_eMaster != NO_TEAM); // advc.003b
 	/*PROFILE_FUNC();
 	int iI;
 
@@ -3434,9 +3433,9 @@ bool CvTeam::canSeeReqBonuses(UnitTypes u) {
 }
 
 
-bool CvTeam::isRevealed(BonusTypes b) {
+bool CvTeam::isRevealed(BonusTypes eBonus) {
 
-    TechTypes tech = (TechTypes)GC.getBonusInfo(b).getTechReveal();
+    TechTypes tech = (TechTypes)GC.getBonusInfo(eBonus).getTechReveal();
     if(tech == NO_TECH)
         return true;
     return isHasTech(tech);
@@ -3499,17 +3498,17 @@ bool CvTeam::isMinorCiv() const
 // <advc.003b> This gets called a lot; now precomputed.
 PlayerTypes CvTeam::getLeaderID() const {
 
-	return leaderId;
+	return m_eLeader;
 }
 
 void CvTeam::updateLeaderID() {
 
-	PlayerTypes formerLeader = getLeaderID();
+	PlayerTypes eFormerLeader = getLeaderID();
 	bool done = false;
 	for (int iI = 0; iI < MAX_PLAYERS; iI++) {
 		if (GET_PLAYER((PlayerTypes)iI).isAlive()) {
 			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID()) {
-				leaderId = (PlayerTypes)iI;
+				m_eLeader = (PlayerTypes)iI;
 				done = true;
 				break;
 			}
@@ -3518,7 +3517,7 @@ void CvTeam::updateLeaderID() {
 	if(!done) {
 		for (int iI = 0; iI < MAX_PLAYERS; iI++) {
 			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID()) {
-				leaderId = (PlayerTypes)iI;
+				m_eLeader = (PlayerTypes)iI;
 				done = true;
 				break;
 			}
@@ -3526,11 +3525,11 @@ void CvTeam::updateLeaderID() {
 	}
 	if(done) {
 		// <advc.104t>
-		 if(getWPAI.isEnabled() && formerLeader != leaderId)
-			GET_PLAYER(leaderId).warAndPeaceAI().getCache().onTeamLeaderChanged(formerLeader);
+		 if(getWPAI.isEnabled() && eFormerLeader != m_eLeader)
+			GET_PLAYER(m_eLeader).warAndPeaceAI().getCache().onTeamLeaderChanged(eFormerLeader);
 		 // </advc.104t>
 	}
-	else leaderId = NO_PLAYER;
+	else m_eLeader = NO_PLAYER;
 } // </advc.003b>
 
 
@@ -4429,10 +4428,11 @@ bool CvTeam::isAtWar(TeamTypes eIndex) const
 		-- don't show peace offer when no longer at war --, but the EXE gets it
 		wrong, and discards the diplo popup if at war. Therefore, feign peace if
 		we know that the EXE is about to check a peace offer. */
-	if(peaceOfferStage == 1 && offeringPeace == eIndex) {
-		((CvTeam*)(this))->peaceOfferStage = 0;
-		((CvTeam*)(this))->offeringPeace = NO_TEAM;
-		if(!getWPAI.isEnabled()) // advc.104: Don't try to get UWAI peace offers through
+	if(m_iPeaceOfferStage == 1 && m_eOfferingPeace == eIndex) {
+		const_cast<CvTeam*>(this)->m_iPeaceOfferStage = 0;
+		const_cast<CvTeam*>(this)->m_eOfferingPeace = NO_TEAM;
+		// advc.104: Don't try to get UWAI peace offers through
+		if(!getWPAI.isEnabled() || GC.getGameINLINE().isNetworkMultiPlayer())
 			return false;
 	} // </advc.134a>
 	return m_abAtWar[eIndex];
@@ -4442,8 +4442,8 @@ bool CvTeam::isAtWar(TeamTypes eIndex) const
 void CvTeam::advancePeaceOfferStage(TeamTypes aiTeam) {
 
 	if(aiTeam != NO_TEAM)
-		offeringPeace = aiTeam;
-	peaceOfferStage++;
+		m_eOfferingPeace = aiTeam;
+	m_iPeaceOfferStage++;
 } // </advc.134a>
 
 void CvTeam::setAtWar(TeamTypes eIndex, bool bNewValue)
@@ -4782,7 +4782,7 @@ void CvTeam::setVassal(TeamTypes eIndex, bool bNewValue, bool bCapitulated)
 	}
 
 	m_abVassal[eIndex] = bNewValue;
-	masterId = (bNewValue ? eIndex : NO_TEAM); // advc.003b
+	m_eMaster = (bNewValue ? eIndex : NO_TEAM); // advc.003b
 
 	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
 	{
@@ -5038,13 +5038,13 @@ void CvTeam::setVassal(TeamTypes eIndex, bool bNewValue, bool bCapitulated)
 		}
 		// <advc.130y>
 		// Don't forgive if it's apparent that we haven't fought wars as a vassal
-		if(m_bCapitulated && GET_TEAM(getID()).getSharedWarSuccess(eIndex) +
-				GET_TEAM(eIndex).getSharedWarSuccess(getID()) > 0) {
+		if(m_bCapitulated && GET_TEAM(getID()).AI_getSharedWarSuccess(eIndex) +
+				GET_TEAM(eIndex).AI_getSharedWarSuccess(getID()) > 0) {
 			for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 				CvTeamAI& t = GET_TEAM((TeamTypes)i);
 				if(t.isAlive() && t.getID() != getID() && t.getID() != eIndex) {
-					GET_TEAM(getID()).forgiveEnemy(t.getID(), true, true);
-					t.forgiveEnemy(getID(), true, true);
+					GET_TEAM(getID()).AI_forgiveEnemy(t.getID(), true, true);
+					t.AI_forgiveEnemy(getID(), true, true);
 				}
 			}
 		}// </advc.130y>
@@ -5167,7 +5167,7 @@ TeamTypes CvTeam::getMasterTeam() const
 {
 	/*  advc.003b: Since I use this function a lot, I've serialized the master team.
 		Also speeds up isAVassal. */
-	return masterId == NO_TEAM ? getID() : masterId;
+	return (m_eMaster == NO_TEAM ? getID() : m_eMaster);
 	/*for (TeamTypes i = (TeamTypes)0; i < MAX_CIV_TEAMS; i=(TeamTypes)(i+1))
 	{
 		if (isVassal(i) && GET_TEAM(i).isAlive())
@@ -5263,7 +5263,7 @@ void CvTeam::freeVassal(TeamTypes eVassal) const
 	if(isCapitulated() && GET_PLAYER(GET_TEAM(eVassal).getLeaderID()).
 			// Not thankful if still thankful to old master
 			AI_getMemoryAttitude(getLeaderID(), MEMORY_INDEPENDENCE) <= 0)
-		GET_TEAM(eVassal).thankLiberator(getMasterTeam());
+		GET_TEAM(eVassal).AI_thankLiberator(getMasterTeam());
 	/*  Prevent freed vassal from immediately becoming someone else's vassal.
 		Want the civ that made the former master capitulate (i.e. getMasterTeam)
 		to have a right of first refusal. */
@@ -6034,11 +6034,11 @@ bool CvTeam::isHasTech(TechTypes eIndex) const
 }
 
 // <advc.039>
-CvWString const CvTeam::tradeItemString(TradeableItems itemType, int data,
+CvWString const CvTeam::tradeItemString(TradeableItems eItem, int data,
 			TeamTypes fromId) const {
 
 	CvTeam const& from = GET_TEAM(fromId);
-	switch(itemType) {
+	switch(eItem) {
 	case TRADE_CITIES: {
 		CvCity* c = GET_PLAYER(from.getLeaderID()).getCity(data);
 		if(c == NULL)
@@ -6966,15 +6966,14 @@ bool CvTeam::isBonusRevealed(BonusTypes eBonus) const
 // K-Mod end
 
 // <advc.108> Code cut and adapted from CvPlayer::initFreeUnits
-void CvTeam::revealSurroundingPlots(CvPlot& center, int range) const {
+void CvTeam::revealSurroundingPlots(CvPlot const& center, int iRange) const {
 
 	for(int i = 0; i < GC.getMap().numPlots(); i++) {
 		CvPlot* pp = GC.getMap().plotByIndex(i);
 		if(pp == NULL) // Can perhaps happen if beyond the edge of the map
 			continue;
 		CvPlot& p = *pp;
-		if(plotDistance(p.getX(), p.getY(), center.getX(), center.getY())
-				<= range)
+		if(plotDistance(p.getX(), p.getY(), center.getX(), center.getY()) <= iRange)
 			p.setRevealed(getID(), true, false, NO_TEAM, false);
 	}
 } // </advc.108>
@@ -7621,10 +7620,11 @@ void CvTeam::read(FDataStreamBase* pStream)
 	pStream->Read(MAX_TEAMS, m_abForcePeace);
 	pStream->Read(MAX_TEAMS, m_abVassal);
 	// <advc.003b>
-	pStream->Read((int*)&masterId);
+	pStream->Read((int*)&m_eMaster);
 	if(uiFlag >= 2)
-		pStream->Read((int*)&leaderId);
-	else updateLeaderID(); // </advc.003b>
+		pStream->Read((int*)&m_eLeader);
+	else updateLeaderID();
+	// </advc.003b>
 	pStream->Read(GC.getNumVictoryInfos(), m_abCanLaunch);
 
 	pStream->Read(GC.getNumRouteInfos(), m_paiRouteChange);
@@ -7676,7 +7676,7 @@ void CvTeam::write(FDataStreamBase* pStream)
 	int iI;
 
 	uint uiFlag = 1;
-	uiFlag = 2; // advc.003b: leaderId added
+	uiFlag = 2; // advc.003b: m_eLeader added
 	uiFlag = 3; // advc.034
 	pStream->Write(uiFlag);		// flag for expansion
 
@@ -7730,8 +7730,9 @@ void CvTeam::write(FDataStreamBase* pStream)
 	pStream->Write(MAX_TEAMS, m_abForcePeace);
 	pStream->Write(MAX_TEAMS, m_abVassal);
 	// <advc.003b>
-	pStream->Write(masterId);
-	pStream->Write(leaderId); // </advc.003b>
+	pStream->Write(m_eMaster);
+	pStream->Write(m_eLeader);
+	// </advc.003b>
 	pStream->Write(GC.getNumVictoryInfos(), m_abCanLaunch);
 
 	pStream->Write(GC.getNumRouteInfos(), m_paiRouteChange);

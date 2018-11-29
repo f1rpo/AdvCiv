@@ -32,24 +32,23 @@ public:
 	void setID(int iID);
 																										// Exposed to Python
 	// <advc.030>
-	void updateLake(bool checkRepr = true);
-	void setRepresentativeArea(int areaId);
+	void updateLake(bool bCheckRepr = true);
+	void setRepresentativeArea(int eArea);
 	// Should only be needed for computing the equivalence classes
 	int getRepresentativeArea() const;
 	bool canBeEntered(CvArea const& from, CvUnit const* u = NULL) const;
 	// </advc.030>
 	void changeNumTiles(int iChange);
 	void changeNumOwnedTiles(int iChange);
-
 	// <advc.300>
 	// advc.021b: Exposed to Python as getNumHabitableTiles
 	std::pair<int,int> countOwnedUnownedHabitableTiles(
-			bool ignoreBarb = false) const;
+			bool bIgnoreBarb = false) const;
 	int countCivCities() const;
-	int countCivs(bool subtractOCC = false) const; // with at least 1 city
+	int countCivs(bool bSubtractOCC = false) const; // with at least 1 city
 	bool hasAnyAreaPlayerBonus(BonusTypes bId) const;
-	int numBarbCitiesEver() const;
-	void barbCityCreated();
+	int getBarbarianCitiesEverCreated() const;
+	void barbarianCityCreated();
 	// </advc.300>
 																						// Exposed to Python
 	void changeNumRiverEdges(int iChange);																								// Exposed to Python
@@ -65,7 +64,7 @@ public:
 	void changeAnimalsPerPlayer(PlayerTypes eIndex, int iChange);
 
 	int getCitiesPerPlayer(PlayerTypes eIndex,													// Exposed to Python
-			bool checkAdjacentCoast = false) const; // advc.030b
+			bool bCheckAdjacentCoast = false) const; // advc.030b
 	void changeCitiesPerPlayer(PlayerTypes eIndex, int iChange);
 
 	int getPopulationPerPlayer(PlayerTypes eIndex) const;											// Exposed to Python
@@ -80,8 +79,8 @@ public:
 	int getBuildingHappiness(PlayerTypes eIndex) const;												// Exposed to Python
 	void changeBuildingHappiness(PlayerTypes eIndex, int iChange);
 	// <advc.310>
-	int getContinentalTradeRoutes(PlayerTypes eIndex) const;												// Exposed to Python
-	void changeContinentalTradeRoutes(PlayerTypes eIndex, int iChange);
+	int getTradeRoutes(PlayerTypes eIndex) const;												// Exposed to Python
+	void changeTradeRoutes(PlayerTypes eIndex, int iChange);
 	// </advc.310>
 	int getFreeSpecialist(PlayerTypes eIndex) const;													// Exposed to Python
 	void changeFreeSpecialist(PlayerTypes eIndex, int iChange);
@@ -135,12 +134,13 @@ protected:
 	int m_iNumCities;
 	int m_iTotalPopulation;
 	int m_iNumStartingPlots;
-	int nBarbCitiesEver; // advc.300
+	int m_iBarbarianCitiesEver; // advc.300
 
 	bool m_bWater;
 	// <advc.030>
 	bool m_bLake;
-	int reprAreaId; // </advc.030>
+	int m_iRepresentativeAreaId;
+	// </advc.030>
 	int* m_aiUnitsPerPlayer;
 	int* m_aiAnimalsPerPlayer;
 	int* m_aiCitiesPerPlayer;
@@ -148,7 +148,7 @@ protected:
 	int* m_aiBuildingGoodHealth;
 	int* m_aiBuildingBadHealth;
 	int* m_aiBuildingHappiness;
-	int* m_aiContinentalTradeRoutes; // advc.310
+	int* m_aiTradeRoutes; // advc.310
 	int* m_aiFreeSpecialist;
 	int* m_aiPower;
 	int* m_aiBestFoundValue;
