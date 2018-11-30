@@ -732,27 +732,27 @@ void WarAndPeaceCache::sortCitiesByAttackPriority() {
 	/*  Selection sort b/c I want to factor in city areas. An invading army tends
 		to stay in one area until all cities there are conquered. */
 	for(int i = 0; i < ((int)v.size()) - 1; i++) {
-		CvCity* cvc = NULL;
+		CvCity* pPrevCity = NULL;
 		if(i > 0)
-			cvc = v[i - 1]->city();
-		CvArea* a = (cvc == NULL ? NULL : cvc->area());
-		double maxPriority = (v[i]->city() == NULL ? -1 : v[i]->attackPriority());
-		int maxIndex = i;
-		for(size_t j = i + 1; j < v.size(); j++) {
-			CvCity* cvc2 = v[j]->city();
-			CvArea* a2 = (cvc2 == NULL ? NULL : cvc2->area());
-			double priority2 = (cvc2 == NULL ? -1 : v[j]->attackPriority());
-			if(i > 0 && a != NULL && a != a2 && priority2 > 0)
-				priority2 /= 2;
-			if(priority2 > maxPriority) {
-				maxIndex = j;
-				maxPriority = priority2;
+			pPrevCity = v[i - 1]->city();
+		CvArea* pPrevArea = (pPrevCity == NULL ? NULL : pPrevCity->area());
+		double maxPriority = -100;
+		int iMax = -1;
+		for(size_t j = i; j < v.size(); j++) {
+			CvCity* pCity = v[j]->city();
+			CvArea* pArea = (pCity == NULL ? NULL : pCity->area());
+			double priority = (pCity == NULL ? -100 : v[j]->attackPriority());
+			if(i > 0 && pPrevArea != NULL && pPrevArea != pArea && priority > 0)
+				priority /= 2;
+			if(priority > maxPriority) {
+				iMax = j;
+				maxPriority = priority;
 			}
 		}
-		if(maxIndex != i) {
+		if(iMax >= 0) {
 			City* tmp = v[i];
-			v[i] = v[maxIndex];
-			v[maxIndex] = tmp;
+			v[i] = v[iMax];
+			v[iMax] = tmp;
 		}
     }
 }
@@ -1624,6 +1624,8 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 			double speed = estimateMovementSpeed(cacheOwnerId, DOMAIN_LAND, d);
 			// Will practically always have to move through some foreign tiles
 			d = std::min(d, 2) + ::round((d - std::min(d, 2)) / speed);
+			if(d == 0) // Make sure 0 is reserved for own cities
+				d = 1;
 			pwd = d;
 			/*  reachByLand refers to our (AI) capital. This is to ensure that the
 				AI can still detect the need for a naval assault when it has a

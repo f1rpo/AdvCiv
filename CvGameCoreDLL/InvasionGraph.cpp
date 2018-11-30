@@ -888,8 +888,8 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	}
 	else {
 		double dist = clashDistance(defender);
-		FAssert(dist > 0); /* Might be OK in the late game if two cities are
-						      at minimal distance to each other. */
+		FAssert(dist > 0); /* WarAndPeaceCache::City::updateDistance should
+						      guarantee this. */
 		deploymentDistAttacker = dist;
 		deploymentDistDefender = dist;
 		// Can't rule out that both armies are eliminated at this point
@@ -2090,13 +2090,17 @@ void InvasionGraph::breakCycle(vector<Node*> const& cyc) {
 			report.setMute(true);
 	        SimulationStep* ss = nodeMap[*it]->step();
 			report.setMute(false);
-			FAssert(ss != NULL); /* Might be OK in some circumstances.
-									Not sure how to handle it gracefully when
-									there's no threat from any node targeting n.
-									Normally, only nodes that threaten n should
-									target it. */
-	        if(ss == NULL)
-	            continue;
+	        if(ss == NULL) {
+				/*  Might be fine in some circumstances, but suggests inconsistent
+					results of the targetCity and findTarget function. The former
+					relies on the order of the cache. */
+				FAssert(ss != NULL);
+				// Call 'step' again for investigation in the debugger
+				FAssert(nodeMap[*it]->step() != NULL);
+				continue;
+				/*  Not sure how to handle it gracefully when there's no threat from
+					_any_ node targeting n, i.e. when step returns NULL for all *it. */
+			}
 			double baseThreat = ss->getThreat();
 			double thr = baseThreat * willingness(nodeMap[*it]->getId(), n.getId());
 			if(std::abs(thr - baseThreat) > 0.005)

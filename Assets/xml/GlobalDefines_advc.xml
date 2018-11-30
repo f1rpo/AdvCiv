@@ -604,15 +604,23 @@
 		<iDefineIntVal>67</iDefineIntVal>
 	</Define>
 
-	<!-- [advc.250c]
-	     Originally in GlobalDefines.xml; set to 3 there. As far as I can
-		 tell, it's always added to ADVANCED_START_VISIBILITY_COST, which
-		 is 2 in GlobalDefines.xml, resulting in a total cost of 5
-		 start points per revealed tile. Recommended: 0 (for a total
-		 of 2). -->
+	<!-- advc.250c:
+	     Originally in GlobalDefines.xml; set to 2 there, which results in a
+		 total cost of 5 initially once ADVANCED_START_VISIBILITY_COST_INCREASE is taken into account.
+		 Recommended: 1, which results in an initial cost of 2. -->
+	<Define>
+		<DefineName>ADVANCED_START_VISIBILITY_COST</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	<!-- advc.250c:
+	     Originally in GlobalDefines.xml; set to 3 there, which means that the
+		 cost per revealed tile increases after every 33 tiles (100/3).
+		 Recommended: 4, meaning the cost increases after every 25 tiles.
+		 Note that the AdvCiv DLL counts automatically revealed tiles only
+		 partially. -->
 	<Define>
 		<DefineName>ADVANCED_START_VISIBILITY_COST_INCREASE</DefineName>
-		<iDefineIntVal>0</iDefineIntVal>
+		<iDefineIntVal>4</iDefineIntVal>
 	</Define>
 	
 	<!-- [advc.250c][advc.251]

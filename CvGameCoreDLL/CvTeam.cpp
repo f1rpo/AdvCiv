@@ -1563,7 +1563,7 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 	{
 		gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
-		// advc.001: Can now enter each other's territory
+		// advc.001w: Can now enter each other's territory
 		gDLL->getInterfaceIFace()->setDirty(Waypoints_DIRTY_BIT, true);
 	}
 

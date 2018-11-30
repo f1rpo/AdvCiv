@@ -2644,7 +2644,9 @@ void CvGame::loadBuildQueue(const CvString& strItem) const
 }
 
 void CvGame::cheatSpaceship() const
-{
+{	// <advc.007b> I don't know how this is triggered; it's safer to block it.
+	if(!GC.getGameINLINE().isDebugMode())
+		return; // </advc.007b>
 	//add one space project that is still available
 	CvTeam& kTeam = GET_TEAM(getActiveTeam());
 	for (int i = 0; i < GC.getNumProjectInfos(); i++)

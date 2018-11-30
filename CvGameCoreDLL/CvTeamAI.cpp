@@ -6163,7 +6163,7 @@ WarAndPeaceAI::Team& CvTeamAI::warAndPeaceAI() {
 // <advc.136a>
 bool CvTeamAI::AI_isPursuingCircumnavigation() const {
 
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // No problem at all it seems
 	if(!GC.getGame().circumnavigationAvailable())
 		return false;
 	for(int i = 0; i < GC.getNumUnitInfos(); i++) {

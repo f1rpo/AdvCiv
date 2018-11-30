@@ -1286,17 +1286,20 @@ int CvUnitAI::AI_sacrificeValue(const CvPlot* pPlot) const
 
 // Protected Functions...
 
-// K-Mod - test if we should declare war before moving to the target plot.
-// (originally, DOW were made inside the unit movement mechanics. To me, that seems like a really dumb idea.)
+/*  K-Mod - test if we should declare war before moving to the target plot.
+	(originally, DOW were made inside the unit movement mechanics.
+	To me, that seems like a really dumb idea.) */
 bool CvUnitAI::AI_considerDOW(CvPlot* pPlot)
 {
 	CvTeamAI& kOurTeam = GET_TEAM(getTeam());
 	TeamTypes ePlotTeam = pPlot->getTeam();
 
 	//if (!canEnterArea(ePlotTeam, pPlot->area(), true))
-	// Note: We might be a transport ship which ignores borders, but with escorts and cargo who don't ignore borders.
-	// So, we should check that the whole group can enter the borders. (There are faster ways to check, but this is good enough.)
-	// If it's an amphibious landing, lets just assume that our cargo will need a DoW!
+	/*  Note: We might be a transport ship which ignores borders, but with escorts
+		and cargo who don't ignore borders.
+		So, we should check that the whole group can enter the borders.
+		(There are faster ways to check, but this is good enough.)
+		If it's an amphibious landing, lets just assume that our cargo will need a DoW! */
 	if (!getGroup()->canEnterArea(ePlotTeam, pPlot->area(), true) || getGroup()->isAmphibPlot(pPlot))
 	{
 		if (ePlotTeam != NO_TEAM && kOurTeam.AI_isSneakAttackReady(ePlotTeam))
@@ -1313,10 +1316,11 @@ bool CvUnitAI::AI_considerDOW(CvPlot* pPlot)
 	return false;
 }
 
-// AI_considerPathDOW checks each plot on the path until the end of the turn.
-// Sometimes the end plot is in friendly territory, but we need to declare war to actually get there.
-// This situation is very rare, but unfortunately we have to check for it every time
-// - because otherwise, when it happens, the AI will just get stuck.
+/*  AI_considerPathDOW checks each plot on the path until the end of the turn.
+	Sometimes the end plot is in friendly territory, but we need to declare war
+	to actually get there. This situation is very rare, but unfortunately we
+	have to check for it every time - because otherwise, when it happens,
+	the AI will just get stuck. */
 bool CvUnitAI::AI_considerPathDOW(CvPlot* pPlot, int iFlags)
 {
 	PROFILE_FUNC();
@@ -1333,12 +1337,15 @@ bool CvUnitAI::AI_considerPathDOW(CvPlot* pPlot, int iFlags)
 	bool bDOW = false;
 	FAStarNode* pNode = getPathFinder().GetEndNode(); // TODO: rewrite so that GetEndNode isn't used.
 	while (!bDOW && pNode)
-	{
-		// we need to check DOW even for moves several turns away - otherwise the actual move mission may fail to find a path.
-		// however, I would consider it irresponsible to call this function for multi-move missions.
-		// (note: amphibious landings may say 2 turns, even though it is really only 1...)
-		FAssert(pNode->m_iData2 <= 1 || (pNode->m_iData2 == 2 && getGroup()->isAmphibPlot(GC.getMapINLINE().plotSorenINLINE(pNode->m_iX, pNode->m_iY))));
-		bDOW = AI_considerDOW(GC.getMapINLINE().plotSorenINLINE(pNode->m_iX, pNode->m_iY));
+	{	// advc.003:
+		CvPlot* pLoopPlot = GC.getMapINLINE().plotSorenINLINE(pNode->m_iX, pNode->m_iY);
+		/*  we need to check DOW even for moves several turns away -
+			otherwise the actual move mission may fail to find a path.
+			however, I would consider it irresponsible to call this function for multi-move missions.
+			(note: amphibious landings may say 2 turns, even though it is really only 1...) */
+		FAssert(pNode->m_iData2 <= 1 ||
+				(pNode->m_iData2 == 2 && getGroup()->isAmphibPlot(pLoopPlot)));
+		bDOW = AI_considerDOW(pLoopPlot);
 		pNode = pNode->m_pParent;
 	}
 
@@ -2693,6 +2700,8 @@ void CvUnitAI::AI_attackMove()
 			// K-Mod. If we're feeling aggressive, then try to get closer to the enemy.
 			if (bAttackCity && getGroup()->getNumUnits() > 1)
 			{
+				/*  advc.001t (Tbd.?): Maybe check CvSelectionGroupAI::AI_isDeclareWar
+					and pass MOVE_DECLARE_WAR (instead of 0) if true */
 				if (AI_goToTargetCity(0, 12))
 					return;
 			}
@@ -15900,11 +15909,11 @@ bool CvUnitAI::AI_goToTargetCity(int iFlags, int iMaxPathTurns, CvCity* pTargetC
 				// K-Mod
 				if (AI_considerPathDOW(pEndTurnPlot, iFlags))
 				{
-					// regenerate the path, just in case we want to take a different route after the DOW
-					// (but don't bother recalculating the best destination)
-					// Note. if the best destination happens to be on the border,
-					// and has a stack of defenders on it, this will make us attack them.
-					// That's bad. I'll try to fix that in the future.
+					/*  regenerate the path, just in case we want to take a different route after the DOW
+						(but don't bother recalculating the best destination)
+						Note. if the best destination happens to be on the border,
+						and has a stack of defenders on it, this will make us attack them.
+						That's bad. I'll try to fix that in the future. */
 					if (!generatePath(pBestPlot, iFlags, false))
 						return false;
 					CvPlot* pEnemyPlot = pEndTurnPlot; // advc.001t
@@ -15922,6 +15931,12 @@ bool CvUnitAI::AI_goToTargetCity(int iFlags, int iMaxPathTurns, CvCity* pTargetC
 						if(isEnemy(pEnemyPlot->getTeam()))
 							pEndTurnPlot = pEnemyPlot;
 						else FAssert(isEnemy(pEnemyPlot->getTeam()));
+						/*  If the else... assert fails, it's probably b/c
+							the stack has multiple moves and there is an
+							intermediate tile that requires a DoW.
+							So this can be fine. Could check this through
+							getPathFinder().GetEndNode() like it's done in
+							AI_considerPathDOW -- tbd.? */
 					} // </advc.001t>
 				}
 				// I'm going to use MISSIONAI_ASSAULT signal to our spies and other units that we're attacking this city.

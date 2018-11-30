@@ -3981,14 +3981,10 @@ int CvCity::getBonusYieldRateModifier(YieldTypes eIndex, BonusTypes eBonus) cons
 
 void CvCity::processBonus(BonusTypes eBonus, int iChange)
 {
-	int iI;
-	int iValue;
-	int iGoodValue;
-	int iBadValue;
-
-	iValue = GC.getBonusInfo(eBonus).getHealth();
-	iGoodValue = std::max(0, iValue);
-	iBadValue = std::min(0, iValue);
+	int iI=-1; // advc.003
+	int iValue = GC.getBonusInfo(eBonus).getHealth();
+	int iGoodValue = std::max(0, iValue);
+	int iBadValue = std::min(0, iValue);
 
 	for (iI = 0; iI < GC.getNumBuildingInfos(); iI++)
 	{
@@ -4002,8 +3998,13 @@ void CvCity::processBonus(BonusTypes eBonus, int iChange)
 		{
 			iBadValue += iValue;
 		}
-	}
-
+	} // <advc.001w>
+	CvGame const& g = GC.getGameINLINE();
+	if((iGoodValue != 0 || iBadValue != 0) && getOwnerINLINE() == g.getActivePlayer()) {
+		int iHealth = healthRate();
+		if((iHealth < 0) != (iHealth + (iGoodValue - iBadValue) * iChange < 0))
+			gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
+	} // </advc.001w>
 	changeBonusGoodHealth(iGoodValue * iChange);
 	changeBonusBadHealth(iBadValue * iChange);
 
@@ -4024,8 +4025,12 @@ void CvCity::processBonus(BonusTypes eBonus, int iChange)
 		{
 			iBadValue += iValue;
 		}
-	}
-
+	} // <advc.001w>
+	if((iGoodValue != 0 || iBadValue != 0) && getOwnerINLINE() == g.getActivePlayer()) {
+		int iHappy = happyLevel() - unhappyLevel();
+		if((iHappy < 0) != (iHappy + (iGoodValue - iBadValue) * iChange < 0))
+			gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
+	} // </advc.001w>
 	changeBonusGoodHappiness(iGoodValue * iChange);
 	changeBonusBadHappiness(iBadValue * iChange);
 
@@ -12803,11 +12808,10 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 			} */
 
 			// K-Mod. use excess production to build more of the same unit
-			int iToBuild = 1 + iLostProduction / iProductionNeeded;
-			int iBuilt = 0;
-			for (iBuilt = 0; iBuilt < iToBuild; iBuilt++)
-			{
-				// original build code
+			int iToTrain = 1 + iLostProduction / iProductionNeeded;
+			int iTrained = 0;
+			do { // advc.001v
+				// BtS code (create the unit)
 				pUnit = owner.initUnit(eTrainUnit, getX_INLINE(), getY_INLINE(), eTrainAIUnit);
 				FAssertMsg(pUnit != NULL, "pUnit is expected to be assigned a valid unit object");
 
@@ -12850,12 +12854,10 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 					{
 						pUnit->jumpToNearestValidPlot();  // can destroy unit
 					}
-				}
-				// end original build code
-				if (!canTrain(eTrainUnit))
-					break; //  can't build any more.
-			}
-			iLostProduction -= iProductionNeeded * (iBuilt-1);
+				} // <advc.001v>
+				iTrained++;
+			} while(iTrained < iToTrain && canTrain(eTrainUnit)); // </advc.001v>
+			iLostProduction -= iProductionNeeded * (iTrained - 1);
 			FAssert(iLostProduction >= 0);
 
 			if (iLostProduction > 0 && canTrain(eTrainUnit))
@@ -12864,8 +12866,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 				setUnitProduction(eTrainUnit, iLostProduction);
 				iLostProduction = 0;
 			}
-			else
-				setUnitProduction(eTrainUnit, 0);
+			else setUnitProduction(eTrainUnit, 0);
 			setUnitProductionTime(eTrainUnit, 0);
 
 			if (iLostProduction > 0)
@@ -12885,7 +12886,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 			{
 				int iCount = 0;
 				CLLNode<OrderData>* pLoopNode = headOrderQueueNode();
-				while (pLoopNode && iBuilt > 1)
+				while (pLoopNode && iTrained > 1)
 				{
 					const OrderData& kLoopData = pLoopNode->m_data;
 					if (pLoopNode != pOrderNode &&
@@ -12901,7 +12902,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 						// Move on to the next node before we pop the order - but don't increment iCount.
 						pLoopNode = nextOrderQueueNode(pLoopNode);
 						popOrder(iCount);
-						iBuilt--;
+						iTrained--;
 						/* pLoopNode = headOrderQueueNode();
 						iCount = 0; */
 					}
@@ -16301,7 +16302,8 @@ int CvCity::getSoundscapeScriptId() const
 
 void CvCity::cheat(bool bCtrl, bool bAlt, bool bShift)
 {
-	if (gDLL->getChtLvl() > 0)
+	//if (gDLL->getChtLvl() > 0)
+	if(GC.getGameINLINE().isDebugMode()) // advc.007b
 	{
 		if (bCtrl)
 		{

@@ -232,10 +232,10 @@ public:
 	bool AI_considerOffer(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList,
 			const CLinkList<TradeData>* pOurList, int iChange = 1) {
 			// <advc.133> Can't add a param though, so ...
-		return AI_considerOffer(ePlayer, pTheirList, pOurList, iChange, 0); }
+		return AI_considerOffer(ePlayer, *pTheirList, *pOurList, iChange, 0); }
 	bool AI_considerOffer(PlayerTypes ePlayer,
-			CLinkList<TradeData> const* pTheirList,
-			CLinkList<TradeData> const* pOurList,
+			CLinkList<TradeData> const& kTheyGive,
+			CLinkList<TradeData> const& kWeGive,
 			int iChange, int iDealAge); // </advc.133>
 	double AI_prDenyHelp() const; // advc.144
 	bool AI_counterPropose(PlayerTypes ePlayer, const CLinkList<TradeData>* pTheirList,
@@ -719,15 +719,15 @@ protected:
 			bool bGenerous,
 			// advc.036:
 			int iHappyLeft, int iHealthLeft, int iOtherListLength) const;
-	int AI_checkCancel(CvDeal const& d, PlayerTypes otherId, bool bFlip);
+	int AI_checkCancel(CvDeal const& d, PlayerTypes ePlayer, bool bFlip);
 	bool AI_doDeals(PlayerTypes otherId);
 	// </advc.003>
 	bool AI_proposeResourceTrade(PlayerTypes otherId); // advc.133
 	// <advc.036>
 	// advc.132:
-	bool AI_checkCivicReligionConsistency(CLinkList<TradeData> const* tradeItems) const;
-	bool AI_checkResourceLimits(CLinkList<TradeData> const* weGive,
-			CLinkList<TradeData> const* theyGive, PlayerTypes theyId,
+	bool AI_checkCivicReligionConsistency(CLinkList<TradeData> const& tradeItems) const;
+	bool AI_checkResourceLimits(CLinkList<TradeData> const& weGive,
+			CLinkList<TradeData> const& theyGive, PlayerTypes theyId,
 			int iChange) const; // </advc.036>
 	// <advc.026>
 	int AI_maxGoldTradeGenerous(PlayerTypes theyId) const;

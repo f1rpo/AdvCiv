@@ -18196,39 +18196,25 @@ int CvPlayer::getAdvancedStartVisibilityCost(bool bAdd, CvPlot* pPlot) const
 	}
 
 	// Valid Plot?
-	if (pPlot != NULL)
-	{
-		if (bAdd)
-		{
-			if (pPlot->isRevealed(getTeam(), false))
-			{
+	if(pPlot != NULL) {
+		if(bAdd) {
+			if(pPlot->isRevealed(getTeam(), false))
 				return -1;
-			}
-			if (!pPlot->isAdjacentRevealed(getTeam()
-				, true // advc.250c
-				))
-			{
+			if(!pPlot->isAdjacentRevealed(getTeam(),
+					true)) // advc.250c
 				return -1;
-			}
 		}
-		else
-		{
-			if (!pPlot->isRevealed(getTeam(), false))
-			{
-				return -1;
-			}
-		}
+		else if (!pPlot->isRevealed(getTeam(), false))
+			return -1;
 	}
 
 	// Increase cost if the XML defines that additional units will cost more
-	if (0 != GC.getDefineINT("ADVANCED_START_VISIBILITY_COST_INCREASE"))
+	if (GC.getDefineINT("ADVANCED_START_VISIBILITY_COST_INCREASE") != 0)
 	{
 		int iPlotLoop = 0;
-		CvPlot* pPlot;
-
 		for (iPlotLoop = 0; iPlotLoop < GC.getMapINLINE().numPlots(); iPlotLoop++)
 		{
-			pPlot = GC.getMapINLINE().plotByIndex(iPlotLoop);
+			CvPlot* pPlot = GC.getMapINLINE().plotByIndex(iPlotLoop);
 
 			if (pPlot->isRevealed(getTeam(), false))
 			{
@@ -18240,7 +18226,7 @@ int CvPlayer::getAdvancedStartVisibilityCost(bool bAdd, CvPlot* pPlot) const
 		{
 			--iNumVisiblePlots;
 		}
-
+		iNumVisiblePlots -= NUM_CITY_PLOTS; // advc.210c
 		if (iNumVisiblePlots > 0)
 		{
 			iCost *= 100 + GC.getDefineINT("ADVANCED_START_VISIBILITY_COST_INCREASE") * iNumVisiblePlots;
@@ -24841,10 +24827,9 @@ void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector
 
 void CvPlayer::cheat(bool bCtrl, bool bAlt, bool bShift)
 {
-	if (gDLL->getChtLvl() > 0)
-	{
+	//if (gDLL->getChtLvl() > 0)
+	if(GC.getGameINLINE().isDebugMode()) // advc.007b
 		GET_TEAM(getTeam()).setHasTech(getCurrentResearch(), true, getID(), true, false);
-	}
 }
 
 const CvArtInfoUnit* CvPlayer::getUnitArtInfo(UnitTypes eUnit, int iMeshGroup) const

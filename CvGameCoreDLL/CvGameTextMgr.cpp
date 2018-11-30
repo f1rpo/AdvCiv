@@ -4020,7 +4020,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 			bool bConnected = GET_PLAYER(eActivePlayer).
 					doesImprovementConnectBonus(ePlotImprovement, eBonus);
 			// Moved up (b/c the route isn't needed for the yields)
-			if(!bCity && !pPlot->isBonusNetwork(eActiveTeam) &&
+			if(!bCity && !pPlot->isBonusNetwork(eActiveTeam) && !pPlot->isWater() &&
 					bConnected) { // Mention route only if all other pieces in place
 				//szString.append(gDLL->getText("TXT_KEY_PLOT_REQUIRES_ROUTE"));
 				if(!szReqs.isEmpty())

@@ -14068,12 +14068,11 @@ bool CvUnit::shouldShowFoundBorders() const
 
 void CvUnit::cheat(bool bCtrl, bool bAlt, bool bShift)
 {
-	if (gDLL->getChtLvl() > 0)
+	//if (gDLL->getChtLvl() > 0)
 	{
-		if (bCtrl)
-		{
+		if (bCtrl
+				&& GC.getGameINLINE().isDebugMode()) // advc.007b
 			setPromotionReady(true);
-		}
 	}
 }
 

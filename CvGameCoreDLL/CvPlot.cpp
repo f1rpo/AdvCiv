@@ -8030,9 +8030,13 @@ void CvPlot::setRevealed(TeamTypes eTeam, bool bNewValue, bool bTerrainOnly, Tea
 		{
 			area()->changeNumRevealedTiles(eTeam, ((isRevealed(eTeam, false)) ? 1 : -1));
 		}
-	} /* advc.124: Need to update plot group even if revealed status hasn't
-		 changed b/c the revealed status of e.g. a route may have changed. */
-	if (bUpdatePlotGroup)
+	} // <advc.124> Need to update plot group if any revealed status changes
+	if (bUpdatePlotGroup &&
+			(bOldValue != bNewValue ||
+			getRevealedOwner(eTeam, false) != getOwnerINLINE() ||
+			getRevealedImprovementType(eTeam, false) != getImprovementType() ||
+			getRevealedRouteType(eTeam, false) != getRouteType() ||
+			(pCity != NULL && !pCity->isRevealed(eTeam, false)))) // </advc.124>
 	{
 		for (iI = 0; iI < MAX_PLAYERS; ++iI)
 		{

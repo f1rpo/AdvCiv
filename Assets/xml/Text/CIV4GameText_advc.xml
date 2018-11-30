@@ -4128,5 +4128,17 @@
 		<Italian>Nessuno (causa un'elezione anticipata)</Italian>
 		<Spanish>Ninguno (provoca una elección anticipada)</Spanish>
 	</TEXT>
+
+	<!-- advc.002n: Can restore the flashing end-turn message by deleting this
+		 text key. (The game will then use the original one in
+		 Civ4GameTextInfos.xml.)  -->
+	<TEXT>
+		<Tag>SYSTEM_END_TURN</Tag>
+		<English></English>
+		<French></French>
+		<German></German>
+		<Italian></Italian>
+		<Spanish></Spanish>
+	</TEXT>
 	
 </Civ4GameText>

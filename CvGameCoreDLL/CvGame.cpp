@@ -290,7 +290,7 @@ void CvGame::setInitialItems()
 	if(isOption(GAMEOPTION_SPAH))
 		// Reassigns start plots and start points
 		spah.setInitialItems(); // </advc.250b>
-	int startTurn = getStartTurn(); // advc.250c, advc.251
+	int iStartTurn = getStartTurn(); // advc.250c, advc.251
 	// <advc.250c>
 	if(GC.getGameINLINE().getStartEra() == 0 &&
 			GC.getDefineINT("INCREASE_START_TURN") > 0) {
@@ -300,21 +300,23 @@ void CvGame::setInitialItems()
 			if(civ.isAlive())
 				distr.push_back(civ.getAdvancedStartPoints());
 		}
-		startTurn = getStartTurn();
+		iStartTurn = getStartTurn();
 		double maxMean = (::max(distr) + ::mean(distr)) / 2.0;
-		if(maxMean > 500)
-			startTurn += ::round(std::sqrt(std::max(0.0, maxMean - 200)));
+		if(maxMean > 370) {
+			iStartTurn += ::roundToMultiple(std::pow(std::max(0.0, maxMean - 325),
+					0.58), 5);
+		}
 	} // </advc.250c>
 	// <advc.251> Also set a later start turn if handicap grants lots of AI freebies
 	if(!isOption(GAMEOPTION_ADVANCED_START) && getNumHumanPlayers() <
 			countCivPlayersAlive()) {
 		CvHandicapInfo& gameHandicap = GC.getHandicapInfo(getHandicapType());
-		startTurn += ((gameHandicap.getAIStartingUnitMultiplier() * 10 +
+		iStartTurn += ((gameHandicap.getAIStartingUnitMultiplier() * 10 +
 				gameHandicap.getAIStartingWorkerUnits() * 10) *
 				GC.getGameSpeedInfo(getGameSpeedType()).getGrowthPercent()) / 100;
 	} // <advc.250c>
-	if(getStartTurn() != startTurn && GC.getDefineINT("INCREASE_START_TURN") > 0) {
-		setStartTurnYear(startTurn);
+	if(getStartTurn() != iStartTurn && GC.getDefineINT("INCREASE_START_TURN") > 0) {
+		setStartTurnYear(iStartTurn);
 		/*  initDiplomacy is called from outside the DLL between the first
 			setStartTurnYear call and setInitialItems. The second setStartTurnYear
 			causes any initial "universal" peace treaties to end after 1 turn.
@@ -3877,7 +3879,7 @@ bool CvGame::canTrainNukes() const
 
 EraTypes CvGame::getCurrentEra() const
 {
-	PROFILE_FUNC(); // advc.003b
+	//PROFILE_FUNC(); // advc.003b: OK - negligble
 
 	int iEra = 0;
 	int iCount = 0;
