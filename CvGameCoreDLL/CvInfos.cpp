@@ -20171,9 +20171,19 @@ bool CvGameOptionInfo::getDefault() const
 }
 
 bool CvGameOptionInfo::getVisible() const 
-{ 
+{
 	return m_bVisible;
 }
+// <advc.054>
+bool CvGameOptionInfo::getVisibleXML() const 
+{
+	return m_bVisibleXML;
+}
+
+void CvGameOptionInfo::setVisible(bool b) {
+
+	m_bVisible = b;
+} // </advc.054>
 
 bool CvGameOptionInfo::read(CvXMLLoadUtility* pXML)
 {
@@ -20184,7 +20194,7 @@ bool CvGameOptionInfo::read(CvXMLLoadUtility* pXML)
 
 	pXML->GetChildXmlValByName(&m_bDefault, "bDefault");
 	pXML->GetChildXmlValByName(&m_bVisible, "bVisible");
-	
+	m_bVisibleXML = m_bVisible; // advc.054
 	return true;
 }
 

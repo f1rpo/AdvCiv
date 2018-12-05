@@ -7,7 +7,6 @@
 #include "CvCity.h"
 #include "CvGlobals.h"
 #include "CvGameCoreUtils.h"
-#include "CvGameAI.h"
 #include "CvMap.h"
 #include "CvPlayerAI.h"
 #include "CvRandom.h"

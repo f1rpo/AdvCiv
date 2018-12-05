@@ -2,7 +2,6 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvGlobals.h"
-#include "CvGameAI.h"
 #include "CvTeamAI.h"
 #include "CvPlayerAI.h"
 #include "CvMap.h"

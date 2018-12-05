@@ -3,8 +3,8 @@ BeginGame
 	Speed=GAMESPEED_EPIC
 	Calendar=CALENDAR_DEFAULT
 	Option=GAMEOPTION_PICK_RELIGION
-	Option=GAMEOPTION_NO_EVENTS
 	Option=GAMEOPTION_LEAD_ANY_CIV
+	Option=GAMEOPTION_NO_EVENTS
 	GameTurn=0
 	StartYear=-3600
 	Description=Eurocentric world map to replace Earth18Civs. Custom projection with some resemblance to the Bonne projection. Optimized for the Advanced Civ mod, but no mod is required. Work in progress.
@@ -84,7 +84,6 @@ BeginPlayer
 	PlayableCiv=1
 	StartingX=53, StartingY=14
 	Handicap=HANDICAP_EMPEROR
-	CityList=TXT_KEY_CITY_NAME_AOMORI
 	CityList=TXT_KEY_CITY_NAME_KYOTO
 	CityList=TXT_KEY_CITY_NAME_OSAKA
 	CityList=TXT_KEY_CITY_NAME_TOKYO
@@ -116,6 +115,7 @@ BeginPlayer
 	CityList=TXT_KEY_CITY_NAME_TAKAYAMA
 	CityList=TXT_KEY_CITY_NAME_AKITA
 	CityList=TXT_KEY_CITY_NAME_FUKUOKA
+	CityList=TXT_KEY_CITY_NAME_AOMORI
 	CityList=TXT_KEY_CITY_NAME_KAMAKURO
 	CityList=TXT_KEY_CITY_NAME_KOCHI
 	CityList=TXT_KEY_CITY_NAME_NAHA
@@ -25335,7 +25335,7 @@ BeginPlot
 	BonusType=BONUS_COPPER
 	FeatureType=FEATURE_FOREST, FeatureVariety=1
 	TerrainType=TERRAIN_PLAINS
-	PlotType=2
+	PlotType=1
 EndPlot
 BeginPlot
 	x=65,y=39
@@ -25725,6 +25725,7 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=66,y=38
+	BonusType=BONUS_CLAM
 	TerrainType=TERRAIN_COAST
 	PlotType=3
 EndPlot
@@ -26548,7 +26549,6 @@ BeginPlot
 EndPlot
 BeginPlot
 	x=68,y=44
-	BonusType=BONUS_COPPER
 	FeatureType=FEATURE_FOREST, FeatureVariety=0
 	TerrainType=TERRAIN_GRASS
 	PlotType=2
@@ -31626,7 +31626,7 @@ BeginPlot
 	EndUnit
 	BeginCity
 		CityOwner=18
-		CityName=TXT_KEY_CITY_NAME_ARYAN
+		CityName=TXT_KEY_CITY_NAME_HARAPPAN
 	EndCity
 EndPlot
 BeginPlot

@@ -2,7 +2,6 @@
 #include "CvGameCoreUtils.h"
 #include <algorithm>
 #include "CvUnit.h"
-#include "CvGameAI.h"
 #include "CvPlayerAI.h"
 #include "CvMap.h"
 #include "CvPlot.h"

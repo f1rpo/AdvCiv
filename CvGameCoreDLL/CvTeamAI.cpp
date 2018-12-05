@@ -9,7 +9,6 @@
 #include "CvMap.h"
 #include "CvPlot.h"
 #include "CvDLLInterfaceIFaceBase.h"
-#include "CvGameAI.h"
 #include "CvInfos.h"
 #include "FProfiler.h"
 #include "CyArgsList.h"

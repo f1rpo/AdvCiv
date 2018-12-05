@@ -77,7 +77,7 @@ void RFChapterScore::atChapterStart(RFChapter const& rfc) {
 	chapter = &rfc;
 	/*  Sometimes updated before the start of the first chapter anyway, but 
 		not guaranteed. */
-	GC.getGame().updateScore();
+	GC.getGame().updateScore(true);
 	std::pair<int,int> rank_rivals = computeRank(true);
 	initialRank = rank_rivals.first;
 	initialRivals = rank_rivals.second;

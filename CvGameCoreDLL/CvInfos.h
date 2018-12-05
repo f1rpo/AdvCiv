@@ -5813,12 +5813,15 @@ public:
 
 	DllExport bool getDefault() const;
 	DllExport bool getVisible() const;
-
+	// <advc.054>
+	void setVisible(bool b);
+	bool getVisibleXML() const; // </advc.054>
 	bool read(CvXMLLoadUtility* pXML);
 
 private:
 	bool m_bDefault;
 	bool m_bVisible;
+	bool m_bVisibleXML; // advc.054
 };
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

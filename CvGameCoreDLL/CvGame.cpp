@@ -3,7 +3,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvGameCoreUtils.h"
 #include "CvGame.h"
-#include "CvGameAI.h"
 #include "CvMap.h"
 #include "CvPlot.h"
 #include "CvPlayerAI.h"
@@ -292,8 +291,7 @@ void CvGame::setInitialItems()
 		spah.setInitialItems(); // </advc.250b>
 	int iStartTurn = getStartTurn(); // advc.250c, advc.251
 	// <advc.250c>
-	if(GC.getGameINLINE().getStartEra() == 0 &&
-			GC.getDefineINT("INCREASE_START_TURN") > 0) {
+	if(getStartEra() == 0 && GC.getDefineINT("INCREASE_START_TURN") > 0) {
 		std::vector<double> distr;
 		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 			CvPlayer const& civ = GET_PLAYER((PlayerTypes)i);
@@ -516,8 +514,7 @@ void CvGame::setStartTurnYear(int iTurn) {
     int iI;
 
     if (getGameTurn() == 0
-            || iTurn > 0 // advc.250c
-        )
+            || iTurn > 0) // advc.250c
     {
         iStartTurn = 0;
 
@@ -858,6 +855,19 @@ void CvGame::initDiplomacy()
 void CvGame::initFreeState()
 {
 	int iI, iJ, iK;
+	if(GC.getInitCore().isScenario()) {
+		setScenario(true); // advc.052
+		AI().AI_initScenario(); // advc.104u
+	}
+	else { // advc.051: (Moved up.) Don't force 0 gold in scenarios.
+		for (iI = 0; iI < MAX_PLAYERS; iI++)
+		{
+			if (GET_PLAYER((PlayerTypes)iI).isAlive())
+			{
+				GET_PLAYER((PlayerTypes)iI).initFreeState();
+			}
+		}
+	}
 	for (iI = 0; iI < GC.getNumTechInfos(); iI++)
 	{
 		for (iJ = 0; iJ < MAX_TEAMS; iJ++)
@@ -915,15 +925,6 @@ void CvGame::initFreeState()
 				GC.getMapINLINE().setRevealedPlots((TeamTypes)iJ, true, true); 
 			}
 		}
-	} // <advc.051> Don't force 0 gold in scenarios
-	if(GC.getInitCore().isScenario())
-		return; // </advc.051>
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
-	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
-		{
-			GET_PLAYER((PlayerTypes)iI).initFreeState();
-		}
 	}
 }
 
@@ -947,12 +948,31 @@ void CvGame::initScenario() {
 
 void CvGame::initFreeUnits() {
 
+	bool bScenario = GC.getInitCore().isScenario();
 	/*  In scenarios, neither setInitialItems nor initFreeState is called; the
 		EXE only calls initFreeUnits, so the initialization of freebies needs to
 		happen here. */
-	if(GC.getInitCore().isScenario())
+	if(bScenario)
 		initScenario();
-	initFreeUnits_bulk();
+	initFreeUnits_bulk(); // (also sets Advanced Start points)
+	if(!bScenario)
+		return;
+	/*  <advc.250b> Advanced Start is always visible on the Custom Scenario screen,
+		but doesn't work properly unless Advanced Start is the scenario's
+		default setting. Verify that start points have been assigned, or else
+		disable Advanced Start. */
+	bool bValid = false;
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+		CvPlayer const& civ = GET_PLAYER((PlayerTypes)i);
+		if(civ.isAlive() && civ.getAdvancedStartPoints() > 0) {
+			bValid = true;
+			break;
+		}
+	}
+	if(!bValid) {
+		setOption(GAMEOPTION_SPAH, false);
+		setOption(GAMEOPTION_ADVANCED_START, false);
+	} // </advc.250b>
 }
 
 void CvGame::initFreeUnits_bulk() { // </advc.051>
@@ -4659,7 +4679,7 @@ int CvGame::getGlobalWarmingChances() const
 	// I estimate that the global warming index will actually be roughly proportional to the number of turns in the game
 	// so by scaling the chances, and the probability per chance, I hope to get roughly the same number of actually events per game
 	int iIndexPerChance = GC.getDefineINT("GLOBAL_WARMING_INDEX_PER_CHANCE");
-	iIndexPerChance*=GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getVictoryDelayPercent();
+	iIndexPerChance*=GC.getGameSpeedInfo(getGameSpeedType()).getVictoryDelayPercent();
 	iIndexPerChance/=100;
 	return ROUND_DIVIDE(getGlobalWarmingIndex(), std::max(1, iIndexPerChance));
 }
@@ -4750,7 +4770,7 @@ int CvGame::calculateGwSeverityRating() const
 
 	// I recommend looking at the graph of this function to get a sense of how it works.
 
-	const long x = GC.getDefineINT("GLOBAL_WARMING_PROB") * GC.getGameINLINE().getGlobalWarmingIndex() / (std::max(1,4*GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getVictoryDelayPercent()*GC.getMapINLINE().getLandPlots()));
+	const long x = GC.getDefineINT("GLOBAL_WARMING_PROB") * getGlobalWarmingIndex() / (std::max(1,4*GC.getGameSpeedInfo(getGameSpeedType()).getVictoryDelayPercent()*GC.getMapINLINE().getLandPlots()));
 	const long b = 70; // shape parameter. Lower values result in the function being steeper earlier.
 	return 100L - b*100L/(b+x*x);
 }
@@ -5591,7 +5611,7 @@ void CvGame::setWinner(TeamTypes eNewWinner, VictoryTypes eNewVictory)
 		m_eWinner = eNewWinner;
 		m_eVictory = eNewVictory;
 		// advc.707: Handled by RiseFall::prepareForExtendedGame
-		if(!GC.getGame().isOption(GAMEOPTION_RISE_FALL))
+		if(!isOption(GAMEOPTION_RISE_FALL))
 /************************************************************************************************/
 /* AI_AUTO_PLAY_MOD                        07/09/08                                jdog5000      */
 /*                                                                                              */
@@ -6847,7 +6867,7 @@ void CvGame::doGlobalWarming()
 	/*
 	** Calculate change in GW index
 	*/
-	int iGlobalWarmingValue = GC.getGameINLINE().calculateGlobalPollution();
+	int iGlobalWarmingValue = calculateGlobalPollution();
 
 	int iGlobalWarmingDefense = calculateGwSustainabilityThreshold(); // Natural global defence
 	iGlobalWarmingDefense+= calculateGwLandDefence(); // defence from features (forests & jungles)
@@ -6864,7 +6884,7 @@ void CvGame::doGlobalWarming()
 
 		szBuffer = gDLL->getText("TXT_KEY_MISC_GLOBAL_WARMING_ACTIVE");
 		// add the message to the replay
-		GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, NO_PLAYER, szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+		addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, NO_PLAYER, szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 
 		for (int iI = 0; iI < MAX_PLAYERS; iI++)
 		{
@@ -6908,7 +6928,7 @@ void CvGame::doGlobalWarming()
 	for (int iI = 0; iI < iGlobalWarmingRolls; iI++)
 	{
 		// note, warming prob out of 1000, not percent.
-		int iLeftOdds = 10*GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getVictoryDelayPercent();
+		int iLeftOdds = 10*GC.getGameSpeedInfo(getGameSpeedType()).getVictoryDelayPercent();
 		if (getSorenRandNum(iLeftOdds, "Global Warming") < GC.getDefineINT("GLOBAL_WARMING_PROB"))
 		{
 			//CvPlot* pPlot = GC.getMapINLINE().syncRandPlot(RANDPLOT_LAND | RANDPLOT_NOT_CITY);
@@ -7251,7 +7271,7 @@ int CvGame::religionPriority(PlayerTypes civId, ReligionTypes relId) const {
 	r += ((100 - GC.getHandicapInfo(civ.getHandicapType()).
 			getStartingLocationPercent()) * 31) / 100;
 	// With the pick-rel option, relId will change later on anyway
-	if(!GC.getGame().isOption(GAMEOPTION_PICK_RELIGION)) {
+	if(!isOption(GAMEOPTION_PICK_RELIGION)) {
 		/*  Not excluding human here means that choosing a leader with an
 			early fav religion can make a difference in human getting
 			a religion. Unexpected, as fav religions are pretty obscure
@@ -7529,7 +7549,7 @@ void CvGame::createBarbCity(bool bSkipCivAreas, float prMod) {
 			iUnowned += shelves[i]->countUnownedPlots() / 2;
 		unownedPerArea.insert(std::make_pair(a.getID(), iUnowned));
 	}
-	bool isRage = GC.getGame().isOption(GAMEOPTION_RAGING_BARBARIANS);
+	bool bRage = isOption(GAMEOPTION_RAGING_BARBARIANS);
 	// </advc.300>
 
 	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
@@ -7548,7 +7568,7 @@ void CvGame::createBarbCity(bool bSkipCivAreas, float prMod) {
 				pLoopPlot->area()->getID());
 		FAssert(unowned != unownedPerArea.end());
 		int iTargetCities = unowned->second;
-		if(isRage) { // Didn't previously affect city density
+		if(bRage) { // Didn't previously affect city density
 			iTargetCities *= 7;
 			iTargetCities /= 5;
 		}
@@ -7657,8 +7677,8 @@ void CvGame::createBarbarianUnits()
 		/*  <advc.300> No need to delay barbs if they start slowly.
 			However, added a similar check to CvUnitAI::AI_barbAttackMove
 			for slow game speed settings. */
-		double crowdedness = GC.getGame().countCivPlayersEverAlive();
-		crowdedness /= GC.getGame().getRecommendedPlayers();
+		double crowdedness = countCivPlayersEverAlive();
+		crowdedness /= getRecommendedPlayers();
 		if(GC.getDefineINT("BARB_PEAK_PERCENT") < 35 || crowdedness > 1.25)
 			bAnimals = true; // </advc.300>
 	}
@@ -7798,11 +7818,8 @@ void CvGame::createAnimals()
 	int iI, iJ;
 
 	if (GC.getEraInfo(getCurrentEra()).isNoAnimals()
-			|| GC.getGame().isOption(GAMEOPTION_NO_ANIMALS) // advc.309
-		)
-	{
+			|| isOption(GAMEOPTION_NO_ANIMALS)) // advc.309
 		return;
-	}
 
 	if (GC.getHandicapInfo(getHandicapType()).getUnownedTilesPerGameAnimal() <= 0)
 	{
@@ -7933,7 +7950,7 @@ int CvGame::numBarbariansToSpawn(int iTilesPerUnit, int iTiles, int iUnowned,
 	}
 	/*	For Rage, reduce divisor to 60% (50% in BtS), but
 		<advc.307> reduces it further based on the game era. */
-	if(GC.getGame().isOption(GAMEOPTION_RAGING_BARBARIANS)) {
+	if(isOption(GAMEOPTION_RAGING_BARBARIANS)) {
 		int iCurrentEra = getCurrentEra();
 		/*  Don't reduce divisor in start era (gets too tough on Classical
 			and Medieval starts b/c the starting defenders are mere Archers). */
@@ -8884,8 +8901,7 @@ void CvGame::processVote(const VoteTriggeredData& kData, int iChange)
 /************************************************************************************************/
 			// <dlph.25> 'Cancel defensive pacts with the attackers first'
 			int foo=-1;
-			for(CvDeal* pLoopDeal = GC.getGameINLINE().firstDeal(&foo);
-					pLoopDeal != NULL; pLoopDeal = GC.getGameINLINE().nextDeal(&foo)) {
+			for(CvDeal* pLoopDeal = firstDeal(&foo); pLoopDeal != NULL; pLoopDeal = nextDeal(&foo)) {
 				bool bCancelDeal = false;
 				if((TEAMID(pLoopDeal->getFirstPlayer()) == kPlayer.getTeam() &&
 						TEAMREF(pLoopDeal->getSecondPlayer()).isVotingMember(

@@ -119,8 +119,6 @@ friend class Node;
 		/* param: In addition to warOpponents. Also includes the vassals
 		  of that team. */
 		PlayerTypes findTarget(TeamTypes include = NO_TEAM) const;
-// advc.tmp: Remove once confident that the new function does the exact same thing
-PlayerTypes findTarget_oldImpl(TeamTypes include = NO_TEAM) const;
 		bool isValidTarget(WarAndPeaceCache::City const& c,
 				TeamTypes include = NO_TEAM) const;
 		static std::vector<UnitAITypes> garrisonTypes();

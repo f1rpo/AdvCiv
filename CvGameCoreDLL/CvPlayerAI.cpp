@@ -8,7 +8,6 @@
 #include "CvMap.h"
 #include "CvArea.h"
 #include "CvPlot.h"
-#include "CvGameAI.h"
 #include "CvTeamAI.h"
 #include "CvGameCoreUtils.h"
 #include "CvDiploParameters.h"
@@ -493,12 +492,6 @@ void CvPlayerAI::AI_doTurnPre()
 	FAssertMsg(getPersonalityType() != NO_LEADER, "getPersonalityType() is not expected to be equal with NO_LEADER");
 	FAssertMsg(getLeaderType() != NO_LEADER, "getLeaderType() is not expected to be equal with NO_LEADER");
 	FAssertMsg(getCivilizationType() != NO_CIVILIZATION, "getCivilizationType() is not expected to be equal with NO_CIVILIZATION");
-	CvGameAI& g = GC.getGameINLINE(); // advc.003
-	// <advc.104u>
-	if(getID() == 0 && g.getElapsedGameTurns() <= 0 && GC.getInitCore().isScenario()) {
-		g.AI_initScenario(); // </advc.104u>
-		g.setScenario(true);
-	}
 	//AI_invalidateCloseBordersAttitudeCache();
 
 	AI_doCounter();
@@ -510,7 +503,7 @@ void CvPlayerAI::AI_doTurnPre()
 	// K-Mod. Update commerce weight before calculating great person weight
 	AI_updateCommerceWeights(); // (perhaps this should be done again after AI_doCommerce, or when sliders change?)
 	// GP weights can take a little bit of time, so lets only do it once every 3 turns.
-	if ((g.getGameTurn() + AI_getStrategyRand(0))%3 == 0)
+	if ((GC.getGameINLINE().getGameTurn() + AI_getStrategyRand(0))%3 == 0)
 		AI_updateGreatPersonWeights();
 	// K-Mod end
 	

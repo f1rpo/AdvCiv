@@ -266,15 +266,6 @@ void InvasionGraph::Node::findAndLinkTarget() {
 	}
 	if(canHaveTarget) {
 		targetId = findTarget();
-// <advc.tmp>
-#ifdef D_DEBUG
-PlayerTypes verif=findTarget_oldImpl();
-if(verif != targetId) {
-	FAssert(verif==targetId);
-	findTarget_oldImpl();
-	findTarget();
-}
-#endif // </advc.tmp>
 		if(targetId == NO_PLAYER) {
 			if(warOpponents.empty())
 				report.log("%s has no war opponents.", report.leaderName(id));
@@ -308,68 +299,6 @@ if(verif != targetId) {
 	else primaryTarget->targetedBy.insert(id);
 }
 
-// <advc.tmp> Remove once confident that the new function does the exact same thing
-PlayerTypes InvasionGraph::Node::findTarget_oldImpl(TeamTypes include) const {
-
-	/*  Find the city with the highest targetValue and check which potential
-		target has reachable cities left. (City::canReach says which ones are
-		reachable in the actual game state; doesn't take into account
-		Node::hasLost.) */
-	bool canTarget[MAX_CIV_PLAYERS];
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
-		canTarget[i] = false;
-	PlayerTypes likeliestTarget = NO_PLAYER;
-	for(int i = 0; i < cache.size(); i++) {
-		WarAndPeaceCache::City* city = cache.getCity(i);
-		if(city == NULL || !city->canReach())
-			continue;
-		PlayerTypes owner = city->cityOwner();
-		if(owner == NO_PLAYER || (!isWarOpponent[owner] &&
-				(include == NO_TEAM || GET_PLAYER(owner).getMasterTeam() !=
-				GET_TEAM(include).getMasterTeam())) ||
-				outer.nodeMap[owner] == NULL ||
-				outer.nodeMap[owner]->hasLost(city->id()) ||
-				// Important for phase II:
-				outer.nodeMap[owner]->isEliminated() ||
-				outer.nodeMap[owner]->hasCapitulated())
-			continue;
-		// First hit is best target b/c cache is sorted
-		if(likeliestTarget == NO_PLAYER) {
-			likeliestTarget = owner;
-			/*  W/e the current target is according to unit missions, assume it
-				will change once war is declared. */
-			if((outer.allWarPartiesKnown || include != NO_TEAM) &&
-					!TEAMREF(id).isAtWar(TEAMID(likeliestTarget)))
-				return likeliestTarget;
-		}
-		canTarget[owner] = true;
-	}
-	if(likeliestTarget == NO_PLAYER) // Can't reach any target
-		return NO_PLAYER;
-	// Against whom does this Node have the most missions?
-	PlayerTypes mostMissions = NO_PLAYER;
-	// Tbd. possibly: Use a fraction of cache.numNonNavy as the threshold
-	int maxCount = 3;
-	for(set<PlayerTypes>::const_iterator it = warOpponents.begin();
-				it != warOpponents.end(); it++) {
-		PlayerTypes oppId = *it;
-		if(!canTarget[oppId])
-			continue;
-		int n = cache.targetMissionCount(oppId);
-		if(n > maxCount) {
-			maxCount = n;
-			mostMissions = oppId;
-		}
-	}
-	if(mostMissions == NO_PLAYER) { // Fall back on likeliestTarget
-		/*report.log("Too few missions to determine target of %s",
-				report.leaderName(id));*/
-		return likeliestTarget;
-	}
-	/*report.log("Target of %s determined based on unit missions.",
-			report.leaderName(id));*/
-	return mostMissions;
-} // </advc.tmp>
 
 PlayerTypes InvasionGraph::Node::findTarget(TeamTypes include) const {
 
@@ -605,15 +534,6 @@ void InvasionGraph::Node::predictArmament(int duration, bool noUpgrading) {
 				!TEAMREF(weId).isAtWar(targetId)) {
 			report.setMute(true);
 			PlayerTypes actualTarget = findTarget(targetId);
-// <advc.tmp>
-#ifdef D_DEBUG
-PlayerTypes verif=findTarget_oldImpl(targetId);
-if(verif != actualTarget) {
-	FAssert(verif==actualTarget);
-	findTarget_oldImpl(targetId);
-	findTarget(targetId);
-}
-#endif // </advc.tmp>
 			tC = targetCity(actualTarget);
 			report.setMute(false);
 		}

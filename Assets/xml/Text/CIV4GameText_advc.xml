@@ -4140,5 +4140,16 @@
 		<Italian></Italian>
 		<Spanish></Spanish>
 	</TEXT>
+
+	<!-- advc.054: Originally in CIV4GameText_Misc1.xml. Text in parentheses
+		 added. -->
+	<TEXT>
+		<Tag>TXT_KEY_GAME_OPTION_NO_CHANGING_WAR_PEACE_HELP</Tag>
+		<English>All civilizations are locked into either war or peace for the length of the game. (Same as Always Peace unless a scenario sets certain civs to be at war from the beginning.)</English>
+		<French>Toutes les civilisations sont en paix ou en guerre pour l'int&#233;gralit&#233; de la partie.</French>
+		<German>Alle Zivilisationen befinden sich für die gesamte Spieldauer entweder im Krieg oder im Frieden. (Ein Szenario kann festlegen, dass manche Zivilisationen sich von Anfang an im Krieg befinden; ansonsten dasselbe wie "Immer Frieden".)</German>
+		<Italian>Tutte le civilt&#224; sono bloccate in guerra o in pace per tutta la partita</Italian>
+		<Spanish>Todas las civilizaciones quedar&#225;n bloqueadas en guerra o en paz hasta que acabe la partida.</Spanish>
+	</TEXT>
 	
 </Civ4GameText>

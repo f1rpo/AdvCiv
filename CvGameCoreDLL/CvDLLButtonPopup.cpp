@@ -4,7 +4,6 @@
 #include "CvDLLButtonPopup.h"
 #include "CvGlobals.h"
 #include "CvPlayerAI.h"
-#include "CvGameAI.h"
 #include "CvTeamAI.h"
 #include "CvMap.h"
 #include "CvPlot.h"

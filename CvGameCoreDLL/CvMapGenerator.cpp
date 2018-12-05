@@ -6,7 +6,6 @@
 #include "CvGlobals.h"
 #include "CvRandom.h"
 #include "CvGameCoreUtils.h"
-#include "CvGameAI.h"
 //#include "CvEnums.h"
 #include "CvInfos.h"
 #include "CvDLLPythonIFaceBase.h"

@@ -13,7 +13,6 @@
 #include "CvCity.h"
 #include "CvPlotGroup.h"
 #include "CvGlobals.h"
-#include "CvGameAI.h"
 #include "CvPlayerAI.h"
 #include "CvRandom.h"
 #include "CvGameCoreUtils.h"

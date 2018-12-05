@@ -297,7 +297,6 @@ void MilitaryAnalyst::simulateNuclearWar() {
 		CvPlayerAI const& civ = GET_PLAYER(getWPAI.properCivs()[j]);
 		if(!isWar(weId, civ.getID()))
 			continue;
-		FAssert(civ.getMasterTeam() != agent.getMasterTeam());
 		double civNukes = civ.warAndPeaceAI().getCache().
 				getPowerValues()[NUCLEAR]->num();
 		if(ourNukes + civNukes < 0.5)

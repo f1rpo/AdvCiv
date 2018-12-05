@@ -7,7 +7,6 @@
 #include "CvInfos.h"
 #include "CvGlobals.h"
 #include "CvDLLUtilityIFaceBase.h"
-#include "CvGameAI.h"
 #include "CvGameCoreUtils.h"
 // advc.001m:
 #include "CvDLLInterfaceIFaceBase.h"
@@ -1185,7 +1184,12 @@ void CvInitCore::setType(GameType eType)
 	if (getType() != eType)
 	{
 		m_eType = eType;
-
+		// <advc.054> Always visible in scenarios
+		CvGameOptionInfo& goi = GC.getGameOptionInfo(GAMEOPTION_NO_CHANGING_WAR_PEACE);
+		if(eType == GAME_SP_SCENARIO || eType == GAME_MP_SCENARIO)
+			goi.setVisible(true);
+		// Otherwise as set in XML
+		else goi.setVisible(goi.getVisibleXML()); // </advc.054>
 		if(CvPlayerAI::areStaticsInitialized())
 		{
 			for (int i = 0; i < MAX_PLAYERS; ++i)

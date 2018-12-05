@@ -4,7 +4,6 @@
 #include "CvGlobals.h"
 #include "CvCity.h"
 #include "CvArea.h"
-#include "CvGameAI.h"
 #include "CvMap.h"
 #include "CvPlot.h"
 #include "CvTeamAI.h"

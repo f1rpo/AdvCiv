@@ -17,6 +17,7 @@ class CvPlot;
 class CvCity;
 class CvReplayMessage;
 class CvReplayInfo;
+class CvGameAI; // advc.003: Needed for AI(void) functions
 
 typedef std::vector<const CvReplayMessage*> ReplayMessageList;
 
@@ -209,6 +210,8 @@ public:
 	void changeCutoffSlice(int iChange);
 
 	DllExport int getTurnSlicesRemaining();
+	// advc.003: const replacement
+	inline int turnSlicesRemaining() const { return getCutoffSlice() - getTurnSlice(); };
 	void resetTurnTimer();
 	void incrementTurnTimer(int iNumTurnSlices);
 	DllExport int getMaxTurnLen();
@@ -509,6 +512,17 @@ public:
 	DllExport virtual void read(FDataStreamBase* pStream);
 	DllExport virtual void write(FDataStreamBase* pStream);
 	DllExport virtual void writeReplay(FDataStreamBase& stream, PlayerTypes ePlayer);
+	// <advc.003>
+	inline CvGameAI& AI() {
+		//return *static_cast<CvGameAI*>(const_cast<CvGame*>(this));
+		/*  The above won't work in an inline function b/c the compiler doesn't know
+			that CvGameAI is derived from CvGame */
+		return *reinterpret_cast<CvGameAI*>(this);
+	}
+	inline CvGameAI const& AI() const {
+		//return *static_cast<CvGameAI const*>(this);
+		return *reinterpret_cast<CvGameAI const*>(this);
+	} // </advc.003>
 	/*  advc (warning): Mustn't add any pure virtual functions to this class.
 		(Or perhaps adding them at the end would be ok?) */
 	DllExport virtual void AI_init() = 0;

@@ -387,7 +387,7 @@ void RiseFall::atActiveTurnStart() {
 	RFChapter& currentCh = *chapters[pos];
 	if(currentCh.getCiv() != activeId)
 		return;
-	if(gameTurn == currentCh.getStartTurn())
+	if(gameTurn == currentCh.getStartTurn() && pos > 0)
 		welcomeToNextChapter(pos);
 	/*  Save at the start of the player turn rather than at the start
 		of the game turn. A bit hard to say when exactly the savegame should be
@@ -729,6 +729,9 @@ bool RiseFall::isDeliverMessages(PlayerTypes civId) const {
 	for(size_t i = 0; i < chapters.size(); i++)
 		if(chapters[i]->hasEnded() && chapters[i]->getCiv() == civId)
 			return false;
+	// First player civ not in slot 0; initialization not yet done.
+	if(chapters.empty())
+		return true;
 	// Can't switch after the final chapter
 	int pos = getCurrentChapter();
 	if(pos == chapters.size() - 1)

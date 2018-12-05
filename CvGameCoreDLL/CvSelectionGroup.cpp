@@ -3,7 +3,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvGlobals.h"
 #include "CvSelectionGroup.h"
-#include "CvGameAI.h"
 #include "CvPlayerAI.h"
 #include "CvTeamAI.h"
 #include "CvUnit.h"

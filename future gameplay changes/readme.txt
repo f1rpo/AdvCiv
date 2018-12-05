@@ -1,4 +1,4 @@
-Draft of balance/historicity changes for the AdvCiv mod. Sept2018
+Draft of balance/historicity changes for the AdvCiv mod. Dec2018
 **************************************************************************
 
 tech-tree.pdf: The proposed tech tree
@@ -22,7 +22,7 @@ See also: https://forums.civfanatics.com/threads/advanced-civ.614217/page-5#post
 
 4. Much lower corporation yields overall; the yields per city decrease each time the corporation expands. No HQ required in order to train Executives, but increased maintenance when there is no HQ or when war or a civic makes it inaccessible.
 
-5. Make resources less crucial for health and happiness as this disadvantages small civs too much by the mid/late game: A few more resources go obsolete (see tech-tree.pdf) and perhaps cap the total health bonus of buildings like Granary at 2 (not spelled out in stat-changes.pdf). Grant happiness from city culture rate regardless of whether the culture slider is used; have the slider position only matter for Colosseum and Theater.
+5. Make resources less crucial for health and happiness as this disadvantages small civs too much by the mid/late game: A few more resources go obsolete (see tech-tree.pdf) and perhaps cap the total health bonus of buildings like Granary at 2 (not spelled out in stat-changes.pdf). Grant happiness from city culture rate (with diminishing returns) regardless of whether the culture slider is used; have the slider position only matter for Colosseum and Theater.
 (Already implemented: The AI is willing to sell even non-surplus resources at reasonable prices when it doesn't need those resources for city growth.)
 
 6. Civs running a state religion different from that of the Apostolic Palace (AP) can't be AP members. The AP owner picks all proposals, no election of the AP resident. UN and AP voting populations are weighted by city nationality (i.e. relative city tile culture).
@@ -39,7 +39,7 @@ See also: https://forums.civfanatics.com/threads/advanced-civ.614217/page-5#post
 
 12. Ravages of war:
 * Razing a city takes one attack per population; each attack reduces the population by one and has a chance of destroying a building.
-* Bombardment increases war weariness for the city owner and has a small chance of destroying a building (Civ 4 Reimagined already does this). Each attack against a city defender has a chance of destroying a building. Upon entering the city, few buildings or none are destroyed (unless razed).
+* Reduced city defense causes anger; bombardment causes war weariness and has a small chance of destroying a building (Civ 4 Reimagined already does this). Each attack against a city defender has a chance of destroying a building. Upon entering the city, few buildings or none are destroyed (unless razed).
 * Reduce capture gold; perhaps only grant it when razing.
 
 13. City garrisons need to have sufficient (defensive) combat strength in order to quell "fear for safety" anger. (Already implemented as change 500b, but currently disabled through an XML switch.)

@@ -21,7 +21,6 @@
 #include "CvCity.h"
 #include "CvPlayerAI.h"
 #include "CvTeamAI.h"
-#include "CvGameAI.h"
 #include "CvSelectionGroup.h"
 #include "CvMap.h"
 #include "CvArea.h"
@@ -18655,12 +18654,13 @@ void CvGameTextMgr::getInterfaceCenterText(CvWString& strText)
 void CvGameTextMgr::getTurnTimerText(CvWString& strText)
 {
 	strText.clear();
+	CvGame const& g = GC.getGameINLINE(); // advc.003
 	if (gDLL->getInterfaceIFace()->getShowInterface() == INTERFACE_SHOW || gDLL->getInterfaceIFace()->getShowInterface() == INTERFACE_ADVANCED_START)
 	{
-		if (GC.getGameINLINE().isMPOption(MPOPTION_TURN_TIMER))
+		if (g.isMPOption(MPOPTION_TURN_TIMER))
 		{
 			// Get number of turn slices remaining until end-of-turn
-			int iTurnSlicesRemaining = GC.getGameINLINE().getTurnSlicesRemaining();
+			int iTurnSlicesRemaining = g.turnSlicesRemaining();
 
 			if (iTurnSlicesRemaining > 0)
 			{
@@ -18686,7 +18686,6 @@ void CvGameTextMgr::getTurnTimerText(CvWString& strText)
 				}
 			}
 		}
-		CvGame const& g = GC.getGameINLINE(); // advc.003
 		if (g.getGameState() == GAMESTATE_ON)
 		{	// <advc.700> Top priority for Auto Play timer
 			if(g.isOption(GAMEOPTION_RISE_FALL)) {
@@ -18700,7 +18699,7 @@ void CvGameTextMgr::getTurnTimerText(CvWString& strText)
 			int iMinVictoryTurns = MAX_INT;
 			for (int i = 0; i < GC.getNumVictoryInfos(); ++i)
 			{
-				TeamTypes eActiveTeam = GC.getGameINLINE().getActiveTeam();
+				TeamTypes eActiveTeam = g.getActiveTeam();
 				if (NO_TEAM != eActiveTeam)
 				{
 					int iCountdown = GET_TEAM(eActiveTeam).getVictoryCountdown((VictoryTypes)i);
@@ -18711,44 +18710,32 @@ void CvGameTextMgr::getTurnTimerText(CvWString& strText)
 				}
 			}
 
-			if (GC.getGameINLINE().isOption(GAMEOPTION_ADVANCED_START) && !GC.getGameINLINE().isOption(GAMEOPTION_ALWAYS_WAR) && GC.getGameINLINE().getElapsedGameTurns() <= GC.getPEACE_TREATY_LENGTH()
-				/*  advc.250b: No need to (constantly) remind human of
-					"universal" peace when the AI civs have big headstarts. */
-				&& !GC.getGameINLINE().isOption(GAMEOPTION_SPAH)
-				)
+			if (g.isOption(GAMEOPTION_ADVANCED_START) && !g.isOption(GAMEOPTION_ALWAYS_WAR) && g.getElapsedGameTurns() <= GC.getPEACE_TREATY_LENGTH()
+					/*  advc.250b: No need to (constantly) remind human of
+						"universal" peace when the AI civs have big headstarts. */
+					&& !g.isOption(GAMEOPTION_SPAH))
 			{
-				if (!strText.empty())
-				{
+				if(!strText.empty())
 					strText += L" -- ";
-				}
-
-				strText += gDLL->getText("TXT_KEY_MISC_ADVANCED_START_PEACE_REMAINING", GC.getPEACE_TREATY_LENGTH() - GC.getGameINLINE().getElapsedGameTurns());
+				strText += gDLL->getText("TXT_KEY_MISC_ADVANCED_START_PEACE_REMAINING", GC.getPEACE_TREATY_LENGTH() - g.getElapsedGameTurns());
 			}
 			else if (iMinVictoryTurns < MAX_INT)
 			{
 				if (!strText.empty())
-				{
 					strText += L" -- ";
-				}
-
 				strText += gDLL->getText("TXT_KEY_MISC_TURNS_LEFT_TO_VICTORY", iMinVictoryTurns);
 			} /* <advc.003> Merged these two conditions so that more else-if
 				clauses can be added below */ 
-			else if (GC.getGameINLINE().getMaxTurns() > 0 &&
-					((GC.getGameINLINE().getElapsedGameTurns() >= (GC.getGameINLINE().getMaxTurns() -
-					30 // advc.004: was 100
-					)) && (GC.getGameINLINE().getElapsedGameTurns() <
-					GC.getGameINLINE().getMaxTurns())))
-			{ // </advc.003>
-				if (!strText.empty())
-				{
+			else if (g.getMaxTurns() > 0 &&
+					((g.getElapsedGameTurns() >= (g.getMaxTurns() -
+					30)) // advc.004: was 100
+					&& g.getElapsedGameTurns() < g.getMaxTurns())) { // </advc.003>
+				if(!strText.empty())
 					strText += L" -- ";
-				}
-
-				strText += gDLL->getText("TXT_KEY_MISC_TURNS_LEFT", (GC.getGameINLINE().getMaxTurns() - GC.getGameINLINE().getElapsedGameTurns()));
+				strText += gDLL->getText("TXT_KEY_MISC_TURNS_LEFT", (g.getMaxTurns() - g.getElapsedGameTurns()));
 			} // <advc.700> The other countdowns take precedence
-			else if(GC.getGameINLINE().isOption(GAMEOPTION_RISE_FALL)) {
-				std::pair<int,int> rfCountdown = GC.getGameINLINE().getRiseFall().
+			else if(g.isOption(GAMEOPTION_RISE_FALL)) {
+				std::pair<int,int> rfCountdown = g.getRiseFall().
 						getChapterCountdown();
 				/*  Only show it toward the end of a chapter. A permanent countdown
 					would have to be placed elsewhere b/c the font is too large and

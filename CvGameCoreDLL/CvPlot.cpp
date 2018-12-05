@@ -6,7 +6,6 @@
 #include "CvUnit.h"
 #include "CvGlobals.h"
 #include "CvArea.h"
-#include "CvGameAI.h"
 #include "CvDLLInterfaceIFaceBase.h"
 #include "CvDLLSymbolIFaceBase.h"
 #include "CvDLLEntityIFaceBase.h"

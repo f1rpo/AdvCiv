@@ -23,11 +23,18 @@ public class WBOut {
 				"\tCalendar=CALENDAR_DEFAULT",
 				"\tOption=GAMEOPTION_PICK_RELIGION",
 				//"\tOption=GAMEOPTION_RAGING_BARBARIANS",
+				// Just to give players a hint that I've mixed and matched a bit
+				"\tOption=GAMEOPTION_LEAD_ANY_CIV",
 				/* No problems w/ events, but I don't want to play w/ them and the
 				   Custom Scenario screen doesn't remember this preference. */
 				"\tOption=GAMEOPTION_NO_EVENTS",
-				// Just to give players a hint that I've mixed and matched a bit
-				"\tOption=GAMEOPTION_LEAD_ANY_CIV",
+				//"NumAdvancedStartPoints=350", // Will be 0 otherwise
+				/* However, the Custom Scenario screen still suppresses Advanced Start
+				 * unless
+				 * "\tOption=GAMEOPTION_ADVANCED_START",
+				 * is set - but that enables Advanced Start by default.
+				 * "\tForceControl=FORCECONTROL_ADVANCED_START",
+				 * doesn't seem to have any impact. */
 				"\tGameTurn=0",
 				"\tStartYear=-3600",
 				"\tDescription=Eurocentric world map to replace Earth18Civs. " +
@@ -69,7 +76,7 @@ public class WBOut {
 						new String[]{"YASODHARAPURA","Nakhon Pathom","Hanoi"/*"Fuzhou""NINGBO"*//*"GUANGZHOU","XINYU","MAOMING","KUNMING"*//*,"TAIPEI",*/},
 						"PRINCE"),
 				new Civ("TOKUGAWA", "JAPAN", 45, 10, "FISHING", "MYSTICISM",
-						new String[]{"AOMORI"}, "", true, true, blockedReligions),
+						new String[]{/*"AOMORI"*/}, "", true, true, blockedReligions),
 				new Civ("ZARA_YAQOB", "ETHIOPIA", 59, 24, "AGRICULTURE", "",
 						new String[]{"AKSUM","NUBIAN"}, "PRINCE"),
 				new Civ("MANSA_MUSA", "MALI", 36, 29, "MINING", "",
@@ -116,7 +123,7 @@ public class WBOut {
 		final Set<BarbCity> barbs = placeBarbs ? new HashSet<BarbCity>(
 				Arrays.asList(new BarbCity[] {
 				new BarbCity("SAMARQAND",71,41),
-				new BarbCity("ARYAN",75,35),
+				new BarbCity("HARAPPAN",75,35),
 				new BarbCity("PHEONICIAN",59,33,new String[]{"JUDAISM"}),
 				new BarbCity("NUMIDIAN",40,35),
 				//new BarbCity("GEPID",50,47),
@@ -128,7 +135,7 @@ public class WBOut {
 		})) : new HashSet<BarbCity>(
 				Arrays.asList(new BarbCity[] {
 				// To keep civs from rushing into the Indus valley 
-				new BarbCity("ARYAN",73,32),
+				new BarbCity("HARAPPAN",73,32),
 		}));
 		final boolean magyars = barbs.stream().anyMatch(p -> p.getName().equals("MAGYAR") || p.getName().equals("GEPID")); 
 		final Set<Point2D> desert = new HashSet<Point2D>(
@@ -315,7 +322,7 @@ public class WBOut {
 				new Point(69,43),
 				new Point(70,43),
 				new Point(65,42),
-				//new Point(66,42), // should be land, but need Aral to be saline
+				//new Point(66,42), // should be land, but want Aral to be saline
 				new Point(68,42),
 				new Point(67,41),
 				new Point(68,41),
@@ -2178,7 +2185,7 @@ public class WBOut {
 				new Point(60,32),
 				new Point(60,35),
 				new Point(61,36),
-				new Point(58,34), // Cyprus
+				new Point(57,34), // Cyprus
 				// Anatolia
 				new Point(55,37),
 				new Point(56,37),
@@ -2384,7 +2391,7 @@ public class WBOut {
 				new Point(76,43),
 				new Point(70,40),
 				new Point(65,42), // Ustyurt Plateau
-				//new Point(66,42), // should be land, but need Aral to be saline
+				//new Point(66,42), // should be land, but want Aral to be saline
 				// Taklamakan
 				new Point(74,42),
 				new Point(75,40),
@@ -3269,9 +3276,10 @@ public class WBOut {
 				// Levante
 				new Bonus("WINE",59,34),
 				new Bonus("HORSE",60,33),
+				new Bonus("CLAM",58,34),
 				new Bonus("COPPER",57,34), // Cyprus
 				// Caucasus
-				new Bonus("COPPER",60,40),
+				//new Bonus("COPPER",60,40), // Murgul; disabled in favor of a Japanese deposit
 				new Bonus("SHEEP",61,41),
 				new Bonus("WINE",61,40),
 				new Bonus("OIL",63,40),
