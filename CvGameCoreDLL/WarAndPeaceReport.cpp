@@ -8,12 +8,9 @@
 using std::ostringstream;
 using std::string;
 
-WarAndPeaceReport::WarAndPeaceReport(bool silent) : // default : false
-		silent(silent) {
+WarAndPeaceReport::WarAndPeaceReport(bool silent) { // default : false
 
-	if(silent)
-		muted = 1;
-	else muted = 0;
+	setSilent(silent);
 }
 
 WarAndPeaceReport::~WarAndPeaceReport() {
@@ -45,11 +42,11 @@ void WarAndPeaceReport::writeToFile() {
 
 	if(muted > 0)
 		return;
-	CvGame& g = GC.getGameINLINE();
+	CvGame const& g = GC.getGameINLINE();
 	ostringstream logFileName;
 	//if(g.isNetworkMultiPlayer()) // For OOS debugging on a single PC
 		//logFileName << (int)g.getActivePlayer() << "_";
-	logFileName << "uwai" << g.getGameTurn() << ".log";
+	logFileName << "uwai" << g.gameTurn() << ".log";
 	gDLL->logMsg(logFileName.str().c_str(), report, false, false);
 	report.clear();
 }
@@ -174,6 +171,14 @@ void WarAndPeaceReport::setMute(bool b) {
 bool WarAndPeaceReport::isMute() const {
 
 	return muted > 0;
+}
+
+void WarAndPeaceReport::setSilent(bool b) {
+
+	silent = b;
+	if(silent)
+		muted = 1;
+	else muted = 0;
 }
 
 // </advc.104>

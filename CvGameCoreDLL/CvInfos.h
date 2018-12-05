@@ -943,6 +943,10 @@ public:
 
 	int getPrereqAndTechs(int i) const;				// Exposed to Python
 	int getPrereqOrBonuses(int i) const;				// Exposed to Python
+	// <advc.905b>
+	int getSpeedBonuses(int i) const;
+	int getExtraMoves(int i) const;
+	// </advc.905b>
 	int getProductionTraits(int i) const;				// Exposed to Python
 	int getFlavorValue(int i) const;				// Exposed to Python
 	int getTerrainAttackModifier(int i) const;				// Exposed to Python
@@ -1128,6 +1132,7 @@ protected:
 
 	int* m_piPrereqAndTechs;
 	int* m_piPrereqOrBonuses;
+	int* m_piSpeedBonuses[2]; // advc.905b
 	int* m_piProductionTraits;
 	int* m_piFlavorValue;
 	int* m_piTerrainAttackModifier;
@@ -2427,7 +2432,7 @@ public:
 	int getAIInflationPercent() const;				// Exposed to Python
 	int getAIWarWearinessPercent() const;				// Exposed to Python
 	int getAIPerEraModifier() const;						// Exposed to Python
-	int getAIAttitudeChange() const; // advc.148
+	int getAIAttitudeChangePercent() const; // advc.148
 	int getAIAdvancedStartPercent() const;						// Exposed to Python
 	int getNumGoodies() const;				// Exposed to Python
 	int getDifficulty() const; // advc.250a; exposed to Python
@@ -2505,7 +2510,7 @@ protected:
 	int m_iAIWarWearinessPercent;
 	int m_iAIPerEraModifier;
 	int m_iAIAdvancedStartPercent;
-	int m_iAIAttitudeChange; // advc.148
+	int m_iAIAttitudeChangePercent; // advc.148
 	int m_iNumGoodies;
 	int m_iDifficulty; // advc.250a
 
@@ -3167,6 +3172,7 @@ public:
 	int getDisappearanceProbability() const;	// Exposed to Python
 	int getGrowthProbability() const;					// Exposed to Python
 	int getDefenseModifier() const;						// Exposed to Python
+	int getRivalDefenseModifier() const; // advc.012
 	int getAdvancedStartRemoveCost() const;						// Exposed to Python
 	int getTurnDamage() const;						// Exposed to Python
 	int getWarmingDefense() const; //GWmod	
@@ -3176,6 +3182,7 @@ public:
 	bool isNoAdjacent() const;				// Exposed to Python
 	bool isRequiresFlatlands() const;	// Exposed to Python
 	bool isRequiresRiver() const;			// Exposed to Python
+	bool isRequiresRiverSide() const; // advc.129b
 	bool isAddsFreshWater() const;		// Exposed to Python
 	bool isImpassable() const;				// Exposed to Python
 	bool isNoCity() const;						// Exposed to Python
@@ -3219,6 +3226,7 @@ protected:
 	int m_iDisappearanceProbability;
 	int m_iGrowthProbability;
 	int m_iDefenseModifier;
+	int m_iRivalDefenseModifier; // advc.012
 	int m_iAdvancedStartRemoveCost;
 	int m_iTurnDamage;
 	int m_iWarmingDefense; //GWMod new xml field M.A.
@@ -3228,6 +3236,7 @@ protected:
 	bool m_bNoAdjacent;			
 	bool m_bRequiresFlatlands;
 	bool m_bRequiresRiver;
+	bool m_bRequiresRiverSide; // advc.129b
 	bool m_bAddsFreshWater;	
 	bool m_bImpassable;			
 	bool m_bNoCity;					
@@ -5804,12 +5813,15 @@ public:
 
 	DllExport bool getDefault() const;
 	DllExport bool getVisible() const;
-
+	// <advc.054>
+	void setVisible(bool b);
+	bool getVisibleXML() const; // </advc.054>
 	bool read(CvXMLLoadUtility* pXML);
 
 private:
 	bool m_bDefault;
 	bool m_bVisible;
+	bool m_bVisibleXML; // advc.054
 };
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

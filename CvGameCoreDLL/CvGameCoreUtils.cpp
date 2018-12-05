@@ -2,7 +2,6 @@
 #include "CvGameCoreUtils.h"
 #include <algorithm>
 #include "CvUnit.h"
-#include "CvGameAI.h"
 #include "CvPlayerAI.h"
 #include "CvMap.h"
 #include "CvPlot.h"
@@ -36,13 +35,13 @@
 // Note: there will also be other combat penalties added, for example from defence weight and city weight.
 
 
-// <advc.003>
+// <advc.003g>
 using std::vector;
 
-int roundToMultiple(double d, int modulus) {
+int roundToMultiple(double d, int iModulus) {
 
-	int r = (int)(d + 0.5 * modulus);
-	return r - r % modulus;
+	int r = (int)(d + 0.5 * iModulus);
+	return r - r % iModulus;
 }
 
 bool bernoulliSuccess(double pr, char const* pszLog) {
@@ -58,10 +57,10 @@ bool bernoulliSuccess(double pr, char const* pszLog) {
     return GC.getGameINLINE().getSorenRandNum(10000, pszLog) < chancePerMyriad;
 }
 
-double median(vector<double>& distribution, bool sorted) {
+double median(vector<double>& distribution, bool bSorted) {
 
 	FAssert(!distribution.empty());
-	if(!sorted)
+	if(!bSorted)
 		std::sort(distribution.begin(), distribution.end());
 	int medianIndex = distribution.size() / 2;
 	if(distribution.size() % 2 != 0)
@@ -99,10 +98,10 @@ double min(vector<double>& distribution) {
 }
 
 double percentileRank(vector<double>& distribution, double score,
-		bool sorted, bool isScorePartOfDistribution) {
+		bool bSorted, bool bScorePartOfDistribution) {
   // default: false, true
 
-	if(!sorted)
+	if(!bSorted)
 		std::sort(distribution.begin(), distribution.end());
 	int n = (int)distribution.size();
 	int nLEq = 0; // less or equal
@@ -111,14 +110,15 @@ double percentileRank(vector<double>& distribution, double score,
 			nLEq++;
 		else break;
 	}
-	if(isScorePartOfDistribution) {
+	if(bScorePartOfDistribution) {
 		nLEq++;
 		n++;
 	}
-	else if(n == 0) return 1;
+	else if(n == 0)
+		return 1;
 	return nLEq / (double)n;
-}
-
+} // </advc.003g>
+// <advc.003>
 float hash(vector<long> const& x, PlayerTypes civId) {
 
 	int const prime = 31;
@@ -156,8 +156,7 @@ void fatCross(CvPlot const& p, vector<CvPlot*>& r) {
 	r.reserve(21);
 	for(int i = 0; i < 21; i++)
 		r.push_back(NULL);
-	// Perhaps better just r[0]=const_cast<CvPlot*>(&p)
-	r[0] = GC.getMapINLINE().plot(p.getX_INLINE(), p.getY_INLINE());
+	r[0] = const_cast<CvPlot*>(&p);
 	int pos = 1;
 	CvMap& map = GC.getMap();
 	for(int dx = -CITY_PLOTS_RADIUS; dx <= CITY_PLOTS_RADIUS; dx++) {
@@ -366,18 +365,18 @@ bool isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam)
 	{
 		return false;
 	}
-
+	return (atWar(eOurTeam, eTheirTeam) || (GET_TEAM(eOurTeam).AI_isSneakAttackReady(
+			//eTheirTeam)
+			GET_TEAM(eTheirTeam).getMasterTeam()) // advc.104j
 /************************************************************************************************/
 /* UNOFFICIAL_PATCH                       05/05/09                                jdog5000      */
 /*                                                                                              */
 /* Bugfix, General AI                                                                           */
 /************************************************************************************************/
-/* original bts code
-	return (atWar(eOurTeam, eTheirTeam) || GET_TEAM(eOurTeam).AI_isSneakAttackReady(eTheirTeam));
-*/
-	// Fixes bug where AI would launch invasion while unable to declare war
-	// which caused units to be bumped once forced peace expired
-	return (atWar(eOurTeam, eTheirTeam) || (GET_TEAM(eOurTeam).AI_isSneakAttackReady(eTheirTeam) && GET_TEAM(eOurTeam).canDeclareWar(eTheirTeam)));
+			// Fixes bug where AI would launch invasion while unable to declare war
+			// which caused units to be bumped once forced peace expired
+			&& GET_TEAM(GET_TEAM(eOurTeam).getMasterTeam()). // advc.104j
+					canDeclareWar(eTheirTeam)));
 /************************************************************************************************/
 /* UNOFFICIAL_PATCH                        END                                                  */
 /************************************************************************************************/
@@ -1559,8 +1558,9 @@ bool PUF_isMilitaryHappiness(const CvUnit* pUnit, int iData1, int iData2)
 }
 
 bool PUF_isInvestigate(const CvUnit* pUnit, int iData1, int iData2)
-{
-	if(pUnit->hasMoved()) return false; // advc.103
+{	// <advc.103>
+	if(pUnit->hasMoved())
+		return false; // </advc.103>
 	return pUnit->isInvestigate();
 }
 
@@ -1758,8 +1758,6 @@ int pathDestValid(int iToX, int iToY, const void* pointer, FAStar* finder)
 /************************************************************************************************/
 	}
 
-	if(CvUnit::measuringDistance != NO_TEAM) return TRUE; // advc.104b
-
 	if (bAIControl || pToPlot->isRevealed(pSelectionGroup->getHeadTeam(), false))
 	{
 		if (pSelectionGroup->isAmphibPlot(pToPlot))
@@ -1824,7 +1822,7 @@ int pathHeuristic(int iFromX, int iFromY, int iToX, int iToY)
 	return (stepDistance(iFromX, iFromY, iToX, iToY) * PATH_MOVEMENT_WEIGHT);
 }
 
-// This function has been completely rewriten for K-Mod. (the rewrite includes some bug fixes as well as some new features)
+// This function has been completely rewritten for K-Mod. (the rewrite includes some bug fixes as well as some new features)
 int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)
 {
 	PROFILE_FUNC();
@@ -1848,8 +1846,9 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 
 	TeamTypes eTeam = pSelectionGroup->getHeadTeam();
 	// <advc.035>
-	int const flipModifierDiv = 7;
-	int flipModifier = flipModifierDiv; // </advc.035>
+	int const iFlipModifierDiv = 7;
+	int iFlipModifier = iFlipModifierDiv;
+	// </advc.035>
 	// K-Mod
 	int iExploreModifier = 3; // (in thirds)
 	if (!pToPlot->isRevealed(eTeam, false))
@@ -1877,13 +1876,13 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 					(!GET_TEAM(eTeam).isFriendlyTerritory(TEAMID(secondOwner)) &&
 					!GET_TEAM(eTeam).isAtWar(TEAMID(secondOwner))) :
 					GET_TEAM(eTeam).AI_isSneakAttackReady(TEAMID(secondOwner))))
-				flipModifier++;
+				iFlipModifier++;
 			// Seek out enemy tiles that will flip to us upon DoW
 			if(TEAMID(secondOwner) == eTeam && (GET_TEAM(eTeam).isHuman() ?
 					(!GET_TEAM(eTeam).isFriendlyTerritory(TEAMID(firstOwner)) &&
 					!GET_TEAM(eTeam).isAtWar(TEAMID(firstOwner))) :
 					GET_TEAM(eTeam).AI_isSneakAttackReady(TEAMID(firstOwner))))
-				flipModifier--;
+				iFlipModifier--;
 			/*  This could be done much more accurately, taking into account
 				vassal agreements, defensive pacts, and going through the entire
 				selection group, but I worry about the performance, and it's OK
@@ -1907,7 +1906,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 
 			int iCost = PATH_MOVEMENT_WEIGHT * (iMovesLeft == 0 ? iMaxMoves : iMoveCost);
 			iCost = (iCost * iExploreModifier) / 3;
-			iCost = (iCost * flipModifier) / flipModifierDiv; // advc.035
+			iCost = (iCost * iFlipModifier) / iFlipModifierDiv; // advc.035
 			if (iCost > iWorstCost)
 			{
 				iWorstCost = iCost;
@@ -1999,7 +1998,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 		{
 			/*  <advc.001> In the rare case that the AI plans war while animals
 				still roam the map, the DefenceStrength computation will crash
-				when it gets to the point where the UniCombatType is accessed.
+				when it gets to the point where the UnitCombatType is accessed.
 				(Actually, not so exotic b/c I'm allowing animals to survive
 				in continents w/o civ cities (advc.300). */
 			CvUnit* up = pToPlot->getUnitByIndex(0);
@@ -2227,6 +2226,14 @@ int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int 
 			return FALSE;
 		}
 	}
+	// <advc.049> No new AI routes in human territory (but upgrade to railroad OK)
+	if(iFlags & MOVE_ROUTE_TO) {
+		if(!pFromPlot->isRoute() && !pSelectionGroup->isHuman()) {
+			PlayerTypes eOwner = pFromPlot->getOwnerINLINE();
+			if(eOwner != NO_PLAYER && GET_PLAYER(eOwner).isHuman())
+				return FALSE;
+		}
+	} // </advc.049>
 
 	if (iFlags & MOVE_NO_ENEMY_TERRITORY)
 	{
@@ -2520,7 +2527,12 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 	TeamTypes ePlotTeam = pNewPlot->getTeam();
 	int* v = (int*)pointer;
 	int iMaxPath = v[5];
-	if(iMaxPath > 0 && node->m_iHeuristicCost + node->m_iKnownCost > iMaxPath)
+	/*  As far as I understand the code, node (the pToPlot) is still set to 0
+		cost if it's visited for the first time, so we should look at parent
+		(pFromPlot) when enforcing the upper bound (iMaxPath). But it doesn't
+		hurt to check node's cost too. */
+	if(iMaxPath > 0 && (parent->m_iHeuristicCost + parent->m_iKnownCost > iMaxPath ||
+			node->m_iHeuristicCost + node->m_iKnownCost > iMaxPath))
 		return FALSE;
 	TeamTypes eTeam = (TeamTypes)v[0];
 	TeamTypes eTargetTeam = (TeamTypes)v[1];

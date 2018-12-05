@@ -261,7 +261,7 @@ class MapConstants:
 		#self.SeaLevelFactor = 1.5
 		# advc.021b: Moving this setting up and replacing it with a separate one for low and high sea level. Not getting the land ratios I want with just one.
 		# Aiming at around 18% land at high sea level, 25% at medium sea level and 32% at low sea level. This is higher than Fractal, which has about 15/20/29, but the land shapes produced by PM look too delicate with the Fractal ratios. I think PM also produces more marginal or unusable land than Fractal. Ultimately, the goal is to support exactly the same number of players as Fractal for all combinations of map settings.
-		self.LoSeaLevelFactor = 1.25
+		self.LoSeaLevelFactor = 1.225
 		self.HiSeaLevelFactor = 0.72
 
 		#Percent of land vs. water
@@ -531,7 +531,7 @@ class MapConstants:
 
 		#This value is used to decide if enough water has accumulated to form a river.
 		#A lower value creates more rivers over the entire map.
-		self.RiverThreshold3 = 0.075 # advc.021b: was 0.05
+		self.RiverThreshold3 = 0.055 # advc.021b: was 0.05
 
 
 		##############################################################################
@@ -775,7 +775,6 @@ class MapConstants:
 			delta = -0.02
 		elif worldSz == 1:
 			delta = -0.01
-		self.landPercent += delta
 		if mc.AllowNewWorld:
 			# Far fewer than the 15 in PerfectMongoose. Now only a best effort.
 			self.maximumMeteorCount = 2 * (worldSz - 1)
@@ -784,6 +783,8 @@ class MapConstants:
 			self.maximumMeteorCount = max(1, self.maximumMeteorCount)
 		else:
 			self.maximumMeteorCount = 0
+			delta -= 0.05
+		self.landPercent += delta
 		# </advc.021b>
 
 mc = MapConstants()
@@ -3752,10 +3753,15 @@ class ContinentMap:
 		#If this was the only continent than we have a pangaea. Oh well.
 		if len(continentList) == 0:
 			return -1
-		#get the next largest continent and temporarily remove from list
-		#add it back later and is automatically 'New World'
-		biggestNewWorld = continentList[0]
-		del continentList[0]
+		# <advc.021> Only reserve the second largest continent if this still leaves enough room per civ in the Old World
+		reservedSecondBiggest = False
+		iCivs = CyGlobalContext().getGame().countCivPlayersEverAlive()
+		if float(totalLand - continentList[0].size) / float(iCivs) > 100:
+			reservedSecondBiggest = True # </advc.021>
+			#get the next largest continent and temporarily remove from list
+			#add it back later and is automatically 'New World'
+			biggestNewWorld = continentList[0]
+			del continentList[0]
 		#sort list by ID rather than size to make things
 		#interesting and possibly bigger new worlds
 		continentList.sort(lambda x, y:cmp(x.ID, y.ID))
@@ -3771,8 +3777,10 @@ class ContinentMap:
 			# Was > 0.6. A larger Old World plays better, while the true ratio (Africa+Eurasia)/(Africa+EurasiaAmerica+Oceania) is indeed just 62.5%. Use randomness to make a realistic size possible but rather unlikely.
 			if float(oldWorldSize) / float(totalLand) > (60 + PRand.randint(0, 9)) / 100.0:
 				break
-		#add back the biggestNewWorld continent
-		continentList.append(biggestNewWorld)
+		# advc.021b: A too small Old World is going to be unplayable; rather reserve no New World then (or just some islands).
+		if reservedSecondBiggest and float(oldWorldSize) / float(iCivs) > 85:
+			#add back the biggestNewWorld continent
+			continentList.append(biggestNewWorld)
 		#what remains in the list will be considered 'New World'
 		#get ID for the next continent, we will use this ID for 'New World'
 		#designation
@@ -5420,7 +5428,7 @@ def getCustomMapOptionDescAt(argsList):
 			return "Flat"
 	elif optionID == 1:
 		# advc.021b: was just "Old World"
-		owMsg = "Old World (unless Pangaea); -25% players recommended"
+		owMsg = "Old World (unless Pangaea); -35% players recommended"
 		if mc.AllowNewWorld:
 			if selectionID == 0:
 				return owMsg

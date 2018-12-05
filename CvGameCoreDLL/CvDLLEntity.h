@@ -23,6 +23,7 @@ class CvUnit;
 class CvPlot;
 
 class DllExport CvDLLEntity
+		: private boost::noncopyable // advc.003e
 {
 public:
 	CvDLLEntity();

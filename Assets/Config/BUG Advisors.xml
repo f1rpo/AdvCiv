@@ -27,6 +27,10 @@
 				<choice id="Smilies" get="isShowGlanceSmilies"/>
 				<choice id="Both" get="isShowGlanceNumbers isShowGlanceSmilies"/>
 			</list>
+			<!-- advc.152 -->
+			<option id="EFAWarTrades" key="EFA War Trades" 
+					type="boolean" default="True" 
+					get="isShowGlanceWarTrades"/>
 			<option id="EFAImprovedInfo" key="EFA Improved Info" 
 					type="boolean" default="True" 
 					get="isUseImprovedEFAInfo"/>

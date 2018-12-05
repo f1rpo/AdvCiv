@@ -27,50 +27,35 @@ public:
 	int countCoastalLand() const;																							// Exposed to Python
 	int countNumUniqueBonusTypes() const;																			// Exposed to Python
 	int countHasReligion(ReligionTypes eReligion, PlayerTypes eOwner = NO_PLAYER) const;		// Exposed to Python
-	int countHasCorporation(CorporationTypes eCorporation, PlayerTypes eOwner = NO_PLAYER) const;		// Exposed to Python
-
-	int getID() const;																							// Exposed to Python
+	int countHasCorporation(CorporationTypes eCorporation, PlayerTypes eOwner = NO_PLAYER) const;		// Exposed to Python																					// Exposed to Python
+	
 	void setID(int iID);
-
-	int getNumTiles() const;																									// Exposed to Python
-	bool isLake() const;																											// Exposed to Python
+																										// Exposed to Python
 	// <advc.030>
-	void updateLake(bool checkRepr = true);
-	void setRepresentativeArea(int areaId);
+	void updateLake(bool bCheckRepr = true);
+	void setRepresentativeArea(int eArea);
 	// Should only be needed for computing the equivalence classes
 	int getRepresentativeArea() const;
 	bool canBeEntered(CvArea const& from, CvUnit const* u = NULL) const;
 	// </advc.030>
 	void changeNumTiles(int iChange);
-
-	int getNumOwnedTiles() const;																							// Exposed to Python
-	int getNumUnownedTiles() const;																						// Exposed to Python
 	void changeNumOwnedTiles(int iChange);
-
 	// <advc.300>
 	// advc.021b: Exposed to Python as getNumHabitableTiles
 	std::pair<int,int> countOwnedUnownedHabitableTiles(
-			bool ignoreBarb = false) const;
+			bool bIgnoreBarb = false) const;
 	int countCivCities() const;
-	int countCivs(bool subtractOCC = false) const; // with at least 1 city
+	int countCivs(bool bSubtractOCC = false) const; // with at least 1 city
 	bool hasAnyAreaPlayerBonus(BonusTypes bId) const;
-	int numBarbCitiesEver() const;
-	void barbCityCreated();
+	int getBarbarianCitiesEverCreated() const;
+	void barbarianCityCreated();
 	// </advc.300>
-
-	int getNumRiverEdges() const;																							// Exposed to Python
-	void changeNumRiverEdges(int iChange);
-
-	int getNumCities() const;																									// Exposed to Python
-
-	int getNumUnits() const;																									// Exposed to Python
+																						// Exposed to Python
+	void changeNumRiverEdges(int iChange);																								// Exposed to Python
 
 	int getTotalPopulation() const;																						// Exposed to Python
 
-	int getNumStartingPlots() const;																					// Exposed to Python
 	void changeNumStartingPlots(int iChange);
-
-	bool isWater() const;																											// Exposed to Python
 
 	int getUnitsPerPlayer(PlayerTypes eIndex) const;													// Exposed to Python
 	void changeUnitsPerPlayer(PlayerTypes eIndex, int iChange);
@@ -79,7 +64,7 @@ public:
 	void changeAnimalsPerPlayer(PlayerTypes eIndex, int iChange);
 
 	int getCitiesPerPlayer(PlayerTypes eIndex,													// Exposed to Python
-			bool checkAdjacentCoast = false) const; // advc.030b
+			bool bCheckAdjacentCoast = false) const; // advc.030b
 	void changeCitiesPerPlayer(PlayerTypes eIndex, int iChange);
 
 	int getPopulationPerPlayer(PlayerTypes eIndex) const;											// Exposed to Python
@@ -94,8 +79,8 @@ public:
 	int getBuildingHappiness(PlayerTypes eIndex) const;												// Exposed to Python
 	void changeBuildingHappiness(PlayerTypes eIndex, int iChange);
 	// <advc.310>
-	int getContinentalTradeRoutes(PlayerTypes eIndex) const;												// Exposed to Python
-	void changeContinentalTradeRoutes(PlayerTypes eIndex, int iChange);
+	int getTradeRoutes(PlayerTypes eIndex) const;												// Exposed to Python
+	void changeTradeRoutes(PlayerTypes eIndex, int iChange);
 	// </advc.310>
 	int getFreeSpecialist(PlayerTypes eIndex) const;													// Exposed to Python
 	void changeFreeSpecialist(PlayerTypes eIndex, int iChange);
@@ -107,7 +92,6 @@ public:
 	void setBestFoundValue(PlayerTypes eIndex, int iNewValue);
 
 	int getNumRevealedTiles(TeamTypes eIndex) const;													// Exposed to Python
-	int getNumUnrevealedTiles(TeamTypes eIndex) const;												// Exposed to Python
 	void changeNumRevealedTiles(TeamTypes eIndex, int iChange);
 
 	int getCleanPowerCount(TeamTypes eIndex) const;
@@ -150,12 +134,13 @@ protected:
 	int m_iNumCities;
 	int m_iTotalPopulation;
 	int m_iNumStartingPlots;
-	int nBarbCitiesEver; // advc.300
+	int m_iBarbarianCitiesEver; // advc.300
 
 	bool m_bWater;
 	// <advc.030>
 	bool m_bLake;
-	int reprAreaId; // </advc.030>
+	int m_iRepresentativeAreaId;
+	// </advc.030>
 	int* m_aiUnitsPerPlayer;
 	int* m_aiAnimalsPerPlayer;
 	int* m_aiCitiesPerPlayer;
@@ -163,7 +148,7 @@ protected:
 	int* m_aiBuildingGoodHealth;
 	int* m_aiBuildingBadHealth;
 	int* m_aiBuildingHappiness;
-	int* m_aiContinentalTradeRoutes; // advc.310
+	int* m_aiTradeRoutes; // advc.310
 	int* m_aiFreeSpecialist;
 	int* m_aiPower;
 	int* m_aiBestFoundValue;
@@ -187,7 +172,26 @@ public:
 	// for serialization
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);
-
+	// <advc.003f> Inlined. All exposed to Python.
+	inline int  CvArea::getID() const { return m_iID; }
+	inline int  CvArea::getNumTiles() const { return m_iNumTiles; }
+	inline bool CvArea::isLake() const { 
+			return m_bLake; // <advc.030> Replacing the line below
+			//return (isWater() && (getNumTiles() <= GC.getLAKE_MAX_AREA_SIZE()));
+	}
+	inline int  CvArea::getNumOwnedTiles() const { return m_iNumOwnedTiles; }
+	inline int  CvArea::getNumUnownedTiles() const {
+		return getNumTiles() - getNumOwnedTiles();
+	}
+	inline int  CvArea :: getNumRiverEdges() const { return m_iNumRiverEdges; }
+	inline int  CvArea :: getNumUnits() const { return m_iNumUnits; }
+	inline int  CvArea :: getNumCities() const { return m_iNumCities; }
+	inline int  CvArea :: getNumStartingPlots() const { return m_iNumStartingPlots; }
+	inline bool CvArea :: isWater() const { return m_bWater; }
+	inline int  CvArea :: getNumUnrevealedTiles(TeamTypes eIndex) const {
+		return getNumTiles() - getNumRevealedTiles(eIndex);
+	}
+	// </advc.003f>
 };
 
 #endif

@@ -2,7 +2,6 @@
 #include "CvReplayInfo.h"
 #include "CvInfos.h"
 #include "CvGlobals.h"
-#include "CvGameAI.h"
 #include "CvPlayerAI.h"
 #include "CvMap.h"
 #include "CvReplayMessage.h"
@@ -272,8 +271,9 @@ void CvReplayInfo::addSettingsMsg() {
 		GameOptionTypes optId = (GameOptionTypes)i;
 		// advc.250b:
 		if(optId == GAMEOPTION_ADVANCED_START || optId == GAMEOPTION_SPAH ||
-				!g.isOption(optId) || // advc.104:
-				(optId == GAMEOPTION_AGGRESSIVE_AI && !g.useKModAI()))
+				!g.isOption(optId) ||
+				// advc.104:
+				(optId == GAMEOPTION_AGGRESSIVE_AI && getWPAI.isEnabled()))
 			continue;
 		iOptions++;
 		m += GC.getGameOptionInfo(optId).getDescription();

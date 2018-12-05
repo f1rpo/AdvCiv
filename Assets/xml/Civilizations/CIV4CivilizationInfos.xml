@@ -9,8 +9,7 @@
 	 starting at Monument (still called "Obelisk" internally) until
 	 Supermarket.
 	 advc.305: Removed (now allowed) Workboat.
-	 advc.307: Allowed War Elephant (still can't spawn), Musketman,
-	 Cavalry, Anti-Tank, SAM Infantry.
+	 advc.307: Allowed Musketman
 	 Disallowed Frigate, Privateer, Paratrooper, Rifleman, Grenadier,
 	 Spy (dlph.6). -->
 <Civ4CivilizationInfos xmlns="x-schema:CIV4CivilizationsSchema.xml">
@@ -2095,7 +2094,8 @@
 				<City>TXT_KEY_CITY_NAME_YASODHARAPURA</City>
 				<City>TXT_KEY_CITY_NAME_HARIHARALAYA</City>
 				<City>TXT_KEY_CITY_NAME_ANGKOR_THOM</City>
-				<City>TXT_KEY_CITY_NAME_ANGKOR_WAT</City>
+				<!-- advc.005e: Commented out -->
+				<!--City>TXT_KEY_CITY_NAME_ANGKOR_WAT</City-->
 				<City>TXT_KEY_CITY_NAME_NAGARA_JAYASRI</City>
 				<City>TXT_KEY_CITY_NAME_RAJAVIHARA</City>
 				<City>TXT_KEY_CITY_NAME_ISVARAPURA</City>
@@ -4014,7 +4014,8 @@
 				<City>TXT_KEY_CITY_NAME_HARAPPAN</City>
 				<City>TXT_KEY_CITY_NAME_MAURYAN</City>
 				<City>TXT_KEY_CITY_NAME_PARTHIAN</City>
-				<City>TXT_KEY_CITY_NAME_HARAPPAN</City>
+				<!-- advc.003: Duplicate removed -->
+				<!--City>TXT_KEY_CITY_NAME_HARAPPAN</City-->
 				<City>TXT_KEY_CITY_NAME_NUBIAN</City>
 				<City>TXT_KEY_CITY_NAME_BACTRIAN</City>
 				<City>TXT_KEY_CITY_NAME_CIRCASSIAN</City>
@@ -4591,7 +4592,23 @@
 					<UnitType>NONE</UnitType>
 				</Unit>
 				<Unit>
+					<UnitClassType>UNITCLASS_WAR_ELEPHANT</UnitClassType>
+					<UnitType>NONE</UnitType>
+				</Unit>
+				<Unit>
 					<UnitClassType>UNITCLASS_CUIRASSIER</UnitClassType>
+					<UnitType>NONE</UnitType>
+				</Unit>
+				<Unit>
+					<UnitClassType>UNITCLASS_CAVALRY</UnitClassType>
+					<UnitType>NONE</UnitType>
+				</Unit>
+				<Unit>
+					<UnitClassType>UNITCLASS_AT_INFANTRY</UnitClassType>
+					<UnitType>NONE</UnitType>
+				</Unit>
+				<Unit>
+					<UnitClassType>UNITCLASS_SAM_INFANTRY</UnitClassType>
 					<UnitType>NONE</UnitType>
 				</Unit>
 				<Unit>

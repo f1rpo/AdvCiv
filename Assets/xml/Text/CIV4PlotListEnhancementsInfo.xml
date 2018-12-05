@@ -70,7 +70,7 @@
 		<English>[COLOR_HIGHLIGHT_TEXT]Reset Filters[COLOR_REVERT][NEWLINE]Show all units</English>
 		<French>[COLOR_HIGHLIGHT_TEXT]Reset Filters[COLOR_REVERT][NEWLINE]Show all units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter zurücksetzen[COLOR_REVERT][NEWLINE]Anzeige aller Einheiten</German>
-		<Italian>[COLOR_HIGHLIGHT_TEXT]Annulla tutti i filtri[COLOR_REVERT][NEWLINE]Mostra tutte le Unità</Italian>
+		<Italian>[COLOR_HIGHLIGHT_TEXT]Annulla tutti i filtri[COLOR_REVERT][NEWLINE]Mostra tutte le Unit&#224;</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Limpiar filtros[COLOR_REVERT][NEWLINE]Mostrar todas las unidades</Spanish>
 	</TEXT>
 	<TEXT>
@@ -78,7 +78,7 @@
 		<English>[COLOR_HIGHLIGHT_TEXT]Reset Filters[COLOR_REVERT][NEWLINE]Show all units</English>
 		<French>[COLOR_HIGHLIGHT_TEXT]Reset Filters[COLOR_REVERT][NEWLINE]Show all units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter zurücksetzen[COLOR_REVERT][NEWLINE]Anzeige aller Einheiten</German>
-		<Italian>[COLOR_HIGHLIGHT_TEXT]Annulla tutti i filtri[COLOR_REVERT][NEWLINE]Mostra tutte le Unità</Italian>
+		<Italian>[COLOR_HIGHLIGHT_TEXT]Annulla tutti i filtri[COLOR_REVERT][NEWLINE]Mostra tutte le Unit&#224;</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Limpiar filtros[COLOR_REVERT][NEWLINE]Mostrar todas las unidades</Spanish>
 	</TEXT>
 	
@@ -394,7 +394,7 @@
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Nationality Filter[COLOR_REVERT][NEWLINE]Hide domestic units</English>
 		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Nationality Filter[COLOR_REVERT][NEWLINE]Ne pas afficher les unités que vous possédez</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Nationalität" aktivieren[COLOR_REVERT][NEWLINE]Eigene Einheiten ausblenden</German>
-		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sulla nazionalità[COLOR_REVERT][NEWLINE]Non mostrare le proprie Unità</Italian>
+		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sulla nazionalità[COLOR_REVERT][NEWLINE]Non mostrare le proprie Unit&#224;</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Nacionalidad[COLOR_REVERT][NEWLINE]Ocultar unidades domésticas</Spanish>
 	</TEXT>
 	<TEXT>
@@ -402,7 +402,7 @@
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Nationality Filter[COLOR_REVERT][NEWLINE]Show domestic units</English>
 		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Nationality Filter[COLOR_REVERT][NEWLINE]Show domestic units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Nationalität" deaktivieren[COLOR_REVERT][NEWLINE]Eigene Einheiten einblenden</German>
-		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sulla nazionalità[COLOR_REVERT][NEWLINE]Mostra le proprie Unità</Italian>
+		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sulla nazionalità[COLOR_REVERT][NEWLINE]Mostra le proprie Unit&#224;</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Nacionalidad[COLOR_REVERT][NEWLINE]Mostrar unidades domésticas</Spanish>
 	</TEXT>
 	<TEXT>
@@ -410,7 +410,7 @@
 		<English>[COLOR_HIGHLIGHT_TEXT]Toggle Nationality Filter[COLOR_REVERT][NEWLINE]Show only domestic units</English>
 		<French>[COLOR_HIGHLIGHT_TEXT]Toggle Nationality Filter[COLOR_REVERT][NEWLINE]Show only domestic units</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Filter "Nationalität" aktivieren[COLOR_REVERT][NEWLINE]Nur eigene Einheiten anzeigen</German>
-		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sulla nazionalità[COLOR_REVERT][NEWLINE]Mostra solo le proprie Unità</Italian>
+		<Italian>[COLOR_HIGHLIGHT_TEXT]Cambia il filtro sulla nazionalità[COLOR_REVERT][NEWLINE]Mostra solo le proprie Unit&#224;</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar Filtro Nacionalidad[COLOR_REVERT][NEWLINE]Mostrar solamente unidades domésticas</Spanish>
 	</TEXT>
 	<TEXT>
@@ -462,7 +462,7 @@
 		<English>[COLOR_HIGHLIGHT_TEXT]Switch to Standard Mode[COLOR_REVERT][NEWLINE]View normal unit icons and issue orders</English>
 		<French>[COLOR_HIGHLIGHT_TEXT]Switch to Standard Mode[COLOR_REVERT][NEWLINE]View normal unit icons and issue orders</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Standardansicht aktivieren[COLOR_REVERT][NEWLINE]Anzeige der normalen Einheitensymbole und Aktionsschaltflächen</German>
-		<Italian>[COLOR_HIGHLIGHT_TEXT]Passa alla Modalità Standard[COLOR_REVERT][NEWLINE]Visualizza tutte le icone di Unità</Italian>
+		<Italian>[COLOR_HIGHLIGHT_TEXT]Passa alla Modalità Standard[COLOR_REVERT][NEWLINE]Visualizza tutte le icone di Unit&#224;</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Cambiar a Modo Estándar[COLOR_REVERT][NEWLINE]Mostrar iconos normales de unidades y dar órdenes</Spanish>
 	</TEXT>
 	<TEXT>
@@ -476,7 +476,7 @@
 	<TEXT>
 		<Tag>TXT_KEY_PLE_GRP_UNITTYPE</Tag>
 		<English>Group units by unit type</English>
-		<French>Sélectionner les unités par types d'unité</French>
+		<French>Sélectionner les unités par types d'unit&#233;</French>
 		<German>Einheiten nach Typen zusammenfassen</German>
 		<Italian>Raggruppa le Unità per tipo</Italian>
 		<Spanish>Agrupar por tipo</Spanish>

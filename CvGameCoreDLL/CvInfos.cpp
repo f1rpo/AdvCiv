@@ -3196,6 +3196,7 @@ m_paszLateArtDefineTags(NULL),
 m_paszMiddleArtDefineTags(NULL),
 m_paszUnitNames(NULL)
 {
+	m_piSpeedBonuses[0] = m_piSpeedBonuses[1] = NULL; // advc.905b
 }
 
 //------------------------------------------------------------------------------------------------------
@@ -3227,6 +3228,10 @@ CvUnitInfo::~CvUnitInfo()
 	SAFE_DELETE_ARRAY(m_pbFeatureImpassable);
 	SAFE_DELETE_ARRAY(m_piPrereqAndTechs);
 	SAFE_DELETE_ARRAY(m_piPrereqOrBonuses);
+	// <advc.905b>
+	SAFE_DELETE_ARRAY(m_piSpeedBonuses[0]);
+	SAFE_DELETE_ARRAY(m_piSpeedBonuses[1]);
+	// </advc.905b>
 	SAFE_DELETE_ARRAY(m_piProductionTraits);
 	SAFE_DELETE_ARRAY(m_piFlavorValue);
 	SAFE_DELETE_ARRAY(m_piTerrainAttackModifier);
@@ -3485,9 +3490,7 @@ int CvUnitInfo::getConscriptionValue() const
 }
 
 int CvUnitInfo::getCultureGarrisonValue() const
-{	// <advc.101> Will probably make these changes in XML eventually; for now here.
-	if(isMechUnit())
-		return m_iCultureGarrisonValue / 2; // </advc.101>
+{
 	return m_iCultureGarrisonValue;
 }
 
@@ -3864,6 +3867,21 @@ int CvUnitInfo::getPrereqOrBonuses(int i) const
 	FAssertMsg(i > -1, "Index out of bounds");
 	return m_piPrereqOrBonuses ? m_piPrereqOrBonuses[i] : -1;
 }
+
+// <advc.905b>
+int CvUnitInfo::getSpeedBonuses(int i) const {
+
+	FAssertMsg(i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(), "Index out of bounds");
+	FAssertMsg(i > -1, "Index out of bounds");
+	return m_piSpeedBonuses[0] ? m_piSpeedBonuses[0][i] : -1;
+}
+
+int CvUnitInfo::getExtraMoves(int i) const {
+
+	FAssertMsg(i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(), "Index out of bounds");
+	FAssertMsg(i > -1, "Index out of bounds");
+	return m_piSpeedBonuses[1] ? m_piSpeedBonuses[1][i] : -1;
+} // </advc.905b>
 
 int CvUnitInfo::getProductionTraits(int i) const			
 {
@@ -4382,7 +4400,19 @@ void CvUnitInfo::read(FDataStreamBase* stream)
 	SAFE_DELETE_ARRAY(m_piPrereqOrBonuses);
 	m_piPrereqOrBonuses = new int[GC.getNUM_UNIT_PREREQ_OR_BONUSES()];
 	stream->Read(GC.getNUM_UNIT_PREREQ_OR_BONUSES(), m_piPrereqOrBonuses);
-
+	// <advc.905b>
+	SAFE_DELETE_ARRAY(m_piSpeedBonuses[0]);
+	SAFE_DELETE_ARRAY(m_piSpeedBonuses[1]);
+	m_piSpeedBonuses[0] = new int[GC.getNUM_UNIT_PREREQ_OR_BONUSES()];
+	m_piSpeedBonuses[1] = new int[GC.getNUM_UNIT_PREREQ_OR_BONUSES()];
+	if(uiFlag >= 3) {
+		stream->Read(GC.getNUM_UNIT_PREREQ_OR_BONUSES(), m_piSpeedBonuses[0]);
+		stream->Read(GC.getNUM_UNIT_PREREQ_OR_BONUSES(), m_piSpeedBonuses[1]);
+	}
+	else for(int i = 0; i < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); i++) {
+		m_piSpeedBonuses[0][i] = -1;
+		m_piSpeedBonuses[1][i] = 0;
+	} // </advc.905b>
 	SAFE_DELETE_ARRAY(m_piProductionTraits);
 	m_piProductionTraits = new int[GC.getNumTraitInfos()];
 	stream->Read(GC.getNumTraitInfos(), m_piProductionTraits);
@@ -4548,7 +4578,8 @@ void CvUnitInfo::write(FDataStreamBase* stream)
 	CvHotkeyInfo::write(stream);
 
 	uint uiFlag=1;
-	uiFlag++; // advc.315
+	uiFlag = 2; // advc.315
+	uiFlag = 3; // advc.905b
 	stream->Write(uiFlag);		// flag for expansion
 
 	stream->Write(m_iAIWeight);
@@ -4677,6 +4708,10 @@ void CvUnitInfo::write(FDataStreamBase* stream)
 
 	stream->Write(GC.getNUM_UNIT_AND_TECH_PREREQS(), m_piPrereqAndTechs);
 	stream->Write(GC.getNUM_UNIT_PREREQ_OR_BONUSES(), m_piPrereqOrBonuses);
+	// <advc.905b>
+	stream->Write(GC.getNUM_UNIT_PREREQ_OR_BONUSES(), m_piSpeedBonuses[0]);
+	stream->Write(GC.getNUM_UNIT_PREREQ_OR_BONUSES(), m_piSpeedBonuses[1]);
+	// </advc.905b>
 	stream->Write(GC.getNumTraitInfos(), m_piProductionTraits);
 	stream->Write(GC.getNumFlavorTypes(), m_piFlavorValue);
 	stream->Write(GC.getNumTerrainInfos(), m_piTerrainAttackModifier);
@@ -4936,7 +4971,33 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 		}
 
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
-	}
+	} /* <advc.905b> Could implement this like e.g. BonusHappinessChanges, but that
+		 would mean storing one int for every (unit type, bonus type) pair. Instead,
+		 do sth. similar to the code for PrereqOrBonuses above. */
+	if(gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "SpeedBonuses")) {
+		if(pXML->SkipToNextVal()) {
+			pXML->InitList(&m_piSpeedBonuses[0], GC.getNUM_UNIT_PREREQ_OR_BONUSES(), -1);
+			pXML->InitList(&m_piSpeedBonuses[1], GC.getNUM_UNIT_PREREQ_OR_BONUSES(), 0);
+			iNumSibs = gDLL->getXMLIFace()->GetNumChildren(pXML->GetXML());
+			if(iNumSibs > 0 && gDLL->getXMLIFace()->SetToChild(pXML->GetXML())) {
+				FAssert(iNumSibs <= GC.getNUM_UNIT_PREREQ_OR_BONUSES());
+				for(j = 0; j < iNumSibs; j++) {
+					pXML->GetChildXmlValByName(szTextVal, "BonusType");
+					int iBonus = pXML->FindInInfoClass(szTextVal);
+					if(iBonus > -1) {
+						m_piSpeedBonuses[0][j] = iBonus;
+						int iExtraMoves = 0;
+						pXML->GetChildXmlValByName(&iExtraMoves, "iExtraMoves");
+						m_piSpeedBonuses[1][j] = iExtraMoves;
+					}
+					if(!gDLL->getXMLIFace()->NextSibling(pXML->GetXML()))
+						break;
+				}
+				gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
+			}
+		}
+		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
+	} // </advc.905b>
 
 	pXML->SetVariableListTagPair(&m_piProductionTraits, "ProductionTraits", sizeof(GC.getTraitInfo((TraitTypes)0)), GC.getNumTraitInfos());
 
@@ -10169,7 +10230,7 @@ m_iAIUnitUpgradePercent(0),
 m_iAIInflationPercent(0),
 m_iAIWarWearinessPercent(0),
 m_iAIPerEraModifier(0),
-m_iAIAttitudeChange(1), // advc.148
+m_iAIAttitudeChangePercent(1), // advc.148
 m_iAIAdvancedStartPercent(0),
 m_iNumGoodies(0),
 m_iDifficulty(-1), // advc.250a
@@ -10483,9 +10544,9 @@ int CvHandicapInfo::getAIAdvancedStartPercent() const
 	return m_iAIAdvancedStartPercent;
 }
 // <advc.148>
-int CvHandicapInfo::getAIAttitudeChange() const
+int CvHandicapInfo::getAIAttitudeChangePercent() const
 {
-	return m_iAIAttitudeChange;
+	return m_iAIAttitudeChangePercent;
 } // </advc.148>
 
 int CvHandicapInfo::getNumGoodies() const					
@@ -10590,7 +10651,7 @@ void CvHandicapInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iAIAdvancedStartPercent);
 	// <advc.148>
 	if(uiFlag >= 2)
-		stream->Read(&m_iAIAttitudeChange); // </advc.148>
+		stream->Read(&m_iAIAttitudeChangePercent); // </advc.148>
 	stream->Read(&m_iNumGoodies);
 	stream->Read(&m_iDifficulty); // advc.250a
 
@@ -10677,7 +10738,7 @@ void CvHandicapInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iAIWarWearinessPercent);
 	stream->Write(m_iAIPerEraModifier);
 	stream->Write(m_iAIAdvancedStartPercent);
-	stream->Write(m_iAIAttitudeChange); // advc.148
+	stream->Write(m_iAIAttitudeChangePercent); // advc.148
 	stream->Write(m_iNumGoodies);
 	stream->Write(m_iDifficulty); // advc.250a
 
@@ -10757,7 +10818,8 @@ bool CvHandicapInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iAIWarWearinessPercent, "iAIWarWearinessPercent");
 	pXML->GetChildXmlValByName(&m_iAIPerEraModifier, "iAIPerEraModifier");
 	pXML->GetChildXmlValByName(&m_iAIAdvancedStartPercent, "iAIAdvancedStartPercent");
-	pXML->GetChildXmlValByName(&m_iAIAttitudeChange, "iAIAttitudeChange"); // advc.148
+	// advc.148:
+	pXML->GetChildXmlValByName(&m_iAIAttitudeChangePercent, "iAIAttitudeChangePercent");
 	pXML->GetChildXmlValByName(&m_iDifficulty, "iDifficulty"); // advc.250a
 
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "Goodies"))
@@ -12981,6 +13043,7 @@ m_iAppearanceProbability(0),
 m_iDisappearanceProbability(0),
 m_iGrowthProbability(0),
 m_iDefenseModifier(0),
+m_iRivalDefenseModifier(0), // advc.012
 m_iAdvancedStartRemoveCost(0),
 m_iTurnDamage(0),
 m_iWarmingDefense(0), //GWMod new xml field M.A.
@@ -12989,6 +13052,7 @@ m_bNoRiver(false),
 m_bNoAdjacent(false),			
 m_bRequiresFlatlands(false),
 m_bRequiresRiver(false),
+m_bRequiresRiverSide(false), // advc.129b
 m_bAddsFreshWater(false),	
 m_bImpassable(false),			
 m_bNoCity(false),					
@@ -13055,6 +13119,11 @@ int CvFeatureInfo::getDefenseModifier() const
 {
 	return m_iDefenseModifier; 
 }
+// <advc.012>
+int CvFeatureInfo::getRivalDefenseModifier() const			
+{
+	return m_iRivalDefenseModifier; 
+} // </advc.012>
 
 int CvFeatureInfo::getAdvancedStartRemoveCost() const			
 {
@@ -13095,6 +13164,11 @@ bool CvFeatureInfo::isRequiresRiver() const
 {
 	return m_bRequiresRiver; 
 }
+// <advc.129b>
+bool CvFeatureInfo::isRequiresRiverSide() const			
+{
+	return m_bRequiresRiverSide; 
+} // </advc.129b>
 
 bool CvFeatureInfo::isAddsFreshWater() const
 {
@@ -13262,6 +13336,8 @@ bool CvFeatureInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iSeeThroughChange, "iSeeThrough");
 	pXML->GetChildXmlValByName(&m_iHealthPercent, "iHealthPercent");
 	pXML->GetChildXmlValByName(&m_iDefenseModifier, "iDefense");
+	// advc.012:
+	pXML->GetChildXmlValByName(&m_iRivalDefenseModifier, "iRivalDefense");
 	pXML->GetChildXmlValByName(&m_iAdvancedStartRemoveCost, "iAdvancedStartRemoveCost");
 	pXML->GetChildXmlValByName(&m_iTurnDamage, "iTurnDamage");
 	pXML->GetChildXmlValByName(&m_iWarmingDefense, "iWarmingDefense"); //GWMod new xml field M.A.
@@ -13273,6 +13349,8 @@ bool CvFeatureInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_bNoAdjacent, "bNoAdjacent");
 	pXML->GetChildXmlValByName(&m_bRequiresFlatlands, "bRequiresFlatlands");
 	pXML->GetChildXmlValByName(&m_bRequiresRiver, "bRequiresRiver");
+	// advc.129b:
+	pXML->GetChildXmlValByName(&m_bRequiresRiverSide, "bRequiresRiverSide");
 	pXML->GetChildXmlValByName(&m_bAddsFreshWater, "bAddsFreshWater");
 	pXML->GetChildXmlValByName(&m_bImpassable, "bImpassable");
 	pXML->GetChildXmlValByName(&m_bNoCity, "bNoCity");
@@ -14541,7 +14619,13 @@ int CvLeaderHeadInfo::getMemoryDecayRand(int i) const
 {
 	FAssertMsg(i < NUM_MEMORY_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_piMemoryDecayRand ? m_piMemoryDecayRand[i] : -1;	
+	// <advc.104i>
+	if(m_piMemoryDecayRand == NULL)
+		return -1;
+	// The "clean" approach would be to set this 52 times in LeaderHead XML
+	if(i == MEMORY_DECLARED_WAR_RECENT && m_piMemoryDecayRand[i] == 0)
+		return 22;
+	return m_piMemoryDecayRand[i]; // </advc.104i>
 }
 
 int CvLeaderHeadInfo::getMemoryAttitudePercent(int i) const
@@ -14737,7 +14821,13 @@ void CvLeaderHeadInfo::read(FDataStreamBase* stream)
 
 	SAFE_DELETE_ARRAY(m_piMemoryAttitudePercent);
 	m_piMemoryAttitudePercent = new int[NUM_MEMORY_TYPES];
-	stream->Read(NUM_MEMORY_TYPES, m_piMemoryAttitudePercent);
+	// <advc.104i>
+	int iNumMemoryTypesToRead = NUM_MEMORY_TYPES;
+	if(uiFlag < 2) {
+		iNumMemoryTypesToRead--;
+		m_piMemoryAttitudePercent[iNumMemoryTypesToRead] = 0;
+	}
+	stream->Read(iNumMemoryTypesToRead, m_piMemoryAttitudePercent); // </advc.104i>
 
 	SAFE_DELETE_ARRAY(m_piNoWarAttitudeProb);
 	m_piNoWarAttitudeProb = new int[NUM_ATTITUDE_TYPES];
@@ -14781,7 +14871,7 @@ void CvLeaderHeadInfo::write(FDataStreamBase* stream)
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
-
+	uiFlag = 2; // advc.104i
 	stream->Write(uiFlag);		// flag for expansion
 
 	stream->Write(m_iWonderConstructRand);
@@ -20081,9 +20171,19 @@ bool CvGameOptionInfo::getDefault() const
 }
 
 bool CvGameOptionInfo::getVisible() const 
-{ 
+{
 	return m_bVisible;
 }
+// <advc.054>
+bool CvGameOptionInfo::getVisibleXML() const 
+{
+	return m_bVisibleXML;
+}
+
+void CvGameOptionInfo::setVisible(bool b) {
+
+	m_bVisible = b;
+} // </advc.054>
 
 bool CvGameOptionInfo::read(CvXMLLoadUtility* pXML)
 {
@@ -20094,7 +20194,7 @@ bool CvGameOptionInfo::read(CvXMLLoadUtility* pXML)
 
 	pXML->GetChildXmlValByName(&m_bDefault, "bDefault");
 	pXML->GetChildXmlValByName(&m_bVisible, "bVisible");
-	
+	m_bVisibleXML = m_bVisible; // advc.054
 	return true;
 }
 

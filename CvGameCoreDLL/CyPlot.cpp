@@ -875,8 +875,8 @@ int CyPlot::getCulture(int /*PlayerTypes*/ eIndex)
 }
 
 int CyPlot::countTotalCulture()
-{
-	return m_pPlot ? m_pPlot->countTotalCulture() : -1;
+{	// advc.003b: was calling CvPlot::countTotalCulture
+	return m_pPlot ? m_pPlot->getTotalCulture() : -1;
 }
 
 int /*TeamTypes*/ CyPlot::findHighestCultureTeam()

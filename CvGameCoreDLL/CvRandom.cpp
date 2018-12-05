@@ -4,7 +4,6 @@
 #include "CvRandom.h"
 #include "CvGlobals.h"
 #include "CyArgsList.h"
-#include "CvGameAI.h"
 
 #define RANDOM_A      (1103515245)
 #define RANDOM_C      (12345)

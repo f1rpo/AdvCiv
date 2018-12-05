@@ -32,7 +32,8 @@ void CyGamePythonInterface()
 
 		.def("getAdjustedPopulationPercent", &CyGame::getAdjustedPopulationPercent, "int (int eVictory)")
 		.def("getAdjustedLandPercent", &CyGame::getAdjustedLandPercent, "int (int eVictory)")
-
+		// advc.178:
+		.def("isDiploVictoryValid", &CyGame::isDiploVictoryValid, "bool ()")
 		.def("isTeamVote", &CyGame::isTeamVote, "bool (int eVote)")
 		.def("isChooseElection", &CyGame::isChooseElection, "bool (int eVote)")
 		.def("isTeamVoteEligible", &CyGame::isTeamVoteEligible, "bool (int eTeam, int eVoteSource)")

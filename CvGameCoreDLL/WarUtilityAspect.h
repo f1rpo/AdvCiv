@@ -64,6 +64,8 @@ protected:
 	WarAndPeaceReport& report;
 	int numRivals; // Civs presently alive, not on our team, non-vassal
 	int numKnownRivals; // Like above, but only those met by agent
+	// So that subclasses don't need to call GC.getGame().getCurrentEra() repeatedly:
+	EraTypes gameEra;
 
 	/*  Subclasses must not access these members until evaluate(m)
 		has been called.
@@ -296,11 +298,15 @@ public:
 	char const* aspectName() const;
 	int xmlId() const;
 private:
+	void addWinning(std::set<PlayerTypes>& r, bool bPredict);
+	bool anyVictory(PlayerTypes civId, int iVictoryFlags, int stage,
+			bool bPredict = true) const;
 	void addLeadingCivs(std::set<PlayerTypes>& r, double margin,
-			bool predictScore = true) const;
+			bool bPredict = true) const;
 	double theirRelativeLoss();
 	std::vector<PlayerTypes> civs; // excluding vassals
-	std::set<PlayerTypes> winning;
+	std::set<PlayerTypes> winningFuture;
+	std::set<PlayerTypes> winningPresent;
 	static double const scoreMargin;
 };
 
@@ -335,6 +341,7 @@ public:
 private:
 	void evalLostPartner();
 	void evalRevenge();
+	double powerRatio();
 	void evalAngeredPartners();
 	double nukeCost(double nukes);
 	double uMinus;

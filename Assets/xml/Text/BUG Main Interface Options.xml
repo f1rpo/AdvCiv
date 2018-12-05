@@ -305,12 +305,15 @@
 		<Italian>When checked, shows the number of units in a stack that possess each promotion if more than one.</Italian>
 		<Spanish>Muestra el número de unidades del grupo que poseen una determinada promoción, en el caso de que haya más de una.</Spanish>
 	</TEXT>
-	
+
+	<!-- 002b: This option column gets a bit too wide with the larger fonts.
+		 Also, "Action button" is clearer than "Build/Action Icon".
+		 I didn't change the Romanic translations. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__BUILDICONSIZE_TEXT</Tag>
-		<English>Build/Action Icon Size</English>
-		<French>Build/Action Icon Size</French>
-		<German>Größe der Bau-/Befehlssymbole</German>
+		<English>Action Button Size</English>
+		<French>Action Button Size</French>
+		<German>Größe der Befehlsschaltflächen</German>
 		<Italian>Dimensione Icona Costruisci/Azione</Italian>
 		<Spanish>Tamaño de Iconos de acción/construcción</Spanish>
 	</TEXT>
@@ -326,7 +329,7 @@
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__BUILDICONSIZE_LIST</Tag>
 		<English>Small|Medium|Large</English>
 		<French>Small|Medium|Large</French>
-		<German>Klein|Mittel|Groß</German>
+		<German>Klein|Mittel|Gro&#223;</German>
 		<Italian>Piccola|Media|Larga</Italian>
 		<Spanish>Pequeño|Mediano|Grande</Spanish>
 	</TEXT>
@@ -335,7 +338,7 @@
 		<English>Rapid Unit Cycling</English>
 		<French>Rapid Unit Cycling</French>
 		<German>Schneller Einheitenwechsel</German>
-		<Italian>Cicla rapidamente tra le unità</Italian>
+		<Italian>Cicla rapidamente tra le unit&#224;</Italian>
 		<Spanish>Circulación de unidades rápida</Spanish>
 	</TEXT>
 	<TEXT>

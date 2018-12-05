@@ -231,7 +231,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 				// advc.018: Crush now actually trains fewer units
 				civ.AI_isDoStrategy(AI_STRATEGY_CRUSH))
 			intensity = INCREASED;
-		if(civ.isFocusWar() &&
+		if(civ.AI_isFocusWar() &&
 				(aai == AREAAI_MASSING || aai == AREAAI_ASSAULT_MASSING ||
 				(aai == AREAAI_DEFENSIVE && iTotalWars > 0) ||
 				civ.AI_isDoStrategy(AI_STRATEGY_ALERT2) ||
@@ -299,6 +299,7 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 		double additionalProduction, Intensity intensity, bool defensive,
 		bool navalArmament) {
 
+	PROFILE_FUNC();
 	CvPlayerAI const& civ = GET_PLAYER(civId);
 	if(!defensive) {
 		/*  Space and culture victory tend to overrule military build-up (even when
@@ -561,6 +562,9 @@ double ArmamentForecast::productionFromUpgrades() {
 	double income = civ.estimateYieldRate(YIELD_COMMERCE, 3) -
 			civ.calculateInflatedCosts();
 	double incomeBound = incomeTurns * income;
+	// Also take into account current gold stockpile
+	int iGold = civ.getGold();
+	incomeBound = std::max((2 * incomeBound + iGold) / 3, (2 * iGold + incomeBound) / 3);
 	if(incomeBound < r)
 		report.log("Upgrades bounded by income (%d gpt)", ::round(income));
 	r = std::min(incomeBound, r);
@@ -584,7 +588,7 @@ double ArmamentForecast::productionFromUpgrades() {
 		/* Shouldn't draw conclusions from AI_getGoldToUpgradeAllUnits when
 		   AI upgrades are (modded to be) free or almost free. */
 		if(aiUpgradeFactor > 0.1)
-			r /= aiUpgradeFactor;;
+			r /= aiUpgradeFactor;
 	}
 	return std::max(0.0, r);
 }

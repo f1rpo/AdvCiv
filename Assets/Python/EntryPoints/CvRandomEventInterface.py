@@ -1699,7 +1699,9 @@ def doHeroicGesture2(argsList):
 		popupInfo.addPythonButton(localText.getText("TXT_KEY_POPUP_NO", ()), "")
 		popupInfo.addPopup(kTriggeredData.eOtherPlayer)
 	else:
-		destPlayer.forcePeace(kTriggeredData.ePlayer)
+		#destPlayer.forcePeace(kTriggeredData.ePlayer)
+		# advc.106g: I don't think there's a difference between CvPlayer::forcePeace and CvTeam::makePeace, so I'm going to use the makePeaceEvent function to let the DLL know that peace happens through an event. 
+		gc.getTeam(destPlayer.getTeam()).makePeaceEvent(player.getTeam())
 		destPlayer.AI_changeAttitudeExtra(kTriggeredData.ePlayer, 1)
 		player.AI_changeAttitudeExtra(kTriggeredData.eOtherPlayer, 1)
 
@@ -1780,7 +1782,8 @@ def doGreatMediator2(argsList):
 		popupInfo.addPythonButton(localText.getText("TXT_KEY_POPUP_NO", ()), "")
 		popupInfo.addPopup(kTriggeredData.eOtherPlayer)
 	else:
-		gc.getTeam(player.getTeam()).makePeace(destPlayer.getTeam())
+		# advc.106g: Let the DLL know that this is through an event
+		gc.getTeam(player.getTeam()).makePeaceEvent(destPlayer.getTeam())
 		destPlayer.AI_changeAttitudeExtra(kTriggeredData.ePlayer, 1)
 		player.AI_changeAttitudeExtra(kTriggeredData.eOtherPlayer, 1)
 

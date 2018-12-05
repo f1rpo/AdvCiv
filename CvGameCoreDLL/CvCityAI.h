@@ -42,12 +42,15 @@ public:
 	/* int AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags = 0) const;
 	int AI_buildingValueThreshold(BuildingTypes eBuilding, int iFocusFlags = 0, int iThreshold = 0) const; */
 	int AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags = 0, int iThreshold = 0, bool bConstCache = false, bool bAllowRecursion = true) const;
-
+	// <advc.179>
+	double AI_estimateReligionBuildings(PlayerTypes civId, ReligionTypes eReligion,
+			std::vector<BuildingTypes> const& buildings) const; // </advc.179>
 	ProjectTypes AI_bestProject(int* piBestValue = 0,
 			bool bAsync = false); // advc.001n
 	int AI_projectValue(ProjectTypes eProject);
 
-	// K-Mod note, I've deleted the single-argument version of the following two functions. They were completely superfluous.
+	/*  K-Mod note, I've deleted the single-argument version of the following two functions.
+		They were completely superfluous. */
 	ProcessTypes AI_bestProcess(CommerceTypes eCommerceType = NO_COMMERCE) const;
 	int AI_processValue(ProcessTypes eProcess, CommerceTypes eCommerceType = NO_COMMERCE) const;
 
@@ -56,28 +59,29 @@ public:
 	bool AI_isDefended(int iExtra = 0);
 /********************************************************************************/
 /* 	BETTER_BTS_AI_MOD							9/19/08		jdog5000		    */
-/* 																			    */
 /* 	Air AI																	    */
 /********************************************************************************/
-/* original BTS code
-	bool AI_isAirDefended(int iExtra = 0);
-*/
+	//bool AI_isAirDefended(int iExtra = 0);
 	bool AI_isAirDefended(bool bCountLand = false, int iExtra = 0);
 /********************************************************************************/
 /* 	BETTER_BTS_AI_MOD						END								    */
 /********************************************************************************/
 	bool AI_isDanger();
-
-	int AI_neededDefenders(bool ignoreEvac = false); // advc.139: param added
+	int AI_neededDefenders(
+			bool bIgnoreEvac = false); // advc.139
 	int AI_neededAirDefenders();
 	int AI_minDefenders();
-	// advc.139: Added param
-	int AI_neededFloatingDefenders(bool ignoreEvac = false);
+	int AI_neededFloatingDefenders(
+			bool bIgnoreEvac = false); // advc.139
 	void AI_updateNeededFloatingDefenders();
 	// <advc.139>
-	void updateEvacuating(double relativeCityVal);
-	bool isEvacuating() const; // </advc.139>
-
+	void AI_updateSafety(double relativeCityVal);
+	bool AI_isEvacuating() const;
+	bool AI_isSafe() const;
+	// </advc.139>
+	bool AI_isAwfulSite(PlayerTypes futureOwnerId) const; // advc.122
+	// advc.003: Moved from CvCity b/c it's part of the AI
+	int AI_culturePressureFactor() const; // K-Mod
 	int AI_getEmphasizeAvoidGrowthCount() const;
 	bool AI_isEmphasizeAvoidGrowth() const;
 
@@ -114,7 +118,8 @@ public:
 	int AI_countWorkedPoorPlots() const;
 	int AI_getTargetPopulation() const;
 	void AI_getYieldMultipliers(int &iFoodMultiplier, int &iProductionMultiplier, int &iCommerceMultiplier, int &iDesiredFoodChange) const;
-	int AI_getImprovementValue(CvPlot* pPlot, ImprovementTypes eImprovement, int iFoodPriority, int iProductionPriority, int iCommercePriority, int iDesiredFoodChange, int iClearFeatureValue = 0, bool bEmphasizeIrrigation = false, BuildTypes* peBestBuild = 0) const;
+		// advc.003: Made the plot param const
+	int AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImprovement, int iFoodPriority, int iProductionPriority, int iCommercePriority, int iDesiredFoodChange, int iClearFeatureValue = 0, bool bEmphasizeIrrigation = false, BuildTypes* peBestBuild = 0) const;
 	// K-Mod end
 	BuildTypes AI_getBestBuild(int iIndex) const;
 	int AI_countBestBuilds(CvArea* pArea) const;
@@ -151,7 +156,6 @@ public:
 	void write(FDataStreamBase* pStream);
 
 	void AI_ClearConstructionValueCache(); // K-Mod
-	bool isAwfulSite(PlayerTypes futureOwnerId) const; // advc.122
 
 protected:
 
@@ -181,9 +185,10 @@ protected:
 
 	int m_iNeededFloatingDefenders;
 	int m_iNeededFloatingDefendersCacheTurn;
-	// advc.139: Updated during AI turns; no need for serialization
-	bool bEvacuate;
-
+	// <advc.139>
+	bool m_bEvacuate;
+	bool m_bSafe;
+	// </advc.139>
 	int m_iWorkersNeeded;
 	int m_iWorkersHave;
 
@@ -222,24 +227,26 @@ protected:
 	//int AI_plotValue(CvPlot* pPlot, bool bAvoidGrowth, bool bRemove, bool bIgnoreFood = false, bool bIgnoreGrowth = false, bool bIgnoreStarvation = false) const;
 	// K-Mod. Note: iGrowthValue < 0 means "automatic". It will use AI_growthValuePerFood. iGrowthValue == 0 means "ignore growth".
 	int AI_yieldValue(short* piYields, short* piCommerceYields, bool bRemove, bool bIgnoreFood, bool bIgnoreStarvation, bool bWorkerOptimization, int iGrowthValue) const;
-	int AI_plotValue(CvPlot* pPlot, bool bRemove, bool bIgnoreFood, bool bIgnoreStarvation, int iGrowthValue) const;
 	int AI_jobChangeValue(std::pair<bool, int> new_job, std::pair<bool, int> old_job, bool bIgnoreFood, bool bIgnoreStarvation, int iGrowthValue) const; // value gained by swapping jobs. (bIsSpecialist, iIndex) pairs.
-	bool AI_finalImprovementYieldDifference(CvPlot* pPlot, short* piYields) const; // difference between current yields and yields after plot improvement reaches final upgrade.
+		// advc.003: Made plot param const in these two functions
+	int AI_plotValue(CvPlot const* pPlot, bool bRemove, bool bIgnoreFood, bool bIgnoreStarvation, int iGrowthValue) const;
+	bool AI_finalImprovementYieldDifference(CvPlot const* pPlot, short* piYields) const; // difference between current yields and yields after plot improvement reaches final upgrade.
 	bool AI_timeWeightedImprovementYields(CvPlot const* pPlot, ImprovementTypes eImprovement, int time_scale, std::vector<float>& weighted_yields) const; // time-weighted yields for improvements which have upgrades
 	int AI_specialPlotImprovementValue(CvPlot* pPlot) const; // value for working a plot in addition to its yields
 	int AI_growthValuePerFood() const;
 	// K-mod end
 
 	int AI_experienceWeight();
-	int AI_buildUnitProb(bool draft = false); // advc.017: param added
-
+	int AI_buildUnitProb(
+			bool bDraft = false); // advc.017
 	void AI_bestPlotBuild(CvPlot* pPlot, int* piBestValue, BuildTypes* peBestBuild, int iFoodPriority, int iProductionPriority, int iCommercePriority, bool bChop, int iHappyAdjust, int iHealthAdjust, int iDesiredFoodChange);
 
 	void AI_buildGovernorChooseProduction();
 	void AI_barbChooseProduction(); // K-Mod
 
 	int AI_getYieldMagicValue(const int* piYieldsTimes100, bool bHealthy) const;
-	int AI_getPlotMagicValue(CvPlot* pPlot, bool bHealthy, bool bWorkerOptimization = false) const;
+		// advc.003: Made plot param const
+	int AI_getPlotMagicValue(CvPlot const& kPlot, bool bHealthy, bool bWorkerOptimization = false) const;
 	int AI_countGoodTiles(bool bHealthy, bool bUnworkedOnly, int iThreshold = 50, bool bWorkerOptimization = false) const;
 	int AI_countGoodSpecialists(bool bHealthy) const;
 	//int AI_calculateTargetCulturePerTurn() const; // disabled by K-Mod
@@ -251,9 +258,7 @@ protected:
 
 	void AI_cachePlayerCloseness(int iMaxDistance);
 	void AI_updateWorkersNeededHere();
-	// advc.179:
-	double estimateReligionBuildings(PlayerTypes civId, ReligionTypes eReligion,
-			std::vector<BuildingTypes> const& buildings) const;
+
 	// added so under cheat mode we can call protected functions for testing
 	friend class CvGameTextMgr;
 };

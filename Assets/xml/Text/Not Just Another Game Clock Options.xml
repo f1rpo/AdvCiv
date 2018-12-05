@@ -57,7 +57,7 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_NJAGC__COLOR_ERA_ANCIENT_TEXT</Tag>
 		<English>Ancient Era</English>
-		<French>Antiquité</French>
+		<French>Antiquit&#233;</French>
 		<German>Antike</German>
 		<Italian>Era Antica</Italian>
 		<Spanish>Edad Antigüa</Spanish>
@@ -217,7 +217,7 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWCOMPLETEDPERCENT_TEXT</Tag>
 		<English>Completed Percentage</English>
-		<French>Pourcentage Complété</French>
+		<French>Pourcentage Complét&#233;</French>
 		<German>Verstrichene Runden (in Prozent)</German>
 		<Italian>Percentuale completata</Italian>
 		<Spanish>Porcentaje Completado</Spanish>
@@ -329,7 +329,7 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWALTCOMPLETEDPERCENT_TEXT</Tag>
 		<English>Completed Percentage</English>
-		<French>Pourcentage Complété</French>
+		<French>Pourcentage Complét&#233;</French>
 		<German>Verstrichene Runden (in Prozent)</German>
 		<Italian>Percentuale completata</Italian>
 		<Spanish>Porcentaje completado</Spanish>

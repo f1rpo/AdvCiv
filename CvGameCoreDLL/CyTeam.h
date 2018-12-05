@@ -25,8 +25,10 @@ public:
 	bool canDeclareWar(int /*TeamTypes*/ eTeam);
 	bool canEventuallyDeclareWar(int /*TeamTypes*/ eTeam); // K-Mod
 	void declareWar(int /*TeamTypes*/ eTeam, bool bNewDiplo, int /*WarPlanTypes*/ eWarPlan);
-	// advc.106g:
+	// <advc.106g>
 	void declareWarEvent(int /*TeamTypes*/ eTeam, bool bNewDiplo, int /*WarPlanTypes*/ eWarPlan);
+	void makePeaceEvent(int /*TeamTypes*/ eTeam);
+	// </advc.106g>
 	void makePeace(int /*TeamTypes*/ eTeam);
 	bool canContact(int /*TeamTypes*/ eTeam);
 	void meet(int /*TeamTypes*/ eTeam, bool bNewDiplo);
@@ -50,7 +52,7 @@ public:
 	int getUnitClassMaking(int /*UnitClassTypes*/ eUnitClass);
 	int getUnitClassCountPlusMaking(int /*UnitClassTypes*/ eUnitClass);
 	int getBuildingClassMaking(int /*BuildingClassTypes*/ eBuildingClass);
-	int getBuildingClassCountPlusMaking(int /*BuildingClassTypes*/ eUnitClass);
+	int getBuildingClassCountPlusMaking(int /*BuildingClassTypes*/ eBuildingClass);
 	int getHasReligionCount(int /*ReligionTypes*/ eReligion);
 	int getHasCorporationCount(int /*CorporationTypes*/ eCorporation);
 
@@ -237,6 +239,8 @@ public:
 	int AI_getAtWarCounter(int /*TeamTypes*/ eTeam) const;
 	int AI_getAtPeaceCounter(int /*TeamTypes*/ eTeam) const;
 	int AI_getWarSuccess(int /*TeamTypes*/ eIndex) const;
+	// advc.152:
+	int /*DenialTypes*/ AI_declareWarTrade(int /*TeamTypes*/ eWarTeam, int /*TeamTypes*/ eTeam) const;
 
 protected:
 

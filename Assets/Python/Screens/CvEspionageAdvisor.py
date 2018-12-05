@@ -370,7 +370,7 @@ class CvEspionageAdvisor:
 
 			pActivePlayer = gc.getPlayer(self.iActivePlayer)
 			pActiveTeam = gc.getTeam(pActivePlayer.getTeam())
-			
+
 			# <advc.120c>
 			# Copied from EconomicsAdvisor.py
 			x = self.X_TOTAL_PANE
@@ -628,15 +628,17 @@ class CvEspionageAdvisor:
 		'Calls function mapped in EspionageAdvisorInputMap'
 
 		screen = self.getScreen()
-		pActivePlayer = gc.getPlayer(self.iActivePlayer)
 
 		##### Debug Dropdown #####
 		if (CyGame().isDebugMode()):
 			if (inputClass.getFunctionName() == self.DEBUG_DROPDOWN_ID):
 				iIndex = screen.getSelectedPullDownID(self.DEBUG_DROPDOWN_ID)
 				self.iActivePlayer = screen.getPullDownData(self.DEBUG_DROPDOWN_ID, iIndex)
+				self.iTargetPlayer = -1 # advc.001d
 				self.drawContents()
 				CyInterface().setDirty(InterfaceDirtyBits.Espionage_Advisor_DIRTY_BIT, True)
+		# advc.001d: Moved from above the Debug menu
+		pActivePlayer = gc.getPlayer(self.iActivePlayer)
 
 		if (self.iTargetPlayer != -1):
 

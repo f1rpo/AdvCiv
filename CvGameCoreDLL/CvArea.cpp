@@ -5,7 +5,6 @@
 #include "CvMap.h"
 #include "CvPlot.h"
 #include "CvGlobals.h"
-#include "CvGameAI.h"
 #include "CvPlayerAI.h"
 #include "CvTeamAI.h"
 #include "CvGameCoreUtils.h"
@@ -24,7 +23,7 @@ CvArea::CvArea()
 	m_aiBuildingGoodHealth = new int[MAX_PLAYERS];
 	m_aiBuildingBadHealth = new int[MAX_PLAYERS];
 	m_aiBuildingHappiness = new int[MAX_PLAYERS];
-	m_aiContinentalTradeRoutes = new int[MAX_PLAYERS]; // advc.310
+	m_aiTradeRoutes = new int[MAX_PLAYERS]; // advc.310
 	m_aiFreeSpecialist = new int[MAX_PLAYERS];
 	m_aiPower = new int[MAX_PLAYERS];
 	m_aiBestFoundValue = new int[MAX_PLAYERS];
@@ -71,7 +70,7 @@ CvArea::~CvArea()
 	SAFE_DELETE_ARRAY(m_aiBuildingGoodHealth);
 	SAFE_DELETE_ARRAY(m_aiBuildingBadHealth);
 	SAFE_DELETE_ARRAY(m_aiBuildingHappiness);
-	SAFE_DELETE_ARRAY(m_aiContinentalTradeRoutes); // advc.310
+	SAFE_DELETE_ARRAY(m_aiTradeRoutes); // advc.310
 	SAFE_DELETE_ARRAY(m_aiFreeSpecialist);
 	SAFE_DELETE_ARRAY(m_aiPower);
 	SAFE_DELETE_ARRAY(m_aiBestFoundValue);
@@ -137,10 +136,11 @@ void CvArea::reset(int iID, bool bWater, bool bConstructorCall)
 	m_iNumCities = 0;
 	m_iTotalPopulation = 0;
 	m_iNumStartingPlots = 0;
-	nBarbCitiesEver = 0; // advc.300
+	m_iBarbarianCitiesEver = 0; // advc.300
 	// <advc.030>
 	m_bLake = false;
-	reprAreaId = iID; // </advc.030>
+	m_iRepresentativeAreaId = iID;
+	// </advc.030>
 	m_bWater = bWater;
 
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
@@ -152,7 +152,7 @@ void CvArea::reset(int iID, bool bWater, bool bConstructorCall)
 		m_aiBuildingGoodHealth[iI] = 0;
 		m_aiBuildingBadHealth[iI] = 0;
 		m_aiBuildingHappiness[iI] = 0;
-		m_aiContinentalTradeRoutes[iI] = 0; // advc.310
+		m_aiTradeRoutes[iI] = 0; // advc.310
 		m_aiFreeSpecialist[iI] = 0;
 		m_aiPower[iI] = 0;
 		m_aiBestFoundValue[iI] = 0;
@@ -208,16 +208,10 @@ void CvArea::reset(int iID, bool bWater, bool bConstructorCall)
 }
 
 
-int CvArea::getID() const						
-{
-	return m_iID;
-}
-
-
 void CvArea::setID(int iID)														
 {
 	m_iID = iID;
-	reprAreaId = iID; // advc.030
+	m_iRepresentativeAreaId = iID; // advc.030
 }
 
 
@@ -356,19 +350,7 @@ int CvArea::countHasCorporation(CorporationTypes eCorporation, PlayerTypes eOwne
 }
 
 
-int CvArea::getNumTiles() const
-{
-	return m_iNumTiles;
-}
-
-
-bool CvArea::isLake() const
-{
-	return m_bLake; // <advc.030> Replacing the line below
-	//return (isWater() && (getNumTiles() <= GC.getLAKE_MAX_AREA_SIZE()));
-}
-
-void CvArea::updateLake(bool checkRepr) {
+void CvArea::updateLake(bool bCheckRepr) {
 
 	PROFILE("CvArea::updateLake");
 	m_bLake = false;
@@ -377,13 +359,13 @@ void CvArea::updateLake(bool checkRepr) {
 	int totalTiles = getNumTiles();
 	if(totalTiles > GC.getLAKE_MAX_AREA_SIZE())
 		return;
-	if(!checkRepr) {
+	if(!bCheckRepr) {
 		m_bLake = true;
 		return;
 	}
 	CvMap& m = GC.getMapINLINE(); int dummy=-1;
 	for(CvArea* other = m.firstArea(&dummy); other != NULL; other = m.nextArea(&dummy)) {
-		if(other->reprAreaId == reprAreaId && other->m_iID != m_iID) {
+		if(other->m_iRepresentativeAreaId == m_iRepresentativeAreaId && other->m_iID != m_iID) {
 			totalTiles += other->getNumTiles();
 			if(totalTiles > GC.getLAKE_MAX_AREA_SIZE())
 				return;
@@ -392,14 +374,14 @@ void CvArea::updateLake(bool checkRepr) {
 	m_bLake = true;
 }
 
-void CvArea::setRepresentativeArea(int areaId) {
+void CvArea::setRepresentativeArea(int eArea) {
 
-	reprAreaId = areaId;
+	m_iRepresentativeAreaId = eArea;
 }
 
 int CvArea::getRepresentativeArea() const {
 
-	return reprAreaId;
+	return m_iRepresentativeAreaId;
 }
 
 /*  Replacement for the BtS area()==area() checks. Mostly used for
@@ -410,8 +392,8 @@ bool CvArea::canBeEntered(CvArea const& from, CvUnit const* u) const {
 		return true;
 	/*  If I wanted to support canMoveAllTerrain here, then I couldn't do
 		anything more when u==NULL. So that's not supported. */
-	if(isWater() == from.isWater() && (reprAreaId != from.reprAreaId ||
-			(u != NULL && !u->canMoveImpassable())))
+	if(isWater() == from.isWater() && (m_iRepresentativeAreaId !=
+			from.m_iRepresentativeAreaId || (u != NULL && !u->canMoveImpassable())))
 		return false;
 	/*  Can't rule out movement between water and land without knowing if the
 		unit is a ship inside a city or a land unit aboard a transport */
@@ -447,18 +429,6 @@ void CvArea::changeNumTiles(int iChange)
 }
 
 
-int CvArea::getNumOwnedTiles() const
-{
-	return m_iNumOwnedTiles;
-}
-
-
-int CvArea::getNumUnownedTiles() const
-{
-	return (getNumTiles() - getNumOwnedTiles());
-}
-
-
 void CvArea::changeNumOwnedTiles(int iChange)									
 {
 	m_iNumOwnedTiles = (m_iNumOwnedTiles + iChange);
@@ -468,7 +438,7 @@ void CvArea::changeNumOwnedTiles(int iChange)
 
 
 // <advc.300>
-std::pair<int,int> CvArea::countOwnedUnownedHabitableTiles(bool ignoreBarb) const {
+std::pair<int,int> CvArea::countOwnedUnownedHabitableTiles(bool bIgnoreBarb) const {
 
 	std::pair<int,int> r;
 	r.first = 0; r.second = 0;
@@ -478,14 +448,13 @@ std::pair<int,int> CvArea::countOwnedUnownedHabitableTiles(bool ignoreBarb) cons
 		if(plot == NULL || plot->area() == NULL || plot->area()->getID() != getID()
 				|| !plot->isHabitable())
 			continue;
-		if(plot->isOwned() && (!ignoreBarb ||
+		if(plot->isOwned() && (!bIgnoreBarb ||
 				plot->getOwnerINLINE() != BARBARIAN_PLAYER))
 			r.first++;
 		else r.second++;
 	}
 	return r;
 }
-
 
 int CvArea::countCivCities() const {
 
@@ -495,17 +464,18 @@ int CvArea::countCivCities() const {
 	return r;
 }
 
-
-int CvArea::countCivs(bool subtractOCC) const {
+int CvArea::countCivs(bool bSubtractOCC) const {
 
 	/* Perhaps an owned tile (across the sea) should suffice, but tiles-per-civ
 	   aren't cached/ serialized (yet). */
 	int r = 0;
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
-		if(getCitiesPerPlayer((PlayerTypes)i) > 0 && (!subtractOCC ||
-				!GET_PLAYER((PlayerTypes)i).isHuman() ||
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+		PlayerTypes civId = (PlayerTypes)i;
+		if(getCitiesPerPlayer(civId) > 0 &&
+				(!bSubtractOCC || !GET_PLAYER(civId).isHuman() ||
 				!GC.getGameINLINE().isOption(GAMEOPTION_ONE_CITY_CHALLENGE)))
 			r++;
+	}
 	return r;
 }
 
@@ -513,23 +483,23 @@ int CvArea::countCivs(bool subtractOCC) const {
 bool CvArea::hasAnyAreaPlayerBonus(BonusTypes bId) const {
 
 	for(int i = 0; i < MAX_PLAYERS; i++) {
-		PlayerTypes pId = (PlayerTypes)i;
-		// Barb, minor civ, anything goes so long as there's a city
-		if(getCitiesPerPlayer(pId) > 0 && GET_PLAYER(pId).hasBonus(bId))
+		PlayerTypes ePlayer = (PlayerTypes)i;
+		// Barbarian, minor civ, anything goes so long as there's a city.
+		if(getCitiesPerPlayer(ePlayer) > 0 && GET_PLAYER(ePlayer).hasBonus(bId))
 			return true;
 	}
 	return false;
 }
 
-int CvArea::numBarbCitiesEver() const { return nBarbCitiesEver; }
-void CvArea::barbCityCreated() { nBarbCitiesEver++; }
-// </advc.300>
+int CvArea::getBarbarianCitiesEverCreated() const {
 
-
-int CvArea::getNumRiverEdges() const												
-{
-	return m_iNumRiverEdges;
+	return m_iBarbarianCitiesEver;
 }
+
+void CvArea::barbarianCityCreated() {
+
+	m_iBarbarianCitiesEver++;
+} // </advc.300>
 
 
 void CvArea::changeNumRiverEdges(int iChange)									
@@ -539,27 +509,9 @@ void CvArea::changeNumRiverEdges(int iChange)
 }
 
 
-int CvArea::getNumUnits() const					
-{
-	return m_iNumUnits;
-}
-
-
-int CvArea::getNumCities() const					
-{
-	return m_iNumCities;
-}
-
-
 int CvArea::getTotalPopulation() const					
 {
 	return m_iTotalPopulation;
-}
-
-
-int CvArea::getNumStartingPlots() const
-{
-	return m_iNumStartingPlots;
 }
 
 
@@ -567,12 +519,6 @@ void CvArea::changeNumStartingPlots(int iChange)
 {
 	m_iNumStartingPlots = m_iNumStartingPlots + iChange;
 	FAssert(getNumStartingPlots() >= 0);
-}
-
-
-bool CvArea::isWater() const							
-{
-	return m_bWater;
 }
 
 
@@ -614,11 +560,11 @@ void CvArea::changeAnimalsPerPlayer(PlayerTypes eIndex, int iChange)
 
 int CvArea::getCitiesPerPlayer(PlayerTypes eIndex,
 		// <advc.030b>
-		bool checkAdjacentCoast) const {
+		bool bCheckAdjacentCoast) const {
 	/*  Perhaps this parameter isn't really needed, but this function gets called
 		from so many places that I can't check if one of them might have a problem
 		with water areas having a positive city count. */
-	if(!checkAdjacentCoast && isWater())
+	if(!bCheckAdjacentCoast && isWater())
 		return false; // </advc.030b>
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be >= 0");
 	FAssertMsg(eIndex < MAX_PLAYERS, "eIndex is expected to be < MAX_PLAYERS");
@@ -631,7 +577,7 @@ void CvArea::changeCitiesPerPlayer(PlayerTypes eIndex, int iChange)
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be >= 0");
 	FAssertMsg(eIndex < MAX_PLAYERS, "eIndex is expected to be < MAX_PLAYERS");
 	m_iNumCities = (m_iNumCities + iChange);
-	barbCityCreated(); // advc.300
+	barbarianCityCreated(); // advc.300
 	FAssert(getNumCities() >= 0);
 	m_aiCitiesPerPlayer[eIndex] = (m_aiCitiesPerPlayer[eIndex] + iChange);
 	FAssert(getCitiesPerPlayer(eIndex, true) >= 0); // advc.030b
@@ -725,15 +671,19 @@ void CvArea::changeBuildingHappiness(PlayerTypes eIndex, int iChange)
 }
 
 // <advc.310>
-int CvArea::getContinentalTradeRoutes(PlayerTypes eIndex) const {
+int CvArea::getTradeRoutes(PlayerTypes eIndex) const {
+
 	FAssert(eIndex >= 0); FAssert(eIndex < MAX_PLAYERS);
-	return m_aiContinentalTradeRoutes[eIndex];
+	return m_aiTradeRoutes[eIndex];
 }
-void CvArea::changeContinentalTradeRoutes(PlayerTypes eIndex, int iChange) {
+
+void CvArea::changeTradeRoutes(PlayerTypes eIndex, int iChange) {
+
 	FAssert(eIndex >= 0); FAssert(eIndex < MAX_PLAYERS);
-	if(iChange == 0) return;
-	m_aiContinentalTradeRoutes[eIndex] += iChange;
-	FAssert(getContinentalTradeRoutes(eIndex) >= 0);
+	if(iChange == 0)
+		return;
+	m_aiTradeRoutes[eIndex] += iChange;
+	FAssert(getTradeRoutes(eIndex) >= 0);
 	GET_PLAYER(eIndex).updateTradeRoutes();
 } // </advc.310>
 
@@ -773,7 +723,13 @@ void CvArea::changePower(PlayerTypes eIndex, int iChange)
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be >= 0");
 	FAssertMsg(eIndex < MAX_PLAYERS, "eIndex is expected to be < MAX_PLAYERS");
 	m_aiPower[eIndex] = (m_aiPower[eIndex] + iChange);
-	FAssert(getPower(eIndex) >= 0);
+	/*  <advc.006> Can happen when continuing a game after changing a
+		unit power value in XML */
+	if(m_aiPower[eIndex] < 0) {
+		m_aiPower[eIndex] = 0; // </advc.006>
+		FAssertMsg(getPower(eIndex) >= 0, "OK when playing from an old savegame "
+				"with an updated version of the mod");
+	}
 }
 
 
@@ -799,12 +755,6 @@ int CvArea::getNumRevealedTiles(TeamTypes eIndex) const
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be >= 0");
 	FAssertMsg(eIndex < MAX_PLAYERS, "eIndex is expected to be < MAX_PLAYERS");
 	return m_aiNumRevealedTiles[eIndex];
-}
-
-
-int CvArea::getNumUnrevealedTiles(TeamTypes eIndex) const
-{
-	return (getNumTiles() - getNumRevealedTiles(eIndex));
 }
 
 
@@ -1078,17 +1028,17 @@ void CvArea::read(FDataStreamBase* pStream)
 	pStream->Read(&m_iNumCities);
 	pStream->Read(&m_iTotalPopulation);
 	pStream->Read(&m_iNumStartingPlots);
-	pStream->Read(&nBarbCitiesEver); // advc.300
+	pStream->Read(&m_iBarbarianCitiesEver); // advc.300
 
 	pStream->Read(&m_bWater);
 	// <advc.030>
 	if(uiFlag >= 1) {
 		pStream->Read(&m_bLake);
-		pStream->Read(&reprAreaId);
+		pStream->Read(&m_iRepresentativeAreaId);
 	}
 	else {
 		updateLake(false);
-		reprAreaId = m_iID;
+		m_iRepresentativeAreaId = m_iID;
 	} // </advc.030>
 	pStream->Read(MAX_PLAYERS, m_aiUnitsPerPlayer);
 	pStream->Read(MAX_PLAYERS, m_aiAnimalsPerPlayer);
@@ -1097,7 +1047,7 @@ void CvArea::read(FDataStreamBase* pStream)
 	pStream->Read(MAX_PLAYERS, m_aiBuildingGoodHealth);
 	pStream->Read(MAX_PLAYERS, m_aiBuildingBadHealth);
 	pStream->Read(MAX_PLAYERS, m_aiBuildingHappiness);
-	pStream->Read(MAX_PLAYERS, m_aiContinentalTradeRoutes); // advc.310
+	pStream->Read(MAX_PLAYERS, m_aiTradeRoutes); // advc.310
 	pStream->Read(MAX_PLAYERS, m_aiFreeSpecialist);
 	pStream->Read(MAX_PLAYERS, m_aiPower);
 	pStream->Read(MAX_PLAYERS, m_aiBestFoundValue);
@@ -1147,12 +1097,12 @@ void CvArea::write(FDataStreamBase* pStream)
 	pStream->Write(m_iNumCities);
 	pStream->Write(m_iTotalPopulation);
 	pStream->Write(m_iNumStartingPlots);
-	pStream->Write(nBarbCitiesEver); // advc.300
+	pStream->Write(m_iBarbarianCitiesEver); // advc.300
 
 	pStream->Write(m_bWater);
 	// <advc.030>
 	pStream->Write(m_bLake);
-	pStream->Write(reprAreaId);
+	pStream->Write(m_iRepresentativeAreaId);
 	// </advc.030>
 	pStream->Write(MAX_PLAYERS, m_aiUnitsPerPlayer);
 	pStream->Write(MAX_PLAYERS, m_aiAnimalsPerPlayer);
@@ -1161,7 +1111,7 @@ void CvArea::write(FDataStreamBase* pStream)
 	pStream->Write(MAX_PLAYERS, m_aiBuildingGoodHealth);
 	pStream->Write(MAX_PLAYERS, m_aiBuildingBadHealth);
 	pStream->Write(MAX_PLAYERS, m_aiBuildingHappiness);
-	pStream->Write(MAX_PLAYERS, m_aiContinentalTradeRoutes); // advc.310
+	pStream->Write(MAX_PLAYERS, m_aiTradeRoutes); // advc.310
 	pStream->Write(MAX_PLAYERS, m_aiFreeSpecialist);
 	pStream->Write(MAX_PLAYERS, m_aiPower);
 	pStream->Write(MAX_PLAYERS, m_aiBestFoundValue);

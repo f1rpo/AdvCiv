@@ -158,7 +158,8 @@
 			<iStartingExploreUnits>1</iStartingExploreUnits>
 			<iStartingGold>25</iStartingGold>
 			<iFreePopulation>0</iFreePopulation>
-			<iStartPercent>25</iStartPercent>
+			<!-- advc.126: was 25 -->
+			<iStartPercent>22</iStartPercent>
 			<iGrowthPercent>100</iGrowthPercent>
 			<iTrainPercent>100</iTrainPercent>
 			<iConstructPercent>100</iConstructPercent>
@@ -232,7 +233,8 @@
 			<iStartingExploreUnits>1</iStartingExploreUnits>
 			<iStartingGold>50</iStartingGold>
 			<iFreePopulation>1</iFreePopulation>
-			<iStartPercent>37</iStartPercent>
+			<!-- advc.126: was 37 -->
+			<iStartPercent>36</iStartPercent>
 			<iGrowthPercent>90</iGrowthPercent>
 			<iTrainPercent>90</iTrainPercent>
 			<iConstructPercent>90</iConstructPercent>
@@ -244,7 +246,8 @@
 			<!-- BBAI end -->
 			<iBuildPercent>90</iBuildPercent>
 			<iImprovementPercent>90</iImprovementPercent>
-			<iGreatPeoplePercent>90</iGreatPeoplePercent>
+			<!-- advc.126: was 90 -->
+			<iGreatPeoplePercent>100</iGreatPeoplePercent>
 			<iCulturePercent>90</iCulturePercent>
 			<iAnarchyPercent>40</iAnarchyPercent>
 			<iEventChancePerTurn>4</iEventChancePerTurn>
@@ -317,7 +320,8 @@
 			<!-- BBAI end -->
 			<iBuildPercent>80</iBuildPercent>
 			<iImprovementPercent>80</iImprovementPercent>
-			<iGreatPeoplePercent>80</iGreatPeoplePercent>
+			<!-- advc.126: was 80 -->
+			<iGreatPeoplePercent>100</iGreatPeoplePercent>
 			<iCulturePercent>80</iCulturePercent>
 			<iAnarchyPercent>34</iAnarchyPercent>
 			<iEventChancePerTurn>6</iEventChancePerTurn>
@@ -387,7 +391,8 @@
 			<!-- BBAI end -->
 			<iBuildPercent>70</iBuildPercent>
 			<iImprovementPercent>70</iImprovementPercent>
-			<iGreatPeoplePercent>70</iGreatPeoplePercent>
+			<!-- advc.126: was 70 -->
+			<iGreatPeoplePercent>100</iGreatPeoplePercent>
 			<iCulturePercent>70</iCulturePercent>
 			<iAnarchyPercent>34</iAnarchyPercent>
 			<iEventChancePerTurn>8</iEventChancePerTurn>
@@ -455,7 +460,8 @@
 			<!-- BBAI end -->
 			<iBuildPercent>60</iBuildPercent>
 			<iImprovementPercent>60</iImprovementPercent>
-			<iGreatPeoplePercent>60</iGreatPeoplePercent>
+			<!-- advc.126: was 60 -->
+			<iGreatPeoplePercent>100</iGreatPeoplePercent>
 			<iCulturePercent>60</iCulturePercent>
 			<iAnarchyPercent>34</iAnarchyPercent>
 			<iEventChancePerTurn>10</iEventChancePerTurn>

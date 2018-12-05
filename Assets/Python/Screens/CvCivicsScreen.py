@@ -325,7 +325,8 @@ class CvCivicsScreen:
 		activePlayer = gc.getPlayer(self.iActivePlayer)
 
 		if (inputClass.getNotifyCode() == NotifyCode.NOTIFY_CLICKED) :
-			if (activePlayer.canRevolution(0)):
+			# advc.001d: Clause added to prevent revolution when viewing another civ's civics through the Debug menu
+			if self.iActivePlayer == gc.getGame().getActivePlayer() and activePlayer.canRevolution(0):
 				messageControl = CyMessageControl()
 				messageControl.sendUpdateCivics(self.m_paeDisplayCivics)			
 			screen = self.getScreen()

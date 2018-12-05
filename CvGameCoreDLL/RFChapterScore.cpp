@@ -77,7 +77,7 @@ void RFChapterScore::atChapterStart(RFChapter const& rfc) {
 	chapter = &rfc;
 	/*  Sometimes updated before the start of the first chapter anyway, but 
 		not guaranteed. */
-	GC.getGame().updateScore();
+	GC.getGame().updateScore(true);
 	std::pair<int,int> rank_rivals = computeRank(true);
 	initialRank = rank_rivals.first;
 	initialRivals = rank_rivals.second;
@@ -92,9 +92,9 @@ std::pair<int,int> RFChapterScore::computeRank(bool storeCivScores,
 	}
 	double ourRank = 1;
 	int ourRivals = 0;
-	CvGame& g = GC.getGame();
+	CvGame const& g = GC.getGame();
 	CvPlayerAI const& we = GET_PLAYER(chapter->getCiv());
-	bool weVassal = GET_TEAM(we.getTeam()).isAVassal();
+	bool weVassal = we.isAVassal();
 	int ourVictStage = g.getRiseFall().victoryStage(we.getID());
 	int ourScore = modifiedCivScore(we.getID());
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
@@ -139,7 +139,7 @@ std::pair<int,int> RFChapterScore::computeRank(bool storeCivScores,
 	}
 	/*  Assume that the player starts in the middle, even if the AI starts with
 		more free tech. */
-	if(g.getGameTurn() <= g.getStartTurn() && we.isAlive())
+	if(g.gameTurn() <= g.getStartTurn() && we.isAlive())
 		ourRank = 1 + ourRivals / 2.0;
 	ourRank += 0.01; // Just to be explicit about rounding up
 	return std::make_pair<int,int>(::round(ourRank), ourRivals);

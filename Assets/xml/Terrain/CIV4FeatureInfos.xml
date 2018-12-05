@@ -12,6 +12,8 @@
 			<iSeeThrough>0</iSeeThrough>
 			<iHealthPercent>0</iHealthPercent>
 			<iDefense>0</iDefense>
+			<!-- advc.012 -->
+			<iRivalDefense>0</iRivalDefense>
 			<iAppearance>0</iAppearance>
 			<iDisappearance>0</iDisappearance>
 			<iGrowth>0</iGrowth>
@@ -22,6 +24,8 @@
 			<bNoAdjacent>0</bNoAdjacent>
 			<bRequiresFlatlands>0</bRequiresFlatlands>
 			<bRequiresRiver>0</bRequiresRiver>
+			<!-- advc.129b -->
+			<bRequiresRiverSide>0</bRequiresRiverSide>
 			<bAddsFreshWater>0</bAddsFreshWater>
 			<bImpassable>1</bImpassable>
 			<bNoCity>0</bNoCity>
@@ -129,7 +133,9 @@
 			<iSeeThrough>1</iSeeThrough>
 			<iHealthPercent>-25</iHealthPercent>
 			<!-- advc.012: was 50 -->
-			<iDefense>25</iDefense>
+			<iDefense>0</iDefense>
+			<!-- advc.012 -->
+			<iRivalDefense>25</iRivalDefense>
 			<iAppearance>0</iAppearance>
 			<iDisappearance>0</iDisappearance>
 			<iGrowth>16</iGrowth>
@@ -140,6 +146,8 @@
 			<bNoAdjacent>0</bNoAdjacent>
 			<bRequiresFlatlands>0</bRequiresFlatlands>
 			<bRequiresRiver>0</bRequiresRiver>
+			<!-- advc.129b -->
+			<bRequiresRiverSide>0</bRequiresRiverSide>
 			<bAddsFreshWater>0</bAddsFreshWater>
 			<bImpassable>0</bImpassable>
 			<bNoCity>0</bNoCity>
@@ -249,6 +257,8 @@
 			<iSeeThrough>1</iSeeThrough>
 			<iHealthPercent>0</iHealthPercent>
 			<iDefense>0</iDefense>
+			<!-- advc.012 -->
+			<iRivalDefense>0</iRivalDefense>
 			<iAppearance>500</iAppearance>
 			<iDisappearance>0</iDisappearance>
 			<iGrowth>0</iGrowth>
@@ -259,6 +269,8 @@
 			<bNoAdjacent>1</bNoAdjacent>
 			<bRequiresFlatlands>1</bRequiresFlatlands>
 			<bRequiresRiver>0</bRequiresRiver>
+			<!-- advc.129b -->
+			<bRequiresRiverSide>0</bRequiresRiverSide>
 			<bAddsFreshWater>1</bAddsFreshWater>
 			<bImpassable>0</bImpassable>
 			<bNoCity>1</bNoCity>
@@ -367,6 +379,8 @@
 			<iSeeThrough>0</iSeeThrough>
 			<iHealthPercent>-40</iHealthPercent>
 			<iDefense>0</iDefense>
+			<!-- advc.012 -->
+			<iRivalDefense>0</iRivalDefense>
 			<iAppearance>10000</iAppearance>
 			<iDisappearance>0</iDisappearance>
 			<iGrowth>0</iGrowth>
@@ -377,6 +391,8 @@
 			<bNoAdjacent>0</bNoAdjacent>
 			<bRequiresFlatlands>1</bRequiresFlatlands>
 			<bRequiresRiver>1</bRequiresRiver>
+			<!-- advc.129b -->
+			<bRequiresRiverSide>1</bRequiresRiverSide>
 			<bAddsFreshWater>0</bAddsFreshWater>
 			<bImpassable>0</bImpassable>
 			<bNoCity>0</bNoCity>
@@ -480,7 +496,9 @@
 			<iSeeThrough>1</iSeeThrough>
 			<iHealthPercent>50</iHealthPercent>
 			<!-- advc.012: was 50 -->
-			<iDefense>25</iDefense>
+			<iDefense>0</iDefense>
+			<!-- advc.012 -->
+			<iRivalDefense>25</iRivalDefense>
 			<iAppearance>0</iAppearance>
 			<iDisappearance>0</iDisappearance>
 			<iGrowth>8</iGrowth>
@@ -491,6 +509,8 @@
 			<bNoAdjacent>0</bNoAdjacent>
 			<bRequiresFlatlands>0</bRequiresFlatlands>
 			<bRequiresRiver>0</bRequiresRiver>
+			<!-- advc.129b -->
+			<bRequiresRiverSide>0</bRequiresRiverSide>
 			<bAddsFreshWater>0</bAddsFreshWater>
 			<bImpassable>0</bImpassable>
 			<bNoCity>0</bNoCity>
@@ -603,6 +623,8 @@
 			<iSeeThrough>0</iSeeThrough>
 			<iHealthPercent>-50</iHealthPercent>
 			<iDefense>0</iDefense>
+			<!-- advc.012 -->
+			<iRivalDefense>0</iRivalDefense>
 			<iAppearance>0</iAppearance>
 			<iDisappearance>250</iDisappearance>
 			<iGrowth>0</iGrowth>
@@ -613,6 +635,8 @@
 			<bNoAdjacent>0</bNoAdjacent>
 			<bRequiresFlatlands>0</bRequiresFlatlands>
 			<bRequiresRiver>0</bRequiresRiver>
+			<!-- advc.129b -->
+			<bRequiresRiverSide>0</bRequiresRiverSide>
 			<bAddsFreshWater>0</bAddsFreshWater>
 			<bImpassable>0</bImpassable>
 			<bNoCity>0</bNoCity>

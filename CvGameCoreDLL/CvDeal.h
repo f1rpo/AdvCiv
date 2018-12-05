@@ -35,8 +35,7 @@ public:
 	bool isUncancelableVassalDeal(PlayerTypes eByPlayer, CvWString* pszReason = NULL) const;
 	DllExport static bool isVassalTributeDeal(const CLinkList<TradeData>* pList);
 	/*  advc.003: The above checks if pList contains only TRADE_RESSOURCE items;
-		I need a function that actually checks if this deal is a tribute deal
-		between a vassal and a master.  */
+		need a function that checks if this deal is a tribute deal between a vassal and a master. */
 	bool isVassalTributeDeal() const;
 	bool isDisengage() const; // advc.034
 	DllExport int getID() const;
@@ -49,7 +48,8 @@ public:
 	DllExport PlayerTypes getSecondPlayer() const;
 	// <advc.003>
 	bool isBetween(PlayerTypes civ1, PlayerTypes civ2) const;
-	bool isBetween(TeamTypes t1, TeamTypes t2) const; // </advc.003>
+	bool isBetween(TeamTypes t1, TeamTypes t2) const;
+	// </advc.003>
 	void clearFirstTrades();
 	void insertAtEndFirstTrades(TradeData trade);
 	DllExport CLLNode<TradeData>* nextFirstTradesNode(CLLNode<TradeData>* pNode) const;
@@ -65,13 +65,7 @@ public:
 	const CLinkList<TradeData>* getSecondTrades() const;
 
 	DllExport bool isCancelable(PlayerTypes eByPlayer = NO_PLAYER, CvWString* pszReason = NULL);
-	/*  advc.130f: I've tried adding a bool param with default value to
-		isCancelable. This lead to a crash from the EXE when canceling a deal
-		through the Trade Screen (which was nasty to debug). Adding parameters
-		to DllExports isn't always a problem; see e.g. CvPlayer::canResearch.
-		Not sure why it doesn't work in this case.
-		Anyway, new function instead. */
-	bool isEverCancelable(PlayerTypes eByPlayer) const;
+	bool isEverCancelable(PlayerTypes eByPlayer) const; // advc.130f
 	DllExport int turnsToCancel(PlayerTypes eByPlayer = NO_PLAYER);
 
 	DllExport static bool isAnnual(TradeableItems eItem);
@@ -92,10 +86,13 @@ protected:
 	bool startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer);
 	void endTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer, bool bTeam,
 			bool bUpdateAttitude = true); // advc.036
-	// advc.130p:
+	// <advc.130p>
 	static void addEndTradeMemory(PlayerTypes eFromPlayer, PlayerTypes eToPlayer,
 			TradeableItems dealType);
-
+	bool recordTradeValue(CLinkList<TradeData>* list1, CLinkList<TradeData>* list2,
+			PlayerTypes p1, PlayerTypes p2, bool bPeace,
+			TeamTypes peaceTradeTarget = NO_TEAM, TeamTypes warTradeTarget = NO_TEAM);
+	// </advc.130p>
 	void startTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes eToTeam, bool bDual);
 	void endTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes eToTeam);
 

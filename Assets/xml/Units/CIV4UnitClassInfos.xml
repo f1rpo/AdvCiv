@@ -646,15 +646,6 @@
 			<DefaultUnit>UNIT_MISSILE_CRUISER</DefaultUnit>
 		</UnitClassInfo>
 		<UnitClassInfo>
-			<Type>UNITCLASS_SUBMARINE</Type>
-			<Description>TXT_KEY_UNIT_SUBMARINE</Description>
-			<iMaxGlobalInstances>-1</iMaxGlobalInstances>
-			<iMaxTeamInstances>-1</iMaxTeamInstances>
-			<iMaxPlayerInstances>-1</iMaxPlayerInstances>
-			<iInstanceCostModifier>0</iInstanceCostModifier>
-			<DefaultUnit>UNIT_SUBMARINE</DefaultUnit>
-		</UnitClassInfo>
-		<UnitClassInfo>
 			<Type>UNITCLASS_ATTACK_SUBMARINE</Type>
 			<Description>TXT_KEY_UNIT_ATTACK_SUBMARINE</Description>
 			<iMaxGlobalInstances>-1</iMaxGlobalInstances>
@@ -662,6 +653,16 @@
 			<iMaxPlayerInstances>-1</iMaxPlayerInstances>
 			<iInstanceCostModifier>0</iInstanceCostModifier>
 			<DefaultUnit>UNIT_ATTACK_SUBMARINE</DefaultUnit>
+		</UnitClassInfo>
+		<!-- advc.906: Position switched with ATTACK_SUBMARINE -->
+		<UnitClassInfo>
+			<Type>UNITCLASS_SUBMARINE</Type>
+			<Description>TXT_KEY_UNIT_SUBMARINE</Description>
+			<iMaxGlobalInstances>-1</iMaxGlobalInstances>
+			<iMaxTeamInstances>-1</iMaxTeamInstances>
+			<iMaxPlayerInstances>-1</iMaxPlayerInstances>
+			<iInstanceCostModifier>0</iInstanceCostModifier>
+			<DefaultUnit>UNIT_SUBMARINE</DefaultUnit>
 		</UnitClassInfo>
 		<UnitClassInfo>
 			<Type>UNITCLASS_CARRIER</Type>

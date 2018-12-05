@@ -54,10 +54,19 @@ public:
 	DllExport void setNetStats(CvWString& szString, PlayerTypes ePlayer);
 	DllExport void setMinimizePopupHelp(CvWString& szString, const CvPopupInfo & info);
 
-	DllExport void setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit, bool bOneLine = false, bool bShort = false);
+	void setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
+			bool bOneLine = false, bool bShort = false,
+			bool bColorHostile = false); // advc.048
 	DllExport void setPlotListHelp(CvWStringBuffer &szString, CvPlot* pPlot, bool bOneLine, bool bShort);
 	DllExport bool setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot);
 	DllExport void setPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot);
+	// <advc.135c>
+	void setPlotHelpDebug(CvWStringBuffer& szString, CvPlot const& kPlot);
+	void setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot const& kPlot);
+	void setPlotHelpDebug_ShiftOnly(CvWStringBuffer& szString, CvPlot const& kPlot);
+	void setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot const& kPlot);
+	void setPlotHelpDebug_ShiftAltOnly(CvWStringBuffer& szString, CvPlot const& kPlot);
+	// </advc.135c>
 	DllExport void setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity);
 	DllExport void setScoreHelp(CvWStringBuffer &szString, PlayerTypes ePlayer);
 
@@ -71,6 +80,8 @@ public:
 	DllExport void parseCivicInfo(CvWStringBuffer &szBuffer, CivicTypes eCivic, bool bCivilopediaText = false, bool bPlayerContext = false, bool bSkipName = false);
 	DllExport void parsePlayerTraits(CvWStringBuffer &szBuffer, PlayerTypes ePlayer);
 	DllExport void parseLeaderHeadHelp(CvWStringBuffer &szBuffer, PlayerTypes eThisPlayer, PlayerTypes eOtherPlayer);
+	// advc.152:
+	void parseWarTradesHelp(CvWStringBuffer& szBuffer, PlayerTypes eThisPlayer, PlayerTypes eOtherPlayer);
 	DllExport void parseLeaderLineHelp(CvWStringBuffer &szBuffer, PlayerTypes eThisPlayer, PlayerTypes eOtherPlayer);
 	DllExport void parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity& city);
 // BUG - Building Additional Great People - start
@@ -166,7 +177,7 @@ public:
 	DllExport void buildTerrainTradeString( CvWStringBuffer& szBuffer, TechTypes eTech, int iTerrainType, bool bList = false, bool bPlayerContext = false );
 	DllExport void buildRiverTradeString( CvWStringBuffer& szBuffer, TechTypes eTech, bool bList = false, bool bPlayerContext = false );
 	DllExport void buildSpecialBuildingString( CvWStringBuffer& szBuffer, TechTypes eTech, int iBuildingType, bool bList = false, bool bPlayerContext = false );
-	DllExport void buildYieldChangeString( CvWStringBuffer& szBuffer, TechTypes eTech, int iTieldType, bool bList = false, bool bPlayerContext = false );
+	DllExport void buildYieldChangeString( CvWStringBuffer& szBuffer, TechTypes eTech, int iYieldType, bool bList = false, bool bPlayerContext = false );
 	DllExport bool buildBonusRevealString( CvWStringBuffer& szBuffer, TechTypes eTech, int iBonusType, bool bFirst, bool bList = false, bool bPlayerContext = false );
 	DllExport bool buildCivicRevealString( CvWStringBuffer& szBuffer, TechTypes eTech, int iCivicType, bool bFirst, bool bList = false, bool bPlayerContext = false );
 	DllExport bool buildProcessInfoString( CvWStringBuffer& szBuffer, TechTypes eTech, int iProcessType, bool bFirst, bool bList = false, bool bPlayerContext = false );
@@ -199,10 +210,10 @@ public:
 	void getVassalInfoString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer); // K-Mod
 	void getWarWearinessString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer, PlayerTypes eTargetPlayer) const; // K-Mod
 	DllExport void getEspionageString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer, PlayerTypes eTargetPlayer);
-	DllExport void getTradeString(CvWStringBuffer& szBuffer, const TradeData& tradeData, PlayerTypes ePlayer1, PlayerTypes ePlayer2);
-	// advc.004w: To avoid adding a param to the exported function above
-	void getTradeString(CvWStringBuffer& szBuffer, const TradeData& tradeData, PlayerTypes ePlayer1, PlayerTypes ePlayer2, int turnsToCancel);
-	DllExport void getDealString(CvWStringBuffer& szString, CvDeal& deal, PlayerTypes ePlayerPerspective = NO_PLAYER,
+	void getTradeString(CvWStringBuffer& szBuffer, const TradeData& tradeData,
+			PlayerTypes ePlayer1, PlayerTypes ePlayer2,
+			int turnsToCancel = -1); // advc.004w
+	void getDealString(CvWStringBuffer& szString, CvDeal& deal, PlayerTypes ePlayerPerspective = NO_PLAYER,
 			bool bCancel = false); // advc.004w
 	void getDealString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer1, PlayerTypes ePlayer2, const CLinkList<TradeData>* pListPlayer1, const CLinkList<TradeData>* pListPlayer2, PlayerTypes ePlayerPerspective = NO_PLAYER,
 			int turnsToCancel = -1); // advc.004w

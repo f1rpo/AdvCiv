@@ -43,6 +43,7 @@ public:
 	void setMute(bool b);
 	// True if muted or if silent to begin with
 	bool isMute() const;
+	void setSilent(bool b);
 
 private:
 

@@ -120,6 +120,11 @@ class Civ4lerts:
 		RefusesToTalk(eventManager)
 		WorstEnemy(eventManager)
 
+# <advc.127>
+def isSilent():
+	return not gc.getPlayer(gc.getGame().getActivePlayer()).isHuman()
+# </advc.127>
+
 
 ## Displaying Alert Messages
 
@@ -152,10 +157,10 @@ def addMessage(iPlayer, szString, szIcon, iFlashX=-1, iFlashY=-1, bOffArrow=Fals
 	
 	Culture:  Zoom to City, Ignore
 	"""
-	# <advc.706>
-	# advc.127: No alerts during or right after Auto Play
+	# <advc.127> No alerts during or right after Auto Play
+	# advc.706:
 	if gc.getGame().isRFBlockPopups() or gc.getPlayer(iPlayer).isHumanDisabled() or gc.getPlayer(iPlayer).isAutoPlayJustEnded():
-		return # </advc.706>
+		return # </advc.127>
 	# advc.106c: Reduced time from LONG to normal
 	# advc.106: Set bForce to False
 	eventMessageTimeLong = gc.getDefineINT("EVENT_MESSAGE_TIME")
@@ -217,12 +222,14 @@ class AbstractCityAlertManager(AbstractStatefulAlert):
 		alert.init()
 	
 	def onCityAcquiredAndKept(self, argsList):
+		if isSilent(): return # advc.127
 		iPlayer, city = argsList
 		if (iPlayer == gc.getGame().getActivePlayer()):
 			self._resetCity(city)
 	
 	def onCityLost(self, argsList):
 		'City Lost'
+		if isSilent(): return # advc.127
 		city = argsList[0]
 		iPlayer = gc.getGame().getActivePlayer()
 		if (iPlayer == city.getOwner()):
@@ -266,6 +273,7 @@ class BeginActivePlayerTurnCityAlertManager(AbstractCityAlertManager):
 	
 	def onBeginActivePlayerTurn(self, argsList):
 		"Loops over active player's cities, telling each to perform its check."
+		if isSilent(): return # advc.127
 		self.checkAllActivePlayerCities()
 
 class EndTurnReadyCityAlertManager(AbstractCityAlertManager):
@@ -279,6 +287,7 @@ class EndTurnReadyCityAlertManager(AbstractCityAlertManager):
 	
 	def onEndTurnReady(self, argsList):
 		"Loops over active player's cities, telling each to perform its check."
+		if isSilent(): return # advc.127
 		self.checkAllActivePlayerCities()
 
 
@@ -347,7 +356,7 @@ class AbstractCityTestAlert(AbstractCityAlert):
 		elif (self._isShowPendingAlert(passes)):
 			# See if city will switch next turn
 			willPass = self._willPassTest(city)
-			if (passed != willPass):
+			if passed != willPass and willPass: # avdc.106d: 'and willPass' added
 				message, icon = self._getPendingAlertMessageIcon(city, willPass)
 		if (message):
 			addMessageAtCity(iPlayer, message, icon, city)
@@ -403,11 +412,13 @@ class CityPendingGrowth(AbstractCityAlert):
 	def checkCity(self, cityId, city, iPlayer, player):
 		if (Civ4lertsOpt.isShowCityPendingGrowthAlert()):
 			if (CityUtil.willGrowThisTurn(city)):
-				message = localText.getText(
-						"TXT_KEY_CIV4LERTS_ON_CITY_PENDING_GROWTH",
-						(city.getName(), city.getPopulation() + 1))
-				icon = "Art/Interface/Symbols/Food/food05.dds"
-				addMessageAtCity(iPlayer, message, icon, city)
+				#message = localText.getText(
+				#		"TXT_KEY_CIV4LERTS_ON_CITY_PENDING_GROWTH",
+				#		(city.getName(), city.getPopulation() + 1))
+				#icon = "Art/Interface/Symbols/Food/food05.dds"
+				#addMessageAtCity(iPlayer, message, icon, city)
+				# advc.106d: Don't show pending growth
+				pass
 			elif (CityUtil.willShrinkThisTurn(city)):
 				message = localText.getText(
 						"TXT_KEY_CIV4LERTS_ON_CITY_PENDING_SHRINKAGE",
@@ -649,18 +660,22 @@ class AbstractCanHurry(AbstractCityTestAlert):
 		self.keHurryType = gc.getInfoTypeForString(szHurryType)
 
 	def onCityBuildingUnit(self, argsList):
+		if isSilent(): return # advc.127
 		city, iUnit = argsList
 		self._onItemStarted(city)
 
 	def onCityBuildingBuilding(self, argsList):
+		if isSilent(): return # advc.127
 		city, iBuilding = argsList
 		self._onItemStarted(city)
 
 	def onCityBuildingProject(self, argsList):
+		if isSilent(): return # advc.127
 		city, iProject = argsList
 		self._onItemStarted(city)
 
 	def onCityBuildingProcess(self, argsList):
+		if isSilent(): return # advc.127
 		city, iProcess = argsList
 		self._onItemStarted(city)
 
@@ -749,6 +764,7 @@ class GoldTrade(AbstractStatefulAlert):
 		eventManager.addEventHandler("BeginActivePlayerTurn", self.onBeginActivePlayerTurn)
 
 	def onBeginActivePlayerTurn(self, argsList):
+		if isSilent(): return # advc.127
 		if (not Civ4lertsOpt.isShowGoldTradeAlert()):
 			return
 		playerID = PlayerUtil.getActivePlayerID()
@@ -766,10 +782,7 @@ class GoldTrade(AbstractStatefulAlert):
 
 	def _reset(self):
 		self.maxGoldTrade = {}
-		# <advc.106c> maxGoldForTrade is supposed to be the gold offered
-		# by the AI when an alert was last displayed. This value can't
-		# be restored after loading; it'd have to be saved. I think using
-		# the gold currently offered is close enough.
+		# <advc.106c>
 		for playerID in range(gc.getMAX_PLAYERS()):
 			self.maxGoldTrade[playerID] = {}
 			for rivalID in range(gc.getMAX_PLAYERS()):
@@ -795,6 +808,7 @@ class GoldPerTurnTrade(AbstractStatefulAlert):
 		eventManager.addEventHandler("BeginActivePlayerTurn", self.onBeginActivePlayerTurn)
 
 	def onBeginActivePlayerTurn(self, argsList):
+		if isSilent(): return # advc.127
 		if (not Civ4lertsOpt.isShowGoldPerTurnTradeAlert()):
 			return
 		playerID = PlayerUtil.getActivePlayerID()
@@ -813,7 +827,7 @@ class GoldPerTurnTrade(AbstractStatefulAlert):
 
 	def _reset(self):
 		self.maxGoldPerTurnTrade = {}
-		# <advc.106c> See comment on maxGoldTrade
+		# <advc.106c>
 		for playerID in range(gc.getMAX_PLAYERS()):
 			self.maxGoldPerTurnTrade[playerID] = {}
 			for rivalID in range(gc.getMAX_PLAYERS()):
@@ -841,10 +855,11 @@ class RefusesToTalk(AbstractStatefulAlert):
 		eventManager.addEventHandler("BeginActivePlayerTurn", self.onBeginActivePlayerTurn)
 ##
 # K-Mod, 15/jan/11, karadoc
-# I've disabled the following event handlers, because apparently the arugment list isn't what the author of this code thought it was.
-# (Note: I've only tested OnDealCanceled. But I don't trust the other's either.)
+# I've disabled the following event handlers, because apparently the argument list isn't what the author of this code thought it was.
+# (Note: I've only tested OnDealCanceled. But I don't trust the others either.)
 ##
-#		eventManager.addEventHandler("changeWar", self.onChangeWar)
+		# advc.106d: This one looks fine and it's needed when an AI civ becomes willing to talk during the human turn and peace is made on the same turn. Don't want to see an alert on the next turn in that case. The others might be dispensable.
+		eventManager.addEventHandler("changeWar", self.onChangeWar)
 #		eventManager.addEventHandler("cityRazed", self.onCityRazed)
 #		eventManager.addEventHandler("DealCanceled", self.onDealCanceled)
 #		eventManager.addEventHandler("EmbargoAccepted", self.onEmbargoAccepted)
@@ -853,21 +868,26 @@ class RefusesToTalk(AbstractStatefulAlert):
 ##
 
 	def onBeginActivePlayerTurn(self, argsList):
+		if isSilent(): return # advc.127
 		self.check()
 
 	def onChangeWar(self, argsList):
+		if isSilent(): return # advc.127
 		bIsWar, eTeam, eRivalTeam = argsList
 		self.checkIfIsAnyOrHasMetAllTeams(eTeam, eRivalTeam)
 		
 	def onCityRazed(self, argsList):
+		if isSilent(): return # advc.127
 		city, ePlayer = argsList
 		self.checkIfIsAnyOrHasMetAllTeams(PlayerUtil.getPlayerTeamID(city.getOwner()), PlayerUtil.getPlayerTeamID(ePlayer))
 		
 	def onDealCanceled(self, argsList):
+		if isSilent(): return # advc.127
 		eOfferPlayer, eTargetPlayer, pTrade = argsList
 		self.checkIfIsAnyOrHasMetAllTeams(PlayerUtil.getPlayerTeamID(eOfferPlayer), PlayerUtil.getPlayerTeamID(eTargetPlayer))
 		
 	def onEmbargoAccepted(self, argsList):
+		if isSilent(): return # advc.127
 		eOfferPlayer, eTargetPlayer, pTrade = argsList
 		self.checkIfIsAnyOrHasMetAllTeams(PlayerUtil.getPlayerTeamID(eOfferPlayer), PlayerUtil.getPlayerTeamID(eTargetPlayer))
 	
@@ -895,21 +915,22 @@ class RefusesToTalk(AbstractStatefulAlert):
 			if DiplomacyUtil.canContact(activePlayer, player) and not DiplomacyUtil.isWillingToTalk(player, eActivePlayer):
 				newRefusals.add(player.getID())
 		self.display(eActivePlayer, "TXT_KEY_CIV4LERTS_ON_WILLING_TO_TALK", refusals.difference(newRefusals))
-		self.display(eActivePlayer, "TXT_KEY_CIV4LERTS_ON_REFUSES_TO_TALK", newRefusals.difference(refusals))
+		# advc.106d: Don't report refusal when war just begun, nor when stopped trading (i.e. when not at war).
+		if gc.getTeam(gc.getPlayer(eActivePlayer).getTeam()).isAtWar(player.getTeam()) and gc.getTeam(gc.getPlayer(eActivePlayer).getTeam()).AI_getAtWarCounter(player.getTeam()) > 1:
+			self.display(eActivePlayer, "TXT_KEY_CIV4LERTS_ON_REFUSES_TO_TALK", newRefusals.difference(refusals))
 		self.refusals[eActivePlayer] = newRefusals
 	
 	def display(self, eActivePlayer, key, players):
 		for ePlayer in players:
 			player = gc.getPlayer(ePlayer)
-			# advc.106d: Don't report refusal to talk when war just begun, nor when stopped trading.
-			if player.isAlive() and gc.getTeam(gc.getPlayer(eActivePlayer).getTeam()).isAtWar(player.getTeam()) and gc.getTeam(gc.getPlayer(eActivePlayer).getTeam()).AI_getAtWarCounter(player.getTeam()) > 1:
+			if player.isAlive():
 				message = BugUtil.getText(key, player.getName())
 				addMessageNoIcon(eActivePlayer, message)
 
 	def _reset(self):
 		self.refusals = {}
 		for player in PlayerUtil.players():
-			# <advc.106c> See comment on maxGoldTrade
+			# <advc.106c>
 			playerID = player.getID()
 			self.refusals[playerID] = set()
 			for rival in PlayerUtil.players(True, False, False, False):
@@ -939,25 +960,31 @@ class WorstEnemy(AbstractStatefulAlert):
 		#eventManager.addEventHandler("playerChangeStateReligion", self.onPlayerChangeStateReligion)
 
 	def onBeginActivePlayerTurn(self, argsList):
+		if isSilent(): return # advc.127
 		self.check()
 
 	def onFirstContact(self, argsList):
+		if isSilent(): return # advc.127
 		eTeam, eRivalTeam = argsList
 		self.checkIfIsAnyOrHasMetAllTeams(eTeam, eRivalTeam)
 
 	def onChangeWar(self, argsList):
+		if isSilent(): return # advc.127
 		bIsWar, eTeam, eRivalTeam = argsList
 		self.checkIfIsAnyOrHasMetAllTeams(eTeam, eRivalTeam)
 		
 	def onCityRazed(self, argsList):
+		if isSilent(): return # advc.127
 		city, ePlayer = argsList
 		self.checkIfIsAnyOrHasMetAllTeams(PlayerUtil.getPlayerTeamID(city.getOwner()), PlayerUtil.getPlayerTeamID(ePlayer))
 	
 	def onVassalState(self, argsList):
+		if isSilent(): return # advc.127
 		eMaster, eVassal, bVassal = argsList
 		self.checkIfIsAnyOrHasMetAllTeams(eMaster, eVassal)
 		
 	def onPlayerChangeStateReligion(self, argsList):
+		if isSilent(): return # advc.127
 		ePlayer, eNewReligion, eOldReligion = argsList
 		self.checkIfIsAnyOrHasMetAllTeams(PlayerUtil.getPlayerTeamID(ePlayer))
 	

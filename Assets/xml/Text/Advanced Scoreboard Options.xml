@@ -105,7 +105,7 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_SCORES__DISPLAYNAME_TEXT</Tag>
 		<English>Display Name</English>
-		<French>Nom Affiché</French>
+		<French>Nom Affich&#233;</French>
 		<German>Anzeigename</German>
 		<Italian>Identifica con nome</Italian>
 		<Spanish>Nombre a Mostrar</Spanish>
@@ -195,7 +195,7 @@
 		<English>Number of Cities</English>
 		<French>Number of Cities</French>
 		<German>Anzahl der Städte</German>
-		<Italian>Numero di Città</Italian>
+		<Italian>Numero di Citt&#224;</Italian>
 		<Spanish>Número de Ciudades</Spanish>
 	</TEXT>
 	<TEXT>
@@ -209,7 +209,7 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_SCORES__ALIGNICONS_TEXT</Tag>
 		<English>Enabled</English>
-		<French>Activé</French>
+		<French>Activ&#233;</French>
 		<German>Aktivieren</German>
 		<Italian>Attivato</Italian>
 		<Spanish>Activo</Spanish>
@@ -227,7 +227,7 @@
 		<English>Maximum Civilizations</English>
 		<French>Maximum Civilizations</French>
 		<German>Anzahl Zivilisationen</German>
-		<Italian>Massimo di Civiltà</Italian>
+		<Italian>Massimo di Civilt&#224;</Italian>
 		<Spanish>Máximo de Civilizaciones</Spanish>
 	</TEXT>
 	<TEXT>

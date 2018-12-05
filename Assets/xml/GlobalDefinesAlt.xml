@@ -5,9 +5,8 @@
 <!-- -->
 <!-- Global Defines -->
 <Civ4Defines xmlns="x-schema:CIV4GlobalDefinesSchema.xml">
-	<!-- advc.009: Probably doesn't matter. Is 302 in BtS, 303 in K-Mod,
-		 I guess b/c they're not savegame-compatible. Neither are AdvCiv
-		 and K-Mod. Picking 14223 as a unique id (that's A-D-V-C in numbers). -->
+	<!-- advc.009: 302 in BtS, 303 in K-Mod. Picking 14223 as a unique id
+		 (that's A-D-V-C in numbers). -->
 	<Define>
 		<DefineName>SAVE_VERSION</DefineName>
 		<iDefineIntVal>14223</iDefineIntVal>
@@ -181,4 +180,31 @@
 		<DefineName>STANDARD_BATTLE_ANIMATION_ROUNDS</DefineName>
 		<iDefineIntVal>6</iDefineIntVal> <!-- introduced by K-Mod -->
 	</Define>
+	<!-- advc.002m: Added to STANDARD_BATTLE_ANIMATION_ROUNDS. Recommended:
+		 -1, i.e. subtract 1 per era. Set to 0 for K-Mod behavior. -->
+	<Define>
+		<DefineName>PER_ERA_BATTLE_ANIMATION_ROUNDS</DefineName>
+		<iDefineIntVal>-1</iDefineIntVal>
+	</Define>
+	<!-- If set to a value greater than 0, starting from TRUNCATE_ANIMATIONS_ERA,
+		 combat animations end after TRUNCATE_ANIMATION_TURNS animation turns
+		 even if there are still units shown as alive on both sides.
+		 1 (recommded) applies this behavior only on the defense,
+		 2 only on the offense and 3 always.
+		 Use 0 for BtS/ K-Mod behavior (animations never truncated). -->
+	<Define>
+		<DefineName>TRUNCATE_ANIMATIONS</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	<!-- Recommended: 3 (Renaissance) -->
+	<Define>
+		<DefineName>TRUNCATE_ANIMATIONS_ERA</DefineName>
+		<iDefineIntVal>3</iDefineIntVal>
+	</Define>
+	<!-- Recommended: 14 -->
+	<Define>
+		<DefineName>TRUNCATE_ANIMATION_TURNS</DefineName>
+		<iDefineIntVal>14</iDefineIntVal>
+	</Define>
+	
 </Civ4Defines>

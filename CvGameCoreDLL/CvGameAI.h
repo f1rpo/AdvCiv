@@ -31,24 +31,14 @@ public:
   virtual void read(FDataStreamBase* pStream);
   virtual void write(FDataStreamBase* pStream);
 
-  WarAndPeaceAI& warAndPeaceAI(); // advc.104
+  inline WarAndPeaceAI& warAndPeaceAI() { return wpai; } // advc.104
 
 protected:
 
   int m_iPad;
-
-// <advc.104>
-private:
-	/* I'm repurposing the Aggressive AI option
-	   so that it enables the war-and-peace AI from K-Mod in addition to
-	   the option's normal effect. A bit of a hack, but less invasive
-	   than changing all the isOption(AGGRESSIVE_AI) checks. And I don't want
-	   two separate options because my war-and-peace AI implies Aggressive AI. */
-	void sortOutWPAIOptions(bool fromSaveGame);
-	WarAndPeaceAI wpai;
-// </advri.104>
-
-
+  // <advc.104>
+  void AI_sortOutWPAIOptions(bool bFromSaveGame);
+  WarAndPeaceAI wpai; // </advc.104>
 };
 
 #endif

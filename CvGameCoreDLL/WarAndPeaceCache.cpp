@@ -102,6 +102,7 @@ void WarAndPeaceCache::write(FDataStreamBase* stream) {
 	int savegameVersion = 1;
 	savegameVersion = 2; // advc.035
 	savegameVersion = 3; // hireAgainst added
+	savegameVersion = 4; // granularity of pastWarScore increased
 	/*  I hadn't thought of a version number in the initial release. Need
 		to fold it into ownerId now to avoid breaking compatibility. */
 	stream->Write(ownerId + 100 * savegameVersion);
@@ -175,6 +176,9 @@ void WarAndPeaceCache::read(FDataStreamBase* stream) {
 	if(savegameVersion >= 2)
 		stream->Read(MAX_CIV_TEAMS, lostTilesAtWar); // </advc.035>
 	stream->Read(MAX_CIV_TEAMS, pastWarScores);
+	if(savegameVersion < 4)
+		for(int i = 0; i < MAX_CIV_TEAMS; i++)
+			pastWarScores[i] *= 100;
 	stream->Read(MAX_CIV_TEAMS, sponsorshipsAgainst);
 	stream->Read(MAX_CIV_TEAMS, sponsorsAgainst);
 	stream->Read(MAX_CIV_TEAMS, warUtilityIgnDistraction);
@@ -227,7 +231,10 @@ void WarAndPeaceCache::update() {
 		updateCities(getWPAI.properCivs()[i]);
 	sortCitiesByAttackPriority();
 	updateTotalAssetScore();
-	updateLatestTurnReachableBySea();
+	/*  advc.003b: Disable latestTurnReachable fallback
+		(The update is actually cheap, but I'm not sure about the very numerous
+		getDistance calls.) */
+	//updateLatestTurnReachableBySea(); 
 	updateTargetMissionCounts();
 	updateTypicalUnits();
 	updateThreatRatings();
@@ -249,6 +256,7 @@ void WarAndPeaceCache::update() {
 
 void WarAndPeaceCache::updateCities(PlayerTypes civId) {
 
+	PROFILE_FUNC();
 	CvPlayerAI& civ = GET_PLAYER(civId); int foo=-1;
 	for(CvCity* c = civ.firstCity(&foo); c != NULL; c = civ.nextCity(&foo)) {
 		// c.isRevealed() impedes the AI too much
@@ -266,13 +274,18 @@ void WarAndPeaceCache::updateTotalAssetScore() {
 
 	// For Palace; it's counted as a national wonder below, but it's worth another 5.
 	totalAssets = 5;
-	for(int i = 0; i < size(); i++) {
+	for(int i = size() - 1; i >= 0; i--) {
 		City const& c = *getCity(i);
+		if(!c.isOwnCity())
+			break; // Sorted so that owner's cities are at the end
 		CvCity* cp = c.city();
 		if(cp != NULL && cp->getOwnerINLINE() == ownerId)
 			/*  National wonders aren't included in the per-city asset score b/c
 				they shouldn't count for rival cities. */
 			totalAssets += c.getAssetScore() + cp->getNumNationalWonders() * 4;
+		/*  Cached cities have just been updated, so ownership info can't be
+			out of date. */
+		else FAssert(false);
 	}
 }
 
@@ -283,9 +296,11 @@ void WarAndPeaceCache::updateGoldPerProduction() {
 	goldPerProduction = std::max(goldPerProdVictory(), goldPerProduction);
 }
 
-double const WarAndPeaceCache::goldPerProdUpperLimit = 4.25;
+double const WarAndPeaceCache::goldPerProdUpperLimit = 4.5;
 double WarAndPeaceCache::goldPerProdBuildings() {
-	int dummy; // For unused out-parameters
+
+	PROFILE_FUNC();
+	int dummy=-1; // For unused out-parameters
 	vector<double> buildingCounts; // excluding wonders
 	vector<double> wonderCounts;
 	CvPlayerAI const& owner = GET_PLAYER(ownerId);
@@ -323,30 +338,54 @@ double WarAndPeaceCache::goldPerProdBuildings() {
 	}
 	if(buildingCounts.empty()) // No city founded yet
 		return 2;
+	// Cities about to be founded; will soon need buildings.
+	for(int i = 0; i < ::round(0.6 * std::min(owner.AI_getNumAIUnits(UNITAI_SETTLE),
+			owner.AI_getNumCitySites())); i++)
+		buildingCounts.push_back(::max(buildingCounts));
 	int era = owner.getCurrentEra();
-	double missing = ::median(buildingCounts) +
-	// Assume one useless (national) wonder per era
-	std::max(0.0, ::median(wonderCounts) - era);
+	CvLeaderHeadInfo const& lh = GC.getLeaderHeadInfo(owner.getPersonalityType());
+	double missing = ::median(buildingCounts) + std::max(0.0, ::median(wonderCounts) -
+			/*  Assume one useless (small or great) wonder per era, but two for
+				Classical and none for Future. */
+			(std::min(5, era) + (era > 0 ? 1 : 0))) *
+			((lh.getWonderConstructRand() + 20) / 50); // wcr=30 is typical
 	// Assume 6 buildings made available per era
 	int maxBuildings = (era + 1) * 6;
-	double missingRatio = std::min(1.0, missing / maxBuildings);
+	double missingRatio = missing / maxBuildings;
+	missingRatio *= (100 - lh.getBuildUnitProb()) / 75.0; // bup=25 is typical
+	missingRatio = std::min(missingRatio, 1.0);
 	double r = std::max(1.0, goldPerProdUpperLimit * missingRatio);
 	return r;
 }
 double WarAndPeaceCache::goldPerProdSites() {
 
+	PROFILE_FUNC();
 	CvPlayerAI const& owner = GET_PLAYER(ownerId);
-	double sites = std::max(0, owner.AI_getNumCitySites() -
-			owner.AI_getNumAIUnits(UNITAI_SETTLE));
-	CvPlayer const& barb = GET_PLAYER(BARBARIAN_PLAYER);
-	/*  Don't want to count faraway barb cities. From looking at some sample
-		numbers, a threshold of 30 might accomplish this. */
-	int const thresh = 30; int dummy;
-	for(CvCity* c = barb.firstCity(&dummy); c != NULL;
-			c = barb.nextCity(&dummy)) {
-		if(GET_TEAM(owner.getTeam()).AI_deduceCitySite(c) &&
-				owner.AI_targetCityValue(c, false, true) > thresh)
-			sites++;
+	std::vector<double> foundVals;
+	for(int i = 0; i < owner.AI_getNumCitySites(); i++) {
+		CvPlot* site = owner.AI_getCitySite(i);
+		if(site != NULL)
+			foundVals.push_back(site->getFoundValue(owner.getID()));
+	}
+	std::sort(foundVals.begin(), foundVals.end(), std::greater<double>());
+	int const sitesMax = 5;
+	double weights[sitesMax] = { 1, 0.8, 0.6, 0.4, 0.2 };
+	double sites = 0;
+	int const settlers = owner.AI_getNumAIUnits(UNITAI_SETTLE);
+	for(int i = settlers; i < std::min(sitesMax, (int)foundVals.size()); i++) {
+		/*  Once the settlers have been used, the found value of more remote sites
+			may increase a bit (see shapeWeight in AI_foundValue_bulk) */
+		sites += foundVals[i] * (weights[i] + settlers / 10.0) / 2500;
+	}
+	CvPlayer const& barb = GET_PLAYER(BARBARIAN_PLAYER); int foo=-1;
+	/*  Don't want to count faraway barb cities. Reference value set after
+		looking at some sample targetCityValues; let's hope these generalize. */
+	double const refVal = 50; 
+	for(CvCity* c = barb.firstCity(&foo); c != NULL; c = barb.nextCity(&foo)) {
+		if(GET_TEAM(owner.getTeam()).AI_deduceCitySite(c)) {
+			int const targetVal = owner.AI_targetCityValue(c, false, true);
+			sites += std::pow(std::min((double)targetVal, refVal) / refVal, 3.0);
+		}
 	}
 	CvGame& g = GC.getGameINLINE();
 	int gameEra = g.getCurrentEra();
@@ -362,7 +401,9 @@ double WarAndPeaceCache::goldPerProdSites() {
 	double r = std::min(goldPerProdUpperLimit, goldPerProdUpperLimit * sites / cities);
 	return r;
 }
+
 double WarAndPeaceCache::goldPerProdVictory() {
+
 	CvTeamAI const& ourTeam = TEAMREF(ownerId);
 	int ourVictLevel = 0;
 	if(ourTeam.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CULTURE3) ||
@@ -371,7 +412,12 @@ double WarAndPeaceCache::goldPerProdVictory() {
 	else if(ourTeam.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CULTURE4) ||
 			ourTeam.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_SPACE4))
 		ourVictLevel = 4;
-	if(ourVictLevel < 3) return 0;
+	if(ourVictLevel < 3) {
+		if(ourTeam.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CULTURE2) ||
+				ourTeam.AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_SPACE2))
+			return 1;
+		return 0.5;
+	}
 	double r = ourVictLevel + 1;
 	for(size_t i = 0; i < getWPAI.properTeams().size(); i++) {
 		TeamTypes rivalId = getWPAI.properTeams()[i];
@@ -392,6 +438,7 @@ double WarAndPeaceCache::goldPerProdVictory() {
 
 void WarAndPeaceCache::updateWarUtility() {
 
+	PROFILE_FUNC();
 	if(!getWPAI.isUpdated())
 		return;
 	/*  Not nice. War utility is computed per team, and the computation is
@@ -432,7 +479,7 @@ void WarAndPeaceCache::updateWarAnger() {
 	if(owner.isAnarchy())
 		return;
 	double totalWWAnger = 0;
-	int dummy; for(CvCity* cp = owner.firstCity(&dummy); cp != NULL;
+	int dummy=-1; for(CvCity* cp = owner.firstCity(&dummy); cp != NULL;
 			cp = owner.nextCity(&dummy)) { CvCity const& c = *cp;
 		if(c.isDisorder())
 			continue;
@@ -640,14 +687,6 @@ int WarAndPeaceCache::numReachableCities(PlayerTypes civId) const {
 	return nReachableCities[civId];
 }
 
-WarAndPeaceCache::City* WarAndPeaceCache::getCity(int index) const {
-
-	// Verify that the city still exists
-	if(v[index] == NULL || v[index]->city() == NULL)
-		return NULL;
-	return v[index];
-}
-
 WarAndPeaceCache::City* WarAndPeaceCache::lookupCity(int plotIndex) const {
 
 	std::map<int,City*>::const_iterator pos = cityMap.find(plotIndex);
@@ -657,56 +696,63 @@ WarAndPeaceCache::City* WarAndPeaceCache::lookupCity(int plotIndex) const {
 	return pos->second;
 }
 
+WarAndPeaceCache::City* WarAndPeaceCache::lookupCity(CvCity const& cvCity) const {
+
+	return lookupCity(cvCity.plotNum());
+}
+
 void WarAndPeaceCache::sortCitiesByOwnerAndDistance() {
 
+	FAssertMsg(false, "function no longer used");
 	sort(v.begin(), v.end(), City::byOwnerAndDistance);
 }
 
 void WarAndPeaceCache::sortCitiesByOwnerAndTargetValue() {
 
+	FAssertMsg(false, "function no longer used");
 	sort(v.begin(), v.end(), City::byOwnerAndTargetValue);
 }
 
 void WarAndPeaceCache::sortCitiesByDistance() {
 
+	FAssertMsg(false, "function no longer used");
 	sort(v.begin(), v.end(), City::byDistance);
 }
 
 void WarAndPeaceCache::sortCitiesByTargetValue() {
 
+	FAssertMsg(false, "function no longer used");
 	sort(v.begin(), v.end(), City::byTargetValue);
 }
 
 void WarAndPeaceCache::sortCitiesByAttackPriority() {
 
-	//sort(v.begin(), v.end(), City::byAttackPriority);
 	PROFILE_FUNC();
+	//sort(v.begin(), v.end(), City::byAttackPriority);
 	/*  Selection sort b/c I want to factor in city areas. An invading army tends
 		to stay in one area until all cities there are conquered. */
 	for(int i = 0; i < ((int)v.size()) - 1; i++) {
-		CvCity* cvc = NULL;
+		CvCity* pPrevCity = NULL;
 		if(i > 0)
-			cvc = v[i - 1]->city();
-		/*  I don't think it's guaranteed here that the city still exists on the
-			map. */
-		CvArea* a = (cvc == NULL ? NULL : cvc->area());
-		double maxPriority = (v[i]->city() == NULL ? -1 : v[i]->attackPriority());
-		int maxIndex = i;
-		for(size_t j = i + 1; j < v.size(); j++) {
-			CvCity* cvc2 = v[j]->city();
-			CvArea* a2 = (cvc2 == NULL ? NULL : cvc2->area());
-			double priority2 = (cvc2 == NULL ? -1 : v[j]->attackPriority());
-			if(i > 0 && a != NULL && a != a2 && priority2 > 0)
-				priority2 /= 2;
-			if(priority2 > maxPriority) {
-				maxIndex = j;
-				maxPriority = priority2;
+			pPrevCity = v[i - 1]->city();
+		CvArea* pPrevArea = (pPrevCity == NULL ? NULL : pPrevCity->area());
+		double maxPriority = -100;
+		int iMax = -1;
+		for(size_t j = i; j < v.size(); j++) {
+			CvCity* pCity = v[j]->city();
+			CvArea* pArea = (pCity == NULL ? NULL : pCity->area());
+			double priority = (pCity == NULL ? -100 : v[j]->attackPriority());
+			if(i > 0 && pPrevArea != NULL && pPrevArea != pArea && priority > 0)
+				priority /= 2;
+			if(priority > maxPriority) {
+				iMax = j;
+				maxPriority = priority;
 			}
 		}
-		if(maxIndex != i) {
+		if(iMax >= 0) {
 			City* tmp = v[i];
-			v[i] = v[maxIndex];
-			v[maxIndex] = tmp;
+			v[i] = v[iMax];
+			v[iMax] = tmp;
 		}
     }
 }
@@ -790,14 +836,12 @@ bool WarAndPeaceCache::hasProtectiveTrait() const {
 
 void WarAndPeaceCache::updateTargetMissionCounts() {
 
-	PROFILE_FUNC();
 	for(size_t i = 0; i < getWPAI.properCivs().size(); i++)
 		updateTargetMissionCount(getWPAI.properCivs()[i]);
 }
 
 void WarAndPeaceCache::updateThreatRatings() {
 
-	PROFILE_FUNC();
 	for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
 		PlayerTypes civId = getWPAI.properCivs()[i];
 		threatRatings[civId] = calculateThreatRating(civId);
@@ -806,7 +850,6 @@ void WarAndPeaceCache::updateThreatRatings() {
 
 void WarAndPeaceCache::updateVassalScores() {
 
-	PROFILE_FUNC();
 	for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
 		PlayerTypes civId = getWPAI.properCivs()[i];
 		if(TEAMREF(civId).isHasMet(TEAMID(ownerId)))
@@ -816,7 +859,6 @@ void WarAndPeaceCache::updateVassalScores() {
 
 void WarAndPeaceCache::updateAdjacentLand() {
 
-	PROFILE_FUNC();
 	CvMap& m = GC.getMapINLINE();
 	for(int i = 0; i < m.numPlotsINLINE(); i++) {
 		CvPlot* p = m.plotByIndexINLINE(i);
@@ -919,7 +961,7 @@ double WarAndPeaceCache::calculateThreatRating(PlayerTypes civId) const {
 	CvCity* cc = GET_PLAYER(ownerId).getCapitalCity();
 	City* c = NULL;
 	if(cc != NULL)
-		c = GET_PLAYER(civId).warAndPeaceAI().getCache().lookupCity(cc->plotNum());
+		c = GET_PLAYER(civId).warAndPeaceAI().getCache().lookupCity(*cc);
 	if(c != NULL && !c->canReach())
 		return 0;
 	double r = 0;
@@ -1066,32 +1108,79 @@ void WarAndPeaceCache::reportUnitDestroyed(CvUnitInfo const& u) {
 	updateMilitaryPower(u, false);
 }
 
-void WarAndPeaceCache::reportWarEnding(TeamTypes enemyId) {
+void WarAndPeaceCache::reportWarEnding(TeamTypes enemyId,
+		CLinkList<TradeData>* weReceive, CLinkList<TradeData>* wePay) {
 
-	int ourSuccess = TEAMREF(ownerId).AI_getWarSuccess(enemyId);
-	int theirSuccess = GET_TEAM(enemyId).AI_getWarSuccess(TEAMID(ownerId));
-	// Use our era as the baseline for what is significant war success
-	EraTypes ourTechEra = GET_PLAYER(ownerId).getCurrentEra();
-	double successRatio = ourSuccess / (double)std::max(1, theirSuccess);
-	if((successRatio > 1 && ourSuccess < GC.getWAR_SUCCESS_CITY_CAPTURING()
-			* ourTechEra) ||
-			(successRatio < 1 && theirSuccess < GC.getWAR_SUCCESS_CITY_CAPTURING()
-			* ourTechEra))
-		successRatio = 1;
-	// Be less critically about our performance if we fought a human
-	if(GET_TEAM(enemyId).isHuman())
-		successRatio += 0.25;
-	bool isChosenWar = TEAMREF(ownerId).AI_isChosenWar(enemyId);
-	/*  Don't be easily emboldened by winning a defensive war. Past war score is
-		intended to discourage war more than encourage it. */
-	if((successRatio > 1.3 && isChosenWar) || successRatio > 1.5)
-		pastWarScores[enemyId]++;
-	// Equal war success not good enough if we started it
-	else if(TEAMREF(ownerId).AI_isChosenWar(enemyId) || successRatio < 0.7)
-		pastWarScores[enemyId]--;
 	// Forget sponsorship once a war ends
 	sponsorshipsAgainst[enemyId] = 0;
 	sponsorsAgainst[enemyId] = NO_PLAYER;
+	// Evaluate reparations
+	bool bForceSuccess = false;
+	bool bForceFailure = false;
+	bool bForceNoFailure = false;
+	bool bForceNoSuccess = false;
+	CLLNode<TradeData>* node = NULL;
+	TradeableItems ti;
+	if(weReceive != NULL) {
+		int iTechs = 0;
+		int iCities = 0;
+		// Ignore gold for simplicity (although a large sum could of course be relevant)
+		for(node = weReceive->head(); node != NULL; node = weReceive->next(node)) {
+			ti = node->m_data.m_eItemType;
+			if(ti == TRADE_TECHNOLOGIES)
+				iTechs++;
+			else if(ti == TRADE_CITIES)
+				iCities++;
+		}
+		if(iTechs + iCities > 0)
+			bForceNoFailure = true;
+		if(iTechs >= 2 || iCities > 0)
+			bForceSuccess = true;
+	} else if(wePay != NULL) {
+		int iTechs = 0;
+		int iCities = 0;
+		for(node = wePay->head(); node != NULL; node = wePay->next(node)) {
+			ti = node->m_data.m_eItemType;
+			if(ti == TRADE_TECHNOLOGIES)
+				iTechs++;
+			else if(ti == TRADE_CITIES)
+				iCities++;
+		}
+		if(iTechs + iCities > 0)
+			bForceNoSuccess = true;
+		if(iTechs >= 2 || iCities > 0)
+			bForceFailure = true;
+	}
+	// Evaluate war success
+	int iOurSuccess = TEAMREF(ownerId).AI_getWarSuccess(enemyId);
+	int iTheirSuccess = GET_TEAM(enemyId).AI_getWarSuccess(TEAMID(ownerId));
+	if(iOurSuccess + iTheirSuccess < GC.getWAR_SUCCESS_CITY_CAPTURING() &&
+			!bForceFailure && !bForceSuccess)
+		return;
+	// Use our era as the baseline for what is significant war success
+	int iOurTechEra = GET_PLAYER(ownerId).getCurrentEra();
+	double successRatio = iOurSuccess / (double)std::max(1, iTheirSuccess);
+	double successThresh = GC.getWAR_SUCCESS_CITY_CAPTURING() * iOurTechEra * 0.7;
+	if(	  (successRatio > 1 && iOurSuccess < successThresh) ||
+		  (successRatio < 1 && iTheirSuccess < successThresh))
+		successRatio = 1;
+	// Be less critical about our performance if we fought a human
+	if(GET_TEAM(enemyId).isHuman())
+		successRatio *= 1.33;
+	if(GET_PLAYER(ownerId).isHuman())
+		successRatio /= 1.33;
+	bool bChosenWar = TEAMREF(ownerId).AI_isChosenWar(enemyId);
+	int iDuration = TEAMREF(ownerId).AI_getAtWarCounter(enemyId);
+	double durationFactor = 0.365 * std::sqrt((double)std::max(1, iDuration));
+	/*  Don't be easily emboldened by winning a defensive war. Past war score is
+		intended to discourage war more than encourage it. */
+	if((((successRatio > 1.3 && bChosenWar) || successRatio > 1.5) &&
+			!bForceNoSuccess) || bForceSuccess)
+		pastWarScores[enemyId] += ::round(100 / durationFactor);
+	// Equal war success not good enough if we started it
+	else if(((bChosenWar || successRatio < 0.7) &&
+			!bForceNoFailure) || bForceFailure)
+		pastWarScores[enemyId] -= ::round(100 * durationFactor);
 }
 
 void WarAndPeaceCache::reportCityOwnerChanged(CvCity* c, PlayerTypes oldOwnerId) {
@@ -1274,7 +1363,6 @@ int WarAndPeaceCache::City::getAssetScore() const {
 
 bool WarAndPeaceCache::City::canReach() const {
 
-	PROFILE_FUNC();
 	CvCity* const cp = city();
 	if(cp == NULL ||
 			// A bit slow:
@@ -1286,14 +1374,16 @@ bool WarAndPeaceCache::City::canReach() const {
 		return false;
 	if(distance >= 0)
 		return true;
+	return false; // advc.003b: Disable latestTurnReachable fallback
+
 	// Should perhaps pass outer object in constructor instead
-	std::map<int,std::pair<int,int> > const& ltr = GET_PLAYER(cacheOwnerId).
+	/*std::map<int,std::pair<int,int> > const& ltr = GET_PLAYER(cacheOwnerId).
 			warAndPeaceAI().getCache().latestTurnReachableBySea;
 	std::map<int,std::pair<int,int> >::const_iterator pos = ltr.find(plotIndex);
 	if(pos == ltr.end())
 		return false;
-	int turnsUnreachable = pos->second.first - GC.getGame().getGameTurn();
-	return (turnsUnreachable < 10);
+	int turnsUnreachable = GC.getGame().getGameTurn() - pos->second.first;
+	return (turnsUnreachable < 10);*/
 	/*  If this isn't enough time for naval stacks to reach their target,
 		consider adding a stackEnRoute flag to City that is updated in
 		updateTargetMissionCount. Not sure if AI_getMissionAIPlot points directly
@@ -1302,14 +1392,13 @@ bool WarAndPeaceCache::City::canReach() const {
 
 int WarAndPeaceCache::City::getDistance(bool forceCurrentVal) const {
 
-	if(distance < 0 && !forceCurrentVal && !reachByLand) { /* latestTurnReachable
-												is only for reachability via sea */
+	/*if(distance < 0 && !forceCurrentVal && !reachByLand) { // latestTurnReachable is only for reachability via sea
 		std::map<int,std::pair<int,int> > const& ltr = GET_PLAYER(cacheOwnerId).
 			warAndPeaceAI().getCache().latestTurnReachableBySea;
 		std::map<int,std::pair<int,int> >::const_iterator pos = ltr.find(plotIndex);
 		if(pos != ltr.end())
 			return pos->second.second;
-	}
+	}*/  // advc.003b: Disable latestTurnReachable fallback
 	return distance;
 }
 
@@ -1436,6 +1525,8 @@ double WarAndPeaceCache::City::attackPriority() const {
 
 	if(distance < 0)
 		return -1;
+	if(isOwnCity())
+		return -2; // updateTotalAssetScore relies on own cities having minimal priority
 	/*  targetValue is something like 10 to 100, distance 1 to 20 perhaps.
 		Add 1000 b/c negative values should be reserved for error conditions. */
 	return std::max(0.0, 1000 + getTargetValue() -
@@ -1458,6 +1549,12 @@ PlayerTypes WarAndPeaceCache::City::cityOwner() const {
 	if(city() == NULL)
 		return NO_PLAYER;
 	return city()->getOwner();
+}
+
+bool WarAndPeaceCache::City::isOwnCity() const {
+
+	// Check distance==0 first b/c that's faster
+	return (distance == 0 && cityOwner() == cacheOwnerId);
 }
 
 void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
@@ -1494,13 +1591,12 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 		reachBySea = true;
 		return;
 	}
-
 	int const maxDist = getWPAI.maxSeaDist();
 	distance = -1;
 	reachByLand = false;
 	reachBySea = false;
 	bool human = cacheOwner.isHuman();
-	EraTypes era = cacheOwner.getCurrentEra();
+	EraTypes const era = cacheOwner.getCurrentEra();
 	// Assume that humans can always locate cities
 	if(!human && !cacheOwner.AI_deduceCitySite(targetCity))
 		return;
@@ -1509,7 +1605,6 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 	bool trainAnyCargo = cacheOwner.warAndPeaceAI().getCache().
 			canTrainAnyCargo();
 	int const seaPenalty = (human ? 2 : 4);
-	double shipSpeed = cacheOwner.warAndPeaceAI().shipSpeed();
 	vector<int> pairwDurations;
 	/*  If we find no land path and no sea path from a city c to the target,
 		but at least one other city that does have a path to the target, then there
@@ -1525,22 +1620,12 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 		CvPlot* p = c->plot();
 		int pwd = -1; // pairwise (travel) duration
 		int d = -1; // set by measureDistance
-		if(measureDistance(DOMAIN_LAND, p, targetCity->plot(), &d)) {
-			double speed = 1;
-			if(era >= 6) // Future era; to account for very high mobility in endgame
-				speed++;
-			/*  Difficult to account for routes; c could be a border city, but the
-				route could still lead through friendly territory, and the owner
-				of that territory may or may not have Engineering or Railroad. */
-			// 4 is Industrial era
-			else if((era >= 4 && GC.getGameINLINE().getCurrentEra() >= 4) || era >= 5)
-				speed *= 4.5; // Railroads are faster, but don't expect them everywhere
-			else if(GET_TEAM(cacheOwner.getTeam()).warAndPeaceAI().isFastRoads())
-				speed *= 2;
-			else if(era >= 1) // Some roads in Classical era
-				speed *= 1.5;
+		if(measureDistance(cacheOwnerId, DOMAIN_LAND, p, targetCity->plot(), &d)) {
+			double speed = estimateMovementSpeed(cacheOwnerId, DOMAIN_LAND, d);
 			// Will practically always have to move through some foreign tiles
-			d = std::max(1, ::round(d / speed));
+			d = std::min(d, 2) + ::round((d - std::min(d, 2)) / speed);
+			if(d == 0) // Make sure 0 is reserved for own cities
+				d = 1;
 			pwd = d;
 			/*  reachByLand refers to our (AI) capital. This is to ensure that the
 				AI can still detect the need for a naval assault when it has a
@@ -1554,9 +1639,10 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 			DomainTypes dom = DOMAIN_SEA;
 			if(!trainDeepSeaCargo)
 				dom = DOMAIN_IMMOBILE; // Encode non-ocean as IMMOBILE
-			if(measureDistance(dom, p, targetCity->plot(), &d)) {
+			if(measureDistance(cacheOwnerId, dom, p, targetCity->plot(), &d)) {
 				FAssert(d >= 0);
-				d = (int)std::ceil(d / shipSpeed) + seaPenalty;
+				d = (int)std::ceil(d / estimateMovementSpeed(cacheOwnerId, DOMAIN_SEA, d)) +
+						seaPenalty;
 				if(pwd < 0 || d < pwd) {
 					pwd = d;
 					rbsLoop = true;
@@ -1599,9 +1685,37 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 	//* std::max(1.0, 0.75 + mixedPath / ((double)pairwDistances.size() + mixedPath)));
 }
 
+
+double WarAndPeaceCache::City::estimateMovementSpeed(PlayerTypes civId,
+		DomainTypes dom, int dist) {
+
+	CvPlayerAI const& civ = GET_PLAYER(civId);
+	if(dom != DOMAIN_LAND)
+		return civ.warAndPeaceAI().shipSpeed();
+	EraTypes const era = civ.getCurrentEra();
+	EraTypes const gameEra = GC.getGameINLINE().getCurrentEra();
+	double r = 1;
+	if(era >= 6) // Future era; to account for very high mobility in endgame
+		r++;
+	/*  Difficult to account for routes; c could be a border city, but the
+		route could still lead through friendly territory and the owner
+		of that territory may or may not have Engineering or Railroad. */
+		// 4 is Industrial era
+	if((era >= 4 && gameEra >= 4) || era >= 5)
+		r *= 4.5; // Railroads are faster than this, but don't expect them everywhere.
+	/*  Some roads in Classical era; the longer the path, the higher the
+		chance of it traversing unpaved ground. */
+	else if(era >= 1) {
+		r *= ::dRange((20.0 + 6 * gameEra) / (dist + 10), 1.0, 2.0);
+		if(TEAMREF(civId).warAndPeaceAI().isFastRoads())
+			r *= 1.4;
+	}
+	return r;
+}
+
 // <advc.104b>
-bool WarAndPeaceCache::City::measureDistance(DomainTypes dom, CvPlot* start,
-		CvPlot* dest, int* r) {
+bool WarAndPeaceCache::City::measureDistance(PlayerTypes civId, DomainTypes dom,
+		CvPlot* start, CvPlot* dest, int* r) {
 
 	PROFILE_FUNC();
 	/*  Caveat: dom can be IMMOBILE, which means Galley. Should compare dom
@@ -1615,14 +1729,14 @@ bool WarAndPeaceCache::City::measureDistance(DomainTypes dom, CvPlot* start,
 	int maxDist = (dom == DOMAIN_LAND ? getWPAI.maxLandDist() :
 			getWPAI.maxSeaDist());
 	// AI needs to be able to target even very remote rivals eventually
-	if(GET_PLAYER(cacheOwnerId).getCurrentEra() >= 4)
+	if(GET_PLAYER(civId).getCurrentEra() >= 4)
 		maxDist = (4 * maxDist) / 3;
-	// stepDistance sanity check to avoid costly distance measurement
-	double stepDist = ::stepDistance(start, dest);
-	if(dom == DOMAIN_LAND)
-		stepDist /= 2; // Effect of roads
-	stepDist /= GET_PLAYER(cacheOwnerId).warAndPeaceAI().shipSpeed();
-	if(stepDist > maxDist)
+	/*  stepDistance sanity check to avoid costly distance measurement
+		(::teamStepValid_advc now performs the same check through ::stepHeuristic,
+		but still need stepDistance here for the speed estimate.) */
+	int stepDist = ::stepDistance(start, dest);
+	double speedEstimate = estimateMovementSpeed(civId, dom, stepDist);
+	if(stepDist / speedEstimate > maxDist)
 		return false;
 	// dest is guaranteed to be owned; get the owner before possibly changing dest
 	TeamTypes destTeam = dest->getTeam();
@@ -1636,10 +1750,10 @@ bool WarAndPeaceCache::City::measureDistance(DomainTypes dom, CvPlot* start,
 		for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
 			CvPlot* adj = ::plotDirection(x, y, (DirectionTypes)i);
 			if(adj != NULL && adj->isCoastalLand(minSz)) {
-				int stepDist = ::stepDistance(start, adj);
-				if(stepDist < shortestStepDist) {
+				int d = ::stepDistance(start, adj);
+				if(d < shortestStepDist) {
 					dest = adj;
-					shortestStepDist = stepDist;
+					shortestStepDist = d;
 				}
 			}
 		}
@@ -1654,10 +1768,10 @@ bool WarAndPeaceCache::City::measureDistance(DomainTypes dom, CvPlot* start,
 		for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
 			CvPlot* adj = ::plotDirection(destx, desty, (DirectionTypes)i);
 			if(adj != NULL && adj->isWater()) {
-				int stepDist = ::stepDistance(start, adj);
-				if(stepDist < shortestStepDist) {
+				int d = ::stepDistance(start, adj);
+				if(d < shortestStepDist) {
 					dest = adj;
-					shortestStepDist = stepDist;
+					shortestStepDist = d;
 				}
 			}
 		}
@@ -1667,7 +1781,9 @@ bool WarAndPeaceCache::City::measureDistance(DomainTypes dom, CvPlot* start,
 	if(dom != DOMAIN_LAND && !start->isAdjacentToArea(dest->area()))
 		return false;
 	*r = start->calculatePathDistanceToPlot(start->getTeam(), dest, destTeam,
-			dom, maxDist);
+			/*  Path distance counts each step as 1 move; upper bound needs to
+				account for faster movement. */
+			dom, (int)::ceil(maxDist * speedEstimate));
 	return (*r >= 0);
 } // </advc.104b>
 
@@ -1686,7 +1802,9 @@ void WarAndPeaceCache::City::fatCross(vector<CvPlot*>& r) {
 void WarAndPeaceCache::City::updateAssetScore() {
 
 	PROFILE_FUNC();
-	if(city() == NULL) return;
+	if(city() == NULL)
+		return;
+	CvCity const& c = *city();
 	/*  Scale: cityWonderVal relies on K-Mod functions that supposedly express
 		utility as gold per turn. That said, active wonders are only valued as
 		4 gpt, which seems too low (even for wonders we can't pick and that could
@@ -1696,9 +1814,8 @@ void WarAndPeaceCache::City::updateAssetScore() {
 		maintenance.*/
 	CvPlayerAI& cacheOwner = GET_PLAYER(cacheOwnerId);
 	CvTeam& t = TEAMREF(cacheOwnerId);
-	double r = cacheOwner.cityWonderVal(city());
+	double r = cacheOwner.AI_cityWonderVal(c);
 	r += 1.4 * cacheOwner.getTradeRoutes();
-	CvCity const& c = *city();
 	PlayerTypes cityOwnerId = c.getOwnerINLINE();
 	/*  If we already own the city, then the score says how much we don't want
 		to lose it. Lost buildings hurt. Since most buildings don't survive
@@ -1726,7 +1843,7 @@ void WarAndPeaceCache::City::updateAssetScore() {
 		if(pp == NULL)
 			continue;
 		CvPlot const& p = *pp;
-		// If no working city, we should be able to get the tile by popping borders
+		// If no working city, we should be able to get the tile by popping borders.
 		if(p.getWorkingCity() != city() && p.getWorkingCity() != NULL && i != 0)
 			continue;
 		// Fall back on city tile for cultureModifier if p unrevealed
@@ -1767,7 +1884,7 @@ void WarAndPeaceCache::City::updateAssetScore() {
 			inner ring, and increase it based on the weight for the outer ring. */
 		if(::plotDistance(pp, c.plot()) == 1) {
 			double exclMult = 1 + 0.5 * GET_PLAYER(cityOwnerId).
-					exclusiveRadiusWeight(2);
+					AI_exclusiveRadiusWeight(2);
 			cultureModifier = std::min(1.0, cultureModifier * exclMult);
 		} // </advc.099b>
 		r += baseTileScore * cultureModifier;

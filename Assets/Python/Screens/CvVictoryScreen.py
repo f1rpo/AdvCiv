@@ -308,7 +308,8 @@ class CvVictoryScreen:
 				for iLoop in range(gc.getNumVoteInfos()):
 					if gc.getGame().countPossibleVote(iLoop, i) > 0:
 						info = gc.getVoteInfo(iLoop)
-						if gc.getGame().isChooseElection(iLoop):
+						# advc.178: Clauses for diplo victory added
+						if gc.getGame().isChooseElection(iLoop) and (gc.getGame().isDiploVictoryValid() or not info.isVictory()):
 							iRow = screen.appendTableRow(szTable)
 							screen.setTableText(szTable, 0, iRow, info.getDescription(), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 							if gc.getGame().isVotePassed(iLoop):
@@ -528,14 +529,14 @@ class CvVictoryScreen:
 
 			if iMember != self.iActivePlayer:
 				# player attitude to candidate #1
-				szText = AttitudeUtil.getAttitudeText (iMember, iCandPlayer1, True, True, False, False)
+				szText = AttitudeUtil.getAttitudeText (iMember, iCandPlayer1, True, True, False, False, False) # advc.152: To match the new signature of getAttitudeText
 				if (szText != None
 				and iCand1Known == 1
 				and bKnown):
 					screen.setTableText(szTable, 1, iRow, szText, "", WidgetTypes.WIDGET_LEADERHEAD, iMember, iCandPlayer1, CvUtil.FONT_CENTER_JUSTIFY)
 
 				# player attitude to candidate #2
-				szText = AttitudeUtil.getAttitudeText (iMember, iCandPlayer2, True, True, False, False)
+				szText = AttitudeUtil.getAttitudeText (iMember, iCandPlayer2, True, True, False, False, False) # advc.152: To match the new signature of getAttitudeText
 				if (szText != None
 				and iCand2Known == 1
 				and bKnown):
@@ -994,13 +995,18 @@ class CvVictoryScreen:
 				descr = gc.getGameOptionInfo(i).getDescription()
 				if gc.getGameOptionInfo(i).getTextKey() =="TXT_KEY_GAME_OPTION_RAGING_BARBARIANS":
 					barbStart = gc.getGame().getBarbarianStartTurn()
-					# Stop displaying after some time
-					if barbStart + 25 > gc.getGame().getGameTurn():
+					# Stop displaying after some time [Since v0.94: Don't show the start turn at all.]
+					if False and barbStart + 25 > gc.getGame().getGameTurn():
 						descr += "\n\t("
 						descr += localText.getText("TXT_KEY_BARB_START", ())
 						descr += " " + str(barbStart) + ")"
 				# Next line: Plug in descr </advc.300>
 				screen.appendListBoxStringNoUpdate(szOptionsTable, descr, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# <advc.004> Disabled victory conditions. Some overlap with CvReplayInfo::addSettingsMsg
+		for i in range(gc.getNumVictoryInfos()):
+			if not gc.getGame().isVictoryValid(i):
+				screen.appendListBoxStringNoUpdate(szOptionsTable, gc.getVictoryInfo(i).getDescription() + " " + localText.getText("TXT_KEY_VICTORY_DISABLED",()), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# </advc.004>
 
 		# <advc.104> AI settings
 		isAggro = gc.getGame().isOption(GameOptionTypes.GAMEOPTION_AGGRESSIVE_AI)

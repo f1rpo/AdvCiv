@@ -17,8 +17,10 @@ public class Civ implements Comparable<Civ> {
 		this.tech2 = tech2;
 		for(String city : cities)
 			this.cities.add(city);
-		this.handicap = handicap;
-		this.playable = playable;
+		if(test)
+			this.handicap = "EMPEROR";
+		else this.handicap = handicap;
+		this.playable = (test ? true : playable);
 		this.test = test;
 		for(String rel : religions)
 			this.religions.add(rel);
@@ -157,8 +159,11 @@ public class Civ implements Comparable<Civ> {
 				(int)start.getY() + "\n";
 		r += "\tHandicap=HANDICAP_" + handicap + "\n";
 		if(!cities.isEmpty()) {
-			for(String city : cities)
-				r += "\tCityList=TXT_KEY_CITY_NAME_" + city + "\n";
+			for(String city : cities) {
+				if(Character.isUpperCase(city.charAt(city.length() - 1)))
+					city = "TXT_KEY_CITY_NAME_" + city;
+				r += "\tCityList=" + city + "\n";
+			}
 		}
 		return r + "EndPlayer";
 	}
@@ -176,7 +181,10 @@ public class Civ implements Comparable<Civ> {
 			return -1;
 		if(thisHP < otherHP)
 			return 1;
-		return leader.compareTo(other.leader);
+		/*String l1 = (leader.startsWith("CHINESE") ? "MAO" : leader);
+		String l2 = (other.leader.startsWith("CHINESE") ? "MAO" : other.leader);
+		return l1.compareTo(l2);*/
+		return civ.compareTo(other.civ);
 	}
 	
 	private void initDefault() {
@@ -241,9 +249,9 @@ public class Civ implements Comparable<Civ> {
 	
 	private int handicapPriority() {
 
-		if(handicap.equals("NOBLE"))
+		/*if(handicap.equals("NOBLE"))
 			return 10;
-		else if(handicap.equals("DEITY"))
+		else */if(handicap.equals("DEITY"))
 			return 1;
 		else if(handicap.equals("IMMORTAL"))
 			return 2;
@@ -299,42 +307,43 @@ public class Civ implements Comparable<Civ> {
 		"CASABLANCA",
 		"MARRAKECH",
 	},
+	// Indented: Potential South Cinese (Khmer) cities
 	{	"BEIJING",
-		"SHANGHAI",
+		 "SHANGHAI",
 		"GUANGZHOU",
 		"NANJING",
 		"XIAN",
 		"CHENGDU",
-		"HANGZHOU",
-		"TIANJIN",
-		"MACAU",
+		 "HANGZHOU",
+		 "TIANJIN",
+		 "MACAU",
 		"SHANDONG",
 		"KAIFENG",
 		"NINGBO",
 		"BAODING",
-		"YANGZHOU",
-		"HAERBIN",
+		 "YANGZHOU",
+		 "HAERBIN",
 		"CHONGQING",
 		"LOYANG",
 		"KUNMING",
-		"TAIPEI",
+		 "TAIPEI",
 		"SHENYANG",
 		"TAIYUAN",
-		"TAINAN",
+		 "TAINAN",
 		"DALIAN",
 		"LIJIANG",
 		"WUXI",
-		"SUZHOU",
-		"MAOMING",
-		"SHAOGUAN",
-		"YANGJIANG",
-		"HEYUAN",
+		 "SUZHOU",
+		 "MAOMING",
+		 "SHAOGUAN",
+		 "YANGJIANG",
+		 "HEYUAN",
 		"LIAONING",
 		"HUBEI",
 		"GANSU",
 		"HUANGSHI",
 		"YICHANG",
-		"YINGTAN",
+		 "YINGTAN",
 		"XINYU",
 		"XINZHENG",
 		"HANDAN",
@@ -697,7 +706,7 @@ public class Civ implements Comparable<Civ> {
 	{	"YASODHARAPURA",
 		"HARIHARALAYA",
 		"ANGKOR_THOM",
-		"ANGKOR_WAT",
+		//"ANGKOR_WAT", // That's in Yasodharapura
 		"NAGARA_JAYASRI",
 		"RAJAVIHARA",
 		"ISVARAPURA",

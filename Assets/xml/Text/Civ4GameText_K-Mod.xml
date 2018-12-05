@@ -279,16 +279,17 @@
 		<English>Sustainability Threshold</English>
 		<French>Sustainability Threshold</French>
 		<German>Nachhaltigkeitsgrenzwert</German>
-		<Italian>Il limite di sostenibilità</Italian>
+		<Italian>Il limite di sostenibilit&#224;</Italian>
 		<Spanish>Límite de sostenibilidad</Spanish>
 	</TEXT>
+	<!-- advc.002b: Abbreviated b/c it was bit too long for a 5:4 display -->
 	<TEXT>
 		<Tag>TXT_KEY_ENVIRONMENT_LOCAL_THRESHOLD</Tag>
-		<English>Local Sustainability Threshold</English>
-		<French>Local Sustainability Threshold</French>
-		<German>Lokaler Nachhaltigkeitsgrenzwert</German>
-		<Italian>Local Sustainability Threshold</Italian>
-		<Spanish>Límite de sostenibilidad local</Spanish>
+		<English>Local Sustainability Thresh.</English>
+		<French>Local Sustainability Thresh.</French>
+		<German>Lokale Nachhaltigkeitsgrenze</German>
+		<Italian>Local Sustainability Thresh.</Italian>
+		<Spanish>Lím. de sostenibilidad local</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_ENVIRONMENT_TOTAL_POLLUTION</Tag>
@@ -400,7 +401,7 @@
 		<English>Global warming severity rating</English>
 		<French>Évaluation globale sévérité du réchauffement</French>
 		<German>Schweregrad der Erderwärmung</German>
-		<Italian>Riscaldamento globale livello di gravità</Italian>
+		<Italian>Riscaldamento globale livello di gravit&#224;</Italian>
 		<Spanish>Grado de gravedad del calentamiento global</Spanish>
 	</TEXT>
 

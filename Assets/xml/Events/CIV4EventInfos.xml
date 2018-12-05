@@ -13665,7 +13665,8 @@
 			<PythonCanDo/>
 			<PythonHelp>getHelpHeroicGesture2</PythonHelp>
 			<Button>,Art/Interface/Buttons/Process/Blank.dds,Art/Interface/Buttons/Beyond_the_Sword_Atlas.dds,8,5</Button>
-			<iAIValue>1000</iAIValue>
+			<!-- advc.104z: was 1000 -->
+			<iAIValue>667</iAIValue>
 		</EventInfo>
 		<EventInfo>
 			<Type>EVENT_GREAT_MEDIATOR_1</Type>
@@ -13829,7 +13830,8 @@
 			<PythonCanDo/>
 			<PythonHelp>getHelpGreatMediator2</PythonHelp>
 			<Button>,Art/Interface/Buttons/Process/Blank.dds,Art/Interface/Buttons/Beyond_the_Sword_Atlas.dds,8,5</Button>
-			<iAIValue>1000</iAIValue>
+			<!-- advc.104z: was 1000 -->
+			<iAIValue>667</iAIValue>
 		</EventInfo>
 		<EventInfo>
 			<Type>EVENT_FORTY_THIEVES_1</Type>

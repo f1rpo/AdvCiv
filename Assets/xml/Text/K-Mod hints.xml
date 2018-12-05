@@ -9,7 +9,7 @@
 <Civ4GameText xmlns="http://www.firaxis.com">
 
 <!-- advc.008c: Added "(K-Mod)" to hints that describe K-Mod changes
-	(even those that are just included in K-Mod because players may not know
+	(even those that are just included in K-Mod - because players may not know
 	that e.g. "BUG" is the name of a mod).
 	I'm also putting any corrections of BtS hints into K-Mod hints.xml, so that
 	CIV4GameText_advc.008d.xml only contains hints about AdvCiv changes. -->
@@ -400,5 +400,28 @@
 	<Italian>I tuoi caccia possono intercettare pi&#249; aerei per turno, ma diventano meno efficaci se subiscono danni, perci&#242; premurati di riparare i tuoi velivoli difensivi.</Italian>
 	<Spanish>Tus cazas pueden interceptar varios aviones por turno, pero se vuelven menos eficaces a medida que sufren da&#241;os, por lo que debes preocuparte de reparar tus aviones defensivos.</Spanish>
 </TEXT>
+
+<!-- advc.008c: Changed "may not be" to "aren't". Rewrote the German
+	 translation. -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_20</Tag>
+	<English>Don't be afraid to attack with ranged units - archers and longbows aren't the best offensive units, but properly promoted, they can do a respectable job.</English>
+	<French>N'h&#233;sitez pas &#224; attaquer &#224; distance. Les archers et archers (arcs longs) ne sont pas les meilleures unit&#233;s de d&#233;fense, mais ils obtiennent des r&#233;sultats tout &#224; fait honorables avec une bonne promotion.</French>
+	<German>Bogen- und Armbrustschützen sind zwar keine perfekten Offensiveinheiten, aber mit den richtigen Beförderungen können sie auch im Angriff Beachtliches leisten.</German>
+	<Italian>Non avere paura di attaccare con unit&#224; che colpiscono da lontano: arcieri e archi lunghi possono non essere le armi migliori per lanciare l'offensiva, ma con qualche promozione sono in grado di farsi rispettare.</Italian>
+	<Spanish>No tem&#225;is atacar con unidades de combate a distancia. Puede que los arqueros y saeteros no sean las mejores unidades de ataque, pero cumplen bien cuando se las asciende adecuadamente.</Spanish>
+</TEXT>
+
+<!-- advc.906: Just plugged in the new name. Perhaps this hint should be
+	 replaced though; it suggests that the cheap 2-nukes-on-every-coastal-city
+	 tactic is fair game. -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_62</Tag>
+		<English>Use the Nuclear Submarine's stealth along with its ability to carry conventional and tactical nuclear missiles to launch a devastating opening attack on another landmass.</English>
+		<French>Tirez parti de la furtivit&#233; du sous-marin et de sa capacit&#233; &#224; transporter des missiles conventionnels et des missiles nucl&#233;aires pour lancer une attaque d&#233;vastatrice contre un autre continent.</French>
+		<German>Nutzen Sie die Tarnung Ihrer Atom-U-Boote und ihre F&#228;higkeit, konventionelle und taktische Atomraketen zu bef&#246;rdern, um vernichtende Startoffensiven auf gegnerische Landmassen auszuf&#252;hren.</German>
+		<Italian>Usa l'invisibilit&#224; del sottomarino oltre all'abilit&#224; di trasportare missili tattici e nucleari per lanciarli e scatenare l'inferno sulla terraferma.</Italian>
+		<Spanish>Utiliza la invisibilidad ante el radar del submarino junto a su capacidad para transportar misiles nucleares convencionales y t&#225;cticos para lanzar un devastador ataque inicial sobre otra masa de tierra.</Spanish>
+	</TEXT>
 
 </Civ4GameText>

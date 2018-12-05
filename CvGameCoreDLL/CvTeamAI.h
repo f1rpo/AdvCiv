@@ -14,16 +14,8 @@
 class CvTeamAI : public CvTeam
 {
 
-private:
 
-	// advc.003: Chunk of code that occured twice in doWar.
-	void AI_abandonWarPlanIfTimedOut(int baseAbandonTime, TeamTypes t,
-			bool isLimited, int iEnemyPowerPercent);
-	bool isPursuingCircumnav() const; // advc.136a
-
-public: // <advc.104>
-	WarAndPeaceAI::Team& warAndPeaceAI(); 
-	WarAndPeaceAI::Team const& warAndPeaceAI() const; // </advc.104>
+public:
 
 	CvTeamAI();
 	virtual ~CvTeamAI();
@@ -67,6 +59,7 @@ public: // <advc.104>
 	bool AI_hasCitiesInPrimaryArea(TeamTypes eTeam) const;
 	bool AI_hasSharedPrimaryArea(TeamTypes eTeam) const; // K-Mod
 	AreaAITypes AI_calculateAreaAIType(CvArea* pArea, bool bPreparingTotal = false) const;
+	inline bool AI_isLonely() const { return m_bLonely; } // advc.109
 
 	int AI_calculateAdjacentLandPlots(TeamTypes eTeam) const;
 	int AI_calculateCapitalProximity(TeamTypes eTeam) const;
@@ -87,7 +80,7 @@ public: // <advc.104>
 	bool AI_isAllyLandTarget(TeamTypes eTeam) const;
 	bool AI_shareWar(TeamTypes eTeam) const;
 	 // advc.003, advc.130e:
-	void AI_updateAttitudeCache(TeamTypes eTeam, bool updateWorstEnemy = true);
+	void AI_updateAttitudeCache(TeamTypes eTeam, bool bUpdateWorstEnemy = true);
 	AttitudeTypes AI_getAttitude(TeamTypes eTeam, bool bForced = true) const;
 	int AI_getAttitudeVal(TeamTypes eTeam, bool bForced = true) const;
 	int AI_getMemoryCount(TeamTypes eTeam, MemoryTypes eMemory) const;
@@ -106,10 +99,9 @@ public: // <advc.104>
 
 	int CvTeamAI::AI_knownTechValModifier(TechTypes eTech) const; // K-Mod
 
-	int AI_techTradeVal(TechTypes eTech, TeamTypes eTeam
-		, bool ignoreDiscount = false // advc.550a
-		, bool peaceDeal = false // advc.140h
-		) const;
+	int AI_techTradeVal(TechTypes eTech, TeamTypes eTeam,
+			bool bIgnoreDiscount = false, // advc.550a
+			bool bPeaceDeal = false) const; // advc.140h
 	DenialTypes AI_techTrade(TechTypes eTech, TeamTypes eTeam) const;
 
 	int AI_mapTradeVal(TeamTypes eTeam) const;
@@ -120,11 +112,15 @@ public: // <advc.104>
 
 	int AI_surrenderTradeVal(TeamTypes eTeam) const;
 	DenialTypes AI_surrenderTrade(TeamTypes eTeam, int iPowerMultiplier = 100,
-			bool checkAccept = true) const; // advc.104o
+			bool bCheckAccept = true) const; // advc.104o
+	/*  advc.104o: Previously a magic number in CvPlayer::getTradeDenial; needed
+		in additional places now. */
+	static int const VASSAL_POWER_MOD_SURRENDER = 140;
 
-	// bbai
+	int AI_getLowestVictoryCountdown() const;
 	int AI_countMembersWithStrategy(int iStrategy) const; // K-Mod
-	bool AI_isAnyMemberDoVictoryStrategy( int iVictoryStrategy ) const;
+	// bbai start
+	bool AI_isAnyMemberDoVictoryStrategy(int iVictoryStrategy) const;
 	bool AI_isAnyMemberDoVictoryStrategyLevel4() const;
 	bool AI_isAnyMemberDoVictoryStrategyLevel3() const;
 
@@ -133,8 +129,10 @@ public: // <advc.104>
 	int AI_getEnemyPowerPercent( bool bConsiderOthers = false ) const;
 	int AI_getAirPower() const; // K-Mod
 	int AI_getRivalAirPower( ) const;
-	bool AI_refusePeace(TeamTypes ePeaceTeam) const; // K-Mod. (refuse peace when we need war for conquest victory.)
-	bool AI_refuseWar(TeamTypes eWarTeam) const; // K-Mod. (is war an acceptable side effect for event choices, vassal deals, etc)
+	// K-Mod. (refuse peace when we need war for conquest victory.)
+	bool AI_refusePeace(TeamTypes ePeaceTeam) const;
+	// K-Mod. (is war an acceptable side effect for event choices, vassal deals, etc)
+	bool AI_refuseWar(TeamTypes eWarTeam) const;
 	bool AI_acceptSurrender( TeamTypes eSurrenderTeam ) const;
 	bool AI_isOkayVassalTarget( TeamTypes eTeam ) const;
 
@@ -142,13 +140,17 @@ public: // <advc.104>
 	void AI_getWarThresholds( int &iMaxWarThreshold, int &iLimitedWarThreshold, int &iDogpileWarThreshold ) const;
 	int AI_getTotalWarOddsTimes100( ) const;
 	// bbai end
+	/*  <advc.115b>
+		advc.104: NO_VOTESOURCE if none built yet, AP if AP built but not UN;
+		otherwise UN */
+	VoteSourceTypes AI_getLatestVictoryVoteSource() const;
+	bool AI_isAnyCloseToReligiousVictory() const; // </advc.115b>
 
 	int AI_makePeaceTradeVal(TeamTypes ePeaceTeam, TeamTypes eTeam) const;
 	DenialTypes AI_makePeaceTrade(TeamTypes ePeaceTeam, TeamTypes eTeam) const;
 
 	int AI_declareWarTradeVal(TeamTypes eWarTeam, TeamTypes eTeam) const;
 	DenialTypes AI_declareWarTrade(TeamTypes eWarTeam, TeamTypes eTeam, bool bConsiderPower = true) const;
-	int roundTradeVal(int val) const; //advc.104k
 
 	int AI_openBordersTradeVal(TeamTypes eTeam) const;
 	DenialTypes AI_openBordersTrade(TeamTypes eTeam) const;
@@ -158,18 +160,21 @@ public: // <advc.104>
 
 	DenialTypes AI_permanentAllianceTrade(TeamTypes eTeam) const;
 
+	int AI_roundTradeVal(int iVal) const; // advc.104k
+	// <advc.130y>
+	void AI_forgiveEnemy(TeamTypes enemyId, bool bCapitulated, bool bFreed);
+	void AI_thankLiberator(TeamTypes eLiberator);
+	// </advc.130y>
 	TeamTypes AI_getWorstEnemy() const;
-	// advc.130p: new param
-	void AI_updateWorstEnemy(bool updateRivalTrade = true);
-	// advc.130p: 0 or less if tId isn't an enemy at all
-	int enemyValue(TeamTypes tId) const;
-	/*  advc.130k: Random number to add or subtract from state counters
-		(instead of just incrementing or decrementing). Binomial distribution
-		with 2 trials and a probability of pr.
-		Non-negative result, caller will have to multiply by -1 to decrease a counter.
-		Result is capped at 'cap' (upper bound). -1: None.
-		Public visibility b/c CvPlayerAI needs it too. */
-	int randomCounterChange(int cap = -1, double pr = 0.5) const;
+	void AI_updateWorstEnemy(
+			bool bUpdateRivalTrade = true); // advc.130p
+	// <advc.130p> 0 or less if tId isn't an enemy at all
+	int AI_enmityValue(TeamTypes tId) const;
+	double AI_getDiploDecay() const;
+	double AI_recentlyMetMultiplier(TeamTypes tId) const;
+	// </advc.130p>
+	// advc.130k: Public visibility b/c CvPlayerAI needs it too
+	int AI_randomCounterChange(int cap = -1, double pr = 0.5) const;
 	int AI_getWarPlanStateCounter(TeamTypes eIndex) const;
 	void AI_setWarPlanStateCounter(TeamTypes eIndex, int iNewValue);
 	void AI_changeWarPlanStateCounter(TeamTypes eIndex, int iChange);
@@ -202,31 +207,18 @@ public: // <advc.104>
 	void AI_setWarSuccess(TeamTypes eIndex, int iNewValue);
 	void AI_changeWarSuccess(TeamTypes eIndex, int iChange);
 	// <advc.130m>
-	/*  This team is an ally of agentId, and agentId has inflicted a loss on the
-		shared enemy, or suffered a loss from the shared enemy. */
-	void reportSharedWarSuccess(int intensity, TeamTypes agentId, TeamTypes enemyId,
-			// Don't check if this team needs the assistance
-			bool ignoreDistress = false);
-	/*  The war success of our war ally allyId against a shared enemy,
-		plus the war success of shared enemies against allyId.
-		This is quite different from AI_getWarSuccess, which counts our success
-		against eIndex. Also uses a different scale. */
-	int getSharedWarSuccess(TeamTypes allyId) const;
-	void setSharedWarSuccess(TeamTypes allyId, int sws); // </advc.130m>
-	/*  <advc.130n> Game turn on which rel was first encountered by this team;
-		-1 if never. */
-	int getReligionKnownSince(ReligionTypes rel) const;
-	/*  Report encounter with a religion; function will check if its the first
-		encounter. */
-	void reportNewReligion(ReligionTypes rel); // </advc.130n>
-
+	void AI_reportSharedWarSuccess(int iIntensity, TeamTypes agentId, TeamTypes enemyId,
+			bool bIgnoreDistress = false);
+	int AI_getSharedWarSuccess(TeamTypes allyId) const;
+	void AI_setSharedWarSuccess(TeamTypes allyId, int sws); // </advc.130m>
+	// <advc.130n>
+	int AI_getReligionKnownSince(ReligionTypes eReligion) const; 
+	void AI_reportNewReligion(ReligionTypes eReligion);
+	// </advc.130n>
 	int AI_getEnemyPeacetimeTradeValue(TeamTypes eIndex) const;
 	void AI_setEnemyPeacetimeTradeValue(TeamTypes eIndex, int iNewValue);
 	void AI_changeEnemyPeacetimeTradeValue(TeamTypes eIndex, int iChange);
-	// <advc.130p>
-	double getDiploDecay() const;
-	double recentlyMetMultiplier(TeamTypes tId) const;
-	// </advc.130p>
+
 	int AI_getEnemyPeacetimeGrantValue(TeamTypes eIndex) const;
 	void AI_setEnemyPeacetimeGrantValue(TeamTypes eIndex, int iNewValue);
 	void AI_changeEnemyPeacetimeGrantValue(TeamTypes eIndex, int iChange);
@@ -239,48 +231,54 @@ public: // <advc.104>
 	bool AI_isSneakAttackReady() const; // K-Mod (any team)
 	void AI_setWarPlan(TeamTypes eIndex, WarPlanTypes eNewValue, bool bWar = true);
 	// advc.104:
-	void setWarPlanNoUpdate(TeamTypes eIndex, WarPlanTypes eNewValue);
+	void AI_setWarPlanNoUpdate(TeamTypes eIndex, WarPlanTypes eNewValue);
 	int AI_teamCloseness(TeamTypes eIndex, int iMaxDistance = -1,
-			bool considerLandTarget = false) const; // advc.104o
-	
+			bool bConsiderLandTarget = false) const; // advc.104o
+
+	// <advc.104>
+	WarAndPeaceAI::Team& warAndPeaceAI(); 
+	WarAndPeaceAI::Team const& warAndPeaceAI() const;
+	// </advc.104>
+
+	// <advc.104> These were protected
+	int AI_maxWarRand() const;
+	int AI_maxWarNearbyPowerRatio() const;
+	int AI_maxWarDistantPowerRatio() const;
+	int AI_maxWarMinAdjacentLandPercent() const;
+	int AI_limitedWarRand() const;
+	int AI_limitedWarPowerRatio() const;
+	int AI_dogpileWarRand() const;
+	int AI_makePeaceRand() const;
+	int AI_noWarAttitudeProb(AttitudeTypes eAttitude) const;
+	// </advc.104><advc.104y>
+	int AI_noWarProbAdjusted(TeamTypes tId) const;
+	bool AI_isAvoidWar(TeamTypes tId) const; // </advc.104y>
 	bool AI_performNoWarRolls(TeamTypes eTeam);
+	// advc.012:
+	int AI_plotDefense(CvPlot const& p, bool bIgnoreBuilding = false) const;
 	
 	int AI_getAttitudeWeight(TeamTypes eTeam) const;
 	
-	int AI_getLowestVictoryCountdown() const;
-
 	int AI_getTechMonopolyValue(TechTypes eTech, TeamTypes eTeam) const;
 	
 	bool AI_isWaterAreaRelevant(CvArea* pArea);
 	
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);
-	/*  advc.012: AI now has to guess in some cases whether it can benefit from
-		feature defense. */
-	int AI_plotDefense(CvPlot const& p, bool bIgnoreBuilding = false) const;
-	void forgiveEnemy(TeamTypes enemyId, bool capitulated, bool freed); // advc.130y
-	void thankLiberator(TeamTypes libTeam); // advc.130y
-	/*  <advc.115b>
-		advc.104: NO_VOTESOURCE if none built yet,
-		AP if AP built but not UN; otherwise UN */
-	VoteSourceTypes getLatestVictoryVoteSource() const;
-	bool isAnyCloseToReligiousVictory() const; // </advc.115b>
-	/*  advc.104o: Previously a magic number in CvPlayer::getTradeDenial; needed
-		in additional places now. */
-	static int const vassalPowerModSurrender = 140;
+	
 
 	// K-Mod. Strength Memory - a very basic and rough reminder-map of how strong the enemy presence is on each plot.
-public:
 	int AI_getStrengthMemory(int x, int y) const;
 	inline int AI_getStrengthMemory(const CvPlot* pPlot) { return AI_getStrengthMemory(pPlot->getX_INLINE(), pPlot->getY_INLINE()); }
 	void AI_setStrengthMemory(int x, int y, int value);
 	inline void AI_setStrengthMemory(const CvPlot* pPlot, int value) { AI_setStrengthMemory(pPlot->getX_INLINE(), pPlot->getY_INLINE(), value); }
-protected:
-	std::vector<int> m_aiStrengthMemory;
-	void AI_updateStrengthMemory(); // exponentially dimishes memory, and clears obviously obsolete memory.
-	// K-Mod end
 
 protected:
+
+	std::vector<int> m_aiStrengthMemory;
+	// exponentially dimishes memory, and clears obviously obsolete memory.
+	void AI_updateStrengthMemory();
+	// K-Mod end
 
 	static CvTeamAI* m_aTeams;
 
@@ -294,33 +292,31 @@ protected:
 	int* m_aiDefensivePactCounter;
 	int* m_aiShareWarCounter;
 	int* m_aiWarSuccess;
-	int* sharedWarSuccess; // advc.130m
-	std::map<ReligionTypes,int> religionKnownSince; // advc.130n
+	int* m_aiSharedWarSuccess; // advc.130m
+	std::map<ReligionTypes,int> m_religionKnownSince; // advc.130n
 	int* m_aiEnemyPeacetimeTradeValue;
 	int* m_aiEnemyPeacetimeGrantValue;
-
 	WarPlanTypes* m_aeWarPlan;
+
+	bool m_bLonely; // advc.109
 
 	WarAndPeaceAI::Team wpai; // advc.104
 
 	int AI_noTechTradeThreshold() const;
 	int AI_techTradeKnownPercent() const;
-	int AI_maxWarRand() const;
-	int AI_maxWarNearbyPowerRatio() const;
-	int AI_maxWarDistantPowerRatio() const;
-	int AI_maxWarMinAdjacentLandPercent() const;
-	int AI_limitedWarRand() const;
-	int AI_limitedWarPowerRatio() const;
-	int AI_dogpileWarRand() const;
-	int AI_makePeaceRand() const;
-	int AI_noWarAttitudeProb(AttitudeTypes eAttitude) const;
-	int AI_getOpenBordersAttitudeDivisor() const; // advc.130i
-	double OBcounterIncrement(TeamTypes tId) const; // advc.130z
-
+	
 	void AI_doCounter();
 	void AI_doWar();
+
+	// advc.003: Chunk of code that occured twice in doWar
+	void AI_abandonWarPlanIfTimedOut(int iAbandonTimeModifier, TeamTypes t,
+			bool bLimited, int iEnemyPowerPercent);
 	// advc.104o:
 	int AI_declareWarTradeValLegacy(TeamTypes eWarTeam, TeamTypes eTeam) const;
+	int AI_getOpenBordersAttitudeDivisor() const; // advc.130i
+	double AI_OpenBordersCounterIncrement(TeamTypes tId) const; // advc.130z
+	bool AI_isPursuingCircumnavigation() const; // advc.136a
+
 
 	// added so under cheat mode we can call protected functions for testing
 	friend class CvGameTextMgr;
@@ -334,8 +330,8 @@ protected:
 #define GET_TEAM CvTeamAI::getTeamNonInl
 #endif
 
-/* <advc.003> To facilitate access to and usage of team-level functions
-   when given 'PlayerTypes' values. */
+/*  <advc.003> To facilitate access to and usage of team-level functions when
+	given 'PlayerTypes' values. */
 #define TEAMID(civId) GET_PLAYER(civId).getTeam()
 #define TEAMREF(civId) GET_TEAM(TEAMID(civId))
 // </advc.003>

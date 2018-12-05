@@ -28,12 +28,13 @@
 					type="boolean" default="True"/>
 			<option id="ShowModifierLabels" key="Show Modifier Labels" 
 					type="boolean" default="False"/>
-					
+
 			<list   id="ShowBasicInfo" key="Show Basic Info" 
 					type="int" default="3" listType="string" 
 					values="Never|Normal|Shifted|Both"/>
+			<!-- advc.048: default was 0 -->
 			<list   id="ShowAttackerInfo" key="Show Attacker Info" 
-					type="int" default="0" listType="string" 
+					type="int" default="3" listType="string" 
 					values="ACO__ShowBasicInfo"/>
 			<list   id="ShowDefenderInfo" key="Show Defender Info" 
 					type="int" default="3" listType="string" 

@@ -51,13 +51,11 @@ void CvGame::updateColoredPlots()
 	{
 		return;
 	}
-
 	// <advc.004h>
 	// Moved up
 	pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
-	// See comment in CvUnit.cpp
-	if(pHeadSelectedUnit != NULL)
-		pHeadSelectedUnit->showCityCross();
+	if(pHeadSelectedUnit != NULL && pHeadSelectedUnit->isHuman())
+		pHeadSelectedUnit->updateFoundingBorder();
 	// </advc.004h>
 
 /************************************************************************************************/
@@ -79,7 +77,7 @@ void CvGame::updateColoredPlots()
 				{
 					if( GET_PLAYER((PlayerTypes)iI).isAlive() )
 					{
-						if (GET_PLAYER((PlayerTypes)iI).AI_isPlotCitySite(pLoopPlot))
+						if (GET_PLAYER((PlayerTypes)iI).AI_isPlotCitySite(*pLoopPlot))
 						{
 							gDLL->getEngineIFace()->addColoredPlot(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), GC.getColorInfo((ColorTypes)GC.getPlayerColorInfo(GET_PLAYER((PlayerTypes)iI).getPlayerColor()).getColorTypePrimary()).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_BASE);
 						}
@@ -152,7 +150,7 @@ void CvGame::updateColoredPlots()
 					{
 						gDLL->getEngineIFace()->addColoredPlot(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), GC.getColorInfo((ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
 					}
-					else if (GET_PLAYER(getActivePlayer()).AI_isPlotCitySite(pLoopPlot))
+					else if (GET_PLAYER(getActivePlayer()).AI_isPlotCitySite(*pLoopPlot))
 					{
 						gDLL->getEngineIFace()->addColoredPlot(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), GC.getColorInfo((ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT")).getColor(), PLOT_STYLE_CIRCLE, PLOT_LANDSCAPE_LAYER_RECOMMENDED_PLOTS);
 					}
@@ -214,7 +212,8 @@ void CvGame::updateColoredPlots()
 	{
 		if (gDLL->getGraphicOption(GRAPHICOPTION_CITY_RADIUS))
 		{
-			if (gDLL->getInterfaceIFace()->canSelectionListFound())
+			//if (gDLL->getInterfaceIFace()->canSelectionListFound())
+			if(pHeadSelectedUnit->canFound()) // advc.004h
 			{
 				for (iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 				{
@@ -298,7 +297,7 @@ void CvGame::updateColoredPlots()
 
 		FAssert(getActivePlayer() != NO_PLAYER);
 
-		if (!(GET_PLAYER(getActivePlayer()).isOption(PLAYEROPTION_NO_UNIT_RECOMMENDATIONS)))
+		if (!GET_PLAYER(getActivePlayer()).isOption(PLAYEROPTION_NO_UNIT_RECOMMENDATIONS))
 		{
 			if ((pHeadSelectedUnit->AI_getUnitAIType() == UNITAI_WORKER) || (pHeadSelectedUnit->AI_getUnitAIType() == UNITAI_WORKER_SEA))
 			{
@@ -330,7 +329,7 @@ void CvGame::updateColoredPlots()
 			const CvPlayerAI& kActivePlayer = GET_PLAYER(getActivePlayer());
 			KmodPathFinder site_path;
 			site_path.SetSettings(pHeadSelectedUnit->getGroup(), 0, 7, GC.getMOVE_DENOMINATOR());
-			if (pHeadSelectedUnit->isFound())
+			if (pHeadSelectedUnit->canFound()) // advc.004h: was isFound
 			{
 
 				for (int i = 0; i < kActivePlayer.AI_getNumCitySites(); i++)
@@ -789,9 +788,8 @@ void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers) con
 		// so I can't change the constness of either of them to fix the problem.
 		// <advc.002e> Hide glow when all units moved
 		if(GC.getDefineINT("SHOW_PROMOTION_GLOW") <= 0) {
-			CvPlayer const& owner = GET_PLAYER(pCycleUnit->getOwnerINLINE());
-			int dummy;
-			for(CvUnit* u = owner.firstUnit(&dummy); u != NULL; u = owner.nextUnit(&dummy))
+			CvPlayer const& owner = GET_PLAYER(pCycleUnit->getOwnerINLINE()); int foo=-1;
+			for(CvUnit* u = owner.firstUnit(&foo); u != NULL; u = owner.nextUnit(&foo))
 				gDLL->getEntityIFace()->showPromotionGlow(u->getUnitEntity(), false);
 		} // </advc.002e>
 	}
@@ -1041,28 +1039,9 @@ void CvGame::selectionListMove(CvPlot* pPlot, bool bAlt, bool bShift, bool bCtrl
 
 	/* original bts code
 	pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-
 	while (pSelectedUnitNode != NULL)
 	{
-		pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-
-		eRivalTeam = pSelectedUnit->getDeclareWarMove(pPlot);
-
-		if (eRivalTeam != NO_TEAM)
-		{
-			CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_DECLAREWARMOVE);
-			if (NULL != pInfo)
-			{
-				pInfo->setData1(eRivalTeam);
-				pInfo->setData2(pPlot->getX());
-				pInfo->setData3(pPlot->getY());
-				pInfo->setOption1(bShift);
-				pInfo->setOption2(pPlot->getTeam() != eRivalTeam);
-				gDLL->getInterfaceIFace()->addPopup(pInfo);
-			}
-			return;
-		}
-
+		// advc: Rest deleted
 		pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
 	} */ // K-Mod has moved this to selectionListGameNetMessage.
 
@@ -1173,13 +1152,20 @@ void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, i
 						while (pSelectedUnitNode != NULL)
 						{
 							pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-							/*  advc.001 Player apparently wants to attack the
-								enemy unit if there is one (rather than declare war
-								against a third party): */
-							if(!pPlot->isVisibleEnemyUnit(pSelectedUnit)) {
-								TeamTypes eRivalTeam = pSelectedUnit->getDeclareWarMove(pPlot);
-								if (eRivalTeam != NO_TEAM)
-								{
+							TeamTypes eRivalTeam = pSelectedUnit->getDeclareWarMove(pPlot);
+							if (eRivalTeam != NO_TEAM)
+							{/* <advc.001> If an enemy unit is stacked with a
+								neutral one, then the player apparently wants to
+								attack the enemy unit (rather than declare war on
+								the neutral party). However, if the enemy unit is on
+								a tile owned by a third party that the player
+								doesn't have OB or a vassal treaty with, then only
+								a DoW on the third party makes sense. */
+								if((pPlot->getTeam() != NO_TEAM &&
+										!GET_TEAM(pSelectedUnit->getTeam()).
+										isFriendlyTerritory(pPlot->getTeam())) ||
+										!pPlot->isVisibleEnemyUnit(pSelectedUnit))
+								{ // </advc.001>
 									CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_DECLAREWARMOVE);
 									if (NULL != pInfo)
 									{
@@ -1480,7 +1466,7 @@ bool CvGame::canDoControl(ControlTypes eControl) const
 	}
 	/*  <advc.706> I don't think loading is possible in between turns, but there
 		would be no harm in it. */
-	if(!CvPlot::activeVisibility && eControl != CONTROL_LOAD_GAME &&
+	if(CvPlot::isAllFog() && eControl != CONTROL_LOAD_GAME &&
 			eControl != CONTROL_QUICK_LOAD && eControl != CONTROL_OPTIONS_SCREEN)
 		return false;
 	// </advc.706>
@@ -1740,8 +1726,8 @@ void CvGame::doControl(ControlTypes eControl)
 			cycleCities(true, !(gDLL->getInterfaceIFace()->isCityScreenUp()));
 		}
 		else
-		{	// advc.042: Leads to "Procedure not found" crash
-			;//gDLL->getInterfaceIFace()->selectLookAtCity(true);
+		{
+			gDLL->getInterfaceIFace()->selectLookAtCity(true);
 		}
 		gDLL->getInterfaceIFace()->lookAtSelectionPlot();
 		break;
@@ -1752,8 +1738,8 @@ void CvGame::doControl(ControlTypes eControl)
 			cycleCities(false, !(gDLL->getInterfaceIFace()->isCityScreenUp()));
 		}
 		else
-		{	// advc.042: Leads to "Procedure not found" crash
-			;//gDLL->getInterfaceIFace()->selectLookAtCity(true);
+		{
+			gDLL->getInterfaceIFace()->selectLookAtCity(true);
 		}
 		gDLL->getInterfaceIFace()->lookAtSelectionPlot();
 		break;
@@ -1891,7 +1877,7 @@ void CvGame::doControl(ControlTypes eControl)
 		break;
 
 	case CONTROL_QUICK_LOAD:
-		if (!(isNetworkMultiPlayer()))	// SP only!
+		if (!isNetworkMultiPlayer())	// SP only!
 		{	// <advc.003d>
 			/*  Loading works fine in windowed mode, and when a debugger is
 				attached, exitingToMainMenu can actually be quite slow.
@@ -2147,10 +2133,10 @@ void CvGame::enterWorldBuilder()
 		/*  In multiplayer, setWorldBuilder apparently checks ChtLvl>0 and
 			setChtLvl doesn't work. Need to make the EXE believe that we're
 			in singleplayer. */
-		feignSP = true;
+		m_bFeignSP = true;
 		gDLL->setChtLvl(1); // </advc.315c>
 		gDLL->getInterfaceIFace()->setWorldBuilder(!(gDLL->GetWorldBuilderMode()));
-		feignSP = false; // advc.315c
+		m_bFeignSP = false; // advc.315c
 	}
 	else
 	{
@@ -2662,7 +2648,9 @@ void CvGame::loadBuildQueue(const CvString& strItem) const
 }
 
 void CvGame::cheatSpaceship() const
-{
+{	// <advc.007b> I don't know how this is triggered; it's safer to block it.
+	if(!GC.getGameINLINE().isDebugMode())
+		return; // </advc.007b>
 	//add one space project that is still available
 	CvTeam& kTeam = GET_TEAM(getActiveTeam());
 	for (int i = 0; i < GC.getNumProjectInfos(); i++)
@@ -2930,7 +2918,7 @@ bool CvGame::shouldDisplayEndTurn() const
 
 bool CvGame::shouldDisplayWaitingOthers() const
 {	// <advc.706>
-	if(!CvPlot::activeVisibility)
+	if(CvPlot::isAllFog())
 		return false; // </advc.706>
 	if (!gDLL->getInterfaceIFace()->isCitySelection())
 	{
@@ -3157,7 +3145,7 @@ void CvGame::handleDiplomacySetAIComment(DiploCommentTypes eComment) const
 	if (GC.getInfoTypeForString("AI_DIPLOCOMMENT_ACCEPT_ASK") == eComment || 
 		GC.getInfoTypeForString("AI_DIPLOCOMMENT_ACCEPT_DEMAND") == eComment)
 	{
-		if (!GET_TEAM(getActiveTeam()).isAVassal() && !GET_TEAM(GET_PLAYER(eOtherPlayer).getTeam()).isAVassal())
+		if (!GET_TEAM(getActiveTeam()).isAVassal() && !TEAMREF(eOtherPlayer).isAVassal())
 		{
 			CLinkList<TradeData> playerList;
 			CLinkList<TradeData> loopPlayerList;

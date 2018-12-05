@@ -567,6 +567,13 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 	case WIDGET_LEADERHEAD:
 		parseLeaderheadHelp(widgetDataStruct, szBuffer);
 		break;
+	// <advc.152>
+	case WIDGET_LH_GLANCE:
+		parseLeaderheadHelp(widgetDataStruct, szBuffer);
+		// Might as well call GAMETEXT right here
+		GAMETEXT.parseWarTradesHelp(szBuffer, (PlayerTypes)widgetDataStruct.m_iData1,
+				(PlayerTypes)widgetDataStruct.m_iData2);
+		break; // </advc.152>
 
 	case WIDGET_LEADER_LINE:
 		parseLeaderLineHelp(widgetDataStruct, szBuffer);
@@ -1018,6 +1025,7 @@ bool CvDLLWidgetData::executeAltAction( CvWidgetDataStruct &widgetDataStruct )
 		widgetData.m_iData1 = widgetData.m_iData2;
 		doPediaCivicJump(widgetData);
 		break;
+	case WIDGET_LH_GLANCE: // advc.152
 	case WIDGET_LEADERHEAD:
 		doContactCiv(widgetDataStruct);
 		break;
@@ -2439,12 +2447,24 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 					if (pSelectedUnit->canDiscover(pMissionPlot))
 					{
 						eTech = pSelectedUnit->getDiscoveryTech();
-	
-						if (pSelectedUnit->getDiscoverResearch(eTech) >= GET_TEAM(pSelectedUnit->getTeam()).getResearchLeft(eTech))
+						// advc.003:
+						int iResearchLeft = GET_TEAM(pSelectedUnit->getTeam()).getResearchLeft(eTech);
+						if (pSelectedUnit->getDiscoverResearch(eTech) >= iResearchLeft)
 						{
-							szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_TECH_TEXT"), GC.getTechInfo(eTech).getDescription());
 							szBuffer.append(NEWLINE);
+							szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_TECH_TEXT"), GC.getTechInfo(eTech).getDescription());
 							szBuffer.append(szTempBuffer);
+							// <advc.004a>
+							/*  Probably not a good idea after all. Players might
+								not get that this is the amount of research left;
+								they could assume that they're only getting
+								(partial) progress toward eTech. */
+							/*if(iResearchLeft > 0) {
+								szTempBuffer.Format(L" (%d%c)", iResearchLeft,
+										GC.getCommerceInfo(COMMERCE_RESEARCH).
+										getChar());
+								szBuffer.append(szTempBuffer);
+							}*/ // </advc.004a>
 						}
 						else
 						{
@@ -4693,7 +4713,7 @@ void CvDLLWidgetData::parseTradeItem(CvWidgetDataStruct &widgetDataStruct, CvWSt
 			szBuffer.append(gDLL->getText("TXT_KEY_TRADE_PERMANENT_ALLIANCE"));
 			break;
 		case TRADE_PEACE_TREATY:
-			szBuffer.append(gDLL->getText("TXT_KEY_TRADE_PEACE_TREATY", GC.getDefineINT("PEACE_TREATY_LENGTH")));
+			szBuffer.append(gDLL->getText("TXT_KEY_TRADE_PEACE_TREATY", GC.getPEACE_TREATY_LENGTH()));
 			break;
 			// <advc.034>
 		case TRADE_DISENGAGE:
@@ -4946,14 +4966,14 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 	double prDisplay = c.revoltProbability(true, false, true);
 	if(prDisplay > 0) {
 		double truePr = c.revoltProbability() * (1 - prDecr);
-		swprintf(szTempBuffer, (truePr == 0 ? L"%.0f" : L"%.2f"),
+		swprintf(szTempBuffer, (truePr == 0 ? L"%.0f" : L"%.1f"),
 				(float)(100 * truePr)); // </advc.023></advc.101>
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_CHANCE_OF_REVOLT", szTempBuffer));
 		// <advc.023> Probability after occupation
 		if(truePr != prDisplay) {
 			szBuffer.append(NEWLINE);
-			swprintf(szTempBuffer, L"%.2f", (float)(100 * prDisplay));
+			swprintf(szTempBuffer, L"%.1f", (float)(100 * prDisplay));
 			if(eCulturalOwner == BARBARIAN_PLAYER || !GET_PLAYER(eCulturalOwner).isAlive())
 				szBuffer.append(gDLL->getText("TXT_KEY_NO_BARB_REVOLT_IN_OCCUPATION",
 						szTempBuffer));
@@ -4982,7 +5002,7 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 			// But don't claim it's 0% or 100% if it isn't quite
 			if(prDecr > 0) prDecrPercent = std::max(1, prDecrPercent);
 			if(prDecr < 1) prDecrPercent = std::min(99, prDecrPercent);
-			szBuffer.append(gDLL->getText("TXT_KEY_OCCUPATION_DECREASE_CHANCE",
+			szBuffer.append(gDLL->getText("TXT_KEY_TIMER_DECREASE_CHANCE",
 					prDecrPercent));
 		}
 	} // </advc.023>
@@ -6000,8 +6020,7 @@ CvWString CvDLLWidgetData::getDiscoverPathText(UnitTypes ut, PlayerTypes pt)
 } // </advc.004a>
 
 // <advc.004b>
-CvWString CvDLLWidgetData::getFoundCostText(CvPlot* p, PlayerTypes ownerId) 
-		const {
+CvWString CvDLLWidgetData::getFoundCostText(CvPlot* p, PlayerTypes ownerId) const {
 
 	CvPlayer& owner = GET_PLAYER(ownerId);
 	// The increase in other cities' maintenance caused by founding the new city
@@ -6062,7 +6081,7 @@ CvWString CvDLLWidgetData::getFoundCostText(CvPlot* p, PlayerTypes ownerId)
 }
 
 CvWString CvDLLWidgetData::getNetFeatureHealthText(CvPlot* cityPlot,
-		PlayerTypes owner) const {
+		PlayerTypes ownerId) const {
 
 	int goodHealthPercent = 0;
 	int badHealthPercent = 0;
@@ -6071,7 +6090,7 @@ CvWString CvDLLWidgetData::getNetFeatureHealthText(CvPlot* cityPlot,
 			continue;
 		CvPlot* pp = plotCity(cityPlot->getX(), cityPlot->getY(), i);
 		if(pp == NULL) continue; CvPlot const& p = *pp;
-		if(p.getFeatureType() == NO_FEATURE || !p.isRevealed(TEAMID(owner), false))
+		if(p.getFeatureType() == NO_FEATURE || !p.isRevealed(TEAMID(ownerId), false))
 			continue;
 		int healthPercent = GC.getFeatureInfo(p.getFeatureType()).getHealthPercent();
 		if(healthPercent > 0)
@@ -6107,7 +6126,7 @@ CvWString CvDLLWidgetData::getNetFeatureHealthText(CvPlot* cityPlot,
 		}
 		r.append(gDLL->getText("TXT_KEY_FROM_FEATURES"));
 	}
-	int extraHealth = GET_PLAYER(owner).getExtraHealth();
+	int extraHealth = GET_PLAYER(ownerId).getExtraHealth();
 	if(extraHealth != 0) {
 		r.append(NEWLINE);
 		int icon = 0;
@@ -6125,8 +6144,7 @@ CvWString CvDLLWidgetData::getNetFeatureHealthText(CvPlot* cityPlot,
 	return r;
 }
 
-CvWString CvDLLWidgetData::getHomePlotYieldText(CvPlot* p, PlayerTypes ownerId)
-		const {
+CvWString CvDLLWidgetData::getHomePlotYieldText(CvPlot* p, PlayerTypes ownerId) const {
 
 	CvWString r = NEWLINE;
 	r.append(gDLL->getText("TXT_KEY_HOME_TILE_YIELD"));

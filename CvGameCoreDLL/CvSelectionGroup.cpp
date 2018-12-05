@@ -3,7 +3,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvGlobals.h"
 #include "CvSelectionGroup.h"
-#include "CvGameAI.h"
 #include "CvPlayerAI.h"
 #include "CvTeamAI.h"
 #include "CvUnit.h"
@@ -3557,7 +3556,11 @@ bool CvSelectionGroup::groupRoadTo(int iX, int iY, int iFlags)
 		}
 	}
 
-	return groupPathTo(iX, iY, iFlags);
+	return groupPathTo(iX, iY, iFlags
+			/*  advc.049: In the debugger, I'm seeing this function get called via
+				continueMission without any flags set, and these calls cause
+				the AI to build roads through foreign territory. */
+			| MOVE_ROUTE_TO | MOVE_SAFE_TERRITORY);
 }
 
 
@@ -4401,9 +4404,7 @@ bool CvSelectionGroup::generatePath( const CvPlot* pFromPlot, const CvPlot* pToP
 {
 	// K-Mod - if I can stop the UI from messing with this pathfinder, I might be able to reduce OOS bugs.
 	// (note, the const-cast is just to get around the bad code from the original developers)
-	FAssert(const_cast<CvSelectionGroup*>(this)->AI_isControlled()
-		|| CvUnit::measuringDistance != NO_TEAM // advc.104b
-		);
+	FAssert(const_cast<CvSelectionGroup*>(this)->AI_isControlled());
 	// K-Mod end
 
 	PROFILE("CvSelectionGroup::generatePath()")
@@ -4637,9 +4638,12 @@ void CvSelectionGroup::mergeIntoGroup(CvSelectionGroup* pSelectionGroup)
 	while (bChangedUnitAI);
 }
 
-// split this group into two new groups, one of iSplitSize, the other the remaining units
-// split up each unit AI type as evenly as possible
-// K-Mod. I've rewriten most of this function. The new version is faster, gives a more even split, and does not create a dummy group. (unless I've made a mistake.)
+/*  split this group into two new groups, one of iSplitSize,
+	the other the remaining units.
+	split up each unit AI type as evenly as possible. */
+/*  K-Mod. I've rewritten most of this function. The new version is faster,
+	gives a more even split, and does not create a dummy group.
+	(unless I've made a mistake.) */
 CvSelectionGroup* CvSelectionGroup::splitGroup(int iSplitSize, CvUnit* pNewHeadUnit, CvSelectionGroup** ppOtherGroup)
 {
 	FAssert(pNewHeadUnit == 0 || pNewHeadUnit->getGroup() == this);

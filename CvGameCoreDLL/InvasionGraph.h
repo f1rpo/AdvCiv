@@ -119,6 +119,8 @@ friend class Node;
 		/* param: In addition to warOpponents. Also includes the vassals
 		  of that team. */
 		PlayerTypes findTarget(TeamTypes include = NO_TEAM) const;
+		bool isValidTarget(WarAndPeaceCache::City const& c,
+				TeamTypes include = NO_TEAM) const;
 		static std::vector<UnitAITypes> garrisonTypes();
 
 		InvasionGraph& outer;
@@ -149,7 +151,7 @@ friend class Node;
 		 // Vassals that break free are currently not modeled.
 		 void setCapitulated(TeamTypes masterId);
 		 double clashDistance(Node const& other) const;
-		 bool isSneakAttack(Node const& other) const;
+		 bool isSneakAttack(Node const& other, bool bClash) const;
 		 bool isContinuedWar(Node const& other) const;
 		 bool canReachByLand(int cityId) const;
 		 CvArea* clashArea(PlayerTypes otherId) const;

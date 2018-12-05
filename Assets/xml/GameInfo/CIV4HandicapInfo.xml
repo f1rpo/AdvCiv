@@ -43,9 +43,11 @@
 			<iBarbarianCreationTurnsElapsed>50</iBarbarianCreationTurnsElapsed>
 			<iBarbarianCityCreationTurnsElapsed>55</iBarbarianCityCreationTurnsElapsed>
 			<iBarbarianCityCreationProb>4</iBarbarianCityCreationProb>
-			<iAnimalBonus>-70</iAnimalBonus>
+			<!-- advc.313: was -70 -->
+			<iAnimalBonus>-60</iAnimalBonus>
 			<iBarbarianBonus>-40</iBarbarianBonus>
-			<iAIAnimalBonus>-40</iAIAnimalBonus>
+			<!-- advc.313: was -40 -->
+			<iAIAnimalBonus>-25</iAIAnimalBonus>
 			<iAIBarbarianBonus>-25</iAIBarbarianBonus>
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
 			<iStartingWorkerUnits>0</iStartingWorkerUnits>
@@ -75,7 +77,7 @@
 			<iAIPerEraModifier>0</iAIPerEraModifier>
 			<iAIAdvancedStartPercent>100</iAIAdvancedStartPercent>
 			<!-- advc.148 -->
-			<iAIAttitudeChange>0</iAIAttitudeChange>
+			<iAIAttitudeChangePercent>30</iAIAttitudeChangePercent>
 			<Goodies>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
@@ -191,9 +193,11 @@
 			<iBarbarianCreationTurnsElapsed>45</iBarbarianCreationTurnsElapsed>
 			<iBarbarianCityCreationTurnsElapsed>50</iBarbarianCityCreationTurnsElapsed>
 			<iBarbarianCityCreationProb>5</iBarbarianCityCreationProb>
-			<iAnimalBonus>-60</iAnimalBonus>
+			<!-- advc.313: was -60 -->
+			<iAnimalBonus>-45</iAnimalBonus>
 			<iBarbarianBonus>-30</iBarbarianBonus>
-			<iAIAnimalBonus>-40</iAIAnimalBonus>
+			<!-- advc.313: was -40 -->
+			<iAIAnimalBonus>-25</iAIAnimalBonus>
 			<iAIBarbarianBonus>-25</iAIBarbarianBonus>
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
 			<iStartingWorkerUnits>0</iStartingWorkerUnits>
@@ -223,12 +227,13 @@
 			<iAIPerEraModifier>0</iAIPerEraModifier>
 			<iAIAdvancedStartPercent>100</iAIAdvancedStartPercent>
 			<!-- advc.148 -->
-			<iAIAttitudeChange>0</iAIAttitudeChange>
+			<iAIAttitudeChangePercent>30</iAIAttitudeChangePercent>
 			<Goodies>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
-				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
+				<!-- advc.314: was HIGH_GOLD -->
+				<GoodyType>GOODY_TECH</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
@@ -316,9 +321,11 @@
 			<iBarbarianCreationTurnsElapsed>40</iBarbarianCreationTurnsElapsed>
 			<iBarbarianCityCreationTurnsElapsed>45</iBarbarianCityCreationTurnsElapsed>
 			<iBarbarianCityCreationProb>5</iBarbarianCityCreationProb>
-			<iAnimalBonus>-50</iAnimalBonus>
+			<!-- advc.313: was -50 -->
+			<iAnimalBonus>-30</iAnimalBonus>
 			<iBarbarianBonus>-20</iBarbarianBonus>
-			<iAIAnimalBonus>-40</iAIAnimalBonus>
+			<!-- advc.313: was -40 -->
+			<iAIAnimalBonus>-25</iAIAnimalBonus>
 			<iAIBarbarianBonus>-25</iAIBarbarianBonus>
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
 			<iStartingWorkerUnits>0</iStartingWorkerUnits>
@@ -348,14 +355,15 @@
 			<iAIPerEraModifier>0</iAIPerEraModifier>
 			<iAIAdvancedStartPercent>100</iAIAdvancedStartPercent>
 			<!-- advc.148 -->
-			<iAIAttitudeChange>0</iAIAttitudeChange>
+			<iAIAttitudeChangePercent>30</iAIAttitudeChangePercent>
 			<Goodies>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
-				<GoodyType>GOODY_LOW_GOLD</GoodyType>
+				<!-- advc.314: was LOW_GOLD -->
+				<GoodyType>GOODY_TECH</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<!-- advc.314: GOODY_SETTLER entry removed -->
@@ -416,9 +424,11 @@
 			<iBarbarianCreationTurnsElapsed>35</iBarbarianCreationTurnsElapsed>
 			<iBarbarianCityCreationTurnsElapsed>40</iBarbarianCityCreationTurnsElapsed>
 			<iBarbarianCityCreationProb>6</iBarbarianCityCreationProb>
-			<iAnimalBonus>-40</iAnimalBonus>
+			<!-- advc.313: was -40 -->
+			<iAnimalBonus>-25</iAnimalBonus>
 			<iBarbarianBonus>-10</iBarbarianBonus>
-			<iAIAnimalBonus>-40</iAIAnimalBonus>
+			<!-- advc.313: was -40 -->
+			<iAIAnimalBonus>-25</iAIAnimalBonus>
 			<iAIBarbarianBonus>-25</iAIBarbarianBonus>
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
 			<iStartingWorkerUnits>0</iStartingWorkerUnits>
@@ -448,7 +458,7 @@
 			<iAIPerEraModifier>0</iAIPerEraModifier>
 			<iAIAdvancedStartPercent>100</iAIAdvancedStartPercent>
 			<!-- advc.148 -->
-			<iAIAttitudeChange>1</iAIAttitudeChange>
+			<iAIAttitudeChangePercent>30</iAIAttitudeChangePercent>
 			<Goodies>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
@@ -456,7 +466,8 @@
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
-				<GoodyType>GOODY_LOW_GOLD</GoodyType>
+				<!-- advc.314: was LOW_GOLD -->
+				<GoodyType>GOODY_TECH</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<GoodyType>GOODY_WARRIOR</GoodyType>
@@ -511,9 +522,11 @@
 			<iBarbarianCreationTurnsElapsed>30</iBarbarianCreationTurnsElapsed>
 			<iBarbarianCityCreationTurnsElapsed>35</iBarbarianCityCreationTurnsElapsed>
 			<iBarbarianCityCreationProb>6</iBarbarianCityCreationProb>
-			<iAnimalBonus>-30</iAnimalBonus>
+			<!-- advc.313: was -30 -->
+			<iAnimalBonus>-20</iAnimalBonus>
 			<iBarbarianBonus>-5</iBarbarianBonus>
-			<iAIAnimalBonus>-40</iAIAnimalBonus>
+			<!-- advc.313: was -40 -->
+			<iAIAnimalBonus>-25</iAIAnimalBonus>
 			<iAIBarbarianBonus>-25</iAIBarbarianBonus>
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
 			<iStartingWorkerUnits>0</iStartingWorkerUnits>
@@ -544,14 +557,15 @@
 			<!-- advc.250c: was 110 -->
 			<iAIAdvancedStartPercent>125</iAIAdvancedStartPercent>
 			<!-- advc.148 -->
-			<iAIAttitudeChange>1</iAIAttitudeChange>
+			<iAIAttitudeChangePercent>40</iAIAttitudeChangePercent>
 			<Goodies>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
-				<GoodyType>GOODY_LOW_GOLD</GoodyType>
+				<!-- advc.314: was LOW_GOLD -->
+				<GoodyType>GOODY_TECH</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<GoodyType>GOODY_WARRIOR</GoodyType>
@@ -609,10 +623,12 @@
 			<iBarbarianCreationTurnsElapsed>25</iBarbarianCreationTurnsElapsed>
 			<iBarbarianCityCreationTurnsElapsed>30</iBarbarianCityCreationTurnsElapsed>
 			<iBarbarianCityCreationProb>7</iBarbarianCityCreationProb>
-			<iAnimalBonus>-20</iAnimalBonus>
+			<!-- advc.313: was -20 -->
+			<iAnimalBonus>-15</iAnimalBonus>
 			<!-- advc.313: was 0 -->
 			<iBarbarianBonus>-5</iBarbarianBonus>
-			<iAIAnimalBonus>-40</iAIAnimalBonus>
+			<!-- advc.313: was -40 -->
+			<iAIAnimalBonus>-25</iAIAnimalBonus>
 			<iAIBarbarianBonus>-25</iAIBarbarianBonus>
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
 			<iStartingWorkerUnits>0</iStartingWorkerUnits>
@@ -643,13 +659,14 @@
 			<!-- advc.250c: was 120 -->
 			<iAIAdvancedStartPercent>145</iAIAdvancedStartPercent>
 			<!-- advc.148 -->
-			<iAIAttitudeChange>1</iAIAttitudeChange>
+			<iAIAttitudeChangePercent>50</iAIAttitudeChangePercent>
 			<Goodies>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
-				<GoodyType>GOODY_LOW_GOLD</GoodyType>
+				<!-- advc.314: was LOW_GOLD -->
+				<GoodyType>GOODY_TECH</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<GoodyType>GOODY_WARRIOR</GoodyType>
@@ -735,7 +752,8 @@
 			<iAnimalBonus>-10</iAnimalBonus>
 			<!-- advc.313: was 0 -->
 			<iBarbarianBonus>-5</iBarbarianBonus>
-			<iAIAnimalBonus>-40</iAIAnimalBonus>
+			<!-- advc.313: was -40 -->
+			<iAIAnimalBonus>-25</iAIAnimalBonus>
 			<iAIBarbarianBonus>-25</iAIBarbarianBonus>
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
 			<iStartingWorkerUnits>0</iStartingWorkerUnits>
@@ -743,7 +761,8 @@
 			<iAIStartingUnitMultiplier>0</iAIStartingUnitMultiplier>
 			<iAIStartingDefenseUnits>2</iAIStartingDefenseUnits>
 			<iAIStartingWorkerUnits>0</iAIStartingWorkerUnits>
-			<iAIStartingExploreUnits>1</iAIStartingExploreUnits>
+			<!-- advc.250e: was 1 -->
+			<iAIStartingExploreUnits>0</iAIStartingExploreUnits>
 			<iBarbarianDefenders>3</iBarbarianDefenders>
 			<iAIDeclareWarProb>100</iAIDeclareWarProb>
 			<!-- advc.113: was 50 -->
@@ -767,14 +786,15 @@
 			<!-- advc.250c: was 135 -->
 			<iAIAdvancedStartPercent>175</iAIAdvancedStartPercent>
 			<!-- advc.148 -->
-			<iAIAttitudeChange>1</iAIAttitudeChange>
+			<iAIAttitudeChangePercent>60</iAIAttitudeChangePercent>
 			<Goodies>
 				<GoodyType>GOODY_HIGH_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
-				<GoodyType>GOODY_LOW_GOLD</GoodyType>
+				<!-- advc.314: was LOW_GOLD -->
+				<GoodyType>GOODY_TECH</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<GoodyType>GOODY_WARRIOR</GoodyType>
@@ -863,7 +883,8 @@
 			<iAnimalBonus>-5</iAnimalBonus>
 			<!-- advc.313: was 0 -->
 			<iBarbarianBonus>-5</iBarbarianBonus>
-			<iAIAnimalBonus>-40</iAIAnimalBonus>
+			<!-- advc.313: was -40 -->
+			<iAIAnimalBonus>-25</iAIAnimalBonus>
 			<iAIBarbarianBonus>-25</iAIBarbarianBonus>
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
 			<iStartingWorkerUnits>0</iStartingWorkerUnits>
@@ -895,13 +916,14 @@
 			<!-- advc.250c: was 150 -->
 			<iAIAdvancedStartPercent>210</iAIAdvancedStartPercent>
 			<!-- advc.148 -->
-			<iAIAttitudeChange>1</iAIAttitudeChange>
+			<iAIAttitudeChangePercent>70</iAIAttitudeChangePercent>
 			<Goodies>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
-				<GoodyType>GOODY_LOW_GOLD</GoodyType>
+				<!-- advc.314: was LOW_GOLD -->
+				<GoodyType>GOODY_TECH</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<GoodyType>GOODY_WARRIOR</GoodyType>
@@ -994,7 +1016,8 @@
 			<iBarbarianCityCreationProb>8</iBarbarianCityCreationProb>
 			<iAnimalBonus>0</iAnimalBonus>
 			<iBarbarianBonus>0</iBarbarianBonus>
-			<iAIAnimalBonus>-40</iAIAnimalBonus>
+			<!-- advc.313: was -40 -->
+			<iAIAnimalBonus>-25</iAIAnimalBonus>
 			<iAIBarbarianBonus>-25</iAIBarbarianBonus>
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
 			<iStartingWorkerUnits>0</iStartingWorkerUnits>
@@ -1026,13 +1049,14 @@
 			<!-- advc.250c: was 170 -->
 			<iAIAdvancedStartPercent>270</iAIAdvancedStartPercent>
 			<!-- advc.148 -->
-			<iAIAttitudeChange>1</iAIAttitudeChange>
+			<iAIAttitudeChangePercent>90</iAIAttitudeChangePercent>
 			<Goodies>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
 				<GoodyType>GOODY_LOW_GOLD</GoodyType>
-				<GoodyType>GOODY_LOW_GOLD</GoodyType>
+				<!-- advc.314: was LOW_GOLD -->
+				<GoodyType>GOODY_TECH</GoodyType>
 				<GoodyType>GOODY_MAP</GoodyType>
 				<GoodyType>GOODY_WARRIOR</GoodyType>
 				<GoodyType>GOODY_SCOUT</GoodyType>
@@ -1111,7 +1135,7 @@
 			<!-- advc.250a -->
 			<iDifficulty>90</iDifficulty>
 		</HandicapInfo>
-		<!-- advc.250a: Uncomment this to re-enable the King difficulty: -->
+		<!-- advc.250a: Uncomment this to enable the King difficulty: -->
 		<!--<HandicapInfo>
 			<Type>HANDICAP_KING</Type>
 			<Description>TXT_KEY_HANDICAP_KING</Description>
@@ -1146,7 +1170,7 @@
 			<iBarbarianCityCreationProb>6</iBarbarianCityCreationProb>
 			<iAnimalBonus>-20</iAnimalBonus>
 			<iBarbarianBonus>-5</iBarbarianBonus>
-			<iAIAnimalBonus>-40</iAIAnimalBonus>
+			<iAIAnimalBonus>-25</iAIAnimalBonus>
 			<iAIBarbarianBonus>-25</iAIBarbarianBonus>
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
 			<iStartingWorkerUnits>0</iStartingWorkerUnits>
@@ -1174,14 +1198,14 @@
 			<iAIWarWearinessPercent>80</iAIWarWearinessPercent>
 			<iAIPerEraModifier>-3</iAIPerEraModifier>
 			<iAIAdvancedStartPercent>200</iAIAdvancedStartPercent>
-			<iAIAttitudeChange>1</iAIAttitudeChange>
+			<iAIAttitudeChangePercent>60</iAIAttitudeChangePercent>
 			<Goodies>
                 <GoodyType>GOODY_HIGH_GOLD</GoodyType>
                 <GoodyType>GOODY_HIGH_GOLD</GoodyType>
                 <GoodyType>GOODY_LOW_GOLD</GoodyType>
                 <GoodyType>GOODY_LOW_GOLD</GoodyType>
-                <GoodyType>GOODY_LOW_GOLD</GoodyType>
-                <GoodyType>GOODY_LOW_GOLD</GoodyType>
+                <GoodyType>GOODY_BARBARIANS_STRONG</GoodyType>
+				<GoodyType>GOODY_TECH</GoodyType>
                 <GoodyType>GOODY_MAP</GoodyType>
                 <GoodyType>GOODY_MAP</GoodyType>
                 <GoodyType>GOODY_WARRIOR</GoodyType>

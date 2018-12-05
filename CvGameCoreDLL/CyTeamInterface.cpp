@@ -19,8 +19,10 @@ void CyTeamPythonInterface()
 		.def("canDeclareWar", &CyTeam::canDeclareWar, "bool (int /*TeamTypes*/ eTeam)")
 		.def("canEventuallyDeclareWar", &CyTeam::canEventuallyDeclareWar, "bool (int /*TeamTypes*/ eTeam)") // K-Mod
 		.def("declareWar", &CyTeam::declareWar, "void (int /*TeamTypes*/ eTeam, bool bNewDiplo, int /*WarPlanTypes*/ eWarPlan) - Forces your team to declare War on iTeam")
-		// advc.106g:
-		.def("declareWarEvent", &CyTeam::declareWarEvent, "void (int /*TeamTypes*/ eTeam, bool bNewDiplo, int /*WarPlanTypes*/ eWarPlan) - Forces your team to declare War on iTeam. Use this function when war is declared in response to a random event.")
+		// <advc.106g>
+		.def("declareWarEvent", &CyTeam::declareWarEvent, "void (int /*TeamTypes*/ iTeam, bool bNewDiplo, int /*WarPlanTypes*/ eWarPlan) - Forces your team to declare War on iTeam. Use this function when war is declared in response to a random event.")
+		.def("makePeaceEvent", &CyTeam::makePeaceEvent, "void (int /*TeamTypes*/ iTeam) - Forces peace between your team and iTeam. Use this function when peace is made through a random event.")
+		// </advc.106g>
 		.def("makePeace", &CyTeam::makePeace, "void (int /*TeamTypes*/ eTeam) - Forces peace between your team and iTeam")
 		.def("canContact", &CyTeam::canContact, "bool (int /*TeamTypes*/ eTeam)")
 		.def("meet", &CyTeam::meet, "void (int /*TeamTypes*/ eTeam, bool bNewDiplo) - forces team to meet iTeam")
@@ -179,7 +181,7 @@ void CyTeamPythonInterface()
 		.def("getProjectMaking", &CyTeam::getProjectMaking, "bool (int /*ProjectTypes*/ eIndex)")
 		.def("getUnitClassCount", &CyTeam::getUnitClassCount, "int (int (UnitClassTypes) eIndex)")
 		.def("isUnitClassMaxedOut", &CyTeam::isUnitClassMaxedOut, "bool (int (UnitClassTypes) eIndex, int iExtra)")
-		.def("getBuildingClassCount", &CyTeam::getBuildingClassCount, "bool (int /*BuildingClassTypes*/ eIndex)")
+		.def("getBuildingClassCount", &CyTeam::getBuildingClassCount, "int (int /*BuildingClassTypes*/ eIndex)")
 		.def("isBuildingClassMaxedOut", &CyTeam::isBuildingClassMaxedOut, "bool (BuildingClassTypes, iExtra)")
 		.def("getObsoleteBuildingCount", &CyTeam::getObsoleteBuildingCount)
 		.def("isObsoleteBuilding", &CyTeam::isObsoleteBuilding, "bool (BuildingID - is BuildingID obsolete?")
@@ -231,5 +233,7 @@ void CyTeamPythonInterface()
 		.def("AI_getAtWarCounter", &CyTeam::AI_getAtWarCounter, "int (TeamTypes)")
 		.def("AI_getAtPeaceCounter", &CyTeam::AI_getAtPeaceCounter, "int (TeamTypes)")
 		.def("AI_getWarSuccess", &CyTeam::AI_getWarSuccess, "int (TeamTypes)")
+		// advc.152:
+		.def("AI_declareWarTrade", &CyTeam::AI_declareWarTrade, "DenialTypes (TeamTypes eWarTeam,TeamTypes eTeam)")
 		;
 }

@@ -74,7 +74,7 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 		self.X_LINK = 0
 		self.Y_LINK = 726
 		
-		self.X_GLANCE_OFFSET = 10
+		self.X_GLANCE_OFFSET = 6 # advc.004: was 10
 		self.Y_GLANCE_OFFSET = 3
 		self.GLANCE_BUTTON_SIZE = 46
 		self.PLUS_MINUS_SIZE = 25
@@ -423,7 +423,8 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 
 				if (deal.getFirstPlayer() == iLoopPlayer and deal.getSecondPlayer() == self.iActiveLeader and not deal.isNone()) or (deal.getSecondPlayer() == iLoopPlayer and deal.getFirstPlayer() == self.iActiveLeader):
 					szDealText = CyGameTextMgr().getDealString(deal, iLoopPlayer)
-					if AdvisorOpt.isShowDealTurnsLeft():
+					# advc.007: Now that CvDeal::isCancelable checks if eByPlayer is a party to the deal, turns-to-cancel isn't shown in the widget anymore. To fix this, treat the ShowDealTurnsLeft option as enabled when viewing the screen from the perspective of another civ in Debug mode.
+					if AdvisorOpt.isShowDealTurnsLeft() or self.iActiveLeader != gc.getGame().getActivePlayer():
 						if BugDll.isPresent():
 							if not deal.isCancelable(self.iActiveLeader, False):
 								if deal.isCancelable(self.iActiveLeader, True):
@@ -801,7 +802,7 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 				self.nCount += 1
 
 		self.X_Spread = (self.W_SCREEN - 20) / self.nCount
-		if self.X_Spread < 58: self.X_Spread = 58
+		if self.X_Spread < 57: self.X_Spread = 57 # advc.004: Lower bound was 58
 
 		self.Y_Spread = (self.H_SCREEN - 50) / (self.nCount + 2)
 		self.Y_Text_Offset = (self.Y_Spread - 36) / 2
@@ -858,11 +859,16 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 						szName = self.getNextWidgetName()
 						nAttitude = self.ltPlayerRelations[iLoopPlayer][j]
 						if nAttitude != None:
-							szText = AttitudeUtil.getAttitudeText(j, iLoopPlayer, AdvisorOpt.isShowGlanceNumbers(), AdvisorOpt.isShowGlanceSmilies(), True, True)
+							szText = AttitudeUtil.getAttitudeText(j, iLoopPlayer, AdvisorOpt.isShowGlanceNumbers(), AdvisorOpt.isShowGlanceSmilies(), True, True, AdvisorOpt.isShowGlanceWarTrades()) # advc.152: WarTrades added
 						else:
 							szText = ""
+						# <advc.152>
+						widgType = WidgetTypes.WIDGET_LEADERHEAD
+						if AdvisorOpt.isShowGlanceWarTrades():
+							widgType = WidgetTypes.WIDGET_LH_GLANCE
+						# </advc.152>
 						screen.setTextAt (szName, playerPanelName, szText, CvUtil.FONT_CENTER_JUSTIFY, self.X_GLANCE_OFFSET - 2 + (self.X_Spread * nCount), self.Y_GLANCE_OFFSET + self.Y_Text_Offset, -0.1, FontTypes.GAME_FONT, 
-								*BugDll.widgetVersion(2, "WIDGET_LEADERHEAD_RELATIONS", j, iLoopPlayer, WidgetTypes.WIDGET_LEADERHEAD, j, iLoopPlayer))
+								*BugDll.widgetVersion(2, "WIDGET_LEADERHEAD_RELATIONS", j, iLoopPlayer, widgType, j, iLoopPlayer))
 						nCount += 1
 
 			if nCount > 8:
@@ -1091,12 +1097,12 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 					self.resIconGrid.setText(currentRow, self.canPayCol, sAmount)
 				
 				# bonuses
+				importFromPlayer = [] # advc.036
 				for iLoopBonus in range(gc.getNumBonusInfos()):
 					tradeData.iData = iLoopBonus
 					if (activePlayer.canTradeItem(iLoopPlayer, tradeData, False)):
 						if (activePlayer.canTradeItem(iLoopPlayer, tradeData, (not currentPlayer.isHuman()))): # surplus
-							self.resIconGrid.addIcon( currentRow, self.surplusCol, gc.getBonusInfo(iLoopBonus).getButton()
-													, 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS, iLoopBonus )
+							importFromPlayer.append(iLoopBonus) # advc.036
 						else: # used
 							self.resIconGrid.addIcon( currentRow, self.usedCol, gc.getBonusInfo(iLoopBonus).getButton()
 													, 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS, iLoopBonus )
@@ -1107,6 +1113,18 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 						else: # won't trade
 							self.resIconGrid.addIcon( currentRow, self.wontTradeCol, gc.getBonusInfo(iLoopBonus).getButton()
 													, 64, *BugDll.widget("WIDGET_PEDIA_JUMP_TO_BONUS_TRADE", iLoopBonus, iLoopPlayer, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS, iLoopBonus, -1) )
+				# <advc.036> Sorting both listSurplus and importSurplusFromPlayer by the number of copies owned by the active player would be even better, but would take me too long to write in Python.
+				importSurplusFromPlayer = []
+				rest = []
+				for iBonus in importFromPlayer:
+					if iBonus in listSurplus:
+						importSurplusFromPlayer.append(iBonus)
+					else: rest.append(iBonus)
+				importSorted = importSurplusFromPlayer + rest
+				for iLoopBonus in importSorted:
+					# Cut and pasted from the "bonuses" loop above
+					self.resIconGrid.addIcon( currentRow, self.surplusCol, gc.getBonusInfo(iLoopBonus).getButton(), 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS, iLoopBonus )
+				# </advc.036>
 				if (self.RES_SHOW_ACTIVE_TRADE):
 					amount = 0
 					for iLoopDeal in range(gc.getGame().getIndexAfterLastDeal()):

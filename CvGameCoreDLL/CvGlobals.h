@@ -706,8 +706,10 @@ public:
 	inline int getMAX_DISTANCE_CITY_MAINTENANCE() { return m_iMAX_DISTANCE_CITY_MAINTENANCE; }
 	// advc.035:
 	inline int getOWN_EXCLUSIVE_RADIUS() { return m_iOWN_EXCLUSIVE_RADIUS; }
-	// advc.003b:
+	// <advc.003b>
 	inline int getDIPLOMACY_VALUE_REMAINDER() { return m_iDIPLOMACY_VALUE_REMAINDER; }
+	inline int getPEACE_TREATY_LENGTH() { return m_iPEACE_TREATY_LENGTH; }
+	// </advc.003b>
 	// advc.099b:
 	inline int getCITY_RADIUS_DECAY() { return m_iCITY_RADIUS_DECAY; }
 	// advc.005f:
@@ -716,6 +718,14 @@ public:
 	inline int getPER_PLAYER_MESSAGE_CONTROL_LOG() { return m_iPER_PLAYER_MESSAGE_CONTROL_LOG; }
 	// advc.104
 	inline int getUWAI_MULTI_WAR_RELUCTANCE() { return m_iUWAI_MULTI_WAR_RELUCTANCE; }
+	// advc.122
+	inline int getCITY_TRADE_CULTURE_THRESH() { return m_iCITY_TRADE_CULTURE_THRESH; }
+	// advc.004h
+	inline int getFOUNDING_SHOW_YIELDS() { return m_iFOUNDING_SHOW_YIELDS; }
+	// advc.002a
+	inline int getMINIMAP_WATER_MODE() { return m_iMINIMAP_WATER_MODE; }
+	// advc.011
+	inline int getDELAY_UNTIL_BUILD_DECAY() { return m_iDELAY_UNTIL_BUILD_DECAY; }
 	int getMOVE_DENOMINATOR();
 	int getNUM_UNIT_PREREQ_OR_BONUSES();
 	int getNUM_BUILDING_PREREQ_OR_BONUSES();
@@ -1159,7 +1169,7 @@ protected:
 	int m_iNumFootstepAudioTags;
 
 	CvString m_szCurrentXMLFile;
-	bool cachingDone; // advc.003c
+	bool m_bCachingDone; // advc.003c
 	//////////////////////////////////////////////////////////////////////////
 	// Formerly Global Defines
 	//////////////////////////////////////////////////////////////////////////
@@ -1172,11 +1182,18 @@ protected:
 	int m_iNUM_WARNING_REVOLTS; // advc.101
 	int m_iMAX_DISTANCE_CITY_MAINTENANCE; // advc.140
 	int m_iOWN_EXCLUSIVE_RADIUS; // advc.035
-	int m_iDIPLOMACY_VALUE_REMAINDER; // advc.003b
+	// <advc.003b>
+	int m_iDIPLOMACY_VALUE_REMAINDER;
+	int m_iPEACE_TREATY_LENGTH;
+	// </advc.003b>
 	int m_iCITY_RADIUS_DECAY; // advc.099b
 	int m_iENABLE_005F; // advc.005f
 	int m_iPER_PLAYER_MESSAGE_CONTROL_LOG; // advc.007
 	int m_iUWAI_MULTI_WAR_RELUCTANCE; // advc.104
+	int m_iCITY_TRADE_CULTURE_THRESH; // advc.122
+	int m_iFOUNDING_SHOW_YIELDS; // advc.004h
+	int m_iMINIMAP_WATER_MODE; // advc.002a
+	int m_iDELAY_UNTIL_BUILD_DECAY; // advc.011
 	int m_iMOVE_DENOMINATOR;
 	int m_iNUM_UNIT_PREREQ_OR_BONUSES;
 	int m_iNUM_BUILDING_PREREQ_OR_BONUSES;

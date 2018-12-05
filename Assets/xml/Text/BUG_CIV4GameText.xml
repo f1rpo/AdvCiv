@@ -63,7 +63,7 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_HELP_MISSING_TITLE</Tag>
 		<English>Help File Not Found</English>
-		<French>Fichier d'Aide Non Trouvé</French>
+		<French>Fichier d'Aide Non Trouv&#233;</French>
 		<German>Hilfe-Datei nicht gefunden</German>
 		<Italian>Guida del BUG Mod non trovata</Italian>
 		<Spanish>Fichero de ayuda no encontrado</Spanish>
@@ -100,7 +100,7 @@
 		<English>Cities</English>
 		<French>Cities</French>
 		<German>Städte</German>
-		<Italian>Città</Italian>
+		<Italian>Citt&#224;</Italian>
 		<Spanish>Ciudades</Spanish>
 	</TEXT>
 	<TEXT>
@@ -459,7 +459,7 @@
 		<English>Unit Type</English>
 		<French>Unit Type</French>
 		<German>Einheitentyp</German>
-		<Italian>Tipo Unità</Italian>
+		<Italian>Tipo Unit&#224;</Italian>
 		<Spanish>Tipo de Unidad</Spanish>
 	</TEXT>
 	
@@ -882,7 +882,7 @@
 	<TEXT>
 		<Tag>TXT_KEY_MILITARY_THREAT_INDEX_ELEVATED</Tag>
 		<English>Elevated</English>
-		<French>Elevé</French>
+		<French>Elev&#233;</French>
 		<German>Angespannt</German>
 		<Italian>Rischio Notevole</Italian>
 		<Spanish>Elevado</Spanish>
@@ -934,7 +934,7 @@
 		<English>Our Units</English>
 		<French>Our Units</French>
 		<German>Eigene Einheiten</German>
-		<Italian>Nostre Unità</Italian>
+		<Italian>Nostre Unit&#224;</Italian>
 		<Spanish>Nuestras Unidades</Spanish>
 	</TEXT>
 	<TEXT>
@@ -1112,7 +1112,7 @@
 		<English>City</English>
 		<French>City</French>
 		<German>Stadt</German>
-		<Italian>Città</Italian>
+		<Italian>Citt&#224;</Italian>
 		<Spanish>Ciudad</Spanish>
 	</TEXT>
 

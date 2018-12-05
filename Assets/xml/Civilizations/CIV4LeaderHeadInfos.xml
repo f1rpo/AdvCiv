@@ -42,8 +42,10 @@
 			<iDemandRebukedWarProb>0</iDemandRebukedWarProb>
 			<iRazeCityProb>10</iRazeCityProb>
 			<iBuildUnitProb>50</iBuildUnitProb>
-			<iBaseAttackOddsChange>0</iBaseAttackOddsChange>
-			<iAttackOddsChangeRand>16</iAttackOddsChangeRand>
+			<!-- advc.114d: was 0 -->
+			<iBaseAttackOddsChange>2</iBaseAttackOddsChange>
+			<!-- advc.114d: was 16 -->
+			<iAttackOddsChangeRand>18</iAttackOddsChangeRand>
 			<iWorseRankDifferenceAttitudeChange>0</iWorseRankDifferenceAttitudeChange>
 			<iBetterRankDifferenceAttitudeChange>0</iBetterRankDifferenceAttitudeChange>
 			<iCloseBordersAttitudeChange>0</iCloseBordersAttitudeChange>
@@ -462,7 +464,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -474,7 +476,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -530,9 +532,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -541,7 +544,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -725,13 +728,25 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was ATTACK 100. Alexander founded many cities and
+				 was an early adopter of catapults. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_ATTACK</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_SETTLE</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_COLLATERAL</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
-			<ImprovementWeightModifiers/>
+			<!-- advc.005a: was none -->
+			<ImprovementWeightModifiers>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_MINE</ImprovementType>
+					<iWeightModifier>30</iWeightModifier>
+				</ImprovementWeightModifier>
+			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
 				<DiploMusicPeaceEra>
 					<EraType>ERA_ANCIENT</EraType>
@@ -1094,7 +1109,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -1106,7 +1121,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -1162,9 +1177,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -1173,7 +1189,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -1360,13 +1376,30 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Reserve 100. Want to reserve that for more
+				 nondescript leaders. Pillage for his brutal Kalinga war,
+				 Defense for the transformed Asoka. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_RESERVE</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_PILLAGE</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_CITY_DEFENSE</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
-			<ImprovementWeightModifiers/>
+			<!-- advc.005a: was none -->
+			<ImprovementWeightModifiers>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_FOREST_PRESERVE</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
 				<DiploMusicPeaceEra>
 					<EraType>ERA_ANCIENT</EraType>
@@ -1736,7 +1769,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -1748,7 +1781,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -1804,9 +1837,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -1815,7 +1849,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -2002,13 +2036,29 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Attack City 100. Explore (land) for his Sahara
+				 expeditions. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
 					<UnitAIType>UNITAI_ATTACK_CITY</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<iWeightModifier>25</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_EXPLORE</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
-			<ImprovementWeightModifiers/>
+			<!-- advc.005a: was none -->
+			<ImprovementWeightModifiers>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_MINE</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
 				<DiploMusicPeaceEra>
 					<EraType>ERA_ANCIENT</EraType>
@@ -2371,7 +2421,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -2383,7 +2433,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -2439,9 +2489,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -2450,7 +2501,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -2637,15 +2688,27 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Collateral 100. I don't think he capitalized on
+				 artillery that much, more on drafted infantry and railroads
+				 (hence Worker). -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_COLLATERAL</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_ATTACK</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_WORKER</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Farm -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<ImprovementType>IMPROVEMENT_WORKSHOP</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_LUMBERMILL</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 			</ImprovementWeightModifiers>
@@ -3011,7 +3074,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -3023,7 +3086,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -3079,9 +3142,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -3090,7 +3154,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -3273,19 +3337,21 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Pillage 100. She did do some pillaging. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
 					<UnitAIType>UNITAI_PILLAGE</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<iWeightModifier>50</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Farm and Windmill -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<ImprovementType>IMPROVEMENT_MINE</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_WINDMILL</ImprovementType>
+					<ImprovementType>IMPROVEMENT_FOREST_PRESERVE</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 			</ImprovementWeightModifiers>
@@ -3653,7 +3719,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -3665,7 +3731,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -3721,9 +3787,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -3732,7 +3799,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -3920,20 +3987,18 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Attack 100. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
 					<UnitAIType>UNITAI_ATTACK</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<iWeightModifier>50</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Farm and Windmill -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
-					<iWeightModifier>20</iWeightModifier>
-				</ImprovementWeightModifier>
-				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_WINDMILL</ImprovementType>
-					<iWeightModifier>20</iWeightModifier>
+					<ImprovementType>IMPROVEMENT_MINE</ImprovementType>
+					<iWeightModifier>30</iWeightModifier>
 				</ImprovementWeightModifier>
 			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
@@ -4301,7 +4366,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -4313,7 +4378,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -4369,9 +4434,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -4380,7 +4446,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -4563,13 +4629,24 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Counter 100. Want sth. more neutral. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_COUNTER</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_RESERVE</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
-			<ImprovementWeightModifiers/>
+			<!-- advc.005a: was none -->
+			<ImprovementWeightModifiers>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_LUMBERMILL</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
 				<DiploMusicPeaceEra>
 					<EraType>ERA_ANCIENT</EraType>
@@ -4933,7 +5010,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -4945,7 +5022,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -5001,9 +5078,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -5012,7 +5090,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -5199,13 +5277,24 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Attack City 100 -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
 					<UnitAIType>UNITAI_ATTACK_CITY</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<iWeightModifier>50</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
-			<ImprovementWeightModifiers/>
+			<!-- advc.005a: was none -->
+			<ImprovementWeightModifiers>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_WATERMILL</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
 				<DiploMusicPeaceEra>
 					<EraType>ERA_ANCIENT</EraType>
@@ -5568,7 +5657,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -5580,7 +5669,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -5636,9 +5725,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -5647,7 +5737,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -5834,20 +5924,27 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was City Defense 100. Churchill was fond of
+				 aircraft. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_CITY_DEFENSE</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_ATTACK_AIR</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_CARRIER_AIR</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_CARRIER_SEA</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Farm and Windmill -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
-					<iWeightModifier>20</iWeightModifier>
-				</ImprovementWeightModifier>
-				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_WINDMILL</ImprovementType>
-					<iWeightModifier>20</iWeightModifier>
+					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
+					<iWeightModifier>30</iWeightModifier>
 				</ImprovementWeightModifier>
 			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
@@ -6213,7 +6310,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -6225,7 +6322,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -6281,9 +6378,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -6292,7 +6390,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -6479,19 +6577,21 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: was Attack 100 -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
 					<UnitAIType>UNITAI_ATTACK</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<iWeightModifier>50</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Farm and Windmill -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_WINDMILL</ImprovementType>
+					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 			</ImprovementWeightModifiers>
@@ -6861,7 +6961,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -6873,7 +6973,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -6929,9 +7029,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -6940,7 +7041,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -7128,15 +7229,22 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was City Counter 100; idk ... Reserve vaguely fits
+				 with the Immortals being kept at a constant strength. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_CITY_COUNTER</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_RESERVE</UnitAIType>
+					<iWeightModifier>50</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Town -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
+					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_MINE</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 			</ImprovementWeightModifiers>
@@ -7505,7 +7613,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -7517,7 +7625,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -7573,9 +7681,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -7584,7 +7693,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -7771,15 +7880,27 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was ICBM 100. The French arsenal isn't that large,
+				 and De Gaulle formed paratrooper companies. Make it +50%
+				 weight b/c the default weight for Paradrop units is low. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
 					<UnitAIType>UNITAI_ICBM</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<iWeightModifier>25</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_PARADROP</UnitAIType>
+					<iWeightModifier>50</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Farm -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_WORKSHOP</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 			</ImprovementWeightModifiers>
@@ -8145,7 +8266,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -8157,7 +8278,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -8213,9 +8334,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -8224,7 +8346,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -8412,18 +8534,26 @@
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
 			<UnitAIWeightModifiers>
+				<!-- advc.005a: Was Explore Sea 100. Spanish and Portuguese
+					 naval exploration was more important, and I want to stress
+					 the English colonies more. Pirate for Francis Drake. -->
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_EXPLORE_SEA</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_PIRATE_SEA</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_SETTLER_SEA</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Town and Windmill -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
+					<ImprovementType>IMPROVEMENT_WINDMILL</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_WINDMILL</ImprovementType>
+					<ImprovementType>IMPROVEMENT_WATERMILL</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 			</ImprovementWeightModifiers>
@@ -8785,7 +8915,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -8797,7 +8927,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -8853,9 +8983,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -8864,7 +8995,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -9051,15 +9182,23 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Worker 100. He did drain the Oderbruch, but I
+				 don't want the extra Workers to deforest Germany. Counter for
+				 his innovative tactics. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_WORKER</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_COUNTER</UnitAIType>
+					<iWeightModifier>50</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Town -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
+					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_LUMBERMILL</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 			</ImprovementWeightModifiers>
@@ -9423,7 +9562,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -9435,7 +9574,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -9491,9 +9630,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -9502,7 +9642,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -9662,20 +9802,24 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Worker 100. India cleared large areas of
+				 jungle, but that wasn't Gandhi's doing. Give him a second
+				 peaceful bonus. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
 					<UnitAIType>UNITAI_WORKER</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<iWeightModifier>25</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_CITY_SPECIAL</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Town and Windmill -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
-					<iWeightModifier>20</iWeightModifier>
-				</ImprovementWeightModifier>
-				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_WINDMILL</ImprovementType>
-					<iWeightModifier>20</iWeightModifier>
+					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<iWeightModifier>30</iWeightModifier>
 				</ImprovementWeightModifier>
 			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
@@ -10038,7 +10182,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -10050,7 +10194,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -10106,9 +10250,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -10117,7 +10262,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -10304,10 +10449,17 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Pillage 100. Worker penalty instead of an
+				 improvement bonus (didn't have an improvement bonus in BtS
+				 either). -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
 					<UnitAIType>UNITAI_PILLAGE</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<iWeightModifier>50</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_WORKER</UnitAIType>
+					<iWeightModifier>-50</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
 			<ImprovementWeightModifiers/>
@@ -10678,7 +10830,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -10690,7 +10842,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -10746,9 +10898,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -10757,7 +10910,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -10944,13 +11097,21 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was City Defense 100, which seems rather baseless.
+				 -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_CITY_DEFENSE</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_RESERVE</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
-			<ImprovementWeightModifiers/>
+			<!-- advc.005a: was none -->
+			<ImprovementWeightModifiers>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<iWeightModifier>30</iWeightModifier>
+				</ImprovementWeightModifier>
+			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
 				<DiploMusicPeaceEra>
 					<EraType>ERA_ANCIENT</EraType>
@@ -11309,7 +11470,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -11321,7 +11482,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -11377,9 +11538,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -11388,7 +11550,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -11575,20 +11737,19 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was City Defense 100. Don't want to boost the UU
+				 further, and want Hammurabi to attack more. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_CITY_DEFENSE</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_ATTACK</UnitAIType>
+					<iWeightModifier>50</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Farm and Windmill -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
 					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
-					<iWeightModifier>20</iWeightModifier>
-				</ImprovementWeightModifier>
-				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_WINDMILL</ImprovementType>
-					<iWeightModifier>20</iWeightModifier>
+					<iWeightModifier>30</iWeightModifier>
 				</ImprovementWeightModifier>
 			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
@@ -11953,7 +12114,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -11965,7 +12126,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -12021,9 +12182,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -12032,7 +12194,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -12219,19 +12381,21 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: was Attack 100 -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
 					<UnitAIType>UNITAI_ATTACK</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<iWeightModifier>50</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Town and Windmill -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
+					<ImprovementType>IMPROVEMENT_MINE</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_WINDMILL</ImprovementType>
+					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 			</ImprovementWeightModifiers>
@@ -12599,7 +12763,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -12611,7 +12775,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -12667,9 +12831,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -12678,7 +12843,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -12865,8 +13030,26 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
-			<UnitAIWeightModifiers/>
-			<ImprovementWeightModifiers/>
+			<!-- advc.005a: She didn't have any weight bonus; I can't think of
+				 a good AI type for her either, but everyone else has one or
+				 two ... -->
+			<UnitAIWeightModifiers>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_CITY_COUNTER</UnitAIType>
+					<iWeightModifier>50</iWeightModifier>
+				</UnitAIWeightModifier>
+			</UnitAIWeightModifiers>
+			<!-- advc.005a: was none -->
+			<ImprovementWeightModifiers>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_MINE</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
 				<DiploMusicPeaceEra>
 					<EraType>ERA_ANCIENT</EraType>
@@ -13236,7 +13419,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -13248,7 +13431,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -13304,9 +13487,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -13315,7 +13499,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -13502,13 +13686,25 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was City Counter 100. The Incas had an extensive
+				 road/ supply network and terrace fields. And Reserve is a bit
+				 more offensive. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_CITY_COUNTER</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_WORKER</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_RESERVE</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Town -->
 			<ImprovementWeightModifiers>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_MINE</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
 				<ImprovementWeightModifier>
 					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
@@ -13874,7 +14070,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -13886,7 +14082,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -13942,9 +14138,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -13953,7 +14150,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -14140,15 +14337,26 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Attack Sea 100. The Great Armada came a bit later
+				 though; focus more on America. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_ATTACK_SEA</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_SETTLER_SEA</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_EXPLORE_SEA</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_MISSIONARY</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Farm and Windmill -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<ImprovementType>IMPROVEMENT_MINE</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 				<ImprovementWeightModifier>
@@ -14525,7 +14733,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -14537,7 +14745,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -14593,9 +14801,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -14604,7 +14813,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -14791,15 +15000,17 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: was Explore Sea 100 -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
 					<UnitAIType>UNITAI_EXPLORE_SEA</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<iWeightModifier>50</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Farm and Windmill -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<ImprovementType>IMPROVEMENT_MINE</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 				<ImprovementWeightModifier>
@@ -15169,7 +15380,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -15181,7 +15392,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -15237,9 +15448,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -15248,7 +15460,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -15435,13 +15647,25 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Counter 100, but the Roman forces were rather
+				 uniform. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_COUNTER</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_ATTACK</UnitAIType>
+					<iWeightModifier>50</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
-			<ImprovementWeightModifiers/>
+			<!-- advc.005a: was none -->
+			<ImprovementWeightModifiers>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
 				<DiploMusicPeaceEra>
 					<EraType>ERA_ANCIENT</EraType>
@@ -15804,7 +16028,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -15816,7 +16040,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -15872,9 +16096,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -15883,7 +16108,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -16070,13 +16295,29 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Attack 100. Want to stress the (naval)
+				 conquests more.-->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_ATTACK</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_ATTACK_CITY</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_ASSAULT_SEA</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
-			<ImprovementWeightModifiers/>
+			<!-- advc.005a: was none -->
+			<ImprovementWeightModifiers>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_WATERMILL</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
 				<DiploMusicPeaceEra>
 					<EraType>ERA_ANCIENT</EraType>
@@ -16439,7 +16680,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -16451,7 +16692,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -16507,9 +16748,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -16518,7 +16760,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -16705,13 +16947,24 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: was Attack City 100 -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
 					<UnitAIType>UNITAI_ATTACK_CITY</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<iWeightModifier>50</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
-			<ImprovementWeightModifiers/>
+			<!-- advc.005a: was none -->
+			<ImprovementWeightModifiers>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_WATERMILL</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
 				<DiploMusicPeaceEra>
 					<EraType>ERA_ANCIENT</EraType>
@@ -17079,7 +17332,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -17091,7 +17344,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -17147,9 +17400,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -17158,7 +17412,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -17345,15 +17599,18 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was City Counter 100. Use Reserve 25 when I have no
+				 idea. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_CITY_COUNTER</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_RESERVE</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Town and Windmill -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
+					<ImprovementType>IMPROVEMENT_FOREST_PRESERVE</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 				<ImprovementWeightModifier>
@@ -17723,7 +17980,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -17735,7 +17992,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -17791,9 +18048,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -17802,7 +18060,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -17985,13 +18243,25 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Attack City 100, but his wars were rather
+				 limited in scope. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_ATTACK_CITY</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_ATTACK</UnitAIType>
+					<iWeightModifier>50</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
-			<ImprovementWeightModifiers/>
+			<!-- advc.005a: was none -->
+			<ImprovementWeightModifiers>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_LUMBERMILL</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_WORKSHOP</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
 				<DiploMusicPeaceEra>
 					<EraType>ERA_ANCIENT</EraType>
@@ -18354,7 +18624,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -18366,7 +18636,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -18422,9 +18692,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -18433,7 +18704,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -18620,20 +18891,20 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: was Explore 100. Don't want him to make contact and
+				 trade techs with everyone in Earth scenarios. A defensive type
+				 instead. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_EXPLORE</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_CITY_COUNTER</UnitAIType>
+					<iWeightModifier>50</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Town and Windmill -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
-					<iWeightModifier>20</iWeightModifier>
-				</ImprovementWeightModifier>
-				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_WINDMILL</ImprovementType>
-					<iWeightModifier>20</iWeightModifier>
+					<ImprovementType>IMPROVEMENT_MINE</ImprovementType>
+					<iWeightModifier>30</iWeightModifier>
 				</ImprovementWeightModifier>
 			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
@@ -18999,7 +19270,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -19011,7 +19282,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -19067,9 +19338,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -19078,7 +19350,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -19261,10 +19533,17 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Pillage 100. Fair enough  for the pillaged
+				 religious buildings. Also capture the infrastructure projects
+				 (and environmental damage). -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_WORKER</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
 					<UnitAIType>UNITAI_PILLAGE</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
 			<ImprovementWeightModifiers>
@@ -19639,7 +19918,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -19651,7 +19930,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -19707,9 +19986,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -19718,7 +19998,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -19905,20 +20185,18 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Collateral 100. He did cast big cannons. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
 					<UnitAIType>UNITAI_COLLATERAL</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<iWeightModifier>50</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Farm and Windmill -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
-					<iWeightModifier>20</iWeightModifier>
-				</ImprovementWeightModifier>
-				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_WINDMILL</ImprovementType>
-					<iWeightModifier>20</iWeightModifier>
+					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
+					<iWeightModifier>30</iWeightModifier>
 				</ImprovementWeightModifier>
 			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
@@ -20285,7 +20563,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -20297,7 +20575,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -20353,9 +20631,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -20364,7 +20643,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -20547,13 +20826,20 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: was Attack 100 -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
 					<UnitAIType>UNITAI_ATTACK</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<iWeightModifier>50</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
-			<ImprovementWeightModifiers/>
+			<!-- advc.005a: was none -->
+			<ImprovementWeightModifiers>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<iWeightModifier>30</iWeightModifier>
+				</ImprovementWeightModifier>
+			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
 				<DiploMusicPeaceEra>
 					<EraType>ERA_ANCIENT</EraType>
@@ -20924,7 +21210,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -20936,7 +21222,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -20992,9 +21278,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -21003,7 +21290,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -21190,15 +21477,22 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Counter 100. He used massed artillery, 
+				 and liked to requisition supplies ("la maraude"). -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_COUNTER</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_COLLATERAL</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_PILLAGE</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Farm and Windmill -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<ImprovementType>IMPROVEMENT_WORKSHOP</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 				<ImprovementWeightModifier>
@@ -21568,7 +21862,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -21580,7 +21874,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -21636,9 +21930,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -21647,7 +21942,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -21834,19 +22129,25 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Worker 100. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
 					<UnitAIType>UNITAI_WORKER</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<iWeightModifier>25</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_CITY_COUNTER</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Farm and Windmill -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_WINDMILL</ImprovementType>
+					<ImprovementType>IMPROVEMENT_FOREST_PRESERVE</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 			</ImprovementWeightModifiers>
@@ -22212,7 +22513,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -22224,7 +22525,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -22280,9 +22581,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -22291,7 +22593,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -22478,19 +22780,27 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Attack Sea 100. OK for the triremes; also
+				 capture Greek colonization a bit (although it happened before
+				 Pericles's time) -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
 					<UnitAIType>UNITAI_ATTACK_SEA</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<iWeightModifier>25</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_SETTLER_SEA</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Farm and Windmill -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<ImprovementType>IMPROVEMENT_MINE</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_WINDMILL</ImprovementType>
+					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 			</ImprovementWeightModifiers>
@@ -22856,7 +23166,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -22868,7 +23178,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -22924,9 +23234,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -22935,7 +23246,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -23122,19 +23433,27 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Attack Sea 100. He established the Russian
+				 (Baltic) fleet. Also capture the colonization of Siberia
+				 and the founding of St. Petersburg. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
 					<UnitAIType>UNITAI_ATTACK_SEA</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<iWeightModifier>25</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_SETTLE</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Farm and Windmill -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
 					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_WINDMILL</ImprovementType>
+					<ImprovementType>IMPROVEMENT_WORKSHOP</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 			</ImprovementWeightModifiers>
@@ -23508,7 +23827,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -23520,7 +23839,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -23576,9 +23895,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -23587,7 +23907,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -23770,13 +24090,29 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Collateral 100. Polearms were popular in his day,
+				 and these have Counter as the default AI type. -->
 			<UnitAIWeightModifiers>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_COUNTER</UnitAIType>
+					<iWeightModifier>50</iWeightModifier>
+				</UnitAIWeightModifier>
 				<UnitAIWeightModifier>
 					<UnitAIType>UNITAI_COLLATERAL</UnitAIType>
 					<iWeightModifier>100</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
-			<ImprovementWeightModifiers/>
+			<!-- advc.005a: was none -->
+			<ImprovementWeightModifiers>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_WORKSHOP</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
 				<DiploMusicPeaceEra>
 					<EraType>ERA_ANCIENT</EraType>
@@ -24141,7 +24477,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -24153,7 +24489,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -24209,9 +24545,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -24220,7 +24557,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -24407,13 +24744,24 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Reserve 100; don't have a better idea. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
 					<UnitAIType>UNITAI_RESERVE</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
-			<ImprovementWeightModifiers/>
+			<!-- advc.005a: was none -->
+			<ImprovementWeightModifiers>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
 				<DiploMusicPeaceEra>
 					<EraType>ERA_ANCIENT</EraType>
@@ -24779,7 +25127,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -24791,7 +25139,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -24847,9 +25195,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -24858,7 +25207,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -25041,15 +25390,25 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: was Assault Sea 100 -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
 					<UnitAIType>UNITAI_ASSAULT_SEA</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<iWeightModifier>25</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_PILLAGE</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Town -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
+					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_LUMBERMILL</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 			</ImprovementWeightModifiers>
@@ -25419,7 +25778,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -25431,7 +25790,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -25487,9 +25846,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -25498,7 +25858,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -25686,13 +26046,32 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Counter 100. Assault Sea for D-Day. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_COUNTER</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_ASSAULT_SEA</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_CARRIER_SEA</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_CARRIER_AIR</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
-			<ImprovementWeightModifiers/>
+			<!-- advc.005a: was none -->
+			<ImprovementWeightModifiers>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_FOREST_PRESERVE</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
 				<DiploMusicPeaceEra>
 					<EraType>ERA_ANCIENT</EraType>
@@ -26058,7 +26437,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -26070,7 +26449,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -26126,9 +26505,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -26137,7 +26517,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -26324,13 +26704,24 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Counter 100. He did take a lot of cities. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_COUNTER</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_ATTACK_CITY</UnitAIType>
+					<iWeightModifier>50</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
-			<ImprovementWeightModifiers/>
+			<!-- advc.005a: was none -->
+			<ImprovementWeightModifiers>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_WATERMILL</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_WINDMILL</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
 				<DiploMusicPeaceEra>
 					<EraType>ERA_ANCIENT</EraType>
@@ -26696,7 +27087,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -26708,7 +27099,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -26764,9 +27155,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -26775,7 +27167,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -26958,18 +27350,20 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Pillage 100. Pillagers tend to be mounted, the
+				 Zulu weren't. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_PILLAGE</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_ATTACK</UnitAIType>
+					<iWeightModifier>50</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_WORKER</UnitAIType>
+					<iWeightModifier>-50</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
-			<ImprovementWeightModifiers>
-				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
-					<iWeightModifier>20</iWeightModifier>
-				</ImprovementWeightModifier>
-			</ImprovementWeightModifiers>
+			<!-- advc.005a: Was Farm. Give him a penalty to Workers instead. -->
+			<ImprovementWeightModifiers/>
 			<DiplomacyIntroMusicPeace>
 				<DiploMusicPeaceEra>
 					<EraType>ERA_ANCIENT</EraType>
@@ -27334,7 +27728,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -27346,7 +27740,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -27402,9 +27796,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -27413,7 +27808,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -27600,13 +27995,20 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: was City Defense 100 -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
 					<UnitAIType>UNITAI_CITY_DEFENSE</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<iWeightModifier>50</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
-			<ImprovementWeightModifiers/>
+			<!-- advc.005a: Was none. Can't think of a second one. -->
+			<ImprovementWeightModifiers>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
 				<DiploMusicPeaceEra>
 					<EraType>ERA_ANCIENT</EraType>
@@ -27724,7 +28126,9 @@
 			<iBasePeaceWeight>2</iBasePeaceWeight>
 			<iPeaceWeightRand>3</iPeaceWeightRand>
 			<iWarmongerRespect>1</iWarmongerRespect>
-			<iEspionageWeight>150</iEspionageWeight>
+			<!-- advc.005a: Was 150. Increased AI weight for Spy unit
+				 instead. -->
+			<iEspionageWeight>140</iEspionageWeight>
 			<iRefuseToTalkWarThreshold>8</iRefuseToTalkWarThreshold>
 			<iNoTechTradeThreshold>5</iNoTechTradeThreshold>
 			<iTechTradeKnownPercent>80</iTechTradeKnownPercent>
@@ -27970,7 +28374,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -27982,7 +28386,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -28038,9 +28442,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -28049,7 +28454,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -28236,19 +28641,25 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Attack 100. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
 					<UnitAIType>UNITAI_ATTACK</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<iWeightModifier>25</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_SPY</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Workshop and Watermill -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_WORKSHOP</ImprovementType>
+					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_WATERMILL</ImprovementType>
+					<ImprovementType>IMPROVEMENT_WORKSHOP</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 			</ImprovementWeightModifiers>
@@ -28621,7 +29032,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -28633,7 +29044,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -28689,9 +29100,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -28700,7 +29112,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -28890,19 +29302,21 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Attack City 100. He built huge fleets. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_ATTACK_CITY</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_ATTACK_SEA</UnitAIType>
+					<iWeightModifier>50</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Farm and Windmill -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_WINDMILL</ImprovementType>
+					<ImprovementType>IMPROVEMENT_WORKSHOP</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 			</ImprovementWeightModifiers>
@@ -29099,7 +29513,8 @@
 			<iVassalPowerModifier>-10</iVassalPowerModifier>
 			<iFreedomAppreciation>10</iFreedomAppreciation>
 			<FavoriteCivic>CIVIC_ORGANIZED_RELIGION</FavoriteCivic>
-			<FavoriteReligion>RELIGION_BUDDHISM</FavoriteReligion>
+			<!-- advc.005a: was BUDDHISM -->
+			<FavoriteReligion>RELIGION_HINDUISM</FavoriteReligion>
 			<Traits>
 				<Trait>
 					<TraitType>TRAIT_EXPANSIVE</TraitType>
@@ -29110,9 +29525,10 @@
 					<bTrait>1</bTrait>
 				</Trait>
 			</Traits>
+			<!-- advc.005a: was GOLD and CULTURE -->
 			<Flavors>
 				<Flavor>
-					<FlavorType>FLAVOR_GOLD</FlavorType>
+					<FlavorType>FLAVOR_RELIGION</FlavorType>
 					<iFlavor>5</iFlavor>
 				</Flavor>
 				<Flavor>
@@ -29270,7 +29686,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -29282,7 +29698,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -29338,9 +29754,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -29349,7 +29766,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -29539,13 +29956,20 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Reserve 100. Make him more aggressive. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_RESERVE</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_ATTACK</UnitAIType>
+					<iWeightModifier>50</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
-			<ImprovementWeightModifiers/>
+			<!-- advc.005a: was none -->
+			<ImprovementWeightModifiers>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<iWeightModifier>30</iWeightModifier>
+				</ImprovementWeightModifier>
+			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
 				<DiploMusicPeaceEra>
 					<EraType>ERA_ANCIENT</EraType>
@@ -29908,7 +30332,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -29920,7 +30344,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -29976,9 +30400,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -29987,7 +30412,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -30176,13 +30601,29 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was City Counter 100. Also highlight the dense
+				 Japanese infrastructure. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
 					<UnitAIType>UNITAI_CITY_COUNTER</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<iWeightModifier>25</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_WORKER</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
-			<ImprovementWeightModifiers/>
+			<!-- advc.005a: was none -->
+			<ImprovementWeightModifiers>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_LUMBERMILL</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
 				<DiploMusicPeaceEra>
 					<EraType>ERA_ANCIENT</EraType>
@@ -30547,7 +30988,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -30559,7 +31000,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -30615,9 +31056,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -30626,7 +31068,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -30811,16 +31253,18 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Reserve Sea; OK (Gunboat Diplomacy) -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
 					<UnitAIType>UNITAI_RESERVE_SEA</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<iWeightModifier>50</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was 20 -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
 					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
-					<iWeightModifier>20</iWeightModifier>
+					<iWeightModifier>30</iWeightModifier>
 				</ImprovementWeightModifier>
 			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
@@ -31185,7 +31629,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -31197,7 +31641,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -31253,9 +31697,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -31264,7 +31709,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -31455,15 +31900,22 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Counter 100. Someone needs to get City Defense,
+				 and his successors were pretty defensive. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_COUNTER</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_CITY_DEFENSE</UnitAIType>
+					<iWeightModifier>50</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Town -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
 					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_MINE</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 			</ImprovementWeightModifiers>
@@ -31831,7 +32283,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -31843,7 +32295,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -31899,9 +32351,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -31910,7 +32363,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -32099,19 +32552,26 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Reserve 100. Capture the colonization of the
+				 West and privateers in the Revolutionary War. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_RESERVE</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_SETTLE</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_PIRATE_SEA</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Farm and Windmill -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
 					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_WINDMILL</ImprovementType>
+					<ImprovementType>IMPROVEMENT_TOWN</ImprovementType>
 					<iWeightModifier>20</iWeightModifier>
 				</ImprovementWeightModifier>
 			</ImprovementWeightModifiers>
@@ -32490,7 +32950,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -32502,7 +32962,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -32558,9 +33018,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -32569,7 +33030,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -32763,20 +33224,23 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was Counter 100. Make him more defensive and
+				 capture his alliance with privateers. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_COUNTER</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_CITY_COUNTER</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
+				</UnitAIWeightModifier>
+				<UnitAIWeightModifier>
+					<UnitAIType>UNITAI_PIRATE_SEA</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
+			<!-- advc.005a: was Farm and Windmill -->
 			<ImprovementWeightModifiers>
 				<ImprovementWeightModifier>
-					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
-					<iWeightModifier>20</iWeightModifier>
-				</ImprovementWeightModifier>
-				<ImprovementWeightModifier>
 					<ImprovementType>IMPROVEMENT_WINDMILL</ImprovementType>
-					<iWeightModifier>20</iWeightModifier>
+					<iWeightModifier>30</iWeightModifier>
 				</ImprovementWeightModifier>
 			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
@@ -33141,7 +33605,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_HIRED_WAR_ALLY</MemoryType>
-					<iMemoryRand>70</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_NUKED_US</MemoryType>
@@ -33153,7 +33617,7 @@
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_CITY</MemoryType>
-					<iMemoryRand>60</iMemoryRand>
+					<iMemoryRand>75</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_RAZED_HOLY_CITY</MemoryType>
@@ -33209,9 +33673,10 @@
 					<MemoryType>MEMORY_DENIED_JOIN_WAR</MemoryType>
 					<iMemoryRand>100</iMemoryRand>
 				</MemoryDecay>
+				<!-- advc.130f: was 100 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_ACCEPTED_STOP_TRADING</MemoryType>
-					<iMemoryRand>100</iMemoryRand>
+					<iMemoryRand>50</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_DENIED_STOP_TRADING</MemoryType>
@@ -33220,7 +33685,7 @@
 				<!-- advc.130f: was 30 -->
 				<MemoryDecay>
 					<MemoryType>MEMORY_STOPPED_TRADING_RECENT</MemoryType>
-					<iMemoryRand>22</iMemoryRand>
+					<iMemoryRand>18</iMemoryRand>
 				</MemoryDecay>
 				<MemoryDecay>
 					<MemoryType>MEMORY_MADE_DEMAND_RECENT</MemoryType>
@@ -33409,13 +33874,21 @@
 					<iNoWarProb>100</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>
+			<!-- advc.005a: Was City Defense 100. Use Reserve 25 when nothing
+				 else comes to mind. -->
 			<UnitAIWeightModifiers>
 				<UnitAIWeightModifier>
-					<UnitAIType>UNITAI_CITY_DEFENSE</UnitAIType>
-					<iWeightModifier>100</iWeightModifier>
+					<UnitAIType>UNITAI_RESERVE</UnitAIType>
+					<iWeightModifier>25</iWeightModifier>
 				</UnitAIWeightModifier>
 			</UnitAIWeightModifiers>
-			<ImprovementWeightModifiers/>
+			<!-- advc.005a: Was none. Can't think of a second one. -->
+			<ImprovementWeightModifiers>
+				<ImprovementWeightModifier>
+					<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
+					<iWeightModifier>20</iWeightModifier>
+				</ImprovementWeightModifier>
+			</ImprovementWeightModifiers>
 			<DiplomacyIntroMusicPeace>
 				<DiploMusicPeaceEra>
 					<EraType>ERA_ANCIENT</EraType>

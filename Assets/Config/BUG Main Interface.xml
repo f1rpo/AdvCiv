@@ -56,11 +56,17 @@
 				<change module="CvCustomizableDomesticAdvisor" function="forcePositionCalc"/>
 			</option>
 			
-			<!-- City Cycle Arrows by SimCutie -->
-			<!-- advc.042: Commented out -->
-			<!--<option id="CityArrows" key="City Cycle Arrows" 
+			<!-- advc.120c -->
+			<option id="Hide_EspSlider" key="Hide EspSlider" 
 					type="boolean" default="True" 
-					get="isShowCityCycleArrows" dirtyBit="MiscButtons"/> -->
+					get="isHideEspSlider" dirtyBit="PercentButtons, GameData, Espionage_Advisor">
+				<change module="CvCustomizableDomesticAdvisor" function="forcePositionCalc"/>
+			</option>
+			
+			<!-- City Cycle Arrows by SimCutie -->
+			<option id="CityArrows" key="City Cycle Arrows" 
+					type="boolean" default="True" 
+					get="isShowCityCycleArrows" dirtyBit="MiscButtons"/>
 
 			<!-- Progress Bar Tick Marks -->
 			<option id="ProgressBarsTickMarks" key="Tick Marks" 

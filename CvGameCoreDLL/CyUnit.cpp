@@ -607,7 +607,7 @@ bool CyUnit::isCounterSpy()
 
 bool CyUnit::isFound()
 {
-	return m_pUnit ? m_pUnit->isFound() : false;
+	return m_pUnit ? m_pUnit->canFound() : false; // advc.004h: was isFound
 }
 
 bool CyUnit::isGoldenAge()

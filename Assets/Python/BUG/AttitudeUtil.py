@@ -145,7 +145,7 @@ def getAttitudeCount (nPlayer, nTarget):
 	return nAtt
 
 
-def getAttitudeText (nPlayer, nTarget, bNumber, bSmily, bWorstEnemy, bWarPeace):
+def getAttitudeText (nPlayer, nTarget, bNumber, bSmily, bWorstEnemy, bWarPeace, bWarTrades): # advc.152: bWarTrades added
 	"""Returns a string describing the attitude nPlayer has toward nTarget."""
 	nAttitude = getAttitudeCount (nPlayer, nTarget)
 	if nAttitude == None:
@@ -162,12 +162,15 @@ def getAttitudeText (nPlayer, nTarget, bNumber, bSmily, bWorstEnemy, bWarPeace):
 	pTarget = gc.getPlayer(nTarget)
 	if bWorstEnemy and isWorstEnemy(pPlayer, pTarget):
 		szIcons += FontUtil.getChar("angrypop")
-	
+	# <advc.152>
+	bPeace = False
+	# Moved from the bWarPeace branch:
+	nTeam = pPlayer.getTeam()
+	pTeam = gc.getTeam(nTeam)
+	nTargetTeam = pTarget.getTeam()
+	pTargetTeam = gc.getTeam(nTargetTeam)
+	# </advc.152>
 	if bWarPeace:
-		nTeam = pPlayer.getTeam()
-		pTeam = gc.getTeam(nTeam)
-		nTargetTeam = pTarget.getTeam()
-		pTargetTeam = gc.getTeam(nTargetTeam)
 		if pTeam.isAtWar(nTargetTeam):
 			szIcons += FontUtil.getChar("war")
 		elif gc.getGame().getActiveTeam() in (nTeam, nTargetTeam):
@@ -181,6 +184,10 @@ def getAttitudeText (nPlayer, nTarget, bNumber, bSmily, bWorstEnemy, bWarPeace):
 						break
 			if bPeace:
 				szIcons += FontUtil.getChar("peace")
+	# <advc.152>
+	if bWarTrades and not bPeace and nTargetTeam != gc.getGame().getActiveTeam()and nTeam != gc.getGame().getActiveTeam() and nTeam != nTargetTeam and not pTeam.isAtWar(nTargetTeam) and pTeam.AI_declareWarTrade(nTargetTeam, gc.getGame().getActiveTeam()) == -1:
+		szIcons += FontUtil.getChar("occupation")
+	# </advc.152>
 	if szIcons:
 		szText.append(szIcons)
 	

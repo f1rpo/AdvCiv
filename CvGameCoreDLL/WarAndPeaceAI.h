@@ -19,7 +19,8 @@
 
 #define getWPAI GC.getGame().warAndPeaceAI()
 
-class WarAndPeaceAI {
+class WarAndPeaceAI 
+		: private boost::noncopyable { // advc.003e
 
 public:
 
@@ -44,7 +45,7 @@ public:
 	void cacheXML(); // Can't do this in constructor b/c not yet loaded
 	double aspectWeight(int xmlId) const;
 	static int const preparationTimeLimited = 8;
-	static int const preparationTimeLimitedNaval = 12;
+	static int const preparationTimeLimitedNaval = 10;
 	static int const preparationTimeTotal = 15;
 	static int const preparationTimeTotalNaval = 20;
 	// Modifier for all AI payments for peace
@@ -141,7 +142,8 @@ public:
 		   Between 0.5 (low confidence) and 1.5 (high confidence); below 0
 		   if not at war. */
 		double confidenceFromWarSuccess(TeamTypes targetId) const;
-		void reportWarEnding(TeamTypes enemyId);
+		void reportWarEnding(TeamTypes enemyId, CLinkList<TradeData>* weReceive = NULL,
+				CLinkList<TradeData>* wePay = NULL);
 		/*  voteTarget - Additional (optional) return value: vote target for
 			diplo vict. */
 		double computeVotesToGoForVictory(double* voteTarget = NULL,
@@ -158,6 +160,13 @@ public:
 		/*  tradeVal should roughly correspond to gold per turn; converted into
 			war utility based on our current commerce rate. */
 		double tradeValToUtility(double tradeVal) const;
+		/*  Runs 'scheme' as if UWAI was running in the background and writes a
+			report file regardless of the REPORT_INTERVAL set in XML.
+			Intended for debugging. Could insert a call like
+			GET_TEAM((TeamTypes)1).warAndPeaceAI().doWarReport()
+			in e.g. CvUnit::kill, load the savegame to be debugged, disband a unit,
+			read the report and remove the doWarReport call again. */
+		void doWarReport();
 
 	private:
 		void reset();
@@ -167,6 +176,7 @@ public:
 		/*  Review plan vs. targetId. Returns true if plan continues unchanged,
 			false if any change (abandoned, peace made, target changed). */
 		bool reviewPlan(TeamTypes targetId, int u, int prepTime);
+		void alignAreaAI(bool isNaval);
 		int peaceThreshold(TeamTypes targetId) const;
 		// All these return true if the war plan remains unchanged, false otherwise
 		  bool considerPeace(TeamTypes targetId, int u);
@@ -182,8 +192,10 @@ public:
 				int timeRemaining);
 		void scheme(); // Consider new war plans
 		bool canSchemeAgainst(TeamTypes targetId, bool assumeNoWarPlan) const;
+		double limitedWarWeight() const;
 		void startReport();
 		void closeReport();
+		void setForceReport(bool b);
 		bool isReportTurn() const;
 		void showWarPrepStartedMsg(TeamTypes targetId);
 		void showWarPlanAbandonedMsg(TeamTypes targetId);
@@ -202,6 +214,7 @@ public:
 		TeamTypes agentId;
 		bool inBackgr;
 		std::vector<PlayerTypes> members;
+		bool bForceReport;
 		// Only to be used in doWar and its subroutines
 		WarAndPeaceReport* report;
 	};
@@ -266,9 +279,10 @@ public:
 	         (related to the Alert AI strategy). */
 		  double distrustRating() const;
 		  /* A measure of optimism (above 1) or pessimism (between 0 and 1) of our
-		     leader about conducting war against 'vs'. (It's not clear if 'vs'
-			should matter.) */
-		  double warConfidencePersonal(bool isNaval, PlayerTypes vs = NO_PLAYER) const;
+			 leader about conducting war against 'vs'. (It's not clear if 'vs'
+			 and 'isTotal' should matter.) */
+		  double warConfidencePersonal(bool isNaval, bool isTotal,
+					PlayerTypes vs = NO_PLAYER) const;
 		  /* Confidence based on experience in the current war or past wars.
 		     Between 0.5 (low confidence) and 1.5 (high confidence).
 			 ignoreDefOnly: Don't count factors that only make us confident about

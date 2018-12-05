@@ -198,7 +198,7 @@ void RiseFall::read(FDataStreamBase* pStream) {
 		chapters.push_back(new RFChapter());
 		chapters[i]->read(pStream);
 	}
-	// E.g. CvPlot::activeVisibility not saved
+	// E.g. CvPlot::m_bAllFog not saved
 	FAssertMsg(interludeCountdown < 0, "Mustn't load into interlude");
 	riseScore.read(pStream);
 }
@@ -252,7 +252,7 @@ void RiseFall::retire() {
 		return;
 	CvGame& g = GC.getGame();
 	if(chapters[pos]->getRetireTurn() < 0) // Don't store multiple timestamps
-		chapters[pos]->setRetireTurn(g.getGameTurn());
+		chapters[pos]->setRetireTurn(g.gameTurn());
 	g.setAIAutoPlay(t);
 	/*  Don't do this. CvPlayer not yet loaded. No need either - plans already
 		abandoned at start of retirement. */
@@ -307,7 +307,7 @@ void RiseFall::atTurnEnd(PlayerTypes civId) {
 	CvGame& g = GC.getGame();
 	if(g.getGameState() == GAMESTATE_EXTENDED)
 		return;
-	int gameTurn = g.getGameTurn();
+	int gameTurn = g.gameTurn();
 	/*  Conduct scoring exactly as scheduled at the end of a turn of the
 		civ being scored; show the score popup at the start of the next
 		active player turn. */
@@ -346,12 +346,16 @@ void RiseFall::atTurnEnd(PlayerTypes civId) {
 		g.setAIAutoPlay(0); // In case that the player has retired
 		setPlayerControl(currentCh.getCiv(), false);
 		abandonPlans(currentCh.getCiv());
+		CvWString replayText = gDLL->getText("TXT_KEY_RF_INTERLUDE_STARTED");
+		g.addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, g.getActivePlayer(),
+				replayText, -1, -1, (ColorTypes)GC.getInfoTypeForString(
+				"COLOR_HIGHLIGHT_TEXT"));
 	}
 }
 
 void RiseFall::atGameTurnStart() {
 
-	CvGame& g = GC.getGame();
+	CvGame const& g = GC.getGame();
 	int currentChPos = getCurrentChapter();
 	if(currentChPos < 0 || interludeCountdown > 0) {
 		interludeCountdown--;
@@ -360,7 +364,7 @@ void RiseFall::atGameTurnStart() {
 		//centerCamera(g.getActivePlayer());
 		return;
 	}
-	int gameTurn = g.getGameTurn();
+	int gameTurn = g.gameTurn();
 	RFChapter& currentCh = *chapters[currentChPos];
 	if(currentCh.getStartTurn() >= gameTurn) {
 		FAssert(currentCh.getStartTurn() == gameTurn);
@@ -374,8 +378,8 @@ void RiseFall::atActiveTurnStart() {
 	int pos = getCurrentChapter();
 	if(pos < 0)
 		return; // Happens on turn 0 b/c not yet initialized
-	CvGame& g = GC.getGame();
-	int gameTurn = g.getGameTurn();
+	CvGame const& g = GC.getGame();
+	int gameTurn = g.gameTurn();
 	PlayerTypes activeId = g.getActivePlayer();
 	if(activeId == NO_PLAYER)
 		return;
@@ -383,7 +387,7 @@ void RiseFall::atActiveTurnStart() {
 	RFChapter& currentCh = *chapters[pos];
 	if(currentCh.getCiv() != activeId)
 		return;
-	if(gameTurn == currentCh.getStartTurn())
+	if(gameTurn == currentCh.getStartTurn() && pos > 0)
 		welcomeToNextChapter(pos);
 	/*  Save at the start of the player turn rather than at the start
 		of the game turn. A bit hard to say when exactly the savegame should be
@@ -470,7 +474,7 @@ void RiseFall::setPlayerControl(PlayerTypes civId, bool b) {
 		gDLL->getInterfaceIFace()->clearSelectionList();
 	}
 	// (Un)fog the map
-	CvPlot::activeVisibility = b;
+	CvPlot::setAllFog(!b);
 	if(!b)
 		g.updateActiveVisibility();
 	setUIHidden(!b);
@@ -725,6 +729,9 @@ bool RiseFall::isDeliverMessages(PlayerTypes civId) const {
 	for(size_t i = 0; i < chapters.size(); i++)
 		if(chapters[i]->hasEnded() && chapters[i]->getCiv() == civId)
 			return false;
+	// First player civ not in slot 0; initialization not yet done.
+	if(chapters.empty())
+		return true;
 	// Can't switch after the final chapter
 	int pos = getCurrentChapter();
 	if(pos == chapters.size() - 1)
@@ -756,14 +763,18 @@ bool RiseFall::isCooperationRestricted(PlayerTypes aiCiv) const {
 	for(int i = 0; i <= currentChPos; i++)
 		if(chapters[i]->getCiv() == aiCiv)
 			return !chapters[i]->isScored();
-	if(GET_PLAYER(aiCiv).AI_isDoVictoryStrategyLevel3())
-		return true;
 	CvGame const& g = GC.getGameINLINE();
-	if(g.getCurrentEra() >= 4)
-		return true;
-	int const iRank = g.getPlayerRank(aiCiv);
-	int const iKnown = TEAMREF(human).getHasMetCivCount() + 1; // +1 for human
-	return (iRank >= iKnown / 2);
+	int aiVictStage = victoryStage(aiCiv);
+	/*if(aiVictStage >= 4)
+		return true; */
+	int humanVictStage = victoryStage(human);
+	if(aiVictStage < 3)
+		aiVictStage = 0;
+	if(humanVictStage < 3)
+		humanVictStage = 0;
+	if(aiVictStage != humanVictStage)
+		return (aiVictStage < humanVictStage);
+	return (g.getPlayerRank(aiCiv) > g.getPlayerRank(human));
 }
 
 RFChapter* RiseFall::mostRecentlyFinished() const {
@@ -938,9 +949,9 @@ void RiseFall::handleDefeatPopup(int buttonClicked) {
 		FAssert(false);
 		pos = -1;
 	}
-	CvGame& g = GC.getGame();
+	CvGame const& g = GC.getGame();
 	// -1: Current turn already passed
-	interludeCountdown = chapters[pos + 1]->getStartTurn() - g.getGameTurn() - 1;
+	interludeCountdown = chapters[pos + 1]->getStartTurn() - g.gameTurn() - 1;
 	FAssert(interludeCountdown >= 0);
 	CvPlayer& h = GET_PLAYER(g.getActivePlayer());
 	h.setIsHuman(false);
@@ -1155,8 +1166,6 @@ int RiseFall::victoryStage(PlayerTypes civId) {
 		r = 3;
 	if(civ.AI_isDoVictoryStrategyLevel4())
 		r = 4;
-<<<<<<< HEAD
-=======
 	/*  Culture4 is normally quite a bit farther away from victory than
 		the other stage-4 strategies. Need to recompute the culture
 		victory stage with a lowered countdownThresh. */
@@ -1165,8 +1174,7 @@ int RiseFall::victoryStage(PlayerTypes civId) {
 			!civ.AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST4) &&
 			!civ.AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION4) &&
 			!civ.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4))
-		r = std::max(3, civ.AI_calculateCultureVictoryStage(55));
->>>>>>> origin/master
+		r = std::max(3, civ.AI_calculateCultureVictoryStage(167));
 	return r;
 }
 
@@ -1278,8 +1286,8 @@ bool RiseFall::isNeededWarTrade(CLinkList<TradeData> const& humanReceives) const
 				FAssert(targetId != NO_PLAYER);
 				return false;
 			}
-			if(GET_TEAM(targetId).AI_getWarSuccess(human.getTeam()) >
-					GC.getWAR_SUCCESS_CITY_CAPTURING() && 
+			if(/*GET_TEAM(targetId).AI_getWarSuccess(human.getTeam()) >
+					GC.getWAR_SUCCESS_CITY_CAPTURING() &&*/
 					GET_TEAM(human.getTeam()).AI_getEnemyPowerPercent() > 100)
 				return true;
 		}
@@ -1387,7 +1395,7 @@ void RiseFall::substituteDiploText(bool gift) {
 		replacement += (char)noThanks.at(k);
 	clearDiploStrings();
 	for(int j = 0; j < resp->getNumDiplomacyText(); j++) {
-		originalThanks.push_back(new CvString(*resp->getDiplomacyText()));
+		originalThanks.push_back(new CvString(resp->getDiplomacyText(j)));
 		resp->setDiplomacyText(j, replacement);
 	}
 }

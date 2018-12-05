@@ -1,4 +1,4 @@
-Draft of balance/historicity changes for the AdvCiv mod. Aug2018
+Draft of balance/historicity changes for the AdvCiv mod. Dec2018
 **************************************************************************
 
 tech-tree.pdf: The proposed tech tree
@@ -16,13 +16,13 @@ Those specific changes should be accompanied by the following general rule chang
 * Limited free healing; when land units are badly damaged, some need to be disbanded in order to heal the others. Or some other cost on healing. Perhaps unlimited free healing for the AI, as a player handicap.
 See also: https://forums.civfanatics.com/threads/advanced-civ.614217/page-5#post-15157996
 
-2. Lower the production bonuses from traits and resources to 80%. Let production modifiers and special commerce modifiers apply to Processes (Wealth, Research, Culture), but halve both modifiers. Reduce the production-to-commerce conversion rate of Processes to 80%. Possibly award 50:50 gold and culture when a great wonder fails. 
+2. Lower the production bonuses from traits and resources to 80%. Let production modifiers and special commerce modifiers apply to Processes (Wealth, Research, Culture), but halve both modifiers. Reduce the production-to-commerce conversion rate of Processes to 80%.
 
 3. Better scaling of Great Person effects (e.g. Discover ability, Trade Mission) with the game progress - currently too powerful in the early game and midgame. Revise the progression of birth thresholds. Settled Great People grant a free building, but have a limited lifetime. Hurry-wonder mission for Great Prophet (religious wonders).
 
 4. Much lower corporation yields overall; the yields per city decrease each time the corporation expands. No HQ required in order to train Executives, but increased maintenance when there is no HQ or when war or a civic makes it inaccessible.
 
-5. Make resources less crucial for health and happiness as this disadvantages small civs too much by the mid/late game: A few more resources go obsolete (see tech-tree.pdf) and perhaps cap the total health bonus of buildings like Granary at 2 (not spelled out in stat-changes.pdf). Grant happiness from city culture rate regardless of whether the culture slider is used; have the slider position only matter for Colosseum and Theater.
+5. Make resources less crucial for health and happiness as this disadvantages small civs too much by the mid/late game: A few more resources go obsolete (see tech-tree.pdf) and perhaps cap the total health bonus of buildings like Granary at 2 (not spelled out in stat-changes.pdf). Grant happiness from city culture rate (with diminishing returns) regardless of whether the culture slider is used; have the slider position only matter for Colosseum and Theater.
 (Already implemented: The AI is willing to sell even non-surplus resources at reasonable prices when it doesn't need those resources for city growth.)
 
 6. Civs running a state religion different from that of the Apostolic Palace (AP) can't be AP members. The AP owner picks all proposals, no election of the AP resident. UN and AP voting populations are weighted by city nationality (i.e. relative city tile culture).
@@ -39,7 +39,7 @@ See also: https://forums.civfanatics.com/threads/advanced-civ.614217/page-5#post
 
 12. Ravages of war:
 * Razing a city takes one attack per population; each attack reduces the population by one and has a chance of destroying a building.
-* Bombardment increases war weariness for the city owner and has a chance of destroying a building (Civ 4 Reimagined already does this). Each attack against a city defender has a chance of destroying a building. Upon entering the city, few buildings or none are destroyed (unless razed).
+* Reduced city defense causes anger; bombardment causes war weariness and has a small chance of destroying a building (Civ 4 Reimagined already does this). Each attack against a city defender has a chance of destroying a building. Upon entering the city, few buildings or none are destroyed (unless razed).
 * Reduce capture gold; perhaps only grant it when razing.
 
 13. City garrisons need to have sufficient (defensive) combat strength in order to quell "fear for safety" anger. (Already implemented as change 500b, but currently disabled through an XML switch.)
@@ -50,6 +50,6 @@ See also: https://forums.civfanatics.com/threads/advanced-civ.614217/page-5#post
 * Stronger impact of upkeep class on civic upkeep costs.
 * Overhaul of trade route profit modifiers (rewarding trade between coastal cities, even if on the same continent) and matching of partner cities.
 
-15. A slight waste effect when a commerce slider is in an extreme position (akin to Alpha Centauri).
+15. A slight waste effect when a commerce slider is in an extreme position (akin to Alpha Centauri) or a small cost for adjusting a slider.
 
 16. Reduce the AI production bonuses on the high difficulty settings and instead make human civs pay higher production costs. This should help reduce overcrowding of the map.

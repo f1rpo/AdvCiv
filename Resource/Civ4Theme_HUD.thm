@@ -22,7 +22,11 @@ For information regarding GFC Commercial License Agreements go to:
 /* advc.002b: Copied from BtS/Resource/Themes/Civ4. Changed the tga
    paths based on ancestral's tutorial in order to avoid copies of all
    the UI graphics. Prefixed each path with "../../../../Resource/" for
-   Vanilla and "../../../Resource/" for BtS (HUD_BTS_icons.tga). */
+   Vanilla and "../../../Resource/" for BtS (HUD_BTS_icons.tga).
+   Also added missing semicolons in lines 886 and 926 of the BtS version of this
+   file (an error introduced by the BtS developers), though I'm not sure that
+   their absence had caused any problems apart from an error message in ThemeParseLog. */
+   
 
 /*
 SF_CtrlTheme_Civ4_Control
@@ -888,7 +892,7 @@ with GFC_Control_Button
 		{
 			.Default				= GBitmap("../../../Resource/Civ4/HUD/HUD_BTS_icons.tga", HVGrid, 5, 5, 1, 0);
 			.Rollover				= GBitmap("../../../Resource/Civ4/HUD/HUD_BTS_icons.tga", HVGrid, 5, 5, 1, 1);
-			.Press					= .Default
+			.Press					= .Default;
 			.Disable				= GBitmap("../../../Resource/Civ4/HUD/HUD_BTS_icons.tga", HVGrid, 5, 5, 1, 2);
 			.Toggle					= GBitmap("../../../Resource/Civ4/HUD/HUD_BTS_icons.tga", HVGrid, 5, 5, 1, 3);
 			.ToggleRollover			= GBitmap("../../../Resource/Civ4/HUD/HUD_BTS_icons.tga", HVGrid, 5, 5, 1, 4);
@@ -928,7 +932,7 @@ with GFC_Control_Button
 		{
 			.Default				= GBitmap("../../../Resource/Civ4/HUD/HUD_BTS_icons.tga", HVGrid, 5, 5, 2, 0);
 			.Rollover				= GBitmap("../../../Resource/Civ4/HUD/HUD_BTS_icons.tga", HVGrid, 5, 5, 2, 1);
-			.Press					= .Default
+			.Press					= .Default;
 			.Disable				= GBitmap("../../../Resource/Civ4/HUD/HUD_BTS_icons.tga", HVGrid, 5, 5, 2, 2);
 			.Toggle					= GBitmap("../../../Resource/Civ4/HUD/HUD_BTS_icons.tga", HVGrid, 5, 5, 2, 3);
 			.ToggleRollover			= GBitmap("../../../Resource/Civ4/HUD/HUD_BTS_icons.tga", HVGrid, 5, 5, 2, 4);

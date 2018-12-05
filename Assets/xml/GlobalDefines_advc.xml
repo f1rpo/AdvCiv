@@ -196,7 +196,7 @@
 		 Terrain with a base yield of exactly 1 food and 0 production
          (i.e. Tundra) is removed from the city radius around
 		 starting plots with this probability.
-		 Terrain with 0 food (Desert, Snow) gets two removal
+		 Terrain with 0 food (Snow, non-river Desert) gets two removal
          chances, e.g. 94% when REMOVAL_CHANCE_BAD_TERRAIN is 75
 		 (recommended). Use 100 for BtS/ K-Mod behavior.
 		 No effect if NORMALIZE_STARTPLOTS_AGGRESSIVELY is set. -->
@@ -544,11 +544,11 @@
 		<iDefineIntVal>50</iDefineIntVal>
 	</Define>
 	<!-- Turn after which effects of goody huts do not increase further.
-		 Recommended: 225. Has to be greater than or equal to
+		 Recommended: 250. Has to be greater than or equal to
 		 GOODY_BUFF_START_TURN. -->
 	<Define>
 		<DefineName>GOODY_BUFF_PEAK_TURN</DefineName>
-		<iDefineIntVal>225</iDefineIntVal>
+		<iDefineIntVal>250</iDefineIntVal>
 	</Define>
 	<!-- Factor by which the effects of goody huts are increased on
 		 GOODY_BUFF_PEAK_TURN. Recommended: 10 -->
@@ -590,10 +590,10 @@
 
 	<!-- [advc.250c]
 	     Originally in GlobalDefines.xml; set to 25 there. Essentially the
-		 number of start points charged per 10 culture. Recommended: 10. -->
+		 number of start points charged per 10 culture. Recommended: 15. -->
 	<Define>
 		<DefineName>ADVANCED_START_CULTURE_COST</DefineName>
-		<iDefineIntVal>10</iDefineIntVal>
+		<iDefineIntVal>15</iDefineIntVal>
 	</Define>
 
 	<!-- [advc.250c] The number of start points charged for routes
@@ -604,15 +604,23 @@
 		<iDefineIntVal>67</iDefineIntVal>
 	</Define>
 
-	<!-- [advc.250c]
-	     Originally in GlobalDefines.xml; set to 3 there. As far as I can
-		 tell, it's always added to ADVANCED_START_VISIBILITY_COST, which
-		 is 2 in GlobalDefines.xml, resulting in a total cost of 5
-		 start points per revealed tile. Recommended: 0 (for a total
-		 of 2). -->
+	<!-- advc.250c:
+	     Originally in GlobalDefines.xml; set to 2 there, which results in a
+		 total cost of 5 initially once ADVANCED_START_VISIBILITY_COST_INCREASE is taken into account.
+		 Recommended: 1, which results in an initial cost of 2. -->
+	<Define>
+		<DefineName>ADVANCED_START_VISIBILITY_COST</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	<!-- advc.250c:
+	     Originally in GlobalDefines.xml; set to 3 there, which means that the
+		 cost per revealed tile increases after every 33 tiles (100/3).
+		 Recommended: 4, meaning the cost increases after every 25 tiles.
+		 Note that the AdvCiv DLL counts automatically revealed tiles only
+		 partially. -->
 	<Define>
 		<DefineName>ADVANCED_START_VISIBILITY_COST_INCREASE</DefineName>
-		<iDefineIntVal>0</iDefineIntVal>
+		<iDefineIntVal>4</iDefineIntVal>
 	</Define>
 	
 	<!-- [advc.250c][advc.251]
@@ -775,12 +783,11 @@
 		<DefineName>PASSABLE_AREAS</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
-	
-	<!-- [advc.004t] Set to 0 to enable change 004t (not recommended; see
-		 manual). -->
+
+	<!-- [advc.004t] Copied from BtS GlobalDefines.xml where it's set to 1. -->
 	<Define>
-		<DefineName>ENABLE_POPUP_RECOMMENDATIONS</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
+		<DefineName>CITY_SCREEN_CLICK_WILL_EXIT</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 	
 	<!-- [advc.700] Rise & Fall parameters. The first four are applied at game
@@ -966,6 +973,33 @@
 	<Define>
 		<DefineName>ALERT_ON_NO_LONGER_WAR_TRADE</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	
+	<!-- advc.004h: This setting controls the borders shown around a selected
+		 Settler. Recommended: 0; BtS behavior: 1.
+		 0: The full city radius ("big fat cross") is highlighted.
+		 1: Only the inner ring of the city radius is highlighted.
+		 2: No tiles are highlighted. -->
+	<Define>
+		<DefineName>FOUNDING_BORDER_MODE</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	
+	<!-- advc.004h: If set to 1 (BtS) behavior, yield icons are shown whenever
+		 a Settler is selected. If set to 0 (recommended), yield icons are only
+		 shown if "Yield Display" is enabled above the mini-map. -->
+	<Define>
+		<DefineName>FOUNDING_SHOW_YIELDS</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	
+	<!-- advc.120f: When a spy switches the civics or religion of a target civ,
+		 third parties that know the target are notified of the spy mission
+		 (without revealing the spy owner).
+		 1 (recommended) enables this behavior, 0 disables it (as in BtS). -->
+	<Define>
+		<DefineName>ANNOUNCE_ESPIONAGE_REVOLUTION</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 
 </Civ4Defines>

@@ -13,7 +13,6 @@
 #include "CvCity.h"
 #include "CvPlotGroup.h"
 #include "CvGlobals.h"
-#include "CvGameAI.h"
 #include "CvPlayerAI.h"
 #include "CvRandom.h"
 #include "CvGameCoreUtils.h"
@@ -629,7 +628,7 @@ void CvMap::combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvP
 }
 
 CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTimeout,
-		int* legalCount) // advc.304
+		int* iLegal) // advc.304
 {
 	/*  <advc.304> The standard 100 trials for monte-carlo selection often fail to
 		find a plot when only handful of tiles are legal on large maps.
@@ -656,7 +655,7 @@ CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTi
 		CvPlot* pTestPlot = m.plotByIndexINLINE(i);
 		if(pTestPlot == NULL)
 			continue; // </advc.304>
-		if ((iArea == -1) || (pTestPlot->getArea() == iArea))
+		if (iArea == -1 || pTestPlot->getArea() == iArea)
 		{
 			bool bValid = true;
 
@@ -765,8 +764,8 @@ CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTi
 	}
 	//return pPlot;
 	int nLegal = (int)legalPlots.size();
-	if(legalCount != NULL)
-		*legalCount = nLegal;
+	if(iLegal != NULL)
+		*iLegal = nLegal;
     if(nLegal == 0)
         return NULL;
     return legalPlots[GC.getGame().getSorenRandNum(nLegal, "advc.304")];
@@ -1423,6 +1422,10 @@ void CvMap::read(FDataStreamBase* pStream)
 
 	setup();
 	computeShelves(); // advc.300
+	/*  advc.004z: Not sure if this is the ideal place for this, but it works.
+		(The problem was that goody huts weren't always highlighted by the
+		Resource layer after loading a game.) */
+	gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
 }
 
 // save object to a stream

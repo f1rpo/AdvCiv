@@ -115,7 +115,7 @@
 			<Type>MEMORY_CANCELLED_OPEN_BORDERS</Type>
 			<Description>TXT_KEY_MEMORY_CANCELLED_OPEN_BORDERS</Description>
 		</MemoryInfo>
-		<!-- advc.130p: The text isn't shown anywhere, so, I'm just pointing
+		<!-- advc.130p: The text isn't shown anywhere, so I'm just pointing
 			 to the (also unused) TXT_KEY_MEMORY_CANCELLED_OPEN_BORDERS. -->
 		<MemoryInfo>
 			<Type>MEMORY_CANCELLED_DEFENSIVE_PACT</Type>
@@ -153,6 +153,11 @@
 		<MemoryInfo>
 			<Type>MEMORY_INDEPENDENCE</Type>
 			<Description>TXT_KEY_MEMORY_INDEPENDENCE</Description>
+		</MemoryInfo>
+		<!-- advc.104i: (The description text doesn't matter) -->
+		<MemoryInfo>
+			<Type>MEMORY_DECLARED_WAR_RECENT</Type>
+			<Description>TXT_KEY_MEMORY_CANCELLED_OPEN_BORDERS</Description>
 		</MemoryInfo>
 	</MemoryInfos>
 </Civ4MemoryInfos>

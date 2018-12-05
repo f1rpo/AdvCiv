@@ -68,11 +68,11 @@
 	 are the first to build Destroyers, use them to prevent rivals from obtaining sea-based oil resources; protect your advantage as long as possible!" Oil rigs matter very rarely. -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_31</Tag>
-	<English>(UWAI) When a civilization refuses to join a war on grounds of "having enough on their hands", this can mean that they're already preparing a different war. But it's also possible that they're only preoccupied with peaceful development.</English>
-	<French>(UWAI) When a civilization refuses to join a war on grounds of "having enough on their hands", this can mean that they're already preparing a different war. But it's possible also that they're only preoccupied with peaceful development.</French>
+	<English>(UWAI) When a civilization refuses to join a war on grounds of "having enough on their hands," this can mean that they're already preparing a different war. But it's also possible that they're only preoccupied with peaceful development.</English>
+	<French>(UWAI) When a civilization refuses to join a war on grounds of "having enough on their hands," this can mean that they're already preparing a different war. But it's possible also that they're only preoccupied with peaceful development.</French>
 	<German>(UWAI) Wenn eine Zivilisation einen gemeinsamen Krieg ablehnt und auf "genug andere Sorgen" verweist, dann kann es sein, dass schon ein anderer Krieg geplant ist. Es ist aber auch möglich, dass man bloß mit friedlichen Projekten beschäftigt ist.</German>
-	<Italian>(UWAI) When a civilization refuses to join a war on grounds of "having enough on their hands", this can mean that they're already preparing a different war. But it's also possible that they're only preoccupied with peaceful development.</Italian>
-	<Spanish>(UWAI) When a civilization refuses to join a war on grounds of "having enough on their hands", this can mean that they're already preparing a different war. But it's also possible that they're only preoccupied with peaceful development.</Spanish>
+	<Italian>(UWAI) When a civilization refuses to join a war on grounds of "having enough on their hands," this can mean that they're already preparing a different war. But it's also possible that they're only preoccupied with peaceful development.</Italian>
+	<Spanish>(UWAI) When a civilization refuses to join a war on grounds of "having enough on their hands," this can mean that they're already preparing a different war. But it's also possible that they're only preoccupied with peaceful development.</Spanish>
 </TEXT>
 
 <!-- "If you find a valuable resource that is too far away for you to use, it
@@ -93,11 +93,11 @@
 <!-- advc.130o -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_64</Tag>
-	<English>(AdvCiv) If you attack a civilization after receiving their tribute, everyone will be deaf to your demands and pleas for a long time. Once a civilization no longer remembers how "You made an arrogant demand", they're fair game to attack.</English>
-	<French>(AdvCiv) If you attack a civilization after receiving their tribute, everyone will be deaf to your demands and pleas for a long time. Once a civilization no longer remembers how "You made an arrogant demand", they're fair game to attack.</French>
+	<English>(AdvCiv) If you attack a civilization after receiving their tribute, everyone will be deaf to your demands and pleas for a long time. Once a civilization no longer remembers how "you made an arrogant demand," they're fair game to attack.</English>
+	<French>(AdvCiv) If you attack a civilization after receiving their tribute, everyone will be deaf to your demands and pleas for a long time. Once a civilization no longer remembers how "you made an arrogant demand," they're fair game to attack.</French>
 	<German>(AdvCiv) Wenn Sie eine Zivilisation angreifen, von der Sie Tribut erhalten haben, wird für lange Zeit niemand mehr auf Ihre Forderungen und Bitten eingehen. Dies gilt nur, wenn Sie angreifen, so lange sich die Zivilisation an Ihre Tributforderung erinnert.</German>
-	<Italian>(AdvCiv) If you attack a civilization after receiving their tribute, everyone will be deaf to your demands and pleas for a long time. Once a civilization no longer remembers how "You made an arrogant demand", they're fair game to attack.</Italian>
-	<Spanish>(AdvCiv) If you attack a civilization after receiving their tribute, everyone will be deaf to your demands and pleas for a long time. Once a civilization no longer remembers how "You made an arrogant demand", they're fair game to attack.</Spanish>
+	<Italian>(AdvCiv) If you attack a civilization after receiving their tribute, everyone will be deaf to your demands and pleas for a long time. Once a civilization no longer remembers how "you made an arrogant demand," they're fair game to attack.</Italian>
+	<Spanish>(AdvCiv) If you attack a civilization after receiving their tribute, everyone will be deaf to your demands and pleas for a long time. Once a civilization no longer remembers how "you made an arrogant demand," they're fair game to attack.</Spanish>
 </TEXT>
 
 <!-- "Don't neglect your navy! Especially in the late game. Controlling the
@@ -458,6 +458,28 @@
 	<German>Die meisten Nachrichten lassen sich durch das Ereignis-Log [Strg+Tab] auf der Karte verorten. Klicken Sie auf den Text einer Nachricht, um zum Ort des Geschehens zu springen.</German>
 	<Italian>Most announcements can be located on the map by opening the Event Log [Ctrl+Tab] and clicking on the announcement text.</Italian>
 	<Spanish>Most announcements can be located on the map by opening the Event Log [Ctrl+Tab] and clicking on the announcement text.</Spanish>
+</TEXT>
+
+<!-- advc.124 -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_31</Tag>
+	<English>(AdvCiv) When a war disrupts your maritime trade connections, a naval blockade can override this: tiles blockaded by your ships block enemy trade and enable friendly trade.</English>
+	<French>(AdvCiv) When a war disrupts your maritime trade connections, a naval blockade can override this: tiles blockaded by your ships block enemy trade and enable friendly trade.</French>
+	<German>(AdvCiv) Wenn ein Krieg Ihre maritimen Handelswege unterbricht, kann eine Blockade Ihrerseits ein Gegenmittel sein: Die blockierten Felder erlauben freundlichen Handel und stoppen feindlichen Handel.</German>
+	<Italian>(AdvCiv) When a war disrupts your maritime trade connections, a naval blockade can override this: tiles blockaded by your ships block enemy trade and enable friendly trade.</Italian>
+	<Spanish>(AdvCiv) When a war disrupts your maritime trade connections, a naval blockade can override this: tiles blockaded by your ships block enemy trade and enable friendly trade.</Spanish>
+</TEXT>
+
+<!-- advc.008c: Was "Snacks are good in moderation" - the joke got old.
+	 It also works in the tech tree; however, right-click in the tech tree also
+	 sets a research target, so this is not recommendable. -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_35</Tag>
+	<English>In the city screen, a right-click on a production button opens the Civilopedia. The Civilopedia can also be accessed via right-click from the tech-chooser and the civics screen.</English>
+	<French>In the city screen, a right-click on a production button opens the Civilopedia. The Civilopedia can also be accessed via right-click from the tech-chooser and the civics screen.</French>
+	<German>Ein Rechtsklick auf eine Einheiten- oder Gebäude-Schaltfläche im Stadtbildschirm öffnet die Zivilopädie. Auch von der Technologieauswahl und dem Staatsform-Bildschirm aus ist die Zivilopädie per Rechtsklick erreichbar.</German>
+	<Italian>In the city screen, a right-click on a production button opens the Civilopedia. The Civilopedia can also be accessed via right-click from the tech-chooser and the civics screen.</Italian>
+	<Spanish>In the city screen, a right-click on a production button opens the Civilopedia. The Civilopedia can also be accessed via right-click from the tech-chooser and the civics screen.</Spanish>
 </TEXT>
 
 </Civ4GameText>

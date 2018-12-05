@@ -299,67 +299,112 @@ void InvasionGraph::Node::findAndLinkTarget() {
 	else primaryTarget->targetedBy.insert(id);
 }
 
+
 PlayerTypes InvasionGraph::Node::findTarget(TeamTypes include) const {
 
-	/*  Find the city with the highest targetValue and check which potential
-		target has reachable cities left. (City::canReach says which ones are
-		reachable in the actual game state; doesn't take into account
-		Node::hasLost.) */
-	bool canTarget[MAX_CIV_PLAYERS];
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
-		canTarget[i] = false;
 	PlayerTypes likeliestTarget = NO_PLAYER;
-	for(int i = 0; i < cache.size(); i++) {
-		WarAndPeaceCache::City* city = cache.getCity(i);
-		if(city == NULL || !city->canReach())
-			continue;
-		PlayerTypes owner = city->cityOwner();
-		if(owner == NO_PLAYER || (!isWarOpponent[owner] &&
-				(include == NO_TEAM || GET_PLAYER(owner).getMasterTeam() !=
-				GET_TEAM(include).getMasterTeam())) ||
-				outer.nodeMap[owner] == NULL ||
-				outer.nodeMap[owner]->hasLost(city->id()) ||
-				// Important for phase II:
-				outer.nodeMap[owner]->isEliminated() ||
-				outer.nodeMap[owner]->hasCapitulated())
-			continue;
-		// First hit is best target b/c cache is sorted
+	/*  W/e the current target is according to unit missions, assume it
+		will change once war is declared. */
+	bool bSearchedLikeliest = false;
+	if(outer.allWarPartiesKnown || include != NO_TEAM) {
+		bSearchedLikeliest = true;
+		/*  Find the city with the highest targetValue and check which potential
+			target has reachable cities left. (City::canReach says which ones are
+			reachable in the actual game state; doesn't take into account
+			Node::hasLost.) */
+		for(int i = 0; i < cache.size(); i++) {
+			WarAndPeaceCache::City* city = cache.getCity(i);
+			if(city == NULL)
+				continue;
+			if(!city->canReach() || city->isOwnCity())
+				break; // Because of sorting, rest is also going to be invalid.
+			if(!isValidTarget(*city, include))
+				continue;
+			// First hit is best target b/c cache is sorted
+			if(likeliestTarget == NO_PLAYER) {
+				PlayerTypes owner = city->cityOwner();
+				if(!TEAMREF(id).isAtWar(TEAMID(owner)))
+					return owner;
+				/*  Otherwise, check unit missions, but may still fall back
+					on likeliestTarget. */
+				likeliestTarget = owner;
+				break;
+			}
+		}
 		if(likeliestTarget == NO_PLAYER)
-			likeliestTarget = owner;
-		canTarget[owner] = true;
+			return NO_PLAYER;
 	}
-	// Can't reach any target
-	if(likeliestTarget == NO_PLAYER)
-		return NO_PLAYER;
-	/* W/e the current target is according to unit missions, assume it'll switch
-	   once war is declared. */
-	if((outer.allWarPartiesKnown || include != NO_TEAM) &&
-			!TEAMREF(id).isAtWar(TEAMID(likeliestTarget)))
-		return likeliestTarget;
 	// Against whom does this Node have the most missions?
 	PlayerTypes mostMissions = NO_PLAYER;
-	int maxCount = -1;
+	// Tbd. possibly: Use a fraction of cache.numNonNavy as the threshold
+	int maxCount = 3;
 	for(set<PlayerTypes>::const_iterator it = warOpponents.begin();
 				it != warOpponents.end(); it++) {
 		PlayerTypes oppId = *it;
-		if(!canTarget[oppId])
-			continue;
 		int n = cache.targetMissionCount(oppId);
-		if(n > maxCount) {
-			maxCount = n;
-			mostMissions = oppId;
+		if(n <= maxCount)
+			continue;
+		// Same conditions as in isValidTarget
+		if(outer.nodeMap[oppId] == NULL ||
+				outer.nodeMap[oppId]->isEliminated() ||
+				outer.nodeMap[oppId]->hasCapitulated())
+			continue;
+		// Still need to ensure that oppId has a valid city
+		bool bValidFound = false;
+		/*  In large games, looking up oppId's cities is faster than a pass through
+			our whole cache. */
+		int foo=-1;
+		for(CvCity* cvCity = GET_PLAYER(oppId).firstCity(&foo); cvCity != NULL;
+				cvCity = GET_PLAYER(oppId).nextCity(&foo)) {
+			WarAndPeaceCache::City* c = cache.lookupCity(*cvCity);
+			if(c != NULL && c->canReach() && !outer.nodeMap[oppId]->
+					hasLost(c->id())) {
+				bValidFound = true;
+				break;
+			}
 		}
+		if(!bValidFound)
+			continue;
+		maxCount = n;
+		mostMissions = oppId;
 	}
-	//  If there are very few missions, fall back on likeliestTarget.
-	if(maxCount < 4) { /* Tbd. possibly: Use a fraction of cache.numNonNavy as
-					      the threshold. */
-		report.log("Too few missions to determine target of %s",
+	if(mostMissions != NO_PLAYER) {
+		report.log("Target of %s determined based on unit missions.",
 				report.leaderName(id));
-		return likeliestTarget;
+		return mostMissions;
 	}
-	report.log("Target of %s determined based on unit missions.",
+	report.log("Too few missions to determine target of %s",
 			report.leaderName(id));
-	return mostMissions;
+	// Fall back on likeliestTarget.
+	if(likeliestTarget != NO_PLAYER)
+		return likeliestTarget;
+	if(bSearchedLikeliest)
+		return NO_PLAYER;
+	// Haven't looked for the likeliest target yet (b/c that's expensive); do so now.
+	for(int i = 0; i < cache.size(); i++) {
+		WarAndPeaceCache::City* city = cache.getCity(i);
+		if(city == NULL)
+			continue;
+		if(!city->canReach() || city->isOwnCity())
+			break;
+		if(isValidTarget(*city, include))
+			return city->cityOwner();
+	}
+	return NO_PLAYER;
+}
+
+bool InvasionGraph::Node::isValidTarget(WarAndPeaceCache::City const& c,
+		TeamTypes include) const {
+
+	PlayerTypes const owner = c.cityOwner();
+	return !(owner == NO_PLAYER || (!isWarOpponent[owner] &&
+			(include == NO_TEAM || GET_PLAYER(owner).getMasterTeam() !=
+			GET_TEAM(include).getMasterTeam())) ||
+			outer.nodeMap[owner] == NULL ||
+			outer.nodeMap[owner]->hasLost(c.id()) ||
+			// Important for phase II:
+			outer.nodeMap[owner]->isEliminated() ||
+			outer.nodeMap[owner]->hasCapitulated());
 }
 
 WarAndPeaceReport& InvasionGraph::getReport() {
@@ -488,7 +533,8 @@ void InvasionGraph::Node::predictArmament(int duration, bool noUpgrading) {
 		if(!outer.isPeaceScenario && !outer.allWarPartiesKnown &&
 				!TEAMREF(weId).isAtWar(targetId)) {
 			report.setMute(true);
-			tC = targetCity(findTarget(targetId));
+			PlayerTypes actualTarget = findTarget(targetId);
+			tC = targetCity(actualTarget);
 			report.setMute(false);
 		}
 	}
@@ -622,19 +668,27 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	}
 	// Optimism/ pessimism, learning from past success/ failure
 	double confAttPers = 1, confDefPers = 1;
-	if(id == weId)
-		confAttPers = GET_PLAYER(weId).warAndPeaceAI().warConfidencePersonal(isNaval);
-	else if(defender.id == weId)
-		confDefPers = GET_PLAYER(weId).warAndPeaceAI().warConfidencePersonal(
-				false); // Defense doesn't hinge on navies and fighting in faraway lands
+	if(id == weId || defender.id == weId) {
+		bool const bTotal = outer.m.evaluationParameters().isTotal();
+		if(id == weId) {
+			confAttPers = GET_PLAYER(weId).warAndPeaceAI().warConfidencePersonal(
+					isNaval, bTotal);
+		}
+		else if(defender.id == weId) {
+			confDefPers = GET_PLAYER(weId).warAndPeaceAI().warConfidencePersonal(
+					// Defense doesn't hinge on navies and fighting in faraway lands
+					false, bTotal);
+		}
+	}
 	if(GET_PLAYER(id).isHuman())
 		confDefPers *= GET_PLAYER(defender.id).warAndPeaceAI().confidenceAgainstHuman();
 	if(GET_PLAYER(defender.id).isHuman())
 		confAttPers *= GET_PLAYER(id).warAndPeaceAI().confidenceAgainstHuman();
-	if(confAttPers > 1.001 || confDefPers > 1.001 || confAttPers < 0.999 || confDefPers < 0.999)
+	if(confAttPers > 1.001 || confDefPers > 1.001 || confAttPers < 0.999 || confDefPers < 0.999) {
 		report.log("Personal confidence (%s/%s): %d/%d percent",
 				report.leaderName(id), report.leaderName(defender.id),
 				::round(confAttPers * 100), ::round(confDefPers * 100));
+	}
 	double confAtt = confAttPers;
 	double confDef = confDefPers;
 	// Assume that we don't know war successes of third parties
@@ -650,7 +704,12 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 					report.leaderName(id), report.leaderName(defender.id),
 					::round(confAttLearned * 100 + 100),
 					::round(confDefLearned * 100 + 100));
-		// Don't multiply with conf...Pers; avoid extreme confidence this way
+		/*  To avoid extreme bias, don't multiply with conf...Pers unless
+			learned and personal confidence contradict each other. */
+		if((confAttLearned < 0) != (confAtt < 1) && confAtt != 1 && confAttLearned != 0)
+			confAttLearned *= (1 + std::abs(1 - confAtt));
+		if((confDefLearned < 0) != (confDef < 1) && confDef != 1 && confDefLearned != 0)
+			confDefLearned *= (1 + std::abs(1 - confDef));
 		confAtt += confAttLearned;
 		confDef += confDefLearned;
 	}
@@ -708,10 +767,10 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		else report.log("Attacker power: %d", ::round(armyPow));
 		report.log("Defending army's power: %d", ::round(targetArmyPow));
 	}
-	bool sneakAttack = isSneakAttack(defender);
-	bool attackerUnprepared = defender.isSneakAttack(*this);
+	bool sneakAttack = isSneakAttack(defender, clashOnly);
+	bool attackerUnprepared = defender.isSneakAttack(*this, false);
 	double deploymentDistDefender = 0;
-	double deploymentDistAttacker;
+	double deploymentDistAttacker = 0;
 	double mwmalpFactor = 1;
 	if(id == weId) {
 		int mwmalp = GC.getLeaderHeadInfo(GET_PLAYER(id). // in the interval [0,4]
@@ -749,8 +808,8 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	}
 	else {
 		double dist = clashDistance(defender);
-		FAssert(dist > 0); /* Might be OK in the late game if two cities are
-						      at minimal distance to each other. */
+		FAssert(dist > 0); /* WarAndPeaceCache::City::updateDistance should
+						      guarantee this. */
 		deploymentDistAttacker = dist;
 		deploymentDistDefender = dist;
 		// Can't rule out that both armies are eliminated at this point
@@ -769,11 +828,17 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	   a) Produced units become available with a delay.
 	   b) The combat AI tends to form smaller stacks when distances are long; they
 	      arrive in a trickle.
-	   a) is also true when sneak attacking, b) isn't. The divison by two says
-	   that distance is "half as bad" when sneak attacking. */
+	   When sneak attacking, b) is less of a concern, but don't want to encourage
+	   early long-distance wars; reduce deploymentDist only slightly. */
 	if(sneakAttack) {
-		deploymentDistAttacker /= 2;
-		deploymentDistDefender = 0;
+		if(clashOnly && defender.id == weId) {
+			deploymentDistDefender *= 0.8;
+			deploymentDistAttacker = 0;
+		}
+		else if(!clashOnly) {
+			deploymentDistAttacker *= 0.8;
+			deploymentDistDefender = 0;
+		}
 		/* This often allows sneak attackers to attack a city before civs that
 		   have been at war for some time. These civs already get a chance to
 		   conquer cities during the simulation prolog. That said, no build-up
@@ -901,7 +966,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	double defDeploymentMod = std::max(100 -  2 * deploymentDistDefender, 50.0)
 			/ 100;
 	targetArmyPow *= defDeploymentMod;
-	armyPow *= std::max(100 -  2 * deploymentDistAttacker, 50.0) / 100;
+	armyPow *= std::max(100 - 1.55 * std::pow(deploymentDistAttacker, 1.15), 50.0) / 100;
    // Units available in battle area
 	CvArea* battleArea = NULL;
 	if(c != NULL)
@@ -920,7 +985,7 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		(and hidden knowledge unless id==weId). */
 	if(battleArea != NULL) {
 		if(remainingCitiesAtt > 0) {
-			if(!isNaval) {
+			if(!isNaval && !clashOnly) {
 				/*  Fixme(?): getCitiesPerPlayer should be reduced based on lost
 					cities */
 				areaWeightAtt = battleArea->getCitiesPerPlayer(id) /
@@ -930,17 +995,18 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 					areaWeightAtt *= (GET_PLAYER(id).isHuman() ? 1.5 : 1.33);
 				areaWeightAtt = std::min(1.0, areaWeightAtt);
 			}
-			/*  For a human attacker, leave areaWeightAtt at 100% and assume that
-				the naval attack focuses the entire human army (as many as are
-				supported by LOGISTICS). Would like to assume that about the AI
-				as well, but it struggles badly with deploying units from
-				different areas. */
-			else if(!GET_PLAYER(id).isHuman()) {
+			else {
 				CvCity* capital = GET_PLAYER(id).getCapitalCity();
 				if(capital != NULL) {
-					areaWeightAtt = ::dRange(capital->area()->getCitiesPerPlayer(id) /
-							(double)GET_PLAYER(id).getNumCities(), 0.5, 1.0);
+					areaWeightAtt = capital->area()->getCitiesPerPlayer(id) /
+							(double)GET_PLAYER(id).getNumCities();
 				}
+				/*  A human naval attack focuses much of the army (if supported by
+					LOGISTICS), while the AI struggles with deploying units from
+					different areas. */
+				if(GET_PLAYER(id).isHuman())
+					areaWeightAtt += 0.25;
+				areaWeightAtt = ::dRange(areaWeightAtt, 0.5, 1.0);
 			}
 			if(areaWeightAtt < 0.99) {
 				report.log("Area weight attacker: %d percent",
@@ -954,11 +1020,14 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 			CvCity* capital = GET_PLAYER(defender.id).getCapitalCity();
 			if(capital != NULL && capital->area() == battleArea)
 				areaWeightDef *= (GET_PLAYER(defender.id).isHuman() ? 1.5 : 1.33);
-			areaWeightDef = std::min(1.0, areaWeightDef);
+			/*  Even if the local army is too small to prevent the (temporary)
+				capture of a city, reinforcements will arrive before long. */
+			areaWeightDef = ::dRange(areaWeightDef, 0.33, 1.0);
 			if(areaWeightDef < 0.99) {
 				report.log("Area weight defender: %d percent",
 						::round(areaWeightDef * 100));
 				targetArmyPow *= areaWeightDef;
+				targetCavPow *= areaWeightDef;
 			}
 		}
 	}
@@ -1165,6 +1234,9 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
     // Just the hill defense (help=true skips city defense)
 	tileBonus += cvCity->plot()->defenseModifier(NO_TEAM, true, NO_TEAM, true);
 	tileBonus /= 100.0;
+	/*  Would be nice to check also if the city is enclosed by rivers, e.g. in a
+		river delta, but I think this can't really happen on randomly generated maps,
+		and the test could be a bit slow. */
 	double localGarrisonPow = (nLocalGarrisons * powerPerGarrison
 			* powerCorrect(
 			1 + fortificationBonus + cityDefenderBonus + tileBonus)) * confDef;
@@ -1172,9 +1244,9 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 			* powerPerGarrison
 			* powerCorrect(1 + cityDefenderBonus + tileBonus)) * confDef;
 	double defendingArmyPow = 0;
-	double defArmyPortion = std::min(1.0,
+	double defArmyPortion = std::min(1.0, (sneakAttack ? 0.375 : 0.5) /
 			// More units rallied at the first few cities that are attacked
-			0.5 / std::sqrt((defender.losses.size() + 1.0)) + nRallied * 0.25);
+			std::sqrt((defender.losses.size() + 1.0)) + nRallied * 0.25);
 	if(remainingCitiesDef == 1)
 		defArmyPortion = 1;
 	else if(!defender.hasClashed) {
@@ -1529,14 +1601,15 @@ WarAndPeaceCache::City const* InvasionGraph::Node::targetCity(
 		WarAndPeaceCache::City* r = cache.getCity(i);
 		if(r == NULL)
 			continue;
+		if(!r->canReach() || r->isOwnCity())
+			break; // Because of sorting, rest is also going to be invalid.
 		PlayerTypes const cityOwner = r->cityOwner();
 		if((cityOwner == owner ||
 				(owner == NO_PLAYER && cityOwner == primaryTarget->getId())) &&
 				/* Target may also have conquered the city; however,
 				   cities being won and lost within one military analysis
 				   gets too complicated. */
-				(primaryTarget == NULL || !primaryTarget->hasLost(r->id())) &&
-				r->canReach())
+				(primaryTarget == NULL || !primaryTarget->hasLost(r->id())))
 			return r;
 	}
 	return NULL;
@@ -1747,13 +1820,16 @@ double InvasionGraph::Node::clashDistance(InvasionGraph::Node const& other) cons
 	}
 }
 
-bool InvasionGraph::Node::isSneakAttack(InvasionGraph::Node const& other) const {
+bool InvasionGraph::Node::isSneakAttack(InvasionGraph::Node const& other,
+		bool bClash) const {
 
-	if(id != weId || TEAMREF(id).isAtWar(TEAMID(other.getId())))
+	if((id != weId && (!bClash || other.id != weId)) || TEAMREF(id).isAtWar(TEAMID(other.getId())))
 		return false;
-	for(size_t i = 0; i < conquests.size(); i++)
-		if(conquests[i]->cityOwner() == other.getId())
-			return false;
+	if(!bClash) {
+		for(size_t i = 0; i < conquests.size(); i++)
+			if(conquests[i]->cityOwner() == other.getId())
+				return false;
+	}
 	WarEvalParameters const& params = outer.m.evaluationParameters();
 	// Can't ready our units then
 	return !params.isImmediateDoW();
@@ -1934,13 +2010,17 @@ void InvasionGraph::breakCycle(vector<Node*> const& cyc) {
 			report.setMute(true);
 	        SimulationStep* ss = nodeMap[*it]->step();
 			report.setMute(false);
-			FAssert(ss != NULL); /* Might be OK in some circumstances.
-									Not sure how to handle it gracefully when
-									there's no threat from any node targeting n.
-									Normally, only nodes that threaten n should
-									target it. */
-	        if(ss == NULL)
-	            continue;
+	        if(ss == NULL) {
+				/*  Might be fine in some circumstances, but suggests inconsistent
+					results of the targetCity and findTarget function. The former
+					relies on the order of the cache. */
+				FAssert(ss != NULL);
+				// Call 'step' again for investigation in the debugger
+				FAssert(nodeMap[*it]->step() != NULL);
+				continue;
+				/*  Not sure how to handle it gracefully when there's no threat from
+					_any_ node targeting n, i.e. when step returns NULL for all *it. */
+			}
 			double baseThreat = ss->getThreat();
 			double thr = baseThreat * willingness(nodeMap[*it]->getId(), n.getId());
 			if(std::abs(thr - baseThreat) > 0.005)
@@ -2024,7 +2104,7 @@ void SimulationStep::reducePower(PlayerTypes id, MilitaryBranchTypes mb,
 	if(ofAttacker)
 		lostPowerAttacker[mb] += subtrahend;
 	else lostPowerDefender[mb] += subtrahend;
-	FAssert(lostPowerAttacker[mb]>-0.0001 && lostPowerDefender[mb]>-0.0001);
+	FAssert(lostPowerAttacker[mb]>-0.001 && lostPowerDefender[mb]>-0.001);
 }
 
 void SimulationStep::setSuccess(bool b) {

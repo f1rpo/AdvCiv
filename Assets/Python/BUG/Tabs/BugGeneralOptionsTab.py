@@ -70,6 +70,7 @@ class BugGeneralOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addLabel(screen, panel, "TechWindow", "Tech Splash Screen:")
 		self.addTextDropdown(screen, panel, panel, "TechWindow__ViewType", True)
 		self.addCheckbox(screen, panel, "TechWindow__CivilopediaText")
+		self.addCheckbox(screen, panel, "TechWindow__ShowSSScreen") # advc.060
 
 #	def createBuffyPanel(self, screen, panel):
 #		self.addLabel(screen, panel, "BUFFY", "BUFFY:")
@@ -90,9 +91,10 @@ class BugGeneralOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addLabel(screen, panel, "Misc", "Misc:")
 		self.addCheckbox(screen, panel, "MainInterface__GoldRateWarning")
 		self.addCheckbox(screen, panel, "MainInterface__MinMax_Commerce")
+		# advc.120c:
+		self.addCheckbox(screen, panel, "MainInterface__Hide_EspSlider")
 		self.addCheckbox(screen, panel, "MainInterface__ProgressBarsTickMarks")
 		self.addTextDropdown(screen, panel, panel, "MainInterface__BuildIconSize", True)
-		# advc.042
-		#self.addCheckbox(screen, panel, "MainInterface__CityArrows")
+		self.addCheckbox(screen, panel, "MainInterface__CityArrows")
 		self.addCheckbox(screen, panel, "MainInterface__RapidUnitCycling")
 		self.addCheckbox(screen, panel, "MainInterface__SimpleSelection")
