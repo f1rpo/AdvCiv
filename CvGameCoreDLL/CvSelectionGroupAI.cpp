@@ -372,7 +372,7 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot, bool bP
 
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 
-	bool bIsHuman = (pUnitNode != NULL) ? GET_PLAYER(::getUnit(pUnitNode->m_data)->getOwnerINLINE()).isHuman() : true;
+	bool bHuman = (pUnitNode != NULL) ? GET_PLAYER(::getUnit(pUnitNode->m_data)->getOwnerINLINE()).isHuman() : true;
 
 	while (pUnitNode != NULL)
 	{
@@ -432,7 +432,7 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot, bool bP
 							}
 
 							// if non-human, prefer the last unit that has the best value (so as to avoid splitting the group)
-							if (iValue > iBestValue || (!bIsHuman && iValue > 0 && iValue == iBestValue))
+							if (iValue > iBestValue || (!bHuman && iValue > 0 && iValue == iBestValue))
 							{
 								iBestValue = iValue;
 								iBestOdds = iOdds;

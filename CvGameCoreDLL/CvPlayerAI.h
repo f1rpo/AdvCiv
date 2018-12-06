@@ -299,6 +299,8 @@ public:
 		int AI_neededExplorers_bulk(CvArea const* pArea) const;
 		std::map<int,int> m_neededExplorersByArea;
 		public: // </advc.003b>
+	// advc.042: Moved from CvPlayer and int param added
+	int AI_countUnimprovedBonuses(CvArea* pArea, CvPlot* pFromPlot = NULL, int iLookAhead = 0) const;														// Exposed to Python
 	int AI_neededWorkers(CvArea* pArea) const;
 	int AI_neededMissionaries(CvArea* pArea, ReligionTypes eReligion) const;
 	int AI_neededExecutives(CvArea* pArea, CorporationTypes eCorporation) const;
@@ -746,6 +748,8 @@ protected:
 	void AI_updateDangerFromSubmarines();
 		bool m_bDangerFromSubs; // Not stored in savegames </advc.651>
 	int AI_knownRankDifference(PlayerTypes otherId) const; // advc.130c
+	// advc.042: Relies on caller to reset GC.getBorderFinder()
+	bool AI_isUnimprovedBonus(CvPlot const& p, CvPlot* pFromPlot, bool bCheckPath) const;
 
 	// K-Mod. I've moved the bulk of AI_getStrategyHash into a new function: AI_updateStrategyHash.
 	inline int AI_getStrategyHash() const { return m_iStrategyHash; }

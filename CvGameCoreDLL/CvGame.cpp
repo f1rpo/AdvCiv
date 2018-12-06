@@ -795,15 +795,13 @@ void CvGame::initDiplomacy()
 {
 	PROFILE_FUNC();
 
-	int iI, iJ;
-
-	for (iI = 0; iI < MAX_TEAMS; iI++)
+	for (int iI = 0; iI < MAX_TEAMS; iI++)
 	{
 		GET_TEAM((TeamTypes)iI).meet(((TeamTypes)iI), false);
 
 		if (GET_TEAM((TeamTypes)iI).isBarbarian() || GET_TEAM((TeamTypes)iI).isMinorCiv())
 		{
-			for (iJ = 0; iJ < MAX_CIV_TEAMS; iJ++)
+			for (int iJ = 0; iJ < MAX_CIV_TEAMS; iJ++)
 			{
 				if (iI != iJ)
 				{
@@ -5342,8 +5340,6 @@ void CvGame::setFinalInitialized(bool bNewValue)
 {
 	PROFILE_FUNC();
 
-	int iI;
-
 	if (isFinalInitialized() != bNewValue)
 	{
 		m_bFinalInitialized = bNewValue;
@@ -5354,7 +5350,7 @@ void CvGame::setFinalInitialized(bool bNewValue)
 
 			GC.getMapINLINE().updateIrrigated();
 
-			for (iI = 0; iI < MAX_TEAMS; iI++)
+			for (int iI = 0; iI < MAX_TEAMS; iI++)
 			{
 				GET_TEAM((TeamTypes)iI).AI_initMemory(); // K-Mod
 				if (GET_TEAM((TeamTypes)iI).isAlive())
@@ -7900,10 +7896,12 @@ void CvGame::createAnimals()
 // <advc.307>
 bool CvGame::isBarbarianCreationEra() const {
 
+	if(isOption(GAMEOPTION_NO_BARBARIANS))
+		return false;
 	EraTypes eCurrentEra = getCurrentEra();
 	return (!GC.getEraInfo(eCurrentEra).isNoBarbUnits() &&
 			/*  Also stop spawning when barb tech falls behind too much;
-				may resume once barb tech catches up. */
+				may resume once Barb tech catches up. */
 			eCurrentEra <= GET_PLAYER(BARBARIAN_PLAYER).getCurrentEra() + 1);
 }
 
@@ -8041,7 +8039,7 @@ int CvGame::spawnBarbarians(int n, CvArea& a, Shelf* shelf,
 	}
 	// From here on, mostly cut and pasted from createBarbarianUnits. </advc.306>
 
-	CvPlot* pPlot;
+	CvPlot* pPlot=NULL;
 	for (int iI = 0; iI < n; iI++)
 	{
         // <advc.300>
@@ -8112,7 +8110,11 @@ CvPlot* CvGame::randomBarbPlot(CvArea const& a, Shelf* shelf) const {
 	CvPlot* r = NULL;
 	if(shelf == NULL)
 		r = GC.getMap().syncRandPlot(restrictionFlags, a.getID(), iDist, -1, &iLegal);
-	else r = shelf->randomPlot(restrictionFlags, iDist, &iLegal);
+	else {
+		r = shelf->randomPlot(restrictionFlags, iDist, &iLegal);
+		if(iLegal * 100 < shelf->size())
+			r = NULL;
+	}
 	if(r != NULL) {
 		double prSkip = 0;
 		if(iLegal > 0 && iLegal < 4)

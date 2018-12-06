@@ -8748,6 +8748,21 @@ void CvCity::updateCultureLevel(bool bUpdatePlotGroups)
 	setCultureLevel(eCultureLevel, bUpdatePlotGroups);
 }
 
+// <advc.042> Mostly cut and pasted from CvDLLWidgetData::parseCultureHelp
+int CvCity::getCultureTurnsLeft() const {
+
+	int iCultureRateTimes100 = getCommerceRateTimes100(COMMERCE_CULTURE);
+	if(iCultureRateTimes100 <= 0)
+		return -1;
+	int iCultureLeftTimes100 = 100 * getCultureThreshold() -
+			getCultureTimes100(getOwnerINLINE());
+	if(iCultureLeftTimes100 <= 0)
+		return -1;
+	int r = (iCultureLeftTimes100  + iCultureRateTimes100 - 1) / iCultureRateTimes100;
+	FAssert(r != 0);
+	return r;
+} // </advc.042>
+
 
 int CvCity::getSeaPlotYield(YieldTypes eIndex) const
 {
@@ -14708,11 +14723,11 @@ void CvCity::getVisibleBuildings(std::list<BuildingTypes>& kChosenVisible, int& 
 			continue;
 		// Copied these two checks from Rise of Mankind
 		CvBuildingInfo& kBuilding = GC.getBuildingInfo(eCurType);
-		bool bIsWonder = isLimitedWonderClass((BuildingClassTypes)kBuilding.
+		bool bWonder = isLimitedWonderClass((BuildingClassTypes)kBuilding.
 				getBuildingClassType());
-		bool bIsDefense = (kBuilding.getDefenseModifier() > 0);
+		bool bDefense = (kBuilding.getDefenseModifier() > 0);
 		PlayerTypes activePl = GC.getGameINLINE().getActivePlayer();
-		if(!allVisible && !bIsWonder && !bIsDefense) {
+		if(!allVisible && !bWonder && !bDefense) {
 			bool visibleYieldChange = false;
 			int* seaPlotYieldChanges = kBuilding.getSeaPlotYieldChangeArray();
 			int* riverPlotYieldChanges = kBuilding.getRiverPlotYieldChangeArray();
@@ -16261,19 +16276,19 @@ int CvCity::getMusicScriptId() const
 {	// <advc.001p>
 	if(getOwnerINLINE() == NO_PLAYER)
 		return 0; // </advc.001p>
-	bool bIsHappy = true;
+	bool bHappy = true;
 	if (GC.getGameINLINE().getActiveTeam() == getTeam())
 	{
 		if (angryPopulation() > 0)
 		{
-			bIsHappy = false;
+			bHappy = false;
 		}
 	}
 	else
 	{			
 		if (GET_TEAM(GC.getGameINLINE().getActiveTeam()).isAtWar(getTeam()))
 		{
-			bIsHappy = false;
+			bHappy = false;
 		}
 	} // <advc.001p> (Shouldn't be needed anymore; tagging advc.test)
 	CvPlayer const& owner = GET_PLAYER(getOwnerINLINE());
@@ -16284,7 +16299,7 @@ int CvCity::getMusicScriptId() const
 	} // </advc.001p>
 	CvLeaderHeadInfo& kLeaderInfo = GC.getLeaderHeadInfo(GET_PLAYER(getOwnerINLINE()).getLeaderType());
 	EraTypes eCurEra = GET_PLAYER(getOwnerINLINE()).getCurrentEra();
-	if (bIsHappy)
+	if (bHappy)
 	{	
 		return (kLeaderInfo.getDiploPeaceMusicScriptIds(eCurEra));
 	}

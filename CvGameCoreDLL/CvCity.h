@@ -707,6 +707,7 @@ public:
 	static int getCultureThreshold(CultureLevelTypes eLevel);
 	void setCultureLevel(CultureLevelTypes eNewValue, bool bUpdatePlotGroups);
 	void updateCultureLevel(bool bUpdatePlotGroups);
+	int getCultureTurnsLeft() const; // advc.042
 
 	int getSeaPlotYield(YieldTypes eIndex) const;								// Exposed to Python
 	void changeSeaPlotYield(YieldTypes eIndex, int iChange);

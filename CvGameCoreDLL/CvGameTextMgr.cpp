@@ -2846,7 +2846,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 			int first_combined_HP_Def = 0;
 			int last_combined_HP;
 			float combined_HP_sum = 0.0f;
-			BOOL bIsCondensed = false;
+			BOOL bCondensed = false;
 
 
 
@@ -2859,7 +2859,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 					float prob = 100.0f*getCombatOddsSpecific(pAttacker,pDefender,n_A,iNeededRoundsAttacker);
 					if (prob > HP_percent_cutoff || n_A==0)
 					{
-						if (bIsCondensed) // then we need to print the prev ones
+						if (bCondensed) // then we need to print the prev ones
 						{
 							int pixels = (int)(Scaling_Factor*combined_HP_sum + 0.5);  // 1% per pixel
 							int fullBlocks = (pixels) / 10;
@@ -2895,7 +2895,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 							szTempBuffer.Format(L" %.2f%%",combined_HP_sum);
 							szString.append(szTempBuffer.GetCString());
 
-							bIsCondensed = false;//resetting
+							bCondensed = false;//resetting
 							combined_HP_sum = 0.0f;//resetting this variable
 							last_combined_HP = 0;
 						}
@@ -2929,14 +2929,14 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 					}
 					else // we add to the condensed list
 					{
-						bIsCondensed = true;
+						bCondensed = true;
 						first_combined_HP_Att = std::max(first_combined_HP_Att,((pAttacker->currHitPoints()) - n_A*iDamageToAttacker));
 						last_combined_HP = ((pAttacker->currHitPoints()) - n_A*iDamageToAttacker);
 						combined_HP_sum += prob;
 					}
 				}
 
-				if (bIsCondensed) // then we need to print the prev ones
+				if (bCondensed) // then we need to print the prev ones
 				{
 					szString.append(NEWLINE);
 					int pixels = (int)(Scaling_Factor*combined_HP_sum + 0.5);  // 1% per pixel
@@ -2972,7 +2972,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 					szTempBuffer.Format(L" %.2f%%",combined_HP_sum);
 					szString.append(szTempBuffer.GetCString());
 
-					bIsCondensed = false;//resetting
+					bCondensed = false;//resetting
 					combined_HP_sum = 0.0f;//resetting this variable
 					last_combined_HP = 0;
 				}
@@ -3088,7 +3088,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 
 					if (prob > HP_percent_cutoff || (pAttacker->combatLimit()<pDefender->maxHitPoints() && (n_D==iNeededRoundsAttacker)))
 					{
-						if (bIsCondensed) // then we need to print the prev ones
+						if (bCondensed) // then we need to print the prev ones
 						{
 							szString.append(NEWLINE);
 
@@ -3123,7 +3123,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 								combined_HP_sum);
 							szString.append(szTempBuffer.GetCString());
 
-							bIsCondensed = false;//resetting
+							bCondensed = false;//resetting
 							combined_HP_sum = 0.0f;//resetting this variable
 						}
 
@@ -3158,7 +3158,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 					}
 					else
 					{
-						bIsCondensed = true;
+						bCondensed = true;
 						first_combined_HP_Def = (std::min(first_combined_HP_Def,def_HP));
 						last_combined_HP = std::max(((pDefender->currHitPoints()) - n_D*iDamageToDefender),pDefender->maxHitPoints()-pAttacker->combatLimit());
 						combined_HP_sum += prob;
@@ -3166,7 +3166,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 					prob = 0.0f;
 				}//for n_D
 
-				if (bIsCondensed && iNeededRoundsAttacker>1) // then we need to print the prev ones
+				if (bCondensed && iNeededRoundsAttacker>1) // then we need to print the prev ones
 					// the reason we need iNeededRoundsAttacker to be greater than 1 is that if it's equal to 1 then we end up with the defender detailed HP bar show up twice, because it will also get printed below
 				{
 					szString.append(NEWLINE);
@@ -3200,7 +3200,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 					szTempBuffer.Format(L" %.2f%%",combined_HP_sum);
 					szString.append(szTempBuffer.GetCString());
 
-					bIsCondensed = false;//resetting
+					bCondensed = false;//resetting
 					combined_HP_sum = 0.0f;//resetting this variable
 				}
 
@@ -5232,10 +5232,11 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 				// advc.001n: Might cache FoundValue
 				&& !GC.getGameINLINE().isNetworkMultiPlayer())
 		{ // <advc.007> Moved up, and skip unrevealed.
-			bool bIsRevealed = kPlot.isRevealed(kLoopPlayer.getTeam(), false);
-			if(!bIsRevealed)
+			bool bRevealed = kPlot.isRevealed(kLoopPlayer.getTeam(), false);
+			if(!bRevealed)
 				continue; // </advc.007>
-			int iActualFoundValue = kPlot.getFoundValue(ePlayer);
+			int iActualFoundValue = kPlot.getFoundValue(ePlayer,
+					true); // advc.052
 			//int iCalcFoundValue = kPlayer.AI_foundValue(x, y, -1, false);
 			// <advc.007>
 			CvPlayerAI::CvFoundSettings fset(kLoopPlayer, false);
@@ -5259,9 +5260,9 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 
 				szString.append(NEWLINE);
 				
-				szString.append(CvWString::format(SETCOLR, TEXT_COLOR(bIsRevealed ? (((iActualFoundValue > 0) && (iActualFoundValue == iBestAreaFoundValue)) ? "COLOR_UNIT_TEXT" : "COLOR_ALT_HIGHLIGHT_TEXT") : "COLOR_HIGHLIGHT_TEXT")));
+				szString.append(CvWString::format(SETCOLR, TEXT_COLOR(bRevealed ? (((iActualFoundValue > 0) && (iActualFoundValue == iBestAreaFoundValue)) ? "COLOR_UNIT_TEXT" : "COLOR_ALT_HIGHLIGHT_TEXT") : "COLOR_HIGHLIGHT_TEXT")));
 					
-				//if (!bIsRevealed) // advc.007
+				//if (!bRevealed) // advc.007
 				{
 					szString.append(CvWString::format(L"("));
 				}
@@ -5269,7 +5270,7 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 				szString.append(CvWString::format(L"%s: %d", kLoopPlayer.getName(),
 						iCalcFoundValue)); // advc.007: Swapped with iActual
 
-				//if (!bIsRevealed) // advc.007
+				//if (!bRevealed) // advc.007
 				{
 					szString.append(CvWString::format(L")"));
 				}
@@ -5278,9 +5279,11 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 
 				if (iCalcFoundValue > 0 || iStartingFoundValue > 0)
 				{
-					szTempBuffer.Format(L" (%d,%ds)",
+					szTempBuffer.Format(L" (%d,%ds), thresh: %d",
 							iActualFoundValue, // advc.007: Swapped with iCalc
-							iStartingFoundValue);
+							iStartingFoundValue,
+							// advc.007: thresh added
+							kLoopPlayer.AI_getMinFoundValue());
 					szString.append(szTempBuffer);
 				}
 
@@ -5395,10 +5398,10 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftAltOnly(CvWStringBuffer& szString, CvP
 				int iMaxThisSpecialist = pCity->getMaxSpecialistCount((SpecialistTypes) iI);
 				int iSpecialistCount = pCity->getSpecialistCount((SpecialistTypes) iI);
 				bool bUsingSpecialist = (iSpecialistCount > 0);
-				bool bIsDefaultSpecialist = (iI == GC.getDefineINT("DEFAULT_SPECIALIST"));
+				bool bDefaultSpecialist = (iI == GC.getDefineINT("DEFAULT_SPECIALIST"));
 
 				// can this city have any of this specialist?
-				if (iMaxThisSpecialist > 0 || bIsDefaultSpecialist)
+				if (iMaxThisSpecialist > 0 || bDefaultSpecialist)
 				{
 					// start color
 					if (pCity->getForceSpecialistCount((SpecialistTypes) iI) > 0)
@@ -15469,8 +15472,8 @@ void CvGameTextMgr::setProductionHelp(CvWStringBuffer &szBuffer, CvCity& city)
 {
 	FAssertMsg(NO_PLAYER != city.getOwnerINLINE(), "City must have an owner");
 
-	bool bIsProcess = city.isProductionProcess();
-	int iPastOverflow = (bIsProcess ? 0 : city.getOverflowProduction());
+	bool bProcess = city.isProductionProcess();
+	int iPastOverflow = (bProcess ? 0 : city.getOverflowProduction());
 	if (iPastOverflow != 0)
 	{
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_PROD_OVERFLOW", iPastOverflow));
@@ -15713,7 +15716,7 @@ void CvGameTextMgr::setProductionHelp(CvWStringBuffer &szBuffer, CvCity& city)
 
 	int iModProduction = iFoodProduction + (iBaseModifier * iBaseProduction) / 100;
 
-	FAssertMsg(iModProduction == city.getCurrentProductionDifference(false, !bIsProcess), "Modified Production does not match actual value");
+	FAssertMsg(iModProduction == city.getCurrentProductionDifference(false, !bProcess), "Modified Production does not match actual value");
 
 	szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_PROD_FINAL_YIELD", iModProduction));
 	//szBuffer.append(NEWLINE);

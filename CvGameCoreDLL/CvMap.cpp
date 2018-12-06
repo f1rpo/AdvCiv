@@ -62,8 +62,6 @@ CvMap::~CvMap()
 //	nothing.
 void CvMap::init(CvMapInitData* pInitInfo/*=NULL*/)
 {
-	int iX, iY;
-
 	PROFILE("CvMap::init");
 	gDLL->logMemState( CvString::format("CvMap::init begin - world size=%s, climate=%s, sealevel=%s, num custom options=%6", 
 		GC.getWorldInfo(GC.getInitCore().getWorldSize()).getDescription(), 
@@ -89,10 +87,10 @@ void CvMap::init(CvMapInitData* pInitInfo/*=NULL*/)
 	// Init other game data
 	gDLL->logMemState("CvMap before init plots");
 	m_pMapPlots = new CvPlot[numPlotsINLINE()];
-	for (iX = 0; iX < getGridWidthINLINE(); iX++)
+	for (int iX = 0; iX < getGridWidthINLINE(); iX++)
 	{
 		gDLL->callUpdater();
-		for (iY = 0; iY < getGridHeightINLINE(); iY++)
+		for (int iY = 0; iY < getGridHeightINLINE(); iY++)
 		{
 			plotSorenINLINE(iX, iY)->init(iX, iY);
 		}
@@ -116,8 +114,6 @@ void CvMap::uninit()
 // Initializes data members that are serialized.
 void CvMap::reset(CvMapInitData* pInitInfo)
 {
-	int iI;
-
 	//--------------------------------
 	// Uninit class
 	uninit();
@@ -227,7 +223,7 @@ void CvMap::reset(CvMapInitData* pInitInfo)
 		m_paiNumBonus = new int[GC.getNumBonusInfos()];
 		FAssertMsg(m_paiNumBonusOnLand==NULL, "mem leak m_paiNumBonusOnLand");
 		m_paiNumBonusOnLand = new int[GC.getNumBonusInfos()];
-		for (iI = 0; iI < GC.getNumBonusInfos(); iI++)
+		for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
 		{
 			m_paiNumBonus[iI] = 0;
 			m_paiNumBonusOnLand[iI] = 0;
@@ -262,7 +258,7 @@ void CvMap::setupGraphical()
 {
 	if (!GC.IsGraphicsInitialized())
 		return;
-
+	CvPlot::setMaxVisibilityRangeCache(); // advc.003h
 	if (m_pMapPlots != NULL)
 	{
 		int iI;
@@ -329,21 +325,15 @@ void CvMap::doTurn()
 {
 	PROFILE("CvMap::doTurn()")
 
-	int iI;
-
-	for (iI = 0; iI < numPlotsINLINE(); iI++)
-	{
+	for(int iI = 0; iI < numPlotsINLINE(); iI++)
 		plotByIndexINLINE(iI)->doTurn();
-	}
 }
 
 // K-Mod
 void CvMap::setFlagsDirty()
 {
-	for (int i = 0; i < numPlotsINLINE(); i++)
-	{
+	for(int i = 0; i < numPlotsINLINE(); i++) // advc.003
 		plotByIndexINLINE(i)->setFlagDirty(true);
-	}
 }
 // K-Mod end
 
@@ -369,56 +359,36 @@ void CvMap::updateFlagSymbols()
 
 void CvMap::updateFog()
 {
-	int iI;
-
-	for (iI = 0; iI < numPlotsINLINE(); iI++)
-	{
+	for(int iI = 0; iI < numPlotsINLINE(); iI++)
 		plotByIndexINLINE(iI)->updateFog();
-	}
 }
 
 
 void CvMap::updateVisibility()
 {
-	int iI;
-
-	for (iI = 0; iI < numPlotsINLINE(); iI++)
-	{
+	for (int iI = 0; iI < numPlotsINLINE(); iI++)
 		plotByIndexINLINE(iI)->updateVisibility();
-	}
 }
 
 
 void CvMap::updateSymbolVisibility()
 {
-	int iI;
-
-	for (iI = 0; iI < numPlotsINLINE(); iI++)
-	{
+	for(int iI = 0; iI < numPlotsINLINE(); iI++)
 		plotByIndexINLINE(iI)->updateSymbolVisibility();
-	}
 }
 
 
 void CvMap::updateSymbols()
 {
-	int iI;
-
-	for (iI = 0; iI < numPlotsINLINE(); iI++)
-	{
+	for(int iI = 0; iI < numPlotsINLINE(); iI++)
 		plotByIndexINLINE(iI)->updateSymbols();
-	}
 }
 
 
 void CvMap::updateMinimapColor()
 {
-	int iI;
-
-	for (iI = 0; iI < numPlotsINLINE(); iI++)
-	{
+	for(int iI = 0; iI < numPlotsINLINE(); iI++)
 		plotByIndexINLINE(iI)->updateMinimapColor();
-	}
 }
 
 
@@ -435,12 +405,8 @@ void CvMap::updateSight(bool bIncrement)
 
 void CvMap::updateIrrigated()
 {
-	int iI;
-
-	for (iI = 0; iI < numPlotsINLINE(); iI++)
-	{
+	for(int iI = 0; iI < numPlotsINLINE(); iI++)
 		plotByIndexINLINE(iI)->updateIrrigated();
-	}
 }
 
 

@@ -36,6 +36,7 @@
 
 #define STANDARD_MINIMAP_ALPHA		(0.75f) // advc.002a: was 0.6
 bool CvPlot::m_bAllFog = false; // advc.706
+int CvPlot::iMaxVisibilityRangeCache; // advc.003h
 
 // Public Functions...
 
@@ -1387,7 +1388,8 @@ bool CvPlot::isCoastalLand(int iMinWaterSize) const
 
 		if (pAdjacentPlot != NULL)
 		{
-			if (pAdjacentPlot->isWater())
+			if (pAdjacentPlot->isWater()
+					&& !pAdjacentPlot->isImpassable()) // advc.030
 			{
 				if (pAdjacentPlot->area()->getNumTiles() >= iMinWaterSize)
 				{
@@ -2145,25 +2147,26 @@ void CvPlot::updateSight(bool bIncrement, bool bUpdatePlotGroups)
 	}
 }
 
+// <advc.003h> Cut and pasted from CvPlot::updateSeeFromSight
+void CvPlot::setMaxVisibilityRangeCache() {
+
+	int iRange = GC.getDefineINT("UNIT_VISIBILITY_RANGE") + 1;
+	for(int iPromotion = 0; iPromotion < GC.getNumPromotionInfos(); iPromotion++)
+		iRange += GC.getPromotionInfo((PromotionTypes)iPromotion).getVisibilityChange();
+	iRange = std::max(GC.getDefineINT("RECON_VISIBILITY_RANGE") + 1, iRange);
+	iMaxVisibilityRangeCache = iRange;
+} // </advc.003h>
+
 
 void CvPlot::updateSeeFromSight(bool bIncrement, bool bUpdatePlotGroups)
 {
-	CvPlot* pLoopPlot;
-	int iDX, iDY;
-
-	int iRange = GC.getDefineINT("UNIT_VISIBILITY_RANGE") + 1;
-	for (int iPromotion = 0; iPromotion < GC.getNumPromotionInfos(); ++iPromotion)
-	{
-		iRange += GC.getPromotionInfo((PromotionTypes)iPromotion).getVisibilityChange();
-	}
-
-	iRange = std::max(GC.getDefineINT("RECON_VISIBILITY_RANGE") + 1, iRange);
+	int const iRange = iMaxVisibilityRangeCache; // advc.003h
 	
-	for (iDX = -iRange; iDX <= iRange; iDX++)
+	for (int iDX = -iRange; iDX <= iRange; iDX++)
 	{
-		for (iDY = -iRange; iDY <= iRange; iDY++)
+		for (int iDY = -iRange; iDY <= iRange; iDY++)
 		{
-			pLoopPlot = plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
+			CvPlot* pLoopPlot = plotXY(getX_INLINE(), getY_INLINE(), iDX, iDY);
 
 			if (pLoopPlot != NULL)
 			{
@@ -2270,7 +2273,6 @@ bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, 
 		BuildTypes eBuild, bool bAnyBuild) const // dlph.9
 {
 	CvPlot* pLoopPlot;
-	bool bValid;
 	int iI;
 
 /*
@@ -2291,7 +2293,7 @@ bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, 
 			GC.getBuildInfo(eBuild).getImprovement() == eImprovement,
 			"expected that eBuild matches eImprovement");
 	// </dlph.9>
-	bValid = false;
+	bool bValid = false;
 
 	if (isCity())
 	{
@@ -2476,13 +2478,7 @@ bool CvPlot::canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam, 
 
 bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible) const
 {
-	ImprovementTypes eImprovement;
-	ImprovementTypes eFinalImprovementType;
-	RouteTypes eRoute;
-	bool bValid;
-
-	if(GC.getUSE_CAN_BUILD_CALLBACK())
-	{
+	if(GC.getUSE_CAN_BUILD_CALLBACK()) {
 		CyArgsList argsList;
 		argsList.add(getX_INLINE());
 		argsList.add(getY_INLINE());
@@ -2491,13 +2487,9 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible)
 		long lResult=0;
 		gDLL->getPythonIFace()->callFunction(PYGameModule, "canBuild", argsList.makeFunctionArgs(), &lResult);
 		if (lResult >= 1)
-		{
 			return true;
-		}
 		else if (lResult == 0)
-		{
 			return false;
-		}
 	}
 
 	if (eBuild == NO_BUILD)
@@ -2505,17 +2497,15 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible)
 		return false;
 	}
 
-	bValid = false;
+	bool bValid = false;
 
-	eImprovement = ((ImprovementTypes)(GC.getBuildInfo(eBuild).getImprovement()));
+	ImprovementTypes eImprovement = (ImprovementTypes)(GC.getBuildInfo(eBuild).getImprovement());
 
 	if (eImprovement != NO_IMPROVEMENT)
 	{
 		if (!canHaveImprovement(eImprovement, GET_PLAYER(ePlayer).getTeam(), bTestVisible,
 				eBuild, false)) // dlph.9
-		{
 			return false;
-		}
 
 		if (getImprovementType() != NO_IMPROVEMENT)
 		{
@@ -2529,7 +2519,7 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible)
 				return false;
 			}
 
-			eFinalImprovementType = finalImprovementUpgrade(getImprovementType());
+			ImprovementTypes eFinalImprovementType = finalImprovementUpgrade(getImprovementType());
 
 			if (eFinalImprovementType != NO_IMPROVEMENT)
 			{
@@ -2562,7 +2552,7 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible)
 		bValid = true;
 	}
 
-	eRoute = ((RouteTypes)(GC.getBuildInfo(eBuild).getRoute()));
+	RouteTypes eRoute = ((RouteTypes)(GC.getBuildInfo(eBuild).getRoute()));
 
 	if (eRoute != NO_ROUTE)
 	{
@@ -7104,8 +7094,8 @@ void CvPlot::changeCulture(PlayerTypes eIndex, int iChange, bool bUpdate)
 }
 
 
-int CvPlot::getFoundValue(PlayerTypes eIndex)
-		const // advc.003
+int CvPlot::getFoundValue(PlayerTypes eIndex,
+		bool bRandomize) const // advc.052
 {
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < MAX_PLAYERS, "eIndex is expected to be within maximum bounds (invalid Index)");
@@ -7137,8 +7127,25 @@ int CvPlot::getFoundValue(PlayerTypes eIndex)
 			area()->setBestFoundValue(eIndex, m_aiFoundValue[eIndex]);
 		}
 	}
-
-	return m_aiFoundValue[eIndex];
+	//return m_aiFoundValue[eIndex];
+	// <advc.052>
+	int r = m_aiFoundValue[eIndex];
+	if(bRandomize && !GET_PLAYER(eIndex).isHuman() && GC.getGameINLINE().isScenario()) {
+		// Randomly change the value by +/- 1.5%
+		double const plusMinus = 0.015;
+		std::vector<long> hashInput;
+		/*  Base the random multiplier on a number that is unique
+			per game, but doesn't change throughout a game. */
+		hashInput.push_back(GC.getGameINLINE().getSorenRand().
+				getSeed());
+		hashInput.push_back(getX_INLINE());
+		hashInput.push_back(getY_INLINE());
+		hashInput.push_back(eIndex);
+		double randMult = 1 - plusMinus + 2 * plusMinus * ::hash(hashInput);
+		r = ::round(r * randMult);
+	}
+	return r;
+	// </advc.052>
 }
 
 

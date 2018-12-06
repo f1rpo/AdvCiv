@@ -3057,7 +3057,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	CvGame const& g = GC.getGameINLINE();
 	CvPlot* const pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
 	CvArea* const pArea = pPlot->area();
-	bool const bIsCoastal = pPlot->isCoastalLand(GC.getMIN_WATER_SIZE_FOR_OCEAN());
+	bool const bCoastal = pPlot->isCoastalLand(GC.getMIN_WATER_SIZE_FOR_OCEAN());
 	int const iNumAreaCities = pArea->getCitiesPerPlayer(getID());
 	CvCity const* const pCapital = getCapitalCity();
 	// advc.108: Barbarians shouldn't distinguish between earlier and later cities
@@ -3068,7 +3068,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	//if (!kSet.bStartingLoc && !bAdvancedStart)
 	if(iCities > 0 && !isBarbarian()) // advc.108
 	{
-		if (!bIsCoastal && iNumAreaCities == 0)
+		if (!bCoastal && iNumAreaCities == 0)
 		{
 			return 0;
 		}
@@ -3214,18 +3214,19 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 // END OF OVERLAP COMPUTATION
 // COUNT BAD TILES
 	// <advc.040>
-	bool bFirstColony = false; // advc.040
-	if(bIsCoastal && iNumAreaCities <= 0 && !isBarbarian() &&
+	bool bFirstColony = false;
+	if(bCoastal && iNumAreaCities <= 0 && !isBarbarian() &&
 			(pPlot->isFreshWater() ||
 			/*  Don't apply first-colony logic to tundra, snow and desert b/c
 				these are likely surrounded by more (unrevealed) bad terrain. */
 			pPlot->calculateNatureYield(YIELD_FOOD, getTeam(), true) +
 			pPlot->calculateNatureYield(YIELD_PRODUCTION, getTeam(), true) > 1))
-		bFirstColony = true; // </advc.040>
-
-	int iBadTile = 0;
-	int iUnrev = 0, iRevDecentLand = 0; // advc.040
+		bFirstColony = true;
+	int iUnrev = 0;
+	int iRevDecentLand = 0;
+	// </advc.040>
 	int iLand = 0; // advc.031
+	int iBadTile = 0;
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 	{
 		CvPlot* pLoopPlot = plotCity(iX, iY, iI);
@@ -3233,8 +3234,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		if(isBarbarian() && !::isInnerRing(pLoopPlot, pPlot)) {
 			/* Rational barbs wouldn't mind settling one off the coast,
 			   but human players do mind, and some really hate this.
-			   Therefore, count the outer ring coast as bad if !bIsCoastal. */
-			if(pLoopPlot != NULL && pLoopPlot->isWater() && !bIsCoastal &&
+			   Therefore, count the outer ring coast as bad if !bCoastal. */
+			if(pLoopPlot != NULL && pLoopPlot->isWater() && !bCoastal &&
 					pLoopPlot->calculateBestNatureYield(YIELD_FOOD, getTeam()) <= 1)
 				iBadTile++;
 			continue;
@@ -3277,13 +3278,13 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				iBadTile++; // </advc.031>
 			}
 			else if (pLoopPlot->isWater() && pLoopPlot->calculateBestNatureYield(YIELD_FOOD, getTeam()) <= 1)
-			{	/* <advc.031> Removed the bIsCoastal check from the
+			{	/* <advc.031> Removed the bCoastal check from the
 				   condition above b/c I want to count ocean tiles as
 				   half bad even when the city is at the coast. */
 				if(!kSet.bSeafaring && pLoopPlot->calculateBestNatureYield(
 						YIELD_COMMERCE, getTeam()) <= 1)
 					iBadTile++;
-				if(!bIsCoastal)
+				if(!bCoastal)
 					iBadTile++; // </advc.031>
 			}
 			else if (pLoopPlot->isOwned())
@@ -3734,8 +3735,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		if (pLoopPlot->isWater())
 		{
 			// K-Mod. kludge to account for lighthouse and lack of improvements.
-			iPlotValue /= (bIsCoastal ? 2 : 3);
-			iPlotValue += bIsCoastal ? 8*(aiYield[YIELD_COMMERCE]+aiYield[YIELD_PRODUCTION]) : 0;
+			iPlotValue /= (bCoastal ? 2 : 3);
+			iPlotValue += bCoastal ? 8*(aiYield[YIELD_COMMERCE]+aiYield[YIELD_PRODUCTION]) : 0;
 			// (K-Mod note, I've moved the iSpecialFoodPlus adjustment elsewhere.)
 
 			//if (kSet.bStartingLoc && !pPlot->isStartingPlot())
@@ -3743,8 +3744,8 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			{
 				// I'm pretty much forbidding starting 1 tile inland non-coastal.
 				// with more than a few coast tiles.
-				//iPlotValue += bIsCoastal ? 0 : -120; // was -400 (reduced by K-Mod)
-				iPlotValue += bIsCoastal ? 0 : -75; // advc.031
+				//iPlotValue += bCoastal ? 0 : -120; // was -400 (reduced by K-Mod)
+				iPlotValue += bCoastal ? 0 : -75; // advc.031
 			}
 		}
 		else // is land
@@ -3885,7 +3886,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				&& !bOwnExl) || bSteal || bShare) // advc.035
 			continue;
 		if (eBonus != NO_BONUS && // K-Mod added water case (!!)
-				((pLoopPlot->isWater() && bIsCoastal) ||
+				((pLoopPlot->isWater() && bCoastal) ||
 				pLoopPlot->area() == pPlot->area() ||
 				pLoopPlot->area()->getCitiesPerPlayer(getID()) > 0))
 		{
@@ -4004,9 +4005,9 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				}
 
 				/*if (pLoopPlot->isWater())
-					iValue += (bIsCoastal ? 0 : -800);*/ // (was ? 100 : -800)
+					iValue += (bCoastal ? 0 : -800);*/ // (was ? 100 : -800)
 				// <advc.031> Replacing the above
-				if(pLoopPlot->isWater() && !bIsCoastal)
+				if(pLoopPlot->isWater() && !bCoastal)
 					iValue -= 100; // </advc.031>
 			}
 		} // end if usable bonus
@@ -4014,7 +4015,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		{
 			// non bonus related special food. (Note: the city plot is counted elsewhere.)
 			int iEffectiveFood = aiYield[YIELD_FOOD];
-			if (bIsCoastal && pLoopPlot->isWater() && aiYield[YIELD_COMMERCE] > 1) // lighthouse kludge.
+			if (bCoastal && pLoopPlot->isWater() && aiYield[YIELD_COMMERCE] > 1) // lighthouse kludge.
 				iEffectiveFood += 1;
 			iSpecialFoodPlus += 
 					::round( // advc.031
@@ -4173,7 +4174,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			iValue += (iHealth - 200) / (getCurrentEra() + 2);
 	} // </advc.031>
 
-	if (bIsCoastal)
+	if (bCoastal)
 	{
 		//if (!kSet.bStartingLoc)
 		if(iCities > 0 // advc.108
@@ -7226,24 +7227,25 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 
 	for (int iJ = 0; iJ < GC.getNumFeatureInfos(); iJ++)
 	{
-		bool bIsFeatureRemove = false;
+		bool bFeatureRemove = false;
 		int iChopProduction = 0;
 		for (int iK = 0; iK < GC.getNumBuildInfos(); iK++)
 		{
 			if (GC.getBuildInfo((BuildTypes)iK).getFeatureTech(iJ) == eTech)
 			{
-				bIsFeatureRemove = true;
+				bFeatureRemove = true;
 				// I'll assume it's the same for all builds
 				iChopProduction = GC.getBuildInfo((BuildTypes)iK).getFeatureProduction(iJ);
 				break;
 			}
 		}
 
-		if (bIsFeatureRemove)
+		if (bFeatureRemove)
 		{	// k146: Divisor was 8, K-Mod sets it to 4, advc: 7.
 			int iChopValue = iChopProduction / 7;
 			// <advc.003>
-			CvFeatureInfo const& fi = GC.getFeatureInfo(FeatureTypes(iJ));
+			FeatureTypes eFeature = (FeatureTypes)iJ;
+			CvFeatureInfo const& fi = GC.getFeatureInfo(eFeature);
 			if(fi.getHealthPercent() < 0 || fi.getYieldChange(YIELD_FOOD) +
 				fi.getYieldChange(YIELD_PRODUCTION) +
 				fi.getYieldChange(YIELD_COMMERCE) < 0) { // </advc.003>
@@ -7253,9 +7255,15 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 					available due to this tech - but it isn't easy to evaluate.
 					Perhaps we should go as far as counting features at our
 					planned sites - but even that isn't exactly what we want. */
-				iBuildValue += 28; // advc: 27 instead of 40
+				iBuildValue += 28; // advc: instead of 40
 			}
-			iBuildValue += 4 + iChopValue * (countCityFeatures((FeatureTypes)iJ) + 4);
+			iBuildValue += 4 + iChopValue * (countCityFeatures(eFeature) + 4);
+			/*  <advc.129> Very early game: Is the feature blocking a resource?
+				(especially Silver, which can now appear on Grassland Forest) */
+			if(pCapitalCity != NULL && getNumCities() <= 2) { int foo=-1;
+				for(CvCity* c = firstCity(&foo); c != NULL; c = nextCity(&foo))
+					iBuildValue += 30 * c->AI().AI_countBonusesToClear(eFeature);
+			} // </advc.129>
 		}
 	}
 
@@ -7385,7 +7393,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 
 
 	/* ------------------ Process Value  ------------------ */
-	bool bIsGoodProcess = false;
+	bool bGoodProcess = false;
 	for (int iJ = 0; iJ < GC.getNumProcessInfos(); iJ++)
 	{
 		if (GC.getProcessInfo((ProcessTypes)iJ).getTechPrereq() == eTech)
@@ -7396,7 +7404,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 			{
 				int iTempValue = (GC.getProcessInfo((ProcessTypes)iJ).getProductionToCommerceModifier(iK) * 4);
 
-				// K-Mod. (check out what would happen to "bIsGoodProcess" without this bit.  "oops.")
+				// K-Mod. (check out what would happen to "bGoodProcess" without this bit.  "oops.")
 				if (iTempValue <= 0)
 					continue;
 				// K-Mod end
@@ -7406,7 +7414,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 
 				if (iK == COMMERCE_GOLD || iK == COMMERCE_RESEARCH)
 				{
-					bIsGoodProcess = true;
+					bGoodProcess = true;
 				}
 				else if ((iK == COMMERCE_CULTURE) && AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1))
 				{
@@ -7420,7 +7428,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	// <cdtw.3>
 	bool bHighUnitCost = false;
 	// After some testing and tweaking, this still doesn't seem useful:
-	/*if(bIsGoodProcess && !bFinancialTrouble && !AI_isFocusWar() && getCurrentEra() < 2 &&
+	/*if(bGoodProcess && !bFinancialTrouble && !AI_isFocusWar() && getCurrentEra() < 2 &&
 			GET_TEAM(getTeam()).AI_getTotalWarOddsTimes100() <= 400) {
 		int iNetCommerce = 1 + getCommerceRate(COMMERCE_GOLD) +
 				getCommerceRate(COMMERCE_RESEARCH) + std::max(0, getGoldPerTurn());
@@ -7428,7 +7436,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 		if(iUnitCost * 20 > iNetCommerce)
 			bHighUnitCost = true;
 	}*/ // </cdtw.3>
-	if (bIsGoodProcess && (bFinancialTrouble
+	if (bGoodProcess && (bFinancialTrouble
 			|| bHighUnitCost)) // cdtw.3
 	{
 		bool bHaveGoodProcess = false;
@@ -8141,7 +8149,7 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 	}
 	// <k146> Get some basic info.
 	bool bLandWar = false;
-	bool bIsAnyAssault = false;
+	bool bAnyAssault = false;
 	{
 		int iLoop;
 		for (CvArea* pLoopArea = GC.getMapINLINE().firstArea(&iLoop); pLoopArea != NULL; pLoopArea = GC.getMapINLINE().nextArea(&iLoop))
@@ -8158,7 +8166,7 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 					case AREAAI_ASSAULT:
 					case AREAAI_ASSAULT_MASSING:
 					case AREAAI_ASSAULT_ASSIST:
-						bIsAnyAssault = true;
+						bAnyAssault = true;
 						break;
 					default:
 						break;
@@ -8549,8 +8557,8 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 
 				if (iAssaultValue > 0)
 				{
-					// k146: (bIsAnyAssault calculation removed; now done earlier)
-					if (bIsAnyAssault)
+					// k146: (bAnyAssault calculation removed; now done earlier)
+					if (bAnyAssault)
 					{
 						iTotalUnitValue += iAssaultValue * 4;
 					}
@@ -13048,7 +13056,7 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 		{
 			int iOrBonuses = 0;
 			int iOrBonusesWeHave = 0; // excluding eBonus itself. (disabled for now. See comments below.)
-			bool bIsOrBonus = false; // is eBonus one of the OrBonuses for this unit.
+			bool bOrBonus = false; // is eBonus one of the OrBonuses for this unit.
 
 			for (int iJ = 0; iJ < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); iJ++)
 			{
@@ -13064,10 +13072,10 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 					// This is because the code here can be trigged by local UI events, and then the value could be cached...
 					// It's very frustrating - because including the effect from iOrBonusesWeHave was going to be a big improvment.
 					// The only way I can think of working around this is to add a 'bConstCache' argument to this function...
-					bIsOrBonus = bIsOrBonus || ePrereqBonus == eBonus;
+					bOrBonus = bOrBonus || ePrereqBonus == eBonus;
 				}
 			}
-			if (bIsOrBonus)
+			if (bOrBonus)
 			{
 				// 1: 1, 2: 2/3, 3: 1/2, ...
 				iUnitValue = iBaseValue * 2 / (1+iOrBonuses+2*iOrBonusesWeHave);
@@ -13216,13 +13224,13 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 				}
 			}
 
-			bool bIsStateReligion = (((ReligionTypes) kLoopBuilding.getStateReligion()) != NO_RELIGION);
+			bool bStateReligion = (((ReligionTypes) kLoopBuilding.getStateReligion()) != NO_RELIGION);
 
 			//check if function call is cached
 			bool bCanConstruct = canConstruct(eLoopBuilding, false, /*bTestVisible*/ true, /*bIgnoreCost*/ true);
 
 			// bCanNeverBuild when true is accurate, it may be false in some cases where we will never be able to build 
-			bool bCanNeverBuild = (bHasTechForBuilding && !bCanConstruct && !bIsStateReligion);
+			bool bCanNeverBuild = (bHasTechForBuilding && !bCanConstruct && !bStateReligion);
 
 			// if we can never build this, it is worthless
 			if (bCanNeverBuild)
@@ -15385,17 +15393,29 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 	case UNITAI_EXPLORE_SEA:
 		{
 			int iExploreValue = 100;
+			// <advc.124> Make sure Caravel remains preferred over Galleon
+			if(u.isRivalTerritory())
+				iExploreValue += 75;
+			if(u.isCanMoveImpassable())
+				iExploreValue += 25; // </advc.124>
 			if (pArea != NULL)
 			{
-				if (pArea->isWater())
+				if (pArea->isWater()
+						// advc.124:
+						&& !GC.getGameINLINE().isOption(GAMEOPTION_NO_BARBARIANS))
 				{
-					if (pArea->getUnitsPerPlayer(BARBARIAN_PLAYER) > 0)
-					{
-						iExploreValue += (2 * iCombatValue);
-					}
+					/*if (pArea->getUnitsPerPlayer(BARBARIAN_PLAYER) > 0)
+						iExploreValue += (2 * iCombatValue);*/
+					// <advc.124> Replacing the above
+					iExploreValue += iCombatValue;
+					if(pArea->getUnitsPerPlayer(BARBARIAN_PLAYER) > 0)
+						iExploreValue += iCombatValue; // </advc.124>
 				}
 			}
-			iValue += (u.getMoves() * iExploreValue);
+			iValue += (u.getMoves()
+					// advc.017b: Could later change the AI type; so cargo isn't worthless.
+					+ (u.getCargoSpace()+1) / 2)
+					* iExploreValue;
 			if (u.isAlwaysHostile())
 			{
 				iValue /= 2;
@@ -15648,10 +15668,92 @@ int CvPlayerAI::AI_neededExplorers_bulk(CvArea const* pArea) const {
 } // </advc.003b>
 
 
+/*  K-Mod. I've rearranged some stuff in this function to fix a couple of minor bugs;
+	and to make the code neater and less error prone. */
+// advc.042: Cut and pasted from CvPlayer.cpp
+int CvPlayerAI::AI_countUnimprovedBonuses(CvArea* pArea, CvPlot* pFromPlot,
+		int iLookAhead) const {
+
+	PROFILE_FUNC();
+
+	gDLL->getFAStarIFace()->ForceReset(&GC.getBorderFinder());
+
+	int iCount = 0;
+	CvMap const& m = GC.getMapINLINE(); // advc.003
+	for (int iI = 0; iI < m.numPlotsINLINE(); iI++)
+	{
+		CvPlot* pLoopPlot = m.plotByIndexINLINE(iI);
+
+		if (pLoopPlot->getOwnerINLINE() == getID() && pLoopPlot->area() == pArea)
+		{	// advc.042: Remaining checks moved into auxiliary function
+			if(AI_isUnimprovedBonus(*pLoopPlot, pFromPlot, true))
+				iCount++;
+		}
+	}
+	// <advc.042> Anticipate first border expansion
+	if(iLookAhead > 0) {
+		iLookAhead *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getTrainPercent();
+		iLookAhead /= 100; int foo=-1;
+		for(CvCity* c = firstCity(&foo); c != NULL; c = nextCity(&foo)) {
+			if(c->getCultureLevel() > 1 || c->getCultureTurnsLeft() > iLookAhead)
+				continue;
+			int iCityX = c->getX_INLINE(); int iCityY = c->getY_INLINE();
+			for(int i = 0; i < NUM_CITY_PLOTS; i++) {
+				CvPlot* p = ::plotCity(iCityX, iCityY, i);
+				if(p == NULL)
+					continue;
+				if(p->getOwnerINLINE() == NO_PLAYER && p->area() == pArea) {
+					/*  Mustn't check path b/c Workboat may not be able to enter
+						the unowned tiles yet. If the area matches, it's a pretty
+						safe bet that the resource is reachable. 
+						Also, the GeneratePath call considers only tiles owned
+						by this player, and that could be important for performance. */
+					if(AI_isUnimprovedBonus(*p, pFromPlot, false))
+						iCount++;
+				}
+			}
+		}
+	} // </advc.042>
+	return iCount;
+}
+
+/*  <advc.042> Mostly cut and pasted from BtS/K-Mod CvPlayer::isUnimprovedBonus
+	(now CvPlayerAI::AI_isUnimprovedBonus; see above).
+	Relies on caller to reset GC.getBorderFinder(). */
+bool CvPlayerAI::AI_isUnimprovedBonus(CvPlot const& p, CvPlot* pFromPlot,
+		bool bCheckPath) const {
+
+	if(p.isCity())
+		return false;
+	BonusTypes eNonObsoleteBonus = p.getNonObsoleteBonusType(getTeam());
+	if(eNonObsoleteBonus == NO_BONUS || doesImprovementConnectBonus(
+			p.getImprovementType(), eNonObsoleteBonus))
+		return false;
+	if(pFromPlot == NULL || !bCheckPath || gDLL->getFAStarIFace()->GeneratePath(
+			&GC.getBorderFinder(), pFromPlot->getX_INLINE(), pFromPlot->getY_INLINE(),
+			p.getX_INLINE(), p.getY_INLINE(),
+			//false,
+			!p.isWater(), /* advc.001: Shouldn't allow diagonals in water.
+							 (A ship can move in between an Ice and a land tile that
+							 touch corners. But I'm not sure if GeneratePath checks
+							 for isImpassable at all.) */
+			getID(), true)) {
+		for(int i = 0; i < GC.getNumBuildInfos(); i++) {
+			BuildTypes eBuild = ((BuildTypes)i);
+			if(doesImprovementConnectBonus((ImprovementTypes)GC.getBuildInfo(eBuild).
+					getImprovement(), eNonObsoleteBonus) &&
+					canBuild(&p, eBuild, false, !bCheckPath))
+				return true;
+		}
+	}
+	return false;
+} // </advc.042>
+
+
 int CvPlayerAI::AI_neededWorkers(CvArea* pArea) const
 {
 	/*  advc.003b: This function is called each time a Worker moves or a city
-		chooses production, and countUnimprovedBonuses loops over all plots.
+		chooses production, and AI_countUnimprovedBonuses loops over all plots.
 		In the single profiler run I did, the computing time was completely
 		negligible though. */
 	PROFILE_FUNC();
@@ -15659,7 +15761,7 @@ int CvPlayerAI::AI_neededWorkers(CvArea* pArea) const
 	CvCity* pLoopCity=NULL;
 	int iLoop=-1;
 	// advc.113: Let's focus on the workable bonuses (CvCityAI::AI_getWorkersNeeded)
-	int iCount = countUnimprovedBonuses(pArea);// * 2;
+	int iCount = AI_countUnimprovedBonuses(pArea);// * 2;
 
 	for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
@@ -24473,7 +24575,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 				if (getCapitalCity()->canTrain(eLoopUnit))
 				{
 					CvUnitInfo& kLoopUnit = GC.getUnitInfo(eLoopUnit);
-					bool bIsUU = (GC.getUnitClassInfo((UnitClassTypes)iI).getDefaultUnitIndex()) != (GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(iI));
+					bool bUU = (GC.getUnitClassInfo((UnitClassTypes)iI).getDefaultUnitIndex()) != (GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(iI));
 					/* original bts code
 					if (kLoopUnit.getUnitAIType(UNITAI_RESERVE) || kLoopUnit.getUnitAIType(UNITAI_ATTACK_CITY)
 						|| kLoopUnit.getUnitAIType(UNITAI_COUNTER) || kLoopUnit.getUnitAIType(UNITAI_PILLAGE)) */
@@ -24485,7 +24587,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 						iAttackUnitCount++;
 
 						//UU love
-						if (bIsUU)
+						if (bUU)
 						{
 							if (kLoopUnit.getUnitAIType(UNITAI_ATTACK_CITY) || 
 								(kLoopUnit.getUnitAIType(UNITAI_ATTACK)	&& !kLoopUnit.getUnitAIType(UNITAI_CITY_DEFENSE)))
@@ -24502,7 +24604,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 						else if (iMoves > 1)
 						{
 							iBestFastUnitCombat = std::max(iBestFastUnitCombat, iCombat);
-							if (bIsUU)
+							if (bUU)
 							{
 								iBestFastUnitCombat += 1;
 							}
@@ -25000,14 +25102,14 @@ void CvPlayerAI::AI_updateStrategyHash()
             {
                 if ((GC.getUnitClassInfo((UnitClassTypes)iI).getDefaultUnitIndex()) != (GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(iI)))
                 {
-                	bool bIsDefensive = (GC.getUnitInfo(eLoopUnit).getUnitAIType(UNITAI_CITY_DEFENSE) &&
+                	bool bDefensive = (GC.getUnitInfo(eLoopUnit).getUnitAIType(UNITAI_CITY_DEFENSE) &&
                 		!GC.getUnitInfo(eLoopUnit).getUnitAIType(UNITAI_RESERVE));
 					
-					iDagger += bIsDefensive ? -10 : 0;
+					iDagger += bDefensive ? -10 : 0;
                        
                     if (getCapitalCity()->canTrain(eLoopUnit))
                     {
-                        iDagger += bIsDefensive ? 10 : 40;
+                        iDagger += bDefensive ? 10 : 40;
                         
                         int iUUStr = GC.getUnitInfo(eLoopUnit).getCombat();
                         int iNormalStr = GC.getUnitInfo((UnitTypes)(GC.getUnitClassInfo((UnitClassTypes)iI).getDefaultUnitIndex())).getCombat();
@@ -27534,10 +27636,7 @@ void CvPlayerAI::AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites)
 	// K-Mod. Always recommend the starting location on the first turn.
 	// (because we don't have enough information to overrule what the game has cooked for us.)
 	if (isHuman() &&  /* advc.108: OK for recommendations, but allow AI to evaluate
-					     plots and settle elsewhere - in principle;
-						 CvUnitAI::AI_settleMove still always settles in the
-						 plot. updateCitySites isn't the place to enforce this
-						 behavior. */
+					     plots and settle elsewhere. */
 		getNumCities() == 0 && iMaxSites > 0 && GC.getGameINLINE().getElapsedGameTurns() == 0 &&
 		m_iStartingX != INVALID_PLOT_COORD && m_iStartingY != INVALID_PLOT_COORD)
 	{
@@ -27559,28 +27658,17 @@ void CvPlayerAI::AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites)
 			CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
 			if (pLoopPlot->isRevealed(getTeam(), false))
 			{
-				int iValue = pLoopPlot->getFoundValue(getID());
+				int iValue = pLoopPlot->getFoundValue(getID(),
+						true); // advc.052
 				if (iValue > iMinFoundValueThreshold)
-				{	// <advc.052>
-					if(!isHuman() && GC.getGameINLINE().isScenario()) {
-						// Randomly change the value by +/- 1.5%
-						double const plusMinus = 0.015;
-						std::vector<long> hashInput;
-						/*  Base the random multiplier on a number that is unique
-							per game, but doesn't change throughout a game. */
-						hashInput.push_back(GC.getGameINLINE().getSorenRand().
-								getSeed());
-						hashInput.push_back(pLoopPlot->getX_INLINE());
-						hashInput.push_back(pLoopPlot->getY_INLINE());
-						hashInput.push_back(getID());
-						double randMult = 1 - plusMinus + 2 * plusMinus *
-								::hash(hashInput);
-						iValue = ::round(iValue * randMult);
-					} // </advc.052>
+				{
 					if (!AI_isPlotCitySite(*pLoopPlot))
 					{
 						iValue *= std::min(NUM_CITY_PLOTS * 2,
-								pLoopPlot->area()->getNumUnownedTiles());
+								pLoopPlot->area()->getNumUnownedTiles()
+								+ 1); /*  advc.031: Just b/c all tiles in the area
+								are owned doesn't mean we can't ever settle there.
+								Probably an oversight; tagging advc.001. */
 						if (iValue > iBestFoundValue)
 						{
 							iBestFoundValue = iValue;

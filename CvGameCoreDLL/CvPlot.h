@@ -121,10 +121,8 @@ public:
 	void updateSeeFromSight(bool bIncrement, bool bUpdatePlotGroups);
 
 	bool canHaveBonus(BonusTypes eBonus, bool bIgnoreLatitude = false) const;																						// Exposed to Python
-	bool canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam = NO_TEAM, bool bPotential = false,
-			BuildTypes eBuild = NO_BUILD, bool bAnyBuild = true // dlph.9
-			) const;		// Exposed to Python
-
+	bool canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam = NO_TEAM, bool bPotential = false,									// Exposed to Python
+			BuildTypes eBuild = NO_BUILD, bool bAnyBuild = true) const; // dlph.9
 	bool canBuild(BuildTypes eBuild, PlayerTypes ePlayer = NO_PLAYER, bool bTestVisible = false) const;														// Exposed to Python
 	int getBuildTime(BuildTypes eBuild) const;																																										// Exposed to Python
 	int getBuildTurnsLeft(BuildTypes eBuild, int iNowExtra, int iThenExtra) const;																			// Exposed to Python
@@ -438,8 +436,8 @@ public:
 
 	int countNumAirUnits(TeamTypes eTeam) const;																					// Exposed to Python
 	int airUnitSpaceAvailable(TeamTypes eTeam) const;
-		// advc.003: const
-	int getFoundValue(PlayerTypes eIndex) const;							// Exposed to Python
+	int getFoundValue(PlayerTypes eIndex,												// Exposed to Python
+			bool bRandomize = false) const; // advc.052
 	bool isBestAdjacentFound(PlayerTypes eIndex);						// Exposed to Python
 	void setFoundValue(PlayerTypes eIndex, short iNewValue);
 	// K-Mod: I've changed iNewValue to be 'short' instead of 'int', so that it matches the cache.
@@ -566,6 +564,8 @@ public:
 
 	void read(FDataStreamBase* pStream);
 	void write(FDataStreamBase* pStream);
+	// advc.003h: Adopted from We The People mod (devolution)
+	static void setMaxVisibilityRangeCache();
 
 protected:
 
@@ -670,8 +670,11 @@ protected:
 	void doImprovementUpgrade();
 	// <advc.099b>
 	void doCultureDecay();
-	int exclusiveRadius(PlayerTypes ePlayer) const; // </advc.099b>
+	int exclusiveRadius(PlayerTypes ePlayer) const;
+	// </advc.099b>
 	ColorTypes plotMinimapColor();
+
+	static int iMaxVisibilityRangeCache; // advc.003h
 
 	// added so under cheat mode we can access protected stuff
 	friend class CvGameTextMgr;

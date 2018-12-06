@@ -9892,7 +9892,7 @@ int CvUnit::cargoSpaceAvailable(SpecialUnitTypes eSpecialCargo, DomainTypes eDom
 		}
 	}
 
-	return std::max(0, (cargoSpace() - getCargo()));
+	return std::max(0, cargoSpace() - getCargo());
 }
 
 

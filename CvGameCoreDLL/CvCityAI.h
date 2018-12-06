@@ -124,6 +124,7 @@ public:
 	BuildTypes AI_getBestBuild(int iIndex) const;
 	int AI_countBestBuilds(CvArea* pArea) const;
 	void AI_updateBestBuild();
+	int AI_countBonusesToClear(FeatureTypes eFeature) const; // advc.129
 
 	virtual int AI_cityValue() const;
 

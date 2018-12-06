@@ -4506,49 +4506,6 @@ int CvPlayer::countOwnedBonuses(BonusTypes eBonus) const
 }
 
 
-// K-Mod. I've rearranged some stuff in this function to fix a couple of minor bugs; and to make the code neater and less error prone.
-int CvPlayer::countUnimprovedBonuses(CvArea* pArea, CvPlot* pFromPlot) const
-{
-	PROFILE_FUNC();
-
-	gDLL->getFAStarIFace()->ForceReset(&GC.getBorderFinder());
-
-	int iCount = 0;
-
-	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
-	{
-		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
-
-		if (pLoopPlot->getOwnerINLINE() == getID() && pLoopPlot->area() == pArea && !pLoopPlot->isCity())
-		{
-			BonusTypes eNonObsoleteBonus = pLoopPlot->getNonObsoleteBonusType(getTeam());
-
-			if (eNonObsoleteBonus != NO_BONUS)
-			{
-				if (!doesImprovementConnectBonus(pLoopPlot->getImprovementType(), eNonObsoleteBonus))
-				{
-					if ((pFromPlot == NULL) || gDLL->getFAStarIFace()->GeneratePath(&GC.getBorderFinder(), pFromPlot->getX_INLINE(), pFromPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), false, getID(), true))
-					{
-						for (int iJ = 0; iJ < GC.getNumBuildInfos(); iJ++)
-						{
-							BuildTypes eBuild = ((BuildTypes)iJ);
-
-							if (doesImprovementConnectBonus((ImprovementTypes)GC.getBuildInfo(eBuild).getImprovement(), eNonObsoleteBonus) && canBuild(pLoopPlot, eBuild))
-							{
-								iCount++;
-								break; // K-Mod!
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	return iCount;
-}
-
-
 int CvPlayer::countCityFeatures(FeatureTypes eFeature) const
 {
 	PROFILE_FUNC();
@@ -7647,19 +7604,17 @@ bool CvPlayer::canBuild(const CvPlot* pPlot, BuildTypes eBuild, bool bTestEra, b
 {
 	PROFILE_FUNC();
 
-	if (!(pPlot->canBuild(eBuild, getID(), bTestVisible)))
-	{
+	if (!pPlot->canBuild(eBuild, getID(), bTestVisible))
 		return false;
-	}
 
 	if (GC.getBuildInfo(eBuild).getTechPrereq() != NO_TECH)
-	{
-		if (!(GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getBuildInfo(eBuild).getTechPrereq())))
+	{	// advc.003:
+		TechTypes ePrereqTech = (TechTypes)GC.getBuildInfo(eBuild).getTechPrereq();
+		if (!GET_TEAM(getTeam()).isHasTech(ePrereqTech))
 		{
-			if ((!bTestEra && !bTestVisible) || ((getCurrentEra() + 1) < GC.getTechInfo((TechTypes) GC.getBuildInfo(eBuild).getTechPrereq()).getEra()))
-			{
+			if ((!bTestEra && !bTestVisible) || getCurrentEra() + 1 <
+					GC.getTechInfo(ePrereqTech).getEra())
 				return false;
-			}
 		}
 	}
 
@@ -7667,16 +7622,13 @@ bool CvPlayer::canBuild(const CvPlot* pPlot, BuildTypes eBuild, bool bTestEra, b
 	{
 		if (pPlot->getFeatureType() != NO_FEATURE)
 		{
-			if (!(GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getBuildInfo(eBuild).getFeatureTech(pPlot->getFeatureType()))))
-			{
+			if (!GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getBuildInfo(eBuild).
+					getFeatureTech(pPlot->getFeatureType())))
 				return false;
-			}
 		}
 
 		if (std::max(0, getGold()) < getBuildCost(pPlot, eBuild))
-		{
 			return false;
-		}
 	}
 
 	return true;
@@ -12347,13 +12299,6 @@ void CvPlayer::setPersonalityType(LeaderHeadTypes eNewValue)
 {
 	m_ePersonalityType = eNewValue;
 }
-
-
-EraTypes CvPlayer::getCurrentEra() const
-{
-	return m_eCurrentEra;
-}
-
 
 
 void CvPlayer::setCurrentEra(EraTypes eNewValue)
@@ -24430,16 +24375,16 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption, std::vector
 						if (pUnit->getVisualOwner() == iPlayer && !pUnit->isInvisible(getTeam(), true))
 						{
 							// now, is this unit of interest?
-							bool bIsMilitary = pUnit->baseCombatStr() > 0;
-							bool bIsEnemy = pUnit->isEnemy(getTeam());
-							bool bIsOnOurTeam = pUnit->getTeam() == getTeam();
+							bool bMilitary = pUnit->baseCombatStr() > 0;
+							bool bEnemy = pUnit->isEnemy(getTeam());
+							bool bOnOurTeam = pUnit->getTeam() == getTeam();
 							bool bOfInterest = false;
 
 							switch (eOption)
 							{
 							case SHOW_ALL_MILITARY:
 								{
-									bOfInterest = bIsMilitary;
+									bOfInterest = bMilitary;
 									if (bOfInterest)
 									{
 										fPlotStrength += ((float) pUnit->currHitPoints() / (float) pUnit->maxHitPoints() * (float) pUnit->baseCombatStr());
@@ -24448,14 +24393,14 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption, std::vector
 								}
 							case SHOW_TEAM_MILITARY:
 								{
-									bOfInterest = bIsMilitary && bIsOnOurTeam;
+									bOfInterest = bMilitary && bOnOurTeam;
 									if (bOfInterest)
 										fPlotStrength += ((float) pUnit->currHitPoints() / (float) pUnit->maxHitPoints() * (float) pUnit->baseCombatStr());
 									break;
 								}
 							case SHOW_ENEMIES:
 								{
-									bOfInterest = bIsMilitary && bIsEnemy;
+									bOfInterest = bMilitary && bEnemy;
 									if (bOfInterest)
 										fPlotStrength += ((float) pUnit->currHitPoints() / (float) pUnit->maxHitPoints() * (float) pUnit->baseCombatStr());
 									break;
@@ -24463,13 +24408,13 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption, std::vector
 
 							case SHOW_ENEMIES_IN_TERRITORY:
 								{
-									bOfInterest = bIsMilitary;
+									bOfInterest = bMilitary;
 									break;
 								}
 
 							case SHOW_PLAYER_DOMESTICS:
 								{
-									bOfInterest = !bIsMilitary;// && (pUnit->getVisualOwner() == eCurPlayer);
+									bOfInterest = !bMilitary;// && (pUnit->getVisualOwner() == eCurPlayer);
 									break;
 								}
 							default:
@@ -24490,7 +24435,7 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption, std::vector
 
 					if (bShowIndicator)
 					{	/*  <advc.004z> Don't show a defender when we need
-							!bIsMilitary */
+							!bMilitary */
 						CvUnit* pUnit = NULL;
 						if(eOption == SHOW_PLAYER_DOMESTICS) {
 							int const len = 12;

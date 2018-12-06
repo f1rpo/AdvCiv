@@ -18,6 +18,7 @@ class CvDiploParameters;
 class CvPopupInfo;
 class CvEventTriggerInfo;
 class CvPlayerRecord; // K-Mod
+class CvPlayerAI; // advc.003: Needed for AI(void) functions
 
 typedef std::list<CvTalkingHeadMessage> CvMessageQueue;
 typedef std::list<CvPopupInfo*> CvPopupQueue;
@@ -192,7 +193,7 @@ public:
 	int countNumCoastalCitiesByArea(CvArea* pArea) const;																									// Exposed to Python
 	int countTotalCulture() const;																																				// Exposed to Python
 	int countOwnedBonuses(BonusTypes eBonus) const;																												// Exposed to Python
-	int countUnimprovedBonuses(CvArea* pArea, CvPlot* pFromPlot = NULL) const;														// Exposed to Python
+	// advc.042: countUnimprovedBonuses moved to CvPlayerAI
 	int countCityFeatures(FeatureTypes eFeature) const;																										// Exposed to Python
 	int countNumBuildings(BuildingTypes eBuilding) const;																									// Exposed to Python
 	DllExport int countNumCitiesConnectedToCapital() const;																								// Exposed to Python
@@ -750,8 +751,8 @@ public:
 																																															
 	LeaderHeadTypes getPersonalityType() const;																												// Exposed to Python									
 	void setPersonalityType(LeaderHeadTypes eNewValue);																					// Exposed to Python									
-																																																				
-	DllExport EraTypes getCurrentEra() const;																										// Exposed to Python									
+	// advc.003b: Inlined
+	inline DllExport EraTypes getCurrentEra() const { return m_eCurrentEra; }																										// Exposed to Python									
 	void setCurrentEra(EraTypes eNewValue);																											
 																																															
 	ReligionTypes getLastStateReligion() const;																												
@@ -1107,6 +1108,18 @@ public:
 	// advc.104, advc.038, advc.132; exposed to Python.
 	double estimateYieldRate(YieldTypes yield, int iSamples = 5) const;
 	void setSavingReplay(bool b); // advc.106i
+
+	// <advc.003> A bit nicer than GET_PLAYER(getID())
+	inline CvPlayerAI& AI() {
+		//return *static_cast<CvPlayerAI*>(const_cast<CvPlayer*>(this));
+		/*  The above won't work in an inline function b/c the compiler doesn't know
+			that CvPlayerAI is derived from CvPlayer */
+		return *reinterpret_cast<CvPlayerAI*>(this);
+	}
+	inline CvPlayerAI const& AI() const {
+		//return *static_cast<CvPlayerAI const*>(this);
+		return *reinterpret_cast<CvPlayerAI const*>(this);
+	} // </advc.003>
 
 	DllExport void buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& ourList) const;
 	DllExport bool getHeadingTradeString(PlayerTypes eOtherPlayer, TradeableItems eItem, CvWString& szString, CvString& szIcon) const;

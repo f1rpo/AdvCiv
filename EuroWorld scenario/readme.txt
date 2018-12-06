@@ -7,14 +7,14 @@ Installation:
 Drop EuroWorld.CivBeyondSwordWBSave either into "AdvCiv\Private Maps" (if AdvCiv is installed) or into the BtS "Public Maps" folder.
 
 Temporary measures:
-* Tokugawa as a test player with free Calendar and Satellites for immediate access to Globe view.
+* Huayna Capac as a test player with free Calendar and Satellites for immediate access to Globe view.
 * Landmasses in the North Atlantic to prevent Barbarian cities from appearing on the British Isles all the time.
 
 To be done:
-* America, Oceania, Japan, Southern Africa, North Eastern Siberia, Greenland
-* 1 more playable leader (Tokugawa) and 3 non-playable ones (Shaka, Huayana Capac, Pacal)
+* America, Oceania, Southern Africa and Greenland for the three non-playable leaders: Shaka, Huayana Capac and Pacal
 * Rules changes in AdvCiv that forbid Farms on Tundra and remove the health penalty from Jungle. Just to reduce implausible deforestation.
-* Changes to the AI evaluation of techs that found a religion. Especially leaders with a Medieval favorite religion like Charlemagne should avoid founding one of the early religons.
+* Addition of an Islet feature (like in Realism Invictus) e.g. to replace the Okinawa land tile.
+* Changes to the AI evaluation of techs that found a religion. Especially leaders with a Medieval favorite religion like Charlemagne should avoid founding one of the early religons. Could then perhaps use Justinian instead of Pericles.
 * Overhaul of leader personalities. I might swap in Qin for Mao after increasing Qin's peace-weight (pitting him against his warlike neighbors) and Cyrus for Darius after making Cyrus a bit more warlike. The Chinese leader also needs to be more averse to long-distance wars (higher MaxWarMinAdjacentLandPercent).
 * Possibly add more Barbarian cities in order to shape the early expansion of the civs; hopefully not necessary.
 * Perhaps a file with text keys for more appropriate city names. I'm currently only using the stock names for portability (and Asian names that are transcribed uniformly in English, French, German, Italian and Spanish).
@@ -23,4 +23,4 @@ To be done:
 
 Further material:
 * The Java program that I've used for generating the WBSave file.
-* Two screenshots from all-AI games on the half-finished map. In between these two games, India, China, Indochina and Mongolia were added.
+* Two screenshots from all-AI games on the half-finished map. In between these two games, India, China, Indochina and Mongolia were added. And a third screenshot, taken at game start, after adding Japan and North Eastern Siberia.

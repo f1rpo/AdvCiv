@@ -874,30 +874,30 @@ int limitedWonderClassLimit(BuildingClassTypes eBuildingClass)
 {
 	int iMax;
 	int iCount = 0;
-	bool bIsLimited = false;
+	bool bLimited = false;
 
 	iMax = GC.getBuildingClassInfo(eBuildingClass).getMaxGlobalInstances();
 	if (iMax != -1)
 	{
 		iCount += iMax;
-		bIsLimited = true;
+		bLimited = true;
 	}
 
 	iMax = GC.getBuildingClassInfo(eBuildingClass).getMaxTeamInstances();
 	if (iMax != -1)
 	{
 		iCount += iMax;
-		bIsLimited = true;
+		bLimited = true;
 	}
 
 	iMax = GC.getBuildingClassInfo(eBuildingClass).getMaxPlayerInstances();
 	if (iMax != -1)
 	{
 		iCount += iMax;
-		bIsLimited = true;
+		bLimited = true;
 	}
 
-	return bIsLimited ? iCount : -1;
+	return bLimited ? iCount : -1;
 }
 
 bool isWorldProject(ProjectTypes eProject)
