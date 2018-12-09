@@ -3316,10 +3316,10 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	if (!kSet.bStartingLoc)
 	{
 		if ((iBadTile > (NUM_CITY_PLOTS / 2)) || (pArea->getNumTiles() <= 2)
-			|| (isBarbarian() && iBadTile > 3) // advc.303
-			)
+			|| (isBarbarian() && iBadTile > 3)) // advc.303
 		{
 			bool bHasGoodBonus = false;
+			int iMediocreBonus = 0; // advc.031
 			int freshw = (pPlot->isFreshWater() ? 1 : 0); // advc.031
 			for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 			{
@@ -3327,35 +3327,38 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				// <advc.303>
 				if(isBarbarian() && !::isInnerRing(pLoopPlot, pPlot))
 					continue; // </advc.303>
-
 				if (pLoopPlot != NULL && (kSet.bAllSeeing || pLoopPlot->isRevealed(getTeam(), false)))
 				{
-					if (!(pLoopPlot->isOwned()))
+					if (!pLoopPlot->isOwned())
 					{
-						if (pLoopPlot->isWater() || (pLoopPlot->area() == pArea) || (pLoopPlot->area()->getCitiesPerPlayer(getID()) > 0))
+						//BonusTypes eBonus = pLoopPlot->getBonusType(getTeam());
+						BonusTypes eBonus = pLoopPlot->getNonObsoleteBonusType(getTeam()); // K-Mod
+						if (eBonus != NO_BONUS)
 						{
-							//BonusTypes eBonus = pLoopPlot->getBonusType(getTeam());
-							BonusTypes eBonus = pLoopPlot->getNonObsoleteBonusType(getTeam()); // K-Mod
-
-							if (eBonus != NO_BONUS)
+							if ((getNumTradeableBonuses(eBonus) == 0 ||
+								AI_bonusVal(eBonus, 1, true) > 10 ||
+								GC.getBonusInfo(eBonus).getYieldChange(YIELD_FOOD) > 0) &&
+								// <advc.031> Moved from above
+								(pLoopPlot->isWater() || pLoopPlot->area() == pArea ||
+								pLoopPlot->area()->getCitiesPerPlayer(getID()) > 0))
+								// </advc.031>
 							{
-								if ((getNumTradeableBonuses(eBonus) == 0) || (AI_bonusVal(eBonus, 1, true) > 10)
-									|| (GC.getBonusInfo(eBonus).getYieldChange(YIELD_FOOD) > 0))
-								{
-									bHasGoodBonus = true;
-									break;
-								}
+								bHasGoodBonus = true;
+								break;
 							} // <advc.031>
-							if(pLoopPlot->isFreshWater())
-								freshw++; // </advc.031>
+							else iMediocreBonus++;
 						}
+						if(pLoopPlot->isFreshWater())
+							freshw++; // </advc.031>
 					}
 				}
 			}
 
-			if (!bHasGoodBonus
-					&& freshw < 3 // advc.031
-					&& !bFirstColony) // advc.040
+			if (!bHasGoodBonus &&
+					// <advc.031>
+					freshw < 3 &&
+					iMediocreBonus < 2 && // </advc.031>
+					!bFirstColony) // advc.040
 			{
 				return 0;
 			}
@@ -4679,10 +4682,14 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				// <advc.031> Don't discourage settling on small nearby landmasses
 				if(pCapital == NULL || pArea == pCapital->area() ||
 						plotDistance(pPlot, pCapital->plot()) >= 10 ||
-						pArea->getNumTiles() >= NUM_CITY_PLOTS) { // </advc.031>
-					iValue -= std::min(500 * iDistance, (//8000
-							std::max(8000 - getCurrentEra() * 1000, 4000) // advc.031
-							* iDistance) / GC.getMapINLINE().maxPlotDistance());
+						pArea->getNumTiles() >= NUM_CITY_PLOTS) { 
+					int iDistPenalty = 7000 - getCurrentEra() * 1000; // (was just 8000)
+					iDistPenalty = std::max(3000, iDistPenalty);
+					// </advc.031> (no functional change below)
+					iDistPenalty *= iDistance;
+					iDistPenalty /= GC.getMapINLINE().maxPlotDistance();
+					iDistPenalty = std::min(500 * iDistance, iDistPenalty);
+					iValue -= iDistPenalty;
 				}
 			}
 		}

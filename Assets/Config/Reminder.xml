@@ -34,6 +34,8 @@
 	</options>
 	
 	<events/>
-	<shortcut key="Alt Ctrl R | Alt M" function="createReminder"/>
+	<!-- advc.007b: Was "Alt Ctrl R | Alt M", but Alt+Ctrl+R is used for
+		 reloading Art Defines when cheats are enabled. -->
+	<shortcut key="Alt M" function="createReminder"/>
 	
 </mod>

@@ -911,13 +911,15 @@ class RefusesToTalk(AbstractStatefulAlert):
 		except AttributeError:
 			return # </advc.009b>
 		newRefusals = set()
+		newRefusalsDisplay = set() # advc.106d: Don't necessarily display them all
 		for player in PlayerUtil.players(True, False, False, False):
 			if DiplomacyUtil.canContact(activePlayer, player) and not DiplomacyUtil.isWillingToTalk(player, eActivePlayer):
 				newRefusals.add(player.getID())
+				# <advc.106d> Don't report refusal when war just begun, nor when stopped trading (i.e. when not at war).
+				if gc.getTeam(gc.getPlayer(eActivePlayer).getTeam()).isAtWar(player.getTeam()) and gc.getTeam(gc.getPlayer(eActivePlayer).getTeam()).AI_getAtWarCounter(player.getTeam()) > 1:
+					newRefusalsDisplay.add(player.getID()) # </advc.106d>
 		self.display(eActivePlayer, "TXT_KEY_CIV4LERTS_ON_WILLING_TO_TALK", refusals.difference(newRefusals))
-		# advc.106d: Don't report refusal when war just begun, nor when stopped trading (i.e. when not at war).
-		if gc.getTeam(gc.getPlayer(eActivePlayer).getTeam()).isAtWar(player.getTeam()) and gc.getTeam(gc.getPlayer(eActivePlayer).getTeam()).AI_getAtWarCounter(player.getTeam()) > 1:
-			self.display(eActivePlayer, "TXT_KEY_CIV4LERTS_ON_REFUSES_TO_TALK", newRefusals.difference(refusals))
+		self.display(eActivePlayer, "TXT_KEY_CIV4LERTS_ON_REFUSES_TO_TALK", newRefusalsDisplay.difference(refusals)) # advc.106d: was newRefusals...
 		self.refusals[eActivePlayer] = newRefusals
 	
 	def display(self, eActivePlayer, key, players):

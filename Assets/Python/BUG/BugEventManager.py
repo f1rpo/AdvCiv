@@ -104,7 +104,10 @@ import BugData
 import BugUtil
 import InputUtil
 import types
-
+# <advc.007b>
+import CvUtil
+import CvScreensInterface
+# </advc.007b>
 # --------- Better BTS AI mod (1/2) -------------
 import AIAutoPlay
 import ChangePlayer
@@ -475,11 +478,57 @@ class BugEventManager(CvEventManager.CvEventManager):
 		eventType, key, mx, my, px, py = argsList
 		if eventType == self.EventKeyDown:
 			if not InputUtil.isModifier(key):
+				# <advc.007b>
+				theKey = int(key)
+				if self.bCtrl and self.bAlt and theKey == int(InputTypes.KB_R):
+					BugUtil.warn("Note (AdvCiv): Reloading of Art Defines (Ctrl+Alt+R) is disabled")
+					return 1 # Don't use this key combination for anything else
+				# </advc.007b>
 				stroke = InputUtil.Keystroke(key, self.bAlt, self.bCtrl, self.bShift)
 				if stroke in self.shortcuts:
 					BugUtil.debug("BugEventManager - calling handler for shortcut %s", stroke)
 					self.shortcuts[stroke](argsList)
 					return 1
+				# <advc.007b>
+				if gc.getGame().isDebugMode():
+					# Cheats copied from CvEventManager
+					# Shift - T Debug - techs
+					if self.bShift and theKey == int(InputTypes.KB_T):
+						self.beginEvent(CvUtil.EventAwardTechsAndGold)
+						return 1
+					elif self.bShift and self.bCtrl and theKey == int(InputTypes.KB_W):
+						self.beginEvent(CvUtil.EventShowWonder)
+						return 1
+					# Shift - ] Debug - currently mouse-over'd unit: health+=10
+					elif theKey == int(InputTypes.KB_LBRACKET) and self.bShift:
+						unit = CyMap().plot(px, py).getUnit(0)
+						if not unit.isNone():
+							d = min(unit.maxHitPoints()-1, unit.getDamage() + 10)
+							unit.setDamage(d, PlayerTypes.NO_PLAYER)
+					# Shift - [ Debug - currently mouse-over'd unit: health-= 10
+					elif theKey == int(InputTypes.KB_RBRACKET) and self.bShift:
+						unit = CyMap().plot(px, py).getUnit(0)
+						if not unit.isNone():
+							d = max(0, unit.getDamage() - 10)
+							unit.setDamage(d, PlayerTypes.NO_PLAYER)
+					elif theKey == int(InputTypes.KB_F1):
+						if self.bShift:
+							CvScreensInterface.replayScreen.showScreen(False)
+							return 1
+					elif theKey == int(InputTypes.KB_F2):
+						if self.bShift:
+							import CvDebugInfoScreen
+							CvScreensInterface.showDebugInfoScreen()
+							return 1
+					elif theKey == int(InputTypes.KB_F3):
+						if self.bShift:
+							CvScreensInterface.showDanQuayleScreen(())
+							return 1
+					elif theKey == int(InputTypes.KB_F4):
+						if self.bShift:
+							CvScreensInterface.showUnVictoryScreen(())
+							return 1
+				# </advc.007b>
 		return 0
 	
 

@@ -534,8 +534,7 @@ void CvGame::setStartTurnYear(int iTurn) {
     setStartTurn(getGameTurn());
 
     if (getMaxTurns() == 0
-            || iTurn > 0 // advc.250c
-        )
+            || iTurn > 0) // advc.250c
     {
         iEstimateEndTurn = 0;
 
@@ -8112,7 +8111,7 @@ CvPlot* CvGame::randomBarbPlot(CvArea const& a, Shelf* shelf) const {
 		r = GC.getMap().syncRandPlot(restrictionFlags, a.getID(), iDist, -1, &iLegal);
 	else {
 		r = shelf->randomPlot(restrictionFlags, iDist, &iLegal);
-		if(iLegal * 100 < shelf->size())
+		if(r != NULL && iLegal * 100 < shelf->size())
 			r = NULL;
 	}
 	if(r != NULL) {

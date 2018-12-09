@@ -8352,7 +8352,7 @@ int CvCityAI::AI_countBonusesToClear(FeatureTypes eFeature) const {
 				p->getFeatureType() == eFeature &&
 				p->getImprovementType() == NO_IMPROVEMENT) {
 				BonusTypes eBonus = p->getNonObsoleteBonusType(getTeam());
-				if(eBonus == NO_BONUS || !GET_TEAM(getTeam()).isBonusRevealed(eBonus))
+				if(eBonus == NO_BONUS)
 					continue;
 			for(int j = 0; j < GC.getNumBuildInfos(); j++) {
 				CvBuildInfo const& bi = GC.getBuildInfo((BuildTypes)j);
