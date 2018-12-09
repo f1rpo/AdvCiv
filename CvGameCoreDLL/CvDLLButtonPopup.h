@@ -20,9 +20,9 @@ public:
 	DllExport static CvDLLButtonPopup& getInstance();
 	DllExport static void freeInstance();
 
-	DllExport virtual void OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, CvPopupInfo &info);
-	DllExport virtual void OnAltExecute(CvPopup& popup, const PopupReturn& popupReturn, CvPopupInfo &info);
-	DllExport virtual void OnFocus(CvPopup* pPopup, CvPopupInfo &info);
+	virtual void OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, CvPopupInfo &info);
+	virtual void OnAltExecute(CvPopup& popup, const PopupReturn& popupReturn, CvPopupInfo &info);
+	virtual void OnFocus(CvPopup* pPopup, CvPopupInfo &info);
 
 	DllExport bool launchButtonPopup(CvPopup* pPopup, CvPopupInfo &info);
 

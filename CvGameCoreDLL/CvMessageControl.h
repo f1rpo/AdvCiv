@@ -11,7 +11,7 @@ public:
 	//void sendPushOrder(int iCityID, OrderTypes eOrder, int iData, bool bAlt, bool bShift, bool bCtrl);
 	void sendPushOrder(int iCityID, OrderTypes eOrder, int iData, bool bSave, bool bPop, int iPosition); // K-Mod
 	void sendPopOrder(int iCity, int iNum);
-	DllExport void sendDoTask(int iCityID, TaskTypes eTask, int iData1, int iData2, bool bOption, bool bAlt, bool bShift, bool bCtrl);
+	void sendDoTask(int iCityID, TaskTypes eTask, int iData1, int iData2, bool bOption, bool bAlt, bool bShift, bool bCtrl);
 	void sendUpdateCivics(const std::vector<CivicTypes>& aeCivics);
 	void sendResearch(TechTypes eTech, int iDiscover, bool bShift);
 	void sendEspionageSpendingWeightChange(TeamTypes eTargetTeam, int iChange);

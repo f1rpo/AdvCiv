@@ -249,8 +249,8 @@ public:
 	}
 	int AI_tradeAcceptabilityThreshold(PlayerTypes eTrader) const; // K-Mod
 	// advc.003 (comment): These two are exposed to Python
-	DllExport int AI_maxGoldTrade(PlayerTypes ePlayer) const;
-	DllExport int AI_maxGoldPerTurnTrade(PlayerTypes ePlayer) const;
+	int AI_maxGoldTrade(PlayerTypes ePlayer) const;
+	int AI_maxGoldPerTurnTrade(PlayerTypes ePlayer) const;
 	int AI_goldPerTurnTradeVal(int iGoldPerTurn) const;
 	int AI_bonusVal(BonusTypes eBonus, int iChange,
 			bool bAssumeEnabled = false, // K-Mod

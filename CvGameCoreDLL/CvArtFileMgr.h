@@ -68,8 +68,8 @@ public:
 	// singleton accessor
 	DllExport static CvArtFileMgr& GetInstance();
 
-	DllExport CvArtFileMgr() {};
-	DllExport virtual ~CvArtFileMgr() {};
+	CvArtFileMgr() {};
+	virtual ~CvArtFileMgr() {};
 
 	DllExport void Init();
 	DllExport void DeInit();

@@ -21,7 +21,7 @@ public:
 	DllExport float getFloat();
 
 	void reseed(unsigned long ulNewValue);
-	DllExport unsigned long getSeed();
+	unsigned long getSeed();
 
 	// for serialization
 	void read(FDataStreamBase* pStream);

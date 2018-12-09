@@ -15,7 +15,7 @@ class CyCity;
 class CyPlot
 {
 public:
-	DllExport CyPlot();	
+	CyPlot();	
 	DllExport CyPlot(CvPlot*);			// Call from C++
 	CvPlot* getPlot() { return m_pPlot; }	// Call from C++
 	void setPlot(CvPlot* p) { m_pPlot=p; }	// Call from C++

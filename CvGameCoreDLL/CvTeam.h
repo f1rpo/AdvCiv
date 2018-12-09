@@ -153,13 +153,13 @@ public:
 	void updateLeaderID(); // advc.003b
 	PlayerTypes getSecretaryID() const;																									// Exposed to Python
 	HandicapTypes getHandicapType() const;																							// Exposed to Python
-	DllExport CvWString getName() const;																								// Exposed to Python
+	CvWString getName() const;																								// Exposed to Python
 	CvWString getReplayName() const; // K-Mod
 
 	DllExport int getNumMembers() const;																								// Exposed to Python
 	void changeNumMembers(int iChange);
 
-	DllExport int getAliveCount() const; // advc.155: Exposed to Python
+	int getAliveCount() const; // advc.155: Exposed to Python
 	DllExport int isAlive() const;																											// Exposed to Python
 	void changeAliveCount(int iChange);
 
@@ -274,7 +274,7 @@ public:
 	// K-Mod end
 
 	DllExport bool isAtWar(TeamTypes eIndex) const;																			// Exposed to Python
-	DllExport void setAtWar(TeamTypes eIndex, bool bNewValue);
+	void setAtWar(TeamTypes eIndex, bool bNewValue);
 
 	bool isPermanentWarPeace(TeamTypes eIndex) const;																		// Exposed to Python
 	void setPermanentWarPeace(TeamTypes eIndex, bool bNewValue);									// Exposed to Python
@@ -359,7 +359,7 @@ public:
 	void setVictoryCountdown(VictoryTypes eIndex, int iTurnsLeft);
 	void changeVictoryCountdown(VictoryTypes eIndex, int iChange);
 	int getVictoryDelay(VictoryTypes eVictory) const;
-	DllExport bool canLaunch(VictoryTypes eVictory) const;								// Exposed to Python 
+	bool canLaunch(VictoryTypes eVictory) const;									// Exposed to Python 
 	void setCanLaunch(VictoryTypes eVictory, bool bCan);
 	int getLaunchSuccessRate(VictoryTypes eVictory) const;								// Exposed to Python
 	void resetVictoryProgress();

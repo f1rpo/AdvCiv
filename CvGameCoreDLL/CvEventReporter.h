@@ -33,7 +33,7 @@ public:
 	DllExport void newGame();
 	DllExport void newPlayer(PlayerTypes ePlayer);
 
-	DllExport void reportModNetMessage(int iData1, int iData2, int iData3, int iData4, int iData5);
+	void reportModNetMessage(int iData1, int iData2, int iData3, int iData4, int iData5);
 	
 	DllExport void init();
 	DllExport void update(float fDeltaTime);

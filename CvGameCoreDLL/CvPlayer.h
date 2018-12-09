@@ -133,13 +133,13 @@ public:
 	DllExport const wchar* getCivilizationAdjectiveKey() const;																									// Exposed to Python
 	DllExport CvWString getFlagDecal() const;																																		// Exposed to Python
 	DllExport bool isWhiteFlag() const;																																					// Exposed to Python
-	DllExport const wchar* getStateReligionName(uint uiForm = 0) const;																					// Exposed to Python
-	DllExport const wchar* getStateReligionKey() const;																													// Exposed to Python
-	DllExport const CvWString getBestAttackUnitName(uint uiForm = 0) const;																								// Exposed to Python
-	DllExport const CvWString getWorstEnemyName() const;																																	// Exposed to Python
+	const wchar* getStateReligionName(uint uiForm = 0) const;																					// Exposed to Python
+	const wchar* getStateReligionKey() const;																													// Exposed to Python
+	const CvWString getBestAttackUnitName(uint uiForm = 0) const;																								// Exposed to Python
+	const CvWString getWorstEnemyName() const;																																	// Exposed to Python
 	const wchar* getBestAttackUnitKey() const;																																	// Exposed to Python
 	DllExport ArtStyleTypes getArtStyleType() const;																														// Exposed to Python
-	DllExport const TCHAR* getUnitButton(UnitTypes eUnit) const;																														// Exposed to Python
+	const TCHAR* getUnitButton(UnitTypes eUnit) const;																														// Exposed to Python
 
 	void doTurn();
 	void doTurnUnits();
@@ -168,8 +168,8 @@ public:
 
 	void updateTimers();
 
-	DllExport bool hasReadyUnit(bool bAny = false) const;
-	DllExport bool hasAutoUnit() const;
+	bool hasReadyUnit(bool bAny = false) const;
+	bool hasAutoUnit() const;
 	DllExport bool hasBusyUnit() const;
 
 	// K-Mod
@@ -177,7 +177,7 @@ public:
 	void changeChoosingFreeTechCount(int iChange) { m_iChoosingFreeTechCount += iChange; }
 	// K-Mod end
 
-	DllExport void chooseTech(int iDiscover = 0, CvWString szText = "", bool bFront = false);				// Exposed to Python
+	void chooseTech(int iDiscover = 0, CvWString szText = "", bool bFront = false);				// Exposed to Python
 
 	int calculateScore(bool bFinal = false, bool bVictory = false) const;
 
@@ -196,7 +196,7 @@ public:
 	// advc.042: countUnimprovedBonuses moved to CvPlayerAI
 	int countCityFeatures(FeatureTypes eFeature) const;																										// Exposed to Python
 	int countNumBuildings(BuildingTypes eBuilding) const;																									// Exposed to Python
-	DllExport int countNumCitiesConnectedToCapital() const;																								// Exposed to Python
+	int countNumCitiesConnectedToCapital() const;																								// Exposed to Python
 	/* int countPotentialForeignTradeCities(CvArea* pIgnoreArea = NULL) const;
 	int countPotentialForeignTradeCitiesConnected() const; */ // K-Mod: These functions were used exclusively for AI.  I've moved them to CvPlayerAI.
 	bool doesImprovementConnectBonus(ImprovementTypes eImprovement, BonusTypes eBonus) const; // K-Mod
@@ -212,7 +212,7 @@ public:
 	DllExport DenialTypes getTradeDenial(PlayerTypes eWhoTo, TradeData item) const;												// Exposed to Python
 	bool canTradeNetworkWith(PlayerTypes ePlayer) const;																									// Exposed to Python
 	int getNumAvailableBonuses(BonusTypes eBonus) const;																									// Exposed to Python
-	DllExport int getNumTradeableBonuses(BonusTypes eBonus) const;																				// Exposed to Python
+	int getNumTradeableBonuses(BonusTypes eBonus) const;																				// Exposed to Python
 	int getNumTradeBonusImports(PlayerTypes ePlayer) const;																								// Exposed to Python
 	bool hasBonus(BonusTypes eBonus) const;									// Exposed to Python
 	// advc.003: Said "IncludeCancelable", but actually does the opposite.
@@ -225,9 +225,9 @@ public:
 	void killAllDeals();																																						// Exposed to Python
 
 	void findNewCapital();																																					// Exposed to Python 
-	DllExport int getNumGovernmentCenters() const;																												// Exposed to Python 
+	int getNumGovernmentCenters() const;																												// Exposed to Python 
 
-	DllExport bool canRaze(CvCity* pCity) const;																													// Exposed to Python 
+	bool canRaze(CvCity* pCity) const;																													// Exposed to Python 
 	void raze(CvCity* pCity);																																				// Exposed to Python  
 	void disband(CvCity* pCity);																																		// Exposed to Python
 
@@ -241,22 +241,22 @@ public:
 	DllExport bool canFound(int iX, int iY, bool bTestVisible = false) const;															// Exposed to Python			
 	void found(int iX, int iY);																																			// Exposed to Python			
 
-	DllExport bool canTrain(UnitTypes eUnit, bool bContinue = false, bool bTestVisible = false, bool bIgnoreCost = false) const;										// Exposed to Python
+	bool canTrain(UnitTypes eUnit, bool bContinue = false, bool bTestVisible = false, bool bIgnoreCost = false) const;										// Exposed to Python
 	bool canConstruct(BuildingTypes eBuilding, bool bContinue = false, bool bTestVisible = false, bool bIgnoreCost = false, bool bIgnoreTech = false) const; // Exposed to Python, K-Mod added bIgnoreTech
 	bool canCreate(ProjectTypes eProject, bool bContinue = false, bool bTestVisible = false) const;							// Exposed to Python
 	bool canMaintain(ProcessTypes eProcess, bool bContinue = false) const;																			// Exposed to Python
 	bool isProductionMaxedUnitClass(UnitClassTypes eUnitClass) const;																						// Exposed to Python
 	bool isProductionMaxedBuildingClass(BuildingClassTypes eBuildingClass, bool bAcquireCity = false) const;		// Exposed to Python
 	bool isProductionMaxedProject(ProjectTypes eProject) const;																									// Exposed to Python
-	DllExport int getProductionNeeded(UnitTypes eUnit) const;																										// Exposed to Python
-	DllExport int getProductionNeeded(BuildingTypes eBuilding) const;																						// Exposed to Python
-	DllExport int getProductionNeeded(ProjectTypes eProject) const;																							// Exposed to Python
+	int getProductionNeeded(UnitTypes eUnit) const;																										// Exposed to Python
+	int getProductionNeeded(BuildingTypes eBuilding) const;																						// Exposed to Python
+	int getProductionNeeded(ProjectTypes eProject) const;																							// Exposed to Python
 	int getProductionModifier(UnitTypes eUnit) const;
 	int getProductionModifier(BuildingTypes eBuilding) const;
 	int getProductionModifier(ProjectTypes eProject) const;
 	double trainingModifierFromHandicap(bool worldClass = false) const;
 
-	DllExport int getBuildingClassPrereqBuilding(BuildingTypes eBuilding, BuildingClassTypes ePrereqBuildingClass, int iExtra = 0) const;	// Exposed to Python
+	int getBuildingClassPrereqBuilding(BuildingTypes eBuilding, BuildingClassTypes ePrereqBuildingClass, int iExtra = 0) const;	// Exposed to Python
 	void removeBuildingClass(BuildingClassTypes eBuildingClass);																		// Exposed to Python
 	void processBuilding(BuildingTypes eBuilding, int iChange, CvArea* pArea);
 
@@ -302,15 +302,15 @@ public:
 	int calculateTotalCommerce() const;
 
 	bool isResearch() const;																																							// Exposed to Python
-	DllExport bool canEverResearch(TechTypes eTech) const;																								// Exposed to Python
+	bool canEverResearch(TechTypes eTech) const;																								// Exposed to Python
 	bool canResearch(TechTypes eTech, bool bTrade = false,
 			bool bFree = false, // (K-Mod, added bFree.) Exposed to Python
 			// advc.126: Disables the isHasTech check
 			bool bCouldResearchAgain = false) const;
-	DllExport TechTypes getCurrentResearch() const;																												// Exposed to Python
+	TechTypes getCurrentResearch() const;																												// Exposed to Python
 	bool isCurrentResearchRepeat() const;																																	// Exposed to Python
 	bool isNoResearchAvailable() const;																																		// Exposed to Python
-	DllExport int getResearchTurnsLeft(TechTypes eTech, bool bOverflow) const;														// Exposed to Python
+	int getResearchTurnsLeft(TechTypes eTech, bool bOverflow) const;														// Exposed to Python
 	bool canSeeResearch(PlayerTypes ePlayer) const; // K-Mod, Exposed to Python
 	bool canSeeDemographics(PlayerTypes ePlayer) const; // K-Mod, Exposed to Python
 	// advc.550e; also need it for advc.314
@@ -318,17 +318,17 @@ public:
 
 	bool isCivic(CivicTypes eCivic) const;																																// Exposed to Python
 	bool canDoCivics(CivicTypes eCivic) const;																														// Exposed to Python
-	DllExport bool canRevolution(CivicTypes* paeNewCivics) const;																					// Exposed to Python
+	bool canRevolution(CivicTypes* paeNewCivics) const;																					// Exposed to Python
 	DllExport void revolution(CivicTypes* paeNewCivics, bool bForce = false);												// Exposed to Python
 	int getCivicPercentAnger(CivicTypes eCivic, bool bIgnore = false) const;																										// Exposed to Python
 
 	bool canDoReligion(ReligionTypes eReligion) const;																										// Exposed to Python
 	bool canChangeReligion() const;																																				// Exposed to Python
-	DllExport bool canConvert(ReligionTypes eReligion) const;																							// Exposed to Python
+	bool canConvert(ReligionTypes eReligion) const;																							// Exposed to Python
 	void convert(ReligionTypes eReligion, bool bForce = false); // advc.001v																						// Exposed to Python
 	bool hasHolyCity(ReligionTypes eReligion) const;																											// Exposed to Python
 	int countHolyCities() const;																																					// Exposed to Python
-	DllExport void foundReligion(ReligionTypes eReligion, ReligionTypes eSlotReligion, bool bAward);																										// Exposed to Python
+	void foundReligion(ReligionTypes eReligion, ReligionTypes eSlotReligion, bool bAward);																										// Exposed to Python
 
 	bool hasHeadquarters(CorporationTypes eCorporation) const;																											// Exposed to Python
 	int countHeadquarters() const;																																					// Exposed to Python
@@ -340,19 +340,19 @@ public:
 			bool bIgnoreGoldenAge = false) const; // advc.132
 	int getReligionAnarchyLength(																												// Exposed to Python
 			bool bIgnoreGoldenAge = false) const; // advc.132
-	DllExport int unitsRequiredForGoldenAge() const;																											// Exposed to Python
+	int unitsRequiredForGoldenAge() const;																											// Exposed to Python
 	int unitsGoldenAgeCapable() const;																																		// Exposed to Python
-	DllExport int unitsGoldenAgeReady() const;																														// Exposed to Python
+	int unitsGoldenAgeReady() const;																														// Exposed to Python
 	void killGoldenAgeUnits(CvUnit* pUnitAlive);
 
-	DllExport int greatPeopleThreshold(bool bMilitary = false) const;																														// Exposed to Python
+	int greatPeopleThreshold(bool bMilitary = false) const;																														// Exposed to Python
 	int specialistYield(SpecialistTypes eSpecialist, YieldTypes eYield) const;														// Exposed to Python
 	int specialistCommerce(SpecialistTypes eSpecialist, CommerceTypes eCommerce) const;										// Exposed to Python
 
-	DllExport CvPlot* getStartingPlot() const;																																			// Exposed to Python
-	DllExport void setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist);												// Exposed to Python
+	CvPlot* getStartingPlot() const;																																			// Exposed to Python
+	void setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist);												// Exposed to Python
 
-	DllExport int getTotalPopulation() const;																															// Exposed to Python
+	int getTotalPopulation() const;																															// Exposed to Python
 	int getAveragePopulation() const;																																			// Exposed to Python
 	void changeTotalPopulation(int iChange);
 	long getRealPopulation() const;																																				// Exposed to Python
@@ -364,18 +364,18 @@ public:
 	int getTotalLandScored() const;																																				// Exposed to Python
 	void changeTotalLandScored(int iChange);
 
-	DllExport int getGold() const;																																				// Exposed to Python
+	int getGold() const;																																				// Exposed to Python
 	DllExport void setGold(int iNewValue);																													// Exposed to Python
 	DllExport void changeGold(int iChange);																													// Exposed to Python
 
 	int getGoldPerTurn() const;																																						// Exposed to Python
 
-	DllExport int getAdvancedStartPoints() const;																																				// Exposed to Python
-	DllExport void setAdvancedStartPoints(int iNewValue);																													// Exposed to Python
-	DllExport void changeAdvancedStartPoints(int iChange);																													// Exposed to Python
+	int getAdvancedStartPoints() const;																																				// Exposed to Python
+	void setAdvancedStartPoints(int iNewValue);																													// Exposed to Python
+	void changeAdvancedStartPoints(int iChange);																													// Exposed to Python
 
 	int getEspionageSpending(TeamTypes eAgainstTeam) const;																								// Exposed to Python
-	DllExport bool canDoEspionageMission(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvPlot* pPlot, int iExtraData, const CvUnit* pUnit) const;		// Exposed to Python
+	bool canDoEspionageMission(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvPlot* pPlot, int iExtraData, const CvUnit* pUnit) const;		// Exposed to Python
 	int getEspionageMissionBaseCost(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvPlot* pPlot, int iExtraData, const CvUnit* pSpyUnit) const;
 	int getEspionageMissionCost(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvPlot* pPlot = NULL, int iExtraData = -1, const CvUnit* pSpyUnit = NULL) const;		// Exposed to Python
 	// <advc.120d> New functions, all exposed to Python
@@ -388,7 +388,7 @@ public:
 
 	int getEspionageSpendingWeightAgainstTeam(TeamTypes eIndex) const;																							// Exposed to Python
 	void setEspionageSpendingWeightAgainstTeam(TeamTypes eIndex, int iValue);																		// Exposed to Python
-	DllExport void changeEspionageSpendingWeightAgainstTeam(TeamTypes eIndex, int iChange);																// Exposed to Python
+	void changeEspionageSpendingWeightAgainstTeam(TeamTypes eIndex, int iChange);																// Exposed to Python
 
 	bool canStealTech(PlayerTypes eTarget, TechTypes eTech) const;
 	bool canForceCivics(PlayerTypes eTarget, CivicTypes eCivic) const;
@@ -400,19 +400,19 @@ public:
 	// advc.120d: Exposed to Python
 	int getEspionageGoldQuantity(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvCity* pCity) const; // K-Mod
 
-	DllExport void doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, int iY, int iData, bool bAdd);
-	DllExport int getAdvancedStartUnitCost(UnitTypes eUnit, bool bAdd, CvPlot* pPlot = NULL) const;																													// Exposed to Python 
-	DllExport int getAdvancedStartCityCost(bool bAdd, CvPlot* pPlot = NULL) const;																													// Exposed to Python 
-	DllExport int getAdvancedStartPopCost(bool bAdd, CvCity* pCity = NULL) const;																													// Exposed to Python 
-	DllExport int getAdvancedStartCultureCost(bool bAdd, CvCity* pCity = NULL) const;																													// Exposed to Python 
-	DllExport int getAdvancedStartBuildingCost(BuildingTypes eBuilding, bool bAdd, CvCity* pCity = NULL) const;																													// Exposed to Python 
-	DllExport int getAdvancedStartImprovementCost(ImprovementTypes eImprovement, bool bAdd, CvPlot* pPlot = NULL) const;																													// Exposed to Python 
-	DllExport int getAdvancedStartRouteCost(RouteTypes eRoute, bool bAdd, CvPlot* pPlot = NULL) const;																													// Exposed to Python 
-	DllExport int getAdvancedStartTechCost(TechTypes eTech, bool bAdd) const;																													// Exposed to Python 
-	DllExport int getAdvancedStartVisibilityCost(bool bAdd, CvPlot* pPlot = NULL) const;																													// Exposed to Python 
+	void doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, int iY, int iData, bool bAdd);
+	int getAdvancedStartUnitCost(UnitTypes eUnit, bool bAdd, CvPlot* pPlot = NULL) const;																													// Exposed to Python 
+	int getAdvancedStartCityCost(bool bAdd, CvPlot* pPlot = NULL) const;																													// Exposed to Python 
+	int getAdvancedStartPopCost(bool bAdd, CvCity* pCity = NULL) const;																													// Exposed to Python 
+	int getAdvancedStartCultureCost(bool bAdd, CvCity* pCity = NULL) const;																													// Exposed to Python 
+	int getAdvancedStartBuildingCost(BuildingTypes eBuilding, bool bAdd, CvCity* pCity = NULL) const;																													// Exposed to Python 
+	int getAdvancedStartImprovementCost(ImprovementTypes eImprovement, bool bAdd, CvPlot* pPlot = NULL) const;																													// Exposed to Python 
+	int getAdvancedStartRouteCost(RouteTypes eRoute, bool bAdd, CvPlot* pPlot = NULL) const;																													// Exposed to Python 
+	int getAdvancedStartTechCost(TechTypes eTech, bool bAdd) const;																													// Exposed to Python 
+	int getAdvancedStartVisibilityCost(bool bAdd, CvPlot* pPlot = NULL) const;																													// Exposed to Python 
 
-	DllExport int getGoldenAgeTurns() const;																															// Exposed to Python  
-	DllExport bool isGoldenAge() const;																																		// Exposed to Python 
+	int getGoldenAgeTurns() const;																															// Exposed to Python  
+	bool isGoldenAge() const;																																		// Exposed to Python 
 	void changeGoldenAgeTurns(int iChange);																													// Exposed to Python 
 	int getGoldenAgeLength() const;
 
@@ -420,7 +420,7 @@ public:
 	void changeNumUnitGoldenAges(int iChange);																											// Exposed to Python 
 
 	int getAnarchyTurns() const;																																					// Exposed to Python
-	DllExport bool isAnarchy() const;																																			// Exposed to Python
+	bool isAnarchy() const;																																			// Exposed to Python
 	void changeAnarchyTurns(int iChange);																														// Exposed to Python
 
 	int getStrikeTurns() const;																																						// Exposed to Python
@@ -543,10 +543,10 @@ public:
 	void setConscriptCount(int iNewValue);																															// Exposed to Python
 	void changeConscriptCount(int iChange);																															// Exposed to Python
 
-	DllExport int getMaxConscript() const;																																		// Exposed to Python
+	int getMaxConscript() const;																																		// Exposed to Python
 	void changeMaxConscript(int iChange);														
 
-	DllExport int getOverflowResearch() const;																																// Exposed to Python
+	int getOverflowResearch() const;																																// Exposed to Python
 	void setOverflowResearch(int iNewValue);																														// Exposed to Python
 	void changeOverflowResearch(int iChange);																														// Exposed to Python
 
@@ -591,7 +591,7 @@ public:
 	int getLevelExperienceModifier() const;																																						// Exposed to Python
 	void changeLevelExperienceModifier(int iChange);
 
-	DllExport int getExtraHealth() const;																																			// Exposed to Python
+	int getExtraHealth() const;																																			// Exposed to Python
 	void changeExtraHealth(int iChange);
 
 	int getBuildingGoodHealth() const;																																				// Exposed to Python
@@ -637,7 +637,7 @@ public:
 	int getTradeRoutes() const;																																								// Exposed to Python
 	void changeTradeRoutes(int iChange);																																// Exposed to Python
 
-	DllExport int getRevolutionTimer() const;																																	// Exposed to Python
+	int getRevolutionTimer() const;																																	// Exposed to Python
 	void setRevolutionTimer(int iNewValue);
 	void changeRevolutionTimer(int iChange);
 
@@ -650,10 +650,10 @@ public:
 	void changeStateReligionCount(int iChange);
 
 	int getNoNonStateReligionSpreadCount() const;
-	DllExport bool isNoNonStateReligionSpread() const;																												// Exposed to Python
+	bool isNoNonStateReligionSpread() const;																												// Exposed to Python
 	void changeNoNonStateReligionSpreadCount(int iChange);
 
-	DllExport int getStateReligionHappiness() const;																													// Exposed to Python
+	int getStateReligionHappiness() const;																													// Exposed to Python
 	void changeStateReligionHappiness(int iChange);
 
 	int getNonStateReligionHappiness() const;																																	// Exposed to Python
@@ -681,33 +681,33 @@ public:
 	int getWinsVsBarbs() const;																																								// Exposed to Python
 	void changeWinsVsBarbs(int iChange);
 
-	DllExport int getAssets() const;																																					// Exposed to Python
+	int getAssets() const;																																					// Exposed to Python
 	void changeAssets(int iChange);																																			// Exposed to Python  
 
-	DllExport int getPower() const;																																						// Exposed to Python
+	int getPower() const;																																						// Exposed to Python
 	void changePower(int iChange);
 
-	DllExport int getPopScore(bool bCheckVassal = true) const;																																				// Exposed to Python
+	int getPopScore(bool bCheckVassal = true) const;																																				// Exposed to Python
 	void changePopScore(int iChange);																																		// Exposed to Python  
-	DllExport int getLandScore(bool bCheckVassal = true) const;																																				// Exposed to Python
+	int getLandScore(bool bCheckVassal = true) const;																																				// Exposed to Python
 	void changeLandScore(int iChange);																																	// Exposed to Python  
-	DllExport int getTechScore() const;																																				// Exposed to Python
+	int getTechScore() const;																																				// Exposed to Python
 	void changeTechScore(int iChange);																																	// Exposed to Python  
-	DllExport int getWondersScore() const;																																		// Exposed to Python
+	int getWondersScore() const;																																		// Exposed to Python
 	void changeWondersScore(int iChange);	// Exposed to Python  
 
 	int getCombatExperience() const; 	// Exposed to Python  
 	void setCombatExperience(int iExperience);   // Exposed to Python
 	void changeCombatExperience(int iChange);   // Exposed to Python
 
-	DllExport bool isConnected() const;
+	bool isConnected() const;
 	DllExport int getNetID() const;
 	DllExport void setNetID(int iNetID);
-	DllExport void sendReminder();
+	void sendReminder();
 
 	uint getStartTime() const;
 	DllExport void setStartTime(uint uiStartTime);
-	DllExport uint getTotalTimePlayed() const;																																// Exposed to Python			  
+	uint getTotalTimePlayed() const;																																// Exposed to Python			  
 																																																			
 	bool isMinorCiv() const;																																									// Exposed to Python			
 																																																			

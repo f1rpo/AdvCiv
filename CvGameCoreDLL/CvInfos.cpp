@@ -40,7 +40,7 @@ m_bGraphicalOnly(false)
 CvInfoBase::~CvInfoBase()
 {
 }
-
+#if SERIALIZE_CVINFOS
 void CvInfoBase::read(FDataStreamBase* pStream)
 {
 	reset();
@@ -64,7 +64,7 @@ void CvInfoBase::write(FDataStreamBase* pStream)
 	pStream->WriteString(m_szButton);
 	pStream->WriteString(m_szTextKey);
 }
-
+#endif
 void CvInfoBase::reset()
 {
 	//clear cache
@@ -398,7 +398,7 @@ bool CvHotkeyInfo::read(CvXMLLoadUtility* pXML)
 
 	return true;
 }
-
+#if SERIALIZE_CVINFOS
 void CvHotkeyInfo::read(FDataStreamBase* pStream)
 {
 	CvInfoBase::read(pStream);
@@ -446,7 +446,7 @@ void CvHotkeyInfo::write(FDataStreamBase* pStream)
 	pStream->WriteString(m_szHotKeyAltDescriptionKey);
 	pStream->WriteString(m_szHotKeyString);
 }
-
+#endif
 int CvHotkeyInfo::getActionInfoIndex() const
 {
 	return m_iActionInfoIndex;
@@ -743,7 +743,7 @@ void CvDiplomacyResponse::setDiplomacyText(int i, CvString szText)
 	FAssertMsg(i > -1, "Index out of bounds");
 	m_paszDiplomacyText[i] = szText;
 }
-
+#if SERIALIZE_CVINFOS
 void CvDiplomacyResponse::read(FDataStreamBase* stream)
 {
 	uint uiFlag=0;
@@ -785,7 +785,7 @@ void CvDiplomacyResponse::write(FDataStreamBase* stream)
 	stream->Write(NUM_DIPLOMACYPOWER_TYPES, m_pbDiplomacyPowerTypes);
 	stream->WriteString(m_iNumDiplomacyText, m_paszDiplomacyText);
 }
-
+#endif
 bool CvDiplomacyResponse::read(CvXMLLoadUtility* pXML)
 {
 	pXML->SetVariableListTagPair(&m_pbCivilizationTypes, "Civilizations", sizeof(GC.getCivilizationInfo((CivilizationTypes)0)), GC.getNumCivilizationInfos());
@@ -1299,7 +1299,7 @@ bool CvTechInfo::isTerrainTrade(int i) const
 {
 	return m_pbTerrainTrade ? m_pbTerrainTrade[i] : false;
 }
-
+#if SERIALIZE_CVINFOS
 void CvTechInfo::read(FDataStreamBase* stream)
 {
 	CvInfoBase::read(stream);
@@ -1438,7 +1438,7 @@ void CvTechInfo::write(FDataStreamBase* stream)
 	stream->WriteString(m_szSound);
 	stream->WriteString(m_szSoundMP);
 }
-
+#endif
 bool CvTechInfo::read(CvXMLLoadUtility* pXML)
 {
 	CvString szTextVal;
@@ -2009,7 +2009,7 @@ bool CvPromotionInfo::getUnitCombat(int i) const
 	FAssertMsg(i > -1, "Index out of bounds");
 	return m_pbUnitCombat ? m_pbUnitCombat[i] : false;
 }
-
+#if SERIALIZE_CVINFOS
 void CvPromotionInfo::read(FDataStreamBase* stream)
 {
 	CvHotkeyInfo::read(stream);
@@ -2173,7 +2173,7 @@ void CvPromotionInfo::write(FDataStreamBase* stream)
 	stream->Write(GC.getNumFeatureInfos(), m_pbFeatureDoubleMove);
 	stream->Write(GC.getNumUnitCombatInfos(), m_pbUnitCombat);
 }
-
+#endif
 bool CvPromotionInfo::read(CvXMLLoadUtility* pXML)
 {
 	CvString szTextVal;
@@ -4254,7 +4254,7 @@ const CvArtInfoUnit* CvUnitInfo::getArtInfo(int i, EraTypes eEra, UnitArtStyleTy
 		return ARTFILEMGR.getUnitArtInfo(getEarlyArtDefineTag(i, eStyle));
 	}
 }
-
+#if SERIALIZE_CVINFOS
 void CvUnitInfo::read(FDataStreamBase* stream)
 {
 	CvHotkeyInfo::read(stream);
@@ -4757,7 +4757,7 @@ void CvUnitInfo::write(FDataStreamBase* stream)
 
 	stream->WriteString(m_szFormationType);
 }
-
+#endif
 //
 // read from xml
 //
@@ -5883,7 +5883,7 @@ int CvCivicInfo::getImprovementYieldChanges(int i, int j) const
 	FAssertMsg(j > -1, "Index out of bounds");
 	return m_ppiImprovementYieldChanges[i][j];
 }
-
+#if SERIALIZE_CVINFOS
 void CvCivicInfo::read(FDataStreamBase* stream)
 {
 	CvInfoBase::read(stream);
@@ -6099,7 +6099,7 @@ void CvCivicInfo::write(FDataStreamBase* stream)
 
 	stream->WriteString(m_szWeLoveTheKingKey);
 }
-
+#endif
 bool CvCivicInfo::read(CvXMLLoadUtility* pXML)
 {
 	CvString szTextVal;
@@ -6388,7 +6388,7 @@ const TCHAR* CvDiplomacyInfo::getDiplomacyText(int i, int j) const
 	FAssertMsg(j > -1, "Index out of bounds");
 	return m_pResponses[i]->getDiplomacyText(j);
 }
-
+#if SERIALIZE_CVINFOS
 void CvDiplomacyInfo::read(FDataStreamBase* stream)
 {
 	CvInfoBase::read(stream);
@@ -6427,7 +6427,7 @@ void CvDiplomacyInfo::write(FDataStreamBase* stream)
 		m_pResponses[uiIndex]->write(stream);
 	}
 }
-
+#endif
 bool CvDiplomacyInfo::read(CvXMLLoadUtility* pXML)
 {
 	int i;
@@ -7833,10 +7833,7 @@ const TCHAR* CvBuildingInfo::getMovie() const
 	}
 }
 
-
-//
-// serialization
-//
+#if SERIALIZE_CVINFOS
 void CvBuildingInfo::read(FDataStreamBase* stream)
 {
 	CvHotkeyInfo::read(stream);
@@ -8182,9 +8179,6 @@ void CvBuildingInfo::read(FDataStreamBase* stream)
 /************************************************************************************************/
 }
 
-//
-// serialization
-//
 void CvBuildingInfo::write(FDataStreamBase* stream)
 {
 	CvHotkeyInfo::write(stream);
@@ -8359,7 +8353,7 @@ void CvBuildingInfo::write(FDataStreamBase* stream)
 		stream->Write(NUM_YIELD_TYPES, m_ppaiBonusYieldModifier[i]);
 	}
 }
-
+#endif
 //
 // read from XML
 //
@@ -9644,7 +9638,7 @@ void CvCivilizationInfo::setDerivativeCiv(int iCiv)
 {
 	m_iDerivativeCiv = iCiv;
 }
-
+#if SERIALIZE_CVINFOS
 void CvCivilizationInfo::read(FDataStreamBase* stream)
 {
 	CvInfoBase::read(stream);
@@ -9742,7 +9736,7 @@ void CvCivilizationInfo::write(FDataStreamBase* stream)
 	stream->Write(GC.getNumTechInfos(), m_pbCivilizationDisableTechs);
 	stream->WriteString(m_iNumCityNames, m_paszCityNames);
 }
-
+#endif
 bool CvCivilizationInfo::read(CvXMLLoadUtility* pXML)
 {
 	char szClassVal[256];					// holds the text value of the relevant classinfo
@@ -10579,7 +10573,7 @@ int CvHandicapInfo::isAIFreeTechs(int i) const
 	FAssertMsg(i > -1, "Index out of bounds");
 	return m_pbAIFreeTechs[i];
 }
-
+#if SERIALIZE_CVINFOS
 void CvHandicapInfo::read(FDataStreamBase* stream)
 {
 	CvInfoBase::read(stream);
@@ -10750,7 +10744,7 @@ void CvHandicapInfo::write(FDataStreamBase* stream)
 	stream->Write(GC.getNumTechInfos(), m_pbFreeTechs);
 	stream->Write(GC.getNumTechInfos(), m_pbAIFreeTechs);
 }
-
+#endif
 bool CvHandicapInfo::read(CvXMLLoadUtility* pXML)
 {
 	if (!CvInfoBase::read(pXML))
@@ -11663,7 +11657,7 @@ int CvImprovementBonusInfo::getYieldChange(int i) const
 	FAssertMsg(i > -1, "Index out of bounds");
 	return m_piYieldChange ? m_piYieldChange[i] : -1;
 }
-
+#if SERIALIZE_CVINFOS
 void CvImprovementBonusInfo::read(FDataStreamBase* stream)
 {
 	CvInfoBase::read(stream);
@@ -11699,7 +11693,7 @@ void CvImprovementBonusInfo::write(FDataStreamBase* stream)
 	
 	stream->Write(NUM_YIELD_TYPES, m_piYieldChange);
 }
-
+#endif
 //======================================================================================================
 //					CvImprovementInfo
 //======================================================================================================
@@ -12108,7 +12102,7 @@ void CvArtInfoImprovement::setShaderNIF(const TCHAR* szDesc)
 {
 	m_szShaderNIF = szDesc; 
 }
-
+#if SERIALIZE_CVINFOS
 void CvImprovementInfo::read(FDataStreamBase* stream)
 {
 	CvInfoBase::read(stream);
@@ -12286,6 +12280,7 @@ void CvImprovementInfo::write(FDataStreamBase* stream)
 		stream->Write(NUM_YIELD_TYPES, m_ppiRouteYieldChanges[i]);
 	}
 }
+#endif
 bool CvImprovementInfo::read(CvXMLLoadUtility* pXML)
 {
 	CvString szTextVal;
@@ -12837,7 +12832,7 @@ const TCHAR* CvBonusInfo::getButton() const
 		return NULL;
 	}
 }
-
+#if SERIALIZE_CVINFOS
 void CvBonusInfo::read(FDataStreamBase* stream)
 {
 	CvInfoBase::read(stream);
@@ -12949,7 +12944,7 @@ void CvBonusInfo::write(FDataStreamBase* stream)
 	stream->Write(GC.getNumFeatureInfos(), m_pbFeature);
 	stream->Write(GC.getNumTerrainInfos(), m_pbFeatureTerrain);
 }
-
+#endif
 bool CvBonusInfo::read(CvXMLLoadUtility* pXML)
 {
 	CvString szTextVal;
@@ -14697,7 +14692,7 @@ const TCHAR* CvLeaderHeadInfo::getLeaderHead() const
 		return NULL;
 	}
 }
-
+#if SERIALIZE_CVINFOS
 void CvLeaderHeadInfo::read(FDataStreamBase* stream)
 {
 	CvInfoBase::read(stream);
@@ -14979,9 +14974,8 @@ void CvLeaderHeadInfo::write(FDataStreamBase* stream)
 	stream->Write(GC.getNumEraInfos(), m_piDiploPeaceMusicScriptIds);
 	stream->Write(GC.getNumEraInfos(), m_piDiploWarIntroMusicScriptIds);
 	stream->Write(GC.getNumEraInfos(), m_piDiploWarMusicScriptIds);
-
 }
-
+#endif
 const CvArtInfoLeaderhead* CvLeaderHeadInfo::getArtInfo() const
 {
 	return ARTFILEMGR.getLeaderheadArtInfo( getArtDefineTag());
@@ -19568,7 +19562,7 @@ const TCHAR* CvDiplomacyTextInfo::getDiplomacyText(int i, int j) const
 	FAssertMsg(j > -1, "Index out of bounds");
 	return m_pResponses[i].m_paszDiplomacyText[j]; 
 }
-
+#if SERIALIZE_CVINFOS
 void CvDiplomacyTextInfo::Response::read(FDataStreamBase* stream)
 {
 	stream->Read(&m_iNumDiplomacyText);
@@ -19640,7 +19634,7 @@ void CvDiplomacyTextInfo::write(FDataStreamBase* stream)
 		m_pResponses[uiIndex].write(stream);
 	}
 }
-
+#endif
 bool CvDiplomacyTextInfo::read(CvXMLLoadUtility* pXML)
 {
 	CvString szTextVal;
@@ -20816,7 +20810,7 @@ const char* CvEventTriggerInfo::getPythonCanDoUnit() const
 {
 	return m_szPythonCanDoUnit;
 }
-
+#if SERIALIZE_CVINFOS
 void CvEventTriggerInfo::read(FDataStreamBase* stream)
 {
 	int iNumElements;
@@ -21168,7 +21162,7 @@ void CvEventTriggerInfo::write(FDataStreamBase* stream)
 	stream->WriteString(m_szPythonCanDoCity);
 	stream->WriteString(m_szPythonCanDoUnit);
 }
-
+#endif
 bool CvEventTriggerInfo::read(CvXMLLoadUtility* pXML)
 {
 	CvString szTextVal;
@@ -22241,7 +22235,7 @@ const wchar* CvEventInfo::getOtherPlayerPopup() const
 {
 	return m_szOtherPlayerPopup;
 }
-
+#if SERIALIZE_CVINFOS
 void CvEventInfo::read(FDataStreamBase* stream)
 {
 	CvInfoBase::read(stream);
@@ -22510,7 +22504,7 @@ void CvEventInfo::write(FDataStreamBase* stream)
 	stream->WriteString(m_szPythonCanDo);
 	stream->WriteString(m_szPythonHelp);
 }
-
+#endif
 bool CvEventInfo::read(CvXMLLoadUtility* pXML)
 {
 	CvString szTextVal;
