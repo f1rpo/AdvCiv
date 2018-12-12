@@ -54,11 +54,11 @@ public:
 
 	// ID
 	void setPlayerID( int iID );
-	DllExport int getPlayerID( void ) const;
+	int getPlayerID( void ) const;
 
 	// Outcome
 	void setVictory(VictoryTypes eVictory);
-	DllExport int getVictory() const;
+	int getVictory() const;
 
 	// Length of time player lasted in game
 	void setTimePlayed( int iTime );
@@ -66,7 +66,7 @@ public:
 
 	// Leader/Civ played
 	void setLeader( LeaderHeadTypes eLeader );
-	DllExport LeaderHeadTypes getLeader() const;
+	LeaderHeadTypes getLeader() const;
 
 	// Num units built
 	void unitBuilt( CvUnit *pUnit );

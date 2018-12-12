@@ -40,8 +40,8 @@ public:
 	// default destructor
 	DllExport ~CvXMLLoadUtility(void);
 
-	DllExport bool CreateFXml();
-	DllExport void DestroyFXml();
+	bool CreateFXml();
+	void DestroyFXml();
 
 	DllExport bool LoadPostMenuGlobals();
 	DllExport bool LoadPreMenuGlobals();
@@ -50,13 +50,13 @@ public:
 	DllExport bool LoadGraphicOptions();
 
 	// read the global defines from a specific file
-	DllExport bool ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObject* cache);
+	bool ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObject* cache);
 	// loads globaldefines.xml and calls various other functions to load relevant global variables
 	DllExport bool SetGlobalDefines();
 	// loads globaltypes.xml and calls various other functions to load relevant global variables
 	DllExport bool SetGlobalTypes();
 	// loads calls various functions that load xml files that in turn load relevant global variables
-	DllExport bool SetGlobals();
+	bool SetGlobals();
 	// loads globaldefines.xml and calls various other functions to load relevant global variables
 	DllExport bool SetPostGlobalsGlobalDefines();
 
@@ -68,39 +68,39 @@ public:
 	DllExport bool SetupGlobalLandscapeInfo();
 	DllExport bool SetGlobalArtDefines();
 	DllExport bool LoadGlobalText();
-	DllExport bool SetHelpText();
+	bool SetHelpText();
 	DllExport void ResetGlobalEffectInfo();
 
 // for progress bars
 	typedef void (*ProgressCB)(int iStepNum, int iTotalSteps, const char* szMessage);
-	DllExport static int GetNumProgressSteps();
-	DllExport void RegisterProgressCB(ProgressCB cbFxn) { m_pCBFxn = cbFxn; }
+	static int GetNumProgressSteps();
+	void RegisterProgressCB(ProgressCB cbFxn) { m_pCBFxn = cbFxn; }
 
 	// moves the current xml node from where it is now to the next non-comment node, returns false if it can't find one
-	DllExport bool SkipToNextVal();
+	bool SkipToNextVal();
 
 	// overloaded function that gets the child value of the tag with szName if there is only one child
 	// value of that name
-	DllExport void MapChildren();	// call this before GetChildXMLValByName to use fast searching
-	DllExport bool GetChildXmlValByName(std::string& pszVal, const TCHAR* szName, char* pszDefault = NULL);
-	DllExport bool GetChildXmlValByName(std::wstring& pszVal, const TCHAR* szName, wchar* pszDefault = NULL);
+	void MapChildren();	// call this before GetChildXMLValByName to use fast searching
+	bool GetChildXmlValByName(std::string& pszVal, const TCHAR* szName, char* pszDefault = NULL);
+	bool GetChildXmlValByName(std::wstring& pszVal, const TCHAR* szName, wchar* pszDefault = NULL);
 	// overloaded function that gets the child value of the tag with szName if there is only one child
 	// value of that name
-	DllExport bool GetChildXmlValByName(char* pszVal, const TCHAR* szName, char* pszDefault = NULL);
-	DllExport bool GetChildXmlValByName(wchar* pszVal, const TCHAR* szName, wchar* pszDefault = NULL);
+	bool GetChildXmlValByName(char* pszVal, const TCHAR* szName, char* pszDefault = NULL);
+	bool GetChildXmlValByName(wchar* pszVal, const TCHAR* szName, wchar* pszDefault = NULL);
 	// overloaded function that gets the child value of the tag with szName if there is only one child
 	// value of that name
-	DllExport bool GetChildXmlValByName(int* piVal, const TCHAR* szName, int iDefault = 0);
+	bool GetChildXmlValByName(int* piVal, const TCHAR* szName, int iDefault = 0);
 	// overloaded function that gets the child value of the tag with szName if there is only one child
 	// value of that name
-	DllExport bool GetChildXmlValByName(float* pfVal, const TCHAR* szName, float fDefault = 0.0f);
+	bool GetChildXmlValByName(float* pfVal, const TCHAR* szName, float fDefault = 0.0f);
 	// overloaded function that gets the child value of the tag with szName if there is only one child
 	// value of that name
-	DllExport bool GetChildXmlValByName(bool* pbVal, const TCHAR* szName, bool bDefault = false);
+	bool GetChildXmlValByName(bool* pbVal, const TCHAR* szName, bool bDefault = false);
 
 	// loads an xml file into the FXml variable.  The szFilename parameter has
 	// the m_szXmlPath member variable pre-pended to it to form the full pathname
-	DllExport bool LoadCivXml(FXml* pFXml, const TCHAR* szFilename);
+	bool LoadCivXml(FXml* pFXml, const TCHAR* szFilename);
 
 	// overloaded function that gets either the current xml node's or the next non-comment xml node's string value
 	// depending on if the current node is a non-comment node or not

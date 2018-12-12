@@ -77,8 +77,8 @@ class CvMap
 
 public:
 
-	DllExport CvMap();
-	DllExport virtual ~CvMap();
+	CvMap();
+	virtual ~CvMap();
 
 	DllExport void init(CvMapInitData* pInitData=NULL);
 	DllExport void setupGraphical();
@@ -101,7 +101,7 @@ public:
 	DllExport void updateFlagSymbols();
 
 	DllExport void updateFog();
-	DllExport void updateVisibility();																// Exposed to Python
+	void updateVisibility();																// Exposed to Python
 	DllExport void updateSymbolVisibility();
 	void updateSymbols();
 	DllExport void updateMinimapColor();															// Exposed to Python
@@ -129,7 +129,7 @@ public:
 			bool bSameArea, bool bCoastalOnly, TeamTypes eTeamAtWarWith,
 			DirectionTypes eDirection, CvCity* pSkipCity, TeamTypes observer);
 	// </advc.004r>
-	DllExport CvSelectionGroup* findSelectionGroup(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, bool bReadyToSelect = false, bool bWorkers = false);				// Exposed to Python
+	CvSelectionGroup* findSelectionGroup(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, bool bReadyToSelect = false, bool bWorkers = false);				// Exposed to Python
 
 	CvArea* findBiggestArea(bool bWater);																						// Exposed to Python
 
@@ -150,7 +150,7 @@ public:
 		return getGridWidthINLINE() * getGridHeightINLINE();
 	}
 #endif
-	DllExport int plotNum(int iX, int iY) const;																		// Exposed to Python
+	int plotNum(int iX, int iY) const;																		// Exposed to Python
 #ifdef _USRDLL
 	inline int plotNumINLINE(int iX, int iY) const
 	{
@@ -160,10 +160,10 @@ public:
 	int plotX(int iIndex) const;																										// Exposed to Python
 	int plotY(int iIndex) const;																										// Exposed to Python
 
-	DllExport int pointXToPlotX(float fX);
+	int pointXToPlotX(float fX);
 	DllExport float plotXToPointX(int iX);
 
-	DllExport int pointYToPlotY(float fY);
+	int pointYToPlotY(float fY);
 	DllExport float plotYToPointY(int iY);
 
 	float getWidthCoords();
@@ -187,10 +187,10 @@ public:
 		return m_iGridHeight;
 	}
 #endif
-	DllExport int getLandPlots();																					// Exposed to Python
+	int getLandPlots();																					// Exposed to Python
 	void changeLandPlots(int iChange);
 
-	DllExport int getOwnedPlots();																				// Exposed to Python
+	int getOwnedPlots();																				// Exposed to Python
 	void changeOwnedPlots(int iChange);
 
 	int getTopLatitude();																									// Exposed to Python
@@ -221,10 +221,10 @@ public:
 	}
 #endif
 	DllExport WorldSizeTypes getWorldSize();															// Exposed to Python
-	DllExport ClimateTypes getClimate();																	// Exposed to Python
-	DllExport SeaLevelTypes getSeaLevel();																// Exposed to Python
+	ClimateTypes getClimate();																	// Exposed to Python
+	SeaLevelTypes getSeaLevel();																// Exposed to Python
 
-	DllExport int getNumCustomMapOptions();
+	int getNumCustomMapOptions();
 	DllExport CustomMapOptionTypes getCustomMapOption(int iOption);				// Exposed to Python
 
 	int getNumBonuses(BonusTypes eIndex);																	// Exposed to Python
@@ -264,13 +264,13 @@ public:
 	DllExport CvPlot* pointToPlot(float fX, float fY);
 
 	int getIndexAfterLastArea();														// Exposed to Python
-	DllExport int getNumAreas();														// Exposed to Python
-	DllExport int getNumLandAreas();
+	int getNumAreas();																	// Exposed to Python
+	int getNumLandAreas();
 	CvArea* getArea(int iID);																// Exposed to Python
 	CvArea* addArea();
 	void deleteArea(int iID);
 	// iteration
-	CvArea* firstArea(int *pIterIdx, bool bRev=false);								// Exposed to Python
+	CvArea* firstArea(int *pIterIdx, bool bRev=false);									// Exposed to Python
 	CvArea* nextArea(int *pIterIdx, bool bRev=false);									// Exposed to Python
 
 	void recalculateAreas();																		// Exposed to Python
@@ -292,8 +292,8 @@ public:
 /************************************************************************************************/
 
 	// Serialization:
-	DllExport virtual void read(FDataStreamBase* pStream);
-	DllExport virtual void write(FDataStreamBase* pStream);
+	virtual void read(FDataStreamBase* pStream);
+	virtual void write(FDataStreamBase* pStream);
 
 	void rebuild(int iGridW, int iGridH, int iTopLatitude, int iBottomLatitude, bool bWrapX, bool bWrapY, WorldSizeTypes eWorldSize, ClimateTypes eClimate, SeaLevelTypes eSeaLevel, int iNumCustomMapOptions, CustomMapOptionTypes * eCustomMapOptions);		// Exposed to Python
 

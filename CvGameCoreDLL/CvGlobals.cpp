@@ -42,6 +42,7 @@ void deleteInfoArray(std::vector<T*>& array)
 template <class T>
 bool readInfoArray(FDataStreamBase* pStream, std::vector<T*>& array, const char* szClassName)
 {
+#if SERIALIZE_CVINFOS
 	GC.addToInfosVectors(&array);
 
 	int iSize;
@@ -67,11 +68,16 @@ bool readInfoArray(FDataStreamBase* pStream, std::vector<T*>& array, const char*
 	}
 
 	return true;
+#else
+	FAssert(false);
+	return false;
+#endif
 }
 
 template <class T>
 bool writeInfoArray(FDataStreamBase* pStream,  std::vector<T*>& array)
 {
+#if SERIALIZE_CVINFOS
 	int iSize = sizeof(T);
 	pStream->Write(iSize);
 	pStream->Write(array.size());
@@ -80,6 +86,10 @@ bool writeInfoArray(FDataStreamBase* pStream,  std::vector<T*>& array)
 		(*it)->write(pStream);
 	}
 	return true;
+#else
+	FAssert(false);
+	return false;
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////

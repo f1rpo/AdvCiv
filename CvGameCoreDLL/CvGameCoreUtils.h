@@ -277,11 +277,11 @@ bool isInnerRing(CvPlot const* pl, CvPlot const* cityPl); // advc.303
 CardinalDirectionTypes getOppositeCardinalDirection(CardinalDirectionTypes eDir);	// Exposed to Python 
 DirectionTypes cardinalDirectionToDirection(CardinalDirectionTypes eCard);				// Exposed to Python
 DllExport bool isCardinalDirection(DirectionTypes eDirection);															// Exposed to Python
-DllExport DirectionTypes estimateDirection(int iDX, int iDY);																// Exposed to Python
+DirectionTypes estimateDirection(int iDX, int iDY);																// Exposed to Python
 DllExport DirectionTypes estimateDirection(const CvPlot* pFromPlot, const CvPlot* pToPlot);
 DllExport float directionAngle(DirectionTypes eDirection);
 
-DllExport bool atWar(TeamTypes eTeamA, TeamTypes eTeamB);												// Exposed to Python
+bool atWar(TeamTypes eTeamA, TeamTypes eTeamB);												// Exposed to Python
 bool isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam);			// Exposed to Python
 
 DllExport CvCity* getCity(IDInfo city);	// Exposed to Python

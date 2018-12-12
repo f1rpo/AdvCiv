@@ -378,6 +378,8 @@ CvBattleDefinition::CvBattleDefinition( const CvBattleDefinition & kCopy ) :
 	m_aBattleRounds.assign(kCopy.m_aBattleRounds.begin(), kCopy.m_aBattleRounds.end());
 }
 
+CvBattleDefinition::~CvBattleDefinition() {}
+
 int CvBattleDefinition::getDamage(BattleUnitTypes unitType, BattleTimeTypes timeType) const
 {
 	checkBattleUnitType(unitType);

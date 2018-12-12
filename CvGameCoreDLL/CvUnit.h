@@ -19,7 +19,7 @@ class CvSelectionGroup;
 class CvArtInfoUnit;
 class KmodPathFinder;
 
-struct DllExport CombatDetails					// Exposed to Python
+struct CombatDetails					// Exposed to Python
 {
 	int iExtraCombatPercent;
 	int iAnimalCombatModifierTA;
@@ -326,7 +326,7 @@ public:
 	bool isCombat() const;																								// Exposed to Python						
 																																				
 	DllExport int maxHitPoints() const;																		// Exposed to Python						
-	DllExport int currHitPoints() const;																	// Exposed to Python						
+	int currHitPoints() const;																	// Exposed to Python						
 	bool isHurt() const;																				// Exposed to Python						
 	DllExport bool isDead() const;																				// Exposed to Python						
 
@@ -354,7 +354,7 @@ public:
 	int combatLimit() const;																												// Exposed to Python
 	int airCombatLimit() const;																												// Exposed to Python
 	DllExport bool canAirAttack() const;																							// Exposed to Python
-	DllExport bool canAirDefend(const CvPlot* pPlot = NULL) const;										// Exposed to Python
+	bool canAirDefend(const CvPlot* pPlot = NULL) const;										// Exposed to Python
 	int airCombatDamage(const CvUnit* pDefender) const;																// Exposed to Python
 	int rangeCombatDamage(const CvUnit* pDefender) const;																// Exposed to Python
 	CvUnit* bestInterceptor(const CvPlot* pPlot) const;																// Exposed to Python
@@ -436,7 +436,7 @@ public:
 	bool isGroupHead() const;																								// Exposed to Python
 	DllExport CvSelectionGroup* getGroup() const;																			// Exposed to Python
 	bool canJoinGroup(const CvPlot* pPlot, CvSelectionGroup* pSelectionGroup) const;
-	DllExport void joinGroup(CvSelectionGroup* pSelectionGroup, bool bRemoveSelected = false, bool bRejoin = true);
+	void joinGroup(CvSelectionGroup* pSelectionGroup, bool bRemoveSelected = false, bool bRejoin = true);
 
 	DllExport int getHotKeyNumber();																													// Exposed to Python
 	void setHotKeyNumber(int iNewValue);																											// Exposed to Python
@@ -683,7 +683,7 @@ public:
 
 	DllExport const CvWString getName(uint uiForm = 0) const;																// Exposed to Python
 	CvWString const getReplayName() const; // advc.106
-	DllExport const wchar* getNameKey() const;																							// Exposed to Python
+	const wchar* getNameKey() const;																							// Exposed to Python
 	wchar const* getNameKeyNoGG() const; // advc.004u
 	const CvWString& getNameNoDesc() const;																				// Exposed to Python
 	void setName(const CvWString szNewValue);																			// Exposed to Python
@@ -718,7 +718,7 @@ public:
 	bool isHasPromotion(PromotionTypes eIndex) const;															// Exposed to Python
 	void setHasPromotion(PromotionTypes eIndex, bool bNewValue);									// Exposed to Python
 
-	DllExport int getSubUnitCount() const;
+	int getSubUnitCount() const;
 	DllExport int getSubUnitsAlive() const;
 	int getSubUnitsAlive(int iDamage) const;
 

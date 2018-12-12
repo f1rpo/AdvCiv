@@ -36,10 +36,10 @@ public:
 	DllExport int getHeight(int x, int y);																					// Exposed to Python
 	DllExport int getHeightFromPercent(int iPercent);																			// Exposed to Python
 
-	DllExport void reset();
+	void reset();
 	DllExport CvFractal();
-	DllExport virtual ~CvFractal();
-	DllExport void uninit();
+	virtual ~CvFractal();
+	void uninit();
 	
 protected:
 

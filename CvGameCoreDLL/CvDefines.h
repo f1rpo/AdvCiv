@@ -157,4 +157,6 @@
 #define DANGER_RANGE						(4)
 #define BORDER_DANGER_RANGE					(2) // K-Mod
 
+#define SERIALIZE_CVINFOS 0 // advc.003i
+
 #endif	// CVDEFINES_H
