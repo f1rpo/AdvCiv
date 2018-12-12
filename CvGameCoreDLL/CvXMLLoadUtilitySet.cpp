@@ -1523,8 +1523,11 @@ void CvXMLLoadUtility::SetDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInfo
 }
 
 template <class T>
-void CvXMLLoadUtility::LoadGlobalClassInfo(std::vector<T*>& aInfos, const char* szFileRoot, const char* szFileDirectory, const char* szXmlPath, bool bTwoPass, CvCacheObject* (CvDLLUtilityIFaceBase::*pArgFunction) (const TCHAR*))
-{
+void CvXMLLoadUtility::LoadGlobalClassInfo(std::vector<T*>& aInfos,
+		const char* szFileRoot, const char* szFileDirectory,
+		const char* szXmlPath, bool bTwoPass,
+		CvCacheObject* (CvDLLUtilityIFaceBase::*pArgFunction) (const TCHAR*))
+{	pArgFunction= NULL; // advc.003i: Disable XML cache
 	bool bLoaded = false;
 	bool bWriteCache = true;
 	CvCacheObject* pCache = NULL;
