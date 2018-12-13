@@ -1392,7 +1392,15 @@ bool PUF_isGroupHead(const CvUnit* pUnit, int iData1, int iData2)
 bool PUF_isPlayer(const CvUnit* pUnit, int iData1, int iData2)
 {
 	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	return (pUnit->getOwnerINLINE() == iData1);
+	// <advc.061>
+	TeamTypes eForTeam = (TeamTypes)iData2;
+	PlayerTypes eOwner = (PlayerTypes)iData1;
+	if(eForTeam == NO_TEAM || eOwner == NO_PLAYER || eForTeam == TEAMID(eOwner)) {
+		// </advc.061>
+		return (pUnit->getOwnerINLINE() == iData1);
+	} // <advc.061>
+	return (pUnit->getOwnerINLINE() == iData1 && !pUnit->isInvisible(eForTeam, false) &&
+			!pUnit->getUnitInfo().isHiddenNationality()); // </advc.061>
 }
 
 bool PUF_isTeam(const CvUnit* pUnit, int iData1, int iData2)

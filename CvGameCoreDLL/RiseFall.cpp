@@ -630,6 +630,8 @@ void RiseFall::abandonPlans(PlayerTypes civId) {
 		// Without this, units outside owner's borders don't appear on the main interface.
 		if(gr->plot()->getOwnerINLINE() != civId)
 			gr->plot()->updateCenterUnit();
+		/* ^Perhaps no longer needed due to a change in CvPlot::updateVisibility
+			(advc.061). Should test this some time. */
 	}
 	// Set research slider to a balanced-budget position
 	int incr = GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS");

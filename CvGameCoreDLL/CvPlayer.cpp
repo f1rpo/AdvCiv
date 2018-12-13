@@ -24476,11 +24476,8 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption, std::vector
 							const NiColorA& kColor = GC.getColorInfo((ColorTypes) GC.getPlayerColorInfo(eUnitColor).getColorTypePrimary()).getColor();
 
 							szBuffer.clear();
-						/*  advc.007 (fixme): In Debug mode, if Ctrl, Shift or Alt
-							is held down while switching eOption,
-							kIndicator.m_strHelpText is going to show debug info,
-							which is unexpected. */
-							GAMETEXT.setPlotListHelp(szBuffer, pLoopPlot, true, true);
+							GAMETEXT.setPlotListHelp(szBuffer, pLoopPlot, true, true,
+									true); // advc.061, advc.007
 
 							CvPlotIndicatorData kIndicator;
 							kIndicator.m_pUnit = pUnit;

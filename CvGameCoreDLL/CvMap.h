@@ -276,7 +276,8 @@ public:
 	void recalculateAreas();																		// Exposed to Python
 
 	void resetPathDistance();																		// Exposed to Python
-	int calculatePathDistance(CvPlot *pSource, CvPlot *pDest);	// Exposed to Python
+		// advc.003: 3x const
+	int calculatePathDistance(CvPlot const* pSource, CvPlot const* pDest) const;					// Exposed to Python
 
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      08/21/09                                jdog5000      */

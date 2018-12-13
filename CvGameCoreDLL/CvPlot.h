@@ -128,8 +128,18 @@ public:
 	int getBuildTurnsLeft(BuildTypes eBuild, int iNowExtra, int iThenExtra) const;																			// Exposed to Python
 	int getFeatureProduction(BuildTypes eBuild, TeamTypes eTeam, CvCity** ppCity) const;																// Exposed to Python
 
-	DllExport CvUnit* getBestDefender(PlayerTypes eOwner, PlayerTypes eAttackingPlayer = NO_PLAYER, const CvUnit* pAttacker = NULL, bool bTestAtWar = false, bool bTestPotentialEnemy = false, bool bTestCanMove = false) const;		// Exposed to Python
-	//int AI_sumStrength(PlayerTypes eOwner, PlayerTypes eAttackingPlayer = NO_PLAYER, DomainTypes eDomainType = NO_DOMAIN, bool bDefensiveBonuses = true, bool bTestAtWar = false, bool bTestPotentialEnemy = false) const; // disabled by K-Mod
+	DllExport CvUnit* getBestDefender(PlayerTypes eOwner,								// Exposed to Python
+			PlayerTypes eAttackingPlayer = NO_PLAYER, const CvUnit* pAttacker = NULL,
+			bool bTestAtWar = false, bool bTestPotentialEnemy = false,
+			bool bTestCanMove = false) const { // <advc.028>
+		return getBestDefender(eOwner, eAttackingPlayer, pAttacker, bTestAtWar,
+				bTestPotentialEnemy, bTestCanMove, false); }
+	CvUnit* getBestDefender(PlayerTypes eOwner,
+			PlayerTypes eAttackingPlayer, CvUnit const* pAttacker,
+			bool bTestAtWar, bool bTestPotentialEnemy, bool bTestCanMove,
+			bool bVisible) const; // </advc.028>
+	// disabled by K-Mod:
+	//int AI_sumStrength(PlayerTypes eOwner, PlayerTypes eAttackingPlayer = NO_PLAYER, DomainTypes eDomainType = NO_DOMAIN, bool bDefensiveBonuses = true, bool bTestAtWar = false, bool bTestPotentialEnemy = false) const;
 	CvUnit* getSelectedUnit() const;																																// Exposed to Python
 	int getUnitPower(PlayerTypes eOwner = NO_PLAYER) const;																					// Exposed to Python				
 

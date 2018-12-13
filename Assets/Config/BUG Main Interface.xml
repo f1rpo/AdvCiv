@@ -106,6 +106,13 @@
 					type="color" default="COLOR_MAGENTA"
 					get="getStackPromotionColorAll" dirtyBit="InfoPane"/>
 
+			<!-- advc.061 -->
+			<option id="ListUnitsPerOwner" key="List Units Per Owner" 
+					type="boolean" default="True" 
+					get="isListUnitsPerOwner"/>
+			<!-- dirtyBit: Would like to redraw the unit layer indicators, but
+				 I don't think that's possible through a dirty-bit. -->
+
 			<!-- Build/Action Icon Size by EmperorFool -->
 			<list   id="BuildIconSize" key="Build Icon Size" 
 					type="int" default="1" listType="string" 

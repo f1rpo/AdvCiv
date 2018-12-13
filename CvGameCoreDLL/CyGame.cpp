@@ -672,6 +672,12 @@ bool CyGame::isFinalInitialized()
 {
 	return m_pGame ? m_pGame->isFinalInitialized() : false;
 }
+// <advc.061>
+void CyGame::setScreenDimensions(int x, int y)
+{
+	if(m_pGame != NULL)
+		m_pGame->setScreenDimensions(x, y);
+} // </advc.061>
 
 int /*PlayerTypes*/ CyGame::getActivePlayer() 
 {

@@ -627,6 +627,7 @@ void CvPlot::updateVisibility()
 	{
 		pCity->updateVisibility();
 	}
+	updateCenterUnit(); // advc.061, advc.001w
 }
 
 
@@ -797,30 +798,33 @@ void CvPlot::updateCenterUnit()
 	if (getCenterUnit() == NULL)
 	{	// <advc.028>
 		CvUnit* pBestDef = getBestDefender(NO_PLAYER, eActivePlayer,
-				gDLL->getInterfaceIFace()->getHeadSelectedUnit(), true);
-		if(pBestDef != NULL && !pBestDef->isInvisible(TEAMID(eActivePlayer), true))
+				gDLL->getInterfaceIFace()->getHeadSelectedUnit(), true,
+				false, false, true); // advc.061
+		if(pBestDef != NULL)
 			setCenterUnit(pBestDef); // </advc.028>
 	} // disabled by K-Mod. I don't think it's relevant whether or not the best defender can move.
 	/*  advc.001: Enabled again, instead disabled the one with bTestCanMove=true --
 		I think that's the one karadoc had meant to disable. */
 
 	if (getCenterUnit() == NULL)
-	{	// <advc.028>
-		CvUnit* pBestDef = getBestDefender(NO_PLAYER, eActivePlayer,
-				gDLL->getInterfaceIFace()->getHeadSelectedUnit());
-		if(pBestDef != NULL && !pBestDef->isInvisible(TEAMID(eActivePlayer), true))
-			setCenterUnit(pBestDef);
+	{
 		//setCenterUnit(getBestDefender(NO_PLAYER, GC.getGameINLINE().getActivePlayer(), gDLL->getInterfaceIFace()->getHeadSelectedUnit()));
-		// (Replaced by the above) // </advc.028>
+		// <advc.028> Replacing the above
+		CvUnit* pBestDef = getBestDefender(NO_PLAYER, eActivePlayer,
+				gDLL->getInterfaceIFace()->getHeadSelectedUnit(), false,
+				false, false, true); // advc.061
+		if(pBestDef != NULL)
+			setCenterUnit(pBestDef); // </advc.028>
 	}
 
 	if (getCenterUnit() == NULL)
-	{	// <advc.028>
-		CvUnit* pBestDef = getBestDefender(NO_PLAYER, eActivePlayer);
-		if(pBestDef != NULL && !pBestDef->isInvisible(TEAMID(eActivePlayer), true))
-			setCenterUnit(pBestDef);
+	{
 		//setCenterUnit(getBestDefender(NO_PLAYER, GC.getGameINLINE().getActivePlayer()));
-		// (Replaced by the above) // </advc.028>
+		// <advc.028> Replacing the above
+		CvUnit* pBestDef = getBestDefender(NO_PLAYER, eActivePlayer, NULL, false,
+				false, false, true); // advc.061
+		if(pBestDef != NULL)
+			setCenterUnit(pBestDef); // </advc.028>
 	}
 }
 
@@ -2742,7 +2746,9 @@ int CvPlot::getFeatureProduction(BuildTypes eBuild, TeamTypes eTeam, CvCity** pp
 }
 
 
-CvUnit* CvPlot::getBestDefender(PlayerTypes eOwner, PlayerTypes eAttackingPlayer, const CvUnit* pAttacker, bool bTestAtWar, bool bTestPotentialEnemy, bool bTestCanMove) const
+CvUnit* CvPlot::getBestDefender(PlayerTypes eOwner, PlayerTypes eAttackingPlayer,
+		CvUnit const* pAttacker, bool bTestAtWar, bool bTestPotentialEnemy,
+		bool bTestCanMove, bool bVisible /* advc.028 */) const
 {
 	CLLNode<IDInfo>* pUnitNode;
 	CvUnit* pLoopUnit;
@@ -2765,8 +2771,11 @@ CvUnit* CvPlot::getBestDefender(PlayerTypes eOwner, PlayerTypes eAttackingPlayer
 		pUnitNode = nextUnitNode(pUnitNode);
 
 		if ((eOwner == NO_PLAYER) || (pLoopUnit->getOwnerINLINE() == eOwner))
-		{	// advc.028: Invisibility handled by CvUnit::isBetterDefenderThan now
-			//if ((eAttackingPlayer == NO_PLAYER) || !(pLoopUnit->isInvisible(GET_PLAYER(eAttackingPlayer).getTeam(), false)))
+		{
+			if(!bVisible || // advc.028
+					eAttackingPlayer == NO_PLAYER ||
+					!pLoopUnit->isInvisible(TEAMID(eAttackingPlayer),
+					true)) // advc.028
 			{
 				if (!bTestAtWar || eAttackingPlayer == NO_PLAYER || pLoopUnit->isEnemy(GET_PLAYER(eAttackingPlayer).getTeam(), this) || (NULL != pAttacker && pAttacker->isEnemy(GET_PLAYER(pLoopUnit->getOwnerINLINE()).getTeam(), this)))
 				{
@@ -2780,7 +2789,9 @@ CvUnit* CvPlot::getBestDefender(PlayerTypes eOwner, PlayerTypes eAttackingPlayer
 								// original
 								//if (pLoopUnit->isBetterDefenderThan(pBestUnit, pAttacker))
 								// modified (added extra parameter)
-								if (pLoopUnit->isBetterDefenderThan(pBestUnit, pAttacker, &iBestUnitRank))
+								if (pLoopUnit->isBetterDefenderThan(pBestUnit,
+										pAttacker, &iBestUnitRank,
+										bVisible)) // advc.061
 								// /UncutDragon
 								{
 									pBestUnit = pLoopUnit;

@@ -120,10 +120,14 @@ public:
 	DllExport void updateHuman();
 	DllExport bool isBarbarian() const;																																					// Exposed to Python						
 
-	// K-Mod note: I've changed getName, getCivilizationDescription, and getCivilizationShortDescription to only give accurate information if the active player has met this player.
-	// The "key" versions of those functions are unchanged. This is important because getNameKey and so on are used to create messages for the replay.
+	/*  K-Mod note: I've changed getName, getCivilizationDescription,
+		and getCivilizationShortDescription to only give accurate information
+		if the active player has met this player.
+		The "key" versions of those functions are unchanged. This is important
+		because getNameKey and so on are used to create messages for the replay. */
 	DllExport const wchar* getName(uint uiForm = 0) const;																											// Exposed to Python
-	const wchar* getReplayName(uint uiForm = 0) const; // K-Mod. Player name to be used in replay
+	// K-Mod. Player name to be used in replay
+	const wchar* getReplayName(uint uiForm = 0) const;
 	DllExport const wchar* getNameKey() const;																																	// Exposed to Python
 	DllExport const wchar* getCivilizationDescription(uint uiForm = 0) const;																		// Exposed to Python
 	DllExport const wchar* getCivilizationDescriptionKey() const;																								// Exposed to Python

@@ -94,6 +94,7 @@ public:
 	void updateFoundingBorder() const; // advc.004h
 
 	bool isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker) const;						// Exposed to Python 
+	bool isUnowned() const; // advc.061
 
 	bool canDoCommand(CommandTypes eCommand, int iData1, int iData2, bool bTestVisible = false, bool bTestBusy = true);	// Exposed to Python
 	void doCommand(CommandTypes eCommand, int iData1, int iData2);																// Exposed to Python
@@ -919,7 +920,9 @@ protected:
 
 // Lead From Behind by UncutDragon. Edited for K-Mod
 public:
-	bool isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker, int* pBestDefenderRank) const;
+	bool isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker,
+			int* pBestDefenderRank,
+			bool bPreferUnowned = false) const; // advc.061
 	virtual void LFBgetBetterAttacker(CvUnit** ppAttacker, const CvPlot* pPlot, bool bPotentialEnemy, int& iAIAttackOdds, int& iAttackerValue) = 0;
 	int LFBgetAttackerRank(const CvUnit* pDefender, int& iUnadjustedRank) const;
 	int LFBgetDefenderRank(const CvUnit* pAttacker) const;

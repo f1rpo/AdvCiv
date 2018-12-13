@@ -2120,7 +2120,9 @@ void CvUnit::updateFoundingBorder() const {
 // original
 //bool CvUnit::isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker) const
 // modified (with extra parameter)
-bool CvUnit::isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker, int* pBestDefenderRank) const
+bool CvUnit::isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker,
+		int* pBestDefenderRank,
+		bool bPreferUnowned) const // advc.061
 {
 	int iOurDefense;
 	int iTheirDefense;
@@ -2132,22 +2134,22 @@ bool CvUnit::isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttack
 	}
 
 	// <advc.028>
-	bool invisible = (eAttackerTeam != NO_TEAM && isInvisible(eAttackerTeam, false));
+	bool bInvisible = (eAttackerTeam != NO_TEAM && isInvisible(eAttackerTeam, false));
 	// Only pick invisible unit as defender once attack is underway ...
-	if(invisible && pAttacker->getAttackPlot() == NULL)
+	if(bInvisible && pAttacker->getAttackPlot() == NULL)
 		return false;
 	/*  and if there is some visible team unit that could get attacked otherwise
 		(better: check if our team has the best visible defender; tbd.): */
-	if(invisible) {
-		bool found = false;
+	if(bInvisible) {
+		bool bFound = false;
 		CLLNode<IDInfo>* node = plot()->headUnitNode();
 		while(node != NULL) {
 			CvUnit* u = ::getUnit(node->m_data);
 			node = plot()->nextUnitNode(node);
 			if(u->getTeam() == getTeam() && !u->isInvisible(eAttackerTeam, false))
-				found = true;
+				bFound = true;
 		}
-		if(!found)
+		if(!bFound)
 			return false;
 	}
 	// Moved down: // </advc.028>
@@ -2156,7 +2158,7 @@ bool CvUnit::isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttack
 		return true;
 	}
 	// <advc.028>
-	if(pDefender->getTeam() != getTeam() && invisible)
+	if(pDefender->getTeam() != getTeam() && bInvisible)
 		return false; // </advc.028>
 	if (canCoexistWithEnemyUnit(eAttackerTeam))
 	{
@@ -2168,10 +2170,17 @@ bool CvUnit::isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttack
 		return false;
 	}
 
-	if (canDefend() && !(pDefender->canDefend()))
+	if (canDefend() && !pDefender->canDefend())
 	{
 		return true;
 	}
+
+	// <advc.061>
+	if(bPreferUnowned) {
+		bool bUnowned = isUnowned();
+		if(bUnowned != pDefender->isUnowned())
+			return bUnowned;
+	} // </advc.061>
 
 	if (pAttacker)
 	{
@@ -2310,6 +2319,26 @@ bool CvUnit::isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttack
 
 	return (iOurDefense > iTheirDefense);
 }
+
+/*  <advc.061> See comment at call location in CvGameTextMgr::setPlotListHelpPerOwner.
+	Doesn't check isVisible. */
+bool CvUnit::isUnowned() const {
+
+	TeamTypes eActiveTeam = GC.getGameINLINE().getActiveTeam();
+	PlayerTypes eVisualOwner = getVisualOwner(eActiveTeam);
+	if(eVisualOwner == NO_PLAYER) {
+		FAssert(eVisualOwner != NO_PLAYER);
+		return true;
+	}
+	if(eVisualOwner != BARBARIAN_PLAYER)
+		return false;
+	if(isAnimal() || m_pUnitInfo->isHiddenNationality())
+		return true;
+	CvCity* pPlotCity = plot()->getPlotCity();
+	if(pPlotCity != NULL && pPlotCity->isBarbarian())
+		return true;
+	return false;
+} // </advc.061>
 
 bool CvUnit::canDoCommand(CommandTypes eCommand, int iData1, int iData2, bool bTestVisible, bool bTestBusy)
 {
@@ -11876,20 +11905,29 @@ PlayerTypes CvUnit::getVisualOwner(TeamTypes eForTeam) const
 	{
 		eForTeam = GC.getGameINLINE().getActiveTeam();
 	}
-
+	PlayerTypes r = getOwnerINLINE(); // advc.061
 	if (getTeam() != eForTeam && eForTeam != BARBARIAN_TEAM)
 	{
 		if (m_pUnitInfo->isHiddenNationality()
 				&& !GC.getGameINLINE().isDebugMode()) // advc.007
 		{
-			if (!plot()->isCity(true, getTeam()))
+			//if( !plot()->isCity(true, getTeam()))
+			// <advc.061> Replacing the above
+			if(!m_pUnitInfo->isAlwaysHostile() || isFighting() ||
+					/* If it's in the same tile as a revealed unit and it's always
+						hostile, then the nationality is obvious. (A teammate could
+						be the owner, but that wouldn't make a big difference.) */
+					//TEAMREF(r).getNumMembers() > 1 ||
+					(!plot()->isCity(true, getTeam())
+					&& plot()->plotCheck(PUF_isPlayer, r, eForTeam) == NULL))
+			// </advc.061>
 			{
 				return BARBARIAN_PLAYER;
 			}
 		}
 	}
 
-	return getOwnerINLINE();
+	return r;
 }
 
 

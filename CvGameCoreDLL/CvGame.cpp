@@ -621,6 +621,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	m_bHotPbemBetweenTurns = false;
 	m_bPlayerOptionsSent = false;
 	m_bNukesValid = false;
+	m_iScreenWidth = m_iScreenHeight = 0; // advc.061
 
 	m_eHandicap = eHandicap;
 	// advc.127: (XML not loaded when constructor called)
@@ -5360,6 +5361,23 @@ void CvGame::setFinalInitialized(bool bNewValue)
 		}
 	}
 }
+
+// <advc.061>
+void CvGame::setScreenDimensions(int x, int y) {
+
+	m_iScreenWidth = x;
+	m_iScreenHeight = y;
+}
+
+int CvGame::getScreenWidth() const {
+
+	return m_iScreenWidth;
+}
+
+int CvGame::getScreenHeight() const {
+
+	return m_iScreenHeight;
+} // </advc.061>
 
 
 bool CvGame::getPbemTurnSent() const

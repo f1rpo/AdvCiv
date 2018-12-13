@@ -4152,4 +4152,48 @@
 		<Spanish>Todas las civilizaciones quedar&#225;n bloqueadas en guerra o en paz hasta que acabe la partida.</Spanish>
 	</TEXT>
 	
+	<!-- advc.061: Would prefer game terms like "Military", but space is
+		 limited and the important distinctions are between military land units,
+		 military sea units and civilians/ air units (a single category for
+		 these is OK). -->
+	<!-- Translation based on TXT_KEY_CONCEPT_AIR_UNITS_PEDIA in
+		 CIV4GameText_Civilopedia_Concepts.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_ARMY</Tag>
+		<English>army</English>
+		<French>armée</French>
+		<German>Armee</German>
+		<Italian>esercito</Italian>
+		<Spanish>ejército</Spanish>
+	</TEXT>
+	<!-- Translation based on TXT_KEY_SEALEVEL_HIGH_HELP in
+		 CIV4GameText_Help.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_NAVY</Tag>
+		<English>navy</English>
+		<French>flotte</French>
+		<German>Flotte</German>
+		<Italian>flotta</Italian>
+		<Spanish>armada</Spanish>
+	</TEXT>
+	<!-- Like TXT_KEY_OPTIONS_SCREEN_OTHER in CIV4GameText_Misc1.xml,
+		 but non-capitalized -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_OTHER</Tag>
+		<English>other</English>
+		<French>autre</French>
+		<German>Sonstige</German>
+		<Italian>altro</Italian>
+		<Spanish>otros</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_NOT_ENOUGH_SPACE</Tag>
+		<English>Not enough space to display!</English>
+		<French>Espace insuffisant pour l'afficher !</French>
+		<German>Zu wenig Platz zum Anzeigen!</German>
+		<Italian>Spazio insufficiente!</Italian>
+		<Spanish>¡No hay suficiente espacio!</Spanish>
+	</TEXT>
+	
+	
 </Civ4GameText>

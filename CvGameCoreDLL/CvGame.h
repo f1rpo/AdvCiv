@@ -303,7 +303,11 @@ public:
 
 	DllExport bool isFinalInitialized() const;																		// Exposed to Python
 	DllExport void setFinalInitialized(bool bNewValue);
-
+	// <advc.061>
+	void setScreenDimensions(int x, int y); // (exposed to Python)
+	int getScreenWidth() const;
+	int getScreenHeight() const;
+	// </advc.061>
 	bool getPbemTurnSent() const;
 	DllExport void setPbemTurnSent(bool bNewValue);
 
@@ -682,6 +686,7 @@ protected:
 	bool m_bHotPbemBetweenTurns;
 	bool m_bPlayerOptionsSent;
 	bool m_bNukesValid;
+	int m_iScreenWidth, m_iScreenHeight; // advc.061
 	bool m_bAITurn; // advc.106b
 	bool m_bResourceLayer; // advc.004m
 	bool m_bResourceLayerSet; // advc.003d

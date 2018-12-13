@@ -331,7 +331,8 @@ class CvMainInterface:
 			screen = CyGInterfaceScreen( "MainInterface", CvScreenEnums.MAIN_INTERFACE )
 		self.xResolution = screen.getXResolution()
 		self.yResolution = screen.getYResolution()
-		
+		# advc.061:
+		gc.getGame().setScreenDimensions(self.xResolution, self.yResolution)
 # BUG - Raw Yields - begin
 		global g_bYieldView
 		global g_iYieldType

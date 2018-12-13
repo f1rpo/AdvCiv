@@ -5,6 +5,7 @@
 
 	Copyright (c) 2009 The BUG Mod.
 -->
+<!-- advc: Some of the Romance-language translations are from www.deepl.com -->
 <Civ4GameText xmlns="http://www.firaxis.com">
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__OPTIONSKEY_TEXT</Tag>
@@ -180,7 +181,7 @@
 		<English>Remember Field of View</English>
 		<French>Remember Field of View</French>
 		<German>FOV-Einstellung merken</German>
-		<Italian>Conseva il Campo visuale</Italian>
+		<Italian>Conserva il Campo visuale</Italian>
 		<Spanish>Recordar Campo de Visión</Spanish>
 	</TEXT>
 	<TEXT>
@@ -304,6 +305,24 @@
 		<German>Zeigt die Anzahl der Einheiten in einem Einheitenverband an, die über eine bestimmte Beförderung verfügen, falls dies bei mehr als einer der Fall ist</German>
 		<Italian>When checked, shows the number of units in a stack that possess each promotion if more than one.</Italian>
 		<Spanish>Muestra el número de unidades del grupo que poseen una determinada promoción, en el caso de que haya más de una.</Spanish>
+	</TEXT>
+	
+	<!-- advc.061 -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__LISTUNITSPEROWNER_TEXT</Tag>
+		<English>List Units per Owner</English>
+		<French>Grouper les unités par propriétaire</French>
+		<German>Einheiten nach Besitzer gruppieren</German>
+		<Italian>Elenca unità per proprietario</Italian>
+		<Spanish>Agrupar unidades por propietario</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__LISTUNITSPEROWNER_HOVER</Tag>
+		<English>When checked, help text lists the units in a tile grouped by owner and shows the total unit count per owner.</English>
+		<French>En activant, le texte d'aide énumère les unités d'une case groupées par propriétaire et affiche le nombre total d'unités par propriétaire.</French>
+		<German>Im Hilfstext werden Einheiten eines Feldes nach Besitzer gruppiert aufgeführt und die Einheitenzahl pro Besitzer wird angegeben.</German>
+		<Italian>Quando è selezionato, il testo di aiuto elenca le unità in una casella raggruppate per proprietario e mostra il conteggio totale delle unità per proprietario.</Italian>
+		<Spanish>Si se activa, el texto de ayuda lista las unidades en una casilla agrupadas por propietario y muestra el número total de unidades por propietario.</Spanish>
 	</TEXT>
 
 	<!-- 002b: This option column gets a bit too wide with the larger fonts.

@@ -56,17 +56,13 @@ public:
 
 	void setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 			bool bOneLine = false, bool bShort = false,
-			bool bColorHostile = false); // advc.048
-	void setPlotListHelp(CvWStringBuffer &szString, CvPlot* pPlot, bool bOneLine, bool bShort);
+			bool bColorHostile = false, // advc.048
+			bool bOmitOwner = false, // advc.061
+			bool bIndicator = false); // advc.007
+	void setPlotListHelp(CvWStringBuffer &szString, CvPlot* pPlot, bool bOneLine, bool bShort,
+			bool bIndicator = false); // advc.061
 	bool setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot);
 	void setPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot);
-	// <advc.135c>
-	void setPlotHelpDebug(CvWStringBuffer& szString, CvPlot const& kPlot);
-	void setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot const& kPlot);
-	void setPlotHelpDebug_ShiftOnly(CvWStringBuffer& szString, CvPlot const& kPlot);
-	void setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot const& kPlot);
-	void setPlotHelpDebug_ShiftAltOnly(CvWStringBuffer& szString, CvPlot const& kPlot);
-	// </advc.135c>
 	void setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity);
 	void setScoreHelp(CvWStringBuffer &szString, PlayerTypes ePlayer);
 
@@ -273,7 +269,30 @@ private:
 			CvUnit const* pAttacker, CvUnit const* pDefender, CvPlot const* pPlot);
 	void appendPositiveModifiers(CvWStringBuffer& szString,
 			CvUnit const* pAttacker, CvUnit const* pDefender, CvPlot const* pPlot);
+	void setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const& kPlot);
 	// </advc.003>
+	// <advc.135c>
+	void setPlotHelpDebug(CvWStringBuffer& szString, CvPlot const& kPlot);
+	void setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot const& kPlot);
+	void setPlotHelpDebug_ShiftOnly(CvWStringBuffer& szString, CvPlot const& kPlot);
+	void setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot const& kPlot);
+	void setPlotHelpDebug_ShiftAltOnly(CvWStringBuffer& szString, CvPlot const& kPlot);
+	// </advc.135c>
+	// <advc.061>
+	void setPlotListHelpPerOwner(CvWStringBuffer& szString, CvPlot const& kPlot,
+			bool bIndicator, bool bShort);
+	void appendUnitOwnerHeading(CvWStringBuffer& szString, PlayerTypes eOwner,
+			int iArmy, int iNavy, int iAir, int iTotal, bool bCollapsed = false);
+	void appendUnitTypeAggregated(CvWStringBuffer& szString,
+			std::vector<CvUnit const*> const& ownerUnits,
+			UnitTypes eUnit, CvPlot const& kPlot, bool bIndicator);
+	void appendAverageStrength(CvWStringBuffer& szString, int iSumMaxStrengthTimes100,
+			int iSumStrengthTimes100, int iUnits);
+	// For std::sort
+	  static CvPlot const* m_pHelpPlot;
+	  static bool listFirstUnitBeforeSecond(CvUnit const* pFirst, CvUnit const* pSecond);
+	  static bool listFirstUnitTypeBeforeSecond(UnitTypes eFirst, UnitTypes eSecond);
+	// </advc.061>
 };
 
 // Singleton Accessor

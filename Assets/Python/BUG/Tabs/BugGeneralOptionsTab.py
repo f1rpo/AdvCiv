@@ -86,6 +86,8 @@ class BugGeneralOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addCheckbox(screen, left, "MainInterface__StackPromotionCounts", True)
 		self.addColorDropdown(screen, center, right, "MainInterface__StackPromotionColor", False)
 		self.addColorDropdown(screen, center, right, "MainInterface__StackPromotionColorAll", False)
+		# advc.061:
+		self.addCheckbox(screen, panel, "MainInterface__ListUnitsPerOwner")
 		
 	def createMiscellaneousPanel(self, screen, panel):
 		self.addLabel(screen, panel, "Misc", "Misc:")
