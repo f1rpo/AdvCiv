@@ -364,8 +364,6 @@ bool CvDeal::recordTradeValue(CLinkList<TradeData>* list1, CLinkList<TradeData>*
 
 void CvDeal::doTurn()
 {
-	int iValue;
-
 	if (!isPeaceDeal()
 	/*  <advc.130p> Open Borders and Defensive Pact have very small AI_dealVals.
 		In (most?) other places, this doesn't matter b/c the AI never pays for
@@ -385,7 +383,7 @@ void CvDeal::doTurn()
 	{
 		if (getLengthSecondTrades() > 0)
 		{
-			iValue = (GET_PLAYER(getFirstPlayer()).AI_dealVal(getSecondPlayer(), getSecondTrades()) / GC.getPEACE_TREATY_LENGTH());
+			int iValue = (GET_PLAYER(getFirstPlayer()).AI_dealVal(getSecondPlayer(), getSecondTrades()) / GC.getPEACE_TREATY_LENGTH());
 
 			if (getLengthFirstTrades() > 0)
 			{
@@ -399,7 +397,7 @@ void CvDeal::doTurn()
 
 		if (getLengthFirstTrades() > 0)
 		{
-			iValue = (GET_PLAYER(getSecondPlayer()).AI_dealVal(getFirstPlayer(), getFirstTrades()) / GC.getPEACE_TREATY_LENGTH());
+			int iValue = (GET_PLAYER(getSecondPlayer()).AI_dealVal(getFirstPlayer(), getFirstTrades()) / GC.getPEACE_TREATY_LENGTH());
 
 			if (getLengthSecondTrades() > 0)
 			{
@@ -636,8 +634,8 @@ bool CvDeal::isDisengage() const {
 			m_firstTrades.head()->m_data.m_eItemType == TRADE_DISENGAGE;
 } // </advc.034>
 
-
-bool CvDeal::isPeaceDealBetweenOthers(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* pSecondList) const
+// advc.130p: Replaced by code in recordTradeValue
+/*bool CvDeal::isPeaceDealBetweenOthers(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* pSecondList) const
 {
 	CLLNode<TradeData>* pNode;
 
@@ -664,7 +662,7 @@ bool CvDeal::isPeaceDealBetweenOthers(CLinkList<TradeData>* pFirstList, CLinkLis
 	}
 
 	return false;
-}
+}*/
 
 
 int CvDeal::getID() const
@@ -829,13 +827,7 @@ void CvDeal::read(FDataStreamBase* pStream)
 // Returns true if the trade should be saved...
 bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer)
 {
-	CivicTypes* paeNewCivics;
-	CvCity* pCity;
-	CvPlot* pLoopPlot;
-	bool bSave;
-	int iI;
-
-	bSave = false;
+	bool bSave = false;
 
 	switch (trade.m_eItemType)
 	{
@@ -852,7 +844,7 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 			logBBAI("    Player %d (%S) trades tech %S to player %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), GC.getTechInfo((TechTypes)trade.m_iData).getDescription(), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0) );
 		}
 
-		for (iI = 0; iI < MAX_PLAYERS; iI++)
+		for (int iI = 0; iI < MAX_PLAYERS; iI++)
 		{	// <advc.003>
 			if(!GET_PLAYER((PlayerTypes)iI).isAlive() ||
 					!bSignificantTech) // advc.550e
@@ -880,15 +872,15 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 		bSave = true;
 		break;
 
-	case TRADE_CITIES:
-		pCity = GET_PLAYER(eFromPlayer).getCity(trade.m_iData);
+	case TRADE_CITIES: {
+		CvCity* pCity = GET_PLAYER(eFromPlayer).getCity(trade.m_iData);
 		if (pCity != NULL)
 		{
 			if( gTeamLogLevel >= 2 ) logBBAI("    Player %d (%S) gives a city due to TRADE_CITIES with %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0) );
 			pCity->doTask(TASK_GIFT, eToPlayer);
 		}
 		break;
-
+	}
 	case TRADE_GOLD:
 		GET_PLAYER(eFromPlayer).changeGold(-(trade.m_iData));
 		GET_PLAYER(eToPlayer).changeGold(trade.m_iData);
@@ -911,9 +903,9 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 		break;
 
 	case TRADE_MAPS:
-		for (iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
+		for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 		{
-			pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+			CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
 
 			if (pLoopPlot->isRevealed(GET_PLAYER(eFromPlayer).getTeam(), false))
 			{
@@ -921,7 +913,7 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 			}
 		}
 
-		for (iI = 0; iI < MAX_PLAYERS; iI++) 
+		for (int iI = 0; iI < MAX_PLAYERS; iI++) 
 		{ 
 			if (GET_PLAYER((PlayerTypes)iI).isAlive()) 
 			{ 
@@ -972,7 +964,7 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 				true, eToPlayer); // advc.100
 		// advc.146:
 		TEAMREF(eFromPlayer).signPeaceTreaty(TEAMID(eToPlayer));
-		for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 		{
 			CvPlayerAI& attacked = GET_PLAYER((PlayerTypes)iI); // <advc.003>
 			if(!attacked.isAlive() || attacked.getTeam() != (TeamTypes)trade.m_iData)
@@ -1012,8 +1004,8 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 		GET_PLAYER(eToPlayer).stopTradingWithTeam((TeamTypes)trade.m_iData);
 		break;
 
-	case TRADE_CIVIC:
-		paeNewCivics = new CivicTypes[GC.getNumCivicOptionInfos()];
+	case TRADE_CIVIC: {
+		CivicTypes* paeNewCivics = new CivicTypes[GC.getNumCivicOptionInfos()];
 
 		for (iI = 0; iI < GC.getNumCivicOptionInfos(); iI++)
 		{
@@ -1032,7 +1024,7 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 
 		SAFE_DELETE_ARRAY(paeNewCivics);
 		break;
-
+	}
 	case TRADE_RELIGION:
 		GET_PLAYER(eFromPlayer).convert((ReligionTypes)trade.m_iData,
 				true); // advc.001v

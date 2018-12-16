@@ -191,6 +191,7 @@ public:
 	virtual ~CvDiplomacyResponse();
 
 	int getNumDiplomacyText();
+	// advc.003j (comment): The setters in this class are unused (and should arguably stay unused)
 	void setNumDiplomacyText(int i);
 
 	bool getCivilizationTypes(int i);
@@ -212,7 +213,7 @@ public:
 	const TCHAR* getDiplomacyText(int i) const;
 	const CvString* getDiplomacyText() const;
 	void setDiplomacyText(int i, CvString szText);
-	#if SERIALIZE_CVINFOS
+	#if SERIALIZE_CVINFOS // advc.003i: Even with SERIALIZE_CVINFOS, these two might be unnecessary.
 	void read(FDataStreamBase* stream);
 	void write(FDataStreamBase* stream);
 	#endif
@@ -1540,7 +1541,6 @@ public:
 	int getMaxPlayerInstances() const;				// Exposed to Python
 	int getInstanceCostModifier() const;				// Exposed to Python
 	int getDefaultUnitIndex() const;				// Exposed to Python
-	void setDefaultUnitIndex(int i);
 
 	bool read(CvXMLLoadUtility* pXML);
 	bool readPass3();
@@ -1585,7 +1585,6 @@ public:
 	int getFreeBonus() const;				// Exposed to Python
 	int getNumFreeBonuses() const;				// Exposed to Python
 	int getFreeBuildingClass() const;				// Exposed to Python
-	void setNumFreeBuildingClass(int i);
 	int getFreePromotion() const;				// Exposed to Python
 	int getCivicOption() const;				// Exposed to Python
 	int getAIWeight() const;				// Exposed to Python
@@ -2023,7 +2022,6 @@ public:
 	int getMaxPlayerInstances() const;				// Exposed to Python
 	int getExtraPlayerInstances() const;				// Exposed to Python
 	int getDefaultBuildingIndex() const;				// Exposed to Python
-	void setDefaultBuildingIndex(int i);
 
 	bool isNoLimit() const;				// Exposed to Python
 	bool isMonument() const;				// Exposed to Python
@@ -2225,7 +2223,6 @@ public:
 	const TCHAR* getButton() const;
 
 	int getDerivativeCiv() const;																// Exposed to Python
-	void setDerivativeCiv(int iCiv);
 
 	bool read(CvXMLLoadUtility* pXML);
 	bool readPass2(CvXMLLoadUtility* pXML);
@@ -2882,9 +2879,7 @@ public:
 	int getHappiness() const;				// Exposed to Python
 	int getPillageGold() const;				// Exposed to Python
 	int getImprovementPillage() const;				// Exposed to Python
-	void setImprovementPillage(int i);
 	int getImprovementUpgrade() const;				// Exposed to Python
-	void setImprovementUpgrade(int i);
 
 	bool isActsAsCity() const;				// Exposed to Python
 	bool isHillsMakesValid() const;				// Exposed to Python
@@ -4002,7 +3997,6 @@ public:
 	int getVictoryPrereq() const;									// Exposed to Python
 	int getTechPrereq() const;										// Exposed to Python
 	int getAnyoneProjectPrereq() const;						// Exposed to Python
-	void setAnyoneProjectPrereq(int i);
 	int getMaxGlobalInstances() const;						// Exposed to Python
 	int getMaxTeamInstances() const;							// Exposed to Python
 	int getProductionCost() const;								// Exposed to Python
@@ -5676,14 +5670,14 @@ private:
 	CvString m_szPath;
 };
 
-
+// advc.003j: unused
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //
 //  class : CvQuestInfo
 //
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class CvQuestInfo :
+/*class CvQuestInfo :
 	public CvInfoBase
 {
 public:
@@ -5739,7 +5733,7 @@ private:
 	CvString* m_paszQuestMessages;
 	QuestLink* m_pQuestLinks;
 	CvString* m_paszQuestSounds;
-};
+};*/
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //

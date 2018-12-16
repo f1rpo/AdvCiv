@@ -5330,7 +5330,8 @@ bool CvSpecialUnitInfo::isCarrierUnitAIType(int i) const
 {
 	FAssertMsg(i < NUM_UNITAI_TYPES, "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
-	return m_pbCarrierUnitAITypes ? m_pbCarrierUnitAITypes[i] : -1;
+	return m_pbCarrierUnitAITypes ? m_pbCarrierUnitAITypes[i] :
+			false; // advc.003: was -1
 }
 
 int CvSpecialUnitInfo::getProductionTraits(int i) const		
@@ -6518,11 +6519,6 @@ int CvUnitClassInfo::getDefaultUnitIndex() const
 	return m_iDefaultUnitIndex;
 }
 
-void CvUnitClassInfo::setDefaultUnitIndex(int i)
-{
-	m_iDefaultUnitIndex = i;
-}
-
 bool CvUnitClassInfo::read(CvXMLLoadUtility* pXML)
 {
 	if (!CvInfoBase::read(pXML))
@@ -6852,11 +6848,6 @@ int CvBuildingInfo::getNumFreeBonuses() const
 int CvBuildingInfo::getFreeBuildingClass() const			
 {
 	return m_iFreeBuildingClass;
-}
-
-void CvBuildingInfo::setNumFreeBuildingClass(int i)
-{
-	m_iFreeBuildingClass = i;
 }
 
 int CvBuildingInfo::getFreePromotion() const			
@@ -9106,11 +9097,6 @@ int CvBuildingClassInfo::getDefaultBuildingIndex() const
 	return m_iDefaultBuildingIndex;
 }
 
-void CvBuildingClassInfo::setDefaultBuildingIndex(int i)	
-{
-	m_iDefaultBuildingIndex = i;
-}
-
 bool CvBuildingClassInfo::isNoLimit() const				
 {
 	return m_bNoLimit;
@@ -9634,10 +9620,6 @@ int CvCivilizationInfo::getDerivativeCiv() const
 	return m_iDerivativeCiv; 
 }
 
-void CvCivilizationInfo::setDerivativeCiv(int iCiv)
-{
-	m_iDerivativeCiv = iCiv;
-}
 #if SERIALIZE_CVINFOS
 void CvCivilizationInfo::read(FDataStreamBase* stream)
 {
@@ -11849,19 +11831,9 @@ int CvImprovementInfo::getImprovementPillage() const
 	return m_iImprovementPillage; 
 }
 
-void CvImprovementInfo::setImprovementPillage(int i)
-{
-	m_iImprovementPillage = i; 
-}
-
 int CvImprovementInfo::getImprovementUpgrade() const			
 {
 	return m_iImprovementUpgrade; 
-}
-
-void CvImprovementInfo::setImprovementUpgrade(int i)
-{
-	m_iImprovementUpgrade = i; 
 }
 
 bool CvImprovementInfo::isActsAsCity() const
@@ -15735,11 +15707,6 @@ int CvProjectInfo::getAnyoneProjectPrereq() const
 	return m_iAnyoneProjectPrereq; 
 }
 
-void CvProjectInfo::setAnyoneProjectPrereq(int i)
-{
-	m_iAnyoneProjectPrereq = i;
-}
-
 int CvProjectInfo::getMaxGlobalInstances() const
 {
 	return m_iMaxGlobalInstances; 
@@ -17613,9 +17580,10 @@ bool CvEntityEventInfo::read(CvXMLLoadUtility* pXML)
 						{
 							break;
 						}
-						AnimationPathTypes eAnimationPath = (AnimationPathTypes)CvXMLLoadUtility::FindInInfoClass( szTmp);
-						if ( eAnimationPath > ANIMATIONPATH_NONE )
-							m_vctAnimationPathType.push_back( eAnimationPath );
+						// advc.003: renamed to avoid shadowing of eAnimationPath
+						AnimationPathTypes eLoopAnimationPath = (AnimationPathTypes)CvXMLLoadUtility::FindInInfoClass( szTmp);
+						if ( eLoopAnimationPath > ANIMATIONPATH_NONE )
+							m_vctAnimationPathType.push_back( eLoopAnimationPath );
 
 					}
 					gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
@@ -17649,9 +17617,10 @@ bool CvEntityEventInfo::read(CvXMLLoadUtility* pXML)
 						{
 							break;
 						}
-						EffectTypes eEffectType = (EffectTypes)CvXMLLoadUtility::FindInInfoClass( szTmp);
-						if ( eEffectType > NO_EFFECT )
-							m_vctEffectTypes.push_back( eEffectType );
+						// advc.003: renamed to avoid shadowing of eEffectType
+						EffectTypes eLoopEffectType = (EffectTypes)CvXMLLoadUtility::FindInInfoClass( szTmp);
+						if ( eLoopEffectType > NO_EFFECT )
+							m_vctEffectTypes.push_back( eLoopEffectType );
 					}
 					gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 				}
@@ -19781,13 +19750,13 @@ bool CvCameraInfo::read(CvXMLLoadUtility* pXML)
 	return true;
 }
 
-
+// advc.003j: unused
 //////////////////////////////////////////////////////////////////////////
 //
 //	CvQuestInfo			Misc\CIV4QuestInfos.xml
 //
 //
-CvQuestInfo::CvQuestInfo() :
+/*CvQuestInfo::CvQuestInfo() :
 m_iNumQuestMessages(0),
 m_iNumQuestLinks(0),
 m_iNumQuestSounds(0),
@@ -19964,7 +19933,7 @@ bool CvQuestInfo::read(CvXMLLoadUtility* pXML)
 	setQuestScript(szTextVal);
 
 	return true;
-}
+}*/
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -20151,7 +20120,8 @@ bool CvTutorialInfo::read(CvXMLLoadUtility* pXML)
 //
 CvGameOptionInfo::CvGameOptionInfo() :
 m_bDefault(false),
-m_bVisible(true)
+m_bVisible(true),
+m_bVisibleXML(true) // advc.054
 {
 }
 

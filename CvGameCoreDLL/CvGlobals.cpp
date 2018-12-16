@@ -282,7 +282,6 @@ m_paMainMenus(NULL)
 // BBAI AI Variables
 ,m_iWAR_SUCCESS_CITY_CAPTURING(25)
 ,m_iBBAI_ATTACK_CITY_STACK_RATIO(110)
-,m_iBBAI_SKIP_BOMBARD_BEST_ATTACK_ODDS(12)
 ,m_iBBAI_SKIP_BOMBARD_BASE_STACK_RATIO(300)
 ,m_iBBAI_SKIP_BOMBARD_MIN_STACK_RATIO(140)
 
@@ -451,7 +450,7 @@ void CvGlobals::init()
 	CvPlayerAI::initStatics();
 	CvTeamAI::initStatics();
 
-	m_pt3Origin = NiPoint3(0.0f, 0.0f, 0.0f);
+	//m_pt3Origin = NiPoint3(0.0f, 0.0f, 0.0f); // advc.003j: unused
 
 	COPY(m_aiPlotDirectionX, aiPlotDirectionX, int);
 	COPY(m_aiPlotDirectionY, aiPlotDirectionY, int);
@@ -656,10 +655,11 @@ FAStar& CvGlobals::getPlotGroupFinder()
 	return *m_plotGroupFinder;
 }
 
-NiPoint3& CvGlobals::getPt3Origin()
+// advc.003j: Was DLLExport, but actually unused.
+/*NiPoint3& CvGlobals::getPt3Origin()
 {
 	return m_pt3Origin;
-}
+}*/
 
 std::vector<CvInterfaceModeInfo*>& CvGlobals::getInterfaceModeInfo()		// For Moose - XML Load Util and CvInfos
 {
@@ -672,11 +672,11 @@ CvInterfaceModeInfo& CvGlobals::getInterfaceModeInfo(InterfaceModeTypes e)
 	FAssert(e < NUM_INTERFACEMODE_TYPES);
 	return *(m_paInterfaceModeInfo[e]);
 }
-
-NiPoint3& CvGlobals::getPt3CameraDir()
+// advc.003j: Was DLLExport, but actually neither called internally nor externally.
+/*NiPoint3& CvGlobals::getPt3CameraDir()
 {
 	return m_pt3CameraDir;
-}
+}*/
 
 bool& CvGlobals::getLogging()
 {
@@ -2365,7 +2365,8 @@ CvVictoryInfo& CvGlobals::getVictoryInfo(VictoryTypes eVictoryNum)
 	return *(m_paVictoryInfo[eVictoryNum]);
 }
 
-int CvGlobals::getNumQuestInfos()
+// advc.003j:
+/*int CvGlobals::getNumQuestInfos()
 {
 	return (int)m_paQuestInfo.size();
 }
@@ -2380,7 +2381,7 @@ CvQuestInfo& CvGlobals::getQuestInfo(int iIndex)
 	FAssert(iIndex > -1);
 	FAssert(iIndex < GC.getNumQuestInfos());
 	return *(m_paQuestInfo[iIndex]);
-}
+}*/
 
 int CvGlobals::getNumTutorialInfos()
 {
@@ -2825,7 +2826,6 @@ void CvGlobals::cacheGlobals()
 // BBAI AI Variables
 	m_iWAR_SUCCESS_CITY_CAPTURING = getDefineINT("WAR_SUCCESS_CITY_CAPTURING", m_iWAR_SUCCESS_CITY_CAPTURING);
 	m_iBBAI_ATTACK_CITY_STACK_RATIO = getDefineINT("BBAI_ATTACK_CITY_STACK_RATIO", m_iBBAI_ATTACK_CITY_STACK_RATIO);
-	m_iBBAI_SKIP_BOMBARD_BEST_ATTACK_ODDS = getDefineINT("BBAI_SKIP_BOMBARD_BEST_ATTACK_ODDS", m_iBBAI_SKIP_BOMBARD_BEST_ATTACK_ODDS);
 	m_iBBAI_SKIP_BOMBARD_BASE_STACK_RATIO = getDefineINT("BBAI_SKIP_BOMBARD_BASE_STACK_RATIO", m_iBBAI_SKIP_BOMBARD_BASE_STACK_RATIO);
 	m_iBBAI_SKIP_BOMBARD_MIN_STACK_RATIO = getDefineINT("BBAI_SKIP_BOMBARD_MIN_STACK_RATIO", m_iBBAI_SKIP_BOMBARD_MIN_STACK_RATIO);
 
@@ -3697,7 +3697,7 @@ void CvGlobals::deleteInfoArrays()
 	SAFE_DELETE_ARRAY(GC.getDirectionTypes());
 	SAFE_DELETE_ARRAY(GC.getFootstepAudioTypes());
 	SAFE_DELETE_ARRAY(GC.getFootstepAudioTags());
-	deleteInfoArray(m_paQuestInfo);
+	//deleteInfoArray(m_paQuestInfo); // advc.003j
 	deleteInfoArray(m_paTutorialInfo);
 
 	deleteInfoArray(m_paEventInfo);
@@ -3862,11 +3862,6 @@ int CvGlobals::getWAR_SUCCESS_CITY_CAPTURING()
 int CvGlobals::getBBAI_ATTACK_CITY_STACK_RATIO()
 {
 	return m_iBBAI_ATTACK_CITY_STACK_RATIO;
-}
-
-int CvGlobals::getBBAI_SKIP_BOMBARD_BEST_ATTACK_ODDS()
-{
-	return m_iBBAI_SKIP_BOMBARD_BEST_ATTACK_ODDS;
 }
 
 int CvGlobals::getBBAI_SKIP_BOMBARD_BASE_STACK_RATIO()

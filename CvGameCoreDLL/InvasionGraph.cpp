@@ -130,7 +130,7 @@ InvasionGraph::Node::Node(PlayerTypes civId, InvasionGraph& outer) :
 	cache(GET_PLAYER(civId).warAndPeaceAI().getCache()) {
 
 	// Properly initialized in prepareForSimulation
-	tempArmyLosses = emergencyDefPow = distractionByConquest = distractionByDefense -1;
+	tempArmyLosses = emergencyDefPow = distractionByConquest = distractionByDefense = -1;
 	cacheIndex = -1;
 	componentDone = false;
 
@@ -140,7 +140,6 @@ InvasionGraph::Node::Node(PlayerTypes civId, InvasionGraph& outer) :
 	capitulated = false;
 	hasClashed = false;
 	warTimeSimulated = 0;
-	tempArmyLosses = 0;
 	productionInvested = 0;
 	primaryTarget = NULL;
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
@@ -582,6 +581,10 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	if(c == NULL && !clashOnly)
 		return NULL;
 	CvCity const* const cvCity = (c == NULL ? NULL : c->city());
+	if(cvCity == NULL && !clashOnly) {
+		FAssert(cvCity != NULL);
+		return NULL;
+	}
 	Node& defender = *primaryTarget;
 	int const defCities = GET_PLAYER(defender.id).getNumCities();
 	int const attCities = GET_PLAYER(id).getNumCities();
@@ -1752,11 +1755,6 @@ void InvasionGraph::Node::changePrimaryTarget(Node* newTarget) {
 bool InvasionGraph::Node::isComponentDone() const {
 
 	return componentDone;
-}
-
-void InvasionGraph::Node::setComponentDone(bool b) {
-
-	componentDone = b;
 }
 
 bool InvasionGraph::Node::hasLost(int cityId) const {

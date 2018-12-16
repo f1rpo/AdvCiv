@@ -505,7 +505,9 @@ void CvInitCore::resetGame()
 	// </advc.003c>
 	// Map-specific custom parameters
 	clearCustomMapOptions();
-
+	/*  advc.003: Unused as far as I can tell, but still better to ensure that it
+		gets initialized. */
+	m_iNumHiddenCustomMapOptions = 0;
 	// Data-defined victory conditions
 	refreshVictories();
 

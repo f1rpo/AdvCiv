@@ -127,7 +127,8 @@ void CvXMLLoadUtility::ResetGlobalEffectInfo()
 //				mask value
 //
 //------------------------------------------------------------------------------------------------------
-void CvXMLLoadUtility::MakeMaskFromString(unsigned int *puiMask, char* szMask)
+// advc.003j: Unused (always was, apparently)
+/*void CvXMLLoadUtility::MakeMaskFromString(unsigned int *puiMask, char* szMask)
 {
 	int iLength = (int)strlen(szMask); // kmodx: compute strlen only once
 
@@ -277,7 +278,7 @@ void CvXMLLoadUtility::MakeMaskFromString(unsigned int *puiMask, char* szMask)
 			*puiMask += 15;
 		}
 	}
-}
+}*/
 
 //------------------------------------------------------------------------------------------------------
 //

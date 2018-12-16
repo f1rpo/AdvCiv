@@ -73,7 +73,15 @@ bool KmodPathFinder::ValidateNodeMap()
 	{
 		map_width = GC.getMapINLINE().getGridWidthINLINE();
 		map_height = GC.getMapINLINE().getGridHeightINLINE();
-		node_data = (FAStarNode*)realloc(node_data, sizeof(*node_data)*map_width*map_height);
+		//node_data = (FAStarNode*)
+		// <advc.003> According to cppcheck, the above is a "common realloc mistake".
+		FAStarNode* new_node_data = static_cast<FAStarNode*>(
+				realloc(node_data, sizeof(*node_data)*map_width*map_height));
+		if(new_node_data == NULL) {
+			free(node_data);
+			FAssertMsg(new_node_data != NULL, "Failed to re-allocate memory");
+		}
+		else node_data = new_node_data; // </advc.003>
 		end_node = NULL;
 	}
 	return true;
@@ -425,7 +433,7 @@ bool KmodPathFinder::ProcessNode()
 							x_parent->m_iNumChildren--;
 						}
 					}
-					FAssert(x_parent->m_iNumChildren == temp -1);
+					FAssert(x_parent->m_iNumChildren == temp - 1);
 					// recalculate movement points
 					pathAdd(parent_node, child_node, ASNC_PARENTADD_UP, &settings, 0);
 				}

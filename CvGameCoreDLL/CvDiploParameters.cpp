@@ -138,7 +138,8 @@ void CvDiploParameters::setRenegotiate(bool bValue)
 {
 	m_bRenegotiate = bValue;
 }
-
+/*  advc.003j (comment): m_bRenegotiate is never set, and while the EXE calls
+	getRenegotiate, it doesn't seem to matter if true or false is returned. */
 bool CvDiploParameters::getRenegotiate() const
 {
 	return m_bRenegotiate;

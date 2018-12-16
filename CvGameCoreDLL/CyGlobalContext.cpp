@@ -520,11 +520,11 @@ CvInfoBase* CyGlobalContext::getDenialInfo(int i) const
 	return (i>=0 && i<GC.getNumDenialInfos()) ? &GC.getDenialInfo((DenialTypes)i) : NULL;
 }
 
-
-CvQuestInfo* CyGlobalContext::getQuestInfo(int i) const
+// advc.003j:
+/*CvQuestInfo* CyGlobalContext::getQuestInfo(int i) const
 {
 	return (i>=0 && i<GC.getNumQuestInfos()) ? &GC.getQuestInfo(i) : NULL;
-}
+}*/
 
 
 CvTutorialInfo* CyGlobalContext::getTutorialInfo(int i) const

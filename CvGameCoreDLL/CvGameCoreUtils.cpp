@@ -1609,7 +1609,7 @@ bool PUF_isNotCityAIType(const CvUnit* pUnit, int iData1, int iData2)
 {
 	return !(PUF_isCityAIType(pUnit, iData1, iData2));
 }
-
+// advc.003j (comment): unused
 bool PUF_isSelected(const CvUnit* pUnit, int iData1, int iData2)
 {
 	return pUnit->IsSelected();
@@ -2339,24 +2339,20 @@ int pathValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointe
 {
 	PROFILE_FUNC();
 
-	//CvSelectionGroup* pSelectionGroup;
-	CvPlot* pFromPlot;
-	CvPlot* pToPlot;
-
-	if (parent == NULL)
-	{
+	if(parent == NULL)
 		return TRUE;
-	}
-
-	pFromPlot = GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY);
-	FAssert(pFromPlot != NULL);
-	pToPlot = GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY);
-	FAssert(pToPlot != NULL);
-
+	// <advc.003> Was unused apart from the assert
+	/*CvPlot* pFromPlot = ...;
+	CvPlot* pToPlot = ...; */
+	FAssert(GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY) != NULL);
+	FAssert(GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY) != NULL);
+	// </advc.003>
 	//pSelectionGroup = ((CvSelectionGroup *)pointer);
 	// K-Mod
-	CvSelectionGroup* pSelectionGroup = finder ? (CvSelectionGroup*)pointer : ((CvPathSettings*)pointer)->pGroup;
-	int iFlags = finder ? gDLL->getFAStarIFace()->GetInfo(finder) : ((CvPathSettings*)pointer)->iFlags;
+	CvSelectionGroup* pSelectionGroup = finder ? (CvSelectionGroup*)pointer :
+			((CvPathSettings*)pointer)->pGroup;
+	int iFlags = finder ? gDLL->getFAStarIFace()->GetInfo(finder) :
+			((CvPathSettings*)pointer)->iFlags;
 	// K-Mod end
 
 	if (!pathValid_join(parent, node, pSelectionGroup, iFlags))
@@ -2461,7 +2457,7 @@ int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer,
 			iMoves = INT_MAX;
 			bool bMaxMoves = pStartNode->m_iData1 == 0 || iFlags & MOVE_MAX_MOVES;
 
-			for (CLLNode<IDInfo>* pUnitNode = pSelectionGroup->headUnitNode(); pUnitNode != NULL; pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode))
+			for (pUnitNode = pSelectionGroup->headUnitNode(); pUnitNode != NULL; pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode))
 			{
 				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 
@@ -2879,7 +2875,7 @@ int countPlotGroup(FAStarNode* parent, FAStarNode* node, int data, const void* p
 	return 1;
 }
 
-
+// advc.003j (comment): Unused
 int baseYieldToSymbol(int iNumYieldTypes, int iYieldStack)
 {
 	int iReturn;	// holds the return value we will be calculating
@@ -2893,8 +2889,9 @@ int baseYieldToSymbol(int iNumYieldTypes, int iYieldStack)
 	return iReturn;
 }
 
-
-bool isPickableName(const TCHAR* szName)
+/*  advc.003j: Vanilla Civ 4 function that used to be a DLLExport; certainly unused
+	since BtS, and doesn't sound too useful. */
+/*bool isPickableName(const TCHAR* szName)
 {
 	if (szName)
 	{
@@ -2907,7 +2904,7 @@ bool isPickableName(const TCHAR* szName)
 	}
 
 	return true;
-}
+}*/
 
 
 // create an array of shuffled numbers
@@ -3035,26 +3032,30 @@ void getCardinalDirectionTypeString(CvWString& szString, CardinalDirectionTypes 
 	getDirectionTypeString(szString, cardinalDirectionToDirection(eDirectionType));
 }
 
+// advc.007: Removed the "ACTIVITY_" prefix from the strings b/c it takes up too much space.
 void getActivityTypeString(CvWString& szString, ActivityTypes eActivityType)
 {
 	switch (eActivityType)
 	{
 	case NO_ACTIVITY: szString = L"NO_ACTIVITY"; break;
 
-	case ACTIVITY_AWAKE: szString = L"ACTIVITY_AWAKE"; break;
-	case ACTIVITY_HOLD: szString = L"ACTIVITY_HOLD"; break;
-	case ACTIVITY_SLEEP: szString = L"ACTIVITY_SLEEP"; break;
-	case ACTIVITY_HEAL: szString = L"ACTIVITY_HEAL"; break;
-	case ACTIVITY_SENTRY: szString = L"ACTIVITY_SENTRY"; break;
-	case ACTIVITY_INTERCEPT: szString = L"ACTIVITY_INTERCEPT"; break;
-	case ACTIVITY_MISSION: szString = L"ACTIVITY_MISSION"; break;
+	case ACTIVITY_AWAKE: szString = L"AWAKE"; break;
+	case ACTIVITY_HOLD: szString = L"HOLD"; break;
+	case ACTIVITY_SLEEP: szString = L"SLEEP"; break;
+	case ACTIVITY_HEAL: szString = L"HEAL"; break;
+	case ACTIVITY_SENTRY: szString = L"SENTRY"; break;
+	case ACTIVITY_INTERCEPT: szString = L"INTERCEPT"; break;
+	case ACTIVITY_MISSION: szString = L"MISSION"; break;
 // K-Mod. There were some missing activity strings...
-#define case_string(x) case x: szString = L#x; break;
+/*#define case_string(x) case x: szString = L#x; break;
 	case_string(ACTIVITY_PATROL)
 	case_string(ACTIVITY_PLUNDER)
-#undef case_string
+#undef case_string*/
 // K-Mod end
-
+	// <advc.007>
+	case ACTIVITY_PATROL: szString = L"PATROL"; break;
+	case ACTIVITY_PLUNDER: szString = L"PLUNDER"; break;
+	// </advc.007>
 	default: szString = CvWString::format(L"UNKNOWN_ACTIVITY(%d)", eActivityType); break;
 	}
 }
@@ -3117,33 +3118,34 @@ void getMissionTypeString(CvWString& szString, MissionTypes eMissionType)
 	}
 }
 
+// advc.007: Removed the "MISSIONAI_" prefix from the strings b/c it takes up too much space.
 void getMissionAIString(CvWString& szString, MissionAITypes eMissionAI)
 {
 	switch (eMissionAI)
 	{
 	case NO_MISSIONAI: szString = L"NO_MISSIONAI"; break;
 
-	case MISSIONAI_SHADOW: szString = L"MISSIONAI_SHADOW"; break;
-	case MISSIONAI_GROUP: szString = L"MISSIONAI_GROUP"; break;
-	case MISSIONAI_LOAD_ASSAULT: szString = L"MISSIONAI_LOAD_ASSAULT"; break;
-	case MISSIONAI_LOAD_SETTLER: szString = L"MISSIONAI_LOAD_SETTLER"; break;
-	case MISSIONAI_LOAD_SPECIAL: szString = L"MISSIONAI_LOAD_SPECIAL"; break;
-	case MISSIONAI_GUARD_CITY: szString = L"MISSIONAI_GUARD_CITY"; break;
-	case MISSIONAI_GUARD_BONUS: szString = L"MISSIONAI_GUARD_BONUS"; break;
-	case MISSIONAI_GUARD_SPY: szString = L"MISSIONAI_GUARD_SPY"; break;
-	case MISSIONAI_ATTACK_SPY: szString = L"MISSIONAI_ATTACK_SPY"; break;
-	case MISSIONAI_SPREAD: szString = L"MISSIONAI_SPREAD"; break;
-	case MISSIONAI_CONSTRUCT: szString = L"MISSIONAI_CONSTRUCT"; break;
-	case MISSIONAI_HURRY: szString = L"MISSIONAI_HURRY"; break;
-	case MISSIONAI_GREAT_WORK: szString = L"MISSIONAI_GREAT_WORK"; break;
-	case MISSIONAI_EXPLORE: szString = L"MISSIONAI_EXPLORE"; break;
-	case MISSIONAI_BLOCKADE: szString = L"MISSIONAI_BLOCKADE"; break;
-	case MISSIONAI_PILLAGE: szString = L"MISSIONAI_PILLAGE"; break;
-	case MISSIONAI_FOUND: szString = L"MISSIONAI_FOUND"; break;
-	case MISSIONAI_BUILD: szString = L"MISSIONAI_BUILD"; break;
-	case MISSIONAI_ASSAULT: szString = L"MISSIONAI_ASSAULT"; break;
-	case MISSIONAI_CARRIER: szString = L"MISSIONAI_CARRIER"; break;
-	case MISSIONAI_PICKUP: szString = L"MISSIONAI_PICKUP"; break;
+	case MISSIONAI_SHADOW: szString = L"SHADOW"; break;
+	case MISSIONAI_GROUP: szString = L"GROUP"; break;
+	case MISSIONAI_LOAD_ASSAULT: szString = L"LOAD_ASSAULT"; break;
+	case MISSIONAI_LOAD_SETTLER: szString = L"LOAD_SETTLER"; break;
+	case MISSIONAI_LOAD_SPECIAL: szString = L"LOAD_SPECIAL"; break;
+	case MISSIONAI_GUARD_CITY: szString = L"GUARD_CITY"; break;
+	case MISSIONAI_GUARD_BONUS: szString = L"GUARD_BONUS"; break;
+	case MISSIONAI_GUARD_SPY: szString = L"GUARD_SPY"; break;
+	case MISSIONAI_ATTACK_SPY: szString = L"ATTACK_SPY"; break;
+	case MISSIONAI_SPREAD: szString = L"SPREAD"; break;
+	case MISSIONAI_CONSTRUCT: szString = L"CONSTRUCT"; break;
+	case MISSIONAI_HURRY: szString = L"HURRY"; break;
+	case MISSIONAI_GREAT_WORK: szString = L"GREAT_WORK"; break;
+	case MISSIONAI_EXPLORE: szString = L"EXPLORE"; break;
+	case MISSIONAI_BLOCKADE: szString = L"BLOCKADE"; break;
+	case MISSIONAI_PILLAGE: szString = L"PILLAGE"; break;
+	case MISSIONAI_FOUND: szString = L"FOUND"; break;
+	case MISSIONAI_BUILD: szString = L"BUILD"; break;
+	case MISSIONAI_ASSAULT: szString = L"ASSAULT"; break;
+	case MISSIONAI_CARRIER: szString = L"CARRIER"; break;
+	case MISSIONAI_PICKUP: szString = L"PICKUP"; break;
 // K-Mod
 #define mission_string(x) case x: szString = L#x; break;
 	mission_string(MISSIONAI_GUARD_COAST)

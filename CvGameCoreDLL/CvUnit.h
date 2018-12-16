@@ -462,7 +462,6 @@ public:
 	DllExport CvPlot* plot() const;																														// Exposed to Python
 	int getArea() const;																																			// Exposed to Python
 	CvArea* area() const;																																			// Exposed to Python
-	bool onMap() const;
 
 	int getLastMoveTurn() const;
 	void setLastMoveTurn(int iNewValue);

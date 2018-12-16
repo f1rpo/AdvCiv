@@ -18,6 +18,7 @@ AdvCiv4lert::AdvCiv4lert() {
 	/*  Set this to true in a subclass constructor in order to test or debug a
 		particular alert through AI Auto Play */
 	isDebug = false;
+	ownerId = NO_PLAYER;
 }
 
 void AdvCiv4lert::init(PlayerTypes ownerId) {
@@ -70,7 +71,7 @@ void AdvCiv4lert::check(bool silent) {
 void AdvCiv4lert::reset() {}
 
 // <advc.210a>
-WarTradeAlert::WarTradeAlert() : AdvCiv4lert() {}
+WarTradeAlert::WarTradeAlert() : AdvCiv4lert() { reset(); }
 
 void WarTradeAlert::reset() {
 

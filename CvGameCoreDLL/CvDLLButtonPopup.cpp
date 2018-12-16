@@ -86,9 +86,6 @@ void CvDLLButtonPopup::OnAltExecute(CvPopup& popup, const PopupReturn& popupRetu
 
 void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, CvPopupInfo &info)
 {
-	int iExamineCityID;
-	int iI;
-
 	FAssert(GC.getGameINLINE().getActivePlayer() != NO_PLAYER); // K-Mod
 
 	switch (info.getButtonPopupType())
@@ -239,25 +236,19 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 	case BUTTONPOPUP_LOADUNIT:
 		if (pPopupReturn->getButtonClicked() != 0)
 		{
-			CLLNode<IDInfo>* pUnitNode;
-			CvSelectionGroup* pSelectionGroup;
-			CvUnit* pLoopUnit;
-			CvPlot* pPlot;
-			int iCount;
-
-			pSelectionGroup = gDLL->getInterfaceIFace()->getSelectionList();
+			CvSelectionGroup* pSelectionGroup = gDLL->getInterfaceIFace()->getSelectionList();
 
 			if (NULL != pSelectionGroup)
 			{
-				pPlot = pSelectionGroup->plot();
+				CvPlot* pPlot = pSelectionGroup->plot();
 
-				iCount = pPopupReturn->getButtonClicked();
+				int iCount = pPopupReturn->getButtonClicked();
 
-				pUnitNode = pPlot->headUnitNode();
+				CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
 
 				while (pUnitNode != NULL)
 				{
-					pLoopUnit = ::getUnit(pUnitNode->m_data);
+					CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 					pUnitNode = pPlot->nextUnitNode(pUnitNode);
 
 					if (pSelectionGroup->canDoCommand(COMMAND_LOAD_UNIT, pLoopUnit->getOwnerINLINE(), pLoopUnit->getID()))
@@ -277,25 +268,19 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 	case BUTTONPOPUP_LEADUNIT:
 		if (pPopupReturn->getButtonClicked() != 0)
 		{
-			CLLNode<IDInfo>* pUnitNode;
-			CvSelectionGroup* pSelectionGroup;
-			CvUnit* pLoopUnit;
-			CvPlot* pPlot;
-			int iCount;
-
-			pSelectionGroup = gDLL->getInterfaceIFace()->getSelectionList();
+			CvSelectionGroup* pSelectionGroup = gDLL->getInterfaceIFace()->getSelectionList();
 
 			if (NULL != pSelectionGroup)
 			{
-				pPlot = pSelectionGroup->plot();
+				CvPlot* pPlot = pSelectionGroup->plot();
 
-				iCount = pPopupReturn->getButtonClicked();
+				int iCount = pPopupReturn->getButtonClicked();
 
-				pUnitNode = pPlot->headUnitNode();
+				CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
 
 				while (pUnitNode != NULL)
 				{
-					pLoopUnit = ::getUnit(pUnitNode->m_data);
+					CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 					pUnitNode = pPlot->nextUnitNode(pUnitNode);
 
 					if (pLoopUnit->canPromote((PromotionTypes) info.getData1(), info.getData2()))
@@ -387,8 +372,8 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 		}
 		break;
 
-	case BUTTONPOPUP_CHOOSEPRODUCTION:
-		iExamineCityID = 0;
+	case BUTTONPOPUP_CHOOSEPRODUCTION: {
+		int iExamineCityID = 0;
 		iExamineCityID = std::max(iExamineCityID, GC.getNumUnitInfos());
 		iExamineCityID = std::max(iExamineCityID, GC.getNumBuildingInfos());
 		iExamineCityID = std::max(iExamineCityID, GC.getNumProjectInfos());
@@ -403,12 +388,12 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 			}
 		}
 		break;
-
+	}
 	case BUTTONPOPUP_CHANGECIVIC:
 		if (pPopupReturn->getButtonClicked() == 0)
 		{
 			std::vector<CivicTypes> aeNewCivics(GC.getNumCivicOptionInfos());
-			for (iI = 0; iI < GC.getNumCivicOptionInfos(); iI++)
+			for (int iI = 0; iI < GC.getNumCivicOptionInfos(); iI++)
 			{
 				aeNewCivics[iI] = GET_PLAYER(GC.getGameINLINE().getActivePlayer()).getCivics((CivicOptionTypes)iI);
 			}
@@ -564,7 +549,9 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 			}
 			if (!GC.getGameINLINE().isGameMultiPlayer())
 			{
-				if (pPopupReturn->getCheckboxBitfield(2) && pPopupReturn->getCheckboxBitfield(2) > 0)
+				if (pPopupReturn->getCheckboxBitfield(2)
+					//advc.003: Redundant
+					/*&& pPopupReturn->getCheckboxBitfield(2) > 0*/)
 				{
 					gDLL->setChtLvl(1);
 				}
@@ -1163,9 +1150,9 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 
 		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText("TXT_KEY_POPUP_EXAMINE_CITY").c_str(), ARTFILEMGR.getInterfaceArtInfo("INTERFACE_BUTTONS_CITYSELECTION")->getPath(), iExamineCityID, WIDGET_GENERAL, -1, -1, true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
 	}
-
-	UnitTypes eProductionUnit = pCity->getProductionUnit();
-	BuildingTypes eProductionBuilding = pCity->getProductionBuilding();
+	// Were never read before being reassigned
+	/*UnitTypes eProductionUnit = pCity->getProductionUnit();
+	BuildingTypes eProductionBuilding = pCity->getProductionBuilding();*/
 	ProjectTypes eProductionProject = pCity->getProductionProject();
 	ProcessTypes eProductionProcess = pCity->getProductionProcess();
 
@@ -1176,12 +1163,12 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 	argsList3.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
 	lResult=-1;
 	gDLL->getPythonIFace()->callFunction(PYGameModule, "getRecommendedUnit", argsList3.makeFunctionArgs(), &lResult);
-	eProductionUnit = ((UnitTypes)lResult);
+	UnitTypes eProductionUnit = ((UnitTypes)lResult);
 	CyArgsList argsList4; // XXX
 	argsList4.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
 	lResult=-1;
 	gDLL->getPythonIFace()->callFunction(PYGameModule, "getRecommendedBuilding", argsList4.makeFunctionArgs(), &lResult);
-	eProductionBuilding = ((BuildingTypes)lResult);
+	BuildingTypes eProductionBuilding = ((BuildingTypes)lResult);
 	delete pyCity;	// python fxn must not hold on to this pointer 
 
 	if (eProductionUnit == NO_UNIT)

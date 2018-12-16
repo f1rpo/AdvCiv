@@ -260,7 +260,7 @@ private:
 	void UpdateProgressCB(const char* szMessage=NULL);
 
 	// take a character string of hex values and return their unsigned int value
-	void MakeMaskFromString(unsigned int *puiMask, char* szMask);
+	//void MakeMaskFromString(unsigned int *puiMask, char* szMask); // advc.003j (unused)
 
 	// find the tag name in the xml file and set the string parameter and num val parameter based on it's value
 	void SetGlobalStringArray(CvString** ppszString, char* szTagName, int* iNumVals, bool bUseEnum=false);

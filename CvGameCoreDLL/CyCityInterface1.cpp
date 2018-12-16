@@ -83,7 +83,8 @@ void CyCityPythonInterface1(python::class_<CyCity>& x)
 		.def("getCurrentProductionDifference", &CyCity::getCurrentProductionDifference, "int (bool bIgnoreFood, bool bOverflow)")
 		.def("getUnitProductionModifier", &CyCity::getUnitProductionModifier, "int (UnitID) - production multiplier for UnitID")
 		.def("getBuildingProductionModifier", &CyCity::getBuildingProductionModifier, "int (BuildingID) - production multiplier for BuildingID")
-		.def("getProjectProductionModifier", &CyCity::getProductionModifier, "int (int /*ProjectTypes*/ eProject)")
+		// advc.001: was &CyCity::getProductionModifier
+		.def("getProjectProductionModifier", &CyCity::getProjectProductionModifier, "int (int /*ProjectTypes*/ eProject)")
 
 		.def("getExtraProductionDifference", &CyCity::getExtraProductionDifference, "int (int iExtra)")
 

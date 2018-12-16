@@ -73,6 +73,7 @@ private:
 	bool immediateDoW;
 	PlayerTypes sponsor;
 	TeamTypes capitulationTeam;
+	// Data members added to this class will have to be factored into the id function!
 };
 
 // </advc.104>

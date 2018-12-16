@@ -19,96 +19,90 @@
 
 bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObject* cache)
 {
-	bool bLoaded = false;	// used to make sure that the xml file was loaded correctly
+	// advc.003: Handle successful read upfront
+	if (gDLL->cacheRead(cache, szXMLFileName)) {		// src data file name
+		logMsg("Read GobalDefines from cache");
+		return true;
+	}
 
-	if (!gDLL->cacheRead(cache, szXMLFileName))			// src data file name
+	// load normally
+	if (!CreateFXml())
 	{
-		// load normally
-		if (!CreateFXml())
-		{
-			return false;
-		}
+		return false;
+	}
 
-		// load the new FXml variable with the szXMLFileName file
-		bLoaded = LoadCivXml(m_pFXml, szXMLFileName);
-		if (!bLoaded)
-		{
-			char	szMessage[1024];
-			sprintf( szMessage, "LoadXML call failed for %s \n Current XML file is: %s", szXMLFileName, GC.getCurrentXMLFile().GetCString());
-			gDLL->MessageBox(szMessage, "XML Load Error");
-		}
+	bool bLoaded;	// used to make sure that the xml file was loaded correctly
+	// load the new FXml variable with the szXMLFileName file
+	bLoaded = LoadCivXml(m_pFXml, szXMLFileName);
+	if (!bLoaded)
+	{
+		char	szMessage[1024];
+		sprintf( szMessage, "LoadXML call failed for %s \n Current XML file is: %s", szXMLFileName, GC.getCurrentXMLFile().GetCString());
+		gDLL->MessageBox(szMessage, "XML Load Error");
+	}
 
-		// if the load succeeded we will continue
-		if (bLoaded)
+	// if the load succeeded we will continue
+	if (bLoaded)
+	{
+		// locate the first define tag in the xml
+		if (gDLL->getXMLIFace()->LocateNode(m_pFXml,"Civ4Defines/Define"))
 		{
-			// locate the first define tag in the xml
-			if (gDLL->getXMLIFace()->LocateNode(m_pFXml,"Civ4Defines/Define"))
+			int i;	// loop counter
+			// get the number of other Define tags in the xml file
+			int iNumDefines = gDLL->getXMLIFace()->GetNumSiblings(m_pFXml);
+			// add one to the total in order to include the current Define tag
+			iNumDefines++;
+
+			// loop through all the Define tags
+			for (i=0;i<iNumDefines;i++)
 			{
-				int i;	// loop counter
-				// get the number of other Define tags in the xml file
-				int iNumDefines = gDLL->getXMLIFace()->GetNumSiblings(m_pFXml);
-				// add one to the total in order to include the current Define tag
-				iNumDefines++;
+				char szNodeType[256];	// holds the type of the current node
+				char szName[256];
 
-				// loop through all the Define tags
-				for (i=0;i<iNumDefines;i++)
+				// Skip any comments and stop at the next value we might want
+				if (SkipToNextVal())
 				{
-					char szNodeType[256];	// holds the type of the current node
-					char szName[256];
-
-					// Skip any comments and stop at the next value we might want
-					if (SkipToNextVal())
+					// call the function that sets the FXml pointer to the first non-comment child of
+					// the current tag and gets the value of that new node
+					if (GetChildXmlVal(szName))
 					{
-						// call the function that sets the FXml pointer to the first non-comment child of
-						// the current tag and gets the value of that new node
-						if (GetChildXmlVal(szName))
+						// set the FXml pointer to the next sibling of the current tag``
+						if (gDLL->getXMLIFace()->NextSibling(GetXML()))
 						{
-							// set the FXml pointer to the next sibling of the current tag``
-							if (gDLL->getXMLIFace()->NextSibling(GetXML()))
+							// Skip any comments and stop at the next value we might want
+							if (SkipToNextVal())
 							{
-								// Skip any comments and stop at the next value we might want
-								if (SkipToNextVal())
+								// if we successfuly get the node type for the current tag
+								if (gDLL->getXMLIFace()->GetLastLocatedNodeType(GetXML(),szNodeType))
 								{
-									// if we successfuly get the node type for the current tag
-									if (gDLL->getXMLIFace()->GetLastLocatedNodeType(GetXML(),szNodeType))
+									// if the node type of the current tag isn't null
+									if (strcmp(szNodeType,"")!=0)
 									{
-										// if the node type of the current tag isn't null
-										if (strcmp(szNodeType,"")!=0)
+										// if the node type of the current tag is a float then
+										if (strcmp(szNodeType,"float")==0)
 										{
-											// if the node type of the current tag is a float then
-											if (strcmp(szNodeType,"float")==0)
-											{
-												// get the float value for the define
-												float fVal;
-												GetXmlVal(&fVal);
-												GC.getDefinesVarSystem()->SetValue(szName, fVal);
-											}
-											// else if the node type of the current tag is an int then
-											else if (strcmp(szNodeType,"int")==0)
-											{
-												// get the int value for the define
-												int iVal;
-												GetXmlVal(&iVal);
-												GC.getDefinesVarSystem()->SetValue(szName, iVal);
-											}
-											// else if the node type of the current tag is a boolean then
-											else if (strcmp(szNodeType,"boolean")==0)
-											{
-												// get the boolean value for the define
-												bool bVal;
-												GetXmlVal(&bVal);
-												GC.getDefinesVarSystem()->SetValue(szName, bVal);
-											}
-											// otherwise we will assume it is a string/text value
-											else
-											{
-												char szVal[256];
-												// get the string/text value for the define
-												GetXmlVal(szVal);
-												GC.getDefinesVarSystem()->SetValue(szName, szVal);
-											}
+											// get the float value for the define
+											float fVal;
+											GetXmlVal(&fVal);
+											GC.getDefinesVarSystem()->SetValue(szName, fVal);
 										}
-										// otherwise we will default to getting the string/text value for the define
+										// else if the node type of the current tag is an int then
+										else if (strcmp(szNodeType,"int")==0)
+										{
+											// get the int value for the define
+											int iVal;
+											GetXmlVal(&iVal);
+											GC.getDefinesVarSystem()->SetValue(szName, iVal);
+										}
+										// else if the node type of the current tag is a boolean then
+										else if (strcmp(szNodeType,"boolean")==0)
+										{
+											// get the boolean value for the define
+											bool bVal;
+											GetXmlVal(&bVal);
+											GC.getDefinesVarSystem()->SetValue(szName, bVal);
+										}
+										// otherwise we will assume it is a string/text value
 										else
 										{
 											char szVal[256];
@@ -117,46 +111,50 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 											GC.getDefinesVarSystem()->SetValue(szName, szVal);
 										}
 									}
+									// otherwise we will default to getting the string/text value for the define
+									else
+									{
+										char szVal[256];
+										// get the string/text value for the define
+										GetXmlVal(szVal);
+										GC.getDefinesVarSystem()->SetValue(szName, szVal);
+									}
 								}
 							}
-
-							// since we are looking at the children of a Define tag we will need to go up
-							// one level so that we can go to the next Define tag.
-							// Set the FXml pointer to the parent of the current tag
-							gDLL->getXMLIFace()->SetToParent(GetXML());
 						}
-					}
 
-					// now we set the FXml pointer to the sibling of the current tag, which should be the next
-					// Define tag
-					if (!gDLL->getXMLIFace()->NextSibling(m_pFXml))
-					{
-						break;
+						// since we are looking at the children of a Define tag we will need to go up
+						// one level so that we can go to the next Define tag.
+						// Set the FXml pointer to the parent of the current tag
+						gDLL->getXMLIFace()->SetToParent(GetXML());
 					}
 				}
 
-				// write global defines info to cache
-				bool bOk = gDLL->cacheWrite(cache);
-				if (!bOk)
+				// now we set the FXml pointer to the sibling of the current tag, which should be the next
+				// Define tag
+				if (!gDLL->getXMLIFace()->NextSibling(m_pFXml))
 				{
-					char	szMessage[1024];
-					sprintf( szMessage, "Failed writing to global defines cache. \n Current XML file is: %s", GC.getCurrentXMLFile().GetCString());
-					gDLL->MessageBox(szMessage, "XML Caching Error");
-				}
-				else
-				{
-					logMsg("Wrote GlobalDefines to cache");
+					break;
 				}
 			}
-		}
 
-		// delete the pointer to the FXml variable
-		gDLL->getXMLIFace()->DestroyFXml(m_pFXml);
+			// write global defines info to cache
+			bool bOk = gDLL->cacheWrite(cache);
+			if (!bOk)
+			{
+				char	szMessage[1024];
+				sprintf( szMessage, "Failed writing to global defines cache. \n Current XML file is: %s", GC.getCurrentXMLFile().GetCString());
+				gDLL->MessageBox(szMessage, "XML Caching Error");
+			}
+			else
+			{
+				logMsg("Wrote GlobalDefines to cache");
+			}
+		}
 	}
-	else
-	{
-		logMsg("Read GobalDefines from cache");
-	}
+
+	// delete the pointer to the FXml variable
+	gDLL->getXMLIFace()->DestroyFXml(m_pFXml);
 
 	return true;
 }
@@ -899,8 +897,8 @@ bool CvXMLLoadUtility::LoadPostMenuGlobals()
 
 	// Specail Case Diplomacy Info due to double vectored nature and appending of Responses
 	LoadDiplomacyInfo(GC.getDiplomacyInfo(), "CIV4DiplomacyInfos", "GameInfo", "Civ4DiplomacyInfos/DiplomacyInfos/DiplomacyInfo", &CvDLLUtilityIFaceBase::createDiplomacyInfoCacheObject);
-
-	LoadGlobalClassInfo(GC.getQuestInfo(), "Civ4QuestInfos", "Misc", "Civ4QuestInfos/QuestInfo", false);
+	// advc.003j:
+	//LoadGlobalClassInfo(GC.getQuestInfo(), "Civ4QuestInfos", "Misc", "Civ4QuestInfos/QuestInfo", false);
 	LoadGlobalClassInfo(GC.getTutorialInfo(), "Civ4TutorialInfos", "Misc", "Civ4TutorialInfos/TutorialInfo", false);
 
 	LoadGlobalClassInfo(GC.getEspionageMissionInfo(), "CIV4EspionageMissionInfo", "GameInfo", "Civ4EspionageMissionInfo/EspionageMissionInfos/EspionageMissionInfo", false);
@@ -2000,6 +1998,8 @@ void CvXMLLoadUtility::SetImprovementBonuses(CvImprovementBonusInfo** ppImprovem
 //  PURPOSE :   set the variable to a default and load it from the xml if there are any children
 //
 //------------------------------------------------------------------------------------------------------
+/*  advc.003j (comment): Unused, and apparently never was used. But sounds like it
+	could be useful. */
 bool CvXMLLoadUtility::SetAndLoadVar(int** ppiVar, int iDefault)
 {
 	int iNumSibs;

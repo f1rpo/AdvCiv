@@ -616,7 +616,6 @@ public:
 	DllExport void handleCityScreenPlotRightPicked(CvCity* pCity, CvPlot* pPlot, bool bAlt, bool bShift, bool bCtrl) const;
 	DllExport void handleCityPlotRightPicked(CvCity* pCity, CvPlot* pPlot, bool bAlt, bool bShift, bool bCtrl) const;
 	DllExport void handleMiddleMouse(bool bCtrl, bool bAlt, bool bShift);
-
 	DllExport void handleDiplomacySetAIComment(DiploCommentTypes eComment) const;
 	/*  K-Mod. This is used to track which groups have been cycled through in the current turn.
 		Note: it does not need to be kept in sync for multiplayer games. */

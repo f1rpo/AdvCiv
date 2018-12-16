@@ -487,9 +487,7 @@ void CvMap::updateMinOriginalStartDist(CvArea* pArea)
 {
 	PROFILE_FUNC();
 
-	CvPlot* pStartingPlot;
 	CvPlot* pLoopPlot;
-	int iDist;
 	int iI, iJ;
 
 	for (iI = 0; iI < numPlotsINLINE(); iI++)
@@ -504,7 +502,7 @@ void CvMap::updateMinOriginalStartDist(CvArea* pArea)
 
 	for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
-		pStartingPlot = GET_PLAYER((PlayerTypes)iI).getStartingPlot();
+		CvPlot* pStartingPlot = GET_PLAYER((PlayerTypes)iI).getStartingPlot();
 
 		if (pStartingPlot != NULL)
 		{
@@ -519,7 +517,7 @@ void CvMap::updateMinOriginalStartDist(CvArea* pArea)
 					{
 						
 						//iDist = GC.getMapINLINE().calculatePathDistance(pStartingPlot, pLoopPlot);
-						iDist = stepDistance(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+						int iDist = stepDistance(pStartingPlot->getX_INLINE(), pStartingPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
 
 						if (iDist != -1)
 						{
@@ -560,18 +558,14 @@ void CvMap::verifyUnitValidPlot()
 
 void CvMap::combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvPlotGroup* pPlotGroup2)
 {
-	CLLNode<XYCoords>* pPlotNode;
-	CvPlotGroup* pNewPlotGroup;
-	CvPlotGroup* pOldPlotGroup;
-	CvPlot* pPlot;
-
 	FAssertMsg(pPlotGroup1 != NULL, "pPlotGroup is not assigned to a valid value");
 	FAssertMsg(pPlotGroup2 != NULL, "pPlotGroup is not assigned to a valid value");
 
-	if (pPlotGroup1 == pPlotGroup2)
-	{
+	if(pPlotGroup1 == pPlotGroup2)
 		return;
-	}
+
+	CvPlotGroup* pNewPlotGroup;
+	CvPlotGroup* pOldPlotGroup;
 
 	if (pPlotGroup1->getLengthPlots() > pPlotGroup2->getLengthPlots())
 	{
@@ -584,10 +578,10 @@ void CvMap::combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvP
 		pOldPlotGroup = pPlotGroup1;
 	}
 
-	pPlotNode = pOldPlotGroup->headPlotsNode();
+	CLLNode<XYCoords>* pPlotNode = pOldPlotGroup->headPlotsNode();
 	while (pPlotNode != NULL)
 	{
-		pPlot = plotSorenINLINE(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
+		CvPlot* pPlot = plotSorenINLINE(pPlotNode->m_data.iX, pPlotNode->m_data.iY);
 		pNewPlotGroup->addPlot(pPlot);
 		pPlotNode = pOldPlotGroup->deletePlotsNode(pPlotNode);
 	}
@@ -627,8 +621,7 @@ CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTi
 
 			/* advc.300: Moved the horribly nested loop here to a new function
 			   b/c I need it again elsewhere. Now ignores barbarians on
-			   surrounding plots.
-			   Also deleted some declarations at the top that are no longer used. */
+			   surrounding plots. */
 			if(pTestPlot->isCivUnitNearby(iMinUnitDistance) || pTestPlot->isUnit())
 				bValid = false;
 
@@ -1281,18 +1274,14 @@ void CvMap::resetPathDistance()
 // advc.003: 3x const
 int CvMap::calculatePathDistance(CvPlot const* pSource, CvPlot const* pDest) const
 {
-	FAStarNode* pNode;
-
-	if (pSource == NULL || pDest == NULL)
-	{
+	if(pSource == NULL || pDest == NULL)
 		return -1;
-	}
 
 	if (gDLL->getFAStarIFace()->GeneratePath(&GC.getStepFinder(),
 			pSource->getX_INLINE(), pSource->getY_INLINE(),
 			pDest->getX_INLINE(), pDest->getY_INLINE(), false, 0, true))
 	{
-		pNode = gDLL->getFAStarIFace()->GetLastNode(&GC.getStepFinder());
+		FAStarNode* pNode = gDLL->getFAStarIFace()->GetLastNode(&GC.getStepFinder());
 
 		if (pNode != NULL)
 		{
@@ -1328,12 +1317,9 @@ void CvMap::invalidateBorderDangerCache(TeamTypes eTeam)
 {
 	PROFILE_FUNC();
 
-	int iI;
-	CvPlot* pLoopPlot;
-
-	for( iI = 0; iI < numPlotsINLINE(); iI++ )
+	for(int iI = 0; iI < numPlotsINLINE(); iI++ )
 	{
-		pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
 
 		if( pLoopPlot != NULL )
 		{
@@ -1465,31 +1451,26 @@ void CvMap::calculateAreas()
 		calculateReprAreas();
 		return;
 	} // </advc.030>
-	CvPlot* pLoopPlot;
-	CvArea* pArea;
-	int iArea;
-	int iI;
-
-	for (iI = 0; iI < numPlotsINLINE(); iI++)
+	
+	for (int iI = 0; iI < numPlotsINLINE(); iI++)
 	{
-		pLoopPlot = plotByIndexINLINE(iI);
+		CvPlot* pLoopPlot = plotByIndexINLINE(iI);
 		gDLL->callUpdater();
 		FAssertMsg(pLoopPlot != NULL, "LoopPlot is not assigned a valid value");
 
 		if (pLoopPlot->getArea() == FFreeList::INVALID_INDEX)
 		{
-			pArea = addArea();
+			CvArea* pArea = addArea();
 			pArea->init(pArea->getID(), pLoopPlot->isWater());
 
-			iArea = pArea->getID();
+			int iArea = pArea->getID();
 
 			pLoopPlot->setArea(iArea);
 
 			gDLL->getFAStarIFace()->GeneratePath(&GC.getAreaFinder(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), -1, -1, pLoopPlot->isWater(), iArea);
 		}
-	} // <advc.030>
-	int dummy=-1;
-	updateLakes(); // </advc.030>
+	}
+	updateLakes(); // advc.030
 }
 
 // <advc.030>

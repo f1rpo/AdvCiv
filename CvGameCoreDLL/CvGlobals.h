@@ -122,7 +122,7 @@ class CvEmphasizeInfo;
 class CvUpkeepInfo;
 class CvCultureLevelInfo;
 class CvVictoryInfo;
-class CvQuestInfo;
+//class CvQuestInfo; // advc.003j
 class CvGameOptionInfo;
 class CvMPOptionInfo;
 class CvForceControlInfo;
@@ -187,12 +187,12 @@ public:
 	DllExport FAStar& getBorderFinder();
 	DllExport FAStar& getAreaFinder();
 	DllExport FAStar& getPlotGroupFinder();
-	NiPoint3& getPt3Origin();
+	//NiPoint3& getPt3Origin(); // advc.003j: unused
 
 	DllExport std::vector<CvInterfaceModeInfo*>& getInterfaceModeInfo();
 	DllExport CvInterfaceModeInfo& getInterfaceModeInfo(InterfaceModeTypes e);
 
-	NiPoint3& getPt3CameraDir();
+	//NiPoint3& getPt3CameraDir(); // advc.003j: unused
 
 	DllExport bool& getLogging();
 	DllExport bool& getRandLogging();
@@ -590,10 +590,10 @@ public:
 	DllExport int getNumVictoryInfos();
 	std::vector<CvVictoryInfo*>& getVictoryInfo();
 	DllExport CvVictoryInfo& getVictoryInfo(VictoryTypes eVictoryNum);
-
-	int getNumQuestInfos();
+	// advc.003j:
+	/*int getNumQuestInfos();
 	std::vector<CvQuestInfo*>& getQuestInfo();
-	CvQuestInfo& getQuestInfo(int iIndex);
+	CvQuestInfo& getQuestInfo(int iIndex);*/
 
 	int getNumTutorialInfos();
 	std::vector<CvTutorialInfo*>& getTutorialInfo();
@@ -950,7 +950,7 @@ protected:
 	bool m_bRandLogging;
 	bool m_bSynchLogging;
 	bool m_bOverwriteLogs;
-	NiPoint3  m_pt3CameraDir;
+	//NiPoint3  m_pt3CameraDir; // advc.003j: Unused; not even written.
 	int m_iNewPlayers;
 
 	CMainMenu* m_pkMainMenu;
@@ -993,7 +993,7 @@ protected:
 	FAStar* m_areaFinder;
 	FAStar* m_plotGroupFinder;
 
-	NiPoint3 m_pt3Origin;
+	//NiPoint3 m_pt3Origin; // advc.003j: unused
 
 	int* m_aiPlotDirectionX;	// [NUM_DIRECTION_TYPES];
 	int* m_aiPlotDirectionY;	// [NUM_DIRECTION_TYPES];
@@ -1117,7 +1117,7 @@ protected:
 	std::vector<CvEffectInfo*> m_paEffectInfo;
 	std::vector<CvAttachableInfo*> m_paAttachableInfo;
 	std::vector<CvCameraInfo*> m_paCameraInfo;
-	std::vector<CvQuestInfo*> m_paQuestInfo;
+	//std::vector<CvQuestInfo*> m_paQuestInfo; // advc.003j
 	std::vector<CvTutorialInfo*> m_paTutorialInfo;
 	std::vector<CvEventTriggerInfo*> m_paEventTriggerInfo;
 	std::vector<CvEventInfo*> m_paEventInfo;
@@ -1323,14 +1323,12 @@ protected:
 public:
 	int getWAR_SUCCESS_CITY_CAPTURING();
 	int getBBAI_ATTACK_CITY_STACK_RATIO();
-	int getBBAI_SKIP_BOMBARD_BEST_ATTACK_ODDS();
 	int getBBAI_SKIP_BOMBARD_BASE_STACK_RATIO();
 	int getBBAI_SKIP_BOMBARD_MIN_STACK_RATIO();
 
 protected:
 	int m_iWAR_SUCCESS_CITY_CAPTURING;
 	int m_iBBAI_ATTACK_CITY_STACK_RATIO;
-	int m_iBBAI_SKIP_BOMBARD_BEST_ATTACK_ODDS;
 	int m_iBBAI_SKIP_BOMBARD_BASE_STACK_RATIO;
 	int m_iBBAI_SKIP_BOMBARD_MIN_STACK_RATIO;
 

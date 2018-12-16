@@ -312,6 +312,8 @@ ImprovementTypes finalImprovementUpgrade(ImprovementTypes eImprovement); // Expo
 int getWorldSizeMaxConscript(CivicTypes eCivic);								// Exposed to Python
 
 bool isReligionTech(TechTypes eTech);														// Exposed to Python
+// advc.003j: Unused BtS function; wasn't even declared in the header file.
+bool isCorporationTech(TechTypes eTech);
 
 bool isTechRequiredForUnit(TechTypes eTech, UnitTypes eUnit);							// Exposed to Python
 bool isTechRequiredForBuilding(TechTypes eTech, BuildingTypes eBuilding);	// Exposed to Python
@@ -431,8 +433,7 @@ int plotGroupValid(FAStarNode* parent, FAStarNode* node, int data, const void* p
 int countPlotGroup(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
 
 int baseYieldToSymbol(int iNumYieldTypes, int iYieldStack);
-
-bool isPickableName(const TCHAR* szName);
+//bool isPickableName(const TCHAR* szName); // advc.003j
 
 DllExport int* shuffle(int iNum, CvRandom& rand);
 void shuffleArray(int* piShuffle, int iNum, CvRandom& rand);

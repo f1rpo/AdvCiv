@@ -230,12 +230,13 @@
 		<DefineName>BBAI_ATTACK_CITY_STACK_RATIO</DefineName>
 		<iDefineIntVal>125</iDefineIntVal>
 	</Define>
-	<Define>
-		<!-- Minimum attack odds of best attacker for AI to skip bombarding a city and just attack.  BBAI default: 12 -->
-		<!-- advc.114c: Was 10 in K-Mod, now 9. -->
+	<!-- advc.003j: Obsoleted by K-Mod code (CvUnitAI::AI_bombardCity) -->
+	<!-- Minimum attack odds of best attacker for AI to skip bombarding a city
+		 and just attack.  BBAI default: 12 -->
+	<!--Define>
 		<DefineName>BBAI_SKIP_BOMBARD_BEST_ATTACK_ODDS</DefineName>
-		<iDefineIntVal>9</iDefineIntVal>
-	</Define>
+		<iDefineIntVal>10</iDefineIntVal>
+	</Define-->
 	<Define>
 		<!-- Base ratio of stack strengths for AI considering skipping bombard and just attacking enemy city.
 		This ratio is reduced by the AI's best attacker odds and how long it will take to bombard the city.

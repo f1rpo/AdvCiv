@@ -293,12 +293,9 @@ void CvTeamAI::AI_updateAreaTargets()
 
 int CvTeamAI::AI_countFinancialTrouble() const
 {
-	int iCount;
-	int iI;
+	int iCount = 0;
 
-	iCount = 0;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
@@ -805,17 +802,12 @@ int CvTeamAI::AI_calculateAdjacentLandPlots(TeamTypes eTeam) const
 {
 	PROFILE_FUNC();
 
-	CvPlot* pLoopPlot;
-	int iCount;
-	int iI;
-
 	FAssertMsg(eTeam != getID(), "shouldn't call this function on ourselves");
 
-	iCount = 0;
-
-	for (iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
+	int iCount = 0;
+	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 	{
-		pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
 
 		if (!(pLoopPlot->isWater()))
 		{
@@ -2466,17 +2458,13 @@ DenialTypes CvTeamAI::AI_techTrade(TechTypes eTech, TeamTypes eTeam) const
 
 int CvTeamAI::AI_mapTradeVal(TeamTypes eTeam) const
 {
-	CvPlot* pLoopPlot;
-	int iValue;
-	int iI;
-
 	FAssertMsg(eTeam != getID(), "shouldn't call this function on ourselves");
 
-	iValue = 0;
+	int iValue = 0;
 
-	for (iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
+	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 	{
-		pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
 
 		if (!(pLoopPlot->isRevealed(getID(), false)) && pLoopPlot->isRevealed(eTeam, false))
 		{
@@ -2969,9 +2957,9 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eTeam, int iPowerMultiplier,
 		return DENIAL_POWER_US;
 	// K-Mod end
 	// <advc.112b> Don't surrender if there isn't an acute threat
-	int safePopulation = 0;
 	if(isAtWar(eTeam)) {
-		int nukes = 0;
+		int iNukes = 0;
+		int iSafePopulation = 0;
 		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 			CvPlayerAI const& member = GET_PLAYER((PlayerTypes)i);
 			if(!member.isEverAlive() || member.getTeam() != getID())
@@ -2980,23 +2968,23 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eTeam, int iPowerMultiplier,
 				CvPlayerAI const& enemy = GET_PLAYER((PlayerTypes)j);
 				if(!enemy.isAlive() || enemy.getTeam() != eTeam)
 					continue;
-				nukes += member.AI_getMemoryCount(enemy.getID(), MEMORY_NUKED_US);
+				iNukes += member.AI_getMemoryCount(enemy.getID(), MEMORY_NUKED_US);
 			}
 		}
-		if(nukes == 0) {
+		if(iNukes == 0) {
 			// Based on code in AI_endWarVal:
 			int iTheirAttackers = 0; int iLoop;
 			for(CvArea* pLoopArea = GC.getMapINLINE().firstArea(&iLoop);
 					pLoopArea != NULL; pLoopArea = GC.getMapINLINE().nextArea(&iLoop)) {
-				int areaCities = countNumCitiesByArea(pLoopArea);
-				if(areaCities <= 0)
+				int iAreaCities = countNumCitiesByArea(pLoopArea);
+				if(iAreaCities <= 0)
 					continue;
-				int areaDanger = countEnemyDangerByArea(pLoopArea, eTeam);
-				int areaPop = countTotalPopulationByArea(pLoopArea);
-				if(areaDanger < areaPop / 3)
-					safePopulation += areaPop;
-				if(areaCities > getNumCities() / 3)
-					iTheirAttackers += areaDanger;
+				int iAreaDanger = countEnemyDangerByArea(pLoopArea, eTeam);
+				int iAreaPop = countTotalPopulationByArea(pLoopArea);
+				if(iAreaDanger < iAreaPop / 3)
+					iSafePopulation += iAreaPop;
+				if(iAreaCities > getNumCities() / 3)
+					iTheirAttackers += iAreaDanger;
 			}
 			/*  Randomly between these two bounds; randomness from a hash of the
 				turn number */
@@ -3005,7 +2993,7 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eTeam, int iPowerMultiplier,
 			if(iTheirAttackers < bound1 +
 					::hash(GC.getGameINLINE().getGameTurn()) * (bound2 - bound1))
 				return DENIAL_NEVER;
-			if(safePopulation / (getTotalPopulation() + 0.1) > 0.3)
+			if(iSafePopulation / (getTotalPopulation() + 0.1) > 0.3)
 				return DENIAL_NEVER;
 		}
 	} // </advc.112b>
@@ -3993,8 +3981,9 @@ void CvTeamAI::AI_getWarThresholds( int &iTotalWarThreshold, int &iLimitedWarThr
 	}
 
 	iHighUnitSpending /= std::max(1, getNumMembers());
-	// advc.019: Commented out; the  +=bAggressive?1:0 below should be enough
-	//iTotalWarThreshold = iHighUnitSpending * (bAggressive ? 3 : 2);
+	iTotalWarThreshold = iHighUnitSpending *
+			//(bAggressive ? 3 : 2);
+			2; // advc.019: The  +=bAggressive?1:0  below should be enough aggro
 	if( bDom3 )
 	{
 		iTotalWarThreshold *= 3;
@@ -4306,9 +4295,6 @@ DenialTypes CvTeamAI::AI_declareWarTrade(TeamTypes eWarTeam, TeamTypes eTeam, bo
 {
 	PROFILE_FUNC();
 
-	AttitudeTypes eAttitude;
-	AttitudeTypes eAttitudeThem;
-	bool bLandTarget;
 	int iI;
 
 	FAssertMsg(eTeam != getID(), "shouldn't call this function on ourselves");
@@ -4358,7 +4344,7 @@ DenialTypes CvTeamAI::AI_declareWarTrade(TeamTypes eWarTeam, TeamTypes eTeam, bo
 
 	if (bConsiderPower)
 	{
-		bLandTarget = AI_isAllyLandTarget(eWarTeam);
+		bool bLandTarget = AI_isAllyLandTarget(eWarTeam);
 		int defPower = GET_TEAM(eWarTeam).getDefensivePower(getID());
 		int pow = getPower(true);
 		int aggPower = pow + ((atWar(eWarTeam, eTeam)) ? GET_TEAM(eTeam).getPower(true) : 0);
@@ -4384,7 +4370,7 @@ DenialTypes CvTeamAI::AI_declareWarTrade(TeamTypes eWarTeam, TeamTypes eTeam, bo
 	}
   } // advc.104o
 
-	eAttitude = AI_getAttitude(eTeam);
+	AttitudeTypes eAttitude = AI_getAttitude(eTeam);
 
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
 	{
@@ -4400,7 +4386,7 @@ DenialTypes CvTeamAI::AI_declareWarTrade(TeamTypes eWarTeam, TeamTypes eTeam, bo
 		}
 	}
 
-	eAttitudeThem = AI_getAttitude(eWarTeam);
+	AttitudeTypes eAttitudeThem = AI_getAttitude(eWarTeam);
 
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
 	{
@@ -4746,7 +4732,7 @@ int CvTeamAI::AI_enmityValue(TeamTypes tId) const {
 	if(tId == NO_TEAM)
 		return 0;
 	CvTeam const& t = GET_TEAM(tId);
-	if(tId == NO_TEAM || tId == getID() || !t.isAlive() || t.isCapitulated() ||
+	if(tId == getID() || !t.isAlive() || t.isCapitulated() ||
 			isVassal(tId) || // advc.130d
 			t.isMinorCiv() || // Weren't excluded in BtS
 			!isHasMet(tId) ||
@@ -6018,7 +6004,6 @@ void CvTeamAI::AI_doCounter()
 		AI_changeHasMetCounter(tId, 1);
 		double decay = AI_getDiploDecay(); // advc.130k
 		// <advc.130i>
-		int c = AI_getOpenBordersCounter(tId);
 		if(isOpenBorders(tId)) {
 			double const pr = AI_OpenBordersCounterIncrement(tId) / 2; // advc.130i
 			int const cMax = 2 * AI_getOpenBordersAttitudeDivisor() + 10;

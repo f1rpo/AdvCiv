@@ -560,13 +560,13 @@ bool WarAndPeaceAI::Team::reviewPlan(TeamTypes targetId, int u, int prepTime) {
 	CvTeamAI& target = GET_TEAM(targetId);
 	WarPlanTypes wp = agent.AI_getWarPlan(targetId);
 	FAssert(wp != NO_WARPLAN);
-	bool atWar = agent.isAtWar(targetId);
+	bool bAtWar = agent.isAtWar(targetId);
 	int wpAge = agent.AI_getWarPlanStateCounter(targetId);
 	FAssert(wpAge >= 0);
 	report->log("Reviewing war plan \"%s\" (age: %d turns) against %s (%su=%d)",
 			report->warPlanName(wp), wpAge, report->teamName(targetId),
-			(atWar ? "at war; " : ""), u);
-	if(atWar) {
+			(bAtWar ? "at war; " : ""), u);
+	if(bAtWar) {
 		FAssert(wp != WARPLAN_PREPARING_LIMITED && wp != WARPLAN_PREPARING_TOTAL);
 		if(!considerPeace(targetId, u))
 			return false;
@@ -1002,7 +1002,7 @@ bool WarAndPeaceAI::Team::considerAbandonPreparations(TeamTypes targetId, int u,
 	}
 	if(u >= 0)
 		return true;
-	if(timeRemaining <= 0 && u < 0) {
+	if(timeRemaining <= 0) {
 		report->log("Time limit for preparations reached; plan abandoned");
 		if(!inBackgr) {
 			agent.AI_setWarPlan(targetId, NO_WARPLAN);
@@ -1817,8 +1817,7 @@ void WarAndPeaceAI::Team::respondToRebuke(TeamTypes targetId, bool prepare) {
 		return;
 	if(!prepare && !agent.canDeclareWar(targetId))
 		return;
-	CvTeam const& target = GET_TEAM(targetId);
-	FAssert(target.isHuman());
+	FAssert(GET_TEAM(targetId).isHuman());
 	WarAndPeaceReport silentReport(true);
 	WarEvalParameters params(agentId, targetId, silentReport);
 	WarEvaluator eval(params);

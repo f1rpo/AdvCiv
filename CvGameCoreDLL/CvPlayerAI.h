@@ -61,9 +61,9 @@ public:
 	void AI_updateAssignWork();
 
 	void AI_makeProductionDirty();
-
+	#if 0 // advc.003
 	void AI_doCentralizedProduction(); // K-Mod. (not used)
-
+	#endif
 	void AI_conquerCity(CvCity* pCity);
 	double AI_razeAngerRating(CvCity const& c) const; // advc.130q
 	bool AI_acceptUnit(CvUnit* pUnit) const;
@@ -204,7 +204,7 @@ public:
 	int AI_getRivalTradeAttitude(PlayerTypes ePlayer) const;
 	int AI_getBonusTradeCounter(TeamTypes toId) const; // advc.130p
 	int AI_getMemoryAttitude(PlayerTypes ePlayer, MemoryTypes eMemory) const;
-	int AI_getColonyAttitude(PlayerTypes ePlayer) const;
+	//int AI_getColonyAttitude(PlayerTypes ePlayer) const; // advc.130r
 	// BEGIN: Show Hidden Attitude Mod 01/22/2010
 	int AI_getFirstImpressionAttitude(PlayerTypes ePlayer) const;
 	int AI_getTeamSizeAttitude(PlayerTypes ePlayer) const;
@@ -659,7 +659,7 @@ protected:
 
 	std::vector<int> m_aiAttitudeCache; // K-Mod
 
-	bool* m_abFirstContact;
+	bool* m_abFirstContact; // advc.003j: Now unused
 
 	int** m_aaiContactTimer;
 	int** m_aaiMemoryCount;

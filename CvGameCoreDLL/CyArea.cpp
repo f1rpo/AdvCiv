@@ -51,7 +51,7 @@ int CyArea::getNumTiles()
 
 bool CyArea::isLake()
 {
-	return m_pArea ? m_pArea->isLake() : -1;
+	return m_pArea ? m_pArea->isLake() : false;
 }
 
 int CyArea::getNumOwnedTiles()

@@ -47,7 +47,7 @@ public:
 	void AI_updateAreaStrategies(bool bTargets = true); // advc.003: "Stragies"->"Strategies"
 	void AI_updateAreaTargets();
 
-	int AI_countFinancialTrouble() const;
+	int AI_countFinancialTrouble() const; // addvc.003j (comment): unused
 	int AI_countMilitaryWeight(CvArea* pArea) const;
 
 	int AI_estimateTotalYieldRate(YieldTypes eYield) const; // K-Mod

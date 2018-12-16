@@ -567,7 +567,12 @@ bool WarUtilityBroaderAspect::concernsOnlyWarParties() const {
 }
 
 GreedForAssets::GreedForAssets(WarEvalParameters& params)
-	: WarUtilityAspect(params) { ourDist = -1; }
+	: WarUtilityAspect(params) {
+	
+	ourDist = -1;
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
+		citiesPerArea[i] = NULL;
+}
 
 char const* GreedForAssets::aspectName() const { return "Greed for assets"; }
 int GreedForAssets::xmlId() const { return 0; }
@@ -1099,7 +1104,11 @@ char const* Loathing::aspectName() const { return "Loathing"; }
 int Loathing::xmlId() const { return 4; }
 
 MilitaryVictory::MilitaryVictory(WarEvalParameters& params)
-	: WarUtilityAspect(params) {}
+	: WarUtilityAspect(params) {
+
+	votesToGo = -1;
+	enoughVotes = false;
+}
 
 void MilitaryVictory::evaluate() {
 
@@ -2249,7 +2258,6 @@ void KingMaking::evaluate() {
 		u += ::round(caughtUpBonus);
 		return;
 	}
-	CvCity* cap = they->getCapitalCity();
 	double uPlus = 0;
 	/*  If they (or their vassals) make a net asset gain, we incur a cost;
 		if they make a net asset loss, that's our war gain. */
@@ -2287,7 +2295,6 @@ double KingMaking::theirRelativeLoss() {
 	PROFILE_FUNC();
 	if(!m->isPartOfAnalysis(theyId)) // To save time
 		return 0;
-	bool humanTarget = false;
 	// Ignore assets that they gain from human target (to avoid dogpiling on human)
 	TeamTypes ignoreGains = params.targetId();
 	if(ignoreGains != NO_TEAM && !GET_TEAM(ignoreGains).isHuman())
@@ -2487,18 +2494,17 @@ int Effort::preEvaluate() {
 	/*  Nukes are included in army, and therefore already covered by the costs above.
 		But these don't take into account that nukes are always lost when used.
 		Therefore add some extra cost. */
-	double nukeCost = 0;
 	double fired = m->getNukesFiredBy(weId);
 	UnitTypes ut = ourCache->getPowerValues()[NUCLEAR]->getTypicalUnitType();
 	if(fired > 0.01 && ut != NO_UNIT) {
 		/*  Not clear that we have to replace the fired nukes.
 			Reduce the lost production to 0.3 for that reason,
 			and b/c already partially covered by army losses. */
-		double lostProduction = 0.3 * fired * we->getProductionNeeded(ut);
+		double nukeProduction = 0.3 * fired * we->getProductionNeeded(ut);
 		double prodVal = ourCache->goldValueOfProduction();
-		nukeCost = weAI->tradeValToUtility(prodVal * lostProduction);
+		double nukeCost = weAI->tradeValToUtility(prodVal * nukeProduction);
 		log("Cost for fired nukes: %d; gold val per prod: %.2f; lost prod: %d",
-				::round(nukeCost), prodVal, ::round(lostProduction));
+				::round(nukeCost), prodVal, ::round(nukeProduction));
 		uMinus += nukeCost;
 	}
 	return -std::min(200, ::round(uMinus));
@@ -2631,7 +2637,11 @@ void Risk::evaluate() {
 char const* Risk::aspectName() const { return "Risk"; }
 int Risk::xmlId() const { return 16; }
 
-IllWill::IllWill(WarEvalParameters& params) : WarUtilityBroaderAspect(params) {}
+IllWill::IllWill(WarEvalParameters& params) : WarUtilityBroaderAspect(params) {
+
+	uMinus = -1;
+	altPartnerFactor = -1;
+}
 
 int IllWill::preEvaluate() {
 
@@ -3259,8 +3269,8 @@ void UlteriorMotives::evaluate() {
 			target.warAndPeaceAI().canReach(TEAMID(theyId)));
 	if(bHot &&
 			// If the target is in our area but not theirs, that's fishy.
-			target.AI_isPrimaryArea(we->getCapitalCity()->area()) <=
-			target.AI_isPrimaryArea(they->getCapitalCity()->area()))
+			(!target.AI_isPrimaryArea(we->getCapitalCity()->area()) ||
+			target.AI_isPrimaryArea(they->getCapitalCity()->area())))
 		return;
 	/*  Otherwise, they might want to hurt us as much as the target, and we should
 		demand extra payment to allay our suspicions. Use DWRAT (greater than
@@ -3524,7 +3534,7 @@ void TacticalSituation::evalEngagement() {
 		if(groupSize <= 0)
 			continue;
 		ourTotal += groupSize;
-		int range = 1;
+		int iRange = 1; // don't shadow ::range()
 		CvPlot* pl = gr->plot();
 		PlayerTypes plotOwner = pl->getOwnerINLINE();
 		/*  Limit range, not least for performance reasons, to cover combat imminent
@@ -3533,17 +3543,17 @@ void TacticalSituation::evalEngagement() {
 			though we probably won't if our units are damaged. */
 		if(head->maxHitPoints() - head->getDamage() >= 80) {
 			if(pl->area()->isWater())
-				range++;
+				iRange++;
 			else if(plotOwner != NO_PLAYER &&
 					(plotOwner == weId || agent.isOpenBorders(TEAMID(plotOwner)))
 					&& (pl->isRoute() || pl->isCity()))
-				range++;
+				iRange++;
 		}
 		bool isCity = gr->plot()->isCity();
 		int theirDamaged = 0;
 		/*  Count at most one enemy unit per unit of ours as "entangled", i.e. count
 			pairs of units. */
-		int pairs = we->AI_getPlotDanger(pl, range, false, false, &theirDamaged,
+		int pairs = we->AI_getPlotDanger(pl, iRange, false, false, &theirDamaged,
 				hpThresh, groupSize, theyId);
 		/*  Should perhaps also count fewer units as entangled if their units are
 			in a city, but that gets complicated b/c AI_getPlotDanger would have to
@@ -3603,14 +3613,12 @@ void TacticalSituation::evalEngagement() {
 	uPlus *= 100;
 	int recentlyLostPop = 0;
 	for(CvCity* c = they->firstCity(&dummy); c != NULL; c = they->nextCity(&dummy)) {
-		int range = 2;
+		int iRange = 2;
 		// Do we have Engineering?
-		if(agentAI.isFastRoads()) {
-			// Range 3 could be costly, but there'll be few such cities
-			range++;
-		}
+		if(agentAI.isFastRoads())
+			iRange++;
 		if(c->isOccupation() && c->isEverOwned(weId) && they->AI_getPlotDanger(
-				c->plot(), 3, false, false) >
+				c->plot(), iRange, false, false) >
 				1) /* Just want to know if we have some presence beyond a single
 					  stray unit near the city */
 			recentlyLostPop += c->getPopulation();
@@ -3723,7 +3731,6 @@ void TacticalSituation::evalOperational() {
 	FAssert(remaining >= 0);
 	int initialPrepTime = 0;
 	if(!params.isImmediateDoW()) {
-		WarPlanTypes wp = agent.AI_getWarPlan(TEAMID(theyId));
 		if(params.isTotal()) {
 			if(params.isNaval())
 				initialPrepTime = WarAndPeaceAI::preparationTimeTotalNaval;

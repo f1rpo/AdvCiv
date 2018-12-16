@@ -30,7 +30,8 @@ public:
 	void verify();
 
 	bool isPeaceDeal() const;
-	bool isPeaceDealBetweenOthers(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* pSecondList) const;
+	// advc.130p: BtS function; now unused.
+	//bool isPeaceDealBetweenOthers(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* pSecondList) const;
 	bool isVassalDeal() const;
 	bool isUncancelableVassalDeal(PlayerTypes eByPlayer, CvWString* pszReason = NULL) const;
 	DllExport static bool isVassalTributeDeal(const CLinkList<TradeData>* pList);
@@ -50,14 +51,14 @@ public:
 	bool isBetween(PlayerTypes civ1, PlayerTypes civ2) const;
 	bool isBetween(TeamTypes t1, TeamTypes t2) const;
 	// </advc.003>
-	void clearFirstTrades();
+	void clearFirstTrades(); // advc.003j (comment): unused
 	void insertAtEndFirstTrades(TradeData trade);
 	DllExport CLLNode<TradeData>* nextFirstTradesNode(CLLNode<TradeData>* pNode) const;
 	int getLengthFirstTrades() const;
 	DllExport CLLNode<TradeData>* headFirstTradesNode() const;
 	const CLinkList<TradeData>* getFirstTrades() const;
 
-	void clearSecondTrades();
+	void clearSecondTrades(); // advc.003j (comment): unused
 	void insertAtEndSecondTrades(TradeData trade);
 	DllExport CLLNode<TradeData>* nextSecondTradesNode(CLLNode<TradeData>* pNode) const;
 	int getLengthSecondTrades() const;

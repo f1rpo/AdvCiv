@@ -779,6 +779,7 @@ bool RiseFall::isCooperationRestricted(PlayerTypes aiCiv) const {
 	return (g.getPlayerRank(aiCiv) > g.getPlayerRank(human));
 }
 
+// currently unused
 RFChapter* RiseFall::mostRecentlyFinished() const {
 
 	for(size_t i = chapters.size() - 1; i >= 0; i--) {

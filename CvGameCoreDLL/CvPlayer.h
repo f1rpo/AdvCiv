@@ -165,7 +165,7 @@ public:
 	void updateBuildingCommerce();
 	void updateReligionCommerce();
 	void updateCorporation();
-	void updateCityPlotYield();
+	//void updateCityPlotYield(); // advc.003j
 	void updateCitySight(bool bIncrement, bool bUpdatePlotGroups);
 	void updateTradeRoutes();
 	void updatePlunder(int iChange, bool bUpdatePlotGroups);
@@ -987,10 +987,11 @@ public:
 	CvSelectionGroup* addSelectionGroup();
 	void deleteSelectionGroup(int iID);
 
-	// pending triggers iteration																																
+	// pending triggers iteration (advc.003j - unused)
 	EventTriggeredData* firstEventTriggered(int *pIterIdx, bool bRev=false) const;
 	EventTriggeredData* nextEventTriggered(int *pIterIdx, bool bRev=false) const;
 	int getNumEventsTriggered() const;
+
 	EventTriggeredData* getEventTriggered(int iID) const;   // Exposed to Python
 	EventTriggeredData* addEventTriggered();
 	void deleteEventTriggered(int iID);
@@ -1394,7 +1395,7 @@ protected:
 	int* m_paiNoCivicUpkeepCount;
 	int* m_paiHasReligionCount;
 	int* m_paiHasCorporationCount;
-	int* m_paiUpkeepCount;
+	int* m_paiUpkeepCount; // advc.003j (comment): unused
 	int* m_paiSpecialistValidCount;
 
 	bool* m_pabResearchingTech;

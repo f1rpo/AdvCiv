@@ -506,8 +506,8 @@ void CyInfoPythonInterface3()
 	python::class_<CvControlInfo, python::bases<CvInfoBase> >("CvControlInfo")
 		.def("getActionInfoIndex", &CvControlInfo::getActionInfoIndex, "int ()")
 		;
-
-	python::class_<CvQuestInfo, python::bases<CvInfoBase> >("CvQuestInfo")
+	// advc.003j:
+	/*python::class_<CvQuestInfo, python::bases<CvInfoBase> >("CvQuestInfo")
 		.def("getQuestMessages", &CvQuestInfo::getQuestMessages, "int ()")
 		.def("getNumQuestLinks", &CvQuestInfo::getNumQuestLinks, "int ()")
 		.def("getNumQuestSounds", &CvQuestInfo::getNumQuestSounds, "int ()")
@@ -524,7 +524,7 @@ void CyInfoPythonInterface3()
 		.def("setQuestObjective", &CvQuestInfo::setQuestObjective, "void (string)")
 		.def("setQuestBodyText", &CvQuestInfo::setQuestBodyText, "void (string)")
 		.def("setQuestMessages", &CvQuestInfo::setQuestMessages, "void (int iIndex, string)")
-		;
+		;*/
 
 	python::class_<CvTutorialMessage>("CvTutorialMessage")
 		.def("getText", &CvTutorialMessage::getText, "string ()")
