@@ -3105,7 +3105,10 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 						return false;
 					//
 
-					bool bNoBlitz = (!pBestAttackUnit->isBlitz() || !pBestAttackUnit->isMadeAttack());
+					//bool bNoBlitz = (!pBestAttackUnit->isBlitz() || !pBestAttackUnit->isMadeAttack());
+					/*  advc.164: This looks OK - exclude units that have made
+						at least 1 attack. Just for clarity: */
+					bool bBlitz = (pBestAttackUnit->isBlitz() && pBestAttackUnit->isMadeAttack());
 
 					/*if (groupDeclareWar(pDestPlot))
 					{
@@ -3114,7 +3117,8 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 
 					while (true)
 					{
-						pBestAttackUnit = AI_getBestGroupAttacker(pDestPlot, false, iAttackOdds, false, bNoBlitz);
+						pBestAttackUnit = AI_getBestGroupAttacker(pDestPlot, false, iAttackOdds, false,
+								!bBlitz); // advc.164
 						if (pBestAttackUnit == NULL)
 						{
 							break;
@@ -3122,7 +3126,8 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 
 						if (iAttackOdds < 68)
 						{
-						    CvUnit * pBestSacrifice = AI_getBestGroupSacrifice(pDestPlot, false, false, bNoBlitz);
+						    CvUnit * pBestSacrifice = AI_getBestGroupSacrifice(pDestPlot, false, false,
+									!bBlitz); // advc.164
 						    if (pBestSacrifice != NULL)
 						    {
                                 pBestAttackUnit = pBestSacrifice;

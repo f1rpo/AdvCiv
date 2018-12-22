@@ -235,6 +235,7 @@ void CvTeam::reset(TeamTypes eID, bool bConstructorCall)
 		m_abHasMet[iI] = false;
 		m_abHasSeen[iI] = false; // K-Mod
 		m_abAtWar[iI] = false;
+		m_abJustDeclaredWar[iI] = false; // advc.162
 		m_abPermanentWarPeace[iI] = false;
 		m_abOpenBorders[iI] = false;
 		m_abDisengage[iI] = false; // advc.034
@@ -254,6 +255,7 @@ void CvTeam::reset(TeamTypes eID, bool bConstructorCall)
 			kLoopTeam.m_abHasMet[getID()] = false;
 			kLoopTeam.m_abHasSeen[getID()] = false; // K-Mod
 			kLoopTeam.m_abAtWar[getID()] = false;
+			kLoopTeam.m_abJustDeclaredWar[getID()] = false; // advc.162
 			kLoopTeam.m_abPermanentWarPeace[getID()] = false;
 			kLoopTeam.m_abOpenBorders[getID()] = false;
 			kLoopTeam.m_abDisengage[getID()] = false; // advc.034
@@ -1069,16 +1071,18 @@ void CvTeam::doTurn()
 	FAssert(isAlive());
 
 	AI_doTurnPre();
-
+	// <advc.162>
+	for(int i = 0; i < MAX_TEAMS; i++)
+		m_abJustDeclaredWar[i] = false;
+	// </advc.162>
 	if (isBarbarian())
 	{
 		// <advc.307>
-		CvGame& g = GC.getGame();
-		bool noBarbCities = GC.getEraInfo(g.getCurrentEra()).isNoBarbCities();
-		bool ignorePrereqs = noBarbCities
+		CvGame& g = GC.getGameINLINE();
+		bool bNoBarbCities = GC.getEraInfo(g.getCurrentEra()).isNoBarbCities();
+		bool bIgnorePrereqs = bNoBarbCities;
 				/*  Barbs get all tech from earlier eras for free. Don't need
-					to catch up. */ //|| (((int)g.getStartEra()) > 0)
-				;
+					to catch up. */ //|| (((int)g.getStartEra()) > 0);
 		// </advc.307>
 		/*  K-Mod. Delay the start of the barbarian research. (This is an
 			experimental change. It is currently compensated by an increase in
@@ -1091,7 +1095,7 @@ void CvTeam::doTurn()
 			{
 				//if (!isHasTech((TechTypes)iI))
 				if (!isHasTech(i) && 
-					(ignorePrereqs || // advc.307
+					(bIgnorePrereqs || // advc.307
 					kBarbPlayer.canResearch(i, false, true))) // K-Mod. Make no progress on techs until prereqs are researched.
 				{
 					int iCount = 0;
@@ -1127,7 +1131,7 @@ void CvTeam::doTurn()
 							having contact with barbs if at least one of them has
 							contact. Otherwise, New World barbs catch up too slowly
 							when colonized only by one or two civs. */
-						if(noBarbCities)
+						if(bNoBarbCities)
 							iCount = std::max(iCount, (2 * hasTechCount) / 3);
 						//changeResearchProgress(((TechTypes)iI), ((getResearchCost((TechTypes)iI) * ((GC.getDefineINT("BARBARIAN_FREE_TECH_PERCENT") * iCount) / iPossibleCount)) / 100), getLeaderID());
 						// K-Mod. Adjust research rate for game-speed & start-era - but _not_ world-size. And fix the rounding error.
@@ -1480,6 +1484,9 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 
 	setAtWar(eTeam, true);
 	GET_TEAM(eTeam).setAtWar(getID(), true);
+	// <advc.162>
+	if(GC.getDefineINT("ENABLE_162") > 0)
+		m_abJustDeclaredWar[eTeam] = true; // </advc.162>
 
 	// Plot danger cache (bbai)
 	GC.getMapINLINE().invalidateBorderDangerCache(eTeam);
@@ -1561,6 +1568,8 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 		gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
 		// advc.001w: Can now enter each other's territory
 		gDLL->getInterfaceIFace()->setDirty(Waypoints_DIRTY_BIT, true);
+		// advc.162: DoW increases certain path costs
+		CvSelectionGroup::path_finder.Reset();
 	}
 	// advc.003j: Obsolete
 	/*for (iI = 0; iI < MAX_PLAYERS; iI++)
@@ -4466,6 +4475,13 @@ void CvTeam::setAtWar(TeamTypes eIndex, bool bNewValue)
 	} // (AttitudeCache is updated by caller)
 	// </advc.035>
 }
+
+/*  <advc.162> "Just" meaning on the current turn. Don't want to rely on
+	CvTeamAI::AI_atWarCounter for this b/c that's an AI function. */
+bool CvTeam::hasJustDeclaredWar(TeamTypes eIndex) const {
+
+	return m_abJustDeclaredWar[eIndex];
+} // </advc.162>
 
 
 bool CvTeam::isPermanentWarPeace(TeamTypes eIndex) const
@@ -7547,6 +7563,9 @@ void CvTeam::read(FDataStreamBase* pStream)
 		memcpy(m_abHasSeen, m_abHasMet, sizeof(*m_abHasSeen)*MAX_TEAMS);
 	// K-Mod end
 	pStream->Read(MAX_TEAMS, m_abAtWar);
+	// <advc.162>
+	if(uiFlag >= 4)
+		pStream->Read(MAX_TEAMS, m_abJustDeclaredWar); // </advc.162>
 	pStream->Read(MAX_TEAMS, m_abPermanentWarPeace);
 	pStream->Read(MAX_TEAMS, m_abOpenBorders);
 	// <advc.034>
@@ -7614,6 +7633,7 @@ void CvTeam::write(FDataStreamBase* pStream)
 	uint uiFlag = 1;
 	uiFlag = 2; // advc.003b: m_eLeader added
 	uiFlag = 3; // advc.034
+	uiFlag = 4; // advc.162
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iNumMembers);
@@ -7659,6 +7679,7 @@ void CvTeam::write(FDataStreamBase* pStream)
 	pStream->Write(MAX_TEAMS, m_abHasMet);
 	pStream->Write(MAX_TEAMS, m_abHasSeen); // K-Mod. uiFlag >= 1
 	pStream->Write(MAX_TEAMS, m_abAtWar);
+	pStream->Write(MAX_TEAMS, m_abJustDeclaredWar); // advc.162
 	pStream->Write(MAX_TEAMS, m_abPermanentWarPeace);
 	pStream->Write(MAX_TEAMS, m_abOpenBorders);
 	pStream->Write(MAX_CIV_TEAMS, m_abDisengage); // advc.034

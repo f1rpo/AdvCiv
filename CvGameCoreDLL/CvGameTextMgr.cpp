@@ -739,7 +739,17 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 			if (pUnit->isBlitz())
 			{
 				szString.append(NEWLINE);
-				szString.append(gDLL->getText("TXT_KEY_PROMOTION_BLITZ_TEXT"));
+				// <advc.164>
+				int iBlitz = pUnit->getBlitzCount();
+				if(iBlitz > 0) {
+					if(iBlitz > 1) {
+						szString.append(gDLL->getText("TXT_KEY_PROMOTION_BLITZ_LIMIT",
+								iBlitz + 1));
+					}
+					else szString.append(gDLL->getText("TXT_KEY_PROMOTION_BLITZ_TWICE"));
+				}
+				else // </advc.164>
+					szString.append(gDLL->getText("TXT_KEY_PROMOTION_BLITZ_TEXT"));
 			}
 
 			if (pUnit->isAmphib())
@@ -7032,10 +7042,19 @@ void CvGameTextMgr::parsePromotionHelp(CvWStringBuffer &szBuffer, PromotionTypes
 		return;
 	}
 
-	if (GC.getPromotionInfo(ePromotion).isBlitz())
-	{
+	//if (GC.getPromotionInfo(ePromotion).isBlitz())
+	// <advc.164>
+	int iBlitz = GC.getPromotionInfo(ePromotion).getBlitz();
+	if(iBlitz != 0) { // </advc.164>
 		szBuffer.append(pcNewline);
-		szBuffer.append(gDLL->getText("TXT_KEY_PROMOTION_BLITZ_TEXT"));
+		// <advc.164>
+		if(iBlitz > 0) {
+			if(iBlitz > 1)
+				szBuffer.append(gDLL->getText("TXT_KEY_PROMOTION_BLITZ_LIMIT", iBlitz + 1));
+			else szBuffer.append(gDLL->getText("TXT_KEY_PROMOTION_BLITZ_TWICE"));
+		}
+		else // </advc.164>
+			szBuffer.append(gDLL->getText("TXT_KEY_PROMOTION_BLITZ_TEXT"));
 	}
 
 	if (GC.getPromotionInfo(ePromotion).isAmphib())

@@ -1002,4 +1002,11 @@
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 
+	<!-- advc.162: 1 enables change 162 (see manual), 0 disables it (BtS
+		 behavior). -->
+	<Define>
+		<DefineName>ENABLE_162</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+
 </Civ4Defines>

@@ -116,7 +116,7 @@ def checkAnyUpgrade(pUnit):
 	
 def getPromotionInfoText(pUnit):
 	szPromotionInfo = u""
-	bBlitz = false
+	iBlitz = 0 # advc.164
 	bAmphib = false
 	bRiver = false
 	bEnemyRoads = false
@@ -145,8 +145,9 @@ def getPromotionInfoText(pUnit):
 	lUnitCombatModifierPercent = [0]*gc.getNumUnitCombatInfos()
 	for i in range(gc.getNumPromotionInfos()):
 		if pUnit.isHasPromotion(i):
-			if gc.getPromotionInfo(i).isBlitz():
-				bBlitz = true
+			#if gc.getPromotionInfo(i).isBlitz():
+			#	bBlitz = true
+			iBlitz = gc.getPromotionInfo(i).getBlitz() # advc.164
 			if gc.getPromotionInfo(i).isAmphib():
 				bAmphib = true
 			if gc.getPromotionInfo(i).isRiver():
@@ -223,8 +224,15 @@ def getPromotionInfoText(pUnit):
 					if iTemp > 0:
 						lUnitCombatModifierPercent[ii] += iTemp
 				
-	if bBlitz:
-		szPromotionInfo += localText.getText("TXT_KEY_PROMOTION_BLITZ_TEXT", ()) + "\n"
+	#if bBlitz:
+	#	szPromotionInfo += localText.getText("TXT_KEY_PROMOTION_BLITZ_TEXT", ()) + "\n"
+	# <advc.164>
+	if iBlitz != 0:
+		if iBlitz > 0:
+			szPromotionInfo += localText.getText("TXT_KEY_PROMOTION_BLITZ_LIMIT", (iBlitz)) + "\n"
+		else:
+			szPromotionInfo += localText.getText("TXT_KEY_PROMOTION_BLITZ_TEXT", ()) + "\n"
+	# </advc.164>
 	if bAmphib:
 		szPromotionInfo += localText.getText("TXT_KEY_PROMOTION_AMPHIB_TEXT", ()) + "\n"
 	if bRiver:

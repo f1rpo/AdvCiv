@@ -838,11 +838,12 @@ void CvPlot::verifyUnitValidPlot()
 		{
 			if (pLoopUnit->atPlot(this))
 			{
-				if (!(pLoopUnit->isCargo()))
+				if (!pLoopUnit->isCargo())
 				{
-					if (!(pLoopUnit->isCombat()))
+					if (!pLoopUnit->isCombat())
 					{
-						if (!isValidDomainForLocation(*pLoopUnit) || !(pLoopUnit->canEnterArea(getTeam(), area())))
+						if (!isValidDomainForLocation(*pLoopUnit) ||
+								!pLoopUnit->canEnterArea(getTeam(), area()))
 						{
 							if (!pLoopUnit->jumpToNearestValidPlot(true))
 							{
@@ -880,13 +881,13 @@ void CvPlot::verifyUnitValidPlot()
 			{
 				if (pLoopUnit->atPlot(this))
 				{
-					if (!(pLoopUnit->isCombat()))
+					if (!pLoopUnit->isCombat())
 					{
 						if (pLoopUnit->getTeam() != getTeam() && (getTeam() == NO_TEAM || !GET_TEAM(getTeam()).isVassal(pLoopUnit->getTeam())))
 						{
 							if (isVisibleEnemyUnit(pLoopUnit))
 							{
-								if (!(pLoopUnit->isInvisible(getTeam(), false)))
+								if (!pLoopUnit->isInvisible(getTeam(), false))
 								{
 									if (!pLoopUnit->jumpToNearestValidPlot(true))
 									{
@@ -2853,13 +2854,13 @@ int CvPlot::defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding,
 }
 
 
-int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot) const
+int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,
+		bool bAssumeRevealed) const // advc.001i
 {
-	int iRegularCost;
-	int iRouteCost;
-	int iRouteFlatCost;
-
 	FAssertMsg(getTerrainType() != NO_TERRAIN, "TerrainType is not assigned a valid value");
+	// <advc.162>
+	if(pUnit->isInvasionMove(*pFromPlot, *this))
+		return pUnit->movesLeft(); // </advc.162>
 
 	if (pUnit->flatMovementCost() || (pUnit->getDomainType() == DOMAIN_AIR))
 	{
@@ -2875,7 +2876,10 @@ int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot) const
 		}
 	} */
 	// K-Mod. Why let the AI cheat this?
-	if (!isRevealed(pUnit->getTeam(), false))
+	if ( /* advc.001i: The K-Mod condition is OK, but now that the pathfinder passes
+			bAssumeRevealed=false, it's cleaner to check that too. */
+		!bAssumeRevealed &&
+		!isRevealed(pUnit->getTeam(), false))
 	{
 		/*if (!pFromPlot->isRevealed(pUnit->getTeam(), false))
 			return pUnit->maxMoves();
@@ -2898,14 +2902,16 @@ int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot) const
 
 	FAssert(pUnit->getDomainType() != DOMAIN_IMMOBILE);
 
+	int iRegularCost;
 	if (pUnit->ignoreTerrainCost())
 	{
 		iRegularCost = 1; 
 	}
 	else
 	{
-		iRegularCost = ((getFeatureType() == NO_FEATURE) ? GC.getTerrainInfo(getTerrainType()).getMovementCost() : GC.getFeatureInfo(getFeatureType()).getMovementCost());
-
+		iRegularCost = ((getFeatureType() == NO_FEATURE) ?
+				GC.getTerrainInfo(getTerrainType()).getMovementCost() :
+				GC.getFeatureInfo(getFeatureType()).getMovementCost());
 		if (isHills())
 		{
 			iRegularCost += GC.getHILLS_EXTRA_MOVEMENT();
@@ -2931,13 +2937,28 @@ int CvPlot::movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot) const
 			iRegularCost /= 2;
 		}
 	}
-
-	if (pFromPlot->isValidRoute(pUnit) && isValidRoute(pUnit) && ((GET_TEAM(pUnit->getTeam()).isBridgeBuilding() || !(pFromPlot->isRiverCrossing(directionXY(pFromPlot, this))))))
-	{
-		iRouteCost = std::max((GC.getRouteInfo(pFromPlot->getRouteType()).getMovementCost() + GET_TEAM(pUnit->getTeam()).getRouteChange(pFromPlot->getRouteType())),
-			               (GC.getRouteInfo(getRouteType()).getMovementCost() + GET_TEAM(pUnit->getTeam()).getRouteChange(getRouteType())));
-		iRouteFlatCost = std::max((GC.getRouteInfo(pFromPlot->getRouteType()).getFlatMovementCost() * pUnit->baseMoves()),
-			                   (GC.getRouteInfo(getRouteType()).getFlatMovementCost() * pUnit->baseMoves()));
+	int iRouteCost, iRouteFlatCost;
+	// <advc.001i> Pass along bAssumeRevealed
+	if (pFromPlot->isValidRoute(pUnit, bAssumeRevealed) &&
+			isValidRoute(pUnit, bAssumeRevealed) && // </advc.001i>
+			(GET_TEAM(pUnit->getTeam()).isBridgeBuilding() ||
+			!pFromPlot->isRiverCrossing(directionXY(pFromPlot, this))))
+	{	// <advc.001i>
+		RouteTypes eFromRoute = (bAssumeRevealed ? pFromPlot->getRouteType() :
+				pFromPlot->getRevealedRouteType(pUnit->getTeam(), false));
+		CvRouteInfo const& fromRoute = GC.getRouteInfo(eFromRoute);
+		RouteTypes eToRoute = (bAssumeRevealed ? getRouteType() :
+				getRevealedRouteType(pUnit->getTeam(), false));
+		CvRouteInfo const& toRoute = GC.getRouteInfo(eToRoute);
+		iRouteCost = std::max(
+				fromRoute.getMovementCost() +
+				GET_TEAM(pUnit->getTeam()).getRouteChange(eFromRoute),
+				toRoute.getMovementCost() +
+				GET_TEAM(pUnit->getTeam()).getRouteChange(eToRoute));
+		// </advc.001i>
+		iRouteFlatCost = std::max(
+					fromRoute.getFlatMovementCost() * pUnit->baseMoves(),
+					toRoute.getFlatMovementCost() * pUnit->baseMoves());
 	}
 	else
 	{
@@ -3997,16 +4018,19 @@ bool CvPlot::isRoute() const
 }
 
 
-bool CvPlot::isValidRoute(const CvUnit* pUnit) const
+bool CvPlot::isValidRoute(const CvUnit* pUnit,
+		bool bAssumeRevealed) const // advc.001i
 {
-	if (isRoute())
+	//if (isRoute())
+	// <advc.001i> Replacing the above
+	RouteTypes eRoute = (bAssumeRevealed ? getRouteType() :
+			getRevealedRouteType(pUnit->getTeam(), false));
+	if(eRoute != NO_ROUTE) // </advc.001i>
 	{
 		if ((!pUnit->isEnemy(getTeam(), this) || pUnit->isEnemyRoute())
 				// advc.034:
 				&& !GET_TEAM(pUnit->getTeam()).isDisengage(getTeam()))
-		{
 			return true;
-		}
 	}
 
 	return false;

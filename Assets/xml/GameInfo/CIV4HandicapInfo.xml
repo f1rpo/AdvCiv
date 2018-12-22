@@ -401,8 +401,7 @@
 			<iGold>0</iGold>
 			<iFreeUnits>8</iFreeUnits>
 			<iUnitCostPercent>50</iUnitCostPercent>
-			<!-- advc.251: was 100 -->
-			<iResearchPercent>95</iResearchPercent>
+			<iResearchPercent>100</iResearchPercent>
 			<iDistanceMaintenancePercent>75</iDistanceMaintenancePercent>
 			<iNumCitiesMaintenancePercent>70</iNumCitiesMaintenancePercent>
 			<iMaxNumCitiesMaintenance>5</iMaxNumCitiesMaintenance>

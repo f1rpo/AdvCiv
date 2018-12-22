@@ -147,7 +147,8 @@ public:
 		/*  advc.012: NO_TEAM means rival defense applies; moved bHelp to the
 			end b/c that parameter is rarely set */
 			TeamTypes eAttacker = NO_TEAM, bool bHelp = false) const;									// Exposed to Python				
-	int movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot) const;														// Exposed to Python				
+	int movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,														// Exposed to Python				
+			bool bAssumeRevealed = true) const; // advc.001i
 
 	int getExtraMovePathCost() const;																																// Exposed to Python
 	void changeExtraMovePathCost(int iChange);																																// Exposed to Python
@@ -242,7 +243,8 @@ public:
 	bool canHaveFeature(FeatureTypes eFeature) const;																				// Exposed to Python
 
 	DllExport bool isRoute() const;																																		// Exposed to Python
-	bool isValidRoute(const CvUnit* pUnit) const;																											// Exposed to Python
+	bool isValidRoute(const CvUnit* pUnit,																											// Exposed to Python
+			bool bAssumeRevealed) const; // advc.001i
 	bool isTradeNetworkImpassable(TeamTypes eTeam) const;																														// Exposed to Python
 	bool isNetworkTerrain(TeamTypes eTeam) const;																											// Exposed to Python
 	bool isBonusNetwork(TeamTypes eTeam) const;																												// Exposed to Python

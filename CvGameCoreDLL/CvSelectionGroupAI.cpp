@@ -350,7 +350,8 @@ int CvSelectionGroupAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy)
 }
 
 
-CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot, bool bPotentialEnemy, int& iUnitOdds, bool bForce, bool bNoBlitz) const
+CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
+		bool bPotentialEnemy, int& iUnitOdds, bool bForce, bool bNoBlitz) const
 {
 	PROFILE_FUNC();
 
@@ -377,7 +378,7 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot, bool bP
 			else
 			{
 				bCanAttack = pLoopUnit->canAttack();
-
+				
 				if (bCanAttack && bNoBlitz && pLoopUnit->isBlitz() && pLoopUnit->isMadeAttack())
 				{
 					bCanAttack = false;
@@ -440,7 +441,8 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot, bool bP
 	return pBestUnit;
 }
 
-CvUnit* CvSelectionGroupAI::AI_getBestGroupSacrifice(const CvPlot* pPlot, bool bPotentialEnemy, bool bForce, bool bNoBlitz) const
+CvUnit* CvSelectionGroupAI::AI_getBestGroupSacrifice(const CvPlot* pPlot,
+		bool bPotentialEnemy, bool bForce, bool bNoBlitz) const
 {
 	int iBestValue = 0;
 	CvUnit* pBestUnit = NULL;
@@ -549,8 +551,10 @@ int CvSelectionGroupAI::AI_compareStacks(const CvPlot* pPlot, bool bCheckCanAtta
 	return compareRatio;
 }
 
-// K-Mod. I've removed bCheckMove, and changed bCheckCanAttack to include checks for moves, and for hasAlreadyAttacked / blitz
-int CvSelectionGroupAI::AI_sumStrength(const CvPlot* pAttackedPlot, DomainTypes eDomainType, bool bCheckCanAttack) const
+/*  K-Mod. I've removed bCheckMove, and changed bCheckCanAttack to include checks
+	for moves, and for hasAlreadyAttacked / blitz */
+int CvSelectionGroupAI::AI_sumStrength(const CvPlot* pAttackedPlot,
+		DomainTypes eDomainType, bool bCheckCanAttack) const
 {
 	CLLNode<IDInfo>* pUnitNode;
 	CvUnit* pLoopUnit;
@@ -583,7 +587,8 @@ int CvSelectionGroupAI::AI_sumStrength(const CvPlot* pAttackedPlot, DomainTypes 
 				{
 					if (!pLoopUnit->canAttack() || !pLoopUnit->canMove()
 						|| (pAttackedPlot && bDefenders && !pLoopUnit->canMoveInto(pAttackedPlot, true, true))
-						|| (!pLoopUnit->isBlitz() && pLoopUnit->isMadeAttack()))
+						|| //(!pLoopUnit->isBlitz() && pLoopUnit->isMadeAttack())
+							pLoopUnit->isMadeAllAttacks()) // advc.164
 						continue; // can't attack.
 				}
 			}

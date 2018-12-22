@@ -4194,6 +4194,25 @@
 		<Italian>Spazio insufficiente!</Italian>
 		<Spanish>¡No hay suficiente espacio!</Spanish>
 	</TEXT>
+
+	<!-- advc.164: Based on TXT_KEY_PROMOTION_BLITZ_TEXT in
+		 CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_PROMOTION_BLITZ_LIMIT</Tag>
+		<English>[ICON_BULLET]Can Attack %d1 times per Turn</English>
+		<French>[ICON_BULLET]Peut attaquer %d1 fois par tour</French>
+		<German>[ICON_BULLET]Kann %d1 mal pro Runde angreifen</German>
+		<Italian>[ICON_BULLET]Permette di attaccare %d1 volte durante lo stesso turno</Italian>
+		<Spanish>[ICON_BULLET]Puede atacar %d1 veces por turno</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_PROMOTION_BLITZ_TWICE</Tag>
+		<English>[ICON_BULLET]Can Attack Twice per Turn</English>
+		<French>[ICON_BULLET]Peut attaquer deux fois par tour</French>
+		<German>[ICON_BULLET]Kann zweimal pro Runde angreifen</German>
+		<Italian>[ICON_BULLET]Permette di attaccare due volte durante lo stesso turno</Italian>
+		<Spanish>[ICON_BULLET]Puede atacar dos veces por turno</Spanish>
+	</TEXT>
 	
 	
 </Civ4GameText>

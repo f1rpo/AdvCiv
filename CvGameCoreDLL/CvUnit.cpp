@@ -381,7 +381,8 @@ void CvUnit::reset(int iID, UnitTypes eUnit, PlayerTypes eOwner, bool bConstruct
 	m_eFacingDirection = DIRECTION_SOUTH;
 	m_iImmobileTimer = 0;
 
-	m_bMadeAttack = false;
+	//m_bMadeAttack = false;
+	m_iMadeAttacks = 0; // advc.164
 	m_bMadeInterception = false;
 	m_bPromotionReady = false;
 	m_bDeathDelay = false;
@@ -1819,7 +1820,8 @@ void CvUnit::updateCombat(bool bQuick)
 
 void CvUnit::checkRemoveSelectionAfterAttack()
 {
-	if (!canMove() || !isBlitz())
+	if (!canMove() ||//!isBlitz()
+			isMadeAllAttacks()) // advc.164
 	{
 		if (IsSelected())
 		{
@@ -1834,14 +1836,6 @@ void CvUnit::checkRemoveSelectionAfterAttack()
 
 bool CvUnit::isActionRecommended(int iAction)
 {
-	//CvCity* pWorkingCity;
-	//CvPlot* pPlot;
-	//ImprovementTypes eImprovement;
-	//ImprovementTypes eFinalImprovement;
-	//BuildTypes eBuild;
-	//RouteTypes eRoute;
-	//BonusTypes eBonus;
-	//int iIndex;
 	/*  advc.002e: Can't find another DLL function that is called by the EXE after
 		loading a savegame and after calling CvUnit::isPromotionReady */
 	gDLL->getEntityIFace()->showPromotionGlow(getUnitEntity(), isReadyForPromotion());
@@ -2031,7 +2025,7 @@ bool CvUnit::isActionRecommended(int iAction)
 
 				if (eRoute != NO_ROUTE)
 				{
-					if (!(pPlot->isRoute()))
+					if (!pPlot->isRoute())
 					{
 						if (eBonus != NO_BONUS)
 						{
@@ -2662,7 +2656,10 @@ TeamTypes CvUnit::getDeclareWarMove(const CvPlot* pPlot) const
 
 	if (eRevealedTeam != NO_TEAM)
 	{
-		if (!canEnterArea(eRevealedTeam, pPlot->area()) || (getDomainType() == DOMAIN_SEA && !canCargoEnterArea(eRevealedTeam, pPlot->area(), false) && getGroup()->isAmphibPlot(pPlot)))
+		if (!canEnterArea(eRevealedTeam, pPlot->area()) ||
+				(getDomainType() == DOMAIN_SEA &&
+				!canCargoEnterArea(eRevealedTeam, pPlot->area(), false) &&
+				getGroup()->isAmphibPlot(pPlot)))
 		{
 			if (GET_TEAM(getTeam()).canDeclareWar(pPlot->getTeam()))
 			{
@@ -2676,11 +2673,13 @@ TeamTypes CvUnit::getDeclareWarMove(const CvPlot* pPlot) const
 		{
 			//if (canMoveInto(pPlot, true, true, true))
 			// K-Mod. Don't give the "declare war" popup unless we need war to move into the plot.
-			if (canMoveInto(pPlot, true, true, true, false) && !canMoveInto(pPlot, false, false, false, false))
+			if (canMoveInto(pPlot, true, true, true, false) &&
+					!canMoveInto(pPlot, false, false, false, false))
 			// K-Mod end
 			{
-				CvUnit* pUnit = pPlot->plotCheck(PUF_canDeclareWar, getOwnerINLINE(), isAlwaysHostile(pPlot), NO_PLAYER, NO_TEAM, PUF_isVisible, getOwnerINLINE());
-
+				CvUnit* pUnit = pPlot->plotCheck(PUF_canDeclareWar,
+						getOwnerINLINE(), isAlwaysHostile(pPlot),
+						NO_PLAYER, NO_TEAM, PUF_isVisible, getOwnerINLINE());
 				if (pUnit != NULL)
 				{
 					return pUnit->getTeam();
@@ -2910,10 +2909,9 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 	/*
 	if (bAttack || (pPlot->isEnemyCity(*this) && !canCoexistWithEnemyUnit(NO_TEAM)) )
 	{
-		if (isMadeAttack() && !isBlitz())
-		{
+		if (//isMadeAttack() && !isBlitz()
+				isMadeAllAttacks()) // advc.164
 			return false;
-		}
 	}
 	*/
 
@@ -2921,10 +2919,10 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 	// made a previous attack or paradrop
 	if (bAttack)
 	{
-		if (isMadeAttack() && !isBlitz() && pPlot->isVisibleEnemyDefender(this))
-		{
+		if (//isMadeAttack() && !isBlitz()
+				isMadeAllAttacks() && // advc.164
+				pPlot->isVisibleEnemyDefender(this))
 			return false;
-		}
 	}
 /************************************************************************************************/
 /* UNOFFICIAL_PATCH                        END                                                  */
@@ -3106,6 +3104,20 @@ bool CvUnit::canEnterArea(CvArea const& a) const {
 	return a.canBeEntered(*area(), this);
 } // </advc.030>
 
+// <advc.162>
+bool CvUnit::isInvasionMove(CvPlot const& from, CvPlot const& to) const {
+
+	TeamTypes eToTeam = to.getTeam();
+	if(eToTeam == NO_TEAM || eToTeam == from.getTeam() || isRivalTerritory())
+		return false;
+	DomainTypes eDomain = getDomainType();
+	if(eDomain != DOMAIN_LAND && eDomain != DOMAIN_SEA)
+		return false;
+	if(GET_TEAM(getTeam()).hasJustDeclaredWar(eToTeam))
+		return true;
+	return !canEnterTerritory(eToTeam);
+} // </advc.162>
+
 
 void CvUnit::attack(CvPlot* pPlot, bool bQuick)
 {
@@ -3267,7 +3279,15 @@ void CvUnit::move(CvPlot* pPlot, bool bShow)
 	CvPlot* pOldPlot = plot();
 
 	changeMoves(pPlot->movementCost(this, plot()));
-
+	// <advc.162>
+	if(isInvasionMove(*pOldPlot, *pPlot)) {
+		std::vector<CvUnit*> aCargoUnits;
+		getCargoUnits(aCargoUnits);
+		for(size_t i = 0; i < aCargoUnits.size(); i++) {
+			if(!aCargoUnits[i]->isRivalTerritory() && aCargoUnits[i]->getDomainType() != DOMAIN_AIR)
+				aCargoUnits[i]->changeMoves(aCargoUnits[i]->movesLeft());
+		}
+	} // </advc.162>
 	setXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true, bShow && pPlot->isVisibleToWatchingHuman(), bShow);
 
 	//change feature
@@ -3388,9 +3408,15 @@ bool CvUnit::jumpToNearestValidPlot(bool bGroup, bool bForceMove)
 	if (pBestPlot != NULL)
 	{
 		// K-Mod. If a unit is bumped, we should clear their mission queue
-		if (pBestPlot != plot())
+		if(pBestPlot != plot()) {
 			getGroup()->clearMissionQueue();
-		// K-Mod end
+			// K-Mod end
+			// <advc.163>
+			getGroup()->setAutomateType(NO_AUTOMATE);
+			getGroup()->setActivityType(ACTIVITY_AWAKE);
+			setMoves(movesLeft());
+			// </advc.163>
+		}
 		setXY(pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), bGroup);
 	}
 	else
@@ -4908,10 +4934,11 @@ bool CvUnit::canAirBomb(const CvPlot* pPlot) const
 		return false;
 	}
 
-	if (isMadeAttack())
-	{
+	if (//isMadeAttack()
+			/*  advc.164: In case aircraft are ever allowed to have Blitz
+				(there'd probably be other issues though). */
+			isMadeAllAttacks())
 		return false;
-	}
 
 	return true;
 }
@@ -5139,10 +5166,9 @@ bool CvUnit::canBombard(const CvPlot* pPlot) const
 		return false;
 	}
 
-	if (isMadeAttack())
-	{
+	if (//isMadeAttack()
+			isMadeAllAttacks()) // advc.164
 		return false;
-	}
 
 	if (isCargo())
 	{
@@ -9624,7 +9650,7 @@ bool CvUnit::isInvisible(TeamTypes eTeam, bool bDebug, bool bCheckCargo) const
 		return false;
 	}
 
-	return !(plot()->isInvisibleVisible(eTeam, getInvisibleType()));
+	return !plot()->isInvisibleVisible(eTeam, getInvisibleType());
 }
 
 
@@ -11090,13 +11116,14 @@ int CvUnit::getBlitzCount() const
 
 bool CvUnit::isBlitz() const
 {
-	return (getBlitzCount() > 0);
+	return (getBlitzCount() != 0); // advc.164: was > 0
 }
 
 void CvUnit::changeBlitzCount(int iChange)			
 {
 	m_iBlitzCount += iChange;
-	FAssert(getBlitzCount() >= 0);
+	// advc.164: Negative values now used for unlimited Blitz
+	//FAssert(getBlitzCount() >= 0);
 }
 
 int CvUnit::getAmphibCount() const
@@ -11628,14 +11655,24 @@ void CvUnit::changeImmobileTimer(int iChange)
 
 bool CvUnit::isMadeAttack() const
 {
-	return m_bMadeAttack;
+	//return m_bMadeAttack;
+	// advc.164: Keep the boolean interface in place
+	return (m_iMadeAttacks > 0);
 }
 
+void CvUnit::setMadeAttack(bool bNewValue) {
 
-void CvUnit::setMadeAttack(bool bNewValue)
-{
-	m_bMadeAttack = bNewValue;
+	//m_bMadeAttack = bNewValue;
+	// <advc.164>
+	if(bNewValue)
+		m_iMadeAttacks++;
+	else m_iMadeAttacks = 0;
 }
+
+bool CvUnit::isMadeAllAttacks() const {
+
+	return (getBlitzCount() >= 0 && m_iMadeAttacks > getBlitzCount());
+} // </advc.164>
 
 
 bool CvUnit::isMadeInterception() const
@@ -12415,14 +12452,17 @@ bool CvUnit::isPromotionValid(PromotionTypes ePromotion) const
 	{
 		return false;
 	}
-
+	// <advc.164> Moved from ::isPromotionValid. The paradrop clause is new.
+	if(promotionInfo.getBlitz() != 0 && maxMoves() <= 1 && getDropRange() <= 0)
+		return false;
+	// </advc.164>
 	// <advc.124>
-	PromotionTypes prereq = (PromotionTypes)promotionInfo.getPrereqPromotion();
-	// Unit extra moves can currently only stem from promotions.
+	PromotionTypes ePrereq = (PromotionTypes)promotionInfo.getPrereqPromotion();
+	// Unit extra moves can currently only come from promotions
 	if(promotionInfo.getMovesChange() + m_pUnitInfo->getMoves() + getExtraMoves() > 4 &&
 			GET_PLAYER(getOwner()).AI_unitImpassableCount(getUnitType()) > 0 &&
 			// Allow Morale
-			(prereq == NO_PROMOTION || !GC.getPromotionInfo(prereq).isLeader()))
+			(ePrereq == NO_PROMOTION || !GC.getPromotionInfo(ePrereq).isLeader()))
 		return false; // </advc.124>
 
 	return true;
@@ -12462,7 +12502,9 @@ void CvUnit::setHasPromotion(PromotionTypes eIndex, bool bNewValue)
 
 	int iChange = ((isHasPromotion(eIndex)) ? 1 : -1);
 
-	changeBlitzCount((GC.getPromotionInfo(eIndex).isBlitz()) ? iChange : 0);
+	//changeBlitzCount((GC.getPromotionInfo(eIndex).isBlitz()) ? iChange : 0);
+	// advc.164: Conveniently, CvUnit was already storing Blitz in an integer.
+	changeBlitzCount(GC.getPromotionInfo(eIndex).getBlitz() * iChange);
 	changeAmphibCount((GC.getPromotionInfo(eIndex).isAmphib()) ? iChange : 0);
 	changeRiverCount((GC.getPromotionInfo(eIndex).isRiver()) ? iChange : 0);
 	changeEnemyRouteCount((GC.getPromotionInfo(eIndex).isEnemyRoute()) ? iChange : 0);
@@ -12658,8 +12700,17 @@ void CvUnit::read(FDataStreamBase* pStream)
 	pStream->Read(&m_iBaseCombat);
 	pStream->Read((int*)&m_eFacingDirection);
 	pStream->Read(&m_iImmobileTimer);
-
-	pStream->Read(&m_bMadeAttack);
+	//pStream->Read(&m_bMadeAttack);
+	// <advc.164>
+	if(uiFlag >= 5)
+		pStream->Read(&m_iMadeAttacks);
+	else {
+		bool bTmp=false;
+		pStream->Read(&bTmp);
+		if(bTmp)
+			m_iMadeAttacks = 1;
+		else m_iMadeAttacks = 0;
+	} // </advc.164>
 	pStream->Read(&m_bMadeInterception);
 	pStream->Read(&m_bPromotionReady);
 	pStream->Read(&m_bDeathDelay);
@@ -12702,7 +12753,8 @@ void CvUnit::read(FDataStreamBase* pStream)
 
 void CvUnit::write(FDataStreamBase* pStream)
 {
-	uint uiFlag=4; // advc.029
+	uint uiFlag = 4; // advc.029
+	uiFlag = 5; // advc.164
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iID);
@@ -12763,8 +12815,8 @@ void CvUnit::write(FDataStreamBase* pStream)
 	pStream->Write(m_iBaseCombat);
 	pStream->Write(m_eFacingDirection);
 	pStream->Write(m_iImmobileTimer);
-
-	pStream->Write(m_bMadeAttack);
+	//pStream->Write(m_bMadeAttack);
+	pStream->Write(m_iMadeAttacks); // advc.164
 	pStream->Write(m_bMadeInterception);
 	pStream->Write(m_bPromotionReady);
 	pStream->Write(m_bDeathDelay);
@@ -13150,10 +13202,9 @@ bool CvUnit::canRangeStrike() const
 		return false;
 	}
 
-	if (isMadeAttack() && !isBlitz())
-	{
+	if (//isMadeAttack() && !isBlitz()
+			isMadeAllAttacks()) // advc.164
 		return false;
-	}
 
 	if (!canMove() && getMoves() > 0)
 	{

@@ -496,7 +496,8 @@ public:
 	int getKamikazePercent() const;				// Exposed to Python
 
 	bool isLeader() const;				// Exposed to Python
-	bool isBlitz() const;				// Exposed to Python
+	// advc.164: was isBlitz
+	int getBlitz() const;				// Exposed to Python
 	bool isAmphib() const;				// Exposed to Python
 	bool isRiver() const;				// Exposed to Python
 	bool isEnemyRoute() const;				// Exposed to Python
@@ -569,7 +570,8 @@ protected:
 	int m_iKamikazePercent;
 
 	bool m_bLeader;
-	bool m_bBlitz;									
+	//bool m_bBlitz;
+	int m_iBlitz; // advc.164
 	bool m_bAmphib;								
 	bool m_bRiver;									
 	bool m_bEnemyRoute;						

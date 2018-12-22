@@ -1646,7 +1646,7 @@ m_iUpgradeDiscount(0),
 m_iExperiencePercent(0),
 m_iKamikazePercent(0),
 m_bLeader(false),
-m_bBlitz(false),
+m_iBlitz(0), // advc.164
 m_bAmphib(false),
 m_bRiver(false),
 m_bEnemyRoute(false),
@@ -1899,11 +1899,11 @@ bool CvPromotionInfo::isLeader() const
 {
 	return m_bLeader;
 }
-
-bool CvPromotionInfo::isBlitz() const			
+// <advc.164> was bool
+int CvPromotionInfo::getBlitz() const			
 {
-	return m_bBlitz;
-}
+	return m_iBlitz;
+} // </advc.164>
 
 bool CvPromotionInfo::isAmphib() const			
 {
@@ -2054,9 +2054,17 @@ void CvPromotionInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iUpgradeDiscount);
 	stream->Read(&m_iExperiencePercent);
 	stream->Read(&m_iKamikazePercent);
-
 	stream->Read(&m_bLeader);
-	stream->Read(&m_bBlitz);
+	// <advc.164>
+	if(uiFlag >= 1)
+		stream->Read(&m_iBlitz);
+	else {
+		bool bTmp=false;
+		stream->Read(&bTmp);
+		if(bTmp)
+			m_iBlitz = 1;
+		else m_iBlitz = 0;
+	} // </advc.164>
 	stream->Read(&m_bAmphib);
 	stream->Read(&m_bRiver);
 	stream->Read(&m_bEnemyRoute);
@@ -2110,6 +2118,7 @@ void CvPromotionInfo::write(FDataStreamBase* stream)
 	CvHotkeyInfo::write(stream);
 
 	uint uiFlag = 0;
+	uiFlag = 1; // advc.164
 	stream->Write(uiFlag);		// flag for expansion
 
 	stream->Write(m_iLayerAnimationPath);
@@ -2149,9 +2158,8 @@ void CvPromotionInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iUpgradeDiscount);
 	stream->Write(m_iExperiencePercent);
 	stream->Write(m_iKamikazePercent);
-
 	stream->Write(m_bLeader);
-	stream->Write(m_bBlitz);
+	stream->Write(&m_iBlitz); // advc.164
 	stream->Write(m_bAmphib);
 	stream->Write(m_bRiver);
 	stream->Write(m_bEnemyRoute);
@@ -2199,7 +2207,7 @@ bool CvPromotionInfo::read(CvXMLLoadUtility* pXML)
 	{
 		m_bGraphicalOnly = true;  // don't show in Civilopedia list of promotions
 	}
-	pXML->GetChildXmlValByName(&m_bBlitz, "bBlitz");
+	pXML->GetChildXmlValByName(&m_iBlitz, "iBlitz"); // advc.164
 	pXML->GetChildXmlValByName(&m_bAmphib, "bAmphib");
 	pXML->GetChildXmlValByName(&m_bRiver, "bRiver");
 	pXML->GetChildXmlValByName(&m_bEnemyRoute, "bEnemyRoute");

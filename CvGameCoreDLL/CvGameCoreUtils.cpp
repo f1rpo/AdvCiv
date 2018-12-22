@@ -544,13 +544,14 @@ bool isPromotionValid(PromotionTypes ePromotion, UnitTypes eUnit, bool bLeader)
 
 	if (kUnit.isOnlyDefensive())
 	{
-		if ((kPromotion.getCityAttackPercent() != 0) ||
-			  (kPromotion.getWithdrawalChange() != 0) ||
-			  (kPromotion.getCollateralDamageChange() != 0) ||
-			  (kPromotion.isBlitz()) ||
-			  (kPromotion.isAmphib()) ||
-			  (kPromotion.isRiver()) ||
-			  (kPromotion.getHillsAttackPercent() != 0))
+		if (kPromotion.getCityAttackPercent() != 0 ||
+			  kPromotion.getWithdrawalChange() != 0 ||
+			  kPromotion.getCollateralDamageChange() != 0 ||
+			  kPromotion.//isBlitz()
+				getBlitz() != 0 || // advc.164
+			  kPromotion.isAmphib() ||
+			  kPromotion.isRiver() ||
+			  kPromotion.getHillsAttackPercent() != 0)
 		{
 			return false;
 		}
@@ -563,14 +564,14 @@ bool isPromotionValid(PromotionTypes ePromotion, UnitTypes eUnit, bool bLeader)
 			return false;
 		}
 	}
-
-	if (kUnit.getMoves() == 1)
+	// advc.164: Check this in CvUnit::isPromotionValid instead
+	/*if (kUnit.getMoves() == 1)
 	{
 		if (kPromotion.isBlitz())
 		{
 			return false;
 		}
-	}
+	}*/
 
 	if ((kUnit.getCollateralDamage() == 0) || (kUnit.getCollateralDamageLimit() == 0) || (kUnit.getCollateralDamageMaxUnits() == 0))
 	{
@@ -1906,7 +1907,8 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 			FAssert(pLoopUnit->getDomainType() != DOMAIN_AIR);
 
 			int iMaxMoves = parent->m_iData1 > 0 ? parent->m_iData1 : pLoopUnit->maxMoves();
-			int iMoveCost = pToPlot->movementCost(pLoopUnit, pFromPlot);
+			int iMoveCost = pToPlot->movementCost(pLoopUnit, pFromPlot,
+					false); // advc.001i
 			int iMovesLeft = std::max(0, (iMaxMoves - iMoveCost));
 
 			iWorstMovesLeft = std::min(iWorstMovesLeft, iMovesLeft);
@@ -2236,7 +2238,8 @@ int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int 
 	}
 	// <advc.049> No new AI routes in human territory (but upgrade to railroad OK)
 	if(iFlags & MOVE_ROUTE_TO) {
-		if(!pFromPlot->isRoute() && !pSelectionGroup->isHuman()) {
+		if(pFromPlot->getRevealedRouteType(pSelectionGroup->getHeadTeam(), false) ==
+			NO_ROUTE && !pSelectionGroup->isHuman()) {
 			PlayerTypes eOwner = pFromPlot->getOwnerINLINE();
 			if(eOwner != NO_PLAYER && GET_PLAYER(eOwner).isHuman())
 				return FALSE;
@@ -2421,14 +2424,16 @@ int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer,
 		}
 
 		CLLNode<IDInfo>* pUnitNode = pSelectionGroup->headUnitNode();
-		int iMoveCost = pToPlot->movementCost(::getUnit(pUnitNode->m_data), pFromPlot);
+		int iMoveCost = pToPlot->movementCost(::getUnit(pUnitNode->m_data), pFromPlot,
+				false); // advc.001i
 		bool bUniformCost = true;
 
 		for (pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode); pUnitNode && bUniformCost; pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode))
 		{
 			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 
-			int iLoopCost = pToPlot->movementCost(pLoopUnit, pFromPlot);
+			int iLoopCost = pToPlot->movementCost(pLoopUnit, pFromPlot,
+					false); // advc.001i
 			if (iLoopCost != iMoveCost)
 			{
 				bUniformCost = false;
@@ -2464,7 +2469,8 @@ int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer,
 				int iUnitMoves = bMaxMoves ? pLoopUnit->maxMoves() : pLoopUnit->movesLeft();
 				for (size_t i = plot_list.size()-1; i > 0; i--)
 				{
-					iUnitMoves -= plot_list[i-1]->movementCost(pLoopUnit, plot_list[i]);
+					iUnitMoves -= plot_list[i-1]->movementCost(pLoopUnit, plot_list[i],
+							false); // advc.001i
 					FAssert(iUnitMoves > 0 || i == 1);
 				}
 

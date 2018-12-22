@@ -10133,16 +10133,26 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		return 0;
 	}
 
-	if (GC.getPromotionInfo(ePromotion).isBlitz())
-	{
-		if ((AI_getUnitAIType() == UNITAI_RESERVE  && baseMoves() > 1) || 
-			AI_getUnitAIType() == UNITAI_PARADROP)
-		{
-			iValue += 10;
-		}
-		else
-		{
-			iValue += 2;
+	//if (GC.getPromotionInfo(ePromotion).isBlitz())
+	// <advc.164>
+	int iBlitz = GC.getPromotionInfo(ePromotion).getBlitz();
+	if(iBlitz != 0) {
+		if(iBlitz < 0)
+			iBlitz = 3;
+		int iExtraAttacks = std::min(iBlitz, baseMoves() - 1 +
+				(getDropRange() > 0 ? 1 : 0));
+		if(iExtraAttacks > 0) { // </advc.164>
+			if ((AI_getUnitAIType() == UNITAI_RESERVE  && baseMoves() > 1) || 
+				AI_getUnitAIType() == UNITAI_PARADROP)
+			{
+				//iValue += 10;
+				iValue += 8 * iExtraAttacks; // advc.164
+			}
+			else
+			{
+				//iValue += 2;
+				iValue += iExtraAttacks; // advc.164
+			}
 		}
 	}
 
@@ -14914,7 +14924,8 @@ bool CvUnitAI::AI_safety()
 
 						// K-Mod
 						iValue += (bEnemyTerritory ? !isEnemy(pLoopPlot->getTeam(), pLoopPlot) : pLoopPlot->getTeam() == getTeam()) ? 30 : 0;
-						iValue += pLoopPlot->isValidRoute(this) ? 25 : 0;
+						iValue += pLoopPlot->isValidRoute(this, false /* advc.001i */)
+								? 25 : 0;
 						// K-Mod end
 
 						if (atPlot(pLoopPlot))
@@ -21913,9 +21924,12 @@ int CvUnitAI::AI_airOffenseBaseValue( CvPlot* pPlot )
 			if (pLoopPlot != NULL)
 			{
 				if (pLoopPlot->area() == pPlot->area() && pLoopPlot->isOwned())
-				{
+				{	// <advc.001i>
+					if(!pLoopPlot->isRevealed(getTeam(), false))
+						continue; // </advc.001i>
 				    int iDistance = stepDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
-				    if( pLoopPlot->getTeam() != getTeam() && !(GET_TEAM(pLoopPlot->getTeam()).isVassal(getTeam())) )
+				    if(pLoopPlot->getTeam() != getTeam() &&
+							!GET_TEAM(pLoopPlot->getTeam()).isVassal(getTeam()) )
 					{
 						if( iDistance == 1 )
 						{
@@ -21928,10 +21942,10 @@ int CvUnitAI::AI_airOffenseBaseValue( CvPlot* pPlot )
 							{
 								iBorderDanger += 2;
 							}
-							else if ((iDistance == 2) && (pLoopPlot->isRoute()))
-							{
+							else if (iDistance == 2 && pLoopPlot->//isRoute()
+									// advc.001i:
+									getRevealedRouteType(getTeam(), false))
 								iBorderDanger += 2;
-							}
 						}
 					}
 				}
@@ -24549,7 +24563,7 @@ int CvUnitAI::AI_pillageValue(CvPlot* pPlot, int iBonusValueThreshold)
 {
 	FAssert(canPillage(pPlot) || canAirBombAt(plot(), pPlot->getX_INLINE(), pPlot->getY_INLINE()) || (getGroup()->getCargo() > 0));
 
-	if (!(pPlot->isOwned()))
+	if (!pPlot->isOwned())
 	{
 		return 0;
 	}
@@ -24579,7 +24593,9 @@ int CvUnitAI::AI_pillageValue(CvPlot* pPlot, int iBonusValueThreshold)
 
 	if (getDomainType() != DOMAIN_AIR)
 	{
-		if (pPlot->isRoute())
+		if (pPlot->//isRoute()
+				// advc.001i:
+				getRevealedRouteType(getTeam(), false) != NO_ROUTE)
 		{
 			iValue++;
 			if (eNonObsoleteBonus != NO_BONUS)
@@ -24600,12 +24616,13 @@ int CvUnitAI::AI_pillageValue(CvPlot* pPlot, int iBonusValueThreshold)
 						iValue += 10;
 					}
 
-					if (!(pAdjacentPlot->isRoute()))
+					//if (!pAdjacentPlot->isRoute())
+					// advc.001i:
+					if(pAdjacentPlot->getRevealedRouteType(getTeam(), false) == NO_ROUTE)
 					{
-						if (!(pAdjacentPlot->isWater()) && !(pAdjacentPlot->isImpassable()))
-						{
+						if (!pAdjacentPlot->isWater() &&
+								!pAdjacentPlot->isImpassable())
 							iValue += 2;
-						}
 					}
 				}
 			}
@@ -24620,15 +24637,19 @@ int CvUnitAI::AI_pillageValue(CvPlot* pPlot, int iBonusValueThreshold)
 	{
 		eImprovement = pPlot->getRevealedImprovementType(getTeam(), false);
 	}*/
-	ImprovementTypes eImprovement = pPlot->getImprovementDuration() > 20 ? pPlot->getImprovementType() : pPlot->getRevealedImprovementType(getTeam(), false);
-
+	ImprovementTypes eImprovement = pPlot->getImprovementDuration() > 20 ?
+			pPlot->getImprovementType() :
+			pPlot->getRevealedImprovementType(getTeam(), false);
 	if (eImprovement != NO_IMPROVEMENT)
 	{
 		if (pPlot->getWorkingCity() != NULL)
 		{
-			iValue += (pPlot->calculateImprovementYieldChange(eImprovement, YIELD_FOOD, pPlot->getOwnerINLINE()) * 5);
-			iValue += (pPlot->calculateImprovementYieldChange(eImprovement, YIELD_PRODUCTION, pPlot->getOwnerINLINE()) * 4);
-			iValue += (pPlot->calculateImprovementYieldChange(eImprovement, YIELD_COMMERCE, pPlot->getOwnerINLINE()) * 3);
+			iValue += (pPlot->calculateImprovementYieldChange(eImprovement,
+					YIELD_FOOD, pPlot->getOwnerINLINE()) * 5);
+			iValue += (pPlot->calculateImprovementYieldChange(eImprovement,
+					YIELD_PRODUCTION, pPlot->getOwnerINLINE()) * 4);
+			iValue += (pPlot->calculateImprovementYieldChange(eImprovement,
+					YIELD_COMMERCE, pPlot->getOwnerINLINE()) * 3);
 		}
 
 		if (getDomainType() != DOMAIN_AIR)

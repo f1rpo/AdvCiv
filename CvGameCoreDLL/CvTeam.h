@@ -275,6 +275,7 @@ public:
 
 	DllExport bool isAtWar(TeamTypes eIndex) const;																			// Exposed to Python
 	void setAtWar(TeamTypes eIndex, bool bNewValue);
+	bool hasJustDeclaredWar(TeamTypes eIndex) const; // advc.162
 
 	bool isPermanentWarPeace(TeamTypes eIndex) const;																		// Exposed to Python
 	void setPermanentWarPeace(TeamTypes eIndex, bool bNewValue);									// Exposed to Python
@@ -506,11 +507,12 @@ protected:
 	int* m_aiForceTeamVoteEligibilityCount;
 
 	bool* m_abAtWar;
+	bool m_abJustDeclaredWar[MAX_TEAMS]; // advc.162
 	bool* m_abHasMet;
 	bool* m_abHasSeen; // K-Mod
 	bool* m_abPermanentWarPeace;
 	bool* m_abOpenBorders;
-	bool m_abDisengage[MAX_TEAMS];
+	bool m_abDisengage[MAX_TEAMS]; // advc.034
 	bool* m_abDefensivePact;
 	bool* m_abForcePeace;
 	bool* m_abVassal;

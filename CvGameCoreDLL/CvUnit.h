@@ -111,6 +111,7 @@ public:
 	bool canMoveOrAttackInto(const CvPlot* pPlot, bool bDeclareWar = false) const;								// Exposed to Python
 	// bool canMoveThrough(const CvPlot* pPlot, bool bDeclareWar = false) const; // disabled by K-Mod (was exposed to Python)
 	bool canEnterArea(CvArea const& a) const; // advc.030
+	bool isInvasionMove(CvPlot const& from, CvPlot const& to) const; // advc.162
 	void attack(CvPlot* pPlot, bool bQuick);
 	void attackForDamage(CvUnit *pDefender, int attackerDamageChange, int defenderDamageChange);
 	void fightInterceptor(const CvPlot* pPlot, bool bQuick);
@@ -627,6 +628,7 @@ public:
 
 	bool isMadeAttack() const;																																// Exposed to Python
 	void setMadeAttack(bool bNewValue);																							// Exposed to Python
+	bool isMadeAllAttacks() const; // advc.164
 
 	bool isMadeInterception() const;																													// Exposed to Python
 	void setMadeInterception(bool bNewValue);																				// Exposed to Python
@@ -863,7 +865,8 @@ protected:
 	DirectionTypes m_eFacingDirection;
 	int m_iImmobileTimer;
 
-	bool m_bMadeAttack;
+	//bool m_bMadeAttack;
+	int m_iMadeAttacks; // advc.164
 	bool m_bMadeInterception;
 	bool m_bPromotionReady;
 	bool m_bDeathDelay;

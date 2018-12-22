@@ -12,7 +12,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -112,7 +112,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -212,7 +212,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -312,7 +312,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -412,7 +412,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -512,7 +512,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -593,7 +593,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -678,7 +678,7 @@
 			<TechPrereq>TECH_GUNPOWDER</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -767,7 +767,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -853,7 +853,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -938,7 +938,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -1028,7 +1028,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>1</bAmphib>
 			<bRiver>1</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -1113,7 +1113,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -1195,14 +1195,17 @@
 			<Sound>AS2D_IF_LEVELUP</Sound>
 			<LayerAnimationPath>NONE</LayerAnimationPath>
 			<PromotionPrereq>NONE</PromotionPrereq>
-			<PromotionPrereqOr1>PROMOTION_COMBAT3</PromotionPrereqOr1>
-			<!-- was PROMOTION_DRILL3 in K-Mod; reverted -->
-			<PromotionPrereqOr2>NONE</PromotionPrereqOr2>
+			<!-- advc.164: was PROMOTION_DRILL3 in K-Mod -->
+			<PromotionPrereqOr1>PROMOTION_DRILL1</PromotionPrereqOr1>
+			<PromotionPrereqOr2>PROMOTION_COMBAT3</PromotionPrereqOr2>
 			<PromotionPrereqOr3>NONE</PromotionPrereqOr3>
 			<TechPrereq>TECH_MILITARY_SCIENCE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>1</bBlitz>
+			<!-- advc.164: No change to the value. 1 means 1 extra attack now;
+				 higher numbers work also. Set to -1 for BtS behavior
+				 (unlimited attacks). -->
+			<iBlitz>1</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -1283,7 +1286,7 @@
 			<TechPrereq>TECH_MILITARY_SCIENCE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>1</bEnemyRoute>
@@ -1371,7 +1374,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -1463,7 +1466,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -1555,7 +1558,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -1631,7 +1634,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -1711,7 +1714,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -1787,7 +1790,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -1872,7 +1875,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -1966,7 +1969,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -2047,7 +2050,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -2123,7 +2126,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -2199,7 +2202,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -2280,7 +2283,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -2352,7 +2355,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -2424,7 +2427,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -2501,7 +2504,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -2589,7 +2592,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -2681,7 +2684,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -2773,7 +2776,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -2870,7 +2873,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -2942,7 +2945,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -3019,7 +3022,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -3096,7 +3099,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -3164,7 +3167,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -3244,7 +3247,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -3325,7 +3328,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -3405,7 +3408,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -3477,7 +3480,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -3545,7 +3548,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -3613,7 +3616,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>1</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -3713,7 +3716,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -3813,7 +3816,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -3913,7 +3916,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -4013,7 +4016,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -4113,7 +4116,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -4205,7 +4208,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -4273,7 +4276,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -4341,7 +4344,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -4413,7 +4416,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -4485,7 +4488,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
@@ -4554,7 +4557,7 @@
 			<TechPrereq>NONE</TechPrereq>
 			<StateReligionPrereq>NONE</StateReligionPrereq>
 			<bLeader>0</bLeader>
-			<bBlitz>0</bBlitz>
+			<iBlitz>0</iBlitz>
 			<bAmphib>0</bAmphib>
 			<bRiver>0</bRiver>
 			<bEnemyRoute>0</bEnemyRoute>
