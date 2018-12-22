@@ -279,10 +279,9 @@ public:
 	         (related to the Alert AI strategy). */
 		  double distrustRating() const;
 		  /* A measure of optimism (above 1) or pessimism (between 0 and 1) of our
-			 leader about conducting war against 'vs'. (It's not clear if 'vs'
-			 and 'isTotal' should matter.) */
-		  double warConfidencePersonal(bool isNaval, bool isTotal,
-					PlayerTypes vs = NO_PLAYER) const;
+			 leader about conducting war against 'vs'. (It's not clear if 'isTotal'
+			 should matter.) */
+		  double warConfidencePersonal(bool isNaval, bool isTotal, PlayerTypes vs) const;
 		  /* Confidence based on experience in the current war or past wars.
 		     Between 0.5 (low confidence) and 1.5 (high confidence).
 			 ignoreDefOnly: Don't count factors that only make us confident about

@@ -258,7 +258,7 @@ public:
 	int getProductionModifier(UnitTypes eUnit) const;
 	int getProductionModifier(BuildingTypes eBuilding) const;
 	int getProductionModifier(ProjectTypes eProject) const;
-	double trainingModifierFromHandicap(bool worldClass = false) const;
+	double trainingModifierFromHandicap(bool bWorldClass = false) const;
 
 	int getBuildingClassPrereqBuilding(BuildingTypes eBuilding, BuildingClassTypes ePrereqBuildingClass, int iExtra = 0) const;	// Exposed to Python
 	void removeBuildingClass(BuildingClassTypes eBuildingClass);																		// Exposed to Python

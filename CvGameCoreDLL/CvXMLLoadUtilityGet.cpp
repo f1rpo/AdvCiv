@@ -1096,14 +1096,20 @@ bool CvXMLLoadUtility::GetChildXmlValByName(int* piVal, const TCHAR* szName, int
 		}
 		// otherwise there are no child nodes but we were expecting them so FAssert and return false
 		else
-		{
-//			FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
+		{	/*  <advc.006b> If iDefault was set by the caller, we assume that it's
+				OK to fall back on iDefault. Otherwise warn. */
+			if(iDefault == INT_MIN) {
+				CvString szMsg = "Unable to find node ";
+				szMsg.append(szName);
+				// This assert was disabled (and had a less useful message)
+				FAssertMsg(false, szMsg.c_str());
+			} // </advc.006>
 			return false;
 		}
 	}
 	else
-	{
-		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
+	{	// advc.006b: Enabled this assert
+		FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}
 }

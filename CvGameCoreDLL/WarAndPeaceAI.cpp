@@ -2655,9 +2655,11 @@ double WarAndPeaceAI::Civ::warConfidencePersonal(bool isNaval, bool isTotal,
 	   by confidenceAgainstHuman. Here, the AI thinks that humans think that
 	   humans are good at war, and that humans may therefore attack despite
 	   having little power. */
-	if(we.isHuman())
-		// e.g. 0.63 at Settler, 1.67 at Deity
-		return 100.0 / GC.getHandicapInfo(we.getHandicapType()).getAITrainPercent();
+	if(we.isHuman()) {
+		// e.g. 0.62 at Settler, 1.59 at Deity
+		return we.trainingModifierFromHandicap() /
+				GET_PLAYER(vs).trainingModifierFromHandicap();
+	}
 	CvLeaderHeadInfo const& lh = GC.getLeaderHeadInfo(we.getPersonalityType());
 	int const maxWarNearbyPR = lh.getMaxWarNearbyPowerRatio();
 	int const maxWarDistPR = lh.getMaxWarDistantPowerRatio();

@@ -13923,18 +13923,15 @@ void CvCity::doReligion()
 
 void CvCity::doGreatPeople()
 {
-	if (GC.getUSE_DO_GREAT_PEOPLE_CALLBACK()) // K-Mod. block unused python callbacks
-	{
+	if(GC.getUSE_DO_GREAT_PEOPLE_CALLBACK()) { // K-Mod. block unused python callbacks
 		CyCity* pyCity = new CyCity(this);
 		CyArgsList argsList;
 		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
 		long lResult=0;
 		gDLL->getPythonIFace()->callFunction(PYGameModule, "doGreatPeople", argsList.makeFunctionArgs(), &lResult);
 		delete pyCity;	// python fxn must not hold on to this pointer 
-		if (lResult == 1)
-		{
+		if(lResult == 1)
 			return;
-		}
 	}
 
 	if (isDisorder())

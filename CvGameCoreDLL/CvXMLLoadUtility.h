@@ -90,7 +90,10 @@ public:
 	bool GetChildXmlValByName(wchar* pszVal, const TCHAR* szName, wchar* pszDefault = NULL);
 	// overloaded function that gets the child value of the tag with szName if there is only one child
 	// value of that name
-	bool GetChildXmlValByName(int* piVal, const TCHAR* szName, int iDefault = 0);
+	bool GetChildXmlValByName(int* piVal, const TCHAR* szName,
+			/*  advc.006b: Was 0. Instead use a value that no one wants to use so that
+				the callee can check if the param was set. */
+			int iDefault = INT_MIN);
 	// overloaded function that gets the child value of the tag with szName if there is only one child
 	// value of that name
 	bool GetChildXmlValByName(float* pfVal, const TCHAR* szName, float fDefault = 0.0f);

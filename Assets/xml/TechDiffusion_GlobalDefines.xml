@@ -28,8 +28,9 @@
 	</Define>
 	<Define>
 		<!-- Research rate boost for knowing first OR tech prereq.  In vanilla BTS this is effectively 20, reducing the cost of most techs on the tech tree.  BBAI default: 20, for plain BTS: 20 -->
+		<!-- advc.910: set to 0 -->
 		<DefineName>TECH_COST_FIRST_KNOWN_PREREQ_MODIFIER</DefineName>
-		<iDefineIntVal>20</iDefineIntVal>
+		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 	<Define>
 		<!-- Research rate boost for knowing additional OR tech prereqs.  In vanilla BTS this is 20.  Default: 20 -->

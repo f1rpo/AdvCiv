@@ -18964,8 +18964,8 @@ double CvPlayerAI::AI_peacetimeTradeMultiplier(PlayerTypes otherCivId,
 	CvHandicapInfo const& h = GC.getHandicapInfo(GC.getGameINLINE().getHandicapType());
 	/*  Far more AI assets if difficulty is high; trade values not affected
 		by difficulty as much. */
-	double r = 1000000.0 / (h.getAIGrowthPercent() * h.getAITrainPercent() *
-							h.getAIConstructPercent());
+	double r = 1000000.0 / (h.getAIGrowthPercent() * // advc.251
+			h.getAITrainPercent() * h.getAIConstructPercent());
 	r *= 3.5 / std::pow((iAssets + iOtherAssets) / 2.0, 1.33);
 	return r;
 }
@@ -20417,14 +20417,29 @@ bool CvPlayerAI::AI_doDeals(PlayerTypes otherId) {
 					ourList.insertAtEnd(pNode->m_data);
 				else theirList.insertAtEnd(pNode->m_data);
 			}
+			// <advc.062>
+			DenialTypes eVassalCancelReason = (!bVassalDeal ? NO_DENIAL :
+					GET_TEAM(getTeam()).AI_surrenderTrade(TEAMID(otherId)));
+			// </advc.062>
 			pLoopDeal->kill(); // K-Mod. Kill the old deal first.
 			CvDiploParameters* pDiplo = new CvDiploParameters(getID());
 			FAssert(pDiplo != NULL);
 
 			if (bVassalDeal)
-			{
+			{	// <advc.062>
+				CvString szReason = "AI_DIPLOCOMMENT_NO_VASSAL";
+				switch(eVassalCancelReason) {
+				case DENIAL_POWER_US: szReason += "_POWER_US"; break;
+				case DENIAL_POWER_YOU: szReason += "_POWER_YOU"; break;
+				case DENIAL_VICTORY: szReason += "_VICTORY"; break;
+				case DENIAL_WORST_ENEMY: // fall through
+				case DENIAL_ATTITUDE: szReason += "_ATTITUDE"; break;
+				case DENIAL_TOO_FAR: szReason += "_TOO_FAR"; break;
+				case DENIAL_POWER_YOUR_ENEMIES: szReason += "_POWER_YOUR_ENEMIES"; break;
+				} // </advc.062>
 				pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString(
-						"AI_DIPLOCOMMENT_NO_VASSAL"));
+						//"AI_DIPLOCOMMENT_NO_VASSAL"
+						szReason.c_str())); // advc.062
 				pDiplo->setAIContact(true);
 				gDLL->beginDiplomacy(pDiplo, otherId);
 			}
@@ -26337,9 +26352,9 @@ int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea* pArea) const
 		/*iDefenders *= 2;
 		iDefenders /= 3;*/
 	} /* <advc.107> Fewer defenders on low difficulty, more on high difficulty.
-		 Times 0.9 b/c I don't actually want more defenders on moderately high
-		 difficulty. */
-	mod /= ::dRange(trainingModifierFromHandicap() * 0.9, 0.7, 1.5);
+		 Times 0.95 b/c I don't actually want more defenders on moderately high
+		 difficulty. Replacing the two lines under the Culture victory check. */
+	mod /= ::dRange(trainingModifierFromHandicap() * 0.95, 0.75, 1.5);
 	iDefenders = ::round(mod * iDefenders); // </advc.107>
 	// BBAI: Removed AI_STRATEGY_GET_BETTER_UNITS reduction, it was reducing defenses twice
 	
@@ -26352,9 +26367,10 @@ int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea* pArea) const
 			iDefenders *= 2; //go crazy
 		}
 	}
-	
-	iDefenders *= 60;
-	iDefenders /= std::max(30, (GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAITrainPercent() - 20));
+	/*  advc.107: Replaced by the trainingModifierFromHandicap call above, which
+		takes into account the progressive AI modifier as well. */
+	/*iDefenders *= 60;
+	iDefenders /= std::max(30, (GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAITrainPercent() - 20));*/
 	
     // <advc.107> Replacing code below (extra defenses vs. Raging Barbarians)
     if(GC.getGame().isOption(GAMEOPTION_RAGING_BARBARIANS)

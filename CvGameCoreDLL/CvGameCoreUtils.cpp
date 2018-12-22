@@ -38,10 +38,10 @@
 // <advc.003g>
 using std::vector;
 
-int roundToMultiple(double d, int iModulus) {
+int roundToMultiple(double d, int iMultiple) {
 
-	int r = (int)(d + 0.5 * iModulus);
-	return r - r % iModulus;
+	int r = (int)(d + 0.5 * iMultiple);
+	return r - r % iMultiple;
 }
 
 bool bernoulliSuccess(double pr, char const* pszLog) {

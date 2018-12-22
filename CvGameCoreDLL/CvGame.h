@@ -165,6 +165,7 @@ public:
 	int getGameTurnYear() const; // </advc.003>																	// Exposed to Python
 	int getElapsedGameTurns() const;																		// Exposed to Python
 	void incrementElapsedGameTurns();
+	int AIHandicapAdjustment() const; // advc.251
 
 	int getMaxTurns() const;																			// Exposed to Python
 	void setMaxTurns(int iNewValue);															// Exposed to Python
@@ -823,6 +824,8 @@ protected:
 	void normalizeAddFoodBonuses();
 	void normalizeAddGoodTerrain();
 	void normalizeAddExtras();
+	// advc.108:
+	bool isPowerfulStartingBonus(CvPlot const& kStartPlot, PlayerTypes eStartPlayer) const;
 
 	void showEndGameSequence();
 

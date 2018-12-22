@@ -733,23 +733,15 @@ CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTi
 
 
 CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam, bool bSameArea, bool bCoastalOnly, TeamTypes eTeamAtWarWith, DirectionTypes eDirection, CvCity* pSkipCity,
-		TeamTypes observer) // advc.004r
+		TeamTypes observer) const // advc.004r
 {
 	PROFILE_FUNC();
 
-	CvCity* pLoopCity;
-	CvCity* pBestCity;
-	int iValue;
-	int iBestValue;
-	int iLoop;
-	int iI;
+	int iBestValue = MAX_INT;
+	CvCity* pBestCity = NULL;
 
 	// XXX look for barbarian cities???
-
-	iBestValue = MAX_INT;
-	pBestCity = NULL;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
@@ -757,7 +749,8 @@ CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam, boo
 			{
 				if ((eTeam == NO_TEAM) || (GET_PLAYER((PlayerTypes)iI).getTeam() == eTeam))
 				{
-					for (pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
+					int iLoop;
+					for (CvCity* pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
 					{	// <advc.004r>
 						if(observer != NO_TEAM && !pLoopCity->isRevealed(observer, false))
 							continue; // </advc.004r>
@@ -771,7 +764,7 @@ CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam, boo
 									{
 										if ((pSkipCity == NULL) || (pLoopCity != pSkipCity))
 										{
-											iValue = plotDistance(iX, iY, pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
+											int iValue = plotDistance(iX, iY, pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
 
 											if (iValue < iBestValue)
 											{
@@ -793,33 +786,27 @@ CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam, boo
 }
 
 
-CvSelectionGroup* CvMap::findSelectionGroup(int iX, int iY, PlayerTypes eOwner, bool bReadyToSelect, bool bWorkers)
+CvSelectionGroup* CvMap::findSelectionGroup(int iX, int iY, PlayerTypes eOwner, bool bReadyToSelect, bool bWorkers) const
 {
-	CvSelectionGroup* pLoopSelectionGroup;
-	CvSelectionGroup* pBestSelectionGroup;
-	int iValue;
-	int iBestValue;
-	int iLoop;
-	int iI;
+	int iBestValue = MAX_INT;
+	CvSelectionGroup* pBestSelectionGroup = NULL;
 
 	// XXX look for barbarian cities???
 
-	iBestValue = MAX_INT;
-	pBestSelectionGroup = NULL;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
 			if ((eOwner == NO_PLAYER) || (iI == eOwner))
 			{
-				for(pLoopSelectionGroup = GET_PLAYER((PlayerTypes)iI).firstSelectionGroup(&iLoop); pLoopSelectionGroup != NULL; pLoopSelectionGroup = GET_PLAYER((PlayerTypes)iI).nextSelectionGroup(&iLoop))
+				int iLoop;
+				for(CvSelectionGroup* pLoopSelectionGroup = GET_PLAYER((PlayerTypes)iI).firstSelectionGroup(&iLoop); pLoopSelectionGroup != NULL; pLoopSelectionGroup = GET_PLAYER((PlayerTypes)iI).nextSelectionGroup(&iLoop))
 				{
 					if (!bReadyToSelect || pLoopSelectionGroup->readyToSelect())
 					{
 						if (!bWorkers || pLoopSelectionGroup->hasWorker())
 						{
-							iValue = plotDistance(iX, iY, pLoopSelectionGroup->getX(), pLoopSelectionGroup->getY());
+							int iValue = plotDistance(iX, iY, pLoopSelectionGroup->getX(), pLoopSelectionGroup->getY());
 
 							if (iValue < iBestValue)
 							{
@@ -839,20 +826,15 @@ CvSelectionGroup* CvMap::findSelectionGroup(int iX, int iY, PlayerTypes eOwner, 
 
 CvArea* CvMap::findBiggestArea(bool bWater)
 {
-	CvArea* pLoopArea;
-	CvArea* pBestArea;
-	int iValue;
-	int iBestValue;
+	int iBestValue = 0;
+	CvArea* pBestArea = NULL;
+
 	int iLoop;
-
-	iBestValue = 0;
-	pBestArea = NULL;
-
-	for(pLoopArea = firstArea(&iLoop); pLoopArea != NULL; pLoopArea = nextArea(&iLoop))
+	for(CvArea* pLoopArea = firstArea(&iLoop); pLoopArea != NULL; pLoopArea = nextArea(&iLoop))
 	{
 		if (pLoopArea->isWater() == bWater)
 		{
-			iValue = pLoopArea->getNumTiles();
+			int iValue = pLoopArea->getNumTiles();
 
 			if (iValue > iBestValue)
 			{
@@ -866,7 +848,7 @@ CvArea* CvMap::findBiggestArea(bool bWater)
 }
 
 
-int CvMap::getMapFractalFlags()
+int CvMap::getMapFractalFlags() const
 {
 	int wrapX = 0;
 	if (isWrapXINLINE())
@@ -984,30 +966,30 @@ float CvMap::plotYToPointY(int iY)
 }
 
 
-float CvMap::getWidthCoords()																	
+float CvMap::getWidthCoords() const
 {
 	return (GC.getPLOT_SIZE() * ((float)getGridWidthINLINE()));
 }
 
 
-float CvMap::getHeightCoords()																	
+float CvMap::getHeightCoords() const
 {
 	return (GC.getPLOT_SIZE() * ((float)getGridHeightINLINE()));
 }
 
 
-int CvMap::maxPlotDistance()
+int CvMap::maxPlotDistance() const
 {
 	// <advc.140> Replacing this line:
 	//return std::max(1, plotDistance(0, 0, ((isWrapXINLINE()) ? (getGridWidthINLINE() / 2) : (getGridWidthINLINE() - 1)), ((isWrapYINLINE()) ? (getGridHeightINLINE() / 2) : (getGridHeightINLINE() - 1))));
 	CvGame const& g = GC.getGameINLINE();
-	CvWorldInfo const& w = GC.getWorldInfo(getWorldSize());
+	CvWorldInfo const& w = GC.getWorldInfo(worldSize());
 	double civRatio = g.getRecommendedPlayers() / (double)g.countCivPlayersEverAlive();
 	double seaLvlModifier = (100 - 5 * g.getSeaLevelChange()) / 100.0;
 	int wraps = -1; // 0 if cylindrical (1 wrap), -1 flat, +1 toroidical
-	if(isWrapX())
+	if(isWrapXINLINE())
 		wraps++;
-	if(isWrapY())
+	if(isWrapYINLINE())
 		wraps++;
 	double r = std::sqrt(w.getGridWidth() * w.getGridHeight() * civRatio *
 			seaLvlModifier) * 3.5 - 5 * wraps;
@@ -1015,13 +997,13 @@ int CvMap::maxPlotDistance()
 }
 
 
-int CvMap::maxStepDistance()
+int CvMap::maxStepDistance() const
 {
 	return std::max(1, stepDistance(0, 0, ((isWrapXINLINE()) ? (getGridWidthINLINE() / 2) : (getGridWidthINLINE() - 1)), ((isWrapYINLINE()) ? (getGridHeightINLINE() / 2) : (getGridHeightINLINE() - 1))));
 }
 
 // <advc.140>
-int CvMap::maxMaintenanceDistance() {
+int CvMap::maxMaintenanceDistance() const {
 
 	return ::round(1 + maxPlotDistance() * (10.0 / GC.getMAX_DISTANCE_CITY_MAINTENANCE()));
 } // </advc.140>
@@ -1038,7 +1020,7 @@ int CvMap::getGridHeight() const
 }
 
 
-int CvMap::getLandPlots()
+int CvMap::getLandPlots() const
 {
 	return m_iLandPlots;
 }
@@ -1051,7 +1033,7 @@ void CvMap::changeLandPlots(int iChange)
 }
 
 
-int CvMap::getOwnedPlots()
+int CvMap::getOwnedPlots() const
 {
 	return m_iOwnedPlots;
 }
@@ -1064,19 +1046,19 @@ void CvMap::changeOwnedPlots(int iChange)
 }
 
 
-int CvMap::getTopLatitude()
+int CvMap::getTopLatitude() const
 {
 	return m_iTopLatitude;
 }
 
 
-int CvMap::getBottomLatitude()
+int CvMap::getBottomLatitude() const
 {
 	return m_iBottomLatitude;
 }
 
 
-int CvMap::getNextRiverID()
+int CvMap::getNextRiverID() const
 {
 	return m_iNextRiverID;
 }
@@ -1104,26 +1086,27 @@ bool CvMap::isWrap()
 	return isWrapINLINE();
 }
 
-WorldSizeTypes CvMap::getWorldSize()
+// advc.003: const replacement for DLLExport getWorldSize
+WorldSizeTypes CvMap::worldSize() const
 {
 	return GC.getInitCore().getWorldSize();
 }
 
 
-ClimateTypes CvMap::getClimate()
+ClimateTypes CvMap::getClimate() const
 {
 	return GC.getInitCore().getClimate();
 }
 
 
-SeaLevelTypes CvMap::getSeaLevel()
+SeaLevelTypes CvMap::getSeaLevel() const
 {
 	return GC.getInitCore().getSeaLevel();
 }
 
 
 
-int CvMap::getNumCustomMapOptions()
+int CvMap::getNumCustomMapOptions() const
 {
 	return GC.getInitCore().getNumCustomMapOptions();
 }
@@ -1135,7 +1118,7 @@ CustomMapOptionTypes CvMap::getCustomMapOption(int iOption)
 }
 
 
-int CvMap::getNumBonuses(BonusTypes eIndex)													
+int CvMap::getNumBonuses(BonusTypes eIndex) const
 {
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < GC.getNumBonusInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
@@ -1152,7 +1135,7 @@ void CvMap::changeNumBonuses(BonusTypes eIndex, int iChange)
 }
 
 
-int CvMap::getNumBonusesOnLand(BonusTypes eIndex)													
+int CvMap::getNumBonusesOnLand(BonusTypes eIndex) const
 {
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < GC.getNumBonusInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
@@ -1187,27 +1170,24 @@ CvPlot* CvMap::pointToPlot(float fX, float fY)
 }
 
 
-int CvMap::getIndexAfterLastArea()																
+int CvMap::getIndexAfterLastArea() const
 {
 	return m_areas.getIndexAfterLast();
 }
 
 
-int CvMap::getNumAreas()																		
+int CvMap::getNumAreas() const
 {
 	return m_areas.getCount();
 }
 
 
-int CvMap::getNumLandAreas()
+int CvMap::getNumLandAreas() const
 {
-	CvArea* pLoopArea;
-	int iNumLandAreas;
+	int iNumLandAreas = 0;
+
 	int iLoop;
-
-	iNumLandAreas = 0;
-
-	for(pLoopArea = GC.getMap().firstArea(&iLoop); pLoopArea != NULL; pLoopArea = GC.getMap().nextArea(&iLoop))
+	for(CvArea* pLoopArea = GC.getMap().firstArea(&iLoop); pLoopArea != NULL; pLoopArea = GC.getMap().nextArea(&iLoop))
 	{
 		if (!(pLoopArea->isWater()))
 		{
@@ -1219,7 +1199,7 @@ int CvMap::getNumLandAreas()
 }
 
 
-CvArea* CvMap::getArea(int iID)																
+CvArea* CvMap::getArea(int iID) const
 {
 	return m_areas.getAt(iID);
 }

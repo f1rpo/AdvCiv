@@ -578,7 +578,7 @@ double ArmamentForecast::productionFromUpgrades() {
 		CvHandicapInfo& gameHandicap = GC.getHandicapInfo(GC.getGameINLINE().
 				getHandicapType());
 		double aiUpgradeFactor = gameHandicap.getAIUnitUpgradePercent();
-			// advc.250d: The per-era modifier no longer applies to upgrade cost
+		// advc.250d: The per-era modifier no longer applies to upgrade cost
 			// + gameHandicap.getAIPerEraModifier() * civ.getCurrentEra();
 		aiUpgradeFactor /= 100.0;
 		/* Shouldn't draw conclusions from AI_getGoldToUpgradeAllUnits when

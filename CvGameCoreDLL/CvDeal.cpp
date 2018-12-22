@@ -1109,15 +1109,15 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
 	case TRADE_SURRENDER: {
 		bool bSurrender = (trade.m_eItemType == TRADE_SURRENDER);
 		// Canceled b/c of failure to protect vassal?
-		bool deniedHelp = false;
+		bool bDeniedHelp = false;
 		if(bSurrender)
-			deniedHelp = (TEAMREF(eFromPlayer).isLossesAllowRevolt(TEAMID(eToPlayer))
+			bDeniedHelp = (TEAMREF(eFromPlayer).isLossesAllowRevolt(TEAMID(eToPlayer))
 					// Doesn't count if losses obviously only from cultural borders
 					&& TEAMREF(eFromPlayer).getAnyWarPlanCount(true) > 0);
 		else {
 			DenialTypes reason = TEAMREF(eFromPlayer).
 					AI_surrenderTrade(TEAMID(eToPlayer));
-			deniedHelp = (reason == DENIAL_POWER_YOUR_ENEMIES);
+			bDeniedHelp = (reason == DENIAL_POWER_YOUR_ENEMIES);
 		}
 		TEAMREF(eFromPlayer).setVassal(TEAMID(eToPlayer), false, bSurrender);
 		if(bTeam) {
@@ -1127,7 +1127,7 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
 			teamTradeEnded = true; // advc.133
 		}
 		addEndTradeMemory(eFromPlayer, eToPlayer, TRADE_VASSAL);
-		if(!deniedHelp) // Master remembers for 2x10 turns
+		if(!bDeniedHelp) // Master remembers for 2x10 turns
 			addEndTradeMemory(eFromPlayer, eToPlayer, TRADE_VASSAL);
 		else { /* Vassal remembers for 3x10 turns (and master for 1x10 turns,
 				  which could matter when a human becomes a vassal) */

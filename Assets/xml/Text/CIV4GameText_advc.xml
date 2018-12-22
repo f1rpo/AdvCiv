@@ -778,6 +778,17 @@
 		<Italian>Mostra i raggi d'azione delle citt&#224; selezionando un colono</Italian>
 		<Spanish>Para ver los radios urbanos al seleccionar a un colono</Spanish>
 	</TEXT>
+
+	<!-- advc.004g: Originally in CIV4GameText_BTS.xml. The wording was too
+		 clunky. -->
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_INSTANCE_COST_MOD</Tag>
+		<English>Cost increases by %d1%% with each %s2_UnitClassName in play</English>
+		<French>Chaque %s2_UnitClassName en jeu augmente le co&#251;t de %d1%%</French>
+		<German>Kosten steigen um %d1%% pro %s2_UnitClassName im Spiel</German>
+		<Italian>Ogni %s2_UnitClassName in gioco aumenta il costo di %d1%%</Italian>
+		<Spanish>Cada %s2_UnitClassName en juego aumenta el coste en un %d1%%</Spanish>
+	</TEXT>
 	
 	<!-- advc.137: Originally in Civ4GameText_Help.xml. Changed only English and
 		 German. -->
@@ -831,9 +842,9 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_HANDICAP_EMPEROR_HELP</Tag>
-		<English>A hard level, but beatable without resorting to any dirty tricks. The ongoing AI bonuses become very noticeable on this level and make it difficult to match the AI in military power. The AI players start with Hunting and a free Scout and two Archers, so don't be surprised if you find few unexplored tribal villages.</English>
+		<English>A hard level, but beatable without resorting to any dirty tricks. Human production costs begin to increase on this level, making it difficult to match the AI militarily. The AI players start with Hunting and a free Scout and two Archers, so don't be surprised if you find few unexplored tribal villages.</English>
 		<French>Vous vous sentez l'&#226;me d'un empereur ? Si tel est le cas, vous devrez le prouver en terrassant des ennemis rapides et agressifs et en r&#233;gnant sur une population de plus en plus difficile &#224; motiver et &#224; satisfaire. C'est un vrai d&#233;fi pour les experts de Civilization.</French>
-		<German>Eine schwierige Stufe, aber auch ohne unfaire Mittel machbar. Angesichts der deutlichen Boni für die KI-Spieler ist es allerdings schwierig, militärisch mitzuhalten. Die KI-Spieler beginnen das Spiel mit je einem Kundschafter und zwei Bogenschützen; wundern Sie sich also nicht, wenn kaum Stammesdörfer für Sie übrigbleiben.</German>
+		<German>Eine schwierige Stufe, aber auch ohne unfaire Mittel machbar. Ab dieser Stufe steigen für menschliche Spieler die Produktionskosten, deswegen kann es schwierig sein, militärisch mitzuhalten. Die KI-Spieler beginnen das Spiel mit je einem Kundschafter und zwei Bogenschützen; wundern Sie sich also nicht, wenn kaum Stammesdörfer für Sie übrigbleiben.</German>
 		<Italian>Sei pronto per diventare Imperatore? Se s&#236;, dovrai affrontare con coraggio gli avversari, rapidi e aggressivi, e allo stesso tempo cercare di soddisfare la tua popolazione, pi&#249; difficile da compiacere e motivare. Una vera sfida per gli esperti di Civilization.</Italian>
 		<Spanish>&#191;Est&#225;is listo para ser emperador?  De ser as&#237;, tendr&#233;is que demostrar vuestra val&#237;a derrotando a adversarios m&#225;s r&#225;pidos y agresivos a la vez que cuid&#225;is de una poblaci&#243;n m&#225;s dif&#237;cil de motivar y complacer. Esto es una prueba de verdad para los expertos en Civilization.</Spanish>
 	</TEXT>
@@ -4212,6 +4223,62 @@
 		<German>[ICON_BULLET]Kann zweimal pro Runde angreifen</German>
 		<Italian>[ICON_BULLET]Permette di attaccare due volte durante lo stesso turno</Italian>
 		<Spanish>[ICON_BULLET]Puede atacar dos veces por turno</Spanish>
+	</TEXT>
+
+	<!-- advc.062: Copy-pasted together from text in CIV4GameText_Warlords.xml
+		 (AI_DIPLO_NO_VASSAL_1), CIV4GameTextInfos.xml (POWER_US, POWER_YOU,
+		 VICTORY, ATTITUDE), CIV4GameText_Warlords.xml (POWER_YOUR_ENEMIES,
+		 TOO_FAR) and CIV4DiplomacyText.xml (AI_DIPLO_PEACE_3) because
+		 "What are you going to do about it?" sounds too confrontational
+		 when canceling on account of vassal power (i.e. most of the time). -->
+	<TEXT>
+		<Tag>AI_DIPLO_NO_VASSAL_POWER_US_1</Tag>
+		<English>We're doing fine on our own now, so we no longer have any interest in being your vassal. May we all live long and prosper.</English>
+		<French>Nous nous en sortons tr&#232;s bien seuls. Nous ne voyons plus d'int&#233;r&#234;t &#224; rester votre &#233;tat vassal. Longue vie et prosp&#233;rit&#233; &#224; nos deux peuples !</French>
+		<German>Wir kommen jetzt ganz gut allein klar, daher sind wir nicht mehr daran interessiert, Euch als Vasall zu dienen. M&#246;gen wir alle lang und zufrieden leben!</German>
+		<Italian>Ce la facciamo da soli addesso e non abbiamo pi&#249; alcun interesse a essere un tuo stato vassallo. Lunga vita e prosperit&#224;!</Italian>
+		<Spanish>Nos va bien sin ayuda, por lo que ya no nos interesa ser vuestro estado vasallo. Que todos tengamos una vida larga y pr&#243;spera.</Spanish>
+	</TEXT>
+	<!-- This one isn't actually used -->
+	<TEXT>
+		<Tag>AI_DIPLO_NO_VASSAL_POWER_YOU_1</Tag>
+		<English>You've grown too powerful for us, so we no longer have any interest in being your vassal.</English>
+		<French>Vous &#234;tes devenu trop puissant pour nous. Nous ne voyons plus d'int&#233;r&#234;t &#224; rester votre &#233;tat vassal.</French>
+		<German>Ihr seid zu m&#228;chtig f&#252;r uns geworden, daher sind wir nicht mehr daran interessiert, Euch als Vasall zu dienen.</German>
+		<Italian>Siete diventati troppo potenti per noi e quindi non abbiamo pi&#249; alcun interesse a essere un vostro stato vassallo.</Italian>
+		<Spanish>Os hab&#233;is hecho demasiado poderosos para nosotros, por lo que ya no nos interesa ser vuestro estado vasallo.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>AI_DIPLO_NO_VASSAL_VICTORY_1</Tag>
+		<English>We'd rather win the game, so we no longer have any interest in being your vassal. What are you going to do about it?</English>
+		<French>Nous pr&#233;f&#233;rons &#234;tre vainqueurs. Nous ne voyons plus d'int&#233;r&#234;t &#224; rester votre &#233;tat vassal. Que pouvez-vous proposer ?</French>
+		<German>Wir haben jetzt vor, das Spiel zu gewinnen, daher sind wir nicht mehr daran interessiert, Euch als Vasall zu dienen. Was werdet Ihr dagegen unternehmen?</German>
+		<Italian>Ci piacerebbe vincere la partita e quindi non abbiamo pi&#249; alcun interesse a essere un tuo stato vassallo. Cosa intendi fare ora?</Italian>
+		<Spanish>Preferimos ganar la partida, por lo que ya no nos interesa ser vuestro estado vasallo. &#191;C&#243;mo pens&#225;is impedirlo?</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>AI_DIPLO_NO_VASSAL_ATTITUDE_1</Tag>
+		<English>We don't like you enough to be your vassal. What are you going to do about it?</English>
+		<French>Nous ne vous appr&#233;cions pas suffisamment pour rester votre &#233;tat vassal. Que pouvez-vous proposer ?</French>
+		<German>So nah, um Euch als Vasall zu dienen, stehen wir Euch eigentlich doch nicht. Was werdet Ihr dagegen unternehmen?</German>
+		<Italian>Non ci piaci abbastanza per essere un tuo stato vassallo. Cosa intendi fare ora?</Italian>
+		<Spanish>No nos ca&#233;is lo bastante bien por ser vuestro estado vasallo. &#191;C&#243;mo pens&#225;is impedirlo?</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>AI_DIPLO_NO_VASSAL_POWER_YOUR_ENEMIES_1</Tag>
+		<English>We are afraid of your enemies, and so we no longer have any interest in being your vassal. What are you going to do about it?</English>
+		<French>Nous avons peur de vos ennemis. Nous ne voyons plus d'int&#233;r&#234;t &#224; rester votre &#233;tat vassal. Que pouvez-vous proposer ?</French>
+		<German>Wir f&#252;rchten Eure Feinde zu sehr, um Euch als Vasall zu dienen. Was werdet Ihr dagegen unternehmen?</German>
+		<Italian>I tuoi nemici ci fanno paura e quindi non abbiamo pi&#249; alcun interesse a essere un tuo stato vassallo. Cosa intendi fare ora?</Italian>
+		<Spanish>Tememos a vuestros enemigos, por lo que ya no nos interesa ser vuestro estado vasallo. &#191;C&#243;mo pens&#225;is impedirlo?</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>AI_DIPLO_NO_VASSAL_TOO_FAR_1</Tag>
+		<English>Your land is too far away to protect us, so we no longer have any interest in being your vassal.</English>
+		<French>Votre territoire est trop &#233;loign&#233;. Nous ne voyons plus d'int&#233;r&#234;t &#224; rester votre &#233;tat vassal.</French>
+		<German>Euer Reich ist zu weit entfernt, daher sind wir nicht mehr daran interessiert, Euch als Vasall zu dienen.</German>
+		<Italian>Il tuo territorio &#232; troppo lontano. Quindi non abbiamo pi&#249; alcun interesse a essere un tuo stato vassallo.</Italian>
+		<Spanish>Vuestra tierra est&#225; demasiado lejos, por lo que ya no nos interesa ser vuestro estado vasallo.</Spanish>
 	</TEXT>
 	
 	

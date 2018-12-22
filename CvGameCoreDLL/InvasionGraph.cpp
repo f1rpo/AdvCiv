@@ -649,10 +649,15 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 			- defender.lostPower[CAVALRY]) * armyPortionDefender;
 	targetArmyPow = std::max(0.0, targetArmyPow);
 	targetCavPow = std::min(targetCavPow, targetArmyPow);
-	bool isNaval;
+	bool isNaval = false;
 	if(clashOnly) {
-		isNaval = !canReachByLand(targetCity()->id()) &&
-				!defender.canReachByLand(defender.targetCity()->id());
+		WarAndPeaceCache::City const* defTargetCity = defender.targetCity();
+		WarAndPeaceCache::City const* attTargetCity = targetCity();
+		if(defTargetCity != NULL && attTargetCity != NULL) {
+			isNaval = !canReachByLand(attTargetCity->id()) &&
+					!defender.canReachByLand(defTargetCity->id());
+		}
+		else FAssert(false); // They shouldn't clash then
 	}
 	else isNaval = !canReachByLand(c->id());
 	bool canBombard = false;
@@ -675,12 +680,12 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		bool const bTotal = outer.m.evaluationParameters().isTotal();
 		if(id == weId) {
 			confAttPers = GET_PLAYER(weId).warAndPeaceAI().warConfidencePersonal(
-					isNaval, bTotal);
+					isNaval, bTotal, defender.id);
 		}
 		else if(defender.id == weId) {
 			confDefPers = GET_PLAYER(weId).warAndPeaceAI().warConfidencePersonal(
 					// Defense doesn't hinge on navies and fighting in faraway lands
-					false, bTotal);
+					false, bTotal, id);
 		}
 	}
 	if(GET_PLAYER(id).isHuman())

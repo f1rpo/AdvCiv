@@ -1622,7 +1622,8 @@ void CvGame::normalizeRemoveBadFeatures()
 						GC.getFeatureInfo(pLoopPlot->getFeatureType()).getYieldChange(YIELD_PRODUCTION) <= 0) {
 					// <advc.108>
 					if(::plotDistance(pLoopPlot, pStartingPlot) < 2 ||
-							::bernoulliSuccess(prRemoval, "advc.108")) // </advc.108
+							(!isPowerfulStartingBonus(*pLoopPlot, civ.getID()) &&
+							::bernoulliSuccess(prRemoval, "advc.108"))) // </advc.108>
 						pLoopPlot->setFeatureType(NO_FEATURE);
 				}
 			}
@@ -1714,14 +1715,15 @@ void CvGame::normalizeRemoveBadTerrain()
 					int iPlotProduction = ti.getYield(YIELD_PRODUCTION);
 					if (iPlotFood + iPlotProduction > 1)
 						continue;
-					/*  <advc.003> I think the BtS code ends up replacing
-						Desert with Desert when there's a feature, but let's
-						rather handle Desert features explicitly. */
+					// <advc.108>
+					if(isPowerfulStartingBonus(*pLoopPlot, civ.getID()))
+						continue;
+					/*  I think the BtS code ends up replacing Desert with Desert when
+						there's a feature, but let's rather handle Desert features explicitly. */
 					if(pLoopPlot->getFeatureType() != NO_FEATURE &&
 							GC.getFeatureInfo(pLoopPlot->getFeatureType()).
 							getYieldChange(YIELD_FOOD) + iPlotFood >= 2)
-						continue; // </advc.003>
-					// <advc.108>
+						continue;
 					if(::bernoulliSuccess(prKeep, "advc.108")) {
 						if(iPlotFood > 0 ||
 							/*  advc.129b: Two chances of removal for Snow river
@@ -2422,6 +2424,18 @@ void CvGame::normalizeStartingPlots()
 		normalizeAddExtras();
 	}
 }
+
+// <advc.108>
+bool CvGame::isPowerfulStartingBonus(CvPlot const& kStartPlot, PlayerTypes eStartPlayer) const {
+
+	if(getStartEra() > 0)
+		return false;
+	BonusTypes eBonus = kStartPlot.getBonusType(TEAMID(eStartPlayer));
+	if(eBonus == NO_BONUS)
+		return false;
+	return (GC.getBonusInfo(eBonus).getBonusClassType() ==
+			GC.getInfoTypeForString("BONUSCLASS_PRECIOUS"));
+} // </advc.108>
 
 // For each of n teams, let the closeness score for that team be the average distance of an edge between two players on that team.
 // This function calculates the closeness score for each team and returns the sum of those n scores.
@@ -4069,6 +4083,25 @@ void CvGame::incrementElapsedGameTurns()
 {
 	m_iElapsedGameTurns++;
 }
+
+// <advc.251>
+int CvGame::AIHandicapAdjustment() const {
+
+	int iGameTurn = gameTurn();
+	int iVictoryDelayPercent = GC.getGameSpeedInfo(getGameSpeedType()).getVictoryDelayPercent();
+	if(iVictoryDelayPercent > 0)
+		iGameTurn = (iGameTurn * 100) / iVictoryDelayPercent;
+	// Don't grant additional AI bonuses in the very early game
+	if(iGameTurn <= 25)
+		return 0;
+	int iIncrementTurns = GC.getHandicapInfo(getHandicapType()).getAIHandicapIncrementTurns();
+	if(iIncrementTurns == 0)
+		return 0;
+	/*  Flip sign b/c we're dealing with cost modifiers that are supposed to decrease.
+		Only if a negative AIHandicapIncrement is set in XML, the modifiers are
+		supposed to increase. */
+	return -iGameTurn / iIncrementTurns;
+} // </advc.251>
 
 
 int CvGame::getMaxTurns() const

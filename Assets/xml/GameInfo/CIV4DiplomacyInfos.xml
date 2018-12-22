@@ -43,6 +43,92 @@
 				</Response>
 			</Responses>
 		</DiplomacyInfo>
+		<!-- advc.062 (start) -->
+		<DiplomacyInfo>
+			<Type>AI_DIPLOCOMMENT_NO_VASSAL_POWER_US</Type>
+			<Responses>
+				<Response>
+					<Civilizations/>
+					<Leaders/>
+					<Attitudes/>
+					<DiplomacyPowers/>
+					<DiplomacyText>
+						<Text>AI_DIPLO_NO_VASSAL_POWER_US_1</Text>
+					</DiplomacyText>
+				</Response>
+			</Responses>
+		</DiplomacyInfo>
+		<DiplomacyInfo>
+			<Type>AI_DIPLOCOMMENT_NO_VASSAL_POWER_YOU</Type>
+			<Responses>
+				<Response>
+					<Civilizations/>
+					<Leaders/>
+					<Attitudes/>
+					<DiplomacyPowers/>
+					<DiplomacyText>
+						<Text>AI_DIPLO_NO_VASSAL_POWER_YOU_1</Text>
+					</DiplomacyText>
+				</Response>
+			</Responses>
+		</DiplomacyInfo>
+		<DiplomacyInfo>
+			<Type>AI_DIPLOCOMMENT_NO_VASSAL_VICTORY</Type>
+			<Responses>
+				<Response>
+					<Civilizations/>
+					<Leaders/>
+					<Attitudes/>
+					<DiplomacyPowers/>
+					<DiplomacyText>
+						<Text>AI_DIPLO_NO_VASSAL_VICTORY_1</Text>
+					</DiplomacyText>
+				</Response>
+			</Responses>
+		</DiplomacyInfo>
+		<DiplomacyInfo>
+			<Type>AI_DIPLOCOMMENT_NO_VASSAL_ATTITUDE</Type>
+			<Responses>
+				<Response>
+					<Civilizations/>
+					<Leaders/>
+					<Attitudes/>
+					<DiplomacyPowers/>
+					<DiplomacyText>
+						<Text>AI_DIPLO_NO_VASSAL_ATTITUDE_1</Text>
+					</DiplomacyText>
+				</Response>
+			</Responses>
+		</DiplomacyInfo>
+		<DiplomacyInfo>
+			<Type>AI_DIPLOCOMMENT_NO_VASSAL_POWER_YOUR_ENEMIES</Type>
+			<Responses>
+				<Response>
+					<Civilizations/>
+					<Leaders/>
+					<Attitudes/>
+					<DiplomacyPowers/>
+					<DiplomacyText>
+						<Text>AI_DIPLO_NO_VASSAL_POWER_YOUR_ENEMIES_1</Text>
+					</DiplomacyText>
+				</Response>
+			</Responses>
+		</DiplomacyInfo>
+		<DiplomacyInfo>
+			<Type>AI_DIPLOCOMMENT_NO_VASSAL_TOO_FAR</Type>
+			<Responses>
+				<Response>
+					<Civilizations/>
+					<Leaders/>
+					<Attitudes/>
+					<DiplomacyPowers/>
+					<DiplomacyText>
+						<Text>AI_DIPLO_NO_VASSAL_TOO_FAR_1</Text>
+					</DiplomacyText>
+				</Response>
+			</Responses>
+		</DiplomacyInfo>
+		<!-- advc.062 (end) -->
 		<DiplomacyInfo>
 			<Type>AI_DIPLOCOMMENT_OFFER_VASSAL</Type>
 			<Responses>

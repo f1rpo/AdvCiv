@@ -7176,12 +7176,14 @@ int CvPlayer::getProductionNeeded(UnitTypes eUnit) const
 
 	iProductionNeeded *= GC.getEraInfo(GC.getGameINLINE().getStartEra()).getTrainPercent();
 	iProductionNeeded /= 100;
+	// advc.251: Moved up b/c I want the handicap modifier to apply to Settlers
+	iProductionNeeded += getUnitExtraCost(eUnitClass);
 	/*  <advc.107> Code moved into auxiliary function b/c I need this modifier
 		in AI_getTotalFloatingDefendersNeeded. */
-	iProductionNeeded = ::round(iProductionNeeded *
-			trainingModifierFromHandicap(isWorldUnitClass(eUnitClass)));
+	iProductionNeeded = ::roundToMultiple(iProductionNeeded *
+			trainingModifierFromHandicap(isWorldUnitClass(eUnitClass)),
+			isHuman() ? 5 : 1); // advc.251
 	// </advc.107>
-	iProductionNeeded += getUnitExtraCost(eUnitClass);
 
 	// Python cost modifier
 	if(GC.getUSE_GET_UNIT_COST_MOD_CALLBACK())
@@ -7205,35 +7207,32 @@ int CvPlayer::getProductionNeeded(UnitTypes eUnit) const
 
 int CvPlayer::getProductionNeeded(BuildingTypes eBuilding) const
 {
-	int iProductionNeeded;
-
-	iProductionNeeded = GC.getBuildingInfo(eBuilding).getProductionCost();
+	CvGame const& g = GC.getGameINLINE(); // advc.003
+	int iProductionNeeded = GC.getBuildingInfo(eBuilding).getProductionCost();
 
 	iProductionNeeded *= GC.getDefineINT("BUILDING_PRODUCTION_PERCENT");
 	iProductionNeeded /= 100;
 
-	iProductionNeeded *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getConstructPercent();
+	iProductionNeeded *= GC.getGameSpeedInfo(g.getGameSpeedType()).getConstructPercent();
 	iProductionNeeded /= 100;
 
-	iProductionNeeded *= GC.getEraInfo(GC.getGameINLINE().getStartEra()).getConstructPercent();
+	iProductionNeeded *= GC.getEraInfo(g.getStartEra()).getConstructPercent();
 	iProductionNeeded /= 100;
-
-	if (!isHuman() && !isBarbarian())
-	{
-		if (isWorldWonderClass((BuildingClassTypes)(GC.getBuildingInfo(eBuilding).getBuildingClassType())))
-		{
-			iProductionNeeded *= GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIWorldConstructPercent();
-			iProductionNeeded /= 100;
-		}
-		else
-		{
-			iProductionNeeded *= GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIConstructPercent();
-			iProductionNeeded /= 100;
-		}
-
-		iProductionNeeded *= std::max(0, ((GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIPerEraModifier() * getCurrentEra()) + 100));
+	// <advc.251>
+	iProductionNeeded = ::roundToMultiple(0.01 * iProductionNeeded *
+			GC.getHandicapInfo(getHandicapType()).getConstructPercent(),
+			isHuman() ? 5 : 1);
+	if(!isHuman()) { // Barbarians too
+		CvHandicapInfo const& h = GC.getHandicapInfo(g.getHandicapType());
+		
+		int iAIModifier = //h.getAIPerEraModifier() * getCurrentEra()
+				g.AIHandicapAdjustment();
+		if(isWorldWonderClass((BuildingClassTypes)(GC.getBuildingInfo(eBuilding).getBuildingClassType())))
+			iAIModifier += h.getAIWorldConstructPercent();
+		else iAIModifier += h.getAIConstructPercent();
+		iProductionNeeded *= iAIModifier;
 		iProductionNeeded /= 100;
-	}
+	} // </advc.251>
 
 	return std::max(1, iProductionNeeded);
 }
@@ -7241,35 +7240,32 @@ int CvPlayer::getProductionNeeded(BuildingTypes eBuilding) const
 
 int CvPlayer::getProductionNeeded(ProjectTypes eProject) const
 {
-	int iProductionNeeded;
+	CvGame const& g = GC.getGameINLINE(); // advc.003
 
-	iProductionNeeded = GC.getProjectInfo(eProject).getProductionCost();
+	int iProductionNeeded = GC.getProjectInfo(eProject).getProductionCost();
 
 	iProductionNeeded *= GC.getDefineINT("PROJECT_PRODUCTION_PERCENT");
 	iProductionNeeded /= 100;
 
-	iProductionNeeded *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getCreatePercent();
+	iProductionNeeded *= GC.getGameSpeedInfo(g.getGameSpeedType()).getCreatePercent();
 	iProductionNeeded /= 100;
 
-	iProductionNeeded *= GC.getEraInfo(GC.getGameINLINE().getStartEra()).getCreatePercent();
+	iProductionNeeded *= GC.getEraInfo(g.getStartEra()).getCreatePercent();
 	iProductionNeeded /= 100;
-
-	if (!isHuman() && !isBarbarian())
-	{
-		if (isWorldProject(eProject))
-		{
-			iProductionNeeded *= GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIWorldCreatePercent();
-			iProductionNeeded /= 100;
-		}
-		else
-		{
-			iProductionNeeded *= GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAICreatePercent();
-			iProductionNeeded /= 100;
-		}
-
-		iProductionNeeded *= std::max(0, ((GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIPerEraModifier() * getCurrentEra()) + 100));
+	// <advc.251>
+	iProductionNeeded = ::roundToMultiple(0.01 * iProductionNeeded *
+			GC.getHandicapInfo(getHandicapType()).getCreatePercent(),
+			isHuman() ? 5 : 1);
+	if(!isHuman() && !isBarbarian()) {
+		CvHandicapInfo const& h = GC.getHandicapInfo(g.getHandicapType());
+		int iAIModifier = //h.getAIPerEraModifier() * getCurrentEra()
+				g.AIHandicapAdjustment();
+		if(isWorldProject(eProject))
+			iAIModifier += h.getAIWorldCreatePercent();
+		else iAIModifier += h.getAICreatePercent();
+		iProductionNeeded *= iAIModifier;
 		iProductionNeeded /= 100;
-	}
+	} // </advc.251>
 
 	return std::max(1, iProductionNeeded);
 }
@@ -7345,20 +7341,23 @@ int CvPlayer::getProductionModifier(ProjectTypes eProject) const
 	return iMultiplier;
 }
 
-// <advc.107> Cut from getProductionNeeded; refactored
-double CvPlayer::trainingModifierFromHandicap(bool worldClass) const {
+// advc.107: Cut from getProductionNeeded; refactored.
+double CvPlayer::trainingModifierFromHandicap(bool bWorldClass) const {
 
-	if(isHuman() || isBarbarian())
-		return 1;
-	double r = 1;
-	CvHandicapInfo& gameHandicap = GC.getHandicapInfo(GC.getGameINLINE().getHandicapType());
-	if(worldClass)
-		r *= (gameHandicap.getAIWorldTrainPercent() / 100.0);
-	else r *= (gameHandicap.getAITrainPercent() / 100.0);
-	r *= (std::max(0, gameHandicap.getAIPerEraModifier() * getCurrentEra() + 100)
-			/ 100.0);
-	return r;
-} // </advc.107>
+	// <advc.251>
+	int iPercent = GC.getHandicapInfo(getHandicapType()).getTrainPercent();
+	if(!isHuman()) { // Apply this also to Barbarians // </advc.251>
+		CvHandicapInfo& h = GC.getHandicapInfo(GC.getGameINLINE().getHandicapType());
+		int iAIPercent = //h.getAIPerEraModifier() * getCurrentEra()
+				GC.getGameINLINE().AIHandicapAdjustment();
+		if(bWorldClass)
+			iAIPercent += h.getAIWorldTrainPercent();
+		else iAIPercent += h.getAITrainPercent();
+		iPercent *= iAIPercent;
+		iPercent /= 100;
+	}
+	return 0.01 * std::max(iPercent, 1);
+}
 
 int CvPlayer::getBuildingClassPrereqBuilding(BuildingTypes eBuilding, BuildingClassTypes ePrereqBuildingClass, int iExtra) const
 {
@@ -7823,9 +7822,9 @@ int CvPlayer::getUnitCostMultiplier() const
 	{
 		iMultiplier *= GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIUnitCostPercent();
 		iMultiplier /= 100;
-
-		iMultiplier *= std::max(0, ((GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIPerEraModifier() * getCurrentEra()) + 100));
-		iMultiplier /= 100;
+		// advc.251: Gold costs are no longer adjusted to handicap
+		/*iMultiplier *= std::max(0, ((GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIPerEraModifier() * getCurrentEra()) + 100));
+		iMultiplier /= 100;*/
 	}
 
 	return iMultiplier;
@@ -7836,8 +7835,6 @@ int CvPlayer::calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& i
 		int& iPaidMilitaryUnits, int& iUnitCost, int& iMilitaryCost, int& iExtraCost,
 		int iExtraPop) const // advc.004b
 {
-	//int iSupport;
-
 	iFreeUnits = GC.getHandicapInfo(getHandicapType()).getFreeUnits();
 
 	iFreeUnits += getBaseFreeUnits();
@@ -7913,15 +7910,10 @@ int CvPlayer::calculateUnitCost(
 	{
 		return 0;
 	}
-
-	int iFreeUnits;
-	int iFreeMilitaryUnits;
-	int iPaidUnits;
-	int iPaidMilitaryUnits;
-	int iMilitaryCost;
-	int iBaseUnitCost;
-	int iExtraCost;
-
+	/*  advc.003 (note): Several distinct variables need to be passed b/c
+		calculateUnitCost uses them for intermediate results */
+	int iFreeUnits, iFreeMilitaryUnits, iPaidUnits, iPaidMilitaryUnits,
+			iMilitaryCost, iBaseUnitCost, iExtraCost;
 	return calculateUnitCost(iFreeUnits, iFreeMilitaryUnits, iPaidUnits, iPaidMilitaryUnits,
 			iBaseUnitCost, iMilitaryCost, iExtraCost,
 			iExtraPop); // advc.004b
@@ -7932,8 +7924,8 @@ int CvPlayer::calculateUnitSupply(
 {
 	if(isAnarchy())
 		return 0;
-	int foo=-1; // advc.003
-	return calculateUnitSupply(foo, foo,
+	int iPaidUnits, iBaseSupplyCost;
+	return calculateUnitSupply(iPaidUnits, iBaseSupplyCost,
 			iExtraOutsideUnits); // advc.004b
 }
 
@@ -7999,9 +7991,9 @@ int CvPlayer::calculateInflationRate() const
 	if (!isHuman() && !isBarbarian())
 	{
 		int iAIModifier = GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIInflationPercent();
-		iAIModifier *= std::max(0, ((GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIPerEraModifier() * getCurrentEra()) + 100));
-		iAIModifier /= 100;
-
+		// advc.251: Gold costs are no longer adjusted to handicap
+		/*iAIModifier *= std::max(0, ((GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIPerEraModifier() * getCurrentEra()) + 100));
+		iAIModifier /= 100;*/
 		iModifier += iAIModifier - 100;
 	}
 
@@ -8133,10 +8125,11 @@ int CvPlayer::calculateResearchModifier(TechTypes eTech) const
 	int iUnknownPaths = 0;
 
 	for (int iI = 0; iI < GC.getNUM_OR_TECH_PREREQS(); iI++)
-	{
-		if (GC.getTechInfo(eTech).getPrereqOrTechs(iI) != NO_TECH)
+	{	// advc.003:
+		TechTypes eOrTech = (TechTypes)GC.getTechInfo(eTech).getPrereqOrTechs(iI);
+		if (eOrTech != NO_TECH)
 		{
-			if (!(GET_TEAM(getTeam()).isHasTech((TechTypes)(GC.getTechInfo(eTech).getPrereqOrTechs(iI)))))
+			if (!GET_TEAM(getTeam()).isHasTech(eOrTech))
 			{
 				iUnknownPaths++;
 			}
@@ -8147,30 +8140,13 @@ int CvPlayer::calculateResearchModifier(TechTypes eTech) const
 
 	FAssertMsg(iPossiblePaths >= iUnknownPaths, "The number of possible paths is expected to match or exceed the number of unknown ones");
 
-	if( iPossiblePaths > iUnknownPaths )
+	if(iPossiblePaths > iUnknownPaths)
 	{
 		iModifier += GC.getTECH_COST_FIRST_KNOWN_PREREQ_MODIFIER();
 		iPossiblePaths--;
 		iModifier += (iPossiblePaths - iUnknownPaths) * GC.getTECH_COST_KNOWN_PREREQ_MODIFIER();
 	}
 
-	EraTypes techEra = (EraTypes)GC.getTechInfo(eTech).getEra(); // advc.003
-	iModifier -= GC.getEraInfo(techEra).getTechCostModifier();
-
-	iModifier -= GC.getTECH_COST_MODIFIER();
-	CvGame const& g = GC.getGameINLINE(); // advc.003
-	// <advc.308>
-	if(g.isOption(GAMEOPTION_RAGING_BARBARIANS) && g.getStartEra() == (EraTypes)0) {
-		switch(techEra) {
-		case 1: iModifier += 14; break;
-		case 2: iModifier += 7; break;
-		}
-	} // </advc.308>
-	// <advc.550d>
-	if(g.isOption(GAMEOPTION_NO_TECH_TRADING) && techEra > 0 && techEra < 6) {
-		iModifier += std::max(0, ::round(GC.getTECH_COST_NOTRADE_MODIFIER() - 5 *
-				std::pow(std::abs(techEra - 2.5), 1.5)));
-	} // </advc.550d>
 	return iModifier;
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
@@ -9365,6 +9341,14 @@ int CvPlayer::greatPeopleThreshold(bool bMilitary) const
 
 	iThreshold *= GC.getEraInfo(g.getStartEra()).getGreatPeoplePercent();
 	iThreshold /= 100;
+	// <advc.251>
+	iThreshold = ::roundToMultiple(0.01 * iThreshold * GC.getHandicapInfo(
+			getHandicapType()).getGPThresholdPercent(),
+			isHuman() ? 5 : 1);
+	if(!isHuman() && !isBarbarian()) {
+		iThreshold = ::round(0.01 * iThreshold * GC.getHandicapInfo(
+				g.getHandicapType()).getAIGPThresholdPercent());
+	} // </advc.251>
 
 	return std::max(1, iThreshold);
 }
@@ -10736,9 +10720,9 @@ int CvPlayer::getModifiedWarWearinessPercentAnger(int iWarWearinessPercentAnger)
 	{
 		iWarWearinessPercentAnger *= GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIWarWearinessPercent();
 		iWarWearinessPercentAnger /= 100;
-
-		iWarWearinessPercentAnger *= std::max(0, ((GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIPerEraModifier() * getCurrentEra()) + 100));
-		iWarWearinessPercentAnger /= 100;
+		// advc.251: No longer adjusted to handicap
+		/*iWarWearinessPercentAnger *= std::max(0, ((GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIPerEraModifier() * getCurrentEra()) + 100));
+		iWarWearinessPercentAnger /= 100;*/
 	}
 
 	return iWarWearinessPercentAnger;
@@ -13823,9 +13807,9 @@ int CvPlayer::getSingleCivicUpkeep(CivicTypes eCivic, bool bIgnoreAnarchy,
 	{
 		iUpkeep *= GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAICivicUpkeepPercent();
 		iUpkeep /= 100;
-
-		iUpkeep *= std::max(0, ((GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIPerEraModifier() * getCurrentEra()) + 100));
-		iUpkeep /= 100;
+		// advc.251: Gold costs are no longer adjusted to handicap
+		/*iUpkeep *= std::max(0, ((GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIPerEraModifier() * getCurrentEra()) + 100));
+		iUpkeep /= 100;*/
 	}
 
 	return std::max(0, iUpkeep);
@@ -13866,92 +13850,92 @@ void CvPlayer::setCivics(CivicOptionTypes eIndex, CivicTypes eNewValue)
 
 	CivicTypes eOldCivic = getCivics(eIndex);
 
-	if (eOldCivic != eNewValue)
+	if(eOldCivic == eNewValue)
+		return;
+
+	m_paeCivics[eIndex] = eNewValue;
+	bool bWasStateReligion = isStateReligion(); // advc.106
+	if (eOldCivic != NO_CIVIC)
 	{
-		m_paeCivics[eIndex] = eNewValue;
-		bool bWasStateReligion = isStateReligion(); // advc.106
-		if (eOldCivic != NO_CIVIC)
+		processCivics(eOldCivic, -1);
+	}
+	if (getCivics(eIndex) != NO_CIVIC)
+	{
+		processCivics(getCivics(eIndex), 1);
+	}
+
+	GC.getGameINLINE().updateSecretaryGeneral();
+
+	GC.getGameINLINE().AI_makeAssignWorkDirty();
+
+	if (GC.getGameINLINE().isFinalInitialized())
+	{
+		if (gDLL->isDiplomacy() && (gDLL->getDiplomacyPlayer() == getID()))
 		{
-			processCivics(eOldCivic, -1);
+			gDLL->updateDiplomacyAttitude(true);
 		}
-		if (getCivics(eIndex) != NO_CIVIC)
+
+		if (!isBarbarian())
 		{
-			processCivics(getCivics(eIndex), 1);
-		}
-
-		GC.getGameINLINE().updateSecretaryGeneral();
-
-		GC.getGameINLINE().AI_makeAssignWorkDirty();
-
-		if (GC.getGameINLINE().isFinalInitialized())
-		{
-			if (gDLL->isDiplomacy() && (gDLL->getDiplomacyPlayer() == getID()))
+			if (getCivics(eIndex) != NO_CIVIC)
 			{
-				gDLL->updateDiplomacyAttitude(true);
-			}
-
-			if (!isBarbarian())
-			{
-				if (getCivics(eIndex) != NO_CIVIC)
-				{
-					/* original code (which erroneously blocked the message for certain civic switches)
-					if (getCivics(eIndex) != GC.getCivilizationInfo(getCivilizationType()).getCivilizationInitialCivics(eIndex))*/
-					// K-Mod
-					if (eOldCivic != NO_CIVIC)
-					// K-Mod end
-					{	// <advc.151> Moved out of the loop
-						szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYER_ADOPTED_CIVIC", getNameKey(),
-								GC.getCivicInfo(getCivics(eIndex)).getTextKeyWide());
-						// <advc.106>
-						bool bRenounce = (!GC.getCivicInfo(getCivics(eIndex)).isStateReligion() &&
-								GC.getCivicInfo(eOldCivic).isStateReligion() && bWasStateReligion &&
-								getLastStateReligion() != NO_RELIGION);
-						if(bRenounce) {
-							szBuffer += L" " +  gDLL->getText("TXT_KEY_MISC_AND_RENOUNCE_RELIGION",
-									GC.getReligionInfo(getLastStateReligion()).getTextKeyWide());
-						}
-						else // </advc.106>
-							if(eOldCivic != GC.getCivilizationInfo(getCivilizationType()).
-								getCivilizationInitialCivics(eIndex)) {
-							szBuffer += L" " + gDLL->getText("TXT_KEY_MISC_AND_ABOLISH_CIVIC",
-									GC.getCivicInfo(eOldCivic).getTextKeyWide());
-						} // </advc.151>
-						for (int iI = 0; iI < MAX_PLAYERS; iI++)
+				/* original code (which erroneously blocked the message for certain civic switches)
+				if (getCivics(eIndex) != GC.getCivilizationInfo(getCivilizationType()).getCivilizationInitialCivics(eIndex))*/
+				// K-Mod
+				if (eOldCivic != NO_CIVIC)
+				// K-Mod end
+				{	// <advc.151> Moved out of the loop
+					szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYER_ADOPTED_CIVIC", getNameKey(),
+							GC.getCivicInfo(getCivics(eIndex)).getTextKeyWide());
+					// <advc.106>
+					bool bRenounce = (!GC.getCivicInfo(getCivics(eIndex)).isStateReligion() &&
+							GC.getCivicInfo(eOldCivic).isStateReligion() && bWasStateReligion &&
+							getLastStateReligion() != NO_RELIGION);
+					if(bRenounce) {
+						szBuffer += L" " +  gDLL->getText("TXT_KEY_MISC_AND_RENOUNCE_RELIGION",
+								GC.getReligionInfo(getLastStateReligion()).getTextKeyWide());
+					}
+					else // </advc.106>
+						if(eOldCivic != GC.getCivilizationInfo(getCivilizationType()).
+							getCivilizationInitialCivics(eIndex)) {
+						szBuffer += L" " + gDLL->getText("TXT_KEY_MISC_AND_ABOLISH_CIVIC",
+								GC.getCivicInfo(eOldCivic).getTextKeyWide());
+					} // </advc.151>
+					for (int iI = 0; iI < MAX_PLAYERS; iI++)
+					{
+						if (GET_PLAYER((PlayerTypes)iI).isAlive())
 						{
-							if (GET_PLAYER((PlayerTypes)iI).isAlive())
+							if (GET_TEAM(getTeam()).isHasMet(GET_PLAYER((PlayerTypes)iI).getTeam()))
 							{
-								if (GET_TEAM(getTeam()).isHasMet(GET_PLAYER((PlayerTypes)iI).getTeam()))
-								{
-									gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CIVIC_ADOPT",
-											bRenounce ? MESSAGE_TYPE_MAJOR_EVENT : // advc.106
-											MESSAGE_TYPE_MINOR_EVENT, // advc.106b
-											// advc.127b:
-											NULL, NO_COLOR, getCapitalX(), getCapitalY());
-								}
+								gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CIVIC_ADOPT",
+										bRenounce ? MESSAGE_TYPE_MAJOR_EVENT : // advc.106
+										MESSAGE_TYPE_MINOR_EVENT, // advc.106b
+										// advc.127b:
+										NULL, NO_COLOR, getCapitalX(), getCapitalY());
 							}
 						}
-						if(bRenounce) { // advc.106
-							szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYER_ADOPTED_CIVIC", getNameKey(), GC.getCivicInfo(getCivics(eIndex)).getTextKeyWide());
-							// <advc.106>
-							szBuffer += L" " + gDLL->getText("TXT_KEY_MISC_AND_RENOUNCE_RELIGION",
-									GC.getReligionInfo(getLastStateReligion()).getTextKeyWide());
-							// </advc.106>
-							GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szBuffer);
-						}
+					}
+					if(bRenounce) { // advc.106
+						szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYER_ADOPTED_CIVIC", getNameKey(), GC.getCivicInfo(getCivics(eIndex)).getTextKeyWide());
+						// <advc.106>
+						szBuffer += L" " + gDLL->getText("TXT_KEY_MISC_AND_RENOUNCE_RELIGION",
+								GC.getReligionInfo(getLastStateReligion()).getTextKeyWide());
+						// </advc.106>
+						GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szBuffer);
 					}
 				}
 			}
-			GC.getGameINLINE().updateGwPercentAnger(); // K-Mod. (environmentalism can change this. It's nice to see the effects immediately.)
 		}
-
-		// K-Mod. Attitude cache.
-		for (PlayerTypes i = (PlayerTypes)0; i < MAX_PLAYERS; i=(PlayerTypes)(i+1))
-		{
-			GET_PLAYER(getID()).AI_updateAttitudeCache(i);
-			GET_PLAYER(i).AI_updateAttitudeCache(getID());
-		}
-		// K-Mod end
+		// K-Mod. (environmentalism can change this. It's nice to see the effects immediately.)
+		GC.getGameINLINE().updateGwPercentAnger();
 	}
+
+	// K-Mod. Attitude cache.
+	for (PlayerTypes i = (PlayerTypes)0; i < MAX_PLAYERS; i=(PlayerTypes)(i+1))
+	{
+		GET_PLAYER(getID()).AI_updateAttitudeCache(i);
+		GET_PLAYER(i).AI_updateAttitudeCache(getID());
+	} // K-Mod end
 }
 
 
@@ -17316,7 +17300,7 @@ int CvPlayer::getAdvancedStartCityCost(bool bAdd, CvPlot* pPlot) const
 
 	int iCost = getNewCityProductionValue();
 
-	iCost *= 3; iCost /= 2; // advc.250c
+	iCost = ::round(1.5 * iCost); // advc.250c
 
 	if (iCost < 0)
 	{
@@ -17385,7 +17369,7 @@ int CvPlayer::getAdvancedStartCityCost(bool bAdd, CvPlot* pPlot) const
 			}
 			//Only allow founding a city at someone else's start point if 
 			//We have no cities and they have no cities.
-			if ((getID() != eClosestPlayer) && ((getNumCities() > 0) || (GET_PLAYER(eClosestPlayer).getNumCities() > 0)))
+			if (getID() != eClosestPlayer && (getNumCities() > 0 || GET_PLAYER(eClosestPlayer).getNumCities() > 0))
 			{
 				return -1;
 			}
@@ -23485,25 +23469,25 @@ int CvPlayer::getNewCityProductionValue() const
 
 int CvPlayer::getGrowthThreshold(int iPopulation) const
 {
-	int iThreshold;
-
-	iThreshold = (GC.getDefineINT("BASE_CITY_GROWTH_THRESHOLD") + (iPopulation * GC.getDefineINT("CITY_GROWTH_MULTIPLIER")));
-
-	iThreshold *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getGrowthPercent();
-	iThreshold /= 100;
-
-	iThreshold *= GC.getEraInfo(GC.getGameINLINE().getStartEra()).getGrowthPercent();
-	iThreshold /= 100;
-
-	if (!isHuman() && !isBarbarian())
-	{
-		iThreshold *= GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIGrowthPercent();
-		iThreshold /= 100;
-
-		iThreshold *= std::max(0, ((GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIPerEraModifier() * getCurrentEra()) + 100));
-		iThreshold /= 100;
-	}
-
+	CvGame const& g = GC.getGameINLINE(); // advc.003
+	// <advc.251>
+	int iBaseThreshold = GC.getDefineINT("BASE_CITY_GROWTH_THRESHOLD");
+	iBaseThreshold = ::round(0.01 * iBaseThreshold * GC.getHandicapInfo(
+			getHandicapType()).getBaseGrowthThresholdPercent());
+	int iThreshold = iBaseThreshold + // </advc.251>
+			(iPopulation * GC.getDefineINT("CITY_GROWTH_MULTIPLIER"));
+	// <advc.251>
+	int iAIModifier = 100;
+	if(!isHuman()) { // Also apply it to Barbarians
+		CvHandicapInfo const& h = GC.getHandicapInfo(g.getHandicapType());
+		iAIModifier = h.getAIGrowthPercent() +
+				//h.getAIPerEraModifier() * getCurrentEra()
+				g.AIHandicapAdjustment();
+	} // Reduce rounding error:
+	iThreshold = ::round(iThreshold * 0.01 * iAIModifier *
+			0.01 * GC.getGameSpeedInfo(g.getGameSpeedType()).getGrowthPercent() *
+			0.01 * GC.getEraInfo(g.getStartEra()).getGrowthPercent());
+	// </advc.251>
 	return std::max(1, iThreshold);
 }
 

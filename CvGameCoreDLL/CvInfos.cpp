@@ -309,7 +309,8 @@ bool CvHotkeyInfo::read(CvXMLLoadUtility* pXML)
 	}
 	iVal = pXML->GetHotKeyInt(szTextVal);
 	setHotKeyVal(iVal);
-  if (pXML->GetChildXmlValByName(&iVal, "iHotKeyPriority"))
+	// advc.006b: Default param added
+	if (pXML->GetChildXmlValByName(&iVal, "iHotKeyPriority", -1))
 	{
 		setHotKeyPriority(iVal);
 	}
@@ -327,7 +328,8 @@ bool CvHotkeyInfo::read(CvXMLLoadUtility* pXML)
 		iVal = pXML->GetHotKeyInt("");
 	}
 	setHotKeyValAlt(iVal);
-	if (pXML->GetChildXmlValByName(&iVal, "iHotKeyPriorityAlt"))
+	// advc.006b: Default param added
+	if (pXML->GetChildXmlValByName(&iVal, "iHotKeyPriorityAlt", -1))
 	{
 		setHotKeyPriorityAlt(iVal);
 	}
@@ -385,7 +387,8 @@ bool CvHotkeyInfo::read(CvXMLLoadUtility* pXML)
 	{
 		setCtrlDownAlt(false);
 	}
-	if (pXML->GetChildXmlValByName(&iVal, "iOrderPriority"))
+	// advc.006b: Default param added
+	if (pXML->GetChildXmlValByName(&iVal, "iOrderPriority", 0))
 	{
 		setOrderPriority(iVal);
 	}
@@ -10164,7 +10167,16 @@ m_iAdvancedStartPointsMod(0),
 m_iStartingGold(0),
 m_iFreeUnits(0),
 m_iUnitCostPercent(0),
+// <advc.251>
+m_iBaseGrowthThresholdPercent(0),
+m_iGPThresholdPercent(0),
+// </advc.251>
 m_iResearchPercent(0),
+// <advc.251>
+m_iTrainPercent(0),
+m_iConstructPercent(0),
+m_iCreatePercent(0),
+// </advc.251>
 m_iDistanceMaintenancePercent(0),				
 m_iNumCitiesMaintenancePercent(0),				
 m_iMaxNumCitiesMaintenance(0),					
@@ -10200,7 +10212,10 @@ m_iBarbarianInitialDefenders(0),
 m_iAIDeclareWarProb(0),
 m_iAIWorkRateModifier(0),
 m_iAIGrowthPercent(0),
-m_iAIResearchPercent(0), // advc.251
+// <advc.251>
+m_iAIGPThresholdPercent(0),
+m_iAIResearchPercent(0),
+// </advc.251>
 m_iAITrainPercent(0),
 m_iAIWorldTrainPercent(0),
 m_iAIConstructPercent(0),
@@ -10213,7 +10228,8 @@ m_iAIUnitSupplyPercent(0),
 m_iAIUnitUpgradePercent(0),
 m_iAIInflationPercent(0),
 m_iAIWarWearinessPercent(0),
-m_iAIPerEraModifier(0),
+//m_iAIPerEraModifier(0),
+m_iAIHandicapIncrementTurns(0), // advc.251
 m_iAIAttitudeChangePercent(1), // advc.148
 m_iAIAdvancedStartPercent(0),
 m_iNumGoodies(0),
@@ -10238,12 +10254,12 @@ CvHandicapInfo::~CvHandicapInfo()
 	SAFE_DELETE_ARRAY(m_pbAIFreeTechs);
 }
 
-int CvHandicapInfo::getFreeWinsVsBarbs() const		
+int CvHandicapInfo::getFreeWinsVsBarbs() const
 {
 	return m_iFreeWinsVsBarbs;
 }
 
-int CvHandicapInfo::getAnimalAttackProb() const		
+int CvHandicapInfo::getAnimalAttackProb() const
 {
 	return m_iAnimalAttackProb;
 }
@@ -10253,37 +10269,37 @@ int CvHandicapInfo::getStartingLocationPercent() const
 	return m_iStartingLocationPercent;
 }
 
-int CvHandicapInfo::getAdvancedStartPointsMod() const				
+int CvHandicapInfo::getAdvancedStartPointsMod() const
 {
 	return m_iAdvancedStartPointsMod;
 }
 
-int CvHandicapInfo::getStartingGold() const				
+int CvHandicapInfo::getStartingGold() const
 {
 	return m_iStartingGold;
 }
 
-int CvHandicapInfo::getFreeUnits() const					
+int CvHandicapInfo::getFreeUnits() const
 {
 	return m_iFreeUnits;
 }
 
-int CvHandicapInfo::getUnitCostPercent() const		
+int CvHandicapInfo::getUnitCostPercent() const
 {
 	return m_iUnitCostPercent;
 }
 
-int CvHandicapInfo::getResearchPercent() const		
+int CvHandicapInfo::getResearchPercent() const
 {
 	return m_iResearchPercent;
 }
 
-int CvHandicapInfo::getDistanceMaintenancePercent() const			
+int CvHandicapInfo::getDistanceMaintenancePercent() const
 {
 	return m_iDistanceMaintenancePercent;
 }
 
-int CvHandicapInfo::getNumCitiesMaintenancePercent() const		
+int CvHandicapInfo::getNumCitiesMaintenancePercent() const
 {
 	return m_iNumCitiesMaintenancePercent;
 }
@@ -10293,7 +10309,7 @@ int CvHandicapInfo::getMaxNumCitiesMaintenance() const
 	return m_iMaxNumCitiesMaintenance;
 }
 
-int CvHandicapInfo::getColonyMaintenancePercent() const		
+int CvHandicapInfo::getColonyMaintenancePercent() const
 {
 	return m_iColonyMaintenancePercent;
 }
@@ -10303,27 +10319,27 @@ int CvHandicapInfo::getMaxColonyMaintenance() const
 	return m_iMaxColonyMaintenance;
 }
 
-int CvHandicapInfo::getCorporationMaintenancePercent() const		
+int CvHandicapInfo::getCorporationMaintenancePercent() const
 {
 	return m_iCorporationMaintenancePercent;
 }
 
-int CvHandicapInfo::getCivicUpkeepPercent() const	
+int CvHandicapInfo::getCivicUpkeepPercent() const
 {
 	return m_iCivicUpkeepPercent;
 }
 
-int CvHandicapInfo::getInflationPercent() const		
+int CvHandicapInfo::getInflationPercent() const
 {
 	return m_iInflationPercent;
 }
 
-int CvHandicapInfo::getHealthBonus() const			
+int CvHandicapInfo::getHealthBonus() const
 {
 	return m_iHealthBonus;
 }
 
-int CvHandicapInfo::getHappyBonus() const				
+int CvHandicapInfo::getHappyBonus() const
 {
 	return m_iHappyBonus;
 }
@@ -10343,12 +10359,12 @@ int CvHandicapInfo::getTechTradeKnownModifier() const
 	return m_iTechTradeKnownModifier;
 }
 
-int CvHandicapInfo::getUnownedTilesPerGameAnimal() const			
+int CvHandicapInfo::getUnownedTilesPerGameAnimal() const
 {
 	return m_iUnownedTilesPerGameAnimal;
 }
 
-int CvHandicapInfo::getUnownedTilesPerBarbarianUnit() const		
+int CvHandicapInfo::getUnownedTilesPerBarbarianUnit() const
 {
 	return m_iUnownedTilesPerBarbarianUnit;
 }
@@ -10358,12 +10374,12 @@ int CvHandicapInfo::getUnownedWaterTilesPerBarbarianUnit() const
 	return m_iUnownedWaterTilesPerBarbarianUnit;
 }
 
-int CvHandicapInfo::getUnownedTilesPerBarbarianCity() const		
+int CvHandicapInfo::getUnownedTilesPerBarbarianCity() const
 {
 	return m_iUnownedTilesPerBarbarianCity;
 }
 
-int CvHandicapInfo::getBarbarianCreationTurnsElapsed() const	
+int CvHandicapInfo::getBarbarianCreationTurnsElapsed() const
 {
 	return m_iBarbarianCreationTurnsElapsed;
 }
@@ -10373,7 +10389,7 @@ int CvHandicapInfo::getBarbarianCityCreationTurnsElapsed() const
 	return m_iBarbarianCityCreationTurnsElapsed;
 }
 
-int CvHandicapInfo::getBarbarianCityCreationProb() const			
+int CvHandicapInfo::getBarbarianCityCreationProb() const
 {
 	return m_iBarbarianCityCreationProb;
 }
@@ -10383,7 +10399,7 @@ int CvHandicapInfo::getAnimalCombatModifier() const
 	return m_iAnimalCombatModifier;
 }
 
-int CvHandicapInfo::getBarbarianCombatModifier() const			
+int CvHandicapInfo::getBarbarianCombatModifier() const
 {
 	return m_iBarbarianCombatModifier;
 }
@@ -10393,7 +10409,7 @@ int CvHandicapInfo::getAIAnimalCombatModifier() const
 	return m_iAIAnimalCombatModifier;
 }
 
-int CvHandicapInfo::getAIBarbarianCombatModifier() const		
+int CvHandicapInfo::getAIBarbarianCombatModifier() const
 {
 	return m_iAIBarbarianCombatModifier;
 }
@@ -10448,15 +10464,10 @@ int CvHandicapInfo::getAIWorkRateModifier() const
 	return m_iAIWorkRateModifier;
 }
 
-int CvHandicapInfo::getAIGrowthPercent() const		
+int CvHandicapInfo::getAIGrowthPercent() const
 {
 	return m_iAIGrowthPercent;
 }
-// <advc.251>
-int CvHandicapInfo::getAIResearchPercent() const		
-{
-	return m_iAIResearchPercent;
-} // </advc.251>
 
 int CvHandicapInfo::getAITrainPercent() const
 {
@@ -10468,22 +10479,22 @@ int CvHandicapInfo::getAIWorldTrainPercent() const
 	return m_iAIWorldTrainPercent;
 }
 
-int CvHandicapInfo::getAIConstructPercent() const	
+int CvHandicapInfo::getAIConstructPercent() const
 {
 	return m_iAIConstructPercent;
 }
 
-int CvHandicapInfo::getAIWorldConstructPercent() const	
+int CvHandicapInfo::getAIWorldConstructPercent() const
 {
 	return m_iAIWorldConstructPercent;
 }
 
-int CvHandicapInfo::getAICreatePercent() const		
+int CvHandicapInfo::getAICreatePercent() const
 {
 	return m_iAICreatePercent;
 }
 
-int CvHandicapInfo::getAIWorldCreatePercent() const		
+int CvHandicapInfo::getAIWorldCreatePercent() const
 {
 	return m_iAIWorldCreatePercent;
 }
@@ -10493,7 +10504,7 @@ int CvHandicapInfo::getAICivicUpkeepPercent() const
 	return m_iAICivicUpkeepPercent;
 }
 
-int CvHandicapInfo::getAIUnitCostPercent() const	
+int CvHandicapInfo::getAIUnitCostPercent() const
 {
 	return m_iAIUnitCostPercent;
 }
@@ -10517,13 +10528,13 @@ int CvHandicapInfo::getAIWarWearinessPercent() const
 {
 	return m_iAIWarWearinessPercent;
 }
-
-int CvHandicapInfo::getAIPerEraModifier() const		
+// advc.251: Replaced by AIHandicapIncrementTurns
+/*int CvHandicapInfo::getAIPerEraModifier() const
 {
 	return m_iAIPerEraModifier;
-}
+}*/
 
-int CvHandicapInfo::getAIAdvancedStartPercent() const		
+int CvHandicapInfo::getAIAdvancedStartPercent() const
 {
 	return m_iAIAdvancedStartPercent;
 }
@@ -10533,7 +10544,7 @@ int CvHandicapInfo::getAIAttitudeChangePercent() const
 	return m_iAIAttitudeChangePercent;
 } // </advc.148>
 
-int CvHandicapInfo::getNumGoodies() const					
+int CvHandicapInfo::getNumGoodies() const
 {
 	return m_iNumGoodies;
 }
@@ -10543,7 +10554,7 @@ int CvHandicapInfo::getDifficulty() const { return m_iDifficulty; }
 
 // Arrays
 
-int CvHandicapInfo::getGoodies(int i) const				
+int CvHandicapInfo::getGoodies(int i) const
 {
 	FAssertMsg(i < getNumGoodies(), "Index out of bounds");
 	FAssertMsg(i > -1, "Index out of bounds");
@@ -10578,7 +10589,22 @@ void CvHandicapInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iStartingGold);
 	stream->Read(&m_iFreeUnits);
 	stream->Read(&m_iUnitCostPercent);
+	// <advc.251>
+	if(uiFlag >= 3) {
+		stream->Read(&m_iBaseGrowthThresholdPercent);
+		stream->Read(&m_iGPThresholdPercent);
+	}
+	else m_iBaseGrowthThresholdPercent = m_iGPThresholdPercent = 100;
+	// </advc.251>
 	stream->Read(&m_iResearchPercent);
+	// <advc.251>
+	if(uiFlag >= 3) {
+		stream->Read(&m_iTrainPercent);
+		stream->Read(&m_iConstructPercent);
+		stream->Read(&m_iCreatePercent);
+	}
+	else m_iTrainPercent = m_iConstructPercent = m_iCreatePercent = 100;
+	// </advc.251>
 	stream->Read(&m_iDistanceMaintenancePercent);
 	stream->Read(&m_iNumCitiesMaintenancePercent);
 	stream->Read(&m_iMaxNumCitiesMaintenance);
@@ -10616,9 +10642,13 @@ void CvHandicapInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iAIWorkRateModifier);
 	stream->Read(&m_iAIGrowthPercent);
 	// <advc.251>
+	if(uiFlag >= 3)
+		stream->Read(&m_iAIGPThresholdPercent);
+	else m_iAIGPThresholdPercent = 100;
 	if(uiFlag >= 1)
 		stream->Read(&m_iAIResearchPercent);
-	else m_iAIResearchPercent = 100; // </advc.251>
+	else m_iAIResearchPercent = 100;
+	// </advc.251>
 	stream->Read(&m_iAITrainPercent);
 	stream->Read(&m_iAIWorldTrainPercent);
 	stream->Read(&m_iAIConstructPercent);
@@ -10631,7 +10661,8 @@ void CvHandicapInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iAIUnitUpgradePercent);
 	stream->Read(&m_iAIInflationPercent);
 	stream->Read(&m_iAIWarWearinessPercent);
-	stream->Read(&m_iAIPerEraModifier);
+	//stream->Read(&m_iAIPerEraModifier);
+	stream->Read(&m_iAIHandicapIncrementTurns); // advc.251
 	stream->Read(&m_iAIAdvancedStartPercent);
 	// <advc.148>
 	if(uiFlag >= 2)
@@ -10660,7 +10691,10 @@ void CvHandicapInfo::write(FDataStreamBase* stream)
 {
 	CvInfoBase::write(stream);
 
-	uint uiFlag=2; // advc.251: 1, advc.148: 2
+	uint uiFlag=2;
+	uiFlag = 1; // advc.251
+	uiFlag = 2; // advc.148
+	uiFlag = 3; // advc.251
 	stream->Write(uiFlag);		// Flag for Expansion
 
 	stream->Write(m_iFreeWinsVsBarbs);
@@ -10670,7 +10704,16 @@ void CvHandicapInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iStartingGold);
 	stream->Write(m_iFreeUnits);
 	stream->Write(m_iUnitCostPercent);
+	// <advc.251>
+	stream->Write(m_iBaseGrowthThresholdPercent);
+	stream->Write(m_iGPThresholdPercent);
+	// </advc.251>
 	stream->Write(m_iResearchPercent);
+	// <advc.251>
+	stream->Write(m_iTrainPercent);
+	stream->Write(m_iConstructPercent);
+	stream->Write(m_iCreatePercent);
+	// </advc.251>
 	stream->Write(m_iDistanceMaintenancePercent);
 	stream->Write(m_iNumCitiesMaintenancePercent);
 	stream->Write(m_iMaxNumCitiesMaintenance);
@@ -10707,7 +10750,10 @@ void CvHandicapInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iAIDeclareWarProb);
 	stream->Write(m_iAIWorkRateModifier);
 	stream->Write(m_iAIGrowthPercent);
-	stream->Write(m_iAIResearchPercent); // advc.251
+	// <advc.251>
+	stream->Write(m_iAIGPThresholdPercent);
+	stream->Write(m_iAIResearchPercent);
+	// </advc.251>
 	stream->Write(m_iAITrainPercent);
 	stream->Write(m_iAIWorldTrainPercent);
 	stream->Write(m_iAIConstructPercent);
@@ -10720,7 +10766,8 @@ void CvHandicapInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iAIUnitUpgradePercent);
 	stream->Write(m_iAIInflationPercent);
 	stream->Write(m_iAIWarWearinessPercent);
-	stream->Write(m_iAIPerEraModifier);
+	//stream->Write(m_iAIPerEraModifier);
+	stream->Write(m_iAIHandicapIncrementTurns); // advc.261
 	stream->Write(m_iAIAdvancedStartPercent);
 	stream->Write(m_iAIAttitudeChangePercent); // advc.148
 	stream->Write(m_iNumGoodies);
@@ -10751,7 +10798,16 @@ bool CvHandicapInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iStartingGold, "iGold");
 	pXML->GetChildXmlValByName(&m_iFreeUnits, "iFreeUnits");
 	pXML->GetChildXmlValByName(&m_iUnitCostPercent, "iUnitCostPercent");
+	// <advc.251>
+	pXML->GetChildXmlValByName(&m_iBaseGrowthThresholdPercent, "iBaseGrowthThresholdPercent");
+	pXML->GetChildXmlValByName(&m_iGPThresholdPercent, "iGPThresholdPercent");
+	// </advc.251>
 	pXML->GetChildXmlValByName(&m_iResearchPercent, "iResearchPercent");
+	// <advc.251>
+	pXML->GetChildXmlValByName(&m_iTrainPercent, "iTrainPercent");
+	pXML->GetChildXmlValByName(&m_iConstructPercent, "iConstructPercent");
+	pXML->GetChildXmlValByName(&m_iCreatePercent, "iCreatePercent");
+	// </advc.251>
 	pXML->GetChildXmlValByName(&m_iDistanceMaintenancePercent, "iDistanceMaintenancePercent");
 	pXML->GetChildXmlValByName(&m_iNumCitiesMaintenancePercent, "iNumCitiesMaintenancePercent");
 	pXML->GetChildXmlValByName(&m_iMaxNumCitiesMaintenance, "iMaxNumCitiesMaintenance");
@@ -10787,7 +10843,10 @@ bool CvHandicapInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iAIDeclareWarProb, "iAIDeclareWarProb");
 	pXML->GetChildXmlValByName(&m_iAIWorkRateModifier, "iAIWorkRateModifier");
 	pXML->GetChildXmlValByName(&m_iAIGrowthPercent, "iAIGrowthPercent");
-	pXML->GetChildXmlValByName(&m_iAIResearchPercent, "iAIResearchPercent"); // advc.251
+	// <advc.251>
+	pXML->GetChildXmlValByName(&m_iAIGPThresholdPercent, "iAIGPThresholdPercent");
+	pXML->GetChildXmlValByName(&m_iAIResearchPercent, "iAIResearchPercent");
+	// </advc.251>
 	pXML->GetChildXmlValByName(&m_iAITrainPercent, "iAITrainPercent");
 	pXML->GetChildXmlValByName(&m_iAIWorldTrainPercent, "iAIWorldTrainPercent");
 	pXML->GetChildXmlValByName(&m_iAIConstructPercent, "iAIConstructPercent");
@@ -10800,7 +10859,9 @@ bool CvHandicapInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iAIUnitUpgradePercent, "iAIUnitUpgradePercent");
 	pXML->GetChildXmlValByName(&m_iAIInflationPercent, "iAIInflationPercent");
 	pXML->GetChildXmlValByName(&m_iAIWarWearinessPercent, "iAIWarWearinessPercent");
-	pXML->GetChildXmlValByName(&m_iAIPerEraModifier, "iAIPerEraModifier");
+	//pXML->GetChildXmlValByName(&m_iAIPerEraModifier, "iAIPerEraModifier");
+	// advc.251:
+	pXML->GetChildXmlValByName(&m_iAIHandicapIncrementTurns, "iAIHandicapIncrementTurns");
 	pXML->GetChildXmlValByName(&m_iAIAdvancedStartPercent, "iAIAdvancedStartPercent");
 	// advc.148:
 	pXML->GetChildXmlValByName(&m_iAIAttitudeChangePercent, "iAIAttitudeChangePercent");

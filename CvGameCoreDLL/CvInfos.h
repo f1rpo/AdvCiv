@@ -2383,7 +2383,16 @@ public:
 	int getStartingGold() const;				// Exposed to Python
 	int getFreeUnits() const;				// Exposed to Python
 	int getUnitCostPercent() const;				// Exposed to Python
+	// <advc.251>
+	inline int getBaseGrowthThresholdPercent() const { return m_iBaseGrowthThresholdPercent; }
+	inline int getGPThresholdPercent() const { return m_iGPThresholdPercent; }
+	// </advc.251>
 	int getResearchPercent() const;				// Exposed to Python
+	// <advc.251>
+	inline int getTrainPercent() const { return m_iTrainPercent; }
+	inline int getConstructPercent() const { return m_iConstructPercent; }
+	inline int getCreatePercent() const { return m_iCreatePercent; }
+	// </advc.251>
 	int getDistanceMaintenancePercent() const;				// Exposed to Python
 	int getNumCitiesMaintenancePercent() const;				// Exposed to Python
 	int getMaxNumCitiesMaintenance() const;				// Exposed to Python
@@ -2420,7 +2429,10 @@ public:
 	int getAIDeclareWarProb() const;								// Exposed to Python
 	int getAIWorkRateModifier() const;				// Exposed to Python
 	int getAIGrowthPercent() const;				// Exposed to Python
-	int getAIResearchPercent() const; // advc.251
+	// <advc.251>
+	inline int getAIGPThresholdPercent() const { return m_iAIGPThresholdPercent; }
+	inline int getAIResearchPercent() const { return m_iAIResearchPercent; }
+	// </advc.251>
 	int getAITrainPercent() const;				// Exposed to Python
 	int getAIWorldTrainPercent() const;				// Exposed to Python
 	int getAIConstructPercent() const;				// Exposed to Python
@@ -2433,7 +2445,8 @@ public:
 	int getAIUnitUpgradePercent() const;				// Exposed to Python
 	int getAIInflationPercent() const;				// Exposed to Python
 	int getAIWarWearinessPercent() const;				// Exposed to Python
-	int getAIPerEraModifier() const;						// Exposed to Python
+	//int getAIPerEraModifier() const;						// Exposed to Python
+	inline int getAIHandicapIncrementTurns() const { return m_iAIHandicapIncrementTurns; }
 	int getAIAttitudeChangePercent() const; // advc.148
 	int getAIAdvancedStartPercent() const;						// Exposed to Python
 	int getNumGoodies() const;				// Exposed to Python
@@ -2455,32 +2468,41 @@ protected:
 
 	int m_iFreeWinsVsBarbs;
 	int m_iAnimalAttackProb;
-	int m_iStartingLocationPercent;						
-	int m_iAdvancedStartPointsMod;											
-	int m_iStartingGold;											
-	int m_iFreeUnits;												
-	int m_iUnitCostPercent;									
-	int m_iResearchPercent;									
-	int m_iDistanceMaintenancePercent;				
-	int m_iNumCitiesMaintenancePercent;				
-	int m_iMaxNumCitiesMaintenance;					
-	int m_iColonyMaintenancePercent;				
-	int m_iMaxColonyMaintenance;					
-	int m_iCorporationMaintenancePercent;				
-	int m_iCivicUpkeepPercent;								
-	int m_iInflationPercent;									
-	int m_iHealthBonus;									
-	int m_iHappyBonus;										
+	int m_iStartingLocationPercent;
+	int m_iAdvancedStartPointsMod;
+	int m_iStartingGold;
+	int m_iFreeUnits;
+	int m_iUnitCostPercent;
+	// <advc.251>
+	int m_iBaseGrowthThresholdPercent;
+	int m_iGPThresholdPercent;
+	// </advc.251>
+	int m_iResearchPercent;
+	// <advc.251>
+	int m_iTrainPercent;
+	int m_iConstructPercent;
+	int m_iCreatePercent;
+	// </avdc.251>
+	int m_iDistanceMaintenancePercent;
+	int m_iNumCitiesMaintenancePercent;
+	int m_iMaxNumCitiesMaintenance;
+	int m_iColonyMaintenancePercent;
+	int m_iMaxColonyMaintenance;
+	int m_iCorporationMaintenancePercent;
+	int m_iCivicUpkeepPercent;
+	int m_iInflationPercent;
+	int m_iHealthBonus;
+	int m_iHappyBonus;
 	int m_iAttitudeChange;
 	int m_iNoTechTradeModifier;
 	int m_iTechTradeKnownModifier;
-	int m_iUnownedTilesPerGameAnimal;				
-	int m_iUnownedTilesPerBarbarianUnit;			
-	int m_iUnownedWaterTilesPerBarbarianUnit;	
-	int m_iUnownedTilesPerBarbarianCity;			
-	int m_iBarbarianCreationTurnsElapsed;			
-	int m_iBarbarianCityCreationTurnsElapsed;	
-	int m_iBarbarianCityCreationProb;					
+	int m_iUnownedTilesPerGameAnimal;
+	int m_iUnownedTilesPerBarbarianUnit;
+	int m_iUnownedWaterTilesPerBarbarianUnit;
+	int m_iUnownedTilesPerBarbarianCity;
+	int m_iBarbarianCreationTurnsElapsed;
+	int m_iBarbarianCityCreationTurnsElapsed;
+	int m_iBarbarianCityCreationProb;
 	int m_iAnimalCombatModifier;
 	int m_iBarbarianCombatModifier;
 	int m_iAIAnimalCombatModifier;
@@ -2497,7 +2519,10 @@ protected:
 	int m_iAIDeclareWarProb;
 	int m_iAIWorkRateModifier;
 	int m_iAIGrowthPercent;
-	int m_iAIResearchPercent; // advc.251
+	// <advc.251>
+	int m_iAIGPThresholdPercent;
+	int m_iAIResearchPercent;
+	// </advc.251>
 	int m_iAITrainPercent;
 	int m_iAIWorldTrainPercent;
 	int m_iAIConstructPercent;
@@ -2510,7 +2535,8 @@ protected:
 	int m_iAIUnitUpgradePercent;
 	int m_iAIInflationPercent;
 	int m_iAIWarWearinessPercent;
-	int m_iAIPerEraModifier;
+	//int m_iAIPerEraModifier;
+	int m_iAIHandicapIncrementTurns; // advc.251
 	int m_iAIAdvancedStartPercent;
 	int m_iAIAttitudeChangePercent; // advc.148
 	int m_iNumGoodies;
