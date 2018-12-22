@@ -11,9 +11,9 @@ Temporary measures:
 * Landmasses in the North Atlantic to prevent Barbarian cities from appearing on the British Isles all the time.
 
 To be done:
-* America, Oceania, Southern Africa and Greenland for the three non-playable leaders: Shaka, Huayana Capac and Pacal
+* America, Oceania, the Philippines, Southern Africa and Greenland for the three non-playable leaders: Shaka, Huayana Capac and Pacal
 * Rules changes in AdvCiv that forbid Farms on Tundra and remove the health penalty from Jungle. Just to reduce implausible deforestation.
-* Addition of an Islet feature (like in Realism Invictus) e.g. to replace the Okinawa land tile.
+* Addition of an Islet feature (like in Realism Invictus).
 * Changes to the AI evaluation of techs that found a religion. Especially leaders with a Medieval favorite religion like Charlemagne should avoid founding one of the early religons. Could then perhaps use Justinian instead of Pericles.
 * Overhaul of leader personalities. I might swap in Qin for Mao after increasing Qin's peace-weight (pitting him against his warlike neighbors) and Cyrus for Darius after making Cyrus a bit more warlike. The Chinese leader also needs to be more averse to long-distance wars (higher MaxWarMinAdjacentLandPercent).
 * Possibly add more Barbarian cities in order to shape the early expansion of the civs; hopefully not necessary.
