@@ -663,12 +663,12 @@
 	
 	<!-- [advc.011] The number of turns that need to pass without Worker
 		 action in a plot before progress on unfinished Worker builds
-		 starts to decay. Recommended: 5, i.e. decay kicks in on the
-		 fifth turn without action. Set to 0 or less for BtS behavior (no
+		 starts to decay. Recommended: 8, i.e. decay kicks in on the
+		 eighth turn without action. Set to 0 or less for BtS behavior (no
 		 decay). -->
 	<Define>
 		<DefineName>DELAY_UNTIL_BUILD_DECAY</DefineName>
-		<iDefineIntVal>5</iDefineIntVal>
+		<iDefineIntVal>8</iDefineIntVal>
 	</Define>
 	
 	<!-- [advc.004n] The number of additional unit icons shown on the city

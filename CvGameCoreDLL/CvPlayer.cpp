@@ -9990,6 +9990,28 @@ void CvPlayer::changeWorkerSpeedModifier(int iChange)
 	m_iWorkerSpeedModifier = (m_iWorkerSpeedModifier + iChange);
 }
 
+// <advc.011c>
+int CvPlayer::getWorkRate(BuildTypes eBuild) const {
+
+	int iRate = 0;
+	CvCivilizationInfo& kCiv = GC.getCivilizationInfo(getCivilizationType());
+	for(int i = 0; i < GC.getNumUnitClassInfos(); i++) {
+		CvUnitInfo& kUnit = GC.getUnitInfo((UnitTypes)kCiv.getCivilizationUnits(i));
+		if (kUnit.getBuilds(eBuild)) {
+			iRate = kUnit.getWorkRate();
+			break;
+		}
+	}
+	iRate *= std::max(0, 100 + getWorkerSpeedModifier());
+	iRate /= 100;
+	if(!isHuman() && !isBarbarian()) {
+		iRate *= std::max(0, 100 + GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).
+				getAIWorkRateModifier() + 100);
+		iRate /= 100;
+	}
+	return iRate;
+} // </advc.011c>
+
 
 int CvPlayer::getImprovementUpgradeRateModifier() const
 {

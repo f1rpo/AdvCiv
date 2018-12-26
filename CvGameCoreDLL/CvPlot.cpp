@@ -2165,19 +2165,19 @@ bool CvPlot::canHaveBonus(BonusTypes eBonus, bool bIgnoreLatitude) const
 
 	if (getFeatureType() != NO_FEATURE)
 	{
-		if (!(GC.getBonusInfo(eBonus).isFeature(getFeatureType())))
+		if (!GC.getBonusInfo(eBonus).isFeature(getFeatureType()))
 		{
 			return false;
 		}
 
-		if (!(GC.getBonusInfo(eBonus).isFeatureTerrain(getTerrainType())))
+		if (!GC.getBonusInfo(eBonus).isFeatureTerrain(getTerrainType()))
 		{
 			return false;
 		}
 	}
 	else
 	{
-		if (!(GC.getBonusInfo(eBonus).isTerrain(getTerrainType())))
+		if (!GC.getBonusInfo(eBonus).isTerrain(getTerrainType()))
 		{
 			return false;
 		}
@@ -2185,14 +2185,14 @@ bool CvPlot::canHaveBonus(BonusTypes eBonus, bool bIgnoreLatitude) const
 
 	if (isHills())
 	{
-		if (!(GC.getBonusInfo(eBonus).isHills()))
+		if (!GC.getBonusInfo(eBonus).isHills())
 		{
 			return false;
 		}
 	}
 	else if (isFlatlands())
 	{
-		if (!(GC.getBonusInfo(eBonus).isFlatlands()))
+		if (!GC.getBonusInfo(eBonus).isFlatlands())
 		{
 			return false;
 		}
@@ -2586,11 +2586,9 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible)
 
 int CvPlot::getBuildTime(BuildTypes eBuild) const
 {
-	int iTime;
-
 	FAssertMsg(getTerrainType() != NO_TERRAIN, "TerrainType is not assigned a valid value");
 
-	iTime = GC.getBuildInfo(eBuild).getTime();
+	int iTime = GC.getBuildInfo(eBuild).getTime();
 
 	if (getFeatureType() != NO_FEATURE)
 	{
@@ -2610,13 +2608,16 @@ int CvPlot::getBuildTime(BuildTypes eBuild) const
 }
 
 
-int CvPlot::getBuildTurnsLeft(BuildTypes eBuild, int iNowExtra, int iThenExtra) const
+int CvPlot::getBuildTurnsLeft(BuildTypes eBuild, int iNowExtra, int iThenExtra,
+		bool bIncludeUnits) const // advc.011c
 {
 	int iNowBuildRate = iNowExtra;
 	int iThenBuildRate = iThenExtra;
 
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
-
+	// <advc.011c>
+	if(!bIncludeUnits) // I.e. skip the loop
+		pUnitNode = NULL; // </advc.011c>
 	while (pUnitNode != NULL)
 	{
 		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
@@ -2656,6 +2657,15 @@ int CvPlot::getBuildTurnsLeft(BuildTypes eBuild, int iNowExtra, int iThenExtra) 
 
 	return std::max(1, iTurnsLeft);
 }
+
+// <advc.011c>
+int CvPlot::getBuildTurnsLeft(BuildTypes eBuild, PlayerTypes ePlayer) const {
+
+	int iWorkRate = GET_PLAYER(ePlayer).getWorkRate(eBuild);
+	if(iWorkRate > 0)
+		return getBuildTurnsLeft(eBuild, iWorkRate, iWorkRate, false);
+	else return MAX_INT;
+} // </advc.011c>
 
 
 int CvPlot::getFeatureProduction(BuildTypes eBuild, TeamTypes eTeam, CvCity** ppCity) const
@@ -8166,27 +8176,39 @@ bool CvPlot::changeBuildProgress(BuildTypes eBuild, int iChange, TeamTypes eTeam
 	return true;
 }
 
-// <advc.011>
-void CvPlot::decayBuildProgress() {
+// <advc.011> bTest checks if the next non-bTest call will cause decay
+bool CvPlot::decayBuildProgress(bool bTest) {
 
+	PROFILE_FUNC();
 	int iDelay = GC.getDELAY_UNTIL_BUILD_DECAY();
-	if(m_iTurnsBuildsInterrupted > -2 && m_iTurnsBuildsInterrupted < iDelay)
-		m_iTurnsBuildsInterrupted++;
-	if(m_iTurnsBuildsInterrupted < iDelay)
-		return;
+	if(bTest && m_iTurnsBuildsInterrupted > -2 &&
+			m_iTurnsBuildsInterrupted + 1 < iDelay)
+		return false;
+	else {
+		if(m_iTurnsBuildsInterrupted > -2 && m_iTurnsBuildsInterrupted < iDelay)
+			m_iTurnsBuildsInterrupted++;
+		if(m_iTurnsBuildsInterrupted < iDelay)
+			return false;
+	}
+	bool r = false;
 	bool bAnyInProgress = false;
-	for(int i = 0; i < GC.getNumBuildInfos(); i++) {
-		if(m_paiBuildProgress[i] > 0) {
-			m_paiBuildProgress[i]--;
+	if(m_paiBuildProgress != NULL) {
+		for(int i = 0; i < GC.getNumBuildInfos(); i++) {
 			if(m_paiBuildProgress[i] > 0) {
-				bAnyInProgress = true;
-				break;
+				if(!bTest)
+					m_paiBuildProgress[i]--;
+				r = true;
+				if(m_paiBuildProgress[i] > 0) {
+					bAnyInProgress = true;
+					break;
+				}
 			}
 		}
 	}
 	// Suspend decay (just for better performance)
-	if(!bAnyInProgress)
+	if(!bAnyInProgress && !bTest)
 		m_iTurnsBuildsInterrupted = -2;
+	return r;
 } // </advc.011>
 
 void CvPlot::updateFeatureSymbolVisibility()

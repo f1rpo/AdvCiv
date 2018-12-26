@@ -24,9 +24,12 @@
 		</section>
 		
 		<section id="Plot">
-			<option id="LatLongCoords" key="Lat Long Coords" 
+			<!--option id="LatLongCoords" key="Lat Long Coords" 
 					type="boolean" default="False"/>
 			<option id="PartialBuilds" key="Plot Partial Builds" 
+					type="boolean" default="False"/-->
+			<!-- advc.011b -->
+			<option id="PartialBuildsAlways" key="Partial Builds Always"
 					type="boolean" default="False"/>
 		</section>
 		

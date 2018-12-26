@@ -125,7 +125,11 @@ public:
 			BuildTypes eBuild = NO_BUILD, bool bAnyBuild = true) const; // dlph.9
 	bool canBuild(BuildTypes eBuild, PlayerTypes ePlayer = NO_PLAYER, bool bTestVisible = false) const;														// Exposed to Python
 	int getBuildTime(BuildTypes eBuild) const;																																										// Exposed to Python
-	int getBuildTurnsLeft(BuildTypes eBuild, int iNowExtra, int iThenExtra) const;																			// Exposed to Python
+	int getBuildTurnsLeft(BuildTypes eBuild, int iNowExtra, int iThenExtra,																			// Exposed to Python
+			// <advc.011c>
+			bool bIncludeUnits = true) const;
+	int getBuildTurnsLeft(BuildTypes eBuild, PlayerTypes ePlayer) const;
+	// </advc.011c>
 	int getFeatureProduction(BuildTypes eBuild, TeamTypes eTeam, CvCity** ppCity) const;																// Exposed to Python
 
 	DllExport CvUnit* getBestDefender(PlayerTypes eOwner,								// Exposed to Python
@@ -494,9 +498,9 @@ public:
 	RouteTypes getRevealedRouteType(TeamTypes eTeam, bool bDebug) const;											// Exposed to Python
 	void setRevealedRouteType(TeamTypes eTeam, RouteTypes eNewValue);							
 
-	int getBuildProgress(BuildTypes eBuild) const;																											// Exposed to Python  
-	bool changeBuildProgress(BuildTypes eBuild, int iChange, TeamTypes eTeam = NO_TEAM);								// Exposed to Python 
-	void decayBuildProgress(); // advc.011
+	int getBuildProgress(BuildTypes eBuild) const;																											// Exposed to Python
+	bool changeBuildProgress(BuildTypes eBuild, int iChange, TeamTypes eTeam = NO_TEAM);								// Exposed to Python
+	bool decayBuildProgress(bool bTest = false); // advc.011
 
 	void updateFeatureSymbolVisibility(); 
 	void updateFeatureSymbol(bool bForce = false);

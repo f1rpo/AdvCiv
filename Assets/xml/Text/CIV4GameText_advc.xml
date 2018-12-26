@@ -4280,6 +4280,34 @@
 		<Italian>Il tuo territorio &#232; troppo lontano. Quindi non abbiamo pi&#249; alcun interesse a essere un tuo stato vassallo.</Italian>
 		<Spanish>Vuestra tierra est&#225; demasiado lejos, por lo que ya no nos interesa ser vuestro estado vasallo.</Spanish>
 	</TEXT>
-	
+
+	<!-- advc.011b -->
+	<TEXT>
+		<Tag>TXT_KEY_BUILD_NOT_FINISHED</Tag>
+		<English>Job suspended: %s1_BuildName</English>
+		<French>Travail suspendu: %s1_BuildName</French>
+		<German>Arbeit ausgesetzt: %s1_BuildName</German>
+		<Italian>Lavoro sospeso: %s1_BuildName</Italian>
+		<Spanish>Obra suspendida: %s1_BuildName</Spanish>
+	</TEXT>
+	<!-- advc.011b: The "1" is not that interesting, but highlighting the
+		 number is consistent with the highlighted turns-to-build in
+		 CvDLLWidgetData::parseActionHelp. -->
+	<TEXT>
+		<Tag>TXT_KEY_SUSPEND_WORK</Tag>
+		<English>Suspend work [COLOR_HIGHLIGHT_TEXT]1[COLOR_REVERT] turn before completion</English>
+		<French>Suspendre le travail [COLOR_HIGHLIGHT_TEXT]1[COLOR_REVERT] tour avant d'avoir termin&#233;</French>
+		<German>Arbeit [COLOR_HIGHLIGHT_TEXT]1[COLOR_REVERT] Zug vor Fertigstellung unterbrechen</German>
+		<Italian>Sospende il lavoro [COLOR_HIGHLIGHT_TEXT]1[COLOR_REVERT] turno prima del completamento</Italian>
+		<Spanish>Suspender el trabajo [COLOR_HIGHLIGHT_TEXT]1[COLOR_REVERT] turno antes de completarlo</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_DECAY_WARNING</Tag>
+		<English>decaying</English>
+		<French>détériorant</French>
+		<German>verfällt</German>
+		<Italian>decadente</Italian>
+		<Spanish>en decadencia</Spanish>
+	</TEXT>
 	
 </Civ4GameText>

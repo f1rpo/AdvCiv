@@ -1869,6 +1869,8 @@ void CyEnumsPythonInterface()
 		.value("GAMEMESSAGE_ADVANCED_START_ACTION", GAMEMESSAGE_ADVANCED_START_ACTION)
 		.value("GAMEMESSAGE_FOUND_RELIGION", GAMEMESSAGE_FOUND_RELIGION)
 		.value("GAMEMESSAGE_MOD_NET_MESSAGE", GAMEMESSAGE_MOD_NET_MESSAGE)
+		// advc.011b: Not sure if anything breaks if I don't add this here
+		.value("GAMEMESSAGE_PUSH_MODIFIED_MISSION", GAMEMESSAGE_PUSH_MISSION)
 		;
 
 	python::enum_<PopupControlLayout>("PopupControlLayout")

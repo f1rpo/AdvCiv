@@ -286,12 +286,19 @@ class CvNetPushMission : public CvMessageData
 {
 public:
 	CvNetPushMission();
-	CvNetPushMission(PlayerTypes ePlayer, int iUnitID, MissionTypes eMission, int iData1, int iData2, int iFlags, bool bShift);
+	CvNetPushMission(PlayerTypes ePlayer, int iUnitID, MissionTypes eMission,
+			int iData1, int iData2, int iFlags, bool bShift);
 	virtual void Debug(char* szAddendum);
 	virtual void Execute();
 	virtual void PutInBuffer(FDataStreamBase* pStream);
 	virtual void SetFromBuffer(FDataStreamBase* pStream);
-private:
+//private: // <advc.011b>
+protected:
+	// To allow sublasses to set a different message type
+	CvNetPushMission(GameMessageTypes eMessageType,
+			PlayerTypes ePlayer, int iUnitID, MissionTypes eMission,
+			int iData1, int iData2, int iFlags, bool bShift);
+	// </advc.011b>
 	PlayerTypes m_ePlayer;
 	int m_iUnitID;
 	MissionTypes m_eMission;
@@ -300,6 +307,22 @@ private:
 	int m_iFlags;
 	bool m_bShift;
 };
+// <advc.011b>
+class CvNetPushModifiedMission : public CvNetPushMission
+{
+public:
+	CvNetPushModifiedMission();
+	CvNetPushModifiedMission(PlayerTypes ePlayer, int iUnitID, MissionTypes eMission,
+			int iData1, int iData2, int iFlags, bool bShift, bool bModified);
+	virtual void Debug(char* szAddendum);
+	virtual void Execute();
+	virtual void PutInBuffer(FDataStreamBase* pStream);
+	virtual void SetFromBuffer(FDataStreamBase* pStream);
+protected:
+	/*  Modifier key down (I'm going to use CTRL, but let's not commit to that by
+		calling the variable bCtrl.) */
+	bool m_bModified;
+}; // </advc.011b>
 
 class CvNetAutoMission : public CvMessageData
 {

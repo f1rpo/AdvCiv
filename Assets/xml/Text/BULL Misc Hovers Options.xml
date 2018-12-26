@@ -78,7 +78,7 @@
 		<Italian>When checked, the longitude and latitude are shown when hovering over a plot once you have centered the map.</Italian>
 		<Spanish>Muestra la latitud y longitud cuando se deje el ratón sobre una casilla una vez esté centrado el mapa.</Spanish>
 	</TEXT>
-	<TEXT>
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__PARTIALBUILDS_TEXT</Tag>
 		<English>Partial Builds</English>
 		<French>Partial Builds</French>
@@ -93,6 +93,23 @@
 		<German>Zeigt, wenn der Mauszeiger über ein Geländefeld mit teilweise fertig gestellten Bauten (Modernisierungen, Straßen und Waldrodungen) bewegt wird, an, wie viele Runden ein Bautrupp noch benötigt, um sie fertig zu stellen, wenn der Bautrupp diese Aktionen beherrscht</German>
 		<Italian>Quando è selezionato, posizionare il cursore su una casella che contiene costruzioni (miglioramenti, strade, eccetera) parzialmente completate mostrerà quanti turni di lavoro sono necessari per completare l'opera.</Italian>
 		<Spanish>Dejar el ratón sobre una casilla con mejoras no terminadas mostarará el número de turnos necesarios para terminar.</Spanish>
+	</TEXT-->
+	<!-- advc.011b -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__PARTIALBUILDSALWAYS_TEXT</Tag>
+		<English>Always Show Partial Builds</English>
+		<French>Always Show Partial Builds</French>
+		<German>Unfertige Arbeiten immer zeigen</German>
+		<Italian>Sempre mostra costruzione parziale</Italian>
+		<Spanish>Siempre muestra Construcción Parcial</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__PARTIALBUILDSALWAYS_HOVER</Tag>
+		<English>When checked, unfinished Worker builds are always shown in a tile's help text. Otherwise, they're only shown when the Ctrl key is held down. (Either way, Ctrl can be held down while issuing a build command in order to have the Worker suspend the build one turn before completion.)</English>
+		<French>When checked, unfinished Worker builds are always shown in a tile's help text. Otherwise, they're only shown when the Ctrl key is held down. (Either way, Ctrl can be held down while issuing a build command in order to have the Worker suspend the build one turn before completion.)</French>
+		<German>Zeigt im Hilfstext stets unvollständige Arbeiten an. Ohne diese Option werden solche Arbeiten nur angezeigt, wenn Sie die Strg-Taste gedrückt halten. (In jedem Fall können Sie Arbeiter anweisen, einen Auftrag einen Zug vor der Fertigstellung zu unterbrechen, indem Sie bei Erteilung des Auftrags Strg gedrückt halten.)</German>
+		<Italian>When checked, unfinished Worker builds are always shown in a tile's help text. Otherwise, they're only shown when the Ctrl key is held down. (Either way, Ctrl can be held down while issuing a build command in order to have the Worker suspend the build one turn before completion.)</Italian>
+		<Spanish>When checked, unfinished Worker builds are always shown in a tile's help text. Otherwise, they're only shown when the Ctrl key is held down. (Either way, Ctrl can be held down while issuing a build command in order to have the Worker suspend the build one turn before completion.)</Spanish>
 	</TEXT>
 
 <!-- Unit -->

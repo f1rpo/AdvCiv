@@ -485,6 +485,7 @@ public:
 
 	int getWorkerSpeedModifier() const;																																		// Exposed to Python
 	void changeWorkerSpeedModifier(int iChange);
+	int getWorkRate(BuildTypes eBuild) const; // advc.011c
 
 	int getImprovementUpgradeRateModifier() const;																									// Exposed to Python
 	void changeImprovementUpgradeRateModifier(int iChange);

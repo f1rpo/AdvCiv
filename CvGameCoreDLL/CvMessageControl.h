@@ -24,6 +24,9 @@ public:
 	void sendEventTriggered(PlayerTypes ePlayer, EventTypes eEvent, int iEventTriggeredId);
 	DllExport void sendJoinGroup(int iUnitID, int iHeadID);
 	void sendPushMission(int iUnitID, MissionTypes eMission, int iData1, int iData2, int iFlags, bool bShift);
+	// <advc.011b>
+	void sendPushModifiedMission(int iUnitID, MissionTypes eMission, int iData1,
+			int iData2, int iFlags, bool bShift, bool bModified); // </advc.011b>
 	void sendAutoMission(int iUnitID);
 	void sendDoCommand(int iUnitID, CommandTypes eCommand, int iData1, int iData2, bool bAlt);
 	void sendPercentChange(CommerceTypes eCommerce, int iChange);

@@ -573,6 +573,9 @@
 		<HintInfo>
 			<Description>TXT_KEY_HINT_73</Description>
 		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_HINT_46</Description>
+		</HintInfo>
 		
 		<!-- AdvCiv hints, two times each -->
 		<HintInfo>

@@ -540,7 +540,27 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 	if (eBuild != NO_BUILD)
 	{
 		szString.append(L", ");
-		szTempBuffer.Format(L"%s (%d)", GC.getBuildInfo(eBuild).getDescription(), pUnit->plot()->getBuildTurnsLeft(eBuild, 0, 0));
+		/*  <advc.011b> Show turns-to-build as "(x+1)" when the Worker has been
+			told not to finish it -- it'll build for x turns, make a pause,
+			eventually build for 1 more turn. */
+		szString.append(GC.getBuildInfo(eBuild).getDescription());
+		int iTurns = pUnit->plot()->getBuildTurnsLeft(eBuild, 0, 0);
+		bool bSuspend = false;
+		if(iTurns > 1) {
+			CLLNode<MissionData>* pNode = pUnit->getGroup()->headMissionQueueNode();
+			if(pNode != NULL) {
+				if(pNode->m_data.bModified && (GC.ctrlKey() ||
+						getBugOptionBOOL("MiscHover__PartialBuildsAlways", false,
+						"MISC_HOVER_PARTIAL_BUILDS_ALWAYS")))
+					bSuspend = true;
+			}
+		}
+		if(bSuspend) {
+			szTempBuffer.Format(L"(%d+" SETCOLR L"%d" ENDCOLR L")", iTurns - 1,
+					TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), 1);
+			}
+		else // </advc.011b>
+			szTempBuffer.Format(L"(%d)", iTurns);
 		szString.append(szTempBuffer);
 	}
 
@@ -4781,8 +4801,65 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 		szString.append(NEWLINE);
 		szString.append(GC.getRouteInfo(pPlot->getRevealedRouteType(eActiveTeam, true)).getDescription());
 	}
+	// <advc.011c>
+	for(int i = 0; i < GC.getNumBuildInfos(); i++) {
+		BuildTypes eBuild = (BuildTypes)i;
+		if(pPlot->getBuildProgress(eBuild) <= 0
+				|| !pPlot->canBuild(eBuild, eActivePlayer))
+			continue;		
+		int iTurnsLeft = pPlot->getBuildTurnsLeft(eBuild, eActivePlayer);
+		if(iTurnsLeft <= 0 || iTurnsLeft == MAX_INT)
+			continue; // </advc.011c>
+		// <advc.011b>
+		int iInitialTurnsNeeded = (int)::ceil(pPlot->getBuildTime(eBuild) /
+				(double)GET_PLAYER(eActivePlayer).getWorkRate(eBuild));
+		int iTurnsSpent = iInitialTurnsNeeded - iTurnsLeft;
+		if(iTurnsSpent <= 0)
+			continue;
+		CvBuildInfo const& kBuild = GC.getBuildInfo(eBuild);
+		CvWString szBuildDescr = kBuild.getDescription();
+		/*  Nicer to use the structure (improvement or route) name if it isn't a
+			build that only removes a feature. */
+		ImprovementTypes eImprovement = (ImprovementTypes)kBuild.getImprovement();
+		if(eImprovement != NO_IMPROVEMENT)
+			szBuildDescr = GC.getImprovementInfo(eImprovement).getDescription();
+		else {
+			RouteTypes eRoute = (RouteTypes)kBuild.getRoute();
+			if(eRoute != NO_ROUTE)
+				szBuildDescr = GC.getRouteInfo(eRoute).getDescription();
+		}
+		szTempBuffer.Format(SETCOLR L"%s" ENDCOLR,
+				TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
+				szBuildDescr.c_str());
+		szBuildDescr = szTempBuffer;
+		bool bDecay = (GC.getDELAY_UNTIL_BUILD_DECAY() > 0 &&
+				pPlot->decayBuildProgress(true));
+		if(bDecay) { // Check if Workers are getting on the task this turn
+			CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
+			while(pUnitNode != NULL) {
+				CvUnit* pUnit = ::getUnit(pUnitNode->m_data);
+				pUnitNode = pPlot->nextUnitNode(pUnitNode);
+				if(pUnit->getTeam() == eActiveTeam &&
+						pUnit->movesLeft() > 0 &&
+						pUnit->getGroup()->getMissionType(0) == MISSION_BUILD) {
+					bDecay = false;
+					break;
+				}
+			}
+		}
+		if(GC.ctrlKey() || getBugOptionBOOL("MiscHover__PartialBuildsAlways", false,
+				"MISC_HOVER_PARTIAL_BUILDS_ALWAYS")) {
+			szString.append(NEWLINE);
+			szString.append(szBuildDescr);
+			szString.append(CvWString::format(L" (%d/%d %s%s)",
+					iTurnsSpent, iInitialTurnsNeeded, gDLL->getText("TXT_KEY_REPLAY_SCREEN_TURNS").c_str(),
+					bDecay ? CvWString::format(L"; " SETCOLR L"%s" ENDCOLR,
+					TEXT_COLOR("COLOR_WARNING_TEXT"),
+					gDLL->getText("TXT_KEY_MISC_DECAY_WARNING").c_str()).c_str() : L""));
+		}
+	} // </advc.011b>
 
-	// advc.003h (BBAI code 07/11/08 by jdog5000 moved into setPlotHelpDebug)
+	// advc.003h (BBAI code from 07/11/08 by jdog5000 moved into setPlotHelpDebug)
 	if (pPlot->getBlockadedCount(eActiveTeam) > 0)
 	{
 		szString.append(CvWString::format(SETCOLR, TEXT_COLOR("COLOR_NEGATIVE_TEXT")));

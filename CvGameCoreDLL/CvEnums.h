@@ -2553,6 +2553,7 @@ enum ActionSubTypes					// Exposed to Python
 #endif
 };
 
+// advc (caveat): Should add only to the end of this enum
 enum GameMessageTypes				// Exposed to Python
 {
 	GAMEMESSAGE_NETWORK_READY,
@@ -2649,7 +2650,8 @@ enum GameMessageTypes				// Exposed to Python
 	GAMEMESSAGE_LAUNCH_SPACESHIP,
 	GAMEMESSAGE_ADVANCED_START_ACTION,
 	GAMEMESSAGE_FOUND_RELIGION,
-	GAMEMESSAGE_MOD_NET_MESSAGE
+	GAMEMESSAGE_MOD_NET_MESSAGE,
+	GAMEMESSAGE_PUSH_MODIFIED_MISSION, // advc.011b
 };
 
 enum PopupControlLayout		// Exposed to Python

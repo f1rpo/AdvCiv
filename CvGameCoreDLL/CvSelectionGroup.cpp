@@ -474,11 +474,10 @@ void CvSelectionGroup::playActionSound()
 }
 
 
-void CvSelectionGroup::pushMission(MissionTypes eMission, int iData1, int iData2, int iFlags, bool bAppend, bool bManual, MissionAITypes eMissionAI, CvPlot* pMissionAIPlot, CvUnit* pMissionAIUnit)
-{
-	PROFILE_FUNC();
+void CvSelectionGroup::pushMission(MissionTypes eMission, int iData1, int iData2, int iFlags, bool bAppend, bool bManual, MissionAITypes eMissionAI, CvPlot* pMissionAIPlot, CvUnit* pMissionAIUnit,
+		bool bModified) { // advc.011b
 
-	MissionData mission;
+	PROFILE_FUNC();
 
 	FAssert(getOwnerINLINE() != NO_PLAYER);
 
@@ -497,11 +496,13 @@ void CvSelectionGroup::pushMission(MissionTypes eMission, int iData1, int iData2
 		setAutomateType(NO_AUTOMATE);
 	}
 
+	MissionData mission;
 	mission.eMissionType = eMission;
 	mission.iData1 = iData1;
 	mission.iData2 = iData2;
 	mission.iFlags = iFlags;
 	mission.iPushTurn = GC.getGameINLINE().getGameTurn();
+	mission.bModified = bModified; //advc.011b
 
 	if (canAllMove()) // K-Mod. Do not set the AI mission type if this is just a "follow" command!
 		AI_setMissionAI(eMissionAI, pMissionAIPlot, pMissionAIUnit);
@@ -1003,7 +1004,7 @@ void CvSelectionGroup::startMission()
 				case MISSION_BUILD:
 					pUnitNode = 0; // K-Mod. Nothing to do, so we might as well abort the unit loop.
 					break;
-				// K-Mod. (this use to be a "do nothing" case.)
+				// K-Mod. (this used to be a "do nothing" case.)
 				case MISSION_AIRPATROL:
 					if (!pLoopUnit->canAirDefend(plot())) // (We can't use 'canAirPatrol', because that checks 'isWaiting'.)
 						units_left_behind.push_back(pLoopUnit);
@@ -1493,10 +1494,9 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 					break;
 
 				case MISSION_BUILD:
-					if (!groupBuild((BuildTypes)(headMissionQueueNode()->m_data.iData1)))
-					{
+					if(!groupBuild((BuildTypes)headMissionQueueNode()->m_data.iData1,
+							!headMissionQueueNode()->m_data.bModified)) // advc.011b
 						bDone = true;
-					}
 					break;
 
 				default:
@@ -1507,7 +1507,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 		}
 	}
 
-	if ((getNumUnits() > 0) && (headMissionQueueNode() != NULL))
+	if (getNumUnits() > 0 && headMissionQueueNode() != NULL)
 	{
 		if (!bDone)
 		{
@@ -1595,7 +1595,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 		}
 	}
 
-	if ((getNumUnits() > 0) && (headMissionQueueNode() != NULL))
+	if (getNumUnits() > 0 && headMissionQueueNode() != NULL)
 	{
 		if (bAction)
 		{
@@ -1636,21 +1636,15 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 		if (bDone)
 		{
 			/* original bts code (roughly)
-			if (!isBusy())
-			{
-				if (getOwnerINLINE() == GC.getGameINLINE().getActivePlayer())
-				{
-					if (IsSelected())
-					{
+			if (!isBusy()) {
+				if (getOwnerINLINE() == GC.getGameINLINE().getActivePlayer()) {
+					if (IsSelected()) {
 						if ((headMissionQueueNode()->m_data.eMissionType == MISSION_MOVE_TO) ||
 							(headMissionQueueNode()->m_data.eMissionType == MISSION_ROUTE_TO) ||
 							(headMissionQueueNode()->m_data.eMissionType == MISSION_MOVE_TO_UNIT))
-						{
 							GC.getGameINLINE().cycleSelectionGroups_delayed(GET_PLAYER(getOwnerINLINE()).isOption(PLAYEROPTION_QUICK_MOVES) ? 1 : 2, true, true);
-						}
 					}
 				}
-
 				deleteMissionQueueNode(headMissionQueueNode());
 			} */
 			// K-Mod. If rapid-unit-cycling is enabled, I want to cycle as soon a possible. Otherwise, I want to mimic the original behaviour.
@@ -1689,8 +1683,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 						}
 					}
 				}
-				else
-					deleteMissionQueueNode(headMissionQueueNode());
+				else deleteMissionQueueNode(headMissionQueueNode());
 
 				// start the next mission
 				if (headMissionQueueNode())
@@ -3426,7 +3419,8 @@ bool CvSelectionGroup::groupRoadTo(int iX, int iY, int iFlags)
 
 
 // Returns true if build should continue...
-bool CvSelectionGroup::groupBuild(BuildTypes eBuild)
+bool CvSelectionGroup::groupBuild(BuildTypes eBuild,
+		bool bFinish) // advc.011b
 {
 	FAssert(getOwnerINLINE() != NO_PLAYER);
 	FAssertMsg(eBuild < GC.getNumBuildInfos(), "Invalid Build");
@@ -3456,14 +3450,15 @@ bool CvSelectionGroup::groupBuild(BuildTypes eBuild)
 			}
 		}
 	} */
-	// K-Mod. Leave old improvements should mean _all_ improvements, not 'unless it will connect a resource'.
-	// Note. The only time this bit of code might matter is if the automated unit has orders queued. Ideally, the AI should never issue orders which violate the leave old improvements rule.
+	/*  K-Mod. Leave old improvements should mean _all_ improvements, not
+		'unless it will connect a resource'.
+		Note. The only time this bit of code might matter is if the automated unit has orders queued.
+		Ideally, the AI should never issue orders which violate the leave old improvements rule. */
 	if (isAutomated() && GET_PLAYER(getOwnerINLINE()).isOption(PLAYEROPTION_SAFE_AUTOMATION) &&
 		GC.getBuildInfo(eBuild).getImprovement() != NO_IMPROVEMENT && pPlot->getImprovementType() != NO_IMPROVEMENT &&
 		pPlot->getImprovementType() != GC.getDefineINT("RUINS_IMPROVEMENT")
 		// <advc.121> Forts on unworkable tiles are OK despite SAFE_AUTOMATION.
-		&& (
-		!GC.getImprovementInfo((ImprovementTypes)GC.getBuildInfo(eBuild).
+		&& (!GC.getImprovementInfo((ImprovementTypes)GC.getBuildInfo(eBuild).
 		getImprovement()).isActsAsCity() || pPlot->getWorkingCity() == NULL)
 		) // </advc.121>
 	{
@@ -3471,7 +3466,7 @@ bool CvSelectionGroup::groupBuild(BuildTypes eBuild)
 		return false;
 	}
 	// K-Mod end
-
+	bool bStopOtherWorkers = false; // advc.011c
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	while (pUnitNode != NULL)
 	{
@@ -3479,18 +3474,59 @@ bool CvSelectionGroup::groupBuild(BuildTypes eBuild)
 		pUnitNode = nextUnitNode(pUnitNode);
 
 		FAssertMsg(pLoopUnit->atPlot(pPlot), "pLoopUnit is expected to be at pPlot");
+		// <advc.003>
+		if(!pLoopUnit->canBuild(pPlot, eBuild))
+			continue; // </advc.003>
 
-		if (pLoopUnit->canBuild(pPlot, eBuild))
+		bContinue = true;
+		if (pLoopUnit->build(eBuild))
 		{
-			bContinue = true;
-
-			if (pLoopUnit->build(eBuild))
-			{
-				bContinue = false;
-				break;
+			bContinue = false;
+			break;
+		}
+		// advc.011c:
+		if(!bFinish && isHuman() && pPlot->getBuildTurnsLeft(eBuild, getOwnerINLINE()) == 1) {
+			// <advc.011b>
+			CvWString szBuild = GC.getBuildInfo(eBuild).getDescription();
+			// Get rid of the LINK tags b/c these result in an underscore
+			for(int i = 0; i < 2; i++) {
+				int posOpening = szBuild.find(L'<');
+				if(posOpening == CvWString::npos)
+					continue;
+				int posClosing = szBuild.find(L'>');
+				if(posClosing == CvWString::npos || posClosing < posOpening)
+					continue;
+				szBuild = (szBuild.substr(0, posOpening) +
+						szBuild.substr(posClosing + 1, szBuild.length() - posClosing - 1));
 			}
+			CvWString szBuffer = gDLL->getText("TXT_KEY_BUILD_NOT_FINISHED", szBuild.c_str());
+			gDLL->getInterfaceIFace()->addMessage(getOwnerINLINE(), false,
+					GC.getEVENT_MESSAGE_TIME(), szBuffer, /*NULL*/getHeadUnit()->getButton(),
+					MESSAGE_TYPE_INFO, /*NULL*/GC.getBuildInfo(eBuild).getButton(),
+					(ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"/*"COLOR_BUILDING_TEXT"*/),
+					getX(), getY(), true, false);
+			// </advc.011b>
+			// <advc.011c>
+			bContinue = false;
+			bStopOtherWorkers = true;
+			break;
 		}
 	}
+	if(bStopOtherWorkers) {
+		pUnitNode = pPlot->headUnitNode();
+		while(pUnitNode != NULL) {
+			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+			pUnitNode = pPlot->nextUnitNode(pUnitNode);
+			CvSelectionGroup* pSelectionGroup = pLoopUnit->getGroup();
+			if(pSelectionGroup != NULL && pSelectionGroup != this &&
+					pSelectionGroup->getOwnerINLINE() == getOwnerINLINE() &&
+					pSelectionGroup->getActivityType() == ACTIVITY_MISSION &&
+					pSelectionGroup->getLengthMissionQueue() > 0 &&
+					pSelectionGroup->getMissionType(0) == GC.getBuildInfo(eBuild).getMissionType() &&
+					pSelectionGroup->getMissionData1(0) == eBuild)
+				pSelectionGroup->deleteMissionQueueNode(pSelectionGroup->headMissionQueueNode());
+		}
+	} // </advc.001c>
 
 	return bContinue;
 }
@@ -4822,12 +4858,12 @@ void CvSelectionGroup::insertAtEndMissionQueue(MissionData mission, bool bStart)
 
 	m_missionQueue.insertAtEnd(mission);
 
-	if ((getLengthMissionQueue() == 1) && bStart)
+	if (getLengthMissionQueue() == 1 && bStart)
 	{
 		activateHeadMission();
 	}
 
-	if ((getOwnerINLINE() == GC.getGameINLINE().getActivePlayer()) && IsSelected())
+	if (getOwnerINLINE() == GC.getGameINLINE().getActivePlayer() && IsSelected())
 	{
 		gDLL->getInterfaceIFace()->setDirty(Waypoints_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
@@ -4976,13 +5012,31 @@ void CvSelectionGroup::read(FDataStreamBase* pStream)
 	pStream->Read((int*)&m_eAutomateType);
 
 	m_units.Read(pStream);
-	m_missionQueue.Read(pStream);
+	// <advc.011b>
+	if(uiFlag <= 0) {
+		CLinkList<MissionDataLegacy> tmp;
+		tmp.Read(pStream);
+		for(CLLNode<MissionDataLegacy>* pNode = tmp.head(); pNode != NULL; pNode = tmp.next(pNode)) {
+			MissionDataLegacy tmpMission = pNode->m_data;
+			MissionData mission;
+			mission.bModified = false;
+			mission.eMissionType = tmpMission.eMissionType;
+			mission.iData1 = tmpMission.iData1;
+			mission.iData2 = tmpMission.iData2;
+			mission.iFlags = tmpMission.iFlags;
+			mission.iPushTurn = tmpMission.iPushTurn;
+			m_missionQueue.insertAtEnd(mission);
+		}
+	}
+	else // </advc.011b>
+		m_missionQueue.Read(pStream);
 }
 
 
 void CvSelectionGroup::write(FDataStreamBase* pStream)
 {
 	uint uiFlag=0;
+	uiFlag = 1; // advc.011b
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iID);

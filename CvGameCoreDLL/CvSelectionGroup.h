@@ -37,7 +37,8 @@ public:
 
 	void playActionSound();
 
-	void pushMission(MissionTypes eMission, int iData1 = -1, int iData2 = -1, int iFlags = 0, bool bAppend = false, bool bManual = false, MissionAITypes eMissionAI = NO_MISSIONAI, CvPlot* pMissionAIPlot = NULL, CvUnit* pMissionAIUnit = NULL);		// Exposed to Python
+	void pushMission(MissionTypes eMission, int iData1 = -1, int iData2 = -1, int iFlags = 0, bool bAppend = false, bool bManual = false, MissionAITypes eMissionAI = NO_MISSIONAI, CvPlot* pMissionAIPlot = NULL, CvUnit* pMissionAIUnit = NULL,		// Exposed to Python
+			bool bModified = false); // advc.011b
 	void popMission();																																										// Exposed to Python
 	//DllExport void autoMission();
 	bool autoMission(); // K-Mod. (No 'DllExport'? Are you serious!?)
@@ -127,7 +128,8 @@ public:
 	void groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUnit = NULL, bool bEndMove = false);
 	bool groupPathTo(int iX, int iY, int iFlags);
 	bool groupRoadTo(int iX, int iY, int iFlags);
-	bool groupBuild(BuildTypes eBuild);
+	bool groupBuild(BuildTypes eBuild,
+			bool bFinish = true); // advc.011b
 
 	void setTransportUnit(CvUnit* pTransportUnit, CvSelectionGroup** pOtherGroup = NULL); // bbai added pOtherGroup
 

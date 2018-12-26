@@ -5,14 +5,15 @@
 	<!-- Unit should be colored COLOR_UNIT_TEXT (example: [COLOR_UNIT_TEXT]Archers[COLOR_REVERT]) -->
 	<!-- Buildings should be colored COLOR_BUILDING_TEXT (example: [COLOR_BUILDING_TEXT]Theatre[COLOR_REVERT]) -->
 	<!-- Projects should be colored COLOR_PROJECT_TEXT (example: [COLOR_PROJECT_TEXT]SS Engine[COLOR_REVERT]) -->
-	<!-- Anything else official (that should be capitalized) should be colored COLOR_HIGHLIGHT_TEXT (example: [COLOR_HIGHLIGHT_TEXT]Trade Mission[COLOR_HIGHLIGHT_TEXT] or [COLOR_HIGHLIGHT_TEXT]Islam[COLOR_HIGHLIGHT_TEXT]) -->
+	<!-- Anything else official (that should be capitalized) should be colored COLOR_HIGHLIGHT_TEXT (example: [COLOR_HIGHLIGHT_TEXT]Trade Mission[COLOR_REVERT] or [COLOR_HIGHLIGHT_TEXT]Islam[COLOR_REVERT]) -->
 <Civ4GameText xmlns="http://www.firaxis.com">
 
 <!-- advc.008c: Added "(K-Mod)" to hints that describe K-Mod changes
 	(even those that are just included in K-Mod - because players may not know
 	that e.g. "BUG" is the name of a mod).
 	I'm also putting any corrections of BtS hints into K-Mod hints.xml, so that
-	CIV4GameText_advc.008d.xml only contains hints about AdvCiv changes. -->
+	CIV4GameText_advc.008d.xml only contains hints about AdvCiv changes.
+	Some of my Romance-language translations were aided by deepl.com. -->
 
 <!-- advc.008c: Now also hints at menu button -->
 <TEXT>
@@ -170,11 +171,11 @@
 </TEXT>
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_15</Tag>
-	<English>Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</English>
-	<French>Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</French>
-	<German>Die Handelsraten und Spinonagegewichtungen können durch einen Rechtsklick auf die Plus- oder Minusknöpfe schnell maximiert beziehungsweise minimiert werden.</German>
-	<Italian>Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</Italian>
-	<Spanish>Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</Spanish>
+	<English>(K-Mod) Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</English>
+	<French>(K-Mod) Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</French>
+	<German>(K-Mod) Die Handelsraten und Spinonagegewichtungen können durch einen Rechtsklick auf die Plus- oder Minusknöpfe schnell maximiert beziehungsweise minimiert werden.</German>
+	<Italian>(K-Mod) Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</Italian>
+	<Spanish>(K-Mod) Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</Spanish>
 </TEXT>
 
 <!-- k146: I've changed the wording a little and added the German translation.
@@ -417,11 +418,22 @@
 	 tactic is fair game. -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_62</Tag>
-		<English>Use the Nuclear Submarine's stealth along with its ability to carry conventional and tactical nuclear missiles to launch a devastating opening attack on another landmass.</English>
-		<French>Tirez parti de la furtivit&#233; du sous-marin et de sa capacit&#233; &#224; transporter des missiles conventionnels et des missiles nucl&#233;aires pour lancer une attaque d&#233;vastatrice contre un autre continent.</French>
-		<German>Nutzen Sie die Tarnung Ihrer Atom-U-Boote und ihre F&#228;higkeit, konventionelle und taktische Atomraketen zu bef&#246;rdern, um vernichtende Startoffensiven auf gegnerische Landmassen auszuf&#252;hren.</German>
-		<Italian>Usa l'invisibilit&#224; del sottomarino oltre all'abilit&#224; di trasportare missili tattici e nucleari per lanciarli e scatenare l'inferno sulla terraferma.</Italian>
-		<Spanish>Utiliza la invisibilidad ante el radar del submarino junto a su capacidad para transportar misiles nucleares convencionales y t&#225;cticos para lanzar un devastador ataque inicial sobre otra masa de tierra.</Spanish>
-	</TEXT>
+	<English>Use the Nuclear Submarine's stealth along with its ability to carry conventional and tactical nuclear missiles to launch a devastating opening attack on another landmass.</English>
+	<French>Tirez parti de la furtivit&#233; du sous-marin et de sa capacit&#233; &#224; transporter des missiles conventionnels et des missiles nucl&#233;aires pour lancer une attaque d&#233;vastatrice contre un autre continent.</French>
+	<German>Nutzen Sie die Tarnung Ihrer Atom-U-Boote und ihre F&#228;higkeit, konventionelle und taktische Atomraketen zu bef&#246;rdern, um vernichtende Startoffensiven auf gegnerische Landmassen auszuf&#252;hren.</German>
+	<Italian>Usa l'invisibilit&#224; del sottomarino oltre all'abilit&#224; di trasportare missili tattici e nucleari per lanciarli e scatenare l'inferno sulla terraferma.</Italian>
+	<Spanish>Utiliza la invisibilidad ante el radar del submarino junto a su capacidad para transportar misiles nucleares convencionales y t&#225;cticos para lanzar un devastador ataque inicial sobre otra masa de tierra.</Spanish>
+</TEXT>
+
+<!-- advc.011b: This said that random events can be disabled through Custom Game.
+	 -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_46</Tag>
+	<English>(AdvCiv) If you hold down [CTRL] while issuing a command to a [COLOR_UNIT_TEXT]Worker[COLOR_REVERT], the work will be suspended one turn before completion. Bear in mind though that progress on unfinished jobs begins to decay after 8 turns.</English>
+	<French>(AdvCiv) Si vous maintenez la touche [CTRL] enfoncée pendant que vous donnez un ordre à un [COLOR_UNIT_TEXT]Ouvrier[COLOR_REVERT], le travail sera suspendu un tour avant la fin. Rappelez-vous cependant que les progrès sur les travaux incomplets commencent à se dégrader après 8 tours.</French>
+	<German>(AdvCiv) Wenn Sie beim Erteilen eines Arbeitsauftrags [STRG] gedrückt halten, unterbricht der Arbeiter einen Zug vor Fertigstellung den Auftrag. Bedenken Sie aber, dass Fortschritte an unterbrochenen Arbeiten nach 8 Zügen zu verfallen beginnen.</German>
+	<Italian>Se si tiene premuto [CTRL] mentre si invia un ordine ad un [COLOR_UNIT_TEXT]Lavoratore[COLOR_REVERT], il lavoro verrà sospeso un turno prima del completamento. Tenete presente che l'avanzamento dei lavori incompleti inizia a decadere dopo 8 turni.</Italian>
+	<Spanish>(AdvCiv) Si mantiene pulsada la tecla [CTRL] mientras emite una orden a un [COLOR_UNIT_TEXT]Trabajador[COLOR_REVERT], el trabajo se suspenderá un turno antes de completarse. Pero tenga en cuenta que el progreso en los trabajos incompletos comienza a decaer después de 8 turnos.</Spanish>
+</TEXT>
 
 </Civ4GameText>
