@@ -9010,13 +9010,16 @@ void CvGame::processVote(const VoteTriggeredData& kData, int iChange)
 				{
 					if (GET_TEAM(kLoopPlayer.getTeam()).canChangeWarPeace(kPlayer.getTeam()))
 					{
-						GET_TEAM(kLoopPlayer.getTeam()).declareWar(kPlayer.getTeam(), false, WARPLAN_DOGPILE);
+						//GET_TEAM(kLoopPlayer.getTeam()).declareWar(kPlayer.getTeam(), false, WARPLAN_DOGPILE);
+						// <dlph.26>
+						CvTeam::queueWar(kLoopPlayer.getTeam(), kPlayer.getTeam(),
+								false, WARPLAN_DOGPILE); // </dlph.26>
 						// advc.104i:
 						GET_TEAM(kPlayer.getTeam()).makeUnwillingToTalk(kLoopPlayer.getTeam());
 					}
 				}
 			}
-
+			CvTeam::triggerWars(); // dlph.26
 			setVoteOutcome(kData, NO_PLAYER_VOTE);
 		}
 		else if (kVote.isAssignCity())

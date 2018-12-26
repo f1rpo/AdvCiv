@@ -5,6 +5,8 @@
 #ifndef CIV4_TEAM_H
 #define CIV4_TEAM_H
 
+#include <queue> // dlph.26
+
 //#include "CvEnums.h"
 
 class CvArea;
@@ -25,10 +27,12 @@ protected:
 	void uninit();
 
 public:
-
+	// <dlph.26>
+	static void queueWar(TeamTypes eAttackingTeam, TeamTypes eDefendingTeam,
+			bool bNewDiplo, WarPlanTypes eWarPlan, bool bPrimaryDOW = true);
+	static void triggerWars(); // </dlph.26>
 /********************************************************************************/
 /*		BETTER_BTS_AI_MOD						12/30/08		jdog5000		*/
-/*																				*/
 /*		     																	*/
 /********************************************************************************/
 	void resetPlotAndCityData( );
@@ -549,6 +553,15 @@ protected:
 	TeamTypes m_eOfferingPeace;
 	int m_iPeaceOfferStage;
 	// </advc.134a>
+
+	// <dlph.26>
+	static std::queue<TeamTypes> attacking_queue;
+	static std::queue<TeamTypes> defending_queue;
+	static std::queue<bool> newdiplo_queue;
+	static std::queue<WarPlanTypes> warplan_queue;
+	static std::queue<bool> primarydow_queue;
+	static bool bTriggeringWars;
+	// </dlph.26>
 
 	void doWarWeariness();
 

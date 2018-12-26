@@ -1424,8 +1424,8 @@ class CvInfoScreen:
 
 		# Loop through all players to determine Rank and relative Strength
 		for iPlayerLoop in range(gc.getMAX_PLAYERS()):
-
-			if (gc.getPlayer(iPlayerLoop).isAlive() and not gc.getPlayer(iPlayerLoop).isBarbarian()):
+			# advc.004: MinorCiv clause added (from the Dawn of Civilization mod)
+			if gc.getPlayer(iPlayerLoop).isAlive() and not gc.getPlayer(iPlayerLoop).isBarbarian() and not gc.getPlayer(iPlayerLoop).isMinorCiv():
 
 				iNumActivePlayers += 1
 

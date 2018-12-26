@@ -1078,6 +1078,48 @@
 		<Italian>Attiva/disattiva la griglia</Italian>
 		<Spanish>Activar cuadr&#237;cula</Spanish>
 	</TEXT>
+	<!-- was "Toggle Scores Display" -->
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_SCORES</Tag>
+		<English>Toggle Scoreboard</English>
+		<French>Afficher/masquer les scores</French>
+		<German>Punkteanzeige ein/aus</German>
+		<Italian>Abilita/disabilita la 'Finestra dei punteggi'</Italian>
+		<Spanish>Activar visor de puntuaciones</Spanish>
+	</TEXT>
+	
+	<!-- advc.004z: Originally in CIV4GameText_Misc1.xml. Romanic translations
+		 based on TXT_KEY_GLOBELAYER_UNITS_ENEMYMILITARY. -->
+	<TEXT>
+		<Tag>TXT_KEY_GLOBELAYER_UNITS_DOMESTICS</Tag>
+		<English>Civilians</English>
+		<French>Unités non militaires</French>
+		<German>Zivilisten</German>
+		<Italian>Eserciti non militari</Italian>
+		<Spanish>Ej&#233;rcitos no militares</Spanish>
+	</TEXT>
+	<!-- Originally in CIV4GameText_BTS.xml.
+		 "enemy units" is no longer the default.
+		 Italian and Spanish based on TXT_KEY_HINT_INTERFACE_25. -->
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_UNIT_ICONS</Tag>
+		<English>Toggle Unit Display</English>
+		<French>Afficher/masquer les unit&#233;s</French>
+		<German>Einheitenanzeige ein-/ausblenden</German>
+		<Italian>Abilita/Disabilita la segnalazione delle unit&#224;</Italian>
+		<Spanish>Activar las marcas de unidades</Spanish>
+	</TEXT>
+	<!-- Originally in CIV4GameTextInfos.xml.
+		 Had included the name of the default filter ("All"), but
+		 Resource layer filters are disabled now. -->
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_RESOURCE_ALL</Tag>
+		<English>Toggle Resource Display</English>
+		<French>Afficher/masquer les ressources</French>
+		<German>Ressourcenanzeige ein/aus</German>
+		<Italian>Abilita/disabilita la segnalazione delle risorse</Italian>
+		<Spanish>Activar las marcas de recursos</Spanish>
+	</TEXT>
 	
 	<!-- advc.004s: Originally in CIV4GameTextInfos.xml;
 		 says just "(Gold)" there. Translation from TXT_KEY_RESEARCH
@@ -4001,17 +4043,6 @@
 		<German>Die %s1_institution-Mitglieder haben auf Vorschlag von %s2_TeamName mit %d3 von %d4 Stimmen folgenden Beschluss gefasst: %s5_resolution</German>
 		<Italian>[NUM1:Il:Le] %s1_institution [NUM1:ha:hanno] approvato la seguente risoluzione proposta da %s2_TeamName con %d3 su %d4 voti: %s5_resolution</Italian>
 		<Spanish>[NUM1:El:Las] %s1_institution [NUM1:ha:han] aprobado la siguiente resolución propuesta por %s2_TeamName con %d3 de %d4 votos: %s5_resolution</Spanish>
-	</TEXT>
-
-	<!-- advc.004z: Originally in CIV4GameText_Misc1.xml. Romanic translations
-		 based on TXT_KEY_GLOBELAYER_UNITS_ENEMYMILITARY. -->
-	<TEXT>
-		<Tag>TXT_KEY_GLOBELAYER_UNITS_DOMESTICS</Tag>
-		<English>Civilians</English>
-		<French>Unités non militaires</French>
-		<German>Zivilisten</German>
-		<Italian>Eserciti non militari</Italian>
-		<Spanish>Ej&#233;rcitos no militares</Spanish>
 	</TEXT>
 	
 	<!-- advc.004a: Replacing TXT_KEY_BUG_TECH_PREFS_ALL, 

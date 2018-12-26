@@ -22,7 +22,6 @@
 #include "FProfiler.h"
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      10/02/09                                jdog5000      */
-/*                                                                                              */
 /* AI logging                                                                                   */
 /************************************************************************************************/
 #include "BetterBTSAI.h"
@@ -31,6 +30,15 @@
 /************************************************************************************************/
 
 // Public Functions...
+
+// <dlph.26> "Initializations of static variables."
+std::queue<TeamTypes> CvTeam::attacking_queue;
+std::queue<TeamTypes> CvTeam::defending_queue;
+std::queue<bool> CvTeam::newdiplo_queue;
+std::queue<WarPlanTypes> CvTeam::warplan_queue;
+std::queue<bool> CvTeam::primarydow_queue;
+bool CvTeam::bTriggeringWars = false;
+// </dlph.26>
 
 CvTeam::CvTeam()
 {
@@ -460,7 +468,8 @@ void CvTeam::addTeam(TeamTypes eTeam)
 	//
 
 	shareItems(eTeam);
-	GET_TEAM(eTeam).shareItems(getID());
+	// dlph.26: "This team is not going to be used anymore and doing this might break some things."
+	//GET_TEAM(eTeam).shareItems(getID());
 
 	for (iI = 0; iI < MAX_TEAMS; iI++)
 	{
@@ -488,16 +497,43 @@ void CvTeam::addTeam(TeamTypes eTeam)
 			{
 				if (GET_TEAM(eTeam).isAtWar((TeamTypes)iI))
 				{
-					declareWar((TeamTypes)iI, false, GET_TEAM(eTeam).AI_getWarPlan((TeamTypes)iI));
+					//declareWar((TeamTypes)iI, false, GET_TEAM(eTeam).AI_getWarPlan((TeamTypes)iI));
+					// <dlph.26>
+					queueWar(getID(), (TeamTypes)iI, false,
+							GET_TEAM(eTeam).AI_getWarPlan((TeamTypes)iI)); // </dlph.26>
 				}
 				else if (isAtWar((TeamTypes)iI))
 				{
-					GET_TEAM(eTeam).declareWar(((TeamTypes)iI), false, AI_getWarPlan((TeamTypes)iI));
+					//GET_TEAM(eTeam).declareWar(((TeamTypes)iI), false, AI_getWarPlan((TeamTypes)iI));
+					// <dlph.26>
+					queueWar(eTeam, (TeamTypes)iI, false,
+							AI_getWarPlan((TeamTypes)iI)); // </dlph.26>
 				}
 			}
 		}
 	}
-
+	// <dlph.26>
+	triggerWars();
+	for (iI = 0; iI < MAX_TEAMS; iI++)
+	{
+		if (iI != getID() && iI != eTeam)
+		{
+			if (GET_TEAM((TeamTypes)iI).isAlive())
+			{
+				if (GET_TEAM(eTeam).isAtWar((TeamTypes)iI))
+				{
+					queueWar((TeamTypes)iI, getID(), false, WARPLAN_DOGPILE, false);
+				}
+				else if (isAtWar((TeamTypes)iI))
+				{
+					GET_TEAM(eTeam).declareWar((TeamTypes)iI, false, AI_getWarPlan((TeamTypes)iI));
+					queueWar((TeamTypes)iI, eTeam, false, WARPLAN_DOGPILE, false);
+				}
+			}
+		}
+	}
+	triggerWars();
+	// </dlph.26>
 	for (iI = 0; iI < MAX_TEAMS; iI++)
 	{
 		if (iI != getID() && iI != eTeam)
@@ -614,7 +650,17 @@ void CvTeam::addTeam(TeamTypes eTeam)
 
 	shareCounters(eTeam);
 	//GET_TEAM(eTeam).shareCounters(getID());
-	// K-Mod note: eTeam is not going to be used after we've finished this merge, so the sharing does not need to be two-way.
+	/*  K-Mod note: eTeam is not going to be used after we've finished this merge,
+		so the sharing does not need to be two-way. */
+
+	/*  <dlph.26> "Fix for permanent alliance bug that caused permanent espionage visibility
+		for cities that only the players with the higher team number sees at the time of the merge. */
+	for(iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++) {
+		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+		if (pLoopPlot->isCity())
+			pLoopPlot->getPlotCity()->setEspionageVisibility(eTeam, false, true);
+	} // </dlph.26>
+
 	/*  advc.104t: Leader id needed later for merging data; unavailable after the
 		loop below. */
 	PlayerTypes eTeamLeader = GET_TEAM(eTeam).getLeaderID();
@@ -732,12 +778,13 @@ void CvTeam::addTeam(TeamTypes eTeam)
 		// advc.003: Instead of CvPlot* pLoopPlot (for brevity)
 		CvPlot& p = *GC.getMapINLINE().plotByIndexINLINE(iI);
 
+		/*  dlph.26: This part is moved above to the part where members of the
+			other team still had their old team number. */
 		// <dlph.2>
-		if(p.isCity()) {
+		/*if(p.isCity()) {
 			CvCity& c = *p.getPlotCity(); // advc.003
-			c.setEspionageVisibility(getID(), std::max(c.getEspionageVisibility(
-					getID()), c.getEspionageVisibility(eTeam)), false);
-		} // </dlph.2>
+			c.setEspionageVisibility(eTeam, false, false);
+		}*/ // </dlph.2>
 
 		p.changeVisibilityCount(getID(), p.getVisibilityCount(eTeam), NO_INVISIBLE, false);
 
@@ -754,13 +801,13 @@ void CvTeam::addTeam(TeamTypes eTeam)
 	}
 
 	GC.getGameINLINE().updatePlotGroups();
-
+	int iOtherTeamSize = getNumMembers() - iOriginalTeamSize; // dlph.26
 	for (iI = 0; iI < MAX_TEAMS; iI++)
 	{
 		if ((iI != getID()) && (iI != eTeam))
 		{
-			CvTeamAI& kLoopTeam = GET_TEAM((TeamTypes)iI); // K-Mod
-			kLoopTeam.setWarWeariness(getID(), ((kLoopTeam.getWarWeariness(getID()) + kLoopTeam.getWarWeariness(eTeam)) / 2));
+			CvTeamAI& kLoopTeam = GET_TEAM((TeamTypes)iI); // K-Mod			
+			/*kLoopTeam.setWarWeariness(getID(), ((kLoopTeam.getWarWeariness(getID()) + kLoopTeam.getWarWeariness(eTeam)) / 2));
 			kLoopTeam.setStolenVisibilityTimer(getID(), ((kLoopTeam.getStolenVisibilityTimer(getID()) + kLoopTeam.getStolenVisibilityTimer(eTeam)) / 2));
 			kLoopTeam.AI_setAtWarCounter(getID(), ((kLoopTeam.AI_getAtWarCounter(getID()) + kLoopTeam.AI_getAtWarCounter(eTeam)) / 2));
 			kLoopTeam.AI_setAtPeaceCounter(getID(), ((kLoopTeam.AI_getAtPeaceCounter(getID()) + kLoopTeam.AI_getAtPeaceCounter(eTeam)) / 2));
@@ -768,13 +815,50 @@ void CvTeam::addTeam(TeamTypes eTeam)
 			kLoopTeam.AI_setDefensivePactCounter(getID(), ((kLoopTeam.AI_getDefensivePactCounter(getID()) + kLoopTeam.AI_getDefensivePactCounter(eTeam)) / 2));
 			kLoopTeam.AI_setShareWarCounter(getID(), ((kLoopTeam.AI_getShareWarCounter(getID()) + kLoopTeam.AI_getShareWarCounter(eTeam)) / 2));
 			kLoopTeam.AI_setWarSuccess(getID(), ((kLoopTeam.AI_getWarSuccess(getID()) + kLoopTeam.AI_getWarSuccess(eTeam)) / 2));
-			// <advc.130m>
-			kLoopTeam.AI_setSharedWarSuccess(getID(),
-					(kLoopTeam.AI_getSharedWarSuccess(getID()) +
-					kLoopTeam.AI_getSharedWarSuccess(eTeam)) / 2); // </advc.130m>
 			kLoopTeam.AI_setEnemyPeacetimeTradeValue(getID(), ((kLoopTeam.AI_getEnemyPeacetimeTradeValue(getID()) + kLoopTeam.AI_getEnemyPeacetimeTradeValue(eTeam)) / 2));
 			kLoopTeam.AI_setEnemyPeacetimeGrantValue(getID(), ((kLoopTeam.AI_getEnemyPeacetimeGrantValue(getID()) + kLoopTeam.AI_getEnemyPeacetimeGrantValue(eTeam)) / 2));
-			kLoopTeam.setEspionagePointsAgainstTeam(getID(), std::max(kLoopTeam.getEspionagePointsAgainstTeam(getID()), kLoopTeam.getEspionagePointsAgainstTeam(eTeam))); // unofficial patch
+			kLoopTeam.setEspionagePointsAgainstTeam(getID(), std::max(kLoopTeam.getEspionagePointsAgainstTeam(getID()), kLoopTeam.getEspionagePointsAgainstTeam(eTeam))); // unofficial patch*/
+			/*  <dlph.26> "These counters now scale properly with number of players in teams.
+				Also, espionage is now sum instead of max. */
+			kLoopTeam.setWarWeariness(getID(), (iOriginalTeamSize *
+					kLoopTeam.getWarWeariness(getID()) + iOtherTeamSize *
+					kLoopTeam.getWarWeariness(eTeam)) / getNumMembers());
+			kLoopTeam.setStolenVisibilityTimer(getID(), (iOriginalTeamSize *
+					kLoopTeam.getStolenVisibilityTimer(getID()) + iOtherTeamSize *
+					kLoopTeam.getStolenVisibilityTimer(eTeam)) / getNumMembers());
+			kLoopTeam.AI_setAtWarCounter(getID(), (iOriginalTeamSize *
+					kLoopTeam.AI_getAtWarCounter(getID()) + iOtherTeamSize *
+					kLoopTeam.AI_getAtWarCounter(eTeam)) / getNumMembers());
+			kLoopTeam.AI_setAtPeaceCounter(getID(), (iOriginalTeamSize *
+					kLoopTeam.AI_getAtPeaceCounter(getID()) + iOtherTeamSize *
+					kLoopTeam.AI_getAtPeaceCounter(eTeam)) / getNumMembers());
+			kLoopTeam.AI_setHasMetCounter(getID(), (iOriginalTeamSize *
+					kLoopTeam.AI_getHasMetCounter(getID()) + iOtherTeamSize *
+					kLoopTeam.AI_getHasMetCounter(eTeam)) / getNumMembers());
+			kLoopTeam.AI_setDefensivePactCounter(getID(), (iOriginalTeamSize *
+					kLoopTeam.AI_getDefensivePactCounter(getID()) + iOtherTeamSize *
+					kLoopTeam.AI_getDefensivePactCounter(eTeam)) / getNumMembers());
+			kLoopTeam.AI_setShareWarCounter(getID(), (iOriginalTeamSize *
+					kLoopTeam.AI_getShareWarCounter(getID()) + iOtherTeamSize *
+					kLoopTeam.AI_getShareWarCounter(eTeam)) / getNumMembers());
+			kLoopTeam.AI_setWarSuccess(getID(), (iOriginalTeamSize *
+					kLoopTeam.AI_getWarSuccess(getID()) + iOtherTeamSize *
+					kLoopTeam.AI_getWarSuccess(eTeam)) / getNumMembers());
+			// <advc.130m>
+			kLoopTeam.AI_setSharedWarSuccess(getID(), (iOriginalTeamSize *
+					kLoopTeam.AI_getSharedWarSuccess(getID()) + iOtherTeamSize *
+					kLoopTeam.AI_getSharedWarSuccess(eTeam)) / getNumMembers());
+			// </advc.130m>
+			kLoopTeam.AI_setEnemyPeacetimeTradeValue(getID(), (iOriginalTeamSize *
+					kLoopTeam.AI_getEnemyPeacetimeTradeValue(getID()) + iOtherTeamSize *
+					kLoopTeam.AI_getEnemyPeacetimeTradeValue(eTeam)) / getNumMembers());
+			kLoopTeam.AI_setEnemyPeacetimeGrantValue(getID(), (iOriginalTeamSize *
+					kLoopTeam.AI_getEnemyPeacetimeGrantValue(getID()) + iOtherTeamSize *
+					kLoopTeam.AI_getEnemyPeacetimeGrantValue(eTeam)) / getNumMembers());
+			kLoopTeam.setEspionagePointsAgainstTeam(getID(),
+					kLoopTeam.getEspionagePointsAgainstTeam(getID()) +
+					kLoopTeam.getEspionagePointsAgainstTeam(eTeam));
+			// </dlph.26>
 
 			if (kLoopTeam.isAlive())
 			{
@@ -810,11 +894,28 @@ void CvTeam::shareItems(TeamTypes eTeam)
 
 	for (iI = 0; iI < GC.getNumTechInfos(); iI++)
 	{
-		if (GET_TEAM(eTeam).isHasTech((TechTypes)iI))
-		{
-			setHasTech(((TechTypes)iI), true, NO_PLAYER, true, false);
+		TechTypes eTech = (TechTypes)iI; // advc.003
+		if (GET_TEAM(eTeam).isHasTech(eTech))
+		{	// <dlph.26> "Preserve no tech brokering status."
+			setNoTradeTech(eTech, (!isHasTech(eTech) || isNoTradeTech(eTech)) &&
+					GET_TEAM(eTeam).isNoTradeTech(eTech)); // </dlph.26>
+			setHasTech(eTech, true, NO_PLAYER, true, false);
 		}
 	}
+	/*  <dlph.26> "Other direction also done here as other direction of shareItems
+		is not used anymore." */
+	for (iI = 0; iI < GC.getNumTechInfos(); iI++)
+	{
+		TechTypes eTech = (TechTypes)iI;
+		if (isHasTech(eTech))
+		{
+            GET_TEAM(eTeam).setNoTradeTech(eTech,
+					(!GET_TEAM(eTeam).isHasTech(eTech) ||
+					GET_TEAM(eTeam).isNoTradeTech(eTech)) &&
+					isNoTradeTech(eTech));
+			GET_TEAM(eTeam).setHasTech(eTech, true, NO_PLAYER, true, false);
+		}
+	} // </dlph.26>
 
 	for (iI = 0; iI < GC.getNumBonusInfos(); ++iI)
 	{
@@ -824,51 +925,88 @@ void CvTeam::shareItems(TeamTypes eTeam)
 		}
 	}
 
-	for (int iTeam = 0; iTeam < MAX_TEAMS; ++iTeam)
+	/*  <dlph.26> "Other direction also done here as other direction of shareItems
+		is not used anymore." */
+	for (iI = 0; iI < GC.getNumBonusInfos(); ++iI)
 	{
-		setEspionagePointsAgainstTeam((TeamTypes)iTeam, std::max(GET_TEAM(eTeam).getEspionagePointsAgainstTeam((TeamTypes)iTeam), getEspionagePointsAgainstTeam((TeamTypes)iTeam)));
-	}
-	setEspionagePointsEver(std::max(GET_TEAM(eTeam).getEspionagePointsEver(), getEspionagePointsEver())); // K-Mod
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
-	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
+		if (isForceRevealedBonus((BonusTypes)iI))
 		{
-			if (GET_PLAYER((PlayerTypes)iI).getTeam() == eTeam)
-			{
-				for (pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
-				{
-					for (iJ = 0; iJ < GC.getNumBuildingInfos(); iJ++)
-					{
-						if (pLoopCity->getNumBuilding((BuildingTypes)iJ) > 0)
-						{
-							if (!isObsoleteBuilding((BuildingTypes)iJ))
-							{
-								if (GC.getBuildingInfo((BuildingTypes)iJ).isTeamShare())
-								{
-									for (iK = 0; iK < MAX_PLAYERS; iK++)
-									{
-										if (GET_PLAYER((PlayerTypes)iK).getTeam() == getID())
-										{
-											GET_PLAYER((PlayerTypes)iK).processBuilding(((BuildingTypes)iJ), pLoopCity->getNumBuilding((BuildingTypes)iJ), pLoopCity->area());
-										}
-									}
-								}
+			GET_TEAM(eTeam).setForceRevealedBonus((BonusTypes)iI, true);
+		}
+	} // </dlph.26>
 
-								processBuilding(((BuildingTypes)iJ), pLoopCity->getNumBuilding((BuildingTypes)iJ));
-							}
+	for (iI = 0; iI < MAX_TEAMS; iI++)
+	{
+		TeamTypes eLoopTeam = (TeamTypes)iI; // advc.003
+		//setEspionagePointsAgainstTeam((TeamTypes)iTeam, std::max(GET_TEAM(eTeam).getEspionagePointsAgainstTeam((TeamTypes)iTeam), getEspionagePointsAgainstTeam((TeamTypes)iTeam)));
+		// <dlph.26> "Espionage is now sum instead of max."
+		setEspionagePointsAgainstTeam(eLoopTeam,
+				GET_TEAM(eTeam).getEspionagePointsAgainstTeam(eLoopTeam) +
+				getEspionagePointsAgainstTeam(eLoopTeam)); // </dlph.26>
+	}
+	//setEspionagePointsEver(std::max(GET_TEAM(eTeam).getEspionagePointsEver(), getEspionagePointsEver())); // K-Mod
+	// dlph.26: Replacing the above
+	setEspionagePointsEver(GET_TEAM(eTeam).getEspionagePointsEver() + getEspionagePointsEver());
+
+	for(iI = 0; iI < MAX_PLAYERS; iI++) { // Refactored
+		CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
+		if(!kLoopPlayer.isAlive() || kLoopPlayer.getTeam() != eTeam)
+			continue;
+		for(pLoopCity = kLoopPlayer.firstCity(&iLoop); pLoopCity != NULL;
+				pLoopCity = kLoopPlayer.nextCity(&iLoop)) {
+			for(iJ = 0; iJ < GC.getNumBuildingInfos(); iJ++) {
+				BuildingTypes eBuilding = (BuildingTypes)iJ;
+				int iCityBuildings = pLoopCity->getNumBuilding(eBuilding);
+				if(iCityBuildings <= 0 ||
+						isObsoleteBuilding(eBuilding))
+					continue;
+				if(GC.getBuildingInfo(eBuilding).isTeamShare()) {
+					for(iK = 0; iK < MAX_PLAYERS; iK++) {
+						if(GET_PLAYER((PlayerTypes)iK).getTeam() == getID()) {
+							GET_PLAYER((PlayerTypes)iK).processBuilding(eBuilding,
+									iCityBuildings, pLoopCity->area());
 						}
 					}
 				}
+				processBuilding(eBuilding, iCityBuildings);
 			}
 		}
 	}
+	/*  <dlph.26> "Other direction also done here as other direction of shareItems
+		is not used anymore." */
+	for(iI = 0; iI < MAX_PLAYERS; iI++) {
+		CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
+		if(!kLoopPlayer.isAlive() || kLoopPlayer.getTeam() != getID())
+			continue;
+		for(pLoopCity = kLoopPlayer.firstCity(&iLoop); pLoopCity != NULL;
+				pLoopCity = kLoopPlayer.nextCity(&iLoop)) {
+			for(iJ = 0; iJ < GC.getNumBuildingInfos(); iJ++) {
+				BuildingTypes eBuilding = (BuildingTypes)iJ;
+				int iCityBuildings = pLoopCity->getNumBuilding(eBuilding);
+				if(iCityBuildings <= 0 ||
+						isObsoleteBuilding(eBuilding))
+					continue;
+				if(GC.getBuildingInfo(eBuilding).isTeamShare()) {
+					for(iK = 0; iK < MAX_PLAYERS; iK++) {
+						if(GET_PLAYER((PlayerTypes)iK).getTeam() == eTeam) {
+							GET_PLAYER((PlayerTypes)iK).processBuilding(eBuilding,
+									iCityBuildings, pLoopCity->area());
+						}
+					}
+				}
+				GET_TEAM(eTeam).processBuilding(eBuilding, iCityBuildings);
+			}
+		}
+	} // </dlph.26>
 
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
-			if (GET_PLAYER((PlayerTypes)iI).getTeam() == eTeam)
+			if (GET_PLAYER((PlayerTypes)iI).getTeam() == eTeam
+					/*  dlph.26: "Other direction also done here as other direction
+						of shareItems is not used anymore." */
+					|| GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
 			{
 				GET_PLAYER((PlayerTypes)iI).AI_updateBonusValue();
 			}
@@ -1019,15 +1157,17 @@ void CvTeam::shareCounters(TeamTypes eTeam)
 			//
 		}
 
+		/*if (isHasTech(eTech) && !isNoTradeTech(eTech)))
+			kShareTeam.setNoTradeTech((eTech), false);*/
+
 		// unofficial patch
-		if ( kShareTeam.isHasTech(eTech) && !(kShareTeam.isNoTradeTech(eTech)) )
+		/*if ( kShareTeam.isHasTech(eTech) && !(kShareTeam.isNoTradeTech(eTech)) )
 		{
 			setNoTradeTech((eTech), false);
-		}
-		//
-		//if (isHasTech(eTech) && !isNoTradeTech(eTech)))
-		//	kShareTeam.setNoTradeTech((eTech), false);
-		//
+		}*/
+		/*  dlph.26 (commented out): "What was this even supposed to be doing?
+			No tech brokering is now applied if necessary when tech is shared
+			in CvTeam::shareItems. */
 	}
 
 	// K-Mod. Share extra moves.
@@ -1764,7 +1904,7 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 	{
 		cancelDefensivePacts();
 	}
-	bool defPactTriggered = false; // advc.104i
+	bool bDefPactTriggered = false; // advc.104i
 	for (iI = 0; iI < MAX_TEAMS; iI++)
 	{
 		if (iI != getID() && iI != eTeam && GET_TEAM((TeamTypes)iI).isAlive())
@@ -1774,9 +1914,11 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 			if (GET_TEAM((TeamTypes)iI).isDefensivePact(eTeam)) {
 				FAssert(!GET_TEAM(eTeam).isAVassal() &&
 						!GET_TEAM((TeamTypes)iI).isAVassal());
-				GET_TEAM((TeamTypes)iI).declareWar(getID(), bNewDiplo, WARPLAN_DOGPILE, false);
+				//GET_TEAM((TeamTypes)iI).declareWar(getID(), bNewDiplo, WARPLAN_DOGPILE, false);
+				// dlph.26:
+				queueWar((TeamTypes)iI, getID(), bNewDiplo, WARPLAN_DOGPILE, false);
 				// <advc.104i>
-				defPactTriggered = true;
+				bDefPactTriggered = true;
 				if(!isAVassal()) {
 				/*  Team iI declares war on us, and this makes our team
 					unwilling to talk to both iI and its ally eTeam. */
@@ -1787,7 +1929,9 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 			else if( (GC.getBBAI_DEFENSIVE_PACT_BEHAVIOR() > 1) && GET_TEAM((TeamTypes)iI).isDefensivePact(getID()))
 			{
 				// For alliance option.  This teams pacts are canceled above if not using alliance option.
-				GET_TEAM((TeamTypes)iI).declareWar(eTeam, bNewDiplo, WARPLAN_DOGPILE, false);
+				//GET_TEAM((TeamTypes)iI).declareWar(eTeam, bNewDiplo, WARPLAN_DOGPILE, false);
+				// dlph.26:
+				queueWar((TeamTypes)iI, eTeam, bNewDiplo, WARPLAN_DOGPILE, false);
 			}
 		}
 	}
@@ -1800,7 +1944,7 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 	GET_TEAM(eTeam).allowDefensivePactsToBeCanceled(); // dlph.3
 	/*  <advc.104i> When other teams come to the help of eTeam through a
 		defensive pact, then eTeam becomes unwilling to talk with us. */
-	if(defPactTriggered)
+	if(bDefPactTriggered)
 		GET_TEAM(eTeam).makeUnwillingToTalk(getID()); // </advc.104i>
 	for (iI = 0; iI < MAX_TEAMS; iI++)
 	{
@@ -1810,24 +1954,26 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 			{
 				if (GET_TEAM((TeamTypes)iI).isVassal(eTeam) || GET_TEAM(eTeam).isVassal((TeamTypes)iI))
 				{
-					declareWar((TeamTypes)iI, bNewDiplo, AI_getWarPlan(eTeam), false);
+					//declareWar((TeamTypes)iI, bNewDiplo, AI_getWarPlan(eTeam), false);
+					// dlph.26:
+					queueWar(getID(), (TeamTypes)iI, bNewDiplo, AI_getWarPlan(eTeam), false);
 				}
 				else if (GET_TEAM((TeamTypes)iI).isVassal(getID()) || isVassal((TeamTypes)iI))
 				{
-					GET_TEAM((TeamTypes)iI).declareWar(eTeam, bNewDiplo, WARPLAN_DOGPILE, false);
+					//GET_TEAM((TeamTypes)iI).declareWar(eTeam, bNewDiplo, WARPLAN_DOGPILE, false);
+					// dlph.26:
+					queueWar((TeamTypes)iI, eTeam, bNewDiplo, WARPLAN_DOGPILE, false);
 				}
 			}
 		}
 	}
 	// K-Mod. update attitude
-	if (bPrimaryDoW)
-	{
+	/*if (bPrimaryDoW) {
 		for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
-		{
 			GET_PLAYER(i).AI_updateAttitudeCache();
-		}
-	}
-	// K-Mod end
+	}*/ // K-Mod end
+	// dlph.26: The above is "updated when the war queue is emptied."
+	triggerWars();
 }
 
 
@@ -4930,7 +5076,9 @@ void CvTeam::setVassal(TeamTypes eIndex, bool bNewValue, bool bCapitulated)
 
 					if (GET_TEAM(eIndex).isAtWar((TeamTypes)iI))
 					{
-						declareWar(((TeamTypes)iI), false, WARPLAN_DOGPILE);
+						//declareWar((TeamTypes)iI, false, WARPLAN_DOGPILE);
+						// dlph.26:
+						queueWar(getID(), (TeamTypes)iI, false, WARPLAN_DOGPILE, !bCapitulated);
 					}
 					else if (isAtWar((TeamTypes)iI))
 					{
@@ -4940,13 +5088,15 @@ void CvTeam::setVassal(TeamTypes eIndex, bool bNewValue, bool bCapitulated)
 						}
 						else
 						{
-							GET_TEAM(eIndex).declareWar((TeamTypes)iI, false, WARPLAN_DOGPILE);
+							//GET_TEAM(eIndex).declareWar((TeamTypes)iI, false, WARPLAN_DOGPILE);
+							// dlph.26:
+							queueWar(eIndex, (TeamTypes)iI, false, WARPLAN_DOGPILE);
 						}
 					}
 				}
 			}
 		}
-
+		triggerWars(); // dlph.26
 		for (int iI = 0; iI < MAX_TEAMS; iI++)
 		{
 			CvTeam& kLoopTeam = GET_TEAM((TeamTypes)iI);
@@ -5296,6 +5446,43 @@ bool CvTeam::isCapitulated() const
 
 	return m_bCapitulated;
 }
+
+/*  <dlph.26> "Changed how multiple war declarations work. declareWar used to
+	nest war declarations, now they are queued to trigger defensive pacts and
+	everything else in the correct order." */
+void CvTeam::queueWar(TeamTypes eAttackingTeam, TeamTypes eDefendingTeam,
+		bool bNewDiplo, WarPlanTypes eWarPlan, bool bPrimaryDOW) {
+
+	attacking_queue.push(eAttackingTeam);
+	defending_queue.push(eDefendingTeam);
+	newdiplo_queue.push(bNewDiplo);
+	warplan_queue.push(eWarPlan);
+	primarydow_queue.push(bPrimaryDOW);
+}
+
+void CvTeam::triggerWars() {
+
+	bool bWarsDeclared = false;
+	if(bTriggeringWars)
+		return;
+	else bTriggeringWars = true;
+	while(!attacking_queue.empty()) {
+		GET_TEAM(attacking_queue.front()).declareWar(
+				defending_queue.front(), newdiplo_queue.front(),
+				warplan_queue.front(), primarydow_queue.front());
+		attacking_queue.pop();
+		defending_queue.pop();
+		newdiplo_queue.pop();
+		warplan_queue.pop();
+		primarydow_queue.pop();
+		bWarsDeclared = true;
+	}
+	if(bWarsDeclared) { // Cut and pasted from declareWar (K-Mod code)
+		for(PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
+			GET_PLAYER(i).AI_updateAttitudeCache();
+	}
+	bTriggeringWars = false;
+} // </dlph.26>
 
 
 int CvTeam::getRouteChange(RouteTypes eIndex) const
