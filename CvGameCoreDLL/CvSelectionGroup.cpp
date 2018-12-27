@@ -31,6 +31,7 @@ KmodPathFinder CvSelectionGroup::path_finder; // K-Mod
 
 CvSelectionGroup::CvSelectionGroup()
 {
+	m = new Data(); // advc.003k
 	reset(0, NO_PLAYER, true);
 }
 
@@ -38,6 +39,7 @@ CvSelectionGroup::CvSelectionGroup()
 CvSelectionGroup::~CvSelectionGroup()
 {
 	uninit();
+	SAFE_DELETE(m); // advc.003k
 }
 
 
@@ -59,7 +61,7 @@ void CvSelectionGroup::init(int iID, PlayerTypes eOwner)
 void CvSelectionGroup::uninit()
 {
 	m_units.clear();
-
+	m->knownEnemies.clear(); // advc.004l
 	m_missionQueue.clear();
 }
 
@@ -80,7 +82,7 @@ void CvSelectionGroup::reset(int iID, PlayerTypes eOwner, bool bConstructorCall)
 	m_eOwner = eOwner;
 
 	m_eActivityType = ACTIVITY_AWAKE;
-	m_eAutomateType = NO_AUTOMATE;
+	m->eAutomateType = NO_AUTOMATE;
 	m_bIsBusyCache = false;
 
 	if (!bConstructorCall)
@@ -101,7 +103,8 @@ void CvSelectionGroup::kill()
 	GET_PLAYER(getOwnerINLINE()).deleteSelectionGroup(getID());
 }
 
-bool CvSelectionGroup::sentryAlert() const
+bool CvSelectionGroup::sentryAlert(
+		bool bUpdateKnownEnemies) // advc.004l
 {
 	CvUnit* pHeadUnit = NULL;
 	int iMaxRange = 0;
@@ -120,28 +123,49 @@ bool CvSelectionGroup::sentryAlert() const
 		}
 	}
 
-	if (NULL != pHeadUnit)
+	if(pHeadUnit == NULL)
+		return false; // advc.003
+	bool r = false; // advc.004l
+	for (int iX = -iMaxRange; iX <= iMaxRange; ++iX)
 	{
-		for (int iX = -iMaxRange; iX <= iMaxRange; ++iX)
+		for (int iY = -iMaxRange; iY <= iMaxRange; ++iY)
 		{
-			for (int iY = -iMaxRange; iY <= iMaxRange; ++iY)
-			{
-				CvPlot* pPlot = ::plotXY(pHeadUnit->getX_INLINE(), pHeadUnit->getY_INLINE(), iX, iY);
-				if (NULL != pPlot)
-				{
-					if (pHeadUnit->plot()->canSeePlot(pPlot, pHeadUnit->getTeam(), iMaxRange - 1, NO_DIRECTION))
-					{
-						if (pPlot->isVisibleEnemyUnit(pHeadUnit))
-						{
-							return true;
+			CvPlot* pPlot = ::plotXY(pHeadUnit->getX_INLINE(), pHeadUnit->getY_INLINE(), iX, iY);
+			if(NULL == pPlot)
+				continue; // advc.003
+			if(pHeadUnit->plot()->canSeePlot(pPlot, pHeadUnit->getTeam(), iMaxRange - 1, NO_DIRECTION))
+			{	// <advc.004l>
+				CLLNode<IDInfo>* pNode = pPlot->headUnitNode();
+				while(pNode != NULL) {
+					CvUnit* pLoopUnit = ::getUnit(pNode->m_data);
+					if(pPlot->isVisibleEnemyUnit(pHeadUnit, pLoopUnit)) {
+						if(bUpdateKnownEnemies) {
+							r = true;
+							m->knownEnemies.insertAtEnd(pNode->m_data);
+						}
+						else {
+							bool bKnown = false;
+							// Linear search :(
+							for(CLLNode<IDInfo>* pKnownNode = m->knownEnemies.head();
+									pKnownNode != NULL;
+									pKnownNode = m->knownEnemies.next(pKnownNode)) {
+								if(pKnownNode->m_data.eOwner == pNode->m_data.eOwner &&
+										pKnownNode->m_data.iID == pNode->m_data.iID) {
+									bKnown = true;
+									break;
+								}
+							}
+							if(!bKnown)
+								return true;
 						}
 					}
-				}
+					pNode = pPlot->nextUnitNode(pNode);
+				} // </advc.004l>
 			}
 		}
 	}
 
-	return false;
+	return r; // advc.004l
 }
 
 // Note: this function has had some editting and restructuring for K-Mod. There are some unmarked changes.
@@ -150,143 +174,158 @@ void CvSelectionGroup::doTurn()
 	PROFILE_FUNC();
 
 	FAssert(getOwnerINLINE() != NO_PLAYER);
+	// <advc.003>
+	if(getNumUnits() <= 0) {
+		doDelayedDeath();
+		return;
+	} // </advc.003>
 
-	if (getNumUnits() > 0)
+	bool bCouldAllMove = canAllMove(); // K-Mod
+	CvUnit* pHeadUnit = getHeadUnit(); // advc.003
+	// K-Mod. Wake spies when they reach max fortify turns in foreign territory. I'm only checking the head unit.
+	// Note: We only want to wake once. So this needs to be done before the fortify counter is increased.
+	if (isHuman() && getActivityType() == ACTIVITY_SLEEP)
 	{
-		bool bCouldAllMove = canAllMove(); // K-Mod
-
-		// K-Mod. Wake spies when they reach max fortify turns in foreign territory. I'm only checking the head unit.
-		// Note: We only want to wake once. So this needs to be done before the fortify counter is increased.
-		if (isHuman() && getActivityType() == ACTIVITY_SLEEP)
+		if (pHeadUnit->isSpy() && pHeadUnit->plot()->getTeam() != getTeam())
 		{
-			CvUnit* pHeadUnit = getHeadUnit();
-			if (pHeadUnit && pHeadUnit->isSpy() && pHeadUnit->plot()->getTeam() != getTeam())
+			if (pHeadUnit->getFortifyTurns() == GC.getDefineINT("MAX_FORTIFY_TURNS")-1)
 			{
-				if (pHeadUnit->getFortifyTurns() == GC.getDefineINT("MAX_FORTIFY_TURNS")-1)
-				{
-					setActivityType(ACTIVITY_AWAKE); // time to wake up!
-				}
+				setActivityType(ACTIVITY_AWAKE); // time to wake up!
 			}
 		}
-		// K-Mod end
+	}
+	// K-Mod end
 
-		// do unit's turns (checking for damage)
-		bool bHurt = false;
+	// do unit's turns (checking for damage)
+	bool bHurt = false;
+	{
+		CLLNode<IDInfo>* pUnitNode = headUnitNode();
+		while (pUnitNode != NULL)
 		{
+			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+			pUnitNode = nextUnitNode(pUnitNode);
+
+			pLoopUnit->doTurn();
+
+			if (pLoopUnit->isHurt())
+			{
+				bHurt = true;
+			}
+		}
+	}
+
+	ActivityTypes eActivityType = getActivityType();
+
+	// wake unit if skipped last turn 
+	//		or healing and automated or no longer hurt (automated healing is one turn at a time)
+	//		or on sentry and there is danger
+	// <advc.004l> Also wake the unit if healing outside of a city and danger
+	bool bSentryAlert = // Just for performance:
+			((eActivityType == ACTIVITY_HEAL || eActivityType == ACTIVITY_SENTRY) &&
+			isHuman() && sentryAlert()); // </advc.004l>
+	if (eActivityType == ACTIVITY_HOLD ||
+		(eActivityType == ACTIVITY_HEAL && (AI_isControlled() || !bHurt
+		|| (bSentryAlert && pHeadUnit->canSentryHeal(plot())) // advc.004l
+		)) ||
+		(eActivityType == ACTIVITY_SENTRY && bSentryAlert))
+	{
+		setActivityType(ACTIVITY_AWAKE);
+	}
+
+	if (AI_isControlled())
+	{
+		if (getActivityType() != ACTIVITY_MISSION || (!canFight() && GET_PLAYER(getOwnerINLINE()).AI_getAnyPlotDanger(plot(), 2)))
+		{
+			setForceUpdate(true);
+			// K-Mod. (This stuff use to be part force update's job. Now it isn't.)
+			clearMissionQueue();
+			AI_cancelGroupAttack();
+			// K-Mod end
+		}
+	}
+	else
+	{
+		setForceUpdate(false); // K-Mod. (this should do nothing, unless we're coming out of autoplay or something like that.)
+
+		if (getActivityType() == ACTIVITY_MISSION)
+		{
+			bool bNonSpy = false;
+			for (CLLNode<IDInfo>* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode))
+			{
+				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+				if (!pLoopUnit->isSpy())
+				{
+					bNonSpy = true;
+					break;
+				}
+			}
+
+			// K-Mod
+			bool bBrave = headMissionQueueNode() && (headMissionQueueNode()->m_data.iFlags & MOVE_IGNORE_DANGER);
+			// Originally I used "MOVE_IGNORE_DANGER" to actually skip the danger tests complete, but I've found that
+			// sometimes produces unintuitive results in some situations. So now 'ignore danger' only ignores range==2.
+
+			//if (bNonSpy && GET_PLAYER(getOwnerINLINE()).AI_getPlotDanger(plot(), 2) > 0)
+			if (bNonSpy && GET_PLAYER(getOwnerINLINE()).AI_getAnyPlotDanger(plot(), bBrave ? 1 : 2, true, false))
+				clearMissionQueue();
+			// K-Mod end
+		}
+	}
+
+	if (isHuman())
+	{
+		//if (GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
+		if (GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) && GET_TEAM(getTeam()).hasMetHuman()) // K-Mod
+		{
+			int iBestWaitTurns = 0;
+
 			CLLNode<IDInfo>* pUnitNode = headUnitNode();
+
 			while (pUnitNode != NULL)
 			{
 				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 				pUnitNode = nextUnitNode(pUnitNode);
 
-				pLoopUnit->doTurn();
+				int iWaitTurns = (GC.getDefineINT("MIN_TIMER_UNIT_DOUBLE_MOVES") - (GC.getGameINLINE().getTurnSlice() - pLoopUnit->getLastMoveTurn()));
 
-				if (pLoopUnit->isHurt())
+				if (iWaitTurns > iBestWaitTurns)
 				{
-					bHurt = true;
+					iBestWaitTurns = iWaitTurns;
 				}
 			}
-		}
 
-		ActivityTypes eActivityType = getActivityType();
+			setMissionTimer(std::max(iBestWaitTurns, getMissionTimer()));
 
-		// wake unit if skipped last turn 
-		//		or healing and automated or no longer hurt (automated healing is one turn at a time)
-		//		or on sentry and there is danger
-		// advc.004l: Also wake the unit if healing outside of a city and danger:
-		bool bSentryAlert = sentryAlert();
-		if (eActivityType == ACTIVITY_HOLD ||
-			(eActivityType == ACTIVITY_HEAL && (AI_isControlled() || !bHurt
-			|| (bSentryAlert && !plot()->isCity()) // advc.004l
-			)) ||
-			(eActivityType == ACTIVITY_SENTRY && bSentryAlert))
-		{
-			setActivityType(ACTIVITY_AWAKE);
-		}
-
-		if (AI_isControlled())
-		{
-			if (getActivityType() != ACTIVITY_MISSION || (!canFight() && GET_PLAYER(getOwnerINLINE()).AI_getAnyPlotDanger(plot(), 2)))
+			if (iBestWaitTurns > 0)
 			{
-				setForceUpdate(true);
-				// K-Mod. (This stuff use to be part force update's job. Now it isn't.)
-				clearMissionQueue();
-				AI_cancelGroupAttack();
-				// K-Mod end
-			}
-		}
-		else
-		{
-			setForceUpdate(false); // K-Mod. (this should do nothing, unless we're coming out of autoplay or something like that.)
-
-			if (getActivityType() == ACTIVITY_MISSION)
-			{
-				bool bNonSpy = false;
-				for (CLLNode<IDInfo>* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode))
+				// Cycle selection if the current group is selected
+				CvUnit* pSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+				if (pSelectedUnit && pSelectedUnit->getGroup() == this)
 				{
-					CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-					if (!pLoopUnit->isSpy())
-					{
-						bNonSpy = true;
-						break;
-					}
-				}
-
-				// K-Mod
-				bool bBrave = headMissionQueueNode() && (headMissionQueueNode()->m_data.iFlags & MOVE_IGNORE_DANGER);
-				// Originally I used "MOVE_IGNORE_DANGER" to actually skip the danger tests complete, but I've found that
-				// sometimes produces unintuitive results in some situations. So now 'ignore danger' only ignores range==2.
-
-				//if (bNonSpy && GET_PLAYER(getOwnerINLINE()).AI_getPlotDanger(plot(), 2) > 0)
-				if (bNonSpy && GET_PLAYER(getOwnerINLINE()).AI_getAnyPlotDanger(plot(), bBrave ? 1 : 2, true, false))
-					clearMissionQueue();
-				// K-Mod end
-			}
-		}
-
-		if (isHuman())
-		{
-			//if (GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
-			if (GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) && GET_TEAM(getTeam()).hasMetHuman()) // K-Mod
-			{
-				int iBestWaitTurns = 0;
-
-				CLLNode<IDInfo>* pUnitNode = headUnitNode();
-
-				while (pUnitNode != NULL)
-				{
-					CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-					pUnitNode = nextUnitNode(pUnitNode);
-
-					int iWaitTurns = (GC.getDefineINT("MIN_TIMER_UNIT_DOUBLE_MOVES") - (GC.getGameINLINE().getTurnSlice() - pLoopUnit->getLastMoveTurn()));
-
-					if (iWaitTurns > iBestWaitTurns)
-					{
-						iBestWaitTurns = iWaitTurns;
-					}
-				}
-
-				setMissionTimer(std::max(iBestWaitTurns, getMissionTimer()));
-
-				if (iBestWaitTurns > 0)
-				{
-					// Cycle selection if the current group is selected
-					CvUnit* pSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
-					if (pSelectedUnit && pSelectedUnit->getGroup() == this)
-					{
-						gDLL->getInterfaceIFace()->selectGroup(pSelectedUnit, false, false, false);
-					}
+					gDLL->getInterfaceIFace()->selectGroup(pSelectedUnit, false, false, false);
 				}
 			}
 		}
-		// K-Mod
-		if (!bCouldAllMove && isCycleGroup(this))
-			GET_PLAYER(getOwnerINLINE()).updateGroupCycle(this);
-		// K-Mod end
 	}
+	// K-Mod
+	if (!bCouldAllMove && isCycleGroup(this))
+		GET_PLAYER(getOwnerINLINE()).updateGroupCycle(this);
+	// K-Mod end
 
 	doDelayedDeath();
 }
+
+// <advc.004l>
+void CvSelectionGroup::doTurnPost() {
+
+	/*  In particular: If an enemy unit moves out of range and returns, it's
+		no longer a known enemy. */
+	m->knownEnemies.clear();
+	ActivityTypes eActivity = getActivityType();
+	if(eActivity == ACTIVITY_HEAL || eActivity == ACTIVITY_SENTRY)
+		sentryAlert(true);
+} // </advc.004l>
+
 
 bool CvSelectionGroup::showMoves(
 		CvPlot const& fromPlot) const // advc.102
@@ -663,6 +702,7 @@ CvPlot* CvSelectionGroup::lastMissionPlot()
 		case MISSION_AIRPATROL:
 		case MISSION_SEAPATROL:
 		case MISSION_HEAL:
+		case MISSION_SENTRY_HEAL: // advc.004l
 		case MISSION_SENTRY:
 		case MISSION_AIRLIFT:
 		case MISSION_NUKE:
@@ -841,6 +881,10 @@ void CvSelectionGroup::startMission()
 			break;
 
 		case MISSION_HEAL:
+		/*  advc.004l: No separate sentry heal activity. Instead, units in
+			ACTIVITY_HEAL are going to apply sentry behavior whenever it makes sense.
+			The sentry heal mission is only needed for the proper help text. */
+		case MISSION_SENTRY_HEAL:
 			setActivityType(ACTIVITY_HEAL);
 			bNotify = true;
 			bDelete = true;
@@ -999,6 +1043,7 @@ void CvSelectionGroup::startMission()
 				case MISSION_FORTIFY:
 				case MISSION_SEAPATROL:
 				case MISSION_HEAL:
+				case MISSION_SENTRY_HEAL: // advc.004l
 				case MISSION_SENTRY:
 				case MISSION_PILLAGE:
 				case MISSION_BUILD:
@@ -1462,6 +1507,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 				case MISSION_AIRPATROL:
 				case MISSION_SEAPATROL:
 				case MISSION_HEAL:
+				case MISSION_SENTRY_HEAL: // advc.004l
 				case MISSION_SENTRY:
 					FAssert(false);
 					break;
@@ -1548,6 +1594,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 			case MISSION_AIRPATROL:
 			case MISSION_SEAPATROL:
 			case MISSION_HEAL:
+			case MISSION_SENTRY_HEAL: // advc.004l
 			case MISSION_SENTRY:
 				FAssert(false);
 				break;
@@ -3844,10 +3891,17 @@ bool CvSelectionGroup::canDoMission(int iMission, int iData1, int iData2, CvPlot
 			break;
 			#endif // advc.004k
 		case MISSION_HEAL:
-			if (pLoopUnit->canHeal(pPlot))
+			if (pLoopUnit->canHeal(pPlot)
+					// advc.004l: isHuman check only for performance
+					&& (!pLoopUnit->isHuman() || !pLoopUnit->canSentryHeal(pPlot)))
 				return true;
 			break;
-
+		// <advc.004l> Make the two heal missions mutually exclusive (for humans)
+		case MISSION_SENTRY_HEAL:
+			if(pLoopUnit->canHeal(pPlot) && pLoopUnit->canSentryHeal(pPlot))
+				return true;
+			break;
+		// </advc.004l>
 		case MISSION_SENTRY:
 			if (pLoopUnit->canSentry(pPlot))
 				return true;
@@ -4220,7 +4274,7 @@ void CvSelectionGroup::setActivityType(ActivityTypes eNewValue)
 
 AutomateTypes CvSelectionGroup::getAutomateType() const														
 {
-	return m_eAutomateType;
+	return m->eAutomateType;
 }
 
 
@@ -4237,7 +4291,7 @@ void CvSelectionGroup::setAutomateType(AutomateTypes eNewValue)
 
 	if (getAutomateType() != eNewValue)
 	{
-		m_eAutomateType = eNewValue;
+		m->eAutomateType = eNewValue;
 
 		clearMissionQueue();
 		setActivityType(ACTIVITY_AWAKE);
@@ -5009,9 +5063,12 @@ void CvSelectionGroup::read(FDataStreamBase* pStream)
 
 	pStream->Read((int*)&m_eOwner);
 	pStream->Read((int*)&m_eActivityType);
-	pStream->Read((int*)&m_eAutomateType);
+	pStream->Read((int*)&m->eAutomateType);
 
 	m_units.Read(pStream);
+	// <advc.004l>
+	if(uiFlag >= 2)
+		m->knownEnemies.Read(pStream); // </advc.004l>
 	// <advc.011b>
 	if(uiFlag <= 0) {
 		CLinkList<MissionDataLegacy> tmp;
@@ -5037,6 +5094,7 @@ void CvSelectionGroup::write(FDataStreamBase* pStream)
 {
 	uint uiFlag=0;
 	uiFlag = 1; // advc.011b
+	uiFlag = 2; // advc.004l
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iID);
@@ -5046,9 +5104,10 @@ void CvSelectionGroup::write(FDataStreamBase* pStream)
 
 	pStream->Write(m_eOwner);
 	pStream->Write(m_eActivityType);
-	pStream->Write(m_eAutomateType);
+	pStream->Write(m->eAutomateType);
 
 	m_units.Write(pStream);
+	m->knownEnemies.Write(pStream); // advc.004l
 	m_missionQueue.Write(pStream);
 }
 

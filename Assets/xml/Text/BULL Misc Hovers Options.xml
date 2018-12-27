@@ -174,11 +174,12 @@
 		<Italian>Edifici</Italian>
 		<Spanish>Edificios</Spanish>
 	</TEXT>
+	<!-- advc.063: Info about Alt key added. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__BUILDINGACTUALEFFECTS_HOVER</Tag>
-		<English>When checked, the actual yield of [ICON_COMMERCE], [ICON_HAPPY], [ICON_HEALTHY], [ICON_GREATPEOPLE], and [ICON_DEFENSE] the building will produce for the city are displayed in the building hover text.</English>
+		<English>If checked, the city screen shows the predicted absolute change in [ICON_PRODUCTION], [ICON_COMMERCE], [ICON_FOOD], [ICON_HAPPY], [ICON_HEALTHY], [ICON_GREATPEOPLE] and [ICON_DEFENSE] of a building when hovering over a construct button or the production queue. Absolute effects are also shown when hovering over a specialist or an action button of a Great Person unit. All the info displayed by the Actual Effects mod can alternatively be accessed by holding down the Alt key while hovering.</English>
 		<French>When checked, the actual yield of [ICON_COMMERCE], [ICON_HAPPY], [ICON_HEALTHY], [ICON_GREATPEOPLE], and [ICON_DEFENSE] the building will produce for the city are displayed in the building hover text.</French>
-		<German>Zeigt die tatsächlichen Erträge von [ICON_COMMERCE], [ICON_HAPPY], [ICON_HEALTHY], ICON_GREATPEOPLE] und [ICON_DEFENSE] an, die ein Gebäude für eine Stadt erzeugt, wenn der Mauszeiger über ein Gebäudesymbol bewegt wird</German>
+		<German>Zeigt im Stadtbildschirm die voraussichtlichen absoluten Änderungen von [ICON_PRODUCTION], [ICON_COMMERCE], [ICON_FOOD], [ICON_HAPPY], [ICON_HEALTHY], ICON_GREATPEOPLE] und [ICON_DEFENSE] an, die ein Gebäude oder Spezialist für eine Stadt erzeugen wird. Die Anzeige erfolgt, wenn der Mauszeiger über eine Gebäudeschaltfläche oder einen Spezialisten bewegt wird. Alle Zusatzinfos über Gebäude und Spezialisten lassen sich alternativ auch durch Gedrückthalten der Alt-Taste anzeigen.</German>
 		<Italian>Quando è selezionato, nel testo a comparsa degli Edifici della Città viene mostrata la resa effettiva in [ICON_COMMERCE], [ICON_HAPPY], [ICON_HEALTHY], [ICON_GREATPEOPLE] e [ICON_DEFENSE] prodotta dagli edifici stessi.</Italian>
 		<Spanish>Si se activa, se muestran los beneficios reales de [ICON_COMMERCE], [ICON_HAPPY], [ICON_HEALTHY], [ICON_GREATPEOPLE], y [ICON_DEFENSE] que el edificio produce en su texto flotante.</Spanish>
 	</TEXT>
@@ -281,11 +282,12 @@
 		<Italian>Mantenimento</Italian>
 		<Spanish>Mantenimiento</Spanish>
 	</TEXT>
+	<!-- advc.063: English and German rewritten -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__BUILDINGSAVEDMAINTENANCE_HOVER</Tag>
-		<English>When checked, displays the buildings that will affect maintenance costs ([ICON_GOLD]) and by how much.</English>
+		<English>If checked, the hover text of the maintenance display on the city screen lists all buildings that the city can construct and that will affect city maintenance ([ICON_GOLD]).</English>
 		<French>When checked, displays the buildings that will affect maintenance costs ([ICON_GOLD]) and by how much.</French>
-		<German>Zeigt die Gebäude an, die Einfluss auf die Unterhaltskosten ([ICON_GOLD]) haben und welchen genau</German>
+		<German>Zeigt im Hilfstext der Unterhaltskostenanzeige (Stadtbildschirm) alle Gebäude an, die die Stadt errichten kann und die Einfluss auf die Unterhaltskosten ([ICON_GOLD]) haben.</German>
 		<Italian>Quando è selezionato, vengono visualizzati gli edifici che influenzano il mantenimento ([ICON_GOLD]) e l'ammontare con cui lo fanno.</Italian>
 		<Spanish>Muestra los edificios que afectan a los costes de mantenimiento ([ICON_GOLD]) y en cuánto lo hacen.</Spanish>
 	</TEXT>
@@ -313,11 +315,12 @@
 		<Italian>Produzione</Italian>
 		<Spanish>Producción</Spanish>
 	</TEXT>
+	<!-- advc.063: English and German rewritten -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__BUILDINGADDITIONALPRODUCTION_HOVER</Tag>
-		<English>When checked, displays the buildings that will affect the [ICON_PRODUCTION] rate and by how much.</English>
+		<English>If checked, the hover text of the [ICON_PRODUCTION] display on the city screen lists all buildings that the city can construct and that will affect the [ICON_PRODUCTION] rate.</English>
 		<French>When checked, displays the buildings that will affect the [ICON_PRODUCTION] rate and by how much.</French>
-		<German>Zeigt die Gebäude an, die Einfluss auf [ICON_PRODUCTION]/Runde haben und welchen genau</German>
+		<German>Zeigt im Hilfstext der [ICON_PRODUCTION]-Anzeige (Stadtbildschirm) alle Gebäude an, die die Stadt errichten kann und die Einfluss auf [ICON_PRODUCTION]/Runde haben.</German>
 		<Italian>Quando è selezionato, vengono visualizzati gli edifici che influenzano la produzione ([ICON_PRODUCTION]) e l'ammontare con cui lo fanno.</Italian>
 		<Spanish>Muestra los edificios que afectan a la producción de [ICON_PRODUCTION] y en qué medida.</Spanish>
 	</TEXT>
@@ -329,11 +332,12 @@
 		<Italian>Commercio</Italian>
 		<Spanish>Comercio</Spanish>
 	</TEXT>
+	<!-- advc.063: English and German rewritten -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__BUILDINGADDITIONALCOMMERCE_HOVER</Tag>
-		<English>When checked, displays the buildings that will affect the [ICON_COMMERCE], [ICON_GOLD], [ICON_RESEARCH], [ICON_CULTURE], and [ICON_ESPIONAGE] rates and by how much.</English>
+		<English>If checked, the hover text of the [ICON_COMMERCE], [ICON_GOLD], [ICON_RESEARCH], [ICON_CULTURE] and [ICON_ESPIONAGE] displays on the city screen lists all buildings that the city can construct and that will affect these commerce rates.</English>
 		<French>When checked, displays the buildings that will affect the [ICON_COMMERCE], [ICON_GOLD], [ICON_RESEARCH], [ICON_CULTURE], and [ICON_ESPIONAGE] rates and by how much.</French>
-		<German>Zeigt die Gebäude an, die Einfluss auf [ICON_COMMERCE]/Runde, [ICON_GOLD]/Runde, [ICON_RESEARCH]/Runde, [ICON_CULTURE]/Runde und [ICON_ESPIONAGE]/Runde haben und welchen genau</German>
+		<German>Zeigt im Hilfstext der Stadtbildschirm-Anzeigen für [ICON_COMMERCE], [ICON_GOLD], [ICON_RESEARCH], [ICON_CULTURE] und [ICON_ESPIONAGE] alle Gebäude an, die die Stadt errichten kann und die Einfluss auf die entsprechenden Erträge haben.</German>
 		<Italian>Quando è selezionato, vengono visualizzati gli edifici che influenzano la crescita commerciale ([ICON_COMMERCE], [ICON_GOLD]), scientifica ([ICON_RESEARCH]), culturale ([ICON_CULTURE]) e spionistica ([ICON_ESPIONAGE]) e l'ammontare con cui lo fanno.</Italian>
 		<Spanish>Muestra los edificios que afectan a la producción de [ICON_COMMERCE], [ICON_GOLD], [ICON_RESEARCH], [ICON_CULTURE], y [ICON_ESPIONAGE] en qué medida.</Spanish>
 	</TEXT>
@@ -345,11 +349,12 @@
 		<Italian>Salute</Italian>
 		<Spanish>Salud</Spanish>
 	</TEXT>
+	<!-- advc.063: English and German rewritten -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__BUILDINGADDITIONALHEALTH_HOVER</Tag>
-		<English>When checked, displays the buildings that will affect the [ICON_HEALTHY] and [ICON_UNHEALTHY] rates and by how much.</English>
+		<English>If checked, the hover text of the [ICON_HEALTHY] display on the city screen lists all buildings that the city can construct and that will affect [ICON_HEALTHY] or [ICON_UNHEALTHY].</English>
 		<French>When checked, displays the buildings that will affect the [ICON_HEALTHY] and [ICON_UNHEALTHY] rates and by how much.</French>
-		<German>Zeigt die Gebäude an, die Einfluss auf [ICON_HEALTHY]/Runde und [ICON_UNHEALTHY]/Runde haben und welchen genau</German>
+		<German>Zeigt im Hilfstext der [ICON_HEALTHY]-Anzeige (Stadtbildschirm) alle Gebäude an, die die Stadt errichten kann und die Einfluss auf [ICON_HEALTHY] und [ICON_UNHEALTHY] haben.</German>
 		<Italian>Quando è selezionato, vengono visualizzati gli edifici che influenzano la situazione sanitaria ([ICON_HEALTHY] e [ICON_UNHEALTHY]) e l'ammontare con cui lo fanno.</Italian>
 		<Spanish>Muestra los edificios que afectan a la cantidad de [ICON_HEALTHY] y [ICON_UNHEALTHY].</Spanish>
 	</TEXT>
@@ -361,11 +366,12 @@
 		<Italian>Felicit&#224;</Italian>
 		<Spanish>Felicidad</Spanish>
 	</TEXT>
+	<!-- advc.063: English and German rewritten -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__BUILDINGADDITIONALHAPPINESS_HOVER</Tag>
-		<English>When checked, displays the buildings that will affect the [ICON_HAPPY] and [ICON_UNHAPPY] rates and by how much.</English>
+		<English>If checked, the hover text of the [ICON_HAPPY] display on the city screen lists all buildings that the city can construct and that will affect [ICON_HAPPY] or [ICON_UNHAPPY].</English>
 		<French>When checked, displays the buildings that will affect the [ICON_HAPPY] and [ICON_UNHAPPY] rates and by how much.</French>
-		<German>Zeigt die Gebäude an, die Einfluss auf [ICON_HAPPY]/Runde und [ICON_UNHAPPY]/Runde haben und welchen genau</German>
+		<German>Zeigt im Hilfstext der [ICON_HAPPY]-Anzeige (Stadtbildschirm) alle Gebäude an, die die Stadt errichten kann und die Einfluss auf [ICON_HAPPY] und [ICON_UNHAPPY] haben.</German>
 		<Italian>Quando è selezionato, vengono visualizzati gli edifici che influenzano il gradimento ([ICON_HAPPY] e [ICON_UNHAPPY]) e l'ammontare con cui lo fanno.</Italian>
 		<Spanish>Muestra los edificios que afectan a la cantidad de [ICON_HAPPY] y [ICON_UNHAPPY].</Spanish>
 	</TEXT>
@@ -377,11 +383,12 @@
 		<Italian>Grandi Personaggi</Italian>
 		<Spanish>Grandes Personajes</Spanish>
 	</TEXT>
+	<!-- advc.063: English and German rewritten -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__BUILDINGADDITIONALGREATPEOPLE_HOVER</Tag>
-		<English>When checked, displays the buildings that will affect the [ICON_GREATPEOPLE] rate and by how much.</English>
+		<English>If checked, the hover text of the [ICON_GREATPEOPLE] display on the city screen lists all buildings that the city can construct and that will affect the [ICON_GREATPEOPLE].</English>
 		<French>When checked, displays the buildings that will affect the [ICON_GREATPEOPLE] rate and by how much.</French>
-		<German>Zeigt die Gebäude an, die Einfluss auf [ICON_GREATPEOPLE]/Runde haben und welchen genau</German>
+		<German>Zeigt im Hilfstext der [ICON_GREATPEOPLE]-Anzeige (Stadtbildschirm) alle Gebäude an, die die Stadt errichten kann und die Einfluss auf [ICON_GREATPEOPLE]/Runde haben.</German>
 		<Italian>Quando è selezionato, vengono visualizzati gli edifici che influenzano la natalità dei Grandi Personaggi ([ICON_GREATPEOPLE]) e l'ammontare con cui lo fanno.</Italian>
 		<Spanish>Muestra los edificios que afectan a la producción de [ICON_GREATPEOPLE] y en qué medida.</Spanish>
 	</TEXT>

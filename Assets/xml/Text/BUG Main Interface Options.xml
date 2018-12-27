@@ -39,6 +39,41 @@
 		<Italian>Quando è selezionato, mostra il bottone della schermata opzioni del BUG.</Italian>
 		<Spanish>Permite mostrar el botón de opciones BUG en la pantalla.</Spanish>
 	</TEXT>
+
+	<!-- advc.106b -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__AUTOOPENEVENTLOG_TEXT</Tag>
+		<English>Open Event Log</English>
+		<French>Open Event Log</French>
+		<German>Öffne Ereignis-Log</German>
+		<Italian>Open Event Log</Italian>
+		<Spanish>Open Event Log</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__MESSAGELIMIT_TEXT</Tag>
+		<English>if more than (# messages)</English>
+		<French>if more than (# messages)</French>
+		<German>bei mehr als (# Nachrichten)</German>
+		<Italian>if more than (# messages)</Italian>
+		<Spanish>if more than (# messages)</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__AUTOOPENEVENTLOG_HOVER</Tag>
+		<English>When checked, the Event Log is opened at the start of a turn if the number of new messages to display exceeds a limit. Major events (e.g. declarations of war) are still announced on the main interface. Regardless of the limit, the Event Log is opened whenever an AI leader contacts the player. This option depends on the "Minimize Popups" option (STRG + O); without Minimize Popups, the Event Log is never opened.</English>
+		<French>When checked, the Event Log is opened at the start of a turn if the number of new messages to display exceeds a limit. Major events (e.g. declarations of war) are still announced on the main interface. Regardless of the limit, the Event Log is opened whenever an AI leader contacts the player. This option depends on the "Minimize Popups" option (STRG + O); without Minimize Popups, the Event Log is never opened.</French>
+		<German>Öffnet zu Beginn des Zuges das Ereignis-Log, wenn die Anzahl der neuen Nachrichten einen Grenzwert überschreitet. Nur wichtige Ereignisse (z.B. Kriegserklärungen) werden zusätzlich auf dem Hauptbildschirm angezeigt. Unabhängig von der Anzahl der Nachrichten, öffnet sich das Ereignis-Log außerdem bei jeder Kontaktaufnahme durch einen KI-Spieler. Wichtig: Die Option "Popups minimieren" (STRG + O) ist eine Voraussetzung für das automatische Öffnen des Ereignis-Logs.</German>
+		<Italian>When checked, the Event Log is opened at the start of a turn if the number of new messages to display exceeds a limit. Major events (e.g. declarations of war) are still announced on the main interface. Regardless of the limit, the Event Log is opened whenever an AI leader contacts the player. This option depends on the "Minimize Popups" option (STRG + O); without Minimize Popups, the Event Log is never opened.</Italian>
+		<Spanish>When checked, the Event Log is opened at the start of a turn if the number of new messages to display exceeds a limit. Major events (e.g. declarations of war) are still announced on the main interface. Regardless of the limit, the Event Log is opened whenever an AI leader contacts the player. This option depends on the "Minimize Popups" option (STRG + O); without Minimize Popups, the Event Log is never opened.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__MESSAGELIMIT_HOVER</Tag>
+		<English>The Event Log is opened when the number of new messages exceeds this limit.</English>
+		<French>The Event Log is opened when the number of new messages exceeds this limit.</French>
+		<German>Das Ereignis-Log wird automatisch geöffnet, wenn die Anzahl der neuen Nachrichten größer ist als die eingestellte Obergrenze.</German>
+		<Italian>The Event Log is opened when the number of new messages exceeds this limit.</Italian>
+		<Spanish>The Event Log is opened when the number of new messages exceeds this limit.</Spanish>
+	</TEXT>
+	
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__GOLDRATEWARNING_TEXT</Tag>
 		<English>Gold Rate Warning</English>

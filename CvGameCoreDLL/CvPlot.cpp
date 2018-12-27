@@ -3938,6 +3938,15 @@ bool CvPlot::isVisibleEnemyUnit(const CvUnit* pUnit) const
 	return (plotCheck(PUF_isEnemy, pUnit->getOwnerINLINE(), pUnit->isAlwaysHostile(this), NO_PLAYER, NO_TEAM, PUF_isVisible, pUnit->getOwnerINLINE()) != NULL);
 }
 
+// <advc.004l> Same checks as above, just doesn't loop through all units.
+bool CvPlot::isVisibleEnemyUnit(CvUnit const* pUnit, CvUnit const* pPotentialEnemy) const {
+
+	return (::PUF_isEnemy(pPotentialEnemy, pUnit->getOwnerINLINE(),
+			pUnit->isAlwaysHostile(this)) &&
+			!pPotentialEnemy->isInvisible(getTeam(), false));
+} // </advc.004l>
+
+
 bool CvPlot::isVisibleOtherUnit(PlayerTypes ePlayer) const
 {
 	return (plotCheck(PUF_isOtherTeam, ePlayer, -1, NO_PLAYER, NO_TEAM, PUF_isVisible, ePlayer) != NULL);

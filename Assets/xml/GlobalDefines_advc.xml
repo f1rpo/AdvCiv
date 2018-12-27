@@ -346,21 +346,11 @@
 	</Define>
 
 	<!-- [advc.106b]
-		 If more than this many messages are queued at the beginning of a
-		 turn, no (staggered) messages are shown, and instead the Event Log
-		 is opened. Set to -1 for BtS behavior. When using a very high value,
-		 the Event Log will still open when there is a diplo popup.
-		 Recommended: 3. -->
-	<Define>
-		<DefineName>START_OF_TURN_MESSAGE_LIMIT</DefineName>
-		<iDefineIntVal>3</iDefineIntVal>
-	</Define>
-
-	<!-- [advc.106b]
-		 0 (recommended) disables the message limit (equivalent to
-		 START_OF_TURN_MESSAGE_LIMIT=-1) when playing without "Minimize
-		 Pop-Ups" (MPU). This setting has no effect if MPU is enabled.
-		 Set to 1 to use the message limit when playing without MPU. -->
+		 0 (recommended) disables the message limit (option "Show Event Log" on
+		 the BUG menu) when playing without "Minimize Pop-Ups" (MPU). This
+		 setting has no effect if MPU is enabled.
+		 To use the message limit when playing without MPU, set this to 1
+		 and make sure that "Show Event Log" is checked on the BUG menu. -->
 	<Define>
 		<DefineName>MESSAGE_LIMIT_WITHOUT_MPU</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>

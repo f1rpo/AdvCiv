@@ -28,7 +28,7 @@ public:
 	void kill();
 
 	void doTurn();
-
+	void doTurnPost(); // advc.004l
 	bool showMoves(
 			CvPlot const& fromPlot) const; // advc.102
 
@@ -270,6 +270,11 @@ protected:
 	// but adding another int increases the size to 84. Which is a shame, because I really want to add one more int...
 	// Although a single int doesn't cause a startup crash, I'd rather not risk instability.
 
+	// <advc.003k> Pointer to additional data members
+	class Data;
+	CvSelectionGroup::Data* m; // dial m for members
+	// </advc.003k>
+
 	int m_iID;
 	int m_iMissionTimer;
 
@@ -277,21 +282,33 @@ protected:
 
 	PlayerTypes m_eOwner;
 	ActivityTypes m_eActivityType;
-	AutomateTypes m_eAutomateType;
 
 	CLinkList<IDInfo> m_units;
-
 	CLinkList<MissionData> m_missionQueue;
-	std::vector<CvUnit *> m_aDifferentUnitCache;
+	std::vector<CvUnit*> m_aDifferentUnitCache;
 	bool m_bIsBusyCache;
 
 	void activateHeadMission();
 	void deactivateHeadMission();
 	
-	bool sentryAlert() const;
+	bool sentryAlert(
+			bool bUpdateKnownEnemies = false); // advc.004l
+
+	// <advc.003k>
+	class Data {
+		CLinkList<IDInfo> knownEnemies; // advc.004l
+		// Moved here in order to bring sizeof down to 80
+		AutomateTypes eAutomateType;
+		friend CvSelectionGroup;
+	}; // </advc.003k>
 
 public:
 	static KmodPathFinder path_finder; // K-Mod! I'd rather this not be static, but I can't do that here.
 };
+/*  advc.003k: A trick from
+https://stackoverflow.com/questions/19401887/how-to-check-the-size-of-a-structure-at-compile-time/19402038
+	to verify that the class has a safe size. If this won't compile, then you've
+	probably added a data member (directly) to CvSelectionGroup. */
+typedef char assertSizeOfSelectionGroup[(sizeof(CvSelectionGroup)==80)*2-1];
 
 #endif

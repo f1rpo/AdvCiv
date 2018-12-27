@@ -597,12 +597,14 @@
 	<Spanish>El grano, el ganado y los productos del mar no solo proporcionan recursos, sino que aportan riqueza a la ciudad. Las ciudades situadas cerca de dos o m&#225;s de esos recursos crecer&#225;n r&#225;pidamente.</Spanish>
 </TEXT>
 
-<!-- advc.008c: Changed "foes" to "rivals". -->
+<!-- advc.106: The removed GP announcements aren't quite important enough to
+	 mention in the main part of the manual, so I'm sneaking the info into this
+	 hint. -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_24</Tag>
-	<English>Watch for announcements about religions being founded and wonders being completed - this can give you a hint as to how advanced your rivals are.</English>
+	<English>Announcements about religions founded and wonders completed in "faraway lands" by rivals whom you haven't yet met can give you a hint as to how advanced their civilizations are. Note, however, that [COLOR_HIGHLIGHT_TEXT]Great Person[COLOR_REVERT] births in faraway lands are not announced in AdvCiv.</English>
 	<French>Soyez attentifs aux messages annon&#231;ant la fondation de nouvelles religions ou la construction de merveilles. Ils peuvent vous renseigner sur la progression de vos ennemis.</French>
-	<German>Achten Sie auf Nachrichten &#252;ber neue Religionen und Wunder - daraus kann sich ableiten lassen, wie fortschrittlich Ihre Gegner sind.</German>
+	<German>Nachrichten über die Gründung von Religionen und den Bau von Wundern in "fernem Land" geben Ihnen Hinweise, wie fortschrittlich jene Gegner sind, mit denen Sie noch nicht in Kontakt stehen. Geburten [COLOR_HIGHLIGHT_TEXT]großer Persönlichkeiten[COLOR_REVERT] in fernen Ländern werden in AdvCiv allerdings nicht verkündet.</German>
 	<Italian>Tieni d'occhio gli annunci sulla fondazione di nuove religioni o sul completamento di una Meraviglia: cos&#236; facendo, potrai farti un'idea dei progressi dei tuoi avversari.</Italian>
 	<Spanish>Mirad los avisos de fundaci&#243;n de religiones y realizaci&#243;n de maravillas, pues os pueden dar una pista sobre lo avanzados que van los rivales.</Spanish>
 </TEXT>
@@ -796,7 +798,7 @@
 	<Tag>TXT_KEY_HINT_INTERFACE_38</Tag>
 	<English>Unloading units in friendly cities or forts doesn't cost any movement points. Even if your transport needs to use one or two extra movement points to enter a city, the movement points saved by the units in cargo are often more valuable.</English>
 	<French>Maintenez la touche ALT enfonc&#233;e quand le curseur est sur une case pour conna&#238;tre les chances de r&#233;ussite en cas d'attaque.</French>
-	<German>In befreundeten Städten und Forts kostet das Entladen von Einheiten keine Bewegungspunkte. units in friendly cities or forts doesn't cost any movement points. Selbst wenn Ihr Transportschiff ein bis zwei zusätzliche Bewegungspunkte verbraucht, um in eine Stadt zu ziehen, sind die eingesparten Bewegungspunkte der transportierten Einheiten oft wichtiger.</German>
+	<German>In befreundeten Städten und Forts kostet das Entladen von Einheiten keine Bewegungspunkte. Selbst wenn Ihr Transportschiff ein bis zwei zusätzliche Bewegungspunkte verbraucht, um in eine Stadt zu ziehen, sind die eingesparten Bewegungspunkte der transportierten Einheiten oft wichtiger.</German>
 	<Italian>Tieni premuto [ALT] e punta con il mouse una casella per visualizzare le probabilit&#224; di vittoria in caso di attacco...</Italian>
 	<Spanish>Mantener pulsada la tecla ALT mientras se se&#241;ala una casilla con el cursor para ver las probabilidades de un ataque...</Spanish>
 </TEXT>
@@ -854,7 +856,7 @@
 <!-- advc.004z: "Flag Resources view" isn't the proper term -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_INTERFACE_25</Tag>
-	<English>Press [CTRL + R] to toggle the Resource Display (indicator "bubbles")</English>
+	<English>Press [CTRL + R] to toggle the Resource Display (indicator "bubbles").</English>
 	<French>Appuyez sur [CTRL + R] pour afficher ou masquer les ressources.</French>
 	<German>Dr&#252;cken Sie [STRG + R], um in die Ressourcen-Symbole ein- oder auszublenden.</German>
 	<Italian>Premi [CTRL + R] per visualizzare/nascondere la segnalazione risorse.</Italian>
@@ -865,7 +867,7 @@
 	 -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_INTERFACE_48</Tag>
-	<English>Press [ALT + U] to toggle the Unit Display (indicator "bubbles")</English>
+	<English>Press [ALT + U] to toggle the Unit Display (indicator "bubbles").</English>
 	<French>Appuyez sur [ALT + U] pour afficher ou masquer les unités.</French>
 	<German>Dr&#252;cken Sie [ALT + U], um in die Einheiten-Marker ein- oder auszublenden.</German>
 	<Italian>Premi [ALT + U] per visualizzare/nascondere la segnalazione unit&#224;.</Italian>

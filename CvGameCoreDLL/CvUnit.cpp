@@ -843,7 +843,7 @@ void CvUnit::doTurn()
 // <advc.029>
 void CvUnit::doTurnPost() {
 
-	if(GC.getGameINLINE().getGameTurn() > m_iLastReconTurn)
+	if(GC.getGameINLINE().gameTurn() > m_iLastReconTurn)
 		setReconPlot(NULL);
 } // </advc.029>
 
@@ -1874,12 +1874,11 @@ bool CvUnit::isActionRecommended(int iAction)
 		}
 	}
 
-	if (pPlot == NULL)
-	{
+	if(pPlot == NULL)
 		pPlot = plot();
-	}
-
-	if (GC.getActionInfo(iAction).getMissionType() == MISSION_FORTIFY)
+	// advc.003:
+	MissionTypes eMission = (MissionTypes)GC.getActionInfo(iAction).getMissionType();
+	if (eMission == MISSION_FORTIFY)
 	{
 		if (pPlot->isCity(true, getTeam()))
 		{
@@ -1893,13 +1892,14 @@ bool CvUnit::isActionRecommended(int iAction)
 		}
 	}
 
-	if (GC.getActionInfo(iAction).getMissionType() == MISSION_HEAL)
+	else if(eMission == MISSION_HEAL
+			|| eMission == MISSION_SENTRY_HEAL) // advc.004l
 	{
 		if (isHurt())
 		{
 			if (!hasMoved())
 			{
-				if ((pPlot->getTeam() == getTeam()) || (healTurns(pPlot) < 4))
+				if (pPlot->getTeam() == getTeam() || healTurns(pPlot) < 4)
 				{
 					return true;
 				}
@@ -1907,7 +1907,7 @@ bool CvUnit::isActionRecommended(int iAction)
 		}
 	}
 
-	if (GC.getActionInfo(iAction).getMissionType() == MISSION_FOUND)
+	else if (eMission == MISSION_FOUND)
 	{
 		if (canFound(pPlot))
 		{
@@ -1918,7 +1918,7 @@ bool CvUnit::isActionRecommended(int iAction)
 		}
 	}
 
-	if (GC.getActionInfo(iAction).getMissionType() == MISSION_BUILD)
+	else if (eMission == MISSION_BUILD)
 	{
 		if (pPlot->getOwnerINLINE() == getOwnerINLINE())
 		{
@@ -1956,14 +1956,10 @@ bool CvUnit::isActionRecommended(int iAction)
 					if (eImprovement != NO_IMPROVEMENT)
 					{
 						/* original code
-						if (eBonus != NO_BONUS)
-						{
+						if (eBonus != NO_BONUS) {
 							if (GC.getImprovementInfo(eImprovement).isImprovementBonusTrade(eBonus))
-							{
 								return true;
-							}
 						} */
-
 						// K-Mod
 						if (eBonus != NO_BONUS &&
 							!GET_PLAYER(getOwnerINLINE()).doesImprovementConnectBonus(pPlot->getImprovementType(), eBonus) &&
@@ -1987,39 +1983,22 @@ bool CvUnit::isActionRecommended(int iAction)
 						// K-Mod end
 
 						/* original bts code
-						if (pPlot->getImprovementType() == NO_IMPROVEMENT)
-						{
-							if (!(pPlot->isIrrigated()) && pPlot->isIrrigationAvailable(true))
-							{
+						if (pPlot->getImprovementType() == NO_IMPROVEMENT) {
+							if (!pPlot->isIrrigated() && pPlot->isIrrigationAvailable(true)) {
 								if (GC.getImprovementInfo(eImprovement).isCarriesIrrigation())
-								{
 									return true;
-								}
 							}
-
-							if (pWorkingCity != NULL)
-							{
+							if (pWorkingCity != NULL) {
 								if (GC.getImprovementInfo(eImprovement).getYieldChange(YIELD_FOOD) > 0)
-								{
 									return true;
-								}
-
-								if (pPlot->isHills())
-								{
+								if (pPlot->isHills()) {
 									if (GC.getImprovementInfo(eImprovement).getYieldChange(YIELD_PRODUCTION) > 0)
-									{
 										return true;
-									}
 								}
-								else
-								{
-									if (GC.getImprovementInfo(eImprovement).getYieldChange(YIELD_COMMERCE) > 0)
-									{
-										return true;
-									}
-								}
+								else if (GC.getImprovementInfo(eImprovement).getYieldChange(YIELD_COMMERCE) > 0)
+									return true;
 							}
-						} */ 
+						}*/ 
 					}
 				}
 
@@ -2043,11 +2022,8 @@ bool CvUnit::isActionRecommended(int iAction)
 
 					/* original bts code
 					eFinalImprovement = eImprovement;
-
-					if (eFinalImprovement == NO_IMPROVEMENT)
-					{
-						eFinalImprovement = pPlot->getImprovementType();
-					} */
+					if(eFinalImprovement == NO_IMPROVEMENT)
+						eFinalImprovement = pPlot->getImprovementType();*/
 					// K-Mod
 					ImprovementTypes eFinalImprovement = finalImprovementUpgrade(eImprovement != NO_IMPROVEMENT ? eImprovement : pPlot->getImprovementType());
 					// K-Mod end
@@ -4122,6 +4098,12 @@ bool CvUnit::canHeal(const CvPlot* pPlot) const
 
 	return true;
 }
+
+// <advc.004l> Assumes that caller ensures canHeal
+bool CvUnit::canSentryHeal(CvPlot const* pPlot) const {
+
+	return !(pPlot->isCity(true, getTeam()) && !pPlot->isEnemyCity(*this));
+} // </advc.004l>
 
 
 bool CvUnit::canSentry(const CvPlot* pPlot) const
@@ -8280,6 +8262,7 @@ BuildTypes CvUnit::getBuildType() const
 		case MISSION_AIRPATROL:
 		case MISSION_SEAPATROL:
 		case MISSION_HEAL:
+		case MISSION_SENTRY_HEAL: // advc.004l
 		case MISSION_SENTRY:
 		case MISSION_AIRLIFT:
 		case MISSION_NUKE:

@@ -91,6 +91,10 @@ class BugGeneralOptionsTab(BugOptionsTab.BugOptionsTab):
 		
 	def createMiscellaneousPanel(self, screen, panel):
 		self.addLabel(screen, panel, "Misc", "Misc:")
+		# <advc.106b>
+		self.addCheckbox(screen, panel, "MainInterface__AutoOpenEventLog")
+		self.addTextDropdown(screen, panel, panel, "MainInterface__MessageLimit", True)
+		# </advc.106b>
 		self.addCheckbox(screen, panel, "MainInterface__GoldRateWarning")
 		self.addCheckbox(screen, panel, "MainInterface__MinMax_Commerce")
 		# advc.120c:

@@ -118,7 +118,7 @@
 	<init module="TraitUtil"/>
 	<init module="UnitUtil"/>
     <gameutils module="WidgetUtil" handler="getWidgetHelp"/>
-    
+
 	<event type="OnLoad" module="CvTechChooser" function="resetTechPrefs"/>
 	<event type="GameStart" module="CvTechChooser" function="resetTechPrefs"/>
 	
@@ -156,7 +156,8 @@
 	<load mod="BULL Misc Hovers"/>
 	
 	<load mod="AutoSave"/>
-	<load mod="MapFinder"/>
+	<!-- advc.009c: Commented out -->
+	<!--load mod="MapFinder"/-->
 	<load mod="Advanced Combat Odds"/>
 	
 	<!-- BUFFY -->

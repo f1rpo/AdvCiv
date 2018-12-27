@@ -1457,6 +1457,8 @@ enum MissionTypes				// Exposed to Python
 	MISSION_MULTI_SELECT,
 	MISSION_MULTI_DESELECT,
 
+	MISSION_SENTRY_HEAL, // advc.004l
+
 #ifdef _USRDLL
 	NUM_MISSION_TYPES
 #endif

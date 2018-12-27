@@ -2053,10 +2053,13 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 			{
 				pMissionPlot = pHeadSelectedUnit->plot();
 			}
-
 			CvCity* pMissionCity = pMissionPlot->getPlotCity();
-
-			if (GC.getActionInfo(widgetDataStruct.m_iData1).getMissionType() == MISSION_HEAL)
+			// <advc.003>
+			MissionTypes eMission = (MissionTypes)GC.getActionInfo(widgetDataStruct.
+					m_iData1).getMissionType();
+			switch(eMission) { // was if/else // </advc.003>
+			case MISSION_SENTRY_HEAL: // advc.004l
+			case MISSION_HEAL:
 			{
 				int iTurns = 0;
 
@@ -2072,8 +2075,9 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 
 				szBuffer.append(NEWLINE);
 				szBuffer.append(gDLL->getText("TXT_KEY_MISC_TURN_OR_TURNS", iTurns));
+				break;
 			}
-			else if (GC.getActionInfo(widgetDataStruct.m_iData1).getMissionType() == MISSION_PILLAGE)
+			case MISSION_PILLAGE:
 			{
 				if (pMissionPlot->getImprovementType() != NO_IMPROVEMENT)
 				{
@@ -2085,8 +2089,9 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 					szBuffer.append(NEWLINE);
 					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_DESTROY_IMP", GC.getRouteInfo(pMissionPlot->getRouteType()).getTextKeyWide()));
 				}
+				break;
 			}
-			else if (GC.getActionInfo(widgetDataStruct.m_iData1).getMissionType() == MISSION_PLUNDER)
+			case MISSION_PLUNDER:
 			{
 				pMissionPlot = pHeadSelectedUnit->plot();
 
@@ -2095,8 +2100,9 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 					szBuffer.append(NEWLINE);
 					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_PLUNDER_IN_BORDERS"));
 				}
+				break;
 			}
-			else if (GC.getActionInfo(widgetDataStruct.m_iData1).getMissionType() == MISSION_SABOTAGE)
+			case MISSION_SABOTAGE:
 			{
 				pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
 
@@ -2132,8 +2138,9 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 
 					pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
 				}
+				break;
 			}
-			else if (GC.getActionInfo(widgetDataStruct.m_iData1).getMissionType() == MISSION_DESTROY)
+			case MISSION_DESTROY:
 			{
 				pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
 
@@ -2169,8 +2176,9 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 
 					pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
 				}
+				break;
 			}
-			else if (GC.getActionInfo(widgetDataStruct.m_iData1).getMissionType() == MISSION_STEAL_PLANS)
+			case MISSION_STEAL_PLANS:
 			{
 				pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
 
@@ -2206,8 +2214,9 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 
 					pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
 				}
+				break;
 			}
-			else if (GC.getActionInfo(widgetDataStruct.m_iData1).getMissionType() == MISSION_FOUND)
+			case MISSION_FOUND:
 			{
 				if (!GET_PLAYER(pHeadSelectedUnit->getOwnerINLINE()).canFound(pMissionPlot->getX_INLINE(), pMissionPlot->getY_INLINE()))
 				{
@@ -2248,8 +2257,9 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 					szBuffer.append(NEWLINE); /* To set the info apart from
 											  TXT_KEY_MISSION_BUILD_CITY_HELP */
 				} // </advc.004b>
+				break;
 			}
-			else if (GC.getActionInfo(widgetDataStruct.m_iData1).getMissionType() == MISSION_SPREAD)
+			case MISSION_SPREAD:
 			{
 				ReligionTypes eReligion = ((ReligionTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getMissionData()));
 
@@ -2270,8 +2280,9 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 					szBuffer.append(NEWLINE);
 					GAMETEXT.setReligionHelpCity(szBuffer, eReligion, pMissionCity, false, true);
 				}
+				break;
 			}
-			else if (GC.getActionInfo(widgetDataStruct.m_iData1).getMissionType() == MISSION_SPREAD_CORPORATION)
+			case MISSION_SPREAD_CORPORATION:
 			{
 				CorporationTypes eCorporation = ((CorporationTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getMissionData()));
 
@@ -2358,12 +2369,14 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 						}
 					}
 				}
+				break;
 			}
-			else if (GC.getActionInfo(widgetDataStruct.m_iData1).getMissionType() == MISSION_JOIN)
+			case MISSION_JOIN:
 			{
 				GAMETEXT.parseSpecialistHelp(szBuffer, ((SpecialistTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getMissionData())), pMissionCity, true);
+				break;
 			}
-			else if (GC.getActionInfo(widgetDataStruct.m_iData1).getMissionType() == MISSION_CONSTRUCT)
+			case MISSION_CONSTRUCT:
 			{
 				BuildingTypes eBuilding = ((BuildingTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getMissionData()));
 
@@ -2371,7 +2384,7 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 				{
 					if (!pHeadSelectedUnit->getUnitInfo().getForceBuildings(eBuilding)  && !pMissionCity->canConstruct(eBuilding, false, false, true))
 					{
-						if (!(GC.getGameINLINE().isBuildingClassMaxedOut((BuildingClassTypes)(GC.getBuildingInfo(eBuilding).getBuildingClassType()))))
+						if (!GC.getGameINLINE().isBuildingClassMaxedOut((BuildingClassTypes)(GC.getBuildingInfo(eBuilding).getBuildingClassType())))
 						{
 							GAMETEXT.buildBuildingRequiresString(szBuffer, ((BuildingTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getMissionData())), false, false, pMissionCity);
 						}
@@ -2385,8 +2398,9 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 // BUG - Building Actual Effects - end
 					}
 				}
+				break;
 			}
-			else if (GC.getActionInfo(widgetDataStruct.m_iData1).getMissionType() == MISSION_DISCOVER)
+			case MISSION_DISCOVER:
 			{
 				pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
 
@@ -2426,8 +2440,9 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 
 					pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
 				}
+				break;
 			}
-			else if (GC.getActionInfo(widgetDataStruct.m_iData1).getMissionType() == MISSION_HURRY)
+			case MISSION_HURRY:
 			{
 				if (pMissionCity != NULL)
 				{
@@ -2476,8 +2491,9 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 						}
 					}
 				}
+				break;
 			}
-			else if (GC.getActionInfo(widgetDataStruct.m_iData1).getMissionType() == MISSION_TRADE)
+			case MISSION_TRADE:
 			{
 				if (pMissionCity != NULL)
 				{
@@ -2505,8 +2521,9 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 						}
 					}
 				}
+				break;
 			}
-			else if (GC.getActionInfo(widgetDataStruct.m_iData1).getMissionType() == MISSION_GREAT_WORK)
+			case MISSION_GREAT_WORK:
 			{
 				pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
 
@@ -2523,8 +2540,9 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 
 					pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
 				}
+				break;
 			}
-			else if (GC.getActionInfo(widgetDataStruct.m_iData1).getMissionType() == MISSION_INFILTRATE)
+			case MISSION_INFILTRATE:
 			{
 				if (pMissionCity != NULL)
 				{
@@ -2552,8 +2570,9 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 						}
 					}
 				}
+				break;
 			}
-			else if (GC.getActionInfo(widgetDataStruct.m_iData1).getMissionType() == MISSION_GOLDEN_AGE)
+			case MISSION_GOLDEN_AGE:
 			{
 				int iUnitConsume = GET_PLAYER(pHeadSelectedUnit->getOwnerINLINE()).unitsRequiredForGoldenAge();
 				int iUnitDiff = (iUnitConsume - GET_PLAYER(pHeadSelectedUnit->getOwnerINLINE()).unitsGoldenAgeReady());
@@ -2569,8 +2588,9 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 					szBuffer.append(NEWLINE);
 					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CONSUME_GREAT_PEOPLE", iUnitConsume));
 				}
+				break;
 			}
-			else if (GC.getActionInfo(widgetDataStruct.m_iData1).getMissionType() == MISSION_LEAD)
+			case MISSION_LEAD:
 			{
 				if (pHeadSelectedUnit->getUnitInfo().getLeaderExperience() > 0)
 				{
@@ -2587,15 +2607,17 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 					szBuffer.append(gDLL->getText("TXT_KEY_PROMOTION_WHEN_LEADING"));
 					GAMETEXT.parsePromotionHelp(szBuffer, (PromotionTypes)pHeadSelectedUnit->getUnitInfo().getLeaderPromotion(), L"\n   ");
 				}
+				break;
 			}
-			else if (GC.getActionInfo(widgetDataStruct.m_iData1).getMissionType() == MISSION_ESPIONAGE)
+			case MISSION_ESPIONAGE:
 			{
 				szBuffer.append(NEWLINE);
 				szBuffer.append(gDLL->getText("TXT_KEY_ACTION_ESPIONAGE_MISSION"));
 
 				GAMETEXT.setEspionageMissionHelp(szBuffer, pHeadSelectedUnit);
+				break;
 			}
-			else if (GC.getActionInfo(widgetDataStruct.m_iData1).getMissionType() == MISSION_BUILD)
+			case MISSION_BUILD:
 			{
 				BuildTypes eBuild = ((BuildTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getMissionData()));
 				FAssert(eBuild != NO_BUILD);
@@ -2980,20 +3002,21 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 					szBuffer.append(NEWLINE);
 					szBuffer.append(gDLL->getText("TXT_KEY_SUSPEND_WORK"));
 				} // </advc.011b>
+				break; // advc.003: Last case of switch(eMission)
+			}
 			}
 
-			if (!CvWString(GC.getMissionInfo((MissionTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getMissionType())).getHelp()).empty())
+			if (!CvWString(GC.getMissionInfo(eMission).getHelp()).empty())
 			{
 				// <advc.004a>
-				MissionTypes mt = (MissionTypes)(GC.getActionInfo(
-						widgetDataStruct.m_iData1).getMissionType());
-				if(pHeadSelectedUnit != NULL && mt == MISSION_DISCOVER)
+				if(pHeadSelectedUnit != NULL && eMission == MISSION_DISCOVER)
 					szBuffer.append(getDiscoverPathText(
 							pHeadSelectedUnit->getUnitType(),
 							pHeadSelectedUnit->getOwner()));
 				else
 				// </advc.004a>
-				szBuffer.append(CvWString::format(L"%s%s", NEWLINE, GC.getMissionInfo((MissionTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getMissionType())).getHelp()).c_str());
+					szBuffer.append(CvWString::format(L"%s%s", NEWLINE,
+					GC.getMissionInfo(eMission).getHelp()).c_str());
 			}
 		}
 
@@ -4839,10 +4862,11 @@ void CvDLLWidgetData::parseMaintenanceHelp(CvWidgetDataStruct &widgetDataStruct,
 			}
 
 // BUG - Building Saved Maintenance - start
-			if (pHeadSelectedCity->getOwnerINLINE() == GC.getGame().getActivePlayer() && getBugOptionBOOL("MiscHover__BuildingSavedMaintenance", false, "BUG_BUILDING_SAVED_MAINTENANCE_HOVER"))
-			{
+			if (pHeadSelectedCity->getOwnerINLINE() == GC.getGame().getActivePlayer() &&
+					(getBugOptionBOOL("MiscHover__BuildingSavedMaintenance", false,
+					"BUG_BUILDING_SAVED_MAINTENANCE_HOVER") ||
+					GC.altKey())) // advc.063
 				GAMETEXT.setBuildingSavedMaintenanceHelp(szBuffer, *pHeadSelectedCity, DOUBLE_SEPARATOR);
-			}
 // BUG - Building Saved Maintenance - end
 		}
 	}
@@ -4859,10 +4883,11 @@ void CvDLLWidgetData::parseHealthHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 		GAMETEXT.setGoodHealthHelp(szBuffer, *pHeadSelectedCity);
 
 // BUG - Building Additional Health - start
-		if (pHeadSelectedCity->getOwnerINLINE() == GC.getGame().getActivePlayer() && getBugOptionBOOL("MiscHover__BuildingAdditionalHealth", false, "BUG_BUILDING_ADDITIONAL_HEALTH_HOVER"))
-		{
+		if (pHeadSelectedCity->getOwnerINLINE() == GC.getGame().getActivePlayer() &&
+				(getBugOptionBOOL("MiscHover__BuildingAdditionalHealth",
+				false, "BUG_BUILDING_ADDITIONAL_HEALTH_HOVER")
+				|| GC.altKey())) // advc.063
 			GAMETEXT.setBuildingAdditionalHealthHelp(szBuffer, *pHeadSelectedCity, DOUBLE_SEPARATOR);
-		}
 // BUG - Building Additional Health - end
 	}
 }
@@ -4962,10 +4987,11 @@ void CvDLLWidgetData::parseHappinessHelp(CvWidgetDataStruct &widgetDataStruct, C
 		GAMETEXT.setHappyHelp(szBuffer, *pHeadSelectedCity);
 
 // BUG - Building Additional Happiness - start
-		if (pHeadSelectedCity->getOwnerINLINE() == GC.getGame().getActivePlayer() && getBugOptionBOOL("MiscHover__BuildingAdditionalHappiness", false, "BUG_BUILDING_ADDITIONAL_HAPPINESS_HOVER"))
-		{
+		if (pHeadSelectedCity->getOwnerINLINE() == GC.getGame().getActivePlayer() &&
+				(getBugOptionBOOL("MiscHover__BuildingAdditionalHappiness", false,
+				"BUG_BUILDING_ADDITIONAL_HAPPINESS_HOVER")
+				|| GC.altKey())) // advc.063
 			GAMETEXT.setBuildingAdditionalHappinessHelp(szBuffer, *pHeadSelectedCity, DOUBLE_SEPARATOR);
-		}
 // BUG - Building Additional Happiness - end
 	}
 }

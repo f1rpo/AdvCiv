@@ -25,6 +25,16 @@
 			<option id="OptionsButton" key="Options Button" 
 					type="boolean" default="False"
 					get="isShowOptionsButton" set="setShowOptionsButton" dirtyBit="GameData"/>
+					
+			<!-- advc.106b -->
+			<option id="AutoOpenEventLog" key="Auto Open Event Log" 
+					type="boolean" default="True" 
+					get="isAutoOpenEventLog"/>
+			<list   id="MessageLimit" key="Message Limit"
+					type="int" default="3" listType="int"
+					values="0, 1, 2, 3, 4, 5, 10"
+					get="getMessageLimit">
+			</list>
 
 			<!-- Gold Rate Warning -->
 			<option id="GoldRateWarning" key="Gold Rate Warning" 

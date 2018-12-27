@@ -173,14 +173,15 @@
 		<Italian>Casella Selezionata:</Italian>
 		<Spanish>Texto Flotante Casilla:</Spanish>
 	</TEXT>
-	<TEXT>
+	<!-- advc.009c: Commented out -->
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPTLABEL_MAPFINDER</Tag>
 		<English>MapFinder:</English>
 		<French>MapFinder:</French>
 		<German>MapFinder:</German>
 		<Italian>MapFinder:</Italian>
 		<Spanish>MapFinder:</Spanish>
-	</TEXT>
+	</TEXT-->
 	
 	<!-- Advisors Tab -->
 	

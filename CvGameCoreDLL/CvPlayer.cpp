@@ -34,6 +34,7 @@
 #include "CvDLLFlagEntityIFaceBase.h"
 #include "BetterBTSAI.h"
 //bbai end
+#include "CvBugOptions.h" // advc.106b
 
 // Public Functions...
 
@@ -3661,6 +3662,10 @@ void CvPlayer::doTurn()
 	for(CvUnit* u = firstUnit(&foo); u != NULL; u = nextUnit(&foo))
 		u->doTurnPost();
 	// </advc.029>
+	// <advc.004l>
+	for(CvSelectionGroup* gr = firstSelectionGroup(&foo); gr != NULL; gr = nextSelectionGroup(&foo))
+		gr->doTurnPost();
+	// </advc.004l>
 	/*  <advc.034> Cancel disengagement agreements at the end of a round, i.e.
 		at the end of the barb turn. */
 	int disengageLength = GC.getDefineINT("DISENGAGE_LENGTH") > 0;
@@ -14752,9 +14757,11 @@ void CvPlayer::postProcessBeginTurnEvents() {
 
 int CvPlayer::getStartOfTurnMessageLimit() const {
 
-	int r = GC.getDefineINT("START_OF_TURN_MESSAGE_LIMIT");
-	if(r < 0)
-		return r;
+	if(!getBugOptionBOOL("MainInterface__AutoOpenEventLog", true,
+			"AUTO_OPEN_EVENT_LOG"))
+		return -1;
+	int r = getBugOptionINT("MainInterface__MessageLimit", 3,
+			"MESSAGE_LIMIT");
 	if(!isOption(PLAYEROPTION_MINIMIZE_POP_UPS) &&
 			GC.getDefineINT("MESSAGE_LIMIT_WITHOUT_MPU") == 0)
 		return -1;

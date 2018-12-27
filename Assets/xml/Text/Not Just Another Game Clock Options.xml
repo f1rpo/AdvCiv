@@ -14,9 +14,11 @@
 		<Italian>Abilita Orologio</Italian>
 		<Spanish>Activar NJAGC</Spanish>
 	</TEXT>
+	<!-- advc.004g: NJAGC spelled out in English (was already spelled out in
+		 German) -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_NJAGC__ENABLED_HOVER</Tag>
-		<English>When checked, the game clock is displayed using TheLopez's NJAGC mod.</English>
+		<English>When checked, the game clock is displayed using TheLopez's "Not Just Another Game Clock" mod.</English>
 		<French>En activant, l'horloge est remplacé par le mod NJAGC de TheLopez.</French>
 		<German>Zeigt die Uhr- und Spielzeit an (verwendet TheLopez' "Not Just Another Game Clock"-Mod)</German>
 		<Italian>Quando è selezionato, viene utilizzato l'orologio evoluto del NJAGC (Not Just Another Game Clock) Mod di TheLopez.</Italian>

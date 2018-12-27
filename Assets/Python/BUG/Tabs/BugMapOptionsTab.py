@@ -48,9 +48,8 @@ class BugMapOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addCheckbox(screen, right, "EventSigns__Enabled")
 		#self.addCheckbox(screen, right, "Actions__IgnoreHarmlessBarbarians")
 		
-		
-		screen.attachHSeparator(column, column + "Sep1")
-		
+		# advc.009c: Commented out
+		#screen.attachHSeparator(column, column + "Sep1")
 		#left, right = self.addTwoColumnLayout(screen, column, "MapFinderEnabled", True)
 		#self.addLabel(screen, left, "MapFinder", "MapFinder:")
 		#self.addCheckbox(screen, right, "MapFinder__Enabled")

@@ -8334,7 +8334,8 @@ void CvGameTextMgr::setTechHelp(CvWStringBuffer &szBuffer, TechTypes eTech, bool
 		szBuffer.append(szTempBuffer);
 	} // <advc.003>
 	PlayerTypes eActivePlayer = g.getActivePlayer();
-	TeamTypes eActiveTeam = TEAMID(eActivePlayer); // </advc.003>
+	TeamTypes eActiveTeam = (eActivePlayer == NO_PLAYER ? NO_TEAM : TEAMID(eActivePlayer));
+	// </advc.003>
 	FAssert(eActivePlayer != NO_PLAYER || !bPlayerContext);
 
 	if (bTreeInfo && (NO_TECH != eFromTech))
@@ -16096,7 +16097,9 @@ void CvGameTextMgr::setProductionHelp(CvWStringBuffer &szBuffer, CvCity& city)
 
 	//if (city.getCurrentProductionDifference(false, true) == 0)
 // BUG - Building Additional Production - start
-	bool bBuildingAdditionalYield = getBugOptionBOOL("MiscHover__BuildingAdditionalProduction", false, "BUG_BUILDING_ADDITIONAL_PRODUCTION_HOVER");
+	bool bBuildingAdditionalYield = (getBugOptionBOOL("MiscHover__BuildingAdditionalProduction",
+			false, "BUG_BUILDING_ADDITIONAL_PRODUCTION_HOVER")
+			|| GC.altKey()); // advc.063
 	if (city.getCurrentProductionDifference(false, true) == 0 && !bBuildingAdditionalYield)
 // BUG - Building Additional Production - end
 	{
@@ -16668,7 +16671,9 @@ void CvGameTextMgr::buildHintsList(CvWStringBuffer& szBuffer)
 void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity& city, CommerceTypes eCommerceType)
 {
 // BUG - Building Additional Commerce - start
-	bool bBuildingAdditionalCommerce = getBugOptionBOOL("MiscHover__BuildingAdditionalCommerce", false, "BUG_BUILDING_ADDITIONAL_COMMERCE_HOVER");
+	bool bBuildingAdditionalCommerce = (getBugOptionBOOL("MiscHover__BuildingAdditionalCommerce",
+			false, "BUG_BUILDING_ADDITIONAL_COMMERCE_HOVER")
+			|| GC.altKey()); // advc.063
 	if (NO_COMMERCE == eCommerceType || (0 == city.getCommerceRateTimes100(eCommerceType) && !bBuildingAdditionalCommerce)
 		|| city.isDisorder()) /* advc.001: This case contradicted an assertion
 			towards the end of this function. When a city is in disorder,
@@ -16758,7 +16763,10 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity& city, Com
 	}
 
 // BUG - Base Commerce - start
-		if (bNeedSubtotal && city.getCommerceRateModifier(eCommerceType) != 0 && getBugOptionBOOL("MiscHover__BaseCommerce", false, "BUG_CITY_SCREEN_BASE_COMMERCE_HOVER"))
+		if (bNeedSubtotal && city.getCommerceRateModifier(eCommerceType) != 0 &&
+				(getBugOptionBOOL("MiscHover__BaseCommerce", false,
+				"BUG_CITY_SCREEN_BASE_COMMERCE_HOVER")
+				|| GC.altKey())) // advc.063
 		{
 			CvWString szYield = CvWString::format(L"%d.%02d", iBaseCommerceRate/100, iBaseCommerceRate%100);
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_COMMERCE_SUBTOTAL_YIELD_FLOAT", info.getTextKeyWide(), szYield.GetCString(), info.getChar()));
@@ -17160,7 +17168,9 @@ void CvGameTextMgr::parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity& city
 
 	//if (city.getGreatPeopleRate() == 0)
 // BUG - Building Additional Great People - start
-	bool bBuildingAdditionalGreatPeople = getBugOptionBOOL("MiscHover__BuildingAdditionalGreatPeople", false, "BUG_BUILDING_ADDITIONAL_GREAT_PEOPLE_HOVER");
+	bool bBuildingAdditionalGreatPeople = (getBugOptionBOOL("MiscHover__BuildingAdditionalGreatPeople",
+			false, "BUG_BUILDING_ADDITIONAL_GREAT_PEOPLE_HOVER")
+			|| GC.altKey()); // advc.063
 	if (city.getGreatPeopleRate() == 0 && !bBuildingAdditionalGreatPeople)
 // BUG - Building Additional Great People - end
 	{

@@ -30,7 +30,7 @@ import SevoPediaImprovement
 import SevoPediaCivic
 import SevoPediaCivilization
 import SevoPediaLeader
-# import SevoPediaTrait
+import SevoPediaTrait # advc.004y: Restored
 import SevoPediaSpecialist
 import SevoPediaHistory
 import SevoPediaProject
@@ -155,7 +155,8 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 			SevoScreenEnums.PEDIA_IMPROVEMENTS	: self.placeImprovements,
 			SevoScreenEnums.PEDIA_CIVS		: self.placeCivs,
 			SevoScreenEnums.PEDIA_LEADERS		: self.placeLeaders,
-			# SevoScreenEnums.PEDIA_TRAITS		: self.placeTraits,
+			# advc.004y: Restored
+			SevoScreenEnums.PEDIA_TRAITS		: self.placeTraits,
 			SevoScreenEnums.PEDIA_CIVICS		: self.placeCivics,
 			SevoScreenEnums.PEDIA_RELIGIONS		: self.placeReligions,
 			SevoScreenEnums.PEDIA_CORPORATIONS	: self.placeCorporations,
@@ -185,7 +186,8 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 			SevoScreenEnums.PEDIA_IMPROVEMENTS	: SevoPediaImprovement.SevoPediaImprovement(self),
 			SevoScreenEnums.PEDIA_CIVS		: SevoPediaCivilization.SevoPediaCivilization(self),
 			SevoScreenEnums.PEDIA_LEADERS		: self.pediaLeader,
-			# SevoScreenEnums.PEDIA_TRAITS		: SevoPediaTrait.SevoPediaTrait(self),
+			# advc.004y: Restored
+			SevoScreenEnums.PEDIA_TRAITS		: SevoPediaTrait.SevoPediaTrait(self),
 			SevoScreenEnums.PEDIA_CIVICS		: SevoPediaCivic.SevoPediaCivic(self),
 			SevoScreenEnums.PEDIA_RELIGIONS		: SevoPediaReligion.SevoPediaReligion(self),
 			SevoScreenEnums.PEDIA_CORPORATIONS	: SevoPediaCorporation.SevoPediaCorporation(self),
@@ -276,7 +278,7 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 
 	def determineNewConceptSubCategory(self, iItem):
 		info = gc.getNewConceptInfo(iItem)
-		BugUtil.debug("NewConcept itme %d is %s" % (iItem, info.getDescription()))
+		BugUtil.debug("NewConcept item %d is %s" % (iItem, info.getDescription()))
 		if (self.isTraitInfo(info)):
 			return SevoScreenEnums.PEDIA_TRAITS
 		if (self.isShortcutInfo(info)):
@@ -348,7 +350,8 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		self.szCategoryImprovements	= localText.getText("TXT_KEY_PEDIA_CATEGORY_IMPROVEMENT", ())
 		self.szCategoryCivs			= localText.getText("TXT_KEY_PEDIA_CATEGORY_CIV", ())
 		self.szCategoryLeaders		= localText.getText("TXT_KEY_PEDIA_CATEGORY_LEADER", ())
-		# self.szCategoryTraits		= localText.getText("TXT_KEY_PEDIA_TRAITS", ())
+		# advc.004y: Restored
+		self.szCategoryTraits		= localText.getText("TXT_KEY_PEDIA_TRAITS", ())
 		self.szCategoryCivics		= localText.getText("TXT_KEY_PEDIA_CATEGORY_CIVIC", ())
 		self.szCategoryReligions	= localText.getText("TXT_KEY_PEDIA_CATEGORY_RELIGION", ())
 		self.szCategoryCorporations	= localText.getText("TXT_KEY_CONCEPT_CORPORATIONS", ())
@@ -375,14 +378,15 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 			["TERRAINS",	self.szCategoryImprovements],
 			["CIVS",	self.szCategoryCivs],
 			["CIVS",	self.szCategoryLeaders],
-			# ["CIVS",	self.szCategoryTraits],
+			# advc.004y: Restored (comment this out to remove traits)
+			["CIVS",	self.szCategoryTraits],
 			["CIVICS",	self.szCategoryCivics],
 			["CIVICS",	self.szCategoryReligions],
 			["CIVICS",	self.szCategoryCorporations],
 			["HINTS",	self.szCategoryConcepts],
 			["HINTS",	self.szCategoryConceptsNew],
 			["HINTS",	self.szCategoryHints],
-			# ["HINTS",	self.szCategoryShortcuts],
+			["HINTS",	self.szCategoryShortcuts], # advc.004y: Restored
 			]
 
 		self.categoryGraphics = {

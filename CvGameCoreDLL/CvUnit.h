@@ -151,6 +151,7 @@ public:
 	bool canSeaPatrol(const CvPlot* pPlot) const;																									// Exposed to Python
 
 	bool canHeal(const CvPlot* pPlot) const;																											// Exposed to Python
+	bool canSentryHeal(const CvPlot* pPlot) const; // advc.004l
 	bool canSentry(const CvPlot* pPlot) const;																										// Exposed to Python
 
 	int healRate(const CvPlot* pPlot,
