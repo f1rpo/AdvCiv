@@ -8,7 +8,7 @@
 
 import BugOptions
 import BugUtil
-
+import ColorUtil # advc.009d
 ## Constants
 
 CHECKBOX_INDENT = 2
@@ -271,10 +271,31 @@ class BugOptionsTab:
 		else:
 			self.addMissingOption(screen, labelPanel, name)
 
+	# <advc.009d> Current mod version may no longer support the default value stored in the settings ini file
+	def ensureValidDropdownIndex(self, optionName, index):
+		option = self.getOption(optionName)
+		if option is None:
+			return index, False
+		if index < 0 or index >= len(option.getDisplayValues()):
+			index = option.getDefault()
+			if "COLOR" in str(index):
+				index = ColorUtil.keyToIndex(index)
+			if index < 0 or index >= len(option.getDisplayValues()):
+				return index, False
+			else: # Store the repaired index in the option object
+				option.setIndex(index)
+		return index, True
+	# </advc.009d>
 
 	def addDropdown (self, screen, labelPanel, controlPanel, name, spacer, layout, elements, index, callback):
 		option = self.getOption(name)
 		if (option is not None):
+			# <advc.009d>
+			index, bSuccess = self.ensureValidDropdownIndex(name, index)
+			if not bSuccess:
+				self.addMissingOption(screen, controlPanel, name)
+				return None
+			# </advc.009d>
 			# create label
 			if (labelPanel is not None):
 				if (labelPanel == controlPanel or spacer):
@@ -351,7 +372,12 @@ class BugOptionsTab:
 				checkPanel = box
 				dropPanel = box
 			checkControl = self.addCheckbox(screen, checkPanel, checkName, spacer)
-			
+			# <advc.009d>
+			index, bSuccess = self.ensureValidDropdownIndex(dropName, index)
+			if not bSuccess:
+				self.addMissingOption(screen, dropPanel, dropName)
+				return None, None
+			# </advc.009d>
 			# create dropdown
 			dropControl = dropName + "Dropdown"
 			screen.attachDropDown(dropPanel, dropControl, "", elements, self.callbackIFace, callback, dropName, index)
@@ -360,11 +386,11 @@ class BugOptionsTab:
 			if not dropOption.isEnabled():
 				screen.setEnabled(dropControl, False)
 			return checkControl, dropControl
-		else:
+		else: # advc.001: params were checkOption and dropOption
 			if (checkOption is None):
-				self.addMissingOption(screen, checkPanel, checkOption)
+				self.addMissingOption(screen, checkPanel, checkName)
 			if (dropOption is None):
-				self.addMissingOption(screen, dropPanel, dropOption)
+				self.addMissingOption(screen, dropPanel, dropName)
 
 	def addCheckboxTextDropdown (self, screen, checkPanel, dropPanel, checkName, dropName, layout="left", spacer=False):
 		checkOption = self.getOption(checkName)
@@ -374,11 +400,11 @@ class BugOptionsTab:
 			elements = tuple(dropOption.getDisplayValues())
 			checkControl, dropControl = self.addCheckboxDropdown(screen, checkPanel, dropPanel, checkName, dropName, layout, elements, index, "handleBugDropdownChange", spacer)
 			return checkControl, dropControl
-		else:
+		else: # advc.001: params were checkOption and dropOption
 			if (checkOption is None):
-				self.addMissingOption(screen, checkPanel, checkOption)
+				self.addMissingOption(screen, checkPanel, checkName)
 			if (dropOption is None):
-				self.addMissingOption(screen, dropPanel, dropOption)
+				self.addMissingOption(screen, dropPanel, dropName)
 
 	def addCheckboxIntDropdown (self, screen, checkPanel, dropPanel, checkName, dropName, layout="right", spacer=False):
 		checkOption = self.getOption(checkName)
@@ -388,11 +414,11 @@ class BugOptionsTab:
 			elements = tuple(dropOption.getDisplayValues())
 			checkControl, dropControl = self.addCheckboxDropdown(screen, checkPanel, dropPanel, checkName, dropName, layout, elements, index, "handleBugIntDropdownChange", spacer)
 			return checkControl, dropControl
-		else:
+		else: # advc.001: params were checkOption and dropOption
 			if (checkOption is None):
-				self.addMissingOption(screen, checkPanel, checkOption)
+				self.addMissingOption(screen, checkPanel, checkName)
 			if (dropOption is None):
-				self.addMissingOption(screen, dropPanel, dropOption)
+				self.addMissingOption(screen, dropPanel, dropName)
 
 	def addCheckboxFloatDropdown (self, screen, checkPanel, dropPanel, checkName, dropName, layout="right", spacer=False):
 		checkOption = self.getOption(checkName)
@@ -403,10 +429,10 @@ class BugOptionsTab:
 			checkControl, dropControl = self.addCheckboxDropdown(screen, checkPanel, dropPanel, checkName, dropName, layout, elements, index, "handleBugFloatDropdownChange", spacer)
 			return checkControl, dropControl
 		else:
-			if (checkOption is None):
-				self.addMissingOption(screen, checkPanel, checkOption)
+			if (checkOption is None): # advc.001: params were checkOption and dropOption
+				self.addMissingOption(screen, checkPanel, checkName)
 			if (dropOption is None):
-				self.addMissingOption(screen, dropPanel, dropOption)
+				self.addMissingOption(screen, dropPanel, dropName)
 	
 
 	def addSlider (self, screen, labelPanel, controlPanel, name, spacer=False, vertical=False, expanding=True, fill=None, min=0, max=100):

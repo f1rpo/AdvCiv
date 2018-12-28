@@ -1754,8 +1754,11 @@ void CvDLLWidgetData::parsePlotListHelp(CvWidgetDataStruct &widgetDataStruct, Cv
 
 	if (pUnit != NULL)
 	{
-		GAMETEXT.setUnitHelp(szBuffer, pUnit);
-
+		GAMETEXT.setUnitHelp(szBuffer, pUnit,
+				// <advc.069>
+				false, false, false, // defaults
+				pUnit->getOwnerINLINE() == GC.getGameINLINE().getActivePlayer());
+				// </advc.069>
 		if (pUnit->plot()->plotCount(PUF_isUnitType, pUnit->getUnitType(), -1, pUnit->getOwnerINLINE()) > 1)
 		{
 			szBuffer.append(NEWLINE);
@@ -1917,6 +1920,37 @@ void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_MAX_POP_HURRY", pHeadSelectedCity->maxHurryPopulation()));
 		}
 	}
+
+	// BUG - Hurry Overflow - start (advc.064)
+	if(getBugOptionBOOL("MiscHover__HurryOverflow", false,
+			"BUG_HURRY_OVERFLOW_HOVER")) {
+		int iOverflowProduction = 0;
+		int iOverflowGold = 0;
+		bool bIncludeCurrent = getBugOptionBOOL("MiscHover__HurryOverflowIncludeCurrent",
+				false, "BUG_HURRY_OVERFLOW_HOVER_INCLUDE_CURRENT");
+		if(pHeadSelectedCity->hurryOverflow((HurryTypes)(widgetDataStruct.m_iData1),
+				&iOverflowProduction, &iOverflowGold, bIncludeCurrent)) {
+			if(iOverflowProduction > 0 || iOverflowGold > 0) {
+				bool bFirst = true;
+				CvWStringBuffer szOverflowBuffer;
+				// advc: Plus signs added if !bIncludeCurrent
+				if(iOverflowProduction > 0) {
+					szTempBuffer.Format(L"%s%d%c", (bIncludeCurrent ? L"" : L"+"),
+							iOverflowProduction, GC.getYieldInfo(YIELD_PRODUCTION).getChar());
+					setListHelp(szOverflowBuffer, NULL, szTempBuffer, L", ", bFirst);
+					bFirst = false;
+				}
+				if(iOverflowGold > 0) {
+					szTempBuffer.Format(L"%s%d%c", (bIncludeCurrent ? L"" : L"+"),
+							iOverflowGold, GC.getCommerceInfo(COMMERCE_GOLD).getChar());
+					setListHelp(szOverflowBuffer, NULL, szTempBuffer, L", ", bFirst);
+					bFirst = false;
+				}
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_MISC_HURRY_OVERFLOW", szOverflowBuffer));
+			}
+		}
+	} // BUG - Hurry Overflow - end
 
 	int iHurryAngerLength = pHeadSelectedCity->hurryAngerLength((HurryTypes)(widgetDataStruct.m_iData1));
 
@@ -5016,14 +5050,15 @@ void CvDLLWidgetData::parseProductionHelp(CvWidgetDataStruct &widgetDataStruct, 
 
 	pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
 
-	if (pHeadSelectedCity != NULL)
-	{
-		if (pHeadSelectedCity->getProductionNeeded() != MAX_INT)
-		{
-			CvWString szTemp;
-			szTemp.Format(L"%s: %d/%d %c", pHeadSelectedCity->getProductionName(), pHeadSelectedCity->getProduction(), pHeadSelectedCity->getProductionNeeded(), GC.getYieldInfo(YIELD_PRODUCTION).getChar());
-			szBuffer.assign(szTemp);
-		}
+	if (pHeadSelectedCity != NULL &&
+		pHeadSelectedCity->getProductionNeeded() != MAX_INT) {
+		CvWString szTemp;
+		szTemp.Format(L"%s: %d/%d %c", pHeadSelectedCity->getProductionName(), pHeadSelectedCity->getProduction(), pHeadSelectedCity->getProductionNeeded(), GC.getYieldInfo(YIELD_PRODUCTION).getChar());
+		szBuffer.assign(szTemp);
+		/*  advc.064 (comment): Would be nice to show some hurry info here,
+			if only to explain what the hurry-related icons on the production bar
+			mean. However, untangling parseHurryHelp to avoid code duplication
+			is too much work, so ... */
 	}
 }
 

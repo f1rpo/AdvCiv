@@ -9,14 +9,24 @@
 
 <!-- Logging -->
 	
+	<!-- advc.004: German was "Protokollierungsstufe" - too long. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CORE__SCREENLOGLEVEL_TEXT</Tag>
 		<English>Screen Logging Level</English>
 		<French>Screen Logging Level</French>
-		<German>Protokollierungsstufe (Bildschirm)</German>
+		<German>Protokollstufe (Bildschirm)</German>
 		<Italian>Livello di log a video</Italian>
 		<Spanish>Registrado en Pantalla</Spanish>
 	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_CORE__FILELOGLEVEL_TEXT</Tag>
+		<English>File Logging Level</English>
+		<French>File Logging Level</French>
+		<German>Protokollstufe (Datei)</German>
+		<Italian>Livello di log su file</Italian>
+		<Spanish>Registrado en Fichero</Spanish>
+	</TEXT>
+	
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CORE__SCREENLOGLEVEL_HOVER</Tag>
 		<English>Selects which logging messages get printed to the screen. Each level includes messages of all levels below it.</English>
@@ -32,14 +42,6 @@
 		<German>Debug|Info|Warnung|Fehler|Keine</German>
 		<Italian>Debug|Informazioni|Avvisi|Errori|Nessuno</Italian>
 		<Spanish>Depuración|Información|Advertencias|Errores|Ninguno</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_BUG_OPT_CORE__FILELOGLEVEL_TEXT</Tag>
-		<English>File Logging Level</English>
-		<French>File Logging Level</French>
-		<German>Protokollierungsstufe (Datei)</German>
-		<Italian>Livello di log su file</Italian>
-		<Spanish>Registrado en Fichero</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CORE__FILELOGLEVEL_HOVER</Tag>

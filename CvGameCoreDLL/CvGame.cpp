@@ -778,11 +778,12 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	// <advc.004m>
 	if(bConstructorCall)
 		m_bResourceLayer = true;
-	else if(GC.getDefineINT("SHOW_RESOURCE_BUBBLES_AT_GAME_START") <= 0) {
+	else if(!getBugOptionBOOL("MainInterface__StartWithResourceIcons", true, "START_WITH_RESOURCE_ICONS")) {
 		/*  This causes the resource layer to be disabled when returning to the
 			main menu. (Rather than remembering the latest status.) */
 		m_bResourceLayer = false;
-	} // </advc.004m>
+	}
+	// </advc.004m>
 	m_bResourceLayerSet = false; // advc.003d
 	m_bFeignSP = false; // advc.135c
 }
@@ -2523,15 +2524,17 @@ void CvGame::update()
 
 		if (getTurnSlice() == 0)
 		{	// <advc.700> Delay initial auto-save until RiseFall is initialized
-			bool isStartTurn = (getGameTurn() == getStartTurn()); // advc.004m
+			bool bStartTurn = (getGameTurn() == getStartTurn()); // advc.004m
 			// I guess TurnSlice==0 already implies that it's the start turn (?)
-			if((!isStartTurn || !isOption(GAMEOPTION_RISE_FALL)) // </advc.700>
+			if((!bStartTurn || !isOption(GAMEOPTION_RISE_FALL)) // </advc.700>
 					&& m_iTurnLoadedFromSave != m_iElapsedGameTurns) // advc.044
 				gDLL->getEngineIFace()->AutoSave(true);
 			/* <advc.004m> This seems to be the earliest place where bubbles can
 			   be enabled w/o crashing. */
-			if(isStartTurn && GC.getDefineINT("SHOW_RESOURCE_BUBBLES_AT_GAME_START") > 0)
-				gDLL->getEngineIFace()->setResourceLayer(true); // </advc.004m>
+			if(bStartTurn && getBugOptionBOOL("MainInterface__StartWithResourceIcons", true, "START_WITH_RESOURCE_ICONS")) {
+				m_bResourceLayer = true;
+				gDLL->getEngineIFace()->setResourceLayer(true);
+			} // </advc.004m>
 		}
 
 		if (getNumGameTurnActive() == 0)
@@ -7715,9 +7718,9 @@ void CvGame::createBarbarianUnits()
 	if(bAnimals)
 		return;
 	CvHandicapInfo const& hci = GC.getHandicapInfo(getHandicapType());
-	int baseTilesPerLandUnit = hci.getUnownedTilesPerBarbarianUnit();
+	int iBaseTilesPerLandUnit = hci.getUnownedTilesPerBarbarianUnit();
 	// Divided by 10 b/c now only shelf water tiles count
-	int baseTilesPerSeaUnit = hci.getUnownedWaterTilesPerBarbarianUnit() / 8;
+	int iBaseTilesPerSeaUnit = hci.getUnownedWaterTilesPerBarbarianUnit() / 8;
 	// </advc.300>
 	for(pLoopArea = GC.getMapINLINE().firstArea(&iLoop); pLoopArea != NULL;
 			pLoopArea = GC.getMapINLINE().nextArea(&iLoop)) {
@@ -7731,66 +7734,66 @@ void CvGame::createBarbarianUnits()
 			before that). */
 		if(a.isWater() || a.getNumCities() == 0)
 			continue;
-		int nUnowned = 0, nTiles = 0;
+		int iUnowned = 0, iTiles = 0;
 		std::vector<Shelf*> shelves; GC.getMap().getShelves(a.getID(), shelves);
 		for(size_t i = 0; i < shelves.size(); i++) {
 			// Shelves also count for land barbarians,
-			nUnowned += shelves[i]->countUnownedPlots();
-			nTiles += shelves[i]->size();
+			iUnowned += shelves[i]->countUnownedPlots();
+			iTiles += shelves[i]->size();
 		}
 		// ... but only half.
-		nUnowned /= 2; nTiles /= 2;
+		iUnowned /= 2; iTiles /= 2;
 		/*  For efficiency -- countOwnedUnownedHabitableTiles isn't cached;
 			goes through the entire map for each land area, and archipelago-type maps
 			can have a lot of those. */
-		int nTotal = a.getNumTiles() + nTiles;
-		int nUnownedTotal = a.getNumUnownedTiles() + nUnowned;
-		if(nUnownedTotal >= nTotal)
+		int iTotal = a.getNumTiles() + iTiles;
+		int iUnownedTotal = a.getNumUnownedTiles() + iUnowned;
+		if(iUnownedTotal >= iTotal)
 			continue;
 		/* In the following, only care about "habitable" tiles, i.e. with a
 		   positive food yield (implied for shelf tiles).
 		   Should tiles visible to a civ count? Yes; it's not unrealistic that
 		   barbs originate in one (visible) place, and emerge as a threat
 		   in another (invisible) place. */
-		std::pair<int,int> ownedUnowned = a.countOwnedUnownedHabitableTiles();
-		nUnowned += ownedUnowned.second;
-		nTiles += ownedUnowned.first + ownedUnowned.second;
+		std::pair<int,int> iiOwnedUnowned = a.countOwnedUnownedHabitableTiles();
+		iUnowned += iiOwnedUnowned.second;
+		iTiles += iiOwnedUnowned.first + iiOwnedUnowned.second;
 		// NB: Animals are included in this count
-		int nLandUnits = a.getUnitsPerPlayer(BARBARIAN_PLAYER);
+		int iLandUnits = a.getUnitsPerPlayer(BARBARIAN_PLAYER);
 		//  Kill a barb if the area gets crowded.
-		if(killBarb(nLandUnits, nTiles, a.getPopulationPerPlayer(BARBARIAN_PLAYER),
+		if(killBarb(iLandUnits, iTiles, a.getPopulationPerPlayer(BARBARIAN_PLAYER),
 				a, NULL))
-			nLandUnits--;
-		if(nUnownedTotal < baseTilesPerLandUnit / 2)
+			iLandUnits--;
+		if(iUnownedTotal < iBaseTilesPerLandUnit / 2)
 			continue;
-		int nOwned = nTiles - nUnowned;
-		int nBarbCities = a.getCitiesPerPlayer(BARBARIAN_PLAYER);
-		int neededLand = numBarbariansToSpawn(baseTilesPerLandUnit, nTiles,
-				nUnowned, nLandUnits, nBarbCities);
+		int iOwned = iTiles - iUnowned;
+		int iBarbCities = a.getCitiesPerPlayer(BARBARIAN_PLAYER);
+		int iNeededLand = numBarbariansToSpawn(iBaseTilesPerLandUnit, iTiles,
+				iUnowned, iLandUnits, iBarbCities);
 		for(unsigned int i = 0; i < shelves.size(); i++) {
-			int nShips = shelves[i]->countBarbarians();
-			if(killBarb(nShips, shelves[i]->size(),
+			int iShips = shelves[i]->countBarbarians();
+			if(killBarb(iShips, shelves[i]->size(),
 					a.getPopulationPerPlayer(BARBARIAN_PLAYER), a, shelves[i]))
-				nShips--;
+				iShips--;
 			if(!bSpawn)
 				continue;
-			int neededSea = numBarbariansToSpawn(baseTilesPerSeaUnit,
+			int iNeededSea = numBarbariansToSpawn(iBaseTilesPerSeaUnit,
 					shelves[i]->size(),
                     shelves[i]->countUnownedPlots(),
-                    nShips);
+                    iShips);
 			// (Deleted) Use a different sanity check, based on barb cities.
 			/* ``BETTER_BTS_AI_MOD 9/25/08 jdog5000
 				 Limit construction of barb ships based on player navies [...]´´ */
-			if(nShips > nBarbCities + 2)
-				neededSea = 0;
-			neededLand -= spawnBarbarians(neededSea, a, shelves[i],
-					neededLand > 0); // advc.306
+			if(iShips > iBarbCities + 2)
+				iNeededSea = 0;
+			iNeededLand -= spawnBarbarians(iNeededSea, a, shelves[i],
+					iNeededLand > 0); // advc.306
 		}
 		/*  Don't spawn barb. units on (or on shelves around) continents where
 			civs don't outnumber barbs */
 		int cc = a.countCivCities(); int bc = a.getNumCities() - cc; FAssert(bc >= 0);
 		if(cc > bc && bSpawn)
-			spawnBarbarians(neededLand, a, NULL);
+			spawnBarbarians(iNeededLand, a, NULL);
 		/*  Rest of the creation code: moved into functions numBarbariansToSpawn and
 			spawnBarbarians */
 		// </advc.300>
@@ -7812,8 +7815,8 @@ void CvGame::createBarbarianUnits()
 			to attack */
 		if(c->area()->countCivCities() > 0)
 			continue;
-		int unitCount = c->plot()->getNumDefenders(BARBARIAN_PLAYER);
-		double pr = (unitCount - std::max(1.5 * c->getPopulation(), 4.0)) / 4.0;
+		int iUnits = c->plot()->getNumDefenders(BARBARIAN_PLAYER);
+		double pr = (iUnits - std::max(1.5 * c->getPopulation(), 4.0)) / 4.0;
 		if(::bernoulliSuccess(pr, "advc.300"))
 			c->plot()->killRandomUnit(BARBARIAN_PLAYER, DOMAIN_LAND);
 	} // </advc.300>
@@ -7975,8 +7978,10 @@ int CvGame::numBarbariansToSpawn(int iTilesPerUnit, int iTiles, int iUnowned,
 			iCurrentEra = 0;
 		double rageMultiplier = 0.6;
 		rageMultiplier *= (8 - iCurrentEra) / 8.0;
-		divisor = ::round(divisor * rageMultiplier);
+		divisor = divisor * rageMultiplier;
+		divisor = std::max(divisor, 10.0);
 	} // </advc.307>
+	else divisor = std::max(divisor, 14.0);
 	double target = std::min(dividend / divisor,
 			/* Make sure that there's enough unowned land where the barbs could
 			   plausibly gather. */

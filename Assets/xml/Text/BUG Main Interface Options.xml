@@ -7,7 +7,9 @@
 -->
 <!-- advc: Some of the Romance-language translations are from www.deepl.com -->
 <Civ4GameText xmlns="http://www.firaxis.com">
-	<TEXT>
+
+	<!-- advc.004: Disabled -->
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__OPTIONSKEY_TEXT</Tag>
 		<English>Options Shortcut Reminder</English>
 		<French>Rappel du Raccourci des Options</French>
@@ -22,20 +24,24 @@
 		<German>Zeigt nach dem Spielstart oder dem Laden eines Spielstands eine Meldung, die an die Tastenkombination [STRG + ALT + O] erinnert, mit der man die Optionen der "BUG Mod" aufrufen kann</German>
 		<Italian>Quando è selezionato, mostra un messaggio che ricorda la combinazione di tasti per accedere al Menù delle Opzioni del BUG Mod quando un gioco viene iniziato o caricato .</Italian>
 		<Spanish>Si está activo, muestra un mensaje sobre Alt + Ctrl + O cuando un juego comienza o es cargado.</Spanish>
-	</TEXT>
+	</TEXT-->
+	
+	<!-- advc.004: Options are on a menu -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__OPTIONSBUTTON_TEXT</Tag>
-		<English>Options Button</English>
+		<English>BUG Menu Button</English>
 		<French>Options Button</French>
-		<German>Optionsschaltfläche</German>
+		<German>BUG-Menü-Schaltfläche</German>
 		<Italian>Dottone Opzioni</Italian>
 		<Spanish>Botón Opciones</Spanish>
 	</TEXT>
+	
+	<!-- advc.004, advc.002g: Some extra info added (incl. restart) -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__OPTIONSBUTTON_HOVER</Tag>
-		<English>When checked, shows the BUG Option Screen button.</English>
+		<English>When checked, a button for opening the BUG Menu is displayed in the upper left corner of the main interface, next to the Event Log button (restart required). The BUG Menu can always be accessed from the Game Menu [ESC], the Player Options screen [CTRL+O] and directly via [CTRL-ALT+O].</English>
 		<French>When checked, shows the BUG Option Screen button.</French>
-		<German>Zeigt die Schaltfläche zum Aufruf des Optionensbildschirms der BUG Mod an</German>
+		<German>Zeigt (nach dem nächsten Neustart) eine Schaltfläche zum Öffnen des BUG-Menüs in der oberen linken Ecke des Hauptbildschirms an (neben der Ereignis-Log-Schaltfläche). Das BUG-Menü lässt sich in jedem Fall vom Spielmenü [ESC] und Spieleroptionsmenü [STRG+O] aus aufrufen, und direkt per [CTRL+ALT+O].</German>
 		<Italian>Quando è selezionato, mostra il bottone della schermata opzioni del BUG.</Italian>
 		<Spanish>Permite mostrar el botón de opciones BUG en la pantalla.</Spanish>
 	</TEXT>
@@ -82,54 +88,70 @@
 		<Italian>Calo dell'Oro</Italian>
 		<Spanish>Advertencia Oro</Spanish>
 	</TEXT>
+	
+	<!-- advc.004: Rewritten (English, German); hopefully makes clearer how
+		 this differs from BtS. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__GOLDRATEWARNING_HOVER</Tag>
-		<English>When checked, displays your gold rate in yellow if it is negative but not enough to drop your treasury below zero.</English>
+		<English>When checked, a negative gold rate is shown in red only if the deficit exceeds the gold reserves in your treasury. Otherwise (sufficient reserves), a negative gold rate is shown in yellow.</English>
 		<French>When checked, displays your gold rate in yellow if it is negative but not enough to drop your treasury below zero.</French>
-		<German>Färbt die Anzeige für "Gold/Runde" Gelb ein, wenn dessen Wert zwar negativ ist, den Goldvorrat in der nächsten Runde aber nicht unter 0 senken wird</German>
+		<German>Färbt bei negativem Einkommen die [ICON_GOLD]/Runde-Anzeige nur dann rot ein, wenn das Defizit größer ist als der Goldvorrat. Andernfalls, d.h. wenn der Goldvorrat das Defizit auffangen kann, wird die [ICON_GOLD]/Runde-Anzeige gelb eingefärbt.</German>
 		<Italian>Quando è selezionato, mostra il tasso di crescita dell'oro in giallo se è negativo ma non abbastanza da mandarvi in rosso.</Italian>
 		<Spanish>Muestra tu oro en amarillo si el cambio este turno es negativo pero no suficiente para llevar tu tesoro por debajo de cero.</Spanish>
 	</TEXT>
+	
+	<!-- advc.004: German shortened (was the longest heading in its column) -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__GPBAR_TEXT</Tag>
 		<English>Great Person</English>
 		<French>Personnages Illustres</French>
-		<German>Große Persönlichkeiten</German>
+		<German>Große Pers.</German>
 		<Italian>Grandi Personaggi</Italian>
 		<Spanish>Gran Personaje</Spanish>
 	</TEXT>
+	
+	<!-- advc.004: Minor changes. Could add:
+		 "or, if a city is currently selected, the Great Person progress of that city," but I guess that's not important enough. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__GPBAR_HOVER</Tag>
-		<English>When checked, displays the progress and city of the next Great Person.</English>
+		<English>When checked, displays a progress bar at the top of the main interface that shows when the next Great Person will be born and in which city.</English>
 		<French>En activant, montre la barre de progrès et la ville du prochain Personnage Illustre.</French>
-		<German>Zeigt einen Fortschrittsbalken an, um zu bestimmen, wann und in welcher Stadt die nächste Große Persönlichkeit erscheinen wird</German>
+		<German>Platziert am oberen Rand des Hauptbildschirms einen Fortschrittsbalken, der anzeigt, wann die nächste große Persönlichkeit erscheinen wird und in welcher Stadt.</German>
 		<Italian>Quando è selezionato, mostra il progresso e la città del prossimo Grande Personaggio.</Italian>
 		<Spanish>When checked, displays the progress and city of the next Great Person.</Spanish>
 	</TEXT>
-	<TEXT>
+
+	<!-- advc.004: Unused -->
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__GPBAR_TYPES_TEXT</Tag>
 		<English>GP Bar Types</English>
 		<French>Types de Barre PI</French>
 		<German>Anzeigemethode</German>
 		<Italian>Tipi di Grandi Personaggi</Italian>
 		<Spanish>Barra de Tipo de GP</Spanish>
-	</TEXT>
+	</TEXT-->
+
+	<!-- advc.004: Minor changes. Would be nice to state explicitly that this
+		 setting also applies to the city screen, but the text is already
+		 rather long. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__GPBAR_TYPES_HOVER</Tag>
-		<English>Determines how many GP types to display in the GP Progress Bar. The [COLOR_HIGHLIGHT_TEXT]Maximum[COLOR_REVERT] setting also displays the percent chance for each.</English>
+		<English>The number of Great Person (GP) types to display in the GP bar. "[COLOR_HIGHLIGHT_TEXT]1[COLOR_REVERT]" shows only the most likely GP type. "[COLOR_HIGHLIGHT_TEXT]All[COLOR_REVERT]" also displays the probability distribution. Regardless of this option, that distribution is shown in the hover text of the GP bar.</English>
 		<French>Determine combien de types de PI doivent être montrés dans la Barre de Progrès. L'option [COLOR_HIGHLIGHT_TEXT]Maximum[COLOR_REVERT] montre aussi les chances de chacun.</French>
-		<German>Bestimmt die Anzahl der Typen von Großen Persönlichkeiten, die im Fortschrittsbalken angezeigt werden (die Einstellung [COLOR_HIGHLIGHT_TEXT]Maximal[COLOR_REVERT] zeigt zusätzlich die prozentuale Chance für jede einzelne an)</German>
+		<German>Die Anzahl der Typen von großen Persönlichkeiten (GP), die im GP-Balken angezeigt werden. "[COLOR_HIGHLIGHT_TEXT]1[COLOR_REVERT]" zeigt lediglich den wahrscheinlichsten GP-Typ. "[COLOR_HIGHLIGHT_TEXT]Alle[COLOR_REVERT]" zeigt die gesamte Wahrscheinlichkeitsverteilung. Diese Verteilung wird in jedem Fall im Hilftext des GP-Balkens angezeigt.</German>
 		<Italian>Determina quanti tipi di Grandi Personaggi devono essere mostrati nella Barra dei Grandi Personaggi. L'impostazione [COLOR_HIGHLIGHT_TEXT]Massimo[COLOR_REVERT] mostra anche la possibilità percentuale di ognuna.</Italian>
 		<Spanish>Determina cuantos tipos de Gran Personaje mostrar en la barra de progreso de Grandes Personas. La opción [COLOR_HIGHLIGHT_TEXT]Máximo[COLOR_REVERT] también muestra la probabilidad de cada tipo.</Spanish>
 	</TEXT>
+	<!-- Was "None|One|Maximum" -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__GPBAR_TYPES_LIST</Tag>
-		<English>None|One|Maximum</English>
-		<French>Aucun|Un|Maximum</French>
-		<German>Keine|Eine|Maximal</German>
-		<Italian>Nessuno|Uno|Massimo</Italian>
-		<Spanish>Ninguno|Uno|Máximo</Spanish>
+		<English>0|1|All</English>
+		<French>0|1|Maximum</French>
+		<German>0|1|Alle</German>
+		<Italian>0|1|Tutti</Italian>
+		<Spanish>0|1|Máximo</Spanish>
 	</TEXT>
+	
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__COMBAT_COUNTER_TEXT</Tag>
 		<English>Great General</English>
@@ -138,30 +160,56 @@
 		<Italian>Grande Generale</Italian>
 		<Spanish>Gran General</Spanish>
 	</TEXT>
+	
+	<!-- advc.004: Minor changes -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__COMBAT_COUNTER_HOVER</Tag>
-		<English>When checked, displays a progress bar for the next Great General.</English>
+		<English>When checked, displays a progress bar on top of the main interface that shows how much combat experience is needed for the next Great General.</English>
 		<French>En activant, montre l'Expérience au Combat nécessaire pour le prochain Général Illustre.</French>
-		<German>Zeigt die gesammelte Gefechtserfahrung an, um das Erscheinen des nächsten Großen Generals zu bestimmen</German>
+		<German>Platziert am oberen Rand des Hauptbildschirms einen Fortschrittsbalken, der die Gefechtserfahrung anzeigt, die für den nächsten großen General benötigt wird.</German>
 		<Italian>Quando è selezionato, mostra la barra di avanzamento per il prossimo Grande Generale.</Italian>
 		<Spanish>Muestra una barra de progreso para el próximo Gran General.</Spanish>
 	</TEXT>
+
+	<!-- advc.120c: Under the new heading, "Max/Min Buttons" should be clear
+		 enough. (Put "max" first to match the "+/-" order.) -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__MINMAX_COMMERCE_TEXT</Tag>
-		<English>Min/Max Commerce Buttons</English>
+		<English>Max/Min Buttons</English>
 		<French>Min/Max Commerce Buttons</French>
-		<German>Min/Max Investitionsanteile</German>
+		<German>Max/Min-Schaltflächen</German>
 		<Italian>Bottoni del Commercio minimo/massimo</Italian>
 		<Spanish>Comercio Mínimo/Máximo</Spanish>
 	</TEXT>
+	
+	<!-- advc.004: Mention right-click -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__MINMAX_COMMERCE_HOVER</Tag>
-		<English>When checked, displays a second pair of +/- buttons for each commerce type that set the rate to 100% and 0% respectively.</English>
+		<English>When checked, a second pair of +/- buttons is displayed on the main interface for each type of commerce. These extra buttons set the respective commerce rate to 100% (+) or 0% (-). Regardless of this option, a right-click on the normal +/- buttons also sets the rate to 100%/0%.</English>
 		<French>When checked, displays a second pair of +/- buttons for each commerce type that set the rate to 100% and 0% respectively.</French>
-		<German>Zeigt ein zweites Paar "+/-"-Schaltflächen für jede Art Investitionsanteil an, die diese auf 100% beziehungsweise 0% setzen</German>
+		<German>Zeigt ein zweites Paar "+/-"-Schaltflächen für jeden Anteilsregler an, die den Anteil auf 100% beziehungsweise 0% setzen. Auch ohne diese Option lassen sich die Anteile durch einen Rechtsklick auf die gewöhnlichen "+/-"-Schaltflächen auf 100%/0% setzen.</German>
 		<Italian>Quando è selezionato, mostra una seconda coppia di bottoni +/- per ogni tipo di commercio che impostano il valore rispettivamente al 100% ed allo 0%.</Italian>
 		<Spanish>Muestra un segundo par de botones +/- buttons que permiten fijar la producción a 100% y 0% respectivamente.</Spanish>
 	</TEXT>
+	
+	<!-- advc.004m -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STARTWITHRESOURCEICONS_TEXT</Tag>
+		<English>Start with Resource Icons</English>
+		<French>Symboles de ressources au début du jeu</French>
+		<German>Ressourcensymbole bei Spielstart</German>
+		<Italian>Mostra risorse all'inizio del gioco</Italian>
+		<Spanish>Muestra recursos al inicio del juego</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STARTWITHRESOURCEICONS_HOVER</Tag>
+		<English>When checked, the Resource Display (indicator "bubbles") is enabled at the start of every new game. Otherwise, the Resource Display is disabled at game start.</English>
+		<French>Active l'affichage des ressources au début du jeu.</French>
+		<German>Aktiviert die Ressourcenanzeige zu Spielbeginn.</German>
+		<Italian>Abilita la segnalazione delle risorse all'inizio del gioco.</Italian>
+		<Spanish>Activa las marcas de recursos al inicio del juego.</Spanish>
+	</TEXT>
+	
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__CITYARROWS_TEXT</Tag>
 		<English>City Cycle Arrows</English>
@@ -179,22 +227,25 @@
 		<Spanish>Muestra flechas encima de tu bandera que permiten ciclar entre distintas ciudades.</Spanish>
 	</TEXT>
 
+	<!-- advc.004m: German translation changed -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__FIELDOFVIEW_TEXT</Tag>
 		<English>Field of View</English>
 		<French>Field of View</French>
-		<German>Field of View (FOV)</German>
+		<German>Sichtfeld</German>
 		<Italian>Campo visuale</Italian>
 		<Spanish>Campo de Visión</Spanish>
 	</TEXT>
+	<!-- advc.004m: Explain briefly what FoV does -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__FIELDOFVIEW_HOVER</Tag>
-		<English>When checked, displays a slide bar which can be used to change the field of view.</English>
+		<English>When checked, displays a slider for adjusting the field of view. The field-of-view setting changes the camera distance, but, unlike zoom, without changing the camera angle.</English>
 		<French>When checked, displays a slide bar which can be used to change the field of view.</French>
-		<German>Zeigt im Hauptbildschirm einen Schieberegler an, mit dem das Sichtfeld (engl. "Field of View") eingestellt werden kann</German>
+		<German>Zeigt im Hauptbildschirm einen Regler an, mit dem die Größe des Sichtfelds eingestellt werden kann. Im Gegensatz zur Zoomfunktion ändert sich dabei der Blickwinkel nicht.</German>
 		<Italian>Quando è selezionato, visualizza un cursore che può essere utilizzato per regolare il campo visuale.</Italian>
 		<Spanish>Muestra una barra deslizante que permite modificar el campo de visión.</Spanish>
 	</TEXT>
+
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__PROGRESSBARSTICKMARKS_TEXT</Tag>
 		<English>Tick Marks</English>
@@ -203,14 +254,17 @@
 		<Italian>Trattini di avanzamento</Italian>
 		<Spanish>Progreso Estimado</Spanish>
 	</TEXT>
+
+	<!-- advc.004: English rewritten, German revised. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__PROGRESSBARSTICKMARKS_HOVER</Tag>
-		<English>When checked, displays tick marks on selected progress bars that illustrate estimated future turn progress.</English>
+		<English>When checked, progress bars on the main interface and city screen show tick marks that project the current per-turn progress rate into the future.</English>
 		<French>When checked, displays tick marks on selected progress bars that illustrate estimated future turn progress.</French>
-		<German>Zeigt Teilstriche auf ausgewählten Fortschrittsbalken an, die deren voraussichtlichen Verlauf in zukünftigen Runden darstellen</German>
+		<German>Zeigt Teilstriche auf den Fortschrittsbalken im Haupt- und Stadtbildschirm an, die die voraussichtlichen Fortschritte in zukünftigen Runden markieren.</German>
 		<Italian>Visualizza sulle barre di avanzamento selezionate dei trattini che mostrano il progresso stimato per i turni successivi.</Italian>
 		<Spanish>Muestra líneas en las barras de progreso seleccionadas que muestran el progreso estimado en turnos futuros.</Spanish>
 	</TEXT>
+	
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__FIELDOFVIEW_REMEMBER_TEXT</Tag>
 		<English>Remember Field of View</English>
@@ -252,27 +306,33 @@
 		<Italian>Punti movimento decimali</Italian>
 		<Spanish>Puntos de Movimiento Decimales</Spanish>
 	</TEXT>
+	
+	<!-- advc.004: Minor changes -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__UNITMOVEMENTPOINTSFRACTION_HOVER</Tag>
-		<English>When checked, shows the Movement Points for a single unit as a fraction in the Info Pane.</English>
+		<English>When a single unit is selected, this option shows the remaining movement points as a fraction on the Info pane.</English>
 		<French>When checked, shows the Movement Points for a single unit as a fraction in the Info Pane.</French>
-		<German>Zeigt die Bewegungspunkte einer einzelnen Einheit in der Detailanzeige mit Nachkommastellen an</German>
+		<German>Zeigt die verbleibenden Bewegungspunkte in der Detailanzeige mit Nachkommastellen an, wenn eine einzelne Einheit ausgewählt ist.</German>
 		<Italian>Quando è selezionato, mostra nel Pannello delle Informazioni i Punti Movimento di una Unità come un numero con una cifra decimale.</Italian>
 		<Spanish>Muestra los puntos de movimiento para unidades como una fracción en el panel de información.</Spanish>
 	</TEXT>
+	
+	<!-- advc.004: German translation was too unwieldy -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STACKMOVEMENTPOINTS_TEXT</Tag>
 		<English>Stack Movement Points</English>
 		<French>Stack Movement Points</French>
-		<German>Einheitenverband-Bewegungspunkte</German>
+		<German>Gruppen-Bewegungspunkte</German>
 		<Italian>Punti Movimento di gruppo</Italian>
 		<Spanish>Apilar Puntos de Movimiento</Spanish>
 	</TEXT>
+	
+	<!-- advc.004: Minor changes -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STACKMOVEMENTPOINTS_HOVER</Tag>
-		<English>When checked, shows the minimum and maximum Movement Points for all selected units in the Info Pane.</English>
+		<English>When multiple units are selected, this option shows the minimum and maximum of the selected units' movement points on the Info pane.</English>
 		<French>When checked, shows the minimum and maximum Movement Points for all selected units in the Info Pane.</French>
-		<German>Zeigt die minimalen und maximalen Bewegungspunkte aller ausgewählten Einheiten in der Detailanzeige an</German>
+		<German>Zeigt das Minimum und Maximum der Bewegungspunkte der ausgewählten Einheiten in der Detailanzeige an, wenn mehrere Einheiten ausgewählt sind.</German>
 		<Italian>Quando è selezionato, mostra nel Pannello delle Informazioni il valore minimo e quello massimo per i Punti Movimento del gruppo di Unità selezionate.</Italian>
 		<Spanish>Si se activa, muestra en el panel de información los puntos de movimiento mínimos y máximos para todas las unidades seleccionadas.</Spanish>
 	</TEXT>
@@ -285,11 +345,13 @@
 		<Italian>Stack Promotions</Italian>
 		<Spanish>Apilar ascensos</Spanish>
 	</TEXT>
+	
+	<!-- advc.004: Minor changes to the next three keys -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STACKPROMOTIONS_HOVER</Tag>
-		<English>When checked, shows the promotions possessed by at least one unit in the stack.</English>
+		<English>When checked, shows all promotions possessed by at least one unit in the selected stack on the Info pane.</English>
 		<French>When checked, shows the promotions possessed by at least one unit in the stack.</French>
-		<German>Zeigt die Beförderungen an, über die mindestens eine Einheit in einem Einheitenverband verfügt</German>
+		<German>Zeigt in der Detailanzeige alle Beförderungen an, über die zumindest eine Einheit des ausgewählten Verbandes verfügt.</German>
 		<Italian>When checked, shows the promotions possessed by at least one unit in the stack.</Italian>
 		<Spanish>Si se activa, muestra los ascensos poseídos por al menos una de las unidades del grupo.</Spanish>
 	</TEXT>
@@ -297,34 +359,41 @@
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STACKPROMOTIONCOUNTS_TEXT</Tag>
 		<English>Counts</English>
 		<French>Counts</French>
-		<German>Anzahl anzeigen</German>
+		<German>Anzahl</German>
 		<Italian>Counts</Italian>
 		<Spanish>Número</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STACKPROMOTIONCOUNTS_HOVER</Tag>
-		<English>When checked, shows the number of units in a stack that possess each promotion if more than one.</English>
+		<English>When checked, the stack promotion icons on the Info pane show the number of units in the selected stack that possess each promotion (if that number is greater than one).</English>
 		<French>When checked, shows the number of units in a stack that possess each promotion if more than one.</French>
-		<German>Zeigt die Anzahl der Einheiten in einem Einheitenverband an, die über eine bestimmte Beförderung verfügen, falls dies bei mehr als einer der Fall ist</German>
+		<German>Zeigt in der Detailanzeige für jede Beförderung an, wie viele Einheiten im ausgewählten Verband über diese Beförderung verfügen (wenn mehrere Einheiten über die Beförderung verfügen).</German>
 		<Italian>When checked, shows the number of units in a stack that possess each promotion if more than one.</Italian>
 		<Spanish>Muestra el número de unidades del grupo que poseen una determinada promoción, en el caso de que haya más de una.</Spanish>
 	</TEXT>
+
+	<!-- advc.004: Was "Some", but I think it's easier to think of it as the
+		 default color. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STACKPROMOTIONCOLOR_TEXT</Tag>
-		<English>Some</English>
-		<French>Some</French>
-		<German>Manche</German>
-		<Italian>Some</Italian>
-		<Spanish>Algunas</Spanish>
+		<English>Color</English>
+		<French>Couleur</French>
+		<German>Farbe</German>
+		<Italian>Colore</Italian>
+		<Spanish>Color</Spanish>
 	</TEXT>
+	
+	<!-- advc.004: This was just a repetition of the "Counts" hover text -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STACKPROMOTIONCOLOR_HOVER</Tag>
-		<English>When checked, shows the number of units in a stack that possess each promotion if more than one.</English>
-		<French>When checked, shows the number of units in a stack that possess each promotion if more than one.</French>
-		<German>Zeigt die Anzahl der Einheiten in einem Einheitenverband an, die über eine bestimmte Beförderung verfügen, falls dies bei mehr als einer der Fall ist</German>
-		<Italian>When checked, shows the number of units in a stack that possess each promotion if more than one.</Italian>
-		<Spanish>Muestra el número de unidades del grupo que poseen una determinada promoción, en el caso de que haya más de una.</Spanish>
+		<English>Text color of the promotion count (unless a promotion is possessed by all units)</English>
+		<French>Text color of the promotion count (unless a promotion is possessed by all units)</French>
+		<German>Farbe, in der die Anzahl der Einheiten mit einer bestimmten Beförderung angezeigt wird (außer wenn alle Einheiten über diese Beförderung verfügen)</German>
+		<Italian>Text color of the promotion count (unless a promotion is possessed by all units)</Italian>
+		<Spanish>Text color of the promotion count (unless a promotion is possessed by all units)</Spanish>
 	</TEXT>
+	
+	<!-- advc.004 (no change): "Color (All)" would be too long -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STACKPROMOTIONCOLORALL_TEXT</Tag>
 		<English>All</English>
@@ -333,13 +402,15 @@
 		<Italian>All</Italian>
 		<Spanish>Todas</Spanish>
 	</TEXT>
+	
+	<!-- advc.004: This was just a repetition of the "Counts" hover text -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STACKPROMOTIONCOLORALL_HOVER</Tag>
-		<English>When checked, shows the number of units in a stack that possess each promotion if more than one.</English>
-		<French>When checked, shows the number of units in a stack that possess each promotion if more than one.</French>
-		<German>Zeigt die Anzahl der Einheiten in einem Einheitenverband an, die über eine bestimmte Beförderung verfügen, falls dies bei mehr als einer der Fall ist</German>
-		<Italian>When checked, shows the number of units in a stack that possess each promotion if more than one.</Italian>
-		<Spanish>Muestra el número de unidades del grupo que poseen una determinada promoción, en el caso de que haya más de una.</Spanish>
+		<English>If all units in a stack possess a given promotion, use this color instead of the one above.</English>
+		<French>If all units in a stack possess a given promotion, use this color instead of the one above.</French>
+		<German>Diese Farbe wird anstatt der obigen verwendet, wenn eine Beförderung allen Einheiten des Verbandes gemeinsam ist.</German>
+		<Italian>If all units in a stack possess a given promotion, use this color instead of the one above.</Italian>
+		<Spanish>If all units in a stack possess a given promotion, use this color instead of the one above.</Spanish>
 	</TEXT>
 	
 	<!-- advc.061 -->
@@ -355,7 +426,7 @@
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__LISTUNITSPEROWNER_HOVER</Tag>
 		<English>When checked, help text lists the units in a tile grouped by owner and shows the total unit count per owner.</English>
 		<French>En activant, le texte d'aide énumère les unités d'une case groupées par propriétaire et affiche le nombre total d'unités par propriétaire.</French>
-		<German>Im Hilfstext werden Einheiten eines Feldes nach Besitzer gruppiert aufgeführt und die Einheitenzahl pro Besitzer wird angegeben.</German>
+		<German>Im Hilfetext werden Einheiten eines Feldes nach Besitzer gruppiert aufgeführt und die Einheitenzahl pro Besitzer wird angegeben.</German>
 		<Italian>Quando è selezionato, il testo di aiuto elenca le unità in una casella raggruppate per proprietario e mostra il conteggio totale delle unità per proprietario.</Italian>
 		<Spanish>Si se activa, el texto de ayuda lista las unidades en una casilla agrupadas por propietario y muestra el número total de unidades por propietario.</Spanish>
 	</TEXT>
@@ -367,7 +438,7 @@
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__BUILDICONSIZE_TEXT</Tag>
 		<English>Action Button Size</English>
 		<French>Action Button Size</French>
-		<German>Größe der Befehlsschaltflächen</German>
+		<German>Größe der Schaltflächen</German>
 		<Italian>Dimensione Icona Costruisci/Azione</Italian>
 		<Spanish>Tamaño de Iconos de acción/construcción</Spanish>
 	</TEXT>
@@ -403,11 +474,13 @@
 		<Italian>Quando è selezionato, la selezione automatica tra le unità è istantanea anzichè con ritardo.</Italian>
 		<Spanish>Activada, la selección de unidades automática ocurre instantáneamente más que con un retardo.</Spanish>
 	</TEXT>
+	
+	<!-- advc.004: German was too long -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__SIMPLESELECTION_TEXT</Tag>
 		<English>Simple [Shift] Unit Selection</English>
 		<French>Simple [Shift] Unit Selection</French>
-		<German>Einfache [Umschalt]-Einheitenauswahl</German>
+		<German>Einfache Auswahl mit [Shift]</German>
 		<Italian>Simple [Shift] Unit Selection</Italian>
 		<Spanish>Selección de unidades simple [Mayús]</Spanish>
 	</TEXT>
@@ -415,7 +488,7 @@
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__SIMPLESELECTION_HOVER</Tag>
 		<English>When checked, selecting units with the [Shift] key will only ever add a single unit at a time.</English>
 		<French>When checked, selecting units with the [Shift] key will only ever add a single unit at a time.</French>
-		<German>Beim Einheitenauswählen unter Gedrückthalten der [Umschalt]-Taste wird immer nur eine Einheit zusätzlich ausgewählt.</German>
+		<German>Beim Auswählen von Einheiten mit gedrückter [Umschalt]-Taste wird mit jedem Klick nur eine Einheit zur Auswahl hinzugefügt.</German>
 		<Italian>When checked, selecting units with the [Shift] key will only ever add a single unit at a time.</Italian>
 		<Spanish>Activada, seleccionando unidades con la tecla [Mayús] sólo añadir una unidad cada vez.</Spanish>
 	</TEXT>

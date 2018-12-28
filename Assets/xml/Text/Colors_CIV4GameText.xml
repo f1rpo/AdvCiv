@@ -63,7 +63,7 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_COLOR_LIGHT_GREY</Tag>
-		<English>Light Grey</English>
+		<English>Light Gray</English>
 		<French>Gris Pâle</French>
 		<German>Hellgrau</German>
 		<Italian>Grigio Chiaro</Italian>
@@ -71,20 +71,31 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_COLOR_GREY</Tag>
-		<English>Grey</English>
+		<English>Gray</English>
 		<French>Gris</French>
 		<German>Grau</German>
 		<Italian>Grigio</Italian>
 		<Spanish>Gris</Spanish>
 	</TEXT>
+	
 	<TEXT>
 		<Tag>TXT_KEY_COLOR_DARK_GREY</Tag>
-		<English>Dark Grey</English>
+		<English>Dark Gray</English>
 		<French>Gris Fonc&#233;</French>
 		<German>Dunkelgrau</German>
 		<Italian>Grigio Scuro</Italian>
 		<Spanish>Gris Oscuro</Spanish>
 	</TEXT>
+	<!-- advc.004: The above is no longer used; instead: -->
+	<TEXT>
+		<Tag>TXT_KEY_COLOR_YIELD_FOOD</Tag>
+		<English>Orange</English>
+		<French>Orange</French>
+		<German>Orange</German>
+		<Italian>Arancione</Italian>
+		<Spanish>Anaranjado</Spanish>
+	</TEXT>
+	
 	<TEXT>
 		<Tag>TXT_KEY_COLOR_BLACK</Tag>
 		<English>Black</English>

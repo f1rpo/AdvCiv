@@ -97,6 +97,8 @@ public:
 
 	bool canHurry(int /*HurryTypes*/ iHurry, bool bTestVisible);
 	void hurry(int /*HurryTypes*/ iHurry);
+	// advc.064:
+	int getHurryOverflow(int /*HurryTypes*/ iHurry, bool bProduction, bool bIncludeCurrent);
 	int /*UnitTypes*/ getConscriptUnit();
 	int getConscriptPopulation();
 	int conscriptMinCityPopulation();

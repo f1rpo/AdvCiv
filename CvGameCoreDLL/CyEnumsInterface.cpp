@@ -216,6 +216,8 @@ void CyEnumsPythonInterface()
 		.value("Domestic_Advisor_DIRTY_BIT", Domestic_Advisor_DIRTY_BIT)
 		.value("Espionage_Advisor_DIRTY_BIT", Espionage_Advisor_DIRTY_BIT)
 		.value("Advanced_Start_DIRTY_BIT", Advanced_Start_DIRTY_BIT)
+		// advc.068:
+		.value("Tech_Screen_DIRTY_BIT", Tech_Screen_DIRTY_BIT)
 		.value("NUM_INTERFACE_DIRTY_BITS", NUM_INTERFACE_DIRTY_BITS)
 		;
 

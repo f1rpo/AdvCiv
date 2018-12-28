@@ -89,9 +89,13 @@
 			adding translations for your new colors to Colors_CIV4GameText.xml
 			in the XML/Text directory. 
 		-->
+		<!-- advc.004: COLOR_DARK_GREY removed (this one wasn't used as a default
+			 for anything) and COLOR_YIELD_FOOD (a kind of orange) added.
+			 Used as a default in 'Not Just Another Game Clock.xml'. -->
 		<arg name="colors" type="tuple">
 			"COLOR_RED",
 			"COLOR_YELLOW",
+			"COLOR_YIELD_FOOD",
 			"COLOR_CYAN",
 			"COLOR_GREEN",
 			"COLOR_BLUE",
@@ -99,7 +103,6 @@
 			"COLOR_WHITE",
 			"COLOR_LIGHT_GREY",
 			"COLOR_GREY",
-			"COLOR_DARK_GREY",
 			"COLOR_BLACK"
 		</arg>
 	</init>

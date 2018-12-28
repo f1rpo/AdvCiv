@@ -1,5 +1,9 @@
 [advc.009]
 
-As far as I understand, these are default settings for the Advanced Unit Naming mod component. I guess other default settings for BUG could also be placed in this folder. Has to have the same name as the BUG settings folder under /My Games/, which is set to SETTINGS_FOLDER = "Settings" in BugPath.py.
+This folder only contains default settings for the mod components
+* Advanced Unit Naming and
+* Customizable Domestic Advisor Pages
+(both disabled by default through the BUG menu).
+The folder has to have the same name as the BUG settings folder under /My Games/, which is set to SETTINGS_FOLDER = "Settings" in BugPath.py.
 
-For configuring BUG, the in-game menu should be used; most of the defaults are set in /Assets/Config, and the /Assets/XML root folder contains global settings for BUG, BBAI, K-Mod and AdvCiv.
+For configuring other BUG options, the in-game menu should be used; most of the defaults are set in /Assets/Config. The /Assets/XML root folder contains global settings for BUG, BBAI, K-Mod and AdvCiv.

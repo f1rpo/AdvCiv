@@ -107,7 +107,7 @@
 		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__PARTIALBUILDSALWAYS_HOVER</Tag>
 		<English>When checked, unfinished Worker builds are always shown in a tile's help text. Otherwise, they're only shown when the Ctrl key is held down. (Either way, Ctrl can be held down while issuing a build command in order to have the Worker suspend the build one turn before completion.)</English>
 		<French>When checked, unfinished Worker builds are always shown in a tile's help text. Otherwise, they're only shown when the Ctrl key is held down. (Either way, Ctrl can be held down while issuing a build command in order to have the Worker suspend the build one turn before completion.)</French>
-		<German>Zeigt im Hilfstext stets unvollständige Arbeiten an. Ohne diese Option werden solche Arbeiten nur angezeigt, wenn Sie die Strg-Taste gedrückt halten. (In jedem Fall können Sie Arbeiter anweisen, einen Auftrag einen Zug vor der Fertigstellung zu unterbrechen, indem Sie bei Erteilung des Auftrags Strg gedrückt halten.)</German>
+		<German>Zeigt im Hilfetext stets unvollständige Arbeiten an. Ohne diese Option werden solche Arbeiten nur angezeigt, wenn Sie die Strg-Taste gedrückt halten. (In jedem Fall können Sie Arbeiter anweisen, einen Auftrag einen Zug vor der Fertigstellung zu unterbrechen, indem Sie bei Erteilung des Auftrags Strg gedrückt halten.)</German>
 		<Italian>When checked, unfinished Worker builds are always shown in a tile's help text. Otherwise, they're only shown when the Ctrl key is held down. (Either way, Ctrl can be held down while issuing a build command in order to have the Worker suspend the build one turn before completion.)</Italian>
 		<Spanish>When checked, unfinished Worker builds are always shown in a tile's help text. Otherwise, they're only shown when the Ctrl key is held down. (Either way, Ctrl can be held down while issuing a build command in order to have the Worker suspend the build one turn before completion.)</Spanish>
 	</TEXT>
@@ -274,11 +274,12 @@
 		<Spanish>Permite consultar información individual de cada tipo de [ICON_GREATPEOPLE] en el texto flotante.</Spanish>
 	</TEXT>
 	
+	<!-- advc.004: German shortened -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__BUILDINGSAVEDMAINTENANCE_TEXT</Tag>
 		<English>Maintenance</English>
 		<French>Maintenance</French>
-		<German>Unterhaltskosten</German>
+		<German>Unterhalt</German>
 		<Italian>Mantenimento</Italian>
 		<Spanish>Mantenimiento</Spanish>
 	</TEXT>
@@ -287,7 +288,7 @@
 		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__BUILDINGSAVEDMAINTENANCE_HOVER</Tag>
 		<English>If checked, the hover text of the maintenance display on the city screen lists all buildings that the city can construct and that will affect city maintenance ([ICON_GOLD]).</English>
 		<French>When checked, displays the buildings that will affect maintenance costs ([ICON_GOLD]) and by how much.</French>
-		<German>Zeigt im Hilfstext der Unterhaltskostenanzeige (Stadtbildschirm) alle Gebäude an, die die Stadt errichten kann und die Einfluss auf die Unterhaltskosten ([ICON_GOLD]) haben.</German>
+		<German>Zeigt im Hilfetext der Unterhaltskostenanzeige (Stadtbildschirm) alle Gebäude an, die die Stadt errichten kann und die Einfluss auf die Unterhaltskosten ([ICON_GOLD]) haben.</German>
 		<Italian>Quando è selezionato, vengono visualizzati gli edifici che influenzano il mantenimento ([ICON_GOLD]) e l'ammontare con cui lo fanno.</Italian>
 		<Spanish>Muestra los edificios que afectan a los costes de mantenimiento ([ICON_GOLD]) y en cuánto lo hacen.</Spanish>
 	</TEXT>
@@ -320,7 +321,7 @@
 		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__BUILDINGADDITIONALPRODUCTION_HOVER</Tag>
 		<English>If checked, the hover text of the [ICON_PRODUCTION] display on the city screen lists all buildings that the city can construct and that will affect the [ICON_PRODUCTION] rate.</English>
 		<French>When checked, displays the buildings that will affect the [ICON_PRODUCTION] rate and by how much.</French>
-		<German>Zeigt im Hilfstext der [ICON_PRODUCTION]-Anzeige (Stadtbildschirm) alle Gebäude an, die die Stadt errichten kann und die Einfluss auf [ICON_PRODUCTION]/Runde haben.</German>
+		<German>Zeigt im Hilfetext der [ICON_PRODUCTION]-Anzeige (Stadtbildschirm) alle Gebäude an, die die Stadt errichten kann und die Einfluss auf [ICON_PRODUCTION]/Runde haben.</German>
 		<Italian>Quando è selezionato, vengono visualizzati gli edifici che influenzano la produzione ([ICON_PRODUCTION]) e l'ammontare con cui lo fanno.</Italian>
 		<Spanish>Muestra los edificios que afectan a la producción de [ICON_PRODUCTION] y en qué medida.</Spanish>
 	</TEXT>
@@ -337,7 +338,7 @@
 		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__BUILDINGADDITIONALCOMMERCE_HOVER</Tag>
 		<English>If checked, the hover text of the [ICON_COMMERCE], [ICON_GOLD], [ICON_RESEARCH], [ICON_CULTURE] and [ICON_ESPIONAGE] displays on the city screen lists all buildings that the city can construct and that will affect these commerce rates.</English>
 		<French>When checked, displays the buildings that will affect the [ICON_COMMERCE], [ICON_GOLD], [ICON_RESEARCH], [ICON_CULTURE], and [ICON_ESPIONAGE] rates and by how much.</French>
-		<German>Zeigt im Hilfstext der Stadtbildschirm-Anzeigen für [ICON_COMMERCE], [ICON_GOLD], [ICON_RESEARCH], [ICON_CULTURE] und [ICON_ESPIONAGE] alle Gebäude an, die die Stadt errichten kann und die Einfluss auf die entsprechenden Erträge haben.</German>
+		<German>Zeigt im Hilfetext der Stadtbildschirm-Anzeigen für [ICON_COMMERCE], [ICON_GOLD], [ICON_RESEARCH], [ICON_CULTURE] und [ICON_ESPIONAGE] alle Gebäude an, die die Stadt errichten kann und die Einfluss auf die entsprechenden Erträge haben.</German>
 		<Italian>Quando è selezionato, vengono visualizzati gli edifici che influenzano la crescita commerciale ([ICON_COMMERCE], [ICON_GOLD]), scientifica ([ICON_RESEARCH]), culturale ([ICON_CULTURE]) e spionistica ([ICON_ESPIONAGE]) e l'ammontare con cui lo fanno.</Italian>
 		<Spanish>Muestra los edificios que afectan a la producción de [ICON_COMMERCE], [ICON_GOLD], [ICON_RESEARCH], [ICON_CULTURE], y [ICON_ESPIONAGE] en qué medida.</Spanish>
 	</TEXT>
@@ -354,7 +355,7 @@
 		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__BUILDINGADDITIONALHEALTH_HOVER</Tag>
 		<English>If checked, the hover text of the [ICON_HEALTHY] display on the city screen lists all buildings that the city can construct and that will affect [ICON_HEALTHY] or [ICON_UNHEALTHY].</English>
 		<French>When checked, displays the buildings that will affect the [ICON_HEALTHY] and [ICON_UNHEALTHY] rates and by how much.</French>
-		<German>Zeigt im Hilfstext der [ICON_HEALTHY]-Anzeige (Stadtbildschirm) alle Gebäude an, die die Stadt errichten kann und die Einfluss auf [ICON_HEALTHY] und [ICON_UNHEALTHY] haben.</German>
+		<German>Zeigt im Hilfetext der [ICON_HEALTHY]-Anzeige (Stadtbildschirm) alle Gebäude an, die die Stadt errichten kann und die Einfluss auf [ICON_HEALTHY] und [ICON_UNHEALTHY] haben.</German>
 		<Italian>Quando è selezionato, vengono visualizzati gli edifici che influenzano la situazione sanitaria ([ICON_HEALTHY] e [ICON_UNHEALTHY]) e l'ammontare con cui lo fanno.</Italian>
 		<Spanish>Muestra los edificios que afectan a la cantidad de [ICON_HEALTHY] y [ICON_UNHEALTHY].</Spanish>
 	</TEXT>
@@ -371,24 +372,27 @@
 		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__BUILDINGADDITIONALHAPPINESS_HOVER</Tag>
 		<English>If checked, the hover text of the [ICON_HAPPY] display on the city screen lists all buildings that the city can construct and that will affect [ICON_HAPPY] or [ICON_UNHAPPY].</English>
 		<French>When checked, displays the buildings that will affect the [ICON_HAPPY] and [ICON_UNHAPPY] rates and by how much.</French>
-		<German>Zeigt im Hilfstext der [ICON_HAPPY]-Anzeige (Stadtbildschirm) alle Gebäude an, die die Stadt errichten kann und die Einfluss auf [ICON_HAPPY] und [ICON_UNHAPPY] haben.</German>
+		<German>Zeigt im Hilfetext der [ICON_HAPPY]-Anzeige (Stadtbildschirm) alle Gebäude an, die die Stadt errichten kann und die Einfluss auf [ICON_HAPPY] und [ICON_UNHAPPY] haben.</German>
 		<Italian>Quando è selezionato, vengono visualizzati gli edifici che influenzano il gradimento ([ICON_HAPPY] e [ICON_UNHAPPY]) e l'ammontare con cui lo fanno.</Italian>
 		<Spanish>Muestra los edificios que afectan a la cantidad de [ICON_HAPPY] y [ICON_UNHAPPY].</Spanish>
 	</TEXT>
+	
+	<!-- advc.004: German abbreviated; it's in the widest row.  -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__BUILDINGADDITIONALGREATPEOPLE_TEXT</Tag>
 		<English>Great People</English>
 		<French>Great People</French>
-		<German>Große Persönlichkeiten</German>
+		<German>Große Persönl.</German>
 		<Italian>Grandi Personaggi</Italian>
 		<Spanish>Grandes Personajes</Spanish>
 	</TEXT>
+	
 	<!-- advc.063: English and German rewritten -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__BUILDINGADDITIONALGREATPEOPLE_HOVER</Tag>
-		<English>If checked, the hover text of the [ICON_GREATPEOPLE] display on the city screen lists all buildings that the city can construct and that will affect the [ICON_GREATPEOPLE].</English>
+		<English>If checked, the hover text of the [ICON_GREATPEOPLE] bar on the city screen lists all buildings that the city can construct and that will affect the [ICON_GREATPEOPLE] rate.</English>
 		<French>When checked, displays the buildings that will affect the [ICON_GREATPEOPLE] rate and by how much.</French>
-		<German>Zeigt im Hilfstext der [ICON_GREATPEOPLE]-Anzeige (Stadtbildschirm) alle Gebäude an, die die Stadt errichten kann und die Einfluss auf [ICON_GREATPEOPLE]/Runde haben.</German>
+		<German>Zeigt im Hilfetext des [ICON_GREATPEOPLE]-Balkens (Stadtbildschirm) alle Gebäude an, die die Stadt errichten kann und die Einfluss auf [ICON_GREATPEOPLE]/Runde haben.</German>
 		<Italian>Quando è selezionato, vengono visualizzati gli edifici che influenzano la natalità dei Grandi Personaggi ([ICON_GREATPEOPLE]) e l'ammontare con cui lo fanno.</Italian>
 		<Spanish>Muestra los edificios que afectan a la producción de [ICON_GREATPEOPLE] y en qué medida.</Spanish>
 	</TEXT>
@@ -445,38 +449,92 @@
 		<Spanish>Muestra el límite de unidades que se pueden reclutar este turno y si la ciudad ya ha reclutado este turno en el texto flotante del botón Reclutar.</Spanish>
 	</TEXT>
 
+	<!-- advc.004: German ("Zwangsarbeit-Schaltfläche") was too long -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__HURRYOVERFLOW_TEXT</Tag>
 		<English>Whip Button</English>
 		<French>Whip Button</French>
-		<German>Zwangsarbeit-Schaltfläche</German>
+		<German>Tooltip</German>
 		<Italian>Bottone dei sacrifici</Italian>
 		<Spanish>Sacrificio</Spanish>
 	</TEXT>
+	
+	<!-- advc.064: Explain "whip" button -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__HURRYOVERFLOW_HOVER</Tag>
-		<English>When checked, the Whip Button hover includes the overflow ([ICON_PRODUCTION] and [ICON_GOLD]) created by applying the whip.</English>
+		<English>When checked, the expected [ICON_PRODUCTION] and [ICON_GOLD] overflow is shown in the hover text of the "Whip" button (sacrifice population to hurry city production).</English>
 		<French>When checked, the Whip Button hover includes the overflow ([ICON_PRODUCTION] and [ICON_GOLD]) created by applying the whip.</French>
-		<German>Zeigt im Tooltip der Schaltfläche für den Einsatz von Zwangsarbeit zur Produktionsbeschleunigung den Überschuss an ([ICON_PRODUCTION] und [ICON_GOLD]), der durch deren Einsatz erzeugt wird</German>
+		<German>Zeigt im Tooltip der Schaltfläche für den Einsatz von Zwangsarbeit zur Produktionsbeschleunigung den Überschuss an ([ICON_PRODUCTION] und [ICON_GOLD]), der durch deren Einsatz erzeugt wird.</German>
 		<Italian>Quando è selezionato, il testo a comparsa del Bottone dei Sacrifici mostra il surplus ([ICON_PRODUCTION] e [ICON_GOLD]) generato dall'accelerazione mediante sacrifici.</Italian>
 		<Spanish>El texto flotante del botón de Sacrificio incluye el excedente ([ICON_PRODUCTION] y [ICON_GOLD]) creado al emplearlo.</Spanish>
 	</TEXT>
+	
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__HURRYOVERFLOWINCLUDECURRENT_TEXT</Tag>
 		<English>Include Current</English>
 		<French>Include Current</French>
-		<German>Aktuelle Runde einbeziehen</German>
+		<German>Inkl. Prod./Runde</German>
 		<Italian>Includi corrente</Italian>
 		<Spanish>Incluir Actual</Spanish>
 	</TEXT>
+	<!-- advc.064: Moved from 'BUG City Screen Options.xml'; no change. I don't
+		 think duplicate text can be avoided when two BUG options are supposed to
+		have the same _TEXT or _HOVER. -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_CITYSCREEN__WHIPASSISTOVERFLOWCOUNTCURRENTPRODUCTION_TEXT</Tag>
+		<English>Include Current</English>
+		<French>Include Current</French>
+		<German>Inkl. Prod./Runde</German>
+		<Italian>Includi corrente</Italian>
+		<Spanish>Incluir Actual</Spanish>
+	</TEXT>
+	
+	<!-- advc.064: Made the caveat about lost population clearer. In German, it
+		 was wrong/incomprehensible. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__HURRYOVERFLOWINCLUDECURRENT_HOVER</Tag>
-		<English>When checked, the whip overflow calculation includes the current [ICON_PRODUCTION] rate. Since applying the whip usually affects the rate, the actual overflow may be different.</English>
+		<English>When checked, the whip overflow calculation includes the current [ICON_PRODUCTION] rate. (Since sacrificing population often lowers the [ICON_PRODUCTION] rate, the actual overflow may be lower than predicted.)</English>
 		<French>When checked, the whip overflow calculation includes the current [ICON_PRODUCTION] rate. Since applying the whip usually affects the rate, the actual overflow may be different.</French>
-		<German>Bezieht [ICON_PRODUCTION]/Runde einer Stadt aus der aktuellen Runde in die Berechnung des Produktionsüberschusses ein, da der Einsatz von Zwangsarbeit normalerweise die Rate beeinflusst und damit auch den tatsächlichen Überschuss verändern kann</German>
+		<German>Bezieht [ICON_PRODUCTION]/Runde in die Berechnung des Produktionsüberschusses ein. (Da allerdings der Einsatz von Zwangsarbeit die [ICON_PRODUCTION]/Runde verringern kann, wird der tatsächliche Überschuss häufig vom berechneten abweichen.)</German>
 		<Italian>Quando è selezionato, il calcolo del surplus da sacrifici include il tasso di produzione ([ICON_PRODUCTION]) corrente. Poichè l'accelerazione solitamente influenza tale tasso, il surplus effettivo può differire da quello mostrato.</Italian>
 		<Spanish>Incluye el [ICON_PRODUCTION] actual al calcular excedentes de sacrificio. Como usar sacrificio afecta a la producción, el resultado final puede ser diferente.</Spanish>
 	</TEXT>
+	
+	<!-- advc.064: Moved from 'BUG City Screen Options.xml'. Now says the exact
+		 same thing as HURRYOVERFLOWINCLUDECURRENT above b/c it's the same
+		 functionality (even using the same C++ code now). -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_CITYSCREEN__WHIPASSISTOVERFLOWCOUNTCURRENTPRODUCTION_HOVER</Tag>
+		<English>When checked, the whip overflow calculation includes the current [ICON_PRODUCTION] rate. (Since sacrificing population often lowers the [ICON_PRODUCTION] rate, the actual overflow may be lower than predicted.)</English>
+		<French>When checked, the whip overflow calculation includes the current [ICON_PRODUCTION] rate. Since applying the whip usually affects the rate, the actual overflow may be different.</French>
+		<German>Bezieht [ICON_PRODUCTION]/Runde in die Berechnung des Produktionsüberschusses ein. (Da allerdings der Einsatz von Zwangsarbeit die [ICON_PRODUCTION]/Runde verringern kann, wird der tatsächliche Überschuss häufig vom berechneten abweichen.)</German>
+		<Italian>Quando è selezionato, il calcolo del surplus da sacrifici include il tasso di produzione ([ICON_PRODUCTION]) corrente. Poichè l'accelerazione solitamente influenza tale tasso, il surplus effettivo può differire da quello mostrato.</Italian>
+		<Spanish>Incluye el [ICON_PRODUCTION] actual al calcular excedentes de sacrificio. Como usar sacrificio afecta a la producción, el resultado final puede ser diferente.</Spanish>
+	</TEXT>
+
+	<!-- advc.064: Moved from 'BUG City Screen Options.xml'; German shortened.
+		 -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_CITYSCREEN__WHIPASSIST_TEXT</Tag>
+		<English>Production Bar</English>
+		<French>Production Bar</French>
+		<German>Prod.-Balken</German>
+		<Italian>Barra di Produzione</Italian>
+		<Spanish>Barra de Producción</Spanish>
+	</TEXT>
+	
+	<!-- advc.064: Moved from 'BUG City Screen Options.xml'
+		 and made some changes. [ICON_CITIZEN] apparently can't be used in
+		 help text. -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_CITYSCREEN__WHIPASSIST_HOVER</Tag>
+		<English>When checked, the production bar shows the population loss, [ICON_GOLD] cost and [ICON_PRODUCTION]/[ICON_GOLD] overflow caused by hurrying the city's current production order.</English>
+		<French>When checked, displays the population cost and [ICON_PRODUCTION]/[ICON_GOLD] overflow for whipping and/or the [ICON_GOLD] cost for buying the item being produced in the Production Bar.</French>
+		<German>Zeigt im Produktionsbalken den Bevölkerungsverlust, die [ICON_GOLD]-Kosten und den [ICON_PRODUCTION]/[ICON_GOLD]-Überschuss, die eine Beschleunigung des derzeitigen Produktionsauftrags verursachen würde.</German>
+		<Italian>Quando è selezionato, la Barra della Pruduzione della Schermata Cittadina mostra il costo in popolazione ed il surplus di produzione per l'accelerazione di produzione mediante sacrifici e il costo in oro per l'accelerazione di produzione mediante pagamenti relativi all'oggetto attualmente costruito.</Italian>
+		<Spanish>Si se activa, muestra el coste en población y el excedente de [ICON_PRODUCTION]/[ICON_GOLD] por usar sacrificios y/o el coste en [ICON_GOLD] por comprar la producción mostrada en la barra de producción.</Spanish>
+	</TEXT>
+	
 	
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__REMOVESPECIALIST_TEXT</Tag>

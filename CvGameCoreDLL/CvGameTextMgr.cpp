@@ -518,16 +518,27 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 			szString.append(szTempBuffer);
 		}
 	}
-
-	int iCurrMoves = ((pUnit->movesLeft() / GC.getMOVE_DENOMINATOR()) + (((pUnit->movesLeft() % GC.getMOVE_DENOMINATOR()) > 0) ? 1 : 0));
-	if ((pUnit->baseMoves() == iCurrMoves) || (pUnit->getTeam() != g.getActiveTeam()))
-	{
+	int const iDenom = GC.getMOVE_DENOMINATOR(); // advc.003
+	int iCurrMoves = (pUnit->movesLeft() / iDenom) +
+			(((pUnit->movesLeft() % iDenom) > 0) ? 1 : 0);
+	// <advc.069>
+	bool bFract = getBugOptionBOOL("MainInterface__UnitMovementPointsFraction",
+			true, "MAIN_INTERFACE_UNIT_MOVEMENT_POINTS_FRACTION");
+	if(pUnit->baseMoves() == (bFract ? pUnit->movesLeft() : iCurrMoves)
+			// </advc.069>
+			|| pUnit->getTeam() != g.getActiveTeam())
 		szTempBuffer.Format(L"%d%c", pUnit->baseMoves(), gDLL->getSymbolID(MOVES_CHAR));
+	// advc.069: Display as in BtS (as integer) if non-fractional
+	else if(!bFract || pUnit->movesLeft() == iCurrMoves * iDenom) {
+		szTempBuffer.Format(L"%d/%d%c", iCurrMoves, pUnit->baseMoves(),
+				gDLL->getSymbolID(MOVES_CHAR));
 	}
-	else
-	{
-		szTempBuffer.Format(L"%d/%d%c", iCurrMoves, pUnit->baseMoves(), gDLL->getSymbolID(MOVES_CHAR));
-	}
+	// <advc.069> Akin to BUG code in CvMainInterface.py (Unit Movement Fraction)
+	else {
+		float fCurrMoves = pUnit->movesLeft() / (float)iDenom;
+		szTempBuffer.Format(L"%.1f/%d%c", fCurrMoves, pUnit->baseMoves(),
+				gDLL->getSymbolID(MOVES_CHAR));
+	} // </advc.069>
 	szString.append(szTempBuffer);
 
 	if (pUnit->airRange() > 0)
@@ -603,12 +614,17 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 		szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, GET_PLAYER(pUnit->getOwnerINLINE()).getPlayerTextColorR(), GET_PLAYER(pUnit->getOwnerINLINE()).getPlayerTextColorG(), GET_PLAYER(pUnit->getOwnerINLINE()).getPlayerTextColorB(), GET_PLAYER(pUnit->getOwnerINLINE()).getPlayerTextColorA(), GET_PLAYER(pUnit->getOwnerINLINE()).getName());
 		szString.append(szTempBuffer);
 	}
-
+	bool bFirst = true; // advc.004
 	for (iI = 0; iI < GC.getNumPromotionInfos(); ++iI)
 	{
 		if (pUnit->isHasPromotion((PromotionTypes)iI))
 		{
 			szTempBuffer.Format(L"<img=%S size=16 />", GC.getPromotionInfo((PromotionTypes)iI).getButton());
+			// <advc.004>
+			if(bFirst) {
+				szString.append(' ');
+				bFirst = false;
+			} // </advc.004>
 			szString.append(szTempBuffer);
 		}
 	}
@@ -2415,12 +2431,14 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 		/************************************************************************************************/
 		/* BETTER_BTS_AI_MOD                       END                                                  */
 		/************************************************************************************************/
-		// double space non-empty groups
-		if (pHeadGroup->getNumUnits() > 1 || pHeadUnit->hasCargo())
-		{
+		if(pUnitNode != NULL) { // advc.007: No newlines in the final iteration
+			// double space non-empty groups
+			if (pHeadGroup->getNumUnits() > 1 || pHeadUnit->hasCargo())
+			{
+				szString.append(NEWLINE);
+			}
 			szString.append(NEWLINE);
 		}
-		szString.append(NEWLINE);
 	}
 }
 
@@ -3395,6 +3413,129 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 			szString.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
 			szString.append(")");
 
+			// <advc.048> XP details moved up so that it appears right after the basic XP info above
+			bool bDoRange = ((iView & getBugOptionINT("ACO__ShowExperienceRange", 2, "ACO_SHOW_EXPERIENCE_RANGE"))
+					&& pAttacker->combatLimit() >= pDefender->maxHitPoints()); //medium and high only
+			/*  Had to leave behind the part that shows the combat ratio; don't want
+				that this early. */
+			if(bDoRange) // </advc.048>
+			{
+				//we do an XP range display
+				//This should hopefully now work for any max and min XP values.
+
+				if (pAttacker->combatLimit() == (pDefender->maxHitPoints() ))
+				{
+					FAssert(
+							maxXPAtt // advc.312
+							> GC.getDefineINT("MIN_EXPERIENCE_PER_COMBAT")); //ensuring the differences is at least 1
+					int size = 
+							maxXPAtt // advc.312
+							- GC.getDefineINT("MIN_EXPERIENCE_PER_COMBAT");
+					float* CombatRatioThresholds = new float[size];
+
+					for (int i = 0; i < size; i++) //setup the array
+					{
+						CombatRatioThresholds[i] = ((float)(pDefender->attackXPValue()))/((float)(
+								maxXPAtt // advc.312
+								-i));
+						//For standard game, this is the list created:
+						//  {4/10, 4/9, 4/8,
+						//   4/7, 4/6, 4/5,
+						//   4/4, 4/3, 4/2}
+					}
+					for (int i = size-1; i >= 0; i--) // find which range we are in
+					{
+						//starting at i = 8, going through to i = 0
+						if (CombatRatio>CombatRatioThresholds[i])
+						{
+
+							if (i== (size-1) )//highest XP value already
+							{
+								szString.append(NEWLINE);
+								szTempBuffer.Format(L"(%.2f:%d",
+									CombatRatioThresholds[i],GC.getDefineINT("MIN_EXPERIENCE_PER_COMBAT")+1);
+								szString.append(szTempBuffer.GetCString());
+								szString.append(gDLL->getText("TXT_ACO_XP"));
+								szTempBuffer.Format(L"), (R=" SETCOLR L"%.2f" ENDCOLR
+										L":" SETCOLR L"%d" ENDCOLR, // advc.048
+										TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
+										CombatRatio,
+										TEXT_COLOR("COLOR_POSITIVE_TEXT"), // advc.048
+										iExperience);
+								szString.append(szTempBuffer.GetCString());
+								szString.append(gDLL->getText("TXT_ACO_XP"));
+								szString.append(")");
+							}
+							else // normal situation
+							{
+								szString.append(NEWLINE);
+								szTempBuffer.Format(L"(%.2f:%d",
+									CombatRatioThresholds[i],
+									maxXPAtt // advc.312
+									-i);
+								szString.append(szTempBuffer.GetCString());
+								szString.append(gDLL->getText("TXT_ACO_XP"));
+								szTempBuffer.Format(L"), (R=" SETCOLR L"%.2f" ENDCOLR
+										L":" SETCOLR L"%d" ENDCOLR, // advc.048
+										TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
+										CombatRatio,
+										TEXT_COLOR("COLOR_POSITIVE_TEXT"), // advc.048
+										maxXPAtt // advc.312
+										-(i+1));
+								szString.append(szTempBuffer.GetCString());
+								szString.append(gDLL->getText("TXT_ACO_XP"));
+								szTempBuffer.Format(L"), (>%.2f:%d",
+										CombatRatioThresholds[i+1],
+										maxXPAtt // advc.312
+										-(i+2));
+								szString.append(szTempBuffer.GetCString());
+								szString.append(gDLL->getText("TXT_ACO_XP"));
+								szString.append(")");
+							}
+							break;
+
+						}
+						else//very rare (ratio less than or equal to 0.4)
+						{
+							if (i==0)//maximum XP
+							{
+								szString.append(NEWLINE);
+								szTempBuffer.Format(L"(R=" SETCOLR L"%.2f" ENDCOLR
+										// <advc.048>
+										L":" SETCOLR L"%d" ENDCOLR,
+										/*  Was COLOR_POSITIVE_TEXT; reserve that
+											for the XP. */
+										TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
+										// </advc.048>
+										CombatRatio,
+										TEXT_COLOR("COLOR_POSITIVE_TEXT"), // advc.048
+										maxXPAtt); // advc.312
+								szString.append(szTempBuffer.GetCString());
+
+								szTempBuffer.Format(L"), (>%.2f:%d",
+									CombatRatioThresholds[i],
+									maxXPAtt // advc.312
+									-1);
+								szString.append(szTempBuffer.GetCString());
+								szString.append(gDLL->getText("TXT_ACO_XP"));
+								szString.append(")");
+								break;
+							}//if
+						}// else if
+					}//for
+					delete[] CombatRatioThresholds; // kmodx: memory leak
+					//throw away the array
+				}//if
+			} // else if
+			//Finished Showing XP range display
+			// advc.048: Moved up so that it's shown right after the XP range
+			if (iView & getBugOptionINT("ACO__ShowUnroundedExperience", 0, "ACO_SHOW_UNROUNDED_EXPERIENCE"))
+			{
+				szTempBuffer.Format(L"%.2f", AttXP);
+				szTempBuffer2.Format(L"%.2f", DefXP);
+				szString.append(gDLL->getText("TXT_ACO_UnroundedXP"));
+				szString.append(gDLL->getText("TXT_ACO_VS", szTempBuffer.GetCString(), szTempBuffer2.GetCString()));
+			}
 
 			float HP_percent_cutoff = 0.5f; // Probabilities lower than this (in percent) will not be shown individually for the HP detail section.
 			if (!getBugOptionBOOL("ACO__MergeShortBars", true, "ACO_MERGE_SHORT_BARS"))
@@ -3535,8 +3676,9 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 					combined_HP_sum = 0.0f;//resetting this variable
 					last_combined_HP = 0;
 				}
-				// At the moment I am not allowing the lowest Attacker HP value to be condensed, as it would be confusing if it includes retreat odds
-				// I may include this in the future though, but probably only if retreat odds are zero.
+				/*  At the moment I am not allowing the lowest Attacker HP value to be condensed,
+					as it would be confusing if it includes retreat odds.
+					I may include this in the future though, but probably only if retreat odds are zero. */
 
 				float prob_victory = 100.0f*getCombatOddsSpecific(pAttacker,pDefender,iNeededRoundsDefender-1,iNeededRoundsAttacker);
 				float prob_retreat = 100.0f*RetreatOdds;
@@ -3792,132 +3934,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 			}
 			//END DEFENDER DETAIL HP HERE
 
-			szString.append(NEWLINE);
-
-			if (iView & getBugOptionINT("ACO__ShowBasicInfo", 3, "ACO_SHOW_BASIC_INFO"))
-			{
-				szTempBuffer.Format(SETCOLR L"%d" ENDCOLR L", " SETCOLR L"%d " ENDCOLR,
-					TEXT_COLOR("COLOR_POSITIVE_TEXT"), iDamageToDefender, TEXT_COLOR("COLOR_NEGATIVE_TEXT"), iDamageToAttacker);
-				szString.append(NEWLINE);
-				szString.append(szTempBuffer.GetCString());
-				szString.append(gDLL->getText("TXT_ACO_HP"));
-				szString.append(" ");
-				szString.append(gDLL->getText("TXT_ACO_MULTIPLY"));
-				szTempBuffer.Format(L" " SETCOLR L"%d" ENDCOLR L", " SETCOLR L"%d " ENDCOLR,
-					TEXT_COLOR("COLOR_POSITIVE_TEXT"),iNeededRoundsAttacker,TEXT_COLOR("COLOR_NEGATIVE_TEXT"),
-					iNeededRoundsDefender);
-				szString.append(szTempBuffer.GetCString());
-				szString.append(gDLL->getText("TXT_ACO_HitsAt"));
-				szTempBuffer.Format(SETCOLR L" %.1f%%" ENDCOLR,
-					TEXT_COLOR("COLOR_POSITIVE_TEXT"),float(iAttackerOdds)*100.0f / float(GC.getDefineINT("COMBAT_DIE_SIDES")));
-				szString.append(szTempBuffer.GetCString());
-			}
-			if (!(iView & getBugOptionINT("ACO__ShowExperienceRange", 2, "ACO_SHOW_EXPERIENCE_RANGE")) || (pAttacker->combatLimit() < (pDefender->maxHitPoints() ))) //medium and high only
-			{
-				if (iView & getBugOptionINT("ACO__ShowBasicInfo", 3, "ACO_SHOW_BASIC_INFO"))
-				{
-					szTempBuffer.Format(L". R=" SETCOLR L"%.2f" ENDCOLR,
-						TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),CombatRatio);
-					szString.append(szTempBuffer.GetCString());
-				}
-			}
-			else
-			{
-				//we do an XP range display
-				//This should hopefully now work for any max and min XP values.
-
-				if (pAttacker->combatLimit() == (pDefender->maxHitPoints() ))
-				{
-					FAssert(
-							maxXPAtt // advc.312
-							> GC.getDefineINT("MIN_EXPERIENCE_PER_COMBAT")); //ensuring the differences is at least 1
-					int size = 
-							maxXPAtt // advc.312
-							- GC.getDefineINT("MIN_EXPERIENCE_PER_COMBAT");
-					float* CombatRatioThresholds = new float[size];
-
-					for (int i = 0; i < size; i++) //setup the array
-					{
-						CombatRatioThresholds[i] = ((float)(pDefender->attackXPValue()))/((float)(
-								maxXPAtt // advc.312
-								-i));
-						//For standard game, this is the list created:
-						//  {4/10, 4/9, 4/8,
-						//   4/7, 4/6, 4/5,
-						//   4/4, 4/3, 4/2}
-					}
-					for (int i = size-1; i >= 0; i--) // find which range we are in
-					{
-						//starting at i = 8, going through to i = 0
-						if (CombatRatio>CombatRatioThresholds[i])
-						{
-
-							if (i== (size-1) )//highest XP value already
-							{
-								szString.append(NEWLINE);
-								szTempBuffer.Format(L"(%.2f:%d",
-									CombatRatioThresholds[i],GC.getDefineINT("MIN_EXPERIENCE_PER_COMBAT")+1);
-								szString.append(szTempBuffer.GetCString());
-								szString.append(gDLL->getText("TXT_ACO_XP"));
-								szTempBuffer.Format(L"), (R=" SETCOLR L"%.2f" ENDCOLR L":%d", TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),CombatRatio,iExperience);
-								szString.append(szTempBuffer.GetCString());
-								szString.append(gDLL->getText("TXT_ACO_XP"));
-								szString.append(")");
-							}
-							else // normal situation
-							{
-								szString.append(NEWLINE);
-								szTempBuffer.Format(L"(%.2f:%d",
-									CombatRatioThresholds[i],
-									maxXPAtt // advc.312
-									-i);
-								szString.append(szTempBuffer.GetCString());
-								szString.append(gDLL->getText("TXT_ACO_XP"));
-								szTempBuffer.Format(L"), (R=" SETCOLR L"%.2f" ENDCOLR L":%d",
-									TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),CombatRatio,
-									maxXPAtt // advc.312
-									-(i+1));
-								szString.append(szTempBuffer.GetCString());
-								szString.append(gDLL->getText("TXT_ACO_XP"));
-								szTempBuffer.Format(L"), (>%.2f:%d",
-									CombatRatioThresholds[i+1],
-									maxXPAtt // advc.312
-									-(i+2));
-								szString.append(szTempBuffer.GetCString());
-								szString.append(gDLL->getText("TXT_ACO_XP"));
-								szString.append(")");
-							}
-							break;
-
-						}
-						else//very rare (ratio less than or equal to 0.4)
-						{
-							if (i==0)//maximum XP
-							{
-								szString.append(NEWLINE);
-								szTempBuffer.Format(L"(R=" SETCOLR L"%.2f" ENDCOLR L":%d",
-									TEXT_COLOR("COLOR_POSITIVE_TEXT"),CombatRatio,
-									maxXPAtt); // advc.312
-								szString.append(szTempBuffer.GetCString());
-
-								szTempBuffer.Format(L"), (>%.2f:%d",
-									CombatRatioThresholds[i],
-									maxXPAtt // advc.312
-									-1);
-								szString.append(szTempBuffer.GetCString());
-								szString.append(gDLL->getText("TXT_ACO_XP"));
-								szString.append(")");
-								break;
-							}//if
-						}// else if
-					}//for
-					delete[] CombatRatioThresholds; // kmodx: memory leak
-					//throw away the array
-				}//if
-			} // else if
-			//Finished Showing XP range display
-
-
+			// advc.048: Avg. health and unharmed odds move up; placed right after bar diagrams.
 			if (iView & getBugOptionINT("ACO__ShowAverageHealth", 2, "ACO_SHOW_AVERAGE_HEALTH"))
 			{
 				szTempBuffer.Format(L"%.1f",E_HP_Att);
@@ -3925,7 +3942,6 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 				szString.append(gDLL->getText("TXT_ACO_AverageHP"));
 				szString.append(gDLL->getText("TXT_ACO_VS", szTempBuffer.GetCString(), szTempBuffer2.GetCString()));
 			}
-
 			if (iView & getBugOptionINT("ACO__ShowUnharmedOdds", 2, "ACO_SHOW_UNHARMED_ODDS"))
 			{
 				szTempBuffer.Format(L"%.2f%%",100.0f*AttackerUnharmed);
@@ -3934,15 +3950,40 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 				szString.append(gDLL->getText("TXT_ACO_VS", szTempBuffer.GetCString(), szTempBuffer2.GetCString()));
 			}
 
-			if (iView & getBugOptionINT("ACO__ShowUnroundedExperience", 0, "ACO_SHOW_UNROUNDED_EXPERIENCE"))
-			{
-				szTempBuffer.Format(L"%.2f", AttXP);
-				szTempBuffer2.Format(L"%.2f", DefXP);
-				szString.append(gDLL->getText("TXT_ACO_UnroundedXP"));
-				szString.append(gDLL->getText("TXT_ACO_VS", szTempBuffer.GetCString(), szTempBuffer2.GetCString()));
+			if (iView & getBugOptionINT("ACO__ShowBasicInfo", 3, "ACO_SHOW_BASIC_INFO"))
+			{	// advc.048: Opening parenthesis added
+				szTempBuffer.Format(L"(" SETCOLR L"%d" ENDCOLR L", " SETCOLR L"%d " ENDCOLR,
+					TEXT_COLOR("COLOR_POSITIVE_TEXT"), iDamageToDefender, TEXT_COLOR("COLOR_NEGATIVE_TEXT"), iDamageToAttacker);
+				szString.append(NEWLINE);
+				szString.append(szTempBuffer.GetCString());
+				szString.append(gDLL->getText("TXT_ACO_HP"));
+				szString.append(") "); // advc.048: Closing parenthesis added
+				szString.append(gDLL->getText("TXT_ACO_MULTIPLY"));
+				// advc.048: Opening parenthesis added
+				szTempBuffer.Format(L" (" SETCOLR L"%d" ENDCOLR L", " SETCOLR L"%d " ENDCOLR,
+					TEXT_COLOR("COLOR_POSITIVE_TEXT"),iNeededRoundsAttacker,TEXT_COLOR("COLOR_NEGATIVE_TEXT"),
+					iNeededRoundsDefender);
+				szString.append(szTempBuffer.GetCString());
+				szString.append(gDLL->getText("TXT_ACO_HitsAt"));
+				// advc.048: Closing parenthesis added
+				szTempBuffer.Format(L")" SETCOLR L" %.1f%%" ENDCOLR,
+					TEXT_COLOR("COLOR_POSITIVE_TEXT"),float(iAttackerOdds)*100.0f / float(GC.getDefineINT("COMBAT_DIE_SIDES")));
+				szString.append(szTempBuffer.GetCString());
 			}
-
+			/*  advc.048: The else branch of this conditional contained the XP range code,
+				which has moved (way) up. */
+			if(!bDoRange)
+			{
+				if (iView & getBugOptionINT("ACO__ShowBasicInfo", 3, "ACO_SHOW_BASIC_INFO"))
+				{	// advc.048: Semicolon instead of period
+					szTempBuffer.Format(L"; R=" SETCOLR L"%.2f" ENDCOLR,
+						TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),CombatRatio);
+					szString.append(szTempBuffer.GetCString());
+				}
+			}
+			// (advc.048: XP info, avg. health and unharmed odds moved up)
 			szString.append(NEWLINE);
+
 			if (iView & getBugOptionINT("ACO__ShowShiftInstructions", 1, "ACO_SHOW_SHIFT_INSTRUCTIONS"))
 			{
 				szString.append(gDLL->getText("TXT_ACO_PressSHIFT"));
@@ -3985,6 +4026,12 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 		}
 
 		szString.append(gDLL->getText("TXT_ACO_VS", szTempBuffer.GetCString(), szTempBuffer2.GetCString()));
+		// advc.048: Moved attacker info above the modifier label
+		if ((iView & getBugOptionINT("ACO__ShowAttackerInfo", 0, "ACO_SHOW_ATTACKER_INFO")))
+		{
+			szString.append(NEWLINE);
+			setUnitHelp(szString, pAttacker, true, true);
+		}
 
 		if (((!(pDefender->immuneToFirstStrikes())) && (pAttacker->maxFirstStrikes() > 0)) || (pAttacker->maxCombatStr(NULL,NULL)!=pAttacker->baseCombatStr()*100))
 		{
@@ -3993,13 +4040,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 			{
 				szString.append(gDLL->getText("TXT_ACO_AttackModifiers"));
 			}
-		}//if
-		if ((iView & getBugOptionINT("ACO__ShowAttackerInfo", 0, "ACO_SHOW_ATTACKER_INFO")))
-		{
-			szString.append(NEWLINE);
-			setUnitHelp(szString, pAttacker, true, true);
 		}
-
 
 
 		szString.append(gDLL->getText("TXT_KEY_COLOR_POSITIVE"));
@@ -4044,6 +4085,13 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 
 		szString.append(L' ');//XXX
 
+		// advc.048: Moved defender info above the modifier label
+		if (iView & getBugOptionINT("ACO__ShowDefenderInfo", 3, "ACO_SHOW_DEFENDER_INFO"))
+		{
+			szString.append(NEWLINE);
+			setUnitHelp(szString, pDefender, true, true);
+		}
+
 		if (((!(pAttacker->immuneToFirstStrikes())) && (pDefender->maxFirstStrikes() > 0)) || (pDefender->maxCombatStr(pPlot,pAttacker)!=pDefender->baseCombatStr()*100))
 		{
 			//if attacker uninjured strength is not the same as base strength (i.e. modifiers are in effect) or first strikes exist, then
@@ -4051,11 +4099,6 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 			{
 				szString.append(gDLL->getText("TXT_ACO_DefenseModifiers"));
 			}
-		}//if
-		if (iView & getBugOptionINT("ACO__ShowDefenderInfo", 3, "ACO_SHOW_DEFENDER_INFO"))
-		{
-			szString.append(NEWLINE);
-			setUnitHelp(szString, pDefender, true, true);
 		}
 
 
@@ -16763,10 +16806,10 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity& city, Com
 	}
 
 // BUG - Base Commerce - start
-		if (bNeedSubtotal && city.getCommerceRateModifier(eCommerceType) != 0 &&
-				(getBugOptionBOOL("MiscHover__BaseCommerce", false,
-				"BUG_CITY_SCREEN_BASE_COMMERCE_HOVER")
-				|| GC.altKey())) // advc.063
+		if (bNeedSubtotal && city.getCommerceRateModifier(eCommerceType) != 0
+				// advc.065: No longer optional
+				/*&& getBugOptionBOOL("MiscHover__BaseCommerce", false,
+				"BUG_CITY_SCREEN_BASE_COMMERCE_HOVER")*/)
 		{
 			CvWString szYield = CvWString::format(L"%d.%02d", iBaseCommerceRate/100, iBaseCommerceRate%100);
 			szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_COMMERCE_SUBTOTAL_YIELD_FLOAT", info.getTextKeyWide(), szYield.GetCString(), info.getChar()));
@@ -17147,8 +17190,11 @@ void CvGameTextMgr::parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity& city
 	}
 
 	int iTotalGreatPeopleUnitProgress = 0;
-	for (int iI = 0; iI < GC.getNumUnitInfos(); iI++)
-		iTotalGreatPeopleUnitProgress += city.getGreatPeopleUnitProgress((UnitTypes)iI);
+	for (int iI = 0; iI < GC.getNumUnitInfos(); iI++) {
+		UnitTypes eGPType = (UnitTypes)iI; // advc.003
+		iTotalGreatPeopleUnitProgress += city.getGreatPeopleUnitProgress(eGPType);
+		iTotalGreatPeopleUnitProgress += city.getGreatPeopleUnitRate(eGPType); // advc.001c
+	}
 
 	if (iTotalGreatPeopleUnitProgress > 0)
 	{
@@ -17159,7 +17205,7 @@ void CvGameTextMgr::parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity& city
 		std::vector<std::pair<UnitTypes,int> > aUnitProgress;
 		// advc.001c: BtS code moved into CvCity::GPProjection
 		city.GPProjection(aUnitProgress);
-		for(int iI = 0; iI < (int)aUnitProgress.size(); ++iI) {
+		for(int iI = 0; iI < (int)aUnitProgress.size(); iI++) {
 			szBuffer.append(CvWString::format(L"%s%s - %d%%", NEWLINE,
 					GC.getUnitInfo(aUnitProgress[iI].first).getDescription(),
 					aUnitProgress[iI].second));

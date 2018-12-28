@@ -26,32 +26,44 @@ class BugAdvisorOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addTextDropdown(screen, leftL, leftR, "CustDomAdv__SpaceSides", True)
 		self.addTextDropdown(screen, leftL, leftR, "CustDomAdv__ProductionGrouping", True)
 		#self.addCheckbox(screen, left, "MiscHover__CDAZoomCityDetails")
-
 		#self.addLabel(screen, left, "Finance_Advisor", "Finance [F2]:")
 		#self.addCheckbox(screen, left, "Advisors__BugFinanceAdvisor")
+		
+		# advc.004: Can afford some space
+		self.addSpacer(screen, left, "Before_Foreign_Advisor")
 
 		self.addLabel(screen, left, "Foreign_Advisor", "Foreign [F4]:")
+		
+		# advc.004: Moved up:
+		self.addCheckbox(screen, left, "Advisors__EFADealTurnsLeft")
+		
+		self.addCheckbox(screen, left, "Advisors__EFAImprovedInfo")
+		#self.addCheckbox(screen, left, "MiscHover__TechTradeDenial")
+		#self.addCheckbox(screen, left, "MiscHover__BonusTradeDenial")
+
+		# advc.152: Moved down to allow the War Trades option to be placed between the Glance Tab option and the Military Advisor options
 		comboBox = "Advisors_ComboBoxEFA"
 		screen.attachHBox(left, comboBox)
 		self.addCheckbox(screen, comboBox, "Advisors__EFAGlanceTab")
 		self.addTextDropdown(screen, None, comboBox, "Advisors__EFAGlanceAttitudes")
 		# advc.152:
-		self.addCheckbox(screen, left, "Advisors__EFAWarTrades")
-		self.addCheckbox(screen, left, "Advisors__EFAImprovedInfo")
-		self.addCheckbox(screen, left, "Advisors__EFADealTurnsLeft")
-		#self.addCheckbox(screen, left, "MiscHover__TechTradeDenial")
-		#self.addCheckbox(screen, left, "MiscHover__BonusTradeDenial")
-
-		self.addLabel(screen, left, "Military_Advisor", "Military [F5]:")
-		self.addCheckbox(screen, left, "Advisors__BugMA")
-
+		self.addCheckbox(screen,left, "Advisors__EFAWarTrades")
+		
+		# <advc.004> Moved to center column
+		self.addLabel(screen, center, "Military_Advisor", "Military [F5]:")
+		self.addCheckbox(screen, center, "Advisors__BugMA")
+		self.addSpacer(screen, center, "Before_Technology_Advisor")
+		# </advc.004>
 
 		self.addLabel(screen, center, "Technology_Advisor", "Technology [F6]:")
 		self.addCheckbox(screen, center, "Advisors__GPTechPrefs")
 		#self.addCheckbox(screen, center, "MiscHover__SpedUpTechs")
-		self.addCheckbox(screen, center, "Advisors__WideTechScreen")
+		# advc.004: No longer optional
+		#self.addCheckbox(screen, center, "Advisors__WideTechScreen")
 		self.addCheckbox(screen, center, "Advisors__ShowTechEra")
 
+		self.addSpacer(screen, center, "Before_Religious_Advisor") # advc.004
+		
 		self.addLabel(screen, center, "Religious_Advisor", "Religion [F7]:")
 		self.addCheckbox(screen, center, "Advisors__BugReligiousTab")
 		self.addTextDropdown(screen, center, center, "Advisors__ShowReligions", True)
@@ -62,13 +74,18 @@ class BugAdvisorOptionsTab(BugOptionsTab.BugOptionsTab):
 
 		# K-Mod, info stuff moved from center panel to right
 		self.addLabel(screen, right, "Info_Screens", "Info [F9]:")
-		self.addCheckbox(screen, right, "Advisors__BugGraphsTab")
-		self.addCheckbox(screen, right, "Advisors__BugGraphsLogScale")
-		self.addCheckbox(screen, right, "Advisors__BugStatsTab")
-		self.addCheckbox(screen, right, "Advisors__NonZeroStatsOnly") # K-Mod
+		# <advc.004> Moved up b/c the sub-option looked strange at the end of the block
 		self.addCheckbox(screen, right, "Advisors__BugInfoWonders")
 		self.addCheckbox(screen, right, "Advisors__BugInfoWondersPlayerColor", True)
+		# </advc.004>
+		# advc.004: Put this one before GraphsTab to make clear that GraphsTab isn't a prereq
+		self.addCheckbox(screen, right, "Advisors__BugGraphsLogScale")
+		self.addCheckbox(screen, right, "Advisors__BugGraphsTab")
+		self.addCheckbox(screen, right, "Advisors__BugStatsTab")
+		# advc.004: No longer optional
+		#self.addCheckbox(screen, right, "Advisors__NonZeroStatsOnly") # K-Mod
 
+		self.addSpacer(screen, right, "Before_Sevopedia") # advc.004
 
 		self.addLabel(screen, right, "Sevopedia", "Sevopedia [F12]:")
 		self.addCheckbox(screen, right, "Advisors__Sevopedia")

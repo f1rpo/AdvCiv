@@ -454,6 +454,12 @@ CvPlayerOptionInfo* CyGlobalContext::getPlayerOptionsInfoByIndex(int i) const
 	return &GC.getPlayerOptionInfo((PlayerOptionTypes) i);
 }
 
+// <advc.003>
+bool CyGlobalContext::IsGraphicsInitialized() const {
+
+	return GC.IsGraphicsInitialized();
+} // </advc.003>
+
 
 CvGraphicOptionInfo* CyGlobalContext::getGraphicOptionsInfoByIndex(int i) const
 {

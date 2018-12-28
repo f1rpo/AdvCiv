@@ -22,8 +22,9 @@
 			<bNoAnimals>0</bNoAnimals>
 			<bNoBarbUnits>0</bNoBarbUnits>
 			<bNoBarbCities>0</bNoBarbCities>
-			<!-- advc.250c: was 600; increased because of increased costs -->
-			<iAdvancedStartPoints>800</iAdvancedStartPoints>
+			<!-- advc.250c: was 600; decreased despite increased start point
+				 costs b/c I want this default for SPaH (advc.250b). -->
+			<iAdvancedStartPoints>400</iAdvancedStartPoints>
 			<iStartingUnitMultiplier>1</iStartingUnitMultiplier>
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
 			<iStartingWorkerUnits>0</iStartingWorkerUnits>

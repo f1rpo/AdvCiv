@@ -37,7 +37,8 @@ class BugAlertsOptionsTab(BugOptionsTab.BugOptionsTab):
 		#self.addCheckbox(screen, leftL, "Civ4lerts__CityPendingOccupation")
 		#self.addCheckbox(screen, leftR, "Civ4lerts__CityOccupation")
 		self.addCheckbox(screen, left, "Civ4lerts__Revolt")	# </advc.210b>
-		self.addCheckbox(screen, left, "MoreCiv4lerts__CityPendingBorderExpansion")
+		# advc.210: Disabled
+		#self.addCheckbox(screen, left, "MoreCiv4lerts__CityPendingBorderExpansion")
 		self.addCheckbox(screen, left, "Civ4lerts__CityCanHurryPop")
 		self.addCheckbox(screen, left, "Civ4lerts__CityCanHurryGold")
 		# advc.210c: Disabled
@@ -51,7 +52,8 @@ class BugAlertsOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addCheckbox(screen, center, "MoreCiv4lerts__DefensivePactTrade")
 		self.addCheckbox(screen, center, "MoreCiv4lerts__PermanentAllianceTrade")
 		self.addCheckbox(screen, center, "MoreCiv4lerts__VassalTrade")
-		self.addCheckbox(screen, center, "MoreCiv4lerts__PeaceTrade")
+		# advc.210: Disabled; use the RTT alert instead.
+		#self.addCheckbox(screen, center, "MoreCiv4lerts__PeaceTrade")
 		self.addCheckbox(screen, center, "MoreCiv4lerts__SurrenderTrade")
 		
 		# Trades
@@ -80,6 +82,6 @@ class BugAlertsOptionsTab(BugOptionsTab.BugOptionsTab):
 		
 		# Reminders
 		left, right = self.addTwoColumnLayout(screen, column, "Main")
-		self.addCheckbox(screen, left, "Reminder__Enabled")
+		# advc.210: Put the "enabled" checkbox and the display method dropdown on the same line
+		self.addCheckboxTextDropdown(screen, left, left, "Reminder__Enabled", "Reminder__DisplayMethod")
 		self.addCheckbox(screen, left, "Reminder__Autolog")
-		self.addTextDropdown(screen, left, left, "Reminder__DisplayMethod")

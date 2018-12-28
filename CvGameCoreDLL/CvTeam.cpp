@@ -1973,7 +1973,9 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 			GET_PLAYER(i).AI_updateAttitudeCache();
 	}*/ // K-Mod end
 	// dlph.26: The above is "updated when the war queue is emptied."
-	triggerWars();
+	/*  advc (bugfix): But not unless this function communicates to tiggerWars that
+		a (primary) DoW has already occurred. */
+	triggerWars(true);
 }
 
 
@@ -5460,7 +5462,7 @@ void CvTeam::queueWar(TeamTypes eAttackingTeam, TeamTypes eDefendingTeam,
 	primarydow_queue.push(bPrimaryDOW);
 }
 
-void CvTeam::triggerWars() {
+void CvTeam::triggerWars(bool bForceUpdateAttitude) {
 
 	bool bWarsDeclared = false;
 	if(bTriggeringWars)
@@ -5477,7 +5479,9 @@ void CvTeam::triggerWars() {
 		primarydow_queue.pop();
 		bWarsDeclared = true;
 	}
-	if(bWarsDeclared) { // Cut and pasted from declareWar (K-Mod code)
+	if(bWarsDeclared
+			|| bForceUpdateAttitude) { // advc
+		// Cut and pasted from declareWar (K-Mod code)
 		for(PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
 			GET_PLAYER(i).AI_updateAttitudeCache();
 	}

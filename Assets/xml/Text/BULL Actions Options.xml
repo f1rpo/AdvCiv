@@ -6,7 +6,11 @@
 	Copyright (c) 2009 The BUG Mod.
 -->
 <Civ4GameText xmlns="http://www.firaxis.com">
-	
+
+<!-- advc.004 (note): None of these options are currently shown, and I don't
+	 think AdvCiv is going to restore them, as they solve problems that the mod
+	 addresses differently. -->
+
 <!-- Ask Declare War -->
 	
 	<TEXT>

@@ -2828,15 +2828,15 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 
 		if (!bAttack)
 		{
-			if (pPlot->getBonusType() != NO_BONUS)
-			{
+			if(pPlot->getBonusType() != NO_BONUS
+					// advc.309:
+					&& GC.getBonusInfo(pPlot->getBonusType()).getTechReveal() == NO_TECH)
 				return false;
-			}
 
-			if (pPlot->getImprovementType() != NO_IMPROVEMENT)
-			{
+			if(pPlot->getImprovementType() != NO_IMPROVEMENT
+					// advc.309:
+					&& GC.getImprovementInfo(pPlot->getImprovementType()).isGoody())
 				return false;
-			}
 
 			if (pPlot->getNumUnits() > 0)
 			{

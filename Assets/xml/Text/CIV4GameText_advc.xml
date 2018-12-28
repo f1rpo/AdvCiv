@@ -790,6 +790,36 @@
 		<Spanish>Cada %s2_UnitClassName en juego aumenta el coste en un %d1%%</Spanish>
 	</TEXT>
 	
+	<!-- advc.004g: Originally in CIV4GameText_Misc1.xml. German translation
+		 was wrong ("Zeile"). -->
+	<TEXT>
+		<Tag>TXT_KEY_GLOBELAYER_STRATEGY_NEW_LINE</Tag>
+		<English>New line</English>
+		<French>Nouvelle ligne</French>
+		<German>Neue Linie</German>
+		<Italian>Nuova linea</Italian>
+		<Spanish>Nueva l&#237;nea</Spanish>
+	</TEXT>
+	
+	<!-- advc.004: German translation - "Neuer Random Seed" was just too
+		 awful. Originally in CIV4GameText_Misc1.xml. -->
+	<TEXT>
+		<Tag>TXT_KEY_GAME_OPTION_NEW_RANDOM_SEED_HELP</Tag>
+		<English>A new random seed is generated every time a savegame is loaded - which, for example, will lead to different combat results</English>
+		<French>Un nouveau classement al&#233;atoire est g&#233;n&#233;r&#233; chaque fois que le jeu est recharg&#233;, ce qui peut entra&#238;ner diff&#233;rents r&#233;sultats de combat, par exemple.</French>
+		<German>Beim Laden eines Spielstandes wird ein neuer Startwert für den Zufallszahlengenerator erzeugt, was zum Beispiel zu unterschiedlichen Kampfausg&#228;ngen f&#252;hren kann.</German>
+		<Italian>Ogni volta che ricaricherai il gioco verr&#224; generata una nuova estrazione casuale, portando, per esempio, a diversi risultati di combattimento.</Italian>
+		<Spanish>En cada partida se genera una nueva "seed" al azar que, por ejemplo, arrojar&#225; resultados diferentes en el combate.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GAME_OPTION_NEW_RANDOM_SEED</Tag>
+		<English>New Random Seed on Reload</English>
+		<French>Nouveau classement al&#233;atoire au rechargement</French>
+		<German>Neue Zufallszahlen bei erneutem Laden</German>
+		<Italian>Nuova estrazione casuale per ricarica</Italian>
+		<Spanish>Nueva "seed" aleatoria al volver a cargar</Spanish>
+	</TEXT>
+	
 	<!-- advc.137: Originally in Civ4GameText_Help.xml. Changed only English and
 		 German. -->
 	<TEXT>
@@ -2564,7 +2594,7 @@
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__WARTRADE_HOVER</Tag>
 		<English>Displays an alert whenever an AI leader becomes willing to start a war at your request.</English>
 		<French>Affiche une alerte lorsqu'un chef d'IA devient prêt à déclencher une guerre à votre demande.</French>
-		<German>Mitteilung, wenn ein KI-Gegner bereit ist, einem anderen Gegner auf Ihren Wunsch den Krieg zu erklären.</German>
+		<German>Meldet, wenn ein KI-Gegner bereit ist, einem anderen Gegner auf Ihren Wunsch den Krieg zu erklären.</German>
 		<Italian>Visualizza un avviso ogni volta che un comandante AI diventa disposto a iniziare una guerra su sua richiesta.</Italian>
 		<Spanish>Muestra una alerta cada vez que un líder de IA se convierte dispuesto a iniciar una guerra a petición suya.</Spanish>
 	</TEXT>
@@ -2608,7 +2638,7 @@
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__REVOLT_HOVER</Tag>
 		<English>Displays an alert when a city can revolt, and when occupation ends after a revolt or after conquest.</English>
 		<French>Affiche une alerte quand une ville peut se révolter, et quand l'occupation se termine après une révolte ou après une conquête.</French>
-		<German>Mitteilung, wenn eine Revolte droht oder wenn nach einer Revolte oder bei Besatzung die Ruhe wiederhergestellt wurde.</German>
+		<German>Meldet, wenn eine Revolte droht oder wenn nach einer Revolte oder bei Besatzung die Ruhe wiederhergestellt wurde.</German>
 		<Italian>Visualizza un avviso quando una città può sollevarsi e quando l'occupazione termina dopo una rivolta o dopo la conquista.</Italian>
 		<Spanish>Muestra una alerta cuando una ciudad puede rebelarse, y cuando la ocupación termina después de una revuelta o después de la conquista.</Spanish>
 	</TEXT>
@@ -2730,7 +2760,7 @@
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__BONUSTHIRDPARTIES_HOVER</Tag>
 		<English>Displays an alert when rivals start or stop trading resources. No alert when two rivals that had already been trading resources agree on an additional trade unless it involves a strategic resource.</English>
 		<French>Affiche une alerte lorsqu'un concurrent commence ou arrête d'exporter une ressource vers un autre concurrent.</French>
-		<German>Mitteilung, wenn ein Gegner beginnt oder aufhört, einem anderen Gegner Ressourcen zu liefern. Keine Mitteilung wenn lediglich ein weiterer Handel dazukommt, außer bei strategischen Ressourcen.</German>
+		<German>Meldet, wenn ein Gegner beginnt oder aufhört, einem anderen Gegner Ressourcen zu liefern. Keine Meldung wenn lediglich ein weiterer Handel dazukommt, außer bei strategischen Ressourcen.</German>
 		<Italian>Visualizza un avviso quando un concorrente inizia o interrompe l'esportazione di risorse verso un altro rivale. Nessun avviso se si tratta soltanto di un scambio ulteriore, ad eccezione delle risorse strategiche.</Italian>
 		<Spanish>Muestra una alerta cuando un rival comienza o deja de exportar un recurso a otro rival. No hay alerta si solo se trata de un intercambio adicional, con la excepción de los recursos estratégicos.</Spanish>
 	</TEXT>
@@ -3911,6 +3941,16 @@
 		<Italian>%d1_Date d.C.</Italian>
 		<Spanish>%d1_Date d. C.</Spanish>
 	</TEXT>
+	<!-- advc.002k: Only removed a colon here. German should keep it, not sure
+		 about the other languages. -->
+	<TEXT>
+		<Tag>TXT_KEY_TIME_TURN</Tag>
+		<English>Turn %d1_TurnNum</English>
+		<French>Tour : %d1_TurnNum</French>
+		<German>Runde: %d1_TurnNum</German>
+		<Italian>Turno: %d1_TurnNum</Italian>
+		<Spanish>Turno: %d1_TurnNum</Spanish>
+	</TEXT>
 
 	<!-- advc.004y: Originally in CIV4GameTextInfos.xml. Only removed the
 		 parentheses and "Total"; more comprehensible this way. -->
@@ -4339,6 +4379,27 @@
 		<German>verfällt</German>
 		<Italian>decadente</Italian>
 		<Spanish>en decadencia</Spanish>
+	</TEXT>
+
+	<!-- advc.065: Removed parentheses b/c these should be reserved for
+		 turns remaining -->
+	<!-- Originally in CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>INTERFACE_CITY_COMMERCE_RATE</Tag>
+		<English>%F1: %s2 %D3/Turn</English>
+		<French>%F1 : %s2 %D3/tour</French>
+		<German>%F1: %s2 %D3/Runde</German>
+		<Italian>%F1: %s2 %D3/turno</Italian>
+		<Spanish>%F1: %s2 %D3/turno</Spanish>
+	</TEXT>
+	<!-- Originally in CIV4GameText_Warlords.xml -->
+	<TEXT>
+		<Tag>INTERFACE_CITY_COMMERCE_RATE_FLOAT</Tag>
+		<English>%F1: %s2 %s3/Turn</English>
+		<French>%F1 : %s2 %s3/tour</French>
+		<German>%F1: %s2 %s3/Runde</German>
+		<Italian>%F1: %s2 %s3/turno</Italian>
+		<Spanish>%F1: %s2 %s3/turno</Spanish>
 	</TEXT>
 	
 </Civ4GameText>

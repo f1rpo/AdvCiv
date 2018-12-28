@@ -5465,16 +5465,16 @@ DenialTypes CvPlayer::getTradeDenial(PlayerTypes eWhoTo, TradeData item) const
 bool CvPlayer::canTradeNetworkWith(PlayerTypes ePlayer) const
 {
 	// <advc.124>
-	CvCity* ourCap = getCapitalCity();
-	CvPlayer const& they = GET_PLAYER(ePlayer);
-	CvCity* theirCap = they.getCapitalCity();
-	if(ourCap != NULL && theirCap != NULL) {
-		int dummy;
-		for(CvCity* c = they.firstCity(&dummy); c != NULL; c = they.nextCity(&dummy))
-			if(ourCap->isConnectedTo(c) && c->isConnectedToCapital(ePlayer))
+	PROFILE_FUNC();
+	CvCity* pOurCap = getCapitalCity();
+	CvPlayer const& kThey = GET_PLAYER(ePlayer);
+	CvCity* pTheirCap = kThey.getCapitalCity();
+	if(pOurCap != NULL && pTheirCap != NULL) { int foo;
+		for(CvCity* c = kThey.firstCity(&foo); c != NULL; c = kThey.nextCity(&foo))
+			if(pOurCap->isConnectedTo(c) && c->isConnectedToCapital(ePlayer))
 				return true;
-		for(CvCity* c = firstCity(&dummy); c != NULL; c = nextCity(&dummy))
-			if(theirCap->isConnectedTo(c) && c->isConnectedToCapital(getID()))
+		for(CvCity* c = firstCity(&foo); c != NULL; c = nextCity(&foo))
+			if(pTheirCap->isConnectedTo(c) && c->isConnectedToCapital(getID()))
 				return true;
 		// Replaced BtS code:
 		/*if (pOurCapitalCity->isConnectedToCapital(ePlayer))
@@ -15220,7 +15220,7 @@ void CvPlayer::doResearch()
 				chooseTech();
 			}
 			// advc.124g: Commented out
-			//if (GC.getGameINLINE().getElapsedGameTurns() > 0)
+			//if (GC.getGameINLINE().getElapsedGameTurns() > 4)
 			{
 				AI_chooseResearch();
 
@@ -15238,8 +15238,10 @@ void CvPlayer::doResearch()
 		{
 			int iOverflowResearch = (getOverflowResearch() * calculateResearchModifier(eCurrentTech)) / 100;
 			setOverflowResearch(0);
-			//GET_TEAM(getTeam()).changeResearchProgress(eCurrentTech, (calculateResearchRate() + iOverflowResearch), getID());
-			GET_TEAM(getTeam()).changeResearchProgress(eCurrentTech, std::max(1, calculateResearchRate()) + iOverflowResearch, getID()); // K-Mod (replacing the minimum which use to be in calculateResearchRate)
+			GET_TEAM(getTeam()).changeResearchProgress(eCurrentTech,
+					// K-Mod (replacing the minimum which use to be in calculateResearchRate)
+					std::max(1, calculateResearchRate()) +
+					iOverflowResearch, getID());
 		}
 
 		if (bForceResearchChoice)

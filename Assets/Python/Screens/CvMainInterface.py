@@ -222,9 +222,10 @@ class CvMainInterface:
 		self.DRAW_METHOD_PLE = "DRAW_METHOD_PLE"
 		self.DRAW_METHOD_VAN = "DRAW_METHOD_VAN"
 		self.DRAW_METHOD_BUG = "DRAW_METHOD_BUG"
-		self.DRAW_METHODS = (self.DRAW_METHOD_PLE, 
-							 self.DRAW_METHOD_VAN,
-							 self.DRAW_METHOD_BUG)
+		# advc.069: No longer used
+		#self.DRAW_METHODS = (self.DRAW_METHOD_PLE, 
+		#					 self.DRAW_METHOD_VAN,
+		#					 self.DRAW_METHOD_BUG)
 #		self.sDrawMethod = self.DRAW_METHOD_PLE
 # BUG - draw method
 
@@ -1146,7 +1147,8 @@ class CvMainInterface:
 					screen.setEndTurnState( "EndTurnText", acOutput )
 					bShow = True
 # BUG - Options - start
-				elif ( MainOpt.isShowOptionsKeyReminder() ):
+				# advc.004: Option disabled
+				elif False:#MainOpt.isShowOptionsKeyReminder()
 					if BugPath.isMac():
 						acOutput = localText.getText("TXT_KEY_BUG_OPTIONS_KEY_REMINDER_MAC", (BugPath.getModName(),))
 					else:
@@ -1170,25 +1172,31 @@ class CvMainInterface:
 # BUG - NJAGC - start
 		global g_bShowTimeTextAlt
 		if (CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_HIDE_ALL and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_MINIMAP_ONLY  and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_ADVANCED_START):
-			if (ClockOpt.isEnabled()):
-				if (ClockOpt.isShowEra()):
-					screen.show( "EraText" )
-				else:
-					screen.hide( "EraText" )
-				
+			# <advc.067> Moved out of the isEnabled block
+			if ClockOpt.isShowEra():
+				screen.show( "EraText" )
+			else:
+				screen.hide( "EraText" )
+			# </advc.067>
+			if ClockOpt.isEnabled():
 				if (ClockOpt.isAlternateTimeText()):
-					#global g_iTimeTextCounter (already done above)
 					if (CyUserProfile().wasClockJustTurnedOn() or g_iTimeTextCounter <= 0):
 						# reset timer, display primary
 						g_bShowTimeTextAlt = False
-						g_iTimeTextCounter = ClockOpt.getAlternatePeriod() * 1000
+						# advc.067: was getAlternatePeriod
+						g_iTimeTextCounter = ClockOpt.getPrimaryPeriod() * 1000
 						CyUserProfile().setClockJustTurnedOn(False)
 					else:
 						# countdown timer
 						g_iTimeTextCounter -= 250
 						if (g_iTimeTextCounter <= 0):
+							# <advc.067>
+							if g_bShowTimeTextAlt:
+								iPeriod = ClockOpt.getPrimaryPeriod()
+							else: # </advc.067>
+								iPeriod = ClockOpt.getAlternatePeriod()
 							# timer elapsed, toggle between primary and alternate
-							g_iTimeTextCounter = ClockOpt.getAlternatePeriod() * 1000
+							g_iTimeTextCounter = iPeriod * 1000
 							g_bShowTimeTextAlt = not g_bShowTimeTextAlt
 				else:
 					g_bShowTimeTextAlt = False
@@ -1197,7 +1205,7 @@ class CvMainInterface:
 				screen.setLabel( "TimeText", "Background", g_szTimeText, CvUtil.FONT_RIGHT_JUSTIFY, xResolution - 56, 6, -0.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 				screen.show( "TimeText" )
 			else:
-				screen.hide( "EraText" )
+				#screen.hide( "EraText" ) # advc.067
 				self.updateTimeText()
 				screen.setLabel( "TimeText", "Background", g_szTimeText, CvUtil.FONT_RIGHT_JUSTIFY, xResolution - 56, 6, -0.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 				screen.show( "TimeText" )
@@ -1728,7 +1736,15 @@ class CvMainInterface:
 		self.updatePlotListButtons_Common(screen)
 
 # BUG - draw methods
-		sDrawMethod = self.DRAW_METHODS[PleOpt.getDrawMethod()]
+		#sDrawMethod = self.DRAW_METHODS[PleOpt.getDrawMethod()]
+		# <advc.069> Replacing the above (getDrawMethod removed)
+		if PleOpt.isPLE_Style():
+			sDrawMethod = self.DRAW_METHOD_PLE
+		elif PleOpt.isBUG_Style():
+			sDrawMethod = self.DRAW_METHOD_BUG
+		else:
+			sDrawMethod = self.DRAW_METHOD_VAN
+		# </advc.069>
 		if sDrawMethod == self.DRAW_METHOD_PLE:
 			self.PLE.updatePlotListButtons_PLE(screen, self.xResolution, self.yResolution)
 			self.bPLECurrentlyShowing = True
@@ -1838,7 +1854,9 @@ class CvMainInterface:
 
 # BUG - draw method
 	def hidePlotListButton_BUG(self, screen):
-		if self.DRAW_METHODS[PleOpt.getDrawMethod()] != self.DRAW_METHOD_BUG:
+		#if self.DRAW_METHODS[PleOpt.getDrawMethod()] != self.DRAW_METHOD_BUG:
+		# advc.069: Replacing the above (getDrawMethod removed)
+		if PleOpt.isPLE_Style() or not PleOpt.isBUG_Style():
 			self.BupPanel.clearUnits()
 			self.BupPanel.Hide()
 
@@ -3124,11 +3142,17 @@ class CvMainInterface:
 					screen.show( "GoldText" )
 
 # BUG - NJAGC - start
-				if (ClockOpt.isEnabled()
-				and ClockOpt.isShowEra()):
-					szText = localText.getText("TXT_KEY_BUG_ERA", (gc.getEraInfo(gc.getPlayer(ePlayer).getCurrentEra()).getDescription(), ))
+				#if (ClockOpt.isEnabled() and ClockOpt.isShowEra()):
+				# advc.067: Replacing the above
+				if ClockOpt.isShowEra():
+					# <advc.067>
+					if ClockOpt.isShowGameEra():
+						iEra = gc.getGame().getCurrentEra()
+					else: # </advc.067>
+						iEra = gc.getPlayer(ePlayer).getCurrentEra()
+					szText = localText.getText("TXT_KEY_BUG_ERA", (gc.getEraInfo(iEra).getDescription(), ))
 					if(ClockOpt.isUseEraColor()):
-						iEraColor = ClockOpt.getEraColor(gc.getEraInfo(gc.getPlayer(ePlayer).getCurrentEra()).getType())
+						iEraColor = ClockOpt.getEraColor(gc.getEraInfo(iEra).getType())
 						if (iEraColor >= 0):
 							szText = localText.changeTextColor(szText, iEraColor)
 					screen.setLabel( "EraText", "Background", szText, CvUtil.FONT_RIGHT_JUSTIFY, 250, 6, -0.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
@@ -3144,7 +3168,7 @@ class CvMainInterface:
 					else:
 						xCoord = screen.centerX(512)
 
-					yCoord = 5  # Ruff: this use to be 3 but I changed it so it lines up with the Great Person Bar
+					yCoord = 5  # Ruff: this used to be 3 but I changed it so it lines up with the Great Person Bar
 					szText = localText.getText("INTERFACE_ANARCHY", (gc.getPlayer(ePlayer).getAnarchyTurns(), ))
 					screen.setText( "ResearchText", "Background", szText, CvUtil.FONT_CENTER_JUSTIFY, xCoord, yCoord, -0.4, FontTypes.GAME_FONT, WidgetTypes.WIDGET_RESEARCH, -1, -1 )
 # BUG - Bars on single line for higher resolution screens - end
@@ -3167,7 +3191,7 @@ class CvMainInterface:
 						szResearchBar = "ResearchBar"
 						xCoord = screen.centerX(512)
 
-					yCoord = 5  # Ruff: this use to be 3 but I changed it so it lines up with the Great Person Bar
+					yCoord = 5  # Ruff: this used to be 3 but I changed it so it lines up with the Great Person Bar
 					screen.setText( "ResearchText", "Background", szText, CvUtil.FONT_CENTER_JUSTIFY, xCoord, yCoord, -0.4, FontTypes.GAME_FONT, WidgetTypes.WIDGET_RESEARCH, -1, -1 )
 					screen.show( "ResearchText" )
 # BUG - Bars on single line for higher resolution screens - end
@@ -3285,6 +3309,15 @@ class CvMainInterface:
 		ePlayer = gc.getGame().getActivePlayer()
 		
 # BUG - NJAGC - start
+		# <advc.067> Moved out of the isEnabled block
+		iEraColor = -1
+		if(ClockOpt.isUseEraColor()):	
+			if ClockOpt.isShowGameEra():
+				iEra = gc.getGame().getCurrentEra()
+			else: # </advc.067>
+				iEra = gc.getPlayer(ePlayer).getCurrentEra()
+				iEraColor = ClockOpt.getEraColor(gc.getEraInfo(iEra).getType())
+		# advc.067: End of moved code
 		if (ClockOpt.isEnabled()):
 			"""
 			Format: Time - GameTurn/Total Percent - GA (TurnsLeft) Date
@@ -3295,13 +3328,15 @@ class CvMainInterface:
 				bShowTime = ClockOpt.isShowAltTime()
 				bShowGameTurn = ClockOpt.isShowAltGameTurn()
 				bShowTotalTurns = ClockOpt.isShowAltTotalTurns()
-				bShowPercentComplete = ClockOpt.isShowAltPercentComplete()
+				# advc.067: Option removed
+				bShowPercentComplete = False #ClockOpt.isShowAltPercentComplete()
 				bShowDateGA = ClockOpt.isShowAltDateGA()
 			else:
 				bShowTime = ClockOpt.isShowTime()
 				bShowGameTurn = ClockOpt.isShowGameTurn()
 				bShowTotalTurns = ClockOpt.isShowTotalTurns()
-				bShowPercentComplete = ClockOpt.isShowPercentComplete()
+				# advc.067: Option removed
+				bShowPercentComplete = False#ClockOpt.isShowPercentComplete()
 				bShowDateGA = ClockOpt.isShowDateGA()
 			
 			if (not gc.getGame().getMaxTurns() > 0):
@@ -3340,10 +3375,8 @@ class CvMainInterface:
 				else:
 					g_szTimeText += u" - "
 				szDateGA = unicode(CyGameTextMgr().getInterfaceTimeStr(ePlayer))
-				if(ClockOpt.isUseEraColor()):
-					iEraColor = ClockOpt.getEraColor(gc.getEraInfo(gc.getPlayer(ePlayer).getCurrentEra()).getType())
-					if (iEraColor >= 0):
-						szDateGA = localText.changeTextColor(szDateGA, iEraColor)
+				if iEraColor >= 0: # advc.067: Replacing code that has moved up
+					szDateGA = localText.changeTextColor(szDateGA, iEraColor)
 				g_szTimeText += szDateGA
 		else:
 			"""
@@ -3352,7 +3385,13 @@ class CvMainInterface:
 			
 			Ex: 10:37 - Turn 220 - GA (3) 1925
 			"""
-			g_szTimeText = localText.getText("TXT_KEY_TIME_TURN", (CyGame().getGameTurn(), )) + u" - " + unicode(CyGameTextMgr().getInterfaceTimeStr(ePlayer))
+			g_szTimeText = localText.getText("TXT_KEY_TIME_TURN", (CyGame().getGameTurn(), )) + u" - "
+			# <advc.067> Based on NJAGC code above
+			szDate = unicode(CyGameTextMgr().getInterfaceTimeStr(ePlayer))
+			if iEraColor >= 0:
+				szDate = localText.changeTextColor(szDate, iEraColor)
+			g_szTimeText += szDate
+			# </advc.067>
 			if (CyUserProfile().isClockOn()):
 				g_szTimeText = getClockText() + u" - " + g_szTimeText
 # BUG - NJAGC - end
@@ -3634,28 +3673,33 @@ class CvMainInterface:
 						HURRY_BUY = gc.getInfoTypeForString("HURRY_GOLD")
 						if (CityScreenOpt.isShowWhipAssist() and pHeadSelectedCity.canHurry(HURRY_WHIP, False)):
 							iHurryPop = pHeadSelectedCity.hurryPopulation(HURRY_WHIP)
-							iOverflow = pHeadSelectedCity.hurryProduction(HURRY_WHIP) - pHeadSelectedCity.productionLeft()
-							if CityScreenOpt.isWhipAssistOverflowCountCurrentProduction():
-								iOverflow += pHeadSelectedCity.getCurrentProductionDifference(False, True)
-							iMaxOverflow = max(pHeadSelectedCity.getProductionNeeded(), pHeadSelectedCity.getCurrentProductionDifference(False, False))
-							iLost = max(0, iOverflow - iMaxOverflow)
-							iOverflow = min(iOverflow, iMaxOverflow)
-							iItemModifier = pHeadSelectedCity.getProductionModifier()
-							iBaseModifier = pHeadSelectedCity.getBaseYieldRateModifier(YieldTypes.YIELD_PRODUCTION, 0)
-							iTotalModifier = pHeadSelectedCity.getBaseYieldRateModifier(YieldTypes.YIELD_PRODUCTION, iItemModifier)
-							iLost *= iBaseModifier
-							iLost /= max(1, iTotalModifier)
-							iOverflow = (iBaseModifier * iOverflow) / max(1, iTotalModifier)
-							if iLost > 0:
-								if pHeadSelectedCity.isProductionUnit():
-									iGoldPercent = gc.getDefineINT("MAXED_UNIT_GOLD_PERCENT")
-								elif pHeadSelectedCity.isProductionBuilding():
-									iGoldPercent = gc.getDefineINT("MAXED_BUILDING_GOLD_PERCENT")
-								elif pHeadSelectedCity.isProductionProject():
-									iGoldPercent = gc.getDefineINT("MAXED_PROJECT_GOLD_PERCENT")
-								else:
-									iGoldPercent = 0
-								iOverflowGold = iLost * iGoldPercent / 100
+							#iOverflow = pHeadSelectedCity.hurryProduction(HURRY_WHIP) - pHeadSelectedCity.productionLeft()
+							#if CityScreenOpt.isWhipAssistOverflowCountCurrentProduction():
+								#iOverflow += pHeadSelectedCity.getCurrentProductionDifference(False, True)
+							#iMaxOverflow = max(pHeadSelectedCity.getProductionNeeded(), pHeadSelectedCity.getCurrentProductionDifference(False, False))
+							#iLost = max(0, iOverflow - iMaxOverflow)
+							#iOverflow = min(iOverflow, iMaxOverflow)
+							#iItemModifier = pHeadSelectedCity.getProductionModifier()
+							#iBaseModifier = pHeadSelectedCity.getBaseYieldRateModifier(YieldTypes.YIELD_PRODUCTION, 0)
+							#iTotalModifier = pHeadSelectedCity.getBaseYieldRateModifier(YieldTypes.YIELD_PRODUCTION, iItemModifier)
+							#iLost *= iBaseModifier
+							#iLost /= max(1, iTotalModifier)
+							#iOverflow = (iBaseModifier * iOverflow) / max(1, iTotalModifier)
+							#if iLost > 0:
+								#if pHeadSelectedCity.isProductionUnit():
+									#iGoldPercent = gc.getDefineINT("MAXED_UNIT_GOLD_PERCENT")
+								#elif pHeadSelectedCity.isProductionBuilding():
+									#iGoldPercent = gc.getDefineINT("MAXED_BUILDING_GOLD_PERCENT")
+								#elif pHeadSelectedCity.isProductionProject():
+									#iGoldPercent = gc.getDefineINT("MAXED_PROJECT_GOLD_PERCENT")
+								#else:
+									#iGoldPercent = 0
+								#iOverflowGold = iLost * iGoldPercent / 100
+							# <advc.064> Replacing the above by calling C++ code that does almost the same thing
+							bCountCurrentOverflow = CityScreenOpt.isWhipAssistOverflowCountCurrentProduction()
+							iOverflow = pHeadSelectedCity.getHurryOverflow(HURRY_WHIP, True, bCountCurrentOverflow)
+							iOverflowGold = pHeadSelectedCity.getHurryOverflow(HURRY_WHIP, False, bCountCurrentOverflow)
+							if iOverflowGold > 0: # </advc.064>
 								szBuffer = localText.getText("INTERFACE_CITY_PRODUCTION_WHIP_PLUS_GOLD", (pHeadSelectedCity.getProductionNameKey(), pHeadSelectedCity.getProductionTurnsLeft(), iHurryPop, iOverflow, iOverflowGold))
 							else:
 								szBuffer = localText.getText("INTERFACE_CITY_PRODUCTION_WHIP", (pHeadSelectedCity.getProductionNameKey(), pHeadSelectedCity.getProductionTurnsLeft(), iHurryPop, iOverflow))
@@ -3770,10 +3814,15 @@ class CvMainInterface:
 				if (bShowRawYields):
 					screen.addTableControlGFC( "TradeRouteTable", 4, 10, 187, 238, 98, False, False, 32, 32, TableStyles.TABLE_STYLE_STANDARD )
 					screen.setStyle( "TradeRouteTable", "Table_City_Style" )
-					screen.setTableColumnHeader( "TradeRouteTable", 0, u"", 110 )
-					screen.setTableColumnHeader( "TradeRouteTable", 1, u"", 60 )
-					screen.setTableColumnHeader( "TradeRouteTable", 2, u"", 55 )
-					screen.setTableColumnHeader( "TradeRouteTable", 3, u"", 10 )
+					# <advc.002b> Last param was 110 - too narrow
+					screen.setTableColumnHeader( "TradeRouteTable", 0, u"", 125 )
+					# Last param was 60
+					screen.setTableColumnHeader( "TradeRouteTable", 1, u"", 55 )
+					# Last param was 55
+					screen.setTableColumnHeader( "TradeRouteTable", 2, u"", 50 )
+					# Last param was 10
+					screen.setTableColumnHeader( "TradeRouteTable", 3, u"", 5 )
+					# </advc.002b>
 					screen.setTableColumnRightJustify( "TradeRouteTable", 1 )
 					screen.setTableColumnRightJustify( "TradeRouteTable", 2 )
 				else:
@@ -4463,7 +4512,8 @@ class CvMainInterface:
 						szBuffer = localText.getText("INTERFACE_CITY_COMMERCE_RATE_FLOAT", (gc.getCommerceInfo(CommerceTypes.COMMERCE_CULTURE).getChar(), gc.getCultureLevelInfo(pHeadSelectedCity.getCultureLevel()).getTextKey(), szRate))
 						
 # BUG - Culture Turns - start
-					if CityScreenOpt.isShowCultureTurns() and iRate > 0:
+					#if CityScreenOpt.isShowCultureTurns() and iRate > 0:
+					if iRate > 0: # advc.065: No longer optional
 						iCultureTimes100 = pHeadSelectedCity.getCultureTimes100(pHeadSelectedCity.getOwner())
 						iCultureLeftTimes100 = 100 * pHeadSelectedCity.getCultureThreshold() - iCultureTimes100
 						# K-Mod (don't display a negative countdown when we pass legendary culture)
@@ -5018,7 +5068,8 @@ class CvMainInterface:
 												szPlayerScore = u"%d" % iScore
 												# <advc.155>
 												eMaster = gc.getTeam(eTeam).getMasterTeam()
-												if gc.getTeam(eMaster).getAliveCount() > 1 and gc.getDefineINT("COLOR_CODE_TEAM_SCORE") > 0:
+												# (To allow this option without the Advanced/Tabular layout option, simply remove the bAlignIcons check.)
+												if bAlignIcons and gc.getTeam(eMaster).getAliveCount() > 1 and ScoreOpt.isColorCodeTeamScore():
 													szPlayerScore = u"<color=%d,%d,%d,%d>%s</color>" %(gc.getPlayer(gc.getTeam(eMaster).getLeaderID()).getPlayerTextColorR(), gc.getPlayer(gc.getTeam(eMaster).getLeaderID()).getPlayerTextColorG(), gc.getPlayer(gc.getTeam(eMaster).getLeaderID()).getPlayerTextColorB(), gc.getPlayer(gc.getTeam(eMaster).getLeaderID()).getPlayerTextColorA(), szPlayerScore)
 												# </advc.155>
 												if (bAlignIcons):

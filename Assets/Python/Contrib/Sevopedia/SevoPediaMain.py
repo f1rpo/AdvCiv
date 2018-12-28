@@ -426,7 +426,11 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		screen.clearListBoxGFC(self.CATEGORY_LIST_ID)
 		for i, category in enumerate(self.categoryList):
 			graphic = self.categoryGraphics[category[0]]
-			screen.appendListBoxStringNoUpdate(self.CATEGORY_LIST_ID, graphic + category[1], WidgetTypes.WIDGET_PEDIA_MAIN, SevoScreenEnums.PEDIA_MAIN + i + 1, 0, CvUtil.FONT_LEFT_JUSTIFY)
+			# <advc.002b> Prepend graphic only if there is room
+			szHeading = category[1]
+			if len(szHeading) <= 15:
+				szHeading = graphic + szHeading # </advc.002b>
+			screen.appendListBoxStringNoUpdate(self.CATEGORY_LIST_ID, szHeading, WidgetTypes.WIDGET_PEDIA_MAIN, SevoScreenEnums.PEDIA_MAIN + i + 1, 0, CvUtil.FONT_LEFT_JUSTIFY)
 		screen.updateListBox(self.CATEGORY_LIST_ID)
 
 

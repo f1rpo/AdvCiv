@@ -14,9 +14,9 @@
 	
 	<options id="PLE" file="Plot List Enhancements.ini">
 		<section id="PlotList">
-			<option id="Enabled" key="Enabled" 
-					type="boolean" default="False"/>
-			
+			<!-- advc.069: unused -->
+			<!--option id="Enabled" key="Enabled" 
+					type="boolean" default="False"/-->
 			<list   id="Draw_Method" key="Draw Method" 
 					type="int" default="1" listType="string" 
 					values="PLE|VAN|NEW BUG" 
@@ -25,34 +25,43 @@
 			<option id="PLE_Style" key="PLE Style" 
 					type="boolean" default="False"
 					get="isPLE_Style" dirtyBit="PlotListButtons"/>
+			<!-- advc.069: To replace the Draw_Method dropdown -->
+			<option id="BUG_Style" key="BUG Style" 
+					type="boolean" default="False"
+					get="isBUG_Style" dirtyBit="PlotListButtons"/>
 			
 			<!-- Modes and Filters -->
 			<option id="Show_Buttons" key="Show Buttons" 
 					type="boolean" default="False" 
 					get="isShowButtons" dirtyBit="PlotListButtons"/>
+			<!-- advc.069: Put Vertical last (was penultimate) -->
 			<list   id="Default_View_Mode" key="Default View Mode" 
 					type="int" default="1" listType="string" 
-					values="Single Row|Multiple Rows|Vertical Groups|Horizontal Groups" 
+					values="Single Row|Multiple Rows|Horizontal Groups|Vertical Groups" 
 					get="getDefaultViewMode"/>
 			<list   id="Default_Group_Mode" key="Default Grouping Mode" 
 					type="int" default="0" listType="string" 
 					values="Unit Type|Selection Group" 
 					get="getDefaultGroupMode"/>
+			<!-- advc.069: Put BUG on top; default changed accordingly -->
 			<list   id="Filter_Behavior" key="Filter Behavior" 
-					type="int" default="1" listType="string" 
-					values="PLE|BUG" 
+					type="int" default="0" listType="string" 
+					values="BUG|PLE" 
 					get="getFilterBehavior" dirtyBit="PlotListButtons">
-				<choice id="PLE" get="isPleFilterBehavior"/>
 				<choice id="BUG" get="isBugFilterBehavior"/>
+				<choice id="PLE" get="isPleFilterBehavior"/>
 			</list>
 			
 			<!-- Health Bar -->
+			<!-- advc.069: default was False -->
 			<option id="Health_Bar" key="Health Bar" 
-					type="boolean" default="False" 
+					type="boolean" default="True" 
 					get="isShowHealthBar" dirtyBit="PlotListButtons"/>
+			<!-- advc.069: default was False -->
 			<option id="Hide_Health_Fighting" key="Hide Health Bar While Fighting" 
-					type="boolean" default="False" 
+					type="boolean" default="True" 
 					get="isHideHealthFighting"/>
+
 			<option id="Healthy_Color" key="Healthy Color" 
 					type="color" default="COLOR_GREEN" 
 					get="getHealthyColor" dirtyBit="PlotListButtons">
@@ -91,9 +100,12 @@
 			<option id="Lead_By_GG_Indicator" key="Great General Indicator" 
 					type="boolean" default="True" 
 					get="isShowGreatGeneralIndicator" dirtyBit="PlotListButtons"/>
+					
+			<!-- advc.069: default was True -->
 			<option id="Promotion_Indicator" key="Promotion Indicator" 
-					type="boolean" default="True" 
+					type="boolean" default="False" 
 					get="isShowPromotionIndicator" dirtyBit="PlotListButtons"/>
+					
 			<option id="Upgrade_Indicator" key="Upgrade Indicator" 
 					type="boolean" default="False" 
 					get="isShowUpgradeIndicator" dirtyBit="PlotListButtons"/>
@@ -128,8 +140,11 @@
 			<option id="Info_Pane_Bulleted_Line_Height" key="Pixel Per Line Type 2" 
 					type="int" default="19" 
 					get="getInfoPaneBulletedLineHeight"/>
+			
+			<!-- advc.002b: default was 0. Increased to match changes in PLE.py
+				 -->
 			<list   id="Info_Pane_Promo_Icon_Offset_Y" key="Promo Icon Offset Y" 
-					type="int" default="0" 
+					type="int" default="8" 
 					values="10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5, -6, -7, -8, -9, -10" 
 					get="getInfoPanePromoIconOffsetY"/>
 			
@@ -154,6 +169,7 @@
 					type="boolean" default="False" 
 					get="isShowMoveHighlighter"/>
 			
+			<!-- advc.069 (comment): These are unused -->
 			<option id="MH_Color_Impassable_Terrain" key="Color Impassable Terrain" 
 					type="color" default="COLOR_CLEAR" 
 					get="getImpassableTerrainColor"/>

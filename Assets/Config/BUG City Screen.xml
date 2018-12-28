@@ -40,8 +40,9 @@
 			</list>
 			
 			<!-- FoodAssist by EmperorFool -->
+			<!-- advc.004: default was False in K-Mod -->
 			<option id="FoodAssist" key="FoodAssist" 
-					type="boolean" default="False" 
+					type="boolean" default="True" 
 					get="isShowFoodAssist" dirtyBit="CityScreen"/>
 			
 			<!-- WhipAssist by EmperorFool, Dresden -->
@@ -53,9 +54,10 @@
 					get="isWhipAssistOverflowCountCurrentProduction" dirtyBit="CityScreen"/>
 			
 			<!-- Culture Turns by Chinese American -->
-			<option id="CultureTurns" key="Culture Turns" 
+			<!-- advc.065: No longer optional -->
+			<!--option id="CultureTurns" key="Culture Turns" 
 					type="boolean" default="True" 
-					get="isShowCultureTurns" dirtyBit="CityScreen"/>
+					get="isShowCultureTurns" dirtyBit="CityScreen"/-->
 			
 			<!-- Great Person Info by Chinese American, EmperorFool -->
 			<option id="GreatPersonTurns" key="Great Person Turns" 
@@ -71,7 +73,7 @@
 					get="isShowAngerCounter" dirtyBit="CityScreen"/>
 			
 			<!-- Show Only Present and Extra Religions/Corporations by johny smith -->
-			<!-- advc.106d: Set both defaults to True -->
+			<!-- advc.004: defaults were both False in K-Mod -->
 			<option id="OnlyPresentReligions" key="Only Present Religions" 
 					type="boolean" default="True" 
 					get="isShowOnlyPresentReligions" dirtyBit="CityScreen"/>

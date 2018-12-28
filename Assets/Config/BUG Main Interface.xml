@@ -16,15 +16,19 @@
 	 
 	<options id="MainInterface" file="BUG Main Interface.ini">
 		<section id="Main">
+		
 			<!-- Options Screen Shortcut Reminder -->
+			<!-- advc.003 (note): Now unused -->
 			<option id="OptionsKey" key="Options Shortcut Reminder" 
 					type="boolean" default="False" 
 					get="isShowOptionsKeyReminder" set="setShowOptionsKeyReminder" dirtyBit="GameData"/>
 			
 			<!-- Options Screen Button -->
+			<!-- advc.004: Dirty-bit ("GameData") removed b/c this requires a
+				 restart anyway. -->
 			<option id="OptionsButton" key="Options Button" 
 					type="boolean" default="False"
-					get="isShowOptionsButton" set="setShowOptionsButton" dirtyBit="GameData"/>
+					get="isShowOptionsButton" set="setShowOptionsButton"/>
 					
 			<!-- advc.106b -->
 			<option id="AutoOpenEventLog" key="Auto Open Event Log" 
@@ -72,6 +76,11 @@
 					get="isHideEspSlider" dirtyBit="PercentButtons, GameData, Espionage_Advisor">
 				<change module="CvCustomizableDomesticAdvisor" function="forcePositionCalc"/>
 			</option>
+
+			<!-- advc.004m -->
+			<option id="StartWithResourceIcons" key="Start With Resource Icons" 
+					type="boolean" default="True" 
+					get="isStartWithResourceIcons"/>
 			
 			<!-- City Cycle Arrows by SimCutie -->
 			<option id="CityArrows" key="City Cycle Arrows" 
@@ -121,7 +130,7 @@
 					type="boolean" default="True" 
 					get="isListUnitsPerOwner"/>
 			<!-- dirtyBit: Would like to redraw the unit layer indicators, but
-				 I don't think that's possible through a dirty-bit. -->
+				 that's not possible through a dirty-bit. See tbd. in manual. -->
 
 			<!-- Build/Action Icon Size by EmperorFool -->
 			<list   id="BuildIconSize" key="Build Icon Size" 

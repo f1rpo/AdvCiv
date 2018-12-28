@@ -3631,6 +3631,67 @@ void CvCity::hurry(HurryTypes eHurry)
 	CvEventReporter::getInstance().cityHurry(this, eHurry);
 }
 
+// BUG - Hurry Overflow - start (advc.064)
+bool CvCity::hurryOverflow(HurryTypes eHurry, int* piProduction, int* piGold,
+		bool bCountThisTurn) const {
+
+	*piProduction = 0; *piProduction = 0; // advc: Let's do that in any case
+
+	if(!canHurry(eHurry))
+		return false;
+
+	if(GC.getHurryInfo(eHurry).getProductionPerPopulation() == 0)
+		return true;
+	// advc: K-Mod spends excess overflow on another unit of the same type
+	bool bOverflowCap = true;
+	int iTotal, iCurrent, iModifier, iGoldPercent;
+	if(isProductionUnit()) {
+		UnitTypes eUnit = getProductionUnit();
+		iTotal = getProductionNeeded(eUnit);
+		iCurrent = getUnitProduction(eUnit);
+		iModifier = getProductionModifier(eUnit);
+		iGoldPercent = GC.getDefineINT("MAXED_UNIT_GOLD_PERCENT");
+		// advc: Maxed units can lead to overflow gold
+		if(canTrain(eUnit))
+			bOverflowCap = false;
+	}
+	else if(isProductionBuilding()) {
+		BuildingTypes eBuilding = getProductionBuilding();
+		iTotal = getProductionNeeded(eBuilding);
+		iCurrent = getBuildingProduction(eBuilding);
+		iModifier = getProductionModifier(eBuilding);
+		iGoldPercent = GC.getDefineINT("MAXED_BUILDING_GOLD_PERCENT");
+	}
+	else if (isProductionProject()) {
+		ProjectTypes eProject = getProductionProject();
+		iTotal = getProductionNeeded(eProject);
+		iCurrent = getProjectProduction(eProject);
+		iModifier = getProductionModifier(eProject);
+		iGoldPercent = GC.getDefineINT("MAXED_PROJECT_GOLD_PERCENT");
+	}
+	else return false;
+
+	int iHurry = hurryProduction(eHurry);
+	int iOverflow = iCurrent + iHurry - iTotal;
+	if(bCountThisTurn) {
+		// include chops and previous overflow here
+		iOverflow += getCurrentProductionDifference(false, true);
+	}
+	int iMaxOverflow = std::max(iTotal, getCurrentProductionDifference(false, false));
+	int iLostProduction = (bOverflowCap ? std::max(0, iOverflow - iMaxOverflow) : 0);
+	int iBaseModifier = getBaseYieldRateModifier(YIELD_PRODUCTION);
+	int iTotalModifier = getBaseYieldRateModifier(YIELD_PRODUCTION, iModifier);
+	if(bOverflowCap)
+		iOverflow = std::min(iOverflow, iMaxOverflow);
+	iLostProduction *= iBaseModifier;
+	iLostProduction /= std::max(1, iTotalModifier);
+
+	*piProduction = (iBaseModifier * iOverflow) / std::max(1, iTotalModifier);
+	*piGold = (iLostProduction * iGoldPercent) / 100;
+
+	return true;
+} // BUG - Hurry Overflow - end
+
 // <advc.912d>
 bool CvCity::canPopRush() const {
 
@@ -6628,11 +6689,6 @@ int CvCity::GPTurnsLeft() const {
 
 void CvCity::GPProjection(std::vector<std::pair<UnitTypes,int> >& r) const {
 
-	int iTotalGreatPeopleUnitProgress = 0;
-	for(int iI = 0; iI < GC.getNumUnitInfos(); iI++)
-		iTotalGreatPeopleUnitProgress += getGreatPeopleUnitProgress((UnitTypes)iI);
-	if(iTotalGreatPeopleUnitProgress <= 0)
-		return;
 	int iTurnsLeft = GPTurnsLeft();
 	int iTotalTruncated = 0;
 	/*  This should be kOwner.greatPeopleThreshold(false), but I don't want to
@@ -6640,9 +6696,9 @@ void CvCity::GPProjection(std::vector<std::pair<UnitTypes,int> >& r) const {
 	int iTarget = std::max(1, getGreatPeopleProgress() + iTurnsLeft *
 			getGreatPeopleRate());
 	for(int iI = 0; iI < GC.getNumUnitInfos(); iI++) {
-		UnitTypes gpType = (UnitTypes)iI;
-		int iProgress = getGreatPeopleUnitProgress(gpType) +
-				(iTurnsLeft * getGreatPeopleUnitRate(gpType) *
+		UnitTypes eGPType = (UnitTypes)iI;
+		int iProgress = getGreatPeopleUnitProgress(eGPType) +
+				(iTurnsLeft * getGreatPeopleUnitRate(eGPType) *
 				getTotalGreatPeopleRateModifier()) / 100;
 		iProgress *= 100;
 		iProgress /= iTarget;
@@ -13938,14 +13994,18 @@ void CvCity::doGreatPeople()
 	{
 		return;
 	}
-
+	
 	changeGreatPeopleProgress(getGreatPeopleRate());
-
+	// advc.006: Verify that GreatPeopleRate is the sum of the GreatPeopleUnitRates
+	int iTotalUnitRate = 0;
 	for (int iI = 0; iI < GC.getNumUnitInfos(); iI++)
 	{
-		changeGreatPeopleUnitProgress(((UnitTypes)iI), getGreatPeopleUnitRate((UnitTypes)iI));
+		UnitTypes eUnit = (UnitTypes)iI;
+		int iUnitRate = getGreatPeopleUnitRate(eUnit); // advc.006
+		changeGreatPeopleUnitProgress(eUnit, iUnitRate);
+		iTotalUnitRate += iUnitRate; // advc.006
 	}
-
+	FAssert(iTotalUnitRate == getBaseGreatPeopleRate()); // advc.006
 	if (getGreatPeopleProgress() >= GET_PLAYER(getOwnerINLINE()).greatPeopleThreshold(false))
 	{
 		int iTotalGreatPeopleUnitProgress = 0;

@@ -231,7 +231,7 @@
 	
 	<!-- Raw Yields -->
 	
-	<TEXT>
+	<!--TEXT>
 		<Tag>TXT_KEY_CONCEPT_WORKED_TILES</Tag>
 		<English>Worked Tiles (%d1)</English>
 		<French>Cases Travaillées (%d1)</French>
@@ -254,15 +254,48 @@
 		<German>Geländefelder: %d1</German>
 		<Italian>Caselle possedute (%d1)</Italian>
 		<Spanish>Casillas poseídas (%d1)</Spanish>
+	</TEXT-->
+	<!-- advc.002b: The translations above are too long with the current
+		 font size, at least at screen width 1024.
+		 Alternatively, one could put the number first, e.g.
+		 "%d1 caselle lavorate". As suggested here by EmperorFool, one of the
+		 original authors:
+		 https://forums.civfanatics.com/threads/raw-yields.281724/#post-7005748
+		 -->
+	<TEXT>
+		<Tag>TXT_KEY_CONCEPT_WORKED_TILES</Tag>
+		<English>Worked Tiles (%d1)</English>
+		<French>Cases (%d1)</French>
+		<German>Geländefelder (%d1)</German>
+		<Italian>Caselle (%d1)</Italian>
+		<Spanish>Casillas (%d1)</Spanish>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_CONCEPT_CITY_TILES</Tag>
+		<English>City's Tiles (%d1)</English>
+		<French>Cases (%d1)</French>
+		<German>Geländefelder (%d1)</German>
+		<Italian>Caselle (%d1)</Italian>
+		<Spanish>Casillas (%d1)</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CONCEPT_OWNED_TILES</Tag>
+		<English>Owned Tiles (%d1)</English>
+		<French>Cases (%d1)</French>
+		<German>Geländefelder (%d1)</German>
+		<Italian>Caselle (%d1)</Italian>
+		<Spanish>Casillas (%d1)</Spanish>
+	</TEXT>
+	<!-- advc.004: Unused -->
+	<!--TEXT>
 		<Tag>TXT_KEY_CONCEPT_ALL_TILES</Tag>
 		<English>All Tiles (%d1)</English>
 		<French>All Tiles (%d1)</French>
 		<German>Geländefelder: %d1</German>
 		<Italian>Tutte le caselle (%d1)</Italian>
 		<Spanish>Todas las casillas (%d1)</Spanish>
-	</TEXT>
+	</TEXT-->
+	
 	<TEXT>
 		<Tag>TXT_KEY_CONCEPT_BASE_MODIFIER</Tag>
 		<!-- Bureaucracy, Forge, Factory, Power, Ironworks -->
@@ -297,70 +330,78 @@
 		<Italian>Totale</Italian>
 		<Spanish>Total</Spanish>
 	</TEXT>
+	
+	<!-- advc.004: Minor changes to the next seven keys -->
 	<TEXT>
 		<Tag>TXT_KEY_RAW_YIELD_VIEW_TRADE</Tag>
-		<English>[COLOR_HIGHLIGHT_TEXT]View Trade Routes[COLOR_REVERT][NEWLINE]Displays the Trade Routes for this city.</English>
+		<English>[COLOR_HIGHLIGHT_TEXT]Trade Routes[COLOR_REVERT][NEWLINE]Show the Trade Routes of this city.</English>
 		<French>[COLOR_HIGHLIGHT_TEXT]View Trade Routes[COLOR_REVERT][NEWLINE]Displays the Trade Routes for this city.</French>
-		<German>[COLOR_HIGHLIGHT_TEXT]Handelsverbindungen[COLOR_REVERT][NEWLINE]Anzeige der Handelsverbindungen dieser Stadt</German>
+		<German>[COLOR_HIGHLIGHT_TEXT]Handelswege[COLOR_REVERT][NEWLINE]Zeige die Handelswege dieser Stadt an</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Rotte Commericali[COLOR_REVERT][NEWLINE]Visualizza le Rotte Commericali pr questa Città.</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Mostrar Rutas Comerciales[COLOR_REVERT][NEWLINE]Muestra las Rutas Comerciales de esta Ciudad.</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_RAW_YIELD_VIEW_FOOD</Tag>
-		<English>[COLOR_HIGHLIGHT_TEXT]View Raw Food[COLOR_REVERT][NEWLINE]Displays a breakdown of all [ICON_FOOD] sources.</English>
+		<English>[COLOR_HIGHLIGHT_TEXT]Food breakdown[COLOR_REVERT][NEWLINE]Show a breakdown of the city's [ICON_FOOD] sources.</English>
 		<French>[COLOR_HIGHLIGHT_TEXT]View Raw Food[COLOR_REVERT][NEWLINE]Displays a breakdown of all [ICON_FOOD] sources.</French>
-		<German>[COLOR_HIGHLIGHT_TEXT]Roherträge aus Nahrung[COLOR_REVERT][NEWLINE]Aufschlüsselung aller [ICON_FOOD]-Erträge</German>
+		<German>[COLOR_HIGHLIGHT_TEXT] Nahrungserträge[COLOR_REVERT][NEWLINE]Aufschlüsselung aller [ICON_FOOD]-Erträge der Stadt</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Fonti di Cibo[COLOR_REVERT][NEWLINE]Visualizza un riassunto di tutte le fonti di [ICON_FOOD].</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Mostrar Comida en Bruto[COLOR_REVERT][NEWLINE]Muestra una lista de todas las fuentes de [ICON_FOOD].</Spanish>
 	</TEXT>
+	<!-- The modifiers specific to the current order can be highly confusing
+		 for first-time users of the Raw Yields feature; e.g. when producing a
+		 Forge while in Organized Religion, the final line will say "Forge
+		 +25%," which sounds as if the Forge is already in use.
+		 Given the limited space, however, it seems that the best I can do is
+		 place a hint in the hover text of the Production View. -->
 	<TEXT>
 		<Tag>TXT_KEY_RAW_YIELD_VIEW_PRODUCTION</Tag>
-		<English>[COLOR_HIGHLIGHT_TEXT]View Raw Production[COLOR_REVERT][NEWLINE]Displays a breakdown of all [ICON_PRODUCTION] sources and modifiers.</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]View Raw Production[COLOR_REVERT][NEWLINE]Displays a breakdown of all [ICON_PRODUCTION] sources and modifiers.</French>
-		<German>[COLOR_HIGHLIGHT_TEXT]Roherträge aus Produktion[COLOR_REVERT][NEWLINE]Aufschlüsselung aller [ICON_PRODUCTION]-Erträge mit deren Modifikatoren</German>
+		<English>[COLOR_HIGHLIGHT_TEXT] Production breakdown[COLOR_REVERT][NEWLINE]Show a breakdown of the city's [ICON_PRODUCTION] sources and modifiers (generic ones and modifiers specific to what the city is currently producing).</English>
+		<French>[COLOR_HIGHLIGHT_TEXT]View Raw Production[COLOR_REVERT][NEWLINE]Displays a breakdown of all [ICON_PRODUCTION] sources and modifiers.</French>	<German>[COLOR_HIGHLIGHT_TEXT]Produktionserträge[COLOR_REVERT][NEWLINE]Aufschlüsselung aller [ICON_PRODUCTION]-Erträge und [ICON_PRODUCTION]-Modifikatoren (generische Modifikatoren und solche, die vom derzeitigen Produktionsauftrag abhängen können)</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Fonti di Produzione[COLOR_REVERT][NEWLINE]Visualizza un riassunto di tutte le fonti di [ICON_PRODUCTION] ed i modificatori relativi.</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Mostrar Producción en Bruto[COLOR_REVERT][NEWLINE]Muestra una lista de todas las fuentes y modificadores de [ICON_PRODUCTION].</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_RAW_YIELD_VIEW_COMMERCE</Tag>
-		<English>[COLOR_HIGHLIGHT_TEXT]View Raw Commerce[COLOR_REVERT][NEWLINE]Displays a breakdown of all [ICON_COMMERCE] sources and modifiers.</English>
+		<English>[COLOR_HIGHLIGHT_TEXT]Raw Commerce breakdown[COLOR_REVERT][NEWLINE]Show a breakdown of the city's [ICON_COMMERCE] sources and modifiers.</English>
 		<French>[COLOR_HIGHLIGHT_TEXT]View Raw Commerce[COLOR_REVERT][NEWLINE]Displays a breakdown of all [ICON_COMMERCE] sources and modifiers.</French>
-		<German>[COLOR_HIGHLIGHT_TEXT]Roherträge aus Wirtschaft[COLOR_REVERT][NEWLINE]Aufschlüsselung aller [ICON_COMMERCE]-Erträge mit deren Modifikatoren</German>
+		<German>[COLOR_HIGHLIGHT_TEXT]Handelserträge[COLOR_REVERT][NEWLINE]Aufschlüsselung aller [ICON_COMMERCE]-Erträge und [ICON_COMMERCE]-Modifikatoren</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Fonti di Commercio[COLOR_REVERT][NEWLINE]Visualizza un riassunto di tutte le fonti di [ICON_COMMERCE] ed i modificatori relativi.</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Mostrar Comercio en Bruto[COLOR_REVERT][NEWLINE]Muestra una lista de todas las fuentes y modificadores de [ICON_COMMERCE].</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_RAW_YIELD_TILES_WORKED</Tag>
-		<English>[COLOR_HIGHLIGHT_TEXT]Count Worked Tiles[COLOR_REVERT][NEWLINE]Counts the tiles the city is currently working.</English>
+		<English>[COLOR_HIGHLIGHT_TEXT]Worked Tiles[COLOR_REVERT][NEWLINE]Count only yields from tiles that the city is working.</English>
 		<French>[COLOR_HIGHLIGHT_TEXT]Count Worked Tiles[COLOR_REVERT][NEWLINE]Counts the tiles the city is currently working.</French>
-		<German>[COLOR_HIGHLIGHT_TEXT]Nur bearbeitete Geländefelder[COLOR_REVERT][NEWLINE]Zur Berechnung der Roherträge werden alle Geländefelder, die von der Stadt derzeit bearbeitet werden, herangezogen</German>
+		<German>[COLOR_HIGHLIGHT_TEXT]Nur bearbeitete Felder[COLOR_REVERT][NEWLINE]Zur Berechnung der Erträge werden nur Geländefelder, die von der Stadt derzeit bearbeitet werden, herangezogen.</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Caselle lavorate[COLOR_REVERT][NEWLINE]Considera solo le caselle della Città attualmente lavorate.</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Contar Casillas Trabajadas[COLOR_REVERT][NEWLINE]Cuenta las casillas que están siendo actualmente trabajadas por la ciudad.</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_RAW_YIELD_TILES_CITY</Tag>
-		<English>[COLOR_HIGHLIGHT_TEXT]Count City's Tiles[COLOR_REVERT][NEWLINE]Counts the tiles the city controls.</English>
+		<English>[COLOR_HIGHLIGHT_TEXT]City Tiles[COLOR_REVERT][NEWLINE]Count yields from all tiles controlled by the city.</English>
 		<French>[COLOR_HIGHLIGHT_TEXT]Count City's Tiles[COLOR_REVERT][NEWLINE]Counts the tiles the city controls.</French>
-		<German>[COLOR_HIGHLIGHT_TEXT]Nur Stadtgeländefelder[COLOR_REVERT][NEWLINE]Zur Berechnung der Roherträge werden alle Geländefelder, die von der Stadt derzeit kontrolliert werden, herangezogen</German>
+		<German>[COLOR_HIGHLIGHT_TEXT]Stadtfelder[COLOR_REVERT][NEWLINE]Zur Berechnung der Erträge werden alle Geländefelder, die von der Stadt kontrolliert werden, herangezogen.</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Caselle della Città[COLOR_REVERT][NEWLINE]Considera le caselle attualmente controllate dalla Città.</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Contar Casillas de la Ciudad[COLOR_REVERT][NEWLINE]Cuenta las casillas controladas por la ciudad.</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_RAW_YIELD_TILES_OWNED</Tag>
-		<English>[COLOR_HIGHLIGHT_TEXT]Count Owned Tiles[COLOR_REVERT][NEWLINE]Counts the tiles in the city radius owned by your civilization.</English>
+		<English>[COLOR_HIGHLIGHT_TEXT]Owned Tiles[COLOR_REVERT][NEWLINE]Count yields from all tiles in the city radius owned by your civilization.</English>
 		<French>[COLOR_HIGHLIGHT_TEXT]Count Owned Tiles[COLOR_REVERT][NEWLINE]Counts the tiles in the city radius owned by your civilization.</French>
-		<German>[COLOR_HIGHLIGHT_TEXT]Nur Geländefelder in Besitz[COLOR_REVERT][NEWLINE]Zur Berechnung der Roherträge werden alle Geländefelder, die sich im Einzugsgebiet der Stadt befinden und zur eigenen Zivilisation gehören, herangezogen</German>
+		<German>[COLOR_HIGHLIGHT_TEXT]Felder in Besitz[COLOR_REVERT][NEWLINE]Zur Berechnung der Erträge werden alle Geländefelder im Stadtradius herangezogen, die Ihrer Zivilisation gehören.</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Caselle possedute[COLOR_REVERT][NEWLINE]Considera le caselle nel raggio cittadino attualmente possedute dalla Civiltà.</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Contar Casillas Poseídas[COLOR_REVERT][NEWLINE]Cuenta las casillas en el radio de tu ciudad que pertenezcan a tu civilización.</Spanish>
 	</TEXT>
-	<TEXT>
+	<!-- unused -->
+	<!--TEXT>
 		<Tag>TXT_KEY_RAW_YIELD_TILES_ALL</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Count All Tiles[COLOR_REVERT][NEWLINE]Counts all tiles in the city radius regardless of owner.</English>
 		<French>[COLOR_HIGHLIGHT_TEXT]Count All Tiles[COLOR_REVERT][NEWLINE]Counts all tiles in the city radius regardless of owner.</French>
 		<German>[COLOR_HIGHLIGHT_TEXT]Alle Geländefelder[COLOR_REVERT][NEWLINE]Zur Berechnung der Roherträge werden alle Geländefelder, die sich im Einzugsgebiet der Stadt befinden, unabhängig davon, welcher Zivilisation sie gehören, herangezogen</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Tutte le caselle[COLOR_REVERT][NEWLINE]Considera tutte le caselle nel raggio cittadino indipendentemente dal proprietario.</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Contar Todas[COLOR_REVERT][NEWLINE]Cuenta todas las casillas en el radio de la ciudad sin importar su propietario.</Spanish>
-	</TEXT>
+	</TEXT-->
 	
 	<!-- Food Assist -->
 	
@@ -372,14 +413,21 @@
 		<Italian>Crescita!</Italian>
 		<Spanish>¡Crecimiento!</Spanish>
 	</TEXT>
+	
+	<!-- advc.004: The whole string was colored yellow, which draws too much
+		 attention (as yellow isn't normally used in this way by the game).
+		 The red/ white coloring is also not great, but the best I can come up
+		 with.
+		 German was "Schrumpfen". -->
 	<TEXT>
 		<Tag>INTERFACE_CITY_SHRINKING</Tag>
-		<English>[COLOR_YELLOW]Shrinking (%d1 [NUM1:Turn:Turns])[COLOR_REVERT]</English>
-		<French>[COLOR_YELLOW]Rétrécissement (%d1 [NUM1:tour:tours])[COLOR_REVERT]</French>
-		<German>[COLOR_YELLOW]Schrumpfen (%d1 [NUM1:Runde:Runden])[COLOR_REVERT]</German>
-		<Italian>[COLOR_YELLOW]Riduzione (%d1 [NUM1:Turno:Turni])[COLOR_REVERT]</Italian>
-		<Spanish>[COLOR_YELLOW]Reducción (%d1 [NUM1:turno:turnos])[COLOR_REVERT]</Spanish>
+		<English>[COLOR_WARNING_TEXT]Shrinking[COLOR_REVERT] (%d1 [NUM1:Turn:Turns])</English>
+		<French>[COLOR_WARNING_TEXT]Rétrécissement[COLOR_REVERT] (%d1 [NUM1:tour:tours])</French>
+		<German>[COLOR_WARNING_TEXT]Rückgang[COLOR_REVERT] (%d1 [NUM1:Runde:Runden])[COLOR_REVERT]</German>
+		<Italian>[COLOR_WARNING_TEXT]Riduzione[COLOR_REVERT] (%d1 [NUM1:Turno:Turni])[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_WARNING_TEXT]Reducción[COLOR_REVERT] (%d1 [NUM1:turno:turnos])[COLOR_REVERT]</Spanish>
 	</TEXT>
+	
 	<TEXT>
 		<Tag>INTERFACE_CITY_FOOD_GROW</Tag>
 		<English>%d1[ICON_FOOD] - %d2[ICON_EATENFOOD] = +%d3[ICON_FOOD]</English>
@@ -388,13 +436,15 @@
 		<Italian>%d1[ICON_FOOD] - %d2[ICON_EATENFOOD] = +%d3[ICON_FOOD]</Italian>
 		<Spanish>%d1[ICON_FOOD] - %d2[ICON_EATENFOOD] = +%d3[ICON_FOOD]</Spanish>
 	</TEXT>
+	
+	<!-- advc.004: Was [ICON_BAD_FOOD] -->
 	<TEXT>
 		<Tag>INTERFACE_CITY_FOOD_SHRINK</Tag>
-		<English>%d1[ICON_FOOD] - %d2[ICON_EATENFOOD] = [COLOR_WARNING_TEXT]%d3[COLOR_REVERT][ICON_BAD_FOOD]</English>
-		<French>%d1[ICON_FOOD] - %d2[ICON_EATENFOOD] = [COLOR_WARNING_TEXT]%d3[COLOR_REVERT][ICON_BAD_FOOD]</French>
-		<German>%d1[ICON_FOOD] - %d2[ICON_EATENFOOD] = [COLOR_WARNING_TEXT]%d3[COLOR_REVERT][ICON_BAD_FOOD]</German>
-		<Italian>%d1[ICON_FOOD] - %d2[ICON_EATENFOOD] = [COLOR_WARNING_TEXT]%d3[COLOR_REVERT][ICON_BAD_FOOD]</Italian>
-		<Spanish>%d1[ICON_FOOD] - %d2[ICON_EATENFOOD] = [COLOR_WARNING_TEXT]%d3[COLOR_REVERT][ICON_BAD_FOOD]</Spanish>
+		<English>%d1[ICON_FOOD] - %d2[ICON_EATENFOOD] = [COLOR_WARNING_TEXT]%d3[COLOR_REVERT][ICON_FOOD]</English>
+		<French>%d1[ICON_FOOD] - %d2[ICON_EATENFOOD] = [COLOR_WARNING_TEXT]%d3[COLOR_REVERT][ICON_FOOD]</French>
+		<German>%d1[ICON_FOOD] - %d2[ICON_EATENFOOD] = [COLOR_WARNING_TEXT]%d3[COLOR_REVERT][ICON_FOOD]</German>
+		<Italian>%d1[ICON_FOOD] - %d2[ICON_EATENFOOD] = [COLOR_WARNING_TEXT]%d3[COLOR_REVERT][ICON_FOOD]</Italian>
+		<Spanish>%d1[ICON_FOOD] - %d2[ICON_EATENFOOD] = [COLOR_WARNING_TEXT]%d3[COLOR_REVERT][ICON_FOOD]</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>INTERFACE_CITY_FOOD_STAGNATE</Tag>

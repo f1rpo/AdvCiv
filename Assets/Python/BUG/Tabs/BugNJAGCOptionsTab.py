@@ -20,37 +20,47 @@ class BugNJAGCOptionsTab(BugOptionsTab.BugOptionsTab):
 		upperPanel = self.addOneColumnLayout(screen, panel)
 		
 		leftPanel, centerPanel, rightPanel = self.addThreeColumnLayout(screen, upperPanel, "EraColors")
-		
-		self.addCheckbox(screen, leftPanel, "NJAGC__Enabled")
+		# advc.067: Moved to bottom half
+		#self.addCheckbox(screen, leftPanel, "NJAGC__Enabled")
 		self.addCheckbox(screen, leftPanel, "NJAGC__ShowEra")
-		self.addCheckbox(screen, leftPanel, "NJAGC__ShowEraColor")
+		# advc.067: New sub-option - don't show it after all
+		#self.addCheckbox(screen, leftPanel, "NJAGC__ShowGameEra", True)
+		# advc.067: was on leftPanel
+		self.addCheckbox(screen, centerPanel, "NJAGC__ShowEraColor")
 		centerPanelL, centerPanelR = self.addTwoColumnLayout(screen, centerPanel, "ShowEraColor_Column")
 		self.addColorDropdown(screen, centerPanelL, centerPanelR, "NJAGC__Color_ERA_ANCIENT", True)
 		self.addColorDropdown(screen, centerPanelL, centerPanelR, "NJAGC__Color_ERA_CLASSICAL", True)
 		self.addColorDropdown(screen, centerPanelL, centerPanelR, "NJAGC__Color_ERA_MEDIEVAL", True)
-		self.addColorDropdown(screen, centerPanelL, centerPanelR, "NJAGC__Color_ERA_RENAISSANCE", True)
 		rightPanelL, rightPanelR = self.addTwoColumnLayout(screen, rightPanel, "ShowEraColor_Column")
+		# advc.067: Moved from centerPanel
+		self.addColorDropdown(screen, rightPanelL, rightPanelR, "NJAGC__Color_ERA_RENAISSANCE", True)
 		self.addColorDropdown(screen, rightPanelL, rightPanelR, "NJAGC__Color_ERA_INDUSTRIAL", True)
 		self.addColorDropdown(screen, rightPanelL, rightPanelR, "NJAGC__Color_ERA_MODERN", True)
 		self.addColorDropdown(screen, rightPanelL, rightPanelR, "NJAGC__Color_ERA_FUTURE", True)
-		self.addSpacer(screen, centerPanel, "Clock_Tab")
-		
+		# advc.067: Space above the separator ...
+		self.addSpacer(screen, centerPanel, "Clock_Tab_Upper")
 		screen.attachHSeparator(upperPanel, upperPanel + "Sep")
+		# advc.067: ... and below
+		self.addSpacer(screen, upperPanel, "Clock_Tab_Lower")
 		leftPanel, rightPanel = self.addTwoColumnLayout(screen, upperPanel, "Views")
-		
-		self.addCheckbox(screen, leftPanel, "NJAGC__AlternateText")
-		self.addIntDropdown(screen, rightPanel, rightPanel, "NJAGC__AltTiming")
-		
-		self.addLabel(screen, leftPanel, "NJAGC_Regular", "Standard View:")
-		self.addCheckbox(screen, leftPanel, "NJAGC__ShowTime")
-		self.addCheckbox(screen, leftPanel, "NJAGC__ShowCompletedTurns")
-		self.addCheckbox(screen, leftPanel, "NJAGC__ShowTotalTurns")
-		self.addCheckbox(screen, leftPanel, "NJAGC__ShowCompletedPercent")
-		self.addCheckbox(screen, leftPanel, "NJAGC__ShowDate")
-		
-		self.addLabel(screen, rightPanel, "NJAGC_Alternate", "Alternate View:")
-		self.addCheckbox(screen, rightPanel, "NJAGC__ShowAltTime")
-		self.addCheckbox(screen, rightPanel, "NJAGC__ShowAltCompletedTurns")
-		self.addCheckbox(screen, rightPanel, "NJAGC__ShowAltTotalTurns")
-		self.addCheckbox(screen, rightPanel, "NJAGC__ShowAltCompletedPercent")
-		self.addCheckbox(screen, rightPanel, "NJAGC__ShowAltDate")
+		# <advc.067> Instead of heading left and right, I'm placing the main 'Enabled' option above the left column and the Alternate option above the right column; the other options receive params for indentation. And each of the two top options receives a dropdown menu.
+		#self.addCheckbox(screen, leftPanel, "NJAGC__Enabled")
+		self.addCheckboxTextDropdown(screen, leftPanel, leftPanel, "NJAGC__Enabled", "NJAGC__PrimaryTiming")
+		#self.addCheckbox(screen, leftPanel, "NJAGC__AlternateText")
+		#self.addIntDropdown(screen, rightPanel, rightPanel, "NJAGC__AltTiming")
+		self.addCheckboxTextDropdown(screen, rightPanel, rightPanel, "NJAGC__AlternateText", "NJAGC__AltTiming")
+		#self.addLabel(screen, leftPanel, "NJAGC_Regular", "Standard View:")
+		self.addCheckbox(screen, leftPanel, "NJAGC__ShowTime", True)
+		self.addCheckbox(screen, leftPanel, "NJAGC__ShowCompletedTurns", True)
+		self.addCheckbox(screen, leftPanel, "NJAGC__ShowTotalTurns", True)
+		#self.addCheckbox(screen, leftPanel, "NJAGC__ShowCompletedPercent")
+		self.addCheckbox(screen, leftPanel, "NJAGC__ShowDate", True)
+		# removed
+		#self.addLabel(screen, rightPanel, "NJAGC_Alternate", "Alternate View:")
+		self.addCheckbox(screen, rightPanel, "NJAGC__ShowAltTime", True)
+		self.addCheckbox(screen, rightPanel, "NJAGC__ShowAltCompletedTurns", True)
+		self.addCheckbox(screen, rightPanel, "NJAGC__ShowAltTotalTurns", True)
+		# removed
+		#self.addCheckbox(screen, rightPanel, "NJAGC__ShowAltCompletedPercent")
+		self.addCheckbox(screen, rightPanel, "NJAGC__ShowAltDate", True)
+		# </advc.067>

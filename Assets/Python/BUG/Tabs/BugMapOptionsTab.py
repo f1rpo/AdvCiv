@@ -23,7 +23,8 @@ class BugMapOptionsTab(BugOptionsTab.BugOptionsTab):
 		
 		self.addLabel(screen, left, "StrategyOverlay", "Strategy Layer:")
 		self.addCheckbox(screen, left, "StrategyOverlay__Enabled")
-		self.addCheckbox(screen, left, "StrategyOverlay__ShowDotMap")
+		# advc.004: Disabled; Ctrl+X should suffice.
+		#self.addCheckbox(screen, left, "StrategyOverlay__ShowDotMap")
 		self.addCheckbox(screen, left, "StrategyOverlay__DotMapDrawDots")
 		leftL, leftR = self.addTwoColumnLayout(screen, left, "DotMapBrightness")
 		#self.addTextEdit(screen, leftL, leftR, "StrategyOverlay__DotMapDotIcon")
@@ -38,6 +39,8 @@ class BugMapOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addLabel(screen, center, "TileHover", "Tile Hover:")
 		self.addCheckbox(screen, center, "MiscHover__PartialBuildsAlways")
 		# </advc.011b>
+		# advc.061:
+		self.addCheckbox(screen, center, "MainInterface__ListUnitsPerOwner")
 		#self.addCheckbox(screen, center, "MiscHover__LatLongCoords")
 		#self.addCheckbox(screen, center, "MiscHover__PartialBuilds")
 		
@@ -46,6 +49,9 @@ class BugMapOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addCheckbox(screen, right, "MainInterface__FieldOfView")
 		self.addCheckbox(screen, right, "MainInterface__FieldOfView_Remember", True)
 		self.addCheckbox(screen, right, "EventSigns__Enabled")
+		# advc.004m:
+		self.addCheckbox(screen, right, "MainInterface__StartWithResourceIcons")
+		
 		#self.addCheckbox(screen, right, "Actions__IgnoreHarmlessBarbarians")
 		
 		# advc.009c: Commented out

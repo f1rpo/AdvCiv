@@ -148,6 +148,10 @@ public:
 
 	bool canHurry(HurryTypes eHurry, bool bTestVisible = false) const;		// Exposed to Python
 	void hurry(HurryTypes eHurry);																						// Exposed to Python
+	// <advc.064>
+	bool hurryOverflow(HurryTypes eHurry, int* piProduction, int* piGold,
+			bool bCountThisTurn = false) const;		// (exposed to Python)
+	// </advc.064>
 	// <advc.912d>
 	bool canPopRush() const;
 	void changePopRushCount(int iChange);

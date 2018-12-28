@@ -184,9 +184,12 @@ class CvTechChooser:
 		else:
 			screen.hide( "CivDropDown" )
 
-		if ( screen.isPersistent() and self.iCivSelected == gc.getGame().getActivePlayer()):
+		# advc.068: Dirty-bit check added
+		if screen.isPersistent() and self.iCivSelected == gc.getGame().getActivePlayer() and not CyInterface().isDirty(InterfaceDirtyBits.Tech_Screen_DIRTY_BIT):
 			self.updateTechRecords(false)
 			return
+		# advc.068: Dirty no more
+		CyInterface().setDirty(InterfaceDirtyBits.Tech_Screen_DIRTY_BIT, False)
 
 		self.nWidgetCount = 0
 		self.sWidgets = []
@@ -235,7 +238,7 @@ class CvTechChooser:
 
 		# Make the scrollable area for the city list...
 		# advc.004a: What cities? Anyway, no scrollable area needed.
-		if false and BugOpt.isShowGPTechPrefs():
+		if False and BugOpt.isShowGPTechPrefs():
 			iX = 80
 			iW = xPanelWidth - 80
 		else:
@@ -326,8 +329,9 @@ class CvTechChooser:
 
 		# Draw the arrows
 		self.drawArrows(screen, sPanel, bANDPreReq, bORPreReq)
-
-		self.updateTechPrefs()
+		# advc.004a: Adding this guard b/c the new code somehow can't handle calls via preGameStart (CvAppInterface) if the map is very large. Still seems to get updated properly if the player opens the Tech Advisor on turn 0.
+		if CyGame().getElapsedGameTurns() > 0:
+			self.updateTechPrefs()
 
 		screen.moveToFront( "CivDropDown" )
 
@@ -487,7 +491,7 @@ class CvTechChooser:
 		j = 0
 		k = 0
 
-		# Obsolete Monastaries...
+		# Obsolete Monasteries...
 		for j in range (gc.getNumSpecialBuildingInfos()):
 			if (gc.getSpecialBuildingInfo(j).getObsoleteTech() == i):
 					# Add obsolete picture here...
@@ -1151,7 +1155,7 @@ class CvTechChooser:
 		self.bPrefsShowing = True
 
 		# Remove any techs researched since last call, creating tree if necessary
-		if (not self.pPrefs):
+		if not self.pPrefs:
 			self.resetTechPrefs()
 		self.pPrefs.removeKnownTechs()
 		bAnyResearch = False # advc.004a: Don't show the second button then

@@ -30,7 +30,8 @@ public:
 	// <dlph.26>
 	static void queueWar(TeamTypes eAttackingTeam, TeamTypes eDefendingTeam,
 			bool bNewDiplo, WarPlanTypes eWarPlan, bool bPrimaryDOW = true);
-	static void triggerWars(); // </dlph.26>
+	static void triggerWars(bool bForceUpdateAttitude = false); // advc: param added
+	// </dlph.26>
 /********************************************************************************/
 /*		BETTER_BTS_AI_MOD						12/30/08		jdog5000		*/
 /*		     																	*/

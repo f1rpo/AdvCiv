@@ -170,6 +170,10 @@ class Tracker:
 		self.iProductionModifier = pCity.getProductionModifier()
 		if self.iProductionModifier != 0:
 			self.sModifierDetail = pCity.getProductionName()
+			# advc.002b: The name is often too long, and then the modifier won't be shown.
+			iCharLimit = 8
+			if len(self.sModifierDetail) > (iCharLimit + 1):
+				self.sModifierDetail = (self.sModifierDetail[:iCharLimit] + '.')
 	
 	
 	def fillTable(self, screen, table, eYield, eTileType):

@@ -70,7 +70,7 @@
 					type="boolean" default="True" 
 					get="isAlignIcons" set="setAlignIcons" dirtyBit="Score"/>
 			<option id="DisplayOrder" key="Display Order" 
-					type="string" default="!?2WSZC6PTURAHQ*LO"
+					type="string" default="!?2WSZCPTURAHQ*LO"
 					get="getDisplayOrder" set="setDisplayOrder" dirtyBit="Score"/>
 			<list   id="DefaultSpacing" key="Default Column Spacing" 
 					type="int" default="0" values="0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10" 
@@ -85,6 +85,10 @@
 			<option id="GroupVassals" key="Group Vassals Under Master" 
 					type="boolean" default="True" 
 					get="isGroupVassals" set="setGroupVassals" dirtyBit="Score"/>
+			<!-- advc.155 -->
+			<option id="ColorCodeTeamScore" key="Color Code Team Score" 
+					type="boolean" default="True" 
+					get="isColorCodeTeamScore" dirtyBit="Score"/>
 			<option id="LeftAlignName" key="Left-Align Name" 
 					type="boolean" default="True" 
 					get="isLeftAlignName" set="setLeftAlignName" dirtyBit="Score"/>
@@ -108,8 +112,9 @@
 				<choice id="ThemVersusYou" get="isPowerThemVersusYou"/>
 				<choice id="YouVersusThem" get="isPowerYouVersusThem"/>
 			</list>
+			<!-- advc.004: values 3 and 4 removed -->
 			<list   id="PowerDecimals" key="Power Ratio Decimals" 
-					type="int" default="1" values="1, 2, 3, 4" 
+					type="int" default="1" values="1, 2" 
 					get="getPowerDecimals" set="setPowerDecimals" dirtyBit="Score"/>
 			<option id="PowerColor" key="Power Color" 
 					type="color" default="COLOR_WHITE" 

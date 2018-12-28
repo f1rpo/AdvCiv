@@ -2739,8 +2739,8 @@ class CvInfoScreen:
 
 		# K-Mod.
 		iNumCitiesCurrent = gc.getPlayer(self.iActivePlayer).getNumCities()
-
-		if (iNumCitiesCurrent != 0 or not AdvisorOpt.isNonZeroStatsOnly()):
+		# advc.004: No longer optional
+		if iNumCitiesCurrent != 0:# or not AdvisorOpt.isNonZeroStatsOnly():
 			iRow += 1
 			screen.appendTableRow(szTopChart)
 			iCol = 0
@@ -2748,24 +2748,24 @@ class CvInfoScreen:
 			iCol = 1
 			screen.setTableText(szTopChart, iCol, iRow, str(iNumCitiesCurrent), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 		# K-Mod end (note. I've also changed some of the structure of the surrounding code...)
-
-		if (iNumCitiesBuilt != 0 or not AdvisorOpt.isNonZeroStatsOnly()):
+		# advc.004:
+		if iNumCitiesBuilt != 0:# or not AdvisorOpt.isNonZeroStatsOnly():
 			iRow += 1
 			screen.appendTableRow(szTopChart)
 			iCol = 0
 			screen.setTableText(szTopChart, iCol, iRow, self.TEXT_CITIES_BUILT, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 			iCol = 1
 			screen.setTableText(szTopChart, iCol, iRow, str(iNumCitiesBuilt), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-
-		if (iNumCitiesRazed != 0 or not AdvisorOpt.isNonZeroStatsOnly()):
+		# advc.004:
+		if iNumCitiesRazed != 0:# or not AdvisorOpt.isNonZeroStatsOnly():
 			iRow += 1
 			screen.appendTableRow(szTopChart)
 			iCol = 0
 			screen.setTableText(szTopChart, iCol, iRow, self.TEXT_CITIES_RAZED, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 			iCol = 1
 			screen.setTableText(szTopChart, iCol, iRow, str(iNumCitiesRazed), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-
-		if (iNumReligionsFounded != 0 or not AdvisorOpt.isNonZeroStatsOnly()):
+		# advc.004:
+		if iNumReligionsFounded != 0:# or not AdvisorOpt.isNonZeroStatsOnly():
 			iRow += 1
 			screen.appendTableRow(szTopChart)
 			iCol = 0
@@ -2775,8 +2775,8 @@ class CvInfoScreen:
 
 		# K-Mod.
 		iNumGoldenAges = CyStatistics().getPlayerNumGoldenAges(self.iActivePlayer)
-		
-		if (iNumGoldenAges != 0 or not AdvisorOpt.isNonZeroStatsOnly()):
+		# advc.004:
+		if iNumGoldenAges != 0:# or not AdvisorOpt.isNonZeroStatsOnly():
 			iRow += 1
 			screen.appendTableRow(szTopChart)
 			iCol = 0
@@ -2872,7 +2872,7 @@ class CvInfoScreen:
 		iRow = 0 # K-Mod
 		for iUnitLoop in range(iNumUnits):
 			# K-Mod. Hide zero rows option.
-			if (AdvisorOpt.isNonZeroStatsOnly()
+			if ((True or AdvisorOpt.isNonZeroStatsOnly()) # advc.004
 					and aiUnitsCurrent[iUnitLoop] == 0 and aiUnitsBuilt[iUnitLoop] == 0
 					and aiUnitsKilled[iUnitLoop] == 0 and aiUnitsLost[iUnitLoop] == 0):
 				continue
@@ -2905,7 +2905,8 @@ class CvInfoScreen:
 		iRow = 0 # K-Mod
 		for iBuildingLoop in range(iNumBuildings):
 			# K-Mod. Hide zero rows option.
-			if (AdvisorOpt.isNonZeroStatsOnly()	and aiBuildingsBuilt[iBuildingLoop] == 0):
+			# advc.004:
+			if aiBuildingsBuilt[iBuildingLoop] == 0: #and AdvisorOpt.isNonZeroStatsOnly():
 				continue
 			screen.appendTableRow(szBuildingsTable)
 			# K-Mod end

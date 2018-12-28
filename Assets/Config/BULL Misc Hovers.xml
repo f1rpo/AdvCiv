@@ -63,8 +63,9 @@
 		
 		
 		<section id="City Screen">
-			<option id="BaseCommerce" key="Base Commerce" 
-					type="boolean" default="False"/>
+			<!-- advc.065: No longer optional -->
+			<!--option id="BaseCommerce" key="Base Commerce" 
+					type="boolean" default="False"/-->
 			<option id="GreatPeopleRateBreakdown" key="Great People Rate Breakdown" 
 					type="boolean" default="False"/>
 					
@@ -92,9 +93,9 @@
 					type="boolean" default="False" dll="3"/>
 			<option id="ConscriptLimit" key="Conscript Limit" 
 					type="boolean" default="False" dll="3"/>
-					
+			<!-- advc.064: default was False -->
 			<option id="HurryOverflow" key="Hurry Overflow" 
-					type="boolean" default="False"/>
+					type="boolean" default="True"/>
 			<option id="HurryOverflowIncludeCurrent" key="Hurry Overflow Include Current" 
 					type="boolean" default="False"/>
 					

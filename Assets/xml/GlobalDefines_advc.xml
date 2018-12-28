@@ -308,15 +308,6 @@
 		<DefineName>CAMERA_START_DISTANCE</DefineName>
 		<fDefineFloatVal>4600</fDefineFloatVal>
 	</Define>
-
-	<!-- [advc.004m]
-	     At 1 (recommended) or greater, the Resource Layer (bubbles)
-		 is shown at the beginning of a new game. 0 or less for
-		 original behavior: bubbles not shown. -->
-	<Define>
-		<DefineName>SHOW_RESOURCE_BUBBLES_AT_GAME_START</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
-	</Define>
 	
 	<!-- [advc.500b]
 		 If this is set to a value greater than 0, unhappiness for lack of
@@ -870,16 +861,6 @@
 		 made peace with Alexander" is announced). -->
 	<Define>
 		<DefineName>ANNOUNCE_REPARATIONS</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
-	</Define>
-	
-	<!-- [advc.155] If set to 1 or greater (recommended), then the leaderboard
-		 shows civ scores in the color of that civ's team leader. The scores of
-		 civs without other team members are shown in white, so this setting
-		 only affects team games and Permanent Alliances. Set to 0 for BtS
-		 behavior: all scores shown in white. -->
-	<Define>
-		<DefineName>COLOR_CODE_TEAM_SCORE</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 

@@ -18,43 +18,43 @@ class BugACOOptionsTab(BugOptionsTab.BugOptionsTab):
 		tab = self.createTab(screen)
 		panel = self.createMainPanel(screen)
 		column = self.addOneColumnLayout(screen, panel)
-		
-		left, right = self.addTwoColumnLayout(screen, column, "Page", True)
+		# advc.048: No separator (last param)
+		left, right = self.addTwoColumnLayout(screen, column, "Page", False)
 		
 		#self.addLabel(screen, left, "ACO", "Advanced Combat Odds:")
 		self.addCheckbox(screen, left, "ACO__Enabled")
-		self.addSpacer(screen, left, "ACO_Tab0")
-		
-		self.addCheckbox(screen, left, "ACO__ForceOriginalOdds")
-		self.addCheckbox(screen, left, "ACO__IgnoreBarbFreeWins")
-		
+		# <advc.048> Put all the standard/alternate stuff at the top to make sure players get it before looking into the other options
 		self.addCheckbox(screen, left, "ACO__SwapViews")
-		self.addCheckbox(screen, left, "ACO__MergeShortBars")
-		self.addCheckbox(screen, left, "ACO__ShowModifierLabels")
-		
-		self.addSpacer(screen, left, "ACO_Tab1")
+		#self.addSpacer(screen, left, "ACO_Tab0")
+		#self.addSpacer(screen, left, "ACO_Tab1")
 		leftL, leftR =  self.addTwoColumnLayout(screen, left, "ACO1")
+		self.addTextDropdown(screen, leftL, leftR, "ACO__ShowShiftInstructions")
+		# </advc.048>
+		
+		self.addSpacer(screen, leftL, "ACO_Tab1.1")
+		self.addSpacer(screen, leftR, "ACO_Tab1.2")
+		
 		self.addTextDropdown(screen, leftL, leftR, "ACO__ShowBasicInfo")
 		self.addTextDropdown(screen, leftL, leftR, "ACO__ShowAttackerInfo")
 		self.addTextDropdown(screen, leftL, leftR, "ACO__ShowDefenderInfo")
 		
-		self.addSpacer(screen, leftL, "ACO_Tab1.1")
-		self.addSpacer(screen, leftR, "ACO_Tab1.2")
-		self.addTextDropdown(screen, leftL, leftR, "ACO__ShowShiftInstructions")
+		self.addSpacer(screen, leftL, "ACO_Tab2.1")
+		self.addSpacer(screen, leftR, "ACO_Tab2.2")
+		
+		# advc.048: Moved to the left column: Odds, health bars and avg. health
+		self.addTextDropdown(screen, leftL, leftR, "ACO__ShowSurvivalOdds")
+		self.addTextDropdown(screen, leftL, leftR, "ACO__ShowUnharmedOdds")
+		# Don't have quite that much space, and it's all closely related anyway.
+		#self.addSpacer(screen, leftL, "ACO_Tab3.1")
+		#self.addSpacer(screen, leftR, "ACO_Tab3.2")
+		self.addTextDropdown(screen, leftL, leftR, "ACO__ShowAttackerHealthBars")
+		self.addTextDropdown(screen, leftL, leftR, "ACO__ShowDefenderHealthBars")
+		self.addTextDropdown(screen, leftL, leftR, "ACO__ShowAverageHealth")
 		
 		self.addSpacer(screen, right, "ACO_Tab2")
+		self.addSpacer(screen, right, "ACO_Tab3") # advc.048: another spacer
 		rightL, rightR =  self.addTwoColumnLayout(screen, right, "ACO2")
-		self.addTextDropdown(screen, rightL, rightR, "ACO__ShowSurvivalOdds")
-		self.addTextDropdown(screen, rightL, rightR, "ACO__ShowUnharmedOdds")
 		
-		self.addSpacer(screen, rightL, "ACO_Tab2.1")
-		self.addSpacer(screen, rightR, "ACO_Tab2.2")
-		self.addTextDropdown(screen, rightL, rightR, "ACO__ShowAverageHealth")
-		self.addTextDropdown(screen, rightL, rightR, "ACO__ShowAttackerHealthBars")
-		self.addTextDropdown(screen, rightL, rightR, "ACO__ShowDefenderHealthBars")
-		
-		self.addSpacer(screen, rightL, "ACO_Tab3.1")
-		self.addSpacer(screen, rightR, "ACO_Tab3.2")
 		self.addTextDropdown(screen, rightL, rightR, "ACO__ShowUnroundedExperience")
 		self.addTextDropdown(screen, rightL, rightR, "ACO__ShowExperienceRange")
 		
@@ -63,3 +63,12 @@ class BugACOOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addTextDropdown(screen, rightL, rightR, "ACO__ShowDefenseModifiers")
 		self.addTextDropdown(screen, rightL, rightR, "ACO__ShowTotalDefenseModifier")
 		
+		self.addSpacer(screen, rightL, "ACO_Tab4.1")
+		self.addSpacer(screen, rightR, "ACO_Tab4.2")
+		
+		# advc.048: Checkboxes that always apply moved to the end, ForceOriginalOdds to the very end. Put a heading in front:
+		self.addLabel(screen, rightL, "ACO_Always", "Always ...")
+		self.addCheckbox(screen, rightL, "ACO__IgnoreBarbFreeWins")
+		self.addCheckbox(screen, rightL, "ACO__MergeShortBars")
+		self.addCheckbox(screen, rightL, "ACO__ShowModifierLabels")
+		self.addCheckbox(screen, rightL, "ACO__ForceOriginalOdds")

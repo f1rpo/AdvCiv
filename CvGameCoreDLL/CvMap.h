@@ -333,8 +333,7 @@ public:
 private:
 	std::map<Shelf::Id,Shelf*> shelves;
 	// </advc.300>
-	// advc.030:
-	void calculateAreas_visit(CvPlot const& p);
+	void calculateAreas_DFS(CvPlot const& p); // advc.030
 };
 
 #endif
