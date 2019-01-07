@@ -13007,7 +13007,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 					//show the spaceship progress
 					if(isHuman() &&
 							// advc.060:
-							getBugOptionBOOL("TechWindow__ShowSSScreen", false, "TechWindow_SHOW_SS_SCREEN"))
+							getBugOptionBOOL("TechWindow__ShowSSScreen", false))
 					{
 						if(!GC.getGameINLINE().isNetworkMultiPlayer())
 						{

@@ -44,7 +44,7 @@ int getDefineINT(const char* xmlKey, int iDefault)
 }
 
 
-bool getBugOptionBOOL(const char* id, bool bDefault, const char* xmlKey)
+bool getBugOptionBOOL(const char* id, bool bDefault)
 {
 	CyArgsList argsList;
 	long lResult = 0;
@@ -57,7 +57,7 @@ bool getBugOptionBOOL(const char* id, bool bDefault, const char* xmlKey)
 	return lResult != 0;
 }
 
-int getBugOptionINT(const char* id, int iDefault, const char* xmlKey)
+int getBugOptionINT(const char* id, int iDefault)
 {
 	CyArgsList argsList;
 	long lResult = 0;

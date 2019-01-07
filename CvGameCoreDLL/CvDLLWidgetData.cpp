@@ -1922,12 +1922,10 @@ void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 	}
 
 	// BUG - Hurry Overflow - start (advc.064)
-	if(getBugOptionBOOL("MiscHover__HurryOverflow", false,
-			"BUG_HURRY_OVERFLOW_HOVER")) {
+	if(getBugOptionBOOL("MiscHover__HurryOverflow", true)) {
 		int iOverflowProduction = 0;
 		int iOverflowGold = 0;
-		bool bIncludeCurrent = getBugOptionBOOL("MiscHover__HurryOverflowIncludeCurrent",
-				false, "BUG_HURRY_OVERFLOW_HOVER_INCLUDE_CURRENT");
+		bool bIncludeCurrent = getBugOptionBOOL("MiscHover__HurryOverflowIncludeCurrent", false);
 		if(pHeadSelectedCity->hurryOverflow((HurryTypes)(widgetDataStruct.m_iData1),
 				&iOverflowProduction, &iOverflowGold, bIncludeCurrent)) {
 			if(iOverflowProduction > 0 || iOverflowGold > 0) {
@@ -4897,8 +4895,7 @@ void CvDLLWidgetData::parseMaintenanceHelp(CvWidgetDataStruct &widgetDataStruct,
 
 // BUG - Building Saved Maintenance - start
 			if (pHeadSelectedCity->getOwnerINLINE() == GC.getGame().getActivePlayer() &&
-					(getBugOptionBOOL("MiscHover__BuildingSavedMaintenance", false,
-					"BUG_BUILDING_SAVED_MAINTENANCE_HOVER") ||
+					(getBugOptionBOOL("MiscHover__BuildingSavedMaintenance", false) ||
 					GC.altKey())) // advc.063
 				GAMETEXT.setBuildingSavedMaintenanceHelp(szBuffer, *pHeadSelectedCity, DOUBLE_SEPARATOR);
 // BUG - Building Saved Maintenance - end
@@ -4918,8 +4915,7 @@ void CvDLLWidgetData::parseHealthHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 
 // BUG - Building Additional Health - start
 		if (pHeadSelectedCity->getOwnerINLINE() == GC.getGame().getActivePlayer() &&
-				(getBugOptionBOOL("MiscHover__BuildingAdditionalHealth",
-				false, "BUG_BUILDING_ADDITIONAL_HEALTH_HOVER")
+				(getBugOptionBOOL("MiscHover__BuildingAdditionalHealth", false)
 				|| GC.altKey())) // advc.063
 			GAMETEXT.setBuildingAdditionalHealthHelp(szBuffer, *pHeadSelectedCity, DOUBLE_SEPARATOR);
 // BUG - Building Additional Health - end
@@ -5022,8 +5018,7 @@ void CvDLLWidgetData::parseHappinessHelp(CvWidgetDataStruct &widgetDataStruct, C
 
 // BUG - Building Additional Happiness - start
 		if (pHeadSelectedCity->getOwnerINLINE() == GC.getGame().getActivePlayer() &&
-				(getBugOptionBOOL("MiscHover__BuildingAdditionalHappiness", false,
-				"BUG_BUILDING_ADDITIONAL_HAPPINESS_HOVER")
+				(getBugOptionBOOL("MiscHover__BuildingAdditionalHappiness", false)
 				|| GC.altKey())) // advc.063
 			GAMETEXT.setBuildingAdditionalHappinessHelp(szBuffer, *pHeadSelectedCity, DOUBLE_SEPARATOR);
 // BUG - Building Additional Happiness - end

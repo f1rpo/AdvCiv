@@ -39,7 +39,7 @@
 		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWERA_HOVER</Tag>
 		<English>When checked, the current era of your civilization is displayed to the left of the research bar.</English>
 		<French>En activant, l'ère actualle est montrée à gauche de la barre des recherches.</French>
-		<German>Zeigt die derzeitige Epoche Ihrer Zivilisation links neben dem Forschungsbalken an.</German>
+		<German>Zeigt das derzeitige Zeitalter Ihrer Zivilisation links neben dem Forschungsbalken an.</German>
 		<Italian>Quando è selezionato, viene mostrata l'Era corrente a sinistra della Barra di Ricerca Tecnologica.</Italian>
 		<Spanish>Si se activa, muestra la era actual a la izquierda de la barra de investigación.</Spanish>
 	</TEXT>
@@ -67,7 +67,7 @@
 		<Tag>TXT_KEY_BUG_OPT_NJAGC__SHOWERACOLOR_TEXT</Tag>
 		<English>Era Colors</English>
 		<French>Coloriser les Eres</French>
-		<German>Epoche einfärben</German>
+		<German>Zeitalter einfärben</German>
 		<Italian>Usa colori dell'Era</Italian>
 		<Spanish>Usar color de la Era</Spanish>
 	</TEXT>

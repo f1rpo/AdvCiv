@@ -805,7 +805,7 @@ void CvGame::cycleSelectionGroups_delayed(int iDelay, bool bIncremental, bool bD
 	PlayerTypes eActive = getActivePlayer();
 	if (GC.getGameINLINE().isFinalInitialized() &&
 		eActive != NO_PLAYER && GET_PLAYER(eActive).isHuman() &&
-		getBugOptionBOOL("MainInterface__RapidUnitCycling", false, "RAPID_UNIT_CYCLING"))
+		getBugOptionBOOL("MainInterface__RapidUnitCycling", false))
 	{
 		if (!bDelayOnly)
 		{

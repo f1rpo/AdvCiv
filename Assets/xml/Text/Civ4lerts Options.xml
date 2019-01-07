@@ -16,7 +16,7 @@
 		<Spanish>Activar Civ4lerts</Spanish>
 	</TEXT>
 
-	<!-- advc.106d: Rewritten (English, German(; credits to Dr. Elmer Jiggle
+	<!-- advc.106d: Rewritten (English, German); credits to Dr. Elmer Jiggle
 		 removed; have the BUG help file for that. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__ENABLED_HOVER</Tag>

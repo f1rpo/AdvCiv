@@ -778,7 +778,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	// <advc.004m>
 	if(bConstructorCall)
 		m_bResourceLayer = true;
-	else if(!getBugOptionBOOL("MainInterface__StartWithResourceIcons", true, "START_WITH_RESOURCE_ICONS")) {
+	else if(!getBugOptionBOOL("MainInterface__StartWithResourceIcons", true)) {
 		/*  This causes the resource layer to be disabled when returning to the
 			main menu. (Rather than remembering the latest status.) */
 		m_bResourceLayer = false;
@@ -2531,7 +2531,7 @@ void CvGame::update()
 				gDLL->getEngineIFace()->AutoSave(true);
 			/* <advc.004m> This seems to be the earliest place where bubbles can
 			   be enabled w/o crashing. */
-			if(bStartTurn && getBugOptionBOOL("MainInterface__StartWithResourceIcons", true, "START_WITH_RESOURCE_ICONS")) {
+			if(bStartTurn && getBugOptionBOOL("MainInterface__StartWithResourceIcons", true)) {
 				m_bResourceLayer = true;
 				gDLL->getEngineIFace()->setResourceLayer(true);
 			} // </advc.004m>
@@ -2872,7 +2872,7 @@ void CvGame::selectUnit(CvUnit* pUnit, bool bClear, bool bToggle, bool bSound) c
 	} */
 	// K-Mod. Redesigned to make selection more sensible and predictable
 	// In 'simple mode', shift always groups and always targets a only a single unit.
-	bool bSimpleMode = getBugOptionBOOL("MainInterface__SimpleSelectionMode", false, "SIMPLE_SELECTION_MODE");
+	bool bSimpleMode = getBugOptionBOOL("MainInterface__SimpleSelectionMode", false);
 
 	bool bExplicitDeselect = false;
 

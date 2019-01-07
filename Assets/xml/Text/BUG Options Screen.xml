@@ -104,7 +104,7 @@
 		<Spanish>Acciones:</Spanish>
 	</TEXT>
 	
-	<!-- advc.004: This was hardcoded to "Unit/Stack Info:" in
+	<!-- advc.004: This was hardcoded as "Unit/Stack Info:" in
 		 BugGeneralOptionsTab.py -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPTLABEL_INFOPANE</Tag>

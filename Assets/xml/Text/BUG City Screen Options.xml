@@ -94,7 +94,7 @@
 	<!-- advc.004: Minor changes -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CITYSCREEN__FOODASSIST_HOVER</Tag>
-		<English>When checked, displays the food surplus to the left of the food bar, and on the food bar the number of turns until starvation when the surplus is negative.</English>
+		<English>When checked, displays the food surplus to the left of the food bar, and, on the food bar, the number of turns until starvation when the surplus is negative.</English>
 		<French>When checked, displays the food difference generated per turn (plus or minus) and the number of turns until starvation when the food supply is shrinking.</French>
 		<German>Zeigt links neben dem Nahrungsbalken den aktuellen Nahrungsüberschuss an und im Balken die Anzahl der Runden bis zum Bevölkerungsverlust, falls Nahrungsmangel besteht.</German>
 		<Italian>Quando è selezionato, visualizza la differenza del cibo generato ogni turno (positiva o negativa); quando le risorse alimentari sono in riduzione, visualizza anche il numero di turni prima della carestia.</Italian>
@@ -194,7 +194,7 @@
 		<Spanish>Sólo Religiones Presentes</Spanish>
 	</TEXT>
 	
-	<!-- advc.004: Supprt for more than 7 religions is interesting to know for
+	<!-- advc.004: Support for more than 7 religions is interesting to know for
 		 modders, but shouldn't be the players' concern. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CITYSCREEN__ONLYPRESENTRELIGIONS_HOVER</Tag>

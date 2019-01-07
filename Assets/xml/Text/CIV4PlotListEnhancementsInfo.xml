@@ -89,7 +89,7 @@
 		<Tag>TXT_KEY_PLE_RESET_FILTERS</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Reset Filters[COLOR_REVERT][NEWLINE]Show all units</English>
 		<French>[COLOR_HIGHLIGHT_TEXT]Reset Filters[COLOR_REVERT][NEWLINE]Show all units</French>
-		<German>[COLOR_HIGHLIGHT_TEXT]Filter zurücksetzen[COLOR_REVERT][NEWLINE]Zeige alle Einheiten</German>
+		<German>[COLOR_HIGHLIGHT_TEXT]Filter zurücksetzen[COLOR_REVERT][NEWLINE]Zeige alle Einheiten an</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Annulla tutti i filtri[COLOR_REVERT][NEWLINE]Mostra tutte le Unit&#224;</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Limpiar filtros[COLOR_REVERT][NEWLINE]Mostrar todas las unidades</Spanish>
 	</TEXT>
@@ -97,7 +97,7 @@
 		<Tag>TXT_KEY_PLE_RESET_FILTERS_ON</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Reset Filters[COLOR_REVERT][NEWLINE]Show all units</English>
 		<French>[COLOR_HIGHLIGHT_TEXT]Reset Filters[COLOR_REVERT][NEWLINE]Show all units</French>
-		<German>[COLOR_HIGHLIGHT_TEXT]Filter zurücksetzen[COLOR_REVERT][NEWLINE]Zeige alle Einheiten</German>
+		<German>[COLOR_HIGHLIGHT_TEXT]Filter zurücksetzen[COLOR_REVERT][NEWLINE]Zeige alle Einheiten an</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Annulla tutti i filtri[COLOR_REVERT][NEWLINE]Mostra tutte le Unit&#224;</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Limpiar filtros[COLOR_REVERT][NEWLINE]Mostrar todas las unidades</Spanish>
 	</TEXT>

@@ -357,7 +357,8 @@
 	<TEXT>
 		<Tag>TXT_KEY_RAW_YIELD_VIEW_PRODUCTION</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT] Production breakdown[COLOR_REVERT][NEWLINE]Show a breakdown of the city's [ICON_PRODUCTION] sources and modifiers (generic ones and modifiers specific to what the city is currently producing).</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]View Raw Production[COLOR_REVERT][NEWLINE]Displays a breakdown of all [ICON_PRODUCTION] sources and modifiers.</French>	<German>[COLOR_HIGHLIGHT_TEXT]Produktionserträge[COLOR_REVERT][NEWLINE]Aufschlüsselung aller [ICON_PRODUCTION]-Erträge und [ICON_PRODUCTION]-Modifikatoren (generische Modifikatoren und solche, die vom derzeitigen Produktionsauftrag abhängen können)</German>
+		<French>[COLOR_HIGHLIGHT_TEXT]View Raw Production[COLOR_REVERT][NEWLINE]Displays a breakdown of all [ICON_PRODUCTION] sources and modifiers.</French>
+		<German>[COLOR_HIGHLIGHT_TEXT]Produktionserträge[COLOR_REVERT][NEWLINE]Aufschlüsselung aller [ICON_PRODUCTION]-Erträge und [ICON_PRODUCTION]-Modifikatoren (generische Modifikatoren und solche, die vom derzeitigen Produktionsauftrag abhängen können)</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Fonti di Produzione[COLOR_REVERT][NEWLINE]Visualizza un riassunto di tutte le fonti di [ICON_PRODUCTION] ed i modificatori relativi.</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Mostrar Producción en Bruto[COLOR_REVERT][NEWLINE]Muestra una lista de todas las fuentes y modificadores de [ICON_PRODUCTION].</Spanish>
 	</TEXT>

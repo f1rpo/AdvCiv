@@ -11350,54 +11350,56 @@ int CvPlayer::getCombatExperience() const
 void CvPlayer::setCombatExperience(int iExperience)
 {
 	FAssert(iExperience >= 0);
+	// <advc.003>
+	if(iExperience == getCombatExperience())
+		return;
+	m_iCombatExperience = iExperience;
+	if(isBarbarian())
+		return;
+	CvGame& g = GC.getGameINLINE();
+	// </advc.003>
 
-	if (iExperience != getCombatExperience())
-	{
-		m_iCombatExperience = iExperience;
-
-		if (!isBarbarian())
+	int iExperienceThreshold = greatPeopleThreshold(true);
+	if (m_iCombatExperience >= iExperienceThreshold && iExperienceThreshold > 0)
+	{	// create great person
+		CvCity* pBestCity = NULL;
+		int iBestValue = MAX_INT;
+		int iLoop;
+		for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 		{
-			int iExperienceThreshold = greatPeopleThreshold(true);
-			if (m_iCombatExperience >= iExperienceThreshold && iExperienceThreshold > 0)
+			int iValue = 4 * g.getSorenRandNum(getNumCities(), "Warlord City Selection");
+
+			for (int i = 0; i < NUM_YIELD_TYPES; i++)
 			{
-				// create great person
-				CvCity* pBestCity = NULL;
-				int iBestValue = MAX_INT;
-				int iLoop;
-				for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+				iValue += pLoopCity->findYieldRateRank((YieldTypes)i);
+			}
+			iValue += pLoopCity->findPopulationRank();
+
+			if (iValue < iBestValue)
+			{
+				pBestCity = pLoopCity;
+				iBestValue = iValue;
+			}
+		}
+
+		if (pBestCity)
+		{
+			int iRandOffset = g.getSorenRandNum(GC.getNumUnitInfos(), "Warlord Unit Generation");
+			for (int iI = 0; iI < GC.getNumUnitInfos(); iI++)
+			{
+				UnitTypes eLoopUnit = (UnitTypes)((iI + iRandOffset) % GC.getNumUnitInfos());
+				if (GC.getUnitInfo(eLoopUnit).getLeaderExperience() > 0 || GC.getUnitInfo(eLoopUnit).getLeaderPromotion() != NO_PROMOTION)
 				{
-					int iValue = 4 * GC.getGameINLINE().getSorenRandNum(getNumCities(), "Warlord City Selection");
-
-					for (int i = 0; i < NUM_YIELD_TYPES; i++)
-					{
-						iValue += pLoopCity->findYieldRateRank((YieldTypes)i);
-					}
-					iValue += pLoopCity->findPopulationRank();
-
-					if (iValue < iBestValue)
-					{
-						pBestCity = pLoopCity;
-						iBestValue = iValue;
-					}
-				}
-
-				if (pBestCity)
-				{
-					int iRandOffset = GC.getGameINLINE().getSorenRandNum(GC.getNumUnitInfos(), "Warlord Unit Generation");
-					for (int iI = 0; iI < GC.getNumUnitInfos(); iI++)
-					{
-						UnitTypes eLoopUnit = (UnitTypes)((iI + iRandOffset) % GC.getNumUnitInfos());
-						if (GC.getUnitInfo(eLoopUnit).getLeaderExperience() > 0 || GC.getUnitInfo(eLoopUnit).getLeaderPromotion() != NO_PROMOTION)
-						{
-							pBestCity->createGreatPeople(eLoopUnit, false, true);
-							setCombatExperience(getCombatExperience() - iExperienceThreshold);
-							break;
-						}
-					}
+					pBestCity->createGreatPeople(eLoopUnit, false, true);
+					setCombatExperience(getCombatExperience() - iExperienceThreshold);
+					break;
 				}
 			}
 		}
-	}
+	} // <advc.004>
+	if(getID() == g.getActivePlayer() && getBugOptionBOOL("MainInterface__Combat_Counter", false))
+		gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true);
+	// </advc.004>
 }
 
 void CvPlayer::changeCombatExperience(int iChange)
@@ -14757,11 +14759,9 @@ void CvPlayer::postProcessBeginTurnEvents() {
 
 int CvPlayer::getStartOfTurnMessageLimit() const {
 
-	if(!getBugOptionBOOL("MainInterface__AutoOpenEventLog", true,
-			"AUTO_OPEN_EVENT_LOG"))
+	if(!getBugOptionBOOL("MainInterface__AutoOpenEventLog", true))
 		return -1;
-	int r = getBugOptionINT("MainInterface__MessageLimit", 3,
-			"MESSAGE_LIMIT");
+	int r = getBugOptionINT("MainInterface__MessageLimit", 3);
 	if(!isOption(PLAYEROPTION_MINIMIZE_POP_UPS) &&
 			GC.getDefineINT("MESSAGE_LIMIT_WITHOUT_MPU") == 0)
 		return -1;

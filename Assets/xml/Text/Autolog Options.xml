@@ -173,7 +173,12 @@
 		<Spanish>Permite seleccionar a qué número de turno se corresponde el 4000 a.C.</Spanish>
 	</TEXT>
 	
-	<!-- advc.004: Don't need a cryptic shorthand for this -->
+	<!-- advc.004: The help file says that the IBT option was
+		 "added to split user actions and AI actions."
+		 But it doesn't seem to work at all. I suppose a line is missing in		 
+		 autologEventManager.py to discard the in-between-turn events if IBT
+		 isn't set. I'm not sure if such a split option would really be useful,
+		 so I'm leaving it (and describing it) as it is. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_AUTOLOG__IBT_TEXT</Tag>
 		<English>Log End of Turn</English>
@@ -773,7 +778,7 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_AUTOLOG__LOGWARDEMAND_HOVER</Tag>
-		<English>When checked, will log join-war requests and your respons to them.</English>
+		<English>When checked, will log join-war requests and your response to them.</English>
 		<French>When checked, will log AI requests to declare war on a third party and your responses.</French>
 		<German>Protokolliert Aufforderungen zur Kriegsteilnahme und Ihre Reaktion darauf.</German>
 		<Italian>Quando è selezionato, il Registro Automatico registra le richieste di dichiarazione di guerra delle altre Civiltà e le vostre risposte.</Italian>

@@ -41,7 +41,7 @@
 		<Spanish>Ninguno|Pequeño|Mediano|Grande</Spanish>
 	</TEXT>
 	
-	<!-- advc.004: Only corrected a type - said "culture sliders" instead of
+	<!-- advc.004: Only corrected a typo - said "culture sliders" instead of
 		 "commerce sliders". -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CUSTDOMADV__SPACETOP_HOVER</Tag>

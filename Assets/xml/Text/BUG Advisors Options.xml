@@ -28,7 +28,7 @@
 
 <!-- Exotic Foreign Advisor -->
 
-	<!-- advc.004: The tab called "Einblick" in German (though "Überblick"
+	<!-- advc.004: The tab is called "Einblick" in German (though "Überblick"
 		 would perhaps indeed be a better name) -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__EFAGLANCETAB_TEXT</Tag>

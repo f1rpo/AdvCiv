@@ -29,7 +29,8 @@ void setIsBug(bool bIsBug);
 bool getDefineBOOL(const char* xmlKey, bool bDefault = false);
 int getDefineINT(const char* xmlKey, int iDefault = 0);
 
-bool getBugOptionBOOL(const char* id, bool bDefault = true, const char* xmlKey = NULL);
-int getBugOptionINT(const char* id, int iDefault = 0, const char* xmlKey = NULL);
+// advc.003: Removed unused param char const* xmlKey = NULL
+bool getBugOptionBOOL(const char* id, bool bDefault = true);
+int getBugOptionINT(const char* id, int iDefault = 0);
 
 #endif

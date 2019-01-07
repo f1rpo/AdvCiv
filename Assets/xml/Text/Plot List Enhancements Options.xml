@@ -355,7 +355,7 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_PLE__HAS_MOVED_COLOR_HOVER</Tag>
-		<English>The colorfor the portion of the bar that show the sepnt movement points.</English>
+		<English>The color for the portion of the bar that show the sepnt movement points.</English>
 		<French>La couleur pour indiquer les points de mouvement utilisés.</French>
 		<German>Farbe für den Balken, der die in diesem Zug bereits verbrauchten Bewegungspunkte anzeigt.</German>
 		<Italian>Il colore da utilizzare per la porzione della barra corrispondente ai punti-movimento utilizzati.</Italian>
@@ -444,7 +444,7 @@
 	<!-- advc.069: said lower right -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_PLE__UPGRADE_INDICATOR_HOVER</Tag>
-		<English>Places an orange up arrow in the lower left corner of units that can be upgraded. The arrow is placed regardless of the available gold.</English>
+		<English>Places an orange up arrow in the lower left corner of a unit icon if the unit can be upgraded. The arrow is placed regardless of the available gold.</English>
 		<French>Place une flèche orange sur les Unités capables de s'améliorer, sans tenir compte des frais.</French>
 		<German>Zeigt einen orangefarbenen Pfeil in der unteren linken Ecke des Einheitensymbols an, wenn eine Einheit modernisiert werden kann (unabhängig von den Gold-Kosten).</German>
 		<Italian>Visualizza una freccia arancio nell'angolo inferiore destro delle Unità che possono godere di un avanzamento (non tenendo conto del costo dell'avanzamento).</Italian>
@@ -570,9 +570,7 @@
 		<Spanish>Espaciado Promociones</Spanish>
 	</TEXT>
 	
-	<!-- advc.069: Rewrittwen (English, German). I' m not convinced that
-		 fonts would be an issue; after all, AdvCiv uses larger fonts and
-		 the position is fine at 0 offset. -->
+	<!-- advc.069: rewritten (English, German) -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_PLE__INFO_PANE_PROMO_ICON_OFFSET_Y_HOVER</Tag>
 		<English>This offset can be used to adjust the vertical position of the promotion icons displayed by PLE inside the help text for a unit icon. A positive offset moves the icons up, a negative one moves them down.</English>

@@ -187,7 +187,7 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_SCORES__ATTITUDE_HOVER</Tag>
-		<English>When checked, shows smileys that indicate attitude of the AI leaders toward you.</English>
+		<English>When checked, shows smileys that indicate the attitudes of the AI leaders toward you.</English>
 		<French>En activant, utilise des smileys pour indiquer l'attitude des IA envers vous.</French>
 		<German>Zeigt durch Smilies die Einstellung der KI-Spieler Ihnen gegenüber an.</German>
 		<Italian>Quando è selezionato, nel Pannello del Punteggio vengono mostrate delle emoticons che rappresentano l'atteggiamento delle altre Civiltà verso di te.</Italian>
@@ -276,7 +276,7 @@
 		<Tag>TXT_KEY_BUG_OPT_SCORES__ALIGNICONS_HOVER</Tag>
 		<English>When checked, the scoreboard is aligned to an (invisible) grid and can be customized through the options in the bottom half of this tab.</English>
 		<French>En activant, le panneau des scores devient un tableau, et les options dans cette colonne l'affectent.</French>
-		<German>Aktiviert das BUG-Layout, welches die Punkteanzeige an einem (unsichtbaren) Raster anordnet, und mit den nachstehenden Optionen individuell angepasst werden kann.</German>
+		<German>Aktiviert das BUG-Layout, welches die Punkteanzeige an einem (unsichtbaren) Raster ausrichtet, und mit den nachstehenden Optionen individuell angepasst werden kann.</German>
 		<Italian>Quando è selezionato, il Pannello del Punteggio viene strutturato come griglia (vedi l'opzione seguente).</Italian>
 		<Spanish>Si se activa, se muestra la tabla de puntuaciones como una rejilla, y el resto de opciones en esta sección afectan a la tabla.</Spanish>
 	</TEXT>
@@ -296,7 +296,7 @@
 		<Tag>TXT_KEY_BUG_OPT_SCORES__MAXPLAYERS_HOVER</Tag>
 		<English>The upper limit for the number of rows on the scoreboard. If the number of civilizations to display exceeds this limit, the lower ranks are omitted. [COLOR_HIGHLIGHT_TEXT]0[COLOR_REVERT] means unlimited.</English>
 		<French>Select the maximum number of civilizations to display (0 for unlimited).</French>
-		<German>Obergrenze für die Anzahl der Einträge in der Punkteanzeige. Falls nicht alle Zivilisationen angezeigt werden können, werden die unteren Ränge weggelassen. [COLOR_HIGHLIGHT_TEXT]0[COLOR_REVERT] bedeutet unbegrenzt.</German>
+		<German>Obergrenze für die Anzahl der Einträge in der Punkteanzeige. Falls nicht alle Zivilisationen Platz finden, werden die unteren Ränge weggelassen. [COLOR_HIGHLIGHT_TEXT]0[COLOR_REVERT] bedeutet unbegrenzt.</German>
 		<Italian>Seleziona il massimo numero di Civiltà che verranno mostrate (0 significa illimitate).</Italian>
 		<Spanish>Permite seleccionar el máximo número de civilizaciones a mostrar (0 indica que no hay límite).</Spanish>
 	</TEXT>
