@@ -1391,7 +1391,9 @@ class PLE:
 		szString = self.PLOT_LIST_BUTTON_NAME + str(iCount)
 
 		# set unit button image
-		screen.changeImageButton( szString, gc.getUnitInfo(pLoopUnit.getUnitType()).getButton() )
+		#screen.changeImageButton( szString, gc.getUnitInfo(pLoopUnit.getUnitType()).getButton() )
+		# advc.003l: Replacing the above
+		screen.changeImageButton( szString, gc.getPlayer(pLoopUnit.getOwner()).getUnitButton(pLoopUnit.getUnitType()))
 
 		# check if it is an player unit or not
 		if ( pLoopUnit.getOwner() == gc.getGame().getActivePlayer() ):

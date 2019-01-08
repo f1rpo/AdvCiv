@@ -132,7 +132,13 @@ class UnitUpgradesGraph:
 					self.addUpgradePath(graph, unitA, unitB)
 
 	def placeOnScreen(self, screen, unit, xPos, yPos):
-		screen.setImageButtonAt(self.pediaScreen.getNextWidgetName(), self.upgradesList, gc.getUnitInfo(unit).getButton(), xPos, yPos, self.buttonSize, self.buttonSize, WidgetTypes.WIDGET_PEDIA_JUMP_TO_UNIT, unit, 1)
+		szButton = gc.getUnitInfo(unit).getButton()
+		# <advc.003l>
+		iActivePlayer = gc.getGame().getActivePlayer()
+		if iActivePlayer >= 0:
+			szButton = gc.getPlayer(iActivePlayer).getUnitButton(unit)
+		# </advc.003l>
+		screen.setImageButtonAt(self.pediaScreen.getNextWidgetName(), self.upgradesList, szButton, xPos, yPos, self.buttonSize, self.buttonSize, WidgetTypes.WIDGET_PEDIA_JUMP_TO_UNIT, unit, 1)
 			
 	def unitToString(self, unit):
 		return gc.getUnitInfo(unit).getDescription() + ":%d"%(unit, )
