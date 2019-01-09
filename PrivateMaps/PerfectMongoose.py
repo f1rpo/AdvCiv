@@ -5492,7 +5492,7 @@ def getBottomLatitude():
 
 
 def getGridSize(argsList):
-	# <advc.021b> Use the defaults (10x6,13x8,16x10,21x13,26x16,32x20), which are smaller, combined with a higher land ratio.
+	# <advc.021b> Use the defaults, which are smaller, combined with a higher land ratio.
 	CyPythonMgr().allowDefaultImpl()
 	return
 	# At first, I had tried these sizes in between the default and PerfectMongoose:

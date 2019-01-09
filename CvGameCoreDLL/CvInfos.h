@@ -3897,12 +3897,14 @@ public:
 	virtual ~CvSeaLevelInfo();
 
 	int getSeaLevelChange() const;		// Exposed to Python
+	inline int getResearchPercent() const { return m_iResearchPercent; }// advc.910
 
 	bool read(CvXMLLoadUtility* pXML);
 
 protected:
 
 	int m_iSeaLevelChange;
+	int m_iResearchPercent; // advc.910
 
 };
 

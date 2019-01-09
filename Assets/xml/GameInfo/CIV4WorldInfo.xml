@@ -20,11 +20,13 @@
 			<iMaxConscriptModifier>-30</iMaxConscriptModifier>
 			<!-- advc.140: was 37 -->
 			<iWarWearinessModifier>30</iWarWearinessModifier>
-			<iGridWidth>10</iGridWidth>
+			<!-- advc.137: was 10 -->
+			<iGridWidth>8</iGridWidth>
 			<iGridHeight>6</iGridHeight>
 			<iTerrainGrainChange>-1</iTerrainGrainChange>
 			<iFeatureGrainChange>-1</iFeatureGrainChange>
-			<iResearchPercent>100</iResearchPercent>
+			<!-- advc.910: was 100 -->
+			<iResearchPercent>95</iResearchPercent>
 			<!-- advc.140: was 80 -->
 			<iTradeProfitPercent>70</iTradeProfitPercent>
 			<!-- advc.140: was 50 -->
@@ -50,11 +52,13 @@
 			<iMaxConscriptModifier>-15</iMaxConscriptModifier>
 			<!-- advc.140: was 30 -->
 			<iWarWearinessModifier>20</iWarWearinessModifier>
-			<iGridWidth>13</iGridWidth>
+			<!-- advc.137: was 13 -->
+			<iGridWidth>12</iGridWidth>
 			<iGridHeight>8</iGridHeight>
 			<iTerrainGrainChange>-1</iTerrainGrainChange>
 			<iFeatureGrainChange>-1</iFeatureGrainChange>
-			<iResearchPercent>110</iResearchPercent>
+			<!-- advc.910: was 110 -->
+			<iResearchPercent>105</iResearchPercent>
 			<!-- advc.140: was 70 -->
 			<iTradeProfitPercent>63</iTradeProfitPercent>
 			<!-- advc.140: was 60 -->
@@ -79,11 +83,13 @@
 			<iMaxConscriptModifier>0</iMaxConscriptModifier>
 			<!-- advc.140: was 10 -->
 			<iWarWearinessModifier>12</iWarWearinessModifier>
-			<iGridWidth>16</iGridWidth>
+			<!-- advc.137: was 16 -->
+			<iGridWidth>15</iGridWidth>
 			<iGridHeight>10</iGridHeight>
 			<iTerrainGrainChange>0</iTerrainGrainChange>
 			<iFeatureGrainChange>0</iFeatureGrainChange>
-			<iResearchPercent>120</iResearchPercent>
+			<!-- advc.910: was 120 -->
+			<iResearchPercent>110</iResearchPercent>
 			<!-- advc.140: was 60 -->
 			<iTradeProfitPercent>55</iTradeProfitPercent>
 			<!-- advc.140: was 70 -->
@@ -114,11 +120,13 @@
 			<iMaxConscriptModifier>15</iMaxConscriptModifier>
 			<!-- advc.140: was -10 -->
 			<iWarWearinessModifier>0</iWarWearinessModifier>
-			<iGridWidth>21</iGridWidth>
+			<!-- advc.137: was 21 -->
+			<iGridWidth>20</iGridWidth>
 			<iGridHeight>13</iGridHeight>
 			<iTerrainGrainChange>0</iTerrainGrainChange>
 			<iFeatureGrainChange>0</iFeatureGrainChange>
-			<iResearchPercent>130</iResearchPercent>
+			<!-- advc.910: was 130 -->
+			<iResearchPercent>115</iResearchPercent>
 			<!-- advc.140: was 50 -->
 			<iTradeProfitPercent>48</iTradeProfitPercent>
 			<!-- advc.140: was 80 -->
@@ -146,12 +154,14 @@
 			<iMaxConscriptModifier>30</iMaxConscriptModifier>
 			<!-- advc.140: was -30 -->
 			<iWarWearinessModifier>-13</iWarWearinessModifier>
-			<iGridWidth>26</iGridWidth>
-			<iGridHeight>16</iGridHeight>
+			<!-- advc.137: was 26 -->
+			<iGridWidth>25</iGridWidth>
+			<!-- advc.137: was 16 -->
+			<iGridHeight>15</iGridHeight>
 			<iTerrainGrainChange>1</iTerrainGrainChange>
 			<iFeatureGrainChange>1</iFeatureGrainChange>
-			<!-- advc.140: was 140 -->
-			<iResearchPercent>148</iResearchPercent>
+			<!-- advc.910: was 140 -->
+			<iResearchPercent>125</iResearchPercent>
 			<iTradeProfitPercent>40</iTradeProfitPercent>
 			<!-- advc.140: was 90 -->
 			<iDistanceMaintenancePercent>89</iDistanceMaintenancePercent>
@@ -179,12 +189,13 @@
 			<iMaxConscriptModifier>45</iMaxConscriptModifier>
 			<!-- advc.140: was -50 -->
 			<iWarWearinessModifier>-25</iWarWearinessModifier>
-			<iGridWidth>32</iGridWidth>
-			<iGridHeight>20</iGridHeight>
+			<!-- advc.137: was 32 -->
+			<iGridWidth>31</iGridWidth>
+			<!-- advc.137: was 20 -->
+			<iGridHeight>19</iGridHeight>
 			<iTerrainGrainChange>1</iTerrainGrainChange>
 			<iFeatureGrainChange>1</iFeatureGrainChange>
-			<!-- advc.140: was 150 -->
-			<iResearchPercent>165</iResearchPercent>
+			<iResearchPercent>150</iResearchPercent>
 			<!-- advc.140: was 30 -->
 			<iTradeProfitPercent>33</iTradeProfitPercent>
 			<!-- advc.140: was 100 -->

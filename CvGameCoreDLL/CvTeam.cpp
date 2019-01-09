@@ -3464,8 +3464,13 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 	iModifier += GC.getTECH_COST_MODIFIER();
 	// </advc.910>
 	if (bGlobalModifiers) // K-Mod
-	{
-		cost *= 0.01 * GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getResearchPercent();
+	{	// advc.003:
+		CvWorldInfo const& wi = GC.getWorldInfo(GC.getMapINLINE().getWorldSize());
+		if(eTechEra > 0) { // advc.910
+			cost *= 0.01 * wi.getResearchPercent();
+			// advc.910:
+			cost *= 0.01 * GC.getSeaLevelInfo(GC.getMapINLINE().getSeaLevel()).getResearchPercent();
+		}
 		cost *= 0.01 * GC.getGameSpeedInfo(g.getGameSpeedType()).getResearchPercent();
 		cost *= 0.01 * GC.getEraInfo(g.getStartEra()).getResearchPercent();
 		// <advc.308>
@@ -3477,8 +3482,9 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 		} // </advc.308>
 		// <advc.550d>
 		if(g.isOption(GAMEOPTION_NO_TECH_TRADING) && eTechEra > 0 && eTechEra < 6) {
-			iModifier += std::max(0, ::round(GC.getTECH_COST_NOTRADE_MODIFIER() + 5 *
-					std::pow(std::abs(eTechEra - 2.5), 1.5)));
+			iModifier += std::max(0, ::round((GC.getTECH_COST_NOTRADE_MODIFIER() + 5 *
+					std::pow(std::abs(eTechEra - 2.5), 1.5)) *
+					::dRange((wi.getDefaultPlayers() - 2) / 6.0, 0, 2)));
 		} // </advc.550d>
 	}
 

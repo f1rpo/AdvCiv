@@ -1351,32 +1351,6 @@
 		<Spanish>[ICON_BULLET]%D1_Change%% por nivel de dificultad</Spanish>
 	</TEXT>
 
-	<!-- advc.137: Copy-pasted from Vanilla Civ4GameText_Misc1.xml;
-		 recommendation added (only in English and German). -->
-	<TEXT>
-		<Tag>TXT_KEY_MAP_SCRIPT_TERRA_DESCR</Tag>
-		<English>Extra players recommended (ca. +30%%).&#010;Terra generates random land masses similar to those of the planet Earth. All players begin in the Old World. These maps are extra large!</English>
-		<French>Des continents similaires &#224; ceux de la Terre sont cr&#233;&#233;s al&#233;atoirement. Tous les joueurs commencent dans l'Antiquit&#233;. Ces cartes sont immenses !</French>
-		<German>Höhere Spielerzahl empfohlen (ca. +30%%). Terra generiert zuf&#228;llige Landfl&#228;chen, &#228;hnlich wie die auf dem Planeten Erde. Alle Spieler beginnen zun&#228;chst in der Alten Welt. Diese Kartenvarianten sind besonders gro&#223;!</German>
-		<Italian>Terra genera delle masse terrestri casuali simili a quelle del nostro pianeta. Tutti i giocatori iniziano nel Vecchio Mondo. Queste mappe sono grandissime!</Italian>
-		<Spanish>Terra genera al azar masas de tierra similares a las del planeta Tierra. Todos los jugadores empiezan en el Viejo Mundo. &#161;Estos mapas son supergrandes!</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_MAP_SCRIPT_PANGAEA_DESCR</Tag>
-		<English>Pan-Gaia: "One Earth," a massive single continent. Fewer players than normal recommended (about -15%%) because relatively few water tiles can be worked.</English>
-		<French>Pan-Gaia: "Une terre", un seul et &#233;norme continent.</French>
-		<German>Pang&#228;a: "Eine Erde", ein einziger gewaltiger Kontinent. Geringere Spielerzahl empfohlen (etwa -15%%) da weniger Wasserfelder bearbeitet werden können als auf anderen Karten.</German>
-		<Italian>Pan-Gaia: "Una terra", un enorme continente.</Italian>
-		<Spanish>Pan-gea ("una Tierra"), un solo continente enorme.</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_MAP_SCRIPT_OASIS_DESCR</Tag>
-		<English>The desert region in the middle holds the strategic minerals. The fertile region in the north has less land (but more resources) than the south. Extra players recommended (ca. +25%%) because there is very little sea and much of the desert is habitable because of rivers.</English>
-		<French>La r&#233;gion d&#233;sertique au centre contient toutes les ressources min&#233;rales strat&#233;giques. Les fertiles r&#233;gions du nord sont moins grandes (mais contiennent plus de ressources) que celles du sud.</French>
-		<German>In der W&#252;stenregion in der Mitte der Karte finden sich wichtige strategische Mineralienvorkommen. In der fruchtbaren Region im Norden stehen weniger Landstriche (aber mehr Ressourcen) zur Verf&#252;gung als im S&#252;den. Höhere Spielerzahl empfohlen (ca. +25%%), da das Meer kaum Raum einnimmt und die Wüste großteils bewohnbar ist.</German>
-		<Italian>La regione desertica nella zona centrale della mappa contiene le risorse strategiche minerarie. La regione fertile a nord dispone di meno terra ma di pi&#249; risorse di quella a sud.</Italian>
-		<Spanish>La regi&#243;n des&#233;rtica central contiene los minerales estrat&#233;gicos. La f&#233;rtil regi&#243;n septentrional tiene menos tierra, pero m&#225;s recursos, que la meridional.</Spanish>
-	</TEXT>
 
 	<!-- advc.137: Copy-pasted from Vanilla Civ4GameTextInfos.xml;
 		 recommendation added (only in English). -->
@@ -1413,6 +1387,17 @@
 		<German>Hoch</German>
 		<Italian>Alto</Italian>
 		<Spanish>Alto</Spanish>
+	</TEXT>
+	
+	<!-- advc.165: Copy-pasted from Civ4GameText_Misc1.xml; no longer
+		 "extra large". -->
+	<TEXT>
+		<Tag>TXT_KEY_MAP_SCRIPT_TERRA_DESCR</Tag>
+		<English>Terra generates random land masses similar to those of the planet Earth. All players begin in the Old World.</English>
+		<French>Des continents similaires &#224; ceux de la Terre sont cr&#233;&#233;s al&#233;atoirement. Tous les joueurs commencent dans l'Antiquit&#233;. Ces cartes sont immenses !</French>
+		<German>Terra generiert zuf&#228;llige Landfl&#228;chen, &#228;hnlich wie die auf dem Planeten Erde. Alle Spieler beginnen zun&#228;chst in der Alten Welt.</German>
+		<Italian>Terra genera delle masse terrestri casuali simili a quelle del nostro pianeta. Tutti i giocatori iniziano nel Vecchio Mondo.</Italian>
+		<Spanish>Terra genera al azar masas de tierra similares a las del planeta Tierra. Todos los jugadores empiezan en el Viejo Mundo.</Spanish>
 	</TEXT>
 	
 	<!-- advc.704: Originally in CIV4GameTextInfos.xml -->
@@ -4400,6 +4385,16 @@
 		<German>%F1: %s2 %s3/Runde</German>
 		<Italian>%F1: %s2 %s3/turno</Italian>
 		<Spanish>%F1: %s2 %s3/turno</Spanish>
+	</TEXT>
+	
+	<!-- advc.069: Originally in CIV4GameTextInfos.xml; removed parentheses. -->
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_HELP_LEVEL</Tag>
+		<English>, XP: %d1_Curr/%d2_Needed</English>
+		<French>, EXP : %d1_Curr/%d2_Needed</French>
+		<German>, EP: %d1_Curr/%d2_Needed</German>
+		<Italian>, XP: %d1_Curr/%d2_Needed</Italian>
+		<Spanish>, PX: %d1_Curr/%d2_Needed</Spanish>
 	</TEXT>
 	
 </Civ4GameText>

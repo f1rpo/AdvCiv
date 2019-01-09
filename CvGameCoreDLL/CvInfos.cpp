@@ -15450,7 +15450,8 @@ bool CvClimateInfo::read(CvXMLLoadUtility* pXML)
 //					CvSeaLevelInfo
 //======================================================================================================
 CvSeaLevelInfo::CvSeaLevelInfo() :
-m_iSeaLevelChange(0)
+m_iSeaLevelChange(0),
+m_iResearchPercent(-1) // advc.910
 {
 }
 
@@ -15471,6 +15472,8 @@ bool CvSeaLevelInfo::read(CvXMLLoadUtility* pXML)
 	}
 
 	pXML->GetChildXmlValByName(&m_iSeaLevelChange, "iSeaLevelChange");
+	// advc.910:
+	pXML->GetChildXmlValByName(&m_iResearchPercent, "iResearchPercent");
 
 	return true;
 }

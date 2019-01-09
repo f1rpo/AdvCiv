@@ -58,6 +58,8 @@
 		<element type="Type"/>
 		<element type="Description"/>
 		<element type="iSeaLevelChange"/>
+		<!-- advc.910 -->
+		<element type="iResearchPercent"/>
 	</ElementType>
 	<ElementType name="WorldInfo" content="eltOnly">
 		<element type="Type"/>

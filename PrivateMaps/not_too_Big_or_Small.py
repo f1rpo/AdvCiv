@@ -11,6 +11,23 @@ from CvMapGeneratorUtil import FeatureGenerator
 
 def getDescription():
 	return "A modified version of Big and Small, designed to scale better for large maps."
+	
+# <advc.165>
+def getGridSize(argsList):
+	[iWorldSize] = argsList
+	if iWorldSize < 0:
+		return ()
+	sizeModifiers = {
+		WorldSizeTypes.WORLDSIZE_DUEL:		(0, -1),
+		WorldSizeTypes.WORLDSIZE_TINY:		(0, -2),
+		WorldSizeTypes.WORLDSIZE_SMALL:		(-1,-2),
+		WorldSizeTypes.WORLDSIZE_STANDARD:	(-2,-2),
+		WorldSizeTypes.WORLDSIZE_LARGE:		(-3,-2),
+		WorldSizeTypes.WORLDSIZE_HUGE:		(-5,-2)
+	}
+	wi = CyGlobalContext().getWorldInfo(iWorldSize)
+	return (sizeModifiers[iWorldSize][0] + wi.getGridWidth(), sizeModifiers[iWorldSize][1] + wi.getGridHeight())
+# </advc.165>
 
 def isAdvancedMap():
 	"This map should not show up in simple mode"
