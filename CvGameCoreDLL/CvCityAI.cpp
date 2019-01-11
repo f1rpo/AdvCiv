@@ -2790,7 +2790,6 @@ void CvCityAI::AI_chooseProduction()
 UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAITypes* peBestUnitAI)
 {
 	CvArea* pWaterArea;
-	int aiUnitAIVal[NUM_UNITAI_TYPES];
 	UnitTypes eUnit;
 	UnitTypes eBestUnit;
 	bool bWarPlan;
@@ -2849,10 +2848,7 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 		iCoastalCities = kOwner.countNumCoastalCitiesByArea(pWaterArea);
 	}
 
-	for (iI = 0; iI < NUM_UNITAI_TYPES; iI++)
-	{
-		aiUnitAIVal[iI] = 0;
-	}
+	int aiUnitAIVal[NUM_UNITAI_TYPES] = { 0 };
 
 	if (!bFinancialTrouble && ((bPrimaryArea) ? (kOwner.findBestFoundValue() > 0) : (area()->getBestFoundValue(getOwnerINLINE()) > 0)))
 	{
@@ -9874,14 +9870,9 @@ bool CvCityAI::AI_foodAvailable(int iExtra) const
 {
 	PROFILE_FUNC();
 
-	bool abPlotAvailable[NUM_CITY_PLOTS];
 	int iI;
 	int iFoodCount = 0;
-
-	for (iI = 0; iI < NUM_CITY_PLOTS; iI++)
-	{
-		abPlotAvailable[iI] = false;
-	}
+	bool abPlotAvailable[NUM_CITY_PLOTS] = { false };
 
 	for (iI = 0; iI < NUM_CITY_PLOTS; iI++)
 	{

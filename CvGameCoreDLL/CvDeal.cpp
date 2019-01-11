@@ -196,7 +196,7 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 	/*  <advc.130p> MakePeace calls moved down. Want to count trade value (partially)
 		for peace deals, and I don't think AI_dealValue will work correctly when no
 		longer at war. */
-	bool const bPeace = atWar(eFirstTeam, eSecondTeam);
+	bool const bPeace = ::atWar(eFirstTeam, eSecondTeam);
 	bool bUpd = false;
 	/*  Calls to changePeacetimeTradeValue moved into a subroutine to avoid
 		code duplication */
@@ -974,7 +974,7 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 			// <advc.104i> Similar to code in CvTeam::makeUnwillingToTalk
 			if(attacked.AI_getMemoryCount(eFromPlayer, MEMORY_DECLARED_WAR_RECENT) <= 0)
 				attacked.AI_changeMemoryCount(eFromPlayer, MEMORY_DECLARED_WAR_RECENT, 1);
-			if(TEAMREF(eToPlayer).isAtWar(attacked.getTeam()) && attacked.
+			if(::atWar(TEAMID(eToPlayer), attacked.getTeam()) && attacked.
 					AI_getMemoryCount(eToPlayer, MEMORY_DECLARED_WAR_RECENT) <= 0)
 				attacked.AI_changeMemoryCount(eToPlayer, MEMORY_DECLARED_WAR_RECENT, 1);
 			// </advc.104i>

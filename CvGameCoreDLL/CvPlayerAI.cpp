@@ -820,101 +820,74 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 	// I can't help but think there is a more natural solution to this problem...
 }
 
-
+// advc.003: Hardly any original code left. Note that UWAI doesn't call this function.
 void CvPlayerAI::AI_doPeace()
 {
 	PROFILE_FUNC();
-
-	CLinkList<TradeData> ourList;
-	CLinkList<TradeData> theirList;
-	bool abContacted[MAX_TEAMS];
-	TradeData item;
-	int iOurValue;
-	int iTheirValue;
-	int iI;
 
 	FAssert(!isHuman());
 	FAssert(!isMinorCiv());
 	FAssert(!isBarbarian());
 
-	for (iI = 0; iI < MAX_TEAMS; iI++)
-	{
-		abContacted[iI] = false;
-	}
-
-	/*  <advc.003> Moved checks into new function willOfferPeace for advc.134a,
-		then realized I don't need that function after all. Doesn't hurt though,
-		and I'm using it for an assertion in CvPlayer::setTurnActive now. */
-	for(iI = 0; iI < MAX_CIV_PLAYERS; iI++) {
+	TradeData item;
+	bool abContacted[MAX_TEAMS] = { false };
+	for(int iI = 0; iI < MAX_CIV_PLAYERS; iI++) {
 		PlayerTypes civId = (PlayerTypes)iI;
 		CvPlayerAI const& civ = GET_PLAYER(civId);
-		if(AI_getContactTimer(civId, CONTACT_PEACE_TREATY) != 0)
+		if(AI_getContactTimer(civId, CONTACT_PEACE_TREATY) > 0)
 			continue;
-		if(!AI_willOfferPeace(civId))
-			continue; // </advc.003>
-		bool bOffered = false;
+		if(civ.isHuman() && abContacted[TEAMID(civId)])
+			continue;
+		if(!AI_willOfferPeace(civId)) // advc.003: Moved checks into new function
+			continue;
+
 		setTradeItem(&item, TRADE_SURRENDER);
-
-		if (canTradeItem(civId, item, true))
-		{
-			ourList.clear();
-			theirList.clear();
-
-			ourList.insertAtEnd(item);
-
-			bOffered = true;
-
-			if (civ.isHuman())
-			{
-				/*  <advc.134a> Can't get this diplo popup through the EXE,
-					so better not to send it at all. */
-				bOffered = false;
-				//FAssertMsg(false, "AI sends surrender popup, but the EXE won't show it");
-				// Commented out: </advc.134a>
-				/*if (!(abContacted[TEAMID(civId)]))
-				{
-					AI_changeContactTimer(civId, CONTACT_PEACE_TREATY,
-							GC.getLeaderHeadInfo(getPersonalityType()).
-							getContactDelay(CONTACT_PEACE_TREATY));
-					pDiplo = new CvDiploParameters(getID());
-					FAssert(pDiplo != NULL);
-					pDiplo->setDiploComment((DiploCommentTypes)
-							GC.getInfoTypeForString("AI_DIPLOCOMMENT_OFFER_PEACE"));
-					pDiplo->setAIContact(true);
-					pDiplo->setOurOfferList(theirList);
-					pDiplo->setTheirOfferList(ourList);
-					gDLL->beginDiplomacy(pDiplo, civId);
-					abContacted[TEAMID(civId)] = true;
-				}*/
-			}
-			else
-			{
-				GC.getGameINLINE().implementDeal(getID(), civId, &ourList, &theirList);
-			}
-		}
-
-		if(bOffered) return; // advc.003
-		// advc.003 (comment): Non-capitulation peace offered with a 10 or 5% probability
-		if(GC.getGameINLINE().getSorenRandNum(GC.getLeaderHeadInfo(
-				getPersonalityType()).getContactRand(CONTACT_PEACE_TREATY)
-				/ 2, // advc.134a: Make it 10-20% b/c the other conditions are so narrow
-				"AI Diplo Peace Treaty") != 0)
+		if(canTradeItem(civId, item, true)) { // advc: This checks TradeDenial!
+			// advc.104h: Moved into new function
+			AI_offerCapitulation(civId);
 			return;
-		setTradeItem(&item, TRADE_PEACE_TREATY);
-		if(!canTradeItem(civId, item, true) || !civ.canTradeItem(getID(), item, true))
-			return; // advc.003
-		iOurValue =  GET_TEAM(getTeam()).AI_endWarVal(TEAMID(civId));
-		iTheirValue = TEAMREF(civId).AI_endWarVal(getTeam());
-		// advc.134a: Human discount
-		if(civ.isHuman()) {
-			// advc.003: Moved up
-			if(abContacted[TEAMID(civId)]) return;
-			iOurValue = ::round(1.2 * iOurValue);
 		}
+		// advc (comment): Peace offered with a 5-10% probability
+		if(GC.getGameINLINE().getSorenRandNum(GC.getLeaderHeadInfo(
+				getPersonalityType()).getContactRand(CONTACT_PEACE_TREATY),
+				"AI Diplo Peace Treaty") != 0)
+			continue;
+
+		setTradeItem(&item, TRADE_PEACE_TREATY);
+		// advc: Replacing two canTradeItem calls
+		if(getTradeDenial(civId, item) != NO_DENIAL ||
+				civ.getTradeDenial(getID(), item) != NO_DENIAL)
+			continue;
+		int iOurValue = GET_TEAM(getTeam()).AI_endWarVal(TEAMID(civId));
+		int iTheirValue = TEAMREF(civId).AI_endWarVal(getTeam());
+		// <advc.134a> Human discount
+		if(civ.isHuman()) {
+			double const discountFactor = 1.2;
+			if(iOurValue > 0)
+				iOurValue = ::round(iOurValue * discountFactor);
+			else iOurValue = ::round(iOurValue / discountFactor);
+		} // </advc.134a>
 		// advc.104h:
 		abContacted[TEAMID(civId)] = AI_negotiatePeace(civId, iTheirValue, iOurValue);
 	}
 }
+
+// <advc.134a>
+bool CvPlayerAI::AI_upholdPeaceOffer(PlayerTypes humanId,
+		CvDiploParameters const& kOffer) {
+
+	int iOurBenefit = AI_dealVal(humanId, &kOffer.getTheirOfferList());
+	int iTheirBenefit = GET_PLAYER(humanId).AI_dealVal(getID(), &kOffer.getOurOfferList());
+	if(getWPAI.isEnabled()) {
+		/*  Need some padding b/c WarAndPeaceAI::Team::endWarVal is always 0
+			for at least one side. */
+		int iPadding = ::round(warAndPeaceAI().utilityToTradeVal(5));
+		iOurBenefit += iPadding;
+		iTheirBenefit += iPadding;
+	}
+	// Neither uphold highly generous offers, nor terrible ones.
+	return (2 * iOurBenefit >= iTheirBenefit && 2 * iTheirBenefit > iOurBenefit);
+} // </advc.134a>
 
 /*  <advc.104h> Cut and pasted (and heavily refactored) from doPeace b/c UWAI needs
 	this subroutine. While decisions of war and peace are made by teams, an
@@ -923,11 +896,6 @@ void CvPlayerAI::AI_doPeace()
 bool CvPlayerAI::AI_negotiatePeace(PlayerTypes civId, int iTheirBenefit, int iOurBenefit) {
 
 	CvPlayerAI& civ = GET_PLAYER(civId);
-	/*  I've called the parameters "Benefit" to make clear who receives which part,
-		but in the body, I'm using iTheirValue for the stuff they receive and
-		iOurValue for what we receive, as in the original BtS code. */
-	int iTheirValue = iTheirBenefit;
-	int iOurValue = iOurBenefit;
 	TechTypes eBestReceiveTech = NO_TECH;
 	TechTypes eBestGiveTech = NO_TECH;
 	int iReceiveGold = 0;
@@ -935,52 +903,70 @@ bool CvPlayerAI::AI_negotiatePeace(PlayerTypes civId, int iTheirBenefit, int iOu
 	CvCity* pBestReceiveCity = NULL;
 	CvCity* pBestGiveCity = NULL;
 	
-	if(iTheirValue > iOurValue) // They need to give us sth.
-		iOurValue += AI_negotiatePeace(getID(), civId, iTheirValue - iOurValue,
+	if(iTheirBenefit > iOurBenefit) // They need to give us sth.
+		iOurBenefit += AI_negotiatePeace(getID(), civId, iTheirBenefit - iOurBenefit,
 				&iReceiveGold, &eBestReceiveTech, &pBestReceiveCity);
-	else if(iOurValue > iTheirValue) // We need to give them sth.
-		iTheirValue += AI_negotiatePeace(civId, getID(), iOurValue - iTheirValue,
+	else if(iOurBenefit > iTheirBenefit) // We need to give them sth.
+		iTheirBenefit += AI_negotiatePeace(civId, getID(), iOurBenefit - iTheirBenefit,
 				&iGiveGold, &eBestGiveTech, &pBestGiveCity);
-	// <advc.134a> The bugfix doesn't work if the AI pays the human
-	if(civ.isHuman() && (eBestGiveTech != NO_TECH || iGiveGold != 0
-			|| pBestGiveCity != NULL))
-		return false; // </advc.134a>
 	/*  K-Mod: "ratio of endWar values has to be somewhat evened out by reparations
 		for peace to happen" */
-	if(iTheirValue < iOurValue*3/5 ||
-			(civ.isHuman() && iOurValue < iTheirValue*4/5) ||
-			(!civ.isHuman() && iOurValue < iTheirValue*3/5))
+	/*if(iTheirBenefit < iOurBenefit*3/5 ||
+			(civ.isHuman() && iOurBenefit < iTheirBenefit*4/5) ||
+			(!civ.isHuman() && iOurBenefit < iTheirBenefit*3/5))
+		return false; */
+	// <advc.134a> Handle low human benefit separately (after filling the lists)
+	if((!civ.isHuman() && 5 * iTheirBenefit < 3 * iOurBenefit) ||
+			5 * iOurBenefit < (civ.isHuman() ? 4 : 3) * iTheirBenefit)
 		return false;
-	CLinkList<TradeData> ourList;
-	CLinkList<TradeData> theirList;
+	// </advc.134a>
+	CLinkList<TradeData> weGive;
+	CLinkList<TradeData> theyGive;
 	TradeData item;
 	setTradeItem(&item, TRADE_PEACE_TREATY);
-	ourList.insertAtEnd(item);
-	theirList.insertAtEnd(item);
+	weGive.insertAtEnd(item);
+	theyGive.insertAtEnd(item);
 	if(eBestGiveTech != NO_TECH) {
 		setTradeItem(&item, TRADE_TECHNOLOGIES, eBestGiveTech);
-		ourList.insertAtEnd(item);
+		weGive.insertAtEnd(item);
 	}
 	if(eBestReceiveTech != NO_TECH) {
 		setTradeItem(&item, TRADE_TECHNOLOGIES, eBestReceiveTech);
-		theirList.insertAtEnd(item);
+		theyGive.insertAtEnd(item);
 	}
 	if(iGiveGold != 0) {
 		setTradeItem(&item, TRADE_GOLD, iGiveGold);
-		ourList.insertAtEnd(item);
+		weGive.insertAtEnd(item);
 	}
 	if(iReceiveGold != 0) {
 		setTradeItem(&item, TRADE_GOLD, iReceiveGold);
-		theirList.insertAtEnd(item);
+		theyGive.insertAtEnd(item);
 	}
 	if(pBestGiveCity != NULL) {
 		setTradeItem(&item, TRADE_CITIES, pBestGiveCity->getID());
-		ourList.insertAtEnd(item);
+		weGive.insertAtEnd(item);
 	}
 	if(pBestReceiveCity != NULL) {
 		setTradeItem(&item, TRADE_CITIES, pBestReceiveCity->getID());
-		theirList.insertAtEnd(item);
+		theyGive.insertAtEnd(item);
 	}
+	// <advc.134a>
+	if(civ.isHuman() && iTheirBenefit < iOurBenefit) {
+		/*  Really can't make an attractive offer w/o considering all tradeable items,
+			including map and gpt. */
+		// Remove gold from the proposal to allow AI_counterPropose to set a different amount
+		for(CLLNode<TradeData>* pNode = weGive.head(); pNode != NULL; pNode = weGive.next(pNode)) {
+			if(pNode->m_data.m_eItemType == TRADE_GOLD) {
+				weGive.deleteNode(pNode);
+				break;
+			}
+		}
+		civ.AI_counterPropose(getID(), weGive, theyGive, true, false);
+		iOurBenefit = AI_dealVal(civId, &theyGive);
+		iTheirBenefit = civ.AI_dealVal(getID(), &weGive);
+		if(5 * iTheirBenefit < 3 * iOurBenefit)
+			return false;
+	} // </advc.134a>
 	if(civ.isHuman()) {
 		AI_changeContactTimer(civId, CONTACT_PEACE_TREATY,
 				GC.getLeaderHeadInfo(getPersonalityType()).
@@ -989,19 +975,16 @@ bool CvPlayerAI::AI_negotiatePeace(PlayerTypes civId, int iTheirBenefit, int iOu
 		FAssert(pDiplo != NULL);
 		pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_OFFER_PEACE"));
 		pDiplo->setAIContact(true);
-		pDiplo->setOurOfferList(theirList);
-		pDiplo->setTheirOfferList(ourList);
+		pDiplo->setOurOfferList(theyGive);
+		pDiplo->setTheirOfferList(weGive);
 		gDLL->beginDiplomacy(pDiplo, civId);
-//advc.test, advc.134a:
-FAssertMsg(getWPAI.isEnabled(), "AI sent peace offer; if it doesn't appear, it could be b/c of a change in circumstances, but more likely advc.134a isn't working as intended");
-/*  Note: The diplo msg gets through w/o problems if the OfferLists are left empty.
-	The diplo comment will still say to "end the bloodshed", and if the player
-	accepts, a peace treaty is signed.
-	But it's no use if the AI can't offer reparations. */
+		//advc.test, advc.134a:
+		FAssertMsg(false, "AI sent peace offer; if it doesn't appear, it could be b/c of a change in circumstances, or advc.134a isn't working as intended");
 	}
-	else GC.getGameINLINE().implementDeal(getID(), civId, &ourList, &theirList);
+	else GC.getGameINLINE().implementDeal(getID(), civId, &weGive, &theyGive);
 	return true;
 }
+
 
 // Auxiliary function to reduce the amount of duplicate or dual code
 int CvPlayerAI::AI_negotiatePeace(PlayerTypes receiverId, PlayerTypes giverId,
@@ -1011,15 +994,15 @@ int CvPlayerAI::AI_negotiatePeace(PlayerTypes receiverId, PlayerTypes giverId,
 	CvPlayerAI& receiver = GET_PLAYER(receiverId);
 	CvPlayerAI& giver = GET_PLAYER(giverId);
 	TradeData item;
-	// <advc.134a> Let human pay gold if peace vals are similar.
-	if(giver.isHuman() && delta <= giver.AI_maxGoldTrade(receiverId) &&
+	// <advc.104h> Pay gold if peace vals are similar. (Tbd.: gold per turn)
+	if(delta <= giver.AI_maxGoldTrade(receiverId, true /* advc.134a */ ) &&
 			delta < 100 * giver.getCurrentEra()) {
 		setTradeItem(&item, TRADE_GOLD, delta);
 		if(giver.canTradeItem(receiverId, item, true)) {
 			*iGold = delta;
 			return delta;
 		}
-	} // </advc.134a>
+	} // </advc.104h>
 	int iBestValue = INT_MIN;
 	for(int j = 0; j < GC.getNumTechInfos(); j++) {
 		setTradeItem(&item, TRADE_TECHNOLOGIES, j);
@@ -1054,8 +1037,9 @@ int CvPlayerAI::AI_negotiatePeace(PlayerTypes receiverId, PlayerTypes giverId,
 	// K-Mod note: ideally we'd use AI_goldTradeValuePercent()
 	// to work out the gold's value gained by the receiver and the gold's value lost by the giver.
 	// Instead, we just pretend that the receiver gets 1 point per gold, and the giver loses nothing.
-	// (effectly a value of 2)
-	int tradeGold = std::min(delta - r, giver.AI_maxGoldTrade(receiverId));
+	// (effectively a value of 2)
+	int tradeGold = std::min(delta - r, giver.AI_maxGoldTrade(receiverId,
+			true)); // advc.134a
 	if(tradeGold > 0) {
 		setTradeItem(&item, TRADE_GOLD, tradeGold);
 		if(giver.canTradeItem(receiverId, item, true)) {
@@ -1087,8 +1071,34 @@ int CvPlayerAI::AI_negotiatePeace(PlayerTypes receiverId, PlayerTypes giverId,
 			r += receiver.AI_cityTradeVal(*pBestCity);
 	}
 	return r;
-} // </advc.104h>
+}
 
+void CvPlayerAI::AI_offerCapitulation(PlayerTypes civId) {
+
+	CLinkList<TradeData> ourList;
+	CLinkList<TradeData> theirList;
+	TradeData item;
+	setTradeItem(&item, TRADE_SURRENDER);
+	ourList.insertAtEnd(item);
+	if(!GET_PLAYER(civId).isHuman()) {
+		GC.getGameINLINE().implementDeal(getID(), civId, &ourList, &theirList);
+		return;
+	}
+	AI_changeContactTimer(civId, CONTACT_PEACE_TREATY,
+			// advc.134a: Double the delay
+			2 * GC.getLeaderHeadInfo(getPersonalityType()).
+			getContactDelay(CONTACT_PEACE_TREATY));
+	CvDiploParameters* pDiplo = new CvDiploParameters(getID());
+	pDiplo->setDiploComment((DiploCommentTypes)
+			GC.getInfoTypeForString("AI_DIPLOCOMMENT_OFFER_PEACE"));
+	pDiplo->setAIContact(true);
+	pDiplo->setOurOfferList(theirList);
+	pDiplo->setTheirOfferList(ourList);
+	gDLL->beginDiplomacy(pDiplo, civId);
+	//advc.test, advc.134a:
+	FAssertMsg(false, "AI sent capitulation offer; if it doesn't appear, it could be b/c of a change in circumstances, or advc.134a isn't working as intended");
+}
+// </advc.104h>
 // <advc.003>
 bool CvPlayerAI::AI_willOfferPeace(PlayerTypes toId) const {
 
@@ -1102,8 +1112,11 @@ bool CvPlayerAI::AI_willOfferPeace(PlayerTypes toId) const {
 			(!to.isHuman() && (TEAMREF(toId)).isHuman()) ||
 			// they're human and we're not the team leader
 			(to.isHuman() && ourTeam.getLeaderID() != getID()) ||
-			// war less than 10 turns old.
-			ourTeam.AI_getAtWarCounter(TEAMID(toId)) <= 10)
+			// war too recent
+			ourTeam.AI_getAtWarCounter(TEAMID(toId)) <= 10
+			/*  advc.134a: Allow earlier peace in later eras
+				(only relevant if UWAI disabled) */
+			- getCurrentEra() + 1)
 		return false;
 	return true;
 } // </advc.003>
@@ -9595,7 +9608,7 @@ int CvPlayerAI::AI_getWarAttitude(PlayerTypes ePlayer,
 {
 	int iAttitude = 0;
 
-	if(!atWar(getTeam(), GET_PLAYER(ePlayer).getTeam()))
+	if(!::atWar(getTeam(), TEAMID(ePlayer)))
 		return 0; // advc.003
 	// advc.130g: Was hardcoded as iAttitude-=3; no functional change.
 	iAttitude += GC.getDefineINT("AT_WAR_ATTITUDE_CHANGE");
@@ -11194,10 +11207,13 @@ int CvPlayerAI::AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pLis
 
 	if (atWar(getTeam(), GET_PLAYER(ePlayer).getTeam()))
 	{	// <advc.104i>
-		if(getWPAI.isEnabled() && (isHuman() || GET_PLAYER(ePlayer).isHuman()))
-			iValue += GET_TEAM(getTeam()).warAndPeaceAI().endWarVal(TEAMID(ePlayer));
+		if(getWPAI.isEnabled()) {
+			if(isHuman() || GET_PLAYER(ePlayer).isHuman())
+				iValue += GET_TEAM(getTeam()).warAndPeaceAI().endWarVal(TEAMID(ePlayer));
+			else FAssert(false); // AI-AI peace is handled only by WarAndPeaceAI
+		}
 		else // </advc.104>
-		iValue += GET_TEAM(getTeam()).AI_endWarVal(GET_PLAYER(ePlayer).getTeam());
+			iValue += GET_TEAM(getTeam()).AI_endWarVal(GET_PLAYER(ePlayer).getTeam());
 	}
 
 	// advc.104o: Can't be hired for more than one war at a time
@@ -12386,7 +12402,53 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInv
 		FAssert(iSmallerVal >= iGreaterVal);
 	}
 	return false; // advc.036
-} // </advc.003>
+}
+
+/*  This function is for AI-initiated trades. The caller has placed some items
+	in kTheyGive and/or kWeGive - these have to be included -, and this function
+	tries to sweeten the deal for whichever side needs it (or both).
+	Based on K-Mod code in AI_doDiplo; karadoc's comment cut and pasted from there
+	(can't say I really understand the final note):
+	"unfortunately, the API is pretty clumsy for setting up this counter proposal.
+	 please just bear with me. (Note: this would be faster if we just built the lists
+	 directly, but by using the existing API, we are kind of future-proofing)" */
+bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer,
+		CLinkList<TradeData>& kTheyGive,
+		CLinkList<TradeData>& kWeGive,
+		bool bTheyMayGiveMore, bool bWeMayGiveMore) const {
+
+	PROFILE_FUNC();
+	FAssert(ePlayer != getID());
+	FAssertMsg(bTheyMayGiveMore || !bWeMayGiveMore, "Probably better to call "
+			"AI_counterPropose on ePlayer then");
+	FAssert(bTheyMayGiveMore || bWeMayGiveMore);
+	CLinkList<TradeData> ourInventory, theirInventory, ourCounter, theirCounter;
+	if(bTheyMayGiveMore) {
+		CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
+		// "all tradeable items"
+		kPlayer.buildTradeTable(getID(), theirInventory);
+		// "K-Mod function - set m_bOffering on each item offered"
+		kPlayer.markTradeOffers(theirInventory, kTheyGive);
+		// "hide what should be excluded"
+		kPlayer.updateTradeList(getID(), theirInventory, kTheyGive, kWeGive);
+	}
+	if(bWeMayGiveMore) {
+		buildTradeTable(ePlayer, ourInventory);
+		markTradeOffers(ourInventory, kWeGive);
+		updateTradeList(ePlayer, ourInventory, kWeGive, kTheyGive);
+	}
+	if(AI_counterPropose(ePlayer, &kTheyGive, &kWeGive,
+			&theirInventory, &ourInventory,
+			&theirCounter, &ourCounter)) {
+		FAssert(bWeMayGiveMore || ourCounter.getLength() == 0);
+		FAssert(bTheyMayGiveMore || theirCounter.getLength() == 0);
+		kWeGive.concatenate(ourCounter);
+		kTheyGive.concatenate(theirCounter);
+		return true;
+	}
+	return false;
+}
+// </advc.003>
 
 // K-Mod. Minimum percentage of trade value that this player will accept.
 // ie. Accept trades if 100 * value_for_us >= residual * value_for_them .
@@ -12501,24 +12563,32 @@ bool CvPlayerAI::AI_checkResourceLimits(CLinkList<TradeData> const& weGive,
 } // </advc.036>
 
 
-int CvPlayerAI::AI_maxGoldTrade(PlayerTypes ePlayer) const
+int CvPlayerAI::AI_maxGoldTrade(PlayerTypes ePlayer,
+		bool bTeamTrade) const // advc.134a
 {
 	PROFILE_FUNC();
-
-	int iMaxGold;
-
 	FAssert(ePlayer != getID());
+	int iTreasury = getGold(); // advc.003
+	if(bTeamTrade && !isHuman() && GET_PLAYER(ePlayer).isHuman()) {
+		/*  <advc.134a> AI peace offers to humans (and any other trades offered
+			to humans during a team turn) need to anticipate the gold spent during
+			the AI player turn; otherwise, the AI may not have enough gold when
+			the offer is checked (by the EXE) at the start of the human turn.
+			Can't know for sure how much will be spent. */
+		iTreasury /= 2;
+		iTreasury += std::min(0, (3 * getGoldPerTurn()) / 2);
+		iTreasury = std::max(0, iTreasury);
+	} // </advc.134a>
 	// <advc.104w>
 	if(getWPAI.isEnabled() && TEAMREF(ePlayer).isAtWar(getTeam())) {
-		int r = std::max(0, getGold());
+		int r = std::max(0, iTreasury);
 		// Don't tell them exactly how much we can afford
 		return r - (r % (2 * GC.getDIPLOMACY_VALUE_REMAINDER()));
 	} // </advc.104w>
 	if (isHuman() || (GET_PLAYER(ePlayer).getTeam() == getTeam()))
 	{
-		iMaxGold = getGold();
 		// <advc.003>
-		return std::max(0, iMaxGold);
+		return std::max(0, iTreasury);
 	}
 	/*else
 	{*/ // </advc.003>
@@ -12537,7 +12607,7 @@ int CvPlayerAI::AI_maxGoldTrade(PlayerTypes ePlayer) const
 	
 	// K-Mod. Similar, but with more personality, and with better handling of situations where the AI has lots of spare gold.
 	int iTradePercent = GC.getLeaderHeadInfo(getPersonalityType()).getMaxGoldTradePercent();
-	iMaxGold = getTotalPopulation();
+	int iMaxGold = getTotalPopulation();
 
 	iMaxGold *= (GET_TEAM(getTeam()).AI_getHasMetCounter(GET_PLAYER(ePlayer).getTeam()) + 10);
 
@@ -12554,14 +12624,14 @@ int CvPlayerAI::AI_maxGoldTrade(PlayerTypes ePlayer) const
 	{
 		PROFILE("AI_maxGoldTrade: gold rate adjustment");
 		int iTarget = AI_goldTarget();
-		if (getGold() < iTarget)
+		if (iTreasury < iTarget)
 		{
-			iGoldRate -= (iTarget - getGold())/3;
+			iGoldRate -= (iTarget - iTreasury)/3;
 			iGoldRate = std::max(0, iGoldRate);
 		}
 		else
 		{
-			iMaxGold += (getGold() - iTarget) * iTradePercent / 100;
+			iMaxGold += (iTreasury - iTarget) * iTradePercent / 100;
 		}
 		iMaxGold += iGoldRate * 2 * iTradePercent / 100;
 	}
@@ -12576,7 +12646,7 @@ int CvPlayerAI::AI_maxGoldTrade(PlayerTypes ePlayer) const
 	iMaxGold = AI_adjustTradeGoldToDiplo(iMaxGold, ePlayer);
 	// Moved from above the gold rate adjustment
 	iMaxGold -= AI_getGoldTradedTo(ePlayer); // </advc.036>
-	iMaxGold = range(iMaxGold, 0, getGold());
+	iMaxGold = range(iMaxGold, 0, iTreasury);
 	// <advc.550f>
 	if(GET_PLAYER(ePlayer).isHuman() && GET_TEAM(getTeam()).isTechTrading() ||
 			TEAMREF(ePlayer).isTechTrading()) {
@@ -20507,26 +20577,18 @@ void CvPlayerAI::AI_doDiplo()
 {
 	PROFILE_FUNC();
 	CvDiploParameters* pDiplo;
-	/*CLLNode<TradeData>* pNode; // advc.003: Moved into doDeals
-	CvDeal* pLoopDeal;*/
 	CvCity* pLoopCity;
 	CvPlot* pLoopPlot;
 	CLinkList<TradeData> ourList;
 	CLinkList<TradeData> theirList;
-	bool abContacted[MAX_TEAMS];
 	TradeData item;
-	// advc.133: Moved into proposeResourceTrade
-	//BonusTypes eBestReceiveBonus;
 	BonusTypes eBestGiveBonus;
 	TechTypes eBestReceiveTech;
 	TechTypes eBestGiveTech;
 	TeamTypes eBestTeam;
-	//bool bCancelDeal; // advc.003: Moved into checkCancel
 	int iReceiveGold;
 	int iGiveGold;
 	int iGold;
-	//int iGoldData;
-	//int iGoldWeight;
 	int iGoldValuePercent;
 	int iCount;
 	int iPossibleCount;
@@ -20536,33 +20598,26 @@ void CvPlayerAI::AI_doDiplo()
 	int iTheirValue;
 	int iPass;
 	int iLoop;
-	//int iI, iJ;
 
 	FAssert(!isHuman());
 	FAssert(!isMinorCiv());
 	FAssert(!isBarbarian());
 
 	// allow python to handle it
-	if (GC.getUSE_AI_DO_DIPLO_CALLBACK()) // K-Mod. block unused python callbacks
-	{
+	if(GC.getUSE_AI_DO_DIPLO_CALLBACK()) { // K-Mod. block unused python callbacks
 		CyArgsList argsList;
 		argsList.add(getID());
 		long lResult=0;
 		gDLL->getPythonIFace()->callFunction(PYGameModule, "AI_doDiplo", argsList.makeFunctionArgs(), &lResult);
-		if (lResult == 1)
-		{
+		if(lResult == 1)
 			return;
-		}
 	}
 	iGoldValuePercent = AI_goldTradeValuePercent();
-
-	for (int iI = 0; iI < MAX_TEAMS; iI++)
-	{
-		abContacted[iI] = false;
-	} // <advc.003> Replaced everywhere
+	// <advc.003> Replaced everywhere
 	CvGame& g = GC.getGame();
 	CvTeamAI const& ourTeam = GET_TEAM(getTeam()); // </advc.003>
 	// <advc.024>
+	bool abContacted[MAX_TEAMS] = { false };
 	int contacts[MAX_CIV_PLAYERS];
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
 		contacts[i] = i;
@@ -20991,8 +21046,7 @@ void CvPlayerAI::AI_doDiplo()
 							//GET_PLAYER((PlayerTypes)iI).
 							getPersonalityType()).getNoGiveHelpAttitudeThreshold())
 					{
-						if (AI_getContactTimer(civId, CONTACT_GIVE_HELP) == 0 ||
-								!civ.isHuman()) // advc.130z
+						if (AI_getContactTimer(civId, CONTACT_GIVE_HELP) == 0)
 						{	// <advc.130z>
 							int iRandMax = GC.getLeaderHeadInfo(getPersonalityType()).
 									getContactRand(CONTACT_GIVE_HELP);
@@ -21357,26 +21411,14 @@ void CvPlayerAI::AI_doDiplo()
 									(double)iOurValue > 0.5 ||
 									::bernoulliSuccess(0.36, "advc.550b")))
 									// </advc.550b>
-							{	// advc.003b: Pushed this directive down into CvPlayer::buildTradeTable and CvPlayerAI::AI_counterPropose_bulk
+							{	// advc.003b: Pushed this down into CvPlayer::buildTradeTable and CvPlayerAI::AI_counterPropose
 								//PROFILE("AI_doDiplo self-counter-propose");
 								// let the other team counter-propose (even if the other team is a human player)
-								// unfortunately, the API is pretty clumsy for setting up this counter proposal.
-								// please just bear with me.
-								// (Note: this would be faster if we just built the lists directly, but by using the existing API, we are kind of future-proofing)
-								CLinkList<TradeData> ourInventory, theirInventory, ourCounter, theirCounter;
-								buildTradeTable(civId, ourInventory); // all tradeable items
-								markTradeOffers(ourInventory, ourList); // K-Mod function - set m_bOffering on each item offered
-								updateTradeList(civId, ourInventory, ourList, theirList); // hide what should be excluded
-								civ.buildTradeTable(getID(), theirInventory); // same for the other player
-								civ.markTradeOffers(theirInventory, theirList);
-								civ.updateTradeList(getID(), theirInventory, theirList, ourList);
-
-								// Note: AI_counterPropose tends to favour the caller, which in this case is the other player.
-								// ie. we asked for the trade, but they set the final terms. (unless the original deal is accepted)
-								if (civ.AI_counterPropose(getID(), &ourList, &theirList, &ourInventory, &theirInventory, &ourCounter, &theirCounter))
+								/*  Note: AI_counterPropose tends to favour the caller, which in this case is the other player.
+									ie. we asked for the trade, but they set the final terms. (unless the original deal is accepted) */
+								// advc.003: K-Mod code moved into new function
+								if(civ.AI_counterPropose(getID(), ourList, theirList, true, true))
 								{
-									ourList.concatenate(ourCounter);
-									theirList.concatenate(theirCounter);
 									bDeal = true;
 									// K-Mod note: the following log call will miss the second name if it is a non-standard name (for example, a human player name).
 									// This is a problem in the way the getName function is implimented. Unfortunately, the heart of the problem is in the signature of
@@ -21983,40 +22025,20 @@ bool CvPlayerAI::AI_proposeResourceTrade(PlayerTypes civId) {
 		theirList.clear();
 		setTradeItem(&item, TRADE_RESOURCES, eBestGiveBonus);
 		ourList.insertAtEnd(item);
-		/*  Code (K-Mod) copied from the tech trade block above.
-			Can't move this stuff into AI_counterPropose b/c
-			the lists need to be allocated here. */
-		CLinkList<TradeData> ourInventory, theirInventory, ourCounter, theirCounter;
-		// Leave our inventory empty; we're not giving anything else.
-		civ.buildTradeTable(getID(), theirInventory);
-		civ.markTradeOffers(theirInventory, theirList);
-		civ.updateTradeList(getID(), theirInventory, theirList, ourList);
-		if(AI_counterPropose(civId, &theirList, &ourList,
-				&theirInventory, &ourInventory,
-				&theirCounter, &ourCounter)) {
-			theirList.concatenate(theirCounter);
+		if(AI_counterPropose(civId, theirList, ourList, true, false))
 			bDeal = true;
-		}
 	}
 	if(!bDeal && eBestReceiveBonus != NO_BONUS) {
 		ourList.clear();
 		theirList.clear();
 		setTradeItem(&item, TRADE_RESOURCES, eBestReceiveBonus);
 		theirList.insertAtEnd(item);
-		CLinkList<TradeData> ourInventory, theirInventory, ourCounter, theirCounter;
-		// Leave their inventory empty
-		buildTradeTable(civId, ourInventory);
-		markTradeOffers(ourInventory, ourList);
-		updateTradeList(civId, ourInventory, ourList, theirList);
-		if(civ.AI_counterPropose(getID(), &ourList, &theirList,
-				&ourInventory, &theirInventory,
-				&ourCounter, &theirCounter)) {
-			ourList.concatenate(ourCounter);
+		if(civ.AI_counterPropose(getID(), ourList, theirList, true, false))
 			bDeal = true;
-		}
 	}
 	if(!bDeal)
-		return false; // </advc.036>
+		return false;
+	// </advc.036>
 	if(civ.isHuman()) {
 		AI_changeContactTimer(civId, CONTACT_TRADE_BONUS, GC.getLeaderHeadInfo(getPersonalityType()).getContactDelay(CONTACT_TRADE_BONUS));
 		CvDiploParameters* pDiplo = new CvDiploParameters(getID());
@@ -22236,8 +22258,8 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes humanId, int tributeType) {
 	// <advc.104m> Don't ask for too little
 	// Unless difficulty is low
 	if(GC.getHandicapInfo(human.getHandicapType()).getDifficulty() > 25) {
-		int dealVal = AI_dealVal(humanId, &theirList, false, 1, true);
-		if(dealVal < 50 * std::pow(2.0, getCurrentEra()))
+		int iDealVal = AI_dealVal(humanId, &theirList, false, 1, true);
+		if(iDealVal < 50 * std::pow(2.0, getCurrentEra()))
 			return false;
 	} // </advc.104m>
 	AI_changeContactTimer(humanId, CONTACT_DEMAND_TRIBUTE,

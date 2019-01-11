@@ -279,6 +279,10 @@ public:
 	// K-Mod end
 
 	DllExport bool isAtWar(TeamTypes eIndex) const;																			// Exposed to Python
+	// <advc.134a> Alias that the EXE can't (directly) call
+	inline bool isAtWarInternal(TeamTypes eIndex) const {
+		return m_abAtWar[eIndex];
+	} // </advc.134a>
 	void setAtWar(TeamTypes eIndex, bool bNewValue);
 	bool hasJustDeclaredWar(TeamTypes eIndex) const; // advc.162
 
@@ -378,11 +382,10 @@ public:
 	/* advc.004a: A hack that allows other classes to pretend that a team knows
 	   a tech for some computation. Should be toggled back afterwards. */
 	void setHasTechTemporarily(TechTypes tt, bool b);
-	/* advc.134a: (Looks like a finite state machine isn't needed after all;
-		i.e. would work with just OfferingPeace set to either the team whose
-		peace offer is incoming or NO_TEAM otherwise.) */
+	// <advc.134a>
 	void advancePeaceOfferStage(TeamTypes aiTeam = NO_TEAM);
-
+	bool isPeaceOfferStage(int iStage, TeamTypes eOffering) const;
+	// </advc.134a>
 	bool isNoTradeTech(TechTypes eIndex) const;																														// Exposed to Python
 	void setNoTradeTech(TechTypes eIndex, bool bNewValue);																					// Exposed to Python
 
@@ -438,6 +441,7 @@ public:
 	CvCity* getLeaderCapital() const;
 	// </advc.127b>
 	void makeUnwillingToTalk(TeamTypes otherId); // advc.104i
+
 	virtual void AI_init() = 0;
 	virtual void AI_reset(bool bConstructor) = 0;
 	virtual void AI_doTurnPre() = 0;

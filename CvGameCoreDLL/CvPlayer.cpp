@@ -4569,18 +4569,16 @@ bool CvPlayer::canContact(PlayerTypes ePlayer) const
 		return false;
 	}
 
-	if (getTeam() != GET_PLAYER(ePlayer).getTeam())
+	if (getTeam() != TEAMID(ePlayer))
 	{
-		if (!(GET_TEAM(getTeam()).isHasMet(GET_PLAYER(ePlayer).getTeam())))
+		if (!GET_TEAM(getTeam()).isHasMet(TEAMID(ePlayer)))
 		{
 			return false;
 		}
 
-		/* advc.134a: Switched the two conditions; no functional change
-		   (except when expecting an AI peace offer) */
-		if (!(GET_TEAM(getTeam()).canChangeWarPeace(GET_PLAYER(ePlayer).getTeam())))
+		if (::atWar(getTeam(), TEAMID(ePlayer)))
 		{
-			if (atWar(getTeam(), GET_PLAYER(ePlayer).getTeam()))
+			if (!GET_TEAM(getTeam()).canChangeWarPeace(TEAMID(ePlayer)))
 			{
 				return false;
 			}
@@ -4974,13 +4972,13 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 	switch (item.m_eItemType)
 	{
 	case TRADE_TECHNOLOGIES:
-		if (!(GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_TRADING)))
+		if (!GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_TRADING))
 		{
-			if (GC.getTechInfo((TechTypes)(item.m_iData)).isTrade())
+			if (GC.getTechInfo((TechTypes)item.m_iData).isTrade())
 			{
-				if (ourTeam.isHasTech((TechTypes)(item.m_iData)) && !(ourTeam.isNoTradeTech((TechTypes)(item.m_iData))))
+				if (ourTeam.isHasTech((TechTypes)item.m_iData) && !ourTeam.isNoTradeTech((TechTypes)(item.m_iData)))
 				{
-					if (!theirTeam.isHasTech((TechTypes)(item.m_iData)))
+					if (!theirTeam.isHasTech((TechTypes)item.m_iData))
 					{
 						//if (GET_PLAYER(eWhoTo).isHuman() || (GET_PLAYER(eWhoTo).getCurrentResearch() != item.m_iData))
 						{
@@ -5046,8 +5044,9 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 			};
 			for(int i = 0; i < iNumPrevOwners; i++) {
 				if(aePrevOwners[i] != NO_PLAYER &&
-						TEAMREF(aePrevOwners[i]).isAtWar(getTeam()) &&
-						!TEAMREF(aePrevOwners[i]).isAtWar(TEAMID(eWhoTo))) {
+						// advc.134a: Avoid calling CvTeam::isAtWar in canTradeItem
+						::atWar(TEAMID(aePrevOwners[i]), getTeam()) &&
+						!::atWar(TEAMID(aePrevOwners[i]),TEAMID(eWhoTo))) {
 					bValid = false;
 					break;
 				}
@@ -5056,7 +5055,8 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 				break;
 			CvPlot const& cityPlot = *pCityTraded->plot();
 			// Can't trade an endangered city to a third party
-			if(!TEAMREF(eWhoTo).isAtWar(getTeam()) && cityPlot.isVisibleEnemyCityAttacker(getID()))
+			if(!::atWar(TEAMID(eWhoTo), getTeam()) && // advc.134a: Not: CvTeam::isAtWar
+					cityPlot.isVisibleEnemyCityAttacker(getID()))
 				break;
 			if(cityPlot.calculateCulturePercent(eWhoTo) < GC.getCITY_TRADE_CULTURE_THRESH())
 				break;
@@ -5115,13 +5115,13 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 			if (kMasterTeam.isVassalStateTrading()) // the master must possess the tech
 			{
 				if (!kVassalTeam.isAVassal() && !kMasterTeam.isAVassal() && getTeam() != GET_PLAYER(eWhoTo).getTeam())
-				{
-					if ((kMasterTeam.isAtWar(getTeam()) || item.m_iData == 1) && item.m_eItemType == TRADE_SURRENDER)
+				{	// advc.134a: Avoid calling CvTeam::isAtWar in canTradeItem
+					bool bWar = ::atWar(kMasterTeam.getID(), getTeam());
+					if ((bWar || item.m_iData == 1) && item.m_eItemType == TRADE_SURRENDER)
 					{
 						return true;
 					}
-
-					if (!kMasterTeam.isAtWar(getTeam()) && item.m_eItemType == TRADE_VASSAL)
+					if (!bWar && item.m_eItemType == TRADE_VASSAL)
 					{
 						return true;
 					}
@@ -5131,13 +5131,14 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 		break;
 
 	case TRADE_PEACE:
-		if (!(ourTeam.isHuman()))
+		if (!ourTeam.isHuman())
 		{
-			if (!(ourTeam.isAVassal()))
+			if (!ourTeam.isAVassal())
 			{
-				if (ourTeam.isHasMet((TeamTypes)(item.m_iData)) && theirTeam.isHasMet((TeamTypes)(item.m_iData)))
+				if (ourTeam.isHasMet((TeamTypes)item.m_iData) &&
+						theirTeam.isHasMet((TeamTypes)item.m_iData))
 				{
-					if (atWar(getTeam(), ((TeamTypes)(item.m_iData))))
+					if (::atWar(getTeam(), (TeamTypes)item.m_iData))
 					{
 						return true;
 					}
@@ -5147,19 +5148,20 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 		break;
 
 	case TRADE_WAR:
-		if (!(ourTeam.isHuman()))
+		if (!ourTeam.isHuman())
 		{
-			if (!(ourTeam.isAVassal()))
+			if (!ourTeam.isAVassal())
 			{
 				if (!GET_TEAM((TeamTypes)item.m_iData).isAVassal())
 				{
-					if (ourTeam.isHasMet((TeamTypes)item.m_iData) && theirTeam.isHasMet((TeamTypes)item.m_iData))
+					if (ourTeam.isHasMet((TeamTypes)item.m_iData) && 
+							theirTeam.isHasMet((TeamTypes)item.m_iData))
 					{
 						if (ourTeam.canDeclareWar((TeamTypes)item.m_iData))
 						{
 							//return true;
-							// advc.100: Replacing the line above
-							return !ourTeam.isAtWar(theirTeam.getID());
+							// advc.100: Replacing the line above (advc.134a: Don't call CvTeam::isAtWar)
+							return !::atWar(ourTeam.getID(), theirTeam.getID());
 						}
 					}
 				}
@@ -5213,7 +5215,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 					   checked here already, plus some clauses that I've
 					   added there. */ || (
 					(TEAMREF(getID()).isVassal(theirTeam.getID()) ||
-			        atWar(getTeam(), theirTeam.getID()))
+			        ::atWar(getTeam(), theirTeam.getID()))
 					&& GET_PLAYER(eWhoTo).canForceCivics(getID(),
 					(CivicTypes)(item.m_iData))
 					) // </advc.132>
@@ -5251,7 +5253,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 			if (GET_PLAYER(eWhoTo).getStateReligion() == ((ReligionTypes)item.m_iData)
 				    /* <advc.132> Same thing as for civics above. */ || (
 					(TEAMREF(getID()).isVassal(theirTeam.getID()) ||
-			        atWar(getTeam(), theirTeam.getID()))
+			        ::atWar(getTeam(), theirTeam.getID()))
 					&& GET_PLAYER(eWhoTo).canForceReligion(getID(),
 					(ReligionTypes)item.m_iData)
 					) // </advc.132>
@@ -5268,7 +5270,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 	case TRADE_OPEN_BORDERS:
 		if (getTeam() != theirTeam.getID())
 		{
-			if (!atWar(getTeam(), theirTeam.getID()))
+			if (!::atWar(getTeam(), theirTeam.getID()))
 			{
 				if (!ourTeam.isOpenBorders(theirTeam.getID()))
 				{
@@ -5286,7 +5288,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 		{
 			if (getTeam() != theirTeam.getID() && !theirTeam.isVassal(getTeam()))
 			{
-				if (!atWar(getTeam(), theirTeam.getID()))
+				if (!::atWar(getTeam(), theirTeam.getID()))
 				{
 					if (!ourTeam.isDefensivePact(theirTeam.getID()))
 					{
@@ -5321,7 +5323,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 		{
 			if (getTeam() != theirTeam.getID() && !theirTeam.isVassal(getTeam()))
 			{
-				if (!atWar(getTeam(), theirTeam.getID()))
+				if (!::atWar(getTeam(), theirTeam.getID()))
 				{
 					if (ourTeam.isPermanentAllianceTrading() || theirTeam.isPermanentAllianceTrading())
 					{
@@ -11778,53 +11780,7 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 				CyArgsList pyArgs;
 				pyArgs.add(GC.getGame().getTurnSlice());
 				CvEventReporter::getInstance().genericEvent("gameUpdate", pyArgs.makeFunctionArgs());
-				/*  <advc.001e> EXE fails to double-check worst enemy (can change
-					in between sending and receiving). */
-				for(CvDiploQueue::iterator it = m_listDiplomacy.begin();
-						it != m_listDiplomacy.end(); ++it) {
-					CvDiploParameters* pDiplo = *it;
-					// Can be NULL!
-					CLLNode<TradeData>* tdn = pDiplo->getOurOfferList().head();
-					if(pDiplo->getDiploComment() == GC.getInfoTypeForString(
-							"AI_DIPLOCOMMENT_STOP_TRADING") &&
-							pDiplo->getData() != TEAMREF(pDiplo->getWhoTalkingTo()).
-							AI_getWorstEnemy()) {
-						/*  Have to delete it here b/c the EXE will no longer
-							have a pointer to it */
-						delete pDiplo;
-						m_listDiplomacy.remove(pDiplo);
-						break;
-					}
-					// AI may send offer for DP and then receive a DoW
-					else if(tdn != NULL && tdn->m_data.m_eItemType ==
-							TRADE_DEFENSIVE_PACT &&
-							!GET_TEAM(getTeam()).allWarsShared(
-							TEAMID(pDiplo->getWhoTalkingTo()))) {
-						delete pDiplo;
-						m_listDiplomacy.remove(pDiplo);
-						break;
-					} // </advc.001e>
-				}
-				/*  <advc.134a> The EXE also gets the checks for peace (and surrender)
-					wrong. Note that these checks are done while displaying the
-					diplo popup (or right before), so it doesn't help to reinsert
-					the offer into m_listDiplomacy. */
-				if(!getWPAI.isEnabled()) { // Don't try to fix it when UWAI enabled
-					for(CvDiploQueue::iterator it = m_listDiplomacy.begin();
-							it != m_listDiplomacy.end(); ++it) {
-						CvDiploParameters* pDiplo = *it;
-						if(pDiplo->getDiploComment() != GC.getInfoTypeForString(
-							/*  Surrender uses that comment too, but I've disabled
-								surrender offers in CvPlayerAI::AI_doPeace, so that
-								isn't a problem. */
-								"AI_DIPLOCOMMENT_OFFER_PEACE"))
-							continue;
-						PlayerTypes fromId = pDiplo->getWhoTalkingTo();
-						FAssert(GET_PLAYER(fromId).AI_willOfferPeace(getID()));
-						GET_TEAM(getTeam()).advancePeaceOfferStage(TEAMID(fromId));
-						break; // This implementation works for 1 peace offer per turn
-					}
-				}
+				validateOffers(); // advc.001e
 				postProcessBeginTurnEvents();
 			}
 		  } // advc.706
@@ -18797,9 +18753,13 @@ void CvPlayer::read(FDataStreamBase* pStream)
 
 	pStream->Read(&m_iPopRushHurryCount);
 	pStream->Read(&m_iInflationModifier);
-	// <advc.003>
+	CvGame& g = GC.getGameINLINE();
+	// <advc.134a>
+	if(isBarbarian()) // I.e. when (pretty much?) everything has been loaded
+		GET_PLAYER(g.getActivePlayer()).validateOffers();
+	// </advc.134a>
 	if(!isAlive())
-		return; // </advc.003>
+		return; // advc.003
 	// <advc.210>
 	warTradeAlert.init(getID()); // advc.210a
 	revoltAlert.init(getID()); // advc.210b
@@ -18807,7 +18767,6 @@ void CvPlayer::read(FDataStreamBase* pStream)
 	// </advc.210>
 	/*  <advc.706> Loading into retirement. Can't do this in RiseFall::read b/c
 		CvPlayer::reset has to be through first. */
-	CvGame& g = GC.getGameINLINE();
 	if(g.isOption(GAMEOPTION_RISE_FALL) && g.getRiseFall().hasRetired())
 		g.getRiseFall().retire(); // </advc.706>
 	// <advc.908a>
@@ -21422,6 +21381,124 @@ void CvPlayer::doEvents()
 			deleteEventTriggered(*it);
 		}
 	}
+}
+
+/*  advc.001e: The EXE is supposed to double-check all AI-to-human offers at the
+	start of the human turn, i.e. just before displaying them. This function
+	addresses errors and omissions in the EXE code. */
+void CvPlayer::validateOffers() {
+
+	bool bDone = false;
+	while(!bDone && !m_listDiplomacy.empty()) {
+		for(CvDiploQueue::iterator it = m_listDiplomacy.begin(); it != m_listDiplomacy.end(); ++it) {
+			CvDiploParameters* pDiplo = *it;
+			CLLNode<TradeData>* tdn = pDiplo->getOurOfferList().head(); // Can be NULL!
+			// Worst enemy may have changed
+			if(pDiplo->getDiploComment() == GC.getInfoTypeForString("AI_DIPLOCOMMENT_STOP_TRADING") &&
+					pDiplo->getData() != TEAMREF(pDiplo->getWhoTalkingTo()).AI_getWorstEnemy()) {
+				CvPlayerAI& who = GET_PLAYER(pDiplo->getWhoTalkingTo());
+				/*  Recipient hasn't been contacted after all. Ideally, this should
+					also be done for any contact attempts that the EXE cancels, but
+					it's difficult to identify these here. */
+				who.AI_changeContactTimer(getID(), CONTACT_STOP_TRADING,
+						-who.AI_getContactTimer(getID(), CONTACT_STOP_TRADING));
+				// Have to delete it here b/c the EXE will no longer have a pointer to it
+				m_listDiplomacy.remove(pDiplo);
+				delete pDiplo;
+				bDone = false;
+				break;
+			}
+			// AI may send offer for DP and then receive a DoW
+			else if(tdn != NULL && tdn->m_data.m_eItemType == TRADE_DEFENSIVE_PACT &&
+					!GET_TEAM(getTeam()).allWarsShared(TEAMID(pDiplo->getWhoTalkingTo()))) {
+				CvPlayerAI& who = GET_PLAYER(pDiplo->getWhoTalkingTo());
+				who.AI_changeContactTimer(getID(), CONTACT_DEFENSIVE_PACT,
+						-who.AI_getContactTimer(getID(), CONTACT_DEFENSIVE_PACT));
+				m_listDiplomacy.remove(pDiplo);
+				delete pDiplo;
+				bDone = false;
+				break;
+			}
+			bDone = true;
+		}
+	}
+	/*  <advc.134a> The EXE discards all offers for peace and surrender. Since this
+		is done right before displaying the diplo popup, it doesn't help to reinsert
+		the offer into m_listDiplomacy -- need to prevent the removal by the EXE. */
+	std::vector<CvDiploParameters*> apInvalid;
+	int iValidPeaceOffers = 0;
+	for(CvDiploQueue::iterator it = m_listDiplomacy.begin(); it != m_listDiplomacy.end(); ++it) {
+		CvDiploParameters* pDiplo = *it;
+		if(pDiplo->getDiploComment() != GC.getInfoTypeForString(
+				"AI_DIPLOCOMMENT_OFFER_PEACE"))
+			continue;
+		/*  Make sure that this isn't a peace offer that the EXE will discard for
+			valid reasons. I.e. check everything that the EXE checks.
+			(Based on tracing DLL calls in the debugger.) */
+		PlayerTypes eWho = pDiplo->getWhoTalkingTo();
+		CvPlayer const& who = GET_PLAYER(eWho);
+		// This is what the EXE seems to get wrong
+		if(!::atWar(getTeam(), who.getTeam())) {
+			apInvalid.push_back(pDiplo);
+			continue;
+		}
+		if(!canContact(eWho) || !who.canContact(getID())) {
+			apInvalid.push_back(pDiplo);
+			continue;
+		}
+		CLLNode<TradeData>* pNode = NULL;
+		bool bCapitulate = false;
+		bool bValid = true;
+		for(pNode = pDiplo->getOurOfferList().head(); pNode != NULL;
+				pNode = pDiplo->getOurOfferList().next(pNode)) {
+			/*  Also test trade denial (although the EXE doesn't do that);
+				important for capitulation. */
+			if(!canTradeItem(eWho, pNode->m_data, true)) {
+				bValid = false;
+				break;
+			}
+			if(pNode->m_data.m_eItemType == TRADE_SURRENDER)
+				bCapitulate = true;
+		}
+		if(!bValid) {
+			apInvalid.push_back(pDiplo);
+			continue;
+		}
+		for(pNode = pDiplo->getTheirOfferList().head(); pNode != NULL;
+				pNode = pDiplo->getTheirOfferList().next(pNode)) {
+			if(!who.canTradeItem(getID(), pNode->m_data, true)) {
+				bValid = false;
+				break;
+			}
+			if(pNode->m_data.m_eItemType == TRADE_SURRENDER)
+				bCapitulate = true;
+		}
+		if(!bValid) {
+			apInvalid.push_back(pDiplo);
+			continue;
+		}
+		/*  Finally, check if the offer still makes sense for eWho.
+			(Sth. the EXE doesn't check.) */
+		if(!bCapitulate && !GET_PLAYER(eWho).AI_upholdPeaceOffer(getID(), *pDiplo)) {
+			apInvalid.push_back(pDiplo);
+			continue;
+		}
+		if(iValidPeaceOffers == 0) {
+			/*  advancePeaceOfferStage supports only one peace offer per turn
+				(this could be amended) */
+			GET_TEAM(getTeam()).advancePeaceOfferStage(TEAMID(eWho));
+			iValidPeaceOffers++;
+		}
+		else apInvalid.push_back(pDiplo);
+	}
+	for(size_t i = 0; i < apInvalid.size(); i++) {
+		CvPlayerAI& who = GET_PLAYER(apInvalid[i]->getWhoTalkingTo());
+		who.AI_changeContactTimer(getID(), CONTACT_PEACE_TREATY,
+				-who.AI_getContactTimer(getID(), CONTACT_PEACE_TREATY));
+		m_listDiplomacy.remove(apInvalid[i]);
+		delete apInvalid[i];
+	}
+	// </advc.134a>
 }
 
 // <advc.011>

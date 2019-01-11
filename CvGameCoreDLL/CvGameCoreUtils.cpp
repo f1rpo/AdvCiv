@@ -344,17 +344,11 @@ float directionAngle( DirectionTypes eDirection )
 
 bool atWar(TeamTypes eTeamA, TeamTypes eTeamB)
 {
-	if ((eTeamA == NO_TEAM) || (eTeamB == NO_TEAM))
-	{
+	if(eTeamA == NO_TEAM || eTeamB == NO_TEAM)
 		return false;
-	}
 
-	// advc.134a: Prudent assertions, but they're in the way
-//	FAssert(GET_TEAM(eTeamA).isAtWar(eTeamB) == GET_TEAM(eTeamB).isAtWar(eTeamA));
-//	FAssert((eTeamA != eTeamB) || !(GET_TEAM(eTeamA).isAtWar(eTeamB)));
-
-	// advc.134a: Switched roles make things easier
-	return GET_TEAM(eTeamB).isAtWar(eTeamA);
+	// advc.134a: Use internal function. (And removed some assertions.)
+	return GET_TEAM(eTeamA).isAtWarInternal(eTeamB);
 }
 
 bool isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam)

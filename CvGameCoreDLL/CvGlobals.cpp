@@ -3723,7 +3723,7 @@ bool CvGlobals::isCachingDone() const {
 //
 
 int CvGlobals::getInfoTypeForString(const char* szType, bool hideAssert) const
-	{
+{
 	FAssertMsg(szType, "null info type string");
 	InfosMap::const_iterator it = m_infosMap.find(szType);
 	if (it!=m_infosMap.end())

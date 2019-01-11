@@ -49,6 +49,8 @@ public:
 	void AI_doTurnUnitsPost();
 
 	void AI_doPeace();
+	// advc.134a:
+	bool AI_upholdPeaceOffer(PlayerTypes humanId, CvDiploParameters const& kOffer);
 
 	void AI_updateFoundValues(bool bStartingLoc = false);
 	void AI_updateAreaTargets();
@@ -248,9 +250,12 @@ public:
 				pOurInventory, pTheirCounter, pOurCounter, 1);
 	}
 	int AI_tradeAcceptabilityThreshold(PlayerTypes eTrader) const; // K-Mod
-	// advc.003 (comment): These two are exposed to Python
-	int AI_maxGoldTrade(PlayerTypes ePlayer) const;
-	int AI_maxGoldPerTurnTrade(PlayerTypes ePlayer) const;
+	int AI_maxGoldTrade(PlayerTypes ePlayer) const {									// Exposed to Python
+		// <advc.134a> Can't add a param b/c the EXE calls this virtual function 
+		return AI_maxGoldTrade(ePlayer, false);
+	}
+	int AI_maxGoldTrade(PlayerTypes ePlayer, bool bTeamTrade) const; // </advc.134a>
+	int AI_maxGoldPerTurnTrade(PlayerTypes ePlayer) const;								// Exposed to Python
 	int AI_goldPerTurnTradeVal(int iGoldPerTurn) const;
 	int AI_bonusVal(BonusTypes eBonus, int iChange,
 			bool bAssumeEnabled = false, // K-Mod
@@ -558,10 +563,12 @@ public:
 
 	// <advc.104>
 	WarAndPeaceAI::Civ& warAndPeaceAI();
-	WarAndPeaceAI::Civ const& warAndPeaceAI() const;
-	// </advc.104>
-	// advc.104h: Returns true if peace deal implemented (or offered to human)
+	WarAndPeaceAI::Civ const& warAndPeaceAI() const; // </advc.104>
+	// <advc.104h>
+	// Returns true if peace deal implemented (or offered to human)
 	bool AI_negotiatePeace(PlayerTypes civId, int iTheirBenefit, int iOurBenefit);
+	void AI_offerCapitulation(PlayerTypes civId);
+	// </advc.104h>
 	bool AI_willOfferPeace(PlayerTypes toId) const; // advc.003
 	// advc.130h:
 	bool AI_disapprovesOfDoW(TeamTypes aggressorId, TeamTypes victimId) const;
@@ -706,13 +713,16 @@ protected:
 	// <advc.104h>
 	int AI_negotiatePeace(PlayerTypes receiverId, PlayerTypes giverId, int iDelta,
 			int* iGold, TechTypes* eBestTech, CvCity** pBestCity); // </advc.104h>
-	// <advc.705> Replacement for AI_counterPropose
+	// <advc.705> Replacement for the pure virtual AI_counterPropose
 	bool AI_counterPropose(PlayerTypes ePlayer,
 			const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList,
 			CLinkList<TradeData>* pTheirInventory, CLinkList<TradeData>* pOurInventory,
 			CLinkList<TradeData>* pTheirCounter, CLinkList<TradeData>* pOurCounter,
 			double leniency) const; // </advc.705>
 	// <advc.003>
+	// Variant that writes the proposal into pTheirList and pOurList
+	bool AI_counterPropose(PlayerTypes ePlayer, CLinkList<TradeData>& kTheyGive,
+			CLinkList<TradeData>& kWeGive, bool bTheyMayGiveMore, bool bWeMayGiveMore) const;
 	bool AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInventory,
 			PlayerTypes ePlayer, int& iGreaterVal, int& iSmallerVal,
 			CLinkList<TradeData>* pCounter,

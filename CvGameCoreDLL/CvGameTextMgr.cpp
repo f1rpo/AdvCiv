@@ -16423,6 +16423,7 @@ void CvGameTextMgr::parseLeaderHeadHelp(CvWStringBuffer &szBuffer, PlayerTypes e
 			&& GC.altKey())
 	{
 		szBuffer.append(CvWString::format(SETCOLR SEPARATOR NEWLINE, TEXT_COLOR("COLOR_LIGHT_GREY")));
+		szBuffer.append(CvWString::format(L"id=%d\n", eThisPlayer)); // advc.007
 		CvPlayerAI::CvFoundSettings kFoundSet(kPlayer, false);
 
 		bool bFirst = true;
@@ -16487,8 +16488,7 @@ void CvGameTextMgr::parseLeaderHeadHelp(CvWStringBuffer &szBuffer, PlayerTypes e
 			getOtherRelationsString(szBuffer, eThisPlayer, eOtherPlayer);
 		}
 	}
-	else
-		getWarWearinessString(szBuffer, eThisPlayer, NO_PLAYER); // total war weariness
+	else getWarWearinessString(szBuffer, eThisPlayer, NO_PLAYER); // total war weariness
 }
 
 // <advc.152>

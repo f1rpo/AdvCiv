@@ -1209,6 +1209,8 @@ void CvTeam::doTurn()
 	PROFILE("CvTeam::doTurn()")
 
 	FAssert(isAlive());
+	// advc.134a:
+	FAssert(m_iPeaceOfferStage == 0 && m_eOfferingPeace == NO_TEAM);
 
 	AI_doTurnPre();
 	// <advc.162>
@@ -1432,7 +1434,7 @@ bool CvTeam::canChangeWarPeace(TeamTypes eTeam, bool bAllowVassal) const
 		}
 	}
 	// <advc.104> Don't want to have to check this separately in the UWAI code
-	if(isAtWar(eTeam) && GC.getGameINLINE().isOption(GAMEOPTION_ALWAYS_WAR) &&
+	if(GC.getGameINLINE().isOption(GAMEOPTION_ALWAYS_WAR) && isAtWar(eTeam) &&
 			(isHuman() || GET_TEAM(eTeam).isHuman()))
 		return false; // </advc.104>
 	return true;
@@ -4582,15 +4584,11 @@ bool CvTeam::isAtWar(TeamTypes eIndex) const
 {
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < MAX_TEAMS, "eIndex is expected to be within maximum bounds (invalid Index)");
-	/*  <advc.134a> Double-checking whether the teams are still at war is important
-		-- don't show peace offer when no longer at war --, but the EXE gets it
-		wrong, and discards the diplo popup if at war. Therefore, feign peace if
-		we know that the EXE is about to check a peace offer. */
-	if(m_iPeaceOfferStage == 1 && m_eOfferingPeace == eIndex) {
+	/*  <advc.134a> Feign peace if we know that the EXE is about to check a
+		peace offer (b/c being at war shouldn't prevent AI-to-human peace offers). */
+	if(m_iPeaceOfferStage == 2 && m_eOfferingPeace == eIndex) {
 		const_cast<CvTeam*>(this)->m_iPeaceOfferStage = 0;
 		const_cast<CvTeam*>(this)->m_eOfferingPeace = NO_TEAM;
-		// advc.104: Don't try to get UWAI peace offers through
-		if(!getWPAI.isEnabled() || GC.getGameINLINE().isNetworkMultiPlayer())
 			return false;
 	} // </advc.134a>
 	return m_abAtWar[eIndex];
@@ -4602,6 +4600,11 @@ void CvTeam::advancePeaceOfferStage(TeamTypes aiTeam) {
 	if(aiTeam != NO_TEAM)
 		m_eOfferingPeace = aiTeam;
 	m_iPeaceOfferStage++;
+}
+
+bool CvTeam::isPeaceOfferStage(int iStage, TeamTypes eOffering) const {
+
+	return (eOffering == m_eOfferingPeace && iStage == m_iPeaceOfferStage);
 } // </advc.134a>
 
 void CvTeam::setAtWar(TeamTypes eIndex, bool bNewValue)

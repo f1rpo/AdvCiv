@@ -2592,36 +2592,24 @@ void CvGame::update()
 
 void CvGame::updateScore(bool bForce)
 {
-	bool abPlayerScored[MAX_CIV_PLAYERS];
-	bool abTeamScored[MAX_CIV_TEAMS];
-	int iScore;
-	int iBestScore;
-	PlayerTypes eBestPlayer;
-	TeamTypes eBestTeam;
 	int iI, iJ, iK;
 
-	if (!isScoreDirty() && !bForce)
-	{
+	if(!isScoreDirty() && !bForce)
 		return;
-	}
-
 	setScoreDirty(false);
 
-	for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
-	{
-		abPlayerScored[iI] = false;
-	}
+	bool abPlayerScored[MAX_CIV_PLAYERS] = { false };
 	std::vector<PlayerTypes> updateAttitude; // advc.001
 	for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
-		iBestScore = MIN_INT;
-		eBestPlayer = NO_PLAYER;
+		int iBestScore = MIN_INT;
+		PlayerTypes eBestPlayer = NO_PLAYER;
 
 		for (iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++)
 		{
 			if (!abPlayerScored[iJ])
 			{
-				iScore = GET_PLAYER((PlayerTypes)iJ).calculateScore(false);
+				int iScore = GET_PLAYER((PlayerTypes)iJ).calculateScore(false);
 
 				if (iScore >= iBestScore)
 				{
@@ -2655,21 +2643,18 @@ void CvGame::updateScore(bool bForce)
 				civ.AI_updateAttitudeCache();
 		}
 	} // </advc.001>
-	for (iI = 0; iI < MAX_CIV_TEAMS; iI++)
-	{
-		abTeamScored[iI] = false;
-	}
 
+	bool abTeamScored[MAX_CIV_TEAMS] = { false };
 	for (iI = 0; iI < MAX_CIV_TEAMS; iI++)
 	{
-		iBestScore = MIN_INT;
-		eBestTeam = NO_TEAM;
+		int iBestScore = MIN_INT;
+		TeamTypes eBestTeam = NO_TEAM;
 
 		for (iJ = 0; iJ < MAX_CIV_TEAMS; iJ++)
 		{
 			if (!abTeamScored[iJ])
 			{
-				iScore = 0;
+				int iScore = 0;
 
 				for (iK = 0; iK < MAX_CIV_PLAYERS; iK++)
 				{
@@ -2699,9 +2684,7 @@ void CvGame::updatePlotGroups()
 {
 	PROFILE_FUNC();
 
-	int iI;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
@@ -2713,9 +2696,7 @@ void CvGame::updatePlotGroups()
 
 void CvGame::updateBuildingCommerce()
 {
-	int iI;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
@@ -2727,9 +2708,7 @@ void CvGame::updateBuildingCommerce()
 
 void CvGame::updateCitySight(bool bIncrement)
 {
-	int iI;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
@@ -2743,9 +2722,7 @@ void CvGame::updateCitySight(bool bIncrement)
 
 void CvGame::updateTradeRoutes()
 {
-	int iI;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
@@ -2771,8 +2748,8 @@ void CvGame::updateGwPercentAnger()
 		iGlobalPollution = calculateGlobalPollution();
 		iGwSeverityRating = calculateGwSeverityRating();
 		iGlobalDefence = calculateGwLandDefence(NO_PLAYER);
-	}
-
+	} // advc.003: Ensure initialization
+	else iGlobalPollution = iGwSeverityRating = iGlobalDefence = -1;
 	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
 		CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)iI);
@@ -2802,14 +2779,12 @@ void CvGame::updateGwPercentAnger()
 
 void CvGame::testExtendedGame()
 {
-	int iI;
-
 	if (getGameState() != GAMESTATE_OVER)
 	{
 		return;
 	}
 
-	for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{

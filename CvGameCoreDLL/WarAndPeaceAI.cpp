@@ -664,116 +664,172 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 		return true;
 	CvTeamAI& target = GET_TEAM(targetId);
 	double peaceThresh = peaceThreshold(targetId);
-	report->log("Threshold for seeking peace: %d", ::round(peaceThresh));
 	bool human = target.isHuman();
+	if(human) /* They might pay us for peace (whereas, for AI-AI deals, the side
+				 that expects to be paid waits for the other side to sue for peace). */
+		peaceThresh += 10;
+	report->log("Threshold for seeking peace: %d", ::round(peaceThresh));
 	if(u >= peaceThresh) {
 		/*  Peace so we can free our hands for a different war.
 			(The "distraction" war utility aspect also deals with this,
 			but it's normally not enough to get the AI to stop a successful
 			war before starting one that looks even more worthwhile.) */
-		if(!human) {
-			for(size_t i = 0; i < getWPAI._properTeams.size(); i++) {
-				TeamTypes otherId = getWPAI._properTeams[i];
-				if(GET_TEAM(otherId).isAVassal() ||
-						!agent.AI_isSneakAttackReady(otherId))
-					continue;
-				report->log("Considering peace with %s to focus on"
-						" imminent war against %s; evaluating two-front war:",
-						report->teamName(targetId), report->teamName(otherId));
-				WarEvalParameters params(agentId, otherId, *report, true);
-				params.addExtraTarget(targetId);
-				/*  We're sure that we want to attack otherId. Only consider
-					peace with the ExtraTarget. */
-				params.setNotConsideringPeace();
-				WarEvaluator eval(params);
-				/*  Check both limited and total war instead of agent
-					.AI_getWarPlan(otherId) in order to avoid a preference for
-					the two-front case on account of greater military build-up. */
-				int uLim = eval.evaluate(WARPLAN_LIMITED, 0) -
-						GC.getUWAI_MULTI_WAR_RELUCTANCE();
-				int uTot = eval.evaluate(WARPLAN_TOTAL, 0) -
-						GC.getUWAI_MULTI_WAR_RELUCTANCE();
-				u = std::min(uLim, uTot);
-				// Tbd.: If the war plan against otherId is TOTAL
-				report->log("Utility of a two-front war compared with a war "
-						"only against %s: %d", report->teamName(otherId), u);
-				break; // Only one war can be imminent at a time
-			}
+		for(size_t i = 0; i < getWPAI._properTeams.size(); i++) {
+			TeamTypes otherId = getWPAI._properTeams[i];
+			if(GET_TEAM(otherId).isAVassal() ||
+					!agent.AI_isSneakAttackReady(otherId))
+				continue;
+			report->log("Considering peace with %s to focus on"
+					" imminent war against %s; evaluating two-front war:",
+					report->teamName(targetId), report->teamName(otherId));
+			WarEvalParameters params(agentId, otherId, *report, true);
+			params.addExtraTarget(targetId);
+			/*  We're sure that we want to attack otherId. Only consider
+				peace with the ExtraTarget. */
+			params.setNotConsideringPeace();
+			WarEvaluator eval(params);
+			/*  Check both limited and total war instead of agent
+				.AI_getWarPlan(otherId) in order to avoid a preference for
+				the two-front case on account of greater military build-up. */
+			int uLim = eval.evaluate(WARPLAN_LIMITED, 0) -
+					GC.getUWAI_MULTI_WAR_RELUCTANCE();
+			int uTot = eval.evaluate(WARPLAN_TOTAL, 0) -
+					GC.getUWAI_MULTI_WAR_RELUCTANCE();
+			u = std::min(uLim, uTot);
+			// Tbd.: If the war plan against otherId is TOTAL
+			report->log("Utility of a two-front war compared with a war "
+					"only against %s: %d", report->teamName(otherId), u);
+			break; // Only one war can be imminent at a time
 		}
 		if(u >= peaceThresh) {
 			report->log("No peace sought b/c war utility is above the peace threshold");
 			return true;
 		}
 	}
-	if(human) // Don't try to ask human for peace
-		report->log("Can't ask human for peace (bug in EXE)");
+	// We refuse to talk for 1 turn
+	if(agent.AI_getAtWarCounter(targetId) <= 1) {
+		report->log("Too early to consider peace");
+		return true;
+	}
 	CvPlayerAI& targetLeader = GET_PLAYER(target.getLeaderID());
 	CvPlayerAI& agentLeader = GET_PLAYER(agent.getLeaderID());
-	// We refuse to talk for 1 turn
-	if(!human && agent.AI_getAtWarCounter(targetId) <= 1 ||
-			!agentLeader.canContactAndTalk(targetLeader.getID())) {
+	if(!agentLeader.canContactAndTalk(targetLeader.getID())) {
 		report->log("Can't talk to %s about peace",
 				report->leaderName(targetLeader.getID()));
 		return true; // Can't contact them for capitulation either
 	}
-	if(!human) {
-		double pr = std::sqrt(peaceThresh - u) * 0.03;
-		report->log("Probability for peace negotiation: %d percent",
-				::round(pr * 100));
-		if(::bernoulliSuccess(1 - pr, "advc.104 (peace)")) {
-			report->log("Peace negotiation randomly skipped");
-			return true; // Don't consider capitulation w/o having tried peace negot.
+	double prPeace = 0;
+	bool bOfferPeace = true;
+	int theirReluct = INT_MIN; // Costly, don't compute this sooner than necessary.
+	if(human) {
+		int contactDelay = agentLeader.AI_getContactTimer(target.getLeaderID(),
+				CONTACT_PEACE_TREATY);
+		if(contactDelay > 0) {
+			report->log("No peace with human sought b/c of contact delay: %d",
+					contactDelay);
+			prPeace = 0; // Don't return; capitulation always needs to be checked.
+			bOfferPeace = false;
+		}
+		else {
+			// 5 to 10%
+			prPeace = 1.0 / std::max(1, GC.getLeaderHeadInfo(agentLeader.
+					getPersonalityType()).getContactRand(CONTACT_PEACE_TREATY));
+			// Adjust probability based on whether peace looks like win-win or zero-sum
+			theirReluct = target.warAndPeaceAI().reluctanceToPeace(agentId, false);
+			double winWinFactor = (theirReluct + u) / -15.0;
+			if(winWinFactor < 0) {
+				winWinFactor = std::min(-1 * winWinFactor, 2.5);
+				winWinFactor = 1 / winWinFactor;
+			}
+			else winWinFactor = std::min(winWinFactor, 2.5);
+			/*  Tbd.: (5*2.5)% seems a bit much for leaders that should be reluctant
+				to sue for peace. Exponentiate prPeace? Subtract a percentage point
+				or two before applying the winWinFactor? */
+			prPeace *= winWinFactor;
+			report->log("Win-win factor: %d percent", ::round(winWinFactor * 100));
 		}
 	}
-	int theirReluct = target.warAndPeaceAI().reluctanceToPeace(agentId, false);
-	report->log("Their reluctance to peace: %d", theirReluct);
-	if(theirReluct <= maxReparations && !human) {
-		// Base the reparations they demand on their economy
-		int tradeVal = ::round(target.warAndPeaceAI().utilityToTradeVal(
-				std::max(0, theirReluct)));
-		/*  Reduce the trade value b/c the war isn't completely off the table;
-			could continue after 10 turns. */
-		tradeVal = ::round(tradeVal * WarAndPeaceAI::reparationsAIPercent / 100.0);
-		report->log("Trying to offer reparations with a trade value of %d",
-				tradeVal);
-		bool r = true;
-		if(!inBackgr)
-			r = !agentLeader.AI_negotiatePeace(targetLeader.getID(), 0, tradeVal);
-		report->log("Peace negotiation %s", (r ? "failed" : "succeeded"));
-		return r;
+	else prPeace = std::sqrt(peaceThresh - u) * 0.03;
+	if(bOfferPeace) {
+		report->log("Probability for peace negotiation: %d percent",
+				::round(prPeace * 100));
+		if(::bernoulliSuccess(1 - prPeace, "advc.104 (peace)")) {
+			report->log("Peace negotiation randomly skipped");
+			if(!human) {
+				// Don't consider capitulation to AI w/o having tried peace negotiation
+				return true;
+			}
+			bOfferPeace = false;
+		}
 	}
-	else if(!human)
-		report->log("No peace negotiation attempted; they're too reluctant");
+	if(theirReluct == INT_MIN)
+		theirReluct = target.warAndPeaceAI().reluctanceToPeace(agentId, false);
+	report->log("Their reluctance to peace: %d", theirReluct);
+	if(bOfferPeace) {
+		if(theirReluct <= maxReparations) {
+			int tradeVal = 0;
+			int demandVal = 0; // (Demand only from humans)
+			if(human) {
+				tradeVal = endWarVal(targetId) - target.warAndPeaceAI().endWarVal(agentId);
+				// A bit higher than the K-Mod discounts (advc.134a)
+				double discountFactor = 1.3;
+				if(tradeVal < 0) {
+					demandVal = -tradeVal;
+					// Offer a square deal when it's close
+					if(demandVal < utilityToTradeVal(4.25, targetLeader.getID()))
+						demandVal = 0;
+					else demandVal = ::round(demandVal / discountFactor);
+					report->log("Seeking reparations with a trade value of %d", demandVal);
+					tradeVal = 0;
+				}
+				else tradeVal = ::round(discountFactor * tradeVal);
+			}
+			else {
+				// Base the reparations they demand on their economy
+				tradeVal = ::round(target.warAndPeaceAI().utilityToTradeVal(
+						std::max(0, theirReluct)));
+				/*  Reduce the trade value b/c the war isn't completely off the table;
+					could continue after 10 turns. */
+				tradeVal = ::round(tradeVal * WarAndPeaceAI::reparationsAIPercent / 100.0);
+			}
+			if(tradeVal > 0 || demandVal == 0)
+				report->log("Trying to offer reparations with a trade value of %d", tradeVal);
+			bool r = true;
+			if(!inBackgr)
+				r = !agentLeader.AI_negotiatePeace(targetLeader.getID(), demandVal, tradeVal);
+			if(human) {
+				if(r)
+					report->log("Failed to find a peace offer");
+				else report->log("Peace offer sent");
+			}
+			else report->log("Peace negotiation %s", (r ? "failed" : "succeeded"));
+			return r;
+		}
+		else report->log("No peace negotiation attempted; they're too reluctant");
+	}
 	if(considerCapitulation(targetId, u, theirReluct))
 		return true; // No surrender
 	int cities = agent.getNumCities();
 	/*  Otherwise, considerCapitulation guarantees that surrender (to AI)
 		is possible; before we do it, one last attempt to find help: */
 	if(cities > 1 && !tryFindingMaster(targetId))
-		return false; // Have become a vassal, or awaiting human response
+		return false; // Have become a vassal, or awaiting human response.
 	// Liberate any colonies (to leave sth. behind, or just to spite the enemy)
-	for(size_t i = 0; i < members.size(); i++)
-		GET_PLAYER(members[i]).AI_doSplit(true);
+	if(!inBackgr) {
+		for(size_t i = 0; i < members.size(); i++)
+			GET_PLAYER(members[i]).AI_doSplit(true);
+	}
 	if(agent.getNumCities() != cities) {
 		report->log("Empire split");
-		return false; // Leads to re-evaluation of war plans; may yet capitulate
+		return false; // Leads to re-evaluation of war plans; may yet capitulate.
 	}
-	// Human: Only return after tryFindingMaster and AI_doSplit
-	if(human) {
-		report->log("Ready to capitulate to human (can't contact b/c of bug in EXE)");
-		return true;
-	}
-	report->log("Implementing capitulation to %s",
+	report->log("%s capitulation to %s", human ? "Offering" : "Implementing",
 			report->leaderName(target.getLeaderID()));
-	if(!inBackgr) { // Based on CvPlayerAI::AI_doPeace
-		TradeData item;
-		::setTradeItem(&item, TRADE_SURRENDER);
-		CLinkList<TradeData> ourList, theirList;
-		ourList.insertAtEnd(item);
-		GC.getGameINLINE().implementDeal(agent.getLeaderID(), target.getLeaderID(),
-				&ourList, &theirList);
+	if(!inBackgr) {
+		agentLeader.AI_offerCapitulation(target.getLeaderID());
+		return false;
 	}
-	return false;
+	return true;
 }
 
 bool WarAndPeaceAI::Team::considerCapitulation(TeamTypes masterId, int ourWarUtility,
@@ -1153,7 +1209,7 @@ int WarAndPeaceAI::Team::peaceThreshold(TeamTypes targetId) const {
 		return 0;
 	CvTeamAI const& target = GET_TEAM(targetId);
 	double r = -7.5; // To give it time
-	// Give it more time then; also more bitterness I guess
+	// Give it more time then; also more bitterness I guess.
 	if(agent.AI_getWarPlan(targetId) == WARPLAN_TOTAL)
 		r -= 5;
 	// If they're attacked or att. recent (they could switch to total war eventually)
@@ -1165,8 +1221,13 @@ int WarAndPeaceAI::Team::peaceThreshold(TeamTypes targetId) const {
 				2 * target.AI_getWarSuccess(agentId)) /
 				(0.5 * GC.getWAR_SUCCESS_CITY_CAPTURING()) +
 				agent.AI_getAtWarCounter(targetId));
-	// Never set the threshold above 0
-	return ::round(std::min(0.0, r));
+	int rounded = ::round(r);
+	if(!target.isHuman()) {
+		/* Never set the threshold above 0 for inter-AI peace
+			(let _them_ sue for peace instead) */
+		rounded = std::min(0, rounded);
+	}
+	return rounded;
 }
 
 int WarAndPeaceAI::Team::uJointWar(TeamTypes targetId, TeamTypes allyId) const {
@@ -1230,7 +1291,7 @@ int WarAndPeaceAI::Team::tradeValJointWar(TeamTypes targetId,
 int WarAndPeaceAI::Team::reluctanceToPeace(TeamTypes otherId,
 		bool nonNegative) const {
 
-	int r = -uEndWar(otherId) - peaceThreshold(otherId);
+	int r = -uEndWar(otherId) - std::min(0, peaceThreshold(otherId));
 	if(nonNegative)
 		return std::max(0, r);
 	return r;

@@ -1109,7 +1109,6 @@ public:
 	void verifyUnitStacksValid();
 	UnitTypes getTechFreeUnit(TechTypes eTech) const;
 	
-	void setOfferingPeace(TeamTypes aiTeam); // advc.134a
 	void checkAlert(int alertId, bool bSilent); // advc.210
 	// advc.104, advc.038, advc.132; exposed to Python.
 	double estimateYieldRate(YieldTypes yield, int iSamples = 5) const;
@@ -1221,6 +1220,7 @@ public:
 	virtual int AI_getExtraGoldTarget() const = 0;
 	virtual void AI_setExtraGoldTarget(int iNewValue) = 0;
 	virtual int AI_maxGoldPerTurnTrade(PlayerTypes ePlayer) const = 0;
+	// advc.003: The EXE calls this (when a human player adds AI gold to the trade table)
 	virtual int AI_maxGoldTrade(PlayerTypes ePlayer) const = 0;
 
 protected:
@@ -1459,6 +1459,7 @@ protected:
 	void doEspionagePoints();
 	void doWarnings();
 	void doEvents();
+	void validateOffers(); // advc.001e
 	void decayBuildProgress(); // advc.011
 	void showForeignPromoGlow(bool b); // advc.002e
 	// <advc.314>

@@ -269,7 +269,7 @@
 	<Spanish>(K-Mod) Don't panic if the city screen shows a positive revolt probability: Cities don't flip to a new owner until the third revolt.</Spanish>
 </TEXT>
 
-<!-- advc.026 -->
+<!-- advc.026, advc.134a -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_11</Tag>
 	<English>(K-Mod) If a rival proposes a trade, it could be a one-time offer - don't negotiate without considering the initial proposal. You can consult the advisor screens before you decide.</English>
