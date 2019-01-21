@@ -2384,6 +2384,7 @@ public:
 	int getFreeUnits() const;				// Exposed to Python
 	int getUnitCostPercent() const;				// Exposed to Python
 	// <advc.251>
+	inline int getBuildTimePercent() const { return m_iBuildTimePercent; }
 	inline int getBaseGrowthThresholdPercent() const { return m_iBaseGrowthThresholdPercent; }
 	inline int getGPThresholdPercent() const { return m_iGPThresholdPercent; }
 	// </advc.251>
@@ -2474,6 +2475,7 @@ protected:
 	int m_iFreeUnits;
 	int m_iUnitCostPercent;
 	// <advc.251>
+	int m_iBuildTimePercent;
 	int m_iBaseGrowthThresholdPercent;
 	int m_iGPThresholdPercent;
 	// </advc.251>

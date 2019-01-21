@@ -18,8 +18,15 @@ class BugNJAGCOptionsTab(BugOptionsTab.BugOptionsTab):
 		tab = self.createTab(screen)
 		panel = self.createMainPanel(screen)
 		upperPanel = self.addOneColumnLayout(screen, panel)
+		# <advc.002k>
+		self.addTextDropdown(screen, upperPanel, upperPanel, "NJAGC__YearNotation", True)
+		self.addSpacer(screen, upperPanel, "Clock_Tab_Top1")
+		screen.attachHSeparator(upperPanel, upperPanel + "Sep")
+		# </advc.002k>
 		
-		leftPanel, centerPanel, rightPanel = self.addThreeColumnLayout(screen, upperPanel, "EraColors")
+		leftPanel, spaceLC, centerPanel, rightPanel = self.addMultiColumnLayout(screen, upperPanel, 4, "EraColors")
+		# advc.067: Adding space between left and center column
+		self.addSpacer(screen, spaceLC, "Extra_Space_CR", 20)
 		# advc.067: Moved to bottom half
 		#self.addCheckbox(screen, leftPanel, "NJAGC__Enabled")
 		self.addCheckbox(screen, leftPanel, "NJAGC__ShowEra")
@@ -37,11 +44,10 @@ class BugNJAGCOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addColorDropdown(screen, rightPanelL, rightPanelR, "NJAGC__Color_ERA_INDUSTRIAL", True)
 		self.addColorDropdown(screen, rightPanelL, rightPanelR, "NJAGC__Color_ERA_MODERN", True)
 		self.addColorDropdown(screen, rightPanelL, rightPanelR, "NJAGC__Color_ERA_FUTURE", True)
-		# advc.067: Space above the separator ...
+		# advc.067: Space above the separator
 		self.addSpacer(screen, centerPanel, "Clock_Tab_Upper")
 		screen.attachHSeparator(upperPanel, upperPanel + "Sep")
-		# advc.067: ... and below
-		self.addSpacer(screen, upperPanel, "Clock_Tab_Lower")
+
 		leftPanel, rightPanel = self.addTwoColumnLayout(screen, upperPanel, "Views")
 		# <advc.067> Instead of heading left and right, I'm placing the main 'Enabled' option above the left column and the Alternate option above the right column; the other options receive params for indentation. And each of the two top options receives a dropdown menu.
 		#self.addCheckbox(screen, leftPanel, "NJAGC__Enabled")

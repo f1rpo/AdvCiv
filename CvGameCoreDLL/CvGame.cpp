@@ -775,15 +775,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	m_ActivePlayerCycledGroups.clear(); // K-Mod
 	m_bAITurn = false; // advc.106b
 	m_iTurnLoadedFromSave = -1; // advc.044
-	// <advc.004m>
-	if(bConstructorCall)
-		m_bResourceLayer = true;
-	else if(!getBugOptionBOOL("MainInterface__StartWithResourceIcons", true)) {
-		/*  This causes the resource layer to be disabled when returning to the
-			main menu. (Rather than remembering the latest status.) */
-		m_bResourceLayer = false;
-	}
-	// </advc.004m>
+	m_bResourceLayer = bConstructorCall; // advc.004m
 	m_bResourceLayerSet = false; // advc.003d
 	m_bFeignSP = false; // advc.135c
 }
@@ -792,19 +784,15 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 void CvGame::initDiplomacy()
 {
 	PROFILE_FUNC();
-
-	for (int iI = 0; iI < MAX_TEAMS; iI++)
-	{
-		GET_TEAM((TeamTypes)iI).meet(((TeamTypes)iI), false);
-
-		if (GET_TEAM((TeamTypes)iI).isBarbarian() || GET_TEAM((TeamTypes)iI).isMinorCiv())
-		{
-			for (int iJ = 0; iJ < MAX_CIV_TEAMS; iJ++)
-			{
-				if (iI != iJ)
-				{
-					GET_TEAM((TeamTypes)iI).declareWar(((TeamTypes)iJ), false, NO_WARPLAN);
-				}
+	// advc.003: Refactored
+	for(int i = 0; i < MAX_TEAMS; i++) {
+		CvTeam& t = GET_TEAM((TeamTypes)i);
+		t.meet(t.getID(), false);
+		if(i == BARBARIAN_TEAM || t.isMinorCiv()) {
+			for(int j = 0; j < MAX_CIV_TEAMS; j++) {
+				CvTeam& kTarget = GET_TEAM((TeamTypes)j);
+				if(kTarget.isAlive() && i != j) // advc.003m: Alive check added
+					t.declareWar(kTarget.getID(), false, NO_WARPLAN);
 			}
 		}
 	}
@@ -814,8 +802,7 @@ void CvGame::initDiplomacy()
 			/*  advc.250b: No need to protect the AI from the player when human
 				start is advanced, and AI won't start wars within 10 turns
 				anyway. */
-			&&!isOption(GAMEOPTION_SPAH)
-		)
+			&& !isOption(GAMEOPTION_SPAH))
 	{
 		CLinkList<TradeData> player1List;
 		CLinkList<TradeData> player2List;
@@ -938,8 +925,7 @@ void CvGame::initScenario() {
 				return;
 		}
 		GC.getMap().recalculateAreas();
-	}
-	// </advc.030>
+	} // </advc.030>
 }
 
 void CvGame::initFreeUnits() {
@@ -2950,10 +2936,9 @@ void CvGame::selectGroup(CvUnit* pUnit, bool bShift, bool bCtrl, bool bAlt) cons
 
 	FAssertMsg(pUnit != NULL, "pUnit == NULL unexpectedly");
 	// <advc.002e> Show glow (only) on selected unit
-	if(GC.getDefineINT("SHOW_PROMOTION_GLOW") <= 0) {
-		CvPlayer const& owner = GET_PLAYER(pUnit->getOwnerINLINE());
-		int dummy;
-		for(CvUnit* u = owner.firstUnit(&dummy); u != NULL; u = owner.nextUnit(&dummy)) {
+	if(!getBugOptionBOOL("PLE__ShowPromotionGlow", false)) {
+		CvPlayer const& owner = GET_PLAYER(pUnit->getOwnerINLINE()); int foo=-1;
+		for(CvUnit* u = owner.firstUnit(&foo); u != NULL; u = owner.nextUnit(&foo)) {
 			gDLL->getEntityIFace()->showPromotionGlow(u->getUnitEntity(),
 					u->atPlot(pUnit->plot()) && u->isReadyForPromotion());
 		}
@@ -4069,9 +4054,6 @@ int CvGame::AIHandicapAdjustment() const {
 	int iVictoryDelayPercent = GC.getGameSpeedInfo(getGameSpeedType()).getVictoryDelayPercent();
 	if(iVictoryDelayPercent > 0)
 		iGameTurn = (iGameTurn * 100) / iVictoryDelayPercent;
-	// Don't grant additional AI bonuses in the very early game
-	if(iGameTurn <= 25)
-		return 0;
 	int iIncrementTurns = GC.getHandicapInfo(getHandicapType()).getAIHandicapIncrementTurns();
 	if(iIncrementTurns == 0)
 		return 0;
@@ -9198,9 +9180,11 @@ int CvGame::calculateSyncChecksum()
 				break;
 			}
 			// K-Mod - new checks.
-			case 4:
-				// attitude cache
-				for (iJ = 0; iJ < MAX_PLAYERS; iJ++)
+			case 4: // attitude cache
+				// <advc.003n>
+				if(iI == BARBARIAN_PLAYER)
+					break; // </advc.003n>
+				for (iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++)
 				{
 					if(iI!=iJ) // advc.003: self-attitude should never matter
 						iMultiplier += GET_PLAYER((PlayerTypes)iI).AI_getAttitudeVal((PlayerTypes)iJ, false) << iJ;
@@ -9876,6 +9860,24 @@ void CvGame::writeReplay(FDataStreamBase& stream, PlayerTypes ePlayer)
 	}
 }
 
+/*  <advc.003> When loading a savegame, this function is called once all
+	read functions have been called. */
+void CvGame::allGameDataRead() {
+
+	getWPAI.update(); // advc.104
+	GET_PLAYER(getActivePlayer()).validateDiplomacy(); // advc.134a
+}
+
+// Called once the EXE signals that graphics have been initialized (w/e that means exactly)
+void CvGame::onGraphicsInitialized() {
+
+	// advc.004m:
+	m_bResourceLayer = getBugOptionBOOL("MainInterface__StartWithResourceIcons", true);
+	/*  (This causes the resource layer to be disabled when returning to the
+		main menu rather than remembering the latest status.) */
+}
+// </advc.003>
+
 void CvGame::saveReplay(PlayerTypes ePlayer)
 {	// advc.106i: Hack to prepend sth. to the replay file name
 	GET_PLAYER(ePlayer).setSavingReplay(true);
@@ -10292,11 +10294,17 @@ void CvGame::setVoteSourceReligion(VoteSourceTypes eVoteSource, ReligionTypes eR
 
 			for (int iI = 0; iI < MAX_PLAYERS; iI++)
 			{
-				if (GET_PLAYER((PlayerTypes)iI).isAlive())
-				{	// advc.127b:
-					std::pair<int,int> xy = getVoteSourceXY(eVoteSource);
-					gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getReligionInfo(eReligion).getSound(), MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
-								xy.first, xy.second); // advc.127b
+				PlayerTypes ePlayer = (PlayerTypes)iI;
+				if (GET_PLAYER(ePlayer).isAlive())
+				{	// <advc.127b>
+					std::pair<int,int> xy = getVoteSourceXY(eVoteSource,
+							TEAMID(ePlayer), true); // </advc.127>
+					gDLL->getInterfaceIFace()->addHumanMessage(ePlayer, false,
+							GC.getEVENT_MESSAGE_TIME(), szBuffer,
+							GC.getReligionInfo(eReligion).getSound(),
+							MESSAGE_TYPE_MAJOR_EVENT, NULL,
+							(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
+							xy.first, xy.second); // advc.127b
 				}
 			}
 		}
@@ -10732,14 +10740,17 @@ void CvGame::doVoteResults()
 		{
 			for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; ++iPlayer)
 			{
-				CvPlayer& kPlayer = GET_PLAYER((PlayerTypes) iPlayer);
+				CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iPlayer);
 				if (kPlayer.isVotingMember(eVoteSource))
 				{
 					szMessage.clear();
 					szMessage.Format(L"%s: %s", gDLL->getText("TXT_KEY_ELECTION_CANCELLED").GetCString(), GC.getVoteInfo(eVote).getDescription());
 					// advc.127b:
-					std::pair<int,int> xy = getVoteSourceXY(eVoteSource);
-					gDLL->getInterfaceIFace()->addHumanMessage((PlayerTypes)iPlayer, false, GC.getEVENT_MESSAGE_TIME(), szMessage, "AS2D_NEW_ERA", MESSAGE_TYPE_INFO, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
+					std::pair<int,int> xy = getVoteSourceXY(eVoteSource, kPlayer.getTeam());
+					gDLL->getInterfaceIFace()->addHumanMessage(kPlayer.getID(),
+							false, GC.getEVENT_MESSAGE_TIME(), szMessage,
+							"AS2D_NEW_ERA", MESSAGE_TYPE_INFO, NULL, (ColorTypes)
+							GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
 							xy.first, xy.second); // advc.127b
 				}
 			}
@@ -10994,9 +11005,11 @@ void CvGame::doVoteResults()
 					}
 					// <advc.127b>
 					BuildingTypes vsBuilding = getVoteSourceBuilding(eVoteSource);
-					std::pair<int,int> xy = getVoteSourceXY(eVoteSource);
+					std::pair<int,int> xy = getVoteSourceXY(eVoteSource,
+							kPlayer.getTeam(), true);
 					// </advc.127b>
-					gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szMessage, "AS2D_NEW_ERA",
+					gDLL->getInterfaceIFace()->addHumanMessage(kPlayer.getID(),
+							false, GC.getEVENT_MESSAGE_TIME(), szMessage, "AS2D_NEW_ERA",
 							// <advc.127> was always MINOR
 							kVote.isSecretaryGeneral() ? MESSAGE_TYPE_MINOR_EVENT :
 							MESSAGE_TYPE_MAJOR_EVENT, // </advc.127>
@@ -11046,8 +11059,16 @@ void CvGame::doVoteSelection()
 							CvTeam& kTeam2 = GET_TEAM((TeamTypes)iTeam2);
 
 							if (kTeam2.isAlive() && kTeam2.isVotingMember(eVoteSource))
-							{
-								kTeam1.meet((TeamTypes)iTeam2, true);
+							{	// <advc.071> Check isHasMet b/c getVoteSourceCity is a bit slow
+								if(!kTeam1.isHasMet(kTeam2.getID())) {
+									FirstContactData fcData;
+									CvCity* pSrcCity = getVoteSourceCity(eVoteSource, NO_TEAM);
+									if(pSrcCity != NULL)
+										::setFirstContactData(fcData, pSrcCity->plot());
+									// </advc.071>
+									kTeam1.meet((TeamTypes)iTeam2, true,
+											fcData); // advc.071
+								}
 							}
 						}
 					}
@@ -11283,9 +11304,10 @@ void CvGame::reportResourceLayerToggled() {
 // </advc.004m>
 
 // <advc.127b>
-std::pair<int,int> CvGame::getVoteSourceXY(VoteSourceTypes vs) const {
+std::pair<int,int> CvGame::getVoteSourceXY(VoteSourceTypes vs, TeamTypes eObserver,
+		bool bDebug) const {
 
-	CvCity* vsCity = getVoteSourceCity(vs);
+	CvCity* vsCity = getVoteSourceCity(vs, eObserver, bDebug);
 	std::pair<int,int> r = std::make_pair<int,int>(-1,-1);
 	if(vsCity == NULL)
 		return r;
@@ -11294,7 +11316,8 @@ std::pair<int,int> CvGame::getVoteSourceXY(VoteSourceTypes vs) const {
 	return r;
 }
 
-CvCity* CvGame::getVoteSourceCity(VoteSourceTypes vs) const {
+CvCity* CvGame::getVoteSourceCity(VoteSourceTypes vs, TeamTypes eObserver,
+		bool bDebug) const {
 
 	BuildingTypes vsBuilding = getVoteSourceBuilding(vs);
 	if(vsBuilding == NO_BUILDING)
@@ -11304,6 +11327,8 @@ CvCity* CvGame::getVoteSourceCity(VoteSourceTypes vs) const {
 		if(!pl.isAlive())
 			continue;
 		for(CvCity* c = pl.firstCity(&foo); c != NULL; c = pl.nextCity(&foo)) {
+			if(eObserver != NO_TEAM && !c->isRevealed(eObserver, bDebug))
+				continue;
 			if(c->getNumBuilding(vsBuilding) > 0)
 				return c;
 		}

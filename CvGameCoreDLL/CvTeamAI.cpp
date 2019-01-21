@@ -195,15 +195,17 @@ void CvTeamAI::AI_doTurnPost()
 
 	// update the attitude cache for all team members.
 	// (Note: attitude use to be updated near the start of CvGame::doTurn. I've moved it here for various reasons.)
-	for (PlayerTypes i = (PlayerTypes)0; i < MAX_PLAYERS; i=(PlayerTypes)(i+1))
-	{
-		CvPlayerAI& kLoopPlayer = GET_PLAYER(i);
-		if (kLoopPlayer.getTeam() == getID() && kLoopPlayer.isAlive())
+	if(!isBarbarian()) { // advc.003n
+		for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
 		{
-			kLoopPlayer.AI_updateCloseBorderAttitudeCache();
-			kLoopPlayer.AI_updateAttitudeCache();
-		}
-	} // K-Mod end
+			CvPlayerAI& kLoopPlayer = GET_PLAYER(i);
+			if (kLoopPlayer.getTeam() == getID() && kLoopPlayer.isAlive())
+			{
+				kLoopPlayer.AI_updateCloseBorderAttitudeCache();
+				kLoopPlayer.AI_updateAttitudeCache();
+			}
+		} // K-Mod end
+	}
 	// <advc.109>
 	if(!isBarbarian() && !isMinorCiv() && getCurrentEra() > GC.getGame().getStartEra()) {
 		// Civs who haven't met half their competitors (rounded down) are lonely
@@ -4243,11 +4245,11 @@ int CvTeamAI::AI_declareWarTradeVal(TeamTypes eWarTeam, TeamTypes eTeam) const
 				// eWarTeam can be a (voluntary) vassal
 				GET_TEAM(eWarTeam).getMasterTeam(), getID());
 	else r = AI_declareWarTradeValLegacy(eWarTeam, eTeam);
-	// Charge at least as much as for an embargo
+	// Don't charge much less than for an embargo
 	CvPlayerAI const& allyLeader = GET_PLAYER(GET_TEAM(eTeam).getLeaderID());
 	if(allyLeader.canStopTradingWithTeam(eWarTeam))
-		r = std::max(r, GET_PLAYER(getLeaderID()).AI_stopTradingTradeVal(
-				eWarTeam, allyLeader.getID(), true));
+		r = std::max(r, ::round(0.83 * GET_PLAYER(getLeaderID()).AI_stopTradingTradeVal(
+				eWarTeam, allyLeader.getID(), true)));
 	// </advc.104o>
 	return AI_roundTradeVal(r); // advc.104k
 }

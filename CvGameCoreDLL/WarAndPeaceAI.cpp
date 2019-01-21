@@ -724,9 +724,14 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 	if(human) {
 		int contactDelay = agentLeader.AI_getContactTimer(target.getLeaderID(),
 				CONTACT_PEACE_TREATY);
-		if(contactDelay > 0) {
-			report->log("No peace with human sought b/c of contact delay: %d",
-					contactDelay);
+		int atWarCounter = agent.AI_getAtWarCounter(targetId);
+		if(contactDelay > 0 || agent.AI_getWarPlan(targetId) == WARPLAN_ATTACKED_RECENT ||
+				agentLeader.AI_refuseToTalkTurns(target.getLeaderID()) >  atWarCounter) {
+			if(contactDelay > 0) {
+				report->log("No peace with human sought b/c of contact delay: %d",
+						contactDelay);
+			}
+			else report->log("No peace sought b/c war too recent: %d turns", atWarCounter);
 			prPeace = 0; // Don't return; capitulation always needs to be checked.
 			bOfferPeace = false;
 		}
@@ -823,11 +828,13 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 		report->log("Empire split");
 		return false; // Leads to re-evaluation of war plans; may yet capitulate.
 	}
-	report->log("%s capitulation to %s", human ? "Offering" : "Implementing",
-			report->leaderName(target.getLeaderID()));
-	if(!inBackgr) {
-		agentLeader.AI_offerCapitulation(target.getLeaderID());
-		return false;
+	if(agentLeader.AI_getContactTimer(target.getLeaderID(), CONTACT_PEACE_TREATY) <= 0) {
+		report->log("%s capitulation to %s", human ? "Offering" : "Implementing",
+				report->leaderName(target.getLeaderID()));
+		if(!inBackgr) {
+			agentLeader.AI_offerCapitulation(target.getLeaderID());
+			return false;
+		}
 	}
 	return true;
 }
@@ -1509,7 +1516,8 @@ DenialTypes WarAndPeaceAI::Team::declareWarTrade(TeamTypes targetId,
 		WarEvalParameters params(agentId, targetId, silentReport, false,
 				sponsorLeaderId);
 		WarEvaluator eval(params, true);
-		int u = eval.evaluate(WARPLAN_LIMITED);
+		// Has to be negative; we can't be hired for free.
+		int u = std::min(-1, eval.evaluate(WARPLAN_LIMITED));
 		if(u > utilityThresh) {
 			if(GET_TEAM(sponsorId).isHuman()) {
 				int humanTradeVal = -1;
@@ -1518,8 +1526,14 @@ DenialTypes WarAndPeaceAI::Team::declareWarTrade(TeamTypes targetId,
 						true); // AI doesn't accept cities as payment for war
 				// Don't return NO_DENIAL if human can't pay enough
 				utilityThresh = std::max(utilityThresh,
+						-::round(tradeValToUtility(humanTradeVal) +
 						// Add 5 for gold that the human might be able to procure
-						-::round(tradeValToUtility(humanTradeVal) + 5));
+						(GET_TEAM(sponsorId).isGoldTrading() ||
+						GET_TEAM(agentId).isGoldTrading() ||
+						// Or they could ask nicely
+						(GET_TEAM(sponsorId).isAtWar(targetId) &&
+						GET_TEAM(agentId).AI_getAttitude(sponsorId) >=
+						ATTITUDE_PLEASED)) ? 5 : 0));
 			}
 			if(u > utilityThresh)
 				return NO_DENIAL;
@@ -1871,6 +1885,8 @@ double WarAndPeaceAI::Team::reparationsToHuman(double u) const {
 
 void WarAndPeaceAI::Team::respondToRebuke(TeamTypes targetId, bool prepare) {
 
+	/*  Caveat: Mustn't use PRNG here b/c this is called from both async (perpare=false)
+		and sync (prepare=true) contexts */
 	CvTeamAI& agent = GET_TEAM(agentId);
 	if(!canSchemeAgainst(targetId, true) || (prepare ?
 			agent.AI_isSneakAttackPreparing(targetId) :
@@ -2075,8 +2091,8 @@ void WarAndPeaceAI::Team::showWarPlanMsg(TeamTypes targetId, char const* txtKey)
 	gDLL->getInterfaceIFace()->addHumanMessage(activePl.getID(), false,
 			GC.getEVENT_MESSAGE_TIME(), szBuffer, 0, MESSAGE_TYPE_MAJOR_EVENT,
 			// <advc.127b>
-			NULL, NO_COLOR, GET_TEAM(agentId).getCapitalX(),
-			GET_TEAM(agentId).getCapitalY()); // </advc.127b>
+			NULL, NO_COLOR, GET_TEAM(agentId).getCapitalX(activePl.getTeam(), true),
+			GET_TEAM(agentId).getCapitalY(activePl.getTeam(), true)); // </advc.127b>
 }
 
 WarAndPeaceCache& WarAndPeaceAI::Team::leaderCache() {

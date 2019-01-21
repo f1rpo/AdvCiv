@@ -496,6 +496,12 @@ struct DllExport CvWBData
 	CvWString m_strHelp;
 	CvString m_strButton;
 };
+// <advc.071>
+struct FirstContactData {
+	FirstContactData() : u1(), u2(), x1(-1), x2(-1), y1(-1), y2(-1) {}
+	IDInfo u1, u2;
+	int x1, y1, x2, y2;
+}; // </advc.071>
 
 
 #endif	// CVSTRUCTS_H

@@ -315,6 +315,9 @@
 	<ElementType name="iStartingLocPercent" content="textOnly" dt:type="int"/>
 	<ElementType name="iFreeUnits" content="textOnly" dt:type="int"/>
 	<ElementType name="iUnitCostPercent" content="textOnly" dt:type="int"/>
+	<!-- advc.251: Modifier for worker build time; rounds down to
+		 a multiple of 50 time units -->
+	<ElementType name="iBuildTimePercent" content="textOnly" dt:type="int"/>
 	<!-- advc.251: Modifier for base threshold for city growth -->
 	<ElementType name="iBaseGrowthThresholdPercent" content="textOnly" dt:type="int"/>
 	<!-- advc.251: Modifier for Great Person thresholds -->
@@ -409,6 +412,7 @@
 		<element type="iFreeUnits"/>
 		<element type="iUnitCostPercent"/>
 		<!-- advc.251 (start) -->
+		<element type="iBuildTimePercent"/>
 		<element type="iBaseGrowthThresholdPercent"/>
 		<element type="iGPThresholdPercent"/>
 		<!-- advc.251 (end) -->

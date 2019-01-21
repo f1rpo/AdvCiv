@@ -24,6 +24,19 @@
 					get="isShowEra" set="setShowEra" dirtyBit="GameData" 
 					label="Display Era" 
 					help="When checked, the current era is displayed to the left of the research bar."/>
+			
+			<!-- advc.002k: New option. No need for a dirty-bit; the time
+				 display is constantly updated (I guess in case a clock is
+				 activated) -->
+			<list id="YearNotation" key="Year Notation" 
+					type="int" default="0" listType="string" 
+					values="AD Prefix|AD Postfix|Common Era" 
+					get="getYearNotation">
+				<choice id="ADPrefix" get="isADPrefix"/>
+				<choice id="ADPostfix" get="isADPostfix"/>
+				<choice id="CommonEra" get="isCommonEra"/>
+			</list>
+					
 			<!-- advc.067: New option -->
 			<option id="ShowGameEra" key="Show Game Era" 
 					type="boolean" default="False" 
@@ -44,12 +57,12 @@
 					label="Ancient Era" 
 					help="Color to use for the Ancient era."/>
 			<list   id="Color_ERA_CLASSICAL" key="ERA_CLASSICAL" 
-					type="color" default="COLOR_CYAN" 
+					type="color" default="COLOR_HIGHLIGHT_TEXT" 
 					get="getClassicalEraColor" set="setClassicalEraColor" dirtyBit="GameData,Tech_Screen" 
 					label="Classical Era" 
 					help="Color to use for the Classical era."/>
 			<list   id="Color_ERA_MEDIEVAL" key="ERA_MEDIEVAL" 
-					type="color" default="COLOR_YELLOW" 
+					type="color" default="COLOR_UNIT_TEXT" 
 					get="getMedievalEraColor" set="setMedievalEraColor" dirtyBit="GameData,Tech_Screen" 
 					label="Medieval Era" 
 					help="Color to use for the Medieval era."/>
@@ -59,12 +72,12 @@
 					label="Renaissance Era" 
 					help="Color to use for the Renaissance era."/>
 			<list   id="Color_ERA_INDUSTRIAL" key="ERA_INDUSTRIAL" 
-					type="color" default="COLOR_RED" 
+					type="color" default="COLOR_WARNING_TEXT" 
 					get="getIndustrialEraColor" set="setIndustrialEraColor" dirtyBit="GameData,Tech_Screen" 
 					label="Industrial Era" 
 					help="Color to use for the Industrial era."/>
 			<list   id="Color_ERA_MODERN" key="ERA_MODERN" 
-					type="color" default="COLOR_LIGHT_GREY" 
+					type="color" default="COLOR_BUILDING_TEXT" 
 					get="getModernEraColor" set="setModernEraColor" dirtyBit="GameData,Tech_Screen" 
 					label="Modern Era" 
 					help="Color to use for the Modern era."/>

@@ -342,6 +342,9 @@ int estimateCollateralWeight(const CvPlot* pPlot, TeamTypes eAttackTeam, TeamTyp
 int getEspionageModifier(TeamTypes eOurTeam, TeamTypes eTargetTeam);							// Exposed to Python
 
 DllExport void setTradeItem(TradeData* pItem, TradeableItems eItemType = TRADE_ITEM_NONE, int iData = 0);
+// <advc.071>
+void setFirstContactData(FirstContactData& kData, CvPlot const* pAt1, CvPlot const* pAt2 = NULL,
+		CvUnit const* pUnit1 = NULL, CvUnit const* pUnit2 = NULL); // </advc.071>
 
 bool isPlotEventTrigger(EventTriggerTypes eTrigger);
 

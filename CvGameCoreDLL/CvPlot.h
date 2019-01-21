@@ -124,8 +124,10 @@ public:
 	bool canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam = NO_TEAM, bool bPotential = false,									// Exposed to Python
 			BuildTypes eBuild = NO_BUILD, bool bAnyBuild = true) const; // dlph.9
 	bool canBuild(BuildTypes eBuild, PlayerTypes ePlayer = NO_PLAYER, bool bTestVisible = false) const;														// Exposed to Python
-	int getBuildTime(BuildTypes eBuild) const;																																										// Exposed to Python
-	int getBuildTurnsLeft(BuildTypes eBuild, int iNowExtra, int iThenExtra,																			// Exposed to Python
+	int getBuildTime(BuildTypes eBuild,																																										// Exposed to Python
+			PlayerTypes ePlayer) const; // advc.251
+	int getBuildTurnsLeft(BuildTypes eBuild, /* advc.251: */ PlayerTypes ePlayer,
+			int iNowExtra, int iThenExtra,																			// Exposed to Python
 			// <advc.011c>
 			bool bIncludeUnits = true) const;
 	int getBuildTurnsLeft(BuildTypes eBuild, PlayerTypes ePlayer) const;
@@ -471,7 +473,8 @@ public:
 	void updatePlotGroup(PlayerTypes ePlayer, bool bRecalculate = true);
 
 	int getVisibilityCount(TeamTypes eTeam) const;																											// Exposed to Python
-	void changeVisibilityCount(TeamTypes eTeam, int iChange, InvisibleTypes eSeeInvisible, bool bUpdatePlotGroups);							// Exposed to Python
+	void changeVisibilityCount(TeamTypes eTeam, int iChange, InvisibleTypes eSeeInvisible, bool bUpdatePlotGroups,							// Exposed to Python
+			CvUnit* pUnit = NULL); // advc.071
 
 	int getStolenVisibilityCount(TeamTypes eTeam) const;																								// Exposed to Python
 	void changeStolenVisibilityCount(TeamTypes eTeam, int iChange);
@@ -501,7 +504,9 @@ public:
 	void setRevealedRouteType(TeamTypes eTeam, RouteTypes eNewValue);							
 
 	int getBuildProgress(BuildTypes eBuild) const;																											// Exposed to Python
-	bool changeBuildProgress(BuildTypes eBuild, int iChange, TeamTypes eTeam = NO_TEAM);								// Exposed to Python
+	bool changeBuildProgress(BuildTypes eBuild, int iChange,									// Exposed to Python
+			//TeamTypes eTeam = NO_TEAM
+			PlayerTypes ePlayer); // advc.251
 	bool decayBuildProgress(bool bTest = false); // advc.011
 
 	void updateFeatureSymbolVisibility(); 

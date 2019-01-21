@@ -242,12 +242,12 @@
 		<Spanish>Número de Ciudades</Spanish>
 	</TEXT>
 	
-	<!-- advc.004: Minor changes (English) -->
+	<!-- advc.004: Mention that only revealed cities count -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_SCORES__CITIES_HOVER</Tag>
-		<English>When checked, shows the number of cities of each civilization.</English>
+		<English>When checked, shows for each civilization the number of cities that are revealed to you.</English>
 		<French>When checked, shows a count of the number of cities for each leader.</French>
-		<German>Zeigt für jede Zivilisation die Anzahl ihrer Städte an</German>
+		<German>Zeigt für jede Zivilisation die Anzahl der Ihnen bekannten Städte an.</German>
 		<Italian>Quando è selezionato, mostra il numero di Città per ogni Civiltà.</Italian>
 		<Spanish>Cuando está activo, muestra el número de ciudades de cada líder.</Spanish>
 	</TEXT>

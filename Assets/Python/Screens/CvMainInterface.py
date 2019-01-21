@@ -3110,11 +3110,11 @@ class CvMainInterface:
 			if (gc.getPlayer(ePlayer).isAlive()):
 				
 # BUG - Gold Rate Warning - start
-				if MainOpt.isGoldRateWarning():
+				if True:#MainOpt.isGoldRateWarning(): # advc.070
 					pPlayer = gc.getPlayer(ePlayer)
 					iGold = pPlayer.getGold()
 					iGoldRate = pPlayer.calculateGoldRate()
-					if iGold < 0:
+					if iGold < 0: # advc.070 (comment): Only relevant for mod-mods I think, so I'm not changing anything here.
 						szText = BugUtil.getText("TXT_KEY_MISC_NEG_GOLD", iGold)
 						if iGoldRate != 0:
 							if iGold + iGoldRate >= 0:
@@ -3126,12 +3126,23 @@ class CvMainInterface:
 					else:
 						szText = BugUtil.getText("TXT_KEY_MISC_POS_GOLD", iGold)
 						if iGoldRate != 0:
+							# <advc.070>
+							szRateText = " ("
+							szRateText += BugUtil.getText("TXT_KEY_MISC_PER_TURN", iGoldRate)
+							szRateText += ")"
+							iRateColor = MainOpt.getGoldRateBrokeColor()
+							# </advc.070>
 							if iGoldRate >= 0:
-								szText += BugUtil.getText("TXT_KEY_MISC_POS_GOLD_PER_TURN", iGoldRate)
+								iRateColor = MainOpt.getPositiveGoldRateColor()
+								#szText += BugUtil.getText("TXT_KEY_MISC_POS_GOLD_PER_TURN", iGoldRate)
 							elif iGold + iGoldRate >= 0:
-								szText += BugUtil.getText("TXT_KEY_MISC_NEG_WARNING_GOLD_PER_TURN", iGoldRate)
-							else:
-								szText += BugUtil.getText("TXT_KEY_MISC_NEG_GOLD_PER_TURN", iGoldRate)
+								MainOpt.getNegativeGoldRateColor()
+								#szText += BugUtil.getText("TXT_KEY_MISC_NEG_WARNING_GOLD_PER_TURN", iGoldRate)
+							#else:
+								#szText += BugUtil.getText("TXT_KEY_MISC_NEG_GOLD_PER_TURN", iGoldRate)
+							# advc.070:
+							szText += localText.changeTextColor(szRateText, iRateColor)
+						
 					if pPlayer.isStrike():
 						szText += BugUtil.getPlainText("TXT_KEY_MISC_STRIKE")
 				else:
@@ -3174,11 +3185,11 @@ class CvMainInterface:
 					szText = localText.getText("INTERFACE_ANARCHY", (gc.getPlayer(ePlayer).getAnarchyTurns(), ))
 					screen.setText( "ResearchText", "Background", szText, CvUtil.FONT_CENTER_JUSTIFY, xCoord, yCoord, -0.4, FontTypes.GAME_FONT, WidgetTypes.WIDGET_RESEARCH, -1, -1 )
 # BUG - Bars on single line for higher resolution screens - end
-
-					if ( gc.getPlayer(ePlayer).getCurrentResearch() != -1 ):
-						screen.show( "ResearchText" )
-					else:
-						screen.hide( "ResearchText" )
+					# advc.004x: Always show ResearchText (i.e. anarchy turns)
+					#if ( gc.getPlayer(ePlayer).getCurrentResearch() != -1 ):
+					screen.show( "ResearchText" )
+					#else:
+					#	screen.hide( "ResearchText" )
 					
 				elif (gc.getPlayer(ePlayer).getCurrentResearch() != -1):
 
@@ -3212,7 +3223,8 @@ class CvMainInterface:
 					screen.show( szResearchBar )
 
 # BUG - Progress Bar - Tick Marks - start
-					if MainOpt.isShowpBarTickMarks():
+					# advc.004x: researchRate condition added
+					if MainOpt.isShowpBarTickMarks() and researchRate > 0:
 						if szResearchBar == "ResearchBar":
 							self.pBarResearchBar_n.drawTickMarks(screen, researchProgress + overflowResearch, researchCost, researchRate, researchRate, False)
 						else:
@@ -4841,7 +4853,15 @@ class CvMainInterface:
 							if (pHeadSelectedUnit.isFighting()):
 								szRightBuffer = u"?/%d%c" %(pHeadSelectedUnit.baseCombatStr(), CyGame().getSymbolID(FontSymbols.STRENGTH_CHAR))
 							elif (pHeadSelectedUnit.isHurt()):
-								szRightBuffer = u"%.1f/%d%c" %(((float(pHeadSelectedUnit.baseCombatStr() * pHeadSelectedUnit.currHitPoints())) / (float(pHeadSelectedUnit.maxHitPoints()))), pHeadSelectedUnit.baseCombatStr(), CyGame().getSymbolID(FontSymbols.STRENGTH_CHAR))
+								# <advc.004> Same as in CvGameTextMgr::setUnitHelp
+								fCurrStrength = pHeadSelectedUnit.baseCombatStr() * pHeadSelectedUnit.currHitPoints() / float(pHeadSelectedUnit.maxHitPoints())
+								iCurrStrengthTimes100 = (100 * pHeadSelectedUnit.baseCombatStr() * pHeadSelectedUnit.currHitPoints()) / pHeadSelectedUnit.maxHitPoints()
+								if pHeadSelectedUnit.baseCombatStr() * pHeadSelectedUnit.maxHitPoints() - iCurrStrengthTimes100 <= 5:
+									fCurrStrength = pHeadSelectedUnit.baseCombatStr() - 0.1
+								if pHeadSelectedUnit.baseCombatStr() * pHeadSelectedUnit.maxHitPoints() < 5:
+									fCurrStrength = 0.1
+								 # </advc.004>
+								szRightBuffer = u"%.1f/%d%c" %(fCurrStrength, pHeadSelectedUnit.baseCombatStr(), CyGame().getSymbolID(FontSymbols.STRENGTH_CHAR))
 							else:
 								szRightBuffer = u"%d%c" %(pHeadSelectedUnit.baseCombatStr(), CyGame().getSymbolID(FontSymbols.STRENGTH_CHAR))
 
@@ -4935,7 +4955,8 @@ class CvMainInterface:
 						if (gc.getMissionInfo(pSelectedGroup.getMissionType(i)).isBuild()):
 							if (i == 0):
 								szLeftBuffer = gc.getBuildInfo(pSelectedGroup.getMissionData1(i)).getDescription()
-								szRightBuffer = localText.getText("INTERFACE_CITY_TURNS", (pSelectedGroup.plot().getBuildTurnsLeft(pSelectedGroup.getMissionData1(i), 0, 0), ))								
+								# advc.251: Pass group owner as param
+								szRightBuffer = localText.getText("INTERFACE_CITY_TURNS", (pSelectedGroup.plot().getBuildTurnsLeft(pSelectedGroup.getMissionData1(i), pSelectedGroup.getOwner(), 0, 0), ))								
 							else:
 								szLeftBuffer = u"%s..." %(gc.getBuildInfo(pSelectedGroup.getMissionData1(i)).getDescription())
 						else:
@@ -5181,10 +5202,15 @@ class CvMainInterface:
 												(gc.getPlayer(ePlayer).getTeam() != gc.getGame().getActiveTeam() or gc.getTeam(gc.getGame().getActiveTeam()).getNumMembers() > 1)):
 												# K-Mod end
 													if (gc.getPlayer(ePlayer).getCurrentResearch() != -1):
-														szTempBuffer = u"-%s (%d)" %(gc.getTechInfo(gc.getPlayer(ePlayer).getCurrentResearch()).getDescription(), gc.getPlayer(ePlayer).getResearchTurnsLeft(gc.getPlayer(ePlayer).getCurrentResearch(), True))
+														# <advc.004x>
+														iTurnsLeft = gc.getPlayer(ePlayer).getResearchTurnsLeft(gc.getPlayer(ePlayer).getCurrentResearch(), True)
+														if iTurnsLeft < 0:
+															szTempBuffer = u"-%s" %(gc.getTechInfo(gc.getPlayer(ePlayer).getCurrentResearch()).getDescription())
+														else: # </advc.004x>
+															szTempBuffer = u"-%s (%d)" %(gc.getTechInfo(gc.getPlayer(ePlayer).getCurrentResearch()).getDescription(), iTurnsLeft)
 														szBuffer = szBuffer + szTempBuffer
 														if (bAlignIcons):
-															scores.setResearch(gc.getPlayer(ePlayer).getCurrentResearch(), gc.getPlayer(ePlayer).getResearchTurnsLeft(gc.getPlayer(ePlayer).getCurrentResearch(), True))
+															scores.setResearch(gc.getPlayer(ePlayer).getCurrentResearch(), iTurnsLeft)
 												# BUG: ...end of indentation
 # BUG - Dead Civs - end
 # BUG - Power Rating - start

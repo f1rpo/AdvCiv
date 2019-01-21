@@ -534,23 +534,24 @@ void CvPlot::doImprovementUpgrade()
 
 void CvPlot::updateCulture(bool bBumpUnits, bool bUpdatePlotGroups)
 {
-	if (!isCity())
-	{	// <advc.035>
-		PlayerTypes ownerId = calculateCulturalOwner();
-		setSecondOwner(ownerId);
-		if(GC.getOWN_EXCLUSIVE_RADIUS() > 0 && ownerId != NO_PLAYER) {
-			PlayerTypes secondOwnerId = calculateCulturalOwner(false, true);
-			if(secondOwnerId != NO_PLAYER) {
-				if(!TEAMREF(secondOwnerId).isAtWar(TEAMID(ownerId)))
-					ownerId = secondOwnerId;
-				else setSecondOwner(secondOwnerId);
-			}
-			else FAssertMsg(secondOwnerId != NO_PLAYER, "ownerId!=NO_PLAYER"
-					" should imply secondOwnerId!=NO_PLAYER");
+	if(isCity())
+		return; // advc.003
+
+	// <advc.035>
+	PlayerTypes ownerId = calculateCulturalOwner();
+	setSecondOwner(ownerId);
+	if(GC.getOWN_EXCLUSIVE_RADIUS() > 0 && ownerId != NO_PLAYER) {
+		PlayerTypes secondOwnerId = calculateCulturalOwner(false, true);
+		if(secondOwnerId != NO_PLAYER) {
+			if(!TEAMREF(secondOwnerId).isAtWar(TEAMID(ownerId)))
+				ownerId = secondOwnerId;
+			else setSecondOwner(secondOwnerId);
 		}
-		setOwner(ownerId, // </advc.035>
-				bBumpUnits, bUpdatePlotGroups);
+		else FAssertMsg(secondOwnerId != NO_PLAYER, "ownerId!=NO_PLAYER"
+				" should imply secondOwnerId!=NO_PLAYER");
 	}
+	setOwner(ownerId, // </advc.035>
+			bBumpUnits, bUpdatePlotGroups);
 }
 
 
@@ -1844,7 +1845,8 @@ void CvPlot::changeAdjacentSight(TeamTypes eTeam, int iRange, bool bIncrement, C
 						CvPlot* pPlot = plotXY(getX_INLINE(), getY_INLINE(), dx, dy);
 						if (NULL != pPlot)
 						{
-							pPlot->changeVisibilityCount(eTeam, ((bIncrement) ? 1 : -1), aSeeInvisibleTypes[i], bUpdatePlotGroups);
+							pPlot->changeVisibilityCount(eTeam, ((bIncrement) ? 1 : -1), aSeeInvisibleTypes[i], bUpdatePlotGroups,
+									pUnit); // advc.071
 						}
 					}
 				}
@@ -1856,8 +1858,10 @@ void CvPlot::changeAdjacentSight(TeamTypes eTeam, int iRange, bool bIncrement, C
 						CvPlot* pPlot = plotXY(getX_INLINE(), getY_INLINE(), dx, dy);
 						if (NULL != pPlot)
 						{
-							pPlot->changeVisibilityCount(eTeam, 1, aSeeInvisibleTypes[i], bUpdatePlotGroups);
-							pPlot->changeVisibilityCount(eTeam, -1, aSeeInvisibleTypes[i], bUpdatePlotGroups);
+							pPlot->changeVisibilityCount(eTeam, 1, aSeeInvisibleTypes[i], bUpdatePlotGroups,
+									pUnit); // advc.071
+							pPlot->changeVisibilityCount(eTeam, -1, aSeeInvisibleTypes[i], bUpdatePlotGroups,
+									pUnit); // advc.071
 						}
 					}
 				}
@@ -2584,7 +2588,8 @@ bool CvPlot::canBuild(BuildTypes eBuild, PlayerTypes ePlayer, bool bTestVisible)
 }
 
 
-int CvPlot::getBuildTime(BuildTypes eBuild) const
+int CvPlot::getBuildTime(BuildTypes eBuild,
+		PlayerTypes ePlayer) const // advc.251
 {
 	FAssertMsg(getTerrainType() != NO_TERRAIN, "TerrainType is not assigned a valid value");
 
@@ -2597,7 +2602,11 @@ int CvPlot::getBuildTime(BuildTypes eBuild) const
 
 	iTime *= std::max(0, (GC.getTerrainInfo(getTerrainType()).getBuildModifier() + 100));
 	iTime /= 100;
-
+	// <advc.251>
+	iTime = (int)(GC.getHandicapInfo(GET_PLAYER(ePlayer).getHandicapType()).
+			getBuildTimePercent() * 0.01 * iTime);
+	iTime -= (iTime % 50); // Round down to a multiple of 50
+	// </advc.251>
 	iTime *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getBuildPercent();
 	iTime /= 100;
 
@@ -2608,7 +2617,8 @@ int CvPlot::getBuildTime(BuildTypes eBuild) const
 }
 
 
-int CvPlot::getBuildTurnsLeft(BuildTypes eBuild, int iNowExtra, int iThenExtra,
+int CvPlot::getBuildTurnsLeft(BuildTypes eBuild, /* advc.251: */ PlayerTypes ePlayer,
+		int iNowExtra, int iThenExtra,
 		bool bIncludeUnits) const // advc.011c
 {
 	int iNowBuildRate = iNowExtra;
@@ -2639,8 +2649,8 @@ int CvPlot::getBuildTurnsLeft(BuildTypes eBuild, int iNowExtra, int iThenExtra,
 		return MAX_INT;
 	}
 
-	int iBuildLeft = getBuildTime(eBuild);
-
+	int iBuildLeft = getBuildTime(eBuild,
+			ePlayer); // advc.251
 	iBuildLeft -= getBuildProgress(eBuild);
 	iBuildLeft -= iNowBuildRate;
 
@@ -2662,8 +2672,10 @@ int CvPlot::getBuildTurnsLeft(BuildTypes eBuild, int iNowExtra, int iThenExtra,
 int CvPlot::getBuildTurnsLeft(BuildTypes eBuild, PlayerTypes ePlayer) const {
 
 	int iWorkRate = GET_PLAYER(ePlayer).getWorkRate(eBuild);
-	if(iWorkRate > 0)
-		return getBuildTurnsLeft(eBuild, iWorkRate, iWorkRate, false);
+	if(iWorkRate > 0) {
+		return getBuildTurnsLeft(eBuild, /* advc.251: */ ePlayer,
+				iWorkRate, iWorkRate, false);
+	}
 	else return MAX_INT;
 } // </advc.011c>
 
@@ -3217,19 +3229,17 @@ bool CvPlot::isHasPathToPlayerCity( TeamTypes eMoveTeam, PlayerTypes eOtherPlaye
 	to twist it to my purpose. I don't think it had ever been tested either
 	b/c it didn't seem to work at all until I changed the GetLastNode call
 	at the end. */
-int CvPlot::calculatePathDistanceToPlot( TeamTypes eTeam, CvPlot* pTargetPlot,
+int CvPlot::calculatePathDistanceToPlot(TeamTypes eTeam, CvPlot* pTargetPlot,
 		TeamTypes eTargetTeam, DomainTypes dom, int iMaxPath) // advc.104b
 {
 	PROFILE_FUNC();
-
 	FAssert(eTeam != NO_TEAM);
+	FAssert(eTargetTeam != NO_TEAM);
 	/*  advc.104b: Commented out. Want to be able to measure paths between
 		coastal cities of different continents. (And shouldn't return "false"
 		at any rate.) */
 	/*if( pTargetPlot->area() != area() )
-	{
-		return false;
-	}*/
+		return false;*/
 
 	// Imitate instatiation of irrigated finder, pIrrigatedFinder
 	// Can't mimic step finder initialization because it requires creation from the exe
@@ -3760,6 +3770,10 @@ bool CvPlot::isRevealedGoody(TeamTypes eTeam) const
 void CvPlot::removeGoody()
 {
 	setImprovementType(NO_IMPROVEMENT);
+	// <advc.004z>
+	if(GC.getGameINLINE().isResourceLayer() && isVisibleToWatchingHuman())
+		gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
+	// </advc.004z>
 }
 
 
@@ -5121,7 +5135,7 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 		GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getOwnerINLINE(),
 				szBuffer, getX_INLINE(), getY_INLINE()
 				// advc.106: Use ALT_HIGHLIGHT for research-related stuff now
-				//, (ColorTypes)GC.getInfoTypeForString("COLOR_ALT_HIGHLIGHT")
+				//, (ColorTypes)GC.getInfoTypeForString("COLOR_ALT_HIGHLIGHT_TEXT")
 				);
 		FAssertMsg(pOldCity->getOwnerINLINE() != eNewValue, "pOldCity->getOwnerINLINE() is not expected to be equal with eNewValue");
 		GET_PLAYER(eNewValue).acquireCity(pOldCity, false, false, bUpdatePlotGroup); // will delete the pointer
@@ -5223,7 +5237,9 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 				GET_PLAYER(pLoopUnit->getOwnerINLINE()).changeNumOutsideUnits(-1);
 			}
 
-			if (pLoopUnit->isBlockading())
+			if (pLoopUnit->isBlockading()
+					// advc.033: Owner change shouldn't normally disrupt blockade
+					&& !pLoopUnit->canPlunder(pLoopUnit->plot()))
 			{
 				pLoopUnit->setBlockading(false);
 				pLoopUnit->getGroup()->clearMissionQueue();
@@ -5308,11 +5324,16 @@ void CvPlot::setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotG
 
 			for (iI = 0; iI < MAX_CIV_TEAMS; ++iI)
 			{
-				if (GET_TEAM((TeamTypes)iI).isAlive())
+				CvTeam& kLoopTeam = GET_TEAM((TeamTypes)iI);
+				if (kLoopTeam.isAlive())
 				{
-					if (isVisible((TeamTypes)iI, false))
-					{
-						GET_TEAM((TeamTypes)iI).meet(getTeam(), true);
+					if (isVisible(kLoopTeam.getID(), false))
+					{	// <advc.071>
+						FirstContactData fcData;
+						::setFirstContactData(fcData, this);
+						// </advc.071>
+						kLoopTeam.meet(getTeam(), true,
+								fcData); // advc.071
 					}
 				}
 			}
@@ -7339,29 +7360,28 @@ int CvPlot::getVisibilityCount(TeamTypes eTeam) const
 }
 
 
-void CvPlot::changeVisibilityCount(TeamTypes eTeam, int iChange, InvisibleTypes eSeeInvisible, bool bUpdatePlotGroups)
+void CvPlot::changeVisibilityCount(TeamTypes eTeam, int iChange, InvisibleTypes eSeeInvisible, bool bUpdatePlotGroups,
+		CvUnit* pUnit) // advc.071
 {
-	int iI;
-
 	FAssertMsg(eTeam >= 0, "eTeam is expected to be non-negative (invalid Index)");
 	FAssertMsg(eTeam < MAX_TEAMS, "eTeam is expected to be within maximum bounds (invalid Index)");
 
 	if(iChange == 0)
 		return;
 
-	if (NULL == m_aiVisibilityCount)
-	{
-		m_aiVisibilityCount = new short[MAX_TEAMS];
-		for (iI = 0; iI < MAX_TEAMS; ++iI)
-		{
-			m_aiVisibilityCount[iI] = 0;
-		}
-	}
+	if(m_aiVisibilityCount == NULL)
+		m_aiVisibilityCount = new short[MAX_TEAMS]();
 
 	bool bOldVisible = isVisible(eTeam, false);
 
 	m_aiVisibilityCount[eTeam] += iChange;
-	FAssert(getVisibilityCount(eTeam) >= 0);
+	//FAssert(getVisibilityCount(eTeam) >= 0);
+	/*  <advc.006> Had some problems here with the Earth1000AD scenario (as the
+		initial cities were being placed). The problems remain unresolved. */
+	if(getVisibilityCount(eTeam) < 0) {
+		FAssert(m_aiVisibilityCount[eTeam] >= 0);
+		m_aiVisibilityCount[eTeam] = 0;
+	} // </advc.006>
 
 	if (eSeeInvisible != NO_INVISIBLE)
 	{
@@ -7374,22 +7394,25 @@ void CvPlot::changeVisibilityCount(TeamTypes eTeam, int iChange, InvisibleTypes 
 		{
 			setRevealed(eTeam, true, false, NO_TEAM, bUpdatePlotGroups);
 
-			for (iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+			for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
 			{
 				CvPlot* pAdjacentPlot = plotDirection(getX_INLINE(), getY_INLINE(), ((DirectionTypes)iI));
 
 				if (pAdjacentPlot != NULL)
-				{
-					//pAdjacentPlot->updateRevealedOwner(eTeam);
-					// K-Mod. updateRevealedOwner simply checks to see if there is a visible adjacent plot. But we've already checked that, so lets go right to the punch.
+				{	//pAdjacentPlot->updateRevealedOwner(eTeam);
+					/*  K-Mod: updateRevealedOwner simply checks to see if there is a visible adjacent plot.
+						But we've already checked that, so lets go right to the punch. */
 					pAdjacentPlot->setRevealedOwner(eTeam, pAdjacentPlot->getOwnerINLINE());
-					// K-Mod end
 				}
 			}
 
 			if (getTeam() != NO_TEAM)
-			{
-				GET_TEAM(getTeam()).meet(eTeam, true);
+			{	// <advc.071>
+				FirstContactData fcData;
+				::setFirstContactData(fcData, this, pUnit == NULL ? NULL : pUnit->plot(), pUnit);
+				// </advc.071>
+				GET_TEAM(getTeam()).meet(eTeam, true,
+						fcData); // advc.071
 			}
 			// K-Mod. Meet the owner of any units you can see.
 			{
@@ -7400,8 +7423,13 @@ void CvPlot::changeVisibilityCount(TeamTypes eTeam, int iChange, InvisibleTypes 
 				while (pUnitNode)
 				{
 					CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-
-					kTeam.meet(GET_PLAYER(pLoopUnit->getVisualOwner(eTeam)).getTeam(), true);
+					// <advc.071>
+					FirstContactData fcData;
+					::setFirstContactData(fcData, this, pUnit == NULL ?
+							NULL : pUnit->plot(), pUnit, pLoopUnit);
+					// </advc.071>
+					kTeam.meet(GET_PLAYER(pLoopUnit->getVisualOwner(eTeam)).getTeam(), true,
+							fcData); // advc.071
 
 					pUnitNode = nextUnitNode(pUnitNode);
 				}
@@ -7416,7 +7444,7 @@ void CvPlot::changeVisibilityCount(TeamTypes eTeam, int iChange, InvisibleTypes 
 			pCity->setInfoDirty(true);
 		}
 
-		for (iI = 0; iI < MAX_TEAMS; ++iI)
+		for (int iI = 0; iI < MAX_TEAMS; ++iI)
 		{
 			if (GET_TEAM((TeamTypes)iI).isAlive())
 			{
@@ -8122,13 +8150,16 @@ int CvPlot::getBuildProgress(BuildTypes eBuild) const
 
 
 // Returns true if build finished...
-bool CvPlot::changeBuildProgress(BuildTypes eBuild, int iChange, TeamTypes eTeam)
+bool CvPlot::changeBuildProgress(BuildTypes eBuild, int iChange,
+		//TeamTypes eTeam
+		PlayerTypes ePlayer) // advc.251
 {
 	CvWString szBuffer;
 
 	if(iChange == 0)
 		return false;
 
+	TeamTypes eTeam = TEAMID(ePlayer); // advc.251
 	if (NULL == m_paiBuildProgress)
 	{
 		m_paiBuildProgress = new short[GC.getNumBuildInfos()];
@@ -8144,7 +8175,8 @@ bool CvPlot::changeBuildProgress(BuildTypes eBuild, int iChange, TeamTypes eTeam
 	counting again next turn. */
 	m_iTurnsBuildsInterrupted = -1;
 
-	if(getBuildProgress(eBuild) < getBuildTime(eBuild))
+	if(getBuildProgress(eBuild) < getBuildTime(eBuild,
+			ePlayer)) // advc.251
 		return false;
 
 	m_paiBuildProgress[eBuild] = 0;

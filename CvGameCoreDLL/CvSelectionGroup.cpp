@@ -83,6 +83,7 @@ void CvSelectionGroup::reset(int iID, PlayerTypes eOwner, bool bConstructorCall)
 
 	m_eActivityType = ACTIVITY_AWAKE;
 	m->eAutomateType = NO_AUTOMATE;
+	m->bInitiallyVisible = true; // advc.102
 	m_bIsBusyCache = false;
 
 	if (!bConstructorCall)
@@ -332,9 +333,7 @@ bool CvSelectionGroup::showMoves(
 {
 	if (GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) || GC.getGameINLINE().isSimultaneousTeamTurns()
 			|| gDLL->getEngineIFace()->isGlobeviewUp()) // advc.102
-	{
 		return false;
-	}
 
 	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
@@ -401,6 +400,12 @@ bool CvSelectionGroup::showMoves(
 	}
 	return false;
 }
+
+// <advc.102>
+void CvSelectionGroup::setInitiallyVisible(bool b) {
+
+	m->bInitiallyVisible = b;
+} // </advc.102>
 
 
 void CvSelectionGroup::updateTimers()
@@ -513,7 +518,9 @@ void CvSelectionGroup::playActionSound()
 }
 
 
-void CvSelectionGroup::pushMission(MissionTypes eMission, int iData1, int iData2, int iFlags, bool bAppend, bool bManual, MissionAITypes eMissionAI, CvPlot* pMissionAIPlot, CvUnit* pMissionAIUnit,
+void CvSelectionGroup::pushMission(MissionTypes eMission, int iData1, int iData2,
+		int iFlags, bool bAppend, bool bManual, MissionAITypes eMissionAI,
+		CvPlot* pMissionAIPlot, CvUnit* pMissionAIUnit,
 		bool bModified) { // advc.011b
 
 	PROFILE_FUNC();
@@ -1285,7 +1292,7 @@ void CvSelectionGroup::startMission()
 		// K-Mod end
 	} // end if (can start mission)
 
-	if ((getNumUnits() > 0) && (headMissionQueueNode() != NULL))
+	if (getNumUnits() > 0 && headMissionQueueNode() != NULL)
 	{
 		if (bAction)
 		{
@@ -1651,9 +1658,8 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 			{	// <advc.102> Previously only checked if destVisible
 				bool destVisible = plot()->isVisibleToWatchingHuman();
 				bool startVisible = fromPlot->isVisibleToWatchingHuman();
-				if(destVisible || (startVisible && ::getUnit(headUnitNode()->
-						m_data)->isInitiallyVisible())) // </advc.102>
-				{	// <advc.102> Pass fromPlot
+				if(destVisible || (startVisible && m->bInitiallyVisible)) {
+					// Pass fromPlot
 					updateMissionTimer(iSteps, fromPlot);
 					if(showMoves(*fromPlot)) // </advc.102>
 					{
@@ -2124,7 +2130,7 @@ bool CvSelectionGroup::canDoInterfaceModeAt(InterfaceModeTypes eInterfaceMode, C
 }
 
 
-bool CvSelectionGroup::isHuman()
+bool CvSelectionGroup::isHuman() const
 {
 	if (getOwnerINLINE() != NO_PLAYER)
 	{
@@ -3446,22 +3452,20 @@ bool CvSelectionGroup::groupRoadTo(int iX, int iY, int iFlags)
 {
 	if (!AI_isControlled() || !at(iX, iY) || getLengthMissionQueue() == 1)
 	{
-		CvPlot* pPlot = plot();
 		BuildTypes eBestBuild = NO_BUILD;
 		//RouteTypes eBestRoute = // advc.003: unused
-			getBestBuildRoute(pPlot, &eBestBuild);
+			getBestBuildRoute(plot(), &eBestBuild);
 		if (eBestBuild != NO_BUILD)
 		{
 			groupBuild(eBestBuild);
 			return true;
 		}
 	}
-
 	return groupPathTo(iX, iY, iFlags
 			/*  advc.049: In the debugger, I'm seeing this function get called via
 				continueMission without any flags set, and these calls cause
 				the AI to build roads through foreign territory. */
-			| MOVE_ROUTE_TO | MOVE_SAFE_TERRITORY);
+			| MOVE_ROUTE_TO);
 }
 
 
@@ -3547,9 +3551,9 @@ bool CvSelectionGroup::groupBuild(BuildTypes eBuild,
 						szBuild.substr(posClosing + 1, szBuild.length() - posClosing - 1));
 			}
 			CvWString szBuffer = gDLL->getText("TXT_KEY_BUILD_NOT_FINISHED", szBuild.c_str());
-			gDLL->getInterfaceIFace()->addMessage(getOwnerINLINE(), false,
-					GC.getEVENT_MESSAGE_TIME(), szBuffer, /*NULL*/getHeadUnit()->getButton(),
-					MESSAGE_TYPE_INFO, /*NULL*/GC.getBuildInfo(eBuild).getButton(),
+			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), false,
+					GC.getEVENT_MESSAGE_TIME(), szBuffer, NULL, MESSAGE_TYPE_INFO,
+					GC.getBuildInfo(eBuild).getButton()/*getHeadUnit()->getButton()*/,
 					(ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"/*"COLOR_BUILDING_TEXT"*/),
 					getX(), getY(), true, false);
 			// </advc.011b>
@@ -3752,7 +3756,11 @@ bool CvSelectionGroup::readyToSelect(bool bAny)
 bool CvSelectionGroup::readyToMove(bool bAny)
 {
 	//return (((bAny) ? canAnyMove() : canAllMove()) && (headMissionQueueNode() == NULL) && (getActivityType() == ACTIVITY_AWAKE) && !isBusy() && !isCargoBusy());
-	return (bAny ? canAnyMove() : canAllMove()) && (isForceUpdate() || (headMissionQueueNode() == NULL && getActivityType() == ACTIVITY_AWAKE)) && !isBusy() && !isCargoBusy(); // K-Mod
+	// K-Mod:
+	return (bAny ? canAnyMove() : canAllMove()) &&
+		(isForceUpdate() ||
+		(headMissionQueueNode() == NULL && getActivityType() ==  ACTIVITY_AWAKE)) &&
+		!isBusy() && !isCargoBusy(); 
 }
 
 
@@ -3785,10 +3793,12 @@ bool CvSelectionGroup::readyForMission()
 			return false;
 	}
 
-	return canDoMission(kData.eMissionType, kData.iData1, kData.iData2, plot(), false, bCheckMoves) || canAllMove();
+	return (canDoMission(kData.eMissionType, kData.iData1, kData.iData2, plot(),
+			false, bCheckMoves) || canAllMove());
 	// note: if the whole group can move, but they can't do the mission, then the mission will be canceled inside CvSelectionGroup::continueMission.
 }
-bool CvSelectionGroup::canDoMission(int iMission, int iData1, int iData2, CvPlot* pPlot, bool bTestVisible, bool bCheckMoves)
+bool CvSelectionGroup::canDoMission(int iMission, int iData1, int iData2,
+		CvPlot* pPlot, bool bTestVisible, bool bCheckMoves) const
 {
 	if(!pPlot)
 		pPlot = plot();
@@ -3876,20 +3886,20 @@ bool CvSelectionGroup::canDoMission(int iMission, int iData1, int iData2, CvPlot
 			break;
 
 		case MISSION_SEAPATROL: //< advc.004k>
-			#if 1
-			return false;
-			#else // </advc.004k>
-			if (!bValid && pLoopUnit->canSeaPatrol(pPlot))
-			{
-				if (!bCheckMoves)
-					return true;
-
-				bValid = true;
-			}
-			if (!pLoopUnit->canMove())
+			if(isHuman())
 				return false;
-			break;
-			#endif // advc.004k
+			else { // </advc.004k>
+				if (!bValid && pLoopUnit->canSeaPatrol(pPlot))
+				{
+					if (!bCheckMoves)
+						return true;
+
+					bValid = true;
+				}
+				if (!pLoopUnit->canMove())
+					return false;
+				break;
+			}
 		case MISSION_HEAL:
 			if (pLoopUnit->canHeal(pPlot)
 					// advc.004l: isHuman check only for performance

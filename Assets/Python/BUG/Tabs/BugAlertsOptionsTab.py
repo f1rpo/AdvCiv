@@ -82,6 +82,13 @@ class BugAlertsOptionsTab(BugOptionsTab.BugOptionsTab):
 		
 		# Reminders
 		left, right = self.addTwoColumnLayout(screen, column, "Main")
+		# advc.071: And put Reminder options in lLeft
+		lLeft, lRight = self.addTwoColumnLayout(screen, left, "Bottom", True)
 		# advc.210: Put the "enabled" checkbox and the display method dropdown on the same line
-		self.addCheckboxTextDropdown(screen, left, left, "Reminder__Enabled", "Reminder__DisplayMethod")
-		self.addCheckbox(screen, left, "Reminder__Autolog")
+		self.addCheckboxTextDropdown(screen, lLeft, lLeft, "Reminder__Enabled", "Reminder__DisplayMethod")
+		self.addCheckbox(screen, lLeft, "Reminder__Autolog")
+		# <advc.071>
+		self.addLabel(screen, lRight, "OnFirstContact", "On First Contact:") 
+		self.addTextDropdown(screen, lRight, lRight, "Civ4lerts__OnFirstContact")
+		# (Leave the 'right' column empty)
+		# </advc.071>

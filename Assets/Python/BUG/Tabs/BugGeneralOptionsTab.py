@@ -35,10 +35,8 @@ class BugGeneralOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.createActionsPanel(screen, center) # advc.004: Restored
 		
 		self.createSlidersPanel(screen, right) # advc.120c
-		self.addSpacer(screen, right, "GeneralR1")
-		# advc.004: Extra spacer to align Misc with Actions
-		self.addSpacer(screen, right, "GeneralR2")
-		self.addSpacer(screen, right, "GeneralR3")
+		# advc.070: To align Misc with Actions
+		#self.addSpacer(screen, right, "GeneralR1")
 		self.createMiscellaneousPanel(screen, right)
 #		if Buffy.isEnabled():
 #			self.addSpacer(screen, right, "General5")
@@ -106,9 +104,16 @@ class BugGeneralOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addLabel(screen, panel, "Sliders", "Sliders:")
 		# Moved these two from createMiscellaneousPanel
 		self.addCheckbox(screen, panel, "MainInterface__MinMax_Commerce")
-		self.addCheckbox(screen, panel, "MainInterface__GoldRateWarning")
-
 		self.addCheckbox(screen, panel, "MainInterface__Hide_EspSlider")
+		#self.addCheckbox(screen, panel, "MainInterface__GoldRateWarning")
+		# <advc.070>
+		self.addLabel(screen, panel, "GoldRate", "Gold Rate:", None, True)
+		panelLeft, panelRight = self.addTwoColumnLayout(screen, panel, "GoldRateOptions")
+		self.addColorDropdown(screen, panelLeft, panelRight, "MainInterface__PositiveGoldRateColor", True)
+		self.addColorDropdown(screen, panelLeft, panelRight, "MainInterface__NegativeGoldRateColor", True)
+		self.addColorDropdown(screen, panelLeft, panelRight, "MainInterface__GoldRateBrokeColor", True)
+		# </advc.070>
+
 	# </advc.120c>
 		
 	def createMiscellaneousPanel(self, screen, panel):

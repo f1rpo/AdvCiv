@@ -1527,10 +1527,8 @@ bool CvDLLButtonPopup::launchChooseTechPopup(CvPopup* pPopup, CvPopupInfo &info)
 	argsList.add(GC.getGameINLINE().getActivePlayer());
 	long lResult=0;
 	gDLL->getPythonIFace()->callFunction(PYGameModule, "skipResearchPopup", argsList.makeFunctionArgs(), &lResult);
-	if (lResult == 1)
-	{
+	if(lResult == 1)
 		return false;
-	}
 
 	CvPlayer& player = GET_PLAYER(GC.getGameINLINE().getActivePlayer());
 
@@ -1584,36 +1582,48 @@ bool CvDLLButtonPopup::launchChooseTechPopup(CvPopup* pPopup, CvPopupInfo &info)
 	{
 		for (int iI = 0; iI < GC.getNumTechInfos(); iI++)
 		{
-			if (((iI == eBestTech) || (iI == eNextBestTech)) == (iPass == 0))
+			if((iI == eBestTech || iI == eNextBestTech) != (iPass == 0))
+				continue; // advc.003
+			TechTypes eTech = (TechTypes)iI;
+			if(!player.canResearch(eTech))
+				continue; // advc.003
+
+			CvWString szBuffer;
+			// <advc.004x>
+			int iTurnsLeft = player.getResearchTurnsLeft(eTech, true);
+			if(iDiscover > 0 || iTurnsLeft >= 0) { // </advc.004x>
+				szBuffer.Format(L"%s (%d)", GC.getTechInfo(eTech).getDescription(),
+						(iDiscover > 0 ? 0 : iTurnsLeft));
+			} // advc.004x:
+			else szBuffer.Format(L"%s", GC.getTechInfo(eTech).getDescription());
+
+			if(iI == eBestTech || iI == eNextBestTech) {
+				szBuffer += gDLL->getText("TXT_KEY_POPUP_RECOMMENDED_ONLY_ADV",
+						GC.getAdvisorInfo((AdvisorTypes)(GC.getTechInfo(eTech).
+						getAdvisorType())).getTextKeyWide());
+			}
+
+			CvString szButton = GC.getTechInfo(eTech).getButton();
+			CvGame const& g = GC.getGameINLINE(); // advc.003
+			for (int iJ = 0; iJ < GC.getNumReligionInfos(); iJ++)
 			{
-				if (player.canResearch((TechTypes)iI))
+				ReligionTypes eReligion = (ReligionTypes)iJ;
+				if (GC.getReligionInfo(eReligion).getTechPrereq() == iI)
 				{
-					CvWString szBuffer;
-					szBuffer.Format(L"%s (%d)", GC.getTechInfo((TechTypes)iI).getDescription(), ((iDiscover > 0) ? 0 : player.getResearchTurnsLeft(((TechTypes)iI), true)));
-
-					if ((iI == eBestTech) || (iI == eNextBestTech))
+					if (!g.isReligionSlotTaken(eReligion))
 					{
-						szBuffer += gDLL->getText("TXT_KEY_POPUP_RECOMMENDED_ONLY_ADV", GC.getAdvisorInfo((AdvisorTypes)(GC.getTechInfo((TechTypes)iI).getAdvisorType())).getTextKeyWide());
+						szButton = g.isOption(GAMEOPTION_PICK_RELIGION) ?
+								GC.getReligionInfo(eReligion).getGenericTechButton() :
+								GC.getReligionInfo(eReligion).getTechButton();
+						break;
 					}
-
-					CvString szButton = GC.getTechInfo((TechTypes) iI).getButton();
-
-					for (int iJ = 0; iJ < GC.getNumReligionInfos(); iJ++)
-					{
-						if (GC.getReligionInfo((ReligionTypes)iJ).getTechPrereq() == iI)
-						{
-							if (!(GC.getGameINLINE().isReligionSlotTaken((ReligionTypes)iJ)))
-							{
-								szButton = GC.getGameINLINE().isOption(GAMEOPTION_PICK_RELIGION) ? GC.getReligionInfo((ReligionTypes) iJ).getGenericTechButton() : GC.getReligionInfo((ReligionTypes) iJ).getTechButton();
-								break;
-							}
-						}
-					}
-
-					gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer, szButton, iI, WIDGET_RESEARCH, iI, iDiscover, true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
-					iNumTechs++;
 				}
 			}
+
+			gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer,
+					szButton, iI, WIDGET_RESEARCH, iI, iDiscover, true,
+					POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
+			iNumTechs++;
 		}
 	}
 	if (0 == iNumTechs)

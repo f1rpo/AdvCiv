@@ -80,24 +80,73 @@
 		<Spanish>The Event Log is opened when the number of new messages exceeds this limit.</Spanish>
 	</TEXT>
 	
-	<TEXT>
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__GOLDRATEWARNING_TEXT</Tag>
 		<English>Gold Rate Warning</English>
 		<French>Gold Rate Warning</French>
 		<German>"Gold/Runde"-Warnung</German>
 		<Italian>Calo dell'Oro</Italian>
 		<Spanish>Advertencia Oro</Spanish>
-	</TEXT>
-	
+	</TEXT-->
 	<!-- advc.004: Rewritten (English, German); hopefully makes clearer how
 		 this differs from BtS. -->
-	<TEXT>
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__GOLDRATEWARNING_HOVER</Tag>
 		<English>When checked, a negative gold rate is shown in red only if the deficit exceeds the gold reserves in your treasury. Otherwise (sufficient reserves), a negative gold rate is shown in yellow.</English>
 		<French>When checked, displays your gold rate in yellow if it is negative but not enough to drop your treasury below zero.</French>
 		<German>Färbt bei negativem Einkommen die [ICON_GOLD]/Runde-Anzeige nur dann rot ein, wenn das Defizit größer ist als der Goldvorrat. Andernfalls, d.h. wenn der Goldvorrat das Defizit auffangen kann, wird die [ICON_GOLD]/Runde-Anzeige gelb eingefärbt.</German>
 		<Italian>Quando è selezionato, mostra il tasso di crescita dell'oro in giallo se è negativo ma non abbastanza da mandarvi in rosso.</Italian>
 		<Spanish>Muestra tu oro en amarillo si el cambio este turno es negativo pero no suficiente para llevar tu tesoro por debajo de cero.</Spanish>
+	</TEXT-->
+	
+	<!-- advc.070 -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__POSITIVEGOLDRATECOLOR_TEXT</Tag>
+		<English>Positive</English>
+		<French>Positif</French>
+		<German>Positiv</German>
+		<Italian>Positivo</Italian>
+		<Spanish>Positivo</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__NEGATIVEGOLDRATECOLOR_TEXT</Tag>
+		<English>Negative</English>
+		<French>Negatif</French>
+		<German>Negativ</German>
+		<Italian>Negativo</Italian>
+		<Spanish>Negativo</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__GOLDRATEBROKECOLOR_TEXT</Tag>
+		<English>Broke</English>
+		<French>Insolvable</French>
+		<German>Insolvent</German>
+		<Italian>Insolvente</Italian>
+		<Spanish>Insolvente</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__POSITIVEGOLDRATECOLOR_HOVER</Tag>
+		<English>Text color to use for a positive per-turn income</English>
+		<French>Text color to use for a positive per-turn income</French>
+		<German>Textfarbe bei positivem Einkommen</German>
+		<Italian>Text color to use for a positive per-turn income</Italian>
+		<Spanish>Text color to use for a positive per-turn income</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__NEGATIVEGOLDRATECOLOR_HOVER</Tag>
+		<English>Text color to use for a negative per-turn income</English>
+		<French>Text color to use for a negative per-turn income</French>
+		<German>Textfarbe bei negativem Einkommen</German>
+		<Italian>Text color to use for a negative per-turn income</Italian>
+		<Spanish>Text color to use for a negative per-turn income</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__GOLDRATEBROKECOLOR_HOVER</Tag>
+		<English>Text color to use when a negative per-turn income exceeds the gold reserves in the treasury</English>
+		<French>Text color to use for a negative per-turn income</French>
+		<German>Textfarbe bei negativem Einkommen, das den Goldvorrat übersteigt.</German>
+		<Italian>Text color to use when a negative per-turn income exceeds the gold reserves in the treasury</Italian>
+		<Spanish>Text color to use when a negative per-turn income exceeds the gold reserves in the treasury</Spanish>
 	</TEXT>
 	
 	<!-- advc.004: German shortened (was the longest heading in its column) -->

@@ -190,6 +190,7 @@ public:
 	bool canPlunder(const CvPlot* pPlot, bool bTestVisible = false) const;																					// Exposed to Python
 	bool plunder();
 	void updatePlunder(int iChange, bool bUpdatePlotGroups);
+	void blockadeRange(std::vector<CvPlot*>& r, int iExtra = 0) const; // advc.003
 
 	int sabotageCost(const CvPlot* pPlot) const;																									// Exposed to Python
 	int sabotageProb(const CvPlot* pPlot, ProbabilityTypes eProbStyle = PROBABILITY_REAL) const;	// Exposed to Python
@@ -748,8 +749,6 @@ public:
 	bool isAlwaysHostile(const CvPlot* pPlot) const;
 
 	bool verifyStackValid();
-	void setInitiallyVisible(bool b); // advc.102
-	bool isInitiallyVisible() const; // advc.102
 
 	DllExport const CvArtInfoUnit* getArtInfo(int i, EraTypes eEra) const;										// Exposed to Python
 	DllExport const TCHAR* getButton() const;										// Exposed to Python
@@ -875,7 +874,6 @@ protected:
 	bool m_bInfoBarDirty;
 	bool m_bBlockading;
 	bool m_bAirCombat;
-	bool m_bInitiallyVisible; // advc.102
 
 	PlayerTypes m_eCapturingPlayer;
 	UnitTypes m_eUnitType;

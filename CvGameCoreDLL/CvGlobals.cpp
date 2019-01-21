@@ -173,6 +173,7 @@ m_iCITY_TRADE_CULTURE_THRESH(0), // advc.122
 m_iFOUNDING_SHOW_YIELDS(0), // advc.004h
 m_iMINIMAP_WATER_MODE(0), // advc.002a
 m_iDELAY_UNTIL_BUILD_DECAY(0), // advc.011
+m_iBASE_RESEARCH_RATE(0), // advc.910
 m_iMOVE_DENOMINATOR(0),
 m_iNUM_UNIT_PREREQ_OR_BONUSES(0),
 m_iNUM_BUILDING_PREREQ_OR_BONUSES(0),
@@ -2711,6 +2712,8 @@ void CvGlobals::cacheGlobals()
 	m_iMINIMAP_WATER_MODE = GC.getDefineINT("MINIMAP_WATER_MODE");
 	// advc.011:
 	m_iDELAY_UNTIL_BUILD_DECAY = GC.getDefineINT("DELAY_UNTIL_BUILD_DECAY");
+	// advc.910:
+	m_iBASE_RESEARCH_RATE = GC.getDefineINT("BASE_RESEARCH_RATE");
 	m_iMOVE_DENOMINATOR = getDefineINT("MOVE_DENOMINATOR");
 	m_iNUM_UNIT_PREREQ_OR_BONUSES = getDefineINT("NUM_UNIT_PREREQ_OR_BONUSES");
 	m_iNUM_BUILDING_PREREQ_OR_BONUSES = getDefineINT("NUM_BUILDING_PREREQ_OR_BONUSES");
@@ -3805,7 +3808,16 @@ int CvGlobals::getMaxCivPlayers() const
 }
 
 bool CvGlobals::IsGraphicsInitialized() const { return m_bGraphicsInitialized;}
-void CvGlobals::SetGraphicsInitialized(bool bVal) { m_bGraphicsInitialized = bVal;}
+
+// advc.003: onGraphicsInitialized call added
+void CvGlobals::SetGraphicsInitialized(bool bVal) {
+	
+	if(bVal == m_bGraphicsInitialized)
+		return;
+	m_bGraphicsInitialized = bVal;
+	if(m_bGraphicsInitialized)
+		getGameINLINE().onGraphicsInitialized();
+}
 void CvGlobals::setInterface(CvInterface* pVal) { m_interface = pVal; }
 void CvGlobals::setDiplomacyScreen(CvDiplomacyScreen* pVal) { m_diplomacyScreen = pVal; }
 void CvGlobals::setMPDiplomacyScreen(CMPDiplomacyScreen* pVal) { m_mpDiplomacyScreen = pVal; }

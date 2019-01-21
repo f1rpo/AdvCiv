@@ -2127,7 +2127,8 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 			{
 				pMissionPlot = pHeadSelectedUnit->plot();
 
-				if (pMissionPlot->getTeam() == pHeadSelectedUnit->getTeam())
+				//if (pMissionPlot->getTeam() == pHeadSelectedUnit->getTeam())
+				if(!pHeadSelectedUnit->canPlunder(pMissionPlot)) // advc.033
 				{
 					szBuffer.append(NEWLINE);
 					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_PLUNDER_IN_BORDERS"));
@@ -3019,7 +3020,9 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 					pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
 				}
 
-				int iTurns = pMissionPlot->getBuildTurnsLeft(eBuild, iNowWorkRate, iThenWorkRate);
+				int iTurns = pMissionPlot->getBuildTurnsLeft(eBuild,
+						GC.getGameINLINE().getActivePlayer(), // advc.251
+						iNowWorkRate, iThenWorkRate);
 
 
 				szBuffer.append(NEWLINE);

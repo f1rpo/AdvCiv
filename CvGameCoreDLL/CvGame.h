@@ -61,8 +61,8 @@ public:
 	DllExport void getPlotUnits(const CvPlot *pPlot, std::vector<CvUnit*>& plotUnits) const;
 
 	DllExport void cycleCities(bool bForward = true, bool bAdd = false) const;																				// Exposed to Python
-	void cycleSelectionGroups(bool bClear, bool bForward = true, bool bWorkers = false) const;							// Exposed to Python
-	void cycleSelectionGroups_delayed(int iDelay, bool bIncremental, bool bDelayOnly = false) const; // K-Mod
+	void cycleSelectionGroups(bool bClear, bool bForward = true, bool bWorkers = false);								// Exposed to Python
+	void cycleSelectionGroups_delayed(int iDelay, bool bIncremental, bool bDelayOnly = false); // K-Mod
 	DllExport bool cyclePlotUnits(CvPlot* pPlot, bool bForward = true, bool bAuto = false, int iCount = -1) const;		// Exposed to Python
 	DllExport bool selectCity(CvCity* pSelectCity, bool bCtrl, bool bAlt, bool bShift) const;
 
@@ -504,6 +504,8 @@ public:
 	virtual void write(FDataStreamBase* pStream);
 	virtual void writeReplay(FDataStreamBase& stream, PlayerTypes ePlayer);
 	// <advc.003>
+	void allGameDataRead();
+	void onGraphicsInitialized();
 	inline CvGameAI& AI() {
 		//return *static_cast<CvGameAI*>(const_cast<CvGame*>(this));
 		/*  The above won't work in an inline function b/c the compiler doesn't know
@@ -631,10 +633,13 @@ public:
 	void setScenario(bool b);
 	// </advc.052>
 	// <advc.127b>
-	// Return (-1,-1) if 'vs' doesn't exist in any city
-	std::pair<int,int> getVoteSourceXY(VoteSourceTypes vs) const;
+	/*  Returns (-1,-1) if 'vs' doesn't exist in any city or (eObserver!=NO_TEAM)
+		isn't revealed to eObserver */
+	std::pair<int,int> getVoteSourceXY(VoteSourceTypes vs, TeamTypes eObserver,
+			bool bDebug = false) const;
 	BuildingTypes getVoteSourceBuilding(VoteSourceTypes vs) const;
-	CvCity* getVoteSourceCity(VoteSourceTypes vs) const;
+	CvCity* getVoteSourceCity(VoteSourceTypes vs, TeamTypes eObserver,
+			bool bDebug = false) const;
 	// </advc.127b>
 	bool isFreeStartEraBuilding(BuildingTypes eBuilding) const; // advc.003
 	/*  advc.250b: Used for exposing a StartPointsAsHandicap member function

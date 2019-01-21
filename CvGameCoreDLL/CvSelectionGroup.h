@@ -29,8 +29,9 @@ public:
 
 	void doTurn();
 	void doTurnPost(); // advc.004l
-	bool showMoves(
-			CvPlot const& fromPlot) const; // advc.102
+	bool showMoves( // <advc.102>
+			CvPlot const& fromPlot) const;
+	void setInitiallyVisible(bool b); // </advc.102>
 
 	void updateTimers();
 	bool doDelayedDeath();
@@ -62,7 +63,7 @@ public:
 	bool canEverDoCommand(CommandTypes eCommand, int iData1, int iData2, bool bTestVisible, bool bUseCache);
 	void setupActionCache();
 
-	bool isHuman();																																											// Exposed to Python
+	bool isHuman() const; // advc.002i: const																																									// Exposed to Python
 	DllExport bool isBusy();
 	bool isCargoBusy();
 	int baseMoves() const;																																										// Exposed to Python 
@@ -141,7 +142,8 @@ public:
 	bool readyToAuto(); // Exposed to Python
 	// K-Mod. (note: I'd make these function const, but it would conflict with some dllexport functions)
 	bool readyForMission();
-	bool canDoMission(int iMission, int iData1, int iData2, CvPlot* pPlot, bool bTestVisible, bool bCheckMoves);
+	bool canDoMission(int iMission, int iData1, int iData2, CvPlot* pPlot,
+			bool bTestVisible, bool bCheckMoves) const; // advc.002i: const
 	// K-Mod end
 
 	int getID() const;																																												// Exposed to Python
@@ -297,6 +299,7 @@ protected:
 	// <advc.003k>
 	class Data {
 		CLinkList<IDInfo> knownEnemies; // advc.004l
+		bool bInitiallyVisible; // advc.102
 		// Moved here in order to bring sizeof down to 80
 		AutomateTypes eAutomateType;
 		friend CvSelectionGroup;

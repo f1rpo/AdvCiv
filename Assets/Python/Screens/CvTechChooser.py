@@ -961,9 +961,11 @@ class CvTechChooser:
 				if bTechName:
 					szTechString += gc.getTechInfo(i).getDescription()
 					if ( gc.getPlayer(self.iCivSelected).isResearchingTech(i) ):
-						szTechString += " ("
-						szTechString += str(gc.getPlayer(self.iCivSelected).getResearchTurnsLeft(i, ( gc.getPlayer(self.iCivSelected).getCurrentResearch() == i )))
-						szTechString += ")"
+						iTurnsLeft = gc.getPlayer(self.iCivSelected).getResearchTurnsLeft(i, ( gc.getPlayer(self.iCivSelected).getCurrentResearch() == i ))
+						if iTurnsLeft > 0: # advc.004x: Don't show turns left during anarchy
+							szTechString += " ("
+							szTechString += str(iTurnsLeft)
+							szTechString += ")"
 					szTechString = szTechString + "</font>"
 					screen.setTextAt( szTechID, sPanel, szTechString, CvUtil.FONT_LEFT_JUSTIFY, iX + 6 + X_INCREMENT, iY + 6, -0.1, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_TECH_TREE, i, -1 )
 					screen.setActivation( szTechID, ActivationTypes.ACTIVATE_MIMICPARENTFOCUS )

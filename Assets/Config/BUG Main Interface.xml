@@ -41,9 +41,19 @@
 			</list>
 
 			<!-- Gold Rate Warning -->
-			<option id="GoldRateWarning" key="Gold Rate Warning" 
+			<!--option id="GoldRateWarning" key="Gold Rate Warning" 
 					type="boolean" default="False" 
-					get="isGoldRateWarning" dirtyBit="GameData"/>
+					get="isGoldRateWarning" dirtyBit="GameData"/-->
+			<!-- advc.070: Replacing the above -->
+			<option id="PositiveGoldRateColor" key="Positive Gold Rate Color"
+					type="color" default="COLOR_POSITIVE_TEXT"
+					get="getPositiveGoldRateColor" dirtyBit="GameData"/>
+			<option id="NegativeGoldRateColor" key="Negative Gold Rate Color"
+					type="color" default="COLOR_WARNING_TEXT"
+					get="getNegativeGoldRateColor" dirtyBit="GameData"/>
+			<option id="GoldRateBrokeColor" key="Gold Rate Broke Color"
+					type="color" default="COLOR_WARNING_TEXT"
+					get="getGoldRateBrokeColor" dirtyBit="GameData"/>
 			
 			<!-- Great Person Progress Bar by Impaler[WrG], EmperorFool -->
 			<option id="GPBar" key="GP Progress Bar" 

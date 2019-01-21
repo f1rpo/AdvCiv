@@ -685,15 +685,6 @@
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 	
-	<!-- [advc.002e] If set to 1 or greater (BtS behavior), all units that are
-		 ready to receive a promotion are highlighted on the world map with a
-		 blue glow. If set to 0 or less (recommended), only the presently		 
-		 selected unit and foreign units may glow. -->
-	<Define>
-		<DefineName>SHOW_PROMOTION_GLOW</DefineName>
-		<iDefineIntVal>0</iDefineIntVal>
-	</Define>
-	
 	<!-- [advc.130o] MADE_DEMAND_RECENT memory is increased to this number when
 		 a human player attacks an AI civ after receiving their tribute.
 		 MADE_DEMAND_RECENT memory causes the AI to reject demands and pleas,

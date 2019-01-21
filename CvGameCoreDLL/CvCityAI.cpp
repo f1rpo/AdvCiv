@@ -6446,17 +6446,13 @@ int CvCityAI::AI_neededDefenders(bool bIgnoreEvac) // advc.139: param added
 	bool bOffenseWar = ((area()->getAreaAIType(getTeam()) == AREAAI_OFFENSIVE) || (area()->getAreaAIType(getTeam()) == AREAAI_MASSING));
 	bool bDefenseWar = ((area()->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE));
 	
-	if (!(GET_TEAM(getTeam()).AI_isWarPossible()))
-	{
-		return 1;
-	}
-
-	if (isBarbarian())
-	{
+	if(isBarbarian()) {
 		iDefenders = GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getBarbarianInitialDefenders();
 		iDefenders += ((getPopulation() + 2) / 7);
 		return iDefenders;
-	}
+	} // advc.003n: Switched these two and put WarPossible into the else branch
+	else if(!GET_TEAM(getTeam()).AI_isWarPossible())
+		return 1;
 
 	iDefenders = 1;
 	

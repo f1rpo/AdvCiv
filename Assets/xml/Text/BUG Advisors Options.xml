@@ -190,9 +190,9 @@
 	<!-- advc.004: Rewritten (English, German) -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__SHOWTECHERA_HOVER</Tag>
-		<English>When selected, the tech tree indicates the era of each technology through a colored shadow. (Hover over the shadow to see the era name. The colors are set on the "Clock" tab.)</English>
+		<English>When selected, the tech tree indicates the era of each technology through a colored shadow. (Hover over the shadow to see the era name. The colors are set on the "Time" tab.)</English>
 		<French>When selected, shows the technology's associated era.</French>
-		<German>Zeigt im Technologiebaum für jede Technologie durch einen farbigen Schatten das zugehörige Zeitalter an. (Bewegen Sie den Mauszeiger auf den Schatten, um den Namen des Zeitalters zu sehen. Das Farbschema lässt sich auf dem Reiter "Uhr" einstellen.)</German>
+		<German>Zeigt im Technologiebaum für jede Technologie durch einen farbigen Schatten das zugehörige Zeitalter an. (Bewegen Sie den Mauszeiger auf den Schatten, um den Namen des Zeitalters zu sehen. Das Farbschema lässt sich auf dem Reiter "Zeit" einstellen.)</German>
 		<Italian>Quando selezionato, Mostra l'era associata alla tecnologia.</Italian>
 		<Spanish>Permite mostrar la era asociada a una tecnología dada.</Spanish>
 	</TEXT>

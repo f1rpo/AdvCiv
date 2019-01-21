@@ -92,11 +92,11 @@
 		 declare the option as "experimental" based just on that. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_PLE__BUG_STYLE_HOVER</Tag>
-		<English>Enables the BUG method for drawing the unit icons, which is faster than the BtS (and PLE) methods when dealing with large unit stacks and allows health bars to be customized. The icon display may not immediately be updated when you change the health bar and indicator settings. This option has no effect if [COLOR_HIGHLIGHT_TEXT]PLE Drawing Method[COLOR_REVERT] is enabled.</English>
-		<French>Enables the BUG method for drawing the unit icons, which is faster than the BtS (and PLE) methods when dealing with large unit stacks and allows health bars to be customized. The icon display may not immediately be updated when you change the health bar and indicator settings. This option has no effect if [COLOR_HIGHLIGHT_TEXT]PLE Drawing Method[COLOR_REVERT] is enabled.</French>
+		<English>Enables the BUG method for drawing the unit icons, which is faster than the BtS (and PLE) method when dealing with large unit stacks and allows health bars to be customized. The icon display may not immediately be updated when you change the health bar and indicator settings. This option has no effect if [COLOR_HIGHLIGHT_TEXT]PLE Drawing Method[COLOR_REVERT] is enabled.</English>
+		<French>Enables the BUG method for drawing the unit icons, which is faster than the BtS (and PLE) method when dealing with large unit stacks and allows health bars to be customized. The icon display may not immediately be updated when you change the health bar and indicator settings. This option has no effect if [COLOR_HIGHLIGHT_TEXT]PLE Drawing Method[COLOR_REVERT] is enabled.</French>
 		<German>Die Anzeigemethode des BUG-Mods kann große Einheitenverbände schneller darstellen als die BtS-Methode, und erlaubt das Anpassen der Gesundheitsbalken. Allerdings setzt BUG Änderungen an den Gesundheitsbalken- und Markereinstellungen nicht immer sofort um. Die Option [COLOR_HIGHLIGHT_TEXT]PLE Anzeigemethode[COLOR_REVERT] hat Vorrang, setzt also die BUG-Anzeigemethode außer Kraft.</German>
-		<Italian>Enables the BUG method for drawing the unit icons, which is faster than the BtS (and PLE) methods when dealing with large unit stacks and allows health bars to be customized. The icon display may not immediately be updated when you change the health bar and indicator settings. This option has no effect if [COLOR_HIGHLIGHT_TEXT]PLE Drawing Method[COLOR_REVERT] is enabled.</Italian>
-		<Spanish>Enables the BUG method for drawing the unit icons, which is faster than the BtS (and PLE) methods when dealing with large unit stacks and allows health bars to be customized. The icon display may not immediately be updated when you change the health bar and indicator settings. This option has no effect if [COLOR_HIGHLIGHT_TEXT]PLE Drawing Method[COLOR_REVERT] is enabled.</Spanish>
+		<Italian>Enables the BUG method for drawing the unit icons, which is faster than the BtS (and PLE) method when dealing with large unit stacks and allows health bars to be customized. The icon display may not immediately be updated when you change the health bar and indicator settings. This option has no effect if [COLOR_HIGHLIGHT_TEXT]PLE Drawing Method[COLOR_REVERT] is enabled.</Italian>
+		<Spanish>Enables the BUG method for drawing the unit icons, which is faster than the BtS (and PLE) method when dealing with large unit stacks and allows health bars to be customized. The icon display may not immediately be updated when you change the health bar and indicator settings. This option has no effect if [COLOR_HIGHLIGHT_TEXT]PLE Drawing Method[COLOR_REVERT] is enabled.</Spanish>
 	</TEXT>
 	
 	<!-- advc.069: The filters are the main thing -->
@@ -430,6 +430,24 @@
 		<German>Legt einen hellblauen Rahmen um das Einheitensymbol, wenn eine Einheit befördert werden kann.</German>
 		<Italian>Visualizza dei bordi blu attorno alle Unità che hanno una promozione disponibile.</Italian>
 		<Spanish>Dibuja las unidades que pueden recibir un ascenso con un borde azul claro.</Spanish>
+	</TEXT>
+	
+	<!-- advc.002e: New option -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_PLE__SHOWPROMOTIONGLOW_TEXT</Tag>
+		<English>Promotion Glow</English>
+		<French>Promotion Glow</French>
+		<German>Leuchten bei Level-Up</German>
+		<Italian>Promotion Glow</Italian>
+		<Spanish>Promotion Glow</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_PLE__SHOWPROMOTIONGLOW_HOVER</Tag>
+		<English>When checked, a blue glow effect is shown on tiles where all units are ready for a promotion (as in BtS). Regardless of this setting, the promotion glow is shown when a selected unit or a foreign unit is ready for a promotion. Toggling this option may require a save/reload.</English>
+		<French>When checked, a blue glow effect is shown on tiles where all units are ready for a promotion (as in BtS). Regardless of this setting, the promotion glow is shown when a selected unit or a foreign unit is ready for a promotion. Toggling this option may require a save/reload.</French>
+		<German>Zeigt, wenn alle Einheiten eines Feldes befördert werden können, ein blaues Licht auf dem Feld an (wie in BtS). Unabhängig von dieser Option erscheint das Licht bei Einheiten, die ausgewählt sind, und bei fremden Einheiten. Das Ein- und Ausschalten dieser Option wirkt sich u.U. erst nach dem nächsten Speichern/Laden des Spiels aus.</German>
+		<Italian>When checked, a blue glow effect is shown on tiles where all units are ready for a promotion (as in BtS). Regardless of this setting, the promotion glow is shown when a selected unit or a foreign unit is ready for a promotion. Toggling this option may require a save/reload.</Italian>
+		<Spanish>When checked, a blue glow effect is shown on tiles where all units are ready for a promotion (as in BtS). Regardless of this setting, the promotion glow is shown when a selected unit or a foreign unit is ready for a promotion. Toggling this option may require a save/reload.</Spanish>
 	</TEXT>
 	
 	<TEXT>

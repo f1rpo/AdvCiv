@@ -1261,7 +1261,13 @@ bool CvUnitAI::AI_considerDOW(CvPlot* pPlot)
 	if (!getGroup()->canEnterArea(ePlotTeam, pPlot->area(), true) || getGroup()->isAmphibPlot(pPlot))
 	{
 		if (ePlotTeam != NO_TEAM && kOurTeam.AI_isSneakAttackReady(ePlotTeam))
-		{
+		{	/*  advc.163: If the tile that we're on has flipped to the war target,
+				the DoW is going to bump us out. Could catch this in AI_attackCityMove
+				and other functions, and compute a new path. However, bumping ourselves
+				may actually be the fastest way to reach the target, so I'm just
+				going to go through with the DoW. */
+			/*FAssert(!plot()->isOwned() || GET_TEAM(plot()->getTeam()).
+					getMasterTeam() != ePlotTeam)*/
 			if (kOurTeam.canDeclareWar(ePlotTeam))
 			{
 				if (gUnitLogLevel > 0) logBBAI("    %S declares war on %S with AI_considerDOW (%S - %S).", kOurTeam.getName().GetCString(), GET_TEAM(ePlotTeam).getName().GetCString(), getName(0).GetCString(), GC.getUnitAIInfo(AI_getUnitAIType()).getDescription());
@@ -2308,9 +2314,9 @@ void CvUnitAI::AI_attackMove()
 			}
 		} */ // disabled by K-Mod. This is redundant.
 
-		if( !(plot()->isOwned()) || (plot()->getOwnerINLINE() == getOwnerINLINE()) )
+		if(!plot()->isOwned() || plot()->getOwnerINLINE() == getOwnerINLINE())
 		{
-			if( area()->getCitiesPerPlayer(getOwnerINLINE()) > kOwner.AI_totalAreaUnitAIs(area(), UNITAI_CITY_DEFENSE) )
+			if(area()->getCitiesPerPlayer(getOwnerINLINE()) > kOwner.AI_totalAreaUnitAIs(area(), UNITAI_CITY_DEFENSE))
 			{
 				// Defend colonies in new world
 				//if (AI_guardCity(true, true, 3))
@@ -2917,7 +2923,7 @@ void CvUnitAI::AI_attackCityMove()
 	{
 		// force heal if we in our own city and damaged
 		// can we remove this or call AI_heal here?
-		if ((getGroup()->getNumUnits() == 1) && (getDamage() > 0))
+		if (getGroup()->getNumUnits() == 1 && getDamage() > 0)
 		{
 			getGroup()->pushMission(MISSION_HEAL);
 			return;
@@ -3468,10 +3474,9 @@ void CvUnitAI::AI_attackCityMove()
 		}
 	}
 
-	bool bAnyWarPlan = (GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0);
-
 	if (bReadyToAttack)
-	{
+	{	// advc.003b: Moved into the bReadyToAttack branch
+		bool bAnyWarPlan = (GET_TEAM(getTeam()).getAnyWarPlanCount(true) > 0);
 		/* BBAI code
 		if( isBarbarian() )
 		{
@@ -14751,19 +14756,17 @@ bool CvUnitAI::AI_patrol()
 		}
 	}
 
-	if (pBestPlot != NULL
+	if(pBestPlot != NULL
 		/*  <advc.102> Non-barb AI should only patrol tiles it doesn't own
 			(owned tiles have visibility anyway). In order to get to
 			unowned tiles, however, units may have to traverse owned tiles,
 			so, they need to be allowed to patrol into owned tiles at least
 			under some circumstances. */
-		&& (pBestPlot->getOwner() != getOwner() || isBarbarian() ||
-		// Make sure not to hamper early exploration (perhaps not an issue)
-		GC.getGameINLINE().getElapsedGameTurns() < 25 ||
-		(::bernoulliSuccess(0.1, "advc.102") && !pBestPlot->isUnit()))
-		// </advc.102>
-		)
-	{
+			&& (pBestPlot->getOwner() != getOwner() || isBarbarian() ||
+			// Make sure not to hamper early exploration (perhaps not an issue)
+			GC.getGameINLINE().getElapsedGameTurns() < 25 ||
+			(::bernoulliSuccess(0.1, "advc.102") && !pBestPlot->isUnit()))) {
+			// </advc.102>
 		FAssert(!atPlot(pBestPlot));
 		getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0, false, false, MISSIONAI_PATROL);
 		return true;
@@ -15728,8 +15731,6 @@ bool CvUnitAI::AI_goToTargetCity(int iFlags, int iMaxPathTurns, CvCity* pTargetC
 	if(pTargetCity == NULL)
 		return false;
 
-	PROFILE("CvUnitAI::AI_targetCity plot attack");
-
 	CvPlot* pEndTurnPlot = NULL; // K-Mod
 	int iPathTurns;
 	int iBestValue = 0;
@@ -15831,7 +15832,9 @@ bool CvUnitAI::AI_goToTargetCity(int iFlags, int iMaxPathTurns, CvCity* pTargetC
 			//getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), iFlags);
 			// K-Mod
 			if (AI_considerPathDOW(pEndTurnPlot, iFlags))
-			{
+			{	// <advc.163>
+				if(!canMove())
+					return true; // </advc.163>
 				/*  regenerate the path, just in case we want to take a different route after the DOW
 					(but don't bother recalculating the best destination)
 					Note. if the best destination happens to be on the border,
@@ -15965,7 +15968,9 @@ bool CvUnitAI::AI_pillageAroundCity(CvCity* pTargetCity, int iBonusValueThreshol
 		// K-Mod
 		FAssert(getGroup()->AI_isDeclareWar());
 		if (AI_considerPathDOW(pBestPlot, iFlags))
-		{
+		{	// <advc.163>
+			if(!canMove())
+				return true; // </advc.163>
 			if (!generatePath(pBestPillagePlot, iFlags, true, &iPathTurns))
 				return false;
 			pBestPlot = getPathEndTurnPlot();
@@ -16003,7 +16008,10 @@ bool CvUnitAI::AI_bombardCity()
 
 		if (pLoopPlot != NULL && pLoopPlot->isCity())
 		{
-			AI_considerDOW(pLoopPlot);
+			if(AI_considerDOW(pLoopPlot)) { // <advc.163>
+				if(!canMove())
+					return true;
+			} // </advc.163>
 			break; // assume there can only be one city adjacent to us.
 		}
 	}
@@ -16089,7 +16097,9 @@ bool CvUnitAI::AI_cityAttack(int iRange, int iOddsThreshold, int iFlags, bool bF
 		FAssert(!atPlot(pBestPlot));
 		// K-Mod
 		if (AI_considerPathDOW(pBestPlot, iFlags))
-		{
+		{	// <advc.163>
+			if(!canMove())
+				return true; // </advc.163>
 			// after DOW, we might not be able to get to our target this turn... but try anyway.
 			if (!generatePath(pBestPlot, iFlags, false))
 				return false;
@@ -16191,7 +16201,9 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, int iFlags, int iMin
 		FAssert(!atPlot(pBestPlot));
 		// K-Mod
 		if (AI_considerPathDOW(pBestPlot, iFlags))
-		{
+		{	// <advc.163>
+			if(!canMove())
+				return true; // </advc.163>
 			// after DOW, we might not be able to get to our target this turn... but try anyway.
 			if (!generatePath(pBestPlot, iFlags))
 				return false;
@@ -16746,7 +16758,11 @@ bool CvUnitAI::AI_blockade()
 		if (atPlot(pBestBlockadePlot) && !isEnemy(pBestBlockadePlot->getTeam(), pBestBlockadePlot))
 		{
 			//getGroup()->groupDeclareWar(pBestBlockadePlot, true);
-			AI_considerPathDOW(pBestBlockadePlot, iFlags); // K-Mod
+			if(AI_considerPathDOW(pBestBlockadePlot, iFlags)) { // K-Mod
+				// <advc.163>
+				if(!canMove())
+					return true;
+			} // </advc.163>
 		}
 
 		if (atPlot(pBestBlockadePlot))
@@ -18494,7 +18510,9 @@ bool CvUnitAI::AI_transportGoTo(CvPlot* pEndTurnPlot, CvPlot* pTargetPlot, int i
 
 		// declare war if we need to. (Note: AI_considerPathDOW checks for the declare war flag.)
 		if (AI_considerPathDOW(pEndTurnPlot, iFlags))
-		{
+		{	// <advc.163>
+			if(!canMove())
+				return true; // </advc.163>
 			if (!generatePath(pTargetPlot, iFlags, false))
 				return false;
 			pEndTurnPlot = getPathEndTurnPlot();
@@ -20442,7 +20460,9 @@ bool CvUnitAI::AI_improveBonus() // K-Mod. (all that junk wasn't being used anyw
 								}
 
 								if ((kOwner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_BUILD, getGroup()) < iMaxWorkers)
-									&& (!bDoImprove || (pLoopPlot->getBuildTurnsLeft(eBestTempBuild, 0, 0) > (iPathTurns * 2 - 1))))
+										&& (!bDoImprove || (pLoopPlot->getBuildTurnsLeft(eBestTempBuild,
+										/* advc.251: */ kOwner.getID(), 0, 0) >
+										(iPathTurns * 2 - 1))))
 								{
 									if (bDoImprove)
 									{
@@ -20514,27 +20534,28 @@ bool CvUnitAI::AI_improveBonus() // K-Mod. (all that junk wasn't being used anyw
 		{
 			FAssertMsg(!bBestBuildIsRoute, "BestBuild should not be a route");
 			FAssertMsg(eBestBuild < GC.getNumBuildInfos(), "BestBuild is assigned a corrupt value");
-
-
 			MissionTypes eBestMission = MISSION_MOVE_TO;
-
-			if ((pBestPlot->getWorkingCity() == NULL) || !pBestPlot->getWorkingCity()->isConnectedToCapital())
-			{
-				eBestMission = MISSION_ROUTE_TO;
-			}
-			else
-			{
-				int iDistance = stepDistance(getX_INLINE(), getY_INLINE(), pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE());
-				int iPathTurns;
-				if (generatePath(pBestPlot, 0, false, &iPathTurns))
+			// <advc.001y> Sea workers can't route
+			if(getGroup()->canDoMission(MISSION_ROUTE_TO, 
+					getX_INLINE(), getY_INLINE(), plot(), false, false)) {
+				// </advc.001y>
+				if (pBestPlot->getWorkingCity() == NULL ||
+						!pBestPlot->getWorkingCity()->isConnectedToCapital())
+					eBestMission = MISSION_ROUTE_TO;
+				else
 				{
-					if (iPathTurns >= iDistance)
+					int iDistance = stepDistance(getX_INLINE(), getY_INLINE(),
+							pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE());
+					int iPathTurns;
+					if (generatePath(pBestPlot, 0, false, &iPathTurns))
 					{
-						eBestMission = MISSION_ROUTE_TO;
+						if (iPathTurns >= iDistance)
+						{
+							eBestMission = MISSION_ROUTE_TO;
+						}
 					}
 				}
 			}
-
 			eBestBuild = AI_betterPlotBuild(pBestPlot, eBestBuild);
 			getGroup()->pushMission(eBestMission, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0, false, false, MISSIONAI_BUILD, pBestPlot);
 			//getGroup()->pushMission(MISSION_BUILD, eBestBuild, -1, 0, (getGroup()->getLengthMissionQueue() > 0), false, MISSIONAI_BUILD, pBestPlot);
@@ -21165,8 +21186,7 @@ bool CvUnitAI::AI_retreatToCity(bool bPrimary, bool bPrioritiseAirlift, int iMax
 				if (!bPrimary || GET_PLAYER(getOwnerINLINE()).AI_isPrimaryArea(pCity->area()))
 				{
 					if (!bPrioritiseAirlift || (pCity->getMaxAirlift() > 0))
-					{
-						//if (!(pCity->plot()->isVisibleEnemyUnit(this)))
+					{	//if (!(pCity->plot()->isVisibleEnemyUnit(this)))
 						{
 							getGroup()->pushMission(MISSION_SKIP);
 							return true;
@@ -25157,11 +25177,11 @@ int CvUnitAI::AI_stackOfDoomExtra() const
 bool CvUnitAI::AI_stackAttackCity(int iPowerThreshold)
 {
     PROFILE_FUNC();
-	CvPlot* pCityPlot = NULL;
-	int iSearchRange = 1;
 
 	FAssert(canMove());
 
+	CvPlot* pCityPlot = NULL;
+	int iSearchRange = 1;
 	for (int iDX = -(iSearchRange); iDX <= iSearchRange; iDX++)
 	{
 		for (int iDY = -(iSearchRange); iDY <= iSearchRange; iDY++)
@@ -25220,7 +25240,10 @@ bool CvUnitAI::AI_stackAttackCity(int iPowerThreshold)
 		}
 
 		FAssert(!atPlot(pCityPlot));
-		AI_considerDOW(pCityPlot);
+		if(AI_considerDOW(pCityPlot)) {	// <advc.163>
+			if(!canMove())
+				return true;
+		} // </advc.163>
 		getGroup()->pushMission(MISSION_MOVE_TO, pCityPlot->getX_INLINE(), pCityPlot->getY_INLINE(), pCityPlot->isVisibleEnemyDefender(this) ? MOVE_DIRECT_ATTACK : 0);
 		return true;
 	}
@@ -25743,7 +25766,8 @@ bool CvUnitAI::AI_solveBlockageProblem(CvPlot* pDestPlot, bool bDeclareWar)
 
 int CvUnitAI::AI_calculatePlotWorkersNeeded(CvPlot* pPlot, BuildTypes eBuild)
 {
-	int iBuildTime = pPlot->getBuildTime(eBuild) - pPlot->getBuildProgress(eBuild);
+	int iBuildTime = pPlot->getBuildTime(eBuild, /* advc.251: */ getOwnerINLINE())
+			- pPlot->getBuildProgress(eBuild);
 	int iWorkRate = workRate(true);
 	
 	if (iWorkRate <= 0)

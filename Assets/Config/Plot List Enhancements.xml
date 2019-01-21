@@ -68,7 +68,7 @@
 				<change module="PlotListEnhancements" function="resetUnitPlotListStackedBarColors"/>
 			</option>
 			<option id="Wounded_Color" key="Wounded Color" 
-					type="color" default="COLOR_RED" 
+					type="color" default="COLOR_WARNING_TEXT" 
 					get="getWoundedColor" dirtyBit="PlotListButtons">
 				<change module="PlotListEnhancements" function="resetUnitPlotListStackedBarColors"/>
 			</option>
@@ -83,7 +83,7 @@
 				<change module="PlotListEnhancements" function="resetUnitPlotListStackedBarColors"/>
 			</option>
 			<option id="Has_Moved_Color" key="Has Moved Color" 
-					type="color" default="COLOR_YELLOW" 
+					type="color" default="COLOR_UNIT_TEXT" 
 					get="getHasMovedColor" dirtyBit="PlotListButtons">
 				<change module="PlotListEnhancements" function="resetUnitPlotListStackedBarColors"/>
 			</option>
@@ -105,6 +105,10 @@
 			<option id="Promotion_Indicator" key="Promotion Indicator" 
 					type="boolean" default="False" 
 					get="isShowPromotionIndicator" dirtyBit="PlotListButtons"/>
+			
+			<!-- advc.002e -->
+			<option id="ShowPromotionGlow" key="Show Promotion Glow" 
+					type="boolean" default="False"/>
 					
 			<option id="Upgrade_Indicator" key="Upgrade Indicator" 
 					type="boolean" default="False" 
@@ -149,19 +153,19 @@
 					get="getInfoPanePromoIconOffsetY"/>
 			
 			<option id="Unit_Name_Color" key="Unit Name Color" 
-					type="color" default="COLOR_YELLOW" 
+					type="color" default="COLOR_UNIT_TEXT" 
 					get="getUnitNameColor"/>
 			<option id="Upgrade_Possible_Color" key="Upgrade Possible Color" 
 					type="color" default="COLOR_GREEN" 
 					get="getUpgradePossibleColor"/>
 			<option id="Upgrade_Not_Possible_Color" key="Upgrade Not Possible Color" 
-					type="color" default="COLOR_RED" 
+					type="color" default="COLOR_WARNING_TEXT" 
 					get="getUpgradeNotPossibleColor"/>
 			<option id="Unit_Type_Specialties_Color" key="Unit Type Specialties Color" 
 					type="color" default="COLOR_WHITE" 
 					get="getUnitTypeSpecialtiesColor"/>
 			<option id="Promotion_Specialties_Color" key="Promotion Specialties Color" 
-					type="color" default="COLOR_LIGHT_GREY" 
+					type="color" default="COLOR_BUILDING_TEXT" 
 					get="getPromotionSpecialtiesColor"/>
 			
 			<!-- Move Highlighter -->

@@ -154,6 +154,17 @@
 		<Spanish>Controles deslizantes:</Spanish>
 	</TEXT>
 	
+	<!-- advc.070: Based on TXT_KEY_FOREIGN_ADVISOR_GOLD_PER_TURN_FOR_TRADE
+		 in CIV4GameText_Misc1.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPTLABEL_GOLDRATE</Tag>
+		<English>Gold Rate:</English>
+		<French>Or par tour:</French>
+		<German>Gold/Runde:</German>
+		<Italian>Oro per turno:</Italian>
+		<Spanish>Oro por turno:</Spanish>
+	</TEXT>
+	
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPTLABEL_MISC</Tag>
 		<English>Miscellaneous:</English>
@@ -400,13 +411,22 @@
 	
 	<!-- Clock Tab -->
 	
-	<TEXT>
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPTTAB_NJAGC</Tag>
 		<English>Clock</English>
 		<French>Horloge</French>
 		<German>Uhr</German>
 		<Italian>Orologio</Italian>
 		<Spanish>Reloj</Spanish>
+	</TEXT-->
+	<!-- advc.002k: Year notation doesn't fit under "Clock" -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPTTAB_NJAGC</Tag>
+		<English>Time</English>
+		<French>Temps</French>
+		<German>Zeit</German>
+		<Italian>Tempo</Italian>
+		<Spanish>Tiempo</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPTLABEL_NJAGC_REGULAR</Tag>
@@ -633,6 +653,17 @@
 		<German>Vorherrschafts-Sieg:</German>
 		<Italian>Vittoria di Dominazione:</Italian>
 		<Spanish>Victoria:</Spanish>
+	</TEXT>
+	<!-- advc.071: The space matches the one in
+		 TXT_KEY_BUG_OPT_CIV4LERTS__ONFIRSTCONTACT_TEXT
+		(Civ4lerts Options.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPTLABEL_ONFIRSTCONTACT</Tag>
+		<English>[SPACE]On First Contact:</English>
+		<French>[SPACE]Rencontre:</French>
+		<German>[SPACE]Erste Begegnung:</German>
+		<Italian>[SPACE]Incontro:</Italian>
+		<Spanish>[SPACE]Encuentro:</Spanish>
 	</TEXT>
 	
 	<!-- Logging Tab -->

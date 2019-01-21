@@ -21,10 +21,11 @@
 			<iFreeUnits>24</iFreeUnits>
 			<iUnitCostPercent>20</iUnitCostPercent>
 			<!-- advc.251 (start> -->
+			<iBuildTimePercent>100</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>80</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>80</iGPThresholdPercent>
 			<!-- was 60 -->
-			<iResearchPercent>65</iResearchPercent>
+			<iResearchPercent>72</iResearchPercent>
 			<iTrainPercent>80</iTrainPercent>
 			<iConstructPercent>80</iConstructPercent>
 			<iCreatePercent>80</iCreatePercent>
@@ -38,8 +39,10 @@
 			<!-- advc.251: was 50 -->
 			<iCivicUpkeepPercent>60</iCivicUpkeepPercent>
 			<iInflationPercent>60</iInflationPercent>
-			<iHealthBonus>4</iHealthBonus>
-			<iHappyBonus>6</iHappyBonus>
+			<!-- advc.251: was 4 -->
+			<iHealthBonus>3</iHealthBonus>
+			<!-- advc.251: was 6 -->
+			<iHappyBonus>5</iHappyBonus>
 			<!-- advc.148: was 2 -->
 			<iAttitudeChange>3</iAttitudeChange>
 			<iNoTechTradeModifier>100</iNoTechTradeModifier>
@@ -48,8 +51,10 @@
 			<iUnownedTilesPerBarbarianUnit>150</iUnownedTilesPerBarbarianUnit>
 			<iUnownedWaterTilesPerBarbarianUnit>750</iUnownedWaterTilesPerBarbarianUnit>
 			<iUnownedTilesPerBarbarianCity>160</iUnownedTilesPerBarbarianCity>
-			<iBarbarianCreationTurnsElapsed>50</iBarbarianCreationTurnsElapsed>
-			<iBarbarianCityCreationTurnsElapsed>55</iBarbarianCityCreationTurnsElapsed>
+			<!-- advc.300: was 50 -->
+			<iBarbarianCreationTurnsElapsed>55</iBarbarianCreationTurnsElapsed>
+			<!-- advc.300: was 55 -->
+			<iBarbarianCityCreationTurnsElapsed>60</iBarbarianCityCreationTurnsElapsed>
 			<iBarbarianCityCreationProb>4</iBarbarianCityCreationProb>
 			<!-- advc.313: was -70 -->
 			<iAnimalBonus>-60</iAnimalBonus>
@@ -69,17 +74,17 @@
 			<iAIWorkRateModifier>0</iAIWorkRateModifier>
 			<!-- advc.251 (start) -->
 			<!-- was 160 -->
-			<iAIGrowthPercent>130</iAIGrowthPercent>
-			<iAIGPThresholdPercent>130</iAIGPThresholdPercent>
+			<iAIGrowthPercent>125</iAIGrowthPercent>
+			<iAIGPThresholdPercent>125</iAIGPThresholdPercent>
 			<!-- Lower tech costs for the AI -->
-			<iAIResearchPercent>85</iAIResearchPercent>
+			<iAIResearchPercent>90</iAIResearchPercent>
 			<!-- was 6x 160 -->
-			<iAITrainPercent>130</iAITrainPercent>
-			<iAIWorldTrainPercent>130</iAIWorldTrainPercent>
-			<iAIConstructPercent>130</iAIConstructPercent>
-			<iAIWorldConstructPercent>130</iAIWorldConstructPercent>
-			<iAICreatePercent>130</iAICreatePercent>
-			<iAIWorldCreatePercent>130</iAIWorldCreatePercent>
+			<iAITrainPercent>125</iAITrainPercent>
+			<iAIWorldTrainPercent>125</iAIWorldTrainPercent>
+			<iAIConstructPercent>125</iAIConstructPercent>
+			<iAIWorldConstructPercent>125</iAIWorldConstructPercent>
+			<iAICreatePercent>125</iAICreatePercent>
+			<iAIWorldCreatePercent>125</iAIWorldCreatePercent>
 			<!-- advc.251 (end) -->
 			<iAICivicUpkeepPercent>100</iAICivicUpkeepPercent>
 			<iAIUnitCostPercent>100</iAIUnitCostPercent>
@@ -185,10 +190,11 @@
 			<iFreeUnits>18</iFreeUnits>
 			<iUnitCostPercent>30</iUnitCostPercent>
 			<!-- advc.251 (start) -->
+			<iBuildTimePercent>100</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>95</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>95</iGPThresholdPercent>
 			<!-- was 75 -->
-			<iResearchPercent>80</iResearchPercent>
+			<iResearchPercent>85</iResearchPercent>
 			<iTrainPercent>95</iTrainPercent>
 			<iConstructPercent>95</iConstructPercent>
 			<iCreatePercent>95</iCreatePercent>
@@ -212,8 +218,10 @@
 			<iUnownedTilesPerBarbarianUnit>100</iUnownedTilesPerBarbarianUnit>
 			<iUnownedWaterTilesPerBarbarianUnit>600</iUnownedWaterTilesPerBarbarianUnit>
 			<iUnownedTilesPerBarbarianCity>150</iUnownedTilesPerBarbarianCity>
-			<iBarbarianCreationTurnsElapsed>45</iBarbarianCreationTurnsElapsed>
-			<iBarbarianCityCreationTurnsElapsed>50</iBarbarianCityCreationTurnsElapsed>
+			<!-- advc.300: was 45 -->
+			<iBarbarianCreationTurnsElapsed>50</iBarbarianCreationTurnsElapsed>
+			<!-- advc.300: was 50 -->
+			<iBarbarianCityCreationTurnsElapsed>55</iBarbarianCityCreationTurnsElapsed>
 			<iBarbarianCityCreationProb>5</iBarbarianCityCreationProb>
 			<!-- advc.313: was -60 -->
 			<iAnimalBonus>-45</iAnimalBonus>
@@ -235,8 +243,7 @@
 			<!-- was 130 -->
 			<iAIGrowthPercent>120</iAIGrowthPercent>
 			<iAIGPThresholdPercent>120</iAIGPThresholdPercent>
-			<!-- Lower tech costs for the AI -->
-			<iAIResearchPercent>95</iAIResearchPercent>
+			<iAIResearchPercent>100</iAIResearchPercent>
 			<!-- was 6x 130 -->
 			<iAITrainPercent>120</iAITrainPercent>
 			<iAIWorldTrainPercent>120</iAIWorldTrainPercent>
@@ -327,6 +334,7 @@
 			<iFreeUnits>12</iFreeUnits>
 			<iUnitCostPercent>40</iUnitCostPercent>
 			<!-- advc.251 (start) -->
+			<iBuildTimePercent>100</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>100</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>100</iGPThresholdPercent>
 			<iResearchPercent>90</iResearchPercent>
@@ -353,8 +361,10 @@
 			<iUnownedTilesPerBarbarianUnit>80</iUnownedTilesPerBarbarianUnit>
 			<iUnownedWaterTilesPerBarbarianUnit>550</iUnownedWaterTilesPerBarbarianUnit>
 			<iUnownedTilesPerBarbarianCity>140</iUnownedTilesPerBarbarianCity>
-			<iBarbarianCreationTurnsElapsed>40</iBarbarianCreationTurnsElapsed>
-			<iBarbarianCityCreationTurnsElapsed>45</iBarbarianCityCreationTurnsElapsed>
+			<!-- advc.300: was 40 -->
+			<iBarbarianCreationTurnsElapsed>45</iBarbarianCreationTurnsElapsed>
+			<!-- advc.300: was 45 -->
+			<iBarbarianCityCreationTurnsElapsed>50</iBarbarianCityCreationTurnsElapsed>
 			<iBarbarianCityCreationProb>5</iBarbarianCityCreationProb>
 			<!-- advc.313: was -50 -->
 			<iAnimalBonus>-30</iAnimalBonus>
@@ -440,6 +450,7 @@
 			<iFreeUnits>8</iFreeUnits>
 			<iUnitCostPercent>50</iUnitCostPercent>
 			<!-- advc.251 (start) -->
+			<iBuildTimePercent>100</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>100</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>100</iGPThresholdPercent>
 			<!-- advc.251: Was 100. Note that this doesn't mean that humans
@@ -469,8 +480,10 @@
 			<iUnownedTilesPerBarbarianUnit>60</iUnownedTilesPerBarbarianUnit>
 			<iUnownedWaterTilesPerBarbarianUnit>500</iUnownedWaterTilesPerBarbarianUnit>
 			<iUnownedTilesPerBarbarianCity>130</iUnownedTilesPerBarbarianCity>
-			<iBarbarianCreationTurnsElapsed>35</iBarbarianCreationTurnsElapsed>
-			<iBarbarianCityCreationTurnsElapsed>40</iBarbarianCityCreationTurnsElapsed>
+			<!-- advc.300: was 35 -->
+			<iBarbarianCreationTurnsElapsed>40</iBarbarianCreationTurnsElapsed>
+			<!-- advc.300: was 40 -->
+			<iBarbarianCityCreationTurnsElapsed>45</iBarbarianCityCreationTurnsElapsed>
 			<iBarbarianCityCreationProb>6</iBarbarianCityCreationProb>
 			<!-- advc.313: was -40 -->
 			<iAnimalBonus>-25</iAnimalBonus>
@@ -552,6 +565,7 @@
 			<iFreeUnits>6</iFreeUnits>
 			<iUnitCostPercent>60</iUnitCostPercent>
 			<!-- advc.251 (start) -->
+			<iBuildTimePercent>100</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>100</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>100</iGPThresholdPercent>
 			<!-- was 110 -->
@@ -577,12 +591,15 @@
 			<iAttitudeChange>0</iAttitudeChange>
 			<iNoTechTradeModifier>60</iNoTechTradeModifier>
 			<iTechTradeKnownModifier>0</iTechTradeKnownModifier>
-			<iUnownedTilesPerGameAnimal>40</iUnownedTilesPerGameAnimal>
+			<!-- advc.300: was 40 -->
+			<iUnownedTilesPerGameAnimal>45</iUnownedTilesPerGameAnimal>
 			<iUnownedTilesPerBarbarianUnit>50</iUnownedTilesPerBarbarianUnit>
 			<iUnownedWaterTilesPerBarbarianUnit>450</iUnownedWaterTilesPerBarbarianUnit>
 			<iUnownedTilesPerBarbarianCity>120</iUnownedTilesPerBarbarianCity>
-			<iBarbarianCreationTurnsElapsed>30</iBarbarianCreationTurnsElapsed>
-			<iBarbarianCityCreationTurnsElapsed>35</iBarbarianCityCreationTurnsElapsed>
+			<!-- advc.300: was 30 -->
+			<iBarbarianCreationTurnsElapsed>35</iBarbarianCreationTurnsElapsed>
+			<!-- advc.300: was 35 -->
+			<iBarbarianCityCreationTurnsElapsed>40</iBarbarianCityCreationTurnsElapsed>
 			<iBarbarianCityCreationProb>6</iBarbarianCityCreationProb>
 			<!-- advc.313: was -30 -->
 			<iAnimalBonus>-20</iAnimalBonus>
@@ -599,7 +616,8 @@
 			<iAIStartingExploreUnits>0</iAIStartingExploreUnits>
 			<iBarbarianDefenders>2</iBarbarianDefenders>
 			<iAIDeclareWarProb>100</iAIDeclareWarProb>
-			<iAIWorkRateModifier>10</iAIWorkRateModifier>
+			<!-- advc.251: was 10 -->
+			<iAIWorkRateModifier>5</iAIWorkRateModifier>
 			<iAIGrowthPercent>100</iAIGrowthPercent>
 			<!-- advc.251 -->
 			<iAIGPThresholdPercent>100</iAIGPThresholdPercent>
@@ -667,6 +685,7 @@
 			<iFreeUnits>4</iFreeUnits>
 			<iUnitCostPercent>70</iUnitCostPercent>
 			<!-- advc.251 (start) -->
+			<iBuildTimePercent>100</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>100</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>100</iGPThresholdPercent>
 			<!-- was 115 -->
@@ -692,12 +711,16 @@
 			<iAttitudeChange>0</iAttitudeChange>
 			<iNoTechTradeModifier>50</iNoTechTradeModifier>
 			<iTechTradeKnownModifier>0</iTechTradeKnownModifier>
-			<iUnownedTilesPerGameAnimal>35</iUnownedTilesPerGameAnimal>
-			<iUnownedTilesPerBarbarianUnit>40</iUnownedTilesPerBarbarianUnit>
+			<!-- advc.300: was 35 -->
+			<iUnownedTilesPerGameAnimal>40</iUnownedTilesPerGameAnimal>
+			<!-- advc.300: was 40 -->
+			<iUnownedTilesPerBarbarianUnit>45</iUnownedTilesPerBarbarianUnit>
 			<iUnownedWaterTilesPerBarbarianUnit>400</iUnownedWaterTilesPerBarbarianUnit>
 			<iUnownedTilesPerBarbarianCity>110</iUnownedTilesPerBarbarianCity>
-			<iBarbarianCreationTurnsElapsed>25</iBarbarianCreationTurnsElapsed>
-			<iBarbarianCityCreationTurnsElapsed>30</iBarbarianCityCreationTurnsElapsed>
+			<!-- advc.300: was 25 -->
+			<iBarbarianCreationTurnsElapsed>30</iBarbarianCreationTurnsElapsed>
+			<!-- advc.300: was 30 -->
+			<iBarbarianCityCreationTurnsElapsed>35</iBarbarianCityCreationTurnsElapsed>
 			<iBarbarianCityCreationProb>7</iBarbarianCityCreationProb>
 			<!-- advc.313: was -20 -->
 			<iAnimalBonus>-15</iAnimalBonus>
@@ -715,7 +738,8 @@
 			<iAIStartingExploreUnits>0</iAIStartingExploreUnits>
 			<iBarbarianDefenders>3</iBarbarianDefenders>
 			<iAIDeclareWarProb>100</iAIDeclareWarProb>
-			<iAIWorkRateModifier>20</iAIWorkRateModifier>
+			<!-- advc.251: was 20 -->
+			<iAIWorkRateModifier>10</iAIWorkRateModifier>
 			<iAIGrowthPercent>95</iAIGrowthPercent>
 			<!-- advc.251 (start) -->
 			<iAIGPThresholdPercent>95</iAIGPThresholdPercent>
@@ -812,10 +836,12 @@
 			<iFreeUnits>3</iFreeUnits>
 			<iUnitCostPercent>80</iUnitCostPercent>
 			<!-- advc.251 (start) -->
+			<iBuildTimePercent>110</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>110</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>110</iGPThresholdPercent>
-			<!-- was 120 -->
-			<iResearchPercent>125</iResearchPercent>
+			<!-- advc.251 (end) -->
+			<!-- advc.251 (start) -->
+			<iResearchPercent>120</iResearchPercent>
 			<iTrainPercent>110</iTrainPercent>
 			<iConstructPercent>110</iConstructPercent>
 			<iCreatePercent>110</iCreatePercent>
@@ -836,12 +862,16 @@
 			<iAttitudeChange>0</iAttitudeChange>
 			<iNoTechTradeModifier>40</iNoTechTradeModifier>
 			<iTechTradeKnownModifier>0</iTechTradeKnownModifier>
-			<iUnownedTilesPerGameAnimal>30</iUnownedTilesPerGameAnimal>
-			<iUnownedTilesPerBarbarianUnit>35</iUnownedTilesPerBarbarianUnit>
+			<!-- advc.300: was 30 -->
+			<iUnownedTilesPerGameAnimal>35</iUnownedTilesPerGameAnimal>
+			<!-- advc.300: was 35 -->
+			<iUnownedTilesPerBarbarianUnit>40</iUnownedTilesPerBarbarianUnit>
 			<iUnownedWaterTilesPerBarbarianUnit>350</iUnownedWaterTilesPerBarbarianUnit>
 			<iUnownedTilesPerBarbarianCity>100</iUnownedTilesPerBarbarianCity>
-			<iBarbarianCreationTurnsElapsed>20</iBarbarianCreationTurnsElapsed>
-			<iBarbarianCityCreationTurnsElapsed>25</iBarbarianCityCreationTurnsElapsed>
+			<!-- advc.300: was 20 -->
+			<iBarbarianCreationTurnsElapsed>25</iBarbarianCreationTurnsElapsed>
+			<!-- advc.300: was 25 -->
+			<iBarbarianCityCreationTurnsElapsed>30</iBarbarianCityCreationTurnsElapsed>
 			<iBarbarianCityCreationProb>7</iBarbarianCityCreationProb>
 			<iAnimalBonus>-10</iAnimalBonus>
 			<!-- advc.313: was 0 -->
@@ -859,8 +889,8 @@
 			<iAIStartingExploreUnits>0</iAIStartingExploreUnits>
 			<iBarbarianDefenders>3</iBarbarianDefenders>
 			<iAIDeclareWarProb>100</iAIDeclareWarProb>
-			<!-- advc.113: was 50 -->
-			<iAIWorkRateModifier>30</iAIWorkRateModifier>
+			<!-- advc.251: was 50 -->
+			<iAIWorkRateModifier>15</iAIWorkRateModifier>
 			<iAIGrowthPercent>90</iAIGrowthPercent>
 			<!-- advc.251 (start) -->
 			<iAIGPThresholdPercent>90</iAIGPThresholdPercent>
@@ -962,10 +992,11 @@
 			<iFreeUnits>2</iFreeUnits>
 			<iUnitCostPercent>90</iUnitCostPercent>
 			<!-- advc.251 (start) -->
+			<iBuildTimePercent>115</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>120</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>120</iGPThresholdPercent>
 			<!-- was 125 -->
-			<iResearchPercent>140</iResearchPercent>
+			<iResearchPercent>135</iResearchPercent>
 			<iTrainPercent>120</iTrainPercent>
 			<iConstructPercent>120</iConstructPercent>
 			<iCreatePercent>120</iCreatePercent>
@@ -986,12 +1017,16 @@
 			<iAttitudeChange>0</iAttitudeChange>
 			<iNoTechTradeModifier>30</iNoTechTradeModifier>
 			<iTechTradeKnownModifier>0</iTechTradeKnownModifier>
-			<iUnownedTilesPerGameAnimal>25</iUnownedTilesPerGameAnimal>
-			<iUnownedTilesPerBarbarianUnit>30</iUnownedTilesPerBarbarianUnit>
+			<!-- advc.300: was 25 -->
+			<iUnownedTilesPerGameAnimal>30</iUnownedTilesPerGameAnimal>
+			<!-- advc.300: was 30 -->
+			<iUnownedTilesPerBarbarianUnit>35</iUnownedTilesPerBarbarianUnit>
 			<iUnownedWaterTilesPerBarbarianUnit>300</iUnownedWaterTilesPerBarbarianUnit>
 			<iUnownedTilesPerBarbarianCity>90</iUnownedTilesPerBarbarianCity>
-			<iBarbarianCreationTurnsElapsed>15</iBarbarianCreationTurnsElapsed>
-			<iBarbarianCityCreationTurnsElapsed>20</iBarbarianCityCreationTurnsElapsed>
+			<!-- advc.300: was 15 -->
+			<iBarbarianCreationTurnsElapsed>20</iBarbarianCreationTurnsElapsed>
+			<!-- advc.300: was 20 -->
+			<iBarbarianCityCreationTurnsElapsed>25</iBarbarianCityCreationTurnsElapsed>
 			<iBarbarianCityCreationProb>8</iBarbarianCityCreationProb>
 			<iAnimalBonus>-5</iAnimalBonus>
 			<!-- advc.313: was 0 -->
@@ -1010,8 +1045,8 @@
 			<!-- advc.250e: was 4 -->
 			<iBarbarianDefenders>3</iBarbarianDefenders>
 			<iAIDeclareWarProb>100</iAIDeclareWarProb>
-			<!-- advc.113: was 75 -->
-			<iAIWorkRateModifier>40</iAIWorkRateModifier>
+			<!-- advc.251: was 75 -->
+			<iAIWorkRateModifier>20</iAIWorkRateModifier>
 			<iAIGrowthPercent>85</iAIGrowthPercent>
 			<!-- advc.251 (start) -->
 			<iAIGPThresholdPercent>85</iAIGPThresholdPercent>
@@ -1117,13 +1152,14 @@
 			<iFreeUnits>1</iFreeUnits>
 			<iUnitCostPercent>100</iUnitCostPercent>
 			<!-- advc.251 (start) -->
-			<iBaseGrowthThresholdPercent>135</iBaseGrowthThresholdPercent>
-			<iGPThresholdPercent>135</iGPThresholdPercent>
+			<iBuildTimePercent>120</iBuildTimePercent>
+			<iBaseGrowthThresholdPercent>130</iBaseGrowthThresholdPercent>
+			<iGPThresholdPercent>130</iGPThresholdPercent>
 			<!-- advc.251: was 130 -->
-			<iResearchPercent>160</iResearchPercent>
-			<iTrainPercent>135</iTrainPercent>
-			<iConstructPercent>135</iConstructPercent>
-			<iCreatePercent>135</iCreatePercent>
+			<iResearchPercent>150</iResearchPercent>
+			<iTrainPercent>130</iTrainPercent>
+			<iConstructPercent>130</iConstructPercent>
+			<iCreatePercent>130</iCreatePercent>
 			<!-- advc.251 (end) -->
 			<iDistanceMaintenancePercent>100</iDistanceMaintenancePercent>
 			<iNumCitiesMaintenancePercent>100</iNumCitiesMaintenancePercent>
@@ -1141,12 +1177,16 @@
 			<iAttitudeChange>0</iAttitudeChange>
 			<iNoTechTradeModifier>20</iNoTechTradeModifier>
 			<iTechTradeKnownModifier>0</iTechTradeKnownModifier>
-			<iUnownedTilesPerGameAnimal>20</iUnownedTilesPerGameAnimal>
-			<iUnownedTilesPerBarbarianUnit>25</iUnownedTilesPerBarbarianUnit>
+			<!-- advc.300: was 20 -->
+			<iUnownedTilesPerGameAnimal>25</iUnownedTilesPerGameAnimal>
+			<!-- advc.300: was 25 -->
+			<iUnownedTilesPerBarbarianUnit>30</iUnownedTilesPerBarbarianUnit>
 			<iUnownedWaterTilesPerBarbarianUnit>250</iUnownedWaterTilesPerBarbarianUnit>
 			<iUnownedTilesPerBarbarianCity>80</iUnownedTilesPerBarbarianCity>
-			<iBarbarianCreationTurnsElapsed>10</iBarbarianCreationTurnsElapsed>
-			<iBarbarianCityCreationTurnsElapsed>15</iBarbarianCityCreationTurnsElapsed>
+			<!-- advc.300: was 10 -->
+			<iBarbarianCreationTurnsElapsed>15</iBarbarianCreationTurnsElapsed>
+			<!-- advc.300: was 15 -->
+			<iBarbarianCityCreationTurnsElapsed>25</iBarbarianCityCreationTurnsElapsed>
 			<iBarbarianCityCreationProb>8</iBarbarianCityCreationProb>
 			<iAnimalBonus>0</iAnimalBonus>
 			<iBarbarianBonus>0</iBarbarianBonus>
@@ -1156,20 +1196,21 @@
 			<iStartingDefenseUnits>0</iStartingDefenseUnits>
 			<iStartingWorkerUnits>0</iStartingWorkerUnits>
 			<iStartingExploreUnits>0</iStartingExploreUnits>
-			<iAIStartingUnitMultiplier>1</iAIStartingUnitMultiplier>
+			<!-- advc.250e: was 1 -->
+			<iAIStartingUnitMultiplier>0</iAIStartingUnitMultiplier>
 			<!-- advc.250e: was 4 -->
 			<iAIStartingDefenseUnits>3</iAIStartingDefenseUnits>
 			<iAIStartingWorkerUnits>1</iAIStartingWorkerUnits>
 			<iAIStartingExploreUnits>1</iAIStartingExploreUnits>
 			<iBarbarianDefenders>4</iBarbarianDefenders>
 			<iAIDeclareWarProb>100</iAIDeclareWarProb>
-			<!-- advc.113: was 100 -->
-			<iAIWorkRateModifier>50</iAIWorkRateModifier>
+			<!-- advc.251: was 100 -->
+			<iAIWorkRateModifier>25</iAIWorkRateModifier>
 			<iAIGrowthPercent>80</iAIGrowthPercent>
 			<!-- advc.251 (start) -->
 			<iAIGPThresholdPercent>80</iAIGPThresholdPercent>
 			<!-- Higher tech costs for the AI -->
-			<iAIResearchPercent>125</iAIResearchPercent>
+			<iAIResearchPercent>120</iAIResearchPercent>
 			<!-- was 60 -->
 			<iAITrainPercent>85</iAITrainPercent>
 			<!-- was 100-->
@@ -1280,7 +1321,7 @@
 				</FreeTech>
 			</AIFreeTechs>
 			<!-- advc.250a -->
-			<iDifficulty>90</iDifficulty>
+			<iDifficulty>85</iDifficulty>
 		</HandicapInfo>
 		<!-- advc.250a: Uncomment this to enable the King difficulty: -->
 		<!--<HandicapInfo>
@@ -1294,6 +1335,7 @@
 			<iGold>0</iGold>
 			<iFreeUnits>5</iFreeUnits>
 			<iUnitCostPercent>70</iUnitCostPercent>
+			<iBuildTimePercent>100</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>100</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>100</iGPThresholdPercent>
 			<iResearchPercent>110</iResearchPercent>
@@ -1317,8 +1359,7 @@
 			<iUnownedTilesPerBarbarianUnit>40</iUnownedTilesPerBarbarianUnit>
 			<iUnownedWaterTilesPerBarbarianUnit>400</iUnownedWaterTilesPerBarbarianUnit>
 			<iUnownedTilesPerBarbarianCity>100</iUnownedTilesPerBarbarianCity>
-			<iBarbarianCreationTurnsElapsed>30</iBarbarianCreationTurnsElapsed>
-			<iBarbarianCityCreationTurnsElapsed>35</iBarbarianCityCreationTurnsElapsed>
+			<iBarbarianCreationTurnsElapsed>35</iBarbarianCreationTurnsElapsed>			<iBarbarianCityCreationTurnsElapsed>40</iBarbarianCityCreationTurnsElapsed>
 			<iBarbarianCityCreationProb>6</iBarbarianCityCreationProb>
 			<iAnimalBonus>-20</iAnimalBonus>
 			<iBarbarianBonus>-5</iBarbarianBonus>

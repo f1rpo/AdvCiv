@@ -163,19 +163,21 @@
 			<fBlue>0.00</fBlue>
 			<fAlpha>1.00</fAlpha>
 		</ColorVal>
+		<!-- advc.002i: was 0,90,20 -->
 		<ColorVal>
 			<Type>COLOR_RESEARCH_STORED</Type>
 			<fRed>0.00</fRed>
-			<fGreen>0.90</fGreen>
-			<fBlue>0.20</fBlue>
+			<fGreen>0.82</fGreen>
+			<fBlue>0.35</fBlue>
 			<fAlpha>1.00</fAlpha>
 		</ColorVal>
+		<!-- advc.002i: Alpha was 0.6 -->
 		<ColorVal>
 			<Type>COLOR_RESEARCH_RATE</Type>
 			<fRed>0.00</fRed>
 			<fGreen>0.90</fGreen>
 			<fBlue>0.20</fBlue>
-			<fAlpha>0.60</fAlpha>
+			<fAlpha>0.50</fAlpha>
 		</ColorVal>
 		<ColorVal>
 			<Type>COLOR_CULTURE_STORED</Type>

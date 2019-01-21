@@ -1258,6 +1258,29 @@ void setTradeItem(TradeData* pItem, TradeableItems eItemType, int iData)
 	pItem->m_bOffering = false;
 	pItem->m_bHidden = false;
 }
+/*  <advc.071> Don't want to include CvPlot.h and CvUnit.h header files in CvStructs.h.
+	Don't need to worry here about which unit is where and who sees whom - can
+	figure that out when we know which teams are meeting. */
+void setFirstContactData(FirstContactData& kData, CvPlot const* pAt1, CvPlot const* pAt2,
+		CvUnit const* pUnit1, CvUnit const* pUnit2) {
+
+	if(pAt1 != NULL) {
+		kData.x1 = pAt1->getX_INLINE();
+		kData.y1 = pAt1->getY_INLINE();
+	}
+	if(pAt2 != NULL) {
+		kData.x2 = pAt2->getX_INLINE();
+		kData.y2 = pAt2->getY_INLINE();
+	}
+	if(pUnit1 != NULL) {
+		kData.u1.eOwner = pUnit1->getOwnerINLINE();
+		kData.u1.iID = pUnit1->getID();
+	}
+	if(pUnit2 != NULL) {
+		kData.u2.eOwner = pUnit2->getOwnerINLINE();
+		kData.u2.iID = pUnit2->getID();
+	}
+} // </advc.071>
 
 bool isPlotEventTrigger(EventTriggerTypes eTrigger)
 {
@@ -2558,11 +2581,11 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 			(pNewPlot->getX_INLINE() != v[3] || pNewPlot->getY_INLINE() != v[4]))
 		return FALSE;
 	/*  This handles only Coast, and no other terrain types that a mod might make
-		impassable */
+		impassable. */
 	if(!coastalCity && ePlotTeam != eTeam && impassableTerrain &&
 			pNewPlot->getTerrainType() != (TerrainTypes)(GC.getDefineINT("SHALLOW_WATER_TERRAIN")))
 		return FALSE;
-	// Don't check isRevealed; caller ensures that destination city is deducible
+	// Don't check isRevealed; caller ensures that destination city is deducible.
 	if(ePlotTeam == NO_TEAM)
 		return TRUE;
 	if(GET_TEAM(ePlotTeam).getMasterTeam() == GET_TEAM(eTargetTeam).getMasterTeam())

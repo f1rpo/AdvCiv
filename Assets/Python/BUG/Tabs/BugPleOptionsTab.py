@@ -26,9 +26,11 @@ class BugPleOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addLabel(screen, left, "PLE_Indicators")
 		self.addCheckbox(screen, left, "PLE__Wounded_Indicator")
 		self.addCheckbox(screen, left, "PLE__Lead_By_GG_Indicator")
-		self.addCheckbox(screen, left, "PLE__Promotion_Indicator")
 		self.addCheckbox(screen, left, "PLE__Upgrade_Indicator")
 		self.addCheckbox(screen, left, "PLE__Mission_Info")
+		self.addCheckbox(screen, left, "PLE__Promotion_Indicator")
+		# advc.002e (and moved the Promotion_Indicator option down):
+		self.addCheckbox(screen, left, "PLE__ShowPromotionGlow")
 		#self.addSpacer(screen, left, "PLE_Indicators", 1)
 		# advc.069: Heading instead of spacer
 		self.addLabel(screen, left, "PLE_Advanced")

@@ -3306,7 +3306,8 @@ void FairPlay::evaluate() {
 			we->AI_getMemoryAttitude(theyId, MEMORY_DECLARED_WAR) < -2 ||
 			they->AI_isDoVictoryStrategyLevel3() ||
 			// Then our attack dooms them regardless of other war parties
-			agent.warAndPeaceAI().isPushover(TEAMID(theyId)) ||
+			(agent.warAndPeaceAI().isPushover(TEAMID(theyId)) &&
+			(!they->isHuman() || they->getCurrentEra() > 0)) ||
 			/*  If they can't win anymore, we shouldn't hold back. Don't want to
 				leave all the loot to others. A human with such poor war success
 				isn't going to win either, but if the human is a good sport and

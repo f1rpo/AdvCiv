@@ -6,6 +6,35 @@
 	Copyright (c) 2009 The BUG Mod.
 -->
 <Civ4GameText xmlns="http://www.firaxis.com">
+
+	<!-- advc.002k -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__YEARNOTATION_TEXT</Tag>
+		<English>Year Notation</English>
+		<French>Notation de l'année</French>
+		<German>Zeitrechnung</German>
+		<Italian>Notazione dell'anno</Italian>
+		<Spanish>Notación del año</Spanish>
+	</TEXT>
+	<!-- Assisted by deepl.com -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__YEARNOTATION_HOVER</Tag>
+		<English>Whether to show "AD" (Anno Domini) before or after the game year, or to use the CE/BCE notation instead of AD/BC. [COLOR_HIGHLIGHT_TEXT]AD Postfix[COLOR_REVERT] is what BtS originally used.</English>
+		<French>Si la langue anglaise est sélectionnée, cette option permet de basculer entre deux notations anno domini différentes et la notation de "Common Era". En français, on peut choisir seulement "avant / après Jésus-Christ" ou "Ère Commune".</French>
+		<German>Diese Option wechselt bei englischer Spracheinstellung zwischen zwei verschiedenen Anno-Domini-Notationen und der "Common Era"-Notation. Auf deutsch kann nur zwischen "vor/nach Christus" und "(vor) unserer Zeitrechnung" gewechselt werden.</German>
+		<Italian>Se si seleziona la lingua inglese, questa opzione commuta tra due diverse notazioni di anno domini e la notazione di "Common Era". In italiano ci sono solo "avanti / dopo Cristo" ed "era volgare" per scegliere.</Italian>
+		<Spanish>Si se selecciona el idioma inglés, esta opción cambia entre dos notaciones anno domini diferentes y la notación "Common Era". En español sólo hay "antes / después de Cristo" y "Era Común" para elegir.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_NJAGC__YEARNOTATION_LIST</Tag>
+		<English>AD Prefix|AD Postfix|Common Era</English>
+		<French>ap./av. J.C.|ap./av. J.-C.|(A)EC</French>
+		<German>v./n. Chr.|v./n. Chr.|(v.)u.Z.</German>
+		<Italian>a.C./d.C.|a.C./d.C.|(a.)e.v.</Italian>
+		<Spanish>a.C./d.C.|a.C./d.C.|(A)EC</Spanish>
+	</TEXT>
+
+
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_NJAGC__ENABLED_TEXT</Tag>
 		<English>Enable NJAGC</English>

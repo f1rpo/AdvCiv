@@ -801,6 +801,22 @@
 		<Spanish>Nueva l&#237;nea</Spanish>
 	</TEXT>
 	
+	<!-- advc.004g: Originally in CIV4GameText_BTS.xml
+		 Was:
+		 "The unit disrupts the trade route so that no intercontinental trade
+		  can pass through the blockaded tile"
+		 Doesn't say that only enemy trade is affected. (For Privateers, all
+		 non-team civs are enemies, but I can't explain that here. Also doesn't
+		 say that Privateers plunder gold.) -->
+	<TEXT>
+		<Tag>TXT_KEY_MISSION_PLUNDER_HELP</Tag>
+		<English>Blocks enemy trade from passing through water tiles in the blockade range.</English>
+		<French>L'unit&#233; effectue le blocus de la case pour emp&#234;cher tout commerce intercontinental par cette route commerciale.</French>
+		<German>Unterbricht feindliche Seehandelswege innerhalb der Blockade-Reichweite.</German>
+		<Italian>L'unit&#224; interrompe la rotta commerciale in modo che nessuna rotta commerciale intercontinentale possa passare dalla casella bloccata.</Italian>
+		<Spanish>La unidad corta la ruta comercial para que ninguna operaci&#243;n de comercio intercontinental pueda atravesar la casilla bloqueada.</Spanish>
+	</TEXT>
+	
 	<!-- advc.004: German translation - "Neuer Random Seed" was just too
 		 awful. Originally in CIV4GameText_Misc1.xml. -->
 	<TEXT>
@@ -856,7 +872,7 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_HANDICAP_PRINCE_HELP</Tag>
-		<English>This is the median difficulty level. The AI players receive subtle bonuses on research, growth and production, just 5% initially and increasing very slightly with each era, whereas your costs for technologies and expenses are 10% higher. Barbarians keep getting more numerous with every difficulty level, and, on Prince, your combat bonus against Barbarians is only 5%.</English>
+		<English>This is the median difficulty level. The AI players receive subtle bonuses on research, growth and production, just 5% initially, and increasing by 1 percentage point every 100 turns, whereas your costs for technologies and expenses are 10% higher. Barbarians keep getting more numerous with every difficulty level, and, on Prince, your combat bonus against Barbarians is only 5%.</English>
 		<French>En tant que Prince, vous devrez prouver que vous avez du sang royal. Avec un handicap contre l'I.A., dont la production et la recherche sont bien plus rapides que les v&#244;tres. Il faudra tr&#232;s bien jouer pour remporter la victoire.</French>
 		<German>Diese Schwierigkeitsstufe liegt genau in der Mitte. Die KI-Spieler erhalten kleine Boni (5%) auf Forschung, Wachstum und Produktion, die sich mit jedem Zeitalter ein klein wenig erhöhen. Dagegen sind Ihre Technologiekosten und Ausgaben etwas erhöht, i. W. um 10%. Barbaren werden mit dieser (und jeder weiteren) Stufe noch zahlreicher, und Ihr Kampfbonus gegen Barbaren beträgt nur noch 5%.</German>
 		<Italian>Come Principe, dovrai saper dimostrare di essere di vera stirpe reale. Quest'ultima pu&#242; produrre e fare ricerche pi&#249; velocemente di te, pertanto dovrai giocare con maggior impegno per poter vincere.</Italian>
@@ -864,7 +880,7 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_HANDICAP_MONARCH_HELP</Tag>
-		<English>A challenging level. The AI advantages are higher than on Prince (by another 5 percentage points) and increase more noticeably with each era. The AI players start the game with Archery, which makes early attacks on the AI much harder than on Prince. You should also expect the Barbarians to adopt Archery before long.</English>
+		<English>A challenging level. Some of the AI advantages are higher than on Prince (by another 5 percentage points) and increase every 50 turns. The AI players start the game with Archery, which makes early attacks on the AI much harder than on Prince. You should also expect the Barbarians to adopt Archery before long.</English>
 		<French>Pour les Monarques, les d&#233;fis qui se pr&#233;sentent sont d'une toute autre ampleur. L'entretien est plus cher, la recherche plus lente, votre peuple plus exigeant et vos adversaires I.A. tout simplement plus intelligents.</French>
 		<German>Eine anspruchsvolle Schwierigkeitsstufe. Die KI-Vorteile sind höher als auf "Prinz" (um weitere 5 Prozentpunkte) und steigen im Laufe der Zeitalter merklich. Die KI-Spieler beherrschen von Anfang an das Bogenschießen; dadurch ist es deutlich schwieriger als auf "Prinz", die KI im frühen Spiel anzugreifen. Sie müssen auch damit rechnen, dass die Barbaren sich das Bogenschießen recht bald aneignen.</German>
 		<Italian>Per i Monarchi, la sfida comincia a farsi impegnativa. Il costo di mantenimento &#232; superiore, la ricerca pi&#249; lenta, la gente pi&#249; difficile da accontentare e gli avversari computerizzati pi&#249; scaltri.</Italian>
@@ -888,9 +904,9 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_HANDICAP_DEITY_HELP</Tag>
-		<English>Extremely hard. The bonuses for the AI are much higher than on Immortal difficulty, to the point that, after the first two eras, the AI gets units and technologies at half their normal cost. In addition to other free items (see Immortal), the AI starts the game with a second Settler. With the AdvCiv mod, hopefully Immortal is hard enough for nearly everyone.</English>
+		<English>Extremely hard. The human penalties (30%) and progressive AI bonuses make it so that the AI players get e.g. units at half the human cost toward the end of the game. With the AdvCiv mod, hopefully Immortal is hard enough for nearly everyone. Note, however, that AdvCiv removes the second free Settler that the Deity AI players receive in the original game.</English>
 		<French>L'ultime &#233;preuve, r&#233;serv&#233;e aux meilleurs joueurs. Serez-vous &#224; la hauteur ?</French>
-		<German>Extrem schwierig. Die Vorteile der KI sind noch einmal deutlich höher als auf "Unsterblicher". Schon nach zwei Zeitaltern sind die Boni so hoch, dass die KI-Spieler z.B. Technologien und Einheiten zum halben Preis bekommen. Zu den Starteinheiten für die KI gehört ein zweiter Siedler. Mit dem AdvCiv-Mod sollte "Unsterblicher" für fast jeden schwierig genug sein.</German>
+		<German>Extrem schwierig. Die Mali für menschliche Spieler (30%) und die fortschreitenden Boni der KI führen dazu, dass die KI-Spieler gegen Ende des Spiels z.B. nur noch halb so viel Produktion für eine Einheit aufwenden müssen wie die Menschen. Mit dem AdvCiv-Mod sollte "Unsterblicher" für fast jeden schwierig genug sein. Allerdings ist, im Gegensatz zum Originalspiel, kein zweiter Siedler mehr unter den Starteinheiten der KI.</German>
 		<Italian>La prova definitiva per i migliori giocatori di Civilization. Ce la farai?</Italian>
 		<Spanish>La prueba definitiva, solo para los mejores jugadores del Civi. &#191;Podr&#225; superarla alguien?</Spanish>
 	</TEXT>
@@ -3612,6 +3628,26 @@
 		<Spanish>%s1 con %s2</Spanish>
 	</TEXT>
 	
+	<!-- advc.004w: Based on TXT_KEY_BUILDING_OBSOLETE_WITH in
+		 CIV4GameTextInfos.xml. Color only the obsoletion tech. -->
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_NOT_OBSOLETE</Tag>
+		<English>Obsolete with [COLOR_WARNING_TEXT][LINK=literal]%s1_TechName[\LINK][COLOR_REVERT]</English>
+		<French>Obsol&#232;te avec : [COLOR_WARNING_TEXT][LINK=literal]%s1_TechName[\LINK][COLOR_REVERT]</French>
+		<German>Veraltet durch die Technologie [COLOR_WARNING_TEXT][LINK=literal]%s1_TechName[\LINK][COLOR_REVERT]</German>
+		<Italian>Diventa obsoleto con [NUM1:il:la:i:le] [COLOR_WARNING_TEXT][LINK=literal]%s1_TechName[\LINK][COLOR_REVERT]</Italian>
+		<Spanish>Caer&#225; en desuso con [NUM1:el:la:los:las] [COLOR_WARNING_TEXT][LINK=literal]%s1_TechName[\LINK][COLOR_REVERT]</Spanish>
+	</TEXT>
+	<!-- Originally in CIV4GameText_Warlords.xml. Was in COLOR_WARNING_TEXT. -->
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_OBSOLETE_EXCEPT</Tag>
+		<English>[SPACE](Except defensive bonus)</English>
+		<French>[SPACE](sauf bonus d&#233;fensif)</French>
+		<German>[SPACE](ausgenommen Defensivbonus)</German>
+		<Italian>[SPACE](eccetto bonus difensivo)</Italian>
+		<Spanish>[SPACE](Excepto bonificaciones defensivas)</Spanish>
+	</TEXT>
+	
 	<!-- advc.047: Like TXT_KEY_BONUS_WITH_IMPROVEMENT in
 		 CIV4GameTextInfos.xml, but with color. -->
 	<TEXT>
@@ -3775,6 +3811,16 @@
 		<Italian>[COLOR_LIGHT_GREY]----- Messaggi meno recenti:[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_LIGHT_GREY]----- Mensajes más antiguos:[COLOR_REVERT]</Spanish>
 	</TEXT>
+	<!-- advc.106b: Originally in CIV4GameText_Misc1.xml. Example and
+		 recommendation added. -->
+	<TEXT>
+		<Tag>TXT_KEY_PLAYER_OPTION_MINIMIZE_POPUPS_HELP</Tag>
+		<English>Popups (e.g. "what would you like to research next?") are minimized until all units have moved. (Recommended for the AdvCiv mod.)</English>
+		<French>Les fen&#234;tres sont minimis&#233;es tant que le joueur n'a pas d&#233;plac&#233; toutes ses unit&#233;s.</French>
+		<German>Popups werden minimiert, bis der Spieler alle Einheiten bewegt hat. (Für den AdvCiv-Mod empfohlen.)</German>
+		<Italian>I menu a comparsa vengono ridotti al minimo finch&#233; il giocatore non ha mosso tutte le sue unit&#224;</Italian>
+		<Spanish>Los elementos emergentes quedar&#225;n ocultos hasta que el jugador haya movido todas las unidades.</Spanish>
+	</TEXT>
 	
 	<!-- advc.104v -->
 	<TEXT>
@@ -3917,17 +3963,66 @@
 		<Spanish>los mapas de %s1</Spanish>
 	</TEXT>
 
-	<!-- advc.002k: From CIV4GameTextInfos.xml -->
+	<!-- advc.002k: Based on TXT_KEY_TIME_AD in CIV4GameTextInfos.xml.
+		 Could also use AD for the other languages, but this setting is going
+		 to be the default, and I only want to change English by default. -->
 	<TEXT>
-		<Tag>TXT_KEY_TIME_AD</Tag>
+		<Tag>TXT_KEY_AD_TIME</Tag>
 		<English>AD %d1_Date</English>
 		<French>%d1_Date ap. J.C</French>
 		<German>%d1_Date n. Chr.</German>
 		<Italian>%d1_Date d.C.</Italian>
 		<Spanish>%d1_Date d. C.</Spanish>
 	</TEXT>
-	<!-- advc.002k: Only removed a colon here. German should keep it, not sure
-		 about the other languages. -->
+	
+	<!-- Alternatives: e.c. in Italian
+		 n.u.Z. or n.d.Z. in German (or even the English CE instead, as secular
+		 dates aren't commonly used in German)  -->
+	<TEXT>
+		<Tag>TXT_KEY_TIME_CE</Tag>
+		<English>%d1_Date CE</English>
+		<French>%d1_Date EC</French>
+		<German>%d1_Date u. Z.</German>
+		<Italian>%d1_Date e.v.</Italian>
+		<Spanish>%d1_Date EC</Spanish>
+	</TEXT>
+	<!-- Italian alternatively p.e.v. or p.e.c.
+		 German: v.d.Z. or BCE -->
+	<TEXT>
+		<Tag>TXT_KEY_TIME_BCE</Tag>
+		<English>%d1_Date BCE</English>
+		<French>%d1_Date AEC</French>
+		<German>%d1_Date v.u.Z.</German>
+		<Italian>%d1_Date a.e.v.</Italian>
+		<Spanish>%d1_Date AEC</Spanish>
+	</TEXT>
+	<!-- advc.002k: Based on TXT_KEY_TIME_CE_SAVE in CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_TIME_BCE_SAVE</Tag>
+		<English>BCE-%s1_Date</English>
+		<French>%s1_Date AEC</French>
+		<German>v.u.Z.-%s1_Date</German>
+		<Italian>a.e.v. - %s1_Date</Italian>
+		<Spanish>%s1_Date AEC</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TIME_CE_SAVE</Tag>
+		<English>CE-%s1_Date</English>
+		<French>%s1_Date EC</French>
+		<German>u. Z.-%s1_Date</German>
+		<Italian>e.v. - %s1_Date</Italian>
+		<Spanish>%s1_Date EC</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TIME_AD_SAVE</Tag>
+		<English>AD-%s1_Date</English>
+		<French>%s1_Date ap. J.C</French>
+		<German>n. Chr.-%s1_Date</German>
+		<Italian>d.C. - %s1_Date</Italian>
+		<Spanish>%s1_Date d. C.</Spanish>
+	</TEXT>
+	<!-- Only removed a colon here. German should keep it, not sure about the
+		 other languages. -->
 	<TEXT>
 		<Tag>TXT_KEY_TIME_TURN</Tag>
 		<English>Turn %d1_TurnNum</English>
@@ -4395,6 +4490,17 @@
 		<German>, EP: %d1_Curr/%d2_Needed</German>
 		<Italian>, XP: %d1_Curr/%d2_Needed</Italian>
 		<Spanish>, PX: %d1_Curr/%d2_Needed</Spanish>
+	</TEXT>
+	
+	<!-- advc.071: Grammar in translations based on TXT_KEY_MISC_CIV_DESTROYED
+		 (CIV4GameTextInfos.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_TEAM_MET</Tag>
+		<English>We have met the %s1_CivAdj civilization</English>
+		<French>Nous avons rencontrés les %s1_CivAdj</French>
+		<German>Wir sind erstmals der %s1:3_CivAdj Zivilisation begegnet</German>
+		<Italian>Abbiamo incontrato la civilt&#224; %s1:4_CivAdj</Italian>
+		<Spanish>Hemos encontrado la civilizaci&#243;n %s1:2_CivAdj</Spanish>
 	</TEXT>
 	
 </Civ4GameText>

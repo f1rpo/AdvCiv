@@ -50,7 +50,7 @@ public:
 
 	void AI_doPeace();
 	// advc.134a:
-	bool AI_upholdPeaceOffer(PlayerTypes humanId, CvDiploParameters const& kOffer);
+	bool AI_upholdPeaceOffer(PlayerTypes humanId, CvDiploParameters const& kOffer) const;
 
 	void AI_updateFoundValues(bool bStartingLoc = false);
 	void AI_updateAreaTargets();
@@ -172,6 +172,7 @@ public:
 
 	DllExport DiploCommentTypes AI_getGreeting(PlayerTypes ePlayer) const;
 	bool AI_isWillingToTalk(PlayerTypes ePlayer) const; // Exposed to Python
+	int AI_refuseToTalkTurns(PlayerTypes ePlayer) const; // advc.104i
 	bool AI_demandRebukedSneak(PlayerTypes ePlayer) const;
 	bool AI_demandRebukedWar(PlayerTypes ePlayer) const;
 	bool AI_hasTradedWithTeam(TeamTypes eTeam) const;
@@ -713,7 +714,7 @@ protected:
 	// <advc.104h>
 	int AI_negotiatePeace(PlayerTypes receiverId, PlayerTypes giverId, int iDelta,
 			int* iGold, TechTypes* eBestTech, CvCity** pBestCity); // </advc.104h>
-	// <advc.705> Replacement for the pure virtual AI_counterPropose
+	// <advc.705> Replacement for the virtual function AI_counterPropose
 	bool AI_counterPropose(PlayerTypes ePlayer,
 			const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList,
 			CLinkList<TradeData>* pTheirInventory, CLinkList<TradeData>* pOurInventory,

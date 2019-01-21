@@ -163,21 +163,25 @@ bool CvSelectionGroupAI::AI_update()
 
 	//FAssert(!(GET_PLAYER(getOwnerINLINE()).isAutoMoves())); // (no longer true in K-Mod)
 
-	int iTempHack = 0; // XXX
-
+	//int iTempHack = 0; // XXX
+	// <advc.001y> Will keep this permanently as a fallback
+	int iAttempts = 0;
+	int iMaxAttempts = 6 * (GET_PLAYER(getOwnerINLINE()).getCurrentEra() + 1) +
+			::range(getNumUnits(), 4, 14);
+	// </advc.001y>
 	bool bDead = false;
-	
 	bool bFailedAlreadyFighting = false;
 	//while ((m_bGroupAttack && !bFailedAlreadyFighting) || readyToMove())
 	while ((AI_isGroupAttack() && !isBusy()) || readyToMove()) // K-Mod
 	{
 		setForceUpdate(false); // K-Mod. Force update just means we should get into this loop at least once.
-
-		iTempHack++;
-		if (iTempHack > 100)
+		iAttempts++;
+		/*  <advc.001y> Moved out of the block below so I can see what the loop does
+			before it terminates. Debugger stops in CvSelectionGroup::pushMission and
+			startMission have been helpful to me. */
+		FAssertMsg(iAttempts != iMaxAttempts - 5, "Unit stuck in a loop");
+		if(iAttempts >= iMaxAttempts) // was > 100 </advc.001y>
 		{
-			// advc.006:
-			//FAssertMsg(false, "unit stuck in a loop");
 			CvUnit* pHeadUnit = getHeadUnit();
 			if (NULL != pHeadUnit)
 			{
@@ -210,15 +214,11 @@ bool CvSelectionGroupAI::AI_update()
 
 			//if (pHeadUnit == NULL || pHeadUnit->isDelayedDeath())
 			if (pHeadUnit == NULL || pHeadUnit->doDelayedDeath()) // K-Mod
-			{
 				break;
-			}
 
 			//resetPath();
-
 			if (pHeadUnit->AI_update())
-			{
-				// AI_update returns true when we should abort the loop and wait until next slice
+			{	// AI_update returns true when we should abort the loop and wait until next slice
 				FAssert(!pHeadUnit->isDelayedDeath());
 				break;
 			}

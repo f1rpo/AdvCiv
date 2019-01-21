@@ -40,9 +40,8 @@
 			</list>
 			
 			<!-- FoodAssist by EmperorFool -->
-			<!-- advc.004: default was False in K-Mod -->
 			<option id="FoodAssist" key="FoodAssist" 
-					type="boolean" default="True" 
+					type="boolean" default="False" 
 					get="isShowFoodAssist" dirtyBit="CityScreen"/>
 			
 			<!-- WhipAssist by EmperorFool, Dresden -->

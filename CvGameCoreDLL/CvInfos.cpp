@@ -10168,6 +10168,7 @@ m_iStartingGold(0),
 m_iFreeUnits(0),
 m_iUnitCostPercent(0),
 // <advc.251>
+m_iBuildTimePercent(0),
 m_iBaseGrowthThresholdPercent(0),
 m_iGPThresholdPercent(0),
 // </advc.251>
@@ -10590,6 +10591,9 @@ void CvHandicapInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iFreeUnits);
 	stream->Read(&m_iUnitCostPercent);
 	// <advc.251>
+	if(uiFlag >= 4)
+		stream->read(&iBuildTimePercent);
+	else iBuildTimePercent = 100;
 	if(uiFlag >= 3) {
 		stream->Read(&m_iBaseGrowthThresholdPercent);
 		stream->Read(&m_iGPThresholdPercent);
@@ -10695,6 +10699,7 @@ void CvHandicapInfo::write(FDataStreamBase* stream)
 	uiFlag = 1; // advc.251
 	uiFlag = 2; // advc.148
 	uiFlag = 3; // advc.251
+	uiFlag = 4; // advc.251
 	stream->Write(uiFlag);		// Flag for Expansion
 
 	stream->Write(m_iFreeWinsVsBarbs);
@@ -10705,6 +10710,7 @@ void CvHandicapInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iFreeUnits);
 	stream->Write(m_iUnitCostPercent);
 	// <advc.251>
+	stream->Write(m_iBuildTimePercent);
 	stream->Write(m_iBaseGrowthThresholdPercent);
 	stream->Write(m_iGPThresholdPercent);
 	// </advc.251>
@@ -10799,6 +10805,7 @@ bool CvHandicapInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iFreeUnits, "iFreeUnits");
 	pXML->GetChildXmlValByName(&m_iUnitCostPercent, "iUnitCostPercent");
 	// <advc.251>
+	pXML->GetChildXmlValByName(&m_iBuildTimePercent, "iBuildTimePercent");
 	pXML->GetChildXmlValByName(&m_iBaseGrowthThresholdPercent, "iBaseGrowthThresholdPercent");
 	pXML->GetChildXmlValByName(&m_iGPThresholdPercent, "iGPThresholdPercent");
 	// </advc.251>

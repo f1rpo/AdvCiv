@@ -103,8 +103,9 @@ void CvDeal::kill(bool bKillTeam)
 					bForce ? "AS2D_DEAL_CANCELLED" : NULL, // advc.106j
 					// <advc.127b>
 					MESSAGE_TYPE_INFO, NULL, NO_COLOR,
-					GET_PLAYER(getSecondPlayer()).getCapitalX(),
-					GET_PLAYER(getSecondPlayer()).getCapitalY()); // </advc.127b>
+					GET_PLAYER(getSecondPlayer()).getCapitalX(getFirstPlayer()),
+					GET_PLAYER(getSecondPlayer()).getCapitalY(getFirstPlayer()));
+					// </advc.127b>
 		}
 
 		if (TEAMREF(getSecondPlayer()).isHasMet(TEAMID(getFirstPlayer())))
@@ -119,8 +120,9 @@ void CvDeal::kill(bool bKillTeam)
 					bForce ? "AS2D_DEAL_CANCELLED" : NULL, // advc.106j
 					// <advc.127b>
 					MESSAGE_TYPE_INFO, NULL, NO_COLOR,
-					GET_PLAYER(getFirstPlayer()).getCapitalX(),
-					GET_PLAYER(getFirstPlayer()).getCapitalY()); // </advc.127b>
+					GET_PLAYER(getFirstPlayer()).getCapitalX(getSecondPlayer()),
+					GET_PLAYER(getFirstPlayer()).getCapitalY(getSecondPlayer()));
+					// </advc.127b>
 		}
 	}
 	// <advc.036>
@@ -349,7 +351,7 @@ bool CvDeal::recordTradeValue(CLinkList<TradeData>* list1, CLinkList<TradeData>*
 			(list1->getLength() == 1 && list1->head()->m_data.m_eItemType ==
 			TRADE_PEACE_TREATY))
 		return false;
-	/*  <advc.550a> Ignore discounts when it comes to fair-trade diplo bonuses?
+	/*  advc.550a: Ignore discounts when it comes to fair-trade diplo bonuses?
 		Hard to decide, apply half the discount for now. */
 	int iValue = ::round((GET_PLAYER(p2).AI_dealVal(p1, list1, true, 1, true, true) +
 			GET_PLAYER(p2).AI_dealVal(p1, list1, true, 1, false, true) / 2.0));

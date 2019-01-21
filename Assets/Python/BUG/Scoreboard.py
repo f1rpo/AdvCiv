@@ -249,7 +249,8 @@ class Scoreboard:
 			self._set(RESEARCH, tech)
 		else:
 			self._set(RESEARCH, smallText(gc.getTechInfo(tech).getDescription()))
-		self._set(RESEARCH_TURNS, smallText(u"(%d)" % turns))
+		if turns >= 0: # advc.004x
+			self._set(RESEARCH_TURNS, smallText(u"(%d)" % turns))
 		
 	def setEspionage(self):
 		self._set(ESPIONAGE)

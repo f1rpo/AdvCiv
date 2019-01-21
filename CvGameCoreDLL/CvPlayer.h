@@ -675,9 +675,11 @@ public:
 
 	DllExport CvCity* getCapitalCity() const;																																	// Exposed to Python
 	void setCapitalCity(CvCity* pNewCapitalCity);
-	// <advc.127b> -1 if no capital
-	int getCapitalX() const;
-	int getCapitalY() const;
+	// <advc.127b> -1 if no capital or (eObserver!=NO_TEAM) unrevealed to eObserver
+	int getCapitalX(TeamTypes eObserver, bool bDebug = false) const;
+	int getCapitalY(TeamTypes eObserver, bool bDebug = false) const;
+	int getCapitalX(PlayerTypes eObserver, bool bDebug = false) const;
+	int getCapitalY(PlayerTypes eObserver, bool bDebug = false) const;
 	// </advc.127b>
 
 	int getCitiesLost() const;																																								// Exposed to Python
@@ -1013,6 +1015,7 @@ public:
 	void clearDiplomacy();
 	DllExport const CvDiploQueue& getDiplomacy() const;
 	DllExport CvDiploParameters* popFrontDiplomacy();
+	void validateDiplomacy(); // advc.001e
 	DllExport void showSpaceShip();
 	DllExport void clearSpaceShipPopups();
 	void doChangeCivicsPopup(CivicTypes eCivic); // advc.004x
@@ -1459,7 +1462,6 @@ protected:
 	void doEspionagePoints();
 	void doWarnings();
 	void doEvents();
-	void validateOffers(); // advc.001e
 	void decayBuildProgress(); // advc.011
 	void showForeignPromoGlow(bool b); // advc.002e
 	// <advc.314>

@@ -571,7 +571,9 @@ void RiseFall::showDoW() {
 				gDLL->getText("TXT_KEY_YOU_AT_WAR", enemy.getName()),
 				NULL, MESSAGE_TYPE_INFO, NULL, (ColorTypes)
 				GC.getInfoTypeForString("COLOR_WARNING_TEXT"),
-				enemy.getCapitalX(), enemy.getCapitalY()); // advc.127b
+				// <advc.127b>
+				enemy.getCapitalX(g.getActiveTeam(), true),
+				enemy.getCapitalY(g.getActiveTeam(), true)); // <advc.127b>
 	}
 }
 

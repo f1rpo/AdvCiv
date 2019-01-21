@@ -56,7 +56,7 @@ void AdvCiv4lert::msg(CvWString s, LPCSTR icon, int x, int y, int goodOrBad) con
 
 void AdvCiv4lert::check(bool silent) {
 
-	if(!isDebug && !GET_PLAYER(ownerId).isHuman()) {
+	if(ownerId == NO_PLAYER || (!isDebug && !GET_PLAYER(ownerId).isHuman())) {
 		/*  Normally no need to check during Auto Play. Wouldn't hurt, except
 			that the checks aren't super fast. */
 		return;
@@ -141,7 +141,9 @@ void WarTradeAlert::msg(TeamTypes warTeamId, std::vector<TeamTypes> victims,
 		else text += L".";
 	}
 	AdvCiv4lert::msg(text, NULL,
-			warTeam.getCapitalX(), warTeam.getCapitalY()); // advc.127b
+			// <advc.127b>
+			warTeam.getCapitalX(TEAMID(ownerId)),
+			warTeam.getCapitalY(TEAMID(ownerId))); // </advc.127b>
 } // </advc.210a>
 
 // <advc.210b>
@@ -197,10 +199,9 @@ void RevoltAlert::check() {
 			anyway when it asks for orders. */
 		else if(wasOccupation && c->getNumOrdersQueued() > 0) {
 			msg(gDLL->getText("TXT_KEY_CIV4LERTS_CITY_PACIFIED_ADVC", c->getName().
-						GetCString()), NULL
-						,//ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),
-						c->getX_INLINE(), c->getY_INLINE(),
-						0);
+						GetCString()), NULL,
+						//ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),
+						c->getX_INLINE(), c->getY_INLINE());
 			/*  Pretend that revolt chance is 0 after occupation ends, so that
 				a spearate alert is fired on the next turn if it's actually not 0. */
 			updatedRevolt.erase(c->plotNum());

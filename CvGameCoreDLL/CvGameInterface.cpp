@@ -372,52 +372,31 @@ void CvGame::updateColoredPlots()
 
 		if (pHeadSelectedUnit->isBlockading())
 		{
-			int iBlockadeRange = GC.getDefineINT("SHIP_BLOCKADE_RANGE");
-
 			for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; ++iPlayer)
 			{
 				CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iPlayer);
-
-				if (kPlayer.getTeam() == getActiveTeam())
+				if(kPlayer.getTeam() != getActiveTeam())
+					continue; // advc.003
+				int iLoop;
+				for (CvUnit* pLoopUnit = kPlayer.firstUnit(&iLoop);
+						NULL != pLoopUnit; pLoopUnit = kPlayer.nextUnit(&iLoop))
 				{
-					int iLoop;
-					for (CvUnit* pLoopUnit = kPlayer.firstUnit(&iLoop); NULL != pLoopUnit; pLoopUnit = kPlayer.nextUnit(&iLoop))
-					{
-						if (pLoopUnit->isBlockading())
-						{
-							for (int i = -iBlockadeRange; i <= iBlockadeRange; ++i)
-							{
-								for (int j = -iBlockadeRange; j <= iBlockadeRange; ++j)
-								{
-									pLoopPlot = ::plotXY(pLoopUnit->getX_INLINE(), pLoopUnit->getY_INLINE(), i, j);
-									if (NULL != pLoopPlot && pLoopPlot->isRevealed(getActiveTeam(), false))
-									{
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      12/11/08                                jdog5000      */
-/*                                                                                              */
-/* Bugfix                                                                                       */
-/************************************************************************************************/
-										if( GC.getMapINLINE().calculatePathDistance(pLoopUnit->plot(),pLoopPlot) > iBlockadeRange )
-										{
-											// No blockading on other side of an isthmus
-											continue;
-										}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-
-										if (pLoopPlot->isWater())
-												// advc.033: PathDistance check suffices
-												//&& pLoopPlot->area() == pLoopUnit->area())
-										{
-											NiColorA color(GC.getColorInfo((ColorTypes)GC.getPlayerColorInfo(GET_PLAYER(getActivePlayer()).getPlayerColor()).getColorTypePrimary()).getColor());
-											color.a = 0.5f;
-											gDLL->getEngineIFace()->fillAreaBorderPlot(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), color, AREA_BORDER_LAYER_BLOCKADING);
-										}
-									}
-								}
-							}
+					if (pLoopUnit->isBlockading())
+					{	/*  <advc.033> Replacing code that was (mostly) equivalent
+							to CvUnit::updatePlunder */
+						std::vector<CvPlot*> apRange;
+						pLoopUnit->blockadeRange(apRange);
+						for(size_t j = 0; j < apRange.size(); j++) { // </advc.033>
+							NiColorA color(GC.getColorInfo((ColorTypes)GC.getPlayerColorInfo(
+									GET_PLAYER(getActivePlayer()).getPlayerColor()).
+									getColorTypePrimary()).getColor());
+							color.a = 0.5f;
+							gDLL->getEngineIFace()->fillAreaBorderPlot(
+									apRange[j]->getX_INLINE(),
+									apRange[j]->getY_INLINE(), color,
+									AREA_BORDER_LAYER_BLOCKADING);
 						}
+
 					}
 				}
 			}
@@ -490,10 +469,10 @@ void CvGame::updateSelectionList()
 
 void CvGame::updateTestEndTurn()
 {
-	bool bAny;
-	bool bShift = GC.shiftKey();
 
-	bAny = ((gDLL->getInterfaceIFace()->getHeadSelectedUnit() != NULL) && !(GET_PLAYER(getActivePlayer()).isOption(PLAYEROPTION_NO_UNIT_CYCLING)));
+	bool bShift = GC.shiftKey();
+	bool bAny = (gDLL->getInterfaceIFace()->getHeadSelectedUnit() != NULL &&
+			!GET_PLAYER(getActivePlayer()).isOption(PLAYEROPTION_NO_UNIT_CYCLING));
 
 	if (GET_PLAYER(getActivePlayer()).isTurnActive())
 	{
@@ -729,8 +708,8 @@ void CvGame::cycleCities(bool bForward, bool bAdd) const
 	}
 }
 
-
-void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers) const
+// advc.003i: const removed so that updateTestEndTurn can be called
+void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers)
 {
 	CvSelectionGroup* pNextSelectionGroup;
 	
@@ -773,17 +752,14 @@ void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers) con
 	else if (pCycleUnit)
 	{
 		gDLL->getInterfaceIFace()->clearSelectionList();
-		const_cast<CvGame*>(this)->updateTestEndTurn();
-		// again, I'm sorry about the const_cast. this function and updateTestEndTurn are both dllexport functions.
-		// so I can't change the constness of either of them to fix the problem.
+		updateTestEndTurn();
 		// <advc.002e> Hide glow when all units moved
-		if(GC.getDefineINT("SHOW_PROMOTION_GLOW") <= 0) {
+		if(!getBugOptionBOOL("PLE__ShowPromotionGlow", false)) {
 			CvPlayer const& owner = GET_PLAYER(pCycleUnit->getOwnerINLINE()); int foo=-1;
 			for(CvUnit* u = owner.firstUnit(&foo); u != NULL; u = owner.nextUnit(&foo))
 				gDLL->getEntityIFace()->showPromotionGlow(u->getUnitEntity(), false);
 		} // </advc.002e>
-	}
-	// K-Mod end
+	} // K-Mod end
 
 	if ((pCycleUnit != gDLL->getInterfaceIFace()->getHeadSelectedUnit()) || ((pCycleUnit != NULL) && pCycleUnit->getGroup()->readyToSelect()))
 	{
@@ -792,7 +768,7 @@ void CvGame::cycleSelectionGroups(bool bClear, bool bForward, bool bWorkers) con
 }
 
 // K-Mod
-void CvGame::cycleSelectionGroups_delayed(int iDelay, bool bIncremental, bool bDelayOnly) const
+void CvGame::cycleSelectionGroups_delayed(int iDelay, bool bIncremental, bool bDelayOnly)
 {
 	PROFILE_FUNC(); // I'm just hoping that the python call doesn't hurt the respose times
 
@@ -822,11 +798,9 @@ void CvGame::cycleSelectionGroups_delayed(int iDelay, bool bIncremental, bool bD
 	{
 		if (bIncremental)
 			gDLL->getInterfaceIFace()->changeCycleSelectionCounter(iDelay);
-		else
-			gDLL->getInterfaceIFace()->setCycleSelectionCounter(iDelay);
+		else gDLL->getInterfaceIFace()->setCycleSelectionCounter(iDelay);
 	}
-}
-// K-Mod end
+} // K-Mod end
 
 // Returns true if unit was cycled...
 bool CvGame::cyclePlotUnits(CvPlot* pPlot, bool bForward, bool bAuto, int iCount) const
@@ -2976,15 +2950,11 @@ bool CvGame::shouldShowResearchButtons() const
 {
 	if (!gDLL->GetWorldBuilderMode())
 	{
-		if (GET_PLAYER(getActivePlayer()).isAlive())
-		{
-			if (!gDLL->getInterfaceIFace()->isCityScreenUp())
-			{
-				if (GET_PLAYER(getActivePlayer()).getCurrentResearch() == NO_TECH)
-				{
-					return true;
-				}
-			}
+		CvPlayer const& kActivePlayer = GET_PLAYER(getActivePlayer()); // advc.003
+		if(kActivePlayer.isAlive() && !gDLL->getInterfaceIFace()->isCityScreenUp()) {
+			if(kActivePlayer.isResearch() && // advc.004x
+					kActivePlayer.getCurrentResearch() == NO_TECH)
+				return true;
 		}
 	}
 

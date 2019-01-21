@@ -19,6 +19,7 @@
 #include "FProfiler.h"
 #include "CvGameTextMgr.h"
 #include "CvBugOptions.h" // advc.060
+#include "CvInitCore.h" // advc.001: Needed for bugfix in getCityBillboardSizeIconColors
 
 // interfaces used
 #include "CvDLLEngineIFaceBase.h"
@@ -927,6 +928,7 @@ void CvCity::doTurn()
 	AI_doTurn();
 	// <advc.106k>
 	if(!m_szPreviousName.empty() && m_szName.compare(m_szPreviousName) != 0) {
+		FAssert(isHuman());
 		GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getOwnerINLINE(),
 				gDLL->getText("TXT_KEY_MISC_CITY_RENAMED",
 				m_szPreviousName.GetCString(), m_szName.GetCString()), getX_INLINE(),
@@ -3324,8 +3326,6 @@ int CvCity::getProductionModifier() const
 
 int CvCity::getProductionModifier(UnitTypes eUnit) const
 {
-	int iI;
-
 	int iMultiplier = GET_PLAYER(getOwnerINLINE()).getProductionModifier(eUnit);
 
 	iMultiplier += getDomainProductionModifier((DomainTypes)(GC.getUnitInfo(eUnit).getDomainType()));
@@ -3335,7 +3335,7 @@ int CvCity::getProductionModifier(UnitTypes eUnit) const
 		iMultiplier += getMilitaryProductionModifier();
 	}
 
-	for (iI = 0; iI < GC.getNumBonusInfos(); iI++)
+	for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
 	{
 		if (hasBonus((BonusTypes)iI))
 		{
@@ -4248,9 +4248,8 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 	{
 		changeBuildingDefense(b.getDefenseModifier() * iChange);
 		changeBuildingBombardDefense(b.getBombardDefenseModifier() * iChange);
-
-		changeBaseGreatPeopleRate(b.getGreatPeopleRateChange() * iChange);
-
+		// advc.051: Moved
+		//changeBaseGreatPeopleRate(b.getGreatPeopleRateChange() * iChange);
 		if (b.getGreatPeopleUnitClass() != NO_UNITCLASS)
 		{
 			UnitTypes eGreatPeopleUnit = ((UnitTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(b.getGreatPeopleUnitClass())));
@@ -4258,6 +4257,9 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 			if (eGreatPeopleUnit != NO_UNIT)
 			{
 				changeGreatPeopleUnitRate(eGreatPeopleUnit, b.getGreatPeopleRateChange() * iChange);
+				/*  advc.051: Moved from above. Barbarians can obtain wonders, but
+					don't have GP units, and shouldn't have a positive base GP rate. */
+				changeBaseGreatPeopleRate(b.getGreatPeopleRateChange() * iChange);
 			}
 		}
 
@@ -4296,10 +4298,13 @@ void CvCity::processSpecialist(SpecialistTypes eSpecialist, int iChange)
 		if (eGreatPeopleUnit != NO_UNIT)
 		{
 			changeGreatPeopleUnitRate(eGreatPeopleUnit, GC.getSpecialistInfo(eSpecialist).getGreatPeopleRateChange() * iChange);
+			/*  advc.051: Moved from below. Barbarians don't have GP units; if they
+				still end up with a specialist, the base GP rate shouldn't count it. */
+			changeBaseGreatPeopleRate(GC.getSpecialistInfo(eSpecialist).getGreatPeopleRateChange() * iChange);
 		}
 	}
-
-	changeBaseGreatPeopleRate(GC.getSpecialistInfo(eSpecialist).getGreatPeopleRateChange() * iChange);
+	// advc.051: Moved into the block above
+	//changeBaseGreatPeopleRate(GC.getSpecialistInfo(eSpecialist).getGreatPeopleRateChange() * iChange);
 
 	for (iI = 0; iI < NUM_YIELD_TYPES; iI++)
 	{
@@ -13996,16 +14001,16 @@ void CvCity::doGreatPeople()
 	}
 	
 	changeGreatPeopleProgress(getGreatPeopleRate());
-	// advc.006: Verify that GreatPeopleRate is the sum of the GreatPeopleUnitRates
+	// advc.051: Verify that GreatPeopleRate is the sum of the GreatPeopleUnitRates
 	int iTotalUnitRate = 0;
 	for (int iI = 0; iI < GC.getNumUnitInfos(); iI++)
 	{
 		UnitTypes eUnit = (UnitTypes)iI;
-		int iUnitRate = getGreatPeopleUnitRate(eUnit); // advc.006
+		int iUnitRate = getGreatPeopleUnitRate(eUnit); // advc.051
 		changeGreatPeopleUnitProgress(eUnit, iUnitRate);
-		iTotalUnitRate += iUnitRate; // advc.006
+		iTotalUnitRate += iUnitRate; // advc.051
 	}
-	FAssert(iTotalUnitRate == getBaseGreatPeopleRate()); // advc.006
+	FAssert(iTotalUnitRate == getBaseGreatPeopleRate()); // advc.051
 	if (getGreatPeopleProgress() >= GET_PLAYER(getOwnerINLINE()).greatPeopleThreshold(false))
 	{
 		int iTotalGreatPeopleUnitProgress = 0;
@@ -14791,7 +14796,12 @@ void CvCity::getVisibleEffects(ZoomLevelTypes eCurZoom, std::vector<const TCHAR*
 
 void CvCity::getCityBillboardSizeIconColors(NiColorA& kDotColor, NiColorA& kTextColor) const
 {
-	NiColorA kPlayerColor = GC.getColorInfo((ColorTypes) GC.getPlayerColorInfo(GET_PLAYER(getOwnerINLINE()).getPlayerColor()).getColorTypePrimary()).getColor();
+	NiColorA kPlayerColor = GC.getColorInfo((ColorTypes)GC.getPlayerColorInfo(
+			//GET_PLAYER(getOwnerINLINE()).getPlayerColor())
+			/*  advc.001: CvPlayer::getPlayerColor will return the Barbarian color
+				if the city owner hasn't been met (city revealed through map trade) */
+			GC.getInitCore().getColor(getOwnerINLINE()))
+			.getColorTypePrimary()).getColor();
 	NiColorA kGrowing;
 	kGrowing = NiColorA(0.73f,1,0.73f,1);
 	NiColorA kShrinking(1,0.73f,0.73f,1);
@@ -14800,11 +14810,11 @@ void CvCity::getCityBillboardSizeIconColors(NiColorA& kDotColor, NiColorA& kText
 	NiColorA kWhite(1,1,1,1);
 	NiColorA kBlack(0,0,0,1);
 
-	if ((getTeam() == GC.getGameINLINE().getActiveTeam()))
+	if (getTeam() == GC.getGameINLINE().getActiveTeam())
 	{
 		if (foodDifference() < 0)
 		{
-			if ((foodDifference() == -1) && (getFood() >= ((75 * growthThreshold()) / 100)))
+			if (foodDifference() == -1 && getFood() >= (75 * growthThreshold()) / 100)
 			{
 				kDotColor = kStagnant;
 				kTextColor = kBlack;	

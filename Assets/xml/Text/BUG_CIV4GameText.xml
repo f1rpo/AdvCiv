@@ -163,6 +163,15 @@
 		<Italian>[SPACE][COLOR_YELLOW](%D1_Change/Turno)[COLOR_REVERT]</Italian>
 		<Spanish>[SPACE][COLOR_YELLOW](%D1_Change/turno)[COLOR_REVERT]</Spanish>
 	</TEXT>
+	<!-- advc.070: Will have to piece this together -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_PER_TURN</Tag>
+		<English>%D1_Change/Turn</English>
+		<French>%D1_Change/tour</French>
+		<German>%D1_Change/Runde</German>
+		<Italian>%D1_Change/Turno</Italian>
+		<Spanish>%D1_Change/turno</Spanish>
+	</TEXT>
 	
 	<!-- Not Just Another Game Clock -->
 	

@@ -68,7 +68,8 @@ public:
 			bool bRandomEvent = false); // advc.106g
 	bool canContact(TeamTypes eTeam,
 			bool bCheckWillingness = false) const; // K-Mod, Exposed to Python
-	void meet(TeamTypes eTeam, bool bNewDiplo);																		// Exposed to Python
+	void meet(TeamTypes eTeam, bool bNewDiplo);																			// Exposed to Python
+	void meet(TeamTypes eTeam, bool bNewDiplo, FirstContactData fcData); // advc.071
 	void signPeaceTreaty(TeamTypes eTeam); // K-Mod
 	void signOpenBorders(TeamTypes eTeam);																				// Exposed to Python
 	void signDisengage(TeamTypes otherId); // advc.034
@@ -153,7 +154,10 @@ public:
 
 	bool isHuman() const;																																// Exposed to Python
 	bool isBarbarian() const;																														// Exposed to Python
-	bool isMinorCiv() const;																														// Exposed to Python
+	// <advc.003m> Cached
+	inline bool isMinorCiv() const { return m_bMinorTeam; }																							// Exposed to Python
+	void updateMinorCiv() { m_bMinorTeam = checkMinorCiv(); }
+	// </advc.003m>
 	PlayerTypes getLeaderID() const;																										// Exposed to Python
 	void updateLeaderID(); // advc.003b
 	PlayerTypes getSecretaryID() const;																									// Exposed to Python
@@ -271,8 +275,8 @@ public:
 	void changeExtraMoves(DomainTypes eIndex, int iChange);								// Exposed to Python
 
 	bool isHasMet(TeamTypes eIndex) const;																		// Exposed to Python
-	void makeHasMet(TeamTypes eIndex, bool bNewDiplo);
-
+	void makeHasMet(TeamTypes eIndex, bool bNewDiplo,
+			FirstContactData fcData); // advc.071
 	// K-Mod
 	bool isHasSeen(TeamTypes eIndex) const { return m_abHasSeen[eIndex]; };
 	void makeHasSeen(TeamTypes eIndex) { m_abHasSeen[eIndex] = true; };
@@ -435,10 +439,11 @@ public:
 	// advc.003:
 	bool hasTechToClear(FeatureTypes ft, TechTypes currentResearch = NO_TECH) const;
 	void testCircumnavigated(); // advc.136a: Made public
-	// <advc.127b> Both return -1 if no team member has a capital
-	int getCapitalX() const;
-	int getCapitalY() const;
-	CvCity* getLeaderCapital() const;
+	/*  <advc.127b> Both return -1 if no team member has a capital or
+		(eObserver!=NO_TEAM) if none is revealed to eObserver. */
+	int getCapitalX(TeamTypes eObserver, bool bDebug = false) const;
+	int getCapitalY(TeamTypes eObserver, bool bDebug = false) const;
+	CvCity* getLeaderCapital(TeamTypes eObserver, bool bDebug = false) const;
 	// </advc.127b>
 	void makeUnwillingToTalk(TeamTypes otherId); // advc.104i
 
@@ -504,7 +509,12 @@ protected:
 	int m_iEnemyWarWearinessModifier;
 	int m_iRiverTradeCount;
 	int m_iEspionagePointsEver;
-
+	// <advc.003m>
+	int m_iMajorWarEnemies; // incl. vassals
+	int m_iMinorWarEnemies;
+	int m_iVassalWarEnemies;
+	bool m_bMinorTeam;
+	// </advc.003m>
 	bool m_bMapCentering;
 	bool m_bCapitulated;
 
@@ -577,6 +587,12 @@ protected:
 
 	void cancelDefensivePacts();
 	void allowDefensivePactsToBeCanceled(); // dlph.3
+	// <advc.003m>
+	// New name for BBAI's getAtWarCount
+	int countWarEnemies(bool bIgnoreMinors = true, bool bIgnoreVassals = false) const;
+	void changeAtWarCount(int iChange, bool bMinorTeam, bool bVassal);
+	// New name for isMinorCiv (uncached)
+	bool checkMinorCiv() const; // </advc.003m>
 	// <advc.039>
 	CvWString const tradeItemString(TradeableItems eItem, int data,
 			TeamTypes fromId) const; // </advc.039>

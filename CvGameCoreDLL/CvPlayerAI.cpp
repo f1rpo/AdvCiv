@@ -577,9 +577,11 @@ void CvPlayerAI::AI_doTurnUnitsPre()
 	{
 		AI_updateAreaTargets();
 	} // <advc.102>
-	int dummy;
-	for(CvUnit* u = firstUnit(&dummy); u != NULL; u = nextUnit(&dummy)) {
-		u->setInitiallyVisible(u->plot()->isVisibleToWatchingHuman());
+	int foo=-1;
+	for(CvSelectionGroup* gr = firstSelectionGroup(&foo); gr != NULL;
+			gr = nextSelectionGroup(&foo)) {
+		if(gr->getNumUnits() > 0)
+			gr->setInitiallyVisible(gr->plot()->isVisibleToWatchingHuman());
 	} // </advc.102>
 	if (isHuman())
 	{
@@ -874,7 +876,7 @@ void CvPlayerAI::AI_doPeace()
 
 // <advc.134a>
 bool CvPlayerAI::AI_upholdPeaceOffer(PlayerTypes humanId,
-		CvDiploParameters const& kOffer) {
+		CvDiploParameters const& kOffer) const {
 
 	int iOurBenefit = AI_dealVal(humanId, &kOffer.getTheirOfferList());
 	int iTheirBenefit = GET_PLAYER(humanId).AI_dealVal(getID(), &kOffer.getOurOfferList());
@@ -969,8 +971,9 @@ bool CvPlayerAI::AI_negotiatePeace(PlayerTypes civId, int iTheirBenefit, int iOu
 	} // </advc.134a>
 	if(civ.isHuman()) {
 		AI_changeContactTimer(civId, CONTACT_PEACE_TREATY,
-				GC.getLeaderHeadInfo(getPersonalityType()).
-				getContactDelay(CONTACT_PEACE_TREATY));
+				// advc.134a: Times 4/3 (too tedious to change in XML)
+				(4 * GC.getLeaderHeadInfo(getPersonalityType()).
+				getContactDelay(CONTACT_PEACE_TREATY)) / 3);
 		CvDiploParameters* pDiplo = new CvDiploParameters(getID());
 		FAssert(pDiplo != NULL);
 		pDiplo->setDiploComment((DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_OFFER_PEACE"));
@@ -1443,75 +1446,47 @@ void CvPlayerAI::AI_unitUpdate()
 		}
 
 		/* original bts code
-		if (isHuman())
-		{
+		if (isHuman()) {
 			pCurrUnitNode = headGroupCycleNode();
-
-			while (pCurrUnitNode != NULL)
-			{
+			while (pCurrUnitNode != NULL) {
 				CvSelectionGroup* pLoopSelectionGroup = getSelectionGroup(pCurrUnitNode->m_data);
 				pCurrUnitNode = nextGroupCycleNode(pCurrUnitNode);
-
 				if (pLoopSelectionGroup->AI_update())
-				{
 					break; // pointers could become invalid...
-				}
 			}
 		}
 		else */
-		if (!isHuman()) // K-Mod - automated actions are no longer done from this function. Instead, they are done in CvGame::updateMoves
-		{
+		if (!isHuman()) /*  K-Mod - automated actions are no longer done from this function.
+							Instead, they are done in CvGame::updateMoves */ {
 			/* original bts code
 			tempGroupCycle.clear();
 			finalGroupCycle.clear();
-
 			pCurrUnitNode = headGroupCycleNode();
-
-			while (pCurrUnitNode != NULL)
-			{
+			while (pCurrUnitNode != NULL) {
 				tempGroupCycle.insertAtEnd(pCurrUnitNode->m_data);
 				pCurrUnitNode = nextGroupCycleNode(pCurrUnitNode);
 			}
-
 			iValue = 0;
-
-			while (tempGroupCycle.getLength() > 0)
-			{
+			while (tempGroupCycle.getLength() > 0) {
 				pCurrUnitNode = tempGroupCycle.head();
-
-				while (pCurrUnitNode != NULL)
-				{
+				while (pCurrUnitNode != NULL) {
 					pLoopSelectionGroup = getSelectionGroup(pCurrUnitNode->m_data);
 					FAssertMsg(pLoopSelectionGroup != NULL, "selection group node with NULL selection group");
-
-					if (AI_movementPriority(pLoopSelectionGroup) <= iValue)
-					{
+					if (AI_movementPriority(pLoopSelectionGroup) <= iValue) {
 						finalGroupCycle.insertAtEnd(pCurrUnitNode->m_data);
 						pCurrUnitNode = tempGroupCycle.deleteNode(pCurrUnitNode);
 					}
-					else
-					{
-						pCurrUnitNode = tempGroupCycle.next(pCurrUnitNode);
-					}
+					else pCurrUnitNode = tempGroupCycle.next(pCurrUnitNode);
 				}
-
 				iValue++;
 			}
-
 			pCurrUnitNode = finalGroupCycle.head();
-
-			while (pCurrUnitNode != NULL)
-			{
+			while (pCurrUnitNode != NULL) {
 				pLoopSelectionGroup = getSelectionGroup(pCurrUnitNode->m_data);
-
-				if (NULL != pLoopSelectionGroup)  // group might have been killed by a previous group update
-				{
+				if (NULL != pLoopSelectionGroup) { // group might have been killed by a previous group update
 					if (pLoopSelectionGroup->AI_update())
-					{
 						break; // pointers could become invalid...
-					}
 				}
-
 				pCurrUnitNode = finalGroupCycle.next(pCurrUnitNode);
 			} */
 			// K-Mod. It seems to me that all we're trying to do is run AI_update
@@ -1568,10 +1543,8 @@ void CvPlayerAI::AI_unitUpdate()
 
 void CvPlayerAI::AI_makeAssignWorkDirty()
 {
-	CvCity* pLoopCity;
 	int iLoop;
-
-	for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
 		pLoopCity->AI_setAssignWorkDirty(true);
 	}
@@ -2599,6 +2572,14 @@ void CvPlayerAI::AI_updateCommerceWeights()
 {
 	PROFILE_FUNC();
 
+	// <advc.003m>
+	if(isBarbarian()) {int foo=-1;
+		for(CvCity* c = firstCity(&foo); c != NULL; c = nextCity(&foo))
+			c->AI_setCultureWeight(0);
+		AI_setEspionageWeight(0);
+		return;
+	} // </advc.003m>
+
 	//
 	// City culture weight.
 	//
@@ -3584,11 +3565,14 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 						fine to assume that the owner has very little tile culture. */
 					(!bForeignOwned ? 1 :
 					pLoopPlot->getCulture(eOwner)));
-			/*  <advc.031> AI cities near OCC capital are annoying and don't
-				fare well */
-			if(bForeignOwned && GET_PLAYER(eOwner).isHuman() &&
-					g.isOption(GAMEOPTION_ONE_CITY_CHALLENGE))
-				iOtherCulture = (3 * iOtherCulture) / 2; // </advc.031>
+			// <advc.031> Don't settle near rival capital (e.g. Deity settler, OCC)
+			if(bCityRadius && g.getElapsedGameTurns() <= 5)
+				iOtherCulture = std::max(iOtherCulture, 200);
+			if(bForeignOwned) {
+				CvCity* pForeignCity = pLoopPlot->getWorkingCity();
+				if(pForeignCity != NULL && pForeignCity->isCapital())
+					iOtherCulture = (3 * iOtherCulture) / 2;
+			} // </advc.031>
 			iCultureMultiplier = 100 * (iOurCulture + kSet.iClaimThreshold);
 			iCultureMultiplier /= (iOtherCulture + kSet.iClaimThreshold
 				// advc.035: The above is OK if cities own their exclusive radius ...
@@ -7822,34 +7806,36 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech,
 	}
 	// <k146>
 	if (bFreeTech)
-	{
-		iValue += getResearchTurnsLeft(eTech, false) / 5;
-		iValue *= 1000; // roughly normalise with usual value. (cf. code below)
-		iValue /= 10 * GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).
-				getResearchPercent();
-	} // </k146>
-	else
-	{
-		if (iValue > 0)
-		{
-			//this stops quick speed messing up.... might want to adjust by other things too...
-			int iAdjustment = GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getResearchPercent();
-	
-			// Shouldn't run this during anarchy
-			int iTurnsLeft = getResearchTurnsLeftTimes100((eTech), false);
-			bool bCheapBooster = (iTurnsLeft < (2 * iAdjustment) &&
-					eFromCiv == NO_PLAYER && // advc.144
-					(0 == (bAsync ? GC.getASyncRand().get(5, "AI Choose Cheap Tech") :
-					GC.getGameINLINE().getSorenRandNum(5, "AI Choose Cheap Tech"))));
-			/*  <advc.144> Will get it immediately, but eFromCiv is less likely to
-				give it to us if it's an expensive tech. */
-			if(eFromCiv != NO_PLAYER)
-				iTurnsLeft /= 2; // </advc.144>
-			//iValue *= 100000;
-			iValue *= 1000; // k146
-			
-            iValue /= (iTurnsLeft + (bCheapBooster ? 1 : 5) * iAdjustment);
+	{	// <advc.004x> Don't adjust to research turns during anarchy
+		int iTurnsLeft = getResearchTurnsLeft(eTech, false);
+		if(iTurnsLeft >= 0) { // </advc.004x>
+			iValue += iTurnsLeft / 5;
+			iValue *= 1000; // roughly normalise with usual value. (cf. code below)
+			iValue /= 10 * GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).
+					getResearchPercent();
 		}
+	} // </k146>
+	else if (iValue > 0)
+	{	//this stops quick speed messing up.... might want to adjust by other things too...
+		int iAdjustment = GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getResearchPercent();
+	
+		int iTurnsLeft = getResearchTurnsLeftTimes100((eTech), false);
+		bool bCheapBooster = (iTurnsLeft >= 0 && // advc.004x
+				iTurnsLeft < (2 * iAdjustment) &&
+				eFromCiv == NO_PLAYER && // advc.144
+				(0 == (bAsync ? GC.getASyncRand().get(5, "AI Choose Cheap Tech") :
+				GC.getGameINLINE().getSorenRandNum(5, "AI Choose Cheap Tech"))));
+		/*  <advc.004x> Shouldn't normally be called during anarchy, but if it is,
+			assume a usual time to research. */
+		if(iTurnsLeft < 0)
+			iTurnsLeft = 10; // </advc.004x>
+		/*  <advc.144> Will get it immediately, but eFromCiv is less likely to
+			give it to us if it's an expensive tech. */
+		if(eFromCiv != NO_PLAYER)
+			iTurnsLeft /= 2; // </advc.144>
+		//iValue *= 100000;
+		iValue *= 1000; // k146
+		iValue /= (iTurnsLeft + (bCheapBooster ? 1 : 5) * iAdjustment);
 	}
 	
 	//Tech Groundbreaker
@@ -9078,106 +9064,98 @@ DiploCommentTypes CvPlayerAI::AI_getGreeting(PlayerTypes ePlayer) const
 // return true if we are willing to talk to ePlayer
 bool CvPlayerAI::AI_isWillingToTalk(PlayerTypes ePlayer) const
 {
-	FAssertMsg(getPersonalityType() != NO_LEADER, "getPersonalityType() is not expected to be equal with NO_LEADER");
-	FAssertMsg(ePlayer != getID(), "shouldn't call this function on ourselves");
+	FAssert(getPersonalityType() != NO_LEADER);
+	FAssert(ePlayer != getID());
 
-	const CvTeamAI& kOurTeam = GET_TEAM(getTeam()); // K-Mod
-	const CvTeam& kTheirTeam = GET_TEAM(GET_PLAYER(ePlayer).getTeam()); // K-Mod
+	/*  <advc.104i> The EXE keeps calling this function when the diplo screen is
+		already up, and some of the new code (isPeaceDealPossible) is expensive. */
+	if(gDLL->isDiplomacy())
+		return true; // </advc.104i>
 
-	if (GET_PLAYER(ePlayer).getTeam() == getTeam()
-		|| kTheirTeam.isVassal(getTeam())
-		|| kOurTeam.isVassal(GET_PLAYER(ePlayer).getTeam()))
-	{
-		return true;
-	}
+	// <advc.003n> In particular, don't call AI_surrenderTrade on Barbarians.
+	if(ePlayer == BARBARIAN_PLAYER)
+		return false; // </advc.003n>
 
-	/* original bts code
-	if (GET_TEAM(getTeam()).isHuman())
-	{
-		return false;
-	} */ // disabled by K-Mod
 	// K-Mod
-	if (isHuman())
+	const CvTeamAI& kOurTeam = GET_TEAM(getTeam());
+	const CvTeam& kTheirTeam = TEAMREF(ePlayer); 
+	if(kTheirTeam.getID() == getTeam() || kTheirTeam.isVassal(getTeam()) ||
+			kOurTeam.isVassal(kTheirTeam.getID()))
+		return true;
+	/*if(GET_TEAM(getTeam()).isHuman()) // BtS code
+		return false;*/
+	if(isHuman())
 		return true; // humans will speak to anyone, apparently.
 	// K-Mod end
 
-	/* advc.134a: Switched arguments to avoid calling isAtWar on the human team
-	   when an AI offers peace to a human. */
-	// advc.104i: Moved the !atWar branch up
-	if(!atWar(TEAMID(ePlayer), getTeam())) // advc.003:
+	// advc.104i: Moved the !atWar and isAVassal checks up
+	if(!::atWar(getTeam(), kTheirTeam.getID()))
 		return (AI_getMemoryCount(ePlayer, MEMORY_STOPPED_TRADING_RECENT) <= 0);
-	
-	// advc.104i: Moved up
 	if (kOurTeam.isAVassal()
-			|| kTheirTeam.isAVassal()) // advc.104i: Get this out of the way
-	{
+			// advc.104i: Get this out of the way too:
+			|| kTheirTeam.isAVassal())
 		return false;
-	}
 
 	// K-Mod
-	if (kOurTeam.isHuman()) // ie. we are an AI player, but our team is human
+	if(kOurTeam.isHuman()) // ie. we are an AI player, but our team is human
 		return false; // let the human speak for us.
 	// K-Mod end
 
 	// <advc.104i>
-	int atWarCounter = kOurTeam.AI_getAtWarCounter(TEAMID(ePlayer));
+	int atWarCounter = kOurTeam.AI_getAtWarCounter(kTheirTeam.getID());
 	if(getWPAI.isEnabled()) {
-		if(GET_TEAM(getTeam()).AI_surrenderTrade(TEAMID(ePlayer)) == NO_DENIAL)
+		if(kOurTeam.AI_surrenderTrade(kTheirTeam.getID()) == NO_DENIAL)
 			return true;
 		// 1 turn RTT and let the team leader handle peace negotiation
-		if(atWarCounter <= 1 || GET_TEAM(getTeam()).getLeaderID() != getID())
+		if(atWarCounter <= 1 || kOurTeam.getLeaderID() != getID())
 			return false;
-		// valid=true: want to return true, but still need to check for DECLARED_WAR_RECENT.
-		bool valid = false;
+		// bValid=true: want to return true, but still need to check for DECLARED_WAR_RECENT.
+		bool bValid = false;
 		/*  Checking for a possible peace deal only serves as a convenience for
 			human players; no need to do it for AI-AI peace. */
 		if(!GET_PLAYER(ePlayer).isHuman())
-			valid = true;
-		else {
-			/*  The EXE keeps calling this function when the diplo screen is
-				already open, and isPeaceDealPossible is an expensive function. */
-			if(gDLL->isDiplomacy())
-				return true;
-			valid = (kOurTeam.AI_surrenderTrade(TEAMID(ePlayer)) == NO_DENIAL ||
+			bValid = true;
+		else bValid = (kOurTeam.AI_surrenderTrade(kTheirTeam.getID()) == NO_DENIAL ||
 					warAndPeaceAI().isPeaceDealPossible(ePlayer));
-		}
 		if(AI_getMemoryCount(ePlayer, MEMORY_DECLARED_WAR_RECENT) > 0) {
-			if(!valid)
+			if(!bValid)
 				return false; // else RTT as in BtS
 		}
-		else return valid;
+		else return bValid;
 	}
 	if(!getWPAI.isEnabled()) { // </advc.104i>
 		// K-Mod
-		if (kOurTeam.AI_refusePeace(GET_PLAYER(ePlayer).getTeam()))
-		{
+		if(kOurTeam.AI_refusePeace(kTheirTeam.getID())) {
 			TradeData item;
 			setTradeItem(&item, TRADE_SURRENDER);
-
-			if (!GET_PLAYER(ePlayer).canTradeItem(getID(), item, true))
+			if(!GET_PLAYER(ePlayer).canTradeItem(getID(), item, true))
 				return false; // if they can't (or won't) capitulate, don't talk to them.
-		}
-		// K-Mod end
+		} // K-Mod end
 	}
-	int iRefuseDuration = (GC.getLeaderHeadInfo(getPersonalityType()).getRefuseToTalkWarThreshold() * ((kOurTeam.AI_isChosenWar(GET_PLAYER(ePlayer).getTeam())) ? 2 : 1));
-		
-	int iOurSuccess = 1 + kOurTeam.AI_getWarSuccess(GET_PLAYER(ePlayer).getTeam());
+	// advc.104i: Moved into a new function
+	int iRefuseDuration = AI_refuseToTalkTurns(ePlayer);
+	return (atWarCounter >= iRefuseDuration);
+}
+
+// advc.104i: Cut from AI_isWillingToTalk
+int CvPlayerAI::AI_refuseToTalkTurns(PlayerTypes ePlayer) const {
+
+	FAssert(GET_TEAM(getTeam()).isAtWar(TEAMID(ePlayer)));
+	CvTeamAI const& kOurTeam = GET_TEAM(getTeam());
+	CvTeam const& kTheirTeam = TEAMREF(ePlayer);
+	int r = GC.getLeaderHeadInfo(getPersonalityType()).getRefuseToTalkWarThreshold() *
+			(kOurTeam.AI_isChosenWar(kTheirTeam.getID()) ? 2 : 1);
+	int iOurSuccess = 1 + kOurTeam.AI_getWarSuccess(kTheirTeam.getID());
 	int iTheirSuccess = 1 + kTheirTeam.AI_getWarSuccess(getTeam());
 	if (iTheirSuccess > iOurSuccess * 2
-		// <advc.001>
-		&& iTheirSuccess >= GC.getWAR_SUCCESS_CITY_CAPTURING()
-		/*  Otherwise, killing a single stray unit can be enough to lower
-			the refuse duration to three turns (ratio 5:1). </advc.001> */
-		)
-	{
-		iRefuseDuration *= 20 + ((80 * iOurSuccess * 2) / iTheirSuccess);
-		iRefuseDuration /= 100;
+			// <advc.001>
+			&& iTheirSuccess >= GC.getWAR_SUCCESS_CITY_CAPTURING()) {
+			/*  Otherwise, killing a single stray unit can be enough to lower
+				the refuse duration to three turns (ratio 5:1). </advc.001> */
+		r *= 20 + (80 * iOurSuccess * 2) / iTheirSuccess;
+		r /= 100;
 	}
-
-	if(atWarCounter < iRefuseDuration)
-		return false;
-
-	return true;
+	return r;
 }
 
 
@@ -9196,8 +9174,7 @@ bool CvPlayerAI::AI_demandRebukedSneak(PlayerTypes ePlayer) const
 	FAssert(!(GET_TEAM(getTeam()).isHuman()));
 
 	if (GC.getGameINLINE().getSorenRandNum(100, "AI Demand Rebuked") < GC.getLeaderHeadInfo(getPersonalityType()).getDemandRebukedSneakProb())
-	{
-		// <advc.104m>
+	{	// <advc.104m>
 		if(getWPAI.isEnabled()) {
 			GET_TEAM(getTeam()).warAndPeaceAI().respondToRebuke(TEAMID(ePlayer), true);
 			return false; // respondToRebuke handles any changes to war plans
@@ -9206,14 +9183,11 @@ bool CvPlayerAI::AI_demandRebukedSneak(PlayerTypes ePlayer) const
 		// K-Mod. Don't start a war if we're already busy; and use AI_startWarVal to evaluate, rather than just power.
 		// The 50 value is arbitrary. zero would probably be fine. 50 war rating is also arbitrary, but zero would be too low!
 		const CvTeamAI& kTeam = GET_TEAM(getTeam());
-
 		if (kTeam.AI_getWarPlan(GET_PLAYER(ePlayer).getTeam()) == NO_WARPLAN  &&
 			(kTeam.getAnyWarPlanCount(true) == 0 || kTeam.AI_getWarSuccessRating() > 50) &&
 			kTeam.AI_startWarVal(GET_PLAYER(ePlayer).getTeam(), WARPLAN_LIMITED) > 50)
 		// K-Mod end
-		{
 			return true;
-		}
 	}
 
 	return false;
@@ -9300,8 +9274,8 @@ AttitudeTypes CvPlayerAI::AI_getAttitudeFromValue(int iAttitudeVal)
 
 // K-Mod
 void CvPlayerAI::AI_updateAttitudeCache()
-{
-	for (PlayerTypes i = (PlayerTypes)0; i < MAX_PLAYERS; i=(PlayerTypes)(i+1))
+{	// advc.003n: was MAX_PLAYERS
+	for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
 	{
 		AI_updateAttitudeCache(i,
 				false); // advc.130e: Enough to upd. worst enemy once in the end
@@ -9316,7 +9290,7 @@ void CvPlayerAI::AI_updateAttitudeCache(PlayerTypes ePlayer,
 	PROFILE_FUNC();
 
 	FAssert(ePlayer >= 0 && ePlayer < MAX_PLAYERS);
-
+	FAssert(!isBarbarian() && !GET_PLAYER(ePlayer).isBarbarian()); // advc.003n
 	const CvPlayerAI& kPlayer = GET_PLAYER(ePlayer);
 
 	if (!GC.getGameINLINE().isFinalInitialized() || ePlayer == getID() ||
@@ -9397,6 +9371,11 @@ int CvPlayerAI::AI_getAttitudeVal(PlayerTypes ePlayer, bool bForced) const
 		FAssert(getID() != ePlayer);
 		return 100;
 	} // </advc.006>
+	// <advc.003n> Moved out of the bForced branch and assert added
+	if(isBarbarian() || GET_PLAYER(ePlayer).isBarbarian()) {
+		FAssert(false);
+		return -100;
+	} // </advc.003n>
 	if (bForced)
 	{
 		if (getTeam() == GET_PLAYER(ePlayer).getTeam() || (GET_TEAM(getTeam()).isVassal(GET_PLAYER(ePlayer).getTeam())
@@ -9414,12 +9393,7 @@ int CvPlayerAI::AI_getAttitudeVal(PlayerTypes ePlayer, bool bForced) const
 			if(TEAMREF(ePlayer).getMasterTeam() == ourTeam.getMasterTeam())
 				return 5; // Pleased
 			return ourTeam.AI_getAttitudeVal(GET_PLAYER(ePlayer).getMasterTeam());
-		}
-		// </advc.130v>
-		if (isBarbarian() || GET_PLAYER(ePlayer).isBarbarian())
-		{
-			return -100;
-		}
+		} // </advc.130v>
 	} // <advc.130u>
 	if(isHuman())
 		return 0; // </advc.130u>
@@ -11205,7 +11179,8 @@ int CvPlayerAI::AI_dealVal(PlayerTypes ePlayer, const CLinkList<TradeData>* pLis
 
 	int iValue = 0;
 
-	if (atWar(getTeam(), GET_PLAYER(ePlayer).getTeam()))
+	if(!bIgnorePeace && // advc.130p
+			atWar(getTeam(), GET_PLAYER(ePlayer).getTeam()))
 	{	// <advc.104i>
 		if(getWPAI.isEnabled()) {
 			if(isHuman() || GET_PLAYER(ePlayer).isHuman())
@@ -12308,6 +12283,8 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInv
 					iGoldValuePercent;
 			//int iGoldAvailable = kPlayer.AI_maxGoldTrade(getID());
 			// <advc.026> Replacing the above
+			if(isHuman() && !bGenerous)
+				iGoldData -= (iGoldData % GC.getDIPLOMACY_VALUE_REMAINDER());
 			int iGoldAvailable = ((bGenerous && isHuman()) ?
 					kPlayer.AI_maxGoldTradeGenerous(getID()) :
 					kPlayer.AI_maxGoldTrade(getID())); // </advc.026>
@@ -14144,7 +14121,7 @@ DenialTypes CvPlayerAI::AI_stopTradingTrade(TeamTypes eTradeTeam,
 	/*  Use capitals for a quick distance check
 		(instead check AI_getCloseBordersAttitude?) */
 	CvCity* pOurCapital = getCapitalCity();
-	CvCity* pTargetCapital = GET_TEAM(eTradeTeam).getLeaderCapital();
+	CvCity* pTargetCapital = GET_TEAM(eTradeTeam).getLeaderCapital(NO_TEAM);
 	CvCity* pPlayerCapital = GET_PLAYER(ePlayer).getCapitalCity();
 	if(pOurCapital != NULL && pTargetCapital != NULL && pPlayerCapital != NULL &&
 			kOurTeam.isOpenBorders(eTradeTeam) &&
@@ -19812,8 +19789,8 @@ void CvPlayerAI::AI_doCommerce()
 				if (eCurrentResearch != NO_TECH)
 				{
 					int iResearchTurnsLeft = getResearchTurnsLeft(eCurrentResearch, true);
-
-					if (getGold() >= iResearchTurnsLeft * -iGoldRate)
+					if(iResearchTurnsLeft >= 0 && // advc.004x
+							getGold() >= iResearchTurnsLeft * -iGoldRate)
 						iGoldTarget /= 5;
 				}
 			}
@@ -20282,14 +20259,16 @@ void CvPlayerAI::AI_doCivics()
 	if (iAnarchyLength > 0 && bWillSwitch)
 	{
 		TechTypes eResearch = getCurrentResearch();
-		int iResearchTurns;
-		if (eResearch != NO_TECH && (iResearchTurns = getResearchTurnsLeft(eResearch, true)) < 2*CIVIC_CHANGE_DELAY/3)
-		{
-			for (int iI = 0; iI < GC.getNumCivicInfos(); iI++)
-			{
-				const CvCivicInfo& kCivic = GC.getCivicInfo((CivicTypes)iI);
-				if (kCivic.getTechPrereq() == eResearch && !canDoCivics((CivicTypes)iI))
+		if (eResearch != NO_TECH)
+		{	// <advc.004x>
+			int iResearchTurns = getResearchTurnsLeft(eResearch, true);
+			if(iResearchTurns >= 0 && // </advc.004x>
+					iResearchTurns < 2*CIVIC_CHANGE_DELAY/3) {
+				for (int iI = 0; iI < GC.getNumCivicInfos(); iI++)
 				{
+					const CvCivicInfo& kCivic = GC.getCivicInfo((CivicTypes)iI);
+					if(kCivic.getTechPrereq() != eResearch || canDoCivics((CivicTypes)iI))
+						continue; // advc.003
 					CivicTypes eOtherCivic = aeBestCivic[kCivic.getCivicOptionType()];
 					// temporary switch just to test the anarchy length
 					aeBestCivic[kCivic.getCivicOptionType()] = (CivicTypes)iI;
@@ -20300,7 +20279,7 @@ void CvPlayerAI::AI_doCivics()
 						if (100 * iValue > (102+2*iResearchTurns) * aiCurrentValue[kCivic.getCivicOptionType()]
 								&& iValue > 0) // advc.131: Better to be safe
 						{
-							if (gPlayerLogLevel > 0)
+							if(gPlayerLogLevel > 0)
 								logBBAI("    %S delays revolution to wait for %S (value: %d vs %d)", getCivilizationDescription(0), kCivic.getDescription(0), iValue, aiCurrentValue[kCivic.getCivicOptionType()]);
 							AI_setCivicTimer(iResearchTurns*2/3);
 							return;
@@ -22422,15 +22401,8 @@ void CvPlayerAI::read(FDataStreamBase* pStream)
 		AI_updateNeededExplorers();
 	// </advc.003b>
 	// <advc.104>
-	if(isEverAlive() && !isBarbarian() && !isMinorCiv()) {
-		wpai.read(pStream); 
-		/*  Would be enough to do this once after all players have been
-			loaded, but don't know which function, if any, the EXE calls
-			after loading all players and before calling CvPlayerAI::isWillingToTalk,
-			which requires WarAndPeaceAI to be up-to-date.
-			Perhaps enough to do it once after loading BARBARIAN_PLAYER? */
-		getWPAI.update();
-	} // </advc.104>
+	if(isEverAlive() && !isBarbarian() && !isMinorCiv())
+		wpai.read(pStream); // </advc.104>
 	// <advc.148>
 	if(uiFlag < 9 && getID() == MAX_PLAYERS - 1) {
 		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
