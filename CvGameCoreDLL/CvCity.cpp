@@ -182,7 +182,8 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 
 	//--------------------------------
 	// Init other game data
-	setName(GET_PLAYER(getOwnerINLINE()).getNewCityName());
+	setName(GET_PLAYER(getOwnerINLINE()).getNewCityName(),
+			false, true); // advc.106k
 
 	setEverOwned(getOwnerINLINE(), true);
 
@@ -10722,7 +10723,8 @@ const CvWString CvCity::getName(uint uiForm) const
 }
 
 
-void CvCity::setName(const wchar* szNewValue, bool bFound)
+void CvCity::setName(const wchar* szNewValue, bool bFound,
+		bool bInitial) // advc.106k
 {
 	CvWString szName(szNewValue);
 	gDLL->stripSpecialCharacters(szName);
@@ -10741,7 +10743,9 @@ void CvCity::setName(const wchar* szNewValue, bool bFound)
 	{
 		if (GET_PLAYER(getOwnerINLINE()).isCityNameValid(szName, false))
 		{	// <advc.106k>
-			if(m_szPreviousName.empty())
+			if(bInitial)
+				m_szPreviousName.clear();
+			else if(m_szPreviousName.empty())
 				m_szPreviousName = m_szName; // </advc.106k>
 			m_szName = szName;
 

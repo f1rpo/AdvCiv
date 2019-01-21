@@ -16797,40 +16797,39 @@ bool CvUnitAI::AI_pirateBlockade()
 	PROFILE_FUNC();
 	
 	int iPathTurns;
-	int iI;
 	
 	/*  <k146> Removed the loop that computed the vector 'aiDeathZone'
 		("computationally expensive, and not particularly effective").
-		advc: I'm still using the body of that loop for computing
-		bInDanger by replacing all occurrences of pLoopPlot with
-		p=*(this->plot()). */
-	int iDeathZone = 0;
-	CvPlot const& p = *plot();
-	if(p.isOwned() && p.getTeam() != getTeam()) {
-		int iBestHostileMoves = 0;
-		CLLNode<IDInfo>* pUnitNode = p.headUnitNode();
-		while(pUnitNode != NULL) {
-			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			pUnitNode = p.nextUnitNode(pUnitNode);
-			if(isEnemy(pLoopUnit->getTeam(), pLoopUnit->plot()) &&
-					pLoopUnit->getDomainType() == DOMAIN_SEA &&
-					!pLoopUnit->isInvisible(getTeam(), false) &&
-					pLoopUnit->canAttack() && pLoopUnit->currEffectiveStr(
-					NULL, NULL, NULL) > currEffectiveStr(&p, pLoopUnit, NULL))
-				iBestHostileMoves = std::max(iBestHostileMoves, pLoopUnit->baseMoves());
-		}
-		if(iBestHostileMoves > 0) {
-			for(int iX = -iBestHostileMoves; iX <= iBestHostileMoves; iX++) {
-				for(int iY = -iBestHostileMoves; iY <= iBestHostileMoves; iY++) {
-					CvPlot* pRangePlot = plotXY(p.getX_INLINE(),
-							p.getY_INLINE(), iX, iY);
-					if(pRangePlot != NULL)
-						iDeathZone++;
+		advc: I'm re-using parts of the body of that loop for a more limited
+		danger check. */
+	bool bInDanger = false;
+	int iRange = m_pUnitInfo->getMoves();
+	int iCurrEffStr = currEffectiveStr(plot(), NULL, NULL);
+	for(int dx = -iRange; dx <= iRange; dx++) {
+		for(int dy = -iRange; dy <= iRange; dy++) {
+			if(dx == 0 && dy == 0)
+				continue;
+			CvPlot const* pp = plotXY(getX_INLINE(), getY_INLINE(), dx, dy);
+			if(pp == NULL) continue; CvPlot const& p = *pp;
+			if(!p.isVisible(getTeam(), false) || (p.area() != area() && !p.isCity()))
+				continue;
+			if(p.getNumUnits() > 20) // Make sure we're not spending too much time
+				continue;
+			CLLNode<IDInfo>* pNode = p.headUnitNode();
+			while(pNode != NULL) {
+				CvUnit const& u = *::getUnit(pNode->m_data);
+				pNode = p.nextUnitNode(pNode);
+				if(u.getDomainType() == DOMAIN_SEA && u.canFight() &&
+						!::isMostlyDefensive(u.getUnitInfo()) &&
+						isEnemy(u.getTeam(), pp) &&
+						!u.isInvisible(getTeam(), false) &&
+						u.currEffectiveStr(NULL, NULL, NULL) > iCurrEffStr + 50) {
+					bInDanger = true;
+					goto terminateOuter;
 				}
 			}
 		}
-	}
-	bool bInDanger = (iDeathZone > 0);
+	} terminateOuter:
 	// </k146>
 	if (!bInDanger)
 	{
@@ -16854,7 +16853,7 @@ bool CvUnitAI::AI_pirateBlockade()
 	bool bBestIsForceMove = false;
 	bool bBestIsMove = false;
 	int turnNumberSalt = GC.getGameINLINE().getGameTurn() % 7; // advc.003b
-	for (iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
+	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 	{
 		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
 		// <advc.003>
@@ -16970,13 +16969,12 @@ bool CvUnitAI::AI_pirateBlockade()
 			iValue *= 2;
 		}
 		bool bForceMove = false;
-		// k146: Some aiDeathZone code deleted
+		// k146: Some bInDanger code deleted
 		if (bInDanger && iPathTurns <= 2 && 0 == iPopulationValue &&
 				// advc.003:
-				getPathFinder().GetFinalMoves() == 0
+				getPathFinder().GetFinalMoves() == 0)
 				// advc.003b: AdjacentOwned now guaranteed
 				//&& !pLoopPlot->isAdjacentOwned()
-				)
 		{
 			int iRand = GC.getGame().getSorenRandNum(2500, "AI Pirate Retreat");
 			iValue += iRand;
@@ -17002,7 +17000,7 @@ bool CvUnitAI::AI_pirateBlockade()
 		}
 	}
 
-	if ((pBestPlot != NULL) && (pBestBlockadePlot != NULL))
+	if (pBestPlot != NULL && pBestBlockadePlot != NULL)
 	{
 		FAssert(canPlunder(pBestBlockadePlot));
 

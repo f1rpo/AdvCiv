@@ -860,7 +860,8 @@ public:
 
 	DllExport const CvWString getName(uint uiForm = 0) const;								// Exposed to Python
 	DllExport const wchar* getNameKey() const;															// Exposed to Python
-	void setName(const wchar* szNewValue, bool bFound = false);		// Exposed to Python
+	void setName(const wchar* szNewValue, bool bFound = false,								// Exposed to Python
+			bool bInitial = false); // advc.106k
 	void doFoundMessage();
 
 	// Script data needs to be a narrow string for pickling in Python

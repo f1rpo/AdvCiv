@@ -2380,7 +2380,8 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	pNewCity->setGameTurnFounded(iGameTurnFounded);
 	pNewCity->setPopulation((bConquest && !bRecapture) ? std::max(1, (iPopulation - 1)) : iPopulation);
 	pNewCity->setHighestPopulation(iHighestPopulation);
-	pNewCity->setName(szName);
+	pNewCity->setName(szName,
+			false, true); // advc.106k
 	pNewCity->setNeverLost(false);
 	pNewCity->changeDefenseDamage(iDamage);
 
