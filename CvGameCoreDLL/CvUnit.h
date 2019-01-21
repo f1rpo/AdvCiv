@@ -107,8 +107,11 @@ public:
 	bool canEnterTerritory(TeamTypes eTeam, bool bIgnoreRightOfPassage = false) const;						// Exposed to Python
 	bool canEnterArea(TeamTypes eTeam, const CvArea* pArea, bool bIgnoreRightOfPassage = false) const;						// Exposed to Python
 	TeamTypes getDeclareWarMove(const CvPlot* pPlot) const;															// Exposed to Python
-	bool canMoveInto(const CvPlot* pPlot, bool bAttack = false, bool bDeclareWar = false, bool bIgnoreLoad = false, bool bAssumeVisible = true) const; // K-Mod added bAssumeVisible. Exposed to Python
-	bool canMoveOrAttackInto(const CvPlot* pPlot, bool bDeclareWar = false) const;								// Exposed to Python
+	bool canMoveInto(const CvPlot* pPlot, bool bAttack = false, bool bDeclareWar = false, bool bIgnoreLoad = false,										// Exposed to Python
+			bool bAssumeVisible = true, // K-Mod
+			bool bDangerCheck = false) const; // advc.001k
+	bool canMoveOrAttackInto(const CvPlot* pPlot, bool bDeclareWar = false,										// Exposed to Python
+			bool bDangerCheck = false) const; // advc.001k
 	// bool canMoveThrough(const CvPlot* pPlot, bool bDeclareWar = false) const; // disabled by K-Mod (was exposed to Python)
 	bool canEnterArea(CvArea const& a) const; // advc.030
 	bool isInvasionMove(CvPlot const& from, CvPlot const& to) const; // advc.162

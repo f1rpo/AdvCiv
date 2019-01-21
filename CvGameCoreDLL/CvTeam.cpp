@@ -2873,29 +2873,6 @@ int CvTeam::getVassalCount(TeamTypes eTeam) const
 	return iCount;
 }
 
-bool CvTeam::isAVassal() const
-{
-	return (m_eMaster != NO_TEAM); // advc.003b
-	/*PROFILE_FUNC();
-	int iI;
-
-	for (iI = 0; iI < MAX_CIV_TEAMS; iI++)
-	{
-		if (GET_TEAM((TeamTypes)iI).isAlive())
-		{
-			if (iI != getID())
-			{
-				if (isVassal((TeamTypes)iI))
-				{
-					FAssert(iI != getID());
-					return true;
-				}
-			}
-		}
-	}
-
-	return false;*/
-}
 
 bool CvTeam::canVassalRevolt(TeamTypes eMaster) const
 {
@@ -3661,12 +3638,6 @@ bool CvTeam::isHuman() const
 }
 
 
-bool CvTeam::isBarbarian() const
-{
-	return (getID() == BARBARIAN_TEAM);
-}
-
-
 bool CvTeam::checkMinorCiv() const // advc.003m: Renamed
 {
 	bool bValid = false;
@@ -3844,12 +3815,6 @@ void CvTeam::changeNumMembers(int iChange)
 int CvTeam::getAliveCount() const
 {
 	return m_iAliveCount;
-}
-
-
-int CvTeam::isAlive() const
-{
-	return (getAliveCount() > 0);
 }
 
 
@@ -4325,12 +4290,6 @@ void CvTeam::setMapCentering(bool bNewValue)
 			gDLL->getInterfaceIFace()->setDirty(MinimapSection_DIRTY_BIT, true);
 		}
 	}
-}
-
-
-TeamTypes CvTeam::getID() const
-{
-	return m_eID;
 }
 
 

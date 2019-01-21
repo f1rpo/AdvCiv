@@ -813,8 +813,7 @@ void CvPlot::updateCenterUnit()
 
 void CvPlot::verifyUnitValidPlot()
 {
-	PROFILE_FUNC();
-
+	//PROFILE_FUNC(); // advc.003o
 	std::vector<std::pair<PlayerTypes, int> > bumped_groups; // K-Mod
 	
 	std::vector<CvUnit*> aUnits;
@@ -10409,7 +10408,6 @@ bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible,
 		bool bCheckAirUnitCap, // advc.001b
 		BonusTypes eAssumeAvailable) const // advc.001u
 {
-	PROFILE_FUNC(); // advc.003b
 	CvCity* pCity = getPlotCity();
 
 	if (GC.getUnitInfo(eUnit).isPrereqReligion())

@@ -2816,8 +2816,7 @@ void CvSelectionGroup::unloadAll()
 
 bool CvSelectionGroup::alwaysInvisible() const
 {
-	PROFILE_FUNC();
-
+	//PROFILE_FUNC(); // advc.003o
 	if(getNumUnits() <= 0)
 		return false;
 

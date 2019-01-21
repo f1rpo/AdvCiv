@@ -3136,7 +3136,7 @@ class CvMainInterface:
 								iRateColor = MainOpt.getPositiveGoldRateColor()
 								#szText += BugUtil.getText("TXT_KEY_MISC_POS_GOLD_PER_TURN", iGoldRate)
 							elif iGold + iGoldRate >= 0:
-								MainOpt.getNegativeGoldRateColor()
+								iRateColor = MainOpt.getNegativeGoldRateColor()
 								#szText += BugUtil.getText("TXT_KEY_MISC_NEG_WARNING_GOLD_PER_TURN", iGoldRate)
 							#else:
 								#szText += BugUtil.getText("TXT_KEY_MISC_NEG_GOLD_PER_TURN", iGoldRate)

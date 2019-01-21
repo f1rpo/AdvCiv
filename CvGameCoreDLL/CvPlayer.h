@@ -116,9 +116,11 @@ public:
 /************************************************************************************************/
 /* AI_AUTO_PLAY_MOD                        END                                                  */
 /************************************************************************************************/
-	DllExport bool isHuman() const;																																							// Exposed to Python						
+	// <advc.003f>
+	DllExport inline bool isHuman() const { return m_bHuman; }																																							// Exposed to Python
+	DllExport inline bool isBarbarian() const { return (m_eID == BARBARIAN_PLAYER); }																																		// Exposed to Python
+	// </advc.003f>
 	DllExport void updateHuman();
-	DllExport bool isBarbarian() const;																																					// Exposed to Python						
 
 	/*  K-Mod note: I've changed getName, getCivilizationDescription,
 		and getCivilizationShortDescription to only give accurate information
@@ -718,8 +720,8 @@ public:
 																																																			
 	bool isMinorCiv() const;																																									// Exposed to Python			
 																																																			
-	DllExport bool isAlive() const;																																						// Exposed to Python			
-	DllExport bool isEverAlive() const;																																				// Exposed to Python			
+	DllExport bool isAlive() const { return m_bAlive; } // advc.003f																																	// Exposed to Python			
+	DllExport bool isEverAlive() const { return m_bEverAlive; }; // advc.003f																															// Exposed to Python			
 	void setAlive(bool bNewValue);
 	void verifyAlive();
 
@@ -748,7 +750,7 @@ public:
 	DllExport bool isStrike() const;																																	// Exposed to Python					
 	void setStrike(bool bNewValue);		
 
-	DllExport PlayerTypes getID() const;																												// Exposed to Python					
+	DllExport PlayerTypes getID() const { return m_eID; } // advc.003f																								// Exposed to Python
 																																															
 	DllExport HandicapTypes getHandicapType() const;																									// Exposed to Python					
 																																															
@@ -770,7 +772,7 @@ public:
 	void setParent(PlayerTypes eParent);
 	TeamTypes getMasterTeam() const; // advc.003
 	bool isAVassal() const; // advc.003
-	DllExport TeamTypes getTeam() const;																												// Exposed to Python
+	DllExport inline TeamTypes getTeam() const { return m_eTeamType; } // advc.003f																				// Exposed to Python
 	void setTeam(TeamTypes eTeam);
 	void updateTeamType();
 													

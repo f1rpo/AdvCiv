@@ -758,6 +758,7 @@ protected:
 	// <advc.651>
 	void AI_updateDangerFromSubmarines();
 		bool m_bDangerFromSubs; // Not stored in savegames </advc.651>
+	bool AI_cheatDangerVisibility(CvPlot const& pAt) const; // advc.128
 	int AI_knownRankDifference(PlayerTypes otherId) const; // advc.130c
 	// advc.042: Relies on caller to reset GC.getBorderFinder()
 	bool AI_isUnimprovedBonus(CvPlot const& p, CvPlot* pFromPlot, bool bCheckPath) const;

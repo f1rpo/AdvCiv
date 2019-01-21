@@ -3229,11 +3229,6 @@ bool CvPlayer::isAutoPlayJustEnded() const {
 /* AI_AUTO_PLAY_MOD                            END                                              */
 /************************************************************************************************/
 
-bool CvPlayer::isHuman() const
-{
-	return m_bHuman;
-}
-
 void CvPlayer::updateHuman()
 {
 	if (getID() == NO_PLAYER)
@@ -3262,11 +3257,6 @@ void CvPlayer::updateHuman()
 /* AI_AUTO_PLAY_MOD                            END                                              */
 /************************************************************************************************/	
 	}
-}
-
-bool CvPlayer::isBarbarian() const
-{
-	return (getID() == BARBARIAN_PLAYER);
 }
 
 // K-Mod
@@ -6668,12 +6658,8 @@ void CvPlayer::found(int iX, int iY)
 
 bool CvPlayer::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool bIgnoreCost) const
 {
-	PROFILE_FUNC();
-
-	UnitClassTypes eUnitClass;
-	int iI;
-
-	eUnitClass = ((UnitClassTypes)(GC.getUnitInfo(eUnit).getUnitClassType()));
+	//PROFILE_FUNC(); // advc.003o
+	UnitClassTypes eUnitClass = (UnitClassTypes)(GC.getUnitInfo(eUnit).getUnitClassType());
 
 	// K-Mod note. This assert can fail if team games when checking whether this city can upgrade a unit to one of our team member's UUs.
 	//FAssert(GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(eUnitClass) == eUnit);
@@ -6711,7 +6697,7 @@ bool CvPlayer::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool
 		return false;
 	}
 
-	for (iI = 0; iI < GC.getNUM_UNIT_AND_TECH_PREREQS(); iI++)
+	for (int iI = 0; iI < GC.getNUM_UNIT_AND_TECH_PREREQS(); iI++)
 	{
 		if (GC.getUnitInfo(eUnit).getPrereqAndTechs(iI) != NO_TECH)
 		{
@@ -6737,14 +6723,9 @@ bool CvPlayer::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool
 
 	/* original bts code
 	if (GET_TEAM(getTeam()).isUnitClassMaxedOut(eUnitClass))
-	{
 		return false;
-	}
-
 	if (isUnitClassMaxedOut(eUnitClass))
-	{
-		return false;
-	} */  // disabled by K-Mod.
+		return false;*/  // disabled by K-Mod.
 	// Note that unlike the global limit, these two limits apply to the number of units currently alive rather than the total ever trained.
 	// Therefore these limits should be ignored for the visibility test.
 
@@ -7535,8 +7516,7 @@ void CvPlayer::processBuilding(BuildingTypes eBuilding, int iChange, CvArea* pAr
 
 bool CvPlayer::canBuild(const CvPlot* pPlot, BuildTypes eBuild, bool bTestEra, bool bTestVisible) const
 {
-	PROFILE_FUNC();
-
+	//PROFILE_FUNC(); // advc.003o
 	if (!pPlot->canBuild(eBuild, getID(), bTestVisible))
 		return false;
 
@@ -11433,18 +11413,6 @@ bool CvPlayer::isMinorCiv() const
 }
 
 
-bool CvPlayer::isAlive() const
-{
-	return m_bAlive;
-}
-
-
-bool CvPlayer::isEverAlive() const
-{
-	return m_bEverAlive;
-}
-
-
 void CvPlayer::setAlive(bool bNewValue)
 {
 	CvWString szBuffer;
@@ -12096,12 +12064,6 @@ void CvPlayer::setStrike(bool bNewValue)
 }
 
 
-PlayerTypes CvPlayer::getID() const
-{
-	return m_eID;
-}
-
-
 HandicapTypes CvPlayer::getHandicapType() const																
 {
 	// <advc.127>
@@ -12327,11 +12289,6 @@ bool CvPlayer::isAVassal() const {
 	return GET_TEAM(getTeam()).isAVassal();
 }
 // </advc.003>
-
-TeamTypes CvPlayer::getTeam() const
-{
-	return m_eTeamType;
-}
 
 void CvPlayer::updateTeamType()
 {

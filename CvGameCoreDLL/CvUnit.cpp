@@ -2716,8 +2716,11 @@ bool CvUnit::willRevealByMove(const CvPlot* pPlot) const
 	return false;
 }
 
-// K-Mod. I've rearranged a few things to make the function slightly faster, and added "bAssumeVisible" which signals that we should check for units on the plot regardless of whether we can actually see.
-bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bool bIgnoreLoad, bool bAssumeVisible) const
+/*  K-Mod. I've rearranged a few things to make the function slightly faster,
+	and added "bAssumeVisible" which signals that we should check for units on
+	the plot regardless of whether we can actually see. */
+bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bool bIgnoreLoad, bool bAssumeVisible,
+		bool bDangerCheck) const // advc.001k
 {
 	PROFILE_FUNC();
 
@@ -2896,32 +2899,28 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 
 /************************************************************************************************/
 /* UNOFFICIAL_PATCH                       07/23/09                                jdog5000      */
-/*                                                                                              */
 /* Consistency                                                                                  */
 /************************************************************************************************/
 /* original bts code
-	if (bAttack)
-	{
+	if (bAttack) {
 		if (isMadeAttack() && !isBlitz())
-		{
 			return false;
-		}
-	}
-*/
+	} */
 	// The following change makes capturing an undefended city like a attack action, it
 	// cannot be done after another attack or a paradrop
 	/*
-	if (bAttack || (pPlot->isEnemyCity(*this) && !canCoexistWithEnemyUnit(NO_TEAM)) )
-	{
+	if (bAttack || (pPlot->isEnemyCity(*this) && !canCoexistWithEnemyUnit(NO_TEAM)) ) {
 		if (//isMadeAttack() && !isBlitz()
 				isMadeAllAttacks()) // advc.164
 			return false;
-	}
-	*/
-
+	}*/
 	// The following change makes it possible to capture defenseless units after having 
 	// made a previous attack or paradrop
-	if (bAttack)
+	if (bAttack
+			/*  advc.001k: When checking for danger, we want to know whether the
+				unit will be able to attack on its next turn. Whether it has attacked
+				on its most recent turn doesn't matter. */
+			&& !bDangerCheck)
 	{
 		if (//isMadeAttack() && !isBlitz()
 				isMadeAllAttacks() && // advc.164
@@ -3091,9 +3090,11 @@ bool CvUnit::canMoveInto(const CvPlot* pPlot, bool bAttack, bool bDeclareWar, bo
 }
 
 
-bool CvUnit::canMoveOrAttackInto(const CvPlot* pPlot, bool bDeclareWar) const
+bool CvUnit::canMoveOrAttackInto(const CvPlot* pPlot, bool bDeclareWar,
+		bool bDangerCheck) const // advc.001k
 {
-	return (canMoveInto(pPlot, false, bDeclareWar) || canMoveInto(pPlot, true, bDeclareWar));
+	return (canMoveInto(pPlot, false, bDeclareWar) || canMoveInto(pPlot, true, bDeclareWar,
+			false, true, bDangerCheck)); // advc.001k
 }
 
 

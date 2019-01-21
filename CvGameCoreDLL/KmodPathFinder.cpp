@@ -65,7 +65,7 @@ KmodPathFinder::~KmodPathFinder()
 
 bool KmodPathFinder::ValidateNodeMap()
 {
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // advc.003o
 	if (!GC.getGameINLINE().isFinalInitialized())
 		return false;
 

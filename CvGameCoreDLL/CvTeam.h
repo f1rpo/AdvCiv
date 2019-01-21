@@ -88,8 +88,6 @@ public:
 
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      01/10/09                                jdog5000      */
-/*                                                                                              */
-/*                                                                                              */
 /************************************************************************************************/
 	bool isMasterPlanningLandWar(CvArea* pArea);
 	bool isMasterPlanningSeaWar(CvArea* pArea);
@@ -112,7 +110,8 @@ public:
 	bool hasMetHuman() const;																														// Exposed to Python
 	int getDefensivePactCount(TeamTypes eTeam = NO_TEAM) const;																									// Exposed to Python
 	int getVassalCount(TeamTypes eTeam = NO_TEAM) const;
-	bool isAVassal() const;																							// Exposed to Python
+	// advc.003b, advc.003f:
+	inline bool isAVassal() const { return (m_eMaster != NO_TEAM); }																						// Exposed to Python
 	bool canVassalRevolt(TeamTypes eMaster) const;
 	 // advc.112: Moved a bit of code from canVassalRevolt into this subroutine
 	bool isLossesAllowRevolt(TeamTypes eMaster) const;
@@ -153,7 +152,8 @@ public:
 	// </advc.301>
 
 	bool isHuman() const;																																// Exposed to Python
-	bool isBarbarian() const;																														// Exposed to Python
+	// advc.003f:
+	inline bool isBarbarian() const { return (m_eID == BARBARIAN_TEAM); }																				// Exposed to Python
 	// <advc.003m> Cached
 	inline bool isMinorCiv() const { return m_bMinorTeam; }																							// Exposed to Python
 	void updateMinorCiv() { m_bMinorTeam = checkMinorCiv(); }
@@ -169,7 +169,7 @@ public:
 	void changeNumMembers(int iChange);
 
 	int getAliveCount() const; // advc.155: Exposed to Python
-	DllExport int isAlive() const;																											// Exposed to Python
+	DllExport inline int isAlive() const { return (m_iAliveCount > 0); } // advc.003f																// Exposed to Python
 	void changeAliveCount(int iChange);
 
 	int getEverAliveCount() const;
@@ -252,7 +252,7 @@ public:
 	bool isMapCentering() const;																							// Exposed to Python	
 	void setMapCentering(bool bNewValue);																					// Exposed to Python	
 																																								
-	TeamTypes getID() const;																											// Exposed to Python	
+	TeamTypes getID() const { return m_eID; } // advc.003f																		// Exposed to Python	
 
 	int getStolenVisibilityTimer(TeamTypes eIndex) const;
 	bool isStolenVisibility(TeamTypes eIndex) const;																		// Exposed to Python

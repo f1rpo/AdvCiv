@@ -138,6 +138,10 @@ float hash(vector<long> const& x, PlayerTypes civId) {
 		hashVal += capIndex;
 		hashVal *= prime;
 	}
+	/*  Use ASyncRand to avoid the overhead of creating a new object? I don't think
+		it matters. */
+	/*CvRandom& rng = GC.getASyncRand();
+	rng.reset(hashVal);*/
 	CvRandom rng;
 	rng.init(hashVal);
 	return rng.getFloat();
@@ -2385,8 +2389,7 @@ int pathValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointe
 
 int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)
 {
-	PROFILE_FUNC();
-
+	//PROFILE_FUNC(); // advc.003o
 	//CvSelectionGroup* pSelectionGroup = ((CvSelectionGroup *)pointer);
 	// K-Mod
 	CvSelectionGroup* pSelectionGroup = finder ? (CvSelectionGroup*)pointer : ((CvPathSettings*)pointer)->pGroup;

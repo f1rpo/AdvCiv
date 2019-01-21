@@ -24890,9 +24890,9 @@ int CvUnitAI::AI_searchRange(int iRange)
 
 // XXX at some point test the game with and without this function...
 bool CvUnitAI::AI_plotValid(CvPlot* pPlot)
-{
-	PROFILE_FUNC();
-
+{	/*  advc.003o: This function is called extremely often and the total time
+		spent is significant, but profiling it over and over won't help. */
+	//PROFILE_FUNC();
 	if (m_pUnitInfo->isNoRevealMap() && willRevealByMove(pPlot))
 	{
 		return false;
