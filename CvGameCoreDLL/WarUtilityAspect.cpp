@@ -2892,7 +2892,10 @@ void IllWill::evalAngeredPartners() {
 char const* IllWill::aspectName() const { return "Ill Will"; }
 int IllWill::xmlId() const { return 17; }
 
-Affection::Affection(WarEvalParameters& params) : WarUtilityAspect(params) {}
+Affection::Affection(WarEvalParameters& params) : WarUtilityAspect(params) {
+
+	gameProgressFactor = 1 - 0.2 * GC.getGameINLINE().gameTurnProgress();
+}
 
 void Affection::evaluate() {
 
@@ -2900,11 +2903,19 @@ void Affection::evaluate() {
 	if(we->isHuman() || agent.isCapitulated() || TEAMREF(theyId).isCapitulated() ||
 			!m->isWar(weId, theyId) || agent.AI_getWorstEnemy() == TEAMID(theyId))
 		return;
+	double directPlanFactor = 1;
 	WarPlanTypes wp = agent.AI_getWarPlan(TEAMID(theyId));
-	// Once we've adopted a direct warplan, affection can't stay our hand
+	/*  Once we've adopted a direct warplan, affection is greatly reduced -- a civ
+		that will only please us when it sees our soldiers approach isn't a true friend. */
 	if(wp != WARPLAN_PREPARING_LIMITED && wp != WARPLAN_PREPARING_TOTAL &&
-			wp != NO_WARPLAN)
-		return;
+			wp != NO_WARPLAN) {
+		directPlanFactor = 0.1 * std::max(0,
+				/*  If war stays imminent for a long time, and relations remain good,
+					affection should matter again. */
+				agent.AI_getWarPlanStateCounter(TEAMID(theyId)) - 3);
+		if(directPlanFactor < 0.01)
+			return;
+	}
 	// We're not fully responsible for wars triggered by our DoW
 	double linkedWarFactor = 0;
 	if(m->getWarsDeclaredBy(weId).count(theyId) > 0) {
@@ -2918,7 +2929,7 @@ void Affection::evaluate() {
 		(all other DoW on us are unforeseen). */
 	if(m->getWarsDeclaredBy(theyId).count(weId) > 0)
 		linkedWarFactor = 0.4;
-	if(linkedWarFactor <= 0)
+	if(linkedWarFactor < 0.01)
 		return;
 	int noWarPercent = agent.AI_noWarProbAdjusted(TEAMID(theyId));
 	/*  Capitulated vassals don't interest us, but a voluntary vassal can reduce
@@ -2964,7 +2975,7 @@ void Affection::evaluate() {
 			ignDistr));
 	if(hiredAgainstFriend)
 		uMinus = 50;
-	uMinus *= linkedWarFactor;
+	uMinus *= linkedWarFactor * directPlanFactor * gameProgressFactor;
 	// When there's supposed to be uncertainty
 	if(!ignDistr && ((noWarPercent > 0 && noWarPercent < 100) || hiredAgainstFriend)) {
 		vector<long> hashInputs;
@@ -2987,8 +2998,10 @@ void Affection::evaluate() {
 	if(agent.getNumMembers() > 1)
 		uMinus = normalizeUtility(uMinus) * agent.getNumMembers() * 2/3.0;
 	if(uMinus > 0.5) {
-		log("NoWarAttProb: %d percent, our attitude: %d, for linked war: %d percent",
-				::round(100 * pr), towardsThem, ::round(100 * linkedWarFactor));
+		log("NoWarAttProb: %d percent, our attitude: %d, for linked war: %d percent,"
+				" for direct war plan: %d percent, for game turn: %d percent",
+				::round(100 * pr), towardsThem, ::round(100 * linkedWarFactor),
+				::round(100 * directPlanFactor), ::round(100 * gameProgressFactor));
 		u -= ::round(uMinus);
 	}
 }

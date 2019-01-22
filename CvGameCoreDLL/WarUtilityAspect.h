@@ -355,6 +355,8 @@ public:
 	void evaluate();
 	char const* aspectName() const;
 	int xmlId() const;
+private:
+	double gameProgressFactor;
 };
 
 
