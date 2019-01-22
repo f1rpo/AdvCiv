@@ -5091,7 +5091,7 @@ class StartingArea:
 					if plot.getBonusType(TeamTypes.NO_TEAM) != BonusTypes.NO_BONUS:
 						continue
 					# <advc.021b> Don't place the cradle of civilization in the Tundra
-					if plot.area().getNumTiles() - plot.getLatitude() < 25 or plot.getLatitude() > 55:
+					if plot.area().getNumTiles() - plot.getLatitude()/2 < 25 or plot.getLatitude() > 60:
 						continue # </advc.021b>
 					food, value = sf.getCityPotentialValue(x, y)
 					# <advc.021b>
