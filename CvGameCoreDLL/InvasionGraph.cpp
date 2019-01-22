@@ -130,7 +130,7 @@ InvasionGraph::Node::Node(PlayerTypes civId, InvasionGraph& outer) :
 	cache(GET_PLAYER(civId).warAndPeaceAI().getCache()) {
 
 	// Properly initialized in prepareForSimulation
-	tempArmyLosses = emergencyDefPow = distractionByConquest = distractionByDefense -1;
+	tempArmyLosses = emergencyDefPow = distractionByConquest = distractionByDefense = -1;
 	cacheIndex = -1;
 	componentDone = false;
 
@@ -140,7 +140,6 @@ InvasionGraph::Node::Node(PlayerTypes civId, InvasionGraph& outer) :
 	capitulated = false;
 	hasClashed = false;
 	warTimeSimulated = 0;
-	tempArmyLosses = 0;
 	productionInvested = 0;
 	primaryTarget = NULL;
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++)
@@ -582,6 +581,10 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 	if(c == NULL && !clashOnly)
 		return NULL;
 	CvCity const* const cvCity = (c == NULL ? NULL : c->city());
+	if(cvCity == NULL && !clashOnly) {
+		FAssert(cvCity != NULL);
+		return NULL;
+	}
 	Node& defender = *primaryTarget;
 	int const defCities = GET_PLAYER(defender.id).getNumCities();
 	int const attCities = GET_PLAYER(id).getNumCities();
@@ -646,10 +649,15 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 			- defender.lostPower[CAVALRY]) * armyPortionDefender;
 	targetArmyPow = std::max(0.0, targetArmyPow);
 	targetCavPow = std::min(targetCavPow, targetArmyPow);
-	bool isNaval;
+	bool isNaval = false;
 	if(clashOnly) {
-		isNaval = !canReachByLand(targetCity()->id()) &&
-				!defender.canReachByLand(defender.targetCity()->id());
+		WarAndPeaceCache::City const* defTargetCity = defender.targetCity();
+		WarAndPeaceCache::City const* attTargetCity = targetCity();
+		if(defTargetCity != NULL && attTargetCity != NULL) {
+			isNaval = !canReachByLand(attTargetCity->id()) &&
+					!defender.canReachByLand(defTargetCity->id());
+		}
+		else FAssert(false); // They shouldn't clash then
 	}
 	else isNaval = !canReachByLand(c->id());
 	bool canBombard = false;
@@ -672,12 +680,12 @@ SimulationStep* InvasionGraph::Node::step(double armyPortionDefender,
 		bool const bTotal = outer.m.evaluationParameters().isTotal();
 		if(id == weId) {
 			confAttPers = GET_PLAYER(weId).warAndPeaceAI().warConfidencePersonal(
-					isNaval, bTotal);
+					isNaval, bTotal, defender.id);
 		}
 		else if(defender.id == weId) {
 			confDefPers = GET_PLAYER(weId).warAndPeaceAI().warConfidencePersonal(
 					// Defense doesn't hinge on navies and fighting in faraway lands
-					false, bTotal);
+					false, bTotal, id);
 		}
 	}
 	if(GET_PLAYER(id).isHuman())
@@ -1752,11 +1760,6 @@ void InvasionGraph::Node::changePrimaryTarget(Node* newTarget) {
 bool InvasionGraph::Node::isComponentDone() const {
 
 	return componentDone;
-}
-
-void InvasionGraph::Node::setComponentDone(bool b) {
-
-	componentDone = b;
 }
 
 bool InvasionGraph::Node::hasLost(int cityId) const {

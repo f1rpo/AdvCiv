@@ -218,6 +218,7 @@ class SevoPediaBonus:
 		panelName = self.top.getNextWidgetName()
 		screen.addPanel( panelName, localText.getText("TXT_KEY_PEDIA_ALLOWS", ()), "", False, True, self.X_ALLOWS_PANE, self.Y_ALLOWS_PANE, self.W_ALLOWS_PANE, self.H_ALLOWS_PANE, PanelStyles.PANEL_STYLE_BLUE50 )
 		screen.attachLabel(panelName, "", "  ")
+		iActivePlayer = gc.getGame().getActivePlayer() # advc.003l
 		for eLoopUnit in range(gc.getNumUnitInfos()):
 			bFound = False
 			if (eLoopUnit >= 0):
@@ -230,7 +231,12 @@ class SevoPediaBonus:
 							bFound = True
 						j += 1
 			if bFound:
-				screen.attachImageButton( panelName, "", gc.getUnitInfo(eLoopUnit).getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_UNIT, eLoopUnit, 1, False )
+				szButton = gc.getUnitInfo(eLoopUnit).getButton()
+				# <advc.003l>
+				if iActivePlayer >= 0:
+					szButton = gc.getPlayer(iActivePlayer).getUnitButton(eLoopUnit)
+				# </advc.003l>
+				screen.attachImageButton( panelName, "", szButton, GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_UNIT, eLoopUnit, 1, False )
 
 		for eLoopBuilding in range(gc.getNumBuildingInfos()):
 			bFound = False

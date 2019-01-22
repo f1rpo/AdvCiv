@@ -35,12 +35,12 @@ class CvWaterPlaneInfo :public CvInfoBase
 {
 public:
 
-	DllExport CvWaterPlaneInfo();
-	DllExport virtual ~CvWaterPlaneInfo();
+	CvWaterPlaneInfo();
+	virtual ~CvWaterPlaneInfo();
 
-	DllExport NiColor	getMaterialDiffuse() const;			// The water plane's material diffuse color
-	DllExport NiColor	getMaterialSpecular() const;		// The water plane's material specular color
-	DllExport NiColor	getMaterialEmmisive() const;		// The water plane's material emmisive color
+	NiColor	getMaterialDiffuse() const;			// The water plane's material diffuse color
+	NiColor	getMaterialSpecular() const;		// The water plane's material specular color
+	NiColor	getMaterialEmmisive() const;		// The water plane's material emmisive color
 	DllExport float getMaterialAlpha() const;				// The water plane's material alpha
 
 	DllExport float getTextureScaling() const;				// The water plane's texture scale
@@ -48,12 +48,12 @@ public:
 	DllExport float getTextureScrollRateV() const;			// The water plane's texture scroll rate in V
 
 	DllExport const TCHAR * getBaseTexture() const;
-	DllExport void setBaseTexture(const TCHAR* szVal);		// The filename of the base texture
+	void setBaseTexture(const TCHAR* szVal);		// The filename of the base texture
 
 	DllExport const TCHAR *getTransitionTexture() const;
-	DllExport void setTransitionTexture(const TCHAR* szVal); // The transition texture for fading ocean into land
+	void setTransitionTexture(const TCHAR* szVal); // The transition texture for fading ocean into land
 
-	DllExport bool read(CvXMLLoadUtility*);
+	bool read(CvXMLLoadUtility*);
 
 protected:
 
@@ -82,8 +82,8 @@ class CvTerrainPlaneInfo :public CvInfoBase
 {
 public:
 
-	DllExport CvTerrainPlaneInfo();
-	DllExport virtual ~CvTerrainPlaneInfo();
+	CvTerrainPlaneInfo();
+	virtual ~CvTerrainPlaneInfo();
 
 	DllExport bool isVisible() const;				// The terrain plane's material alpha
 	DllExport bool isGroundPlane() const;				// The terrain plane's material alpha
@@ -98,9 +98,9 @@ public:
 	DllExport FogTypes getFogType() const;
 
 	DllExport const TCHAR * getBaseTexture() const;
-	DllExport void setBaseTexture(const TCHAR* szVal);		// The filename of the base texture
+	void setBaseTexture(const TCHAR* szVal);		// The filename of the base texture
 
-	DllExport bool read(CvXMLLoadUtility*);
+	bool read(CvXMLLoadUtility*);
 
 protected:
 
@@ -131,16 +131,16 @@ class CvCameraOverlayInfo :public CvInfoBase
 {
 public:
 
-	DllExport CvCameraOverlayInfo();
-	DllExport virtual ~CvCameraOverlayInfo();
+	CvCameraOverlayInfo();
+	virtual ~CvCameraOverlayInfo();
 
 	DllExport bool isVisible() const;				// The terrain plane's material alpha
 	DllExport CameraOverlayTypes getCameraOverlayType() const;
 
 	DllExport const TCHAR * getBaseTexture() const;
-	DllExport void setBaseTexture(const TCHAR* szVal);		// The filename of the base texture
+	void setBaseTexture(const TCHAR* szVal);		// The filename of the base texture
 
-	DllExport bool read(CvXMLLoadUtility*);
+	bool read(CvXMLLoadUtility*);
 
 protected:
 

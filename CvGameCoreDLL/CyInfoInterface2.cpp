@@ -155,7 +155,8 @@ void CyInfoPythonInterface2()
 		.def("getAIUnitUpgradePercent", &CvHandicapInfo::getAIUnitUpgradePercent, "int ()")
 		.def("getAIInflationPercent", &CvHandicapInfo::getAIInflationPercent, "int ()")
 		.def("getAIWarWearinessPercent", &CvHandicapInfo::getAIWarWearinessPercent, "int ()")
-		.def("getAIPerEraModifier", &CvHandicapInfo::getAIPerEraModifier, "int ()")
+		// advc.251: obsolete
+		//.def("getAIPerEraModifier", &CvHandicapInfo::getAIPerEraModifier, "int ()")
 		.def("getAIAdvancedStartPercent", &CvHandicapInfo::getAIAdvancedStartPercent, "int ()")
 		.def("getNumGoodies", &CvHandicapInfo::getNumGoodies, "int ()")
 		// advc.250a:

@@ -198,8 +198,7 @@ public class Civ implements Comparable<Civ> {
 	private void finalizeInit() {
 		if(handicap.isEmpty())
 			handicap = "NOBLE";
-		start.setLocation(start.getX() + WBOut.offsetX,
-				start.getY() + WBOut.offsetY);
+		WBOut.offset(start);
 		int btsId = -1;
 		if(civ.equals("ARABIA"))
 			btsId = 0;

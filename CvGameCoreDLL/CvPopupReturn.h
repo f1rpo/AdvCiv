@@ -24,7 +24,7 @@ public:
 	PopupReturn() {}
 
 	//	Copy constructor
-	DllExport PopupReturn(const PopupReturn &popupReturn);
+	PopupReturn(const PopupReturn &popupReturn);
 
 	// Assignment operator
 	DllExport PopupReturn &operator=(const PopupReturn &source);

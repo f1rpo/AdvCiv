@@ -46,9 +46,6 @@ bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY, bool bIg
 {
 	PROFILE_FUNC();
 
-	CvPlot* pLoopPlot=NULL;
-	int iDX, iDY, iI;
-	iI=iDX=iDY=-1;
 	CvMap& m = GC.getMapINLINE();
 	CvPlot* pPlot = m.plotINLINE(iX, iY);
 	if(pPlot == NULL)
@@ -70,8 +67,8 @@ bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY, bool bIg
 		}
 	}
 
-	for (iI = 0; iI < NUM_DIRECTION_TYPES; iI++) {
-		pLoopPlot = plotDirection(iX, iY, ((DirectionTypes)iI));
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++) {
+		CvPlot* pLoopPlot = plotDirection(iX, iY, ((DirectionTypes)iI));
 		if(pLoopPlot == NULL)
 			continue;
 		BonusTypes eLoopBonus = pLoopPlot->getBonusType();
@@ -90,9 +87,9 @@ bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY, bool bIg
 	}
 
 	int const iRange = pClassInfo.getUniqueRange();
-	for (iDX = -iRange; iDX <= iRange; iDX++)
-	for (iDY = -iRange; iDY <= iRange; iDY++) {
-		pLoopPlot = plotXY(iX, iY, iDX, iDY);
+	for (int iDX = -iRange; iDX <= iRange; iDX++)
+	for (int iDY = -iRange; iDY <= iRange; iDY++) {
+		CvPlot* pLoopPlot = plotXY(iX, iY, iDX, iDY);
 		if(pLoopPlot == NULL || pLoopPlot->area() != pArea)
 			continue;
 		if (plotDistance(iX, iY, pLoopPlot->getX_INLINE(),
@@ -247,13 +244,11 @@ void CvMapGenerator::addLakes()
 	}
 
 	gDLL->NiTextOut("Adding Lakes...");
-	CvPlot* pLoopPlot;
-	int iI;
 
-	for (iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
+	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 	{
 		gDLL->callUpdater();
-		pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
 		FAssertMsg(pLoopPlot != NULL, "LoopPlot is not assigned a valid value");
 
 		if (!(pLoopPlot->isWater()))
@@ -476,7 +471,6 @@ void CvMapGenerator::doRiver(CvPlot *pStartPlot, CardinalDirectionTypes eLastCar
 			{
 				if (getOppositeCardinalDirection((CardinalDirectionTypes)iI) != eLastCardinalDirection)
 				{
-					CvPlot* pAdjacentPlot;
 					pAdjacentPlot = plotCardinalDirection(pRiverPlot->getX_INLINE(), pRiverPlot->getY_INLINE(), ((CardinalDirectionTypes)iI));
 					if (pAdjacentPlot != NULL)
 					{
@@ -504,7 +498,7 @@ void CvMapGenerator::doRiver(CvPlot *pStartPlot, CardinalDirectionTypes eLastCar
 //Note from Blake:
 //Iustus wrote this function, it ensures that a new river actually
 //creates fresh water on the passed plot. Quite useful really
-//Altouh I veto'd it's use since I like that you don't always 
+//Although I veto'd its use since I like that you don't always 
 //get fresh water starts.
 // pFreshWaterPlot = the plot we want to give a fresh water river
 // 
@@ -1123,10 +1117,7 @@ void CvMapGenerator::afterGeneration()
 
 void CvMapGenerator::setPlotTypes(const int* paiPlotTypes)
 {
-	CvPlot* pLoopPlot;
-	int iNumPlots;
-
-	iNumPlots = GC.getMapINLINE().numPlotsINLINE();
+	int iNumPlots = GC.getMapINLINE().numPlotsINLINE();
 
 	for (int iI = 0; iI < iNumPlots; iI++)
 	{
@@ -1139,7 +1130,7 @@ void CvMapGenerator::setPlotTypes(const int* paiPlotTypes)
 	for (int iI = 0; iI < iNumPlots; iI++)
 	{
 		gDLL->callUpdater();
-		pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
 
 		if (pLoopPlot->isWater())
 		{
@@ -1159,11 +1150,6 @@ void CvMapGenerator::setPlotTypes(const int* paiPlotTypes)
 
 int CvMapGenerator::getRiverValueAtPlot(CvPlot* pPlot)
 {
-	CvPlot* pAdjacentPlot;
-	CvRandom riverRand;
-	int iSum;
-	int iI;
-
 	FAssert(pPlot != NULL);
 
 	long result = 0;
@@ -1185,13 +1171,13 @@ int CvMapGenerator::getRiverValueAtPlot(CvPlot* pPlot)
 		}
 	}
 
-	iSum = result;
+	int iSum = result;
 
 	iSum += ((NUM_PLOT_TYPES - pPlot->getPlotType()) * 20);
 
-	for (iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 	{
-		pAdjacentPlot = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), ((DirectionTypes)iI));
+		CvPlot* pAdjacentPlot = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), ((DirectionTypes)iI));
 
 		if (pAdjacentPlot != NULL)
 		{
@@ -1202,7 +1188,7 @@ int CvMapGenerator::getRiverValueAtPlot(CvPlot* pPlot)
 			iSum += (NUM_PLOT_TYPES * 10);
 		}
 	}
-
+	CvRandom riverRand;
 	riverRand.init((pPlot->getX_INLINE() * 43251267) + (pPlot->getY_INLINE() * 8273903));
 
 	iSum += (riverRand.get(10, "River Rand"));

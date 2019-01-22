@@ -10,7 +10,7 @@
 
 // XXX these should not be in the DLL per se (if the user changes them, we are screwed...)
 
-struct DllExport XYCoords
+struct XYCoords
 {
 	XYCoords(int x=0, int y=0) : iX(x), iY(y) {}
 	int iX;
@@ -24,7 +24,7 @@ struct DllExport XYCoords
 	bool operator>  (const XYCoords xy) const { return ((iY > xy.iY) || (iY == xy.iY && iX > xy.iX)); }
 };
 
-struct DllExport IDInfo
+struct IDInfo
 {
 
 	IDInfo(PlayerTypes eOwner=NO_PLAYER, int iID=FFreeList::INVALID_INDEX) : eOwner(eOwner), iID(iID) {}
@@ -51,13 +51,13 @@ struct DllExport IDInfo
 	}
 };
 
-struct DllExport GameTurnInfo				// Exposed to Python
+struct GameTurnInfo				// Exposed to Python
 {
 	int iMonthIncrement;
 	int iNumGameTurnsPerIncrement;
 };
 
-struct DllExport OrderData					// Exposed to Python
+struct OrderData					// Exposed to Python
 {
 	OrderTypes eOrderType;
 	int iData1;
@@ -65,16 +65,20 @@ struct DllExport OrderData					// Exposed to Python
 	bool bSave;
 };
 
-struct DllExport MissionData				// Exposed to Python
+struct MissionData				// Exposed to Python
 {
 	MissionTypes eMissionType;
 	int iData1;
 	int iData2;
 	int iFlags;
 	int iPushTurn;
+	bool bModified; // advc.011b
 };
+// <advc.011b> Needed for savegame compatibility
+struct MissionDataLegacy { MissionTypes eMissionType; int iData1; int iData2;
+	int iFlags; int iPushTurn; }; // </advc.011b>
 
-struct DllExport TradeData					// Exposed to Python
+struct TradeData					// Exposed to Python
 {
 	TradeableItems m_eItemType;				//	What type of item is this
 	int m_iData;											//	Any additional data?
@@ -193,7 +197,7 @@ struct BuildingCommerceChange
 };
 
 
-struct DllExport FOWVis
+struct FOWVis
 {
 	uint uiCount;
 	POINT* pOffsets;  // array of "Offset" points
@@ -286,24 +290,24 @@ enum BattleTimeTypes
 //  STRUCT:      CvBattleRound
 //!  \brief		Represents a single round within a battle.
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class DllExport CvBattleRound
+class CvBattleRound
 {
 public:
 	CvBattleRound();
 	bool isValid() const;
 
-	bool isRangedRound() const;
+	DllExport bool isRangedRound() const;
 	void setRangedRound(bool value);
 
-	int getWaveSize() const;
-	void setWaveSize(int size);
+	DllExport int getWaveSize() const;
+	DllExport void setWaveSize(int size);
 
-	int getNumKilled(BattleUnitTypes unitType) const;
-	void setNumKilled(BattleUnitTypes unitType, int value);
+	DllExport int getNumKilled(BattleUnitTypes unitType) const;
+	DllExport void setNumKilled(BattleUnitTypes unitType, int value);
 	void addNumKilled(BattleUnitTypes unitType, int increment);
 
-	int getNumAlive(BattleUnitTypes unitType) const;
-	void setNumAlive(BattleUnitTypes unitType, int value);
+	DllExport int getNumAlive(BattleUnitTypes unitType) const;
+	DllExport void setNumAlive(BattleUnitTypes unitType, int value);
 
 private:
 	int		m_aNumKilled[BATTLE_UNIT_COUNT];		//!< The number of units killed during this round for both sides
@@ -320,21 +324,21 @@ typedef std::vector<CvBattleRound> CvBattleRoundVector;		//!< Type declaration f
 //  CLASS:      CvMissionDefinition
 //!  \brief		Base mission definition struct
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class DllExport CvMissionDefinition
+class CvMissionDefinition
 {
 public:
-	CvMissionDefinition();
+	DllExport CvMissionDefinition();
 
-	MissionTypes getMissionType() const;
+	DllExport MissionTypes getMissionType() const;
 	void setMissionType(MissionTypes missionType);
 
-	float getMissionTime() const;
+	DllExport float getMissionTime() const;
 	void setMissionTime(float time);
 
-	CvUnit *getUnit(BattleUnitTypes unitType) const;
+	DllExport CvUnit *getUnit(BattleUnitTypes unitType) const;
 	void setUnit(BattleUnitTypes unitType, CvUnit *unit);
 
-	const CvPlot *getPlot() const;
+	DllExport const CvPlot *getPlot() const;
 	void setPlot(const CvPlot *plot);
 
 protected:
@@ -348,21 +352,21 @@ protected:
 //  STRUCT:     CvBattleDefinition
 //!  \brief		A definition passed to CvBattleManager to start a battle between units
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class DllExport CvBattleDefinition : public CvMissionDefinition
+class CvBattleDefinition : public CvMissionDefinition
 {
 public:
 	CvBattleDefinition();
-	CvBattleDefinition( const CvBattleDefinition & kCopy );
-
-	int getDamage(BattleUnitTypes unitType, BattleTimeTypes timeType) const;
+	DllExport CvBattleDefinition( const CvBattleDefinition & kCopy );
+	DllExport ~CvBattleDefinition();
+	DllExport int getDamage(BattleUnitTypes unitType, BattleTimeTypes timeType) const;
 	void setDamage(BattleUnitTypes unitType, BattleTimeTypes timeType, int damage);
 	void addDamage(BattleUnitTypes unitType, BattleTimeTypes timeType, int increment);
 	
-	int getFirstStrikes(BattleUnitTypes unitType) const;
+	DllExport int getFirstStrikes(BattleUnitTypes unitType) const;
 	void setFirstStrikes(BattleUnitTypes unitType, int firstStrikes);
 	void addFirstStrikes(BattleUnitTypes unitType, int increment);
 	
-	bool isAdvanceSquare() const;
+	DllExport bool isAdvanceSquare() const;
 	void setAdvanceSquare(bool advanceSquare);
 
 	int getNumRangedRounds() const;
@@ -373,11 +377,11 @@ public:
 	void setNumMeleeRounds(int count);
 	void addNumMeleeRounds(int increment);
 
-	int getNumBattleRounds() const;
-	void clearBattleRounds();
-	CvBattleRound &getBattleRound(int index);
-	const CvBattleRound &getBattleRound(int index) const;
-	void addBattleRound(const CvBattleRound &round);
+	DllExport int getNumBattleRounds() const;
+	DllExport void clearBattleRounds();
+	DllExport CvBattleRound &getBattleRound(int index);
+	DllExport const CvBattleRound &getBattleRound(int index) const;
+	DllExport void addBattleRound(const CvBattleRound &round);
 	void setBattleRound(int index, const CvBattleRound &round);
 
 private:
@@ -396,21 +400,21 @@ private:
 //  CLASS:      CvAirMissionDefinition
 //!  \brief		A definition passed to CvAirMissionManager to start an air mission
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-class DllExport CvAirMissionDefinition : public CvMissionDefinition
+class CvAirMissionDefinition : public CvMissionDefinition
 {
 public:
 	CvAirMissionDefinition();
-	CvAirMissionDefinition( const CvAirMissionDefinition & kCopy );
+	DllExport CvAirMissionDefinition( const CvAirMissionDefinition & kCopy );
 
-	int getDamage(BattleUnitTypes unitType) const;
+	DllExport int getDamage(BattleUnitTypes unitType) const;
 	void setDamage(BattleUnitTypes unitType, int damage);
-	bool isDead(BattleUnitTypes unitType) const;
+	DllExport bool isDead(BattleUnitTypes unitType) const;
 
 private:
 	int					m_aDamage[BATTLE_UNIT_COUNT];		//!< The ending damage of the units
 };
 
-struct DllExport CvWidgetDataStruct
+struct CvWidgetDataStruct
 {
 	int m_iData1;										//	The first bit of data
 	int m_iData2;										//	The second piece of data
@@ -460,26 +464,26 @@ struct DllExport CvFlyoutMenuData
 	CvWString m_strTitle;
 };
 
-struct DllExport CvStatBase
+struct CvStatBase
 {
 	CvStatBase(const char* strKey) : m_strKey(strKey) { }
 	virtual ~CvStatBase() { }
 	CvString m_strKey;
 };
 
-struct DllExport CvStatInt : public CvStatBase
+struct CvStatInt : public CvStatBase
 {
 	CvStatInt(const char* strKey, int iValue) : CvStatBase(strKey), m_iValue(iValue) { }
 	int m_iValue;
 };
 
-struct DllExport CvStatString : public CvStatBase
+struct CvStatString : public CvStatBase
 {
 	CvStatString(const char* strKey, const char* strValue) : CvStatBase(strKey), m_strValue(strValue) { }
 	CvString m_strValue;
 };
 
-struct DllExport CvStatFloat : public CvStatBase
+struct CvStatFloat : public CvStatBase
 {
 	CvStatFloat(const char* strKey, float fValue) : CvStatBase(strKey), m_fValue(fValue) { }
 	float m_fValue;
@@ -492,6 +496,12 @@ struct DllExport CvWBData
 	CvWString m_strHelp;
 	CvString m_strButton;
 };
+// <advc.071>
+struct FirstContactData {
+	FirstContactData() : u1(), u2(), x1(-1), x2(-1), y1(-1), y2(-1) {}
+	IDInfo u1, u2;
+	int x1, y1, x2, y2;
+}; // </advc.071>
 
 
 #endif	// CVSTRUCTS_H

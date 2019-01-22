@@ -94,7 +94,6 @@ friend class Node;
 		 void clash(double armyPortion1, double armyPortion2);
 		 // For iterating over connected components
 		  bool isComponentDone() const;
-		  void setComponentDone(bool b);
 		 // Once simulation is finished:
 		  // Lost power minus shifted power
 		  double getLostPower(MilitaryBranchTypes mb) const;

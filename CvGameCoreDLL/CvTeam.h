@@ -5,6 +5,8 @@
 #ifndef CIV4_TEAM_H
 #define CIV4_TEAM_H
 
+#include <queue> // dlph.26
+
 //#include "CvEnums.h"
 
 class CvArea;
@@ -25,10 +27,13 @@ protected:
 	void uninit();
 
 public:
-
+	// <dlph.26>
+	static void queueWar(TeamTypes eAttackingTeam, TeamTypes eDefendingTeam,
+			bool bNewDiplo, WarPlanTypes eWarPlan, bool bPrimaryDOW = true);
+	static void triggerWars(bool bForceUpdateAttitude = false); // advc: param added
+	// </dlph.26>
 /********************************************************************************/
 /*		BETTER_BTS_AI_MOD						12/30/08		jdog5000		*/
-/*																				*/
 /*		     																	*/
 /********************************************************************************/
 	void resetPlotAndCityData( );
@@ -63,7 +68,8 @@ public:
 			bool bRandomEvent = false); // advc.106g
 	bool canContact(TeamTypes eTeam,
 			bool bCheckWillingness = false) const; // K-Mod, Exposed to Python
-	void meet(TeamTypes eTeam, bool bNewDiplo);																		// Exposed to Python
+	void meet(TeamTypes eTeam, bool bNewDiplo);																			// Exposed to Python
+	void meet(TeamTypes eTeam, bool bNewDiplo, FirstContactData fcData); // advc.071
 	void signPeaceTreaty(TeamTypes eTeam); // K-Mod
 	void signOpenBorders(TeamTypes eTeam);																				// Exposed to Python
 	void signDisengage(TeamTypes otherId); // advc.034
@@ -82,8 +88,6 @@ public:
 
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      01/10/09                                jdog5000      */
-/*                                                                                              */
-/*                                                                                              */
 /************************************************************************************************/
 	bool isMasterPlanningLandWar(CvArea* pArea);
 	bool isMasterPlanningSeaWar(CvArea* pArea);
@@ -106,7 +110,8 @@ public:
 	bool hasMetHuman() const;																														// Exposed to Python
 	int getDefensivePactCount(TeamTypes eTeam = NO_TEAM) const;																									// Exposed to Python
 	int getVassalCount(TeamTypes eTeam = NO_TEAM) const;
-	bool isAVassal() const;																							// Exposed to Python
+	// advc.003b, advc.003f:
+	inline bool isAVassal() const { return (m_eMaster != NO_TEAM); }																						// Exposed to Python
 	bool canVassalRevolt(TeamTypes eMaster) const;
 	 // advc.112: Moved a bit of code from canVassalRevolt into this subroutine
 	bool isLossesAllowRevolt(TeamTypes eMaster) const;
@@ -147,20 +152,24 @@ public:
 	// </advc.301>
 
 	bool isHuman() const;																																// Exposed to Python
-	bool isBarbarian() const;																														// Exposed to Python
-	bool isMinorCiv() const;																														// Exposed to Python
+	// advc.003f:
+	inline bool isBarbarian() const { return (m_eID == BARBARIAN_TEAM); }																				// Exposed to Python
+	// <advc.003m> Cached
+	inline bool isMinorCiv() const { return m_bMinorTeam; }																							// Exposed to Python
+	void updateMinorCiv() { m_bMinorTeam = checkMinorCiv(); }
+	// </advc.003m>
 	PlayerTypes getLeaderID() const;																										// Exposed to Python
 	void updateLeaderID(); // advc.003b
 	PlayerTypes getSecretaryID() const;																									// Exposed to Python
 	HandicapTypes getHandicapType() const;																							// Exposed to Python
-	DllExport CvWString getName() const;																								// Exposed to Python
+	CvWString getName() const;																								// Exposed to Python
 	CvWString getReplayName() const; // K-Mod
 
 	DllExport int getNumMembers() const;																								// Exposed to Python
 	void changeNumMembers(int iChange);
 
-	DllExport int getAliveCount() const; // advc.155: Exposed to Python
-	DllExport int isAlive() const;																											// Exposed to Python
+	int getAliveCount() const; // advc.155: Exposed to Python
+	DllExport inline int isAlive() const { return (m_iAliveCount > 0); } // advc.003f																// Exposed to Python
 	void changeAliveCount(int iChange);
 
 	int getEverAliveCount() const;
@@ -243,7 +252,7 @@ public:
 	bool isMapCentering() const;																							// Exposed to Python	
 	void setMapCentering(bool bNewValue);																					// Exposed to Python	
 																																								
-	TeamTypes getID() const;																											// Exposed to Python	
+	TeamTypes getID() const { return m_eID; } // advc.003f																		// Exposed to Python	
 
 	int getStolenVisibilityTimer(TeamTypes eIndex) const;
 	bool isStolenVisibility(TeamTypes eIndex) const;																		// Exposed to Python
@@ -266,15 +275,20 @@ public:
 	void changeExtraMoves(DomainTypes eIndex, int iChange);								// Exposed to Python
 
 	bool isHasMet(TeamTypes eIndex) const;																		// Exposed to Python
-	void makeHasMet(TeamTypes eIndex, bool bNewDiplo);
-
+	void makeHasMet(TeamTypes eIndex, bool bNewDiplo,
+			FirstContactData fcData); // advc.071
 	// K-Mod
 	bool isHasSeen(TeamTypes eIndex) const { return m_abHasSeen[eIndex]; };
 	void makeHasSeen(TeamTypes eIndex) { m_abHasSeen[eIndex] = true; };
 	// K-Mod end
 
 	DllExport bool isAtWar(TeamTypes eIndex) const;																			// Exposed to Python
-	DllExport void setAtWar(TeamTypes eIndex, bool bNewValue);
+	// <advc.134a> Alias that the EXE can't (directly) call
+	inline bool isAtWarInternal(TeamTypes eIndex) const {
+		return m_abAtWar[eIndex];
+	} // </advc.134a>
+	void setAtWar(TeamTypes eIndex, bool bNewValue);
+	bool hasJustDeclaredWar(TeamTypes eIndex) const; // advc.162
 
 	bool isPermanentWarPeace(TeamTypes eIndex) const;																		// Exposed to Python
 	void setPermanentWarPeace(TeamTypes eIndex, bool bNewValue);									// Exposed to Python
@@ -359,7 +373,7 @@ public:
 	void setVictoryCountdown(VictoryTypes eIndex, int iTurnsLeft);
 	void changeVictoryCountdown(VictoryTypes eIndex, int iChange);
 	int getVictoryDelay(VictoryTypes eVictory) const;
-	DllExport bool canLaunch(VictoryTypes eVictory) const;								// Exposed to Python 
+	bool canLaunch(VictoryTypes eVictory) const;									// Exposed to Python 
 	void setCanLaunch(VictoryTypes eVictory, bool bCan);
 	int getLaunchSuccessRate(VictoryTypes eVictory) const;								// Exposed to Python
 	void resetVictoryProgress();
@@ -372,11 +386,10 @@ public:
 	/* advc.004a: A hack that allows other classes to pretend that a team knows
 	   a tech for some computation. Should be toggled back afterwards. */
 	void setHasTechTemporarily(TechTypes tt, bool b);
-	/* advc.134a: (Looks like a finite state machine isn't needed after all;
-		i.e. would work with just OfferingPeace set to either the team whose
-		peace offer is incoming or NO_TEAM otherwise.) */
+	// <advc.134a>
 	void advancePeaceOfferStage(TeamTypes aiTeam = NO_TEAM);
-
+	bool isPeaceOfferStage(int iStage, TeamTypes eOffering) const;
+	// </advc.134a>
 	bool isNoTradeTech(TechTypes eIndex) const;																														// Exposed to Python
 	void setNoTradeTech(TechTypes eIndex, bool bNewValue);																					// Exposed to Python
 
@@ -426,12 +439,14 @@ public:
 	// advc.003:
 	bool hasTechToClear(FeatureTypes ft, TechTypes currentResearch = NO_TECH) const;
 	void testCircumnavigated(); // advc.136a: Made public
-	// <advc.127b> Both return -1 if no team member has a capital
-	int getCapitalX() const;
-	int getCapitalY() const;
-	CvCity* getLeaderCapital() const;
+	/*  <advc.127b> Both return -1 if no team member has a capital or
+		(eObserver!=NO_TEAM) if none is revealed to eObserver. */
+	int getCapitalX(TeamTypes eObserver, bool bDebug = false) const;
+	int getCapitalY(TeamTypes eObserver, bool bDebug = false) const;
+	CvCity* getLeaderCapital(TeamTypes eObserver, bool bDebug = false) const;
 	// </advc.127b>
 	void makeUnwillingToTalk(TeamTypes otherId); // advc.104i
+
 	virtual void AI_init() = 0;
 	virtual void AI_reset(bool bConstructor) = 0;
 	virtual void AI_doTurnPre() = 0;
@@ -494,7 +509,12 @@ protected:
 	int m_iEnemyWarWearinessModifier;
 	int m_iRiverTradeCount;
 	int m_iEspionagePointsEver;
-
+	// <advc.003m>
+	int m_iMajorWarEnemies; // incl. vassals
+	int m_iMinorWarEnemies;
+	int m_iVassalWarEnemies;
+	bool m_bMinorTeam;
+	// </advc.003m>
 	bool m_bMapCentering;
 	bool m_bCapitulated;
 
@@ -506,11 +526,12 @@ protected:
 	int* m_aiForceTeamVoteEligibilityCount;
 
 	bool* m_abAtWar;
+	bool m_abJustDeclaredWar[MAX_TEAMS]; // advc.162
 	bool* m_abHasMet;
 	bool* m_abHasSeen; // K-Mod
 	bool* m_abPermanentWarPeace;
 	bool* m_abOpenBorders;
-	bool m_abDisengage[MAX_TEAMS];
+	bool m_abDisengage[MAX_TEAMS]; // advc.034
 	bool* m_abDefensivePact;
 	bool* m_abForcePeace;
 	bool* m_abVassal;
@@ -548,6 +569,15 @@ protected:
 	int m_iPeaceOfferStage;
 	// </advc.134a>
 
+	// <dlph.26>
+	static std::queue<TeamTypes> attacking_queue;
+	static std::queue<TeamTypes> defending_queue;
+	static std::queue<bool> newdiplo_queue;
+	static std::queue<WarPlanTypes> warplan_queue;
+	static std::queue<bool> primarydow_queue;
+	static bool bTriggeringWars;
+	// </dlph.26>
+
 	void doWarWeariness();
 
 	void updateTechShare(TechTypes eTech);
@@ -557,6 +587,12 @@ protected:
 
 	void cancelDefensivePacts();
 	void allowDefensivePactsToBeCanceled(); // dlph.3
+	// <advc.003m>
+	// New name for BBAI's getAtWarCount
+	int countWarEnemies(bool bIgnoreMinors = true, bool bIgnoreVassals = false) const;
+	void changeAtWarCount(int iChange, bool bMinorTeam, bool bVassal);
+	// New name for isMinorCiv (uncached)
+	bool checkMinorCiv() const; // </advc.003m>
 	// <advc.039>
 	CvWString const tradeItemString(TradeableItems eItem, int data,
 			TeamTypes fromId) const; // </advc.039>

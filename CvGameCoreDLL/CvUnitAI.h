@@ -25,11 +25,6 @@ public:
 	bool AI_update();
 	//bool AI_follow();
 	bool AI_follow(bool bFirst = true); // K-Mod
-	// K-Mod
-protected:
-	CvUnit* AI_findTransport(UnitAITypes eUnitAI, int iFlags = 0, int iMaxPath = MAX_INT, UnitAITypes eTransportedUnitAI = NO_UNITAI, int iMinCargo = -1, int iMinCargoSpace = -1, int iMaxCargoSpace = -1, int iMaxCargoOurUnitAI = -1);
-public:
-	// K-Mod end
 	bool AI_load(UnitAITypes eUnitAI, MissionAITypes eMissionAI, UnitAITypes eTransportedUnitAI = NO_UNITAI, int iMinCargo = -1, int iMinCargoSpace = -1, int iMaxCargoSpace = -1, int iMaxCargoOurUnitAI = -1, int iFlags = 0, int iMaxPath = MAX_INT, int iMaxTransportPath = MAX_INT); // bbai / bts
 
 	void AI_upgrade();
@@ -45,7 +40,7 @@ public:
 
 	bool AI_isCityAIType() const;
 
-	int AI_getBirthmark() const;
+	inline int AI_getBirthmark() const { return m_iBirthmark; }
 	void AI_setBirthmark(int iNewValue);
 
 	UnitAITypes AI_getUnitAIType() const;
@@ -71,7 +66,12 @@ protected:
 
 	bool AI_considerDOW(CvPlot* pPlot); // K-Mod
 	bool AI_considerPathDOW(CvPlot* pPlot, int iFlags); // K-Mod
-
+	// K-Mod
+	CvUnit* AI_findTransport(UnitAITypes eUnitAI, int iFlags = 0,
+			int iMaxPath = MAX_INT, UnitAITypes eTransportedUnitAI = NO_UNITAI,
+			int iMinCargo = -1, int iMinCargoSpace = -1, int iMaxCargoSpace = -1,
+			int iMaxCargoOurUnitAI = -1);
+	// K-Mod end
 	void AI_animalMove();
 	void AI_settleMove();
 	void AI_workerMove();
@@ -163,12 +163,14 @@ protected:
 	bool AI_lead(std::vector<UnitAITypes>& aeAIUnitTypes);
 	bool AI_join(int iMaxCount = MAX_INT);
 	bool AI_construct(int iMaxCount = MAX_INT, int iMaxSingleBuildingCount = MAX_INT, int iThreshold = 15);
-	bool AI_switchHurry();
-	bool AI_hurry();
+	/*bool AI_switchHurry(); // advc.003j
+	bool AI_hurry();*/
 	//bool AI_greatWork(); // disabled by K-Mod
 	bool AI_offensiveAirlift();
 	bool AI_paradrop(int iRange);
+	#if 0 // advc.003: unused
 	bool AI_protect(int iOddsThreshold, int iFlags = 0, int iMaxPathTurns = MAX_INT);
+	#endif
 	bool AI_patrol();
 	bool AI_defend();
 	bool AI_safety();
@@ -195,7 +197,7 @@ protected:
 	bool AI_leaveAttack(int iRange, int iThreshold, int iStrengthThreshold);
 	bool AI_defensiveCollateral(int iThreshold, int iSearchRange); // K-Mod
 	bool AI_evacuateCity(); // advc.139
-	bool AI_defendTeritory(int iThreshold, int iFlags, int iMaxPathTurns, bool bLocal = false); // K-Mod
+	bool AI_defendTerritory(int iThreshold, int iFlags, int iMaxPathTurns, bool bLocal = false); // K-Mod
 	bool AI_stackVsStack(int iSearchRange, int iAttackThreshold, int iRiskThreshold, int iFlags); // K-Mod
 	bool AI_blockade();
 	bool AI_pirateBlockade();
@@ -307,7 +309,7 @@ protected:
 	int AI_pillageValue(CvPlot* pPlot, int iBonusValueThreshold = 0);
 	//int AI_nukeValue(CvCity* pCity);
 	int AI_nukeValue(CvPlot* pCenterPlot, int iSearchRange, CvPlot*& pBestTarget, int iCivilianTargetWeight = 50) const; // K-Mod
-	bool AI_canPillage(CvPlot& kPlot) const;
+	//bool AI_canPillage(CvPlot& kPlot) const; // advc.003j
 
 	int AI_searchRange(int iRange);
 	bool AI_plotValid(CvPlot* pPlot);
@@ -340,7 +342,7 @@ protected:
 
 	bool AI_canGroupWithAIType(UnitAITypes eUnitAI) const;
 	bool AI_allowGroup(const CvUnit* pUnit, UnitAITypes eUnitAI) const;
-	bool moveSettlerToCoast(int iMaxPathTurns = 5); // advc.040
+	bool AI_moveSettlerToCoast(int iMaxPathTurns = 5); // advc.040
 
 	// added so under cheat mode we can call protected functions for testing
 	friend class CvGameTextMgr;

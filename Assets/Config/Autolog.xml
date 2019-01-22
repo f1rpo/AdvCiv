@@ -75,8 +75,9 @@
 					get="isShowIBT" set="setShowIBT" 
 					label="Show IBT" 
 					help="When checked, the logger inserts IBT (in between turns) at the end of the player's turn."/>
+			<!-- advc.004: Colon added to default string -->
 			<option id="Prefix" key="Prefix" 
-					type="string" default="Player Comment" 
+					type="string" default="Player comment:" 
 					get="getPrefix" set="setPrefix" 
 					label="Prefix" 
 					help="Used as a prefix before user entries in the log [use ALT + E], e.g. your nick."/>
@@ -109,8 +110,9 @@
 					get="isLogImprovements" set="setLogImprovements" 
 					label="Improvements" 
 					help="When checked, will log when your improvements are built or destroyed by you."/>
+			<!-- advc.004: default was True. Too noisy. -->
 			<option id="LogSliders" key="Sliders" 
-					type="boolean" default="True" and="LoggingOn" 
+					type="boolean" default="False" and="LoggingOn" 
 					get="isLogSliders" set="setLogSliders" 
 					label="Sliders" 
 					help="When checked, will log the sliders each turn."/>

@@ -207,7 +207,9 @@ class StatusDumpEvent(AbstractStatusDumpEvent):
 			return str(zyear) + BugUtil.getPlainText("TXT_KEY_AUTOLOG_AD")
 
 	def _getGameTurn(self):
-		zcurrturn = gc.getGame().getElapsedGameTurns() + 1 + BugAutolog.get4000BCTurn()
+		#zcurrturn = gc.getGame().getElapsedGameTurns() + 1 + BugAutolog.get4000BCTurn()
+		# advc.004: Not sure why +1
+		zcurrturn = gc.getGame.getGameTurn() + 1
 		zmaxturn = gc.getGame().getMaxTurns()
 		if (zmaxturn == 0):
 			return "%i" % (zcurrturn)

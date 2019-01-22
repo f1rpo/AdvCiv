@@ -77,8 +77,8 @@ class CvMap
 
 public:
 
-	DllExport CvMap();
-	DllExport virtual ~CvMap();
+	CvMap();
+	virtual ~CvMap();
 
 	DllExport void init(CvMapInitData* pInitData=NULL);
 	DllExport void setupGraphical();
@@ -89,7 +89,7 @@ protected:
 	void uninit();
 	void setup();
 
-public:
+public: // advc.003: const added to several functions
 
 	DllExport void erasePlots();																			// Exposed to Python
 	void setRevealedPlots(TeamTypes eTeam, bool bNewValue, bool bTerrainOnly = false);		// Exposed to Python
@@ -101,7 +101,7 @@ public:
 	DllExport void updateFlagSymbols();
 
 	DllExport void updateFog();
-	DllExport void updateVisibility();																// Exposed to Python
+	void updateVisibility();																// Exposed to Python
 	DllExport void updateSymbolVisibility();
 	void updateSymbols();
 	DllExport void updateMinimapColor();															// Exposed to Python
@@ -117,8 +117,7 @@ public:
 	void combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvPlotGroup* pPlotGroup2);	
 
 	CvPlot* syncRandPlot(int iFlags = 0, int iArea = -1, int iMinUnitDistance = -1, int iTimeout = 100, // Exposed to Python 
-			// advc.304:
-			int* iLegal = NULL);
+			int* iLegal = NULL); // advc.304
 
 	DllExport CvCity* findCity(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, TeamTypes eTeam = NO_TEAM, bool bSameArea = true, bool bCoastalOnly = false, TeamTypes eTeamAtWarWith = NO_TEAM, DirectionTypes eDirection = NO_DIRECTION, CvCity* pSkipCity = NULL) {	// Exposed to Python
 		// <advc.004r>
@@ -127,13 +126,13 @@ public:
 	}
 	CvCity* findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam,
 			bool bSameArea, bool bCoastalOnly, TeamTypes eTeamAtWarWith,
-			DirectionTypes eDirection, CvCity* pSkipCity, TeamTypes observer);
+			DirectionTypes eDirection, CvCity* pSkipCity, TeamTypes observer) const;
 	// </advc.004r>
-	DllExport CvSelectionGroup* findSelectionGroup(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, bool bReadyToSelect = false, bool bWorkers = false);				// Exposed to Python
+	CvSelectionGroup* findSelectionGroup(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, bool bReadyToSelect = false, bool bWorkers = false) const;				// Exposed to Python
 
 	CvArea* findBiggestArea(bool bWater);																						// Exposed to Python
 
-	int getMapFractalFlags();																												// Exposed to Python
+	int getMapFractalFlags() const;																												// Exposed to Python
 	bool findWater(CvPlot* pPlot, int iRange, bool bFreshWater);										// Exposed to Python
 
 	DllExport bool isPlot(int iX, int iY) const;																		// Exposed to Python
@@ -150,7 +149,7 @@ public:
 		return getGridWidthINLINE() * getGridHeightINLINE();
 	}
 #endif
-	DllExport int plotNum(int iX, int iY) const;																		// Exposed to Python
+	int plotNum(int iX, int iY) const;																		// Exposed to Python
 #ifdef _USRDLL
 	inline int plotNumINLINE(int iX, int iY) const
 	{
@@ -160,18 +159,18 @@ public:
 	int plotX(int iIndex) const;																										// Exposed to Python
 	int plotY(int iIndex) const;																										// Exposed to Python
 
-	DllExport int pointXToPlotX(float fX);
+	int pointXToPlotX(float fX);
 	DllExport float plotXToPointX(int iX);
 
-	DllExport int pointYToPlotY(float fY);
+	int pointYToPlotY(float fY);
 	DllExport float plotYToPointY(int iY);
+	
+	float getWidthCoords() const;
+	float getHeightCoords() const;
 
-	float getWidthCoords();
-	float getHeightCoords();
-
-	int maxPlotDistance();																								// Exposed to Python
-	int maxStepDistance();																								// Exposed to Python
-	int maxMaintenanceDistance(); // advc.140
+	int maxPlotDistance() const;																								// Exposed to Python
+	int maxStepDistance() const;																								// Exposed to Python
+	int maxMaintenanceDistance() const; // advc.140
 
 	DllExport int getGridWidth() const;																		// Exposed to Python
 #ifdef _USRDLL
@@ -187,16 +186,16 @@ public:
 		return m_iGridHeight;
 	}
 #endif
-	DllExport int getLandPlots();																					// Exposed to Python
+	int getLandPlots() const;																					// Exposed to Python
 	void changeLandPlots(int iChange);
 
-	DllExport int getOwnedPlots();																				// Exposed to Python
+	int getOwnedPlots() const;																				// Exposed to Python
 	void changeOwnedPlots(int iChange);
 
-	int getTopLatitude();																									// Exposed to Python
-	int getBottomLatitude();																							// Exposed to Python
+	int getTopLatitude() const;																									// Exposed to Python
+	int getBottomLatitude() const;																							// Exposed to Python
 
-	int getNextRiverID();																									// Exposed to Python
+	int getNextRiverID() const;																									// Exposed to Python
 	void incrementNextRiverID();																					// Exposed to Python
 
 	DllExport bool isWrapX();																							// Exposed to Python
@@ -220,17 +219,21 @@ public:
 		return m_bWrapX || m_bWrapY;
 	}
 #endif
-	DllExport WorldSizeTypes getWorldSize();															// Exposed to Python
-	DllExport ClimateTypes getClimate();																	// Exposed to Python
-	DllExport SeaLevelTypes getSeaLevel();																// Exposed to Python
+	DllExport WorldSizeTypes getWorldSize() {															// Exposed to Python
+		// <advc.003> const replacement
+			return worldSize();
+	}
+	WorldSizeTypes worldSize() const; // </advc.003>
+	ClimateTypes getClimate() const;																	// Exposed to Python
+	SeaLevelTypes getSeaLevel() const;																// Exposed to Python
 
-	DllExport int getNumCustomMapOptions();
+	int getNumCustomMapOptions() const;
 	DllExport CustomMapOptionTypes getCustomMapOption(int iOption);				// Exposed to Python
 
-	int getNumBonuses(BonusTypes eIndex);																	// Exposed to Python
+	int getNumBonuses(BonusTypes eIndex) const;																	// Exposed to Python
 	void changeNumBonuses(BonusTypes eIndex, int iChange);
 
-	int getNumBonusesOnLand(BonusTypes eIndex);														// Exposed to Python
+	int getNumBonusesOnLand(BonusTypes eIndex) const;														// Exposed to Python
 	void changeNumBonusesOnLand(BonusTypes eIndex, int iChange);
 
 	DllExport CvPlot* plotByIndex(int iIndex) const;											// Exposed to Python
@@ -263,20 +266,21 @@ public:
 #endif
 	DllExport CvPlot* pointToPlot(float fX, float fY);
 
-	int getIndexAfterLastArea();														// Exposed to Python
-	DllExport int getNumAreas();														// Exposed to Python
-	DllExport int getNumLandAreas();
-	CvArea* getArea(int iID);																// Exposed to Python
+	int getIndexAfterLastArea() const;														// Exposed to Python
+	int getNumAreas() const;																	// Exposed to Python
+	int getNumLandAreas() const;
+	CvArea* getArea(int iID) const;																// Exposed to Python
 	CvArea* addArea();
 	void deleteArea(int iID);
 	// iteration
-	CvArea* firstArea(int *pIterIdx, bool bRev=false);								// Exposed to Python
+	CvArea* firstArea(int *pIterIdx, bool bRev=false);									// Exposed to Python
 	CvArea* nextArea(int *pIterIdx, bool bRev=false);									// Exposed to Python
 
 	void recalculateAreas();																		// Exposed to Python
 
 	void resetPathDistance();																		// Exposed to Python
-	int calculatePathDistance(CvPlot *pSource, CvPlot *pDest);	// Exposed to Python
+		// advc.003: 3x const
+	int calculatePathDistance(CvPlot const* pSource, CvPlot const* pDest) const;					// Exposed to Python
 
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      08/21/09                                jdog5000      */
@@ -292,8 +296,8 @@ public:
 /************************************************************************************************/
 
 	// Serialization:
-	DllExport virtual void read(FDataStreamBase* pStream);
-	DllExport virtual void write(FDataStreamBase* pStream);
+	virtual void read(FDataStreamBase* pStream);
+	virtual void write(FDataStreamBase* pStream);
 
 	void rebuild(int iGridW, int iGridH, int iTopLatitude, int iBottomLatitude, bool bWrapX, bool bWrapY, WorldSizeTypes eWorldSize, ClimateTypes eClimate, SeaLevelTypes eSeaLevel, int iNumCustomMapOptions, CustomMapOptionTypes * eCustomMapOptions);		// Exposed to Python
 
@@ -329,8 +333,7 @@ public:
 private:
 	std::map<Shelf::Id,Shelf*> shelves;
 	// </advc.300>
-	// advc.030:
-	void calculateAreas_visit(CvPlot const& p);
+	void calculateAreas_DFS(CvPlot const& p); // advc.030
 };
 
 #endif

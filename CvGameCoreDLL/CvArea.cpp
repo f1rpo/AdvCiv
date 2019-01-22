@@ -191,14 +191,14 @@ void CvArea::reset(int iID, bool bWater, bool bConstructorCall)
 
 	if (!bConstructorCall)
 	{
-		FAssertMsg((0 < GC.getNumBonusInfos()) && "GC.getNumBonusInfos() is not greater than zero but an array is being allocated in CvArea::reset", "GC.getNumBonusInfos() is not greater than zero but an array is being allocated in CvArea::reset");
+		FAssertMsg(0 < GC.getNumBonusInfos(), "GC.getNumBonusInfos() is negative but an array is being allocated in CvArea::reset");
 		m_paiNumBonuses = new int[GC.getNumBonusInfos()];
 		for (iI = 0; iI < GC.getNumBonusInfos(); iI++)
 		{
 			m_paiNumBonuses[iI] = 0;
 		}
 
-		FAssertMsg((0 < GC.getNumImprovementInfos()) && "GC.getNumImprovementInfos() is not greater than zero but an array is being allocated in CvArea::reset", "GC.getNumImprovementInfos() is not greater than zero but an array is being allocated in CvArea::reset");
+		FAssertMsg(0 < GC.getNumImprovementInfos(), "GC.getNumImprovementInfos() is negative but an array is being allocated in CvArea::reset");
 		m_paiNumImprovements = new int[GC.getNumImprovementInfos()];
 		for (iI = 0; iI < GC.getNumImprovementInfos(); iI++)
 		{
@@ -217,15 +217,11 @@ void CvArea::setID(int iID)
 
 int CvArea::calculateTotalBestNatureYield() const
 {
-	CvPlot* pLoopPlot;
-	int iCount;
-	int iI;
+	int iCount = 0;
 
-	iCount = 0;
-
-	for (iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
+	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 	{
-		pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
 
 		if (pLoopPlot->getArea() == getID())
 		{
@@ -239,20 +235,16 @@ int CvArea::calculateTotalBestNatureYield() const
 
 int CvArea::countCoastalLand() const
 {
-	CvPlot* pLoopPlot;
-	int iCount;
-	int iI;
-
 	if (isWater())
 	{
 		return 0;
 	}
 
-	iCount = 0;
+	int iCount = 0;
 
-	for (iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
+	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 	{
-		pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
 
 		if (pLoopPlot->getArea() == getID())
 		{
@@ -411,20 +403,18 @@ bool CvArea::canBeEntered(CvArea const& from, CvUnit const* u) const {
 
 void CvArea::changeNumTiles(int iChange)
 {
-	bool bOldLake;
+	if(iChange == 0)
+		return;
 
-	if (iChange != 0)
+	bool bOldLake = isLake();
+
+	m_iNumTiles = (m_iNumTiles + iChange);
+	FAssert(getNumTiles() >= 0);
+
+	if (bOldLake != isLake())
 	{
-		bOldLake = isLake();
-
-		m_iNumTiles = (m_iNumTiles + iChange);
-		FAssert(getNumTiles() >= 0);
-
-		if (bOldLake != isLake())
-		{
-			GC.getMapINLINE().updateIrrigated();
-			GC.getMapINLINE().updateYield();
-		}
+		GC.getMapINLINE().updateIrrigated();
+		GC.getMapINLINE().updateYield();
 	}
 }
 
@@ -783,26 +773,24 @@ bool CvArea::isCleanPower(TeamTypes eIndex) const
 
 void CvArea::changeCleanPowerCount(TeamTypes eIndex, int iChange)
 {
-	bool bOldCleanPower;
-
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be >= 0");
 	FAssertMsg(eIndex < MAX_TEAMS, "eIndex is expected to be < MAX_TEAMS");
 
-	if (iChange != 0)
+	if(iChange == 0)
+		return;
+
+	bool bOldCleanPower = isCleanPower(eIndex);
+
+	m_aiCleanPowerCount[eIndex] = (m_aiCleanPowerCount[eIndex] + iChange);
+
+	if (bOldCleanPower != isCleanPower(eIndex))
 	{
-		bOldCleanPower = isCleanPower(eIndex);
+		GET_TEAM(eIndex).updateCommerce();
+		GET_TEAM(eIndex).updatePowerHealth();
 
-		m_aiCleanPowerCount[eIndex] = (m_aiCleanPowerCount[eIndex] + iChange);
-
-		if (bOldCleanPower != isCleanPower(eIndex))
+		if (eIndex == GC.getGameINLINE().getActiveTeam())
 		{
-			GET_TEAM(eIndex).updateCommerce();
-			GET_TEAM(eIndex).updatePowerHealth();
-
-			if (eIndex == GC.getGameINLINE().getActiveTeam())
-			{
-				gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
-			}
+			gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
 		}
 	}
 }

@@ -32,8 +32,8 @@ class CvInitCore
 {
 
 public:
-	DllExport CvInitCore();
-	DllExport virtual ~CvInitCore();
+	CvInitCore();
+	virtual ~CvInitCore();
 
 	DllExport void init(GameMode eMode);
 
@@ -52,7 +52,7 @@ public:
 	// Applications of data
 	// **************************
 	DllExport bool getHuman(PlayerTypes eID) const;
-	DllExport int getNumHumans() const;
+	int getNumHumans() const;
 
 	DllExport int getNumDefinedPlayers() const;
 
@@ -82,111 +82,111 @@ public:
 	// **************************
 	// Member access
 	// **************************
-	DllExport const CvWString & getGameName() const	{ return m_szGameName; }
+	const CvWString & getGameName() const	{ return m_szGameName; }
 	DllExport void setGameName(const CvWString & szGameName)	{ m_szGameName = szGameName; }
 
-	DllExport const CvWString & getGamePassword() const	{ return m_szGamePassword; }
+	const CvWString & getGamePassword() const	{ return m_szGamePassword; }
 	DllExport void setGamePassword(const CvWString & szGamePassword)	{ m_szGamePassword = szGamePassword; }
 
-	DllExport const CvWString & getAdminPassword() const	{ return m_szAdminPassword; }
+	const CvWString & getAdminPassword() const	{ return m_szAdminPassword; }
 	DllExport void setAdminPassword(const CvWString & szAdminPassword, bool bEncrypt = true);
 
 	DllExport CvWString getMapScriptName() const;		
 	DllExport void setMapScriptName(const CvWString & szMapScriptName);
 	DllExport bool getWBMapScript() const;
 
-	DllExport bool getWBMapNoPlayers() const { return m_bWBMapNoPlayers; }
-	DllExport void setWBMapNoPlayers(bool bValue)	{ m_bWBMapNoPlayers = bValue; }
+	bool getWBMapNoPlayers() const { return m_bWBMapNoPlayers; }
+	void setWBMapNoPlayers(bool bValue)	{ m_bWBMapNoPlayers = bValue; }
 
 	DllExport WorldSizeTypes getWorldSize() const	{ return m_eWorldSize; }
-	DllExport void setWorldSize(WorldSizeTypes eWorldSize)	{ m_eWorldSize = eWorldSize; }
+	void setWorldSize(WorldSizeTypes eWorldSize)	{ m_eWorldSize = eWorldSize; }
 	DllExport void setWorldSize(const CvWString & szWorldSize);
 	DllExport const CvWString & getWorldSizeKey(CvWString & szBuffer) const;
 
-	DllExport ClimateTypes getClimate() const	{ return m_eClimate; }
-	DllExport void setClimate(ClimateTypes eClimate)	{ m_eClimate = eClimate; }
+	ClimateTypes getClimate() const	{ return m_eClimate; }
+	void setClimate(ClimateTypes eClimate)	{ m_eClimate = eClimate; }
 	DllExport void setClimate(const CvWString & szClimate);
 	DllExport const CvWString & getClimateKey(CvWString & szBuffer) const;
 
 	DllExport SeaLevelTypes getSeaLevel() const	{ return m_eSeaLevel; }
-	DllExport void setSeaLevel(SeaLevelTypes eSeaLevel)	{ m_eSeaLevel = eSeaLevel; }
+	void setSeaLevel(SeaLevelTypes eSeaLevel)	{ m_eSeaLevel = eSeaLevel; }
 	DllExport void setSeaLevel(const CvWString & szSeaLevel);
 	DllExport const CvWString & getSeaLevelKey(CvWString & szBuffer) const;
 
-	DllExport EraTypes getEra() const	{ return m_eEra; }
-	DllExport void setEra(EraTypes eEra)	{ m_eEra = eEra; }
+	EraTypes getEra() const	{ return m_eEra; }
+	void setEra(EraTypes eEra)	{ m_eEra = eEra; }
 	DllExport void setEra(const CvWString & szEra);
 	DllExport const CvWString & getEraKey(CvWString & szBuffer) const;
 
-	DllExport GameSpeedTypes getGameSpeed() const	{ return m_eGameSpeed; }
-	DllExport void setGameSpeed(GameSpeedTypes eGameSpeed)	{ m_eGameSpeed = eGameSpeed; }
+	GameSpeedTypes getGameSpeed() const	{ return m_eGameSpeed; }
+	void setGameSpeed(GameSpeedTypes eGameSpeed)	{ m_eGameSpeed = eGameSpeed; }
 	DllExport void setGameSpeed(const CvWString & szGameSpeed);
 	DllExport const CvWString & getGameSpeedKey(CvWString & szBuffer) const;
 
-	DllExport TurnTimerTypes getTurnTimer() const	{ return m_eTurnTimer; }
-	DllExport void setTurnTimer(TurnTimerTypes eTurnTimer)	{ m_eTurnTimer = eTurnTimer; }
-	DllExport void setTurnTimer(const CvWString & szTurnTimer);
-	DllExport const CvWString & getTurnTimerKey(CvWString & szBuffer) const;
+	TurnTimerTypes getTurnTimer() const	{ return m_eTurnTimer; }
+	void setTurnTimer(TurnTimerTypes eTurnTimer)	{ m_eTurnTimer = eTurnTimer; }
+	void setTurnTimer(const CvWString & szTurnTimer);
+	const CvWString & getTurnTimerKey(CvWString & szBuffer) const;
 
-	DllExport CalendarTypes getCalendar() const	{ return m_eCalendar; }
-	DllExport void setCalendar(CalendarTypes eCalendar)	{ m_eCalendar = eCalendar; }
-	DllExport void setCalendar(const CvWString & szCalendar);
-	DllExport const CvWString & getCalendarKey(CvWString & szBuffer) const;
+	CalendarTypes getCalendar() const	{ return m_eCalendar; }
+	void setCalendar(CalendarTypes eCalendar)	{ m_eCalendar = eCalendar; }
+	void setCalendar(const CvWString & szCalendar);
+	const CvWString & getCalendarKey(CvWString & szBuffer) const;
 
 
-	DllExport int getNumCustomMapOptions() const	{ return m_iNumCustomMapOptions; }
-	DllExport int getNumHiddenCustomMapOptions() const	{ return m_iNumHiddenCustomMapOptions; }
+	int getNumCustomMapOptions() const	{ return m_iNumCustomMapOptions; }
+	int getNumHiddenCustomMapOptions() const	{ return m_iNumHiddenCustomMapOptions; }
 
-	DllExport const CustomMapOptionTypes * getCustomMapOptions() const	{ return m_aeCustomMapOptions; }
+	const CustomMapOptionTypes * getCustomMapOptions() const	{ return m_aeCustomMapOptions; }
 	DllExport void setCustomMapOptions(int iNumCustomMapOptions, const CustomMapOptionTypes * aeCustomMapOptions);
 
 	DllExport CustomMapOptionTypes getCustomMapOption(int iOptionID) const;
 	DllExport void setCustomMapOption(int iOptionID, CustomMapOptionTypes eCustomMapOption);
 
 
-	DllExport int getNumVictories() const	{ return m_iNumVictories; }
+	int getNumVictories() const	{ return m_iNumVictories; }
 
-	DllExport const bool * getVictories() const	{ return m_abVictories; }
+	const bool * getVictories() const	{ return m_abVictories; }
 	DllExport void setVictories(int iNumVictories, const bool * abVictories);
 
 	DllExport bool getVictory(VictoryTypes eVictoryID) const;
 	DllExport void setVictory(VictoryTypes eVictoryID, bool bVictory);
 
 
-	DllExport const bool * getOptions() const	{ return m_abOptions; }
+	const bool * getOptions() const	{ return m_abOptions; }
 	DllExport bool getOption(GameOptionTypes eIndex) const;
 	DllExport void setOption(GameOptionTypes eIndex, bool bOption);
 
-	DllExport const bool * getMPOptions() const	{ return m_abMPOptions; }
+	const bool * getMPOptions() const	{ return m_abMPOptions; }
 	DllExport bool getMPOption(MultiplayerOptionTypes eIndex) const;
 	DllExport void setMPOption(MultiplayerOptionTypes eIndex, bool bMPOption);
 
-	DllExport bool getStatReporting() const	{ return m_bStatReporting; }
-	DllExport void setStatReporting(bool bStatReporting)	{ m_bStatReporting = bStatReporting; }
+	bool getStatReporting() const	{ return m_bStatReporting; }
+	void setStatReporting(bool bStatReporting)	{ m_bStatReporting = bStatReporting; }
 
-	DllExport const bool * getForceControls() const	{ return m_abForceControls; }
+	const bool * getForceControls() const	{ return m_abForceControls; }
 	DllExport bool getForceControl(ForceControlTypes eIndex) const;
 	DllExport void setForceControl(ForceControlTypes eIndex, bool bForceControl);
 
 
-	DllExport int getGameTurn() const	{ return m_iGameTurn; }
-	DllExport void setGameTurn(int iGameTurn)	{ m_iGameTurn = iGameTurn; }
+	int getGameTurn() const	{ return m_iGameTurn; }
+	void setGameTurn(int iGameTurn)	{ m_iGameTurn = iGameTurn; }
 
-	DllExport int getMaxTurns() const	{ return m_iMaxTurns; }
-	DllExport void setMaxTurns(int iMaxTurns)	{ m_iMaxTurns = iMaxTurns; }
+	int getMaxTurns() const	{ return m_iMaxTurns; }
+	void setMaxTurns(int iMaxTurns)	{ m_iMaxTurns = iMaxTurns; }
 
 	DllExport int getPitbossTurnTime() const	{ return m_iPitbossTurnTime; }
 	DllExport void setPitbossTurnTime(int iPitbossTurnTime)	{ m_iPitbossTurnTime = iPitbossTurnTime; }
 
-	DllExport int getTargetScore() const	{ return m_iTargetScore; }
-	DllExport void setTargetScore(int iTargetScore)	{ m_iTargetScore = iTargetScore; }
+	int getTargetScore() const	{ return m_iTargetScore; }
+	void setTargetScore(int iTargetScore)	{ m_iTargetScore = iTargetScore; }
 
 
-	DllExport int getMaxCityElimination() const	{ return m_iMaxCityElimination; }
-	DllExport void setMaxCityElimination(int iMaxCityElimination)	{ m_iMaxCityElimination = iMaxCityElimination; }
+	int getMaxCityElimination() const	{ return m_iMaxCityElimination; }
+	void setMaxCityElimination(int iMaxCityElimination)	{ m_iMaxCityElimination = iMaxCityElimination; }
 
-	DllExport int getNumAdvancedStartPoints() const	{ return m_iNumAdvancedStartPoints; }
-	DllExport void setNumAdvancedStartPoints(int iNumPoints)	{ m_iNumAdvancedStartPoints = iNumPoints; }
+	int getNumAdvancedStartPoints() const	{ return m_iNumAdvancedStartPoints; }
+	void setNumAdvancedStartPoints(int iNumPoints)	{ m_iNumAdvancedStartPoints = iNumPoints; }
 	int getAdvancedStartMinPoints() const; // advc.250c
 
 	DllExport unsigned int getSyncRandSeed() const	{ return m_uiSyncRandSeed; }
@@ -203,7 +203,7 @@ public:
 	DllExport void setType(const CvWString & szType);
 	bool isScenario() const; // advc.030
 
-	DllExport GameMode getMode() const	{ return m_eMode; }
+	GameMode getMode() const	{ return m_eMode; }
 	DllExport void setMode(GameMode eMode);
 
 
@@ -286,8 +286,8 @@ public:
 									
 	DllExport void resetAdvancedStartPoints();
 
-	DllExport virtual void read(FDataStreamBase* pStream);
-	DllExport virtual void write(FDataStreamBase* pStream);
+	virtual void read(FDataStreamBase* pStream);
+	virtual void write(FDataStreamBase* pStream);
 
 protected:
 

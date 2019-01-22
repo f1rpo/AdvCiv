@@ -180,7 +180,9 @@ void CvArtFileMgr::DeInit()
 //
 //----------------------------------------------------------------------------
 void CvArtFileMgr::Reset()
-{
+{	// <advc.007b> Reloading Art Defines (Ctrl+Alt+R) is broken; would crash.
+	if(GC.IsGraphicsInitialized())
+		return; // </advc.007b>
 	DeInit();		// Cleans Art Defines
 	CvXMLLoadUtility XMLLoadUtility;
 	XMLLoadUtility.SetGlobalArtDefines();		// Reloads/allocs Art Defines

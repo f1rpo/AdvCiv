@@ -9,12 +9,17 @@
 #include "CvDLLInterfaceIFaceBase.h"
 
 #include <psapi.h>
+/*  advc.mak: This fixes a linker error related to psapi. One can probably also
+	amend this through Visual Studio settings. I copied the line from here:
+	https://stackoverflow.com/questions/3151728/unresolved-external-symbols-in-compiling-32-bit-application-in-windows-64 */
+#pragma comment(lib, "psapi.lib")
 
 #ifdef MEMORY_TRACKING
 void	ProfileTrackAlloc(void* ptr);
 
 void	ProfileTrackDeAlloc(void* ptr);
-
+/*  advc.003j (comment): This isn't currently called. Also not called: DllMain,
+	EnableDetailedTrace, ProfileTrackAlloc and ProfileTrackDeAlloc. */
 void DumpMemUsage(const char* fn, int line)
 {
 	PROCESS_MEMORY_COUNTERS pmc;
@@ -52,7 +57,7 @@ void *__cdecl operator new(size_t size)
 
 			PROFILE_TRACK_ALLOC(result);
 		}
-		catch(std::exception ex)
+		catch(std::exception const&) // advc.003: Better to catch it by reference
 		{
 			OutputDebugString("Allocation failure\n");
 		}
@@ -583,7 +588,9 @@ CMemoryTrack::CMemoryTrack(const char* name, bool valid)
 	m_highWater = 0;
 	m_name = name;
 	m_valid = valid;
-
+	// <advc.003> Safer to initialize this
+	for(int i = 0; i < MAX_TRACKED_ALLOCS; i++)
+		m_track[i] = NULL; // </advc.003>
 	if ( m_trackStackDepth < MAX_TRACK_DEPTH )
 	{
 		trackStack[m_trackStackDepth++] = this;

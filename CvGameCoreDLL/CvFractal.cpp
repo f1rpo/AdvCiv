@@ -45,6 +45,7 @@ void CvFractal::reset()
 	m_iFlags = 0;
 	m_iFracX = -1;
 	m_iFracY = -1;
+	m_iXInc = m_iYInc = -1; // advc.003: Risky not to initialize these
 }
 
 void CvFractal::fracInit(int iNewXs, int iNewYs, int iGrain, CvRandom& random, int iFlags, CvFractal* pRifts, int iFracXExp/*=7*/, int iFracYExp/*=6*/)
@@ -67,10 +68,7 @@ void CvFractal::fracInitHinted(int iNewXs, int iNewYs, int iGrain, CvRandom& ran
 void CvFractal::fracInitInternal(int iNewXs, int iNewYs, int iGrain, CvRandom& random, byte* pbyHints, int iHintsLength, int iFlags, CvFractal* pRifts, int iFracXExp, int iFracYExp)
 {
 	PROFILE("CvFractal::fracInit()");
-	int iSmooth;
-	int iScreen;  // This screens out already marked spots in m_aaiFrac[][];
-	int iPass;
-	int iSum;
+
 	int iX, iY;
 	int iI;
 
@@ -108,7 +106,7 @@ void CvFractal::fracInitInternal(int iNewXs, int iNewYs, int iGrain, CvRandom& r
 	m_iYInc = ((m_iFracY * FLOAT_PRECISION) / m_iYs);
 
 	int iMinExp = std::min(m_iFracXExp, m_iFracYExp);
-	iSmooth = range(iMinExp - iGrain, 0, iMinExp);
+	int iSmooth = range(iMinExp - iGrain, 0, iMinExp);
 
 	int iHintsWidth = (1 << (m_iFracXExp - iSmooth)) + ((m_iFlags & FRAC_WRAP_X) ? 0 : 1);
 	int iHintsHeight = (1 << (m_iFracYExp - iSmooth)) + ((m_iFlags & FRAC_WRAP_Y) ? 0 : 1);
@@ -117,9 +115,9 @@ void CvFractal::fracInitInternal(int iNewXs, int iNewYs, int iGrain, CvRandom& r
 		FAssertMsg(iHintsLength == iHintsWidth*iHintsHeight, "pbyHints is the wrong size!")
 	}
 
-	for (iPass = iSmooth; iPass >= 0; iPass--)
+	for (int iPass = iSmooth; iPass >= 0; iPass--)
 	{
-		iScreen = 0;
+		int iScreen = 0;  // This screens out already marked spots in m_aaiFrac[][];
 
 		for (iI = 0; iI <= iPass; iI++)
 		{
@@ -207,7 +205,7 @@ void CvFractal::fracInitInternal(int iNewXs, int iNewYs, int iGrain, CvRandom& r
 				}
 				else  // Interpolate
 				{
-					iSum = 0;
+					int iSum = 0;
 					if ((iX << iPass) & iScreen)
 					{
 						if ((iY << iPass) & iScreen)  // (center)
@@ -275,30 +273,22 @@ void CvFractal::fracInitInternal(int iNewXs, int iNewYs, int iGrain, CvRandom& r
 
 int CvFractal::getHeight(int iX, int iY)
 {
-	int iErrX;
-	int iErrY;
-	int iSum;
-	int iHeight;
-	int iLowX;
-	int iLowY;
-	int iI;
-
 	FAssertMsg(0 <= iX && iX < m_iXs, "iX out of range");
 	FAssertMsg(0 <= iY && iY < m_iYs, "iY out of range");
-	iLowX = ((m_iXInc * iX) / FLOAT_PRECISION);
+	int iLowX = ((m_iXInc * iX) / FLOAT_PRECISION);
 	if (iLowX > m_iFracX - 1)
 	{
 		iLowX = m_iFracX - 1;	// clamp so that iLowX+1 doesn't overrun array
 	}
-	iLowY = ((m_iYInc * iY) / FLOAT_PRECISION);
+	int iLowY = ((m_iYInc * iY) / FLOAT_PRECISION);
 	if (iLowY > m_iFracY - 1)
 	{
 		iLowY = m_iFracY - 1;	// clamp so that iLowY+1 doesn't overrun array
 	}
-	iErrX = ((m_iXInc * iX) - (iLowX * FLOAT_PRECISION));
-	iErrY = ((m_iYInc * iY) - (iLowY * FLOAT_PRECISION));
+	int iErrX = ((m_iXInc * iX) - (iLowX * FLOAT_PRECISION));
+	int iErrY = ((m_iYInc * iY) - (iLowY * FLOAT_PRECISION));
 
-	iSum = 0;
+	int iSum = 0;
 	iSum += ((FLOAT_PRECISION - iErrX) * (FLOAT_PRECISION - iErrY) * m_aaiFrac[iLowX    ][iLowY    ]);
 	iSum += ((                  iErrX) * (FLOAT_PRECISION - iErrY) * m_aaiFrac[iLowX + 1][iLowY    ]);
 	iSum += ((FLOAT_PRECISION - iErrX) * (                  iErrY) * m_aaiFrac[iLowX    ][iLowY + 1]);
@@ -306,11 +296,11 @@ int CvFractal::getHeight(int iX, int iY)
 
 	iSum /= (FLOAT_PRECISION * FLOAT_PRECISION);
 
-	iHeight = range(iSum, 0, 255);
+	int iHeight = range(iSum, 0, 255);
 
 	if (m_iFlags & FRAC_PERCENT)
 	{
-		iI = ((iHeight * 100) >> 8);
+		int iI = ((iHeight * 100) >> 8);
 
 		return iI;
 	}
@@ -369,32 +359,40 @@ int CvFractal::getHeightFromPercent(int iPercent)
 
 void CvFractal::tectonicAction(CvFractal* pRifts)  //  Assumes FRAC_WRAP_X is on.
 {
-	int iRift1x;
-	int iRift2x;
-	int iDeep;
-	int iWidth;
-	int iRx, iLx;
-	int iX, iY;
+	int iRift1x = (m_iFracX / 4);
+	int iRift2x = ((m_iFracX / 4) * 3);
 
-	iRift1x = (m_iFracX / 4);
-	iRift2x = ((m_iFracX / 4) * 3);
+	int const iWidth = 16;
 
-	iWidth = 16;
-
-	for (iY = 0; iY < m_iFracY + 1; iY++)
+	for (int iY = 0; iY < m_iFracY + 1; iY++)
 	{
-		for (iX = 0; iX < iWidth; iX++)
+		for (int iX = 0; iX < iWidth; iX++)
 		{
 			//  Rift along edge of map.
-			iDeep = 0;
-			iRx = yieldX (((((pRifts->m_aaiFrac[iRift2x][iY] - 128) * m_iFracX) / 128) / 8) + iX);
-			iLx = yieldX (((((pRifts->m_aaiFrac[iRift2x][iY] - 128) * m_iFracX) / 128) / 8) - iX);
-			m_aaiFrac[iRx][iY] = (((m_aaiFrac[iRx][iY] * iX) + iDeep * (iWidth - iX)) / iWidth);
-			m_aaiFrac[iLx][iY] = (((m_aaiFrac[iLx][iY] * iX) + iDeep * (iWidth - iX)) / iWidth);
+			int iRx = yieldX((
+					(((pRifts->m_aaiFrac[iRift2x][iY] - 128) * m_iFracX) / 128) / 8)
+					+ iX);
+			int iLx = yieldX((
+					/*  advc.001: Was iRift2x, and iRift1x was unused. I'm not sure
+						if it's correct now. The maps look as before to me. */
+					(((pRifts->m_aaiFrac[iRift1x][iY] - 128) * m_iFracX) / 128) / 8)
+					- iX);
+			// <advc.003> No functional change
+			int const iDeep = 0;
+			/*  This term was used in the two assignments below. I've called it iShift,
+				but I'm not sure what it's for. It's 0. A bug? */
+			int iShift = iDeep * (iWidth - iX);
+			// </advc.003>
+			m_aaiFrac[iRx][iY] = (((m_aaiFrac[iRx][iY] * iX) +
+					iShift)
+					/ iWidth);
+			m_aaiFrac[iLx][iY] = (((m_aaiFrac[iLx][iY] * iX) +
+					iShift)
+					/ iWidth);
 		}
 	}
 
-	for (iY = 0; iY < m_iFracY + 1; iY++)
+	for (int iY = 0; iY < m_iFracY + 1; iY++)
 	{
 		m_aaiFrac[m_iFracX][iY] = m_aaiFrac[0][iY];
 	}

@@ -31,8 +31,8 @@ private:
 	void rearrangeStartingPlots();
 	int minDist(CvPlot* p);
 	void updatePointsDisplayString();
-	int maxStartPoints();
-	double meanStartPoints();
+	/*int maxStartPoints(); // obsolete
+	double meanStartPoints();*/
 	static bool isLeftPtsLessThanRight(MajorCiv* left, MajorCiv* right);
 	static bool isLeftCloserThanRight(MajorCiv* left, MajorCiv* right);
 

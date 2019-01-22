@@ -27,7 +27,7 @@ public:
 	void AI_updateAssignWork();
 
 	//bool AI_avoidGrowth(); // disabled by K-Mod
-	bool AI_ignoreGrowth();
+	//bool AI_ignoreGrowth(); // advc.003j: K-Mod's replacement is also no longer used
 	//int AI_specialistValue(SpecialistTypes eSpecialist, bool bAvoidGrowth, bool bRemove, bool bIgnoreFood = false) const;
 	int AI_specialistValue(SpecialistTypes eSpecialist, bool bRemove, bool bIgnoreFood = false, int iGrowthValue = -1) const; // K-Mod
 	int AI_permanentSpecialistValue(SpecialistTypes eSpecialist) const; // K-Mod
@@ -105,7 +105,7 @@ public:
 
 	bool AI_isEmphasize(EmphasizeTypes eIndex) const;
 	void AI_setEmphasize(EmphasizeTypes eIndex, bool bNewValue);
-	void AI_forceEmphasizeCulture(bool bNewValue);
+	//void AI_forceEmphasizeCulture(bool bNewValue); // advc.003j
 
 	int AI_getBestBuildValue(int iIndex);
 	int AI_totalBestBuildValue(CvArea* pArea);
@@ -124,14 +124,13 @@ public:
 	BuildTypes AI_getBestBuild(int iIndex) const;
 	int AI_countBestBuilds(CvArea* pArea) const;
 	void AI_updateBestBuild();
+	int AI_countBonusesToClear(FeatureTypes eFeature) const; // advc.129
 
 	virtual int AI_cityValue() const;
 
 	int AI_calculateWaterWorldPercent();
 
 	int AI_getCityImportance(bool bEconomy, bool bMilitary);
-
-	int AI_calculateMilitaryOutput() const; // K-Mod
 
 	int AI_yieldMultiplier(YieldTypes eYield) const;
 	void AI_updateSpecialYieldMultiplier();
@@ -144,7 +143,9 @@ public:
 
 	int AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance);
 	int AI_highestTeamCloseness(TeamTypes eTeam); // K-Mod
-	bool AI_isFrontlineCity() const; // K-Mod
+	// advc.003j: Both unused
+	/*bool AI_isFrontlineCity() const; // K-Mod
+	int AI_calculateMilitaryOutput() const;*/ // K-Mod
 	int AI_cityThreat(bool bDangerPercent = false);
 
 	int AI_getWorkersHave();
@@ -169,7 +170,7 @@ protected:
 
 	int* m_aiEmphasizeYieldCount;
 	int* m_aiEmphasizeCommerceCount;
-	bool m_bForceEmphasizeCulture;
+	bool m_bForceEmphasizeCulture; // advc.003j (comment): unused
 
 	int m_aiBestBuildValue[NUM_CITY_PLOTS];
 
@@ -211,7 +212,7 @@ protected:
 	bool AI_chooseDefender();
 	bool AI_chooseLeastRepresentedUnit(UnitTypeWeightArray &allowedTypes, int iOdds = -1); // bbai added iOdds
 	bool AI_chooseBuilding(int iFocusFlags = 0, int iMaxTurns = MAX_INT, int iMinThreshold = 0, int iOdds = -1); // bbai added iOdds.
-	bool AI_chooseProject();
+	//bool AI_chooseProject(); // advc.003j
 	bool AI_chooseProcess(CommerceTypes eCommerceType = NO_COMMERCE);
 
 	bool AI_bestSpreadUnit(bool bMissionary, bool bExecutive, int iBaseChance, UnitTypes* eBestSpreadUnit, int* iBestSpreadUnitValue);

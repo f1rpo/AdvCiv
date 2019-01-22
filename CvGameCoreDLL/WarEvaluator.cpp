@@ -289,7 +289,6 @@ void WarEvaluator::fillWithAspects(vector<WarUtilityAspect*>& v) {
 
 void WarEvaluator::evaluate(PlayerTypes weId, vector<WarUtilityAspect*>& aspects) {
 
-	std::map<TeamTypes,WarPlanTypes> tmp;
 	MilitaryAnalyst m(weId, params, peaceScenario);
 	for(size_t i = 0; i < getWPAI.properCivs().size(); i++) {
 		PlayerTypes civId = getWPAI.properCivs()[i];

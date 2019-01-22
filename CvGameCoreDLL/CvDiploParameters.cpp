@@ -28,7 +28,13 @@ void CvDiploParameters::setWhoTalkingTo(PlayerTypes eWhoTalkingTo)
 }
 
 PlayerTypes CvDiploParameters::getWhoTalkingTo() const
-{
+{	/*  <advc.134a> When checking a peace offer, the EXE calls this function
+		shortly before an (erroneous) at-war check. Tell the recipient of the offer
+		to feign peace. */
+	CvTeam& kActiveTeam = GET_TEAM(GC.getGameINLINE().getActiveTeam());
+	if(kActiveTeam.isPeaceOfferStage(1, TEAMID(m_eWhoTalkingTo)))
+		kActiveTeam.advancePeaceOfferStage(TEAMID(m_eWhoTalkingTo));
+	// </advc.134a>
 	return m_eWhoTalkingTo;
 }
 
@@ -138,7 +144,8 @@ void CvDiploParameters::setRenegotiate(bool bValue)
 {
 	m_bRenegotiate = bValue;
 }
-
+/*  advc.003j (comment): m_bRenegotiate is never set, and while the EXE calls
+	getRenegotiate, it doesn't seem to matter if true or false is returned. */
 bool CvDiploParameters::getRenegotiate() const
 {
 	return m_bRenegotiate;

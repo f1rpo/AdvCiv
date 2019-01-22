@@ -21,11 +21,14 @@
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Vittorie conto i barbari garantite rimaste:[SPACE][COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Número de victorias garantizadas contra los bárbaros:[SPACE][COLOR_REVERT]</Spanish>
 	</TEXT>
+	<!-- advc.048: Minor changes in German to match 
+		 TXT_KEY_BUG_OPT_ACO__SHOWBASICINFO_LIST in
+		 Advanced Combat Odds Options.xml -->
 	<TEXT>
 		<Tag>TXT_ACO_PressSHIFT</Tag>
 		<English>[COLOR_HIGHLIGHT_TEXT]Press SHIFT for more detail[COLOR_REVERT]</English>
 		<French>[COLOR_HIGHLIGHT_TEXT]Pesez sur  MAJ pour plus de détails[COLOR_REVERT]</French>
-		<German>[COLOR_HIGHLIGHT_TEXT]&lt;Umschalt&gt; drücken für mehr Einzelheiten[COLOR_REVERT]</German>
+		<German>[COLOR_HIGHLIGHT_TEXT]&lt;Umschalt&gt; drücken für zus. Details[COLOR_REVERT]</German>
 		<Italian>[COLOR_HIGHLIGHT_TEXT]Tieni premuto SHIFT per maggiori dettagli[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_HIGHLIGHT_TEXT]Pulse SHIFT para más detalles[COLOR_REVERT]</Spanish>
 	</TEXT>
@@ -133,11 +136,13 @@
 		<Italian>[NEWLINE][COLOR_HIGHLIGHT_TEXT]Certa! I difensori non possono colpire neppure una volta.[COLOR_REVERT]</Italian>
 		<Spanish>[NEWLINE][COLOR_HIGHLIGHT_TEXT]¡Garantizado! El defensor no puede dar en el blanco.[COLOR_REVERT]</Spanish>
 	</TEXT>
+	
+	<!-- advc.048: German was "trifft". "hits" should be a noun here. -->
 	<TEXT>
 		<Tag>TXT_ACO_HitsAt</Tag>
 		<English>hits at</English>
 		<French>frappe &#224;</French>
-		<German>trifft</German>
+		<German>Treffer</German>
 		<Italian>colpisce a</Italian>
 		<Spanish>golpea a</Spanish>
 	</TEXT>

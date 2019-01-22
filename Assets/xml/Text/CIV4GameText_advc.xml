@@ -778,6 +778,63 @@
 		<Italian>Mostra i raggi d'azione delle citt&#224; selezionando un colono</Italian>
 		<Spanish>Para ver los radios urbanos al seleccionar a un colono</Spanish>
 	</TEXT>
+
+	<!-- advc.004g: Originally in CIV4GameText_BTS.xml. The wording was too
+		 clunky. -->
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_INSTANCE_COST_MOD</Tag>
+		<English>Cost increases by %d1%% with each %s2_UnitClassName in play</English>
+		<French>Chaque %s2_UnitClassName en jeu augmente le co&#251;t de %d1%%</French>
+		<German>Kosten steigen um %d1%% pro %s2_UnitClassName im Spiel</German>
+		<Italian>Ogni %s2_UnitClassName in gioco aumenta il costo di %d1%%</Italian>
+		<Spanish>Cada %s2_UnitClassName en juego aumenta el coste en un %d1%%</Spanish>
+	</TEXT>
+	
+	<!-- advc.004g: Originally in CIV4GameText_Misc1.xml. German translation
+		 was wrong ("Zeile"). -->
+	<TEXT>
+		<Tag>TXT_KEY_GLOBELAYER_STRATEGY_NEW_LINE</Tag>
+		<English>New line</English>
+		<French>Nouvelle ligne</French>
+		<German>Neue Linie</German>
+		<Italian>Nuova linea</Italian>
+		<Spanish>Nueva l&#237;nea</Spanish>
+	</TEXT>
+	
+	<!-- advc.004g: Originally in CIV4GameText_BTS.xml
+		 Was:
+		 "The unit disrupts the trade route so that no intercontinental trade
+		  can pass through the blockaded tile"
+		 Doesn't say that only enemy trade is affected. (For Privateers, all
+		 non-team civs are enemies, but I can't explain that here. Also doesn't
+		 say that Privateers plunder gold.) -->
+	<TEXT>
+		<Tag>TXT_KEY_MISSION_PLUNDER_HELP</Tag>
+		<English>Blocks enemy trade from passing through water tiles in the blockade range.</English>
+		<French>L'unit&#233; effectue le blocus de la case pour emp&#234;cher tout commerce intercontinental par cette route commerciale.</French>
+		<German>Unterbricht feindliche Seehandelswege innerhalb der Blockade-Reichweite.</German>
+		<Italian>L'unit&#224; interrompe la rotta commerciale in modo che nessuna rotta commerciale intercontinentale possa passare dalla casella bloccata.</Italian>
+		<Spanish>La unidad corta la ruta comercial para que ninguna operaci&#243;n de comercio intercontinental pueda atravesar la casilla bloqueada.</Spanish>
+	</TEXT>
+	
+	<!-- advc.004: German translation - "Neuer Random Seed" was just too
+		 awful. Originally in CIV4GameText_Misc1.xml. -->
+	<TEXT>
+		<Tag>TXT_KEY_GAME_OPTION_NEW_RANDOM_SEED_HELP</Tag>
+		<English>A new random seed is generated every time a savegame is loaded - which, for example, will lead to different combat results</English>
+		<French>Un nouveau classement al&#233;atoire est g&#233;n&#233;r&#233; chaque fois que le jeu est recharg&#233;, ce qui peut entra&#238;ner diff&#233;rents r&#233;sultats de combat, par exemple.</French>
+		<German>Beim Laden eines Spielstandes wird ein neuer Startwert für den Zufallszahlengenerator erzeugt, was zum Beispiel zu unterschiedlichen Kampfausg&#228;ngen f&#252;hren kann.</German>
+		<Italian>Ogni volta che ricaricherai il gioco verr&#224; generata una nuova estrazione casuale, portando, per esempio, a diversi risultati di combattimento.</Italian>
+		<Spanish>En cada partida se genera una nueva "seed" al azar que, por ejemplo, arrojar&#225; resultados diferentes en el combate.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_GAME_OPTION_NEW_RANDOM_SEED</Tag>
+		<English>New Random Seed on Reload</English>
+		<French>Nouveau classement al&#233;atoire au rechargement</French>
+		<German>Neue Zufallszahlen bei erneutem Laden</German>
+		<Italian>Nuova estrazione casuale per ricarica</Italian>
+		<Spanish>Nueva "seed" aleatoria al volver a cargar</Spanish>
+	</TEXT>
 	
 	<!-- advc.137: Originally in Civ4GameText_Help.xml. Changed only English and
 		 German. -->
@@ -815,7 +872,7 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_HANDICAP_PRINCE_HELP</Tag>
-		<English>This is the median difficulty level. The AI players receive subtle bonuses on research, growth and production, just 5% initially and increasing very slightly with each era, whereas your costs for technologies and expenses are 10% higher. Barbarians keep getting more numerous with every difficulty level, and, on Prince, your combat bonus against Barbarians is only 5%.</English>
+		<English>This is the median difficulty level. The AI players receive subtle bonuses on research, growth and production, just 5% initially, and increasing by 1 percentage point every 100 turns, whereas your costs for technologies and expenses are 10% higher. Barbarians keep getting more numerous with every difficulty level, and, on Prince, your combat bonus against Barbarians is only 5%.</English>
 		<French>En tant que Prince, vous devrez prouver que vous avez du sang royal. Avec un handicap contre l'I.A., dont la production et la recherche sont bien plus rapides que les v&#244;tres. Il faudra tr&#232;s bien jouer pour remporter la victoire.</French>
 		<German>Diese Schwierigkeitsstufe liegt genau in der Mitte. Die KI-Spieler erhalten kleine Boni (5%) auf Forschung, Wachstum und Produktion, die sich mit jedem Zeitalter ein klein wenig erhöhen. Dagegen sind Ihre Technologiekosten und Ausgaben etwas erhöht, i. W. um 10%. Barbaren werden mit dieser (und jeder weiteren) Stufe noch zahlreicher, und Ihr Kampfbonus gegen Barbaren beträgt nur noch 5%.</German>
 		<Italian>Come Principe, dovrai saper dimostrare di essere di vera stirpe reale. Quest'ultima pu&#242; produrre e fare ricerche pi&#249; velocemente di te, pertanto dovrai giocare con maggior impegno per poter vincere.</Italian>
@@ -823,7 +880,7 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_HANDICAP_MONARCH_HELP</Tag>
-		<English>A challenging level. The AI advantages are higher than on Prince (by another 5 percentage points) and increase more noticeably with each era. The AI players start the game with Archery, which makes early attacks on the AI much harder than on Prince. You should also expect the Barbarians to adopt Archery before long.</English>
+		<English>A challenging level. Some of the AI advantages are higher than on Prince (by another 5 percentage points) and increase every 50 turns. The AI players start the game with Archery, which makes early attacks on the AI much harder than on Prince. You should also expect the Barbarians to adopt Archery before long.</English>
 		<French>Pour les Monarques, les d&#233;fis qui se pr&#233;sentent sont d'une toute autre ampleur. L'entretien est plus cher, la recherche plus lente, votre peuple plus exigeant et vos adversaires I.A. tout simplement plus intelligents.</French>
 		<German>Eine anspruchsvolle Schwierigkeitsstufe. Die KI-Vorteile sind höher als auf "Prinz" (um weitere 5 Prozentpunkte) und steigen im Laufe der Zeitalter merklich. Die KI-Spieler beherrschen von Anfang an das Bogenschießen; dadurch ist es deutlich schwieriger als auf "Prinz", die KI im frühen Spiel anzugreifen. Sie müssen auch damit rechnen, dass die Barbaren sich das Bogenschießen recht bald aneignen.</German>
 		<Italian>Per i Monarchi, la sfida comincia a farsi impegnativa. Il costo di mantenimento &#232; superiore, la ricerca pi&#249; lenta, la gente pi&#249; difficile da accontentare e gli avversari computerizzati pi&#249; scaltri.</Italian>
@@ -831,9 +888,9 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_HANDICAP_EMPEROR_HELP</Tag>
-		<English>A hard level, but beatable without resorting to any dirty tricks. The ongoing AI bonuses become very noticeable on this level and make it difficult to match the AI in military power. The AI players start with Hunting and a free Scout and two Archers, so don't be surprised if you find few unexplored tribal villages.</English>
+		<English>A hard level, but beatable without resorting to any dirty tricks. Human production costs begin to increase on this level, making it difficult to match the AI militarily. The AI players start with Hunting and a free Scout and two Archers, so don't be surprised if you find few unexplored tribal villages.</English>
 		<French>Vous vous sentez l'&#226;me d'un empereur ? Si tel est le cas, vous devrez le prouver en terrassant des ennemis rapides et agressifs et en r&#233;gnant sur une population de plus en plus difficile &#224; motiver et &#224; satisfaire. C'est un vrai d&#233;fi pour les experts de Civilization.</French>
-		<German>Eine schwierige Stufe, aber auch ohne unfaire Mittel machbar. Angesichts der deutlichen Boni für die KI-Spieler ist es allerdings schwierig, militärisch mitzuhalten. Die KI-Spieler beginnen das Spiel mit je einem Kundschafter und zwei Bogenschützen; wundern Sie sich also nicht, wenn kaum Stammesdörfer für Sie übrigbleiben.</German>
+		<German>Eine schwierige Stufe, aber auch ohne unfaire Mittel machbar. Ab dieser Stufe steigen für menschliche Spieler die Produktionskosten, deswegen kann es schwierig sein, militärisch mitzuhalten. Die KI-Spieler beginnen das Spiel mit je einem Kundschafter und zwei Bogenschützen; wundern Sie sich also nicht, wenn kaum Stammesdörfer für Sie übrigbleiben.</German>
 		<Italian>Sei pronto per diventare Imperatore? Se s&#236;, dovrai affrontare con coraggio gli avversari, rapidi e aggressivi, e allo stesso tempo cercare di soddisfare la tua popolazione, pi&#249; difficile da compiacere e motivare. Una vera sfida per gli esperti di Civilization.</Italian>
 		<Spanish>&#191;Est&#225;is listo para ser emperador?  De ser as&#237;, tendr&#233;is que demostrar vuestra val&#237;a derrotando a adversarios m&#225;s r&#225;pidos y agresivos a la vez que cuid&#225;is de una poblaci&#243;n m&#225;s dif&#237;cil de motivar y complacer. Esto es una prueba de verdad para los expertos en Civilization.</Spanish>
 	</TEXT>
@@ -847,9 +904,9 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_HANDICAP_DEITY_HELP</Tag>
-		<English>Extremely hard. The bonuses for the AI are much higher than on Immortal difficulty, to the point that, after the first two eras, the AI gets units and technologies at half their normal cost. In addition to other free items (see Immortal), the AI starts the game with a second Settler. With the AdvCiv mod, hopefully Immortal is hard enough for nearly everyone.</English>
+		<English>Extremely hard. The human penalties (30%) and progressive AI bonuses make it so that the AI players get e.g. units at half the human cost toward the end of the game. With the AdvCiv mod, hopefully Immortal is hard enough for nearly everyone. Note, however, that AdvCiv removes the second free Settler that the Deity AI players receive in the original game.</English>
 		<French>L'ultime &#233;preuve, r&#233;serv&#233;e aux meilleurs joueurs. Serez-vous &#224; la hauteur ?</French>
-		<German>Extrem schwierig. Die Vorteile der KI sind noch einmal deutlich höher als auf "Unsterblicher". Schon nach zwei Zeitaltern sind die Boni so hoch, dass die KI-Spieler z.B. Technologien und Einheiten zum halben Preis bekommen. Zu den Starteinheiten für die KI gehört ein zweiter Siedler. Mit dem AdvCiv-Mod sollte "Unsterblicher" für fast jeden schwierig genug sein.</German>
+		<German>Extrem schwierig. Die Mali für menschliche Spieler (30%) und die fortschreitenden Boni der KI führen dazu, dass die KI-Spieler gegen Ende des Spiels z.B. nur noch halb so viel Produktion für eine Einheit aufwenden müssen wie die Menschen. Mit dem AdvCiv-Mod sollte "Unsterblicher" für fast jeden schwierig genug sein. Allerdings ist, im Gegensatz zum Originalspiel, kein zweiter Siedler mehr unter den Starteinheiten der KI.</German>
 		<Italian>La prova definitiva per i migliori giocatori di Civilization. Ce la farai?</Italian>
 		<Spanish>La prueba definitiva, solo para los mejores jugadores del Civi. &#191;Podr&#225; superarla alguien?</Spanish>
 	</TEXT>
@@ -1067,6 +1124,48 @@
 		<Italian>Attiva/disattiva la griglia</Italian>
 		<Spanish>Activar cuadr&#237;cula</Spanish>
 	</TEXT>
+	<!-- was "Toggle Scores Display" -->
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_SCORES</Tag>
+		<English>Toggle Scoreboard</English>
+		<French>Afficher/masquer les scores</French>
+		<German>Punkteanzeige ein/aus</German>
+		<Italian>Abilita/disabilita la 'Finestra dei punteggi'</Italian>
+		<Spanish>Activar visor de puntuaciones</Spanish>
+	</TEXT>
+	
+	<!-- advc.004z: Originally in CIV4GameText_Misc1.xml. Romanic translations
+		 based on TXT_KEY_GLOBELAYER_UNITS_ENEMYMILITARY. -->
+	<TEXT>
+		<Tag>TXT_KEY_GLOBELAYER_UNITS_DOMESTICS</Tag>
+		<English>Civilians</English>
+		<French>Unités non militaires</French>
+		<German>Zivilisten</German>
+		<Italian>Eserciti non militari</Italian>
+		<Spanish>Ej&#233;rcitos no militares</Spanish>
+	</TEXT>
+	<!-- Originally in CIV4GameText_BTS.xml.
+		 "enemy units" is no longer the default.
+		 Italian and Spanish based on TXT_KEY_HINT_INTERFACE_25. -->
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_UNIT_ICONS</Tag>
+		<English>Toggle Unit Display</English>
+		<French>Afficher/masquer les unit&#233;s</French>
+		<German>Einheitenanzeige ein-/ausblenden</German>
+		<Italian>Abilita/Disabilita la segnalazione delle unit&#224;</Italian>
+		<Spanish>Activar las marcas de unidades</Spanish>
+	</TEXT>
+	<!-- Originally in CIV4GameTextInfos.xml.
+		 Had included the name of the default filter ("All"), but
+		 Resource layer filters are disabled now. -->
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_RESOURCE_ALL</Tag>
+		<English>Toggle Resource Display</English>
+		<French>Afficher/masquer les ressources</French>
+		<German>Ressourcenanzeige ein/aus</German>
+		<Italian>Abilita/disabilita la segnalazione delle risorse</Italian>
+		<Spanish>Activar las marcas de recursos</Spanish>
+	</TEXT>
 	
 	<!-- advc.004s: Originally in CIV4GameTextInfos.xml;
 		 says just "(Gold)" there. Translation from TXT_KEY_RESEARCH
@@ -1268,32 +1367,6 @@
 		<Spanish>[ICON_BULLET]%D1_Change%% por nivel de dificultad</Spanish>
 	</TEXT>
 
-	<!-- advc.137: Copy-pasted from Vanilla Civ4GameText_Misc1.xml;
-		 recommendation added (only in English and German). -->
-	<TEXT>
-		<Tag>TXT_KEY_MAP_SCRIPT_TERRA_DESCR</Tag>
-		<English>Extra players recommended (ca. +30%%).&#010;Terra generates random land masses similar to those of the planet Earth. All players begin in the Old World. These maps are extra large!</English>
-		<French>Des continents similaires &#224; ceux de la Terre sont cr&#233;&#233;s al&#233;atoirement. Tous les joueurs commencent dans l'Antiquit&#233;. Ces cartes sont immenses !</French>
-		<German>Höhere Spielerzahl empfohlen (ca. +30%%). Terra generiert zuf&#228;llige Landfl&#228;chen, &#228;hnlich wie die auf dem Planeten Erde. Alle Spieler beginnen zun&#228;chst in der Alten Welt. Diese Kartenvarianten sind besonders gro&#223;!</German>
-		<Italian>Terra genera delle masse terrestri casuali simili a quelle del nostro pianeta. Tutti i giocatori iniziano nel Vecchio Mondo. Queste mappe sono grandissime!</Italian>
-		<Spanish>Terra genera al azar masas de tierra similares a las del planeta Tierra. Todos los jugadores empiezan en el Viejo Mundo. &#161;Estos mapas son supergrandes!</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_MAP_SCRIPT_PANGAEA_DESCR</Tag>
-		<English>Pan-Gaia: "One Earth," a massive single continent. Fewer players than normal recommended (about -15%%) because relatively few water tiles can be worked.</English>
-		<French>Pan-Gaia: "Une terre", un seul et &#233;norme continent.</French>
-		<German>Pang&#228;a: "Eine Erde", ein einziger gewaltiger Kontinent. Geringere Spielerzahl empfohlen (etwa -15%%) da weniger Wasserfelder bearbeitet werden können als auf anderen Karten.</German>
-		<Italian>Pan-Gaia: "Una terra", un enorme continente.</Italian>
-		<Spanish>Pan-gea ("una Tierra"), un solo continente enorme.</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_MAP_SCRIPT_OASIS_DESCR</Tag>
-		<English>The desert region in the middle holds the strategic minerals. The fertile region in the north has less land (but more resources) than the south. Extra players recommended (ca. +25%%) because there is very little sea and much of the desert is habitable because of rivers.</English>
-		<French>La r&#233;gion d&#233;sertique au centre contient toutes les ressources min&#233;rales strat&#233;giques. Les fertiles r&#233;gions du nord sont moins grandes (mais contiennent plus de ressources) que celles du sud.</French>
-		<German>In der W&#252;stenregion in der Mitte der Karte finden sich wichtige strategische Mineralienvorkommen. In der fruchtbaren Region im Norden stehen weniger Landstriche (aber mehr Ressourcen) zur Verf&#252;gung als im S&#252;den. Höhere Spielerzahl empfohlen (ca. +25%%), da das Meer kaum Raum einnimmt und die Wüste großteils bewohnbar ist.</German>
-		<Italian>La regione desertica nella zona centrale della mappa contiene le risorse strategiche minerarie. La regione fertile a nord dispone di meno terra ma di pi&#249; risorse di quella a sud.</Italian>
-		<Spanish>La regi&#243;n des&#233;rtica central contiene los minerales estrat&#233;gicos. La f&#233;rtil regi&#243;n septentrional tiene menos tierra, pero m&#225;s recursos, que la meridional.</Spanish>
-	</TEXT>
 
 	<!-- advc.137: Copy-pasted from Vanilla Civ4GameTextInfos.xml;
 		 recommendation added (only in English). -->
@@ -1330,6 +1403,17 @@
 		<German>Hoch</German>
 		<Italian>Alto</Italian>
 		<Spanish>Alto</Spanish>
+	</TEXT>
+	
+	<!-- advc.165: Copy-pasted from Civ4GameText_Misc1.xml; no longer
+		 "extra large". -->
+	<TEXT>
+		<Tag>TXT_KEY_MAP_SCRIPT_TERRA_DESCR</Tag>
+		<English>Terra generates random land masses similar to those of the planet Earth. All players begin in the Old World.</English>
+		<French>Des continents similaires &#224; ceux de la Terre sont cr&#233;&#233;s al&#233;atoirement. Tous les joueurs commencent dans l'Antiquit&#233;. Ces cartes sont immenses !</French>
+		<German>Terra generiert zuf&#228;llige Landfl&#228;chen, &#228;hnlich wie die auf dem Planeten Erde. Alle Spieler beginnen zun&#228;chst in der Alten Welt.</German>
+		<Italian>Terra genera delle masse terrestri casuali simili a quelle del nostro pianeta. Tutti i giocatori iniziano nel Vecchio Mondo.</Italian>
+		<Spanish>Terra genera al azar masas de tierra similares a las del planeta Tierra. Todos los jugadores empiezan en el Viejo Mundo.</Spanish>
 	</TEXT>
 	
 	<!-- advc.704: Originally in CIV4GameTextInfos.xml -->
@@ -2511,7 +2595,7 @@
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__WARTRADE_HOVER</Tag>
 		<English>Displays an alert whenever an AI leader becomes willing to start a war at your request.</English>
 		<French>Affiche une alerte lorsqu'un chef d'IA devient prêt à déclencher une guerre à votre demande.</French>
-		<German>Mitteilung, wenn ein KI-Gegner bereit ist, einem anderen Gegner auf Ihren Wunsch den Krieg zu erklären.</German>
+		<German>Meldet, wenn ein KI-Gegner bereit ist, einem anderen Gegner auf Ihren Wunsch den Krieg zu erklären.</German>
 		<Italian>Visualizza un avviso ogni volta che un comandante AI diventa disposto a iniziare una guerra su sua richiesta.</Italian>
 		<Spanish>Muestra una alerta cada vez que un líder de IA se convierte dispuesto a iniciar una guerra a petición suya.</Spanish>
 	</TEXT>
@@ -2555,7 +2639,7 @@
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__REVOLT_HOVER</Tag>
 		<English>Displays an alert when a city can revolt, and when occupation ends after a revolt or after conquest.</English>
 		<French>Affiche une alerte quand une ville peut se révolter, et quand l'occupation se termine après une révolte ou après une conquête.</French>
-		<German>Mitteilung, wenn eine Revolte droht oder wenn nach einer Revolte oder bei Besatzung die Ruhe wiederhergestellt wurde.</German>
+		<German>Meldet, wenn eine Revolte droht oder wenn nach einer Revolte oder bei Besatzung die Ruhe wiederhergestellt wurde.</German>
 		<Italian>Visualizza un avviso quando una città può sollevarsi e quando l'occupazione termina dopo una rivolta o dopo la conquista.</Italian>
 		<Spanish>Muestra una alerta cuando una ciudad puede rebelarse, y cuando la ocupación termina después de una revuelta o después de la conquista.</Spanish>
 	</TEXT>
@@ -2677,7 +2761,7 @@
 		<Tag>TXT_KEY_BUG_OPT_CIV4LERTS__BONUSTHIRDPARTIES_HOVER</Tag>
 		<English>Displays an alert when rivals start or stop trading resources. No alert when two rivals that had already been trading resources agree on an additional trade unless it involves a strategic resource.</English>
 		<French>Affiche une alerte lorsqu'un concurrent commence ou arrête d'exporter une ressource vers un autre concurrent.</French>
-		<German>Mitteilung, wenn ein Gegner beginnt oder aufhört, einem anderen Gegner Ressourcen zu liefern. Keine Mitteilung wenn lediglich ein weiterer Handel dazukommt, außer bei strategischen Ressourcen.</German>
+		<German>Meldet, wenn ein Gegner beginnt oder aufhört, einem anderen Gegner Ressourcen zu liefern. Keine Meldung wenn lediglich ein weiterer Handel dazukommt, außer bei strategischen Ressourcen.</German>
 		<Italian>Visualizza un avviso quando un concorrente inizia o interrompe l'esportazione di risorse verso un altro rivale. Nessun avviso se si tratta soltanto di un scambio ulteriore, ad eccezione delle risorse strategiche.</Italian>
 		<Spanish>Muestra una alerta cuando un rival comienza o deja de exportar un recurso a otro rival. No hay alerta si solo se trata de un intercambio adicional, con la excepción de los recursos estratégicos.</Spanish>
 	</TEXT>
@@ -3544,6 +3628,26 @@
 		<Spanish>%s1 con %s2</Spanish>
 	</TEXT>
 	
+	<!-- advc.004w: Based on TXT_KEY_BUILDING_OBSOLETE_WITH in
+		 CIV4GameTextInfos.xml. Color only the obsoletion tech. -->
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_NOT_OBSOLETE</Tag>
+		<English>Obsolete with [COLOR_WARNING_TEXT][LINK=literal]%s1_TechName[\LINK][COLOR_REVERT]</English>
+		<French>Obsol&#232;te avec : [COLOR_WARNING_TEXT][LINK=literal]%s1_TechName[\LINK][COLOR_REVERT]</French>
+		<German>Veraltet durch die Technologie [COLOR_WARNING_TEXT][LINK=literal]%s1_TechName[\LINK][COLOR_REVERT]</German>
+		<Italian>Diventa obsoleto con [NUM1:il:la:i:le] [COLOR_WARNING_TEXT][LINK=literal]%s1_TechName[\LINK][COLOR_REVERT]</Italian>
+		<Spanish>Caer&#225; en desuso con [NUM1:el:la:los:las] [COLOR_WARNING_TEXT][LINK=literal]%s1_TechName[\LINK][COLOR_REVERT]</Spanish>
+	</TEXT>
+	<!-- Originally in CIV4GameText_Warlords.xml. Was in COLOR_WARNING_TEXT. -->
+	<TEXT>
+		<Tag>TXT_KEY_BUILDING_OBSOLETE_EXCEPT</Tag>
+		<English>[SPACE](Except defensive bonus)</English>
+		<French>[SPACE](sauf bonus d&#233;fensif)</French>
+		<German>[SPACE](ausgenommen Defensivbonus)</German>
+		<Italian>[SPACE](eccetto bonus difensivo)</Italian>
+		<Spanish>[SPACE](Excepto bonificaciones defensivas)</Spanish>
+	</TEXT>
+	
 	<!-- advc.047: Like TXT_KEY_BONUS_WITH_IMPROVEMENT in
 		 CIV4GameTextInfos.xml, but with color. -->
 	<TEXT>
@@ -3707,6 +3811,16 @@
 		<Italian>[COLOR_LIGHT_GREY]----- Messaggi meno recenti:[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_LIGHT_GREY]----- Mensajes más antiguos:[COLOR_REVERT]</Spanish>
 	</TEXT>
+	<!-- advc.106b: Originally in CIV4GameText_Misc1.xml. Example and
+		 recommendation added. -->
+	<TEXT>
+		<Tag>TXT_KEY_PLAYER_OPTION_MINIMIZE_POPUPS_HELP</Tag>
+		<English>Popups (e.g. "what would you like to research next?") are minimized until all units have moved. (Recommended for the AdvCiv mod.)</English>
+		<French>Les fen&#234;tres sont minimis&#233;es tant que le joueur n'a pas d&#233;plac&#233; toutes ses unit&#233;s.</French>
+		<German>Popups werden minimiert, bis der Spieler alle Einheiten bewegt hat. (Für den AdvCiv-Mod empfohlen.)</German>
+		<Italian>I menu a comparsa vengono ridotti al minimo finch&#233; il giocatore non ha mosso tutte le sue unit&#224;</Italian>
+		<Spanish>Los elementos emergentes quedar&#225;n ocultos hasta que el jugador haya movido todas las unidades.</Spanish>
+	</TEXT>
 	
 	<!-- advc.104v -->
 	<TEXT>
@@ -3849,14 +3963,73 @@
 		<Spanish>los mapas de %s1</Spanish>
 	</TEXT>
 
-	<!-- advc.002k: From CIV4GameTextInfos.xml -->
+	<!-- advc.002k: Based on TXT_KEY_TIME_AD in CIV4GameTextInfos.xml.
+		 Could also use AD for the other languages, but this setting is going
+		 to be the default, and I only want to change English by default. -->
 	<TEXT>
-		<Tag>TXT_KEY_TIME_AD</Tag>
+		<Tag>TXT_KEY_AD_TIME</Tag>
 		<English>AD %d1_Date</English>
 		<French>%d1_Date ap. J.C</French>
 		<German>%d1_Date n. Chr.</German>
 		<Italian>%d1_Date d.C.</Italian>
 		<Spanish>%d1_Date d. C.</Spanish>
+	</TEXT>
+	
+	<!-- Alternatives: e.c. in Italian
+		 n.u.Z. or n.d.Z. in German (or even the English CE instead, as secular
+		 dates aren't commonly used in German)  -->
+	<TEXT>
+		<Tag>TXT_KEY_TIME_CE</Tag>
+		<English>%d1_Date CE</English>
+		<French>%d1_Date EC</French>
+		<German>%d1_Date u. Z.</German>
+		<Italian>%d1_Date e.v.</Italian>
+		<Spanish>%d1_Date EC</Spanish>
+	</TEXT>
+	<!-- Italian alternatively p.e.v. or p.e.c.
+		 German: v.d.Z. or BCE -->
+	<TEXT>
+		<Tag>TXT_KEY_TIME_BCE</Tag>
+		<English>%d1_Date BCE</English>
+		<French>%d1_Date AEC</French>
+		<German>%d1_Date v.u.Z.</German>
+		<Italian>%d1_Date a.e.v.</Italian>
+		<Spanish>%d1_Date AEC</Spanish>
+	</TEXT>
+	<!-- advc.002k: Based on TXT_KEY_TIME_CE_SAVE in CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_TIME_BCE_SAVE</Tag>
+		<English>BCE-%s1_Date</English>
+		<French>%s1_Date AEC</French>
+		<German>v.u.Z.-%s1_Date</German>
+		<Italian>a.e.v. - %s1_Date</Italian>
+		<Spanish>%s1_Date AEC</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TIME_CE_SAVE</Tag>
+		<English>CE-%s1_Date</English>
+		<French>%s1_Date EC</French>
+		<German>u. Z.-%s1_Date</German>
+		<Italian>e.v. - %s1_Date</Italian>
+		<Spanish>%s1_Date EC</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TIME_AD_SAVE</Tag>
+		<English>AD-%s1_Date</English>
+		<French>%s1_Date ap. J.C</French>
+		<German>n. Chr.-%s1_Date</German>
+		<Italian>d.C. - %s1_Date</Italian>
+		<Spanish>%s1_Date d. C.</Spanish>
+	</TEXT>
+	<!-- Only removed a colon here. German should keep it, not sure about the
+		 other languages. -->
+	<TEXT>
+		<Tag>TXT_KEY_TIME_TURN</Tag>
+		<English>Turn %d1_TurnNum</English>
+		<French>Tour : %d1_TurnNum</French>
+		<German>Runde: %d1_TurnNum</German>
+		<Italian>Turno: %d1_TurnNum</Italian>
+		<Spanish>Turno: %d1_TurnNum</Spanish>
 	</TEXT>
 
 	<!-- advc.004y: Originally in CIV4GameTextInfos.xml. Only removed the
@@ -3990,17 +4163,6 @@
 		<German>Die %s1_institution-Mitglieder haben auf Vorschlag von %s2_TeamName mit %d3 von %d4 Stimmen folgenden Beschluss gefasst: %s5_resolution</German>
 		<Italian>[NUM1:Il:Le] %s1_institution [NUM1:ha:hanno] approvato la seguente risoluzione proposta da %s2_TeamName con %d3 su %d4 voti: %s5_resolution</Italian>
 		<Spanish>[NUM1:El:Las] %s1_institution [NUM1:ha:han] aprobado la siguiente resolución propuesta por %s2_TeamName con %d3 de %d4 votos: %s5_resolution</Spanish>
-	</TEXT>
-
-	<!-- advc.004z: Originally in CIV4GameText_Misc1.xml. Romanic translations
-		 based on TXT_KEY_GLOBELAYER_UNITS_ENEMYMILITARY. -->
-	<TEXT>
-		<Tag>TXT_KEY_GLOBELAYER_UNITS_DOMESTICS</Tag>
-		<English>Civilians</English>
-		<French>Unités non militaires</French>
-		<German>Zivilisten</German>
-		<Italian>Eserciti non militari</Italian>
-		<Spanish>Ej&#233;rcitos no militares</Spanish>
 	</TEXT>
 	
 	<!-- advc.004a: Replacing TXT_KEY_BUG_TECH_PREFS_ALL, 
@@ -4150,6 +4312,195 @@
 		<German>Alle Zivilisationen befinden sich für die gesamte Spieldauer entweder im Krieg oder im Frieden. (Ein Szenario kann festlegen, dass manche Zivilisationen sich von Anfang an im Krieg befinden; ansonsten dasselbe wie "Immer Frieden".)</German>
 		<Italian>Tutte le civilt&#224; sono bloccate in guerra o in pace per tutta la partita</Italian>
 		<Spanish>Todas las civilizaciones quedar&#225;n bloqueadas en guerra o en paz hasta que acabe la partida.</Spanish>
+	</TEXT>
+	
+	<!-- advc.061: Would prefer game terms like "Military", but space is
+		 limited and the important distinctions are between military land units,
+		 military sea units and civilians/ air units (a single category for
+		 these is OK). -->
+	<!-- Translation based on TXT_KEY_CONCEPT_AIR_UNITS_PEDIA in
+		 CIV4GameText_Civilopedia_Concepts.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_ARMY</Tag>
+		<English>army</English>
+		<French>armée</French>
+		<German>Armee</German>
+		<Italian>esercito</Italian>
+		<Spanish>ejército</Spanish>
+	</TEXT>
+	<!-- Translation based on TXT_KEY_SEALEVEL_HIGH_HELP in
+		 CIV4GameText_Help.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_NAVY</Tag>
+		<English>navy</English>
+		<French>flotte</French>
+		<German>Flotte</German>
+		<Italian>flotta</Italian>
+		<Spanish>armada</Spanish>
+	</TEXT>
+	<!-- Like TXT_KEY_OPTIONS_SCREEN_OTHER in CIV4GameText_Misc1.xml,
+		 but non-capitalized -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_OTHER</Tag>
+		<English>other</English>
+		<French>autre</French>
+		<German>Sonstige</German>
+		<Italian>altro</Italian>
+		<Spanish>otros</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_NOT_ENOUGH_SPACE</Tag>
+		<English>Not enough space to display!</English>
+		<French>Espace insuffisant pour l'afficher !</French>
+		<German>Zu wenig Platz zum Anzeigen!</German>
+		<Italian>Spazio insufficiente!</Italian>
+		<Spanish>¡No hay suficiente espacio!</Spanish>
+	</TEXT>
+
+	<!-- advc.164: Based on TXT_KEY_PROMOTION_BLITZ_TEXT in
+		 CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_PROMOTION_BLITZ_LIMIT</Tag>
+		<English>[ICON_BULLET]Can Attack %d1 times per Turn</English>
+		<French>[ICON_BULLET]Peut attaquer %d1 fois par tour</French>
+		<German>[ICON_BULLET]Kann %d1 mal pro Runde angreifen</German>
+		<Italian>[ICON_BULLET]Permette di attaccare %d1 volte durante lo stesso turno</Italian>
+		<Spanish>[ICON_BULLET]Puede atacar %d1 veces por turno</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_PROMOTION_BLITZ_TWICE</Tag>
+		<English>[ICON_BULLET]Can Attack Twice per Turn</English>
+		<French>[ICON_BULLET]Peut attaquer deux fois par tour</French>
+		<German>[ICON_BULLET]Kann zweimal pro Runde angreifen</German>
+		<Italian>[ICON_BULLET]Permette di attaccare due volte durante lo stesso turno</Italian>
+		<Spanish>[ICON_BULLET]Puede atacar dos veces por turno</Spanish>
+	</TEXT>
+
+	<!-- advc.062: Copy-pasted together from text in CIV4GameText_Warlords.xml
+		 (AI_DIPLO_NO_VASSAL_1), CIV4GameTextInfos.xml (POWER_US, POWER_YOU,
+		 VICTORY, ATTITUDE), CIV4GameText_Warlords.xml (POWER_YOUR_ENEMIES,
+		 TOO_FAR) and CIV4DiplomacyText.xml (AI_DIPLO_PEACE_3) because
+		 "What are you going to do about it?" sounds too confrontational
+		 when canceling on account of vassal power (i.e. most of the time). -->
+	<TEXT>
+		<Tag>AI_DIPLO_NO_VASSAL_POWER_US_1</Tag>
+		<English>We're doing fine on our own now, so we no longer have any interest in being your vassal. May we all live long and prosper.</English>
+		<French>Nous nous en sortons tr&#232;s bien seuls. Nous ne voyons plus d'int&#233;r&#234;t &#224; rester votre &#233;tat vassal. Longue vie et prosp&#233;rit&#233; &#224; nos deux peuples !</French>
+		<German>Wir kommen jetzt ganz gut allein klar, daher sind wir nicht mehr daran interessiert, Euch als Vasall zu dienen. M&#246;gen wir alle lang und zufrieden leben!</German>
+		<Italian>Ce la facciamo da soli addesso e non abbiamo pi&#249; alcun interesse a essere un tuo stato vassallo. Lunga vita e prosperit&#224;!</Italian>
+		<Spanish>Nos va bien sin ayuda, por lo que ya no nos interesa ser vuestro estado vasallo. Que todos tengamos una vida larga y pr&#243;spera.</Spanish>
+	</TEXT>
+	<!-- This one isn't actually used -->
+	<TEXT>
+		<Tag>AI_DIPLO_NO_VASSAL_POWER_YOU_1</Tag>
+		<English>You've grown too powerful for us, so we no longer have any interest in being your vassal.</English>
+		<French>Vous &#234;tes devenu trop puissant pour nous. Nous ne voyons plus d'int&#233;r&#234;t &#224; rester votre &#233;tat vassal.</French>
+		<German>Ihr seid zu m&#228;chtig f&#252;r uns geworden, daher sind wir nicht mehr daran interessiert, Euch als Vasall zu dienen.</German>
+		<Italian>Siete diventati troppo potenti per noi e quindi non abbiamo pi&#249; alcun interesse a essere un vostro stato vassallo.</Italian>
+		<Spanish>Os hab&#233;is hecho demasiado poderosos para nosotros, por lo que ya no nos interesa ser vuestro estado vasallo.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>AI_DIPLO_NO_VASSAL_VICTORY_1</Tag>
+		<English>We'd rather win the game, so we no longer have any interest in being your vassal. What are you going to do about it?</English>
+		<French>Nous pr&#233;f&#233;rons &#234;tre vainqueurs. Nous ne voyons plus d'int&#233;r&#234;t &#224; rester votre &#233;tat vassal. Que pouvez-vous proposer ?</French>
+		<German>Wir haben jetzt vor, das Spiel zu gewinnen, daher sind wir nicht mehr daran interessiert, Euch als Vasall zu dienen. Was werdet Ihr dagegen unternehmen?</German>
+		<Italian>Ci piacerebbe vincere la partita e quindi non abbiamo pi&#249; alcun interesse a essere un tuo stato vassallo. Cosa intendi fare ora?</Italian>
+		<Spanish>Preferimos ganar la partida, por lo que ya no nos interesa ser vuestro estado vasallo. &#191;C&#243;mo pens&#225;is impedirlo?</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>AI_DIPLO_NO_VASSAL_ATTITUDE_1</Tag>
+		<English>We don't like you enough to be your vassal. What are you going to do about it?</English>
+		<French>Nous ne vous appr&#233;cions pas suffisamment pour rester votre &#233;tat vassal. Que pouvez-vous proposer ?</French>
+		<German>So nah, um Euch als Vasall zu dienen, stehen wir Euch eigentlich doch nicht. Was werdet Ihr dagegen unternehmen?</German>
+		<Italian>Non ci piaci abbastanza per essere un tuo stato vassallo. Cosa intendi fare ora?</Italian>
+		<Spanish>No nos ca&#233;is lo bastante bien por ser vuestro estado vasallo. &#191;C&#243;mo pens&#225;is impedirlo?</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>AI_DIPLO_NO_VASSAL_POWER_YOUR_ENEMIES_1</Tag>
+		<English>We are afraid of your enemies, and so we no longer have any interest in being your vassal. What are you going to do about it?</English>
+		<French>Nous avons peur de vos ennemis. Nous ne voyons plus d'int&#233;r&#234;t &#224; rester votre &#233;tat vassal. Que pouvez-vous proposer ?</French>
+		<German>Wir f&#252;rchten Eure Feinde zu sehr, um Euch als Vasall zu dienen. Was werdet Ihr dagegen unternehmen?</German>
+		<Italian>I tuoi nemici ci fanno paura e quindi non abbiamo pi&#249; alcun interesse a essere un tuo stato vassallo. Cosa intendi fare ora?</Italian>
+		<Spanish>Tememos a vuestros enemigos, por lo que ya no nos interesa ser vuestro estado vasallo. &#191;C&#243;mo pens&#225;is impedirlo?</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>AI_DIPLO_NO_VASSAL_TOO_FAR_1</Tag>
+		<English>Your land is too far away to protect us, so we no longer have any interest in being your vassal.</English>
+		<French>Votre territoire est trop &#233;loign&#233;. Nous ne voyons plus d'int&#233;r&#234;t &#224; rester votre &#233;tat vassal.</French>
+		<German>Euer Reich ist zu weit entfernt, daher sind wir nicht mehr daran interessiert, Euch als Vasall zu dienen.</German>
+		<Italian>Il tuo territorio &#232; troppo lontano. Quindi non abbiamo pi&#249; alcun interesse a essere un tuo stato vassallo.</Italian>
+		<Spanish>Vuestra tierra est&#225; demasiado lejos, por lo que ya no nos interesa ser vuestro estado vasallo.</Spanish>
+	</TEXT>
+
+	<!-- advc.011b -->
+	<TEXT>
+		<Tag>TXT_KEY_BUILD_NOT_FINISHED</Tag>
+		<English>Job suspended: %s1_BuildName</English>
+		<French>Travail suspendu: %s1_BuildName</French>
+		<German>Arbeit ausgesetzt: %s1_BuildName</German>
+		<Italian>Lavoro sospeso: %s1_BuildName</Italian>
+		<Spanish>Obra suspendida: %s1_BuildName</Spanish>
+	</TEXT>
+	<!-- advc.011b: The "1" is not that interesting, but highlighting the
+		 number is consistent with the highlighted turns-to-build in
+		 CvDLLWidgetData::parseActionHelp. -->
+	<TEXT>
+		<Tag>TXT_KEY_SUSPEND_WORK</Tag>
+		<English>Suspend work [COLOR_HIGHLIGHT_TEXT]1[COLOR_REVERT] turn before completion</English>
+		<French>Suspendre le travail [COLOR_HIGHLIGHT_TEXT]1[COLOR_REVERT] tour avant d'avoir termin&#233;</French>
+		<German>Arbeit [COLOR_HIGHLIGHT_TEXT]1[COLOR_REVERT] Zug vor Fertigstellung unterbrechen</German>
+		<Italian>Sospende il lavoro [COLOR_HIGHLIGHT_TEXT]1[COLOR_REVERT] turno prima del completamento</Italian>
+		<Spanish>Suspender el trabajo [COLOR_HIGHLIGHT_TEXT]1[COLOR_REVERT] turno antes de completarlo</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_DECAY_WARNING</Tag>
+		<English>decaying</English>
+		<French>détériorant</French>
+		<German>verfällt</German>
+		<Italian>decadente</Italian>
+		<Spanish>en decadencia</Spanish>
+	</TEXT>
+
+	<!-- advc.065: Removed parentheses b/c these should be reserved for
+		 turns remaining -->
+	<!-- Originally in CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>INTERFACE_CITY_COMMERCE_RATE</Tag>
+		<English>%F1: %s2 %D3/Turn</English>
+		<French>%F1 : %s2 %D3/tour</French>
+		<German>%F1: %s2 %D3/Runde</German>
+		<Italian>%F1: %s2 %D3/turno</Italian>
+		<Spanish>%F1: %s2 %D3/turno</Spanish>
+	</TEXT>
+	<!-- Originally in CIV4GameText_Warlords.xml -->
+	<TEXT>
+		<Tag>INTERFACE_CITY_COMMERCE_RATE_FLOAT</Tag>
+		<English>%F1: %s2 %s3/Turn</English>
+		<French>%F1 : %s2 %s3/tour</French>
+		<German>%F1: %s2 %s3/Runde</German>
+		<Italian>%F1: %s2 %s3/turno</Italian>
+		<Spanish>%F1: %s2 %s3/turno</Spanish>
+	</TEXT>
+	
+	<!-- advc.069: Originally in CIV4GameTextInfos.xml; removed parentheses. -->
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_HELP_LEVEL</Tag>
+		<English>, XP: %d1_Curr/%d2_Needed</English>
+		<French>, EXP : %d1_Curr/%d2_Needed</French>
+		<German>, EP: %d1_Curr/%d2_Needed</German>
+		<Italian>, XP: %d1_Curr/%d2_Needed</Italian>
+		<Spanish>, PX: %d1_Curr/%d2_Needed</Spanish>
+	</TEXT>
+	
+	<!-- advc.071: Grammar in translations based on TXT_KEY_MISC_CIV_DESTROYED
+		 (CIV4GameTextInfos.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_TEAM_MET</Tag>
+		<English>We have met the %s1_CivAdj civilization</English>
+		<French>Nous avons rencontrés les %s1_CivAdj</French>
+		<German>Wir sind erstmals der %s1:3_CivAdj Zivilisation begegnet</German>
+		<Italian>Abbiamo incontrato la civilt&#224; %s1:4_CivAdj</Italian>
+		<Spanish>Hemos encontrado la civilizaci&#243;n %s1:2_CivAdj</Spanish>
 	</TEXT>
 	
 </Civ4GameText>

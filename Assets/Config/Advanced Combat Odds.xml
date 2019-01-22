@@ -28,9 +28,11 @@
 					type="boolean" default="True"/>
 			<option id="ShowModifierLabels" key="Show Modifier Labels" 
 					type="boolean" default="False"/>
-
+			
+			<!-- advc.048: default was 3. Need to make the alternate view a bit
+				 more compact. -->
 			<list   id="ShowBasicInfo" key="Show Basic Info" 
-					type="int" default="3" listType="string" 
+					type="int" default="1" listType="string" 
 					values="Never|Normal|Shifted|Both"/>
 			<!-- advc.048: default was 0 -->
 			<list   id="ShowAttackerInfo" key="Show Attacker Info" 
@@ -39,12 +41,16 @@
 			<list   id="ShowDefenderInfo" key="Show Defender Info" 
 					type="int" default="3" listType="string" 
 					values="ACO__ShowBasicInfo"/>
-					
+			<!-- advc.048: default was 3. Note that victory and defeat odds
+				 are shown in any case. -->
 			<list   id="ShowSurvivalOdds" key="Show Survival Odds" 
-					type="int" default="3" listType="string" 
+					type="int" default="0" listType="string" 
 					values="ACO__ShowBasicInfo"/>
+			<!-- advc.048: default was 2. Need to clear space, and this info
+				 is redundant as far as I can tell (equal to the
+				 probability on the topmost bar). -->
 			<list   id="ShowUnharmedOdds" key="Show Unharmed Odds" 
-					type="int" default="2" listType="string" 
+					type="int" default="0" listType="string" 
 					values="ACO__ShowBasicInfo"/>
 			<list   id="ShowAverageHealth" key="Show Average Health" 
 					type="int" default="2" listType="string" 
@@ -55,12 +61,13 @@
 			<list   id="ShowDefenderHealthBars" key="Show Dedender Health Bars" 
 					type="int" default="2" listType="string" 
 					values="ACO__ShowBasicInfo"/>
-					
+			<!-- advc.048: Swapped the defaults of these two. The 
+				 ExperienceRange is too complicated. -->
 			<list   id="ShowUnroundedExperience" key="Show Unrounded Experience" 
-					type="int" default="0" listType="string" 
+					type="int" default="2" listType="string" 
 					values="ACO__ShowBasicInfo"/>
 			<list   id="ShowExperienceRange" key="Show Experience Range" 
-					type="int" default="2" listType="string" 
+					type="int" default="0" listType="string" 
 					values="ACO__ShowBasicInfo"/>
 					
 			<list   id="ShowDefenseModifiers" key="Show Defense Modifiers" 

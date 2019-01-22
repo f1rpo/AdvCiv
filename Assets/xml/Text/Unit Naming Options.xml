@@ -14,11 +14,13 @@
 		<Italian>Attivato</Italian>
 		<Spanish>Activar</Spanish>
 	</TEXT>
+	
+	<!-- advc.004: Added mention of the test mode -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_UNITNAMING__ENABLED_HOVER</Tag>
-		<English>When checked, uses the formats on this tab and in the INI file to name the player's units.</English>
+		<English>When checked, the formats on this tab and in the INI file are used to automatically name your units as they enter play. Also enables the shortcut [Ctrl+Alt+N] for a test dialog.</English>
 		<French>En activant,utilise les formats spécifiés içi et dans le fichier INI pour nommer vos unités.</French>
-		<German>Aktiviert die Benennung eigener Einheiten mit Hilfe der Regeln hier und in der entsprechenden INI-Datei</German>
+		<German>Aktiviert die automatische Benennung von Einheiten, die auf Ihrer Seite ins Spiel kommen, anhand von Regeln, und aktiviert die Tastenkombination [Strg+Alt+N] für einen Testdialog.</German>
 		<Italian>Quando è selezionato, vengono utilizzati i formati in questa tabella e nel file 'Adv Unit Naming.ini' per denominare le Unità del giocatore. I nomi possono essere costruiti combinando testo semplice e codici (che devono essere posti fra accenti circonflessi: ^).[NEWLINE]  Ad esempio: "^cv^ ^ut^ di ^ct^" --> "Arciere Americano di Boston".</Italian>
 		<Spanish>Si se activa, se emplea el formato en esta pestaña y en el fichero INI para ponerle nombre a las unidades del jugador.</Spanish>
 	</TEXT>

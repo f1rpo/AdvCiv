@@ -38,10 +38,10 @@
 // <advc.003g>
 using std::vector;
 
-int roundToMultiple(double d, int iModulus) {
+int roundToMultiple(double d, int iMultiple) {
 
-	int r = (int)(d + 0.5 * iModulus);
-	return r - r % iModulus;
+	int r = (int)(d + 0.5 * iMultiple);
+	return r - r % iMultiple;
 }
 
 bool bernoulliSuccess(double pr, char const* pszLog) {
@@ -138,6 +138,10 @@ float hash(vector<long> const& x, PlayerTypes civId) {
 		hashVal += capIndex;
 		hashVal *= prime;
 	}
+	/*  Use ASyncRand to avoid the overhead of creating a new object? I don't think
+		it matters. */
+	/*CvRandom& rng = GC.getASyncRand();
+	rng.reset(hashVal);*/
 	CvRandom rng;
 	rng.init(hashVal);
 	return rng.getFloat();
@@ -344,17 +348,11 @@ float directionAngle( DirectionTypes eDirection )
 
 bool atWar(TeamTypes eTeamA, TeamTypes eTeamB)
 {
-	if ((eTeamA == NO_TEAM) || (eTeamB == NO_TEAM))
-	{
+	if(eTeamA == NO_TEAM || eTeamB == NO_TEAM)
 		return false;
-	}
 
-	// advc.134a: Prudent assertions, but they're in the way
-//	FAssert(GET_TEAM(eTeamA).isAtWar(eTeamB) == GET_TEAM(eTeamB).isAtWar(eTeamA));
-//	FAssert((eTeamA != eTeamB) || !(GET_TEAM(eTeamA).isAtWar(eTeamB)));
-
-	// advc.134a: Switched roles make things easier
-	return GET_TEAM(eTeamB).isAtWar(eTeamA);
+	// advc.134a: Use internal function. (And removed some assertions.)
+	return GET_TEAM(eTeamA).isAtWarInternal(eTeamB);
 }
 
 bool isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam)
@@ -544,13 +542,14 @@ bool isPromotionValid(PromotionTypes ePromotion, UnitTypes eUnit, bool bLeader)
 
 	if (kUnit.isOnlyDefensive())
 	{
-		if ((kPromotion.getCityAttackPercent() != 0) ||
-			  (kPromotion.getWithdrawalChange() != 0) ||
-			  (kPromotion.getCollateralDamageChange() != 0) ||
-			  (kPromotion.isBlitz()) ||
-			  (kPromotion.isAmphib()) ||
-			  (kPromotion.isRiver()) ||
-			  (kPromotion.getHillsAttackPercent() != 0))
+		if (kPromotion.getCityAttackPercent() != 0 ||
+			  kPromotion.getWithdrawalChange() != 0 ||
+			  kPromotion.getCollateralDamageChange() != 0 ||
+			  kPromotion.//isBlitz()
+				getBlitz() != 0 || // advc.164
+			  kPromotion.isAmphib() ||
+			  kPromotion.isRiver() ||
+			  kPromotion.getHillsAttackPercent() != 0)
 		{
 			return false;
 		}
@@ -563,14 +562,14 @@ bool isPromotionValid(PromotionTypes ePromotion, UnitTypes eUnit, bool bLeader)
 			return false;
 		}
 	}
-
-	if (kUnit.getMoves() == 1)
+	// advc.164: Check this in CvUnit::isPromotionValid instead
+	/*if (kUnit.getMoves() == 1)
 	{
 		if (kPromotion.isBlitz())
 		{
 			return false;
 		}
-	}
+	}*/
 
 	if ((kUnit.getCollateralDamage() == 0) || (kUnit.getCollateralDamageLimit() == 0) || (kUnit.getCollateralDamageMaxUnits() == 0))
 	{
@@ -874,30 +873,30 @@ int limitedWonderClassLimit(BuildingClassTypes eBuildingClass)
 {
 	int iMax;
 	int iCount = 0;
-	bool bIsLimited = false;
+	bool bLimited = false;
 
 	iMax = GC.getBuildingClassInfo(eBuildingClass).getMaxGlobalInstances();
 	if (iMax != -1)
 	{
 		iCount += iMax;
-		bIsLimited = true;
+		bLimited = true;
 	}
 
 	iMax = GC.getBuildingClassInfo(eBuildingClass).getMaxTeamInstances();
 	if (iMax != -1)
 	{
 		iCount += iMax;
-		bIsLimited = true;
+		bLimited = true;
 	}
 
 	iMax = GC.getBuildingClassInfo(eBuildingClass).getMaxPlayerInstances();
 	if (iMax != -1)
 	{
 		iCount += iMax;
-		bIsLimited = true;
+		bLimited = true;
 	}
 
-	return bIsLimited ? iCount : -1;
+	return bLimited ? iCount : -1;
 }
 
 bool isWorldProject(ProjectTypes eProject)
@@ -1263,6 +1262,29 @@ void setTradeItem(TradeData* pItem, TradeableItems eItemType, int iData)
 	pItem->m_bOffering = false;
 	pItem->m_bHidden = false;
 }
+/*  <advc.071> Don't want to include CvPlot.h and CvUnit.h header files in CvStructs.h.
+	Don't need to worry here about which unit is where and who sees whom - can
+	figure that out when we know which teams are meeting. */
+void setFirstContactData(FirstContactData& kData, CvPlot const* pAt1, CvPlot const* pAt2,
+		CvUnit const* pUnit1, CvUnit const* pUnit2) {
+
+	if(pAt1 != NULL) {
+		kData.x1 = pAt1->getX_INLINE();
+		kData.y1 = pAt1->getY_INLINE();
+	}
+	if(pAt2 != NULL) {
+		kData.x2 = pAt2->getX_INLINE();
+		kData.y2 = pAt2->getY_INLINE();
+	}
+	if(pUnit1 != NULL) {
+		kData.u1.eOwner = pUnit1->getOwnerINLINE();
+		kData.u1.iID = pUnit1->getID();
+	}
+	if(pUnit2 != NULL) {
+		kData.u2.eOwner = pUnit2->getOwnerINLINE();
+		kData.u2.iID = pUnit2->getID();
+	}
+} // </advc.071>
 
 bool isPlotEventTrigger(EventTriggerTypes eTrigger)
 {
@@ -1392,7 +1414,15 @@ bool PUF_isGroupHead(const CvUnit* pUnit, int iData1, int iData2)
 bool PUF_isPlayer(const CvUnit* pUnit, int iData1, int iData2)
 {
 	FAssertMsg(iData1 != -1, "Invalid data argument, should be >= 0");
-	return (pUnit->getOwnerINLINE() == iData1);
+	// <advc.061>
+	TeamTypes eForTeam = (TeamTypes)iData2;
+	PlayerTypes eOwner = (PlayerTypes)iData1;
+	if(eForTeam == NO_TEAM || eOwner == NO_PLAYER || eForTeam == TEAMID(eOwner)) {
+		// </advc.061>
+		return (pUnit->getOwnerINLINE() == iData1);
+	} // <advc.061>
+	return (pUnit->getOwnerINLINE() == iData1 && !pUnit->isInvisible(eForTeam, false) &&
+			!pUnit->getUnitInfo().isHiddenNationality()); // </advc.061>
 }
 
 bool PUF_isTeam(const CvUnit* pUnit, int iData1, int iData2)
@@ -1601,7 +1631,7 @@ bool PUF_isNotCityAIType(const CvUnit* pUnit, int iData1, int iData2)
 {
 	return !(PUF_isCityAIType(pUnit, iData1, iData2));
 }
-
+// advc.003j (comment): unused
 bool PUF_isSelected(const CvUnit* pUnit, int iData1, int iData2)
 {
 	return pUnit->IsSelected();
@@ -1898,7 +1928,8 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 			FAssert(pLoopUnit->getDomainType() != DOMAIN_AIR);
 
 			int iMaxMoves = parent->m_iData1 > 0 ? parent->m_iData1 : pLoopUnit->maxMoves();
-			int iMoveCost = pToPlot->movementCost(pLoopUnit, pFromPlot);
+			int iMoveCost = pToPlot->movementCost(pLoopUnit, pFromPlot,
+					false); // advc.001i
 			int iMovesLeft = std::max(0, (iMaxMoves - iMoveCost));
 
 			iWorstMovesLeft = std::min(iWorstMovesLeft, iMovesLeft);
@@ -2228,7 +2259,8 @@ int pathValid_source(FAStarNode* parent, CvSelectionGroup* pSelectionGroup, int 
 	}
 	// <advc.049> No new AI routes in human territory (but upgrade to railroad OK)
 	if(iFlags & MOVE_ROUTE_TO) {
-		if(!pFromPlot->isRoute() && !pSelectionGroup->isHuman()) {
+		if(pFromPlot->getRevealedRouteType(pSelectionGroup->getHeadTeam(), false) ==
+			NO_ROUTE && !pSelectionGroup->isHuman()) {
 			PlayerTypes eOwner = pFromPlot->getOwnerINLINE();
 			if(eOwner != NO_PLAYER && GET_PLAYER(eOwner).isHuman())
 				return FALSE;
@@ -2331,24 +2363,20 @@ int pathValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointe
 {
 	PROFILE_FUNC();
 
-	//CvSelectionGroup* pSelectionGroup;
-	CvPlot* pFromPlot;
-	CvPlot* pToPlot;
-
-	if (parent == NULL)
-	{
+	if(parent == NULL)
 		return TRUE;
-	}
-
-	pFromPlot = GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY);
-	FAssert(pFromPlot != NULL);
-	pToPlot = GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY);
-	FAssert(pToPlot != NULL);
-
+	// <advc.003> Was unused apart from the assert
+	/*CvPlot* pFromPlot = ...;
+	CvPlot* pToPlot = ...; */
+	FAssert(GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY) != NULL);
+	FAssert(GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY) != NULL);
+	// </advc.003>
 	//pSelectionGroup = ((CvSelectionGroup *)pointer);
 	// K-Mod
-	CvSelectionGroup* pSelectionGroup = finder ? (CvSelectionGroup*)pointer : ((CvPathSettings*)pointer)->pGroup;
-	int iFlags = finder ? gDLL->getFAStarIFace()->GetInfo(finder) : ((CvPathSettings*)pointer)->iFlags;
+	CvSelectionGroup* pSelectionGroup = finder ? (CvSelectionGroup*)pointer :
+			((CvPathSettings*)pointer)->pGroup;
+	int iFlags = finder ? gDLL->getFAStarIFace()->GetInfo(finder) :
+			((CvPathSettings*)pointer)->iFlags;
 	// K-Mod end
 
 	if (!pathValid_join(parent, node, pSelectionGroup, iFlags))
@@ -2361,8 +2389,7 @@ int pathValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointe
 
 int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder)
 {
-	PROFILE_FUNC();
-
+	//PROFILE_FUNC(); // advc.003o
 	//CvSelectionGroup* pSelectionGroup = ((CvSelectionGroup *)pointer);
 	// K-Mod
 	CvSelectionGroup* pSelectionGroup = finder ? (CvSelectionGroup*)pointer : ((CvPathSettings*)pointer)->pGroup;
@@ -2417,14 +2444,16 @@ int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer,
 		}
 
 		CLLNode<IDInfo>* pUnitNode = pSelectionGroup->headUnitNode();
-		int iMoveCost = pToPlot->movementCost(::getUnit(pUnitNode->m_data), pFromPlot);
+		int iMoveCost = pToPlot->movementCost(::getUnit(pUnitNode->m_data), pFromPlot,
+				false); // advc.001i
 		bool bUniformCost = true;
 
 		for (pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode); pUnitNode && bUniformCost; pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode))
 		{
 			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 
-			int iLoopCost = pToPlot->movementCost(pLoopUnit, pFromPlot);
+			int iLoopCost = pToPlot->movementCost(pLoopUnit, pFromPlot,
+					false); // advc.001i
 			if (iLoopCost != iMoveCost)
 			{
 				bUniformCost = false;
@@ -2453,14 +2482,15 @@ int pathAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer,
 			iMoves = INT_MAX;
 			bool bMaxMoves = pStartNode->m_iData1 == 0 || iFlags & MOVE_MAX_MOVES;
 
-			for (CLLNode<IDInfo>* pUnitNode = pSelectionGroup->headUnitNode(); pUnitNode != NULL; pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode))
+			for (pUnitNode = pSelectionGroup->headUnitNode(); pUnitNode != NULL; pUnitNode = pSelectionGroup->nextUnitNode(pUnitNode))
 			{
 				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 
 				int iUnitMoves = bMaxMoves ? pLoopUnit->maxMoves() : pLoopUnit->movesLeft();
 				for (size_t i = plot_list.size()-1; i > 0; i--)
 				{
-					iUnitMoves -= plot_list[i-1]->movementCost(pLoopUnit, plot_list[i]);
+					iUnitMoves -= plot_list[i-1]->movementCost(pLoopUnit, plot_list[i],
+							false); // advc.001i
 					FAssert(iUnitMoves > 0 || i == 1);
 				}
 
@@ -2554,11 +2584,11 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 			(pNewPlot->getX_INLINE() != v[3] || pNewPlot->getY_INLINE() != v[4]))
 		return FALSE;
 	/*  This handles only Coast, and no other terrain types that a mod might make
-		impassable */
+		impassable. */
 	if(!coastalCity && ePlotTeam != eTeam && impassableTerrain &&
 			pNewPlot->getTerrainType() != (TerrainTypes)(GC.getDefineINT("SHALLOW_WATER_TERRAIN")))
 		return FALSE;
-	// Don't check isRevealed; caller ensures that destination city is deducible
+	// Don't check isRevealed; caller ensures that destination city is deducible.
 	if(ePlotTeam == NO_TEAM)
 		return TRUE;
 	if(GET_TEAM(ePlotTeam).getMasterTeam() == GET_TEAM(eTargetTeam).getMasterTeam())
@@ -2871,7 +2901,7 @@ int countPlotGroup(FAStarNode* parent, FAStarNode* node, int data, const void* p
 	return 1;
 }
 
-
+// advc.003j (comment): Unused
 int baseYieldToSymbol(int iNumYieldTypes, int iYieldStack)
 {
 	int iReturn;	// holds the return value we will be calculating
@@ -2885,8 +2915,9 @@ int baseYieldToSymbol(int iNumYieldTypes, int iYieldStack)
 	return iReturn;
 }
 
-
-bool isPickableName(const TCHAR* szName)
+/*  advc.003j: Vanilla Civ 4 function that used to be a DLLExport; certainly unused
+	since BtS, and doesn't sound too useful. */
+/*bool isPickableName(const TCHAR* szName)
 {
 	if (szName)
 	{
@@ -2899,7 +2930,7 @@ bool isPickableName(const TCHAR* szName)
 	}
 
 	return true;
-}
+}*/
 
 
 // create an array of shuffled numbers
@@ -3027,26 +3058,30 @@ void getCardinalDirectionTypeString(CvWString& szString, CardinalDirectionTypes 
 	getDirectionTypeString(szString, cardinalDirectionToDirection(eDirectionType));
 }
 
+// advc.007: Removed the "ACTIVITY_" prefix from the strings b/c it takes up too much space.
 void getActivityTypeString(CvWString& szString, ActivityTypes eActivityType)
 {
 	switch (eActivityType)
 	{
 	case NO_ACTIVITY: szString = L"NO_ACTIVITY"; break;
 
-	case ACTIVITY_AWAKE: szString = L"ACTIVITY_AWAKE"; break;
-	case ACTIVITY_HOLD: szString = L"ACTIVITY_HOLD"; break;
-	case ACTIVITY_SLEEP: szString = L"ACTIVITY_SLEEP"; break;
-	case ACTIVITY_HEAL: szString = L"ACTIVITY_HEAL"; break;
-	case ACTIVITY_SENTRY: szString = L"ACTIVITY_SENTRY"; break;
-	case ACTIVITY_INTERCEPT: szString = L"ACTIVITY_INTERCEPT"; break;
-	case ACTIVITY_MISSION: szString = L"ACTIVITY_MISSION"; break;
+	case ACTIVITY_AWAKE: szString = L"AWAKE"; break;
+	case ACTIVITY_HOLD: szString = L"HOLD"; break;
+	case ACTIVITY_SLEEP: szString = L"SLEEP"; break;
+	case ACTIVITY_HEAL: szString = L"HEAL"; break;
+	case ACTIVITY_SENTRY: szString = L"SENTRY"; break;
+	case ACTIVITY_INTERCEPT: szString = L"INTERCEPT"; break;
+	case ACTIVITY_MISSION: szString = L"MISSION"; break;
 // K-Mod. There were some missing activity strings...
-#define case_string(x) case x: szString = L#x; break;
+/*#define case_string(x) case x: szString = L#x; break;
 	case_string(ACTIVITY_PATROL)
 	case_string(ACTIVITY_PLUNDER)
-#undef case_string
+#undef case_string*/
 // K-Mod end
-
+	// <advc.007>
+	case ACTIVITY_PATROL: szString = L"PATROL"; break;
+	case ACTIVITY_PLUNDER: szString = L"PLUNDER"; break;
+	// </advc.007>
 	default: szString = CvWString::format(L"UNKNOWN_ACTIVITY(%d)", eActivityType); break;
 	}
 }
@@ -3067,6 +3102,7 @@ void getMissionTypeString(CvWString& szString, MissionTypes eMissionType)
 	case MISSION_AIRPATROL: szString = L"MISSION_AIRPATROL"; break;
 	case MISSION_SEAPATROL: szString = L"MISSION_SEAPATROL"; break;
 	case MISSION_HEAL: szString = L"MISSION_HEAL"; break;
+	case MISSION_SENTRY_HEAL: szString = L"MISSION_SENTRY_HEAL"; break; // advc.004l
 	case MISSION_SENTRY: szString = L"MISSION_SENTRY"; break;
 	case MISSION_AIRLIFT: szString = L"MISSION_AIRLIFT"; break;
 	case MISSION_NUKE: szString = L"MISSION_NUKE"; break;
@@ -3109,33 +3145,34 @@ void getMissionTypeString(CvWString& szString, MissionTypes eMissionType)
 	}
 }
 
+// advc.007: Removed the "MISSIONAI_" prefix from the strings b/c it takes up too much space.
 void getMissionAIString(CvWString& szString, MissionAITypes eMissionAI)
 {
 	switch (eMissionAI)
 	{
 	case NO_MISSIONAI: szString = L"NO_MISSIONAI"; break;
 
-	case MISSIONAI_SHADOW: szString = L"MISSIONAI_SHADOW"; break;
-	case MISSIONAI_GROUP: szString = L"MISSIONAI_GROUP"; break;
-	case MISSIONAI_LOAD_ASSAULT: szString = L"MISSIONAI_LOAD_ASSAULT"; break;
-	case MISSIONAI_LOAD_SETTLER: szString = L"MISSIONAI_LOAD_SETTLER"; break;
-	case MISSIONAI_LOAD_SPECIAL: szString = L"MISSIONAI_LOAD_SPECIAL"; break;
-	case MISSIONAI_GUARD_CITY: szString = L"MISSIONAI_GUARD_CITY"; break;
-	case MISSIONAI_GUARD_BONUS: szString = L"MISSIONAI_GUARD_BONUS"; break;
-	case MISSIONAI_GUARD_SPY: szString = L"MISSIONAI_GUARD_SPY"; break;
-	case MISSIONAI_ATTACK_SPY: szString = L"MISSIONAI_ATTACK_SPY"; break;
-	case MISSIONAI_SPREAD: szString = L"MISSIONAI_SPREAD"; break;
-	case MISSIONAI_CONSTRUCT: szString = L"MISSIONAI_CONSTRUCT"; break;
-	case MISSIONAI_HURRY: szString = L"MISSIONAI_HURRY"; break;
-	case MISSIONAI_GREAT_WORK: szString = L"MISSIONAI_GREAT_WORK"; break;
-	case MISSIONAI_EXPLORE: szString = L"MISSIONAI_EXPLORE"; break;
-	case MISSIONAI_BLOCKADE: szString = L"MISSIONAI_BLOCKADE"; break;
-	case MISSIONAI_PILLAGE: szString = L"MISSIONAI_PILLAGE"; break;
-	case MISSIONAI_FOUND: szString = L"MISSIONAI_FOUND"; break;
-	case MISSIONAI_BUILD: szString = L"MISSIONAI_BUILD"; break;
-	case MISSIONAI_ASSAULT: szString = L"MISSIONAI_ASSAULT"; break;
-	case MISSIONAI_CARRIER: szString = L"MISSIONAI_CARRIER"; break;
-	case MISSIONAI_PICKUP: szString = L"MISSIONAI_PICKUP"; break;
+	case MISSIONAI_SHADOW: szString = L"SHADOW"; break;
+	case MISSIONAI_GROUP: szString = L"GROUP"; break;
+	case MISSIONAI_LOAD_ASSAULT: szString = L"LOAD_ASSAULT"; break;
+	case MISSIONAI_LOAD_SETTLER: szString = L"LOAD_SETTLER"; break;
+	case MISSIONAI_LOAD_SPECIAL: szString = L"LOAD_SPECIAL"; break;
+	case MISSIONAI_GUARD_CITY: szString = L"GUARD_CITY"; break;
+	case MISSIONAI_GUARD_BONUS: szString = L"GUARD_BONUS"; break;
+	case MISSIONAI_GUARD_SPY: szString = L"GUARD_SPY"; break;
+	case MISSIONAI_ATTACK_SPY: szString = L"ATTACK_SPY"; break;
+	case MISSIONAI_SPREAD: szString = L"SPREAD"; break;
+	case MISSIONAI_CONSTRUCT: szString = L"CONSTRUCT"; break;
+	case MISSIONAI_HURRY: szString = L"HURRY"; break;
+	case MISSIONAI_GREAT_WORK: szString = L"GREAT_WORK"; break;
+	case MISSIONAI_EXPLORE: szString = L"EXPLORE"; break;
+	case MISSIONAI_BLOCKADE: szString = L"BLOCKADE"; break;
+	case MISSIONAI_PILLAGE: szString = L"PILLAGE"; break;
+	case MISSIONAI_FOUND: szString = L"FOUND"; break;
+	case MISSIONAI_BUILD: szString = L"BUILD"; break;
+	case MISSIONAI_ASSAULT: szString = L"ASSAULT"; break;
+	case MISSIONAI_CARRIER: szString = L"CARRIER"; break;
+	case MISSIONAI_PICKUP: szString = L"PICKUP"; break;
 // K-Mod
 #define mission_string(x) case x: szString = L#x; break;
 	mission_string(MISSIONAI_GUARD_COAST)

@@ -49,6 +49,8 @@ public:
 	void AI_doTurnUnitsPost();
 
 	void AI_doPeace();
+	// advc.134a:
+	bool AI_upholdPeaceOffer(PlayerTypes humanId, CvDiploParameters const& kOffer) const;
 
 	void AI_updateFoundValues(bool bStartingLoc = false);
 	void AI_updateAreaTargets();
@@ -61,9 +63,9 @@ public:
 	void AI_updateAssignWork();
 
 	void AI_makeProductionDirty();
-
+	#if 0 // advc.003
 	void AI_doCentralizedProduction(); // K-Mod. (not used)
-
+	#endif
 	void AI_conquerCity(CvCity* pCity);
 	double AI_razeAngerRating(CvCity const& c) const; // advc.130q
 	bool AI_acceptUnit(CvUnit* pUnit) const;
@@ -170,6 +172,7 @@ public:
 
 	DllExport DiploCommentTypes AI_getGreeting(PlayerTypes ePlayer) const;
 	bool AI_isWillingToTalk(PlayerTypes ePlayer) const; // Exposed to Python
+	int AI_refuseToTalkTurns(PlayerTypes ePlayer) const; // advc.104i
 	bool AI_demandRebukedSneak(PlayerTypes ePlayer) const;
 	bool AI_demandRebukedWar(PlayerTypes ePlayer) const;
 	bool AI_hasTradedWithTeam(TeamTypes eTeam) const;
@@ -204,7 +207,7 @@ public:
 	int AI_getRivalTradeAttitude(PlayerTypes ePlayer) const;
 	int AI_getBonusTradeCounter(TeamTypes toId) const; // advc.130p
 	int AI_getMemoryAttitude(PlayerTypes ePlayer, MemoryTypes eMemory) const;
-	int AI_getColonyAttitude(PlayerTypes ePlayer) const;
+	//int AI_getColonyAttitude(PlayerTypes ePlayer) const; // advc.130r
 	// BEGIN: Show Hidden Attitude Mod 01/22/2010
 	int AI_getFirstImpressionAttitude(PlayerTypes ePlayer) const;
 	int AI_getTeamSizeAttitude(PlayerTypes ePlayer) const;
@@ -248,9 +251,12 @@ public:
 				pOurInventory, pTheirCounter, pOurCounter, 1);
 	}
 	int AI_tradeAcceptabilityThreshold(PlayerTypes eTrader) const; // K-Mod
-	// advc.003 (comment): These two are exposed to Python
-	DllExport int AI_maxGoldTrade(PlayerTypes ePlayer) const;
-	DllExport int AI_maxGoldPerTurnTrade(PlayerTypes ePlayer) const;
+	int AI_maxGoldTrade(PlayerTypes ePlayer) const {									// Exposed to Python
+		// <advc.134a> Can't add a param b/c the EXE calls this virtual function 
+		return AI_maxGoldTrade(ePlayer, false);
+	}
+	int AI_maxGoldTrade(PlayerTypes ePlayer, bool bTeamTrade) const; // </advc.134a>
+	int AI_maxGoldPerTurnTrade(PlayerTypes ePlayer) const;								// Exposed to Python
 	int AI_goldPerTurnTradeVal(int iGoldPerTurn) const;
 	int AI_bonusVal(BonusTypes eBonus, int iChange,
 			bool bAssumeEnabled = false, // K-Mod
@@ -299,6 +305,8 @@ public:
 		int AI_neededExplorers_bulk(CvArea const* pArea) const;
 		std::map<int,int> m_neededExplorersByArea;
 		public: // </advc.003b>
+	// advc.042: Moved from CvPlayer and int param added
+	int AI_countUnimprovedBonuses(CvArea* pArea, CvPlot* pFromPlot = NULL, int iLookAhead = 0) const;														// Exposed to Python
 	int AI_neededWorkers(CvArea* pArea) const;
 	int AI_neededMissionaries(CvArea* pArea, ReligionTypes eReligion) const;
 	int AI_neededExecutives(CvArea* pArea, CorporationTypes eCorporation) const;
@@ -556,10 +564,12 @@ public:
 
 	// <advc.104>
 	WarAndPeaceAI::Civ& warAndPeaceAI();
-	WarAndPeaceAI::Civ const& warAndPeaceAI() const;
-	// </advc.104>
-	// advc.104h: Returns true if peace deal implemented (or offered to human)
+	WarAndPeaceAI::Civ const& warAndPeaceAI() const; // </advc.104>
+	// <advc.104h>
+	// Returns true if peace deal implemented (or offered to human)
 	bool AI_negotiatePeace(PlayerTypes civId, int iTheirBenefit, int iOurBenefit);
+	void AI_offerCapitulation(PlayerTypes civId);
+	// </advc.104h>
 	bool AI_willOfferPeace(PlayerTypes toId) const; // advc.003
 	// advc.130h:
 	bool AI_disapprovesOfDoW(TeamTypes aggressorId, TeamTypes victimId) const;
@@ -657,7 +667,7 @@ protected:
 
 	std::vector<int> m_aiAttitudeCache; // K-Mod
 
-	bool* m_abFirstContact;
+	bool* m_abFirstContact; // advc.003j: Now unused
 
 	int** m_aaiContactTimer;
 	int** m_aaiMemoryCount;
@@ -704,13 +714,16 @@ protected:
 	// <advc.104h>
 	int AI_negotiatePeace(PlayerTypes receiverId, PlayerTypes giverId, int iDelta,
 			int* iGold, TechTypes* eBestTech, CvCity** pBestCity); // </advc.104h>
-	// <advc.705> Replacement for AI_counterPropose
+	// <advc.705> Replacement for the virtual function AI_counterPropose
 	bool AI_counterPropose(PlayerTypes ePlayer,
 			const CLinkList<TradeData>* pTheirList, const CLinkList<TradeData>* pOurList,
 			CLinkList<TradeData>* pTheirInventory, CLinkList<TradeData>* pOurInventory,
 			CLinkList<TradeData>* pTheirCounter, CLinkList<TradeData>* pOurCounter,
 			double leniency) const; // </advc.705>
 	// <advc.003>
+	// Variant that writes the proposal into pTheirList and pOurList
+	bool AI_counterPropose(PlayerTypes ePlayer, CLinkList<TradeData>& kTheyGive,
+			CLinkList<TradeData>& kWeGive, bool bTheyMayGiveMore, bool bWeMayGiveMore) const;
 	bool AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInventory,
 			PlayerTypes ePlayer, int& iGreaterVal, int& iSmallerVal,
 			CLinkList<TradeData>* pCounter,
@@ -745,7 +758,10 @@ protected:
 	// <advc.651>
 	void AI_updateDangerFromSubmarines();
 		bool m_bDangerFromSubs; // Not stored in savegames </advc.651>
+	bool AI_cheatDangerVisibility(CvPlot const& pAt) const; // advc.128
 	int AI_knownRankDifference(PlayerTypes otherId) const; // advc.130c
+	// advc.042: Relies on caller to reset GC.getBorderFinder()
+	bool AI_isUnimprovedBonus(CvPlot const& p, CvPlot* pFromPlot, bool bCheckPath) const;
 
 	// K-Mod. I've moved the bulk of AI_getStrategyHash into a new function: AI_updateStrategyHash.
 	inline int AI_getStrategyHash() const { return m_iStrategyHash; }

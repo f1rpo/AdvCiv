@@ -17,6 +17,9 @@ WarEvalParameters::WarEvalParameters(TeamTypes agentId,
 	consideringPeace = GET_TEAM(_agentId).isAtWar(_targetId);
 	if(sponsor != NO_PLAYER)
 		immediateDoW = true;
+	// To be set by WarEvaluator:
+	total = naval = false;
+	preparationTime = -1;
 }
 
 bool WarEvalParameters::isIgnoreDistraction() const {

@@ -142,7 +142,7 @@ void CyInfoPythonInterface1()
 		.def("getKamikazePercent", &CvPromotionInfo::getKamikazePercent, "int ()")
 
 		.def("isLeader", &CvPromotionInfo::isLeader, "bool ()")
-		.def("isBlitz", &CvPromotionInfo::isBlitz, "bool ()")
+		.def("getBlitz", &CvPromotionInfo::getBlitz, "int ()") // advc.164
 		.def("isAmphib", &CvPromotionInfo::isAmphib, "bool ()")
 		.def("isRiver", &CvPromotionInfo::isRiver, "bool ()")
 		.def("isEnemyRoute", &CvPromotionInfo::isEnemyRoute, "bool ()")

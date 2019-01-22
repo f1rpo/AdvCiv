@@ -42,7 +42,7 @@ class CvInfoBase;
 
 // <advc.003g> floating point utility
 inline int round(double d) { return (int)((d >= 0 ? 0.5 : -0.5) + d); }
-int roundToMultiple(double d, int iModulus);
+int roundToMultiple(double d, int iMultiple);
 bool bernoulliSuccess(double pr, char const* pszLog = ""); // 0 <= pr <= 1
 double median(std::vector<double>& distribution, bool bSorted = false);
 double mean(std::vector<double>& distribution);
@@ -71,7 +71,8 @@ void fatCross(CvPlot const& p, std::vector<CvPlot*>& r);
 void contestedPlots(std::vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2); // advc.035
 // <advc.008e>
 bool isArticle(BuildingTypes bt);
-bool isArticle(ProjectTypes pt); // </advc.008e>
+bool isArticle(ProjectTypes pt);
+// </advc.008e>
 
 //sign function taken from FirePlace - JW
 template<class T> __forceinline T getSign( T x ) { return (( x < 0 ) ? T(-1) : x > 0 ? T(1) : T(0)); };
@@ -277,11 +278,11 @@ bool isInnerRing(CvPlot const* pl, CvPlot const* cityPl); // advc.303
 CardinalDirectionTypes getOppositeCardinalDirection(CardinalDirectionTypes eDir);	// Exposed to Python 
 DirectionTypes cardinalDirectionToDirection(CardinalDirectionTypes eCard);				// Exposed to Python
 DllExport bool isCardinalDirection(DirectionTypes eDirection);															// Exposed to Python
-DllExport DirectionTypes estimateDirection(int iDX, int iDY);																// Exposed to Python
+DirectionTypes estimateDirection(int iDX, int iDY);																// Exposed to Python
 DllExport DirectionTypes estimateDirection(const CvPlot* pFromPlot, const CvPlot* pToPlot);
 DllExport float directionAngle(DirectionTypes eDirection);
 
-DllExport bool atWar(TeamTypes eTeamA, TeamTypes eTeamB);												// Exposed to Python
+bool atWar(TeamTypes eTeamA, TeamTypes eTeamB);												// Exposed to Python
 bool isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam);			// Exposed to Python
 
 DllExport CvCity* getCity(IDInfo city);	// Exposed to Python
@@ -312,6 +313,8 @@ ImprovementTypes finalImprovementUpgrade(ImprovementTypes eImprovement); // Expo
 int getWorldSizeMaxConscript(CivicTypes eCivic);								// Exposed to Python
 
 bool isReligionTech(TechTypes eTech);														// Exposed to Python
+// advc.003j: Unused BtS function; wasn't even declared in the header file.
+bool isCorporationTech(TechTypes eTech);
 
 bool isTechRequiredForUnit(TechTypes eTech, UnitTypes eUnit);							// Exposed to Python
 bool isTechRequiredForBuilding(TechTypes eTech, BuildingTypes eBuilding);	// Exposed to Python
@@ -339,6 +342,9 @@ int estimateCollateralWeight(const CvPlot* pPlot, TeamTypes eAttackTeam, TeamTyp
 int getEspionageModifier(TeamTypes eOurTeam, TeamTypes eTargetTeam);							// Exposed to Python
 
 DllExport void setTradeItem(TradeData* pItem, TradeableItems eItemType = TRADE_ITEM_NONE, int iData = 0);
+// <advc.071>
+void setFirstContactData(FirstContactData& kData, CvPlot const* pAt1, CvPlot const* pAt2 = NULL,
+		CvUnit const* pUnit1 = NULL, CvUnit const* pUnit2 = NULL); // </advc.071>
 
 bool isPlotEventTrigger(EventTriggerTypes eTrigger);
 
@@ -431,8 +437,7 @@ int plotGroupValid(FAStarNode* parent, FAStarNode* node, int data, const void* p
 int countPlotGroup(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
 
 int baseYieldToSymbol(int iNumYieldTypes, int iYieldStack);
-
-bool isPickableName(const TCHAR* szName);
+//bool isPickableName(const TCHAR* szName); // advc.003j
 
 DllExport int* shuffle(int iNum, CvRandom& rand);
 void shuffleArray(int* piShuffle, int iNum, CvRandom& rand);

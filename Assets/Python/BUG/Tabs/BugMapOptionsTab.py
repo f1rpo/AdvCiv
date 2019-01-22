@@ -23,19 +23,24 @@ class BugMapOptionsTab(BugOptionsTab.BugOptionsTab):
 		
 		self.addLabel(screen, left, "StrategyOverlay", "Strategy Layer:")
 		self.addCheckbox(screen, left, "StrategyOverlay__Enabled")
-		self.addCheckbox(screen, left, "StrategyOverlay__ShowDotMap")
+		# advc.004: Disabled; Ctrl+X should suffice.
+		#self.addCheckbox(screen, left, "StrategyOverlay__ShowDotMap")
 		self.addCheckbox(screen, left, "StrategyOverlay__DotMapDrawDots")
 		leftL, leftR = self.addTwoColumnLayout(screen, left, "DotMapBrightness")
 		#self.addTextEdit(screen, leftL, leftR, "StrategyOverlay__DotMapDotIcon")
 		self.addSlider(screen, leftL, leftR, "StrategyOverlay__DotMapBrightness", False, False, False, "up", 0, 100)
 		self.addSlider(screen, leftL, leftR, "StrategyOverlay__DotMapHighlightBrightness", False, False, False, "up", 0, 100)
 		
-		
+		# advc (comment): I suppose EmperorFool disabled these lines (BULL options that BUG doesn't support). Anyway, it wasn't me.
 		#self.addLabel(screen, center, "CityBar", "CityBar:")
 		#self.addCheckbox(screen, center, "CityBar__AirportIcons")
 		#self.addCheckbox(screen, center, "CityBar__StarvationTurns")
-		
-		#self.addLabel(screen, center, "TileHover", "Tile Hover:")
+		# <advc.011b>
+		self.addLabel(screen, center, "TileHover", "Tile Hover:")
+		self.addCheckbox(screen, center, "MiscHover__PartialBuildsAlways")
+		# </advc.011b>
+		# advc.061:
+		self.addCheckbox(screen, center, "MainInterface__ListUnitsPerOwner")
 		#self.addCheckbox(screen, center, "MiscHover__LatLongCoords")
 		#self.addCheckbox(screen, center, "MiscHover__PartialBuilds")
 		
@@ -44,11 +49,13 @@ class BugMapOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addCheckbox(screen, right, "MainInterface__FieldOfView")
 		self.addCheckbox(screen, right, "MainInterface__FieldOfView_Remember", True)
 		self.addCheckbox(screen, right, "EventSigns__Enabled")
+		# advc.004m:
+		self.addCheckbox(screen, right, "MainInterface__StartWithResourceIcons")
+		
 		#self.addCheckbox(screen, right, "Actions__IgnoreHarmlessBarbarians")
 		
-		
-		screen.attachHSeparator(column, column + "Sep1")
-		
+		# advc.009c: Commented out
+		#screen.attachHSeparator(column, column + "Sep1")
 		#left, right = self.addTwoColumnLayout(screen, column, "MapFinderEnabled", True)
 		#self.addLabel(screen, left, "MapFinder", "MapFinder:")
 		#self.addCheckbox(screen, right, "MapFinder__Enabled")

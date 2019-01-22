@@ -378,6 +378,8 @@ CvBattleDefinition::CvBattleDefinition( const CvBattleDefinition & kCopy ) :
 	m_aBattleRounds.assign(kCopy.m_aBattleRounds.begin(), kCopy.m_aBattleRounds.end());
 }
 
+CvBattleDefinition::~CvBattleDefinition() {}
+
 int CvBattleDefinition::getDamage(BattleUnitTypes unitType, BattleTimeTypes timeType) const
 {
 	checkBattleUnitType(unitType);
@@ -508,6 +510,9 @@ CvAirMissionDefinition::CvAirMissionDefinition() :
 {
 	m_fMissionTime = 0.0f;
 	m_eMissionType = MISSION_AIRPATROL;
+	// <advc.003> Safer to initialize this here
+	for(int i = 0; i < BATTLE_UNIT_COUNT; i++)
+		m_aDamage[i] = 0; // </advc.003>
 }
 
 //------------------------------------------------------------------------------------------------

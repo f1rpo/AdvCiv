@@ -571,7 +571,9 @@ void RiseFall::showDoW() {
 				gDLL->getText("TXT_KEY_YOU_AT_WAR", enemy.getName()),
 				NULL, MESSAGE_TYPE_INFO, NULL, (ColorTypes)
 				GC.getInfoTypeForString("COLOR_WARNING_TEXT"),
-				enemy.getCapitalX(), enemy.getCapitalY()); // advc.127b
+				// <advc.127b>
+				enemy.getCapitalX(g.getActiveTeam(), true),
+				enemy.getCapitalY(g.getActiveTeam(), true)); // <advc.127b>
 	}
 }
 
@@ -630,6 +632,8 @@ void RiseFall::abandonPlans(PlayerTypes civId) {
 		// Without this, units outside owner's borders don't appear on the main interface.
 		if(gr->plot()->getOwnerINLINE() != civId)
 			gr->plot()->updateCenterUnit();
+		/* ^Perhaps no longer needed due to a change in CvPlot::updateVisibility
+			(advc.061). Should test this some time. */
 	}
 	// Set research slider to a balanced-budget position
 	int incr = GC.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS");
@@ -777,6 +781,7 @@ bool RiseFall::isCooperationRestricted(PlayerTypes aiCiv) const {
 	return (g.getPlayerRank(aiCiv) > g.getPlayerRank(human));
 }
 
+// currently unused
 RFChapter* RiseFall::mostRecentlyFinished() const {
 
 	for(size_t i = chapters.size() - 1; i >= 0; i--) {

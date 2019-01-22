@@ -31,6 +31,7 @@ KmodPathFinder CvSelectionGroup::path_finder; // K-Mod
 
 CvSelectionGroup::CvSelectionGroup()
 {
+	m = new Data(); // advc.003k
 	reset(0, NO_PLAYER, true);
 }
 
@@ -38,6 +39,7 @@ CvSelectionGroup::CvSelectionGroup()
 CvSelectionGroup::~CvSelectionGroup()
 {
 	uninit();
+	SAFE_DELETE(m); // advc.003k
 }
 
 
@@ -59,7 +61,7 @@ void CvSelectionGroup::init(int iID, PlayerTypes eOwner)
 void CvSelectionGroup::uninit()
 {
 	m_units.clear();
-
+	m->knownEnemies.clear(); // advc.004l
 	m_missionQueue.clear();
 }
 
@@ -80,7 +82,8 @@ void CvSelectionGroup::reset(int iID, PlayerTypes eOwner, bool bConstructorCall)
 	m_eOwner = eOwner;
 
 	m_eActivityType = ACTIVITY_AWAKE;
-	m_eAutomateType = NO_AUTOMATE;
+	m->eAutomateType = NO_AUTOMATE;
+	m->bInitiallyVisible = true; // advc.102
 	m_bIsBusyCache = false;
 
 	if (!bConstructorCall)
@@ -101,7 +104,8 @@ void CvSelectionGroup::kill()
 	GET_PLAYER(getOwnerINLINE()).deleteSelectionGroup(getID());
 }
 
-bool CvSelectionGroup::sentryAlert() const
+bool CvSelectionGroup::sentryAlert(
+		bool bUpdateKnownEnemies) // advc.004l
 {
 	CvUnit* pHeadUnit = NULL;
 	int iMaxRange = 0;
@@ -120,28 +124,49 @@ bool CvSelectionGroup::sentryAlert() const
 		}
 	}
 
-	if (NULL != pHeadUnit)
+	if(pHeadUnit == NULL)
+		return false; // advc.003
+	bool r = false; // advc.004l
+	for (int iX = -iMaxRange; iX <= iMaxRange; ++iX)
 	{
-		for (int iX = -iMaxRange; iX <= iMaxRange; ++iX)
+		for (int iY = -iMaxRange; iY <= iMaxRange; ++iY)
 		{
-			for (int iY = -iMaxRange; iY <= iMaxRange; ++iY)
-			{
-				CvPlot* pPlot = ::plotXY(pHeadUnit->getX_INLINE(), pHeadUnit->getY_INLINE(), iX, iY);
-				if (NULL != pPlot)
-				{
-					if (pHeadUnit->plot()->canSeePlot(pPlot, pHeadUnit->getTeam(), iMaxRange - 1, NO_DIRECTION))
-					{
-						if (pPlot->isVisibleEnemyUnit(pHeadUnit))
-						{
-							return true;
+			CvPlot* pPlot = ::plotXY(pHeadUnit->getX_INLINE(), pHeadUnit->getY_INLINE(), iX, iY);
+			if(NULL == pPlot)
+				continue; // advc.003
+			if(pHeadUnit->plot()->canSeePlot(pPlot, pHeadUnit->getTeam(), iMaxRange - 1, NO_DIRECTION))
+			{	// <advc.004l>
+				CLLNode<IDInfo>* pNode = pPlot->headUnitNode();
+				while(pNode != NULL) {
+					CvUnit* pLoopUnit = ::getUnit(pNode->m_data);
+					if(pPlot->isVisibleEnemyUnit(pHeadUnit, pLoopUnit)) {
+						if(bUpdateKnownEnemies) {
+							r = true;
+							m->knownEnemies.insertAtEnd(pNode->m_data);
+						}
+						else {
+							bool bKnown = false;
+							// Linear search :(
+							for(CLLNode<IDInfo>* pKnownNode = m->knownEnemies.head();
+									pKnownNode != NULL;
+									pKnownNode = m->knownEnemies.next(pKnownNode)) {
+								if(pKnownNode->m_data.eOwner == pNode->m_data.eOwner &&
+										pKnownNode->m_data.iID == pNode->m_data.iID) {
+									bKnown = true;
+									break;
+								}
+							}
+							if(!bKnown)
+								return true;
 						}
 					}
-				}
+					pNode = pPlot->nextUnitNode(pNode);
+				} // </advc.004l>
 			}
 		}
 	}
 
-	return false;
+	return r; // advc.004l
 }
 
 // Note: this function has had some editting and restructuring for K-Mod. There are some unmarked changes.
@@ -150,152 +175,165 @@ void CvSelectionGroup::doTurn()
 	PROFILE_FUNC();
 
 	FAssert(getOwnerINLINE() != NO_PLAYER);
+	// <advc.003>
+	if(getNumUnits() <= 0) {
+		doDelayedDeath();
+		return;
+	} // </advc.003>
 
-	if (getNumUnits() > 0)
+	bool bCouldAllMove = canAllMove(); // K-Mod
+	CvUnit* pHeadUnit = getHeadUnit(); // advc.003
+	// K-Mod. Wake spies when they reach max fortify turns in foreign territory. I'm only checking the head unit.
+	// Note: We only want to wake once. So this needs to be done before the fortify counter is increased.
+	if (isHuman() && getActivityType() == ACTIVITY_SLEEP)
 	{
-		bool bCouldAllMove = canAllMove(); // K-Mod
-
-		// K-Mod. Wake spies when they reach max fortify turns in foreign territory. I'm only checking the head unit.
-		// Note: We only want to wake once. So this needs to be done before the fortify counter is increased.
-		if (isHuman() && getActivityType() == ACTIVITY_SLEEP)
+		if (pHeadUnit->isSpy() && pHeadUnit->plot()->getTeam() != getTeam())
 		{
-			CvUnit* pHeadUnit = getHeadUnit();
-			if (pHeadUnit && pHeadUnit->isSpy() && pHeadUnit->plot()->getTeam() != getTeam())
+			if (pHeadUnit->getFortifyTurns() == GC.getDefineINT("MAX_FORTIFY_TURNS")-1)
 			{
-				if (pHeadUnit->getFortifyTurns() == GC.getDefineINT("MAX_FORTIFY_TURNS")-1)
-				{
-					setActivityType(ACTIVITY_AWAKE); // time to wake up!
-				}
+				setActivityType(ACTIVITY_AWAKE); // time to wake up!
 			}
 		}
-		// K-Mod end
+	}
+	// K-Mod end
 
-		// do unit's turns (checking for damage)
-		bool bHurt = false;
+	// do unit's turns (checking for damage)
+	bool bHurt = false;
+	{
+		CLLNode<IDInfo>* pUnitNode = headUnitNode();
+		while (pUnitNode != NULL)
 		{
+			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+			pUnitNode = nextUnitNode(pUnitNode);
+
+			pLoopUnit->doTurn();
+
+			if (pLoopUnit->isHurt())
+			{
+				bHurt = true;
+			}
+		}
+	}
+
+	ActivityTypes eActivityType = getActivityType();
+
+	// wake unit if skipped last turn 
+	//		or healing and automated or no longer hurt (automated healing is one turn at a time)
+	//		or on sentry and there is danger
+	// <advc.004l> Also wake the unit if healing outside of a city and danger
+	bool bSentryAlert = // Just for performance:
+			((eActivityType == ACTIVITY_HEAL || eActivityType == ACTIVITY_SENTRY) &&
+			isHuman() && sentryAlert()); // </advc.004l>
+	if (eActivityType == ACTIVITY_HOLD ||
+		(eActivityType == ACTIVITY_HEAL && (AI_isControlled() || !bHurt
+		|| (bSentryAlert && pHeadUnit->canSentryHeal(plot())) // advc.004l
+		)) ||
+		(eActivityType == ACTIVITY_SENTRY && bSentryAlert))
+	{
+		setActivityType(ACTIVITY_AWAKE);
+	}
+
+	if (AI_isControlled())
+	{
+		if (getActivityType() != ACTIVITY_MISSION || (!canFight() && GET_PLAYER(getOwnerINLINE()).AI_getAnyPlotDanger(plot(), 2)))
+		{
+			setForceUpdate(true);
+			// K-Mod. (This stuff use to be part force update's job. Now it isn't.)
+			clearMissionQueue();
+			AI_cancelGroupAttack();
+			// K-Mod end
+		}
+	}
+	else
+	{
+		setForceUpdate(false); // K-Mod. (this should do nothing, unless we're coming out of autoplay or something like that.)
+
+		if (getActivityType() == ACTIVITY_MISSION)
+		{
+			bool bNonSpy = false;
+			for (CLLNode<IDInfo>* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode))
+			{
+				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+				if (!pLoopUnit->isSpy())
+				{
+					bNonSpy = true;
+					break;
+				}
+			}
+
+			// K-Mod
+			bool bBrave = headMissionQueueNode() && (headMissionQueueNode()->m_data.iFlags & MOVE_IGNORE_DANGER);
+			// Originally I used "MOVE_IGNORE_DANGER" to actually skip the danger tests complete, but I've found that
+			// sometimes produces unintuitive results in some situations. So now 'ignore danger' only ignores range==2.
+
+			//if (bNonSpy && GET_PLAYER(getOwnerINLINE()).AI_getPlotDanger(plot(), 2) > 0)
+			if (bNonSpy && GET_PLAYER(getOwnerINLINE()).AI_getAnyPlotDanger(plot(), bBrave ? 1 : 2, true, false))
+				clearMissionQueue();
+			// K-Mod end
+		}
+	}
+
+	if (isHuman())
+	{
+		//if (GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
+		if (GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) && GET_TEAM(getTeam()).hasMetHuman()) // K-Mod
+		{
+			int iBestWaitTurns = 0;
+
 			CLLNode<IDInfo>* pUnitNode = headUnitNode();
+
 			while (pUnitNode != NULL)
 			{
 				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 				pUnitNode = nextUnitNode(pUnitNode);
 
-				pLoopUnit->doTurn();
+				int iWaitTurns = (GC.getDefineINT("MIN_TIMER_UNIT_DOUBLE_MOVES") - (GC.getGameINLINE().getTurnSlice() - pLoopUnit->getLastMoveTurn()));
 
-				if (pLoopUnit->isHurt())
+				if (iWaitTurns > iBestWaitTurns)
 				{
-					bHurt = true;
+					iBestWaitTurns = iWaitTurns;
 				}
 			}
-		}
 
-		ActivityTypes eActivityType = getActivityType();
+			setMissionTimer(std::max(iBestWaitTurns, getMissionTimer()));
 
-		// wake unit if skipped last turn 
-		//		or healing and automated or no longer hurt (automated healing is one turn at a time)
-		//		or on sentry and there is danger
-		// advc.004l: Also wake the unit if healing outside of a city and danger:
-		bool bSentryAlert = sentryAlert();
-		if (eActivityType == ACTIVITY_HOLD ||
-			(eActivityType == ACTIVITY_HEAL && (AI_isControlled() || !bHurt
-			|| (bSentryAlert && !plot()->isCity()) // advc.004l
-			)) ||
-			(eActivityType == ACTIVITY_SENTRY && bSentryAlert))
-		{
-			setActivityType(ACTIVITY_AWAKE);
-		}
-
-		if (AI_isControlled())
-		{
-			if (getActivityType() != ACTIVITY_MISSION || (!canFight() && GET_PLAYER(getOwnerINLINE()).AI_getAnyPlotDanger(plot(), 2)))
+			if (iBestWaitTurns > 0)
 			{
-				setForceUpdate(true);
-				// K-Mod. (This stuff use to be part force update's job. Now it isn't.)
-				clearMissionQueue();
-				AI_cancelGroupAttack();
-				// K-Mod end
-			}
-		}
-		else
-		{
-			setForceUpdate(false); // K-Mod. (this should do nothing, unless we're coming out of autoplay or something like that.)
-
-			if (getActivityType() == ACTIVITY_MISSION)
-			{
-				bool bNonSpy = false;
-				for (CLLNode<IDInfo>* pUnitNode = headUnitNode(); pUnitNode != NULL; pUnitNode = nextUnitNode(pUnitNode))
+				// Cycle selection if the current group is selected
+				CvUnit* pSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+				if (pSelectedUnit && pSelectedUnit->getGroup() == this)
 				{
-					CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-					if (!pLoopUnit->isSpy())
-					{
-						bNonSpy = true;
-						break;
-					}
-				}
-
-				// K-Mod
-				bool bBrave = headMissionQueueNode() && (headMissionQueueNode()->m_data.iFlags & MOVE_IGNORE_DANGER);
-				// Originally I used "MOVE_IGNORE_DANGER" to actually skip the danger tests complete, but I've found that
-				// sometimes produces unintuitive results in some situations. So now 'ignore danger' only ignores range==2.
-
-				//if (bNonSpy && GET_PLAYER(getOwnerINLINE()).AI_getPlotDanger(plot(), 2) > 0)
-				if (bNonSpy && GET_PLAYER(getOwnerINLINE()).AI_getAnyPlotDanger(plot(), bBrave ? 1 : 2, true, false))
-					clearMissionQueue();
-				// K-Mod end
-			}
-		}
-
-		if (isHuman())
-		{
-			//if (GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
-			if (GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) && GET_TEAM(getTeam()).hasMetHuman()) // K-Mod
-			{
-				int iBestWaitTurns = 0;
-
-				CLLNode<IDInfo>* pUnitNode = headUnitNode();
-
-				while (pUnitNode != NULL)
-				{
-					CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-					pUnitNode = nextUnitNode(pUnitNode);
-
-					int iWaitTurns = (GC.getDefineINT("MIN_TIMER_UNIT_DOUBLE_MOVES") - (GC.getGameINLINE().getTurnSlice() - pLoopUnit->getLastMoveTurn()));
-
-					if (iWaitTurns > iBestWaitTurns)
-					{
-						iBestWaitTurns = iWaitTurns;
-					}
-				}
-
-				setMissionTimer(std::max(iBestWaitTurns, getMissionTimer()));
-
-				if (iBestWaitTurns > 0)
-				{
-					// Cycle selection if the current group is selected
-					CvUnit* pSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
-					if (pSelectedUnit && pSelectedUnit->getGroup() == this)
-					{
-						gDLL->getInterfaceIFace()->selectGroup(pSelectedUnit, false, false, false);
-					}
+					gDLL->getInterfaceIFace()->selectGroup(pSelectedUnit, false, false, false);
 				}
 			}
 		}
-		// K-Mod
-		if (!bCouldAllMove && isCycleGroup(this))
-			GET_PLAYER(getOwnerINLINE()).updateGroupCycle(this);
-		// K-Mod end
 	}
+	// K-Mod
+	if (!bCouldAllMove && isCycleGroup(this))
+		GET_PLAYER(getOwnerINLINE()).updateGroupCycle(this);
+	// K-Mod end
 
 	doDelayedDeath();
 }
+
+// <advc.004l>
+void CvSelectionGroup::doTurnPost() {
+
+	/*  In particular: If an enemy unit moves out of range and returns, it's
+		no longer a known enemy. */
+	m->knownEnemies.clear();
+	ActivityTypes eActivity = getActivityType();
+	if(eActivity == ACTIVITY_HEAL || eActivity == ACTIVITY_SENTRY)
+		sentryAlert(true);
+} // </advc.004l>
+
 
 bool CvSelectionGroup::showMoves(
 		CvPlot const& fromPlot) const // advc.102
 {
 	if (GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) || GC.getGameINLINE().isSimultaneousTeamTurns()
 			|| gDLL->getEngineIFace()->isGlobeviewUp()) // advc.102
-	{
 		return false;
-	}
 
 	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
@@ -363,24 +401,26 @@ bool CvSelectionGroup::showMoves(
 	return false;
 }
 
+// <advc.102>
+void CvSelectionGroup::setInitiallyVisible(bool b) {
+
+	m->bInitiallyVisible = b;
+} // </advc.102>
+
 
 void CvSelectionGroup::updateTimers()
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
-	bool bCombat;
-
 	FAssert(getOwnerINLINE() != NO_PLAYER);
 
 	if (getNumUnits() > 0)
 	{
-		bCombat = false;
+		bool bCombat = false;
 
-		pUnitNode = headUnitNode();
+		CLLNode<IDInfo>* pUnitNode = headUnitNode();
 
 		while (pUnitNode != NULL)
 		{
-			pLoopUnit = ::getUnit(pUnitNode->m_data);
+			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 			pUnitNode = nextUnitNode(pUnitNode);
 
 			if (pLoopUnit->isCombat())
@@ -414,9 +454,6 @@ void CvSelectionGroup::updateTimers()
 // Returns true if group was killed...
 bool CvSelectionGroup::doDelayedDeath()
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
-
 	FAssert(getOwnerINLINE() != NO_PLAYER);
 
 	if (isBusy())
@@ -424,11 +461,11 @@ bool CvSelectionGroup::doDelayedDeath()
 		return false;
 	}
 
-	pUnitNode = headUnitNode();
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 
 	while (pUnitNode != NULL)
 	{
-		pLoopUnit = ::getUnit(pUnitNode->m_data);
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
 
 		pLoopUnit->doDelayedDeath();
@@ -481,11 +518,12 @@ void CvSelectionGroup::playActionSound()
 }
 
 
-void CvSelectionGroup::pushMission(MissionTypes eMission, int iData1, int iData2, int iFlags, bool bAppend, bool bManual, MissionAITypes eMissionAI, CvPlot* pMissionAIPlot, CvUnit* pMissionAIUnit)
-{
-	PROFILE_FUNC();
+void CvSelectionGroup::pushMission(MissionTypes eMission, int iData1, int iData2,
+		int iFlags, bool bAppend, bool bManual, MissionAITypes eMissionAI,
+		CvPlot* pMissionAIPlot, CvUnit* pMissionAIUnit,
+		bool bModified) { // advc.011b
 
-	MissionData mission;
+	PROFILE_FUNC();
 
 	FAssert(getOwnerINLINE() != NO_PLAYER);
 
@@ -504,11 +542,13 @@ void CvSelectionGroup::pushMission(MissionTypes eMission, int iData1, int iData2
 		setAutomateType(NO_AUTOMATE);
 	}
 
+	MissionData mission;
 	mission.eMissionType = eMission;
 	mission.iData1 = iData1;
 	mission.iData2 = iData2;
 	mission.iFlags = iFlags;
 	mission.iPushTurn = GC.getGameINLINE().getGameTurn();
+	mission.bModified = bModified; //advc.011b
 
 	if (canAllMove()) // K-Mod. Do not set the AI mission type if this is just a "follow" command!
 		AI_setMissionAI(eMissionAI, pMissionAIPlot, pMissionAIUnit);
@@ -669,6 +709,7 @@ CvPlot* CvSelectionGroup::lastMissionPlot()
 		case MISSION_AIRPATROL:
 		case MISSION_SEAPATROL:
 		case MISSION_HEAL:
+		case MISSION_SENTRY_HEAL: // advc.004l
 		case MISSION_SENTRY:
 		case MISSION_AIRLIFT:
 		case MISSION_NUKE:
@@ -847,6 +888,10 @@ void CvSelectionGroup::startMission()
 			break;
 
 		case MISSION_HEAL:
+		/*  advc.004l: No separate sentry heal activity. Instead, units in
+			ACTIVITY_HEAL are going to apply sentry behavior whenever it makes sense.
+			The sentry heal mission is only needed for the proper help text. */
+		case MISSION_SENTRY_HEAL:
 			setActivityType(ACTIVITY_HEAL);
 			bNotify = true;
 			bDelete = true;
@@ -1005,12 +1050,13 @@ void CvSelectionGroup::startMission()
 				case MISSION_FORTIFY:
 				case MISSION_SEAPATROL:
 				case MISSION_HEAL:
+				case MISSION_SENTRY_HEAL: // advc.004l
 				case MISSION_SENTRY:
 				case MISSION_PILLAGE:
 				case MISSION_BUILD:
 					pUnitNode = 0; // K-Mod. Nothing to do, so we might as well abort the unit loop.
 					break;
-				// K-Mod. (this use to be a "do nothing" case.)
+				// K-Mod. (this used to be a "do nothing" case.)
 				case MISSION_AIRPATROL:
 					if (!pLoopUnit->canAirDefend(plot())) // (We can't use 'canAirPatrol', because that checks 'isWaiting'.)
 						units_left_behind.push_back(pLoopUnit);
@@ -1246,7 +1292,7 @@ void CvSelectionGroup::startMission()
 		// K-Mod end
 	} // end if (can start mission)
 
-	if ((getNumUnits() > 0) && (headMissionQueueNode() != NULL))
+	if (getNumUnits() > 0 && headMissionQueueNode() != NULL)
 	{
 		if (bAction)
 		{
@@ -1468,6 +1514,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 				case MISSION_AIRPATROL:
 				case MISSION_SEAPATROL:
 				case MISSION_HEAL:
+				case MISSION_SENTRY_HEAL: // advc.004l
 				case MISSION_SENTRY:
 					FAssert(false);
 					break;
@@ -1500,10 +1547,9 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 					break;
 
 				case MISSION_BUILD:
-					if (!groupBuild((BuildTypes)(headMissionQueueNode()->m_data.iData1)))
-					{
+					if(!groupBuild((BuildTypes)headMissionQueueNode()->m_data.iData1,
+							!headMissionQueueNode()->m_data.bModified)) // advc.011b
 						bDone = true;
-					}
 					break;
 
 				default:
@@ -1514,7 +1560,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 		}
 	}
 
-	if ((getNumUnits() > 0) && (headMissionQueueNode() != NULL))
+	if (getNumUnits() > 0 && headMissionQueueNode() != NULL)
 	{
 		if (!bDone)
 		{
@@ -1555,6 +1601,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 			case MISSION_AIRPATROL:
 			case MISSION_SEAPATROL:
 			case MISSION_HEAL:
+			case MISSION_SENTRY_HEAL: // advc.004l
 			case MISSION_SENTRY:
 				FAssert(false);
 				break;
@@ -1602,7 +1649,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 		}
 	}
 
-	if ((getNumUnits() > 0) && (headMissionQueueNode() != NULL))
+	if (getNumUnits() > 0 && headMissionQueueNode() != NULL)
 	{
 		if (bAction)
 		{
@@ -1611,9 +1658,8 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 			{	// <advc.102> Previously only checked if destVisible
 				bool destVisible = plot()->isVisibleToWatchingHuman();
 				bool startVisible = fromPlot->isVisibleToWatchingHuman();
-				if(destVisible || (startVisible && ::getUnit(headUnitNode()->
-						m_data)->isInitiallyVisible())) // </advc.102>
-				{	// <advc.102> Pass fromPlot
+				if(destVisible || (startVisible && m->bInitiallyVisible)) {
+					// Pass fromPlot
 					updateMissionTimer(iSteps, fromPlot);
 					if(showMoves(*fromPlot)) // </advc.102>
 					{
@@ -1643,21 +1689,15 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 		if (bDone)
 		{
 			/* original bts code (roughly)
-			if (!isBusy())
-			{
-				if (getOwnerINLINE() == GC.getGameINLINE().getActivePlayer())
-				{
-					if (IsSelected())
-					{
+			if (!isBusy()) {
+				if (getOwnerINLINE() == GC.getGameINLINE().getActivePlayer()) {
+					if (IsSelected()) {
 						if ((headMissionQueueNode()->m_data.eMissionType == MISSION_MOVE_TO) ||
 							(headMissionQueueNode()->m_data.eMissionType == MISSION_ROUTE_TO) ||
 							(headMissionQueueNode()->m_data.eMissionType == MISSION_MOVE_TO_UNIT))
-						{
 							GC.getGameINLINE().cycleSelectionGroups_delayed(GET_PLAYER(getOwnerINLINE()).isOption(PLAYEROPTION_QUICK_MOVES) ? 1 : 2, true, true);
-						}
 					}
 				}
-
 				deleteMissionQueueNode(headMissionQueueNode());
 			} */
 			// K-Mod. If rapid-unit-cycling is enabled, I want to cycle as soon a possible. Otherwise, I want to mimic the original behaviour.
@@ -1696,8 +1736,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 						}
 					}
 				}
-				else
-					deleteMissionQueueNode(headMissionQueueNode());
+				else deleteMissionQueueNode(headMissionQueueNode());
 
 				// start the next mission
 				if (headMissionQueueNode())
@@ -1733,9 +1772,6 @@ bool CvSelectionGroup::canDoCommand(CommandTypes eCommand, int iData1, int iData
 {
 	PROFILE_FUNC();
 
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
-
 	//cache isBusy
 	if(bUseCache)
 	{
@@ -1755,11 +1791,11 @@ bool CvSelectionGroup::canDoCommand(CommandTypes eCommand, int iData1, int iData
 	if(!canEverDoCommand(eCommand, iData1, iData2, bTestVisible, bUseCache))
 		return false;
 
-	pUnitNode = headUnitNode();
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	
 	while (pUnitNode != NULL)
 	{
-		pLoopUnit = ::getUnit(pUnitNode->m_data);
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
 
 		if (pLoopUnit->canDoCommand(eCommand, iData1, iData2, bTestVisible, false))
@@ -1870,9 +1906,6 @@ bool CvSelectionGroup::canDoInterfaceMode(InterfaceModeTypes eInterfaceMode)
 {
 	PROFILE_FUNC();
 
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
-
 	FAssertMsg(eInterfaceMode != NO_INTERFACEMODE, "InterfaceMode is not assigned a valid value");
 
 	if (isBusy())
@@ -1880,11 +1913,11 @@ bool CvSelectionGroup::canDoInterfaceMode(InterfaceModeTypes eInterfaceMode)
 		return false;
 	}
 
-	pUnitNode = headUnitNode();
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 
 	while (pUnitNode != NULL)
 	{
-		pLoopUnit = ::getUnit(pUnitNode->m_data);
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 
 		switch (eInterfaceMode)
 		{
@@ -1995,16 +2028,13 @@ bool CvSelectionGroup::canDoInterfaceMode(InterfaceModeTypes eInterfaceMode)
 // Returns true if one of the units can execute the interface mode at the specified plot...
 bool CvSelectionGroup::canDoInterfaceModeAt(InterfaceModeTypes eInterfaceMode, CvPlot* pPlot)
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
-
 	FAssertMsg(eInterfaceMode != NO_INTERFACEMODE, "InterfaceMode is not assigned a valid value");
 
-	pUnitNode = headUnitNode();
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 
 	while (pUnitNode != NULL)
 	{
-		pLoopUnit = ::getUnit(pUnitNode->m_data);
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 
 		switch (eInterfaceMode)
 		{
@@ -2100,7 +2130,7 @@ bool CvSelectionGroup::canDoInterfaceModeAt(InterfaceModeTypes eInterfaceMode, C
 }
 
 
-bool CvSelectionGroup::isHuman()
+bool CvSelectionGroup::isHuman() const
 {
 	if (getOwnerINLINE() != NO_PLAYER)
 	{
@@ -2113,10 +2143,6 @@ bool CvSelectionGroup::isHuman()
 
 bool CvSelectionGroup::isBusy()
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
-	CvPlot* pPlot;
-
 	if (getNumUnits() == 0)
 	{
 		return false;
@@ -2127,13 +2153,13 @@ bool CvSelectionGroup::isBusy()
 		return true;
 	}
 
-	pPlot = plot();
+	CvPlot* pPlot = plot();
 
-	pUnitNode = headUnitNode();
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 
 	while (pUnitNode != NULL)
 	{
-		pLoopUnit = ::getUnit(pUnitNode->m_data);
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
 
 		if (pLoopUnit != NULL)
@@ -2151,35 +2177,27 @@ bool CvSelectionGroup::isBusy()
 
 bool CvSelectionGroup::isCargoBusy()
 {
-	CLLNode<IDInfo>* pUnitNode1;
-	CLLNode<IDInfo>* pUnitNode2;
-	CvUnit* pLoopUnit1;
-	CvUnit* pLoopUnit2;
-	CvPlot* pPlot;
-
 	if (getNumUnits() == 0)
 	{
 		return false;
 	}
 
-	pPlot = plot();
+	CvPlot* pPlot = plot();
 
-	pUnitNode1 = headUnitNode();
-
+	CLLNode<IDInfo>* pUnitNode1 = headUnitNode();
 	while (pUnitNode1 != NULL)
 	{
-		pLoopUnit1 = ::getUnit(pUnitNode1->m_data);
+		CvUnit* pLoopUnit1 = ::getUnit(pUnitNode1->m_data);
 		pUnitNode1 = nextUnitNode(pUnitNode1);
 
 		if (pLoopUnit1 != NULL)
 		{
 			if (pLoopUnit1->getCargo() > 0)
 			{
-				pUnitNode2 = pPlot->headUnitNode();
-
+				CLLNode<IDInfo>* pUnitNode2 = pPlot->headUnitNode();
 				while (pUnitNode2 != NULL)
 				{
-					pLoopUnit2 = ::getUnit(pUnitNode2->m_data);
+					CvUnit* pLoopUnit2 = ::getUnit(pUnitNode2->m_data);
 					pUnitNode2 = pPlot->nextUnitNode(pUnitNode2);
 
 					if (pLoopUnit2->getTransportUnit() == pLoopUnit1)
@@ -2200,21 +2218,15 @@ bool CvSelectionGroup::isCargoBusy()
 
 int CvSelectionGroup::baseMoves() const
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
-	int iValue;
-	int iBestValue;
+	int iBestValue = MAX_INT;
 
-	iBestValue = MAX_INT;
-
-	pUnitNode = headUnitNode();
-
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	while (pUnitNode != NULL)
 	{
-		pLoopUnit = ::getUnit(pUnitNode->m_data);
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
 
-		iValue = pLoopUnit->baseMoves();
+		int iValue = pLoopUnit->baseMoves();
 
 		if (iValue < iBestValue)
 		{
@@ -2271,58 +2283,53 @@ bool CvSelectionGroup::isWaiting() const
 
 bool CvSelectionGroup::isFull()
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
+	if(getNumUnits() <= 0)
+		return false;
 
-	if (getNumUnits() > 0)
+	// do two passes, the first pass, we ignore units with speical cargo
+	int iSpecialCargoCount = 0;
+	int iCargoCount = 0;
+
+	// first pass, count but ignore special cargo units
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
+
+	while (pUnitNode != NULL)
 	{
-		// do two passes, the first pass, we ignore units with speical cargo
-		int iSpecialCargoCount = 0;
-		int iCargoCount = 0;
-		
-		// first pass, count but ignore special cargo units
-		pUnitNode = headUnitNode();
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+		pUnitNode = nextUnitNode(pUnitNode);
 
+		if (pLoopUnit->cargoSpace() > 0)
+		{
+			iCargoCount++;
+		}
+
+		if (pLoopUnit->specialCargo() != NO_SPECIALUNIT)
+		{
+			iSpecialCargoCount++;
+		}
+		else if (!pLoopUnit->isFull())
+		{
+			return false;
+		}
+	}
+
+	// if every unit in the group has special cargo, then check those, otherwise, consider ourselves full
+	if (iSpecialCargoCount >= iCargoCount)
+	{
+		pUnitNode = headUnitNode();
 		while (pUnitNode != NULL)
 		{
-			pLoopUnit = ::getUnit(pUnitNode->m_data);
+			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 			pUnitNode = nextUnitNode(pUnitNode);
-			
-			if (pLoopUnit->cargoSpace() > 0)
-			{
-				iCargoCount++;
-			}
 
-			if (pLoopUnit->specialCargo() != NO_SPECIALUNIT)
-			{
-				iSpecialCargoCount++;
-			}
-			else if (!(pLoopUnit->isFull()))
+			if (!(pLoopUnit->isFull()))
 			{
 				return false;
 			}
 		}
-		
-		// if every unit in the group has special cargo, then check those, otherwise, consider ourselves full
-		if (iSpecialCargoCount >= iCargoCount)
-		{
-			pUnitNode = headUnitNode();
-			while (pUnitNode != NULL)
-			{
-				pLoopUnit = ::getUnit(pUnitNode->m_data);
-				pUnitNode = nextUnitNode(pUnitNode);
-				
-				if (!(pLoopUnit->isFull()))
-				{
-					return false;
-				}
-			}
-		}
-
-		return true;
 	}
 
-	return false;
+	return true;
 }
 
 
@@ -2380,43 +2387,35 @@ int CvSelectionGroup::cargoSpaceAvailable(SpecialUnitTypes eSpecialCargo, Domain
 
 bool CvSelectionGroup::canAllMove()
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
+	if(getNumUnits() <= 0)
+		return false;
 
-	if (getNumUnits() > 0)
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
+
+	while (pUnitNode != NULL)
 	{
-		pUnitNode = headUnitNode();
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+		pUnitNode = nextUnitNode(pUnitNode);
 
-		while (pUnitNode != NULL)
+		FAssertMsg(pLoopUnit != NULL, "existing node, but NULL unit");
+
+		if (pLoopUnit != NULL && !pLoopUnit->canMove())
 		{
-			pLoopUnit = ::getUnit(pUnitNode->m_data);
-			pUnitNode = nextUnitNode(pUnitNode);
-
-			FAssertMsg(pLoopUnit != NULL, "existing node, but NULL unit");
-
-			if (pLoopUnit != NULL && !(pLoopUnit->canMove()))
-			{
-				return false;
-			}
+			return false;
 		}
-
-		return true;
 	}
 
-	return false;
+	return true;
 }
 
 
 bool CvSelectionGroup::canAnyMove() const
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
-
-	pUnitNode = headUnitNode();
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 
 	while (pUnitNode != NULL)
 	{
-		pLoopUnit = ::getUnit(pUnitNode->m_data);
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
 
 		if (pLoopUnit->canMove())
@@ -2457,14 +2456,10 @@ bool CvSelectionGroup::canCargoAllMove() const
 
 bool CvSelectionGroup::hasMoved() const
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
-
-	pUnitNode = headUnitNode();
-
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	while (pUnitNode != NULL)
 	{
-		pLoopUnit = ::getUnit(pUnitNode->m_data);
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
 
 		if (pLoopUnit->hasMoved())
@@ -2479,75 +2474,62 @@ bool CvSelectionGroup::hasMoved() const
 
 bool CvSelectionGroup::canEnterTerritory(TeamTypes eTeam, bool bIgnoreRightOfPassage) const
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
+	if(getNumUnits() <= 0)
+		return false;
 
-	if (getNumUnits() > 0)
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
+
+	while (pUnitNode != NULL)
 	{
-		pUnitNode = headUnitNode();
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+		pUnitNode = nextUnitNode(pUnitNode);
 
-		while (pUnitNode != NULL)
+		if (!(pLoopUnit->canEnterTerritory(eTeam, bIgnoreRightOfPassage)))
 		{
-			pLoopUnit = ::getUnit(pUnitNode->m_data);
-			pUnitNode = nextUnitNode(pUnitNode);
-
-			if (!(pLoopUnit->canEnterTerritory(eTeam, bIgnoreRightOfPassage)))
-			{
-				return false;
-			}
+			return false;
 		}
-
-		return true;
 	}
 
-	return false;
+	return true;
 }
 
 bool CvSelectionGroup::canEnterArea(TeamTypes eTeam, const CvArea* pArea, bool bIgnoreRightOfPassage) const
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
+	if(getNumUnits() <= 0)
+		return false;
 
-	if (getNumUnits() > 0)
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
+
+	while (pUnitNode != NULL)
 	{
-		pUnitNode = headUnitNode();
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+		pUnitNode = nextUnitNode(pUnitNode);
 
-		while (pUnitNode != NULL)
+		if (!(pLoopUnit->canEnterArea(eTeam, pArea, bIgnoreRightOfPassage)))
 		{
-			pLoopUnit = ::getUnit(pUnitNode->m_data);
-			pUnitNode = nextUnitNode(pUnitNode);
-
-			if (!(pLoopUnit->canEnterArea(eTeam, pArea, bIgnoreRightOfPassage)))
-			{
-				return false;
-			}
+			return false;
 		}
-
-		return true;
 	}
 
-	return false;
+	return true;
 }
 
 
 bool CvSelectionGroup::canMoveInto(CvPlot* pPlot, bool bAttack)
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
+	if(getNumUnits() <= 0)
+		return false;
 
-	if (getNumUnits() > 0)
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
+
+	while (pUnitNode != NULL)
 	{
-		pUnitNode = headUnitNode();
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+		pUnitNode = nextUnitNode(pUnitNode);
 
-		while (pUnitNode != NULL)
+		if (pLoopUnit->canMoveInto(pPlot, bAttack))
 		{
-			pLoopUnit = ::getUnit(pUnitNode->m_data);
-			pUnitNode = nextUnitNode(pUnitNode);
-
-			if (pLoopUnit->canMoveInto(pPlot, bAttack))
-			{
-				return true;
-			}
+			return true;
 		}
 	}
 
@@ -2558,25 +2540,22 @@ bool CvSelectionGroup::canMoveInto(CvPlot* pPlot, bool bAttack)
 //bool CvSelectionGroup::canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar)
 bool CvSelectionGroup::canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar, bool bCheckMoves, bool bAssumeVisible) // K-Mod
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
+	if(getNumUnits() <= 0)
+		return false;
 
-	if (getNumUnits() > 0)
+	bool bVisible = bAssumeVisible || pPlot->isVisible(getHeadTeam(), false); // K-Mod
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
+
+	while (pUnitNode != NULL)
 	{
-		bool bVisible = bAssumeVisible || pPlot->isVisible(getHeadTeam(), false); // K-Mod
-		pUnitNode = headUnitNode();
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+		pUnitNode = nextUnitNode(pUnitNode);
 
-		while (pUnitNode != NULL)
+		//if (pLoopUnit->canMoveOrAttackInto(pPlot, bDeclareWar))
+		if ((!bCheckMoves || pLoopUnit->canMove()) && // K-Mod
+			(bVisible ? pLoopUnit->canMoveOrAttackInto(pPlot, bDeclareWar) : pLoopUnit->canMoveInto(pPlot, false, bDeclareWar, false, false)))
 		{
-			pLoopUnit = ::getUnit(pUnitNode->m_data);
-			pUnitNode = nextUnitNode(pUnitNode);
-
-			//if (pLoopUnit->canMoveOrAttackInto(pPlot, bDeclareWar))
-			if ((!bCheckMoves || pLoopUnit->canMove()) && // K-Mod
-				(bVisible ? pLoopUnit->canMoveOrAttackInto(pPlot, bDeclareWar) : pLoopUnit->canMoveInto(pPlot, false, bDeclareWar, false, false)))
-			{
-				return true;
-			}
+			return true;
 		}
 	}
 
@@ -2586,42 +2565,33 @@ bool CvSelectionGroup::canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar, bool
 
 bool CvSelectionGroup::canMoveThrough(CvPlot* pPlot, bool bDeclareWar, bool bAssumeVisible) const
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
+	if(getNumUnits() <= 0)
+		return false;
 
-	if (getNumUnits() > 0)
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
+
+	while (pUnitNode != NULL)
 	{
-		pUnitNode = headUnitNode();
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+		pUnitNode = nextUnitNode(pUnitNode);
 
-		while (pUnitNode != NULL)
+		//if (!pLoopUnit->canMoveThrough(pPlot))
+		if (!pLoopUnit->canMoveInto(pPlot, false, bDeclareWar, true, bAssumeVisible)) // K-Mod
 		{
-			pLoopUnit = ::getUnit(pUnitNode->m_data);
-			pUnitNode = nextUnitNode(pUnitNode);
-
-			//if (!pLoopUnit->canMoveThrough(pPlot))
-			if (!pLoopUnit->canMoveInto(pPlot, false, bDeclareWar, true, bAssumeVisible)) // K-Mod
-			{
-				return false;
-			}
+			return false;
 		}
-
-		return true;
 	}
 
-	return false;
+	return true;
 }
 
 
 bool CvSelectionGroup::canFight()
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
-
-	pUnitNode = headUnitNode();
-
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	while (pUnitNode != NULL)
 	{
-		pLoopUnit = ::getUnit(pUnitNode->m_data);
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
 
 		if (pLoopUnit->canFight())
@@ -2636,14 +2606,10 @@ bool CvSelectionGroup::canFight()
 
 bool CvSelectionGroup::canDefend()
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
-
-	pUnitNode = headUnitNode();
-
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	while (pUnitNode != NULL)
 	{
-		pLoopUnit = ::getUnit(pUnitNode->m_data);
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
 
 		if (pLoopUnit->canDefend())
@@ -2757,15 +2723,12 @@ int CvSelectionGroup::getBombardTurns(CvCity* pCity)
 bool CvSelectionGroup::isHasPathToAreaPlayerCity( PlayerTypes ePlayer, int iFlags, int iMaxPathTurns )
 {
 	PROFILE_FUNC();
-
-	CvCity* pLoopCity = NULL;
 	int iLoop;
-	int iPathTurns;
-
-	for (pLoopCity = GET_PLAYER(ePlayer).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(ePlayer).nextCity(&iLoop))
+	for(CvCity* pLoopCity = GET_PLAYER(ePlayer).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(ePlayer).nextCity(&iLoop))
 	{
 		if( pLoopCity->area() == area() )
 		{
+			int iPathTurns;
 			if( generatePath(plot(), pLoopCity->plot(), iFlags, true, &iPathTurns, iMaxPathTurns) )
 			{
 				if( (iMaxPathTurns < 0) || (iPathTurns <= iMaxPathTurns) )
@@ -2783,10 +2746,9 @@ bool CvSelectionGroup::isHasPathToAreaEnemyCity( bool bIgnoreMinors, int iFlags,
 {
 	PROFILE_FUNC();
 
-	int iI;
-	int iPass = 0;
+	//int iPass = 0; // advc.003: unused
 
-	for( iI = 0; iI < MAX_PLAYERS; iI++ )
+	for(int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive() && isPotentialEnemy(getTeam(), GET_PLAYER((PlayerTypes)iI).getTeam()) )
 		{
@@ -2822,14 +2784,10 @@ bool CvSelectionGroup::canMoveAllTerrain() const
 {
 	PROFILE_FUNC();
 
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
-
-	pUnitNode = headUnitNode();
-
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	while (pUnitNode != NULL)
 	{
-		pLoopUnit = ::getUnit(pUnitNode->m_data);
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
 
 		if (!(pLoopUnit->canMoveAllTerrain()))
@@ -2858,72 +2816,59 @@ void CvSelectionGroup::unloadAll()
 
 bool CvSelectionGroup::alwaysInvisible() const
 {
-	PROFILE_FUNC();
+	//PROFILE_FUNC(); // advc.003o
+	if(getNumUnits() <= 0)
+		return false;
 
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
+	CLLNode<IDInfo>*pUnitNode = headUnitNode();
 
-	if (getNumUnits() > 0)
+	while (pUnitNode != NULL)
 	{
-		pUnitNode = headUnitNode();
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+		pUnitNode = nextUnitNode(pUnitNode);
 
-		while (pUnitNode != NULL)
+		if (!(pLoopUnit->alwaysInvisible()))
 		{
-			pLoopUnit = ::getUnit(pUnitNode->m_data);
-			pUnitNode = nextUnitNode(pUnitNode);
-
-			if (!(pLoopUnit->alwaysInvisible()))
-			{
-				return false;
-			}
+			return false;
 		}
-
-		return true;
 	}
 
-	return false;
+	return true;
 }
 
 
 bool CvSelectionGroup::isInvisible(TeamTypes eTeam) const
 {
-	if (getNumUnits() > 0)
+	if(getNumUnits() <= 0)
+		return false;
+
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
+
+	while (pUnitNode != NULL)
 	{
-		CLLNode<IDInfo>* pUnitNode = headUnitNode();
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+		pUnitNode = nextUnitNode(pUnitNode);
 
-		while (pUnitNode != NULL)
+		if (!pLoopUnit->isInvisible(eTeam, false))
 		{
-			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-			pUnitNode = nextUnitNode(pUnitNode);
-
-			if (!pLoopUnit->isInvisible(eTeam, false))
-			{
-				return false;
-			}
+			return false;
 		}
-
-		return true;
 	}
 
-	return false;
+	return true;
 }
 
 
 int CvSelectionGroup::countNumUnitAIType(UnitAITypes eUnitAI)
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
-	int iCount;
-
 	FAssertMsg(headUnitNode() != NULL, "headUnitNode() is not expected to be equal with NULL");
 
-	iCount = 0;
+	int iCount = 0;
 
-	pUnitNode = headUnitNode();
-
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	while (pUnitNode != NULL)
 	{
-		pLoopUnit = ::getUnit(pUnitNode->m_data);
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
 		
 		// count all units if NO_UNITAI passed in
@@ -2945,14 +2890,10 @@ bool CvSelectionGroup::hasWorker()
 
 bool CvSelectionGroup::IsSelected()
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
-
-	pUnitNode = headUnitNode();
-
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	while (pUnitNode != NULL)
 	{
-		pLoopUnit = ::getUnit(pUnitNode->m_data);
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
 
 		if (pLoopUnit->IsSelected())
@@ -2967,10 +2908,7 @@ bool CvSelectionGroup::IsSelected()
 
 void CvSelectionGroup::NotifyEntity(MissionTypes eMission)
 {
-	CLLNode<IDInfo>* pUnitNode;
-
-	pUnitNode = headUnitNode();
-
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	while (pUnitNode != NULL)
 	{
 		::getUnit(pUnitNode->m_data)->NotifyEntity(eMission);
@@ -2981,10 +2919,7 @@ void CvSelectionGroup::NotifyEntity(MissionTypes eMission)
 
 void CvSelectionGroup::airCircle(bool bStart)
 {
-	CLLNode<IDInfo>* pUnitNode;
-
-	pUnitNode = headUnitNode();
-
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	while (pUnitNode != NULL)
 	{
 		::getUnit(pUnitNode->m_data)->airCircle(bStart);
@@ -2996,7 +2931,6 @@ void CvSelectionGroup::airCircle(bool bStart)
 void CvSelectionGroup::setBlockading(bool bStart)
 {
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
-
 	while (pUnitNode != NULL)
 	{
 		::getUnit(pUnitNode->m_data)->setBlockading(bStart);
@@ -3007,10 +2941,7 @@ void CvSelectionGroup::setBlockading(bool bStart)
 
 int CvSelectionGroup::getX() const
 {
-	CvUnit* pHeadUnit;
-
-	pHeadUnit = getHeadUnit();
-
+	CvUnit* pHeadUnit = getHeadUnit();
 	if (pHeadUnit != NULL)
 	{
 		return getHeadUnit()->getX_INLINE();
@@ -3024,10 +2955,7 @@ int CvSelectionGroup::getX() const
 
 int CvSelectionGroup::getY() const
 {
-	CvUnit* pHeadUnit;
-
-	pHeadUnit = getHeadUnit();
-
+	CvUnit* pHeadUnit = getHeadUnit();
 	if (pHeadUnit != NULL)
 	{
 		return getHeadUnit()->getY_INLINE();
@@ -3053,10 +2981,7 @@ bool CvSelectionGroup::atPlot( const CvPlot* pPlot) const
 
 CvPlot* CvSelectionGroup::plot() const
 {
-	CvUnit* pHeadUnit;
-
-	pHeadUnit = getHeadUnit();
-
+	CvUnit* pHeadUnit = getHeadUnit();
 	if (pHeadUnit != NULL)
 	{
 		return getHeadUnit()->plot();
@@ -3070,10 +2995,7 @@ CvPlot* CvSelectionGroup::plot() const
 
 int CvSelectionGroup::getArea() const
 {
-	CvUnit* pHeadUnit;
-
-	pHeadUnit = getHeadUnit();
-
+	CvUnit* pHeadUnit = getHeadUnit();
 	if (pHeadUnit != NULL)
 	{
 		return getHeadUnit()->getArea();
@@ -3086,10 +3008,7 @@ int CvSelectionGroup::getArea() const
 
 CvArea* CvSelectionGroup::area() const
 {
-	CvUnit* pHeadUnit;
-
-	pHeadUnit = getHeadUnit();
-
+	CvUnit* pHeadUnit = getHeadUnit();
 	if (pHeadUnit != NULL)
 	{
 		return getHeadUnit()->area();
@@ -3103,10 +3022,7 @@ CvArea* CvSelectionGroup::area() const
 
 DomainTypes CvSelectionGroup::getDomainType() const
 {
-	CvUnit* pHeadUnit;
-
-	pHeadUnit = getHeadUnit();
-
+	CvUnit* pHeadUnit = getHeadUnit();
 	if (pHeadUnit != NULL)
 	{
 		return getHeadUnit()->getDomainType();
@@ -3122,38 +3038,30 @@ RouteTypes CvSelectionGroup::getBestBuildRoute(CvPlot* pPlot, BuildTypes* peBest
 {
 	PROFILE_FUNC();
 
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
-	RouteTypes eRoute;
-	RouteTypes eBestRoute;
-	int iValue;
-	int iBestValue;
-	int iI;
-
 	if (peBestBuild != NULL)
 	{
 		*peBestBuild = NO_BUILD;
 	}
 
-	iBestValue = 0;
-	eBestRoute = NO_ROUTE;
+	int iBestValue = 0;
+	RouteTypes eBestRoute = NO_ROUTE;
 
-	pUnitNode = headUnitNode();
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 
 	while (pUnitNode != NULL)
 	{
-		pLoopUnit = ::getUnit(pUnitNode->m_data);
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
 
-		for (iI = 0; iI < GC.getNumBuildInfos(); iI++)
+		for (int iI = 0; iI < GC.getNumBuildInfos(); iI++)
 		{
-			eRoute = ((RouteTypes)(GC.getBuildInfo((BuildTypes) iI).getRoute()));
+			RouteTypes  eRoute = ((RouteTypes)(GC.getBuildInfo((BuildTypes) iI).getRoute()));
 
 			if (eRoute != NO_ROUTE)
 			{
 				if (pLoopUnit->canBuild(pPlot, ((BuildTypes)iI)))
 				{
-					iValue = GC.getRouteInfo(eRoute).getValue();
+					int iValue = GC.getRouteInfo(eRoute).getValue();
 
 					if (iValue > iBestValue)
 					{
@@ -3242,7 +3150,10 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 						return false;
 					//
 
-					bool bNoBlitz = (!pBestAttackUnit->isBlitz() || !pBestAttackUnit->isMadeAttack());
+					//bool bNoBlitz = (!pBestAttackUnit->isBlitz() || !pBestAttackUnit->isMadeAttack());
+					/*  advc.164: This looks OK - exclude units that have made
+						at least 1 attack. Just for clarity: */
+					bool bBlitz = (pBestAttackUnit->isBlitz() && pBestAttackUnit->isMadeAttack());
 
 					/*if (groupDeclareWar(pDestPlot))
 					{
@@ -3251,7 +3162,8 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 
 					while (true)
 					{
-						pBestAttackUnit = AI_getBestGroupAttacker(pDestPlot, false, iAttackOdds, false, bNoBlitz);
+						pBestAttackUnit = AI_getBestGroupAttacker(pDestPlot, false, iAttackOdds, false,
+								!bBlitz); // advc.164
 						if (pBestAttackUnit == NULL)
 						{
 							break;
@@ -3259,7 +3171,8 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 
 						if (iAttackOdds < 68)
 						{
-						    CvUnit * pBestSacrifice = AI_getBestGroupSacrifice(pDestPlot, false, false, bNoBlitz);
+						    CvUnit * pBestSacrifice = AI_getBestGroupSacrifice(pDestPlot, false, false,
+									!bBlitz); // advc.164
 						    if (pBestSacrifice != NULL)
 						    {
                                 pBestAttackUnit = pBestSacrifice;
@@ -3344,9 +3257,6 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 
 	FAssert(!isBusy()); // K-Mod
 
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
-
 	// K-Mod. Some variables to help us regroup appropriately if not everyone can move.
 	CvSelectionGroup* pStaticGroup = 0;
 	UnitAITypes eHeadAI = getHeadUnitAI();
@@ -3367,10 +3277,10 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 	 too), but then I'd also have to merge the K-Mod fix for the Gunship city capture
 	 bug ... too much work. */
   for(int stage = 0; stage < 2; stage++) {
-	pUnitNode = headUnitNode(); // Moved down </advc.001>
+	CLLNode<IDInfo>* pUnitNode = headUnitNode(); // Moved down </advc.001>
 	while (pUnitNode != NULL)
 	{
-		pLoopUnit = ::getUnit(pUnitNode->m_data);
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
 
 		//if ((pLoopUnit->canMove() && ((bCombat && (!(pLoopUnit->isNoCapture()) || !(pPlot->isEnemyCity(*pLoopUnit)))) ? pLoopUnit->canMoveOrAttackInto(pPlot) : pLoopUnit->canMoveInto(pPlot))) || (pLoopUnit == pCombatUnit))
@@ -3418,10 +3328,10 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 	//execute move
 	if(bEndMove || !canAllMove())
 	{
-		pUnitNode = headUnitNode();
+		CLLNode<IDInfo>* pUnitNode = headUnitNode();
 		while(pUnitNode != NULL)
 		{
-			pLoopUnit = ::getUnit(pUnitNode->m_data);
+			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 			pUnitNode = nextUnitNode(pUnitNode);
 
 			pLoopUnit->ExecuteMove(((float)(GC.getMissionInfo(MISSION_MOVE_TO).getTime() * gDLL->getMillisecsPerTurn())) / 1000.0f, false);
@@ -3539,45 +3449,34 @@ bool CvSelectionGroup::groupPathTo(int iX, int iY, int iFlags)
 // Returns true if move was made...
 bool CvSelectionGroup::groupRoadTo(int iX, int iY, int iFlags)
 {
-	CvPlot* pPlot;
-	RouteTypes eBestRoute;
-	BuildTypes eBestBuild;
-
-	if (!AI_isControlled() || !at(iX, iY) || (getLengthMissionQueue() == 1))
+	if (!AI_isControlled() || !at(iX, iY) || getLengthMissionQueue() == 1)
 	{
-		pPlot = plot();
-
-		eBestRoute = getBestBuildRoute(pPlot, &eBestBuild);
-
+		BuildTypes eBestBuild = NO_BUILD;
+		//RouteTypes eBestRoute = // advc.003: unused
+			getBestBuildRoute(plot(), &eBestBuild);
 		if (eBestBuild != NO_BUILD)
 		{
 			groupBuild(eBestBuild);
 			return true;
 		}
 	}
-
 	return groupPathTo(iX, iY, iFlags
 			/*  advc.049: In the debugger, I'm seeing this function get called via
 				continueMission without any flags set, and these calls cause
 				the AI to build roads through foreign territory. */
-			| MOVE_ROUTE_TO | MOVE_SAFE_TERRITORY);
+			| MOVE_ROUTE_TO);
 }
 
 
 // Returns true if build should continue...
-bool CvSelectionGroup::groupBuild(BuildTypes eBuild)
+bool CvSelectionGroup::groupBuild(BuildTypes eBuild,
+		bool bFinish) // advc.011b
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
-	CvPlot* pPlot;
-	bool bContinue;
-
 	FAssert(getOwnerINLINE() != NO_PLAYER);
 	FAssertMsg(eBuild < GC.getNumBuildInfos(), "Invalid Build");
 
-	bContinue = false;
-
-	pPlot = plot();
+	bool bContinue = false;
+	CvPlot* pPlot = plot();
 
     /* original bts code
 	ImprovementTypes eImprovement = (ImprovementTypes)GC.getBuildInfo(eBuild).getImprovement();
@@ -3601,14 +3500,15 @@ bool CvSelectionGroup::groupBuild(BuildTypes eBuild)
 			}
 		}
 	} */
-	// K-Mod. Leave old improvements should mean _all_ improvements, not 'unless it will connect a resource'.
-	// Note. The only time this bit of code might matter is if the automated unit has orders queued. Ideally, the AI should never issue orders which violate the leave old improvements rule.
+	/*  K-Mod. Leave old improvements should mean _all_ improvements, not
+		'unless it will connect a resource'.
+		Note. The only time this bit of code might matter is if the automated unit has orders queued.
+		Ideally, the AI should never issue orders which violate the leave old improvements rule. */
 	if (isAutomated() && GET_PLAYER(getOwnerINLINE()).isOption(PLAYEROPTION_SAFE_AUTOMATION) &&
 		GC.getBuildInfo(eBuild).getImprovement() != NO_IMPROVEMENT && pPlot->getImprovementType() != NO_IMPROVEMENT &&
 		pPlot->getImprovementType() != GC.getDefineINT("RUINS_IMPROVEMENT")
 		// <advc.121> Forts on unworkable tiles are OK despite SAFE_AUTOMATION.
-		&& (
-		!GC.getImprovementInfo((ImprovementTypes)GC.getBuildInfo(eBuild).
+		&& (!GC.getImprovementInfo((ImprovementTypes)GC.getBuildInfo(eBuild).
 		getImprovement()).isActsAsCity() || pPlot->getWorkingCity() == NULL)
 		) // </advc.121>
 	{
@@ -3616,27 +3516,67 @@ bool CvSelectionGroup::groupBuild(BuildTypes eBuild)
 		return false;
 	}
 	// K-Mod end
-
-	pUnitNode = headUnitNode();
-
+	bool bStopOtherWorkers = false; // advc.011c
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	while (pUnitNode != NULL)
 	{
-		pLoopUnit = ::getUnit(pUnitNode->m_data);
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
 
 		FAssertMsg(pLoopUnit->atPlot(pPlot), "pLoopUnit is expected to be at pPlot");
+		// <advc.003>
+		if(!pLoopUnit->canBuild(pPlot, eBuild))
+			continue; // </advc.003>
 
-		if (pLoopUnit->canBuild(pPlot, eBuild))
+		bContinue = true;
+		if (pLoopUnit->build(eBuild))
 		{
-			bContinue = true;
-
-			if (pLoopUnit->build(eBuild))
-			{
-				bContinue = false;
-				break;
+			bContinue = false;
+			break;
+		}
+		// advc.011c:
+		if(!bFinish && isHuman() && pPlot->getBuildTurnsLeft(eBuild, getOwnerINLINE()) == 1) {
+			// <advc.011b>
+			CvWString szBuild = GC.getBuildInfo(eBuild).getDescription();
+			// Get rid of the LINK tags b/c these result in an underscore
+			for(int i = 0; i < 2; i++) {
+				int posOpening = szBuild.find(L'<');
+				if(posOpening == CvWString::npos)
+					continue;
+				int posClosing = szBuild.find(L'>');
+				if(posClosing == CvWString::npos || posClosing < posOpening)
+					continue;
+				szBuild = (szBuild.substr(0, posOpening) +
+						szBuild.substr(posClosing + 1, szBuild.length() - posClosing - 1));
 			}
+			CvWString szBuffer = gDLL->getText("TXT_KEY_BUILD_NOT_FINISHED", szBuild.c_str());
+			gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), false,
+					GC.getEVENT_MESSAGE_TIME(), szBuffer, NULL, MESSAGE_TYPE_INFO,
+					GC.getBuildInfo(eBuild).getButton()/*getHeadUnit()->getButton()*/,
+					(ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"/*"COLOR_BUILDING_TEXT"*/),
+					getX(), getY(), true, false);
+			// </advc.011b>
+			// <advc.011c>
+			bContinue = false;
+			bStopOtherWorkers = true;
+			break;
 		}
 	}
+	if(bStopOtherWorkers) {
+		pUnitNode = pPlot->headUnitNode();
+		while(pUnitNode != NULL) {
+			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+			pUnitNode = pPlot->nextUnitNode(pUnitNode);
+			CvSelectionGroup* pSelectionGroup = pLoopUnit->getGroup();
+			if(pSelectionGroup != NULL && pSelectionGroup != this &&
+					pSelectionGroup->getOwnerINLINE() == getOwnerINLINE() &&
+					pSelectionGroup->getActivityType() == ACTIVITY_MISSION &&
+					pSelectionGroup->getLengthMissionQueue() > 0 &&
+					pSelectionGroup->getMissionType(0) == GC.getBuildInfo(eBuild).getMissionType() &&
+					pSelectionGroup->getMissionData1(0) == eBuild)
+				pSelectionGroup->deleteMissionQueueNode(pSelectionGroup->headMissionQueueNode());
+		}
+	} // </advc.001c>
 
 	return bContinue;
 }
@@ -3749,8 +3689,6 @@ bool CvSelectionGroup::isAmphibPlot(const CvPlot* pPlot) const
 // Returns true if attempted an amphib landing...
 bool CvSelectionGroup::groupAmphibMove(CvPlot* pPlot, int iFlags)
 {
-	CLLNode<IDInfo>* pUnitNode1;
-	CvUnit* pLoopUnit1;
 	bool bLanding = false;
 
 	FAssert(getOwnerINLINE() != NO_PLAYER);
@@ -3766,14 +3704,14 @@ bool CvSelectionGroup::groupAmphibMove(CvPlot* pPlot, int iFlags)
 	{
 		if (stepDistance(getX(), getY(), pPlot->getX_INLINE(), pPlot->getY_INLINE()) == 1)
 		{
-			pUnitNode1 = headUnitNode();
+			CLLNode<IDInfo>* pUnitNode1 = headUnitNode();
 
 			// K-Mod: I've rearranged some stuff in the following section to fix a bug.
 			// originally, the cargo groups loop was done for each cargo-carrying unit - which is incorrect.
 			std::vector<CvSelectionGroup*> aCargoGroups;
 			while (pUnitNode1 != NULL)
 			{
-				pLoopUnit1 = ::getUnit(pUnitNode1->m_data);
+				CvUnit* pLoopUnit1 = ::getUnit(pUnitNode1->m_data);
 				pUnitNode1 = nextUnitNode(pUnitNode1);
 
 				if (pLoopUnit1->getCargo() > 0 && pLoopUnit1->domainCargo() == DOMAIN_LAND)
@@ -3817,7 +3755,11 @@ bool CvSelectionGroup::readyToSelect(bool bAny)
 bool CvSelectionGroup::readyToMove(bool bAny)
 {
 	//return (((bAny) ? canAnyMove() : canAllMove()) && (headMissionQueueNode() == NULL) && (getActivityType() == ACTIVITY_AWAKE) && !isBusy() && !isCargoBusy());
-	return (bAny ? canAnyMove() : canAllMove()) && (isForceUpdate() || (headMissionQueueNode() == NULL && getActivityType() == ACTIVITY_AWAKE)) && !isBusy() && !isCargoBusy(); // K-Mod
+	// K-Mod:
+	return (bAny ? canAnyMove() : canAllMove()) &&
+		(isForceUpdate() ||
+		(headMissionQueueNode() == NULL && getActivityType() ==  ACTIVITY_AWAKE)) &&
+		!isBusy() && !isCargoBusy(); 
 }
 
 
@@ -3850,12 +3792,14 @@ bool CvSelectionGroup::readyForMission()
 			return false;
 	}
 
-	return canDoMission(kData.eMissionType, kData.iData1, kData.iData2, plot(), false, bCheckMoves) || canAllMove();
+	return (canDoMission(kData.eMissionType, kData.iData1, kData.iData2, plot(),
+			false, bCheckMoves) || canAllMove());
 	// note: if the whole group can move, but they can't do the mission, then the mission will be canceled inside CvSelectionGroup::continueMission.
 }
-bool CvSelectionGroup::canDoMission(int iMission, int iData1, int iData2, CvPlot* pPlot, bool bTestVisible, bool bCheckMoves)
+bool CvSelectionGroup::canDoMission(int iMission, int iData1, int iData2,
+		CvPlot* pPlot, bool bTestVisible, bool bCheckMoves) const
 {
-	if (!pPlot)
+	if(!pPlot)
 		pPlot = plot();
 
 	bool bValid = false;
@@ -3940,24 +3884,33 @@ bool CvSelectionGroup::canDoMission(int iMission, int iData1, int iData2, CvPlot
 				return true; // note: this mission will automatically ungroup any unsuitable units.
 			break;
 
-		case MISSION_SEAPATROL:
-			return false; // advc.004k
-			if (!bValid && pLoopUnit->canSeaPatrol(pPlot))
-			{
-				if (!bCheckMoves)
-					return true;
-
-				bValid = true;
-			}
-			if (!pLoopUnit->canMove())
+		case MISSION_SEAPATROL: //< advc.004k>
+			if(isHuman())
 				return false;
-			break;
+			else { // </advc.004k>
+				if (!bValid && pLoopUnit->canSeaPatrol(pPlot))
+				{
+					if (!bCheckMoves)
+						return true;
 
+					bValid = true;
+				}
+				if (!pLoopUnit->canMove())
+					return false;
+				break;
+			}
 		case MISSION_HEAL:
-			if (pLoopUnit->canHeal(pPlot))
+			if (pLoopUnit->canHeal(pPlot)
+					// advc.004l: isHuman check only for performance
+					&& (!pLoopUnit->isHuman() || !pLoopUnit->canSentryHeal(pPlot)))
 				return true;
 			break;
-
+		// <advc.004l> Make the two heal missions mutually exclusive (for humans)
+		case MISSION_SENTRY_HEAL:
+			if(pLoopUnit->canHeal(pPlot) && pLoopUnit->canSentryHeal(pPlot))
+				return true;
+			break;
+		// </advc.004l>
 		case MISSION_SENTRY:
 			if (pLoopUnit->canSentry(pPlot))
 				return true;
@@ -4265,76 +4218,72 @@ ActivityTypes CvSelectionGroup::getActivityType() const
 
 void CvSelectionGroup::setActivityType(ActivityTypes eNewValue)
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
-	CvPlot* pPlot;
 
 	FAssert(getOwnerINLINE() != NO_PLAYER);
 
 	ActivityTypes eOldActivity = getActivityType();
+	if(eOldActivity == eNewValue)
+		return;
 
-	if (eOldActivity != eNewValue)
+	CvPlot* pPlot = plot();
+
+	if (eOldActivity == ACTIVITY_INTERCEPT)
 	{
-		pPlot = plot();
+		airCircle(false);
+	}
 
-		if (eOldActivity == ACTIVITY_INTERCEPT)
+	setBlockading(false);
+
+	bool bWasWaiting = isWaiting(); // K-Mod
+
+	m_eActivityType = eNewValue;
+
+	// K-Mod
+	if (bWasWaiting && !isWaiting())
+		GET_PLAYER(getOwnerINLINE()).updateGroupCycle(this);
+	// K-Mod end
+
+	if (getActivityType() == ACTIVITY_INTERCEPT)
+	{
+		airCircle(true);
+	}
+
+	if (getActivityType() != ACTIVITY_MISSION)
+	{
+		CLLNode<IDInfo>* pUnitNode = headUnitNode();
+
+		if (getActivityType() != ACTIVITY_INTERCEPT)
 		{
-			airCircle(false);
-		}
-
-		setBlockading(false);
-
-		bool bWasWaiting = isWaiting(); // K-Mod
-
-		m_eActivityType = eNewValue;
-
-		// K-Mod
-		if (bWasWaiting && !isWaiting())
-			GET_PLAYER(getOwnerINLINE()).updateGroupCycle(this);
-		// K-Mod end
-
-		if (getActivityType() == ACTIVITY_INTERCEPT)
-		{
-			airCircle(true);
-		}
-
-		if (getActivityType() != ACTIVITY_MISSION)
-		{
-			pUnitNode = headUnitNode();
-
-			if (getActivityType() != ACTIVITY_INTERCEPT)
+			//don't idle intercept animation
+			while (pUnitNode != NULL)
 			{
-				//don't idle intercept animation
-				while (pUnitNode != NULL)
-				{
-					pLoopUnit = ::getUnit(pUnitNode->m_data);
-					pUnitNode = nextUnitNode(pUnitNode);
+				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+				pUnitNode = nextUnitNode(pUnitNode);
 
-					pLoopUnit->NotifyEntity(MISSION_IDLE);
-				}
-			}
-
-			if (getTeam() == GC.getGameINLINE().getActiveTeam())
-			{
-				if (pPlot != NULL)
-				{
-					pPlot->setFlagDirty(true);
-				}
+				pLoopUnit->NotifyEntity(MISSION_IDLE);
 			}
 		}
 
-		if (pPlot == gDLL->getInterfaceIFace()->getSelectionPlot())
+		if (getTeam() == GC.getGameINLINE().getActiveTeam())
 		{
-			gDLL->getInterfaceIFace()->setDirty(PlotListButtons_DIRTY_BIT, true);
-			gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
+			if (pPlot != NULL)
+			{
+				pPlot->setFlagDirty(true);
+			}
 		}
+	}
+
+	if (pPlot == gDLL->getInterfaceIFace()->getSelectionPlot())
+	{
+		gDLL->getInterfaceIFace()->setDirty(PlotListButtons_DIRTY_BIT, true);
+		gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
 	}
 }
 
 
 AutomateTypes CvSelectionGroup::getAutomateType() const														
 {
-	return m_eAutomateType;
+	return m->eAutomateType;
 }
 
 
@@ -4351,7 +4300,7 @@ void CvSelectionGroup::setAutomateType(AutomateTypes eNewValue)
 
 	if (getAutomateType() != eNewValue)
 	{
-		m_eAutomateType = eNewValue;
+		m->eAutomateType = eNewValue;
 
 		clearMissionQueue();
 		setActivityType(ACTIVITY_AWAKE);
@@ -4466,27 +4415,22 @@ bool CvSelectionGroup::addUnit(CvUnit* pUnit, bool bMinimalChange)
 {
 	//PROFILE_FUNC();
 
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
-	bool bAdded;
- 
 	if (!(pUnit->canJoinGroup(pUnit->plot(), this)))
 	{
 		return false;
 	}
 
-	bAdded = false;
+	bool bAdded = false;
 
 	// K-Mod. Start the air circling animation if required. (CvSelectionGroup::joinGroup will interupt the air patrol mission anyway.)
 	/* if (getActivityType() == ACTIVITY_INTERCEPT)
 		pUnit->airCircle(true); */ // disabled for now, because it results in jerky animations.
 	// K-Mod end
 
-	pUnitNode = headUnitNode();
-
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 	while (pUnitNode != NULL)
 	{
-		pLoopUnit = ::getUnit(pUnitNode->m_data);
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		if ((pUnit->AI_groupFirstVal() > pLoopUnit->AI_groupFirstVal()) ||
 			  ((pUnit->AI_groupFirstVal() == pLoopUnit->AI_groupFirstVal()) &&
 				 (pUnit->AI_groupSecondVal() > pLoopUnit->AI_groupSecondVal())))
@@ -4830,17 +4774,13 @@ void CvSelectionGroup::regroupSeparatedUnits()
 //------------------------------------------------------------------------------------------------
 int CvSelectionGroup::getUnitIndex(CvUnit* pUnit, int maxIndex /* = -1 */) const
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
-	int iIndex;
+	int iIndex = 0;
 
-	iIndex = 0;
-
-	pUnitNode = headUnitNode();
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 
 	while (pUnitNode != NULL)
 	{
-		pLoopUnit = ::getUnit(pUnitNode->m_data);
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 		pUnitNode = nextUnitNode(pUnitNode);
 
 		if (pLoopUnit == pUnit)
@@ -4867,7 +4807,6 @@ CLLNode<IDInfo>* CvSelectionGroup::headUnitNode() const
 CvUnit* CvSelectionGroup::getHeadUnit() const
 {
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
-
 	if (pUnitNode != NULL)
 	{
 		return ::getUnit(pUnitNode->m_data);
@@ -4900,10 +4839,7 @@ CvUnit* CvSelectionGroup::getUnitAt(int index) const
 
 UnitAITypes CvSelectionGroup::getHeadUnitAI() const
 {
-	CvUnit* pHeadUnit;
-
-	pHeadUnit = getHeadUnit();
-
+	CvUnit* pHeadUnit = getHeadUnit();
 	if (pHeadUnit != NULL)
 	{
 		return pHeadUnit->AI_getUnitAIType();
@@ -4915,10 +4851,7 @@ UnitAITypes CvSelectionGroup::getHeadUnitAI() const
 
 PlayerTypes CvSelectionGroup::getHeadOwner() const
 {
-	CvUnit* pHeadUnit;
-
-	pHeadUnit = getHeadUnit();
-
+	CvUnit* pHeadUnit = getHeadUnit();
 	if (pHeadUnit != NULL)
 	{
 		return pHeadUnit->getOwnerINLINE();
@@ -4930,10 +4863,7 @@ PlayerTypes CvSelectionGroup::getHeadOwner() const
 
 TeamTypes CvSelectionGroup::getHeadTeam() const
 {
-	CvUnit* pHeadUnit;
-
-	pHeadUnit = getHeadUnit();
-
+	CvUnit* pHeadUnit = getHeadUnit();
 	if (pHeadUnit != NULL)
 	{
 		return pHeadUnit->getTeam();
@@ -4991,12 +4921,12 @@ void CvSelectionGroup::insertAtEndMissionQueue(MissionData mission, bool bStart)
 
 	m_missionQueue.insertAtEnd(mission);
 
-	if ((getLengthMissionQueue() == 1) && bStart)
+	if (getLengthMissionQueue() == 1 && bStart)
 	{
 		activateHeadMission();
 	}
 
-	if ((getOwnerINLINE() == GC.getGameINLINE().getActivePlayer()) && IsSelected())
+	if (getOwnerINLINE() == GC.getGameINLINE().getActivePlayer() && IsSelected())
 	{
 		gDLL->getInterfaceIFace()->setDirty(Waypoints_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
@@ -5142,16 +5072,38 @@ void CvSelectionGroup::read(FDataStreamBase* pStream)
 
 	pStream->Read((int*)&m_eOwner);
 	pStream->Read((int*)&m_eActivityType);
-	pStream->Read((int*)&m_eAutomateType);
+	pStream->Read((int*)&m->eAutomateType);
 
 	m_units.Read(pStream);
-	m_missionQueue.Read(pStream);
+	// <advc.004l>
+	if(uiFlag >= 2)
+		m->knownEnemies.Read(pStream); // </advc.004l>
+	// <advc.011b>
+	if(uiFlag <= 0) {
+		CLinkList<MissionDataLegacy> tmp;
+		tmp.Read(pStream);
+		for(CLLNode<MissionDataLegacy>* pNode = tmp.head(); pNode != NULL; pNode = tmp.next(pNode)) {
+			MissionDataLegacy tmpMission = pNode->m_data;
+			MissionData mission;
+			mission.bModified = false;
+			mission.eMissionType = tmpMission.eMissionType;
+			mission.iData1 = tmpMission.iData1;
+			mission.iData2 = tmpMission.iData2;
+			mission.iFlags = tmpMission.iFlags;
+			mission.iPushTurn = tmpMission.iPushTurn;
+			m_missionQueue.insertAtEnd(mission);
+		}
+	}
+	else // </advc.011b>
+		m_missionQueue.Read(pStream);
 }
 
 
 void CvSelectionGroup::write(FDataStreamBase* pStream)
 {
 	uint uiFlag=0;
+	uiFlag = 1; // advc.011b
+	uiFlag = 2; // advc.004l
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iID);
@@ -5161,9 +5113,10 @@ void CvSelectionGroup::write(FDataStreamBase* pStream)
 
 	pStream->Write(m_eOwner);
 	pStream->Write(m_eActivityType);
-	pStream->Write(m_eAutomateType);
+	pStream->Write(m->eAutomateType);
 
 	m_units.Write(pStream);
+	m->knownEnemies.Write(pStream); // advc.004l
 	m_missionQueue.Write(pStream);
 }
 

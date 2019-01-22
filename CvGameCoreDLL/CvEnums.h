@@ -353,6 +353,7 @@ enum InterfaceDirtyBits // Exposed to Python
 	Domestic_Advisor_DIRTY_BIT,
 	Espionage_Advisor_DIRTY_BIT,
 	Advanced_Start_DIRTY_BIT,
+	Tech_Screen_DIRTY_BIT, // advc.068
 
 #ifdef _USRDLL
 	NUM_INTERFACE_DIRTY_BITS
@@ -1457,6 +1458,8 @@ enum MissionTypes				// Exposed to Python
 	MISSION_MULTI_SELECT,
 	MISSION_MULTI_DESELECT,
 
+	MISSION_SENTRY_HEAL, // advc.004l
+
 #ifdef _USRDLL
 	NUM_MISSION_TYPES
 #endif
@@ -1869,9 +1872,11 @@ enum TradeableItems						// Exposed to Python
 	TRADE_PEACE_TREATY,
 
 #ifdef _USRDLL
-	NUM_BASIC_ITEMS,
-
-	TRADE_TECHNOLOGIES = NUM_BASIC_ITEMS,
+	/*NUM_BASIC_ITEMS,
+	TRADE_TECHNOLOGIES = NUM_BASIC_ITEMS,*/
+	// advc.003: Switch this so that TRADE_TECHNOLOGIES is shown in Visual Studio
+	TRADE_TECHNOLOGIES,
+	NUM_BASIC_ITEMS = TRADE_TECHNOLOGIES,
 #else
 	TRADE_TECHNOLOGIES,
 #endif
@@ -2553,6 +2558,7 @@ enum ActionSubTypes					// Exposed to Python
 #endif
 };
 
+// advc (caveat): Should add only to the end of this enum
 enum GameMessageTypes				// Exposed to Python
 {
 	GAMEMESSAGE_NETWORK_READY,
@@ -2649,7 +2655,8 @@ enum GameMessageTypes				// Exposed to Python
 	GAMEMESSAGE_LAUNCH_SPACESHIP,
 	GAMEMESSAGE_ADVANCED_START_ACTION,
 	GAMEMESSAGE_FOUND_RELIGION,
-	GAMEMESSAGE_MOD_NET_MESSAGE
+	GAMEMESSAGE_MOD_NET_MESSAGE,
+	GAMEMESSAGE_PUSH_MODIFIED_MISSION, // advc.011b
 };
 
 enum PopupControlLayout		// Exposed to Python

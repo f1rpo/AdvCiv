@@ -58,11 +58,15 @@ void MilitaryBranch::updateTypicalUnit() {
 		if(u.getCombat() == 0 || u.getCombatLimit() < 100 || !isValidDomain(u) ||
 				u.getDomainType() == DOMAIN_AIR || u.getDomainType() == DOMAIN_IMMOBILE)
 			continue;
-		// I may want to give some combat unit a national limit at some point ...
-		int const nationalLimit = GC.getUnitClassInfo((UnitClassTypes)i).
-				getMaxPlayerInstances();
+		/*  I may want to give some combat unit (e.g. War Elephant) a national limit
+			or an instance cost modifier at some point */
+		CvUnitClassInfo const& uci = GC.getUnitClassInfo((UnitClassTypes)i);
+		int nationalLimit = uci.getMaxPlayerInstances();
 		if(nationalLimit >= 0 && nationalLimit <
 				(GC.getGameINLINE().getCurrentEra() + 1) * 4)
+			continue;
+		int instanceCostModifier = uci.getInstanceCostModifier();
+		if(instanceCostModifier > 5)
 			continue;
 		/* Could call this for land units as well, but relying on the capital for
 		   those is faster, and perhaps more accurate as well. */

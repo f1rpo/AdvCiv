@@ -83,12 +83,15 @@ void CyCityPythonInterface1(python::class_<CyCity>& x)
 		.def("getCurrentProductionDifference", &CyCity::getCurrentProductionDifference, "int (bool bIgnoreFood, bool bOverflow)")
 		.def("getUnitProductionModifier", &CyCity::getUnitProductionModifier, "int (UnitID) - production multiplier for UnitID")
 		.def("getBuildingProductionModifier", &CyCity::getBuildingProductionModifier, "int (BuildingID) - production multiplier for BuildingID")
-		.def("getProjectProductionModifier", &CyCity::getProductionModifier, "int (int /*ProjectTypes*/ eProject)")
+		// advc.001: was &CyCity::getProductionModifier
+		.def("getProjectProductionModifier", &CyCity::getProjectProductionModifier, "int (int /*ProjectTypes*/ eProject)")
 
 		.def("getExtraProductionDifference", &CyCity::getExtraProductionDifference, "int (int iExtra)")
 
 		.def("canHurry", &CyCity::canHurry, "bool (HurryTypes eHurry, bool bTestVisible = 0) - can player eHurry in this city?")
 		.def("hurry", &CyCity::hurry, "void (HurryTypes eHurry) - forces the city to rush production using eHurry")
+		// advc.064:
+		.def("getHurryOverflow", &CyCity::getHurryOverflow, "int (HurryTypes eHurry, bool bProduction, bool bIncludeCurrent)")
 		.def("getConscriptUnit", &CyCity::getConscriptUnit, "UnitID () - UnitID for the best unit the city can conscript")
 		.def("getConscriptPopulation", &CyCity::getConscriptPopulation, "int ()")
 		.def("conscriptMinCityPopulation", &CyCity::conscriptMinCityPopulation, "int ()")

@@ -71,16 +71,19 @@ class PLE:
 		self.PLE_MODE_STACK_HORIZ	= "PLE_MODE_STACK_HORIZ1"
 		self.PLE_VIEW_MODES = (self.PLE_MODE_STANDARD, 
 							   self.PLE_MODE_MULTILINE,
-							   self.PLE_MODE_STACK_VERT,
-							   self.PLE_MODE_STACK_HORIZ )
+							   # advc.069: Switched the order of the last two
+							   self.PLE_MODE_STACK_HORIZ,
+							   self.PLE_MODE_STACK_VERT)
+		# advc.069: Switched the order as above
 		self.PLE_VIEW_MODE_CYCLE = {self.PLE_MODE_STANDARD : self.PLE_MODE_MULTILINE,
-									self.PLE_MODE_MULTILINE : self.PLE_MODE_STACK_VERT,
-									self.PLE_MODE_STACK_VERT : self.PLE_MODE_STACK_HORIZ,
-									self.PLE_MODE_STACK_HORIZ : self.PLE_MODE_STANDARD }
+									self.PLE_MODE_MULTILINE : self.PLE_MODE_STACK_HORIZ,
+									self.PLE_MODE_STACK_HORIZ : self.PLE_MODE_STACK_VERT,
+									self.PLE_MODE_STACK_VERT : self.PLE_MODE_STANDARD }
+		# advc.069: Switched the order as above
 		self.PLE_VIEW_MODE_ART = {self.PLE_MODE_STANDARD : "PLE_MODE_STANDARD",
 								  self.PLE_MODE_MULTILINE : "PLE_MODE_MULTILINE",
-								  self.PLE_MODE_STACK_VERT : "PLE_MODE_STACK_VERT",
-								  self.PLE_MODE_STACK_HORIZ : "PLE_MODE_STACK_HORIZ" }
+								  self.PLE_MODE_STACK_HORIZ : "PLE_MODE_STACK_HORIZ",
+								  self.PLE_MODE_STACK_VERT : "PLE_MODE_STACK_VERT"}
 
 		self.PLE_RESET_FILTERS		= "PLE_RESET_FILTERS1"
 		self.PLE_FILTER_NOTWOUND	= "PLE_FILTER_NOTWOUND1"
@@ -186,9 +189,10 @@ class PLE:
 		self.setPLEUnitList(True)
 
 		self.pOldPlot = 0
-
-		self.CFG_INFOPANE_PIX_PER_LINE_1 			= 24
-		self.CFG_INFOPANE_PIX_PER_LINE_2 			= 19
+		# <advc.002b> It seems that these need to be adjusted to the larger fonts. Were 24, 19. The Promotion Offset on the menu screen needs to be increased accordingly.
+		self.CFG_INFOPANE_PIX_PER_LINE_1 			= 28
+		self.CFG_INFOPANE_PIX_PER_LINE_2 			= 22
+		# </advc.002b>
 		self.CFG_INFOPANE_DX 					    = 290
 
 		self.CFG_INFOPANE_Y		 			= self.yResolution - PleOpt.getInfoPaneY()
@@ -1387,7 +1391,9 @@ class PLE:
 		szString = self.PLOT_LIST_BUTTON_NAME + str(iCount)
 
 		# set unit button image
-		screen.changeImageButton( szString, gc.getUnitInfo(pLoopUnit.getUnitType()).getButton() )
+		#screen.changeImageButton( szString, gc.getUnitInfo(pLoopUnit.getUnitType()).getButton() )
+		# advc.003l: Replacing the above
+		screen.changeImageButton( szString, gc.getPlayer(pLoopUnit.getOwner()).getUnitButton(pLoopUnit.getUnitType()))
 
 		# check if it is an player unit or not
 		if ( pLoopUnit.getOwner() == gc.getGame().getActivePlayer() ):
@@ -1764,7 +1770,7 @@ class PLE:
 	def hidePromoInfoPane(self):
 		self.hideInfoPane()
 
-	# handles display of the promotion button info pane
+	# handles display of the upgrade info pane
 	def showUpgradeInfoPane(self, id):
 		screen = CyGInterfaceScreen( "MainInterface", CvScreenEnums.MAIN_INTERFACE )
 		idUpgrade		= id % 100
@@ -1875,15 +1881,24 @@ class PLE:
 			szCurrStrength 		= u" %.1f" % fCurrStrength
 			szMaxStrength 		= u" / %i" % fMaxStrength
 			if mt.getPlotHealFactor(pUnit) != 0:
-				szTurnsToHeal 		= u" (%i)" % iTurnsToHeal
+				#szTurnsToHeal 		= u" (%i)" % iTurnsToHeal
+				# advc.069: Replacing the above
+				szTurnsToHeal = localText.getText("TXT_KEY_PLE_TURNS_TO_HEAL", ()) + u": %i" % iTurnsToHeal
 			else:
-				szTurnsToHeal = u" (Not Healing)"
+				# advc.069: Leading space removed b/c this goes on a new line
+				szTurnsToHeal = u"(Not Healing)"
 		else: 
 			iTurnsToHeal 		= 0
 			szCurrStrength 		= u" %i" % fCurrStrength
 			szMaxStrength 		= u""		
 			szTurnsToHeal 		= u""
-		szStrength = u"<font=2>" + szCurrStrength + szMaxStrength + szTurnsToHeal + u"%c" % CyGame().getSymbolID(FontSymbols.STRENGTH_CHAR) + u"</font>\n" 
+		# <advc.069>
+		if len(szTurnsToHeal) > 0:
+			szTurnsToHeal = "\n" + szTurnsToHeal
+		# </advc.069>
+		szStrength = u"<font=2>" + szCurrStrength + szMaxStrength
+		# advc.069: szTurnsToHeal omitted in the middle, appended at the end after a newline.
+		szStrength += u"%c" % CyGame().getSymbolID(FontSymbols.STRENGTH_CHAR) + szTurnsToHeal + u"</font>\n"
 			
 		# movement
 		fCurrMoves = float(pUnit.movesLeft()) / gc.getMOVE_DENOMINATOR()
@@ -1901,8 +1916,10 @@ class PLE:
 		szMovement = u"<font=2>" + szCurrMoves + szMaxMoves + u"%c"%(CyGame().getSymbolID(FontSymbols.MOVES_CHAR)) + szAirRange + u"</font>\n"
 
 		# compressed display for standard display
-		szStrengthMovement = u"<font=2>" + szCurrStrength + szMaxStrength + szTurnsToHeal + u"%c" % CyGame().getSymbolID(FontSymbols.STRENGTH_CHAR) + ", " + \
-							szCurrMoves + szMaxMoves + u"%c"%(CyGame().getSymbolID(FontSymbols.MOVES_CHAR)) + szAirRange + u"</font>\n"
+		szStrengthMovement = u"<font=2>" + szCurrStrength + szMaxStrength
+		# advc.069: szTurnsToHeal omitted in the middle, appended at the end after a newline.
+		szStrengthMovement += u"%c" % CyGame().getSymbolID(FontSymbols.STRENGTH_CHAR) + ", " + \
+							szCurrMoves + szMaxMoves + u"%c"%(CyGame().getSymbolID(FontSymbols.MOVES_CHAR)) + szAirRange + szTurnsToHeal + u"</font>\n"
 							
 		# civilization type
 		szCiv = u""
@@ -1967,8 +1984,11 @@ class PLE:
 		if szEspionage:
 			szEspionage = u"<font=2>" + szEspionage + u"\n</font>"
 		
-		# unit type specialities 
-		szSpecialText 	= u"<font=2>" + localText.getText("TXT_KEY_PEDIA_SPECIAL_ABILITIES", ()) + u":\n" + CyGameTextMgr().getUnitHelp( iUnitType, true, false, false, None )[1:] + u"</font>"
+		# unit type specialities
+		# advc.069: Don't show this heading
+		#szSpecialText 	= u"<font=2>" + localText.getText("TXT_KEY_PEDIA_SPECIAL_ABILITIES", ()) + u":\n"
+		# advc.069: was getUnitHelp(iUnitType, true, false, false, None)
+		szSpecialText = CyGameTextMgr().getBasicUnitHelp(iUnitType, False)[1:] + u"</font>"
 		szSpecialText = localText.changeTextColor(szSpecialText, PleOpt.getUnitTypeSpecialtiesColor())
 		
 		if iLevel > 1:
@@ -2199,7 +2219,8 @@ class PLE:
 		return 0
 
 	def _displayUnitPlotList_HealthBar( self, screen, pLoopUnit, szString ):
-		if (self.bShowHealthBar and pLoopUnit.maxHitPoints()
+		# advc.069: Exclude non-combat units. Tagging advc.001 b/c this may have been intended with the maxHitPoints call (which, however, gets relayed to gc.getMAX_HIT_POINTS).
+		if (self.bShowHealthBar and pLoopUnit.canFight()#maxHitPoints()
 		and not (pLoopUnit.isFighting() and self.bHideHealthBarWhileFighting)):
 			# place the health bar
 			szStringHealthBar = szString+"HealthBar"

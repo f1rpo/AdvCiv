@@ -1738,7 +1738,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_MODERN_ARMOR</Type>
 			<Button>,Art/Interface/Buttons/Units/ModernArmor.dds,Art/Interface/Buttons/Unit_Resource_Atlas.dds,1,11</Button>
-			<fScale>0.57</fScale>
+			<!-- advc.002j: was 0.57 -->
+			<fScale>0.55</fScale>
 			<fInterfaceScale>0.9</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>

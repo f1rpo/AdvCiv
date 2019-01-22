@@ -148,6 +148,10 @@ public:
 
 	bool canHurry(HurryTypes eHurry, bool bTestVisible = false) const;		// Exposed to Python
 	void hurry(HurryTypes eHurry);																						// Exposed to Python
+	// <advc.064>
+	bool hurryOverflow(HurryTypes eHurry, int* piProduction, int* piGold,
+			bool bCountThisTurn = false) const;		// (exposed to Python)
+	// </advc.064>
 	// <advc.912d>
 	bool canPopRush() const;
 	void changePopRushCount(int iChange);
@@ -174,7 +178,7 @@ public:
 	CivilizationTypes getCivilizationType() const;								// Exposed to Python
 	LeaderHeadTypes getPersonalityType() const;															// Exposed to Python
 	DllExport ArtStyleTypes getArtStyleType() const;														// Exposed to Python
-	DllExport CitySizeTypes getCitySizeType() const;												// Exposed to Python
+	CitySizeTypes getCitySizeType() const;												// Exposed to Python
 	DllExport const CvArtInfoBuilding* getBuildingArtInfo(BuildingTypes eBuilding) const;
 	DllExport float getBuildingVisibilityPriority(BuildingTypes eBuilding) const;
 
@@ -263,7 +267,7 @@ public:
 	int getCorporationCount() const;																						// Exposed to Python  
 
 	DllExport int getID() const;																			// Exposed to Python
-	DllExport int getIndex() const;
+	int getIndex() const;
 	DllExport IDInfo getIDInfo() const;
 	void setID(int iID);
 	int plotNum() const; // advc.104
@@ -707,6 +711,7 @@ public:
 	static int getCultureThreshold(CultureLevelTypes eLevel);
 	void setCultureLevel(CultureLevelTypes eNewValue, bool bUpdatePlotGroups);
 	void updateCultureLevel(bool bUpdatePlotGroups);
+	int getCultureTurnsLeft() const; // advc.042
 
 	int getSeaPlotYield(YieldTypes eIndex) const;								// Exposed to Python
 	void changeSeaPlotYield(YieldTypes eIndex, int iChange);
@@ -855,7 +860,8 @@ public:
 
 	DllExport const CvWString getName(uint uiForm = 0) const;								// Exposed to Python
 	DllExport const wchar* getNameKey() const;															// Exposed to Python
-	void setName(const wchar* szNewValue, bool bFound = false);		// Exposed to Python
+	void setName(const wchar* szNewValue, bool bFound = false,								// Exposed to Python
+			bool bInitial = false); // advc.106k
 	void doFoundMessage();
 
 	// Script data needs to be a narrow string for pickling in Python
@@ -1007,7 +1013,7 @@ public:
 	DllExport bool isStarCity() const;
 
 	// Exposed to Python
-	DllExport void setWallOverridePoints(const std::vector< std::pair<float, float> >&
+	void setWallOverridePoints(const std::vector< std::pair<float, float> >&
 			kPoints); // points are given in world space ... i.e. PlotXToPointX, etc
 	DllExport const std::vector< std::pair<float, float> >& getWallOverridePoints() const;
 

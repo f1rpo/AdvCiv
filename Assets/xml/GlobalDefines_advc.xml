@@ -308,15 +308,6 @@
 		<DefineName>CAMERA_START_DISTANCE</DefineName>
 		<fDefineFloatVal>4600</fDefineFloatVal>
 	</Define>
-
-	<!-- [advc.004m]
-	     At 1 (recommended) or greater, the Resource Layer (bubbles)
-		 is shown at the beginning of a new game. 0 or less for
-		 original behavior: bubbles not shown. -->
-	<Define>
-		<DefineName>SHOW_RESOURCE_BUBBLES_AT_GAME_START</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
-	</Define>
 	
 	<!-- [advc.500b]
 		 If this is set to a value greater than 0, unhappiness for lack of
@@ -346,21 +337,11 @@
 	</Define>
 
 	<!-- [advc.106b]
-		 If more than this many messages are queued at the beginning of a
-		 turn, no (staggered) messages are shown, and instead the Event Log
-		 is opened. Set to -1 for BtS behavior. When using a very high value,
-		 the Event Log will still open when there is a diplo popup.
-		 Recommended: 3. -->
-	<Define>
-		<DefineName>START_OF_TURN_MESSAGE_LIMIT</DefineName>
-		<iDefineIntVal>3</iDefineIntVal>
-	</Define>
-
-	<!-- [advc.106b]
-		 0 (recommended) disables the message limit (equivalent to
-		 START_OF_TURN_MESSAGE_LIMIT=-1) when playing without "Minimize
-		 Pop-Ups" (MPU). This setting has no effect if MPU is enabled.
-		 Set to 1 to use the message limit when playing without MPU. -->
+		 0 (recommended) disables the message limit (option "Show Event Log" on
+		 the BUG menu) when playing without "Minimize Pop-Ups" (MPU). This
+		 setting has no effect if MPU is enabled.
+		 To use the message limit when playing without MPU, set this to 1
+		 and make sure that "Show Event Log" is checked on the BUG menu. -->
 	<Define>
 		<DefineName>MESSAGE_LIMIT_WITHOUT_MPU</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
@@ -663,12 +644,12 @@
 	
 	<!-- [advc.011] The number of turns that need to pass without Worker
 		 action in a plot before progress on unfinished Worker builds
-		 starts to decay. Recommended: 5, i.e. decay kicks in on the
-		 fifth turn without action. Set to 0 or less for BtS behavior (no
+		 starts to decay. Recommended: 8, i.e. decay kicks in on the
+		 eighth turn without action. Set to 0 or less for BtS behavior (no
 		 decay). -->
 	<Define>
 		<DefineName>DELAY_UNTIL_BUILD_DECAY</DefineName>
-		<iDefineIntVal>5</iDefineIntVal>
+		<iDefineIntVal>8</iDefineIntVal>
 	</Define>
 	
 	<!-- [advc.004n] The number of additional unit icons shown on the city
@@ -702,15 +683,6 @@
 	<Define>
 		<DefineName>ENABLE_JOIN_WAR_DIPLO_BONUS</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
-	</Define>
-	
-	<!-- [advc.002e] If set to 1 or greater (BtS behavior), all units that are
-		 ready to receive a promotion are highlighted on the world map with a
-		 blue glow. If set to 0 or less (recommended), only the presently		 
-		 selected unit and foreign units may glow. -->
-	<Define>
-		<DefineName>SHOW_PROMOTION_GLOW</DefineName>
-		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 	
 	<!-- [advc.130o] MADE_DEMAND_RECENT memory is increased to this number when
@@ -846,13 +818,13 @@
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 	
-	<!-- [advc.550d] This modifier is applied to research rates when playing
-		 with the "No tech trading" option. The modifier is reduced in the
-		 early and late game. Recommended: 28. Use 0 for BtS behavior (research
-		 rate not modified when playing without tech trading). -->
+	<!-- [advc.550d] This modifier is applied to tech costs when playing
+		 with the "No Tech Trading" option. The effect of the modifier is
+		 reduced in the early and late game. Recommended: 28. Use 0 for BtS
+		 behavior (tech costs unaffected by the "No Tech Trading" option). -->
 	<Define>
 		<DefineName>TECH_COST_NOTRADE_MODIFIER</DefineName>
-		<iDefineIntVal>28</iDefineIntVal>
+		<iDefineIntVal>-28</iDefineIntVal>
 	</Define>
 
 	<!-- [advc.034] The number of turns with Open Borders after making peace.
@@ -880,16 +852,6 @@
 		 made peace with Alexander" is announced). -->
 	<Define>
 		<DefineName>ANNOUNCE_REPARATIONS</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
-	</Define>
-	
-	<!-- [advc.155] If set to 1 or greater (recommended), then the leaderboard
-		 shows civ scores in the color of that civ's team leader. The scores of
-		 civs without other team members are shown in white, so this setting
-		 only affects team games and Permanent Alliances. Set to 0 for BtS
-		 behavior: all scores shown in white. -->
-	<Define>
-		<DefineName>COLOR_CODE_TEAM_SCORE</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 
@@ -999,6 +961,13 @@
 		 1 (recommended) enables this behavior, 0 disables it (as in BtS). -->
 	<Define>
 		<DefineName>ANNOUNCE_ESPIONAGE_REVOLUTION</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+
+	<!-- advc.162: 1 enables change 162 (see manual), 0 disables it (BtS
+		 behavior). -->
+	<Define>
+		<DefineName>ENABLE_162</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 

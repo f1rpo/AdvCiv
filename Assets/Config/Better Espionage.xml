@@ -28,7 +28,7 @@
 					help="When checked, shows calculated espionage information."/>
 			
 			<option id="DefaultRatioColor" key="Default Ratio Color" 
-					type="color" default="COLOR_CYAN" 
+					type="color" default="COLOR_HIGHLIGHT_TEXT" 
 					dirtyBit="Espionage_Advisor" 
 					label="Ratio Color" 
 					help="Default color used for espionage ratios."/>
@@ -39,7 +39,7 @@
 					label="Good Ratio Cutoff" 
 					help="Ratios less than or equal to this value are colored with the following color."/>
 			<option id="GoodRatioColor" key="Good Ratio Color" 
-					type="color" default="COLOR_GREEN" 
+					type="color" default="COLOR_POSITIVE_TEXT" 
 					dirtyBit="Espionage_Advisor" 
 					label="Good Color" 
 					help="Color used for good espionage ratios."/>
@@ -50,13 +50,13 @@
 					label="Bad Ratio Cutoff" 
 					help="Ratios greater than or equal to this value are colored with the following color."/>
 			<option id="BadRatioColor" key="Bad Ratio Color" 
-					type="color" default="COLOR_YELLOW" 
+					type="color" default="COLOR_UNIT_TEXT" 
 					dirtyBit="Espionage_Advisor" 
 					label="Bad Color" 
 					help="Color used for bad espionage ratios."/>
 			
 			<option id="PossibleMissionColor" key="Possible Mission Color" 
-					type="color" default="COLOR_GREEN" 
+					type="color" default="COLOR_POSITIVE_TEXT" 
 					dirtyBit="Espionage_Advisor" 
 					label="Possible Mission Color" 
 					help="Color used for missions that you can perform now (you have enough EPs against the target)."/>
@@ -67,7 +67,7 @@
 					label="Close Percent Cutoff" 
 					help="Determines how close your EPs have to be to the cost of a mission for it to be considered close to possible."/>
 			<option id="CloseMissionColor" key="Close Mission Color" 
-					type="color" default="COLOR_CYAN" 
+					type="color" default="COLOR_HIGHLIGHT_TEXT" 
 					dirtyBit="Espionage_Advisor" 
 					label="Close Mission Color" 
 					help="Color used for missions that you can perform soon (you have close to enough EPs against the target)."/>

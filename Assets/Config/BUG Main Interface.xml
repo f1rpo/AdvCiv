@@ -16,20 +16,44 @@
 	 
 	<options id="MainInterface" file="BUG Main Interface.ini">
 		<section id="Main">
+		
 			<!-- Options Screen Shortcut Reminder -->
+			<!-- advc.003 (note): Now unused -->
 			<option id="OptionsKey" key="Options Shortcut Reminder" 
 					type="boolean" default="False" 
 					get="isShowOptionsKeyReminder" set="setShowOptionsKeyReminder" dirtyBit="GameData"/>
 			
 			<!-- Options Screen Button -->
+			<!-- advc.004: Dirty-bit ("GameData") removed b/c this requires a
+				 restart anyway. -->
 			<option id="OptionsButton" key="Options Button" 
 					type="boolean" default="False"
-					get="isShowOptionsButton" set="setShowOptionsButton" dirtyBit="GameData"/>
+					get="isShowOptionsButton" set="setShowOptionsButton"/>
+					
+			<!-- advc.106b -->
+			<option id="AutoOpenEventLog" key="Auto Open Event Log" 
+					type="boolean" default="True" 
+					get="isAutoOpenEventLog"/>
+			<list   id="MessageLimit" key="Message Limit"
+					type="int" default="3" listType="int"
+					values="0, 1, 2, 3, 4, 5, 10"
+					get="getMessageLimit">
+			</list>
 
 			<!-- Gold Rate Warning -->
-			<option id="GoldRateWarning" key="Gold Rate Warning" 
+			<!--option id="GoldRateWarning" key="Gold Rate Warning" 
 					type="boolean" default="False" 
-					get="isGoldRateWarning" dirtyBit="GameData"/>
+					get="isGoldRateWarning" dirtyBit="GameData"/-->
+			<!-- advc.070: Replacing the above -->
+			<option id="PositiveGoldRateColor" key="Positive Gold Rate Color"
+					type="color" default="COLOR_POSITIVE_TEXT"
+					get="getPositiveGoldRateColor" dirtyBit="GameData"/>
+			<option id="NegativeGoldRateColor" key="Negative Gold Rate Color"
+					type="color" default="COLOR_WARNING_TEXT"
+					get="getNegativeGoldRateColor" dirtyBit="GameData"/>
+			<option id="GoldRateBrokeColor" key="Gold Rate Broke Color"
+					type="color" default="COLOR_WARNING_TEXT"
+					get="getGoldRateBrokeColor" dirtyBit="GameData"/>
 			
 			<!-- Great Person Progress Bar by Impaler[WrG], EmperorFool -->
 			<option id="GPBar" key="GP Progress Bar" 
@@ -62,6 +86,11 @@
 					get="isHideEspSlider" dirtyBit="PercentButtons, GameData, Espionage_Advisor">
 				<change module="CvCustomizableDomesticAdvisor" function="forcePositionCalc"/>
 			</option>
+
+			<!-- advc.004m -->
+			<option id="StartWithResourceIcons" key="Start With Resource Icons" 
+					type="boolean" default="True" 
+					get="isStartWithResourceIcons"/>
 			
 			<!-- City Cycle Arrows by SimCutie -->
 			<option id="CityArrows" key="City Cycle Arrows" 
@@ -105,6 +134,13 @@
 			<option id="StackPromotionColorAll" key="Stack Promotion Color All"
 					type="color" default="COLOR_MAGENTA"
 					get="getStackPromotionColorAll" dirtyBit="InfoPane"/>
+
+			<!-- advc.061 -->
+			<option id="ListUnitsPerOwner" key="List Units Per Owner" 
+					type="boolean" default="True" 
+					get="isListUnitsPerOwner"/>
+			<!-- dirtyBit: Would like to redraw the unit layer indicators, but
+				 that's not possible through a dirty-bit. See tbd. in manual. -->
 
 			<!-- Build/Action Icon Size by EmperorFool -->
 			<list   id="BuildIconSize" key="Build Icon Size" 

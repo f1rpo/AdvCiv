@@ -135,7 +135,9 @@ class SevoPediaTrait:
 		panelName = self.top.getNextWidgetName()
 		screen.addPanel( panelName, "", "", True, True, self.X_TEXT, self.Y_TEXT, self.W_TEXT, self.H_TEXT, PanelStyles.PANEL_STYLE_BLUE50 )
 		szText = gc.getNewConceptInfo(self.iConcept).getCivilopedia()
-		screen.attachMultilineText( panelName, "Text", szText, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# advc.004y: Don't display the text key if text not found
+		if not szText.endswith("PEDIA"):
+			screen.attachMultilineText( panelName, "Text", szText, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
 
 

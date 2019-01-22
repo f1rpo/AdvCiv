@@ -58,6 +58,8 @@
 		<element type="Type"/>
 		<element type="Description"/>
 		<element type="iSeaLevelChange"/>
+		<!-- advc.910 -->
+		<element type="iResearchPercent"/>
 	</ElementType>
 	<ElementType name="WorldInfo" content="eltOnly">
 		<element type="Type"/>
@@ -313,6 +315,13 @@
 	<ElementType name="iStartingLocPercent" content="textOnly" dt:type="int"/>
 	<ElementType name="iFreeUnits" content="textOnly" dt:type="int"/>
 	<ElementType name="iUnitCostPercent" content="textOnly" dt:type="int"/>
+	<!-- advc.251: Modifier for worker build time; rounds down to
+		 a multiple of 50 time units -->
+	<ElementType name="iBuildTimePercent" content="textOnly" dt:type="int"/>
+	<!-- advc.251: Modifier for base threshold for city growth -->
+	<ElementType name="iBaseGrowthThresholdPercent" content="textOnly" dt:type="int"/>
+	<!-- advc.251: Modifier for Great Person thresholds -->
+	<ElementType name="iGPThresholdPercent" content="textOnly" dt:type="int"/>
 	<ElementType name="iMaxNumCitiesMaintenance" content="textOnly" dt:type="int"/>
 	<ElementType name="iMaxColonyMaintenance" content="textOnly" dt:type="int"/>
 	<ElementType name="iCivicUpkeepPercent" content="textOnly" dt:type="int"/>
@@ -353,6 +362,8 @@
 	<ElementType name="iAIWorkRateModifier" content="textOnly" dt:type="int"/>
 	<ElementType name="iAIGrowthPercent" content="textOnly" dt:type="int"/>
 	<!-- advc.251 -->
+	<ElementType name="iAIGPThresholdPercent" content="textOnly" dt:type="int"/>
+	<!-- advc.251 -->
 	<ElementType name="iAIResearchPercent" content="textOnly" dt:type="int"/>
 	<ElementType name="iAITrainPercent" content="textOnly" dt:type="int"/>
 	<ElementType name="iAIWorldTrainPercent" content="textOnly" dt:type="int"/>
@@ -366,7 +377,8 @@
 	<ElementType name="iAIUnitUpgradePercent" content="textOnly" dt:type="int"/>
 	<ElementType name="iAIInflationPercent" content="textOnly" dt:type="int"/>
 	<ElementType name="iAIWarWearinessPercent" content="textOnly" dt:type="int"/>
-	<ElementType name="iAIPerEraModifier" content="textOnly" dt:type="int"/>
+	<!-- advc.251: Renamed (was iAIPerEraModifier) -->
+	<ElementType name="iAIHandicapIncrementTurns" content="textOnly" dt:type="int"/>
 	<ElementType name="iAIAdvancedStartPercent" content="textOnly" dt:type="int"/>
 	<!-- advc.148 -->
 	<ElementType name="iAIAttitudeChangePercent" content="textOnly" dt:type="int"/>
@@ -399,7 +411,17 @@
 		<element type="iGold"/>
 		<element type="iFreeUnits"/>
 		<element type="iUnitCostPercent"/>
+		<!-- advc.251 (start) -->
+		<element type="iBuildTimePercent"/>
+		<element type="iBaseGrowthThresholdPercent"/>
+		<element type="iGPThresholdPercent"/>
+		<!-- advc.251 (end) -->
 		<element type="iResearchPercent"/>
+		<!-- advc.251 (start) -->
+		<element type="iTrainPercent"/>
+		<element type="iConstructPercent"/>
+		<element type="iCreatePercent"/>
+		<!-- advc.251 (end) -->
 		<element type="iDistanceMaintenancePercent"/>
 		<element type="iNumCitiesMaintenancePercent"/>
 		<element type="iMaxNumCitiesMaintenance"/>
@@ -436,6 +458,8 @@
 		<element type="iAIWorkRateModifier"/>
 		<element type="iAIGrowthPercent"/>
 		<!-- advc.251 -->
+		<element type="iAIGPThresholdPercent"/>
+		<!-- advc.251 -->
 		<element type="iAIResearchPercent"/>
 		<element type="iAITrainPercent"/>
 		<element type="iAIWorldTrainPercent"/>
@@ -449,7 +473,8 @@
 		<element type="iAIUnitUpgradePercent"/>
 		<element type="iAIInflationPercent"/>
 		<element type="iAIWarWearinessPercent"/>
-		<element type="iAIPerEraModifier"/>
+		<!-- advc.251 -->
+		<element type="iAIHandicapIncrementTurns"/>
 		<element type="iAIAdvancedStartPercent"/>
 		<!-- advc.148 -->
 		<element type="iAIAttitudeChangePercent"/>

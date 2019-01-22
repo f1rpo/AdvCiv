@@ -60,14 +60,10 @@ void CvSelectionGroupAI::AI_reset()
 // these separate function have been tweaked by K-Mod and bbai.
 void CvSelectionGroupAI::AI_separate()
 {
-	CLLNode<IDInfo>* pEntityNode;
-	CvUnit* pLoopUnit;
-
-	pEntityNode = headUnitNode();
-
+	CLLNode<IDInfo>* pEntityNode = headUnitNode();
 	while (pEntityNode != NULL)
 	{
-		pLoopUnit = ::getUnit(pEntityNode->m_data);
+		CvUnit* pLoopUnit = ::getUnit(pEntityNode->m_data);
 		pEntityNode = nextUnitNode(pEntityNode);
 
 		pLoopUnit->joinGroup(NULL);
@@ -76,14 +72,10 @@ void CvSelectionGroupAI::AI_separate()
 
 void CvSelectionGroupAI::AI_separateNonAI(UnitAITypes eUnitAI)
 {
-	CLLNode<IDInfo>* pEntityNode;
-	CvUnit* pLoopUnit;
-
-	pEntityNode = headUnitNode();
-
+	CLLNode<IDInfo>* pEntityNode = headUnitNode();
 	while (pEntityNode != NULL)
 	{
-		pLoopUnit = ::getUnit(pEntityNode->m_data);
+		CvUnit* pLoopUnit = ::getUnit(pEntityNode->m_data);
 		pEntityNode = nextUnitNode(pEntityNode);
 		if (pLoopUnit->AI_getUnitAIType() != eUnitAI)
 		{
@@ -94,14 +86,10 @@ void CvSelectionGroupAI::AI_separateNonAI(UnitAITypes eUnitAI)
 
 void CvSelectionGroupAI::AI_separateAI(UnitAITypes eUnitAI)
 {
-	CLLNode<IDInfo>* pEntityNode;
-	CvUnit* pLoopUnit;
-
-	pEntityNode = headUnitNode();
-
+	CLLNode<IDInfo>* pEntityNode = headUnitNode();
 	while (pEntityNode != NULL)
 	{
-		pLoopUnit = ::getUnit(pEntityNode->m_data);
+		CvUnit* pLoopUnit = ::getUnit(pEntityNode->m_data);
 		pEntityNode = nextUnitNode(pEntityNode);
 		if (pLoopUnit->AI_getUnitAIType() == eUnitAI)
 		{
@@ -175,21 +163,25 @@ bool CvSelectionGroupAI::AI_update()
 
 	//FAssert(!(GET_PLAYER(getOwnerINLINE()).isAutoMoves())); // (no longer true in K-Mod)
 
-	int iTempHack = 0; // XXX
-
+	//int iTempHack = 0; // XXX
+	// <advc.001y> Will keep this permanently as a fallback
+	int iAttempts = 0;
+	int iMaxAttempts = 6 * (GET_PLAYER(getOwnerINLINE()).getCurrentEra() + 1) +
+			::range(getNumUnits(), 4, 14);
+	// </advc.001y>
 	bool bDead = false;
-	
 	bool bFailedAlreadyFighting = false;
 	//while ((m_bGroupAttack && !bFailedAlreadyFighting) || readyToMove())
 	while ((AI_isGroupAttack() && !isBusy()) || readyToMove()) // K-Mod
 	{
 		setForceUpdate(false); // K-Mod. Force update just means we should get into this loop at least once.
-
-		iTempHack++;
-		if (iTempHack > 100)
+		iAttempts++;
+		/*  <advc.001y> Moved out of the block below so I can see what the loop does
+			before it terminates. Debugger stops in CvSelectionGroup::pushMission and
+			startMission have been helpful to me. */
+		FAssertMsg(iAttempts != iMaxAttempts - 5, "Unit stuck in a loop");
+		if(iAttempts >= iMaxAttempts) // was > 100 </advc.001y>
 		{
-			// advc.006:
-			//FAssertMsg(false, "unit stuck in a loop");
 			CvUnit* pHeadUnit = getHeadUnit();
 			if (NULL != pHeadUnit)
 			{
@@ -222,15 +214,11 @@ bool CvSelectionGroupAI::AI_update()
 
 			//if (pHeadUnit == NULL || pHeadUnit->isDelayedDeath())
 			if (pHeadUnit == NULL || pHeadUnit->doDelayedDeath()) // K-Mod
-			{
 				break;
-			}
 
 			//resetPath();
-
 			if (pHeadUnit->AI_update())
-			{
-				// AI_update returns true when we should abort the loop and wait until next slice
+			{	// AI_update returns true when we should abort the loop and wait until next slice
 				FAssert(!pHeadUnit->isDelayedDeath());
 				break;
 			}
@@ -362,7 +350,8 @@ int CvSelectionGroupAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy)
 }
 
 
-CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot, bool bPotentialEnemy, int& iUnitOdds, bool bForce, bool bNoBlitz) const
+CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
+		bool bPotentialEnemy, int& iUnitOdds, bool bForce, bool bNoBlitz) const
 {
 	PROFILE_FUNC();
 
@@ -372,7 +361,7 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot, bool bP
 
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
 
-	bool bIsHuman = (pUnitNode != NULL) ? GET_PLAYER(::getUnit(pUnitNode->m_data)->getOwnerINLINE()).isHuman() : true;
+	bool bHuman = (pUnitNode != NULL) ? GET_PLAYER(::getUnit(pUnitNode->m_data)->getOwnerINLINE()).isHuman() : true;
 
 	while (pUnitNode != NULL)
 	{
@@ -389,7 +378,7 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot, bool bP
 			else
 			{
 				bCanAttack = pLoopUnit->canAttack();
-
+				
 				if (bCanAttack && bNoBlitz && pLoopUnit->isBlitz() && pLoopUnit->isMadeAttack())
 				{
 					bCanAttack = false;
@@ -432,7 +421,7 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot, bool bP
 							}
 
 							// if non-human, prefer the last unit that has the best value (so as to avoid splitting the group)
-							if (iValue > iBestValue || (!bIsHuman && iValue > 0 && iValue == iBestValue))
+							if (iValue > iBestValue || (!bHuman && iValue > 0 && iValue == iBestValue))
 							{
 								iBestValue = iValue;
 								iBestOdds = iOdds;
@@ -452,7 +441,8 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot, bool bP
 	return pBestUnit;
 }
 
-CvUnit* CvSelectionGroupAI::AI_getBestGroupSacrifice(const CvPlot* pPlot, bool bPotentialEnemy, bool bForce, bool bNoBlitz) const
+CvUnit* CvSelectionGroupAI::AI_getBestGroupSacrifice(const CvPlot* pPlot,
+		bool bPotentialEnemy, bool bForce, bool bNoBlitz) const
 {
 	int iBestValue = 0;
 	CvUnit* pBestUnit = NULL;
@@ -561,8 +551,10 @@ int CvSelectionGroupAI::AI_compareStacks(const CvPlot* pPlot, bool bCheckCanAtta
 	return compareRatio;
 }
 
-// K-Mod. I've removed bCheckMove, and changed bCheckCanAttack to include checks for moves, and for hasAlreadyAttacked / blitz
-int CvSelectionGroupAI::AI_sumStrength(const CvPlot* pAttackedPlot, DomainTypes eDomainType, bool bCheckCanAttack) const
+/*  K-Mod. I've removed bCheckMove, and changed bCheckCanAttack to include checks
+	for moves, and for hasAlreadyAttacked / blitz */
+int CvSelectionGroupAI::AI_sumStrength(const CvPlot* pAttackedPlot,
+		DomainTypes eDomainType, bool bCheckCanAttack) const
 {
 	CLLNode<IDInfo>* pUnitNode;
 	CvUnit* pLoopUnit;
@@ -595,7 +587,8 @@ int CvSelectionGroupAI::AI_sumStrength(const CvPlot* pAttackedPlot, DomainTypes 
 				{
 					if (!pLoopUnit->canAttack() || !pLoopUnit->canMove()
 						|| (pAttackedPlot && bDefenders && !pLoopUnit->canMoveInto(pAttackedPlot, true, true))
-						|| (!pLoopUnit->isBlitz() && pLoopUnit->isMadeAttack()))
+						|| //(!pLoopUnit->isBlitz() && pLoopUnit->isMadeAttack())
+							pLoopUnit->isMadeAllAttacks()) // advc.164
 						continue; // can't attack.
 				}
 			}
@@ -823,64 +816,59 @@ CvUnit* CvSelectionGroupAI::AI_getMissionAIUnit()
 
 bool CvSelectionGroupAI::AI_isFull()
 {
-	CLLNode<IDInfo>* pUnitNode;
-	CvUnit* pLoopUnit;
+	if(getNumUnits() <= 0)
+		return false;
 
-	if (getNumUnits() > 0)
+	UnitAITypes eUnitAI = getHeadUnitAI();
+	// do two passes, the first pass, we ignore units with speical cargo
+	int iSpecialCargoCount = 0;
+	int iCargoCount = 0;
+
+	// first pass, count but ignore special cargo units
+	CLLNode<IDInfo>*  pUnitNode = headUnitNode();
+	while (pUnitNode != NULL)
 	{
-		UnitAITypes eUnitAI = getHeadUnitAI();
-		// do two passes, the first pass, we ignore units with speical cargo
-		int iSpecialCargoCount = 0;
-		int iCargoCount = 0;
-		
-		// first pass, count but ignore special cargo units
-		pUnitNode = headUnitNode();
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+		pUnitNode = nextUnitNode(pUnitNode);
+		if (pLoopUnit->AI_getUnitAIType() == eUnitAI)
+		{
+			if (pLoopUnit->cargoSpace() > 0)
+			{
+				iCargoCount++;
+			}
 
+			if (pLoopUnit->specialCargo() != NO_SPECIALUNIT)
+			{
+				iSpecialCargoCount++;
+			}
+			else if (!(pLoopUnit->isFull()))
+			{
+				return false;
+			}
+		}
+	}
+
+	// if every unit in the group has special cargo, then check those, otherwise, consider ourselves full
+	if (iSpecialCargoCount >= iCargoCount)
+	{
+		pUnitNode = headUnitNode();
 		while (pUnitNode != NULL)
 		{
-			pLoopUnit = ::getUnit(pUnitNode->m_data);
+			CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
 			pUnitNode = nextUnitNode(pUnitNode);
+
 			if (pLoopUnit->AI_getUnitAIType() == eUnitAI)
 			{
-				if (pLoopUnit->cargoSpace() > 0)
-				{
-					iCargoCount++;
-				}
-
-				if (pLoopUnit->specialCargo() != NO_SPECIALUNIT)
-				{
-					iSpecialCargoCount++;
-				}
-				else if (!(pLoopUnit->isFull()))
+				if (!(pLoopUnit->isFull()))
 				{
 					return false;
 				}
 			}
 		}
-		
-		// if every unit in the group has special cargo, then check those, otherwise, consider ourselves full
-		if (iSpecialCargoCount >= iCargoCount)
-		{
-			pUnitNode = headUnitNode();
-			while (pUnitNode != NULL)
-			{
-				pLoopUnit = ::getUnit(pUnitNode->m_data);
-				pUnitNode = nextUnitNode(pUnitNode);
-				
-				if (pLoopUnit->AI_getUnitAIType() == eUnitAI)
-				{
-					if (!(pLoopUnit->isFull()))
-					{
-						return false;
-					}
-				}
-			}
-		}
-
-		return true;
 	}
 
-	return false;	
+	return true;
+
 }
 
 

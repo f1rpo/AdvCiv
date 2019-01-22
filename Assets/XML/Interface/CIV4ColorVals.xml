@@ -163,19 +163,21 @@
 			<fBlue>0.00</fBlue>
 			<fAlpha>1.00</fAlpha>
 		</ColorVal>
+		<!-- advc.002i: was 0,90,20 -->
 		<ColorVal>
 			<Type>COLOR_RESEARCH_STORED</Type>
 			<fRed>0.00</fRed>
-			<fGreen>0.90</fGreen>
-			<fBlue>0.20</fBlue>
+			<fGreen>0.82</fGreen>
+			<fBlue>0.35</fBlue>
 			<fAlpha>1.00</fAlpha>
 		</ColorVal>
+		<!-- advc.002i: Alpha was 0.6 -->
 		<ColorVal>
 			<Type>COLOR_RESEARCH_RATE</Type>
 			<fRed>0.00</fRed>
 			<fGreen>0.90</fGreen>
 			<fBlue>0.20</fBlue>
-			<fAlpha>0.60</fAlpha>
+			<fAlpha>0.50</fAlpha>
 		</ColorVal>
 		<ColorVal>
 			<Type>COLOR_CULTURE_STORED</Type>
@@ -429,9 +431,9 @@
 		<!-- darkened, less red -->
 		<ColorVal>
 			<Type>COLOR_PLAYER_DARK_BLUE</Type>
-			<fRed>0.12</fRed>
+			<fRed>0.10</fRed>
 			<fGreen>0.01</fGreen>
-			<fBlue>0.53</fBlue>
+			<fBlue>0.49</fBlue>
 			<fAlpha>1.00</fAlpha>
 		</ColorVal>
 		<ColorVal>
@@ -517,7 +519,7 @@
 		</ColorVal>
 		<ColorVal>
 			<Type>COLOR_PLAYER_DARK_RED_TEXT</Type>
-			<fRed>0.84</fRed>
+			<fRed>0.80</fRed>
 			<fGreen>0.15</fGreen>
 			<fBlue>0.12</fBlue>
 			<fAlpha>1.00</fAlpha>
@@ -628,19 +630,18 @@
 			<fBlue>1.00</fBlue>
 			<fAlpha>1.00</fAlpha>
 		</ColorVal>
-		<!-- darkened -->
 		<ColorVal>
 			<Type>COLOR_PLAYER_RED</Type>
-			<fRed>0.78</fRed>
-			<fGreen>0.06</fGreen>
-			<fBlue>0.06</fBlue>
+			<fRed>0.82</fRed>
+			<fGreen>0.08</fGreen>
+			<fBlue>0.1</fBlue>
 			<fAlpha>1.00</fAlpha>
 		</ColorVal>
 		<ColorVal>
 			<Type>COLOR_PLAYER_RED_TEXT</Type>
-			<fRed>0.99</fRed>
-			<fGreen>0.17</fGreen>
-			<fBlue>0.25</fBlue>
+			<fRed>0.98</fRed>
+			<fGreen>0.18</fGreen>
+			<fBlue>0.22</fBlue>
 			<fAlpha>1.00</fAlpha>
 		</ColorVal>
 		<ColorVal>

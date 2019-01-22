@@ -505,7 +505,9 @@ void CvInitCore::resetGame()
 	// </advc.003c>
 	// Map-specific custom parameters
 	clearCustomMapOptions();
-
+	/*  advc.003: Unused as far as I can tell, but still better to ensure that it
+		gets initialized. */
+	m_iNumHiddenCustomMapOptions = 0;
 	// Data-defined victory conditions
 	refreshVictories();
 
@@ -1184,12 +1186,25 @@ void CvInitCore::setType(GameType eType)
 	if (getType() != eType)
 	{
 		m_eType = eType;
-		// <advc.054> Always visible in scenarios
-		CvGameOptionInfo& goi = GC.getGameOptionInfo(GAMEOPTION_NO_CHANGING_WAR_PEACE);
-		if(eType == GAME_SP_SCENARIO || eType == GAME_MP_SCENARIO)
-			goi.setVisible(true);
-		// Otherwise as set in XML
-		else goi.setVisible(goi.getVisibleXML()); // </advc.054>
+		// <advc.054>
+		{	// Always visible in scenarios
+			CvGameOptionInfo& goi = GC.getGameOptionInfo(GAMEOPTION_NO_CHANGING_WAR_PEACE);
+			if(eType == GAME_SP_SCENARIO || eType == GAME_MP_SCENARIO ||
+					eType == GAME_HOTSEAT_SCENARIO || eType == GAME_PBEM_SCENARIO)
+				goi.setVisible(true);
+			// Otherwise as set in XML
+			else goi.setVisible(goi.getVisibleXML());
+		}
+		{	// Never visible in MP
+			CvGameOptionInfo& goi = GC.getGameOptionInfo(GAMEOPTION_LOCK_MODS);
+			if(eType == GAME_MP_SCENARIO || eType == GAME_MP_NEW || eType == GAME_MP_LOAD ||
+					eType == GAME_HOTSEAT_SCENARIO || eType == GAME_HOTSEAT_NEW ||
+					eType == GAME_PBEM_LOAD || eType == GAME_PBEM_NEW ||
+					eType == GAME_PBEM_SCENARIO)
+				goi.setVisible(false);
+			// Otherwise as set in XML
+			else goi.setVisible(goi.getVisibleXML());
+		} // </advc.054>
 		if(CvPlayerAI::areStaticsInitialized())
 		{
 			for (int i = 0; i < MAX_PLAYERS; ++i)

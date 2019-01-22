@@ -32,7 +32,7 @@ WarAndPeaceCache::WarAndPeaceCache() {
 	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 		lostTilesAtWar[i] = // advc.035
 				pastWarScores[i] = sponsorshipsAgainst[i] =
-				sponsorsAgainst[i] = warUtilityIgnDistraction[i];
+				sponsorsAgainst[i] = warUtilityIgnDistraction[i] = -1;
 		hireAgainst[i] = true;
 	} 
 }
@@ -1633,8 +1633,6 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 			if(c->at(cacheOwner.getCapitalCity()->plot()))
 				reachByLand = true;
 		}
-		// Reach by sea from c (whereas reachBySea refers to any city of agent)
-		bool rbsLoop = false;
 		if(trainAnyCargo) {
 			DomainTypes dom = DOMAIN_SEA;
 			if(!trainDeepSeaCargo)
@@ -1645,7 +1643,6 @@ void WarAndPeaceCache::City::updateDistance(CvCity* targetCity) {
 						seaPenalty;
 				if(pwd < 0 || d < pwd) {
 					pwd = d;
-					rbsLoop = true;
 					reachBySea = true;
 				}
 			}

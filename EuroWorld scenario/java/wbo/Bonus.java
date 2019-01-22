@@ -1,13 +1,12 @@
 package wbo;
 
-import java.awt.Point;
 import java.awt.geom.Point2D;
 
 public class Bonus {
 
 	public Bonus(String type, int x, int y) {
 		this.type = type;
-		this.plot = new Point(x + WBOut.offsetX, y +  WBOut.offsetY);
+		this.plot = WBOut.getOffset(x, y);
 	}
 	
 	public String getType() {

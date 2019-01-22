@@ -804,7 +804,8 @@
 	<ElementType name="TechPrereq" content="textOnly"/>
 	<ElementType name="StateReligionPrereq" content="textOnly"/>
 	<ElementType name="bLeader" content="textOnly" dt:type="boolean"/>
-	<ElementType name="bBlitz" content="textOnly" dt:type="boolean"/>
+	<!-- advc.164: was boolean -->
+	<ElementType name="iBlitz" content="textOnly" dt:type="int"/>
 	<ElementType name="bAmphib" content="textOnly" dt:type="boolean"/>
 	<ElementType name="bRiver" content="textOnly" dt:type="boolean"/>
 	<ElementType name="bEnemyRoute" content="textOnly" dt:type="boolean"/>
@@ -866,7 +867,8 @@
 		<element type="TechPrereq"/>
 		<element type="StateReligionPrereq"/>
 		<element type="bLeader"/>
-		<element type="bBlitz"/>
+		<!-- advc.164 -->
+		<element type="iBlitz"/>
 		<element type="bAmphib"/>
 		<element type="bRiver"/>
 		<element type="bEnemyRoute"/>

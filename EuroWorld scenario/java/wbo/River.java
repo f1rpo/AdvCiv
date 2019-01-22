@@ -1,5 +1,5 @@
 package wbo;
-import java.awt.Point;
+
 import java.awt.geom.Point2D;
 import static wbo.Direction.*;
 
@@ -11,7 +11,7 @@ public class River {
 		assert(of == S || to == S || to == N);
 		assert(of == E || to == E || to == W);
 		this.of = of;
-		this.plot = new Point(x + WBOut.offsetX, y +  WBOut.offsetY);
+		this.plot = WBOut.getOffset(x, y);
 		this.to = to;
 	}
 	

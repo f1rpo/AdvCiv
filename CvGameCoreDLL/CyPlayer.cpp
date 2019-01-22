@@ -258,7 +258,9 @@ int CyPlayer::countOwnedBonuses(int /*BonusTypes*/ eBonus)
 
 int CyPlayer::countUnimprovedBonuses(CyArea* pArea, CyPlot* pFromPlot)
 {
-	return m_pPlayer ? m_pPlayer->countUnimprovedBonuses(pArea->getArea(), pFromPlot->getPlot()) : -1;
+	return m_pPlayer ?
+			m_pPlayer->AI().AI_countUnimprovedBonuses( // advc.042
+			pArea->getArea(), pFromPlot->getPlot()) : -1;
 }
 
 int CyPlayer::countCityFeatures(int /*FeatureTypes*/ eFeature)
@@ -324,7 +326,7 @@ int CyPlayer::getNumTradeBonusImports(int /*PlayerTypes*/ ePlayer)
 
 bool CyPlayer::hasBonus(int /*BonusTypes*/ eBonus)
 {
-	return m_pPlayer ? m_pPlayer->hasBonus((BonusTypes)eBonus) : NO_BONUS;
+	return m_pPlayer ? m_pPlayer->hasBonus((BonusTypes)eBonus) : false;
 }
 
 bool CyPlayer::canStopTradingWithTeam(int /*TeamTypes*/ eTeam)
@@ -1803,7 +1805,7 @@ int CyPlayer::getHurryCount(int /*HurryTypes*/ eIndex)
 
 bool CyPlayer::canHurry(int /*HurryTypes*/ eIndex)
 {
-	return m_pPlayer ? m_pPlayer->canHurry((HurryTypes)eIndex) : (int) NO_HURRY;
+	return m_pPlayer ? m_pPlayer->canHurry((HurryTypes)eIndex) : false;
 }
 
 int CyPlayer::getSpecialBuildingNotRequiredCount(int /*SpecialBuildingTypes*/ eIndex)
@@ -1813,7 +1815,7 @@ int CyPlayer::getSpecialBuildingNotRequiredCount(int /*SpecialBuildingTypes*/ eI
 
 bool CyPlayer::isSpecialBuildingNotRequired(int /*SpecialBuildingTypes*/ eIndex)
 {
-	return m_pPlayer ? m_pPlayer->isSpecialBuildingNotRequired((SpecialBuildingTypes)eIndex) : -1;
+	return m_pPlayer ? m_pPlayer->isSpecialBuildingNotRequired((SpecialBuildingTypes)eIndex) : false;
 }
 
 bool CyPlayer::isHasCivicOption(int /*CivicOptionTypes*/ eIndex)

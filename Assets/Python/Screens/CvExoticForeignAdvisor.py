@@ -380,7 +380,8 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 					
 		# Put everything inside a main panel, so we get vertical scrolling
 		mainPanelName = self.getNextWidgetName()
-		screen.addPanel(mainPanelName, "", "", True, True, 50, 100, self.W_SCREEN - 100, self.H_SCREEN - 200, PanelStyles.PANEL_STYLE_EMPTY)
+		# advc.066: The second int param was 100
+		screen.addPanel(mainPanelName, "", "", True, True, 50, 60, self.W_SCREEN - 100, self.H_SCREEN - 200, PanelStyles.PANEL_STYLE_EMPTY)
 
 		# loop through all players and sort them by number of active deals
 		listPlayers = [(0,0)] * gc.getMAX_PLAYERS()
@@ -404,7 +405,8 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 
 			# Player panel
 			playerPanelName = self.getNextWidgetName()
-			screen.attachPanel(mainPanelName, playerPanelName, gc.getPlayer(iLoopPlayer).getName(), "", False, True, PanelStyles.PANEL_STYLE_MAIN)
+			# advc.066: Second argument was gc.getPlayer(iLoopPlayer).getName()
+			screen.attachPanel(mainPanelName, playerPanelName, "", "", False, True, PanelStyles.PANEL_STYLE_MAIN)
 
 			screen.attachLabel(playerPanelName, "", "   ")
 

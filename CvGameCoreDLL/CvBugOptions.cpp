@@ -43,9 +43,28 @@ int getDefineINT(const char* xmlKey, int iDefault)
 	}
 }
 
+// <advc.003>
+bool checkBUGStatus(const char* optionKey, bool bWarn) {
 
-bool getBugOptionBOOL(const char* id, bool bDefault, const char* xmlKey)
-{
+	if(!GC.IsGraphicsInitialized() || GC.getGameINLINE().getActivePlayer() == NO_PLAYER) {
+		if(!bWarn)
+			return false;
+		CvString szMsg = "BUG option ";
+		szMsg.append(optionKey);
+		szMsg.append(" accessed before BUG initialization");
+		FAssertMsg(GC.IsGraphicsInitialized(), szMsg.c_str());
+		FAssertMsg(GC.getGameINLINE().getActivePlayer() == NO_PLAYER, szMsg.c_str());
+		return false;
+	}
+	return true;
+} // </advc.003>
+
+
+bool getBugOptionBOOL(const char* id, bool bDefault, bool bWarn)
+{	// <advc.003>
+	PROFILE_FUNC();
+	if(!checkBUGStatus(id, bWarn))
+		return bDefault; // </advc.003>
 	CyArgsList argsList;
 	long lResult = 0;
 
@@ -57,8 +76,11 @@ bool getBugOptionBOOL(const char* id, bool bDefault, const char* xmlKey)
 	return lResult != 0;
 }
 
-int getBugOptionINT(const char* id, int iDefault, const char* xmlKey)
-{
+int getBugOptionINT(const char* id, int iDefault, bool bWarn)
+{	// <advc.003>
+	PROFILE_FUNC();
+	if(!checkBUGStatus(id, bWarn))
+		return iDefault; // </advc.003>
 	CyArgsList argsList;
 	long lResult = 0;
 

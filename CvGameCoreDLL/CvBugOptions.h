@@ -19,17 +19,20 @@ Calls out to the CvAppInterface Python module to check user options.
 #define PYBugOptionsModule PYCivModule
 
 // Text prepended to option name if no XML key given
-#define OPTION_XML_PREFIX "BULL__"
+// advc.003: unused
+//#define OPTION_XML_PREFIX "BULL__"
 
-void logMsg(const char* format, ...);
-
+// advc.003: No implementation for these
+/*void logMsg(const char* format, ...);
 bool isBug();
-void setIsBug(bool bIsBug);
+void setIsBug(bool bIsBug);*/
 
 bool getDefineBOOL(const char* xmlKey, bool bDefault = false);
 int getDefineINT(const char* xmlKey, int iDefault = 0);
 
-bool getBugOptionBOOL(const char* id, bool bDefault = true, const char* xmlKey = NULL);
-int getBugOptionINT(const char* id, int iDefault = 0, const char* xmlKey = NULL);
+/*  advc.003: Removed unused param char const* xmlKey = NULL
+	bWarn added */
+bool getBugOptionBOOL(const char* id, bool bDefault = true, bool bWarn = true);
+int getBugOptionINT(const char* id, int iDefault = 0, bool bWarn = true);
 
 #endif

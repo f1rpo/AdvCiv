@@ -152,6 +152,11 @@
 			<iInflationPercent>30</iInflationPercent>
 			<iInflationOffset>-90</iInflationOffset>
 			<iVictoryDelayPercent>100</iVictoryDelayPercent>
+			<!-- advc.910: Changed 120 months from 50 to 55,
+				 60 months from 60 to 50,
+				 12 months from 120 to 115 and
+				 6 months from 60 to 70.
+				 (Can't place comments inside the GameTurnInfos.) -->
 			<GameTurnInfos>
 				<GameTurnInfo>
 					<iMonthIncrement>480</iMonthIncrement>
@@ -167,11 +172,11 @@
 				</GameTurnInfo>
 				<GameTurnInfo>
 					<iMonthIncrement>120</iMonthIncrement>
-					<iTurnsPerIncrement>50</iTurnsPerIncrement>
+					<iTurnsPerIncrement>55</iTurnsPerIncrement>
 				</GameTurnInfo>
 				<GameTurnInfo>
 					<iMonthIncrement>60</iMonthIncrement>
-					<iTurnsPerIncrement>60</iTurnsPerIncrement>
+					<iTurnsPerIncrement>50</iTurnsPerIncrement>
 				</GameTurnInfo>
 				<GameTurnInfo>
 					<iMonthIncrement>24</iMonthIncrement>
@@ -179,11 +184,11 @@
 				</GameTurnInfo>
 				<GameTurnInfo>
 					<iMonthIncrement>12</iMonthIncrement>
-					<iTurnsPerIncrement>120</iTurnsPerIncrement>
+					<iTurnsPerIncrement>115</iTurnsPerIncrement>
 				</GameTurnInfo>
 				<GameTurnInfo>
 					<iMonthIncrement>6</iMonthIncrement>
-					<iTurnsPerIncrement>60</iTurnsPerIncrement>
+					<iTurnsPerIncrement>70</iTurnsPerIncrement>
 				</GameTurnInfo>
 			</GameTurnInfos>
 		</GameSpeedInfo>

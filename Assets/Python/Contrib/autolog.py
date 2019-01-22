@@ -64,7 +64,9 @@ class autologInstance:
 		self.writeMsg("")
 		self.writeMsg("Logging by " + CvModName.getDisplayNameAndVersion() + " (" + CvModName.getCivNameAndVersion() + ")")
 		self.writeMsg("------------------------------------------------")
-		zcurrturn = gc.getGame().getElapsedGameTurns() + AutologOpt.get4000BCTurn()
+		#zcurrturn = gc.getGame().getElapsedGameTurns() + AutologOpt.get4000BCTurn()
+		# advc.004: Replacing the above
+		zcurrturn = gc.getGame().getGameTurn()
 		zmaxturn = gc.getGame().getMaxTurns()
 		zyear = gc.getGame().getGameTurnYear()
 		if (zyear < 0):

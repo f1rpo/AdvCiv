@@ -19,7 +19,8 @@ using std::ostringstream;
 StartPointsAsHandicap::StartPointsAsHandicap() {
 	
 	pointsDisplayString = NULL;
-	nCivs = 0;
+	nCivs = nHuman = 0;
+	randPoints = false;
 	allPts = new int [2 * MAX_CIV_PLAYERS];
 }
 
@@ -336,19 +337,18 @@ void StartPointsAsHandicap::updatePointsDisplayString() {
 }
 
 // Assumes that they're sorted
-int StartPointsAsHandicap::maxStartPoints() {
+/*int StartPointsAsHandicap::maxStartPoints() {
 
 	return civs[nCivs - 1]->startPoints_actual();
 }
-
-
+// (obsolete)
 double StartPointsAsHandicap::meanStartPoints() {
 
 	double sum = 0;
 	for(int i = 0; i < nCivs; i++)
 		sum += civs[i]->startPoints_actual();
 	return sum / nCivs;
-}
+}*/
 
 
 bool StartPointsAsHandicap::isLeftPtsLessThanRight(MajorCiv* left, MajorCiv* right) {

@@ -1030,14 +1030,20 @@ class CvVictoryScreen:
 			# </advc.250b>
 			screen.appendListBoxStringNoUpdate(szOptionsTable, szNumPoints, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
-		if (gc.getGame().isGameMultiPlayer()):
+		if gc.getGame().isGameMultiPlayer():
 			for i in range(gc.getNumMPOptionInfos()):
 				if (gc.getGame().isMPOption(i)):
 					screen.appendListBoxStringNoUpdate(szOptionsTable, gc.getMPOptionInfo(i).getDescription(), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
-			if (gc.getGame().getMaxTurns() > 0):
-				szMaxTurns = u"%s %d" % (localText.getText("TXT_KEY_TURN_LIMIT_TAG", ()), gc.getGame().getMaxTurns())
-				screen.appendListBoxStringNoUpdate(szOptionsTable, szMaxTurns, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			if gc.getGame().getMaxTurns() > 0:
+				# <advc.135d> Based on code in CvGame::setStartTurnYear
+				iDefaultEndTurn = 0
+				for i in range(gc.getGameSpeedInfo(gc.getGame().getGameSpeedType()).getNumTurnIncrements()):
+					iDefaultEndTurn += gc.getGameSpeedInfo(gc.getGame().getGameSpeedType()).getGameTurnInfo(i).iNumGameTurnsPerIncrement;
+				if gc.getGame().getMaxTurns() != iDefaultEndTurn:
+				# </advc.135d>
+					szMaxTurns = u"%s %d" % (localText.getText("TXT_KEY_TURN_LIMIT_TAG", ()), gc.getGame().getMaxTurns())
+					screen.appendListBoxStringNoUpdate(szOptionsTable, szMaxTurns, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
 			if (gc.getGame().getMaxCityElimination() > 0):
 				szMaxCityElimination = u"%s %d" % (localText.getText("TXT_KEY_CITY_ELIM_TAG", ()), gc.getGame().getMaxCityElimination())

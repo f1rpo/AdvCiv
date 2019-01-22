@@ -105,7 +105,8 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 		self.PrevAvailPermanentAllianceTrades = self.getPermanentAllianceTrades(owner, iTeam)
 		self.PrevAvailVassalTrades = self.getVassalTrades(owner, iTeam)
 		self.PrevAvailSurrenderTrades = self.getSurrenderTrades(owner, iTeam)
-		self.PrevAvailPeaceTrades = self.getPeaceTrades(owner, iTeam)
+		# advc.210: Disabled
+		#self.PrevAvailPeaceTrades = self.getPeaceTrades(owner, iTeam)
 		# </advc.135b>
 		self.lastDomLimitMsgTurn = currentTurn
 		# I don't think the domination alert is an important one, and the
@@ -116,10 +117,12 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 		self.lastLandCount = 0
 
 	def getCheckForDomPopVictory(self):
-		return self.options.isShowDomPopAlert()
+		return False # advc.210
+		#return self.options.isShowDomPopAlert()
 
 	def getCheckForDomLandVictory(self):
-		return self.options.isShowDomLandAlert()
+		return False # advc.210
+		#return self.options.isShowDomLandAlert()
 
 	def getPopThreshold(self):
 		return self.options.getDomPopThreshold()
@@ -128,7 +131,8 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 		return self.options.getDomLandThreshold()
 
 	def getCheckForCityBorderExpansion(self):
-		return self.options.isShowCityPendingExpandBorderAlert()
+		return False # advc.210
+		#return self.options.isShowCityPendingExpandBorderAlert()
 
 	def getCheckForTechs(self):
 		return self.options.isShowTechTradeAlert()
@@ -155,7 +159,8 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 		return self.options.isShowSurrenderTradeAlert()
 	
 	def getCheckForPeace(self):
-		return self.options.isShowPeaceTradeAlert()
+		return False # advc.210
+		#return self.options.isShowPeaceTradeAlert()
 
 	def getCheckForDomVictory(self):
 		return self.getCheckForDomPopVictory() or self.getCheckForDomLandVictory()
@@ -476,7 +481,7 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 				players = self.buildPlayerString(newTrades)
 				message = localText.getText("TXT_KEY_MORECIV4LERTS_SURRENDER", (players,))
 				self._addMessageNoIcon(iActivePlayer, message)
-		
+
 		if (BeginTurn and self.getCheckForPeace()):
 			currentTrades = self.getPeaceTrades(activePlayer, activeTeam)
 			newTrades = currentTrades.difference(self.PrevAvailPeaceTrades)

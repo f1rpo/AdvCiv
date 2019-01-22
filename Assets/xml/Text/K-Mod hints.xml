@@ -5,14 +5,10 @@
 	<!-- Unit should be colored COLOR_UNIT_TEXT (example: [COLOR_UNIT_TEXT]Archers[COLOR_REVERT]) -->
 	<!-- Buildings should be colored COLOR_BUILDING_TEXT (example: [COLOR_BUILDING_TEXT]Theatre[COLOR_REVERT]) -->
 	<!-- Projects should be colored COLOR_PROJECT_TEXT (example: [COLOR_PROJECT_TEXT]SS Engine[COLOR_REVERT]) -->
-	<!-- Anything else official (that should be capitalized) should be colored COLOR_HIGHLIGHT_TEXT (example: [COLOR_HIGHLIGHT_TEXT]Trade Mission[COLOR_HIGHLIGHT_TEXT] or [COLOR_HIGHLIGHT_TEXT]Islam[COLOR_HIGHLIGHT_TEXT]) -->
+	<!-- Anything else official (that should be capitalized) should be colored COLOR_HIGHLIGHT_TEXT (example: [COLOR_HIGHLIGHT_TEXT]Trade Mission[COLOR_REVERT] or [COLOR_HIGHLIGHT_TEXT]Islam[COLOR_REVERT]) -->
 <Civ4GameText xmlns="http://www.firaxis.com">
 
-<!-- advc.008c: Added "(K-Mod)" to hints that describe K-Mod changes
-	(even those that are just included in K-Mod - because players may not know
-	that e.g. "BUG" is the name of a mod).
-	I'm also putting any corrections of BtS hints into K-Mod hints.xml, so that
-	CIV4GameText_advc.008d.xml only contains hints about AdvCiv changes. -->
+<!-- advc.008c: Added "(K-Mod)" to hints that describe K-Mod changes. -->
 
 <!-- advc.008c: Now also hints at menu button -->
 <TEXT>
@@ -109,11 +105,12 @@
 	<Italian>If a foreign leader is Pleased with you, they will not mind being asked for a small gift.</Italian>
 	<Spanish>Si un leader extranjero está Amable contigo, no se opondrán a ser preguntados por un pequeño regalo.</Spanish>
 </TEXT>
+<!-- advc.008c: More info about the XP loss when upgrading -->
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_11</Tag>
-	<English>Units led by a warlord can be upgraded for free, and they do not lose their experience points.</English>
+	<English>A unit led by a [COLOR_HIGHLIGHT_TEXT]Great Warlord[COLOR_REVERT] can be upgraded for free and never loses experience points. (Upgrades normally cap experience points at 10.)</English>
 	<French>Units led by a warlord can be upgraded for free, and they do not lose their experience points.</French>
-	<German>Von Kriegsherren angeführte Einheiten können umsonst modernisiert werden und verlieren dabei auch keine Erfahrungspunkte.</German>
+	<German>Von Kriegsherren angeführte Einheiten können umsonst modernisiert werden und verlieren dabei auch keine Erfahrungspunkte. (Normalerweise behält eine modernisierte Einheit höchstens 10 Erfahrungspunkte.)</German>
 	<Italian>Units led by a warlord can be upgraded for free, and they do not lose their experience points.</Italian>
 	<Spanish>Las unidades lideradas por un caudillo pueden ser modernizadas gratis, y no perderán sus putnos de experiencia.</Spanish>
 </TEXT>
@@ -170,11 +167,11 @@
 </TEXT>
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_15</Tag>
-	<English>Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</English>
-	<French>Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</French>
-	<German>Die Handelsraten und Spinonagegewichtungen können durch einen Rechtsklick auf die Plus- oder Minusknöpfe schnell maximiert beziehungsweise minimiert werden.</German>
-	<Italian>Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</Italian>
-	<Spanish>Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</Spanish>
+	<English>(K-Mod) Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</English>
+	<French>(K-Mod) Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</French>
+	<German>(K-Mod) Die Handelsraten und Spinonagegewichtungen können durch einen Rechtsklick auf die Plus- oder Minusknöpfe schnell maximiert beziehungsweise minimiert werden.</German>
+	<Italian>(K-Mod) Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</Italian>
+	<Spanish>(K-Mod) Commerce sliders and espionage weights can be set to max/min quickly by right clicking their +/- buttons.</Spanish>
 </TEXT>
 
 <!-- k146: I've changed the wording a little and added the German translation.
@@ -198,230 +195,5 @@
 	<Italian>La spia migliore &#232; quella che sa aspettare. Lasciando una spia su una casella riduce i costi di tutte le missioni di spionaggio verso quella casella. Perci&#242;, lasciando una spia in una citt&#224; nemica, le missioni verso di questa costeranno meno.</Italian>
 	<Spanish>Los esp&#237;as que saben esperar tienen sus ventajas. Dejar un esp&#237;a en una casilla reducir&#225; los costes de todas las misiones de espionaje realizadas contra los objetos de dicha casilla. Por tanto, dejar un esp&#237;a en una ciudad enemiga abaratar&#225; significativamente el coste de tus misiones en dicha ciudad.</Spanish>
 </TEXT>
-
-<!-- advc.008c: Let's not be so dramatic about enemy spies -->
-<TEXT>
-	<Tag>TXT_KEY_HINT_52</Tag>
-	<English>If you spend more Espionage Points than an opponent, your missions towards that opponent get cheaper. Every point you spend throughout the game is added to this total. By increasing your Espionage spending, you also make it costlier for rivals to conduct missions against you.</English>
-	<French>Si vous d&#233;pensez plus de points d'espionnage qu'un de vos adversaires, vos missions contre lui vous co&#251;teront moins cher. Chaque point d&#233;pens&#233; dans le jeu est totalis&#233;, alors si vous avez un rival acharn&#233; qui d&#233;pense plus de points d'espionnage que vous, vous avez int&#233;r&#234;t &#224; augmenter vos d&#233;penses d'espionnage.</French>
-	<German>Wenn Sie mehr Spionagepunkte als eine gegnerische Zivilisation einsetzen, sinken die Kosten f&#252;r Missionen gegen diesen Gegner. Jeder Punkt, den Sie im Laufe des Spiels ausgeben, z&#228;hlt zu diesr Gesamtsumme. Und je mehr Spionagepunkte Sie einsetzen, desto kostspieliger werden Missionen gegen Sie.</German>
-	<Italian>Se spendi un maggior numero di punti spionaggio di un avversario, le tue missioni nei suoi confronti diventeranno pi&#249; economiche. Ogni punto che spendi durante la partita viene aggiunto a questo totale, perci&#242; se vedi un avversario che ti surclassa in punti spionaggio, &#232; una mossa saggia aumentare la spesa in questo senso.</Italian>
-	<Spanish>Si gastas m&#225;s puntos de espionaje que un rival, tus misiones contra dicho adversario ser&#225;n m&#225;s baratas. Cada punto que gastes a lo largo de la partida se suma a este total, de modo que si ves que un duro rival gasta m&#225;s que t&#250; en puntos de espionaje, es buena idea aumentar tu gasto en espionaje.</Spanish>
-</TEXT>
-<TEXT>
-	<Tag>TXT_KEY_HINT_63</Tag>
-	<English>If you are vexed by enemy spies, consider placing a Spy unit in each of your border cities.</English>
-	<French>Gardez quelques espions &#224; l'int&#233;rieur de vos fronti&#232;res pour le contre-espionnage. Les espions ennemis peuvent faire des ravages !</French>
-	<German>Wenn feindliche Spione Ihnen &#196;rger bereiten, erw&#228;gen Sie, eigene Spione in einigen Ihrer Grenzst&#228;dte zu stationieren.</German>
-	<Italian>Tieni alcune spie all'interno dei tuoi confini per effettuare il controspionaggio. Le spie nemiche possono scatenare il caos!</Italian>
-	<Spanish>Mant&#233;n algunos esp&#237;as en tus fronteras para practicar el contraespionaje. &#161;Los esp&#237;as enemigos pueden sembrar el caos!</Spanish>
-</TEXT>
-
-<!-- advc.008c: Nudge players toward disabling Random Events -->
-<TEXT>
-	<Tag>TXT_KEY_HINT_69</Tag>
-	<English>If you play with the Random Events option, you may be wise to keep some reserve gold in your treasury. Your savings could help mitigate the effects of a disastrous event or grant you access to additional opportunities when a positive event rolls around.</English>
-	<French>Faites en sorte de ne pas dilapider votre tr&#233;sor. Vos &#233;conomies pourraient un jour vous aider &#224; att&#233;nuer les effets d'un &#233;v&#232;nement catastrophique ou vous donner acc&#232;s &#224; de nouvelles opportunit&#233;s si un &#233;v&#232;nement positif devait survenir .</French>
-	<German>Wenn Sie mit Zufallsereignissen spielen, kann es klug sein, ein paar Goldreserven in der Schatzkammer zu belassen. Das Ersparte kann helfen, die Auswirkungen eines verheerenden Ereignisses zu mildern, oder Ihnen zusätzliche Möglichkeiten bei einem positiven Ereignis verschaffen.</German>
-	<Italian>Potrebbe essere saggio tenere una riserva d'oro nel tuo tesoro. Non si può mai sapere quando potrebbe rendersi necessario mitigare gli effetti di un evento catastrofico, o quando una serie positiva di eventi potrebbe permetterti di accedere ad altre opportunità.</Italian>
-	<Spanish>Debes ser prudente y guardar algunas reservas de oro en tu tesoro. Nunca se sabe cuándo tus ahorros pueden servir para mitigar los efectos de un suceso desastroso o para darte acceso a oportunidades adicionales cuando se produzca un suceso positivo.</Spanish>
-</TEXT>
-
-<!-- advc.008c, advc.002g: It's good to point out the BtS Concepts page, but
-	 since it's no longer a novelty, the players don't need to "be sure to
-	 check" it out. -->
-<TEXT>
-	<Tag>TXT_KEY_HINT_59</Tag>
-	<English>The "BtS Concepts" page in the Civilopedia summarizes the changes introduced by the "Beyond the Sword" expansion.</English>
-	<French>Pensez &#224; lire la page "Concepts de BtS" dans la Civilop&#233;die pour conna&#238;tre toutes les modifications apport&#233;es par cette extension.</French>
-	<German>Die Seite "BtS-Konzepte" in der Zivilop&#228;die fasst die &#196;nderungen der "Beyond the Sword"-Erweiterung zusammen.</German>
-	<Italian>Consulta la pagina "Nozioni di BtS" nella Civilopedia per leggere tutte le modifiche effettuate in questa espansione.</Italian>
-	<Spanish>Aseg&#250;rate de consultar la p&#225;gina "Conceptos de BtS" en la Civilopedia para conocer todos los cambios que incorpora esta expansi&#243;n.</Spanish>
-</TEXT>
-
-<!-- advc.008c: Removed "now" as it's longer news. -->
-<TEXT>
-	<Tag>TXT_KEY_HINT_56</Tag>
-	<English>Intercontinental trade routes yield more gold than normal trade routes. Build a Customs House to further cash in.</English>
-	<French>Les routes commerciales intercontinentales rapportent d&#233;sormais plus d'or que les routes commerciales normales. Construisez un poste de douane pour augmenter encore vos recettes.</French>
-	<German>Interkontinentale Handelswege erwirtschaften mehr Gold als normale Handelswege. Errichten Sie f&#252;r zus&#228;tzliche Einnahmen ein Zollamt.</German>
-	<Italian>Le rotte commerciali intercontinentali producono pi&#249; oro di quelle normali. Costruisci delle dogane per aumentare gli introiti.</Italian>
-	<Spanish>Las rutas comerciales intercontinentales reportan m&#225;s oro que las rutas comerciales normales. Construye una aduana para aumentar los ingresos obtenidos.</Spanish>
-</TEXT>
-
-<!-- advc.008c: An opportunity to point out Civ4lerts. -->
-<TEXT>
-	<Tag>TXT_KEY_HINT_13</Tag>
-	<English>Check the foreign advisor often - knowing what your friends (and foes) can offer in trade is valuable information. The BUG mod can alert you whenever a technology or resource becomes available for trade; see the "Alerts" tab of the BUG menu.</English>
-	<French>Consultez souvent votre conseiller diplomatique. Il est essentiel de savoir ce que vos amis (et vos ennemis) peuvent vous proposer.</French>
-	<German>Werfen Sie regelm&#228;&#223;ig einen Blick auf den Auslandsberater. Schlie&#223;lich m&#252;ssen Sie wissen, womit Ihre Freunde (und Feinde) handeln. Sie k&#246;nnen sich benachrichtigen lassen, wenn ein Gegner neue Technologien oder Ressourcen anbietet. Klicken Sie dazu im BUG-Mod-Men&#252; auf den Reiter "Warnungen".</German>
-	<Italian>Consulta spesso il consigliere degli esteri per sapere chi tra gli amici (o i nemici) &#232; in grado di fornire informazioni in cambio di qualcosa.</Italian>
-	<Spanish>Consultad con frecuencia al consejero de Asuntos Exteriores. Saber lo que vuestros amigos (y enemigos) pueden ofreceros en intercambio es una informaci&#243;n valiosa.</Spanish>
-</TEXT>
-
-<!-- advc.008c: Another one that needs to be less emphatic -->
-<TEXT>
-	<Tag>TXT_KEY_HINT_15</Tag>
-	<English>Walls and castles help protect your cities in the first half of the game, but after gunpowder, only city culture boosts your defenses.</English>
-	<French>Ne n&#233;gligez pas la culture de votre empire. Remparts et ch&#226;teaux ne sont efficaces que jusqu'&#224; l'arriv&#233;e de la poudre &#224; canon, mais une grande influence culturelle am&#233;liore les d&#233;fenses &#224; toutes les &#233;poques.</French>
-	<German>Mauern und Schl&#246;sser sch&#252;tzen Ihre St&#228;dte in der ersten Spielh&#228;lfte, aber nach Erfindung des Schie&#223;pulvers st&#228;rkt nur Kultur den Verteidigungswert Ihrer St&#228;dte.</German>
-	<Italian>Non trascurare la cultura del tuo impero: mura e castelli dureranno soltanto fino alla scoperta della polvere da sparo, ma una grande influenza culturale aumenter&#224; le difese in tutte le epoche.</Italian>
-	<Spanish>No descuid&#233;is la cultura de vuestro imperio. Las murallas y castillos solo valdr&#225;n hasta que aparezca la p&#243;lvora, pero una gran influencia cultural mejorar&#225; las defensas en todas las &#233;pocas.</Spanish>
-</TEXT>
-
-<!-- advc.008c: The part about "espionage benefits" may have referred to
-	 visibility from religion. Not worth mentioning with BtS. -->
-<TEXT>
-	<Tag>TXT_KEY_HINT_26</Tag>
-	<English>Open Borders agreements are invitations for your missionaries - if you spread your state religion widely enough, your neighbors may convert to your faith, which greatly improves diplomatic relations.</English>
-	<French>Les accords de libre passage sont des invitations pour vos missionnaires : propagez rapidement votre religion d'&#233;tat pour profiter des avantages de l'espionnage ! Si votre religion se propage suffisamment, vos voisins se convertiront peut-&#234;tre &#224; votre foi, ce qui peut am&#233;liorer vos relations.</French>
-	<German>Offene Grenzen sind eine Einladung an Ihre Missionare. Wenn Sie Ihre Staatsreligion weit genug verbreiten, nehmen Ihre Nachbarn diese m&#246;glicherweise an, wodurch sich die Beziehungen zu Ihrer Zivilisation deutlich verbessern.</German>
-	<Italian>Il diritto di passaggio &#232; un invito per i tuoi missionari: diffondi la religione ufficiale rapidamente e trai vantaggio dallo spionaggio!</Italian>
-	<Spanish>Los acuerdos de apertura de fronteras son una invitaci&#243;n para vuestros misioneros. Propagad vuestra religi&#243;n oficial r&#225;pidamente y aprovechad los beneficios que os ofrece el espionaje. Si vuestra religi&#243;n se propaga lo suficiente, los vecinos pueden convertirse a vuestra fe, lo que puede mejorar vuestras relaciones.</Spanish>
-</TEXT>
-
-<!-- advc.008c: Wall and Castle aren't good examples; suggests that these
-	 should normally be built. -->
-<TEXT>
-	<Tag>TXT_KEY_HINT_27</Tag>
-	<English>Make sure you need every building your city creates. Cities bringing in no research can sometimes skip Libraries, just as cities that don't train units can skip Barracks.</English>
-	<French>Ne construisez que les b&#226;timents dont vos villes ont besoin. Celles qui ne produisent pas de commerce peuvent se passer de biblioth&#232;que, celles qui ne verront jamais le combat n'ont besoin ni de remparts ni de ch&#226;teaux.</French>
-	<German>Achten Sie darauf, nur Geb&#228;ude zu errichten, die Ihre Stadt auch wirklich braucht. Bei geringem Forschungsertrag brauchen Sie nicht unbedingt eine Bibliothek, und Städte, die keine Einheiten trainieren, kommen ohne Kaserne aus.</German>
-	<Italian>Assicurati di aver davvero bisogno degli edifici che costruisci: le citt&#224; che non generano commercio possono fare a meno delle biblioteche, cos&#236; come una citt&#224; che non viene mai attaccata pu&#242; rinunciare a mura e castello.</Italian>
-	<Spanish>Aseguraos de que todos los edificios que se hagan en vuestras ciudades sean necesarios. Las ciudades que no reporten comercio pueden prescindir de las bibliotecas, del mismo modo que aqu&#233;llas que nunca ver&#225;n una batalla pueden prescindir de las murallas y el castillo.</Spanish>
-</TEXT>
-
-<!-- advc.008c: Inconsistent capitilization, and the button isn't called
-	 "Colony". -->
-<TEXT>
-	<Tag>TXT_KEY_HINT_54</Tag>
-	<English>To reduce your city maintenance, consider turning your cities on distant continents into colonies. To form a colony, go to the Domestic Advisor screen and press the button with the fist icon.</English>
-	<French>Si vous cherchez &#224; r&#233;duire le co&#251;t d'entretien de vos villes, pensez &#224; transformer en colonies vos villes situ&#233;es sur des continents lointains. Pour former une colonie, ouvrez l'&#233;cran du conseiller aux affaires int&#233;rieures et cliquez sur le bouton "Colonie".</French>
-	<German>Um Ihre Unterhaltskosten f&#252;r St&#228;dte zu senken, k&#246;nnen Sie Ihre St&#228;dte auf entfernten Kontinenten in Kolonien umwandeln. &#214;ffnen Sie dazu den Inlandsberater und klicken Sie auf den Knopf mit dem Faustsymbol.</German>
-	<Italian>Se stai cercando di ridurre i costi di manutenzione della tua citt&#224;, considera di trasformare quelle lontane in Colonie. Per formare una Colonia, vai nella schermata del consigliere interno e seleziona la voce "Colonia".</Italian>
-	<Spanish>Si quieres reducir los costes de mantenimiento de tus ciudades, considera la posibilidad de convertir en colonias las que est&#233;n situadas en continentes lejanos. Para formar una colonia, ve a la pantalla del Consejero de Interior y selecciona el bot&#243;n "Colonia".</Spanish>
-</TEXT>
-
-<!-- advc.008c: Weird capitalization; and clarified the "not only
-	 resources" part. -->
-<TEXT>
-	<Tag>TXT_KEY_HINT_36</Tag>
-	<English>Grains, livestock, and seafood not only provide resources to your city network, but also rich yields to the local city. Cities placed near two or more of these food sources will grow quickly!</English>
-	<French>Les c&#233;r&#233;ales, le b&#233;tail et les fruits de mer fournissent non seulement des ressources mais permettent &#233;galement d'enrichir la ville qui les produit. Les villes fond&#233;es pr&#232;s de deux telles sources de nourriture ou plus se d&#233;veloppent rapidement !</French>
-	<German>Getreide, Vieh und Meeresfr&#252;chte sind nicht nur handelbare Ressourcen, sie steigern auch deutlich die &#214;rtlichen Ertr&#228;ge. St&#228;dte mit zwei oder mehr solcher Nahrungsquellen wachsen schnell!</German>
-	<Italian>Grano, bestiame e frutti di mare forniscono risorse e ricchezza alle citt&#224; vicine. Le citt&#224; vicine ad almeno due di queste risorse cresceranno rapidamente!</Italian>
-	<Spanish>El grano, el ganado y los productos del mar no solo proporcionan recursos, sino que aportan riqueza a la ciudad. Las ciudades situadas cerca de dos o m&#225;s de esos recursos crecer&#225;n r&#225;pidamente.</Spanish>
-</TEXT>
-
-<!-- advc.008c: Changed "foes" to "rivals". -->
-<TEXT>
-	<Tag>TXT_KEY_HINT_24</Tag>
-	<English>Watch for announcements about religions being founded and wonders being completed - this can give you a hint as to how advanced your rivals are.</English>
-	<French>Soyez attentifs aux messages annon&#231;ant la fondation de nouvelles religions ou la construction de merveilles. Ils peuvent vous renseigner sur la progression de vos ennemis.</French>
-	<German>Achten Sie auf Nachrichten &#252;ber neue Religionen und Wunder - daraus kann sich ableiten lassen, wie fortschrittlich Ihre Gegner sind.</German>
-	<Italian>Tieni d'occhio gli annunci sulla fondazione di nuove religioni o sul completamento di una Meraviglia: cos&#236; facendo, potrai farti un'idea dei progressi dei tuoi avversari.</Italian>
-	<Spanish>Mirad los avisos de fundaci&#243;n de religiones y realizaci&#243;n de maravillas, pues os pueden dar una pista sobre lo avanzados que van los rivales.</Spanish>
-</TEXT>
-
-<!-- advc.008c: To say that barbs can appear "anywhere" in the fog of war
-	 is a bit misleading. Removed that part. -->
-<TEXT>
-	<Tag>TXT_KEY_HINT_12</Tag>
-	<English>If a tile is presently obscured by fog of war, Barbarians can appear there. Don't assume a tile you can't see is safe, even if you've checked it last turn!</English>
-	<French>Les barbares peuvent appara&#238;tre sur toutes les cases recouvertes par le brouillard de guerre. Vous ne saurez donc jamais ce qu'il y a sur celles qui sont invisibles, m&#234;me si vous avez d&#233;j&#224; v&#233;rifi&#233; au tour pr&#233;c&#233;dent !</French>
-	<German>Im Nebel des Krieges k&#246;nnen Barbaren lauern. Gehen Sie nicht davon aus, dass ein verh&#252;lltes Feld sicher ist ... selbst wenn Sie es im vorigen Zug erst &#252;berpr&#252;ft haben!</German>
-	<Italian>I Barbari possono apparire in un qualsiasi spazio oscurato dalla nebbia di guerra. Non essere mai certo che uno spazio non visibile sia sicuro, anche se hai controllato durante il turno precedente!</Italian>
-	<Spanish>Los b&#225;rbaros pueden aparecer en cualquier lugar en el que una casilla est&#233; oscurecida por la niebla de la guerra, as&#237; que no supong&#225;is que una casilla que no pod&#225;is ver es segura, aunque la hay&#225;is comprobado en el turno anterior.</Spanish>
-</TEXT>
-
-<!-- advc.008c: Added Explorers. Was "Entering native villages with scouts will
-	 produce better results..." -->
-<TEXT>
-	<Tag>TXT_KEY_HINT_1</Tag>
-	<English>Scouts and Explorers get better results from tribal villages than other units.</English>
-	<French>Envoyez des &#233;claireurs dans les villages indig&#232;nes pour obtenir de meilleurs r&#233;sultats.</French>
-	<German>Betreten Sie Stammesd&#246;rfer mit einem Sp&#228;her oder Kundschafter, um bessere Ergebnisse zu erzielen.</German>
-	<Italian>Si ottengono migliori risultati entrando nei villaggi indigeni con gli scout.</Italian>
-	<Spanish>Dar&#225; mejores resultados entrar en las aldeas de los nativos con batidores.</Spanish>
-</TEXT>
-
-<!-- advc.008c: "More great people will appear in cities that build ancient
-	 wonders or multiple great wonders." ??
-	 Whether they're ancient doesn't matter (it might matter for the culture
-	 output, but not for GPP). Perhaps they meant "a great wonder or multiple
-	 national wonders", which is what the German version says.
-	 I've just removed that part in the English version. -->
-<TEXT>
-	<Tag>TXT_KEY_HINT_41</Tag>
-	<English>Wonders of the World not only provide unique benefits, they also inspire your populace. More great people will appear in cities that build Wonders.</English>
-	<French>Les merveilles vous apportent non seulement des avantages uniques, mais inspirent &#233;galement votre population. Plus de personnages illustres feront leur apparition dans les villes h&#233;bergeant des merveilles anciennes ou multiples.</French>
-	<German>Wunder haben einzigartige Vorteile und inspirieren Ihre Untertanen. Aus diesem Grund bringen St&#228;dte, in denen Sie Weltwunder oder Nationale Wunder errichten, mehr Gro&#223;e Pers&#246;nlichkeiten hervor.</German>
-	<Italian>Le Meraviglie del mondo non solo forniscono dei benefici molto utili, ma sono anche una fonte di ispirazione per la tua popolazione. Nelle citt&#224; in cui si trovano delle Grandi Meraviglie &#232; pi&#249; facile che appaiano dei Grandi Personaggi.</Italian>
-	<Spanish>Las maravillas del mundo no solo proporcionan beneficios &#250;nicos, sino que tambi&#233;n son una inspiraci&#243;n para el pueblo. En las ciudades que construyan maravillas de la antig&#252;edad o varias grandes maravillas aparecer&#225;n m&#225;s grandes personajes.</Spanish>
-</TEXT>
-
-<!-- advc.008c: Shortened this a bit -->
-<TEXT>
-	<Tag>TXT_KEY_HINT_67</Tag>
-	<English>While the HQ of a corporation generates extra income, each city hosting a corporation branch suffers increased maintenance costs. Unless you build Courthouses in your branch cities and a Bank in the HQ city, you may actually run at a net loss.</English>
-	<French>Si vous choisissez de fonder une soci&#233;t&#233; commerciale, sachez que m&#234;me si le si&#232;ge social b&#233;n&#233;ficiera de revenus suppl&#233;mentaires, chaque ville abritant cette soci&#233;t&#233; subira une hausse de ses co&#251;ts d'entretien. Construisez des tribunaux dans toutes ces villes et des banques pr&#232;s de vos si&#232;ges sociaux, sous peine de subir une banqueroute.</French>
-	<German>Ein Unternehmenssitz liefert zwar Zusatzeinnahmen, aber gleichzeitig verursachen die Niederlassungen Unterhaltskosten. Errichten Sie in Städten mit Niederlassungen Gerichtsgebäude und in der Stadt mit dem Unternehmenssitz eine Bank, um nicht unterm Strich einen Verlust zu machen.</German>
-	<Italian>Se decidi di fondare una Corporazione, ricorda che sebbene i quartieri generali beneficeranno di rendite extra, ogni città che ospita una corporazione vedrà aumentare i suoi costi di mantenimento. Costruisci Palazzi di giustizia nelle città con le Corporazioni e Banche nei quartieri generali, altrimenti la Corporazione potrebbe andare in passivo.</Italian>
-	<Spanish>Si eliges fundar una corporación, recuerda que -aunque sus sedes gocen de beneficios extra- toda ciudad que albergue una corporación tendrá mayores costes de mantenimiento. Construye delegaciones en todas tus ciudades con corporaciones y bancos en tus sedes; de otro modo, la corporación no hará más que generar pérdidas.</Spanish>
-</TEXT>
-
-<!-- advc.008c: Said "ALT-I" (instead of plus), which was confusing. Improved
-	 German translation. -->
-<TEXT>
-	<Tag>TXT_KEY_HINT_INTERFACE_2</Tag>
-	<English>Press [CTRL + I] to play with a minimized interface. Press [ALT + I] to play without interface.</English>
-	<French>Appuyez sur [CTRL + I] pour jouer avec une interface r&#233;duite. Appuyez sur [ALT + I] pour jouer sans interface.</French>
-	<German>Dr&#252;cken Sie [STRG + I], um die Bedienoberfläche zu minimieren oder [ALT + I], um sie ganz auszublenden.</German>
-	<Italian>Premi [CTRL + I] per giocare con l'interfaccia minimizzata. Premi [ALT + I] per giocare senza interfaccia.</Italian>
-	<Spanish>Pulsar [CTRL + I] para jugar con una interfaz minimizada. Pulsar [ALT + I] para jugar sin interfaz.</Spanish>
-</TEXT>
-
-<!-- advc.008c: Info about Alt key added. -->
-<TEXT>
-	<Tag>TXT_KEY_HINT_INTERFACE_39</Tag>
-	<English>To view combat odds, hold down the right mouse button on the target tile. By holding down [ALT], you can view combat odds even when not at war.</English>
-	<French>Pour conna&#238;tre vos chances en cas de combat, maintenez le bouton droit de la souris enfonc&#233; sur la case vis&#233;e.</French>
-	<German>Um die Kampfchancen Ihrer Einheit zu sehen, halten Sie die rechte Maustaste über dem Zielfeld gedrückt. Wenn Sie [ALT] gedrückt halten, werden die Kampfchancen auch dann angezeigt, wenn Sie nicht im Krieg sind.</German>
-	<Italian>Per visualizzare le probabilit&#224; di vittoria di uno scontro, tieni premuto il pulsante destro del mouse su una casella bersaglio.</Italian>
-	<Spanish>Mantener el cursor encima de la casilla objetivo para ver las probabilidades del combate.</Spanish>
-</TEXT>
-
-<!-- advc.008c: "take damage" instead of "get damage" -->
-<TEXT>
-	<Tag>TXT_KEY_HINT_61</Tag>
-	<English>Your Fighters can intercept multiple enemy planes per turn, but become less effective at it as they take damage, so take care to repair your defensive planes.</English>
-	<French>Vos chasseurs peuvent intercepter plusieurs avions ennemis par tour, mais sont moins efficaces quand ils sont endommag&#233;s. Pensez donc bien &#224; r&#233;parer vos avions de d&#233;fense.</French>
-	<German>Ihre J&#228;ger k&#246;nnen in jeder Runde mehrere feindliche Lufteinheiten abfangen, Ihre Schlagkraft sinkt allerdings, wenn sie besch&#228;digt werden. Sie sollten Ihre defensiven Lufteinheiten daher reparieren.</German>
-	<Italian>I tuoi caccia possono intercettare pi&#249; aerei per turno, ma diventano meno efficaci se subiscono danni, perci&#242; premurati di riparare i tuoi velivoli difensivi.</Italian>
-	<Spanish>Tus cazas pueden interceptar varios aviones por turno, pero se vuelven menos eficaces a medida que sufren da&#241;os, por lo que debes preocuparte de reparar tus aviones defensivos.</Spanish>
-</TEXT>
-
-<!-- advc.008c: Changed "may not be" to "aren't". Rewrote the German
-	 translation. -->
-<TEXT>
-	<Tag>TXT_KEY_HINT_20</Tag>
-	<English>Don't be afraid to attack with ranged units - archers and longbows aren't the best offensive units, but properly promoted, they can do a respectable job.</English>
-	<French>N'h&#233;sitez pas &#224; attaquer &#224; distance. Les archers et archers (arcs longs) ne sont pas les meilleures unit&#233;s de d&#233;fense, mais ils obtiennent des r&#233;sultats tout &#224; fait honorables avec une bonne promotion.</French>
-	<German>Bogen- und Armbrustschützen sind zwar keine perfekten Offensiveinheiten, aber mit den richtigen Beförderungen können sie auch im Angriff Beachtliches leisten.</German>
-	<Italian>Non avere paura di attaccare con unit&#224; che colpiscono da lontano: arcieri e archi lunghi possono non essere le armi migliori per lanciare l'offensiva, ma con qualche promozione sono in grado di farsi rispettare.</Italian>
-	<Spanish>No tem&#225;is atacar con unidades de combate a distancia. Puede que los arqueros y saeteros no sean las mejores unidades de ataque, pero cumplen bien cuando se las asciende adecuadamente.</Spanish>
-</TEXT>
-
-<!-- advc.906: Just plugged in the new name. Perhaps this hint should be
-	 replaced though; it suggests that the cheap 2-nukes-on-every-coastal-city
-	 tactic is fair game. -->
-<TEXT>
-	<Tag>TXT_KEY_HINT_62</Tag>
-		<English>Use the Nuclear Submarine's stealth along with its ability to carry conventional and tactical nuclear missiles to launch a devastating opening attack on another landmass.</English>
-		<French>Tirez parti de la furtivit&#233; du sous-marin et de sa capacit&#233; &#224; transporter des missiles conventionnels et des missiles nucl&#233;aires pour lancer une attaque d&#233;vastatrice contre un autre continent.</French>
-		<German>Nutzen Sie die Tarnung Ihrer Atom-U-Boote und ihre F&#228;higkeit, konventionelle und taktische Atomraketen zu bef&#246;rdern, um vernichtende Startoffensiven auf gegnerische Landmassen auszuf&#252;hren.</German>
-		<Italian>Usa l'invisibilit&#224; del sottomarino oltre all'abilit&#224; di trasportare missili tattici e nucleari per lanciarli e scatenare l'inferno sulla terraferma.</Italian>
-		<Spanish>Utiliza la invisibilidad ante el radar del submarino junto a su capacidad para transportar misiles nucleares convencionales y t&#225;cticos para lanzar un devastador ataque inicial sobre otra masa de tierra.</Spanish>
-	</TEXT>
 
 </Civ4GameText>

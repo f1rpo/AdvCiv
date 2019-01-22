@@ -216,6 +216,8 @@ void CyEnumsPythonInterface()
 		.value("Domestic_Advisor_DIRTY_BIT", Domestic_Advisor_DIRTY_BIT)
 		.value("Espionage_Advisor_DIRTY_BIT", Espionage_Advisor_DIRTY_BIT)
 		.value("Advanced_Start_DIRTY_BIT", Advanced_Start_DIRTY_BIT)
+		// advc.068:
+		.value("Tech_Screen_DIRTY_BIT", Tech_Screen_DIRTY_BIT)
 		.value("NUM_INTERFACE_DIRTY_BITS", NUM_INTERFACE_DIRTY_BITS)
 		;
 
@@ -1054,6 +1056,7 @@ void CyEnumsPythonInterface()
 		.value("MISSION_DAMAGE", MISSION_DAMAGE )
 		.value("MISSION_MULTI_SELECT", MISSION_MULTI_SELECT )
 		.value("MISSION_MULTI_DESELECT", MISSION_MULTI_DESELECT )
+		.value("MISSION_SENTRY_HEAL", MISSION_SENTRY_HEAL) // advc.004l
 		.value("NUM_MISSION_TYPES", NUM_MISSION_TYPES )
 		;
 
@@ -1869,6 +1872,8 @@ void CyEnumsPythonInterface()
 		.value("GAMEMESSAGE_ADVANCED_START_ACTION", GAMEMESSAGE_ADVANCED_START_ACTION)
 		.value("GAMEMESSAGE_FOUND_RELIGION", GAMEMESSAGE_FOUND_RELIGION)
 		.value("GAMEMESSAGE_MOD_NET_MESSAGE", GAMEMESSAGE_MOD_NET_MESSAGE)
+		// advc.011b: Not sure if anything breaks if I don't add this here
+		.value("GAMEMESSAGE_PUSH_MODIFIED_MISSION", GAMEMESSAGE_PUSH_MISSION)
 		;
 
 	python::enum_<PopupControlLayout>("PopupControlLayout")

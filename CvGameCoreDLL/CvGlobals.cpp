@@ -42,6 +42,7 @@ void deleteInfoArray(std::vector<T*>& array)
 template <class T>
 bool readInfoArray(FDataStreamBase* pStream, std::vector<T*>& array, const char* szClassName)
 {
+#if SERIALIZE_CVINFOS
 	GC.addToInfosVectors(&array);
 
 	int iSize;
@@ -67,11 +68,16 @@ bool readInfoArray(FDataStreamBase* pStream, std::vector<T*>& array, const char*
 	}
 
 	return true;
+#else
+	FAssert(false);
+	return false;
+#endif
 }
 
 template <class T>
 bool writeInfoArray(FDataStreamBase* pStream,  std::vector<T*>& array)
 {
+#if SERIALIZE_CVINFOS
 	int iSize = sizeof(T);
 	pStream->Write(iSize);
 	pStream->Write(array.size());
@@ -80,6 +86,10 @@ bool writeInfoArray(FDataStreamBase* pStream,  std::vector<T*>& array)
 		(*it)->write(pStream);
 	}
 	return true;
+#else
+	FAssert(false);
+	return false;
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -163,6 +173,7 @@ m_iCITY_TRADE_CULTURE_THRESH(0), // advc.122
 m_iFOUNDING_SHOW_YIELDS(0), // advc.004h
 m_iMINIMAP_WATER_MODE(0), // advc.002a
 m_iDELAY_UNTIL_BUILD_DECAY(0), // advc.011
+m_iBASE_RESEARCH_RATE(0), // advc.910
 m_iMOVE_DENOMINATOR(0),
 m_iNUM_UNIT_PREREQ_OR_BONUSES(0),
 m_iNUM_BUILDING_PREREQ_OR_BONUSES(0),
@@ -272,7 +283,6 @@ m_paMainMenus(NULL)
 // BBAI AI Variables
 ,m_iWAR_SUCCESS_CITY_CAPTURING(25)
 ,m_iBBAI_ATTACK_CITY_STACK_RATIO(110)
-,m_iBBAI_SKIP_BOMBARD_BEST_ATTACK_ODDS(12)
 ,m_iBBAI_SKIP_BOMBARD_BASE_STACK_RATIO(300)
 ,m_iBBAI_SKIP_BOMBARD_MIN_STACK_RATIO(140)
 
@@ -441,7 +451,7 @@ void CvGlobals::init()
 	CvPlayerAI::initStatics();
 	CvTeamAI::initStatics();
 
-	m_pt3Origin = NiPoint3(0.0f, 0.0f, 0.0f);
+	//m_pt3Origin = NiPoint3(0.0f, 0.0f, 0.0f); // advc.003j: unused
 
 	COPY(m_aiPlotDirectionX, aiPlotDirectionX, int);
 	COPY(m_aiPlotDirectionY, aiPlotDirectionY, int);
@@ -646,10 +656,11 @@ FAStar& CvGlobals::getPlotGroupFinder()
 	return *m_plotGroupFinder;
 }
 
-NiPoint3& CvGlobals::getPt3Origin()
+// advc.003j: Was DLLExport, but actually unused.
+/*NiPoint3& CvGlobals::getPt3Origin()
 {
 	return m_pt3Origin;
-}
+}*/
 
 std::vector<CvInterfaceModeInfo*>& CvGlobals::getInterfaceModeInfo()		// For Moose - XML Load Util and CvInfos
 {
@@ -662,11 +673,11 @@ CvInterfaceModeInfo& CvGlobals::getInterfaceModeInfo(InterfaceModeTypes e)
 	FAssert(e < NUM_INTERFACEMODE_TYPES);
 	return *(m_paInterfaceModeInfo[e]);
 }
-
-NiPoint3& CvGlobals::getPt3CameraDir()
+// advc.003j: Was DLLExport, but actually neither called internally nor externally.
+/*NiPoint3& CvGlobals::getPt3CameraDir()
 {
 	return m_pt3CameraDir;
-}
+}*/
 
 bool& CvGlobals::getLogging()
 {
@@ -2355,7 +2366,8 @@ CvVictoryInfo& CvGlobals::getVictoryInfo(VictoryTypes eVictoryNum)
 	return *(m_paVictoryInfo[eVictoryNum]);
 }
 
-int CvGlobals::getNumQuestInfos()
+// advc.003j:
+/*int CvGlobals::getNumQuestInfos()
 {
 	return (int)m_paQuestInfo.size();
 }
@@ -2370,7 +2382,7 @@ CvQuestInfo& CvGlobals::getQuestInfo(int iIndex)
 	FAssert(iIndex > -1);
 	FAssert(iIndex < GC.getNumQuestInfos());
 	return *(m_paQuestInfo[iIndex]);
-}
+}*/
 
 int CvGlobals::getNumTutorialInfos()
 {
@@ -2700,6 +2712,8 @@ void CvGlobals::cacheGlobals()
 	m_iMINIMAP_WATER_MODE = GC.getDefineINT("MINIMAP_WATER_MODE");
 	// advc.011:
 	m_iDELAY_UNTIL_BUILD_DECAY = GC.getDefineINT("DELAY_UNTIL_BUILD_DECAY");
+	// advc.910:
+	m_iBASE_RESEARCH_RATE = GC.getDefineINT("BASE_RESEARCH_RATE");
 	m_iMOVE_DENOMINATOR = getDefineINT("MOVE_DENOMINATOR");
 	m_iNUM_UNIT_PREREQ_OR_BONUSES = getDefineINT("NUM_UNIT_PREREQ_OR_BONUSES");
 	m_iNUM_BUILDING_PREREQ_OR_BONUSES = getDefineINT("NUM_BUILDING_PREREQ_OR_BONUSES");
@@ -2815,7 +2829,6 @@ void CvGlobals::cacheGlobals()
 // BBAI AI Variables
 	m_iWAR_SUCCESS_CITY_CAPTURING = getDefineINT("WAR_SUCCESS_CITY_CAPTURING", m_iWAR_SUCCESS_CITY_CAPTURING);
 	m_iBBAI_ATTACK_CITY_STACK_RATIO = getDefineINT("BBAI_ATTACK_CITY_STACK_RATIO", m_iBBAI_ATTACK_CITY_STACK_RATIO);
-	m_iBBAI_SKIP_BOMBARD_BEST_ATTACK_ODDS = getDefineINT("BBAI_SKIP_BOMBARD_BEST_ATTACK_ODDS", m_iBBAI_SKIP_BOMBARD_BEST_ATTACK_ODDS);
 	m_iBBAI_SKIP_BOMBARD_BASE_STACK_RATIO = getDefineINT("BBAI_SKIP_BOMBARD_BASE_STACK_RATIO", m_iBBAI_SKIP_BOMBARD_BASE_STACK_RATIO);
 	m_iBBAI_SKIP_BOMBARD_MIN_STACK_RATIO = getDefineINT("BBAI_SKIP_BOMBARD_MIN_STACK_RATIO", m_iBBAI_SKIP_BOMBARD_MIN_STACK_RATIO);
 
@@ -3687,7 +3700,7 @@ void CvGlobals::deleteInfoArrays()
 	SAFE_DELETE_ARRAY(GC.getDirectionTypes());
 	SAFE_DELETE_ARRAY(GC.getFootstepAudioTypes());
 	SAFE_DELETE_ARRAY(GC.getFootstepAudioTags());
-	deleteInfoArray(m_paQuestInfo);
+	//deleteInfoArray(m_paQuestInfo); // advc.003j
 	deleteInfoArray(m_paTutorialInfo);
 
 	deleteInfoArray(m_paEventInfo);
@@ -3713,7 +3726,7 @@ bool CvGlobals::isCachingDone() const {
 //
 
 int CvGlobals::getInfoTypeForString(const char* szType, bool hideAssert) const
-	{
+{
 	FAssertMsg(szType, "null info type string");
 	InfosMap::const_iterator it = m_infosMap.find(szType);
 	if (it!=m_infosMap.end())
@@ -3795,7 +3808,16 @@ int CvGlobals::getMaxCivPlayers() const
 }
 
 bool CvGlobals::IsGraphicsInitialized() const { return m_bGraphicsInitialized;}
-void CvGlobals::SetGraphicsInitialized(bool bVal) { m_bGraphicsInitialized = bVal;}
+
+// advc.003: onGraphicsInitialized call added
+void CvGlobals::SetGraphicsInitialized(bool bVal) {
+	
+	if(bVal == m_bGraphicsInitialized)
+		return;
+	m_bGraphicsInitialized = bVal;
+	if(m_bGraphicsInitialized)
+		getGameINLINE().onGraphicsInitialized();
+}
 void CvGlobals::setInterface(CvInterface* pVal) { m_interface = pVal; }
 void CvGlobals::setDiplomacyScreen(CvDiplomacyScreen* pVal) { m_diplomacyScreen = pVal; }
 void CvGlobals::setMPDiplomacyScreen(CMPDiplomacyScreen* pVal) { m_mpDiplomacyScreen = pVal; }
@@ -3852,11 +3874,6 @@ int CvGlobals::getWAR_SUCCESS_CITY_CAPTURING()
 int CvGlobals::getBBAI_ATTACK_CITY_STACK_RATIO()
 {
 	return m_iBBAI_ATTACK_CITY_STACK_RATIO;
-}
-
-int CvGlobals::getBBAI_SKIP_BOMBARD_BEST_ATTACK_ODDS()
-{
-	return m_iBBAI_SKIP_BOMBARD_BEST_ATTACK_ODDS;
 }
 
 int CvGlobals::getBBAI_SKIP_BOMBARD_BASE_STACK_RATIO()
