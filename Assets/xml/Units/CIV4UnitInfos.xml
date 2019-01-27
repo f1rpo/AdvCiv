@@ -1852,8 +1852,7 @@
 			<bSabotage>0</bSabotage>
 			<bDestroy>0</bDestroy>
 			<bStealPlans>0</bStealPlans>
-			<!-- advc.103: was 0 (1 in Vanilla/Warlords) -->
-			<bInvestigate>1</bInvestigate>
+			<bInvestigate>0</bInvestigate>
 			<bCounterSpy>1</bCounterSpy>
 			<bFound>0</bFound>
 			<bGoldenAge>0</bGoldenAge>
@@ -24295,8 +24294,7 @@
 			<bSabotage>0</bSabotage>
 			<bDestroy>0</bDestroy>
 			<bStealPlans>0</bStealPlans>
-			<!-- advc.103: was 0 -->
-			<bInvestigate>1</bInvestigate>
+			<bInvestigate>0</bInvestigate>
 			<bCounterSpy>1</bCounterSpy>
 			<bFound>0</bFound>
 			<bGoldenAge>1</bGoldenAge>

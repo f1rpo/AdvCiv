@@ -557,7 +557,7 @@ bool CyUnit::canBuildRoute()
 
 int /*BuildTypes*/ CyUnit::getBuildType()
 {
-	return (int) m_pUnit ? m_pUnit->getBuildType() : (int) NO_BUILD;
+	return (int)(m_pUnit ? m_pUnit->getBuildType() : NO_BUILD); // kmodx
 }
 
 int CyUnit::workRate(bool bMax)

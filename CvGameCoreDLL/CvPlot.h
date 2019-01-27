@@ -8,10 +8,10 @@
 //#include "CvStructs.h"
 #include "LinkedList.h"
 #include <bitset>
-// advc.300:
-#include <set>
+#include <set> // advc.300
 
-#pragma warning( disable: 4251 )		// needs to have dll-interface to be used by clients of class
+// needs to have dll-interface to be used by clients of class
+#pragma warning( disable: 4251 )
 
 class CvArea;
 class CvMap;
@@ -73,7 +73,8 @@ public:
 	void verifyUnitValidPlot();
 	void forceBumpUnits(); // K-Mod
 
-	void nukeExplosion(int iRange, CvUnit* pNukeUnit = NULL, bool bBomb = true); //  K-Mod added bBomb, Exposed to Python
+	void nukeExplosion(int iRange, CvUnit* pNukeUnit = NULL,
+			bool bBomb = true); //  K-Mod added bBomb, Exposed to Python
 
 	bool isConnectedTo( const CvCity* pCity) const;																												// Exposed to Python
 	bool isConnectedToCapital(PlayerTypes ePlayer = NO_PLAYER) const;																			// Exposed to Python
@@ -113,15 +114,18 @@ public:
 
 	int seeFromLevel(TeamTypes eTeam) const;																										// Exposed to Python  
 	int seeThroughLevel() const;																																// Exposed to Python
-	void changeAdjacentSight(TeamTypes eTeam, int iRange, bool bIncrement, CvUnit* pUnit, bool bUpdatePlotGroups);
+	void changeAdjacentSight(TeamTypes eTeam, int iRange, bool bIncrement,
+			CvUnit* pUnit, bool bUpdatePlotGroups);
 	bool canSeePlot(CvPlot *plot, TeamTypes eTeam, int iRange, DirectionTypes eFacingDirection) const;
-	bool canSeeDisplacementPlot(TeamTypes eTeam, int dx, int dy, int originalDX, int originalDY, bool firstPlot, bool outerRing) const;
+	bool canSeeDisplacementPlot(TeamTypes eTeam, int dx, int dy,
+			int originalDX, int originalDY, bool firstPlot, bool outerRing) const;
 	bool shouldProcessDisplacementPlot(int dx, int dy, int range, DirectionTypes eFacingDirection) const;
 	void updateSight(bool bIncrement, bool bUpdatePlotGroups);
 	void updateSeeFromSight(bool bIncrement, bool bUpdatePlotGroups);
 
 	bool canHaveBonus(BonusTypes eBonus, bool bIgnoreLatitude = false) const;																						// Exposed to Python
-	bool canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam = NO_TEAM, bool bPotential = false,									// Exposed to Python
+	bool canHaveImprovement(ImprovementTypes eImprovement,														// Exposed to Python
+			TeamTypes eTeam = NO_TEAM, bool bPotential = false,
 			BuildTypes eBuild = NO_BUILD, bool bAnyBuild = true) const; // dlph.9
 	bool canBuild(BuildTypes eBuild, PlayerTypes ePlayer = NO_PLAYER, bool bTestVisible = false) const;														// Exposed to Python
 	int getBuildTime(BuildTypes eBuild,																																										// Exposed to Python
@@ -134,7 +138,7 @@ public:
 	// </advc.011c>
 	int getFeatureProduction(BuildTypes eBuild, TeamTypes eTeam, CvCity** ppCity) const;																// Exposed to Python
 
-	DllExport CvUnit* getBestDefender(PlayerTypes eOwner,								// Exposed to Python
+	DllExport CvUnit* getBestDefender(PlayerTypes eOwner,													// Exposed to Python
 			PlayerTypes eAttackingPlayer = NO_PLAYER, const CvUnit* pAttacker = NULL,
 			bool bTestAtWar = false, bool bTestPotentialEnemy = false,
 			bool bTestCanMove = false) const { // <advc.028>
@@ -284,16 +288,15 @@ public:
 
 	CvArea* area() const;																																							// Exposed to Python
 /********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						01/02/09		jdog5000		*/
-/* 																			*/
-/* 	General AI																*/
+/* 	BETTER_BTS_AI_MOD						01/02/09		jdog5000			*/
+/* 	General AI																	*/
 /********************************************************************************/
 /* original BTS code
 	CvArea* waterArea() const;
 */
 	CvArea* waterArea(bool bNoImpassable = false) const;
 /********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						END								*/
+/* 	BETTER_BTS_AI_MOD						END									*/
 /********************************************************************************/	
 
 	CvArea* secondWaterArea() const;
@@ -426,15 +429,14 @@ public:
 	int calculateNatureYield(YieldTypes eIndex, TeamTypes eTeam, bool bIgnoreFeature = false) const;		// Exposed to Python
 	int calculateBestNatureYield(YieldTypes eIndex, TeamTypes eTeam) const;															// Exposed to Python
 	int calculateTotalBestNatureYield(TeamTypes eTeam) const;																						// Exposed to Python
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      10/06/09                                jdog5000      */
-/*                                                                                              */
-/* City AI                                                                                      */
-/************************************************************************************************/
+/******************************************************************************/
+/* BETTER_BTS_AI_MOD                      10/06/09				jdog5000      */
+/* City AI                                                                    */
+/******************************************************************************/
 	int calculateImprovementYieldChange(ImprovementTypes eImprovement, YieldTypes eYield, PlayerTypes ePlayer, bool bOptimal = false, bool bBestRoute = false) const;	// Exposed to Python
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+/******************************************************************************/
+/* BETTER_BTS_AI_MOD                       END                                */
+/******************************************************************************/
 	int calculateYield(YieldTypes eIndex, bool bDisplay = false) const;												// Exposed to Python
 	bool hasYield() const;																																		// Exposed to Python
 	void updateYield();
@@ -458,7 +460,7 @@ public:
 	int airUnitSpaceAvailable(TeamTypes eTeam) const;
 	int getFoundValue(PlayerTypes eIndex,												// Exposed to Python
 			bool bRandomize = false) const; // advc.052
-	bool isBestAdjacentFound(PlayerTypes eIndex);						// Exposed to Python
+	bool isBestAdjacentFound(PlayerTypes eIndex);										// Exposed to Python
 	void setFoundValue(PlayerTypes eIndex, short iNewValue);
 	// K-Mod: I've changed iNewValue to be 'short' instead of 'int', so that it matches the cache.
 
@@ -473,7 +475,8 @@ public:
 	void updatePlotGroup(PlayerTypes ePlayer, bool bRecalculate = true);
 
 	int getVisibilityCount(TeamTypes eTeam) const;																											// Exposed to Python
-	void changeVisibilityCount(TeamTypes eTeam, int iChange, InvisibleTypes eSeeInvisible, bool bUpdatePlotGroups,							// Exposed to Python
+	void changeVisibilityCount(TeamTypes eTeam, int iChange,												// Exposed to Python
+			InvisibleTypes eSeeInvisible, bool bUpdatePlotGroups,
 			CvUnit* pUnit = NULL); // advc.071
 
 	int getStolenVisibilityCount(TeamTypes eTeam) const;																								// Exposed to Python
@@ -492,7 +495,8 @@ public:
 	void updateRiverCrossing();
 
 	DllExport bool isRevealed(TeamTypes eTeam, bool bDebug) const;																								// Exposed to Python
-	void setRevealed(TeamTypes eTeam, bool bNewValue, bool bTerrainOnly, TeamTypes eFromTeam, bool bUpdatePlotGroup);	// Exposed to Python
+	void setRevealed(TeamTypes eTeam, bool bNewValue, bool bTerrainOnly,									// Exposed to Python
+			TeamTypes eFromTeam, bool bUpdatePlotGroup);
 	bool isAdjacentRevealed(TeamTypes eTeam,																// Exposed to Python
 			bool bSkipOcean = false) const; // advc.250c
 	bool isAdjacentNonrevealed(TeamTypes eTeam) const;																				// Exposed to Python
@@ -511,8 +515,9 @@ public:
 
 	void updateFeatureSymbolVisibility(); 
 	void updateFeatureSymbol(bool bForce = false);
-
-	DllExport bool isLayoutDirty() const;							// The plot layout contains bonuses and improvements --- it is, like the city layout, passively computed by LSystems
+	/*  The plot layout contains bonuses and improvements ---
+		it is, like the city layout, passively computed by LSystems */
+	DllExport bool isLayoutDirty() const;
 	DllExport void setLayoutDirty(bool bDirty);
 	DllExport bool isLayoutStateDifferent() const;
 	DllExport void setLayoutStateToCurrent();
@@ -632,18 +637,17 @@ protected:
 	IDInfo m_workingCity;
 	IDInfo m_workingCityOverride;
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      08/21/09                                jdog5000      */
-/*                                                                                              */
-/* Efficiency                                                                                   */
-/************************************************************************************************/
+/**************************************************************************/
+/* BETTER_BTS_AI_MOD                      08/21/09      jdog5000          */
+/* Efficiency                                                             */
+/**************************************************************************/
 	// Plot danger cache
 	//bool m_bActivePlayerNoDangerCache;
 	int m_iActivePlayerSafeRangeCache; // K-Mod (the bbai implementation was flawed)
 	bool* m_abBorderDangerCache;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+/***************************************************************************/
+/* BETTER_BTS_AI_MOD                       END                             */
+/***************************************************************************/
 
 	short* m_aiYield;
 	int* m_aiCulture;
@@ -702,17 +706,16 @@ protected:
 	// added so under cheat mode we can access protected stuff
 	friend class CvGameTextMgr;
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      02/21/10                                jdog5000      */
-/*                                                                                              */
-/* Lead From Behind                                                                             */
-/************************************************************************************************/
+/***************************************************************************/
+/* BETTER_BTS_AI_MOD                      02/21/10         jdog5000        */
+/* Lead From Behind                                                        */
+/***************************************************************************/
 // From Lead From Behind by UncutDragon
 public:
 	bool hasDefender(bool bCheckCanAttack, PlayerTypes eOwner, PlayerTypes eAttackingPlayer = NO_PLAYER, const CvUnit* pAttacker = NULL, bool bTestAtWar = false, bool bTestPotentialEnemy = false, bool bTestCanMove = false) const;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+/****************************************************************************/
+/* BETTER_BTS_AI_MOD                       END                              */
+/****************************************************************************/
 };
 
 #endif

@@ -59,10 +59,6 @@ protected:
 
 	int m_iAutomatedAbortTurn;
 	int m_iSearchRangeRandPercent; // advc.128
-	/* advc.117, advc.121: Need this value repeatedly within a Worker move and
-	   it might be costly to recompute. No need for serialization b/c it all
-	   happens within the same AI move. */
-	int m_iNeededWorkers;
 
 	bool AI_considerDOW(CvPlot* pPlot); // K-Mod
 	bool AI_considerPathDOW(CvPlot* pPlot, int iFlags); // K-Mod
@@ -218,13 +214,15 @@ protected:
 	bool AI_carrierSeaTransport();
 	bool AI_connectPlot(CvPlot* pPlot, int iRange = 0);
 	bool AI_improveCity(CvCity* pCity);
-	bool AI_improveLocalPlot(int iRange, CvCity* pIgnoreCity);
+	bool AI_improveLocalPlot(int iRange, CvCity* pIgnoreCity,
+			int iNeededWorkersInArea = 0); // advc.117
 	bool AI_nextCityToImprove(CvCity* pCity);
 	bool AI_nextCityToImproveAirlift();
 	bool AI_irrigateTerritory();
 	bool AI_fortTerritory(bool bCanal, bool bAirbase);
 	//bool AI_improveBonus(int iMinValue = 0, CvPlot** ppBestPlot = NULL, BuildTypes* peBestBuild = NULL, int* piBestValue = NULL);
-	bool AI_improveBonus(); // K-Mod
+	bool AI_improveBonus( // K-Mod
+			int iNeededWorkersInArea = 0); // advc.121
 	bool AI_improvePlot(CvPlot* pPlot, BuildTypes eBuild);
 	BuildTypes AI_betterPlotBuild(CvPlot* pPlot, BuildTypes eBuild);
 	bool AI_connectBonus(bool bTestTrade = true);

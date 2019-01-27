@@ -8382,7 +8382,7 @@ void CvGameTextMgr::setTechHelp(CvWStringBuffer &szBuffer, TechTypes eTech, bool
 	// </advc.003>
 	FAssert(eActivePlayer != NO_PLAYER || !bPlayerContext);
 
-	if (bTreeInfo && (NO_TECH != eFromTech))
+	if (bTreeInfo && NO_TECH != eFromTech)
 	{
 		buildTechTreeString(szBuffer, eTech, bPlayerContext, eFromTech);
 	}
@@ -8740,7 +8740,10 @@ void CvGameTextMgr::setTechHelp(CvWStringBuffer &szBuffer, TechTypes eTech, bool
 		}
 	}
 
-	if (eActivePlayer != NO_PLAYER)
+	if (eActivePlayer != NO_PLAYER
+			/*  advc.004: Don't show this when inspecting foreign research on the
+				scoreboard, nor in Civilopedia. */
+			&& bPlayerContext)
 	{
 		if (GET_PLAYER(eActivePlayer).canResearch(eTech))
 		{	// advc.004a: Commented out
@@ -10529,6 +10532,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 	if (kBuilding.getFreeBonus() != NO_BONUS)
 	{
 		szBuffer.append(NEWLINE);
+		CvBonusInfo const& kFreeBonus = GC.getBonusInfo((BonusTypes)kBuilding.getFreeBonus());
 		// <advc.004y>
 		bool bRange = (ePlayer == NO_PLAYER);
 		if(bRange) {
@@ -10540,23 +10544,27 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 				bRange = false;
 			else {
 				szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_PROVIDES_RANGE",
-						iLow, iHigh, GC.getBonusInfo((BonusTypes)kBuilding.
-						getFreeBonus()).getTextKeyWide(), GC.getBonusInfo(
-						(BonusTypes)kBuilding.getFreeBonus()).getChar()));
+						iLow, iHigh, kFreeBonus.getTextKeyWide(), kFreeBonus.getChar()));
 			}
 		}
-		if(!bRange) // </advc.004y>
-			szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_PROVIDES", g.getNumFreeBonuses(eBuilding), GC.getBonusInfo((BonusTypes) kBuilding.getFreeBonus()).getTextKeyWide(), GC.getBonusInfo((BonusTypes) kBuilding.getFreeBonus()).getChar()));
-
-		if (GC.getBonusInfo((BonusTypes)(kBuilding.getFreeBonus())).getHealth() != 0)
+		if(!bRange) { // </advc.004y>
+			szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_PROVIDES",
+					g.getNumFreeBonuses(eBuilding), kFreeBonus.getTextKeyWide(),
+					kFreeBonus.getChar()));
+		}
+		if (kFreeBonus.getHealth() != 0)
 		{
-			szTempBuffer.Format(L", +%d%c", abs(GC.getBonusInfo((BonusTypes) kBuilding.getFreeBonus()).getHealth()), ((GC.getBonusInfo((BonusTypes)(kBuilding.getFreeBonus())).getHealth() > 0) ? gDLL->getSymbolID(HEALTHY_CHAR): gDLL->getSymbolID(UNHEALTHY_CHAR)));
+			szTempBuffer.Format(L", +%d%c", abs(kFreeBonus.getHealth()),
+					(kFreeBonus.getHealth() > 0 ? gDLL->getSymbolID(HEALTHY_CHAR) :
+					gDLL->getSymbolID(UNHEALTHY_CHAR)));
 			szBuffer.append(szTempBuffer);
 		}
 
-		if (GC.getBonusInfo((BonusTypes)(kBuilding.getFreeBonus())).getHappiness() != 0)
+		if (kFreeBonus.getHappiness() != 0)
 		{
-			szTempBuffer.Format(L", +%d%c", abs(GC.getBonusInfo((BonusTypes) kBuilding.getFreeBonus()).getHappiness()), ((GC.getBonusInfo((BonusTypes)(kBuilding.getFreeBonus())).getHappiness() > 0) ? gDLL->getSymbolID(HAPPY_CHAR) : gDLL->getSymbolID(UNHAPPY_CHAR)));
+			szTempBuffer.Format(L", +%d%c", abs(kFreeBonus.getHappiness()),
+					(kFreeBonus.getHappiness() > 0 ? gDLL->getSymbolID(HAPPY_CHAR) :
+					gDLL->getSymbolID(UNHAPPY_CHAR)));
 			szBuffer.append(szTempBuffer);
 		}
 	}
@@ -13266,15 +13274,13 @@ void CvGameTextMgr::setYieldChangeHelp(CvWStringBuffer &szBuffer, const CvWStrin
  * Adds the ability to pass in and get back the value of bStarted so that
  * it can be used with other setResumable<xx>ChangeHelp() calls on a single line.
  */
-bool CvGameTextMgr::setResumableYieldChangeHelp(CvWStringBuffer &szBuffer, const CvWString& szStart, const CvWString& szSpace, const CvWString& szEnd, const int* piYieldChange, bool bPercent, bool bNewLine, bool bStarted)
+bool CvGameTextMgr::setResumableYieldChangeHelp(CvWStringBuffer &szBuffer,
+		const CvWString& szStart, const CvWString& szSpace, const CvWString& szEnd,
+		const int* piYieldChange, bool bPercent, bool bNewLine, bool bStarted)
 {
 	CvWString szTempBuffer;
-//	bool bStarted;
-	int iI;
 
-//	bStarted = false;
-
-	for (iI = 0; iI < NUM_YIELD_TYPES; ++iI)
+	for (int iI = 0; iI < NUM_YIELD_TYPES; ++iI)
 	{
 		if (piYieldChange[iI] != 0)
 		{
@@ -14626,19 +14632,23 @@ void CvGameTextMgr::buildSpecialBuildingString(CvWStringBuffer &szBuffer, TechTy
 	}
 }
 
-void CvGameTextMgr::buildYieldChangeString(CvWStringBuffer &szBuffer, TechTypes eTech, int iYieldType, bool bList, bool bPlayerContext)
+void CvGameTextMgr::buildYieldChangeString(CvWStringBuffer &szBuffer,
+		TechTypes eTech, int iYieldType, bool bList, bool bPlayerContext)
 {
 	CvWString szTempBuffer;
+	CvImprovementInfo const& kImprov = GC.getImprovementInfo((ImprovementTypes)iYieldType);
 	if (bList)
 	{
-		szTempBuffer.Format(L"<link=literal>%s</link>", GC.getImprovementInfo((ImprovementTypes)iYieldType).getDescription());
+		szTempBuffer.Format(L"<link=literal>%s</link>", kImprov.getDescription());
 	}
 	else
 	{
-		szTempBuffer.Format(L"%c<link=literal>%s</link>", gDLL->getSymbolID(BULLET_CHAR), GC.getImprovementInfo((ImprovementTypes)iYieldType).getDescription());
+		szTempBuffer.Format(L"%c<link=literal>%s</link>",
+				gDLL->getSymbolID(BULLET_CHAR), kImprov.getDescription());
 	}
 	
-	setYieldChangeHelp(szBuffer, szTempBuffer, L": ", L"", GC.getImprovementInfo((ImprovementTypes)iYieldType).getTechYieldChangesArray(eTech), false, bList);
+	setYieldChangeHelp(szBuffer, szTempBuffer, L": ", L"",
+			kImprov.getTechYieldChangesArray(eTech), false, bList);
 }
 
 bool CvGameTextMgr::buildBonusRevealString(CvWStringBuffer &szBuffer, TechTypes eTech, int iBonusType, bool bFirst, bool bList, bool bPlayerContext)
@@ -18748,13 +18758,15 @@ void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer, EspionageMis
 		{
 			CvCity* pCity = pPlot->getPlotCity();
 
-			if (NULL != pCity && pPlot->getCulture(GC.getGameINLINE().getActivePlayer()) > 0)
+			if (NULL != pCity && pPlot->getCulture(kPlayer.getID()) > 0)
 			{
 				int iCultureAmount = kMission.getCityInsertCultureAmountFactor() *  pCity->countTotalCultureTimes100();
 				iCultureAmount /= 10000;
 				iCultureAmount = std::max(1, iCultureAmount);
 
-				szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_INSERT_CULTURE", pCity->getNameKey(), iCultureAmount, kMission.getCityInsertCultureAmountFactor()));
+				szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_INSERT_CULTURE",
+						pCity->getNameKey(), iCultureAmount,
+						kMission.getCityInsertCultureAmountFactor()));
 				szBuffer.append(NEWLINE);
 			}
 		}
@@ -18768,7 +18780,10 @@ void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer, EspionageMis
 
 			if (NULL != pCity)
 			{
-				szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_POISON", kMission.getCityPoisonWaterCounter(), gDLL->getSymbolID(UNHEALTHY_CHAR), pCity->getNameKey(), kMission.getCityPoisonWaterCounter()));
+				szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_POISON",
+						kMission.getCityPoisonWaterCounter(),
+						gDLL->getSymbolID(UNHEALTHY_CHAR), pCity->getNameKey(),
+						kMission.getCityPoisonWaterCounter()));
 				szBuffer.append(NEWLINE);
 			}
 		}
@@ -18782,7 +18797,10 @@ void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer, EspionageMis
 
 			if (NULL != pCity)
 			{
-				szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_POISON", kMission.getCityUnhappinessCounter(), gDLL->getSymbolID(UNHAPPY_CHAR), pCity->getNameKey(), kMission.getCityUnhappinessCounter()));
+				szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_POISON",
+						kMission.getCityUnhappinessCounter(),
+						gDLL->getSymbolID(UNHAPPY_CHAR), pCity->getNameKey(),
+						kMission.getCityUnhappinessCounter()));
 				szBuffer.append(NEWLINE);
 			}
 		}
@@ -18796,7 +18814,8 @@ void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer, EspionageMis
 
 			if (NULL != pCity)
 			{
-				szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_REVOLT", pCity->getNameKey(), kMission.getCityRevoltCounter()));
+				szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_REVOLT",
+						pCity->getNameKey(), kMission.getCityRevoltCounter()));
 				szBuffer.append(NEWLINE);
 			}
 		}
@@ -18823,14 +18842,16 @@ void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer, EspionageMis
 				}
 			}
 
-			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_STEAL_TREASURY", iNumTotalGold, GET_PLAYER(eTargetPlayer).getCivilizationAdjectiveKey()));
+			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_STEAL_TREASURY",
+					iNumTotalGold, GET_PLAYER(eTargetPlayer).getCivilizationAdjectiveKey()));
 			szBuffer.append(NEWLINE);
 		}
 	}
 
 	if (kMission.getBuyTechCostFactor() > 0)
 	{
-		szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_STEAL_TECH", GC.getTechInfo((TechTypes)iExtraData).getTextKeyWide()));
+		szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_STEAL_TECH",
+				GC.getTechInfo((TechTypes)iExtraData).getTextKeyWide()));
 		szBuffer.append(NEWLINE);
 	}
 
@@ -18872,7 +18893,21 @@ void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer, EspionageMis
 			szBuffer.append(NEWLINE);
 		}		
 	}
-
+	// <advc.103>
+	if(kMission.isInvestigateCity() && pPlot != NULL) {
+		CvCity* pCity = pPlot->getPlotCity();
+		if(pCity != NULL) {
+			szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_INVESTIGATE",
+					pCity->getNameKey()));
+			szBuffer.append(NEWLINE);
+		}
+	}
+	if(!kMission.isReturnToCapital() || kPlayer.getCapitalCity() == NULL) {
+		szBuffer.append(NEWLINE);
+		szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_HELP_NO_RETURN"));
+		szBuffer.append(NEWLINE);
+	}
+	// </advc.103>
 	szBuffer.append(NEWLINE);
 	szBuffer.append(gDLL->getText("TXT_KEY_ESPIONAGE_BASE_COST", iMissionCost));
 
@@ -18886,7 +18921,7 @@ void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer, EspionageMis
 			pCity = pPlot->getPlotCity();
 		}
 
-		if (pCity != NULL && GC.getEspionageMissionInfo(eMission).isTargetsCity())
+		if (pCity != NULL && kMission.isTargetsCity())
 		{
 			// City Population
 			iTempModifier = (GC.getDefineINT("ESPIONAGE_CITY_POP_EACH_MOD") * (pCity->getPopulation() - 1));
@@ -18962,7 +18997,7 @@ void CvGameTextMgr::setEspionageCostHelp(CvWStringBuffer &szBuffer, EspionageMis
 		if (pPlot != NULL)
 		{
 			// K-Mod. Culture Mod. (Based on plot culture rather than city culture.)
-			if (eMission == NO_ESPIONAGEMISSION || GC.getEspionageMissionInfo(eMission).isSelectPlot() || GC.getEspionageMissionInfo(eMission).isTargetsCity())
+			if (kMission.isSelectPlot() || kMission.isTargetsCity())
 			{
 				iTempModifier = - (pPlot->getCulture(kPlayer.getID()) * GC.getDefineINT("ESPIONAGE_CULTURE_MULTIPLIER_MOD")) / std::max(1, pPlot->getCulture(eTargetPlayer) + pPlot->getCulture(kPlayer.getID()));
 				if (0 != iTempModifier)

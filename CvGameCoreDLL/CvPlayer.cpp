@@ -4235,16 +4235,11 @@ int CvPlayer::findBestFoundValue() const
 }
 
 
-int CvPlayer::upgradeAllPrice(UnitTypes eUpgradeUnit, UnitTypes eFromUnit)
+int CvPlayer::upgradeAllPrice(UnitTypes eUpgradeUnit, UnitTypes eFromUnit) const
 {
-	CvUnit* pLoopUnit;
-	int iPrice;
+	int iPrice = 0;
 	int iLoop;
-
-	iPrice = 0;
-
-	// Loop through units and determine the total power of this player's military
-	for (pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
 	{
 		if (pLoopUnit->getUnitType() == eFromUnit)
 		{
@@ -4262,13 +4257,9 @@ int CvPlayer::countReligionSpreadUnits(CvArea* pArea, ReligionTypes eReligion, b
 {
 	PROFILE_FUNC();
 
-	CvUnit* pLoopUnit;
-	int iCount;
+	int iCount = 0;
 	int iLoop;
-
-	iCount = 0;
-
-	for (pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
+	for (CvUnit* pLoopUnit = firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = nextUnit(&iLoop))
 	{
 		if (pLoopUnit->getArea() == pArea->getID())
 		{
@@ -4282,8 +4273,7 @@ int CvPlayer::countReligionSpreadUnits(CvArea* pArea, ReligionTypes eReligion, b
 	// bbai
 	if( bIncludeTraining )
 	{
-		CvCity* pLoopCity;
-		for( pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop) )
+		for(CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop) )
 		{
 			UnitTypes eUnit = pLoopCity->getProductionUnit();
 
@@ -4345,13 +4335,9 @@ int CvPlayer::countCorporationSpreadUnits(CvArea* pArea, CorporationTypes eCorpo
 
 int CvPlayer::countNumCoastalCities() const
 {
-	CvCity* pLoopCity;
-	int iCount;
+	int iCount = 0;
 	int iLoop;
-
-	iCount = 0;
-
-	for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
 		if (pLoopCity->isCoastal())
 		{
@@ -4365,14 +4351,10 @@ int CvPlayer::countNumCoastalCities() const
 
 int CvPlayer::countNumCoastalCitiesByArea(CvArea* pArea) const
 {
-	CvCity* pLoopCity;
-	int iCount;
-	int iLoop;
-
-	iCount = 0;
-
+	int iCount = 0;
 	int iAreaID = pArea->getID();
-	for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+	int iLoop;
+	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
 		if (pLoopCity->isCoastal())
 		{
@@ -4389,13 +4371,9 @@ int CvPlayer::countNumCoastalCitiesByArea(CvArea* pArea) const
 
 int CvPlayer::countTotalCulture() const
 {
-	CvCity* pLoopCity;
-	int iCount;
+	int iCount = 0;
 	int iLoop;
-
-	iCount = 0;
-
-	for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
 		iCount += pLoopCity->getCultureTimes100(getID());
 	}
@@ -4455,19 +4433,13 @@ int CvPlayer::countCityFeatures(FeatureTypes eFeature) const
 {
 	PROFILE_FUNC();
 
-	CvCity* pLoopCity;
-	CvPlot* pLoopPlot;
-	int iCount;
+	int iCount = 0;
 	int iLoop;
-	int iI;
-
-	iCount = 0;
-
-	for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
-		for (iI = 0; iI < NUM_CITY_PLOTS; iI++)
+		for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 		{
-			pLoopPlot = plotCity(pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), iI);
+			CvPlot* pLoopPlot = plotCity(pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE(), iI);
 
 			if (pLoopPlot != NULL)
 			{
@@ -4487,13 +4459,9 @@ int CvPlayer::countNumBuildings(BuildingTypes eBuilding) const
 {
 	PROFILE_FUNC();
 
-	CvCity* pLoopCity;
-	int iCount;
+	int iCount = 0;
 	int iLoop;
-
-	iCount = 0;
-
-	for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
 		if (pLoopCity->getNumBuilding(eBuilding) > 0)
 		{
@@ -4507,13 +4475,9 @@ int CvPlayer::countNumBuildings(BuildingTypes eBuilding) const
 
 int CvPlayer::countNumCitiesConnectedToCapital() const
 {
-	CvCity* pLoopCity;
-	int iCount;
+	int iCount = 0;
 	int iLoop;
-
-	iCount = 0;
-
-	for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
 		if (pLoopCity->isConnectedToCapital())
 		{
@@ -7811,7 +7775,7 @@ int CvPlayer::getUnitCostMultiplier() const
 
 int CvPlayer::calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& iPaidUnits,
 		int& iPaidMilitaryUnits, int& iUnitCost, int& iMilitaryCost, int& iExtraCost,
-		int iExtraPop) const // advc.004b
+		int iExtraPop, int iExtraUnits) const // advc.004b
 {
 	iFreeUnits = GC.getHandicapInfo(getHandicapType()).getFreeUnits();
 
@@ -7836,30 +7800,24 @@ int CvPlayer::calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& i
 	} */ // Hidden AI bonus removed by BBAI.
 
 	iPaidUnits = std::max(0, getNumUnits() - iFreeUnits
-		- (iExtraPop > 0 ? 1 : 0)); // advc.004b: The Settler is gone after founding
-	iPaidMilitaryUnits = std::max(0, getNumMilitaryUnits() - iFreeMilitaryUnits);
-
+			+ iExtraUnits); // advc.004b
+	iPaidMilitaryUnits = std::max(0, getNumMilitaryUnits()
+			+ iExtraUnits // advc.004b
+			- iFreeMilitaryUnits);
 	//iSupport = 0;
-
 	/* original bts code
 	iBaseUnitCost = iPaidUnits * getGoldPerUnit();
 	iMilitaryCost = iPaidMilitaryUnits * getGoldPerMilitaryUnit();
 	iExtraCost = getExtraUnitCost();
-
 	iSupport = iMilitaryCost + iBaseUnitCost + iExtraCost;
-
 	iSupport *= GC.getHandicapInfo(getHandicapType()).getUnitCostPercent();
 	iSupport /= 100;
-
-	if (!isHuman() && !isBarbarian())
-	{
+	if (!isHuman() && !isBarbarian()) {
 		iSupport *= GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIUnitCostPercent();
 		iSupport /= 100;
-
 		iSupport *= std::max(0, ((GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIPerEraModifier() * getCurrentEra()) + 100));
 		iSupport /= 100;
 	}*/
-
 	// K-Mod. GoldPerUnit, etc, are now done as percentages.
 	// Also, "UnitCostPercent" handicap modifiers now apply directly to unit cost only, not military or extra cost.
 	// (iBaseUnitCost is no longer fed back to the caller. Only the modified cost is.)
@@ -7871,7 +7829,6 @@ int CvPlayer::calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& i
 				GC.getGameINLINE().getHandicapType()).getAIUnitSupplyPercent());
 	} // </advc.912b>
 	iExtraCost = getExtraUnitCost() / 100;
-
 	int iSupport = iUnitCost + iMilitaryCost + iExtraCost;
 	// K-Mod end
 
@@ -7882,19 +7839,18 @@ int CvPlayer::calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& i
 
 
 int CvPlayer::calculateUnitCost(
-		int iExtraPop) const // advc.004b
+		int iExtraPop, int iExtraUnits) const // advc.004b
 {
-	if (isAnarchy())
-	{
+	if(isAnarchy())
 		return 0;
-	}
+
 	/*  advc.003 (note): Several distinct variables need to be passed b/c
 		calculateUnitCost uses them for intermediate results */
 	int iFreeUnits, iFreeMilitaryUnits, iPaidUnits, iPaidMilitaryUnits,
 			iMilitaryCost, iBaseUnitCost, iExtraCost;
 	return calculateUnitCost(iFreeUnits, iFreeMilitaryUnits, iPaidUnits, iPaidMilitaryUnits,
 			iBaseUnitCost, iMilitaryCost, iExtraCost,
-			iExtraPop); // advc.004b
+			iExtraPop, iExtraUnits); // advc.004b
 }
 
 int CvPlayer::calculateUnitSupply(
@@ -16404,7 +16360,7 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 		{
 			//int iNumTotalGold = (GET_PLAYER(eTargetPlayer).getGold() * kMission.getStealTreasuryTypes()) / 100;
 			int iNumTotalGold
-				= 0; // kmodx
+					= 0; // kmodx
 
 			if (NULL != pPlot)
 			{
@@ -16419,9 +16375,8 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 				}
 			}
 
-			szBuffer = gDLL->getText("TXT_KEY_ESPIONAGE_TARGET_STEAL_TREASURY"
-				, iNumTotalGold // advc.004i
-				).GetCString();
+			szBuffer = gDLL->getText("TXT_KEY_ESPIONAGE_TARGET_STEAL_TREASURY",
+					/* advc.004i: */ iNumTotalGold).GetCString();
 			changeGold(iNumTotalGold);
 			if (NO_PLAYER != eTargetPlayer)
 			{
@@ -16511,6 +16466,16 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 		}		
 	}
 
+	// <advc.103>
+	if(kMission.isInvestigateCity() && pPlot != NULL) {
+		CvCity* pCity = pPlot->getPlotCity();
+		if(pCity != NULL) {
+			pCity->setInvestigate(true);
+			gDLL->getInterfaceIFace()->selectCity(pCity);
+			bSomethingHappened = true;
+		}
+	} // </advc.103>
+
 	int iHave = 0;
 	if (NO_TEAM != eTargetTeam)
 	{
@@ -16544,8 +16509,16 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 			iX = pPlot->getX_INLINE();
 			iY = pPlot->getY_INLINE();
 		}
-
-		gDLL->getInterfaceIFace()->addHumanMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), gDLL->getText("TXT_KEY_ESPIONAGE_MISSION_PERFORMED"), "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, ARTFILEMGR.getInterfaceArtInfo("ESPIONAGE_BUTTON")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), iX, iY, true, true);
+		// advc.103: The city screen having opened is confirmation enough
+		if(!kMission.isInvestigateCity()) {
+			gDLL->getInterfaceIFace()->addHumanMessage(getID(), true,
+					GC.getEVENT_MESSAGE_TIME(),
+					gDLL->getText("TXT_KEY_ESPIONAGE_MISSION_PERFORMED"),
+					"AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO,
+					ARTFILEMGR.getInterfaceArtInfo("ESPIONAGE_BUTTON")->getPath(),
+					(ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), iX, iY,
+					true, true);
+		}
 	}
 	else if (getID() == GC.getGameINLINE().getActivePlayer())
 	{
@@ -16574,7 +16547,11 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 
 		if (NO_PLAYER != eTargetPlayer)
 		{
-			gDLL->getInterfaceIFace()->addHumanMessage(eTargetPlayer, true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_DEAL_CANCELLED", MESSAGE_TYPE_INFO, ARTFILEMGR.getInterfaceArtInfo("ESPIONAGE_BUTTON")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), iX, iY, true, true);
+			gDLL->getInterfaceIFace()->addHumanMessage(eTargetPlayer, true,
+					GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_DEAL_CANCELLED",
+					MESSAGE_TYPE_INFO, ARTFILEMGR.getInterfaceArtInfo(
+					"ESPIONAGE_BUTTON")->getPath(), (ColorTypes)
+					GC.getInfoTypeForString("COLOR_RED"), iX, iY, true, true);
 		}
 	}
 

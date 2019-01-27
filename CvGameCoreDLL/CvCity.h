@@ -49,6 +49,7 @@ public:
 	bool isCitySelected();
 	DllExport bool canBeSelected() const;
 	DllExport void updateSelectedCity(bool bTestProduction);
+	void setInvestigate(bool b); // advc.103
 
 	void updateYield();
 
@@ -390,11 +391,11 @@ public:
 	int calculateNumCitiesMaintenanceTimes100(PlayerTypes owner = NO_PLAYER) const;									// Exposed to Python									// Exposed to Python
 	// </advc.104>
 	// <advc.004b> A projection for cities yet to be founded
-	static int calculateDistanceMaintenanceTimes100(CvPlot* pCityPlot,
+	static int calculateDistanceMaintenanceTimes100(CvPlot const& kCityPlot,
 			PlayerTypes eOwner, int iPopulation = -1);
-	static int calculateNumCitiesMaintenanceTimes100(CvPlot* pCityPlot,
+	static int calculateNumCitiesMaintenanceTimes100(CvPlot const& kCityPlot,
 			PlayerTypes eOwner, int iPopulation = -1, int iExtraCities = 0);
-	static int calculateColonyMaintenanceTimes100(CvPlot* pCityPlot,
+	static int calculateColonyMaintenanceTimes100(CvPlot const& kCityPlot,
 			PlayerTypes eOwner, int iPopulation = -1, int iExtraCities = 0);
 	static int initialPopulation();
 	// </advc.004b>
@@ -1253,6 +1254,7 @@ protected:
 	bool m_bInfoDirty;
 	bool m_bLayoutDirty;
 	bool m_bPlundered;
+	bool m_bInvestigate; // advc.103: Refers to the active team
 
 	PlayerTypes m_ePreviousOwner;
 	PlayerTypes m_eOriginalOwner;
@@ -1372,7 +1374,7 @@ protected:
 	double garrisonStrength() const; // advc.500b
 	//int calculateMaintenanceDistance() const;
 	// advc.004b: Replacing the above (which was public, but is only used internally)
-	static int calculateMaintenanceDistance(CvPlot* cityPlot, PlayerTypes owner);
+	static int calculateMaintenanceDistance(CvPlot const* cityPlot, PlayerTypes owner);
 	void damageGarrison(PlayerTypes eRevoltSource);
 	// advc.123f:
 	void failProduction(int iOrderData, int iInvestedProduction, bool bProject = false);

@@ -2677,7 +2677,10 @@ void CvCityAI::AI_chooseProduction()
 
 	// we do a similar check lower, in the landwar case. (umm. no you don't. I'm changing this.)
 	//if (!bLandWar && bFinancialTrouble)
-	if (bFinancialTrouble)
+	// <advc.110>
+	//if(bFinancialTrouble)
+	// Afforess - don't wait until we are in trouble, preventative medicine is best
+	if (kPlayer.AI_financialTroubleMargin() < 10) // </advc.110>
 	{
 		if (AI_chooseBuilding(BUILDINGFOCUS_GOLD))
 		{
@@ -4065,7 +4068,9 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 			iValue += kBuilding.getFreeExperience() * iWeight;
 
 			for (int iI = 0; iI < GC.getNumUnitCombatInfos(); iI++)
-			{
+			{	// <advc.rom4> Avoid canTrain call; credits: alberts2 (C2C).
+				if(kBuilding.getUnitCombatFreeExperience(iI) == 0)
+					continue; // </advc.rom4>
 				if (canTrain((UnitCombatTypes)iI))
 				{
 					iValue += kBuilding.getUnitCombatFreeExperience(iI) * iWeight / 2;
@@ -4110,6 +4115,9 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 				{
 					CvUnitInfo& kUnitInfo = GC.getUnitInfo(eUnit);
 					int iCombatType = kUnitInfo.getUnitCombatType();
+					// <advc.rom4> Avoid canTrain call; credits: alberts2 (C2C).
+					if(kBuilding.getUnitCombatFreeExperience(iCombatType) == 0)
+						continue; // </advc.rom4>
 					if (kUnitInfo.getDomainType() == DOMAIN_SEA && canTrain(eUnit) && iCombatType != NO_UNITCOMBAT)
 					{
 						iValue += (kBuilding.getUnitCombatFreeExperience(iCombatType) * ((iHasMetCount > 0) ? 6 : 3));
@@ -6453,22 +6461,20 @@ int CvCityAI::AI_neededDefenders(bool bIgnoreEvac) // advc.139: param added
 	} // advc.003n: Switched these two and put WarPossible into the else branch
 	else if(!GET_TEAM(getTeam()).AI_isWarPossible())
 		return 1;
-
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner()); // advc.003
 	iDefenders = 1;
 	
-	if (hasActiveWorldWonder() || isCapital() || isHolyCity())
+	if(hasActiveWorldWonder() || isCapital() || isHolyCity())
 	{
 		iDefenders++;
-
-		if( GET_PLAYER(getOwner()).AI_isDoStrategy(AI_STRATEGY_ALERT1) || GET_PLAYER(getOwner()).AI_isDoStrategy(AI_STRATEGY_TURTLE) )
-		{
+		if(kOwner.AI_isDoStrategy(AI_STRATEGY_ALERT1) ||
+				kOwner.AI_isDoStrategy(AI_STRATEGY_TURTLE) )
 			iDefenders++;
-		}
 	}
 
 	/*  advc.300: When barbs are a big threat and civs aren't, free up units
 		for fog-busting (CvUnitAI::AI_guardCitySite) and guarding food bonuses. */
-	if(!GET_PLAYER(getOwner()).AI_isDefenseFocusOnBarbarians(area()->getID())) {
+	if(!kOwner.AI_isDefenseFocusOnBarbarians(area()->getID())) {
 		/*if (!GET_PLAYER(getOwner()).AI_isDoStrategy(AI_STRATEGY_CRUSH))
 		{	
 			iDefenders += AI_neededFloatingDefenders();
@@ -6480,45 +6486,33 @@ int CvCityAI::AI_neededDefenders(bool bIgnoreEvac) // advc.139: param added
 		/*  <advc.139> Replacing the above. No functional change other than passing
 			along IgnoreEvac */
 		int neededFloating = AI_neededFloatingDefenders(bIgnoreEvac);
-		if(GET_PLAYER(getOwnerINLINE()).AI_isDoStrategy(AI_STRATEGY_CRUSH))
+		if(kOwner.AI_isDoStrategy(AI_STRATEGY_CRUSH))
 			neededFloating = (neededFloating + 2) / 4;
 		iDefenders += neededFloating;
 		// </advc.139>
 	}
 	
-	if (bDefenseWar || GET_PLAYER(getOwner()).AI_isDoStrategy(AI_STRATEGY_ALERT2))
+	if (bDefenseWar || kOwner.AI_isDoStrategy(AI_STRATEGY_ALERT2))
 	{
-		if (!(plot()->isHills()))
-		{
+		if (!plot()->isHills())
 			iDefenders++;
-		}
 	}
 	
-	if ((GC.getGame().getGameTurn() - getGameTurnAcquired()) < 10)
-	{
-/* original code
-		if (bOffenseWar)
-		{
-			if (!hasActiveWorldWonder() && !isHolyCity())
-			{
+	if (GC.getGame().getGameTurn() - getGameTurnAcquired() < 10)
+	{	/* original code
+		if (bOffenseWar) {
+			if (!hasActiveWorldWonder() && !isHolyCity()) {
 				iDefenders /= 2;
 				iDefenders = std::max(1, iDefenders);
 			}
 		}
 	}
-	
-	if (GC.getGame().getGameTurn() - getGameTurnAcquired() < 10)
-	{
+	if (GC.getGame().getGameTurn() - getGameTurnAcquired() < 10) {
 		iDefenders = std::max(2, iDefenders);
 		if (AI_isDanger())
-		{
 			iDefenders ++;
-		}
 		if (bDefenseWar)
-		{
-			iDefenders ++;
-		}
-*/
+			iDefenders ++;*/
 		iDefenders = std::max(2, iDefenders);
 
 		if (bOffenseWar && getTotalDefense(true) > 0)
@@ -6539,52 +6533,44 @@ int CvCityAI::AI_neededDefenders(bool bIgnoreEvac) // advc.139: param added
 		}
 	}
 	
-	if (GET_PLAYER(getOwnerINLINE()).AI_isDoStrategy(AI_STRATEGY_LAST_STAND))
+	if (kOwner.AI_isDoStrategy(AI_STRATEGY_LAST_STAND))
 	{
 		iDefenders += 10;
 	}
 
-	if( GET_PLAYER(getOwnerINLINE()).AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3) )
+	if(kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3) )
 	{
-		if( findCommerceRateRank(COMMERCE_CULTURE) <= GC.getGameINLINE().culturalVictoryNumCultureCities() )
+		if(findCommerceRateRank(COMMERCE_CULTURE) <=
+				GC.getGameINLINE().culturalVictoryNumCultureCities() )
 		{
 			iDefenders += 4;
 
 			if( bDefenseWar
 					|| isCoastal()) // cdtw
-			{
 				iDefenders += 2;
-			}
 		}
 	}
 
-	if( GET_PLAYER(getOwnerINLINE()).AI_isDoVictoryStrategy(AI_VICTORY_SPACE3) )
+	if(kOwner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE3))
 	{	// advc.107: Added bOffenseWar clause
 		if((isCapital() || isProductionProject()) && !bOffenseWar)
 		{
 			iDefenders += 2; // advc.107: was +=4
-
-			if( bDefenseWar )
-			{
+			if(bDefenseWar)
 				iDefenders += 3;
-			}
 		}
-
-		if( isCapital() && GET_PLAYER(getOwnerINLINE()).AI_isDoVictoryStrategy(AI_VICTORY_SPACE4) )
-		{
+		if(isCapital() && kOwner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4) )
 			iDefenders += 6;
-		}
 	}
 	// <advc.099c>
-	PlayerTypes culturalOwner = calculateCulturalOwner();
-	CvPlayerAI const& owner = GET_PLAYER(getOwnerINLINE());
-	if(culturalOwner != owner.getID() && !owner.AI_isFocusWar(area()) &&
+	PlayerTypes eCulturalOwner = calculateCulturalOwner();
+	if(eCulturalOwner != kOwner.getID() && !kOwner.AI_isFocusWar(area()) &&
 			revoltProbability(true, true) > 0) {
 		/*  I'm not sure how high cultureStrength can go, so the 200 is ad-hoc.
 			50% of population plus a little extra should be enough to hold onto
 			cities captured from culturally weak civs. */
-		double cultureFactor = cultureStrength(culturalOwner) / 200.0;
-		int priorRevolts = getNumRevolts(culturalOwner);
+		double cultureFactor = cultureStrength(eCulturalOwner) / 200.0;
+		int priorRevolts = getNumRevolts(eCulturalOwner);
 		iDefenders = std::max(iDefenders, std::min(::round(getPopulation() / 2.0 +
 				1.5 * priorRevolts + cultureFactor * getPopulation()),
 				getPopulation()));
@@ -12921,7 +12907,7 @@ int CvCityAI::AI_cityThreat(bool bDangerPercent)
 				}
 
 				// K-Mod
-				// Reduce threat level of our vassals, particularly from capilutated vassals.
+				// Reduce threat level of our vassals, particularly from capitulated vassals.
 				if (GET_TEAM(kLoopPlayer.getTeam()).isVassal(getTeam()))
 				{
 					iCivFactor = std::min(iCivFactor, GET_TEAM(kLoopPlayer.getTeam()).isCapitulated() ? 30 : 50);

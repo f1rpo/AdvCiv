@@ -843,7 +843,7 @@
 	<Spanish>Las flechas del TECLADO NUM&#201;RICO se pueden usar para pasar de una ciudad a otra en la pantalla de la ciudad...</Spanish>
 </TEXT>
 
-<!-- advc.008c: Mouse wheel zoom is obvious. Ephasize the key command more. -->
+<!-- advc.008c: Mouse wheel zoom is obvious. Emphasize the key command more. -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_INTERFACE_3</Tag>
 	<English>Apart from turning the mouse wheel, you can also use [PAGE UP] and [PAGE DOWN] to zoom the camera in and out.</English>
@@ -890,11 +890,11 @@
 	 TXT_KEY_HINT_55). -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_57</Tag>
-	<English>(AdvCiv) Your spies can investigate rival cities again, but unlike in "Warlords" and Civ 4, a spy unit can't investigate on the same turn that it reaches the city tile.</English>
-	<French>(AdvCiv) Vos espions peuvent enquêter sur les villes rivales, mais contrairement aux "Warlords" et Civ 4, une unité d'espionnage ne peut pas enquêter au même tour qu'elle atteint la casse de la ville.</French>
-	<German>(AdvCiv) Ihre Spione haben nun wieder die Fähigkeit, gegnerische Städte zu erkunden; aber anders als in "Warlords" und Civ 4, kann ein Spion nicht noch im selben Zug erkunden, in dem er die Stadt erreicht hat.</German>
-	<Italian>(AdvCiv) Le tue spie possono indagare su città rivali, ma a differenza di "Warlords" e Civ 4, un'unità spia non può indagare sullo stesso turno che raggiunge la casella della città.</Italian>
-	<Spanish>(AdvCiv) Tus espías pueden investigar ciudades rivales, pero a diferencia de "Warlords" y Civ 4, una unidad de espionaje no puede investigar en el mismo turno en el que llega a la casilla de la ciudad.</Spanish>
+	<English>(AdvCiv) Your spy units can investigate rival cities again, but unlike in "Warlords" and Civ 4, a mission cost needs to be paid.</English>
+	<French>(AdvCiv) Vos unités d'espionnage peuvent enquêter sur les villes rivales, mais contrairement aux "Warlords" et Civ 4, un coût de mission doit être payé.</French>
+	<German>(AdvCiv) Ihre Spione haben nun wieder die Fähigkeit, gegnerische Städte zu erkunden; aber anders als in "Warlords" und Civ 4 fallen dabei Missionskosten an.</German>
+	<Italian>(AdvCiv) Le tue unità spia possono indagare su città rivali, ma a differenza di "Warlords" e Civ 4, un costo di missione deve essere pagato.</Italian>
+	<Spanish>(AdvCiv) Tus unidades de espionaje pueden investigar ciudades rivales, pero a diferencia de "Warlords" y Civ 4, se debe pagar un costo de misión.</Spanish>
 </TEXT>
 
 </Civ4GameText>

@@ -189,7 +189,7 @@ public:
 
 	int findBestFoundValue() const;																																				// Exposed to Python
 
-	int upgradeAllPrice(UnitTypes eUpgradeUnit, UnitTypes eFromUnit);
+	int upgradeAllPrice(UnitTypes eUpgradeUnit, UnitTypes eFromUnit) const; // advc.003: const
 
 	// note: bbai added bIncludeTraining to the following two functions.
 	int countReligionSpreadUnits(CvArea* pArea, ReligionTypes eReligion, bool bIncludeTraining = false) const;														// Exposed to Python
@@ -289,9 +289,9 @@ public:
 	int calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& iPaidUnits,
 			// K-Mod: changed iBaseUnitCost to iUnitCost
 			int& iPaidMilitaryUnits, int& iUnitCost, int& iMilitaryCost, int& iExtraCost,
-			int iExtraPop = 0) const; // advc.004b
+			int iExtraPop = 0, int iExtraUnits = 0) const; // advc.004b
 	int calculateUnitCost(																																				// Exposed to Python
-			int iExtraPop = 0) const; // advc.004b
+			int iExtraPop = 0, int iExtraUnits = 0) const; // advc.004b
 	int calculateUnitSupply(int& iPaidUnits, int& iBaseSupplyCost,																// Exposed to Python
 			int iExtraOutsideUnits = 0) const; // advc.004b
 	int calculateUnitSupply(																																			// Exposed to Python	

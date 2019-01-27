@@ -40,6 +40,8 @@
 			<iPlayerAnarchyCounter>0</iPlayerAnarchyCounter>
 			<iCounterespionageNumTurns>0</iCounterespionageNumTurns>
 			<iCounterespionageMod>0</iCounterespionageMod>
+			<!-- advc.103 -->
+			<bReturnToCapital>0</bReturnToCapital>
 		</EspionageMissionInfo>
 		<EspionageMissionInfo>
 			<Type>ESPIONAGEMISSION_CITY_VISIBILITY</Type>
@@ -75,6 +77,8 @@
 			<iPlayerAnarchyCounter>0</iPlayerAnarchyCounter>
 			<iCounterespionageNumTurns>0</iCounterespionageNumTurns>
 			<iCounterespionageMod>0</iCounterespionageMod>
+			<!-- advc.103 -->
+			<bReturnToCapital>0</bReturnToCapital>
 		</EspionageMissionInfo>
 		<EspionageMissionInfo>
 			<Type>ESPIONAGEMISSION_INVESTIGATE_CITY</Type>
@@ -110,6 +114,8 @@
 			<iPlayerAnarchyCounter>0</iPlayerAnarchyCounter>
 			<iCounterespionageNumTurns>0</iCounterespionageNumTurns>
 			<iCounterespionageMod>0</iCounterespionageMod>
+			<!-- advc.103 -->
+			<bReturnToCapital>0</bReturnToCapital>
 		</EspionageMissionInfo>
 		<EspionageMissionInfo>
 			<Type>ESPIONAGEMISSION_SEE_RESEARCH</Type>
@@ -145,6 +151,8 @@
 			<iPlayerAnarchyCounter>0</iPlayerAnarchyCounter>
 			<iCounterespionageNumTurns>0</iCounterespionageNumTurns>
 			<iCounterespionageMod>0</iCounterespionageMod>
+			<!-- advc.103 -->
+			<bReturnToCapital>0</bReturnToCapital>
 		</EspionageMissionInfo>
 		<EspionageMissionInfo>
 			<Type>ESPIONAGEMISSION_NO_ACTIVE_MISSIONS</Type>
@@ -180,6 +188,8 @@
 			<iPlayerAnarchyCounter>0</iPlayerAnarchyCounter>
 			<iCounterespionageNumTurns>0</iCounterespionageNumTurns>
 			<iCounterespionageMod>0</iCounterespionageMod>
+			<!-- advc.103 -->
+			<bReturnToCapital>0</bReturnToCapital>
 		</EspionageMissionInfo>
 		<EspionageMissionInfo>
 			<Type>ESPIONAGEMISSION_DESTROY_IMPROVEMENT</Type>
@@ -215,6 +225,8 @@
 			<iPlayerAnarchyCounter>0</iPlayerAnarchyCounter>
 			<iCounterespionageNumTurns>0</iCounterespionageNumTurns>
 			<iCounterespionageMod>0</iCounterespionageMod>
+			<!-- advc.103 -->
+			<bReturnToCapital>1</bReturnToCapital>
 		</EspionageMissionInfo>
 		<EspionageMissionInfo>
 			<Type>ESPIONAGEMISSION_DESTROY_BUILDING</Type>
@@ -250,6 +262,8 @@
 			<iPlayerAnarchyCounter>0</iPlayerAnarchyCounter>
 			<iCounterespionageNumTurns>0</iCounterespionageNumTurns>
 			<iCounterespionageMod>0</iCounterespionageMod>
+			<!-- advc.103 -->
+			<bReturnToCapital>1</bReturnToCapital>
 		</EspionageMissionInfo>
 		<EspionageMissionInfo>
 			<Type>ESPIONAGEMISSION_DESTROY_PROJECT</Type>
@@ -285,6 +299,8 @@
 			<iPlayerAnarchyCounter>0</iPlayerAnarchyCounter>
 			<iCounterespionageNumTurns>0</iCounterespionageNumTurns>
 			<iCounterespionageMod>0</iCounterespionageMod>
+			<!-- advc.103 -->
+			<bReturnToCapital>1</bReturnToCapital>
 		</EspionageMissionInfo>
 		<EspionageMissionInfo>
 			<Type>ESPIONAGEMISSION_DESTROY_PRODUCTION</Type>
@@ -320,6 +336,8 @@
 			<iPlayerAnarchyCounter>0</iPlayerAnarchyCounter>
 			<iCounterespionageNumTurns>0</iCounterespionageNumTurns>
 			<iCounterespionageMod>0</iCounterespionageMod>
+			<!-- advc.103 -->
+			<bReturnToCapital>1</bReturnToCapital>
 		</EspionageMissionInfo>
 		<EspionageMissionInfo>
 			<Type>ESPIONAGEMISSION_STEAL_TREASURY</Type>
@@ -355,6 +373,8 @@
 			<iPlayerAnarchyCounter>0</iPlayerAnarchyCounter>
 			<iCounterespionageNumTurns>0</iCounterespionageNumTurns>
 			<iCounterespionageMod>0</iCounterespionageMod>
+			<!-- advc.103 -->
+			<bReturnToCapital>1</bReturnToCapital>
 		</EspionageMissionInfo>
 		<EspionageMissionInfo>
 			<Type>ESPIONAGEMISSION_CITY_INSERT_CULTURE</Type>
@@ -390,6 +410,8 @@
 			<iPlayerAnarchyCounter>0</iPlayerAnarchyCounter>
 			<iCounterespionageNumTurns>0</iCounterespionageNumTurns>
 			<iCounterespionageMod>0</iCounterespionageMod>
+			<!-- advc.103 -->
+			<bReturnToCapital>1</bReturnToCapital>
 		</EspionageMissionInfo>
 		<EspionageMissionInfo>
 			<Type>ESPIONAGEMISSION_CITY_POISON_WATER</Type>
@@ -425,6 +447,8 @@
 			<iPlayerAnarchyCounter>0</iPlayerAnarchyCounter>
 			<iCounterespionageNumTurns>0</iCounterespionageNumTurns>
 			<iCounterespionageMod>0</iCounterespionageMod>
+			<!-- advc.103 -->
+			<bReturnToCapital>1</bReturnToCapital>
 		</EspionageMissionInfo>
 		<EspionageMissionInfo>
 			<Type>ESPIONAGEMISSION_CITY_UNHAPPINESS</Type>
@@ -460,6 +484,8 @@
 			<iPlayerAnarchyCounter>0</iPlayerAnarchyCounter>
 			<iCounterespionageNumTurns>0</iCounterespionageNumTurns>
 			<iCounterespionageMod>0</iCounterespionageMod>
+			<!-- advc.103 -->
+			<bReturnToCapital>1</bReturnToCapital>
 		</EspionageMissionInfo>
 		<EspionageMissionInfo>
 			<Type>ESPIONAGEMISSION_CITY_REVOLT</Type>
@@ -495,6 +521,8 @@
 			<iPlayerAnarchyCounter>0</iPlayerAnarchyCounter>
 			<iCounterespionageNumTurns>0</iCounterespionageNumTurns>
 			<iCounterespionageMod>0</iCounterespionageMod>
+			<!-- advc.103 -->
+			<bReturnToCapital>1</bReturnToCapital>
 		</EspionageMissionInfo>
 		<EspionageMissionInfo>
 			<Type>ESPIONAGEMISSION_BUY_TECH</Type>
@@ -530,6 +558,8 @@
 			<iPlayerAnarchyCounter>0</iPlayerAnarchyCounter>
 			<iCounterespionageNumTurns>0</iCounterespionageNumTurns>
 			<iCounterespionageMod>0</iCounterespionageMod>
+			<!-- advc.103 -->
+			<bReturnToCapital>1</bReturnToCapital>
 		</EspionageMissionInfo>
 		<EspionageMissionInfo>
 			<Type>ESPIONAGEMISSION_SWITCH_CIVIC</Type>
@@ -566,6 +596,8 @@
 			<iPlayerAnarchyCounter>0</iPlayerAnarchyCounter>
 			<iCounterespionageNumTurns>0</iCounterespionageNumTurns>
 			<iCounterespionageMod>0</iCounterespionageMod>
+			<!-- advc.103 -->
+			<bReturnToCapital>1</bReturnToCapital>
 		</EspionageMissionInfo>
 		<EspionageMissionInfo>
 			<Type>ESPIONAGEMISSION_SWITCH_RELIGION</Type>
@@ -602,6 +634,8 @@
 			<iPlayerAnarchyCounter>0</iPlayerAnarchyCounter>
 			<iCounterespionageNumTurns>0</iCounterespionageNumTurns>
 			<iCounterespionageMod>0</iCounterespionageMod>
+			<!-- advc.103 -->
+			<bReturnToCapital>1</bReturnToCapital>
 		</EspionageMissionInfo>
 		<EspionageMissionInfo>
 			<Type>ESPIONAGEMISSION_COUNTERESPIONAGE</Type>
@@ -637,6 +671,46 @@
 			<iPlayerAnarchyCounter>0</iPlayerAnarchyCounter>
 			<iCounterespionageNumTurns>10</iCounterespionageNumTurns>
 			<iCounterespionageMod>100</iCounterespionageMod>
+			<!-- advc.103 -->
+			<bReturnToCapital>1</bReturnToCapital>
+		</EspionageMissionInfo>
+		<!-- advc.103: New mission (technically) -->
+		<EspionageMissionInfo>
+			<Type>ESPIONAGEMISSION_INVESTIGATE_CITY_ACTIVE</Type>
+			<Description>TXT_KEY_ESPIONAGE_INVESTIGATE_CITY</Description>
+			<iCost>40</iCost>
+			<bIsPassive>0</bIsPassive>
+			<bIsTwoPhases>0</bIsTwoPhases>
+			<bTargetsCity>1</bTargetsCity>
+			<bSelectPlot>0</bSelectPlot>
+			<TechPrereq>NONE</TechPrereq>
+			<iVisibilityLevel>0</iVisibilityLevel>
+			<bInvestigateCity>1</bInvestigateCity>
+			<bSeeDemographics>0</bSeeDemographics>
+			<bNoActiveMissions>0</bNoActiveMissions>
+			<bSeeResearch>0</bSeeResearch>
+			<bDestroyImprovement>0</bDestroyImprovement>
+			<iDifficultyMod>-100</iDifficultyMod>
+			<iDestroyBuildingCostFactor>0</iDestroyBuildingCostFactor>
+			<iDestroyUnitCostFactor>0</iDestroyUnitCostFactor>
+			<iDestroyProjectCostFactor>0</iDestroyProjectCostFactor>
+			<iDestroyProductionCostFactor>0</iDestroyProductionCostFactor>
+			<iBuyUnitCostFactor>0</iBuyUnitCostFactor>
+			<iBuyCityCostFactor>0</iBuyCityCostFactor>
+			<iStealTreasuryTypes>0</iStealTreasuryTypes>
+			<iCityInsertCultureAmountFactor>0</iCityInsertCultureAmountFactor>
+			<iCityInsertCultureCostFactor>0</iCityInsertCultureCostFactor>
+			<iCityPoisonWaterCounter>0</iCityPoisonWaterCounter>
+			<iCityUnhappinessCounter>0</iCityUnhappinessCounter>
+			<iCityRevoltCounter>0</iCityRevoltCounter>
+			<iBuyTechCostFactor>0</iBuyTechCostFactor>
+			<iSwitchCivicCostFactor>0</iSwitchCivicCostFactor>
+			<iSwitchReligionCostFactor>0</iSwitchReligionCostFactor>
+			<iPlayerAnarchyCounter>0</iPlayerAnarchyCounter>
+			<iCounterespionageNumTurns>0</iCounterespionageNumTurns>
+			<iCounterespionageMod>0</iCounterespionageMod>
+			<!-- advc.103 -->
+			<bReturnToCapital>0</bReturnToCapital>
 		</EspionageMissionInfo>
 	</EspionageMissionInfos>
 </Civ4EspionageMissionInfo>

@@ -3071,174 +3071,159 @@ class CvMainInterface:
 			szString = "RateText" + str(iI)
 			screen.hide(szString)
 
-		if ( CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_HIDE_ALL and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_MINIMAP_ONLY  and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_ADVANCED_START):
+		if CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_HIDE_ALL or CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_MINIMAP_ONLY or CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_ADVANCED_START:
+			return 0 # advc.003: Reduce indentation
 
-			# Percent of commerce
-			if (gc.getPlayer(ePlayer).isAlive()):
-				iCount = 0
-				for iI in range( CommerceTypes.NUM_COMMERCE_TYPES ):
-					eCommerce = (iI + 1) % CommerceTypes.NUM_COMMERCE_TYPES
-					#if (gc.getPlayer(ePlayer).isCommerceFlexible(eCommerce) or (CyInterface().isCityScreenUp() and (eCommerce == CommerceTypes.COMMERCE_GOLD))):
-					if self.showCommercePercent(eCommerce, ePlayer): # K-Mod
-						szOutText = u"<font=2>%c:%d%%</font>" %(gc.getCommerceInfo(eCommerce).getChar(), gc.getPlayer(ePlayer).getCommercePercent(eCommerce))
-						szString = "PercentText" + str(iI)
-						screen.setLabel( szString, "Background", szOutText, CvUtil.FONT_LEFT_JUSTIFY, 14, 50 + (iCount * 19), -0.1, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		# Percent of commerce
+		if gc.getPlayer(ePlayer).isAlive():
+			iCount = 0
+			for iI in range( CommerceTypes.NUM_COMMERCE_TYPES ):
+				eCommerce = (iI + 1) % CommerceTypes.NUM_COMMERCE_TYPES
+				#if (gc.getPlayer(ePlayer).isCommerceFlexible(eCommerce) or (CyInterface().isCityScreenUp() and (eCommerce == CommerceTypes.COMMERCE_GOLD))):
+				if self.showCommercePercent(eCommerce, ePlayer): # K-Mod
+					szOutText = u"<font=2>%c:%d%%</font>" %(gc.getCommerceInfo(eCommerce).getChar(), gc.getPlayer(ePlayer).getCommercePercent(eCommerce))
+					szString = "PercentText" + str(iI)
+					screen.setLabel( szString, "Background", szOutText, CvUtil.FONT_LEFT_JUSTIFY, 14, 50 + (iCount * 19), -0.1, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+					screen.show( szString )
+
+					if not CyInterface().isCityScreenUp():
+						szOutText = u"<font=2>" + localText.getText("TXT_KEY_MISC_POS_GOLD_PER_TURN", (gc.getPlayer(ePlayer).getCommerceRate(CommerceTypes(eCommerce)), )) + u"</font>"
+						# <advc.004p>
+						if eCommerce == CommerceTypes.COMMERCE_CULTURE:
+							szOutText = u""
+						# </advc.004p>
+						szString = "RateText" + str(iI)
+# BUG - Min/Max Sliders - start
+						if MainOpt.isShowMinMaxCommerceButtons():
+							iMinMaxAdjustX = 40
+						else:
+							iMinMaxAdjustX = 0
+						screen.setLabel( szString, "Background", szOutText, CvUtil.FONT_LEFT_JUSTIFY, 112 + iMinMaxAdjustX, 50 + (iCount * 19), -0.1, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+# BUG - Min/Max Sliders - end
 						screen.show( szString )
 
-						if not CyInterface().isCityScreenUp():
-							szOutText = u"<font=2>" + localText.getText("TXT_KEY_MISC_POS_GOLD_PER_TURN", (gc.getPlayer(ePlayer).getCommerceRate(CommerceTypes(eCommerce)), )) + u"</font>"
-							# <advc.004p>
-							if eCommerce == CommerceTypes.COMMERCE_CULTURE:
-								szOutText = u""
-							# </advc.004p>
-							szString = "RateText" + str(iI)
-# BUG - Min/Max Sliders - start
-							if MainOpt.isShowMinMaxCommerceButtons():
-								iMinMaxAdjustX = 40
-							else:
-								iMinMaxAdjustX = 0
-							screen.setLabel( szString, "Background", szOutText, CvUtil.FONT_LEFT_JUSTIFY, 112 + iMinMaxAdjustX, 50 + (iCount * 19), -0.1, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
-# BUG - Min/Max Sliders - end
-							screen.show( szString )
-
-						iCount = iCount + 1;
-
-			self.updateTimeText()
-			screen.setLabel( "TimeText", "Background", g_szTimeText, CvUtil.FONT_RIGHT_JUSTIFY, xResolution - 56, 6, -0.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
-			screen.show( "TimeText" )
-			
-			if (gc.getPlayer(ePlayer).isAlive()):
-				
+					iCount = iCount + 1;
+		self.updateTimeText()
+		screen.setLabel( "TimeText", "Background", g_szTimeText, CvUtil.FONT_RIGHT_JUSTIFY, xResolution - 56, 6, -0.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		screen.show( "TimeText" )
+		# advc.103: Don't show gold rate and current research when investigating
+		if not gc.getPlayer(ePlayer).isAlive() or (ePlayer != gc.getGame().getActivePlayer() and not gc.getGame().isDebugMode()):
+			return 0
 # BUG - Gold Rate Warning - start
-				if True:#MainOpt.isGoldRateWarning(): # advc.070
-					pPlayer = gc.getPlayer(ePlayer)
-					iGold = pPlayer.getGold()
-					iGoldRate = pPlayer.calculateGoldRate()
-					if iGold < 0: # advc.070 (comment): Only relevant for mod-mods I think, so I'm not changing anything here.
-						szText = BugUtil.getText("TXT_KEY_MISC_NEG_GOLD", iGold)
-						if iGoldRate != 0:
-							if iGold + iGoldRate >= 0:
-								szText += BugUtil.getText("TXT_KEY_MISC_POS_GOLD_PER_TURN", iGoldRate)
-							elif iGoldRate >= 0:
-								szText += BugUtil.getText("TXT_KEY_MISC_POS_WARNING_GOLD_PER_TURN", iGoldRate)
-							else:
-								szText += BugUtil.getText("TXT_KEY_MISC_NEG_GOLD_PER_TURN", iGoldRate)
+		if True:#MainOpt.isGoldRateWarning(): # advc.070
+			pPlayer = gc.getPlayer(ePlayer)
+			iGold = pPlayer.getGold()
+			iGoldRate = pPlayer.calculateGoldRate()
+			if iGold < 0: # advc.070 (comment): Only relevant for mod-mods I think, so I'm not changing anything here.
+				szText = BugUtil.getText("TXT_KEY_MISC_NEG_GOLD", iGold)
+				if iGoldRate != 0:
+					if iGold + iGoldRate >= 0:
+						szText += BugUtil.getText("TXT_KEY_MISC_POS_GOLD_PER_TURN", iGoldRate)
+					elif iGoldRate >= 0:
+						szText += BugUtil.getText("TXT_KEY_MISC_POS_WARNING_GOLD_PER_TURN", iGoldRate)
 					else:
-						szText = BugUtil.getText("TXT_KEY_MISC_POS_GOLD", iGold)
-						if iGoldRate != 0:
-							# <advc.070>
-							szRateText = " ("
-							szRateText += BugUtil.getText("TXT_KEY_MISC_PER_TURN", iGoldRate)
-							szRateText += ")"
-							iRateColor = MainOpt.getGoldRateBrokeColor()
-							# </advc.070>
-							if iGoldRate >= 0:
-								iRateColor = MainOpt.getPositiveGoldRateColor()
-								#szText += BugUtil.getText("TXT_KEY_MISC_POS_GOLD_PER_TURN", iGoldRate)
-							elif iGold + iGoldRate >= 0:
-								iRateColor = MainOpt.getNegativeGoldRateColor()
-								#szText += BugUtil.getText("TXT_KEY_MISC_NEG_WARNING_GOLD_PER_TURN", iGoldRate)
-							#else:
-								#szText += BugUtil.getText("TXT_KEY_MISC_NEG_GOLD_PER_TURN", iGoldRate)
-							# advc.070:
-							szText += localText.changeTextColor(szRateText, iRateColor)
-						
-					if pPlayer.isStrike():
-						szText += BugUtil.getPlainText("TXT_KEY_MISC_STRIKE")
-				else:
-					szText = CyGameTextMgr().getGoldStr(ePlayer)
-# BUG - Gold Rate Warning - end
-				screen.setLabel( "GoldText", "Background", szText, CvUtil.FONT_LEFT_JUSTIFY, 12, 6, -0.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
-				screen.show( "GoldText" )
-				
-				if (((gc.getPlayer(ePlayer).calculateGoldRate() != 0) and not (gc.getPlayer(ePlayer).isAnarchy())) or (gc.getPlayer(ePlayer).getGold() != 0)):
-					screen.show( "GoldText" )
-
-# BUG - NJAGC - start
-				#if (ClockOpt.isEnabled() and ClockOpt.isShowEra()):
-				# advc.067: Replacing the above
-				if ClockOpt.isShowEra():
-					# <advc.067>
-					if ClockOpt.isShowGameEra():
-						iEra = gc.getGame().getCurrentEra()
-					else: # </advc.067>
-						iEra = gc.getPlayer(ePlayer).getCurrentEra()
-					szText = localText.getText("TXT_KEY_BUG_ERA", (gc.getEraInfo(iEra).getDescription(), ))
-					if(ClockOpt.isUseEraColor()):
-						iEraColor = ClockOpt.getEraColor(gc.getEraInfo(iEra).getType())
-						if (iEraColor >= 0):
-							szText = localText.changeTextColor(szText, iEraColor)
-					screen.setLabel( "EraText", "Background", szText, CvUtil.FONT_RIGHT_JUSTIFY, 250, 6, -0.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
-					screen.show( "EraText" )
-# BUG - NJAGC - end
-				
-				if (gc.getPlayer(ePlayer).isAnarchy()):
-				
-# BUG - Bars on single line for higher resolution screens - start
-					if (xResolution >= 1440
-					and (MainOpt.isShowGGProgressBar() or MainOpt.isShowGPProgressBar())):
-						xCoord = 268 + (xResolution - 1440) / 2 + 84 + 6 + 487 / 2
-					else:
-						xCoord = screen.centerX(512)
-
-					yCoord = 5  # Ruff: this used to be 3 but I changed it so it lines up with the Great Person Bar
-					szText = localText.getText("INTERFACE_ANARCHY", (gc.getPlayer(ePlayer).getAnarchyTurns(), ))
-					screen.setText( "ResearchText", "Background", szText, CvUtil.FONT_CENTER_JUSTIFY, xCoord, yCoord, -0.4, FontTypes.GAME_FONT, WidgetTypes.WIDGET_RESEARCH, -1, -1 )
-# BUG - Bars on single line for higher resolution screens - end
-					# advc.004x: Always show ResearchText (i.e. anarchy turns)
-					#if ( gc.getPlayer(ePlayer).getCurrentResearch() != -1 ):
-					screen.show( "ResearchText" )
+						szText += BugUtil.getText("TXT_KEY_MISC_NEG_GOLD_PER_TURN", iGoldRate)
+			else:
+				szText = BugUtil.getText("TXT_KEY_MISC_POS_GOLD", iGold)
+				if iGoldRate != 0:
+					# <advc.070>
+					szRateText = " ("
+					szRateText += BugUtil.getText("TXT_KEY_MISC_PER_TURN", iGoldRate)
+					szRateText += ")"
+					iRateColor = MainOpt.getGoldRateBrokeColor()
+					# </advc.070>
+					if iGoldRate >= 0:
+						iRateColor = MainOpt.getPositiveGoldRateColor()
+						#szText += BugUtil.getText("TXT_KEY_MISC_POS_GOLD_PER_TURN", iGoldRate)
+					elif iGold + iGoldRate >= 0:
+						iRateColor = MainOpt.getNegativeGoldRateColor()
+						#szText += BugUtil.getText("TXT_KEY_MISC_NEG_WARNING_GOLD_PER_TURN", iGoldRate)
 					#else:
-					#	screen.hide( "ResearchText" )
-					
-				elif (gc.getPlayer(ePlayer).getCurrentResearch() != -1):
-
-					szText = CyGameTextMgr().getResearchStr(ePlayer)
-
+						#szText += BugUtil.getText("TXT_KEY_MISC_NEG_GOLD_PER_TURN", iGoldRate)
+					# advc.070:
+					szText += localText.changeTextColor(szRateText, iRateColor)
+						
+			if pPlayer.isStrike():
+				szText += BugUtil.getPlainText("TXT_KEY_MISC_STRIKE")
+		else:
+			szText = CyGameTextMgr().getGoldStr(ePlayer)
+# BUG - Gold Rate Warning - end
+		screen.setLabel( "GoldText", "Background", szText, CvUtil.FONT_LEFT_JUSTIFY, 12, 6, -0.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		screen.show( "GoldText" )
+				
+		if (((gc.getPlayer(ePlayer).calculateGoldRate() != 0) and not (gc.getPlayer(ePlayer).isAnarchy())) or (gc.getPlayer(ePlayer).getGold() != 0)):
+			screen.show( "GoldText" )
+# BUG - NJAGC - start
+		#if (ClockOpt.isEnabled() and ClockOpt.isShowEra()):
+		# advc.067: Replacing the above
+		if ClockOpt.isShowEra():
+			# <advc.067>
+			if ClockOpt.isShowGameEra():
+				iEra = gc.getGame().getCurrentEra()
+			else: # </advc.067>
+				iEra = gc.getPlayer(ePlayer).getCurrentEra()
+			szText = localText.getText("TXT_KEY_BUG_ERA", (gc.getEraInfo(iEra).getDescription(), ))
+			if(ClockOpt.isUseEraColor()):
+				iEraColor = ClockOpt.getEraColor(gc.getEraInfo(iEra).getType())
+				if (iEraColor >= 0):
+					szText = localText.changeTextColor(szText, iEraColor)
+			screen.setLabel( "EraText", "Background", szText, CvUtil.FONT_RIGHT_JUSTIFY, 250, 6, -0.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+			screen.show( "EraText" )
+# BUG - NJAGC - end
+		if (gc.getPlayer(ePlayer).isAnarchy()):
 # BUG - Bars on single line for higher resolution screens - start
-					if (xResolution >= 1440
-					and (MainOpt.isShowGGProgressBar() or MainOpt.isShowGPProgressBar())):
-						szResearchBar = "ResearchBar-w"
-						xCoord = 268 + (xResolution - 1440) / 2 + 84 + 6 + 487 / 2
-					else:
-						szResearchBar = "ResearchBar"
-						xCoord = screen.centerX(512)
-
-					yCoord = 5  # Ruff: this used to be 3 but I changed it so it lines up with the Great Person Bar
-					screen.setText( "ResearchText", "Background", szText, CvUtil.FONT_CENTER_JUSTIFY, xCoord, yCoord, -0.4, FontTypes.GAME_FONT, WidgetTypes.WIDGET_RESEARCH, -1, -1 )
-					screen.show( "ResearchText" )
+			if (xResolution >= 1440 and (MainOpt.isShowGGProgressBar() or MainOpt.isShowGPProgressBar())):
+				xCoord = 268 + (xResolution - 1440) / 2 + 84 + 6 + 487 / 2
+			else:
+				xCoord = screen.centerX(512)
+			yCoord = 5  # Ruff: this used to be 3 but I changed it so it lines up with the Great Person Bar
+			szText = localText.getText("INTERFACE_ANARCHY", (gc.getPlayer(ePlayer).getAnarchyTurns(), ))
+			screen.setText( "ResearchText", "Background", szText, CvUtil.FONT_CENTER_JUSTIFY, xCoord, yCoord, -0.4, FontTypes.GAME_FONT, WidgetTypes.WIDGET_RESEARCH, -1, -1 )
 # BUG - Bars on single line for higher resolution screens - end
-
-					researchProgress = gc.getTeam(gc.getPlayer(ePlayer).getTeam()).getResearchProgress(gc.getPlayer(ePlayer).getCurrentResearch())
-					overflowResearch = (gc.getPlayer(ePlayer).getOverflowResearch() * gc.getPlayer(ePlayer).calculateResearchModifier(gc.getPlayer(ePlayer).getCurrentResearch()))/100
-					researchCost = gc.getTeam(gc.getPlayer(ePlayer).getTeam()).getResearchCost(gc.getPlayer(ePlayer).getCurrentResearch())
-					researchRate = gc.getPlayer(ePlayer).calculateResearchRate(-1)
+			# advc.004x: Always show ResearchText (i.e. anarchy turns)
+			#if ( gc.getPlayer(ePlayer).getCurrentResearch() != -1 ):
+			screen.show( "ResearchText" )
+			#else:
+			#	screen.hide( "ResearchText" )		
+		elif (gc.getPlayer(ePlayer).getCurrentResearch() != -1):
+			szText = CyGameTextMgr().getResearchStr(ePlayer)
+# BUG - Bars on single line for higher resolution screens - start
+			if (xResolution >= 1440 and (MainOpt.isShowGGProgressBar() or MainOpt.isShowGPProgressBar())):
+				szResearchBar = "ResearchBar-w"
+				xCoord = 268 + (xResolution - 1440) / 2 + 84 + 6 + 487 / 2
+			else:
+				szResearchBar = "ResearchBar"
+				xCoord = screen.centerX(512)
+			yCoord = 5  # Ruff: this used to be 3 but I changed it so it lines up with the Great Person Bar
+			screen.setText( "ResearchText", "Background", szText, CvUtil.FONT_CENTER_JUSTIFY, xCoord, yCoord, -0.4, FontTypes.GAME_FONT, WidgetTypes.WIDGET_RESEARCH, -1, -1 )
+			screen.show( "ResearchText" )
+# BUG - Bars on single line for higher resolution screens - end
+			researchProgress = gc.getTeam(gc.getPlayer(ePlayer).getTeam()).getResearchProgress(gc.getPlayer(ePlayer).getCurrentResearch())
+			overflowResearch = (gc.getPlayer(ePlayer).getOverflowResearch() * gc.getPlayer(ePlayer).calculateResearchModifier(gc.getPlayer(ePlayer).getCurrentResearch()))/100
+			researchCost = gc.getTeam(gc.getPlayer(ePlayer).getTeam()).getResearchCost(gc.getPlayer(ePlayer).getCurrentResearch())
+			researchRate = gc.getPlayer(ePlayer).calculateResearchRate(-1)
 					
-					screen.setBarPercentage( szResearchBar, InfoBarTypes.INFOBAR_STORED, float(researchProgress + overflowResearch) / researchCost )
-					if ( researchCost >  researchProgress + overflowResearch):
-						screen.setBarPercentage( szResearchBar, InfoBarTypes.INFOBAR_RATE, float(researchRate) / (researchCost - researchProgress - overflowResearch))
-					else:
-						screen.setBarPercentage( szResearchBar, InfoBarTypes.INFOBAR_RATE, 0.0 )
+			screen.setBarPercentage( szResearchBar, InfoBarTypes.INFOBAR_STORED, float(researchProgress + overflowResearch) / researchCost )
+			if ( researchCost >  researchProgress + overflowResearch):
+				screen.setBarPercentage( szResearchBar, InfoBarTypes.INFOBAR_RATE, float(researchRate) / (researchCost - researchProgress - overflowResearch))
+			else:
+				screen.setBarPercentage( szResearchBar, InfoBarTypes.INFOBAR_RATE, 0.0 )
 
-					screen.show( szResearchBar )
-
+			screen.show(szResearchBar)
 # BUG - Progress Bar - Tick Marks - start
-					# advc.004x: researchRate condition added
-					if MainOpt.isShowpBarTickMarks() and researchRate > 0:
-						if szResearchBar == "ResearchBar":
-							self.pBarResearchBar_n.drawTickMarks(screen, researchProgress + overflowResearch, researchCost, researchRate, researchRate, False)
-						else:
-							self.pBarResearchBar_w.drawTickMarks(screen, researchProgress + overflowResearch, researchCost, researchRate, researchRate, False)
+			# advc.004x: researchRate condition added
+			if MainOpt.isShowpBarTickMarks() and researchRate > 0:
+				if szResearchBar == "ResearchBar":
+					self.pBarResearchBar_n.drawTickMarks(screen, researchProgress + overflowResearch, researchCost, researchRate, researchRate, False)
+				else:
+					self.pBarResearchBar_w.drawTickMarks(screen, researchProgress + overflowResearch, researchCost, researchRate, researchRate, False)
 # BUG - Progress Bar - Tick Marks - end
-
 # BUG - Great Person Bar - start
-				self.updateGreatPersonBar(screen)
+		self.updateGreatPersonBar(screen)
 # BUG - Great Person Bar - end
-
 # BUG - Great General Bar - start
-				self.updateGreatGeneralBar(screen)
+		self.updateGreatGeneralBar(screen)
 # BUG - Great General Bar - end
-					
 		return 0
 		
 # BUG - Great Person Bar - start

@@ -413,12 +413,15 @@ def calculateTradeRoutes(playerOrID, withPlayerOrID=None):
 					cityForeignTrade += trade # advc.001: was foreignTrade+=...
 					foreignCount += 1
 		# <advc.001>
-		if isFractionalTrade():
+		if isFractionalTrade() and not withPlayerOrID:
 			cityDomesticTrade //= 100
 			cityForeignTrade //= 100
 		domesticTrade += cityDomesticTrade
 		foreignTrade += cityForeignTrade
-		# </advc.001>
+	if isFractionalTrade() and withPlayerOrID:
+		domesticTrade //= 100
+		foreignTrade //= 100
+	# </advc.001>
 	return domesticTrade, domesticCount, foreignTrade, foreignCount
 
 def initFractionalTrade():

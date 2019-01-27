@@ -1301,8 +1301,12 @@ int CvPlayerAI::AI_movementPriority(CvSelectionGroup* pGroup) const
 
 	FAssert(pHeadUnit->getDomainType() == DOMAIN_LAND);
 
-	if (pHeadUnit->AI_getUnitAIType() == UNITAI_WORKER)
+	if (pHeadUnit->AI_getUnitAIType() == UNITAI_WORKER) {
+		// <advc.001> Free Worker at game start: found a city first
+		if(getNumCities() <= 0)
+			return 210; // </advc.001>
 		return 9;
+	}
 
 	if (pHeadUnit->AI_getUnitAIType() == UNITAI_EXPLORE)
 		return 10;
@@ -4823,9 +4827,14 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 bool CvPlayerAI::AI_isAreaAlone(CvArea* pArea) const
 {
 	// <advc.131> Don't cheat with visibility early on (hurts more than it helps)
-	if(4 * pArea->getNumRevealedTiles(getTeam()) < 3 * pArea->getNumTiles() &&
-			getCurrentEra() <= GC.getGameINLINE().getStartEra())
-		return (GET_TEAM(getTeam()).getHasMetCivCount() <= 0); // </advc.131>
+	if(getCurrentEra() <= GC.getGameINLINE().getStartEra()) {
+		int iRevealed = pArea->getNumRevealedTiles(getTeam());
+		int iTotal = pArea->getNumTiles();
+		if(3 * iRevealed < iTotal) // Default assumption: not alone
+			return false;
+		if(4 * iRevealed < 3 * iTotal)
+			return (GET_TEAM(getTeam()).getHasMetCivCount() <= 0);
+	} // </advc.131>
 	return ((pArea->getNumCities() - GET_TEAM(BARBARIAN_TEAM).countNumCitiesByArea(pArea)) == GET_TEAM(getTeam()).countNumCitiesByArea(pArea));
 }
 
@@ -5618,74 +5627,63 @@ bool CvPlayerAI::AI_avoidScience() const
 	return false;
 }
 
+/*  advc.110: Body cut from AI_isFinancialTrouble. Returns the difference between
+	funds and safety threshold. */
+int CvPlayerAI::AI_financialTroubleMargin() const {
+
+	if(isBarbarian()) // Based on BETTER_BTS_AI_MOD, 06/12/09, jdog5000 (Barbarian AI)
+		return 100;
+	/*if (getCommercePercent(COMMERCE_GOLD) > 50) {
+		int iNetCommerce = 1 + getCommerceRate(COMMERCE_GOLD) + getCommerceRate(COMMERCE_RESEARCH) + std::max(0, getGoldPerTurn());
+		int iNetExpenses = calculateInflatedCosts() + std::min(0, getGoldPerTurn());*/
+	int iNetCommerce = AI_getAvailableIncome(); // K-Mod
+	int iNetExpenses = calculateInflatedCosts() + std::max(0, -getGoldPerTurn()); // unofficial patch
+	// <advc.110> No trouble at the start of the game
+	if(iNetExpenses <= 0 && !isFoundedFirstCity())
+		return false; // </advc.110>
+	int iFundedPercent = (100 * (iNetCommerce - iNetExpenses)) / std::max(1, iNetCommerce);
+	int iSafePercent = 35; // was 40
+	// <advc.110> Don't want the AI to expand rapidly in the early game
+	int iEra = getCurrentEra();
+	if(iEra <= 0)
+		iSafePercent = 60;
+	else if(iEra == 1)
+		iSafePercent = 50;
+	else if(iEra == 2)
+		iSafePercent = 40;
+	/*	Koshling: We're never in financial trouble if we can run at current deficits
+		for more than 50 turns and stay in healthy territory (EraGoldThreshold) */
+	// advc: Take the era number times 1.5
+	int iEraGoldThreshold = 100 * (1 + (3 * iEra) / 2);
+	if(getGold() > iEraGoldThreshold && (iNetCommerce-iNetExpenses >= 0 ||
+			getGold() + 50 * (iNetCommerce-iNetExpenses) > iEraGoldThreshold))
+		return 100; // Would be nicer to increase iFundedPercent based on getGold
+	// </advc.110>
+
+	if(AI_avoidScience())
+		iSafePercent -= 8;
+		
+	//if (GET_TEAM(getTeam()).getAnyWarPlanCount(true))
+	if(AI_isFocusWar()) // advc.105
+		iSafePercent -= 10; // was 12
+		
+	if(isCurrentResearchRepeat())
+		iSafePercent -= 10;
+	// K-Mod
+	int iCitiesTarget = std::max(1, GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getTargetNumCities());
+	if (getNumCities() < iCitiesTarget)
+	{
+		// note: I'd like to use (AI_getNumCitySites() > 0) as well, but that could potentially cause the site selection to oscillate.
+		iSafePercent -= 14 * (iCitiesTarget - getNumCities()) / iCitiesTarget;
+	} // K-Mod end
+
+	return iFundedPercent - iSafePercent;
+}
 
 // XXX
 bool CvPlayerAI::AI_isFinancialTrouble() const
 {
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      06/12/09                                jdog5000      */
-/*                                                                                              */
-/* Barbarian AI                                                                                 */
-/************************************************************************************************/
-	if( isBarbarian() )
-	{
-		return false;
-	}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-
-	//if (getCommercePercent(COMMERCE_GOLD) > 50)
-	{
-		//int iNetCommerce = 1 + getCommerceRate(COMMERCE_GOLD) + getCommerceRate(COMMERCE_RESEARCH) + std::max(0, getGoldPerTurn());
-		//int iNetExpenses = calculateInflatedCosts() + std::min(0, getGoldPerTurn());
-		int iNetCommerce = AI_getAvailableIncome(); // K-Mod
-		int iNetExpenses = calculateInflatedCosts() + std::max(0, -getGoldPerTurn()); // unofficial patch
-		
-		int iFundedPercent = (100 * (iNetCommerce - iNetExpenses)) / std::max(1, iNetCommerce);
-		int iSafePercent = 35; // was 40
-
-		// <advc.110>
-        /* Increase surplus required for a stable/ "safe" economy, and base
-           the threshold on the current era (K-Mod: 35% for all eras). */
-        iSafePercent = 65; // Ancient, Classical era
-        int e = getCurrentEra();
-        if(e > 1)
-            iSafePercent -= 10 * e; // 55, 45, ... --> Medieval, Renaissance, ...
-		// </advc.110>
-		
-		if (AI_avoidScience())
-		{
-			iSafePercent -= 8;
-		}
-		
-		if(AI_isFocusWar()) // advc.105
-		//if (GET_TEAM(getTeam()).getAnyWarPlanCount(true))
-		{
-			iSafePercent -= 10; // was 12
-		}
-		
-		if (isCurrentResearchRepeat())
-		{
-			iSafePercent -= 10;
-		}
-
-		// K-Mod
-		int iCitiesTarget = std::max(1, GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getTargetNumCities());
-		if (getNumCities() < iCitiesTarget)
-		{
-			// note: I'd like to use (AI_getNumCitySites() > 0) as well, but that could potentially cause the site selection to oscillate.
-			iSafePercent -= 14 * (iCitiesTarget - getNumCities()) / iCitiesTarget;
-		}
-		// K-Mod end
-		
-		if (iFundedPercent < iSafePercent)
-		{
-			return true;
-		}
-	}
-
-	return false;
+	return (AI_financialTroubleMargin() < 0); // advc.rom4
 }
 
 // This function has been heavily edited for K-Mod
@@ -5704,7 +5702,8 @@ int CvPlayerAI::AI_goldTarget(bool bUpgradeBudgetOnly) const
 
 		if (!bAnyWar)
 		{
-			iUpgradeBudget /= AI_isFinancialTrouble() || AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4) ? 10 : 4;
+			iUpgradeBudget /= (AI_isFinancialTrouble() ||
+					AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4) ? 10 : 4);
 		}
 		else
 		{
@@ -18363,7 +18362,7 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 		FAssert(pPlot != NULL);
 		return 0;
 	}
-	CvCity* const pCity = pPlot->getPlotCity(); // </advc.003>
+	CvCity* pCity = pPlot->getPlotCity(); // </advc.003>
 	bool const bMalicious = AI_isMaliciousEspionageTarget(eTargetPlayer);
 	bool const bDisorder = (pCity != NULL && pCity->isDisorder()); // advc.120b
 

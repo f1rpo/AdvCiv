@@ -1273,24 +1273,16 @@ void CvDLLWidgetData::doChangeSpecialist(CvWidgetDataStruct &widgetDataStruct)
 void CvDLLWidgetData::doResearch(CvWidgetDataStruct &widgetDataStruct)
 {
 	/* original bts code
-	bool bShift;
-
-	bShift = GC.shiftKey();
-
-	if (!bShift)
-	{
-		if ((GetKeyState(VK_LSHIFT) & 0x8000) || (GetKeyState(VK_RSHIFT) & 0x8000))
-		{
-			bShift = true;
-		}
-	} */
 	bool bShift = GC.shiftKey();
-
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                       12/07/09                             EmperorFool      */
-/*                                                                                              */
-/* Bugfix                                                                                       */
-/************************************************************************************************/
+	if(!bShift) {
+		if ((GetKeyState(VK_LSHIFT) & 0x8000) || (GetKeyState(VK_RSHIFT) & 0x8000))
+			bShift = true;
+	}*/
+	bool bShift = GC.shiftKey();
+/****************************************************************************/
+/* UNOFFICIAL_PATCH                       12/07/09         EmperorFool      */
+/* Bugfix                                                                   */
+/****************************************************************************/
 	// Free Tech Popup Fix
 	if (widgetDataStruct.m_iData2 > 0)
 	{
@@ -1945,7 +1937,7 @@ void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 					bFirst = false;
 				}
 				szBuffer.append(NEWLINE);
-				szBuffer.append(gDLL->getText("TXT_KEY_MISC_HURRY_OVERFLOW", szOverflowBuffer));
+				szBuffer.append(gDLL->getText("TXT_KEY_MISC_HURRY_OVERFLOW", szOverflowBuffer.getCString()));
 			}
 		}
 	} // BUG - Hurry Overflow - end
@@ -2054,1021 +2046,44 @@ void CvDLLWidgetData::parseConscriptHelp(CvWidgetDataStruct &widgetDataStruct, C
 }
 
 
-void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
+void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
+		CvWStringBuffer &szBuffer)
 {
-	CLLNode<IDInfo>* pSelectedUnitNode;
-	CvUnit* pSelectedUnit;
-	int iDX, iDY;
-	int iI;
-	CvWString szTempBuffer;
-	CvWString szFirstBuffer;
-
-	bool bAlt = GC.altKey();
-	bool bShift = GC.shiftKey();
-
 	CvWString szTemp;
-	szTemp.Format(SETCOLR L"%s" ENDCOLR , TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), GC.getActionInfo(widgetDataStruct.m_iData1).getHotKeyDescription().c_str());
+	CvActionInfo const& kAction = GC.getActionInfo(widgetDataStruct.m_iData1);
+	szTemp.Format(SETCOLR L"%s" ENDCOLR , TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
+			kAction.getHotKeyDescription().c_str());
 	szBuffer.assign(szTemp);
 
 	CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
-
 	if (pHeadSelectedUnit != NULL)
 	{
-		if (GC.getActionInfo(widgetDataStruct.m_iData1).getMissionType() != NO_MISSION)
-		{
-			CvPlot* pMissionPlot=NULL;
-			if (bShift && gDLL->getInterfaceIFace()->mirrorsSelectionGroup())
-			{
-				pMissionPlot = pHeadSelectedUnit->getGroup()->lastMissionPlot();
-			}
-			else
-			{
-				pMissionPlot = pHeadSelectedUnit->plot();
-			}
-			CvCity* pMissionCity = pMissionPlot->getPlotCity();
-			// <advc.003>
-			MissionTypes eMission = (MissionTypes)GC.getActionInfo(widgetDataStruct.
-					m_iData1).getMissionType();
-			switch(eMission) { // was if/else // </advc.003>
-			case MISSION_SENTRY_HEAL: // advc.004l
-			case MISSION_HEAL:
-			{
-				int iTurns = 0;
-
-				pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-
-				while (pSelectedUnitNode != NULL)
-				{
-					pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-					iTurns = std::max(iTurns, pSelectedUnit->healTurns(pMissionPlot));
-
-					pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
-				}
-
-				szBuffer.append(NEWLINE);
-				szBuffer.append(gDLL->getText("TXT_KEY_MISC_TURN_OR_TURNS", iTurns));
-				break;
-			}
-			case MISSION_PILLAGE:
-			{
-				if (pMissionPlot->getImprovementType() != NO_IMPROVEMENT)
-				{
-					szBuffer.append(NEWLINE);
-					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_DESTROY_IMP", GC.getImprovementInfo(pMissionPlot->getImprovementType()).getTextKeyWide()));
-				}
-				else if (pMissionPlot->getRouteType() != NO_ROUTE)
-				{
-					szBuffer.append(NEWLINE);
-					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_DESTROY_IMP", GC.getRouteInfo(pMissionPlot->getRouteType()).getTextKeyWide()));
-				}
-				break;
-			}
-			case MISSION_PLUNDER:
-			{
-				pMissionPlot = pHeadSelectedUnit->plot();
-
-				//if (pMissionPlot->getTeam() == pHeadSelectedUnit->getTeam())
-				if(!pHeadSelectedUnit->canPlunder(pMissionPlot)) // advc.033
-				{
-					szBuffer.append(NEWLINE);
-					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_PLUNDER_IN_BORDERS"));
-				}
-				break;
-			}
-			case MISSION_SABOTAGE:
-			{
-				pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-
-				while (pSelectedUnitNode != NULL)
-				{
-					pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-
-					if (pSelectedUnit->canSabotage(pMissionPlot, true)) // XXX if queuing up this action, use the current plot along the goto...
-					{
-						int iPrice = pSelectedUnit->sabotageCost(pMissionPlot);
-						if (iPrice > 0)
-						{
-							szTempBuffer.Format(L"%d %c", iPrice, GC.getCommerceInfo(COMMERCE_GOLD).getChar());
-							szBuffer.append(NEWLINE);
-							szBuffer.append(szTempBuffer);
-						}
-
-						int iLow = pSelectedUnit->sabotageProb(pMissionPlot, PROBABILITY_LOW);
-						int iHigh = pSelectedUnit->sabotageProb(pMissionPlot, PROBABILITY_HIGH);
-
-						if (iLow == iHigh)
-						{
-							szBuffer.append(NEWLINE);
-							szBuffer.append(gDLL->getText("TXT_KEY_ACTION_PROBABILITY", iHigh));
-						}
-						else
-						{
-							szBuffer.append(NEWLINE);
-							szBuffer.append(gDLL->getText("TXT_KEY_ACTION_PROBABILITY_RANGE", iLow, iHigh));
-						}
-						break;
-					}
-
-					pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
-				}
-				break;
-			}
-			case MISSION_DESTROY:
-			{
-				pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-
-				while (pSelectedUnitNode != NULL)
-				{
-					pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-
-					if (pSelectedUnit->canDestroy(pMissionPlot, true)) // XXX if queuing up this action, use the current plot along the goto...
-					{
-						int iPrice = pSelectedUnit->destroyCost(pMissionPlot);
-						if (iPrice > 0)
-						{
-							szTempBuffer.Format(L"%d %c", iPrice, GC.getCommerceInfo(COMMERCE_GOLD).getChar());
-							szBuffer.append(NEWLINE);
-							szBuffer.append(szTempBuffer);
-						}
-
-						int iLow = pSelectedUnit->destroyProb(pMissionPlot, PROBABILITY_LOW);
-						int iHigh = pSelectedUnit->destroyProb(pMissionPlot, PROBABILITY_HIGH);
-
-						if (iLow == iHigh)
-						{
-							szBuffer.append(NEWLINE);
-							szBuffer.append(gDLL->getText("TXT_KEY_ACTION_PROBABILITY", iHigh));
-						}
-						else
-						{
-							szBuffer.append(NEWLINE);
-							szBuffer.append(gDLL->getText("TXT_KEY_ACTION_PROBABILITY_RANGE", iLow, iHigh));
-						}
-						break;
-					}
-
-					pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
-				}
-				break;
-			}
-			case MISSION_STEAL_PLANS:
-			{
-				pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-
-				while (pSelectedUnitNode != NULL)
-				{
-					pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-
-					if (pSelectedUnit->canStealPlans(pMissionPlot, true)) // XXX if queuing up this action, use the current plot along the goto...
-					{
-						int iPrice = pSelectedUnit->stealPlansCost(pMissionPlot);
-						if (iPrice > 0)
-						{
-							szTempBuffer.Format(L"%d %c", iPrice, GC.getCommerceInfo(COMMERCE_GOLD).getChar());
-							szBuffer.append(NEWLINE);
-							szBuffer.append(szTempBuffer);
-						}
-
-						int iLow = pSelectedUnit->stealPlansProb(pMissionPlot, PROBABILITY_LOW);
-						int iHigh = pSelectedUnit->stealPlansProb(pMissionPlot, PROBABILITY_HIGH);
-
-						if (iLow == iHigh)
-						{
-							szBuffer.append(NEWLINE);
-							szBuffer.append(gDLL->getText("TXT_KEY_ACTION_PROBABILITY", iHigh));
-						}
-						else
-						{
-							szBuffer.append(NEWLINE);
-							szBuffer.append(gDLL->getText("TXT_KEY_ACTION_PROBABILITY_RANGE", iLow, iHigh));
-						}
-						break;
-					}
-
-					pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
-				}
-				break;
-			}
-			case MISSION_FOUND:
-			{
-				if (!GET_PLAYER(pHeadSelectedUnit->getOwnerINLINE()).canFound(pMissionPlot->getX_INLINE(), pMissionPlot->getY_INLINE()))
-				{
-					bool bValid = true;
-
-					int iRange = GC.getMIN_CITY_RANGE();
-
-					for (iDX = -(iRange); iDX <= iRange; iDX++)
-					{
-						for (iDY = -(iRange); iDY <= iRange; iDY++)
-						{
-							CvPlot* pLoopPlot = plotXY(pMissionPlot->getX_INLINE(), pMissionPlot->getY_INLINE(), iDX, iDY);
-
-							if (pLoopPlot != NULL)
-							{
-								if (pLoopPlot->isCity())
-								{
-									bValid = false;
-								}
-							}
-						}
-					}
-
-					if (!bValid)
-					{
-						szBuffer.append(NEWLINE);
-						szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CANNOT_FOUND", GC.getMIN_CITY_RANGE()));
-					}
-				}
-				// <advc.004b> Show the projected increase in city maintenance
-				else {
-					PlayerTypes pId = pHeadSelectedUnit->getOwnerINLINE();
-					// No projection for the initial city
-					if(GET_PLAYER(pId).getNumCities() > 0)
-						szBuffer.append(getFoundCostText(pMissionPlot, pId));
-					szBuffer.append(getHomePlotYieldText(pMissionPlot, pId));
-					szBuffer.append(getNetFeatureHealthText(pMissionPlot, pId));
-					szBuffer.append(NEWLINE); /* To set the info apart from
-											  TXT_KEY_MISSION_BUILD_CITY_HELP */
-				} // </advc.004b>
-				break;
-			}
-			case MISSION_SPREAD:
-			{
-				ReligionTypes eReligion = ((ReligionTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getMissionData()));
-
-				if (pMissionCity != NULL)
-				{
-					if (pMissionCity->getTeam() != pHeadSelectedUnit->getTeam()) // XXX still true???
-					{
-						if (GET_PLAYER(pMissionCity->getOwnerINLINE()).isNoNonStateReligionSpread())
-						{
-							if (eReligion != GET_PLAYER(pMissionCity->getOwnerINLINE()).getStateReligion())
-							{
-								szBuffer.append(NEWLINE);
-								szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CANNOT_SPREAD_NON_STATE_RELIGION"));
-							}
-						}
-					}
-
-					szBuffer.append(NEWLINE);
-					GAMETEXT.setReligionHelpCity(szBuffer, eReligion, pMissionCity, false, true);
-				}
-				break;
-			}
-			case MISSION_SPREAD_CORPORATION:
-			{
-				CorporationTypes eCorporation = ((CorporationTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getMissionData()));
-
-				if (pMissionCity != NULL)
-				{
-					szBuffer.append(NEWLINE);
-					GAMETEXT.setCorporationHelpCity(szBuffer, eCorporation, pMissionCity, false, true);
-
-					for (int iCorp = 0; iCorp < GC.getNumCorporationInfos(); ++iCorp)
-					{
-						if (eCorporation != iCorp)
-						{
-							if (pMissionCity->isHasCorporation((CorporationTypes)iCorp))
-							{
-								if (GC.getGameINLINE().isCompetingCorporation(eCorporation, (CorporationTypes)iCorp))
-								{
-									szBuffer.append(NEWLINE);
-									szBuffer.append(gDLL->getText("TXT_KEY_ACTION_WILL_ELIMINATE_CORPORATION", GC.getCorporationInfo((CorporationTypes)iCorp).getTextKeyWide()));
-								}
-							}
-						}
-					}
-
-					szTempBuffer.Format(L"%s%d %c", NEWLINE, pHeadSelectedUnit->spreadCorporationCost(eCorporation, pMissionCity), GC.getCommerceInfo(COMMERCE_GOLD).getChar());
-					szBuffer.append(szTempBuffer);
-
-					if (!pHeadSelectedUnit->canSpreadCorporation(pMissionPlot, eCorporation))
-					{
-						if (!GET_PLAYER(pMissionCity->getOwnerINLINE()).isActiveCorporation(eCorporation))
-						{
-							szBuffer.append(NEWLINE);
-							szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CORPORATION_NOT_ACTIVE", GC.getCorporationInfo(eCorporation).getTextKeyWide(), GET_PLAYER(pMissionCity->getOwnerINLINE()).getCivilizationAdjective()));
-						}
-
-						CorporationTypes eCompetition = NO_CORPORATION;
-						for (int iCorporation = 0; iCorporation < GC.getNumCorporationInfos(); ++iCorporation)
-						{
-							if (pMissionCity->isHeadquarters((CorporationTypes)iCorporation))
-							{
-								if (GC.getGameINLINE().isCompetingCorporation((CorporationTypes)iCorporation, eCorporation))
-								{
-									eCompetition = (CorporationTypes)iCorporation;
-									break;
-								}
-							}
-						}
-
-						if (NO_CORPORATION != eCompetition)
-						{
-							szBuffer.append(NEWLINE);
-							szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CORPORATION_COMPETING_HEADQUARTERS", GC.getCorporationInfo(eCorporation).getTextKeyWide(), GC.getCorporationInfo(eCompetition).getTextKeyWide()));
-						}
-
-						CvWStringBuffer szBonusList;
-						bool bValid = false;
-						bool bFirst = true;
-						for (int i = 0; i < GC.getNUM_CORPORATION_PREREQ_BONUSES(); ++i)
-						{
-							BonusTypes eBonus = (BonusTypes)GC.getCorporationInfo(eCorporation).getPrereqBonus(i);
-							if (NO_BONUS != eBonus)
-							{
-								if (!bFirst)
-								{
-									szBonusList.append(L", ");
-								}
-								else
-								{
-									bFirst = false;
-								}
-								szBonusList.append(GC.getBonusInfo(eBonus).getDescription());
-
-								if (pMissionCity->hasBonus(eBonus))
-								{
-									bValid = true;
-									break;
-								}
-							}
-						}
-
-						if (!bValid)
-						{
-							szBuffer.append(NEWLINE);
-							szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CORPORATION_NO_RESOURCES", pMissionCity->getNameKey(), szBonusList.getCString()));
-						}
-					}
-				}
-				break;
-			}
-			case MISSION_JOIN:
-			{
-				GAMETEXT.parseSpecialistHelp(szBuffer, ((SpecialistTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getMissionData())), pMissionCity, true);
-				break;
-			}
-			case MISSION_CONSTRUCT:
-			{
-				BuildingTypes eBuilding = ((BuildingTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getMissionData()));
-
-				if (pMissionCity != NULL)
-				{
-					if (!pHeadSelectedUnit->getUnitInfo().getForceBuildings(eBuilding)  && !pMissionCity->canConstruct(eBuilding, false, false, true))
-					{
-						if (!GC.getGameINLINE().isBuildingClassMaxedOut((BuildingClassTypes)(GC.getBuildingInfo(eBuilding).getBuildingClassType())))
-						{
-							GAMETEXT.buildBuildingRequiresString(szBuffer, ((BuildingTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getMissionData())), false, false, pMissionCity);
-						}
-					}
-					else
-					{
-						szBuffer.append(NEWLINE);
-						//GAMETEXT.setBuildingHelp(szBuffer, ((BuildingTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getMissionData())), false, false, false, pMissionCity);
-// BUG - Building Actual Effects - start
-						GAMETEXT.setBuildingHelpActual(szBuffer, ((BuildingTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getMissionData())), false, false, false, pMissionCity);
-// BUG - Building Actual Effects - end
-					}
-				}
-				break;
-			}
-			case MISSION_DISCOVER:
-			{
-				pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-
-				while (pSelectedUnitNode != NULL)
-				{
-					pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-
-					if (pSelectedUnit->canDiscover(pMissionPlot))
-					{
-						TechTypes eTech = pSelectedUnit->getDiscoveryTech();
-						// advc.003:
-						int iResearchLeft = GET_TEAM(pSelectedUnit->getTeam()).getResearchLeft(eTech);
-						if (pSelectedUnit->getDiscoverResearch(eTech) >= iResearchLeft)
-						{
-							szBuffer.append(NEWLINE);
-							szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_TECH_TEXT"), GC.getTechInfo(eTech).getDescription());
-							szBuffer.append(szTempBuffer);
-							// <advc.004a>
-							/*  Probably not a good idea after all. Players might
-								not get that this is the amount of research left;
-								they could assume that they're only getting
-								(partial) progress toward eTech. */
-							/*if(iResearchLeft > 0) {
-								szTempBuffer.Format(L" (%d%c)", iResearchLeft,
-										GC.getCommerceInfo(COMMERCE_RESEARCH).
-										getChar());
-								szBuffer.append(szTempBuffer);
-							}*/ // </advc.004a>
-						}
-						else
-						{
-							szBuffer.append(NEWLINE);
-							szBuffer.append(gDLL->getText("TXT_KEY_ACTION_EXTRA_RESEARCH", pSelectedUnit->getDiscoverResearch(eTech), GC.getTechInfo(eTech).getTextKeyWide()));
-						}
-						break;
-					}
-
-					pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
-				}
-				break;
-			}
-			case MISSION_HURRY:
-			{
-				if (pMissionCity != NULL)
-				{
-					if (!(pMissionCity->isProductionBuilding()))
-					{
-						szBuffer.append(NEWLINE);
-						szBuffer.append(gDLL->getText("TXT_KEY_ACTION_BUILDING_HURRY"));
-					}
-					else
-					{
-						pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-
-						while (pSelectedUnitNode != NULL)
-						{
-							pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-
-							if (pSelectedUnit->canHurry(pMissionPlot, true))
-							{
-								const wchar* pcKey = NULL;
-								if (NO_PROJECT != pMissionCity->getProductionProject())
-								{
-									pcKey = GC.getProjectInfo(pMissionCity->getProductionProject()).getTextKeyWide();
-								}
-								else if (NO_BUILDING != pMissionCity->getProductionBuilding())
-								{
-									pcKey = GC.getBuildingInfo(pMissionCity->getProductionBuilding()).getTextKeyWide();
-								}
-								else if (NO_UNIT != pMissionCity->getProductionUnit())
-								{
-									pcKey = GC.getUnitInfo(pMissionCity->getProductionUnit()).getTextKeyWide();
-								}
-								if (NULL != pcKey && pSelectedUnit->getHurryProduction(pMissionPlot) >= pMissionCity->productionLeft())
-								{
-									szBuffer.append(NEWLINE);
-									szBuffer.append(gDLL->getText("TXT_KEY_ACTION_FINISH_CONSTRUCTION", pcKey));
-								}
-								else
-								{
-									szBuffer.append(NEWLINE);
-									szBuffer.append(gDLL->getText("TXT_KEY_ACTION_EXTRA_CONSTRUCTION", pSelectedUnit->getHurryProduction(pMissionPlot), pcKey));
-								}
-								break;
-							}
-
-							pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
-						}
-					}
-				}
-				break;
-			}
-			case MISSION_TRADE:
-			{
-				if (pMissionCity != NULL)
-				{
-					if (pMissionCity->getOwnerINLINE() == pHeadSelectedUnit->getOwnerINLINE())
-					{
-						szBuffer.append(NEWLINE);
-						szBuffer.append(gDLL->getText("TXT_KEY_ACTION_TRADE_MISSION_FOREIGN"));
-					}
-					else
-					{
-						pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-
-						while (pSelectedUnitNode != NULL)
-						{
-							pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-
-							if (pSelectedUnit->canTrade(pMissionPlot, true))
-							{
-								szTempBuffer.Format(L"%s+%d%c", NEWLINE, pSelectedUnit->getTradeGold(pMissionPlot), GC.getCommerceInfo(COMMERCE_GOLD).getChar());
-								szBuffer.append(szTempBuffer);
-								break;
-							}
-
-							pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
-						}
-					}
-				}
-				break;
-			}
-			case MISSION_GREAT_WORK:
-			{
-				pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-
-				while (pSelectedUnitNode != NULL)
-				{
-					pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-
-					if (pSelectedUnit->canGreatWork(pMissionPlot))
-					{
-						szTempBuffer.Format(L"%s+%d%c", NEWLINE, pSelectedUnit->getGreatWorkCulture(pMissionPlot), GC.getCommerceInfo(COMMERCE_CULTURE).getChar());
-						szBuffer.append(szTempBuffer);
-						break;
-					}
-
-					pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
-				}
-				break;
-			}
-			case MISSION_INFILTRATE:
-			{
-				if (pMissionCity != NULL)
-				{
-					if (pMissionCity->getOwnerINLINE() == pHeadSelectedUnit->getOwnerINLINE())
-					{
-						szBuffer.append(NEWLINE);
-						szBuffer.append(gDLL->getText("TXT_KEY_ACTION_INFILTRATE_MISSION_FOREIGN"));
-					}
-					else
-					{
-						pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-
-						while (pSelectedUnitNode != NULL)
-						{
-							pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-
-							if (pSelectedUnit->canEspionage(pMissionPlot))
-							{
-								szTempBuffer.Format(L"%s+%d%c", NEWLINE, pSelectedUnit->getEspionagePoints(pMissionPlot), GC.getCommerceInfo(COMMERCE_ESPIONAGE).getChar());
-								szBuffer.append(szTempBuffer);
-								break;
-							}
-
-							pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
-						}
-					}
-				}
-				break;
-			}
-			case MISSION_GOLDEN_AGE:
-			{
-				int iUnitConsume = GET_PLAYER(pHeadSelectedUnit->getOwnerINLINE()).unitsRequiredForGoldenAge();
-				int iUnitDiff = (iUnitConsume - GET_PLAYER(pHeadSelectedUnit->getOwnerINLINE()).unitsGoldenAgeReady());
-
-				if (iUnitDiff > 0)
-				{
-					szBuffer.append(NEWLINE);
-					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_MORE_GREAT_PEOPLE", iUnitDiff));
-				}
-
-				if (iUnitConsume > 1)
-				{
-					szBuffer.append(NEWLINE);
-					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CONSUME_GREAT_PEOPLE", iUnitConsume));
-				}
-				break;
-			}
-			case MISSION_LEAD:
-			{
-				if (pHeadSelectedUnit->getUnitInfo().getLeaderExperience() > 0)
-				{
-					int iNumUnits = pHeadSelectedUnit->canGiveExperience(pHeadSelectedUnit->plot());
-					if (iNumUnits > 0)
-					{
-						szBuffer.append(NEWLINE);
-						szBuffer.append(gDLL->getText("TXT_KEY_ACTION_LEAD_TROOPS", pHeadSelectedUnit->getStackExperienceToGive(iNumUnits)));
-					}
-				}
-				if (pHeadSelectedUnit->getUnitInfo().getLeaderPromotion() != NO_PROMOTION)
-				{
-					szBuffer.append(NEWLINE);
-					szBuffer.append(gDLL->getText("TXT_KEY_PROMOTION_WHEN_LEADING"));
-					GAMETEXT.parsePromotionHelp(szBuffer, (PromotionTypes)pHeadSelectedUnit->getUnitInfo().getLeaderPromotion(), L"\n   ");
-				}
-				break;
-			}
-			case MISSION_ESPIONAGE:
-			{
-				szBuffer.append(NEWLINE);
-				szBuffer.append(gDLL->getText("TXT_KEY_ACTION_ESPIONAGE_MISSION"));
-
-				GAMETEXT.setEspionageMissionHelp(szBuffer, pHeadSelectedUnit);
-				break;
-			}
-			case MISSION_BUILD:
-			{
-				BuildTypes eBuild = ((BuildTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getMissionData()));
-				FAssert(eBuild != NO_BUILD);
-				ImprovementTypes eImprovement = ((ImprovementTypes)(GC.getBuildInfo(eBuild).getImprovement()));
-				RouteTypes eRoute = ((RouteTypes)(GC.getBuildInfo(eBuild).getRoute()));
-				BonusTypes eBonus = pMissionPlot->getBonusType(pHeadSelectedUnit->getTeam());
-
-				for (iI = 0; iI < NUM_YIELD_TYPES; iI++)
-				{
-					int iYield = 0;
-
-					if (eImprovement != NO_IMPROVEMENT)
-					{
-						iYield += pMissionPlot->calculateImprovementYieldChange(eImprovement, ((YieldTypes)iI), pHeadSelectedUnit->getOwnerINLINE());
-						if (pMissionPlot->getImprovementType() != NO_IMPROVEMENT)
-						{
-							iYield -= pMissionPlot->calculateImprovementYieldChange(pMissionPlot->getImprovementType(), ((YieldTypes)iI), pHeadSelectedUnit->getOwnerINLINE());
-						}
-					}
-
-					if (NO_FEATURE != pMissionPlot->getFeatureType())
-					{
-						if (GC.getBuildInfo(eBuild).isFeatureRemove(pMissionPlot->getFeatureType()))
-						{
-							iYield -= GC.getFeatureInfo(pMissionPlot->getFeatureType()).getYieldChange(iI);
-						}
-					}
-
-					if (iYield != 0)
-					{
-						szTempBuffer.Format(L", %s%d%c", ((iYield > 0) ? "+" : ""), iYield, GC.getYieldInfo((YieldTypes) iI).getChar());
-						szBuffer.append(szTempBuffer);
-					}
-				}
-
-				if (NO_IMPROVEMENT != eImprovement)
-				{
-					int iHappy = GC.getImprovementInfo(eImprovement).getHappiness();
-
-					if (iHappy != 0)
-					{
-						szTempBuffer.Format(L", +%d%c", abs(iHappy), (iHappy > 0 ? gDLL->getSymbolID(HAPPY_CHAR) : gDLL->getSymbolID(UNHAPPY_CHAR)));
-						szBuffer.append(szTempBuffer);
-					}
-				}
-
-				bool bValid = false;
-
-				pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-
-				while (pSelectedUnitNode != NULL)
-				{
-					pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-
-					if (pSelectedUnit->canBuild(pMissionPlot, eBuild))
-					{
-						bValid = true;
-						break;
-					}
-
-					pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
-				}
-
-				if (!bValid)
-				{
-					if (eImprovement != NO_IMPROVEMENT)
-					{
-						if (pMissionPlot->getTeam() != pHeadSelectedUnit->getTeam())
-						{
-							if (GC.getImprovementInfo(eImprovement).isOutsideBorders())
-							{
-								if (pMissionPlot->getTeam() != NO_TEAM)
-								{
-									szBuffer.append(NEWLINE);
-									szBuffer.append(gDLL->getText("TXT_KEY_ACTION_NEEDS_OUT_RIVAL_CULTURE_BORDER"));
-								}
-							}
-							else
-							{
-								szBuffer.append(NEWLINE);
-								szBuffer.append(gDLL->getText("TXT_KEY_ACTION_NEEDS_CULTURE_BORDER"));
-							}
-						}
-
-						if (eBonus == NO_BONUS || !GC.getImprovementInfo(eImprovement).isImprovementBonusTrade(eBonus))
-						{
-							if (!GET_TEAM(pHeadSelectedUnit->getTeam()).isIrrigation() && !GET_TEAM(pHeadSelectedUnit->getTeam()).isIgnoreIrrigation())
-							{
-								if (GC.getImprovementInfo(eImprovement).isRequiresIrrigation() && !pMissionPlot->isIrrigationAvailable())
-								{
-									for (iI = 0; iI < GC.getNumTechInfos(); iI++)
-									{
-										if (GC.getTechInfo((TechTypes)iI).isIrrigation())
-										{
-											szBuffer.append(NEWLINE);
-											szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_REQUIRES_STRING", GC.getTechInfo((TechTypes)iI).getTextKeyWide()));
-											break;
-										}
-									}
-								}
-							}
-						}
-					}
-
-					if (!GET_TEAM(pHeadSelectedUnit->getTeam()).isHasTech((TechTypes)GC.getBuildInfo(eBuild).getTechPrereq()))
-					{
-						szBuffer.append(NEWLINE);
-						szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_REQUIRES_STRING", GC.getTechInfo((TechTypes) GC.getBuildInfo(eBuild).getTechPrereq()).getTextKeyWide()));
-					}
-
-					if (eRoute != NO_ROUTE)
-					{
-						if (GC.getRouteInfo(eRoute).getPrereqBonus() != NO_BONUS)
-						{
-							if (!pMissionPlot->isAdjacentPlotGroupConnectedBonus(pHeadSelectedUnit->getOwnerINLINE(), ((BonusTypes)(GC.getRouteInfo(eRoute).getPrereqBonus()))))
-							{
-								szBuffer.append(NEWLINE);
-								szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_REQUIRES_STRING", GC.getBonusInfo((BonusTypes) GC.getRouteInfo(eRoute).getPrereqBonus()).getTextKeyWide()));
-							}
-						}
-
-						bool bFoundValid = true;
-						std::vector<BonusTypes> aeOrBonuses;
-						for (int i = 0; i < GC.getNUM_ROUTE_PREREQ_OR_BONUSES(); ++i)
-						{
-							if (NO_BONUS != GC.getRouteInfo(eRoute).getPrereqOrBonus(i))
-							{
-								aeOrBonuses.push_back((BonusTypes)GC.getRouteInfo(eRoute).getPrereqOrBonus(i));
-								bFoundValid = false;
-
-								if (pMissionPlot->isAdjacentPlotGroupConnectedBonus(pHeadSelectedUnit->getOwnerINLINE(), ((BonusTypes)(GC.getRouteInfo(eRoute).getPrereqOrBonus(i)))))
-								{
-									bFoundValid = true;
-									break;
-								}
-							}
-						}
-
-						if (!bFoundValid)
-						{
-							bool bFirst = true;
-							for (std::vector<BonusTypes>::iterator it = aeOrBonuses.begin(); it != aeOrBonuses.end(); ++it)
-							{
-								szFirstBuffer = NEWLINE + gDLL->getText("TXT_KEY_BUILDING_REQUIRES_LIST");
-								szTempBuffer.Format( SETCOLR L"<link=literal>%s</link>" ENDCOLR , TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), GC.getBonusInfo(*it).getDescription());
-								setListHelp(szBuffer, szFirstBuffer.GetCString(), szTempBuffer, gDLL->getText("TXT_KEY_OR").c_str(), bFirst);
-								bFirst = false;
-							}
-						}
-					}
-
-					if (pMissionPlot->getFeatureType() != NO_FEATURE)
-					{
-						if (!GET_TEAM(pHeadSelectedUnit->getTeam()).isHasTech((TechTypes)GC.getBuildInfo(eBuild).getFeatureTech(pMissionPlot->getFeatureType())))
-						{
-							szBuffer.append(NEWLINE);
-							szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_REQUIRES_STRING", GC.getTechInfo((TechTypes) GC.getBuildInfo(eBuild).getFeatureTech(pMissionPlot->getFeatureType())).getTextKeyWide()));
-						}
-					}
-				}
-
-				if (eImprovement != NO_IMPROVEMENT)
-				{
-					if (pMissionPlot->getImprovementType() != NO_IMPROVEMENT)
-					{
-						szBuffer.append(NEWLINE);
-						szBuffer.append(gDLL->getText("TXT_KEY_ACTION_WILL_DESTROY_IMP", GC.getImprovementInfo(pMissionPlot->getImprovementType()).getTextKeyWide()));
-					}
-				}
-
-				if (GC.getBuildInfo(eBuild).isKill())
-				{
-					szBuffer.append(NEWLINE);
-					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CONSUME_UNIT"));
-				}
-
-				if (pMissionPlot->getFeatureType() != NO_FEATURE)
-				{
-					if (GC.getBuildInfo(eBuild).isFeatureRemove(pMissionPlot->getFeatureType()))
-					{
-						CvCity* pCity=NULL;
-						int iProduction = pMissionPlot->getFeatureProduction(eBuild, pHeadSelectedUnit->getTeam(), &pCity);
-
-						if (iProduction > 0)
-						{
-							szBuffer.append(NEWLINE);
-							szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CHANGE_PRODUCTION", iProduction, pCity->getNameKey()));
-						}
-
-						szBuffer.append(NEWLINE);
-						szBuffer.append(gDLL->getText("TXT_KEY_ACTION_REMOVE_FEATURE", GC.getFeatureInfo(pMissionPlot->getFeatureType()).getTextKeyWide()));
-
-/*************************************************************************************************/
-/* UNOFFICIAL_PATCH                       06/10/10                           EmperorFool         */
-/*                                                                                               */
-/* Bugfix                                                                                        */
-/*************************************************************************************************/
-						if (eImprovement == NO_IMPROVEMENT && pMissionPlot->getImprovementType() != NO_IMPROVEMENT && GC.getImprovementInfo(pMissionPlot->getImprovementType()).getFeatureMakesValid(pMissionPlot->getFeatureType()))
-						{
-							szBuffer.append(NEWLINE);
-							szBuffer.append(gDLL->getText("TXT_KEY_ACTION_WILL_DESTROY_IMP", GC.getImprovementInfo(pMissionPlot->getImprovementType()).getTextKeyWide()));
-						}
-/*************************************************************************************************/
-/* UNOFFICIAL_PATCH                         END                                                  */
-/*************************************************************************************************/
-					}
-
-				}
-
-				if (eImprovement != NO_IMPROVEMENT)
-				{
-					if (eBonus != NO_BONUS)
-					{
-						//if (!GET_TEAM(pHeadSelectedUnit->getTeam()).isBonusObsolete(eBonus))
-						if (GET_PLAYER(pHeadSelectedUnit->getOwnerINLINE()).doesImprovementConnectBonus(eImprovement, eBonus)) // K-Mod
-						{
-							//if (GC.getImprovementInfo(eImprovement).isImprovementBonusTrade(eBonus))
-							{
-								szBuffer.append(NEWLINE);
-								szBuffer.append(gDLL->getText("TXT_KEY_ACTION_PROVIDES_BONUS", GC.getBonusInfo(eBonus).getTextKeyWide()));
-
-								if (GC.getBonusInfo(eBonus).getHealth() != 0)
-								{
-									szTempBuffer.Format(L" (+%d%c)", abs(GC.getBonusInfo(eBonus).getHealth()), ((GC.getBonusInfo(eBonus).getHealth() > 0) ? gDLL->getSymbolID(HEALTHY_CHAR) : gDLL->getSymbolID(UNHEALTHY_CHAR)));
-									szBuffer.append(szTempBuffer);
-								}
-
-								if (GC.getBonusInfo(eBonus).getHappiness() != 0)
-								{
-									szTempBuffer.Format(L" (+%d%c)", abs(GC.getBonusInfo(eBonus).getHappiness()), ((GC.getBonusInfo(eBonus).getHappiness() > 0) ? gDLL->getSymbolID(HAPPY_CHAR) : gDLL->getSymbolID(UNHAPPY_CHAR)));
-									szBuffer.append(szTempBuffer);
-								}
-							}
-						}
-					}
-					else
-					{
-						int iLast = 0;
-
-						FAssertMsg(0 < GC.getNumBonusInfos(), "GC.getNumBonusInfos() is negative but an array is being allocated in CvDLLWidgetData::parseActionHelp");
-						for (iI = 0; iI < GC.getNumBonusInfos(); iI++)
-						{
-							if (GET_TEAM(pHeadSelectedUnit->getTeam()).isHasTech((TechTypes)(GC.getBonusInfo((BonusTypes) iI).getTechReveal())))
-							{
-								if (GC.getImprovementInfo(eImprovement).getImprovementBonusDiscoverRand(iI) > 0)
-								{
-									szFirstBuffer.Format(L"%s%s", NEWLINE, gDLL->getText("TXT_KEY_ACTION_CHANCE_DISCOVER").c_str());
-									szTempBuffer.Format(L"%c", GC.getBonusInfo((BonusTypes) iI).getChar());
-									setListHelp(szBuffer, szFirstBuffer, szTempBuffer, L", ", (GC.getImprovementInfo(eImprovement).getImprovementBonusDiscoverRand(iI) != iLast));
-									iLast = GC.getImprovementInfo(eImprovement).getImprovementBonusDiscoverRand(iI);
-								}
-							}
-						}
-					}
-
-					if (!pMissionPlot->isIrrigationAvailable())
-					{
-						GAMETEXT.setYieldChangeHelp(szBuffer, gDLL->getText("TXT_KEY_ACTION_IRRIGATED").c_str(), L": ", L"", GC.getImprovementInfo(eImprovement).getIrrigatedYieldChangeArray());
-					}
-
-					if (eRoute == NO_ROUTE)
-					{
-						for (iI = 0; iI < GC.getNumRouteInfos(); iI++)
-						{
-							if (pMissionPlot->getRouteType() != ((RouteTypes)iI))
-							{
-								GAMETEXT.setYieldChangeHelp(szBuffer, GC.getRouteInfo((RouteTypes)iI).getDescription(), L": ", L"", GC.getImprovementInfo(eImprovement).getRouteYieldChangesArray((RouteTypes)iI));
-							}
-						}
-					}
-
-					if (GC.getImprovementInfo(eImprovement).getDefenseModifier() != 0)
-					{
-						szBuffer.append(NEWLINE);
-						szBuffer.append(gDLL->getText("TXT_KEY_ACTION_DEFENSE_MODIFIER", GC.getImprovementInfo(eImprovement).getDefenseModifier()));
-					}
-
-					if (GC.getImprovementInfo(eImprovement).getImprovementUpgrade() != NO_IMPROVEMENT)
-					{
-						int iTurns = pMissionPlot->getUpgradeTimeLeft(eImprovement, pHeadSelectedUnit->getOwnerINLINE());
-
-						szBuffer.append(NEWLINE);
-						szBuffer.append(gDLL->getText("TXT_KEY_ACTION_BECOMES_IMP", GC.getImprovementInfo((ImprovementTypes) GC.getImprovementInfo(eImprovement).getImprovementUpgrade()).getTextKeyWide(), iTurns));
-					}
-				}
-
-				if (eRoute != NO_ROUTE)
-				{
-					ImprovementTypes eFinalImprovement = eImprovement;
-
-					if (eFinalImprovement == NO_IMPROVEMENT)
-					{
-						eFinalImprovement = pMissionPlot->getImprovementType();
-					}
-
-					if (eFinalImprovement != NO_IMPROVEMENT)
-					{
-						GAMETEXT.setYieldChangeHelp(szBuffer, GC.getImprovementInfo(eFinalImprovement).getDescription(), L": ", L"", GC.getImprovementInfo(eFinalImprovement).getRouteYieldChangesArray(eRoute));
-					}
-
-					int iMovementCost = GC.getRouteInfo(eRoute).getMovementCost() + GET_TEAM(pHeadSelectedUnit->getTeam()).getRouteChange(eRoute);
-					int iFlatMovementCost = GC.getRouteInfo(eRoute).getFlatMovementCost();
-					int iMoves = GC.getMOVE_DENOMINATOR();
-					if (iMovementCost > 0)
-					{
-						iMoves /= iMovementCost;
-
-						if ((iMoves * iMovementCost) < GC.getMOVE_DENOMINATOR())
-						{
-							iMoves++;
-						}
-					}
-
-					int iFlatMoves = GC.getMOVE_DENOMINATOR();
-					if (iFlatMovementCost > 0)
-					{
-						iFlatMoves /= iFlatMovementCost;
-
-						if ((iFlatMoves * iFlatMovementCost) < GC.getMOVE_DENOMINATOR())
-						{
-							iFlatMoves++;
-						}
-					}
-
-					if (iMoves > 1 || iFlatMoves > 1)
-					{
-						if (iMoves >= iFlatMoves)
-						{
-							szBuffer.append(NEWLINE);
-							szBuffer.append(gDLL->getText("TXT_KEY_ACTION_MOVEMENT_COST", iMoves));
-						}
-						else
-						{
-							szBuffer.append(NEWLINE);
-							szBuffer.append(gDLL->getText("TXT_KEY_ACTION_FLAT_MOVEMENT_COST", iFlatMoves));
-						}
-					}
-
-					szBuffer.append(NEWLINE);
-					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CONNECTS_RESOURCES"));
-				}
-
-				int iNowWorkRate = 0;
-				int iThenWorkRate = 0;
-
-				pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-
-				if (NULL != pHeadSelectedUnit)
-				{
-					if (GET_PLAYER(pHeadSelectedUnit->getOwnerINLINE()).getBuildCost(pMissionPlot, eBuild) > 0)
-					{
-						szBuffer.append(NEWLINE);
-						szBuffer.append(gDLL->getText("TXT_KEY_BUILD_COST", GET_PLAYER(pHeadSelectedUnit->getOwnerINLINE()).getBuildCost(pMissionPlot, eBuild)));
-					}
-				}
-
-				while (pSelectedUnitNode != NULL)
-				{
-					pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-
-					if (pSelectedUnit->getBuildType() != eBuild)
-					{
-						iNowWorkRate += pSelectedUnit->workRate(false);
-						iThenWorkRate += pSelectedUnit->workRate(true);
-					}
-
-					pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
-				}
-
-				int iTurns = pMissionPlot->getBuildTurnsLeft(eBuild,
-						GC.getGameINLINE().getActivePlayer(), // advc.251
-						iNowWorkRate, iThenWorkRate);
-
-
-				szBuffer.append(NEWLINE);
-				szBuffer.append(gDLL->getText("TXT_KEY_ACTION_NUM_TURNS", iTurns));
-
-				if (!CvWString(GC.getBuildInfo(eBuild).getHelp()).empty())
-				{
-					szBuffer.append(CvWString::format(L"%s%s", NEWLINE, GC.getBuildInfo(eBuild).getHelp()).c_str());
-				}
-				// <advc.011b>
-				if(bValid && iTurns > 1 && GC.ctrlKey()) {
-					szBuffer.append(NEWLINE);
-					szBuffer.append(gDLL->getText("TXT_KEY_SUSPEND_WORK"));
-				} // </advc.011b>
-				break; // advc.003: Last case of switch(eMission)
-			}
-			}
-
-			if (!CvWString(GC.getMissionInfo(eMission).getHelp()).empty())
-			{
-				// <advc.004a>
-				if(pHeadSelectedUnit != NULL && eMission == MISSION_DISCOVER)
-					szBuffer.append(getDiscoverPathText(
-							pHeadSelectedUnit->getUnitType(),
-							pHeadSelectedUnit->getOwner()));
-				else
-				// </advc.004a>
-					szBuffer.append(CvWString::format(L"%s%s", NEWLINE,
-					GC.getMissionInfo(eMission).getHelp()).c_str());
-			}
+		MissionTypes eMission = (MissionTypes)kAction.getMissionType();
+		if(eMission != NO_MISSION) {
+			// advc.003: Moved into subroutine
+			parseActionHelp_Mission(kAction, *pHeadSelectedUnit, eMission, szBuffer);
 		}
-
-		if (GC.getActionInfo(widgetDataStruct.m_iData1).getCommandType() != NO_COMMAND)
+		if (kAction.getCommandType() != NO_COMMAND)
 		{
-			if (GC.getActionInfo(widgetDataStruct.m_iData1).getCommandType() == COMMAND_PROMOTION)
+			bool bAlt = GC.altKey();
+			CvWString szTempBuffer;
+			CLLNode<IDInfo>* pSelectedUnitNode=NULL;
+			CvUnit* pSelectedUnit=NULL;
+			if (kAction.getCommandType() == COMMAND_PROMOTION)
 			{
-				GAMETEXT.parsePromotionHelp(szBuffer, ((PromotionTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getCommandData())));
+				GAMETEXT.parsePromotionHelp(szBuffer,
+						(PromotionTypes)kAction.getCommandData());
 			}
-			else if (GC.getActionInfo(widgetDataStruct.m_iData1).getCommandType() == COMMAND_UPGRADE)
+			else if (kAction.getCommandType() == COMMAND_UPGRADE)
 			{
-				GAMETEXT.setBasicUnitHelp(szBuffer, ((UnitTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getCommandData())));
+				GAMETEXT.setBasicUnitHelp(szBuffer, (UnitTypes)kAction.getCommandData());
 
 				int iPrice = 0;
-				if (bAlt && GC.getCommandInfo((CommandTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getCommandType())).getAll())
+				if (bAlt && GC.getCommandInfo((CommandTypes)kAction.getCommandType()).getAll())
 				{
-					iPrice = GET_PLAYER(pHeadSelectedUnit->getOwnerINLINE()).upgradeAllPrice(((UnitTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getCommandData())), pHeadSelectedUnit->getUnitType());
+					iPrice = GET_PLAYER(pHeadSelectedUnit->getOwnerINLINE()).
+							upgradeAllPrice((UnitTypes) kAction.getCommandData(),
+							pHeadSelectedUnit->getUnitType());
 				}
 				else
 				{
@@ -3078,9 +2093,10 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 					{
 						pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
 
-						if (pSelectedUnit->canUpgrade(((UnitTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getCommandData())), true))
+						if (pSelectedUnit->canUpgrade((UnitTypes)kAction.getCommandData(), true))
 						{
-							iPrice += pSelectedUnit->upgradePrice((UnitTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getCommandData()));
+							iPrice += pSelectedUnit->upgradePrice((UnitTypes)
+									kAction.getCommandData());
 						}
 
 						pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
@@ -3090,7 +2106,7 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 				szTempBuffer.Format(L"%s%d %c", NEWLINE, iPrice, GC.getCommerceInfo(COMMERCE_GOLD).getChar());
 				szBuffer.append(szTempBuffer);
 			}
-			else if (GC.getActionInfo(widgetDataStruct.m_iData1).getCommandType() == COMMAND_GIFT)
+			else if (kAction.getCommandType() == COMMAND_GIFT)
 			{
 				PlayerTypes eGiftPlayer = pHeadSelectedUnit->plot()->getOwnerINLINE();
 
@@ -3099,7 +2115,12 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 					szBuffer.append(NEWLINE);
 					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_GOES_TO_CIV"));
 
-					szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, GET_PLAYER(eGiftPlayer).getPlayerTextColorR(), GET_PLAYER(eGiftPlayer).getPlayerTextColorG(), GET_PLAYER(eGiftPlayer).getPlayerTextColorB(), GET_PLAYER(eGiftPlayer).getPlayerTextColorA(), GET_PLAYER(eGiftPlayer).getCivilizationShortDescription());
+					szTempBuffer.Format(SETCOLR L"%s" ENDCOLR,
+							GET_PLAYER(eGiftPlayer).getPlayerTextColorR(),
+							GET_PLAYER(eGiftPlayer).getPlayerTextColorG(),
+							GET_PLAYER(eGiftPlayer).getPlayerTextColorB(),
+							GET_PLAYER(eGiftPlayer).getPlayerTextColorA(),
+							GET_PLAYER(eGiftPlayer).getCivilizationShortDescription());
 					szBuffer.append(szTempBuffer);
 
 					pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
@@ -3111,7 +2132,8 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 						if (!(GET_PLAYER(eGiftPlayer).AI_acceptUnit(pSelectedUnit)))
 						{
 							szBuffer.append(NEWLINE);
-							szBuffer.append(gDLL->getText("TXT_KEY_REFUSE_GIFT", GET_PLAYER(eGiftPlayer).getNameKey()));
+							szBuffer.append(gDLL->getText("TXT_KEY_REFUSE_GIFT",
+									GET_PLAYER(eGiftPlayer).getNameKey()));
 							break;
 						}
 
@@ -3119,43 +2141,1070 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 					}
 				}
 			}
-
-			if (GC.getCommandInfo((CommandTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getCommandType())).getAll())
+			CvCommandInfo const& kCommand = GC.getCommandInfo((CommandTypes)kAction.getCommandType());
+			if (kCommand.getAll())
 			{
 				szBuffer.append(gDLL->getText("TXT_KEY_ACTION_ALL_UNITS"));
 			}
 
-			if (!CvWString(GC.getCommandInfo((CommandTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getCommandType())).getHelp()).empty())
+			if (!CvWString(kCommand.getHelp()).empty())
 			{
-				szBuffer.append(CvWString::format(L"%s%s", NEWLINE, GC.getCommandInfo((CommandTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getCommandType())).getHelp()).c_str());
+				szBuffer.append(CvWString::format(L"%s%s", NEWLINE,
+						kCommand.getHelp()).c_str());
 			}
+			// <advc.004b>
+			if(kAction.getCommandType() == COMMAND_DELETE) {
+				CvPlayer const& kActivePl = GET_PLAYER(GC.getGameINLINE().getActivePlayer());
+				szBuffer.append(L" (");
+				int iCurrentUnitExpenses = kActivePl.calculateUnitSupply() +
+						kActivePl.calculateUnitCost();
+				// Needed in order to account for inflation
+				int iOtherExpenses = kActivePl.getTotalMaintenance() +
+						kActivePl.getCivicUpkeep();
+				int iInflationPercent = kActivePl.calculateInflationRate();
+				int iCurrentExpenses = ((iOtherExpenses + iCurrentUnitExpenses) *
+						(iInflationPercent + 100)) / 100;
+				FAssert(iCurrentExpenses == kActivePl.calculateInflatedCosts());
+				int iExtraCost = 0;
+				int iUnits = 0;
+				pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+				while(pSelectedUnitNode != NULL) {
+					CvUnit const& u = *::getUnit(pSelectedUnitNode->m_data);
+					iExtraCost += u.getUnitInfo().getExtraCost();
+					iUnits--;
+					pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+				}
+				int iProjectedSupply = 0;
+				bool bSupply = (pHeadSelectedUnit->plot()->getTeam() != kActivePl.getTeam());
+				iProjectedSupply = kActivePl.calculateUnitSupply(bSupply ? iUnits : 0);
+				int iProjectedUnitCost = kActivePl.calculateUnitCost(0, iUnits);
+				int iProjectedExpenses = iProjectedSupply + iProjectedUnitCost +
+						iOtherExpenses - iExtraCost;
+				iProjectedExpenses = (iProjectedExpenses *
+						(iInflationPercent + 100)) / 100;
+				FAssert(iExtraCost >= 0 && iProjectedExpenses >= 0);
+				int iGold = iCurrentExpenses - iProjectedExpenses;
+				if(iGold > 0) {
+					szBuffer.append(gDLL->getText("TXT_KEY_COMMAND_DELETE_DECREASE",
+							iGold));
+				}
+				else {
+					FAssert(iGold == 0);
+					int iMaxTries = 5;
+					int iDeltaUnits = 0;
+					int iOldProj = iProjectedExpenses;
+					for(int i = 1; i <= iMaxTries; i++) {
+						/*  Assume that the additional units are inside borders:
+							only recompute UnitCost. */
+						iProjectedExpenses = iProjectedSupply - iExtraCost +
+								iOtherExpenses;
+						iProjectedExpenses += kActivePl.calculateUnitCost(0, iUnits - i);
+						iProjectedExpenses = (iProjectedExpenses *
+								(iInflationPercent + 100)) / 100;
+						if(iProjectedExpenses < iOldProj) {
+							iDeltaUnits = i;
+							break;
+						}
+					}
+					if(iDeltaUnits > 0) {
+						if(iDeltaUnits == 1)
+							szBuffer.append(gDLL->getText("TXT_KEY_COMMAND_DELETE_ONE_MORE"));
+						else szBuffer.append(gDLL->getText("TXT_KEY_COMMAND_DELETE_MORE",
+								iDeltaUnits));
+					}
+					else if(bSupply)
+						szBuffer.append(gDLL->getText("TXT_KEY_COMMAND_DELETE_NO_DECREASE"));
+					else szBuffer.append(gDLL->getText("TXT_KEY_COMMAND_DELETE_NO_DECREASE_UNIT_COST"));
+				}
+				szBuffer.append(L")");
+			} // </advc.004b>
 		}
 
-		if (GC.getActionInfo(widgetDataStruct.m_iData1).getAutomateType() != NO_AUTOMATE)
+		if (kAction.getAutomateType() != NO_AUTOMATE)
 		{
-			if (!CvWString(GC.getAutomateInfo((ControlTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getAutomateType())).getHelp()).empty())
+			CvAutomateInfo const& kAutomate = GC.getAutomateInfo((ControlTypes)
+					kAction.getAutomateType());
+			if (!CvWString(kAutomate.getHelp()).empty())
 			{
-				szBuffer.append(CvWString::format(L"%s%s", NEWLINE, GC.getAutomateInfo((ControlTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getAutomateType())).getHelp()).c_str());
+				szBuffer.append(CvWString::format(L"%s%s", NEWLINE,
+						kAutomate.getHelp()).c_str());
 			}
 		}
 	}
 
-	if (GC.getActionInfo(widgetDataStruct.m_iData1).getControlType() != NO_CONTROL)
+	if (kAction.getControlType() != NO_CONTROL)
 	{
-		if (!CvWString(GC.getControlInfo((ControlTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getControlType())).getHelp()).empty())
+		CvControlInfo const& kControl = GC.getControlInfo((ControlTypes)
+				kAction.getControlType());
+		if (!CvWString(kControl.getHelp()).empty())
 		{
-			szBuffer.append(CvWString::format(L"%s%s", NEWLINE, GC.getControlInfo((ControlTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getControlType())).getHelp()).c_str());
+			szBuffer.append(CvWString::format(L"%s%s", NEWLINE,
+					kControl.getHelp()).c_str());
 		}
 	}
 
-	if (GC.getActionInfo(widgetDataStruct.m_iData1).getInterfaceModeType() != NO_INTERFACEMODE)
+	if (kAction.getInterfaceModeType() != NO_INTERFACEMODE)
 	{
-		if (!CvWString(GC.getInterfaceModeInfo((InterfaceModeTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getInterfaceModeType())).getHelp()).empty())
-		{
-			szBuffer.append(CvWString::format(L"%s%s", NEWLINE, GC.getInterfaceModeInfo((InterfaceModeTypes)(GC.getActionInfo(widgetDataStruct.m_iData1).getInterfaceModeType())).getHelp()).c_str());
+		CvInterfaceModeInfo const& kIMode = GC.getInterfaceModeInfo((InterfaceModeTypes)
+				kAction.getInterfaceModeType());
+		if (!CvWString(kIMode.getHelp()).empty()) {
+			szBuffer.append(CvWString::format(L"%s%s", NEWLINE,
+					kIMode.getHelp()).c_str());
 		}
 	}
 }
+
+
+// advc.003: Cut from parseActionHelp, refactored.
+void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
+		CvUnit const& kUnit, MissionTypes eMission, CvWStringBuffer& szBuffer) {
+
+	CLLNode<IDInfo>* pSelectedUnitNode=NULL;
+	CvUnit* pSelectedUnit=NULL;
+
+	CvGame const& g = GC.getGameINLINE();
+	CvPlayer const& kUnitOwner = GET_PLAYER(kUnit.getOwnerINLINE());
+	CvTeam const& kUnitTeam = GET_TEAM(kUnit.getTeam());
+	bool bShift = GC.shiftKey();
+	CvWString szTempBuffer;
+	CvWString szFirstBuffer;
+
+	CvPlot const& kMissionPlot = (
+			(bShift && gDLL->getInterfaceIFace()->mirrorsSelectionGroup()) ?
+			*kUnit.getGroup()->lastMissionPlot() :
+			*kUnit.plot());
+	CvCity* pMissionCity = kMissionPlot.getPlotCity();
+
+	switch(eMission) { // advc.003: was if/else
+	case MISSION_SENTRY_HEAL: // advc.004l
+	case MISSION_HEAL:
+	{
+		int iTurns = 0;
+		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+		while (pSelectedUnitNode != NULL)
+		{
+			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
+			iTurns = std::max(iTurns, pSelectedUnit->healTurns(&kMissionPlot));
+
+			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+		}
+		szBuffer.append(NEWLINE);
+		szBuffer.append(gDLL->getText("TXT_KEY_MISC_TURN_OR_TURNS", iTurns));
+		break;
+	}
+	case MISSION_PILLAGE:
+	{
+		if (kMissionPlot.getImprovementType() != NO_IMPROVEMENT)
+		{
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_ACTION_DESTROY_IMP",
+					GC.getImprovementInfo(kMissionPlot.getImprovementType()).
+					getTextKeyWide()));
+		}
+		else if (kMissionPlot.getRouteType() != NO_ROUTE)
+		{
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_ACTION_DESTROY_IMP",
+					GC.getRouteInfo(kMissionPlot.getRouteType()).getTextKeyWide()));
+		}
+		break;
+	}
+	case MISSION_PLUNDER:
+	{
+		//if (kMissionPlot.getTeam() == kUnitTeam.getID())
+		if(!kUnit.canPlunder(&kMissionPlot)) // advc.033
+		{
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_ACTION_PLUNDER_IN_BORDERS"));
+		}
+		break;
+	}
+	case MISSION_SABOTAGE:
+	{
+		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+		while (pSelectedUnitNode != NULL)
+		{
+			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
+			// XXX if queuing up this action, use the current plot along the goto...
+			if (pSelectedUnit->canSabotage(&kMissionPlot, true))
+			{
+				int iPrice = pSelectedUnit->sabotageCost(&kMissionPlot);
+				if (iPrice > 0)
+				{
+					szTempBuffer.Format(L"%d %c", iPrice,
+							GC.getCommerceInfo(COMMERCE_GOLD).getChar());
+					szBuffer.append(NEWLINE);
+					szBuffer.append(szTempBuffer);
+				}
+				int iLow = pSelectedUnit->sabotageProb(&kMissionPlot, PROBABILITY_LOW);
+				int iHigh = pSelectedUnit->sabotageProb(&kMissionPlot, PROBABILITY_HIGH);
+				if (iLow == iHigh)
+				{
+					szBuffer.append(NEWLINE);
+					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_PROBABILITY", iHigh));
+				}
+				else
+				{
+					szBuffer.append(NEWLINE);
+					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_PROBABILITY_RANGE",
+							iLow, iHigh));
+				}
+				break;
+			}
+			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+		}
+		break;
+	}
+	case MISSION_DESTROY:
+	{
+		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+		while (pSelectedUnitNode != NULL)
+		{
+			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
+			// XXX if queuing up this action, use the current plot along the goto...
+			if (pSelectedUnit->canDestroy(&kMissionPlot, true))
+			{
+				int iPrice = pSelectedUnit->destroyCost(&kMissionPlot);
+				if (iPrice > 0)
+				{
+					szTempBuffer.Format(L"%d %c", iPrice,
+							GC.getCommerceInfo(COMMERCE_GOLD).getChar());
+					szBuffer.append(NEWLINE);
+					szBuffer.append(szTempBuffer);
+				}
+				int iLow = pSelectedUnit->destroyProb(&kMissionPlot, PROBABILITY_LOW);
+				int iHigh = pSelectedUnit->destroyProb(&kMissionPlot, PROBABILITY_HIGH);
+				if (iLow == iHigh)
+				{
+					szBuffer.append(NEWLINE);
+					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_PROBABILITY", iHigh));
+				}
+				else
+				{
+					szBuffer.append(NEWLINE);
+					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_PROBABILITY_RANGE",
+							iLow, iHigh));
+				}
+				break;
+			}
+			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+		}
+		break;
+	}
+	case MISSION_STEAL_PLANS:
+	{
+		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+		while (pSelectedUnitNode != NULL)
+		{
+			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
+			// XXX if queuing up this action, use the current plot along the goto...
+			if (pSelectedUnit->canStealPlans(&kMissionPlot, true))
+			{
+				int iPrice = pSelectedUnit->stealPlansCost(&kMissionPlot);
+				if (iPrice > 0)
+				{
+					szTempBuffer.Format(L"%d %c", iPrice,
+							GC.getCommerceInfo(COMMERCE_GOLD).getChar());
+					szBuffer.append(NEWLINE);
+					szBuffer.append(szTempBuffer);
+				}
+				int iLow = pSelectedUnit->stealPlansProb(&kMissionPlot, PROBABILITY_LOW);
+				int iHigh = pSelectedUnit->stealPlansProb(&kMissionPlot, PROBABILITY_HIGH);
+				if (iLow == iHigh)
+				{
+					szBuffer.append(NEWLINE);
+					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_PROBABILITY", iHigh));
+				}
+				else
+				{
+					szBuffer.append(NEWLINE);
+					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_PROBABILITY_RANGE",
+							iLow, iHigh));
+				}
+				break;
+			}
+			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+		}
+		break;
+	}
+	case MISSION_FOUND:
+	{
+		if (!kUnitOwner.canFound(kMissionPlot.getX_INLINE(), kMissionPlot.getY_INLINE()))
+		{
+			bool bValid = true;
+			int iRange = GC.getMIN_CITY_RANGE();
+			for (int iDX = -(iRange); iDX <= iRange; iDX++)
+			{
+				for (int iDY = -(iRange); iDY <= iRange; iDY++)
+				{
+					CvPlot* pLoopPlot = plotXY(kMissionPlot.getX_INLINE(),
+							kMissionPlot.getY_INLINE(), iDX, iDY);
+					if (pLoopPlot != NULL)
+					{
+						if (pLoopPlot->isCity())
+							bValid = false;
+					}
+				}
+			}
+			if (!bValid)
+			{
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CANNOT_FOUND",
+						GC.getMIN_CITY_RANGE()));
+			}
+		}
+		// <advc.004b> Show the projected increase in city maintenance
+		else {
+			// No projection for the initial city
+			if(kUnitOwner.getNumCities() > 0)
+				szBuffer.append(getFoundCostText(kMissionPlot, kUnitOwner.getID()));
+			szBuffer.append(getHomePlotYieldText(kMissionPlot, kUnitOwner.getID()));
+			szBuffer.append(getNetFeatureHealthText(kMissionPlot, kUnitOwner.getID()));
+			// To set the info apart from TXT_KEY_MISSION_BUILD_CITY_HELP
+			szBuffer.append(NEWLINE);
+		} // </advc.004b>
+		break;
+	}
+	case MISSION_SPREAD:
+	{
+		ReligionTypes eReligion = (ReligionTypes)kAction.getMissionData();
+		if(pMissionCity == NULL)
+			break;
+		if (pMissionCity->getTeam() != kUnitTeam.getID()) // XXX still true???
+		{
+			if (GET_PLAYER(pMissionCity->getOwnerINLINE()).isNoNonStateReligionSpread())
+			{
+				if (eReligion != GET_PLAYER(pMissionCity->getOwnerINLINE()).
+						getStateReligion())
+				{
+					szBuffer.append(NEWLINE);
+					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CANNOT_SPREAD_NON_STATE_RELIGION"));
+				}
+			}
+		}
+
+		szBuffer.append(NEWLINE);
+		GAMETEXT.setReligionHelpCity(szBuffer, eReligion, pMissionCity, false, true);
+		break;
+	}
+	case MISSION_SPREAD_CORPORATION:
+	{
+		CorporationTypes eCorporation = (CorporationTypes)kAction.getMissionData();
+		if(pMissionCity == NULL)
+			break;
+		szBuffer.append(NEWLINE);
+		GAMETEXT.setCorporationHelpCity(szBuffer, eCorporation, pMissionCity, false, true);
+		for (int i = 0; i < GC.getNumCorporationInfos(); i++)
+		{
+			CorporationTypes eLoopCorp = (CorporationTypes)i;
+			if (eCorporation != eLoopCorp)
+			{
+				if (pMissionCity->isHasCorporation(eLoopCorp))
+				{
+					if (g.isCompetingCorporation(eCorporation, eLoopCorp))
+					{
+						szBuffer.append(NEWLINE);
+						szBuffer.append(gDLL->getText("TXT_KEY_ACTION_WILL_ELIMINATE_CORPORATION",
+								GC.getCorporationInfo(eLoopCorp).getTextKeyWide()));
+					}
+				}
+			}
+		}
+		CvPlayer const& kMissionCityOwner = GET_PLAYER(pMissionCity->getOwnerINLINE());
+		szTempBuffer.Format(L"%s%d %c", NEWLINE, kUnit.spreadCorporationCost(
+				eCorporation, pMissionCity),
+				GC.getCommerceInfo(COMMERCE_GOLD).getChar());
+		szBuffer.append(szTempBuffer);
+		if (!kUnit.canSpreadCorporation(&kMissionPlot, eCorporation))
+		{
+			if (!kMissionCityOwner.isActiveCorporation(eCorporation))
+			{
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CORPORATION_NOT_ACTIVE",
+						GC.getCorporationInfo(eCorporation).getTextKeyWide(),
+						kMissionCityOwner.getCivilizationAdjective()));
+			}
+			CorporationTypes eCompetition = NO_CORPORATION;
+			for (int i = 0; i < GC.getNumCorporationInfos(); i++)
+			{
+				CorporationTypes eLoopCorp = (CorporationTypes)i;
+				if (pMissionCity->isHeadquarters(eLoopCorp))
+				{
+					if (g.isCompetingCorporation(eLoopCorp, eCorporation))
+					{
+						eCompetition = eLoopCorp;
+						break;
+					}
+				}
+			}
+			if (NO_CORPORATION != eCompetition)
+			{
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CORPORATION_COMPETING_HEADQUARTERS",
+						GC.getCorporationInfo(eCorporation).getTextKeyWide(),
+						GC.getCorporationInfo(eCompetition).getTextKeyWide()));
+			}
+			CvWStringBuffer szBonusList;
+			bool bValid = false;
+			bool bFirst = true;
+			for (int i = 0; i < GC.getNUM_CORPORATION_PREREQ_BONUSES(); ++i)
+			{
+				BonusTypes eBonus = (BonusTypes)GC.getCorporationInfo(eCorporation).
+						getPrereqBonus(i);
+				if (NO_BONUS == eBonus)
+					continue;
+					if (!bFirst)
+						szBonusList.append(L", ");
+					else bFirst = false;
+					szBonusList.append(GC.getBonusInfo(eBonus).getDescription());
+					if (pMissionCity->hasBonus(eBonus))
+					{
+						bValid = true;
+						break;
+					}
+			}
+			if (!bValid)
+			{
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CORPORATION_NO_RESOURCES",
+						pMissionCity->getNameKey(), szBonusList.getCString()));
+			}
+		}
+		break;
+	}
+	case MISSION_JOIN:
+	{
+		GAMETEXT.parseSpecialistHelp(szBuffer, (SpecialistTypes)
+				kAction.getMissionData(), pMissionCity, true);
+		break;
+	}
+	case MISSION_CONSTRUCT:
+	{
+		BuildingTypes eBuilding = (BuildingTypes)kAction.getMissionData();
+		if(pMissionCity == NULL)
+			break;
+		if (!kUnit.getUnitInfo().getForceBuildings(eBuilding) &&
+				!pMissionCity->canConstruct(eBuilding, false, false, true))
+		{
+			if (!g.isBuildingClassMaxedOut((BuildingClassTypes)
+					(GC.getBuildingInfo(eBuilding).getBuildingClassType())))
+			{
+				GAMETEXT.buildBuildingRequiresString(szBuffer,(BuildingTypes)kAction.
+						getMissionData(), false, false, pMissionCity);
+			}
+		}
+		else
+		{
+			szBuffer.append(NEWLINE);
+			//GAMETEXT.setBuildingHelp(szBuffer, (BuildingTypes)kAction.getMissionData(), false, false, false, pMissionCity);
+			// BUG - Building Actual Effects - start
+			GAMETEXT.setBuildingHelpActual(szBuffer, (BuildingTypes)
+					kAction.getMissionData(), false, false, false, pMissionCity);
+			// BUG - Building Actual Effects - end
+		}
+		break;
+	}
+	case MISSION_DISCOVER:
+	{
+		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+		while (pSelectedUnitNode != NULL)
+		{
+			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
+			if (pSelectedUnit->canDiscover(&kMissionPlot))
+			{
+				TechTypes eTech = pSelectedUnit->getDiscoveryTech();
+				int iResearchLeft = GET_TEAM(pSelectedUnit->getTeam()).getResearchLeft(eTech);
+				if (pSelectedUnit->getDiscoverResearch(eTech) >= iResearchLeft)
+				{
+					szBuffer.append(NEWLINE);
+					szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_TECH_TEXT"),
+							GC.getTechInfo(eTech).getDescription());
+					szBuffer.append(szTempBuffer);
+					// <advc.004a>
+					/*  Probably not a good idea after all. Players might
+						not get that this is the amount of research left;
+						they could assume that they're only getting
+						(partial) progress toward eTech. */
+					/*if(iResearchLeft > 0) {
+						szTempBuffer.Format(L" (%d%c)", iResearchLeft,
+								GC.getCommerceInfo(COMMERCE_RESEARCH).
+								getChar());
+						szBuffer.append(szTempBuffer);
+					}*/ // </advc.004a>
+				}
+				else
+				{
+					szBuffer.append(NEWLINE);
+					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_EXTRA_RESEARCH",
+							pSelectedUnit->getDiscoverResearch(eTech),
+							GC.getTechInfo(eTech).getTextKeyWide()));
+				}
+				break;
+			}
+
+			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+		}
+		break;
+	}
+	case MISSION_HURRY:
+	{
+		if(pMissionCity == NULL)
+			break;
+		if (!pMissionCity->isProductionBuilding())
+		{
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_ACTION_BUILDING_HURRY"));
+			break;
+		}
+		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+		while (pSelectedUnitNode != NULL)
+		{
+			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
+			if (pSelectedUnit->canHurry(&kMissionPlot, true))
+			{
+				const wchar* pcKey = NULL;
+				if (NO_PROJECT != pMissionCity->getProductionProject())
+					pcKey = GC.getProjectInfo(pMissionCity->getProductionProject()).getTextKeyWide();
+				else if (NO_BUILDING != pMissionCity->getProductionBuilding())
+					pcKey = GC.getBuildingInfo(pMissionCity->getProductionBuilding()).getTextKeyWide();
+				else if (NO_UNIT != pMissionCity->getProductionUnit())
+					pcKey = GC.getUnitInfo(pMissionCity->getProductionUnit()).getTextKeyWide();
+				if (NULL != pcKey && pSelectedUnit->getHurryProduction(&kMissionPlot) >=
+						pMissionCity->productionLeft())
+				{
+					szBuffer.append(NEWLINE);
+					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_FINISH_CONSTRUCTION",
+							pcKey));
+				}
+				else
+				{
+					szBuffer.append(NEWLINE);
+					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_EXTRA_CONSTRUCTION",
+							pSelectedUnit->getHurryProduction(&kMissionPlot), pcKey));
+				}
+				break;
+			}
+			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+		}
+		break;
+	}
+	case MISSION_TRADE:
+	{
+		if(pMissionCity == NULL)
+			break;
+		if (pMissionCity->getOwnerINLINE() == kUnitOwner.getID())
+		{
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_ACTION_TRADE_MISSION_FOREIGN"));
+			break;
+		}
+		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+		while (pSelectedUnitNode != NULL)
+		{
+			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
+			if (pSelectedUnit->canTrade(&kMissionPlot, true))
+			{
+				szTempBuffer.Format(L"%s+%d%c", NEWLINE,
+						pSelectedUnit->getTradeGold(&kMissionPlot),
+						GC.getCommerceInfo(COMMERCE_GOLD).getChar());
+				szBuffer.append(szTempBuffer);
+				break;
+			}
+			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+		}
+		break;
+	}
+	case MISSION_GREAT_WORK:
+	{
+		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+		while (pSelectedUnitNode != NULL)
+		{
+			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
+			if (pSelectedUnit->canGreatWork(&kMissionPlot))
+			{
+				szTempBuffer.Format(L"%s+%d%c", NEWLINE,
+						pSelectedUnit->getGreatWorkCulture(&kMissionPlot),
+						GC.getCommerceInfo(COMMERCE_CULTURE).getChar());
+				szBuffer.append(szTempBuffer);
+				break;
+			}
+			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(
+					pSelectedUnitNode);
+		}
+		break;
+	}
+	case MISSION_INFILTRATE:
+	{
+		if(pMissionCity == NULL)
+			break;
+		if (pMissionCity->getOwnerINLINE() == kUnitOwner.getID())
+		{
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_ACTION_INFILTRATE_MISSION_FOREIGN"));
+			break;
+		}
+		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+		while (pSelectedUnitNode != NULL)
+		{
+			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
+			if (pSelectedUnit->canEspionage(&kMissionPlot))
+			{
+				szTempBuffer.Format(L"%s+%d%c", NEWLINE,
+						pSelectedUnit->getEspionagePoints(&kMissionPlot),
+						GC.getCommerceInfo(COMMERCE_ESPIONAGE).getChar());
+				szBuffer.append(szTempBuffer);
+				break;
+			}
+			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+		}
+		break;
+	}
+	case MISSION_GOLDEN_AGE:
+	{
+		int iUnitConsume = kUnitOwner.unitsRequiredForGoldenAge();
+		int iUnitDiff = (iUnitConsume - kUnitOwner.unitsGoldenAgeReady());
+		if (iUnitDiff > 0)
+		{
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_ACTION_MORE_GREAT_PEOPLE", iUnitDiff));
+		}
+		if (iUnitConsume > 1)
+		{
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CONSUME_GREAT_PEOPLE", iUnitConsume));
+		}
+		break;
+	}
+	case MISSION_LEAD:
+	{
+		if (kUnit.getUnitInfo().getLeaderExperience() > 0)
+		{
+			int iNumUnits = kUnit.canGiveExperience(kUnit.plot());
+			if (iNumUnits > 0)
+			{
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_ACTION_LEAD_TROOPS",
+						kUnit.getStackExperienceToGive(iNumUnits)));
+			}
+		}
+		if (kUnit.getUnitInfo().getLeaderPromotion() != NO_PROMOTION)
+		{
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_PROMOTION_WHEN_LEADING"));
+			GAMETEXT.parsePromotionHelp(szBuffer, (PromotionTypes)
+				kUnit.	getUnitInfo().getLeaderPromotion(), L"\n   ");
+		}
+		break;
+	}
+	case MISSION_ESPIONAGE:
+	{
+		szBuffer.append(NEWLINE);
+		szBuffer.append(gDLL->getText("TXT_KEY_ACTION_ESPIONAGE_MISSION"));
+		GAMETEXT.setEspionageMissionHelp(szBuffer, &kUnit);
+		break;
+	}
+	case MISSION_BUILD:
+	{
+		BuildTypes eBuild = (BuildTypes)kAction.getMissionData();
+		FAssert(eBuild != NO_BUILD);
+		ImprovementTypes eImprovement = (ImprovementTypes)
+				GC.getBuildInfo(eBuild).getImprovement();
+		RouteTypes eRoute = (RouteTypes)GC.getBuildInfo(eBuild).getRoute();
+		BonusTypes eBonus = kMissionPlot.getBonusType(kUnitTeam.getID());
+		for (int iI = 0; iI < NUM_YIELD_TYPES; iI++)
+		{
+			YieldTypes eYield = (YieldTypes)iI;
+			int iYield = 0;
+			if (eImprovement != NO_IMPROVEMENT)
+			{
+				iYield += kMissionPlot.calculateImprovementYieldChange(eImprovement,
+						eYield, kUnitOwner.getID());
+				if (kMissionPlot.getImprovementType() != NO_IMPROVEMENT)
+				{
+					iYield -= kMissionPlot.calculateImprovementYieldChange(
+							kMissionPlot.getImprovementType(), eYield,
+							kUnitOwner.getID());
+				}
+			}
+			if (NO_FEATURE != kMissionPlot.getFeatureType())
+			{
+				if (GC.getBuildInfo(eBuild).isFeatureRemove(kMissionPlot.getFeatureType())) {
+					iYield -= GC.getFeatureInfo(kMissionPlot.getFeatureType()).
+							getYieldChange(iI);
+				}
+			}
+			if (iYield != 0)
+			{
+				szTempBuffer.Format(L", %s%d%c", ((iYield > 0) ? "+" : ""), iYield,
+						GC.getYieldInfo((YieldTypes) iI).getChar());
+				szBuffer.append(szTempBuffer);
+			}
+		}
+		if (NO_IMPROVEMENT != eImprovement)
+		{
+			int iHappy = GC.getImprovementInfo(eImprovement).getHappiness();
+			if (iHappy != 0)
+			{
+				szTempBuffer.Format(L", +%d%c", abs(iHappy),
+						(iHappy > 0 ? gDLL->getSymbolID(HAPPY_CHAR) :
+						gDLL->getSymbolID(UNHAPPY_CHAR)));
+				szBuffer.append(szTempBuffer);
+			}
+		}
+		bool bValid = false;
+		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+		while (pSelectedUnitNode != NULL)
+		{
+			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
+			if (pSelectedUnit->canBuild(&kMissionPlot, eBuild))
+			{
+				bValid = true;
+				break;
+			}
+			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(
+					pSelectedUnitNode);
+		}
+		if (!bValid)
+		{
+			if (eImprovement != NO_IMPROVEMENT)
+			{
+				CvImprovementInfo const& kImprov = GC.getImprovementInfo(eImprovement);
+				if (kMissionPlot.getTeam() != kUnitTeam.getID())
+				{
+					if (kImprov.isOutsideBorders())
+					{
+						if (kMissionPlot.getTeam() != NO_TEAM)
+						{
+							szBuffer.append(NEWLINE);
+							szBuffer.append(gDLL->getText("TXT_KEY_ACTION_NEEDS_OUT_RIVAL_CULTURE_BORDER"));
+						}
+					}
+					else
+					{
+						szBuffer.append(NEWLINE);
+						szBuffer.append(gDLL->getText("TXT_KEY_ACTION_NEEDS_CULTURE_BORDER"));
+					}
+				}
+				if (eBonus == NO_BONUS || !kImprov.isImprovementBonusTrade(eBonus))
+				{
+					if (!kUnitTeam.isIrrigation() && !kUnitTeam.isIgnoreIrrigation())
+					{
+						if (kImprov.isRequiresIrrigation() &&
+								!kMissionPlot.isIrrigationAvailable())
+						{
+							for (int iI = 0; iI < GC.getNumTechInfos(); iI++)
+							{
+								CvTechInfo const& kIrrigTech = GC.getTechInfo((TechTypes)iI);
+								if (kIrrigTech.isIrrigation())
+								{
+									szBuffer.append(NEWLINE);
+									szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_REQUIRES_STRING",
+											kIrrigTech.getTextKeyWide()));
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+			TechTypes eBuildPrereq = (TechTypes)GC.getBuildInfo(eBuild).getTechPrereq();
+			if (!kUnitTeam.isHasTech(eBuildPrereq))
+			{
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_REQUIRES_STRING",
+						GC.getTechInfo(eBuildPrereq).getTextKeyWide()));
+			}
+			if (eRoute != NO_ROUTE)
+			{
+				BonusTypes eRoutePrereq = (BonusTypes)GC.getRouteInfo(eRoute).getPrereqBonus();
+				if (eRoutePrereq != NO_BONUS)
+				{
+					if (!kMissionPlot.isAdjacentPlotGroupConnectedBonus(
+							kUnitOwner.getID(), eRoutePrereq))
+					{
+						szBuffer.append(NEWLINE);
+						szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_REQUIRES_STRING",
+							GC.getBonusInfo(eRoutePrereq).getTextKeyWide()));
+					}
+				}
+				bool bFoundValid = true;
+				std::vector<BonusTypes> aeOrBonuses;
+				for (int i = 0; i < GC.getNUM_ROUTE_PREREQ_OR_BONUSES(); ++i)
+				{
+					BonusTypes eRoutePrereqOr = (BonusTypes)GC.getRouteInfo(eRoute).
+							getPrereqOrBonus(i);
+					if (NO_BONUS != eRoutePrereqOr)
+					{
+						aeOrBonuses.push_back(eRoutePrereqOr);
+						bFoundValid = false;
+						if (kMissionPlot.isAdjacentPlotGroupConnectedBonus(
+								kUnitOwner.getID(), eRoutePrereqOr))
+						{
+							bFoundValid = true;
+							break;
+						}
+					}
+				}
+				if (!bFoundValid)
+				{
+					bool bFirst = true;
+					for (std::vector<BonusTypes>::iterator it = aeOrBonuses.begin(); it != aeOrBonuses.end(); ++it)
+					{
+						szFirstBuffer = NEWLINE +
+								gDLL->getText("TXT_KEY_BUILDING_REQUIRES_LIST");
+						szTempBuffer.Format(SETCOLR L"<link=literal>%s</link>" ENDCOLR,
+								TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
+								GC.getBonusInfo(*it).getDescription());
+						setListHelp(szBuffer, szFirstBuffer.GetCString(),
+								szTempBuffer, gDLL->getText("TXT_KEY_OR").c_str(), bFirst);
+						bFirst = false;
+					}
+				}
+			}
+			if (kMissionPlot.getFeatureType() != NO_FEATURE)
+			{
+				TechTypes eFeatureTech = (TechTypes)GC.getBuildInfo(eBuild).
+						getFeatureTech(kMissionPlot.getFeatureType());
+				if (!kUnitTeam.isHasTech(eFeatureTech))
+				{
+					szBuffer.append(NEWLINE);
+					szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_REQUIRES_STRING",
+							GC.getTechInfo(eFeatureTech).getTextKeyWide()));
+				}
+			}
+		}
+		if (eImprovement != NO_IMPROVEMENT)
+		{
+			if (kMissionPlot.getImprovementType() != NO_IMPROVEMENT)
+			{
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_ACTION_WILL_DESTROY_IMP",
+						GC.getImprovementInfo(kMissionPlot.getImprovementType()).
+						getTextKeyWide()));
+			}
+		}
+		if (GC.getBuildInfo(eBuild).isKill())
+		{
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CONSUME_UNIT"));
+		}
+		if (kMissionPlot.getFeatureType() != NO_FEATURE)
+		{
+			if (GC.getBuildInfo(eBuild).isFeatureRemove(kMissionPlot.getFeatureType()))
+			{
+				CvCity* pProductionCity=NULL;
+				int iProduction = kMissionPlot.getFeatureProduction(eBuild,
+						kUnitTeam.getID(), &pProductionCity);
+				if (iProduction > 0)
+				{
+					szBuffer.append(NEWLINE);
+					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CHANGE_PRODUCTION",
+							iProduction, pProductionCity->getNameKey()));
+				}
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_ACTION_REMOVE_FEATURE",
+						GC.getFeatureInfo(kMissionPlot.getFeatureType()).getTextKeyWide()));
+/*************************************************************************************************/
+/* UNOFFICIAL_PATCH                       06/10/10                           EmperorFool         */
+/* Bugfix                                                                                        */
+/*************************************************************************************************/
+				if (eImprovement == NO_IMPROVEMENT &&
+						kMissionPlot.getImprovementType() != NO_IMPROVEMENT &&
+						GC.getImprovementInfo(kMissionPlot.getImprovementType()).
+						getFeatureMakesValid(kMissionPlot.getFeatureType()))
+				{
+					szBuffer.append(NEWLINE);
+					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_WILL_DESTROY_IMP",
+							GC.getImprovementInfo(kMissionPlot.getImprovementType()).
+							getTextKeyWide()));
+				}
+/*************************************************************************************************/
+/* UNOFFICIAL_PATCH                         END                                                  */
+/*************************************************************************************************/
+			}
+		}
+		if (eImprovement != NO_IMPROVEMENT)
+		{
+			CvImprovementInfo const& kImprov = GC.getImprovementInfo(eImprovement);
+			if (eBonus != NO_BONUS)
+			{
+				//if (!kUnitTeam.isBonusObsolete(eBonus))
+				if (kUnitOwner.doesImprovementConnectBonus(eImprovement, eBonus)) // K-Mod
+				{ //if (kImprov.isImprovementBonusTrade(eBonus))
+					CvBonusInfo const& kBonus = GC.getBonusInfo(eBonus);
+					szBuffer.append(NEWLINE);
+					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_PROVIDES_BONUS",
+							kBonus.getTextKeyWide()));
+					if (kBonus.getHealth() != 0)
+					{
+						szTempBuffer.Format(L" (+%d%c)", abs(kBonus.getHealth()),
+								(kBonus.getHealth() > 0 ?
+								gDLL->getSymbolID(HEALTHY_CHAR) :
+								gDLL->getSymbolID(UNHEALTHY_CHAR)));
+						szBuffer.append(szTempBuffer);
+					}
+					if (kBonus.getHappiness() != 0)
+					{
+						szTempBuffer.Format(L" (+%d%c)", abs(kBonus.getHappiness()),
+								(kBonus.getHappiness() > 0 ?
+								gDLL->getSymbolID(HAPPY_CHAR) :
+								gDLL->getSymbolID(UNHAPPY_CHAR)));
+						szBuffer.append(szTempBuffer);
+					}
+				}
+			}
+			else
+			{
+				int iLast = 0;
+				FAssertMsg(0 < GC.getNumBonusInfos(), "GC.getNumBonusInfos() is negative but an array is being allocated in CvDLLWidgetData::parseActionHelp_Mission");
+				for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
+				{
+					BonusTypes eRandBonus = (BonusTypes)iI;
+					if (kUnitTeam.isHasTech((TechTypes)(GC.getBonusInfo(eRandBonus).
+							getTechReveal())))
+					{
+						if (kImprov.getImprovementBonusDiscoverRand(iI) > 0
+								// advc.rom3:
+								&& kMissionPlot.canHaveBonus(eRandBonus))
+						{
+							szFirstBuffer.Format(L"%s%s", NEWLINE,
+									gDLL->getText("TXT_KEY_ACTION_CHANCE_DISCOVER").c_str());
+							szTempBuffer.Format(L"%c", GC.getBonusInfo(eRandBonus).getChar());
+							setListHelp(szBuffer, szFirstBuffer, szTempBuffer, L", ",
+									kImprov.getImprovementBonusDiscoverRand(iI) != iLast);
+							iLast = kImprov.getImprovementBonusDiscoverRand(iI);
+						}
+					}
+				}
+			}
+			if (!kMissionPlot.isIrrigationAvailable())
+			{
+				GAMETEXT.setYieldChangeHelp(szBuffer,
+						gDLL->getText("TXT_KEY_ACTION_IRRIGATED").c_str(), L": ", L"",
+						GC.getImprovementInfo(eImprovement).getIrrigatedYieldChangeArray());
+			}
+			if (eRoute == NO_ROUTE)
+			{
+				for (int iI = 0; iI < GC.getNumRouteInfos(); iI++)
+				{
+					RouteTypes eLoopRoute = (RouteTypes)iI;
+					if (kMissionPlot.getRouteType() != eLoopRoute)
+					{
+						GAMETEXT.setYieldChangeHelp(szBuffer,
+								GC.getRouteInfo(eLoopRoute).getDescription(), L": ", L"",
+								kImprov.getRouteYieldChangesArray(eLoopRoute));
+					}
+				}
+			}
+			if (kImprov.getDefenseModifier() != 0)
+			{
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_ACTION_DEFENSE_MODIFIER",
+						kImprov.getDefenseModifier()));
+			}
+			ImprovementTypes eUpgr = (ImprovementTypes)kImprov.getImprovementUpgrade();
+			if (eUpgr != NO_IMPROVEMENT)
+			{
+				int iTurns = kMissionPlot.getUpgradeTimeLeft(eImprovement,
+						kUnitOwner.getID());
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_ACTION_BECOMES_IMP",
+						GC.getImprovementInfo(eUpgr).getTextKeyWide(), iTurns));
+			}
+		}
+		if (eRoute != NO_ROUTE)
+		{
+			ImprovementTypes eFinalImprovement = eImprovement;
+			if (eFinalImprovement == NO_IMPROVEMENT)
+				eFinalImprovement = kMissionPlot.getImprovementType();
+			if (eFinalImprovement != NO_IMPROVEMENT)
+			{
+				GAMETEXT.setYieldChangeHelp(szBuffer, GC.getImprovementInfo(
+						eFinalImprovement).getDescription(), L": ", L"",
+						GC.getImprovementInfo(eFinalImprovement).
+						getRouteYieldChangesArray(eRoute));
+			}
+			int iMovementCost = GC.getRouteInfo(eRoute).getMovementCost() +
+					kUnitTeam.getRouteChange(eRoute);
+			int iFlatMovementCost = GC.getRouteInfo(eRoute).getFlatMovementCost();
+			int iMoves = GC.getMOVE_DENOMINATOR();
+			if (iMovementCost > 0)
+			{
+				iMoves /= iMovementCost;
+				if (iMoves * iMovementCost < GC.getMOVE_DENOMINATOR())
+					iMoves++;
+			}
+			int iFlatMoves = GC.getMOVE_DENOMINATOR();
+			if (iFlatMovementCost > 0)
+			{
+				iFlatMoves /= iFlatMovementCost;
+				if (iFlatMoves * iFlatMovementCost < GC.getMOVE_DENOMINATOR())
+					iFlatMoves++;
+			}
+			if (iMoves > 1 || iFlatMoves > 1)
+			{
+				if (iMoves >= iFlatMoves)
+				{
+					szBuffer.append(NEWLINE);
+					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_MOVEMENT_COST", iMoves));
+				}
+				else
+				{
+					szBuffer.append(NEWLINE);
+					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_FLAT_MOVEMENT_COST",
+							iFlatMoves));
+				}
+			}
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_ACTION_CONNECTS_RESOURCES"));
+		}
+		int iNowWorkRate = 0;
+		int iThenWorkRate = 0;
+		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+		int iBuildCost = kUnitOwner.getBuildCost(&kMissionPlot, eBuild);
+		if (iBuildCost > 0)
+		{
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_BUILD_COST", iBuildCost));
+		}
+		while (pSelectedUnitNode != NULL)
+		{
+			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
+			if (pSelectedUnit->getBuildType() != eBuild)
+			{
+				iNowWorkRate += pSelectedUnit->workRate(false);
+				iThenWorkRate += pSelectedUnit->workRate(true);
+			}
+			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(
+					pSelectedUnitNode);
+		}
+		int iTurns = kMissionPlot.getBuildTurnsLeft(eBuild,
+				kUnitOwner.getID(), // advc.251
+				iNowWorkRate, iThenWorkRate);
+		szBuffer.append(NEWLINE);
+		szBuffer.append(gDLL->getText("TXT_KEY_ACTION_NUM_TURNS", iTurns));
+		CvBuildInfo const& kBuild = GC.getBuildInfo(eBuild);
+		if (!CvWString(kBuild.getHelp()).empty())
+			szBuffer.append(CvWString::format(L"%s%s", NEWLINE, kBuild.getHelp()).c_str());
+		// <advc.011b>
+		if(bValid && iTurns > 1 && GC.ctrlKey()) {
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_SUSPEND_WORK"));
+		} // </advc.011b>
+		break; // advc.003: Last case of switch(eMission)
+	}
+	} // end of switch
+
+	if (!CvWString(GC.getMissionInfo(eMission).getHelp()).empty())
+	{	// <advc.004a>
+		if(eMission == MISSION_DISCOVER)
+			szBuffer.append(getDiscoverPathText(kUnit.getUnitType(), kUnitOwner.getID()));
+		else { // </advc.004a>
+			szBuffer.append(CvWString::format(L"%s%s", NEWLINE,
+			GC.getMissionInfo(eMission).getHelp()).c_str());
+		}
+	}
+} // </advc.003>
 
 
 void CvDLLWidgetData::parseCitizenHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
@@ -3343,7 +3392,11 @@ void CvDLLWidgetData::parseResearchHelp(CvWidgetDataStruct &widgetDataStruct, Cv
 
 void CvDLLWidgetData::parseTechTreeHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	GAMETEXT.setTechHelp(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)), false, false, false, false);
+	TechTypes eTech = (TechTypes)(widgetDataStruct.m_iData1);
+	GAMETEXT.setTechHelp(szBuffer, eTech, false,
+			// advc.004: bPlayerContext:
+			GET_PLAYER(GC.getGameINLINE().getActivePlayer()).canResearch(eTech),
+			false, false);
 }
 
 
@@ -6008,140 +6061,128 @@ CvWString CvDLLWidgetData::getDiscoverPathText(UnitTypes ut, PlayerTypes pt)
 } // </advc.004a>
 
 // <advc.004b>
-CvWString CvDLLWidgetData::getFoundCostText(CvPlot* p, PlayerTypes ownerId) const {
+CvWString CvDLLWidgetData::getFoundCostText(CvPlot const& p, PlayerTypes ownerId) const {
 
-	CvPlayer& owner = GET_PLAYER(ownerId);
-	// The increase in other cities' maintenance caused by founding the new city
-	int deltaMaintOther = 0; int dummy;
-	for(CvCity* c = owner.firstCity(&dummy); c != NULL; c = owner.nextCity(&dummy)) {
-		int current = CvCity::calculateNumCitiesMaintenanceTimes100(
-				c->plot(), ownerId, c->getPopulation()) +
-				CvCity::calculateColonyMaintenanceTimes100(c->plot(),
-				ownerId, c->getPopulation());
-		int projected = CvCity::calculateNumCitiesMaintenanceTimes100(
-				c->plot(), ownerId, c->getPopulation(), 1) +
-				CvCity::calculateColonyMaintenanceTimes100(c->plot(),
+	CvPlayer& kOwner = GET_PLAYER(ownerId);
+	if(kOwner.isAnarchy())
+		return "";
+	int iProjPreInfl = 0;
+	// New city increases other cities' maintenance
+	int foo=-1;
+	for(CvCity* c = kOwner.firstCity(&foo); c != NULL; c = kOwner.nextCity(&foo)) {
+		if(c->isDisorder()) // Can't account for these
+			continue;
+		int iProjected = // Distance maintenance stays the same
+				c->calculateDistanceMaintenanceTimes100() +
+				CvCity::calculateNumCitiesMaintenanceTimes100(*c->plot(),
+				ownerId, c->getPopulation(), 1) +
+				CvCity::calculateColonyMaintenanceTimes100(*c->plot(),
 				ownerId, c->getPopulation(), 1);
-		int delta = projected - current;
-		/* Reduced maintenance from buildings isn't considered by the above
-	       functions. Using a snippet from CvCity::updateMaintenance: */
-		deltaMaintOther += (delta *
-				std::max(0, (c->getMaintenanceModifier() + 100))) / 100;
+		// Snippet from CvCity::updateMaintenance
+		iProjPreInfl += (iProjected *
+				std::max(0, c->getMaintenanceModifier() + 100)) / 100;
 	}
-	FAssert(deltaMaintOther >= 0);
-	int deltaMaint = 
+	int iNewCityMaint = 
 			CvCity::calculateDistanceMaintenanceTimes100(p, ownerId) +
-			// Last parameter: +1 for the newly founded city
+			// Last param: +1 for the newly founded city
 			CvCity::calculateNumCitiesMaintenanceTimes100(p, ownerId, -1, 1) +
-			CvCity::calculateColonyMaintenanceTimes100(p, ownerId) +
-			deltaMaintOther;
-	// Need before/ after in order to get the rounding errors right
-	int before = owner.getTotalMaintenanceTimes100();
-	int after = before + deltaMaint;
-	FAssert(after >= before);
-	int cost = after / 100 - before / 100;
+			CvCity::calculateColonyMaintenanceTimes100(p, ownerId);
+	iProjPreInfl += iNewCityMaint;
+	iProjPreInfl /= 100;
 	// Civic upkeep
-	before = owner.getCivicUpkeep(NULL, true);
-	after = owner.getCivicUpkeep(NULL, true, 1);
-	FAssert(after >= before);
-	cost += after - before;
-	// Unit cost
-	before = owner.calculateUnitCost();
-	after = owner.calculateUnitCost(CvCity::initialPopulation());
-	FAssert(after <= before);
-	cost += after - before;
-	// Unit supply (supply cost for Settler goes away)
-	if(p->getOwner() != ownerId) {
-		before = owner.calculateUnitSupply();
-		after = owner.calculateUnitSupply(-1);
-		FAssert(after <= before);
-		cost += after - before;
-	}
-	cost *= owner.calculateInflationRate() + 100;
-	cost /= 100;
+	iProjPreInfl += kOwner.getCivicUpkeep(NULL, true, 1);
+	// Unit cost (new city increases free units, Settler unit goes away)
+	iProjPreInfl += kOwner.calculateUnitCost(CvCity::initialPopulation(), -1);
+	// Unit supply (Settler unit goes away)
+	iProjPreInfl += kOwner.calculateUnitSupply(p.getOwner() == ownerId ? 0 : -1);
+	// Inflation
+	int iCost = (iProjPreInfl * (kOwner.calculateInflationRate() + 100)) / 100;
+	// Difference from current expenses
+	iCost -= kOwner.calculateInflatedCosts();
 	/* Could, in theory, be negative due to unit cost. Don't output
 	   a negative cost (too confusing). */
-	cost = std::max(0, cost);
+	iCost = std::max(0, iCost);
 	CvWString r = L"\n";
-	CvWString costStr = CvWString::format(L"%d", cost);
+	CvWString costStr = CvWString::format(L"%d", iCost);
 	r.append(gDLL->getText("TXT_KEY_PROJECTED_COST", costStr.GetCString()));
 	return r;
 }
 
-CvWString CvDLLWidgetData::getNetFeatureHealthText(CvPlot* cityPlot,
+CvWString CvDLLWidgetData::getNetFeatureHealthText(CvPlot const& kCityPlot,
 		PlayerTypes ownerId) const {
 
-	int goodHealthPercent = 0;
-	int badHealthPercent = 0;
+	int iGoodHealthPercent = 0;
+	int iBadHealthPercent = 0;
 	for(int i = 0; i < NUM_CITY_PLOTS; i++) {
 		if(i == CITY_HOME_PLOT) // Feature gets removed upon founding
 			continue;
-		CvPlot* pp = plotCity(cityPlot->getX(), cityPlot->getY(), i);
+		CvPlot* pp = plotCity(kCityPlot.getX_INLINE(), kCityPlot.getY_INLINE(), i);
 		if(pp == NULL) continue; CvPlot const& p = *pp;
 		if(p.getFeatureType() == NO_FEATURE || !p.isRevealed(TEAMID(ownerId), false))
 			continue;
-		int healthPercent = GC.getFeatureInfo(p.getFeatureType()).getHealthPercent();
-		if(healthPercent > 0)
-			goodHealthPercent += healthPercent;
-		else badHealthPercent -= healthPercent;
+		int iHealthPercent = GC.getFeatureInfo(p.getFeatureType()).getHealthPercent();
+		if(iHealthPercent > 0)
+			iGoodHealthPercent += iHealthPercent;
+		else iBadHealthPercent -= iHealthPercent;
 	}
 	CvWString r = "";
-	if(cityPlot->isFreshWater()) {
+	if(kCityPlot.isFreshWater()) {
 		r.append(NEWLINE);
 		r.append(gDLL->getText("TXT_KEY_MISC_HEALTH_FROM_FRESH_WATER",
 				GC.getDefineINT("FRESH_WATER_HEALTH_CHANGE")));
 	}
-	int goodHealth = goodHealthPercent / 100;
-	int badHealth = badHealthPercent / 100;
-	if(goodHealth > 0 || badHealth > 0) {
+	int iGoodHealth = iGoodHealthPercent / 100;
+	int iBadHealth = iBadHealthPercent / 100;
+	if(iGoodHealth > 0 || iBadHealth > 0) {
 		r.append(NEWLINE);
 		r.append(L"+");
 		int icon = 0;
-		if(goodHealth > 0) {
+		if(iGoodHealth > 0) {
 			icon = gDLL->getSymbolID(HEALTHY_CHAR);
 			/*  Turns out good and bad health are rounded individually;
 				no need, then, to show fractions. */
 			// float goodHealth = goodHealthPercent / 100.0f;
 			//r.append(CvWString::format((goodHealthPercent % 10 == 0 ?
 			//		L"%.1f%c" : L"%.2f%c"), goodHealth, icon));
-			r.append(CvWString::format(L"%d%c", goodHealth, icon));
+			r.append(CvWString::format(L"%d%c", iGoodHealth, icon));
 		}
-		if(badHealth > 0) {
-			if(goodHealth > 0)
+		if(iBadHealth > 0) {
+			if(iGoodHealth > 0)
 				r.append(CvWString::format(L", "));
 			icon = gDLL->getSymbolID(UNHEALTHY_CHAR);
-			r.append(CvWString::format(L"%d%c", badHealth, icon));
+			r.append(CvWString::format(L"%d%c", iBadHealth, icon));
 		}
 		r.append(gDLL->getText("TXT_KEY_FROM_FEATURES"));
 	}
-	int extraHealth = GET_PLAYER(ownerId).getExtraHealth();
-	if(extraHealth != 0) {
+	int iExtraHealth = GET_PLAYER(ownerId).getExtraHealth();
+	if(iExtraHealth != 0) {
 		r.append(NEWLINE);
 		int icon = 0;
 		r.append(L"+");
-		if(extraHealth > 0) {
+		if(iExtraHealth > 0) {
 			icon = gDLL->getSymbolID(HEALTHY_CHAR);
-			r.append(CvWString::format(L"%d%c", extraHealth, icon));
+			r.append(CvWString::format(L"%d%c", iExtraHealth, icon));
 		}
 		else {
 			icon = gDLL->getSymbolID(UNHEALTHY_CHAR);
-			r.append(CvWString::format(L"%d%c", badHealth, icon));
+			r.append(CvWString::format(L"%d%c", iBadHealth, icon));
 		}
 		r.append(gDLL->getText("TXT_KEY_FROM_TRAIT"));
 	}
 	return r;
 }
 
-CvWString CvDLLWidgetData::getHomePlotYieldText(CvPlot* p, PlayerTypes ownerId) const {
+CvWString CvDLLWidgetData::getHomePlotYieldText(CvPlot const& p, PlayerTypes ownerId) const {
 
 	CvWString r = NEWLINE;
 	r.append(gDLL->getText("TXT_KEY_HOME_TILE_YIELD"));
 	for(int i = 0; i < NUM_YIELD_TYPES; i++) {
 		YieldTypes yt = (YieldTypes)i;
-		int y = p->calculateNatureYield(yt, TEAMID(ownerId), true);
+		int y = p.calculateNatureYield(yt, TEAMID(ownerId), true);
 		CvYieldInfo& yi = GC.getYieldInfo(yt);
 		y = std::max(y, yi.getMinCity());
-		if(y == 0) continue;
+		if(y == 0)
+			continue;
 		CvWString yieldStr = CvWString::format(L", %d%c", y, yi.getChar());
 		r.append(yieldStr);
 	}

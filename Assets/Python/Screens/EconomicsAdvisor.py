@@ -134,6 +134,7 @@ class EconomicsAdvisor:
 		numCities = player.getNumCities()	
 
 		# K-Mod - I've changed these costs to include inflation.
+		# advc.001 (comment): CvPlayer::calculateInflatedCosts applies inflation (and rounding) only once in the end. Therefore, the inflated and rounded subtotals here often don't add up correctly. Not easy to fix.
 		inflationFactor = 100+player.calculateInflationRate()
 		totalUnitCost = (player.calculateUnitCost() * inflationFactor + 50)/100
 		totalUnitSupply = (player.calculateUnitSupply() * inflationFactor + 50)/100

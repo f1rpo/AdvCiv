@@ -76,7 +76,6 @@ void CvUnitAI::AI_reset(UnitAITypes eUnitAI)
 	
 	m_iAutomatedAbortTurn = -1;
 	m_iSearchRangeRandPercent = 100; // advc.128
-	m_iNeededWorkers = 0; // advc.117
 }
 
 // AI_update returns true when we should abort the loop and wait until next slice
@@ -1443,7 +1442,7 @@ void CvUnitAI::AI_settleMove()
 /************************************************************************************************/
 		if (canFound(plot()))
 		{
-			if( gUnitLogLevel >= 2 ) logBBAI("    Settler founding in place due to no cities");
+			if( gUnitLogLevel >= 2 ) logBBAI("    Settler founding in place");
 			getGroup()->pushMission(MISSION_FOUND);
 			return;
 		}
@@ -1699,18 +1698,10 @@ void CvUnitAI::AI_workerMove()
 {
 	PROFILE_FUNC();
 	
-	CvCity* pCity;
-	bool bCanRoute;
-	bool bNextCity;
+	bool bCanRoute = canBuildRoute();
+	bool bNextCity = false;
 
-	bCanRoute = canBuildRoute();
-	bNextCity = false;
-
-	// advc.117, advc.121: Caching this value for later
-	m_iNeededWorkers = GET_PLAYER(getOwnerINLINE()).AI_neededWorkers(plot()->area());
-
-	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
-
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwnerINLINE());
 	// XXX could be trouble...
 	if (plot()->getOwnerINLINE() != getOwnerINLINE())
 	{
@@ -1719,7 +1710,6 @@ void CvUnitAI::AI_workerMove()
 			return;
 		}
 	}
-
 	if (!isHuman())
 	{
 		if (plot()->getOwnerINLINE() == getOwnerINLINE())
@@ -1730,7 +1720,7 @@ void CvUnitAI::AI_workerMove()
 		}
 	}
 
-    if (!(getGroup()->canDefend()))
+    if (!getGroup()->canDefend())
 	{
 		if (kOwner.AI_isPlotThreatened(plot(), 2))
 		{
@@ -1748,7 +1738,7 @@ void CvUnitAI::AI_workerMove()
 			BonusTypes eNonObsoleteBonus = plot()->getNonObsoleteBonusType(getTeam());
 			if (NO_BONUS != eNonObsoleteBonus)
 			{
-				if (!(plot()->isConnectedToCapital()))
+				if (!plot()->isConnectedToCapital())
 				{
 					ImprovementTypes eImprovement = plot()->getImprovementType();
 					//if (NO_IMPROVEMENT != eImprovement && GC.getImprovementInfo(eImprovement).isImprovementBonusTrade(eNonObsoleteBonus))
@@ -1763,16 +1753,18 @@ void CvUnitAI::AI_workerMove()
 			}
 		}
 	}
+
+	/*  advc.117, advc.121: A measure of how busy we are. Compute it here and pass
+		it to subroutines in order to avoid computing it multiple times. */
+	int iNeededWorkersInArea = GET_PLAYER(getOwnerINLINE()).AI_neededWorkers(plot()->area());
 	
 	/*CvPlot* pBestBonusPlot = NULL;
 	BuildTypes eBestBonusBuild = NO_BUILD;
 	int iBestBonusValue = 0; 
-
     if (AI_improveBonus(25, &pBestBonusPlot, &eBestBonusBuild, &iBestBonusValue)) */
-	if (AI_improveBonus()) // K-Mod
-	{
+	if (AI_improveBonus( // K-Mod
+			iNeededWorkersInArea)) // advc.121
 		return;
-	}
 
 	if (bCanRoute && !isBarbarian())
 	{
@@ -1782,7 +1774,7 @@ void CvUnitAI::AI_workerMove()
 		}
 	}
 
-	pCity = NULL;
+	CvCity* pCity = NULL;
 
 	if (plot()->getOwnerINLINE() == getOwnerINLINE())
 	{
@@ -1794,64 +1786,43 @@ void CvUnitAI::AI_workerMove()
 	}
 	
 	
-//	if (pCity != NULL)
-//	{
-//		bool bMoreBuilds = false;
-//		for (iI = 0; iI < NUM_CITY_PLOTS; iI++)
-//		{
-//			CvPlot* pLoopPlot = plotCity(getX_INLINE(), getY_INLINE(), iI);
-//			if ((iI != CITY_HOME_PLOT) && (pLoopPlot != NULL))
-//			{
-//				if (pLoopPlot->getWorkingCity() == pCity)
-//				{
-//					if (pLoopPlot->isBeingWorked())
-//					{
-//						if (pLoopPlot->getImprovementType() == NO_IMPROVEMENT)
-//						{
-//							if (pCity->AI_getBestBuildValue(iI) > 0)
-//							{
-//								ImprovementTypes eImprovement;
-//								eImprovement = (ImprovementTypes)GC.getBuildInfo((BuildTypes)pCity->AI_getBestBuild(iI)).getImprovement();
-//								if (eImprovement != NO_IMPROVEMENT)
-//								{
-//									bMoreBuilds = true;
-//									break;
-//								}
-//							}
-//						}
-//					}
-//				}
-//			}
-//		}
-//		
-//		if (bMoreBuilds)
-//		{
-//			if (AI_improveCity(pCity))
-//			{
-//				return;
-//			}
-//		}
-//	}
+/*	if (pCity != NULL) {
+		bool bMoreBuilds = false;
+		for (iI = 0; iI < NUM_CITY_PLOTS; iI++) {
+			CvPlot* pLoopPlot = plotCity(getX_INLINE(), getY_INLINE(), iI);
+			if ((iI != CITY_HOME_PLOT) && (pLoopPlot != NULL)) {
+				if (pLoopPlot->getWorkingCity() == pCity) {
+					if (pLoopPlot->isBeingWorked()) {
+						if (pLoopPlot->getImprovementType() == NO_IMPROVEMENT) {
+							if (pCity->AI_getBestBuildValue(iI) > 0) {
+								ImprovementTypes eImprovement;
+								eImprovement = (ImprovementTypes)GC.getBuildInfo((BuildTypes)pCity->AI_getBestBuild(iI)).getImprovement();
+								if (eImprovement != NO_IMPROVEMENT) {
+									bMoreBuilds = true;
+									break;
+		}}}}}}}
+		if (bMoreBuilds) {
+			if (AI_improveCity(pCity))
+				return;
+		}}*/
 	if (pCity != NULL)
 	{
 		/* original bts code (is it just me, or did they get this backwards?)
 		if ((pCity->AI_getWorkersNeeded() > 0) && (plot()->isCity() || (pCity->AI_getWorkersNeeded() < ((1 + pCity->AI_getWorkersHave() * 2) / 3)))) */
 		// K-Mod. Note: this worker is currently at pCity, and so we're probably counted in AI_getWorkersHave.
-		if (pCity->AI_getWorkersNeeded() > 0 && (plot()->isCity() || pCity->AI_getWorkersHave()-1 <= (1 + pCity->AI_getWorkersNeeded() * 2) / 3))
+		if (pCity->AI_getWorkersNeeded() > 0 && (plot()->isCity() ||
+				pCity->AI_getWorkersHave()-1 <=
+				(1 + pCity->AI_getWorkersNeeded() * 2) / 3))
 		// K-Mod end
 		{
 			if (AI_improveCity(pCity))
-			{
 				return;
-			}
 		}
 	}
 
 	/* original bts code
 	if (AI_improveLocalPlot(2, pCity))
-	{
-		return;		
-	} */ // Moved by K-Mod
+		return;	*/ // Moved by K-Mod
 
 	bool bBuildFort = false;
 
@@ -1884,20 +1855,15 @@ void CvUnitAI::AI_workerMove()
 	}
 
 	if(!isBarbarian() && // advc.300
-		((pCity == NULL) || (pCity->AI_getWorkersNeeded() == 0) || ((pCity->AI_getWorkersHave() > (pCity->AI_getWorkersNeeded() + 1)))))
-	{
-		/* if ((pBestBonusPlot != NULL) && (iBestBonusValue >= 15))
-		{
+		(pCity == NULL || pCity->AI_getWorkersNeeded() == 0 ||
+		(pCity->AI_getWorkersHave() > pCity->AI_getWorkersNeeded() + 1)))
+	{	/*if ((pBestBonusPlot != NULL) && (iBestBonusValue >= 15)) {
 			if (AI_improvePlot(pBestBonusPlot, eBestBonusBuild))
-			{
 				return;
-			}
-		} */ // disabled by K-Mod. (this did nothing - ever - because of a bug.)
+		}*/ // disabled by K-Mod. (this did nothing - ever - because of a bug.)
 
-//		if (pCity == NULL)
-//		{
-//			pCity = GC.getMapINLINE().findCity(getX_INLINE(), getY_INLINE(), getOwnerINLINE()); // XXX do team???
-//		}
+		/*if (pCity == NULL)
+			pCity = GC.getMapINLINE().findCity(getX_INLINE(), getY_INLINE(), getOwnerINLINE());*/ // XXX do team???
 
 		if (AI_nextCityToImprove(pCity))
 		{
@@ -1907,26 +1873,21 @@ void CvUnitAI::AI_workerMove()
 		bNextCity = true;
 	}
 
-	/* if (pBestBonusPlot != NULL)
-	{
+	/* if (pBestBonusPlot != NULL) {
 		if (AI_improvePlot(pBestBonusPlot, eBestBonusBuild))
-		{
 			return;
-		}
 	} */ // K-Mod
 
 	if (pCity != NULL)
 	{
 		if (AI_improveCity(pCity))
-		{
 			return;
-		}
 	}
 	// K-Mod. (moved from higher up)
-	if (AI_improveLocalPlot(2, pCity))
+	if(AI_improveLocalPlot(2, pCity,
+			iNeededWorkersInArea)) // advc.117
 		return;
 	//
-
 	// <advc.300> None of the stuff below seems relevant for Barbarian workers
 	if(isBarbarian()) {
 		if(!AI_retreatToCity(false, true))
@@ -2020,17 +1981,13 @@ void CvUnitAI::AI_workerMove()
 		}
 	}
 
-	if (AI_improveLocalPlot(3, NULL))
-	{
+	if(AI_improveLocalPlot(3, NULL,
+			iNeededWorkersInArea)) // advc.117
 		return;
-	}
 
-	if (!(isHuman()) && (AI_getUnitAIType() == UNITAI_WORKER))
-	{			
-		/*if (GC.getGameINLINE().getElapsedGameTurns() > 10)
-		{
+	if (!isHuman() && AI_getUnitAIType() == UNITAI_WORKER)
+	{	/*if (GC.getGameINLINE().getElapsedGameTurns() > 10) {
 			if (GET_PLAYER(getOwnerINLINE()).AI_totalUnitAIs(UNITAI_WORKER) > GET_PLAYER(getOwnerINLINE()).getNumCities()) */
-
 		// K-Mod
 		if (GC.getGameINLINE().getElapsedGameTurns() > GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getResearchPercent()/6)
 		{
@@ -2053,12 +2010,10 @@ void CvUnitAI::AI_workerMove()
 	}
 
 	/*if (AI_retreatToCity())
-	{
-		return;
-	}*/ // disabled by K-Mod (redundant)
+		return; */ // disabled by K-Mod (redundant)
 
 	// K-Mod
-	if (AI_handleStranded())
+	if(AI_handleStranded())
 		return;
 	// K-Mod end
 
@@ -6486,12 +6441,12 @@ void CvUnitAI::AI_workerSeaMove()
 		}
 	}
 
-	/* if (AI_improveBonus(20))
+	/* if (AI_improveBonus(0,20))
 	{
 		return;
 	}
 
-	if (AI_improveBonus(10))
+	if (AI_improveBonus(0,10))
 	{
 		return;
 	} */ // disabled by K-Mod. .. obviously redundant.
@@ -9979,18 +9934,17 @@ void CvUnitAI::AI_networkAutomated()
 {
 	FAssertMsg(canBuildRoute(), "canBuildRoute is expected to be true");
 
-	if (!(getGroup()->canDefend()))
+	if (!getGroup()->canDefend())
 	{
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      08/20/09                                jdog5000      */
-/*                                                                                              */
-/* Unit AI, Efficiency                                                                          */
-/************************************************************************************************/
+/***************************************************************************/
+/* BETTER_BTS_AI_MOD                      08/20/09           jdog5000      */
+/* Unit AI, Efficiency                                                     */
+/***************************************************************************/
 		//if (GET_PLAYER(getOwnerINLINE()).AI_getPlotDanger(plot()) > 0)
 		if (GET_PLAYER(getOwnerINLINE()).AI_getAnyPlotDanger(plot()))
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+/****************************************************************************/
+/* BETTER_BTS_AI_MOD                       END                              */
+/****************************************************************************/
 		{
 			if (AI_retreatToCity()) // XXX maybe not do this??? could be working productively somewhere else...
 			{
@@ -9999,15 +9953,10 @@ void CvUnitAI::AI_networkAutomated()
 		}
 	}
 
-	/* if (AI_improveBonus(20))
-	{
+	/* if (AI_improveBonus(0,20))
 		return;
-	}
-
-	if (AI_improveBonus(10))
-	{
-		return;
-	} */
+	if (AI_improveBonus(o,10))
+		return;*/
 	// K-Mod
 	if (AI_improveBonus())
 		return;
@@ -10024,9 +9973,7 @@ void CvUnitAI::AI_networkAutomated()
 	}
 
 	/* if (AI_improveBonus())
-	{
-		return;
-	} */ // disabled by K-Mod
+		return; */ // disabled by K-Mod
 
 	if (AI_routeTerritory(true))
 	{
@@ -11630,7 +11577,7 @@ bool CvUnitAI::AI_guardCityMinDefender(bool bSearch)
 
 // Returns true if a mission was pushed...
 // K-Mod. This function was so full of useless cruft and duplicated code and double-counting mistakes...
-// I've deleted the bulk of the old code, and rewritten it to be much much simplier - and also better.
+// I've deleted the bulk of the old code, and rewritten it to be much much simpler - and also better.
 bool CvUnitAI::AI_guardCity(bool bLeave, bool bSearch, int iMaxPath, int iFlags)
 {
 	PROFILE_FUNC();
@@ -19612,7 +19559,8 @@ bool CvUnitAI::AI_improveCity(CvCity* pCity)
 	return false;
 }
 
-bool CvUnitAI::AI_improveLocalPlot(int iRange, CvCity* pIgnoreCity)
+bool CvUnitAI::AI_improveLocalPlot(int iRange, CvCity* pIgnoreCity,
+		int iNeededWorkersInArea) // advc.117
 {
 	int iX, iY;
 	
@@ -19634,7 +19582,7 @@ bool CvUnitAI::AI_improveLocalPlot(int iRange, CvCity* pIgnoreCity)
 					pLoopPlot->getWorkingCity() == NULL &&
 					!isBarbarian() &&
 					AI_plotValid(pLoopPlot) &&
-					m_iNeededWorkers == 0 &&
+					iNeededWorkersInArea == 0 &&
 					!p.isOption(PLAYEROPTION_LEAVE_FORESTS) &&
 					p.getGwPercentAnger() == 0 &&
 					pLoopPlot->getFeatureType() != NO_FEATURE) {
@@ -20231,7 +20179,8 @@ bool CvUnitAI::AI_fortTerritory(bool bCanal, bool bAirbase)
 
 // Returns true if a mission was pushed...
 //bool CvUnitAI::AI_improveBonus(int iMinValue, CvPlot** ppBestPlot, BuildTypes* peBestBuild, int* piBestValue)
-bool CvUnitAI::AI_improveBonus() // K-Mod. (all that junk wasn't being used anyway.)
+bool CvUnitAI::AI_improveBonus( // K-Mod. (all that junk wasn't being used anyway.)
+		int iNeededWorkersInArea) // advc.121
 {
 	PROFILE_FUNC();
 
@@ -20312,7 +20261,7 @@ bool CvUnitAI::AI_improveBonus() // K-Mod. (all that junk wasn't being used anyw
 							/*  advc.121: This should give replacements of Forts with
 								other connecting improvements a higher priority when
 								Workers have spare time. */
-								&& pWorkingCity == NULL && m_iNeededWorkers > 0)))
+								&& pWorkingCity == NULL && iNeededWorkersInArea > 0)))
 							bDoImprove = false;
 						else if (pWorkingCity)
 						{
@@ -20384,9 +20333,9 @@ bool CvUnitAI::AI_improveBonus() // K-Mod. (all that junk wasn't being used anyw
 												if(impId == pLoopPlot->getImprovementType())
 													iCost = 0;
 												// Time is more dear when workers are busy
-												int iMultiplier = 2 * (m_iNeededWorkers + 1);
+												int iMultiplier = 2 * (iNeededWorkersInArea + 1);
 												// Halve the cost when there's nothing to do
-												if(m_iNeededWorkers == 0)
+												if(iNeededWorkersInArea == 0)
 													iMultiplier = 1;
 												iCost *= iMultiplier;
 												iCost /= 2;
@@ -21321,17 +21270,14 @@ bool CvUnitAI::AI_handleStranded(int iFlags)
 {
 	PROFILE_FUNC();
 
-	/*  <advc.001> Can't figure out how to make a free Worker wait for the first
-		city to be founded, but can at least stop it from running off into
-		the wilderness. */
-	if(GC.getGameINLINE().getElapsedGameTurns() == 0) {
-		getGroup()->pushMission(MISSION_IDLE);
+	// <advc.001> No place to go
+	if(GET_PLAYER(getOwnerINLINE()).getNumCities() <= 0) {
+		getGroup()->pushMission(MISSION_SKIP);
 		return true;
 	} // </advc.001>
 
 	if (isCargo())
-	{
-		// This is possible, in some rare cases, but I'm currently trying to pin down precisely what those cases are.
+	{	// This is possible, in some rare cases, but I'm currently trying to pin down precisely what those cases are.
 		//FAssertMsg(false, "AI_handleStranded: this unit is already cargo."); // advc.006
 		getGroup()->pushMission(MISSION_SKIP);
 		return true;

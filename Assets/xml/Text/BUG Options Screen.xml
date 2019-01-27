@@ -806,11 +806,13 @@
 		<Italian>Sottoversione (SVN):</Italian>
 		<Spanish>Subversion (SVN):</Spanish>
 	</TEXT>
+	<!-- advc.004: There are many debug logs; say that this one deals with the
+		 BUG mod. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPTLABEL_DEBUG_LOGGING</Tag>
-		<English>Debug Output:</English>
+		<English>Debug Output (BUG mod):</English>
 		<French>Debug Output:</French>
-		<German>Debug-Meldungen:</German>
+		<German>Debug-Meldungen (BUG-Mod):</German>
 		<Italian>Output del debug:</Italian>
 		<Spanish>Debug Output:</Spanish>
 	</TEXT>

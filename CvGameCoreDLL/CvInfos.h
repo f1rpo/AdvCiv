@@ -27,6 +27,7 @@ class CvXMLLoadUtility;
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvInfoBase
+		: private boost::noncopyable // advc.003e
 {
 //---------------------------------------PUBLIC INTERFACE---------------------------------
 public:
@@ -91,6 +92,7 @@ protected:
 // holds the scale for scalable objects
 //
 class CvScalableInfo
+		: private boost::noncopyable // advc.003e
 {
 public:
 
@@ -740,6 +742,7 @@ protected:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 class CvActionInfo
+		: private boost::noncopyable // advc.003e
 {
 //---------------------------------------PUBLIC INTERFACE---------------------------------
 public:
@@ -2948,9 +2951,10 @@ public:
 	bool getFeatureMakesValid(int i) const;				// Exposed to Python
 
 	int getTechYieldChanges(int i, int j) const;				// Exposed to Python
-	int* getTechYieldChangesArray(int i);
+	int* getTechYieldChangesArray(int i) const; // advc.003: const
 	int getRouteYieldChanges(int i, int j) const;				// Exposed to Python
-	int* getRouteYieldChangesArray(int i);				// For Moose - CvWidgetData XXX
+	// For Moose - CvWidgetData XXX
+	int* getRouteYieldChangesArray(int i) const; // advc.003: const
 
 	int getImprovementBonusYield(int i, int j) const;				// Exposed to Python
 	bool isImprovementBonusMakesValid(int i) const;				// Exposed to Python
@@ -6360,6 +6364,7 @@ public:
 	int getCounterespionageNumTurns() const;
 	int getCounterespionageMod() const;
 	int getDifficultyMod() const;
+	inline bool isReturnToCapital() const { return m_bReturnToCapital; } // advc.103
 
 	bool read(CvXMLLoadUtility* pXML);
 
@@ -6399,6 +6404,7 @@ protected:
 	int m_iCounterespionageNumTurns;
 	int m_iCounterespionageMod;
 	int m_iDifficultyMod;
+	bool m_bReturnToCapital; // advc.103
 };
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

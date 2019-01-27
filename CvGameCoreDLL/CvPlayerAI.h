@@ -141,6 +141,7 @@ public:
 	int AI_getWaterDanger(CvPlot* pPlot, int iRange, bool bTestMoves = true) const;
 
 	bool AI_avoidScience() const;
+	int AI_financialTroubleMargin() const; // advc.110
 	bool AI_isFinancialTrouble() const;
 	//int AI_goldTarget() const;
 	int AI_goldTarget(bool bUpgradeBudgetOnly = false) const; // K-Mod

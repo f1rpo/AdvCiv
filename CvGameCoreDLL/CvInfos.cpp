@@ -12077,7 +12077,7 @@ int CvImprovementInfo::getTechYieldChanges(int i, int j) const
 	return m_ppiTechYieldChanges[i][j]; 
 }
 
-int* CvImprovementInfo::getTechYieldChangesArray(int i)
+int* CvImprovementInfo::getTechYieldChangesArray(int i) const
 {
 	return m_ppiTechYieldChanges[i];
 }
@@ -12091,7 +12091,7 @@ int CvImprovementInfo::getRouteYieldChanges(int i, int j) const
 	return m_ppiRouteYieldChanges[i][j]; 
 }
 
-int* CvImprovementInfo::getRouteYieldChangesArray(int i)
+int* CvImprovementInfo::getRouteYieldChangesArray(int i) const
 {
 	return m_ppiRouteYieldChanges[i];
 }
@@ -22913,8 +22913,9 @@ CvEspionageMissionInfo::CvEspionageMissionInfo()
 	m_iPlayerAnarchyCounter(0),
 	m_iCounterespionageNumTurns(0),
 	m_iCounterespionageMod(0),
-	m_iDifficultyMod(0)
+	m_iDifficultyMod(0),
 	// </kmodx>
+	m_bReturnToCapital(false)
 {
 }
 
@@ -23127,6 +23128,7 @@ bool CvEspionageMissionInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iCounterespionageNumTurns, "iCounterespionageNumTurns");
 	pXML->GetChildXmlValByName(&m_iCounterespionageMod, "iCounterespionageMod");
 	pXML->GetChildXmlValByName(&m_iDifficultyMod, "iDifficultyMod");
+	pXML->GetChildXmlValByName(&m_bReturnToCapital, "bReturnToCapital"); // advc.103
 
 	return true;
 }

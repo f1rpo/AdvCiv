@@ -478,6 +478,7 @@ void CvCity::reset(int iID, PlayerTypes eOwner, int iX, int iY, bool bConstructo
 	m_bInfoDirty = true;
 	m_bLayoutDirty = false;
 	m_bPlundered = false;
+	m_bInvestigate = false; // advc.103
 
 	m_eOwner = eOwner;
 	m_ePreviousOwner = NO_PLAYER;
@@ -925,6 +926,7 @@ void CvCity::doTurn()
 	setDrafted(false);
 	setAirliftTargeted(false);
 	setCurrAirlift(0);
+	m_bInvestigate = false; // advc.103
 
 	AI_doTurn();
 	// <advc.106k>
@@ -1238,32 +1240,23 @@ bool CvCity::isCitySelected()
 
 
 bool CvCity::canBeSelected() const
-{
-	if ((getTeam() == GC.getGameINLINE().getActiveTeam()) || GC.getGameINLINE().isDebugMode())
-	{
+{ // advc.003: Refactored
+	CvGame const& g = GC.getGameINLINE();
+	TeamTypes eActiveTeam = g.getActiveTeam();
+	if(m_bInvestigate || // advc.103
+			getTeam() == eActiveTeam || g.isDebugMode())
 		return true;
-	}
 
-	if (GC.getGameINLINE().getActiveTeam() != NO_TEAM)
-	{
-		if (plot()->isInvestigate(GC.getGameINLINE().getActiveTeam()))
-		{
+	if(eActiveTeam != NO_TEAM && plot()->isInvestigate(eActiveTeam))
+		return true;
+
+	for(int i = 0; i < GC.getNumEspionageMissionInfos(); i++) {
+		EspionageMissionTypes eMission = (EspionageMissionTypes)i;
+		CvEspionageMissionInfo const& kMission = GC.getEspionageMissionInfo(eMission);
+		if(kMission.isPassive() && kMission.isInvestigateCity() &&
+				GET_PLAYER(g.getActivePlayer()).canDoEspionageMission(
+				eMission, getOwnerINLINE(), plot(), -1, NULL))
 			return true;
-		}
-	}
-
-	// EspionageEffect
-	for (int iLoop = 0; iLoop < GC.getNumEspionageMissionInfos(); iLoop++)
-	{
-		// Check the XML
-		if (GC.getEspionageMissionInfo((EspionageMissionTypes)iLoop).isPassive() && GC.getEspionageMissionInfo((EspionageMissionTypes)iLoop).isInvestigateCity())
-		{
-			// Is Mission good?
-			if (GET_PLAYER(GC.getGameINLINE().getActivePlayer()).canDoEspionageMission((EspionageMissionTypes)iLoop, getOwnerINLINE(), plot(), -1, NULL))
-			{
-				return true;
-			}
-		}
 	}
 
 	return false;
@@ -1290,6 +1283,12 @@ void CvCity::updateSelectedCity(bool bTestProduction)
 		}
 	}
 }
+
+// <advc.103>
+void CvCity::setInvestigate(bool b) {
+
+	m_bInvestigate = b;
+} // </advc.103>
 
 
 void CvCity::updateYield()
@@ -2116,187 +2115,139 @@ bool CvCity::canTrain(UnitCombatTypes eUnitCombat) const
 	return false;
 }
 
-
-bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue, bool bTestVisible, bool bIgnoreCost, bool bIgnoreTech) const
+// advc.003: Refactored
+bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
+		bool bTestVisible, bool bIgnoreCost, bool bIgnoreTech) const
 {
-	int iI=-1;
-
-	if (eBuilding == NO_BUILDING)
-	{
+	PROFILE_FUNC();//advc.tmp
+	if(eBuilding == NO_BUILDING)
 		return false;
-	}
 
-	if(GC.getUSE_CAN_CONSTRUCT_CALLBACK())
-	{
+	if(GC.getUSE_CAN_CONSTRUCT_CALLBACK()) {
 		CyCity* pyCity = new CyCity((CvCity*)this);
 		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		argsList.add(eBuilding);
-		argsList.add(bContinue);
-		argsList.add(bTestVisible);
-		argsList.add(bIgnoreCost);
+		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));
+		argsList.add(eBuilding); argsList.add(bContinue);
+		argsList.add(bTestVisible); argsList.add(bIgnoreCost);
 		long lResult=0;
 		gDLL->getPythonIFace()->callFunction(PYGameModule, "canConstruct", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer 
-		if (lResult == 1)
-		{
+		delete pyCity;
+		if(lResult == 1)
 			return true;
-		}
 	}
 
-	if (!(GET_PLAYER(getOwnerINLINE()).canConstruct(eBuilding, bContinue, bTestVisible, bIgnoreCost, bIgnoreTech)))
-	{
+	if(!GET_PLAYER(getOwnerINLINE()).canConstruct(eBuilding, bContinue, bTestVisible, bIgnoreCost, bIgnoreTech))
 		return false;
-	}
 
-	if (getNumBuilding(eBuilding) >= GC.getCITY_MAX_NUM_BUILDINGS())
-	{
+	if(getNumBuilding(eBuilding) >= GC.getCITY_MAX_NUM_BUILDINGS())
 		return false;
-	}
-
-	if (GC.getBuildingInfo(eBuilding).isPrereqReligion())
+	CvBuildingInfo const& bi = GC.getBuildingInfo(eBuilding);
+	if( bi.isPrereqReligion())
 	{
 		//if (getReligionCount() > 0)
-		if (getReligionCount() == 0) // K-Mod
-		{
+		if(getReligionCount() == 0) // K-Mod
 			return false;
-		}
 	}
 
-	if (GC.getBuildingInfo(eBuilding).isStateReligion())
+	if (bi.isStateReligion())
 	{
 		ReligionTypes eStateReligion = GET_PLAYER(getOwnerINLINE()).getStateReligion();
-		if (NO_RELIGION == eStateReligion || !isHasReligion(eStateReligion))
-		{
+		if(NO_RELIGION == eStateReligion || !isHasReligion(eStateReligion))
 			return false;
-		}
 	}
 
-	if (GC.getBuildingInfo(eBuilding).getPrereqReligion() != NO_RELIGION)
+	if (bi.getPrereqReligion() != NO_RELIGION)
 	{
-		if (!(isHasReligion((ReligionTypes)(GC.getBuildingInfo(eBuilding).getPrereqReligion()))))
-		{
+		if(!isHasReligion((ReligionTypes)(bi.getPrereqReligion())))
 			return false;
-		}
 	}
 
-	CorporationTypes eCorporation = (CorporationTypes)GC.getBuildingInfo(eBuilding).getPrereqCorporation();
-	if (eCorporation != NO_CORPORATION)
+	CorporationTypes ePrereqCorp = (CorporationTypes)bi.getPrereqCorporation();
+	if (ePrereqCorp != NO_CORPORATION)
 	{
-		if (!isHasCorporation(eCorporation))
-		{
+		if(!isHasCorporation(ePrereqCorp))
 			return false;
-		}
 	}
 
-	eCorporation = (CorporationTypes)GC.getBuildingInfo(eBuilding).getFoundsCorporation();
-	if (eCorporation != NO_CORPORATION)
+	CorporationTypes eFoundCorp = (CorporationTypes)bi.getFoundsCorporation();
+	if (eFoundCorp != NO_CORPORATION)
 	{
-		if (GC.getGameINLINE().isCorporationFounded(eCorporation))
-		{
+		if(GC.getGameINLINE().isCorporationFounded(eFoundCorp))
 			return false;
-		}
 
 		for (int iCorporation = 0; iCorporation < GC.getNumCorporationInfos(); ++iCorporation)
 		{
-			if (isHeadquarters((CorporationTypes)iCorporation))
+			CorporationTypes eLoopCorp = (CorporationTypes)iCorporation;
+			if (isHeadquarters(eLoopCorp))
 			{
-				if (GC.getGameINLINE().isCompetingCorporation((CorporationTypes)iCorporation, eCorporation))
-				{
+				if(GC.getGameINLINE().isCompetingCorporation(eLoopCorp, eFoundCorp))
 					return false;
-				}
 			}
 		}
 	}
 
-	if (!isValidBuildingLocation(eBuilding))
-	{
+	if(!isValidBuildingLocation(eBuilding))
 		return false;
-	}
 
-	if (GC.getBuildingInfo(eBuilding).isGovernmentCenter())
+	if (bi.isGovernmentCenter())
 	{
-		if (isGovernmentCenter())
-		{
+		if(isGovernmentCenter())
 			return false;
-		}
 	}
 
 	if (!bTestVisible)
 	{
 		if (!bContinue)
 		{
-			if (getFirstBuildingOrder(eBuilding) != -1)
-			{
+			if(getFirstBuildingOrder(eBuilding) != -1)
 				return false;
+		}
+		BuildingClassTypes bct = (BuildingClassTypes)(bi.getBuildingClassType());
+		if (!(GC.getBuildingClassInfo(bct)).isNoLimit())
+		{
+			if (isWorldWonderClass(bct))
+			{
+				if(isWorldWondersMaxed())
+					return false;
 			}
+			else if (isTeamWonderClass(bct))
+			{
+				if(isTeamWondersMaxed())
+					return false;
+			}
+			else if (isNationalWonderClass(bct))
+			{
+				if(isNationalWondersMaxed())
+					return false;
+			}
+			else if(isBuildingsMaxed())
+				return false;
 		}
 
-		if (!(GC.getBuildingClassInfo((BuildingClassTypes)(GC.getBuildingInfo(eBuilding).getBuildingClassType())).isNoLimit()))
+		if (bi.getHolyCity() != NO_RELIGION)
 		{
-			if (isWorldWonderClass((BuildingClassTypes)(GC.getBuildingInfo(eBuilding).getBuildingClassType())))
-			{
-				if (isWorldWondersMaxed())
-				{
-					return false;
-				}
-			}
-			else if (isTeamWonderClass((BuildingClassTypes)(GC.getBuildingInfo(eBuilding).getBuildingClassType())))
-			{
-				if (isTeamWondersMaxed())
-				{
-					return false;
-				}
-			}
-			else if (isNationalWonderClass((BuildingClassTypes)(GC.getBuildingInfo(eBuilding).getBuildingClassType())))
-			{
-				if (isNationalWondersMaxed())
-				{
-					return false;
-				}
-			}
-			else
-			{
-				if (isBuildingsMaxed())
-				{
-					return false;
-				}
-			}
+			if(!isHolyCity(((ReligionTypes)(bi.getHolyCity()))))
+				return false;
 		}
 
-		if (GC.getBuildingInfo(eBuilding).getHolyCity() != NO_RELIGION)
+		if (bi.getPrereqAndBonus() != NO_BONUS)
 		{
-			if (!isHolyCity(((ReligionTypes)(GC.getBuildingInfo(eBuilding).getHolyCity()))))
-			{
+			if(!hasBonus((BonusTypes)bi.getPrereqAndBonus()))
 				return false;
-			}
 		}
 
-		if (GC.getBuildingInfo(eBuilding).getPrereqAndBonus() != NO_BONUS)
+		if (eFoundCorp != NO_CORPORATION)
 		{
-			if (!hasBonus((BonusTypes)GC.getBuildingInfo(eBuilding).getPrereqAndBonus()))
-			{
+			if(GC.getGameINLINE().isCorporationFounded(eFoundCorp))
 				return false;
-			}
-		}
 
-		eCorporation = (CorporationTypes)GC.getBuildingInfo(eBuilding).getFoundsCorporation();
-		if (eCorporation != NO_CORPORATION)
-		{
-			if (GC.getGameINLINE().isCorporationFounded(eCorporation))
-			{
+			if(GET_PLAYER(getOwnerINLINE()).isNoCorporations())
 				return false;
-			}
-
-			if (GET_PLAYER(getOwnerINLINE()).isNoCorporations())
-			{
-				return false;
-			}
 
 			bool bValid = false;
 			for (int i = 0; i < GC.getNUM_CORPORATION_PREREQ_BONUSES(); ++i)
 			{
-				BonusTypes eBonus = (BonusTypes)GC.getCorporationInfo(eCorporation).getPrereqBonus(i);
+				BonusTypes eBonus = (BonusTypes)GC.getCorporationInfo(eFoundCorp).getPrereqBonus(i);
 				if (NO_BONUS != eBonus)
 				{
 					if (hasBonus(eBonus))
@@ -2307,76 +2258,59 @@ bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue, bool bTestVis
 				}
 			}
 
-			if (!bValid)
-			{
+			if(!bValid)
 				return false;
-			}
 		}
 
-		if (plot()->getLatitude() > GC.getBuildingInfo(eBuilding).getMaxLatitude())
-		{
+		if(plot()->getLatitude() > bi.getMaxLatitude())
 			return false;
-		}
-
-		if (plot()->getLatitude() < GC.getBuildingInfo(eBuilding).getMinLatitude())
-		{
+		if(plot()->getLatitude() < bi.getMinLatitude())
 			return false;
-		}
 
 		bool bRequiresBonus = false;
 		bool bNeedsBonus = true;
 
-		for (iI = 0; iI < GC.getNUM_BUILDING_PREREQ_OR_BONUSES(); iI++)
+		for (int iI = 0; iI < GC.getNUM_BUILDING_PREREQ_OR_BONUSES(); iI++)
 		{
 			if (GC.getBuildingInfo(eBuilding).getPrereqOrBonuses(iI) != NO_BONUS)
 			{
 				bRequiresBonus = true;
-
-				if (hasBonus((BonusTypes)GC.getBuildingInfo(eBuilding).getPrereqOrBonuses(iI)))
-				{
+				if(hasBonus((BonusTypes)GC.getBuildingInfo(eBuilding).getPrereqOrBonuses(iI)))
 					bNeedsBonus = false;
-				}
 			}
 		}
 
-		if (bRequiresBonus && bNeedsBonus)
-		{
+		if(bRequiresBonus && bNeedsBonus)
 			return false;
-		}
 
-		for (iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+		for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
 		{
-			if (GC.getBuildingInfo(eBuilding).isBuildingClassNeededInCity(iI))
+			if (bi.isBuildingClassNeededInCity(iI))
 			{
-				BuildingTypes ePrereqBuilding = ((BuildingTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(iI)));
-
+				BuildingTypes ePrereqBuilding = (BuildingTypes)
+						(GC.getCivilizationInfo(getCivilizationType()).
+						getCivilizationBuildings(iI));
 				if (ePrereqBuilding != NO_BUILDING)
 				{
-					if (0 == getNumBuilding(ePrereqBuilding) /* && (bContinue || (getFirstBuildingOrder(ePrereqBuilding) == -1))*/)
-					{
+					if(getNumBuilding(ePrereqBuilding) == 0
+							/* && (bContinue || (getFirstBuildingOrder(ePrereqBuilding) == -1))*/)
 						return false;
-					}
 				}
 			}
 		}
 	}
 
-	if(GC.getUSE_CANNOT_CONSTRUCT_CALLBACK())
-	{
+	if(GC.getUSE_CANNOT_CONSTRUCT_CALLBACK()) {
 		CyCity* pyCity = new CyCity((CvCity*)this);
-		CyArgsList argsList2; // XXX
-		argsList2.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
-		argsList2.add(eBuilding);
-		argsList2.add(bContinue);
-		argsList2.add(bTestVisible);
-		argsList2.add(bIgnoreCost);
+		CyArgsList argsList;
+		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));
+		argsList.add(eBuilding); argsList.add(bContinue);
+		argsList.add(bTestVisible); argsList.add(bIgnoreCost);
 		long lResult=0;
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "cannotConstruct", argsList2.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer 
-		if (lResult == 1)
-		{
+		gDLL->getPythonIFace()->callFunction(PYGameModule, "cannotConstruct", argsList.makeFunctionArgs(), &lResult);
+		delete pyCity;
+		if(lResult == 1)
 			return false;
-		}
 	}
 
 	return true;
@@ -6295,8 +6229,8 @@ int CvCity::calculateDistanceMaintenance() const
 // advc.104: Added parameter
 int CvCity::calculateDistanceMaintenanceTimes100(PlayerTypes owner) const
 {
-	// advc.004b: Find the old code in the new static function
-	return CvCity::calculateDistanceMaintenanceTimes100(plot(),
+	// advc.004b: BtS code moved into new static function
+	return CvCity::calculateDistanceMaintenanceTimes100(*plot(),
 			owner == NO_PLAYER ? getOwnerINLINE() : owner, getPopulation());
 }
 
@@ -6308,8 +6242,8 @@ int CvCity::calculateNumCitiesMaintenance() const
 // advc.104: Added parameter
 int CvCity::calculateNumCitiesMaintenanceTimes100(PlayerTypes owner) const
 {
-	// advc.004b: Find the old code in the new static function
-	return calculateNumCitiesMaintenanceTimes100(plot(),
+	// advc.004b: BtS code moved into new static function
+	return calculateNumCitiesMaintenanceTimes100(*plot(),
 			owner == NO_PLAYER ? getOwnerINLINE() : owner,
 			getPopulation());
 }
@@ -6322,8 +6256,8 @@ int CvCity::calculateColonyMaintenance() const
 // advc.104: Added parameter
 int CvCity::calculateColonyMaintenanceTimes100(PlayerTypes owner) const
 {
-	// advc.004b: Find the old code in the new static function
-	return calculateColonyMaintenanceTimes100(plot(),
+	// advc.004b: BtS code moved into new static function
+	return calculateColonyMaintenanceTimes100(*plot(),
 			owner == NO_PLAYER ? getOwnerINLINE() : owner,
 			getPopulation());
 }
@@ -14255,7 +14189,10 @@ void CvCity::read(FDataStreamBase* pStream)
 	// m_bInfoDirty not saved...
 	// m_bLayoutDirty not saved...
 	pStream->Read(&m_bPlundered);
-
+	// <advc.103>
+	if(uiFlag >= 6)
+		pStream->Read(&m_bInvestigate);
+	// </advc.103>
 	pStream->Read((int*)&m_eOwner);
 	pStream->Read((int*)&m_ePreviousOwner);
 	pStream->Read((int*)&m_eOriginalOwner);
@@ -14411,6 +14348,7 @@ void CvCity::write(FDataStreamBase* pStream)
 	uiFlag = 3; // advc.030b
 	uiFlag = 4; // advc.912d
 	uiFlag = 5; // advc.106k
+	uiFlag = 6; // advc.103
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iID);
@@ -14513,6 +14451,7 @@ void CvCity::write(FDataStreamBase* pStream)
 	// m_bInfoDirty not saved...
 	// m_bLayoutDirty not saved...
 	pStream->Write(m_bPlundered);
+	pStream->Write(m_bInvestigate); // advc.103
 
 	pStream->Write(m_eOwner);
 	pStream->Write(m_ePreviousOwner);
@@ -16331,32 +16270,26 @@ int CvCity::initialPopulation() {
 }
 
 // advc.004b, advc.104: Parameters added
-int CvCity::calculateDistanceMaintenanceTimes100(CvPlot* pCityPlot,
+int CvCity::calculateDistanceMaintenanceTimes100(CvPlot const& kCityPlot,
 		PlayerTypes eOwner, int iPopulation) {
 
 	if(iPopulation < 0)
 		iPopulation = initialPopulation();
-/*
-** K-Mod, 17/dec/10
-** Moved the search for maintenance distance to a separate function and improved the efficiency
-*/
+// K-Mod, 17/dec/10
+// Moved the search for maintenance distance to a separate function and improved the efficiency
 	/* original bts code
 	CvCity* pLoopCity;
 	int iWorstCityMaintenance;
 	int iBestCapitalMaintenance;
 	int iTempMaintenance;
 	int iLoop;
-
 	iWorstCityMaintenance = 0;
 	iBestCapitalMaintenance = MAX_INT;
-
 	for (pLoopCity = GET_PLAYER(getOwnerINLINE()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwnerINLINE()).nextCity(&iLoop))
-	{
-		iTempMaintenance = 100 * (GC.getDefineINT("MAX_DISTANCE_CITY_MAINTENANCE") * plotDistance(getX_INLINE(), getY_INLINE(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE()));
-	*/
+		iTempMaintenance = 100 * (GC.getDefineINT("MAX_DISTANCE_CITY_MAINTENANCE") * plotDistance(getX_INLINE(), getY_INLINE(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE()));*/
 	// advc.140: MAX_DIST... now cached
 	int iTempMaintenance = 100 * GC.getMAX_DISTANCE_CITY_MAINTENANCE() *
-			calculateMaintenanceDistance(pCityPlot, eOwner);
+			calculateMaintenanceDistance(&kCityPlot, eOwner);
 	// unaltered bts code
 		iTempMaintenance *= (iPopulation + 7);
 		iTempMaintenance /= 10;
@@ -16374,26 +16307,18 @@ int CvCity::calculateDistanceMaintenanceTimes100(CvPlot* pCityPlot,
 
 	/* original bts code
 		iWorstCityMaintenance = std::max(iWorstCityMaintenance, iTempMaintenance);
-
 		if (pLoopCity->isGovernmentCenter())
-		{
 			iBestCapitalMaintenance = std::min(iBestCapitalMaintenance, iTempMaintenance);
-		}
 	}
-
-	iTempMaintenance = std::min(iWorstCityMaintenance, iBestCapitalMaintenance);
-	*/
-/*
-** K-Mod end
-*/
+	iTempMaintenance = std::min(iWorstCityMaintenance, iBestCapitalMaintenance);*/
+// K-Mod end
 	FAssert(iTempMaintenance >= 0);
-
 	return iTempMaintenance;
 }
 
 // K-Mod. new function to help with maintenance calculations
 // advc.004b, advc.104: Parameters added
-int CvCity::calculateMaintenanceDistance(CvPlot* pCityPlot, PlayerTypes eOwner)
+int CvCity::calculateMaintenanceDistance(CvPlot const* pCityPlot, PlayerTypes eOwner)
 {
 	
 	int x = pCityPlot->getX_INLINE(), y = pCityPlot->getY_INLINE();
@@ -16420,7 +16345,7 @@ int CvCity::calculateMaintenanceDistance(CvPlot* pCityPlot, PlayerTypes eOwner)
 // K-mod end
 
 // advc.004b, advc.104: Parameters added
-int CvCity::calculateNumCitiesMaintenanceTimes100(CvPlot* pCityPlot,
+int CvCity::calculateNumCitiesMaintenanceTimes100(CvPlot const& kCityPlot,
 		PlayerTypes eOwner, int iPopulation, int iExtraCities) {
 	
 	if(iPopulation < 0)
@@ -16431,35 +16356,32 @@ int CvCity::calculateNumCitiesMaintenanceTimes100(CvPlot* pCityPlot,
 	iNumCitiesPercent *= (iPopulation + 17);
 	iNumCitiesPercent /= 18;
 
-	iNumCitiesPercent *= GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getNumCitiesMaintenancePercent();
+	iNumCitiesPercent *= GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).
+			getNumCitiesMaintenancePercent();
 	iNumCitiesPercent /= 100;
 
-	iNumCitiesPercent *= GC.getHandicapInfo(GET_PLAYER(eOwner).getHandicapType()).getNumCitiesMaintenancePercent();
+	iNumCitiesPercent *= GC.getHandicapInfo(GET_PLAYER(eOwner).getHandicapType()).
+			getNumCitiesMaintenancePercent();
 	iNumCitiesPercent /= 100;
 
 	int iNumVassalCities = 0;
 	for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; iPlayer++)
 	{
 		CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iPlayer);
-		if (kLoopPlayer.getTeam() != TEAMID(eOwner) && GET_TEAM(kLoopPlayer.getTeam()).isVassal(TEAMID(eOwner)))
-		{
+		if (kLoopPlayer.getTeam() != TEAMID(eOwner) &&
+				GET_TEAM(kLoopPlayer.getTeam()).isVassal(TEAMID(eOwner)))
 			iNumVassalCities += kLoopPlayer.getNumCities();
-		}
 	}
 
 	iNumVassalCities /= std::max(1, TEAMREF(eOwner).getNumMembers());
-/*
-** K-Mod, 04/sep/10, karadoc
-** Reduced vassal maintenance and removed maintenance cap
-*/
+// K-Mod, 04/sep/10, karadoc
+// Reduced vassal maintenance and removed maintenance cap
 	/* original BTS code
 	int iNumCitiesMaintenance = (GET_PLAYER(getOwnerINLINE()).getNumCities() + iNumVassalCities) * iNumCitiesPercent;
 	iNumCitiesMaintenance = std::min(iNumCitiesMaintenance, GC.getHandicapInfo(getHandicapType()).getMaxNumCitiesMaintenance() * 100); */
 	int iNumCitiesMaintenance = (GET_PLAYER(eOwner).getNumCities()
 			+ iExtraCities + iNumVassalCities / 2) * iNumCitiesPercent;
-/*
-** K-Mod end
-*/
+// K-Mod end
 
 	iNumCitiesMaintenance *= std::max(0, (GET_PLAYER(eOwner).getNumCitiesMaintenanceModifier() + 100));
 	iNumCitiesMaintenance /= 100;
@@ -16470,13 +16392,13 @@ int CvCity::calculateNumCitiesMaintenanceTimes100(CvPlot* pCityPlot,
 }
 
 // advc.004b, advc.104: Parameters added
-int CvCity::calculateColonyMaintenanceTimes100(CvPlot* pCityPlot, PlayerTypes eOwner,
-		int iPopulation, int iExtraCities) {
+int CvCity::calculateColonyMaintenanceTimes100(CvPlot const& kCityPlot,
+		PlayerTypes eOwner, int iPopulation, int iExtraCities) {
 
 	if(iPopulation < 0)
 		iPopulation = initialPopulation();
 	HandicapTypes eOwnerHandicap = GET_PLAYER(eOwner).getHandicapType();
-	CvArea* pCityArea = pCityPlot->area();
+	CvArea* pCityArea = kCityPlot.area();
 
 	if (GC.getGameINLINE().isOption(GAMEOPTION_NO_VASSAL_STATES))
 	{
@@ -16503,24 +16425,23 @@ int CvCity::calculateColonyMaintenanceTimes100(CvPlot* pCityPlot, PlayerTypes eO
 	int iNumCities = (pCityArea->getCitiesPerPlayer(eOwner) - 1 + iExtraCities) *
 			iNumCitiesPercent;
 	int iMaintenance = (iNumCities * iNumCities) / 100;
-
-/**
-*** K-Mod, 17/dec/10, karadoc
-*** Changed colony maintenance cap to not include distance maintenance modifiers (such as state property)
-**/
+// K-Mod, 17/dec/10, karadoc
+// Changed colony maintenance cap to not include distance maintenance modifiers (such as state property)
 	/* original bts code
-	iMaintenance = std::min(iMaintenance, (GC.getHandicapInfo(getHandicapType()).getMaxColonyMaintenance() * calculateDistanceMaintenanceTimes100()) / 100);
-	*/
+	iMaintenance = std::min(iMaintenance, (GC.getHandicapInfo(getHandicapType()).getMaxColonyMaintenance() * calculateDistanceMaintenanceTimes100()) / 100);*/
 	// advc.140: MAX_DIST... now cached
-	int iMaintenanceCap = 100 * GC.getMAX_DISTANCE_CITY_MAINTENANCE() * calculateMaintenanceDistance(pCityPlot, eOwner);
+	int iMaintenanceCap = 100 * GC.getMAX_DISTANCE_CITY_MAINTENANCE() *
+			calculateMaintenanceDistance(&kCityPlot, eOwner);
 
 	iMaintenanceCap *= (iPopulation + 7);
 	iMaintenanceCap /= 10;
 
-	iMaintenanceCap *= GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getDistanceMaintenancePercent();
+	iMaintenanceCap *= GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).
+			getDistanceMaintenancePercent();
 	iMaintenanceCap /= 100;
 
-	iMaintenanceCap *= GC.getHandicapInfo(eOwnerHandicap).getDistanceMaintenancePercent();
+	iMaintenanceCap *= GC.getHandicapInfo(eOwnerHandicap).
+			getDistanceMaintenancePercent();
 	iMaintenanceCap /= 100;
 
 	iMaintenanceCap /= GC.getMapINLINE().maxPlotDistance();
@@ -16529,12 +16450,8 @@ int CvCity::calculateColonyMaintenanceTimes100(CvPlot* pCityPlot, PlayerTypes eO
 	iMaintenanceCap /= 100;
 
 	iMaintenance = std::min(iMaintenance, iMaintenanceCap);
-/**
-*** K-Mod end
-**/
-
+// K-Mod end
 	FAssert(iMaintenance >= 0);
-
 	return iMaintenance;
 }
 // </advc.004b>

@@ -656,20 +656,17 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 	{
 		if (gDLL->getInterfaceIFace()->getLengthSelectionList() == 1)
 		{
-			if (!(gDLL->getInterfaceIFace()->isFocused()) && !(gDLL->getInterfaceIFace()->isCitySelection()) && !(gDLL->getInterfaceIFace()->isDiploOrPopupWaiting()))
-			{
+			if (!gDLL->getInterfaceIFace()->isFocused() &&
+					!gDLL->getInterfaceIFace()->isCitySelection() &&
+					!gDLL->getInterfaceIFace()->isDiploOrPopupWaiting())
 				GC.getGameINLINE().updateSelectionList();
-			}
 
 			if (IsSelected())
-			{
 				GC.getGameINLINE().cycleSelectionGroups_delayed(1, false);
-			}
-			else
-			{
-				gDLL->getInterfaceIFace()->setDirty(SelectionCamera_DIRTY_BIT, true);
-			}
+			else gDLL->getInterfaceIFace()->setDirty(SelectionCamera_DIRTY_BIT, true);
 		}
+		// advc.001: Expenses for units may change
+		gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true);
 	}
 
 	gDLL->getInterfaceIFace()->removeFromSelectionList(this);
@@ -706,8 +703,7 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 	GET_PLAYER(getOwnerINLINE()).changeAssets(-(m_pUnitInfo->getAssetValue()));
 
 	GET_PLAYER(getOwnerINLINE()).changePower(-(m_pUnitInfo->getPowerValue()
-		/ (m_pUnitInfo->getDomainType() == DOMAIN_SEA ? 2 : 1) // advc.104e
-		));
+		/ (m_pUnitInfo->getDomainType() == DOMAIN_SEA ? 2 : 1))); // advc.104e
 
 	// advc.104: To enable more differentiated tracking of power values
 	GET_PLAYER(getOwnerINLINE()).warAndPeaceAI().getCache().reportUnitDestroyed(
@@ -727,7 +723,7 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 
 	GET_PLAYER(getOwnerINLINE()).deleteUnit(getID());
 
-	if ((eCapturingPlayer != NO_PLAYER) && (eCaptureUnitType != NO_UNIT) && !(GET_PLAYER(eCapturingPlayer).isBarbarian()))
+	if (eCapturingPlayer != NO_PLAYER && eCaptureUnitType != NO_UNIT && !GET_PLAYER(eCapturingPlayer).isBarbarian())
 	{
 		if (GET_PLAYER(eCapturingPlayer).isHuman() || GET_PLAYER(eCapturingPlayer).AI_captureUnit(eCaptureUnitType, pPlot) || 0 == GC.getDefineINT("AI_CAN_DISBAND_UNITS"))
 		{
@@ -3395,8 +3391,9 @@ bool CvUnit::jumpToNearestValidPlot(bool bGroup, bool bForceMove)
 									}
 									iValue *= iMult; // </advc.046>
 								}
-							}
-
+							} // <advc.046> Perhaps not really neeed, but can't hurt.
+							if(pLoopPlot->isLake() && !plot()->isLake())
+								iValue *= 2; // </advc.046>
 							if (iValue < iBestValue)
 							{
 								iBestValue = iValue;
@@ -7184,12 +7181,14 @@ bool CvUnit::espionage(EspionageMissionTypes eMission, int iData)
 	}
 	else
 	{
-		if (testSpyIntercepted(eTargetPlayer, true, GC.getEspionageMissionInfo(eMission).getDifficultyMod()))
+		CvEspionageMissionInfo const& kMission = GC.getEspionageMissionInfo(eMission);
+		if (testSpyIntercepted(eTargetPlayer, true, kMission.getDifficultyMod()))
 		{
 			return false;
 		}
 
-		if (GET_PLAYER(getOwnerINLINE()).doEspionageMission(eMission, eTargetPlayer, plot(), iData, this))
+		if (GET_PLAYER(getOwnerINLINE()).doEspionageMission(eMission, eTargetPlayer,
+				plot(), iData, this))
 		{
 			if (plot()->isActiveVisible(false))
 			{
@@ -7203,12 +7202,21 @@ bool CvUnit::espionage(EspionageMissionTypes eMission, int iData)
 				finishMoves();
 
 				CvCity* pCapital = GET_PLAYER(getOwnerINLINE()).getCapitalCity();
-				if (NULL != pCapital)
+				if(pCapital != NULL
+						&& kMission.isReturnToCapital()) // advc.103
 				{
 					setXY(pCapital->getX_INLINE(), pCapital->getY_INLINE(), false, false, false);
 
 					CvWString szBuffer = gDLL->getText("TXT_KEY_ESPIONAGE_SPY_SUCCESS", getNameKey(), pCapital->getNameKey());
-					gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), pCapital->getX_INLINE(), pCapital->getY_INLINE(), true, true);
+					gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(),
+							/*  advc.103: Don't show message before the
+								city screen has been exited */
+							!GC.getEspionageMissionInfo(eMission).isInvestigateCity(),
+							GC.getEVENT_MESSAGE_TIME(), szBuffer,
+							"AS2D_POSITIVE_DINK", MESSAGE_TYPE_INFO, getButton(),
+							(ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"),
+							pCapital->getX_INLINE(), pCapital->getY_INLINE(),
+							true, true);
 				}
 			}
 			// K-Mod

@@ -554,6 +554,52 @@
 		<Italian>Con questo comando, si ordina al [COLOR_UNIT_TEXT]colono[COLOR_REVERT] di costruire una citt&#224; nel punto in cui si trova. Il [COLOR_UNIT_TEXT]colono[COLOR_REVERT] viene sacrificato durante il procedimento.</Italian>
 		<Spanish>Esta orden hace que el [COLOR_UNIT_TEXT]Colono[COLOR_REVERT] construya una ciudad en el lugar en que se encuentre. El [COLOR_UNIT_TEXT]Colono[COLOR_REVERT] se consumir&#225; en el proceso.</Spanish>
 	</TEXT>
+	<!-- Info about expenses to be shown after the command description
+		 (TXT_KEY_COMMAND_DELETE_HELP in CIV4GameText_Help.xml) -->
+	<!-- Translation "expenses" from TXT_KEY_FINANCIAL_ADVISOR_EXPENSES_HEADER
+		 in CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_DELETE_DECREASE</Tag>
+		<English>-%d1_Gold [ICON_GOLD] expenses</English>
+		<French>-%d1_Gold [ICON_GOLD] dépenses</French>
+		<German>-%d1_Gold [ICON_GOLD] Ausgaben</German>
+		<Italian>-%d1_Gold [ICON_GOLD] spese</Italian>
+		<Spanish>-%d1_Gold [ICON_GOLD] gastos</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_DELETE_NO_DECREASE_UNIT_COST</Tag>
+		<English>Deleting units will not currently decrease unit cost.</English>
+		<French>Actuellement, il n'y a pas de coûts pour les unités.</French>
+		<German>Zur Zeit keine Einheitenkosten.</German>
+		<Italian>Attualmente non ci sono costi per le unità.</Italian>
+		<Spanish>Actualmente no hay costes por unidades.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_DELETE_NO_DECREASE</Tag>
+		<English>Deleting units will not currently decrease expenses.</English>
+		<French>Actuellement, il n'y a pas de dépenses pour les unités.</French>
+		<German>Zur Zeit keine Ausgaben für Einheiten.</German>
+		<Italian>Attualmente non ci sono spese per le unità.</Italian>
+		<Spanish>Actualmente no hay gastos por unidades.</Spanish>
+	</TEXT>
+	<!-- Translation "delete" from TXT_KEY_COMMAND_DELETE in
+		 CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_DELETE_MORE</Tag>
+		<English>Need to delete %d1_NumUnits more units to decrease expenses.</English>
+		<French>Nécessité de supprimer %d1_NumUnits unités de plus pour réduire les dépenses.</French>
+		<German>Um Ausgaben zu senken, müssten %d1_NumUnits weitere Einheiten aufgelöst werden.</German>
+		<Italian>Necessità di eliminare altre %d1_NumUnits unità per ridurre le spese.</Italian>
+		<Spanish>Necesidad de borrar %d1_NumUnits unidad(es) más para disminuir los gastos.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_DELETE_ONE_MORE</Tag>
+		<English>Need to delete one more unit to decrease expenses.</English>
+		<French>Nécessité de supprimer une unité de plus pour réduire les dépenses.</French>
+		<German>Um Ausgaben zu senken, müsste eine weitere Einheit aufgelöst werden.</German>
+		<Italian>Necessità di eliminare un'altra unità per ridurre le spese.</Italian>
+		<Spanish>Necesidad de borrar una unidad más para disminuir los gastos.</Spanish>
+	</TEXT>
 	
 	<!-- advc.550
 		 Just added the word "better"; the rest is copied from vanilla
@@ -1868,7 +1914,7 @@
 
 	<!-- advc.005b: From CIV4GameText_Warlords.xml.
 		 I'm removing the roman numerals. It's clear enough e.g. which
-		 Gustav Adoplh is meant, and if not, I don't mind the ambuigity.
+		 Gustav Adolph is meant, and if not, I don't mind the ambuigity.
 		 They're not in the game as rulers (those are the AI leaders),
 		 but as generals. Also for that reason, Boudica and Charlemagne are
 		 replaced. Wanted famous replacements in about the same period,
@@ -3704,6 +3750,16 @@
 		<Italian>Soglia</Italian>
 		<Spanish>Límite</Spanish>
 	</TEXT>
+	<!-- From CIV4GameText_BTS.xml. "Steal Technology" is now too long
+		 (considering also the larger font from advc.002b) -->
+	<TEXT>
+		<Tag>TXT_KEY_ESPIONAGE_BUY_TECH</Tag>
+		<English>Steal Tech</English>
+		<French>Voler une tech</French>
+		<German>Tech stehlen</German>
+		<Italian>Ruba tecnologie</Italian>
+		<Spanish>Robar tecnolog&#237;a</Spanish>
+	</TEXT>
 	
 	<!-- advc.120f -->
 	<!-- Based on TXT_KEY_ESPIONAGE_TARGET_SWITCH_CIVIC in
@@ -4501,6 +4557,26 @@
 		<German>Wir sind erstmals der %s1:3_CivAdj Zivilisation begegnet</German>
 		<Italian>Abbiamo incontrato la civilt&#224; %s1:4_CivAdj</Italian>
 		<Spanish>Hemos encontrado la civilizaci&#243;n %s1:2_CivAdj</Spanish>
+	</TEXT>
+	
+	<!-- advc.103: The other help texts for active missions are in
+		 CIV4GameText_BTS_FourthRoundTranslation.xml. Romance translations
+		 based on TXT_KEY_ZOOM_CITY_HELP in CIV4GameText_Misc1.xml. -->
+	<TEXT>
+		<Tag>TXT_KEY_ESPIONAGE_HELP_INVESTIGATE</Tag>
+		<English>Open the city screen of %s1_city; can open it again for free any number of times this turn.</English>
+		<French>Afficher l'&#233;cran de la ville pour %s1_city</French>
+		<German>Öffnet den Stadtbildschirm von %s1_city; kann für den Rest des Zuges kostenlos erneut geöffnet werden.</German>
+		<Italian>Accedi alla schermata cittadina di %s1_city</Italian>
+		<Spanish>Entrar en la pantalla de %s1_city</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ESPIONAGE_HELP_NO_RETURN</Tag>
+		<English>Unit will hold its position (not returned to capital)</English>
+		<French>L'unité maintiendra sa position (ne retourne pas dans la capitale)</French>
+		<German>Einheit hält ihre Position (kehrt nicht in die Hauptstadt zurück)</German>
+		<Italian>L'unità manterrà la sua posizione (non ritorna nella capitale)</Italian>
+		<Spanish>La unidad mantendrá su posición (no regresa a la capital)</Spanish>
 	</TEXT>
 	
 </Civ4GameText>

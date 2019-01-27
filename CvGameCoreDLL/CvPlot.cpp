@@ -472,15 +472,14 @@ void CvPlot::doImprovement()
 /* Gamespeed scaling                                                                            */
 /************************************************************************************************/
 /* original bts code
-					if (GC.getImprovementInfo(getImprovementType()).getImprovementBonusDiscoverRand(iI) > 0)
-					{
-						if (GC.getGameINLINE().getSorenRandNum(GC.getImprovementInfo(getImprovementType()).getImprovementBonusDiscoverRand(iI), "Bonus Discovery") == 0)
-						{
-*/
+if (GC.getImprovementInfo(getImprovementType()).getImprovementBonusDiscoverRand(iI) > 0) {
+	if (GC.getGameINLINE().getSorenRandNum(GC.getImprovementInfo(getImprovementType()).getImprovementBonusDiscoverRand(iI), "Bonus Discovery") == 0) {*/
 					int iOdds = GC.getImprovementInfo(getImprovementType()).getImprovementBonusDiscoverRand(iI);
-					
-					if( iOdds > 0 )
-					{
+					if(iOdds > 0)
+					{	// <advc.rom3>
+						//Afforess: check for valid terrains for this bonus before discovering it
+						if(!canHaveBonus((BonusTypes)iI))
+							continue; // </advc.rom3>
 						iOdds *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getVictoryDelayPercent();
 						iOdds /= 100;
 
@@ -3364,7 +3363,8 @@ PlayerTypes CvPlot::calculateCulturalOwner(
 				if (bIgnoreCultureRange || // advc.099c
 					isWithinCultureRange((PlayerTypes)iI))
 				{
-					if ((iCulture > iBestCulture) || ((iCulture == iBestCulture) && (getOwnerINLINE() == iI)))
+					if (iCulture > iBestCulture || (iCulture == iBestCulture &&
+							getOwnerINLINE() == iI))
 					{
 						iBestCulture = iCulture;
 						eBestPlayer = ((PlayerTypes)iI);

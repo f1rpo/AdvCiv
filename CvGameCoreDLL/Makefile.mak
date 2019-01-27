@@ -67,7 +67,7 @@ Profile_OTHER=Profile\CvGameCoreDLL.exp
 
 #### CFLAGS ####
 # advc.make: Added WX flag (warnings treated as errors), removed D_USRDLL, see CvDefines.h
-# advc.make: Removed /DLOG_AI - I'm not currently using BBAI logs for debugging
+# advc.make: Removed /DLOG_AI - enable BBAI logging in BetterBTSAI.h when needed.
 GLOBAL_CFLAGS=/GR /Gy /W3 /WX /EHsc /Gd /Gm- /DWIN32 /D_WINDOWS /DCVGAMECOREDLL_EXPORTS /Yu"CvGameCoreDLL.h"
 # advc.make: DebugMem: An almost-Release mode that is less likely than Debug mode
 #            to obscure accesses to uninitialized variables.
