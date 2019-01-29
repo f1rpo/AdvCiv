@@ -24490,7 +24490,7 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption, std
 		ImprovementTypes impr = NO_IMPROVEMENT; 
 		if(!bOfInterest && eOption == SHOW_ALL_RESOURCES &&
 				isOption(PLAYEROPTION_NO_UNIT_RECOMMENDATIONS) &&
-				GC.getDefineINT("SHOW_GOODY_HUTS_ON_RESOURCE_LAYER") > 0) {
+				getBugOptionBOOL("MainInterface__TribalVillageIcons", true)) {
 			impr = pLoopPlot->getRevealedImprovementType(getTeam(), false);
 			bOfInterest = (impr != NO_IMPROVEMENT && GC.getImprovementInfo(impr).
 					isGoody());

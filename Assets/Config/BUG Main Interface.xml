@@ -86,11 +86,6 @@
 					get="isHideEspSlider" dirtyBit="PercentButtons, GameData, Espionage_Advisor">
 				<change module="CvCustomizableDomesticAdvisor" function="forcePositionCalc"/>
 			</option>
-
-			<!-- advc.004m -->
-			<option id="StartWithResourceIcons" key="Start With Resource Icons" 
-					type="boolean" default="True" 
-					get="isStartWithResourceIcons"/>
 			
 			<!-- City Cycle Arrows by SimCutie -->
 			<option id="CityArrows" key="City Cycle Arrows" 
@@ -159,6 +154,33 @@
 			<!-- Simple selection, by karadoc -->
 			<option id="SimpleSelection" key="Simple Selection"
 					type="boolean" default="False"/>
+			
+			<!-- advc.004z -->
+			<option id="ScoresInGlobeView" key="Scores in Globe View" 
+					type="boolean" default="True" 
+					get="isScoresInGlobeView" dirtyBit="GlobeInfo,Score"/>
+			<!-- advc.004z -->
+			<option id="ResourceIconOptions" key="Resource Icon Options" 
+					type="boolean" default="False" 
+					get="isResourceIconOptions" dirtyBit="GlobeInfo,Score"/>
+			<!-- advc.004z -->
+			<option id="TribalVillageIcons" key="Tribal Village Icons" 
+					type="boolean" default="True" dirtyBit="GlobeLayer"/>
+			<!-- advc.004m -->
+			<option id="StartWithResourceIcons" key="Start With Resource Icons" 
+					type="boolean" default="True" 
+					get="isStartWithResourceIcons"/>
+			<!-- advc.004h -->
+			<option id="FoundingYields" key="Founding Yields" 
+					type="boolean" default="False"/>
+			<!-- advc.004h: The DLL relies on this order of the choices -->
+			<list   id="FoundingBorder" key="Founding Border" 
+					type="int" default="2" listType="string" 
+					values="None|Adjacent|City Cross" dirtyBit="ColoredPlots">
+				<choice id="None"/>
+				<choice id="Adjacent"/>
+				<choice id="CityCross"/>
+			</list>
 		</section>
 	</options>
 	

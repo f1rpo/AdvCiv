@@ -123,7 +123,8 @@ public:
 	void updateSight(bool bIncrement, bool bUpdatePlotGroups);
 	void updateSeeFromSight(bool bIncrement, bool bUpdatePlotGroups);
 
-	bool canHaveBonus(BonusTypes eBonus, bool bIgnoreLatitude = false) const;																						// Exposed to Python
+	bool canHaveBonus(BonusTypes eBonus, bool bIgnoreLatitude = false,																						// Exposed to Python
+			bool bIgnoreFeature = false) const; // advc.129
 	bool canHaveImprovement(ImprovementTypes eImprovement,														// Exposed to Python
 			TeamTypes eTeam = NO_TEAM, bool bPotential = false,
 			BuildTypes eBuild = NO_BUILD, bool bAnyBuild = true) const; // dlph.9

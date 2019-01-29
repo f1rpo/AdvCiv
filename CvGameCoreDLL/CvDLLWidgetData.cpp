@@ -3065,7 +3065,8 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 					{
 						if (kImprov.getImprovementBonusDiscoverRand(iI) > 0
 								// advc.rom3:
-								&& kMissionPlot.canHaveBonus(eRandBonus))
+								&& kMissionPlot.canHaveBonus(eRandBonus, false,
+								true)) // advc.129
 						{
 							szFirstBuffer.Format(L"%s%s", NEWLINE,
 									gDLL->getText("TXT_KEY_ACTION_CHANCE_DISCOVER").c_str());

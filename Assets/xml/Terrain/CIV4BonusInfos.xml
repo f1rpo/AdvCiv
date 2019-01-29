@@ -632,9 +632,14 @@
 					<bFeature>1</bFeature>
 				</FeatureBoolean>
 			</FeatureBooleans>
+			<!-- advc.021a: Plains Jungle added -->
 			<FeatureTerrainBooleans>
 				<FeatureTerrainBoolean>
 					<TerrainType>TERRAIN_GRASS</TerrainType>
+					<bFeatureTerrain>1</bFeatureTerrain>
+				</FeatureTerrainBoolean>
+				<FeatureTerrainBoolean>
+					<TerrainType>TERRAIN_PLAINS</TerrainType>
 					<bFeatureTerrain>1</bFeatureTerrain>
 				</FeatureTerrainBoolean>
 			</FeatureTerrainBooleans>
@@ -1510,9 +1515,14 @@
 					<bFeature>1</bFeature>
 				</FeatureBoolean>
 			</FeatureBooleans>
+			<!-- advc.021a: Plains Jungle added -->
 			<FeatureTerrainBooleans>
 				<FeatureTerrainBoolean>
 					<TerrainType>TERRAIN_GRASS</TerrainType>
+					<bFeatureTerrain>1</bFeatureTerrain>
+				</FeatureTerrainBoolean>
+				<FeatureTerrainBoolean>
+					<TerrainType>TERRAIN_PLAINS</TerrainType>
 					<bFeatureTerrain>1</bFeatureTerrain>
 				</FeatureTerrainBoolean>
 			</FeatureTerrainBooleans>
@@ -1749,9 +1759,14 @@
 					<bFeature>1</bFeature>
 				</FeatureBoolean>
 			</FeatureBooleans>
+			<!-- advc.021a: Plains Jungle added -->
 			<FeatureTerrainBooleans>
 				<FeatureTerrainBoolean>
 					<TerrainType>TERRAIN_GRASS</TerrainType>
+					<bFeatureTerrain>1</bFeatureTerrain>
+				</FeatureTerrainBoolean>
+				<FeatureTerrainBoolean>
+					<TerrainType>TERRAIN_PLAINS</TerrainType>
 					<bFeatureTerrain>1</bFeatureTerrain>
 				</FeatureTerrainBoolean>
 			</FeatureTerrainBooleans>

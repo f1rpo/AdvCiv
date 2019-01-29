@@ -241,24 +241,6 @@
 		<Spanish>Muestra un segundo par de botones +/- buttons que permiten fijar la producción a 100% y 0% respectivamente.</Spanish>
 	</TEXT>
 	
-	<!-- advc.004m -->
-	<TEXT>
-		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STARTWITHRESOURCEICONS_TEXT</Tag>
-		<English>Start with Resource Icons</English>
-		<French>Symboles de ressources au début du jeu</French>
-		<German>Ressourcensymbole bei Spielstart</German>
-		<Italian>Mostra risorse all'inizio del gioco</Italian>
-		<Spanish>Muestra recursos al inicio del juego</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STARTWITHRESOURCEICONS_HOVER</Tag>
-		<English>When checked, the Resource Display (indicator "bubbles") is enabled at the start of every new game. Otherwise, the Resource Display is disabled at game start.</English>
-		<French>Active l'affichage des ressources au début du jeu.</French>
-		<German>Aktiviert die Ressourcenanzeige zu Spielbeginn.</German>
-		<Italian>Abilita la segnalazione delle risorse all'inizio del gioco.</Italian>
-		<Spanish>Activa las marcas de recursos al inicio del juego.</Spanish>
-	</TEXT>
-	
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__CITYARROWS_TEXT</Tag>
 		<English>City Cycle Arrows</English>
@@ -541,4 +523,115 @@
 		<Italian>When checked, selecting units with the [Shift] key will only ever add a single unit at a time.</Italian>
 		<Spanish>Activada, seleccionando unidades con la tecla [Mayús] sólo añadir una unidad cada vez.</Spanish>
 	</TEXT>
+	
+	<!-- advc.004z -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__SCORESINGLOBEVIEW_TEXT</Tag>
+		<English>Scores in Globe View</English>
+		<French>Scores in Globe View</French>
+		<German>Punteanzeige in Globalansicht</German>
+		<Italian>Scores in Globe View</Italian>
+		<Spanish>Scores in Globe View</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__SCORESINGLOBEVIEW_HOVER</Tag>
+		<English>When checked, the scoreboard remains visible in Globe View so long as no layer options need to be displayed. (E.g. the Strategy layer has options for drawing lines, leaving no room for the scoreboard.) If not checked, the scoreboard is never visible in Globe View (like in BtS).</English>
+		<French>When checked, the scoreboard remains visible in Globe View so long as no layer options need to be displayed. (E.g. the Strategy layer has options for drawing lines, leaving no room for the scoreboard.) If not checked, the scoreboard is never visible in Globe View (like in BtS).</French>
+		<German>Zeigt in der Globalansicht die Punktestände der Spieler an, sofern der Platz nicht für Optionen benötigt wird. (Die Strategieansicht z.B. hat Optionen zum Einzeichnen von Linien.)</German>
+		<Italian>When checked, the scoreboard remains visible in Globe View so long as no layer options need to be displayed. (E.g. the Strategy layer has options for drawing lines, leaving no room for the scoreboard.) If not checked, the scoreboard is never visible in Globe View (like in BtS).</Italian>
+		<Spanish>When checked, the scoreboard remains visible in Globe View so long as no layer options need to be displayed. (E.g. the Strategy layer has options for drawing lines, leaving no room for the scoreboard.) If not checked, the scoreboard is never visible in Globe View (like in BtS).</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__RESOURCEICONOPTIONS_TEXT</Tag>
+		<English>Resource Filters</English>
+		<French>Resource Filters</French>
+		<German>Ressourcenfilter</German>
+		<Italian>Resource Filters</Italian>
+		<Spanish>Resource Filters</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__RESOURCEICONOPTIONS_HOVER</Tag>
+		<English>Shows filter options "Food", "Luxuries" and "General" when the Resource Display is enabled in Globe View. When unchecked, the Resource Display always highlights all resources and no options are shown, leaving space for the scoreboard.</English>
+		<French>Shows filter options "Food", "Luxuries" and "General" when the Resource Display is enabled in Globe View. When unchecked, the Resource Display always highlights all resources and no options are shown, leaving space for the scoreboard.</French>
+		<German>Zeigt Filter-Optionen "Nahrung", "Luxusgüter" und "Allgemein" an, wenn die Ressourcenanzeige und die Globalansicht aktiviert sind. Ansonsten werden die Ressourcen stets ungefiltert angezeigt, und an Stelle der Filter-Optionen ist Platz für die Punkteanzeige.</German>
+		<Italian>Shows filter options "Food", "Luxuries" and "General" when the Resource Display is enabled in Globe View. When unchecked, the Resource Display always highlights all resources and no options are shown, leaving space for the scoreboard.</Italian>
+		<Spanish>Shows filter options "Food", "Luxuries" and "General" when the Resource Display is enabled in Globe View. When unchecked, the Resource Display always highlights all resources and no options are shown, leaving space for the scoreboard.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__TRIBALVILLAGEICONS_TEXT</Tag>
+		<English>Tribal Village Icons</English>
+		<French>Tribal Village Icons</French>
+		<German>Stammesdörfer markieren</German>
+		<Italian>Tribal Village Icons</Italian>
+		<Spanish>Tribal Village Icons</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__TRIBALVILLAGEICONS_HOVER</Tag>
+		<English>When checked, the Resource Display highlights Tribal Villages in addition to resources. However, Tribal Villages are never highlighted by the Resource Display if [COLOR_HIGHLIGHT_TEXT]Unit Action Recommendations[COLOR_REVERT] (Ctrl + O) are enabled. (Because that setting also highlights Tribal Villages.)</English>
+		<French>When checked, the Resource Display highlights Tribal Villages in addition to resources. However, Tribal Villages are never highlighted by the Resource Display if [COLOR_HIGHLIGHT_TEXT]Unit Action Recommendations[COLOR_REVERT] (Ctrl + O) are enabled. (Because that setting also highlights Tribal Villages.)</French>
+		<German>Markiert zusätzlich zu Ressourcen auch Stammesdörfer, wenn die Ressourcenanzeige aktiv ist. Ausnahme: Die Ressourcenanzeige markiert keine Stammesdörfer, wenn [COLOR_HIGHLIGHT_TEXT]Einheitenempfehlungen[COLOR_REVERT] (Strg + O) eingeschaltet ist, da diese Option ebenfalls Stammesdörfer hervorhebt.</German>
+		<Italian>When checked, the Resource Display highlights Tribal Villages in addition to resources. However, Tribal Villages are never highlighted by the Resource Display if [COLOR_HIGHLIGHT_TEXT]Unit Action Recommendations[COLOR_REVERT] (Ctrl + O) are enabled. (Because that setting also highlights Tribal Villages.)</Italian>
+		<Spanish>When checked, the Resource Display highlights Tribal Villages in addition to resources. However, Tribal Villages are never highlighted by the Resource Display if [COLOR_HIGHLIGHT_TEXT]Unit Action Recommendations[COLOR_REVERT] (Ctrl + O) are enabled. (Because that setting also highlights Tribal Villages.)</Spanish>
+	</TEXT>
+	
+	<!-- advc.004h -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__FOUNDINGYIELDS_TEXT</Tag>
+		<English>Founding Yields</English>
+		<French>Founding Yields</French>
+		<German>Siedler-Ertragsanzeige</German>
+		<Italian>Founding Yields</Italian>
+		<Spanish>Founding Yields</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__FOUNDINGYIELDS_HOVER</Tag>
+		<English>When checked, yield icons are shown on the map whenever a Settler unit is selected (like in BtS). Otherwise, yield icons are only shown when the Yield Display (above the mini map) is enabled.[NEWLINE]This option should not be toggled while a Settler unit is selected.</English>
+		<French>When checked, yield icons are shown on the map whenever a Settler unit is selected (like in BtS). Otherwise, yield icons are only shown when the Yield Display (above the mini map) is enabled.[NEWLINE]This option should not be toggled while a Settler unit is selected.</French>
+		<German>Zeigt (wie in BtS) Geländeerträge auf der Hauptkarte an, wenn eine Siedlereinheit ausgewählt ist. Wenn diese Option nicht angekreuzt ist, werden Geländeerträge nur dann angezeigt, wenn die Ertragsanzeige (oberhalb der Übersichtskarte) aktiviert wurde.[NEWLINE]Beim Ändern dieser Option sollte kein Siedler ausgewählt sein.</German>
+		<Italian>When checked, yield icons are shown on the map whenever a Settler unit is selected (like in BtS). Otherwise, yield icons are only shown when the Yield Display (above the mini map) is enabled.[NEWLINE]This option should not be toggled while a Settler unit is selected.</Italian>
+		<Spanish>When checked, yield icons are shown on the map whenever a Settler unit is selected (like in BtS). Otherwise, yield icons are only shown when the Yield Display (above the mini map) is enabled.[NEWLINE]This option should not be toggled while a Settler unit is selected.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__FOUNDINGBORDER_TEXT</Tag>
+		<English>Founding Border</English>
+		<French>Founding Border</French>
+		<German>Siedler-Grenzanzeige</German>
+		<Italian>Founding Border</Italian>
+		<Spanish>Founding Border</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__FOUNDINGBORDER_HOVER</Tag>
+		<English>Whether to show borders around a selected Settler unit and, if yes, whether to show them only around [COLOR_HIGHLIGHT_TEXT]adjacent[COLOR_REVERT] tiles (inner ring, as in BtS) or around the full city radius ("big fat" [COLOR_HIGHLIGHT_TEXT]city cross[COLOR_REVERT]).</English>
+		<French>Whether to show borders around a selected Settler unit and, if yes, whether to show them only around [COLOR_HIGHLIGHT_TEXT]adjacent[COLOR_REVERT] tiles (inner ring, as in BtS) or around the full city radius ("big fat" [COLOR_HIGHLIGHT_TEXT]city cross[COLOR_REVERT]).</French>
+		<German>Ob um eine ausgewählte Siedlereinheit Stadtgrenzen eingeblendet werden sollen und, wenn ja, ob die Grenzen (wie in BtS) nur benachbarte Felder ([COLOR_HIGHLIGHT_TEXT]innerer Ring[COLOR_REVERT]) einschließen sollen oder den gesamten Stadtradius ([COLOR_HIGHLIGHT_TEXT]Stadtkreuz[COLOR_REVERT]).</German>
+		<Italian>Whether to show borders around a selected Settler unit and, if yes, whether to show them only around [COLOR_HIGHLIGHT_TEXT]adjacent[COLOR_REVERT] tiles (inner ring, as in BtS) or around the full city radius ("big fat" [COLOR_HIGHLIGHT_TEXT]city cross[COLOR_REVERT]).</Italian>
+		<Spanish>Whether to show borders around a selected Settler unit and, if yes, whether to show them only around [COLOR_HIGHLIGHT_TEXT]adjacent[COLOR_REVERT] tiles (inner ring, as in BtS) or around the full city radius ("big fat" [COLOR_HIGHLIGHT_TEXT]city cross[COLOR_REVERT]).</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__FOUNDINGBORDER_LIST</Tag>
+		<English>None|Adjacent|City Cross</English>
+		<French>None|Adjacent|City Cross</French>
+		<German>Keine|Innerer Ring|Stadtkreuz</German>
+		<Italian>None|Adjacent|City Cross</Italian>
+		<Spanish>None|Adjacent|City Cross</Spanish>
+	</TEXT>
+	
+	<!-- advc.004m -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STARTWITHRESOURCEICONS_TEXT</Tag>
+		<English>Start with Resource Display</English>
+		<French>Symboles de ressources au début du jeu</French>
+		<German>Ressourcenanzeige bei Spielstart</German>
+		<Italian>Mostra risorse all'inizio del gioco</Italian>
+		<Spanish>Muestra recursos al inicio del juego</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__STARTWITHRESOURCEICONS_HOVER</Tag>
+		<English>When checked, the Resource Display is enabled at the start of every new game. Otherwise, the Resource Display is disabled at game start.</English>
+		<French>Active l'affichage des ressources au début du jeu.</French>
+		<German>Aktiviert die Ressourcenanzeige zu Spielbeginn.</German>
+		<Italian>Abilita la segnalazione delle risorse all'inizio del gioco.</Italian>
+		<Spanish>Activa las marcas de recursos al inicio del juego.</Spanish>
+	</TEXT>
+	
 </Civ4GameText>

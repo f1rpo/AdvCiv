@@ -192,6 +192,18 @@
 		<Italian>Mappa</Italian>
 		<Spanish>Mapa</Spanish>
 	</TEXT>
+	<!-- advc.004: New heading. The labels of the layer buttons say "display,"
+		 e.g. "Resource Display", but that's a confusing heading (the
+		 screen/monitor is also a "display"). "Views" is also too general. -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPTLABEL_LAYERS</Tag>
+		<English>Layers:</English>
+		<French>Layers:</French>
+		<German>Ansichten:</German>
+		<Italian>Layers:</Italian>
+		<Spanish>Layers:</Spanish>
+	</TEXT>
+	
 	<!-- advc.004: The Strategy layer (Globe view) is really a separate thing -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPTLABEL_STRATEGYOVERLAY</Tag>
@@ -335,12 +347,12 @@
 	</TEXT>
 	
 	<!-- City Screen Tab -->
-	
+	<!-- advc.004: German shortened -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPTTAB_CITYSCREEN</Tag>
 		<English>City Screen</English>
 		<French>City Screen</French>
-		<German>Stadt-Bildschirm</German>
+		<German>Stadt</German>
 		<Italian>Citt&#224;</Italian>
 		<Spanish>Pantalla de Ciudad</Spanish>
 	</TEXT>

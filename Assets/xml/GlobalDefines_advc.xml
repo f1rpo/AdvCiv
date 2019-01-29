@@ -873,25 +873,6 @@
 	</Define>
 	
 	<!-- [advc.004z] -->
-	<!-- If set to 1, the scoreboard remains visible in Globe view when a layer
-		 is selected that has no options to display. E.g. the BUG Strategy
-		 layer has options for drawing lines etc., so there is no room for the
-		 scoreboard, whereas e.g. the Culture layer has no such options.
-		 0 (BtS behavior) means that the scoreboard is never shown in
-		 Globe View. -->
-	<Define>
-		<DefineName>SHOW_SCORE_IN_GLOBE_VIEW</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
-	</Define>
-	<!-- If set to 0, no options are shown for the Resource layer; all types of
-		 resources are indicated on the map. If set to 1 (BtS behavior),
-		 options for displaying only happiness, health or strategic resources
-		 are shown when in Globe view (meaning also that there is no room for
-		 the scoreboard). -->
-	<Define>
-		<DefineName>SHOW_RESOURCE_LAYER_OPTIONS</DefineName>
-		<iDefineIntVal>0</iDefineIntVal>
-	</Define>
 	<!-- If set to 0, no options are shown for the Unit layer; all units are
 		 indicated on the map. If set to 1 (BtS behavior), options
 		 for displaying e.g. only domestic or hostile units are shown
@@ -916,14 +897,6 @@
 		<DefineName>CONNECTION_TO_CAPITAL_ON_TRADE_LAYER</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
-	<!-- If set to 1, and unit action recommendations are disabled, the
-		 Resource layer highlights Tribal Villages in addition to resources
-		 when showing "All Resources". If set to 0 (BtS behavior), the Resource
-		 layer never highlights Tribal Villages. -->
-	<Define>
-		<DefineName>SHOW_GOODY_HUTS_ON_RESOURCE_LAYER</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
-	</Define>
 
 	<!-- advc.210a: If set to 1 and if the War Trades alert is enabled, a
 		 message is shown when a civ can no longer be convinced to start a war
@@ -934,24 +907,6 @@
 		 about the trade becoming available should be sufficient. -->
 	<Define>
 		<DefineName>ALERT_ON_NO_LONGER_WAR_TRADE</DefineName>
-		<iDefineIntVal>0</iDefineIntVal>
-	</Define>
-	
-	<!-- advc.004h: This setting controls the borders shown around a selected
-		 Settler. Recommended: 0; BtS behavior: 1.
-		 0: The full city radius ("big fat cross") is highlighted.
-		 1: Only the inner ring of the city radius is highlighted.
-		 2: No tiles are highlighted. -->
-	<Define>
-		<DefineName>FOUNDING_BORDER_MODE</DefineName>
-		<iDefineIntVal>0</iDefineIntVal>
-	</Define>
-	
-	<!-- advc.004h: If set to 1 (BtS) behavior, yield icons are shown whenever
-		 a Settler is selected. If set to 0 (recommended), yield icons are only
-		 shown if "Yield Display" is enabled above the mini-map. -->
-	<Define>
-		<DefineName>FOUNDING_SHOW_YIELDS</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 	

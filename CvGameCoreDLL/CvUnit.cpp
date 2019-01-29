@@ -2077,12 +2077,12 @@ bool CvUnit::isActionRecommended(int iAction)
 // <advc.004h>
 void CvUnit::updateFoundingBorder() const {
 
-	int iMode = GC.getDefineINT("FOUNDING_BORDER_MODE");
-	if(GC.getFOUNDING_SHOW_YIELDS() && iMode == 1) // BtS behavior
-		return;
+	int iMode = getBugOptionINT("MainInterface__FoundingBorder", 2);
+	if(getBugOptionBOOL("MainInterface__FoundingYields", false) && iMode == 1)
+		return; // BtS behavior
 	gDLL->getEngineIFace()->clearAreaBorderPlots(AREA_BORDER_LAYER_FOUNDING_BORDER);
 	gDLL->getInterfaceIFace()->setDirty(ColoredPlots_DIRTY_BIT, true);
-	if(iMode >= 2 || !canFound())
+	if(iMode <= 0 || !canFound())
 		return;
 	CvSelectionGroup* gr = getGroup();
 	for(CLLNode<IDInfo>* node = gr->headUnitNode(); node != NULL; node = gr->nextUnitNode(node)) {
@@ -8445,7 +8445,7 @@ bool CvUnit::isSpy() const
 // <advc.004h>
 bool CvUnit::isFound() const {
 
-	if(GC.getFOUNDING_SHOW_YIELDS())
+	if(getBugOptionBOOL("MainInterface__FoundingYields", false))
 		return canFound();
 	return false;
 }

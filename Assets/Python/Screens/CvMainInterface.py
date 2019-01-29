@@ -1304,7 +1304,7 @@ class CvMainInterface:
 			CyInterface().setDirty(InterfaceDirtyBits.GlobeInfo_DIRTY_BIT, False)
 			self.updateGlobeviewButtons()
 			# <advc.004z>
-			if gc.getDefineINT("SHOW_SCORE_IN_GLOBE_VIEW") > 0:
+			if MainOpt.isScoresInGlobeView():
 				# Show/hide scoreboard depending on whether the layer has options
 				self.updateScoreStrings() # </advc.004z>
 
@@ -4987,10 +4987,10 @@ class CvMainInterface:
 			kGLM = CyGlobeLayerManager()
 			iCurrentLayerID = kGLM.getCurrentLayerID()
 			# Copy-pasted from updateGlobeviewButtons
-			bGlobeViewOptions = (iCurrentLayerID != -1 and kGLM.getLayer(iCurrentLayerID).getNumOptions() != 0 and (gc.getDefineINT("SHOW_RESOURCE_LAYER_OPTIONS") > 0 or kGLM.getLayer(iCurrentLayerID).getName() != "RESOURCES") and (gc.getDefineINT("SHOW_UNIT_LAYER_OPTIONS") > 0 or kGLM.getLayer(iCurrentLayerID).getName() != "UNITS"))
+			bGlobeViewOptions = (iCurrentLayerID != -1 and kGLM.getLayer(iCurrentLayerID).getNumOptions() != 0 and (MainOpt.isResourceIconOptions() or kGLM.getLayer(iCurrentLayerID).getName() != "RESOURCES") and (gc.getDefineINT("SHOW_UNIT_LAYER_OPTIONS") > 0 or kGLM.getLayer(iCurrentLayerID).getName() != "UNITS"))
 			# </advc.004z>
 			# advc.004z: Globe view options clause added
-			if CyInterface().isScoresVisible() and not CyInterface().isCityScreenUp() and (not CyEngine().isGlobeviewUp() or (not bGlobeViewOptions and gc.getDefineINT("SHOW_SCORE_IN_GLOBE_VIEW") > 0)):
+			if CyInterface().isScoresVisible() and not CyInterface().isCityScreenUp() and (not CyEngine().isGlobeviewUp() or (not bGlobeViewOptions and MainOpt.isScoresInGlobeView())):
 
 # BUG - Align Icons - start
 				bAlignIcons = ScoreOpt.isAlignIcons()
@@ -5420,8 +5420,11 @@ class CvMainInterface:
 		#iNumLayers = kGLM.getNumLayers() # advc.003: unused
 		if kEngine.isGlobeviewUp() and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_HIDE_ALL:
 			# set up panel
-			# advc.004z: Clauses for RESOURCES and UNITS added. Would rather set NumOptions to 0, but GlobeLayerManager is not part of the SDK, apparently.
-			if iCurrentLayerID != -1 and kGLM.getLayer(iCurrentLayerID).getNumOptions() != 0 and (gc.getDefineINT("SHOW_RESOURCE_LAYER_OPTIONS") > 0 or kGLM.getLayer(iCurrentLayerID).getName() != "RESOURCES") and (gc.getDefineINT("SHOW_UNIT_LAYER_OPTIONS") > 0 or kGLM.getLayer(iCurrentLayerID).getName() != "UNITS"):
+			# <advc.004z>
+			bUnitLayer = (kGLM.getLayer(iCurrentLayerID).getName() == "UNITS")
+			# Clauses for RESOURCES and UNITS added. Would rather set NumOptions to 0, but GlobeLayerManager is not part of the SDK, apparently.
+			if iCurrentLayerID != -1 and kGLM.getLayer(iCurrentLayerID).getNumOptions() != 0 and (MainOpt.isResourceIconOptions() or kGLM.getLayer(iCurrentLayerID).getName() != "RESOURCES") and (gc.getDefineINT("SHOW_UNIT_LAYER_OPTIONS") > 0 or not bUnitLayer):
+				# </advc.004z>
 				bHasOptions = True		
 			else:
 				bHasOptions = False
@@ -5446,12 +5449,12 @@ class CvMainInterface:
 				for iTmp in range(iNumOptions):
 					iOption = iTmp # iNumOptions - iTmp - 1
 					# <advc.004z> Skip dummy option (see CvEnums.h)
-					if iOption == 2:
+					if bUnitLayer and iOption == 2:
 						continue # </advc.004z>
 					szName = "GlobeLayerOption" + str(iOption)
 					szCaption = kLayer.getOptionName(iOption)
 					# advc.004z: Highlight "All Units" option when the default (2) is selected. This is the case when none of the options has been clicked yet.
-					if iOption == iCurOption or (iCurOption == 2 and iOption == 0):
+					if iOption == iCurOption or (bUnitLayer and iCurOption == 2 and iOption == 0):
 						szBuffer = "  <color=0,255,0>%s</color>  " % (szCaption)
 					else:
 						szBuffer = "  %s  " % (szCaption)

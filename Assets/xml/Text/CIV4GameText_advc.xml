@@ -1179,6 +1179,27 @@
 		<Italian>Abilita/disabilita la 'Finestra dei punteggi'</Italian>
 		<Spanish>Activar visor de puntuaciones</Spanish>
 	</TEXT>
+	<!-- From CIV4GameText_Misc1.xml. Tooltip of the Globe View button.
+		 Said that Globe View "Brings up detailed information about your game's
+		 world." -->
+	<TEXT>
+		<Tag>TXT_KEY_GLOBEVIEW_TOGGLE</Tag>
+		<English>Zooms out to show the Globe (or back in)</English>
+		<French>Informations d&#233;taill&#233;es sur le monde du jeu.</French>
+		<German>Herauszoomen in die Globalansicht (oder wieder heranzoomen)</German>
+		<Italian>Informazioni dettagliate sul mondo della partita.</Italian>
+		<Spanish>Hace que aparezca informaci&#243;n detallada sobre el mundo de la partida.</Spanish>
+	</TEXT>
+	<!-- From CIV4GameText_Help.xml; shortened to fit in one line even with the
+		 larger font (advc.002b) -->
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_YIELDS_HELP</Tag>
+		<English>Toggle Food/Production/Commerce icons</English>
+		<French>Alterner entre l'affichage des ic&#244;nes Nourriture / Production / Commerce</French>
+		<German>Nahrungs-/Produktions-/Wirtschaftssymbole ein-/ausblenden</German>
+		<Italian>Attiva/disattiva la visibilit&#224; delle icone Cibo/Produzione/Commercio.</Italian>
+		<Spanish>Activa la visibilidad de iconos de alimentos / producci&#243;n / comercio</Spanish>
+	</TEXT>
 	
 	<!-- advc.004z: Originally in CIV4GameText_Misc1.xml. Romanic translations
 		 based on TXT_KEY_GLOBELAYER_UNITS_ENEMYMILITARY. -->

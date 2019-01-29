@@ -720,8 +720,6 @@ public:
 	inline int getUWAI_MULTI_WAR_RELUCTANCE() { return m_iUWAI_MULTI_WAR_RELUCTANCE; }
 	// advc.122:
 	inline int getCITY_TRADE_CULTURE_THRESH() { return m_iCITY_TRADE_CULTURE_THRESH; }
-	// advc.004h:
-	inline int getFOUNDING_SHOW_YIELDS() { return m_iFOUNDING_SHOW_YIELDS; }
 	// advc.002a:
 	inline int getMINIMAP_WATER_MODE() { return m_iMINIMAP_WATER_MODE; }
 	// advc.011:
@@ -1193,7 +1191,6 @@ protected:
 	int m_iPER_PLAYER_MESSAGE_CONTROL_LOG; // advc.007
 	int m_iUWAI_MULTI_WAR_RELUCTANCE; // advc.104
 	int m_iCITY_TRADE_CULTURE_THRESH; // advc.122
-	int m_iFOUNDING_SHOW_YIELDS; // advc.004h
 	int m_iMINIMAP_WATER_MODE; // advc.002a
 	int m_iDELAY_UNTIL_BUILD_DECAY; // advc.011
 	int m_iBASE_RESEARCH_RATE; // advc.910

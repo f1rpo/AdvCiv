@@ -20,8 +20,21 @@ class BugMapOptionsTab(BugOptionsTab.BugOptionsTab):
 		column = self.addOneColumnLayout(screen, panel)
 		
 		left, center, right = self.addThreeColumnLayout(screen, column, "Top", True)
-		
-		self.addLabel(screen, left, "StrategyOverlay", "Strategy Layer:")
+		# advc.004:
+		self.addLabel(screen, left, "Layers", "Layers:")
+		# <advc.004z>
+		self.addCheckbox(screen, left, "MainInterface__ScoresInGlobeView")
+		self.addCheckbox(screen, left, "MainInterface__ResourceIconOptions")
+		self.addCheckbox(screen, left, "MainInterface__TribalVillageIcons")
+		# </advc.004z>
+		# advc.004m:
+		self.addCheckbox(screen, left, "MainInterface__StartWithResourceIcons")
+		# <advc.004h>
+		self.addCheckbox(screen, left, "MainInterface__FoundingYields")
+		self.addTextDropdown(screen, left, left, "MainInterface__FoundingBorder")
+		# </advc.004h>
+		self.addSpacer(screen, left, "Left1") # advc.004
+		self.addLabel(screen, left, "StrategyOverlay", "Dot Map Overlay:")
 		self.addCheckbox(screen, left, "StrategyOverlay__Enabled")
 		# advc.004: Disabled; Ctrl+X should suffice.
 		#self.addCheckbox(screen, left, "StrategyOverlay__ShowDotMap")
@@ -49,8 +62,6 @@ class BugMapOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addCheckbox(screen, right, "MainInterface__FieldOfView")
 		self.addCheckbox(screen, right, "MainInterface__FieldOfView_Remember", True)
 		self.addCheckbox(screen, right, "EventSigns__Enabled")
-		# advc.004m:
-		self.addCheckbox(screen, right, "MainInterface__StartWithResourceIcons")
 		
 		#self.addCheckbox(screen, right, "Actions__IgnoreHarmlessBarbarians")
 		

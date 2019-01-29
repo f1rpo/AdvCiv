@@ -478,7 +478,8 @@ if (GC.getImprovementInfo(getImprovementType()).getImprovementBonusDiscoverRand(
 					if(iOdds > 0)
 					{	// <advc.rom3>
 						//Afforess: check for valid terrains for this bonus before discovering it
-						if(!canHaveBonus((BonusTypes)iI))
+						if(!canHaveBonus((BonusTypes)iI), false,
+								true) // advc.129
 							continue; // </advc.rom3>
 						iOdds *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getVictoryDelayPercent();
 						iOdds /= 100;
@@ -2146,7 +2147,8 @@ void CvPlot::updateSeeFromSight(bool bIncrement, bool bUpdatePlotGroups)
 }
 
 
-bool CvPlot::canHaveBonus(BonusTypes eBonus, bool bIgnoreLatitude) const
+bool CvPlot::canHaveBonus(BonusTypes eBonus, bool bIgnoreLatitude,
+		bool bIgnoreFeature) const // advc.129
 {
 	FAssertMsg(getTerrainType() != NO_TERRAIN, "TerrainType is not assigned a valid value");
 
@@ -2164,22 +2166,28 @@ bool CvPlot::canHaveBonus(BonusTypes eBonus, bool bIgnoreLatitude) const
 	{
 		return false;
 	}
-
+	CvBonusInfo const& kBonus = GC.getBonusInfo(eBonus);
+	// <advc.129>
+	if(bIgnoreFeature) {
+		if(!kBonus.isFeatureTerrain(getTerrainType()) &&
+				!kBonus.isTerrain(getTerrainType()))
+			return false;
+	}
+	else // </advc.129>
 	if (getFeatureType() != NO_FEATURE)
 	{
-		if (!GC.getBonusInfo(eBonus).isFeature(getFeatureType()))
+		if (!kBonus.isFeature(getFeatureType()))
 		{
 			return false;
 		}
-
-		if (!GC.getBonusInfo(eBonus).isFeatureTerrain(getTerrainType()))
+		if (!kBonus.isFeatureTerrain(getTerrainType()))
 		{
 			return false;
 		}
 	}
 	else
 	{
-		if (!GC.getBonusInfo(eBonus).isTerrain(getTerrainType()))
+		if (!kBonus.isTerrain(getTerrainType()))
 		{
 			return false;
 		}
@@ -2187,20 +2195,20 @@ bool CvPlot::canHaveBonus(BonusTypes eBonus, bool bIgnoreLatitude) const
 
 	if (isHills())
 	{
-		if (!GC.getBonusInfo(eBonus).isHills())
+		if (!kBonus.isHills())
 		{
 			return false;
 		}
 	}
 	else if (isFlatlands())
 	{
-		if (!GC.getBonusInfo(eBonus).isFlatlands())
+		if (!kBonus.isFlatlands())
 		{
 			return false;
 		}
 	}
 
-	if (GC.getBonusInfo(eBonus).isNoRiverSide())
+	if (kBonus.isNoRiverSide())
 	{
 		if (isRiverSide())
 		{
@@ -2208,9 +2216,9 @@ bool CvPlot::canHaveBonus(BonusTypes eBonus, bool bIgnoreLatitude) const
 		}
 	}
 
-	if (GC.getBonusInfo(eBonus).getMinAreaSize() != -1)
+	if (kBonus.getMinAreaSize() != -1)
 	{
-		if (area()->getNumTiles() < GC.getBonusInfo(eBonus).getMinAreaSize())
+		if (area()->getNumTiles() < kBonus.getMinAreaSize())
 		{
 			return false;
 		}
@@ -2218,12 +2226,12 @@ bool CvPlot::canHaveBonus(BonusTypes eBonus, bool bIgnoreLatitude) const
 
 	if (!bIgnoreLatitude)
 	{
-		if (getLatitude() > GC.getBonusInfo(eBonus).getMaxLatitude())
+		if (getLatitude() > kBonus.getMaxLatitude())
 		{
 			return false;
 		}
 
-		if (getLatitude() < GC.getBonusInfo(eBonus).getMinLatitude())
+		if (getLatitude() < kBonus.getMinLatitude())
 		{
 			return false;
 		}
