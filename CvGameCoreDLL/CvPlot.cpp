@@ -4204,7 +4204,7 @@ bool CvPlot::isTradeNetworkConnected(const CvPlot* pPlot, TeamTypes eTeam) const
 
 	//if (!isOwned()) // advc.124
 	{
-		if (!isRevealed(eTeam, false) || !(pPlot->isRevealed(eTeam, false)))
+		if (!isRevealed(eTeam, false) || !pPlot->isRevealed(eTeam, false))
 		{
 			return false;
 		}
@@ -4229,6 +4229,13 @@ bool CvPlot::isTradeNetworkConnected(const CvPlot* pPlot, TeamTypes eTeam) const
 			return true;
 		}
 	}
+	/*  <advc.124> The isCityRadius check is just for performance (though it
+		probably doesn't make a difference) */
+	if(isRoute() && isCityRadius() && pPlot->isNetworkTerrain(eTeam)) {
+		CvCity* pWorkingCity = getWorkingCity();
+		if(pWorkingCity != NULL && pWorkingCity->getTeam() == eTeam)
+			return true;
+	} // </advc.124>
 
 	if (isNetworkTerrain(eTeam))
 	{
@@ -4249,6 +4256,12 @@ bool CvPlot::isTradeNetworkConnected(const CvPlot* pPlot, TeamTypes eTeam) const
 				return true;
 			}
 		}
+		// <advc.124>
+		if(pPlot->isRoute() && pPlot->isCityRadius()) {
+			CvCity* pWorkingCity = pPlot->getWorkingCity();
+			if(pWorkingCity != NULL && pWorkingCity->getTeam() == eTeam)
+				return true;
+		} // </advc.124>
 	}
 
 	if (isRiverNetwork(eTeam))

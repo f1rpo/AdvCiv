@@ -964,7 +964,11 @@ enum FontSymbols					// Exposed to Python
 	MAP_CHAR,
 	OCCUPATION_CHAR,
 	POWER_CHAR,
-
+	/*  <advc.002f> From BULL. Only using AIRPORT_CHAR so far, but need all of them
+		in order to be compatible with BULL's GameFont.tga */
+	CITIZEN_CHAR,
+	GREAT_GENERAL_CHAR,
+	AIRPORT_CHAR, // </advc.002f>
 #ifdef _USRDLL
 	MAX_NUM_SYMBOLS
 #endif

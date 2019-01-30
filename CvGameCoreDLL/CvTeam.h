@@ -596,7 +596,9 @@ protected:
 	// <advc.039>
 	CvWString const tradeItemString(TradeableItems eItem, int data,
 			TeamTypes fromId) const; // </advc.039>
-	void announceTechToPlayers(TechTypes eIndex, bool bPartial = false);
+	void announceTechToPlayers(TechTypes eIndex,
+			PlayerTypes eDiscoverPlayer, // advc.156
+			bool bPartial = false);
 
 	virtual void read(FDataStreamBase* pStream);
 	virtual void write(FDataStreamBase* pStream);

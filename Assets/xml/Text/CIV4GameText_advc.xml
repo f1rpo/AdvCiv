@@ -2768,6 +2768,16 @@
 		<Spanish>[NUM1:Dispuesto:Dispuesta] a [COLOR_NEGATIVE_TEXT]declarar la guerra[COLOR_REVERT] a %s1_LdrName</Spanish>
 	</TEXT>
 	
+	<!-- advc.120: From CIV4GameText_BTS.xml. "Enemy" changed to "Rival" -->
+	<TEXT>
+		<Tag>TXT_KEY_ESPIONAGE_TARGET_COUNTERESPIONAGE</Tag>
+		<English>Rival spies appear to be extra vigilant to our espionage efforts in the near future.</English>
+		<French>Les espions ennemis semblent porter une attention particuli&#232;re &#224; nos tentatives d'espionnage.</French>
+		<German>Gegnerische Spione werden unsere Spionage-Unternehmungen demn&#228;chst gut im Auge behalten.</German>
+		<Italian>Pare che le spie nemiche saranno molto attente a scoprire i nostri tentativi di spionaggio nell'immediato futuro.</Italian>
+		<Spanish>Parece que los esp&#237;as enemigos no perder&#225;n de vista a nuestros agentes de ahora en adelante.</Spanish>
+	</TEXT>
+	
 	<!-- advc.120c: Translations based on TXT_KEY_TECH_DRAMA_STRATEGY in
 		 CIV4GameText_Strategy.xml ("slider"), TXT_KEY_CONCEPT_DIPLOMACY_PEDIA
 		 in CIV4GameText_Civilopedia_Concepts.xml ("screen"). -->
@@ -4598,6 +4608,44 @@
 		<German>Einheit hält ihre Position (kehrt nicht in die Hauptstadt zurück)</German>
 		<Italian>L'unità manterrà la sua posizione (non ritorna nella capitale)</Italian>
 		<Spanish>La unidad mantendrá su posición (no regresa a la capital)</Spanish>
+	</TEXT>
+	
+	<!-- advc.910 -->
+	<TEXT>
+		<Tag>TXT_KEY_RESEARCH_MODIFIER</Tag>
+		<English>Research Modifier</English>
+		<French>Modificateur de recherche</French>
+		<German>Forschungsmodifikator</German>
+		<Italian>Modificatore di ricerca</Italian>
+		<Spanish>Modificador de investigación</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RESEARCH_MODIFIER_OTHER_KNOWN</Tag>
+		<English>from diffusion</English>
+		<French>de la diffusion</French>
+		<German>durch Diffusion</German>
+		<Italian>da la diffusione</Italian>
+		<Spanish>por difusión</Spanish>
+	</TEXT>
+	<!-- Italian and French based on TXT_KEY_CONCEPT_TECHNOLOGY_PEDIA in
+		 CIV4GameText_Civilopedia_Concepts.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_RESEARCH_MODIFIER_PATHS</Tag>
+		<English>from prereq. techs</English>
+		<French>des tech pr&#233;alables</French>
+		<German>durch übererfüllte Tech-Voraussetzungen</German>
+		<Italian>da prerequisiti tecnologici</Italian>
+		<Spanish>por prerreq. tecnológicos</Spanish>
+	</TEXT>
+	<!-- advc.156
+		 Romance translations are probably pretty bad -->
+	<TEXT>
+		<Tag>TXT_KEY_RESEARCH_MODIFIER_TEAM</Tag>
+		<English>from teammate with same research</English>
+		<French>de membre de l'équipe avec la même recherche</French>
+		<German>durch Überschneidung mit Team-Mitglied</German>
+		<Italian>da membro del team con la stessa ricerca</Italian>
+		<Spanish>por miembro del equipo con misma investigación</Spanish>
 	</TEXT>
 	
 </Civ4GameText>

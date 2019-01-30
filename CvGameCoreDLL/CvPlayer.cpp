@@ -1944,29 +1944,24 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 	long result = -1;
 	CyArgsList argsList;
 	argsList.add(getID());		// pass in this players ID
-	if (gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "findStartingPlot", argsList.makeFunctionArgs(), &result))
-	{
-		if (!gDLL->getPythonIFace()->pythonUsingDefaultImpl()) // Python override
-		{
+	if (gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->
+			getMapScriptModule(), "findStartingPlot", argsList.makeFunctionArgs(), &result)) {
+		if (!gDLL->getPythonIFace()->pythonUsingDefaultImpl()) { // Python override
 			CvPlot *pPlot = GC.getMapINLINE().plotByIndexINLINE(result);
 			if (pPlot != NULL)
-			{
 				return pPlot;
-			}
-			else
-			{
+			else {
 				FAssertMsg(//false
 					/*  advc.021a: Tectonics apparently assigns all starting plots
 						at once on its own and then returns "None". Or something;
 						doesn't seem to be a problem anyway. Now I'm having it
 						return -10 to indicate that it's a known (or non-) issue. */
-					result == -10
-					, "python findStartingPlot() returned an invalid plot index!");
+					result == -10,
+					"python findStartingPlot() returned an invalid plot index!");
 			}
 		}
 	}
 
-	//bool bValid; // advc.003: was effectively unused
 	int iBestArea = -1;
 	bool bNew = false;
 	if (getStartingPlot() != NULL)
@@ -2007,8 +2002,11 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 				int iValue = pLoopPlot->getFoundValue(getID());
 
 				if (bRandomize && iValue > 0)
-				{
-					iValue += GC.getGameINLINE().getSorenRandNum(10000, "Randomize Starting Location");
+				{	/*  advc.003 (comment): That's a high random portion (found values tend
+						to range between 0 and 9999 too), but I'm not sure which map scripts
+						(if any) use bRandomize=true, so I'm not changing this. */
+					iValue += GC.getGameINLINE().getSorenRandNum(10000,
+							"Randomize Starting Location");
 				}
 
 				if (iValue > iBestValue)
@@ -6514,7 +6512,7 @@ void CvPlayer::found(int iX, int iY)
 
 	pCity = initCity(iX, iY, true, true);
 	FAssertMsg(pCity != NULL, "City is not assigned a valid value");
-
+	CvGame const& g = GC.getGameINLINE();
 	if (isBarbarian())
 	{
 		eDefenderUnit = pCity->AI_bestUnitAI(UNITAI_CITY_DEFENSE);
@@ -6526,7 +6524,7 @@ void CvPlayer::found(int iX, int iY)
 
 		if (eDefenderUnit != NO_UNIT)
 		{
-			for (iI = 0; iI < GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getBarbarianInitialDefenders(); iI++)
+			for (iI = 0; iI < GC.getHandicapInfo(g.getHandicapType()).getBarbarianInitialDefenders(); iI++)
 			{
 				initUnit(eDefenderUnit, iX, iY, UNITAI_CITY_DEFENSE);
 			}
@@ -6539,7 +6537,7 @@ void CvPlayer::found(int iX, int iY)
 
 		if (eLoopBuilding != NO_BUILDING)
 		{	// advc.003:
-			if(GC.getGameINLINE().isFreeStartEraBuilding(eLoopBuilding))
+			if(g.isFreeStartEraBuilding(eLoopBuilding))
 			{
 				if (pCity->canConstruct(eLoopBuilding))
 				{
@@ -6570,7 +6568,7 @@ void CvPlayer::found(int iX, int iY)
 		{
 			for (iI = 0; iI < GC.getNumCultureLevelInfos(); ++iI)
 			{
-				int iCulture = GC.getGameINLINE().getCultureThreshold((CultureLevelTypes)iI);
+				int iCulture = g.getCultureThreshold((CultureLevelTypes)iI);
 				if (iCulture > 0)
 				{
 					pCity->setCulture(getID(), iCulture, true, true);
@@ -6582,7 +6580,11 @@ void CvPlayer::found(int iX, int iY)
 
 	if (isHuman() && getAdvancedStartPoints() < 0)
 	{
-		pCity->chooseProduction();
+		pCity->chooseProduction(
+				/*  advc.124g: Somehow, the choose-production popup comes up twice
+					(despite being pushed only once) in multiplayer if the
+					choose-tech popup is handled before choose-production. */
+				NO_UNIT, NO_BUILDING, NO_PROJECT, false, g.isNetworkMultiPlayer());
 	}
 	else
 	{
@@ -7970,15 +7972,22 @@ int CvPlayer::calculateInflatedCosts() const
 	return iNetGold;
 } */
 
-int CvPlayer::calculateResearchModifier(TechTypes eTech) const
-{
+int CvPlayer::calculateResearchModifier(TechTypes eTech,
+		// <advc.910>
+		int* piFromOtherKnown, int* piFromPaths, int* piFromTeam) const {
+	// So that the caller isn't required to provide the pointer params
+	int iFromOtherKnown, iFromPaths, iFromTeam;
+	if(piFromOtherKnown == NULL)
+		piFromOtherKnown = &iFromOtherKnown;
+	if(piFromPaths == NULL)
+		piFromPaths = &iFromPaths;
+	if(piFromTeam == NULL)
+		piFromTeam = &iFromTeam;
+	*piFromOtherKnown = *piFromPaths = *piFromTeam = 0;
+	// </advc.910>
 	int iModifier = 100;
-
-	if (NO_TECH == eTech)
-	{
+	if(NO_TECH == eTech)
 		return iModifier;
-	}
-
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      07/27/09                                jdog5000      */
 /*                                                                                              */
@@ -8014,7 +8023,8 @@ int CvPlayer::calculateResearchModifier(TechTypes eTech) const
 		int techDiffMod = GC.getTECH_DIFFUSION_KNOWN_TEAM_MODIFIER();
 		if (knownExp > 0.0)
 		{
-			iModifier += techDiffMod - (int)(techDiffMod * pow(0.85, knownExp) + 0.5);
+			*piFromOtherKnown += // advc.910
+					techDiffMod - (int)(techDiffMod * pow(0.85, knownExp) + 0.5);
 		}
 
 		// Tech flows downhill to those who are far behind
@@ -8024,7 +8034,10 @@ int CvPlayer::calculateResearchModifier(TechTypes eTech) const
 		{
 			if( knownExp > 0.0 )
 			{
-				iModifier += (GC.getTECH_DIFFUSION_WELFARE_MODIFIER() * GC.getGameINLINE().getCurrentEra() * (iWelfareThreshold - iTechScorePercent))/200;
+				*piFromOtherKnown += // advc.910
+						(GC.getTECH_DIFFUSION_WELFARE_MODIFIER() *
+						GC.getGameINLINE().getCurrentEra() *
+						(iWelfareThreshold - iTechScorePercent))/200;
 			}
 		}
 	}
@@ -8051,13 +8064,14 @@ int CvPlayer::calculateResearchModifier(TechTypes eTech) const
 
 		if (iPossibleKnownCount > 0)
 		{
-			iModifier += (GC.getDefineINT("TECH_COST_TOTAL_KNOWN_TEAM_MODIFIER") * iKnownCount) / iPossibleKnownCount;
+			*piFromOtherKnown += // advc.910
+				(GC.getTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER() * iKnownCount) / iPossibleKnownCount;
 		}
 	}
+	iModifier += *piFromOtherKnown; // advc.910
 
 	int iPossiblePaths = 0;
 	int iUnknownPaths = 0;
-
 	for (int iI = 0; iI < GC.getNUM_OR_TECH_PREREQS(); iI++)
 	{	// advc.003:
 		TechTypes eOrTech = (TechTypes)GC.getTechInfo(eTech).getPrereqOrTechs(iI);
@@ -8076,15 +8090,31 @@ int CvPlayer::calculateResearchModifier(TechTypes eTech) const
 
 	if(iPossiblePaths > iUnknownPaths)
 	{
-		iModifier += GC.getTECH_COST_FIRST_KNOWN_PREREQ_MODIFIER();
+		*piFromPaths += // advc.910
+			GC.getTECH_COST_FIRST_KNOWN_PREREQ_MODIFIER();
 		iPossiblePaths--;
-		iModifier += (iPossiblePaths - iUnknownPaths) * GC.getTECH_COST_KNOWN_PREREQ_MODIFIER();
+		*piFromPaths +=
+			(iPossiblePaths - iUnknownPaths) * GC.getTECH_COST_KNOWN_PREREQ_MODIFIER();
 	}
-
-	return iModifier;
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/
+	iModifier += *piFromPaths;
+	// <advc.156>
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+		if(i == getID())
+			continue;
+		CvPlayer const& kMember = GET_PLAYER((PlayerTypes)i);
+		if(kMember.isAlive() && kMember.getTeam() == getTeam() &&
+				kMember.getCurrentResearch() == eTech) {
+			*piFromTeam = // advc.910
+					GC.getRESEARCH_MODIFIER_EXTRA_TEAM_MEMBER();
+			break; // Or should the penalty stack?
+		}
+	}
+	iModifier += *piFromTeam; // advc.910
+	// </advc.156>
+	return iModifier;
 }
 
 /* int CvPlayer::calculateBaseNetResearch(TechTypes eTech) const {
@@ -8616,11 +8646,12 @@ void CvPlayer::revolution(CivicTypes* paeNewCivics, bool bForce)
 	if (getID() == GC.getGameINLINE().getActivePlayer())
 	{
 		gDLL->getInterfaceIFace()->setDirty(Popup_DIRTY_BIT, true); // to force an update of the civic chooser popup
-	} // <advc.004x>
-	killAll(BUTTONPOPUP_CHANGECIVIC);
-	if(iAnarchyLength > 0) {
-		killAll(BUTTONPOPUP_CHOOSEPRODUCTION);
-		killAll(BUTTONPOPUP_CHOOSETECH);
+		// <advc.004x>
+		killAll(BUTTONPOPUP_CHANGECIVIC);
+		if(iAnarchyLength > 0) {
+			killAll(BUTTONPOPUP_CHOOSEPRODUCTION);
+			killAll(BUTTONPOPUP_CHOOSETECH);
+		}
 	} // </advc.004x>
 }
 
@@ -8751,10 +8782,12 @@ void CvPlayer::convert(ReligionTypes eReligion, // <advc.001v>
 
 	setConversionTimer(std::max(1, ((100 + getAnarchyModifier()) * GC.getDefineINT("MIN_CONVERSION_TURNS")) / 100) + iAnarchyLength);
 	// <advc.004x>
-	killAll(BUTTONPOPUP_CHANGERELIGION);
-	if(iAnarchyLength > 0) {
-		killAll(BUTTONPOPUP_CHOOSEPRODUCTION);
-		killAll(BUTTONPOPUP_CHOOSETECH);
+	if(getID() == GC.getGameINLINE().getActivePlayer()) {
+		killAll(BUTTONPOPUP_CHANGERELIGION);
+		if(iAnarchyLength > 0) {
+			killAll(BUTTONPOPUP_CHOOSEPRODUCTION);
+			killAll(BUTTONPOPUP_CHOOSETECH);
+		}
 	} // </advc.004x>
 }
 
@@ -14209,13 +14242,12 @@ bool CvPlayer::pushResearch(TechTypes eTech, bool bClear,
 		gDLL->getInterfaceIFace()->setDirty(ResearchButtons_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
+		// <advc.004x>
+		if(bKillPopup && wasEmpty && getID() == GC.getGameINLINE().getActivePlayer())
+			killAll(BUTTONPOPUP_CHOOSETECH, 0); // </advc.004x>
 	}
-
 	// ONEVENT - Tech selected (any)
 	CvEventReporter::getInstance().techSelected(eTech, getID());
-	// <advc.004x>
-	if(bKillPopup && wasEmpty && getID() == GC.getGameINLINE().getActivePlayer())
-		killAll(BUTTONPOPUP_CHOOSETECH, 0); // </advc.004x>
 	return true;
 }
 
@@ -15201,7 +15233,7 @@ void CvPlayer::doResearch()
 			int iOverflowResearch = (getOverflowResearch() * calculateResearchModifier(eCurrentTech)) / 100;
 			setOverflowResearch(0);
 			GET_TEAM(getTeam()).changeResearchProgress(eCurrentTech,
-					// K-Mod (replacing the minimum which use to be in calculateResearchRate)
+					// K-Mod (replacing the minimum which used to be in calculateResearchRate)
 					std::max(1, calculateResearchRate()) +
 					iOverflowResearch, getID());
 		}
@@ -16066,6 +16098,7 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 	CvEspionageMissionInfo& kMission = GC.getEspionageMissionInfo(eMission);
 
 	bool bSomethingHappened = false;
+	bool bAggressiveMission = true; // advc.120
 	bool bShowExplosion = false;
 	CvWString szBuffer;
 
@@ -16453,17 +16486,18 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 
 	if (kMission.getCounterespionageNumTurns() > 0 && kMission.getCounterespionageMod() > 0)
 	{
-		szBuffer = gDLL->getText("TXT_KEY_ESPIONAGE_TARGET_COUNTERESPIONAGE").GetCString();
-
 		if (NO_TEAM != eTargetTeam)
 		{
+			szBuffer = gDLL->getText("TXT_KEY_ESPIONAGE_TARGET_COUNTERESPIONAGE").GetCString();
 			int iTurns = (kMission.getCounterespionageNumTurns() * GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getResearchPercent()) / 100;
 			GET_TEAM(getTeam()).changeCounterespionageTurnsLeftAgainstTeam(eTargetTeam, iTurns);
 			GET_TEAM(getTeam()).changeCounterespionageModAgainstTeam(eTargetTeam, kMission.getCounterespionageMod());
-	
+			// <advc.120>
+			if(!bSomethingHappened)
+				bAggressiveMission = false; // </advc.120>
 			bSomethingHappened = true;
 
-		}		
+		}
 	}
 
 	// <advc.103>
@@ -16546,12 +16580,15 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 		}
 
 		if (NO_PLAYER != eTargetPlayer)
-		{
+		{	// <advc.120>
+			ColorTypes col = NO_COLOR;
+			if(bAggressiveMission)
+				col = (ColorTypes)GC.getInfoTypeForString("COLOR_RED");
+			// </advc.120>
 			gDLL->getInterfaceIFace()->addHumanMessage(eTargetPlayer, true,
 					GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_DEAL_CANCELLED",
 					MESSAGE_TYPE_INFO, ARTFILEMGR.getInterfaceArtInfo(
-					"ESPIONAGE_BUTTON")->getPath(), (ColorTypes)
-					GC.getInfoTypeForString("COLOR_RED"), iX, iY, true, true);
+					"ESPIONAGE_BUTTON")->getPath(), col, iX, iY, true, true);
 		}
 	}
 

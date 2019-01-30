@@ -53,7 +53,7 @@ bool checkBUGStatus(const char* optionKey, bool bWarn) {
 		szMsg.append(optionKey);
 		szMsg.append(" accessed before BUG initialization");
 		FAssertMsg(GC.IsGraphicsInitialized(), szMsg.c_str());
-		FAssertMsg(GC.getGameINLINE().getActivePlayer() == NO_PLAYER, szMsg.c_str());
+		FAssertMsg(GC.getGameINLINE().getActivePlayer() != NO_PLAYER, szMsg.c_str());
 		return false;
 	}
 	return true;

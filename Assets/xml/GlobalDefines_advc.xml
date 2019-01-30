@@ -925,5 +925,15 @@
 		<DefineName>ENABLE_162</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
+	
+	<!-- advc.156: When multiple members of a team are researching the same
+		 technology, their research modifiers are increased by this many
+		 percentage points. Recommended: -10 to penalize researching the same
+		 tech; use 0 for BtS behavior.
+		 Related: TECH_COST_EXTRA_TEAM_MEMBER_MODIFIER (50) -->
+	<Define>
+		<DefineName>RESEARCH_MODIFIER_EXTRA_TEAM_MEMBER</DefineName>
+		<iDefineIntVal>-10</iDefineIntVal>
+	</Define>
 
 </Civ4Defines>

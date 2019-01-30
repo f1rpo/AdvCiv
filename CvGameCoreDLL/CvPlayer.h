@@ -302,7 +302,10 @@ public:
 
 	//int calculateBaseNetGold() const; // disabled by K-Mod
 	//int calculateBaseNetResearch(TechTypes eTech = NO_TECH) const;   // disabled by K-Mod (was exposed to Python)
-	int calculateResearchModifier(TechTypes eTech) const;   // Exposed to Python
+	int calculateResearchModifier(TechTypes eTech,										   // Exposed to Python
+			// <advc.910>
+			int* piFromOtherKnown = NULL, int* piFromPaths = NULL,
+			int* piFromTeam = NULL) const; // </advc.910>
 	int calculateGoldRate() const;																																				// Exposed to Python
 	int calculateResearchRate(TechTypes eTech = NO_TECH) const;																						// Exposed to Python
 	int calculateTotalCommerce() const;

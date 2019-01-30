@@ -56,8 +56,11 @@ class BugMapOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addCheckbox(screen, center, "MainInterface__ListUnitsPerOwner")
 		#self.addCheckbox(screen, center, "MiscHover__LatLongCoords")
 		#self.addCheckbox(screen, center, "MiscHover__PartialBuilds")
-		
-		
+		# <advc.002f>
+		self.addLabel(screen, center, "CityIcons", "City Icons:")
+		self.addCheckbox(screen, center, "MainInterface__CityNetworkIcon")
+		self.addCheckbox(screen, center, "MainInterface__AirportIcon")
+		# </advc.002f>
 		self.addLabel(screen, right, "Misc", "Misc:")
 		self.addCheckbox(screen, right, "MainInterface__FieldOfView")
 		self.addCheckbox(screen, right, "MainInterface__FieldOfView_Remember", True)

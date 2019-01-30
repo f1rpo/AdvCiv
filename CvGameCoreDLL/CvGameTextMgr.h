@@ -278,6 +278,8 @@ private:
 	void setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot const& kPlot);
 	void setPlotHelpDebug_ShiftAltOnly(CvWStringBuffer& szString, CvPlot const& kPlot);
 	// </advc.135c>
+	// advc.910:
+	void setResearchModifierHelp(CvWStringBuffer& szBuffer, TechTypes eTech);
 	// <advc.061>
 	void setPlotListHelpPerOwner(CvWStringBuffer& szString, CvPlot const& kPlot,
 			bool bIndicator, bool bShort);

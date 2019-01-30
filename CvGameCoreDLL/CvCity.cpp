@@ -157,7 +157,7 @@ CvCity::~CvCity()
 void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, bool bUpdatePlotGroups)
 {
 	int iI=-1;
-
+	CvGame& g = GC.getGameINLINE();
 	CvPlot* pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
 
 	//--------------------------------
@@ -182,7 +182,8 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 
 	//--------------------------------
 	// Init other game data
-	setName(GET_PLAYER(getOwnerINLINE()).getNewCityName(),
+	CvPlayer& kOwner = GET_PLAYER(getOwnerINLINE());
+	setName(kOwner.getNewCityName(),
 			false, true); // advc.106k
 
 	setEverOwned(getOwnerINLINE(), true);
@@ -255,7 +256,7 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 
 	for (iI = 0; iI < GC.getNumBuildingInfos(); iI++)
 	{
-		if (GET_PLAYER(getOwnerINLINE()).isBuildingFree((BuildingTypes)iI))
+		if (kOwner.isBuildingFree((BuildingTypes)iI))
 		{
 			setNumFreeBuilding(((BuildingTypes)iI), 1);
 		}
@@ -267,16 +268,14 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 	if(wa != NULL)
 		wa->changeCitiesPerPlayer(getOwnerINLINE(), 1); // </advc.030b>
 	GET_TEAM(getTeam()).changeNumCities(1);
+	g.changeNumCities(1);
 
-	GC.getGameINLINE().changeNumCities(1);
-
-	setGameTurnFounded(GC.getGameINLINE().getGameTurn());
-	setGameTurnAcquired(GC.getGameINLINE().getGameTurn());
+	setGameTurnFounded(g.gameTurn());
+	setGameTurnAcquired(g.gameTurn());
 
 	changePopulation(
 		// advc.004b: No functional change, just needed the same thing elsewhere
-		initialPopulation()
-		);
+		initialPopulation());
 
 	changeAirUnitCapacity(GC.getDefineINT("CITY_AIR_UNIT_CAPACITY"));
 
@@ -285,17 +284,17 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 	updateFeatureHappiness();
 	updatePowerHealth();
 
-	GET_PLAYER(getOwnerINLINE()).updateMaintenance();
+	kOwner.updateMaintenance();
 
 	GC.getMapINLINE().updateWorkingCity();
 
-	GC.getGameINLINE().AI_makeAssignWorkDirty();
+	g.AI_makeAssignWorkDirty();
 
-	GET_PLAYER(getOwnerINLINE()).setFoundedFirstCity(true);
+	kOwner.setFoundedFirstCity(true);
 
-	if (GC.getGameINLINE().isFinalInitialized())
+	if (g.isFinalInitialized())
 	{
-		if (GET_PLAYER(getOwnerINLINE()).getNumCities() == 1)
+		if (kOwner.getNumCities() == 1)
 		{
 			for (iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
 			{
@@ -311,13 +310,14 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 			}
 
 			if (!isHuman()
-					&& !GC.getGameINLINE().isOption(GAMEOPTION_SPAH) // advc.250b
-				)
+					&& !g.isOption(GAMEOPTION_SPAH)) // advc.250b
 			{
 				changeOverflowProduction(GC.getDefineINT("INITIAL_AI_CITY_PRODUCTION"), 0);
 			} // <advc.124g>
-			if(isHuman() && eOwner == GC.getGameINLINE().getActivePlayer())
-				GET_PLAYER(eOwner).chooseTech(); // </advc.124g>
+			if(isHuman() && eOwner == g.getActivePlayer() &&
+					kOwner.getCurrentResearch() == NO_TECH)
+				kOwner.chooseTech();
+			// </advc.124g>
 		}
 	}
 

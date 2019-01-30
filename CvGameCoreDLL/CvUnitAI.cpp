@@ -15428,13 +15428,12 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 {
 	PROFILE_FUNC();
 
-	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE()); // K-Mod
-
 	CvCity* pBestCity = NULL;
 	int iBestValue = 0;
 	// K-Mod
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwnerINLINE());
 	int iOurOffence = -1; // We calculate this for the first city only.
-	CvUnit* pBestTransport = 0;
+	CvUnit* pBestTransport = NULL;
 	// iLoadTurns < 0 implies we should look for a transport; otherwise, it is the number of turns to reach the transport.
 	// Also, we only consider using transports if we aren't in enemy territory.
 	int iLoadTurns = isEnemy(plot()->getTeam()) ? MAX_INT : -1;
@@ -15445,44 +15444,48 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 
 	for (int iI = 0; iI < (bHuntBarbs ? MAX_PLAYERS : MAX_CIV_PLAYERS); iI++)
 	{
-		if(!GET_PLAYER((PlayerTypes)iI).isAlive() ||
-				!::isPotentialEnemy(getTeam(), GET_PLAYER((PlayerTypes)iI).getTeam()))
+		CvPlayer const& kTargetPlayer = GET_PLAYER((PlayerTypes)iI);
+		if(!kTargetPlayer.isAlive() ||
+				!::isPotentialEnemy(getTeam(), kTargetPlayer.getTeam()))
 			continue; // advc.003
-			int iLoop;
-		for (CvCity* pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
+		int iLoop;
+		for (CvCity* pLoopCity = kTargetPlayer.firstCity(&iLoop); pLoopCity != NULL;
+				pLoopCity = kTargetPlayer.nextCity(&iLoop))
 		{
 			if(!AI_plotValid(pLoopCity->plot()) || pLoopCity->area() != area())
 				continue; // advc.003
-			if(!AI_potentialEnemy(GET_PLAYER((PlayerTypes)iI).getTeam(), pLoopCity->plot()))
+			if(!AI_potentialEnemy(kTargetPlayer.getTeam(), pLoopCity->plot()))
 				continue;
 			/*  <advc.300> Assault barbs shouldn't target cities in areas where
 				they already have the upper hand. */
-			CvArea const& targetArea = *pLoopCity->area();
-			if(isBarbarian() && targetArea.getAreaAIType(getTeam()) == AREAAI_ASSAULT)
+			if(isBarbarian() && pLoopCity->area()->getAreaAIType(getTeam()) == AREAAI_ASSAULT)
 				continue; // </advc.300>
 			if (kOwner.AI_deduceCitySite(pLoopCity))
 			{
 				// K-Mod. Look for either a direct land path, or a sea transport path.
 				int iPathTurns = MAX_INT;
-				bool bLandPath = generatePath(pLoopCity->plot(), iFlags, true, &iPathTurns, iMaxPathTurns);
-
+				bool bLandPath = generatePath(pLoopCity->plot(), iFlags, true,
+						&iPathTurns, iMaxPathTurns);
 				if (pLoopCity->isCoastal() && (pBestTransport || iLoadTurns < 0))
 				{
 					// add a random bias in favour of land paths, so that not all stacks try to use boats.
 					//int iLandBias =AI_getBirthmark()%6 +(AI_getBirthmark() % (bLandPath ? 3 : 6) ? 6 : 1);
-					// <advc.003> That should be equivalent to this:
+					/*  <advc.003> That's equivalent to this (I've checked through
+						the assertion below): */
 					int iLandBias = (AI_getBirthmark() % 6) +
 							(((AI_getBirthmark() % (bLandPath ? 3 : 6)) > 0 ? 6 : 1));
-					// Well, let's check:
-					FAssert(iLandBias == (AI_getBirthmark()%6 +(AI_getBirthmark() % (bLandPath ? 3 : 6) ? 6 : 1)));
-					/*  Yup, apparently.
-						But does it make sense? It seems that the expected value is
+					//FAssert(iLandBias == (AI_getBirthmark()%6 +(AI_getBirthmark() % (bLandPath ? 3 : 6) ? 6 : 1)));
+					/*  But does it make sense? It seems that the expected value is
 						higher if bLand is false, namely 2.5+6*5/6+1/5 > 2.5+6*2/3+1/3.
-						Should it be '==0' instead of '>0'? fixme */
+						Should it be '==0' instead of '>0'?
+						Also: "so that not all stacks try to use boats" --
+						but we're only picking a target city here; the choice
+						how to move there is made later. */
 					// </advc.003>
 					if (!pBestTransport && iPathTurns > iLandBias + 2)
 					{
-						pBestTransport = AI_findTransport(UNITAI_ASSAULT_SEA, iFlags, std::min(iMaxPathTurns, iPathTurns));
+						pBestTransport = AI_findTransport(UNITAI_ASSAULT_SEA, iFlags,
+								std::min(iMaxPathTurns, iPathTurns));
 						if (pBestTransport)
 						{
 							generatePath(pBestTransport->plot(), iFlags, true, &iLoadTurns);
@@ -15490,13 +15493,15 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 							iLoadTurns += iLandBias;
 							FAssert(iLoadTurns > 0);
 						}
-						else iLoadTurns = MAX_INT; // just to indicate the we shouldn't look for a transport again.
+						// just to indicate the we shouldn't look for a transport again.
+						else iLoadTurns = MAX_INT;
 					}
 					int iMaxTransportTurns = std::min(iMaxPathTurns, iPathTurns) - iLoadTurns;
-
 					if (pBestTransport && iMaxTransportTurns > 0)
 					{
-						transport_path.SetSettings(pBestTransport->getGroup(), iFlags & MOVE_DECLARE_WAR, iMaxTransportTurns, GC.getMOVE_DENOMINATOR());
+						transport_path.SetSettings(pBestTransport->getGroup(),
+								iFlags & MOVE_DECLARE_WAR, iMaxTransportTurns,
+								GC.getMOVE_DENOMINATOR());
 						if (transport_path.GeneratePath(pLoopCity->plot()))
 						{
 							// faster by boat
@@ -15511,26 +15516,31 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 					// If city is visible and our force already in position is dominantly powerful or we have a huge force
 					// already on the way, pick a different target
 					int iEnemyDefence = -1; // used later.
-					int iOffenceEnRoute = kOwner.AI_cityTargetStrengthByPath(pLoopCity, getGroup(), iPathTurns);
+					int iOffenceEnRoute = kOwner.AI_cityTargetStrengthByPath(
+							pLoopCity, getGroup(), iPathTurns);
 					if (pLoopCity->isVisible(getTeam(), false))
 					{
-						iEnemyDefence = kOwner.AI_localDefenceStrength(pLoopCity->plot(), NO_TEAM, DOMAIN_LAND, true, iPathTurns > 1 ? 2 : 0);
-
+						iEnemyDefence = kOwner.AI_localDefenceStrength(
+								pLoopCity->plot(), NO_TEAM, DOMAIN_LAND, true,
+								iPathTurns > 1 ? 2 : 0);
 						if (iPathTurns > 2)
 						{
-							int iAttackRatio = ((GC.getMAX_CITY_DEFENSE_DAMAGE()-pLoopCity->getDefenseDamage()) * GC.getBBAI_SKIP_BOMBARD_BASE_STACK_RATIO() + pLoopCity->getDefenseDamage() * GC.getBBAI_SKIP_BOMBARD_MIN_STACK_RATIO()) / std::max(1, GC.getMAX_CITY_DEFENSE_DAMAGE());
-
+							int iAttackRatio = ((GC.getMAX_CITY_DEFENSE_DAMAGE() -
+									pLoopCity->getDefenseDamage()) *
+									GC.getBBAI_SKIP_BOMBARD_BASE_STACK_RATIO() +
+									pLoopCity->getDefenseDamage() *
+									GC.getBBAI_SKIP_BOMBARD_MIN_STACK_RATIO()) /
+									std::max(1, GC.getMAX_CITY_DEFENSE_DAMAGE());
 							if (100 * iOffenceEnRoute > iAttackRatio * iEnemyDefence)
-							{
 								continue;
-							}
 						}
 					}
-
 					if (iOurOffence == -1)
 					{
-						// note: with bCheckCanAttack == false, AI_sumStrength should be roughly the same regardless of which city we are targetting.
-						// ... except if lots of our units have a hills-attack promotion or something like that.
+						/*  note: with bCheckCanAttack == false, AI_sumStrength should be
+							roughly the same regardless of which city we are targeting.
+							... except if lots of our units have a hills-attack promotion
+							or something like that. */
 						iOurOffence = getGroup()->AI_sumStrength(pLoopCity->plot());
 					}
 					FAssert(iOurOffence > 0);
@@ -15548,14 +15558,15 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 					// adjust value based on defensive bonuses
 					{
 						int iMod =
-							std::min(8, getGroup()->getBombardTurns(pLoopCity)) * pLoopCity->getDefenseModifier(false) / 8
-							+ (pLoopCity->plot()->isHills() ? GC.getHILLS_EXTRA_DEFENSE() : 0);
+								std::min(8, getGroup()->getBombardTurns(pLoopCity)) *
+								pLoopCity->getDefenseModifier(false) / 8
+								+ (pLoopCity->plot()->isHills() ?
+								GC.getHILLS_EXTRA_DEFENSE() : 0);
 						iValue *= std::max(25, 125 - iMod);
 						iValue /= 25; // the denominator is arbitrary, and unimportant.
-						// note: the value reduction from high defences which are bombardable should not be more than
-						// the value reduction from simply having higher iPathTurns.
+						/*  note: the value reduction from high defences which are bombardable should not
+							be more than the value reduction from simply having higher iPathTurns. */
 					}
-
 					// prefer cities which are close to the main target.
 					if (pLoopCity == pTargetCity)
 					{
@@ -15577,7 +15588,8 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 						iValue /= 125; // was 50 (unimportant)
 					}
 
-					// boost value if we can see that the city is poorly defended, or if our existing armies need help there
+					/*  boost value if we can see that the city is poorly defended,
+						or if our existing armies need help there */
 					if (pLoopCity->isVisible(getTeam(), false) && iPathTurns < 6)
 					{
 						FAssert(iEnemyDefence != -1);
@@ -15635,7 +15647,6 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 						//iValue /= 2;
 						iValue /= 3; // K-Mod
 					}
-
 					// If stack has poor bombard, direct towards lower defense cities
 					//iPathTurns += std::min(12, getGroup()->getBombardTurns(pLoopCity)/4);
 					//iPathTurns += bombardRate() > 0 ? std::min(5, getGroup()->getBombardTurns(pLoopCity)/3) : 0; // K-Mod
@@ -20185,285 +20196,198 @@ bool CvUnitAI::AI_improveBonus( // K-Mod. (all that junk wasn't being used anywa
 	PROFILE_FUNC();
 
 	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
-
 	bool bBestBuildIsRoute = false;
-
 	int iBestValue = 0;
 	//int iBestResourceValue = 0; // advc.003: no longer used
 	BuildTypes eBestBuild = NO_BUILD;
 	CvPlot* pBestPlot = NULL;
-
 	bool bCanRoute = canBuildRoute();
-
 	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 	{
 		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+		if(pLoopPlot->getOwnerINLINE() != getOwnerINLINE() ||
+				!AI_plotValid(pLoopPlot))
+			continue;
+		// <advc.300> Barbarian workers mustn't improve bonuses around far-away cities
+		if(isBarbarian() && (pLoopPlot->getWorkingCity() == NULL ||
+				pLoopPlot->getWorkingCity() != plot()->getWorkingCity()))
+			continue; // </advc.300>
 
-		if (pLoopPlot->getOwnerINLINE() == getOwnerINLINE() && AI_plotValid(pLoopPlot))
+		bool bCanImprove = (pLoopPlot->area() == area());
+		if (!bCanImprove)
 		{
-			/* <advc.300> Barbarian workers mustn't improve bonuses around
-			   far-away cities. */
-			if(isBarbarian() && (pLoopPlot->getWorkingCity() == NULL ||
-					pLoopPlot->getWorkingCity() != plot()->getWorkingCity()))
-				continue; // </advc.300>
-			bool bCanImprove = (pLoopPlot->area() == area());
-			if (!bCanImprove)
+			if (DOMAIN_SEA == getDomainType() && pLoopPlot->isWater() &&
+					plot()->isAdjacentToArea(pLoopPlot->area()))
+				bCanImprove = true;
+		}
+		if(!bCanImprove)
+			continue;
+
+		BonusTypes eNonObsoleteBonus = pLoopPlot->getNonObsoleteBonusType(getTeam());
+		if(eNonObsoleteBonus == NO_BONUS)
+			continue;
+
+		bool bConnected = pLoopPlot->isConnectedToCapital(getOwnerINLINE());
+		if(pLoopPlot->getWorkingCity() == NULL && !bConnected && !bCanRoute)
+			continue;
+
+		/* original bts code
+		ImprovementTypes eImprovement = pLoopPlot->getImprovementType();
+		bool bDoImprove = false;
+		if (eImprovement == NO_IMPROVEMENT)
+			bDoImprove = true;
+		else if (GC.getImprovementInfo(eImprovement).isActsAsCity() || GC.getImprovementInfo(eImprovement).isImprovementBonusTrade(eNonObsoleteBonus))
+			bDoImprove = false;
+		else if (eImprovement == (ImprovementTypes)(GC.getDefineINT("RUINS_IMPROVEMENT")))
+			bDoImprove = true;
+		else if (!GET_PLAYER(getOwnerINLINE()).isOption(PLAYEROPTION_SAFE_AUTOMATION))
+			bDoImprove = true;
+		int iBestTempBuildValue = MAX_INT;
+		BuildTypes eBestTempBuild = NO_BUILD; */
+		// K-Mod. Simpler, and better.
+		bool bDoImprove = true;
+		ImprovementTypes eImprovement = pLoopPlot->getImprovementType();
+		CvCity* pWorkingCity = pLoopPlot->getWorkingCity();
+		BuildTypes eBestTempBuild = NO_BUILD;
+
+		if (eImprovement != NO_IMPROVEMENT &&
+				((kOwner.isOption(PLAYEROPTION_SAFE_AUTOMATION) &&
+				eImprovement != GC.getDefineINT("RUINS_IMPROVEMENT")) ||
+				(kOwner.doesImprovementConnectBonus(eImprovement, eNonObsoleteBonus)
+			/*  advc.121: This should give replacement of Fort with another
+				connecting improvement a higher priority when Workers have time. */
+				&& pWorkingCity == NULL && iNeededWorkersInArea > 0)))
+			bDoImprove = false;
+		else if (pWorkingCity)
+		{
+			// Let "best build" handle improvement replacements near cities.
+			BuildTypes eBuild = pWorkingCity->AI_getBestBuild(plotCityXY(
+					pWorkingCity, pLoopPlot));
+			if (eBuild != NO_BUILD && kOwner.doesImprovementConnectBonus(
+					(ImprovementTypes)GC.getBuildInfo(eBuild).getImprovement(),
+					eNonObsoleteBonus) && canBuild(pLoopPlot, eBuild))
 			{
-				if (DOMAIN_SEA == getDomainType() && pLoopPlot->isWater() && plot()->isAdjacentToArea(pLoopPlot->area()))
+				bDoImprove = true;
+				eBestTempBuild = eBuild;
+			}
+			else bDoImprove = false;
+		} // K-Mod end
+		//if (bDoImprove)
+		if (bDoImprove && eBestTempBuild == NO_BUILD) // K-Mod
+		{
+			int iBestTempBuildValue = MAX_INT; // K-Mod
+			for (int iJ = 0; iJ < GC.getNumBuildInfos(); iJ++)
+			{
+				BuildTypes eLoopBuild = (BuildTypes)iJ;
+				//if (GC.getBuildInfo(eBuild).getImprovement() != NO_IMPROVEMENT)
+					//if (GC.getImprovementInfo((ImprovementTypes) GC.getBuildInfo(eBuild).getImprovement()).isImprovementBonusTrade(eNonObsoleteBonus) || (!pLoopPlot->isCityRadius() && GC.getImprovementInfo((ImprovementTypes) GC.getBuildInfo(eBuild).getImprovement()).isActsAsCity()))
+				// <advc.121> Need this value again below
+				ImprovementTypes eLoopImpr = (ImprovementTypes)GC.getBuildInfo(
+						eLoopBuild).getImprovement(); // </advc.121>
+				if(!kOwner.doesImprovementConnectBonus(eLoopImpr, eNonObsoleteBonus)) // K-Mod
+					continue;
+				if (!canBuild(pLoopPlot, eLoopBuild)
+				/*  advc.121: canBuild is false for the current improvement!
+					(Not an issue - I think - in BtS and unmodded K-Mod b/c
+					once an unworkable bonus is connected,
+					changing the improvement isn't considered.) */
+						&& pLoopPlot->getImprovementType() != eLoopImpr)
+					continue;
+				if(pLoopPlot->getFeatureType() != NO_FEATURE &&
+						GC.getBuildInfo(eLoopBuild).isFeatureRemove(
+						pLoopPlot->getFeatureType()) &&
+						kOwner.isOption(PLAYEROPTION_LEAVE_FORESTS))
+					continue;
+				// <advc.121> Moved into subroutine
+				int iValue = AI_connectBonusCost(*pLoopPlot, eLoopBuild, eLoopImpr,
+						iNeededWorkersInArea); // </advc.121>
+				if (iValue < iBestTempBuildValue)
 				{
-					bCanImprove = true;
+					iBestTempBuildValue = iValue;
+					eBestTempBuild = eLoopBuild;
 				}
 			}
+		}
+		/*  <advc.121> canBuild no longer guaranteed b/c eBestTempBuild could
+			already be present. */
+		if(eBestTempBuild != NO_BUILD && !canBuild(pLoopPlot, eBestTempBuild))
+			eBestTempBuild = NO_BUILD; // </advc.121>
+		if(eBestTempBuild == NO_BUILD)
+			bDoImprove = false;
 
-			if (bCanImprove)
+		if(eBestTempBuild == NO_BUILD && (!bCanRoute || bConnected))
+			continue;
+
+		int iPathTurns;
+		if(!generatePath(pLoopPlot, 0, true, &iPathTurns))
+			continue;
+
+		int iValue = kOwner.AI_bonusVal(eNonObsoleteBonus, 1);
+		if (bDoImprove)
+		{
+			eImprovement = (ImprovementTypes)GC.getBuildInfo(eBestTempBuild).getImprovement();
+			FAssert(eImprovement != NO_IMPROVEMENT);
+			//iValue += (GC.getImprovementInfo((ImprovementTypes) GC.getBuildInfo(eBestTempBuild).getImprovement()))
+			iValue += 5 * pLoopPlot->calculateImprovementYieldChange(eImprovement, YIELD_FOOD, getOwnerINLINE(), false);
+			iValue += 5 * pLoopPlot->calculateNatureYield(YIELD_FOOD, getTeam(), (pLoopPlot->getFeatureType() == NO_FEATURE) ? true : GC.getBuildInfo(eBestTempBuild).isFeatureRemove(pLoopPlot->getFeatureType()));
+		}
+		iValue += std::max(0, 100 * GC.getBonusInfo(eNonObsoleteBonus).getAIObjective());
+
+		if(kOwner.getNumTradeableBonuses(eNonObsoleteBonus) == 0)
+			iValue *= 2;
+
+		int iMaxWorkers = 1;
+		if (eBestTempBuild != NO_BUILD && !GC.getBuildInfo(eBestTempBuild).isKill())
+		{ //allow teaming.
+			iMaxWorkers = AI_calculatePlotWorkersNeeded(pLoopPlot, eBestTempBuild);
+			if (getPathFinder().GetFinalMoves() == 0)
 			{
-				BonusTypes eNonObsoleteBonus = pLoopPlot->getNonObsoleteBonusType(getTeam());
-
-				if (eNonObsoleteBonus != NO_BONUS)
+				iMaxWorkers = std::min((iMaxWorkers + 1) / 2,
+						1 + kOwner.AI_baseBonusVal(eNonObsoleteBonus) / 20);
+			}
+		}
+		if (kOwner.AI_plotTargetMissionAIs(
+				pLoopPlot, MISSIONAI_BUILD, getGroup()) < iMaxWorkers &&
+				(!bDoImprove || pLoopPlot->getBuildTurnsLeft(eBestTempBuild,
+				/* advc.251: */ kOwner.getID(), 0, 0) > iPathTurns * 2 - 1))
+		{
+			if (bDoImprove)
+			{
+				iValue *= 1000;
+				if(iPathTurns == 1 && getPathFinder().GetFinalMoves() != 0)
+					iValue *= 2;
+				iValue /= (iPathTurns + 1);
+				if(pLoopPlot->isCityRadius())
+					iValue *= 2;
+				if (iValue > iBestValue)
 				{
-					bool bConnected = pLoopPlot->isConnectedToCapital(getOwnerINLINE());
-					if ((pLoopPlot->getWorkingCity() != NULL) || (bConnected || bCanRoute))
+					iBestValue = iValue;
+					eBestBuild = eBestTempBuild;
+					pBestPlot = pLoopPlot;
+					bBestBuildIsRoute = false;
+					//iBestResourceValue = iValue; // advc.003: no longer used
+				}
+			}
+			else
+			{
+				FAssert(bCanRoute && !bConnected);
+				eImprovement = pLoopPlot->getImprovementType();
+				//if ((eImprovement != NO_IMPROVEMENT) && (GC.getImprovementInfo(eImprovement).isImprovementBonusTrade(eNonObsoleteBonus)))
+				if (kOwner.doesImprovementConnectBonus(eImprovement, eNonObsoleteBonus))
+				{
+					iValue *= 1000;
+					iValue /= (iPathTurns + 1);
+					if (iValue > iBestValue)
 					{
-						/* original bts code
-						ImprovementTypes eImprovement = pLoopPlot->getImprovementType();
-						bool bDoImprove = false;
-
-						if (eImprovement == NO_IMPROVEMENT)
-						{
-							bDoImprove = true;
-						}
-						else if (GC.getImprovementInfo(eImprovement).isActsAsCity() || GC.getImprovementInfo(eImprovement).isImprovementBonusTrade(eNonObsoleteBonus))
-						{
-							bDoImprove = false;
-						}
-						else if (eImprovement == (ImprovementTypes)(GC.getDefineINT("RUINS_IMPROVEMENT")))
-						{
-							bDoImprove = true;
-						}
-						else if (!GET_PLAYER(getOwnerINLINE()).isOption(PLAYEROPTION_SAFE_AUTOMATION))
-                        {
-                        	bDoImprove = true;
-                        }
-
-						int iBestTempBuildValue = MAX_INT;
-						BuildTypes eBestTempBuild = NO_BUILD; */
-
-						// K-Mod. Simpler, and better.
-						bool bDoImprove = true;
-						ImprovementTypes eImprovement = pLoopPlot->getImprovementType();
-						CvCity* pWorkingCity = pLoopPlot->getWorkingCity();
-						BuildTypes eBestTempBuild = NO_BUILD;
-
-						if (eImprovement != NO_IMPROVEMENT &&
-								((kOwner.isOption(PLAYEROPTION_SAFE_AUTOMATION) &&
-								eImprovement != GC.getDefineINT("RUINS_IMPROVEMENT")) ||
-								(kOwner.doesImprovementConnectBonus(eImprovement, eNonObsoleteBonus)
-							/*  advc.121: This should give replacements of Forts with
-								other connecting improvements a higher priority when
-								Workers have spare time. */
-								&& pWorkingCity == NULL && iNeededWorkersInArea > 0)))
-							bDoImprove = false;
-						else if (pWorkingCity)
-						{
-							// Let "best build" handle improvement replacements near cities.
-							BuildTypes eBuild = pWorkingCity->AI_getBestBuild(plotCityXY(pWorkingCity, pLoopPlot));
-							if (eBuild != NO_BUILD && kOwner.doesImprovementConnectBonus((ImprovementTypes)GC.getBuildInfo(eBuild).getImprovement(), eNonObsoleteBonus) && canBuild(pLoopPlot, eBuild))
-							{
-								bDoImprove = true;
-								eBestTempBuild = eBuild;
-							}
-							else
-								bDoImprove = false;
-						}
-						// K-Mod end
-
-						//if (bDoImprove)
-						if (bDoImprove && eBestTempBuild == NO_BUILD) // K-Mod
-						{
-							int iBestTempBuildValue = MAX_INT; // K-Mod
-							for (int iJ = 0; iJ < GC.getNumBuildInfos(); iJ++)
-							{
-								BuildTypes eBuild = ((BuildTypes)iJ);
-
-								//if (GC.getBuildInfo(eBuild).getImprovement() != NO_IMPROVEMENT)
-								{
-									//if (GC.getImprovementInfo((ImprovementTypes) GC.getBuildInfo(eBuild).getImprovement()).isImprovementBonusTrade(eNonObsoleteBonus) || (!pLoopPlot->isCityRadius() && GC.getImprovementInfo((ImprovementTypes) GC.getBuildInfo(eBuild).getImprovement()).isActsAsCity()))
-									// advc.121: Need this value again below
-									ImprovementTypes impId = (ImprovementTypes)GC.getBuildInfo(eBuild).getImprovement();
-									if (kOwner.doesImprovementConnectBonus(impId, eNonObsoleteBonus)) // K-Mod
-									{
-										if (canBuild(pLoopPlot, eBuild)
-											/* advc.121: canBuild is false for the current improvement!
-											   (Not an issue - I think - in BtS and unmodded K-Mod b/c
-											   once an unworkable bonus is connected,
-											   changing the improvement isn't considered.) */
-												|| pLoopPlot->getImprovementType() == impId)
-										{
-											if ((pLoopPlot->getFeatureType() == NO_FEATURE) || !GC.getBuildInfo(eBuild).isFeatureRemove(pLoopPlot->getFeatureType()) || !kOwner.isOption(PLAYEROPTION_LEAVE_FORESTS))
-											{/* <advc.121> This loop computes a minimum. Division would mean
-												that the longer a build takes, the smaller(=better) is its value.
-												(There are two similar loops in AI_irrigateTerritory and
-												AI_fortifyTerritory, with the same issue, but no harmful
-												consequences, and one in CvCityAI::AI_getImprovementValue which
-												gets it right b/c it computes a maximum.)
-												Consequence here: On unworkable plots, Forts are preferred over
-												cheaper Plantations etc. That's not always unreasonable, but then,
-												the tiebreaker should be the defense modifier, not the build time.
-												Adding an ad-hoc heuristic for Fort building below.
-												Commented out:
-												int iValue = 10000;
-												iValue /= (GC.getBuildInfo(eBuild).getTime() + 1);*/
-												CvImprovementInfo& imp = GC.getImprovementInfo(impId);
-												int iDefenseUtility = imp.getDefenseModifier();
-												// <advc.035>
-												if(pLoopPlot->isContestedByRival())
-													iDefenseUtility = 0; // </advc.035>
-												/*  Prioritize Forts on tiles with high natural defense and on important
-													resources that may later be guarded. */
-												if(iDefenseUtility > 0) {
-													iDefenseUtility += pLoopPlot->defenseModifier(getTeam(), true);
-													// BonusVal is usually just a single digit; can be a few dozen if it's the only resource of a type.
-													iDefenseUtility += GET_PLAYER(getOwnerINLINE()).AI_bonusVal(eNonObsoleteBonus, 0);
-													/*  (Since this loop only applies to unworkable tiles, we can assume
-														that they're potential border tiles; i.e. not much of a point
-														in checking plot->isAdjacentToPlayer for all rivals.) */
-												}
-												int iCost = GC.getBuildInfo(eBuild).getTime();
-												// No cost for leaving an existing improvement alone
-												if(impId == pLoopPlot->getImprovementType())
-													iCost = 0;
-												// Time is more dear when workers are busy
-												int iMultiplier = 2 * (iNeededWorkersInArea + 1);
-												// Halve the cost when there's nothing to do
-												if(iNeededWorkersInArea == 0)
-													iMultiplier = 1;
-												iCost *= iMultiplier;
-												iCost /= 2;
-												int const iBalancingMagicFactor = 20;
-												int iValue = iCost - iBalancingMagicFactor * iDefenseUtility;
-												if(pLoopPlot->isConnectSea())
-													iValue -= 1000; // (That means, it's a very good build.)
-												/* Regarding the "XXX" Firaxis comment below:
-												   Feature production is handled elsewhere (advc.117) -
-												   faster to chop a Forest directly than to replace the
-												   Fort on top if it. */
-												// </advc.121>
-
-												// XXX feature production???
-
-												if (iValue < iBestTempBuildValue)
-												{
-													iBestTempBuildValue = iValue;
-													eBestTempBuild = eBuild;
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-						/* <advc.121> canBuild no longer guaranteed b/c
-						   eBestTempBuild could already be present. */
-						if(eBestTempBuild != NO_BUILD &&
-								!canBuild(pLoopPlot, eBestTempBuild))
-							eBestTempBuild = NO_BUILD; // </advc.121>
-						if (eBestTempBuild == NO_BUILD)
-						{
-							bDoImprove = false;
-						}
-
-						if ((eBestTempBuild != NO_BUILD) || (bCanRoute && !bConnected))
-						{
-							int iPathTurns;
-							if (generatePath(pLoopPlot, 0, true, &iPathTurns))
-							{
-								int iValue = kOwner.AI_bonusVal(eNonObsoleteBonus, 1);
-
-								if (bDoImprove)
-								{
-									eImprovement = (ImprovementTypes)GC.getBuildInfo(eBestTempBuild).getImprovement();
-									FAssert(eImprovement != NO_IMPROVEMENT);
-									//iValue += (GC.getImprovementInfo((ImprovementTypes) GC.getBuildInfo(eBestTempBuild).getImprovement()))
-									iValue += 5 * pLoopPlot->calculateImprovementYieldChange(eImprovement, YIELD_FOOD, getOwnerINLINE(), false);
-									iValue += 5 * pLoopPlot->calculateNatureYield(YIELD_FOOD, getTeam(), (pLoopPlot->getFeatureType() == NO_FEATURE) ? true : GC.getBuildInfo(eBestTempBuild).isFeatureRemove(pLoopPlot->getFeatureType()));
-								}
-
-								iValue += std::max(0, 100 * GC.getBonusInfo(eNonObsoleteBonus).getAIObjective());
-
-								if (kOwner.getNumTradeableBonuses(eNonObsoleteBonus) == 0)
-								{
-									iValue *= 2;
-								}
-
-								int iMaxWorkers = 1;
-								if ((eBestTempBuild != NO_BUILD) && (!GC.getBuildInfo(eBestTempBuild).isKill()))
-								{
-									//allow teaming.
-									iMaxWorkers = AI_calculatePlotWorkersNeeded(pLoopPlot, eBestTempBuild);
-									if (getPathFinder().GetFinalMoves() == 0)
-									{
-										iMaxWorkers = std::min((iMaxWorkers + 1) / 2, 1 + kOwner.AI_baseBonusVal(eNonObsoleteBonus) / 20);
-									}
-								}
-
-								if ((kOwner.AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_BUILD, getGroup()) < iMaxWorkers)
-										&& (!bDoImprove || (pLoopPlot->getBuildTurnsLeft(eBestTempBuild,
-										/* advc.251: */ kOwner.getID(), 0, 0) >
-										(iPathTurns * 2 - 1))))
-								{
-									if (bDoImprove)
-									{
-										iValue *= 1000;
-
-										if (iPathTurns == 1 && getPathFinder().GetFinalMoves() != 0)
-										{
-											iValue *= 2;
-										}
-
-										iValue /= (iPathTurns + 1);
-
-										if (pLoopPlot->isCityRadius())
-										{
-											iValue *= 2;
-										}
-
-										if (iValue > iBestValue)
-										{
-											iBestValue = iValue;
-											eBestBuild = eBestTempBuild;
-											pBestPlot = pLoopPlot;
-											bBestBuildIsRoute = false;
-											//iBestResourceValue = iValue; // advc.003: no longer used
-										}
-									}
-									else
-									{
-										FAssert(bCanRoute && !bConnected);
-										eImprovement = pLoopPlot->getImprovementType();
-										//if ((eImprovement != NO_IMPROVEMENT) && (GC.getImprovementInfo(eImprovement).isImprovementBonusTrade(eNonObsoleteBonus)))
-										if (kOwner.doesImprovementConnectBonus(eImprovement, eNonObsoleteBonus))
-										{
-											iValue *= 1000;
-											iValue /= (iPathTurns + 1);
-
-											if (iValue > iBestValue)
-											{
-												iBestValue = iValue;
-												eBestBuild = NO_BUILD;
-												pBestPlot = pLoopPlot;
-												bBestBuildIsRoute = true;
-											}
-										}
-									}
-								}
-							}
-						}
+						iBestValue = iValue;
+						eBestBuild = NO_BUILD;
+						pBestPlot = pLoopPlot;
+						bBestBuildIsRoute = true;
 					}
 				}
 			}
 		}
 	}
-
 	/* original bts code
 	if ((iBestValue < iMinValue) && (NULL != ppBestPlot))
 	{
@@ -20475,59 +20399,53 @@ bool CvUnitAI::AI_improveBonus( // K-Mod. (all that junk wasn't being used anywa
 		*piBestValue = iBestResourceValue;
 	} */ // disabled by K-Mod. This is clearly wrong. But even if it was fixed it isn't useful anyway, so I'm removing it.
 
-	if (pBestPlot != NULL)
+	if (pBestPlot == NULL)
+		return false;
+
+	if (eBestBuild != NO_BUILD)
 	{
-		if (eBestBuild != NO_BUILD)
-		{
-			FAssertMsg(!bBestBuildIsRoute, "BestBuild should not be a route");
-			FAssertMsg(eBestBuild < GC.getNumBuildInfos(), "BestBuild is assigned a corrupt value");
-			MissionTypes eBestMission = MISSION_MOVE_TO;
-			// <advc.001y> Sea workers can't route
-			if(getGroup()->canDoMission(MISSION_ROUTE_TO, 
-					getX_INLINE(), getY_INLINE(), plot(), false, false)) {
-				// </advc.001y>
-				if (pBestPlot->getWorkingCity() == NULL ||
-						!pBestPlot->getWorkingCity()->isConnectedToCapital())
-					eBestMission = MISSION_ROUTE_TO;
-				else
+		FAssertMsg(!bBestBuildIsRoute, "BestBuild should not be a route");
+		FAssertMsg(eBestBuild < GC.getNumBuildInfos(), "BestBuild is assigned a corrupt value");
+		MissionTypes eBestMission = MISSION_MOVE_TO;
+		// <advc.001y> Sea workers can't route
+		if(getGroup()->canDoMission(MISSION_ROUTE_TO, 
+				getX_INLINE(), getY_INLINE(), plot(), false, false)) { // </advc.001y>
+			if (pBestPlot->getWorkingCity() == NULL ||
+					!pBestPlot->getWorkingCity()->isConnectedToCapital())
+				eBestMission = MISSION_ROUTE_TO;
+			else
+			{
+				int iDistance = stepDistance(getX_INLINE(), getY_INLINE(),
+						pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE());
+				int iPathTurns;
+				if (generatePath(pBestPlot, 0, false, &iPathTurns))
 				{
-					int iDistance = stepDistance(getX_INLINE(), getY_INLINE(),
-							pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE());
-					int iPathTurns;
-					if (generatePath(pBestPlot, 0, false, &iPathTurns))
-					{
-						if (iPathTurns >= iDistance)
-						{
-							eBestMission = MISSION_ROUTE_TO;
-						}
-					}
+					if (iPathTurns >= iDistance)
+						eBestMission = MISSION_ROUTE_TO;
 				}
 			}
-			eBestBuild = AI_betterPlotBuild(pBestPlot, eBestBuild);
-			getGroup()->pushMission(eBestMission, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0, false, false, MISSIONAI_BUILD, pBestPlot);
-			//getGroup()->pushMission(MISSION_BUILD, eBestBuild, -1, 0, (getGroup()->getLengthMissionQueue() > 0), false, MISSIONAI_BUILD, pBestPlot);
-			getGroup()->pushMission(MISSION_BUILD, eBestBuild, -1, 0, true, false, MISSIONAI_BUILD, pBestPlot); // K-Mod
-
+		}
+		eBestBuild = AI_betterPlotBuild(pBestPlot, eBestBuild);
+		getGroup()->pushMission(eBestMission, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(),
+				0, false, false, MISSIONAI_BUILD, pBestPlot);
+		getGroup()->pushMission(MISSION_BUILD, eBestBuild, -1, 0,
+				//(getGroup()->getLengthMissionQueue() > 0),
+				true, // K-Mod
+				false, MISSIONAI_BUILD, pBestPlot); 
+		return true;
+	}
+	else if (bBestBuildIsRoute)
+	{
+		if (AI_connectPlot(pBestPlot))
+		{
 			return true;
 		}
-		else if (bBestBuildIsRoute)
-		{
-			if (AI_connectPlot(pBestPlot))
-			{
-				return true;
-			}
-			/*else
-			{
-				// the plot may be connected, but not connected to capital, if capital is not on same area, or if civ has no capital (like barbarians)
-				FAssertMsg(false, "Expected that a route could be built to eBestPlot");
-			}*/
-		}
-		else
-		{
-			FAssert(false);
-		}
+		/*else {
+			// the plot may be connected, but not connected to capital, if capital is not on same area, or if civ has no capital (like barbarians)
+			FAssertMsg(false, "Expected that a route could be built to eBestPlot");
+		}*/
 	}
-
+	else FAssert(false);
 	return false;
 }
 
@@ -24815,6 +24733,68 @@ int CvUnitAI::AI_nukeValue(CvPlot* pCenterPlot, int iSearchRange, CvPlot*& pBest
 	}
 	return iBestValue / 100;
 }
+
+// <advc.121>
+int CvUnitAI::AI_connectBonusCost(CvPlot const& p, BuildTypes eBuild,
+		ImprovementTypes eImpr, int iNeededWorkersInArea) const {
+
+	// BtS code (originally in AI_improveBonus):
+	/*int iValue = 10000;
+	iValue /= (GC.getBuildInfo(eBuild).getTime() + 1);*/
+	/*  <advc.121> The above means that the longer a build takes, the smaller is
+		its (cost) value. So Forts are always preferred over cheaper Plantations etc.
+		(There are similar issues in AI_irrigateTerritory and AI_fortifyTerritory,
+		but w/o harmful consequences. CvCityAI::AI_getImprovementValue also divides
+		by the build time, but that function gets it right as it computes a maximum.) */
+
+	// Ad-hoc heuristic for Fort building:
+	CvImprovementInfo& kImpr = GC.getImprovementInfo(eImpr);
+	int iDefenseValue = kImpr.getDefenseModifier();
+	// <advc.035>
+	if(p.isContestedByRival())
+		iDefenseValue = 0; // </advc.035>
+	/*  Prioritize Forts on tiles with high natural defense and on important
+		resources that may later be guarded. */
+	if(iDefenseValue > 0) {
+		iDefenseValue += p.defenseModifier(getTeam(), true);
+		BonusTypes eBonus = p.getBonusType(getTeam());
+		if(eBonus == NO_BONUS) {
+			FAssert(eBonus != NO_BONUS);
+			return -1;
+		}
+		/*  bonusVal is usually just a single digit; small double digit if it's
+			an important strategic resource. */
+		iDefenseValue += GET_PLAYER(getOwnerINLINE()).AI_bonusVal(eBonus, 0);
+		/*  (Not much of a point in checking p.isAdjacentToPlayer for all rivals.
+			This function is only called for unworkable tiles, which are usually
+			near a border.) */
+	}
+	int iCost = GC.getBuildInfo(eBuild).getTime();
+	// No cost for leaving an existing improvement alone
+	if(eImpr == p.getImprovementType())
+		iCost = 0;
+	// Time is more dear when workers are busy
+	int iMultiplier = 2 * (iNeededWorkersInArea + 1);
+	// Halve the cost when there's nothing to do
+	if(iNeededWorkersInArea == 0)
+		iMultiplier = 1;
+	iCost *= iMultiplier;
+	iCost /= 2;
+	int const iDefenseWeight = 20;
+	int r = iCost - iDefenseWeight * iDefenseValue;
+	if(kImpr.isActsAsCity() && (p.isConnectSea() || 
+			/*  If no cities in area, only a Fort will connect the bonus.
+				(Unless workable, see advc.124, but p isn't workable.) */
+			GET_TEAM(getTeam()).countNumCitiesByArea(p.area()) <= 0))
+		r -= 1000; // (That means, eBuild is a very good build.)
+	return r;
+	// XXX feature production???
+	/*  As for the Firaxis comment above:
+		Feature production is handled elsewhere (see advc.117). That said, once
+		a Fort is built, I'm not sure if Workers will still consider chopping.
+		If they do, then the defense bonus from a Forest shouldn't be counted fully
+		here. (Tbd., but not important.) */
+} // </advc.121>
 
 
 int CvUnitAI::AI_searchRange(int iRange)

@@ -634,4 +634,41 @@
 		<Spanish>Activa las marcas de recursos al inicio del juego.</Spanish>
 	</TEXT>
 	
+	<!-- advc.002f -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__CITYNETWORKICON_TEXT</Tag>
+		<English>Trade Network</English>
+		<French>Trade Network</French>
+		<German>Handelsnetz</German>
+		<Italian>Trade Network</Italian>
+		<Spanish>Trade Network</Spanish>
+	</TEXT>
+	<!-- Term "trade layer": The button says "display of trade groups," but
+		 that's too unwieldy. -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__CITYNETWORKICON_HOVER</Tag>
+		<English>When checked, the [ICON_TRADE] icon is shown above the billboard of cities that are connected to your capital (as in BtS). Note that you can always consult the Trade layer (Globe view) for information about trade connections.</English>
+		<French>When checked, the [ICON_TRADE] icon is shown above the billboard of cities that are connected to your capital (as in BtS). Note that you can always consult the Trade layer (Globe view) for information about trade connections.</French>
+		<German>Zeigt das [ICON_TRADE]-Symbol über den Namen von Städten an, die an Ihr Städtenetz angeschlossen sind (wie in BtS). In jedem Fall können Sie über die Handelsgruppenanzeige (Globalansicht) prüfen, ob eine Stadt angeschlossen ist.</German>
+		<Italian>When checked, the [ICON_TRADE] icon is shown above the billboard of cities that are connected to your capital (as in BtS). Note that you can always consult the Trade layer (Globe view) for information about trade connections.</Italian>
+		<Spanish>When checked, the [ICON_TRADE] icon is shown above the billboard of cities that are connected to your capital (as in BtS). Note that you can always consult the Trade layer (Globe view) for information about trade connections.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__AIRPORTICON_TEXT</Tag>
+		<English>Airport</English>
+		<French>Airport</French>
+		<German>Flughafen</German>
+		<Italian>Airport</Italian>
+		<Spanish>Airport</Spanish>
+	</TEXT>
+	<!-- Italian and Spanish copied from 'BULL City Bar Options.xml' -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__AIRPORTICON_HOVER</Tag>
+		<English>When checked, the [ICON_AIRPORT] icon is shown above the billboard of cities that have an airport.</English>
+		<French>When checked, the [ICON_AIRPORT] icon is shown above the billboard of cities that have an airport.</French>
+		<German>Zeigt das [ICON_AIRPORT]-Symbol über den Namen von Städten an, die über einen Flughafen verfügen.</German>
+		<Italian>Quando è selezionato, aggiunge l'icona [ICON_AIRPORT] alle città che hanno un Aeroporto.</Italian>
+		<Spanish>Muestra el icono [ICON_AIRPORT] sobre las barras de ciudad que tengan un aeropuerto.</Spanish>
+	</TEXT>
+	
 </Civ4GameText>

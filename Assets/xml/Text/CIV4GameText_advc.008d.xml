@@ -316,6 +316,14 @@
 	<Italian>(AdvCiv) You can't have trade routes with cities that you haven't located on the map. Be sure to regularly scout for new foreign cities in order to get the full trade benefits from your [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] agreements.</Italian>
 	<Spanish>(AdvCiv) You can't have trade routes with cities that you haven't located on the map. Be sure to regularly scout for new foreign cities in order to get the full trade benefits from your [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] agreements.</Spanish>
 </TEXT>
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_32</Tag>
+	<English>(AdvCiv) Normally, a colonial city or fort is required in order to integrate an island into your trade network. However, tiles that are workable by a mainland city only require a road.</English>
+	<French>(AdvCiv) Normally, a colonial city or fort is required in order to integrate an island into your trade network. However, tiles that are workable by a mainland city only require a road.</French>
+	<German>(AdvCiv) Um eine Insel in Ihr Handelsnetzwerk einzubinden, benötigen Sie dort normalerweise eine Stadt oder eine Festung. Falls die Insel aber für die Bürger einer Ihrer Städte auf dem Festland erreichbar ist, genügt eine Straße.</German>
+	<Italian>(AdvCiv) Normally, a colonial city or fort is required in order to integrate an island into your trade network. However, tiles that are workable by a mainland city only require a road.</Italian>
+	<Spanish>(AdvCiv) Normally, a colonial city or fort is required in order to integrate an island into your trade network. However, tiles that are workable by a mainland city only require a road.</Spanish>
+</TEXT>
 
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_16</Tag>
@@ -895,6 +903,16 @@
 	<German>(AdvCiv) Ihre Spione haben nun wieder die Fähigkeit, gegnerische Städte zu erkunden; aber anders als in "Warlords" und Civ 4 fallen dabei Missionskosten an.</German>
 	<Italian>(AdvCiv) Le tue unità spia possono indagare su città rivali, ma a differenza di "Warlords" e Civ 4, un costo di missione deve essere pagato.</Italian>
 	<Spanish>(AdvCiv) Tus unidades de espionaje pueden investigar ciudades rivales, pero a diferencia de "Warlords" y Civ 4, se debe pagar un costo de misión.</Spanish>
+</TEXT>
+
+<!-- advc.210 -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_33</Tag>
+	<English>(AdvCiv) When any member of your team is researching the same technology as you are, you both receive a 10% penalty on your research rates. Still, when a particular technology is urgently needed by the team, it can make sense to research that technology together.</English>
+	<French>(AdvCiv) When any member of your team is researching the same technology as you are, you both receive a 10% penalty on your research rates. Still, when a particular technology is urgently needed by the team, it can make sense to research that technology together.</French>
+	<German>(AdvCiv) Ihre Forschungsrate wird um 10% reduziert, wenn eines Ihrer Team-Mitglieder an der gleichen Technologie forscht wie Sie. Wenn das Team eine bestimmte Technologie dringend benötigt, kann es sich trotzdem lohnen, gemeinsam an einer Technologie zu forschen.</German>
+	<Italian>(AdvCiv) When any member of your team is researching the same technology as you are, you both receive a 10% penalty on your research rates. Still, when a particular technology is urgently needed by the team, it can make sense to research that technology together.</Italian>
+	<Spanish>(AdvCiv) When any member of your team is researching the same technology as you are, you both receive a 10% penalty on your research rates. Still, when a particular technology is urgently needed by the team, it can make sense to research that technology together.</Spanish>
 </TEXT>
 
 </Civ4GameText>

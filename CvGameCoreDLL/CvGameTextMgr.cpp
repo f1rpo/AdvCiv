@@ -8737,6 +8737,9 @@ void CvGameTextMgr::setTechHelp(CvWStringBuffer &szBuffer, TechTypes eTech, bool
 					GC.getCommerceInfo(COMMERCE_RESEARCH).getChar(),
 					bShowTurns ? L")" : L""); // advc.004x
 			szBuffer.append(szTempBuffer);
+			// <advc.910>
+			if(bShowTurns && bPlayerContext)
+				setResearchModifierHelp(szBuffer, eTech); // </advc.910>
 		}
 	}
 
@@ -8785,6 +8788,63 @@ void CvGameTextMgr::setTechHelp(CvWStringBuffer &szBuffer, TechTypes eTech, bool
 		}
 	}
 }
+
+// <advc.910>
+void CvGameTextMgr::setResearchModifierHelp(CvWStringBuffer& szBuffer,
+		TechTypes eTech) {
+
+	int iFromOtherKnown, iFromPaths, iFromTeam;
+	// Not necessary here, but let's make double sure to initialize.
+	iFromOtherKnown = iFromPaths = iFromTeam = 0;
+	int iMod = GET_PLAYER(GC.getGameINLINE().getActivePlayer()).
+			calculateResearchModifier(eTech, &iFromOtherKnown, &iFromPaths, &iFromTeam) - 100;
+	int iNonZero = 0;
+	if(iFromOtherKnown != 0) iNonZero++;
+	if(iFromPaths != 0) iNonZero++;
+	if(iFromTeam != 0) iNonZero++;
+	if(iNonZero > 0) {
+		szBuffer.append(NEWLINE);
+		char const* szPos = "COLOR_POSITIVE_TEXT";
+		char const* szNeg = "COLOR_NEGATIVE_TEXT";
+		int iBullet = gDLL->getSymbolID(BULLET_CHAR);
+		szBuffer.append(gDLL->getText("TXT_KEY_RESEARCH_MODIFIER"));
+		szBuffer.append(CvWString::format(L": " SETCOLR L"%s%d%%" ENDCOLR,
+				TEXT_COLOR(iMod > 0 ? szPos : szNeg), iMod > 0 ? L"+" : L"", iMod));
+		if(iFromOtherKnown != 0) {
+			if(iNonZero == 1)
+				szBuffer.append(L" ");
+			else {
+				szBuffer.append(NEWLINE);
+				szBuffer.append(CvWString::format(L"%c" SETCOLR L"%d%% " ENDCOLR,
+					iBullet, TEXT_COLOR(iFromOtherKnown > 0 ? szPos : szNeg),
+					iFromOtherKnown));
+			}
+			szBuffer.append(gDLL->getText("TXT_KEY_RESEARCH_MODIFIER_OTHER_KNOWN"));
+		}
+		if(iFromPaths != 0) {
+			if(iNonZero == 1)
+				szBuffer.append(L" ");
+			else {
+				szBuffer.append(NEWLINE);
+				szBuffer.append(CvWString::format(L"%c" SETCOLR L"%d%% " ENDCOLR,
+						iBullet, TEXT_COLOR(iFromPaths > 0 ? szPos : szNeg),
+						iFromPaths));
+			}
+			szBuffer.append(gDLL->getText("TXT_KEY_RESEARCH_MODIFIER_PATHS"));
+		}
+		if(iFromTeam != 0) {
+			if(iNonZero == 1)
+				szBuffer.append(L" ");
+			else {
+				szBuffer.append(NEWLINE);
+				szBuffer.append(CvWString::format(L"%c" SETCOLR L"%d%% " ENDCOLR,
+					iBullet, TEXT_COLOR(iFromTeam > 0 ? szPos : szNeg),
+					iFromTeam));
+			}
+			szBuffer.append(gDLL->getText("TXT_KEY_RESEARCH_MODIFIER_TEAM"));
+		}
+	}
+} // </advc.910>
 
 
 void CvGameTextMgr::setBasicUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit, bool bCivilopediaText)
@@ -9985,7 +10045,7 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit, bool
 			}
 			else
 			{
-				szTempBuffer.Format(L"%s%c", NEWLINE, gDLL->getSymbolID(BULLET_CHAR), szTempBuffer.GetCString());
+				szTempBuffer.Format(L"%s%c", NEWLINE, gDLL->getSymbolID(BULLET_CHAR));
 				szBuffer.append(szTempBuffer);
 			}
 			if (u.getBonusProductionModifier(iI) == 100)
@@ -10841,7 +10901,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 				kBuilding.getHurryAngerModifier() < 0 &&
 				GET_PLAYER(ePlayer).isHuman()) {
 			szBuffer.append(NEWLINE);
-			szTempBuffer.Format(L"%c", gDLL->getSymbolID(BULLET_CHAR), szTempBuffer);
+			szTempBuffer.Format(L"%c", gDLL->getSymbolID(BULLET_CHAR));
 			szBuffer.append(szTempBuffer);
 			szBuffer.append(gDLL->getText("TXT_KEY_HURRY_POPULATION"));
 		} // </advc.912d>
@@ -11587,7 +11647,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 				}
 				else
 				{
-					szTempBuffer.Format(L"\n%c", gDLL->getSymbolID(BULLET_CHAR), szTempBuffer);
+					szTempBuffer.Format(L"\n%c", gDLL->getSymbolID(BULLET_CHAR));
 					szBuffer.append(szTempBuffer);
 				}
 				if (kBuilding.getBonusProductionModifier(iI) == 100)
@@ -12413,7 +12473,7 @@ void CvGameTextMgr::setProjectHelp(CvWStringBuffer &szBuffer, ProjectTypes eProj
 			}
 			else
 			{
-				szTempBuffer.Format(L"%s%c", NEWLINE, gDLL->getSymbolID(BULLET_CHAR), szTempBuffer.GetCString());
+				szTempBuffer.Format(L"%s%c", NEWLINE, gDLL->getSymbolID(BULLET_CHAR));
 				szBuffer.append(szTempBuffer);
 			}
 			if (kProject.getBonusProductionModifier(iI) == 100)
@@ -17457,14 +17517,30 @@ void CvGameTextMgr::buildCityBillboardIconString( CvWStringBuffer& szBuffer, CvC
 			}
 		}
 
-		// advc.002f: Commented out
-		/*if (pCity->isConnectedToCapital())
+		if (pCity->isConnectedToCapital()
+				// advc.002f:
+				&& getBugOptionBOOL("MainInterface__CityNetworkIcon", false))
 		{
 			if (GET_PLAYER(pCity->getOwnerINLINE()).countNumCitiesConnectedToCapital() > 1)
 			{
 				szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(TRADE_CHAR)));
 			}
-		}*/
+		}
+		// <advc.002f>
+		// BUG - Airport Icon - start
+		if (getBugOptionBOOL("MainInterface__AirportIcon", true))
+		{
+			int eAirportClass = GC.getInfoTypeForString("BUILDINGCLASS_AIRPORT");
+			if (eAirportClass != -1)
+			{
+				int eAirport = GC.getCivilizationInfo(pCity->getCivilizationType()).getCivilizationBuildings(eAirportClass);
+				if (eAirport != -1 && pCity->getNumBuilding((BuildingTypes)eAirport) > 0)
+				{
+					szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(AIRPORT_CHAR)));
+				}
+			}
+		} // BUG - Airport Icon - end
+		// </advc.002f>
 	}
 
 	// religion icons

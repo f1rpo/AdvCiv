@@ -5347,7 +5347,7 @@ int CvTeamAI::AI_plotDefense(CvPlot const& p, bool bIgnoreBuilding) const {
 	return p.defenseModifier(getID(), bIgnoreBuilding, attacker);
 } // </advc.012>
 
-// <advc.130y>
+// <advc.130y> ('bFreed' is unused; not needed after all, I guess.)
 void CvTeamAI::AI_forgiveEnemy(TeamTypes enemyId, bool bCapitulated, bool bFreed) {
 
 	/*  'capitulated' refers to us, the callee. This function is called when

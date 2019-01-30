@@ -709,7 +709,10 @@ public:
 	// <advc.003b>
 	inline int getDIPLOMACY_VALUE_REMAINDER() { return m_iDIPLOMACY_VALUE_REMAINDER; }
 	inline int getPEACE_TREATY_LENGTH() { return m_iPEACE_TREATY_LENGTH; }
+	inline int getTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER() { return m_iTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER; }
 	// </advc.003b>
+	// advc.210:
+	inline int getRESEARCH_MODIFIER_EXTRA_TEAM_MEMBER() { return m_iRESEARCH_MODIFIER_EXTRA_TEAM_MEMBER; }
 	// advc.099b:
 	inline int getCITY_RADIUS_DECAY() { return m_iCITY_RADIUS_DECAY; }
 	// advc.005f:
@@ -1185,7 +1188,9 @@ protected:
 	// <advc.003b>
 	int m_iDIPLOMACY_VALUE_REMAINDER;
 	int m_iPEACE_TREATY_LENGTH;
+	int m_iTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER;
 	// </advc.003b>
+	int m_iRESEARCH_MODIFIER_EXTRA_TEAM_MEMBER; // advc.210
 	int m_iCITY_RADIUS_DECAY; // advc.099b
 	int m_iENABLE_005F; // advc.005f
 	int m_iPER_PLAYER_MESSAGE_CONTROL_LOG; // advc.007

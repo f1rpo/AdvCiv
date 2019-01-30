@@ -309,7 +309,7 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 		if (CyGame().isDebugMode()):
 			self.szDropdownName = self.getWidgetName(self.DEBUG_DROPDOWN_ID)
 			screen.addDropDownBoxGFC(self.szDropdownName, 22, 12, 300, WidgetTypes.WIDGET_GENERAL, -1, -1, FontTypes.GAME_FONT)
-			for j in range(gc.getMAX_CIV_PLAYERS()): # advc.007: excluded barbs
+			for j in range(gc.getMAX_CIV_PLAYERS()): # advc.007: Exclude Barbarians
 				if (gc.getPlayer(j).isAlive()):
 					bSelected = False
 					if j == self.iActiveLeader:
@@ -405,7 +405,7 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 
 			# Player panel
 			playerPanelName = self.getNextWidgetName()
-			# advc.066: Second argument was gc.getPlayer(iLoopPlayer).getName()
+			# advc.066: Third argument was gc.getPlayer(iLoopPlayer).getName()
 			screen.attachPanel(mainPanelName, playerPanelName, "", "", False, True, PanelStyles.PANEL_STYLE_MAIN)
 
 			screen.attachLabel(playerPanelName, "", "   ")
@@ -467,7 +467,8 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 					
 		# Put everything inside a main panel, so we get vertical scrolling
 		mainPanelName = self.getNextWidgetName()
-		screen.addPanel(mainPanelName, "", "", True, True, 50, 100, self.W_SCREEN - 100, self.H_SCREEN - 200, PanelStyles.PANEL_STYLE_EMPTY)
+		# advc.066: The second int param was 100
+		screen.addPanel(mainPanelName, "", "", True, True, 50, 60, self.W_SCREEN - 100, self.H_SCREEN - 200, PanelStyles.PANEL_STYLE_EMPTY)
 
 		ltCivicOptions = range (gc.getNumCivicOptionInfos())
 
@@ -483,7 +484,8 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 
 				# Player panel
 				playerPanelName = self.getNextWidgetName()
-				screen.attachPanel(mainPanelName, playerPanelName, gc.getPlayer(iLoopPlayer).getName(), "", False, True, PanelStyles.PANEL_STYLE_MAIN)
+				# advc.066: Third argument was gc.getPlayer(iLoopPlayer).getName()
+				screen.attachPanel(mainPanelName, playerPanelName, "", "", False, True, PanelStyles.PANEL_STYLE_MAIN)
 
 				screen.attachImageButton(playerPanelName, "", objLeaderHead.getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_LEADERHEAD, iLoopPlayer, self.iActiveLeader, False)
 						

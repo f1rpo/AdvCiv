@@ -4524,7 +4524,10 @@ void CvTeam::makeHasMet(TeamTypes eIndex, bool bNewDiplo,
 	// <advc.071>
 	bool bShowMessage = isHuman();
 	if(bShowMessage || bNewDiplo) {
-		int iOnFirstContact = getBugOptionINT("Civ4lerts__OnFirstContact", 2);
+		int iOnFirstContact = 1;
+		// If met during the placement of free starting units, show only a diplo popup.
+		if(GC.IsGraphicsInitialized())
+			iOnFirstContact = getBugOptionINT("Civ4lerts__OnFirstContact", 2);
 		if(bNewDiplo && iOnFirstContact == 0)
 			bNewDiplo = false;
 		if(bShowMessage && iOnFirstContact == 1)
@@ -5982,7 +5985,8 @@ void CvTeam::setResearchProgress(TechTypes eIndex, int iNewValue, PlayerTypes eP
 	{
 		gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
-		// <advc.004x>
+		/*  <advc.004x> Update research-turns shown in popup (tbd.: perhaps setting
+			Popup_DIRTY_BIT would suffice here?) */
 		CvPlayer& kActivePlayer = GET_PLAYER(GC.getGameINLINE().getActivePlayer());
 		if(kActivePlayer.getCurrentResearch() == NO_TECH
 				&& kActivePlayer.isHuman()) { // i.e. not during Auto Play
@@ -6392,26 +6396,38 @@ CvWString const CvTeam::tradeItemString(TradeableItems eItem, int data,
 	return L"";
 } // </advc.039>
 
-void CvTeam::announceTechToPlayers(TechTypes eIndex, bool bPartial)
+void CvTeam::announceTechToPlayers(TechTypes eIndex,
+		PlayerTypes eDiscoverPlayer, // advc.156
+		bool bPartial)
 {
-	bool bSound = ((GC.getGameINLINE().isNetworkMultiPlayer() || gDLL->getInterfaceIFace()->noTechSplash()) && !bPartial);
-
+	CvGame const& g = GC.getGameINLINE();
+	bool bSound = ((g.isNetworkMultiPlayer() ||
+			/*  advc.156: I think Hot Seat doesn't play sounds along with messages,
+				but let's try. */
+			g.isHotSeat() ||
+			gDLL->getInterfaceIFace()->noTechSplash()) && !bPartial);
 	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
-		{
-			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
-			{
-				CvWString szBuffer = gDLL->getText((bPartial ? "TXT_KEY_MISC_PROGRESS_TOWARDS_TECH" : "TXT_KEY_MISC_YOU_DISCOVERED_TECH"), GC.getTechInfo(eIndex).getTextKeyWide());
-				// <advc.201> BtS code restored
-				gDLL->getInterfaceIFace()->addHumanMessage((PlayerTypes)iI, false, (bSound ? GC.getEVENT_MESSAGE_TIME() : -1), szBuffer,
-						(bSound ? GC.getTechInfo(eIndex).getSoundMP() : NULL),
-						MESSAGE_TYPE_MINOR_EVENT, // advc.106b
-						NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_TECH_TEXT"));
-				// K-Mod. Play the quote sound always, the "MP" sound is boring.
-				//gDLL->getInterfaceIFace()->addHumanMessage((PlayerTypes)iI, false, (bSound ? GC.getEVENT_MESSAGE_TIME() : -1), szBuffer, (bSound ? GC.getTechInfo(eIndex).getSound() : NULL), MESSAGE_TYPE_MAJOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_TECH_TEXT"));
-				// K-Mod end // </advc.201>
-			}
+		CvPlayer const& kPlayer = GET_PLAYER((PlayerTypes)iI);
+		if (kPlayer.isAlive() && kPlayer.getTeam() == getID()) // advc.003
+		{	// <advc.156>
+			TCHAR const* szSound = NULL;
+			if(bSound) {
+				if(kPlayer.getID() == eDiscoverPlayer)
+					szSound = GC.getTechInfo(eIndex).getSound();
+				else szSound = GC.getTechInfo(eIndex).getSoundMP();
+			} // </advc.156>
+			CvWString szBuffer = gDLL->getText((bPartial ?
+					"TXT_KEY_MISC_PROGRESS_TOWARDS_TECH" :
+					"TXT_KEY_MISC_YOU_DISCOVERED_TECH"),
+					GC.getTechInfo(eIndex).getTextKeyWide());
+			gDLL->getInterfaceIFace()->addHumanMessage((PlayerTypes)iI, false,
+					bSound ? GC.getEVENT_MESSAGE_TIME() : -1, szBuffer,
+					szSound, // advc.156
+					MESSAGE_TYPE_MINOR_EVENT, // advc.106b
+					NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_TECH_TEXT"));
+			// K-Mod. Play the quote sound always, the "MP" sound is boring.
+					//(bSound ? GC.getTechInfo(eIndex).getSound() : NULL)
 		}
 	}
 }
@@ -6451,7 +6467,8 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 			{
 				if (GC.getGameINLINE().isFinalInitialized() && !(gDLL->GetWorldBuilderMode()))
 				{
-					announceTechToPlayers(eIndex);
+					announceTechToPlayers(eIndex,
+							ePlayer); // advc.156
 				}
 			}
 		}
@@ -6778,7 +6795,8 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 		if (bAnnounce && GC.getGameINLINE().isFinalInitialized() &&
 			!gDLL->GetWorldBuilderMode()) // advc.003
 		{
-			announceTechToPlayers(eIndex);
+			announceTechToPlayers(eIndex,
+					ePlayer); // advc.156
 			bool messageSent = false; // advc.004r
 			for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 			{

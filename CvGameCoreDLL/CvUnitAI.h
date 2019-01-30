@@ -305,9 +305,12 @@ protected:
 	// </advc.033>
 	bool AI_defendPlot(CvPlot* pPlot);
 	int AI_pillageValue(CvPlot* pPlot, int iBonusValueThreshold = 0);
+	//bool AI_canPillage(CvPlot& kPlot) const; // advc.003j
 	//int AI_nukeValue(CvCity* pCity);
 	int AI_nukeValue(CvPlot* pCenterPlot, int iSearchRange, CvPlot*& pBestTarget, int iCivilianTargetWeight = 50) const; // K-Mod
-	//bool AI_canPillage(CvPlot& kPlot) const; // advc.003j
+	// <advc.121>
+	int AI_connectBonusCost(CvPlot const& p, BuildTypes eBuild,
+			ImprovementTypes eImpr, int iNeededWorkersInArea) const; // </advc.121>
 
 	int AI_searchRange(int iRange);
 	bool AI_plotValid(CvPlot* pPlot);
@@ -334,7 +337,6 @@ protected:
 	bool AI_solveBlockageProblem(CvPlot* pDestPlot, bool bDeclareWar);
 	
 	int AI_calculatePlotWorkersNeeded(CvPlot* pPlot, BuildTypes eBuild);
-
 	//int AI_getEspionageTargetValue(CvPlot* pPlot, int iMaxPath);
 	int AI_getEspionageTargetValue(CvPlot* pPlot); // K-Mod
 

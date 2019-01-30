@@ -4105,26 +4105,23 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 		// since this duplicates BUILDINGFOCUS_EXPERIENCE checks, do not repeat on pass 1
 		if ((iFocusFlags & BUILDINGFOCUS_DOMAINSEA))
 		{
-			iValue += (kBuilding.getFreeExperience() * ((iHasMetCount > 0) ? 16 : 8));
-
+			iValue += (kBuilding.getFreeExperience() * (iHasMetCount > 0 ? 16 : 8));
 			for (int iUnitIndex = 0; iUnitIndex < GC.getNumUnitClassInfos(); iUnitIndex++)
 			{
 				UnitTypes eUnit = (UnitTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationUnits(iUnitIndex);
-
-				if (NO_UNIT != eUnit)
-				{
-					CvUnitInfo& kUnitInfo = GC.getUnitInfo(eUnit);
-					int iCombatType = kUnitInfo.getUnitCombatType();
-					// <advc.rom4> Avoid canTrain call; credits: alberts2 (C2C).
-					if(kBuilding.getUnitCombatFreeExperience(iCombatType) == 0)
-						continue; // </advc.rom4>
-					if (kUnitInfo.getDomainType() == DOMAIN_SEA && canTrain(eUnit) && iCombatType != NO_UNITCOMBAT)
-					{
-						iValue += (kBuilding.getUnitCombatFreeExperience(iCombatType) * ((iHasMetCount > 0) ? 6 : 3));
-					}
+				if(eUnit == NO_UNIT)
+					continue;
+				CvUnitInfo& kUnitInfo = GC.getUnitInfo(eUnit);
+				int iCombatType = kUnitInfo.getUnitCombatType();
+				// <advc.rom4> Avoid canTrain call; credits: alberts2 (C2C).
+				if(iCombatType == NO_UNITCOMBAT || kUnitInfo.getDomainType() != DOMAIN_SEA ||
+						kBuilding.getUnitCombatFreeExperience(iCombatType) == 0)
+					continue; // </advc.rom4>
+				if(canTrain(eUnit)) {
+					iValue += (kBuilding.getUnitCombatFreeExperience(iCombatType) *
+							(iHasMetCount > 0 ? 6 : 3));
 				}
 			}
-
 			iValue += (kBuilding.getDomainFreeExperience(DOMAIN_SEA) * ((iHasMetCount > 0) ? 16 : 8));
 			// advc.041: No longer guaranteed by the building's MinAreaSize
 			if(isCoastal(GC.getMIN_WATER_SIZE_FOR_OCEAN() * 2))
@@ -10163,14 +10160,12 @@ int CvCityAI::AI_yieldValue(short* piYields, short* piCommerceYields, bool bRemo
 							}
 						}
 					}
-
-					/* advc.121: Want the AI to grow cities a bit more aggressively,
-					   but I don't quite know what I'm doing. So this is a first
-					   attempt. Surely, in the time that the city grows four times,
-					   we should be able to procure an extra happiness. If not,
-					   the bonus to iFutureHappy should go away once we near the
-					   cap (because iHappinessLevel will drop under 4), and
-					   food can be de-emphasized. */
+					/*  advc.121: Want the AI to grow cities a bit more aggressively
+						(but I don't quite know what I'm doing). Surely, in the
+						time that the city grows four times, we should be able to
+						procure an extra happiness. If not, the bonus to iFutureHappy
+						should go away once we near the cap (because iHappinessLevel
+						will drop under 4), and food can be de-emphasized. */
 					iFutureHappy += iHappinessLevel / 4;
 
 					if (bEmphasizeFood)

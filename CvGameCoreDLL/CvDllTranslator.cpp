@@ -44,6 +44,8 @@ void CvDllTranslator::initializeTags(CvWString& szTagStartIcon, CvWString& szTag
 	aIconMap[L"[ICON_FOOD]"] = std::wstring(1, (wchar)GC.getYieldInfo(YIELD_FOOD).getChar());
 	aIconMap[L"[ICON_PRODUCTION]"] = std::wstring(1, (wchar)GC.getYieldInfo(YIELD_PRODUCTION).getChar());
 	aIconMap[L"[ICON_COMMERCE]"] = std::wstring(1, (wchar)GC.getYieldInfo(YIELD_COMMERCE).getChar());
+	// advc.002f:
+	aIconMap[L"[ICON_AIRPORT]"] = std::wstring(1, (wchar)gDLL->getSymbolID(AIRPORT_CHAR));
 
 	//create color map
 	aColorMap[L"[COLOR_REVERT]"] = CvWString(L"</color>");

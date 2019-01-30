@@ -695,6 +695,11 @@ void CyEnumsPythonInterface()
 		.value("MAP_CHAR", MAP_CHAR)
 		.value("OCCUPATION_CHAR", OCCUPATION_CHAR)
 		.value("POWER_CHAR", POWER_CHAR)
+		// <advc.002f>
+		.value("CITIZEN_CHAR", CITIZEN_CHAR)
+		.value("GREAT_GENERAL_CHAR", GREAT_GENERAL_CHAR)
+		.value("AIRPORT_CHAR", AIRPORT_CHAR)
+		// </advc.002f>
 		.value("MAX_NUM_SYMBOLS", MAX_NUM_SYMBOLS)
 		;
 

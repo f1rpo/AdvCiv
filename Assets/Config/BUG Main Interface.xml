@@ -181,6 +181,11 @@
 				<choice id="Adjacent"/>
 				<choice id="CityCross"/>
 			</list>
+			<!-- advc.002f -->
+			<option id="CityNetworkIcon" key="City Network Icon" 
+					type="boolean" default="False" dirtyBit="CityInfo"/>
+			<option id="AirportIcon" key="Airport Icon" 
+					type="boolean" default="True" dirtyBit="CityInfo"/>
 		</section>
 	</options>
 	

@@ -1065,35 +1065,23 @@ void CvGame::assignStartingPlots()
 	} /* advc.108b: Replace all this. Don't want handicaps to be ignored in 
 		 multiplayer, and the BtS random assignment of human starts doesn't
 		 actually work - favors player 0 when humans are in slots 0, 1 ... */
-	/*else if (isGameMultiPlayer())
-	{
+	/*else if (isGameMultiPlayer()) {
 		int iRandOffset = getSorenRandNum(countCivPlayersAlive(), "Player Starting Plot");
-
-		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
-		{
+		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++) {
 			int iLoopPlayer = ((iI + iRandOffset) % MAX_CIV_PLAYERS);
-
-			if (GET_PLAYER((PlayerTypes)iLoopPlayer).isAlive())
-			{
-				if (GET_PLAYER((PlayerTypes)iLoopPlayer).isHuman())
-				{
-					if (GET_PLAYER((PlayerTypes)iLoopPlayer).getStartingPlot() == NULL)
-					{
+			if (GET_PLAYER((PlayerTypes)iLoopPlayer).isAlive()) {
+				if (GET_PLAYER((PlayerTypes)iLoopPlayer).isHuman()) {
+					if (GET_PLAYER((PlayerTypes)iLoopPlayer).getStartingPlot() == NULL) {
 						GET_PLAYER((PlayerTypes)iLoopPlayer).setStartingPlot(GET_PLAYER((PlayerTypes)iLoopPlayer).findStartingPlot(), true);
 						playerOrder.push_back(iLoopPlayer);
 					}
 				}
 			}
 		}
-
-		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
-		{
-			if (GET_PLAYER((PlayerTypes)iI).isAlive())
-			{
-				if (!(GET_PLAYER((PlayerTypes)iI).isHuman()))
-				{
-					if (GET_PLAYER((PlayerTypes)iI).getStartingPlot() == NULL)
-					{
+		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++) {
+			if (GET_PLAYER((PlayerTypes)iI).isAlive()) {
+				if (!(GET_PLAYER((PlayerTypes)iI).isHuman())) {
+					if (GET_PLAYER((PlayerTypes)iI).getStartingPlot() == NULL) {
 						GET_PLAYER((PlayerTypes)iI).setStartingPlot(GET_PLAYER((PlayerTypes)iI).findStartingPlot(), true);
 						playerOrder.push_back(iI);
 					}
@@ -1106,56 +1094,39 @@ void CvGame::assignStartingPlots()
 		int const upperBound = countCivPlayersAlive() - 1;
 		int iHumanSlot = range(((upperBound * GC.getHandicapInfo(getHandicapType()).
 				getStartingLocationPercent()) / 100), 0, upperBound);
-
-		for (int iI = 0; iI < iHumanSlot; iI++)
-		{
-			if (GET_PLAYER((PlayerTypes)iI).isAlive())
-			{
-				if (!(GET_PLAYER((PlayerTypes)iI).isHuman()))
-				{
-					if (GET_PLAYER((PlayerTypes)iI).getStartingPlot() == NULL)
-					{
+		for (int iI = 0; iI < iHumanSlot; iI++) {
+			if (GET_PLAYER((PlayerTypes)iI).isAlive()) {
+				if (!(GET_PLAYER((PlayerTypes)iI).isHuman())) {
+					if (GET_PLAYER((PlayerTypes)iI).getStartingPlot() == NULL) {
 						GET_PLAYER((PlayerTypes)iI).setStartingPlot(GET_PLAYER((PlayerTypes)iI).findStartingPlot(), true);
 						playerOrder.push_back(iI);
 					}
 				}
 			}
 		}
-
-		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
-		{
-			if (GET_PLAYER((PlayerTypes)iI).isAlive())
-			{
-				if (GET_PLAYER((PlayerTypes)iI).isHuman())
-				{
-					if (GET_PLAYER((PlayerTypes)iI).getStartingPlot() == NULL)
-					{
+		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++) {
+			if (GET_PLAYER((PlayerTypes)iI).isAlive()) {
+				if (GET_PLAYER((PlayerTypes)iI).isHuman()) {
+					if (GET_PLAYER((PlayerTypes)iI).getStartingPlot() == NULL) {
 						GET_PLAYER((PlayerTypes)iI).setStartingPlot(GET_PLAYER((PlayerTypes)iI).findStartingPlot(), true);
 						playerOrder.push_back(iI);
 					}
 				}
 			}
 		}
-
-		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
-		{
-			if (GET_PLAYER((PlayerTypes)iI).isAlive())
-			{
-				if (GET_PLAYER((PlayerTypes)iI).getStartingPlot() == NULL)
-				{
+		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++) {
+			if (GET_PLAYER((PlayerTypes)iI).isAlive()) {
+				if (GET_PLAYER((PlayerTypes)iI).getStartingPlot() == NULL) {
 					GET_PLAYER((PlayerTypes)iI).setStartingPlot(GET_PLAYER((PlayerTypes)iI).findStartingPlot(), true);
 					playerOrder.push_back(iI);
 				}
 			}
 		}
 	}
-	
 	//Now iterate over the player starts in the original order and re-place them.
 	//std::vector<int>::iterator playerOrderIter;
 	for (playerOrderIter = playerOrder.begin(); playerOrderIter != playerOrder.end(); ++playerOrderIter)
-	{
-		GET_PLAYER((PlayerTypes)(*playerOrderIter)).setStartingPlot(GET_PLAYER((PlayerTypes)(*playerOrderIter)).findStartingPlot(), true);
-	}*/
+		GET_PLAYER((PlayerTypes)(*playerOrderIter)).setStartingPlot(GET_PLAYER((PlayerTypes)(*playerOrderIter)).findStartingPlot(), true);*/
 	// <advc.108b>
 	else {
 		int const iAlive = countCivPlayersAlive();
@@ -6945,11 +6916,12 @@ void CvGame::doGlobalWarming()
 					bChanged = true;
 				}
 				// 2) Forest -> Jungle
-				else if (pPlot->getFeatureType() == eTemperateFeature)
+				// advc.055: Commented out
+				/*else if (pPlot->getFeatureType() == eTemperateFeature)
 				{
 					pPlot->setFeatureType(eWarmFeature);
 					bChanged = true;
-				}
+				}*/
 				// 3) Remove other features
 				else if (pPlot->getFeatureType() != NO_FEATURE && pPlot->getFeatureType() != eFalloutFeature)
 				{
@@ -8320,7 +8292,7 @@ void CvGame::updateMoves()
 					}
 					// K-Mod end
 
-					if (!(player.hasBusyUnit()))
+					if (!player.hasBusyUnit())
 					{
 						player.setAutoMoves(false);
 					}

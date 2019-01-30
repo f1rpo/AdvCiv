@@ -229,6 +229,15 @@
 		<Italian>Casella Selezionata:</Italian>
 		<Spanish>Texto Flotante Casilla:</Spanish>
 	</TEXT>
+	<!-- advc.002f -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPTLABEL_CITYICONS</Tag>
+		<English>City Icons:</English>
+		<French>City Icons:</French>
+		<German>Städte-Symbole:</German>
+		<Italian>City Icons:</Italian>
+		<Spanish>City Icons:</Spanish>
+	</TEXT>
 	<!-- advc.009c: Commented out -->
 	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPTLABEL_MAPFINDER</Tag>

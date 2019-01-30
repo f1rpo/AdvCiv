@@ -1128,11 +1128,10 @@ bool CvPlayerAI::AI_willOfferPeace(PlayerTypes toId) const {
 void CvPlayerAI::AI_updateFoundValues(bool bStartingLoc)
 {
 	PROFILE_FUNC();
-	// disabled by K-Mod (unused):
-	// bool bCitySiteCalculations = (GC.getGame().getGameTurn() > GC.getGame().getStartTurn());
 	// <advc.303>
 	if(isBarbarian())
-		return; // </advc.303>
+		return;
+	// </advc.303>
 	int iLoop=-1;
 	for (CvArea* pLoopArea = GC.getMapINLINE().firstArea(&iLoop); pLoopArea != NULL; pLoopArea = GC.getMapINLINE().nextArea(&iLoop))
 	{
@@ -3053,6 +3052,11 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	CvCity const* const pCapital = getCapitalCity();
 	// advc.108: Barbarians shouldn't distinguish between earlier and later cities
 	int const iCities = (isBarbarian() ? 5 : getNumCities());
+	/*  advc.003: New variable, BtS comment moved up. Originally, pPlot->isStartingPlot()
+		was used; K-Mod corrected that to pPlot==getStartingPlot()
+		("isStartingPlot is not automatically set"). */
+	//nice hacky way to avoid messing with normalizer
+	bool const bNormalize = (kSet.bStartingLoc && pPlot == getStartingPlot());
 // END OF CONSTS
 // INITIAL DON'T-FOUND-HERE CHECKS
 	bool bAdvancedStart = (getAdvancedStartPoints() >= 0);
@@ -3736,8 +3740,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			iPlotValue += bCoastal ? 8*(aiYield[YIELD_COMMERCE]+aiYield[YIELD_PRODUCTION]) : 0;
 			// (K-Mod note, I've moved the iSpecialFoodPlus adjustment elsewhere.)
 
-			//if (kSet.bStartingLoc && !pPlot->isStartingPlot())
-			if (kSet.bStartingLoc && getStartingPlot() != pPlot) // K-Mod
+			if (kSet.bStartingLoc && !bNormalize)
 			{
 				// I'm pretty much forbidding starting 1 tile inland non-coastal.
 				// with more than a few coast tiles.
@@ -4260,8 +4263,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		{
 			//let other penalties bring this down.
 			iValue += 380; // advc.031: was 600 in BtS, 500 in K-Mod
-			//if (!pPlot->isStartingPlot())
-			if (getStartingPlot() != pPlot) // K-Mod
+			if (!bNormalize)
 			{
 				if (pArea->getNumStartingPlots() == 0)
 				{
@@ -4353,8 +4355,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			}
 		}
 
-		//if (!pPlot->isStartingPlot())
-		if (getStartingPlot() != pPlot) // K-Mod
+		if (!bNormalize)
 		{
 			/* original bts code
 			iGreaterBadTile /= 2;
@@ -4401,9 +4402,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		/*  advc.003: Unused BtS and K-Mod code dealing with WaterCount and
 			MinOriginalStartDist deleted */
 
-		//nice hacky way to avoid this messing with normalizer, use elsewhere?
-		//if (!pPlot->isStartingPlot())
-		if (getStartingPlot() != pPlot) // K-Mod. 'isStartingPlot' is not automatically set.
+		if (!bNormalize)
 		{
 			int iMinDistanceFactor = MAX_INT;
 			int iMinRange = startingPlotRange();
@@ -8950,27 +8949,23 @@ void CvPlayerAI::AI_chooseFreeTech()
 
 void CvPlayerAI::AI_chooseResearch()
 {
-	//TechTypes eBestTech;
-	//int iI;
-
 	clearResearchQueue();
 
-	if (getCurrentResearch() == NO_TECH)
-	{
-		for (int iI = 0; iI < MAX_PLAYERS; iI++)
-		{
-			if (GET_PLAYER((PlayerTypes)iI).isAlive())
-			{
-				if ((iI != getID()) && (GET_PLAYER((PlayerTypes)iI).getTeam() == getTeam()))
-				{
-					if (GET_PLAYER((PlayerTypes)iI).getCurrentResearch() != NO_TECH)
-					{
-						if (canResearch(GET_PLAYER((PlayerTypes)iI).getCurrentResearch()))
-						{
-							pushResearch(GET_PLAYER((PlayerTypes)iI).getCurrentResearch());
-						}
-					}
-				}
+	if(getCurrentResearch() == NO_TECH
+			// advc.156:
+			&& GC.getDefineINT("RESEARCH_MODIFIER_EXTRA_TEAM_MEMBER") > -5) {
+		for(int iPass = 0; iPass < 2; iPass++) {
+			for (int iI = 0; iI < MAX_PLAYERS; iI++) {
+				if(iI == getID())
+					continue; // advc.003
+				CvPlayer const& kOtherMember = GET_PLAYER((PlayerTypes)iI);
+				if(kOtherMember.isAlive() &&
+						// advc.156: Priority for human members
+						(iPass == 0) == kOtherMember.isHuman() &&
+						kOtherMember.getTeam() == getTeam() &&
+						kOtherMember.getCurrentResearch() != NO_TECH &&
+						canResearch(kOtherMember.getCurrentResearch()))
+					pushResearch(kOtherMember.getCurrentResearch());
 			}
 		}
 	}
@@ -8978,13 +8973,9 @@ void CvPlayerAI::AI_chooseResearch()
 	if (getCurrentResearch() == NO_TECH)
 	{
 		TechTypes eBestTech = NO_TECH; // K-Mod
-		if (GC.getUSE_AI_CHOOSE_TECH_CALLBACK()) // K-Mod. block unused python callbacks
-		{
-			CyArgsList argsList;
-			long lResult;
-			argsList.add(getID());
-			argsList.add(false);
-			lResult = -1;
+		if (GC.getUSE_AI_CHOOSE_TECH_CALLBACK()) { // K-Mod. block unused python callbacks
+			CyArgsList argsList; long lResult;
+			argsList.add(getID()); argsList.add(false); lResult = -1;
 			gDLL->getPythonIFace()->callFunction(PYGameModule, "AI_chooseTech", argsList.makeFunctionArgs(), &lResult);
 			eBestTech = ((TechTypes)lResult);
 		}
@@ -27088,8 +27079,8 @@ void CvPlayerAI::AI_doAdvancedStart(bool bNoExit)
 				break;
 			}
 			else
-			{
-				//If this point is reached, the advanced start system is broken.
+			{	// advc.003: Assert added, BtS comment moved into message.
+				FAssertMsg(false, "If this point is reached, the advanced start system is broken.");
 				//Find a new starting plot for this player
 				setStartingPlot(findStartingPlot(false), true);
 				//Redo Starting visibility
