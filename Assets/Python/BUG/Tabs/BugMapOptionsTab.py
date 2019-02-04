@@ -43,15 +43,14 @@ class BugMapOptionsTab(BugOptionsTab.BugOptionsTab):
 		#self.addTextEdit(screen, leftL, leftR, "StrategyOverlay__DotMapDotIcon")
 		self.addSlider(screen, leftL, leftR, "StrategyOverlay__DotMapBrightness", False, False, False, "up", 0, 100)
 		self.addSlider(screen, leftL, leftR, "StrategyOverlay__DotMapHighlightBrightness", False, False, False, "up", 0, 100)
-		
-		# advc (comment): I suppose EmperorFool disabled these lines (BULL options that BUG doesn't support). Anyway, it wasn't me.
 		#self.addLabel(screen, center, "CityBar", "CityBar:")
-		#self.addCheckbox(screen, center, "CityBar__AirportIcons")
 		#self.addCheckbox(screen, center, "CityBar__StarvationTurns")
-		# <advc.011b>
+		# advc.011b, advc.099f:
 		self.addLabel(screen, center, "TileHover", "Tile Hover:")
+		# advc.011b:
 		self.addCheckbox(screen, center, "MiscHover__PartialBuildsAlways")
-		# </advc.011b>
+		# advc.099f:
+		self.addCheckbox(screen, center, "MiscHover__CultureInUnownedTiles")
 		# advc.061:
 		self.addCheckbox(screen, center, "MainInterface__ListUnitsPerOwner")
 		#self.addCheckbox(screen, center, "MiscHover__LatLongCoords")

@@ -915,4 +915,14 @@
 	<Spanish>(AdvCiv) When any member of your team is researching the same technology as you are, you both receive a 10% penalty on your research rates. Still, when a particular technology is urgently needed by the team, it can make sense to research that technology together.</Spanish>
 </TEXT>
 
+<!-- advc.099f -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_34</Tag>
+	<English>(AdvCiv) To see the culture percentages of unowned tiles, hold down [Shift] or enable "Always Show Tile Culture" on the "Map" tab of the BUG menu.</English>
+	<French>(AdvCiv) To see the culture percentages of unowned tiles, hold down [Shift] or enable "Always Show Tile Culture" on the "Map" tab of the BUG menu.</French>
+	<German>(AdvCiv) Die Kulturanteile auf neutralen Feldern lassen sich mit der Umschalttaste einblenden, oder über die Option "Kultur stets anzeigen" auf dem Reiter "Karte" im BUG-Menü.</German>
+	<Italian>(AdvCiv) To see the culture percentages of unowned tiles, hold down [Shift] or enable "Always Show Tile Culture" on the "Map" tab of the BUG menu.</Italian>
+	<Spanish>(AdvCiv) To see the culture percentages of unowned tiles, hold down [Shift] or enable "Always Show Tile Culture" on the "Map" tab of the BUG menu.</Spanish>
+</TEXT>
+
 </Civ4GameText>

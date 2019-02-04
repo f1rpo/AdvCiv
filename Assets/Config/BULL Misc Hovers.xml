@@ -14,14 +14,15 @@
 	 dll="0">
 	 
 	<options id="MiscHover" file="BUG Misc Hovers.ini">
-		<section id="Leaderhead">
+		<!-- advc.sha: Permanently disabled -->
+		<!--section id="Leaderhead">
 			<option id="LeaderheadHiddenAttitude" key="Show Hidden Attitude" 
 					type="boolean" default="False" dll="2"/>
 			<option id="LeaderheadWorstEnemy" key="Show Worst Enemy" 
 					type="boolean" default="False"/>
 			<option id="LeaderheadDefensivePacts" key="Show Defensive Pacts" 
 					type="boolean" default="False"/>
-		</section>
+		</section-->
 		
 		<section id="Plot">
 			<!--option id="LatLongCoords" key="Lat Long Coords" 
@@ -30,6 +31,9 @@
 					type="boolean" default="False"/-->
 			<!-- advc.011b -->
 			<option id="PartialBuildsAlways" key="Partial Builds Always"
+					type="boolean" default="False"/>
+			<!-- advc.099f -->
+			<option id="CultureInUnownedTiles" key="Culture in Unowned Tiles"
 					type="boolean" default="False"/>
 		</section>
 		

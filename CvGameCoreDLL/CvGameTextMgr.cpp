@@ -4380,10 +4380,11 @@ void createTestFontString(CvWStringBuffer& szString)
 
 void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 {
+	bool bShift = GC.shiftKey();
 	// <advc.135c>
 	if(GC.getGameINLINE().isDebugMode()) {
 		setPlotHelpDebug(szString, *pPlot);
-		if(GC.ctrlKey() || GC.shiftKey() || GC.altKey())
+		if(bShift || GC.ctrlKey() || GC.altKey())
 			return;
 	} // </advc.135c>
 
@@ -4393,8 +4394,9 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 	CvWString szTempBuffer;
 
 	PlayerTypes eRevealOwner = pPlot->getRevealedOwner(eActiveTeam, true);
-
-	if (eRevealOwner != NO_PLAYER)
+	if (eRevealOwner != NO_PLAYER
+			// advc.099f:
+			|| bShift || getBugOptionBOOL("MiscHover__CultureInUnownedTiles", false))
 	{
 		if (pPlot->isActiveVisible(true))
 		{	/*  <advc.101> Similar to code added in
@@ -4430,10 +4432,17 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 					szString.append(NEWLINE);
 				} // </advc.023>
 			} // </advc.101>
-			szTempBuffer.Format(L"%d%% " SETCOLR L"%s" ENDCOLR, pPlot->calculateCulturePercent(eRevealOwner), GET_PLAYER(eRevealOwner).getPlayerTextColorR(), GET_PLAYER(eRevealOwner).getPlayerTextColorG(), GET_PLAYER(eRevealOwner).getPlayerTextColorB(), GET_PLAYER(eRevealOwner).getPlayerTextColorA(), GET_PLAYER(eRevealOwner).getCivilizationAdjective());
-			szString.append(szTempBuffer);
-			szString.append(NEWLINE);
-
+			if(eRevealOwner != NO_PLAYER) { // advc.099f
+				szTempBuffer.Format(L"%d%% " SETCOLR L"%s" ENDCOLR,
+						pPlot->calculateCulturePercent(eRevealOwner),
+						GET_PLAYER(eRevealOwner).getPlayerTextColorR(),
+						GET_PLAYER(eRevealOwner).getPlayerTextColorG(),
+						GET_PLAYER(eRevealOwner).getPlayerTextColorB(),
+						GET_PLAYER(eRevealOwner).getPlayerTextColorA(),
+						GET_PLAYER(eRevealOwner).getCivilizationAdjective());
+				szString.append(szTempBuffer);
+				szString.append(NEWLINE);
+			}
 			for (int iPlayer = 0; iPlayer < MAX_PLAYERS; ++iPlayer)
 			{
 				if (iPlayer != eRevealOwner)
@@ -4441,29 +4450,29 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 					CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iPlayer);
 					// advc.099: Replaced "Alive" with "EverAlive"
 					if (kPlayer.isEverAlive() && pPlot->getCulture((PlayerTypes)iPlayer) > 0)
-					{
-					/**
-					*** K-Mod, 29/sep/10, Karadoc
-					*** Prevented display of 0% culture, to reduce the spam created by trade culture.
-					***/
+					{/* K-Mod, 29/sep/10, Karadoc
+						Prevented display of 0% culture, to reduce the spam created by trade culture. */
 						/* original bts code
 						szTempBuffer.Format(L"%d%% " SETCOLR L"%s" ENDCOLR, pPlot->calculateCulturePercent((PlayerTypes)iPlayer), kPlayer.getPlayerTextColorR(), kPlayer.getPlayerTextColorG(), kPlayer.getPlayerTextColorB(), kPlayer.getPlayerTextColorA(), kPlayer.getCivilizationAdjective());
 						szString.append(szTempBuffer);
-						szString.append(NEWLINE);
-						*/
+						szString.append(NEWLINE);*/
 						int iCulturePercent = pPlot->calculateCulturePercent((PlayerTypes)iPlayer);
 						if (iCulturePercent >= 1)
 						{
-							szTempBuffer.Format(L"%d%% " SETCOLR L"%s" ENDCOLR, iCulturePercent, kPlayer.getPlayerTextColorR(), kPlayer.getPlayerTextColorG(), kPlayer.getPlayerTextColorB(), kPlayer.getPlayerTextColorA(), kPlayer.getCivilizationAdjective());
+							szTempBuffer.Format(L"%d%% " SETCOLR L"%s" ENDCOLR,
+									iCulturePercent, kPlayer.getPlayerTextColorR(),
+									kPlayer.getPlayerTextColorG(),
+									kPlayer.getPlayerTextColorB(),
+									kPlayer.getPlayerTextColorA(),
+									kPlayer.getCivilizationAdjective());
 							szString.append(szTempBuffer);
 							szString.append(NEWLINE);
-						}
-					// K-Mod end
+						} // K-Mod end
 					}
 				}
 			}
 		}
-		else
+		else if(eRevealOwner != NO_PLAYER) // advc.099f
 		{
 			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, GET_PLAYER(eRevealOwner).getPlayerTextColorR(), GET_PLAYER(eRevealOwner).getPlayerTextColorG(), GET_PLAYER(eRevealOwner).getPlayerTextColorB(), GET_PLAYER(eRevealOwner).getPlayerTextColorA(), GET_PLAYER(eRevealOwner).getCivilizationDescription());
 			szString.append(szTempBuffer);

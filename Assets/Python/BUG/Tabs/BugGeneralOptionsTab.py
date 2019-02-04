@@ -50,12 +50,12 @@ class BugGeneralOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addCheckbox(screen, panel, "MainInterface__Combat_Counter")
 		# advc.004: Moved from Misc
 		self.addCheckbox(screen, panel, "MainInterface__ProgressBarsTickMarks")
-		
-	def createLeaderheadPanel(self, screen, panel):
-		self.addLabel(screen, panel, "Leaderheads", "Leaderheads:")
-		self.addCheckbox(screen, panel, "MiscHover__LeaderheadHiddenAttitude")
-		self.addCheckbox(screen, panel, "MiscHover__LeaderheadWorstEnemy")
-		self.addCheckbox(screen, panel, "MiscHover__LeaderheadDefensivePacts")
+	# advc.sha: Permanently disabled
+	#def createLeaderheadPanel(self, screen, panel):
+	#	self.addLabel(screen, panel, "Leaderheads", "Leaderheads:")
+	#	self.addCheckbox(screen, panel, "MiscHover__LeaderheadHiddenAttitude")
+	#	self.addCheckbox(screen, panel, "MiscHover__LeaderheadWorstEnemy")
+	#	self.addCheckbox(screen, panel, "MiscHover__LeaderheadDefensivePacts")
 		
 	def createAutoSavePanel(self, screen, panel):
 		self.addLabel(screen, panel, "AutoSave", "AutoSave:")
