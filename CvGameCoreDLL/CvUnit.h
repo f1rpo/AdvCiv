@@ -18,6 +18,7 @@ class CvSelectionGroup;
 //class FAStarNode;
 class CvArtInfoUnit;
 class KmodPathFinder;
+class CvUnitAI; // advc.003: Needed for AI(void) functions
 
 struct CombatDetails					// Exposed to Python
 {
@@ -776,6 +777,17 @@ public:
 
 	void read(FDataStreamBase* pStream);
 	void write(FDataStreamBase* pStream);
+	// <advc.003>
+	inline CvUnitAI& AI() {
+		//return *static_cast<CvUnitAI*>(const_cast<CvUnit*>(this));
+		/*  The above won't work in an inline function b/c the compiler doesn't know
+			that CvUnitAI is derived from CvUnit */
+		return *reinterpret_cast<CvUnitAI*>(this);
+	}
+	inline CvUnitAI const& AI() const {
+		//return *static_cast<CvUnitAI const*>(this);
+		return *reinterpret_cast<CvUnitAI const*>(this);
+	} // </advc.003>
 
 	virtual void AI_init(UnitAITypes eUnitAI) = 0;
 	virtual void AI_uninit() = 0;

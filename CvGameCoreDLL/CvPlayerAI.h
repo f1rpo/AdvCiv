@@ -527,6 +527,8 @@ public:
 	int AI_getNumAdjacentAreaCitySites(int iWaterAreaID, int iExcludeArea, int& iBestValue) const;
 	int AI_getNumPrimaryAreaCitySites(int iMinimumValue = 0) const; // K-Mod
 	CvPlot* AI_getCitySite(int iIndex) const;
+	// advc.117, advc.121:
+	bool AI_isAdjacentCitySite(CvPlot const& p, bool bCheckCenter) const;
 
 	bool AI_deduceCitySite(const CvCity* pCity) const; // K-Mod
 	int AI_countPotentialForeignTradeCities(bool bCheckConnected = true, bool bCheckForeignTradePolicy = true, CvArea* pIgnoreArea = 0) const; // K-Mod

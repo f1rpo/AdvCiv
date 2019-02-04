@@ -1590,8 +1590,7 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 			if(bPrimaryDoW && kPlayer_i.isHuman() && !kPlayer_j.isHuman() &&
 					GET_TEAM(eTeam).AI_getMemoryCount(getID(), MEMORY_MADE_DEMAND) > 0 &&
 					TEAMREF(j).getMasterTeam() != getMasterTeam() &&
-					(kPlayer_j.getTeam() == eTeam ||
-					GET_TEAM(eTeam).isHasMet(kPlayer_j.getTeam()))) {
+					GET_TEAM(eTeam).isHasMet(kPlayer_j.getTeam())) {
 				// Raise it to 8 (or what XML says)
 				int mem = kPlayer_j.AI_getMemoryCount(i, MEMORY_MADE_DEMAND_RECENT);
 				int delta = GC.getDefineINT("WAR_DESPITE_TRIBUTE_MEMORY");
@@ -4773,20 +4772,20 @@ void CvTeam::setOpenBorders(TeamTypes eIndex, bool bNewValue)
 	m_abOpenBorders[eIndex] = bNewValue;
 	// <advc.130p> OB affect diplo from rival trade
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-		CvPlayerAI& other = GET_PLAYER((PlayerTypes)i);
-		if(other.getTeam() == getID())
+		CvPlayerAI& kOther = GET_PLAYER((PlayerTypes)i);
+		if(kOther.getTeam() == getID())
 			continue;
 		for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
-			CvPlayerAI& member = GET_PLAYER((PlayerTypes)j);
-			if(member.getTeam() == getID())
-				other.AI_updateAttitudeCache(member.getID());
+			CvPlayerAI& kMember = GET_PLAYER((PlayerTypes)j);
+			if(kMember.getTeam() == getID())
+				kOther.AI_updateAttitudeCache(kMember.getID());
 		}
 	} // </advc.130p>
 	AI_setOpenBordersCounter(eIndex, 0);
 
 	GC.getMapINLINE().verifyUnitValidPlot();
 
-	if ((getID() == GC.getGameINLINE().getActiveTeam()) || (eIndex == GC.getGameINLINE().getActiveTeam()))
+	if (getID() == GC.getGameINLINE().getActiveTeam() || eIndex == GC.getGameINLINE().getActiveTeam())
 	{
 		gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
 	}

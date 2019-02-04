@@ -2635,16 +2635,6 @@
 			<Plural>0</Plural>
 		</Spanish>
 	</TEXT>
-	
-	<!-- advc.130o (No longer used) -->
-	<TEXT>
-		<Tag>TXT_KEY_MEMORY_EXACTED_TRIBUTE</Tag>
-		<English>"You've exacted tribute from us."</English>
-		<French>"Vous nous avez levé un tribut."</French>
-		<German>"Ihr habt habt uns Tribut abgeknöpft."</German>
-		<Italian>"Ci hai fatto pagare un tributo."</Italian>
-		<Spanish>"Nos forzasteis a pagar un tributo."</Spanish>
-	</TEXT>
 
 	<!-- advc.210a: Translations based on TXT_KEY_MISC_SHIFT_ALT_PREPARE_WAR
 		 in CIV4GameText_BetterBTSAI.xml. -->
@@ -4329,10 +4319,26 @@
 	
 	<!-- advc.130h -->
 	<TEXT>
+		<Tag>TXT_KEY_POPUP_DOW_EXTRA_TARGETS</Tag>
+		<English>We will also have to declare war on:</English>
+		<French>Nous devrons également déclarer la guerre à :</French>
+		<German>Wir werden auch den folgenden Parteien den Krieg erklären müssen:</German>
+		<Italian>Dovremo anche dichiarare guerra a:</Italian>
+		<Spanish>También tendremos que declarar la guerra a:</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_DOW_DP</Tag>
+		<English>These third parties will declare war on us:</English>
+		<French>Ces tiers vont nous déclarer la guerre :</French>
+		<German>Drittparteien, die uns den Krieg erklären werden:</German>
+		<Italian>Queste terze parti ci dichiareranno guerra:</Italian>
+		<Spanish>Estos terceros nos declararán la guerra:</Spanish>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_POPUP_DOW_PENALTIES</Tag>
 		<English>These third parties will disapprove:</English>
 		<French>Ces tiers vont désapprouver :</French>
-		<German>Außenstehende, die diesen Krieg ablehnen werden:</German>
+		<German>Drittparteien, die diesen Krieg ablehnen werden:</German>
 		<Italian>Queste terze parti disapproveranno:</Italian>
 		<Spanish>Estos terceros lo van a desaprobar:</Spanish>
 	</TEXT>
@@ -4346,6 +4352,25 @@
 		<German>Soll das KRIEG bedeuten?!? (gegen [COLOR_HIGHLIGHT_TEXT]%s1_Team[COLOR_REVERT])</German>
 		<Italian>Ci&#242; vuol dire GUERRA? (contro [COLOR_HIGHLIGHT_TEXT]%s1_Team[COLOR_REVERT])</Italian>
 		<Spanish>&#191;Esto es la GUERRA? (contra [COLOR_HIGHLIGHT_TEXT]%s1_Team[COLOR_REVERT])</Spanish>
+	</TEXT>
+	
+	<!-- advc.130o -->
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_DOW_TRIBUTE</Tag>
+		<English>We've recently received tribute. If we still declare war, everyone will ignore our demands and pleas in the foreseeable future.</English>
+		<French>Ils ont récemment rendu un tribut. Si nous déclarons la guerre quand même, tout le monde ignorera nos demandes et nos supplications dans un avenir prévisible.</French>
+		<German>Wir haben vor Kurzem Tribut erhalten. Wenn wir trotzdem angreifen, wird auf absehbare Zeit niemand auf unsere Forderungen und Bitten eingehen.</German>
+		<Italian>Hanno recentemente reso un tributo. Se dichiariamo la guerra, tutti ignoreranno le nostre richieste e le nostre suppliche nel prossimo futuro.</Italian>
+		<Spanish>Recientemente han rendido tributo. Si todavía declaramos la guerra, todos ignorarán nuestras demandas y súplicas en un futuro previsible.</Spanish>
+	</TEXT>
+	<!-- (No longer used) -->
+	<TEXT>
+		<Tag>TXT_KEY_MEMORY_EXACTED_TRIBUTE</Tag>
+		<English>"You've exacted tribute from us."</English>
+		<French>"Vous nous avez levé un tribut."</French>
+		<German>"Ihr habt habt uns Tribut abgeknöpft."</German>
+		<Italian>"Ci hai fatto pagare un tributo."</Italian>
+		<Spanish>"Nos forzasteis a pagar un tributo."</Spanish>
 	</TEXT>
 	
 	<!-- advc.048: Based on TXT_KEY_PROMOTION_VERSUS_TEXT in
@@ -4646,6 +4671,20 @@
 		<German>durch Überschneidung mit Team-Mitglied</German>
 		<Italian>da membro del team con la stessa ricerca</Italian>
 		<Spanish>por miembro del equipo con misma investigación</Spanish>
+	</TEXT>
+	
+	<!-- dlph.7 (advc): From CIV4GameText_BTS.xml. Was "Cannot Nuke Friendly
+		 Territory or Units" - that's still true, but units don't prevent
+		 players from firing nukes, which is what matters in this context.
+		 And "friendly" isn't the right term. Strictly speaking, unclaimed
+		 territory is also allowed, but I think it's OK to omit that here. -->
+	<TEXT>
+		<Tag>TXT_KEY_CANT_NUKE_FRIENDS</Tag>
+		<English>[COLOR_WARNING_TEXT]Must strike only enemy territory[COLOR_REVERT]</English>
+		<French>[COLOR_WARNING_TEXT]Impossible de lancer le missile nucl&#233;aire sur des unit&#233;s ou un territoire amis[COLOR_REVERT]</French>
+		<German>[COLOR_WARNING_TEXT]Nur feindliches Gebiet darf getroffen werden[COLOR_REVERT]</German>
+		<Italian>[COLOR_WARNING_TEXT]Impossibile colpire con armi nucleari il territorio e le unit&#224; amiche[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_WARNING_TEXT]No se pueden hacer bombardeos nucleares contra los territorios o unidades amigos[COLOR_REVERT]</Spanish>
 	</TEXT>
 	
 </Civ4GameText>

@@ -6199,8 +6199,12 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftAltOnly(CvWStringBuffer& szString, CvP
 			szTempBuffer.Format(L"\nvalue = %d\nraw value = %d\nmagic value = %d", iValue, iRawValue, iMagicValue);
 			szString.append(szTempBuffer);
 		}
-	}
-	
+	} // <advc.007> For advc.040
+	if(kPlot.isOwned()) {
+		szString.append(CvString::format("\nWorkers needed in area: %d\n",
+				GET_PLAYER(kPlot.getOwnerINLINE()).AI_neededWorkers(kPlot.area())));
+	} // </advc.007>
+
 	// calc some bonus info
 	// advc.135c: Debug mode is guaranteed
 	BonusTypes eBonus = kPlot.getBonusType();
@@ -19433,25 +19437,24 @@ void CvGameTextMgr::getRebasePlotHelp(CvPlot* pPlot, CvWString& strHelp)
 
 void CvGameTextMgr::getNukePlotHelp(CvPlot* pPlot, CvWString& strHelp)
 {
-	if (NULL != pPlot)
-	{
-		CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+	if(pPlot == NULL)
+		return;
 
-		if (NULL != pHeadSelectedUnit)
-		{
-			for (int iI = 0; iI < MAX_TEAMS; iI++)
-			{
-				if (pHeadSelectedUnit->isNukeVictim(pPlot, ((TeamTypes)iI)))
-				{
-					if (!pHeadSelectedUnit->isEnemy((TeamTypes)iI))
-					{
-						strHelp +=  NEWLINE + gDLL->getText("TXT_KEY_CANT_NUKE_FRIENDS");
-						break;
-					}
-				}
-			}
+	CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+	if(pHeadSelectedUnit == NULL)
+		return;
+
+	for(int iI = 0; iI < MAX_TEAMS; iI++) {
+		TeamTypes eVictimTeam = (TeamTypes)iI;
+		if(pHeadSelectedUnit->isNukeVictim(pPlot, eVictimTeam) &&
+				!pHeadSelectedUnit->isEnemy(eVictimTeam)) {
+			// advc.130q: No newline
+			strHelp += gDLL->getText("TXT_KEY_CANT_NUKE_FRIENDS");
+			break;
 		}
 	}
+	// advc.130q: Newline added
+	strHelp += NEWLINE;
 }
 
 void CvGameTextMgr::getInterfaceCenterText(CvWString& strText)

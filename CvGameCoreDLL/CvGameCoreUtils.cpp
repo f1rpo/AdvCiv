@@ -162,7 +162,7 @@ void fatCross(CvPlot const& p, vector<CvPlot*>& r) {
 		r.push_back(NULL);
 	r[0] = const_cast<CvPlot*>(&p);
 	int pos = 1;
-	CvMap& map = GC.getMap();
+	CvMap const& map = GC.getMap();
 	for(int dx = -CITY_PLOTS_RADIUS; dx <= CITY_PLOTS_RADIUS; dx++) {
 		for(int dy = -CITY_PLOTS_RADIUS; dy <= CITY_PLOTS_RADIUS; dy++) {
 			// Skip corners and center

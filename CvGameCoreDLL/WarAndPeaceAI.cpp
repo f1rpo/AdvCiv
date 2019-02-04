@@ -2374,7 +2374,7 @@ bool WarAndPeaceAI::Civ::considerDemand(PlayerTypes theyId, int tradeVal) const 
 	// Willing to pay at most this much
 	double paymentCap = TEAMREF(weId).warAndPeaceAI().reparationsToHuman(
 			// Interpret theirUtility as a probability of attack
-			-ourUtility * (8 + theirUtility) / 100.0);
+			-ourUtility * 2 * (4 + theirUtility) / 100.0);
 	return paymentCap >= (double)tradeVal;
 	// Some randomness? Actually none in the BtS code (AI_considerOffer) either
 }

@@ -14,7 +14,7 @@ class MajorCiv;
 public:
 	void setInitialItems();
 	void distribution(std::vector<int>& r) const;
-	std::wstring* forSettingsScreen(); // Exposed to Python through CvGame
+	std::wstring* forSettingsScreen(bool bTab=true); // Exposed to Python through CvGame
 	void write(FDataStreamBase* pStream);
 	void read(FDataStreamBase* pStream);
 	StartPointsAsHandicap();
@@ -30,7 +30,7 @@ private:
 	void bounce(int i, int j);
 	void rearrangeStartingPlots();
 	int minDist(CvPlot* p);
-	void updatePointsDisplayString();
+	void updatePointsDisplayString(bool bTab);
 	/*int maxStartPoints(); // obsolete
 	double meanStartPoints();*/
 	static bool isLeftPtsLessThanRight(MajorCiv* left, MajorCiv* right);
@@ -43,7 +43,7 @@ private:
 
 	// Serialized:
 	 bool randPoints;
-	 int* allPts;
+	 int allPts[2 * MAX_CIV_PLAYERS];
 
 	// Wrapper for storing per-civ info
 	class MajorCiv {

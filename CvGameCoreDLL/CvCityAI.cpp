@@ -13098,11 +13098,9 @@ void CvCityAI::AI_updateWorkersNeededHere()
 						}
 						else
 						{
-							//if (AI_getBestBuild(iI) != NO_BUILD)
-							if (AI_getBestBuild(iI) != NO_BUILD && pLoopPlot->getArea() == getArea()) // K-Mod
-							{
+							if (AI_getBestBuild(iI) != NO_BUILD &&
+									pLoopPlot->getArea() == getArea()) // K-Mod
 								iUnimprovedUnworkedPlotCount++;
-							}
 						}
 					}
 					else

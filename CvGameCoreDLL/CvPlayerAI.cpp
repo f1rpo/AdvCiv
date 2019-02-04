@@ -3885,10 +3885,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 		if ((iCultureMultiplier <= 20 //ignore hopelessly entrenched tiles.
 				&& !bOwnExl) || bSteal || bShare) // advc.035
 			continue;
-		if (eBonus != NO_BONUS && // K-Mod added water case (!!)
-				((pLoopPlot->isWater() && bCoastal) ||
-				pLoopPlot->area() == pPlot->area() ||
-				pLoopPlot->area()->getCitiesPerPlayer(getID()) > 0))
+		if (eBonus != NO_BONUS) // advc.040: Area checks moved
 		{
 			if(!isBarbarian() && // advc.303: Barbarians don't care about bonus trade
 					// advc.031: We've already got it
@@ -3963,7 +3960,24 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 				}
 				//iValue += (iBonusValue + 10);
 				iResourceValue += iBonusValue; // K-Mod
-			} // advc.031
+				// advc.040: Area checks moved here
+				bool bEasyAccess =
+						// K-Mod added water case (!!)
+						((pLoopPlot->isWater() && bCoastal) ||
+						pLoopPlot->area() == pPlot->area() ||
+						pLoopPlot->area()->getCitiesPerPlayer(getID()) > 0);
+				/*  <advc.040> It still takes the AI a long time to hook up
+					resources on a landmass w/o cities. Therefore reduce the
+					ResourceValue a lot, and count no special yields.
+					(But count regular yields fully as in BtS/K-Mod.) */
+				if(!bEasyAccess && bCoastal) {
+					iResourceValue /= (pLoopPlot->area()->
+					/*  Might be better to place a city in the pLoopPlot area.
+						But if that area is tiny, then accessing the resource
+						from a different landmass is probably our best bet. */	
+							getNumTiles() <= 2 ? 2 : 3);
+				} // </advc.040>
+			}
 // END OF RESOURCE VALUE
 // SPECIAL YIELDS
 			if (iI != CITY_HOME_PLOT)
@@ -15666,9 +15680,7 @@ int CvPlayerAI::AI_neededWorkers(CvArea* pArea) const
 	/*  advc.113: Commented out. Training Workers ahead of time is
 		not so unimportant. */
 	/*if (iCount == 0)
-	{
-		return 0;
-	}*/
+		return 0;*/
 	if(iCount < 5 * getNumCities()) { // advc.113
 		// K-Mod. Some additional workers if for 'growth' flavour AIs who are still growing...
 		if (/*  advc.113: Growth is about tall cities. Factor Growth flavor into
@@ -27635,6 +27647,21 @@ CvPlot* CvPlayerAI::AI_getCitySite(int iIndex) const
 	FAssert(iIndex < (int)m_aiAICitySites.size());
 	return GC.getMapINLINE().plotByIndex(m_aiAICitySites[iIndex]);
 }
+
+// <advc.121> (Also needed for advc.117)
+bool CvPlayerAI::AI_isAdjacentCitySite(CvPlot const& p, bool bCheckCenter) const {
+
+	if(bCheckCenter && AI_isPlotCitySite(p))
+		return true;
+
+	for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
+		CvPlot const* pAdj = plotDirection(p.getX_INLINE(), p.getY_INLINE(),
+				(DirectionTypes)i);
+		if(pAdj != NULL && AI_isPlotCitySite(*pAdj))
+			return true;
+	}
+	return false;
+} // </advc.121>
 
 // K-Mod
 bool CvPlayerAI::AI_deduceCitySite(const CvCity* pCity) const

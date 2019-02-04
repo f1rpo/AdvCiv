@@ -310,8 +310,9 @@ protected:
 	int AI_nukeValue(CvPlot* pCenterPlot, int iSearchRange, CvPlot*& pBestTarget, int iCivilianTargetWeight = 50) const; // K-Mod
 	// <advc.121>
 	int AI_connectBonusCost(CvPlot const& p, BuildTypes eBuild,
-			ImprovementTypes eImpr, int iNeededWorkersInArea) const; // </advc.121>
-
+			int iNeededWorkersInArea) const;
+	bool AI_canConnectBonus(CvPlot const& p, BuildTypes eBuild) const;
+	// </advc.121>
 	int AI_searchRange(int iRange);
 	bool AI_plotValid(CvPlot* pPlot);
 

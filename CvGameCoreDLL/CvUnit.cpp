@@ -4417,42 +4417,24 @@ bool CvUnit::airlift(int iX, int iY)
 
 bool CvUnit::isNukeVictim(const CvPlot* pPlot, TeamTypes eTeam) const
 {
-	CvPlot* pLoopPlot;
-	int iDX, iDY;
-
-	if (!(GET_TEAM(eTeam).isAlive()))
-	{
+	if(!GET_TEAM(eTeam).isAlive() || eTeam == getTeam())
 		return false;
-	}
 
-	if (eTeam == getTeam())
-	{
-		return false;
-	}
+	int iNukeRange = nukeRange();
+	for(int iDX = -iNukeRange; iDX <= iNukeRange; iDX++) {
+		for(int iDY = -iNukeRange; iDY <= iNukeRange; iDY++) {
+			CvPlot* pLoopPlot	= plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
+			if(pLoopPlot == NULL)
+				continue;
 
-	for (iDX = -(nukeRange()); iDX <= nukeRange(); iDX++)
-	{
-		for (iDY = -(nukeRange()); iDY <= nukeRange(); iDY++)
-		{
-			pLoopPlot	= plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
+			if(pLoopPlot->getTeam() == eTeam)
+				return true;
 
-			if (pLoopPlot != NULL)
-			{
-				if (pLoopPlot->getTeam() == eTeam)
-				{
-					return true;
-				}
-
-				if (pLoopPlot->plotCheck(PUF_isCombatTeam, eTeam, getTeam()) != NULL
-					&& isEnemy(eTeam) // dlph.7
-					)
-				{
-					return true;
-				}
-			}
+			if(pLoopPlot->plotCheck(PUF_isCombatTeam, eTeam, getTeam()) != NULL
+					&& isEnemy(eTeam)) // dlph.7
+				return true;
 		}
 	}
-
 	return false;
 }
 
@@ -4506,71 +4488,66 @@ bool CvUnit::canNukeAt(const CvPlot* pPlot, int iX, int iY) const
 }
 
 
-bool CvUnit::nuke(int iX, int iY)
-{
+bool CvUnit::nuke(int iX, int iY) {
+
 	if(!canNukeAt(plot(), iX, iY))
 		return false;
 
 	CvWString szBuffer;
 	int iI;
 	CvPlot* pPlot = GC.getMapINLINE().plotINLINE(iX, iY);
-	int abTeamsAffected[MAX_TEAMS]; // advc.130q: was bool
+	int aiTeamsAffected[MAX_TEAMS]; // advc.130q: was bool
 	for(iI = 0; iI < MAX_TEAMS; iI++)
-		abTeamsAffected[iI] = isNukeVictim(pPlot, ((TeamTypes)iI));
+		aiTeamsAffected[iI] = isNukeVictim(pPlot, (TeamTypes)iI);
 
-	for (iI = 0; iI < MAX_CIV_TEAMS; iI++) // advc.003n: was MAX_TEAMS
-	{
-		if (abTeamsAffected[iI] && !isEnemy((TeamTypes)iI))
-		{
-			//GET_TEAM(getTeam()).declareWar((TeamTypes)iI, false, WARPLAN_LIMITED);
+	for(iI = 0; iI < MAX_CIV_TEAMS; iI++) { // advc.003n: was MAX_TEAMS
+		TeamTypes eLoopTeam = (TeamTypes)iI;
+		if(aiTeamsAffected[iI] && !isEnemy(eLoopTeam)) {
+			//GET_TEAM(getTeam()).declareWar(eLoopTeam, false, WARPLAN_LIMITED);
 			// dlph.26:
-			CvTeam::queueWar(getTeam(), (TeamTypes)iI, false, WARPLAN_LIMITED);
+			CvTeam::queueWar(getTeam(), eLoopTeam, false, WARPLAN_LIMITED);
 		}
+		CvTeam::triggerWars(); // dlph.26
 	}
-	CvTeam::triggerWars(); // dlph.26
 
 	int iBestInterception = 0;
 	TeamTypes eBestTeam = NO_TEAM;
-
-	for(iI = 0; iI < MAX_TEAMS; iI++)
-	{
-		if(!abTeamsAffected[iI])
+	for(iI = 0; iI < MAX_TEAMS; iI++) {
+		if(!aiTeamsAffected[iI])
 			continue;
 
-		if (GET_TEAM((TeamTypes)iI).getNukeInterception() > iBestInterception)
-		{
-			iBestInterception = GET_TEAM((TeamTypes)iI).getNukeInterception();
-			eBestTeam = ((TeamTypes)iI);
-		}
-		// <advc.143b>
-		CvTeam const& affected = GET_TEAM((TeamTypes)iI);
-		if(affected.isAVassal()) {
-			int masterChance = GET_TEAM(affected.getMasterTeam()).
+		CvTeam const& kLoopTeam = GET_TEAM((TeamTypes)iI);
+		if(!kLoopTeam.isAlive())
+			continue;
+
+		if(kLoopTeam.getNukeInterception() > iBestInterception) {
+			iBestInterception = kLoopTeam.getNukeInterception();
+			eBestTeam = kLoopTeam.getID();
+		} // <advc.143b>
+		if(kLoopTeam.isAVassal()) {
+			int iMasterChance = GET_TEAM(kLoopTeam.getMasterTeam()).
 					getNukeInterception();
-			if(masterChance > iBestInterception) {
-				iBestInterception = masterChance;
-				eBestTeam = affected.getMasterTeam();
+			if(iMasterChance > iBestInterception) {
+				iBestInterception = iMasterChance;
+				eBestTeam = kLoopTeam.getMasterTeam();
 			}
 		} // </advc.143b>
 	}
 
-	iBestInterception *= (100 - m_pUnitInfo->getEvasionProbability());
+	iBestInterception *= 100 - m_pUnitInfo->getEvasionProbability();
 	iBestInterception /= 100;
 
 	setReconPlot(pPlot);
 
-	if (GC.getGameINLINE().getSorenRandNum(100, "Nuke") < iBestInterception)
-	{
-		for (iI = 0; iI < MAX_CIV_PLAYERS; iI++) // advc.003n: was MAX_PLAYERS
-		{
+	if(GC.getGameINLINE().getSorenRandNum(100, "Nuke") < iBestInterception) {
+		for (iI = 0; iI < MAX_CIV_PLAYERS; iI++) { // advc.003n: was MAX_PLAYERS
 			//if (GET_PLAYER((PlayerTypes)iI).isAlive())
 			// K-Mod. Only show the message to players who have met the teams involved!
 			const CvPlayer& kObs = GET_PLAYER((PlayerTypes)iI);
 			if(kObs.isAlive() && ((GET_TEAM(getTeam()).isHasMet(kObs.getTeam()) &&
 					GET_TEAM(eBestTeam).isHasMet(kObs.getTeam()))
-					|| kObs.isSpectator())) // advc.127
+					|| kObs.isSpectator())) { // advc.127
 			// K-Mod end
-			{
 				szBuffer = gDLL->getText("TXT_KEY_MISC_NUKE_INTERCEPTED",
 						GET_PLAYER(getOwnerINLINE()).getNameKey(), getNameKey(),
 						GET_TEAM(eBestTeam).getName().GetCString());
@@ -4581,9 +4558,7 @@ bool CvUnit::nuke(int iX, int iY)
 						pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
 			}
 		}
-
-		if (pPlot->isActiveVisible(false))
-		{
+		if(pPlot->isActiveVisible(false)) {
 			// Nuke entity mission
 			CvMissionDefinition kDefiniton;
 			kDefiniton.setMissionTime(GC.getMissionInfo(MISSION_NUKE).getTime() *
@@ -4600,8 +4575,7 @@ bool CvUnit::nuke(int iX, int iY)
 		return true; // Intercepted!!! (XXX need special event for this...)
 	}
 
-	if (pPlot->isActiveVisible(false))
-	{
+	if(pPlot->isActiveVisible(false)) {
 		// Nuke entity mission
 		CvMissionDefinition kDefiniton;
 		kDefiniton.setMissionTime(GC.getMissionInfo(MISSION_NUKE).getTime() *
@@ -4618,10 +4592,8 @@ bool CvUnit::nuke(int iX, int iY)
 	setMadeAttack(true);
 	setAttackPlot(pPlot, false);
 
-	for (iI = 0; iI < MAX_CIV_TEAMS; iI++) // advc.003n: was MAX_TEAMS
-	{
-		if (abTeamsAffected[iI])
-		{
+	for(iI = 0; iI < MAX_CIV_TEAMS; iI++) { // advc.003n: was MAX_TEAMS
+		if(aiTeamsAffected[iI]) {
 			GET_TEAM((TeamTypes)iI).changeWarWeariness(getTeam(),
 					100 * GC.getDefineINT("WW_HIT_BY_NUKE"));
 			GET_TEAM(getTeam()).changeWarWeariness(((TeamTypes)iI),
@@ -4630,12 +4602,12 @@ bool CvUnit::nuke(int iX, int iY)
 					GC.getDefineINT("WAR_SUCCESS_NUKE"));
 		}
 	}
-	CvCity const* nukedCity = NULL; // advc.106
+	CvCity const* pNukedCity = NULL; // advc.106
 	// <advc.130q>
 	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 		TeamTypes tId = (TeamTypes)i;
 		// We already know if the team is affected at all
-		if(abTeamsAffected[tId] == 0)
+		if(aiTeamsAffected[tId] <= 0)
 			continue;
 		// How badly is it affected?
 		double score = 0;
@@ -4646,19 +4618,18 @@ bool CvUnit::nuke(int iX, int iY)
 				continue;
 			CvCity const& c = *p->getPlotCity();
 			// <advc.106>
-			if(nukedCity == NULL || nukedCity->getPopulation() < c.getPopulation())
-				nukedCity = &c; // </advc.106>
+			if(pNukedCity == NULL || pNukedCity->getPopulation() < c.getPopulation())
+				pNukedCity = &c; // </advc.106>
 			if(c.getTeam() != tId)
 				continue;
 			score += GET_PLAYER(c.getOwnerINLINE()).AI_razeAngerRating(c);
 		}
 		if(score >= 1)
-			abTeamsAffected[tId] = 2;
+			aiTeamsAffected[tId] = 2;
 		if(score > 8)
-			abTeamsAffected[tId] = 3;
+			aiTeamsAffected[tId] = 3;
 	} // </advc.130q> // The nuked-friend loop (refactored)
-	for (iI = 0; iI < MAX_CIV_TEAMS; iI++) // advc.003n: was MAX_TEAMS
-	{
+	for(iI = 0; iI < MAX_CIV_TEAMS; iI++) { // advc.003n: was MAX_TEAMS
 		CvTeamAI& kOther = GET_TEAM((TeamTypes)iI);
 		if(!kOther.isAlive() || kOther.getID() == getTeam())
 			continue;
@@ -4667,27 +4638,23 @@ bool CvUnit::nuke(int iX, int iY)
 		/*  advc.130q: Moved the > 0 case to a separate loop b/c it's now
 			important to process the nuked-friend penalties first */
 
-		for (int iJ = 0; iJ < MAX_CIV_TEAMS; iJ++) // advc.003n: was MAX_TEAMS
-		{
+		for(int iJ = 0; iJ < MAX_CIV_TEAMS; iJ++) { // advc.003n: was MAX_TEAMS
 			CvTeamAI const& kAffected = GET_TEAM((TeamTypes)iJ);
 			if(!kAffected.isAlive())
 				continue;
 			
 			// <advc.130q>
-			if(abTeamsAffected[kAffected.getID()] > 1 && // was >0
+			if(aiTeamsAffected[kAffected.getID()] > 1 && // was >0
 					// Don't hate them for striking back
 					GET_TEAM(getTeam()).AI_getMemoryCount(kAffected.getID(), MEMORY_NUKED_US)
-					<= kAffected.AI_getMemoryCount(getTeam(), MEMORY_NUKED_US))
+					<= kAffected.AI_getMemoryCount(getTeam(), MEMORY_NUKED_US)) {
 					// </advc.130q>
-			{
-				if (kOther.isHasMet(kAffected.getID()) &&
-						kOther.AI_getAttitude(kAffected.getID()) >= ATTITUDE_CAUTIOUS)
-				{
-					for(int iK = 0; iK < MAX_CIV_PLAYERS; iK++) // advc.003n: was MAX_PLAYERS
-					{
+				if(kOther.isHasMet(kAffected.getID()) &&
+						kOther.AI_getAttitude(kAffected.getID()) >= ATTITUDE_CAUTIOUS) {
+					for(int iK = 0; iK < MAX_CIV_PLAYERS; iK++) { // advc.003n: was MAX_PLAYERS
 						CvPlayerAI& kOtherMember = GET_PLAYER((PlayerTypes)iK);
-						if(kOtherMember.isAlive() && kOtherMember.getTeam() == kOther.getID())
-						{   // advc.130j:
+						if(kOtherMember.isAlive() && kOtherMember.getTeam() == kOther.getID()) {
+							// advc.130j:
 							kOtherMember.AI_rememberEvent(getOwnerINLINE(), MEMORY_NUKED_FRIEND);
 						}
 					}
@@ -4709,7 +4676,7 @@ bool CvUnit::nuke(int iX, int iY)
 	for(iI = 0; iI < MAX_CIV_TEAMS; iI++) { // advc.001n: was MAX_TEAMS
 		CvTeamAI& affectedTeam = GET_TEAM((TeamTypes)iI);
 		if(!affectedTeam.isAlive() || affectedTeam.getID() == getTeam() ||
-				abTeamsAffected[iI] <= 0)
+				aiTeamsAffected[iI] <= 0)
 			continue;
 		for(int iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++) { // advc.001n: was MAX_PLAYERS
 			CvPlayerAI& affectedCiv = GET_PLAYER((PlayerTypes)iJ);
@@ -4718,35 +4685,33 @@ bool CvUnit::nuke(int iX, int iY)
 			// <advc.130v>
 			CvTeam const& nukingTeam = GET_TEAM(getTeam());
 			if(nukingTeam.isCapitulated()) {
-				abTeamsAffected[iI] = (int)ceil(abTeamsAffected[iI] / 2.0);
+				aiTeamsAffected[iI] = (int)ceil(aiTeamsAffected[iI] / 2.0);
 				affectedCiv.AI_changeMemoryCount(
 						GET_TEAM(nukingTeam.getMasterTeam()).getLeaderID(),
-						MEMORY_NUKED_US, abTeamsAffected[iI]);
+						MEMORY_NUKED_US, aiTeamsAffected[iI]);
 			} // </advc.130v>
 			// advc.130j:
 			affectedCiv.AI_changeMemoryCount(getOwnerINLINE(), MEMORY_NUKED_US,
-					abTeamsAffected[iI]);
+					aiTeamsAffected[iI]);
 		}
 	} // </advc.130q>
 
-	for (iI = 0; iI < MAX_CIV_PLAYERS; iI++) // advc.001n: was MAX_PLAYERS
-	{
+	for(iI = 0; iI < MAX_CIV_PLAYERS; iI++) { // advc.001n: was MAX_PLAYERS
 		//if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		// K-Mod
 		const CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
-		if (kLoopPlayer.isAlive() && (GET_TEAM(kLoopPlayer.getTeam()).isHasMet(getTeam())
-				|| kLoopPlayer.isSpectator())) // advc.127
+		if(kLoopPlayer.isAlive() && (GET_TEAM(kLoopPlayer.getTeam()).isHasMet(getTeam())
+				|| kLoopPlayer.isSpectator())) { // advc.127
 		// K-Mod end
-		{
 			szBuffer = gDLL->getText("TXT_KEY_MISC_NUKE_LAUNCHED", GET_PLAYER(getOwnerINLINE()).getNameKey(), getNameKey());
 			gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), (((PlayerTypes)iI) == getOwnerINLINE()), GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_NUKE_EXPLODES", MESSAGE_TYPE_MAJOR_EVENT, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true);
 		}
 	}
 	// <advc.106>
-	if(nukedCity != NULL) {
+	if(pNukedCity != NULL) {
 		szBuffer = gDLL->getText("TXT_KEY_MISC_CITY_NUKED",
-				nukedCity->getNameKey(), GET_PLAYER(
-				nukedCity->getOwnerINLINE()).getNameKey(),
+				pNukedCity->getNameKey(), GET_PLAYER(
+				pNukedCity->getOwnerINLINE()).getNameKey(),
 				GET_PLAYER(getOwnerINLINE()).getNameKey());
 		GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT,
 				getOwnerINLINE(), szBuffer, getX_INLINE(), getY_INLINE(),

@@ -262,7 +262,8 @@ void CvReplayInfo::addSettingsMsg() {
 		m += gDLL->getText("TXT_KEY_VICTORY_DISABLED") + L"\n";
 	} // <advc.250b>
 	if(g.isOption(GAMEOPTION_SPAH)) {
-		std::wstring* pointDistrib = g.startPointsAsHandicap().forSettingsScreen();
+		// bTab=false b/c that's a bit too much indentation
+		std::wstring* pointDistrib = g.startPointsAsHandicap().forSettingsScreen(false);
 		if(pointDistrib != NULL)
 			m += *pointDistrib;
 	} // </advc.250b>

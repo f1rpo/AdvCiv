@@ -1807,8 +1807,11 @@ std::wstring CyCity::getNameKey()
 
 void CyCity::setName(std::wstring szNewValue, bool bFound)
 {
-	if (m_pCity)
-		m_pCity->setName(CvWString(szNewValue), bFound);
+	if (m_pCity) {
+		m_pCity->setName(CvWString(szNewValue), bFound,
+				// advc.106k: For preplaced cities in scenarios
+				!GC.IsGraphicsInitialized());
+	}
 }
 
 void CyCity::changeNoBonusCount(int /*BonusTypes*/ eBonus, int iChange)

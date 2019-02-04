@@ -73,6 +73,11 @@ void contestedPlots(std::vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2); // adv
 bool isArticle(BuildingTypes bt);
 bool isArticle(ProjectTypes pt);
 // </advc.008e>
+// <advc.130h>
+template<typename T> void removeDuplicates(std::vector<T>& v) {
+	std::set<T> aeTmp(v.begin(), v.end());
+	v.assign(aeTmp.begin(), aeTmp.end());
+} // </advc.130h>
 
 //sign function taken from FirePlace - JW
 template<class T> __forceinline T getSign( T x ) { return (( x < 0 ) ? T(-1) : x > 0 ? T(1) : T(0)); };
