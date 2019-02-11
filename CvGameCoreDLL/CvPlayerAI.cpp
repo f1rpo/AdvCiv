@@ -1124,92 +1124,69 @@ bool CvPlayerAI::AI_willOfferPeace(PlayerTypes toId) const {
 	return true;
 } // </advc.003>
 
+// advc.003: Refactored (was getting messy)
+void CvPlayerAI::AI_updateFoundValues(bool bStartingLoc) {
 
-void CvPlayerAI::AI_updateFoundValues(bool bStartingLoc)
-{
 	PROFILE_FUNC();
 	// <advc.303>
 	if(isBarbarian())
 		return;
 	// </advc.303>
 	int iLoop=-1;
-	for (CvArea* pLoopArea = GC.getMapINLINE().firstArea(&iLoop); pLoopArea != NULL; pLoopArea = GC.getMapINLINE().nextArea(&iLoop))
-	{
+	for(CvArea* pLoopArea = GC.getMapINLINE().firstArea(&iLoop); pLoopArea != NULL; pLoopArea = GC.getMapINLINE().nextArea(&iLoop))
 		pLoopArea->setBestFoundValue(getID(), 0);
-	}
 
-	if (bStartingLoc)
-	{
-		for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
-		{
+	if(bStartingLoc) {
+		for(int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 			GC.getMapINLINE().plotByIndexINLINE(iI)->setFoundValue(getID(), -1);
-		}
+		return;
 	}
-	else
-	{
-		// K-Mod. (I've also changed some of the code style all through this function)
-		CvFoundSettings kFoundSet(*this, false);
-		//
 
-		//if (!isBarbarian()) // advc.303: Already ensured
-		{
-			//AI_invalidateCitySites(AI_getMinFoundValue());
-			AI_invalidateCitySites(-1); // K-Mod
-		} // <advc.108>
-		int const iCities = getNumCities();
-		CvPlot const* const pStartPlot = getStartingPlot(); // </advc.108>
-		for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
-		{
-			CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
-
-			if (pLoopPlot->isRevealed(getTeam(), false))// || AI_isPrimaryArea(pLoopPlot->area()))
-			{
-				long iValue = -1;
-				if (GC.getUSE_GET_CITY_FOUND_VALUE_CALLBACK())
-				{
-					CyArgsList argsList;
-					argsList.add((int)getID());
-					argsList.add(pLoopPlot->getX());
-					argsList.add(pLoopPlot->getY());
-					gDLL->getPythonIFace()->callFunction(PYGameModule, "getCityFoundValue", argsList.makeFunctionArgs(), &iValue);
-				}
-
-				if (iValue == -1)
-				{
-					//iValue = AI_foundValue(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
-					iValue = AI_foundValue_bulk(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), kFoundSet); // K-Mod
-					// <advc.108> Slight preference for the assigned starting plot
-					if(iCities <= 0 && pStartPlot != NULL && pLoopPlot == pStartPlot
-							// Unless it doesn't have fresh water
-							&& pLoopPlot->isFreshWater())
-						iValue = ::round(1.05 * iValue); // </advc.108>
-				}
-
-				FAssert(iValue <= MAX_SHORT); // K-Mod. If this assert fails, the foundValue calculation may need to be changed.
-				iValue = std::min((long)MAX_SHORT, iValue); // K-Mod
-				pLoopPlot->setFoundValue(getID(), (short)iValue);
-
-				if (iValue > pLoopPlot->area()->getBestFoundValue(getID()))
-				{
-					pLoopPlot->area()->setBestFoundValue(getID(), iValue);
-				}
-			}
-			// K-Mod. Clear out any junk found values.
-			// (I've seen legacy AI code which makes use of the found values of unrevealed plots.
-			//  It shouldn't use those values at all, but if it does use them, I'd prefer them not to be junk!)
-			else
-			{
-				pLoopPlot->setFoundValue(getID(), 0);
-			}
-			// K-Mod end
+	CvFoundSettings kFoundSet(*this, false); // K-Mod
+	AI_invalidateCitySites(/*AI_getMinFoundValue()*/-1); // K-Mod
+	// <advc.108>
+	int iCities = getNumCities();
+	CvPlot const* pStartPlot = getStartingPlot(); // </advc.108>
+	for(int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++) {
+		CvPlot& kLoopPlot = *GC.getMapINLINE().plotByIndexINLINE(iI);
+		if(!kLoopPlot.isRevealed(getTeam(), false)) {
+				//&& !AI_isPrimaryArea(kLoopPlot.area()))
+			/*  K-Mod: Clear out any junk found values.
+				(I've seen legacy AI code which makes use of the found values of unrevealed plots.
+				It shouldn't use those values at all, but if it does use them,
+				I'd prefer them not to be junk!) */
+			kLoopPlot.setFoundValue(getID(), 0);
+			continue;
 		}
-		//if (!isBarbarian()) // advc.303
-		{
-			//int iMaxCityCount = 4;
-			int iMaxCityCount = isHuman() ? 6 : 4; // K-Mod - because humans don't always walk towards the AI's top picks..
-			AI_updateCitySites(AI_getMinFoundValue(), iMaxCityCount);
+		long iValue = -1;
+		if(GC.getUSE_GET_CITY_FOUND_VALUE_CALLBACK()) {
+			CyArgsList argsList;
+			argsList.add((int)getID());
+			argsList.add(kLoopPlot.getX()); argsList.add(kLoopPlot.getY());
+			gDLL->getPythonIFace()->callFunction(PYGameModule, "getCityFoundValue", argsList.makeFunctionArgs(), &iValue);
 		}
+		if(iValue == -1) {
+			// K-Mod:
+			iValue = AI_foundValue_bulk(kLoopPlot.getX_INLINE(), kLoopPlot.getY_INLINE(), kFoundSet);
+			// <advc.108> Slight preference for the assigned starting plot
+			if(iCities <= 0 && pStartPlot != NULL && &kLoopPlot == pStartPlot &&
+					// Unless it doesn't have fresh water
+					kLoopPlot.isFreshWater())
+				iValue = ::round(1.05 * iValue); // </advc.108>
+		}
+		// K-Mod.
+		FAssertMsg(iValue <= MAX_SHORT, "If this assert fails, the foundValue calculation may need to be changed.");
+		iValue = std::min((long)MAX_SHORT, iValue);
+		// K-Mod end
+		kLoopPlot.setFoundValue(getID(), (short)iValue);
+		if(iValue > kLoopPlot.area()->getBestFoundValue(getID()))
+			kLoopPlot.area()->setBestFoundValue(getID(), iValue);
 	}
+	int iMaxCityCount = 4;
+	// K-Mod - because humans don't always walk towards the AI's top picks..
+	if(isHuman())
+		iMaxCityCount = 6;
+	AI_updateCitySites(AI_getMinFoundValue(), iMaxCityCount);
 }
 
 
@@ -3308,56 +3285,49 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	iBadTile /= 2;
 // END OF BAD TILE COUNTING
 // CHECK IF TOO MANY BAD TILES
-	if (!kSet.bStartingLoc)
-	{
-		if ((iBadTile > (NUM_CITY_PLOTS / 2)) || (pArea->getNumTiles() <= 2)
-			|| (isBarbarian() && iBadTile > 3)) // advc.303
-		{
-			bool bHasGoodBonus = false;
-			int iMediocreBonus = 0; // advc.031
-			int freshw = (pPlot->isFreshWater() ? 1 : 0); // advc.031
-			for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
-			{
-				CvPlot* pLoopPlot = plotCity(iX, iY, iI);
-				// <advc.303>
-				if(isBarbarian() && !::isInnerRing(pLoopPlot, pPlot))
-					continue; // </advc.303>
-				if (pLoopPlot != NULL && (kSet.bAllSeeing || pLoopPlot->isRevealed(getTeam(), false)))
-				{
-					if (!pLoopPlot->isOwned())
-					{
-						//BonusTypes eBonus = pLoopPlot->getBonusType(getTeam());
-						BonusTypes eBonus = pLoopPlot->getNonObsoleteBonusType(getTeam()); // K-Mod
-						if (eBonus != NO_BONUS)
-						{
-							if ((getNumTradeableBonuses(eBonus) == 0 ||
-								AI_bonusVal(eBonus, 1, true) > 10 ||
-								GC.getBonusInfo(eBonus).getYieldChange(YIELD_FOOD) > 0) &&
-								// <advc.031> Moved from above
-								(pLoopPlot->isWater() || pLoopPlot->area() == pArea ||
-								pLoopPlot->area()->getCitiesPerPlayer(getID()) > 0))
-								// </advc.031>
-							{
-								bHasGoodBonus = true;
-								break;
-							} // <advc.031>
-							else iMediocreBonus++;
-						}
-						if(pLoopPlot->isFreshWater())
-							freshw++; // </advc.031>
-					}
-				}
-			}
-
-			if (!bHasGoodBonus &&
+	if(!kSet.bStartingLoc && ((iBadTile > (NUM_CITY_PLOTS / 2)) ||
+			pArea->getNumTiles() <= 2 ||
+			(isBarbarian() && iBadTile > 3))) { // advc.303
+		bool bHasGoodBonus = false;
+		int iMediocreBonus = 0; // advc.031
+		int freshw = (pPlot->isFreshWater() ? 1 : 0); // advc.031
+		for(int iI = 0; iI < NUM_CITY_PLOTS; iI++) {
+			CvPlot* pLoopPlot = plotCity(iX, iY, iI);
+			// <advc.303>
+			if(isBarbarian() && !::isInnerRing(pLoopPlot, pPlot))
+				continue; // </advc.303>
+			if(pLoopPlot == NULL || (!kSet.bAllSeeing && !pLoopPlot->isRevealed(getTeam(), false)))
+				continue;
+			if(pLoopPlot->isOwned()
 					// <advc.031>
-					freshw < 3 &&
-					iMediocreBonus < 2 && // </advc.031>
-					!bFirstColony) // advc.040
-			{
-				return 0;
+					&& (pLoopPlot->getOwnerINLINE() != getID() ||
+					pLoopPlot->getCityRadiusCount() > 0)) // </advc.031>
+				continue;
+			BonusTypes eBonus = pLoopPlot->
+					getNonObsoleteBonusType(getTeam()); // K-Mod
+			if(eBonus != NO_BONUS) {
+				if((getNumTradeableBonuses(eBonus) == 0 ||
+						AI_bonusVal(eBonus, 1, true) > 10 ||
+						GC.getBonusInfo(eBonus).getYieldChange(YIELD_FOOD) > 0) &&
+						// <advc.031> Moved from above
+						(pLoopPlot->isWater() || pLoopPlot->area() == pArea ||
+						pLoopPlot->area()->getCitiesPerPlayer(getID()) > 0)) {
+						// </advc.031>
+					bHasGoodBonus = true;
+					break;
+				} // <advc.031>
+				else iMediocreBonus++;
 			}
+			if(pLoopPlot->isFreshWater())
+				freshw++; // </advc.031>
 		}
+
+		if(!bHasGoodBonus &&
+				// <advc.031>
+				freshw < 3 &&
+				iMediocreBonus < 2 && // </advc.031>
+				!bFirstColony) // advc.040
+			return 0;
 	}
 // END OF BAD-TILES CHECK
 // PLOT EVALUATION LOOP
@@ -9051,7 +9021,8 @@ bool CvPlayerAI::AI_isWillingToTalk(PlayerTypes ePlayer) const
 
 	/*  <advc.104i> The EXE keeps calling this function when the diplo screen is
 		already up, and some of the new code (isPeaceDealPossible) is expensive. */
-	if(gDLL->isDiplomacy())
+	if(ePlayer == GC.getGameINLINE().getActivePlayer() &&
+			gDLL->getDiplomacyPlayer() == getID())
 		return true; // </advc.104i>
 
 	// <advc.003n> In particular, don't call AI_surrenderTrade on Barbarians.
@@ -27484,8 +27455,7 @@ int CvPlayerAI::AI_getMinFoundValue() const
 }
 	
 void CvPlayerAI::AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites)
-{
-	// kmodx: redundant code removed
+{	// kmodx: redundant code removed
 	int iI=0;
 
 	// K-Mod. Always recommend the starting location on the first turn.
@@ -27493,8 +27463,7 @@ void CvPlayerAI::AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites)
 	if (isHuman() &&  /* advc.108: OK for recommendations, but allow AI to evaluate
 					     plots and settle elsewhere. */
 		getNumCities() == 0 && iMaxSites > 0 && GC.getGameINLINE().getElapsedGameTurns() == 0 &&
-		m_iStartingX != INVALID_PLOT_COORD && m_iStartingY != INVALID_PLOT_COORD)
-	{
+		m_iStartingX != INVALID_PLOT_COORD && m_iStartingY != INVALID_PLOT_COORD)  {
 		m_aiAICitySites.push_back(GC.getMapINLINE().plotNum(m_iStartingX, m_iStartingY));
 		//AI_recalculateFoundValues(m_iStartingX, m_iStartingY, CITY_PLOTS_RADIUS, 2 * CITY_PLOTS_RADIUS);
 		return; // don't bother trying to pick a secondary spot
@@ -27538,10 +27507,7 @@ void CvPlayerAI::AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites)
 			m_aiAICitySites.push_back(GC.getMapINLINE().plotNum(pBestFoundPlot->getX_INLINE(), pBestFoundPlot->getY_INLINE()));
 			AI_recalculateFoundValues(pBestFoundPlot->getX_INLINE(), pBestFoundPlot->getY_INLINE(), CITY_PLOTS_RADIUS, 2 * CITY_PLOTS_RADIUS);
 		}
-		else
-		{
-			break;
-		}
+		else break;
 		iPass++;
 	}
 }

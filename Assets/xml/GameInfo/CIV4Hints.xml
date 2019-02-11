@@ -657,6 +657,9 @@
 		</HintInfo>
 		<!-- Skip 33-34; shouldn't be as frequent. -->
 		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_35</Description>
+		</HintInfo>
+		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_1</Description>
 		</HintInfo>
 		<HintInfo>
@@ -752,6 +755,9 @@
 		</HintInfo>
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_34</Description>
+		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_35</Description>
 		</HintInfo>
 	</HintInfos>
 </Civ4Hints>

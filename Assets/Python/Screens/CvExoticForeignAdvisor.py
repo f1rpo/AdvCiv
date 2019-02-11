@@ -425,8 +425,14 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 
 				if (deal.getFirstPlayer() == iLoopPlayer and deal.getSecondPlayer() == self.iActiveLeader and not deal.isNone()) or (deal.getSecondPlayer() == iLoopPlayer and deal.getFirstPlayer() == self.iActiveLeader):
 					szDealText = CyGameTextMgr().getDealString(deal, iLoopPlayer)
+					# <advc.072>
+					iShowTurnsMode = AdvisorOpt.getShowDealTurns()
+					bShowTurns = False
+					if iShowTurnsMode == 0 or iShowTurnsMode == 2:
+						bShowTurns = True
+					# </advc.072>
 					# advc.007: Now that CvDeal::isCancelable checks if eByPlayer is a party to the deal, turns-to-cancel isn't shown in the widget anymore. To fix this, treat the ShowDealTurnsLeft option as enabled when viewing the screen from the perspective of another civ in Debug mode.
-					if AdvisorOpt.isShowDealTurnsLeft() or self.iActiveLeader != gc.getGame().getActivePlayer():
+					if bShowTurns or self.iActiveLeader != gc.getGame().getActivePlayer():
 						if BugDll.isPresent():
 							if not deal.isCancelable(self.iActiveLeader, False):
 								if deal.isCancelable(self.iActiveLeader, True):

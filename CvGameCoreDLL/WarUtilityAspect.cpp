@@ -460,7 +460,7 @@ double WarUtilityAspect::partnerUtilFromTrade() {
 			weReceive = d.getFirstTrades();
 			isGift = (d.getLengthSecondTrades() == 0);
 		}
-		if(TEAMID(d.getSecondPlayer()) == TEAMID(theyId)) {
+		else if(TEAMID(d.getSecondPlayer()) == TEAMID(theyId)) {
 			weReceive = d.getSecondTrades();
 			isGift = (d.getLengthFirstTrades() == 0);
 		}

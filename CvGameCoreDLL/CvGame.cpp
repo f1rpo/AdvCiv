@@ -487,6 +487,10 @@ void CvGame::uninit()
 	m_aszGreatPeopleBorn.clear();
 
 	m_deals.uninit();
+	// <advc.072> This also frees dynamically allocated memory
+	m_currentDeals.clear();
+	m_currentDealsWidget.clear();
+	// </advc.072>
 	m_voteSelections.uninit();
 	m_votesTriggered.uninit();
 
@@ -618,6 +622,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	m_bHotPbemBetweenTurns = false;
 	m_bPlayerOptionsSent = false;
 	m_bNukesValid = false;
+	m_bShowingCurrentDeals = false; // advc.072  (not serialized)
 	m_iScreenWidth = m_iScreenHeight = 0; // advc.061
 
 	m_eHandicap = eHandicap;
@@ -9019,16 +9024,77 @@ CvDeal* CvGame::addDeal()
 	gDLL->getInterfaceIFace()->setDirty(Foreign_Screen_DIRTY_BIT, true);
 }
 
-CvDeal* CvGame::firstDeal(int *pIterIdx, bool bRev)
+CvDeal* CvGame::firstDeal(int *pIterIdx, bool bRev) const
 {
 	return !bRev ? m_deals.beginIter(pIterIdx) : m_deals.endIter(pIterIdx);
 }
 
 
-CvDeal* CvGame::nextDeal(int *pIterIdx, bool bRev)
+CvDeal* CvGame::nextDeal(int *pIterIdx, bool bRev) const
 {
 	return !bRev ? m_deals.nextIter(pIterIdx) : m_deals.prevIter(pIterIdx);
 }
+
+/*  <advc.072> All the FAssert(false) in this function mean that we're somehow
+	out of step with the iteration that happens in the EXE. */
+CvDeal* CvGame::nextCurrentDeal(PlayerTypes eGivePlayer, PlayerTypes eReceivePlayer,
+		TradeableItems eItemType, int iData, bool bWidget) {
+
+	if(!m_bShowingCurrentDeals) {
+		m_currentDeals.clear(); // Probably not needed, but can't hurt to clear them.
+		m_currentDealsWidget.clear();
+		return NULL;
+	}
+	// Probably not needed:
+	PlayerTypes eDiploPlayer = (PlayerTypes)gDLL->getDiplomacyPlayer();
+	if(!((getActivePlayer() == eGivePlayer && eDiploPlayer == eReceivePlayer) ||
+			(getActivePlayer() == eReceivePlayer && eDiploPlayer == eGivePlayer)))
+		return NULL;
+	CLinkList<DealItemData>& kCurrentDeals = (bWidget ? m_currentDealsWidget :
+			m_currentDeals);
+	if(kCurrentDeals.getLength() <= 0) {
+		bool bFirstFound = false; int foo=-1;
+		for(CvDeal* d = firstDeal(&foo); d != NULL; d = nextDeal(&foo)) {
+			if(!d->isBetween(eGivePlayer, eReceivePlayer))
+				continue;
+			CLinkList<TradeData> const& kGiveList = *(d->getFirstPlayer() == eGivePlayer ?
+					d->getFirstTrades() : d->getSecondTrades());
+			for(CLLNode<TradeData>* pNode = kGiveList.head(); pNode != NULL;
+					pNode = kGiveList.next(pNode)) {
+				if(!CvDeal::isAnnual(pNode->m_data.m_eItemType) &&
+						pNode->m_data.m_eItemType != TRADE_PEACE_TREATY)
+					break;
+				if(!bFirstFound) {
+					if(pNode->m_data.m_eItemType != eItemType ||
+							pNode->m_data.m_iData != iData) {
+						FAssert(false);
+						return NULL;
+					}
+					bFirstFound = true;
+				}
+				DealItemData data(eGivePlayer, eReceivePlayer, pNode->m_data.m_eItemType,
+						pNode->m_data.m_iData, d->getID());
+				kCurrentDeals.insertAtEnd(data);
+			}
+		}
+	}
+	if(kCurrentDeals.getLength() <= 0) {
+		FAssert(false);
+		return NULL;
+	}
+	CLLNode<DealItemData>* pNode = kCurrentDeals.head();
+	DealItemData data = pNode->m_data;
+	if(data.eGivePlayer != eGivePlayer || data.eReceivePlayer != eReceivePlayer ||
+			data.iData != iData || data.eItemType != eItemType) {
+		kCurrentDeals.clear();
+		FAssert(false);
+		return NULL;
+	}
+	CvDeal* r = getDeal(pNode->m_data.iDeal);
+	kCurrentDeals.deleteNode(pNode);
+	FAssert(r != NULL);
+	return r;
+} // </advc.072>
 
 
  CvRandom& CvGame::getMapRand()																					

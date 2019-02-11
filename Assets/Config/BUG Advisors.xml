@@ -35,9 +35,20 @@
 			<option id="EFAImprovedInfo" key="EFA Improved Info" 
 					type="boolean" default="False" 
 					get="isUseImprovedEFAInfo"/>
-			<option id="EFADealTurnsLeft" key="EFA Deal Turns Left" 
+			<!--option id="EFADealTurnsLeft" key="EFA Deal Turns Left" 
 					type="boolean" default="True" 
-					get="isShowDealTurnsLeft"/>
+					get="isShowDealTurnsLeft"/-->
+			<!-- advc.072: Replaced with a list of choices.
+				 The DLL relies on this order of the choices. -->
+			<list   id="DealTurnsLeft" key="Deal Turns Left" 
+					type="int" default="3" listType="string"
+					values="Active Tab|Current Deals|Both|Only Tooltip"
+					get="getShowDealTurns">
+				<choice id="Active"/>
+				<choice id="Current"/>
+				<choice id="Both"/>
+				<choice id="Neither"/>
+			</list>
 	
 			<!-- BUG Military Advisor (F5) by Ruff_Hi, EmperorFool, Karadoc -->
 			<option id="BugMA" key="BugMilitaryAdvisor"

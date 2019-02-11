@@ -5308,13 +5308,13 @@ void CvTeam::setVassal(TeamTypes eIndex, bool bNewValue, bool bCapitulated)
 		}// </advc.130y>
 		m_bCapitulated = false;
 		// <advc.133>
-		int x; for(CvDeal* d = GC.getGameINLINE().firstDeal(&x); d != NULL;
-				d = GC.getGameINLINE().nextDeal(&x)) {
-			if((GET_PLAYER(d->getFirstPlayer()).getTeam() != getID()) &&
-					(GET_PLAYER(d->getSecondPlayer()).getTeam() != getID()))
+		int foo=-1;
+		for(CvDeal* d = GC.getGameINLINE().firstDeal(&foo); d != NULL;
+				d = GC.getGameINLINE().nextDeal(&foo)) {
+			if(TEAMID(d->getFirstPlayer()) != getID() &&
+					TEAMID(d->getSecondPlayer()) != getID())
 				continue;
-			/*  0 would probably also suffice. Treat deals as very old so that
-				turnsToCancel returns 0. */
+			// Treat deal as very old so that turnsToCancel returns 0
 			d->setInitialGameTurn(-100);
 		} // </advc.133>
 		// <advc.104j> Stop any war plans that the eIndex may have forced on us

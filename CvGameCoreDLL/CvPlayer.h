@@ -1450,7 +1450,7 @@ protected:
 	// <advc.106b>
 	std::vector<CvTalkingHeadMessage*> m_aMajorMsgs;
 	int m_iNewMessages;
-	void postProcessBeginTurnEvents();
+	void postProcessMessages();
 	int getStartOfTurnMessageLimit() const;
 	// </advc.106b>
 	CivicTypes eReminderPending; // advc.004x

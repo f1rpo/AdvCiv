@@ -466,10 +466,13 @@ public:
 	DllExport CvDeal* getDeal(int iID);																										// Exposed to Python	
 	CvDeal* addDeal();																													
 	void deleteDeal(int iID);																										
-	// iteration																																					
-	CvDeal* firstDeal(int *pIterIdx, bool bRev=false);													// Exposed to Python									
-	CvDeal* nextDeal(int *pIterIdx, bool bRev=false);														// Exposed to Python									
-
+	// iteration (advc.003: const)																																					
+	CvDeal* firstDeal(int *pIterIdx, bool bRev=false) const;													// Exposed to Python									
+	CvDeal* nextDeal(int *pIterIdx, bool bRev=false) const;														// Exposed to Python									
+	// <advc.072>
+	CvDeal* nextCurrentDeal(PlayerTypes eGivePlayer, PlayerTypes eReceivePlayer,
+			TradeableItems eItemType, int iData = -1, bool bWidget = false);
+	// </advc.072>
 	VoteSelectionData* getVoteSelection(int iID) const;
 	VoteSelectionData* addVoteSelection(VoteSourceTypes eVoteSource);
 	void deleteVoteSelection(int iID);
@@ -734,13 +737,18 @@ protected:
 
 	IDInfo* m_paHolyCity;
 	IDInfo* m_paHeadquarters;
-
 	int** m_apaiPlayerVote;
 
 	std::vector<CvWString> m_aszDestroyedCities;
 	std::vector<CvWString> m_aszGreatPeopleBorn;
 
 	FFreeListTrashArray<CvDeal> m_deals;
+	/*  <advc.072> Not serialized. One for use by CvPlayer::getItemTradeString,
+		the other for CvDLLWidgetData::parseTradeItem. */
+	CLinkList<DealItemData> m_currentDeals;
+	CLinkList<DealItemData> m_currentDealsWidget;
+	bool m_bShowingCurrentDeals;
+	// </advc.072>
 	FFreeListTrashArray<VoteSelectionData> m_voteSelections;
 	FFreeListTrashArray<VoteTriggeredData> m_votesTriggered;
 
@@ -749,7 +757,6 @@ protected:
 
 	ReplayMessageList m_listReplayMessages; 
 	CvReplayInfo* m_pReplayInfo;
-
 	int m_iNumSessions;
 
 	std::vector<PlotExtraYield> m_aPlotExtraYields;

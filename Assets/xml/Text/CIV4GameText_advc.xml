@@ -4687,4 +4687,15 @@
 		<Spanish>[COLOR_WARNING_TEXT]No se pueden hacer bombardeos nucleares contra los territorios o unidades amigos[COLOR_REVERT]</Spanish>
 	</TEXT>
 	
+	<!-- advc.072: Based on TXT_KEY_TRADE_PEACE_TREATY_STRING in
+		 CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_TRADE_PEACE_TREATY_STR</Tag>
+		<English>Peace Treaty</English>
+		<French>Trait&#233; de paix</French>
+		<German>Friedensvertrag</German>
+		<Italian>Trattato di pace</Italian>
+		<Spanish>Tratado de paz</Spanish>
+	</TEXT>
+	
 </Civ4GameText>

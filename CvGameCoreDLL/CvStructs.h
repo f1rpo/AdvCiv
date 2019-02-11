@@ -502,6 +502,17 @@ struct FirstContactData {
 	IDInfo u1, u2;
 	int x1, y1, x2, y2;
 }; // </advc.071>
-
+// <advc.072>
+struct DealItemData {
+	DealItemData() : eGivePlayer(NO_PLAYER), eReceivePlayer(NO_PLAYER),
+			eItemType(TRADE_ITEM_NONE), iData(-1), iDeal(-1) {}
+	DealItemData(PlayerTypes eGivePlayer, PlayerTypes eReceivePlayer,
+			TradeableItems eItemType, int iData, int iDeal) :
+			eGivePlayer(eGivePlayer), eReceivePlayer(eReceivePlayer),
+			eItemType(eItemType), iData(iData), iDeal(iDeal) {}
+	PlayerTypes eGivePlayer, eReceivePlayer;
+	TradeableItems eItemType;
+	int iData, iDeal;
+}; // </advc.072>
 
 #endif	// CVSTRUCTS_H

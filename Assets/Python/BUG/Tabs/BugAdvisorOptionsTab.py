@@ -34,20 +34,24 @@ class BugAdvisorOptionsTab(BugOptionsTab.BugOptionsTab):
 
 		self.addLabel(screen, left, "Foreign_Advisor", "Foreign [F4]:")
 		
-		# advc.004: Moved up:
-		self.addCheckbox(screen, left, "Advisors__EFADealTurnsLeft")
-		
-		self.addCheckbox(screen, left, "Advisors__EFAImprovedInfo")
-		#self.addCheckbox(screen, left, "MiscHover__TechTradeDenial")
-		#self.addCheckbox(screen, left, "MiscHover__BonusTradeDenial")
+		#self.addCheckbox(screen, left, "Advisors__EFADealTurnsLeft")
+		# <advc.072> Replacing the above
+		leftL, leftR = self.addTwoColumnLayout(screen, left, "Advisors__ForeignAdv")
+		self.addTextDropdown(screen, leftL, leftR, "Advisors__DealTurnsLeft", True)
+		# </advc.072>
+		self.addCheckbox(screen, leftL, "Advisors__EFAImprovedInfo")
+		#self.addCheckbox(screen, leftL, "MiscHover__TechTradeDenial")
+		#self.addCheckbox(screen, leftL, "MiscHover__BonusTradeDenial")
 
 		# advc.152: Moved down to allow the War Trades option to be placed between the Glance Tab option and the Military Advisor options
-		comboBox = "Advisors_ComboBoxEFA"
-		screen.attachHBox(left, comboBox)
-		self.addCheckbox(screen, comboBox, "Advisors__EFAGlanceTab")
-		self.addTextDropdown(screen, None, comboBox, "Advisors__EFAGlanceAttitudes")
+		#comboBox = "Advisors_ComboBoxEFA"
+		#screen.attachHBox(left, comboBox)
+		#self.addCheckbox(screen, leftL, "Advisors__EFAGlanceTab")
+		#self.addTextDropdown(screen, leftL, leftR, "Advisors__EFAGlanceAttitudes")
+		# advc.072: Align through leftL,leftR instead of ComboBox
+		self.addCheckboxTextDropdown(screen, leftL, leftR, "Advisors__EFAGlanceTab", "Advisors__EFAGlanceAttitudes")
 		# advc.152:
-		self.addCheckbox(screen,left, "Advisors__EFAWarTrades")
+		self.addCheckbox(screen,leftL, "Advisors__EFAWarTrades")
 		
 		# <advc.004> Moved to center column
 		self.addLabel(screen, center, "Military_Advisor", "Military [F5]:")

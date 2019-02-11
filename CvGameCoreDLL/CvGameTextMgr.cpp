@@ -15011,8 +15011,8 @@ void CvGameTextMgr::buildDisengageString(CvWString& szString, PlayerTypes active
 		PlayerTypes otherId) {
 
 	int turns = 0;
-	CvGame& g = GC.getGameINLINE(); int dummy=-1;
-	for(CvDeal* d = g.firstDeal(&dummy); d != NULL; d = g.nextDeal(&dummy)) {
+	CvGame& g = GC.getGameINLINE(); int foo=-1;
+	for(CvDeal* d = g.firstDeal(&foo); d != NULL; d = g.nextDeal(&foo)) {
 		if(d->isDisengage() && d->isBetween(activeId, otherId)) {
 			turns = d->turnsToCancel();
 			break;
@@ -15022,21 +15022,6 @@ void CvGameTextMgr::buildDisengageString(CvWString& szString, PlayerTypes active
 	// This is "%s1 (%d2 [NUM2:Turn:Turns])", just what I need.
 	szString.append(gDLL->getText("INTERFACE_CITY_PRODUCTION",
 			gDLL->getText("TXT_KEY_MISC_OPEN_BORDERS").GetCString(), turns));
-}
-
-void CvGameTextMgr::buildPeaceTreatyString(CvWString& szString,
-		PlayerTypes activeId, PlayerTypes otherId) {
-
-	int turns = 0;
-	CvGame& g = GC.getGameINLINE(); int dummy=-1;
-	for(CvDeal* d = g.firstDeal(&dummy); d != NULL; d = g.nextDeal(&dummy)) {
-		if(d->isPeaceDeal() && d->isBetween(activeId, otherId)) {
-			turns = d->turnsToCancel();
-			break;
-		}
-	}
-	FAssert(turns >= 0);
-	szString.append(gDLL->getText("TXT_KEY_TRADE_PEACE_TREATY_STRING", turns));
 } // </advc.034>
 
 
@@ -15762,8 +15747,7 @@ void CvGameTextMgr::getTradeString(CvWStringBuffer& szBuffer, const TradeData& t
 		break;
 	case TRADE_RELIGION:
 		szBuffer.assign(CvWString::format(L"%s", GC.getReligionInfo((ReligionTypes)tradeData.m_iData).getDescription()));
-		break;
-	// <advc.034>
+		break; // <advc.034>
 	case TRADE_DISENGAGE: {
 		CvWString szString;
 		buildDisengageString(szString, ePlayer1, ePlayer2);

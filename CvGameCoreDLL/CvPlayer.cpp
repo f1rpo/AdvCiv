@@ -11682,21 +11682,18 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 			doWarnings();
 			// <advc.106b>
 			if(isHuman()) {
-				/* Python events like Civ4lerts don't normally trigger until the
-				   first call to CvGame::update. At this point, messages triggered
-				   during AI turns can already be visible on the screen. Also don't
-				   know how to detect diplo popups once they're open.
-				   Therefore trigger Python here through a feigned gameUpdate. */
+				validateDiplomacy(); // advc.001e
+				/*  Make sure that Python events like Civ4lerts are triggered before
+					processing messages */
 				CyArgsList pyArgs;
 				pyArgs.add(GC.getGame().getTurnSlice());
 				CvEventReporter::getInstance().genericEvent("gameUpdate", pyArgs.makeFunctionArgs());
-				validateDiplomacy(); // advc.001e
-				postProcessBeginTurnEvents();
+				postProcessMessages();
 			}
 		  } // advc.706
 			// <advc.700>
 			if(isHuman() || isHumanDisabled()) {
-				CvGame& g = GC.getGame();
+				CvGame& g = GC.getGameINLINE();
 				if(g.isOption(GAMEOPTION_RISE_FALL))
 					g.getRiseFall().atActiveTurnStart();
 			} // </advc.700>
@@ -14563,7 +14560,7 @@ void CvPlayer::addMessage(const CvTalkingHeadMessage& message)
 }
 
 // <advc.106b>
-void CvPlayer::postProcessBeginTurnEvents() {
+void CvPlayer::postProcessMessages() {
 
 	/* Determining how many messages are being displayed:
 	   - showMissedMessages doesn't help, seems to be only for Hotseat games.
@@ -14575,8 +14572,8 @@ void CvPlayer::postProcessBeginTurnEvents() {
 	     (m_iNewMessages). */
 	/*  Don't show the log at game start (also: the BUG setting for the limit
 		isn't available at the start of the 0th turn) */
-	int limit = GC.getGameINLINE().getElapsedGameTurns() <= 0 ? INT_MAX :
-			getStartOfTurnMessageLimit();
+	int iLimit = (GC.getGameINLINE().getElapsedGameTurns() <= 0 ? INT_MAX :
+			getStartOfTurnMessageLimit());
 	/* Finishing a tech should generate a message, which is rather superfluous
 	   b/c of the splash screen. Don't want to suppress it b/c it should go
 	   into the log, but don't count it when deciding whether to open the log
@@ -14610,7 +14607,7 @@ void CvPlayer::postProcessBeginTurnEvents() {
 			}
 		}
 	}
-	if(!GC.getGame().getAIAutoPlay() && limit >= 0 && (m_iNewMessages > limit ||
+	if(!GC.getGame().getAIAutoPlay() && iLimit >= 0 && (m_iNewMessages > iLimit ||
 			(m_iNewMessages > 0 && (bRelevantDiplo ||
 			/*  Hotseat seems to show messages only if there hasn't been another
 				human turn since the message was triggered (can't check that here;
@@ -14797,9 +14794,9 @@ void CvPlayer::validateDiplomacy() {
 			if(pDiplo->getDiploComment() == GC.getInfoTypeForString("AI_DIPLOCOMMENT_STOP_TRADING") &&
 					pDiplo->getData() != TEAMREF(pDiplo->getWhoTalkingTo()).AI_getWorstEnemy()) {
 				CvPlayerAI& who = GET_PLAYER(pDiplo->getWhoTalkingTo());
-				/*  Recipient hasn't been contacted after all. Ideally, this should
-					also be done for any contact attempts that the EXE cancels, but
-					it's difficult to identify these here. */
+				/*  Recipient isn't getting contacted after all. Ideally,
+					this should also be done for any contact attempts that the
+					EXE cancels, but it's difficult to identify these here. */
 				who.AI_changeContactTimer(getID(), CONTACT_STOP_TRADING,
 						-who.AI_getContactTimer(getID(), CONTACT_STOP_TRADING));
 				// Have to delete it here b/c the EXE will no longer have a pointer to it
@@ -22198,7 +22195,7 @@ bool CvPlayer::splitEmpire(int iAreaId)
 		return false;
 	}
 
-	bool bPlayerExists = GET_TEAM(GET_PLAYER(eNewPlayer).getTeam()).isAlive();
+	bool bPlayerExists = TEAMREF(eNewPlayer).isAlive();
 	FAssert(!bPlayerExists);
 	CvWString szMessage; // advc.127b
 	if (!bPlayerExists)
@@ -23438,18 +23435,13 @@ void CvPlayer::forcePeace(PlayerTypes ePlayer)
 // <advc.032>
 bool CvPlayer::resetPeaceTreaty(PlayerTypes otherId) {
 
-	CvGame& g = GC.getGameINLINE(); int dummy=-1;
+	CvGame const& g = GC.getGameINLINE(); int dummy=-1;
 	for(CvDeal* d = g.firstDeal(&dummy); d != NULL; d = g.nextDeal(&dummy)) {
-		if((d->getFirstPlayer() == getID() &&
-				d->getSecondPlayer() == otherId) ||
-				(d->getSecondPlayer() == getID() &&
-				d->getFirstPlayer() == otherId)) {
-			if(d->getFirstTrades() == NULL)
-				continue;
-			for(CLLNode<TradeData>* item = d->getFirstTrades()->head();
-					item != NULL; item = d->getFirstTrades()->next(item)) {
-				if(item->m_data.m_eItemType == TRADE_PEACE_TREATY) {
-					d->setInitialGameTurn(g.getGameTurn());
+		if(d->isBetween(getID(), otherId) && d->getFirstTrades() != NULL) {
+			for(CLLNode<TradeData>* pNode = d->getFirstTrades()->head();
+					pNode != NULL; pNode = d->getFirstTrades()->next(pNode)) {
+				if(pNode->m_data.m_eItemType == TRADE_PEACE_TREATY) {
+					d->setInitialGameTurn(g.gameTurn());
 					return true; // Assume that there is at most 1 peace treaty
 				}
 			}
@@ -23840,10 +23832,29 @@ bool CvPlayer::getHeadingTradeString(PlayerTypes eOtherPlayer, TradeableItems eI
 }
 
 
-bool CvPlayer::getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer, bool bShowingCurrent, const TradeData& zTradeData, CvWString& szString, CvString& szIcon) const
+bool CvPlayer::getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer,
+		bool bShowingCurrent, const TradeData& zTradeData,
+		CvWString& szString, CvString& szIcon) const
 {
 	szIcon.clear();
-
+	// <advc.072>
+	CvDeal* pDeal = NULL;
+	if(bShowingCurrent) {
+		int iTurnsLeftMode = getBugOptionINT("Advisors__DealTurnsLeft", 3);
+		if(iTurnsLeftMode == 2 || iTurnsLeftMode == 1) {
+			TradeableItems eItemType = zTradeData.m_eItemType;
+			if(CvDeal::isAnnual(eItemType) || eItemType == TRADE_PEACE_TREATY) {
+				pDeal = GC.getGameINLINE().nextCurrentDeal(eOtherPlayer, getID(),
+						eItemType, zTradeData.m_iData);
+				/*  Call nextCurrentDeal for all annual deals plus peace treaties
+					in order to stay in-sync with the iteration done by the EXE,
+					but we're only interested in a subset here: */
+				if(!CvDeal::isDual(eItemType) && eItemType != TRADE_RESOURCES &&
+						eItemType != TRADE_GOLD_PER_TURN)
+					pDeal = NULL;
+			}
+		}
+	} // </advc.072>
 	switch (zTradeData.m_eItemType)
 	{
 	case TRADE_GOLD:
@@ -23885,18 +23896,12 @@ bool CvPlayer::getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer, bool bS
 		szString = gDLL->getText("TXT_KEY_TRADE_PERMANENT_ALLIANCE_STRING");
 		break;
 	case TRADE_PEACE_TREATY:
-		// advc.034: Don't show turns-to-cancel when negotiating peace
-		if(TEAMREF(eOtherPlayer).isAtWar(getTeam())) {
+		if(TEAMREF(eOtherPlayer).isAtWar(getTeam())) { // advc.072
 			szString = gDLL->getText("TXT_KEY_TRADE_PEACE_TREATY_STRING",
 					GC.getPEACE_TREATY_LENGTH());
-		} /* <advc.034> In order to be consistent with the TRADE_DISENGAGE case,
-			 which also shows the turns-to-cancel. */
-		else {
-			// <advc.004w>
-			szString.clear();
-			GAMETEXT.buildPeaceTreatyString(szString, getID(), eOtherPlayer);
-		} // </advc.004w>
-		break; // </advc.034>
+		} // advc.072:
+		else szString = gDLL->getText("TXT_KEY_TRADE_PEACE_TREATY_STR");
+		break;
 	case TRADE_TECHNOLOGIES:
 		szString = GC.getTechInfo((TechTypes)zTradeData.m_iData).getDescription();
 		szIcon = GC.getTechInfo((TechTypes)zTradeData.m_iData).getButton();
@@ -24007,7 +24012,12 @@ bool CvPlayer::getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer, bool bS
 		szString.clear();
 		return false;
 	}
-
+	// <advc.072>
+	if(pDeal != NULL && pDeal->turnsToCancel() > 0) {
+		szString.append(L" ");
+		szString.append(gDLL->getText("INTERFACE_CITY_TURNS",
+				pDeal->turnsToCancel()).GetCString());
+	} // </advc.072>
 	return true;
 }
 

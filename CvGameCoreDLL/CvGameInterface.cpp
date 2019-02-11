@@ -2990,15 +2990,18 @@ EndTurnButtonStates CvGame::getEndTurnState() const
 	return eNewState;
 }
 
-void CvGame::handleCityScreenPlotPicked(CvCity* pCity, CvPlot* pPlot, bool bAlt, bool bShift, bool bCtrl) const
+void CvGame::handleCityScreenPlotPicked(CvCity* pCity, CvPlot* pPlot,
+		bool bAlt, bool bShift, bool bCtrl) const
 {
 	FAssert(pPlot != NULL);
 	if (pCity != NULL && pPlot != NULL)
 	{
 		int iIndex = pCity->getCityPlotIndex(pPlot);
-		if ((pPlot->getOwnerINLINE() == getActivePlayer()) && (pCity->getOwnerINLINE() == getActivePlayer()) && (iIndex != -1))
+		if (pPlot->getOwnerINLINE() == getActivePlayer() &&
+				pCity->getOwnerINLINE() == getActivePlayer() && iIndex != -1)
 		{
-			CvMessageControl::getInstance().sendDoTask(pCity->getID(), TASK_CHANGE_WORKING_PLOT, iIndex, -1, false, bAlt, bShift, bCtrl);
+			CvMessageControl::getInstance().sendDoTask(pCity->getID(),
+					TASK_CHANGE_WORKING_PLOT, iIndex, -1, false, bAlt, bShift, bCtrl);
 		}
 		else if (GC.getDefineINT("CITY_SCREEN_CLICK_WILL_EXIT"))
 		{
@@ -3008,23 +3011,27 @@ void CvGame::handleCityScreenPlotPicked(CvCity* pCity, CvPlot* pPlot, bool bAlt,
 }
 
 void CvGame::handleCityScreenPlotDoublePicked(CvCity* pCity, CvPlot* pPlot, bool bAlt, bool bShift, bool bCtrl) const
-{
-	if (pCity != NULL)
+{	// advc.004t: Commented out
+	/*if (pCity != NULL)
 	{
 		if (pCity->plot() == pPlot)
 		{
 			gDLL->getInterfaceIFace()->clearSelectedCities();
 		}
-	}
+	}*/
 }
 
 void CvGame::handleCityScreenPlotRightPicked(CvCity* pCity, CvPlot* pPlot, bool bAlt, bool bShift, bool bCtrl) const
 {
 	if (pCity != NULL && pPlot != NULL)
 	{
-		if ((pCity->getOwnerINLINE() == getActivePlayer()) && (pPlot->getOwnerINLINE() == getActivePlayer()) && (pCity->getCityPlotIndex(pPlot) != -1))
+		if (pCity->getOwnerINLINE() == getActivePlayer() &&
+				pPlot->getOwnerINLINE() == getActivePlayer() &&
+				pCity->getCityPlotIndex(pPlot) != -1)
 		{
-			CvMessageControl::getInstance().sendDoTask(pCity->getID(), TASK_CLEAR_WORKING_OVERRIDE, pCity->getCityPlotIndex(pPlot), -1, false, bAlt, bShift, bCtrl);
+			CvMessageControl::getInstance().sendDoTask(pCity->getID(),
+					TASK_CLEAR_WORKING_OVERRIDE, pCity->getCityPlotIndex(pPlot),
+					-1, false, bAlt, bShift, bCtrl);
 		}
 	}
 }
@@ -3033,7 +3040,7 @@ void CvGame::handleCityPlotRightPicked(CvCity* pCity, CvPlot* pPlot, bool bAlt, 
 {
 	if (pPlot != NULL)
 	{
-		if ((pCity != NULL) && gDLL->getInterfaceIFace()->isCitySelected(pCity))
+		if (pCity != NULL && gDLL->getInterfaceIFace()->isCitySelected(pCity))
 		{
 			selectedCitiesGameNetMessage(GAMEMESSAGE_DO_TASK, TASK_CLEAR_RALLY_PLOT);
 		}
@@ -3041,7 +3048,8 @@ void CvGame::handleCityPlotRightPicked(CvCity* pCity, CvPlot* pPlot, bool bAlt, 
 		{
 			if (bShift)
 			{
-				selectedCitiesGameNetMessage(GAMEMESSAGE_DO_TASK, TASK_RALLY_PLOT, pPlot->getX(), pPlot->getY());
+				selectedCitiesGameNetMessage(GAMEMESSAGE_DO_TASK, TASK_RALLY_PLOT,
+						pPlot->getX(), pPlot->getY());
 			}
 			else
 			{
@@ -3093,4 +3101,8 @@ void CvGame::handleDiplomacySetAIComment(DiploCommentTypes eComment) const
 			gDLL->sendImplementDealMessage(eOtherPlayer, &playerList, &loopPlayerList);
 		}
 	}
+	// <advc.072>
+	const_cast<CvGame* const>(this)->m_bShowingCurrentDeals =
+			(eComment == GC.getInfoTypeForString("AI_DIPLOCOMMENT_CURRENT_DEALS"));
+	// </advc.072>
 }

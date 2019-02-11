@@ -8483,10 +8483,10 @@ void CvUnitAI::AI_settlerSeaMove()
 /*                                                                                              */
 /* Naval AI                                                                                     */
 /************************************************************************************************/
-	if( hasCargo() && (iSettlerCount == 0) && (iWorkerCount == 0))
+	if (hasCargo() && iSettlerCount == 0 && iWorkerCount == 0)
 	{
 		// Dump troop load at first oppurtunity after pick up
-		if( plot()->isCity() && plot()->getOwnerINLINE() == getOwnerINLINE() )
+		if (plot()->isCity() && plot()->getOwnerINLINE() == getOwnerINLINE())
 		{
 			getGroup()->unloadAll();
 			getGroup()->pushMission(MISSION_SKIP);
@@ -8494,7 +8494,7 @@ void CvUnitAI::AI_settlerSeaMove()
 		}
 		else
 		{
-			if( !(isFull()) )
+			if (!isFull())
 			{
 				if(AI_pickupStranded(NO_UNITAI, 1))
 				{
@@ -8615,7 +8615,7 @@ void CvUnitAI::AI_settlerSeaMove()
 		return;
 	}
 */
-	if( !(getGroup()->hasCargo()) )
+	if( !getGroup()->hasCargo() )
 	{
 		if(AI_pickupStranded(UNITAI_SETTLE))
 		{
@@ -8623,7 +8623,7 @@ void CvUnitAI::AI_settlerSeaMove()
 		}
 	}
 
-	if( !(getGroup()->isFull()) )
+	if( !getGroup()->isFull() )
 	{
 		if( kOwner.AI_unitTargetMissionAIs(this, MISSIONAI_LOAD_SETTLER) > 0 )
 		{
@@ -21731,15 +21731,15 @@ bool CvUnitAI::AI_pickupStranded(UnitAITypes eUnitAI, int iMaxPath)
 	}
 
 	if (pBestUnit)
-	{	/*  <advc.046> Previously, the caller ensured that we have space. Now
-			ensures that we have space or can unload. */
+	{	// <advc.046>
 		int iCargo = getGroup()->getCargo();
 		if(iCargo > 0) {
 			/*  Only unload the current cargo if the stranded units aren't too few
 				or too far away. */
 			if(iCargo * 150 > iBestValue || atPlot(pEndTurnPlot))
 				return false;
-			FAssert(plot()->isCity(false, getTeam()));
+			if(!plot()->isCity(false, getTeam()))
+				return false;
 			getGroup()->unloadAll();
 			if(getGroup()->hasCargo())
 				return false;
@@ -25985,14 +25985,14 @@ bool CvUnitAI::AI_allowGroup(const CvUnit* pUnit, UnitAITypes eUnitAI) const
 // <advc.040>
 bool CvUnitAI::AI_moveSettlerToCoast(int iMaxPathTurns) {
 
-	CvPlayer const& owner = GET_PLAYER(getOwnerINLINE()); int foo=-1;
+	CvPlayer const& owner = GET_PLAYER(getOwnerINLINE());
 	CvCity* currentCity = plot()->getPlotCity();
 	if(currentCity == NULL)
 		return false;
 	int const iGroupSz = getGroupSize();
 	CvCity* pBest = NULL;
 	CvPlot* pEndPlot = NULL;
-	int iBest = 0;
+	int iBest = 0; int foo=-1;
 	for(CvCity* c = owner.firstCity(&foo); c != NULL; c = owner.nextCity(&foo)) {
 		CvPlot& cp = *c->plot();
 		if(c == currentCity || c->area() != area() || !c->isCoastal() ||

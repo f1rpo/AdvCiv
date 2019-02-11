@@ -1528,12 +1528,12 @@ DenialTypes WarAndPeaceAI::Team::declareWarTrade(TeamTypes targetId,
 				utilityThresh = std::max(utilityThresh,
 						-::round(tradeValToUtility(humanTradeVal) +
 						// Add 5 for gold that the human might be able to procure
-						(GET_TEAM(sponsorId).isGoldTrading() ||
+						((GET_TEAM(sponsorId).isGoldTrading() ||
 						GET_TEAM(agentId).isGoldTrading() ||
 						// Or they could ask nicely
 						(GET_TEAM(sponsorId).isAtWar(targetId) &&
 						GET_TEAM(agentId).AI_getAttitude(sponsorId) >=
-						ATTITUDE_PLEASED)) ? 5 : 0));
+						ATTITUDE_PLEASED)) ? 5 : 0)));
 			}
 			if(u > utilityThresh)
 				return NO_DENIAL;

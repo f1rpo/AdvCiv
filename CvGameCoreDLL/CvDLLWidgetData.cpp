@@ -4666,167 +4666,201 @@ void CvDLLWidgetData::parseEmphasizeHelp(CvWidgetDataStruct &widgetDataStruct, C
 void CvDLLWidgetData::parseTradeItem(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
 	CvWString szTempBuffer;
-	TradeData item;
+	szBuffer.clear();
+	CvGame& g = GC.getGameINLINE();
 	PlayerTypes eWhoFrom = NO_PLAYER;
 	PlayerTypes eWhoTo = NO_PLAYER;
-	DenialTypes eDenial;
-	PlayerTypes eWhoDenies;
-
-	szBuffer.clear();
-
 	if (widgetDataStruct.m_bOption)
 	{
-		if ( gDLL->isDiplomacy())
+		if (gDLL->isDiplomacy())
 		{
-			eWhoFrom = (PlayerTypes) gDLL->getDiplomacyPlayer();
+			eWhoFrom = (PlayerTypes)gDLL->getDiplomacyPlayer();
 		}
 		else if (gDLL->isMPDiplomacyScreenUp())
 		{
-			eWhoFrom = (PlayerTypes) gDLL->getMPDiplomacyPlayer();
+			eWhoFrom = (PlayerTypes)gDLL->getMPDiplomacyPlayer();
 		}
-		eWhoTo = GC.getGameINLINE().getActivePlayer();
+		eWhoTo = g.getActivePlayer();
 	}
 	else
 	{
-		eWhoFrom = GC.getGameINLINE().getActivePlayer();
-		if ( gDLL->isDiplomacy() )
+		eWhoFrom = g.getActivePlayer();
+		if (gDLL->isDiplomacy())
 		{
-			eWhoTo = (PlayerTypes) gDLL->getDiplomacyPlayer();
+			eWhoTo = (PlayerTypes)gDLL->getDiplomacyPlayer();
 		}
 		else if (gDLL->isMPDiplomacyScreenUp())
 		{
-			eWhoTo = (PlayerTypes) gDLL->getMPDiplomacyPlayer();
+			eWhoTo = (PlayerTypes)gDLL->getMPDiplomacyPlayer();
 		}
 	}
 
-	eWhoDenies = eWhoFrom;
+	if (eWhoFrom == NO_PLAYER || eWhoTo == NO_PLAYER)
+		return; // advc.003
 
-	if ((eWhoFrom != NO_PLAYER) && (eWhoTo != NO_PLAYER))
+	PlayerTypes eWhoDenies = eWhoFrom;
+	TradeableItems eItemType = (TradeableItems)widgetDataStruct.m_iData1;
+	switch (eItemType)
 	{
-		//	Data1 is the heading
-		switch (widgetDataStruct.m_iData1)
-		{
-		case TRADE_TECHNOLOGIES:
-			GAMETEXT.setTechHelp(szBuffer, ((TechTypes)widgetDataStruct.m_iData2));
-			eWhoDenies = (widgetDataStruct.m_bOption ? eWhoFrom : eWhoTo);
-			break;
-		case TRADE_RESOURCES:
-			GAMETEXT.setBonusHelp(szBuffer, ((BonusTypes)widgetDataStruct.m_iData2));
-			eWhoDenies = (widgetDataStruct.m_bOption ? eWhoFrom : eWhoTo);
-			break;
-		case TRADE_CITIES:
-			szBuffer.assign(gDLL->getText("TXT_KEY_TRADE_CITIES"));
-			eWhoDenies = (widgetDataStruct.m_bOption ? eWhoFrom : eWhoTo);
-			break;
-		case TRADE_PEACE:
-			szBuffer.append(gDLL->getText("TXT_KEY_TRADE_MAKE_PEACE", GET_TEAM(GET_PLAYER(eWhoFrom).getTeam()).getName().GetCString(), GET_TEAM((TeamTypes)widgetDataStruct.m_iData2).getName().GetCString()));
-			break;
-		case TRADE_WAR:
-			szBuffer.append(gDLL->getText("TXT_KEY_TRADE_MAKE_WAR", GET_TEAM(GET_PLAYER(eWhoFrom).getTeam()).getName().GetCString(), GET_TEAM((TeamTypes)widgetDataStruct.m_iData2).getName().GetCString()));
-			break;
-		case TRADE_EMBARGO:
-			szBuffer.append(gDLL->getText("TXT_KEY_TRADE_STOP_TRADING", GET_TEAM(GET_PLAYER(eWhoFrom).getTeam()).getName().GetCString(), GET_TEAM((TeamTypes)widgetDataStruct.m_iData2).getName().GetCString()));
-			break;
-		case TRADE_CIVIC:
-			szBuffer.append(gDLL->getText("TXT_KEY_TRADE_ADOPT_CIVIC", GC.getCivicInfo((CivicTypes)widgetDataStruct.m_iData2).getDescription()));
-			break;
-		case TRADE_RELIGION:
-			szBuffer.append(gDLL->getText("TXT_KEY_TRADE_CONVERT_RELIGION", GC.getReligionInfo((ReligionTypes)widgetDataStruct.m_iData2).getDescription()));
-			break;
-		case TRADE_GOLD:
-			szBuffer.append(gDLL->getText("TXT_KEY_TRADE_GOLD"));
-			break;
-		case TRADE_GOLD_PER_TURN:
-			szBuffer.append(gDLL->getText("TXT_KEY_TRADE_GOLD_PER_TURN"));
-			break;
-		case TRADE_MAPS:
-			szBuffer.append(gDLL->getText("TXT_KEY_TRADE_MAPS"));
-			break;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      12/07/09                                jdog5000      */
-/*                                                                                              */
-/* Diplomacy                                                                                    */
-/************************************************************************************************/
-		case TRADE_SURRENDER:
-			szBuffer.append(gDLL->getText("TXT_KEY_TRADE_CAPITULATE"));
-			eWhoDenies = (widgetDataStruct.m_bOption ? eWhoFrom : NO_PLAYER);
-			break;
-		case TRADE_VASSAL:
-			szBuffer.append(gDLL->getText("TXT_KEY_TRADE_VASSAL"));
-			eWhoDenies = (widgetDataStruct.m_bOption ? eWhoFrom : NO_PLAYER);
-			break;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-		case TRADE_OPEN_BORDERS:
-			szBuffer.append(gDLL->getText("TXT_KEY_TRADE_OPEN_BORDERS"));
-			break;
-		case TRADE_DEFENSIVE_PACT:
-			szBuffer.append(gDLL->getText("TXT_KEY_TRADE_DEFENSIVE_PACT"));
-			break;
-		case TRADE_PERMANENT_ALLIANCE:
-			szBuffer.append(gDLL->getText("TXT_KEY_TRADE_PERMANENT_ALLIANCE"));
-			break;
-		case TRADE_PEACE_TREATY:
-			szBuffer.append(gDLL->getText("TXT_KEY_TRADE_PEACE_TREATY", GC.getPEACE_TREATY_LENGTH()));
-			break;
-			// <advc.034>
-		case TRADE_DISENGAGE:
-			szBuffer.append(gDLL->getText("TXT_KEY_TRADE_DISENGAGE"));
-			break;
-		}
-
-		setTradeItem(&item, ((TradeableItems)(widgetDataStruct.m_iData1)), widgetDataStruct.m_iData2);
-		/*  advc.104l: Can't easily move this code elsewhere b/c the cache should
-			only be used when TradeDenial is checked from this class. */
-		WarEvaluator::checkCache = true;
-		eDenial = GET_PLAYER(eWhoFrom).getTradeDenial(eWhoTo, item);
-		WarEvaluator::checkCache = false; // advc.104l
-		if (eDenial != NO_DENIAL)
-		{
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      12/07/09                                jdog5000      */
-/*                                                                                              */
-/* Diplomacy                                                                                    */
-/************************************************************************************************/
-			if( eWhoDenies == NO_PLAYER )
-			{
-				switch(eDenial)
-				{
-				case DENIAL_POWER_US:
-					eDenial = DENIAL_POWER_YOU;
-					break;
-				case DENIAL_POWER_YOU:
-					eDenial = DENIAL_POWER_US;
-					break;
-				case DENIAL_WAR_NOT_POSSIBLE_US:
-					eDenial = DENIAL_WAR_NOT_POSSIBLE_YOU;
-					break;
-				case DENIAL_WAR_NOT_POSSIBLE_YOU:
-					eDenial = DENIAL_WAR_NOT_POSSIBLE_US;
-					break;
-				case DENIAL_PEACE_NOT_POSSIBLE_US:
-					eDenial = DENIAL_PEACE_NOT_POSSIBLE_YOU;
-					break;
-				case DENIAL_PEACE_NOT_POSSIBLE_YOU:
-					eDenial = DENIAL_PEACE_NOT_POSSIBLE_US;
-					break;
-				default :
-					break;
-				}
-				szTempBuffer.Format(L"%s: " SETCOLR L"%s" ENDCOLR, GET_PLAYER(eWhoTo).getName(), TEXT_COLOR("COLOR_WARNING_TEXT"), GC.getDenialInfo(eDenial).getDescription());
-			}
-			else
-			{
-				szTempBuffer.Format(L"%s: " SETCOLR L"%s" ENDCOLR, GET_PLAYER(eWhoDenies).getName(), TEXT_COLOR("COLOR_WARNING_TEXT"), GC.getDenialInfo(eDenial).getDescription());
-			}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-			szBuffer.append(NEWLINE);
-			szBuffer.append(szTempBuffer);
-		}
+	case TRADE_TECHNOLOGIES:
+		GAMETEXT.setTechHelp(szBuffer, (TechTypes)widgetDataStruct.m_iData2);
+		eWhoDenies = (widgetDataStruct.m_bOption ? eWhoFrom : eWhoTo);
+		break;
+	case TRADE_RESOURCES:
+		GAMETEXT.setBonusHelp(szBuffer, (BonusTypes)widgetDataStruct.m_iData2);
+		eWhoDenies = (widgetDataStruct.m_bOption ? eWhoFrom : eWhoTo);
+		break;
+	case TRADE_CITIES:
+		szBuffer.assign(gDLL->getText("TXT_KEY_TRADE_CITIES"));
+		eWhoDenies = (widgetDataStruct.m_bOption ? eWhoFrom : eWhoTo);
+		break;
+	case TRADE_PEACE:
+		szBuffer.append(gDLL->getText("TXT_KEY_TRADE_MAKE_PEACE",
+				TEAMREF(eWhoFrom).getName().GetCString(),
+				GET_TEAM((TeamTypes)widgetDataStruct.m_iData2).getName().GetCString()));
+		break;
+	case TRADE_WAR:
+		szBuffer.append(gDLL->getText("TXT_KEY_TRADE_MAKE_WAR",
+				TEAMREF(eWhoFrom).getName().GetCString(),
+				GET_TEAM((TeamTypes)widgetDataStruct.m_iData2).getName().GetCString()));
+		break;
+	case TRADE_EMBARGO:
+		szBuffer.append(gDLL->getText("TXT_KEY_TRADE_STOP_TRADING",
+				TEAMREF(eWhoFrom).getName().GetCString(),
+				GET_TEAM((TeamTypes)widgetDataStruct.m_iData2).getName().GetCString()));
+		break;
+	case TRADE_CIVIC:
+		szBuffer.append(gDLL->getText("TXT_KEY_TRADE_ADOPT_CIVIC",
+				GC.getCivicInfo((CivicTypes)widgetDataStruct.m_iData2).
+				getDescription()));
+		break;
+	case TRADE_RELIGION:
+		szBuffer.append(gDLL->getText("TXT_KEY_TRADE_CONVERT_RELIGION",
+				GC.getReligionInfo((ReligionTypes)widgetDataStruct.m_iData2).
+				getDescription()));
+		break;
+	case TRADE_GOLD:
+		szBuffer.append(gDLL->getText("TXT_KEY_TRADE_GOLD"));
+		break;
+	case TRADE_GOLD_PER_TURN:
+		szBuffer.append(gDLL->getText("TXT_KEY_TRADE_GOLD_PER_TURN"));
+		break;
+	case TRADE_MAPS:
+		szBuffer.append(gDLL->getText("TXT_KEY_TRADE_MAPS"));
+		break;
+/***************************************************************************/
+/* BETTER_BTS_AI_MOD                      12/07/09           jdog5000      */
+/* Diplomacy                                                               */
+/***************************************************************************/
+	case TRADE_SURRENDER:
+		szBuffer.append(gDLL->getText("TXT_KEY_TRADE_CAPITULATE"));
+		eWhoDenies = (widgetDataStruct.m_bOption ? eWhoFrom : NO_PLAYER);
+		break;
+	case TRADE_VASSAL:
+		szBuffer.append(gDLL->getText("TXT_KEY_TRADE_VASSAL"));
+		eWhoDenies = (widgetDataStruct.m_bOption ? eWhoFrom : NO_PLAYER);
+		break;
+/****************************************************************************/
+/* BETTER_BTS_AI_MOD                       END                              */
+/****************************************************************************/
+	case TRADE_OPEN_BORDERS:
+		szBuffer.append(gDLL->getText("TXT_KEY_TRADE_OPEN_BORDERS"));
+		break;
+	case TRADE_DEFENSIVE_PACT:
+		szBuffer.append(gDLL->getText("TXT_KEY_TRADE_DEFENSIVE_PACT"));
+		break;
+	case TRADE_PERMANENT_ALLIANCE:
+		szBuffer.append(gDLL->getText("TXT_KEY_TRADE_PERMANENT_ALLIANCE"));
+		break;
+	case TRADE_PEACE_TREATY:
+		szBuffer.append(gDLL->getText("TXT_KEY_TRADE_PEACE_TREATY",
+				GC.getPEACE_TREATY_LENGTH()));
+		break;
+		// <advc.034>
+	case TRADE_DISENGAGE:
+		szBuffer.append(gDLL->getText("TXT_KEY_TRADE_DISENGAGE"));
+		break;
 	}
+	// <advc.072>
+	if(CvDeal::isAnnual(eItemType) || eItemType == TRADE_PEACE_TREATY) {
+		CvDeal* pDeal = g.nextCurrentDeal(eWhoFrom, eWhoTo, eItemType,
+				widgetDataStruct.m_iData2, true);
+		if(pDeal != NULL) {
+			szBuffer.append(NEWLINE);
+			szBuffer.append(NEWLINE);
+			CvWString szReason;
+			if(pDeal->isCancelable(g.getActivePlayer(), &szReason)) {
+				szTempBuffer.Format(SETCOLR L"%s" ENDCOLR,
+						TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
+						gDLL->getText("TXT_KEY_MISC_CLICK_TO_CANCEL").GetCString());
+				szBuffer.append(szTempBuffer);
+			}
+			else szBuffer.append(szReason);
+			szBuffer.append(L":");
+			szBuffer.append(NEWLINE);
+			if(eItemType == TRADE_PEACE_TREATY) // Don't want the duration in parentheses here
+				szBuffer.append(gDLL->getText("TXT_KEY_TRADE_PEACE_TREATY_STR"));
+			else GAMETEXT.getDealString(szBuffer, *pDeal, g.getActivePlayer());
+			return; // No denial info
+		}
+	} // </advc.072>
+	TradeData item;
+	setTradeItem(&item, (TradeableItems)widgetDataStruct.m_iData1,
+			widgetDataStruct.m_iData2);
+	/*  advc.104l: Can't easily move this code elsewhere b/c the cache should
+		only be used when TradeDenial is checked by this class. */
+	WarEvaluator::checkCache = true;
+	DenialTypes eDenial = GET_PLAYER(eWhoFrom).getTradeDenial(eWhoTo, item);
+	WarEvaluator::checkCache = false; // advc.104l
+	if (eDenial == NO_DENIAL)
+		return;
+
+/*****************************************************************************/
+/* BETTER_BTS_AI_MOD                      12/07/09              jdog5000     */
+/* Diplomacy                                                                 */
+/*****************************************************************************/
+	if (eWhoDenies == NO_PLAYER)
+	{
+		switch(eDenial)
+		{
+		case DENIAL_POWER_US:
+			eDenial = DENIAL_POWER_YOU;
+			break;
+		case DENIAL_POWER_YOU:
+			eDenial = DENIAL_POWER_US;
+			break;
+		case DENIAL_WAR_NOT_POSSIBLE_US:
+			eDenial = DENIAL_WAR_NOT_POSSIBLE_YOU;
+			break;
+		case DENIAL_WAR_NOT_POSSIBLE_YOU:
+			eDenial = DENIAL_WAR_NOT_POSSIBLE_US;
+			break;
+		case DENIAL_PEACE_NOT_POSSIBLE_US:
+			eDenial = DENIAL_PEACE_NOT_POSSIBLE_YOU;
+			break;
+		case DENIAL_PEACE_NOT_POSSIBLE_YOU:
+			eDenial = DENIAL_PEACE_NOT_POSSIBLE_US;
+			break;
+		default :
+			break;
+		}
+		szTempBuffer.Format(L"%s: " SETCOLR L"%s" ENDCOLR,
+				GET_PLAYER(eWhoTo).getName(),
+				TEXT_COLOR("COLOR_WARNING_TEXT"),
+				GC.getDenialInfo(eDenial).getDescription());
+	}
+	else
+	{
+		szTempBuffer.Format(L"%s: " SETCOLR L"%s" ENDCOLR,
+				GET_PLAYER(eWhoDenies).getName(),
+				TEXT_COLOR("COLOR_WARNING_TEXT"),
+				GC.getDenialInfo(eDenial).getDescription());
+	}
+/*****************************************************************************/
+/* BETTER_BTS_AI_MOD                       END                               */
+/*****************************************************************************/
+	szBuffer.append(NEWLINE);
+	szBuffer.append(szTempBuffer);
 }
 
 
@@ -5822,7 +5856,6 @@ void CvDLLWidgetData::parseDescriptionHelp(CvWidgetDataStruct &widgetDataStruct,
 
 void CvDLLWidgetData::parseKillDealHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-//	szBuffer = "Click to cancel";
 	CvWString szTemp;
 	szTemp = szBuffer.getCString();
 	CvDeal* pDeal = GC.getGameINLINE().getDeal(widgetDataStruct.m_iData1);

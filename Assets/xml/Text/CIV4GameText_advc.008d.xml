@@ -925,4 +925,15 @@
 	<Spanish>(AdvCiv) To see the culture percentages of unowned tiles, hold down [Shift] or enable "Always Show Tile Culture" on the "Map" tab of the BUG menu.</Spanish>
 </TEXT>
 
+<!-- The right-click behavior is pretty obscure, and therefore perhaps worth
+	 pointing out. -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_35</Tag>
+	<English>When more than one of your cities is able to work a tile, the game assigns that tile to the closest city. You can override this by opening the screen of another city and left-clicking the tile. Right-click the tile to undo the assignment.</English>
+	<French>When more than one of your cities is able to work a tile, the game assigns that tile to the closest city. You can override this by opening the screen of another city and left-clicking the tile. Right-click the tile to undo the assignment.</French>
+	<German>Wenn mehrere Ihrer Städte dasselbe Geländefeld bearbeiten können, wird das Feld automatisch der nächstgelegenen Stadt zugewiesen. Um das Feld manuell einer anderen Stadt zuzuweisen, öffnen Sie den Bildschirm dieser Stadt und klicken Sie dort auf das Feld. Mit einem Rechtsklick können Sie die Zuweisung wieder zurücknehmen.</German>
+	<Italian>When more than one of your cities is able to work a tile, the game assigns that tile to the closest city. You can override this by opening the screen of another city and left-clicking the tile. Right-click the tile to undo the assignment.</Italian>
+	<Spanish>When more than one of your cities is able to work a tile, the game assigns that tile to the closest city. You can override this by opening the screen of another city and left-clicking the tile. Right-click the tile to undo the assignment.</Spanish>
+</TEXT>
+
 </Civ4GameText>
