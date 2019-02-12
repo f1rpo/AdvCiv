@@ -80,6 +80,24 @@
 		<Spanish>The Event Log is opened when the number of new messages exceeds this limit.</Spanish>
 	</TEXT>
 	
+	<!-- advc.002b -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__ENDTURNMESSAGE_TEXT</Tag>
+		<English>End-Turn Message</English>
+		<French>End-Turn Message</French>
+		<German>Nachricht am Rundenende</German>
+		<Italian>End-Turn Message</Italian>
+		<Spanish>End-Turn Message</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__ENDTURNMESSAGE_HOVER</Tag>
+		<English>When checked, a flashing message "Press ENTER to end turn" is shown once all units and cities have been given orders (as in BtS). Otherwise, the "End Turn" button still blinks as it does in BtS, but no message is shown.</English>
+		<French>When checked, a flashing message "Press ENTER to end turn" is shown once all units and cities have been given orders (as in BtS). Otherwise, the "End Turn" button still blinks as it does in BtS, but no message is shown.</French>
+		<German>Blinkanzeige "Runde beenden mit EINGABETASTE" (wie in BtS), sobald alle Einheiten und Städte Befehle erhalten haben. Die rote Rundenende-Schaltfläche blinkt auch wenn diese Option nicht angekreuzt ist.</German>
+		<Italian>When checked, a flashing message "Press ENTER to end turn" is shown once all units and cities have been given orders (as in BtS). Otherwise, the "End Turn" button still blinks as it does in BtS, but no message is shown.</Italian>
+		<Spanish>When checked, a flashing message "Press ENTER to end turn" is shown once all units and cities have been given orders (as in BtS). Otherwise, the "End Turn" button still blinks as it does in BtS, but no message is shown.</Spanish>
+	</TEXT>
+	
 	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__GOLDRATEWARNING_TEXT</Tag>
 		<English>Gold Rate Warning</English>

@@ -1135,8 +1135,10 @@ class CvMainInterface:
 # BUG - Reminders - start
 					if ( ReminderEventManager.g_turnReminderTexts ):
 						acOutput = u"%s" % ReminderEventManager.g_turnReminderTexts
-					else:
+					elif MainOpt.isShowEndTurnMessage(): # advc.002n
 						acOutput = localText.getText("SYSTEM_END_TURN", ())
+					# advc.002n: So that toggling the option immediately hides the message
+					else: acOutput = ""
 # BUG - Reminders - end
 					#screen.modifyLabel( "EndTurnText", acOutput, CvUtil.FONT_CENTER_JUSTIFY )
 					screen.setEndTurnState( "EndTurnText", acOutput )

@@ -39,6 +39,12 @@
 					values="0, 1, 2, 3, 4, 5, 10"
 					get="getMessageLimit">
 			</list>
+			
+			<!-- advc.002n: New option. This part of the main interface gets
+				 constantly updated; no dirty-bit needed. -->
+			<option id="EndTurnMessage" key="End Turn Message" 
+					type="boolean" default="False" 
+					get="isShowEndTurnMessage"/>
 
 			<!-- Gold Rate Warning -->
 			<!--option id="GoldRateWarning" key="Gold Rate Warning" 

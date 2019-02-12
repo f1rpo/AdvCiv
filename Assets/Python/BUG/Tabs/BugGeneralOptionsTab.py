@@ -121,5 +121,7 @@ class BugGeneralOptionsTab(BugOptionsTab.BugOptionsTab):
 		# <advc.106b>
 		self.addCheckbox(screen, panel, "MainInterface__AutoOpenEventLog")
 		self.addTextDropdown(screen, panel, panel, "MainInterface__MessageLimit", True)
-		# </advc.106b> 
+		# </advc.106b>
+		# advc.002n:
+		self.addCheckbox(screen, panel, "MainInterface__EndTurnMessage")
 		self.addCheckbox(screen, panel, "MainInterface__CityArrows")
