@@ -8336,6 +8336,15 @@ void CvGameTextMgr::parseCivicInfo(CvWStringBuffer &szHelpText, CivicTypes eCivi
 
 void CvGameTextMgr::setTechHelp(CvWStringBuffer &szBuffer, TechTypes eTech, bool bCivilopediaText, bool bPlayerContext, bool bStrategyText, bool bTreeInfo, TechTypes eFromTech)
 {
+// BULL - Trade Denial - start
+	setTechTradeHelp(szBuffer, eTech, NO_PLAYER, bCivilopediaText, bPlayerContext,
+			bStrategyText, bTreeInfo, eFromTech);
+}
+
+
+void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech, PlayerTypes eTradePlayer, bool bCivilopediaText, bool bPlayerContext, bool bStrategyText, bool bTreeInfo, TechTypes eFromTech)
+// BULL - Trade Denial - end
+{
 	PROFILE_FUNC();
 
 	CvWString szTempBuffer;
@@ -8763,20 +8772,15 @@ void CvGameTextMgr::setTechHelp(CvWStringBuffer &szBuffer, TechTypes eTech, bool
 	{
 		if (GET_PLAYER(eActivePlayer).canResearch(eTech))
 		{	// advc.004a: Commented out
-			/*for (iI = 0; iI < GC.getNumUnitInfos(); ++iI)
-			{
+			/*for (iI = 0; iI < GC.getNumUnitInfos(); ++iI) {
 				CvUnitInfo& kUnit = GC.getUnitInfo((UnitTypes)iI);
-
-				if (kUnit.getBaseDiscover() > 0 || kUnit.getDiscoverMultiplier() > 0)
-				{
-					if (::getDiscoveryTech((UnitTypes)iI, eActivePlayer) == eTech)
-					{
+				if (kUnit.getBaseDiscover() > 0 || kUnit.getDiscoverMultiplier() > 0) {
+					if (::getDiscoveryTech((UnitTypes)iI, eActivePlayer) == eTech) {
 						szBuffer.append(NEWLINE);
 						szBuffer.append(gDLL->getText("TXT_KEY_TECH_GREAT_PERSON_DISCOVER", kUnit.getTextKeyWide()));
 					}
 				}
 			}*/
-
 			if (GET_PLAYER(eActivePlayer).getCurrentEra() < GC.getTechInfo(eTech).getEra())
 			{
 				szBuffer.append(NEWLINE);
@@ -8784,6 +8788,26 @@ void CvGameTextMgr::setTechHelp(CvWStringBuffer &szBuffer, TechTypes eTech, bool
 			}
 		}
 	}
+// BULL - Trade Denial - start (advc.073: refactored; getBugOptionBOOL check removed)
+	if (eTradePlayer != NO_PLAYER && eActivePlayer != NO_PLAYER)
+	{
+		TradeData item;
+		::setTradeItem(&item, TRADE_TECHNOLOGIES, eTech);
+		if (GET_PLAYER(eTradePlayer).canTradeItem(eActivePlayer, item, false))
+		{
+			DenialTypes eDenial = GET_PLAYER(eTradePlayer).getTradeDenial(
+					eActivePlayer, item);
+			if (eDenial != NO_DENIAL)
+			{
+				szTempBuffer.Format(SETCOLR L"%s" ENDCOLR,
+						TEXT_COLOR("COLOR_NEGATIVE_TEXT"),
+						GC.getDenialInfo(eDenial).getDescription());
+				szBuffer.append(NEWLINE);
+				szBuffer.append(szTempBuffer);
+			}
+		}
+	}
+// BULL - Trade Denial - end
 
 	if (bStrategyText)
 	{
@@ -13602,13 +13626,21 @@ bool CvGameTextMgr::setResumableValueTimes100ChangeHelp(CvWStringBuffer &szBuffe
 }
 // BUG - Resumable Value Change Help - end
 
-// This function has been effectly rewritten for K-Mod. (there were a lot of things to change.)
 void CvGameTextMgr::setBonusHelp(CvWStringBuffer &szBuffer, BonusTypes eBonus, bool bCivilopediaText)
 {
+// BULL - Trade Denial - start
+	setBonusTradeHelp(szBuffer, eBonus, bCivilopediaText, NO_PLAYER);
+}
+
+// This function has been effectly rewritten for K-Mod. (there were a lot of things to change.)
+void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBonus,
+		bool bCivilopediaText, PlayerTypes eTradePlayer)
+// BULL - Trade Denial - end
+{
 	if (NO_BONUS == eBonus)
-	{
 		return;
-	}
+
+	PlayerTypes eActivePlayer = GC.getGameINLINE().getActivePlayer();
 
 	int iHappiness = GC.getBonusInfo(eBonus).getHappiness();
 	int iHealth = GC.getBonusInfo(eBonus).getHealth();
@@ -13630,9 +13662,9 @@ void CvGameTextMgr::setBonusHelp(CvWStringBuffer &szBuffer, BonusTypes eBonus, b
 	{
 		szBuffer.append(CvWString::format( SETCOLR L"%s" ENDCOLR , TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), GC.getBonusInfo(eBonus).getDescription()));
 
-		if (NO_PLAYER != GC.getGameINLINE().getActivePlayer())
+		if (NO_PLAYER != eActivePlayer)
 		{
-			CvPlayer& kActivePlayer = GET_PLAYER(GC.getGameINLINE().getActivePlayer());
+			CvPlayer& kActivePlayer = GET_PLAYER(eActivePlayer);
 
 			// K-Mod. Bonuses now display "(Obsolete)" instead of "(player has 0)" when the bonus is obsolete.
 			if (GET_TEAM(kActivePlayer.getTeam()).isBonusObsolete(eBonus))
@@ -13681,7 +13713,8 @@ void CvGameTextMgr::setBonusHelp(CvWStringBuffer &szBuffer, BonusTypes eBonus, b
 	}
 
 	// K-Mod. Only display the perks of the bonus if it is not already obsolete
-	if (bCivilopediaText || GC.getGameINLINE().getActiveTeam() == NO_TEAM || !GET_TEAM(GC.getGameINLINE().getActiveTeam()).isBonusObsolete(eBonus))
+	if (bCivilopediaText || GC.getGameINLINE().getActiveTeam() == NO_TEAM ||
+			!GET_TEAM(GC.getGameINLINE().getActiveTeam()).isBonusObsolete(eBonus))
 	{
 		CivilizationTypes eCivilization = GC.getGameINLINE().getActiveCivilizationType();
 
@@ -13722,6 +13755,28 @@ void CvGameTextMgr::setBonusHelp(CvWStringBuffer &szBuffer, BonusTypes eBonus, b
 			szBuffer.append(GC.getBonusInfo(eBonus).getHelp());
 		}
 	}
+// BULL - Trade Denial - start  (advc.073: refactored; getBugOptionBOOL check removed)
+	if (eTradePlayer != NO_PLAYER && eActivePlayer != NO_PLAYER)
+	{
+		TradeData item;
+		::setTradeItem(&item, TRADE_RESOURCES, eBonus);
+		if (GET_PLAYER(eTradePlayer).canTradeItem(eActivePlayer, item, false))
+		{
+			DenialTypes eDenial = GET_PLAYER(eTradePlayer).getTradeDenial(
+					eActivePlayer, item);
+			if (eDenial != NO_DENIAL
+					&& eDenial != DENIAL_JOKING) // advc.073
+			{
+				CvWString szTempBuffer;
+				szTempBuffer.Format(SETCOLR L"%s" ENDCOLR,
+						TEXT_COLOR("COLOR_NEGATIVE_TEXT"),
+						GC.getDenialInfo(eDenial).getDescription());
+				szBuffer.append(NEWLINE);
+				szBuffer.append(szTempBuffer);
+			}
+		}
+	}
+// BULL - Trade Denial - end
 }
 
 void CvGameTextMgr::setReligionHelp(CvWStringBuffer &szBuffer, ReligionTypes eReligion, bool bCivilopedia)

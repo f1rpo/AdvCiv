@@ -556,6 +556,10 @@ enum WidgetTypes					// Exposed to Python
 	// K-Mod end
 	WIDGET_RF_CIV_CHOICE, // advc.706
 	WIDGET_LH_GLANCE, // advc.152
+	// BULL - Trade Denial - start
+	WIDGET_PEDIA_JUMP_TO_BONUS_TRADE,
+	WIDGET_PEDIA_JUMP_TO_TECH_TRADE,
+	// BULL - Trade Denial - end
 
 #ifdef _USRDLL
 	NUM_WIDGET_TYPES

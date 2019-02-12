@@ -52,18 +52,19 @@
 			<option id="SpecialistActualEffects" key="Specialist Actual Effects" 
 					type="boolean" default="False"/> <!-- K-Mod added (this was unused, but missing) -->
 		</section>
-		
-		<section id="Tech">
+		<!-- advc.073: Don't need options for this; always enabled.
+			 advc.910 should cover SpedUpTechs (although it's not quite the same
+			 thing) -->
+		<!--section id="Tech">
 			<option id="SpedUpTechs" key="Sped Up Techs" 
 					type="boolean" default="False"/>
 			<option id="TechTradeDenial" key="Trade Denial" 
 					type="boolean" default="False"/>
-		</section>
-		
+		</section>	
 		<section id="Bonus">
 			<option id="BonusTradeDenial" key="Trade Denial" 
 					type="boolean" default="False"/>
-		</section>
+		</section-->
 		
 		
 		<section id="City Screen">
