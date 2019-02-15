@@ -357,9 +357,7 @@ class IconGrid_BUG:
 
 						szIcon_ID = self.rowName + str(rowIndex) + "_" + str(startIndex + offset)
 						if bDataFound:
-							self.screen.setImageButton(szIcon_ID,
-													   iconData.image, currentX - (iconData.size - 64) / 2, currentY - (iconData.size - 64) / 2, iconData.size, iconData.size, 
-													   iconData.widgetType, iconData.data1, iconData.data2)
+							self.screen.setImageButton(szIcon_ID, iconData.image, currentX - (iconData.size - 64) / 2, currentY - (iconData.size - 64) / 2, iconData.size, iconData.size, iconData.widgetType, iconData.data1, iconData.data2)
 						else:
 							self.screen.deleteWidget(szIcon_ID)
 						currentX += self.iconColWidth + self.colSpace
@@ -447,17 +445,14 @@ class IconGrid_BUG:
 					except:
 						bDataFound = False
 
-					if bDataFound:		
-						self.screen.setImageButton(self.rowName + str(rowIndex) + "_" + str(startIndex + offset), 
-												   iconData.image, currentX - (iconData.size - 64) / 2, currentY - (iconData.size - 64) / 2, iconData.size, iconData.size, 
-												   iconData.widgetType, iconData.data1, iconData.data2 )
+					if bDataFound:
+						self.screen.setImageButton(self.rowName + str(rowIndex) + "_" + str(startIndex + offset), iconData.image, currentX - (iconData.size - 64) / 2, currentY - (iconData.size - 64) / 2, iconData.size, iconData.size, iconData.widgetType, iconData.data1, iconData.data2 )
 					currentX += self.iconColWidth + self.colSpace
 
 				elif (self.columns[startIndex + offset] == GRID_MULTI_LIST_COLUMN):
 					self.screen.clearMultiList(self.rowName + str(rowIndex) + "_" + str(startIndex + offset))
 					for icon in rowData.cells[startIndex + offset].icons:
-						self.screen.appendMultiListButton( self.rowName + str(rowIndex) + "_" + str(startIndex + offset)
-														 , icon.image, 0, icon.widgetType, icon.data1, icon.data2, False )
+						self.screen.appendMultiListButton( self.rowName + str(rowIndex) + "_" + str(startIndex + offset), icon.image, 0, icon.widgetType, icon.data1, icon.data2, False )
 					currentX += self.multiListColWidth + self.colSpace
 
 				elif (self.columns[startIndex + offset] == GRID_TEXT_COLUMN):
@@ -513,8 +508,8 @@ class IconGrid_BUG:
 			
 			if ( rowData.message == "" ):
 				self.screen.attachLabel(self.rowName + str(rowIndex), self.rowName + str(rowIndex) + "NotConnected", "")
-			else:
-				text = "<font=%i>                              %s</font>" % (rowData.font, rowData.message)
+			else: # advc.073: Replaced 30 spaces (not sure if these are discarded or just really thin) with 10 tabs so that the message appears after the second column, which may now contain data. (Previously, this was the case for the sixth column.)
+				text = "<font=%i>\t\t\t\t\t\t\t\t\t\t%s</font>" % (rowData.font, rowData.message)
 				self.screen.attachLabel(self.rowName + str(rowIndex),
 										self.rowName + str(rowIndex) + "NotConnected",
 										text)
@@ -527,10 +522,14 @@ class IconGrid_BUG:
 		# width
 		availableWidth = self.width - self.scrollArrowSize - self.scrollSpace - self.minColSpace * (len(self.columns) - 1)
 		useColGroups = False
+		bBlankLabels = True # advc.004w
 		for colGroup in self.columnGroups:
 			if (colGroup.label != ""):
 				availableWidth -= self.groupBorder * 2
 				useColGroups = True
+				# <advc.004w>
+				if colGroup.label != " ":
+					bBlankLabels = False # </advc.004w>
 		
 		numMultiListCols = 0
 		for colIndex in range(len(self.columns)):
@@ -556,13 +555,19 @@ class IconGrid_BUG:
 		if (useColGroups):
 			self.colGroupHeight = self.groupTitleHeight + self.headerHeight + 8
 			self.headerY = self.yStart + self.groupTitleHeight + 3
+			# <advc.004w> I don't quite know what I'm doing here. I want the "tan" panels, but not the group headings.
+			if bBlankLabels:
+				self.headerY = self.yStart + 3
+				self.yStart = self.yStart - self.groupTitleHeight
+			# </advc.004w>
 			self.firstRowY = self.headerY + self.headerHeight + 7
 			availableHeight = self.height - self.colGroupHeight - 5
 			if (not self.showRowHeader):
 				self.firstRowY += 5
 				availableHeight -= 5
 		else:
-			self.colCroupHeight = 0
+			# advc.001: "group" was misspelled as "croup"
+			self.colGroupHeight = 0
 			self.headerY = self.yStart
 			self.firstRowY = self.headerY + self.headerHeight
 			availableHeight = self.height - self.headerHeight

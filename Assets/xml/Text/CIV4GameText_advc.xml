@@ -4166,6 +4166,32 @@
 		<Italian>[BOLD]Storia:[\BOLD][NEWLINE]</Italian>
 		<Spanish>[BOLD]Historia:[\BOLD][NEWLINE]</Spanish>
 	</TEXT>
+	<!-- Based on TXT_KEY_PEDIA_CATEGORY_BUILDING and _PROJECT in
+		 CIV4GameTextInfos_Objects.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_PEDIA_CATEGORY_BUILDING_PROJECT</Tag>
+		<English>Buildings and Projects</English>
+		<French>
+			<Text>B&#226;timents et Projets</Text>
+			<Gender>Male</Gender>
+			<Plural>1</Plural>
+		</French>
+		<German>
+			<Text>Geb&#228;ude und Projekte</Text>
+			<Gender>Male</Gender>
+			<Plural>1</Plural>
+		</German>
+		<Italian>
+			<Text>Edifici e Progetti</Text>
+			<Gender>Male</Gender>
+			<Plural>1</Plural>
+		</Italian>
+		<Spanish>
+			<Text>Edificios y Proyectos</Text>
+			<Gender>Male</Gender>
+			<Plural>1</Plural>
+		</Spanish>
+	</TEXT>
 
 	<!-- advc.106: Based on TXT_KEY_ERA_SPLASH_SCREEN in
 		 Civ4GameText_Misc1.xml. -->
@@ -4684,6 +4710,164 @@
 		<German>Friedensvertrag</German>
 		<Italian>Trattato di pace</Italian>
 		<Spanish>Tratado de paz</Spanish>
+	</TEXT>
+	
+	<!-- advc.036 -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_WILL_PAY</Tag>
+		<English>Will pay</English>
+		<French>Payera</French>
+		<German>Zahlt</German>
+		<Italian>Pagher&#224;</Italian>
+		<Spanish>Pagar&#225;</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_WILL_ASK</Tag>
+		<English>Will ask for</English>
+		<French>Demandera</French>
+		<German>Verlangt</German>
+		<Italian>Chieder&#224;</Italian>
+		<Spanish>Demandar&#225;</Spanish>
+	</TEXT>
+	
+	<!-- advc.004w: Based on TXT_KEY_BONUS_AVAILABLE_PLAYER
+		 (CIV4GameText_BTS.xml).  -->
+	<TEXT>
+		<Tag>TXT_KEY_BONUS_AVAILABLE_US</Tag>
+		<English>[SPACE](we have %d1_num_bonus)[SPACE]</English>
+		<French>[SPACE](nous avons %d1_num_bonus)[SPACE]</French>
+		<German>[SPACE](wir haben %d1_num_bonus)[SPACE]</German>
+		<Italian>[SPACE](possediamo %d1_num_bonus)[SPACE]</Italian>
+		<Spanish>[SPACE](tenemos %d1_num_bonus)[SPACE]</Spanish>
+	</TEXT>
+	<!-- Using the production icon for building production is a bit irregular,
+		 but nicely compact. If this is still too verbose, one could also
+		 put all buildings in one line through the ::setListHelp function.
+		 Translations for speed:
+		 vitesse de [ICON_PRODUCTION]
+		 [ICON_PRODUCTION]-Geschwindigkeit
+		 velocit&#224; di [ICON_PRODUCTION]
+		 velocidad de [ICON_PRODUCTION] -->
+	<TEXT>
+		<Tag>TXT_KEY_BONUS_SPEED_FOR</Tag>
+		<English>[ICON_PRODUCTION] for [LINK=literal]%s1_Building[\LINK]</English>
+		<French>[ICON_PRODUCTION] pour [LINK=literal]%s1_Building[\LINK]</French>
+		<German>[ICON_PRODUCTION]: [LINK=literal]%s1_Bonus[\LINK]</German>
+		<Italian>[ICON_PRODUCTION] per [LINK=literal]%s1_Bonus[\LINK]</Italian>
+		<Spanish>[ICON_PRODUCTION] por [LINK=literal]%s1_Bonus[\LINK]</Spanish>
+	</TEXT>
+
+	<!-- advc.073: Akin to TXT_KEY_MORECIV4LERTS_NEW_SALE in
+		 MoreCiv4lerts_CIV4GameText.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_WILL_IMPORT</Tag>
+		<English>Will import</English>
+		<French>Prospects[SPACE]</French>
+		<German>Interessenten</German>
+		<Italian>Importer&#224;</Italian>
+		<Spanish>Importar&#225;</Spanish>
+	</TEXT>
+	<!-- From CIV4GameText_BTS.xml -->
+	<!-- Was "Foreign Trade" and "Außenhandel" in German; that sounds too much
+		 like trade route profits. -->
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_TRADE_TABLE</Tag>
+		<English>Resource Trades</English>
+		<French>Commerce ext&#233;rieur</French>
+		<German>Ressourcenhandel</German>
+		<Italian>Commercio estero</Italian>
+		<Spanish>Intercambio extranjero</Spanish>
+	</TEXT>
+	<!-- Based on TXT_KEY_FOREIGN_ADVISOR_FOR_TRADE_2 and _NOT_FOR_TRADE_2
+		 (and replacing those keys on the Resources tab) -->
+	<!-- Translations not the same as TXT_KEY_MISC_WILL_IMPORT above (which has
+		 a quite different use).
+		 German sounds a little infantile now, but it needs to be brief. -->
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_WILL_IMPORT</Tag>
+		<English>Will Import</English>
+		<French>Importera</French>
+		<German>Will haben</German>
+		<Italian>Importer&#224;</Italian>
+		<Spanish>Importar&#225;</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_WILL_NOT_IMPORT</Tag>
+		<English>Won't Import</English>
+		<French>N'importera</French>
+		<German>Will nicht</German>
+		<Italian>Non importer&#224;</Italian>
+		<Spanish>No importar&#225;</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_WILL_EXPORT</Tag>
+		<English>Will Export</English>
+		<French>Exportera</French>
+		<German>Will geben</German>
+		<Italian>Esporter&#224;</Italian>
+		<Spanish>Exportar&#225;</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_WILL_NOT_EXPORT</Tag>
+		<English>Won't Export</English>
+		<French>N'exportera</French>
+		<German>Gibt nicht</German>
+		<Italian>Non esporter&#224;</Italian>
+		<Spanish>No exportar&#225;</Spanish>
+	</TEXT>
+	<!-- Based on TXT_KEY_FOREIGN_ADVISOR_EXPORT and _IMPORT. -->
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_EXPORTING</Tag>
+		<English>Exporting</English>
+		<French>Exportant</French>
+		<German>Wir erhalten</German>
+		<Italian>Esportando</Italian>
+		<Spanish>Exportando</Spanish>
+	</TEXT>
+	<!-- French translation is probably confusing -->
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_IMPORTING</Tag>
+		<English>Importing</English>
+		<French>Important</French>
+		<German>Wir liefern</German>
+		<Italian>Importando</Italian>
+		<Spanish>Importando</Spanish>
+	</TEXT>
+	<!-- To replace the group headings, but I've actually disabled these now,
+		 so: unused. -->
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_EXPORT</Tag>
+		<English>Takers</English>
+		<French>Exporter</French>
+		<German>Interessenten</German>
+		<Italian>Esportazione</Italian>
+		<Spanish>Exportar</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_IMPORT</Tag>
+		<English>Suppliers</English>
+		<French>Importer</French>
+		<German>Anbieter</German>
+		<Italian>Importazione</Italian>
+		<Spanish>Importar</Spanish>
+	</TEXT>
+	<!-- New label for the surplus box -->
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_SURPLUS_RESOURCES</Tag>
+		<English>Domestic Resources</English>
+		<French>Ressources domestiques</French>
+		<German>Verfügbare Ressourcen</German>
+		<Italian>Risorse disponibile</Italian>
+		<Spanish>Recursos disponibles</Spanish>
+	</TEXT>
+	<!-- New heading for a new column -->
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_NO_NEED</Tag>
+		<English>We Don't Need</English>
+		<French>Nul besoin</French>
+		<German>Kein Bedarf</German>
+		<Italian>Nessun bisogno</Italian>
+		<Spanish>No necesitamos</Spanish>
 	</TEXT>
 	
 </Civ4GameText>

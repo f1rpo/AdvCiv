@@ -432,7 +432,7 @@ std::pair<int,int> CvArea::countOwnedUnownedHabitableTiles(bool bIgnoreBarb) con
 
 	std::pair<int,int> r;
 	r.first = 0; r.second = 0;
-	CvMap const& map = GC.getMap();
+	CvMap const& map = GC.getMapINLINE();
 	for(int i = 0; i < map.numPlots(); i++) {
 		CvPlot* plot = map.plotByIndexINLINE(i);
 		if(plot == NULL || plot->area() == NULL || plot->area()->getID() != getID()
@@ -555,7 +555,7 @@ int CvArea::getCitiesPerPlayer(PlayerTypes eIndex,
 		from so many places that I can't check if one of them might have a problem
 		with water areas having a positive city count. */
 	if(!bCheckAdjacentCoast && isWater())
-		return false; // </advc.030b>
+		return 0; // </advc.030b>
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be >= 0");
 	FAssertMsg(eIndex < MAX_PLAYERS, "eIndex is expected to be < MAX_PLAYERS");
 	return m_aiCitiesPerPlayer[eIndex];

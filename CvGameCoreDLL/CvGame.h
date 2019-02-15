@@ -255,24 +255,25 @@ public:
 	void setAIAutoPlayBulk(int iNewValue, bool changePlayerStatus = true);
 	void changeAIAutoPlay(int iChange,
 			bool changePlayerStatus = true); // advc.127
-/*
-** K-mod, 6/dec/10, karadoc
-*/
-	int getGlobalWarmingIndex() const;								// Exposed to Python
+	// <advc.003b>
+	int getCivPlayersEverAlive() const;
+	void changeCivPlayersEverAlive(int iChange);
+	int getCivTeamsEverAlive() const;
+	void changeCivTeamsEverAlive(int iChange);
+	// </advc.003b>
+	// K-mod, 6/dec/10, karadoc
+	int getGlobalWarmingIndex() const;													// Exposed to Python
 	void setGlobalWarmingIndex(int iNewValue);
 	void changeGlobalWarmingIndex(int iChange);
-	int getGlobalWarmingChances() const;							// Exposed to Python
-	int getGwEventTally() const;							// Exposed to Python
+	int getGlobalWarmingChances() const;																// Exposed to Python
+	int getGwEventTally() const;																	// Exposed to Python
 	void setGwEventTally(int iNewValue);
 	void changeGwEventTally(int iChange);
-
 	int calculateGlobalPollution() const; // Exposed to Python
-	int calculateGwLandDefence(PlayerTypes ePlayer = NO_PLAYER /* global */) const; // Exposed to Python
-	int calculateGwSustainabilityThreshold(PlayerTypes ePlayer = NO_PLAYER /* global */) const; // Exposed to Python
+	int calculateGwLandDefence(PlayerTypes ePlayer = NO_PLAYER /* global */) const;							// Exposed to Python
+	int calculateGwSustainabilityThreshold(PlayerTypes ePlayer = NO_PLAYER /* global */) const;			// Exposed to Python
 	int calculateGwSeverityRating() const; // Exposed to Python
-/*
-** K-mod end
-*/
+	//K-mod end
 
 	unsigned int getInitialTime();
 	DllExport void setInitialTime(unsigned int uiNewValue);
@@ -386,6 +387,8 @@ public:
 
 	bool isForcedControl(ForceControlTypes eIndex) const;												// Exposed to Python
 	DllExport void setForceControl(ForceControlTypes eIndex, bool bEnabled);
+	// advc.003:
+	bool canConstruct(BuildingTypes eBuilding, bool bIgnoreCost, bool bTestVisible) const;
 
 	int getUnitCreatedCount(UnitTypes eIndex) const; // Exposed to Python
 	void incrementUnitCreatedCount(UnitTypes eIndex);
@@ -413,11 +416,11 @@ public:
 
 	bool isVictoryValid(VictoryTypes eIndex) const;															// Exposed to Python
 	void setVictoryValid(VictoryTypes eIndex, bool bValid);
-
-	bool isSpecialUnitValid(SpecialUnitTypes eIndex);														// Exposed to Python  
+												// advc.003: const
+	bool isSpecialUnitValid(SpecialUnitTypes eIndex) const;														// Exposed to Python  
 	void makeSpecialUnitValid(SpecialUnitTypes eIndex);													// Exposed to Python
-
-	bool isSpecialBuildingValid(SpecialBuildingTypes eIndex);										// Exposed to Python
+												// advc.003: const
+	bool isSpecialBuildingValid(SpecialBuildingTypes eIndex) const;										// Exposed to Python
 	void makeSpecialBuildingValid(SpecialBuildingTypes eIndex, bool bAnnounce = false);									// Exposed to Python
 
 	bool isNukesValid() const;														// Exposed to Python  
@@ -464,6 +467,8 @@ public:
 	DllExport int getIndexAfterLastDeal();																								// Exposed to Python	
 	int getNumDeals();																													// Exposed to Python	
 	DllExport CvDeal* getDeal(int iID);																										// Exposed to Python	
+	// advc.003f: Inlined, but mainly I want a const version of the DLLExport above.
+	CvDeal* getDealINLINE(int iID) const { return m_deals.getAt(iID); }
 	CvDeal* addDeal();																													
 	void deleteDeal(int iID);																										
 	// iteration (advc.003: const)																																					
@@ -682,7 +687,10 @@ protected:
 	int m_iGwEventTally;		// K-Mod
 	int m_iTurnLoadedFromSave; // advc.044
 	int m_iNormalizationLevel; // advc.108
-
+	// <advc.003b>
+	int m_iCivPlayersEverAlive;
+	int m_iCivTeamsEverAlive;
+	// </advc.003b>
 	unsigned int m_uiInitialTime;
 
 	bool m_bScoreDirty;
@@ -700,6 +708,7 @@ protected:
 	bool m_bResourceLayerSet; // advc.003d
 	bool m_bFeignSP; // advc.135c
 	bool m_bScenario; // advc.052
+	bool m_bAllGameDataRead; // advc.003
 
 	HandicapTypes m_eHandicap;
 	HandicapTypes m_eAIHandicap; // advc.127

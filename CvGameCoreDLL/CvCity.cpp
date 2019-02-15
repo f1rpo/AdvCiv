@@ -2024,28 +2024,23 @@ bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool b
 		bool bCheckAirUnitCap, // advc.001b
 		BonusTypes eAssumeAvailable) const // advc.001u
 {
-	if (eUnit == NO_UNIT)
-	{
-		return false;
-	}
+	PROFILE_FUNC(); // advc.003b
 
-	if(GC.getUSE_CAN_TRAIN_CALLBACK())
-	{
+	if(eUnit == NO_UNIT)
+		return false;
+
+	if(GC.getUSE_CAN_TRAIN_CALLBACK()) {
 		CyCity* pyCity = new CyCity((CvCity*)this);
 		CyArgsList argsList;
-		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
+		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));
 		argsList.add(eUnit);
-		argsList.add(bContinue);
-		argsList.add(bTestVisible);
-		argsList.add(bIgnoreCost);
-		argsList.add(bIgnoreUpgrades);
+		argsList.add(bContinue); argsList.add(bTestVisible);
+		argsList.add(bIgnoreCost); argsList.add(bIgnoreUpgrades);
 		long lResult=0;
 		gDLL->getPythonIFace()->callFunction(PYGameModule, "canTrain", argsList.makeFunctionArgs(), &lResult);
-		delete pyCity;	// python fxn must not hold on to this pointer 
+		delete pyCity;
 		if (lResult == 1)
-		{
 			return true;
-		}
 	}
 	/*  <advc.041> Don't allow any ships to be trained at lakes, except
 		Work Boat if there are resources in the lake. */
@@ -2053,10 +2048,9 @@ bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool b
 	if(u.getDomainType() == DOMAIN_SEA && !isCoastal() &&
 			(!u.isPrereqBonuses() || !isPrereqBonusSea()))
 		return false; // </advc.041>
-	if (!GET_PLAYER(getOwnerINLINE()).canTrain(eUnit, bContinue, bTestVisible, bIgnoreCost))
-	{
+
+	if(!GET_PLAYER(getOwnerINLINE()).canTrain(eUnit, bContinue, bTestVisible, bIgnoreCost))
 		return false;
-	}
 
 	if(!plot()->canTrain(eUnit, bContinue, bTestVisible,
 			bCheckAirUnitCap, // advc.001b
@@ -2119,7 +2113,6 @@ bool CvCity::canTrain(UnitCombatTypes eUnitCombat) const
 bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
 		bool bTestVisible, bool bIgnoreCost, bool bIgnoreTech) const
 {
-	PROFILE_FUNC();//advc.tmp
 	if(eBuilding == NO_BUILDING)
 		return false;
 
@@ -2141,6 +2134,7 @@ bool CvCity::canConstruct(BuildingTypes eBuilding, bool bContinue,
 
 	if(getNumBuilding(eBuilding) >= GC.getCITY_MAX_NUM_BUILDINGS())
 		return false;
+
 	CvBuildingInfo const& bi = GC.getBuildingInfo(eBuilding);
 	if( bi.isPrereqReligion())
 	{
@@ -4197,11 +4191,26 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 				changeBaseGreatPeopleRate(b.getGreatPeopleRateChange() * iChange);
 			}
 		}
-
-		GET_TEAM(getTeam()).changeBuildingClassCount((BuildingClassTypes)b.getBuildingClassType(), iChange);
-		GET_PLAYER(getOwnerINLINE()).changeBuildingClassCount((BuildingClassTypes)b.getBuildingClassType(), iChange);
+		BuildingClassTypes eBuildingClass = (BuildingClassTypes)b.getBuildingClassType();
+		GET_TEAM(getTeam()).changeBuildingClassCount(eBuildingClass, iChange);
+		GET_PLAYER(getOwnerINLINE()).changeBuildingClassCount(eBuildingClass, iChange);
 
 		GET_PLAYER(getOwnerINLINE()).changeWondersScore(getWonderScore((BuildingClassTypes)(b.getBuildingClassType())) * iChange);
+		// <advc.004w>
+		if(GC.getGameINLINE().isResourceLayer()) {
+			// Update text of resource indicators (CvGameTextMgr::setBonusExtraHelp)
+			PlayerTypes eDirtyPlayer = NO_PLAYER;
+			if(::isNationalWonderClass(eBuildingClass) &&
+					getOwnerINLINE() == GC.getGameINLINE().getActivePlayer())
+				eDirtyPlayer = getOwnerINLINE();
+			else if(::isWorldWonderClass(eBuildingClass))
+				eDirtyPlayer = GC.getGameINLINE().getActivePlayer();
+			if(eDirtyPlayer != NO_PLAYER) {
+				gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
+				// advc.003p:
+				GET_PLAYER(getOwnerINLINE()).setBonusHelpDirty();
+			}
+		} // </advc.004w>
 	}
 
 	updateBuildingCommerce();
@@ -12033,7 +12042,14 @@ void CvCity::setHasReligion(ReligionTypes eIndex, bool bNewValue, bool bAnnounce
 								pInfo->setData1(eIndex);
 								gDLL->getInterfaceIFace()->addPopup(pInfo, getOwnerINLINE());
 							}
-						}
+						} /* <advc.004w> Update text of resource indicators
+							 (CvGameTextMgr::setBonusExtraHelp) */
+						if(getOwnerINLINE() == GC.getGameINLINE().getActivePlayer() &&
+								GC.getGameINLINE().isResourceLayer()) {
+							gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
+							// advc.003p:
+							GET_PLAYER(getOwnerINLINE()).setBonusHelpDirty();
+						} // </advc.004w>
 					}
 				}
 			}
@@ -12891,7 +12907,6 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      10/02/09                                jdog5000      */
-/*                                                                                              */
 /* AI logging                                                                                   */
 /************************************************************************************************/
 			if( gCityLogLevel >= 1 )

@@ -1441,7 +1441,7 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan) const
 
 		if (iRankHate > 0)
 		{
-			int iTotalTeams = GC.getGameINLINE().countCivTeamsEverAlive();
+			int iTotalTeams = GC.getGameINLINE().getCivTeamsEverAlive();
 			iDenyFactor += (100 - AI_getAttitudeWeight(eTarget)) * (iRankHate * iRankDelta + (iTotalTeams+1)/2) / std::max(1, 8*(iTotalTeams + 1)*getAliveCount());
 			// that's a max of around 200 * 3 / 8. ~ 75
 		}
@@ -2320,8 +2320,8 @@ DenialTypes CvTeamAI::AI_techTrade(TechTypes eTech, TeamTypes eTeam) const
 
 	if (eAttitude < ATTITUDE_FRIENDLY)
 	{
-		if ((GC.getGameINLINE().getTeamRank(getID()) < (GC.getGameINLINE().countCivTeamsEverAlive() / 2)) ||
-			(GC.getGameINLINE().getTeamRank(eTeam) < (GC.getGameINLINE().countCivTeamsEverAlive() / 2)))
+		if ((GC.getGameINLINE().getTeamRank(getID()) < (GC.getGameINLINE().getCivTeamsEverAlive() / 2)) ||
+			(GC.getGameINLINE().getTeamRank(eTeam) < (GC.getGameINLINE().getCivTeamsEverAlive() / 2)))
 		{
 			int iNoTechTradeThreshold = AI_noTechTradeThreshold();
 

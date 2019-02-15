@@ -5952,46 +5952,46 @@ BonusTypes CvPlot::getNonObsoleteBonusType(TeamTypes eTeam, bool bCheckConnected
 
 void CvPlot::setBonusType(BonusTypes eNewValue)
 {
-	if (getBonusType() != eNewValue)
+	if(getBonusType() == eNewValue)
+		return; // advc.003
+
+	if (getBonusType() != NO_BONUS)
 	{
-		if (getBonusType() != NO_BONUS)
+		if (area())
 		{
-			if (area())
-			{
-				area()->changeNumBonuses(getBonusType(), -1);
-			}
-			GC.getMapINLINE().changeNumBonuses(getBonusType(), -1);
-
-			if (!isWater())
-			{
-				GC.getMapINLINE().changeNumBonusesOnLand(getBonusType(), -1);
-			}
+			area()->changeNumBonuses(getBonusType(), -1);
 		}
+		GC.getMapINLINE().changeNumBonuses(getBonusType(), -1);
 
-		updatePlotGroupBonus(false);
-		m_eBonusType = eNewValue;
-		updatePlotGroupBonus(true);
-
-		if (getBonusType() != NO_BONUS)
+		if (!isWater())
 		{
-			if (area())
-			{
-				area()->changeNumBonuses(getBonusType(), 1);
-			}
-			GC.getMapINLINE().changeNumBonuses(getBonusType(), 1);
-
-			if (!isWater())
-			{
-				GC.getMapINLINE().changeNumBonusesOnLand(getBonusType(), 1);
-			}
+			GC.getMapINLINE().changeNumBonusesOnLand(getBonusType(), -1);
 		}
-
-		updateYield();
-
-		setLayoutDirty(true);
-		
-		gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
 	}
+
+	updatePlotGroupBonus(false);
+	m_eBonusType = eNewValue;
+	updatePlotGroupBonus(true);
+
+	if (getBonusType() != NO_BONUS)
+	{
+		if (area())
+		{
+			area()->changeNumBonuses(getBonusType(), 1);
+		}
+		GC.getMapINLINE().changeNumBonuses(getBonusType(), 1);
+
+		if (!isWater())
+		{
+			GC.getMapINLINE().changeNumBonusesOnLand(getBonusType(), 1);
+		}
+	}
+
+	updateYield();
+
+	setLayoutDirty(true);
+
+	gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
 }
 
 

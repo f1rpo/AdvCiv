@@ -123,10 +123,14 @@ public:
 	bool setResumableValueTimes100ChangeHelp(CvWStringBuffer &szBuffer, const CvWString& szStart, const CvWString& szSpace, const CvWString& szEnd, int iValue, int iSymbol, bool bNewLine = false, bool bStarted = false);
 // BUG - Resumable Value Change Help - end
 	void setBonusHelp(CvWStringBuffer &szBuffer, BonusTypes eBonus, bool bCivilopediaText = false);
-// BULL - Trade Denial - start
+// BULL - Trade Denial - start  (advc.073: param bImport added)
 	void setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBonus,
-			bool bCivilopediaText, PlayerTypes eTradePlayer);
+			bool bCivilopediaText, PlayerTypes eTradePlayer, bool bImport);
 // BULL - Trade Denial - end
+	// <advc.004w>
+	void setBonusExtraHelp(CvWStringBuffer &szBuffer, BonusTypes eBonus,
+			bool bCivilopediaText, PlayerTypes eTradePlayer, bool bDiplo);
+	// </advc.004w>
 	void setReligionHelp(CvWStringBuffer &szBuffer, ReligionTypes eReligion, bool bCivilopedia = false);
 	void setReligionHelpCity(CvWStringBuffer &szBuffer, ReligionTypes eReligion, CvCity *pCity, bool bCityScreen = false, bool bForceReligion = false, bool bForceState = false, bool bNoStateReligion = false);
 	void setCorporationHelp(CvWStringBuffer &szBuffer, CorporationTypes eCorporation, bool bCivilopedia = false);

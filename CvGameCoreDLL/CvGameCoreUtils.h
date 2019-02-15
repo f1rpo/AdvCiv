@@ -78,6 +78,8 @@ template<typename T> void removeDuplicates(std::vector<T>& v) {
 	std::set<T> aeTmp(v.begin(), v.end());
 	v.assign(aeTmp.begin(), aeTmp.end());
 } // </advc.130h>
+// advc.004w:
+void applyColorToString(CvWString& s, char const* szColor, bool bLink = false);
 
 //sign function taken from FirePlace - JW
 template<class T> __forceinline T getSign( T x ) { return (( x < 0 ) ? T(-1) : x > 0 ? T(1) : T(0)); };

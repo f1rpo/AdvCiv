@@ -529,7 +529,7 @@ public:
 	// advc.038: returns int b/c I'm not sure if double would cause problems
 	int estimateYieldRate(YieldTypes yield) const;
 	void checkAlert(int alertId, bool silent); // advc.210
-	int AI_corporationBonusVal(int eBonus) const; // advc.210e
+	int AI_corporationBonusVal(int eBonus) const; // advc.210e, advc.073
 
 private:
 	CvPlayer* m_pPlayer;

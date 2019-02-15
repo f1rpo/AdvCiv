@@ -985,7 +985,7 @@ int CvMap::maxPlotDistance() const
 	//return std::max(1, plotDistance(0, 0, ((isWrapXINLINE()) ? (getGridWidthINLINE() / 2) : (getGridWidthINLINE() - 1)), ((isWrapYINLINE()) ? (getGridHeightINLINE() / 2) : (getGridHeightINLINE() - 1))));
 	CvGame const& g = GC.getGameINLINE();
 	CvWorldInfo const& w = GC.getWorldInfo(worldSize());
-	double civRatio = g.getRecommendedPlayers() / (double)g.countCivPlayersEverAlive();
+	double civRatio = g.getRecommendedPlayers() / (double)g.getCivPlayersEverAlive();
 	double seaLvlModifier = (100 - 5 * g.getSeaLevelChange()) / 100.0;
 	int wraps = -1; // 0 if cylindrical (1 wrap), -1 flat, +1 toroidical
 	if(isWrapXINLINE())

@@ -103,6 +103,7 @@ void CvGame::init(HandicapTypes eHandicap)
 	//--------------------------------
 	// Init non-saved data
 
+	m_bAllGameDataRead = true; // advc.003: Not loading from savegame
 	// <advc.108>
 	m_iNormalizationLevel = GC.getDefineINT("NORMALIZE_STARTPLOTS_AGGRESSIVELY") > 0 ?
 			3 : 1;
@@ -227,7 +228,7 @@ void CvGame::init(HandicapTypes eHandicap)
 void CvGame::setInitialItems()
 {
 	PROFILE_FUNC();
-	int nAI = 0; // advc.250b: Just for disabling SPaH in game w/o any AI civs
+	int iAI = 0; // advc.250b: Just for disabling SPaH in game w/o any AI civs
 	// K-Mod: Adjust the game handicap level to be the average of all the human player's handicap.
 	// (Note: in the original bts rules, it would always set to Nobel if the humans had different handicaps)
 	//if (isGameMultiPlayer()) // advc.250b: Check moved down
@@ -244,7 +245,7 @@ void CvGame::setInitialItems()
 		// <advc.250b>
 		else if(GET_PLAYER(i).isAlive() && i != BARBARIAN_PLAYER &&
 				!GET_PLAYER(i).isMinorCiv())
-			nAI++; // </advc.250b>
+			iAI++; // </advc.250b>
 	}
 	if (isGameMultiPlayer()) {
 		if (iHumanPlayers > 0) {
@@ -284,7 +285,7 @@ void CvGame::setInitialItems()
 		m_eAIHandicap = (HandicapTypes)::round(iHandicapSum / (double)iDiv);
 	// </advc.127>
 	// <advc.250b>
-	if(!isOption(GAMEOPTION_ADVANCED_START) || nAI == 0)
+	if(!isOption(GAMEOPTION_ADVANCED_START) || iAI == 0)
 		setOption(GAMEOPTION_SPAH, false);
 	if(isOption(GAMEOPTION_SPAH))
 		// Reassigns start plots and start points
@@ -585,6 +586,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	//--------------------------------
 	// Uninit class
 	uninit();
+	m_bAllGameDataRead = false; // advc.003;
 
 	m_iElapsedGameTurns = 0;
 	m_iStartTurn = 0;
@@ -610,7 +612,10 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	m_iAIAutoPlay = 0;
 	m_iGlobalWarmingIndex = 0;// K-Mod
 	m_iGwEventTally = -1; // K-Mod (-1 means Gw tally has not been activated yet)
-
+	// <advc.003b>
+	m_iCivPlayersEverAlive = 0;
+	m_iCivTeamsEverAlive = 0;
+	// </advc.003b>
 	m_uiInitialTime = 0;
 
 	m_bScoreDirty = false;
@@ -842,13 +847,12 @@ void CvGame::initDiplomacy()
 
 void CvGame::initFreeState()
 {
-	int iI, iJ, iK;
 	if(GC.getInitCore().isScenario()) {
 		setScenario(true); // advc.052
 		AI().AI_initScenario(); // advc.104u
 	}
 	else { // advc.051: (Moved up.) Don't force 0 gold in scenarios.
-		for (iI = 0; iI < MAX_PLAYERS; iI++)
+		for (int iI = 0; iI < MAX_PLAYERS; iI++)
 		{
 			if (GET_PLAYER((PlayerTypes)iI).isAlive())
 			{
@@ -856,9 +860,9 @@ void CvGame::initFreeState()
 			}
 		}
 	}
-	for (iI = 0; iI < GC.getNumTechInfos(); iI++)
+	for (int iI = 0; iI < GC.getNumTechInfos(); iI++)
 	{
-		for (iJ = 0; iJ < MAX_TEAMS; iJ++)
+		for (int iJ = 0; iJ < MAX_TEAMS; iJ++)
 		{	// <advc.003>
 			if(!GET_TEAM((TeamTypes)iJ).isAlive())
 				continue; // </advc.003>
@@ -875,7 +879,7 @@ void CvGame::initFreeState()
 					(GC.getTechInfo((TechTypes)iI).getEra() < getStartEra()))
 				bValid = true;
 			if (!bValid) {
-				for (iK = 0; iK < MAX_PLAYERS; iK++)
+				for (int iK = 0; iK < MAX_PLAYERS; iK++)
 				{
 					CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iK); // K-Mod
 					// <advc.003>
@@ -3198,7 +3202,7 @@ int CvGame::getAdjustedLandPercent(VictoryTypes eVictory) const
 
 	iPercent = GC.getVictoryInfo(eVictory).getLandPercent();
 
-	iPercent -= (countCivTeamsEverAlive() * 2);
+	iPercent -= (getCivTeamsEverAlive() * 2);
 
 	return std::max(iPercent, GC.getVictoryInfo(eVictory).getMinLandPercent());
 }
@@ -3485,7 +3489,8 @@ int CvGame::countCivPlayersAlive() const
 
 
 int CvGame::countCivPlayersEverAlive() const
-{
+{	// advc.003b:
+	FAssertMsg(!m_bAllGameDataRead, "Should use getCivPlayersEverAlive instead");
 	int iCount = 0;
 
 	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
@@ -3521,7 +3526,8 @@ int CvGame::countCivTeamsAlive() const
 
 
 int CvGame::countCivTeamsEverAlive() const
-{
+{	// advc.003b:
+	FAssertMsg(!m_bAllGameDataRead, "Should use getCivTeamsEverAlive instead");
 	std::set<int> setTeamsEverAlive;
 
 	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
@@ -4607,17 +4613,47 @@ void CvGame::setAIAutoPlayBulk(int iNewValue, bool changePlayerStatus)
 }
 
 
-void CvGame::changeAIAutoPlay(int iChange
-		, bool changePlayerStatus) // advc.127
+void CvGame::changeAIAutoPlay(int iChange,
+		bool changePlayerStatus) // advc.127
 {
 	setAIAutoPlayBulk(getAIAutoPlay() + iChange,
 			changePlayerStatus); // advc.127
 }
 
-/*
-** K-mod, 6/dec/10, karadoc
-** 18/dec/10 - added Gw calc functions
-*/
+// <advc.003b>
+int CvGame::getCivPlayersEverAlive() const {
+
+	// Could pose a savegame compatibility problem (uiFlag<4)
+	FAssert(m_bAllGameDataRead);
+	return m_iCivPlayersEverAlive;
+}
+
+void CvGame::changeCivPlayersEverAlive(int iChange) {
+
+	m_iCivPlayersEverAlive += iChange;
+	/*  iChange normally shouldn't be negative, but liberated civs aren't supposed
+		to count, and they're set to 'alive' before getting marked as liberated
+		(CvPlayer::setParent), so they need to be subtracted once setParent is called. */
+	FAssert(m_iCivPlayersEverAlive >= 0);
+	FAssert(m_iCivPlayersEverAlive <= MAX_CIV_PLAYERS);
+}
+
+int CvGame::getCivTeamsEverAlive() const {
+
+	// Could pose a savegame compatibility problem (uiFlag<4)
+	FAssert(m_bAllGameDataRead);
+	return m_iCivTeamsEverAlive;
+}
+
+void CvGame::changeCivTeamsEverAlive(int iChange) {
+
+	m_iCivTeamsEverAlive += iChange;
+	FAssert(m_iCivTeamsEverAlive >= 0);
+	FAssert(m_iCivTeamsEverAlive <= MAX_CIV_PLAYERS);
+} // </advc.003b>
+
+/*  K-mod, 6/dec/10, karadoc
+	18/dec/10 - added Gw calc functions */
 int CvGame::getGlobalWarmingIndex() const
 {
 	return m_iGlobalWarmingIndex;
@@ -5462,7 +5498,11 @@ void CvGame::updateActiveVisibility() {
 		gDLL->getInterfaceIFace()->setDirty(UnitInfo_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(Flag_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
-
+		// <advc.003p>
+		if(getActivePlayer() != NO_PLAYER)
+			GET_PLAYER(getActivePlayer()).setBonusHelpDirty();
+		FAssert(getActivePlayer() != NO_PLAYER);
+		// </advc.003p>
 		gDLL->getEngineIFace()->SetDirty(CultureBorders_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(BlockadedPlots_DIRTY_BIT, true);
 }
@@ -5842,6 +5882,51 @@ void CvGame::setForceControl(ForceControlTypes eIndex, bool bEnabled)
 	GC.getInitCore().setForceControl(eIndex, bEnabled);
 }
 
+// <advc.003> Mostly cut from CvPlayer::canConstruct
+bool CvGame::canConstruct(BuildingTypes eBuilding, bool bIgnoreCost, bool bTestVisible) const {
+
+	if(!bIgnoreCost && GC.getBuildingInfo(eBuilding).getProductionCost() == -1)
+		return false;
+
+	if(getCivTeamsEverAlive() < GC.getBuildingInfo(eBuilding).getNumTeamsPrereq())
+		return false;
+
+	VictoryTypes ePrereqVict = (VictoryTypes)GC.getBuildingInfo(eBuilding).
+			getVictoryPrereq();
+	if(ePrereqVict != NO_VICTORY && !isVictoryValid(ePrereqVict))
+		return false;
+
+	int iMaxStartEra = GC.getBuildingInfo(eBuilding).getMaxStartEra();
+	if(iMaxStartEra != NO_ERA && getStartEra() > iMaxStartEra)
+		return false;
+
+	if(isBuildingClassMaxedOut((BuildingClassTypes)
+			(GC.getBuildingInfo(eBuilding).getBuildingClassType())))
+		return false;
+
+	if(bTestVisible)
+		return true;
+
+	if(isNoNukes() && GC.getBuildingInfo(eBuilding).isAllowsNukes()) {
+		return false;
+		// What the original code did:
+		/*for(int i = 0; i < GC.getNumUnitInfos(); i++) {
+			if (GC.getUnitInfo((UnitTypes)i).getNukeRange() != -1)
+				return false;
+		}*/
+	}
+
+	SpecialBuildingTypes eSpecial = (SpecialBuildingTypes)GC.getBuildingInfo(eBuilding).
+			getSpecialBuildingType();
+	if(eSpecial != NO_SPECIALBUILDING && !isSpecialBuildingValid(eSpecial))
+		return false;
+
+	if(getNumCities() < GC.getBuildingInfo(eBuilding).getNumCitiesPrereq())
+		return false;
+
+	return true;
+} // </advc.003>
+
 
 int CvGame::getUnitCreatedCount(UnitTypes eIndex) const
 {
@@ -6140,7 +6225,7 @@ void CvGame::setVictoryValid(VictoryTypes eIndex, bool bValid)
 }
 
 
-bool CvGame::isSpecialUnitValid(SpecialUnitTypes eIndex)
+bool CvGame::isSpecialUnitValid(SpecialUnitTypes eIndex) const
 {
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < GC.getNumSpecialUnitInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
@@ -6156,7 +6241,7 @@ void CvGame::makeSpecialUnitValid(SpecialUnitTypes eIndex)
 }
 
 
-bool CvGame::isSpecialBuildingValid(SpecialBuildingTypes eIndex)
+bool CvGame::isSpecialBuildingValid(SpecialBuildingTypes eIndex) const
 {
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < GC.getNumSpecialBuildingInfos(), "eIndex is expected to be within maximum bounds (invalid Index)");
@@ -7631,7 +7716,7 @@ void CvGame::createBarbarianUnits()
 		/*  <advc.300> No need to delay barbs if they start slowly.
 			However, added a similar check to CvUnitAI::AI_barbAttackMove
 			for slow game speed settings. */
-		double crowdedness = countCivPlayersEverAlive();
+		double crowdedness = getCivPlayersEverAlive();
 		crowdedness /= getRecommendedPlayers();
 		if(GC.getDefineINT("BARB_PEAK_PERCENT") < 35 || crowdedness > 1.25)
 			bAnimals = true; // </advc.300>
@@ -9005,7 +9090,7 @@ int CvGame::getNumDeals()
 	return m_deals.getCount();
 }
 
-// <advc.003>
+
  CvDeal* CvGame::getDeal(int iID)																		
 {
 	return m_deals.getAt(iID);
@@ -9016,7 +9101,7 @@ CvDeal* CvGame::addDeal()
 {
 	return m_deals.add();
 }
-// </advc.003>
+
 
  void CvGame::deleteDeal(int iID)
 {
@@ -9512,7 +9597,13 @@ void CvGame::read(FDataStreamBase* pStream)
 	m_iAIAutoPlay = 0;
 	pStream->Read(&m_iGlobalWarmingIndex); // K-Mod
 	pStream->Read(&m_iGwEventTally); // K-Mod
-
+	// <advc.003b>
+	if(uiFlag >= 4) {
+		pStream->Read(&m_iCivPlayersEverAlive);
+		pStream->Read(&m_iCivTeamsEverAlive);
+	} /* The else case is handled in allGameDataRead - need to read the players and
+		 teams first. */
+	// </advc.003b>
 	// m_uiInitialTime not saved
 
 	pStream->Read(&m_bScoreDirty);
@@ -9725,6 +9816,7 @@ void CvGame::write(FDataStreamBase* pStream)
 	uint uiFlag=1;
 	uiFlag = 2; // advc.701: R&F option
 	uiFlag = 3; // advc.052
+	uiFlag = 4; // advc.003b: Civs and teams EverAlive tracked
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iElapsedGameTurns);
@@ -9751,7 +9843,10 @@ void CvGame::write(FDataStreamBase* pStream)
 	pStream->Write(m_iAIAutoPlay);
 	pStream->Write(m_iGlobalWarmingIndex); // K-Mod
 	pStream->Write(m_iGwEventTally); // K-Mod
-
+	// <advc.003b>
+	pStream->Write(m_iCivPlayersEverAlive);
+	pStream->Write(m_iCivTeamsEverAlive);
+	// </advc.003b>
 	// m_uiInitialTime not saved
 
 	pStream->Write(m_bScoreDirty);
@@ -9902,8 +9997,15 @@ void CvGame::writeReplay(FDataStreamBase& stream, PlayerTypes ePlayer)
 	read functions have been called. */
 void CvGame::allGameDataRead() {
 
+	// <advc.003b> Savegame compatibility (uiFlag<4)
+	if(m_iCivPlayersEverAlive == 0)
+		m_iCivPlayersEverAlive = countCivPlayersEverAlive();
+	if(m_iCivTeamsEverAlive == 0)
+		m_iCivTeamsEverAlive = countCivTeamsEverAlive();
+	// </advc.003b>
 	getWPAI.update(); // advc.104
 	GET_PLAYER(getActivePlayer()).validateDiplomacy(); // advc.134a
+	m_bAllGameDataRead = true;
 }
 
 // Called once the EXE signals that graphics have been initialized (w/e that means exactly)
@@ -11335,11 +11437,11 @@ bool CvGame::isResourceLayer() const {
 
 	return m_bResourceLayer;
 }
+
 void CvGame::reportResourceLayerToggled() {
 
 	m_bResourceLayer = !m_bResourceLayer;
-}
-// </advc.004m>
+} // </advc.004m>
 
 // <advc.127b>
 std::pair<int,int> CvGame::getVoteSourceXY(VoteSourceTypes vs, TeamTypes eObserver,

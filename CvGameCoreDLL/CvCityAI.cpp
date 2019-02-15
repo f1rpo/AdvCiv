@@ -4929,7 +4929,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 					double tempValue = ourBuildingCount;
 					double rivalFactor = 1.5 * std::sqrt((double)
 							g.countCivPlayersAlive());
-					int iEverAlive = g.countCivPlayersEverAlive();
+					int iEverAlive = g.getCivPlayersEverAlive();
 					for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
 						CvPlayer const& civ = GET_PLAYER((PlayerTypes)j);
 						if(!civ.isAlive() || civ.getID() == kOwner.getID() ||

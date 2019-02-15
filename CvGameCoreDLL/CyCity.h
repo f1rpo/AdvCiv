@@ -172,6 +172,7 @@ public:
 	CyPlot* plot();
 	bool isConnectedTo(CyCity* pCity);
 	bool isConnectedToCapital(int /*PlayerTypes*/ ePlayer);
+	int getArea(); // advc.003
 	CyArea* area();
 	CyArea* waterArea();
 	CyPlot* getRallyPlot();

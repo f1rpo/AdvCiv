@@ -13628,20 +13628,25 @@ bool CvGameTextMgr::setResumableValueTimes100ChangeHelp(CvWStringBuffer &szBuffe
 
 void CvGameTextMgr::setBonusHelp(CvWStringBuffer &szBuffer, BonusTypes eBonus, bool bCivilopediaText)
 {
-// BULL - Trade Denial - start
-	setBonusTradeHelp(szBuffer, eBonus, bCivilopediaText, NO_PLAYER);
+// BULL - Trade Denial - start  (advc.073: bImport param added)
+	setBonusTradeHelp(szBuffer, eBonus, bCivilopediaText, NO_PLAYER, false);
 }
 
 // This function has been effectly rewritten for K-Mod. (there were a lot of things to change.)
 void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBonus,
-		bool bCivilopediaText, PlayerTypes eTradePlayer)
+		bool bCivilopediaText, PlayerTypes eTradePlayer, bool bImport)
 // BULL - Trade Denial - end
-{
-	if (NO_BONUS == eBonus)
+{	// <advc.003>
+	if(NO_BONUS == eBonus)
 		return;
-
-	PlayerTypes eActivePlayer = GC.getGameINLINE().getActivePlayer();
-
+	CvGame const& g = GC.getGameINLINE();
+	PlayerTypes eActivePlayer = g.getActivePlayer();
+	CvPlayerAI const* pActivePlayer = (eActivePlayer == NO_PLAYER ? NULL:
+			&GET_PLAYER(eActivePlayer));
+	// gDLL->isMPDiplomacy() does sth. else, apparently.
+	bool bDiplo = (g.isGameMultiPlayer() ? gDLL->isMPDiplomacyScreenUp() :
+			gDLL->isDiplomacy());
+	// </advc.003>
 	int iHappiness = GC.getBonusInfo(eBonus).getHappiness();
 	int iHealth = GC.getBonusInfo(eBonus).getHealth();
 
@@ -13661,34 +13666,53 @@ void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 	else
 	{
 		szBuffer.append(CvWString::format( SETCOLR L"%s" ENDCOLR , TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), GC.getBonusInfo(eBonus).getDescription()));
+		// advc.004w: Don't omit the basic effect in main menu Civilopedia hovers
+		//if (NO_PLAYER != eActivePlayer)
 
-		if (NO_PLAYER != eActivePlayer)
+		// K-Mod. Bonuses now display "(Obsolete)" instead of "(player has 0)" when the bonus is obsolete.
+		if (NO_PLAYER != eActivePlayer && // advc.004w
+				TEAMREF(eActivePlayer).isBonusObsolete(eBonus))
+			szBuffer.append(gDLL->getText("TXT_KEY_BONUS_OBSOLETE"));
+		else
 		{
-			CvPlayer& kActivePlayer = GET_PLAYER(eActivePlayer);
-
-			// K-Mod. Bonuses now display "(Obsolete)" instead of "(player has 0)" when the bonus is obsolete.
-			if (GET_TEAM(kActivePlayer.getTeam()).isBonusObsolete(eBonus))
+			// display the basic bonuses next to the name of the bonus
+			if (iHappiness != 0)
 			{
-				szBuffer.append(gDLL->getText("TXT_KEY_BONUS_OBSOLETE"));
+				szBuffer.append(CvWString::format(L", +%d%c", abs(iHappiness),
+						iHappiness > 0 ? gDLL->getSymbolID(HAPPY_CHAR) :
+						gDLL->getSymbolID(UNHAPPY_CHAR)));
 			}
-			else
+			if (iHealth != 0)
 			{
-				// display the basic bonuses next to the name of the bonus
-				if (iHappiness != 0)
-				{
-					szBuffer.append(CvWString::format(L", +%d%c", abs(iHappiness), iHappiness > 0 ? gDLL->getSymbolID(HAPPY_CHAR) : gDLL->getSymbolID(UNHAPPY_CHAR)));
+				szBuffer.append(CvWString::format(L", +%d%c", abs(iHealth),
+						iHealth > 0 ? gDLL->getSymbolID(HEALTHY_CHAR) :
+						gDLL->getSymbolID(UNHEALTHY_CHAR)));
+			}
+			if(NO_PLAYER != eActivePlayer) { // advc.004w: Moved from above
+				// <advc.004w>
+				int iAvailable = pActivePlayer->getNumAvailableBonuses(eBonus);
+				if(bDiplo || // Trade screen, domestic resources box or import column
+						(eTradePlayer != NO_PLAYER &&
+						(eTradePlayer == eActivePlayer || bImport))) {
+						// </advc.004w>
+					szBuffer.append(gDLL->getText("TXT_KEY_BONUS_AVAILABLE_PLAYER",
+							iAvailable, pActivePlayer->getNameKey()));
+				} // <advc.004w> Show their amount in the export columns
+				else if(eTradePlayer != NO_PLAYER &&
+						eTradePlayer != eActivePlayer && !bImport) {
+					szBuffer.append(gDLL->getText("TXT_KEY_BONUS_AVAILABLE_PLAYER",
+							GET_PLAYER(eTradePlayer).getNumAvailableBonuses(eBonus),
+							GET_PLAYER(eTradePlayer).getNameKey()));
 				}
-				if (iHealth != 0)
-				{
-					szBuffer.append(CvWString::format(L", +%d%c", abs(iHealth), iHealth > 0 ? gDLL->getSymbolID(HEALTHY_CHAR) : gDLL->getSymbolID(UNHEALTHY_CHAR)));
-				}
-
-				szBuffer.append(gDLL->getText("TXT_KEY_BONUS_AVAILABLE_PLAYER", kActivePlayer.getNumAvailableBonuses(eBonus), kActivePlayer.getNameKey()));
-
+				else if(iAvailable != 1) {
+					// When not trading, this should be clear enough:
+					szBuffer.append(gDLL->getText("TXT_KEY_BONUS_AVAILABLE_US",
+							iAvailable));
+				} // </advc.004w>
 				for (int iCorp = 0; iCorp < GC.getNumCorporationInfos(); ++iCorp)
 				{
 					bool bCorpBonus = false;
-					if (kActivePlayer.getHasCorporationCount((CorporationTypes)iCorp) > 0)
+					if (pActivePlayer->getHasCorporationCount((CorporationTypes)iCorp) > 0)
 					{
 						for (int i = 0; !bCorpBonus && i < GC.getNUM_CORPORATION_PREREQ_BONUSES(); ++i)
 						{
@@ -13701,66 +13725,79 @@ void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 				}
 			}
 		}
-		// advc.004w:
-		if(gDLL->isDiplomacy() && !gDLL->getInterfaceIFace()->isCityScreenUp())
-			setYieldChangeHelp(szBuffer, L"", L"", gDLL->getText("TXT_KEY_BONUS_ON_PLOT"), GC.getBonusInfo(eBonus).getYieldChangeArray());
-
-		if (GC.getBonusInfo(eBonus).getTechReveal() != NO_TECH)
+		// <advc.004w>
+		if(eActivePlayer == NO_PLAYER || (!bDiplo &&
+				!gDLL->getInterfaceIFace()->isCityScreenUp() &&
+				eTradePlayer == NO_PLAYER)) { // </advc.004w>
+			setYieldChangeHelp(szBuffer, L"", L"", gDLL->getText("TXT_KEY_BONUS_ON_PLOT"),
+					GC.getBonusInfo(eBonus).getYieldChangeArray());
+		}
+		// <advc.004w> Only show reveal tech if we don't have it yet
+		TechTypes eRevealTech = (TechTypes)GC.getBonusInfo(eBonus).getTechReveal();
+		if (eRevealTech != NO_TECH && (eActivePlayer == NO_PLAYER ||
+				!TEAMREF(eActivePlayer).isHasTech(eRevealTech))) // </advc.004w>
 		{
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_BONUS_REVEALED_BY", GC.getTechInfo((TechTypes)GC.getBonusInfo(eBonus).getTechReveal()).getTextKeyWide()));
 		}
 	}
 
-	// K-Mod. Only display the perks of the bonus if it is not already obsolete
-	if (bCivilopediaText || GC.getGameINLINE().getActiveTeam() == NO_TEAM ||
-			!GET_TEAM(GC.getGameINLINE().getActiveTeam()).isBonusObsolete(eBonus))
-	{
-		CivilizationTypes eCivilization = GC.getGameINLINE().getActiveCivilizationType();
-
-		for (int i = 0; i < GC.getNumBuildingClassInfos(); i++)
-		{
-			BuildingTypes eLoopBuilding;
-			if (eCivilization == NO_CIVILIZATION)
-			{
-				eLoopBuilding = ((BuildingTypes)(GC.getBuildingClassInfo((BuildingClassTypes)i).getDefaultBuildingIndex()));
-			}
-			else
-			{
-				eLoopBuilding = ((BuildingTypes)(GC.getCivilizationInfo(eCivilization).getCivilizationBuildings(i)));
-			}
-
-			if (eLoopBuilding != NO_BUILDING)
-			{
-				CvBuildingInfo& kBuilding = GC.getBuildingInfo(eLoopBuilding);
-				if (kBuilding.getBonusHappinessChanges(eBonus) != 0)
-				{
-					szBuffer.append(CvWString::format(L"\n%s", gDLL->getText("TXT_KEY_BUILDING_CIVIC_HEALTH_HAPPINESS_CHANGE", abs(kBuilding.getBonusHappinessChanges(eBonus)),
-						kBuilding.getBonusHappinessChanges(eBonus) > 0 ? gDLL->getSymbolID(HAPPY_CHAR) : gDLL->getSymbolID(UNHAPPY_CHAR)).c_str()));
-					szBuffer.append(CvWString::format(L"<link=literal>%s</link>", kBuilding.getDescription()));
-				}
-
-				if (kBuilding.getBonusHealthChanges(eBonus) != 0)
-				{
-					szBuffer.append(CvWString::format(L"\n%s", gDLL->getText("TXT_KEY_BUILDING_CIVIC_HEALTH_HAPPINESS_CHANGE", abs(kBuilding.getBonusHealthChanges(eBonus)),
-						kBuilding.getBonusHealthChanges(eBonus) > 0 ? gDLL->getSymbolID(HEALTHY_CHAR) : gDLL->getSymbolID(UNHEALTHY_CHAR)).c_str()));
-					szBuffer.append(CvWString::format(L"<link=literal>%s</link>", kBuilding.getDescription()));
-				}
-			}
-		}
-
-		if (!CvWString(GC.getBonusInfo(eBonus).getHelp()).empty())
-		{
-			szBuffer.append(NEWLINE);
-			szBuffer.append(GC.getBonusInfo(eBonus).getHelp());
-		}
+	if(bCivilopediaText || eActivePlayer == NO_PLAYER ||
+			// K-Mod. Only display the perks of the bonus if it is not already obsolete
+			!TEAMREF(eActivePlayer).isBonusObsolete(eBonus)) {
+		// advc.004w: Effects from buildings, projects and units in a subroutine
+		setBonusExtraHelp(szBuffer, eBonus, bCivilopediaText, eTradePlayer, bDiplo);
 	}
 // BULL - Trade Denial - start  (advc.073: refactored; getBugOptionBOOL check removed)
 	if (eTradePlayer != NO_PLAYER && eActivePlayer != NO_PLAYER)
 	{
+		bool bHuman = GET_PLAYER(eTradePlayer).isHuman(); // advc.073
 		TradeData item;
 		::setTradeItem(&item, TRADE_RESOURCES, eBonus);
-		if (GET_PLAYER(eTradePlayer).canTradeItem(eActivePlayer, item, false))
+		// <advc.073>
+		int iGoldChar = GC.getCommerceInfo(COMMERCE_GOLD).getChar(); // advc.036
+		if(eTradePlayer == eActivePlayer) {
+			FAssert(!bImport);
+			/*  This means we're hovering over a surplus resource of the
+				active player and all takers need to be listed. */
+			std::vector<PlayerTypes> aTakers;
+			for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+				if(i == eActivePlayer)
+					continue;
+				CvPlayerAI const& kTaker = GET_PLAYER((PlayerTypes)i);
+				if(!kTaker.isAlive() || kTaker.isHuman() ||
+						!TEAMREF(eActivePlayer).isHasMet(kTaker.getTeam()))
+					continue;
+				if(!pActivePlayer->canTradeItem(kTaker.getID(), item, true))
+					continue;
+				aTakers.push_back(kTaker.getID());
+			}
+			if(aTakers.empty())
+				return;
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_MISC_WILL_IMPORT"
+					// Better not to repeat the resource name
+					/*,GC.getBonusInfo(eBonus).getTextKeyWide()*/));
+			szBuffer.append(/*L": "*/L":\n");
+			/*  Should perhaps sort by the gold they're willing to give, but that's
+				tedious to implement, and using player id also has merit as the
+				portraits on the Resources tab are listed by id. */
+			::setTradeItem(&item, TRADE_GOLD_PER_TURN, 1);
+			for(size_t i = 0; i < aTakers.size(); i++) {
+				CvPlayerAI const& kTaker = GET_PLAYER(aTakers[i]);
+				szBuffer.append(kTaker.getName());
+				if(kTaker.canTradeItem(eActivePlayer, item, false)) {
+					int iGold = kTaker.AI_goldForBonus(eBonus, eActivePlayer);
+					if(iGold > 0)
+						szBuffer.append(CvWString::format(L" (%d%c)", iGold, iGoldChar));
+				}
+				if(i < aTakers.size() - 1)
+					szBuffer.append(L", ");
+			}
+			return;
+		}
+		if (!bImport && // </advc.073>
+				GET_PLAYER(eTradePlayer).canTradeItem(eActivePlayer, item, false))
 		{
 			DenialTypes eDenial = GET_PLAYER(eTradePlayer).getTradeDenial(
 					eActivePlayer, item);
@@ -13773,11 +13810,338 @@ void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 						GC.getDenialInfo(eDenial).getDescription());
 				szBuffer.append(NEWLINE);
 				szBuffer.append(szTempBuffer);
+				// <advc.036>
+				return;
+			} 
+			else if(eDenial == NO_DENIAL && !bHuman) {
+				::setTradeItem(&item, TRADE_GOLD_PER_TURN, 1);
+				if(pActivePlayer->canTradeItem(eTradePlayer, item, false)) {
+					int iGold = pActivePlayer->AI_goldForBonus(eBonus, eTradePlayer);
+					if(iGold > 0) {
+						szBuffer.append(NEWLINE);
+						szBuffer.append(CvWString::format(L"%s %d%c",
+								gDLL->getText("TXT_KEY_MISC_WILL_ASK").GetCString(),
+								iGold, iGoldChar));
+						return;
+					}
+				}
 			}
-		}
+		} 
+		if(bImport && !bHuman && pActivePlayer->canTradeItem(eTradePlayer, item, true)) {
+			::setTradeItem(&item, TRADE_GOLD_PER_TURN, 1);
+			if(GET_PLAYER(eTradePlayer).canTradeItem(eActivePlayer, item, false)) {
+				int iGold = GET_PLAYER(eTradePlayer).AI_goldForBonus(eBonus, eActivePlayer);
+				if(iGold > 0) {
+					szBuffer.append(NEWLINE);
+					szBuffer.append(CvWString::format(L"%s %d%c",
+							gDLL->getText("TXT_KEY_MISC_WILL_PAY").GetCString(),
+							iGold, iGoldChar));
+				}
+			}
+		} // </advc.036>
 	}
 // BULL - Trade Denial - end
 }
+
+// advc.004w: Some code cut from setBonusHelp, but mostly new code.
+void CvGameTextMgr::setBonusExtraHelp(CvWStringBuffer &szBuffer, BonusTypes eBonus,
+		bool bCivilopediaText, PlayerTypes eTradePlayer, bool bDiplo) {
+
+	PROFILE_FUNC();
+	CvGame const& g = GC.getGameINLINE();
+	CivilizationTypes eCivilization = g.getActiveCivilizationType();
+	PlayerTypes eActivePlayer = g.getActivePlayer();
+	// NULL when in main menu Civilopedia
+	CvPlayerAI const* pActivePlayer = NULL;
+	int iCurrentEra = 0;
+	if(eActivePlayer != NO_PLAYER) {
+		pActivePlayer = &GET_PLAYER(eActivePlayer);
+		iCurrentEra = pActivePlayer->getCurrentEra();
+	}
+	CvCity* pCity = (gDLL->getInterfaceIFace()->isCityScreenUp() ?
+			/*  A city can also be selected without the city screen being up;
+				don't want that here. */
+			gDLL->getInterfaceIFace()->getHeadSelectedCity() : NULL);
+	
+	for(int i = 0; i < GC.getNumBuildingClassInfos(); i++) {
+		BuildingClassTypes eBuildingClass = (BuildingClassTypes)i;
+		BuildingTypes eLoopBuilding;
+		if(eCivilization == NO_CIVILIZATION) {
+			eLoopBuilding = (BuildingTypes)(GC.getBuildingClassInfo(eBuildingClass).
+						getDefaultBuildingIndex());
+		}
+		else {
+			eLoopBuilding = (BuildingTypes)(GC.getCivilizationInfo(eCivilization).
+					getCivilizationBuildings(i));
+		}
+		if(eLoopBuilding == NO_BUILDING)
+			continue;
+		// <advc.004w> Don't list impossibilities
+		bool bCanEverConstruct = true;
+		if(eActivePlayer != NO_PLAYER && !g.canConstruct(eLoopBuilding, true, true))
+			bCanEverConstruct = false;
+		// Don't list remote possibilities
+		CvBuildingInfo& kBuilding = GC.getBuildingInfo(eLoopBuilding);
+		int iTechEraDelta = 0;
+		if(bCanEverConstruct && !bCivilopediaText && eActivePlayer != NO_PLAYER) {
+			ReligionTypes eReligion = (ReligionTypes)kBuilding.getPrereqReligion();
+			if(eReligion != NO_RELIGION &&
+					!pActivePlayer->canDoReligion(eReligion))
+				bCanEverConstruct = false;
+			if(bCanEverConstruct) {
+				TechTypes eTech = (TechTypes)kBuilding.getPrereqAndTech();
+				if(eTech == NO_TECH) {
+					SpecialBuildingTypes eSpecial = (SpecialBuildingTypes)kBuilding.getSpecialBuildingType();
+					if(eSpecial != NO_SPECIALBUILDING)
+						eTech = (TechTypes)GC.getSpecialBuildingInfo(eSpecial).getTechPrereq();
+				}
+				if(eTech != NO_TECH)
+					iTechEraDelta = GC.getTechInfo(eTech).getEra() - iCurrentEra;
+				if(iTechEraDelta >= 2 || (iTechEraDelta >= 1 &&
+						// Special treatment for the very early game
+						iCurrentEra <= 0 && pActivePlayer->getNumCities() <= 2))
+					bCanEverConstruct = false;
+			}
+			if(bCanEverConstruct && TEAMREF(eActivePlayer).isObsoleteBuilding(eLoopBuilding))
+				bCanEverConstruct = false;
+			if(bCanEverConstruct) {
+				VictoryTypes eVict = (VictoryTypes)kBuilding.getVictoryPrereq();
+				if(eVict != NO_VICTORY && !g.isVictoryValid(eVict))
+					bCanEverConstruct = false;
+			}
+			if(bCanEverConstruct && (TEAMREF(eActivePlayer).isBuildingClassMaxedOut(eBuildingClass) ||
+					pActivePlayer->isBuildingClassMaxedOut(eBuildingClass)))
+				bCanEverConstruct = false;
+			if(bCanEverConstruct) {
+				// CvCity::canConstruct would be too strict, even with the bIgnore flags.
+				if(pCity != NULL && !pCity->isValidBuildingLocation(eLoopBuilding))
+					bCanEverConstruct = false;
+			}
+		}
+		// Don't skip e.g. active wonders
+		if(!bCanEverConstruct && pActivePlayer->getBuildingClassCount(eBuildingClass) <= 0)
+			continue;
+		// </advc.004w>
+		if(kBuilding.getBonusHappinessChanges(eBonus) != 0) {
+			szBuffer.append(CvWString::format(L"\n%s",
+					gDLL->getText("TXT_KEY_BUILDING_CIVIC_HEALTH_HAPPINESS_CHANGE",
+					abs(kBuilding.getBonusHappinessChanges(eBonus)),
+					kBuilding.getBonusHappinessChanges(eBonus) > 0 ?
+					gDLL->getSymbolID(HAPPY_CHAR) :
+					gDLL->getSymbolID(UNHAPPY_CHAR)).c_str()));
+			//szBuffer.append(szBuildingDescr); // advc.004w: Handled below
+		}
+		if(kBuilding.getBonusHealthChanges(eBonus) != 0) {
+			szBuffer.append(CvWString::format(L"\n%s",
+					gDLL->getText("TXT_KEY_BUILDING_CIVIC_HEALTH_HAPPINESS_CHANGE",
+					abs(kBuilding.getBonusHealthChanges(eBonus)),
+					kBuilding.getBonusHealthChanges(eBonus) > 0 ?
+					gDLL->getSymbolID(HEALTHY_CHAR) :
+					gDLL->getSymbolID(UNHEALTHY_CHAR)).c_str()));
+			//szBuffer.append(szBuildingDescr); // advc.004w: Handled below
+		} // <advc.004w>
+		if(kBuilding.getBonusHealthChanges(eBonus) != 0 ||
+				kBuilding.getBonusHappinessChanges(eBonus) != 0) {
+			CvWString szDescr(kBuilding.getDescription());
+			if(pCity != NULL) {	
+				::applyColorToString(szDescr,
+						pCity->getNumActiveBuilding(eLoopBuilding) > 0 ?
+						"COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT");
+			}
+			szBuffer.append(szDescr);
+		}
+		/*  Not much room in the "Effects" box of Civilopedia. Put only health
+			and happiness effects there. */
+		if(bCivilopediaText)
+			continue;
+		bool bWonder = (::isWorldWonderClass(eBuildingClass) || ::isNationalWonderClass(eBuildingClass));
+		// Similar to setBuildingHelpActual, but that's from the building's pov.
+		if(eActivePlayer != NO_PLAYER && ((pCity == NULL &&
+				// Show yield modifiers of wonders only if we already have them
+				(!bWonder || pActivePlayer->getBuildingClassCount(eBuildingClass) > 0))
+				|| (pCity != NULL && pCity->getNumActiveBuilding(eLoopBuilding) > 0))) {
+			for(int y = 0; y < NUM_YIELD_TYPES; y++) {
+				if(kBuilding.getBonusYieldModifier(eBonus, y) != 0) {
+					CvWString szStart(kBuilding.getDescription());
+					szStart.append(L": ");
+					setYieldChangeHelp(szBuffer, szStart, L"", L"",
+							kBuilding.getBonusYieldModifierArray(eBonus), true);
+					break;
+				}
+			}
+		}
+		// Only construction effects remain
+		if(!bCanEverConstruct)
+			continue;
+		// Stricter check than the one for happiness/health effects above
+		if(pCity != NULL && !pCity->canConstruct(eLoopBuilding, false, true, true))
+			continue;
+
+		// Highlight building name when it's under construction
+		bool bConstructing = false;
+		if(pCity != NULL) {
+			CLLNode<OrderData>* pOrderNode = pCity->headOrderQueueNode();
+			if(pOrderNode != NULL && pOrderNode->m_data.eOrderType == ORDER_CONSTRUCT &&
+					pOrderNode->m_data.iData1 == eLoopBuilding)
+				bConstructing = true;
+		}
+		bool bHighlight = (bConstructing ||
+				(eActivePlayer != NO_PLAYER && pCity == NULL &&
+				/*  I.e. not on the main interface b/c it's too difficult to
+					keep those texts updated */
+				(eTradePlayer != NO_PLAYER || bDiplo) &&
+				pActivePlayer->getBuildingClassMaking(eBuildingClass) > 0));
+
+		// These are unused, but I'd like to use them someday.
+		bool bBonusReq = (kBuilding.getPrereqAndBonus() == eBonus);
+		if(!bBonusReq) {
+			for(int j = 0; j < GC.getNUM_BUILDING_PREREQ_OR_BONUSES(); j++) {
+				if(kBuilding.getPrereqOrBonuses(j) == eBonus) {
+					bBonusReq = true;
+					break;
+				}
+			}
+		}
+		if(bBonusReq) {
+			CvWString szDescr(kBuilding.getDescription());
+			if(bHighlight)
+				::applyColorToString(szDescr, "COLOR_HIGHLIGHT_TEXT");
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_TECH_CAN_CONSTRUCT"));
+			szBuffer.append(szDescr);
+		}
+		if(eActivePlayer == NO_PLAYER)
+			continue;
+		// Don't show wonder production bonuses for future eras
+		if(!bWonder || iTechEraDelta <= 0) {
+			int iProductionMod = kBuilding.getBonusProductionModifier(eBonus);
+			if(iProductionMod != 0) {
+				szBuffer.append(NEWLINE);
+				CvWString szDescr(kBuilding.getDescription());
+				if(bHighlight)
+					::applyColorToString(szDescr, "COLOR_HIGHLIGHT_TEXT");
+				szBuffer.append(CvWString::format(L"%c%s%d%% %s",
+						gDLL->getSymbolID(BULLET_CHAR),
+						iProductionMod > 0 ? "+" : "", iProductionMod,
+						gDLL->getText("TXT_KEY_BONUS_SPEED_FOR", szDescr.GetCString()).GetCString()));
+			}
+		}
+	}
+	if(bCivilopediaText)
+		return;
+	if(eActivePlayer != NO_PLAYER) {
+		// Based on the loop above
+		for(int i = 0; i < GC.getNumProjectInfos(); i++) {
+			ProjectTypes eLoopProject = (ProjectTypes)i;
+			CvProjectInfo& kProject = GC.getProjectInfo(eLoopProject);
+			int iProductionMod = kProject.getBonusProductionModifier(eBonus);
+			if(iProductionMod == 0)
+				continue;
+			if(pCity == NULL) {
+				TechTypes eTech = (TechTypes)kProject.getTechPrereq();
+				if(eTech != NO_TECH && GC.getTechInfo(eTech).getEra() > iCurrentEra
+						+ (::isWorldProject(eLoopProject) ? 0 : 1))
+					continue;
+				VictoryTypes eVict = (VictoryTypes)kProject.getVictoryPrereq();
+				if(eVict != NO_VICTORY && !g.isVictoryValid(eVict))
+					continue;
+				if(g.isProjectMaxedOut(eLoopProject) && TEAMREF(eActivePlayer).
+						getProjectCount(eLoopProject) <= 0)
+					continue;
+				if(kProject.isSpaceship() && (pActivePlayer->getCapitalCity() == NULL ||
+						!pActivePlayer->getCapitalCity()->canCreate(eLoopProject, false, true)))
+					continue;
+			}
+			else if(!pCity->canCreate(eLoopProject, false, true))
+				continue;
+			// Copy-paste from the building loop
+			szBuffer.append(NEWLINE);
+			szBuffer.append(CvWString::format(L"%c%s%d%% %s",
+					gDLL->getSymbolID(BULLET_CHAR),
+					iProductionMod > 0 ? "+" : "",
+					iProductionMod, gDLL->getText("TXT_KEY_BONUS_SPEED_FOR",
+					kProject.getDescription()).GetCString()));
+		}
+		// To weed out obsolete units
+		CvCity* pTrainCity = pCity;
+		if(pTrainCity == NULL)
+			pTrainCity = pActivePlayer->getCapitalCity();
+		std::vector<CvUnitInfo*> aEnables;
+		for(int i = 0; i < GC.getNumUnitClassInfos(); i++) {
+			UnitClassTypes eUnitClass = (UnitClassTypes)i;
+			UnitTypes eLoopUnit = (UnitTypes)(GC.getCivilizationInfo(
+					eCivilization).getCivilizationUnits(i));
+			if(eLoopUnit == NO_UNIT)
+				continue;
+			CvUnitInfo& kUnit = GC.getUnitInfo(eLoopUnit);
+			// <advc.905b>
+			int iSpeed = 0;
+			for(int j = 0; j < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); j++) {
+				if(kUnit.getSpeedBonuses(j) != eBonus)
+					continue;
+				iSpeed = kUnit.getExtraMoves(j);
+			} // </advc.905b>
+			bool bBonusReq = (kUnit.getPrereqAndBonus() == eBonus);
+			if(!bBonusReq) {
+				for(int j = 0; j < GC.getNUM_UNIT_PREREQ_OR_BONUSES(); j++) {
+					if(kUnit.getPrereqOrBonuses(j) == eBonus) {
+						bBonusReq = true;
+						break;
+					}
+				}
+			}
+			if(!bBonusReq && iSpeed == 0)
+				continue;
+			if(pTrainCity == NULL) {
+				if(!pActivePlayer->canTrain(eLoopUnit, false, true, true))
+					continue;
+			}
+			else if(!pTrainCity->canTrain(eLoopUnit, false, true, true, false, false))
+				continue;
+			if(bBonusReq)
+				aEnables.push_back(&kUnit);
+			if(iSpeed != 0) {
+				szBuffer.append(NEWLINE);
+				szBuffer.append(CvWString::format(L"%c%s%d%c: ",
+						gDLL->getSymbolID(BULLET_CHAR), iSpeed > 0 ? "+" : "",
+						iSpeed, gDLL->getSymbolID(MOVES_CHAR)));
+				szBuffer.append(kUnit.getDescription());
+			}
+		}
+		/*  The capital can be NULL and it's not necessarily going to be coastal.
+			Address these cases through an era threshold (b/c checking upgrade paths
+			without a CvCity object is too complicated). */
+		int iEraThresh = std::max(0, iCurrentEra - 3);
+		int iCount = aEnables.size();
+		while(iCount > 5 && iEraThresh < iCurrentEra) {
+			iCount = aEnables.size();
+			for(size_t i = 0; i < aEnables.size(); i++) {
+				TechTypes eTech = (TechTypes)aEnables[i]->getPrereqAndTech();
+				if(eTech != NO_TECH && GC.getTechInfo(eTech).getEra() <= iEraThresh)
+					iCount--;
+			}
+			iEraThresh++;
+		}
+		if(iCount <= 0) // Show too many units rather than none
+			iEraThresh = 0;
+		for(size_t i = 0; i < aEnables.size(); i++) {
+			TechTypes eTech = (TechTypes)aEnables[i]->getPrereqAndTech();
+			bool bSea = (DOMAIN_SEA == (DomainTypes)aEnables[i]->getDomainType());
+			bool bUseEraThresh = (eTech != NO_TECH && (pTrainCity == NULL ||
+					(bSea != pTrainCity->isCoastal())));
+			if(!bUseEraThresh || GC.getTechInfo(eTech).getEra() >= iEraThresh) {
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_TECH_CAN_TRAIN"));
+				szBuffer.append(aEnables[i]->getDescription());
+			}
+		}
+	} // </advc.004w>
+	if (!CvWString(GC.getBonusInfo(eBonus).getHelp()).empty()) {
+		szBuffer.append(NEWLINE);
+		szBuffer.append(GC.getBonusInfo(eBonus).getHelp());
+	}
+}
+
 
 void CvGameTextMgr::setReligionHelp(CvWStringBuffer &szBuffer, ReligionTypes eReligion, bool bCivilopedia)
 {

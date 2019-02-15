@@ -240,6 +240,13 @@ bool isArticle(ProjectTypes pt) {
 	CvWString txt = gDLL->getText(txtKey + L"_NA");
 	return (txt.compare(L".") != 0);
 } // </advc.008e>
+// <advc.004w> I'm not positive that there isn't already a function like this somewhere
+void applyColorToString(CvWString& s, char const* szColor, bool bLink) {
+
+	if(bLink)
+		s.Format(L"<link=literal>%s</link>", s.GetCString());
+	s.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR(szColor), s.GetCString());
+} // </advc.004w>
 
 CvPlot* plotCity(int iX, int iY, int iIndex)
 {

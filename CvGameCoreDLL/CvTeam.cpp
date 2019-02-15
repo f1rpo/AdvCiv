@@ -127,12 +127,9 @@ void CvTeam::init(TeamTypes eID)
 	// Init other game data
 	AI_init();
 
-	/*  advc (note): Looks like FinalInitialized is never true here, so the BBAI code
-		might as well be deleted. Or perhaps it is needed in some obscure game mode? */
-	FAssert(!GC.getGame().isFinalInitialized());
 	// BETTER_BTS_AI_MOD 12/30/08 jdog5000
-	if(GC.getGame().isFinalInitialized()
-			&& isAlive()) { // advc.003m: Alive check added
+	if(GC.getGame().isFinalInitialized()) {
+		// advc (note): This is for teams spawned through liberation
 		for(int i = 0; i < MAX_TEAMS; i++) {
 			CvTeam& kTarget = GET_TEAM((TeamTypes)i);
 			if(i == getID() || !kTarget.isAlive()) // advc.003m: Alive check added
@@ -3823,7 +3820,7 @@ void CvTeam::changeAliveCount(int iChange)
 	FAssert(getAliveCount() >= 0);
 
 	// free vassals
-	if (0 == m_iAliveCount)
+	if (m_iAliveCount == 0)
 	{
 		for (int iTeam = 0; iTeam < MAX_TEAMS; iTeam++)
 		{
@@ -3841,7 +3838,9 @@ void CvTeam::changeAliveCount(int iChange)
 				// </advc.003m>
 			}
 		}
-	}
+	} // <advc.003b>
+	if(!isBarbarian() && m_iAliveCount - iChange <= 0 && m_iAliveCount > 0)
+		GC.getGameINLINE().changeCivTeamsEverAlive(1); // </advc.003b>
 }
 
 
@@ -7511,7 +7510,7 @@ void CvTeam::testCircumnavigated()
 CvCity* CvTeam::getLeaderCapital(TeamTypes eObserver, bool bDebug) const {
 
 	CvCity* r = GET_PLAYER(getLeaderID()).getCapitalCity();
-	if(eObserver != NO_TEAM && !r->isRevealed(eObserver, bDebug))
+	if(r != NULL && eObserver != NO_TEAM && !r->isRevealed(eObserver, bDebug))
 		r = NULL;
 	if(r != NULL)
 		return r;

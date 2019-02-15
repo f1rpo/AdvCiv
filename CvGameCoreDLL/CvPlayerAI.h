@@ -276,6 +276,8 @@ public:
 	// advc.210e: Exposed to Python
 	int AI_corporationBonusVal(BonusTypes eBonus,
 			bool bTrade = false) const; // advc.036
+	// advc.036:
+	int AI_goldForBonus(BonusTypes eBonus, PlayerTypes eBonusOwner) const;
 
 	int AI_cityTradeVal(CvCity* pCity) const;
 	DenialTypes AI_cityTrade(CvCity* pCity, PlayerTypes ePlayer) const;
@@ -735,13 +737,15 @@ protected:
 			bool bGenerous,
 			// advc.036:
 			int iHappyLeft, int iHealthLeft, int iOtherListLength) const;
+	int AI_tradeValToGold(int iTradeVal, bool bOverpay, int iMaxGold = INT_MAX,
+			bool* bEnough = NULL) const;
 	int AI_checkCancel(CvDeal const& d, PlayerTypes ePlayer, bool bFlip);
 	bool AI_doDeals(PlayerTypes otherId);
 	// </advc.003>
 	bool AI_proposeResourceTrade(PlayerTypes otherId); // advc.133
-	// <advc.036>
 	// advc.132:
 	bool AI_checkCivicReligionConsistency(CLinkList<TradeData> const& tradeItems) const;
+	// <advc.036>
 	bool AI_checkResourceLimits(CLinkList<TradeData> const& weGive,
 			CLinkList<TradeData> const& theyGive, PlayerTypes theyId,
 			int iChange) const; // </advc.036>

@@ -293,7 +293,7 @@ public:
 	CvPlotGroup* plotGroup(PlayerTypes ePlayer) const;
 	bool isConnectedTo(CvCity* pCity) const;															// Exposed to Python
 	bool isConnectedToCapital(PlayerTypes ePlayer = NO_PLAYER) const;			// Exposed to Python
-	int getArea() const;
+	int getArea() const;										// advc.003: Exposed to Python
 	CvArea* area() const;																						// Exposed to Python
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      01/02/09                                jdog5000      */

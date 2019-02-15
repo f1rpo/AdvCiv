@@ -275,7 +275,6 @@ void CyInfoPythonInterface1()
 		.def("isNoBadGoodies", &CvUnitInfo::isNoBadGoodies, "bool ()")
 /************************************************************************************************/
 /* UNOFFICIAL_PATCH                       03/20/10                       Afforess & jdog5000    */
-/*                                                                                              */
 /* Bugfix                                                                                       */
 /************************************************************************************************/
 		.def("isOnlyDefensive", &CvUnitInfo::isOnlyDefensive, "bool ()")
@@ -322,6 +321,10 @@ void CyInfoPythonInterface1()
 
 		.def("getPrereqAndTechs", &CvUnitInfo::getPrereqAndTechs, "int (int i)")
 		.def("getPrereqOrBonuses", &CvUnitInfo::getPrereqOrBonuses, "int (int i)")
+		// <advc.905b>
+		.def("getSpeedBonuses", &CvUnitInfo::getSpeedBonuses, "int (int i)")
+		.def("getExtraMoves", &CvUnitInfo::getExtraMoves, "int (int i)")
+		// </advc.905b>
 		.def("getProductionTraits", &CvUnitInfo::getProductionTraits, "int (int i)")
 		.def("getFlavorValue", &CvUnitInfo::getFlavorValue, "int (int i)")
 		.def("getTerrainAttackModifier", &CvUnitInfo::getTerrainAttackModifier, "int (int i)")

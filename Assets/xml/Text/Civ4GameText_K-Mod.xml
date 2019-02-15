@@ -15,10 +15,12 @@
 		<Italian>[COLOR_LIGHT_GREY][SPACE](Obsoleto)[SPACE][COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_LIGHT_GREY][SPACE](Obsoleto)[SPACE][COLOR_REVERT]</Spanish>
 	</TEXT>
-	<!-- tag line for yield changes for bonuses -->
+	<!-- tag line for yield changes for bonuses
+		 advc.004w: English was "on plot" - not the proper game term.
+		 Or perhaps "tile yield" would be best? -->
 	<TEXT>
 		<Tag>TXT_KEY_BONUS_ON_PLOT</Tag>
-		<English>[SPACE]on plot</English>
+		<English>[SPACE]on tile</English>
 		<French>[SPACE]sur le case</French>
 		<German>[SPACE]auf Geländefeld</German>
 		<Italian>[SPACE]su casella</Italian>

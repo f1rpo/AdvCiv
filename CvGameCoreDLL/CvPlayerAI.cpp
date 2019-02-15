@@ -6015,8 +6015,8 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 	//FAssert(techs.size() == values.size());
 
 #ifdef USE_OLD_TECH_STUFF
-	bool bPathways = false && getID() < GC.getGameINLINE().countCivPlayersEverAlive()/2; // testing (temp)
-	bool bNewWays = true || getID() < GC.getGameINLINE().countCivPlayersEverAlive()/2; // testing (temp)
+	bool bPathways = false && getID() < GC.getGameINLINE().getCivPlayersEverAlive()/2; // testing (temp)
+	bool bNewWays = true || getID() < GC.getGameINLINE().getCivPlayersEverAlive()/2; // testing (temp)
 
 	if (!bPathways)
 	{
@@ -9261,8 +9261,8 @@ void CvPlayerAI::AI_updateAttitudeCache(PlayerTypes ePlayer,
 	// <advc.130c>
 	/* Disabling rank bonus for civs in the bottom half of the leaderboard.
 	   Caveat in case this code fragment is re-activated: ranks start at 0. */
-    /*if ((GC.getGameINLINE().getPlayerRank(getID()) >= (GC.getGameINLINE().countCivPlayersEverAlive() / 2)) &&
-          (GC.getGameINLINE().getPlayerRank(ePlayer) >= (GC.getGameINLINE().countCivPlayersEverAlive() / 2)))
+    /*if ((GC.getGameINLINE().getPlayerRank(getID()) >= (GC.getGameINLINE().getCivPlayersEverAlive() / 2)) &&
+          (GC.getGameINLINE().getPlayerRank(ePlayer) >= (GC.getGameINLINE().getCivPlayersEverAlive() / 2)))
     {
         iAttitude++;
     }*/ // </advc.130c>
@@ -9758,8 +9758,8 @@ int CvPlayerAI::AI_getRivalVassalAttitude(PlayerTypes ePlayer) const {
 	if(GET_PLAYER(ePlayer).getMasterTeam() == getMasterTeam())
 		return 0;
 	CvGame const& g = GC.getGameINLINE();
-	int everAlive = g.countCivTeamsEverAlive();
-	double avgCities = g.getNumCities() / (double)everAlive;
+	int iEverAlive = g.getCivTeamsEverAlive();
+	double avgCities = g.getNumCities() / (double)iEverAlive;
 	double capVass = 0;
 	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 		CvTeam const& t = GET_TEAM((TeamTypes)i);
@@ -9769,7 +9769,7 @@ int CvPlayerAI::AI_getRivalVassalAttitude(PlayerTypes ePlayer) const {
 	}
 	return AI_rivalPactAttitude(ePlayer, true) // advc.130t
 			- ::round(AI_expansionistHate(ePlayer) * 5 * capVass /
-			std::sqrt((double)everAlive));
+			std::sqrt((double)iEverAlive));
 	//BtS formula (refactored):
 	/*if(TEAMREF(ePlayer).getVassalCount(getTeam()) > 0)
 		return (-6 * TEAMREF(ePlayer).getPower(true)) /
@@ -10120,7 +10120,7 @@ int CvPlayerAI::AI_getRankDifferenceAttitude(PlayerTypes ePlayer) const {
 	/*  This was "+ 1" in BtS, which is arguably a bug.
 		Continue using CivPlayersEverAlive although iRankDifference is now based
 		only on known civs. */
-	double maxRankDifference = g.countCivPlayersEverAlive() - 1;
+	double maxRankDifference = g.getCivPlayersEverAlive() - 1;
 	int base = 0;
 	double multiplier = 0;
 	// If we're ranked worse than they are:
@@ -11979,9 +11979,7 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInv
 		if(iMaxGold >= iGoldData) { // Replacing: </advc.026>
 						// if(kPlayer.AI_maxGoldTrade(getID()) >= iGoldData) {
 			pGoldNode->m_data.m_iData = iGoldData;
-			iSmallerVal +=
-				::round((leniency * // advc.705
-				(iGoldData * iGoldValuePercent)) / 100);
+			iSmallerVal += (iGoldData * iGoldValuePercent) / 100;
 			pCounter->insertAtEnd(pGoldNode->m_data);
 			pGoldNode = NULL;
 		}
@@ -11990,25 +11988,17 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInv
 		negative income. Based on the "try one more time" code chunk below. */
 	if(isHuman() && pGoldPerTurnNode != NULL && iGreaterVal > iSmallerVal &&
 			calculateGoldRate() < 0) {
-		int iGoldData = 0;
 		int iGoldAvailable = kPlayer.AI_maxGoldPerTurnTrade(getID());
-		while(AI_goldPerTurnTradeVal(iGoldData) < iGreaterVal - iSmallerVal &&
-				iGoldData < iGoldAvailable)
-			iGoldData++;
-		int gptTradeVal = AI_goldPerTurnTradeVal(iGoldData);
-		if(gptTradeVal >= iGreaterVal - iSmallerVal) {
-			if(!bGenerous && gptTradeVal > iGreaterVal - iSmallerVal) {
-				iGoldData--;
-				gptTradeVal = AI_goldPerTurnTradeVal(iGoldData);
-			}
-			if(iGoldData > 0) {
-				pGoldPerTurnNode->m_data.m_iData = iGoldData;
-				iSmallerVal +=
-						::round(leniency * // advc.705
-						gptTradeVal);
-				pCounter->insertAtEnd(pGoldPerTurnNode->m_data);
-				pGoldPerTurnNode = NULL;
-			}
+		// <advc.003> Code moved into new function AI_tradeValToGold
+		bool bEnoughGold = false;
+		int iGoldData = AI_tradeValToGold(iGreaterVal - iSmallerVal, bGenerous,
+				iGoldAvailable, &bEnoughGold);
+		if(bEnoughGold && iGoldData > 0) { // </advc.003>
+			int gptTradeVal = AI_goldPerTurnTradeVal(iGoldData);
+			pGoldPerTurnNode->m_data.m_iData = iGoldData;
+			iSmallerVal += gptTradeVal;
+			pCounter->insertAtEnd(pGoldPerTurnNode->m_data);
+			pGoldPerTurnNode = NULL;
 		}
 	} // </advc.036>
 	std::pair<TradeData*, int> final_item(NULL, 0); // An item we may or may not use to finalise the deal. (See later)
@@ -12264,31 +12254,26 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInv
 	}
 	if(iGreaterVal > iSmallerVal) {
 		if(pGoldPerTurnNode != NULL) {
-			int iGoldData = 0;
-			while(AI_goldPerTurnTradeVal(iGoldData) < iGreaterVal - iSmallerVal)
-				iGoldData++;
-			if(!bGenerous && AI_goldPerTurnTradeVal(iGoldData) >
-					iGreaterVal - iSmallerVal)
-				iGoldData--;
 			//int iGoldAvailable = kPlayer.AI_maxGoldPerTurnTrade(getID());
-			// <advc.026> Replacing the above
+			// <advc.026> Replacing the above (and moved up)
 			int iMaxGPT = ((isHuman() && bGenerous) ?
 					kPlayer.AI_maxGoldPerTurnTradeGenerous(getID()) :
 					kPlayer.AI_maxGoldPerTurnTrade(getID()));
 			int iGoldAvailable = iMaxGPT; // </advc.026>
-			if(bGenerous && kPlayer.isHuman() && iGoldData > iGoldAvailable)
+			// <advc.003> Code moved into new function AI_tradeValToGold
+			bool bEnoughGold = false;
+			int iGoldData = AI_tradeValToGold(iGreaterVal - iSmallerVal, bGenerous,
+					iGoldAvailable, &bEnoughGold);
+			if(!bEnoughGold && bGenerous && kPlayer.isHuman())
 				bAddFinalItem = true;
-			else {
-				iGoldData = std::min(iGoldData, iGoldAvailable);
-				if(iGoldData > 0) {
-					pGoldPerTurnNode->m_data.m_iData = iGoldData;
-					iSmallerVal +=
-							::round(leniency * // advc.705
-							AI_goldPerTurnTradeVal(pGoldPerTurnNode->
-							m_data.m_iData));
-					pCounter->insertAtEnd(pGoldPerTurnNode->m_data);
-					pGoldPerTurnNode = NULL;
-				}
+			else if(iGoldData > 0) { // </advc.003>
+				pGoldPerTurnNode->m_data.m_iData = iGoldData;
+				iSmallerVal +=
+						::round(leniency * // advc.705
+						AI_goldPerTurnTradeVal(pGoldPerTurnNode->
+						m_data.m_iData));
+				pCounter->insertAtEnd(pGoldPerTurnNode->m_data);
+				pGoldPerTurnNode = NULL;
 			}
 		}
 		// <advc.001> See above at if(pGoldNode)...else
@@ -12332,6 +12317,27 @@ bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInv
 		FAssert(iSmallerVal >= iGreaterVal);
 	}
 	return false; // advc.036
+}
+
+
+int CvPlayerAI::AI_tradeValToGold(int iTradeVal, bool bOverpay, int iMaxGold,
+		bool* bEnough) const {
+
+	PROFILE_FUNC();
+	int r = 0;
+	if(bOverpay) {
+		while(AI_goldPerTurnTradeVal(r) < iTradeVal && r < iMaxGold)
+			r++;
+		if(bEnough != NULL)
+			*bEnough = (AI_goldPerTurnTradeVal(r) >= iTradeVal);
+	}
+	else {
+		while(AI_goldPerTurnTradeVal(r + 1) <= iTradeVal && r < iMaxGold)
+			r++;
+		if(bEnough != NULL)
+			*bEnough = (AI_goldPerTurnTradeVal(r + 1) > iTradeVal);
+	}
+	return r;
 }
 
 /*  This function is for AI-initiated trades. The caller has placed some items
@@ -12874,10 +12880,10 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 	PROFILE("CvPlayerAI::AI_baseBonusVal::recalculate");
 	// <advc.036>
 	double dValue = 0; // was int
-	int happy = GC.getBonusInfo(eBonus).getHappiness();
-	int health = GC.getBonusInfo(eBonus).getHealth();
-	int buildingHappy = 0;
-	int buildingHealth = 0;
+	int iHappy = GC.getBonusInfo(eBonus).getHappiness();
+	int iHealth = GC.getBonusInfo(eBonus).getHealth();
+	int iBuildingHappy = 0;
+	int iBuildingHealth = 0;
 	for(int i = 0; i < GC.getNumBuildingClassInfos(); i++) {
 		BuildingClassTypes bct = (BuildingClassTypes)i;
 		int bcc = getBuildingClassCount(bct);
@@ -12887,16 +12893,16 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 				getCivilizationType()).getCivilizationBuildings(bct);
 		if(bt == NO_BUILDING)
 			continue;
-		buildingHappy += bcc * GC.getBuildingInfo(bt).getBonusHappinessChanges(eBonus);
-		buildingHealth += bcc * GC.getBuildingInfo(bt).getBonusHealthChanges(eBonus);
+		iBuildingHappy += bcc * GC.getBuildingInfo(bt).getBonusHappinessChanges(eBonus);
+		iBuildingHealth += bcc * GC.getBuildingInfo(bt).getBonusHealthChanges(eBonus);
 	}
-	if(buildingHappy > 0.55 * getNumCities())
-		happy++;
-	if(buildingHealth > 0.55 * getNumCities())
-		health++;
+	if(iBuildingHappy > 0.55 * getNumCities())
+		iHappy++;
+	if(iBuildingHealth > 0.55 * getNumCities())
+		iHealth++;
 	// What BtS did:
-	/*iValue += (happy * 100);
-	iValue += (health * 100);*/
+	/*iValue += (iHappy * 100);
+	iValue += (iHealth * 100);*/
 	/*  Weight appears to be 100 when a city needs extra happiness or health
 		to grow, a bit more when citizens are already angry or food is being
 		lost. Generally lower than 100 because not all cities will need
@@ -12929,7 +12935,7 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 	if(!bTrade)
 		iExtraPop1 = iExtraPop2;
 	bool bAvailable = (getNumAvailableBonuses(eBonus) > 0);
-	if(happy > 0) {
+	if(iHappy > 0) {
 		/*  advc.912c: Better ignore getLuxuryModifier; don't want civs with a
 			luxury modifier to trade for more luxuries, and don't want them to
 			pay more more for luxuries. */
@@ -12937,21 +12943,21 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 		// Considering to cancel a trade
 		if(bTrade && bAvailable) { /* HappinessWeight can't handle iHappy=0;
 									  increase extra pop instead */
-			iExtraPop1 += happy;
-			iExtraPop2 += happy;
+			iExtraPop1 += iHappy;
+			iExtraPop2 += iHappy;
 		}
 		dValue += scaleFactor *
-			((0.7 + 0.5 * civicsMod) * AI_getHappinessWeight(happy, iExtraPop1) +
-			 (0.3 + 0.5 * civicsMod) * AI_getHappinessWeight(happy, iExtraPop2));
+			((0.7 + 0.5 * civicsMod) * AI_getHappinessWeight(iHappy, iExtraPop1) +
+			 (0.3 + 0.5 * civicsMod) * AI_getHappinessWeight(iHappy, iExtraPop2));
 	}
-	if(health > 0) {
+	if(iHealth > 0) {
 		if(bTrade && bAvailable) {
-			iExtraPop1 += health;
-			iExtraPop2 += health;
+			iExtraPop1 += iHealth;
+			iExtraPop2 += iHealth;
 		}
 		// Lower multiplier b/c bad health is not as painful as anger
-		dValue += (scaleFactor - 0.5) * 0.5 * (AI_getHealthWeight(health, iExtraPop1) +
-				AI_getHealthWeight(health, iExtraPop2));
+		dValue += (scaleFactor - 0.5) * 0.5 * (AI_getHealthWeight(iHealth, iExtraPop1) +
+				AI_getHealthWeight(iHealth, iExtraPop2));
 	}
 	dValue *= extraPopFactor;
 	// </advc.036>
@@ -13320,7 +13326,15 @@ int CvPlayerAI::AI_corporationBonusVal(BonusTypes eBonus,
 	return ::round(iValue / 1000.0);
 }
 
-// <advc.036> Rewritten
+// <advc.036>
+int CvPlayerAI::AI_goldForBonus(BonusTypes eBonus, PlayerTypes eBonusOwner) const {
+
+	FAssert(isHuman() != GET_PLAYER(eBonusOwner).isHuman());
+	return AI_tradeValToGold(AI_bonusTradeVal(eBonus, eBonusOwner, 1), isHuman(),
+			isHuman() ? INT_MAX : AI_maxGoldPerTurnTrade(eBonusOwner));
+}
+
+// Rewritten
 int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes ePlayer, int iChange,
 		bool bExtraHappyOrHealth) const {
 
@@ -23932,15 +23946,15 @@ int CvPlayerAI::AI_calculateDominationVictoryStage() const
 
 	if(!blockedByFriend) { // advc.104c
 		// <advc.115>
-		int civs = GC.getGameINLINE().countCivPlayersEverAlive();
-		if(iPercentOfDomination > 87 - civs) // was simply 80
+		int iCivs = GC.getGameINLINE().getCivPlayersEverAlive();
+		if(iPercentOfDomination > 87 - iCivs) // was simply 80
 		{	// </advc.115>
 			return 4;
 		}
 
 		if( iPercentOfDomination >
 				// advc.115: was simply 50
-				62 - civs)
+				62 - iCivs)
 		{
 			return 3;
 		}

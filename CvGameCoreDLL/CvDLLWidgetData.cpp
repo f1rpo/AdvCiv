@@ -5637,9 +5637,20 @@ void CvDLLWidgetData::parseBonusTradeHelp(CvWidgetDataStruct &widgetDataStruct, 
 {
 	if (widgetDataStruct.m_iData2 == -1)
 		parseBonusHelp(widgetDataStruct, szBuffer);
-	else {
+	else { /* <advc.073> Hack. Need the bOption field to distinguish between the
+			  import (bOption=true) and export columns, but setImageButton
+			  (in the EXE) has only the two iData parameters. I'm adding 1000
+			  to the bonus id in Python (CvExoticForeignAdvisor: drawResourceDeals)
+			  to signal that the widget is in the import column. Proper solution:
+			  Two separate widget types - probably wouldn't be that much work to
+			  implement either. */
+		if(widgetDataStruct.m_iData1 >= 1000) {
+			widgetDataStruct.m_iData1 -= 1000;
+			widgetDataStruct.m_bOption = true;
+		} // </advc.073>
 		GAMETEXT.setBonusTradeHelp(szBuffer, (BonusTypes)widgetDataStruct.m_iData1,
-			false, (PlayerTypes)widgetDataStruct.m_iData2);
+			false, (PlayerTypes)widgetDataStruct.m_iData2,
+			widgetDataStruct.m_bOption); // advc.073
 	}
 } // BULL - Trade Denial - end
 
@@ -5883,20 +5894,24 @@ void CvDLLWidgetData::parseDescriptionHelp(CvWidgetDataStruct &widgetDataStruct,
 	}
 }
 
-void CvDLLWidgetData::parseKillDealHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
+void CvDLLWidgetData::parseKillDealHelp(CvWidgetDataStruct &widgetDataStruct,
+		CvWStringBuffer &szBuffer)
 {
-	CvWString szTemp;
-	szTemp = szBuffer.getCString();
-	CvDeal* pDeal = GC.getGameINLINE().getDeal(widgetDataStruct.m_iData1);
+	CvWString szTemp = szBuffer.getCString();
+	CvGame const& g = GC.getGameINLINE();
+	CvDeal* pDeal = g.getDealINLINE(widgetDataStruct.m_iData1);
 	if (NULL != pDeal)
 	{
-		if (pDeal->isCancelable(GC.getGameINLINE().getActivePlayer(), &szTemp))
+		PlayerTypes eActivePlayer = g.getActivePlayer();
+		// <advc.073>
+		GAMETEXT.getDealString(szBuffer, *pDeal, eActivePlayer, false);
+		szBuffer.append(NEWLINE); // </advc.073>
+		if (pDeal->isCancelable(eActivePlayer, &szTemp))
 		{
 			szTemp = gDLL->getText("TXT_KEY_MISC_CLICK_TO_CANCEL");
 		}
 	}
-
-	szBuffer.assign(szTemp);
+	szBuffer.append(szTemp); // advc.073: was assign
 }
 
 
@@ -6135,8 +6150,9 @@ CvWString CvDLLWidgetData::getFoundCostText(CvPlot const& p, PlayerTypes ownerId
 	for(CvCity* c = kOwner.firstCity(&foo); c != NULL; c = kOwner.nextCity(&foo)) {
 		if(c->isDisorder()) // Can't account for these
 			continue;
-		int iProjected = // Distance maintenance stays the same
+		int iProjected = // Distance and corp. maintenance stay the same
 				c->calculateDistanceMaintenanceTimes100() +
+				c->calculateCorporationMaintenanceTimes100() +
 				CvCity::calculateNumCitiesMaintenanceTimes100(*c->plot(),
 				ownerId, c->getPopulation(), 1) +
 				CvCity::calculateColonyMaintenanceTimes100(*c->plot(),

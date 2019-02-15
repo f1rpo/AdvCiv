@@ -87,6 +87,8 @@ CvPlayer::CvPlayer()
 	m_ppaaiSpecialistExtraYield = NULL;
 	m_ppaaiImprovementYieldChange = NULL;
 
+	m_aszBonusHelp = NULL; // advc.003p
+
 	m_bDisableHuman = false; // bbai
 	m_iChoosingFreeTechCount = 0; // K-Mod
 
@@ -608,6 +610,12 @@ void CvPlayer::uninit()
 		}
 		SAFE_DELETE_ARRAY(m_ppaaiImprovementYieldChange);
 	}
+	// <advc.003p>
+	if(m_aszBonusHelp != NULL) {
+		for(int i = 0; i < GC.getNumBonusInfos(); i++)
+			SAFE_DELETE(m_aszBonusHelp[i]);
+		SAFE_DELETE_ARRAY(m_aszBonusHelp);
+	} // </advc.003p>
 
 	m_groupCycle.clear();
 
@@ -757,12 +765,11 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	m_iNewMessages = 0; // advc.106b
 	m_bAutoPlayJustEnded = false; // advc.127
 	m_bSavingReplay = false; // advc.106i
-	eReminderPending = NO_CIVIC; // advc.004x
-	
+	m_eReminderPending = NO_CIVIC; // advc.004x
+
 	m_eID = eID;
 	updateTeamType();
 	updateHuman();
-
 	if (m_eID != NO_PLAYER)
 	{
 		m_ePersonalityType = GC.getInitCore().getLeader(m_eID); //??? Is this repeated data???
@@ -987,6 +994,12 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 				m_ppaaiImprovementYieldChange[iI][iJ] = 0;
 			}
 		}
+		// <advc.003p>
+		FAssert(m_aszBonusHelp == NULL);
+		m_aszBonusHelp = new CvWString*[GC.getNumBonusInfos()];
+		for(int i = 0; i < GC.getNumBonusInfos(); i++)
+			m_aszBonusHelp[i] = NULL;
+		// </advc.003p>
 
 		m_mapEventsOccured.clear();
 		m_mapEventCountdown.clear();
@@ -1430,6 +1443,9 @@ void CvPlayer::changeCiv( CivilizationTypes eNewCiv )
 		gDLL->getInterfaceIFace()->setDirty(UnitInfo_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
+		// <advc.003p>
+		if(getID() == GC.getGameINLINE().getActivePlayer())
+			setBonusHelpDirty(); // </advc.003p>
 		gDLL->getInterfaceIFace()->setDirty(MinimapSection_DIRTY_BIT, true);
 		gDLL->getEngineIFace()->SetDirty(MinimapTexture_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
@@ -3632,8 +3648,8 @@ void CvPlayer::doTurn()
 
 	verifyCivics();
 	// <advc.004x>
-	if(eReminderPending != NO_CIVIC)
-		doChangeCivicsPopup(eReminderPending); // </advc.004x>
+	if(m_eReminderPending != NO_CIVIC)
+		doChangeCivicsPopup(m_eReminderPending); // </advc.004x>
 	//verifyStateReligion(); // dlph.10: disabled for now
 	updateTradeRoutes();
 
@@ -6735,24 +6751,18 @@ bool CvPlayer::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool
 
 bool CvPlayer::canConstruct(BuildingTypes eBuilding, bool bContinue, bool bTestVisible, bool bIgnoreCost, bool bIgnoreTech) const
 {
-	BuildingClassTypes eBuildingClass;
+	/*  <advc.003> Global checks moved into new function. These are all fast
+		(now that CivTeamsEverAlive is cached). */
+	if(!GC.getGameINLINE().canConstruct(eBuilding, bIgnoreCost, bTestVisible))
+		return false; // </advc.003>
+
 	int iI;
 	CvTeamAI& currentTeam = GET_TEAM(getTeam());
+	BuildingClassTypes eBuildingClass = (BuildingClassTypes)(GC.getBuildingInfo(eBuilding).getBuildingClassType());
 
-	eBuildingClass = ((BuildingClassTypes)(GC.getBuildingInfo(eBuilding).getBuildingClassType()));
-
-	//FAssert(GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(eBuildingClass) == eBuilding);
 	if (GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(eBuildingClass) != eBuilding)
 	{
 		return false;
-	}
-
-	if (!bIgnoreCost)
-	{
-		if (GC.getBuildingInfo(eBuilding).getProductionCost() == -1)
-		{
-			return false;
-		}
 	}
 
 	if (!bIgnoreTech) // K-Mod
@@ -6795,18 +6805,8 @@ bool CvPlayer::canConstruct(BuildingTypes eBuilding, bool bContinue, bool bTestV
 		}
 	}
 
-	if (GC.getGameINLINE().countCivTeamsEverAlive() < GC.getBuildingInfo(eBuilding).getNumTeamsPrereq())
-	{
-		return false;
-	}
-
 	if (GC.getBuildingInfo(eBuilding).getVictoryPrereq() != NO_VICTORY)
 	{
-		if (!(GC.getGameINLINE().isVictoryValid((VictoryTypes)(GC.getBuildingInfo(eBuilding).getVictoryPrereq()))))
-		{
-			return false;
-		}
-
 		if (isMinorCiv())
 		{
 			return false;
@@ -6826,18 +6826,6 @@ bool CvPlayer::canConstruct(BuildingTypes eBuilding, bool bContinue, bool bTestV
                 return false;
         }
     } // </dlph.19>
-	if (GC.getBuildingInfo(eBuilding).getMaxStartEra() != NO_ERA)
-	{
-		if (GC.getGameINLINE().getStartEra() > GC.getBuildingInfo(eBuilding).getMaxStartEra())
-		{
-			return false;
-		}
-	}
-
-	if (GC.getGameINLINE().isBuildingClassMaxedOut(eBuildingClass))
-	{
-		return false;
-	}
 
 	if (currentTeam.isBuildingClassMaxedOut(eBuildingClass))
 	{
@@ -6864,61 +6852,39 @@ bool CvPlayer::canConstruct(BuildingTypes eBuilding, bool bContinue, bool bTestV
 		}
 	}
 
-	if (!bTestVisible)
+	if(bTestVisible)
+		return true; // advc.003
+
+	if (GC.getGameINLINE().isBuildingClassMaxedOut(eBuildingClass,
+			(currentTeam.getBuildingClassMaking(eBuildingClass) +
+			((bContinue) ? -1 : 0))))
 	{
-		if (GC.getGameINLINE().isBuildingClassMaxedOut(eBuildingClass, (currentTeam.getBuildingClassMaking(eBuildingClass) + ((bContinue) ? -1 : 0))))
+		return false;
+	}
+
+	if (currentTeam.isBuildingClassMaxedOut(eBuildingClass,
+			(currentTeam.getBuildingClassMaking(eBuildingClass) +
+			((bContinue) ? -1 : 0))))
+	{
+		return false;
+	}
+
+	if (isBuildingClassMaxedOut(eBuildingClass,
+			(getBuildingClassMaking(eBuildingClass) + ((bContinue) ? -1 : 0))))
+	{
+		return false;
+	}
+
+	if (getHighestUnitLevel() < GC.getBuildingInfo(eBuilding).getUnitLevelPrereq())
+	{
+		return false;
+	}
+
+	for (iI = 0; iI < numBuildingClassInfos; iI++)
+	{
+		if (getBuildingClassCount((BuildingClassTypes)iI) < getBuildingClassPrereqBuilding(eBuilding, ((BuildingClassTypes)iI), ((bContinue) ? 0 : getBuildingClassMaking(eBuildingClass))))
 		{
 			return false;
-		}
-
-		if (currentTeam.isBuildingClassMaxedOut(eBuildingClass, (currentTeam.getBuildingClassMaking(eBuildingClass) + ((bContinue) ? -1 : 0))))
-		{
-			return false;
-		}
-
-		if (isBuildingClassMaxedOut(eBuildingClass, (getBuildingClassMaking(eBuildingClass) + ((bContinue) ? -1 : 0))))
-		{
-			return false;
-		}
-
-		if (GC.getGameINLINE().isNoNukes())
-		{
-			if (GC.getBuildingInfo(eBuilding).isAllowsNukes())
-			{
-				for (iI = 0; iI < GC.getNumUnitInfos(); iI++)
-				{
-					if (GC.getUnitInfo((UnitTypes)iI).getNukeRange() != -1)
-					{
-						return false;
-					}
-				}
-			}
-		}
-
-		if (GC.getBuildingInfo(eBuilding).getSpecialBuildingType() != NO_SPECIALBUILDING)
-		{
-			if (!(GC.getGameINLINE().isSpecialBuildingValid((SpecialBuildingTypes)(GC.getBuildingInfo(eBuilding).getSpecialBuildingType()))))
-			{
-				return false;
-			}
-		}
-
-		if (getNumCities() < GC.getBuildingInfo(eBuilding).getNumCitiesPrereq())
-		{
-			return false;
-		}
-
-		if (getHighestUnitLevel() < GC.getBuildingInfo(eBuilding).getUnitLevelPrereq())
-		{
-			return false;
-		}
-
-		for (iI = 0; iI < numBuildingClassInfos; iI++)
-		{
-			if (getBuildingClassCount((BuildingClassTypes)iI) < getBuildingClassPrereqBuilding(eBuilding, ((BuildingClassTypes)iI), ((bContinue) ? 0 : getBuildingClassMaking(eBuildingClass))))
-			{
-				return false;
-			}
 		}
 	}
 
@@ -6989,13 +6955,14 @@ bool CvPlayer::canCreate(ProjectTypes eProject, bool bContinue, bool bTestVisibl
 		{
 			if (GC.getProjectInfo(eProject).isAllowsNukes())
 			{
-				for (iI = 0; iI < GC.getNumUnitInfos(); iI++)
+				return false; // advc.003b
+				/*for (iI = 0; iI < GC.getNumUnitInfos(); iI++)
 				{
 					if (GC.getUnitInfo((UnitTypes)iI).getNukeRange() != -1)
 					{
 						return false;
 					}
-				}
+				}*/
 			}
 		}
 
@@ -11410,8 +11377,12 @@ void CvPlayer::setAlive(bool bNewValue)
 	if(isAlive() == bNewValue)
 		return; // </advc.003>
 	m_bAlive = bNewValue;
-	GET_TEAM(getTeam()).updateLeaderID(); // advc.003b
-	GET_TEAM(getTeam()).changeAliveCount((isAlive()) ? 1 : -1);
+	// <advc.003b>
+	if(isAlive() && getParent() == NO_PLAYER && !isBarbarian())
+		GC.getGameINLINE().changeCivPlayersEverAlive(1);
+	GET_TEAM(getTeam()).updateLeaderID();
+	// </advc.003b>
+	GET_TEAM(getTeam()).changeAliveCount(isAlive() ? 1 : -1);
 
 	// Report event to Python
 	CvEventReporter::getInstance().setPlayerAlive(getID(), bNewValue);
@@ -11591,7 +11562,7 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 		return;
 
 	m_bTurnActive = bNewValue;
-
+	CvGame& g = GC.getGameINLINE();
 	if (isTurnActive())
 	{
 		// K-Mod
@@ -11612,7 +11583,7 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 		FAssertMsg(isAlive(), "isAlive is expected to be true");
 
 		setEndTurn(false);
-		GC.getGameINLINE().resetTurnTimer();
+		g.resetTurnTimer();
 
 		// If we are the Pitboss, send this player an email
 		if ( gDLL->IsPitbossHost() )
@@ -11624,16 +11595,16 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 			}
 		}
 
-		if ((GC.getGameINLINE().isHotSeat() || GC.getGameINLINE().isPbem()) && isHuman() && bDoTurn)
+		if ((g.isHotSeat() || g.isPbem()) && isHuman() && bDoTurn)
 		{
 			gDLL->getInterfaceIFace()->clearEventMessages();
 			// advc.135a: Commented out
 			//gDLL->getEngineIFace()->setResourceLayer(false);
 
-			GC.getGameINLINE().setActivePlayer(getID());
+			g.setActivePlayer(getID());
 		}
 
-		GC.getGameINLINE().changeNumGameTurnActive(1);
+		g.changeNumGameTurnActive(1);
 
 		if (bDoTurn)
 		{
@@ -11642,11 +11613,11 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 				AI_doAdvancedStart();
 			}
 					
-			if (GC.getGameINLINE().getElapsedGameTurns() > 0)
+			if (g.getElapsedGameTurns() > 0)
 			{
 				if (isAlive())
 				{
-					if (GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
+					if (g.isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
 					{
 						doTurn();
 					}
@@ -11664,9 +11635,9 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 				}
 			}
 
-			if ((getID() == GC.getGameINLINE().getActivePlayer()) && (GC.getGameINLINE().getElapsedGameTurns() > 0))
+			if (getID() == g.getActivePlayer() && g.getElapsedGameTurns() > 0)
 			{
-				if (GC.getGameINLINE().isNetworkMultiPlayer())
+				if (g.isNetworkMultiPlayer())
 				{
 					gDLL->getInterfaceIFace()->addHumanMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), gDLL->getText("TXT_KEY_MISC_TURN_BEGINS").GetCString(), "AS2D_NEWTURN", MESSAGE_TYPE_DISPLAY_ONLY);
 				}
@@ -11676,24 +11647,22 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 				}
 			}
 			// <advc.706> Skip warnings and messages if only pausing for civ selection
-		  if(!GC.getGameINLINE().isOption(GAMEOPTION_RISE_FALL) ||
-				  !GC.getGameINLINE().getRiseFall().isSelectingCiv()) {
-				  // </advc.706>
-			doWarnings();
-			// <advc.106b>
-			if(isHuman()) {
-				validateDiplomacy(); // advc.001e
-				/*  Make sure that Python events like Civ4lerts are triggered before
-					processing messages */
-				CyArgsList pyArgs;
-				pyArgs.add(GC.getGame().getTurnSlice());
-				CvEventReporter::getInstance().genericEvent("gameUpdate", pyArgs.makeFunctionArgs());
-				postProcessMessages();
-			}
-		  } // advc.706
+			if(!g.isOption(GAMEOPTION_RISE_FALL) ||
+					!g.getRiseFall().isSelectingCiv()) { // </advc.706>
+				doWarnings();
+				// <advc.106b>
+				if(isHuman()) {
+					validateDiplomacy(); // advc.001e
+					/*  Make sure that Python events like Civ4lerts are triggered
+						before processing messages */
+					CyArgsList pyArgs;
+					pyArgs.add(g.getTurnSlice());
+					CvEventReporter::getInstance().genericEvent("gameUpdate", pyArgs.makeFunctionArgs());
+					postProcessMessages();
+				}
+			} // advc.706
 			// <advc.700>
 			if(isHuman() || isHumanDisabled()) {
-				CvGame& g = GC.getGameINLINE();
 				if(g.isOption(GAMEOPTION_RISE_FALL))
 					g.getRiseFall().atActiveTurnStart();
 			} // </advc.700>
@@ -11704,11 +11673,11 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 			// </106b>
 		}
 
-		if (getID() == GC.getGameINLINE().getActivePlayer())
+		if (getID() == g.getActivePlayer())
 		{
 			if (gDLL->getInterfaceIFace()->getLengthSelectionList() == 0)
 			{
-				GC.getGameINLINE().cycleSelectionGroups_delayed(1, false);
+				g.cycleSelectionGroups_delayed(1, false);
 			}
 
 			gDLL->getInterfaceIFace()->setDirty(SelectionCamera_DIRTY_BIT, true);
@@ -11726,7 +11695,7 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 			}
 		}
 
-		if (getID() == GC.getGameINLINE().getActivePlayer())
+		if (getID() == g.getActivePlayer())
 		{
 			gDLL->getInterfaceIFace()->setForcePopup(false);
 			gDLL->getInterfaceIFace()->clearQueuedPopups();
@@ -11734,28 +11703,29 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 		}
 
 		// start profiling DLL if desired
-		if (getID() == GC.getGameINLINE().getActivePlayer())
+		if (getID() == g.getActivePlayer())
 		{
 			startProfilingDLL(true);
 		}
 
-		GC.getGameINLINE().changeNumGameTurnActive(-1);
+		g.changeNumGameTurnActive(-1);
 
 		if (bDoTurn)
 		{
-			if (!GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
+			if (!g.isMPOption(MPOPTION_SIMULTANEOUS_TURNS))
 			{
 				if (isAlive())
 				{
 					doTurn();
 				}
 
-				if ((GC.getGameINLINE().isPbem() || GC.getGameINLINE().isHotSeat()) && isHuman() && GC.getGameINLINE().countHumanPlayersAlive() > 1)
+				if ((g.isPbem() || g.isHotSeat()) && isHuman() &&
+						g.countHumanPlayersAlive() > 1)
 				{
-					GC.getGameINLINE().setHotPbemBetweenTurns(true);
+					g.setHotPbemBetweenTurns(true);
 				}
 
-				if (GC.getGameINLINE().isSimultaneousTeamTurns())
+				if (g.isSimultaneousTeamTurns())
 				{
 					if (!GET_TEAM(getTeam()).isTurnActive())
 					{
@@ -11775,9 +11745,9 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 					{
 						if (GET_PLAYER((PlayerTypes)iI).isAlive())
 						{
-							if (GC.getGameINLINE().isPbem() && GET_PLAYER((PlayerTypes)iI).isHuman())
+							if (g.isPbem() && GET_PLAYER((PlayerTypes)iI).isHuman())
 							{
-								if (!GC.getGameINLINE().getPbemTurnSent())
+								if (!g.getPbemTurnSent())
 								{
 									gDLL->sendPbemTurn((PlayerTypes)iI);
 								}
@@ -12261,8 +12231,23 @@ PlayerTypes CvPlayer::getParent() const
 }
 
 void CvPlayer::setParent(PlayerTypes eParent)
-{
+{	// <advc.003b>
+	if(m_eParent == eParent)
+		return; // </advc.003b>
 	m_eParent = eParent;
+	// <advc.003b>
+	FAssert(isAlive());
+	/*  Wouldn't be too difficult to support NO_PLAYER, but it's not currently used -
+		once a parent, ever a parent. */
+	FAssert(eParent != NO_PLAYER);
+	if(!isAlive() || eParent == NO_PLAYER)
+		return;
+	GC.getGameINLINE().changeCivPlayersEverAlive(-1);
+	/*  Might later break free and find a permanent ally, but upon creation,
+		the colonial vassal is going to be in a singleton team. */
+	FAssert(GET_TEAM(getTeam()).getNumMembers() == 1);
+	GC.getGameINLINE().changeCivTeamsEverAlive(-1);
+	// </advc.003b>
 }
 
 // <advc.003> More convenient access to CvTeam::getMasterTeam
@@ -14937,14 +14922,14 @@ void CvPlayer::clearSpaceShipPopups()
 void CvPlayer::doChangeCivicsPopup(CivicTypes eCivic) {
 
 	if(!isHuman()) { // Forget reminder during Auto Play
-		eReminderPending = NO_CIVIC;
+		m_eReminderPending = NO_CIVIC;
 		return;
 	}
 	if(!canRevolution(NULL)) {
-		eReminderPending = eCivic;
+		m_eReminderPending = eCivic;
 		return;
 	}
-	eReminderPending = NO_CIVIC;
+	m_eReminderPending = NO_CIVIC;
 	CivicOptionTypes eCivicOption = (CivicOptionTypes)GC.getCivicInfo(eCivic).
 			getCivicOptionType();
 	CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_CHANGECIVIC);
@@ -18446,7 +18431,7 @@ void CvPlayer::read(FDataStreamBase* pStream)
 	if(uiFlag >= 8) {
 		int tmp=-1;
 		pStream->Read(&tmp);
-		eReminderPending = (CivicTypes)tmp;
+		m_eReminderPending = (CivicTypes)tmp;
 	} // </advc.004x>
 	pStream->Read(&m_bAlive);
 	pStream->Read(&m_bEverAlive);
@@ -18960,7 +18945,7 @@ void CvPlayer::write(FDataStreamBase* pStream)
 	pStream->Write(m_iWondersScore);
 	pStream->Write(m_iTechScore);
 	pStream->Write(m_iCombatExperience);
-	pStream->Write(eReminderPending); // advc.004x
+	pStream->Write(m_eReminderPending); // advc.004x
 
 	pStream->Write(m_bAlive);
 	pStream->Write(m_bEverAlive);
@@ -24174,6 +24159,12 @@ int CvPlayer::getMusicScriptId(PlayerTypes eForPlayer) const
 
 void CvPlayer::getGlobeLayerColors(GlobeLayerTypes eGlobeLayerType, int iOption, std::vector<NiColorA>& aColors, std::vector<CvPlotIndicatorData>& aIndicators) const
 {
+	PROFILE_FUNC(); // advc.003b
+	/*  <advc.003> These get cleared by some of the subroutines, but should be
+		empty to begin with. If not, there could be a memory leak. */
+	FAssert(aColors.empty() && aIndicators.empty());
+	FAssert(getID() == GC.getGameINLINE().getActivePlayer());
+	// </advc.003>
 	switch (eGlobeLayerType)
 	{
 	case GLOBE_LAYER_TRADE:
@@ -24199,7 +24190,8 @@ void CvPlayer::getGlobeLayerColors(GlobeLayerTypes eGlobeLayerType, int iOption,
 
 void CvPlayer::getTradeLayerColors(std::vector<NiColorA>& aColors, std::vector<CvPlotIndicatorData>& aIndicators) const
 {
-	aColors.resize(GC.getMapINLINE().numPlotsINLINE(), NiColorA(0, 0, 0, 0));
+	CvMap const& m = GC.getMapINLINE();
+	aColors.resize(m.numPlotsINLINE(), NiColorA(0, 0, 0, 0));
 	aIndicators.clear();
 	// <advc.004z>
 	bool bShowForeign = (GC.getDefineINT("FOREIGN_GROUPS_ON_TRADE_LAYER") > 0);
@@ -24207,10 +24199,9 @@ void CvPlayer::getTradeLayerColors(std::vector<NiColorA>& aColors, std::vector<C
 	// </advc.004z>
 	typedef std::map< int, std::vector<int> > PlotGroupMap;
 	PlotGroupMap mapPlotGroups;
-	std::vector<int> notConn; // advc.004z
-	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); ++iI)
-	{
-		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+	std::vector<int> aNotConn; // advc.004z
+	for(int iI = 0; iI < m.numPlotsINLINE(); iI++) {
+		CvPlot* pLoopPlot = m.plotByIndexINLINE(iI);
 		PlayerTypes ownerId = pLoopPlot->getOwnerINLINE(); // advc.004z
 		CvPlotGroup* pPlotGroup = pLoopPlot->getPlotGroup(getID());
 		if (pPlotGroup != NULL && pLoopPlot->isRevealed(getTeam(), true) &&
@@ -24224,7 +24215,7 @@ void CvPlayer::getTradeLayerColors(std::vector<NiColorA>& aColors, std::vector<C
 			if(bShowCapitalConn && pLoopPlot->isVisible(getTeam(), false) &&
 					pLoopPlot->isCity() && !pLoopPlot->getPlotCity()->
 					isConnectedToCapital())
-				notConn.push_back(iI);
+				aNotConn.push_back(iI);
 			else // </advc.004z>
 				mapPlotGroups[pPlotGroup->getID()].push_back(iI);
 		}
@@ -24266,8 +24257,8 @@ void CvPlayer::getTradeLayerColors(std::vector<NiColorA>& aColors, std::vector<C
 		kRandom.getFloat();
 	}
 	NiColorA kColor(0, 0, 0, 0.75f);
-	for(size_t i = 0; i < notConn.size(); i++)
-		aColors[notConn[i]] = kColor; // </advc.004z>
+	for(size_t i = 0; i < aNotConn.size(); i++)
+		aColors[aNotConn[i]] = kColor; // </advc.004z>
 }
 
 void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption, std::vector<NiColorA>& aColors, std::vector<CvPlotIndicatorData>& aIndicators) const
@@ -24276,7 +24267,8 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption, std::vector
 	if(eOption == 2) // Somehow, eOption==GLOBE_LAYER_UNIT_DUMMY doesn't work.
 		eOption = SHOW_ALL_MILITARY;
 	// </advc.004z>
-	aColors.resize(GC.getMapINLINE().numPlotsINLINE(), NiColorA(0, 0, 0, 0));
+	CvMap const& m = GC.getMapINLINE();
+	aColors.resize(m.numPlotsINLINE(), NiColorA(0, 0, 0, 0));
 	aIndicators.clear();
 
 	std::vector< std::vector<float> > aafPlayerPlotStrength(MAX_PLAYERS);
@@ -24284,7 +24276,7 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption, std::vector
 	{
 		if (GET_PLAYER((PlayerTypes)i).isAlive())
 		{
-			aafPlayerPlotStrength[i].resize(GC.getMapINLINE().numPlotsINLINE());
+			aafPlayerPlotStrength[i].resize(m.numPlotsINLINE());
 		}
 	}
 
@@ -24301,9 +24293,9 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption, std::vector
 	{
 		if (GET_PLAYER((PlayerTypes)iPlayer).isAlive())
 		{
-			for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); ++iI)
+			for (int iI = 0; iI < m.numPlotsINLINE(); ++iI)
 			{
-				CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+				CvPlot* pLoopPlot = m.plotByIndexINLINE(iI);
 				int iNumUnits = pLoopPlot->getNumUnits();
 				float fPlotStrength = 0.0f;
 
@@ -24477,9 +24469,9 @@ void CvPlayer::getUnitLayerColors(GlobeLayerUnitOptionTypes eOption, std::vector
 				PlayerColorTypes eCurPlayerColor = GET_PLAYER((PlayerTypes) iPlayer).getPlayerColor();
 				const NiColorA& kColor = GC.getColorInfo((ColorTypes) GC.getPlayerColorInfo(eCurPlayerColor).getColorTypePrimary()).getColor();
 
-				for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
+				for (int iI = 0; iI < m.numPlotsINLINE(); iI++)
 				{
-					CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+					CvPlot* pLoopPlot = m.plotByIndexINLINE(iI);
 					if (pLoopPlot->isVisible(getTeam(), true))
 					{
 						float fPlotStrength = aafPlayerPlotStrength[iPlayer][iI];
@@ -24505,11 +24497,11 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption, std
 	aIndicators.clear();
 
 	PlayerColorTypes ePlayerColor = getPlayerColor();
-
 	CvWStringBuffer szBuffer;
-	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
+	CvMap& m = GC.getMapINLINE();
+	for (int iI = 0; iI < m.numPlotsINLINE(); iI++)
 	{
-		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+		CvPlot* pLoopPlot = m.plotByIndexINLINE(iI);
 		// <advc.003>
 		if(!pLoopPlot->isRevealed(getTeam(), true))
 			continue; // </advc.003>
@@ -24554,7 +24546,7 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption, std
 
 			int x = pLoopPlot->getX();
 			int y = pLoopPlot->getY();
-			kData.m_Target = NiPoint2(GC.getMapINLINE().plotXToPointX(x), GC.getMapINLINE().plotYToPointY(y));
+			kData.m_Target = NiPoint2(m.plotXToPointX(x), m.plotYToPointY(y));
 			PlayerTypes eOwner = pLoopPlot->getRevealedOwner(getTeam(), true); 
 			if (eOwner == NO_PLAYER)
 			{
@@ -24575,8 +24567,18 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption, std
 			// <advc.004z>
 			if(eCurType == NO_BONUS)
 				GAMETEXT.setImprovementHelp(szBuffer, pLoopPlot->getImprovementType());
-			else // </advc.004z>
-				GAMETEXT.setBonusHelp(szBuffer, eCurType, false);
+			else { // </advc.004z>
+				//GAMETEXT.setBonusHelp(szBuffer, eCurType, false);
+				// <advc.003p> Replacing the above
+				if(m_aszBonusHelp[eCurType] != NULL)
+					szBuffer.append(*m_aszBonusHelp[eCurType]);
+				else {
+					CvWStringBuffer szTempBuffer;
+					GAMETEXT.setBonusHelp(szTempBuffer, eCurType, false);
+					m_aszBonusHelp[eCurType] = new CvWString(szTempBuffer.getCString());
+					szBuffer.append(szTempBuffer);
+				}
+			} // </advc.003p>
 			kData.m_strHelpText = szBuffer.getCString();
 
 			aIndicators.push_back(kData);
@@ -24638,15 +24640,16 @@ void CvPlayer::getReligionLayerColors(ReligionTypes eSelectedReligion, std::vect
 void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector<CvPlotIndicatorData>& aIndicators) const
 {
 	const int iColorsPerPlot = 4;
-	aColors.resize(GC.getMapINLINE().numPlotsINLINE() * iColorsPerPlot, NiColorA(0, 0, 0, 0));
+	CvMap const& m = GC.getMapINLINE();
+	aColors.resize(m.numPlotsINLINE() * iColorsPerPlot, NiColorA(0, 0, 0, 0));
 	aIndicators.clear();
 
 	// find maximum total culture
 	int iMaxTotalCulture = INT_MIN;
 	int iMinTotalCulture = INT_MAX;
-	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
+	for (int iI = 0; iI < m.numPlotsINLINE(); iI++)
 	{
-		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+		CvPlot* pLoopPlot = m.plotByIndexINLINE(iI);
 		int iTotalCulture = pLoopPlot->getTotalCulture(); // advc.003b: was countTotalCulture
 		if (iTotalCulture > iMaxTotalCulture)
 		{
@@ -24660,9 +24663,9 @@ void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector
 	iMinTotalCulture = 0;
 
 	// find culture percentages
-	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
+	for (int iI = 0; iI < m.numPlotsINLINE(); iI++)
 	{
-		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+		CvPlot* pLoopPlot = m.plotByIndexINLINE(iI);
 		PlayerTypes eOwner = pLoopPlot->getRevealedOwner(getTeam(), true); 
 
 		// how many people own this plot?
@@ -24712,6 +24715,18 @@ void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector
 		}
 	}
 }
+
+// <advc.003p>
+void CvPlayer::setBonusHelpDirty() {
+
+	if(m_aszBonusHelp == NULL) {
+		FAssert(m_aszBonusHelp != NULL);
+		return;
+	}
+	for(int i = 0; i < GC.getNumBonusInfos(); i++)
+		SAFE_DELETE(m_aszBonusHelp[i])
+} // </advc.003p>
+
 
 void CvPlayer::cheat(bool bCtrl, bool bAlt, bool bShift)
 {

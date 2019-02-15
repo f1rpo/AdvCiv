@@ -1142,8 +1142,8 @@ public:
 	DllExport int getIntroMusicScriptId(PlayerTypes eForPlayer) const;
 	DllExport int getMusicScriptId(PlayerTypes eForPlayer) const;
 	DllExport void getGlobeLayerColors(GlobeLayerTypes eGlobeLayerType, int iOption, std::vector<NiColorA>& aColors, std::vector<CvPlotIndicatorData>& aIndicators) const;
+	void setBonusHelpDirty(); // advc.003p
 	DllExport void cheat(bool bCtrl, bool bAlt, bool bShift);
-
 	DllExport const CvArtInfoUnit* getUnitArtInfo(UnitTypes eUnit, int iMeshGroup = 0) const;
 	DllExport bool hasSpaceshipArrived() const;
 
@@ -1453,7 +1453,8 @@ protected:
 	void postProcessMessages();
 	int getStartOfTurnMessageLimit() const;
 	// </advc.106b>
-	CivicTypes eReminderPending; // advc.004x
+	CivicTypes m_eReminderPending; // advc.004x
+	CvWString** m_aszBonusHelp; // advc.003p  (Not serialized)
 	CvTurnScoreMap m_mapScoreHistory;
 	CvTurnScoreMap m_mapEconomyHistory;
 	CvTurnScoreMap m_mapIndustryHistory;
