@@ -59,12 +59,8 @@ private:
 	bool atTotalWarWithTarget() const;
 	void gatherCivsAndTeams();
 
-	static long lastCallParams[];
-	static int lastCallResult[];
-	static int lastIndex;
-	static int cacheSz;
 	/*  If (or while) set, all WarEvaluator objects use the cache, not just those
-		with useCache=true. */
+		with useCache=true. See constructor in WarEvaluator.cpp for more info. */
 	public: static bool checkCache;
 			static void clearCache();
 };

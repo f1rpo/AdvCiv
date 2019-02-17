@@ -13,17 +13,20 @@ using std::ostringstream;
 
 /*  When a player trades with the AI, the EXE asks the DLL to compute trade values
 	several times in a row (usually about a dozen times), which is enough to cause
-	a noticeable delay. Therefore this primitive caching mechanism.
-	Important to enable caching (checkCache=true) only tempoarily for UI purposes
-	b/c it's not 100% reliable (and not stored in savegames; could lead to
-	inconsistencies). */
-long WarEvaluator::lastCallParams[] = {0, 0, 0, 0, 0};
-int WarEvaluator::lastCallResult[] = {INT_MIN,INT_MIN,INT_MIN,INT_MIN,INT_MIN};
-/*  Calls alternate between naval/ non-naval, limited/ total or mutual war utility
-	of two civs, so caching just the last result isn't effective. */
-int WarEvaluator::cacheSz = 5; // lastCall... initializers need to match this number
-int WarEvaluator::lastIndex = 0;
+	a noticeable delay. Therefore this primitive caching mechanism. The cache is
+	always used on the Trade screen; in other UI contexts, it has to be enabled
+	through the useCache param of the constructor, or the static checkCache flag.
+	As for the latter, it's important to set it back to false once war evaluations
+	have finished b/c the cache doesn't work in all situations
+	(see WarEvalParameters::id) and isn't stored in savegames. */
 bool WarEvaluator::checkCache = false;
+/*  Cache size: Calls alternate between naval/ non-naval,
+	limited/ total or mutual war utility of two civs,
+	so caching just the last result isn't effective. */
+static int const cacheSz = 10;
+static long lastCallParams[cacheSz];
+static int lastCallResult[cacheSz];
+static int lastIndex;
 
 void WarEvaluator::clearCache() {
 
@@ -40,12 +43,23 @@ WarEvaluator::WarEvaluator(WarEvalParameters& warEvalParams, bool useCache) :
 	targetTeam(target.warAndPeaceAI().teamMembers()),
 	useCache(useCache) {
 
+	static bool bInitCache = true;
+	if(bInitCache) {
+		for(int i = 0; i < cacheSz; i++) {
+			lastCallParams[i] = 0;
+			lastCallResult[i] = INT_MIN;
+		}
+		lastIndex = 0;
+		bInitCache = false;
+	}
+
 	FAssertMsg(agentId != targetId, "Considering war against own team");
 	// Second condition already detected above
 	FAssert(!target.isAVassal());
 	FAssert(agent.isHasMet(targetId));
 	FAssert(!agentTeam.empty());
 	FAssert(!targetTeam.empty());
+
 	peaceScenario = false;
 }
 
@@ -211,7 +225,7 @@ int WarEvaluator::evaluate(WarPlanTypes wp, bool isNaval, int preparationTime) {
 	}
 	params.setPreparationTime(preparationTime);
 	// Don't check cache in recursive calls (peaceScenario=true)
-	if(!peaceScenario && (checkCache || useCache)) {
+	if(!peaceScenario && (checkCache || useCache || gDLL->isDiplomacy())) {
 		long id = params.id();
 		for(int i = 0; i < cacheSz; i++)
 			if(id == lastCallParams[i] && lastCallResult[i] != INT_MIN)
