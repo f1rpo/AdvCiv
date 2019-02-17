@@ -835,19 +835,21 @@
 	</TEXT>
 	
 	<!-- Situation Report Tab -->
+	<!-- advc.002b: Changed German to "Erz-" (was empty) -->
 	<TEXT>
 		<Tag>TXT_KEY_MILITARY_SITREP_WORST</Tag>
 		<English>Worst</English>
 		<French>Worst</French>
-		<German></German><!-- This is supposed to stay empty. -->
+		<German>Erz-</German>
 		<Italian>Peggior</Italian>
 		<Spanish>Peor</Spanish>
 	</TEXT>
+	<!-- advc.002b: German "Erzfeind" was too long -->
 	<TEXT>
 		<Tag>TXT_KEY_MILITARY_SITREP_ENEMY</Tag>
 		<English>Enemy</English>
 		<French>Enemy</French>
-		<German>Erzfeind</German>
+		<German>Feind</German>
 		<Italian>Nemico</Italian>
 		<Spanish>Enemigo</Spanish>
 	</TEXT>
@@ -923,19 +925,21 @@
 		<Italian>Patti Difensivi</Italian>
 		<Spanish>Pactos Defensivos</Spanish>
 	</TEXT>
+	<!-- advc.004g: German was "Gering"; use that for MINOR -->
 	<TEXT>
 		<Tag>TXT_KEY_MILITARY_THREAT_INDEX_LOW</Tag>
 		<English>Low</English>
 		<French>Bas</French>
-		<German>Gering</German>
+		<German>Keine Bedrohung</German>
 		<Italian>Rischio Basso</Italian>
 		<Spanish>Bajo</Spanish>
 	</TEXT>
+	<!-- advc.004g: German was "Moll" (LOL) -->
 	<TEXT>
 		<Tag>TXT_KEY_MILITARY_THREAT_INDEX_MINOR</Tag>
 		<English>Minor</English>
 		<French>Mineure</French>
-		<German>Moll</German>
+		<German>Gering</German>
 		<Italian>Minore</Italian>
 		<Spanish>Menor</Spanish>
 	</TEXT>

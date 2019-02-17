@@ -846,6 +846,17 @@
 		<Italian>Nuova linea</Italian>
 		<Spanish>Nueva l&#237;nea</Spanish>
 	</TEXT>
+
+	<!-- advc.002b: FromCIV4GameTextInfos.xml. German was "Bevorzugte
+		 Staatsformen", Italian "Forme di governo preferite". -->
+	<TEXT>
+		<Tag>TXT_KEY_PEDIA_FAV_CIVIC</Tag>
+		<English>Favorite Civics</English>
+		<French>Doctrines pr&#233;f&#233;r&#233;es</French>
+		<German>Lieblingsstaatsform</German>
+		<Italian>Governo preferito</Italian>
+		<Spanish>Principios favoritos</Spanish>
+	</TEXT>
 	
 	<!-- advc.004g: Originally in CIV4GameText_BTS.xml
 		 Was:
@@ -4820,7 +4831,7 @@
 		<Tag>TXT_KEY_FOREIGN_ADVISOR_EXPORTING</Tag>
 		<English>Exporting</English>
 		<French>Exportant</French>
-		<German>Wir erhalten</German>
+		<German>Liefert</German>
 		<Italian>Esportando</Italian>
 		<Spanish>Exportando</Spanish>
 	</TEXT>
@@ -4829,11 +4840,11 @@
 		<Tag>TXT_KEY_FOREIGN_ADVISOR_IMPORTING</Tag>
 		<English>Importing</English>
 		<French>Important</French>
-		<German>Wir liefern</German>
+		<German>Erhält</German>
 		<Italian>Importando</Italian>
 		<Spanish>Importando</Spanish>
 	</TEXT>
-	<!-- To replace the group headings, but I've actually disabled these now,
+	<!-- To replace the group headings. I've actually disabled these now,
 		 so: unused. -->
 	<TEXT>
 		<Tag>TXT_KEY_FOREIGN_ADVISOR_EXPORT</Tag>
@@ -4868,6 +4879,55 @@
 		<German>Kein Bedarf</German>
 		<Italian>Nessun bisogno</Italian>
 		<Spanish>No necesitamos</Spanish>
+	</TEXT>
+	<!-- German translation "Staatsoberhaupt" was too long -->
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_LEADER</Tag>
+		<English>Leader</English>
+		<French>Chef</French>
+		<German>Gegner</German>
+		<Italian>Leader</Italian>
+		<Spanish>L&#237;der</Spanish>
+	</TEXT>
+	
+	<!-- advc.004g: New key to replace the first "Can't Trade" heading on the
+		 "Technologies" tab. Based on TXT_KEY_FOREIGN_ADVISOR_CANT_TRADE
+		 (CIV4GameText_BTS.xml), and I've kept the Romance translations from
+		 there. -->
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_CANT_RECEIVE</Tag>
+		<English>Can't Receive</English>
+		<French>Commerce impossible</French>
+		<German>Vorbed. fehlt</German>
+		<Italian>Non pu&#242; commerciare</Italian>
+		<Spanish>No intercambia</Spanish>
+	</TEXT>
+	<!-- advc.004g: Was "Will Trade" -->
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_FOR_TRADE_2</Tag>
+		<English>Will Share</English>
+		<French>Echangera</French>
+		<German>Bietet</German>
+		<Italian>Commercer&#224;</Italian>
+		<Spanish>Intercambia</Spanish>
+	</TEXT>
+	<!-- advc.004g: Was "Won't Trade" -->
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_NOT_FOR_TRADE_2</Tag>
+		<English>Won't Share</English>
+		<French>N'&#233;changera pas</French>
+		<German>Hält zurück</German>
+		<Italian>Non commercer&#224;</Italian>
+		<Spanish>No intercambia</Spanish>
+	</TEXT>
+	<!-- advc.004g: Was "Can't Trade" -->
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_CANT_TRADE</Tag>
+		<English>Can't Share</English>
+		<French>Commerce impossible</French>
+		<German>Unmöglich</German>
+		<Italian>Non pu&#242; commerciare</Italian>
+		<Spanish>No intercambia</Spanish>
 	</TEXT>
 	
 </Civ4GameText>

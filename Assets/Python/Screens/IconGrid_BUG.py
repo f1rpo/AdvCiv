@@ -119,7 +119,8 @@ class IconGrid_BUG:
 		self.scrollSpace = 3
 
 		iTemp = [0, 0, 35, 30, 0]
-		self.iconColWidth = 55 + iTemp[CyGame().getCurrentLanguage()]
+		# advc.073: The language-based adjustment breaks the German and Italian formatting by allowing only two resource icons per column (which results in even less space for the column headings).
+		self.iconColWidth = 55# + iTemp[CyGame().getCurrentLanguage()]
 
 		self.groupBorder = 10
 		self.groupLabelOffset = "  "
