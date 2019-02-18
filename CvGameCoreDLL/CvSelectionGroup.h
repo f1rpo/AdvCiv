@@ -81,8 +81,10 @@ public:
 	bool canEnterTerritory(TeamTypes eTeam, bool bIgnoreRightOfPassage = false) const;									// Exposed to Python
 	bool canEnterArea(TeamTypes eTeam, const CvArea* pArea, bool bIgnoreRightOfPassage = false) const;									// Exposed to Python
 	DllExport bool canMoveInto(CvPlot* pPlot, bool bAttack = false);																		// Exposed to Python
-	DllExport bool canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar = false) { return canMoveOrAttackInto(pPlot, bDeclareWar, false); } // Exposed to Python
-	bool canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar, bool bCheckMoves/* = false (see above) */, bool bAssumeVisible = true); // K-Mod. (hack to avoid breaking the DllExport)
+	DllExport bool canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar = false) {					 // Exposed to Python
+		return canMoveOrAttackInto(pPlot, bDeclareWar, false);
+	} // K-Mod. (hack to avoid breaking the DllExport)			advc.003: const
+	bool canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar, bool bCheckMoves/* = false (see above) */, bool bAssumeVisible = true) const;
 	bool canMoveThrough(CvPlot* pPlot, bool bDeclareWar = false, bool bAssumeVisible = true) const; // Exposed to Python, K-Mod added bDeclareWar and bAssumeVisible
 	bool canFight();																																										// Exposed to Python 
 	bool canDefend();																																										// Exposed to Python
@@ -211,6 +213,9 @@ public:
 	int getMissionType(int iNode) const;																														// Exposed to Python
 	int getMissionData1(int iNode) const;																														// Exposed to Python
 	int getMissionData2(int iNode) const;																														// Exposed to Python
+	// <advc.075>
+	void handleBoarded();
+	bool canDisembark() const; // </advc.075>
 
 	// for serialization
 	virtual void read(FDataStreamBase* pStream);

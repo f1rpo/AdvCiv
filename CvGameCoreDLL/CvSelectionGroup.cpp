@@ -1571,6 +1571,7 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 				if (at(headMissionQueueNode()->m_data.iData1, headMissionQueueNode()->m_data.iData2))
 				{
 					bDone = true;
+					handleBoarded(); // advc.075
 				}
 				break;
 
@@ -2286,7 +2287,7 @@ bool CvSelectionGroup::isFull()
 	if(getNumUnits() <= 0)
 		return false;
 
-	// do two passes, the first pass, we ignore units with speical cargo
+	// do two passes, the first pass, we ignore units with special cargo
 	int iSpecialCargoCount = 0;
 	int iCargoCount = 0;
 
@@ -2537,8 +2538,8 @@ bool CvSelectionGroup::canMoveInto(CvPlot* pPlot, bool bAttack)
 }
 
 
-//bool CvSelectionGroup::canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar)
-bool CvSelectionGroup::canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar, bool bCheckMoves, bool bAssumeVisible) // K-Mod
+bool CvSelectionGroup::canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar,
+		bool bCheckMoves, bool bAssumeVisible) const // K-Mod
 {
 	if(getNumUnits() <= 0)
 		return false;
@@ -4510,6 +4511,7 @@ CLLNode<IDInfo>* CvSelectionGroup::deleteUnitNode(CLLNode<IDInfo>* pNode)
 		case ACTIVITY_INTERCEPT:
 		case ACTIVITY_PATROL:
 		case ACTIVITY_PLUNDER:
+		case ACTIVITY_BOARDED: // advc.075
 			break;
 		default:
 			setActivityType(ACTIVITY_AWAKE);
@@ -5037,9 +5039,7 @@ int CvSelectionGroup::getMissionData1(int iNode) const
 int CvSelectionGroup::getMissionData2(int iNode) const
 {
 	int iCount = 0;
-	CLLNode<MissionData>* pMissionNode;
-
-	pMissionNode = headMissionQueueNode();
+	CLLNode<MissionData>* pMissionNode = headMissionQueueNode();
 
 	while (pMissionNode != NULL)
 	{
@@ -5055,6 +5055,55 @@ int CvSelectionGroup::getMissionData2(int iNode) const
 
 	return -1;
 }
+
+// <advc.075>
+void CvSelectionGroup::handleBoarded() {
+
+	if(!isHuman() || GET_PLAYER(getOwnerINLINE()).isOption(PLAYEROPTION_NO_UNIT_CYCLING))
+		return;
+	CLLNode<MissionData>* pMissionNode = headMissionQueueNode();
+	if(pMissionNode == NULL) {
+		FAssert(pMissionNode != NULL); // MOVE_TO mission should still be queued
+		return;
+	}
+	if(nextMissionQueueNode(pMissionNode) != NULL)
+		return;
+	if(movesLeft() || !hasMoved())
+		return;
+	if(plot()->isWater() && !plot()->isAdjacentToLand())
+		return;
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
+	while(pUnitNode != NULL) {
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+		pUnitNode = nextUnitNode(pUnitNode);
+		if(pLoopUnit->domainCargo() == DOMAIN_LAND && pLoopUnit->hasCargo()) {
+			std::vector<CvUnit*> aCargo;
+			pLoopUnit->getCargoUnits(aCargo);
+			for(size_t i = 0; i < aCargo.size(); i++) {
+				CvSelectionGroup* gr = aCargo[i]->getGroup();
+				if(gr == NULL) {
+					FAssert(gr != NULL);
+					continue;
+				}
+				if(gr->getActivityType() == ACTIVITY_BOARDED && gr->canDisembark())
+					gr->setActivityType(ACTIVITY_AWAKE);
+			}
+		}
+	}
+}
+
+
+bool CvSelectionGroup::canDisembark() const {
+
+	if(!plot()->isWater() && movesLeft())
+		return true;
+	for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
+		CvPlot* pAdj = plotDirection(getX(), getY(), (DirectionTypes)i);
+		if(pAdj != NULL && canMoveOrAttackInto(pAdj, false, true, false))
+			return true;
+	}
+	return false;
+} // </advc.075>
 
 
 void CvSelectionGroup::read(FDataStreamBase* pStream)

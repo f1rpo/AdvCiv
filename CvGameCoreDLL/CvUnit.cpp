@@ -12080,7 +12080,8 @@ void CvUnit::setTransportUnit(CvUnit* pTransportUnit)
 
 			if (getDomainType() != DOMAIN_AIR)
 			{
-				getGroup()->setActivityType(ACTIVITY_SLEEP);
+				//getGroup()->setActivityType(ACTIVITY_SLEEP);
+				getGroup()->setActivityType(ACTIVITY_BOARDED); // advc.075
 			}
 
 			if (GC.getGameINLINE().isFinalInitialized())

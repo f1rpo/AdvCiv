@@ -3089,6 +3089,7 @@ void getActivityTypeString(CvWString& szString, ActivityTypes eActivityType)
 	case ACTIVITY_PATROL: szString = L"PATROL"; break;
 	case ACTIVITY_PLUNDER: szString = L"PLUNDER"; break;
 	// </advc.007>
+	case ACTIVITY_BOARDED: szString = L"BOARDED"; break; // advc.075
 	default: szString = CvWString::format(L"UNKNOWN_ACTIVITY(%d)", eActivityType); break;
 	}
 }
