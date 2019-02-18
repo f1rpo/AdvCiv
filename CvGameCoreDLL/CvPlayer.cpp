@@ -5174,15 +5174,13 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 				!ourTeam.isHuman()) // </advc.155>
 		{
 			if (GET_PLAYER(eWhoTo).isCivic((CivicTypes)item.m_iData)
-				    /* <advc.132> canForceCivic double-checks everything
-					   checked here already, plus some clauses that I've
-					   added there. */ || (
-					(TEAMREF(getID()).isVassal(theirTeam.getID()) ||
-			        ::atWar(getTeam(), theirTeam.getID()))
-					&& GET_PLAYER(eWhoTo).canForceCivics(getID(),
-					(CivicTypes)(item.m_iData))
-					) // </advc.132>
-				)
+					/*  <advc.132> canForceCivic double-checks everything
+						checked here already, plus some clauses that I've
+						added there. */
+					|| ((TEAMREF(getID()).isVassal(theirTeam.getID()) ||
+			        ::atWar(getTeam(), theirTeam.getID())) &&
+					GET_PLAYER(eWhoTo).canForceCivics(getID(),
+					(CivicTypes)item.m_iData))) // </advc.132>
 			{
 				if (canDoCivics((CivicTypes)(item.m_iData)) && !isCivic((CivicTypes)(item.m_iData)))
 				{
@@ -5214,13 +5212,11 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 				!ourTeam.isHuman()) // </advc.155>
 		{
 			if (GET_PLAYER(eWhoTo).getStateReligion() == ((ReligionTypes)item.m_iData)
-				    /* <advc.132> Same thing as for civics above. */ || (
-					(TEAMREF(getID()).isVassal(theirTeam.getID()) ||
-			        ::atWar(getTeam(), theirTeam.getID()))
+					// <advc.132> Same thing as for civics above
+					|| ((TEAMREF(getID()).isVassal(theirTeam.getID())
+					|| ::atWar(getTeam(), theirTeam.getID()))
 					&& GET_PLAYER(eWhoTo).canForceReligion(getID(),
-					(ReligionTypes)item.m_iData)
-					) // </advc.132>
-				)
+					(ReligionTypes)item.m_iData))) // </advc.132>
 			{
 				if (canConvert((ReligionTypes)(item.m_iData)))
 				{
@@ -8993,26 +8989,18 @@ void CvPlayer::foundCorporation(CorporationTypes eCorporation)
 int CvPlayer::getCivicAnarchyLength(CivicTypes* paeNewCivics,
 		bool bIgnoreGoldenAge) const { // advc.132
 
-	bool bChange;
-	int iAnarchyLength;
-	int iI;
-
-	if (getMaxAnarchyTurns() == 0)
-	{
+	if(getMaxAnarchyTurns() == 0)
 		return 0;
-	}
 
-	if(!bIgnoreGoldenAge && // advc.132
+	if(/* advc.132: */ !bIgnoreGoldenAge &&
 			isGoldenAge())
-	{
 		return 0;
-	}
 
-	iAnarchyLength = 0;
+	int iAnarchyLength = 0;
 
-	bChange = false;
+	bool bChange = false;
 
-	for (iI = 0; iI < GC.getNumCivicOptionInfos(); iI++)
+	for (int iI = 0; iI < GC.getNumCivicOptionInfos(); iI++)
 	{
 		if (paeNewCivics[iI] != getCivics((CivicOptionTypes)iI))
 		{
@@ -9026,57 +9014,53 @@ int CvPlayer::getCivicAnarchyLength(CivicTypes* paeNewCivics,
 	{
 		iAnarchyLength += GC.getDefineINT("BASE_CIVIC_ANARCHY_LENGTH");
 
-		iAnarchyLength += ((getNumCities() * GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getNumCitiesAnarchyPercent()) / 100);
+		iAnarchyLength += ((getNumCities() * GC.getWorldInfo(GC.getMapINLINE().
+				getWorldSize()).getNumCitiesAnarchyPercent()) / 100);
 	}
 
-	iAnarchyLength = ((iAnarchyLength * std::max(0, (getAnarchyModifier() + 100))) / 100);
+	iAnarchyLength = ((iAnarchyLength * std::max(0, getAnarchyModifier() + 100)) / 100);
 
-	if (iAnarchyLength == 0)
-	{
+	if(iAnarchyLength == 0)
 		return 0;
-	}
 
-	iAnarchyLength *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getAnarchyPercent();
+	iAnarchyLength *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).
+			getAnarchyPercent();
 	iAnarchyLength /= 100;
 
-	iAnarchyLength *= GC.getEraInfo(GC.getGameINLINE().getStartEra()).getAnarchyPercent();
+	iAnarchyLength *= GC.getEraInfo(GC.getGameINLINE().getStartEra()).
+			getAnarchyPercent();
 	iAnarchyLength /= 100;
 
 	return range(iAnarchyLength, 1, getMaxAnarchyTurns());
 }
 
 
-int CvPlayer::getReligionAnarchyLength( // </advc.132>
-		bool ignoreGoldenAge) const {
-	
-	int iAnarchyLength;
+int CvPlayer::getReligionAnarchyLength(
+		bool ignoreGoldenAge) const { // advc.132
 
-	if (getMaxAnarchyTurns() == 0)
-	{
+	if(getMaxAnarchyTurns() == 0)
 		return 0;
-	}
 
-	if(!ignoreGoldenAge && // advc.132
+	if(/* advc.132: */ !ignoreGoldenAge &&
 			isGoldenAge())
-	{
 		return 0;
-	}
 
-	iAnarchyLength = GC.getDefineINT("BASE_RELIGION_ANARCHY_LENGTH");
+	int iAnarchyLength = GC.getDefineINT("BASE_RELIGION_ANARCHY_LENGTH");
 
-	iAnarchyLength += ((getNumCities() * GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getNumCitiesAnarchyPercent()) / 100);
+	iAnarchyLength += ((getNumCities() * GC.getWorldInfo(GC.getMapINLINE().
+			getWorldSize()).getNumCitiesAnarchyPercent()) / 100);
 
-	iAnarchyLength = ((iAnarchyLength * std::max(0, (getAnarchyModifier() + 100))) / 100);
+	iAnarchyLength = ((iAnarchyLength * std::max(0, getAnarchyModifier() + 100)) / 100);
 
-	if (iAnarchyLength == 0)
-	{
+	if(iAnarchyLength == 0)
 		return 0;
-	}
 
-	iAnarchyLength *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getAnarchyPercent();
+	iAnarchyLength *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).
+			getAnarchyPercent();
 	iAnarchyLength /= 100;
 
-	iAnarchyLength *= GC.getEraInfo(GC.getGameINLINE().getStartEra()).getAnarchyPercent();
+	iAnarchyLength *= GC.getEraInfo(GC.getGameINLINE().getStartEra()).
+			getAnarchyPercent();
 	iAnarchyLength /= 100;
 
 	return range(iAnarchyLength, 1, getMaxAnarchyTurns());
@@ -23218,35 +23202,28 @@ bool CvPlayer::canStealTech(PlayerTypes eTarget, TechTypes eTech) const
 }
 
 bool CvPlayer::canForceCivics(PlayerTypes eTarget, CivicTypes eCivic) const
-{
+{	// return (GET_PLAYER(eTarget).canDoCivics(eCivic) && !GET_PLAYER(eTarget).isCivic(eCivic) && isCivic(eCivic));
 	// <advc.132>
-	// No functional change here, just handle these exclusive conditions upfront.
 	if(!GET_PLAYER(eTarget).canDoCivics(eCivic) ||
-			GET_PLAYER(eTarget).isCivic(eCivic))
+			GET_PLAYER(eTarget).isCivic(eCivic) || !isCivic(eCivic))
 		return false;
-	// Also just moved up.
-	if(isCivic(eCivic))
-		return true;
-	CvCivicInfo const& civic = GC.getCivicInfo(eCivic);
 	/* Identify economy civics as those in the same column as a civic
 	   granting extra trade routes (that's Free Market).
 	   Religion civics are those that allow or disallow a state religion.
-	   Marking "flexible" civics in XML (schema change) might be cleaner. */
-	int economyOptionId = -1;
+	   Marking "flexible" civics in XML (schema change) would be cleaner. */
+	int iEconomyOption = -1;
 	for(int i = 0; i < GC.getNumCivicInfos(); i++) {
-		CvCivicInfo const& loopCivic = GC.getCivicInfo((CivicTypes)i);
-		if(loopCivic.getTradeRoutes() != 0)
-			economyOptionId = loopCivic.getCivicOptionType();
+		CvCivicInfo const& kLoopCivic = GC.getCivicInfo((CivicTypes)i);
+		if(kLoopCivic.getTradeRoutes() != 0) {
+			iEconomyOption = kLoopCivic.getCivicOptionType();
+			break;
+		}
 	}
-	if(GC.getCivilizationInfo(getCivilizationType()). // Not an initial civic
-			getCivilizationInitialCivics(civic.getCivicOptionType()) != eCivic
-			&& (civic.isStateReligion() ||
-			civic.getNonStateReligionHappiness() > 0 ||
-			civic.getCivicOptionType() == economyOptionId))
-		return true;
-	return false;
-	// Original code: </advc.132>
-	// return (GET_PLAYER(eTarget).canDoCivics(eCivic) && !GET_PLAYER(eTarget).isCivic(eCivic) && isCivic(eCivic));
+	CvCivicInfo const& kCivic = GC.getCivicInfo(eCivic);
+	return (GC.getCivilizationInfo(getCivilizationType()). // Not an initial civic
+			getCivilizationInitialCivics(kCivic.getCivicOptionType()) != eCivic &&
+			(kCivic.isStateReligion() || kCivic.getNonStateReligionHappiness() > 0 ||
+			kCivic.getCivicOptionType() == iEconomyOption));
 }
 
 bool CvPlayer::canForceReligion(PlayerTypes eTarget, ReligionTypes eReligion) const
@@ -23652,9 +23629,9 @@ void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 			{
 				setTradeItem(&item, TRADE_RESOURCES, j);
 				if (canTradeItem(eOtherPlayer, item))
-				{	// <advc.004>
+				{	// <advc.074>
 					if((!bOtherHuman && !isHuman()) || getTradeDenial(eOtherPlayer, item) !=
-							DENIAL_JOKING) { // </advc.004>
+							DENIAL_JOKING) { // </advc.074>
 						bFoundItemUs = true;
 						ourList.insertAtEnd(item);
 					}
@@ -23748,9 +23725,13 @@ void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 			{
 				setTradeItem(&item, TRADE_CIVIC, j);
 				if (canTradeItem(eOtherPlayer, item))
-				{
-					bFoundItemUs = true;
-					ourList.insertAtEnd(item);
+				{	// <advc.074>
+					if((!bOtherHuman && !isHuman()) ||
+						getTradeDenial(eOtherPlayer, item) != DENIAL_JOKING) {
+					// </advc.074>
+						bFoundItemUs = true;
+						ourList.insertAtEnd(item);
+					}
 				}
 			}
 			break;

@@ -509,8 +509,18 @@ class IconGrid_BUG:
 			
 			if ( rowData.message == "" ):
 				self.screen.attachLabel(self.rowName + str(rowIndex), self.rowName + str(rowIndex) + "NotConnected", "")
-			else: # advc.073: Replaced 30 spaces (not sure if these are discarded or just really thin) with 10 tabs so that the message appears after the second column, which may now contain data. (Previously, this was the case for the sixth column.)
-				text = "<font=%i>\t\t\t\t\t\t\t\t\t\t%s</font>" % (rowData.font, rowData.message)
+			else:
+				# <advc.073> Replace 30 spaces (not sure if these are discarded or just really thin) with 5 to 10 tabs depending on where the first text column appears. (That column contains data even when there is no trade connection.)
+				text = "<font=%i>\t\t\t\t\t" % (rowData.font)
+				iFirstTextColumn = 0
+				for index in range(len(self.columns)):
+					if self.columns[index] == GRID_TEXT_COLUMN:
+						iFirstTextColumn = index
+						break
+				if iFirstTextColumn > 1:
+					text += "\t\t\t\t\t"
+				text += "%s</font>" % (rowData.message)
+				# </advc.073>
 				self.screen.attachLabel(self.rowName + str(rowIndex),
 										self.rowName + str(rowIndex) + "NotConnected",
 										text)

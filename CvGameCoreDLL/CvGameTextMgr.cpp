@@ -1636,7 +1636,7 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString,
 				(int)perOwner[eCenterOwner][ALL].size());
 	}
 	// Lines required for the center unit
-	int iLinesCenter = 1;
+	int iLinesCenter = 2; // The first line may well wrap
 	int iLinesCenterShort = 1;
 	{
 		CvWStringBuffer szTempBuffer;
