@@ -7900,6 +7900,9 @@ void CvTeam::read(FDataStreamBase* pStream)
 	pStream->Read(MAX_TEAMS, m_aiCounterespionageTurnsLeftAgainstTeam);
 	pStream->Read(MAX_TEAMS, m_aiCounterespionageModAgainstTeam);
 	pStream->Read(NUM_COMMERCE_TYPES, m_aiCommerceFlexibleCount);
+	// <advc.120g> Prior to uiFlag=6, espionage was flexible from the beginning.
+	if(uiFlag < 6)
+		m_aiCommerceFlexibleCount[COMMERCE_ESPIONAGE] = 1; // </advc.120g>
 	pStream->Read(NUM_DOMAIN_TYPES, m_aiExtraMoves);
 	pStream->Read(GC.getNumVoteSourceInfos(), m_aiForceTeamVoteEligibilityCount);
 
@@ -8000,6 +8003,7 @@ void CvTeam::write(FDataStreamBase* pStream)
 	uiFlag = 3; // advc.034
 	uiFlag = 4; // advc.162
 	uiFlag = 5; // advc.003m
+	uiFlag = 6; // advc.120g
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iNumMembers);

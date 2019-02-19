@@ -2779,26 +2779,6 @@
 		<Spanish>Parece que los esp&#237;as enemigos no perder&#225;n de vista a nuestros agentes de ahora en adelante.</Spanish>
 	</TEXT>
 	
-	<!-- advc.120c: Translations based on TXT_KEY_TECH_DRAMA_STRATEGY in
-		 CIV4GameText_Strategy.xml ("slider"), TXT_KEY_CONCEPT_DIPLOMACY_PEDIA
-		 in CIV4GameText_Civilopedia_Concepts.xml ("screen"). -->
-	<TEXT>
-		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__HIDE_ESPSLIDER_TEXT</Tag>
-		<English>Hide Espionage Slider when 0</English>
-		<French>Masquer la réglette d'espionnage à 0</French>
-		<German>Spionageregler auf 0 ausblenden</German>
-		<Italian>Nascondi barra di spionaggio quando è 0</Italian>
-		<Spanish>Ocultar el control de espionaje cuando está en 0</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__HIDE_ESPSLIDER_HOVER</Tag>
-		<English>Remove the espionage slider from the main interface if the slider position is 0. The slider can then still be accessed through the Espionage screen or the City screen.</English>
-		<French>Retirez la réglette d'espionnage de l'écran principal si la position de la réglette est 0. Vous pouvez toujours y accéder via l'écran Espionnage ou l'écran Ville.</French>
-		<German>Entfernt den Spionageregler vom Hauptbildschirm, wenn er auf 0 steht. Der Regler ist dann immer noch auf dem Spionagebildschirm und dem Stadtbildschirm verfügbar.</German>
-		<Italian>Rimuovere la barra di spionaggio dalla schermata principale se la sua posizione è 0. La barra può essere raggiunta attraverso la schermata Espionaggio o la schermata Città.</Italian>
-		<Spanish>Retire el control deslizante de espionaje de la pantalla principal si la posición del control deslizante es 0. Se puede acceder al control deslizante a través de la pantalla Espionaje o de la pantalla Ciudad.</Spanish>
-	</TEXT>
-	
 	<!-- advc.023: Based on INTERFACE_CITY_GROWING in Civ4GameTextInfos.xml -->
 	<TEXT>
 		<Tag>TXT_KEY_OCCUPATION_TIMER</Tag>

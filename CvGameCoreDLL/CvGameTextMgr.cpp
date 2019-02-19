@@ -15075,7 +15075,13 @@ void CvGameTextMgr::buildAdjustString(CvWStringBuffer &szBuffer, TechTypes eTech
 		{
 			szBuffer.append(NEWLINE);
 		}
-		szBuffer.append(gDLL->getText("TXT_KEY_MISC_ADJUST_COMMERCE_RATE", GC.getCommerceInfo((CommerceTypes) iCommerceType).getChar()));
+		szBuffer.append(gDLL->getText("TXT_KEY_MISC_ADJUST_COMMERCE_RATE",
+				GC.getCommerceInfo((CommerceTypes) iCommerceType).getChar()));
+		// <advc.120c>
+		if(!bList && iCommerceType == COMMERCE_ESPIONAGE &&
+				getBugOptionBOOL("MainInterface__Hide_EspSlider", true))
+			szBuffer.append(gDLL->getText("TXT_KEY_MISC_ADJUST_ON_ESPIONGAE_SCREEN"));
+		// </advc.120c>
 	}
 }
 

@@ -546,9 +546,13 @@
 			<Type>INTERFACE_TECH_CULTURE</Type>
 			<Path>Art/Interface/Screens/TechTree/Adjust_Culture.dds</Path>
 		</InterfaceArtInfo>
+		<!-- advc.120g: This was missing a comma and I've replaced 'Process/
+			 ProcessCulture.dds' (is that a fallback?) with 'Actions/
+			 Expose.dds'. What gets shown is the espionage icon from the atlas.
+			 -->
 		<InterfaceArtInfo>
 			<Type>INTERFACE_TECH_ESPIONAGE</Type>
-			<Path>Art/Interface/Buttons/Process/ProcessCulture.dds,Art/Interface/Buttons/Beyond_the_Sword_Atlas.dds,8,16</Path>
+			<Path>,Art/Interface/Buttons/Actions/Expose.dds,Art/Interface/Buttons/Beyond_the_Sword_Atlas.dds,8,16</Path>
 		</InterfaceArtInfo>
 		<InterfaceArtInfo>
 			<Type>INTERFACE_TECH_DEFENSIVEPACT</Type>
