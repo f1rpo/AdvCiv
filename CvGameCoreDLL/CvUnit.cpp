@@ -2566,9 +2566,21 @@ CvPlot* CvUnit::getPathEndTurnPlot() const
 }
 
 
-bool CvUnit::generatePath(const CvPlot* pToPlot, int iFlags, bool bReuse, int* piPathTurns, int iMaxPath) const
-{
-	return getGroup()->generatePath(plot(), pToPlot, iFlags, bReuse, piPathTurns, iMaxPath);
+bool CvUnit::generatePath(const CvPlot* pToPlot, int iFlags, bool bReuse,
+		int* piPathTurns, int iMaxPath,
+		// <advc.128>
+		bool bUseTempFinder) const {
+
+	if(!bUseTempFinder) // </advc.128>
+		return getGroup()->generatePath(plot(), pToPlot, iFlags, bReuse, piPathTurns, iMaxPath);
+	// <advc.128>
+	FAssert(!bReuse);
+	KmodPathFinder temp_finder;
+	temp_finder.SetSettings(getGroup(), iFlags, iMaxPath, GC.getMOVE_DENOMINATOR());
+	bool r = temp_finder.GeneratePath(pToPlot);
+	if(piPathTurns != NULL)
+		*piPathTurns = temp_finder.GetPathTurns();
+	return r; // </advc.128>
 }
 
 // K-Mod. Return the standard pathfinder, for extracting path information.

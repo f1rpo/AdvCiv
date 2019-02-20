@@ -3833,7 +3833,7 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 			}
 			else if(pLoopPlot != NULL &&
 					(pLoopPlot->getOwnerINLINE() == getID() ||
-					stepDistance(iX, iY, pLoopPlot->getX_INLINE(),
+					::stepDistance(iX, iY, pLoopPlot->getX_INLINE(),
 					pLoopPlot->getY_INLINE()) <= 1)) {
 				iPlotValue *= 3;
 				iPlotValue /= 2;
@@ -3916,7 +3916,9 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 							iBonusValue -= (3 - getCurrentEra()) * 20;
 							iBonusValue = std::max(iBonusValue, 0);
 						} // </advc.031>
-						if (pLoopPlot->getOwnerINLINE() != getID() && stepDistance(pPlot->getX_INLINE(),pPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) > 1)
+						if (pLoopPlot->getOwnerINLINE() != getID() &&
+								::stepDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(),
+								pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()) > 1)
 						{
 							if (!kSet.bEasyCulture)
 								iBonusValue = iBonusValue * 3/4;
@@ -5153,11 +5155,12 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 
 	TeamTypes eTeam = getTeam();
 	//bool bCheckBorder = (!isHuman() && !pPlot->isCity());
-	// K-Mod. I don't want auto-workers on the frontline. Cities need to be excluded for some legacy AI code. (cf. condition in AI_getPlotDanger)
-	bCheckBorder = bCheckBorder && !pPlot->isCity() && (!isHuman() || pPlot->plotCount(PUF_canDefend, -1, -1, getID(), NO_TEAM) == 0);
+	/*  K-Mod. I don't want auto-workers on the frontline. Cities need to be
+		excluded for some legacy AI code. (cf. condition in AI_getPlotDanger) */
+	bCheckBorder = bCheckBorder && !pPlot->isCity() &&
+			(!isHuman() || pPlot->plotCount(PUF_canDefend, -1, -1, getID(), NO_TEAM) == 0);
 	// K-Mod end
 
-	
 	if(bCheckBorder) {
 		//if( (iRange >= DANGER_RANGE) && pPlot->isTeamBorderCache(eTeam) )
 		if(iRange >= BORDER_DANGER_RANGE && pPlot->getBorderDangerCache(eTeam)) // K-Mod. border danger doesn't count anything further than range 2.
@@ -5172,13 +5175,12 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 			CvPlot* pLoopPlot = plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
 			if(pLoopPlot == NULL)
 				continue; // advc.003
-			// <advc.030>
-			CvArea const& fromArea = *pLoopPlot->area();
-			if(!pPlotArea->canBeEntered(fromArea)) // Replacing:
-					//if(pLoopPlot->area() != pPlotArea)
+			//if(pLoopPlot->area() != pPlotArea)
+			// advc.030: Replacing the above
+			if(!pPlotArea->canBeEntered(*pLoopPlot->area()))
 				continue;
-			 // </advc.030>
-			int iDistance = stepDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
+			int iDistance = ::stepDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(),
+					pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
 			if(bCheckBorder
 					// advc.030: For CheckBorder, it's a helpful precondition.
 					&& pLoopPlot->area() == pPlotArea)
@@ -5228,8 +5230,7 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 							pPlot->setBorderDangerCache(pLoopPlot->getTeam(), true);
 						}
 						return true;
-					}
-					// K-Mod end
+					} // K-Mod end
 				}
 			}
 			bool bFirst = true; // advc.128
@@ -5268,6 +5269,19 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 						if(pLoopPlot->isValidRoute(pLoopUnit,
 								false)) // advc.001i
 							iDangerRange++;
+						// <advc.128>
+						if(isHuman()) {
+							return (iDistance <= 3 && pLoopUnit->generatePath(
+									pPlot, MOVE_MAX_MOVES | MOVE_IGNORE_DANGER,
+									false, NULL, 1, true));
+						} // Prevent sneak attacks by human Woodsmen and Guerilla
+						if(pLoopUnit->isHuman() && pLoopPlot->isVisible(getTeam(), false) &&
+								// Make sure we're not getting into trouble performance-wise
+								getCurrentEra() <= 1 && iDistance <= 3) {
+							return pLoopUnit->generatePath(
+									pPlot, MOVE_MAX_MOVES | MOVE_IGNORE_DANGER,
+									false, NULL, 1, true);
+						} // </advc.128>
 						if(iDangerRange >= iDistance)
 							return true;
 					}
@@ -5308,15 +5322,15 @@ bool byDamage(CvUnit* left, CvUnit* right) {
 } // </advc.104>
 
 int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
-	// advc.104:
-	bool bCheckBorder, int* lowHealth, int hpLimit, int limitCount, PlayerTypes enemyId) const
+		// advc.104:
+		bool bCheckBorder, int* piLowHealth, int iMaxHP, int iLimit, PlayerTypes eEnemyPlayer) const
 {
 	PROFILE_FUNC();
 	// <advc.104>
-	if(limitCount == 0 || hpLimit <= 0)
+	if(iLimit == 0 || iMaxHP <= 0)
 		return 0;
-	if(lowHealth != NULL)
-		*lowHealth = 0;
+	if(piLowHealth != NULL)
+		*piLowHealth = 0;
 	// </advc.104>
 	if(iRange == -1)
 		iRange = DANGER_RANGE;
@@ -5337,16 +5351,15 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 	{
 		for(int iDY = -(iRange); iDY <= iRange; iDY++)
 		{
-			CvPlot* pLoopPlot	= plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
+			CvPlot* pLoopPlot = plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
 			if(pLoopPlot == NULL)
 				continue;
-			// <advc.030>
-			CvArea const& fromArea = *pLoopPlot->area();
-			if(!pPlotArea->canBeEntered(fromArea)) // Replacing:
-					//if (pLoopPlot->area() != pPlotArea) // </advc.030>
+			//if(pLoopPlot->area() != pPlotArea)
+			// <advc.030> Replacing the above
+			if(!pPlotArea->canBeEntered(*pLoopPlot->area()))
 				continue;
-			// <avc.030> Moved up
-			int iDistance = stepDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(),
+			// Moved up
+			int iDistance = ::stepDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(),
 					pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE());
 			// </advc.030>
 			if(bCheckBorder // advc.104
@@ -5363,7 +5376,7 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 						iBorderDanger++;
 				}
 			}
-			std::vector<CvUnit*> plotUnits; // advc.104
+			std::vector<CvUnit*> aPlotUnits; // advc.104
 			bool bFirst = true; // advc.128
 			CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
 			while (pUnitNode != NULL)
@@ -5379,7 +5392,7 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 				// <advc.128>
 				if(bFirst) {
 					bFirst = false;
-					if(pUnitNode != NULL && !pLoopPlot->isVisible(getTeam(), false)) {
+					if(!pLoopPlot->isVisible(getTeam(), false)) {
 						if(isHuman() || !AI_cheatDangerVisibility(*pLoopPlot))
 							break;
 					}
@@ -5389,22 +5402,22 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 						AI_canBeAttackedBy(*pLoopUnit) &&
 						!pLoopUnit->isInvisible(getTeam(), false) &&
 						pLoopUnit->canMoveOrAttackInto(pPlot,
-						false, true)) // advc.001k
-					{ // <advc.104>
-						if(enemyId == NO_PLAYER || pLoopUnit->getOwnerINLINE() == enemyId)
-							plotUnits.push_back(pLoopUnit);
-					}
+						false, true)) { // advc.001k
+					// <advc.104>
+					if(eEnemyPlayer == NO_PLAYER || pLoopUnit->getOwnerINLINE() == eEnemyPlayer)
+						aPlotUnits.push_back(pLoopUnit);
+				}
 			}
 			// Don't waste time with this otherwise
-			if(lowHealth != NULL && !plotUnits.empty())
-				std::sort(plotUnits.begin(), plotUnits.end(), byDamage);
-			for(size_t i = 0; i < plotUnits.size(); i++) {
-				CvUnit* pLoopUnit = plotUnits[i];
-				bool countIncreased = false; // </advc.104>
+			if(piLowHealth != NULL && !aPlotUnits.empty())
+				std::sort(aPlotUnits.begin(), aPlotUnits.end(), byDamage);
+			for(size_t i = 0; i < aPlotUnits.size(); i++) {
+				CvUnit* pLoopUnit = aPlotUnits[i];
+				bool bCountIncreased = false; // </advc.104>
 				if (!bTestMoves)
 				{
 					iCount++;
-					countIncreased = true; // advc.104
+					bCountIncreased = true; // advc.104
 				}
 				else
 				{
@@ -5412,18 +5425,23 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 					if(pLoopPlot->isValidRoute(pLoopUnit,
 							false)) // advc.001i
 						iDangerRange++;
-					if (iDangerRange >= iDistance)
+					//if (iDangerRange >= iDistance)
+					// <advc.128> Replacing the above
+					if((!isHuman() && iDangerRange >= iDistance) ||
+							(isHuman() && iDistance <= 3 && pLoopUnit->generatePath(
+							pPlot, MOVE_MAX_MOVES | MOVE_IGNORE_DANGER,
+							false, NULL, 1, true))) // </advc.128>
 					{
 						iCount++;
-						countIncreased = true; // advc.104
+						bCountIncreased = true; // advc.104
 					}
 				}
 				// <advc.104>
-				if(countIncreased) {
-					if(lowHealth != NULL && pLoopUnit->maxHitPoints() -
-							pLoopUnit->getDamage() <= hpLimit)
-						(*lowHealth)++;
-					if(limitCount > 0 && iCount >= limitCount)
+				if(bCountIncreased) {
+					if(piLowHealth != NULL && pLoopUnit->maxHitPoints() -
+							pLoopUnit->getDamage() <= iMaxHP)
+						(*piLowHealth)++;
+					if(iLimit > 0 && iCount >= iLimit)
 						return iCount;
 				} // </advc.104>
 			}
@@ -5441,7 +5459,7 @@ int CvPlayerAI::AI_getPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
             iCount += iBorderDanger;*/
 		// K-Mod. I don't want auto-workers on the frontline. So count border danger for humans too, unless the plot is defended.
 		// but on the other hand, I don't think two border tiles are really more dangerous than one border tile.
-		// (cf. condition used in AI_anyPlotDanger. Note that here we still count border danger in cities - because I want it for AI_cityThreat)
+		// (cf. condition used in AI_getAnyPlotDanger. Note that here we still count border danger in cities - because I want it for AI_cityThreat)
 		if (!isHuman() || pPlot->plotCount(PUF_canDefend, -1, -1, getID(), NO_TEAM) == 0)
 			iCount++;
 		// K-Mod end
@@ -5558,9 +5576,7 @@ int CvPlayerAI::AI_getWaterDanger(CvPlot* pPlot, int iRange, bool bTestMoves) co
 	PROFILE_FUNC();
 
 	if (iRange == -1)
-	{
 		iRange = DANGER_RANGE;
-	}
 	
 	//CvArea* pWaterArea = pPlot->waterArea(); // advc.003: unused
 	int iCount = 0;
@@ -5569,28 +5585,27 @@ int CvPlayerAI::AI_getWaterDanger(CvPlot* pPlot, int iRange, bool bTestMoves) co
 		for (int iDY = -(iRange); iDY <= iRange; iDY++)
 		{
 			CvPlot* pLoopPlot = plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
+			if(pLoopPlot == NULL || !pLoopPlot->isWater() ||
+					!pPlot->isAdjacentToArea(pLoopPlot->getArea()))
+				continue; // advc.003
 
-			if (pLoopPlot != NULL && pLoopPlot->isWater() &&
-					pPlot->isAdjacentToArea(pLoopPlot->getArea()))
+			bool bFirst = true; // advc.128
+			CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
+			// <advc.128>
+			if(pUnitNode != NULL && !pLoopPlot->isVisible(getTeam(), false)) {
+				if(isHuman() || !AI_cheatDangerVisibility(*pLoopPlot))
+					continue;
+			} // </advc.128>
+			while (pUnitNode != NULL)
 			{
-				CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
+				CvUnit* pEnemyUnit = ::getUnit(pUnitNode->m_data);
+				pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
+				if (!pEnemyUnit->isEnemy(getTeam()))
+					continue; // advc.003	
 
-				while (pUnitNode != NULL)
-				{
-					CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-					pUnitNode = pLoopPlot->nextUnitNode(pUnitNode);
-
-					if (pLoopUnit->isEnemy(getTeam()))
-					{	// advc.315: was pLoopUnit->canAttack()
-						if (AI_canBeAttackedBy(*pLoopUnit))
-						{
-							if (!pLoopUnit->isInvisible(getTeam(), false))
-							{
-								iCount++;
-							}
-						}
-					}
-				}
+				// advc.315: was pLoopUnit->canAttack()
+				if (AI_canBeAttackedBy(*pEnemyUnit) && !pEnemyUnit->isInvisible(getTeam(), false))
+					iCount++;
 			}
 		}
 	}
@@ -15994,10 +16009,10 @@ int CvPlayerAI::AI_adjacentPotentialAttackers(CvPlot* pPlot, bool bTestCanMove) 
 		if(pLoopPlot == NULL)
 			continue; // </advc.003>
 		// <advc.030>
-		CvArea const& fromArea = *pLoopPlot->area();
+		CvArea const& kFromArea = *pLoopPlot->area();
 		//if (pLoopPlot->area() == pPlot->area())
 		// Replacing the above (negated):
-		if(!plotArea.canBeEntered(fromArea))
+		if(!plotArea.canBeEntered(kFromArea))
 			continue; // </advc.030>
 		pUnitNode = pLoopPlot->headUnitNode();
 
@@ -16009,7 +16024,7 @@ int CvPlayerAI::AI_adjacentPotentialAttackers(CvPlot* pPlot, bool bTestCanMove) 
 			if (pLoopUnit->getOwnerINLINE() != getID())
 				continue; // </advc.003>
 			// advc.030: Replacing the line below
-			if(plotArea.canBeEntered(fromArea, pLoopUnit))
+			if(plotArea.canBeEntered(kFromArea, pLoopUnit))
 			//if (pLoopUnit->getDomainType() == ((pPlot->isWater()) ? DOMAIN_SEA : DOMAIN_LAND))
 			{
 				if (pLoopUnit->canAttack()
@@ -16509,7 +16524,8 @@ int CvPlayerAI::AI_plotTargetMissionAIs(CvPlot* pPlot, MissionAITypes* aeMission
 			if (pMissionPlot != NULL)
 			{
 				MissionAITypes eGroupMissionAI = pLoopSelectionGroup->AI_getMissionAIType();
-				int iDistance = stepDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(), pMissionPlot->getX_INLINE(), pMissionPlot->getY_INLINE());
+				int iDistance = ::stepDistance(pPlot->getX_INLINE(), pPlot->getY_INLINE(),
+						pMissionPlot->getX_INLINE(), pMissionPlot->getY_INLINE());
 
 				if (iDistance <= iRange)
 				{
@@ -16726,8 +16742,8 @@ int CvPlayerAI::AI_cityTargetStrengthByPath(CvCity* pCity, CvSelectionGroup* pSk
 
 			if (pMissionPlot != NULL)
 			{
-				int iDistance = stepDistance(pCity->getX_INLINE(), pCity->getY_INLINE(), pMissionPlot->getX_INLINE(), pMissionPlot->getY_INLINE());
-
+				int iDistance = ::stepDistance(pCity->getX_INLINE(), pCity->getY_INLINE(),
+						pMissionPlot->getX_INLINE(), pMissionPlot->getY_INLINE());
 				if (iDistance <= 1 && pLoopSelectionGroup->canFight())
 				{
 					/* original bbai code
@@ -25631,7 +25647,7 @@ bool CvPlayerAI::AI_isDeadlockedBonus(CvPlot const& p, CvPlot const& cityPlot,
 		//canFound usually returns very quickly
 		if(canFound(cityPlot2.getX_INLINE(), cityPlot2.getY_INLINE(), false)) {
 			bNeverFound = false;
-			if(stepDistance(cityPlot.getX_INLINE(), cityPlot.getY_INLINE(),
+			if(::stepDistance(cityPlot.getX_INLINE(), cityPlot.getY_INLINE(),
 					cityPlot2.getX_INLINE(), cityPlot2.getY_INLINE()) >
 					iMinRange) {
 				bCanFound = true;
@@ -26502,7 +26518,7 @@ CvPlot* CvPlayerAI::AI_advancedStartFindCapitalPlot()
 						if (NULL != pNearestCity)
 						{
 							FAssert(pNearestCity->getTeam() == getTeam());
-							int iDistance = stepDistance(iX, iY, pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE());
+							int iDistance = ::stepDistance(iX, iY, pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE());
 							if (iDistance < 10)
 							{
 								iValue /= (10 - iDistance);
@@ -26811,9 +26827,10 @@ bool CvPlayerAI::AI_advancedStartDoRoute(CvPlot* pFromPlot, CvPlot* pToPlot)
 		pNode = gDLL->getFAStarIFace()->GetLastNode(&GC.getStepFinder());
 		if (pNode != NULL)
 		{
-			if (pNode->m_iData1 > (1 + stepDistance(pFromPlot->getX(), pFromPlot->getY(), pToPlot->getX(), pToPlot->getY())))
+			if (pNode->m_iData1 > (1 + ::stepDistance(pFromPlot->getX(), pFromPlot->getY(),
+					pToPlot->getX(), pToPlot->getY())))
 			{
-				//Don't build convulted paths.
+				//Don't build convoluted paths.
 				return true;
 			}
 		}
@@ -27373,7 +27390,7 @@ void CvPlayerAI::AI_recalculateFoundValues(int iX, int iY, int iInnerRadius, int
 			pLoopPlot = plotXY(iX, iY, iLoopX, iLoopY);
 			if (NULL != pLoopPlot && !AI_isPlotCitySite(*pLoopPlot))
 			{
-				if (stepDistance(0, 0, iLoopX, iLoopY) <= iInnerRadius)
+				if (::stepDistance(0, 0, iLoopX, iLoopY) <= iInnerRadius)
 				{
 					if (!(iLoopX == 0 && iLoopY == 0))
 					{
@@ -28684,18 +28701,17 @@ bool CvPlayerAI::AI_isPlotThreatened(CvPlot* pPlot, int iRange, bool bTestMoves)
 			CvPlot* pLoopPlot = plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
 			if(pLoopPlot == NULL)
 				continue;
-			// <advc.030>
-			CvArea const& fromArea = *pLoopPlot->area();
-			if(!pPlotArea->canBeEntered(fromArea)) // Replacing:
-					//if (pLoopPlot->area() != pPlotArea)
-				continue;
-			// </advc.030>
-			// <advc.128> Use a while loop for the units as in the plotDanger functions
+			//if(pLoopPlot->area() != pPlotArea)
+			// <advc.030> Replacing the above
+			if(!pPlotArea->canBeEntered(*pLoopPlot->area()))
+				continue; // </advc.030>
+			// <advc.128>
 			CLLNode<IDInfo>* pUnitNode = pLoopPlot->headUnitNode();
 			if(pUnitNode != NULL && !pLoopPlot->isVisible(getTeam(), false)) {
 				if(isHuman() || !AI_cheatDangerVisibility(*pLoopPlot))
 					continue;
 			} // </advc.128>
+			// advc.003: Use a while loop for the units as in the plotDanger functions
 			while (pUnitNode != NULL)
 			{
 				CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
@@ -28708,20 +28724,23 @@ bool CvPlayerAI::AI_isPlotThreatened(CvPlot* pPlot, int iRange, bool bTestMoves)
 					if(pLoopUnit->canMoveOrAttackInto(pPlot,
 							false, true)) // advc.001k
 					{
+						if(!bTestMoves)
+							return true; // advc.003
+						/* original bts code
 						int iPathTurns = 0;
-						if (bTestMoves)
-						{	/* original bts code
-							if (!pLoopUnit->getGroup()->generatePath(pLoopPlot, pPlot, MOVE_MAX_MOVES | MOVE_IGNORE_DANGER, false, &iPathTurns))
-									iPathTurns = MAX_INT;*/
-							// K-Mod. Use a temp pathfinder, so as not to interfere with the normal one.
-							KmodPathFinder temp_finder;
-							temp_finder.SetSettings(pLoopUnit->getGroup(), MOVE_MAX_MOVES | MOVE_IGNORE_DANGER, 1, GC.getMOVE_DENOMINATOR());
-							if (temp_finder.GeneratePath(pPlot))
-								iPathTurns = 1;
-							// K-Mod end
-						}
+						if(!pLoopUnit->getGroup()->generatePath(pLoopPlot, pPlot, MOVE_MAX_MOVES | MOVE_IGNORE_DANGER, false, &iPathTurns))
+							iPathTurns = MAX_INT;
 						if(iPathTurns <= 1)
-							return true;
+							return true;*/
+						// K-Mod. Use a temp pathfinder, so as not to interfere with the normal one.
+						/*KmodPathFinder temp_finder;
+						temp_finder.SetSettings(pLoopUnit->getGroup(), MOVE_MAX_MOVES | MOVE_IGNORE_DANGER, 1, GC.getMOVE_DENOMINATOR());
+						if (temp_finder.GeneratePath(pPlot))
+							return true;*/
+						// <advc.128> Moved into CvUnit::generatePath
+						return pLoopUnit->generatePath(pPlot, MOVE_MAX_MOVES |
+								MOVE_IGNORE_DANGER, false, NULL, 1, true);
+						// </advc.128>
 					}
 				}
 			}

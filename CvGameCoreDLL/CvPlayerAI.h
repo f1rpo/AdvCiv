@@ -123,17 +123,17 @@ public:
 	int AI_getPlotDanger(CvPlot* pPlot, int iRange = -1, bool bTestMoves = true,
 			// <advc.104> Same as in AI_getAnyPlotDanger
 			bool bCheckBorder = true,
-			/*  Out parameter that counts enemy units in range with at most
-				hpLimit hit points. Not counted if NULL. In any case, damaged units
+			/*  Out-parameter that counts enemy units in range with at most
+				iMaxHP hit points. Not counted if NULL. In any case, damaged units
 				are included in the count returned by this function. */
-			int* lowHealth = NULL, int hpLimit = 60,
-			/*  For better performance, stop counting at limitCount.
-				I.e. return value can be at most limitCount. Healthy units are
-				counted before damaged ones (lowHealth).
-				Unlimited count if limitCount is negative. */
-			int limitCount = -1,
-			// Unless NO_PLAYER, count only danger from this enemy
-			PlayerTypes enemyId = NO_PLAYER) const; // </advc.104>
+			int* piLowHealth = NULL, int iMaxHP = 60,
+			/*  For better performance, stop counting at iLimit, i.e. the
+				return value can be at most iLimit. Healthy units are
+				counted before damaged ones (piLowHealth).
+				Unlimited count if iLimit is negative. */
+			int iLimit = -1,
+			// Unless NO_PLAYER, count only danger from this enemy.
+			PlayerTypes eEnemyPlayer = NO_PLAYER) const; // </advc.104>
 	//int AI_getUnitDanger(CvUnit* pUnit, int iRange = -1, bool bTestMoves = true, bool bAnyDanger = true) const;
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */

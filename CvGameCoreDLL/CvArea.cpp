@@ -348,18 +348,18 @@ void CvArea::updateLake(bool bCheckRepr) {
 	m_bLake = false;
 	if(!isWater())
 		return;
-	int totalTiles = getNumTiles();
-	if(totalTiles > GC.getLAKE_MAX_AREA_SIZE())
+	int iTotalTiles = getNumTiles();
+	if(iTotalTiles > GC.getLAKE_MAX_AREA_SIZE())
 		return;
 	if(!bCheckRepr) {
 		m_bLake = true;
 		return;
 	}
-	CvMap& m = GC.getMapINLINE(); int dummy=-1;
-	for(CvArea* other = m.firstArea(&dummy); other != NULL; other = m.nextArea(&dummy)) {
+	CvMap& m = GC.getMapINLINE(); int foo=-1;
+	for(CvArea* other = m.firstArea(&foo); other != NULL; other = m.nextArea(&foo)) {
 		if(other->m_iRepresentativeAreaId == m_iRepresentativeAreaId && other->m_iID != m_iID) {
-			totalTiles += other->getNumTiles();
-			if(totalTiles > GC.getLAKE_MAX_AREA_SIZE())
+			iTotalTiles += other->getNumTiles();
+			if(iTotalTiles > GC.getLAKE_MAX_AREA_SIZE())
 				return;
 		}
 	}
@@ -378,14 +378,14 @@ int CvArea::getRepresentativeArea() const {
 
 /*  Replacement for the BtS area()==area() checks. Mostly used for
 	performance reasons before costlier more specific checks. */
-bool CvArea::canBeEntered(CvArea const& from, CvUnit const* u) const {
+bool CvArea::canBeEntered(CvArea const& kFrom, CvUnit const* u) const {
 
-	if(getID() == from.getID())
+	if(getID() == kFrom.getID())
 		return true;
 	/*  If I wanted to support canMoveAllTerrain here, then I couldn't do
 		anything more when u==NULL. So that's not supported. */
-	if(isWater() == from.isWater() && (m_iRepresentativeAreaId !=
-			from.m_iRepresentativeAreaId || (u != NULL && !u->canMoveImpassable())))
+	if(isWater() == kFrom.isWater() && (m_iRepresentativeAreaId !=
+			kFrom.m_iRepresentativeAreaId || (u != NULL && !u->canMoveImpassable())))
 		return false;
 	/*  Can't rule out movement between water and land without knowing if the
 		unit is a ship inside a city or a land unit aboard a transport */
