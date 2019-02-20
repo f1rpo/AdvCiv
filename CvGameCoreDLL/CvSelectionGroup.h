@@ -213,9 +213,6 @@ public:
 	int getMissionType(int iNode) const;																														// Exposed to Python
 	int getMissionData1(int iNode) const;																														// Exposed to Python
 	int getMissionData2(int iNode) const;																														// Exposed to Python
-	// <advc.075>
-	void handleBoarded();
-	bool canDisembark() const; // </advc.075>
 
 	// for serialization
 	virtual void read(FDataStreamBase* pStream);
@@ -297,7 +294,12 @@ protected:
 
 	void activateHeadMission();
 	void deactivateHeadMission();
-	
+	// <advc.075>
+	void handleBoarded();
+	bool canDisembark() const;
+	void resetBoarded();
+	void getLandCargoGroups(std::vector<CvSelectionGroup*>& r);
+	// </advc.075>
 	bool sentryAlert(
 			bool bUpdateKnownEnemies = false); // advc.004l
 

@@ -448,7 +448,7 @@ bool isBeforeUnitCycle(const CvUnit* pFirstUnit, const CvUnit* pSecondUnit)
 
 // K-Mod
 // return true if the first unit in the first group comes before the first unit in the second group.
-// (note: the purpose of this function is to return _false_ when the groupCycleDistance should include a pentalty.)
+// (note: the purpose of this function is to return _false_ when the groupCycleDistance should include a penalty.)
 bool isBeforeGroupOnPlot(const CvSelectionGroup* pFirstGroup, const CvSelectionGroup* pSecondGroup)
 {
 	FAssert(pFirstGroup && pSecondGroup);
@@ -489,8 +489,13 @@ int groupCycleDistance(const CvSelectionGroup* pFirstGroup, const CvSelectionGro
 	const int iBaseScale = 4;
 	int iPenalty = 0;
 	if (pFirstHead->getUnitType() != pSecondHead->getUnitType())
-	{
-		if (pFirstHead->canFight() != pSecondHead->canFight())
+	{	/*  <advc.075> When a unit in cargo is told to skip its turn, we want
+			the ship to be selected before its cargo on the next turn.
+			(Or would it be better to do this through isBeforeGroupOnPlot?) */
+		if(pFirstHead->isHuman() && pFirstHead->isCargo() != pSecondHead->isCargo())
+			iPenalty += 5;
+		else // </advc.075>
+			if (pFirstHead->canFight() != pSecondHead->canFight())
 			iPenalty += 4;
 		else
 		{

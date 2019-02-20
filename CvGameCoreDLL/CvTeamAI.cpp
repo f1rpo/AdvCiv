@@ -4471,18 +4471,18 @@ DenialTypes CvTeamAI::AI_openBordersTrade(TeamTypes eTeam) const
 
 	eAttitude = AI_getAttitude(eTeam);
 	// <advc.124>
-	bool theirLandRevealed = false;
+	bool bTheirLandRevealed = false;
 	for(int i = 0; i < GC.getMapINLINE().numPlotsINLINE(); i++) {
 		CvPlot* pp = GC.getMapINLINE().plotByIndexINLINE(i);
 		if(pp == NULL) continue; CvPlot const& p = *pp;
-		PlayerTypes plotOwner = p.getOwnerINLINE();
-		if(plotOwner != NO_PLAYER && TEAMID(plotOwner) == eTeam &&
+		PlayerTypes ePlotOwner = p.getOwnerINLINE();
+		if(ePlotOwner != NO_PLAYER && TEAMID(ePlotOwner) == eTeam &&
 				p.isRevealed(getID(), false) && !p.isWater()) {
-			theirLandRevealed = true;
+			bTheirLandRevealed = true;
 			break;
 		}
 	}
-	if(theirLandRevealed && AI_shareWar(eTeam))
+	if(bTheirLandRevealed && AI_shareWar(eTeam))
 		eAttitude = (AttitudeTypes)std::min(NUM_ATTITUDE_TYPES - 1, eAttitude + 1);
 	// </advc.124>
 
@@ -4498,7 +4498,7 @@ DenialTypes CvTeamAI::AI_openBordersTrade(TeamTypes eTeam) const
 						getOpenBordersRefuseAttitudeThreshold();
 				if(eAttitude <= thresh)
 					return DENIAL_ATTITUDE;
-				else if(eAttitude == thresh + 1 && !theirLandRevealed)
+				else if(eAttitude == thresh + 1 && !bTheirLandRevealed)
 					return DENIAL_NO_GAIN;
 				// </advc.124>
 			}

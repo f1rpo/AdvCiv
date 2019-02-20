@@ -10325,7 +10325,7 @@ double CvCity::revoltProbability(bool bIgnoreWar,
 // <advc.023>
 double CvCity::probabilityOccupationDecrement() const {
 
-	if(!isOccupation())
+	if(!isOccupation() || getMilitaryHappinessUnits() <= 0)
 		return 0;
 	return std::pow(1 - revoltProbability(true, false, true),
 			GC.getDefineINT("OCCUPATION_COUNTDOWN_EXPONENT"));

@@ -358,7 +358,8 @@ class AbstractCityTestAlert(AbstractCityAlert):
 			willPass = self._willPassTest(city)
 			if passed != willPass and willPass: # avdc.106d: 'and willPass' added
 				message, icon = self._getPendingAlertMessageIcon(city, willPass)
-		if (message):
+		# advc.106d: suppress check added
+		if message and not self._suppressMessage(city):
 			addMessageAtCity(iPlayer, message, icon, city)
 	
 	def _passedTest(self, cityId):
@@ -398,6 +399,12 @@ class AbstractCityTestAlert(AbstractCityAlert):
 	def _getPendingAlertMessageIcon(self, city, passes):
 		"Returns a tuple of the message and icon to use for the pending alert."
 		return (None, None)
+	# <advc.106d>
+	def _suppressMessage(self, city):
+		"Returns true if no messages should currently be displayed about the city."
+		# By default, don't show messages about cities in occupation, but subclasses can override this.
+		return city.isOccupation()
+	# </advc.106d>
 
 # Population
 
@@ -639,6 +646,12 @@ class CityOccupation(AbstractCityTestAlert):
 		else:
 			return (localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_PENDING_PACIFIED", (city.getName(), )),
 					HAPPY_ICON)
+
+	# <advc.106d> The default implementation suppresses messages about cities in occupation. Obv. don't want that here.
+	# (Untested b/c the occupation alert is permanently disabled.)
+	def _suppressMessage(self, city):
+		return False
+	# </advc.106d>
 
 # Hurrying Production
 

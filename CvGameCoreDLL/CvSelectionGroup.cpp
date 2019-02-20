@@ -832,6 +832,7 @@ void CvSelectionGroup::startMission()
 		}
 		else setActivityType(ACTIVITY_HOLD);
 		// K-Mod end
+		resetBoarded(); // advc.075
 
 		// Whole group effects
 		switch (headMissionQueueNode()->m_data.eMissionType)
@@ -5059,7 +5060,8 @@ int CvSelectionGroup::getMissionData2(int iNode) const
 // <advc.075>
 void CvSelectionGroup::handleBoarded() {
 
-	if(!isHuman() || GET_PLAYER(getOwnerINLINE()).isOption(PLAYEROPTION_NO_UNIT_CYCLING))
+	if(!isHuman() || getDomainType() != DOMAIN_SEA ||
+			GET_PLAYER(getOwnerINLINE()).isOption(PLAYEROPTION_NO_UNIT_CYCLING))
 		return;
 	CLLNode<MissionData>* pMissionNode = headMissionQueueNode();
 	if(pMissionNode == NULL) {
@@ -5072,23 +5074,13 @@ void CvSelectionGroup::handleBoarded() {
 		return;
 	if(plot()->isWater() && !plot()->isAdjacentToLand())
 		return;
-	CLLNode<IDInfo>* pUnitNode = headUnitNode();
-	while(pUnitNode != NULL) {
-		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
-		pUnitNode = nextUnitNode(pUnitNode);
-		if(pLoopUnit->domainCargo() == DOMAIN_LAND && pLoopUnit->hasCargo()) {
-			std::vector<CvUnit*> aCargo;
-			pLoopUnit->getCargoUnits(aCargo);
-			for(size_t i = 0; i < aCargo.size(); i++) {
-				CvSelectionGroup* gr = aCargo[i]->getGroup();
-				if(gr == NULL) {
-					FAssert(gr != NULL);
-					continue;
-				}
-				if(gr->getActivityType() == ACTIVITY_BOARDED && gr->canDisembark())
-					gr->setActivityType(ACTIVITY_AWAKE);
-			}
-		}
+
+	std::vector<CvSelectionGroup*> aLandCargoGroups;
+	getLandCargoGroups(aLandCargoGroups);
+	for(size_t i = 0; i < aLandCargoGroups.size(); i++) {
+		CvSelectionGroup& kGroup = *aLandCargoGroups[i];
+		if(kGroup.getActivityType() == ACTIVITY_BOARDED && kGroup.canDisembark())
+			kGroup.setActivityType(ACTIVITY_AWAKE);
 	}
 }
 
@@ -5103,6 +5095,43 @@ bool CvSelectionGroup::canDisembark() const {
 			return true;
 	}
 	return false;
+}
+
+
+void CvSelectionGroup::resetBoarded() {
+
+	if(!isHuman() || getDomainType() != DOMAIN_SEA ||
+			GET_PLAYER(getOwnerINLINE()).isOption(PLAYEROPTION_NO_UNIT_CYCLING))
+		return;
+
+	std::vector<CvSelectionGroup*> aLandCargoGroups;
+	getLandCargoGroups(aLandCargoGroups);
+	for(size_t i = 0; i < aLandCargoGroups.size(); i++) {
+		if(aLandCargoGroups[i]->getActivityType() == ACTIVITY_AWAKE)
+			aLandCargoGroups[i]->setActivityType(ACTIVITY_BOARDED);
+	}
+}
+
+
+void CvSelectionGroup::getLandCargoGroups(std::vector<CvSelectionGroup*>& r) {
+
+	CLLNode<IDInfo>* pUnitNode = headUnitNode();
+	while(pUnitNode != NULL) {
+		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
+		pUnitNode = nextUnitNode(pUnitNode);
+		if(pLoopUnit->domainCargo() == DOMAIN_LAND && pLoopUnit->hasCargo()) {
+			std::vector<CvUnit*> aCargo;
+			pLoopUnit->getCargoUnits(aCargo);
+			for(size_t i = 0; i < aCargo.size(); i++) {
+				CvSelectionGroup* gr = aCargo[i]->getGroup();
+				if(gr == NULL) {
+					FAssert(gr != NULL);
+					continue;
+				}
+				r.push_back(gr);
+			}
+		}
+	}
 } // </advc.075>
 
 
