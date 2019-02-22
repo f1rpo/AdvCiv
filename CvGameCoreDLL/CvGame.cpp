@@ -4624,7 +4624,9 @@ void CvGame::changeAIAutoPlay(int iChange,
 int CvGame::getCivPlayersEverAlive() const {
 
 	// Could pose a savegame compatibility problem (uiFlag<4)
-	FAssert(m_bAllGameDataRead);
+	FAssert(m_bAllGameDataRead); // But it's OK if uiFlag < 9 in CvPlayerAI
+	if(!m_bAllGameDataRead)
+		return countCivPlayersEverAlive();
 	return m_iCivPlayersEverAlive;
 }
 
@@ -4641,7 +4643,9 @@ void CvGame::changeCivPlayersEverAlive(int iChange) {
 int CvGame::getCivTeamsEverAlive() const {
 
 	// Could pose a savegame compatibility problem (uiFlag<4)
-	FAssert(m_bAllGameDataRead);
+	FAssert(m_bAllGameDataRead); // But it's OK if uiFlag < 9 in CvPlayerAI
+	if(!m_bAllGameDataRead)
+		return countCivTeamsEverAlive();
 	return m_iCivTeamsEverAlive;
 }
 

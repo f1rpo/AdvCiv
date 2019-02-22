@@ -4921,4 +4921,14 @@
 		<Spanish>CIVILOPEDIA</Spanish>
 	</TEXT>
 	
+	<!-- advc.002b: From CIV4GameText_BTS.xml. Was too long. -->
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_COMBAT_LIMIT</Tag>
+		<English>[ICON_BULLET]Max. %d1%% damage to enemy on attack</English>
+		<French>[ICON_BULLET]D&#233;g&#226;ts de %d1%% maximum inflig&#233;s &#224; l'ennemi lors d'une attaque</French>
+		<German>[ICON_BULLET]Maximal %d1%% Angriffsschaden auf Gegner</German>
+		<Italian>[ICON_BULLET]Al massimo %d1%% di danni al nemico per attacco</Italian>
+		<Spanish>[ICON_BULLET]Da&#241;o m&#225;ximo de %d1%% al enemigo en ataque</Spanish>
+	</TEXT>
+	
 </Civ4GameText>

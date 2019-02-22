@@ -58,11 +58,11 @@
 	 routes." Not news anymore. -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_56</Tag>
-	<English>(UWAI) Some leaders are known not to wage war against civs they're pleased with; however, don't count on it if the target is a large civ that looks like very easy pickings.</English>
-	<French>(UWAI) Some leaders are known not to wage war against civs they're pleased with; however, don't count on it if the target is a large civ that looks like very easy pickings.</French>
+	<English>(UWAI) Some leaders are known not to wage war against civs they're pleased with (+4 relations); however, don't depend on it if the target is a large civ that looks like very easy pickings.</English>
+	<French>(UWAI) Some leaders are known not to wage war against civs they're pleased with (+4 relations); however, don't depend on it if the target is a large civ that looks like very easy pickings.</French>
 	<German>(UWAI) Von manchen Herrschern ist bekannt, dass sie keinen Krieg anfangen solange sie "erfreut" sind. Verlassen Sie sich darauf aber nicht, wenn die Beute groﬂ ist und der zu erwartende Widerstand gering.</German>
-	<Italian>(UWAI) Some leaders are known not to wage war against civs they're pleased with; however, don't count on it if the target is a large civ that looks like very easy pickings.</Italian>
-	<Spanish>(UWAI) Some leaders are known not to wage war against civs they're pleased with; however, don't count on it if the target is a large civ that looks like very easy pickings.</Spanish>
+	<Italian>(UWAI) Some leaders are known not to wage war against civs they're pleased with (+4 relations); however, don't depend on it if the target is a large civ that looks like very easy pickings.</Italian>
+	<Spanish>(UWAI) Some leaders are known not to wage war against civs they're pleased with (+4 relations); however, don't depend on it if the target is a large civ that looks like very easy pickings.</Spanish>
 </TEXT>
 
 <!-- "Oil-based navies are a huge step up from coal-powered ironclads. If you

@@ -2579,27 +2579,30 @@ bool CvDLLButtonPopup::launchKickedPopup(CvPopup* pPopup, CvPopupInfo &info)
 bool CvDLLButtonPopup::launchVassalDemandTributePopup(CvPopup* pPopup, CvPopupInfo &info)
 {
 	if (info.getData1() == NO_PLAYER)
-	{
 		return false;
-	}
 
+	CvGame const& g = GC.getGameINLINE();
 	CvPlayer& kVassal = GET_PLAYER((PlayerTypes)info.getData1());
-	if (!GET_TEAM(kVassal.getTeam()).isVassal(GC.getGameINLINE().getActiveTeam()))
-	{
+	if (!GET_TEAM(kVassal.getTeam()).isVassal(g.getActiveTeam()))
 		return false;
-	}
 
 	int iNumResources = 0;
-	if (kVassal.canTradeNetworkWith(GC.getGameINLINE().getActivePlayer()))
+	if (kVassal.canTradeNetworkWith(g.getActivePlayer()))
 	{
-		gDLL->getInterfaceIFace()->popupSetBodyString(pPopup, gDLL->getText("TXT_KEY_VASSAL_DEMAND_TRIBUTE", kVassal.getNameKey()));
-
+		gDLL->getInterfaceIFace()->popupSetBodyString(pPopup,
+				gDLL->getText("TXT_KEY_VASSAL_DEMAND_TRIBUTE", kVassal.getNameKey()));
 		for (int iBonus = 0; iBonus < GC.getNumBonusInfos(); iBonus++)
 		{
-			if (kVassal.getNumTradeableBonuses((BonusTypes)iBonus) > 0 && GET_PLAYER(GC.getGameINLINE().getActivePlayer()).getNumAvailableBonuses((BonusTypes)iBonus) == 0)
-			{
+			//if (kVassal.getNumTradeableBonuses((BonusTypes)iBonus) > 0 && GET_PLAYER(GC.getGameINLINE().getActivePlayer()).getNumAvailableBonuses((BonusTypes)iBonus) == 0)
+			// <advc.036> Replacing the above
+			TradeData item;
+			::setTradeItem(&item, TRADE_RESOURCES, iBonus);
+			if(kVassal.canTradeItem(g.getActivePlayer(), item, true)) // </advc.036>
+			{	
 				CvBonusInfo& info = GC.getBonusInfo((BonusTypes)iBonus);
-				gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, info.getDescription(), info.getButton(), iBonus, WIDGET_GENERAL, iBonus, -1, true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
+				gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup,
+						info.getDescription(), info.getButton(), iBonus,
+						WIDGET_GENERAL, iBonus, -1, true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
 				++iNumResources;
 			}
 		}

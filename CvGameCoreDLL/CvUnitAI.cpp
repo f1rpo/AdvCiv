@@ -15810,10 +15810,11 @@ bool CvUnitAI::AI_goToTargetCity(int iFlags, int iMaxPathTurns, CvCity* pTargetC
 					return false; // </advc.139>
 				// <advc.001t>
 				if(!isEnemy(pEndTurnPlot->getTeam())) {
-					FAssertMsg(isEnemy(pEndTurnPlot->getTeam()),
+					// This triggers a few times in most games
+					/*FAssertMsg(isEnemy(pEndTurnPlot->getTeam()),
 						"Known issue: AI may change its mind about the path to"
 						" the target city after declaring war; temporary fix:"
-						" stick to the original path.");
+						" stick to the original path.");*/
 					if(isEnemy(pEnemyPlot->getTeam()))
 						pEndTurnPlot = pEnemyPlot;
 					else FAssert(isEnemy(pEnemyPlot->getTeam()));

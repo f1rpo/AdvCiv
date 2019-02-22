@@ -479,6 +479,10 @@
 		<HintInfo>
 			<Description>TXT_KEY_KMOD_HINT_16</Description>
 		</HintInfo>
+		<!-- advc.008c: Vassal war preparations -->
+		<HintInfo>
+			<Description>TXT_KEY_KMOD_HINT_17</Description>
+		</HintInfo>
 		
 		<!-- advc.008d: Copied K-Mod hints to increase their probability: -->
 		<HintInfo>
@@ -529,6 +533,9 @@
 			<Description>TXT_KEY_KMOD_HINT_15</Description>
 		</HintInfo>
 		<!-- Skip 16 b/c it's rarely useful -->
+		<HintInfo>
+			<Description>TXT_KEY_KMOD_HINT_17</Description>
+		</HintInfo>
 		<!-- These have been replaced or updated; should receive higher
 			 probability too. -->
 		<HintInfo>

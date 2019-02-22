@@ -5264,12 +5264,7 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 					if (!bTestMoves)
 						return true;
 					else
-					{
-						int iDangerRange = pLoopUnit->baseMoves();
-						if(pLoopPlot->isValidRoute(pLoopUnit,
-								false)) // advc.001i
-							iDangerRange++;
-						// <advc.128>
+					{	// <advc.128>
 						if(isHuman()) {
 							return (iDistance <= 3 && pLoopUnit->generatePath(
 									pPlot, MOVE_MAX_MOVES | MOVE_IGNORE_DANGER,
@@ -5282,6 +5277,10 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 									pPlot, MOVE_MAX_MOVES | MOVE_IGNORE_DANGER,
 									false, NULL, 1, true);
 						} // </advc.128>
+						int iDangerRange = pLoopUnit->baseMoves();
+						if(pLoopPlot->isValidRoute(pLoopUnit,
+								false)) // advc.001i
+							iDangerRange++;
 						if(iDangerRange >= iDistance)
 							return true;
 					}
