@@ -219,7 +219,7 @@ public:
 	bool isCivUnitNearby(int iRadius) const;
 	void getAdjacentLandAreaIds(std::set<int>& r) const; // Caller provides the set
 	CvPlot const* nearestInvisiblePlot(bool bOnlyLand, int iMaxPlotDist,
-			TeamTypes observer) const;
+			TeamTypes eObserver) const;
 	// </advc.300>
 	bool isVisibleToWatchingHuman() const;																														// Exposed to Python
 	bool isAdjacentVisible(TeamTypes eTeam, bool bDebug) const;																				// Exposed to Python
@@ -370,7 +370,7 @@ public:
 		between that civ and the current owner */
 	PlayerTypes getSecondOwner() const;
 	void setSecondOwner(PlayerTypes eNewValue);
-	bool isContestedByRival(PlayerTypes rivalId = NO_PLAYER) const;
+	bool isContestedByRival(PlayerTypes eRival = NO_PLAYER) const;
 	// </advc.035>
 	PlotTypes getPlotType() const;																																			// Exposed to Python
 	DllExport bool isWater() const;																																								// Exposed to Python
