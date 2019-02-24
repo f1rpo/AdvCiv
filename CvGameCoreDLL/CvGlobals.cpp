@@ -154,7 +154,8 @@ m_aeTurnRightDirection(NULL),
 //m_aPlayerOptionsInfo(NULL),
 m_Profiler(NULL),
 m_VarSystem(NULL),
-m_bCachingDone(false),
+m_bCachingDone(false), // advc.003c
+m_bHoFScreenUp(false), // advc.106i
 m_iEXTRA_YIELD(0), // K-Mod
 m_bJOIN_WAR_DIPLO_BONUS(false), // advc.130s
 m_iTILE_CULTURE_DECAY_PER_MILL(0), // advc.099
@@ -884,7 +885,13 @@ std::vector<CvColorInfo*>& CvGlobals::getColorInfo()
 CvColorInfo& CvGlobals::getColorInfo(ColorTypes e)
 {
 	FAssert(e > -1);
-	FAssert(e < GC.getNumColorInfos());
+	/*  <advc.106i> So that AdvCiv is able to show replays from mods with
+		extra colors. And anyway, a bad color value shouldn't lead to a crash. */
+	if(e >= GC.getNumColorInfos()) {
+		FAssert(m_bHoFScreenUp || e < GC.getNumColorInfos());
+		// +7: Skip COLOR_CLEAR to COLOR_LIGHT_GREY
+		e = (ColorTypes)((e + 7) % GC.getNumColorInfos());
+	} // </advc.106i>
 	return *(m_paColorInfo[e]);
 }
 
@@ -3723,6 +3730,12 @@ bool CvGlobals::isCachingDone() const {
 	return m_bCachingDone;
 } // </advc.003c>
 
+// <advc.106i>
+void CvGlobals::setHoFScreenUp(bool b) {
+
+	m_bHoFScreenUp = b;
+} // </Advc.106i>
+
 //
 // Global Infos Hash Map
 //
@@ -3738,10 +3751,32 @@ int CvGlobals::getInfoTypeForString(const char* szType, bool hideAssert) const
 
 	//if(!hideAssert)
 	if (!hideAssert && !(strcmp(szType, "NONE")==0 || strcmp(szType, "")==0)) // K-Mod
-	{
+	{	// <advc.006>
+		char const* szCurrentXMLFile = GC.getCurrentXMLFile().GetCString();
+		/*  This function gets called from Python with szType=PLOT_PEAK etc.
+			These are PlotTypes, which don't have associated info objects. Results
+			in an error message in the xml.log. Perhaps the WB plot types in
+			CIV4ArtDefines_Interface.xml are meant? I'm simply returning the
+			plot type. In fact, it doesn't seem to matter what values are returned;
+			no observable error occurs.
+			Looks like BUG introduced this problem, but I can't find the
+			call location in the BUG code, hence the workaround. */
+		if(std::strcmp(szCurrentXMLFile, "xml\\GameInfo/CIV4ForceControlInfos.xml") == 0) {
+			if(std::strcmp(szType, "PLOT_PEAK") == 0)
+				return PLOT_PEAK;
+				//return getInfoTypeForString("WORLDBUILDER_PLOT_TYPE_MOUNTAIN");
+			if(std::strcmp(szType, "PLOT_LAND") == 0)
+				//return getInfoTypeForString("WORLDBUILDER_PLOT_TYPE_PLAINS");
+				return PLOT_LAND;
+			if(std::strcmp(szType, "PLOT_OCEAN") == 0)
+				//return getInfoTypeForString("WORLDBUILDER_PLOT_TYPE_OCEAN");
+				return PLOT_OCEAN;
+		} // </advc.006>
 		CvString szError;
-		szError.Format("info type %s not found, Current XML file is: %s", szType, GC.getCurrentXMLFile().GetCString());
+		szError.Format("info type %s not found, Current XML file is: %s", szType, szCurrentXMLFile);
 		//FAssertMsg(strcmp(szType, "NONE")==0 || strcmp(szType, "")==0, szError.c_str());
+		// advc.006: Adding an assert (the one above was already commented out)
+		FAssertMsg(false, szError.c_str());
 		gDLL->logMsg("xml.log", szError);
 	}
 

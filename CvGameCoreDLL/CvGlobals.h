@@ -944,6 +944,7 @@ public:
 
 	void deleteInfoArrays();
 	bool isCachingDone() const; // advc.003c
+	void setHoFScreenUp(bool b); // advc.106i
 
 protected:
 
@@ -1173,6 +1174,7 @@ protected:
 
 	CvString m_szCurrentXMLFile;
 	bool m_bCachingDone; // advc.003c
+	bool m_bHoFScreenUp; // advc.106i
 	//////////////////////////////////////////////////////////////////////////
 	// Formerly Global Defines
 	//////////////////////////////////////////////////////////////////////////

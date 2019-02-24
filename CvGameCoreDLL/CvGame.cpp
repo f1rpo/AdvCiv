@@ -63,6 +63,7 @@ CvGame::CvGame()
 	m_paHeadquarters = NULL;
 
 	m_pReplayInfo = NULL;
+	m_pHallOfFame = NULL; // advc.106i
 
 	m_aiShrineBuilding = NULL;
 	m_aiShrineReligion = NULL;
@@ -289,7 +290,7 @@ void CvGame::setInitialItems()
 		setOption(GAMEOPTION_SPAH, false);
 	if(isOption(GAMEOPTION_SPAH))
 		// Reassigns start plots and start points
-		spah.setInitialItems(); // </advc.250b>
+		m_spah.setInitialItems(); // </advc.250b>
 	int iStartTurn = getStartTurn(); // advc.250c, advc.251
 	// <advc.250c>
 	if(getStartEra() == 0 && GC.getDefineINT("INCREASE_START_TURN") > 0) {
@@ -422,8 +423,8 @@ void CvGame::regenerateMap()
 	cycleSelectionGroups_delayed(1, false);
 	// <advc.700>
 	if(isOption(GAMEOPTION_RISE_FALL)) {
-		riseFall.reset();
-		riseFall.init();
+		m_riseFall.reset();
+		m_riseFall.init();
 	}
 	else { // </advc.700>
 		gDLL->getEngineIFace()->AutoSave(true);
@@ -507,7 +508,7 @@ void CvGame::uninit()
 	m_aeInactiveTriggers.clear();
 	/*  advc.700: Need to call this explicitly due to the unusual way that
 		RiseFall is initialized (from updateBlockadedPlots) */
-	riseFall.reset();
+	m_riseFall.reset();
 }
 
 // <advc.250c> Function body cut from CvGame::init. Changes marked in-line.
@@ -587,7 +588,10 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	// Uninit class
 	uninit();
 	m_bAllGameDataRead = false; // advc.003;
-
+	// <advc.106i>
+	if(m_pHallOfFame != NULL)
+		m_pHallOfFame->uninit(); // Don't keep HoF in memory indefinitely
+	// </advc.106i>
 	m_iElapsedGameTurns = 0;
 	m_iStartTurn = 0;
 	m_iStartYear = 0;
@@ -2542,7 +2546,7 @@ void CvGame::update()
 			gDLL->getInterfaceIFace()->setWorldBuilder(true);
 		} // <advc.705>
 		if(isOption(GAMEOPTION_RISE_FALL))
-			riseFall.restoreDiploText(); // </advc.705>
+			m_riseFall.restoreDiploText(); // </advc.705>
 		// <advc.003d>
 		if(!m_bResourceLayerSet) {
 			gDLL->getEngineIFace()->setResourceLayer(isResourceLayer());
@@ -5554,7 +5558,7 @@ int CvGame::getDifficultyForEndScore() const {
 	if(!isOption(GAMEOPTION_SPAH))
 		return r;
 	std::vector<int> aiStartPointDistrib;
-	spah.distribution(aiStartPointDistrib);
+	m_spah.distribution(aiStartPointDistrib);
 	std::vector<double> distr;
 	for(size_t i = 0; i < aiStartPointDistrib.size(); i++)
 		distr.push_back(aiStartPointDistrib[i]);
@@ -5648,7 +5652,8 @@ void CvGame::setWinner(TeamTypes eNewWinner, VictoryTypes eNewVictory)
 				addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, GET_TEAM(getWinner()).getLeaderID(), szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 			}
 
-			if ((getAIAutoPlay() > 0) || gDLL->GetAutorun())
+			if ((getAIAutoPlay() > 0 || gDLL->GetAutorun())
+					&& !isOption(GAMEOPTION_RISE_FALL)) // advc.707
 			{
 				setGameState(GAMESTATE_EXTENDED);
 			}
@@ -5685,33 +5690,28 @@ GameStateTypes CvGame::getGameState() const
 
 void CvGame::setGameState(GameStateTypes eNewValue)
 {
-	if (getGameState() != eNewValue)
-	{
-		m_eGameState = eNewValue;
+	if (getGameState() == eNewValue)
+		return; // advc.003
 
-		if (eNewValue == GAMESTATE_OVER)
+	m_eGameState = eNewValue;
+	if (eNewValue == GAMESTATE_OVER)
+	{
+		CvEventReporter::getInstance().gameEnd();
+		// <advc.707>
+		if(isOption(GAMEOPTION_RISE_FALL))
+			m_riseFall.prepareForExtendedGame(); // </advc.707>
+		showEndGameSequence();
+		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 		{
-			CvEventReporter::getInstance().gameEnd();
-			// <advc.707>
-			if(isOption(GAMEOPTION_RISE_FALL))
-				riseFall.prepareForExtendedGame(); // </advc.707>
-			showEndGameSequence();
-			for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
-			{
-				if (GET_PLAYER((PlayerTypes)iI).isHuman())
-				{
-					// One more turn?
-					CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_EXTENDED_GAME);
-					if (NULL != pInfo)
-					{
-						GET_PLAYER((PlayerTypes)iI).addPopup(pInfo);
-					}
-				}
+			if (GET_PLAYER((PlayerTypes)iI).isHuman())
+			{	// One more turn?
+				CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_EXTENDED_GAME);
+				if (NULL != pInfo)
+					GET_PLAYER((PlayerTypes)iI).addPopup(pInfo);
 			}
 		}
-
-		gDLL->getInterfaceIFace()->setDirty(Cursor_DIRTY_BIT, true);
 	}
+	gDLL->getInterfaceIFace()->setDirty(Cursor_DIRTY_BIT, true);
 }
 
 
@@ -6690,7 +6690,7 @@ void CvGame::doTurn()
 	verifyDeals();
 	// <advc.700>
 	if(isOption(GAMEOPTION_RISE_FALL))
-		riseFall.atGameTurnStart(); // </advc.700>
+		m_riseFall.atGameTurnStart(); // </advc.700>
 	// advc.127: was right after doHeadquarters
 	doDiploVote();
 
@@ -6769,7 +6769,7 @@ void CvGame::doTurn()
 	stopProfilingDLL(true);
 	// <advc.700>
 	if(isOption(GAMEOPTION_RISE_FALL))
-		riseFall.autoSave();
+		m_riseFall.autoSave();
 	else {// </advc.700>
 		/*  <advc.127> Avoid overlapping auto-saves in test games played on a
 			single machine. Don't know how to check this properly. */
@@ -9698,10 +9698,10 @@ void CvGame::read(FDataStreamBase* pStream)
 	m_sorenRand.read(pStream);
 	// <advc.250b>
 	if(isOption(GAMEOPTION_SPAH))
-		spah.read(pStream); // </advc.250b><advc.701>
+		m_spah.read(pStream); // </advc.250b><advc.701>
 	if(uiFlag >= 2) {
 		if(isOption(GAMEOPTION_RISE_FALL))
-			riseFall.read(pStream);
+			m_riseFall.read(pStream);
 	}
 	else { // Options have been shuffled around
 		setOption(GAMEOPTION_NEW_RANDOM_SEED, isOption(GAMEOPTION_RISE_FALL));
@@ -9931,9 +9931,9 @@ void CvGame::write(FDataStreamBase* pStream)
 	m_sorenRand.write(pStream);
 	// <advc.250b>
 	if(isOption(GAMEOPTION_SPAH))
-		spah.write(pStream); // </advc.250b><advc.701>
+		m_spah.write(pStream); // </advc.250b><advc.701>
 	if(isOption(GAMEOPTION_RISE_FALL))
-		riseFall.write(pStream); // </advc.701>
+		m_riseFall.write(pStream); // </advc.701>
 	ReplayMessageList::_Alloc::size_type iSize = m_listReplayMessages.size();
 	pStream->Write(iSize);
 	for (ReplayMessageList::const_iterator it = m_listReplayMessages.begin(); it != m_listReplayMessages.end(); it++)
@@ -9991,7 +9991,7 @@ void CvGame::writeReplay(FDataStreamBase& stream, PlayerTypes ePlayer)
 		m_pReplayInfo->createInfo(ePlayer);
 		// <advc.707>
 		if(isOption(GAMEOPTION_RISE_FALL))
-			m_pReplayInfo->setFinalScore(riseFall.getFinalRiseScore());
+			m_pReplayInfo->setFinalScore(m_riseFall.getFinalRiseScore());
 		// </advc.707>
 		m_pReplayInfo->write(stream);
 	}
@@ -10092,6 +10092,10 @@ void CvGame::showEndGameSequence()
 			{
 				pInfo->setText(L"showReplay"); 
 				pInfo->setData1(iI);
+				/*  advc.106i (comment): The BtS comment below means that the HoF
+					is not shown right after the player exits from the Replay screen.
+					That it still gets shown later on is intentional (see a few
+					lines below). */
 				pInfo->setOption1(false); // don't go to HOF on exit
 				player.addPopup(pInfo);
 			}
@@ -11516,16 +11520,27 @@ void CvGame::setScenario(bool b) {
 // advc.250b:
 StartPointsAsHandicap& CvGame::startPointsAsHandicap() {
 
-	return spah;
+	return m_spah;
 }
 
 // <advc.703>
 RiseFall const& CvGame::getRiseFall() const {
 
-	return riseFall;
+	return m_riseFall;
 }
 
 RiseFall& CvGame::getRiseFall() {
 
-	return riseFall;
+	return m_riseFall;
 } // </advc.703>
+
+// <advc.106i>
+void CvGame::setHallOfFame(CvHallOfFameInfo* pHallOfFame) {
+
+	m_pHallOfFame = pHallOfFame;
+}
+
+CvHallOfFameInfo* CvGame::getHallOfFame() { // advc.tmp
+
+	return m_pHallOfFame;
+} // </advc.106i>

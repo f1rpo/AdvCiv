@@ -10592,8 +10592,8 @@ void CvHandicapInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iUnitCostPercent);
 	// <advc.251>
 	if(uiFlag >= 4)
-		stream->read(&iBuildTimePercent);
-	else iBuildTimePercent = 100;
+		stream->Read(&m_iBuildTimePercent);
+	else m_iBuildTimePercent = 100;
 	if(uiFlag >= 3) {
 		stream->Read(&m_iBaseGrowthThresholdPercent);
 		stream->Read(&m_iGPThresholdPercent);

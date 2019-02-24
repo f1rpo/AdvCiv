@@ -556,6 +556,7 @@ enum WidgetTypes					// Exposed to Python
 	// K-Mod end
 	WIDGET_RF_CIV_CHOICE, // advc.706
 	WIDGET_LH_GLANCE, // advc.152
+	WIDGET_SHOW_REPLAY, // advc.106i
 	// BULL - Trade Denial - start
 	WIDGET_PEDIA_JUMP_TO_BONUS_TRADE,
 	WIDGET_PEDIA_JUMP_TO_TECH_TRADE,
@@ -606,7 +607,8 @@ enum ButtonPopupTypes			// Exposed to Python
 	BUTTONPOPUP_FOUND_RELIGION,
 	// <advc.706>
 	BUTTONPOPUP_RF_CHOOSECIV,
-	BUTTONPOPUP_RF_DEFEAT, // </advc.706>
+	BUTTONPOPUP_RF_DEFEAT,
+	BUTTONPOPUP_RF_RETIRE, // </advc.706>
 
 #ifdef _USRDLL
 	NUM_BUTTONPOPUP_TYPES

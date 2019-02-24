@@ -428,7 +428,7 @@ void CvGame::updateBlockadedPlots()
 		initialized so that I can send an error msg to the player if necessary.
 		Not the case in e.g. CvGame::init or setInitialItems. */
 	if(isOption(GAMEOPTION_RISE_FALL) && getElapsedGameTurns() <= 0)
-		riseFall.init(); // </advc.700>
+		m_riseFall.init(); // </advc.700>
 }
 
 
@@ -779,7 +779,7 @@ void CvGame::cycleSelectionGroups_delayed(int iDelay, bool bIncremental, bool bD
 	// Also note, cycleSelectionGroups currently causes a crash if the game is not initialised.
 	// (and this function is indirectly called during the set of up a new game - so we currently need that init check.)
 	PlayerTypes eActive = getActivePlayer();
-	if (GC.getGameINLINE().isFinalInitialized() &&
+	if (isFinalInitialized() &&
 		eActive != NO_PLAYER && GET_PLAYER(eActive).isHuman() &&
 		getBugOptionBOOL("MainInterface__RapidUnitCycling", false))
 	{
@@ -1793,14 +1793,20 @@ void CvGame::doControl(ControlTypes eControl)
 		gDLL->getPythonIFace()->callFunction("CvScreensInterface", "showOptionsScreen");
 		break;
 
-	case CONTROL_RETIRE:
+	case CONTROL_RETIRE: // <advc.706> Need three buttons, so no BUTTONPOPUP_CONFIRM_MENU.
+		if(isOption(GAMEOPTION_RISE_FALL)) {
+			pInfo = new CvPopupInfo(BUTTONPOPUP_RF_RETIRE);
+			if(pInfo != NULL)
+				gDLL->getInterfaceIFace()->addPopup(pInfo, getActivePlayer(), true);
+		}
+		else // </advc.706>
 		// K-Mod. (original code moved into CvGame::retire)
 		{
 			pInfo = new CvPopupInfo(BUTTONPOPUP_CONFIRM_MENU);
 			if (NULL != pInfo)
 			{
 				pInfo->setData1(2);
-				gDLL->getInterfaceIFace()->addPopup(pInfo, GC.getGameINLINE().getActivePlayer(), true);
+				gDLL->getInterfaceIFace()->addPopup(pInfo, getActivePlayer(), true);
 			}
 		}
 		// K-Mod end
@@ -1989,14 +1995,14 @@ void CvGame::doControl(ControlTypes eControl)
 		// K-Mod. (original code moved into CvGame::retire)
 		{
 			// <advc.007>
-			if(GC.getGameINLINE().isDebugMode())
+			if(isDebugMode())
 				enterWorldBuilder();
 			else { // </advc.007>
 				pInfo = new CvPopupInfo(BUTTONPOPUP_CONFIRM_MENU);
 				if (NULL != pInfo)
 				{
 					pInfo->setData1(4);
-					gDLL->getInterfaceIFace()->addPopup(pInfo, GC.getGameINLINE().getActivePlayer(), true);
+					gDLL->getInterfaceIFace()->addPopup(pInfo, getActivePlayer(), true);
 				}
 			} // advc.007
 		}
@@ -2035,11 +2041,7 @@ void CvGame::doControl(ControlTypes eControl)
 void CvGame::retire()
 {
 	FAssert(canDoControl(CONTROL_RETIRE));
-	// <advc.706>
-	if(isOption(GAMEOPTION_RISE_FALL)) {
-		riseFall.retire();
-		return;
-	} // </advc.706>
+
 	if (!isGameMultiPlayer() || countHumanPlayersAlive() == 1)
 	{
 		if (gDLL->GetAutorun())
@@ -2589,7 +2591,7 @@ void CvGame::loadBuildQueue(const CvString& strItem) const
 
 void CvGame::cheatSpaceship() const
 {	// <advc.007b> I don't know how this is triggered; it's safer to block it.
-	if(!GC.getGameINLINE().isDebugMode())
+	if(!isDebugMode())
 		return; // </advc.007b>
 	//add one space project that is still available
 	CvTeam& kTeam = GET_TEAM(getActiveTeam());
@@ -3024,7 +3026,12 @@ void CvGame::handleCityScreenPlotDoublePicked(CvCity* pCity, CvPlot* pPlot, bool
 void CvGame::handleCityScreenPlotRightPicked(CvCity* pCity, CvPlot* pPlot, bool bAlt, bool bShift, bool bCtrl) const
 {
 	if (pCity != NULL && pPlot != NULL)
-	{
+	{	/*  <advc.004t> Can't assign a working city to the city plot, so use this
+			for exiting the screen. */
+		if(pCity->plot() == pPlot) {
+			gDLL->getInterfaceIFace()->clearSelectedCities();
+			return;
+		} // </advc.004t>
 		if (pCity->getOwnerINLINE() == getActivePlayer() &&
 				pPlot->getOwnerINLINE() == getActivePlayer() &&
 				pCity->getCityPlotIndex(pPlot) != -1)

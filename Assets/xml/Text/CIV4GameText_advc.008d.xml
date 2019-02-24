@@ -337,21 +337,21 @@
 <!-- advc.124 -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_17</Tag>
-	<English>(AdvCiv) If a civilization refuses to sign [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] with you on grounds of having "nothing to gain", have patience. Once their scouts reach your lands, they'll want to explore inside your borders. Civs that like you enough sign Open Borders even if they haven't located your territory yet.</English>
-	<French>(AdvCiv) If a civilization refuses to sign [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] with you on grounds of having "nothing to gain", have patience. Once their scouts reach your lands, they'll want to explore inside your borders. Civs that like you enough sign Open Borders even if they haven't located your territory yet.</French>
+	<English>(AdvCiv) If a civilization refuses to sign [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] with you on grounds of having "nothing to gain," have patience. Once their scouts reach your lands, they'll want to explore inside your borders. Civs that like you enough sign Open Borders even if they haven't located your territory yet.</English>
+	<French>(AdvCiv) If a civilization refuses to sign [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] with you on grounds of having "nothing to gain," have patience. Once their scouts reach your lands, they'll want to explore inside your borders. Civs that like you enough sign Open Borders even if they haven't located your territory yet.</French>
 	<German>(AdvCiv) Geduld, wenn eine Zivilisation sagt, dass sie von [COLOR_HIGHLIGHT_TEXT]Offenen Grenzen[COLOR_REVERT] "nichts hätte". Sobald die gegnerischen Kundschafter Ihr Gebiet erreichen, werden sie Ihre Grenzen betreten wollen. Wer Sie genug mag, vereinbart Offene Grenzen aber auch ohne Ihre Grenzen erreicht zu haben.</German>
-	<Italian>(AdvCiv) If a civilization refuses to sign [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] with you on grounds of having "nothing to gain", have patience. Once their scouts reach your lands, they'll want to explore inside your borders. Civs that like you enough sign Open Borders even if they haven't located your territory yet.</Italian>
-	<Spanish>(AdvCiv) If a civilization refuses to sign [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] with you on grounds of having "nothing to gain", have patience. Once their scouts reach your lands, they'll want to explore inside your borders. Civs that like you enough sign Open Borders even if they haven't located your territory yet.</Spanish>
+	<Italian>(AdvCiv) If a civilization refuses to sign [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] with you on grounds of having "nothing to gain," have patience. Once their scouts reach your lands, they'll want to explore inside your borders. Civs that like you enough sign Open Borders even if they haven't located your territory yet.</Italian>
+	<Spanish>(AdvCiv) If a civilization refuses to sign [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] with you on grounds of having "nothing to gain," have patience. Once their scouts reach your lands, they'll want to explore inside your borders. Civs that like you enough sign Open Borders even if they haven't located your territory yet.</Spanish>
 </TEXT>
 
 <!-- advc.099 -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_18</Tag>
-	<English>(AdvCiv) If conquered cities complain about "being ruled by a foreign culture", it won't help to conquer the remaining cities of the former owner. You'll have to increase your own culture in the conquered cities, or learn to live with the anger.</English>
-	<French>(AdvCiv) If conquered cities complain about "being ruled by a foreign culture", it won't help to conquer the remaining cities of the former owner. You'll have to increase your own culture in the conquered cities, or learn to live with the anger.</French>
+	<English>(AdvCiv) If conquered cities complain about "being ruled by a foreign culture," it won't help to conquer the remaining cities of the former owner. You'll have to increase your own culture in the conquered cities, or learn to live with the anger.</English>
+	<French>(AdvCiv) If conquered cities complain about "being ruled by a foreign culture," it won't help to conquer the remaining cities of the former owner. You'll have to increase your own culture in the conquered cities, or learn to live with the anger.</French>
 	<German>(AdvCiv) Wenn eine eroberte Stadt darüber klagt, "von einer fremden Kultur beherrscht" zu werden, hilft es nichts, die verbleibenden Städte des Vorbesitzers zu erobern. Sie können nur Ihren Kulturwert in den Städten erhöhen, oder sich mit der Unzufriedenheit arrangieren.</German>
-	<Italian>(AdvCiv) If conquered cities complain about "being ruled by a foreign culture", it won't help to conquer the remaining cities of the former owner. You'll have to increase your own culture in the conquered cities, or learn to live with the anger.</Italian>
-	<Spanish>(AdvCiv) If conquered cities complain about "being ruled by a foreign culture", it won't help to conquer the remaining cities of the former owner. You'll have to increase your own culture in the conquered cities, or learn to live with the anger.</Spanish>
+	<Italian>(AdvCiv) If conquered cities complain about "being ruled by a foreign culture," it won't help to conquer the remaining cities of the former owner. You'll have to increase your own culture in the conquered cities, or learn to live with the anger.</Italian>
+	<Spanish>(AdvCiv) If conquered cities complain about "being ruled by a foreign culture," it won't help to conquer the remaining cities of the former owner. You'll have to increase your own culture in the conquered cities, or learn to live with the anger.</Spanish>
 </TEXT>
 
 <!-- advc.108 -->
@@ -502,7 +502,7 @@
 </TEXT>
 <TEXT>
 	<Tag>TXT_KEY_HINT_63</Tag>
-	<English>If you are vexed by enemy spies, consider placing a Spy unit in each of your border cities.</English>
+	<English>If you are vexed by enemy spies, consider placing a Spy unit in your most vulnerable cities.</English>
 	<French>Gardez quelques espions &#224; l'int&#233;rieur de vos fronti&#232;res pour le contre-espionnage. Les espions ennemis peuvent faire des ravages !</French>
 	<German>Wenn feindliche Spione Ihnen &#196;rger bereiten, erw&#228;gen Sie, eigene Spione in einigen Ihrer Grenzst&#228;dte zu stationieren.</German>
 	<Italian>Tieni alcune spie all'interno dei tuoi confini per effettuare il controspionaggio. Le spie nemiche possono scatenare il caos!</Italian>
@@ -934,6 +934,27 @@
 	<German>Wenn mehrere Ihrer Städte dasselbe Geländefeld bearbeiten können, wird das Feld automatisch der nächstgelegenen Stadt zugewiesen. Um das Feld manuell einer anderen Stadt zuzuweisen, öffnen Sie den Bildschirm dieser Stadt und klicken Sie dort auf das Feld. Mit einem Rechtsklick können Sie die Zuweisung wieder zurücknehmen.</German>
 	<Italian>When more than one of your cities is able to work a tile, the game assigns that tile to the closest city. You can override this by opening the screen of another city and left-clicking the tile. Right-click the tile to undo the assignment.</Italian>
 	<Spanish>When more than one of your cities is able to work a tile, the game assigns that tile to the closest city. You can override this by opening the screen of another city and left-clicking the tile. Right-click the tile to undo the assignment.</Spanish>
+</TEXT>
+
+<!-- advc.008c: Thought it'd be nice to mention the small K-Mod change to
+	 fortified Spies. Overwrites the value in CIV4GameText_BTS.xml -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_51</Tag>
+	<English>Good things come to spies who wait. Leaving a spy on a tile will reduce the costs of all Espionage Missions performed in that tile. If you fortify a Spy in a foreign tile, it will wake up once mission costs are maximally reduced.</English>
+	<French>Un espion patient est toujours r&#233;compens&#233;. Si vous laissez un espion sur une case, cela r&#233;duira le co&#251;t de toutes les missions d'espionnage lanc&#233;es contre les &#233;l&#233;ments dans cette case. Si vous laissez un espion dans une ville &#233;trang&#232;re, vos missions dans cette ville vous co&#251;teront donc bien moins cher.</French>
+	<German>Gut Ding will Weile haben - das gilt auch f&#252;r Spione. Je l&#228;nger sich ein Spion auf einem Gel&#228;ndefeld aufh&#228;lt, desto geringer werden die Kosten f&#252;r Spionagemissionen auf diesem Feld. Wenn Sie einen Spion auf einem gegnerischen Feld verschanzen, meldet er sich, wenn die Missionskosten maximal gesenkt sind.</German>
+	<Italian>La spia migliore &#232; quella che sa aspettare. Lasciando una spia su una casella riduce i costi di tutte le missioni di spionaggio verso quella casella. Perci&#242;, lasciando una spia in una citt&#224; nemica, le missioni verso di questa costeranno meno.</Italian>
+	<Spanish>Los esp&#237;as que saben esperar tienen sus ventajas. Dejar un esp&#237;a en una casilla reducir&#225; los costes de todas las misiones de espionaje realizadas contra los objetos de dicha casilla. Por tanto, dejar un esp&#237;a en una ciudad enemiga abaratar&#225; significativamente el coste de tus misiones en dicha ciudad.</Spanish>
+</TEXT>
+
+<!-- advc.008c: New hint (about a K-Mod feature) -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_36</Tag>
+	<English>(K-Mod) Your vassals will join you in preparing for war if you inform them of your war plans through "Let's discuss something else." You can also tell them to abandon their preparations.</English>
+	<French>(K-Mod) Your vassals will join you in preparing for war if you inform them of your war plans through "Let's discuss something else." You can also tell them to abandon their preparations.</French>
+	<German>(K-Mod) Wenn Sie Ihre Vasallenstaaten über einen geplanten Krieg in Kenntnis setzen, werden diese verstärkt Militäreinheiten produzieren. Sie finden diese Option unter "Reden wir über etwas anderes".</German>
+	<Italian>(K-Mod) Your vassals will join you in preparing for war if you inform them of your war plans through "Let's discuss something else." You can also tell them to abandon their preparations.</Italian>
+	<Spanish>(K-Mod) Your vassals will join you in preparing for war if you inform them of your war plans through "Let's discuss something else." You can also tell them to abandon their preparations.</Spanish>
 </TEXT>
 
 </Civ4GameText>

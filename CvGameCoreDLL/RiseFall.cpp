@@ -308,6 +308,9 @@ void RiseFall::atTurnEnd(PlayerTypes civId) {
 	if(g.getGameState() == GAMESTATE_EXTENDED)
 		return;
 	int gameTurn = g.gameTurn();
+	// The chapter of civ 0 needs to be started at the end of the previous game turn
+	if(civId == BARBARIAN_PLAYER)
+		gameTurn++;
 	/*  Conduct scoring exactly as scheduled at the end of a turn of the
 		civ being scored; show the score popup at the start of the next
 		active player turn. */
@@ -317,10 +320,12 @@ void RiseFall::atTurnEnd(PlayerTypes civId) {
 			chapters[i]->score();
 	}
 	int currentChPos = getCurrentChapter();
-	if(currentChPos < 0 || currentChPos >= ((int)chapters.size()) - 1)
+	if(currentChPos < 0 || currentChPos >= (int)chapters.size()) {
+		FAssertMsg(currentChPos < 0 || interludeCountdown < 0, "Interlude past final chapter");
 		return;
+	}
 	RFChapter& currentCh = *chapters[currentChPos];
-	PlayerTypes nextCivId = (PlayerTypes)((civId + 1) % MAX_PLAYERS);
+	PlayerTypes nextCivId = nextCivAlive(civId);
 	if(nextCivId == currentCh.getCiv()) {
 		if(nextCivId != g.getActivePlayer()) {
 			if(GET_PLAYER(nextCivId).isAlive()) {
@@ -456,28 +461,30 @@ void RiseFall::setPlayerControl(PlayerTypes civId, bool b) {
 	PlayerTypes formerHumanCiv = g.getActivePlayer();
 	if(formerHumanCiv != NO_PLAYER && !GET_PLAYER(formerHumanCiv).isHuman())
 		formerHumanCiv = NO_PLAYER;
-	if(!b || !GET_PLAYER(civId).isHuman()) // Unless human control continues
+	CvPlayer& civ = GET_PLAYER(civId);
+	if(!b || !civ.isHuman()) // Unless human control continues
 		gDLL->getInterfaceIFace()->clearQueuedPopups();
 	if(b) {
 		g.changeHumanPlayer(civId);
 		GC.getInitCore().setHandicap(civId, g.getHandicapType());
 	}
 	else {
-		GET_PLAYER(civId).setIsHuman(false);
+		civ.setIsHuman(false);
 		GC.getInitCore().setHandicap(civId, g.getAIHandicap());
 		GC.getInitCore().setLeaderName(civId,
-				GC.getLeaderHeadInfo(GET_PLAYER(civId).getLeaderType()).
-				getDescription());
+				GC.getLeaderHeadInfo(civ.getLeaderType()).getDescription());
 		gDLL->getInterfaceIFace()->flushTalkingHeadMessages();
 		gDLL->getInterfaceIFace()->clearEventMessages();
 		gDLL->getInterfaceIFace()->clearSelectedCities();
 		gDLL->getInterfaceIFace()->clearSelectionList();
 	}
 	// (Un)fog the map
-	CvPlot::setAllFog(!b);
-	if(!b)
-		g.updateActiveVisibility();
-	setUIHidden(!b);
+	if(b || !g.isDebugMode()) {
+		CvPlot::setAllFog(!b);
+		if(!b)
+			g.updateActiveVisibility();
+		setUIHidden(!b);
+	}
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 		CvPlayerAI& other = GET_PLAYER((PlayerTypes)i);
 		if(!other.isAlive() || other.isMinorCiv())
@@ -488,6 +495,11 @@ void RiseFall::setPlayerControl(PlayerTypes civId, bool b) {
 				other.getID() != formerHumanCiv && TEAMREF(formerHumanCiv).
 				isHasMet(other.getTeam()))
 			other.AI_updateAttitudeCache(formerHumanCiv);
+	}
+	if(b) { // Updates to apply human modifiers
+		civ.updateWarWearinessPercentAnger(); int foo=-1;
+		for(CvCity* c = civ.firstCity(&foo); c != NULL; c = civ.nextCity(&foo))
+			c->updateMaintenance();
 	}
 }
 
@@ -848,6 +860,7 @@ PlayerTypes RiseFall::nextCivAlive(PlayerTypes startExcluded) const {
 		r = (r + 1) % MAX_PLAYERS;
 	if(r == startExcluded)
 		return NO_PLAYER;
+	FAssert(startExcluded == BARBARIAN_PLAYER || startExcluded < r || r == BARBARIAN_PLAYER);
 	return (PlayerTypes)r;
 }
 
@@ -1186,10 +1199,43 @@ int RiseFall::victoryStage(PlayerTypes civId) {
 CvWString RiseFall::retireConfirmMsg() const {
 
 	CvWString r = gDLL->getText("TXT_KEY_RF_CONFIRM_RETIRE", getRetireTurns());
-	if(interludeLength > 0)
-		r += L" (" + gDLL->getText("TXT_KEY_RF_CONFIRM_RETIRE_INTERLUDE",
-				interludeLength) + L")";
+	if(interludeLength > 0 && getCurrentChapter() < (int)(chapters.size() - 1))
+		r.append(L" (" + gDLL->getText("TXT_KEY_RF_CONFIRM_RETIRE_INTERLUDE",
+				interludeLength) + L")");
+	r.append(NEWLINE);
+	r.append(NEWLINE);
+	r.append(gDLL->getText("TXT_KEY_RF_RETIRE_FOR_GOOD"));
 	return r;
+}
+
+bool RiseFall::launchRetirePopup(CvPopup* popup, CvPopupInfo& info) {
+
+	int pos = getCurrentChapter();
+	FAssert(pos >= 0);
+	bool bEndless = (pos >= 0 && chapters[pos]->isEndless());
+	CvDLLInterfaceIFaceBase& base = *gDLL->getInterfaceIFace();
+	base.popupSetBodyString(popup, bEndless ?
+			gDLL->getText("TXT_KEY_POPUP_ARE_YOU_SURE") :
+			retireConfirmMsg());
+	// The popupAddGenericButton calls are copied from CvDLLButtonPopup::launchConfirmMenu
+	if(!bEndless) {
+		base.popupAddGenericButton(popup, gDLL->getText("TXT_KEY_POPUP_RETIRE"),
+				NULL, 0, WIDGET_GENERAL);
+	}
+	base.popupAddGenericButton(popup, gDLL->getText("TXT_KEY_POPUP_CANCEL"),
+			NULL, 1, WIDGET_GENERAL);
+	base.popupAddGenericButton(popup, gDLL->getText("TXT_KEY_RF_END_GAME"),
+			NULL, 2, WIDGET_GENERAL);
+	base.popupLaunch(popup, false, POPUPSTATE_IMMEDIATE);
+	return true;
+}
+
+void RiseFall::handleRetirePopup(int buttonClicked) {
+
+	if(buttonClicked == 2)
+		GC.getGameINLINE().retire();
+	else if(buttonClicked == 0)
+		retire();
 }
 
 int RiseFall::getCivChapter(PlayerTypes civId) const {

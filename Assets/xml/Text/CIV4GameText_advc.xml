@@ -464,6 +464,25 @@
 		<Italian>[AdvCiv]</Italian>
 		<Spanish>[AdvCiv]</Spanish>
 	</TEXT>
+	
+	<!-- advc.106i -->
+	<TEXT>
+		<Tag>TXT_KEY_HOF_WARN</Tag>
+		<English>Known issue: If replay buttons at the bottom of the screen don't work, it can help to shorten the list through the menus.</English>
+		<French>Known issue: If replay buttons at the bottom of the screen don't work, it can help to shorten the list through the menus.</French>
+		<German>Bekanntes Problem: Falls die Schaltflächen am unteren Ende des Bildschirms nicht funktionieren, kann es helfen, über die Menüs einen Filter einzustellen, so dass weniger Einträge angezeigt werden.</German>
+		<Italian>Known issue: If replay buttons at the bottom of the screen don't work, it can help to shorten the list through the menus.</Italian>
+		<Spanish>Known issue: If replay buttons at the bottom of the screen don't work, it can help to shorten the list through the menus.</Spanish>
+	</TEXT>
+	<!-- Based on TXT_KEY_REPLAY_SCREEN_TITLE in CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_HOF_SHOW_REPLAY</Tag>
+		<English>Show Replay</English>
+		<French>Montrer film</French>
+		<German>Wiederholung abspielen</German>
+		<Italian>Mostra replay</Italian>
+		<Spanish>Mostrar repetición</Spanish>
+	</TEXT>
 
 	<!-- advc.106h -->
 	<!-- Based on TXT_KEY_LEADER_CIV_DESCRIPTION in CIV4GameText_Misc1.xml -->
@@ -3434,12 +3453,28 @@
 		<Spanish>If you retire, your remaining %d1 turns of the chapter are played by the AI.</Spanish>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_RF_RETIRE_FOR_GOOD</Tag>
+		<English>Alternatively, you can retire for good, that is, end the game right away and save a replay file for the Hall of Fame screen.</English>
+		<French>Alternatively, you can retire for good, that is, end the game right away and save a replay file for the Hall of Fame screen.</French>
+		<German>Sie können aber auch endgültig abdanken, das Spiel also direkt beenden und einen Eintrag in der Ruhmeshalle anlegen.</German>
+		<Italian>Alternatively, you can retire for good, that is, end the game right away and save a replay file for the Hall of Fame screen.</Italian>
+		<Spanish>Alternatively, you can retire for good, that is, end the game right away and save a replay file for the Hall of Fame screen.</Spanish>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_RF_CONFIRM_RETIRE_INTERLUDE</Tag>
 		<English>Plus a %d1-turn intermediate period on Auto Play.</English>
 		<French>Plus a %d1-turn intermediate period on Auto Play.</French>
 		<German>Plus eine Zwischenzeit von %d1 automatisierten Runden.</German>
 		<Italian>Plus a %d1-turn intermediate period on Auto Play.</Italian>
 		<Spanish>Plus a %d1-turn intermediate period on Auto Play.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_END_GAME</Tag>
+		<English>End the game</English>
+		<French>End the game</French>
+		<German>Spiel beenden</German>
+		<Italian>End the game</Italian>
+		<Spanish>End the game</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_RF_POPUP_RECOMMEND_RETIRE</Tag>

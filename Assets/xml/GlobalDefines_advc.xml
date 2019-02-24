@@ -374,6 +374,37 @@
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 	
+	<!-- advc.106i: If set to 1, replay files are written in such a way that
+		 they appear like unmodded replays to BtS, meaning that AdvCiv replays
+		 will show up on the Hall of Fame screen even when no mod is loaded.
+		 If any player colors are added to CIV4ColorVals.xml beyond those in
+		 BtS, then this option is automatically disabled (as if set to 0)
+		 because BtS is unable to show replays that use unfamiliar color
+		 values. (AdvCiv does not add such colors, but derived mods might.) -->
+	<Define>
+		<DefineName>HOF_STORE_REPLAYS_AS_BTS</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	<!-- advc.106i: If set to 1, replays from unmodded BtS can be viewed
+		 through AdvCiv's Hall of Fame screen. If set to 0, unmodded replays
+		 are filtered out. -->
+	<Define>
+		<DefineName>HOF_DISPLAY_BTS_REPLAYS</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<!-- advc.106i: If set to 1, replays from other mods appear on AdvCiv's
+		 Hall of Fame screen if they use the regular format for replays (I
+		 think almost all mods do), though error handling code may discard
+		 replays with highly unusual data (not sure if e.g. Caveman2Cosmos
+		 replays would pass). If color ids appear in the replay that exceed
+		 the number of colors in AdvCiv, those colors are replaced (by
+		 applying the modulo operator to the color id).
+		 If set to 0, replays from other mods are filtered out. -->
+	<Define>
+		<DefineName>HOF_DISPLAY_OTHER_MOD_REPLAYS</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	
 	<!-- [advc.099]
 		 The default value for culture-based anger assumes Open Borders in
 		 AdvCiv. With closed borders, the anger is CLOSED_BORDERS_CULTURE_

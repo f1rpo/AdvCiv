@@ -49,7 +49,7 @@ class CvHallOfFameScreen:
 		self.REPLAY_BUTTON_ID = "HallOfFameReplayButton"
 
 		self.X_SCREEN = 500
-		self.Y_SCREEN = 396
+		#self.Y_SCREEN = 396 advc.003: unused
 		self.W_SCREEN = 1024
 		self.H_SCREEN = 768
 		self.Y_TITLE = 12
@@ -280,9 +280,13 @@ class CvHallOfFameScreen:
 		for i in range(self.hallOfFame.getNumGames()):
 			replayInfo = self.hallOfFame.getReplayInfo(i)
 			if self.isDisplayed(replayInfo):
+				szUnknown = localText.getText("TXT_KEY_UNKNOWN", ()) # advc.106i
 				szVictory = u""
 				if replayInfo.getVictoryType() <= 0:
 					szVictory = localText.getText("TXT_KEY_NONE", ())
+				# <advc.106i>
+				elif replayInfo.getVictoryType() >= gc.getNumVictoryInfos():
+					szVictory = szUnknown # </advc.106i>
 				else:
 					szVictory = gc.getVictoryInfo(replayInfo.getVictoryType()).getDescription()
 # BUG - Win/Loss Info - start
@@ -300,27 +304,46 @@ class CvHallOfFameScreen:
 					iValue = replayInfo.getFinalTurn()
 				elif self.iSortBy == SORT_BY_GAME_SCORE:
 					iValue = -replayInfo.getFinalScore()
-				# <advc.250a> Legacy support for King difficulty
-				handicapDescr = "(invalid)"
-				diffic = replayInfo.getDifficulty()
-				if diffic >= 0 and diffic < gc.getNumHandicapInfos():
-					handicapDescr = gc.getHandicapInfo(diffic).getDescription()
-				# The 10th handicap (ids start at 0) used to be King
-				elif diffic == 9:
-					handicapDescr = "King"
-				# </advc.250a>
+				# <advc.106i>  (also legacy support for advc.250a)
+				szHandicap = ""
+				iHandicap = replayInfo.getDifficulty()
+				if iHandicap >= 0 and iHandicap < gc.getNumHandicapInfos():
+					szHandicap = gc.getHandicapInfo(iHandicap).getDescription()
+				else:
+					szHandicap = szUnknown
+				szWorldSize = ""
+				iWorldSize = replayInfo.getWorldSize()
+				if iWorldSize >= 0 and iWorldSize < gc.getNumWorldInfos():
+					szWorldSize = gc.getWorldInfo(iWorldSize).getDescription()
+				else:
+					szWorldSize = szUnknown
+				szStartEra = ""
+				iStartEra = replayInfo.getEra()
+				if iStartEra >= 0 and iStartEra < gc.getNumEraInfos():
+					szStartEra = gc.getEraInfo(iStartEra).getDescription()
+				else:
+					szStartEra = szUnknown
+				szSpeed = ""
+				iSpeed = replayInfo.getGameSpeed()
+				if iSpeed >= 0 and iSpeed < gc.getNumGameSpeedInfos():
+					szSpeed = gc.getGameSpeedInfo(iSpeed).getDescription()
+				else:
+					szSpeed = szUnknown
+				# </advc.106i>
 				self.infoList[iItem] = (iValue,
 						localText.getText("TXT_KEY_LEADER_CIV_DESCRIPTION", (replayInfo.getLeaderName(), replayInfo.getShortCivDescription())),
 						replayInfo.getNormalizedScore(),
 						replayInfo.getFinalDate(),
 						replayInfo.getFinalScore(), 
 						szVictory,
-						handicapDescr, # advc.250a
-						gc.getWorldInfo(replayInfo.getWorldSize()).getDescription(),
-#						gc.getClimateInfo(replayInfo.getClimate()).getDescription(),
-#						gc.getSeaLevelInfo(replayInfo.getSeaLevel()).getDescription(),
-						gc.getEraInfo(replayInfo.getEra()).getDescription(),
-						gc.getGameSpeedInfo(replayInfo.getGameSpeed()).getDescription(),
+						# <advc.106i>
+						szHandicap,
+						szWorldSize,
+# Note: These two have been disabled since Vanilla Civ 4. AdvCiv no longer stores the sea level.
+# gc.getClimateInfo(replayInfo.getClimate()).getDescription(),
+# gc.getSeaLevelInfo(replayInfo.getSeaLevel()).getDescription(),
+						szStartEra,
+						szSpeed, # </advc.106i>
 						i)
 				iItem += 1
 		self.infoList.sort()
@@ -328,8 +351,12 @@ class CvHallOfFameScreen:
 		for i in range(len(self.infoList)):
 		
 			szButtonName = self.REPLAY_BUTTON_ID + str(i)
-			screen.setButtonGFC(szButtonName, self.infoList[i][1], "",
-				0, 0, 10, 10, WidgetTypes.WIDGET_GENERAL, -1, -1, ButtonStyles.BUTTON_STYLE_STANDARD)
+			# <advc.106i>
+			data1 = 0
+			if i > 22:
+				data1 = 1
+			# </advc.106i>
+			screen.setButtonGFC(szButtonName, self.infoList[i][1], "", 0, 0, 10, 10, WidgetTypes.WIDGET_SHOW_REPLAY, data1, -1, ButtonStyles.BUTTON_STYLE_STANDARD)
 		
 			screen.appendTableRow(self.TABLE_ID)
 			screen.setTableText(self.TABLE_ID, 1, i, self.infoList[i][1], "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
@@ -359,7 +386,7 @@ class CvHallOfFameScreen:
 		count = 0
 		while msgNum >= 0:
 			msg = replay.getReplayMessageText(msgNum)
-			if count > 100:
+			if count > 25: # advc.003b: was 100
 				BugUtil.debug("no victory message in first 100; skipping")
 				break
 			matches = reWinText.match(msg)

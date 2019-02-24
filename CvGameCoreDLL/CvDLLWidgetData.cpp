@@ -619,7 +619,11 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 	case WIDGET_RF_CIV_CHOICE:
 		GC.getGameINLINE().getRiseFall().assignCivSelectionHelp(szBuffer,
 				(PlayerTypes)widgetDataStruct.m_iData1);
-		break; // </advc.706>
+		break; // </advc.706>  <advc.106i>
+	case WIDGET_SHOW_REPLAY:
+		szBuffer.append(gDLL->getText(widgetDataStruct.m_iData1 == 0 ?
+				"TXT_KEY_HOF_SHOW_REPLAY" : "TXT_KEY_HOF_WARN"));
+		break; // </advc.106i>
 	}
 }
 

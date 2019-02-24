@@ -13642,11 +13642,15 @@ void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 	CvGame const& g = GC.getGameINLINE();
 	PlayerTypes eActivePlayer = g.getActivePlayer();
 	CvPlayerAI const* pActivePlayer = (eActivePlayer == NO_PLAYER ? NULL:
-			&GET_PLAYER(eActivePlayer));
+			&GET_PLAYER(eActivePlayer)); // </advc.003>
 	// gDLL->isMPDiplomacy() does sth. else, apparently.
 	bool bDiplo = (g.isGameMultiPlayer() ? gDLL->isMPDiplomacyScreenUp() :
 			gDLL->isDiplomacy());
-	// </advc.003>
+	CvCity* pCity = (gDLL->getInterfaceIFace()->isCityScreenUp() ?
+			/*  A city can also be selected without the city screen being up;
+				don't want that here. */
+			gDLL->getInterfaceIFace()->getHeadSelectedCity() : NULL);
+
 	int iHappiness = GC.getBonusInfo(eBonus).getHappiness();
 	int iHealth = GC.getBonusInfo(eBonus).getHealth();
 
@@ -13703,8 +13707,8 @@ void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 					szBuffer.append(gDLL->getText("TXT_KEY_BONUS_AVAILABLE_PLAYER",
 							GET_PLAYER(eTradePlayer).getNumAvailableBonuses(eBonus),
 							GET_PLAYER(eTradePlayer).getNameKey()));
-				}
-				else if(iAvailable != 1) {
+				} // Don't show amount on city screen if it's 1
+				else if(iAvailable != 1 || pCity == NULL) {
 					// When not trading, this should be clear enough:
 					szBuffer.append(gDLL->getText("TXT_KEY_BONUS_AVAILABLE_US",
 							iAvailable));
@@ -13746,7 +13750,7 @@ void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 			// K-Mod. Only display the perks of the bonus if it is not already obsolete
 			!TEAMREF(eActivePlayer).isBonusObsolete(eBonus)) {
 		// advc.004w: Effects from buildings, projects and units in a subroutine
-		setBonusExtraHelp(szBuffer, eBonus, bCivilopediaText, eTradePlayer, bDiplo);
+		setBonusExtraHelp(szBuffer, eBonus, bCivilopediaText, eTradePlayer, bDiplo, pCity);
 	}
 // BULL - Trade Denial - start  (advc.073: refactored; getBugOptionBOOL check removed)
 	if (eTradePlayer != NO_PLAYER && eActivePlayer != NO_PLAYER)
@@ -13845,7 +13849,7 @@ void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 
 // advc.004w: Some code cut from setBonusHelp, but mostly new code.
 void CvGameTextMgr::setBonusExtraHelp(CvWStringBuffer &szBuffer, BonusTypes eBonus,
-		bool bCivilopediaText, PlayerTypes eTradePlayer, bool bDiplo) {
+		bool bCivilopediaText, PlayerTypes eTradePlayer, bool bDiplo, CvCity* pCity) {
 
 	PROFILE_FUNC();
 	CvGame const& g = GC.getGameINLINE();
@@ -13858,10 +13862,6 @@ void CvGameTextMgr::setBonusExtraHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 		pActivePlayer = &GET_PLAYER(eActivePlayer);
 		iCurrentEra = pActivePlayer->getCurrentEra();
 	}
-	CvCity* pCity = (gDLL->getInterfaceIFace()->isCityScreenUp() ?
-			/*  A city can also be selected without the city screen being up;
-				don't want that here. */
-			gDLL->getInterfaceIFace()->getHeadSelectedCity() : NULL);
 	
 	for(int i = 0; i < GC.getNumBuildingClassInfos(); i++) {
 		BuildingClassTypes eBuildingClass = (BuildingClassTypes)i;

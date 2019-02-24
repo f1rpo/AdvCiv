@@ -8,10 +8,9 @@
 //#include "CvStructs.h"
 #include "CvDeal.h"
 #include "CvRandom.h"
-// advc.250b:
-#include "StartPointsAsHandicap.h"
-// advc.700:
-#include "RiseFall.h"
+#include "StartPointsAsHandicap.h" // advc.250b
+#include "RiseFall.h" // advc.700
+#include "CvHallOfFameInfo.h" // advc.106i
 
 class CvPlot;
 class CvCity;
@@ -659,6 +658,10 @@ public:
 	RiseFall const& getRiseFall() const;
 	RiseFall& getRiseFall();
 	// </advc.703>
+	// <advc.106i>
+	void setHallOfFame(CvHallOfFameInfo* pHallOfFame);
+	CvHallOfFameInfo* getHallOfFame(); // advc.tmp: This I don't intend to keep
+	// </advc.106i>
 
 protected:
 	int m_iElapsedGameTurns;
@@ -767,6 +770,7 @@ protected:
 	ReplayMessageList m_listReplayMessages; 
 	CvReplayInfo* m_pReplayInfo;
 	int m_iNumSessions;
+	CvHallOfFameInfo* m_pHallOfFame; // advc.106i
 
 	std::vector<PlotExtraYield> m_aPlotExtraYields;
 	std::vector<PlotExtraCost> m_aPlotExtraCosts;
@@ -781,8 +785,8 @@ protected:
 	int		m_iNumCultureVictoryCities;
 	int		m_eCultureVictoryCultureLevel;
 
-	StartPointsAsHandicap spah; // advc.250b
-	RiseFall riseFall; // advc.700
+	StartPointsAsHandicap m_spah; // advc.250b
+	RiseFall m_riseFall; // advc.700
 
 	void uninit();
 	void setStartTurnYear(int iTurn = 0); // advc.250c

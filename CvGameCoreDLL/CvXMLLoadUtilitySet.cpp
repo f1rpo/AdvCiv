@@ -139,7 +139,8 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 			}
 
 			// write global defines info to cache
-			bool bOk = gDLL->cacheWrite(cache);
+			// advc.003i: Disabled
+			/*bool bOk = gDLL->cacheWrite(cache);
 			if (!bOk)
 			{
 				char	szMessage[1024];
@@ -149,7 +150,7 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 			else
 			{
 				logMsg("Wrote GlobalDefines to cache");
-			}
+			}*/
 		}
 	}
 
@@ -552,120 +553,119 @@ bool CvXMLLoadUtility::SetGlobalArtDefines()
 bool CvXMLLoadUtility::LoadGlobalText()
 {
 	CvCacheObject* cache = gDLL->createGlobalTextCacheObject("GlobalText.dat");	// cache file name
-	if (!gDLL->cacheRead(cache))
+	// advc.003: Handle successful read upfront
+	if (gDLL->cacheRead(cache)) {
+		logMsg("Read GlobalText from cache");
+		gDLL->destroyCache(cache);
+		return true; 
+	}
+
+	if (!CreateFXml())
 	{
-		bool bLoaded = false;
+		return false;
+	}
 
-		if (!CreateFXml())
+	//
+	// load all files in the xml text directory
+	//
+	std::vector<CvString> aszFiles;
+	std::vector<CvString> aszModfiles;
+
+	gDLL->enumerateFiles(aszFiles, "xml\\text\\*.xml");
+
+	// K-Mod. Text files from mods may not have the same set of language as the base game.
+	// When such a mismatch occurs, we cannot simply rely on "getCurrentLanguage()" to give us the correct text from the mod file. We should instead check the xml tags.
+	// So, before we start loading text, we need to extract the current name of our language tag. This isn't as easy as I'd like. Here's what I'm going to do:
+	// CIV4GameText_Misc1.xml contains the text for the language options dropdown menu in the settings screen; so I'm going to assume that particular text file is
+	// well formed, and I'm going to use it to determine the current language name. (Note: I'd like to use the names from TXT_KEY_LANGUAGE_#, but that text isn't easy to access.)
+	// label text for the currently selected language -- that should correspond to the xml label used for that language.
+	std::string langauge_name;
+	if (LoadCivXml(m_pFXml, "xml\\text\\CIV4GameText_Misc1.xml"))
+	{
+		bool bValid = true;
+		bValid = bValid && gDLL->getXMLIFace()->LocateNode(m_pFXml, "Civ4GameText/TEXT");
+		bValid = bValid && gDLL->getXMLIFace()->SetToChild(m_pFXml);
+
+		if (bValid)
 		{
-			return false;
-		}
-
-		//
-		// load all files in the xml text directory
-		//
-		std::vector<CvString> aszFiles;
-		std::vector<CvString> aszModfiles;
-
-		gDLL->enumerateFiles(aszFiles, "xml\\text\\*.xml");
-
-		// K-Mod. Text files from mods may not have the same set of language as the base game.
-		// When such a mismatch occurs, we cannot simply rely on "getCurrentLanguage()" to give us the correct text from the mod file. We should instead check the xml tags.
-		// So, before we start loading text, we need to extract the current name of our language tag. This isn't as easy as I'd like. Here's what I'm going to do:
-		// CIV4GameText_Misc1.xml contains the text for the language options dropdown menu in the settings screen; so I'm going to assume that particular text file is
-		// well formed, and I'm going to use it to determine the current language name. (Note: I'd like to use the names from TXT_KEY_LANGUAGE_#, but that text isn't easy to access.)
-		// label text for the currently selected language -- that should correspond to the xml label used for that language.
-		std::string langauge_name;
-		if (LoadCivXml(m_pFXml, "xml\\text\\CIV4GameText_Misc1.xml"))
-		{
-			bool bValid = true;
-			bValid = bValid && gDLL->getXMLIFace()->LocateNode(m_pFXml, "Civ4GameText/TEXT");
-			bValid = bValid && gDLL->getXMLIFace()->SetToChild(m_pFXml);
-
-			if (bValid)
+			const int& iLanguage = GAMETEXT.getCurrentLanguage();
+			const int iMax = GC.getDefineINT("MAX_NUM_LANGUAGES");
+			int i;
+			for (i = 0; i < iMax; i++)
 			{
-				const int& iLanguage = GAMETEXT.getCurrentLanguage();
-				const int iMax = GC.getDefineINT("MAX_NUM_LANGUAGES");
-				int i;
-				for (i = 0; i < iMax; i++)
-				{
-					SkipToNextVal();
+				SkipToNextVal();
 
-					if (!gDLL->getXMLIFace()->NextSibling(m_pFXml))
-						break;
-					if (i == iLanguage)
+				if (!gDLL->getXMLIFace()->NextSibling(m_pFXml))
+					break;
+				if (i == iLanguage)
+				{
+					char buffer[1024]; // no way to determine max tag name size. .. This is really bad; but what can I do about it?
+					if (gDLL->getXMLIFace()->GetLastLocatedNodeTagName(m_pFXml, buffer))
 					{
-						char buffer[1024]; // no way to determine max tag name size. .. This is really bad; but what can I do about it?
-						if (gDLL->getXMLIFace()->GetLastLocatedNodeTagName(m_pFXml, buffer))
-						{
-							buffer[1023] = 0; // just in case the buffer isn't even terminated!
-							langauge_name.assign(buffer);
-						}
+						buffer[1023] = 0; // just in case the buffer isn't even terminated!
+						langauge_name.assign(buffer);
 					}
 				}
-				// this is stupid...
-				// the number of languages is a static private variable which can only be set by a non-static function.
-				CvGameText dummy;
-				dummy.setNumLanguages(i);
 			}
+			// this is stupid...
+			// the number of languages is a static private variable which can only be set by a non-static function.
+			CvGameText dummy;
+			dummy.setNumLanguages(i);
 		}
+	}
 
-		// Remove duplicate files. (Both will be loaded from the mod folder anyway, so this will save us some time.)
-		// However, we must not disturb the order of the list, because it is important that the modded files overrule the unmodded files.
-		for(std::vector<CvString>::iterator it = aszFiles.begin(); it != aszFiles.end(); ++it)
+	// Remove duplicate files. (Both will be loaded from the mod folder anyway, so this will save us some time.)
+	// However, we must not disturb the order of the list, because it is important that the modded files overrule the unmodded files.
+	for(std::vector<CvString>::iterator it = aszFiles.begin(); it != aszFiles.end(); ++it)
+	{
+		std::vector<CvString>::iterator jt = it+1;
+		while (jt != aszFiles.end())
 		{
-			std::vector<CvString>::iterator jt = it+1;
-			while (jt != aszFiles.end())
-			{
-				if (it->CompareNoCase(*jt) == 0)
-					jt = aszFiles.erase(jt);
-				else
-					++jt;
-			}
+			if (it->CompareNoCase(*jt) == 0)
+				jt = aszFiles.erase(jt);
+			else
+				++jt;
 		}
-		// K-Mod end
+	}
+	// K-Mod end
 
-		if (gDLL->isModularXMLLoading())
-		{
-			gDLL->enumerateFiles(aszModfiles, "modules\\*_CIV4GameText.xml");
-			aszFiles.insert(aszFiles.end(), aszModfiles.begin(), aszModfiles.end());
-		}
-
-		for(std::vector<CvString>::iterator it = aszFiles.begin(); it != aszFiles.end(); ++it)
-		{
-			bLoaded = LoadCivXml(m_pFXml, *it); // Load the XML
-			if (!bLoaded)
-			{
-				char	szMessage[1024];
-				sprintf( szMessage, "LoadXML call failed for %s. \n Current XML file is: %s", (*it).c_str(), GC.getCurrentXMLFile().GetCString());
-				gDLL->MessageBox(szMessage, "XML Load Error");
-			}
-			if (bLoaded)
-			{
-				// if the xml is successfully validated
-				SetGameText("Civ4GameText", "Civ4GameText/TEXT", langauge_name);
-			}
-		}
-
-		DestroyFXml();
-
-		// write global text info to cache
-		bool bOk = gDLL->cacheWrite(cache);
+	if (gDLL->isModularXMLLoading())
+	{
+		gDLL->enumerateFiles(aszModfiles, "modules\\*_CIV4GameText.xml");
+		aszFiles.insert(aszFiles.end(), aszModfiles.begin(), aszModfiles.end());
+	}
+	bool bLoaded = false;
+	for(std::vector<CvString>::iterator it = aszFiles.begin(); it != aszFiles.end(); ++it)
+	{
+		bLoaded = LoadCivXml(m_pFXml, *it); // Load the XML
 		if (!bLoaded)
 		{
 			char	szMessage[1024];
-			sprintf( szMessage, "Failed writing to Global Text cache. \n Current XML file is: %s", GC.getCurrentXMLFile().GetCString());
-			gDLL->MessageBox(szMessage, "XML Caching Error");
+			sprintf( szMessage, "LoadXML call failed for %s. \n Current XML file is: %s", (*it).c_str(), GC.getCurrentXMLFile().GetCString());
+			gDLL->MessageBox(szMessage, "XML Load Error");
 		}
-		if (bOk)
+		if (bLoaded)
 		{
-			logMsg("Wrote GlobalText to cache");
+			// if the xml is successfully validated
+			SetGameText("Civ4GameText", "Civ4GameText/TEXT", langauge_name);
 		}
-	}	// didn't read from cache
-	else
-	{
-		logMsg("Read GlobalText from cache");
 	}
+
+	DestroyFXml();
+
+	// write global text info to cache
+	// advc.003i: Disabled
+	/*bool bOk = gDLL->cacheWrite(cache);
+	if (!bLoaded)
+	{
+		char	szMessage[1024];
+		sprintf( szMessage, "Failed writing to Global Text cache. \n Current XML file is: %s", GC.getCurrentXMLFile().GetCString());
+		gDLL->MessageBox(szMessage, "XML Caching Error");
+	}
+	if (bOk)
+	{
+		logMsg("Wrote GlobalText to cache");
+	}*/
 
 	gDLL->destroyCache(cache);
 
@@ -1578,8 +1578,8 @@ void CvXMLLoadUtility::LoadGlobalClassInfo(std::vector<T*>& aInfos,
 					}
 				}
 			}
-
-			if (NULL != pArgFunction && bWriteCache)
+			// advc.003i: Disabled
+			/*if (NULL != pArgFunction && bWriteCache)
 			{
 				// write info to cache
 				bool bOk = gDLL->cacheWrite(pCache);
@@ -1593,7 +1593,7 @@ void CvXMLLoadUtility::LoadGlobalClassInfo(std::vector<T*>& aInfos,
 				{
 					logMsg("Wrote %s to cache", szFileDirectory);
 				}
-			}
+			}*/
 		}
 	}
 
@@ -1657,8 +1657,8 @@ void CvXMLLoadUtility::LoadDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInf
 					}
 				}
 			}
-
-			if (NULL != pArgFunction && bWriteCache)
+			// advc.003i: Disabled
+			/*if (NULL != pArgFunction && bWriteCache)
 			{
 				// write info to cache
 				bool bOk = gDLL->cacheWrite(pCache);
@@ -1672,7 +1672,7 @@ void CvXMLLoadUtility::LoadDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInf
 				{
 					logMsg("Wrote %s to cache", szFileDirectory);
 				}
-			}
+			}*/
 		}
 	}
 

@@ -475,13 +475,9 @@
 		<HintInfo>
 			<Description>TXT_KEY_KMOD_HINT_15</Description>
 		</HintInfo> <!-- right-click on +/- -->
-		<!-- advc.008c: Alt+Wake -->
+		<!-- k146: Alt+Wake -->
 		<HintInfo>
 			<Description>TXT_KEY_KMOD_HINT_16</Description>
-		</HintInfo>
-		<!-- advc.008c: Vassal war preparations -->
-		<HintInfo>
-			<Description>TXT_KEY_KMOD_HINT_17</Description>
 		</HintInfo>
 		
 		<!-- advc.008d: Copied K-Mod hints to increase their probability: -->
@@ -533,9 +529,6 @@
 			<Description>TXT_KEY_KMOD_HINT_15</Description>
 		</HintInfo>
 		<!-- Skip 16 b/c it's rarely useful -->
-		<HintInfo>
-			<Description>TXT_KEY_KMOD_HINT_17</Description>
-		</HintInfo>
 		<!-- These have been replaced or updated; should receive higher
 			 probability too. -->
 		<HintInfo>
@@ -667,6 +660,9 @@
 			<Description>TXT_KEY_ADVC_HINT_35</Description>
 		</HintInfo>
 		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_36</Description>
+		</HintInfo>
+		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_1</Description>
 		</HintInfo>
 		<HintInfo>
@@ -765,6 +761,9 @@
 		</HintInfo>
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_35</Description>
+		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_36</Description>
 		</HintInfo>
 	</HintInfos>
 </Civ4Hints>
