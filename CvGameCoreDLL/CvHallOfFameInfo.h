@@ -10,7 +10,7 @@ class CvHallOfFameInfo
 public:
 	CvHallOfFameInfo();
 	virtual ~CvHallOfFameInfo();
-	void uninit(/* advc.tmp: */ CvReplayInfo const* pReplay = NULL); // advc.106i
+	void uninit(); // advc.106i
 
 	void loadReplays();
 	int getNumGames() const;
@@ -18,7 +18,6 @@ public:
 
 protected:
 	std::vector<CvReplayInfo*> m_aReplays;
-	bool m_bUninit; // advc.tmp
 };
 
 #endif

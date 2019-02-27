@@ -380,7 +380,9 @@
 		 If any player colors are added to CIV4ColorVals.xml beyond those in
 		 BtS, then this option is automatically disabled (as if set to 0)
 		 because BtS is unable to show replays that use unfamiliar color
-		 values. (AdvCiv does not add such colors, but derived mods might.) -->
+		 values. AdvCiv does not add such colors, but derived mods might.
+		 Additional map sizes, victory conditions, handicap or game speed
+		 settings will also cause problems. -->
 	<Define>
 		<DefineName>HOF_STORE_REPLAYS_AS_BTS</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>

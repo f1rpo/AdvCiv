@@ -11538,9 +11538,4 @@ RiseFall& CvGame::getRiseFall() {
 void CvGame::setHallOfFame(CvHallOfFameInfo* pHallOfFame) {
 
 	m_pHallOfFame = pHallOfFame;
-}
-
-CvHallOfFameInfo* CvGame::getHallOfFame() { // advc.tmp
-
-	return m_pHallOfFame;
 } // </advc.106i>

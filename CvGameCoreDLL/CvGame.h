@@ -658,10 +658,7 @@ public:
 	RiseFall const& getRiseFall() const;
 	RiseFall& getRiseFall();
 	// </advc.703>
-	// <advc.106i>
-	void setHallOfFame(CvHallOfFameInfo* pHallOfFame);
-	CvHallOfFameInfo* getHallOfFame(); // advc.tmp: This I don't intend to keep
-	// </advc.106i>
+	void setHallOfFame(CvHallOfFameInfo* pHallOfFame); // advc.106i
 
 protected:
 	int m_iElapsedGameTurns;

@@ -54,10 +54,6 @@ CvReplayInfo::~CvReplayInfo()
 		SAFE_DELETE(m_listReplayMessages[i]);
 	}
 	SAFE_DELETE(m_pcMinimapPixels);
-	// <advc.tmp>
-	if(!m_szLeaderName.empty() && GC.getGameINLINE().getHallOfFame() != NULL)
-		GC.getGameINLINE().getHallOfFame()->uninit(this);
-	// </advc.tmp>
 	SAFE_DELETE(m); // advc.003k
 }
 
