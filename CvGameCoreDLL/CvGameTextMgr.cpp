@@ -17919,8 +17919,8 @@ void CvGameTextMgr::buildCityBillboardIconString( CvWStringBuffer& szBuffer, CvC
 		{
 			szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(UNHEALTHY_CHAR)));
 		}
-
-		if (gDLL->getGraphicOption(GRAPHICOPTION_CITY_DETAIL))
+		// advc.076: Disabled
+		/*if (gDLL->getGraphicOption(GRAPHICOPTION_CITY_DETAIL))
 		{
 			if (GET_PLAYER(pCity->getOwnerINLINE()).getNumCities() > 2)
 			{
@@ -17937,7 +17937,7 @@ void CvGameTextMgr::buildCityBillboardIconString( CvWStringBuffer& szBuffer, CvC
 					szBuffer.append(CvWString::format(L"%c", GC.getCommerceInfo(COMMERCE_RESEARCH).getChar()));
 				}
 			}
-		}
+		}*/
 
 		if (pCity->isConnectedToCapital()
 				// advc.002f:

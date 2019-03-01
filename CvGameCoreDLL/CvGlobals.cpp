@@ -3761,7 +3761,9 @@ int CvGlobals::getInfoTypeForString(const char* szType, bool hideAssert) const
 			no observable error occurs.
 			Looks like BUG introduced this problem, but I can't find the
 			call location in the BUG code, hence the workaround. */
-		if(std::strcmp(szCurrentXMLFile, "xml\\GameInfo/CIV4ForceControlInfos.xml") == 0) {
+		//if(std::strcmp(szCurrentXMLFile, "xml\\GameInfo/CIV4ForceControlInfos.xml") == 0)
+		{ /* ^I've also seen this call now after reloading Python and then returning
+			 to the main menu, i.e. unrelated to CIV4ForceControlInfos. */
 			if(std::strcmp(szType, "PLOT_PEAK") == 0)
 				return PLOT_PEAK;
 				//return getInfoTypeForString("WORLDBUILDER_PLOT_TYPE_MOUNTAIN");

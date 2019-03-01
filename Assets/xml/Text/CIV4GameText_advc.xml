@@ -823,27 +823,6 @@
 		<Spanish>[NUM1:Vuestro:Vuestra:Vuestros:Vuestras] %s1_UnitName [NUM1:ha:ha:han:han] muerto atacando a [NUM2:un:una:unos:unas] %s2_EnUName.</Spanish>
 	</TEXT>
 
-	<!-- advc.004g: Originally in CIV4GameText_Misc1.xml. The way that the
-		 option is named and described suggests that it shows a city radius
-		 around a selected Settler, but it actually shows the radii of
-		 existing cities owned by the active player. -->
-	<TEXT>
-		<Tag>TXT_KEY_GRAPHICOPTION_CITY_RADIUS</Tag>
-		<English>Show City Radii</English>
-		<French>Afficher Rayon ville</French>
-		<German>Stadtumkreise anzeigen</German>
-		<Italian>Mostra raggio d'azione delle citt&#224;</Italian>
-		<Spanish>Mostrar radio urbano</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_GRAPHICOPTION_CITY_RADIUS_HELP</Tag>
-		<English>Shows the radii of existing cities when a Settler is selected</English>
-		<French>Affiche les rayons de les villes quand un colon est s&#233;lectionn&#233;.</French>
-		<German>Zeigt die Umkreise bisheriger Städte an, wenn ein Siedler ausgewählt ist.</German>
-		<Italian>Mostra i raggi d'azione delle citt&#224; selezionando un colono</Italian>
-		<Spanish>Para ver los radios urbanos al seleccionar a un colono</Spanish>
-	</TEXT>
-
 	<!-- advc.004g: Originally in CIV4GameText_BTS.xml. The wording was too
 		 clunky. -->
 	<TEXT>
@@ -1175,18 +1154,6 @@
 			<Gender>Male</Gender>
 			<Plural>0</Plural>
 		</Spanish>
-	</TEXT>
-	
-	<!-- advc.004g: Originally in CIV4GameText_Misc1.xml. Correcting the
-		 comically bad German translation ("verlassen Wälder"). Not sure about
-		 Spanish (was "abandonan bosques"). -->
-	<TEXT>
-		<Tag>TXT_KEY_PLAYEROPTION_LEAVE_FORESTS</Tag>
-		<English>Automated Workers Leave Forests</English>
-		<French>Ouvriers auto. d&#233;laissent for&#234;ts</French>
-		<German>Automatisierte Bautrupps schonen W&#228;lder</German>
-		<Italian>I lavoratori automatizzati non toccano le foreste</Italian>
-		<Spanish>Trabajadores automatizados no tocan bosques</Spanish>
 	</TEXT>
 	
 	<!-- advc.004g: Originally in Civ4GameTextInfos.xml. Said "Show Tiles",
@@ -3913,16 +3880,6 @@
 		<German>[COLOR_LIGHT_GREY]----- Ältere Nachrichten:[COLOR_REVERT]</German>
 		<Italian>[COLOR_LIGHT_GREY]----- Messaggi meno recenti:[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_LIGHT_GREY]----- Mensajes más antiguos:[COLOR_REVERT]</Spanish>
-	</TEXT>
-	<!-- advc.106b: Originally in CIV4GameText_Misc1.xml. Example and
-		 recommendation added. -->
-	<TEXT>
-		<Tag>TXT_KEY_PLAYER_OPTION_MINIMIZE_POPUPS_HELP</Tag>
-		<English>Popups (e.g. "what would you like to research next?") are minimized until all units have moved. (Recommended for the AdvCiv mod.)</English>
-		<French>Les fen&#234;tres sont minimis&#233;es tant que le joueur n'a pas d&#233;plac&#233; toutes ses unit&#233;s.</French>
-		<German>Popups werden minimiert, bis der Spieler alle Einheiten bewegt hat. (Für den AdvCiv-Mod empfohlen.)</German>
-		<Italian>I menu a comparsa vengono ridotti al minimo finch&#233; il giocatore non ha mosso tutte le sue unit&#224;</Italian>
-		<Spanish>Los elementos emergentes quedar&#225;n ocultos hasta que el jugador haya movido todas las unidades.</Spanish>
 	</TEXT>
 	
 	<!-- advc.104v -->
