@@ -10,6 +10,7 @@ UserProfile = CyUserProfile()
 #"""
 #OPTIONS SCREEN CALLBACK INTERFACE - Any time something is changed in the Options Screen the result is determined here
 #"""
+# advc.076: Copied this file from BtS to add some more restart popups
 
 def saveProfile():
 	if (UserProfile.getProfileName() != ""):
@@ -31,7 +32,11 @@ def restartPopup(bForceShowing = false):
 		# create popup
 		popup = PyPopup.PyPopup()
 		popup.setHeaderString("")
-		popup.setBodyString(localText.getText("TXT_KEY_OPTIONS_NEED_TO_RESTART", ()))
+		# <advc.076> Tell the player if reloading is enough
+		szBodyTag = "TXT_KEY_OPTIONS_NEED_TO_RELOAD"
+		if bForceShowing: # </advc.076>
+			szBodyTag = "TXT_KEY_OPTIONS_NEED_TO_RESTART"
+		popup.setBodyString(localText.getText(szBodyTag, ()))
 		popup.launch()
 
 def isNumber(s):
@@ -88,11 +93,10 @@ def handleGraphicOptionsClicked ( argsList ):
 	
 	UserProfile.setGraphicOption(iGraphicOption, bValue)
 	
-	if (iGraphicOption == GraphicOptionTypes.GRAPHICOPTION_SINGLE_UNIT_GRAPHICS or
-		iGraphicOption == GraphicOptionTypes.GRAPHICOPTION_FULLSCREEN):
+	if (iGraphicOption == GraphicOptionTypes.GRAPHICOPTION_SINGLE_UNIT_GRAPHICS or iGraphicOption == GraphicOptionTypes.GRAPHICOPTION_FULLSCREEN):
 		restartPopup(true)
-		
-	if (iGraphicOption == GraphicOptionTypes.GRAPHICOPTION_HIRES_TERRAIN):
+	# advc.076: LOWRES_TEXTURES added
+	if (iGraphicOption == GraphicOptionTypes.GRAPHICOPTION_HIRES_TERRAIN or iGraphicOption == GraphicOptionTypes.GRAPHICOPTION_LOWRES_TEXTURES):
 		restartPopup(false)
 		
 	return 1
@@ -120,7 +124,7 @@ def handleGlobeViewDropdownBoxInput ( argsList ):
 	iValue, szName = argsList
 	
 	UserProfile.setGlobeViewRenderLevel(iValue)
-	
+	restartPopup(False) # advc.076
 	return 1
 		
 def handleMovieDropdownBoxInput ( argsList ):

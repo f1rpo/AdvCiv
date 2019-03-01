@@ -364,14 +364,14 @@
 	<Spanish>(AdvCiv) Don't count on discovering initially hidden resources like iron or horses near your capital. They're no more likely to appear there than anywhere else.</Spanish>
 </TEXT>
 
-<!-- advc.102 -->
+<!-- advc.102  (advc.076: Quick Moves is a graphics option now) -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_20</Tag>
-	<English>(AdvCiv) The "Show Friendly Moves" option doesn't show all moves because that would take too long. E.g. the moves of Workers aren't shown.</English>
-	<French>(AdvCiv) The "Show Friendly Moves" option doesn't show all moves because that would take too long. E.g. the moves of Workers aren't shown.</French>
-	<German>(AdvCiv) Die Option "Freundliche Bewegungen zeigen" lässt manche Einheiten aus, z.B. Bautrupps, damit die Animationen nicht zu viel Zeit in Anspruch nehmen.</German>
-	<Italian>(AdvCiv) The "Show Friendly Moves" option doesn't show all moves because that would take too long. E.g. the moves of Workers aren't shown.</Italian>
-	<Spanish>(AdvCiv) The "Show Friendly Moves" option doesn't show all moves because that would take too long. E.g. the moves of Workers aren't shown.</Spanish>
+	<English>(AdvCiv) The "Show Friendly Moves" option no longer shows Worker moves, but it's still advisable to enable the "Quick Moves" graphics option in addition.</English>
+	<French>(AdvCiv) The "Show Friendly Moves" option no longer shows Worker moves, but it's still advisable to enable the "Quick Moves" graphics option in addition.</French>
+	<German>(AdvCiv) Die Option "Freundliche Bewegungen zeigen" lässt die Bewegungen von Bautrupps und Missionaren aus; trotzdem ist es ratsam zusätzlich die Grafikoption "Schnelle Bewegungen" zu aktivieren.</German>
+	<Italian>(AdvCiv) The "Show Friendly Moves" option no longer shows Worker moves, but it's still advisable to enable the "Quick Moves" graphics option in addition.</Italian>
+	<Spanish>(AdvCiv) The "Show Friendly Moves" option no longer shows Worker moves, but it's still advisable to enable the "Quick Moves" graphics option in addition.</Spanish>
 </TEXT>
 
 <TEXT>
