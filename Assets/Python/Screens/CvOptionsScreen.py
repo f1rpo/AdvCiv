@@ -77,6 +77,9 @@ class CvOptionsScreen:
 		
 	def refreshScreen (self):
 		
+		# advc.076: Active profile may have changed
+		UserProfile = CyUserProfile()
+		
 		#################### Game Options ####################
 		
 		szTab = self.getGameOptionsTabName()
@@ -224,6 +227,16 @@ class CvOptionsScreen:
 		# Modem Checkbox
    		self.getTabControl().setValue("ModemSelection", gc.getGame().isModem())
 		
+		# <advc.076> Update button tooltips b/c profile name may have changed
+		# Tbd.: A function updateTooltips to get rid of duplicate code and hardcoded widget names
+		szProfileName = UserProfile.getProfileName()
+		for iTab in range(4):
+			self.getTabControl().setToolTip("OptionsExitButton" + str(iTab), localText.getText("TXT_KEY_OPTIONS_SCREEN_EXIT_HELP", (szProfileName,)))
+		self.getTabControl().setToolTip("GameOptionsResetButton", localText.getText("TXT_KEY_OPTIONS_SCREEN_RESET1_HELP", (szProfileName,)))
+		self.getTabControl().setToolTip("GraphicOptionsResetButton", localText.getText("TXT_KEY_OPTIONS_SCREEN_RESET2_HELP", (szProfileName,)))
+		self.getTabControl().setToolTip("AudioOptionsResetButton", localText.getText("TXT_KEY_OPTIONS_SCREEN_RESET3_HELP", (szProfileName,)))
+		# </advc.076>
+		
 	def interfaceScreen (self):
 		"Initial creation of the screen"
 		self.initText()
@@ -243,8 +256,11 @@ class CvOptionsScreen:
 		# <advc.076> Initialize some data for the draw...Tab functions
 		self.graphicOptionsDone = set()
 		self.playerOptionsDone = set()
+		self.tab1Options = set() # for the reset buttons
+		self.tab2Options = set()
 		self.iBlank = 0 # for attachVSpace
 		self.iHeading = 0 # for attachHeading
+		self.iExitButton = 0 # for attachExitButton
 		# </advc.076>
 		
 		self.drawGameOptionsTab()
@@ -390,11 +406,10 @@ class CvOptionsScreen:
 		szCallbackFunction = "handleGameReset"
 		szWidgetName = "GameOptionsResetButton"
 		tab.attachButton("LowerHBox", szWidgetName, szOptionDesc, self.callbackIFace, szCallbackFunction, szWidgetName)
-		
-		szOptionDesc = localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ())
-		szCallbackFunction = "handleExitButtonInput"
-		szWidgetName = "GameOptionsExitButton"
-		tab.attachButton("LowerHBox", szWidgetName, szOptionDesc, self.callbackIFace, szCallbackFunction, szWidgetName)
+		# advc.076:
+		tab.setToolTip(szWidgetName, localText.getText("TXT_KEY_OPTIONS_SCREEN_RESET1_HELP", (UserProfile.getProfileName(),)))
+		# advc.076: Moved into subroutine
+		self.attachExitButton(tab)
 		
 	def drawGraphicOptionsTab(self):
 		
@@ -586,13 +601,13 @@ class CvOptionsScreen:
 		self.attachGraphicsOption(tab, vbox, GraphicOptionTypes.GRAPHICOPTION_FROZEN_ANIMATIONS)
 		self.attachGraphicsOption(tab, vbox, GraphicOptionTypes.GRAPHICOPTION_EFFECTS_DISABLED)
 		self.attachGraphicsOption(tab, vbox, GraphicOptionTypes.GRAPHICOPTION_NO_COMBAT_ZOOM)
-		self.attachPlayerOption(tab, vbox, PlayerOptionTypes.PLAYEROPTION_QUICK_MOVES) # Moved from first tab
+		self.attachPlayerOption(tab, vbox, PlayerOptionTypes.PLAYEROPTION_QUICK_MOVES, True) # Moved from first tab
 		self.attachHeading(tab, vbox, "UNITGFX")
 		self.attachGraphicsOption(tab, vbox, GraphicOptionTypes.GRAPHICOPTION_SINGLE_UNIT_GRAPHICS)
 		self.attachGraphicsOption(tab, vbox, GraphicOptionTypes.GRAPHICOPTION_HEALTH_BARS)
 		self.attachHeading(tab, vbox, "VISAIDS")
 		self.attachGraphicsOption(tab, vbox, GraphicOptionTypes.GRAPHICOPTION_NO_ENEMY_GLOW)
-		self.attachPlayerOption(tab, vbox, PlayerOptionTypes.PLAYEROPTION_NUMPAD_HELP) # Moved from first tab
+		self.attachPlayerOption(tab, vbox, PlayerOptionTypes.PLAYEROPTION_NUMPAD_HELP, True) # Moved from first tab
 		self.attachGraphicsOption(tab, vbox, GraphicOptionTypes.GRAPHICOPTION_CITY_RADIUS)
 		self.attachGraphicsOption(tab, vbox, GraphicOptionTypes.GRAPHICOPTION_CITY_DETAIL)
 
@@ -613,21 +628,20 @@ class CvOptionsScreen:
 		szCallbackFunction = "handleGraphicsReset"
 		szWidgetName = "GraphicOptionsResetButton"
 		tab.attachButton("LowerHBox", szWidgetName, szOptionDesc, self.callbackIFace, szCallbackFunction, szWidgetName)
-		
-		szOptionDesc = localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ())
-		szCallbackFunction = "handleExitButtonInput"
-		szWidgetName = "GraphicOptionsExitButton"
-		tab.attachButton("LowerHBox", szWidgetName, szOptionDesc, self.callbackIFace, szCallbackFunction, szWidgetName)
+		# advc.076:
+		tab.setToolTip(szWidgetName, localText.getText("TXT_KEY_OPTIONS_SCREEN_RESET2_HELP", (UserProfile.getProfileName(),)))
+		# advc.076: Moved into subroutine
+		self.attachExitButton(tab)
 
 	# <advc.076> 
-	def attachGraphicsOption(self, tab, panel, iOption):
-		self.attachOption(tab, panel, iOption, False)
+	def attachGraphicsOption(self, tab, panel, iOption, bAsPlayerOption=False):
+		self.attachOption(tab, panel, iOption, False, bAsPlayerOption)
 		
-	def attachPlayerOption(self, tab, panel, iOption):
-		self.attachOption(tab, panel, iOption, True)
+	def attachPlayerOption(self, tab, panel, iOption, bAsGfxOption=False):
+		self.attachOption(tab, panel, iOption, True, bAsGfxOption)
 
 	# Mix of the code from the "Checkboxes" loop in drawGraphicOptionsTab and drawGameOptionsTab
-	def attachOption(self, tab, panel, iOption, bPlayerOption):
+	def attachOption(self, tab, panel, iOption, bPlayerOption, bWrongTab):
 		optionInfo = None
 		if bPlayerOption:
 			optionInfo = gc.getPlayerOptionsInfoByIndex(iOption)
@@ -639,16 +653,26 @@ class CvOptionsScreen:
 		szCallbackFunction = ""
 		szWidgetName = ""
 		bOptionOn = False
+		tabOptions = None
 		if bPlayerOption:
 			szCallbackFunction = "handleGameOptionsClicked"
 			szWidgetName = "GameOptionCheckBox_"
 			bOptionOn = UserProfile.getPlayerOption(iOption)
 			self.playerOptionsDone.add(iOption)
+			if bWrongTab:
+				tabOptions = self.tab2Options
+			else:
+				tabOptions = self.tab1Options
 		else:
 			szCallbackFunction = "handleGraphicOptionsClicked"
 			szWidgetName = "GraphicOptionCheckbox_"
 			bOptionOn = UserProfile.getGraphicOption(iOption)
 			self.graphicOptionsDone.add(iOption)
+			if bWrongTab:
+				tabOptions = self.tab1Options
+			else:
+				tabOptions = self.tab2Options
+		tabOptions.add((iOption,bPlayerOption))
 		szWidgetName += str(iOption)
 		tab.attachCheckBox(panel, szWidgetName, szOptionDesc, self.callbackIFace, szCallbackFunction, szWidgetName, bOptionOn)
 		tab.setToolTip(szWidgetName, szHelp)
@@ -935,12 +959,10 @@ class CvOptionsScreen:
 		szCallbackFunction = "handleAudioReset"
 		szWidgetName = "AudioOptionsResetButton"
 		tab.attachButton("LowerHBox", szWidgetName, szOptionDesc, self.callbackIFace, szCallbackFunction, szWidgetName)
-		
-		szOptionDesc = localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ())
-		szCallbackFunction = "handleExitButtonInput"
-		szWidgetName = "AudioOptionsExitButton"
-		tab.attachButton("LowerHBox", szWidgetName, szOptionDesc, self.callbackIFace, szCallbackFunction, szWidgetName)
-		tab.setLayoutFlag(szWidgetName, "LAYOUT_HCENTER")
+		# advc.076:
+		tab.setToolTip(szWidgetName, localText.getText("TXT_KEY_OPTIONS_SCREEN_RESET3_HELP", (UserProfile.getProfileName(),)))
+		# advc.076: Moved into subroutine
+		self.attachExitButton(tab)
 		
 		
 	def drawOtherTab(self):
@@ -1055,9 +1077,9 @@ class CvOptionsScreen:
 		tab.attachDropDown("ProfilePanelVBox",szWidgetName,szDropdownDesc, aszDropdownElements, self.callbackIFace, szCallbackFunction, szWidgetName, iInitialSelection)
 		
 		# Edit Box ProfileName
-		tab.attachLabel("ProfilePanelVBox","ProfilesName",localText.getText("TXT_KEY_OPTIONS_SCREEN_PROFILE_NAME", ()))
+		# advc.076: Txt key was TXT_KEY_OPTIONS_SCREEN_PROFILE_NAME
+		tab.attachLabel("ProfilePanelVBox","ProfilesName",localText.getText("TXT_KEY_OPTIONS_SCREEN_EDIT_PROFILE", ()))
 		
-	
 		#szCallbackIFace = ""
 		szEditBoxDesc = UserProfile.getProfileName()
 		szCallbackFunction = "DummyCallback"
@@ -1116,15 +1138,22 @@ class CvOptionsScreen:
 		
 		tab.attachHBox("OtherVBox", "LowerHBox")
 		tab.setLayoutFlag("LowerHBox", "LAYOUT_HCENTER")
-		
-		szOptionDesc = localText.getText("TXT_KEY_OPTIONS_RESET", ())
-		szCallbackFunction = "handleOtherReset"
-		szWidgetName = "OtherOptionsResetButton"
-		tab.attachButton("LowerHBox", szWidgetName, szOptionDesc, self.callbackIFace, szCallbackFunction, szWidgetName)
-		
-		szOptionDesc = localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ())
+		# advc.076: Don't need a reset button just for the clock options. Reset-all would make some sense. Too much work for now.
+		#szOptionDesc = localText.getText("TXT_KEY_OPTIONS_RESET", ())
+		#szCallbackFunction = "handleOtherReset"
+		#szWidgetName = "OtherOptionsResetButton"
+		#tab.attachButton("LowerHBox", szWidgetName, szOptionDesc, self.#callbackIFace, szCallbackFunction, szWidgetName)
+
+		# advc.076: Moved into subroutine
+		self.attachExitButton(tab)
+	
+	# advc.076: Moved here to reduce code duplication
+	def attachExitButton(self, tab):
+		box = "LowerHBox" # That widget name is used by all tabs
+		szButtonDesc = localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ())
 		szCallbackFunction = "handleExitButtonInput"
-		szWidgetName = "OtherOptionsExitButton"
-		tab.attachButton("LowerHBox", szWidgetName, szOptionDesc, self.callbackIFace, szCallbackFunction, szWidgetName)
-		tab.setLayoutFlag(szWidgetName, "LAYOUT_HCENTER")
-		
+		szWidgetName = "OptionsExitButton" + str(self.iExitButton)
+		self.iExitButton += 1
+		tab.attachButton(box, szWidgetName, szButtonDesc, self.callbackIFace, szCallbackFunction, szWidgetName)
+		# advc.076:
+		tab.setToolTip(szWidgetName, localText.getText("TXT_KEY_OPTIONS_SCREEN_EXIT_HELP", (UserProfile.getProfileName(),)))

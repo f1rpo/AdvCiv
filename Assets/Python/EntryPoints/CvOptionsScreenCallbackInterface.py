@@ -77,9 +77,10 @@ def handleLanguagesDropdownBoxInput ( argsList ):
 def handleGameReset ( argsList ):
 	"Resets these options"
 	szName = argsList
-	
-	UserProfile.resetOptions(TabGroupTypes.TABGROUP_GAME)
-	refresh()
+	#UserProfile.resetOptions(TabGroupTypes.TABGROUP_GAME)
+	#refresh()
+	# advc.076: I see no way (in the SDK) to assign a player option to TABGROUP_GRAPHICS, so UserProfile.resetOptions is no help. New function:
+	resetTabOptions(1)
 	saveProfile()
 	
 	return 1
@@ -92,13 +93,12 @@ def handleGraphicOptionsClicked ( argsList ):
 	iGraphicOption = int(szName[szName.find("_")+1:])
 	
 	UserProfile.setGraphicOption(iGraphicOption, bValue)
-	
-	if (iGraphicOption == GraphicOptionTypes.GRAPHICOPTION_SINGLE_UNIT_GRAPHICS or iGraphicOption == GraphicOptionTypes.GRAPHICOPTION_FULLSCREEN):
-		restartPopup(true)
-	# advc.076: LOWRES_TEXTURES added
-	if (iGraphicOption == GraphicOptionTypes.GRAPHICOPTION_HIRES_TERRAIN or iGraphicOption == GraphicOptionTypes.GRAPHICOPTION_LOWRES_TEXTURES):
-		restartPopup(false)
-		
+	#if (iGraphicOption == GraphicOptionTypes.GRAPHICOPTION_SINGLE_UNIT_GRAPHICS or iGraphicOption == GraphicOptionTypes.GRAPHICOPTION_FULLSCREEN):
+	#	restartPopup(true)
+	#if (iGraphicOption == GraphicOptionTypes.GRAPHICOPTION_HIRES_TERRAIN):
+	#	restartPopup(false)
+	# advc.076: Now handled by a subroutine
+	handleRestart(isImmediate(iGraphicOption))
 	return 1
 	
 def handleGraphicsLevelDropdownBoxInput ( argsList ):
@@ -164,9 +164,10 @@ def handleGraphicsReset ( argsList ):
 	"Resets these options"
 	szName = argsList
 	
-	UserProfile.resetOptions(TabGroupTypes.TABGROUP_GRAPHICS)
-	refresh()
-	restartPopup()
+	#UserProfile.resetOptions(TabGroupTypes.TABGROUP_GRAPHICS)
+	#refresh()
+	#restartPopup()
+	resetTabOptions(2) # advc.076
 	saveProfile()
 	
 	return 1
@@ -491,3 +492,64 @@ def handleExitButtonInput ( argsList ):
 	getTabControl().destroy()
 	
 	return 1
+
+# <advc.076>
+def resetTabOptions(iTab):
+	options = None
+	if iTab == 1:
+		options = getOptionsScreen().tab1Options
+	elif iTab == 2:
+		options = getOptionsScreen().tab2Options
+	else:
+		assert(False)
+		return
+	gc = CyGlobalContext()
+	iMinImmediate = 1
+	for iOption,bPlayerOption in options:
+		bOldVal = False
+		bNewVal = False
+		if bPlayerOption:
+			bOldVal = UserProfile.getPlayerOption(iOption)
+			# Player options need to be synchronized
+			CyMessageControl().sendPlayerOption(iOption, gc.getPlayerOptionsInfoByIndex(iOption).getDefault())
+			bNewVal = UserProfile.getPlayerOption(iOption)
+		else:
+			if iOption == GraphicOptionTypes.GRAPHICOPTION_FULLSCREEN:
+				continue # Don't change fullscreen/windowed
+			bOldVal = UserProfile.getGraphicOption(iOption)
+			UserProfile.setGraphicOption(iOption, gc.getGraphicOptionsInfoByIndex(iOption).getDefault())
+			bNewVal = UserProfile.getGraphicOption(iOption)
+		if bOldVal != bNewVal:
+			iMinImmediate = min(iMinImmediate, isImmediate(iOption, bPlayerOption))
+	if iTab == 2:
+		# BtS defaults are all 1. Don't know where these are set - perhaps hardcoded in the EXE. I'm going to hardcode my defaults:
+		iAntiAliasing = 1 # I.e. the second lowest option (2 samples)
+		# High quality levels
+		iRenderLevel = 0
+		iGlobeLevel = 0
+		iMovieLevel = 0
+		UserProfile.setAntiAliasing(iAntiAliasing)
+		UserProfile.setRenderQualityLevel(iRenderLevel)
+		iOld = UserProfile.getGlobeViewRenderLevel()
+		UserProfile.setGlobeViewRenderLevel(iGlobeLevel)
+		if iOld != iGlobeLevel:
+			iMinImmediate = min(iMinImmediate, 0)
+		UserProfile.setMovieQualityLevel(iMovieLevel)
+		# For the other graphics dropdowns, defaults don't make sense.
+	refresh()
+	handleRestart(iMinImmediate)
+
+# -1: restart needed; 0: reload needed; 1: changes take effect immediately
+def isImmediate(iOption, bPlayerOption=False):
+	if bPlayerOption:
+		return 1
+	if iOption == GraphicOptionTypes.GRAPHICOPTION_SINGLE_UNIT_GRAPHICS or iOption == GraphicOptionTypes.GRAPHICOPTION_FULLSCREEN:
+		return -1 # Same as in BtS
+	if iOption == GraphicOptionTypes.GRAPHICOPTION_HIRES_TERRAIN or iOption == GraphicOptionTypes.GRAPHICOPTION_LOWRES_TEXTURES:
+		return 0 # LOWRES_TEXTURES added
+	return 1
+		
+def handleRestart(iImmediate):
+	if iImmediate < 1:
+		restartPopup(iImmediate < 0)
+# </advc.076>

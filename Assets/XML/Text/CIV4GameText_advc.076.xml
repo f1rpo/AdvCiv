@@ -7,8 +7,9 @@
 	<!-- From CIV4GameTextInfos.xml -->
 	<!-- Was "Game", but the options on the Custom Game screen are also
 		 game options. The options for rival moves and recommendations don't
-		 really fit under "Controls". "UI"?
-		 I'm quite happy with German "Bedienung". -->
+		 really fit under "Controls". "UI"? I'm happy with German "Bedienung".
+		 Note that the tab names are also used in the OPTIONS_SCREEN_RESET
+		 texts in this file. -->
 	<TEXT>
 		<Tag>TXT_KEY_OPTIONS_GAME</Tag>
 		<English>Controls</English>
@@ -26,6 +27,17 @@
 		<German>Optionsprofile</German>
 		<Italian>Profili</Italian>
 		<Spanish>Perfiles</Spanish>
+	</TEXT>
+	
+	<!-- New key, replacing "Profile Name" as the heading for the edit box.
+		 FR, IT, SP through deepl.com -->
+	<TEXT>
+		<Tag>TXT_KEY_OPTIONS_SCREEN_EDIT_PROFILE</Tag>
+		<English>Name of profile to be created or deleted:</English>
+		<French>Nom du profil à créer ou supprimer:</French>
+		<German>Profilname (zum Erstellen oder Löschen):</German>
+		<Italian>Nome del profilo da creare o cancellare:</Italian>
+		<Spanish>Nombre del perfil a crear o borrar:</Spanish>
 	</TEXT>
 	
 	<!-- Based on TXT_KEY_OPTIONS_NEED_TO_RESTART in CIV4GameTextInfos.xml.
@@ -161,6 +173,48 @@
 		<Italian>Muto</Italian>
 		<Spanish>Mudo</Spanish>
 	</TEXT>
+	
+	<!-- New: Tooltips for the reset and exit buttons.
+		 deepl.com for FR, IT, SP. -->
+	<TEXT>
+		<Tag>TXT_KEY_OPTIONS_SCREEN_RESET1_HELP</Tag>
+		<English>Sets the options on the [COLOR_HIGHLIGHT_TEXT]Controls[COLOR_REVERT] tab to the AdvCiv default values and stores that configuration in the current profile (%s1_ProfileName). To restore the BtS defaults, AdvCiv needs to be unloaded first.</English>
+		<French>Définit les options de l'onglet courant aux valeurs par défaut recommandées pour AdvCiv et enregistre cette configuration dans le profil actif (%s1_ProfileName). Pour restaurer les valeurs par défaut BtS, AdvCiv doit d'abord être déchargé.</French>
+		<German>Übernimmt die AdvCiv-Standardeinstellungen für den Reiter [COLOR_HIGHLIGHT_TEXT]Bedienung[COLOR_REVERT] und speichert sie im aktuellen Profil (%s1_ProfileName) ab. Um stattdessen die BtS-Standardeinstellungen zu übernehmen, muss der AdvCiv-Mod zunächst deaktiviert werden.</German>
+		<Italian>Imposta le opzioni della scheda corrente sui valori raccomandati per AdvCiv e salva la configurazione nel profilo attivo (%s1_ProfileName). Per ripristinare le predefiniti BtS, AdvCiv deve prima essere annullato.</Italian>
+		<Spanish>Establece las opciones de la ficha actual con los valores recomendados para AdvCiv y guarda esa configuración en el perfil activo (%s1_ProfileName). Para restaurar los valores predeterminados de BtS, primero se debe descargar AdvCiv.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_OPTIONS_SCREEN_RESET2_HELP</Tag>
+		<English>Sets the options on the [COLOR_HIGHLIGHT_TEXT]Graphics[COLOR_REVERT] tab to the AdvCiv defaults and stores that configuration in the current profile (%s1_ProfileName). Won't change screen mode, resolution and menu background. To restore the BtS defaults, AdvCiv needs to be unloaded first.</English>
+		<French>Définit les options de l'onglet courant aux valeurs par défaut recommandées pour AdvCiv et enregistre cette configuration dans le profil actif (%s1_ProfileName). Pour restaurer les valeurs par défaut BtS, AdvCiv doit d'abord être déchargé.</French>
+		<German>Übernimmt die AdvCiv-Standardeinstellungen für den Reiter [COLOR_HIGHLIGHT_TEXT]Grafik[COLOR_REVERT] und speichert sie im aktuellen Profil (%s1_ProfileName) ab. Ausgenommen: Bild-Modus, Auflösung und Menühintergrund. Um die BtS-Standardeinstellungen zu übernehmen, muss der AdvCiv-Mod zunächst deaktiviert werden.</German>
+		<Italian>Imposta le opzioni della scheda corrente sui valori raccomandati per AdvCiv e salva la configurazione nel profilo attivo (%s1_ProfileName). Per ripristinare le predefiniti BtS, AdvCiv deve prima essere annullato.</Italian>
+		<Spanish>Establece las opciones de la ficha actual con los valores recomendados para AdvCiv y guarda esa configuración en el perfil activo (%s1_ProfileName). Para restaurar los valores predeterminados de BtS, primero se debe descargar AdvCiv.</Spanish>
+	</TEXT>
+	<!-- I'm not sure what gets reset apart from the volume levels, and how the
+		 defaults are determined. -->
+	<TEXT>
+		<Tag>TXT_KEY_OPTIONS_SCREEN_RESET3_HELP</Tag>
+		<English>Sets the options on the [COLOR_HIGHLIGHT_TEXT]Audio[COLOR_REVERT] tab to the BtS default values and stores that configuration in the current profile (%s1_ProfileName).</English>
+		<French>Définit les options de l'onglet courant aux valeurs par défaut BtS et enregistre cette configuration dans le profil actif (%s1_ProfileName).</French>
+		<German>Übernimmt die BtS-Standardeinstellungen für den Reiter [COLOR_HIGHLIGHT_TEXT]Audio[COLOR_REVERT] und speichert sie im aktuellen Profil (%s1_ProfileName) ab.</German>
+		<Italian>Imposta le opzioni della scheda corrente sui valori predefiniti BtS e salva la configurazione nel profilo attivo (%s1_ProfileName).</Italian>
+		<Spanish>Establece las opciones de la ficha actual con los valores predeterminados de BtS y guarda esa configuración en el perfil activo (%s1_ProfileName).</Spanish>
+	</TEXT>
+	<!-- Reassure the user that changes won't be lost. Notes: The profile can be
+		 saved before exiting if the main menu background is changed, when
+		 "create profile" is clicked or (see above) upon a reset.
+		 Not all data is stored in the profile; e.g. fullscreen/windowed mode
+		 is saved in CivilizationIV.ini. -->
+	<TEXT>
+		<Tag>TXT_KEY_OPTIONS_SCREEN_EXIT_HELP</Tag>
+		<English>Exits the options screen. Any changes have already been stored in the current profile (%s1_ProfileName); exiting causes that profile to be saved on disk.</English>
+		<French>Ferme l'écran des options et sauvegarde le profil d'options actif (%s1_ProfileName) avec vos modifications.</French>
+		<German>Schließt den Optionsbildschirm und speichert das aktuelle Optionsprofil (%s1_ProfileName) mit Ihren Änderungen.</German>
+		<Italian>Chiude la schermata delle opzioni e salva il profilo delle opzioni attivo (%s1_ProfileName) con le tue modifiche.</Italian>
+		<Spanish>Cierra la pantalla de opciones y guarda el perfil de opciones activo (%s1_ProfileName) con sus cambios.</Spanish>
+	</TEXT>
 
 	<!-- New: Tooltip for the dropdown menus -->
 	<!-- See "Tbd." in manual about these two -->
@@ -186,7 +240,7 @@
 		 So it seems that 0 or 2 are the best recommendations. -->
 	<TEXT>
 		<Tag>TXT_KEY_OPTIONS_SCREEN_ANTIALIAS_HELP</Tag>
-		<English>Multisample anti-aliasing increases the rendering accuracy and results in slightly smoother edges, but may increase power consumption. The more samples, the higher the quality, and the greater the strain on the graphics card. The default value is 2.</English>
+		<English>Multisample anti-aliasing increases the rendering accuracy and results in slightly smoother edges, but may increase power consumption. The more samples, the higher the quality, and the greater the demands on the graphics card. The default value is 2.</English>
 		<French>Multi-&#233;chantillons anti-aliasing</French>
 		<German>Multisample-Anti-Aliasing: Erhöht die Darstellungsgenauigkeit, könnte aber den Stromverbrauch der Grafikkarte steigern. Je höher die Anzahl der Abtastungen, desto höher die Qualität. Standardwert: 2.</German>
 		<Italian>Multi Sample di Antialias</Italian>
@@ -350,9 +404,9 @@
 	<!-- advc.102 -->
 	<TEXT>
 		<Tag>TXT_KEY_PLAYER_OPTION_SHOW_FRIENDLY_MOVES_HELP</Tag>
-		<English>Movement animations are shown for non-hostile foreign units that enter or leave a visible tile. Only recommended in combination with [COLOR_HIGHLIGHT_TEXT]Quick Moves[COLOR_REVERT] on the "Graphics" tab. To save time, AdvCiv never shows the moves of Workers, Missionaries and Executives within their owner's borders.</English>
+		<English>Movement animations are shown for non-hostile foreign units that enter or leave a visible tile. Recommended only in combination with [COLOR_HIGHLIGHT_TEXT]Quick Moves[COLOR_REVERT] on the "Graphics" tab. To save time, AdvCiv never shows the moves of Workers, Missionaries and Executives within their owner's borders.</English>
 		<French>Voir les d&#233;placements des unit&#233;s alli&#233;es entre deux tours.</French>
-		<German>Zeigt Bewegungsanimationen an, wenn eine nicht-feindliche Einheit ein einsehbares Feld betritt oder es verlässt. Nur in Kombination mit [COLOR_HIGHLIGHT_TEXT]Schnelle Bewegungen[COLOR_REVERT] (siehe unter "Grafik"). Um Zeit zu sparen, zeigt AdvCiv keine Bewegungen von Bautrupps, Missionaren und Vorständen auf dem Gebiet ihres Besitzers an.</German>
+		<German>Zeigt Bewegungsanimationen an, wenn eine nicht-feindliche Einheit ein einsehbares Feld betritt oder es verlässt. Nur in Kombination mit [COLOR_HIGHLIGHT_TEXT]Schnelle Bewegungen[COLOR_REVERT] (siehe unter "Grafik") empfohlen. Um Zeit zu sparen, zeigt AdvCiv keine Bewegungen von Bautrupps, Missionaren und Vorständen auf dem Gebiet ihres Besitzers an.</German>
 		<Italian>Mostra i movimenti delle unit&#224; amichevoli tra un turno e l'altro</Italian>
 		<Spanish>Muestra los movimientos de las unidades amistosas entre turno y turno.</Spanish>
 	</TEXT>
@@ -575,11 +629,11 @@
 		<Italian>Menu d'apertura</Italian>
 		<Spanish>Menú inicial</Spanish>
 	</TEXT>
-	<!-- Was "Globe View Buildings Disabled". Globe View now implied by
+	<!-- Was "Globe View Buildings Disabled". Globe View now already implied by
 		 the placement of the checkbox. -->
 	<TEXT>
 		<Tag>TXT_KEY_GRAPHICOPTION_GLOBE_VIEW_BUILDINGS_DISABLED</Tag>
-		<English>No Buildings</English>
+		<English>No Buildings on Globe</English>
 		<French>B&#226;timents d&#233;sactiv&#233;s</French>
 		<German>Keine Gebäude</German>
 		<Italian>Edifici disattivati</Italian>
@@ -626,7 +680,7 @@
 		 Moves". -->
 	<TEXT>
 		<Tag>TXT_KEY_PLAYER_OPTION_QUICK_MOVES_HELP</Tag>
-		<English>Movement animations of units are accelerated.</English>
+		<English>Movement animations of units are sped up.</English>
 		<French>Tous les mouvements du joueur sont acc&#233;l&#233;r&#233;s.</French>
 		<German>Bewegungsanimationen von Einheiten werden schneller abgespielt.</German>
 		<Italian>Tutti i movimenti del giocatore vengono velocizzati</Italian>
