@@ -407,6 +407,22 @@
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 	
+	<!-- advc.106l: "Saving" messages are displayed for this many seconds
+		 except for autosaves (that message is disabled through
+		 Civ4GameTextInfo_advc.xml) and networked multiplayer saves.
+		 0 means that no saving messages are displayed. Use 10 for BtS behavior
+		 (same as EVENT_MESSAGE_TIME). Recommended: 4.
+		 The first parameter is for quicksaves, the second for regular saves.
+		 -->
+	<Define>
+		<DefineName>QUICK_SAVING_MESSAGE_TIME</DefineName>
+		<iDefineIntVal>4</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>SAVING_MESSAGE_TIME</DefineName>
+		<iDefineIntVal>4</iDefineIntVal>
+	</Define>
+	
 	<!-- [advc.099]
 		 The default value for culture-based anger assumes Open Borders in
 		 AdvCiv. With closed borders, the anger is CLOSED_BORDERS_CULTURE_

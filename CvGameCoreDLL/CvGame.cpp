@@ -427,7 +427,7 @@ void CvGame::regenerateMap()
 		m_riseFall.init();
 	}
 	else { // </advc.700>
-		gDLL->getEngineIFace()->AutoSave(true);
+		autoSave(true); // advc.106l
 		// <advc.004j> Somehow doesn't work with Adv. Start; DoM screen doesn't appear.
 		if(!isOption(GAMEOPTION_ADVANCED_START))
 			showDawnOfMan();
@@ -2498,7 +2498,7 @@ void CvGame::update()
 			// I guess TurnSlice==0 already implies that it's the start turn (?)
 			if((!bStartTurn || !isOption(GAMEOPTION_RISE_FALL)) // </advc.700>
 					&& m_iTurnLoadedFromSave != m_iElapsedGameTurns) // advc.044
-				gDLL->getEngineIFace()->AutoSave(true);
+				autoSave(true); // advc.106l
 			/* <advc.004m> This seems to be the earliest place where bubbles can
 			   be enabled w/o crashing. */
 			if(bStartTurn && getBugOptionBOOL("MainInterface__StartWithResourceIcons", true)) {
@@ -2701,10 +2701,8 @@ void CvGame::updateTradeRoutes()
 	}
 }
 
-/*
-** K-Mod
-** calculate unhappiness due to the state of global warming
-*/
+/*  K-Mod
+	calculate unhappiness due to the state of global warming */
 void CvGame::updateGwPercentAnger()
 {
 	int iGlobalPollution;
@@ -2742,10 +2740,15 @@ void CvGame::updateGwPercentAnger()
 		}
 		kPlayer.setGwPercentAnger(iAngerPercent);
 	}
-}
-/*
-** K-Mod end
-*/
+} // K-Mod end
+
+/*  <advc.106l> Wrapper that reports the event. Everyone should call this
+	instead of calling the CvDLLEngineIFaceBase function directly. */
+void CvGame::autoSave(bool bInitial) {
+
+	CvEventReporter::getInstance().preAutoSave();
+	gDLL->getEngineIFace()->AutoSave(bInitial);
+} // </advc.106l>
 
 void CvGame::testExtendedGame()
 {
@@ -6775,7 +6778,7 @@ void CvGame::doTurn()
 			single machine. Don't know how to check this properly. */
 		if(!isNetworkMultiPlayer() || getAIAutoPlay() <= 0 || getActivePlayer() == NO_PLAYER ||
 				getActivePlayer() % 2 == 0) // </advc.127>
-			gDLL->getEngineIFace()->AutoSave();
+			autoSave(); // advc.106l
 	}
 }
 

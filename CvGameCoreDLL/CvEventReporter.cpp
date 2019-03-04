@@ -2,6 +2,7 @@
 #include "CvEventReporter.h"
 #include "CvDllPythonEvents.h"
 #include "CvInitCore.h"
+#include "CvDLLInterfaceIFaceBase.h" // advc.106l
 
 //
 // static, singleton accessor
@@ -418,7 +419,61 @@ void CvEventReporter::vassalState(TeamTypes eMaster, TeamTypes eVassal, bool bVa
 void CvEventReporter::preSave()
 {
 	m_kPythonEventMgr.preSave();
+	// <advc.106l>
+	bool bAutoSave = m_bPreAutoSave;
+	bool bQuickSave = m_bPreQuickSave;
+	m_bPreAutoSave = m_bPreQuickSave = false;
+	CvGame const& g = GC.getGameINLINE();
+	FAssertMsg(bAutoSave || !g.isAITurn(), "Quicksave in between turns?");
+	/*  I'm not sure how to handle the TXT_KEY_CONN_UPDATE_SAVING_* messages, so
+		let's just leave networked games alone. */
+	if(g.isNetworkMultiPlayer())
+		return;
+	/*  Can't handle autosave here b/c it happens at turn start when
+		messages created in between turns are about to be displayed.
+		Calling clearEventMessages (as we're about to do) would delete these. */
+	if(bAutoSave)
+		return;
+	PlayerTypes eActivePlayer = g.getActivePlayer();
+	if(eActivePlayer == NO_PLAYER) {
+		FAssert(eActivePlayer != NO_PLAYER);
+		return;
+	}
+	/*  Abort the "saving" message that the EXE wants to display b/c it's
+		displayed for too long */
+	/*  No way to check if any other message is waiting to be displayed. But since
+		saving is only possible during the active player's turn, any messages
+		(e.g. from chopping a Forest) should be displayed immediately.
+		So this should be fine: */
+	gDLL->getInterfaceIFace()->clearEventMessages();
+	char const* szDefineName = "";
+	CvWString szMsgTag;
+	if(bQuickSave) {
+		szDefineName = "QUICK_SAVING_MESSAGE_TIME";
+		szMsgTag = L"TXT_KEY_QUICK_SAVING";
+	}
+	else {
+		szDefineName = "SAVING_MESSAGE_TIME";
+		szMsgTag = L"TXT_KEY_SAVING_GAME";
+	}
+	int iLength = GC.getDefineINT(szDefineName);
+	if(iLength <= 0)
+		return;
+	gDLL->getInterfaceIFace()->addHumanMessage(eActivePlayer, true,
+			iLength, gDLL->getText(szMsgTag), NULL, MESSAGE_TYPE_DISPLAY_ONLY);
 }
+
+void CvEventReporter::preAutoSave() {
+
+	FAssertMsg(!m_bPreAutoSave, "Should've been reset by preSave");
+	m_bPreAutoSave = true;
+}
+
+void CvEventReporter::preQuickSave() {
+
+	FAssertMsg(!m_bPreQuickSave, "Should've been reset by preSave");
+	m_bPreQuickSave = true;
+} // </advc.106l>
 
 void CvEventReporter::windowActivation(bool bActive)
 {
@@ -493,3 +548,5 @@ void CvEventReporter::writeStatistics(FDataStreamBase* pStream)
 	m_kStatistics.write(pStream);
 }
 
+// advc.106l: Explicit constructor added, so I can initialize my booleans.
+CvEventReporter::CvEventReporter() : m_bPreAutoSave(false), m_bPreQuickSave(false) {}

@@ -3734,7 +3734,7 @@ bool CvGlobals::isCachingDone() const {
 void CvGlobals::setHoFScreenUp(bool b) {
 
 	m_bHoFScreenUp = b;
-} // </Advc.106i>
+} // </advc.106i>
 
 //
 // Global Infos Hash Map

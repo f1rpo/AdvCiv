@@ -11,8 +11,8 @@
 #include "CvGameTextMgr.h"
 #include "CvMessageControl.h"
 #include "CvBugOptions.h"
-// advc.003d:
-#include <fstream>
+#include "CvEventReporter.h"
+#include <fstream> // advc.003d
 
 /*  advc: This file was, reportedly, added by patch 3.17.
 	https://forums.civfanatics.com/threads/sdk-using-microsoft-visual-c-2005-express-edition.196283/page-7#post-6942578
@@ -1821,8 +1821,9 @@ void CvGame::doControl(ControlTypes eControl)
 		break;
 
 	case CONTROL_QUICK_SAVE:
-		if (!(isNetworkMultiPlayer()))	// SP only!
+		if (!isNetworkMultiPlayer())	// SP only!
 		{
+			CvEventReporter::getInstance().preQuickSave(); // advc.106l
 			gDLL->QuickSave();
 		}
 		break;

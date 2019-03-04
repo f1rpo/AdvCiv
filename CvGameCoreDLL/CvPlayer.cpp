@@ -14524,15 +14524,14 @@ void CvPlayer::addMessage(const CvTalkingHeadMessage& message)
 				message.getX(), message.getY(), message.getOffScreenArrows(),
 				message.getOnScreenArrows());
 		m_aMajorMsgs.push_back(copy);
-	}
-	// </advc.106b>
+	} // </advc.106b>
 }
 
 // <advc.106b>
 void CvPlayer::postProcessMessages() {
 
 	/* Determining how many messages are being displayed:
-	   - showMissedMessages doesn't help, seems to be only for Hotseat games.
+	   - showMissedMessages doesn't help, that's only for Hotseat games.
 	   - m_listGameMessages: Those are all messages in the log, and there is
 	     no way of telling which messages have already been displayed; setShown
 		 is apparently called when a message is added to the log, which happens
@@ -24141,11 +24140,14 @@ int CvPlayer::getMusicScriptId(PlayerTypes eForPlayer) const
 void CvPlayer::getGlobeLayerColors(GlobeLayerTypes eGlobeLayerType, int iOption, std::vector<NiColorA>& aColors, std::vector<CvPlotIndicatorData>& aIndicators) const
 {
 	PROFILE_FUNC(); // advc.003b
+	CvGame const& g = GC.getGameINLINE();
 	/*  <advc.003> These get cleared by some of the subroutines, but should be
 		empty to begin with. If not, there could be a memory leak. */
 	FAssert(aColors.empty() && aIndicators.empty());
-	FAssert(getID() == GC.getGameINLINE().getActivePlayer());
-	// </advc.003>
+	FAssert(getID() == g.getActivePlayer()); // </advc.003>
+	// <advc.706>
+	if(g.isOption(GAMEOPTION_RISE_FALL) && CvPlot::isAllFog())
+		return; // </advc.706>
 	switch (eGlobeLayerType)
 	{
 	case GLOBE_LAYER_TRADE:
@@ -24619,7 +24621,9 @@ void CvPlayer::getReligionLayerColors(ReligionTypes eSelectedReligion, std::vect
 }
 
 void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector<CvPlotIndicatorData>& aIndicators) const
-{
+{	/*  advc.004z (comment): Can increase this for more precise color proportions
+		but, due to the color pattern used by the EXE, higher values (e.g. 10)
+		look strange. */
 	const int iColorsPerPlot = 4;
 	CvMap const& m = GC.getMapINLINE();
 	aColors.resize(m.numPlotsINLINE() * iColorsPerPlot, NiColorA(0, 0, 0, 0));
@@ -24628,10 +24632,14 @@ void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector
 	// find maximum total culture
 	int iMaxTotalCulture = INT_MIN;
 	int iMinTotalCulture = INT_MAX;
+	TeamTypes eActiveTeam = GC.getGameINLINE().getActiveTeam();
 	for (int iI = 0; iI < m.numPlotsINLINE(); iI++)
 	{
-		CvPlot* pLoopPlot = m.plotByIndexINLINE(iI);
-		int iTotalCulture = pLoopPlot->getTotalCulture(); // advc.003b: was countTotalCulture
+		CvPlot const& kLoopPlot = *m.plotByIndexINLINE(iI);
+		// <advc.004z>
+		if(!kLoopPlot.isVisible(eActiveTeam, true))
+			continue; // </advc.004z>
+		int iTotalCulture = kLoopPlot.getTotalCulture(); // advc.003b: was countTotalCulture
 		if (iTotalCulture > iMaxTotalCulture)
 		{
 			iMaxTotalCulture = iTotalCulture;
@@ -24646,53 +24654,92 @@ void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector
 	// find culture percentages
 	for (int iI = 0; iI < m.numPlotsINLINE(); iI++)
 	{
-		CvPlot* pLoopPlot = m.plotByIndexINLINE(iI);
-		PlayerTypes eOwner = pLoopPlot->getRevealedOwner(getTeam(), true); 
-
+		CvPlot const& kLoopPlot = *m.plotByIndexINLINE(iI);
+		PlayerTypes eOwner = kLoopPlot.getRevealedOwner(getTeam(), true);
+		if(eOwner == NO_PLAYER)
+			continue; // advc.003: Moved up
 		// how many people own this plot?
 		std::vector < std::pair<int,int> > plot_owners;
 		//int iNumNonzeroOwners = 0;
 		// K-Mod
-		int iTotalCulture = pLoopPlot->getTotalCulture(); // advc.003b: was countTotalCulture
-		if (iTotalCulture == 0)
+		int iTotalCulture = kLoopPlot.getTotalCulture(); // advc.003b: was countTotalCulture
+		if (iTotalCulture <= 0)
 			continue;
 		// K-Mod end
-		// dlph.21: was MAX_CIV_PLAYERS
-		for (int iPlayer = 0; iPlayer < MAX_PLAYERS; iPlayer++)
-		{
-			// advc.099: Replaced "Alive" with "EverAlive"
-			if (GET_PLAYER((PlayerTypes)iPlayer).isEverAlive())
-			{
-				int iCurCultureAmount = pLoopPlot->getCulture((PlayerTypes)iPlayer);
+		// <advc.004z>
+		plot_owners.push_back(std::make_pair(kLoopPlot.getCulture(eOwner), eOwner));
+		bool bVisible = kLoopPlot.isVisible(eActiveTeam, true);
+		if(bVisible)
+		{ // </advc.004z>
+			for (int iPlayer = 0; iPlayer < MAX_PLAYERS; iPlayer++) // dlph.21: was MAX_CIV_PLAYERS
+			{	// <advc.004z> Owner handled above
+				if(iPlayer == eOwner)
+					continue; // </advc.004z>
+				if(!GET_PLAYER((PlayerTypes)iPlayer).isEverAlive()) // advc.099: was "EverAlive"
+					continue;
+				int iCurCultureAmount = kLoopPlot.getCulture((PlayerTypes)iPlayer);
 				//if (iCurCultureAmount != 0)
-				if (iCurCultureAmount * 100 / iTotalCulture >= 20 // K-Mod (to reduce visual spam from small amounts of culture)
-						// advc.004z:
-						|| iPlayer == eOwner)
-				{
-					//iNumNonzeroOwners ++;
+				// K-Mod (to reduce visual spam from small amounts of culture)
+				if (iCurCultureAmount * 100 / iTotalCulture >= 20)
+				{	//iNumNonzeroOwners ++;
 					plot_owners.push_back(std::pair<int,int>(iCurCultureAmount, iPlayer));
 				}
 			}
 		}
-
-		// ensure that it is revealed
-		if (!plot_owners.empty() && pLoopPlot->getRevealedOwner(getTeam(), true) != NO_PLAYER)
-		{
-			for (int i = 0; i < iColorsPerPlot; ++i)
-			{
-				int iCurOwnerIdx = i % plot_owners.size();
-				PlayerTypes eCurOwnerID = (PlayerTypes) plot_owners[iCurOwnerIdx].second;
-				int iCurCulture = plot_owners[iCurOwnerIdx].first;
-				const NiColorA& kCurColor = GC.getColorInfo((ColorTypes) GC.getPlayerColorInfo(GET_PLAYER(eCurOwnerID).getPlayerColor()).getColorTypePrimary()).getColor();
-
-				// damp the color by the value...
-				aColors[iI * iColorsPerPlot + i] = kCurColor;
-				float blend_factor = 0.5f * std::min(1.0f, std::max(
-						//0.0f,
-						0.1f, // advc.004z
-						(float)(iCurCulture - iMinTotalCulture) / iMaxTotalCulture));
-				aColors[iI * iColorsPerPlot + i].a = std::min(0.8f * blend_factor + 0.5f, 1.0f);
+		//if (!plot_owners.empty())
+		/*  <advc.004z> Give players with a high percentage a bigger share of
+			the colored area. */
+		bool baDone[MAX_PLAYERS] = {false};
+		for(int iPass = 0; iPass < 2 &&
+				// Try to fill plot_owners up
+				plot_owners.size() < iColorsPerPlot; iPass++) {
+			// To avoid adding to plot_owners while looping through it
+			std::vector <std::pair<int,int> > repeated_owners;
+			for(size_t i = 0; i < plot_owners.size(); i++) {
+				if(baDone[plot_owners[i].second])
+					continue; // Skip iPass==1 if iExtra added in iPass==0
+				int iExtra = -1; // Already once in plot_owners
+				if(iPass == 0) // Round down
+					iExtra += (plot_owners[i].first * iColorsPerPlot) / iTotalCulture;
+				else if(iPass == 1) { // Round to nearest
+					iExtra += ::round((plot_owners[i].first * iColorsPerPlot) /
+							(double)iTotalCulture);
+				} // Respect size limit
+				iExtra = std::min(iExtra, iColorsPerPlot - (int)
+						(plot_owners.size() + repeated_owners.size()));
+				for(int j = 0; j < iExtra; j++) {
+					repeated_owners.push_back(plot_owners[i]);
+					baDone[plot_owners[i].second] = true;
+				}
 			}
+			/*  The more often a civ appears in plot_owners, the more pixels
+				will be set to the civ's color. */
+			for(size_t i = 0; i < repeated_owners.size(); i++)
+				plot_owners.push_back(repeated_owners[i]);
+		} // Ideally ==, but my algorithm above can't guarantee that.
+		FAssert(plot_owners.size() <= iColorsPerPlot);
+		// </advc.004z>
+		for (int i = 0; i < iColorsPerPlot; ++i)
+		{
+			int iCurOwnerIdx = i % plot_owners.size();
+			PlayerTypes eCurOwnerID = (PlayerTypes) plot_owners[iCurOwnerIdx].second;
+			int iCurCulture = plot_owners[iCurOwnerIdx].first;
+			const NiColorA& kCurColor = GC.getColorInfo((ColorTypes)
+					GC.getPlayerColorInfo(GET_PLAYER(eCurOwnerID).getPlayerColor()).
+					getColorTypePrimary()).getColor();
+			// damp the color by the value...
+			aColors[iI * iColorsPerPlot + i] = kCurColor;
+			/*  <advc.004z> Don't give away info about fogged tiles.
+				Use a low factor b/c fogged tiles already look darker than
+				visible tiles. */
+			float blend_factor = 0.1f;
+			if(bVisible) // </advc.004z>
+				blend_factor = (iCurCulture - iMinTotalCulture) / (float)iMaxTotalCulture;
+			blend_factor = 0.5f * std::min(1.0f, std::max(//0.0f,
+					/* advc.004z: */ 0.1f,
+					blend_factor));
+			// advc.004z: Coefficient before blend_factor was 0.8
+			aColors[iI * iColorsPerPlot + i].a = std::min(0.75f * blend_factor + 0.5f, 1.0f);
 		}
 	}
 }

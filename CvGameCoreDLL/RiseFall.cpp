@@ -146,7 +146,7 @@ void RiseFall::init() {
 	gDLL->getInterfaceIFace()->setDirty(TurnTimer_DIRTY_BIT, true);
 	/*  Initial auto-save. Normally happens already in CvGame::update, but
 		RiseFall isn't yet initialized then. */
-	gDLL->getEngineIFace()->AutoSave(true);
+	g.autoSave(true);
 	g.showDawnOfMan();
 }
 
@@ -383,7 +383,7 @@ void RiseFall::atActiveTurnStart() {
 	int pos = getCurrentChapter();
 	if(pos < 0)
 		return; // Happens on turn 0 b/c not yet initialized
-	CvGame const& g = GC.getGame();
+	CvGame& g = GC.getGame();
 	int gameTurn = g.gameTurn();
 	PlayerTypes activeId = g.getActivePlayer();
 	if(activeId == NO_PLAYER)
@@ -399,7 +399,7 @@ void RiseFall::atActiveTurnStart() {
 		created. It's important that diplo popups are shown again after loading;
 		this works. On-screen messages and non-diplo popup aren't currently
 		shown after loading (not ideal). */
-	gDLL->getEngineIFace()->AutoSave();
+	g.autoSave();
 	if(active.isHumanDisabled()) // Only popups from here
 		return;
 	updateOffLimits(); /* Any civ that is a vassal of ActiveTeam at some point
@@ -540,6 +540,9 @@ void RiseFall::welcomeToNextChapter(int pos) {
 	RFChapter& ch = *chapters[pos];
 	setPlayerName();
 	CvPlayer& p = GET_PLAYER(ch.getCiv());
+	// Doing this in setUIHidden has no effect
+	if(gDLL->getEngineIFace()->isGlobeviewUp())
+		gDLL->getEngineIFace()->toggleGlobeview();
 	centerCamera(p.getID());
 	abandonPlans(p.getID()); // Also tries to move the camera
 	GC.getGame().showDawnOfMan();
@@ -1294,7 +1297,7 @@ void RiseFall::afterCivSelection(int buttonClicked) {
 		interludeCountdown = -1;
 		chapters[pos]->start();
 		// Save before firing popups
-		gDLL->getEngineIFace()->AutoSave();
+		g.autoSave();
 		welcomeToNextChapter(pos);
 		return;
 	}

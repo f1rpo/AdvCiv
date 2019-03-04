@@ -53,7 +53,7 @@ public:
 
 	DllExport void updateSelectionList();
 	DllExport void updateTestEndTurn();
-
+	void autoSave(bool bInitial = false); // advc.106l
 	DllExport void testExtendedGame();
 
 	DllExport CvUnit* getPlotUnit(const CvPlot* pPlot, int iIndex) const;

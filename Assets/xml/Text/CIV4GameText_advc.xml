@@ -425,8 +425,8 @@
 		<Spanish>o</Spanish>
 	</TEXT>
 	
-	<!-- advc.106: Auto-save messages are triggered outside of the DLL.
-		 The best that modders can do is to set the message to be empty. 
+	<!-- advc.106l: Would prefer to prevent autosave messages through the DLL,
+		 but I haven't found a way to do that.
 		 The original definition is in CIV4GameText_Misc1.xml. -->
 	<TEXT>
 		<Tag>TXT_KEY_AUTOSAVING</Tag>
