@@ -408,16 +408,22 @@
 	</Define>
 	
 	<!-- advc.106l: "Saving" messages are displayed for this many seconds
-		 except for autosaves (that message is disabled through
-		 Civ4GameTextInfo_advc.xml) and networked multiplayer saves.
+		 except for networked multiplayer saves.
 		 0 means that no saving messages are displayed. Use 10 for BtS behavior
-		 (same as EVENT_MESSAGE_TIME). Recommended: 4.
-		 The first parameter is for quicksaves, the second for regular saves.
-		 -->
+		 (same as EVENT_MESSAGE_TIME).
+		 The first parameter is for autosaves, the second for quicksaves, the
+		 third for regular saves. -->
+	<!-- Recommended: 0 -->
+	<Define>
+		<DefineName>AUTO_SAVING_MESSAGE_TIME</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<!-- Recommended: 4 -->
 	<Define>
 		<DefineName>QUICK_SAVING_MESSAGE_TIME</DefineName>
 		<iDefineIntVal>4</iDefineIntVal>
 	</Define>
+	<!-- Recommended: 4 -->
 	<Define>
 		<DefineName>SAVING_MESSAGE_TIME</DefineName>
 		<iDefineIntVal>4</iDefineIntVal>

@@ -419,7 +419,8 @@ void CvEventReporter::vassalState(TeamTypes eMaster, TeamTypes eVassal, bool bVa
 void CvEventReporter::preSave()
 {
 	m_kPythonEventMgr.preSave();
-	// <advc.106l>
+	/*  <advc.106l> The original "saving" messages are disabled through game text XML
+		b/c the EXE displays them for too long. Will show replacement messages here. */
 	bool bAutoSave = m_bPreAutoSave;
 	bool bQuickSave = m_bPreQuickSave;
 	m_bPreAutoSave = m_bPreQuickSave = false;
@@ -429,36 +430,28 @@ void CvEventReporter::preSave()
 		let's just leave networked games alone. */
 	if(g.isNetworkMultiPlayer())
 		return;
-	/*  Can't handle autosave here b/c it happens at turn start when
-		messages created in between turns are about to be displayed.
-		Calling clearEventMessages (as we're about to do) would delete these. */
-	if(bAutoSave)
+	char const* szDefineName = "";
+	CvWString szMsgTag;
+	if(bAutoSave) {
+		szDefineName = "AUTO_SAVING_MESSAGE_TIME";
+		szMsgTag = L"TXT_KEY_AUTO_SAVING2";
+	}
+	else if(bQuickSave) {
+		szDefineName = "QUICK_SAVING_MESSAGE_TIME";
+		szMsgTag = L"TXT_KEY_QUICK_SAVING2";
+	}
+	else {
+		szDefineName = "SAVING_MESSAGE_TIME";
+		szMsgTag = L"TXT_KEY_SAVING_GAME2";
+	}
+	int iLength = GC.getDefineINT(szDefineName);
+	if(iLength <= 0)
 		return;
 	PlayerTypes eActivePlayer = g.getActivePlayer();
 	if(eActivePlayer == NO_PLAYER) {
 		FAssert(eActivePlayer != NO_PLAYER);
 		return;
 	}
-	/*  Abort the "saving" message that the EXE wants to display b/c it's
-		displayed for too long */
-	/*  No way to check if any other message is waiting to be displayed. But since
-		saving is only possible during the active player's turn, any messages
-		(e.g. from chopping a Forest) should be displayed immediately.
-		So this should be fine: */
-	gDLL->getInterfaceIFace()->clearEventMessages();
-	char const* szDefineName = "";
-	CvWString szMsgTag;
-	if(bQuickSave) {
-		szDefineName = "QUICK_SAVING_MESSAGE_TIME";
-		szMsgTag = L"TXT_KEY_QUICK_SAVING";
-	}
-	else {
-		szDefineName = "SAVING_MESSAGE_TIME";
-		szMsgTag = L"TXT_KEY_SAVING_GAME";
-	}
-	int iLength = GC.getDefineINT(szDefineName);
-	if(iLength <= 0)
-		return;
 	gDLL->getInterfaceIFace()->addHumanMessage(eActivePlayer, true,
 			iLength, gDLL->getText(szMsgTag), NULL, MESSAGE_TYPE_DISPLAY_ONLY);
 }

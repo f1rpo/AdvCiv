@@ -425,13 +425,47 @@
 		<Spanish>o</Spanish>
 	</TEXT>
 	
-	<!-- advc.106l: Would prefer to prevent autosave messages through the DLL,
-		 but I haven't found a way to do that.
-		 The original definition is in CIV4GameText_Misc1.xml. -->
+	<!-- advc.106l: Can't control these messages through the DLL,
+		 so I'm disabling them here. -->
 	<TEXT>
 		<Tag>TXT_KEY_AUTOSAVING</Tag>
 		<English></English><French></French><German></German>
 		<Italian></Italian><Spanish></Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_QUICK_SAVING</Tag>
+		<English></English><French></French><German></German>
+		<Italian></Italian><Spanish></Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_SAVING_GAME</Tag>
+		<English></English><French></French><German></German>
+		<Italian></Italian><Spanish></Spanish>
+	</TEXT>
+	<!-- Copied from CIV4GameText_Misc1.xml and appended a "2" to the name. -->
+	<TEXT>
+		<Tag>TXT_KEY_SAVING_GAME2</Tag>
+		<English>Saving Game...</English>
+		<French>Sauvegarde en cours...</French>
+		<German>Speichervorgang ...</German>
+		<Italian>Salvataggio in corso...</Italian>
+		<Spanish>Guardando la partida...</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_QUICK_SAVING2</Tag>
+		<English>Quick Saving...</English>
+		<French>Sauvegarde rapide en cours...</French>
+		<German>Schnellspeichern ...</German>
+		<Italian>Salvataggio rapido in corso...</Italian>
+		<Spanish>Guardado r&#225;pido...</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTOSAVING2</Tag>
+		<English>Autosaving...</English>
+		<French>Sauvegarde automatique...</French>
+		<German>Automatisches Speichern ...</German>
+		<Italian>Salvataggio automatico...</Italian>
+		<Spanish>Guardado autom&#225;tico...</Spanish>
 	</TEXT>
 	
 	<!-- advc.106 -->

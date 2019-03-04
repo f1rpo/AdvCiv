@@ -7443,28 +7443,27 @@ void CvPlot::setRevealedOwner(TeamTypes eTeam, PlayerTypes eNewValue)
 	FAssertMsg(eTeam >= 0, "eTeam is expected to be non-negative (invalid Index)");
 	FAssertMsg(eTeam < MAX_TEAMS, "eTeam is expected to be within maximum bounds (invalid Index)");
 
-	if (getRevealedOwner(eTeam, false) != eNewValue)
-	{
-		if (NULL == m_aiRevealedOwner)
-		{
-			m_aiRevealedOwner = new char[MAX_TEAMS];
-			for (int iI = 0; iI < MAX_TEAMS; ++iI)
-				m_aiRevealedOwner[iI] = -1;
-		}
-		m_aiRevealedOwner[eTeam] = eNewValue;
-		// K-Mod
-		if (eNewValue != NO_PLAYER)
-			GET_TEAM(eTeam).makeHasSeen(TEAMID(eNewValue));
-		// K-Mod end
+	if (getRevealedOwner(eTeam, false) == eNewValue)
+		return; // advc.003
 
-		if (eTeam == GC.getGameINLINE().getActiveTeam())
+	if (NULL == m_aiRevealedOwner)
+	{
+		m_aiRevealedOwner = new char[MAX_TEAMS];
+		for (int iI = 0; iI < MAX_TEAMS; ++iI)
+			m_aiRevealedOwner[iI] = -1;
+	}
+	m_aiRevealedOwner[eTeam] = eNewValue;
+	// K-Mod
+	if (eNewValue != NO_PLAYER)
+		GET_TEAM(eTeam).makeHasSeen(TEAMID(eNewValue));
+	// K-Mod end
+	if (eTeam == GC.getGameINLINE().getActiveTeam())
+	{
+		updateMinimapColor();
+		if (GC.IsGraphicsInitialized())
 		{
-			updateMinimapColor();
-			if (GC.IsGraphicsInitialized())
-			{
-				gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
-				gDLL->getEngineIFace()->SetDirty(CultureBorders_DIRTY_BIT, true);
-			}
+			gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
+			gDLL->getEngineIFace()->SetDirty(CultureBorders_DIRTY_BIT, true);
 		}
 	}
 	FAssert(m_aiRevealedOwner == NULL || m_aiRevealedOwner[eTeam] == eNewValue);

@@ -24632,12 +24632,11 @@ void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector
 	// find maximum total culture
 	int iMaxTotalCulture = INT_MIN;
 	int iMinTotalCulture = INT_MAX;
-	TeamTypes eActiveTeam = GC.getGameINLINE().getActiveTeam();
 	for (int iI = 0; iI < m.numPlotsINLINE(); iI++)
 	{
 		CvPlot const& kLoopPlot = *m.plotByIndexINLINE(iI);
 		// <advc.004z>
-		if(!kLoopPlot.isVisible(eActiveTeam, true))
+		if(!kLoopPlot.isVisible(getTeam(), true))
 			continue; // </advc.004z>
 		int iTotalCulture = kLoopPlot.getTotalCulture(); // advc.003b: was countTotalCulture
 		if (iTotalCulture > iMaxTotalCulture)
@@ -24668,7 +24667,7 @@ void CvPlayer::getCultureLayerColors(std::vector<NiColorA>& aColors, std::vector
 		// K-Mod end
 		// <advc.004z>
 		plot_owners.push_back(std::make_pair(kLoopPlot.getCulture(eOwner), eOwner));
-		bool bVisible = kLoopPlot.isVisible(eActiveTeam, true);
+		bool bVisible = kLoopPlot.isVisible(getTeam(), true);
 		if(bVisible)
 		{ // </advc.004z>
 			for (int iPlayer = 0; iPlayer < MAX_PLAYERS; iPlayer++) // dlph.21: was MAX_CIV_PLAYERS
