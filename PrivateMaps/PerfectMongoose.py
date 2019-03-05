@@ -5341,7 +5341,9 @@ class StartingArea:
 				sPlot = gameMap.plot(self.plotList[m].x,self.plotList[m].y)
 				if sPlot.isWater():
 					raise ValueError, "Start plot is water!"
-				sPlot.setImprovementType(gc.getInfoTypeForString("NO_IMPROVEMENT"))
+				#sPlot.setImprovementType(gc.getInfoTypeForString("NO_IMPROVEMENT"))
+				# advc.001: NO_IMPROVEMENT is not an InfoType. (getInfoType will return -1 then, which is equal to ImprovementTypes.NO_IMPROVEMENT, so this is really a harmless error.)
+				sPlot.setImprovementType(ImprovementTypes.NO_IMPROVEMENT)
 				playerID = self.playerList[n]
 				player = gc.getPlayer(playerID)
 				sPlot.setStartingPlot(True)

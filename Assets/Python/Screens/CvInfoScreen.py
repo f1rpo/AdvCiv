@@ -36,6 +36,19 @@ class CvInfoScreen:
 	"Info Screen! Contains the Demographics, Wonders / Top Cities and Statistics Screens"
 
 	def __init__(self, screenId):
+	
+		# <advc.077> Settings for Demographics tab
+		# Shows the active player's value and rank in a single column
+		self.bRankInValueColumn = True
+		# Exports column: no room anymore
+		self.bShowExports = False
+		# Instead of showing a "?" when the best or worst rival's demographics are unknown, show the demographics of the best or worst rival whose demographics are visible.
+		self.bShowBestKnown = True
+		# If the above is False, setting this to True will show the name of the best and worst leader even if demographics are not visible (so long as the leader has been met).
+		self.bAlwaysShowBestWorstNameIfMet = False
+		if self.bShowBestKnown:
+			self.bAlwaysShowBestWorstNameIfMet = False
+		# </advc.077>
 
 		self.screenId = screenId
 		self.DEMO_SCREEN_NAME = "DemographicsScreen"
@@ -435,17 +448,23 @@ class CvInfoScreen:
 		self.TEXT_POPULATION = localText.getText("TXT_KEY_DEMO_SCREEN_POPULATION_TEXT", ())
 		self.TEXT_HAPPINESS = localText.getText("TXT_KEY_DEMO_SCREEN_HAPPINESS_TEXT", ())
 		self.TEXT_HEALTH = localText.getText("TXT_KEY_DEMO_SCREEN_HEALTH_TEXT", ())
-		self.TEXT_IMP_EXP = localText.getText("TXT_KEY_DEMO_SCREEN_EXPORTS_TEXT", ()) + " - " + localText.getText("TXT_KEY_DEMO_SCREEN_IMPORTS_TEXT", ())
-
-		self.TEXT_ECONOMY_MEASURE = (u"  %c" % CyGame().getSymbolID(FontSymbols.BULLET_CHAR)) + localText.getText("TXT_KEY_DEMO_SCREEN_ECONOMY_MEASURE", ())
-		self.TEXT_INDUSTRY_MEASURE = (u"  %c" % CyGame().getSymbolID(FontSymbols.BULLET_CHAR)) + localText.getText("TXT_KEY_DEMO_SCREEN_INDUSTRY_MEASURE", ())
-		self.TEXT_AGRICULTURE_MEASURE = (u"  %c" % CyGame().getSymbolID(FontSymbols.BULLET_CHAR)) + localText.getText("TXT_KEY_DEMO_SCREEN_AGRICULTURE_MEASURE", ())
+		#self.TEXT_IMP_EXP = localText.getText("TXT_KEY_DEMO_SCREEN_EXPORTS_TEXT", ()) + " - " + localText.getText("TXT_KEY_DEMO_SCREEN_IMPORTS_TEXT", ())
+		# <advc.077> Replacing the above (or perhaps "Export Revenues" would be nicer?)
+		self.TEXT_EXP = localText.getText("TXT_KEY_CONCEPT_FOREIGN_TRADE", ())
+		# Put bullet in a variable, then disable it.
+		#szBullet = (u"  %c" % CyGame().getSymbolID(FontSymbols.BULLET_CHAR))
+		szBullet = ""
+		# </advc.077>
+		self.TEXT_ECONOMY_MEASURE = szBullet + localText.getText("TXT_KEY_DEMO_SCREEN_ECONOMY_MEASURE", ())
+		self.TEXT_INDUSTRY_MEASURE = szBullet + localText.getText("TXT_KEY_DEMO_SCREEN_INDUSTRY_MEASURE", ())
+		self.TEXT_AGRICULTURE_MEASURE = szBullet + localText.getText("TXT_KEY_DEMO_SCREEN_AGRICULTURE_MEASURE", ())
 		self.TEXT_MILITARY_MEASURE = ""
-		self.TEXT_LAND_AREA_MEASURE = (u"  %c" % CyGame().getSymbolID(FontSymbols.BULLET_CHAR)) + localText.getText("TXT_KEY_DEMO_SCREEN_LAND_AREA_MEASURE", ())
+		self.TEXT_LAND_AREA_MEASURE = szBullet + localText.getText("TXT_KEY_DEMO_SCREEN_LAND_AREA_MEASURE", ())
 		self.TEXT_POPULATION_MEASURE = ""
 		self.TEXT_HAPPINESS_MEASURE = "%"
-		self.TEXT_HEALTH_MEASURE = (u"  %c" % CyGame().getSymbolID(FontSymbols.BULLET_CHAR)) + localText.getText("TXT_KEY_DEMO_SCREEN_POPULATION_MEASURE", ())
-		self.TEXT_IMP_EXP_MEASURE = (u"  %c" % CyGame().getSymbolID(FontSymbols.BULLET_CHAR)) + localText.getText("TXT_KEY_DEMO_SCREEN_ECONOMY_MEASURE", ())
+		self.TEXT_HEALTH_MEASURE = szBullet + localText.getText("TXT_KEY_DEMO_SCREEN_POPULATION_MEASURE", ())
+		# advc.077: was IMP_EXP
+		self.TEXT_EXP_MEASURE = szBullet + localText.getText("TXT_KEY_DEMO_SCREEN_ECONOMY_MEASURE", ())
 
 		self.TEXT_TIME_PLAYED = localText.getText("TXT_KEY_INFO_SCREEN_TIME_PLAYED", ())
 		self.TEXT_CITIES_CURRENT = localText.getText("TXT_KEY_CONCEPT_CITIES", ()) # K-Mod
@@ -1362,43 +1381,114 @@ class CvInfoScreen:
 		iGood = pPlayer.calculateTotalCityHealthiness()
 		iBad = pPlayer.calculateTotalCityUnhealthiness()
 		return (iGood * 100) / max(1, iGood + iBad)	 
-		
-	def getRank(self, aiGroup):
+	
+	# <advc.077> Optional param added
+	def getRank(self, aiGroup, iPlayer = -1):
+		if iPlayer < 0:
+			iPlayer = self.iActivePlayer # </advc.077>
 		aiGroup.sort()
 		aiGroup.reverse()		
 		iRank = 1
 		for (iLoopValue, iLoopPlayer) in aiGroup:
-			if iLoopPlayer == self.iActivePlayer:
+			if iLoopPlayer == iPlayer:
 				return iRank
 			iRank += 1
 		return 0
 
 	def getBest(self, aiGroup):
 		bFirst = true
-		iBest = 0
+		# <advc.077> Return player id in addition to value
+		iBestValue = 0
+		iBestPlayer = -1 # </advc.077>
 		for (iLoopValue, iLoopPlayer) in aiGroup:
-			if iLoopPlayer != self.iActivePlayer:
-				if bFirst or iLoopValue > iBest:
-					iBest = iLoopValue
-					bFirst = false
-		return iBest
+			if iLoopPlayer == self.iActivePlayer:
+				continue
+			# <advc.077>
+			if self.bShowBestKnown and not self.pActivePlayer.canSeeDemographics(iLoopPlayer):
+				continue # </advc.077>
+			if bFirst or iLoopValue > iBestValue:
+				# <advc.077>
+				iBestValue = iLoopValue
+				iBestPlayer = iLoopPlayer # </advc.077>
+				bFirst = false
+		return (iBestValue, iBestPlayer) # advc.077
 
 	def getWorst(self, aiGroup):
 		bFirst = true
-		iWorst = 0
+		# <advc.077> Return player id in addition to value
+		iWorstValue = 0
+		iWorstPlayer = -1 # </advc.077>
 		for (iLoopValue, iLoopPlayer) in aiGroup:
-			if iLoopPlayer != self.iActivePlayer:
-				if bFirst or iLoopValue < iWorst:
-					iWorst = iLoopValue
-					bFirst = false
-		return iWorst
+			if iLoopPlayer == self.iActivePlayer:
+				continue
+			# <advc.077>
+			if self.bShowBestKnown and not self.pActivePlayer.canSeeDemographics(iLoopPlayer):
+				continue # </advc.077>
+			if bFirst or iLoopValue < iWorstValue:
+				# <advc.077>
+				iWorstValue = iLoopValue
+				iWorstPlayer = iLoopPlayer # </advc.077>
+				bFirst = false
+		return (iWorstValue, iWorstPlayer) # advc.077
+	
+	# <advc.077>
+	def getPlayerValueStr(self, valuePlayerPair, szMeasure = "", aiGroup = None):
+		iPlayer = valuePlayerPair[1]
+		szPlayerName = ""
+		bUnknown = True
+		if iPlayer > 0:
+			player = gc.getPlayer(iPlayer)
+			if self.pActiveTeam.isHasMet(player.getTeam()) or CyGame().isDebugMode():
+				bUnknown = False
+				szPlayerName = player.getName()
+		# Better just leave it empty
+		#if bUnknown:
+		#	szPlayerName = localText.getText("TXT_KEY_UNKNOWN", ())
+		if (bUnknown or not self.pActivePlayer.canSeeDemographics(iPlayer)) and not CyGame().isDebugMode():
+			if self.bAlwaysShowBestWorstNameIfMet:
+				return (szPlayerName,"?")
+			return ("","?")
+		if self.bShowBestKnown and not aiGroup is None:
+			# Make sure player name isn't too long (I use the same code in CvOptionsScreen)
+			iCharLimit = 18
+			if len(szPlayerName) > iCharLimit:
+				szPlayerName = szPlayerName[:iCharLimit-3] + '...'
+			szPlayerName += " (" + localText.getText("TXT_KEY_DEMO_SCREEN_RANK_TEXT", ()) + " " + str(self.getRank(aiGroup, iPlayer)) + ")"
+		return (szPlayerName, self.separateThousands(valuePlayerPair[0]) + szMeasure)
+	
+	def getPlayerStr(self, valuePlayerPair, aiGroup = None):
+		return self.getPlayerValueStr(valuePlayerPair, "", aiGroup)[0]
+		
+	def getValueStr(self, valuePlayerPair, szMeasure = ""):
+		return self.getPlayerValueStr(valuePlayerPair, szMeasure)[1]
+	# Based on function in CvGameCoreUtils. Not worth exporting those two lines.
+	def roundToMultiple(self, iValue, iMultiple):
+		r = int(iValue + 0.5 * iMultiple)
+		return r - (r % iMultiple)
+	
+	def separateThousands(self, iValue):
+		szSep = localText.getText("TXT_KEY_THOUSANDS_SEPARATOR", ())
+		# The rest of the function is adopted from this StackOverflow answer by Nadia Alramli: https://stackoverflow.com/posts/1823189/revisions
+		s = '%d' % iValue
+		groups = []
+		while s and s[-1].isdigit():
+			groups.append(s[-3:])
+			s = s[:-3]
+		return s + szSep.join(reversed(groups))
+	
+	def getIcon(self, uFontSymbol):
+		return CyGame().getSymbolID(uFontSymbol)
+	# </advc.077>
 
 	def drawTextChart(self):
 
 		######## DATA ########
-
-		iNumActivePlayers = 0
-
+		# <advc.077>
+		iActiveRivals = 0 # Was iNumActivePlayers. Count only rivals.
+		iKnownRivalDemogr = 0
+		if CyGame().isDebugMode(): # Best known and best are the same in Debug mode
+			self.bShowBestKnown = False
+		# </advc.077>
 		pPlayer = gc.getPlayer(self.iActivePlayer)
 
 		iEconomyGameAverage = 0
@@ -1421,20 +1511,31 @@ class CvInfoScreen:
 		aiGroupHappiness = []
 		aiGroupHealth = []
 		aiGroupNetTrade = []
-
+		
+		# <advc.077>
+		iMilitaryCoeff = 1000
+		iLandCoeff = 1000
+		# </advc.077>
 		# Loop through all players to determine Rank and relative Strength
 		for iPlayerLoop in range(gc.getMAX_PLAYERS()):
-			# advc.004: MinorCiv clause added (from the Dawn of Civilization mod)
+			# advc.077: Exclude MinorCivs (from the Dawn of Civilization mod)
 			if gc.getPlayer(iPlayerLoop).isAlive() and not gc.getPlayer(iPlayerLoop).isBarbarian() and not gc.getPlayer(iPlayerLoop).isMinorCiv():
 
-				iNumActivePlayers += 1
-
+				#iNumActivePlayers += 1 # advc.077: Replaced below
 				pCurrPlayer = gc.getPlayer(iPlayerLoop)
+				# <advc.077> Exclude civs that aren't rivals of the active player
+				if iPlayerLoop != self.iActivePlayer and gc.getTeam(pCurrPlayer.getTeam()).getMasterTeam() == self.pActiveTeam.getMasterTeam():
+					continue
+				# </advc.077>
 				
 				iValue = pCurrPlayer.calculateTotalCommerce()
 				if iPlayerLoop == self.iActivePlayer:
 					iEconomy = iValue
-				else:
+				else: # <advc.077>
+					iActiveRivals += 1
+					if self.pActivePlayer.canSeeDemographics(iPlayerLoop):
+						iKnownRivalDemogr += 1
+					# </advc.077>
 					iEconomyGameAverage += iValue
 				aiGroupEconomy.append((iValue, iPlayerLoop))
 				
@@ -1451,15 +1552,15 @@ class CvInfoScreen:
 				else:
 					iAgricultureGameAverage += iValue
 				aiGroupAgriculture.append((iValue, iPlayerLoop))
-
-				iValue = pCurrPlayer.getPower() * 1000
+				# advc.077: was *1000
+				iValue = pCurrPlayer.getPower() * iMilitaryCoeff
 				if iPlayerLoop == self.iActivePlayer:
 					iMilitary = iValue
 				else:
 					iMilitaryGameAverage += iValue
 				aiGroupMilitary.append((iValue, iPlayerLoop))
-
-				iValue = pCurrPlayer.getTotalLand() * 1000
+				# advc.077: was *1000
+				iValue = pCurrPlayer.getTotalLand() * iLandCoeff
 				if iPlayerLoop == self.iActivePlayer:
 					iLandArea = iValue
 				else:
@@ -1486,8 +1587,8 @@ class CvInfoScreen:
 				else:
 					iHealthGameAverage += iValue
 				aiGroupHealth.append((iValue, iPlayerLoop))
-					
-				iValue = pCurrPlayer.calculateTotalExports(YieldTypes.YIELD_COMMERCE) - pCurrPlayer.calculateTotalImports(YieldTypes.YIELD_COMMERCE)
+				# advc.077: Don't subtract imports. Would be kind of nice to add pLoopPlayer.getGoldPerTurnByPlayer (summed up over all players), but would have to subtract gold payments too, and that wouldn't be consistent with counting only "export" trade routes.
+				iValue = pCurrPlayer.calculateTotalExports(YieldTypes.YIELD_COMMERCE)# - pCurrPlayer.calculateTotalImports(YieldTypes.YIELD_COMMERCE)
 				if iPlayerLoop == self.iActivePlayer:
 					iNetTrade = iValue
 				else:
@@ -1503,37 +1604,68 @@ class CvInfoScreen:
 		iHappinessRank = self.getRank(aiGroupHappiness)
 		iHealthRank = self.getRank(aiGroupHealth)
 		iNetTradeRank = self.getRank(aiGroupNetTrade)
-
-		iEconomyGameBest	= self.getBest(aiGroupEconomy)
-		iIndustryGameBest	= self.getBest(aiGroupIndustry)
-		iAgricultureGameBest	= self.getBest(aiGroupAgriculture)
-		iMilitaryGameBest	= self.getBest(aiGroupMilitary)
-		iLandAreaGameBest	= self.getBest(aiGroupLandArea)
-		iPopulationGameBest	= self.getBest(aiGroupPopulation)
-		iHappinessGameBest	= self.getBest(aiGroupHappiness)
-		iHealthGameBest		= self.getBest(aiGroupHealth)
-		iNetTradeGameBest	= self.getBest(aiGroupNetTrade)
-
-		iEconomyGameWorst	= self.getWorst(aiGroupEconomy)
-		iIndustryGameWorst	= self.getWorst(aiGroupIndustry)
-		iAgricultureGameWorst	= self.getWorst(aiGroupAgriculture)
-		iMilitaryGameWorst	= self.getWorst(aiGroupMilitary)
-		iLandAreaGameWorst	= self.getWorst(aiGroupLandArea)
-		iPopulationGameWorst	= self.getWorst(aiGroupPopulation)
-		iHappinessGameWorst	= self.getWorst(aiGroupHappiness)
-		iHealthGameWorst	= self.getWorst(aiGroupHealth)
-		iNetTradeGameWorst	= self.getWorst(aiGroupNetTrade)
-
-		iEconomyGameAverage = iEconomyGameAverage / max(1, iNumActivePlayers - 1)
-		iIndustryGameAverage = iIndustryGameAverage / max(1, iNumActivePlayers - 1)
-		iAgricultureGameAverage = iAgricultureGameAverage / max(1, iNumActivePlayers - 1)
-		iMilitaryGameAverage = iMilitaryGameAverage / max(1, iNumActivePlayers - 1)
-		iLandAreaGameAverage = iLandAreaGameAverage / max(1, iNumActivePlayers - 1)
-		iPopulationGameAverage = iPopulationGameAverage / max(1, iNumActivePlayers - 1)
-		iHappinessGameAverage = iHappinessGameAverage / max(1, iNumActivePlayers - 1)
-		iHealthGameAverage = iHealthGameAverage / max(1, iNumActivePlayers - 1)
-		iNetTradeGameAverage = iNetTradeGameAverage / max(1, iNumActivePlayers - 1)
-
+		
+		# <advc.077> Don't always show the rival columns
+		iColumns = 6
+		bShowBest = (not self.bShowBestKnown or iKnownRivalDemogr > 0)
+		if bShowBest:
+			# Removed 'i' prefix from variables b/c they're pairs now
+			economyGameBest	= self.getBest(aiGroupEconomy)
+			industryGameBest	= self.getBest(aiGroupIndustry)
+			agricultureGameBest	= self.getBest(aiGroupAgriculture)
+			militaryGameBest	= self.getBest(aiGroupMilitary)
+			landAreaGameBest	= self.getBest(aiGroupLandArea)
+			populationGameBest	= self.getBest(aiGroupPopulation)
+			happinessGameBest	= self.getBest(aiGroupHappiness)
+			healthGameBest		= self.getBest(aiGroupHealth)
+			netTradeGameBest	= self.getBest(aiGroupNetTrade)
+		#else: # Will show the column header in any case
+		#	iColumns -= 1
+		bShowWorst = ((not self.bShowBestKnown and iActiveRivals > 1) or iKnownRivalDemogr > 1)
+		if bShowWorst:
+			economyGameWorst	= self.getWorst(aiGroupEconomy)
+			industryGameWorst	= self.getWorst(aiGroupIndustry)
+			agricultureGameWorst	= self.getWorst(aiGroupAgriculture)
+			militaryGameWorst	= self.getWorst(aiGroupMilitary)
+			landAreaGameWorst	= self.getWorst(aiGroupLandArea)
+			populationGameWorst	= self.getWorst(aiGroupPopulation)
+			happinessGameWorst	= self.getWorst(aiGroupHappiness)
+			healthGameWorst	= self.getWorst(aiGroupHealth)
+			netTradeGameWorst	= self.getWorst(aiGroupNetTrade)
+		else:
+			iColumns -= 1
+		bShowAvg = (iActiveRivals > 3)
+		if bShowAvg:
+			# All occurrences of 'iNumActivePlayers - 1' replaced with iActiveRivals
+			iEconomyGameAverage = iEconomyGameAverage / max(1, iActiveRivals)
+			iIndustryGameAverage = iIndustryGameAverage / max(1, iActiveRivals)
+			iAgricultureGameAverage = iAgricultureGameAverage / max(1, iActiveRivals)
+			iMilitaryGameAverage = iMilitaryGameAverage / max(1, iActiveRivals)
+			iLandAreaGameAverage = iLandAreaGameAverage / max(1, iActiveRivals)
+			iPopulationGameAverage = iPopulationGameAverage / max(1, iActiveRivals)
+			iHappinessGameAverage = iHappinessGameAverage / max(1, iActiveRivals)
+			iHealthGameAverage = iHealthGameAverage / max(1, iActiveRivals)
+			iNetTradeGameAverage = iNetTradeGameAverage / max(1, iActiveRivals)
+			# Round the averages
+			iMultiple = 5
+			# (I don't know ...)
+			#if CyGame().isDebugMode():
+			#	iMultiple = 1
+			iEconomyGameAverage = self.roundToMultiple(iEconomyGameAverage, iMultiple)
+			iIndustryGameAverage = self.roundToMultiple(iIndustryGameAverage, iMultiple)
+			iAgricultureGameAverage = self.roundToMultiple(iAgricultureGameAverage, iMultiple)
+			iMilitaryGameAverage = self.roundToMultiple(iMilitaryGameAverage, iMultiple * iMilitaryCoeff)
+			iLandAreaGameAverage = self.roundToMultiple(iLandAreaGameAverage, iMultiple * iLandCoeff)
+			# CvCity::getRealPopulation uses a multiplier >=1000
+			iPopulationGameAverage = self.roundToMultiple(iPopulationGameAverage, iMultiple * 1000)
+			iHappinessGameAverage = self.roundToMultiple(iHappinessGameAverage, iMultiple)
+			iHealthGameAverage = self.roundToMultiple(iHealthGameAverage, iMultiple)
+			iNetTradeGameAverage = self.roundToMultiple(iNetTradeGameAverage, iMultiple)
+		else:
+			iColumns -= 1
+		if self.bRankInValueColumn:
+			iColumns -= 1
+		# </advc.077>
 
 		######## TEXT ########
 
@@ -1541,91 +1673,224 @@ class CvInfoScreen:
 
 		# Create Table
 		szTable = self.getNextWidgetName()
-		screen.addTableControlGFC(szTable, 6, self.X_CHART, self.Y_CHART, self.W_CHART, self.H_CHART, true, true, 32,32, TableStyles.TABLE_STYLE_STANDARD)
+		# advc.077: iColumns instead of 6
+		screen.addTableControlGFC(szTable, iColumns, self.X_CHART, self.Y_CHART, self.W_CHART, self.H_CHART, true, true, 32, 32, TableStyles.TABLE_STYLE_STANDARD)
 		#screen.setTableColumnHeader(szTable, 0, self.TEXT_DEMOGRAPHICS_SMALL, 224) # Total graph width is 430
-		screen.setTableColumnHeader(szTable, 0, localText.getText("TXT_KEY_DEMO_SCREEN_TITLE", ()), 224) # K-Mod
-		screen.setTableColumnHeader(szTable, 1, self.TEXT_VALUE, 155)
-		screen.setTableColumnHeader(szTable, 2, self.TEXT_BEST, 155)
-		screen.setTableColumnHeader(szTable, 3, self.TEXT_AVERAGE, 155)
-		screen.setTableColumnHeader(szTable, 4, self.TEXT_WORST, 155)
-		screen.setTableColumnHeader(szTable, 5, self.TEXT_RANK, 90)
-
-		for i in range(18 + 5): # 18 normal items + 5 lines for spacing
+		# <advc.077> Changes throughout the rest of this function
+		# Replacing literals
+		iNextCol = 0
+		iTitleCol = iNextCol # </advc.077>
+		# 20 added to column width
+		screen.setTableColumnHeader(szTable, iTitleCol, localText.getText("TXT_KEY_DEMO_SCREEN_TITLE", ()), 244) # K-Mod
+		iBestWorstExtraWidth = 0
+		iRankColumnWidth = 76 # was 90
+		# Move rank up
+		iRankCol = -1
+		if not self.bRankInValueColumn:
+			iNextCol += 1
+			iRankCol = iNextCol 
+			screen.setTableColumnHeader(szTable, iRankCol, self.TEXT_RANK, iRankColumnWidth)
+		else: # Use the space for the best/ worst columns then. These may occasionally need the extra space b/c of long leader names and two-digit rank numbers.
+			iBestWorstExtraWidth += iRankColumnWidth / 2
+		iNextCol += 1
+		iValueCol = iNextCol
+		
+		szValueHead = self.TEXT_VALUE
+		if self.bRankInValueColumn:
+			szValueHead += "/ " + self.TEXT_RANK
+		# Column width was 155
+		screen.setTableColumnHeader(szTable, iValueCol, szValueHead, 120)
+		iBestCol = -1
+		if True:#bShowBest: # Actually, show the header always. So that the player might guess that there is more info to come later in the game.
+			iNextCol += 1
+			iBestCol = iNextCol
+			# Column width was 155
+			screen.setTableColumnHeader(szTable, iBestCol, self.TEXT_BEST, 170 + iBestWorstExtraWidth)
+		iAvgCol = -1
+		if bShowAvg:
+			iNextCol += 1
+			iAvgCol = iNextCol
+			# Column width was 155
+			screen.setTableColumnHeader(szTable, iAvgCol, self.TEXT_AVERAGE, 154)
+		iWorstCol = -1
+		if bShowWorst:
+			iNextCol += 1
+			iWorstCol = iNextCol
+			# Column width was 155
+			screen.setTableColumnHeader(szTable, iWorstCol, self.TEXT_WORST, 170 + iBestWorstExtraWidth)
+		#iTargetRows = 18 + 5 # 18 normal items + 5 lines for spacing
+		# Replacing the above
+		iTargetRows = 8 * 3
+		if self.bShowExports:
+			iTargetRows += 3
+		for i in range(iTargetRows):
 			screen.appendTableRow(szTable)
 		iNumRows = screen.getTableNumRows(szTable)
-		iRow = iNumRows - 1
-		iCol = 0
-		screen.setTableText(szTable, iCol, 0, self.TEXT_ECONOMY, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 1, self.TEXT_ECONOMY_MEASURE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 3, self.TEXT_INDUSTRY, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 4, self.TEXT_INDUSTRY_MEASURE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 6, self.TEXT_AGRICULTURE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 7, self.TEXT_AGRICULTURE_MEASURE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 9, self.TEXT_MILITARY, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 11, self.TEXT_LAND_AREA, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 12, self.TEXT_LAND_AREA_MEASURE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 14, self.TEXT_POPULATION, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 16, self.TEXT_HAPPINESS, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 18, self.TEXT_HEALTH, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 19, self.TEXT_HEALTH_MEASURE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 21, self.TEXT_IMP_EXP, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 22, self.TEXT_IMP_EXP_MEASURE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		#iRow = iNumRows - 1 # unused
+		#iCol = 0 # Use the column ids from above instead
+		# New: Append icons, and use different text keys for economy, industry, agriculture.
+		szEconomyTitle =  localText.getText("TXT_KEY_DEMOGRAPHICS_ECONOMY_TEXT", ()) + (u" (%c+%c)" % (gc.getCommerceInfo(CommerceTypes.COMMERCE_GOLD).getChar(), gc.getCommerceInfo(CommerceTypes.COMMERCE_RESEARCH).getChar()))
+		szIndustryTitle =  localText.getText("TXT_KEY_DEMOGRAPHICS_INDUSTRY_TEXT", ()) + (u" (%c)" % gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getChar())
+		szAgricultureTitle = localText.getText("TXT_KEY_DEMOGRAPHICS_AGRICULTURE_TEXT", ()) + (u" (%c)" % gc.getYieldInfo(YieldTypes.YIELD_FOOD).getChar())
+		szMilitaryTitle =  self.TEXT_MILITARY + (u" (%c)" % self.getIcon(FontSymbols.STRENGTH_CHAR))
+		szHappinessTitle = self.TEXT_HAPPINESS + (u" (%c)" % self.getIcon(FontSymbols.HAPPY_CHAR))
+		szHealthTitle = self.TEXT_HEALTH + (u" (%c)" % self.getIcon(FontSymbols.HEALTHY_CHAR))
+		szExpTitle = self.TEXT_EXP + (u" (%c)" % self.getIcon(FontSymbols.TRADE_CHAR))
+		# Add measure after a colon (and commented out below)
+		szEconomyTitle += ": " + self.TEXT_ECONOMY_MEASURE
+		szIndustryTitle += ": " + self.TEXT_INDUSTRY_MEASURE
+		szAgricultureTitle += ": " + self.TEXT_AGRICULTURE_MEASURE
+		szLandAreaTitle = self.TEXT_LAND_AREA + ": " + self.TEXT_LAND_AREA_MEASURE
+		szHealthTitle += ": " + self.TEXT_HEALTH_MEASURE
+		szExpTitle += ": " + self.TEXT_EXP_MEASURE
+		# Row numbers after 12 changed; now evenly distributed.
+		screen.setTableText(szTable, iTitleCol, 0, szEconomyTitle, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		#screen.setTableText(szTable, iTitleCol, 1, self.TEXT_ECONOMY_MEASURE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		screen.setTableText(szTable, iTitleCol, 3, szIndustryTitle, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		#screen.setTableText(szTable, iTitleCol, 4, self.TEXT_INDUSTRY_MEASURE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		screen.setTableText(szTable, iTitleCol, 6, szAgricultureTitle, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		#screen.setTableText(szTable, iTitleCol, 7, self.TEXT_AGRICULTURE_MEASURE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		screen.setTableText(szTable, iTitleCol, 9, szMilitaryTitle, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# row was 11
+		screen.setTableText(szTable, iTitleCol, 12, szLandAreaTitle, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		#screen.setTableText(szTable, iTitleCol, 12, self.TEXT_LAND_AREA_MEASURE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# row was 14
+		screen.setTableText(szTable, iTitleCol, 15, self.TEXT_POPULATION, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# row was 16
+		screen.setTableText(szTable, iTitleCol, 18, szHappinessTitle, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# row was 18
+		screen.setTableText(szTable, iTitleCol, 21, szHealthTitle, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		#screen.setTableText(szTable, iTitleCol, 19, self.TEXT_HEALTH_MEASURE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		if self.bShowExports:
+			# row was 21
+			screen.setTableText(szTable, iTitleCol, 24, szExpTitle, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			#screen.setTableText(szTable, iTitleCol, 22, self.TEXT_EXP_MEASURE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
-		iCol = 1
-		screen.setTableText(szTable, iCol, 0, str(iEconomy), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 3, str(iIndustry), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 6, str(iAgriculture), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 9, str(iMilitary), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 11, str(iLandArea), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 14, str(iPopulation), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 16, str(iHappiness) + self.TEXT_HAPPINESS_MEASURE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 18, str(iHealth), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 21, str(iNetTrade), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		#iCol = 1
+		# Decimal separators added. In the best/worst columns, it's easiest to do this for all values, so do it for all values here too.
+		screen.setTableText(szTable, iValueCol, 0, self.separateThousands(iEconomy), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		screen.setTableText(szTable, iValueCol, 3, self.separateThousands(iIndustry), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		screen.setTableText(szTable, iValueCol, 6, self.separateThousands(iAgriculture), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		screen.setTableText(szTable, iValueCol, 9, self.separateThousands(iMilitary), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# row was 11
+		screen.setTableText(szTable, iValueCol, 12, self.separateThousands(iLandArea), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# row was 14
+		screen.setTableText(szTable, iValueCol, 15, self.separateThousands(iPopulation), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# row was 16
+		screen.setTableText(szTable, iValueCol, 18, self.separateThousands(iHappiness) + self.TEXT_HAPPINESS_MEASURE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# row was 18
+		screen.setTableText(szTable, iValueCol, 21, self.separateThousands(iHealth), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		if self.bShowExports:
+			# row was 21
+			screen.setTableText(szTable, iValueCol, 24, self.separateThousands(iNetTrade), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
-		iCol = 2
-		screen.setTableText(szTable, iCol, 0, str(iEconomyGameBest), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 3, str(iIndustryGameBest), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 6, str(iAgricultureGameBest), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 9, str(iMilitaryGameBest), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 11, str(iLandAreaGameBest), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 14, str(iPopulationGameBest), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 16, str(iHappinessGameBest) + self.TEXT_HAPPINESS_MEASURE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 18, str(iHealthGameBest), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 21, str(iNetTradeGameBest), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		#iCol = 2
+		if bShowBest:
+			# Replaced str(i...GameBest) with getPlayerStr and getValueStr, and put them in separate rows.
+			screen.setTableText(szTable, iBestCol, 1, self.getPlayerStr(economyGameBest, aiGroupEconomy), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, iBestCol, 0, self.getValueStr(economyGameBest), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, iBestCol, 4, self.getPlayerStr(industryGameBest, aiGroupIndustry), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, iBestCol, 3, self.getValueStr(industryGameBest), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, iBestCol, 7,self. getPlayerStr(agricultureGameBest, aiGroupAgriculture), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, iBestCol, 6, self.getValueStr(agricultureGameBest), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, iBestCol, 10, self.getPlayerStr(militaryGameBest, aiGroupMilitary), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, iBestCol, 9, self.getValueStr(militaryGameBest), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			# row was 12
+			screen.setTableText(szTable, iBestCol, 13, self.getPlayerStr(landAreaGameBest, aiGroupLandArea), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			# row was 11
+			screen.setTableText(szTable, iBestCol, 12, self.getValueStr(landAreaGameBest), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			# row was 15
+			screen.setTableText(szTable, iBestCol, 16, self.getPlayerStr(populationGameBest, aiGroupPopulation), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			# row was 14
+			screen.setTableText(szTable, iBestCol, 15, self.getValueStr(populationGameBest), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			# row was 17
+			screen.setTableText(szTable, iBestCol, 19, self.getPlayerStr(happinessGameBest, aiGroupHappiness), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			# row was 16
+			screen.setTableText(szTable, iBestCol, 18, self.getValueStr(happinessGameBest, self.TEXT_HAPPINESS_MEASURE), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			# row was 19
+			screen.setTableText(szTable, iBestCol, 22, self.getPlayerStr(healthGameBest, aiGroupHealth), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			# row was 18
+			screen.setTableText(szTable, iBestCol, 21, self.getValueStr(healthGameBest), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			if self.bShowExports:
+				# row was 22
+				screen.setTableText(szTable, iBestCol, 25, self.getPlayerStr(netTradeGameBest, aiGroupNetTrade), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+				screen.setTableText(szTable, iBestCol, 24, self.getValueStr(netTradeGameBest), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
-		iCol = 3
-		screen.setTableText(szTable, iCol, 0, str(iEconomyGameAverage), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 3, str(iIndustryGameAverage), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 6, str(iAgricultureGameAverage), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 9, str(iMilitaryGameAverage), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 11, str(iLandAreaGameAverage), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 14, str(iPopulationGameAverage), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 16, str(iHappinessGameAverage) + self.TEXT_HAPPINESS_MEASURE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 18, str(iHealthGameAverage), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 21, str(iNetTradeGameAverage), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		#iCol = 3
+		if bShowAvg:
+			# Decimal separators added
+			screen.setTableText(szTable, iAvgCol, 0, self.separateThousands(iEconomyGameAverage), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, iAvgCol, 3, self.separateThousands(iIndustryGameAverage), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, iAvgCol, 6, self.separateThousands(iAgricultureGameAverage), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, iAvgCol, 9, self.separateThousands(iMilitaryGameAverage), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			# row was 11
+			screen.setTableText(szTable, iAvgCol, 12, self.separateThousands(iLandAreaGameAverage), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			# row was 14
+			screen.setTableText(szTable, iAvgCol, 15, self.separateThousands(iPopulationGameAverage), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			# row was 16
+			screen.setTableText(szTable, iAvgCol, 18, self.separateThousands(iHappinessGameAverage) + self.TEXT_HAPPINESS_MEASURE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			# row was 18
+			screen.setTableText(szTable, iAvgCol, 21, self.separateThousands(iHealthGameAverage), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			if self.bShowExports:
+				# row was 21
+				screen.setTableText(szTable, iAvgCol, 24, self.separateThousands(iNetTradeGameAverage), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
-		iCol = 4
-		screen.setTableText(szTable, iCol, 0, str(iEconomyGameWorst), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 3, str(iIndustryGameWorst), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 6, str(iAgricultureGameWorst), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 9, str(iMilitaryGameWorst), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 11, str(iLandAreaGameWorst), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 14, str(iPopulationGameWorst), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 16, str(iHappinessGameWorst) + self.TEXT_HAPPINESS_MEASURE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 18, str(iHealthGameWorst), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 21, str(iNetTradeGameWorst), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		#iCol = 4
+		if bShowWorst:
+			# Replaced str(i...GameWorst) with getPlayerStr and getValueStr, and put them in a separate rows.
+			screen.setTableText(szTable, iWorstCol, 1, self.getPlayerStr(economyGameWorst, aiGroupEconomy), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, iWorstCol, 0, self.getValueStr(economyGameWorst), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, iWorstCol, 4, self.getPlayerStr(industryGameWorst, aiGroupIndustry), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, iWorstCol, 3, self.getValueStr(industryGameWorst), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, iWorstCol, 7, self.getPlayerStr(agricultureGameWorst, aiGroupAgriculture), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, iWorstCol, 6, self.getValueStr(agricultureGameWorst), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, iWorstCol, 10, self.getPlayerStr(militaryGameWorst, aiGroupMilitary), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, iWorstCol, 9, self.getValueStr(militaryGameWorst), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			# row was 12
+			screen.setTableText(szTable, iWorstCol, 13, self.getPlayerStr(landAreaGameWorst, aiGroupLandArea), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			# row was 11
+			screen.setTableText(szTable, iWorstCol, 12, self.getValueStr(landAreaGameWorst), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			# row was 15
+			screen.setTableText(szTable, iWorstCol, 16, self.getPlayerStr(populationGameWorst, aiGroupPopulation), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			# row was 14
+			screen.setTableText(szTable, iWorstCol, 15, self.getValueStr(populationGameWorst), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			# row was 17
+			screen.setTableText(szTable, iWorstCol, 19, self.getPlayerStr(happinessGameWorst, aiGroupHappiness), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			# row was 16
+			screen.setTableText(szTable, iWorstCol, 18, self.getValueStr(happinessGameWorst, self.TEXT_HAPPINESS_MEASURE), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			# row was 19
+			screen.setTableText(szTable, iWorstCol, 22, self.getPlayerStr(healthGameWorst, aiGroupHealth), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			# row was 18
+			screen.setTableText(szTable, iWorstCol, 21, self.getValueStr(healthGameWorst), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			if self.bShowExports:
+				# row was 22
+				screen.setTableText(szTable, iWorstCol, 25, self.getPlayerStr(netTradeGameWorst, aiGroupNetTrade), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+				# row was 21
+				screen.setTableText(szTable, iWorstCol, 24, self.getValueStr(netTradeGameWorst), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
-		iCol = 5
-		screen.setTableText(szTable, iCol, 0, str(iEconomyRank), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 3, str(iIndustryRank), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 6, str(iAgricultureRank), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 9, str(iMilitaryRank), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 11, str(iLandAreaRank), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 14, str(iPopulationRank), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 16, str(iHappinessRank), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 18, str(iHealthRank), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, iCol, 21, str(iNetTradeRank), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-
+		#iCol = 5
+		# Put it in iValueCol if that option is set
+		iCol = iRankCol
+		iOffset = 0
+		if self.bRankInValueColumn:
+			iCol = iValueCol
+			iOffset = 1
+		screen.setTableText(szTable, iCol, 0 + iOffset, str(iEconomyRank), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		screen.setTableText(szTable, iCol, 3 + iOffset, str(iIndustryRank), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		screen.setTableText(szTable, iCol, 6 + iOffset, str(iAgricultureRank), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		screen.setTableText(szTable, iCol, 9 + iOffset, str(iMilitaryRank), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# row was 11
+		screen.setTableText(szTable, iCol, 12 + iOffset, str(iLandAreaRank), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# row was 14
+		screen.setTableText(szTable, iCol, 15 + iOffset, str(iPopulationRank), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# row was 16
+		screen.setTableText(szTable, iCol, 18 + iOffset, str(iHappinessRank), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# row was 18
+		screen.setTableText(szTable, iCol, 21 + iOffset, str(iHealthRank), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		if self.bShowExports:
+			# row was 21
+			screen.setTableText(szTable, iCol, 24 + iOffset, str(iNetTradeRank), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		# </advc.077>
 		return
 
 #############################################################################################################

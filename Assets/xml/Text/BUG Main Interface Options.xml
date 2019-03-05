@@ -181,9 +181,9 @@
 		 "or, if a city is currently selected, the Great Person progress of that city," but I guess that's not important enough. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__GPBAR_HOVER</Tag>
-		<English>When checked, displays a progress bar at the top of the main interface that shows when the next Great Person will be born and in which city.</English>
+		<English>When checked, displays a progress bar at the top of the main interface that shows when the next Great Person (except Great General) will be born and in which city.</English>
 		<French>En activant, montre la barre de progrès et la ville du prochain Personnage Illustre.</French>
-		<German>Platziert am oberen Rand des Hauptbildschirms einen Fortschrittsbalken, der anzeigt, wann die nächste große Persönlichkeit erscheinen wird und in welcher Stadt.</German>
+		<German>Platziert am oberen Rand des Hauptbildschirms einen Fortschrittsbalken, der anzeigt, wann die nächste große Persönlichkeit (außer Generäle) erscheinen wird und in welcher Stadt.</German>
 		<Italian>Quando è selezionato, mostra il progresso e la città del prossimo Grande Personaggio.</Italian>
 		<Spanish>When checked, displays the progress and city of the next Great Person.</Spanish>
 	</TEXT>
@@ -227,7 +227,6 @@
 		<Italian>Grande Generale</Italian>
 		<Spanish>Gran General</Spanish>
 	</TEXT>
-	
 	<!-- advc.004: Minor changes -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__COMBAT_COUNTER_HOVER</Tag>
@@ -236,6 +235,24 @@
 		<German>Platziert am oberen Rand des Hauptbildschirms einen Fortschrittsbalken, der die Gefechtserfahrung anzeigt, die für den nächsten großen General benötigt wird.</German>
 		<Italian>Quando è selezionato, mostra la barra di avanzamento per il prossimo Grande Generale.</Italian>
 		<Spanish>Muestra una barra de progreso para el próximo Gran General.</Spanish>
+	</TEXT>
+	
+	<!-- advc.078: New option -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__ONCEPROGRESS_TEXT</Tag>
+		<English>Show Only Once Progress</English>
+		<French>Show Only Once Progress</French>
+		<German>Erst bei Fortschritt</German>
+		<Italian>Show Only Once Progress</Italian>
+		<Spanish>Show Only Once Progress</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__ONCEPROGRESS_HOVER</Tag>
+		<English>When checked, the [COLOR_HIGHLIGHT_TEXT]Great Person[COLOR_REVERT] and [COLOR_HIGHLIGHT_TEXT]Great General[COLOR_REVERT] bars (if enabled) only appear once there has been any progress toward the birth of a great person.</English>
+		<French>When checked, the [COLOR_HIGHLIGHT_TEXT]Great Person[COLOR_REVERT] and [COLOR_HIGHLIGHT_TEXT]Great General[COLOR_REVERT] bars (if enabled) only appear once there has been any progress toward the birth of a great person.</French>
+		<German>Die Fortschrittsbalken für [COLOR_HIGHLIGHT_TEXT]Große Persönlichkeiten[COLOR_REVERT] and [COLOR_HIGHLIGHT_TEXT]Große Generäle[COLOR_REVERT] (falls überhaupt aktiviert) erscheinen erst, wenn entsprechender Fortschritt besteht.</German>
+		<Italian>When checked, the [COLOR_HIGHLIGHT_TEXT]Great Person[COLOR_REVERT] and [COLOR_HIGHLIGHT_TEXT]Great General[COLOR_REVERT] bars (if enabled) only appear once there has been any progress toward the birth of a great person.</Italian>
+		<Spanish>When checked, the [COLOR_HIGHLIGHT_TEXT]Great Person[COLOR_REVERT] and [COLOR_HIGHLIGHT_TEXT]Great General[COLOR_REVERT] bars (if enabled) only appear once there has been any progress toward the birth of a great person.</Spanish>
 	</TEXT>
 
 	<!-- advc.120c: Under the new heading, "Max/Min Buttons" should be clear

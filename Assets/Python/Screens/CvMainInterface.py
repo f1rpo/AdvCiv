@@ -3174,7 +3174,7 @@ class CvMainInterface:
 # BUG - NJAGC - end
 		if (gc.getPlayer(ePlayer).isAnarchy()):
 # BUG - Bars on single line for higher resolution screens - start
-			if (xResolution >= 1440 and (MainOpt.isShowGGProgressBar() or MainOpt.isShowGPProgressBar())):
+			if (xResolution >= 1440 and (self.isShowGGProgressBar() or self.isShowGPProgressBar())):
 				xCoord = 268 + (xResolution - 1440) / 2 + 84 + 6 + 487 / 2
 			else:
 				xCoord = screen.centerX(512)
@@ -3190,7 +3190,7 @@ class CvMainInterface:
 		elif (gc.getPlayer(ePlayer).getCurrentResearch() != -1):
 			szText = CyGameTextMgr().getResearchStr(ePlayer)
 # BUG - Bars on single line for higher resolution screens - start
-			if (xResolution >= 1440 and (MainOpt.isShowGGProgressBar() or MainOpt.isShowGPProgressBar())):
+			if (xResolution >= 1440 and (self.isShowGGProgressBar() or self.isShowGPProgressBar())):
 				szResearchBar = "ResearchBar-w"
 				xCoord = 268 + (xResolution - 1440) / 2 + 84 + 6 + 487 / 2
 			else:
@@ -3214,7 +3214,7 @@ class CvMainInterface:
 			screen.show(szResearchBar)
 # BUG - Progress Bar - Tick Marks - start
 			# advc.004x: researchRate condition added
-			if MainOpt.isShowpBarTickMarks() and researchRate > 0:
+			if MainOpt.isShowBarTickMarks() and researchRate > 0:
 				if szResearchBar == "ResearchBar":
 					self.pBarResearchBar_n.drawTickMarks(screen, researchProgress + overflowResearch, researchCost, researchRate, researchRate, False)
 				else:
@@ -3230,7 +3230,7 @@ class CvMainInterface:
 		
 # BUG - Great Person Bar - start
 	def updateGreatPersonBar(self, screen):
-		if (not CyInterface().isCityScreenUp() and MainOpt.isShowGPProgressBar()):
+		if (not CyInterface().isCityScreenUp() and self.isShowGPProgressBar()):
 			pGPCity, iGPTurns = GPUtil.getDisplayCity()
 			szText = GPUtil.getGreatPeopleText(pGPCity, iGPTurns, GP_BAR_WIDTH, MainOpt.isGPBarTypesNone(), MainOpt.isGPBarTypesOne(), True)
 			szText = u"<font=2>%s</font>" % (szText)
@@ -3275,7 +3275,7 @@ class CvMainInterface:
 
 # BUG - Great General Bar - start
 	def updateGreatGeneralBar(self, screen):
-		if (not CyInterface().isCityScreenUp() and MainOpt.isShowGGProgressBar()):
+		if (not CyInterface().isCityScreenUp() and self.isShowGGProgressBar()):
 			pPlayer = gc.getActivePlayer()
 			iCombatExp = pPlayer.getCombatExperience()
 			iThresholdExp = pPlayer.greatPeopleThreshold(True)
@@ -3302,6 +3302,30 @@ class CvMainInterface:
 			screen.setBarPercentage( szGreatGeneralBar, InfoBarTypes.INFOBAR_STORED, fProgress )
 			screen.show( szGreatGeneralBar )
 # BUG - Great General Bar - end
+	# <advc.078> I've replaced all calls to MainOpt.isShowGGProgressBar and MainOpt.isShowGPProgressBar with these functions
+	def isShowGGProgressBar(self):
+		if not MainOpt.isShowGGProgressBar():
+			return False
+		if not MainOpt.isShowOnlyOnceProgress():
+			return True
+		iActivePlayer = gc.getGame().getActivePlayer()
+		if iActivePlayer < 0:
+			return False
+		activePlayer = gc.getPlayer(iActivePlayer)
+		return (activePlayer.getCombatExperience() > 0 or activePlayer.getGreatGeneralsCreated() > 0)
+		
+	def isShowGPProgressBar(self):
+		if not MainOpt.isShowGPProgressBar():
+			return False
+		if not MainOpt.isShowOnlyOnceProgress():
+			return True
+		iActivePlayer = gc.getGame().getActivePlayer()
+		if iActivePlayer < 0:
+			return False
+		activePlayer = gc.getPlayer(iActivePlayer)
+		# Don't want to check all cities here over and over. Let the DLL keep track of this (new function: isAnyGPPEver). The second condition is only for old savegames.
+		return (activePlayer.isAnyGPPEver() or activePlayer.getGreatPeopleCreated() > 0)
+	# </advc.078>
 					
 	def updateTimeText( self ):
 		
@@ -3661,7 +3685,7 @@ class CvMainInterface:
 				screen.show( "PopulationBar" )
 
 # BUG - Progress Bar - Tick Marks - start
-				if MainOpt.isShowpBarTickMarks():
+				if MainOpt.isShowBarTickMarks():
 					self.pBarPopulationBar.drawTickMarks(screen, pHeadSelectedCity.getFood(), pHeadSelectedCity.growthThreshold(), iFoodDifference, iFoodDifference, False)
 # BUG - Progress Bar - Tick Marks - end
 
@@ -3764,7 +3788,7 @@ class CvMainInterface:
 					screen.show( "ProductionBar" )
 
 # BUG - Progress Bar - Tick Marks - start
-					if MainOpt.isShowpBarTickMarks():
+					if MainOpt.isShowBarTickMarks():
 						if (pHeadSelectedCity.isProductionProcess()):
 							iFirst = 0
 							iRate = 0
@@ -5365,7 +5389,7 @@ class CvMainInterface:
 
 # BUG - Bars on single line for higher resolution screens - start
 		if (xResolution >= 1440
-		and (MainOpt.isShowGGProgressBar() or MainOpt.isShowGPProgressBar())):
+		and (self.isShowGGProgressBar() or self.isShowGPProgressBar())):
 			xCoord = 268 + (xResolution - 1440) / 2
 			xCoord += 6 + 84
 			screen.moveItem( szButtonID, 264 + ( ( xResolution - 1024 ) / 2 ) + ( 34 * ( iCount % 15 ) ), 0 + ( 34 * ( iCount / 15 ) ), -0.3 )

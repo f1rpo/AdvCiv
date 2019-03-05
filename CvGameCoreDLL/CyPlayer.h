@@ -356,6 +356,7 @@ public:
 	bool isEverAlive();
 	bool isExtendedGame();
 	bool isFoundedFirstCity();
+	bool isAnyGPPEver(); // advc.078
 	
 	bool isStrike();
 

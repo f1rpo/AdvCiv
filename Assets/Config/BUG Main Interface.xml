@@ -101,7 +101,12 @@
 			<!-- Progress Bar Tick Marks -->
 			<option id="ProgressBarsTickMarks" key="Tick Marks" 
 					type="boolean" default="True" 
-					get="isShowpBarTickMarks" dirtyBit="GameData"/>
+					get="isShowBarTickMarks" dirtyBit="GameData"/>
+			
+			<!-- advc.078: New option -->
+			<option id="OnceProgress" key="Once Progress" 
+					type="boolean" default="False" 
+					get="isShowOnlyOnceProgress" dirtyBit="GameData"/>
 
 			<!-- Field of View -->
 			<option id="FieldOfView" key="Field of View" 

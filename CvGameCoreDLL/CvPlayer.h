@@ -749,6 +749,9 @@ public:
 																																															
 	bool isFoundedFirstCity() const;																																	// Exposed to Python					
 	void setFoundedFirstCity(bool bNewValue);																										
+	// <advc.078>
+	bool isAnyGPPEver() const;		// (Exposed to Python)
+	void reportFirstGPP(); // </advc.078>
 																																															
 	DllExport bool isStrike() const;																																	// Exposed to Python					
 	void setStrike(bool bNewValue);		
@@ -1342,6 +1345,7 @@ protected:
 	bool m_bPbemNewTurn;
 	bool m_bExtendedGame;
 	bool m_bFoundedFirstCity;
+	bool m_bAnyGPPEver; // advc.078
 	bool m_bStrike;
 	bool m_bHuman;
 

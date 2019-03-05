@@ -429,7 +429,7 @@ void CvGame::regenerateMap()
 	else { // </advc.700>
 		autoSave(true); // advc.106l
 		// <advc.004j> Somehow doesn't work with Adv. Start; DoM screen doesn't appear.
-		if(!isOption(GAMEOPTION_ADVANCED_START))
+		if(!isOption(GAMEOPTION_ADVANCED_START) || isOption(GAMEOPTION_SPAH))
 			showDawnOfMan();
 	} // </advc.004j>
 	if (NO_PLAYER != getActivePlayer())

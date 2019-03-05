@@ -1493,6 +1493,11 @@ bool CyPlayer::isFoundedFirstCity()
 {
 	return m_pPlayer ? m_pPlayer->isFoundedFirstCity() : false;
 }
+// <advc.078>
+bool CyPlayer::isAnyGPPEver()
+{
+	return m_pPlayer ? m_pPlayer->isAnyGPPEver() : false;
+} // </advc.078>
 
 bool CyPlayer::isStrike()
 {

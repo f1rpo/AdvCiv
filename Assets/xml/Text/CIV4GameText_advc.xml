@@ -1281,14 +1281,14 @@
 		<Italian>PIL (oro+scienza)</Italian>
 		<Spanish>PNB (oro+ciencia)</Spanish>
 	</TEXT>
-	<!-- Only shortened the German translation -->
+	<!-- Shortened German, Italian, Spanish -->
 	<TEXT>
 		<Tag>TXT_KEY_DEMO_SCREEN_AGRICULTURE_TEXT</Tag>
 		<English>Crop Yield (Food)</English>
 		<French>R&#233;colte (Nour.)</French>
 		<German>Nahrungsertrag</German>
-		<Italian>Prod. raccolto (cibo)</Italian>
-		<Spanish>Rend. cosechas (Alim.)</Spanish>
+		<Italian>Raccolto (cibo)</Italian>
+		<Spanish>Cosechas (Alim.)</Spanish>
 	</TEXT>
 	<!-- Warlords has shortened these (CIV4GameText_Warlords_Civ4Changed.xml). 
 		 I'm keeping the Warlords version except for the German translation
@@ -1300,6 +1300,219 @@
 		<German>Produktion</German>
 		<Italian>Beni (Prod.)</Italian>
 		<Spanish>Merc.fabric.(Prod)</Spanish>
+	</TEXT>
+	
+	<!-- advc.077: The above is only used for the "Graphs" tab now. The
+		 following is for the "Demographics" tab, where icons can be used. -->
+	<TEXT>
+		<Tag>TXT_KEY_DEMOGRAPHICS_ECONOMY_TEXT</Tag>
+		<English>GNP</English>
+		<French>PNB</French>
+		<German>BSP</German>
+		<Italian>PIL</Italian>
+		<Spanish>PNB</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_DEMOGRAPHICS_AGRICULTURE_TEXT</Tag>
+		<English>Crop Yield</English>
+		<French>R&#233;colte</French>
+		<German>Erträge</German>
+		<Italian>Raccolto</Italian>
+		<Spanish>Cosechas</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_DEMOGRAPHICS_INDUSTRY_TEXT</Tag>
+		<English>Mfg. Goods</English>
+		<French>Marchandises</French>
+		<German>Industriegüter</German>
+		<Italian>Beni</Italian>
+		<Spanish>Merc. fabric.</Spanish>
+	</TEXT>
+	<!-- From CIV4GameTextInfos.xml: measures for "Demographics".
+		 Capitalization removed b/c no longer shown on a separate line.
+		 As for the leading spaces: I'm keeping these to be consistent with
+		 any _MEASURE keys that I don't change. -->
+	<!-- Was "gold". Using modern currencies is fine I think; says what that
+		 "gold" would be worth today. -->
+	<TEXT>
+		<Tag>TXT_KEY_DEMO_SCREEN_ECONOMY_MEASURE</Tag>
+		<English> million $</English>
+		<French> millions en euro</French>
+		<German> Mio. Euro</German>
+		<Italian>milioni d'euro</Italian>
+		<Spanish> mill. de euro</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_DEMO_SCREEN_INDUSTRY_MEASURE</Tag>
+		<English> million tons</English>
+		<French> mégatonnes</French>
+		<German> Mio. Tonnen</German>
+		<Italian>megaton</Italian>
+		<Spanish> megatones</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_DEMO_SCREEN_AGRICULTURE_MEASURE</Tag>
+		<English> million bushels</English>
+		<French> millions de boisseaux</French>
+		<German> Mio. Scheffel</German>
+		<Italian>milioni di stai</Italian>
+		<Spanish> mill. de fanegas</Spanish>
+	</TEXT>
+	<!-- Italian said "Popolazione" -->
+	<TEXT>
+		<Tag>TXT_KEY_DEMO_SCREEN_POPULATION_MEASURE</Tag>
+		<English> Years</English>
+		<French> Personnes</French>
+		<German> Jahre</German>
+		<Italian>Anni</Italian>
+		<Spanish> A&#241;os</Spanish>
+	</TEXT>
+	<!-- Use km^2 for all languages (was only French previously) -->
+	<TEXT>
+		<Tag>TXT_KEY_DEMO_SCREEN_LAND_AREA_MEASURE</Tag>
+		<English> km&#178;</English>
+		<French> Km&#178;</French>
+		<German> km&#178;</German>
+		<Italian>km&#178;</Italian>
+		<Spanish> km&#178;</Spanish>
+	</TEXT>
+	<!-- These two French names were too long for the best/ worst columns -->
+	<TEXT>
+		<Tag>TXT_KEY_LEADER_ALEXANDER</Tag>
+		<English>Alexander</English>
+		<French>
+			<Text>Alexandre</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</French>
+		<German>
+			<Text>Alexander</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</German>
+		<Italian>
+			<Text>Alessandro</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</Italian>
+		<Spanish>
+			<Text>Alejandro</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_LEADER_TOKUGAWA</Tag>
+		<English>Tokugawa</English>
+		<French>
+			<Text>Tokugawa</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</French>
+		<German>
+			<Text>Tokugawa</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</German>
+		<Italian>
+			<Text>Tokugawa</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</Italian>
+		<Spanish>
+			<Text>Tokugawa</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</Spanish>
+	</TEXT>
+	<!-- German spelling was long and unusual -->
+	<TEXT>
+		<Tag>TXT_KEY_LEADER_GENGHIS_KHAN</Tag>
+		<English>Genghis Khan</English>
+		<French>
+			<Text>Gengis</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</French>
+		<German>
+			<Text>Dschingis Khan</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</German>
+		<Italian>
+			<Text>Genghis Khan</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</Italian>
+		<Spanish>
+			<Text>Gengis Kan</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</Spanish>
+	</TEXT>
+	<!-- Spanish was too long -->
+	<TEXT>
+		<Tag>TXT_KEY_LEADER_ISABELLA</Tag>
+		<English>
+			<Text>Isabella</Text>
+			<Gender>Female</Gender>
+			<Plural>0</Plural>
+		</English>
+		<French>
+			<Text>Isabelle</Text>
+			<Gender>Female</Gender>
+			<Plural>0</Plural>
+		</French>
+		<German>
+			<Text>Isabella</Text>
+			<Gender>Female</Gender>
+			<Plural>0</Plural>
+		</German>
+		<Italian>
+			<Text>Isabella</Text>
+			<Gender>Female</Gender>
+			<Plural>0</Plural>
+		</Italian>
+		<Spanish>
+			<Text>Isabel</Text>
+			<Gender>Female</Gender>
+			<Plural>0</Plural>
+		</Spanish>
+	</TEXT>
+	<!-- From CIV4GameText_Misc1.xml. "ca." added b/c it's now
+		 an approximation. -->
+	<TEXT>
+		<Tag>TXT_KEY_DEMOGRAPHICS_SCREEN_RIVAL_AVERAGE</Tag>
+		<English>Rival Avg. (ca.)</English>
+		<French>Moy. rivaux (env.)</French>
+		<German>Gegn. Mittelw. (ca.)</German>
+		<Italian>Media rivali (ca.)</Italian>
+		<Spanish>Medio rival (aprox.)</Spanish>
+	</TEXT>
+	<!-- Just the German translations ("rival" was translated as a verb) -->
+	<TEXT>
+		<Tag>TXT_KEY_INFO_RIVAL_BEST</Tag>
+		<English>Rival Best</English>
+		<French>Meilleur rival</French>
+		<German>Stärkster Gegner</German>
+		<Italian>Migliore rivale</Italian>
+		<Spanish>Mejor rival</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_INFO_RIVAL_WORST</Tag>
+		<English>Rival Worst</English>
+		<French>Pire rival</French>
+		<German>Schwächster Gegner</German>
+		<Italian>Peggiore rivale</Italian>
+		<Spanish>Peor rival</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_THOUSANDS_SEPARATOR</Tag>
+		<English>,</English>
+		<French>[SPACE]</French>
+		<German>.</German>
+		<Italian>.</Italian>
+		<Spanish>.</Spanish>
 	</TEXT>
 	
 	<!-- advc.150a: Akin to TXT_KEY_MISC_PLAYER_CONVERT_RELIGION in

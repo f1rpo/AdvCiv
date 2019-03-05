@@ -6086,6 +6086,9 @@ int CvCity::getGreatPeopleProgress() const
 
 void CvCity::changeGreatPeopleProgress(int iChange)
 {
+	// <advc.078>
+	if(m_iGreatPeopleProgress <= 0 && iChange > 0)
+		GET_PLAYER(getOwnerINLINE()).reportFirstGPP(); // </advc.078>
 	m_iGreatPeopleProgress = (m_iGreatPeopleProgress + iChange);
 	FAssert(getGreatPeopleProgress() >= 0);
 }

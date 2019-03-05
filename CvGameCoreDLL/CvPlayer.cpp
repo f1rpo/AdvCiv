@@ -759,6 +759,7 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	m_bPbemNewTurn = false;
 	m_bExtendedGame = false;
 	m_bFoundedFirstCity = false;
+	m_bAnyGPPEver = false; // advc.078
 	m_bStrike = false;
 	m_bDisableHuman = false; // bbai
 	m_iChoosingFreeTechCount = 0; // K-Mod
@@ -1547,8 +1548,7 @@ void CvPlayer::initFreeUnits()
 		iPoints /= 100;
 
 		if (!isHuman()
-			&& !g.isOption(GAMEOPTION_SPAH) // advc.250b
-			)
+			&& !g.isOption(GAMEOPTION_SPAH)) // advc.250b
 		{	/*  advc.250b, advc.001: Was this->getHandicapType(), i.e. Noble, which
 				means that this code block did nothing. */
 			iPoints *= GC.getHandicapInfo(g.getHandicapType()).getAIAdvancedStartPercent();
@@ -1682,7 +1682,7 @@ void CvPlayer::addFreeUnitAI(UnitAITypes eUnitAI, int iCount)
 					}
 				}
 
-				// <advc.307> Machine Gun not useful enough against barbarians.
+				// <advc.307> Machine Gun not useful enough against Barbarians
 				if(eUnitAI == UNITAI_CITY_DEFENSE &&
 						GC.getUnitInfo(eLoopUnit).isOnlyDefensive())
 					bValid = false; // </advc.307>
@@ -11269,10 +11269,10 @@ void CvPlayer::setCombatExperience(int iExperience)
 				}
 			}
 		}
-	} // <advc.004>
+	} // <advc.078>
 	if(getID() == g.getActivePlayer() && getBugOptionBOOL("MainInterface__Combat_Counter", false))
 		gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true);
-	// </advc.004>
+	// </advc.078>
 }
 
 void CvPlayer::changeCombatExperience(int iChange)
@@ -11977,6 +11977,17 @@ void CvPlayer::setFoundedFirstCity(bool bNewValue)
 		}
 	}
 }
+
+// <advc.078>
+bool CvPlayer::isAnyGPPEver() const
+{
+	return m_bAnyGPPEver;
+}
+
+void CvPlayer::reportFirstGPP()
+{
+	m_bAnyGPPEver = true;
+} // </advc.078>
 
 
 bool CvPlayer::isStrike() const																			
@@ -18424,6 +18435,9 @@ void CvPlayer::read(FDataStreamBase* pStream)
 	pStream->Read(&m_bPbemNewTurn);
 	pStream->Read(&m_bExtendedGame);
 	pStream->Read(&m_bFoundedFirstCity);
+	// <advc.078>
+	if(uiFlag >= 9)
+		pStream->Read(&m_bAnyGPPEver); // </advc.078>
 	pStream->Read(&m_bStrike);
 	// K-Mod
 	if (uiFlag >= 4)
@@ -18831,6 +18845,7 @@ void CvPlayer::write(FDataStreamBase* pStream)
 	uiFlag = 5; // advc.908a
 	uiFlag = 7; // advc.912c (6 used up for a test version)
 	uiFlag = 8; // advc.004x
+	uiFlag = 9; // advc.078
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iStartingX);
@@ -18938,6 +18953,7 @@ void CvPlayer::write(FDataStreamBase* pStream)
 	pStream->Write(m_bPbemNewTurn && GC.getGameINLINE().isPbem());
 	pStream->Write(m_bExtendedGame);
 	pStream->Write(m_bFoundedFirstCity);
+	pStream->Write(m_bAnyGPPEver); // advc.078
 	pStream->Write(m_bStrike);
 	pStream->Write(m_iChoosingFreeTechCount); // K-Mod (bool for 2 <= uiFlag < 4. then int.)
 
