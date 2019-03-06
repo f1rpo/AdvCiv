@@ -92,7 +92,7 @@ public:
 	void updateAirStrike(CvPlot* pPlot, bool bQuick, bool bFinish);
 
 	bool isActionRecommended(int iAction);
-	void updateFoundingBorder() const; // advc.004h
+	void updateFoundingBorder(bool bForceClear = false) const; // advc.004h
 
 	bool isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker) const;						// Exposed to Python 
 	bool isUnowned() const; // advc.061
@@ -275,6 +275,7 @@ public:
 	int getStackExperienceToGive(int iNumUnits) const;
 
 	int upgradePrice(UnitTypes eUnit) const;																											// Exposed to Python
+	int upgradeXPChange(UnitTypes eUnit) const; // advc.080
 	bool upgradeAvailable(UnitTypes eFromUnit, UnitClassTypes eToUnitClass, int iCount = 0) const;					// Exposed to Python
 	bool canUpgrade(UnitTypes eUnit, bool bTestVisible = false) const;														// Exposed to Python
 	bool isReadyForUpgrade() const;

@@ -190,6 +190,8 @@ public:
 	int findBestFoundValue() const;																																				// Exposed to Python
 
 	int upgradeAllPrice(UnitTypes eUpgradeUnit, UnitTypes eFromUnit) const; // advc.003: const
+	// advc.080:
+	int upgradeAllXPChange(UnitTypes eUpgradeUnit, UnitTypes eFromUnit) const;
 
 	// note: bbai added bIncludeTraining to the following two functions.
 	int countReligionSpreadUnits(CvArea* pArea, ReligionTypes eReligion, bool bIncludeTraining = false) const;														// Exposed to Python

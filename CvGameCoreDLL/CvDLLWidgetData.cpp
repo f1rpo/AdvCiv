@@ -2088,33 +2088,46 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 			}
 			else if (kAction.getCommandType() == COMMAND_UPGRADE)
 			{
-				GAMETEXT.setBasicUnitHelp(szBuffer, (UnitTypes)kAction.getCommandData());
+				UnitTypes eTo = (UnitTypes)kAction.getCommandData(); // advc.003
+				GAMETEXT.setBasicUnitHelp(szBuffer, eTo);
 
+				// <advc.080>
+				int iLostXP = 0;
+				bool bSingleUnit = true; // </advc.080>
 				int iPrice = 0;
 				if (bAlt && GC.getCommandInfo((CommandTypes)kAction.getCommandType()).getAll())
 				{
-					iPrice = GET_PLAYER(pHeadSelectedUnit->getOwnerINLINE()).
-							upgradeAllPrice((UnitTypes) kAction.getCommandData(),
-							pHeadSelectedUnit->getUnitType());
+					CvPlayer const& kHeadOwner = GET_PLAYER(pHeadSelectedUnit->getOwnerINLINE());
+					UnitTypes eFrom = pHeadSelectedUnit->getUnitType();
+					iPrice = kHeadOwner.upgradeAllPrice(eTo, eFrom);
+					// <advc.080>
+					iLostXP = -kHeadOwner.upgradeAllXPChange(eTo, eFrom);
+					bSingleUnit = false; // </advc.080>
 				}
 				else
 				{
 					pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-
 					while (pSelectedUnitNode != NULL)
 					{
 						pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-
-						if (pSelectedUnit->canUpgrade((UnitTypes)kAction.getCommandData(), true))
+						if (pSelectedUnit->canUpgrade(eTo, true))
 						{
-							iPrice += pSelectedUnit->upgradePrice((UnitTypes)
-									kAction.getCommandData());
+							iPrice += pSelectedUnit->upgradePrice(eTo);
+							// advc.080:
+							iLostXP -= pSelectedUnit->upgradeXPChange(eTo);
 						}
-
 						pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+						// <advc.080>
+						if(pSelectedUnitNode != NULL)
+							bSingleUnit = false; // </advc.080>
 					}
-				}
-
+				} // <advc.080>
+				if(iLostXP > 0) {
+					szBuffer.append(NEWLINE);
+					if(bSingleUnit)
+						szBuffer.append(gDLL->getText("TXT_KEY_MISC_LOST_XP", iLostXP));
+					else szBuffer.append(gDLL->getText("TXT_KEY_MISC_LOST_XP_TOTAL", iLostXP));
+				} // </advc.080>
 				szTempBuffer.Format(L"%s%d %c", NEWLINE, iPrice, GC.getCommerceInfo(COMMERCE_GOLD).getChar());
 				szBuffer.append(szTempBuffer);
 			}

@@ -5170,4 +5170,22 @@
 		<Spanish>[ICON_BULLET]Da&#241;o m&#225;ximo de %d1%% al enemigo en ataque</Spanish>
 	</TEXT>
 	
+	<!-- advc.080 -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_LOST_XP</Tag>
+		<English>[COLOR_WARNING_TEXT]Will lose %d1 XP[COLOR_REVERT]</English>
+		<French>[COLOR_WARNING_TEXT]Perdra %d1 EXP[COLOR_REVERT]</French>
+		<German>[COLOR_WARNING_TEXT]Verliert %d1 EP[COLOR_REVERT]</German>
+		<Italian>[COLOR_WARNING_TEXT]Perderà %d1 XP[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_WARNING_TEXT]Perderá %d1 PX[COLOR_REVERT]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_LOST_XP_TOTAL</Tag>
+		<English>[COLOR_WARNING_TEXT]Will lose %d1 XP in total[COLOR_REVERT]</English>
+		<French>[COLOR_WARNING_TEXT]Perte totale d'EXP: %d1[COLOR_REVERT]</French>
+		<German>[COLOR_WARNING_TEXT]Verlorene Erfahrung: %d1[COLOR_REVERT]</German>
+		<Italian>[COLOR_WARNING_TEXT]Perderanno %d1 XP in totale[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_WARNING_TEXT]Perderán %d1 PX en total[COLOR_REVERT]</Spanish>
+	</TEXT>
+	
 </Civ4GameText>

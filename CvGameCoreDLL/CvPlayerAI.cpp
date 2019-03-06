@@ -322,6 +322,11 @@ void CvPlayerAI::AI_reset(bool bConstructor)
 		m_aiPeacetimeGrantValue[iI] = 0;
 		m_aiGoldTradedTo[iI] = 0;
 		m_aiAttitudeExtra[iI] = 0;
+		// <advc.079>
+		if(iI < MAX_CIV_PLAYERS) {
+			m_aeLastBrag[iI] = NO_UNIT;
+			m_aeLastWarn[iI] = NO_TEAM;
+		} // </advc.079>
 		m_abFirstContact[iI] = false;
 		for (int iJ = 0; iJ < NUM_CONTACT_TYPES; iJ++)
 		{
@@ -344,6 +349,11 @@ void CvPlayerAI::AI_reset(bool bConstructor)
 			kLoopPlayer.m_aiPeacetimeGrantValue[getID()] = 0;
 			kLoopPlayer.m_aiGoldTradedTo[getID()] = 0;
 			kLoopPlayer.m_aiAttitudeExtra[getID()] = 0;
+			// <advc.079>
+			if(getID() < MAX_CIV_PLAYERS) {
+				kLoopPlayer.m_aeLastBrag[getID()] = NO_UNIT;
+				kLoopPlayer.m_aeLastWarn[getID()] = NO_TEAM;
+			} // </advc.079>
 			kLoopPlayer.m_abFirstContact[getID()] = false;
 			for (int iJ = 0; iJ < NUM_CONTACT_TYPES; iJ++)
 			{
@@ -8997,30 +9007,73 @@ void CvPlayerAI::AI_chooseResearch()
 
 DiploCommentTypes CvPlayerAI::AI_getGreeting(PlayerTypes ePlayer) const
 {
-	TeamTypes eWorstEnemy;
-
-	if (GET_PLAYER(ePlayer).getTeam() != getTeam())
-	{
-		eWorstEnemy = GET_TEAM(getTeam()).AI_getWorstEnemy();
-
-		if ((eWorstEnemy != NO_TEAM) && (eWorstEnemy != GET_PLAYER(ePlayer).getTeam()) && GET_TEAM(GET_PLAYER(ePlayer).getTeam()).isHasMet(eWorstEnemy) && (GC.getASyncRand().get(4) == 0))
+	if (TEAMID(ePlayer) != getTeam())
+	{	// <advc.079>
+		// Checks moved up
+		bool bBrag = (GET_PLAYER(ePlayer).getPower() < getPower() &&
+				AI_getAttitude(ePlayer) < ATTITUDE_PLEASED);
+		if(bBrag) {
+			int iDemandRand = GC.getLeaderHeadInfo(getPersonalityType()).
+					getContactRand(CONTACT_DEMAND_TRIBUTE);
+			if(iDemandRand < 400) {
+				if(!GET_PLAYER(ePlayer).canSeeTech(getID()) ||
+						!GET_PLAYER(ePlayer).canTradeNetworkWith(getID())) {
+					UnitTypes eBragUnit = AI_getBestAttackUnit();
+					if(eBragUnit != NO_UNIT) {
+						/*double prBrag = 0;
+						if(iDemandRand > 0) // e.g. 25 -> 73.1%; 1000 -> 16.9%
+							prBrag = 0.01 * (80 - std::pow((double)iDemandRand, 0.6));
+						std::vector<long> inputs;
+						inputs.push_back(eBragUnit);
+						inputs.push_back(ePlayer);
+						if(::hash(inputs, getID()) < prBrag) */
+						// ^Don't randomize this after all; instead check <400 above.
+						{	// If we haven't bragged before, do it promptly.
+							if(eBragUnit != m_aeLastBrag[ePlayer]) {
+								const_cast<CvPlayerAI*>(this)->
+										m_aeLastBrag[ePlayer] = eBragUnit;
+								return (DiploCommentTypes)GC.getInfoTypeForString(
+									"AI_DIPLOCOMMENT_UNIT_BRAG");
+							} // else: Use BtS code below
+						} // Never brag about this unit to ePlayer
+						//else bBrag = false;
+					}
+					else bBrag = false;
+				}
+			}
+			else bBrag = false;
+		} // </advc.079>
+		TeamTypes eWorstEnemy = GET_TEAM(getTeam()).AI_getWorstEnemy();
+		if (eWorstEnemy != NO_TEAM && eWorstEnemy != TEAMID(ePlayer) &&
+				TEAMREF(ePlayer).isHasMet(eWorstEnemy) &&
+				0 == GC.getASyncRand().get(4
+				// <advc.079>
+				+ (m_aeLastWarn[ePlayer] != eWorstEnemy ? -2 : 2)))
 		{
-			if (GET_PLAYER(ePlayer).AI_hasTradedWithTeam(eWorstEnemy) && !atWar(GET_PLAYER(ePlayer).getTeam(), eWorstEnemy))
+			const_cast<CvPlayerAI*>(this)->m_aeLastWarn[ePlayer] = eWorstEnemy;
+			// </advc.079>
+			if (GET_PLAYER(ePlayer).AI_hasTradedWithTeam(eWorstEnemy) &&
+					!atWar(TEAMID(ePlayer), eWorstEnemy))
 			{
-				return (DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_WORST_ENEMY_TRADING");
+				return (DiploCommentTypes)GC.getInfoTypeForString(
+						"AI_DIPLOCOMMENT_WORST_ENEMY_TRADING");
 			}
 			else
 			{
-				return (DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_WORST_ENEMY");
+				return (DiploCommentTypes)GC.getInfoTypeForString(
+						"AI_DIPLOCOMMENT_WORST_ENEMY");
 			}
 		}
-		else if ((getNumNukeUnits() > 0) && (GC.getASyncRand().get(4) == 0))
+		else if (getNumNukeUnits() > 0 && GC.getASyncRand().get(4) == 0)
 		{
-			return (DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_NUKES");
+			return (DiploCommentTypes)GC.getInfoTypeForString(
+					"AI_DIPLOCOMMENT_NUKES");
 		}
-		else if ((GET_PLAYER(ePlayer).getPower() < getPower()) && AI_getAttitude(ePlayer) < ATTITUDE_PLEASED && (GC.getASyncRand().get(4) == 0))
+		else if (bBrag && // advc.079
+				GC.getASyncRand().get(4) == 0)
 		{
-			return (DiploCommentTypes)GC.getInfoTypeForString("AI_DIPLOCOMMENT_UNIT_BRAG");
+			return (DiploCommentTypes)GC.getInfoTypeForString(
+					"AI_DIPLOCOMMENT_UNIT_BRAG");
 		}
 	}
 
@@ -9195,22 +9248,20 @@ bool CvPlayerAI::AI_demandRebukedWar(PlayerTypes ePlayer) const
 // XXX maybe make this a little looser (by time...)
 bool CvPlayerAI::AI_hasTradedWithTeam(TeamTypes eTeam) const
 {
-	int iI;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	if(getCurrentEra() <= GC.getGameINLINE().getStartEra()) // advc.079
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
+		for (int iI = 0; iI < MAX_PLAYERS; iI++)
 		{
-			if (GET_PLAYER((PlayerTypes)iI).getTeam() == eTeam)
-			{
-				if ((AI_getPeacetimeGrantValue((PlayerTypes)iI) + AI_getPeacetimeTradeValue((PlayerTypes)iI)) > 0)
-				{
-					return true;
-				}
-			}
-		}
-	}
+			CvPlayer const& kTeamMember = GET_PLAYER((PlayerTypes)iI);
+			if (!kTeamMember.isAlive() || kTeamMember.getTeam() != eTeam)
+				continue;
 
+			if (AI_getPeacetimeGrantValue(kTeamMember.getID()) +
+					AI_getPeacetimeTradeValue(kTeamMember.getID()) > 0)
+				return true;
+		}
+	} // advc.079: Addressing the XXX comment above
+	else return canStopTradingWithTeam(eTeam);
 	return false;
 }
 
@@ -22221,6 +22272,15 @@ void CvPlayerAI::read(FDataStreamBase* pStream)
 	pStream->Read(MAX_PLAYERS, m_aiPeacetimeGrantValue);
 	pStream->Read(MAX_PLAYERS, m_aiGoldTradedTo);
 	pStream->Read(MAX_PLAYERS, m_aiAttitudeExtra);
+	// <advc.079>
+	if(uiFlag >= 12) { int iTmp;
+		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+			pStream->Read(&iTmp);
+			m_aeLastBrag[i] = (UnitTypes)iTmp;
+			pStream->Read(&iTmp);
+			m_aeLastWarn[i] = (TeamTypes)iTmp;
+		}
+	} // </advc.079>
 	// K-Mod. Load the attitude cache. (originally, in BBAI and the CAR Mod, this was not saved.
 	// But there are rare situations in which it needs to be saved/read to avoid OOS errors.)
 	if (uiFlag >= 4)
@@ -22327,6 +22387,7 @@ void CvPlayerAI::write(FDataStreamBase* pStream)
 	uiFlag = 9; // advc.148
 	uiFlag = 10; // advc.036
 	uiFlag = 11; // advc.104i
+	uiFlag = 12; // advc.079
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iPeaceWeight);
@@ -22366,6 +22427,11 @@ void CvPlayerAI::write(FDataStreamBase* pStream)
 	pStream->Write(MAX_PLAYERS, m_aiPeacetimeGrantValue);
 	pStream->Write(MAX_PLAYERS, m_aiGoldTradedTo);
 	pStream->Write(MAX_PLAYERS, m_aiAttitudeExtra);
+	// <advc.079>
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+		pStream->Write(m_aeLastBrag[i]);
+		pStream->Write(m_aeLastWarn[i]);
+	} // </advc.079>
 	// K-Mod. save the attitude cache. (to avoid OOS problems)
 	pStream->Write(MAX_PLAYERS, &m_aiAttitudeCache[0]); // uiFlag >= 4
 	// K-Mod end
@@ -28844,6 +28910,28 @@ bool CvPlayerAI::AI_haveResourcesToTrain(UnitTypes eUnit) const
 
 	return !bMissingBonus;
 } // </k146>
+
+// advc.079: Cut from CvPlayer::getBestAttackUnitKey and refactored
+UnitTypes CvPlayerAI::AI_getBestAttackUnit() const {
+
+	UnitTypes eBestUnit = NO_UNIT;
+
+	CvCity* pCapitalCity = getCapitalCity();
+	if(pCapitalCity != NULL) {
+		eBestUnit = pCapitalCity->AI_bestUnitAI(UNITAI_ATTACK, true);
+		if(eBestUnit != NO_UNIT)
+			return eBestUnit;
+	}
+
+	int iLoop=-1;
+	for(CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL;
+			pLoopCity = nextCity(&iLoop)) {
+		eBestUnit = pLoopCity->AI_bestUnitAI(UNITAI_ATTACK, true);
+		if(eBestUnit != NO_UNIT)
+			break;
+	}
+	return eBestUnit;
+}
 
 // <advc.033> Are we willing to attack/pillage them with hidden-nationality units
 bool CvPlayerAI::AI_isPiracyTarget(PlayerTypes targetId) const {

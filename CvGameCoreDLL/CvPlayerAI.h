@@ -566,6 +566,7 @@ public:
 	void AI_ClearConstructionValueCache(); // K-Mod
 	// k146: Used in conjuction with canTrain
 	bool AI_haveResourcesToTrain(UnitTypes eUnit) const;
+	UnitTypes AI_getBestAttackUnit() const; // advc.079
 
 	// <advc.104>
 	WarAndPeaceAI::Civ& warAndPeaceAI();
@@ -661,6 +662,9 @@ protected:
 	int* m_aiPeacetimeGrantValue;
 	int* m_aiGoldTradedTo;
 	int* m_aiAttitudeExtra;
+	// <advc.079>
+	UnitTypes m_aeLastBrag[MAX_CIV_PLAYERS];
+	TeamTypes m_aeLastWarn[MAX_CIV_PLAYERS]; // </advc.079>
 	int* m_aiBonusValue;
 	int* m_aiBonusValueTrade; // advc.036
 	int* m_aiUnitClassWeights;

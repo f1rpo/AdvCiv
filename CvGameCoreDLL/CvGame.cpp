@@ -921,10 +921,29 @@ void CvGame::initFreeState()
 				GC.getMapINLINE().setRevealedPlots((TeamTypes)iJ, true, true); 
 			}
 		}
+	} // <advc.051>
+	if(isScenario() && getStartEra() <= 0) { // Set start era based on player era
+		//int iMinEra = NO_ERA;
+		int iEraSum = 0; // Better use the mean
+		int iMajorCivs = 0;
+		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+			CvPlayer const& civ = GET_PLAYER((PlayerTypes)i);
+			if(civ.isAlive() && !civ.isMinorCiv()) {
+				int iEra = civ.getCurrentEra();
+				/*if(iMinEra == NO_ERA)
+					iMinEra = iEra;
+				else iMinEra = std::min(iMinEra, iEra);*/
+				iEraSum += iEra;
+				iMajorCivs++;
+			}
+		}
+		int iStartEra = iEraSum / std::max(iMajorCivs, 1);//=iMinEra
+		if(iStartEra > getStartEra())
+			GC.getInitCore().setEra((EraTypes)iStartEra);
 	}
 }
 
-// <advc.051>
+
 void CvGame::initScenario() {
 
 	initFreeState(); // Tech from handicap

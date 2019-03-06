@@ -3507,33 +3507,8 @@ const CvWString CvPlayer::getWorstEnemyName() const
 }
 
 const wchar* CvPlayer::getBestAttackUnitKey() const
-{
-	CvCity* pCapitalCity;
-	CvCity* pLoopCity;
-	UnitTypes eBestUnit;
-	int iLoop;
-
-	eBestUnit = NO_UNIT;
-
-	pCapitalCity = getCapitalCity();
-
-	if (pCapitalCity != NULL)
-	{
-		eBestUnit = pCapitalCity->AI_bestUnitAI(UNITAI_ATTACK, true);
-	}
-
-	if (eBestUnit == NO_UNIT)
-	{
-		for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
-		{
-			eBestUnit = pLoopCity->AI_bestUnitAI(UNITAI_ATTACK, true);
-
-			if (eBestUnit != NO_UNIT)
-			{
-				break;
-			}
-		}
-	}
+{	// advc.079: Code moved into subroutine
+	UnitTypes eBestUnit = AI().AI_getBestAttackUnit();
 
 	if (eBestUnit != NO_UNIT)
 	{
@@ -3542,7 +3517,6 @@ const wchar* CvPlayer::getBestAttackUnitKey() const
 
 	return L"TXT_KEY_MISC_NO_UNIT";
 }
-
 
 ArtStyleTypes CvPlayer::getArtStyleType() const
 {
@@ -4266,6 +4240,17 @@ int CvPlayer::upgradeAllPrice(UnitTypes eUpgradeUnit, UnitTypes eFromUnit) const
 
 	return iPrice;
 }
+
+// <advc.080> Based on upgradeAllPrice
+int CvPlayer::upgradeAllXPChange(UnitTypes eUpgradeUnit, UnitTypes eFromUnit) const {
+
+	int r = 0; int foo=-1;
+	for(CvUnit* u = firstUnit(&foo); u != NULL; u = nextUnit(&foo)) {
+		if(u->getUnitType() == eFromUnit && u->canUpgrade(eUpgradeUnit, true))
+			r += u->upgradeXPChange(eUpgradeUnit);
+	}
+	return r;
+} // </advc.080>
 
 int CvPlayer::countReligionSpreadUnits(CvArea* pArea, ReligionTypes eReligion, bool bIncludeTraining) const
 {
@@ -15427,7 +15412,7 @@ TechTypes CvPlayer::getStealCostTech(PlayerTypes eTargetPlayer) const {
 	return r;
 }
 
-// <advc.104>
+// <advc.104>  (also used for advc.079)
 bool CvPlayer::canSeeTech(PlayerTypes otherId) const {
 
 	// Partly based on drawTechDeals in ExoticForeignAdvisor.py

@@ -555,6 +555,9 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 	
 	CvPlot* pPlot = plot();
 	FAssert(pPlot);
+	// <advc.004h>
+	if(canFound() && isHuman())
+		updateFoundingBorder(true); // </advc.004h>
 
 	CLLNode<IDInfo>* pUnitNode = pPlot->headUnitNode();
 	while (pUnitNode)
@@ -2075,14 +2078,14 @@ bool CvUnit::isActionRecommended(int iAction)
 }
 
 // <advc.004h>
-void CvUnit::updateFoundingBorder() const {
+void CvUnit::updateFoundingBorder(bool bForceClear) const {
 
 	int iMode = getBugOptionINT("MainInterface__FoundingBorder", 2);
 	if(getBugOptionBOOL("MainInterface__FoundingYields", false) && iMode == 1)
 		return; // BtS behavior
 	gDLL->getEngineIFace()->clearAreaBorderPlots(AREA_BORDER_LAYER_FOUNDING_BORDER);
 	gDLL->getInterfaceIFace()->setDirty(ColoredPlots_DIRTY_BIT, true);
-	if(iMode <= 0 || !canFound())
+	if(bForceClear || iMode <= 0 || !canFound())
 		return;
 	CvSelectionGroup* gr = getGroup();
 	for(CLLNode<IDInfo>* node = gr->headUnitNode(); node != NULL; node = gr->nextUnitNode(node)) {
@@ -7700,29 +7703,19 @@ int CvUnit::getStackExperienceToGive(int iNumUnits) const
 
 int CvUnit::upgradePrice(UnitTypes eUnit) const
 {
-	int iPrice;
-
-	CyArgsList argsList;
-	argsList.add(getOwnerINLINE());
-	argsList.add(getID());
-	argsList.add((int) eUnit);
-	long lResult=0;
-
-	if (GC.getUSE_UNIT_UPGRADE_PRICE_CALLBACK()) // K-Mod. block unused python callbacks
-	{
+	if (GC.getUSE_UNIT_UPGRADE_PRICE_CALLBACK()) { // K-Mod. block unused python callbacks
+		CyArgsList argsList; argsList.add(getOwnerINLINE());
+		argsList.add(getID()); argsList.add((int) eUnit);
+		long lResult=0;
 		gDLL->getPythonIFace()->callFunction(PYGameModule, "getUpgradePriceOverride", argsList.makeFunctionArgs(), &lResult);
 		if (lResult >= 0)
-		{
 			return lResult;
-		}
 	}
 
 	if (isBarbarian())
-	{
 		return 0;
-	}
 
-	iPrice = GC.getDefineINT("BASE_UNIT_UPGRADE_COST");
+	int iPrice = GC.getDefineINT("BASE_UNIT_UPGRADE_COST");
 
 	iPrice += (std::max(0, (GET_PLAYER(getOwnerINLINE()).getProductionNeeded(eUnit) - GET_PLAYER(getOwnerINLINE()).getProductionNeeded(getUnitType()))) * GC.getDefineINT("UNIT_UPGRADE_COST_PER_PRODUCTION"));
 
@@ -7734,11 +7727,20 @@ int CvUnit::upgradePrice(UnitTypes eUnit) const
 		/*iPrice *= std::max(0, ((GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getAIPerEraModifier() * GET_PLAYER(getOwnerINLINE()).getCurrentEra()) + 100));
 		iPrice /= 100;*/
 	}
-
 	iPrice -= (iPrice * getUpgradeDiscount()) / 100;
 
 	return iPrice;
 }
+
+// <advc.080> Based on code cut from CvUnit::upgrade. The param is (so far) unused.
+int CvUnit::upgradeXPChange(UnitTypes eUnit) const {
+
+	if(getLeaderUnitType() != NO_UNIT)
+		return 0;
+
+	return std::min(0, GC.getDefineINT("MAX_EXPERIENCE_AFTER_UPGRADE") -
+			getExperience());
+} // </advc.080>
 
 
 bool CvUnit::upgradeAvailable(UnitTypes eFromUnit, UnitClassTypes eToUnitClass, int iCount) const
@@ -8069,14 +8071,8 @@ CvUnit* CvUnit::upgrade(UnitTypes eUnit) // K-Mod: this now returns the new unit
 	pUpgradeUnit->joinGroup(getGroup()); // K-Mod, swapped order with convert. (otherwise units on boats would be ungrouped.)
 
 	pUpgradeUnit->finishMoves();
-
-	if (pUpgradeUnit->getLeaderUnitType() == NO_UNIT)
-	{
-		if (pUpgradeUnit->getExperience() > GC.getDefineINT("MAX_EXPERIENCE_AFTER_UPGRADE"))
-		{
-			pUpgradeUnit->setExperience(GC.getDefineINT("MAX_EXPERIENCE_AFTER_UPGRADE"));
-		}
-	}
+	// advc.080: Moved into subroutine
+	pUpgradeUnit->changeExperience(pUpgradeUnit->upgradeXPChange(eUnit));
 
 	if (gUnitLogLevel > 2)
 	{

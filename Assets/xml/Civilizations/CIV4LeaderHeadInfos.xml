@@ -3599,8 +3599,9 @@
 					<iContactRand>250</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.005a: was 1000 -->
 					<ContactType>CONTACT_DEMAND_TRIBUTE</ContactType>
-					<iContactRand>1000</iContactRand>
+					<iContactRand>25</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<!-- advc.124: was 20 -->
@@ -4246,8 +4247,9 @@
 					<iContactRand>25</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.005a: was 50 -->
 					<ContactType>CONTACT_DEMAND_TRIBUTE</ContactType>
-					<iContactRand>50</iContactRand>
+					<iContactRand>750</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<!-- advc.124: was 20 -->
@@ -4891,8 +4893,9 @@
 					<iContactRand>250</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.005a: was 1000 -->
 					<ContactType>CONTACT_DEMAND_TRIBUTE</ContactType>
-					<iContactRand>1000</iContactRand>
+					<iContactRand>250</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<!-- advc.124: was 20 -->
@@ -7496,8 +7499,9 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.005a: was 25 -->
 					<ContactType>CONTACT_DEMAND_TRIBUTE</ContactType>
-					<iContactRand>25</iContactRand>
+					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<!-- advc.124: was 20 -->
@@ -10068,8 +10072,9 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.005a: was 25 -->
 					<ContactType>CONTACT_DEMAND_TRIBUTE</ContactType>
-					<iContactRand>25</iContactRand>
+					<iContactRand>250</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<!-- advc.124: was 20 -->
@@ -10716,8 +10721,9 @@
 					<iContactRand>100</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.250a: was 500 -->
 					<ContactType>CONTACT_DEMAND_TRIBUTE</ContactType>
-					<iContactRand>500</iContactRand>
+					<iContactRand>250</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<!-- advc.124: was 20 -->
@@ -11356,8 +11362,9 @@
 					<iContactRand>100</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.005a: was 500 -->
 					<ContactType>CONTACT_DEMAND_TRIBUTE</ContactType>
-					<iContactRand>500</iContactRand>
+					<iContactRand>250</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<!-- advc.124: was 20 -->
@@ -13959,8 +13966,9 @@
 					<iContactRand>100</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.005a: was 50 -->
 					<ContactType>CONTACT_DEMAND_TRIBUTE</ContactType>
-					<iContactRand>50</iContactRand>
+					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<!-- advc.124: was 20 -->
@@ -14622,8 +14630,9 @@
 					<iContactRand>100</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.005a: was 50 -->
 					<ContactType>CONTACT_DEMAND_TRIBUTE</ContactType>
-					<iContactRand>50</iContactRand>
+					<iContactRand>250</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<!-- advc.124: was 20 -->
@@ -16570,8 +16579,9 @@
 					<iContactRand>100</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.005a: was 500 -->
 					<ContactType>CONTACT_DEMAND_TRIBUTE</ContactType>
-					<iContactRand>500</iContactRand>
+					<iContactRand>25</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<!-- advc.124: was 20 -->
@@ -17871,8 +17881,9 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.005a: was 50 -->
 					<ContactType>CONTACT_DEMAND_TRIBUTE</ContactType>
-					<iContactRand>50</iContactRand>
+					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<!-- advc.124: was 20 -->
@@ -19810,9 +19821,10 @@
 					<ContactType>CONTACT_ASK_FOR_HELP</ContactType>
 					<iContactRand>250</iContactRand>
 				</ContactRand>
+				<!-- advc.005a: was 1000 -->
 				<ContactRand>
 					<ContactType>CONTACT_DEMAND_TRIBUTE</ContactType>
-					<iContactRand>1000</iContactRand>
+					<iContactRand>25</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<!-- advc.124: was 20 -->
@@ -20456,8 +20468,9 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.005a: was 25 -->
 					<ContactType>CONTACT_DEMAND_TRIBUTE</ContactType>
-					<iContactRand>25</iContactRand>
+					<iContactRand>50</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<!-- advc.124: was 20 -->
@@ -21103,8 +21116,9 @@
 					<iContactRand>500</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.005a: was 25 -->
 					<ContactType>CONTACT_DEMAND_TRIBUTE</ContactType>
-					<iContactRand>25</iContactRand>
+					<iContactRand>250</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<!-- advc.124: was 20 -->
@@ -25023,9 +25037,10 @@
 					<ContactType>CONTACT_ASK_FOR_HELP</ContactType>
 					<iContactRand>250</iContactRand>
 				</ContactRand>
+				<!-- advc.005a: was 1000 -->
 				<ContactRand>
 					<ContactType>CONTACT_DEMAND_TRIBUTE</ContactType>
-					<iContactRand>1000</iContactRand>
+					<iContactRand>25</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<!-- advc.124: was 20 -->
@@ -26985,8 +27000,9 @@
 					<iContactRand>250</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.005a: was 1000 -->
 					<ContactType>CONTACT_DEMAND_TRIBUTE</ContactType>
-					<iContactRand>1000</iContactRand>
+					<iContactRand>25</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<!-- advc.124: was 20 -->
@@ -27626,8 +27642,9 @@
 					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.005a: was 25 -->
 					<ContactType>CONTACT_DEMAND_TRIBUTE</ContactType>
-					<iContactRand>25</iContactRand>
+					<iContactRand>1000</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<!-- advc.124: was 20 -->
@@ -29585,8 +29602,9 @@
 					<iContactRand>100</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.005a: was 500 -->
 					<ContactType>CONTACT_DEMAND_TRIBUTE</ContactType>
-					<iContactRand>500</iContactRand>
+					<iContactRand>250</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<!-- advc.124: was 20 -->
@@ -31530,8 +31548,9 @@
 					<iContactRand>250</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.005a: was 1000 -->
 					<ContactType>CONTACT_DEMAND_TRIBUTE</ContactType>
-					<iContactRand>1000</iContactRand>
+					<iContactRand>250</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<!-- advc.124: was 20 -->
