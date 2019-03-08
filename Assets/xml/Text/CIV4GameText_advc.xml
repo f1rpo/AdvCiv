@@ -5188,4 +5188,15 @@
 		<Spanish>[COLOR_WARNING_TEXT]Perderán %d1 PX en total[COLOR_REVERT]</Spanish>
 	</TEXT>
 	
+	<!-- advc.064b: Based on TXT_KEY_MISC_HELP_PROD_OVERFLOW in
+		 CIV4GameTextInfos.xml-->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_EXCESS_OVERFLOW</Tag>
+		<English>Production overflow in %s1_CityName has been turned into an additional %s2_UnitName unit.</English>
+		<French>Des excédents de la production à %s1_CityName ont été utilisés pour une autre unité %s2_UnitName.</French>
+		<German>Produktionsüberschüsse in %s1_CityName wurden für eine weitere %s2_UnitName-Einheit verwendet.</German>
+		<Italian>Le eccedenze di produzione a %s1_CityName sono state utilizzate per un'altra unità di %s2_UnitName.</Italian>
+		<Spanish>El exceso de producción de %s1_CityName se utilizó para otra unidad de %s2_UnitName.</Spanish>
+	</TEXT>
+	
 </Civ4GameText>

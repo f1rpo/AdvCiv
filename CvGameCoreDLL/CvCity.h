@@ -149,7 +149,7 @@ public:
 
 	bool canHurry(HurryTypes eHurry, bool bTestVisible = false) const;		// Exposed to Python
 	void hurry(HurryTypes eHurry);																						// Exposed to Python
-	// <advc.064>
+	int getOverflowCapacity() const; // advc.064b   <advc.064>
 	bool hurryOverflow(HurryTypes eHurry, int* piProduction, int* piGold,
 			bool bCountThisTurn = false) const;		// (exposed to Python)
 	// </advc.064>

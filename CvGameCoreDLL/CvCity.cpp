@@ -3560,6 +3560,13 @@ void CvCity::hurry(HurryTypes eHurry)
 	CvEventReporter::getInstance().cityHurry(this, eHurry);
 }
 
+// <advc.064b>
+int CvCity::getOverflowCapacity() const {
+
+	return std::max(getCurrentProductionDifference(false, false), // as in BtS/K-Mod
+			growthThreshold());
+} // </advc.064b>
+
 // BUG - Hurry Overflow - start (advc.064)
 bool CvCity::hurryOverflow(HurryTypes eHurry, int* piProduction, int* piGold,
 		bool bCountThisTurn) const {
@@ -3606,7 +3613,8 @@ bool CvCity::hurryOverflow(HurryTypes eHurry, int* piProduction, int* piGold,
 		// include chops and previous overflow here
 		iOverflow += getCurrentProductionDifference(false, true);
 	}
-	int iMaxOverflow = std::max(iTotal, getCurrentProductionDifference(false, false));
+	int iMaxOverflow = //std::max(iTotal, getCurrentProductionDifference(false, false));
+			getOverflowCapacity(); // advc.064b
 	int iLostProduction = (bOverflowCap ? std::max(0, iOverflow - iMaxOverflow) : 0);
 	int iBaseModifier = getBaseYieldRateModifier(YIELD_PRODUCTION);
 	int iTotalModifier = getBaseYieldRateModifier(YIELD_PRODUCTION, iModifier);
@@ -12706,10 +12714,10 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 		if (bFinish)
 		{
 			int iProductionNeeded = getProductionNeeded(eTrainUnit);
-
-			// max overflow is the value of the item produced (to eliminate prebuild exploits)
 			int iOverflow = getUnitProduction(eTrainUnit) - iProductionNeeded;
-			int iMaxOverflow = std::max(iProductionNeeded, getCurrentProductionDifference(false, false));
+			// max overflow is the value of the item produced (to eliminate prebuild exploits)
+			int iMaxOverflow = //std::max(iProductionNeeded, getCurrentProductionDifference(false, false));
+					getOverflowCapacity(); // advc.064b
 			// UNOFFICIAL_PATCH Start
 			int iLostProduction = std::max(0, iOverflow - iMaxOverflow);
 			iOverflow = std::min(iMaxOverflow, iOverflow);
@@ -12773,8 +12781,8 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 					getUnitAIString(szString, pUnit->AI_getUnitAIType());
 					logBBAI("    City %S finishes production of unit %S with UNITAI %S", getName().GetCString(), pUnit->getName(0).GetCString(), szString.GetCString() );
 				}
-
-				if (GC.getUnitInfo(eTrainUnit).getDomainType() == DOMAIN_AIR)
+				CvUnitInfo const& kUnitInfo = GC.getUnitInfo(eTrainUnit);
+				if (kUnitInfo.getDomainType() == DOMAIN_AIR)
 				{
 					if (plot()->countNumAirUnits(getTeam()) > getAirUnitCapacity(getTeam()))
 					{
@@ -12782,6 +12790,14 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 					}
 				} // <advc.001v>
 				iTrained++;
+				if(iTrained > 1) {
+					CvWString szMsg(gDLL->getText("TXT_KEY_MISC_EXCESS_OVERFLOW",
+							getName().c_str(), kUnitInfo.getDescription()));
+					gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(),
+							false, GC.getEVENT_MESSAGE_TIME(), szMsg,
+							"AS2D_WONDERGOLD", MESSAGE_TYPE_INFO, kUnitInfo.getButton(),
+							NO_COLOR, getX_INLINE(), getY_INLINE(), false, false);
+				}
 			} while(iTrained < iToTrain && canTrain(eTrainUnit)); // </advc.001v>
 			iLostProduction -= iProductionNeeded * (iTrained - 1);
 			FAssert(iLostProduction >= 0);
@@ -12871,9 +12887,10 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 			setNumRealBuilding(eConstructBuilding, getNumRealBuilding(eConstructBuilding) + 1);
 
 			int iProductionNeeded = getProductionNeeded(eConstructBuilding);
-			// max overflow is the value of the item produced (to eliminate prebuild exploits)
 			int iOverflow = getBuildingProduction(eConstructBuilding) - iProductionNeeded;
-			int iMaxOverflow = std::max(iProductionNeeded, getCurrentProductionDifference(false, false));
+			// max overflow is the value of the item produced (to eliminate prebuild exploits)
+			int iMaxOverflow = //std::max(iProductionNeeded, getCurrentProductionDifference(false, false));
+					getOverflowCapacity(); // advc.064b
 			// UNOFFICIAL_PATCH Start
 			int iLostProduction = std::max(0, iOverflow - iMaxOverflow);
 			iOverflow = std::min(iMaxOverflow, iOverflow);
@@ -12989,9 +13006,10 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 			}
 
 			int iProductionNeeded = getProductionNeeded(eCreateProject);
-			// max overflow is the value of the item produced (to eliminate pre-build exploits)
 			int iOverflow = getProjectProduction(eCreateProject) - iProductionNeeded;
-			int iMaxOverflow = std::max(iProductionNeeded, getCurrentProductionDifference(false, false));
+			// max overflow is the value of the item produced (to eliminate prebuild exploits)
+			int iMaxOverflow = //std::max(iProductionNeeded, getCurrentProductionDifference(false, false));
+					getOverflowCapacity(); // advc.064b
 			// UNOFFICIAL_PATCH Start
 			int iLostProduction = std::max(0, iOverflow - iMaxOverflow);
 			iOverflow = std::min(iMaxOverflow, iOverflow);
@@ -13000,7 +13018,6 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 				changeOverflowProduction(iOverflow, getProductionModifier(eCreateProject));
 			}
 			setProjectProduction(eCreateProject, 0);
-
 
 			// * Limited which production modifiers affect gold from production overflow. 3/3
 			iLostProduction *= getBaseYieldRateModifier(YIELD_PRODUCTION);

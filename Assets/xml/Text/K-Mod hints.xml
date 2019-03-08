@@ -149,12 +149,18 @@
 	<Spanish>Los bárbaros no reaparecerán en dos pasos de cualquiera de las unidades. Con el posicionamiento cuidadoso de batidores puedes bloquear completamente grupos de pillaje que se formen en tu área.</Spanish>
 </TEXT>
 <!-- replacement text for the double-click tip, because I've changed the functionality of double-click -->
+<!-- advc.008c: The K-Mod text was "Double clicking a stack of units will wake
+	 them all up." (And German: " Ein Doppelklick auf einen Einheitenstapel
+	 weckt sie alle auf.") My text hopefully makes clearer that the 3D models or
+	 the flag (in cities - to avoid entering the city screen) needs to be
+	 clicked, not the unit icons. Will also wake up a single unit if there
+	 isn't a stack. I've left the Spanish text alone. -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_INTERFACE_6</Tag>
-	<English>(K-Mod) Double clicking on a stack of units will wake them all up.</English>
-	<French>(K-Mod) Double clicking on a stack of units will wake them all up.</French>
-	<German>(K-Mod) Ein Doppelklick auf einen Einheitenstapel weckt sie alle auf.</German>
-	<Italian>(K-Mod) Double clicking on a stack of units will wake them all up.</Italian>
+	<English>(K-Mod) Double-click a tile to wake all units up. For city tiles, this only works if you double-click the units' flag.</English>
+	<French>(K-Mod) Double-click a tile to wake all units up. For city tiles, this only works if you double-click the units' flag.</French>
+	<German>(K-Mod) Ein Doppelklick auf ein Geländefeld weckt alle Einheiten dort auf. Bei Stadtfeldern funktioniert dies nur, wenn Sie auf die Flagge der Einheiten klicken.</German>
+	<Italian>(K-Mod) Double-click a tile to wake all units up. For city tiles, this only works if you double-click the units' flag.</Italian>
 	<Spanish>(K-Mod) Doble click en una pila de unidades las despertará a todas.</Spanish>
 </TEXT>
 <TEXT>
