@@ -557,6 +557,26 @@
 		<Spanish>Si se activa, muestra el coste en población y el excedente de [ICON_PRODUCTION]/[ICON_GOLD] por usar sacrificios y/o el coste en [ICON_GOLD] por comprar la producción mostrada en la barra de producción.</Spanish>
 	</TEXT>
 	
+	<!-- advc.064: New option. Same label as TXT_KEY_BUG_OPT_MAININTERFACE__
+		 PROGRESSBARSTICKMARKS_TEXT (BUG Main Interface Options.xml), but
+		 the IT, SP translations are no help here; too long. -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_CITYSCREEN__HURRYTICKMARKS_TEXT</Tag>
+		<English>Tick Marks</English>
+		<French>Tick Marks</French>
+		<German>Teilstriche</German>
+		<Italian>Tick Marks</Italian>
+		<Spanish>Tick Marks</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_CITYSCREEN__HURRYTICKMARKS_HOVER</Tag>
+		<English>When checked, yellow tick marks on the production bar show how much production is needed to reduce the population loss from hurrying. This option works with and without the [COLOR_HIGHLIGHT_TEXT]Tick Marks[COLOR_REVERT] option on the "General" tab (which shows blue tick marks on the production bar).</English>
+		<French>When checked, yellow tick marks on the production bar show how much production is needed to reduce the population loss from hurrying. This option works with and without the [COLOR_HIGHLIGHT_TEXT]Tick Marks[COLOR_REVERT] option on the "General" tab (which shows blue tick marks on the production bar).</French>
+		<German>Zeigt durch kurze, gelbe Striche auf dem Produktionsbalken an, wie viel Produktion erforderlich ist, um den Bevölkerungsverlust bei Beschleunigung zu verringern. Funktioniert mit und ohne die Option [COLOR_HIGHLIGHT_TEXT]Teilstriche[COLOR_REVERT] auf dem Reiter "Allgemein" (welche blaue Striche auf dem Produktionsbalken anzeigt).</German>
+		<Italian>When checked, yellow tick marks on the production bar show how much production is needed to reduce the population loss from hurrying. This option works with and without the [COLOR_HIGHLIGHT_TEXT]Tick Marks[COLOR_REVERT] option on the "General" tab (which shows blue tick marks on the production bar).</Italian>
+		<Spanish>When checked, yellow tick marks on the production bar show how much production is needed to reduce the population loss from hurrying. This option works with and without the [COLOR_HIGHLIGHT_TEXT]Tick Marks[COLOR_REVERT] option on the "General" tab (which shows blue tick marks on the production bar).</Spanish>
+	</TEXT>
+	
 	
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MISCHOVER__REMOVESPECIALIST_TEXT</Tag>

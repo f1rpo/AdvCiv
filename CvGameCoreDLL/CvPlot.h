@@ -459,6 +459,9 @@ public:
 
 	int countNumAirUnits(TeamTypes eTeam) const;																					// Exposed to Python
 	int airUnitSpaceAvailable(TeamTypes eTeam) const;
+	// <advc.081>
+	int countAreaHostileUnits(PlayerTypes ePlayer, CvArea* pArea, bool bPlayer,
+			bool bTeam, bool bNeutral, bool bHostile) const; // </advc.081>
 	int getFoundValue(PlayerTypes eIndex,												// Exposed to Python
 			bool bRandomize = false) const; // advc.052
 	bool isBestAdjacentFound(PlayerTypes eIndex);										// Exposed to Python

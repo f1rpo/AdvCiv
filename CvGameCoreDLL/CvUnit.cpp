@@ -6723,31 +6723,21 @@ bool CvUnit::discover()
 
 int CvUnit::getMaxHurryProduction(CvCity* pCity) const
 {
-	int iProduction;
-
-	iProduction = (m_pUnitInfo->getBaseHurry() + (m_pUnitInfo->getHurryMultiplier() * pCity->getPopulation()));
-
+	int iProduction = m_pUnitInfo->getBaseHurry() +
+			m_pUnitInfo->getHurryMultiplier() * pCity->getPopulation();
 	iProduction *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getUnitHurryPercent();
 	iProduction /= 100;
-
 	return std::max(0, iProduction);
 }
 
 
 int CvUnit::getHurryProduction(const CvPlot* pPlot) const
 {
-	CvCity* pCity;
-	int iProduction;
-
-	pCity = pPlot->getPlotCity();
-
+	CvCity* pCity = pPlot->getPlotCity();
 	if (pCity == NULL)
-	{
 		return 0;
-	}
 
-	iProduction = getMaxHurryProduction(pCity);
-
+	int iProduction = getMaxHurryProduction(pCity);
 	iProduction = std::min(pCity->productionLeft(), iProduction);
 
 	return std::max(0, iProduction);

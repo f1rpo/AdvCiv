@@ -5189,14 +5189,78 @@
 	</TEXT>
 	
 	<!-- advc.064b: Based on TXT_KEY_MISC_HELP_PROD_OVERFLOW in
-		 CIV4GameTextInfos.xml-->
+		 CIV4GameTextInfos.xml and TXT_KEY_MISC_LOST_WONDER_PROD_CONVERTED
+		 in CIV4GameTextInfos.xml. -->
 	<TEXT>
-		<Tag>TXT_KEY_MISC_EXCESS_OVERFLOW</Tag>
-		<English>Production overflow in %s1_CityName has been turned into an additional %s2_UnitName unit.</English>
-		<French>Des excédents de la production à %s1_CityName ont été utilisés pour une autre unité %s2_UnitName.</French>
-		<German>Produktionsüberschüsse in %s1_CityName wurden für eine weitere %s2_UnitName-Einheit verwendet.</German>
-		<Italian>Le eccedenze di produzione a %s1_CityName sono state utilizzate per un'altra unità di %s2_UnitName.</Italian>
-		<Spanish>El exceso de producción de %s1_CityName se utilizó para otra unidad de %s2_UnitName.</Spanish>
+		<Tag>TXT_KEY_MISC_OVERFLOW_GOLD</Tag>
+		<English>[COLOR_WARNING_TEXT]%d1[COLOR_REVERT] [ICON_PRODUCTION] (overflow) in %s2_CityName have been converted into %d3 [ICON_GOLD].</English>
+		<French>[COLOR_WARNING_TEXT]%d1[COLOR_REVERT] [ICON_PRODUCTION] (excédent) à %s2_CityName a été convertis en %d3 [ICON_GOLD].</French>
+		<German>[COLOR_WARNING_TEXT]%d1[COLOR_REVERT] [ICON_PRODUCTION]-Überschuss in %s2_CityName wurde in %d3 [ICON_GOLD] umgewandelt.</German>
+		<Italian>[COLOR_WARNING_TEXT]%d1[COLOR_REVERT] [ICON_PRODUCTION] (eccedenza) a %s1_CityName sono stati convertiti in %d2 [ICON_GOLD].</Italian>
+		<Spanish>[COLOR_WARNING_TEXT]%d1[COLOR_REVERT] [ICON_PRODUCTION] (exceso) en %s1_CityName se han convertidos en %d2 [ICON_GOLD].</Spanish>
+	</TEXT>
+	<!-- From CIV4GameTextInfos.xml; terminology: I'm trying to use "build" only
+		 for Workers. -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_HELP_PROD_OVERFLOW</Tag>
+		<English>Overflow from previous order: %d1[ICON_PRODUCTION]</English>
+		<French>Exc&#233;dent de la production pr&#233;c&#233;dente: %d1[ICON_PRODUCTION]</French>
+		<German>&#220;berschuss aus vorherigem Auftrag: %d1[ICON_PRODUCTION]</German>
+		<Italian>In eccedenza dalla precedente costruzione: %d1[ICON_PRODUCTION]</Italian>
+		<Spanish>En exceso por construcci&#243;n anterior: %d1 [ICON_PRODUCTION]</Spanish>
+	</TEXT>
+	<!-- For city production hover (new) -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_HELP_PROD_NEW_OVERFLOW</Tag>
+		<English>%d1 [ICON_PRODUCTION] overflow for next order</English>
+		<French>%d1 [ICON_PRODUCTION] pour la prochaine production</French>
+		<German>%d1 [ICON_PRODUCTION] Überschuss für nächsten Auftrag</German>
+		<Italian>%d1 [ICON_PRODUCTION] per la prossima costruzione</Italian>
+		<Spanish>%d1 [ICON_PRODUCTION] para la próxima construcci&#243;n</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_HELP_PROD_GOLD</Tag>
+		<English>[COLOR_WARNING_TEXT]%d1[COLOR_REVERT] [ICON_PRODUCTION] to be converted into %d2 [ICON_GOLD]</English>
+		<French>[COLOR_WARNING_TEXT]%d1[COLOR_REVERT] [ICON_PRODUCTION] seront convertis en %d2 [ICON_GOLD]</French>
+		<German>[COLOR_WARNING_TEXT]%d1[COLOR_REVERT] [ICON_PRODUCTION] Verlust (Umwandlung zu %d2 [ICON_GOLD])</German>
+		<Italian>[COLOR_WARNING_TEXT]%d1[COLOR_REVERT] [ICON_PRODUCTION] da convertire in %d2 [ICON_GOLD]</Italian>
+		<Spanish>[COLOR_WARNING_TEXT]%d1[COLOR_REVERT] [ICON_PRODUCTION] se convertirán en %d2 [ICON_GOLD]</Spanish>
+	</TEXT>
+	<!-- Based on TXT_KEY_MISC_HELP_PROD_CHOPS (CIV4GameText_Warlords.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_HELP_PROD_CHOPS_UNUSED</Tag>
+		<English>%d1[ICON_PRODUCTION] from chopping for next order</English>
+		<French>%d1[ICON_PRODUCTION] en coupant du bois pour la prochaine production</French>
+		<German>%d1[ICON_PRODUCTION] durch Abholzung für nächsten Auftrag</German>
+		<Italian>%d1[ICON_PRODUCTION] dal legname per la prossima costruzione</Italian>
+		<Spanish>%d1[ICON_PRODUCTION] de la tala para la próxima construcci&#243;n</Spanish>
+	</TEXT>
+	<!-- Just the German translation (from CIV4GameTextInfos.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_HELP_BASE_YIELD</Tag>
+		<English>Base %s1_yield_type: %d2%F3</English>
+		<French>%s1_yield_type de base : %d2%F3</French>
+		<German>Grund-%s1_yield_type: %d2%F3</German>
+		<Italian>%s1_yield_type base: %d2%F3</Italian>
+		<Spanish>%s1_yield_type base: %d2 %F3</Spanish>
+	</TEXT>
+	
+	<!-- advc.064b -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_OVERFLOW_BLOCKS_HURRY</Tag>
+		<English>[COLOR_WARNING_TEXT]Can't hurry: already enough overflow or chopping [ICON_PRODUCTION] to finish.[COLOR_REVERT]</English>
+		<French>[COLOR_WARNING_TEXT]On ne peut pas accélérer parce qu'il y a déjà assez de [ICON_PRODUCTION] exc&#233;dentaire ou de coupage pour terminer la production.[COLOR_REVERT]</French>
+		<German>[COLOR_WARNING_TEXT]Beschleunigung nicht möglich, da bereits genug [ICON_PRODUCTION] aus Überschuss oder Abholzung vorrätig ist, um die Produktion abzuschließen.[COLOR_REVERT]</German>
+		<Italian>[COLOR_WARNING_TEXT]Non può velocizzare perché c'è già abbastanza [ICON_PRODUCTION] in eccedenza o dal legname per finire la produzione.[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_WARNING_TEXT]No se puede acelerar porque ya hay suficiente [ICON_PRODUCTION] de exceso o la tala para terminar la producción.[COLOR_REVERT]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_PRODUCTION_BLOCKS_HURRY</Tag>
+		<English>[COLOR_WARNING_TEXT]Can't hurry as production is already about to finish.[COLOR_REVERT]</English>
+		<French>[COLOR_WARNING_TEXT]On ne peut pas accélérer parce qu'il y a déjà assez de [ICON_PRODUCTION] pour terminer la production.[COLOR_REVERT]</French>
+		<German>[COLOR_WARNING_TEXT]Beschleunigung nicht möglich, da ohnehin am Rundenende abgeschlossen.[COLOR_REVERT]</German>
+		<Italian>[COLOR_WARNING_TEXT]Non può velocizzare perché c'è già abbastanza [ICON_PRODUCTION] per finire la produzione.[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_WARNING_TEXT]No se puede acelerar porque ya hay suficiente [ICON_PRODUCTION] para terminar la producción.[COLOR_REVERT]</Spanish>
 	</TEXT>
 	
 </Civ4GameText>

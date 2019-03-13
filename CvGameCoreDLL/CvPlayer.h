@@ -889,6 +889,7 @@ public:
 	int getHurryCount(HurryTypes eIndex) const;																												// Exposed to Python
 	DllExport bool canHurry(HurryTypes eIndex) const;																									// Exposed to Python
 	bool canPopRush() const;
+	bool canGoldRush() const; // advc.064b
 	void changeHurryCount(HurryTypes eIndex, int iChange);
 
 	int getSpecialBuildingNotRequiredCount(SpecialBuildingTypes eIndex) const;												// Exposed to Python
@@ -1335,6 +1336,7 @@ protected:
 	int m_iWondersScore;
 	int m_iCombatExperience;
 	int m_iPopRushHurryCount;
+	int m_iGoldRushHurryCount; // advc.064b
 	int m_iInflationModifier;
 
 	uint m_uiStartTime;  // XXX save these?

@@ -917,16 +917,6 @@
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 	
-	<!-- [advc.123f] BtS sets this to 100 in GlobalDefines.xml.
-		 Recommended: 0 to make sure that civs can't receive fail gold from
-		 units with a national limit.
-		 NB: MAXED_PROJECT_GOLD_PERCENT is no longer used; instead,
-		 MAXED_BUILDING_GOLD_PERCENT applies to both buildings and projects. -->
-	<Define>
-		<DefineName>MAXED_UNIT_GOLD_PERCENT</DefineName>
-		<iDefineIntVal>0</iDefineIntVal>
-	</Define>
-	
 	<!-- [advc.004z] -->
 	<!-- If set to 0, no options are shown for the Unit layer; all units are
 		 indicated on the map. If set to 1 (BtS behavior), options

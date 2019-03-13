@@ -41,7 +41,9 @@ public:
 	
 	/* int AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags = 0) const;
 	int AI_buildingValueThreshold(BuildingTypes eBuilding, int iFocusFlags = 0, int iThreshold = 0) const; */
-	int AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags = 0, int iThreshold = 0, bool bConstCache = false, bool bAllowRecursion = true) const;
+	int AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags = 0,
+			int iThreshold = 0, bool bConstCache = false, bool bAllowRecursion = true,
+			bool bIgnoreSpecialists = false) const; // advc.121b
 	// <advc.179>
 	double AI_estimateReligionBuildings(PlayerTypes civId, ReligionTypes eReligion,
 			std::vector<BuildingTypes> const& buildings) const; // </advc.179>

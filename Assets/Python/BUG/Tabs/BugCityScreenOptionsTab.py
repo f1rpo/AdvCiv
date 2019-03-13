@@ -45,17 +45,19 @@ class BugCityScreenOptionsTab(BugOptionsTab.BugOptionsTab):
 		
 	def createHurryDetailPanel(self, screen, panel):
 		self.addLabel(screen, panel, "HurryDetail", "Hurry Detail:")
+		# advc.064: Moved from Misc
+		self.addCheckbox(screen, panel, "CityScreen__Anger_Counter")
 		left, right = self.addTwoColumnLayout(screen, panel, "HurryDetail", False)
 		#self.addCheckbox(screen, left, "CityBar__HurryAssist")
 		#self.addCheckbox(screen, right, "CityBar__HurryAssistIncludeCurrent")
-		# <advc.064> Restored (and C++ code merged)
+		# <advc.064> Restored (and BULL code merged)
 		self.addCheckbox(screen, left, "MiscHover__HurryOverflow")
 		self.addCheckbox(screen, right, "MiscHover__HurryOverflowIncludeCurrent")
-		# Moved from Misc
-		self.addCheckbox(screen, panel, "CityScreen__Anger_Counter")
 		# </advc.064>
 		self.addCheckbox(screen, left, "CityScreen__WhipAssist")
 		self.addCheckbox(screen, right, "CityScreen__WhipAssistOverflowCountCurrentProduction")
+		# advc.064: New option
+		self.addCheckbox(screen, left, "CityScreen__HurryTickMarks")
 		
 	def createBuildingActualEffectsPanel(self, screen, panel):
 		self.addLabel(screen, panel, "BuildingEffects", "Building Actual Effects in Hovers:")

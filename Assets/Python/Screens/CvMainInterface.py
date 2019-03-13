@@ -3772,7 +3772,8 @@ class CvMainInterface:
 					screen.show( "HappinessText" )
 
 				if (not(pHeadSelectedCity.isProductionProcess())):
-				
+					# advc.064: Moved up
+					HURRY_WHIP = gc.getInfoTypeForString("HURRY_POPULATION")
 					iNeeded = pHeadSelectedCity.getProductionNeeded()
 					iStored = pHeadSelectedCity.getProduction()
 					screen.setBarPercentage( "ProductionBar", InfoBarTypes.INFOBAR_STORED, float(iStored) / iNeeded )
@@ -3788,7 +3789,7 @@ class CvMainInterface:
 					screen.show( "ProductionBar" )
 
 # BUG - Progress Bar - Tick Marks - start
-					if MainOpt.isShowBarTickMarks():
+					if True:#MainOpt.isShowBarTickMarks(): # advc.064: Check moved down so that HurryTickMarks can be enabled independently
 						if (pHeadSelectedCity.isProductionProcess()):
 							iFirst = 0
 							iRate = 0
@@ -3798,12 +3799,12 @@ class CvMainInterface:
 						else:
 							iFirst = pHeadSelectedCity.getCurrentProductionDifference(True, True)
 							iRate = pHeadSelectedCity.getCurrentProductionDifference(True, False)
+					if MainOpt.isShowBarTickMarks():
 						self.pBarProductionBar.drawTickMarks(screen, pHeadSelectedCity.getProduction(), pHeadSelectedCity.getProductionNeeded(), iFirst, iRate, False)
-
-						HURRY_WHIP = gc.getInfoTypeForString("HURRY_POPULATION")
-						if pHeadSelectedCity.canHurry(HURRY_WHIP, True): # K-Mod, changed from False to True
-							iRate = pHeadSelectedCity.hurryProduction(HURRY_WHIP) / pHeadSelectedCity.hurryPopulation(HURRY_WHIP)
-							self.pBarProductionBar_Whip.drawTickMarks(screen, pHeadSelectedCity.getProduction(), pHeadSelectedCity.getProductionNeeded(), iFirst, iRate, True)
+					# advc.064: Now optional and independent from ShowBarTick
+					if CityScreenOpt.isShowHurryTickMarks() and pHeadSelectedCity.canHurry(HURRY_WHIP, True): # K-Mod, changed from False to True
+						iRate = pHeadSelectedCity.hurryProduction(HURRY_WHIP) / pHeadSelectedCity.hurryPopulation(HURRY_WHIP)
+						self.pBarProductionBar_Whip.drawTickMarks(screen, pHeadSelectedCity.getProduction(), pHeadSelectedCity.getProductionNeeded(), iFirst, iRate, True)
 # BUG - Progress Bar - Tick Marks - end
 
 				iCount = 0

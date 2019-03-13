@@ -297,6 +297,8 @@ public:
 	int AI_totalUnitAIs(UnitAITypes eUnitAI) const;
 	int AI_totalAreaUnitAIs(CvArea* pArea, UnitAITypes eUnitAI) const;
 	int AI_totalWaterAreaUnitAIs(CvArea* pArea, UnitAITypes eUnitAI) const;
+	// advc.081:
+	int AI_totalWaterAreaUnitAIs(CvArea* pArea, std::vector<UnitAITypes> const& aeUnitAI) const;
 	int AI_countCargoSpace(UnitAITypes eUnitAI) const;
 
 	int AI_neededExplorers(CvArea* pArea) const;
@@ -500,7 +502,8 @@ public:
 
 
 	int AI_getTotalAreaCityThreat(CvArea* pArea) const;
-	int AI_countNumAreaHostileUnits(CvArea* pArea, bool bPlayer, bool bTeam, bool bNeutral, bool bHostile) const;
+	int AI_countNumAreaHostileUnits(CvArea* pArea, bool bPlayer, bool bTeam, bool bNeutral, bool bHostile,
+			CvPlot* pCenter = NULL) const; // advc.081
 	int AI_getTotalFloatingDefendersNeeded(CvArea* pArea) const;
 	int AI_getTotalFloatingDefenders(CvArea* pArea) const;
 	int AI_getTotalAirDefendersNeeded() const; // K-Mod

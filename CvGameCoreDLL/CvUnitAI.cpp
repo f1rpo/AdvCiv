@@ -1631,7 +1631,9 @@ void CvUnitAI::AI_settleMove()
 		}
 	}
 
-	if (plot()->getOwnerINLINE() == getOwnerINLINE())
+	if (plot()->getOwnerINLINE() == getOwnerINLINE()
+			// advc.040: Don't clog up a transport that might be needed for Worker movement
+			&& iOtherBestFoundValue > 0)
 	{
 		if (AI_load(UNITAI_SETTLER_SEA, MISSIONAI_LOAD_SETTLER, NO_UNITAI, -1, -1, -1, 0, iMoveFlags))
 		{
@@ -1641,7 +1643,8 @@ void CvUnitAI::AI_settleMove()
 		// advc.: ^Now adressed in AI_moveSettlerToCoast
 	}
 
-	// K-Mod: sometimes an unescorted settlers will join up with an escort mid-mission..
+	// K-Mod: sometimes an unescorted settler will join up with an escort mid-mission..
+	if(iAreaBestFoundValue + iOtherBestFoundValue > 0) // Sometimes, but surely not if we have nowhere to settle.
 	{	int iLoop;
 		for (CvSelectionGroup* pLoopSelectionGroup = kOwner.firstSelectionGroup(&iLoop); pLoopSelectionGroup; pLoopSelectionGroup = kOwner.nextSelectionGroup(&iLoop))
 		{
@@ -1697,7 +1700,7 @@ void CvUnitAI::AI_settleMove()
 void CvUnitAI::AI_workerMove()
 {
 	PROFILE_FUNC();
-	
+
 	bool bCanRoute = canBuildRoute();
 	bool bNextCity = false;
 
@@ -5618,96 +5621,95 @@ bool CvUnitAI::AI_greatPersonMove()
 	int iLoop;
 	for (CvCity* pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop))
 	{
-		if (pLoopCity->area() == area())
+		if (pLoopCity->area() != area())
+			continue; // advc.003
+
+		int iPathTurns;
+		if (!generatePath(pLoopCity->plot(), iMoveFlags, true, &iPathTurns))
+			continue;
+		// Join
+		for (int iI = 0; iI < GC.getNumSpecialistInfos(); iI++)
 		{
-			int iPathTurns;
-			if (generatePath(pLoopCity->plot(), iMoveFlags, true, &iPathTurns))
+			SpecialistTypes eSpecialist = (SpecialistTypes)iI;
+			if (canJoin(pLoopCity->plot(), eSpecialist))
 			{
-				// Join
-				for (int iI = 0; iI < GC.getNumSpecialistInfos(); iI++)
+				// Note, specialistValue is roughly 400x the commerce it provides. So /= 4 to make it 100x.
+				int iValue = pLoopCity->AI_permanentSpecialistValue(eSpecialist)/4;
+				if (iValue > iBestValue || (iValue == iBestValue && iPathTurns < iBestPathTurns))
 				{
-					SpecialistTypes eSpecialist = (SpecialistTypes)iI;
-					if (canJoin(pLoopCity->plot(), eSpecialist))
-					{
-						// Note, specialistValue is roughly 400x the commerce it provides. So /= 4 to make it 100x.
-						int iValue = pLoopCity->AI_permanentSpecialistValue(eSpecialist)/4;
-						if (iValue > iBestValue || (iValue == iBestValue && iPathTurns < iBestPathTurns))
-						{
-							iBestValue = iValue;
-							pBestPlot = getPathEndTurnPlot();
-							eBestSpecialist = eSpecialist;
-							eBestBuilding = NO_BUILDING;
-						}
-					}
+					iBestValue = iValue;
+					pBestPlot = getPathEndTurnPlot();
+					eBestSpecialist = eSpecialist;
+					eBestBuilding = NO_BUILDING;
 				}
-				// Construct
-				for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+			}
+		}
+		// Construct
+		for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
+		{
+			BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(iI);
+			if (eBuilding == NO_BUILDING)
+				continue; // advc.003
+
+			if ((m_pUnitInfo->getForceBuildings(eBuilding) || m_pUnitInfo->getBuildings(eBuilding)) &&
+					canConstruct(pLoopCity->plot(), eBuilding))
+			{
+				// Note, building value is roughly 4x the value of the commerce it provides.
+				// so we * 25 to match the scale of specialist value.
+				int iValue = pLoopCity->AI_buildingValue(eBuilding) * 25;
+				if (iValue > iBestValue || (iValue == iBestValue && iPathTurns < iBestPathTurns))
 				{
-					BuildingTypes eBuilding = (BuildingTypes)GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(iI);
-
-					if (eBuilding != NO_BUILDING)
-					{
-						if ((m_pUnitInfo->getForceBuildings(eBuilding) || m_pUnitInfo->getBuildings(eBuilding)) &&
-							canConstruct(pLoopCity->plot(), eBuilding))
-						{
-							// Note, building value is roughly 4x the value of the commerce it provides.
-							// so we * 25 to match the scale of specialist value.
-							int iValue = pLoopCity->AI_buildingValue(eBuilding) * 25;
-
-							if (iValue > iBestValue || (iValue == iBestValue && iPathTurns < iBestPathTurns))
-							{
-								iBestValue = iValue;
-								pBestPlot = getPathEndTurnPlot();
-								eBestBuilding = eBuilding;
-								eBestSpecialist = NO_SPECIALIST;
-							}
-						}
-						else if (bCanHurry && isWorldWonderClass((BuildingClassTypes)iI) && pLoopCity->canConstruct(eBuilding))
-						{
-							// maybe we can hurry a wonder...
-							int iCost = pLoopCity->getProductionNeeded(eBuilding);
-							int iHurryProduction = getMaxHurryProduction(pLoopCity);
-							int iProgress = pLoopCity->getBuildingProduction(eBuilding);
-
-							int iProductionRate = iCost > iHurryProduction + iProgress ? pLoopCity->getProductionDifference(iCost, iProgress, pLoopCity->getProductionModifier(eBuilding), false, 0) : 0;
-							// note: currently, it is impossible for a building to be "food production".
-							// also note that iProductionRate will return 0 if the city is in disorder. This may mess up our great person's decision - but it's a non-trivial problem to fix.
-
-							if (pLoopCity->getProductionBuilding() == eBuilding)
-							{
-								iProgress += iProductionRate * iPathTurns;
-							}
-
-							FAssert(iHurryProduction > 0);
-							int iFraction = 100 * std::min(iHurryProduction, iCost-iProgress) / std::max(1, iCost);
-
-							if (iFraction > 40) // arbitary, and somewhat unneccessary.
-							{
-								FAssert(iFraction <= 100);
-								int iValue = pLoopCity->AI_buildingValue(eBuilding) * 25 * iFraction / 100;
-
-								if (iProgress + iHurryProduction < iCost)
-								{
-									// decrease the value, because we might still miss out!
-									FAssert(iProductionRate > 0 || pLoopCity->isDisorder());
-									iValue *= 12;
-									iValue /= 12 + std::min(30, pLoopCity->getProductionTurnsLeft(iCost, iProgress, iProductionRate, iProductionRate));
-								}
-
-								if (iValue > iBestValue || (iValue == iBestValue && iPathTurns < iBestPathTurns))
-								{
-									iBestValue = iValue;
-									pBestPlot = getPathEndTurnPlot();
-									iBestPathTurns = iPathTurns;
-									eBestBuilding = eBuilding;
-									eBestSpecialist = NO_SPECIALIST;
-								}
-							}
-						}
-					}
+					iBestValue = iValue;
+					pBestPlot = getPathEndTurnPlot();
+					eBestBuilding = eBuilding;
+					eBestSpecialist = NO_SPECIALIST;
 				}
-			} // end safe move possible
-		} // end this area
+				continue; // advc.003
+			}
+			if (!bCanHurry || !isWorldWonderClass((BuildingClassTypes)iI) ||
+					!pLoopCity->canConstruct(eBuilding))
+				continue; // advc.003
+
+			// maybe we can hurry a wonder...
+			int iCost = pLoopCity->getProductionNeeded(eBuilding);
+			int iHurryProduction = getMaxHurryProduction(pLoopCity);
+			int iProgress = pLoopCity->getBuildingProduction(eBuilding);
+			int iProductionRate = (iCost <= iHurryProduction + iProgress) ? 0 :
+					pLoopCity->getProductionDifference(iCost, iProgress,
+					pLoopCity->getProductionModifier(eBuilding), false, 0);
+			// note: currently, it is impossible for a building to be "food production".
+			/*  also note that iProductionRate will return 0 if the city is in disorder.
+				This may mess up our great person's decision - but it's a
+				non-trivial problem to fix. */
+			if (pLoopCity->getProductionBuilding() == eBuilding)
+				iProgress += iProductionRate * iPathTurns;
+			FAssert(iHurryProduction > 0);
+
+			int iFraction = 100 * std::min(iHurryProduction, iCost-iProgress) /
+					std::max(1, iCost);
+			if (iFraction > 40) // arbitary, and somewhat unneccessary.
+			{
+				FAssert(iFraction <= 100);
+				int iValue = pLoopCity->AI_buildingValue(eBuilding) * 25 * iFraction / 100;
+				if (iProgress + iHurryProduction < iCost)
+				{
+					// decrease the value, because we might still miss out!
+					FAssert(iProductionRate > 0 || pLoopCity->isDisorder());
+					iValue *= 12;
+					iValue /= 12 + std::min(30, pLoopCity->getProductionTurnsLeft(
+							iCost, iProgress, iProductionRate, iProductionRate));
+				}
+
+				if (iValue > iBestValue || (iValue == iBestValue && iPathTurns < iBestPathTurns))
+				{
+					iBestValue = iValue;
+					pBestPlot = getPathEndTurnPlot();
+					iBestPathTurns = iPathTurns;
+					eBestBuilding = eBuilding;
+					eBestSpecialist = NO_SPECIALIST;
+				}
+			}
+		}
 	} // end city loop.
 
 	// Golden age
@@ -6287,7 +6289,8 @@ void CvUnitAI::AI_spyMove()
 	}
 	
 	if (getGroup()->AI_getMissionAIType() == MISSIONAI_ATTACK_SPY && plot()->getNonObsoleteBonusType(getTeam(), true) != NO_BONUS
-		&& plot()->isOwned() && kOwner.AI_isMaliciousEspionageTarget(plot()->getOwner()))
+		&& plot()->isOwned() && /* advc.003n: */ !plot()->isBarbarian() &&
+		kOwner.AI_isMaliciousEspionageTarget(plot()->getOwner()))
 	{
 		// assume this is the target of our destroy improvement mission.
 		if (getFortifyTurns() >= GC.getDefineINT("MAX_FORTIFY_TURNS"))
@@ -8333,7 +8336,7 @@ void CvUnitAI::AI_assaultSeaMove()
 		{
 			return;
 		}
-		
+
 		if (AI_pickup(UNITAI_COUNTER, !bHasCargo, (bHasOneLoad ? 3 : 7)))
 		{
 			return;
@@ -8379,7 +8382,8 @@ void CvUnitAI::AI_assaultSeaMove()
 		if (bLandWar && iCargo > 0)
 		{
 			// Enemy units in this player's territory
-			if (kOwner.AI_countNumAreaHostileUnits(area(),true,false,false,false) > iCargo/2)
+			if (kOwner.AI_countNumAreaHostileUnits(area(),true,false,false,false,
+					/* <advc.003b> */ plot() /* </advc.003b> */) > iCargo/2)
 			{
 				getGroup()->unloadAll();
 				getGroup()->pushMission(MISSION_SKIP);
@@ -8576,7 +8580,8 @@ void CvUnitAI::AI_settlerSeaMove()
 						+ kOwner.getCurrentEra() / 2
 						/*  Also convert if no colonies (which may need Workers)
 							and no Settler on the horizon. */
-						|| (kOwner.AI_totalUnitAIs(UNITAI_SETTLE) <= 0 &&
+						|| (kOwner.getCurrentEra() < 3 && // To match the check in CvPlayerAI::AI_chooseProduction
+						kOwner.AI_totalUnitAIs(UNITAI_SETTLE) <= 0 &&
 						// </advc.017b>
 						kOwner.getNumCities() == area()->getCitiesPerPlayer(getOwnerINLINE()) &&
 						kOwner.AI_totalUnitAIs(UNITAI_ASSAULT_SEA) <= 5))
@@ -8592,8 +8597,7 @@ void CvUnitAI::AI_settlerSeaMove()
 		}
 	}
 	
-	if ((iWorkerCount > 0)
-		&& kOwner.AI_unitTargetMissionAIs(this, MISSIONAI_LOAD_SETTLER) == 0)
+	if (iWorkerCount > 0 && kOwner.AI_unitTargetMissionAIs(this, MISSIONAI_LOAD_SETTLER) == 0)
 	{
 		if (isFull() || (iSettlerCount == 0))
 		{
@@ -11155,6 +11159,7 @@ CvUnit* CvUnitAI::AI_findTransport(UnitAITypes eUnitAI, int iFlags, int iMaxPath
 		UnitAITypes eTransportedUnitAI, int iMinCargo, int iMinCargoSpace,
 		int iMaxCargoSpace, int iMaxCargoOurUnitAI)
 {
+	PROFILE_FUNC(); // advc.003b
 	/*if (getDomainType() == DOMAIN_LAND && !canMoveAllTerrain()) {
 		if (area()->getNumAIUnits(getOwnerINLINE(), eUnitAI) == 0)
 			return false;
@@ -11371,7 +11376,7 @@ bool CvUnitAI::AI_load(UnitAITypes eUnitAI, MissionAITypes eMissionAI,
 		else
 		{
 			// BBAI TODO: To split or not to split?
-			// K-Mod. How about we this:
+			// K-Mod. How about this:
 			// Split the group only if it is going to take more than 1 turn to get to the transport.
 			if (generatePath(pBestUnit->plot(), iFlags, true, 0, 1))
 			{
@@ -18815,16 +18820,32 @@ bool CvUnitAI::AI_settlerSeaFerry()
 	}
 	FAssert(pWorker != NULL);
 	if(iBestValue < 500 && pWorker != NULL) {
+		CvCity* pCurrentCity = plot()->getPlotCity();
 		CvUnitAI const& kWorker = pWorker->AI();
+		int iOwnerEra = kOwner.getCurrentEra();
 		CvMap const& m = GC.getMapINLINE();
 		for(int i = 0; i < m.numPlotsINLINE(); i++) {
 			CvPlot& kPlot = *m.plotByIndexINLINE(i);
-			if(kPlot.isWater() || kPlot.getOwnerINLINE() != kOwner.getID() ||
-					kPlot.area()->getCitiesPerPlayer(kOwner.getID()) > 0 ||
-					kOwner.AI_neededWorkers(kPlot.area()) <= 0 ||
-					kOwner.AI_totalAreaUnitAIs(kPlot.area(), UNITAI_WORKER) > 0)
+			if(kPlot.isWater() || kPlot.getOwnerINLINE() != kOwner.getID())
 				continue;
-			CvCity* pWorkingCity = kPlot.getWorkingCity();
+			CvCity* pWorkingCity = NULL;
+			if(kPlot.area()->getCitiesPerPlayer(kOwner.getID()) > 0 ||
+					kOwner.AI_neededWorkers(kPlot.area()) <= 0 ||
+					kOwner.AI_totalAreaUnitAIs(kPlot.area(), UNITAI_WORKER) > 0) {
+				/*  A colony that is able to work tiles on the mainland will
+					have to ship Workers b/c the mainland Workers aren't going
+					to take care of those tiles. */
+				bool bValid = (pCurrentCity != NULL && kPlot.area() != area());
+				if(bValid) {
+					pWorkingCity = kPlot.getWorkingCity();
+					if(kPlot.getWorkingCity() != pCurrentCity)
+						bValid = false;
+				}
+				if(!bValid)
+					continue;
+			}
+			if(pWorkingCity == NULL)
+				pWorkingCity = kPlot.getWorkingCity();
 			BonusTypes eBonus = kPlot.getNonObsoleteBonusType(kOwner.getTeam());
 			if(pWorkingCity == NULL && eBonus == NO_BONUS)
 				continue;
@@ -18881,7 +18902,7 @@ bool CvUnitAI::AI_settlerSeaFerry()
 			/*  For cities, it's 4+... in the divisor. 1 extra to deprioritize islands.
 				(Or we could say it's the extra turn for unloading outside a city.) */
 			iValue = (1000 * iValue) / (5 + iPathTurns);
-			iValue += GC.getGame().getSorenRandNum(100, "advc.040");
+			iValue += GC.getGame().getSorenRandNum(65 + 40 * iOwnerEra, "advc.040");
  			if(iValue > iBestValue) {
 				iBestValue = iValue;
 				pBestPlot = &kPlot;							

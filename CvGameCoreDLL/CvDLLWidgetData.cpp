@@ -1898,13 +1898,14 @@ void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 	CvWString szTempBuffer;
 
 	CvCity* pHeadSelectedCity = gDLL->getInterfaceIFace()->getHeadSelectedCity();
-
 	if (pHeadSelectedCity == NULL)
 		return;
+	CvCity const& kCity = *pHeadSelectedCity;
 
-	szBuffer.assign(gDLL->getText("TXT_KEY_MISC_HURRY_PROD", pHeadSelectedCity->getProductionNameKey()));
+	szBuffer.assign(gDLL->getText("TXT_KEY_MISC_HURRY_PROD", kCity.getProductionNameKey()));
 
-	int iHurryGold = pHeadSelectedCity->hurryGold((HurryTypes)(widgetDataStruct.m_iData1));
+	HurryTypes eHurry = (HurryTypes)widgetDataStruct.m_iData1;
+	int iHurryGold = kCity.hurryGold(eHurry);
 
 	if (iHurryGold > 0)
 	{
@@ -1912,16 +1913,18 @@ void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HURRY_GOLD", iHurryGold));
 	}
 
-	int iHurryPopulation = pHeadSelectedCity->hurryPopulation((HurryTypes)(widgetDataStruct.m_iData1));
+	bool bReasonGiven = false; // advc.064b: Why we can't hurry
+	int iHurryPopulation = kCity.hurryPopulation(eHurry);
 
 	if (iHurryPopulation > 0)
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HURRY_POP", iHurryPopulation));
 
-		if (iHurryPopulation > pHeadSelectedCity->maxHurryPopulation())
+		if (iHurryPopulation > kCity.maxHurryPopulation())
 		{
-			szBuffer.append(gDLL->getText("TXT_KEY_MISC_MAX_POP_HURRY", pHeadSelectedCity->maxHurryPopulation()));
+			szBuffer.append(gDLL->getText("TXT_KEY_MISC_MAX_POP_HURRY", kCity.maxHurryPopulation()));
+			bReasonGiven = true; // advc.064b
 		}
 	}
 
@@ -1930,8 +1933,7 @@ void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 		int iOverflowProduction = 0;
 		int iOverflowGold = 0;
 		bool bIncludeCurrent = getBugOptionBOOL("MiscHover__HurryOverflowIncludeCurrent", false);
-		if(pHeadSelectedCity->hurryOverflow((HurryTypes)(widgetDataStruct.m_iData1),
-				&iOverflowProduction, &iOverflowGold, bIncludeCurrent)) {
+		if(kCity.hurryOverflow(eHurry, &iOverflowProduction, &iOverflowGold, bIncludeCurrent)) {
 			if(iOverflowProduction > 0 || iOverflowGold > 0) {
 				bool bFirst = true;
 				CvWStringBuffer szOverflowBuffer;
@@ -1954,38 +1956,54 @@ void CvDLLWidgetData::parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWSt
 		}
 	} // BUG - Hurry Overflow - end
 
-	int iHurryAngerLength = pHeadSelectedCity->hurryAngerLength((HurryTypes)(widgetDataStruct.m_iData1));
+	int iHurryAngerLength = kCity.hurryAngerLength(eHurry);
 
 	if (iHurryAngerLength > 0)
 	{
 		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_MISC_ANGER_TURNS", GC.getDefineINT("HURRY_POP_ANGER"), (iHurryAngerLength + pHeadSelectedCity->getHurryAngerTimer())));
+		szBuffer.append(gDLL->getText("TXT_KEY_MISC_ANGER_TURNS",
+				GC.getDefineINT("HURRY_POP_ANGER"),
+				iHurryAngerLength + kCity.getHurryAngerTimer()));
 	}
 
-	if (!(pHeadSelectedCity->isProductionUnit()) && !(pHeadSelectedCity->isProductionBuilding()))
+	if (!pHeadSelectedCity->isProductionUnit() && !kCity.isProductionBuilding())
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_UNIT_BUILDING_HURRY"));
+		bReasonGiven = true; // advc.064b
 	}
 
-	if (!(GET_PLAYER(pHeadSelectedCity->getOwnerINLINE()).canHurry((HurryTypes)(widgetDataStruct.m_iData1))))
-	{
+	if(!kCity.canHurry(eHurry, false)) { // advc.064b
 		bool bFirst = true;
-
-		for (int iI = 0; iI < GC.getNumCivicInfos(); iI++)
+		if (!GET_PLAYER(kCity.getOwnerINLINE()).canHurry(eHurry))
 		{
-			if (GC.getCivicInfo((CivicTypes)iI).isHurry(widgetDataStruct.m_iData1))
+			for (int iI = 0; iI < GC.getNumCivicInfos(); iI++)
 			{
-				szTempBuffer = NEWLINE + gDLL->getText("TXT_KEY_REQUIRES");
-				setListHelp(szBuffer, szTempBuffer, GC.getCivicInfo((CivicTypes)iI).getDescription(), gDLL->getText("TXT_KEY_OR").c_str(), bFirst);
-				bFirst = false;
+				if (GC.getCivicInfo((CivicTypes)iI).isHurry(eHurry))
+				{
+					szTempBuffer = NEWLINE + gDLL->getText("TXT_KEY_REQUIRES");
+					setListHelp(szBuffer, szTempBuffer, GC.getCivicInfo((CivicTypes)iI).getDescription(), gDLL->getText("TXT_KEY_OR").c_str(), bFirst);
+					bFirst = false;
+				}
 			}
-		}		
-
-		if (!bFirst)
-		{
-			szBuffer.append(ENDCOLR);
+			if (!bFirst)
+				szBuffer.append(ENDCOLR);
+		} // <advc.064b> Explain changes in CvCity::canHurry
+		if(!bFirst)
+			bReasonGiven = true;
+		if(!bReasonGiven && kCity.getProduction() < kCity.getProductionNeeded() &&
+				kCity.getCurrentProductionDifference(true, true, false, true, true)
+				+ kCity.getProduction() >= kCity.getProductionNeeded()) {
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_MISC_OVERFLOW_BLOCKS_HURRY"
+					/*,kCity.getProductionNameKey()*/)); // (gets too long)
+			bReasonGiven = true;
 		}
+		if(!bReasonGiven && GC.getHurryInfo(eHurry).getGoldPerProduction() > 0 &&
+				iHurryGold <= 0) {
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_MISC_PRODUCTION_BLOCKS_HURRY"));
+		} // </advc.064b>
 	}
 }
 

@@ -841,7 +841,7 @@
 			<iGPThresholdPercent>110</iGPThresholdPercent>
 			<!-- advc.251 (end) -->
 			<!-- advc.251 (start) -->
-			<iResearchPercent>120</iResearchPercent>
+			<iResearchPercent>125</iResearchPercent>
 			<iTrainPercent>110</iTrainPercent>
 			<iConstructPercent>110</iConstructPercent>
 			<iCreatePercent>110</iCreatePercent>
@@ -895,7 +895,7 @@
 			<!-- advc.251 (start) -->
 			<iAIGPThresholdPercent>90</iAIGPThresholdPercent>
 			<!-- Higher tech costs for the AI -->
-			<iAIResearchPercent>105</iAIResearchPercent>
+			<iAIResearchPercent>110</iAIResearchPercent>
 			<!-- was 85 -->
 			<iAITrainPercent>95</iAITrainPercent>
 			<!-- was 100 -->

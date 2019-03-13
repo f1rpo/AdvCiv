@@ -101,8 +101,9 @@
 			<!-- advc.064: default was False -->
 			<option id="HurryOverflow" key="Hurry Overflow" 
 					type="boolean" default="True"/>
+			<!-- advc.064: default was False -->
 			<option id="HurryOverflowIncludeCurrent" key="Hurry Overflow Include Current" 
-					type="boolean" default="False"/>
+					type="boolean" default="True"/>
 					
 			<option id="RemoveSpecialist" key="Remove Specialist" 
 					type="boolean" default="False"/>

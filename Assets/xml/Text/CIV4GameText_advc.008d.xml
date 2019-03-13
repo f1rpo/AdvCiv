@@ -883,7 +883,8 @@
 </TEXT>
 
 <!-- advc.004m: This said that group orders can be given if a group is
-	 selected. -->
+	 selected. The slider position not only being remembered, but continuing to
+	 apply is a K-Mod change btw. -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_INTERFACE_9</Tag>
 	<English>To change the default camera distance, you can enable the field-of-view slider on the "Map" tab of the BUG mod menu [CTRL + ALT + O]. The slider position is remembered even if you hide the slider again.</English>
@@ -955,6 +956,16 @@
 	<German>(K-Mod) Wenn Sie Ihre Vasallenstaaten über einen geplanten Krieg in Kenntnis setzen, werden diese verstärkt Militäreinheiten produzieren. Sie finden diese Option unter "Reden wir über etwas anderes".</German>
 	<Italian>(K-Mod) Your vassals will join you in preparing for war if you inform them of your war plans through "Let's discuss something else." You can also tell them to abandon their preparations.</Italian>
 	<Spanish>(K-Mod) Your vassals will join you in preparing for war if you inform them of your war plans through "Let's discuss something else." You can also tell them to abandon their preparations.</Spanish>
+</TEXT>
+
+<!-- advc.106i -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_37</Tag>
+	<English>Replays created by the AdvCiv mod (v0.95 or later) can be viewed with any BtS installation; the mod isn't required.</English>
+	<French>Replays created by the AdvCiv mod (v0.95 or later) can be viewed with any BtS installation; the mod isn't required.</French>
+	<German>Wiederholungen von AdvCiv-Partien (ab Version 0.95) lassen sich von jeder BtS-Installation abspielen; der Mod wird nicht benötigt.</German>
+	<Italian>Replays created by the AdvCiv mod (v0.95 or later) can be viewed with any BtS installation; the mod isn't required.</Italian>
+	<Spanish>Replays created by the AdvCiv mod (v0.95 or later) can be viewed with any BtS installation; the mod isn't required.</Spanish>
 </TEXT>
 
 </Civ4GameText>

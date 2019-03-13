@@ -3121,8 +3121,9 @@ int CvCity::getProductionTurnsLeft(UnitTypes eUnit, int iNum) const
 
 	int iProductionNeeded = getProductionNeeded(eUnit);
 	int iProductionModifier = getProductionModifier(eUnit);
-
-	return getProductionTurnsLeft(iProductionNeeded, iProduction, getProductionDifference(iProductionNeeded, iProduction, iProductionModifier, isFoodProduction(eUnit), (iNum == 0)), getProductionDifference(iProductionNeeded, iProduction, iProductionModifier, isFoodProduction(eUnit), false));
+	// advc.064b: Moved into (yet another) auxiliary function
+	return getProductionTurnsLeft(iProductionNeeded, iProduction,
+			iProductionModifier, isFoodProduction(eUnit), iNum);
 }
 
 
@@ -3138,10 +3139,10 @@ int CvCity::getProductionTurnsLeft(BuildingTypes eBuilding, int iNum) const
 	}
 
 	int iProductionNeeded = getProductionNeeded(eBuilding);
-
 	int iProductionModifier = getProductionModifier(eBuilding);
-
-	return getProductionTurnsLeft(iProductionNeeded, iProduction, getProductionDifference(iProductionNeeded, iProduction, iProductionModifier, false, (iNum == 0)), getProductionDifference(iProductionNeeded, iProduction, iProductionModifier, false, false));
+	// advc.064b:
+	return getProductionTurnsLeft(iProductionNeeded, iProduction,
+			iProductionModifier, false, iNum);
 }
 
 
@@ -3158,26 +3159,64 @@ int CvCity::getProductionTurnsLeft(ProjectTypes eProject, int iNum) const
 
 	int iProductionNeeded = getProductionNeeded(eProject);
 	int iProductionModifier = getProductionModifier(eProject);
-
-	return getProductionTurnsLeft(iProductionNeeded, iProduction, getProductionDifference(iProductionNeeded, iProduction, iProductionModifier, false, (iNum == 0)), getProductionDifference(iProductionNeeded, iProduction, iProductionModifier, false, false));
+	// advc.064b:
+	return getProductionTurnsLeft(iProductionNeeded, iProduction,
+			iProductionModifier, false, iNum);
 }
 
+/*  <advc.064b> New auxiliary function; some code cut from
+	getProductionTurnsLeft(UnitTypes,int). Added a bit of code to predict
+	overflow for queued orders (iNum>0); BtS never did that. */
+int CvCity::getProductionTurnsLeft(int iProductionNeeded, int iProduction,
+		int iProductionModifier, bool bFoodProduction, int iNum) const {
+
+	int iFirstProductionDifference = 0;
+	// Per-turn production assuming no overflow and feature production
+	int iProductionDifference = getProductionDifference(iProductionNeeded,
+			iProduction, iProductionModifier, bFoodProduction, false, true);
+	if(iNum > 1) {
+		// Not going to predict overflow here
+		iFirstProductionDifference = iProductionDifference;
+	}
+	else if(iNum == 1 && getProductionTurnsLeft() <= 1) {
+		// Current production about to finish; predict overflow.
+		OrderTypes eCurrentOrder = getOrderData(0).eOrderType;
+		if(eCurrentOrder == ORDER_TRAIN || eCurrentOrder == ORDER_CONSTRUCT ||
+				eCurrentOrder == ORDER_CREATE) {
+			int iFeatureProduction = 0;
+			int iCurrentProductionDifference = getCurrentProductionDifference(false,
+					true, false, false, false, &iFeatureProduction);
+			int iRawOverflow = getProduction() + iCurrentProductionDifference - getProductionNeeded();
+			int iOverflow = computeOverflow(iRawOverflow, getProductionModifier(),
+					eCurrentOrder);
+			/*  This ignores that some production modifiers are applied to overflow,
+				but it's certainly better than ignoring overflow altogether. */
+			iFirstProductionDifference = iProductionDifference + iOverflow +
+					((getFeatureProduction() - iFeatureProduction) *
+					(100 + iProductionModifier)) / 100;
+		}
+	}
+	else if(iNum == 1)
+		iFirstProductionDifference = iProductionDifference;
+	if(iNum <= 0) {
+		iFirstProductionDifference = getProductionDifference(iProductionNeeded,
+				iProduction, iProductionModifier, bFoodProduction, true, false);
+	}
+	return getProductionTurnsLeft(iProductionNeeded, iProduction,
+			iFirstProductionDifference, iProductionDifference);
+} // </advc.064b>
 
 int CvCity::getProductionTurnsLeft(int iProductionNeeded, int iProduction, int iFirstProductionDifference, int iProductionDifference) const
 {
-	int iProductionLeft = std::max(0, (iProductionNeeded - iProduction - iFirstProductionDifference));
+	int iProductionLeft = std::max(0,
+			iProductionNeeded - iProduction - iFirstProductionDifference);
 
 	if (iProductionDifference == 0)
-	{
 		return iProductionLeft + 1;
-	}
 
 	int iTurnsLeft = (iProductionLeft / iProductionDifference);
-
-	if ((iTurnsLeft * iProductionDifference) < iProductionLeft)
-	{
-		iTurnsLeft++;
-	}
+	if (iTurnsLeft * iProductionDifference < iProductionLeft)
+		iTurnsLeft++; // advc (comment): rounds up
 
 	iTurnsLeft++;
 
@@ -3356,25 +3395,61 @@ int CvCity::getProductionModifier(ProjectTypes eProject) const
 }
 
 
-int CvCity::getProductionDifference(int iProductionNeeded, int iProduction, int iProductionModifier, bool bFoodProduction, bool bOverflow) const
-{
+int CvCity::getProductionDifference(int iProductionNeeded, int iProduction,
+		int iProductionModifier, bool bFoodProduction, bool bOverflow,
+		// <advc.064bc>
+		bool bIgnoreFeatureProd, bool bIgnoreYieldRate,
+		bool bForceFeatureProd, int* piFeatureProd) const { // </advc.064bc>
+
 	if (isDisorder())
-	{
 		return 0;
+
+	int iFoodProduction = (bFoodProduction ?
+			std::max(0, getYieldRate(YIELD_FOOD) - foodConsumption()) : 0);
+
+	int iModifier = getBaseYieldRateModifier(YIELD_PRODUCTION, iProductionModifier);
+	int iRate = /* advc.064: */ (bIgnoreYieldRate ? 0 :
+			getBaseYieldRate(YIELD_PRODUCTION));
+	//int iOverflow = (bOverflow ? (getOverflowProduction() + getFeatureProduction()) : 0);
+	// <advc.064b> Replacing the above
+	int iOverflow = 0;
+	if(bOverflow)
+		iOverflow = getOverflowProduction();
+	int iFeatureProduction = 0;
+	FAssert(!bIgnoreFeatureProd || (!bForceFeatureProd && piFeatureProd == NULL));
+	if(!bIgnoreFeatureProd) {
+		if(bForceFeatureProd)
+			iFeatureProduction = getFeatureProduction();
+		else { /* Compute needed feature production (derived from the formula in the
+				  return statement) */
+			// Don't know what to call this; I need it in order to handle rounding.
+			int iTmp = 100 * (iProductionNeeded - iProduction - iFoodProduction) -
+					iOverflow * (100 + iProductionModifier);
+			int iFeatureProdNeeded =  iTmp / iModifier - iRate;
+			if(iTmp % iModifier != 0)
+				iFeatureProdNeeded++;
+			iFeatureProduction = ::range(iFeatureProdNeeded, 0, getFeatureProduction());
+		}
 	}
-
-	int iFoodProduction = bFoodProduction ? std::max(0, getYieldRate(YIELD_FOOD) - foodConsumption()) : 0;
-
-	int iOverflow = ((bOverflow) ? (getOverflowProduction() + getFeatureProduction()) : 0);
-
-	return (((getBaseYieldRate(YIELD_PRODUCTION) + iOverflow) * getBaseYieldRateModifier(YIELD_PRODUCTION, iProductionModifier)) / 100 + iFoodProduction);
-
+	if(piFeatureProd != NULL)
+		*piFeatureProd = iFeatureProduction;
+	/*  Replacing the BtS formula below. The BaseYieldRateModifier is now already
+		applied when the overflow is generated; see comment in unmodifyOverflow. */
+	return iFoodProduction + ((iRate + iFeatureProduction) * iModifier +
+			iOverflow * (100 + iProductionModifier)) / 100;
+	// </advc.064b>
+	//return ((iRate + iOverflow) * iModifier) / 100 + iFoodProduction;
 }
 
 
-int CvCity::getCurrentProductionDifference(bool bIgnoreFood, bool bOverflow) const
+int CvCity::getCurrentProductionDifference(bool bIgnoreFood, bool bOverflow,
+		// <advc.064bc>
+		bool bIgnoreFeatureProd, bool bIgnoreYieldRate,
+		bool bForceFeatureProd, int* piFeatureProd) const // </advc.064bc>
 {
-	return getProductionDifference(getProductionNeeded(), getProduction(), getProductionModifier(), (!bIgnoreFood && isFoodProduction()), bOverflow);
+	return getProductionDifference(getProductionNeeded(), getProduction(),
+			getProductionModifier(), !bIgnoreFood && isFoodProduction(), bOverflow,
+			bIgnoreFeatureProd, bIgnoreYieldRate, bForceFeatureProd, piFeatureProd);
 }
 
 
@@ -3403,7 +3478,7 @@ int CvCity::getExtraProductionDifference(int iExtra, int iModifier) const
 	return ((iExtra * getBaseYieldRateModifier(YIELD_PRODUCTION, iModifier)) / 100);
 }
 
-// advc.003: Removed some clutter
+
 bool CvCity::canHurry(HurryTypes eHurry, bool bTestVisible) const
 {
 	if(!GET_PLAYER(getOwnerINLINE()).canHurry(eHurry) &&
@@ -3413,18 +3488,22 @@ bool CvCity::canHurry(HurryTypes eHurry, bool bTestVisible) const
 		return false;
 	if(isDisorder())
 		return false;
-	if(getProduction() >= getProductionNeeded())
+	// advc.064b: Add overflow and features
+	if(getCurrentProductionDifference(true, true, false, true, true)
+			+ getProduction() >= getProductionNeeded())
 		return false;
 	// K-Mod. moved this check outside of !bTestVisible.
 	if(!isProductionUnit() && !isProductionBuilding())
 		return false;
 	if(!bTestVisible) {
-		/*if (!isProductionUnit() && !isProductionBuilding())
-		{
-			return false;
-		}*/
-		if(GET_PLAYER(getOwnerINLINE()).getGold() < hurryGold(eHurry))
-			return false;
+		// <advc.064b> Only the iHurryGold <= 0 check is new
+		if(GC.getHurryInfo(eHurry).getGoldPerProduction() > 0) {
+			int iHurryGold = hurryGold(eHurry);
+			if(iHurryGold <= 0)
+				return false;
+			if(GET_PLAYER(getOwnerINLINE()).getGold() < iHurryGold)
+				return false;
+		} // </advc.064b>
 		if(maxHurryPopulation() < hurryPopulation(eHurry))
 			return false;
 	}
@@ -3503,129 +3582,121 @@ bool CvCity::canHurryBuilding(HurryTypes eHurry, BuildingTypes eBuilding, bool b
 
 void CvCity::hurry(HurryTypes eHurry)
 {
-	int iHurryGold;
-	int iHurryPopulation;
-	int iHurryAngerLength;
-
 	if (!canHurry(eHurry))
-	{
 		return;
-	}
 
-	iHurryGold = hurryGold(eHurry);
-	iHurryPopulation = hurryPopulation(eHurry);
-	iHurryAngerLength = hurryAngerLength(eHurry);
+	int iHurryGold = hurryGold(eHurry);
+	int iHurryPopulation = hurryPopulation(eHurry);
+	int iHurryAngerLength = hurryAngerLength(eHurry);
 
 	changeProduction(hurryProduction(eHurry));
-
 	GET_PLAYER(getOwnerINLINE()).changeGold(-(iHurryGold));
 	changePopulation(-(iHurryPopulation));
 
 	changeHurryAngerTimer(iHurryAngerLength);
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      10/02/09                                jdog5000      */
-/*                                                                                              */
-/* AI logging                                                                                   */
-/************************************************************************************************/
-	if( gCityLogLevel >= 2 )
-	{
-		CvWStringBuffer szBuffer;
-		CvWString szString;
+	if( gCityLogLevel >= 2 ) { // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
+		CvWStringBuffer szBuffer; CvWString szString;
 		if (isProductionUnit())
-		{
 			szString = GC.getUnitInfo(getProductionUnit()).getDescription();
-		}
 		else if (isProductionBuilding())
-		{
 			szString = GC.getBuildingInfo(getProductionBuilding()).getDescription();
-		}
 		else if (isProductionProject())
-		{
 			szString = GC.getProjectInfo(getProductionProject()).getDescription();
-		}
-
 		logBBAI("    City %S hurrying production of %S at cost of %d pop, %d gold, %d anger length", getName().GetCString(), szString.GetCString(), iHurryPopulation, iHurryGold, iHurryAngerLength );
 	}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
 
-	if ((getOwnerINLINE() == GC.getGameINLINE().getActivePlayer()) && isCitySelected())
-	{
+	if (getOwnerINLINE() == GC.getGameINLINE().getActivePlayer() && isCitySelected())
 		gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
-	}
 
-	// Python Event
 	CvEventReporter::getInstance().cityHurry(this, eHurry);
 }
 
 // <advc.064b>
-int CvCity::getOverflowCapacity() const {
+int CvCity::overflowCapacity(int iProductionModifier, int iPopulationChange) const {
 
-	return std::max(getCurrentProductionDifference(false, false), // as in BtS/K-Mod
-			growthThreshold());
+	int iBound1 = getCurrentProductionDifference(false, false, true); // as in BtS/K-Mod
+	// New: Take out build-specific modifiers
+	iBound1 = unmodifyOverflow(iBound1, iProductionModifier);
+	// Was the production cost of the completed order in BtS/K-Mod
+	int iBound2 = growthThreshold(iPopulationChange);
+	return std::max(iBound1, iBound2);
+}
+
+// Based on code (BtS/unoffical patch) cut from popOrder
+int CvCity::computeOverflow(int iRawOverflow, int iProductionModifier,
+		OrderTypes eOrderType, int* piProductionGold, int* piLostProduction,
+		int iPopulationChange) const {
+
+	if(piProductionGold != NULL)
+		*piProductionGold = 0;
+	if(piLostProduction != NULL)
+		*piLostProduction = 0;
+	/*  (BtS and the unofficial patch cap overflow before factoring out the modifiers.
+		However, they also apply generic production modifiers to the overflow once
+		work on the next order starts, which AdvCiv no longer does.) */
+	int iOverflow = unmodifyOverflow(iRawOverflow, iProductionModifier);
+	int iMaxOverflow = overflowCapacity(iProductionModifier, iPopulationChange);
+	int iLostProduction = iOverflow - iMaxOverflow;
+	iOverflow = std::min(iMaxOverflow, iOverflow);
+	if(iLostProduction <= 0)
+		return iOverflow;
+	if(piLostProduction != NULL)
+		*piLostProduction = iLostProduction;
+	if(piProductionGold != NULL)
+		*piProductionGold = (iLostProduction * failGoldPercent(eOrderType)) / 100;
+	return iOverflow;
 } // </advc.064b>
 
 // BUG - Hurry Overflow - start (advc.064)
 bool CvCity::hurryOverflow(HurryTypes eHurry, int* piProduction, int* piGold,
 		bool bCountThisTurn) const {
 
-	*piProduction = 0; *piProduction = 0; // advc: Let's do that in any case
+	if(piProduction != NULL)
+		*piProduction = 0;
+	if(piGold != NULL)
+		*piGold = 0;
 
 	if(!canHurry(eHurry))
 		return false;
 
 	if(GC.getHurryInfo(eHurry).getProductionPerPopulation() == 0)
 		return true;
-	// advc: K-Mod spends excess overflow on another unit of the same type
-	bool bOverflowCap = true;
-	int iTotal, iCurrent, iModifier, iGoldPercent;
+
+	int iTotal, iCurrent, iModifier;
+	OrderTypes eOrder = NO_ORDER; // advc.064b
 	if(isProductionUnit()) {
 		UnitTypes eUnit = getProductionUnit();
 		iTotal = getProductionNeeded(eUnit);
 		iCurrent = getUnitProduction(eUnit);
 		iModifier = getProductionModifier(eUnit);
-		iGoldPercent = GC.getDefineINT("MAXED_UNIT_GOLD_PERCENT");
-		// advc: Maxed units can lead to overflow gold
-		if(canTrain(eUnit))
-			bOverflowCap = false;
+		eOrder = ORDER_TRAIN;
 	}
 	else if(isProductionBuilding()) {
 		BuildingTypes eBuilding = getProductionBuilding();
 		iTotal = getProductionNeeded(eBuilding);
 		iCurrent = getBuildingProduction(eBuilding);
 		iModifier = getProductionModifier(eBuilding);
-		iGoldPercent = GC.getDefineINT("MAXED_BUILDING_GOLD_PERCENT");
+		eOrder = ORDER_CONSTRUCT;
 	}
 	else if (isProductionProject()) {
 		ProjectTypes eProject = getProductionProject();
 		iTotal = getProductionNeeded(eProject);
 		iCurrent = getProjectProduction(eProject);
 		iModifier = getProductionModifier(eProject);
-		iGoldPercent = GC.getDefineINT("MAXED_PROJECT_GOLD_PERCENT");
+		eOrder = ORDER_CREATE;
 	}
 	else return false;
-
 	int iHurry = hurryProduction(eHurry);
-	int iOverflow = iCurrent + iHurry - iTotal;
-	if(bCountThisTurn) {
-		// include chops and previous overflow here
-		iOverflow += getCurrentProductionDifference(false, true);
-	}
-	int iMaxOverflow = //std::max(iTotal, getCurrentProductionDifference(false, false));
-			getOverflowCapacity(); // advc.064b
-	int iLostProduction = (bOverflowCap ? std::max(0, iOverflow - iMaxOverflow) : 0);
-	int iBaseModifier = getBaseYieldRateModifier(YIELD_PRODUCTION);
-	int iTotalModifier = getBaseYieldRateModifier(YIELD_PRODUCTION, iModifier);
-	if(bOverflowCap)
-		iOverflow = std::min(iOverflow, iMaxOverflow);
-	iLostProduction *= iBaseModifier;
-	iLostProduction /= std::max(1, iTotalModifier);
-
-	*piProduction = (iBaseModifier * iOverflow) / std::max(1, iTotalModifier);
-	*piGold = (iLostProduction * iGoldPercent) / 100;
-
+	// <advc.064b>
+	int iRawOverflow = iCurrent + iHurry - iTotal +
+			/*  BUG ignores chops and previous overflow if !bCountThisTurn, but these
+				are entirely predictable, so they shouldn't depend on the "this turn"
+				option. However: Feature production can no longer contribute to
+				overflow, so ignore that in any case. */
+			getCurrentProductionDifference(!bCountThisTurn, true, true, !bCountThisTurn);
+	*piProduction = computeOverflow(iRawOverflow, iModifier, eOrder, piGold, NULL,
+			-hurryPopulation(eHurry)); // </advc.064b>
 	return true;
 } // BUG - Hurry Overflow - end
 
@@ -5035,9 +5106,10 @@ int CvCity::foodDifference(bool bBottom, bool bIgnoreProduction) const
 }
 
 
-int CvCity::growthThreshold() const
+int CvCity::growthThreshold(/* advc.064b: */ int iPopulationChange) const
 {
-	return (GET_PLAYER(getOwnerINLINE()).getGrowthThreshold(getPopulation()));
+	return (GET_PLAYER(getOwnerINLINE()).getGrowthThreshold(getPopulation()
+			+ iPopulationChange)); // advc.064b
 }
 
 
@@ -5093,8 +5165,8 @@ int CvCity::getHurryCostModifier(int iBaseModifier, int iProduction, bool bIgnor
 	iModifier /= 100;
 
 	if (iProduction == 0 && !bIgnoreNew)
-	{
-		iModifier *= std::max(0, (GC.getDefineINT("NEW_HURRY_MODIFIER") + 100));
+	{	// advc.003b: NEW_HURRY_MODIFIER cached
+		iModifier *= std::max(0, GC.getNEW_HURRY_MODIFIER() + 100);
 		iModifier /= 100;
 	}
 
@@ -5125,16 +5197,23 @@ int CvCity::getHurryCost(bool bExtra, BuildingTypes eBuilding, bool bIgnoreNew) 
 }
 
 int CvCity::getHurryCost(bool bExtra, int iProductionLeft, int iHurryModifier, int iModifier) const
-{
+{	// <advc.064b>
+	iProductionLeft -= getCurrentProductionDifference(bExtra, true, false, bExtra, true);
+	if(bExtra) // City yield rate uncertain if pop is sacrificed (bExtra) ...
+		iProductionLeft--; // ... but city production is going to be at least 1
+	if(iProductionLeft <= 0)
+		return 0; // </advc.064b>
 	int iProduction = (iProductionLeft * iHurryModifier + 99) / 100; // round up
 
 	if (bExtra)
 	{
-		int iExtraProduction = getExtraProductionDifference(iProduction, iModifier);
+		int iExtraProduction = getExtraProductionDifference(iProduction,
+			/*  advc.064c (comment): Passing 0 here instead of iModifier would
+				only apply generic modifiers */
+				iModifier);
 		if (iExtraProduction > 0)
 		{
 			int iAdjustedProd = iProduction * iProduction;
-			
 			// round up
 			iProduction = (iAdjustedProd + (iExtraProduction - 1)) / iExtraProduction;
 		}
@@ -5150,16 +5229,14 @@ int CvCity::hurryGold(HurryTypes eHurry) const
 
 int CvCity::getHurryGold(HurryTypes eHurry, int iHurryCost) const
 {
-	int iGold;
-
 	if (GC.getHurryInfo(eHurry).getGoldPerProduction() == 0)
 	{
 		return 0;
 	}
 
-	iGold = (iHurryCost * GC.getHurryInfo(eHurry).getGoldPerProduction());
+	int iGold = (iHurryCost * GC.getHurryInfo(eHurry).getGoldPerProduction());
 
-	return std::max(1, iGold);
+	return std::max(0, iGold); // advc.064b: lower bound was 1
 }
 
 
@@ -5182,18 +5259,28 @@ int CvCity::getHurryPopulation(HurryTypes eHurry, int iHurryCost) const
 
 int CvCity::hurryProduction(HurryTypes eHurry) const
 {
-	int iProduction;
+	bool bPopRush = (GC.getHurryInfo(eHurry).getProductionPerPopulation() > 0);
+	//int iProductionNeeded = productionLeft();
+	// <advc.064b> ^Don't always need to generate that much production
+	/*  If pop is to be removed, we can't rely on tile yields. (However, in that case,
+		iProductionNeeded is only used for the assertion at the end. There's similar
+		code for pop rushing in CvCity::getHurryCost.) */
+	int iProductionDifference = getCurrentProductionDifference(bPopRush, true, false,
+			bPopRush, true);
+	if(bPopRush)
+		iProductionDifference++; // Yield rate will be at least 1
+	int iProductionNeeded = std::max(0, getProductionNeeded() - getProduction() -
+			iProductionDifference);
+	// </advc.064b>
+	if (!bPopRush)
+		return iProductionNeeded;
 
-	if (GC.getHurryInfo(eHurry).getProductionPerPopulation() > 0)
-	{
-		iProduction = (100 * getExtraProductionDifference(hurryPopulation(eHurry) * GC.getGameINLINE().getProductionPerPopulation(eHurry))) / std::max(1, getHurryCostModifier());
-		FAssert(iProduction >= productionLeft());
-	}
-	else
-	{
-		iProduction = productionLeft();
-	}
-
+	int iProduction = (100 * getExtraProductionDifference(hurryPopulation(eHurry) *
+			GC.getGameINLINE().getProductionPerPopulation(eHurry)
+			/*  advc.064c (comment): Passing 0 as a second arg would mean that only
+				generic modifiers apply */
+			)) / std::max(1, getHurryCostModifier());
+	FAssert(iProduction >= iProductionNeeded);
 	return iProduction;
 }
 
@@ -5227,7 +5314,8 @@ int CvCity::hurryAngerLength(HurryTypes eHurry) const
 
 int CvCity::maxHurryPopulation() const
 {
-	return (getPopulation() / 2);
+	return std::min(3, // advc.064c: Allow at most 3 pop to be sacrificed at once
+			getPopulation() / 2);
 }
 
 
@@ -7771,19 +7859,33 @@ int CvCity::getOverflowProduction() const
 }
 
 
-void CvCity::setOverflowProduction(int iNewValue)														
+void CvCity::setOverflowProduction(int iNewValue)
 {
 	m_iOverflowProduction = iNewValue;
 	FAssert(getOverflowProduction() >= 0);
 }
 
 
-void CvCity::changeOverflowProduction(int iChange, int iProductionModifier)														
+void CvCity::changeOverflowProduction(int iChange, int iProductionModifier)
 {
-	int iOverflow = (100 * iChange) / std::max(1, getBaseYieldRateModifier(YIELD_PRODUCTION, iProductionModifier));
-
-	setOverflowProduction(getOverflowProduction() + iOverflow);
+	setOverflowProduction(getOverflowProduction() +
+			// advc.064b: Moved into new function
+			unmodifyOverflow(iChange, iProductionModifier));
 }
+
+// <advc.064b> Cut from changeOverflowProduction
+int CvCity::unmodifyOverflow(int iRawOverflow, int iProductionModifier) const {
+
+	return (100 * iRawOverflow) / std::max(1,
+			//getBaseYieldRateModifier(YIELD_PRODUCTION, iProductionModifier)
+			/*  Keep the BaseYieldRateModifier; same treatment as Processes, and
+				that's what we want for production gold too. However, I'm also
+				changing the code that uses up overflow production (see getProductionDifference)
+				so that the BaseYieldRateModifier isn't applied for a second time.
+				On the bottom line, it's almost the same as what the Unofficial Patch,
+				does, but results in more intuitive help text. */
+			iProductionModifier + 100);
+} // </advc.064b>
 
 
 int CvCity::getFeatureProduction() const
@@ -8990,9 +9092,7 @@ int CvCity::getBaseYieldRate(YieldTypes eIndex)	const
 
 int CvCity::getBaseYieldRateModifier(YieldTypes eIndex, int iExtra) const
 {
-	int iModifier;
-
-	iModifier = getYieldRateModifier(eIndex);
+	int iModifier = getYieldRateModifier(eIndex);
 
 	iModifier += getBonusYieldRateModifier(eIndex);
 
@@ -11585,7 +11685,12 @@ void CvCity::setWorkingPlot(int iIndex, bool bNewValue)
 
 	if (isWorkingPlot(iIndex) == bNewValue)
 		return;
-
+	// <advc.064b> To avoid unnecessary update of city screen
+	bool bSelected = isCitySelected();
+	int iOldTurns = -1;
+	if(bSelected && GET_PLAYER(getOwnerINLINE()).canGoldRush())
+		iOldTurns = getProductionTurnsLeft();
+	// </advc.064b>
 	m_pabWorkingPlot[iIndex] = bNewValue;
 
 	CvPlot* pPlot = getCityIndexPlot(iIndex);
@@ -11628,11 +11733,15 @@ void CvCity::setWorkingPlot(int iIndex, bool bNewValue)
 		}
 	}
 
-	if (isCitySelected())
+	if (bSelected)
 	{
 		gDLL->getInterfaceIFace()->setDirty(InfoPane_DIRTY_BIT, true );
 		gDLL->getInterfaceIFace()->setDirty(CityScreen_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(ColoredPlots_DIRTY_BIT, true);
+		// <advc.064b>
+		if(iOldTurns >= 0 && getProductionTurnsLeft() != iOldTurns)
+			gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);
+		// </advc.064b>
 	}
 }
 
@@ -12698,360 +12807,146 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 	BuildingTypes eConstructBuilding = NO_BUILDING;
 	ProjectTypes eCreateProject = NO_PROJECT;
 	int maxedBuildingOrProject = NO_BUILDING; // advc.123f
-	switch (pOrderNode->m_data.eOrderType)
-	{
+
+	OrderTypes eOrderType = pOrderNode->m_data.eOrderType;
+	switch(eOrderType) { // advc.003: Many style changes in this block
 	case ORDER_TRAIN: {
-		eTrainUnit = ((UnitTypes)(pOrderNode->m_data.iData1));
-		UnitAITypes eTrainAIUnit = ((UnitAITypes)(pOrderNode->m_data.iData2));
+		eTrainUnit = (UnitTypes)pOrderNode->m_data.iData1;
+		UnitAITypes eTrainAIUnit = (UnitAITypes)pOrderNode->m_data.iData2;
 		FAssertMsg(eTrainUnit != NO_UNIT, "eTrainUnit is expected to be assigned a valid unit type");
 		FAssertMsg(eTrainAIUnit != NO_UNITAI, "eTrainAIUnit is expected to be assigned a valid unit AI type");
-
-		owner.changeUnitClassMaking(((UnitClassTypes)(GC.getUnitInfo(eTrainUnit).getUnitClassType())), -1);
-
+		owner.changeUnitClassMaking((UnitClassTypes)GC.getUnitInfo(eTrainUnit).getUnitClassType(), -1);
 		area()->changeNumTrainAIUnits(getOwnerINLINE(), eTrainAIUnit, -1);
 		owner.AI_changeNumTrainAIUnits(eTrainAIUnit, -1);
 
-		if (bFinish)
-		{
-			int iProductionNeeded = getProductionNeeded(eTrainUnit);
-			int iOverflow = getUnitProduction(eTrainUnit) - iProductionNeeded;
-			// max overflow is the value of the item produced (to eliminate prebuild exploits)
-			int iMaxOverflow = //std::max(iProductionNeeded, getCurrentProductionDifference(false, false));
-					getOverflowCapacity(); // advc.064b
-			// UNOFFICIAL_PATCH Start
-			int iLostProduction = std::max(0, iOverflow - iMaxOverflow);
-			iOverflow = std::min(iMaxOverflow, iOverflow);
-			if (iOverflow > 0)
-			{
-				changeOverflowProduction(iOverflow, getProductionModifier(eTrainUnit));
-			}
-
-			/* original code (this stuff has been moved)
-			setUnitProduction(eTrainUnit, 0);
-			setUnitProductionTime(eTrainUnit, 0); // unofficial patch
-
-			// * Limited which production modifiers affect gold from production overflow. 1/3
-			iLostProduction *= getBaseYieldRateModifier(YIELD_PRODUCTION);
-			iLostProduction /= std::max(1, getBaseYieldRateModifier(YIELD_PRODUCTION, getProductionModifier(eTrainUnit)));
-
-			int iProductionGold = ((iLostProduction * GC.getDefineINT("MAXED_UNIT_GOLD_PERCENT")) / 100);
-			// UNOFFICIAL_PATCH End
-			if (iProductionGold > 0)
-			{
-				owner.changeGold(iProductionGold);
-			} */
-
-			// K-Mod. use excess production to build more of the same unit
-			int iToTrain = 1 + iLostProduction / iProductionNeeded;
-			int iTrained = 0;
-			do { // advc.001v
-				// BtS code (create the unit)
-				CvUnit* pUnit = owner.initUnit(eTrainUnit, getX_INLINE(), getY_INLINE(), eTrainAIUnit);
-				FAssertMsg(pUnit != NULL, "pUnit is expected to be assigned a valid unit object");
-
-				pUnit->finishMoves();
-
-				addProductionExperience(pUnit);
-
-				CvPlot* pRallyPlot = getRallyPlot();
-
-				if (pRallyPlot != NULL)
-				{
-					pUnit->getGroup()->pushMission(MISSION_MOVE_TO, pRallyPlot->getX_INLINE(), pRallyPlot->getY_INLINE());
-				}
-
-				if (isHuman())
-				{
-					if (owner.isOption(PLAYEROPTION_START_AUTOMATED))
-					{
-						pUnit->automate(AUTOMATE_BUILD);
-					}
-
-					if (owner.isOption(PLAYEROPTION_MISSIONARIES_AUTOMATED))
-					{
-						pUnit->automate(AUTOMATE_RELIGION);
-					}
-				}
-
-				CvEventReporter::getInstance().unitBuilt(this, pUnit);
-
-				if( gCityLogLevel >= 1 )
-				{
-					CvWString szString;
-					getUnitAIString(szString, pUnit->AI_getUnitAIType());
-					logBBAI("    City %S finishes production of unit %S with UNITAI %S", getName().GetCString(), pUnit->getName(0).GetCString(), szString.GetCString() );
-				}
-				CvUnitInfo const& kUnitInfo = GC.getUnitInfo(eTrainUnit);
-				if (kUnitInfo.getDomainType() == DOMAIN_AIR)
-				{
-					if (plot()->countNumAirUnits(getTeam()) > getAirUnitCapacity(getTeam()))
-					{
-						pUnit->jumpToNearestValidPlot();  // can destroy unit
-					}
-				} // <advc.001v>
-				iTrained++;
-				if(iTrained > 1) {
-					CvWString szMsg(gDLL->getText("TXT_KEY_MISC_EXCESS_OVERFLOW",
-							getName().c_str(), kUnitInfo.getDescription()));
-					gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(),
-							false, GC.getEVENT_MESSAGE_TIME(), szMsg,
-							"AS2D_WONDERGOLD", MESSAGE_TYPE_INFO, kUnitInfo.getButton(),
-							NO_COLOR, getX_INLINE(), getY_INLINE(), false, false);
-				}
-			} while(iTrained < iToTrain && canTrain(eTrainUnit)); // </advc.001v>
-			iLostProduction -= iProductionNeeded * (iTrained - 1);
-			FAssert(iLostProduction >= 0);
-
-			if (iLostProduction > 0 && canTrain(eTrainUnit))
-			{
-				FAssert(iLostProduction < iProductionNeeded);
-				setUnitProduction(eTrainUnit, iLostProduction);
-				iLostProduction = 0;
-			}
-			else setUnitProduction(eTrainUnit, 0);
-			setUnitProductionTime(eTrainUnit, 0);
-
-			if (iLostProduction > 0)
-			{
-				iLostProduction *= getBaseYieldRateModifier(YIELD_PRODUCTION);
-				iLostProduction /= std::max(1, getBaseYieldRateModifier(YIELD_PRODUCTION, getProductionModifier(eTrainUnit)));
-
-				int iProductionGold = iLostProduction * GC.getDefineINT("MAXED_UNIT_GOLD_PERCENT") / 100;
-				if (iProductionGold > 0)
-				{
-					owner.changeGold(iProductionGold);
-				}
-			}
-
-			// If we finished more than one of this unit in one shot,
-			// then we should pop more than one entry of this unit in the queue.
-			{
-				int iCount = 0;
-				CLLNode<OrderData>* pLoopNode = headOrderQueueNode();
-				while (pLoopNode && iTrained > 1)
-				{
-					const OrderData& kLoopData = pLoopNode->m_data;
-					if (pLoopNode != pOrderNode &&
-						kLoopData.eOrderType == ORDER_TRAIN &&
-						kLoopData.iData1 == pOrderNode->m_data.iData1 &&
-						kLoopData.iData2 == pOrderNode->m_data.iData2)
-					{
-						// Since we aren't 'finishing' these orders, repeated orders will need to be re-created manually.
-						if (kLoopData.bSave)
-						{
-							pushOrder(kLoopData.eOrderType, kLoopData.iData1, kLoopData.iData2, true, false, -1);
-						}
-						// Move on to the next node before we pop the order - but don't increment iCount.
-						pLoopNode = nextOrderQueueNode(pLoopNode);
-						popOrder(iCount);
-						iTrained--;
-						/* pLoopNode = headOrderQueueNode();
-						iCount = 0; */
-					}
-					else
-					{
-						pLoopNode = nextOrderQueueNode(pLoopNode);
-						iCount++;
-					}
-				}
-			}
-			// K-Mod end
+		if(!bFinish)
+			break; // advc.003
+		// <advc.064b> Moved into new function
+		handleOverflow(getUnitProduction(eTrainUnit) - getProductionNeeded(eTrainUnit),
+				getProductionModifier(eTrainUnit), eOrderType);
+		// 14 March 2019: K-Mod multi-production code removed (including bugfix advc.001v)
+		// Instead restored (two lines):
+		setUnitProduction(eTrainUnit, 0);
+		setUnitProductionTime(eTrainUnit, 0); // EmperorFool, Bugfix, 06/10/10
+		// </advc.064b>
+		CvUnit* pUnit = owner.initUnit(eTrainUnit, getX_INLINE(), getY_INLINE(), eTrainAIUnit);
+		FAssertMsg(pUnit != NULL, "pUnit is expected to be assigned a valid unit object");
+		pUnit->finishMoves();
+		addProductionExperience(pUnit);
+		CvPlot* pRallyPlot = getRallyPlot();
+		if(pRallyPlot != NULL)
+			pUnit->getGroup()->pushMission(MISSION_MOVE_TO, pRallyPlot->getX_INLINE(), pRallyPlot->getY_INLINE());
+		if(isHuman()) {
+			if(owner.isOption(PLAYEROPTION_START_AUTOMATED))
+				pUnit->automate(AUTOMATE_BUILD);
+			if(owner.isOption(PLAYEROPTION_MISSIONARIES_AUTOMATED))
+				pUnit->automate(AUTOMATE_RELIGION);
+		}
+		CvEventReporter::getInstance().unitBuilt(this, pUnit);
+		if(gCityLogLevel >= 1 ) { // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
+			CvWString szString; getUnitAIString(szString, pUnit->AI_getUnitAIType());
+			logBBAI("    City %S finishes production of unit %S with UNITAI %S", getName().GetCString(), pUnit->getName(0).GetCString(), szString.GetCString() );
+		}
+		CvUnitInfo const& kUnitInfo = GC.getUnitInfo(eTrainUnit);
+		if(kUnitInfo.getDomainType() == DOMAIN_AIR) {
+			if(plot()->countNumAirUnits(getTeam()) > getAirUnitCapacity(getTeam()))
+				pUnit->jumpToNearestValidPlot();  // can destroy unit
 		}
 		break;
 	}
-	case ORDER_CONSTRUCT:{
-		eConstructBuilding = ((BuildingTypes)(pOrderNode->m_data.iData1));
+	case ORDER_CONSTRUCT: {
+		eConstructBuilding = (BuildingTypes)(pOrderNode->m_data.iData1);
 		// <advc.003>
 		BuildingClassTypes bct = (BuildingClassTypes)GC.getBuildingInfo(
 				eConstructBuilding).getBuildingClassType(); // </advc.003>
 		owner.changeBuildingClassMaking(bct, -1);
-		if (bFinish)
-		{
-/*************************************************************************************************/
-/* UNOFFICIAL_PATCH                       10/08/09                  davidlallen & jdog5000       */
-/*                                                                                               */
-/* Bugfix                                                                                        */
-/*************************************************************************************************/
-/* original bts code
-			if (owner.isBuildingClassMaxedOut(bct, 1))
-*/
-			if (owner.isBuildingClassMaxedOut(bct,
-					GC.getBuildingClassInfo(bct).getExtraPlayerInstances()))
-/*************************************************************************************************/
-/* UNOFFICIAL_PATCH                         END                                                  */
-/*************************************************************************************************/
-			{
-				owner.removeBuildingClass(bct);
-			}
+		if(!bFinish)
+			break; // advc.003
 
-			setNumRealBuilding(eConstructBuilding, getNumRealBuilding(eConstructBuilding) + 1);
-
-			int iProductionNeeded = getProductionNeeded(eConstructBuilding);
-			int iOverflow = getBuildingProduction(eConstructBuilding) - iProductionNeeded;
-			// max overflow is the value of the item produced (to eliminate prebuild exploits)
-			int iMaxOverflow = //std::max(iProductionNeeded, getCurrentProductionDifference(false, false));
-					getOverflowCapacity(); // advc.064b
-			// UNOFFICIAL_PATCH Start
-			int iLostProduction = std::max(0, iOverflow - iMaxOverflow);
-			iOverflow = std::min(iMaxOverflow, iOverflow);
-			if (iOverflow > 0)
-			{
-				changeOverflowProduction(iOverflow, getProductionModifier(eConstructBuilding));
-			}
-			setBuildingProduction(eConstructBuilding, 0);
-/*************************************************************************************************/
-/* UNOFFICIAL_PATCH                       06/10/10                           EmperorFool         */
-/*                                                                                               */
-/* Bugfix                                                                                        */
-/*************************************************************************************************/
-			setBuildingProductionTime(eConstructBuilding, 0);
-/*************************************************************************************************/
-/* UNOFFICIAL_PATCH                         END                                                  */
-/*************************************************************************************************/
-
-			// * Limited which production modifiers affect gold from production overflow. 2/3
-			iLostProduction *= getBaseYieldRateModifier(YIELD_PRODUCTION);
-			iLostProduction /= std::max(1, getBaseYieldRateModifier(YIELD_PRODUCTION, getProductionModifier(eConstructBuilding)));
-
-			int iProductionGold = ((iLostProduction * GC.getDefineINT("MAXED_BUILDING_GOLD_PERCENT")) / 100);
-			// UNOFFICIAL_PATCH End
-			if (iProductionGold > 0)
-			{
-				owner.changeGold(iProductionGold);
-			}
-			// <advc.123f>
-			if(::isWorldWonderClass(bct) &&
-					GC.getGameINLINE().isBuildingClassMaxedOut(bct))
-				maxedBuildingOrProject = eConstructBuilding; // </advc.123f>
-			CvEventReporter::getInstance().buildingBuilt(this, eConstructBuilding);
-
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      10/02/09                                jdog5000      */
-/* AI logging                                                                                   */
-/************************************************************************************************/
-			if( gCityLogLevel >= 1 )
-			{
-				logBBAI("    City %S finishes production of building %S", getName().GetCString(), GC.getBuildingInfo(eConstructBuilding).getDescription() );
-			}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-		}
+		if (owner.isBuildingClassMaxedOut(bct,
+				// UNOFFICIAL_PATCH, Bugfix, 10/08/09, davidlallen & jdog5000: 
+				GC.getBuildingClassInfo(bct).getExtraPlayerInstances()))
+			owner.removeBuildingClass(bct);
+		setNumRealBuilding(eConstructBuilding, getNumRealBuilding(eConstructBuilding) + 1);
+		// <advc.064b> Moved into new function
+		handleOverflow(getBuildingProduction(eConstructBuilding) - getProductionNeeded(eConstructBuilding),
+				getProductionModifier(eConstructBuilding), eOrderType);
+		// </advc.064b>
+		setBuildingProduction(eConstructBuilding, 0);
+		setBuildingProductionTime(eConstructBuilding, 0); // Bugfix, 06/10/10, EmperorFool
+		// <advc.123f>
+		if(::isWorldWonderClass(bct) &&
+				GC.getGameINLINE().isBuildingClassMaxedOut(bct))
+			maxedBuildingOrProject = eConstructBuilding; // </advc.123f>
+		CvEventReporter::getInstance().buildingBuilt(this, eConstructBuilding);
+		if( gCityLogLevel >= 1 ) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
+			logBBAI("    City %S finishes production of building %S", getName().GetCString(), GC.getBuildingInfo(eConstructBuilding).getDescription() );
 		break;
 	}
-	case ORDER_CREATE:
-		eCreateProject = ((ProjectTypes)(pOrderNode->m_data.iData1));
-
+	case ORDER_CREATE: {
+		eCreateProject = (ProjectTypes)pOrderNode->m_data.iData1;
 		GET_TEAM(getTeam()).changeProjectMaking(eCreateProject, -1);
 
-		if (bFinish)
+		if(!bFinish)
+			break; // advc.003
+		// Event reported to Python before the project is built, so that we can show the movie before awarding free techs, for example
+		CvEventReporter::getInstance().projectBuilt(this, eCreateProject);
+		GET_TEAM(getTeam()).changeProjectCount(eCreateProject, 1);
+		if (GC.getProjectInfo(eCreateProject).isSpaceship())
 		{
-			// Event reported to Python before the project is built, so that we can show the movie before awarding free techs, for example
-			CvEventReporter::getInstance().projectBuilt(this, eCreateProject);
-
-			GET_TEAM(getTeam()).changeProjectCount(eCreateProject, 1);
-
-			if (GC.getProjectInfo(eCreateProject).isSpaceship())
-			{
-				bool needsArtType = true;
-				VictoryTypes eVictory = (VictoryTypes)GC.getProjectInfo(eCreateProject).getVictoryPrereq();
-
-				if (NO_VICTORY != eVictory && GET_TEAM(getTeam()).canLaunch(eVictory))
-				{
-					if (isHuman())
-					{
-						CvPopupInfo* pInfo = NULL;
-
-						if (GC.getGameINLINE().isNetworkMultiPlayer())
-						{
-							pInfo = new CvPopupInfo(BUTTONPOPUP_LAUNCH, GC.getProjectInfo(eCreateProject).getVictoryPrereq());
-						}
-						else
-						{
-							pInfo = new CvPopupInfo(BUTTONPOPUP_PYTHON_SCREEN, eCreateProject);
-							pInfo->setText(L"showSpaceShip");
-							needsArtType = false;
-						}
-
+			bool needsArtType = true;
+			VictoryTypes eVictory = (VictoryTypes)GC.getProjectInfo(eCreateProject).getVictoryPrereq();
+			if(NO_VICTORY != eVictory && GET_TEAM(getTeam()).canLaunch(eVictory)) {
+				if(isHuman()) {
+					CvPopupInfo* pInfo = NULL;
+					if (GC.getGameINLINE().isNetworkMultiPlayer()) {
+						pInfo = new CvPopupInfo(BUTTONPOPUP_LAUNCH,
+								GC.getProjectInfo(eCreateProject).getVictoryPrereq());
+					}
+					else {
+						pInfo = new CvPopupInfo(BUTTONPOPUP_PYTHON_SCREEN, eCreateProject);
+						pInfo->setText(L"showSpaceShip");
+						needsArtType = false;
+					}
+					gDLL->getInterfaceIFace()->addPopup(pInfo, getOwnerINLINE());
+				}
+				else owner.AI_launch(eVictory);
+			}
+			else { //show the spaceship progress
+				if(isHuman() &&
+						// advc.060:
+						getBugOptionBOOL("TechWindow__ShowSSScreen", false)) {
+					if(!GC.getGameINLINE().isNetworkMultiPlayer()) {
+						CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_PYTHON_SCREEN, eCreateProject);
+						pInfo->setText(L"showSpaceShip");
 						gDLL->getInterfaceIFace()->addPopup(pInfo, getOwnerINLINE());
-					}
-					else
-					{
-						owner.AI_launch(eVictory);
+						needsArtType = false;
 					}
 				}
-				else
-				{
-					//show the spaceship progress
-					if(isHuman() &&
-							// advc.060:
-							getBugOptionBOOL("TechWindow__ShowSSScreen", false))
-					{
-						if(!GC.getGameINLINE().isNetworkMultiPlayer())
-						{
-							CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_PYTHON_SCREEN, eCreateProject);
-							pInfo->setText(L"showSpaceShip");
-							gDLL->getInterfaceIFace()->addPopup(pInfo, getOwnerINLINE());
-							needsArtType = false;
-						}
-					}
-				}
-
-				if(needsArtType)
-				{
-                    int defaultArtType = GET_TEAM(getTeam()).getProjectDefaultArtType(eCreateProject);
-					int projectCount = GET_TEAM(getTeam()).getProjectCount(eCreateProject);
-					GET_TEAM(getTeam()).setProjectArtType(eCreateProject, projectCount - 1, defaultArtType);
-				}
 			}
-
-			int iProductionNeeded = getProductionNeeded(eCreateProject);
-			int iOverflow = getProjectProduction(eCreateProject) - iProductionNeeded;
-			// max overflow is the value of the item produced (to eliminate prebuild exploits)
-			int iMaxOverflow = //std::max(iProductionNeeded, getCurrentProductionDifference(false, false));
-					getOverflowCapacity(); // advc.064b
-			// UNOFFICIAL_PATCH Start
-			int iLostProduction = std::max(0, iOverflow - iMaxOverflow);
-			iOverflow = std::min(iMaxOverflow, iOverflow);
-			if (iOverflow > 0)
-			{
-				changeOverflowProduction(iOverflow, getProductionModifier(eCreateProject));
+			if(needsArtType) {
+				int defaultArtType = GET_TEAM(getTeam()).getProjectDefaultArtType(eCreateProject);
+				int projectCount = GET_TEAM(getTeam()).getProjectCount(eCreateProject);
+				GET_TEAM(getTeam()).setProjectArtType(eCreateProject, projectCount - 1, defaultArtType);
 			}
-			setProjectProduction(eCreateProject, 0);
-
-			// * Limited which production modifiers affect gold from production overflow. 3/3
-			iLostProduction *= getBaseYieldRateModifier(YIELD_PRODUCTION);
-			iLostProduction /= std::max(1, getBaseYieldRateModifier(YIELD_PRODUCTION, getProductionModifier(eCreateProject)));
-			// advc.123f: was MAXED_PROJECT_GOLD_PERCENT
-			int iProductionGold = ((iLostProduction * GC.getDefineINT("MAXED_BUILDING_GOLD_PERCENT")) / 100);
-			// UNOFFICIAL_PATCH End
-			if (iProductionGold > 0)
-			{
-				owner.changeGold(iProductionGold);
-			}
-			// <advc.123f>
-			if(GC.getGameINLINE().isProjectMaxedOut(eCreateProject))
-				maxedBuildingOrProject = eCreateProject; // </advc.123f>
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      10/02/09                                jdog5000      */
-/*                                                                                              */
-/* AI logging                                                                                   */
-/************************************************************************************************/
-			if( gCityLogLevel >= 1 )
-			{
-				logBBAI("    City %S finishes production of project %S", getName().GetCString(), GC.getProjectInfo(eCreateProject).getDescription() );
-			}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
 		}
+		// <advc.064b> Moved into new function
+		handleOverflow(getProjectProduction(eCreateProject) - getProductionNeeded(eCreateProject),
+				getProductionModifier(eCreateProject), eOrderType);
+		// </advc.064b>
+		setProjectProduction(eCreateProject, 0);
+		// <advc.123f>
+		if(GC.getGameINLINE().isProjectMaxedOut(eCreateProject))
+			maxedBuildingOrProject = eCreateProject; // </advc.123f>
+		if( gCityLogLevel >= 1 ) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
+			logBBAI("    City %S finishes production of project %S", getName().GetCString(), GC.getProjectInfo(eCreateProject).getDescription() );
 		break;
-
+	}
 	case ORDER_MAINTAIN:
 		break;
 
 	default:
-		FAssertMsg(false, "pOrderNode->m_data.eOrderType is not a valid option");
+		FAssert(false);
 		break;
 	}
 	// <advc.123f> Fail gold from great wonders and world projects
@@ -13098,6 +12993,11 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 					// 0 fail gold for teammates
 					if(p.getTeam() == getTeam())
 						minProduction = 0;
+					/*  No fail gold for overflow
+						(Tbd.: Add the overflow to OverflowProduction?) */
+					minProduction = std::min(minProduction,
+							bProject ? getProductionNeeded(pt) :
+							getProductionNeeded(bt));
 					minProductionCity->failProduction(maxedBuildingOrProject,
 							minProduction, bProject);
 				}
@@ -13119,7 +13019,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 		startHeadOrder();
 	}
 
-	if ((getTeam() == GC.getGameINLINE().getActiveTeam()) || GC.getGameINLINE().isDebugMode())
+	if (getTeam() == GC.getGameINLINE().getActiveTeam() || GC.getGameINLINE().isDebugMode())
 	{
 		setInfoDirty(true);
 
@@ -13191,7 +13091,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 		}
 		if (isProduction())
 		{
-			swprintf(szTempBuffer, gDLL->getText(((isProductionLimited()) ? "TXT_KEY_MISC_WORK_HAS_BEGUN_LIMITED" : "TXT_KEY_MISC_WORK_HAS_BEGUN"), getProductionNameKey()).GetCString());
+			swprintf(szTempBuffer, gDLL->getText((isProductionLimited() ? "TXT_KEY_MISC_WORK_HAS_BEGUN_LIMITED" : "TXT_KEY_MISC_WORK_HAS_BEGUN"), getProductionNameKey()).GetCString());
 			wcscat(szBuffer, szTempBuffer);
 		}
 		gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, szSound,
@@ -13199,7 +13099,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 				szIcon, (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), getX_INLINE(), getY_INLINE(), true, true);
 	}
 
-	if ((getTeam() == GC.getGameINLINE().getActiveTeam()) || GC.getGameINLINE().isDebugMode())
+	if (getTeam() == GC.getGameINLINE().getActiveTeam() || GC.getGameINLINE().isDebugMode())
 	{
 		setInfoDirty(true);
 
@@ -13322,18 +13222,14 @@ void CvCity::doGrowth()
 {
 	int iDiff;
 
-	if (GC.getUSE_DO_GROWTH_CALLBACK()) // K-Mod. block unused python callbacks
-	{
-		CyCity* pyCity = new CyCity(this);
-		CyArgsList argsList;
+	if (GC.getUSE_DO_GROWTH_CALLBACK()) { // K-Mod. block unused python callbacks
+		CyCity* pyCity = new CyCity(this); CyArgsList argsList;
 		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
 		long lResult=0;
 		gDLL->getPythonIFace()->callFunction(PYGameModule, "doGrowth", argsList.makeFunctionArgs(), &lResult);
 		delete pyCity;	// python fxn must not hold on to this pointer 
 		if (lResult == 1)
-		{
 			return;
-		}
 	}
 
 	iDiff = foodDifference();
@@ -13558,19 +13454,14 @@ bool CvCity::doCheckProduction()
 	{
 		if (getUnitProduction((UnitTypes)iI) > 0)
 		{
-			if (owner.isProductionMaxedUnitClass((UnitClassTypes)(GC.getUnitInfo((UnitTypes)iI).getUnitClassType())))
-			{	/*  advc.123f (comment): Does nothing b/c I'm setting
-					MAXED_UNIT_GOLD_PERCENT=0 */
-				int iProductionGold = ((getUnitProduction((UnitTypes)iI) * GC.getDefineINT("MAXED_UNIT_GOLD_PERCENT")) / 100);
-
-				if (iProductionGold > 0)
-				{
+			if (owner.isProductionMaxedUnitClass((UnitClassTypes)GC.getUnitInfo((UnitTypes)iI).getUnitClassType()))
+			{	// advc.123f: Commented out (fail gold from national units)
+				/*int iProductionGold = ((getUnitProduction((UnitTypes)iI) * GC.getDefineINT("MAXED_UNIT_GOLD_PERCENT")) / 100);
+				if (iProductionGold > 0) {
 					owner.changeGold(iProductionGold);
-
 					szBuffer = gDLL->getText("TXT_KEY_MISC_LOST_WONDER_PROD_CONVERTED", getNameKey(), GC.getUnitInfo((UnitTypes)iI).getTextKeyWide(), iProductionGold);
 					gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_WONDERGOLD", MESSAGE_TYPE_MINOR_EVENT, GC.getCommerceInfo(COMMERCE_GOLD).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX_INLINE(), getY_INLINE(), true, true);
-				}
-
+				}*/
 				setUnitProduction(((UnitTypes)iI), 0);
 			}
 		}
@@ -13677,18 +13568,14 @@ bool CvCity::doCheckProduction()
 
 void CvCity::doProduction(bool bAllowNoProduction)
 {
-	if (GC.getUSE_DO_PRODUCTION_CALLBACK()) // K-Mod. block unused python callbacks
-	{
-		CyCity* pyCity = new CyCity(this);
-		CyArgsList argsList;
+	if (GC.getUSE_DO_PRODUCTION_CALLBACK()) { // K-Mod. block unused python callbacks
+		CyCity* pyCity = new CyCity(this); CyArgsList argsList;
 		argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
 		long lResult=0;
 		gDLL->getPythonIFace()->callFunction(PYGameModule, "doProduction", argsList.makeFunctionArgs(), &lResult);
 		delete pyCity;	// python fxn must not hold on to this pointer 
 		if (lResult == 1)
-		{
 			return;
-		}
 	}
 
 	if (!isHuman() || isProductionAutomated())
@@ -13724,18 +13611,20 @@ void CvCity::doProduction(bool bAllowNoProduction)
 
 	if (isProduction())
 	{
-		changeProduction(getCurrentProductionDifference(false, true));
+		int iFeatureProductionUsed=0; // advc.064b
+		changeProduction(getCurrentProductionDifference(false, true, false,
+				false, false, &iFeatureProductionUsed)); // advc.064b
 		setOverflowProduction(0);
-		setFeatureProduction(0);
+		//setFeatureProduction(0);
+		changeFeatureProduction(-iFeatureProductionUsed); // advc.064b
 
 		if (getProduction() >= getProductionNeeded())
-		{
 			popOrder(0, true, true);
-		}
 	}
 	else
 	{
-		changeOverflowProduction(getCurrentProductionDifference(false, false), getProductionModifier());
+		changeOverflowProduction(getCurrentProductionDifference(false, false,
+				/* advc.064b: */ true), getProductionModifier());
 	}
 }
 
@@ -14907,7 +14796,8 @@ bool CvCity::getProductionBarPercentages(std::vector<float>& afPercentages) cons
 	{
 		afPercentages.resize(NUM_INFOBAR_TYPES, 0.0f);
 		int iProductionDiffNoFood = getCurrentProductionDifference(true, true);
-		int iProductionDiffJustFood = getCurrentProductionDifference(false, true) - iProductionDiffNoFood;
+		int iProductionDiffJustFood = getCurrentProductionDifference(false, true)
+				- iProductionDiffNoFood;
 		afPercentages[INFOBAR_STORED] = getProduction() / (float) getProductionNeeded();
 		afPercentages[INFOBAR_RATE] = iProductionDiffNoFood / (float) getProductionNeeded();
 		afPercentages[INFOBAR_RATE_EXTRA] = iProductionDiffJustFood / (float) getProductionNeeded();
@@ -16538,18 +16428,18 @@ void CvCity::failProduction(int iOrderData, int iInvestedProduction,
 	if(bProject)
 		setProjectProduction((ProjectTypes)iOrderData, 0);
 	else setBuildingProduction((BuildingTypes)iOrderData, 0);
+	OrderTypes eOrderType = (bProject ? ORDER_CREATE : ORDER_CONSTRUCT);
 	for(int i = getOrderQueueLength() - 1; i >= 0; i--) {
 		OrderData* od = getOrderFromQueue(i);
-		if(od != NULL && od->eOrderType == (bProject ? ORDER_CREATE : ORDER_CONSTRUCT) &&
-				od->iData1 == iOrderData) {
+		if(od != NULL && od->eOrderType == eOrderType && od->iData1 == iOrderData) {
 			FAssert(!canContinueProduction(*od));
 			popOrder(i, false, true);
 		}
 	}
-	int buildingGoldPercent = GC.getDefineINT("MAXED_BUILDING_GOLD_PERCENT");
-	if(buildingGoldPercent <= 0)
+	int iGoldPercent = failGoldPercent(eOrderType);
+	if(iGoldPercent <= 0)
 		return;
-	int iProductionGold = (iInvestedProduction * buildingGoldPercent) / 100;
+	int iProductionGold = (iInvestedProduction * iGoldPercent) / 100;
 	GET_PLAYER(getOwnerINLINE()).changeGold(iProductionGold);
 	CvWString msg = gDLL->getText("TXT_KEY_MISC_LOST_WONDER_PROD_CONVERTED",
 			getNameKey(), bProject ?
@@ -16562,3 +16452,46 @@ void CvCity::failProduction(int iOrderData, int iInvestedProduction,
 			getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
 			getX_INLINE(), getY_INLINE(), true, true);
 } // </advc.123f>
+
+// <advc.064b>
+int CvCity::failGoldPercent(OrderTypes eOrder) const { // Fail and overflow gold
+
+	/*  To make any future changes to the process conversion rates easier, tie
+		fail gold to the Wealth process. */
+	int r = GC.getProcessInfo((ProcessTypes)0).getProductionToCommerceModifier(COMMERCE_GOLD);
+	switch(eOrder) {
+	case ORDER_TRAIN: r *= GC.getDefineINT("MAXED_UNIT_GOLD_PERCENT"); break;
+	case ORDER_CONSTRUCT: r *= GC.getDefineINT("MAXED_BUILDING_GOLD_PERCENT"); break;
+	case ORDER_CREATE: r *= GC.getDefineINT("MAXED_PROJECT_GOLD_PERCENT"); break;
+	default: r *= 100; FAssert(false);
+	}
+	return r / 100;
+}
+
+
+void CvCity::handleOverflow(int iRawOverflow, int iProductionModifier, OrderTypes eOrderType) {
+
+	FAssert(getOverflowProduction() == 0);
+	int iProductionGold = 0;
+	int iLostProduction = 0;
+	int iOverflow = computeOverflow(iRawOverflow, iProductionModifier, eOrderType,
+			&iProductionGold, &iLostProduction);
+	if(iOverflow <= 0)
+		return;
+	setOverflowProduction(iOverflow);
+	if(iProductionGold > 0 || iLostProduction > 0)
+		payOverflowGold(iLostProduction, iProductionGold);
+}
+
+
+void CvCity::payOverflowGold(int iLostProduction, int iProductionGold) {
+
+	CvPlayer& kOwner = GET_PLAYER(getOwnerINLINE());
+	kOwner.changeGold(iProductionGold);
+	CvWString szMsg(gDLL->getText("TXT_KEY_MISC_OVERFLOW_GOLD", iLostProduction,
+			getNameKey(), iProductionGold));
+	gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), false,
+			GC.getEVENT_MESSAGE_TIME(), szMsg, "AS2D_WONDERGOLD",
+			MESSAGE_TYPE_INFO, GC.getCommerceInfo(COMMERCE_GOLD).
+			getButton(), NO_COLOR, getX_INLINE(), getY_INLINE(), false, false);
+} // </advc.064b>

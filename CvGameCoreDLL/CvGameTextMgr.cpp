@@ -16653,14 +16653,14 @@ void CvGameTextMgr::setProductionHelp(CvWStringBuffer &szBuffer, CvCity& city)
 	FAssertMsg(NO_PLAYER != city.getOwnerINLINE(), "City must have an owner");
 
 	bool bProcess = city.isProductionProcess();
-	int iPastOverflow = (bProcess ? 0 : city.getOverflowProduction());
-	if (iPastOverflow != 0)
-	{
-		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_PROD_OVERFLOW", iPastOverflow));
-		szBuffer.append(NEWLINE);
-	}
-
-	int iFromChops = (city.isProductionProcess() ? 0 : city.getFeatureProduction());
+	// advc.064b: To be displayed at the end; iPastOverflow also moved.
+	int iFromChopsUnused = city.getFeatureProduction();
+	// <advc.064b>
+	int iFromChops=0;
+	city.getCurrentProductionDifference(false, !bProcess, false, false, false, &iFromChops);
+	if(!city.isProduction())
+		iFromChops = iFromChopsUnused;
+	iFromChopsUnused -= iFromChops; // </advc.064b>
 	if (iFromChops != 0)
 	{
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_PROD_CHOPS", iFromChops));
@@ -16679,7 +16679,18 @@ void CvGameTextMgr::setProductionHelp(CvWStringBuffer &szBuffer, CvCity& city)
 
 	setYieldHelp(szBuffer, city, YIELD_PRODUCTION);
 
-	int iBaseProduction = city.getBaseYieldRate(YIELD_PRODUCTION) + iPastOverflow + iFromChops;
+	/*  advc.064b: Moved down b/c the generic bonuses in setYieldHelp no longer
+		apply to iPastOverflow */
+	int iPastOverflow = city.getOverflowProduction();
+	if (iPastOverflow != 0 && !bProcess) // advc.064b: Display it later if bProcess
+	{
+		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_PROD_OVERFLOW", iPastOverflow));
+		szBuffer.append(NEWLINE);
+	}
+	// advc.064b: Don't add iOverflow yet
+	int iBaseProduction = city.getBaseYieldRate(YIELD_PRODUCTION) + iFromChops;
+	/*  advc (note): This is the sum of all modifiers that apply to iBaseProduction
+		(not to food production) */
 	int iBaseModifier = city.getBaseYieldRateModifier(YIELD_PRODUCTION);
 
 	UnitTypes eUnit = city.getProductionUnit();
@@ -16893,21 +16904,52 @@ void CvGameTextMgr::setProductionHelp(CvWStringBuffer &szBuffer, CvCity& city)
 	{
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_PROD_FOOD", iFoodProduction, iFoodProduction));
 		szBuffer.append(NEWLINE);
-	}
-
-	int iModProduction = iFoodProduction + (iBaseModifier * iBaseProduction) / 100;
-
-	FAssertMsg(iModProduction == city.getCurrentProductionDifference(false, !bProcess), "Modified Production does not match actual value");
+	} // advc.064b: To match the change in CvCity::getProductionDifference
+	int iOverflowModifier = iBaseModifier - city.getBaseYieldRateModifier(YIELD_PRODUCTION);
+	int iModProduction = iFoodProduction + (iBaseModifier * iBaseProduction
+			// advc.064b:
+			+ (bProcess ? 0 : (iPastOverflow * (100 + iOverflowModifier)))) / 100;
+	FAssertMsg(iModProduction == city.getCurrentProductionDifference(false, !bProcess)
+			// advc.064b: Display and rules don't quite align when no production chosen
+			+ (city.isProduction() ? 0 : city.getFeatureProduction()),
+			"Modified Production does not match actual value");
 
 	szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_PROD_FINAL_YIELD", iModProduction));
-	//szBuffer.append(NEWLINE);
-
-// BUG - Building Additional Production - start
-	if (bBuildingAdditionalYield && city.getOwnerINLINE() == GC.getGame().getActivePlayer())
-	{
-		setBuildingAdditionalYieldHelp(szBuffer, city, YIELD_PRODUCTION, DOUBLE_SEPARATOR);
+	// <advc.064b>
+	OrderTypes eOrderType = city.getOrderData(0).eOrderType;
+	int iNewOverflow = 0;
+	if(eOrderType != NO_ORDER && !bProcess) {
+		iNewOverflow = iModProduction + city.getProduction() - city.getProductionNeeded();
+		int iProductionGold = 0;
+		int iLostProduction = 0;
+		FAssertMsg((eUnit != NO_UNIT && iOverflowModifier == city.getProductionModifier(eUnit)) ||
+				(eBuilding != NO_BUILDING && iOverflowModifier == city.getProductionModifier(eBuilding)) ||
+				(eProject != NO_PROJECT && iOverflowModifier == city.getProductionModifier(eProject)),
+				"Displayed modifier inconsistent with the one computed by CvCity");
+		iNewOverflow = city.computeOverflow(iNewOverflow, iOverflowModifier,
+				eOrderType, &iProductionGold, &iLostProduction);
+		if(iLostProduction > 0) {
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_PROD_GOLD",
+					iLostProduction, iProductionGold));
+		}
 	}
-// BUG - Building Additional Production - end
+	else if(eOrderType != NO_ORDER)
+		iNewOverflow = iPastOverflow;
+	if(iNewOverflow > 0) {
+		szBuffer.append(NEWLINE);
+		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_PROD_NEW_OVERFLOW",
+				iNewOverflow));
+	}
+	if(iFromChopsUnused != 0) {
+		szBuffer.append(NEWLINE);
+		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_PROD_CHOPS_UNUSED",
+				iFromChopsUnused));
+	} // </advc.064b>
+	// BUG - Building Additional Production - start
+	if (bBuildingAdditionalYield && city.getOwnerINLINE() == GC.getGame().getActivePlayer())
+		setBuildingAdditionalYieldHelp(szBuffer, city, YIELD_PRODUCTION, DOUBLE_SEPARATOR);
+	// BUG - Building Additional Production - end
 }
 
 

@@ -4378,109 +4378,69 @@ CvArea* CvPlot::area() const
 
 	return m_pPlotArea;
 }
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						01/02/09		jdog5000		*/
-/* 																			*/
-/* 	General AI																*/
-/********************************************************************************/
-/* original BTS code
-CvArea* CvPlot::waterArea() const
-*/
-CvArea* CvPlot::waterArea(bool bNoImpassable) const
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						END								*/
-/********************************************************************************/	
+
+
+CvArea* CvPlot::waterArea(
+		// BETTER_BTS_AI_MOD, General AI, 01/02/09, jdog5000
+		bool bNoImpassable) const
 {
-	CvArea* pBestArea;
-	CvPlot* pAdjacentPlot;
-	int iValue;
-	int iBestValue;
-	int iI;
-
 	if (isWater())
-	{
 		return area();
-	}
 
-	iBestValue = 0;
-	pBestArea = NULL;
-
-	for (iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	int iBestValue = 0;
+	CvArea* pBestArea = NULL;
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
 	{
-		pAdjacentPlot = plotDirection(getX_INLINE(), getY_INLINE(), ((DirectionTypes)iI));
-
-		if (pAdjacentPlot != NULL
+		CvPlot* pAdjacentPlot = plotDirection(getX_INLINE(), getY_INLINE(), (DirectionTypes)iI);
+		if (pAdjacentPlot == NULL
 				// advc.030b: Can be NULL while recalculating areas at game start
-				&& pAdjacentPlot->area() != NULL)
-		{
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						01/02/09		jdog5000		*/
-/* 																			*/
-/* 	General AI																*/
-/********************************************************************************/
-/* original BTS code
-			if (pAdjacentPlot->isWater())
-*/
-			if (pAdjacentPlot->isWater() && (!bNoImpassable || !(pAdjacentPlot->isImpassable())))
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						END								*/
-/********************************************************************************/		
-			{
-				iValue = pAdjacentPlot->area()->getNumTiles();
+				|| pAdjacentPlot->area() == NULL)
+			continue; // advc.003
 
-				if (iValue > iBestValue)
-				{
-					iBestValue = iValue;
-					pBestArea = pAdjacentPlot->area();
-				}
+		if (pAdjacentPlot->isWater() &&
+				// BETTER_BTS_AI_MOD, General AI, 01/02/09, jdog5000
+				(!bNoImpassable || !pAdjacentPlot->isImpassable()))
+		{
+			int iValue = pAdjacentPlot->area()->getNumTiles();
+			if (iValue > iBestValue)
+			{
+				iBestValue = iValue;
+				pBestArea = pAdjacentPlot->area();
 			}
 		}
 	}
-
 	return pBestArea;
 }
 
 CvArea* CvPlot::secondWaterArea() const
 {
-	
-	CvArea* pWaterArea = waterArea();
-	CvArea* pBestArea;
-	CvPlot* pAdjacentPlot;
-	int iValue;
-	int iBestValue;
-	int iI;
-	
 	FAssert(!isWater());
 
-	iBestValue = 0;
-	pBestArea = NULL;
-
-	for (iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
+	CvArea* pWaterArea = waterArea();
+	int iBestValue = 0;
+	CvArea* pBestArea = NULL;
+	for (int iI = 0; iI < NUM_DIRECTION_TYPES; ++iI)
 	{
-		pAdjacentPlot = plotDirection(getX_INLINE(), getY_INLINE(), ((DirectionTypes)iI));
+		CvPlot* pAdjacentPlot = plotDirection(getX_INLINE(), getY_INLINE(), (DirectionTypes)iI);
+		if (pAdjacentPlot == NULL)
+			continue; // advc.003
 
-		if (pAdjacentPlot != NULL)
+		if (pAdjacentPlot->isWater() &&
+				/*  advc.031: Same as in waterArea, except that I see no
+					need for a bNoImpassable parameter here - water areas
+					blocked by ice should always be excluded. */
+				!pAdjacentPlot->isImpassable() &&
+				pAdjacentPlot->getArea() != pWaterArea->getID())
 		{
-			if (pAdjacentPlot->isWater() &&
-					/*  advc.031: Same as in waterArea, except that I see no
-						need for a bNoImpassable parameter here - water areas
-						blocked by ice should always be excluded. */
-					!pAdjacentPlot->isImpassable() &&
-					pAdjacentPlot->getArea() != pWaterArea->getID())
+			int iValue = pAdjacentPlot->area()->getNumTiles();
+			if (iValue > iBestValue)
 			{
-				iValue = pAdjacentPlot->area()->getNumTiles();
-
-				if (iValue > iBestValue)
-				{
-					iBestValue = iValue;
-					pBestArea = pAdjacentPlot->area();
-				}
+				iBestValue = iValue;
+				pBestArea = pAdjacentPlot->area();
 			}
 		}
 	}
-
 	return pBestArea;	
-	
 }
 
 
@@ -10357,6 +10317,23 @@ int CvPlot::airUnitSpaceAvailable(TeamTypes eTeam) const
 
 	return (iMaxUnits - countNumAirUnits(eTeam));
 }
+
+// <advc.081> Cut from CvPlayerAI::AI_countNumAreaHostileUnits
+int CvPlot::countAreaHostileUnits(PlayerTypes ePlayer, CvArea* pArea, bool bPlayer,
+		bool bTeam, bool bNeutral, bool bHostile) const {
+
+	if(area() != pArea)
+		return 0;
+	TeamTypes eTeam = TEAMID(ePlayer);
+	if(!isVisible(eTeam, false))
+		return 0;
+	if((bPlayer && getOwnerINLINE() == ePlayer) ||
+			(bTeam && getTeam() == eTeam) || (bNeutral && !isOwned()) ||
+			(bHostile && isOwned() && GET_TEAM(eTeam).isAtWar(getTeam())))
+		return plotCount(PUF_isEnemy, ePlayer, false, NO_PLAYER, NO_TEAM,
+				PUF_isVisible, ePlayer);
+	return 0;
+} // </advc.081>
 
 bool CvPlot::isEspionageCounterSpy(TeamTypes eTeam) const
 {

@@ -748,6 +748,7 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	m_iWondersScore = 0;
 	m_iCombatExperience = 0;
 	m_iPopRushHurryCount = 0;
+	m_iGoldRushHurryCount = 0; // advc.064b
 	m_iInflationModifier = 0;
 	m_uiStartTime = 0;
 
@@ -13266,6 +13267,13 @@ bool CvPlayer::canPopRush() const
 	return (m_iPopRushHurryCount > 0);
 }
 
+// <advc.064b>
+bool CvPlayer::canGoldRush() const {
+
+	return (m_iGoldRushHurryCount > 0);
+} // </advc.064b>
+
+
 void CvPlayer::changeHurryCount(HurryTypes eIndex, int iChange)										
 {
 	FAssert(eIndex >= 0);
@@ -13283,7 +13291,11 @@ void CvPlayer::changeHurryCount(HurryTypes eIndex, int iChange)
 		{
 			m_iPopRushHurryCount += iChange;
 			FAssert(m_iPopRushHurryCount >= 0);
-		}
+		} // <advc.064b>
+		if(GC.getHurryInfo(eIndex).getGoldPerProduction() > 0) {
+			m_iGoldRushHurryCount += iChange;
+			FAssert(m_iGoldRushHurryCount >= 0);
+		} // </advc.064b>
 	}
 }
 
@@ -18781,6 +18793,17 @@ void CvPlayer::read(FDataStreamBase* pStream)
 	}
 
 	pStream->Read(&m_iPopRushHurryCount);
+	// <advc.064b>
+	if(uiFlag >= 10)
+		pStream->Read(&m_iGoldRushHurryCount);
+	else {
+		for(int i = 0; i < GC.getNumHurryInfos(); i++) {
+			if(GC.getHurryInfo((HurryTypes)i).getGoldPerProduction() > 0) {
+				m_iGoldRushHurryCount = m_paiHurryCount[i];
+				break;
+			}
+		}
+	} // </advc.064b>
 	pStream->Read(&m_iInflationModifier);
 
 	if(!isAlive())
@@ -18831,6 +18854,7 @@ void CvPlayer::write(FDataStreamBase* pStream)
 	uiFlag = 7; // advc.912c (6 used up for a test version)
 	uiFlag = 8; // advc.004x
 	uiFlag = 9; // advc.078
+	uiFlag = 10; // advc.064b
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iStartingX);
@@ -19243,6 +19267,7 @@ void CvPlayer::write(FDataStreamBase* pStream)
 	}
 
 	pStream->Write(m_iPopRushHurryCount);
+	pStream->Write(m_iGoldRushHurryCount); // advc.064b
 	pStream->Write(m_iInflationModifier);
 }
 
