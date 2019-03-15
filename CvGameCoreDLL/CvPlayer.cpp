@@ -1691,7 +1691,10 @@ void CvPlayer::addFreeUnitAI(UnitAITypes eUnitAI, int iCount)
 				if (bValid)
 				{
 					iValue = AI_unitValue(eLoopUnit, eUnitAI, NULL);
-
+					// <advc.250e> No Archer for exploration
+					if(eUnitAI == UNITAI_EXPLORE)
+						iValue -= AI_unitValue(eLoopUnit, UNITAI_CITY_DEFENSE, NULL);
+					// </advc.250e>
 					if (iValue > iBestValue)
 					{
 						eBestUnit = eLoopUnit;
