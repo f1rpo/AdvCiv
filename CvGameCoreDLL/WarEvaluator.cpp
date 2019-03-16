@@ -15,11 +15,12 @@ using std::ostringstream;
 	several times in a row (usually about a dozen times), which is enough to cause
 	a noticeable delay. Therefore this primitive caching mechanism. The cache is
 	always used on the Trade screen; in other UI contexts, it has to be enabled
-	through the useCache param of the constructor, or the static checkCache flag.
-	As for the latter, it's important to set it back to false once war evaluations
+	through the useCache param of the constructor, or the static enableCache.
+	As for the latter, it's important to call disableCache once war evaluations
 	have finished b/c the cache doesn't work in all situations
 	(see WarEvalParameters::id) and isn't stored in savegames. */
 bool WarEvaluator::checkCache = false;
+bool WarEvaluator::cacheCleared = true;
 /*  Cache size: Calls alternate between naval/ non-naval,
 	limited/ total or mutual war utility of two civs,
 	so caching just the last result isn't effective. */
@@ -28,8 +29,22 @@ static long lastCallParams[cacheSz];
 static int lastCallResult[cacheSz];
 static int lastIndex;
 
+void WarEvaluator::enableCache() {
+
+	checkCache = true;
+	cacheCleared = false;
+}
+
+void WarEvaluator::disableCache() {
+
+	checkCache = false;
+}
+
 void WarEvaluator::clearCache() {
 
+	if(cacheCleared) // Just to make sure that repeated clears don't waste time
+		return;
+	cacheCleared = true;
 	for(int i = 0; i < cacheSz; i++)
 		lastCallResult[i] = INT_MIN;
 }

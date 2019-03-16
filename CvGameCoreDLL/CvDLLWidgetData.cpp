@@ -3550,10 +3550,10 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 		} */
 		// K-Mod
 		// <advc.104l>
-		WarEvaluator::checkCache = true;
+		WarEvaluator::enableCache();
 		// Don't check this twice; potentially costly.
 		bool willTalk = kPlayer.AI_isWillingToTalk(eActivePlayer);
-		WarEvaluator::checkCache = false; // </advc.104l>
+		WarEvaluator::disableCache(); // </advc.104l>
 		if (!willTalk)
 		{
 			szBuffer.append(NEWLINE);
@@ -4852,9 +4852,9 @@ void CvDLLWidgetData::parseTradeItem(CvWidgetDataStruct &widgetDataStruct, CvWSt
 			widgetDataStruct.m_iData2);
 	/*  advc.104l: Can't easily move this code elsewhere b/c the cache should
 		only be used when TradeDenial is checked by this class. */
-	WarEvaluator::checkCache = true;
+	WarEvaluator::enableCache();
 	DenialTypes eDenial = GET_PLAYER(eWhoFrom).getTradeDenial(eWhoTo, item);
-	WarEvaluator::checkCache = false; // advc.104l
+	WarEvaluator::disableCache(); // advc.104l
 	if (eDenial == NO_DENIAL)
 		return;
 

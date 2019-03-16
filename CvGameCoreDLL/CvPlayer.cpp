@@ -3554,7 +3554,7 @@ void CvPlayer::doTurn()
 	   doTurn contains the entire sequence of an AI turn, but is also called when
 	   a human player ends his/her turn. */
 	g.setAITurn(true);
-	if(isHuman() && getStartOfTurnMessageLimit() >= 0 &&
+	if(isHuman() && //getStartOfTurnMessageLimit() >= 0 && // The message should be helpful even if the log doesn't auto-open
 			g.getElapsedGameTurns() > 0 && !m_listGameMessages.empty()) {
 		CvWString endTurnMsg = gDLL->getText("TXT_KEY_END_TURN_MSG");
 		gDLL->getInterfaceIFace()->addHumanMessage(getID(), false, 0, endTurnMsg,
@@ -4602,10 +4602,6 @@ void CvPlayer::contact(PlayerTypes ePlayer)
 
 void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer, int iData1, int iData2)
 {
-	CivicTypes* paeNewCivics;
-	CvCity* pCity;
-	int iI;
-
 	FAssertMsg(ePlayer != getID(), "shouldn't call this function on ourselves");
 
 	switch (eDiploEvent)
@@ -4627,18 +4623,18 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 
 	case DIPLOEVENT_GIVE_HELP:
 		// advc.130j:
-		GET_PLAYER(getID()).AI_rememberEvent(ePlayer, MEMORY_GIVE_HELP);
+		AI().AI_rememberEvent(ePlayer, MEMORY_GIVE_HELP);
 		forcePeace(ePlayer);
 		break;
 
 	case DIPLOEVENT_REFUSED_HELP:
 		// advc.130j:
-		GET_PLAYER(getID()).AI_rememberEvent(ePlayer, MEMORY_REFUSED_HELP);
+		AI().AI_rememberEvent(ePlayer, MEMORY_REFUSED_HELP);
 		break;
 
 	case DIPLOEVENT_ACCEPT_DEMAND:
 		// advc.130j:
-		GET_PLAYER(getID()).AI_rememberEvent(ePlayer, MEMORY_ACCEPT_DEMAND);
+		AI().AI_rememberEvent(ePlayer, MEMORY_ACCEPT_DEMAND);
 		/*  advc.130o, advc.104: So that the AI can tell if a demand was
 			_recently_ accepted. Don't call AI_rememberEvent b/c I want only
 			a "half" memory (for 10 turns instead of 20). */
@@ -4659,7 +4655,7 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 	case DIPLOEVENT_REJECTED_DEMAND:
 		FAssertMsg(GET_PLAYER(ePlayer).getTeam() != getTeam(), "shouldn't call this function on our own team");
 		// advc.130j:
-		GET_PLAYER(getID()).AI_rememberEvent(ePlayer, MEMORY_REJECTED_DEMAND);
+		AI().AI_rememberEvent(ePlayer, MEMORY_REJECTED_DEMAND);
 		if (AI_demandRebukedSneak(ePlayer))
 		{
 			GET_TEAM(getTeam()).AI_setWarPlan(GET_PLAYER(ePlayer).getTeam(), WARPLAN_PREPARING_LIMITED);
@@ -4685,21 +4681,20 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 
 	case DIPLOEVENT_CONVERT:
 		// advc.130j:
-		GET_PLAYER(getID()).AI_rememberEvent(ePlayer, MEMORY_ACCEPTED_RELIGION);
+		AI().AI_rememberEvent(ePlayer, MEMORY_ACCEPTED_RELIGION);
 		GET_PLAYER(ePlayer).convert(getStateReligion());
 		break;
 
 	case DIPLOEVENT_NO_CONVERT:
 		// advc.130j:
-		GET_PLAYER(getID()).AI_rememberEvent(ePlayer, MEMORY_DENIED_RELIGION);
+		AI().AI_rememberEvent(ePlayer, MEMORY_DENIED_RELIGION);
 		break;
 
-	case DIPLOEVENT_REVOLUTION:
+	case DIPLOEVENT_REVOLUTION: {
 		AI_changeMemoryCount(ePlayer, MEMORY_ACCEPTED_CIVIC, 1);
 
-		paeNewCivics = new CivicTypes[GC.getNumCivicOptionInfos()];
-
-		for (iI = 0; iI < GC.getNumCivicOptionInfos(); iI++)
+		CivicTypes* paeNewCivics = new CivicTypes[GC.getNumCivicOptionInfos()];
+		for (int iI = 0; iI < GC.getNumCivicOptionInfos(); iI++)
 		{
 			paeNewCivics[iI] = GET_PLAYER(ePlayer).getCivics((CivicOptionTypes)iI);
 		}
@@ -4712,15 +4707,15 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 
 		SAFE_DELETE_ARRAY(paeNewCivics);
 		break;
-
+	}
 	case DIPLOEVENT_NO_REVOLUTION:
 		// advc.130j:
-		GET_PLAYER(getID()).AI_rememberEvent(ePlayer, MEMORY_DENIED_CIVIC);
+		AI().AI_rememberEvent(ePlayer, MEMORY_DENIED_CIVIC);
 		break;
 
 	case DIPLOEVENT_JOIN_WAR:
 		// advc.130j:
-		GET_PLAYER(getID()).AI_rememberEvent(ePlayer, MEMORY_ACCEPTED_JOIN_WAR);
+		AI().AI_rememberEvent(ePlayer, MEMORY_ACCEPTED_JOIN_WAR);
 		// advc.146:
 		GET_TEAM(getTeam()).signPeaceTreaty(TEAMID(ePlayer));
 /************************************************************************************************/
@@ -4737,7 +4732,7 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 /************************************************************************************************/
 		TEAMREF(ePlayer).declareWar((TeamTypes)iData1, false, WARPLAN_DOGPILE,
 				true, getID()); // advc.100
-		for (iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 		{
 			CvPlayerAI& attacked = GET_PLAYER((PlayerTypes)iI); // <advc.003>
 			if(!attacked.isAlive() || attacked.getTeam() != (TeamTypes)iData1)
@@ -4749,17 +4744,17 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 
 	case DIPLOEVENT_NO_JOIN_WAR:
 		// advc.130j:
-		GET_PLAYER(getID()).AI_rememberEvent(ePlayer, MEMORY_DENIED_JOIN_WAR);
+		AI().AI_rememberEvent(ePlayer, MEMORY_DENIED_JOIN_WAR);
 		break;
 
 	case DIPLOEVENT_STOP_TRADING:
 		// advc.130j:
-		GET_PLAYER(getID()).AI_rememberEvent(ePlayer, MEMORY_ACCEPTED_STOP_TRADING);
+		AI().AI_rememberEvent(ePlayer, MEMORY_ACCEPTED_STOP_TRADING);
 		GET_PLAYER(ePlayer).stopTradingWithTeam((TeamTypes)iData1);
 		// <advc.130f> We also stop trading (unless ePlayer is our capitulated vassal)
 		if(!TEAMREF(ePlayer).isCapitulated() || !TEAMREF(ePlayer).isVassal(getTeam()))
 			stopTradingWithTeam((TeamTypes)iData1, false); // </advc.130f>
-		for (iI = 0; iI < MAX_PLAYERS; iI++)
+		for (int iI = 0; iI < MAX_PLAYERS; iI++)
 		{
 			if (GET_PLAYER((PlayerTypes)iI).isAlive())
 			{
@@ -4773,7 +4768,7 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 
 	case DIPLOEVENT_NO_STOP_TRADING:
 		// advc.130j:
-		GET_PLAYER(getID()).AI_rememberEvent(ePlayer, MEMORY_DENIED_STOP_TRADING);
+		AI().AI_rememberEvent(ePlayer, MEMORY_DENIED_STOP_TRADING);
 		break;
 
 	case DIPLOEVENT_ASK_HELP:
@@ -4786,11 +4781,17 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 			// <advc.130j>
 			int demandRecentMem = AI_getMemoryCount(ePlayer, MEMORY_MADE_DEMAND_RECENT);
 			if(demandRecentMem <= 0)
-				GET_PLAYER(getID()).AI_rememberEvent(ePlayer, MEMORY_MADE_DEMAND_RECENT);
+				AI().AI_rememberEvent(ePlayer, MEMORY_MADE_DEMAND_RECENT);
 			// Only remember it half if already remembered as recent, and cap at 2
 			else if(demandRecentMem < 2)
 				AI_changeMemoryCount(ePlayer, MEMORY_MADE_DEMAND_RECENT, 1);
 		} // </advc.130o></advc.130j>
+		// <advc.144>
+		if(iData1 > 0) { // Let proxy AI remember when a human request is granted
+			GET_PLAYER(ePlayer).AI_rememberEvent(getID(), // advc.130j
+					eDiploEvent == DIPLOEVENT_ASK_HELP ?
+					MEMORY_GIVE_HELP : MEMORY_ACCEPT_DEMAND);
+		} // </advc.144>
 		break;
 
 	case DIPLOEVENT_MADE_DEMAND_VASSAL:
@@ -4800,16 +4801,16 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 		pushResearch(((TechTypes)iData1), true);
 		break;
 
-	case DIPLOEVENT_TARGET_CITY:
-		pCity = GET_PLAYER((PlayerTypes)iData1).getCity(iData2);
+	case DIPLOEVENT_TARGET_CITY: {
+		CvCity* pCity = GET_PLAYER((PlayerTypes)iData1).getCity(iData2);
 		if (pCity != NULL)
 		{
 			pCity->area()->setTargetCity(getID(), pCity);
 			// K-Mod. (I'd make it a virtual function, but that causes problems.)
-			GET_PLAYER(getID()).AI_setCityTargetTimer(GC.getPEACE_TREATY_LENGTH());
+			AI().AI_setCityTargetTimer(GC.getPEACE_TREATY_LENGTH());
 		}
 		break;
-	// K-Mod
+	} // K-Mod
 	case DIPLOEVENT_SET_WARPLAN:
 	{
 		CvTeamAI& kOurTeam = GET_TEAM(getTeam());
@@ -9437,10 +9438,7 @@ void CvPlayer::changeGoldenAgeTurns(int iChange)
 			changeAnarchyTurns(-getAnarchyTurns());
 			// K-Mod. Allow the AI to reconsider their civics. (a golden age is a good time for reform!)
 			if (!isHuman() && getMaxAnarchyTurns() != 0 && getAnarchyModifier() + 100 > 0)
-			{
-				GET_PLAYER(getID()).AI_setCivicTimer(0); // silly, I know. But what else can I do?
-			}
-			// K-Mod end
+				AI().AI_setCivicTimer(0); // K-Mod end
 		}
 
 		updateYield();
@@ -11388,7 +11386,7 @@ void CvPlayer::setAlive(bool bNewValue)
 			for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
 			{
 				GET_PLAYER(i).AI_updateAttitudeCache(getID());
-				GET_PLAYER(getID()).AI_updateAttitudeCache(i);
+				AI().AI_updateAttitudeCache(i);
 			}
 		// K-Mod end
 		}
@@ -11539,7 +11537,7 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 	if (isTurnActive())
 	{
 		// K-Mod
-		GET_PLAYER(getID()).updateCacheData();
+		AI().updateCacheData();
 		onTurnLogging(); // bbai logging
 		// K-Mod end
 
@@ -11789,11 +11787,8 @@ void CvPlayer::onTurnLogging() const
 		CvWStringBuffer szBuffer;
 
 		logBBAI("    Player %d (%S) has %d cities, %d pop, %d power, %d tech percent", getID(), getCivilizationDescription(0), getNumCities(), getTotalPopulation(), getPower(), GET_TEAM(getTeam()).getBestKnownTechScorePercent());
-
-		if( GET_PLAYER(getID()).AI_isFinancialTrouble() )
-		{
+		if( AI().AI_isFinancialTrouble() )
 			logBBAI("    Financial trouble!");
-		}
 
 		szBuffer.append(CvWString::format(L"    Team %d has met: ", getTeam()));
 
@@ -12202,11 +12197,10 @@ void CvPlayer::setLastStateReligion(ReligionTypes eNewValue)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive() && GET_PLAYER((PlayerTypes)iI).getStateReligion() != NO_RELIGION)
 		{
-			GET_PLAYER(getID()).AI_updateAttitudeCache((PlayerTypes)iI);
+			AI().AI_updateAttitudeCache((PlayerTypes)iI);
 			GET_PLAYER((PlayerTypes)iI).AI_updateAttitudeCache(getID());
 		}
-	}
-	// K-Mod end
+	} // K-Mod end
 }
 
 PlayerTypes CvPlayer::getParent() const
@@ -12301,11 +12295,10 @@ void CvPlayer::setTeam(TeamTypes eTeam)
 			&& !isBarbarian()) { // advc.003n
 		for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
 		{
-			GET_PLAYER(getID()).AI_updateAttitudeCache(i);
+			AI().AI_updateAttitudeCache(i);
 			GET_PLAYER(i).AI_updateAttitudeCache(getID());
 		}
-	}
-	// K-Mod end
+	} // K-Mod end
 }
 
 
@@ -12607,9 +12600,8 @@ bool CvPlayer::setCommercePercent(CommerceTypes eIndex, int iNewValue, bool bFor
 	updateCommerce();
 	// K-Mod. For human players, update commerce weight immediately so that they can see effects on working plots, etc.
 	if (isHuman() && isTurnActive())
-		GET_PLAYER(getID()).AI_updateCommerceWeights();
+		AI().AI_updateCommerceWeights();
 	// K-Mod end
-
 	AI_makeAssignWorkDirty();
 
 	/* original bts code
@@ -13804,7 +13796,7 @@ void CvPlayer::setCivics(CivicOptionTypes eIndex, CivicTypes eNewValue)
 	if(!isBarbarian()) { // advc.003n
 		for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
 		{
-			GET_PLAYER(getID()).AI_updateAttitudeCache(i);
+			AI().AI_updateAttitudeCache(i);
 			GET_PLAYER(i).AI_updateAttitudeCache(getID());
 		} // K-Mod end
 	}
@@ -18202,7 +18194,7 @@ void CvPlayer::processCivics(CivicTypes eCivic, int iChange)
 	// <advc.912c>
 	changeLuxuryModifier(GC.getCivicInfo(eCivic).getLuxuryModifier() * iChange);
 	if(GC.getCivicInfo(eCivic).getLuxuryModifier() != 0)
-		GET_PLAYER(getID()).AI_updateBonusValue(); // </advc.912c>
+		AI().AI_updateBonusValue(); // </advc.912c>
 	changeMilitaryFoodProductionCount((GC.getCivicInfo(eCivic).isMilitaryFoodProduction()) ? iChange : 0);
 	changeMaxConscript(getWorldSizeMaxConscript(eCivic) * iChange);
 	//changeNoUnhealthyPopulationCount((GC.getCivicInfo(eCivic).isNoUnhealthyPopulation()) ? iChange : 0);
@@ -22380,10 +22372,9 @@ bool CvPlayer::splitEmpire(int iAreaId)
 			2 * GC.getLeaderHeadInfo(getPersonalityType()).getFreedomAppreciation());
 
 	GC.getGameINLINE().updatePlotGroups();
-
 	// K-Mod
 	GET_PLAYER(eNewPlayer).AI_updateAttitudeCache(getID());
-	GET_PLAYER(getID()).AI_updateAttitudeCache(eNewPlayer);
+	AI().AI_updateAttitudeCache(eNewPlayer);
 	// K-Mod end
 	// <advc.104r>
 	if(getWPAI.isEnabled())

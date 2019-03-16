@@ -5077,10 +5077,18 @@ void CvSelectionGroup::handleBoarded() {
 
 	std::vector<CvSelectionGroup*> aLandCargoGroups;
 	getLandCargoGroups(aLandCargoGroups);
+	std::vector<CvSelectionGroup*> aAwake;
 	for(size_t i = 0; i < aLandCargoGroups.size(); i++) {
 		CvSelectionGroup& kGroup = *aLandCargoGroups[i];
 		if(kGroup.getActivityType() == ACTIVITY_BOARDED && kGroup.canDisembark())
-			kGroup.setActivityType(ACTIVITY_AWAKE);
+			aAwake.push_back(&kGroup);
+	} // Putting all awoken units in one group should be more convenient
+	if(!aAwake.empty())
+		aAwake[0]->setActivityType(ACTIVITY_AWAKE);
+	for(size_t i = 1; i < aAwake.size(); i++) {
+		if(aAwake[i]->getDomainType() == aAwake[0]->getDomainType())
+			aAwake[i]->mergeIntoGroup(aAwake[0]);
+		// One of the doDelayedDeath calls will clean the empty groups up
 	}
 }
 

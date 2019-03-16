@@ -676,7 +676,7 @@ public:
 	CvString*& getFootstepAudioTags();
 	DllExport CvString& getFootstepAudioTags(int i);
 
-	CvString& getCurrentXMLFile();
+	CvString const& getCurrentXMLFile() const; // advc.003: 2x const
 	void setCurrentXMLFile(const TCHAR* szFileName);
 
 	//
@@ -685,6 +685,8 @@ public:
 	//
 
 	DllExport FVariableSystem* getDefinesVarSystem();
+	// advc.003: Needed a const version
+	FVariableSystem const* getDefinesVarSystemINLINE() const { return m_VarSystem; }
 	void cacheGlobals();
 
 	// ***** EXPOSED TO PYTHON *****

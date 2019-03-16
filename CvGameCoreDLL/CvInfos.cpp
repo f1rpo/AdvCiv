@@ -2162,7 +2162,7 @@ void CvPromotionInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iExperiencePercent);
 	stream->Write(m_iKamikazePercent);
 	stream->Write(m_bLeader);
-	stream->Write(&m_iBlitz); // advc.164
+	stream->Write(m_iBlitz); // advc.164
 	stream->Write(m_bAmphib);
 	stream->Write(m_bRiver);
 	stream->Write(m_bEnemyRoute);

@@ -2425,6 +2425,9 @@ int CvPlayerAI::AI_yieldWeight(YieldTypes eYield, const CvCity* pCity) const // 
 	case YIELD_PRODUCTION:
 		iWeight *= 210; // advc.110: 270 in K-Mod, 200 in BtS
 		iWeight /= 100;
+		// <advc.110>
+		if(!canPopRush())
+			iWeight += 7; // </advc.110>
 		break;
 	case YIELD_COMMERCE:
 		if (AI_isFinancialTrouble())
@@ -12882,10 +12885,8 @@ int CvPlayerAI::AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled,
 			// advc.036: Cover all strange cases here
 			|| iChange + iBonusCount < 1) {
 		//This is assuming the none-to-one or one-to-none case.
-		iValue += AI_baseBonusVal(eBonus,
-				bTrade); // advc.036
-		iValue += AI_corporationBonusVal(eBonus,
-				bTrade); // advc.036
+		iValue += AI_baseBonusVal(eBonus, /* advc.036: */ bTrade);
+		iValue += AI_corporationBonusVal(eBonus, /* advc.036: */ bTrade);
 		if(!bTrade)
 			iValue = std::max(iValue, iTradeVal); // advc.036
 		// K-Mod.
@@ -13157,9 +13158,11 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 				getCivilizationType()).getCivilizationBuildings(iI);
 		if(eLoopBuilding == NO_BUILDING)
 			continue;
-		CvBuildingInfo& kLoopBuilding = GC.getBuildingInfo(eLoopBuilding);
-		int iTempValue = 0;
 
+		BuildingClassTypes eBuildingClass = (BuildingClassTypes)iI;
+		CvBuildingInfo& kLoopBuilding = GC.getBuildingInfo(eLoopBuilding);
+
+		int iTempValue = 0;
 		if(kLoopBuilding.getPrereqAndBonus() == eBonus)
 			iTempValue += 25; // advc.036: was 30
 
@@ -13167,7 +13170,6 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 			if (kLoopBuilding.getPrereqOrBonuses(iJ) == eBonus)
 				iTempValue += 15; // advc.036: was 20
 		}
-
 		iTempValue += kLoopBuilding.getBonusProductionModifier(eBonus) / 10;
 
 		if(kLoopBuilding.getPowerBonus() == eBonus)
@@ -13184,7 +13186,7 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 							we may not be able to build it at all ...
 							Too tedious to check getPrereqNumOfBuildingClass,
 							so just use a constant divisor. */
-						(::isNationalWonderClass((BuildingClassTypes)iI) ? 5 :
+						(::isNationalWonderClass(eBuildingClass) ? 5 :
 						2);
 			}
 			if (kLoopBuilding.getPowerBonus() == eBonus)
@@ -13221,12 +13223,20 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 			if(bTrade && !bCanConstruct)
 				iTempValue = 0; // </advc.036>
 			// if non-limited water building, weight by coastal cities
-			if(kLoopBuilding.isWater() && !isLimitedWonderClass(
-					(BuildingClassTypes)kLoopBuilding.getBuildingClassType())) {
+			if(kLoopBuilding.isWater() && !::isLimitedWonderClass(eBuildingClass)) {
 				iTempValue *= iCoastalCityCount;
 				iTempValue /= std::max(1, iCityCount/2);
-			}
-			if(kLoopBuilding.getPrereqAndTech() != NO_TECH) {
+			} // <advc.036>
+			int iMaking = getBuildingClassMaking(eBuildingClass);
+			if(iMaking > 0) {
+				iTempValue *= 20; // +100% for wonders, +43% to +100% otherwise.
+				if(::isMundaneBuildingClass(eBuildingClass))
+					iTempValue /= std::max(10, 15 - iMaking);
+				else iTempValue /= 10;	
+			} /* Even if it's from an earlier era, if we're constructing it,
+				 then it's apparently useful. */
+			else // </advc.036>
+				if(kLoopBuilding.getPrereqAndTech() != NO_TECH) {
 				int iDiff = abs(GC.getTechInfo((TechTypes)
 						kLoopBuilding.getPrereqAndTech()).getEra() - getCurrentEra());
 				if(iDiff == 0) {
@@ -19152,6 +19162,12 @@ void CvPlayerAI::AI_changeMemoryCount(PlayerTypes eIndex1, MemoryTypes eIndex2, 
 // <advc.130j>
 void CvPlayerAI::AI_rememberEvent(PlayerTypes civId, MemoryTypes mem) {
 
+	int delta = 2;
+	// Need a finer granularity for DoW
+	if(mem == MEMORY_DECLARED_WAR)
+		delta = 3;
+// This disables the bulk of change 130j:
+#if 0
 	int sign = 0; // 0 means it's a neutral event, 1 is good, -1 bad
 	/*  Random events should have the effects that the event dialogs say they have.
 		(E.g. "... you gain +1 attitude with ...")
@@ -19165,12 +19181,6 @@ void CvPlayerAI::AI_rememberEvent(PlayerTypes civId, MemoryTypes mem) {
 		if(memAtt > 0)
 			sign = 1;
 	}
-	int delta = 2;
-	// Need a finer granularity for DoW
-	if(mem == MEMORY_DECLARED_WAR)
-		delta = 3;
-// This disables the bulk of change 130j:
-#if 0
 	// We're surprised by the actions of civId
 	if((sign < 0 && (AI_getAttitude(civId) >= ATTITUDE_FRIENDLY ||
 			// <advc.130o> Surprised by war despite tribute
@@ -21052,24 +21062,19 @@ void CvPlayerAI::AI_doDiplo()
 				if (!abContacted[civ.getTeam()] &&
 						// advc.130v:
 						(!ourTeam.isAVassal() || ourTeam.getMasterTeam() == civ.getTeam())) {
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      02/12/10                                jdog5000      */
-/*                                                                                              */
-/* Diplomacy                                                                                    */
-/************************************************************************************************/
 					int iRand = GC.getLeaderHeadInfo(getPersonalityType()).
 							getContactRand(CONTACT_ASK_FOR_HELP);
+					// BETTER_BTS_AI_MOD, Diplomacy, 02/12/10, jdog5000: START
 					int iTechPerc = ourTeam.getBestKnownTechScorePercent();
-					if( iTechPerc < 90 )
+					if (iTechPerc < 90)
 					{
 						iRand *= std::max(1, iTechPerc - 60);
 						iRand /= 30;
-					}
-					
-				if (g.getSorenRandNum(iRand, "AI Diplo Ask For Help") == 0)
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+					} // BETTER_BTS_AI_MOD: END
+					// <advc.104m> Reduce pr to 80% b/c UWAI also calls AI_askHelp
+					if(getWPAI.isEnabled())
+						iRand = (iRand * 5) / 4; // </advc.104m>
+					if (g.getSorenRandNum(iRand, "AI Diplo Ask For Help") == 0)
 					{
 						abContacted[civ.getTeam()] = AI_askHelp(civId);
 					}
@@ -21095,7 +21100,9 @@ void CvPlayerAI::AI_doDiplo()
 							for(int i = 0; i < 5; i++) {
 								if(g.getSorenRandNum(
 										GC.getLeaderHeadInfo(getPersonalityType()).
-										getContactRand(CONTACT_DEMAND_TRIBUTE),
+										getContactRand(CONTACT_DEMAND_TRIBUTE)
+										// advc.104m: Probability halved b/c UWAI also calls AI_demandTribute
+										* (getWPAI.isEnabled() ? 2 : 1),
 										"AI Diplo Demand Tribute") == 0) {
 									abContacted[civ.getTeam()] = AI_demandTribute(civId, i);
 									if(abContacted[civ.getTeam()])
@@ -22033,9 +22040,12 @@ bool CvPlayerAI::AI_askHelp(PlayerTypes humanId) {
 
 	// <advc.104m>
 	if(GET_TEAM(getTeam()).AI_isSneakAttackReady(TEAMID(humanId)))
-		return false;
-	if(getWPAI.isEnabled() && ::bernoulliSuccess(0.2, "advc.130m"))
 		return false; // </advc.104m>
+	/*  <advc.144> Don't ask for help during a peace treaty unless human has been
+		given help (which may well be the reason for the peace treaty) */
+	if(GET_TEAM(getTeam()).isForcePeace(TEAMID(humanId)) && GET_PLAYER(humanId).
+			AI_getMemoryCount(getID(), MEMORY_GIVE_HELP) <= 0)
+		return false; // </advc.144>
 	// <advc.705>
 	CvGame const& g = GC.getGameINLINE();
 	if(g.isOption(GAMEOPTION_RISE_FALL) && g.getRiseFall().
@@ -22085,9 +22095,10 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes humanId, int tributeType) {
 	if(GET_TEAM(getTeam()).AI_isSneakAttackReady(TEAMID(humanId))) {
 		FAssert(false); // Callers ensure this I think
 		return false;
-	}
-	if(getWPAI.isEnabled() && ::bernoulliSuccess(0.5, "advc.104m"))
-		return false; // </advc.104m>
+	} // </advc.104m>
+	// <advc.144> Not during a peace treaty
+	if(!GET_TEAM(getTeam()).canDeclareWar(TEAMID(humanId)))
+		return false; // </advc.144>
 	if(AI_getContactTimer(humanId, CONTACT_DEMAND_TRIBUTE) > 0 ||
 			AI_getAttitude(humanId) > GC.getLeaderHeadInfo(getPersonalityType()).
 			getDemandTributeAttitudeThreshold())

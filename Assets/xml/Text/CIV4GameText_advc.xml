@@ -5262,5 +5262,16 @@
 		<Italian>[COLOR_WARNING_TEXT]Non può velocizzare perché c'è già abbastanza [ICON_PRODUCTION] per finire la produzione.[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_WARNING_TEXT]No se puede acelerar porque ya hay suficiente [ICON_PRODUCTION] para terminar la producción.[COLOR_REVERT]</Spanish>
 	</TEXT>
+
+	<!-- advc.004: From CIV4GameTextInfos.xml. The DLL passes the city name,
+		 but the Vanilla text didn't display it. -->
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_WHAT_TO_BUILD</Tag>
+		<English>What would you like %s1_CityName to work on?</English>
+		<French>Que souhaitez-vous construire dans cette ville ?</French>
+		<German>Was wollt Ihr in %s1_CityName errichten?</German>
+		<Italian>Cosa vuoi creare in questa citt&#224;?</Italian>
+		<Spanish>&#191;Qu&#233; os gustar&#237;a construir en esta ciudad?</Spanish>
+	</TEXT>
 	
 </Civ4GameText>

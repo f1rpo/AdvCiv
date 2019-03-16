@@ -2140,9 +2140,9 @@ bool CyPlayer::AI_isWillingToTalk(int /*PlayerTypes*/ ePlayer) {
 	if(p.getNumCities() <= 0 && p.getNumUnits() <= 0)
 		return false; // </advc.001>
 	// Gets called dozens of time already when loading a savegame
-	WarEvaluator::checkCache = true;
+	WarEvaluator::enableCache();
 	bool r = m_pPlayer->AI_isWillingToTalk(p.getID());
-	WarEvaluator::checkCache = false;
+	WarEvaluator::disableCache();
 	return r;
 } // </advc.104l>
 

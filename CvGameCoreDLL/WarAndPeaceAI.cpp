@@ -19,6 +19,11 @@ using std::pair;
 
 WarAndPeaceAI::WarAndPeaceAI() : enabled(false), inBackgr(false) {}
 
+void WarAndPeaceAI::invalidateUICache() {
+
+	WarEvaluator::clearCache();
+}
+
 void WarAndPeaceAI::setUseKModAI(bool b) {
 
 	enabled = !b;
@@ -1885,7 +1890,7 @@ double WarAndPeaceAI::Team::reparationsToHuman(double u) const {
 
 void WarAndPeaceAI::Team::respondToRebuke(TeamTypes targetId, bool prepare) {
 
-	/*  Caveat: Mustn't use PRNG here b/c this is called from both async (perpare=false)
+	/*  Caveat: Mustn't use PRNG here b/c this is called from both async (prepare=false)
 		and sync (prepare=true) contexts */
 	CvTeamAI& agent = GET_TEAM(agentId);
 	if(!canSchemeAgainst(targetId, true) || (prepare ?
@@ -2391,11 +2396,9 @@ bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 		for(int i = 0; i < 4; i++) {
 			int cr = lh.getContactRand(CONTACT_DEMAND_TRIBUTE);
 			if(cr > 0) {
-				/*  demandTribute applies another probability test; halves
-					the probability. */
-				double pr = (8.5 - era) / cr;
-				// Excludes Gandhi (cr=10000 => pr=0.001)
-				if(pr > 0.005 && ::bernoulliSuccess(pr, "advc.104 (trib)") &&
+				double pr = (8.5 - era) / (2 * cr);
+				// Excludes Gandhi (cr=10000 => pr<0.0005)
+				if(pr > 0.001 && ::bernoulliSuccess(pr, "advc.104 (trib)") &&
 						we.AI_demandTribute(humanId, i))
 				return true;
 			}
@@ -2405,8 +2408,7 @@ bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 	else {
 		int cr = lh.getContactRand(CONTACT_ASK_FOR_HELP);
 		if(cr > 0) {
-			// test in askHelp halves this probability
-			double pr = (5.5 - era) / cr;
+			double pr = (5.5 - era) / (1.25 * cr);
 			if(::bernoulliSuccess(pr, "advc.104 (help)") && we.AI_askHelp(humanId))
 				return true;
 		}
@@ -2416,7 +2418,6 @@ bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 	int crCivics = lh.getContactRand(CONTACT_CIVIC_PRESSURE);
 	if(crReligion <= crCivics) {
 		if(crReligion > 0) {
-			// Doesn't get reduced further in contactReligion
 			double pr = (8.0 - era) / crReligion;
 			if(::bernoulliSuccess(pr, "advc.104 (relig)") &&
 					we.AI_contactReligion(humanId))

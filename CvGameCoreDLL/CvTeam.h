@@ -447,6 +447,18 @@ public:
 	// </advc.127b>
 	void makeUnwillingToTalk(TeamTypes otherId); // advc.104i
 
+	// <advc.003> A bit nicer than GET_TEAM(getID())
+	inline CvTeamAI& AI() {
+		//return *static_cast<CvTeamAI*>(const_cast<CvTeam*>(this));
+		/*  The above won't work in an inline function b/c the compiler doesn't know
+			that CvTeamAI is derived from CvTeam */
+		return *reinterpret_cast<CvTeamAI*>(this);
+	}
+	inline CvTeamAI const& AI() const {
+		//return *static_cast<CvTeamAI const*>(this);
+		return *reinterpret_cast<CvTeamAI const*>(this);
+	} // </advc.003>
+
 	virtual void AI_init() = 0;
 	virtual void AI_reset(bool bConstructor) = 0;
 	virtual void AI_doTurnPre() = 0;

@@ -2547,7 +2547,7 @@ void CvGame::update()
 		AI_updateAssignWork();
 
 		testAlive();
-
+		AI().warAndPeaceAI().invalidateUICache(); // advc.104l
 		if ((getAIAutoPlay() == 0) && !(gDLL->GetAutorun()) && GAMESTATE_EXTENDED != getGameState())
 		{
 			if (countHumanPlayersAlive() == 0
@@ -9720,7 +9720,7 @@ void CvGame::read(FDataStreamBase* pStream)
 	m_sorenRand.read(pStream);
 	// <advc.250b>
 	if(isOption(GAMEOPTION_SPAH))
-		m_spah.read(pStream); // </advc.250b><advc.701>
+		m_spah.read(pStream); // </advc.250b> <advc.701>
 	if(uiFlag >= 2) {
 		if(isOption(GAMEOPTION_RISE_FALL))
 			m_riseFall.read(pStream);
@@ -9953,7 +9953,7 @@ void CvGame::write(FDataStreamBase* pStream)
 	m_sorenRand.write(pStream);
 	// <advc.250b>
 	if(isOption(GAMEOPTION_SPAH))
-		m_spah.write(pStream); // </advc.250b><advc.701>
+		m_spah.write(pStream); // </advc.250b> <advc.701>
 	if(isOption(GAMEOPTION_RISE_FALL))
 		m_riseFall.write(pStream); // </advc.701>
 	ReplayMessageList::_Alloc::size_type iSize = m_listReplayMessages.size();

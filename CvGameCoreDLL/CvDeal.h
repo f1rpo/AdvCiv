@@ -20,9 +20,12 @@ public:
 	void uninit();
 	void reset(int iID = 0, PlayerTypes eFirstPlayer = NO_PLAYER, PlayerTypes eSecondPlayer = NO_PLAYER);
 
-	DllExport void kill(bool bKillTeam = true);
+	DllExport void kill(bool bKillTeam = true) { // <advc.130p>
+			kill(bKillTeam, NO_PLAYER); }
+	void kill(bool bKillTeam, PlayerTypes eCancelPlayer); // </advc.130p>
 	// advc.036:
-	void killSilent(bool bKillTeam = true, bool bUpdateAttitude = true);
+	void killSilent(bool bKillTeam = true, bool bUpdateAttitude = true,
+			PlayerTypes eCancelPlayer = NO_PLAYER); // advc.130p
 	void addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* pSecondList, bool bCheckAllowed);
 
 	void doTurn();
@@ -86,7 +89,8 @@ protected:
 
 	bool startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer);
 	void endTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer, bool bTeam,
-			bool bUpdateAttitude = true); // advc.036
+			bool bUpdateAttitude = true, // advc.036
+			PlayerTypes eCancelPlayer = NO_PLAYER); // advc.130p
 	// <advc.130p>
 	static void addEndTradeMemory(PlayerTypes eFromPlayer, PlayerTypes eToPlayer,
 			TradeableItems dealType);

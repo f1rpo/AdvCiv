@@ -867,7 +867,7 @@ void CvTeam::addTeam(TeamTypes eTeam)
 	AI_updateWorstEnemy();
 	// <advc.104t>
 	if(getWPAI.isEnabled()) {
-		GET_TEAM(getID()).warAndPeaceAI().addTeam(eTeamLeader);
+		AI().warAndPeaceAI().addTeam(eTeamLeader);
 		getWPAI.update();
 	} // </advc.104t>
 	AI_updateAreaStrategies();
@@ -1558,7 +1558,7 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 		think that the war duration plus the time war was imminent is worth
 		tracking. */
 	if(!isAtWar(eTeam)) {
-		GET_TEAM(getID()).AI_setWarPlanStateCounter(eTeam, 0);
+		AI().AI_setWarPlanStateCounter(eTeam, 0);
 		GET_TEAM(eTeam).AI_setWarPlanStateCounter(getID(), 0);
 	} // </advc.104q>
 
@@ -1894,12 +1894,11 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 		}
 	}
 
+	// dlph.26 (advc): EventReporter call moved down
 	// K-Mod / BBAI.
 	// This section includes some customization options from BBAI.
 	// The code has been modified for K-Mod, so that it uses "bPrimaryDoW" rather than the BBAI parameter.
 	// The original BtS code has been deleted.
-	CvEventReporter::getInstance().changeWar(true, getID(), eTeam);
-
 	/* dlph.3: ``BBAI option 1 didn't work because if clauses for canceling pacts
 	   were wrong. BBAI otpion 2 needs further fixing. When all players have
 	   defensive pacts with all other players and someone declares war the
@@ -1978,10 +1977,12 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 		for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
 			GET_PLAYER(i).AI_updateAttitudeCache();
 	}*/ // K-Mod end
-	// dlph.26: The above is "updated when the war queue is emptied."
+	// <dlph.26> The above is "updated when the war queue is emptied."
 	/*  advc (bugfix): But not unless this function communicates to tiggerWars that
 		a (primary) DoW has already occurred. */
 	triggerWars(true);
+	// advc: Moved down so that war status has already changed when event reported
+	CvEventReporter::getInstance().changeWar(true, getID(), eTeam); // </dlph.26>
 }
 
 
@@ -2000,14 +2001,14 @@ void CvTeam::makePeace(TeamTypes eTeam, bool bBumpUnits,
 	if(!isAtWar(eTeam))
 		return; // </advc.003>
 	// <advc.104> To record who won the war, before war success is reset.
-	GET_TEAM(getID()).warAndPeaceAI().reportWarEnding(eTeam, reparations, NULL);
+	AI().warAndPeaceAI().reportWarEnding(eTeam, reparations, NULL);
 	GET_TEAM(eTeam).warAndPeaceAI().reportWarEnding(getID(), NULL, reparations);
 	// </advc.104>
 	/*  <advc.130y> Don't know if they started the war, but if we did, and they had
 		started a war against us some time earlier, we may as well forgive them for
 		that. (If there's no declared-war-on-us memory, then this call has no effect.)
 		advc.104i also does sth. in forgiveEnemy. */
-	GET_TEAM(getID()).AI_forgiveEnemy(eTeam, isCapitulated(), false);
+	AI().AI_forgiveEnemy(eTeam, isCapitulated(), false);
 	GET_TEAM(eTeam).AI_forgiveEnemy(getID(), GET_TEAM(eTeam).isCapitulated(), false);
 	// </advc.130y>
 	// <advc.130i>
@@ -4513,9 +4514,8 @@ void CvTeam::makeHasMet(TeamTypes eIndex, bool bNewDiplo,
 	// <advc.071> ^Moved EventReporter call up // advc.001n:
 	if(eIndex == getID() || isBarbarian() || GET_TEAM(eIndex).isBarbarian())
 		return; // </advc.071>
-	// K-Mod. Initialize attitude cache for players on our team towards player's on their team.
-	GET_TEAM(getID()).AI_updateAttitudeCache(eIndex); // advc.003: Loop replaced
-	// K-Mod end
+	// K-Mod: Initialize attitude cache for players on our team towards player's on their team.
+	AI().AI_updateAttitudeCache(eIndex); // advc.003: Loop replaced
 
 	if (getID() == GC.getGameINLINE().getActiveTeam() || eIndex == GC.getGameINLINE().getActiveTeam())
 		gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
@@ -4803,7 +4803,7 @@ void CvTeam::setOpenBorders(TeamTypes eIndex, bool bNewValue)
 		}
 	} // <advc.034>
 	if(bNewValue)
-		GET_TEAM(getID()).cancelDisengage(eIndex); // </advc.034>
+		AI().cancelDisengage(eIndex); // </advc.034>
 }
 
 // <advc.034>
@@ -5295,12 +5295,12 @@ void CvTeam::setVassal(TeamTypes eIndex, bool bNewValue, bool bCapitulated)
 		}
 		// <advc.130y>
 		// Don't forgive if it's apparent that we haven't fought wars as a vassal
-		if(m_bCapitulated && GET_TEAM(getID()).AI_getSharedWarSuccess(eIndex) +
+		if(m_bCapitulated && AI().AI_getSharedWarSuccess(eIndex) +
 				GET_TEAM(eIndex).AI_getSharedWarSuccess(getID()) > 0) {
 			for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 				CvTeamAI& t = GET_TEAM((TeamTypes)i);
 				if(t.isAlive() && t.getID() != getID() && t.getID() != eIndex) {
-					GET_TEAM(getID()).AI_forgiveEnemy(t.getID(), true, true);
+					AI().AI_forgiveEnemy(t.getID(), true, true);
 					t.AI_forgiveEnemy(getID(), true, true);
 				}
 			}
@@ -5321,7 +5321,7 @@ void CvTeam::setVassal(TeamTypes eIndex, bool bNewValue, bool bCapitulated)
 			CvTeamAI const& t = GET_TEAM((TeamTypes)i);
 			if(t.isAlive() && t.getID() != getID() && t.getID() != eIndex &&
 					!t.isMinorCiv() && !t.isAtWar(getID()))
-				GET_TEAM(getID()).AI_setWarPlan(t.getID(), NO_WARPLAN);
+				AI().AI_setWarPlan(t.getID(), NO_WARPLAN);
 		}// </advc.104j>
 	}
 
