@@ -1569,10 +1569,10 @@ void CvMap::calculateAreas_DFS(CvPlot const& kStart) {
 			CvPlot* t = plot(q.getX_INLINE(), p.getY_INLINE());
 			FAssertMsg(s != NULL && t != NULL, "Map appears to be non-convex");
 			if(q.getArea() == FFreeList::INVALID_INDEX && p.isWater() == q.isWater() &&
-					// For water tiles, orthogonal adjacency is unproblematic
-					(!p.isWater() || x == q.getX_INLINE() || y == q.getY_INLINE()
+					// For water tiles, orthogonal adjacency is unproblematic.
+					(!p.isWater() || x == q.getX_INLINE() || y == q.getY_INLINE() ||
 					// Diagonal adjacency only works if either s or t are water 
-					|| s == NULL || s->isWater() || t == NULL || t->isWater()) &&
+					s == NULL || s->isWater() || t == NULL || t->isWater()) &&
 					/*  Depth-first search that doesn't continue at impassables
 						except to other impassables so that mountain ranges and
 						ice packs end up in one CvArea. */

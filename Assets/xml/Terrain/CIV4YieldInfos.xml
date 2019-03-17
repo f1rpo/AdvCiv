@@ -4,6 +4,11 @@
 <!-- Copyright Firaxis Games 2005 -->
 <!-- -->
 <!-- Yield Infos -->
+<!-- advc (comments):
+	 *  The only K-Mod change in this file is that the AI weights were all set
+		to 100%
+	 *	The SymbolPaths aren't used; instead, BtS gets the symbols for the
+		Yield Display from: Art/Interface/Symbols/Vertical_Symbols.dds -->
 <Civ4YieldInfos xmlns="x-schema:CIV4TerrainSchema.xml">
 	<YieldInfos>
 		<YieldInfo>

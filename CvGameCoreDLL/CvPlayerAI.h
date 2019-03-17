@@ -598,7 +598,7 @@ public:
 	bool AI_askHelp(PlayerTypes humanId);
 	// tribute type: 0 for gold, 1 for map, 2 for tech and 3 for bonus resource
 	bool AI_demandTribute(PlayerTypes humanId, int tributeType);
-	// </advc.104m></advc.003>
+	// </advc.104m> </advc.003>
 	double AI_amortizationMultiplier(int iDelay) const; // advc.104, advc.031
 	// advc.104r: Made public and param added
 	void AI_doSplit(bool bForce = false);

@@ -3352,7 +3352,7 @@ public:
 	virtual ~CvYieldInfo();
 
 	int getChar() const;				// Exposed to Python
-	void setChar(int i);			
+	void setChar(int i);
 	int getHillsChange() const;				// Exposed to Python
 	int getPeakChange() const;				// Exposed to Python
 	int getLakeChange() const;				// Exposed to Python
@@ -3368,7 +3368,7 @@ public:
 
 	// Arrays
 
-	const TCHAR* getSymbolPath(int i) const;			
+	const TCHAR* getSymbolPath(int i) const;
 
 	bool read(CvXMLLoadUtility* pXML);
 
@@ -3390,7 +3390,6 @@ protected:
 	int m_iColorType;
 
 	CvString* m_paszSymbolPath;
-
 };
 
 

@@ -1074,7 +1074,7 @@ void CvArea::write(FDataStreamBase* pStream)
 	int iI;
 
 	uint uiFlag=0;
-	uiFlag++; // advc.030
+	uiFlag = 1; // advc.030
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iID);

@@ -13611,7 +13611,7 @@ int CvYieldInfo::getColorType() const
 }
 
 // Arrays
-
+// advc.003j: This is never called. The paths are unused.
 const TCHAR* CvYieldInfo::getSymbolPath(int i) const
 {
 	FAssertMsg(i < GC.getDefineINT("MAX_YIELD_STACK"), "Index out of bounds");
@@ -13621,13 +13621,10 @@ const TCHAR* CvYieldInfo::getSymbolPath(int i) const
 
 bool CvYieldInfo::read(CvXMLLoadUtility* pXML)
 {
-	CvString szTextVal;
 	if (!CvInfoBase::read(pXML))
 	{
 		return false;
 	}
-
-	int iNumSibs, j;
 
 	pXML->GetChildXmlValByName(&m_iHillsChange, "iHillsChange");
 	pXML->GetChildXmlValByName(&m_iPeakChange, "iPeakChange");
@@ -13640,10 +13637,11 @@ bool CvYieldInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iGoldenAgeYield, "iGoldenAgeYield");
 	pXML->GetChildXmlValByName(&m_iGoldenAgeYieldThreshold, "iGoldenAgeYieldThreshold");
 	pXML->GetChildXmlValByName(&m_iAIWeightPercent, "iAIWeightPercent");
-
+	CvString szTextVal;
 	pXML->GetChildXmlValByName(szTextVal, "ColorType");
 	m_iColorType = pXML->FindInInfoClass(szTextVal);
 
+	int iNumSibs, j;
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "SymbolPaths"))
 	{
 		if (pXML->SkipToNextVal())

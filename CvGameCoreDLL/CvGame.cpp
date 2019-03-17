@@ -269,22 +269,7 @@ void CvGame::setInitialItems()
 		GC.getMap().recalculateAreas();
 	// </advc.030>
 	initFreeUnits();
-	/*  <advc.127> Set m_eAIHandicap to the average of AI handicaps. Scenarios can
-		assign unequal AI handicaps.
-		(Then again, scenarios don't call  setInitialItems, so this loop is
-		really superfluous.) */
-	int iHandicapSum = 0;
-	int iDiv = 0;
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-		CvPlayer& civ = GET_PLAYER((PlayerTypes)i);
-		if(civ.isAlive() && !civ.isHuman() && !civ.isMinorCiv()) {
-			iHandicapSum += civ.getHandicapType();
-			iDiv++;
-		}
-	}
-	if(iDiv > 0) // Leaves it at STANDARD_HANDICAP in all-human games
-		m_eAIHandicap = (HandicapTypes)::round(iHandicapSum / (double)iDiv);
-	// </advc.127>
+	setAIHandicap(); // advc.127
 	// <advc.250b>
 	if(!isOption(GAMEOPTION_ADVANCED_START) || iAI == 0)
 		setOption(GAMEOPTION_SPAH, false);
@@ -848,6 +833,23 @@ void CvGame::initDiplomacy()
 	}
 }
 
+// <advc.127>
+void CvGame::setAIHandicap() {
+
+	// Set m_eAIHandicap to the average of AI handicaps
+	int iHandicapSum = 0;
+	int iDiv = 0;
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+		CvPlayer& civ = GET_PLAYER((PlayerTypes)i);
+		if(civ.isAlive() && !civ.isHuman() && !civ.isMinorCiv()) {
+			iHandicapSum += civ.getHandicapType();
+			iDiv++;
+		}
+	}
+	if(iDiv > 0) // Leaves it at STANDARD_HANDICAP in all-human games
+		m_eAIHandicap = (HandicapTypes)::round(iHandicapSum / (double)iDiv);
+} // </advc.127>
+
 
 void CvGame::initFreeState()
 {
@@ -946,6 +948,7 @@ void CvGame::initFreeState()
 
 void CvGame::initScenario() {
 
+	setAIHandicap(); // advc.127
 	initFreeState(); // Tech from handicap
 	// <advc.030>
 	if(GC.getDefineINT("PASSABLE_AREAS") > 0) {

@@ -2927,22 +2927,28 @@ const char * CvGlobals::getDefineSTRING( const char * szName ) const
 	return szReturn;
 }
 
-void CvGlobals::setDefineINT( const char * szName, int iValue )
+void CvGlobals::setDefineINT( const char * szName, int iValue,
+		bool bUpdateCache ) // advc.003b
 {
 	getDefinesVarSystem()->SetValue( szName, iValue );
-	cacheGlobals();
+	if(bUpdateCache) // advc.003b
+		cacheGlobals();
 }
 
-void CvGlobals::setDefineFLOAT( const char * szName, float fValue )
+void CvGlobals::setDefineFLOAT( const char * szName, float fValue,
+		bool bUpdateCache ) // advc.003b
 {
 	getDefinesVarSystem()->SetValue( szName, fValue );
-	cacheGlobals();
+	if(bUpdateCache) // advc.003b
+		cacheGlobals();
 }
 
-void CvGlobals::setDefineSTRING( const char * szName, const char * szValue )
+void CvGlobals::setDefineSTRING( const char * szName, const char * szValue,
+		bool bUpdateCache ) // advc.003b
 {
 	getDefinesVarSystem()->SetValue( szName, szValue );
-	cacheGlobals();
+	if(bUpdateCache) // advc.003b
+		cacheGlobals();
 }
 
 int CvGlobals::getMOVE_DENOMINATOR()

@@ -8,8 +8,7 @@
 #include "CvGlobals.h"
 #include "CvDLLUtilityIFaceBase.h"
 #include "CvGameCoreUtils.h"
-// advc.001m:
-#include "CvDLLInterfaceIFaceBase.h"
+#include "CvDLLInterfaceIFaceBase.h" // advc.001m
 
 // Public Functions...
 

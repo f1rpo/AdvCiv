@@ -693,9 +693,10 @@ public:
 	DllExport int getDefineINT( const char * szName ) const;
 	DllExport float getDefineFLOAT( const char * szName ) const;
 	DllExport const char * getDefineSTRING( const char * szName ) const;
-	void setDefineINT( const char * szName, int iValue );
-	void setDefineFLOAT( const char * szName, float fValue );
-	void setDefineSTRING( const char * szName, const char * szValue );
+	// advc.003b: Params for suppressing cache update added
+	void setDefineINT( const char * szName, int iValue, bool bUpdateCache = true);
+	void setDefineFLOAT( const char * szName, float fValue, bool bUpdateCache = true );
+	void setDefineSTRING( const char * szName, const char * szValue, bool bUpdateCache = true );
 
 	inline int getEXTRA_YIELD() { return m_iEXTRA_YIELD; } // K-Mod (why aren't all these functions inline?)
 	// advc.130s: Cached for performance reasons
