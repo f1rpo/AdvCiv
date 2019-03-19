@@ -2668,7 +2668,7 @@ bool CvSelectionGroup::visibilityRange()
 //
 // Approximate how many turns this group would take to reduce pCity's defense modifier to zero
 //
-int CvSelectionGroup::getBombardTurns(CvCity* pCity)
+int CvSelectionGroup::getBombardTurns(CvCity* pCity) const
 {
 	PROFILE_FUNC();
 
@@ -3094,14 +3094,10 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 	// K-Mod. Rather than clearing the existing path data; use a temporary pathfinder.
 	KmodPathFinder final_path;
 	final_path.SetSettings(this, iFlags & ~MOVE_DECLARE_WAR);
-
 	/* original bts code
-	if (iFlags & MOVE_THROUGH_ENEMY)
-	{
+	if (iFlags & MOVE_THROUGH_ENEMY) {
 		if (generatePath(plot(), pDestPlot, iFlags))
-		{
 			pDestPlot = getPathFirstPlot();
-		}
 	} */
 	// K-Mod
 	if (iFlags & (MOVE_THROUGH_ENEMY | MOVE_ATTACK_STACK) && !(iFlags & MOVE_DIRECT_ATTACK))
@@ -3110,145 +3106,110 @@ bool CvSelectionGroup::groupAttack(int iX, int iY, int iFlags, bool& bFailedAlre
 		{
 			pDestPlot = final_path.GetPathFirstPlot();
 		}
-	}
-	// K-Mod end
-
+	} // K-Mod end
 	FAssertMsg(pDestPlot != NULL, "DestPlot is not assigned a valid value");
 
-	bool bStack = (isHuman() && ((getDomainType() == DOMAIN_AIR) || GET_PLAYER(getOwnerINLINE()).isOption(PLAYEROPTION_STACK_ATTACK)));
-    
+	if (getNumUnits() <= 0)
+		return false; // advc.003
+
+	if(getDomainType() != DOMAIN_AIR && stepDistance(getX(), getY(),
+			pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()) != 1)
+		return false; // advc.003
+	
 	bool bAttack = false;
-	bFailedAlreadyFighting = false;
-
-	if (getNumUnits() > 0)
+	//if ((iFlags & MOVE_DIRECT_ATTACK) || (getDomainType() == DOMAIN_AIR) || (iFlags & MOVE_THROUGH_ENEMY) || (generatePath(plot(), pDestPlot, iFlags) && (getPathFirstPlot() == pDestPlot)))
+	// K-Mod.
+	if (iFlags & (MOVE_THROUGH_ENEMY | MOVE_ATTACK_STACK | MOVE_DIRECT_ATTACK) ||
+			getDomainType() == DOMAIN_AIR || (final_path.GeneratePath(pDestPlot) &&
+			final_path.GetPathFirstPlot() == pDestPlot)) // K-Mod end
 	{
-		if ((getDomainType() == DOMAIN_AIR) || (stepDistance(getX(), getY(), pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()) == 1))
-		{
-			//if ((iFlags & MOVE_DIRECT_ATTACK) || (getDomainType() == DOMAIN_AIR) || (iFlags & MOVE_THROUGH_ENEMY) || (generatePath(plot(), pDestPlot, iFlags) && (getPathFirstPlot() == pDestPlot)))
-			if (iFlags & (MOVE_THROUGH_ENEMY | MOVE_ATTACK_STACK | MOVE_DIRECT_ATTACK) || getDomainType() == DOMAIN_AIR || (final_path.GeneratePath(pDestPlot) && final_path.GetPathFirstPlot() == pDestPlot)) // K-Mod
+		int iAttackOdds;
+		CvUnit* pBestAttackUnit = AI_getBestGroupAttacker(pDestPlot, true, iAttackOdds);
+		if (pBestAttackUnit == NULL)
+			return false; // advc.003
+		// K-Mod, bugfix. This needs to happen before hadDefender, since hasDefender tests for war..
+		// (note: this check is no longer going to be important at all once my new AI DOW code is complete.)
+		/*if (groupDeclareWar(pDestPlot))
+			return true;*/
+		// K-Mod end
+
+		// if there are no defenders, do not attack
+		/* original
+		CvUnit* pBestDefender = pDestPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), pBestAttackUnit, true);
+		if (NULL == pBestDefender)
+			return false;*/
+		// Lead From Behind by UncutDragon
+		if (!pDestPlot->hasDefender(false, NO_PLAYER, getOwnerINLINE(), pBestAttackUnit, true))
+			return false;
+
+		//bool bNoBlitz = (!pBestAttackUnit->isBlitz() || !pBestAttackUnit->isMadeAttack());
+		/*  advc.164: This looks OK - exclude units that have made
+			at least 1 attack. Just for clarity: */
+		bool bBlitz = (pBestAttackUnit->isBlitz() && pBestAttackUnit->isMadeAttack());
+		/*if (groupDeclareWar(pDestPlot))
+			return true; */ // K-Mod, moved up.
+		while (true)
+		{	// <advc.048>
+			bool bMaxSurvival = (isHuman() && GC.altKey());
+			// (Don't want to add another pure virtual function to the messed up CvSelectionGroup class)
+			pBestAttackUnit = static_cast<CvSelectionGroupAI*>(this)-> // </advc.048>
+					AI_getBestGroupAttacker(pDestPlot, false, iAttackOdds,
+					false, /* advc.164: */ !bBlitz,
+					!bMaxSurvival, bMaxSurvival); // advc.048
+			if (pBestAttackUnit == NULL)
+				break;
+
+			// advc.048: AI_getBestGroupSacrifice moved into AI_getBestGroupAttacker
+
+			bAttack = true;
+
+			if (GC.getUSE_DO_COMBAT_CALLBACK()) { // K-Mod. block unused python callbacks
+				CySelectionGroup* pyGroup = new CySelectionGroup(this);
+				CyPlot* pyPlot = new CyPlot(pDestPlot);
+				CyArgsList argsList;
+				argsList.add(gDLL->getPythonIFace()->makePythonObject(pyGroup));
+				argsList.add(gDLL->getPythonIFace()->makePythonObject(pyPlot));
+				long lResult=0;
+				gDLL->getPythonIFace()->callFunction(PYGameModule, "doCombat", argsList.makeFunctionArgs(), &lResult);
+				delete pyGroup; delete pyPlot;
+				if (lResult == 1)
+					break;
+			}
+
+			bool bStack = (isHuman() && (getDomainType() == DOMAIN_AIR ||
+					GET_PLAYER(getOwnerINLINE()).isOption(PLAYEROPTION_STACK_ATTACK)));
+			bFailedAlreadyFighting = false;
+			if (getNumUnits() > 1)
+			{	/* original bts code
+				if (pBestAttackUnit->plot()->isFighting() || pDestPlot->isFighting())
+					bFailedAlreadyFighting = true;
+				else pBestAttackUnit->attack(pDestPlot, bStack);*/
+				// K-Mod
+				if (pBestAttackUnit->plot()->isFighting() || pDestPlot->isFighting())
+					bFailedAlreadyFighting = true;
+				//if (!pBestAttackUnit->isCombat())
+				FAssert(!pBestAttackUnit->isCombat());
+				// we need to issue the attack order to start the attack
+				pBestAttackUnit->attack(pDestPlot, bStack);
+				// K-Mod end
+			}
+			else
+			{	// K-Mod note. We should do this even if the fight can't happen right away.
+				pBestAttackUnit->attack(pDestPlot, false);
+				break;
+			}
+			if (bFailedAlreadyFighting || !bStack)
 			{
-				int iAttackOdds;
-				CvUnit* pBestAttackUnit = AI_getBestGroupAttacker(pDestPlot, true, iAttackOdds);
-
-				if (pBestAttackUnit)
-				{
-					// K-Mod, bugfix. This needs to happen before hadDefender, since hasDefender tests for war..
-					// (note: this check is no longer going to be important at all once my new AI DOW code is complete.)
-					/*if (groupDeclareWar(pDestPlot))
-					{
-						return true;
-					}*/
-					// K-Mod end
-
-					// if there are no defenders, do not attack
-					/* original
-					CvUnit* pBestDefender = pDestPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), pBestAttackUnit, true);
-					if (NULL == pBestDefender)
-					{
-						return false;
-					} */
-					// Lead From Behind by UncutDragon
-					if (!pDestPlot->hasDefender(false, NO_PLAYER, getOwnerINLINE(), pBestAttackUnit, true))
-						return false;
-					//
-
-					//bool bNoBlitz = (!pBestAttackUnit->isBlitz() || !pBestAttackUnit->isMadeAttack());
-					/*  advc.164: This looks OK - exclude units that have made
-						at least 1 attack. Just for clarity: */
-					bool bBlitz = (pBestAttackUnit->isBlitz() && pBestAttackUnit->isMadeAttack());
-
-					/*if (groupDeclareWar(pDestPlot))
-					{
-						return true;
-					}*/ // K-Mod, moved up.
-
-					while (true)
-					{
-						pBestAttackUnit = AI_getBestGroupAttacker(pDestPlot, false, iAttackOdds, false,
-								!bBlitz); // advc.164
-						if (pBestAttackUnit == NULL)
-						{
-							break;
-						}
-
-						if (iAttackOdds < 68)
-						{
-						    CvUnit * pBestSacrifice = AI_getBestGroupSacrifice(pDestPlot, false, false,
-									!bBlitz); // advc.164
-						    if (pBestSacrifice != NULL)
-						    {
-                                pBestAttackUnit = pBestSacrifice;
-						    }
-						}
-
-						bAttack = true;
-
-						if (GC.getUSE_DO_COMBAT_CALLBACK()) // K-Mod. block unused python callbacks
-						{
-							CySelectionGroup* pyGroup = new CySelectionGroup(this);
-							CyPlot* pyPlot = new CyPlot(pDestPlot);
-							CyArgsList argsList;
-							argsList.add(gDLL->getPythonIFace()->makePythonObject(pyGroup));	// pass in Selection Group class
-							argsList.add(gDLL->getPythonIFace()->makePythonObject(pyPlot));	// pass in Plot class
-							long lResult=0;
-							gDLL->getPythonIFace()->callFunction(PYGameModule, "doCombat", argsList.makeFunctionArgs(), &lResult);
-							delete pyGroup;	// python fxn must not hold on to this pointer 
-							delete pyPlot;	// python fxn must not hold on to this pointer 
-							if (lResult == 1)
-							{
-								break;
-							}
-						}
-
-						if (getNumUnits() > 1)
-						{
-							/* original bts code
-							if (pBestAttackUnit->plot()->isFighting() || pDestPlot->isFighting())
-							{
-								bFailedAlreadyFighting = true;
-							}
-							else
-							{
-								pBestAttackUnit->attack(pDestPlot, bStack);
-							} */
-							// K-Mod
-							if (pBestAttackUnit->plot()->isFighting() || pDestPlot->isFighting())
-							{
-								bFailedAlreadyFighting = true;
-							}
-							//if (!pBestAttackUnit->isCombat())
-							FAssert(!pBestAttackUnit->isCombat());
-							{
-								// we need to issue the attack order to start the attack
-								pBestAttackUnit->attack(pDestPlot, bStack);
-							}
-							// K-Mod end
-						}
-						else
-						{
-							// K-Mod note. We should do this even if the fight can't happen right away.
-							pBestAttackUnit->attack(pDestPlot, false);
-							break;
-						}
-
-						if (bFailedAlreadyFighting || !bStack)
-						{
-							// if this is AI stack, follow through with the attack to the end
-							//if (!isHuman() && getNumUnits() > 1)
-							if (!isHuman() && getNumUnits() > 1 && !(iFlags & MOVE_SINGLE_ATTACK)) // K-Mod
-							{
-								//AI_queueGroupAttack(iX, iY);
-								AI_queueGroupAttack(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()); // K-Mod
-							}
-
-							break;
-						}
-					}
+				if (!isHuman() && getNumUnits() > 1 &&
+						// K-Mod: if this is AI stack, follow through with the attack to the end
+						!(iFlags & MOVE_SINGLE_ATTACK))
+				{	//AI_queueGroupAttack(iX, iY);
+					AI_queueGroupAttack(pDestPlot->getX_INLINE(), pDestPlot->getY_INLINE()); // K-Mod
 				}
+				break;
 			}
 		}
 	}
-
 	return bAttack;
 }
 

@@ -2729,13 +2729,11 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 	// advc.048:
 	int iLengthSelectionList = gDLL->getInterfaceIFace()->getLengthSelectionList();
 	if (iLengthSelectionList == 0)
-	{
 		return false;
-	}
-
+	// advc.048:
+	CvSelectionGroupAI const& kSelectionList = *static_cast<CvSelectionGroupAI*>(gDLL->getInterfaceIFace()->getSelectionList());
 	bool bValid = false;
-
-	switch (gDLL->getInterfaceIFace()->getSelectionList()->getDomainType())
+	switch (kSelectionList.getDomainType())
 	{
 	case DOMAIN_SEA:
 		bValid = pPlot->isWater();
@@ -2756,24 +2754,41 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 		FAssert(false);
 		break;
 	}
-
 	if (!bValid)
-	{
 		return false;
-	}
 
+	bool bMaxSurvival = GC.altKey(); // advc.048
 	int iOdds;
-	CvUnit* pAttacker = gDLL->getInterfaceIFace()->getSelectionList()->AI_getBestGroupAttacker(pPlot, false, iOdds);
-
-	if (pAttacker == NULL)
-		pAttacker = gDLL->getInterfaceIFace()->getSelectionList()->AI_getBestGroupAttacker(pPlot, false, iOdds, true); // bypass checks for moves and war etc.
-
+	CvUnit* pAttacker = kSelectionList.AI_getBestGroupAttacker(pPlot, false, iOdds,
+			false, false, !bMaxSurvival, bMaxSurvival); // advc.048
+	if (pAttacker == NULL) {
+		pAttacker = kSelectionList.AI_getBestGroupAttacker(pPlot, false, iOdds,
+				true, // bypass checks for moves and war etc.
+				false, !bMaxSurvival, bMaxSurvival); // advc.048
+	}
 	if (pAttacker == NULL)
 		return false;
 
 	CvUnit* pDefender = pPlot->getBestDefender(NO_PLAYER, pAttacker->getOwnerINLINE(), pAttacker, !GC.altKey());
 	if (pDefender == NULL || !pDefender->canDefend(pPlot) || !pAttacker->canAttack(*pDefender))
 		return false;
+
+	// <advc.048>
+	bool bBestOddsHelp = false;
+	if(!bMaxSurvival && GC.getDefineINT("GROUP_ATTACK_BEST_ODDS_HELP") > 0) {
+		CvUnit* pBestOddsAttacker = kSelectionList.AI_getBestGroupAttacker(pPlot, false, iOdds,
+				false, false, false, true);
+		if(pBestOddsAttacker == NULL) {
+			pBestOddsAttacker = kSelectionList.AI_getBestGroupAttacker(pPlot, false, iOdds,
+					true, false, false, true);
+		}
+		if(pBestOddsAttacker != pAttacker)
+			bBestOddsHelp = true;
+	} 
+	if(!ACO_enabled && bBestOddsHelp) {
+		szString.append(gDLL->getText("TXT_KEY_GROUP_ATTACK_BEST_ODDS_HELP"));
+		szString.append(NEWLINE);
+	} // </advc.048>
 
 	// K-Mod. If the plot's center unit isn't one of our own units, then use this defender as the plot's center unit.
 	// With this, the map will accurately show who we're up against.
@@ -4003,7 +4018,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 				if (iView & getBugOptionINT("ACO__ShowBasicInfo", 2))
 				{	// advc.048: Semicolon instead of period
 					szTempBuffer.Format(L"; R=" SETCOLR L"%.2f" ENDCOLR,
-						TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),CombatRatio);
+							TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),CombatRatio);
 					szString.append(szTempBuffer.GetCString());
 				}
 			}
@@ -4011,8 +4026,22 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 			szString.append(NEWLINE);
 
 			if (iView & getBugOptionINT("ACO__ShowShiftInstructions", 1))
-			{
-				szString.append(gDLL->getText("TXT_ACO_PressSHIFT"));
+			{	// <advc.048>
+				CvWString szShiftHelp(gDLL->getText("TXT_ACO_PressSHIFT"));
+				szString.append(szShiftHelp);
+				if(bBestOddsHelp) {
+					CvWString szAltHelp(gDLL->getText("TXT_ACO_PressALT"));
+					/*  The translations don't fit in one line. 60 for the color tags,
+						which don't take up space. */
+					if(szShiftHelp.length() + szAltHelp.length() >= 50 + 60)
+						szString.append(NEWLINE);
+					else { // Separator
+						szTempBuffer.Format(SETCOLR L", " ENDCOLR,
+								TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"));
+						szString.append(szTempBuffer.GetCString());
+					}
+					szString.append(szAltHelp);
+				} // </advc.048>
 				szString.append(NEWLINE);
 			}
 
@@ -4321,14 +4350,12 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 	if (GC.getGameINLINE().isDebugMode() // BBAI: Only display this info in debug mode so game can be played with cheat code entered
 			&& bShift) // advc.007
 	{
-		szTempBuffer.Format(L"\nStack Compare Value = %d",
-			gDLL->getInterfaceIFace()->getSelectionList()->AI_compareStacks(pPlot));
+		szTempBuffer.Format(L"\nStack Compare Value = %d", kSelectionList.AI_compareStacks(pPlot));
 		szString.append(szTempBuffer);
 
 		if( pPlot->getPlotCity() != NULL )
 		{
-			szTempBuffer.Format(L"\nBombard turns = %d",
-				gDLL->getInterfaceIFace()->getSelectionList()->getBombardTurns(pPlot->getPlotCity()));
+			szTempBuffer.Format(L"\nBombard turns = %d", kSelectionList.getBombardTurns(pPlot->getPlotCity()));
 			szString.append(szTempBuffer);
 		}
 
@@ -4408,6 +4435,12 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 				double prDecrement = c.probabilityOccupationDecrement();
 				prRevolt *= 1 - prDecrement; // </advc.023>
 				if(prRevolt > 0) {
+					/*  CvCity::revoltProbability rounds probabilities that are too
+						small to display to 0, but that doesn't take into account
+						prDecrement, so prRevolt here can still be less than
+						1 permille -- though not much less, so this isn't going to
+						overstate the probability much: */
+					prRevolt = std::max(0.001, prRevolt);
 					wchar floatBuffer[1024];
 					swprintf(floatBuffer, L"%.1f", (float)(100 * prRevolt));
 					szString.append(gDLL->getText("TXT_KEY_MISC_CHANCE_OF_REVOLT",
@@ -4561,8 +4594,7 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 					GC.getDefineINT("FRESH_WATER_HEALTH_CHANGE"),
 					gDLL->getSymbolID(HEALTHY_CHAR));
 			szString.append(szTempBuffer);
-		}
-		// </advc.004b>
+		} // </advc.004b>
 	}
 
 	if (pPlot->isLake())

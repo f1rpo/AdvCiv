@@ -22043,14 +22043,14 @@ bool CvPlayerAI::AI_askHelp(PlayerTypes humanId) {
 		return false; // </advc.104m>
 	/*  <advc.144> Don't ask for help during a peace treaty unless human has been
 		given help (which may well be the reason for the peace treaty) */
-	if(GET_TEAM(getTeam()).isForcePeace(TEAMID(humanId)) && GET_PLAYER(humanId).
-			AI_getMemoryCount(getID(), MEMORY_GIVE_HELP) <= 0)
+	if(GET_TEAM(getTeam()).turnsOfForcedPeaceRemaining(TEAMID(humanId)) > 3 &&
+			GET_PLAYER(humanId).AI_getMemoryCount(getID(), MEMORY_GIVE_HELP) <= 0)
 		return false; // </advc.144>
 	// <advc.705>
 	CvGame const& g = GC.getGameINLINE();
 	if(g.isOption(GAMEOPTION_RISE_FALL) && g.getRiseFall().
 			isCooperationRestricted(getID()) &&
-			::bernoulliSuccess(0.5, "advc.705"))
+			::bernoulliSuccess(0.33, "advc.705"))
 		return false; // </advc.705>
 	if(AI_getContactTimer(humanId, CONTACT_ASK_FOR_HELP) > 0 ||
 			TEAMREF(humanId).getAssets() <=
@@ -22097,7 +22097,7 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes humanId, int tributeType) {
 		return false;
 	} // </advc.104m>
 	// <advc.144> Not during a peace treaty
-	if(!GET_TEAM(getTeam()).canDeclareWar(TEAMID(humanId)))
+	if(GET_TEAM(getTeam()).turnsOfForcedPeaceRemaining(TEAMID(humanId)) > 1)
 		return false; // </advc.144>
 	if(AI_getContactTimer(humanId, CONTACT_DEMAND_TRIBUTE) > 0 ||
 			AI_getAttitude(humanId) > GC.getLeaderHeadInfo(getPersonalityType()).

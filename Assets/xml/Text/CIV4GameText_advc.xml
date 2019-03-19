@@ -4639,6 +4639,15 @@
 		<Italian>contro</Italian>
 		<Spanish>contra</Spanish>
 	</TEXT>
+	<!-- Akin to TXT_ACO_PressALT in AdvancedCombatOdds_CIV4GameText.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_GROUP_ATTACK_BEST_ODDS_HELP</Tag>
+		<English>[COLOR_HIGHLIGHT_TEXT]Recommended attack (ALT for best odds)[COLOR_REVERT]:</English>
+		<French>[COLOR_HIGHLIGHT_TEXT]Attaque recommandée (ALT pour meilleure probabilité)[COLOR_REVERT]:</French>
+		<German>[COLOR_HIGHLIGHT_TEXT]Empfohl. Angriff (ALT für beste Chancen)[COLOR_REVERT]:</German>
+		<Italian>[COLOR_HIGHLIGHT_TEXT]Attacco raccomandato (ALT per migliori probabilità)[COLOR_REVERT]:</Italian>
+		<Spanish>[COLOR_HIGHLIGHT_TEXT]Ataque recomendado (ALT para mejores probabilidades)[COLOR_REVERT]:</Spanish>
+	</TEXT>
 	<!-- advc.048b: Overwrites CIV4GameText_Warlords.xml -->
 	<TEXT>
 		<Tag>TXT_KEY_COMBAT_PLOT_ODDS_RETREAT</Tag>

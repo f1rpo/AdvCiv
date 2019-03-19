@@ -10426,9 +10426,9 @@ double CvCity::revoltProbability(bool bIgnoreWar,
 	double r = std::max(0.0, (1.0 - (iGarrison / (double)iCityStrength))) *
 			getRevoltTestProbability() * occupationFactor;
 	// Don't use probabilities that are too small to be displayed
-	if(r < 0.0001)
+	if(r < 0.001)
 		return 0;
-	if(r > 0.9999)
+	if(r > 0.999)
 		return 1;
 	return r;
 } // </advc.101>
@@ -10438,8 +10438,14 @@ double CvCity::probabilityOccupationDecrement() const {
 
 	if(!isOccupation() || getMilitaryHappinessUnits() <= 0)
 		return 0;
-	return std::pow(1 - revoltProbability(true, false, true),
+	double r = std::pow(1 - revoltProbability(true, false, true),
 			GC.getDefineINT("OCCUPATION_COUNTDOWN_EXPONENT"));
+	// Don't use probabilities that are too small to be displayed
+	if(r < 0.001)
+		return 0;
+	if(r > 0.999)
+		return 1;
+	return r;
 } // </advc.023>
 
 // K-Mod. The following function defines whether or not the city is allowed to flip to the given player

@@ -3203,18 +3203,32 @@ class CvMainInterface:
 			researchProgress = gc.getTeam(gc.getPlayer(ePlayer).getTeam()).getResearchProgress(gc.getPlayer(ePlayer).getCurrentResearch())
 			overflowResearch = (gc.getPlayer(ePlayer).getOverflowResearch() * gc.getPlayer(ePlayer).calculateResearchModifier(gc.getPlayer(ePlayer).getCurrentResearch()))/100
 			researchCost = gc.getTeam(gc.getPlayer(ePlayer).getTeam()).getResearchCost(gc.getPlayer(ePlayer).getCurrentResearch())
+			bTickMarks = MainOpt.isShowBarTickMarks() # advc.078
 			researchRate = gc.getPlayer(ePlayer).calculateResearchRate(-1)
-					
-			screen.setBarPercentage( szResearchBar, InfoBarTypes.INFOBAR_STORED, float(researchProgress + overflowResearch) / researchCost )
-			if ( researchCost >  researchProgress + overflowResearch):
-				screen.setBarPercentage( szResearchBar, InfoBarTypes.INFOBAR_RATE, float(researchRate) / (researchCost - researchProgress - overflowResearch))
+			# <advc.078>
+			# Meaning that overflow is shown as part of the current progress
+			overflowProgress = overflowResearch
+			overflowRate = 0
+			if bTickMarks:
+			# Meaning overflow is shown as part of the next turn's research rate
+				overflowRate = overflowResearch
+				overflowProgress = 0
+			# Mostly BtS code from here
+			progressPortion = float(researchProgress + overflowProgress) / researchCost
+			screen.setBarPercentage( szResearchBar, InfoBarTypes.INFOBAR_STORED, progressPortion )
+			if ( researchCost > researchProgress + overflowProgress):
+				ratePortion = float(researchRate + overflowRate) / researchCost
+				# I don't understand why, but setBarPercentage seems to multiply its argument by the the remaining portion of the bar. Cancel that out:
+				ratePortion /= (1 - progressPortion)
+				screen.setBarPercentage( szResearchBar, InfoBarTypes.INFOBAR_RATE, ratePortion)
+			# </advc.078>
 			else:
 				screen.setBarPercentage( szResearchBar, InfoBarTypes.INFOBAR_RATE, 0.0 )
 
 			screen.show(szResearchBar)
 # BUG - Progress Bar - Tick Marks - start
 			# advc.004x: researchRate condition added
-			if MainOpt.isShowBarTickMarks() and researchRate > 0:
+			if bTickMarks and researchRate > 0:
 				if szResearchBar == "ResearchBar":
 					self.pBarResearchBar_n.drawTickMarks(screen, researchProgress + overflowResearch, researchCost, researchRate, researchRate, False)
 				else:

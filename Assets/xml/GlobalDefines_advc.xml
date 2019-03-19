@@ -980,5 +980,14 @@
 		<DefineName>RESEARCH_MODIFIER_EXTRA_TEAM_MEMBER</DefineName>
 		<iDefineIntVal>-10</iDefineIntVal>
 	</Define>
+	
+	<!-- advc.082: If set to 1, hover text when about to attack says to
+		 hold down the Alt key to get the attacker with the highest odds (if that
+		 unit isn't identical to the unit that is about to attack).
+		 0 disables that hint (but won't change the behavior of the Alt key). -->
+	<Define>
+		<DefineName>GROUP_ATTACK_BEST_ODDS_HELP</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
 
 </Civ4Defines>

@@ -133,7 +133,10 @@ void WarTradeAlert::msg(TeamTypes warTeamId, std::vector<TeamTypes> victims,
 	CvTeam const& warTeam = GET_TEAM(warTeamId);
 	CvWString text = gDLL->getText((bTrade ? "TXT_KEY_CIV4LERTS_TRADE_WAR" :
 			"TXT_KEY_CIV4LERTS_NO_LONGER_TRADE_WAR"),
-			warTeam.getName().GetCString()) + L" ";
+			warTeam.getName().GetCString());
+	if(victims.size() > 1)
+		text += L":";
+	text += L" ";
 	for(size_t i = 0; i < victims.size(); i++) {
 		text += GET_TEAM(victims[i]).getName();
 		if(i != victims.size() - 1)

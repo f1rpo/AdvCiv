@@ -23,14 +23,24 @@
 	</TEXT>
 	<!-- advc.048: Minor changes in German to match 
 		 TXT_KEY_BUG_OPT_ACO__SHOWBASICINFO_LIST in
-		 Advanced Combat Odds Options.xml -->
+		 Advanced Combat Odds Options.xml.
+		 "Press" removed for lack of space. -->
 	<TEXT>
 		<Tag>TXT_ACO_PressSHIFT</Tag>
-		<English>[COLOR_HIGHLIGHT_TEXT]Press SHIFT for more detail[COLOR_REVERT]</English>
-		<French>[COLOR_HIGHLIGHT_TEXT]Pesez sur  MAJ pour plus de détails[COLOR_REVERT]</French>
-		<German>[COLOR_HIGHLIGHT_TEXT]&lt;Umschalt&gt; drücken für zus. Details[COLOR_REVERT]</German>
-		<Italian>[COLOR_HIGHLIGHT_TEXT]Tieni premuto SHIFT per maggiori dettagli[COLOR_REVERT]</Italian>
-		<Spanish>[COLOR_HIGHLIGHT_TEXT]Pulse SHIFT para más detalles[COLOR_REVERT]</Spanish>
+		<English>[COLOR_HIGHLIGHT_TEXT]SHIFT for more detail[COLOR_REVERT]</English>
+		<French>[COLOR_HIGHLIGHT_TEXT]MAJ pour plus de détails[COLOR_REVERT]</French>
+		<German>[COLOR_HIGHLIGHT_TEXT]&lt;Umschalt&gt; für zus. Details[COLOR_REVERT]</German>
+		<Italian>[COLOR_HIGHLIGHT_TEXT]SHIFT per maggiori dettagli[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_HIGHLIGHT_TEXT]SHIFT para más detalles[COLOR_REVERT]</Spanish>
+	</TEXT>
+	<!-- advc.048: New -->
+	<TEXT>
+		<Tag>TXT_ACO_PressALT</Tag>
+		<English>[COLOR_HIGHLIGHT_TEXT]ALT for best odds[COLOR_REVERT]</English>
+		<French>[COLOR_HIGHLIGHT_TEXT]ALT pour la meilleure probabilité[COLOR_REVERT]</French>
+		<German>[COLOR_HIGHLIGHT_TEXT]&lt;Alt&gt; für beste Chancen[COLOR_REVERT]</German>
+		<Italian>[COLOR_HIGHLIGHT_TEXT]ALT per le migliori probabilità[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_HIGHLIGHT_TEXT]ALT por las mejores probabilidades[COLOR_REVERT]</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_ACO_SurvivalOdds</Tag>

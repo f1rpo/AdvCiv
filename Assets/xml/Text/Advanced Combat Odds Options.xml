@@ -389,10 +389,12 @@
 	</TEXT>
 	
 	<!-- advc.048: Rewritten (English, German); another chance to explain the
-		 two views. -->
+		 two views.
+		 I'm not mentioning the [ALT] info here; too complicated to
+		 explain. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ACO__SHOWSHIFTINSTRUCTIONS_HOVER</Tag>
-		<English>Select when to show the line that explains how to show the alternate info ("Press SHIFT for more detail").</English>
+		<English>Select when to show the line that explains how to show the alternate info ("SHIFT for more detail").</English>
 		<French>Select when to show the instructions for pressing [SHIFT] to see the alternate view.</French>
 		<German>Bestimmt, wann der Hinweis angezeigt wird, der erklärt, dass per Umschalttaste Zusatzinformationen angezeigt werden können.</German>
 		<Italian>Seleziona per mostrare le istruzioni per premere [SHIFT] per vedere la visuale alternativa.</Italian>

@@ -2213,9 +2213,17 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 				pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
 				while(pSelectedUnitNode != NULL) {
 					CvUnit const& u = *::getUnit(pSelectedUnitNode->m_data);
+					pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
 					iExtraCost += u.getUnitInfo().getExtraCost();
 					iUnits--;
-					pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+					/*  No danger of double counting b/c it's not possible to select
+						a transport and its cargo at the same time */
+					std::vector<CvUnit*> apCargo;
+					u.getCargoUnits(apCargo);
+					for(size_t i = 0; i < apCargo.size(); i++) {
+						iExtraCost += apCargo[i]->getUnitInfo().getExtraCost();
+						iUnits--;
+					}
 				}
 				int iProjectedSupply = 0;
 				bool bSupply = (pHeadSelectedUnit->plot()->getTeam() != kActivePl.getTeam());
