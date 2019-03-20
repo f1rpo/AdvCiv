@@ -1551,7 +1551,7 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString,
 	CvGame const& g = GC.getGameINLINE();
 	int iScreenHeight = g.getScreenHeight();
 	int iLineLimit = (iScreenHeight == 0 ? 25 :
-			std::max(::round(32 * fontFactor * g.getScreenHeight() / 1000.0 - 5), 15));
+			::round(32 * fontFactor * g.getScreenHeight() / 1000.0 - 5));
 	/*  When hovering over an indicator bubble (unit layer), only info about units
 		in kPlot is shown. This means more space. Same when hovering over a flag
 		(bShort). */
@@ -1559,6 +1559,23 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString,
 		iLineLimit += 4;
 	TeamTypes eActiveTeam = g.getActiveTeam();
 	PlayerTypes eActivePlayer = g.getActivePlayer();
+	// Adjust to other info to be displayed
+	iLineLimit += 4;
+	if(kPlot.getImprovementType() != NO_IMPROVEMENT)
+		iLineLimit--;
+	if(kPlot.getRouteType() != NO_ROUTE)
+		iLineLimit--;
+	if(kPlot.getFeatureType() != NO_FEATURE)
+		iLineLimit--;
+	if(kPlot.defenseModifier(eActiveTeam, true) > 0)
+		iLineLimit--;
+	if(kPlot.isFreshWater())
+		iLineLimit--;
+	for(int i = 0; i < MAX_PLAYERS; i++) {
+		if(kPlot.calculateCulturePercent((PlayerTypes)i) > 0)
+			iLineLimit--;
+	}
+	iLineLimit = std::max(iLineLimit, 15);
 	/*  BtS shows no owner for Privateers and Animals (but it does for Barbarians);
 		I'm calling units without a visible owner "rogue" units and they get their
 		own entries in the perOwner vector. I'm also treating Barbarians inside
@@ -1616,7 +1633,17 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString,
 	for(int i = 0; i < iRogueIndex; i++) { // Rogue units don't get a heading
 		int iSize = perOwner[i][ALL].size();
 		if(iSize > 0) {
-			uTotal += perOwner[i][ALL].size();
+			//uTotal += iSize; // Not good enough; need to anticipate linewrap.
+			for(int j = 0; j < iSize; j++) {
+				uTotal++;
+				// Ad hoc heuristic for estimating the required (horizontal) space
+				int iSpaceValue = perOwner[i][ALL][j]->getName().length()
+						+ (8 * perOwner[i][ALL][j]->getExperience()) / 5;
+				if(perOwner[i][ALL][j]->getDamage() > 0)
+					iSpaceValue += 2;
+				if(iSpaceValue >= 30)
+					uTotal++;
+			}
 			if(iSize > 1)
 				iHeadings++;
 		}
@@ -1676,15 +1703,14 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString,
 	bool abCollapse[iRogueIndex + 1] = { false };
 	if(iTotal + iHeadings + iLinesUsed > iLineLimit) {
 		bAggregate = true;
-		int uTotalAggregated = 0;
+		int iTotalAggregated = 0;
 		for(int i = 0; i <= iRogueIndex; i++) {
 			for(size_t j = 0; j < perOwner[i][ALL].size(); j++) {
 				if(perOwner[i][ALL][j] != &kCenterUnit)
 					perOwnerUnitTypes[i].insert(perOwner[i][ALL][j]->getUnitType());
 			}
-			uTotalAggregated += perOwnerUnitTypes[i].size();
+			iTotalAggregated += perOwnerUnitTypes[i].size();
 		}
-		int iTotalAggregated = (int)uTotalAggregated;
 		FAssert(iTotalAggregated <= iTotal);
 		/*  Select the owner with the smallest number of units (but not the active
 			player or rogue) and mark it as collapsed until the (estimated)

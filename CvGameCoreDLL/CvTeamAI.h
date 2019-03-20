@@ -162,7 +162,7 @@ public:
 
 	int AI_roundTradeVal(int iVal) const; // advc.104k
 	// <advc.130y>
-	void AI_forgiveEnemy(TeamTypes enemyId, bool bCapitulated, bool bFreed);
+	void AI_forgiveEnemy(TeamTypes eEnemyTeam, bool bCapitulated, bool bFreed);
 	void AI_thankLiberator(TeamTypes eLiberator);
 	// </advc.130y>
 	TeamTypes AI_getWorstEnemy() const;

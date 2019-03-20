@@ -5183,57 +5183,54 @@ bool CvUnit::bombard()
 {
 	CvPlot* pPlot = plot();
 	if (!canBombard(pPlot))
-	{
 		return false;
-	}
 
 	CvCity* pBombardCity = bombardTarget(pPlot);
 	FAssertMsg(pBombardCity != NULL, "BombardCity is not assigned a valid value");
 
 	CvPlot* pTargetPlot = pBombardCity->plot();
-	/* if (!isEnemy(pTargetPlot->getTeam()))
-	{
-		getGroup()->groupDeclareWar(pTargetPlot, true);
-	} */ // Disabled by K-Mod
-
-	if (!isEnemy(pTargetPlot->getTeam()))
-	{
+	if (!isEnemy(pTargetPlot->getTeam())) {
+		//getGroup()->groupDeclareWar(pTargetPlot, true); // Disabled by K-Mod
 		return false;
-	}
-	// <advc.004c>
+	} // <advc.004c>
 	bool bIgnore = ignoreBuildingDefense();
-	int modWithBuildings = pBombardCity->getDefenseModifier(false);
-	FAssertMsg(modWithBuildings > 0 || isHuman(),
+	int iModWithBuildings = pBombardCity->getDefenseModifier(false);
+	FAssertMsg(iModWithBuildings > 0 || isHuman(),
 			"The AI shoudn't bombard cities whose def is already 0");
-	int modSansBuildings = pBombardCity->getDefenseModifier(true);
+	int iModSansBuildings = pBombardCity->getDefenseModifier(true);
 	// </advc.004c>
 	int iBombardModifier = 0;
-	
 	if (!bIgnore) // advc.004c
-	{
 		iBombardModifier -= pBombardCity->getBuildingBombardDefense();
-	}
 	// <advc.004c> Same formula as in BtS (except for rounding)
 	double chg = -(bombardRate() * std::max(0, 100 + iBombardModifier)) / 100.0;
-	if(bIgnore && modSansBuildings > 0) /*  bIgnore doesn't just ignore
+	if(bIgnore && iModSansBuildings > 0) /*  bIgnore doesn't just ignore
 			BombardDefense, also need to decrease DefenseModifier proportional
 			to the effect of buildings in order to properly ignore BuildingDefense. */
-		chg *= modWithBuildings / (double)modSansBuildings;
-	pBombardCity->changeDefenseModifier(std::min(0, (int)::floor(chg)));
+		chg *= iModWithBuildings / (double)iModSansBuildings;
+	pBombardCity->changeDefenseModifier(std::min(0, ::round(chg)));
 	// </advc.004c>
 	setMadeAttack(true);
 	changeMoves(GC.getMOVE_DENOMINATOR());
 
-	CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_DEFENSES_IN_CITY_REDUCED_TO", pBombardCity->getNameKey(), pBombardCity->getDefenseModifier(false), GET_PLAYER(getOwnerINLINE()).getNameKey());
-	gDLL->getInterfaceIFace()->addHumanMessage(pBombardCity->getOwnerINLINE(), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMBARDED", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), pBombardCity->getX_INLINE(), pBombardCity->getY_INLINE(), true, true);
-
-	szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_REDUCE_CITY_DEFENSES", getNameKey(), pBombardCity->getNameKey(), pBombardCity->getDefenseModifier(false));
-	gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMBARD", MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"), pBombardCity->getX_INLINE(), pBombardCity->getY_INLINE());
+	CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_DEFENSES_IN_CITY_REDUCED_TO",
+			pBombardCity->getNameKey(), pBombardCity->getDefenseModifier(false),
+			GET_PLAYER(getOwnerINLINE()).getNameKey());
+	gDLL->getInterfaceIFace()->addHumanMessage(pBombardCity->getOwnerINLINE(),
+			false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMBARDED",
+			MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
+			pBombardCity->getX_INLINE(), pBombardCity->getY_INLINE(), true, true);
+	szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_REDUCE_CITY_DEFENSES",
+			getNameKey(), pBombardCity->getNameKey(),
+			pBombardCity->getDefenseModifier(bIgnore)); // advc.004g: Arg was false
+	gDLL->getInterfaceIFace()->addHumanMessage(getOwnerINLINE(),
+			true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BOMBARD",
+			MESSAGE_TYPE_INFO, getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN"),
+			pBombardCity->getX_INLINE(), pBombardCity->getY_INLINE());
 
 	if (pPlot->isActiveVisible(false))
 	{
 		CvUnit *pDefender = pBombardCity->plot()->getBestDefender(NO_PLAYER, getOwnerINLINE(), this, true);
-
 		// Bombard entity mission
 		CvMissionDefinition kDefiniton;
 		kDefiniton.setMissionTime(GC.getMissionInfo(MISSION_BOMBARD).getTime() * gDLL->getSecsPerTurn());
@@ -5243,7 +5240,6 @@ bool CvUnit::bombard()
 		kDefiniton.setUnit(BATTLE_UNIT_DEFENDER, pDefender);
 		gDLL->getEntityIFace()->AddMission(&kDefiniton);
 	}
-
 	return true;
 }
 

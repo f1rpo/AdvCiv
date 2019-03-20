@@ -163,8 +163,9 @@
 					type="boolean" default="False"/>
 
 			<!-- Simple selection, by karadoc -->
+			<!-- advc.004: default was False -->
 			<option id="SimpleSelection" key="Simple Selection"
-					type="boolean" default="False"/>
+					type="boolean" default="True"/>
 			
 			<!-- advc.004z -->
 			<option id="ScoresInGlobeView" key="Scores in Globe View" 

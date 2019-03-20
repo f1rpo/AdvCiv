@@ -415,8 +415,9 @@
 					<iContactDelay>20</iContactDelay>
 				</ContactDelay>
 				<ContactDelay>
+					<!-- advc.134a: was 10 -->
 					<ContactType>CONTACT_PEACE_TREATY</ContactType>
-					<iContactDelay>10</iContactDelay>
+					<iContactDelay>15</iContactDelay>
 				</ContactDelay>
 				<ContactDelay>
 					<ContactType>CONTACT_TRADE_TECH</ContactType>
@@ -1722,8 +1723,9 @@
 					<iContactDelay>20</iContactDelay>
 				</ContactDelay>
 				<ContactDelay>
+					<!-- advc.134a: was 10 -->
 					<ContactType>CONTACT_PEACE_TREATY</ContactType>
-					<iContactDelay>10</iContactDelay>
+					<iContactDelay>15</iContactDelay>
 				</ContactDelay>
 				<ContactDelay>
 					<ContactType>CONTACT_TRADE_TECH</ContactType>
@@ -5617,8 +5619,9 @@
 					<iContactDelay>20</iContactDelay>
 				</ContactDelay>
 				<ContactDelay>
+					<!-- advc.134a: was 10 -->
 					<ContactType>CONTACT_PEACE_TREATY</ContactType>
-					<iContactDelay>10</iContactDelay>
+					<iContactDelay>15</iContactDelay>
 				</ContactDelay>
 				<ContactDelay>
 					<ContactType>CONTACT_TRADE_TECH</ContactType>
@@ -7517,8 +7520,9 @@
 					<iContactRand>80</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.134a: was 20 -->
 					<ContactType>CONTACT_PEACE_TREATY</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>25</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_TRADE_TECH</ContactType>
@@ -9528,7 +9532,7 @@
 				<ContactDelay>
 					<!-- advc.134a: was 10 -->
 					<ContactType>CONTACT_PEACE_TREATY</ContactType>
-					<iContactDelay>5</iContactDelay>
+					<iContactDelay>8</iContactDelay>
 				</ContactDelay>
 				<ContactDelay>
 					<ContactType>CONTACT_TRADE_TECH</ContactType>
@@ -10090,8 +10094,9 @@
 					<iContactRand>80</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.134a: was 20 -->
 					<ContactType>CONTACT_PEACE_TREATY</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>25</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_TRADE_TECH</ContactType>
@@ -10797,8 +10802,9 @@
 					<iContactDelay>20</iContactDelay>
 				</ContactDelay>
 				<ContactDelay>
+					<!-- advc.134a: was 10 -->
 					<ContactType>CONTACT_PEACE_TREATY</ContactType>
-					<iContactDelay>10</iContactDelay>
+					<iContactDelay>15</iContactDelay>
 				</ContactDelay>
 				<ContactDelay>
 					<ContactType>CONTACT_TRADE_TECH</ContactType>
@@ -12083,8 +12089,9 @@
 					<iContactDelay>20</iContactDelay>
 				</ContactDelay>
 				<ContactDelay>
+					<!-- advc.134a: was 10 -->
 					<ContactType>CONTACT_PEACE_TREATY</ContactType>
-					<iContactDelay>10</iContactDelay>
+					<iContactDelay>15</iContactDelay>
 				</ContactDelay>
 				<ContactDelay>
 					<ContactType>CONTACT_TRADE_TECH</ContactType>
@@ -15354,8 +15361,9 @@
 					<iContactDelay>20</iContactDelay>
 				</ContactDelay>
 				<ContactDelay>
+					<!-- advc.134a: was 10 -->
 					<ContactType>CONTACT_PEACE_TREATY</ContactType>
-					<iContactDelay>10</iContactDelay>
+					<iContactDelay>15</iContactDelay>
 				</ContactDelay>
 				<ContactDelay>
 					<ContactType>CONTACT_TRADE_TECH</ContactType>
@@ -19249,8 +19257,9 @@
 					<iContactDelay>20</iContactDelay>
 				</ContactDelay>
 				<ContactDelay>
+					<!-- advc.134a: was 10 -->
 					<ContactType>CONTACT_PEACE_TREATY</ContactType>
-					<iContactDelay>10</iContactDelay>
+					<iContactDelay>15</iContactDelay>
 				</ContactDelay>
 				<ContactDelay>
 					<ContactType>CONTACT_TRADE_TECH</ContactType>
@@ -20486,8 +20495,9 @@
 					<iContactRand>80</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.134a: was 20 -->
 					<ContactType>CONTACT_PEACE_TREATY</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>25</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_TRADE_TECH</ContactType>
@@ -21134,8 +21144,9 @@
 					<iContactRand>80</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.134a: was 20 -->
 					<ContactType>CONTACT_PEACE_TREATY</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>25</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_TRADE_TECH</ContactType>
@@ -25765,8 +25776,9 @@
 					<iContactDelay>20</iContactDelay>
 				</ContactDelay>
 				<ContactDelay>
+					<!-- advc.134a: was 10 -->
 					<ContactType>CONTACT_PEACE_TREATY</ContactType>
-					<iContactDelay>10</iContactDelay>
+					<iContactDelay>15</iContactDelay>
 				</ContactDelay>
 				<ContactDelay>
 					<ContactType>CONTACT_TRADE_TECH</ContactType>
@@ -26425,8 +26437,9 @@
 					<iContactDelay>20</iContactDelay>
 				</ContactDelay>
 				<ContactDelay>
+					<!-- advc.134a: was 10 -->
 					<ContactType>CONTACT_PEACE_TREATY</ContactType>
-					<iContactDelay>10</iContactDelay>
+					<iContactDelay>15</iContactDelay>
 				</ContactDelay>
 				<ContactDelay>
 					<ContactType>CONTACT_TRADE_TECH</ContactType>
@@ -27018,8 +27031,9 @@
 					<iContactRand>80</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.134a: was 20 -->
 					<ContactType>CONTACT_PEACE_TREATY</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>25</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_TRADE_TECH</ContactType>
@@ -27720,7 +27734,7 @@
 				<ContactDelay>
 					<!-- advc.134a: was 10 -->
 					<ContactType>CONTACT_PEACE_TREATY</ContactType>
-					<iContactDelay>15</iContactDelay>
+					<iContactDelay>20</iContactDelay>
 				</ContactDelay>
 				<ContactDelay>
 					<ContactType>CONTACT_TRADE_TECH</ContactType>
@@ -28365,8 +28379,9 @@
 					<iContactDelay>20</iContactDelay>
 				</ContactDelay>
 				<ContactDelay>
+					<!-- advc.134a: was 10 -->
 					<ContactType>CONTACT_PEACE_TREATY</ContactType>
-					<iContactDelay>10</iContactDelay>
+					<iContactDelay>20</iContactDelay>
 				</ContactDelay>
 				<ContactDelay>
 					<ContactType>CONTACT_TRADE_TECH</ContactType>
@@ -28965,8 +28980,9 @@
 					<iContactRand>80</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.134a: was 20 -->
 					<ContactType>CONTACT_PEACE_TREATY</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>25</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_TRADE_TECH</ContactType>
@@ -30267,8 +30283,9 @@
 					<iContactRand>80</iContactRand>
 				</ContactRand>
 				<ContactRand>
+					<!-- advc.134a: was 20 -->
 					<ContactType>CONTACT_PEACE_TREATY</ContactType>
-					<iContactRand>20</iContactRand>
+					<iContactRand>25</iContactRand>
 				</ContactRand>
 				<ContactRand>
 					<ContactType>CONTACT_TRADE_TECH</ContactType>
@@ -30327,7 +30344,7 @@
 				<ContactDelay>
 					<!-- advc.134a: was 10 -->
 					<ContactType>CONTACT_PEACE_TREATY</ContactType>
-					<iContactDelay>15</iContactDelay>
+					<iContactDelay>20</iContactDelay>
 				</ContactDelay>
 				<ContactDelay>
 					<ContactType>CONTACT_TRADE_TECH</ContactType>
@@ -33603,8 +33620,9 @@
 					<iContactDelay>20</iContactDelay>
 				</ContactDelay>
 				<ContactDelay>
+					<!-- advc.134a: was 10 -->
 					<ContactType>CONTACT_PEACE_TREATY</ContactType>
-					<iContactDelay>10</iContactDelay>
+					<iContactDelay>15</iContactDelay>
 				</ContactDelay>
 				<ContactDelay>
 					<ContactType>CONTACT_TRADE_TECH</ContactType>

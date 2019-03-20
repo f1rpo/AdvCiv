@@ -7953,6 +7953,8 @@ int CvPlayerAI::AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bE
 		still present in the BBAI code, must've been lost in the K-Mod rewrite. */
 	bEnablesWonder = false;
 	int iTotalValue = 0;
+	CvGame const& g = GC.getGameINLINE();
+	CvGameSpeedInfo const& kGameSpeed = GC.getGameSpeedInfo(g.getGameSpeedType());
 	std::vector<const CvCity*> relevant_cities; // (this will be populated when we find a building that needs to be evaluated)
 
 	for (BuildingClassTypes eClass = (BuildingClassTypes)0; eClass < GC.getNumBuildingClassInfos(); eClass=(BuildingClassTypes)(eClass+1))
@@ -7969,7 +7971,7 @@ int CvPlayerAI::AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bE
 
 		if (isWorldWonderClass(eClass))
 		{
-			if (GC.getGameINLINE().isBuildingClassMaxedOut(eClass) || kLoopBuilding.getProductionCost() < 0)
+			if (g.isBuildingClassMaxedOut(eClass) || kLoopBuilding.getProductionCost() < 0)
 				continue; // either maxed out, or it's a special building that we don't want to evaluate here.
 
 			if (kLoopBuilding.getPrereqAndTech() == eTech)
@@ -7980,18 +7982,14 @@ int CvPlayerAI::AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bE
 
 		// Populate the relevant_cities list if we haven't done so already.
 		if (relevant_cities.empty())
-		{
-			int iEarliestTurn = INT_MAX;
-
-			int iLoop;
+		{	// advc (comment): g.getStartTurn() wouldn't work well for colonial vassals
+			int iEarliestTurn = INT_MAX; int iLoop;
 			for (const CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 			{
 				iEarliestTurn = std::min(iEarliestTurn, pLoopCity->getGameTurnAcquired());
 			}
-
-			int iCutoffTurn = (GC.getGameINLINE().getGameTurn() + iEarliestTurn) / 2 + GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getVictoryDelayPercent() * 30 / 100;
+			int iCutoffTurn = (g.gameTurn() + iEarliestTurn) / 2 + kGameSpeed.getVictoryDelayPercent() * 30 / 100;
 			// iCutoffTurn corresponds 50% of the time since our first city was aquired, with a 30 turn (scaled) buffer.
-
 			for (const CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 			{
 				if (pLoopCity->getGameTurnAcquired() < iCutoffTurn || pLoopCity->isCapital())
@@ -8057,7 +8055,7 @@ int CvPlayerAI::AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bE
 				if (isLimitedWonderClass(eClass))
 					iScale *= std::min((int)relevant_cities.size(), GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getTargetNumCities());
 				// adjust for game speed
-				iScale = iScale * GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getBuildPercent() / 100;
+				iScale = iScale * kGameSpeed.getBuildPercent() / 100;
 				// use the multiplier we calculated earlier
 				iScale = iScale * (100 + iMultiplier) / 100;
 				//
@@ -8073,7 +8071,7 @@ int CvPlayerAI::AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bE
 	int iScale = (AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS) 
 			&& !bVeryEarly) // advc.131
 			? 180 : 100;
-	/*if (getNumCities() == 1 && getCurrentEra() == GC.getGameINLINE().getStartEra())
+	/*if (getNumCities() == 1 && getCurrentEra() == g.getStartEra())
 		iScale/=2;*/ // I expect we'll want to be building mostly units until we get a second city.
 	// <advc.131> Replacing the above
 	if(bVeryEarly)
@@ -22211,7 +22209,7 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes humanId, int tributeType) {
 	return true;
 } // </advc.003>
 
-// <advc.104><advc.031>
+// <advc.104> <advc.031>
 /*  Assets like additional cities become less valuable over the course of a game
 	b/c there are fewer and fewer turns to go. Not worth considering in the
 	first half of the game, but e.g. after 300 turns (normal settings),

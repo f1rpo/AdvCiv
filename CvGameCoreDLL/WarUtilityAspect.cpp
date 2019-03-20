@@ -1598,7 +1598,15 @@ Rebuke::Rebuke(WarEvalParameters& params)
 	: WarUtilityAspect(params) {}
 
 void Rebuke::evaluate() {
-
+	// <advc.134a>
+	if(we->AI_getContactTimer(theyId, CONTACT_PEACE_TREATY) > 0) {
+		/*  Don't want to use the remaining time here b/c that gets doubled when
+			capitulation is offered */
+		int rejectedPeaceCost = GC.getLeaderHeadInfo(we->getPersonalityType()).
+				getContactDelay(CONTACT_PEACE_TREATY) / 5;
+		u += rejectedPeaceCost;
+		log("+%d for rejected peace offer", rejectedPeaceCost);
+	} // </advc.134a>
 	int rebukeDiplo = -1 * we->AI_getMemoryAttitude(theyId, MEMORY_REJECTED_DEMAND);
 	if(we->isHuman()) {
 		rebukeDiplo = 0;
@@ -1620,7 +1628,8 @@ void Rebuke::evaluate() {
 	}
 	double theirTotal = 0;
 	double theirLoss = lostAssetScore(weId, &theirTotal);
-	if(theirTotal <= 0) return;
+	if(theirTotal <= 0)
+		return;
 	/*  Give their loss and our gain equal weight. We want to demonstrate that we
 		can take by force what is denied to us (and more), and that those who
 		deny us end up paying more than was asked. */
@@ -2561,7 +2570,7 @@ int Risk::preEvaluate() {
 		}
 		uMinus += vassalCost;
 	}
-	return ::round(uMinus);
+	return -::round(uMinus);
 }
 
 void Risk::evaluate() {

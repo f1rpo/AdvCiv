@@ -88,7 +88,8 @@ public:
 
 	CvPlotGroup* initPlotGroup(CvPlot* pPlot);													
 
-	CvCity* initCity(int iX, int iY, bool bBumpUnits, bool bUpdatePlotGroups);																																// Exposed to Python
+	CvCity* initCity(int iX, int iY, bool bBumpUnits, bool bUpdatePlotGroups,																																// Exposed to Python
+			int iOccupationTimer = 0); // advc.122
 	void acquireCity(CvCity* pCity, bool bConquest, bool bTrade, bool bUpdatePlotGroups);																							// Exposed to Python
 	void killCities();																																												// Exposed to Python
 	CvWString getNewCityName() const;																																								// Exposed to Python

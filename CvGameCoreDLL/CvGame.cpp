@@ -2819,33 +2819,21 @@ void CvGame::cityPushOrder(CvCity* pCity, OrderTypes eOrder, int iData, bool bAl
 void CvGame::selectUnit(CvUnit* pUnit, bool bClear, bool bToggle, bool bSound) const
 {
 	PROFILE_FUNC();
-
-	bool bSelectGroup;
-	bool bGroup;
-
 	/* original bts code
 	if (gDLL->getInterfaceIFace()->getHeadSelectedUnit() == NULL)
-	{
 		bSelectGroup = true;
-	}
 	else if (gDLL->getInterfaceIFace()->getHeadSelectedUnit()->getGroup() != pUnit->getGroup())
-	{
 		bSelectGroup = true;
-	}
 	else if (pUnit->IsSelected() && !(gDLL->getInterfaceIFace()->mirrorsSelectionGroup()))
-	{
 		bSelectGroup = !bToggle;
-	}
-	else
-	{
-		bSelectGroup = false;
-	} */
+	else bSelectGroup = false;*/
 	// K-Mod. Redesigned to make selection more sensible and predictable
-	// In 'simple mode', shift always groups and always targets a only a single unit.
-	bool bSimpleMode = getBugOptionBOOL("MainInterface__SimpleSelectionMode", false);
+	// In 'simple mode', shift always groups and always targets only a single unit.
+	// advc.001: Option id was SimpleSelectionMode here but SimpleSelection in XML
+	bool bSimpleMode = getBugOptionBOOL("MainInterface__SimpleSelection", true);
 
 	bool bExplicitDeselect = false;
-
+	bool bSelectGroup = false;
 	if (gDLL->getInterfaceIFace()->getHeadSelectedUnit() == NULL)
 		bSelectGroup = true;
 	else if (bToggle)
@@ -2865,33 +2853,28 @@ void CvGame::selectUnit(CvUnit* pUnit, bool bClear, bool bToggle, bool bSound) c
 		bSelectGroup = gDLL->getInterfaceIFace()->mirrorsSelectionGroup()
 			? gDLL->getInterfaceIFace()->getHeadSelectedUnit()->getGroup() != pUnit->getGroup()
 			: pUnit->IsSelected();
-	}
-	// K-Mod end
+	} // K-Mod end
 
 	gDLL->getInterfaceIFace()->clearSelectedCities();
-
+	bool bGroup = false;
 	if (bClear)
 	{
 		gDLL->getInterfaceIFace()->clearSelectionList();
 		bGroup = false;
 	}
 	else
-	{
-		//bGroup = gDLL->getInterfaceIFace()->mirrorsSelectionGroup();
-
-		// K-Mod. If there is only one unit selected, and it is it to be toggled, just degroup it rather than unselecting it.
+	{	//bGroup = gDLL->getInterfaceIFace()->mirrorsSelectionGroup();
+		// K-Mod. If there is only one unit selected, and it is to be toggled, just degroup it rather than unselecting it.
 		if (bExplicitDeselect && gDLL->getInterfaceIFace()->getLengthSelectionList() == 1)
 		{
 			CvMessageControl::getInstance().sendJoinGroup(pUnit->getID(), FFreeList::INVALID_INDEX);
 			return; // that's all.
 		}
-
 		bGroup = gDLL->getInterfaceIFace()->mirrorsSelectionGroup();
 		// Note: bGroup will not clear away unselected units of the group.
 		// so if we want to do that, we'll have to do it explicitly.
 		if (!bGroup && bSimpleMode && bToggle)
-		{
-			// 'toggle' should be seen as explicitly adding / removing units from a group.
+		{	// 'toggle' should be seen as explicitly adding / removing units from a group.
 			// so lets explicitly reform the group.
 			selectionListGameNetMessage(GAMEMESSAGE_JOIN_GROUP);
 			// note: setting bGroup = true doesn't work here either,
@@ -2901,10 +2884,8 @@ void CvGame::selectUnit(CvUnit* pUnit, bool bClear, bool bToggle, bool bSound) c
 			CvUnit* pSelectionHead = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
 			if (pSelectionHead)
 				CvMessageControl::getInstance().sendJoinGroup(pUnit->getID(), pSelectionHead->getID());
-		}
-		// K-Mod end
+		} // K-Mod end
 	}
-
 	if (bSelectGroup)
 	{
 		CvSelectionGroup* pSelectionGroup = pUnit->getGroup();
@@ -2915,11 +2896,10 @@ void CvGame::selectUnit(CvUnit* pUnit, bool bClear, bool bToggle, bool bSound) c
 		while (pEntityNode != NULL)
 		{
 			FAssertMsg(::getUnit(pEntityNode->m_data), "null entity in selection group");
-			gDLL->getInterfaceIFace()->insertIntoSelectionList(::getUnit(pEntityNode->m_data), false, bToggle, bGroup, bSound, true);
-
+			gDLL->getInterfaceIFace()->insertIntoSelectionList(::getUnit(pEntityNode->m_data),
+					false, bToggle, bGroup, bSound, true);
 			pEntityNode = pSelectionGroup->nextUnitNode(pEntityNode);
 		}
-
 		gDLL->getInterfaceIFace()->selectionListPostChange();
 	}
 	else
@@ -2931,7 +2911,6 @@ void CvGame::selectUnit(CvUnit* pUnit, bool bClear, bool bToggle, bool bSound) c
 			CvMessageControl::getInstance().sendJoinGroup(pUnit->getID(), FFreeList::INVALID_INDEX);
 		// K-Mod end
 	}
-
 	gDLL->getInterfaceIFace()->makeSelectionListDirty();
 }
 
@@ -3700,7 +3679,7 @@ int CvGame::getNumFreeBonuses(BuildingTypes eBuilding)
 }
 
 
-int CvGame::countReligionLevels(ReligionTypes eReligion)
+int CvGame::countReligionLevels(ReligionTypes eReligion) const
 {
 	int iCount;
 	int iI;
@@ -3718,7 +3697,7 @@ int CvGame::countReligionLevels(ReligionTypes eReligion)
 	return iCount;
 }
 
-int CvGame::countCorporationLevels(CorporationTypes eCorporation)
+int CvGame::countCorporationLevels(CorporationTypes eCorporation) const
 {
 	int iCount = 0;
 

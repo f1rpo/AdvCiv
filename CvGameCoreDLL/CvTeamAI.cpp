@@ -5348,63 +5348,67 @@ int CvTeamAI::AI_plotDefense(CvPlot const& p, bool bIgnoreBuilding) const {
 } // </advc.012>
 
 // <advc.130y> ('bFreed' is unused; not needed after all, I guess.)
-void CvTeamAI::AI_forgiveEnemy(TeamTypes enemyId, bool bCapitulated, bool bFreed) {
+void CvTeamAI::AI_forgiveEnemy(TeamTypes eEnemyTeam, bool bCapitulated, bool bFreed) {
 
 	/*  'capitulated' refers to us, the callee. This function is called when
 		making peace but also when breaking free. Can therefore not rely on
 		this->isCapitulated (but GET_TEAM(enemyId).isCapitulated() is fine).
 		If we make peace after having broken free, it's called twice for each
 		former enemy in total. */
-	int delta = 0;
-	bCapitulated = (bCapitulated || GET_TEAM(enemyId).isCapitulated());
+	int iDelta = 0;
+	bCapitulated = (bCapitulated || GET_TEAM(eEnemyTeam).isCapitulated());
 	if(bCapitulated)
-		delta--;
-	int ws = GET_TEAM(enemyId).AI_getWarSuccess(getID());
+		iDelta--;
+	int ws = GET_TEAM(eEnemyTeam).AI_getWarSuccess(getID());
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-		CvPlayerAI& member = GET_PLAYER((PlayerTypes)i);
-		if(!member.isAlive() || member.getTeam() != getID())
+		CvPlayerAI& kMember = GET_PLAYER((PlayerTypes)i);
+		if(!kMember.isAlive() || kMember.getTeam() != getID())
 			continue;
 		// No vassal-related forgiveness when war success high
-		delta = std::min(0, delta + ws / member.warSuccessAttitudeDivisor());
+		iDelta = std::min(0, iDelta + ws / kMember.warSuccessAttitudeDivisor());
 		for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
-			PlayerTypes otherId = (PlayerTypes)j;
-			if(!GET_PLAYER(otherId).isAlive())
+			PlayerTypes eOtherCiv = (PlayerTypes)j;
+			if(!GET_PLAYER(eOtherCiv).isAlive())
 				continue;
 			// <advc.104i> Be willing to talk to everyone, not just 'enemyId'.
-			int mem = member.AI_getMemoryCount(otherId, MEMORY_DECLARED_WAR_RECENT);
-			if(mem > 0) // To allow debugger break
-				member.AI_changeMemoryCount(otherId, MEMORY_DECLARED_WAR_RECENT, -mem);
+			int iMem = kMember.AI_getMemoryCount(eOtherCiv, MEMORY_DECLARED_WAR_RECENT);
+			if(iMem > 0) // To allow debugger break
+				kMember.AI_changeMemoryCount(eOtherCiv, MEMORY_DECLARED_WAR_RECENT, -iMem);
 			// </advc.104i>
 			// <advc.130f>
-			mem = member.AI_getMemoryCount(otherId, MEMORY_STOPPED_TRADING_RECENT);
-			if(mem > 1) {
-				member.AI_changeMemoryCount(otherId, MEMORY_STOPPED_TRADING_RECENT,
-						1 - mem);
+			iMem = kMember.AI_getMemoryCount(eOtherCiv, MEMORY_STOPPED_TRADING_RECENT);
+			if(iMem > 1) {
+				kMember.AI_changeMemoryCount(eOtherCiv, MEMORY_STOPPED_TRADING_RECENT,
+						1 - iMem);
 			} // </advc.130f>
-			CvPlayer const& enemyMember = GET_PLAYER((PlayerTypes)j);
-			if(enemyMember.getTeam() != enemyId)
+			CvPlayer const& kEnemyMember = GET_PLAYER(eOtherCiv);
+			if(kEnemyMember.getTeam() != eEnemyTeam)
 				continue;
-			int limit = -member.AI_getMemoryCount(enemyMember.getID(),
-					MEMORY_DECLARED_WAR);
-			int deltaLoop = delta;
+			int iLimit = -kMember.AI_getMemoryCount(kEnemyMember.getID(), MEMORY_DECLARED_WAR);
+			int iDeltaLoop = iDelta;
 			/*  Forgiveness if war success small, but only if memory high and
 				no other forgiveness condition applies, and not (times 0) in the
 				Ancient era (attacks on Workers and Settlers). */
-			if(limit <= -3 && delta >= 0 && (double)ws < 0.3 * getCurrentEra() *
+			if(iLimit <= -3 && iDelta >= 0 && ws < 0.3 * getCurrentEra() *
 					GC.getWAR_SUCCESS_CITY_CAPTURING())
-				deltaLoop--;
+				iDeltaLoop--;
 			// No complete forgiveness unless capitulated
-			if(!bCapitulated && limit < 0)
-				limit++;
-			int chg = std::min(0, std::max(deltaLoop, limit));
-			if(chg != 0)
-				member.AI_changeMemoryCount(enemyMember.getID(),
-						MEMORY_DECLARED_WAR, chg);
-			if(bCapitulated) // Directly willing to sign OB
-				member.AI_changeMemoryCount(enemyMember.getID(),
+			if(!bCapitulated && iLimit < 0)
+				iLimit++;
+			int iChg = std::min(0, std::max(iDeltaLoop, iLimit));
+			if(iChg != 0)
+				kMember.AI_changeMemoryCount(kEnemyMember.getID(),
+						MEMORY_DECLARED_WAR, iChg);
+			if(bCapitulated) { // Directly willing to sign OB
+				kMember.AI_changeMemoryCount(kEnemyMember.getID(),
 						MEMORY_CANCELLED_OPEN_BORDERS,
-						-member.AI_getMemoryCount(enemyMember.getID(),
+						-kMember.AI_getMemoryCount(kEnemyMember.getID(),
 						MEMORY_CANCELLED_OPEN_BORDERS));
+			} // <advc.134a>
+			int iContactPeace = kMember.AI_getContactTimer(kEnemyMember.getID(), CONTACT_PEACE_TREATY);
+			if(iContactPeace != 0) // for debugger stop
+				kMember.AI_changeContactTimer(kEnemyMember.getID(), CONTACT_PEACE_TREATY, -iContactPeace);
+			// </advc.134a>
 		}
 	}
 }

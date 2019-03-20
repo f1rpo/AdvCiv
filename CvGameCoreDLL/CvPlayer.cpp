@@ -2064,18 +2064,18 @@ CvPlotGroup* CvPlayer::initPlotGroup(CvPlot* pPlot)
 }
 
 
-CvCity* CvPlayer::initCity(int iX, int iY, bool bBumpUnits, bool bUpdatePlotGroups)
+CvCity* CvPlayer::initCity(int iX, int iY, bool bBumpUnits, bool bUpdatePlotGroups,
+		int iOccupationTimer) // advc.122
 {
 	PROFILE_FUNC();
 
-	CvCity* pCity;
-
-	pCity = addCity();
+	CvCity* pCity = addCity();
 
 	FAssertMsg(pCity != NULL, "City is not assigned a valid value");
 	FAssertMsg(!(GC.getMapINLINE().plotINLINE(iX, iY)->isCity()), "No city is expected at this plot when initializing new city");
 
-	pCity->init(pCity->getID(), getID(), iX, iY, bBumpUnits, bUpdatePlotGroups);
+	pCity->init(pCity->getID(), getID(), iX, iY, bBumpUnits, bUpdatePlotGroups,
+			iOccupationTimer); // advc.122
 
 	return pCity;
 }
@@ -2389,7 +2389,9 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 		// </advc.123d>
 	}
 
-	CvCity* pNewCity = initCity(pCityPlot->getX_INLINE(), pCityPlot->getY_INLINE(), !bConquest, false);
+	CvCity* pNewCity = initCity(pCityPlot->getX_INLINE(), pCityPlot->getY_INLINE(), !bConquest, false,
+			// advc.122: Moved (way) up
+			(bTrade && !bRecapture) ? iOccupationTimer : 0);
 
 	FAssertMsg(pNewCity != NULL, "NewCity is not assigned a valid value");
 
@@ -2516,10 +2518,8 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 			pNewCity->changeDefyResolutionAngerTimer(iDefyResolutionAngerTimer);
 		}
 
-		if (!bRecapture)
-		{
-			pNewCity->changeOccupationTimer(iOccupationTimer);
-		}
+		/*if (!bRecapture) // advc.122: Moved up
+			pNewCity->changeOccupationTimer(iOccupationTimer);*/
 	}
 
 	if (bConquest)
@@ -9539,19 +9539,19 @@ bool CvPlayer::isAnarchy() const
 	return (getAnarchyTurns() > 0);
 }
 
-// advc.003: Refactored
-void CvPlayer::changeAnarchyTurns(int iChange)
+
+void CvPlayer::changeAnarchyTurns(int iChange) // advc.003: Refactored
 {
 	if(iChange == 0)
 		return;
-	CvGame& g = GC.getGameINLINE();
+
+	CvGame const& g = GC.getGameINLINE();
 	if(getID() == g.getActivePlayer())
 		gDLL->getInterfaceIFace()->setDirty(GameData_DIRTY_BIT, true);
 
 	bool bOldAnarchy = isAnarchy();
-	m_iAnarchyTurns = (m_iAnarchyTurns + iChange);
+	m_iAnarchyTurns += iChange;
 	FAssert(getAnarchyTurns() >= 0);
-
 	if(bOldAnarchy == isAnarchy())
 		return;
 
@@ -9567,19 +9567,22 @@ void CvPlayer::changeAnarchyTurns(int iChange)
 	updateMaintenance();
 	updateTradeRoutes();
 	updateCorporation();
-
+	GC.getGameINLINE().updateTradeRoutes(); // advc.124
 	AI_makeAssignWorkDirty();
 
 	if (isAnarchy())
 	{
-		gDLL->getInterfaceIFace()->addHumanMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(), gDLL->getText("TXT_KEY_MISC_REVOLUTION_HAS_BEGUN").GetCString(), "AS2D_REVOLTSTART",
+		gDLL->getInterfaceIFace()->addHumanMessage(getID(), true, GC.getEVENT_MESSAGE_TIME(),
+				gDLL->getText("TXT_KEY_MISC_REVOLUTION_HAS_BEGUN").GetCString(), "AS2D_REVOLTSTART",
 				MESSAGE_TYPE_MINOR_EVENT, // advc.106b: was MAJOR
 				NULL, (ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"),
 				getCapitalX(getTeam()), getCapitalY(getTeam())); // advc.127b
 	}
 	else
 	{
-		gDLL->getInterfaceIFace()->addHumanMessage(getID(), false, GC.getEVENT_MESSAGE_TIME(), gDLL->getText("TXT_KEY_MISC_REVOLUTION_OVER").GetCString(), "AS2D_REVOLTEND", MESSAGE_TYPE_MINOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString(
+		gDLL->getInterfaceIFace()->addHumanMessage(getID(), false, GC.getEVENT_MESSAGE_TIME(),
+				gDLL->getText("TXT_KEY_MISC_REVOLUTION_OVER").GetCString(), "AS2D_REVOLTEND",
+				MESSAGE_TYPE_MINOR_EVENT, NULL, (ColorTypes)GC.getInfoTypeForString(
 				"COLOR_WHITE"), // advc.004g: Was COLOR_WARNING_TEXT
 				getCapitalX(getTeam()), getCapitalY(getTeam())); // advc.127b
 		// K-Mod. trigger production/research popups that have been suppressed.
@@ -10658,13 +10661,12 @@ bool CvPlayer::isNoForeignTrade() const
 
 void CvPlayer::changeNoForeignTradeCount(int iChange)
 {
-	if (iChange != 0)
-	{
-		m_iNoForeignTradeCount = (m_iNoForeignTradeCount + iChange);
-		FAssert(getNoForeignTradeCount() >= 0);
-
+	if (iChange == 0)
+		return;
+	m_iNoForeignTradeCount += iChange;
+	FAssert(getNoForeignTradeCount() >= 0);
+	if(!isAnarchy()) // advc.124: Update them when anarchy ends
 		GC.getGameINLINE().updateTradeRoutes();
-	}
 }
 
 
@@ -12419,29 +12421,21 @@ void CvPlayer::changeCapitalYieldRateModifier(YieldTypes eIndex, int iChange)
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be non-negative (invalid Index)");
 	FAssertMsg(eIndex < NUM_YIELD_TYPES, "eIndex is expected to be within maximum bounds (invalid Index)");
 
-	if (iChange != 0)
-	{
-		m_aiCapitalYieldRateModifier[eIndex] = (m_aiCapitalYieldRateModifier[eIndex] + iChange);
+	if (iChange == 0)
+		return; // advc.003
 
-		invalidateYieldRankCache(eIndex);
+	m_aiCapitalYieldRateModifier[eIndex] += iChange;
+	invalidateYieldRankCache(eIndex);
 
-		CvCity* pCapitalCity = getCapitalCity();
+	CvCity* pCapitalCity = getCapitalCity();
+	if (pCapitalCity == NULL)
+		return;
 
-		if (pCapitalCity != NULL)
-		{
-			if (eIndex == YIELD_COMMERCE)
-			{
-				pCapitalCity->updateCommerce();
-			}
-
-			pCapitalCity->AI_setAssignWorkDirty(true);
-
-			if (pCapitalCity->getTeam() == GC.getGameINLINE().getActiveTeam())
-			{
-				pCapitalCity->setInfoDirty(true);
-			}
-		}
-	}
+	if (eIndex == YIELD_COMMERCE)
+		pCapitalCity->updateCommerce();
+	pCapitalCity->AI_setAssignWorkDirty(true);
+	if (pCapitalCity->getTeam() == GC.getGameINLINE().getActiveTeam())
+		pCapitalCity->setInfoDirty(true);
 }
 
 
@@ -13709,97 +13703,76 @@ void CvPlayer::setCivics(CivicOptionTypes eIndex, CivicTypes eNewValue)
 	if(eOldCivic == eNewValue)
 		return;
 
-	m_paeCivics[eIndex] = eNewValue;
 	bool bWasStateReligion = isStateReligion(); // advc.106
+
+	m_paeCivics[eIndex] = eNewValue;
 	if (eOldCivic != NO_CIVIC)
-	{
 		processCivics(eOldCivic, -1);
-	}
 	if (getCivics(eIndex) != NO_CIVIC)
-	{
 		processCivics(getCivics(eIndex), 1);
-	}
 
-	GC.getGameINLINE().updateSecretaryGeneral();
+	CvGame& g = GC.getGameINLINE();
+	g.updateSecretaryGeneral();
+	g.AI_makeAssignWorkDirty();
 
-	GC.getGameINLINE().AI_makeAssignWorkDirty();
+	if(!g.isFinalInitialized() || /* advc.003n: */ isBarbarian())
+		return;
 
-	if (GC.getGameINLINE().isFinalInitialized())
-	{
-		if (gDLL->isDiplomacy() && (gDLL->getDiplomacyPlayer() == getID()))
-		{
-			gDLL->updateDiplomacyAttitude(true);
-		}
+	if (gDLL->isDiplomacy() && (gDLL->getDiplomacyPlayer() == getID()))
+		gDLL->updateDiplomacyAttitude(true);
 
-		if (!isBarbarian())
-		{
-			if (getCivics(eIndex) != NO_CIVIC)
-			{
-				/* original code (which erroneously blocked the message for certain civic switches)
-				if (getCivics(eIndex) != GC.getCivilizationInfo(getCivilizationType()).getCivilizationInitialCivics(eIndex))*/
-				// K-Mod
-				if (eOldCivic != NO_CIVIC)
-				// K-Mod end
-				{	// <advc.151> Moved out of the loop
-					szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYER_ADOPTED_CIVIC", getNameKey(),
-							GC.getCivicInfo(getCivics(eIndex)).getTextKeyWide());
-					// <advc.106>
-					bool bRenounce = (!GC.getCivicInfo(getCivics(eIndex)).isStateReligion() &&
-							GC.getCivicInfo(eOldCivic).isStateReligion() && bWasStateReligion &&
-							getLastStateReligion() != NO_RELIGION);
-					if(bRenounce) {
-						szBuffer += L" " +  gDLL->getText("TXT_KEY_MISC_AND_RENOUNCE_RELIGION",
-								GC.getReligionInfo(getLastStateReligion()).getTextKeyWide());
-					}
-					else // </advc.106>
-						if(eOldCivic != GC.getCivilizationInfo(getCivilizationType()).
-							getCivilizationInitialCivics(eIndex)) {
-						szBuffer += L" " + gDLL->getText("TXT_KEY_MISC_AND_ABOLISH_CIVIC",
-								GC.getCivicInfo(eOldCivic).getTextKeyWide());
-					} // </advc.151>
-					for (int iI = 0; iI < MAX_PLAYERS; iI++)
-					{	// advc.003:
-						CvPlayer const& kObs = GET_PLAYER((PlayerTypes)iI);
-						if (kObs.isAlive())
-						{
-							if (GET_TEAM(getTeam()).isHasMet(kObs.getTeam()))
-							{
-								gDLL->getInterfaceIFace()->addHumanMessage(
-										kObs.getID(), false,
-										GC.getEVENT_MESSAGE_TIME(), szBuffer,
-										"AS2D_CIVIC_ADOPT",
-										// advc.106:
-										bRenounce ? MESSAGE_TYPE_MAJOR_EVENT :
-										MESSAGE_TYPE_MINOR_EVENT, // advc.106b
-										// <advc.127b>
-										NULL, NO_COLOR, getCapitalX(kObs.getTeam()),
-										getCapitalY(kObs.getTeam())); // </advc.127b>
-							}
-						}
-					}
-					if(bRenounce) { // advc.106
-						szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYER_ADOPTED_CIVIC", getNameKey(), GC.getCivicInfo(getCivics(eIndex)).getTextKeyWide());
-						// <advc.106>
-						szBuffer += L" " + gDLL->getText("TXT_KEY_MISC_AND_RENOUNCE_RELIGION",
-								GC.getReligionInfo(getLastStateReligion()).getTextKeyWide());
-						// </advc.106>
-						GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szBuffer);
-					}
-				}
+	if (getCivics(eIndex) != NO_CIVIC)
+	{	/* original code (which erroneously blocked the message for certain civic switches)
+		if (getCivics(eIndex) != GC.getCivilizationInfo(getCivilizationType()).getCivilizationInitialCivics(eIndex))*/
+		if (eOldCivic != NO_CIVIC) // K-Mod
+		{	// <advc.151> Moved out of the loop
+			szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYER_ADOPTED_CIVIC", getNameKey(),
+					GC.getCivicInfo(getCivics(eIndex)).getTextKeyWide());
+			// <advc.106>
+			bool bRenounce = (!GC.getCivicInfo(getCivics(eIndex)).isStateReligion() &&
+					GC.getCivicInfo(eOldCivic).isStateReligion() && bWasStateReligion &&
+					getLastStateReligion() != NO_RELIGION);
+			if(bRenounce) {
+				szBuffer += L" " +  gDLL->getText("TXT_KEY_MISC_AND_RENOUNCE_RELIGION",
+						GC.getReligionInfo(getLastStateReligion()).getTextKeyWide());
+			}
+			else // </advc.106>
+			if(eOldCivic != GC.getCivilizationInfo(getCivilizationType()).
+					getCivilizationInitialCivics(eIndex)) {
+				szBuffer += L" " + gDLL->getText("TXT_KEY_MISC_AND_ABOLISH_CIVIC",
+						GC.getCivicInfo(eOldCivic).getTextKeyWide());
+			} // </advc.151>
+			for (int iI = 0; iI < MAX_PLAYERS; iI++)
+			{	// advc.003:
+				CvPlayer const& kObs = GET_PLAYER((PlayerTypes)iI);
+				if (!kObs.isAlive() || !GET_TEAM(getTeam()).isHasMet(kObs.getTeam()))
+					continue;
+				gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(), false,
+						GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CIVIC_ADOPT",
+						bRenounce ? MESSAGE_TYPE_MAJOR_EVENT : // advc.106
+						MESSAGE_TYPE_MINOR_EVENT, // advc.106b
+						// advc.127b:
+						NULL, NO_COLOR, getCapitalX(kObs.getTeam()), getCapitalY(kObs.getTeam()));
+			}
+			if(bRenounce) { // advc.106
+				szBuffer = gDLL->getText("TXT_KEY_MISC_PLAYER_ADOPTED_CIVIC", getNameKey(),
+						GC.getCivicInfo(getCivics(eIndex)).getTextKeyWide());
+				// <advc.106>
+				szBuffer += L" " + gDLL->getText("TXT_KEY_MISC_AND_RENOUNCE_RELIGION",
+						GC.getReligionInfo(getLastStateReligion()).getTextKeyWide());
+				// </advc.106>
+				g.addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szBuffer);
 			}
 		}
-		// K-Mod. (environmentalism can change this. It's nice to see the effects immediately.)
-		GC.getGameINLINE().updateGwPercentAnger();
-	}
+	} // K-Mod. (environmentalism can change this. It's nice to see the effects immediately.)
+	GC.getGameINLINE().updateGwPercentAnger();
 
 	// K-Mod. Attitude cache.
-	if(!isBarbarian()) { // advc.003n
-		for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
-		{
-			AI().AI_updateAttitudeCache(i);
-			GET_PLAYER(i).AI_updateAttitudeCache(getID());
-		} // K-Mod end
-	}
+	for (PlayerTypes i = (PlayerTypes)0; i < MAX_CIV_PLAYERS; i=(PlayerTypes)(i+1))
+	{
+		AI().AI_updateAttitudeCache(i);
+		GET_PLAYER(i).AI_updateAttitudeCache(getID());
+	} // K-Mod end
 }
 
 

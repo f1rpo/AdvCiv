@@ -415,7 +415,11 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 			}
 			/*  if non-human, prefer the last unit that has the best value
 				(so as to avoid splitting the group) */
-			if (iValue > iBestValue || (!bHuman && iValue > 0 && iValue == iBestValue))
+			if (iValue > iBestValue || (!bHuman && iValue > 0 && iValue == iBestValue)
+					// <advc.048> For human, use sacrifice value to break ties.
+					|| (bHuman && iValue == iBestValue && (pBestUnit == NULL ||
+					pLoopUnit->AI_sacrificeValue(pPlot) > pBestUnit->AI_sacrificeValue(pPlot))))
+					// </advc.048>
 			{
 				iBestValue = iValue;
 				iBestOdds = iOdds;

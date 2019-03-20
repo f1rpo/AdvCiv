@@ -172,9 +172,8 @@ void RevoltAlert::check() {
 			/*  Report only change in revolt chance OR change in occupation status;
 				the latter takes precedence. */
 			if(!couldPreviouslyRevolt && wasOccupation == c->isOccupation()) {
-				// Copied this from CvDLLWidgetData::parseNationalityHelp
 				wchar szTempBuffer[1024];
-				swprintf(szTempBuffer, L"%.2f", (float)(100 * pr));
+				swprintf(szTempBuffer, L"%.1f", (float)(100 * pr));
 				msg(gDLL->getText("TXT_KEY_CIV4LERTS_REVOLT", c->getName().
 						GetCString(), szTempBuffer),
 						NULL // icon works, but is too distracting

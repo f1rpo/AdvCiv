@@ -154,7 +154,8 @@ CvCity::~CvCity()
 }
 
 
-void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, bool bUpdatePlotGroups)
+void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, bool bUpdatePlotGroups,
+		int iOccupationTimer) // advc.122
 {
 	int iI=-1;
 	CvGame& g = GC.getGameINLINE();
@@ -187,7 +188,10 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 			false, true); // advc.106k
 
 	setEverOwned(getOwnerINLINE(), true);
-
+	/*  advc.122: To prevent updateCultureLevel from bumping units in
+		surrounding tiles after trading a city under occupation. Don't call
+		setOccupationTimer though -- don't need all those updates. */
+	m_iOccupationTimer = iOccupationTimer;
 	updateCultureLevel(false);
 
 	if (pPlot->getCulture(getOwnerINLINE()) < GC.getDefineINT("FREE_CITY_CULTURE"))
@@ -9498,16 +9502,21 @@ int CvCity::getBaseCommerceRateTimes100(CommerceTypes eIndex) const
 
 	iBaseCommerceRate = getCommerceFromPercent(eIndex, getYieldRate(YIELD_COMMERCE) * 100);
 
-	iBaseCommerceRate += 100 * ((getSpecialistPopulation() + getNumGreatPeople()) * GET_PLAYER(getOwnerINLINE()).getSpecialistExtraCommerce(eIndex));
-	iBaseCommerceRate += 100 * (getBuildingCommerce(eIndex) + getSpecialistCommerce(eIndex) + getReligionCommerce(eIndex) + getCorporationCommerce(eIndex) + GET_PLAYER(getOwnerINLINE()).getFreeCityCommerce(eIndex));
-
+	iBaseCommerceRate += 100 * ((getSpecialistPopulation() + getNumGreatPeople()) *
+			GET_PLAYER(getOwnerINLINE()).getSpecialistExtraCommerce(eIndex));
+	iBaseCommerceRate += 100 * (getBuildingCommerce(eIndex) + getSpecialistCommerce(eIndex) +
+			getReligionCommerce(eIndex) + getCorporationCommerce(eIndex) +
+			GET_PLAYER(getOwnerINLINE()).getFreeCityCommerce(eIndex));
 	return iBaseCommerceRate;
 }
 
 
 int CvCity::getTotalCommerceRateModifier(CommerceTypes eIndex) const
 {
-	return std::max(0, (getCommerceRateModifier(eIndex) + GET_PLAYER(getOwnerINLINE()).getCommerceRateModifier(eIndex) + ((isCapital()) ? GET_PLAYER(getOwnerINLINE()).getCapitalCommerceRateModifier(eIndex) : 0) + 100));
+	CvPlayer const& kOwner = GET_PLAYER(getOwnerINLINE());
+	return std::max(0, getCommerceRateModifier(eIndex) +
+			kOwner.getCommerceRateModifier(eIndex) +
+			(isCapital() ? kOwner.getCapitalCommerceRateModifier(eIndex) : 0) + 100);
 }
 
 
@@ -12093,134 +12102,120 @@ void CvCity::setHasReligion(ReligionTypes eIndex, bool bNewValue, bool bAnnounce
 {
 	FASSERT_BOUNDS(0, GC.getNumReligionInfos(), eIndex, "CvCity::setHasReligion");
 
-	if (isHasReligion(eIndex) != bNewValue)
+	if (isHasReligion(eIndex) == bNewValue)
+		return; // advc.003
+
+	for (int iVoteSource = 0; iVoteSource < GC.getNumVoteSourceInfos(); iVoteSource++)
+		processVoteSourceBonus((VoteSourceTypes)iVoteSource, false);
+
+	m_pabHasReligion[eIndex] = bNewValue;
+
+	for (int iVoteSource = 0; iVoteSource < GC.getNumVoteSourceInfos(); iVoteSource++)
+		processVoteSourceBonus((VoteSourceTypes)iVoteSource, true);
+
+	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
+	kOwner.changeHasReligionCount(eIndex, isHasReligion(eIndex) ? 1 : -1);
+	updateMaintenance();
+	updateReligionHappiness();
+	updateReligionCommerce();
+
+	AI_setAssignWorkDirty(true);
+	setInfoDirty(true);
+	// <advc.106e>
+	int iOwnerEra = kOwner.getCurrentEra();
+	int iEraThresh = GC.getDefineINT("STOP_RELIGION_SPREAD_ANNOUNCE_ERA");
+	bool bAnnounceStateReligionSpread = (GC.getDefineINT(
+			"ANNOUNCE_STATE_RELIGION_SPREAD") > 0);
+	// </advc.106e>
+	if (isHasReligion(eIndex))
 	{
-		for (int iVoteSource = 0; iVoteSource < GC.getNumVoteSourceInfos(); ++iVoteSource)
+		CvGame& g = GC.getGameINLINE();
+		g.makeReligionFounded(eIndex, kOwner.getID());
+		if (bAnnounce)
 		{
-			processVoteSourceBonus((VoteSourceTypes)iVoteSource, false);
-		}
-
-		m_pabHasReligion[eIndex] = bNewValue;
-
-		for (int iVoteSource = 0; iVoteSource < GC.getNumVoteSourceInfos(); ++iVoteSource)
-		{
-			processVoteSourceBonus((VoteSourceTypes)iVoteSource, true);
-		}
-
-		GET_PLAYER(getOwnerINLINE()).changeHasReligionCount(eIndex, ((isHasReligion(eIndex)) ? 1 : -1));
-
-		updateMaintenance();
-		updateReligionHappiness();
-		updateReligionCommerce();
-
-		AI_setAssignWorkDirty(true);
-
-		setInfoDirty(true);
-		// <advc.106e>
-		int iOwnerEra = GET_PLAYER(getOwnerINLINE()).getCurrentEra();
-		int iEraThresh = GC.getDefineINT("STOP_RELIGION_SPREAD_ANNOUNCE_ERA");
-		bool bAnnounceStateReligionSpread = (GC.getDefineINT(
-				"ANNOUNCE_STATE_RELIGION_SPREAD") > 0);
-		// </advc.106e>
-		if (isHasReligion(eIndex))
-		{
-			GC.getGameINLINE().makeReligionFounded(eIndex, getOwnerINLINE());
-
-			if (bAnnounce)
+			if (g.getHolyCity(eIndex) != this)
 			{
-				if (GC.getGameINLINE().getHolyCity(eIndex) != this)
+				for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 				{
-					for (int iI = 0; iI < MAX_PLAYERS; iI++)
+					CvPlayer const& kObs = GET_PLAYER((PlayerTypes)iI);
+					if (!kObs.isAlive() || !isRevealed(kObs.getTeam(), false))
+						continue; // advc.003
+					// <advc.106e>
+					if ((iOwnerEra < iEraThresh && (bAnnounceStateReligionSpread ||
+							kOwner.getStateReligion() != eIndex)) ||
+							eSpreadPlayer == kObs.getID() || // </advc.106e>
+							kOwner.getID() == kObs.getID() ||
+							// advc.106e: Disable this clause
+							//(kObs.getStateReligion() == eIndex) ||
+							kObs.hasHolyCity(eIndex))
 					{
-						if (GET_PLAYER((PlayerTypes)iI).isAlive())
-						{
-							if (isRevealed(GET_PLAYER((PlayerTypes)iI).getTeam(), false))
-							{
-								// <advc.106e>
-								if ((iOwnerEra < iEraThresh && (bAnnounceStateReligionSpread ||
-										GET_PLAYER(getOwnerINLINE()).getStateReligion() != eIndex)) ||
-										eSpreadPlayer == iI || // </advc.106e>
-										getOwnerINLINE() == iI ||
-										// advc.106e: Disable this clause
-										//(GET_PLAYER((PlayerTypes)iI).getStateReligion() == eIndex) ||
-										GET_PLAYER((PlayerTypes)iI).hasHolyCity(eIndex))
-								{
-									CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_RELIGION_SPREAD", GC.getReligionInfo(eIndex).getTextKeyWide(), getNameKey());
-									gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)iI), false, GC.getEVENT_MESSAGE_TIME(), szBuffer, GC.getReligionInfo(eIndex).getSound(),
-											MESSAGE_TYPE_MINOR_EVENT, // advc.106b: was MAJOR
-											GC.getReligionInfo(eIndex).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), getX_INLINE(), getY_INLINE(), bArrows, bArrows);
-									// (K-Mod note: event time was originally "long".)
-								}
-							}
-						}
-					}
-				}
-
-				if (isHuman())
-				{
-					if (GET_PLAYER(getOwnerINLINE()).getHasReligionCount(eIndex) == 1)
-					{
-						if (GET_PLAYER(getOwnerINLINE()).canConvert(eIndex) && (GET_PLAYER(getOwnerINLINE()).getStateReligion() == NO_RELIGION))
-						{
-							CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_CHANGERELIGION);
-							if (NULL != pInfo)
-							{
-								pInfo->setData1(eIndex);
-								gDLL->getInterfaceIFace()->addPopup(pInfo, getOwnerINLINE());
-							}
-						} /* <advc.004w> Update text of resource indicators
-							 (CvGameTextMgr::setBonusExtraHelp) */
-						if(getOwnerINLINE() == GC.getGameINLINE().getActivePlayer() &&
-								GC.getGameINLINE().isResourceLayer()) {
-							gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
-							// advc.003p:
-							GET_PLAYER(getOwnerINLINE()).setBonusHelpDirty();
-						} // </advc.004w>
+						CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_RELIGION_SPREAD",
+								GC.getReligionInfo(eIndex).getTextKeyWide(), getNameKey());
+						gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(), false,
+								GC.getEVENT_MESSAGE_TIME(), // (K-Mod note: event time was originally "long".)
+								szBuffer, GC.getReligionInfo(eIndex).getSound(),
+								MESSAGE_TYPE_MINOR_EVENT, // advc.106b: was MAJOR
+								GC.getReligionInfo(eIndex).getButton(),
+								(ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"),
+								getX_INLINE(), getY_INLINE(), bArrows, bArrows);
 					}
 				}
 			}
-		}
-		// K-Mod
-		else // religion removed
-		{
-			if (bAnnounce)
-			{	// <advc.106e> Announce removed religion to other civs as well
-				for (int i = 0; i < MAX_CIV_PLAYERS; i++) {
-					CvPlayer const& civ = GET_PLAYER((PlayerTypes)i);
-					if(!civ.isAlive() || !isRevealed(civ.getTeam(), false))
-						continue;
-					if(eSpreadPlayer != civ.getID() && iOwnerEra >= iEraThresh &&
-							getOwnerINLINE() != civ.getID() && !civ.hasHolyCity(eIndex))
-						continue; // </advc.106e>
-					CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_RELIGION_REMOVE", GC.getReligionInfo(eIndex).getTextKeyWide(), getNameKey());
-					gDLL->getInterfaceIFace()->addHumanMessage(
-							civ.getID(), // advc.106e: was getOwner() in K-Mod
-							false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BLIGHT",
-							MESSAGE_TYPE_MINOR_EVENT, // advc.106b: was MAJOR
-							GC.getReligionInfo(eIndex).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_RED"), getX_INLINE(), getY_INLINE(), bArrows, bArrows);
-				} // advc.106e
+			if (isHuman() && kOwner.getHasReligionCount(eIndex) == 1)
+			{
+				if (kOwner.canConvert(eIndex) && kOwner.getStateReligion() == NO_RELIGION)
+				{
+					CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_CHANGERELIGION);
+					if (pInfo != NULL)
+					{
+						pInfo->setData1(eIndex);
+						gDLL->getInterfaceIFace()->addPopup(pInfo, kOwner.getID());
+					}
+				} /* <advc.004w> Update text of resource indicators
+					 (CvGameTextMgr::setBonusExtraHelp) */
+				if(kOwner.getID() == g.getActivePlayer() && g.isResourceLayer())
+				{
+					gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
+					// advc.003p:
+					kOwner.setBonusHelpDirty();
+				} // </advc.004w>
 			}
 		}
-		// K-Mod end
-
-		if (bNewValue)
-		{
-			// Python Event
-			CvEventReporter::getInstance().religionSpread(eIndex, getOwnerINLINE(), this);
-			// <advc.130n>
-			for(int i = 0; i < MAX_CIV_TEAMS; i++) {
-				CvTeamAI& t = GET_TEAM((TeamTypes)i);
-				if(t.isAlive() && isRevealed(t.getID(), false))
-					t.AI_reportNewReligion(eIndex);
-			} // </advc.130n>
+	} // K-Mod start
+	else // religion removed
+	{
+		if (bAnnounce)
+		{	// <advc.106e> Announce removed religion to other civs as well
+			for (int i = 0; i < MAX_CIV_PLAYERS; i++)
+			{
+				CvPlayer const& kObs = GET_PLAYER((PlayerTypes)i);
+				if(!kObs.isAlive() || !isRevealed(kObs.getTeam(), false))
+					continue;
+				if(eSpreadPlayer != kObs.getID() && iOwnerEra >= iEraThresh &&
+						kOwner.getID() != kObs.getID() && !kObs.hasHolyCity(eIndex))
+					continue; // </advc.106e>
+				CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_RELIGION_REMOVE", GC.getReligionInfo(eIndex).getTextKeyWide(), getNameKey());
+				gDLL->getInterfaceIFace()->addHumanMessage(
+						kObs.getID(), // advc.106e: was getOwner() in K-Mod
+						false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_BLIGHT",
+						MESSAGE_TYPE_MINOR_EVENT, // advc.106b: was MAJOR
+						GC.getReligionInfo(eIndex).getButton(),
+						(ColorTypes)GC.getInfoTypeForString("COLOR_RED"),
+						getX_INLINE(), getY_INLINE(), bArrows, bArrows);
+			}
 		}
-		else
-		{
-			// Python Event
-			CvEventReporter::getInstance().religionRemove(eIndex, getOwnerINLINE(), this);
-		}
-		
+	} // K-Mod end
+	if (bNewValue)
+	{
+		CvEventReporter::getInstance().religionSpread(eIndex, kOwner.getID(), this);
+		// <advc.130n>
+		for(int i = 0; i < MAX_CIV_TEAMS; i++) {
+			CvTeamAI& t = GET_TEAM((TeamTypes)i);
+			if(t.isAlive() && isRevealed(t.getID(), false))
+				t.AI_reportNewReligion(eIndex);
+		} // </advc.130n>
 	}
+	else CvEventReporter::getInstance().religionRemove(eIndex, kOwner.getID(), this);
 }
 
 // K-Mod. A rating for how strong a religion can take hold in this city
@@ -12516,57 +12511,47 @@ void CvCity::clearTradeRoutes()
 
 
 // XXX eventually, this needs to be done when roads are built/destroyed...
-void CvCity::updateTradeRoutes()
+void CvCity::updateTradeRoutes() // advc.003: refactored
 {
-
-	CvCity* pLoopCity;
-	int iLoop;
-	int iI, iJ, iK;
-
-	int* paiBestValue = new int[GC.getDefineINT("MAX_TRADE_ROUTES")];
-
-	for (iI = 0; iI < GC.getDefineINT("MAX_TRADE_ROUTES"); iI++)
-	{
-		paiBestValue[iI] = 0;
-	}
+	int const iMaxTradeRoutes = GC.getDefineINT("MAX_TRADE_ROUTES");
+	CvPlayer const& kOwner = GET_PLAYER(getOwnerINLINE());
 
 	clearTradeRoutes();
 
 	if (!isDisorder() && !isPlundered())
 	{
 		int iTradeRoutes = getTradeRoutes();
-		FAssert(iTradeRoutes <= GC.getDefineINT("MAX_TRADE_ROUTES"));
-		// <advc.003> Refactored this triple loop for improved readability.
-		PlayerTypes ownId = getOwnerINLINE();
-		CvPlayer& owner = GET_PLAYER(ownId);
-		for(iI = 0; iI < MAX_CIV_PLAYERS; iI++)
+		bool bIgnorePlotGroups = (GC.getDefineINT("IGNORE_PLOT_GROUP_FOR_TRADE_ROUTES") > 0);
+		FAssert(iTradeRoutes <= iMaxTradeRoutes);
+		int* paiBestValue = new int[iMaxTradeRoutes](); // value-initialize
+		for(int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 		{
-			PlayerTypes partnerId = (PlayerTypes)iI;
-			CvPlayer& partnerCiv = GET_PLAYER(partnerId);
-			if(!owner.canHaveTradeRoutesWith(partnerId))
+			CvPlayer const& kPartner = GET_PLAYER((PlayerTypes)iI);
+			if(!kOwner.canHaveTradeRoutesWith(kPartner.getID()))
 				continue;
-			for(pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop);
-					pLoopCity != NULL; pLoopCity = partnerCiv.nextCity(&iLoop))
+			int iLoop;
+			for(CvCity* pLoopCity = kPartner.firstCity(&iLoop);
+					pLoopCity != NULL; pLoopCity = kPartner.nextCity(&iLoop))
 			{
+				if(pLoopCity == this)
+					continue;
 				/*  <advc.124> A connection along revealed tiles ensures that the
 					city tile is revealed, but this doesn't imply that the city is
 					also revealed: The tile could've been explored before the city
 					existed. Need to check CvCity::isRevealed explicitly. */
 				if(pLoopCity->isDisorder() || !pLoopCity->isRevealed(getTeam(), false))
 					continue; // <advc.124>
-				if(pLoopCity == this)
+				if(pLoopCity->isTradeRoute(kOwner.getID()) && getTeam() != kPartner.getTeam())
 					continue;
-				if(pLoopCity->isTradeRoute(ownId) && getTeam() != TEAMID(partnerId))
-					continue;
-				if(pLoopCity->plotGroup(ownId) != plotGroup(ownId)
-						&& GC.getDefineINT("IGNORE_PLOT_GROUP_FOR_TRADE_ROUTES") <= 0)
+				if(!bIgnorePlotGroups && pLoopCity->plotGroup(kOwner.getID()) !=
+						plotGroup(kOwner.getID()))
 					continue;
 				int iValue = calculateTradeProfit(pLoopCity);
-				for (iJ = 0; iJ < iTradeRoutes; iJ++)
+				for (int iJ = 0; iJ < iTradeRoutes; iJ++)
 				{
 					if(iValue <= paiBestValue[iJ])
 						continue;
-					for (iK = (iTradeRoutes - 1); iK > iJ; iK--)
+					for (int iK = iTradeRoutes - 1; iK > iJ; iK--)
 					{
 						paiBestValue[iK] = paiBestValue[(iK - 1)];
 						m_paTradeCities[iK] = m_paTradeCities[(iK - 1)];
@@ -12577,28 +12562,26 @@ void CvCity::updateTradeRoutes()
 				}
 			}
 		}
-	} // </advc.003>
+		SAFE_DELETE_ARRAY(paiBestValue);
+	}
 
 	int iTradeProfit = 0;
-
-	for (iI = 0; iI < GC.getDefineINT("MAX_TRADE_ROUTES"); iI++)
+	for (int iI = 0; iI < iMaxTradeRoutes; iI++)
 	{
-		pLoopCity = getTradeCity(iI);
-
+		CvCity* pLoopCity = getTradeCity(iI);
 		if (pLoopCity != NULL)
 		{
-			pLoopCity->setTradeRoute(getOwnerINLINE(), true);
-
+			pLoopCity->setTradeRoute(kOwner.getID(), true);
 			iTradeProfit += calculateTradeProfit(pLoopCity);
 		}
 	}
 
-	for (iI = 0; iI < NUM_YIELD_TYPES; iI++)
-	{
-		setTradeYield(((YieldTypes)iI), calculateTradeYield(((YieldTypes)iI), iTradeProfit)); // XXX could take this out if handled when CvPlotGroup changes...
+	for (int iI = 0; iI < NUM_YIELD_TYPES; iI++)
+	{	
+		YieldTypes eYield = (YieldTypes)iI;
+		// XXX could take this out if handled when CvPlotGroup changes...
+		setTradeYield(eYield, calculateTradeYield(eYield, iTradeProfit));
 	}
-
-	SAFE_DELETE_ARRAY(paiBestValue);
 }
 
 
@@ -15879,6 +15862,7 @@ void CvCity::liberate(bool bConquest)
 		kTeam.setMasterPower(kTeam.getMasterPower() + iNewMasterLand - iOldMasterLand);
 		kTeam.setVassalPower(kTeam.getVassalPower() + iNewVassalLand - iOldVassalLand);
 	}
+	GET_PLAYER(ePlayer).AI_updateAttitudeCache(eOwner); // advc.122
 	// dlph.23: Commented out. setCulture now done by advc.122 in acquireCity.
 	/*if (NULL != pPlot)
 	{

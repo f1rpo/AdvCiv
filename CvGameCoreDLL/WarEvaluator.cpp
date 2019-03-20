@@ -190,10 +190,11 @@ int WarEvaluator::evaluate(WarPlanTypes wp, int preparationTime) {
 		(BtS/K-Mod only considers total naval war.) */
 	bool skipNaval = true;
 	vector<PlayerTypes>& agentTeam = agent.warAndPeaceAI().teamMembers();
-	for(size_t i = 0; i < agentTeam.size(); i++)
+	for(size_t i = 0; i < agentTeam.size(); i++) {
 		if(GET_PLAYER(agentTeam[i]).AI_totalUnitAIs(UNITAI_ASSAULT_SEA) +
 				GET_PLAYER(agentTeam[i]).AI_totalUnitAIs(UNITAI_SETTLER_SEA) > 0)
 			skipNaval = false;
+	}
 	/*  If the report isn't mute anyway, and we're doing two runs, rather than
 		flooding the report with logs for both naval and non-naval utility, mute
 		the report in both runs, and do an additional run just for logging

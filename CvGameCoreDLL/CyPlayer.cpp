@@ -2139,7 +2139,7 @@ bool CyPlayer::AI_isWillingToTalk(int /*PlayerTypes*/ ePlayer) {
 	CvPlayerAI const& p = GET_PLAYER((PlayerTypes)ePlayer);
 	if(p.getNumCities() <= 0 && p.getNumUnits() <= 0)
 		return false; // </advc.001>
-	// Gets called dozens of time already when loading a savegame
+	// AI_isWillingToTalk gets called frequently by Civ4lerts
 	WarEvaluator::enableCache();
 	bool r = m_pPlayer->AI_isWillingToTalk(p.getID());
 	WarEvaluator::disableCache();

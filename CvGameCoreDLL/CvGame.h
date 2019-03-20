@@ -129,10 +129,10 @@ public:
 	int countKnownTechNumTeams(TechTypes eTech);														// Exposed to Python
 	int getNumFreeBonuses(BuildingTypes eBuilding);													// Exposed to Python
 
-	int countReligionLevels(ReligionTypes eReligion);							// Exposed to Python 
+	int countReligionLevels(ReligionTypes eReligion) /* advc.003: */ const;							// Exposed to Python 
 	int calculateReligionPercent(ReligionTypes eReligion,						// Exposed to Python
 			bool ignoreOtherReligions = false) const; // advc.115b
-	int countCorporationLevels(CorporationTypes eCorporation);							// Exposed to Python 
+	int countCorporationLevels(CorporationTypes eCorporation) /* advc.003: */ const;							// Exposed to Python 
 	void replaceCorporation(CorporationTypes eCorporation1, CorporationTypes eCorporation2);
 
 	int goldenAgeLength() const;																					// Exposed to Python
@@ -791,6 +791,7 @@ protected:
 	void initScenario();
 	void initFreeUnits_bulk();
 	// </advc.051>
+	void setAIHandicap(); // advc.127
 	// <advc.003i> These were public (and DLLExport)
 	void initFreeState();
 	void assignStartingPlots();
