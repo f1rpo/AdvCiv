@@ -455,10 +455,14 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 CvUnit* CvSelectionGroupAI::AI_getBestGroupSacrifice(const CvPlot* pPlot,
 		bool bPotentialEnemy, bool bForce, bool bNoBlitz) const
 {
-	int iBestValue = 0;
+	int iBestValue = -1; // advc.048: was 0
 	CvUnit* pBestUnit = NULL;
 
 	CLLNode<IDInfo>* pUnitNode = headUnitNode();
+	// <advc.048> Copied from AI_getBestGroupAttacker
+	bool bHuman = (pUnitNode == NULL ? true :
+			GET_PLAYER(::getUnit(pUnitNode->m_data)->getOwnerINLINE()).isHuman());
+	// </advc.048>
 	while (pUnitNode != NULL)
 	{
 		CvUnit* pLoopUnit = ::getUnit(pUnitNode->m_data);
@@ -489,13 +493,13 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupSacrifice(const CvPlot* pPlot,
 					{
                         int iValue = pLoopUnit->AI_sacrificeValue(pPlot);
 						/* advc.006: > 0 not guaranteed if unit has no
-						   production cost; changed to >= 0. That's still
-						   enough to pass the test ">= iBestValue" below
-						   (iBestValue is initially 0). */
+						   production cost; changed to >= 0. */
 						FAssert(iValue >= 0);
 
 						// we want to pick the last unit of highest value, so pick the last unit with a good value
-						if (iValue >= iBestValue)
+						//if (iValue >= iBestValue)
+						// advc.048: As in AI_getBestGroupAttacker
+						if (iValue > iBestValue || (!bHuman && iValue == iBestValue))
 						{
 							iBestValue = iValue;
 							pBestUnit = pLoopUnit;

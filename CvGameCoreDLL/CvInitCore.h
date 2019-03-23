@@ -152,8 +152,8 @@ public:
 	DllExport bool getVictory(VictoryTypes eVictoryID) const;
 	DllExport void setVictory(VictoryTypes eVictoryID, bool bVictory);
 
-
-	const bool * getOptions() const	{ return m_abOptions; }
+	// advc.003b: inlined
+	inline const bool * getOptions() const	{ return m_abOptions; }
 	DllExport bool getOption(GameOptionTypes eIndex) const;
 	DllExport void setOption(GameOptionTypes eIndex, bool bOption);
 

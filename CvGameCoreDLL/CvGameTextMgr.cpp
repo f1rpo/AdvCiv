@@ -2832,7 +2832,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 	if (pAttacker->getDomainType() != DOMAIN_AIR)
 	{
 		int iCombatOdds = getCombatOdds(pAttacker, pDefender);
-
+		bool bVictoryOddsAppended = false; // advc.048
 		if (pAttacker->combatLimit() >= GC.getMAX_HIT_POINTS())
 		{
 			if (!ACO_enabled || getBugOptionBOOL("ACO__ForceOriginalOdds", false))
@@ -2851,6 +2851,7 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 				}
 
 				szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_ODDS", szTempBuffer.GetCString()));
+				bVictoryOddsAppended = true; // advc.048
 				if (ACO_enabled)
 				{
 					szString.append(NEWLINE);
@@ -2884,8 +2885,8 @@ bool CvGameTextMgr::setCombatPlotHelp(CvWStringBuffer &szString, CvPlot* pPlot)
 				{
 					szTempBuffer.Format(L"%.1f", iWithdrawal / 1000.0f);
 				}
-
-				szString.append(NEWLINE);
+				if(bVictoryOddsAppended) // advc.048
+					szString.append(NEWLINE);
 				szString.append(gDLL->getText("TXT_KEY_COMBAT_PLOT_ODDS_RETREAT", szTempBuffer.GetCString()));
 				if (ACO_enabled)
 				{
@@ -5105,7 +5106,9 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 
 		int iCityDefenders = kPlot.plotCount(PUF_canDefendGroupHead, -1, -1, ePlayer, NO_TEAM, PUF_isCityAIType);
 		int iAttackGroups = kPlot.plotCount(PUF_isUnitAIType, UNITAI_ATTACK, -1, ePlayer);
-		szString.append(CvWString::format(L"\nDefenders [D+A]/N ([%d + %d] / %d)", iCityDefenders, iAttackGroups, pPlotCity->AI_neededDefenders()));
+		szString.append(CvWString::format(L"\nDefenders [D+A]/N ([%d + %d] / %d)",
+				iCityDefenders, iAttackGroups, pPlotCity->AI_neededDefenders(
+				false, true))); // advc.001n
 
 		szString.append(CvWString::format(L"\nFloating Defenders H/N (%d / %d)", kPlayer.AI_getTotalFloatingDefenders(pPlotCity->area()), kPlayer.AI_getTotalFloatingDefendersNeeded(pPlotCity->area())));
 		szString.append(CvWString::format(L"\nAir Defenders H/N (%d / %d)", pPlotCity->plot()->plotCount(PUF_canAirDefend, -1, -1, pPlotCity->getOwnerINLINE(), NO_TEAM, PUF_isDomainType, DOMAIN_AIR), pPlotCity->AI_neededAirDefenders()));
@@ -17134,7 +17137,8 @@ void CvGameTextMgr::parseWarTradesHelp(CvWStringBuffer& szBuffer,
 	if(TEAMID(eOtherPlayer) == TEAMID(activeId) ||
 			eOtherPlayer == NO_PLAYER || TEAMID(eThisPlayer) == TEAMID(activeId) ||
 			TEAMID(eThisPlayer) == TEAMID(eOtherPlayer) || eThisPlayer == NO_PLAYER ||
-			TEAMREF(eThisPlayer).isAtWar(TEAMID(eOtherPlayer)))
+			TEAMREF(eThisPlayer).isAtWar(TEAMID(eOtherPlayer)) ||
+			TEAMREF(eOtherPlayer).isHuman())
 		return;
 	if(TEAMREF(eThisPlayer).AI_declareWarTrade(TEAMID(eOtherPlayer),
 			TEAMID(activeId)) == NO_DENIAL) {

@@ -5859,8 +5859,13 @@ void CvGame::setTeamScore(TeamTypes eTeam, int iScore)
 
 
 bool CvGame::isOption(GameOptionTypes eIndex) const
-{
-	return GC.getInitCore().getOption(eIndex);
+{	//return GC.getInitCore().getOption(eIndex);
+	// <advc.003b>
+	if(eIndex < 0 || eIndex >= NUM_GAMEOPTION_TYPES) {
+		FASSERT_BOUNDS(0, NUM_GAMEOPTION_TYPES, eIndex, "No such game option");
+		return false;
+	} // Use inline functions. Probably doesn't matter, but feels better.
+	return GC.getInitCoreINLINE().getOptions()[eIndex]; // </advc.003b>
 }
 
 

@@ -13991,7 +13991,8 @@ bool CvUnit::isCombatVisible(const CvUnit* pDefender) const
 			}
 			else if (NULL != pDefender && pDefender->isHuman())
 			{
-				if (!GET_PLAYER(pDefender->getOwnerINLINE()).isOption(PLAYEROPTION_QUICK_DEFENSE))
+				if (!GET_PLAYER(pDefender->getOwnerINLINE()).isOption(PLAYEROPTION_QUICK_DEFENSE)
+						&& !gDLL->getEngineIFace()->isGlobeviewUp()) // advc.102
 				{
 					bVisible = true;
 				}

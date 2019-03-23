@@ -425,11 +425,11 @@ void CvEventReporter::preSave()
 	bool bQuickSave = m_bPreQuickSave;
 	m_bPreAutoSave = m_bPreQuickSave = false;
 	CvGame const& g = GC.getGameINLINE();
-	FAssertMsg(bAutoSave || !g.isAITurn(), "Quicksave in between turns?");
 	/*  I'm not sure how to handle the TXT_KEY_CONN_UPDATE_SAVING_* messages, so
 		let's just leave networked games alone. */
 	if(g.isNetworkMultiPlayer())
 		return;
+	FAssertMsg(bAutoSave || !g.isAITurn(), "Quicksave in between turns?");
 	char const* szDefineName = "";
 	CvWString szMsgTag;
 	if(bAutoSave) {

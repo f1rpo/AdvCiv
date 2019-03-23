@@ -29059,7 +29059,7 @@ bool CvPlayerAI::AI_cheatDangerVisibility(CvPlot const& pAt) const {
 	std::vector<long> hashInputs;
 	hashInputs.push_back(pAt.getX_INLINE());
 	hashInputs.push_back(pAt.getY_INLINE());
-	hashInputs.push_back(GC.getGameINLINE().getGameTurn());
+	hashInputs.push_back(GC.getGameINLINE().gameTurn());
 	hashInputs.push_back(getID());
 	return (::hash(hashInputs) < pr);
 

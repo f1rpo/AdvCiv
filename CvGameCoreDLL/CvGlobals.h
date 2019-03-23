@@ -160,6 +160,7 @@ public:
 	DllExport CvPortal& getPortal();
 	DllExport CvSetupData& getSetupData();
 	DllExport CvInitCore& getInitCore();
+	inline CvInitCore& getInitCoreINLINE() { return *m_initCore; } // advc.003b
 	DllExport CvInitCore& getLoadedInitCore();
 	DllExport CvInitCore& getIniInitCore();
 	DllExport CvMessageCodeTranslator& getMessageCodes();

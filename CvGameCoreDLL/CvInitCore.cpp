@@ -1195,14 +1195,20 @@ void CvInitCore::setType(GameType eType)
 			else goi.setVisible(goi.getVisibleXML());
 		}
 		{	// Never visible in MP
-			CvGameOptionInfo& goi = GC.getGameOptionInfo(GAMEOPTION_LOCK_MODS);
-			if(eType == GAME_MP_SCENARIO || eType == GAME_MP_NEW || eType == GAME_MP_LOAD ||
-					eType == GAME_HOTSEAT_SCENARIO || eType == GAME_HOTSEAT_NEW ||
-					eType == GAME_PBEM_LOAD || eType == GAME_PBEM_NEW ||
-					eType == GAME_PBEM_SCENARIO)
-				goi.setVisible(false);
-			// Otherwise as set in XML
-			else goi.setVisible(goi.getVisibleXML());
+			std::vector<GameOptionTypes> aeHideMP;
+			aeHideMP.push_back(GAMEOPTION_LOCK_MODS);
+			aeHideMP.push_back(GAMEOPTION_NEW_RANDOM_SEED);
+			aeHideMP.push_back(GAMEOPTION_RISE_FALL); // advc.701
+			for(size_t i = 0; i < aeHideMP.size(); i++) {
+				CvGameOptionInfo& goi = GC.getGameOptionInfo(aeHideMP[i]);
+				if(eType == GAME_MP_SCENARIO || eType == GAME_MP_NEW || eType == GAME_MP_LOAD ||
+						eType == GAME_HOTSEAT_SCENARIO || eType == GAME_HOTSEAT_NEW ||
+						eType == GAME_PBEM_LOAD || eType == GAME_PBEM_NEW ||
+						eType == GAME_PBEM_SCENARIO)
+					goi.setVisible(false);
+				// Otherwise as set in XML
+				else goi.setVisible(goi.getVisibleXML());
+			}
 		} // </advc.054>
 		if(CvPlayerAI::areStaticsInitialized())
 		{

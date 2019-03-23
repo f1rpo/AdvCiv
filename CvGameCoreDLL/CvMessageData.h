@@ -301,8 +301,7 @@ private:
 	int m_iData2;
 	int m_iFlags;
 	bool m_bShift;
-	/*  advc.011b: Modifier key down (I'm going to use CTRL, but let's not commit to
-		that by calling the variable bCtrl.) */
+	// advc.011b: Modifier key down (could be anything except Shift)
 	bool m_bModified;
 };
 

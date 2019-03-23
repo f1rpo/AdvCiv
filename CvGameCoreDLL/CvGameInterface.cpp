@@ -1012,149 +1012,136 @@ void CvGame::selectionListMove(CvPlot* pPlot, bool bAlt, bool bShift, bool bCtrl
 }
 
 
-void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, int iData4, int iFlags, bool bAlt, bool bShift) const
+void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, int iData4,
+		int iFlags, bool bAlt, bool bShift) const
 {
 	CyArgsList argsList;
 	argsList.add(eMessage);	// pass in plot class
-	argsList.add(iData2);
-	argsList.add(iData3);
-	argsList.add(iData4);
-	argsList.add(iFlags);
-	argsList.add(bAlt);
-	argsList.add(bShift);
+	argsList.add(iData2); argsList.add(iData3);
+	argsList.add(iData4); argsList.add(iFlags);
+	argsList.add(bAlt); argsList.add(bShift);
 	long lResult=0;
 	gDLL->getPythonIFace()->callFunction(PYGameModule, "cannotSelectionListGameNetMessage", argsList.makeFunctionArgs(), &lResult);
 	if(lResult == 1)
 		return;
 
 	CvUnit* pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+	if (pHeadSelectedUnit == NULL || pHeadSelectedUnit->getOwnerINLINE() != getActivePlayer())
+		return; // advc.003
 
-	if (pHeadSelectedUnit != NULL)
+	CLLNode<IDInfo>* pSelectedUnitNode;
+	CvUnit* pSelectedUnit;
+	if (eMessage == GAMEMESSAGE_JOIN_GROUP)
 	{
-		if (pHeadSelectedUnit->getOwnerINLINE() == getActivePlayer())
+		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+		while (pSelectedUnitNode != NULL)
 		{
-			CLLNode<IDInfo>* pSelectedUnitNode;
-			CvUnit* pSelectedUnit;
-			if (eMessage == GAMEMESSAGE_JOIN_GROUP)
+			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
+			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+
+			if (bShift)
 			{
-				pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-				while (pSelectedUnitNode != NULL)
-				{
-					pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-					pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
-
-					if (bShift)
-					{
-						CvMessageControl::getInstance().sendJoinGroup(pSelectedUnit->getID(), FFreeList::INVALID_INDEX);
-					}
-					else
-					{
-						if (pSelectedUnit == pHeadSelectedUnit)
-						{
-							CvMessageControl::getInstance().sendJoinGroup(pSelectedUnit->getID(), FFreeList::INVALID_INDEX);
-						}
-						else // K-Mod
-							CvMessageControl::getInstance().sendJoinGroup(pSelectedUnit->getID(), pHeadSelectedUnit->getID());
-					}
-				}
-
-				if (bShift)
-				{
-					gDLL->getInterfaceIFace()->selectUnit(pHeadSelectedUnit, true);
-				}
-			}
-			else if (eMessage == GAMEMESSAGE_DO_COMMAND)
-			{
-				// K-Mod. When setting a unit to automate, we must be careful not to keep it grouped
-				if (iData2 == COMMAND_AUTOMATE && !gDLL->getInterfaceIFace()->mirrorsSelectionGroup())
-				{
-					selectionListGameNetMessage(GAMEMESSAGE_JOIN_GROUP);
-				}
-				// K-Mod end
-				pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-
-				while (pSelectedUnitNode != NULL)
-				{
-					pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-					pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
-
-					CvMessageControl::getInstance().sendDoCommand(pSelectedUnit->getID(), ((CommandTypes)iData2), iData3, iData4, bAlt);
-				}
-			}
-			else if ((eMessage == GAMEMESSAGE_PUSH_MISSION) || (eMessage == GAMEMESSAGE_AUTO_MISSION))
-			{
-				if (!(gDLL->getInterfaceIFace()->mirrorsSelectionGroup()))
-				{
-					selectionListGameNetMessage(GAMEMESSAGE_JOIN_GROUP);
-				}
-
-				if (eMessage == GAMEMESSAGE_PUSH_MISSION)
-				{
-					// K-Mod. I've moved the BUTTONPOPUP_DECLAREWARMOVE stuff to here from selectionListMove
-					// so that it can catch left-click moves as well as right-click moves.
-					//
-					// Note: If MOVE_DECLARE_WAR is set, then we assume it was set by a BUTTONPOPUP_DECLAREWARMOVE
-					// which was triggered already by this move. In which case we shouldn't check for declare war
-					// this time. This is a kludge to prevent the popup from appearing twice.
-					// Also, when this happens we should clear the MOVE_DECLARE_WAR flag. Otherwise it may cause
-					// the pathfinder to fail in some cases.
-					//
-					// (I'd rather not have UI stuff like this in this function,
-					//  but this is the only place where I can catch left-click moves.)
-					if (iData2 == MISSION_MOVE_TO && !(iFlags & MOVE_DECLARE_WAR))
-					{
-						CvPlot* pPlot = GC.getMapINLINE().plotINLINE(iData3, iData4);
-						FAssert(pPlot);
-						pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
-
-						while (pSelectedUnitNode != NULL)
-						{
-							pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
-							TeamTypes eRivalTeam = pSelectedUnit->getDeclareWarMove(pPlot);
-							if (eRivalTeam != NO_TEAM)
-							{/* <advc.001> If an enemy unit is stacked with a
-								neutral one, then the player apparently wants to
-								attack the enemy unit (rather than declare war on
-								the neutral party). However, if the enemy unit is on
-								a tile owned by a third party that the player
-								doesn't have OB or a vassal treaty with, then only
-								a DoW on the third party makes sense. */
-								if((pPlot->getTeam() != NO_TEAM &&
-										!GET_TEAM(pSelectedUnit->getTeam()).
-										isFriendlyTerritory(pPlot->getTeam())) ||
-										!pPlot->isVisibleEnemyUnit(pSelectedUnit))
-								{ // </advc.001>
-									CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_DECLAREWARMOVE);
-									if (NULL != pInfo)
-									{
-										pInfo->setData1(eRivalTeam);
-										pInfo->setData2(pPlot->getX());
-										pInfo->setData3(pPlot->getY());
-										pInfo->setOption1(bShift);
-										pInfo->setOption2(pPlot->getTeam() != eRivalTeam);
-										gDLL->getInterfaceIFace()->addPopup(pInfo);
-									}
-									return;
-								}
-							} // advc.001
-							pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
-						}
-					}
-					CvMessageControl::getInstance().sendPushMission(pHeadSelectedUnit->getID(), ((MissionTypes)iData2), iData3, iData4,
-							iFlags & ~ MOVE_DECLARE_WAR, bShift, // K-Mod end
-							GC.ctrlKey()); // advc.011b
-				}
-				else
-				{
-					CvMessageControl::getInstance().sendAutoMission(pHeadSelectedUnit->getID());
-				}
+				CvMessageControl::getInstance().sendJoinGroup(pSelectedUnit->getID(),
+						FFreeList::INVALID_INDEX);
 			}
 			else
 			{
-				FAssert(false);
+				if (pSelectedUnit == pHeadSelectedUnit)
+				{
+					CvMessageControl::getInstance().sendJoinGroup(pSelectedUnit->getID(),
+							FFreeList::INVALID_INDEX);
+				}
+				else // K-Mod
+				{
+					CvMessageControl::getInstance().sendJoinGroup(pSelectedUnit->getID(),
+							pHeadSelectedUnit->getID());
+				}
 			}
 		}
+
+		if (bShift)
+			gDLL->getInterfaceIFace()->selectUnit(pHeadSelectedUnit, true);
 	}
+	else if (eMessage == GAMEMESSAGE_DO_COMMAND)
+	{	// K-Mod. When setting a unit to automate, we must be careful not to keep it grouped
+		if (iData2 == COMMAND_AUTOMATE && !gDLL->getInterfaceIFace()->mirrorsSelectionGroup())
+			selectionListGameNetMessage(GAMEMESSAGE_JOIN_GROUP);
+		// K-Mod end
+		pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+		while (pSelectedUnitNode != NULL)
+		{
+			pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
+			pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+			CvMessageControl::getInstance().sendDoCommand(pSelectedUnit->getID(),
+					(CommandTypes)iData2, iData3, iData4, bAlt);
+		}
+	}
+	else if (eMessage == GAMEMESSAGE_PUSH_MISSION || eMessage == GAMEMESSAGE_AUTO_MISSION)
+	{
+		if (!gDLL->getInterfaceIFace()->mirrorsSelectionGroup())
+			selectionListGameNetMessage(GAMEMESSAGE_JOIN_GROUP);
+
+		if (eMessage == GAMEMESSAGE_PUSH_MISSION)
+		{	// K-Mod. I've moved the BUTTONPOPUP_DECLAREWARMOVE stuff to here from selectionListMove
+			// so that it can catch left-click moves as well as right-click moves.
+			//
+			// Note: If MOVE_DECLARE_WAR is set, then we assume it was set by a BUTTONPOPUP_DECLAREWARMOVE
+			// which was triggered already by this move. In which case we shouldn't check for declare war
+			// this time. This is a kludge to prevent the popup from appearing twice.
+			// Also, when this happens we should clear the MOVE_DECLARE_WAR flag. Otherwise it may cause
+			// the pathfinder to fail in some cases.
+			//
+			// (I'd rather not have UI stuff like this in this function,
+			//  but this is the only place where I can catch left-click moves.)
+			if (iData2 == MISSION_MOVE_TO && !(iFlags & MOVE_DECLARE_WAR))
+			{
+				CvPlot* pPlot = GC.getMapINLINE().plotINLINE(iData3, iData4);
+				FAssert(pPlot);
+				pSelectedUnitNode = gDLL->getInterfaceIFace()->headSelectionListNode();
+				while (pSelectedUnitNode != NULL)
+				{
+					pSelectedUnit = ::getUnit(pSelectedUnitNode->m_data);
+					TeamTypes eRivalTeam = pSelectedUnit->getDeclareWarMove(pPlot);
+					if (eRivalTeam != NO_TEAM)
+					{	/* <advc.001> If an enemy unit is stacked with a neutral one,
+						then the player apparently wants to attack the enemy unit
+						(rather than declare war on the neutral party). However,
+						if the enemy unit is on a tile owned by a third party that
+						the player doesn't have OB or a vassal treaty with, then
+						only a DoW on the third party makes sense. */
+						if((pPlot->getTeam() != NO_TEAM &&
+								!GET_TEAM(pSelectedUnit->getTeam()).
+								isFriendlyTerritory(pPlot->getTeam())) ||
+								!pPlot->isVisibleEnemyUnit(pSelectedUnit))
+						{ // </advc.001>
+							CvPopupInfo* pInfo = new CvPopupInfo(BUTTONPOPUP_DECLAREWARMOVE);
+							if (NULL != pInfo)
+							{
+								pInfo->setData1(eRivalTeam);
+								pInfo->setData2(pPlot->getX());
+								pInfo->setData3(pPlot->getY());
+								pInfo->setOption1(bShift);
+								pInfo->setOption2(pPlot->getTeam() != eRivalTeam);
+								gDLL->getInterfaceIFace()->addPopup(pInfo);
+							}
+							return;
+						}
+					}
+					pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
+				}
+			} // <advc.011b>
+			bool bModified = false;
+			if(iData2 == MISSION_BUILD)
+				bModified = GC.ctrlKey(); // </advc.001b> <advc.048>
+			if(iData2 == MISSION_MOVE_TO)
+				bModified = GC.altKey(); // </advc.048>
+			CvMessageControl::getInstance().sendPushMission(pHeadSelectedUnit->getID(), ((MissionTypes)iData2), iData3, iData4,
+					iFlags & ~ MOVE_DECLARE_WAR, bShift, // K-Mod end
+					bModified); // advc.011b
+		}
+		else CvMessageControl::getInstance().sendAutoMission(pHeadSelectedUnit->getID());
+	}
+	else FAssert(false);
 }
 
 

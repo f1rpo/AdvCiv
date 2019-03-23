@@ -178,7 +178,7 @@ WarAndPeaceAI::Team::Team() {
 
 WarAndPeaceAI::Team::~Team() {
 
-	delete report;
+	SAFE_DELETE(report);
 }
 
 void WarAndPeaceAI::Team::init(TeamTypes agentId) {
@@ -2058,7 +2058,7 @@ void WarAndPeaceAI::Team::startReport() {
 void WarAndPeaceAI::Team::closeReport() {
 
 	report->log("\n");
-	delete report;
+	SAFE_DELETE(report);
 }
 
 void WarAndPeaceAI::Team::setForceReport(bool b) {
@@ -2381,7 +2381,8 @@ bool WarAndPeaceAI::Civ::considerDemand(PlayerTypes theyId, int tradeVal) const 
 			// Interpret theirUtility as a probability of attack
 			-ourUtility * 2 * (4 + theirUtility) / 100.0);
 	return paymentCap >= (double)tradeVal;
-	// Some randomness? Actually none in the BtS code (AI_considerOffer) either
+	/*  Some randomness? None in the BtS code (AI_considerOffer) either.
+		Would have to use ::hash. */
 }
 
 bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
@@ -2461,7 +2462,12 @@ bool WarAndPeaceAI::Civ::considerGiftRequest(PlayerTypes theyId,
 	/*  Accept probabilistically regardless of war utility (so long as we're
 		not planning war yet, which the caller ensures).
 		Probability to accept is 45% for Gandhi, 0% for Tokugawa. */
-	if(::bernoulliSuccess(0.5 - we.AI_prDenyHelp(), "advc.104 (gift)"))
+	double prSuccess = 0.5 - we.AI_prDenyHelp();
+	// Can't use sync'd RNG here, but don't want the outcome to change after reload.
+	std::vector<long> inputs;
+	inputs.push_back(GC.getGameINLINE().gameTurn());
+	inputs.push_back(tradeVal);
+	if(::hash(inputs, weId) < prSuccess)
 		return true;
 	// Probably won't want to attack theyId then
 	if(TEAMREF(weId).AI_isSneakAttackReady())

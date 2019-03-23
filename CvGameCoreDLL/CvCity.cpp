@@ -1127,12 +1127,12 @@ void CvCity::doRevolt() { PROFILE("CvCity::doRevolts()")
 	} // </advc.023>
 	PlayerTypes eCulturalOwner = calculateCulturalOwner();
 	// <advc.099c>
-	PlayerTypes ownerIgnRange = eCulturalOwner;
+	PlayerTypes eOwnerIgnRange = eCulturalOwner;
 	if(GC.getDefineINT("REVOLTS_IGNORE_CULTURE_RANGE") > 0)
-		ownerIgnRange = plot()->calculateCulturalOwner(true);
+		eOwnerIgnRange = plot()->calculateCulturalOwner(true);
 	// If not within culture range, can revolt but not flip 
-	bool canFlip = (ownerIgnRange == eCulturalOwner);
-	eCulturalOwner = ownerIgnRange;
+	bool bCanFlip = (eOwnerIgnRange == eCulturalOwner);
+	eCulturalOwner = eOwnerIgnRange;
 	// </advc.099c>
 	/*  <advc.101> To avoid duplicate code in CvDLLWidgetData::parseNationalityHelp,
 		compute the revolt probability in a separate function. */
@@ -1140,7 +1140,7 @@ void CvCity::doRevolt() { PROFILE("CvCity::doRevolts()")
 	if(!::bernoulliSuccess(prRevolt, "advc.101"))
 		return; // </advc.101>
 	damageGarrison(eCulturalOwner); // advc.003: Code moved into subroutine 
-	if(canFlip && // advc.099
+	if(bCanFlip && // advc.099
 			canCultureFlip(eCulturalOwner)) {
 		if(GC.getGameINLINE().isOption(GAMEOPTION_ONE_CITY_CHALLENGE) &&
 				GET_PLAYER(eCulturalOwner).isHuman())
@@ -1167,19 +1167,19 @@ void CvCity::doRevolt() { PROFILE("CvCity::doRevolts()")
 		This is just what I need now that the occupation timer decreases
 		probabilistically, but wasn't committed to the K-Mod repository.
 		So I'm adding it here. */
-	int turnsOccupation = GC.getDefineINT("BASE_REVOLT_OCCUPATION_TURNS")
+	int iTurnsOccupation = GC.getDefineINT("BASE_REVOLT_OCCUPATION_TURNS")
 			+ getNumRevolts(eCulturalOwner); // </advc.023>
 	// K-Mod end
 	changeNumRevolts(eCulturalOwner, 1);
 	if(!isOccupation()) // advc.023: Don't prolong revolt
-		changeOccupationTimer(turnsOccupation);
+		changeOccupationTimer(iTurnsOccupation);
 	CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_REVOLT_IN_CITY",
 			GET_PLAYER(eCulturalOwner).getCivilizationAdjective(),
 			getNameKey());
 	// <advc.023>
 	/*  Population loss if pCity should flip, but can't. We know at this point
 		that the current revolt doesn't flip the city; but can it ever flip? */
-	if((!canFlip || !canCultureFlip(eCulturalOwner, false)) &&
+	if((!bCanFlip || !canCultureFlip(eCulturalOwner, false)) &&
 			getNumRevolts(eCulturalOwner) > GC.getNUM_WARNING_REVOLTS() &&
 			getPopulation() > 1) {
 		changePopulation(-1);
@@ -1190,28 +1190,28 @@ void CvCity::doRevolt() { PROFILE("CvCity::doRevolts()")
 		I guess that's better. Mustn't startle third parties with color
 		and sound though. */
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-		CvPlayer const& civ = GET_PLAYER((PlayerTypes)i);
-		if(!civ.isAlive() || civ.isMinorCiv())
+		CvPlayer const& kCiv = GET_PLAYER((PlayerTypes)i);
+		if(!kCiv.isAlive() || kCiv.isMinorCiv())
 			continue;
-		bool affected = (civ.getID() == eCulturalOwner ||
-				civ.getID() == getOwnerINLINE());
-		if(!affected && !isRevealed(civ.getTeam(), false))
+		bool bAffected = (kCiv.getID() == eCulturalOwner ||
+				kCiv.getID() == getOwnerINLINE());
+		if(!bAffected && !isRevealed(kCiv.getTeam(), false))
 			continue;
-		InterfaceMessageTypes msgType = MESSAGE_TYPE_INFO;
-		LPCTSTR sound = NULL;
+		InterfaceMessageTypes eMsg = MESSAGE_TYPE_INFO;
+		LPCTSTR szSound = NULL;
 		// Color of both the text and the flashing icon
-		ColorTypes color = (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE");
-		if(affected) {
-			msgType = MESSAGE_TYPE_MINOR_EVENT;
-			sound = "AS2D_CITY_REVOLT";
-			if(civ.getID() == getOwnerINLINE())
-				color = (ColorTypes)GC.getInfoTypeForString("COLOR_RED");
-			else color = (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN");
+		ColorTypes eColor = (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE");
+		if(bAffected) {
+			eMsg = MESSAGE_TYPE_MINOR_EVENT;
+			szSound = "AS2D_CITY_REVOLT";
+			if(kCiv.getID() == getOwnerINLINE())
+				eColor = (ColorTypes)GC.getInfoTypeForString("COLOR_RED");
+			else eColor = (ColorTypes)GC.getInfoTypeForString("COLOR_GREEN");
 		}
-		gDLL->getInterfaceIFace()->addHumanMessage(civ.getID(), false,
-				GC.getEVENT_MESSAGE_TIME(), szBuffer, sound, msgType,
+		gDLL->getInterfaceIFace()->addHumanMessage(kCiv.getID(), false,
+				GC.getEVENT_MESSAGE_TIME(), szBuffer, szSound, eMsg,
 				ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),
-				color, getX_INLINE(), getY_INLINE(), true, true);
+				eColor, getX_INLINE(), getY_INLINE(), true, true);
 	} // </advc.101>
 }
 
@@ -10406,13 +10406,14 @@ double CvCity::revoltProbability(bool bIgnoreWar,
 		bool bIgnoreGarrison, bool bIgnoreOccupation) const { // advc.023
 
 	PlayerTypes eCulturalOwner = calculateCulturalOwner(); // advc.099c
+	CvGame const& g = GC.getGameINLINE();
 	if(eCulturalOwner == NO_PLAYER || TEAMID(eCulturalOwner) == getTeam()
-			// <advc.099c> Barb revolts
-			|| (GC.getDefineINT("BARBS_REVOLT") <= 0 &&
-			eCulturalOwner == BARBARIAN_PLAYER) ||
+			// <advc.099c> Barbarian revolts
+			|| (eCulturalOwner == BARBARIAN_PLAYER &&
+			GC.getDefineINT("BARBS_REVOLT") <= 0) ||
 			(GET_PLAYER(getOwnerINLINE()).getCurrentEra() <= 0 &&
-			GC.getGameINLINE().getGameTurn() - getGameTurnFounded() <
-			(10 * GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).
+			g.gameTurn() - getGameTurnFounded() <
+			(10 * GC.getGameSpeedInfo(g.getGameSpeedType()).
 			getConstructPercent()) / 100)) // </advc.099c>
 		return 0;
 	// <advc.023>

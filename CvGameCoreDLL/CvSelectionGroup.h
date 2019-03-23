@@ -127,7 +127,8 @@ public:
 
 	RouteTypes getBestBuildRoute(CvPlot* pPlot, BuildTypes* peBestBuild = NULL) const;	// Exposed to Python
 
-	bool groupAttack(int iX, int iY, int iFlags, bool& bFailedAlreadyFighting);
+	bool groupAttack(int iX, int iY, int iFlags, bool& bFailedAlreadyFighting,
+			bool bMaxSurvival = false); // advc.048
 	void groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUnit = NULL, bool bEndMove = false);
 	bool groupPathTo(int iX, int iY, int iFlags);
 	bool groupRoadTo(int iX, int iY, int iFlags);

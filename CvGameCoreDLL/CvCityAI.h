@@ -69,12 +69,12 @@ public:
 /* 	BETTER_BTS_AI_MOD						END								    */
 /********************************************************************************/
 	bool AI_isDanger();
-	int AI_neededDefenders(
-			bool bIgnoreEvac = false); // advc.139
+	int AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac = false,
+			bool bConstCache = false); // advc.001n
 	int AI_neededAirDefenders();
 	int AI_minDefenders();
-	int AI_neededFloatingDefenders(
-			bool bIgnoreEvac = false); // advc.139
+	int AI_neededFloatingDefenders(/* advc.139: */ bool bIgnoreEvac = false,
+			bool bConstCache = false); // advc.001n
 	void AI_updateNeededFloatingDefenders();
 	// <advc.139>
 	void AI_updateSafety(double relativeCityVal);

@@ -6466,7 +6466,8 @@ bool CvCityAI::AI_isAirDefended(bool bCountLand, int iExtra) // function signatu
 /*                                                                                              */
 /* War strategy AI, Barbarian AI                                                                */
 /************************************************************************************************/
-int CvCityAI::AI_neededDefenders(bool bIgnoreEvac) // advc.139: param added
+int CvCityAI::AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac,
+		bool bConstCache) // advc.001n
 {
 	PROFILE_FUNC();
 	int iDefenders;
@@ -6495,19 +6496,14 @@ int CvCityAI::AI_neededDefenders(bool bIgnoreEvac) // advc.139: param added
 		for fog-busting (CvUnitAI::AI_guardCitySite) and guarding food bonuses. */
 	if(!kOwner.AI_isDefenseFocusOnBarbarians(area()->getID())) {
 		/*if (!GET_PLAYER(getOwner()).AI_isDoStrategy(AI_STRATEGY_CRUSH))
-		{	
 			iDefenders += AI_neededFloatingDefenders();
-		}
-		else
-		{
-			iDefenders += (AI_neededFloatingDefenders() + 2) / 4;
-		}*/
+		else iDefenders += (AI_neededFloatingDefenders() + 2) / 4;*/
 		/*  <advc.139> Replacing the above. No functional change other than passing
-			along IgnoreEvac */
-		int neededFloating = AI_neededFloatingDefenders(bIgnoreEvac);
+			along bIgnoreEvac and (advc.001n) bConstCache */
+		int iNeededFloating = AI_neededFloatingDefenders(bIgnoreEvac, bConstCache);
 		if(kOwner.AI_isDoStrategy(AI_STRATEGY_CRUSH))
-			neededFloating = (neededFloating + 2) / 4;
-		iDefenders += neededFloating;
+			iNeededFloating = (iNeededFloating + 2) / 4;
+		iDefenders += iNeededFloating;
 		// </advc.139>
 	}
 	
@@ -6517,7 +6513,7 @@ int CvCityAI::AI_neededDefenders(bool bIgnoreEvac) // advc.139: param added
 			iDefenders++;
 	}
 	
-	if (GC.getGame().getGameTurn() - getGameTurnAcquired() < 10)
+	if (GC.getGameINLINE().gameTurn() - getGameTurnAcquired() < 10)
 	{	/* original code
 		if (bOffenseWar) {
 			if (!hasActiveWorldWonder() && !isHolyCity()) {
@@ -6584,14 +6580,15 @@ int CvCityAI::AI_neededDefenders(bool bIgnoreEvac) // advc.139: param added
 	// <advc.099c>
 	PlayerTypes eCulturalOwner = calculateCulturalOwner();
 	if(eCulturalOwner != kOwner.getID() && !kOwner.AI_isFocusWar(area()) &&
-			revoltProbability(true, true) > 0) {
-		/*  I'm not sure how high cultureStrength can go, so the 200 is ad-hoc.
+			(revoltProbability(true, true) > 0 ||
+			(isOccupation() && probabilityOccupationDecrement() < 0.77))) {
+		/*  I'm not sure how high cultureStrength can go, so the 200 is ad hoc.
 			50% of population plus a little extra should be enough to hold onto
 			cities captured from culturally weak civs. */
 		double cultureFactor = cultureStrength(eCulturalOwner) / 200.0;
-		int priorRevolts = getNumRevolts(eCulturalOwner);
+		int iPriorRevolts = getNumRevolts(eCulturalOwner);
 		iDefenders = std::max(iDefenders, std::min(::round(getPopulation() / 2.0 +
-				1.5 * priorRevolts + cultureFactor * getPopulation()),
+				1.5 * iPriorRevolts + cultureFactor * getPopulation()),
 				getPopulation()));
 	} // </advc.099c>
 	iDefenders = std::max(iDefenders, AI_minDefenders());
@@ -6607,28 +6604,25 @@ int CvCityAI::AI_minDefenders()
 	int iDefenders = 1;
 	int iEra = GET_PLAYER(getOwnerINLINE()).getCurrentEra();
     // <advc.107> Make the era from which on there is an extra defender configurable
-    int extraDefenderEra = GC.getDefineINT("EXTRA-DEFENDER_ERA");
-    if(extraDefenderEra >= 0 && iEra >= extraDefenderEra)
-    // </advc.107>
-	{
+    int iExtraDefenderEra = GC.getDefineINT("EXTRA-DEFENDER_ERA");
+    if(iExtraDefenderEra >= 0 && iEra >= iExtraDefenderEra)  // </advc.107>
 		iDefenders++;
-	}
-	if (((iEra - GC.getGame().getStartEra() / 2) >= GC.getNumEraInfos() / 2) && isCoastal(
+
+	if (iEra - GC.getGame().getStartEra() / 2 >= GC.getNumEraInfos() / 2 && isCoastal(
 			// advc.107: A small water area doesn't justify an extra defender
 			2 * GC.getMIN_WATER_SIZE_FOR_OCEAN()))
-	{
 		iDefenders++;
-	}
 	
 	return iDefenders;
 }
 	
-int CvCityAI::AI_neededFloatingDefenders( // <advc.139>
-		bool bIgnoreEvac)
+int CvCityAI::AI_neededFloatingDefenders( /* <advc.139> */ bool bIgnoreEvac,
+		bool bConstCache) // advc.001n
 {
 	if(!bIgnoreEvac && AI_isEvacuating())
 		return 0; // </advc.139>
-	if(m_iNeededFloatingDefendersCacheTurn != GC.getGame().getGameTurn())
+	if(!bConstCache && // advc.001n
+			m_iNeededFloatingDefendersCacheTurn != GC.getGameINLINE().gameTurn())
 		AI_updateNeededFloatingDefenders();
 	return m_iNeededFloatingDefenders;	
 }
@@ -6646,7 +6640,7 @@ void CvCityAI::AI_updateNeededFloatingDefenders()
 	iFloatingDefenders /= iTotalThreat;
 	
 	m_iNeededFloatingDefenders = iFloatingDefenders;
-	m_iNeededFloatingDefendersCacheTurn = GC.getGame().getGameTurn();
+	m_iNeededFloatingDefendersCacheTurn = GC.getGameINLINE().gameTurn();
 }
 
 // This function has been completely rewritten for K-Mod. (The original code has been deleted.)

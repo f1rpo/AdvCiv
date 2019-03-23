@@ -43,7 +43,8 @@ class CvInfoBase;
 // <advc.003g> floating point utility
 inline int round(double d) { return (int)((d >= 0 ? 0.5 : -0.5) + d); }
 int roundToMultiple(double d, int iMultiple);
-bool bernoulliSuccess(double pr, char const* pszLog = ""); // 0 <= pr <= 1
+bool bernoulliSuccess(double pr, // 0 <= pr <= 1
+		char const* pszLog = "", bool bAsync = false);
 double median(std::vector<double>& distribution, bool bSorted = false);
 double mean(std::vector<double>& distribution);
 double max(std::vector<double>& distribution);

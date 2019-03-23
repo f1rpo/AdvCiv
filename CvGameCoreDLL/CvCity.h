@@ -1112,10 +1112,10 @@ public:
 /********************************************************************************/
 	virtual bool AI_isDanger() = 0;
 	
-	virtual int AI_neededDefenders(
-			bool bIgnoreEvac = false) = 0; // advc.139
-	virtual int AI_neededFloatingDefenders(
-			bool bIgnoreEvac = false) = 0; // advc.139
+	virtual int AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac = false,
+			bool bConstCache = false) = 0; // advc.001n
+	virtual int AI_neededFloatingDefenders(/* advc.139: */ bool bIgnoreEvac = false,
+			bool bConstCache = false) = 0; // advc.001n
 	// <advc.139> Frequently used, so I don't want to have to downcast all the time.
 	virtual bool AI_isEvacuating() const = 0;
 	virtual bool AI_isSafe() const = 0;
