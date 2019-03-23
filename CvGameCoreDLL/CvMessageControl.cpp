@@ -128,23 +128,15 @@ void CvMessageControl::sendJoinGroup(int iUnitID, int iHeadID)
 	}
 }
 
-void CvMessageControl::sendPushMission(int iUnitID, MissionTypes eMission, int iData1, int iData2, int iFlags, bool bShift)
+void CvMessageControl::sendPushMission(int iUnitID, MissionTypes eMission, int iData1, int iData2, int iFlags, bool bShift,
+		bool bModified) // advc.011b
 {
 	if (NO_PLAYER != GC.getGameINLINE().getActivePlayer())
 	{
-		gDLL->sendMessageData(new CvNetPushMission(GC.getGameINLINE().getActivePlayer(), iUnitID, eMission, iData1, iData2, iFlags, bShift));
+		gDLL->sendMessageData(new CvNetPushMission(GC.getGameINLINE().getActivePlayer(), iUnitID, eMission, iData1, iData2, iFlags, bShift,
+				bModified)); // advc.011b
 	}
 }
-// <advc.011b>
-void CvMessageControl::sendPushModifiedMission(int iUnitID, MissionTypes eMission,
-		int iData1, int iData2, int iFlags, bool bShift, bool bModified) {
-
-	PlayerTypes eActivePlayer = GC.getGameINLINE().getActivePlayer();
-	if(eActivePlayer != NO_PLAYER) {
-		gDLL->sendMessageData(new CvNetPushModifiedMission(eActivePlayer, iUnitID,
-				eMission, iData1, iData2, iFlags, bShift, bModified));
-	}
-} // </advc.011b>
 
 void CvMessageControl::sendAutoMission(int iUnitID)
 {

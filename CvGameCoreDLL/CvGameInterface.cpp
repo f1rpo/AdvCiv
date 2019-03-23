@@ -1140,10 +1140,9 @@ void CvGame::selectionListGameNetMessage(int eMessage, int iData2, int iData3, i
 							pSelectedUnitNode = gDLL->getInterfaceIFace()->nextSelectionListNode(pSelectedUnitNode);
 						}
 					}
-
-					//CvMessageControl::getInstance().sendPushMission(pHeadSelectedUnit->getID(), ((MissionTypes)iData2), iData3, iData4, iFlags, bShift);
-					CvMessageControl::getInstance().sendPushMission(pHeadSelectedUnit->getID(), ((MissionTypes)iData2), iData3, iData4, iFlags & ~ MOVE_DECLARE_WAR, bShift);
-					// K-Mod end
+					CvMessageControl::getInstance().sendPushMission(pHeadSelectedUnit->getID(), ((MissionTypes)iData2), iData3, iData4,
+							iFlags & ~ MOVE_DECLARE_WAR, bShift, // K-Mod end
+							GC.ctrlKey()); // advc.011b
 				}
 				else
 				{
@@ -2448,7 +2447,8 @@ void CvGame::applyFlyoutMenu(const CvFlyoutMenuData& kItem)
 					pUnitNode = pPlot->nextUnitNode(pUnitNode);
 					if (pLoopUnit->isGroupHead() && pLoopUnit->getOwnerINLINE() == getActivePlayer()) // K-Mod
 					{
-						CvMessageControl::getInstance().sendPushMission(pLoopUnit->getID(), ((pLoopUnit->isFortifyable()) ? MISSION_FORTIFY : MISSION_SLEEP), -1, -1, 0, false);
+						CvMessageControl::getInstance().sendPushMission(pLoopUnit->getID(), ((pLoopUnit->isFortifyable()) ? MISSION_FORTIFY : MISSION_SLEEP), -1, -1, 0, false,
+								GC.ctrlKey()); // advc.011b
 					}
 				}
 			}
