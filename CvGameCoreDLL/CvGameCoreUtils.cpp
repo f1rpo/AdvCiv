@@ -26,6 +26,7 @@
 //#define PATH_DEFENSE_WEIGHT   (10)
 #define PATH_DEFENSE_WEIGHT     (4) // K-Mod. ( * defence bonus)
 #define PATH_TERRITORY_WEIGHT   (5) // was 3
+#define PATH_DOW_WEIGHT			(4) // advc.082
 #define PATH_STEP_WEIGHT        (4) // was 2
 #define PATH_STRAIGHT_WEIGHT    (2) // was 1
 //#define PATH_ASYMMETRY_WEIGHT   (1) // K-Mod
@@ -2008,7 +2009,8 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 	// So let the AI prefer diagonal movement.
 	// However, diagonal zig-zags will probably seem unnatural and weird to humans who are just trying to move in a straight line.
 	// So let the pathfinding for human groups prefer cardinal movement.
-	if (pSelectionGroup->AI_isControlled())
+	bool bAIControl = pSelectionGroup->AI_isControlled();
+	if (bAIControl)
 	{
 		if (pFromPlot->getX_INLINE() == pToPlot->getX_INLINE() || pFromPlot->getY_INLINE() == pToPlot->getY_INLINE())
 			iWorstCost += PATH_STRAIGHT_WEIGHT;
@@ -2032,7 +2034,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 	// the cost of battle...
 	if (iFlags & MOVE_ATTACK_STACK)
 	{
-		FAssert(pSelectionGroup->AI_isControlled()); // only the AI uses MOVE_ATTACK_STACK
+		FAssert(bAIControl); // only the AI uses MOVE_ATTACK_STACK
 		FAssert(pSelectionGroup->getDomainType() == DOMAIN_LAND);
 
 		int iEnemyDefence = 0;
@@ -2070,12 +2072,20 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 			}
 			// else, don't worry about it too much.
 		}
-	}
-	//
+	} //
 
+	// <advc.082>
+	TeamTypes eToPlotTeam = pToPlot->getTeam();
+	/*  The AVOID_ENEMY code in the no-moves-left branch below doesn't stop the AI
+		from trying to move _through_ enemy territory and thus declaring war
+		earlier than necessary */
+	if(bAIControl && (iFlags & MOVE_DECLARE_WAR) && eToPlotTeam != NO_TEAM &&
+			eToPlotTeam != eTeam && GET_TEAM(eTeam).AI_isSneakAttackReady(eToPlotTeam))
+		iWorstCost += PATH_DOW_WEIGHT;
+	// </advc.082>
 	if (iWorstMovesLeft <= 0)
 	{
-		if (pToPlot->getTeam() != eTeam)
+		if (eToPlotTeam != eTeam)
 		{
 			iWorstCost += PATH_TERRITORY_WEIGHT;
 		}
@@ -2133,7 +2143,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 				{
 					// For human-controlled units, only apply the following effects for multi-step moves.
 					// (otherwise this might prevent the user from attacking from where they want to attack from.)
-					if (pSelectionGroup->AI_isControlled() || parent->m_iKnownCost != 0 || iFlags & MOVE_HAS_STEPPED)
+					if (bAIControl || parent->m_iKnownCost != 0 || iFlags & MOVE_HAS_STEPPED)
 					{
 						iAttackCount++;
 						iFromDefenceMod += pLoopUnit->noDefensiveBonus() ? 0 : pFromPlot->defenseModifier(eTeam, false);
@@ -2152,7 +2162,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 					}
 					// If this is a direct attack move from a human player, make sure it is the best value move possible. (This allows humans to choose which plot they attack from.)
 					// (note: humans have no way of ordering units to attack units en-route, so the fact that this is an attack move means we are at the destination.)
-					else if (pLoopUnit->canAttack()) // parent->m_iKnownCost == 0 && !(iFlags & MOVE_HAS_STEPPED) && !pSelectionGroup->AI_isControlled()
+					else if (pLoopUnit->canAttack()) // parent->m_iKnownCost == 0 && !(iFlags & MOVE_HAS_STEPPED) && !bAIControl
 						return PATH_STEP_WEIGHT; // DONE!
 				}
 			}
@@ -2172,7 +2182,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 		iWorstCost += PATH_DEFENSE_WEIGHT * std::max(0, (iAttackCount*200 - iFromDefenceMod) / std::max(1, iAttackCount));
 		iWorstCost += std::max(0, iAttackWeight) / std::max(1, iAttackCount);
 		// if we're in enemy territory, consider the sum of our defensive bonuses as well as the average
-		if (pToPlot->isOwned() && atWar(pToPlot->getTeam(), eTeam))
+		if (pToPlot->isOwned() && atWar(eToPlotTeam, eTeam))
 		{
 			iWorstCost += PATH_DEFENSE_WEIGHT * std::max(0, (iDefenceCount*200 - iDefenceMod)/5);
 			iWorstCost += PATH_DEFENSE_WEIGHT * std::max(0, (iAttackCount*200 - iFromDefenceMod)/5);
@@ -2182,7 +2192,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 		// additional cost for ending turn in or adjacent to enemy territory based on flags (based on BBAI)
 		if (iFlags & (MOVE_AVOID_ENEMY_WEIGHT_2 | MOVE_AVOID_ENEMY_WEIGHT_3))
 		{
-			if (pToPlot->isOwned() && GET_TEAM(eTeam).AI_getWarPlan(pToPlot->getTeam()) != NO_WARPLAN)
+			if (pToPlot->isOwned() && GET_TEAM(eTeam).AI_getWarPlan(eToPlotTeam) != NO_WARPLAN)
 			{
 				iWorstCost *= (iFlags & MOVE_AVOID_ENEMY_WEIGHT_3) ? 3 : 2;
 			}
@@ -2828,35 +2838,18 @@ int areaValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointe
 	{
 		return TRUE;
 	}
-
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      10/02/09                                jdog5000      */
-/*                                                                                              */
-/* General AI                                                                                   */
-/************************************************************************************************/
-// original BTS code
 	return ((GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY)->isWater() == GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY)->isWater()) ? TRUE : FALSE);
-
+	// (advc.030 takes care of this)
+	// BETTER_BTS_AI_MOD, General AI, 10/02/09, jdog5000
 	// BBAI TODO: Why doesn't this work to break water and ice into separate area?
-/*
-	if( GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY)->isWater() != GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY)->isWater() )
-	{
-		return FALSE;
-	}
-
+	/*if( GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY)->isWater() != GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY)->isWater() )
+	return FALSE;
 	// Ice blocks become their own area
-	if( GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY)->isWater() && GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY)->isWater() )
-	{
+	if( GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY)->isWater() && GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY)->isWater() ) {
 		if( GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY)->isImpassable() != GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY)->isImpassable() )
-		{
 			return FALSE;
-		}
 	}
-
-	return TRUE;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+	return TRUE;*/
 }
 
 
@@ -2916,34 +2909,18 @@ int countPlotGroup(FAStarNode* parent, FAStarNode* node, int data, const void* p
 // advc.003j (comment): Unused
 int baseYieldToSymbol(int iNumYieldTypes, int iYieldStack)
 {
-	int iReturn;	// holds the return value we will be calculating
-
-	// get the base value for the iReturn value
-	iReturn = iNumYieldTypes * GC.getDefineINT("MAX_YIELD_STACK");
-	// then add the offset to the return value
-	iReturn += iYieldStack;
-
-	// return the value we have calculated
-	return iReturn;
+	return iNumYieldTypes * GC.getDefineINT("MAX_YIELD_STACK") + iYieldStack;
 }
-
-/*  advc.003j: Vanilla Civ 4 function that used to be a DLLExport; certainly unused
-	since BtS, and doesn't sound too useful. */
-/*bool isPickableName(const TCHAR* szName)
-{
-	if (szName)
-	{
+/*  advc.003j: Vanilla Civ 4 function that used to be a DLLExport;
+	certainly unused since BtS, and doesn't sound too useful. */
+/*bool isPickableName(const TCHAR* szName) {
+	if (szName) {
 		int iLen = _tcslen(szName);
-
 		if (!_tcsicmp(&szName[iLen-6], "NOPICK"))
-		{
 			return false;
-		}
 	}
-
 	return true;
 }*/
-
 
 // create an array of shuffled numbers
 int* shuffle(int iNum, CvRandom& rand)

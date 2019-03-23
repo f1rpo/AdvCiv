@@ -126,11 +126,11 @@
 </TEXT>
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_13</Tag>
-	<English>In the city build queue, use [CTRL] and [SHIFT] to move items up and down; and [ALT] to toggle whether or not items should repeat.</English>
-	<French>In the city build queue, use [CTRL] and [SHIFT] to move items up and down; and [ALT] to toggle whether or not items should repeat.</French>
-	<German>In der Bauauftragsliste einer Stadt können [Strg] und [Umschalt] benutzt werden, um Einträge hoch und runter zu bewegen, und [Alt] um Einträge endlos bauen zu lassen.</German>
-	<Italian>In the city build queue, use [CTRL] and [SHIFT] to move items up and down; and [ALT] to toggle whether or not items should repeat.</Italian>
-	<Spanish>En la cola de construcción, usa [CTRL] y [MAYÚS] para mover objetos arriba y abajo; y [ALT] para alternar si los objetos deben repetirse o no.</Spanish>
+	<English>(K-Mod) In the city build queue, use [CTRL] and [SHIFT] to move items up and down; and [ALT] to toggle whether or not items should repeat.</English>
+	<French>(K-Mod) In the city build queue, use [CTRL] and [SHIFT] to move items up and down; and [ALT] to toggle whether or not items should repeat.</French>
+	<German>(K-Mod) In der Bauauftragsliste einer Stadt können [Strg] und [Umschalt] benutzt werden, um Einträge hoch und runter zu bewegen, und [Alt] um Einträge endlos bauen zu lassen.</German>
+	<Italian>(K-Mod) In the city build queue, use [CTRL] and [SHIFT] to move items up and down; and [ALT] to toggle whether or not items should repeat.</Italian>
+	<Spanish>(K-Mod) En la cola de construcción, usa [CTRL] y [MAYÚS] para mover objetos arriba y abajo; y [ALT] para alternar si los objetos deben repetirse o no.</Spanish>
 </TEXT>
 <!-- replacement text for the inaccurate barbarian tip (changed english and german only)-->
 <!-- advc.008c: Replacement text had been invalidated by advc.300. Now the

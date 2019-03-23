@@ -29568,7 +29568,8 @@
 			<VassalRefuseAttitudeThreshold>ATTITUDE_CAUTIOUS</VassalRefuseAttitudeThreshold>
 			<iVassalPowerModifier>-10</iVassalPowerModifier>
 			<iFreedomAppreciation>10</iFreedomAppreciation>
-			<FavoriteCivic>CIVIC_ORGANIZED_RELIGION</FavoriteCivic>
+			<!-- advc.005a: was CIVIC_ORGANIZED_RELIGION -->
+			<FavoriteCivic>CIVIC_CASTE_SYSTEM</FavoriteCivic>
 			<!-- advc.005a: was BUDDHISM -->
 			<FavoriteReligion>RELIGION_HINDUISM</FavoriteReligion>
 			<Traits>

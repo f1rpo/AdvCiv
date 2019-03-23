@@ -2767,7 +2767,10 @@ void CvGame::updateGwPercentAnger()
 /*  <advc.106l> Wrapper that reports the event. Everyone should call this
 	instead of calling the CvDLLEngineIFaceBase function directly. */
 void CvGame::autoSave(bool bInitial) {
-
+	/*  <advc.135c> Avoid overlapping auto-saves in test games played on a
+		single machine. Don't know how to check this properly. */
+	if(isNetworkMultiPlayer() && isDebugToolsAllowed(false) && getActivePlayer() % 2 == 0)
+		return; // </advc.135c>
 	CvEventReporter::getInstance().preAutoSave();
 	gDLL->getEngineIFace()->AutoSave(bInitial);
 } // </advc.106l>
@@ -6774,13 +6777,8 @@ void CvGame::doTurn()
 	// <advc.700>
 	if(isOption(GAMEOPTION_RISE_FALL))
 		m_riseFall.autoSave();
-	else {// </advc.700>
-		/*  <advc.127> Avoid overlapping auto-saves in test games played on a
-			single machine. Don't know how to check this properly. */
-		if(!isNetworkMultiPlayer() || getAIAutoPlay() <= 0 || getActivePlayer() == NO_PLAYER ||
-				getActivePlayer() % 2 == 0) // </advc.127>
-			autoSave(); // advc.106l
-	}
+	else // </advc.700>
+		autoSave(); // advc.106l
 }
 
 // <advc.106b>

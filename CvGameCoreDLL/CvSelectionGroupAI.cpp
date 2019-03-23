@@ -352,9 +352,11 @@ int CvSelectionGroupAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy)
 
 CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 		bool bPotentialEnemy, int& iUnitOdds, bool bForce, bool bNoBlitz,
-		bool bSacrifice, bool bMaxSurvival) const // advc.048
+		// <advc.048>
+		bool bSacrifice, bool bMaxSurvival) const
 {
-	FAssert(!bMaxSurvival || !bSacrifice); // advc.048
+	int const iOddsThresh = 68; // Should this be lower if bHuman?
+	FAssert(!bMaxSurvival || !bSacrifice); // </advc.048>
 	PROFILE_FUNC();
 
 	int iBestValue = 0;
@@ -416,9 +418,12 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 			/*  if non-human, prefer the last unit that has the best value
 				(so as to avoid splitting the group) */
 			if (iValue > iBestValue || (!bHuman && iValue > 0 && iValue == iBestValue)
-					// <advc.048> For human, use sacrifice value to break ties.
-					|| (bHuman && iValue == iBestValue && (pBestUnit == NULL ||
-					pLoopUnit->AI_sacrificeValue(pPlot) > pBestUnit->AI_sacrificeValue(pPlot))))
+					/*  <advc.048> For human, use sacrifice value to break ties in order
+						to match the choice made in the !bMaxSurvival branch above
+						and the bSacrifice branch below. */
+					|| (bHuman && iValue < iOddsThresh && iValue == iBestValue &&
+					(pBestUnit == NULL || pLoopUnit->AI_sacrificeValue(pPlot) >
+					pBestUnit->AI_sacrificeValue(pPlot))))
 					// </advc.048>
 			{
 				iBestValue = iValue;
@@ -433,7 +438,6 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 	iUnitOdds = iBestOdds;
 	// <advc.048> Cut from CvSelectionGroup::groupAttack
 	if(bSacrifice) {
-		int const iOddsThresh = 68; // Should this be lower if bHuman?
 		if(iUnitOdds < iOddsThresh) {
 			CvUnit* pBestSacrifice = AI_getBestGroupSacrifice(pPlot,
 					bPotentialEnemy, bForce, /* advc.164: */ bNoBlitz);

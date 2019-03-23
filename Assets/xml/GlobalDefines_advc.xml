@@ -968,7 +968,7 @@
 		 behavior). -->
 	<Define>
 		<DefineName>ENABLE_162</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
+		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 	
 	<!-- advc.156: When multiple members of a team are researching the same

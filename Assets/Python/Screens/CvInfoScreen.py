@@ -48,6 +48,7 @@ class CvInfoScreen:
 		self.bAlwaysShowBestWorstNameIfMet = False
 		if self.bShowBestKnown:
 			self.bAlwaysShowBestWorstNameIfMet = False
+		self.bRevealAll = False
 		# </advc.077>
 
 		self.screenId = screenId
@@ -626,9 +627,11 @@ class CvInfoScreen:
 			self.DEBUG_DROPDOWN_ID = "InfoScreenDropdownWidget"
 			self.szDropdownName = self.DEBUG_DROPDOWN_ID
 			screen.addDropDownBoxGFC(self.szDropdownName, 22, 12, 300, WidgetTypes.WIDGET_GENERAL, -1, -1, FontTypes.GAME_FONT)
-			for j in range(gc.getMAX_CIV_PLAYERS()): # advc.007: barbs excluded
+			for j in range(gc.getMAX_CIV_PLAYERS()): # advc.007: was MAX_PLAYERS
 				if (gc.getPlayer(j).isAlive()):
 					screen.addPullDownString(self.szDropdownName, gc.getPlayer(j).getName(), j, j, False )
+					
+		self.bRevealAll = (CyGame().isDebugMode() or CyGame().getGameState() == GameStateTypes.GAMESTATE_OVER) # advc.077
 
 		self.iActivePlayer = CyGame().getActivePlayer()
 		self.pActivePlayer = gc.getPlayer(self.iActivePlayer)
@@ -1404,7 +1407,7 @@ class CvInfoScreen:
 			if iLoopPlayer == self.iActivePlayer:
 				continue
 			# <advc.077>
-			if self.bShowBestKnown and not self.pActivePlayer.canSeeDemographics(iLoopPlayer):
+			if self.bShowBestKnown and not self.bRevealAll and not self.pActivePlayer.canSeeDemographics(iLoopPlayer):
 				continue # </advc.077>
 			if bFirst or iLoopValue > iBestValue:
 				# <advc.077>
@@ -1422,7 +1425,7 @@ class CvInfoScreen:
 			if iLoopPlayer == self.iActivePlayer:
 				continue
 			# <advc.077>
-			if self.bShowBestKnown and not self.pActivePlayer.canSeeDemographics(iLoopPlayer):
+			if self.bShowBestKnown and not self.bRevealAll and not self.pActivePlayer.canSeeDemographics(iLoopPlayer):
 				continue # </advc.077>
 			if bFirst or iLoopValue < iWorstValue:
 				# <advc.077>
@@ -1438,17 +1441,17 @@ class CvInfoScreen:
 		bUnknown = True
 		if iPlayer > 0:
 			player = gc.getPlayer(iPlayer)
-			if self.pActiveTeam.isHasMet(player.getTeam()) or CyGame().isDebugMode():
+			if self.pActiveTeam.isHasMet(player.getTeam()) or self.bRevealAll:
 				bUnknown = False
 				szPlayerName = player.getName()
 		# Better just leave it empty
 		#if bUnknown:
 		#	szPlayerName = localText.getText("TXT_KEY_UNKNOWN", ())
-		if (bUnknown or not self.pActivePlayer.canSeeDemographics(iPlayer)) and not CyGame().isDebugMode():
+		if (bUnknown or not self.pActivePlayer.canSeeDemographics(iPlayer)) and not self.bRevealAll:
 			if self.bAlwaysShowBestWorstNameIfMet:
 				return (szPlayerName,"?")
 			return ("","?")
-		if self.bShowBestKnown and not aiGroup is None:
+		if self.bShowBestKnown and not self.bRevealAll and not aiGroup is None:
 			# Make sure player name isn't too long (I use the same code in CvOptionsScreen)
 			iCharLimit = 18
 			if len(szPlayerName) > iCharLimit:
@@ -1486,8 +1489,6 @@ class CvInfoScreen:
 		# <advc.077>
 		iActiveRivals = 0 # Was iNumActivePlayers. Count only rivals.
 		iKnownRivalDemogr = 0
-		if CyGame().isDebugMode(): # Best known and best are the same in Debug mode
-			self.bShowBestKnown = False
 		# </advc.077>
 		pPlayer = gc.getPlayer(self.iActivePlayer)
 
@@ -1607,7 +1608,7 @@ class CvInfoScreen:
 		
 		# <advc.077> Don't always show the rival columns
 		iColumns = 6
-		bShowBest = (not self.bShowBestKnown or iKnownRivalDemogr > 0)
+		bShowBest = (not self.bShowBestKnown or self.bRevealAll or iKnownRivalDemogr > 0)
 		if bShowBest:
 			# Removed 'i' prefix from variables b/c they're pairs now
 			economyGameBest	= self.getBest(aiGroupEconomy)
@@ -1621,7 +1622,7 @@ class CvInfoScreen:
 			netTradeGameBest	= self.getBest(aiGroupNetTrade)
 		#else: # Will show the column header in any case
 		#	iColumns -= 1
-		bShowWorst = ((not self.bShowBestKnown and iActiveRivals > 1) or iKnownRivalDemogr > 1)
+		bShowWorst = (((not self.bShowBestKnown or self.bRevealAll) and iActiveRivals > 1) or iKnownRivalDemogr > 1)
 		if bShowWorst:
 			economyGameWorst	= self.getWorst(aiGroupEconomy)
 			industryGameWorst	= self.getWorst(aiGroupIndustry)
@@ -1649,7 +1650,7 @@ class CvInfoScreen:
 			# Round the averages
 			iMultiple = 5
 			# (I don't know ...)
-			#if CyGame().isDebugMode():
+			#if self.bRevealAll:
 			#	iMultiple = 1
 			iEconomyGameAverage = self.roundToMultiple(iEconomyGameAverage, iMultiple)
 			iIndustryGameAverage = self.roundToMultiple(iIndustryGameAverage, iMultiple)
@@ -3530,8 +3531,9 @@ class CvInfoScreen:
 			pLoopPlayer = gc.getPlayer(iLoopPlayer)
 			iLoopPlayerTeam = pLoopPlayer.getTeam()
 			if (gc.getTeam(iLoopPlayerTeam).isEverAlive()):
-				if (self.pActiveTeam.isHasMet(iLoopPlayerTeam) or CyGame().isDebugMode() or iEndGame != 0):
-					if self.pActivePlayer.canSeeDemographics(iLoopPlayer) or CyGame().isDebugMode() or iEndGame != 0: # K-Mod
+				# advc.077: Replaced two iEndGame checks (the second had been added by K-Mod) with self.bRevealAll
+				if (self.pActiveTeam.isHasMet(iLoopPlayerTeam) or self.bRevealAll):
+					if self.pActivePlayer.canSeeDemographics(iLoopPlayer) or self.bRevealAll:
 						self.aiPlayersMet.append(iLoopPlayer)
 						self.iNumPlayersMet += 1
 					else:

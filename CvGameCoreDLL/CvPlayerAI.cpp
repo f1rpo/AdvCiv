@@ -10081,30 +10081,6 @@ int CvPlayerAI::AI_getMemoryAttitude(PlayerTypes ePlayer, MemoryTypes eMemory) c
 				ourTeam.isAtWar(TEAMID(ePlayer)))
 			return 0;
 	} // </advc.130s>
-	// <advc.145>
-	// Fav. civic and religion are based on LeaderType, not PersonalityType.
-	CvLeaderHeadInfo const& lh = GC.getLeaderHeadInfo(getLeaderType());
-	if(eMemory == MEMORY_ACCEPTED_CIVIC) {
-		CivicTypes fav = (CivicTypes)lh.getFavoriteCivic();
-		if(fav != NO_CIVIC && (!GET_PLAYER(ePlayer).isCivic(fav) ||
-				!isCivic(fav)))
-			return 0;
-	}
-	if(eMemory == MEMORY_ACCEPTED_RELIGION) {
-		if(isStateReligion() && GET_PLAYER(ePlayer).getStateReligion() !=
-				getStateReligion())
-			return 0;
-	}
-	if(eMemory == MEMORY_DENIED_CIVIC) {
-		CivicTypes fav = (CivicTypes)lh.getFavoriteCivic();
-		if(fav == NO_CIVIC || GET_PLAYER(ePlayer).isCivic(fav) || !isCivic(fav))
-			return 0;
-	}
-	if(eMemory == MEMORY_DENIED_RELIGION) {
-		if(!isStateReligion() || GET_PLAYER(ePlayer).getStateReligion() ==
-				getStateReligion())
-			return 0;
-	} // </advc.145>
 	/* <advc.130j> Was 100. Effect halved b/c diplo actions now counted twice.
 		195 (instead of 200) to make sure that 0.5 gets rounded up. BtS rounded down,
 		but this rarely mattered. Now rounding down would often result in no effect
@@ -19455,7 +19431,7 @@ void CvPlayerAI::AI_doCounter()
 			if((mId == MEMORY_STOPPED_TRADING || mId == MEMORY_HIRED_TRADE_EMBARGO) &&
 					AI_getMemoryCount(civId, MEMORY_STOPPED_TRADING_RECENT) > 0)
 				continue;
-			// </advc.130r><advc.130j>
+			// </advc.130r> <advc.130j>
 			/*  Need to decay at least twice as fast b/c each
 				request now counts twice (on average). */
 			double div = 2;
@@ -19466,6 +19442,33 @@ void CvPlayerAI::AI_doCounter()
 			if(getWPAI.isEnabled() && (mId == MEMORY_REJECTED_DEMAND ||
 					mId == MEMORY_ACCEPT_DEMAND))
 				div *= (10 / 6.0); // 60% faster decay // </advc.104m>
+			/*  <advc.145> Decay of accepted/denied civic/religion memory based on
+				current civics and religion */
+			// Fav. civic and religion are based on LeaderType, not PersonalityType.
+			CivicTypes eFavCivic = (CivicTypes)GC.getLeaderHeadInfo(getLeaderType()).
+					getFavoriteCivic();
+			double abolishMultiplier = 4;
+			if(mId == MEMORY_ACCEPTED_CIVIC) {
+				if(eFavCivic != NO_CIVIC && (!GET_PLAYER(civId).isCivic(eFavCivic) ||
+						!isCivic(eFavCivic)))
+					div *= abolishMultiplier;
+			}
+			if(mId == MEMORY_ACCEPTED_RELIGION) {
+				if(isStateReligion() && GET_PLAYER(civId).getStateReligion() !=
+						getStateReligion())
+					div *= abolishMultiplier;
+			}
+			double adoptMultiplier = 3.5;
+			if(mId == MEMORY_DENIED_CIVIC) {
+				if(eFavCivic == NO_CIVIC || GET_PLAYER(civId).isCivic(eFavCivic) ||
+						!isCivic(eFavCivic))
+					div *= adoptMultiplier;
+			}
+			if(mId == MEMORY_DENIED_RELIGION) {
+				if(!isStateReligion() || GET_PLAYER(civId).getStateReligion() ==
+						getStateReligion())
+					div *= adoptMultiplier;
+			} // </advc.145>
 			// <advc.130r> Faster yet if multiple requests remembered
 			if(c > 3) // c==3 could stem from a single request
 				div = 2 * std::sqrt(c / 2.0); // </advc.130r>
