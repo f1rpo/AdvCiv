@@ -159,6 +159,8 @@
 	<load mod="EventSigns"/>
 	<load mod="Strategy Overlay"/>
 	<load mod="StatusDump"/>
+	<!-- dlph.27: -->
+	<load mod="OOSLogger"/> <!-- OOS logging, idea from Fall From Heaven 2 by Kael. -->
 	
 	<!-- BULL -->
 	
