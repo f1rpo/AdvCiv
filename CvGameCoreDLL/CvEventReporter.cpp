@@ -425,11 +425,8 @@ void CvEventReporter::preSave()
 	bool bQuickSave = m_bPreQuickSave;
 	m_bPreAutoSave = m_bPreQuickSave = false;
 	CvGame const& g = GC.getGameINLINE();
-	/*  I'm not sure how to handle the TXT_KEY_CONN_UPDATE_SAVING_* messages, so
-		let's just leave networked games alone. */
-	if(g.isNetworkMultiPlayer())
-		return;
-	FAssertMsg(bAutoSave || !g.isAITurn(), "Quicksave in between turns?");
+	FAssertMsg(bAutoSave || !g.isAITurn() || g.isNetworkMultiPlayer(),
+			"Quicksave in between turns?");
 	char const* szDefineName = "";
 	CvWString szMsgTag;
 	if(bAutoSave) {
@@ -458,13 +455,15 @@ void CvEventReporter::preSave()
 
 void CvEventReporter::preAutoSave() {
 
-	FAssertMsg(!m_bPreAutoSave, "Should've been reset by preSave");
+	FAssertMsg(!m_bPreAutoSave || GC.getGameINLINE().isNetworkMultiPlayer(),
+			"Should've been reset by preSave");
 	m_bPreAutoSave = true;
 }
 
 void CvEventReporter::preQuickSave() {
 
-	FAssertMsg(!m_bPreQuickSave, "Should've been reset by preSave");
+	FAssertMsg(!m_bPreAutoSave || GC.getGameINLINE().isNetworkMultiPlayer(),
+			"Should've been reset by preSave");
 	m_bPreQuickSave = true;
 } // </advc.106l>
 

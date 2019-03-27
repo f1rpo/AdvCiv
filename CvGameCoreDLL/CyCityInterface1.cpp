@@ -460,6 +460,8 @@ void CyCityPythonInterface1(python::class_<CyCity>& x)
 		.def("AI_isEmphasize", &CyCity::AI_isEmphasize, "bool (int iEmphasizeType)")
 		.def("AI_countBestBuilds", &CyCity::AI_countBestBuilds, "int (CyArea* pArea)")
 		.def("AI_cityValue", &CyCity::AI_cityValue, "int ()")
+		// advc.001n:
+		.def("AI_neededFloatingDefenders", &CyCity::AI_neededFloatingDefenders, "int ()")
 
 		.def("getScriptData", &CyCity::getScriptData, "str () - Get stored custom data (via pickle)")
 		.def("setScriptData", &CyCity::setScriptData, "void (str) - Set stored custom data (via pickle)")

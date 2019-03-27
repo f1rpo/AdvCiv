@@ -5250,7 +5250,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 									(GC.getBBAI_DEFENSIVE_PACT_BEHAVIOR() >= 1
 									/*  advc: Prohibit DP when not all wars shared?
 										Enough to have the AI refuse such pacts I think
-										(inCvTeamAI::AI_defensivePactTrade). */
+										(in CvTeamAI::AI_defensivePactTrade). */
 									//&& TEAMREF(getID()).allWarsShared(theirTeam.getID())
 									))
 							// </dlph.3>
@@ -11624,12 +11624,14 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 				// <advc.106b>
 				if(isHuman()) {
 					validateDiplomacy(); // advc.001e
-					/*  Make sure that Python events like Civ4lerts are triggered
-						before processing messages */
-					CyArgsList pyArgs;
-					pyArgs.add(g.getTurnSlice());
-					CvEventReporter::getInstance().genericEvent("gameUpdate", pyArgs.makeFunctionArgs());
-					postProcessMessages();
+					if(g.getActivePlayer() == getID()) {
+						/*  Make sure that Python events like Civ4lerts are
+							triggered before processing messages */
+						CyArgsList pyArgs;
+						pyArgs.add(g.getTurnSlice());
+						CvEventReporter::getInstance().genericEvent("gameUpdate", pyArgs.makeFunctionArgs());
+						postProcessMessages();
+					}
 				}
 			} // advc.706
 			// <advc.700>

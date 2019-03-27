@@ -49,7 +49,8 @@ void CvRandom::reset(unsigned long ulSeed)
 }
 
 
-unsigned short CvRandom::get(unsigned short usNum, const TCHAR* pszLog)
+unsigned short CvRandom::getInt(unsigned short usNum, const TCHAR* pszLog,
+		int iData1, int iData2) // advc.001n
 {
 	if (pszLog != NULL)
 	{
@@ -59,8 +60,15 @@ unsigned short CvRandom::get(unsigned short usNum, const TCHAR* pszLog)
 			if (g.getTurnSlice() > 0)
 			{
 				TCHAR szOut[1024];
-				sprintf(szOut, "Rand = %ul / %hu (%s) on %d\n", getSeed(), usNum, pszLog, GC.getGameINLINE().getTurnSlice());
 				// <advc.007>
+				CvString szData;
+				if(iData1 > INT_MIN) {
+					if(iData2 == INT_MIN)
+						szData.Format(" (%d)", iData1);
+					else szData.Format(" (%d, %d)", iData1, iData2);
+				} // advc: Only the second %s is new
+				sprintf(szOut, "Rand = %ul / %hu (%s%s) on %d\n", getSeed(), usNum,
+						pszLog, szData.c_str(), g.getTurnSlice());
 				if(GC.getPER_PLAYER_MESSAGE_CONTROL_LOG() > 0 &&
 						g.isNetworkMultiPlayer()) {
 					CvString logName = CvString::format("MPLog%d.log",

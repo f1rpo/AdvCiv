@@ -6676,21 +6676,11 @@ void CvGame::doTurn()
 			handle it. (Because human control should resume right before the human
 			turn, which is not necessarily at the beginning of a round.) */
 		changeAIAutoPlay(-1, false);
-		if(isNetworkMultiPlayer()) { // Stop when OOS
-			int syncHash = gDLL->GetSyncOOS(GET_PLAYER(getActivePlayer()).getNetID());
-			for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-				CvPlayer const& other = GET_PLAYER((PlayerTypes)i);
-				if(!other.isAlive() || other.getID() == getActivePlayer() ||
-						!other.isHumanDisabled())
-					continue;
-				if(gDLL->GetSyncOOS(other.getNetID()) != syncHash)
-					setAIAutoPlay(0);
-			}
-		} // </advc.127>
+		if(getAIAutoPlay() > 0)
+			checkInSync(); // May set AutoPlay counter to 0
+		// </advc.127>
 		if (getAIAutoPlay() == 0)
-		{
 			reviveActivePlayer();
-		}
 	}
 
 	CvEventReporter::getInstance().endGameTurn(getGameTurn());
@@ -9211,22 +9201,21 @@ CvRandom& CvGame::getSorenRand()
 }
 
 
-int CvGame::getSorenRandNum(int iNum, const char* pszLog)
+int CvGame::getSorenRandNum(int iNum, const char* pszLog,
+		int iData1, int iData2) // advc.007
 {
-	return m_sorenRand.get(iNum, pszLog);
+	return m_sorenRand.getInt(iNum, pszLog, /* advc.007: */ iData1, iData2);
 }
 
 
 int CvGame::calculateSyncChecksum()
 {
 	PROFILE_FUNC();
+	// <advc.003b>
+	if(!isNetworkMultiPlayer())
+		return 0; // </advc.003b>
 
-	int iMultiplier;
-	int iValue;
-	int iI, iJ;
-
-	iValue = 0;
-
+	int iValue = 0;
 	iValue += getMapRand().getSeed();
 	iValue += getSorenRand().getSeed();
 
@@ -9237,73 +9226,65 @@ int CvGame::calculateSyncChecksum()
 	iValue += GC.getMapINLINE().getOwnedPlots();
 	iValue += GC.getMapINLINE().getNumAreas();
 
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isEverAlive())
-		{
-			iMultiplier = getPlayerScore((PlayerTypes)iI);
+		CvPlayerAI const& kPlayer = GET_PLAYER((PlayerTypes)iI);
+		if (!kPlayer.isEverAlive())
+			continue;
 
-			//switch (getTurnSlice() % 4)
-			switch (getTurnSlice() % 8) // K-Mod
+		int iJ=-1;
+		int iMultiplier = getPlayerScore(kPlayer.getID());
+		// <advc.001n>
+		/*  Would like checkInSync to set this before calling CvDLLUtilityIFaceBase::
+			GetSyncOOS, but that doesn't work b/c, apparently, GetSyncOOS returns
+			the most recently computed checksum instead of calling calculateSyncChecksum. */
+		bool const bFullOOSCheck = false;
+		std::vector<long> aiMultipliers;
+		int const iCases = 8; // Originally 4, K-Mod added another 4.
+		for(int k = 0; k < (bFullOOSCheck ? iCases : 1); k++)
+		{
+			switch (bFullOOSCheck ? k : // </advc.001n>
+				   (getTurnSlice() % iCases))
 			{
 			case 0:
-				iMultiplier += (GET_PLAYER((PlayerTypes)iI).getTotalPopulation() * 543271);
-				iMultiplier += (GET_PLAYER((PlayerTypes)iI).getTotalLand() * 327382);
-				iMultiplier += (GET_PLAYER((PlayerTypes)iI).getGold() * 107564);
-				iMultiplier += (GET_PLAYER((PlayerTypes)iI).getAssets() * 327455);
-				iMultiplier += (GET_PLAYER((PlayerTypes)iI).getPower() * 135647);
-				iMultiplier += (GET_PLAYER((PlayerTypes)iI).getNumCities() * 436432);
-				iMultiplier += (GET_PLAYER((PlayerTypes)iI).getNumUnits() * 324111);
-				iMultiplier += (GET_PLAYER((PlayerTypes)iI).getNumSelectionGroups() * 215356);
+				iMultiplier += (kPlayer.getTotalPopulation() * 543271);
+				iMultiplier += (kPlayer.getTotalLand() * 327382);
+				iMultiplier += (kPlayer.getGold() * 107564);
+				iMultiplier += (kPlayer.getAssets() * 327455);
+				iMultiplier += (kPlayer.getPower() * 135647);
+				iMultiplier += (kPlayer.getNumCities() * 436432);
+				iMultiplier += (kPlayer.getNumUnits() * 324111);
+				iMultiplier += (kPlayer.getNumSelectionGroups() * 215356);
 				break;
 
 			case 1:
 				for (iJ = 0; iJ < NUM_YIELD_TYPES; iJ++)
-				{
-					iMultiplier += (GET_PLAYER((PlayerTypes)iI).calculateTotalYield((YieldTypes)iJ) * 432754);
-				}
-
+					iMultiplier += (kPlayer.calculateTotalYield((YieldTypes)iJ) * 432754);
 				for (iJ = 0; iJ < NUM_COMMERCE_TYPES; iJ++)
-				{
-					iMultiplier += (GET_PLAYER((PlayerTypes)iI).getCommerceRate((CommerceTypes)iJ) * 432789);
-				}
+					iMultiplier += (kPlayer.getCommerceRate((CommerceTypes)iJ) * 432789);
 				break;
 
 			case 2:
 				for (iJ = 0; iJ < GC.getNumBonusInfos(); iJ++)
 				{
-					iMultiplier += (GET_PLAYER((PlayerTypes)iI).getNumAvailableBonuses((BonusTypes)iJ) * 945732);
-					iMultiplier += (GET_PLAYER((PlayerTypes)iI).getBonusImport((BonusTypes)iJ) * 326443);
-					iMultiplier += (GET_PLAYER((PlayerTypes)iI).getBonusExport((BonusTypes)iJ) * 932211);
+					iMultiplier += (kPlayer.getNumAvailableBonuses((BonusTypes)iJ) * 945732);
+					iMultiplier += (kPlayer.getBonusImport((BonusTypes)iJ) * 326443);
+					iMultiplier += (kPlayer.getBonusExport((BonusTypes)iJ) * 932211);
 				}
-
 				for (iJ = 0; iJ < GC.getNumImprovementInfos(); iJ++)
-				{
-					iMultiplier += (GET_PLAYER((PlayerTypes)iI).getImprovementCount((ImprovementTypes)iJ) * 883422);
-				}
-
+					iMultiplier += (kPlayer.getImprovementCount((ImprovementTypes)iJ) * 883422);
 				for (iJ = 0; iJ < GC.getNumBuildingClassInfos(); iJ++)
-				{
-					iMultiplier += (GET_PLAYER((PlayerTypes)iI).getBuildingClassCountPlusMaking((BuildingClassTypes)iJ) * 954531);
-				}
-
+					iMultiplier += (kPlayer.getBuildingClassCountPlusMaking((BuildingClassTypes)iJ) * 954531);
 				for (iJ = 0; iJ < GC.getNumUnitClassInfos(); iJ++)
-				{
-					iMultiplier += (GET_PLAYER((PlayerTypes)iI).getUnitClassCountPlusMaking((UnitClassTypes)iJ) * 754843);
-				}
-
+					iMultiplier += (kPlayer.getUnitClassCountPlusMaking((UnitClassTypes)iJ) * 754843);
 				for (iJ = 0; iJ < NUM_UNITAI_TYPES; iJ++)
-				{
-					iMultiplier += (GET_PLAYER((PlayerTypes)iI).AI_totalUnitAIs((UnitAITypes)iJ) * 643383);
-				}
+					iMultiplier += (kPlayer.AI_totalUnitAIs((UnitAITypes)iJ) * 643383);
 				break;
 
-			case 3:
-			{
+			case 3: {
 				CvUnit* pLoopUnit;
 				int iLoop;
-
-				for (pLoopUnit = GET_PLAYER((PlayerTypes)iI).firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = GET_PLAYER((PlayerTypes)iI).nextUnit(&iLoop))
+				for (pLoopUnit = kPlayer.firstUnit(&iLoop); pLoopUnit != NULL; pLoopUnit = kPlayer.nextUnit(&iLoop))
 				{
 					iMultiplier += (pLoopUnit->getX_INLINE() * 876543);
 					iMultiplier += (pLoopUnit->getY_INLINE() * 985310);
@@ -9320,19 +9301,15 @@ int CvGame::calculateSyncChecksum()
 					break; // </advc.003n>
 				for (iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++)
 				{
-					if(iI!=iJ) // advc.003: self-attitude should never matter
-						iMultiplier += GET_PLAYER((PlayerTypes)iI).AI_getAttitudeVal((PlayerTypes)iJ, false) << iJ;
+					if(iI != iJ) // advc.003: self-attitude should never matter
+						iMultiplier += kPlayer.AI_getAttitudeVal((PlayerTypes)iJ, false) << iJ;
 				}
 				// strategy hash
-				//iMultiplier += GET_PLAYER((PlayerTypes)iI).AI_getStrategyHash() * 367291;
+				//iMultiplier += kPlayer.AI_getStrategyHash() * 367291;
 				break;
-			case 5:
-			{
-				// city religions and corporations
-				CvCity* pLoopCity;
+			case 5: { // city religions and corporations
 				int iLoop;
-
-				for (pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
+				for (CvCity* pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop))
 				{
 					for (iJ = 0; iJ < GC.getNumReligionInfos(); iJ++)
 					{
@@ -9347,60 +9324,54 @@ int CvGame::calculateSyncChecksum()
 				}
 				break;
 			}
-			case 6:
-			{
-				// city production
-				/* CvCity* pLoopCity;
-				int iLoop;
-
-				for (pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
-				{
+			case 6: { // city production
+				/* CvCity* pLoopCity; int iLoop;
+				for (pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop)) {
 					CLLNode<OrderData>* pOrderNode = pLoopCity->headOrderQueueNode();
 					if (pOrderNode != NULL)
-					{
 						iMultiplier += pLoopCity->getID()*(pOrderNode->m_data.eOrderType+2*pOrderNode->m_data.iData1+3*pOrderNode->m_data.iData2+6);
-					}
-				}
-				break; */
+				} break; */
 				// city health and happiness
-				CvCity* pLoopCity;
 				int iLoop;
-
-				for (pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
+				for (CvCity* pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop))
 				{
 					iMultiplier += pLoopCity->goodHealth() * 876543;
 					iMultiplier += pLoopCity->badHealth() * 985310;
 					iMultiplier += pLoopCity->happyLevel() * 736373;
 					iMultiplier += pLoopCity->unhappyLevel() * 820622;
 					iMultiplier += pLoopCity->getFood() * 367291;
+					/*  advc.001n: FloatingDefenders should be good enough as closeness
+						factors into that */
+					iMultiplier += pLoopCity->AI().AI_neededFloatingDefenders(false, true) * 324111;
+					/*for(iJ = 0; iJ < MAX_PLAYERS; iJ++) {
+						if(GET_PLAYER((PlayerTypes)iJ).isAlive()) {
+							iMultiplier += (pLoopCity->AI().AI_playerCloseness(
+									(PlayerTypes)iJ, DEFAULT_PLAYER_CLOSENESS, true) + 1) * (iJ + 1);
+						}
+					}*/
 				}
 				break;
 			}
-			case 7:
-			{
-				// city event history
-				CvCity* pLoopCity;
+			case 7: { // city event history
 				int iLoop;
-
-				for (pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
+				for (CvCity* pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop))
 				{
 					for (iJ = 0; iJ < GC.getNumEventInfos(); iJ++)
-					{
 						iMultiplier += (iJ+1)*pLoopCity->isEventOccured((EventTypes)iJ);
-					}
 				}
 				break;
 			}
 			// K-Mod end
-			} // end TimeSlice switch
-
-			if (iMultiplier != 0)
-			{
-				iValue *= iMultiplier;
-			}
+			} // end TurnSlice switch
+			// <advc.001n>
+			aiMultipliers.push_back(iMultiplier);
 		}
+		if(bFullOOSCheck)
+			iMultiplier = (int)(::hash(aiMultipliers) * INT_MAX);
+		// </advc.001n>
+		if (iMultiplier != 0)
+			iValue *= iMultiplier;
 	}
-
 	return iValue;
 }
 
@@ -9409,14 +9380,10 @@ int CvGame::calculateOptionsChecksum()
 {
 	PROFILE_FUNC();
 
-	int iValue;
-	int iI, iJ;
-
-	iValue = 0;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	int iValue = 0;
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
-		for (iJ = 0; iJ < NUM_PLAYEROPTION_TYPES; iJ++)
+		for (int iJ = 0; iJ < NUM_PLAYEROPTION_TYPES; iJ++)
 		{
 			if (GET_PLAYER((PlayerTypes)iI).isOption((PlayerOptionTypes)iJ))
 			{
@@ -9425,9 +9392,30 @@ int CvGame::calculateOptionsChecksum()
 			}
 		}
 	}
-
 	return iValue;
 }
+
+
+bool CvGame::checkInSync() {
+
+	if(!isNetworkMultiPlayer())
+		return true;
+
+	int iSyncHash = gDLL->GetSyncOOS(GET_PLAYER(getActivePlayer()).getNetID());
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+		CvPlayer const& kOther = GET_PLAYER((PlayerTypes)i);
+		if(kOther.isAlive() && kOther.getID() != getActivePlayer() &&
+				(kOther.isHuman() || kOther.isHumanDisabled())) {
+			int iOtherSyncHash = gDLL->GetSyncOOS(kOther.getNetID());
+			if(iOtherSyncHash != iSyncHash) {
+				FAssert(iOtherSyncHash == iSyncHash);
+				setAIAutoPlay(0);
+				return false;
+			}
+		}
+	}
+	return true;
+} // </advc.001n>
 
 
 void CvGame::addReplayMessage(ReplayMessageTypes eType, PlayerTypes ePlayer, CvWString pszText, int iPlotX, int iPlotY, ColorTypes eColor)

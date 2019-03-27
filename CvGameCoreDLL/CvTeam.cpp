@@ -1203,9 +1203,11 @@ void CvTeam::doTurn()
 
 	FAssert(isAlive());
 	FAssert(countWarEnemies() == m_iMajorWarEnemies); // advc.003m
-	// advc.134a:
+	// <advc.134a>
 	FAssert(m_iPeaceOfferStage == 0 && m_eOfferingPeace == NO_TEAM);
-
+	// Known issue in networked multiplayer
+	m_iPeaceOfferStage = 0; m_eOfferingPeace = NO_TEAM;
+	// </advc.134a>
 	AI_doTurnPre();
 	// <advc.162>
 	for(int i = 0; i < MAX_TEAMS; i++)
@@ -4646,7 +4648,7 @@ bool CvTeam::isAtWar(TeamTypes eIndex) const
 	if(m_iPeaceOfferStage == 2 && m_eOfferingPeace == eIndex) {
 		const_cast<CvTeam*>(this)->m_iPeaceOfferStage = 0;
 		const_cast<CvTeam*>(this)->m_eOfferingPeace = NO_TEAM;
-			return false;
+		return false;
 	} // </advc.134a>
 	return m_abAtWar[eIndex];
 }

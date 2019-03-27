@@ -1120,7 +1120,7 @@ public:
 	virtual bool AI_isEvacuating() const = 0;
 	virtual bool AI_isSafe() const = 0;
 	// </advc.139>
-	virtual int AI_neededAirDefenders() = 0;
+	virtual int AI_neededAirDefenders(/* advc.001n: */ bool bConstCache = false) = 0;
 	virtual int AI_minDefenders() = 0;
 	virtual bool AI_isEmphasizeAvoidGrowth() const = 0;
 	virtual bool AI_isAssignWorkDirty() const = 0;
@@ -1151,8 +1151,10 @@ public:
 	virtual int AI_yieldMultiplier(YieldTypes eYield) const = 0;
 	virtual int AI_getCultureWeight() const = 0; // K-Mod
 	virtual void AI_setCultureWeight(int iWeight) = 0; // K-Mod
-	virtual int AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance = 7) = 0;
-	virtual int AI_highestTeamCloseness(TeamTypes eTeam) = 0; // K-Mod
+	virtual int AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance = 7,
+			bool bConstCache = false) = 0; // advc.001n
+	virtual int AI_highestTeamCloseness(TeamTypes eTeam, // K-Mod
+			bool bConstCache = false) = 0; // advc.001n
 	virtual int AI_cityThreat(bool bDangerPercent = false) = 0;
 	virtual BuildingTypes AI_bestAdvancedStartBuilding(int iPass) = 0;
 	

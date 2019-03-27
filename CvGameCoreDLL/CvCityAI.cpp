@@ -3663,7 +3663,8 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 		}
 		else
 		{
-			iValue *= (GC.getGameINLINE().getSorenRandNum(25, "AI Best Building") + 100);
+			iValue *= 100 + GC.getGameINLINE().getSorenRandNum(25,
+					"AI Best Building", eLoopClass, m_iID); // advc.007
 			iValue /= 100;
 		}
 
@@ -6470,19 +6471,21 @@ int CvCityAI::AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac,
 		bool bConstCache) // advc.001n
 {
 	PROFILE_FUNC();
-	int iDefenders;
-	bool bOffenseWar = ((area()->getAreaAIType(getTeam()) == AREAAI_OFFENSIVE) || (area()->getAreaAIType(getTeam()) == AREAAI_MASSING));
-	bool bDefenseWar = ((area()->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE));
-	
+
+	bool bOffenseWar = (area()->getAreaAIType(getTeam()) == AREAAI_OFFENSIVE ||
+			area()->getAreaAIType(getTeam()) == AREAAI_MASSING);
+	bool bDefenseWar = (area()->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE);
+	CvGame const& g = GC.getGameINLINE();
+	int iDefenders = 1;
 	if(isBarbarian()) {
-		iDefenders = GC.getHandicapInfo(GC.getGameINLINE().getHandicapType()).getBarbarianInitialDefenders();
-		iDefenders += ((getPopulation() + 2) / 7);
+		iDefenders = GC.getHandicapInfo(g.getHandicapType()).getBarbarianInitialDefenders();
+		iDefenders += (getPopulation() + 2) / 7;
 		return iDefenders;
-	} // advc.003n: Switched these two and put WarPossible into the else branch
-	else if(!GET_TEAM(getTeam()).AI_isWarPossible())
-		return 1;
-	CvPlayerAI const& kOwner = GET_PLAYER(getOwner()); // advc.003
-	iDefenders = 1;
+	} // advc.003n: Switched these two branches
+	if(!GET_TEAM(getTeam()).AI_isWarPossible())
+		return iDefenders;
+
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 	
 	if(hasActiveWorldWonder() || isCapital() || isHolyCity())
 	{
@@ -6513,55 +6516,44 @@ int CvCityAI::AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac,
 			iDefenders++;
 	}
 	
-	if (GC.getGameINLINE().gameTurn() - getGameTurnAcquired() < 10)
+	if (g.gameTurn() - getGameTurnAcquired() < 10)
 	{	/* original code
 		if (bOffenseWar) {
 			if (!hasActiveWorldWonder() && !isHolyCity()) {
 				iDefenders /= 2;
 				iDefenders = std::max(1, iDefenders);
 			}
-		}
-	}
-	if (GC.getGame().getGameTurn() - getGameTurnAcquired() < 10) {
-		iDefenders = std::max(2, iDefenders);
-		if (AI_isDanger())
-			iDefenders ++;
-		if (bDefenseWar)
-			iDefenders ++;*/
+		} if (g.gameTurn() - getGameTurnAcquired() < 10) {
+			iDefenders = std::max(2, iDefenders);
+			if (AI_isDanger())
+				iDefenders ++;
+			if (bDefenseWar)
+				iDefenders ++;
+		}*/
 		iDefenders = std::max(2, iDefenders);
 
-		if (bOffenseWar && getTotalDefense(true) > 0)
-		{
-			if (!hasActiveWorldWonder() && !isHolyCity())
-			{
-				iDefenders /= 2;
-			}
-		}
-		
-		if (AI_isDanger())
-		{
+		if (bOffenseWar && getTotalDefense(true) > 0 &&
+				!hasActiveWorldWonder() && !isHolyCity())
+			iDefenders /= 2;
+
+		if (!bConstCache // advc.001n: Can lead to an update of the border danger cache
+				&& AI_isDanger())
 			iDefenders++;
-		}
+
 		if (bDefenseWar)
-		{
 			iDefenders++;
-		}
 	}
 	
 	if (kOwner.AI_isDoStrategy(AI_STRATEGY_LAST_STAND))
-	{
 		iDefenders += 10;
-	}
 
 	if(kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3) )
 	{
 		if(findCommerceRateRank(COMMERCE_CULTURE) <=
-				GC.getGameINLINE().culturalVictoryNumCultureCities() )
+				g.culturalVictoryNumCultureCities() )
 		{
 			iDefenders += 4;
-
-			if( bDefenseWar
-					|| isCoastal()) // cdtw
+			if( bDefenseWar /* cdtw: */ || isCoastal())
 				iDefenders += 2;
 		}
 	}
@@ -6621,13 +6613,13 @@ int CvCityAI::AI_neededFloatingDefenders( /* <advc.139> */ bool bIgnoreEvac,
 {
 	if(!bIgnoreEvac && AI_isEvacuating())
 		return 0; // </advc.139>
-	if(!bConstCache && // advc.001n
-			m_iNeededFloatingDefendersCacheTurn != GC.getGameINLINE().gameTurn())
-		AI_updateNeededFloatingDefenders();
-	return m_iNeededFloatingDefenders;	
+	int r = m_iNeededFloatingDefenders;
+	if(m_iNeededFloatingDefendersCacheTurn != GC.getGameINLINE().gameTurn())
+		r = AI_calculateNeededFloatingDefenders(bConstCache); // advc.001n
+	return r;
 }
 
-void CvCityAI::AI_updateNeededFloatingDefenders()
+int CvCityAI::AI_calculateNeededFloatingDefenders(bool bConstCache)
 {
 	int iFloatingDefenders = GET_PLAYER(getOwnerINLINE()).AI_getTotalFloatingDefendersNeeded(area());
 		
@@ -6638,21 +6630,22 @@ void CvCityAI::AI_updateNeededFloatingDefenders()
 	iFloatingDefenders *= AI_cityThreat();
 	iFloatingDefenders += (iTotalThreat / 2);
 	iFloatingDefenders /= iTotalThreat;
-	
-	m_iNeededFloatingDefenders = iFloatingDefenders;
-	m_iNeededFloatingDefendersCacheTurn = GC.getGameINLINE().gameTurn();
+
+	if(!bConstCache) { // advc.001n
+		m_iNeededFloatingDefenders = iFloatingDefenders;
+		m_iNeededFloatingDefendersCacheTurn = GC.getGameINLINE().gameTurn();
+	}
+	return iFloatingDefenders; // advc.001n
 }
 
 // This function has been completely rewritten for K-Mod. (The original code has been deleted.)
 // My version is still very simplistic, but it has the advantage of being consistent with other AI calculations.
-int CvCityAI::AI_neededAirDefenders()
+int CvCityAI::AI_neededAirDefenders(/* advc.001n: */ bool bConstCache)
 {
 	const CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 
 	if (!GET_TEAM(kOwner.getTeam()).AI_isWarPossible())
-	{
 		return 0;
-	}
 
 	const int iRange = 5;
 
@@ -6667,8 +6660,9 @@ int CvCityAI::AI_neededAirDefenders()
 	//       on very large maps; but that would make it harder to work out iTotalFloaters.
 	int iLoop;
 	for (CvCity* pLoopCity = kOwner.firstCity(&iLoop); pLoopCity; pLoopCity = kOwner.nextCity(&iLoop))
-	{	// advc.003: static_cast replaced
-		int iFloaters = pLoopCity->AI().AI_neededFloatingDefenders();
+	{
+		int iFloaters = pLoopCity->AI().AI_neededFloatingDefenders(
+				false, bConstCache); // advc.001n
 
 		iTotalFloaters += iFloaters;
 		if (plotDistance(plot(), pLoopCity->plot()) <= iRange)
@@ -9024,8 +9018,7 @@ bool CvCityAI::AI_chooseDefender()
 }
 
 bool CvCityAI::AI_chooseLeastRepresentedUnit(UnitTypeWeightArray &allowedTypes, int iOdds)
-{
-	/* original bts code
+{	/* original bts code
  	std::multimap<int, UnitAITypes, std::greater<int> > bestTypes;
  	std::multimap<int, UnitAITypes, std::greater<int> >::iterator best_it; */
 	std::vector<std::pair<int, UnitAITypes> > bestTypes; // K-Mod
@@ -9033,7 +9026,8 @@ bool CvCityAI::AI_chooseLeastRepresentedUnit(UnitTypeWeightArray &allowedTypes, 
 	for (it = allowedTypes.begin(); it != allowedTypes.end(); it++)
 	{
 		int iValue = it->second;
-		iValue *= 750 + GC.getGameINLINE().getSorenRandNum(250, "AI choose least represented unit");
+		iValue *= 750 + GC.getGameINLINE().getSorenRandNum(250, "AI choose least represented unit",
+				it->first); // advc.007
 		iValue /= 1 + GET_PLAYER(getOwnerINLINE()).AI_totalAreaUnitAIs(area(), it->first);
 		//bestTypes.insert(std::make_pair(iValue, it->first));
 		bestTypes.push_back(std::make_pair(iValue, it->first)); // K-Mod
@@ -12728,129 +12722,116 @@ int CvCityAI::AI_countNumImprovableBonuses( bool bIncludeNeutral, TechTypes eExt
 }
 // bbai / K-Mod end
 
-int CvCityAI::AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance)
+int CvCityAI::AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance,
+		bool bConstCache) // advc.001n
 {
 	FAssert(GET_PLAYER(eIndex).isAlive());
 
-	if ((m_iCachePlayerClosenessTurn != GC.getGame().getGameTurn())
-		|| (m_iCachePlayerClosenessDistance != iMaxDistance))
-	{
-		AI_cachePlayerCloseness(iMaxDistance);
+	int r = m_aiPlayerCloseness[eIndex];
+	if ((m_iCachePlayerClosenessTurn != GC.getGame().getGameTurn()
+			|| m_iCachePlayerClosenessDistance != iMaxDistance)) {
+		r = AI_calculatePlayerCloseness(iMaxDistance,
+				eIndex, bConstCache); // advc.001n
 	}
-	
-	return m_aiPlayerCloseness[eIndex];	
+	return r;
 }
 
-// K-Mod   // advc.003 (comment): unused function
-int CvCityAI::AI_highestTeamCloseness(TeamTypes eTeam)
+
+int CvCityAI::AI_calculatePlayerCloseness(int iMaxDistance, // advc.003: some style changes
+		PlayerTypes ePlayer, bool bConstCache) // advc.001n
+{
+	PROFILE_FUNC();
+
+	int r = 0; // advc.001n
+	// BETTER_BTS_AI_MOD, General AI, closeness changes, 5/16/10, jdog5000: START
+	// <advc.001n> A little messy I'll admit
+	for (int iI = (ePlayer == NO_PLAYER ? 0 : ePlayer); iI <=
+			(ePlayer == NO_PLAYER ? (MAX_PLAYERS-1) : ePlayer); iI++) // </advc.001n>
+	{
+		CvPlayer const& kPlayer = GET_PLAYER((PlayerTypes)iI);
+		if (!kPlayer.isAlive() ||  !GET_TEAM(getTeam()).isHasMet(kPlayer.getTeam()))
+			continue;
+
+		int iValue = 0;
+		int iBestValue = 0;
+		CvMap const& m = GC.getMapINLINE(); int iLoop;
+		for (CvCity* pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop))
+		{
+			if (pLoopCity == this)
+				continue;
+
+			int iDistance = stepDistance(getX_INLINE(), getY_INLINE(),
+					pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
+			/*  <advc.107> No functional change here. It's OK to use a higher
+				search range for cities on other continents; but will have to
+				decrease the distance later on when computing the closeness value. */
+			bool bSameArea = (area() == pLoopCity->area());
+			if(!bSameArea) { // </advc.107>
+				iDistance += 1;
+				iDistance /= 2;
+			}
+			if (iDistance > iMaxDistance)
+				continue;
+			if (bSameArea) // advc.107: No functional change
+			{
+				int iPathDistance = m.calculatePathDistance(plot(), pLoopCity->plot());
+				if (iPathDistance > 0)
+					iDistance = iPathDistance;
+			}
+			if (iDistance > iMaxDistance)
+				continue;
+			// Weight by population of both cities, not just pop of other city
+			//iTempValue = 20 + 2*pLoopCity->getPopulation();
+			int iTempValue = 20 + pLoopCity->getPopulation() + getPopulation();
+			iTempValue *= (1 + (iMaxDistance - iDistance));
+			iTempValue /= (1 + iMaxDistance);
+			//reduce for small islands.
+			int iAreaCityCount = pLoopCity->area()->getNumCities();
+			iTempValue *= std::min(iAreaCityCount, 5);
+			iTempValue /= 5;
+			if (iAreaCityCount < 3)
+				iTempValue /= 2;
+			if (pLoopCity->isBarbarian())
+				iTempValue /= 4;
+			// <advc.107>
+			if(!bSameArea)
+				iTempValue /= (pLoopCity->isCoastal() ? 2 : 3); // </advc.107>
+			iValue += iTempValue;
+			iBestValue = std::max(iBestValue, iTempValue);
+		} // <advc.001n> (No change to the formula)
+		r = iBestValue + iValue / 4;
+		if(!bConstCache)
+			m_aiPlayerCloseness[iI] = r;
+	} // BETTER_BTS_AI_MOD: END
+	if(!bConstCache) // </advc.001n>
+	{
+		m_iCachePlayerClosenessTurn = GC.getGame().getGameTurn();	
+		m_iCachePlayerClosenessDistance = iMaxDistance;
+	}
+	return r; // advc.001n
+}
+
+// K-Mod
+int CvCityAI::AI_highestTeamCloseness(TeamTypes eTeam,
+		bool bConstCache) // advc.001n
 {
 	int iCloseness = -1;
 	for (PlayerTypes i = (PlayerTypes)0; i < MAX_PLAYERS; i=(PlayerTypes)(i+1))
 	{
 		if (GET_PLAYER(i).getTeam() == eTeam)
 		{
-			iCloseness = std::max(iCloseness, AI_playerCloseness(i, DEFAULT_PLAYER_CLOSENESS));
+			iCloseness = std::max(iCloseness, AI_playerCloseness(i, DEFAULT_PLAYER_CLOSENESS,
+					bConstCache)); // advc.001n
 		}
 	}
 
 	return iCloseness;
 }
-// K-Mod end
 
-void CvCityAI::AI_cachePlayerCloseness(int iMaxDistance)
-{
-	PROFILE_FUNC();
-	CvCity* pLoopCity;
-	int iI;
-	int iLoop;
-	int iValue;
-	int iTempValue;
-	int iBestValue;
-
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						5/16/10				jdog5000		*/
-/* 																				*/
-/* 	General AI, closeness changes												*/
-/********************************************************************************/	
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
-	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive() && 
-			((GET_TEAM(getTeam()).isHasMet(GET_PLAYER((PlayerTypes)iI).getTeam()))))
-		{
-			iValue = 0;
-			iBestValue = 0;
-			for (pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
-			{
-				if( pLoopCity == this )
-				{
-					continue;
-				}
-
-				int iDistance = stepDistance(getX_INLINE(), getY_INLINE(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE());
-				/*  <advc.107> No functional change here. It's OK to use a
-					higher search range for cities on other continents;
-					but will have to decrease the distance later on when
-					computing the closeness value. */
-				bool sameArea = (area() == pLoopCity->area());
-				if(!sameArea) { // </advc.107>
-					iDistance += 1;
-					iDistance /= 2;
-				}
-				if (iDistance <= iMaxDistance)
-				{
-					if (sameArea) // advc.107: No functional change
-					{
-						int iPathDistance = GC.getMap().calculatePathDistance(plot(), pLoopCity->plot());
-						if (iPathDistance > 0)
-						{
-							iDistance = iPathDistance;
-						}
-					}
-					if (iDistance <= iMaxDistance)
-					{
-						// Weight by population of both cities, not just pop of other city
-						//iTempValue = 20 + 2*pLoopCity->getPopulation();
-						iTempValue = 20 + pLoopCity->getPopulation() + getPopulation();
-
-						iTempValue *= (1 + (iMaxDistance - iDistance));
-						iTempValue /= (1 + iMaxDistance);
-						
-						//reduce for small islands.
-						int iAreaCityCount = pLoopCity->area()->getNumCities();
-						iTempValue *= std::min(iAreaCityCount, 5);
-						iTempValue /= 5;
-						if (iAreaCityCount < 3)
-						{
-							iTempValue /= 2;
-						}
-						
-						if (pLoopCity->isBarbarian())
-						{
-							iTempValue /= 4;
-						} // <advc.107>
-						if(!sameArea)
-							iTempValue /= (pLoopCity->isCoastal() ? 2 : 3);
-						// </advc.107>
-						iValue += iTempValue;					
-						iBestValue = std::max(iBestValue, iTempValue);
-					}
-				}
-			}
-			m_aiPlayerCloseness[iI] = (iBestValue + iValue / 4);
-		}
-	}
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						END							        */
-/********************************************************************************/
-	
-	m_iCachePlayerClosenessTurn = GC.getGame().getGameTurn();	
-	m_iCachePlayerClosenessDistance = iMaxDistance;
-}
-
-// advc.003j: These K-Mod functions aren't used, and it seems they never were.
-// K-Mod
+// advc.003j: These two K-Mod functions aren't used, and it seems they never were.
+/* K-Mod
 // return true if there is an adjacent plot not owned by us.
-/*bool CvCityAI::AI_isFrontlineCity() const
+bool CvCityAI::AI_isFrontlineCity() const
 {
 	for (int i = 0; i < NUM_DIRECTION_TYPES; i++)
 	{
@@ -12862,7 +12843,6 @@ void CvCityAI::AI_cachePlayerCloseness(int iMaxDistance)
 
 	return false;
 }
-
 
 int CvCityAI::AI_calculateMilitaryOutput() const
 {
@@ -12937,7 +12917,7 @@ int CvCityAI::AI_cityThreat(bool bDangerPercent)
 
 		if (iAccessFactor > 0)
 		{
-			int iCivFactor; // K-Mod. (originally the following code had iTempValue *= foo; rather than iCivFactor = foo;)
+			int iCivFactor=0; // K-Mod. (originally the following code had iTempValue *= foo; rather than iCivFactor = foo;)
 			/*  advc.018: Commented out. I don't get why crush should make us
 				more protective of our cities. The
 				if(bCrushStrategy) iCivFactor/=2 a bit farther down seems to be

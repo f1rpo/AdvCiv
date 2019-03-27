@@ -44,7 +44,8 @@ class CvInfoBase;
 inline int round(double d) { return (int)((d >= 0 ? 0.5 : -0.5) + d); }
 int roundToMultiple(double d, int iMultiple);
 bool bernoulliSuccess(double pr, // 0 <= pr <= 1
-		char const* pszLog = "", bool bAsync = false);
+		char const* pszLog = "", bool bAsync = false,
+		int iData1 = INT_MIN, int iData2 = INT_MIN);
 double median(std::vector<double>& distribution, bool bSorted = false);
 double mean(std::vector<double>& distribution);
 double max(std::vector<double>& distribution);

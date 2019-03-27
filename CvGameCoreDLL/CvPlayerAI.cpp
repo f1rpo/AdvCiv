@@ -515,8 +515,7 @@ void CvPlayerAI::AI_doTurnPre()
 	
 	AI_doEnemyUnitData();
 
-	// K-Mod: clear construction value cache
-	AI_ClearConstructionValueCache();
+	AI_ClearConstructionValueCache(); // K-Mod
 	
 	if (isHuman())
 	{
@@ -541,38 +540,22 @@ void CvPlayerAI::AI_doTurnPost()
 {
 	PROFILE_FUNC();
 
-	if (isHuman())
-	{
+	if (isHuman() || isMinorCiv())
 		return;
-	}
 
 	if (isBarbarian())
 	{
-		AI_foldDeals();
-		return;
-	}
-
-	if (isMinorCiv())
-	{
+		AI_foldDeals(); // advc.036
 		return;
 	}
 
 	AI_doDiplo();
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                       06/16/09                                jdog5000      */
-/*                                                                                              */
-/* Bugfix                                                                                       */
-/************************************************************************************************/
-	// Moved per alexman's suggestion
+	/*  UNOFFICIAL_PATCH, Bugfix, 06/16/09, jdog5000:
+		Moved per alexman's suggestion */
 	//AI_doSplit();	
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                        END                                                  */
-/************************************************************************************************/
 
 	for (int i = 0; i < GC.getNumVictoryInfos(); ++i)
-	{
 		AI_launch((VictoryTypes)i);
-	}
 }
 
 
@@ -9196,6 +9179,7 @@ bool CvPlayerAI::AI_demandRebukedSneak(PlayerTypes ePlayer) const
 		const CvTeamAI& kTeam = GET_TEAM(getTeam());
 		if (kTeam.AI_getWarPlan(GET_PLAYER(ePlayer).getTeam()) == NO_WARPLAN  &&
 			(kTeam.getAnyWarPlanCount(true) == 0 || kTeam.AI_getWarSuccessRating() > 50) &&
+			// advc.001n (comment): This should be synchronized code, so no need to set bConstCache.
 			kTeam.AI_startWarVal(GET_PLAYER(ePlayer).getTeam(), WARPLAN_LIMITED) > 50)
 		// K-Mod end
 			return true;
@@ -9544,9 +9528,9 @@ void CvPlayerAI::AI_updateCloseBorderAttitudeCache(PlayerTypes ePlayer)
 		iPercent += 40;*/
 	// <advc.147> Replacing the above
 	if (kOurTeam.AI_hasCitiesInPrimaryArea(eTheirTeam)) {
-		int adjLand = kOurTeam.AI_calculateAdjacentLandPlots(eTheirTeam);
-		if(adjLand > 5)
-			iPercent += std::min(40, ::round(adjLand * adj_weight));
+		int iAdjLand = kOurTeam.AI_calculateAdjacentLandPlots(eTheirTeam);
+		if(iAdjLand > 5)
+			iPercent += std::min(40, ::round(iAdjLand * adj_weight));
 	} // </advc.147>
 	// <advc.130v>
 	if(TEAMREF(ePlayer).isCapitulated())
@@ -13048,7 +13032,7 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus,
 					// advc.036: Uncommented. Should be fine now.
 					iOrBonusesWeHave += (ePrereqBonus != eBonus &&
 							getNumAvailableBonuses(ePrereqBonus) > 0) ? 1 : 0;
-					// @*#!  It occurs to me that using state-dependant stuff such as NumAvailableBonuses here could result in OOS errors.
+					// @*#!  It occurs to me that using state-dependent stuff such as NumAvailableBonuses here could result in OOS errors.
 					// This is because the code here can be trigged by local UI events, and then the value could be cached...
 					// It's very frustrating - because including the effect from iOrBonusesWeHave was going to be a big improvment.
 					// The only way I can think of working around this is to add a 'bConstCache' argument to this function...
@@ -19481,7 +19465,8 @@ void CvPlayerAI::AI_doCounter()
 				division above makes it 0, it should mean fast decay. */
 			if(iDecayRand == 0)
 				iDecayRand = 1;
-			if(g.getSorenRandNum(iDecayRand, "Memory Decay") == 0) // </advc.130j>
+			if(g.getSorenRandNum(iDecayRand, "Memory Decay", civId, mId) == 0)
+			// </advc.130j>
 				AI_changeMemoryCount(civId, mId, -1);
 		}
 		// <advc.130g>
@@ -21822,6 +21807,8 @@ bool CvPlayerAI::AI_proposeEmbargo(PlayerTypes humanId) {
 	if(eBestTeam == NO_TEAM || !TEAMREF(humanId).isHasMet(eBestTeam) ||
 			GET_TEAM(eBestTeam).isVassal(TEAMID(humanId)) ||
 			!GET_PLAYER(humanId).canStopTradingWithTeam(eBestTeam) ||
+			// advc.135: Nothing stops the two humans from immediately resuming trade
+			GET_TEAM(eBestTeam).isHuman() ||
 			// advc.104m:
 			ourTeam.AI_isSneakAttackReady(TEAMID(humanId)) ||
 			// <advc.130f>
@@ -26193,7 +26180,8 @@ void CvPlayerAI::AI_convertUnitAITypesForCrush()
 	}
 }
 
-int CvPlayerAI::AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance) const
+int CvPlayerAI::AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance,
+		bool bConstCache) const // advc.001n
 {
 	PROFILE_FUNC();	
 	FAssert(GET_PLAYER(eIndex).isAlive());
@@ -26203,7 +26191,8 @@ int CvPlayerAI::AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance) const
 	int iLoop;
 	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
-		iValue += pLoopCity->AI_playerCloseness(eIndex, iMaxDistance);
+		iValue += pLoopCity->AI_playerCloseness(eIndex, iMaxDistance,
+				bConstCache); // advc.001n
 	}
 	
 	return iValue;
@@ -26263,18 +26252,16 @@ int CvPlayerAI::AI_countNumAreaHostileUnits(CvArea* pArea, bool bPlayer, bool bT
 int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea* pArea) const
 {
 	PROFILE_FUNC();
-	int iDefenders;
-	int iCurrentEra = getCurrentEra();
+
 	int iAreaCities = pArea->getCitiesPerPlayer(getID());
-	
+	int iCurrentEra = getCurrentEra();
 	iCurrentEra = std::max(0, iCurrentEra - GC.getGame().getStartEra() / 2);
-	
 	/* original bts code
 	iDefenders = 1 + ((iCurrentEra + ((GC.getGameINLINE().getMaxCityElimination() > 0) ? 3 : 2)) * iAreaCities);
 	iDefenders /= 3;
 	iDefenders += pArea->getPopulationPerPlayer(getID()) / 7; */
 	// K-Mod
-	iDefenders = 1 + iAreaCities + AI_totalAreaUnitAIs(pArea, UNITAI_SETTLE);
+	int iDefenders = 1 + iAreaCities + AI_totalAreaUnitAIs(pArea, UNITAI_SETTLE);
 	iDefenders += pArea->getPopulationPerPlayer(getID()) / 7;
 	if (AI_isLandWar(pArea))
 		iDefenders += 1 + (2+GET_TEAM(getTeam()).countEnemyCitiesByArea(pArea))/3;
@@ -26283,8 +26270,7 @@ int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea* pArea) const
 	// K-Mod end
 
 	if (pArea->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE)
-	{
-		// <advc.107>
+	{	// <advc.107>
 		//iDefenders *= 2;
 		iDefenders *= 3;
 		iDefenders /= 2;
@@ -26301,16 +26287,17 @@ int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea* pArea) const
 			iDefenders *= 3;
 			iDefenders /= 2;
 		}
-		// advc.022: "else" removed; allow AreaAI to cancel out alertness
-		//else
+		//else // advc.022: Allow AreaAI to cancel out alertness
 		if (pArea->getAreaAIType(getTeam()) == AREAAI_OFFENSIVE)
 		{
 			iDefenders *= 2;
 			iDefenders /= 3;
 		}
 		else if (pArea->getAreaAIType(getTeam()) == AREAAI_MASSING)
-		{
-			if( GET_TEAM(getTeam()).AI_getEnemyPowerPercent(true) < (10 + GC.getLeaderHeadInfo(getPersonalityType()).getMaxWarNearbyPowerRatio()) ) // bbai
+		{	// bbai
+			if( GET_TEAM(getTeam()).AI_getEnemyPowerPercent(true) <
+					(10 + GC.getLeaderHeadInfo(getPersonalityType()).
+					getMaxWarNearbyPowerRatio()) ) 
 			{
 				iDefenders *= 2;
 				iDefenders /= 3;
@@ -26339,8 +26326,8 @@ int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea* pArea) const
 	if (AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3))
 	{
 		iDefenders += 2 * iAreaCities;
-		//if (pArea->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE)
-		if (pArea->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE && AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4)) // K-Mod
+		if (pArea->getAreaAIType(getTeam()) == AREAAI_DEFENSIVE
+				&& AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4)) // K-Mod
 		{
 			iDefenders *= 2; //go crazy
 		}
@@ -26362,31 +26349,18 @@ int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea* pArea) const
         iDefenders += 2;
     }*/ // </advc.107>
 
-	if (getCapitalCity() != NULL)
-	{
-		if (getCapitalCity()->area() != pArea)
-		{
-
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                       01/23/09                                jdog5000      */
-/*                                                                                              */
-/* Bugfix, War tactics AI                                                                       */
-/************************************************************************************************/
-/* original BTS code
-			//Defend offshore islands only lightly.
-			iDefenders = std::min(iDefenders, iAreaCities * iAreaCities - 1);
-*/
-			// Lessen defensive requirements only if not being attacked locally
-			if( pArea->getAreaAIType(getTeam()) != AREAAI_DEFENSIVE )
-			{
-				// This may be our first city captured on a large enemy continent, need defenses to scale up based
-				// on total number of area cities not just ours
-				iDefenders = std::min(iDefenders, iAreaCities * iAreaCities + pArea->getNumCities() - iAreaCities - 1);
-			}
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                        END                                                  */
-/************************************************************************************************/
+	if (getCapitalCity() != NULL && getCapitalCity()->area() != pArea)
+	{	//Defend offshore islands only lightly.
+		// UNOFFICIAL_PATCH, Bugfix, War tactics AI, 01/23/09, jdog5000: START
+		/* original BTS code
+		iDefenders = std::min(iDefenders, iAreaCities * iAreaCities - 1);*/
+		// Lessen defensive requirements only if not being attacked locally
+		if( pArea->getAreaAIType(getTeam()) != AREAAI_DEFENSIVE )
+		{	// This may be our first city captured on a large enemy continent, need defenses to scale up based
+			// on total number of area cities not just ours
+			iDefenders = std::min(iDefenders, iAreaCities * iAreaCities + pArea->getNumCities() - iAreaCities - 1);
 		}
+		// UNOFFICIAL_PATCH: END
 	}
 	
 	return iDefenders;

@@ -2229,6 +2229,11 @@ int CyCity::AI_cityValue()
 {
 	return m_pCity ? m_pCity->AI_cityValue() : -1;
 }
+// <advc.001n>
+int CyCity::AI_neededFloatingDefenders()
+{
+	return m_pCity ? m_pCity->AI_neededFloatingDefenders(false, true) : -1;
+} // </advc.001n>
 
 std::string CyCity::getScriptData() const
 {

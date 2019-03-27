@@ -88,13 +88,16 @@ public:
 	int AI_chooseElection(const VoteSelectionData& kVoteSelectionData) const;
 
 	// K-Mod
-	int AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan) const;
-	int AI_warCommitmentCost(TeamTypes eTarget, WarPlanTypes eWarPlan) const;
+	int AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan,
+			bool bConstCache) const; // advc.001n
+	int AI_warCommitmentCost(TeamTypes eTarget, WarPlanTypes eWarPlan,
+			bool bConstCache) const; // advc.001n
 	int AI_warDiplomacyCost(TeamTypes eTarget) const;
 	// K-Mod end
 
 	//int AI_startWarVal(TeamTypes eTeam) const;
-	int AI_startWarVal(TeamTypes eTarget, WarPlanTypes eWarPlan) const; // K-Mod
+	int AI_startWarVal(TeamTypes eTarget, WarPlanTypes eWarPlan, // K-Mod
+			bool bConstCache = false) const; // advc.001n
 	int AI_endWarVal(TeamTypes eTeam) const;
 
 	int CvTeamAI::AI_knownTechValModifier(TechTypes eTech) const; // K-Mod
@@ -233,7 +236,8 @@ public:
 	// advc.104:
 	void AI_setWarPlanNoUpdate(TeamTypes eIndex, WarPlanTypes eNewValue);
 	int AI_teamCloseness(TeamTypes eIndex, int iMaxDistance = -1,
-			bool bConsiderLandTarget = false) const; // advc.104o
+			bool bConsiderLandTarget = false, // advc.104o
+			bool bConstCache = false) const; // advc.001n
 
 	// <advc.104>
 	WarAndPeaceAI::Team& warAndPeaceAI(); 

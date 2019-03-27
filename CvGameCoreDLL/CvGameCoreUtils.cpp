@@ -45,7 +45,7 @@ int roundToMultiple(double d, int iMultiple) {
 	return r - r % iMultiple;
 }
 
-bool bernoulliSuccess(double pr, char const* pszLog, bool bAsync) {
+bool bernoulliSuccess(double pr, char const* pszLog, bool bAsync, int iData1, int iData2) {
 
     int chancePerMyriad = round(pr * 10000.0);
 	// These two checks are just for better performance
@@ -57,7 +57,8 @@ bool bernoulliSuccess(double pr, char const* pszLog, bool bAsync) {
 		pszLog = "bs";
 	if(bAsync)
 		return (GC.getASyncRand().get(10000, pszLog) < chancePerMyriad);
-    return GC.getGameINLINE().getSorenRandNum(10000, pszLog) < chancePerMyriad;
+    return GC.getGameINLINE().
+			getSorenRandNum(10000, pszLog, iData1, iData2) < chancePerMyriad;
 }
 
 double median(vector<double>& distribution, bool bSorted) {

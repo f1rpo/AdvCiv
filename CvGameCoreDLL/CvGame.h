@@ -486,14 +486,17 @@ public:
 	VoteTriggeredData* addVoteTriggered(VoteSourceTypes eVoteSource, const VoteSelectionSubData& kOptionData);
 	void deleteVoteTriggered(int iID);
 
-	CvRandom& getMapRand();																											// Exposed to Python	
-	int getMapRandNum(int iNum, const char* pszLog);														
-																																												
-	CvRandom& getSorenRand();																										// Exposed to Python	
-	int getSorenRandNum(int iNum, const char* pszLog);													
-																																												
-	DllExport int calculateSyncChecksum();																								// Exposed to Python	
-	DllExport int calculateOptionsChecksum();																							// Exposed to Python	
+	CvRandom& getMapRand();																											// Exposed to Python
+	int getMapRandNum(int iNum, const char* pszLog);
+
+	CvRandom& getSorenRand();																										// Exposed to Python
+	//  Returns a value from the half-closed interval [0,iNum)
+	int getSorenRandNum(int iNum, const char* pszLog,
+			int iData1 = INT_MIN, int iData2 = INT_MIN); // advc.007
+
+	DllExport int calculateSyncChecksum();																								// Exposed to Python
+	DllExport int calculateOptionsChecksum();																							// Exposed to Python
+	bool checkInSync(); // advc.001n
 
 	void addReplayMessage(ReplayMessageTypes eType = NO_REPLAY_MESSAGE, PlayerTypes ePlayer = NO_PLAYER, CvWString pszText = L"", 
 		int iPlotX = -1, int iPlotY = -1, ColorTypes eColor = NO_COLOR);

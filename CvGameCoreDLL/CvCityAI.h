@@ -71,11 +71,13 @@ public:
 	bool AI_isDanger();
 	int AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac = false,
 			bool bConstCache = false); // advc.001n
-	int AI_neededAirDefenders();
+	int AI_neededAirDefenders(/* advc.001n: */ bool bConstCache = false);
 	int AI_minDefenders();
 	int AI_neededFloatingDefenders(/* advc.139: */ bool bIgnoreEvac = false,
-			bool bConstCache = false); // advc.001n
-	void AI_updateNeededFloatingDefenders();
+			// <advc.001n>
+			bool bConstCache = false);
+	// was void AI_updateNeededFloatingDefenders()
+	int AI_calculateNeededFloatingDefenders(bool bConstCache); // </advc.001n>
 	// <advc.139>
 	void AI_updateSafety(double relativeCityVal);
 	bool AI_isEvacuating() const;
@@ -143,8 +145,10 @@ public:
 	int AI_countNumBonuses(BonusTypes eBonus, bool bIncludeOurs, bool bIncludeNeutral, int iOtherCultureThreshold, bool bLand = true, bool bWater = true);
 	int AI_countNumImprovableBonuses( bool bIncludeNeutral, TechTypes eExtraTech = NO_TECH, bool bLand = true, bool bWater = false ); // BBAI
 
-	int AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance);
-	int AI_highestTeamCloseness(TeamTypes eTeam); // K-Mod
+	int AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance,
+			bool bConstCache = false); // advc.001n
+	int AI_highestTeamCloseness(TeamTypes eTeam, // K-Mod
+			bool bConstCache); // advc.001n
 	// advc.003j: Both unused
 	/*bool AI_isFrontlineCity() const; // K-Mod
 	int AI_calculateMilitaryOutput() const;*/ // K-Mod
@@ -258,8 +262,9 @@ protected:
 
 	//int AI_buildingSpecialYieldChangeValue(BuildingTypes kBuilding, YieldTypes eYield) const;
 	int AI_buildingSeaYieldChangeWeight(BuildingTypes eBuilding, bool bGrowing = true) const; // K-Mod
-
-	void AI_cachePlayerCloseness(int iMaxDistance);
+	// <advc.001n> was void AI_cachePlayerCloseness(int)
+	int AI_calculatePlayerCloseness(int iMaxDistance, PlayerTypes ePlayer,
+			bool bConstCache); // </advc.001n>
 	void AI_updateWorkersNeededHere();
 
 	// added so under cheat mode we can call protected functions for testing

@@ -4041,7 +4041,8 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 					szWarplan.getCString(),
 					// advc.104: Show war plan age instead of K-Mod's startWarVal
 					getWPAI.isEnabled() ? kTeam.AI_getWarPlanStateCounter(eLoopTeam) :
-					kTeam.AI_startWarVal(eLoopTeam, eWarPlan), 
+					kTeam.AI_startWarVal(eLoopTeam, eWarPlan,
+					true), // advc.001n
 					kLoopTeam.getName().GetCString()));
 			}
 		}
@@ -4317,7 +4318,8 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 					aStartWarInfo[iTeamIndex].iStartWarValue = 0;
 					if (aStartWarInfo[iTeamIndex].iPossibleMaxWarPass < MAX_INT || aStartWarInfo[iTeamIndex].bPossibleLimitedWar || aStartWarInfo[iTeamIndex].bPossibleDogpileWar)
 					{
-						aStartWarInfo[iTeamIndex].iStartWarValue = kTeam.AI_startWarVal(eLoopTeam, WARPLAN_TOTAL);
+						aStartWarInfo[iTeamIndex].iStartWarValue = kTeam.AI_startWarVal(eLoopTeam, WARPLAN_TOTAL,
+								true); // advc.001n
 					}
 				}
 			}

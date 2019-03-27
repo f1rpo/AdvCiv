@@ -301,10 +301,14 @@ bool CvSelectionGroupAI::AI_update()
 			}
 		}
 	}
+	// <advc.test>
+	/*if(GC.getRandLogging() && !GC.getGameINLINE().checkInSync()) {
+		CvUnit* pHeadUnit = getHeadUnit(); // for inspection in debugger
+		FAssert(false);
+	}*/ // </advc.test>
 
 	if (bDead)
-	{
-		//return true;
+	{	//return true;
 		return false; // K-Mod
 	}
 

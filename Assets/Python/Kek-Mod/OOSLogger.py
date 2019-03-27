@@ -19,7 +19,7 @@ SEPERATOR = "-----------------------------------------------------------------\n
 # variable so that it only happens once.
 def onGameUpdate(argsList):
 	global bWroteLog
-	# <advc> Same checks as in for the MPLog in CvRandom::get plus a WorldBuilder check for advc.135c (WorldBuilder always leads to OOS)
+	# <advc> Same checks as for the MPLog in CvRandom::get plus a WorldBuilder check for advc.135c (WorldBuilder always leads to OOS)
 	if not gc.isLogging() or not gc.isRandLogging() or gc.getGame().GetWorldBuilderMode():
 		return # </advc>
 

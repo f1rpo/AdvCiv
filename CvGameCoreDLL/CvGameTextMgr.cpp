@@ -5083,19 +5083,18 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 	int x = kPlot.getX();
 	int y = kPlot.getY();
 	CvWString szTempBuffer;
+	CvGame const& g = GC.getGameINLINE();
+	bool bConstCache = g.isNetworkMultiPlayer(); // advc.001n
 
 	if (kPlot.getOwnerINLINE() != NO_PLAYER
 			/*  advc.001n: AI_getPlotDanger calls setActivePlayerSafeRangeCache,
 				which may not be a safe thing to do in multiplayer. */
-			&& !GC.getGameINLINE().isNetworkMultiPlayer())
+			&& !bConstCache)
 	{
 		int iPlotDanger = GET_PLAYER(kPlot.getOwnerINLINE()).AI_getPlotDanger(
-				const_cast<CvPlot*>(&kPlot), // advc.135c
-				2);
+				const_cast<CvPlot*>(&kPlot), /* advc.135c: */ 2);
 		if (iPlotDanger > 0)
-		{
 			szString.append(CvWString::format(L"\nPlot Danger = %d", iPlotDanger));
-		}
 	}
 
 	CvCity* pPlotCity = kPlot.getPlotCity();
@@ -5109,62 +5108,58 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 		szString.append(CvWString::format(L"\nDefenders [D+A]/N ([%d + %d] / %d)",
 				iCityDefenders, iAttackGroups, pPlotCity->AI_neededDefenders(
 				false, true))); // advc.001n
-
-		szString.append(CvWString::format(L"\nFloating Defenders H/N (%d / %d)", kPlayer.AI_getTotalFloatingDefenders(pPlotCity->area()), kPlayer.AI_getTotalFloatingDefendersNeeded(pPlotCity->area())));
-		szString.append(CvWString::format(L"\nAir Defenders H/N (%d / %d)", pPlotCity->plot()->plotCount(PUF_canAirDefend, -1, -1, pPlotCity->getOwnerINLINE(), NO_TEAM, PUF_isDomainType, DOMAIN_AIR), pPlotCity->AI_neededAirDefenders()));
+		szString.append(CvWString::format(L"\nFloating Defenders H/N (%d / %d)",
+				kPlayer.AI_getTotalFloatingDefenders(pPlotCity->area()),
+				kPlayer.AI_getTotalFloatingDefendersNeeded(pPlotCity->area())));
+		szString.append(CvWString::format(L"\nAir Defenders H/N (%d / %d)",
+				pPlotCity->plot()->plotCount(PUF_canAirDefend, -1, -1,
+				pPlotCity->getOwnerINLINE(), NO_TEAM, PUF_isDomainType, DOMAIN_AIR),
+				pPlotCity->AI_neededAirDefenders(/* advc.001n: */ true)));
 //		int iHostileUnits = kPlayer.AI_countNumAreaHostileUnits(pPlotCity->area());
 //		if (iHostileUnits > 0)
-//		{
 //			szString+=CvWString::format(L"\nHostiles = %d", iHostileUnits);
-//		}
 
-		szString.append(CvWString::format(L"\nThreat C/P (%d / %d)", pPlotCity->AI_cityThreat(), kPlayer.AI_getTotalAreaCityThreat(pPlotCity->area())));
+		szString.append(CvWString::format(L"\nThreat C/P (%d / %d)",
+				pPlotCity->AI_cityThreat(), kPlayer.AI_getTotalAreaCityThreat(pPlotCity->area())));
 
 		bool bFirst = true;
 		for (int iI = 0; iI < MAX_CIV_PLAYERS; ++iI) // advc.003n: was MAX_PLAYERS
 		{
 			PlayerTypes eLoopPlayer = (PlayerTypes) iI;
 			CvPlayerAI& kLoopPlayer = GET_PLAYER(eLoopPlayer);
-			if(eLoopPlayer != ePlayer && kLoopPlayer.isAlive())
+			if(eLoopPlayer == ePlayer || !kLoopPlayer.isAlive())
+				continue;
+			// BETTER_BTS_AI_MOD, DEBUG, 06/16/08, jdog5000: START
+			// original code (advc: deleted)
+			if(pPlotCity->isCapital())
 			{
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      06/16/08                                jdog5000      */
-/* DEBUG                                                                                        */
-/************************************************************************************************/
-/* original code
-				int iCloseness = pPlotCity->AI_playerCloseness(eLoopPlayer, 7);
-				if (iCloseness != 0) {
-					if (bFirst) {
-						bFirst = false;
-						szString.append(CvWString::format(L"\n\nCloseness:"));
-					}
-					szString.append(CvWString::format(L"\n%s(7) : %d", kLoopPlayer.getName(), iCloseness));
-					szString.append(CvWString::format(L" (%d, ", kPlayer.AI_playerCloseness(eLoopPlayer, 7)));
-					if (kPlayer.getTeam() != kLoopPlayer.getTeam())
-						szString.append(CvWString::format(L"%d)", GET_TEAM(kPlayer.getTeam()).AI_teamCloseness(kLoopPlayer.getTeam(), 7)));
-					else szString.append(CvWString::format(L"-)"));
-				}*/
-				if(pPlotCity->isCapital())
+				int iCloseness = pPlotCity->AI_playerCloseness(eLoopPlayer, DEFAULT_PLAYER_CLOSENESS,
+						true); // advc.001n
+				int iPlayerCloseness = kPlayer.AI_playerCloseness(eLoopPlayer, DEFAULT_PLAYER_CLOSENESS,
+						true); // advc.001n
+				if(GET_TEAM(kPlayer.getTeam()).isHasMet(kLoopPlayer.getTeam()) || iPlayerCloseness != 0 )
 				{
-					int iCloseness = pPlotCity->AI_playerCloseness(eLoopPlayer, DEFAULT_PLAYER_CLOSENESS);
-					int iPlayerCloseness = kPlayer.AI_playerCloseness(eLoopPlayer, DEFAULT_PLAYER_CLOSENESS);
-					if(GET_TEAM(kPlayer.getTeam()).isHasMet(kLoopPlayer.getTeam()) || iPlayerCloseness != 0 )
+					if(bFirst)
 					{
-						if(bFirst)
-						{
-							bFirst = false;	
-							szString.append(CvWString::format(L"\n\nCloseness + War: (in %d wars)", GET_TEAM(kPlayer.getTeam()).getAtWarCount(true)));
-						}
-						szString.append(CvWString::format(L"\n%s(%d) : %d ", kLoopPlayer.getName(), DEFAULT_PLAYER_CLOSENESS, iCloseness));
-						szString.append(CvWString::format(L" [%d, ", iPlayerCloseness));
-						if(kPlayer.getTeam() != kLoopPlayer.getTeam())
-						{
-							szString.append(CvWString::format(L"%d]", GET_TEAM(kPlayer.getTeam()).AI_teamCloseness(kLoopPlayer.getTeam(), DEFAULT_PLAYER_CLOSENESS)));
+						bFirst = false;	
+						szString.append(CvWString::format(L"\n\nCloseness + War: (in %d wars)", GET_TEAM(kPlayer.getTeam()).getAtWarCount(true)));
+					}
+					szString.append(CvWString::format(L"\n%s(%d) : %d ", kLoopPlayer.getName(), DEFAULT_PLAYER_CLOSENESS, iCloseness));
+					szString.append(CvWString::format(L" [%d, ", iPlayerCloseness));
+					if(kPlayer.getTeam() != kLoopPlayer.getTeam())
+					{
+						szString.append(CvWString::format(L"%d]", GET_TEAM(kPlayer.
+								getTeam()).AI_teamCloseness(kLoopPlayer.getTeam(), DEFAULT_PLAYER_CLOSENESS,
+								false, true))); // advc.001n
+					/*  advc.001n: Only relevant for the K-Mod war AI, and I'm not totally sure that
+						CvTeamAI::AI_startWarVal is safe for networked games
+						(despite the bConstCache param that I've added). */
+						if(!getWPAI.isEnabled()) {
 							if(GET_TEAM(kPlayer.getTeam()).isHasMet(kLoopPlayer.getTeam()) &&
-									GET_TEAM(kPlayer.getTeam()).AI_getAttitude(kLoopPlayer.getTeam()) !=
-									ATTITUDE_FRIENDLY)
+									GET_TEAM(kPlayer.getTeam()).AI_getAttitude(kLoopPlayer.getTeam()) != ATTITUDE_FRIENDLY)
 							{
-								int iStartWarVal = GET_TEAM(kPlayer.getTeam()).AI_startWarVal(kLoopPlayer.getTeam(), WARPLAN_TOTAL);
+								int iStartWarVal = GET_TEAM(kPlayer.getTeam()).AI_startWarVal(kLoopPlayer.getTeam(), WARPLAN_TOTAL,
+										true); // advc.001n
 								if(GET_TEAM(kPlayer.getTeam()).isAtWar(kLoopPlayer.getTeam()) )
 									szString.append(CvWString::format(L"\n   At War:   "));
 								else if( GET_TEAM(kPlayer.getTeam()).AI_getWarPlan(kLoopPlayer.getTeam()) != NO_WARPLAN )
@@ -5172,50 +5167,47 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 								else if( !GET_TEAM(kPlayer.getTeam()).canDeclareWar(kLoopPlayer.getTeam()) )
 									szString.append(CvWString::format(L"\n   Can't War:"));
 								else szString.append(CvWString::format(L"\n   No War:   "));
-
 								if(iStartWarVal > 1200)
 									szString.append(CvWString::format(SETCOLR L" %d" ENDCOLR, TEXT_COLOR("COLOR_RED"), iStartWarVal));
 								else if(iStartWarVal > 600)
 									szString.append(CvWString::format(SETCOLR L" %d" ENDCOLR, TEXT_COLOR("COLOR_YELLOW"), iStartWarVal));
 								else szString.append(CvWString::format(L" %d", iStartWarVal));
-
-								szString.append(CvWString::format(L" (%d", GET_TEAM(kPlayer.getTeam()).AI_calculatePlotWarValue(kLoopPlayer.getTeam())));
+								// advc.003j: Unused
+								/*szString.append(CvWString::format(L" (%d", GET_TEAM(kPlayer.getTeam()).AI_calculatePlotWarValue(kLoopPlayer.getTeam())));
 								szString.append(CvWString::format(L", %d", GET_TEAM(kPlayer.getTeam()).AI_calculateBonusWarValue(kLoopPlayer.getTeam())));
-								szString.append(CvWString::format(L", %d", GET_TEAM(kPlayer.getTeam()).AI_calculateCapitalProximity(kLoopPlayer.getTeam())));
+								szString.append(CvWString::format(L", %d", GET_TEAM(kPlayer.getTeam()).AI_calculateCapitalProximity(kLoopPlayer.getTeam())));*/
 								szString.append(CvWString::format(L", %4s", GC.getAttitudeInfo(GET_TEAM(kPlayer.getTeam()).AI_getAttitude(kLoopPlayer.getTeam())).getDescription(0)));
 								szString.append(CvWString::format(L", %d%%)", 100-GET_TEAM(kPlayer.getTeam()).AI_noWarAttitudeProb(GET_TEAM(kPlayer.getTeam()).AI_getAttitude(kLoopPlayer.getTeam()))));
 							}
 						}
-						else szString.append(CvWString::format(L"-]"));
 					}
+					else szString.append(CvWString::format(L"-]"));
 				}
-				else 
-				{
-					int iCloseness = pPlotCity->AI_playerCloseness(eLoopPlayer, DEFAULT_PLAYER_CLOSENESS);
-					if (iCloseness != 0)
-					{
-						if (bFirst)
-						{
-							bFirst = false;
-							szString.append(CvWString::format(L"\n\nCloseness:"));
-						}
-
-						szString.append(CvWString::format(L"\n%s(%d) : %d ", kLoopPlayer.getName(), DEFAULT_PLAYER_CLOSENESS, iCloseness));
-						szString.append(CvWString::format(L" [%d, ", kPlayer.AI_playerCloseness(eLoopPlayer, DEFAULT_PLAYER_CLOSENESS)));
-						if (kPlayer.getTeam() != kLoopPlayer.getTeam())
-						{
-							szString.append(CvWString::format(L"%d]", GET_TEAM(kPlayer.getTeam()).AI_teamCloseness(kLoopPlayer.getTeam(), DEFAULT_PLAYER_CLOSENESS)));
-						}
-						else
-						{
-							szString.append(CvWString::format(L"-]"));
-						}
-					}
-				}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
 			}
+			else 
+			{
+				int iCloseness = pPlotCity->AI_playerCloseness(eLoopPlayer, DEFAULT_PLAYER_CLOSENESS,
+						true); // advc.001n
+				if (iCloseness != 0)
+				{
+					if (bFirst)
+					{
+						bFirst = false;
+						szString.append(CvWString::format(L"\n\nCloseness:"));
+					}
+					szString.append(CvWString::format(L"\n%s(%d) : %d ", kLoopPlayer.getName(), DEFAULT_PLAYER_CLOSENESS, iCloseness));
+					szString.append(CvWString::format(L" [%d, ", kPlayer.AI_playerCloseness(eLoopPlayer, DEFAULT_PLAYER_CLOSENESS,
+							true))); // advc.001n
+					if (kPlayer.getTeam() != kLoopPlayer.getTeam())
+					{
+						szString.append(CvWString::format(L"%d]", GET_TEAM(kPlayer.getTeam()).
+								AI_teamCloseness( kLoopPlayer.getTeam(), DEFAULT_PLAYER_CLOSENESS,
+								false, true))); // advc.001n
+					}
+					else szString.append(CvWString::format(L"-]"));
+				}
+			}
+			// BETTER_BTS_AI_MOD: END
 		}
 
 		int iWorkersHave = pPlotCity->AI_getWorkersHave();
@@ -5224,14 +5216,12 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 		int iWorkBoatsNeeded = pPlotCity->AI_neededSeaWorkers();
 		szString.append(CvWString::format(L"\n\nWorkboats Needed = %d", iWorkBoatsNeeded));
 		/*  <advc.001n> AI_getNumAreaCitySites and AI_getNumAdjacentAreaCitySites
-			call CvPlot::getFoundValue, which may cache its result. Could be
-			a sync problem in multiplayer. */
-		if(!GC.getGameINLINE().isNetworkMultiPlayer()) {
+			call CvPlot::getFoundValue, which may cache its result. */
+		if(!bConstCache) {
 			int iAreaSiteBestValue = 0;
 			int iNumAreaCitySites = kPlayer.AI_getNumAreaCitySites(kPlot.getArea(), iAreaSiteBestValue);
 			int iOtherSiteBestValue = 0;
 			int iNumOtherCitySites = (kPlot.waterArea() == NULL) ? 0 : kPlayer.AI_getNumAdjacentAreaCitySites(kPlot.waterArea()->getID(), kPlot.getArea(), iOtherSiteBestValue);
-
 			szString.append(CvWString::format(L"\n\nArea Sites = %d (%d)", iNumAreaCitySites, iAreaSiteBestValue));
 			szString.append(CvWString::format(L"\nOther Sites = %d (%d)", iNumOtherCitySites, iOtherSiteBestValue));
 		}
@@ -5239,17 +5229,10 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 	else if (kPlot.getOwner() != NO_PLAYER)
 	{
 		CvPlayerAI const& kOwner = GET_PLAYER(kPlot.getOwnerINLINE()); // advc.003
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      11/30/08                                jdog5000      */
-/*                                                                                              */
-/* Debug                (K-Mod edited)                                                          */
-/************************************************************************************************/
-/* original code
+		// BETTER_BTS_AI_MOD (K-Mod edited), Debug, 11/30/08, jdog5000
+		/* original code
 		for (int iI = 0; iI < GC.getNumCivicInfos(); iI++)
-		{
-			szString.append(CvWString::format(L"\n %s = %d", GC.getCivicInfo((CivicTypes)iI).getDescription(), kOwner.AI_civicValue((CivicTypes)iI)));			
-		}
-*/
+			szString.append(CvWString::format(L"\n %s = %d", GC.getCivicInfo((CivicTypes)iI).getDescription(), kOwner.AI_civicValue((CivicTypes)iI)));*/
 		if(false && // advc.007: Disabled
 				bShift && !bAlt)
 		{
@@ -5356,7 +5339,6 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 				kPlot.headUnitNode() == NULL )
 		{
 			std::vector<UnitAITypes> vecUnitAIs;
-
 			if( kPlot.getFeatureType() != NO_FEATURE )
 			{
 				szString.append(CvWString::format(L"\nDefense unit AIs:"));
@@ -5371,9 +5353,7 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 				vecUnitAIs.push_back(UNITAI_ATTACK_CITY);
 				vecUnitAIs.push_back(UNITAI_COUNTER);
 			}
-
 			CvCity* pCloseCity = GC.getMapINLINE().findCity(x, y, kPlot.getOwner(), NO_TEAM, true);
-
 			if( pCloseCity != NULL )
 			{
 				for( uint iI = 0; iI < vecUnitAIs.size(); iI++ )
@@ -5396,14 +5376,12 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 				}
 			}
 		}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+		// BETTER_BTS_AI_MOD: END
 	}
 	/*  <advc.027> Shift+Ctrl on a plot w/o a unit shows a breakdown of the
 		area score computed in CvPlayer::findStartingArea. */
 	CvArea* a = kPlot.area();
-	PlayerTypes activePl = GC.getGame().getActivePlayer();
+	PlayerTypes activePl = g.getActivePlayer();
 	if(!a->isWater() && bShift && !bAlt && !kPlot.isUnit() &&
 			activePl != NO_PLAYER) {
 		int total = 0; int tmp = 0;
@@ -5418,11 +5396,7 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 	} // </advc.027>
 	// advc.007: BBAI showed this regardless of pressed buttons
 	if(bShift && !bAlt) {
-		/************************************************************************************************/
-		/* BETTER_BTS_AI_MOD                      07/11/08                                jdog5000      */
-		/*                                                                                              */
-		/* DEBUG                                                                                        */
-		/************************************************************************************************/
+		// BETTER_BTS_AI_MOD, DEBUG, 07/11/08, jdog5000
 		bool bFirst = true;
 		for (int iK = 0; iK < MAX_TEAMS; ++iK)
 		{
@@ -5441,10 +5415,8 @@ void CvGameTextMgr::setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot cons
 				}
 				szString.append(CvWString::format(L" %s,", GET_TEAM(eTeam).getName().c_str()));
 			}
-		}	
-		/************************************************************************************************/
-		/* BETTER_BTS_AI_MOD                       END                                                  */
-		/************************************************************************************************/
+		}
+		// BETTER_BTS_AI_MOD: END
 	}
 	// <advc.017b> Sea explorers
 	if(!bShift && !bAlt && kPlot.isWater() && kPlot.isOwned()) {
