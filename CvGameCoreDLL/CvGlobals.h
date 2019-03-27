@@ -194,9 +194,9 @@ public:
 	DllExport CvInterfaceModeInfo& getInterfaceModeInfo(InterfaceModeTypes e);
 
 	//NiPoint3& getPt3CameraDir(); // advc.003j: unused
-
+	// <advc> Exposed these two to Python for dlph.27
 	DllExport bool& getLogging();
-	DllExport bool& getRandLogging();
+	DllExport bool& getRandLogging(); // </advc>
 	DllExport bool& getSynchLogging();
 	DllExport bool& overwriteLogs();
 

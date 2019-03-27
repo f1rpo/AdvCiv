@@ -7,10 +7,11 @@ gc = CyGlobalContext()
 
 #szFilename = "OOSLog.txt"
 
-bWroteLog = False
+bWroteLog = False # (advc: I don't think this accomplishes anything)
 
 SEPERATOR = "-----------------------------------------------------------------\n"
 
+# dlph.27
 # DarkLunaPhantom - OOS logging, idea from Fall from Heaven 2 by Kael. This implementation is a slight modification of the one from ExtraModMod by Terkhen. Implemented as a BUG module.
 
 # Simply checks every game turn for OOS. If it finds it, writes the
@@ -18,25 +19,37 @@ SEPERATOR = "-----------------------------------------------------------------\n
 # variable so that it only happens once.
 def onGameUpdate(argsList):
 	global bWroteLog
+	# <advc> Same checks as in for the MPLog in CvRandom::get plus a WorldBuilder check for advc.135c (WorldBuilder always leads to OOS)
+	if not gc.isLogging() or not gc.isRandLogging() or gc.getGame().GetWorldBuilderMode():
+		return # </advc>
+
 	bOOS = CyInterface().isOOSVisible()
 
 	if (bOOS and not bWroteLog):
 		writeLog()
 		# Automatic OOS detection START
-		gc.getGame().setOOSVisible()
+		#gc.getGame().setOOSVisible() # advc: This function doesn't exist in Kek-Mod/AdvCiv
 		# Automatic OOS detection END
 		bWroteLog = True
-	# Make sure that OOS will be generated when the game is not restarted after an OOS.
+	# Make sure that the OOS log will be generated when the game is not restarted (advc: but e.g. reloaded?) after an OOS.
 	if (not bOOS):
 		bWroteLog = False
 
 def writeLog():
-	if not CyGame().isPitbossHost():
-		playername = CvUtil.convertToStr(gc.getPlayer(gc.getGame().getActivePlayer()).getName())
-	else:
-		playername = "PitBoss"
-	playername = CvUtil.convertToStr(gc.getPlayer(gc.getGame().getActivePlayer()).getName())
-	szNewFilename = BugPath.getRootDir() + "\\Logs\\" + "OOSLog - %s - " % (playername) + "Turn %s" % (gc.getGame().getGameTurn()) + ".txt"
+	# advc: Overwritten below, so what's the point?
+	#if not CyGame().isPitbossHost():
+	#	playername = CvUtil.convertToStr(gc.getPlayer(gc.getGame().getActivePlayer()).getName())
+	#else:
+	#	playername = "PitBoss"
+	activePlayer = gc.getPlayer(gc.getGame().getActivePlayer())
+	# advc: Prepend id b/c player names can be the same (that happens easily when testing on a single machine)
+	playername = str(activePlayer.getID()) + CvUtil.convertToStr(activePlayer.getName())
+	szNewFilename = BugPath.getRootDir() + "\\Logs\\" + "OOSLog - %s - " % (playername) + "Turn %s" % (gc.getGame().getGameTurn()) + ".log"
+	# <advc> Replacement for the bWroteLog mechanism above
+	bExists = os.path.isfile(szNewFilename)
+	if bExists:
+		return
+	# </advc>
 	pFile = open(szNewFilename, "w")
 
 	# Backup current language
@@ -60,14 +73,14 @@ def writeLog():
 	pFile.write(SEPERATOR)
 	pFile.write(SEPERATOR)
 	pFile.write("\n\n")
+	# advc: Call getSeed instead of get -- no need to change the state of the RNGs here.
+	pFile.write("Last Map Rand Value: %d\n" % CyGame().getMapRand().getSeed())
+	pFile.write("Last Soren Rand Value: %d\n" % CyGame().getSorenRand().getSeed())
 
-	pFile.write("Next Map Rand Value: %d\n" % CyGame().getMapRand().get(10000, "OOS Log"))
-	pFile.write("Next Soren Rand Value: %d\n" % CyGame().getSorenRand().get(10000, "OOS Log"))
-	
 	pFile.write("Total cities: %d\n" % CyGame().getNumCities() )
 	pFile.write("Total population: %d\n" % CyGame().getTotalPopulation() )
 	pFile.write("Total deals: %d\n" % CyGame().getNumDeals() )
-	
+
 	pFile.write("Total owned plots: %d\n" % CyMap().getOwnedPlots() )
 	pFile.write("Total number of areas: %d\n" % CyMap().getNumAreas() )
 
@@ -147,7 +160,7 @@ def writeLog():
 			pFile.write("Building Class Info:\n")
 			pFile.write("--------------------\n")
 			for iBuildingClass in range(gc.getNumBuildingClassInfos()):
-				pFile.write("Player %d, %s, Building class count plus building: %d\n" % (iPlayer, CvUtil.convertToStr(gc.getBuildingClassInfo(iBuildingClass).getDescription()), pPlayer.getBuildingClassCountPlusMaking(iBuildingClass) ))
+				pFile.write("Player %d, %s, Building class count plus making: %d\n" % (iPlayer, CvUtil.convertToStr(gc.getBuildingClassInfo(iBuildingClass).getDescription()), pPlayer.getBuildingClassCountPlusMaking(iBuildingClass) ))
 
 			pFile.write("\n\n")
 
@@ -162,7 +175,7 @@ def writeLog():
 			pFile.write("------------------\n")
 			for iUnitAIType in range(int(UnitAITypes.NUM_UNITAI_TYPES)):
 				pFile.write("Player %d, %s, Unit AI Type count: %d\n" % (iPlayer, gc.getUnitAIInfo(iUnitAIType).getDescription(), pPlayer.AI_totalUnitAIs(UnitAITypes(iUnitAIType)) ))
-			
+
 			pFile.write("\n\n")
 
 			pFile.write("Unit Info:\n")
@@ -176,7 +189,7 @@ def writeLog():
 				while (pLoopUnitTuple[0] != None):
 					pUnit = pLoopUnitTuple[0]
 					pFile.write("Player %d, Unit ID: %d, %s\n" % (iPlayer, pUnit.getID(), CvUtil.convertToStr(pUnit.getName()) ))
-					
+
 					pFile.write("X: %d, Y: %d\n" % (pUnit.getX(), pUnit.getY()) )
 					pFile.write("Damage: %d\n" % pUnit.getDamage() )
 					#pFile.write("Experience: %d\n" % pUnit.getExperienceTimes100() )
@@ -189,16 +202,19 @@ def writeLog():
 
 					pLoopUnitTuple = pPlayer.nextUnit(pLoopUnitTuple[1], False)
 					pFile.write("\n")
-			
-			pFile.write("\n\n")
 
-			pFile.write("Attitude Info:\n")
-			pFile.write("----------\n")
-			
-			iLoopPlayer = 0
-			for iLoopPlayer in range(gc.getMAX_PLAYERS()):
-				pLoopPlayer = gc.getPlayer(iLoopPlayer)
-				pFile.write("Players %d - %d, Attitude: %d (Note, actual attitudeval number is used for the OOS checksum.)\n" % (iPlayer, iLoopPlayer, pPlayer.AI_getAttitude(iLoopPlayer)))
+			if not pPlayer.isBarbarian(): # advc.003n
+				pFile.write("\n\n")
+				pFile.write("Attitude Info:\n")
+				pFile.write("----------\n")
+
+				iLoopPlayer = 0
+				# <advc.003n> was MAX_PLAYERS
+				for iLoopPlayer in range(gc.getMAX_CIV_PLAYERS()): 
+					if iPlayer == iLoopPlayer:
+						continue # </advc.003n>
+					pLoopPlayer = gc.getPlayer(iLoopPlayer)
+					pFile.write("Players %d - %d, Attitude: %d (Note, actual attitudeval number is used for the OOS checksum.)\n" % (iPlayer, iLoopPlayer, pPlayer.AI_getAttitude(iLoopPlayer)))
 
 			pFile.write("\n\n")
 
@@ -208,12 +224,13 @@ def writeLog():
 
 			if (iNumCities == 0):
 				pFile.write("No Cities")
-			else:
+			else: # advc: Don't print this for each city
+				pFile.write("(Events that have occurred are also used for the checksum.)\n")
 				pLoopCityTuple = pPlayer.firstCity(False)
 				while (pLoopCityTuple[0] != None):
 					pCity = pLoopCityTuple[0]
 					pFile.write("Player %d, City ID: %d, %s, X: %d, Y: %d\n"% (iPlayer, pCity.getID(), CvUtil.convertToStr(pCity.getName()), pCity.getX(), pCity.getY()))
-					
+
 					pFile.write("Religions and corporations present are also used for the checksum.\n")
 					#pFile.write("Founded: %d\n" % pCity.getGameTurnFounded() )
 					#pFile.write("Population: %d\n" % pCity.getPopulation() )
@@ -221,18 +238,19 @@ def writeLog():
 					#pFile.write("Improved Plots: %d\n" % pCity.countNumImprovedPlots() )
 					#pFile.write("Producing: %s\n" % pCity.getProductionName() )
 					#pFile.write("Turns remaining for production: %d\n" % pCity.getProductionTurnsLeft() )
-					pFile.write("%d happiness, %d unhappiness, %d health, %d unhealth, %d food\n" % (pCity.happyLevel(), pCity.unhappyLevel(0), pCity.goodHealth(), pCity.badHealth(False)), pCity.getFood() )
+					pFile.write("%d happiness, %d unhappiness, %d health, %d unhealth, %d food\n" % (pCity.happyLevel(), pCity.unhappyLevel(0), pCity.goodHealth(), pCity.badHealth(False), pCity.getFood()) )
+					# advc.007:
+					pFile.write("Needed floating defenders: %d\n" % pCity.AI_neededFloatingDefenders())
 					#pFile.write("%d Tiles Worked, %d Specialists, %d Great People\n" % (pCity.getWorkingPopulation(), pCity.getSpecialistPopulation(), pCity.getNumGreatPeople()) )
 					#pFile.write("City radius: %d\n" % pCity.getPlotRadius() )
-					pFile.write("Events that have occurred are also used for the checksum.\n")
 
 					pLoopCityTuple = pPlayer.nextCity(pLoopCityTuple[1], False)
 					pFile.write("\n")
-				
+
 
 			# Space at end of player's info
 			pFile.write("\n\n")
-		
+
 	# Restore current language
 	CyGame().setCurrentLanguage(iLanguage)
 

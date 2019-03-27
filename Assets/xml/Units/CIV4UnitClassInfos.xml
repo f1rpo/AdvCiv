@@ -772,9 +772,10 @@
 			<iInstanceCostModifier>0</iInstanceCostModifier>
 			<DefaultUnit>UNIT_SCIENTIST</DefaultUnit>
 		</UnitClassInfo>
+		<!-- advc.001: was TXT_KEY_UNIT_GREAT_TYCOON -->
 		<UnitClassInfo>
 			<Type>UNITCLASS_MERCHANT</Type>
-			<Description>TXT_KEY_UNIT_GREAT_TYCOON</Description>
+			<Description>TXT_KEY_UNIT_GREAT_MERCHANT</Description>
 			<iMaxGlobalInstances>-1</iMaxGlobalInstances>
 			<iMaxTeamInstances>-1</iMaxTeamInstances>
 			<iMaxPlayerInstances>-1</iMaxPlayerInstances>
