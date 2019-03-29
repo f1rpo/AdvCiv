@@ -429,7 +429,10 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 			graphic = self.categoryGraphics[category[0]]
 			# <advc.002b> Prepend graphic only if there is room
 			szHeading = category[1]
-			if len(szHeading) <= 16:
+			iThresh = 16 # For English, 16 happens to be OK.
+			if gc.getGame().getCurrentLanguage() != 0:
+				iThresh = 15
+			if len(szHeading) <= iThresh:
 				szHeading = graphic + szHeading # </advc.002b>
 			screen.appendListBoxStringNoUpdate(self.CATEGORY_LIST_ID, szHeading, WidgetTypes.WIDGET_PEDIA_MAIN, SevoScreenEnums.PEDIA_MAIN + i + 1, 0, CvUtil.FONT_LEFT_JUSTIFY)
 		screen.updateListBox(self.CATEGORY_LIST_ID)

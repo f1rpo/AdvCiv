@@ -253,7 +253,7 @@ public:
 	// advc.127:
 	void setAIAutoPlayBulk(int iNewValue, bool changePlayerStatus = true);
 	void changeAIAutoPlay(int iChange,
-			bool changePlayerStatus = true); // advc.127
+			bool bChangePlayerStatus = true); // advc.127
 	// <advc.003b>
 	int getCivPlayersEverAlive() const;
 	void changeCivPlayersEverAlive(int iChange);
@@ -304,6 +304,9 @@ public:
 
 	DllExport bool isFinalInitialized() const;																		// Exposed to Python
 	DllExport void setFinalInitialized(bool bNewValue);
+	// <advc.004x>
+	void setDawnOfManShown(bool b);
+	bool isAboutToShowDawnOfMan() const; // </advc.004x>
 	// <advc.061>
 	void setScreenDimensions(int x, int y); // (exposed to Python)
 	int getScreenWidth() const;
@@ -712,6 +715,7 @@ protected:
 	bool m_bFeignSP; // advc.135c
 	bool m_bScenario; // advc.052
 	bool m_bAllGameDataRead; // advc.003
+	bool m_bDoMShown; // advc.004x
 
 	HandicapTypes m_eHandicap;
 	HandicapTypes m_eAIHandicap; // advc.127

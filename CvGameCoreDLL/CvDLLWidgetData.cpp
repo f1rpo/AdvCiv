@@ -2192,8 +2192,13 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 
 			if (!CvWString(kCommand.getHelp()).empty())
 			{
-				szBuffer.append(CvWString::format(L"%s%s", NEWLINE,
-						kCommand.getHelp()).c_str());
+				szBuffer.append(NEWLINE);
+				// <advc.004g>
+				if(kAction.getCommandType() == COMMAND_LOAD && pHeadSelectedUnit != NULL &&
+						pHeadSelectedUnit->isCargo())
+					szBuffer.append(gDLL->getText("TXT_KEY_COMMAND_TRANSFER_HELP"));
+				else // </advc.004g>
+					szBuffer.append(kCommand.getHelp());
 			}
 			// <advc.004b>
 			if(kAction.getCommandType() == COMMAND_DELETE) {
@@ -2277,8 +2282,8 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 					kAction.getAutomateType());
 			if (!CvWString(kAutomate.getHelp()).empty())
 			{
-				szBuffer.append(CvWString::format(L"%s%s", NEWLINE,
-						kAutomate.getHelp()).c_str());
+				szBuffer.append(NEWLINE);
+				szBuffer.append(kAutomate.getHelp());
 			}
 		}
 	}
@@ -2289,8 +2294,8 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 				kAction.getControlType());
 		if (!CvWString(kControl.getHelp()).empty())
 		{
-			szBuffer.append(CvWString::format(L"%s%s", NEWLINE,
-					kControl.getHelp()).c_str());
+			szBuffer.append(NEWLINE);
+			szBuffer.append(kControl.getHelp());
 		}
 	}
 
@@ -2299,8 +2304,8 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 		CvInterfaceModeInfo const& kIMode = GC.getInterfaceModeInfo((InterfaceModeTypes)
 				kAction.getInterfaceModeType());
 		if (!CvWString(kIMode.getHelp()).empty()) {
-			szBuffer.append(CvWString::format(L"%s%s", NEWLINE,
-					kIMode.getHelp()).c_str());
+			szBuffer.append(NEWLINE);
+			szBuffer.append(kIMode.getHelp());
 		}
 	}
 }
@@ -3237,8 +3242,10 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 		szBuffer.append(gDLL->getText("TXT_KEY_ACTION_NUM_TURNS", iTurns));
 		CvBuildInfo const& kBuild = GC.getBuildInfo(eBuild);
 		if (!CvWString(kBuild.getHelp()).empty())
-			szBuffer.append(CvWString::format(L"%s%s", NEWLINE, kBuild.getHelp()).c_str());
-		// <advc.011b>
+		{
+			szBuffer.append(NEWLINE);
+			szBuffer.append(kBuild.getHelp());
+		} // <advc.011b>
 		if(bValid && iTurns > 1 && GC.ctrlKey()) {
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_SUSPEND_WORK"));
@@ -3252,8 +3259,8 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction,
 		if(eMission == MISSION_DISCOVER)
 			szBuffer.append(getDiscoverPathText(kUnit.getUnitType(), kUnitOwner.getID()));
 		else { // </advc.004a>
-			szBuffer.append(CvWString::format(L"%s%s", NEWLINE,
-			GC.getMissionInfo(eMission).getHelp()).c_str());
+			szBuffer.append(NEWLINE);
+			szBuffer.append(GC.getMissionInfo(eMission).getHelp());
 		}
 	}
 } // </advc.003>

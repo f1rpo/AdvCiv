@@ -6452,6 +6452,8 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 	FAssert(ePlayer >= 0);
 	FAssert(ePlayer < MAX_PLAYERS);
 
+	CvGame& g = GC.getGameINLINE();
+
 	if (GC.getTechInfo(eIndex).isRepeat())
 	{
 		m_paiTechCount[eIndex]++;
@@ -6465,7 +6467,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 		{
 			if (bAnnounce)
 			{
-				if (GC.getGameINLINE().isFinalInitialized() && !(gDLL->GetWorldBuilderMode()))
+				if (g.isFinalInitialized() && !(gDLL->GetWorldBuilderMode()))
 				{
 					announceTechToPlayers(eIndex,
 							ePlayer); // advc.156
@@ -6551,7 +6553,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 		{
 			if (eIndex == GC.getSpecialBuildingInfo((SpecialBuildingTypes)iI).getTechPrereqAnyone())
 			{
-				GC.getGameINLINE().makeSpecialBuildingValid((SpecialBuildingTypes)iI, bAnnounce);
+				g.makeSpecialBuildingValid((SpecialBuildingTypes)iI, bAnnounce);
 			}
 		}
 
@@ -6561,7 +6563,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 		bool bReligionFounded = false;
 		bool bFirstBonus = false;
 		// advc.106:
-		bool firstToDiscover = (GC.getGameINLINE().countKnownTechNumTeams(eIndex) == 1);
+		bool firstToDiscover = (g.countKnownTechNumTeams(eIndex) == 1);
 		if (bFirst)
 		{
 			if (firstToDiscover)
@@ -6590,7 +6592,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 									{
 										int iValue = 10;
 
-										iValue += GC.getGameINLINE().getSorenRandNum(10, "Found Religion (Player)");
+										iValue += g.getSorenRandNum(10, "Found Religion (Player)");
 
 										for (int iK = 0; iK < GC.getNumReligionInfos(); iK++)
 										{
@@ -6613,9 +6615,9 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 
 							if (eBestPlayer != NO_PLAYER)
 							{
-								GC.getGameINLINE().setReligionSlotTaken((ReligionTypes)iI, true);
+								g.setReligionSlotTaken((ReligionTypes)iI, true);
 
-								if (GC.getGameINLINE().isOption(GAMEOPTION_PICK_RELIGION))
+								if (g.isOption(GAMEOPTION_PICK_RELIGION))
 								{
 									if (GET_PLAYER(eBestPlayer).isHuman())
 									{
@@ -6649,7 +6651,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 					{
 						if (GC.getCorporationInfo((CorporationTypes)iI).getTechPrereq() == eIndex)
 						{
-							if (!(GC.getGameINLINE().isCorporationFounded((CorporationTypes)iI)))
+							if (!(g.isCorporationFounded((CorporationTypes)iI)))
 							{
 								int iBestValue = MAX_INT;
 								PlayerTypes eBestPlayer = NO_PLAYER;
@@ -6662,7 +6664,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 										{
 											int iValue = 10;
 
-											iValue += GC.getGameINLINE().getSorenRandNum(10, "Found Corporation (Player)");
+											iValue += g.getSorenRandNum(10, "Found Corporation (Player)");
 
 											if (GET_PLAYER((PlayerTypes)iJ).getCurrentResearch() != eIndex)
 											{
@@ -6744,7 +6746,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 				// advc.106: Do it at the end instead
 				if(GC.getDefineINT("SHOW_FIRST_TO_DISCOVER_IN_REPLAY") <= 0) {
 					szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_FIRST_TO_TECH", GET_PLAYER(ePlayer).getReplayName(), GC.getTechInfo(eIndex).getTextKeyWide());
-					GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, ePlayer, szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+					g.addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, ePlayer, szBuffer, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 				} // advc.106
 			} // <advc.004>
 			if(bAnnounceFirst) { // Cut, pasted, refactored from above
@@ -6792,48 +6794,51 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 		}
 
 
-		if (bAnnounce && GC.getGameINLINE().isFinalInitialized() &&
-			!gDLL->GetWorldBuilderMode()) // advc.003
+		if (bAnnounce && g.isFinalInitialized() &&
+				!gDLL->GetWorldBuilderMode()) // advc.003
 		{
-			announceTechToPlayers(eIndex,
-					ePlayer); // advc.156
-			bool messageSent = false; // advc.004r
+			announceTechToPlayers(eIndex, /* advc.156: */ ePlayer); 
+			bool bMessageSent = false; // advc.004r
 			for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 			{
-				CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+				CvPlot const& kLoopPlot = *GC.getMapINLINE().plotByIndexINLINE(iI);
 				// <advc.004r>
-				TeamTypes revTeam = pLoopPlot->getRevealedTeam(getID(), false);
-				if((revTeam != getID() && revTeam != NO_TEAM &&
-						revTeam != BARBARIAN_TEAM &&
-						!GET_TEAM(revTeam).isVassal(getID())) ||
-						!pLoopPlot->isRevealed(getID(), false)) // </advc.004r>
+				TeamTypes eRevealedTeam = kLoopPlot.getRevealedTeam(getID(), false);
+				if((eRevealedTeam != getID() && eRevealedTeam != NO_TEAM &&
+						eRevealedTeam != BARBARIAN_TEAM &&
+						!GET_TEAM(eRevealedTeam).isVassal(getID())) ||
+						!kLoopPlot.isRevealed(getID(), false)) // </advc.004r>
 					continue; // advc.003
-				BonusTypes eBonus = pLoopPlot->getBonusType();
+				BonusTypes eBonus = kLoopPlot.getBonusType();
 				if (eBonus == NO_BONUS)
-					continue; // advc.003
+					continue;
 				if (GC.getBonusInfo(eBonus).getTechReveal() != eIndex ||
 						isForceRevealedBonus(eBonus))
-					continue; // advc.003
-				CvCity* pCity = GC.getMapINLINE().findCity(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), NO_PLAYER,
+					continue;
+				CvCity* pCity = GC.getMapINLINE().findCity(kLoopPlot.getX_INLINE(), kLoopPlot.getY_INLINE(), NO_PLAYER,
 						// advc.004r: Pass ID as 'observer' (last param) instead of city owner 
 						NO_TEAM, false, false, NO_TEAM, NO_DIRECTION, NULL, getID());
 				if (pCity == NULL)
-					continue; // advc.003
+					continue;
 				CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_DISCOVERED_BONUS", GC.getBonusInfo(eBonus).getTextKeyWide(), pCity->getNameKey());
 				/*  <advc.004r> Announce to all team members (instead of
 					plot owner, which may not even be alive) */
 				for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-					CvPlayer& member = GET_PLAYER((PlayerTypes)i);
-					if(!member.isAlive() || member.getTeam() != getID())
+					CvPlayer& kMember = GET_PLAYER((PlayerTypes)i);
+					if(!kMember.isAlive() || kMember.getTeam() != getID())
 						continue;
-					messageSent = true;
-					gDLL->getInterfaceIFace()->addHumanMessage(member.getID(),
+					bMessageSent = true;
+					gDLL->getInterfaceIFace()->addHumanMessage(kMember.getID(),
 							// </advc.004r>
-							false, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_DISCOVERBONUS", MESSAGE_TYPE_INFO, GC.getBonusInfo(eBonus).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), true, true);
+							false, GC.getEVENT_MESSAGE_TIME(), szBuffer,
+							"AS2D_DISCOVERBONUS", MESSAGE_TYPE_INFO,
+							GC.getBonusInfo(eBonus).getButton(), (ColorTypes)
+							GC.getInfoTypeForString("COLOR_WHITE"),
+							kLoopPlot.getX_INLINE(), kLoopPlot.getY_INLINE(), true, true);
 				}
 			}
 			// <advc.004r> Report no sources
-			if(!messageSent && !isBarbarian() && !isMinorCiv()) {
+			if(!bMessageSent && !isBarbarian() && !isMinorCiv()) {
 				BonusTypes eBonus = NO_BONUS;
 				for(int i = 0; i < GC.getNumBonusInfos() && eBonus == NO_BONUS; i++) {
 					BonusTypes b = (BonusTypes)i;
@@ -6845,53 +6850,51 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 						CvWString szBuffer = gDLL->getText(
 								"TXT_KEY_MISC_DISCOVERED_NO_BONUS",
 								GC.getBonusInfo(eBonus).getTextKeyWide());
-						CvPlayer& member = GET_PLAYER((PlayerTypes)i);
-						if(!member.isAlive() || member.getTeam() != getID())
+						CvPlayer& kMember = GET_PLAYER((PlayerTypes)i);
+						if(!kMember.isAlive() || kMember.getTeam() != getID())
 							continue;
-						gDLL->getInterfaceIFace()->addHumanMessage(member.getID(),
+						gDLL->getInterfaceIFace()->addHumanMessage(kMember.getID(),
 								false, GC.getEVENT_MESSAGE_TIME(), szBuffer
 								// Don't play the sound
 								/*,"AS2D_DISCOVERBONUS"*/);
 					}
 				}
 			} // </advc.004r>
+		}
+		/*  advc.004x: Don't check bAnnounce for civics popup. FinalInitialized:
+			Let CvPlayer::doChangeCivicsPopup handle that. */
+		if(!gDLL->GetWorldBuilderMode() && getID() == g.getActiveTeam())
+		{
 			for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
-			{	// <advc.003> Un-nested the ifs to reduce indentation
-				CvPlayer& civ = GET_PLAYER((PlayerTypes)iI);
-				if (civ.isAlive() &&
-						civ.getTeam() == getID() &&
-						civ.isHuman() &&
-						(!bReligionFounded ||
-						civ.getLastStateReligion() != NO_RELIGION ||
-						civ.getID() != ePlayer) /*&&
-						civ.canRevolution(NULL)*/) { // advc.004x
+			{	// advc.003: Un-nested the conditions
+				CvPlayer& kCiv = GET_PLAYER((PlayerTypes)iI);
+				if (kCiv.isAlive() && kCiv.getTeam() == getID() && kCiv.isHuman() &&
+						(kCiv.getID() != ePlayer || !bReligionFounded ||
+						kCiv.getLastStateReligion() != NO_RELIGION) /*&&
+						kCiv.canRevolution(NULL)*/) { // advc.004x
 					CivicTypes eCivic = NO_CIVIC;
-					// </advc.003>
 					for (int iJ = 0; iJ < GC.getNumCivicOptionInfos(); iJ++)
 					{
-						if (!civ.isHasCivicOption((CivicOptionTypes)iJ))
+						if (kCiv.isHasCivicOption((CivicOptionTypes)iJ))
+							continue; // advc.003
+						for (int iK = 0; iK < GC.getNumCivicInfos(); iK++)
 						{
-							for (int iK = 0; iK < GC.getNumCivicInfos(); iK++)
-							{
-								if (GC.getCivicInfo((CivicTypes)iK).getCivicOptionType() == iJ)
-								{
-									if (GC.getCivicInfo((CivicTypes)iK).getTechPrereq() == eIndex)
-									{
-										//eCivicOption = (CivicOptionTypes)iJ; // advc.003: unused
-										eCivic = (CivicTypes)iK;
-									}
-								}
+							CivicTypes eLoopCivic = (CivicTypes)iK;
+							if (GC.getCivicInfo(eLoopCivic).getCivicOptionType() != iJ)
+								continue;
+							if (GC.getCivicInfo(eLoopCivic).getTechPrereq() == eIndex)
+							{	//eCivicOption = (CivicOptionTypes)iJ; // advc.003: unused
+								eCivic = eLoopCivic;
 							}
 						}
 					} // <advc.004x>
-					if(eCivic != NO_CIVIC && civ.canDoCivics(eCivic)) {
+					if(eCivic != NO_CIVIC && kCiv.canDoCivics(eCivic)) {
 						// BtS code moved into subroutine
-						civ.doChangeCivicsPopup(eCivic);
+						kCiv.doChangeCivicsPopup(eCivic);
 					} // </advc.004x>
 				}
 			}
 		}
-
 		for (int iI = 0; iI < MAX_TEAMS; iI++)
 		{
 			if (GET_TEAM((TeamTypes)iI).isAlive())
@@ -6903,15 +6906,13 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 			}
 		}
 		// <advc.106>
-		if(bFirst && firstToDiscover &&
-				GC.getGameINLINE().getElapsedGameTurns() > 0 &&
+		if(bFirst && firstToDiscover && g.getElapsedGameTurns() > 0 &&
 				GC.getDefineINT("SHOW_FIRST_TO_DISCOVER_IN_REPLAY") > 0) {
 			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_SOMEONE_FIRST_TO_TECH",
 					GET_PLAYER(ePlayer).getReplayName(),
 					GC.getTechInfo(eIndex).getTextKeyWide());
-			GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT,
-					ePlayer, szBuffer, -1, -1, (ColorTypes)
-					GC.getInfoTypeForString("COLOR_ALT_HIGHLIGHT_TEXT"));
+			g.addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, ePlayer, szBuffer,
+					-1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_ALT_HIGHLIGHT_TEXT"));
 		} // </advc.106>
 	}
 
@@ -6919,7 +6920,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 	{
 		if (bAnnounce)
 		{
-			if (GC.getGameINLINE().isFinalInitialized() && !(gDLL->GetWorldBuilderMode()))
+			if (g.isFinalInitialized() && !(gDLL->GetWorldBuilderMode()))
 			{
 				FAssert(ePlayer != NO_PLAYER);
 				//if (GET_PLAYER(ePlayer).isResearch() && (GET_PLAYER(ePlayer).getCurrentResearch() == NO_TECH))
@@ -6932,7 +6933,7 @@ void CvTeam::setHasTech(TechTypes eIndex, bool bNewValue, PlayerTypes ePlayer, b
 		}
 	}
 
-	if (getID() == GC.getGameINLINE().getActiveTeam())
+	if (getID() == g.getActiveTeam())
 	{
 		gDLL->getInterfaceIFace()->setDirty(MiscButtons_DIRTY_BIT, true);
 		gDLL->getInterfaceIFace()->setDirty(SelectionButtons_DIRTY_BIT, true);

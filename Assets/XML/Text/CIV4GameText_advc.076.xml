@@ -336,7 +336,7 @@
 	<!-- Info about keyboard shortcuts added -->
 	<TEXT>
 		<Tag>TXT_KEY_PLAYER_OPTION_NO_UNIT_CYCLING_HELP</Tag>
-		<English>No automatic cycling between units, i.e. units remain selected after receiving an order; use [W] or [ENTER] to jump to the next unit that needs orders. K-Mod: Holding down [X] suppressed automatic unit cycling (if it is enabled).</English>
+		<English>No automatic cycling between units, i.e. units remain selected after receiving an order; use [W] or [ENTER] to jump to the next unit that needs orders. K-Mod: Holding down [X] suppresses automatic unit cycling (if it is enabled).</English>
 		<French>Pas de cycle automatique entre les unit&#233;s.</French>
 		<German>Kein automatischer Einheitendurchlauf, d.h. Einheiten, die einen Befehl erhalten haben, bleiben ausgewählt; durch Drücken von [W] oder [EINGABE] können Sie zur nächsten Einheit springen, die Befehle benötigt. K-Mod: Der automatische Durchlauf (falls aktiviert) lässt sich durch Halten von [X] unterbinden.</German>
 		<Italian>Disattiva lo scorrimento automatico tra le unit&#224;</Italian>

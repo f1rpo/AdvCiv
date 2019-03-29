@@ -14164,7 +14164,9 @@ bool CvUnitAI::AI_hurry()
 							if (bHurry)
 							{
 								int iTurnsLeft = pLoopCity->getProductionTurnsLeft();
-
+								// <advc.004x>
+								if(iTurnsLeft == MAX_INT)
+									continue; // </advc.004x>
 								iTurnsLeft -= iPathTurns;
 
 								if (iTurnsLeft > 8)

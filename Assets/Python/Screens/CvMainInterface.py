@@ -3708,6 +3708,7 @@ class CvMainInterface:
 						szBuffer = pHeadSelectedCity.getProductionName()
 # BUG - Whip Assist - start
 					else:
+						iProductionTurns = pHeadSelectedCity.getProductionTurnsLeft() # advc.004x
 						HURRY_WHIP = gc.getInfoTypeForString("HURRY_POPULATION")
 						HURRY_BUY = gc.getInfoTypeForString("HURRY_GOLD")
 						if (CityScreenOpt.isShowWhipAssist() and pHeadSelectedCity.canHurry(HURRY_WHIP, False)):
@@ -3739,14 +3740,30 @@ class CvMainInterface:
 							iOverflow = pHeadSelectedCity.getHurryOverflow(HURRY_WHIP, True, bCountCurrentOverflow)
 							iOverflowGold = pHeadSelectedCity.getHurryOverflow(HURRY_WHIP, False, bCountCurrentOverflow)
 							if iOverflowGold > 0: # </advc.064>
-								szBuffer = localText.getText("INTERFACE_CITY_PRODUCTION_WHIP_PLUS_GOLD", (pHeadSelectedCity.getProductionNameKey(), pHeadSelectedCity.getProductionTurnsLeft(), iHurryPop, iOverflow, iOverflowGold))
+								# <advc.004x>
+								if iProductionTurns <= 0:
+									szBuffer = localText.getText("INTERFACE_CITY_NO_PRODUCTION_WHIP_PLUS_GOLD", (pHeadSelectedCity.getProductionNameKey(), iHurryPop, iOverflow, iOverflowGold))
+								else: # </advc.004x>
+									szBuffer = localText.getText("INTERFACE_CITY_PRODUCTION_WHIP_PLUS_GOLD", (pHeadSelectedCity.getProductionNameKey(), iProductionTurns, iHurryPop, iOverflow, iOverflowGold))
 							else:
-								szBuffer = localText.getText("INTERFACE_CITY_PRODUCTION_WHIP", (pHeadSelectedCity.getProductionNameKey(), pHeadSelectedCity.getProductionTurnsLeft(), iHurryPop, iOverflow))
+								# <advc.004x>
+								if iProductionTurns <= 0:
+									szBuffer = localText.getText("INTERFACE_CITY_NO_PRODUCTION_WHIP", (pHeadSelectedCity.getProductionNameKey(), iHurryPop, iOverflow))
+								else: # </advc.004x>
+									szBuffer = localText.getText("INTERFACE_CITY_PRODUCTION_WHIP", (pHeadSelectedCity.getProductionNameKey(), iProductionTurns, iHurryPop, iOverflow))
 						elif (CityScreenOpt.isShowWhipAssist() and pHeadSelectedCity.canHurry(HURRY_BUY, False)):
 							iHurryCost = pHeadSelectedCity.hurryGold(HURRY_BUY)
-							szBuffer = localText.getText("INTERFACE_CITY_PRODUCTION_BUY", (pHeadSelectedCity.getProductionNameKey(), pHeadSelectedCity.getProductionTurnsLeft(), iHurryCost))
+							# <advc.004x>
+							if iProductionTurns <= 0:
+								szBuffer = localText.getText("INTERFACE_CITY_NO_PRODUCTION_BUY", (pHeadSelectedCity.getProductionNameKey(), iHurryCost))
+							else: # </advc.004x>
+								szBuffer = localText.getText("INTERFACE_CITY_PRODUCTION_BUY", (pHeadSelectedCity.getProductionNameKey(), iProductionTurns, iHurryCost))
 						else:
-							szBuffer = localText.getText("INTERFACE_CITY_PRODUCTION", (pHeadSelectedCity.getProductionNameKey(), pHeadSelectedCity.getProductionTurnsLeft()))
+							# <advc.004x>
+							if iProductionTurns <= 0:
+								szBuffer = pHeadSelectedCity.getProductionName()
+							else: # </advc.004x>
+								szBuffer = localText.getText("INTERFACE_CITY_PRODUCTION", (pHeadSelectedCity.getProductionNameKey(), iProductionTurns))
 # BUG - Whip Assist - end
 
 					screen.setLabel( "ProductionText", "Background", szBuffer, CvUtil.FONT_CENTER_JUSTIFY, screen.centerX(512), iCityCenterRow2Y, -1.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
@@ -4679,7 +4696,9 @@ class CvMainInterface:
 				
 				if ( CyInterface().getOrderNodeType(i) == OrderTypes.ORDER_TRAIN ):
 					szLeftBuffer = gc.getUnitInfo(CyInterface().getOrderNodeData1(i)).getDescription()
-					szRightBuffer = "(" + str(pHeadSelectedCity.getUnitProductionTurnsLeft(CyInterface().getOrderNodeData1(i), i)) + ")"
+					iProductionTurns = pHeadSelectedCity.getUnitProductionTurnsLeft(CyInterface().getOrderNodeData1(i), i)
+					if iProductionTurns > 0: # advc.004x
+						szRightBuffer = "(" + str(iProductionTurns) + ")"
 
 					if (CyInterface().getOrderNodeSave(i)):
 						szLeftBuffer = u"*" + szLeftBuffer
@@ -4705,7 +4724,9 @@ class CvMainInterface:
 
 				elif ( CyInterface().getOrderNodeType(i) == OrderTypes.ORDER_CONSTRUCT ):
 					szLeftBuffer = gc.getBuildingInfo(CyInterface().getOrderNodeData1(i)).getDescription()
-					szRightBuffer = "(" + str(pHeadSelectedCity.getBuildingProductionTurnsLeft(CyInterface().getOrderNodeData1(i), i)) + ")"
+					iProductionTurns = pHeadSelectedCity.getBuildingProductionTurnsLeft(CyInterface().getOrderNodeData1(i), i)
+					if iProductionTurns > 0: # advc.004x
+						szRightBuffer = "(" + str(iProductionTurns) + ")"
 
 # BUG - Production Started - start
 					if CityScreenOpt.isShowProductionStarted():
@@ -4728,7 +4749,9 @@ class CvMainInterface:
 
 				elif ( CyInterface().getOrderNodeType(i) == OrderTypes.ORDER_CREATE ):
 					szLeftBuffer = gc.getProjectInfo(CyInterface().getOrderNodeData1(i)).getDescription()
-					szRightBuffer = "(" + str(pHeadSelectedCity.getProjectProductionTurnsLeft(CyInterface().getOrderNodeData1(i), i)) + ")"
+					iProductionTurns = pHeadSelectedCity.getProjectProductionTurnsLeft(CyInterface().getOrderNodeData1(i), i)
+					if iProductionTurns > 0: # advc.004x
+						szRightBuffer = "(" + str(iProductionTurns) + ")"
 
 # BUG - Production Started - start
 					if BugDll.isVersion(3) and CityScreenOpt.isShowProductionStarted():

@@ -906,6 +906,18 @@
 		<Spanish>La unidad corta la ruta comercial para que ninguna operaci&#243;n de comercio intercontinental pueda atravesar la casilla bloqueada.</Spanish>
 	</TEXT>
 	
+	<!-- advc.004g: Based on TXT_KEY_COMMAND_LOAD_HELP in
+		 CIV4GameText_Help.xml. For situations when "Load" means going
+		 from one ship to another. FR/IT/ES not changed. -->
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_TRANSFER_HELP</Tag>
+		<English>Move this unit into another transport.</English>
+		<French>Embarquer l'unit&#233; &#224; bord d'un transport.</French>
+		<German>Die Einheit steigt in ein anderes Transportschiff um.</German>
+		<Italian>Per muovere un'unit&#224; a bordo di un trasporto.</Italian>
+		<Spanish>Con esto subir&#233;is la unidad a un transporte.</Spanish>
+	</TEXT>
+	
 	<!-- advc.004: German translation - "Neuer Random Seed" was just too
 		 awful. Originally in CIV4GameText_Misc1.xml. -->
 	<TEXT>
@@ -3327,14 +3339,15 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_GAME_OPTION_RISE_FALL_HELP</Tag>
-		<English>Divides the game into chapters; at the end of each chapter, you take over an AI civ and the AI takes over your previous civ. (Singleplayer only, and Large or Huge map recommended.)</English>
-		<French>Divides the game into chapters; at the end of each chapter, you take over an AI civ and the AI takes over your previous civ. (Singleplayer only, and Large or Huge map recommended.)</French>
-		<German>Der Spieler übernimmt in jedem Spielabschnitt eine andere Zivilisation von der KI. (Nur Einzelspielermodus; große oder riesige Karte empfohlen.)</German>
-		<Italian>Divides the game into chapters; at the end of each chapter, you take over an AI civ and the AI takes over your previous civ. (Singleplayer only, and Large or Huge map recommended.)</Italian>
-		<Spanish>Divides the game into chapters; at the end of each chapter, you take over an AI civ and the AI takes over your previous civ. (Singleplayer only, and Large or Huge map recommended.)</Spanish>
+		<English>Divides the game into chapters; at the end of each chapter, you take over an AI civ and the AI takes over your previous civ. (Map size above "Standard" recommended.)</English>
+		<French>Divides the game into chapters; at the end of each chapter, you take over an AI civ and the AI takes over your previous civ. (Map size above "Standard" recommended.)</French>
+		<German>Der Spieler übernimmt in jedem Spielabschnitt eine andere Zivilisation von der KI. (Große oder riesige Karte empfohlen.)</German>
+		<Italian>Divides the game into chapters; at the end of each chapter, you take over an AI civ and the AI takes over your previous civ. (Map size above "Standard" recommended.)</Italian>
+		<Spanish>Divides the game into chapters; at the end of each chapter, you take over an AI civ and the AI takes over your previous civ. (Map size above "Standard" recommended.)</Spanish>
 	</TEXT>
 
-	<!-- advc.702 -->
+	<!-- advc.702 (obsoleted by advc.701, which removes the RF option from the
+		 Staging Room screen). -->
 	<TEXT>
 		<Tag>TXT_KEY_RF_SINGLEPL_ONLY</Tag>
 		<English>The Rise and Fall option is only for singleplayer games.</English>
@@ -4678,6 +4691,17 @@
 		<Italian>Tutte le civilt&#224; sono bloccate in guerra o in pace per tutta la partita</Italian>
 		<Spanish>Todas las civilizaciones quedar&#225;n bloqueadas en guerra o en paz hasta que acabe la partida.</Spanish>
 	</TEXT>
+
+	<!-- advc.054: From CIV4GameText_Misc1.xml. Removed the single-player-only
+		 hint b/c the option is no longer shown on the Staging Room screen. -->
+	<TEXT>
+		<Tag>TXT_KEY_GAME_OPTION_LOCK_MODS_HELP</Tag>
+		<English>Sets a random admin password so that debug tools cannot be used, and the game assets cannot be modified.</English>
+		<French>Les outils de debug ne peuvent pas &#234;tre utilis&#233;s et les donn&#233;es de la partie ne peuvent pas &#234;tre modifi&#233;es.</French>
+		<German>Debug-Tools k&#246;nnen nicht verwendet und die Spieldaten k&#246;nnen nicht modifiziert werden.</German>
+		<Italian>Impedisce l'utilizzo degli strumenti di debug, impedendo la modifica dei beni di gioco.</Italian>
+		<Spanish>No se pueden usar herramientas de depuraci&#243;n, ni se pueden modificar los par&#225;metros del juego.</Spanish>
+	</TEXT>
 	
 	<!-- advc.061: Would prefer game terms like "Military", but space is
 		 limited and the important distinctions are between military land units,
@@ -5281,6 +5305,26 @@
 		<German>Was wollt Ihr in %s1_CityName errichten?</German>
 		<Italian>Cosa vuoi creare in questa citt&#224;?</Italian>
 		<Spanish>&#191;Qu&#233; os gustar&#237;a construir en esta ciudad?</Spanish>
+	</TEXT>
+	
+	<!-- advc.004x: Based on TXT_KEY_CITY_BAR_HAMMER_PRODUCTION and
+		 TXT_KEY_CITY_BAR_FOOD_HAMMER_PRODUCTION in
+		 CIV4GameTextInfos.xml. Removed the production turns in parentheses. -->
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BAR_HAMMER_NO_PRODUCTION</Tag>
+		<English>[NEWLINE]%d1 [ICON_PRODUCTION]/Turn[NEWLINE]%s2: %d3/%d4 [ICON_PRODUCTION]</English>
+		<French>[NEWLINE]%d1 [ICON_PRODUCTION]/tour[NEWLINE]%s2 : %d3/%d4 [ICON_PRODUCTION]</French>
+		<German>[NEWLINE]%d1 [ICON_PRODUCTION]/Runde[NEWLINE]%s2: %d3/%d4 [ICON_PRODUCTION]</German>
+		<Italian>[NEWLINE]%d1 [ICON_PRODUCTION]/Turno[NEWLINE]%s2: %d3/%d4 [ICON_PRODUCTION]</Italian>
+		<Spanish>[NEWLINE]%d1 [ICON_PRODUCTION]/turno[NEWLINE]%s2: %d3/%d4 [ICON_PRODUCTION]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BAR_FOOD_HAMMER_NO_PRODUCTION</Tag>
+		<English>[NEWLINE]%d1 [ICON_FOOD] + %d2 [ICON_PRODUCTION]/Turn[NEWLINE]%s3: %d4/%d5 [ICON_PRODUCTION]</English>
+		<French>[NEWLINE]%d1 [ICON_FOOD] + %d2 [ICON_PRODUCTION]/tour[NEWLINE]%s3 : %d4/%d5 [ICON_PRODUCTION]</French>
+		<German>[NEWLINE]%d1 [ICON_FOOD] + %d2 [ICON_PRODUCTION]/Runde[NEWLINE]%s3: %d4/%d5 [ICON_PRODUCTION]</German>
+		<Italian>[NEWLINE]%d1 [ICON_FOOD] + %d2 [ICON_PRODUCTION]/Turno[NEWLINE]%s3: %d4/%d5 [ICON_PRODUCTION]</Italian>
+		<Spanish>[NEWLINE]%d1 [ICON_FOOD] + %d2 [ICON_PRODUCTION]/turno[NEWLINE]%s3: %d4/%d5 [ICON_PRODUCTION]</Spanish>
 	</TEXT>
 	
 </Civ4GameText>

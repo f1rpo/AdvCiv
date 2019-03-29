@@ -1189,103 +1189,133 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 	if (eProductionUnit != NO_UNIT)
 	{
 		int iTurns = pCity->getProductionTurnsLeft(eProductionUnit, 0);
-		szBuffer = gDLL->getText("TXT_KEY_POPUP_RECOMMENDED", GC.getUnitInfo(eProductionUnit).getTextKeyWide(), iTurns, GC.getAdvisorInfo((AdvisorTypes)(GC.getUnitInfo(eProductionUnit).getAdvisorType())).getTextKeyWide());
-		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer, GET_PLAYER(pCity->getOwnerINLINE()).getUnitButton(eProductionUnit), GC.getUnitInfo(eProductionUnit).getUnitClassType(), WIDGET_TRAIN, GC.getUnitInfo(eProductionUnit).getUnitClassType(), pCity->getID(), true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY );
+		// advc.004x:
+		iTurns = pCity->sanitizeProductionTurns(iTurns, ORDER_TRAIN, eProductionUnit);
+		CvUnitInfo const& kInfo = GC.getUnitInfo(eProductionUnit);
+		szBuffer = gDLL->getText("TXT_KEY_POPUP_RECOMMENDED",
+				kInfo.getTextKeyWide(), iTurns, GC.getAdvisorInfo(
+				(AdvisorTypes)kInfo.getAdvisorType()).getTextKeyWide());
+		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer,
+				GET_PLAYER(pCity->getOwnerINLINE()).getUnitButton(eProductionUnit),
+				kInfo.getUnitClassType(), WIDGET_TRAIN,
+				kInfo.getUnitClassType(), pCity->getID(), true,
+				POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
 		iNumBuilds++;
 	}
 
 	if (eProductionBuilding != NO_BUILDING)
 	{
 		int iTurns = pCity->getProductionTurnsLeft(eProductionBuilding, 0);
-		szBuffer = gDLL->getText("TXT_KEY_POPUP_RECOMMENDED", GC.getBuildingInfo(eProductionBuilding).getTextKeyWide(), iTurns, GC.getAdvisorInfo((AdvisorTypes)(GC.getBuildingInfo(eProductionBuilding).getAdvisorType())).getTextKeyWide());
-		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer, GC.getBuildingInfo(eProductionBuilding).getButton(), GC.getBuildingInfo(eProductionBuilding).getBuildingClassType(), WIDGET_CONSTRUCT, GC.getBuildingInfo(eProductionBuilding).getBuildingClassType(), pCity->getID(), true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY );
+		// advc.004x:
+		iTurns = pCity->sanitizeProductionTurns(iTurns, ORDER_CONSTRUCT, eProductionBuilding);
+		CvBuildingInfo const& kInfo = GC.getBuildingInfo(eProductionBuilding);
+		szBuffer = gDLL->getText("TXT_KEY_POPUP_RECOMMENDED",
+				kInfo.getTextKeyWide(), iTurns, GC.getAdvisorInfo(
+				(AdvisorTypes)kInfo.getAdvisorType()).getTextKeyWide());
+		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer,
+				kInfo.getButton(), kInfo.getBuildingClassType(), WIDGET_CONSTRUCT,
+				kInfo.getBuildingClassType(), pCity->getID(), true,
+				POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
 		iNumBuilds++;
 	}
 
 	if (eProductionProject != NO_PROJECT)
 	{
 		int iTurns = pCity->getProductionTurnsLeft(eProductionProject, 0);
-		szBuffer = gDLL->getText("TXT_KEY_POPUP_RECOMMENDED_NO_ADV", GC.getProjectInfo(eProductionProject).getTextKeyWide(), iTurns);
-		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer, GC.getProjectInfo(eProductionProject).getButton(), eProductionProject, WIDGET_CREATE, eProductionProject, pCity->getID(), true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY );
+		// advc.004x:
+		iTurns = pCity->sanitizeProductionTurns(iTurns, ORDER_CREATE, eProductionProject);
+		CvProjectInfo const& kInfo = GC.getProjectInfo(eProductionProject);
+		szBuffer = gDLL->getText("TXT_KEY_POPUP_RECOMMENDED_NO_ADV",
+				kInfo.getTextKeyWide(), iTurns);
+		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer,
+				kInfo.getButton(), eProductionProject, WIDGET_CREATE,
+				eProductionProject, pCity->getID(), true, POPUP_LAYOUT_STRETCH,
+				DLL_FONT_LEFT_JUSTIFY);
 		iNumBuilds++;
 	}
 
 	if (eProductionProcess != NO_PROCESS)
 	{
-		szBuffer = gDLL->getText("TXT_KEY_POPUP_RECOMMENDED_NO_ADV_OR_TURNS", GC.getProcessInfo(eProductionProcess).getTextKeyWide());
-		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer, GC.getProcessInfo(eProductionProcess).getButton(), eProductionProcess, WIDGET_MAINTAIN, eProductionProcess, pCity->getID(), true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY );
+		CvProcessInfo const& kInfo = GC.getProcessInfo(eProductionProcess);
+		szBuffer = gDLL->getText("TXT_KEY_POPUP_RECOMMENDED_NO_ADV_OR_TURNS",
+				kInfo.getTextKeyWide());
+		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer,
+				kInfo.getButton(), eProductionProcess, WIDGET_MAINTAIN,
+				eProductionProcess, pCity->getID(), true, POPUP_LAYOUT_STRETCH,
+				DLL_FONT_LEFT_JUSTIFY);
 		iNumBuilds++;
 	}
 
 	for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
 	{
-		UnitTypes eLoopUnit = (UnitTypes)GC.getCivilizationInfo(pCity->getCivilizationType()).getCivilizationUnits(iI);
+		UnitTypes eLoopUnit = (UnitTypes)GC.getCivilizationInfo(
+				pCity->getCivilizationType()).getCivilizationUnits(iI);
+		if (eLoopUnit == NO_UNIT || eLoopUnit == eProductionUnit ||
+				!pCity->canTrain(eLoopUnit))
+			continue; // advc.003
 
-		if (eLoopUnit != NO_UNIT)
-		{
-			if (eLoopUnit != eProductionUnit)
-			{
-				if (pCity->canTrain(eLoopUnit))
-				{
-					int iTurns = pCity->getProductionTurnsLeft(eLoopUnit, 0);
-					szBuffer.Format(L"%s (%d)", GC.getUnitInfo(eLoopUnit).getDescription(), iTurns);
-					gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer, GET_PLAYER(pCity->getOwnerINLINE()).getUnitButton(eLoopUnit), iI, WIDGET_TRAIN, iI, pCity->getID(), true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY );
-					iNumBuilds++;
-				}
-			}
-		}
+		int iTurns = pCity->getProductionTurnsLeft(eLoopUnit, 0);
+		// advc.004x:
+		iTurns = pCity->sanitizeProductionTurns(iTurns, ORDER_TRAIN, eLoopUnit);
+		szBuffer.Format(L"%s (%d)", GC.getUnitInfo(eLoopUnit).getDescription(), iTurns);
+		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer,
+				GET_PLAYER(pCity->getOwnerINLINE()).getUnitButton(eLoopUnit),
+				iI, WIDGET_TRAIN, iI, pCity->getID(), true, POPUP_LAYOUT_STRETCH,
+				DLL_FONT_LEFT_JUSTIFY);
+		iNumBuilds++;
+
 	}
 	for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
 	{
-		BuildingTypes eLoopBuilding = ((BuildingTypes)(GC.getCivilizationInfo(pCity->getCivilizationType()).getCivilizationBuildings(iI)));
+		BuildingTypes eLoopBuilding = (BuildingTypes)GC.getCivilizationInfo(
+				pCity->getCivilizationType()).getCivilizationBuildings(iI);
+		if (eLoopBuilding == NO_BUILDING || eLoopBuilding == eProductionBuilding ||
+				!pCity->canConstruct(eLoopBuilding))
+			continue; // advc.003
 
-		if (eLoopBuilding != NO_BUILDING)
-		{
-			if (eLoopBuilding != eProductionBuilding)
-			{
-				if (pCity->canConstruct(eLoopBuilding))
-				{
-					int iTurns = pCity->getProductionTurnsLeft(eLoopBuilding, 0);
-					szBuffer.Format(L"%s (%d)", GC.getBuildingInfo(eLoopBuilding).getDescription(), iTurns);
-					gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer, GC.getBuildingInfo(eLoopBuilding).getButton(), iI, WIDGET_CONSTRUCT, iI, pCity->getID(), true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
-					iNumBuilds++;
-				}
-			}
-		}
+		int iTurns = pCity->getProductionTurnsLeft(eLoopBuilding, 0);
+		// advc.004x:
+		iTurns = pCity->sanitizeProductionTurns(iTurns, ORDER_CONSTRUCT, eLoopBuilding);
+		szBuffer.Format(L"%s (%d)", GC.getBuildingInfo(eLoopBuilding).getDescription(), iTurns);
+		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer,
+				GC.getBuildingInfo(eLoopBuilding).getButton(), iI, WIDGET_CONSTRUCT,
+				iI, pCity->getID(), true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
+			iNumBuilds++;
 	}
 	for (int iI = 0; iI < GC.getNumProjectInfos(); iI++)
 	{
-		if (iI != eProductionProject)
-		{
-			if (pCity->canCreate((ProjectTypes)iI))
-			{
-				int iTurns = pCity->getProductionTurnsLeft((ProjectTypes)iI, 0);
-				szBuffer.Format(L"%s (%d)", GC.getProjectInfo((ProjectTypes) iI).getDescription(), iTurns);
-				gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer, GC.getProjectInfo((ProjectTypes) iI).getButton(), iI, WIDGET_CREATE, iI, pCity->getID(), true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
-				iNumBuilds++;
-			}
-		}
+		ProjectTypes eLoopProject = (ProjectTypes)iI;
+		if (eLoopProject == eProductionProject || !pCity->canCreate(eLoopProject))
+			continue; // advc.003
+
+		int iTurns = pCity->getProductionTurnsLeft((ProjectTypes)iI, 0);
+		// advc.004x:
+		iTurns = pCity->sanitizeProductionTurns(iTurns, ORDER_CREATE, eLoopProject);
+		szBuffer.Format(L"%s (%d)", GC.getProjectInfo(eLoopProject).getDescription(), iTurns);
+		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, szBuffer,
+				GC.getProjectInfo(eLoopProject).getButton(), iI, WIDGET_CREATE, iI,
+				pCity->getID(), true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
+		iNumBuilds++;
 	}
 	for (int iI = 0; iI < GC.getNumProcessInfos(); iI++)
 	{
-		if (iI != eProductionProcess)
-		{
-			if (pCity->canMaintain((ProcessTypes)iI))
-			{
-				gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, GC.getProcessInfo((ProcessTypes) iI).getDescription(), GC.getProcessInfo((ProcessTypes) iI).getButton(), iI, WIDGET_MAINTAIN, iI, pCity->getID(), true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
-				iNumBuilds++;
-			}
-		}
+		ProcessTypes eLoopProcess = (ProcessTypes)iI;
+		if (eLoopProcess == eProductionProcess || !pCity->canMaintain(eLoopProcess))
+			continue; // advc.003
+
+		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup,
+				GC.getProcessInfo(eLoopProcess).getDescription(),
+				GC.getProcessInfo(eLoopProcess).getButton(), iI, WIDGET_MAINTAIN,
+				iI, pCity->getID(), true, POPUP_LAYOUT_STRETCH, DLL_FONT_LEFT_JUSTIFY);
+		iNumBuilds++;
 	}
 
-	if (0 == iNumBuilds)
-	{
-		// city cannot build anything, so don't show popup after all
+	if (iNumBuilds <= 0)
+	{	// city cannot build anything, so don't show popup after all
 		return false;
 	}
 
 	gDLL->getInterfaceIFace()->popupSetPopupType(pPopup, POPUPEVENT_PRODUCTION, szArtFilename);
-
 	gDLL->getInterfaceIFace()->popupLaunch(pPopup, false, POPUPSTATE_MINIMIZED, 252);
 
 	switch (info.getData2())
@@ -1302,8 +1332,7 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 		gDLL->getInterfaceIFace()->playGeneralSound(GC.getProjectInfo((ProjectTypes)info.getData3()).getCreateSound());
 		break;
 
-	default:
-		break;
+	default: break;
 	}
 
 	return true;

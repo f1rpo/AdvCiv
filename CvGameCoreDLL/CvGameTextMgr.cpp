@@ -6334,38 +6334,63 @@ void CvGameTextMgr::setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity)
 {
 	PROFILE_FUNC();
 
-	CvWString szTempBuffer;
 	int iI;
-	int iRate;
-
-	int iFoodDifference = pCity->foodDifference();
+	CvWString szTempBuffer;
 
 	szString.append(pCity->getName());
 
+	int iFoodDifference = pCity->foodDifference();
 	if (iFoodDifference <= 0)
 	{
-		szString.append(gDLL->getText("TXT_KEY_CITY_BAR_GROWTH", pCity->getFood(), pCity->growthThreshold()));
+		szString.append(gDLL->getText("TXT_KEY_CITY_BAR_GROWTH",
+				pCity->getFood(), pCity->growthThreshold()));
 	}
 	else
 	{
-		szString.append(gDLL->getText("TXT_KEY_CITY_BAR_FOOD_GROWTH", iFoodDifference, pCity->getFood(), pCity->growthThreshold(), pCity->getFoodTurnsLeft()));
+		szString.append(gDLL->getText("TXT_KEY_CITY_BAR_FOOD_GROWTH",
+				iFoodDifference, pCity->getFood(), pCity->growthThreshold(),
+				pCity->getFoodTurnsLeft()));
 	}
 	if (pCity->getProductionNeeded() != MAX_INT)
 	{
 		int iProductionDiffNoFood = pCity->getCurrentProductionDifference(true, true);
-		int iProductionDiffJustFood = (pCity->getCurrentProductionDifference(false, true) - iProductionDiffNoFood);
-
+		int iProductionDiffJustFood = (pCity->getCurrentProductionDifference(false, true) -
+				iProductionDiffNoFood);
+		int iTurns = pCity->getProductionTurnsLeft(); // advc.004x
 		if (iProductionDiffJustFood > 0)
-		{
-			szString.append(gDLL->getText("TXT_KEY_CITY_BAR_FOOD_HAMMER_PRODUCTION", iProductionDiffJustFood, iProductionDiffNoFood, pCity->getProductionName(), pCity->getProduction(), pCity->getProductionNeeded(), pCity->getProductionTurnsLeft()));
+		{	// <advc.004x>
+			if(iTurns == MAX_INT) {
+				szString.append(gDLL->getText("TXT_KEY_CITY_BAR_FOOD_HAMMER_NO_PRODUCTION",
+						iProductionDiffJustFood, iProductionDiffNoFood,
+						pCity->getProductionName(), pCity->getProduction(),
+						pCity->getProductionNeeded()));
+			}
+			else { // </advc.004x>
+				szString.append(gDLL->getText("TXT_KEY_CITY_BAR_FOOD_HAMMER_PRODUCTION",
+						iProductionDiffJustFood, iProductionDiffNoFood,
+						pCity->getProductionName(), pCity->getProduction(),
+						pCity->getProductionNeeded(), iTurns));
+			}
 		}
 		else if (iProductionDiffNoFood > 0)
-		{
-			szString.append(gDLL->getText("TXT_KEY_CITY_BAR_HAMMER_PRODUCTION", iProductionDiffNoFood, pCity->getProductionName(), pCity->getProduction(), pCity->getProductionNeeded(), pCity->getProductionTurnsLeft()));
+		{	// <advc.004x>
+			if(iTurns == MAX_INT) {
+				szString.append(gDLL->getText("TXT_KEY_CITY_BAR_HAMMER_NO_PRODUCTION",
+						iProductionDiffNoFood, pCity->getProductionName(),
+						pCity->getProduction(), pCity->getProductionNeeded()));
+			}
+			else { // </advc.004x>
+				szString.append(gDLL->getText("TXT_KEY_CITY_BAR_HAMMER_PRODUCTION",
+						iProductionDiffNoFood, pCity->getProductionName(),
+						pCity->getProduction(), pCity->getProductionNeeded(),
+						iTurns));
+			}
 		}
 		else
 		{
-			szString.append(gDLL->getText("TXT_KEY_CITY_BAR_PRODUCTION", pCity->getProductionName(), pCity->getProduction(), pCity->getProductionNeeded()));
+			szString.append(gDLL->getText("TXT_KEY_CITY_BAR_PRODUCTION",
+					pCity->getProductionName(), pCity->getProduction(),
+					pCity->getProductionNeeded()));
 		}
 	}
 
@@ -6373,7 +6398,7 @@ void CvGameTextMgr::setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity)
 
 	for (iI = 0; iI < NUM_COMMERCE_TYPES; ++iI)
 	{
-		iRate = pCity->getCommerceRateTimes100((CommerceTypes)iI);
+		int iRate = pCity->getCommerceRateTimes100((CommerceTypes)iI);
 
 		if (iRate != 0)
 		{
@@ -6383,7 +6408,7 @@ void CvGameTextMgr::setCityBarHelp(CvWStringBuffer &szString, CvCity* pCity)
 		}
 	}
 
-	iRate = pCity->getGreatPeopleRate();
+	int iRate = pCity->getGreatPeopleRate();
 
 	if (iRate != 0)
 	{
@@ -10072,23 +10097,25 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit, bool
 	else
 	{
 		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_UNIT_TURNS",
-				pCity->getProductionTurnsLeft(eUnit,
-				((GC.ctrlKey() || !(GC.shiftKey())) ? 0 :
-				pCity->getOrderQueueLength())),
-				pCity->getProductionNeeded(eUnit),
-				GC.getYieldInfo(YIELD_PRODUCTION).getChar()));
+		int iTurns = pCity->getProductionTurnsLeft(eUnit,
+				(GC.ctrlKey() || !GC.shiftKey()) ? 0 : pCity->getOrderQueueLength());
+		if(iTurns < MAX_INT) { // advc.004x
+			szBuffer.append(gDLL->getText("TXT_KEY_UNIT_TURNS", iTurns));
+				// advc.003: TXT_KEY_UNIT_TURNS takes only one argument
+				//pCity->getProductionNeeded(eUnit), GC.getYieldInfo(YIELD_PRODUCTION).getChar()));
+			szBuffer.append(L" - "); // advc.004x: Moved up
+		}
 		int iProduction = pCity->getUnitProduction(eUnit);
 		if (iProduction > 0)
 		{
-			szTempBuffer.Format(L" - %d/%d%c", iProduction,
+			szTempBuffer.Format(L"%d/%d%c", iProduction,
 					pCity->getProductionNeeded(eUnit),
 					GC.getYieldInfo(YIELD_PRODUCTION).getChar());
 			szBuffer.append(szTempBuffer);
 		}
 		else
 		{
-			szTempBuffer.Format(L" - %d%c", pCity->getProductionNeeded(eUnit),
+			szTempBuffer.Format(L"%d%c", pCity->getProductionNeeded(eUnit),
 					GC.getYieldInfo(YIELD_PRODUCTION).getChar());
 			szBuffer.append(szTempBuffer);
 		}
@@ -11678,19 +11705,23 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 		// BUG - Building Actual Effects - end
 
 				szBuffer.append(NEWLINE);
-				szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_NUM_TURNS", pCity->getProductionTurnsLeft(eBuilding, ((GC.ctrlKey() || !(GC.shiftKey())) ? 0 : pCity->getOrderQueueLength()))));
+				int iTurns = pCity->getProductionTurnsLeft(eBuilding,
+						(GC.ctrlKey() || !GC.shiftKey()) ? 0 : pCity->getOrderQueueLength());
+				if(iTurns < MAX_INT) { // advc.004x
+					szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_NUM_TURNS", iTurns));
+					szBuffer.append(L" - "); // advc.004x: Moved up
+				}
 
 				int iProduction = pCity->getBuildingProduction(eBuilding);
-				
 				int iProductionNeeded = pCity->getProductionNeeded(eBuilding);
 				if (iProduction > 0)
 				{
-					szTempBuffer.Format(L" - %d/%d%c", iProduction, iProductionNeeded, GC.getYieldInfo(YIELD_PRODUCTION).getChar());
+					szTempBuffer.Format(L"%d/%d%c", iProduction, iProductionNeeded, GC.getYieldInfo(YIELD_PRODUCTION).getChar());
 					szBuffer.append(szTempBuffer);
 				}
 				else
 				{
-					szTempBuffer.Format(L" - %d%c", iProductionNeeded, GC.getYieldInfo(YIELD_PRODUCTION).getChar());
+					szTempBuffer.Format(L"%d%c", iProductionNeeded, GC.getYieldInfo(YIELD_PRODUCTION).getChar());
 					szBuffer.append(szTempBuffer);
 				}
 			}
@@ -12506,17 +12537,21 @@ void CvGameTextMgr::setProjectHelp(CvWStringBuffer &szBuffer, ProjectTypes eProj
 		else
 		{
 			szBuffer.append(NEWLINE);
-			szBuffer.append(gDLL->getText("TXT_KEY_PROJECT_NUM_TURNS", pCity->getProductionTurnsLeft(eProject, ((GC.ctrlKey() || !(GC.shiftKey())) ? 0 : pCity->getOrderQueueLength()))));
+			int iTurns = pCity->getProductionTurnsLeft(eProject,
+					(GC.ctrlKey() || !GC.shiftKey()) ? 0 : pCity->getOrderQueueLength());
+			if(iTurns < MAX_INT) { // advc.004x
+				szBuffer.append(gDLL->getText("TXT_KEY_PROJECT_NUM_TURNS", iTurns));
+				szBuffer.append(L" - "); // advc.004x: Moved up
+			}
 
 			int iProduction = pCity->getProjectProduction(eProject);
-
 			if (iProduction > 0)
 			{
-				szTempBuffer.Format(L" - %d/%d%c", iProduction, pCity->getProductionNeeded(eProject), GC.getYieldInfo(YIELD_PRODUCTION).getChar());
+				szTempBuffer.Format(L"%d/%d%c", iProduction, pCity->getProductionNeeded(eProject), GC.getYieldInfo(YIELD_PRODUCTION).getChar());
 			}
 			else
 			{
-				szTempBuffer.Format(L" - %d%c", pCity->getProductionNeeded(eProject), GC.getYieldInfo(YIELD_PRODUCTION).getChar());
+				szTempBuffer.Format(L"%d%c", pCity->getProductionNeeded(eProject), GC.getYieldInfo(YIELD_PRODUCTION).getChar());
 			}
 			szBuffer.append(szTempBuffer);
 		}
@@ -18136,25 +18171,18 @@ void CvGameTextMgr::buildCityBillboardCityNameString( CvWStringBuffer& szBuffer,
 	}
 }
 
-void CvGameTextMgr::buildCityBillboardProductionString( CvWStringBuffer& szBuffer, CvCity* pCity)
+void CvGameTextMgr::buildCityBillboardProductionString(CvWStringBuffer& szBuffer, CvCity* pCity) // advc.003: style changes
 {
-	if (pCity->getOrderQueueLength() > 0)
-	{
-		szBuffer.assign(pCity->getProductionName());
-
-		if (gDLL->getGraphicOption(GRAPHICOPTION_CITY_DETAIL))
-		{
-			int iTurns = pCity->getProductionTurnsLeft();
-
-			if (iTurns < MAX_INT)
-			{
-				szBuffer.append(CvWString::format(L" (%d)", iTurns));
-			}
-		}
-	}
-	else
-	{
+	if (pCity->getOrderQueueLength() <= 0) {
 		szBuffer.clear();
+		return;
+	}
+
+	szBuffer.assign(pCity->getProductionName());
+	if (gDLL->getGraphicOption(GRAPHICOPTION_CITY_DETAIL)) {
+		int iTurns = pCity->getProductionTurnsLeft();
+		if (iTurns < MAX_INT)
+			szBuffer.append(CvWString::format(L" (%d)", iTurns));
 	}
 }
 

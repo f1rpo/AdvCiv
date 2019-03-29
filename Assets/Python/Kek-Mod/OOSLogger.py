@@ -7,7 +7,7 @@ gc = CyGlobalContext()
 
 #szFilename = "OOSLog.txt"
 
-bWroteLog = False # (advc: I don't think this accomplishes anything)
+bWroteLog = False # (advc: This doesn't seem to accomplish anything(?))
 
 SEPERATOR = "-----------------------------------------------------------------\n"
 
@@ -36,20 +36,17 @@ def onGameUpdate(argsList):
 		bWroteLog = False
 
 def writeLog():
-	# advc: Overwritten below, so what's the point?
-	#if not CyGame().isPitbossHost():
-	#	playername = CvUtil.convertToStr(gc.getPlayer(gc.getGame().getActivePlayer()).getName())
-	#else:
-	#	playername = "PitBoss"
-	activePlayer = gc.getPlayer(gc.getGame().getActivePlayer())
-	# advc: Prepend id b/c player names can be the same (that happens easily when testing on a single machine)
-	playername = str(activePlayer.getID()) + CvUtil.convertToStr(activePlayer.getName())
+
+	if CyGame().isPitbossHost():
+		playername = "PitBoss"
+	else:
+		# advc: Prepend id b/c player names can be the same (that happens easily when testing on a single machine)
+		activePlayer = gc.getPlayer(gc.getGame().getActivePlayer())
+		playername = str(activePlayer.getID()) + CvUtil.convertToStr(activePlayer.getName())
 	szNewFilename = BugPath.getRootDir() + "\\Logs\\" + "OOSLog - %s - " % (playername) + "Turn %s" % (gc.getGame().getGameTurn()) + ".log"
 	# <advc> Replacement for the bWroteLog mechanism above
-	bExists = os.path.isfile(szNewFilename)
-	if bExists:
-		return
-	# </advc>
+	if os.path.isfile(szNewFilename):
+		return # </advc>
 	pFile = open(szNewFilename, "w")
 
 	# Backup current language
@@ -73,7 +70,7 @@ def writeLog():
 	pFile.write(SEPERATOR)
 	pFile.write(SEPERATOR)
 	pFile.write("\n\n")
-	# advc: Call getSeed instead of get -- no need to change the state of the RNGs here.
+	# advc: Call getSeed instead of get -- don't want to change the state of the RNGs here.
 	pFile.write("Last Map Rand Value: %d\n" % CyGame().getMapRand().getSeed())
 	pFile.write("Last Soren Rand Value: %d\n" % CyGame().getSorenRand().getSeed())
 

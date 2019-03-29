@@ -3539,16 +3539,13 @@ const TCHAR* CvPlayer::getUnitButton(UnitTypes eUnit) const
 	return GC.getUnitInfo(eUnit).getArtInfo(0, getCurrentEra(), (UnitArtStyleTypes) GC.getCivilizationInfo(getCivilizationType()).getUnitArtStyleType())->getButton();
 }
 
-void CvPlayer::doTurn()
+void CvPlayer::doTurn() // advc.003: style changes
 {
 	PROFILE_FUNC();
 
-	CvCity* pLoopCity;
-	int iLoop;
-
 	FAssertMsg(isAlive(), "isAlive is expected to be true");
 	FAssertMsg(!hasBusyUnit() || GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS)  || GC.getGameINLINE().isSimultaneousTeamTurns(), "End of turn with busy units in a sequential-turn game");
-	CvGame& g = GC.getGame();
+	CvGame& g = GC.getGameINLINE();
 	/* <advc.106b> Can't figure out from within CvGame whether it's an AI turn,
 	   need assistance from CvPlayer.
 	   doTurn contains the entire sequence of an AI turn, but is also called when
@@ -3556,81 +3553,60 @@ void CvPlayer::doTurn()
 	g.setAITurn(true);
 	if(isHuman() && //getStartOfTurnMessageLimit() >= 0 && // The message should be helpful even if the log doesn't auto-open
 			g.getElapsedGameTurns() > 0 && !m_listGameMessages.empty()) {
-		CvWString endTurnMsg = gDLL->getText("TXT_KEY_END_TURN_MSG");
-		gDLL->getInterfaceIFace()->addHumanMessage(getID(), false, 0, endTurnMsg,
-				0, MESSAGE_TYPE_EOT, 0, (ColorTypes)
-				GC.getInfoTypeForString("COLOR_LIGHT_GREY"));
+		gDLL->getInterfaceIFace()->addHumanMessage(getID(), false, 0,
+				gDLL->getText("TXT_KEY_END_TURN_MSG"), 0, MESSAGE_TYPE_EOT, 0,
+				(ColorTypes)GC.getInfoTypeForString("COLOR_LIGHT_GREY"));
 	}
 	if(isHuman())
 		m_iNewMessages = 0;
 	/*  This way, NewMessages is never reset for non-humans. It is reset in
-		setHumanDisabled though, i.e. when coming out of AI Auto Play.
-		Fixme(?): The Event Log might open when loading a multiplayer game b/c
-		NewMessages isn't stored in savegames. */
+		setHumanDisabled though, i.e. when coming out of AI Auto Play. */
 	if(isHuman())
 		gDLL->getInterfaceIFace()->clearEventMessages();
 	// </advc.106b>
 
-	CvEventReporter::getInstance().beginPlayerTurn( g.getGameTurn(),  getID());
+	CvEventReporter::getInstance().beginPlayerTurn(g.gameTurn(), getID());
 	/*  advc.127: Only needs to be true when Civ4lerts are checked, which is done
 		in response to beginPlayerTurn. */
 	m_bAutoPlayJustEnded = false;
+
 	doUpdateCacheOnTurn();
-
 	g.verifyDeals();
-
 	AI_doTurnPre();
 
 	if (getRevolutionTimer() > 0)
-	{
 		changeRevolutionTimer(-1);
-	}
-
 	if (getConversionTimer() > 0)
-	{
 		changeConversionTimer(-1);
-	}
-
 	setConscriptCount(0);
 
 	AI_assignWorkingPlots();
 
 	//if (0 == GET_TEAM(getTeam()).getHasMetCivCount(true) || g.isOption(GAMEOPTION_NO_ESPIONAGE))
-	if (isCommerceFlexible(COMMERCE_ESPIONAGE) && (GET_TEAM(getTeam()).getHasMetCivCount(true) == 0 || GC.getGameINLINE().isOption(GAMEOPTION_NO_ESPIONAGE))) // K-Mod
-	{
+	// K-Mod.
+	if (isCommerceFlexible(COMMERCE_ESPIONAGE) &&
+			(GET_TEAM(getTeam()).getHasMetCivCount(true) == 0 ||
+			g.isOption(GAMEOPTION_NO_ESPIONAGE))) //
 		setCommercePercent(COMMERCE_ESPIONAGE, 0); // (note: not forced)
-	}
 
 	verifyGoldCommercePercent();
-
 	doGold();
-
 	doResearch();
-
 	doEspionagePoints();
 
-	for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
-	{
+	int iLoop;
+	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 		pLoopCity->doTurn();
-	}
 
 	if (getGoldenAgeTurns() > 0)
-	{
 		changeGoldenAgeTurns(-1);
-	}
-
 	if (getAnarchyTurns() > 0)
-	{
 		changeAnarchyTurns(-1);
-	}
-
 	verifyCivics();
-	// <advc.004x>
-	if(m_eReminderPending != NO_CIVIC)
-		doChangeCivicsPopup(m_eReminderPending); // </advc.004x>
+	doChangeCivicsPopup(NO_CIVIC); // advc.004x
 	//verifyStateReligion(); // dlph.10: disabled for now
-	updateTradeRoutes();
 
+	updateTradeRoutes();
 	updateWarWearinessPercentAnger();
 	// <advc.011>
 	if(GC.getDELAY_UNTIL_BUILD_DECAY() > 0)
@@ -3653,8 +3629,8 @@ void CvPlayer::doTurn()
 	// </advc.004l>
 	/*  <advc.034> Cancel disengagement agreements at the end of a round, i.e.
 		at the end of the barb turn. */
-	int disengageLength = GC.getDefineINT("DISENGAGE_LENGTH") > 0;
-	if(isBarbarian() && disengageLength > 0) {
+	int iDisengageLength = (GC.getDefineINT("DISENGAGE_LENGTH") > 0);
+	if(isBarbarian() && iDisengageLength > 0) {
 		for(CvDeal* d = g.firstDeal(&foo); d != NULL; d = g.nextDeal(&foo)) {
 			if(d->isDisengage() && d->turnsToCancel() <= 1) {
 				/*  Still one turn to cancel, but that turn is practically over.
@@ -3665,15 +3641,15 @@ void CvPlayer::doTurn()
 			}
 		}
 	} // If DISENGAGE_LENGTH set to 0 in between sessions
-	else if(disengageLength <= 0) {
-		CvTeam& ourTeam = GET_TEAM(getTeam());
+	else if(iDisengageLength <= 0) {
+		CvTeam& kOurTeam = GET_TEAM(getTeam());
 		for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 			TeamTypes tId = (TeamTypes)i;
-			if(ourTeam.isDisengage(tId))
-				ourTeam.cancelDisengage(tId);
+			if(kOurTeam.isDisengage(tId))
+				kOurTeam.cancelDisengage(tId);
 		}
 	} // </advc.034>
-	int iGameTurn = g.getGameTurn(); // advc,003
+	int iGameTurn = g.getGameTurn();
 	updateEconomyHistory(iGameTurn, calculateTotalCommerce());
 	updateIndustryHistory(iGameTurn, calculateTotalYield(YIELD_PRODUCTION));
 	updateAgricultureHistory(iGameTurn, calculateTotalYield(YIELD_FOOD));
@@ -3681,26 +3657,17 @@ void CvPlayer::doTurn()
 	updateCultureHistory(iGameTurn, countTotalCulture());
 	updateEspionageHistory(iGameTurn, GET_TEAM(getTeam()).getEspionagePointsEver());
 	expireMessages();  // turn log
-	showForeignPromoGlow(false); // advc.002e: To match call in doWarnings
 
+	showForeignPromoGlow(false); // advc.002e: To match call in doWarnings
 	gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
 
 	AI_doTurnPost();
 	// <advc.700>
 	if(g.isOption(GAMEOPTION_RISE_FALL))
 		g.getRiseFall().atTurnEnd(getID()); // </advc.700>
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      07/08/09                                jdog5000      */
-/*                                                                                              */
-/* Debug                                                                                        */
-/************************************************************************************************/
-    if( g.isDebugMode() )
-	{
+
+    if (g.isDebugMode()) // BETTER_BTS_AI_MOD, Debug, 07/08/09, jdog5000
 		g.updateColoredPlots();
-	}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
 
 	CvEventReporter::getInstance().endPlayerTurn(iGameTurn, getID());
 }
@@ -14625,27 +14592,29 @@ void CvPlayer::expireMessages()
 
 void CvPlayer::addPopup(CvPopupInfo* pInfo, bool bFront)
 {
-	if (isHuman())
-	{	// <advc.004x>
-		if(pInfo->getButtonPopupType() == BUTTONPOPUP_CHANGERELIGION)
-			killAll(BUTTONPOPUP_CHANGERELIGION);
-		else if(pInfo->getButtonPopupType() == BUTTONPOPUP_CHANGECIVIC)
-			killAll(BUTTONPOPUP_CHANGECIVIC);
-		else if(pInfo->getButtonPopupType() == BUTTONPOPUP_CHOOSETECH)
-			killAll(BUTTONPOPUP_CHOOSETECH, 0); // </advc.004x>
-		if (bFront)
-		{
-			m_listPopups.push_front(pInfo);
-		}
-		else
-		{
-			m_listPopups.push_back(pInfo);
-		}
-	}
-	else
-	{
+	if (!isHuman()) {
 		SAFE_DELETE(pInfo);
-	}
+		return;
+	} // <advc.004x>
+	ButtonPopupTypes eType = pInfo->getButtonPopupType();
+	if(eType == BUTTONPOPUP_CHANGERELIGION)
+		killAll(BUTTONPOPUP_CHANGERELIGION);
+	else if(eType == BUTTONPOPUP_CHANGECIVIC)
+		killAll(BUTTONPOPUP_CHANGECIVIC);
+	else if(eType == BUTTONPOPUP_CHOOSETECH)
+		killAll(BUTTONPOPUP_CHOOSETECH, 0);
+	else if(eType == BUTTONPOPUP_PYTHON_SCREEN) {
+		CvGame& g = GC.getGameINLINE();
+		if(g.getElapsedGameTurns() <= 0 && g.getActivePlayer() != NO_PLAYER) {
+			// Must be DawnOfMan then
+			g.setDawnOfManShown(true);
+			bFront = true;
+			GET_PLAYER(g.getActivePlayer()).doChangeCivicsPopup(NO_CIVIC);
+		}
+	} // </advc.004x>
+	if (bFront)
+		m_listPopups.push_front(pInfo);
+	else m_listPopups.push_back(pInfo);
 }
 
 
@@ -14884,8 +14853,13 @@ void CvPlayer::doChangeCivicsPopup(CivicTypes eCivic) {
 		m_eReminderPending = NO_CIVIC;
 		return;
 	}
-	if(!canRevolution(NULL)) {
-		m_eReminderPending = eCivic;
+	if(!canRevolution(NULL) || GC.getGameINLINE().isAboutToShowDawnOfMan()) {
+		m_eReminderPending = (CivicTypes)std::max(m_eReminderPending, eCivic);
+		return;
+	}
+	if(eCivic == NO_CIVIC) { // Then we're only supposed to check for a pending reminder
+		if(m_eReminderPending != NO_CIVIC)
+			doChangeCivicsPopup(m_eReminderPending);
 		return;
 	}
 	m_eReminderPending = NO_CIVIC;

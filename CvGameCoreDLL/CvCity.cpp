@@ -3215,9 +3215,10 @@ int CvCity::getProductionTurnsLeft(int iProductionNeeded, int iProduction, int i
 	int iProductionLeft = std::max(0,
 			iProductionNeeded - iProduction - iFirstProductionDifference);
 
-	if (iProductionDifference == 0)
-		return iProductionLeft + 1;
-
+	if (iProductionDifference == 0) {
+		//return iProductionLeft + 1;
+		return MAX_INT; // advc.004x
+	}
 	int iTurnsLeft = (iProductionLeft / iProductionDifference);
 	if (iTurnsLeft * iProductionDifference < iProductionLeft)
 		iTurnsLeft++; // advc (comment): rounds up
@@ -3226,6 +3227,22 @@ int CvCity::getProductionTurnsLeft(int iProductionNeeded, int iProduction, int i
 
 	return std::max(1, iTurnsLeft);
 }
+
+// <advc.004x>
+int CvCity::sanitizeProductionTurns(int iTurns, OrderTypes eOrder, int iData,
+		bool bAssert) const {
+
+	if(iTurns < MAX_INT)
+		return iTurns;
+	FAssert(!bAssert);
+	int r = 1;
+	switch(eOrder) {
+	case ORDER_TRAIN: return r + getProductionNeeded((UnitTypes)iData);
+	case ORDER_CONSTRUCT: return r + getProductionNeeded((BuildingTypes)iData);
+	case ORDER_CREATE: return r + getProductionNeeded((ProjectTypes)iData);
+	}
+	return r + getProductionNeeded();
+} // </advc.004x>
 
 
 void CvCity::setProduction(int iNewValue)
@@ -10420,7 +10437,8 @@ double CvCity::revoltProbability(bool bIgnoreWar,
 	double occupationFactor = 1;
 	if(isOccupation() && !bIgnoreOccupation) {
 		occupationFactor = 0.5;
-		if(!bIgnoreWar && GET_PLAYER(eCulturalOwner).isAlive() &&
+		if(!bIgnoreWar && !isBarbarian() && !GET_TEAM(getTeam()).isMinorCiv() &&
+				GET_PLAYER(eCulturalOwner).isAlive() &&
 				GET_TEAM(getTeam()).isAtWar(TEAMID(eCulturalOwner)))
 			return 0;
 	} // </advc.023>
@@ -10446,8 +10464,14 @@ double CvCity::revoltProbability(bool bIgnoreWar,
 // <advc.023>
 double CvCity::probabilityOccupationDecrement() const {
 
-	if(!isOccupation() || getMilitaryHappinessUnits() <= 0)
+	if(!isOccupation())
 		return 0;
+	// While at war, require an occupying force.
+	if(getMilitaryHappinessUnits() <= 0 && !isBarbarian() && !GET_TEAM(getTeam()).isMinorCiv()) {
+		PlayerTypes eCulturalOwner = calculateCulturalOwner();
+		if(eCulturalOwner != NO_PLAYER && TEAMREF(eCulturalOwner).isAtWar(getTeam()))
+			return 0;
+	}
 	double r = std::pow(1 - revoltProbability(true, false, true),
 			GC.getDefineINT("OCCUPATION_COUNTDOWN_EXPONENT"));
 	// Don't use probabilities that are too small to be displayed

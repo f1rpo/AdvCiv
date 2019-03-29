@@ -1672,7 +1672,8 @@ void CvPlayerAI::AI_doCentralizedProduction()
 									}
 								}
 
-								if (bValid)
+								if (bValid
+										&& iTurnsLeft < MAX_INT) // advc.004x
 								{
 									FAssert((MAX_INT / 1000) > iValue);
 									iValue *= 1000;
@@ -9059,12 +9060,17 @@ bool CvPlayerAI::AI_isWillingToTalk(PlayerTypes ePlayer) const
 {
 	FAssert(getPersonalityType() != NO_LEADER);
 	FAssert(ePlayer != getID());
-
-	/*  <advc.104i> The EXE keeps calling this function when the diplo screen is
-		already up, and some of the new code (isPeaceDealPossible) is expensive. */
-	if(ePlayer == GC.getGameINLINE().getActivePlayer() &&
-			gDLL->getDiplomacyPlayer() == getID())
-		return true; // </advc.104i>
+	// <advc.104i>
+	CvGame const& g = GC.getGameINLINE();
+	if(ePlayer == g.getActivePlayer()) {
+		/*  The EXE keeps calling this function when the diplo screen is already up,
+			and some of the new code (isPeaceDealPossible) is expensive. */
+		if(gDLL->getDiplomacyPlayer() == getID())
+			return true;
+		if(GET_PLAYER(ePlayer).isHuman() // i.e. not Auto Play
+				&& g.isOption(GAMEOPTION_ALWAYS_WAR))
+			return false;
+	} // </advc.104i>
 
 	// <advc.003n> In particular, don't call AI_surrenderTrade on Barbarians.
 	if(ePlayer == BARBARIAN_PLAYER)
@@ -18334,24 +18340,20 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 	if (bMalicious && GC.getEspionageMissionInfo(eMission).getDestroyBuildingCostFactor() > 0)
 	{
 		FAssert(iData >= 0 && iData < GC.getNumBuildingInfos());
-		if (canSpyDestroyBuilding(eTargetPlayer, (BuildingTypes)iData))
+		if (canSpyDestroyBuilding(eTargetPlayer, (BuildingTypes)iData) && pCity != NULL &&
+				pCity->getNumRealBuilding((BuildingTypes)iData) > 0)
 		{
-			if (NULL != pCity)
-			{
-				if (pCity->getNumRealBuilding((BuildingTypes)iData) > 0)
-				{
-					CvBuildingInfo& kBuilding = GC.getBuildingInfo((BuildingTypes)iData);
-					if (!bDisorder) // K-Mod: disorder messes up the evaluation of production and of building value. That's the only reason for this condition.
-					{
-						// Note: I'm not allowing recursion in the building evaluation.
-						// This may cause the cached value to be inaccurate, but it doesn't really matter, because the building is already built!
-						// (AI_buildingValue gives units of 4x commerce/turn)
-						iValue += kBuilding.getProductionCost() / 2;
-						iValue += (2 + pCity->getProductionTurnsLeft((BuildingTypes)iData, 1)) * pCity->AI_buildingValue((BuildingTypes)iData, 0, 0, false, false) / 5;
-					}
-					// K-Mod end
-				}
-			}
+			CvBuildingInfo& kBuilding = GC.getBuildingInfo((BuildingTypes)iData);
+			int iTurns = pCity->getProductionTurnsLeft((BuildingTypes)iData, 1);
+			if (iTurns < MAX_INT && // advc.004x: Let's check iTurns _and_ bDisorder
+					!bDisorder) // K-Mod: disorder messes up the evaluation of production and of building value. That's the only reason for this condition.
+			{	// Note: I'm not allowing recursion in the building evaluation.
+				// This may cause the cached value to be inaccurate, but it doesn't really matter, because the building is already built!
+				// (AI_buildingValue gives units of 4x commerce/turn)
+				iValue += kBuilding.getProductionCost() / 2;
+				iValue += (2 + iTurns) * pCity->AI_buildingValue((BuildingTypes)
+						iData, 0, 0, false, false) / 5;
+			} // K-Mod end
 		}
 	}
 

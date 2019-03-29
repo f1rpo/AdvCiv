@@ -348,6 +348,7 @@ void CvGame::regenerateMap()
 	} // </advc.004j>
 
 	setFinalInitialized(false);
+	setDawnOfManShown(false); // advc.004x
 
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
 	{
@@ -444,6 +445,7 @@ void CvGame::showDawnOfMan() {
 	dom->setButtonPopupType(BUTTONPOPUP_PYTHON_SCREEN);
 	dom->setText(L"showDawnOfMan");
 	GET_PLAYER(getActivePlayer()).addPopup(dom);
+	setDawnOfManShown(true); // advc.004x
 } // </advc.004j>
 
 
@@ -777,6 +779,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	m_bResourceLayer = bConstructorCall; // advc.004m
 	m_bResourceLayerSet = false; // advc.003d
 	m_bFeignSP = false; // advc.135c
+	m_bDoMShown = false; // advc.004x
 }
 
 
@@ -4593,11 +4596,11 @@ void CvGame::setAIAutoPlay(int iNewValue) {
 	// <advc.127>
 	setAIAutoPlayBulk(iNewValue);
 }
-void CvGame::setAIAutoPlayBulk(int iNewValue, bool changePlayerStatus)
+void CvGame::setAIAutoPlayBulk(int iNewValue, bool bChangePlayerStatus)
 {	// advc.127
 	m_iAIAutoPlay = std::max(0, iNewValue);
 	// <advc.127>
-	if(!changePlayerStatus)
+	if(!bChangePlayerStatus)
 		return; // </advc.127>
 /************************************************************************************************/
 /* AI_AUTO_PLAY_MOD                           07/09/08                            jdog5000      */
@@ -5354,27 +5357,35 @@ void CvGame::setFinalInitialized(bool bNewValue)
 {
 	PROFILE_FUNC();
 
-	if (isFinalInitialized() != bNewValue)
+	if (isFinalInitialized() == bNewValue)
+		return; // advc.003
+	m_bFinalInitialized = bNewValue;
+	if (!isFinalInitialized())
+		return;
+
+	updatePlotGroups();
+	GC.getMapINLINE().updateIrrigated();
+
+	for (int iI = 0; iI < MAX_TEAMS; iI++)
 	{
-		m_bFinalInitialized = bNewValue;
-
-		if (isFinalInitialized())
-		{
-			updatePlotGroups();
-
-			GC.getMapINLINE().updateIrrigated();
-
-			for (int iI = 0; iI < MAX_TEAMS; iI++)
-			{
-				GET_TEAM((TeamTypes)iI).AI_initMemory(); // K-Mod
-				if (GET_TEAM((TeamTypes)iI).isAlive())
-				{
-					GET_TEAM((TeamTypes)iI).AI_updateAreaStrategies();
-				}
-			}
-		}
+		CvTeamAI& kTeam = GET_TEAM((TeamTypes)iI);
+		kTeam.AI_initMemory(); // K-Mod
+		if (kTeam.isAlive())
+			kTeam.AI_updateAreaStrategies();
 	}
 }
+
+// <advc.004x>
+void CvGame::setDawnOfManShown(bool b) {
+
+	m_bDoMShown = b;
+}
+
+
+bool CvGame::isAboutToShowDawnOfMan() const {
+
+	return (!m_bDoMShown && getElapsedGameTurns() <= 0);
+} // </advc.004x>
 
 // <advc.061>
 void CvGame::setScreenDimensions(int x, int y) {

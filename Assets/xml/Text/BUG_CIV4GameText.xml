@@ -475,6 +475,16 @@
 		<Italian>%s1 (%d2)   %d3[ICON_ANGRYPOP] %d4[ICON_PRODUCTION]</Italian>
 		<Spanish>%s1 (%d2)   %d3[ICON_ANGRYPOP] %d4[ICON_PRODUCTION]</Spanish>
 	</TEXT>
+	<!-- advc.004x: Without production turns in parentheses -->
+	<TEXT>
+		<Tag>INTERFACE_CITY_NO_PRODUCTION_WHIP</Tag>
+		<English>%s1   %d2[ICON_ANGRYPOP] %d3[ICON_PRODUCTION]</English>
+		<French>%s1   %d2[ICON_ANGRYPOP] %d3[ICON_PRODUCTION]</French>
+		<German>%s1   %d2[ICON_ANGRYPOP] %d3[ICON_PRODUCTION]</German>
+		<Italian>%s1   %d2[ICON_ANGRYPOP] %d3[ICON_PRODUCTION]</Italian>
+		<Spanish>%s1   %d2[ICON_ANGRYPOP] %d3[ICON_PRODUCTION]</Spanish>
+	</TEXT>
+	
 	<TEXT>
 		<Tag>INTERFACE_CITY_PRODUCTION_WHIP_PLUS_GOLD</Tag>
 		<English>%s1 (%d2)   %d3[ICON_ANGRYPOP] %d4[ICON_PRODUCTION] %d5[ICON_GOLD]</English>
@@ -483,6 +493,16 @@
 		<Italian>%s1 (%d2)   %d3[ICON_ANGRYPOP] %d4[ICON_PRODUCTION] %d5[ICON_GOLD]</Italian>
 		<Spanish>%s1 (%d2)   %d3[ICON_ANGRYPOP] %d4[ICON_PRODUCTION] %d5[ICON_GOLD]</Spanish>
 	</TEXT>
+	<!-- advc.004x -->
+	<TEXT>
+		<Tag>INTERFACE_CITY_NO_PRODUCTION_WHIP_PLUS_GOLD</Tag>
+		<English>%s1   %d2[ICON_ANGRYPOP] %d3[ICON_PRODUCTION] %d4[ICON_GOLD]</English>
+		<French>%s1   %d2[ICON_ANGRYPOP] %d3[ICON_PRODUCTION] %d4[ICON_GOLD]</French>
+		<German>%s1   %d2[ICON_ANGRYPOP] %d3[ICON_PRODUCTION] %d4[ICON_GOLD]</German>
+		<Italian>%s1   %d2[ICON_ANGRYPOP] %d3[ICON_PRODUCTION] %d4[ICON_GOLD]</Italian>
+		<Spanish>%s1   %d2[ICON_ANGRYPOP] %d3[ICON_PRODUCTION] %d4[ICON_GOLD]</Spanish>
+	</TEXT>
+
 	<TEXT>
 		<Tag>INTERFACE_CITY_PRODUCTION_BUY</Tag>
 		<English>%s1 (%d2)   -%d3[ICON_GOLD]</English>
@@ -490,6 +510,15 @@
 		<German>%s1 (%d2)   -%d3[ICON_GOLD]</German>
 		<Italian>%s1 (%d2)   -%d3[ICON_GOLD]</Italian>
 		<Spanish>%s1 (%d2)   -%d3[ICON_GOLD]</Spanish>
+	</TEXT>
+	<!-- advc.004x -->
+	<TEXT>
+		<Tag>INTERFACE_CITY_NO_PRODUCTION_BUY</Tag>
+		<English>%s1   -%d2[ICON_GOLD]</English>
+		<French>%s1   -%d2[ICON_GOLD]</French>
+		<German>%s1   -%d2[ICON_GOLD]</German>
+		<Italian>%s1   -%d2[ICON_GOLD]</Italian>
+		<Spanish>%s1   -%d2[ICON_GOLD]</Spanish>
 	</TEXT>
 	
 	<!-- Production Decay -->

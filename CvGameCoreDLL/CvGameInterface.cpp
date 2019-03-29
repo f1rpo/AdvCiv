@@ -2164,47 +2164,53 @@ void CvGame::startFlyoutMenu(const CvPlot* pPlot, std::vector<CvFlyoutMenuData>&
 			aFlyoutItems.push_back(CvFlyoutMenuData(NO_FLYOUT, -1, -1, -1, szBuffer));
 			for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
 			{
-				UnitTypes eLoopUnit = (UnitTypes) GC.getCivilizationInfo(pCity->getCivilizationType()).getCivilizationUnits(iI);
-				if (eLoopUnit != NO_UNIT)
-				{
-					if (pCity->canTrain(eLoopUnit))
-					{
-						szBuffer.Format(L"%s (%d)", GC.getUnitInfo(eLoopUnit).getDescription(), pCity->getProductionTurnsLeft(eLoopUnit, 0));
-						aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_TRAIN, eLoopUnit, pPlot->getX_INLINE(), pPlot->getY_INLINE(), szBuffer));
-					}
-				}
+				UnitTypes eLoopUnit = (UnitTypes)GC.getCivilizationInfo(pCity->getCivilizationType()).
+						getCivilizationUnits(iI);
+				if (eLoopUnit == NO_UNIT || !pCity->canTrain(eLoopUnit))
+					continue; // advc.003
+				szBuffer = GC.getUnitInfo(eLoopUnit).getDescription();
+				int iTurns = pCity->getProductionTurnsLeft(eLoopUnit, 0);
+				if(iTurns < MAX_INT) // advc.004x
+					szBuffer.append(CvWString::format(L" (%d)", iTurns));
+				aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_TRAIN, eLoopUnit,
+						pPlot->getX_INLINE(), pPlot->getY_INLINE(), szBuffer));
 			}
 
 			for (int iI = 0; iI < GC.getNumBuildingClassInfos(); iI++)
 			{
-				BuildingTypes eLoopBuilding = (BuildingTypes)GC.getCivilizationInfo(pCity->getCivilizationType()).getCivilizationBuildings(iI);
-				if (eLoopBuilding != NO_BUILDING)
-				{
-					if (pCity->canConstruct(eLoopBuilding))
-					{
-						szBuffer.Format(L"%s (%d)", GC.getBuildingInfo(eLoopBuilding).getDescription(), pCity->getProductionTurnsLeft(eLoopBuilding, 0));
-						aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_CONSTRUCT, eLoopBuilding, pPlot->getX_INLINE(), pPlot->getY_INLINE(), szBuffer));
-					}
-				}
+				BuildingTypes eLoopBuilding = (BuildingTypes)GC.getCivilizationInfo(
+						pCity->getCivilizationType()).getCivilizationBuildings(iI);
+				if (eLoopBuilding == NO_BUILDING || !pCity->canConstruct(eLoopBuilding))
+					continue; // advc.003
+				szBuffer = GC.getBuildingInfo(eLoopBuilding).getDescription();
+				int iTurns = pCity->getProductionTurnsLeft(eLoopBuilding, 0);
+				if(iTurns < MAX_INT) // advc.004x
+					szBuffer.append(CvWString::format(L" (%d)", iTurns));
+				aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_CONSTRUCT, eLoopBuilding,
+						pPlot->getX_INLINE(), pPlot->getY_INLINE(), szBuffer));
 			}
 
 			for (int iI = 0; iI < GC.getNumProjectInfos(); iI++)
 			{
-				ProjectTypes eProject = (ProjectTypes) iI;
-				if (pCity->canCreate(eProject))
-				{
-					szBuffer.Format(L"%s (%d)", GC.getProjectInfo(eProject).getDescription(), pCity->getProductionTurnsLeft(eProject, 0));
-					aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_CREATE, eProject, pPlot->getX_INLINE(), pPlot->getY_INLINE(), szBuffer));
-				}
+				ProjectTypes eLoopProject = (ProjectTypes) iI;
+				if (!pCity->canCreate(eLoopProject))
+					continue; // advc.003
+				szBuffer = GC.getProjectInfo(eLoopProject).getDescription();
+				int iTurns = pCity->getProductionTurnsLeft(eLoopProject, 0);
+				if(iTurns < MAX_INT) // advc.004x
+					szBuffer.append(CvWString::format(L" (%d)", iTurns));
+				aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_CREATE, eLoopProject,
+						pPlot->getX_INLINE(), pPlot->getY_INLINE(), szBuffer));
 			}
 
 			for (int iI = 0; iI < GC.getNumProcessInfos(); iI++)
 			{
-				if (pCity->canMaintain((ProcessTypes)iI))
-				{
-					szBuffer = GC.getProcessInfo((ProcessTypes)iI).getDescription();
-					aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_MAINTAIN, iI, pPlot->getX_INLINE(), pPlot->getY_INLINE(), szBuffer));
-				}
+				ProcessTypes eLoopProcess = (ProcessTypes)iI;
+				if (!pCity->canMaintain(eLoopProcess))
+					continue; // advc.003
+				szBuffer = GC.getProcessInfo(eLoopProcess).getDescription();
+				aFlyoutItems.push_back(CvFlyoutMenuData(FLYOUT_MAINTAIN, eLoopProcess,
+						pPlot->getX_INLINE(), pPlot->getY_INLINE(), szBuffer));
 			}
 
 

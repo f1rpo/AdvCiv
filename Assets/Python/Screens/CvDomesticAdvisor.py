@@ -289,8 +289,12 @@ class CvDomesticAdvisor:
 		# Garrison
 		screen.setTableInt( "CityListBackground", 14, i, unicode(pLoopCity.plot().getNumDefenders(pLoopCity.getOwner())), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 
-		# Producing	
-		screen.setTableText( "CityListBackground", 15, i, pLoopCity.getProductionName() + " (" + str(pLoopCity.getGeneralProductionTurnsLeft()) + ")", "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
+		# Producing
+		szProducing = pLoopCity.getProductionName()
+		iProductionTurns = pLoopCity.getGeneralProductionTurnsLeft()
+		if iProductionTurns > 0: # advc.004x
+			szProducing += " (" + str(iProductionTurns) + ")"
+		screen.setTableText( "CityListBackground", 15, i, szProducing, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 
 		# Liberation
 		# advc.004: Mark potential independent colonies too (bCanSplit check added to the two conditions below)

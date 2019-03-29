@@ -233,7 +233,10 @@ std::wstring CyCity::getProductionName()
 
 int CyCity::getGeneralProductionTurnsLeft()
 {
-	return m_pCity ? m_pCity->getGeneralProductionTurnsLeft() : -1;
+	if(m_pCity == NULL)
+		return -1;
+	int r = m_pCity->getGeneralProductionTurnsLeft();
+	return (r == MAX_INT ? -1 : r); // advc.004x
 }
 
 std::wstring CyCity::getProductionNameKey()
@@ -283,22 +286,34 @@ int CyCity::getProductionNeeded()
 
 int CyCity::getProductionTurnsLeft()																
 {
-	return m_pCity ? m_pCity->getProductionTurnsLeft() : -1;
+	if(m_pCity == NULL)
+		return -1;
+	int r = m_pCity->getProductionTurnsLeft();
+	return (r == MAX_INT ? -1 : r); // advc.004x
 }
 
-int CyCity::getUnitProductionTurnsLeft(int /*UnitTypes*/ iUnit, int iNum)									
+int CyCity::getUnitProductionTurnsLeft(int iUnit, int iNum)									
 {
-	return m_pCity ? m_pCity->getProductionTurnsLeft((UnitTypes) iUnit, iNum) : -1;
+	if(m_pCity == NULL)
+		return -1;
+	int r = m_pCity->getProductionTurnsLeft((UnitTypes)iUnit, iNum);
+	return (r == MAX_INT ? -1 : r); // advc.004x
 }
 
-int CyCity::getBuildingProductionTurnsLeft(int /*BuildingTypes*/ iBuilding, int iNum)
+int CyCity::getBuildingProductionTurnsLeft(int iBuilding, int iNum)
 {
-	return m_pCity ? m_pCity->getProductionTurnsLeft((BuildingTypes) iBuilding, iNum) : -1;
+	if(m_pCity == NULL)
+		return -1;
+	int r = m_pCity->getProductionTurnsLeft((BuildingTypes)iBuilding, iNum);
+	return (r == MAX_INT ? -1 : r); // advc.004x
 }
 
-int CyCity::getProjectProductionTurnsLeft(int /*ProjectTypes*/ eProject, int iNum)								
+int CyCity::getProjectProductionTurnsLeft(int eProject, int iNum)								
 {
-	return m_pCity ? m_pCity->getProductionTurnsLeft((ProjectTypes)eProject, iNum) : -1;
+	if(m_pCity == NULL)
+		return -1;
+	int r = m_pCity->getProductionTurnsLeft((ProjectTypes)eProject, iNum);
+	return (r == MAX_INT ? -1 : r); // advc.004x
 }
 
 void CyCity::setProduction(int iNewValue)
