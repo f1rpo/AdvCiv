@@ -673,6 +673,7 @@ protected:
 	int* m_aiBonusValueTrade; // advc.036
 	int* m_aiUnitClassWeights;
 	int* m_aiUnitCombatWeights;
+	bool m_abTheyFarAhead[MAX_CIV_PLAYERS]; // advc.130c
 	std::map<UnitClassTypes, int> m_GreatPersonWeights; // K-Mod
 	static int const singleBonusTradeTolerance = 20; // advc.036
 	//mutable int* m_aiCloseBordersAttitudeCache;

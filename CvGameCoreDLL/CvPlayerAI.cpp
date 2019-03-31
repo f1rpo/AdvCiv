@@ -325,8 +325,9 @@ void CvPlayerAI::AI_reset(bool bConstructor)
 		// <advc.079>
 		if(iI < MAX_CIV_PLAYERS) {
 			m_aeLastBrag[iI] = NO_UNIT;
-			m_aeLastWarn[iI] = NO_TEAM;
-		} // </advc.079>
+			m_aeLastWarn[iI] = NO_TEAM; // </advc.079>
+			m_abTheyFarAhead[iI] = false; // advc.130c
+		}
 		m_abFirstContact[iI] = false;
 		for (int iJ = 0; iJ < NUM_CONTACT_TYPES; iJ++)
 		{
@@ -352,8 +353,9 @@ void CvPlayerAI::AI_reset(bool bConstructor)
 			// <advc.079>
 			if(getID() < MAX_CIV_PLAYERS) {
 				kLoopPlayer.m_aeLastBrag[getID()] = NO_UNIT;
-				kLoopPlayer.m_aeLastWarn[getID()] = NO_TEAM;
-			} // </advc.079>
+				kLoopPlayer.m_aeLastWarn[getID()] = NO_TEAM; // </advc.079>
+				kLoopPlayer.m_abTheyFarAhead[getID()] = false; // advc.130c
+			}
 			kLoopPlayer.m_abFirstContact[getID()] = false;
 			for (int iJ = 0; iJ < NUM_CONTACT_TYPES; iJ++)
 			{
@@ -9295,9 +9297,13 @@ void CvPlayerAI::AI_updateAttitudeCache(PlayerTypes ePlayer,
 	if (!GC.getGameINLINE().isFinalInitialized() || ePlayer == getID() ||
 		!isAlive() || !kPlayer.isAlive() || !GET_TEAM(getTeam()).isHasMet(kPlayer.getTeam()))
 	{
+		m_abTheyFarAhead[ePlayer] = false; // advc.130c
 		m_aiAttitudeCache[ePlayer] = 0;
 		return;
-	}
+	} // <advc.130c> Are they (ePlayer) 150% ahead in score?
+	CvGame const& g = GC.getGameINLINE();
+	m_abTheyFarAhead[ePlayer] = (g.getPlayerScore(ePlayer) * 10 >
+			g.getPlayerScore(getID()) * 15); // </advc.130c>
 	// <advc.sha> Now computed in subroutines
 	int iAttitude = AI_getFirstImpressionAttitude(ePlayer);
 	iAttitude += AI_getTeamSizeAttitude(ePlayer);
@@ -10132,13 +10138,13 @@ int CvPlayerAI::AI_getTeamSizeAttitude(PlayerTypes ePlayer) const {
 // <advc.130c>
 int CvPlayerAI::AI_getRankDifferenceAttitude(PlayerTypes ePlayer) const {
 
-	CvGame& g = GC.getGameINLINE();
-	// No hate if they're 150% ahead
-	if(g.getPlayerScore(ePlayer) * 10 > g.getPlayerScore(getID()) * 15)
-		return 0;
+	// Cached separately to avoid updating the whole cache w/e scores change
+	if(m_abTheyFarAhead[ePlayer])
+		return 0; // No hate if they're way ahead
 	// Don't count ranks of unknown civs
 	int iRankDifference = AI_knownRankDifference(ePlayer);
 	CvLeaderHeadInfo& lh = GC.getLeaderHeadInfo(getPersonalityType());
+	CvGame const& g = GC.getGameINLINE();
 	/*  This was "+ 1" in BtS, which is arguably a bug.
 		Continue using CivPlayersEverAlive although iRankDifference is now based
 		only on known civs. */
@@ -10183,8 +10189,7 @@ int CvPlayerAI::AI_getLostWarAttitude(PlayerTypes ePlayer) const {
 			GET_TEAM(getTeam()).AI_getWarSuccess(TEAMID(ePlayer)))
 		return GC.getLeaderHeadInfo(getPersonalityType()).getLostWarAttitudeChange();
     return 0;
-}
-// END: Show Hidden Attitude Mod </advc.sha>
+} // END: Show Hidden Attitude Mod </advc.sha>
 
 // <advc.130c>
 int CvPlayerAI::AI_knownRankDifference(PlayerTypes otherId) const {
@@ -22282,6 +22287,10 @@ void CvPlayerAI::read(FDataStreamBase* pStream)
 			m_aeLastWarn[i] = (TeamTypes)iTmp;
 		}
 	} // </advc.079>
+	// <advc.130c>
+	if(uiFlag >= 13)
+		pStream->Read(MAX_CIV_PLAYERS, m_abTheyFarAhead);
+	// </advc.130c>
 	// K-Mod. Load the attitude cache. (originally, in BBAI and the CAR Mod, this was not saved.
 	// But there are rare situations in which it needs to be saved/read to avoid OOS errors.)
 	if (uiFlag >= 4)
@@ -22389,6 +22398,7 @@ void CvPlayerAI::write(FDataStreamBase* pStream)
 	uiFlag = 10; // advc.036
 	uiFlag = 11; // advc.104i
 	uiFlag = 12; // advc.079
+	uiFlag = 13; // advc.130c
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iPeaceWeight);
@@ -22431,8 +22441,9 @@ void CvPlayerAI::write(FDataStreamBase* pStream)
 	// <advc.079>
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 		pStream->Write(m_aeLastBrag[i]);
-		pStream->Write(m_aeLastWarn[i]);
-	} // </advc.079>
+		pStream->Write(m_aeLastWarn[i]); // </advc.079>
+		pStream->Write(m_abTheyFarAhead[i]); // advc.130c
+	} 
 	// K-Mod. save the attitude cache. (to avoid OOS problems)
 	pStream->Write(MAX_PLAYERS, &m_aiAttitudeCache[0]); // uiFlag >= 4
 	// K-Mod end

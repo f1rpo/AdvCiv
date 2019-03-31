@@ -1920,7 +1920,11 @@ class CvMainInterface:
 				iSkipped = 0
 
 			BugUtil.debug("updatePlotListButtons_Orig - iCount(%i), iSkipped(%i)", iCount, iSkipped)
-
+			# <advc.069>
+			bSimultaneousTurns = gc.getGame().isMPOption(MultiplayerOptionTypes.MPOPTION_SIMULTANEOUS_TURNS)
+			bWoundedIndicator = PleOpt.isShowWoundedIndicator()
+			bGGIndicator = PleOpt.isShowGreatGeneralIndicator()
+			# </advc.069>
 			CyInterface().cacheInterfacePlotUnits(pPlot)
 			for i in range(CyInterface().getNumCachedInterfacePlotUnits()):
 				pLoopUnit = CyInterface().getCachedInterfacePlotUnit(i)
@@ -1932,6 +1936,8 @@ class CvMainInterface:
 						bRightArrow = True
 
 					if ((iCount >= 0) and (iCount <  self.numPlotListButtonsPerRow() * self.numPlotListRows())):
+						# advc.069:
+						bShowMoveOverlay = (bSimultaneousTurns or pLoopUnit.getOwner() == gc.getGame().getActivePlayer() or (bWoundedIndicator and pLoopUnit.isHurt()) or (bGGIndicator and pLoopUnit.getLeaderUnitType() >= 0))
 						if ((pLoopUnit.getTeam() != gc.getGame().getActiveTeam()) or pLoopUnit.isWaiting()):
 							szFileName = ArtFileMgr.getInterfaceArtInfo("OVERLAY_FORTIFY").getPath()
 
@@ -1979,9 +1985,10 @@ class CvMainInterface:
 							screen.show( szStringHealth )
 
 						# Adds the overlay first
-						szStringIcon = szString + "Icon"
-						screen.changeDDSGFC( szStringIcon, szFileName )
-						screen.show( szStringIcon )
+						if bShowMoveOverlay: # advc.069
+							szStringIcon = szString + "Icon"
+							screen.changeDDSGFC( szStringIcon, szFileName )
+							screen.show( szStringIcon )
 
 						if bEnable:
 							x = 315 + ((iCount % self.numPlotListButtonsPerRow()) * 34)

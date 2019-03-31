@@ -214,7 +214,8 @@ public:
 			PlayerTypes otherId); // </advc.034>
 
 	void getWarplanString(CvWStringBuffer& szString, WarPlanTypes eWarPlan);
-	void getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer, PlayerTypes eTargetPlayer);
+	void getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer, PlayerTypes eTargetPlayer,
+			bool bConstCache = false); // advc.sha
 	void getVassalInfoString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer); // K-Mod
 	void getWarWearinessString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer, PlayerTypes eTargetPlayer) const; // K-Mod
 	void getEspionageString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer, PlayerTypes eTargetPlayer);

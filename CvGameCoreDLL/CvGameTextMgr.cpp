@@ -15728,58 +15728,62 @@ void CvGameTextMgr::getWarplanString(CvWStringBuffer& szString, WarPlanTypes eWa
 	}
 }
 
-void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer, PlayerTypes eTargetPlayer)
+void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer,
+		PlayerTypes eTargetPlayer, /* advc.sha: */ bool bConstCache)
 {
 	CvWString szTempBuffer;
 	CvPlayerAI& kPlayer = GET_PLAYER(ePlayer);
 	// K-Mod
 	if (kPlayer.isHuman())
 		return;
-	szBuffer.append(NEWLINE);
+	CvWStringBuffer r; // advc.sha
+	r.append(NEWLINE);
 	// K-Mod end
 
-	int iI;
-
-	//szBuffer.append(gDLL->getText("TXT_KEY_ATTITUDE_TOWARDS", GC.getAttitudeInfo(kPlayer.AI_getAttitude(eTargetPlayer)).getTextKeyWide(), GET_PLAYER(eTargetPlayer).getNameKey()));
+	//r.append(gDLL->getText("TXT_KEY_ATTITUDE_TOWARDS", GC.getAttitudeInfo(kPlayer.AI_getAttitude(eTargetPlayer)).getTextKeyWide(), GET_PLAYER(eTargetPlayer).getNameKey()));
 	// <advc.004q> Replacing the above
-	int total = kPlayer.AI_getAttitudeVal(eTargetPlayer, false);
-	wchar const* attitudeStr = GC.getAttitudeInfo(
+	int iTotalCached = kPlayer.AI_getAttitudeVal(eTargetPlayer, false);
+	wchar const* szAttitude = GC.getAttitudeInfo(
 			kPlayer.AI_getAttitude(eTargetPlayer)).getTextKeyWide();
-	wchar const* targetNameStr = GET_PLAYER(eTargetPlayer).getNameKey();
-	AttitudeTypes att = kPlayer.AI_getAttitudeFromValue(total);
-	if(att == ATTITUDE_CAUTIOUS) {
-		if(total == 0) {
-			szBuffer.append(gDLL->getText("TXT_KEY_ZERO_ATTITUDE_TOWARDS",
-					attitudeStr, targetNameStr));
+	wchar const* szTargetName = GET_PLAYER(eTargetPlayer).getNameKey();
+	AttitudeTypes eAttitudeCached = kPlayer.AI_getAttitudeFromValue(iTotalCached);
+	if(eAttitudeCached == ATTITUDE_CAUTIOUS) {
+		if(iTotalCached == 0) {
+			r.append(gDLL->getText("TXT_KEY_ZERO_ATTITUDE_TOWARDS",
+					szAttitude, szTargetName));
 		}
-		else if(total > 0) {
-			szBuffer.append(gDLL->getText("TXT_KEY_POSITIVE_NEUTRAL_ATTITUDE_TOWARDS",
-				attitudeStr, total, targetNameStr));
+		else if(iTotalCached > 0) {
+			r.append(gDLL->getText("TXT_KEY_POSITIVE_NEUTRAL_ATTITUDE_TOWARDS",
+				szAttitude, iTotalCached, szTargetName));
 		}
-		else szBuffer.append(gDLL->getText("TXT_KEY_NEGATIVE_NEUTRAL_ATTITUDE_TOWARDS",
-				attitudeStr, total, targetNameStr));
+		else r.append(gDLL->getText("TXT_KEY_NEGATIVE_NEUTRAL_ATTITUDE_TOWARDS",
+				szAttitude, iTotalCached, szTargetName));
 	}
-	else if(att > ATTITUDE_CAUTIOUS)
-		szBuffer.append(gDLL->getText("TXT_KEY_GOOD_ATTITUDE_TOWARDS",
-				attitudeStr, total, targetNameStr));
-	else szBuffer.append(gDLL->getText("TXT_KEY_BAD_ATTITUDE_TOWARDS",
-				attitudeStr, total, targetNameStr));
+	else if(eAttitudeCached > ATTITUDE_CAUTIOUS)
+		r.append(gDLL->getText("TXT_KEY_GOOD_ATTITUDE_TOWARDS",
+				szAttitude, iTotalCached, szTargetName));
+	else r.append(gDLL->getText("TXT_KEY_BAD_ATTITUDE_TOWARDS",
+				szAttitude, iTotalCached, szTargetName));
 	// </advc.004q>
 
 	// (K-Mod note: vassal information has been moved from here to a new function)
 
+	CvGame const& g = GC.getGameINLINE();
 	// Attitude breakdown
+	// <advc.sha>
+	int iTotal = 0;
+	bool bSHowHiddenAttitude = (GC.getDefineINT("SHOW_HIDDEN_ATTITUDE") > 0);
+	// </advc.sha>
 	for (int iPass = 0; iPass < 2; iPass++)
 	{
 		int iAttitudeChange = kPlayer.AI_getCloseBordersAttitude(eTargetPlayer);
 		if ((iPass == 0) ? (iAttitudeChange > 0) : (iAttitudeChange < 0))
 		{
 			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR((iAttitudeChange > 0) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"), gDLL->getText("TXT_KEY_MISC_ATTITUDE_LAND_TARGET", iAttitudeChange).GetCString());
-			szBuffer.append(NEWLINE);
-			szBuffer.append(szTempBuffer);
+			r.append(NEWLINE);
+			r.append(szTempBuffer);
+			iTotal += iAttitudeChange;
 		}
-
-		iAttitudeChange = kPlayer.AI_getWarAttitude(eTargetPlayer);
 		// <advc.sha>
 		iAttitudeChange = kPlayer.AI_getWarAttitude(eTargetPlayer,
 				kPlayer.AI_getAttitudeVal(eTargetPlayer) - iAttitudeChange);
@@ -15787,72 +15791,81 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 		if ((iPass == 0) ? (iAttitudeChange > 0) : (iAttitudeChange < 0))
 		{
 			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR((iAttitudeChange > 0) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"), gDLL->getText("TXT_KEY_MISC_ATTITUDE_WAR", iAttitudeChange).GetCString());
-			szBuffer.append(NEWLINE);
-			szBuffer.append(szTempBuffer);
+			r.append(NEWLINE);
+			r.append(szTempBuffer);
+			iTotal += iAttitudeChange;
 		}
 
 		iAttitudeChange = kPlayer.AI_getPeaceAttitude(eTargetPlayer);
 		if ((iPass == 0) ? (iAttitudeChange > 0) : (iAttitudeChange < 0))
 		{
 			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR((iAttitudeChange > 0) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"), gDLL->getText("TXT_KEY_MISC_ATTITUDE_PEACE", iAttitudeChange).GetCString());
-			szBuffer.append(NEWLINE);
-			szBuffer.append(szTempBuffer);
+			r.append(NEWLINE);
+			r.append(szTempBuffer);
+			iTotal += iAttitudeChange;
 		}
 
 		iAttitudeChange = kPlayer.AI_getSameReligionAttitude(eTargetPlayer);
 		if ((iPass == 0) ? (iAttitudeChange > 0) : (iAttitudeChange < 0))
 		{
 			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR((iAttitudeChange > 0) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"), gDLL->getText("TXT_KEY_MISC_ATTITUDE_SAME_RELIGION", iAttitudeChange).GetCString());
-			szBuffer.append(NEWLINE);
-			szBuffer.append(szTempBuffer);
+			r.append(NEWLINE);
+			r.append(szTempBuffer);
+			iTotal += iAttitudeChange;
 		}
 
 		iAttitudeChange = kPlayer.AI_getDifferentReligionAttitude(eTargetPlayer);
 		if ((iPass == 0) ? (iAttitudeChange > 0) : (iAttitudeChange < 0))
 		{
 			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR((iAttitudeChange > 0) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"), gDLL->getText("TXT_KEY_MISC_ATTITUDE_DIFFERENT_RELIGION", iAttitudeChange).GetCString());
-			szBuffer.append(NEWLINE);
-			szBuffer.append(szTempBuffer);
+			r.append(NEWLINE);
+			r.append(szTempBuffer);
+			iTotal += iAttitudeChange;
 		}
 
 		iAttitudeChange = kPlayer.AI_getBonusTradeAttitude(eTargetPlayer);
 		if ((iPass == 0) ? (iAttitudeChange > 0) : (iAttitudeChange < 0))
 		{
 			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR((iAttitudeChange > 0) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"), gDLL->getText("TXT_KEY_MISC_ATTITUDE_BONUS_TRADE", iAttitudeChange).GetCString());
-			szBuffer.append(NEWLINE);
-			szBuffer.append(szTempBuffer);
+			r.append(NEWLINE);
+			r.append(szTempBuffer);
+			iTotal += iAttitudeChange;
 		}
 
 		iAttitudeChange = kPlayer.AI_getOpenBordersAttitude(eTargetPlayer);
 		if ((iPass == 0) ? (iAttitudeChange > 0) : (iAttitudeChange < 0))
 		{
 			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR((iAttitudeChange > 0) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"), gDLL->getText("TXT_KEY_MISC_ATTITUDE_OPEN_BORDERS", iAttitudeChange).GetCString());
-			szBuffer.append(NEWLINE);
-			szBuffer.append(szTempBuffer);
+			r.append(NEWLINE);
+			r.append(szTempBuffer);
+			iTotal += iAttitudeChange;
 		}
 
 		iAttitudeChange = kPlayer.AI_getDefensivePactAttitude(eTargetPlayer);
 		if ((iPass == 0) ? (iAttitudeChange > 0) : (iAttitudeChange < 0))
 		{
 			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR((iAttitudeChange > 0) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"), gDLL->getText("TXT_KEY_MISC_ATTITUDE_DEFENSIVE_PACT", iAttitudeChange).GetCString());
-			szBuffer.append(NEWLINE);
-			szBuffer.append(szTempBuffer);
+			r.append(NEWLINE);
+			r.append(szTempBuffer);
+			iTotal += iAttitudeChange;
 		}
 
 		iAttitudeChange = kPlayer.AI_getRivalDefensivePactAttitude(eTargetPlayer);
 		if ((iPass == 0) ? (iAttitudeChange > 0) : (iAttitudeChange < 0))
 		{
 			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR((iAttitudeChange > 0) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"), gDLL->getText("TXT_KEY_MISC_ATTITUDE_RIVAL_DEFENSIVE_PACT", iAttitudeChange).GetCString());
-			szBuffer.append(NEWLINE);
-			szBuffer.append(szTempBuffer);
+			r.append(NEWLINE);
+			r.append(szTempBuffer);
+			iTotal += iAttitudeChange;
 		}
 
 		iAttitudeChange = kPlayer.AI_getRivalVassalAttitude(eTargetPlayer);
 		if ((iPass == 0) ? (iAttitudeChange > 0) : (iAttitudeChange < 0))
 		{
 			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR((iAttitudeChange > 0) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"), gDLL->getText("TXT_KEY_MISC_ATTITUDE_RIVAL_VASSAL", iAttitudeChange).GetCString());
-			szBuffer.append(NEWLINE);
-			szBuffer.append(szTempBuffer);
+			r.append(NEWLINE);
+			r.append(szTempBuffer);
+			iTotal += iAttitudeChange;
 		}
 
 		// <advc.130w>
@@ -15862,60 +15875,66 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 					"COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"),
 					gDLL->getText("TXT_KEY_MISC_ATTITUDE_EXPANSIONIST",
 					iAttitudeChange).GetCString());
-			szBuffer.append(NEWLINE);
-			szBuffer.append(szTempBuffer);
+			r.append(NEWLINE);
+			r.append(szTempBuffer);
+			iTotal += iAttitudeChange;
 		} // </advc.130w>
 
 		iAttitudeChange = kPlayer.AI_getShareWarAttitude(eTargetPlayer);
 		if ((iPass == 0) ? (iAttitudeChange > 0) : (iAttitudeChange < 0))
 		{
 			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR((iAttitudeChange > 0) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"), gDLL->getText("TXT_KEY_MISC_ATTITUDE_SHARE_WAR", iAttitudeChange).GetCString());
-			szBuffer.append(NEWLINE);
-			szBuffer.append(szTempBuffer);
+			r.append(NEWLINE);
+			r.append(szTempBuffer);
+			iTotal += iAttitudeChange;
 		}
 
 		iAttitudeChange = kPlayer.AI_getFavoriteCivicAttitude(eTargetPlayer);
 		if ((iPass == 0) ? (iAttitudeChange > 0) : (iAttitudeChange < 0))
 		{
 			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR((iAttitudeChange > 0) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"), gDLL->getText("TXT_KEY_MISC_ATTITUDE_FAVORITE_CIVIC", iAttitudeChange).GetCString());
-			szBuffer.append(NEWLINE);
-			szBuffer.append(szTempBuffer);
+			r.append(NEWLINE);
+			r.append(szTempBuffer);
+			iTotal += iAttitudeChange;
 		}
 
 		iAttitudeChange = kPlayer.AI_getTradeAttitude(eTargetPlayer);
 		if ((iPass == 0) ? (iAttitudeChange > 0) : (iAttitudeChange < 0))
 		{
 			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR((iAttitudeChange > 0) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"), gDLL->getText("TXT_KEY_MISC_ATTITUDE_TRADE", iAttitudeChange).GetCString());
-			szBuffer.append(NEWLINE);
-			szBuffer.append(szTempBuffer);
+			r.append(NEWLINE);
+			r.append(szTempBuffer);
+			iTotal += iAttitudeChange;
 		}
 
 		iAttitudeChange = kPlayer.AI_getRivalTradeAttitude(eTargetPlayer);
 		if ((iPass == 0) ? (iAttitudeChange > 0) : (iAttitudeChange < 0))
 		{
 			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR((iAttitudeChange > 0) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"), gDLL->getText("TXT_KEY_MISC_ATTITUDE_RIVAL_TRADE", iAttitudeChange).GetCString());
-			szBuffer.append(NEWLINE);
-			szBuffer.append(szTempBuffer);
+			r.append(NEWLINE);
+			r.append(szTempBuffer);
+			iTotal += iAttitudeChange;
 		}
 		// advc.130r: Commented out
 		/*iAttitudeChange = GET_PLAYER(ePlayer).AI_getColonyAttitude(eTargetPlayer);
 		if ((iPass == 0) ? (iAttitudeChange > 0) : (iAttitudeChange < 0))
 		{
 			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR((iAttitudeChange > 0) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"), gDLL->getText("TXT_KEY_MISC_ATTITUDE_FREEDOM", iAttitudeChange).GetCString());
-			szBuffer.append(NEWLINE);
-			szBuffer.append(szTempBuffer);
+			r.append(NEWLINE);
+			r.append(szTempBuffer);
+			iTotal += iAttitudeChange;
 		}*/
 
 		iAttitudeChange = GET_PLAYER(ePlayer).AI_getAttitudeExtra(eTargetPlayer);
 		if ((iPass == 0) ? (iAttitudeChange > 0) : (iAttitudeChange < 0))
 		{
 			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR((iAttitudeChange > 0) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"), gDLL->getText(((iAttitudeChange > 0) ? "TXT_KEY_MISC_ATTITUDE_EXTRA_GOOD" : "TXT_KEY_MISC_ATTITUDE_EXTRA_BAD"), iAttitudeChange).GetCString());
-			szBuffer.append(NEWLINE);
-			szBuffer.append(szTempBuffer);
-		}
-		// <advc.sha> Some minor changes to DaveMcW's code.
+			r.append(NEWLINE);
+			r.append(szTempBuffer);
+			iTotal += iAttitudeChange;
+		} // <advc.sha>
 		// BEGIN: Show Hidden Attitude Mod 01/22/2010
-		if(GC.getDefineINT("SHOW_HIDDEN_ATTITUDE") <= 0)
+		if(!bSHowHiddenAttitude)
 			continue;
 		iAttitudeChange = kPlayer.AI_getTeamSizeAttitude(eTargetPlayer);
 		if((iPass == 0) ? (iAttitudeChange > 0) : (iAttitudeChange < 0)) {
@@ -15924,11 +15943,11 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 					"COLOR_NEGATIVE_TEXT"),
 					gDLL->getText("TXT_KEY_MISC_ATTITUDE_TEAM_SIZE",
 					iAttitudeChange).GetCString());
-			szBuffer.append(NEWLINE);
-			szBuffer.append(szTempBuffer);
+			r.append(NEWLINE);
+			r.append(szTempBuffer);
+			iTotal += iAttitudeChange;
 		}
-		// advc.sha: Moved this check here from CvPlayerAI
-		CvGame& g = GC.getGameINLINE();
+		// advc: Moved this check here from CvPlayerAI
 		if(g.isOption(GAMEOPTION_RANDOM_PERSONALITIES) && !g.isDebugMode())
 			continue;
 		iAttitudeChange = kPlayer.AI_getRankDifferenceAttitude(eTargetPlayer);
@@ -15939,14 +15958,16 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 		if(iAttitudeChange > 0 && iPass == 0) {
 			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR,
 					TEXT_COLOR("COLOR_POSITIVE_TEXT"), szRankText.GetCString());
-			szBuffer.append(NEWLINE);
-			szBuffer.append(szTempBuffer);
+			r.append(NEWLINE);
+			r.append(szTempBuffer);
+			iTotal += iAttitudeChange;
 		}
 		if(iAttitudeChange < 0 && iPass != 0) {
 			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR,
 					TEXT_COLOR("COLOR_NEGATIVE_TEXT"), szRankText.GetCString());
-			szBuffer.append(NEWLINE);
-			szBuffer.append(szTempBuffer);
+			r.append(NEWLINE);
+			r.append(szTempBuffer);
+			iTotal += iAttitudeChange;
 		}
 		iAttitudeChange = kPlayer.AI_getFirstImpressionAttitude(eTargetPlayer);
 		if((iPass == 0) ? (iAttitudeChange > 0) : (iAttitudeChange < 0)) {
@@ -15955,8 +15976,9 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 					"COLOR_NEGATIVE_TEXT"),
 					gDLL->getText("TXT_KEY_MISC_ATTITUDE_FIRST_IMPRESSION",
 					iAttitudeChange).GetCString());
-			szBuffer.append(NEWLINE);
-			szBuffer.append(szTempBuffer);
+			r.append(NEWLINE);
+			r.append(szTempBuffer);
+			iTotal += iAttitudeChange;
 		}
 		// Lost-war attitude: disabled
 		/*iAttitudeChange = kPlayer.AI_getLostWarAttitude(eTargetPlayer);
@@ -15966,29 +15988,38 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 					"COLOR_NEGATIVE_TEXT"),
 					gDLL->getText("TXT_KEY_MISC_ATTITUDE_LOST_WAR",
 					iAttitudeChange).GetCString());
-			szBuffer.append(NEWLINE);
-			szBuffer.append(szTempBuffer);
-		}*/
-		// END: Show Hidden Attitude Mod </advc.sha>
-
-		for (iI = 0; iI < NUM_MEMORY_TYPES; ++iI)
+			r.append(NEWLINE);
+			r.append(szTempBuffer);
+			iTotal += iAttitudeChange;
+		}*/ // END: Show Hidden Attitude Mod
+		// </advc.sha>
+		for (int iI = 0; iI < NUM_MEMORY_TYPES; ++iI)
 		{
 			iAttitudeChange = kPlayer.AI_getMemoryAttitude(eTargetPlayer, ((MemoryTypes)iI));
 			if ((iPass == 0) ? (iAttitudeChange > 0) : (iAttitudeChange < 0))
 			{
 				szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR((iAttitudeChange > 0) ? "COLOR_POSITIVE_TEXT" : "COLOR_NEGATIVE_TEXT"), gDLL->getText("TXT_KEY_MISC_ATTITUDE_MEMORY", iAttitudeChange, GC.getMemoryInfo((MemoryTypes)iI).getDescription()).GetCString());
-				szBuffer.append(NEWLINE);
-				szBuffer.append(szTempBuffer);
+				r.append(NEWLINE);
+				r.append(szTempBuffer);
+				iTotal += iAttitudeChange;
 			}
 		}
+	} // <advc.sha>
+	if(!bConstCache && bSHowHiddenAttitude && iTotal != iTotalCached &&
+			!g.isOption(GAMEOPTION_RANDOM_PERSONALITIES) && !g.isNetworkMultiPlayer()) {
+		FAssertMsg(iTotal == iTotalCached, "Attitude cache out of date");
+		kPlayer.AI_updateAttitudeCache(eTargetPlayer, true);
+		// Try again, this time without recursion. szBuffer hasn't been changed yet.
+		getAttitudeString(szBuffer, ePlayer, eTargetPlayer, true);
+		return;
 	}
+	szBuffer.append(r);
+	// </advc.sha>
 
 	/* original bts code
-	if (NO_PLAYER != eTargetPlayer)
-	{
+	if (NO_PLAYER != eTargetPlayer) {
 		int iWarWeariness = GET_PLAYER(eTargetPlayer).getModifiedWarWearinessPercentAnger(GET_TEAM(GET_PLAYER(eTargetPlayer).getTeam()).getWarWeariness(eTeam) * std::max(0, 100 + kTeam.getEnemyWarWearinessModifier()));
-		if (iWarWeariness / 10000 > 0)
-		{
+		if (iWarWeariness / 10000 > 0) {
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_WAR_WEAR_HELP", iWarWeariness / 10000));
 		}
@@ -20796,7 +20827,9 @@ void CvGameTextMgr::setProductionSpeedHelp(CvWStringBuffer& szBuffer,
 		}
 		if(!bCivilopediaText) {
 			/*  Not nice when more than one speed modifier applies (e.g. Wall).
-				Should put each modifier on a separate line then. Awkward to implement. :( */
+				Should put each modifier on a separate line then. Also, "+100%"
+				would be better than "double" in that case b/c the modifiers are
+				additive. Awkward to implement though. :( */
 			szBuffer.append(L" (");
 		}
 		else {
