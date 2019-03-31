@@ -283,6 +283,10 @@ private:
 			CvUnit const* pAttacker, CvUnit const* pDefender, CvPlot const* pPlot);
 	void setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const& kPlot);
 	// </advc.003>
+	// <advc.004w>
+	void setProductionSpeedHelp(CvWStringBuffer& szString, OrderTypes eInfoType,
+			CvInfoBase const* pInfo, CvCity* pCity, bool bCivilopediaText);
+	// </advc.004w>
 	// <advc.135c>
 	void setPlotHelpDebug(CvWStringBuffer& szString, CvPlot const& kPlot);
 	void setPlotHelpDebug_Ctrl(CvWStringBuffer& szString, CvPlot const& kPlot);

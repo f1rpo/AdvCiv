@@ -9746,28 +9746,7 @@ void CvGameTextMgr::setBasicUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit,
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_UNIT_EXTRA_COST", u.getExtraCost()));
 	}
-
-	if (bCivilopediaText)
-	{
-		// Trait
-		for (int i = 0; i < GC.getNumTraitInfos(); ++i)
-		{
-			if (u.getProductionTraits((TraitTypes)i) != 0)
-			{
-				if (u.getProductionTraits((TraitTypes)i) == 100)
-				{
-					szBuffer.append(NEWLINE);
-					szBuffer.append(gDLL->getText("TXT_KEY_DOUBLE_SPEED_TRAIT", GC.getTraitInfo((TraitTypes)i).getTextKeyWide()));
-				}
-				else
-				{
-					szBuffer.append(NEWLINE);
-					szBuffer.append(gDLL->getText("TXT_KEY_PRODUCTION_MODIFIER_TRAIT", u.getProductionTraits((TraitTypes)i), GC.getTraitInfo((TraitTypes)i).getTextKeyWide()));
-				}
-			}
-		}
-	}
-
+	// (advc.004w: ProductionTraits moved into setProductionSpeedHelp)
 	if (!CvWString(u.getHelp()).empty())
 	{
 		szBuffer.append(NEWLINE);
@@ -10080,7 +10059,12 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit, bool
 				szBuffer.append(ENDCOLR);
 			}
 		}
-	} // advc.004y: Commented out
+	} /* <advc.004> Show this right before the cost in Civilopedia text and
+		 otherwise (i.e. in hover text) after the cost */
+	if(bCivilopediaText)
+		setProductionSpeedHelp(szBuffer, ORDER_TRAIN, &u, pCity, true);
+	// </advc.004w>
+	// advc.004y: Commented out
 	//if (!bCivilopediaText && GC.getGameINLINE().getActivePlayer() != NO_PLAYER)
 	if (pCity == NULL)
 	{
@@ -10120,50 +10104,10 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit, bool
 			szBuffer.append(szTempBuffer);
 		}
 	}
-
-	for (iI = 0; iI < GC.getNumBonusInfos(); ++iI)
-	{
-		if (u.getBonusProductionModifier(iI) != 0)
-		{
-			if (pCity != NULL)
-			{
-				if (pCity->hasBonus((BonusTypes)iI))
-				{
-					szBuffer.append(gDLL->getText("TXT_KEY_COLOR_POSITIVE"));
-				}
-				else
-				{
-					szBuffer.append(gDLL->getText("TXT_KEY_COLOR_NEGATIVE"));
-				}
-			}
-			if (!bCivilopediaText)
-			{
-				szBuffer.append(L" (");
-			}
-			else
-			{
-				szTempBuffer.Format(L"%s%c", NEWLINE, gDLL->getSymbolID(BULLET_CHAR));
-				szBuffer.append(szTempBuffer);
-			}
-			if (u.getBonusProductionModifier(iI) == 100)
-			{
-				szBuffer.append(gDLL->getText("TXT_KEY_UNIT_DOUBLE_SPEED", GC.getBonusInfo((BonusTypes)iI).getTextKeyWide()));
-			}
-			else
-			{
-				szBuffer.append(gDLL->getText("TXT_KEY_UNIT_BUILDS_FASTER", u.getBonusProductionModifier(iI), GC.getBonusInfo((BonusTypes)iI).getTextKeyWide()));
-			}
-			if (!bCivilopediaText)
-			{
-				szBuffer.append(L")");
-			}
-			if (pCity != NULL)
-			{
-				szBuffer.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
-			}
-		}
-	}
-
+	// <advc.004w> BonusProductionModifier moved into subroutine
+	if(!bCivilopediaText)
+		setProductionSpeedHelp(szBuffer, ORDER_TRAIN, &u, pCity, false);
+	// </advc.004w>
 	// <advc.001b>
 	if(pCity != NULL && pCity->plot() != NULL &&
 			u.getAirUnitCap() > 0 && pCity->plot()->
@@ -11571,24 +11515,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 
 	if (bCivilopediaText)
 	{
-		// Trait
-		for (int i = 0; i < GC.getNumTraitInfos(); ++i)
-		{
-			if (kBuilding.getProductionTraits((TraitTypes)i) != 0)
-			{
-				if (kBuilding.getProductionTraits((TraitTypes)i) == 100)
-				{
-					szBuffer.append(NEWLINE);
-					szBuffer.append(gDLL->getText("TXT_KEY_DOUBLE_SPEED_TRAIT", GC.getTraitInfo((TraitTypes)i).getTextKeyWide()));
-				}
-				else
-				{
-					szBuffer.append(NEWLINE);
-					szBuffer.append(gDLL->getText("TXT_KEY_PRODUCTION_MODIFIER_TRAIT", kBuilding.getProductionTraits((TraitTypes)i), GC.getTraitInfo((TraitTypes)i).getTextKeyWide()));
-				}
-			}
-		}
-
+		// (advc.004w: ProductionTraits moved into setProductionSpeedHelp)
 		for (int i = 0; i < GC.getNumTraitInfos(); ++i)
 		{
 			if (kBuilding.getHappinessTraits((TraitTypes)i) != 0)
@@ -11674,8 +11601,11 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 				}
 			}
 		}
-	}
-
+	} /* <advc.004> Show this right before the cost in Civilopedia text and
+		 otherwise (i.e. in hover text) after the cost */
+	if(bCivilopediaText)
+		setProductionSpeedHelp(szBuffer, ORDER_CONSTRUCT, &kBuilding, pCity, true);
+	// </advc.004w>
 	//if ((pCity == NULL) || pCity->getNumRealBuilding(eBuilding) < GC.getCITY_MAX_NUM_BUILDINGS())
 	if(!inBuildingList) /*  advc.004w: Replacing the above. inBuildingList is
 							based on getNumBuilding, which, I think, makes more
@@ -11726,50 +11656,10 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 				}
 			}
 		}
-
-		for (int iI = 0; iI < GC.getNumBonusInfos(); ++iI)
-		{
-			if (kBuilding.getBonusProductionModifier(iI) != 0)
-			{
-				if (pCity != NULL)
-				{
-					if (pCity->hasBonus((BonusTypes)iI))
-					{
-						szBuffer.append(gDLL->getText("TXT_KEY_COLOR_POSITIVE"));
-					}
-					else
-					{
-						szBuffer.append(gDLL->getText("TXT_KEY_COLOR_NEGATIVE"));
-					}
-				}
-				if (!bCivilopediaText)
-				{
-					szBuffer.append(L" (");
-				}
-				else
-				{
-					szTempBuffer.Format(L"\n%c", gDLL->getSymbolID(BULLET_CHAR));
-					szBuffer.append(szTempBuffer);
-				}
-				if (kBuilding.getBonusProductionModifier(iI) == 100)
-				{
-					szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_DOUBLE_SPEED_WITH", GC.getBonusInfo((BonusTypes)iI).getTextKeyWide()));
-				}
-				else
-				{
-					szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_BUILDS_FASTER_WITH", kBuilding.getBonusProductionModifier(iI), GC.getBonusInfo((BonusTypes)iI).getTextKeyWide()));
-				}
-				if (!bCivilopediaText)
-				{
-					szBuffer.append(L')');
-				}
-				if (pCity != NULL)
-				{
-					szBuffer.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
-				}
-			}
-		}
-
+		// <advc.004w> BonusProductionModifier moved into subroutine
+		if(!bCivilopediaText)
+			setProductionSpeedHelp(szBuffer, ORDER_CONSTRUCT, &kBuilding, pCity, false);
+		// </advc.004w>
 		if (kBuilding.getObsoleteTech() != NO_TECH)
 		{
 			szBuffer.append(NEWLINE);
@@ -12583,11 +12473,18 @@ void CvGameTextMgr::setProjectHelp(CvWStringBuffer &szBuffer, ProjectTypes eProj
 			}
 			if (kProject.getBonusProductionModifier(iI) == 100)
 			{
-				szBuffer.append(gDLL->getText("TXT_KEY_PROJECT_DOUBLE_SPEED_WITH", GC.getBonusInfo((BonusTypes)iI).getTextKeyWide()));
+				szBuffer.append(gDLL->getText(
+						//"TXT_KEY_PROJECT_DOUBLE_SPEED_WITH",
+						"TXT_KEY_DOUBLE_PRODUCTION_WITH", // advc.004w
+						GC.getBonusInfo((BonusTypes)iI).getTextKeyWide()));
 			}
 			else
 			{
-				szBuffer.append(gDLL->getText("TXT_KEY_PROJECT_BUILDS_FASTER_WITH", kProject.getBonusProductionModifier(iI), GC.getBonusInfo((BonusTypes)iI).getTextKeyWide()));
+				szBuffer.append(gDLL->getText(
+						//TXT_KEY_PROJECT_BUILDS_FASTER_WITH",
+						"TXT_KEY_FASTER_PRODUCTION_WITH", // advc.004w
+						kProject.getBonusProductionModifier(iI),
+						GC.getBonusInfo((BonusTypes)iI).getTextKeyWide()));
 			}
 			if (!bCivilopediaText)
 			{
@@ -20820,3 +20717,105 @@ void CvGameTextMgr::appendPositiveModifiers(CvWStringBuffer& szString,
 		} // </advc.315c>
 	}
 } // </advc.003>
+
+/*  <advc.004w> Based on code cut from setUnitHelp and setBasicUnitHelp (and deleted from
+	setBuildingHelpActual). Units and buildings have the same production speed bonuses. */
+void CvGameTextMgr::setProductionSpeedHelp(CvWStringBuffer& szBuffer,
+		/*  Making a concrete base class for CvUnitInfo and CvBuildingInfo would be 
+			possible but an unreasonable effort */
+		OrderTypes eInfoType, CvInfoBase const* pInfo,
+		CvCity* pCity, bool bCivilopediaText) {
+
+	FAssert(eInfoType == ORDER_TRAIN || eInfoType == ORDER_CONSTRUCT);
+	for(int i = 0; i < GC.getNumBonusInfos(); i++) {
+		BonusTypes eBonus = (BonusTypes)i;
+		int iProductionModifier = 0;
+		if(eInfoType == ORDER_TRAIN) {
+			iProductionModifier = static_cast<CvUnitInfo const*>(pInfo)->
+					getBonusProductionModifier(eBonus);
+		}
+		else if(eInfoType == ORDER_CONSTRUCT) {
+			iProductionModifier = static_cast<CvBuildingInfo const*>(pInfo)->
+					getBonusProductionModifier(eBonus);
+		}
+		if(iProductionModifier == 0)
+			continue;
+		if(pCity != NULL) {
+			bool bHasBonus = pCity->hasBonus(eBonus);
+			if(iProductionModifier > 0 ? bHasBonus : !bHasBonus)
+				szBuffer.append(gDLL->getText("TXT_KEY_COLOR_POSITIVE"));
+			else szBuffer.append(gDLL->getText("TXT_KEY_COLOR_NEGATIVE"));
+		}
+		if(!bCivilopediaText)
+			szBuffer.append(L" (");
+		else {
+			szBuffer.append(NEWLINE);
+			szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(BULLET_CHAR)));
+		}
+		wchar const* szBonus = GC.getBonusInfo(eBonus).getTextKeyWide();
+		if(iProductionModifier == 100) {
+			szBuffer.append(gDLL->getText(bCivilopediaText ?
+					"TXT_KEY_DOUBLE_PRODUCTION_WITH" :
+					"TXT_KEY_DOUBLE_PRODUCTION_WITH_SHORT", szBonus));
+		}
+		else {
+			szBuffer.append(gDLL->getText("TXT_KEY_FASTER_PRODUCTION_WITH",
+					iProductionModifier, szBonus));
+		}
+		if(!bCivilopediaText)
+			szBuffer.append(L")");
+		if(pCity != NULL)
+			szBuffer.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
+	}
+	PlayerTypes eActivePlayer = GC.getGameINLINE().getActivePlayer();
+	if(!bCivilopediaText && eActivePlayer == NO_PLAYER)
+		return;
+	for(int i = 0; i < GC.getNumTraitInfos(); i++) {
+		TraitTypes eTrait = (TraitTypes)i;
+		if(!bCivilopediaText) {
+			CvLeaderHeadInfo const& lh = GC.getLeaderHeadInfo(
+					GET_PLAYER(eActivePlayer).getLeaderType());
+			if(!lh.hasTrait(eTrait))
+				continue;
+		}
+		int iProductionModifier = 0;
+		if(eInfoType == ORDER_TRAIN) {
+			iProductionModifier = static_cast<CvUnitInfo const*>(pInfo)->
+					getProductionTraits(eTrait);
+		}
+		else if(eInfoType == ORDER_CONSTRUCT) {
+			iProductionModifier = static_cast<CvBuildingInfo const*>(pInfo)->
+					getProductionTraits(eTrait);
+		}
+		if(iProductionModifier == 0)
+			continue;
+		if(!bCivilopediaText) {
+			if(iProductionModifier > 0)
+				szBuffer.append(gDLL->getText("TXT_KEY_COLOR_POSITIVE"));
+			else szBuffer.append(gDLL->getText("TXT_KEY_COLOR_NEGATIVE"));
+		}
+		if(!bCivilopediaText) {
+			/*  Not nice when more than one speed modifier applies (e.g. Wall).
+				Should put each modifier on a separate line then. Awkward to implement. :( */
+			szBuffer.append(L" (");
+		}
+		else {
+			szBuffer.append(NEWLINE);
+			szBuffer.append(CvWString::format(L"%c", gDLL->getSymbolID(BULLET_CHAR)));
+		}
+		wchar const* szTrait = GC.getTraitInfo((TraitTypes)i).getTextKeyWide();
+		if(iProductionModifier == 100) {
+			szBuffer.append(gDLL->getText(bCivilopediaText ?
+					"TXT_KEY_DOUBLE_SPEED_TRAIT" :
+					"TXT_KEY_DOUBLE_SPEED_TRAIT_SHORT", szTrait));
+		}
+		else {
+			szBuffer.append(gDLL->getText("TXT_KEY_PRODUCTION_MODIFIER_TRAIT",
+				iProductionModifier, szTrait));
+		}
+		if(!bCivilopediaText) {
+			szBuffer.append(L")");
+			szBuffer.append(gDLL->getText("TXT_KEY_COLOR_REVERT"));
+		}
+	}
+} // </advc.004w>

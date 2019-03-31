@@ -5003,14 +5003,8 @@
 		<Italian>[SPACE](possediamo %d1_num_bonus)[SPACE]</Italian>
 		<Spanish>[SPACE](tenemos %d1_num_bonus)[SPACE]</Spanish>
 	</TEXT>
-	<!-- Using the production icon for building production is a bit irregular,
-		 but nicely compact. If this is still too verbose, one could also
-		 put all buildings in one line through the ::setListHelp function.
-		 Translations for speed:
-		 vitesse de [ICON_PRODUCTION]
-		 [ICON_PRODUCTION]-Geschwindigkeit
-		 velocit&#224; di [ICON_PRODUCTION]
-		 velocidad de [ICON_PRODUCTION] -->
+	<!-- If this is still too verbose, one could also put all buildings in
+		 one line through the ::setListHelp function. -->
 	<TEXT>
 		<Tag>TXT_KEY_BONUS_SPEED_FOR</Tag>
 		<English>[ICON_PRODUCTION] for [LINK=literal]%s1_Building[\LINK]</English>
@@ -5018,6 +5012,79 @@
 		<German>[ICON_PRODUCTION]: [LINK=literal]%s1_Bonus[\LINK]</German>
 		<Italian>[ICON_PRODUCTION] per [LINK=literal]%s1_Bonus[\LINK]</Italian>
 		<Spanish>[ICON_PRODUCTION] por [LINK=literal]%s1_Bonus[\LINK]</Spanish>
+	</TEXT>
+	
+	<!-- advc.004w: Based on TXT_KEY_BUILDING_DOUBLE_SPEED_WITH and
+		 TXT_KEY_BUILDING_BUILDS_FASTER_WITH in CIV4GameTextInfos.xml. -->
+	<TEXT>
+		<Tag>TXT_KEY_DOUBLE_PRODUCTION_WITH</Tag>
+		<English>Double [ICON_PRODUCTION] Speed with [LINK=literal]%s1_Bonus[\LINK]</English>
+		<French>Vitesse de [ICON_PRODUCTION] doubl&#233;e avec : [LINK=literal]%s1_Bonus[\LINK]</French>
+		<German>Doppelte [ICON_PRODUCTION]/Runde mit [LINK=literal]%s1_Bonus[\LINK]</German>
+		<Italian>Raddoppia la velocit&#224; di [ICON_PRODUCTION] con [LINK=literal]%s1_Bonus[\LINK]</Italian>
+		<Spanish>Dobla la velocidad de [ICON_PRODUCTION] con [LINK=literal]%s1_Bonus[\LINK]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_FASTER_PRODUCTION_WITH</Tag>
+		<English>%d1_Mod%% Faster [ICON_PRODUCTION] with [LINK=literal]%s2_Bonus[\LINK]</English>
+		<French>%d1_Mod%% [ICON_PRODUCTION] plus vite avec : [LINK=literal]%s2_Bonus[\LINK]</French>
+		<German>%d1_Mod%% schnellere [ICON_PRODUCTION] mit [LINK=literal]%s2_Bonus[\LINK]</German>
+		<Italian>%d1_Mod%% [ICON_PRODUCTION] pi&#249; veloce con [LINK=literal]%s2_Bonus[\LINK]</Italian>
+		<Spanish>%d1_Mod%% [ICON_PRODUCTION] m&#225;s r&#225;pido con [LINK=literal]%s2_Bonus[\LINK]</Spanish>
+	</TEXT>
+	<!-- Super short version for use outside of Civilopedia -->
+	<TEXT>
+		<Tag>TXT_KEY_DOUBLE_PRODUCTION_WITH_SHORT</Tag>
+		<English>Double [ICON_PRODUCTION] with [LINK=literal]%s1_Bonus[\LINK]</English>
+		<French>[ICON_PRODUCTION] doubl&#233;e avec : [LINK=literal]%s1_Bonus[\LINK]</French>
+		<German>Doppelte [ICON_PRODUCTION]/Runde mit [LINK=literal]%s1_Bonus[\LINK]</German>
+		<Italian>Raddoppia la velocit&#224; di [ICON_PRODUCTION] con [LINK=literal]%s1_Bonus[\LINK]</Italian>
+		<Spanish>Dobla la velocidad de [ICON_PRODUCTION] con [LINK=literal]%s1_Bonus[\LINK]</Spanish>
+	</TEXT>
+	<!-- advc.004w: These two are from CIV4GameText_BTS.xml. Replace "production"
+		 with the production icon for consistency. -->
+	<TEXT>
+		<Tag>TXT_KEY_DOUBLE_SPEED_TRAIT</Tag>
+		<English>Double [ICON_PRODUCTION] Speed for %s1_trait Leaders</English>
+		<French>Vitesse de [ICON_PRODUCTION] doubl&#233;e avec le trait %s1_trait</French>
+		<German>Doppelte [ICON_PRODUCTION]/Runde f&#252;r %s1:2_trait Staatsoberhaupt</German>
+		<Italian>Doppia velocit&#224; [ICON_PRODUCTION] con un leader %s1_trait</Italian>
+		<Spanish>Doble velocidad de [ICON_PRODUCTION] con l&#237;der %s1:1_trait</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_PRODUCTION_MODIFIER_TRAIT</Tag>
+		<English>%D1_change%% [ICON_PRODUCTION] Speed for %s2_trait Leaders</English>
+		<French>Vitesse de [ICON_PRODUCTION] de %D1_change%% avec le trait %s2_trait</French>
+		<German>%D1_change%% [ICON_PRODUCTION]/Runde f&#252;r %s2:2_trait Staatsoberhaupt</German>
+		<Italian>%D1_change%% di velocit&#224; [ICON_PRODUCTION] con un leader %s2_trait</Italian>
+		<Spanish>%D1_change%% de velocidad de [ICON_PRODUCTION] con l&#237;der %s2:1_trait</Spanish>
+	</TEXT>
+	<!-- Shorter version -->
+	<TEXT>
+		<Tag>TXT_KEY_DOUBLE_SPEED_TRAIT_SHORT</Tag>
+		<English>Double [ICON_PRODUCTION] from %s1_trait Trait</English>
+		<French>[ICON_PRODUCTION] doubl&#233;e avec le trait %s1_trait</French>
+		<German>Doppelte [ICON_PRODUCTION]/Runde da %s1_trait</German>
+		<Italian>Doppia [ICON_PRODUCTION] con un leader %s1_trait</Italian>
+		<Spanish>Doble [ICON_PRODUCTION] con l&#237;der %s1:1_trait</Spanish>
+	</TEXT>
+	<!-- For consistency, use the production icon also in these two texts from
+		 Civ4GameTextInfos.xml: -->
+	<TEXT>
+		<Tag>TXT_KEY_TRAIT_DOUBLE_SPEED</Tag>
+		<English>[NEWLINE][SPACE][SPACE][ICON_BULLET]Double [ICON_PRODUCTION] Speed of[SPACE]</English>
+		<French>[NEWLINE][SPACE][SPACE][ICON_BULLET]Double la vitesse de [ICON_PRODUCTION] de :[SPACE]</French>
+		<German>[NEWLINE][SPACE][SPACE][ICON_BULLET]Doppelte [ICON_PRODUCTION]/Runde f&#252;r:[SPACE]</German>
+		<Italian>[NEWLINE][SPACE][SPACE][ICON_BULLET]Raddoppia la velocit&#224; di [ICON_PRODUCTION] di[SPACE]</Italian>
+		<Spanish>[NEWLINE][SPACE][SPACE][ICON_BULLET]Dobla la velocidad de [ICON_PRODUCTION] de[SPACE]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRAIT_PRODUCTION_MODIFIER</Tag>
+		<English>[NEWLINE][SPACE][SPACE][ICON_BULLET]%d1%% Faster [ICON_PRODUCTION] of[SPACE]</English>
+		<French>[NEWLINE][SPACE][SPACE][ICON_BULLET]Production %d1%% plus rapide de :[SPACE]</French>
+		<German>[NEWLINE][SPACE][SPACE][ICON_BULLET]%d1%% schnellere [ICON_PRODUCTION] f&#252;r:[SPACE]</German>
+		<Italian>[NEWLINE][SPACE][SPACE][ICON_BULLET]Produzione pi&#249; veloce del %d1%% per[SPACE]</Italian>
+		<Spanish>[NEWLINE][SPACE][SPACE][ICON_BULLET]Acelera un %d1%% la producci&#243;n de[SPACE]</Spanish>
 	</TEXT>
 
 	<!-- advc.073: Akin to TXT_KEY_MORECIV4LERTS_NEW_SALE in
