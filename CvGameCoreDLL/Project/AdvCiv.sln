@@ -10,6 +10,7 @@ Global
 		Assert|Win32 = Assert|Win32
 		Assert-fast|Win32 = Assert-fast|Win32
 		Debug|Win32 = Debug|Win32
+		Final_Release-fast|Win32 = Final_Release-fast|Win32
 		Profile|Win32 = Profile|Win32
 		Release|Win32 = Release|Win32
 		Release-fast|Win32 = Release-fast|Win32
@@ -21,6 +22,8 @@ Global
 		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Assert-fast|Win32.Build.0 = Assert-fast|Win32
 		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Debug|Win32.ActiveCfg = Debug|Win32
 		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Debug|Win32.Build.0 = Debug|Win32
+		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Final_Release-fast|Win32.ActiveCfg = Final_Release-fast|Win32
+		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Final_Release-fast|Win32.Build.0 = Final_Release-fast|Win32
 		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Profile|Win32.ActiveCfg = Profile|Win32
 		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Profile|Win32.Build.0 = Profile|Win32
 		{3021AF0E-699D-4232-86F6-FC374A0C9957}.Release|Win32.ActiveCfg = Release|Win32
