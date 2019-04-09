@@ -198,6 +198,7 @@ void CvPlot::reset(int iX, int iY, bool bConstructorCall)
 	m_iMinOriginalStartDist = -1;
 	m_iReconCount = 0;
 	m_iRiverCrossingCount = 0;
+	m_iLatitude = -1; // advc.tsl
 
 	m_bStartingPlot = false;
 	m_bHills = false;
@@ -247,6 +248,9 @@ void CvPlot::reset(int iX, int iY, bool bConstructorCall)
 	m_iTurnsBuildsInterrupted = -2; // advc.011: Meaning none in progress
 	m_szMostRecentCityName = ""; // advc.005c
 	m_iTotalCulture = 0; // advc.003b
+	// <advc.tsl>
+	if(!bConstructorCall)
+		m_iLatitude = calculateLatitude(); // </advc.tsl>
 }
 
 
@@ -4327,8 +4331,20 @@ bool CvPlot::at(int iX, int iY) const
 	return ((getX_INLINE() == iX) && (getY_INLINE() == iY));
 }
 
+// <advc.tsl>
+void CvPlot::setLatitude(int iLatitude) {
+
+	m_iLatitude = iLatitude;
+} // </advc.tsl>
+
 
 int CvPlot::getLatitude() const
+{
+	return m_iLatitude; // advc.tsl
+}
+
+// advc.tsl: was getLatitude()
+int CvPlot::calculateLatitude() const
 {
 /************************************************************************************************/
 /* UNOFFICIAL_PATCH                       07/12/09                       Temudjin & jdog5000    */
@@ -8980,7 +8996,11 @@ void CvPlot::read(FDataStreamBase* pStream)
 	pStream->Read(&m_iMinOriginalStartDist);
 	pStream->Read(&m_iReconCount);
 	pStream->Read(&m_iRiverCrossingCount);
-	
+	// <advc.tsl>
+	if(uiFlag >= 3)
+		pStream->Read(&m_iLatitude);
+	else m_iLatitude = calculateLatitude(); // </advc.tsl>
+
 	pStream->Read(&bVal);
 	m_bStartingPlot = bVal;
 	pStream->Read(&bVal);
@@ -9225,6 +9245,7 @@ void CvPlot::write(FDataStreamBase* pStream)
 	uint uiFlag=0;
 	uiFlag = 1; // advc.035
 	uiFlag = 2; // advc.003b
+	uiFlag = 3; // advc.tsl
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iX);
@@ -9241,6 +9262,7 @@ void CvPlot::write(FDataStreamBase* pStream)
 	pStream->Write(m_iMinOriginalStartDist);
 	pStream->Write(m_iReconCount);
 	pStream->Write(m_iRiverCrossingCount);
+	pStream->Write(m_iLatitude); // advc.tsl
 
 	pStream->Write(m_bStartingPlot);
 	pStream->Write(m_bHills);

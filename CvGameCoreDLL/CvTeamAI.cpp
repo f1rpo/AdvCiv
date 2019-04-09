@@ -175,9 +175,7 @@ void CvTeamAI::AI_doTurnPre()
 			WarAndPeaceAI::Team::doWar requires the members to be up-to-date. */
 		wpai.turnPre();
 	} // </advc.104>
-	/*  <advc.130n> Game turn increment can affect attitudes now. Might also be
-		a good idea in general to update before a human turn. Outdated attitude cache
-		doesn't really hurt, it just confuses humans. */
+	// <advc.130n> Game turn increment can affect attitudes now
 	if(isHuman()) {
 		for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 			CvPlayerAI& civ = GET_PLAYER((PlayerTypes)i);

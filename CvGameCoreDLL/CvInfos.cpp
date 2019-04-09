@@ -14665,7 +14665,7 @@ int CvLeaderHeadInfo::getMemoryDecayRand(int i) const
 		return -1;
 	// The "clean" approach would be to set this 52 times in LeaderHead XML
 	if(i == MEMORY_DECLARED_WAR_RECENT && m_piMemoryDecayRand[i] == 0)
-		return 22;
+		return 11;
 	return m_piMemoryDecayRand[i]; // </advc.104i>
 }
 

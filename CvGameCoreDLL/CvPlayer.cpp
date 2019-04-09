@@ -2248,6 +2248,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	int iOccupationTimer = pOldCity->getOccupationTimer();
 	szName = pOldCity->getNameKey();
 	int iDamage = pOldCity->getDefenseDamage();
+	bool bBombarded = pOldCity->isBombarded(); // advc.004c
 	int iOldCityId = pOldCity->getID();
 	std::vector<int> aeFreeSpecialists;
 	for (iI = 0; iI < GC.getNumSpecialistInfos(); ++iI)
@@ -2404,6 +2405,9 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 			false, true); // advc.106k
 	pNewCity->setNeverLost(false);
 	pNewCity->changeDefenseDamage(iDamage);
+	/*  advc.004c: The above will set the city as bombarded if iDamage>0.
+		But iDamage>0 doesn't imply that the city was recently bombarded. */
+	pNewCity->setBombarded(bBombarded);
 
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
 	{
@@ -12586,8 +12590,10 @@ bool CvPlayer::setCommercePercent(CommerceTypes eIndex, int iNewValue, bool bFor
 		gDLL->getInterfaceIFace()->setDirty(Espionage_Advisor_DIRTY_BIT, true);
 		// Redraw +/- buttons if espionage set to 0
 		gDLL->getInterfaceIFace()->setDirty(PercentButtons_DIRTY_BIT, true);
-		/*  Caveat: For some reason, the order of these two calls matters.
-			The espionage bit needs to be set first. */
+		/*  There seems to be some sort of race condition here. Occasionally
+			(rarely?), the espionage screen isn't correctly updated when the
+			slider goes from 0 to 10. Also, the order of these two setDirty calls
+			seems to matter. Dirtying the Espionage_Advisor first works better. */
 		// </advc.120c>
 	}
 	// K-Mod end

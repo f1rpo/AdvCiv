@@ -457,8 +457,13 @@ bool CyPlot::at(int iX, int iY)
 {
 	return m_pPlot ? m_pPlot->at(iX, iY) : false;
 }
+// <advc.tsl>
+void CyPlot::setLatitude(int iLatitude) {
+	if(m_pPlot != NULL)
+		m_pPlot->setLatitude(iLatitude);
+} // </advc.tsl>
 
-int CyPlot::getLatitude()																						
+int CyPlot::getLatitude()
 {
 	return m_pPlot ? m_pPlot->getLatitude() : -1;
 }

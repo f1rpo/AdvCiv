@@ -137,7 +137,7 @@ public:
 	int getProductionTurnsLeft(int iProductionNeeded, int iProduction,
 			int iFirstProductionDifference, int iProductionDifference) const;
 	int sanitizeProductionTurns(int iTurns, OrderTypes eOrder = NO_ORDER,
-			int iData = -1, bool bAssert = true) const; // advc.004x
+			int iData = -1, bool bAssert = false) const; // advc.004x
 	void setProduction(int iNewValue);																			// Exposed to Python
 	void changeProduction(int iChange);																			// Exposed to Python
 

@@ -8243,34 +8243,32 @@ int CvCity::getDefenseDamage() const
 
 void CvCity::changeDefenseDamage(int iChange)
 {
-	if (iChange != 0)
-	{
-		m_iDefenseDamage = range((m_iDefenseDamage + iChange), 0, GC.getMAX_CITY_DEFENSE_DAMAGE());
-
-		if (iChange > 0)
-		{
-			setBombarded(true);
-		}
-
-		setInfoDirty(true);
-
-		plot()->plotAction(PUF_makeInfoBarDirty);
-	}
-	else setBombarded(true); // advc.004c: Set bombarded if no change.
+	if (iChange == 0)
+		return;
+	m_iDefenseDamage = range((m_iDefenseDamage + iChange), 0, GC.getMAX_CITY_DEFENSE_DAMAGE());
+	if (iChange > 0)
+		setBombarded(true);
+	setInfoDirty(true);
+	plot()->plotAction(PUF_makeInfoBarDirty);
 }
 
 void CvCity::changeDefenseModifier(int iChange)
 {
-	// advc.004c: Want changeDefenseDamage to call setBombarded even if iChange==0
-	//if (iChange != 0)
-	{
-		int iTotalDefense = getTotalDefense(false);
-
-		if (iTotalDefense > 0)
-		{
-			changeDefenseDamage(-(GC.getMAX_CITY_DEFENSE_DAMAGE() * iChange) / iTotalDefense);
-		}
+	if(iChange == 0) {
+		setBombarded(true); // advc.004c: Set bombarded even if no change
+		return;
 	}
+	int iTotalDefense = getTotalDefense(false);
+	if(iTotalDefense <= 0)
+		return;
+	//changeDefenseDamage(-(GC.getMAX_CITY_DEFENSE_DAMAGE() * iChange) / iTotalDefense);
+	// <advc.004c> Replacing the above
+	int iDefenseDmg = getDefenseDamage();
+	int iDefenseMod = getDefenseModifier(false);
+	iChange = -iDefenseDmg + (GC.getMAX_CITY_DEFENSE_DAMAGE() * iTotalDefense -
+			(iDefenseMod + iChange) * GC.getMAX_CITY_DEFENSE_DAMAGE()) / iTotalDefense;
+	changeDefenseDamage(iChange);
+	// </advc.004c>
 }
 
 /*  advc.003j (comment): Not currently used (b/c K-Mod has removed AI_finalOddsThreshold).
@@ -14691,7 +14689,8 @@ void CvCity::getCityBillboardSizeIconColors(NiColorA& kDotColor, NiColorA& kText
 	NiColorA kWhite(1,1,1,1);
 	NiColorA kBlack(0,0,0,1);
 
-	if (getTeam() == GC.getGameINLINE().getActiveTeam())
+	if (getTeam() == GC.getGameINLINE().getActiveTeam()
+			&& isHuman()) // advc.127
 	{
 		if (foodDifference() < 0)
 		{

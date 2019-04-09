@@ -974,11 +974,11 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 			// advc.130j:
 			attacked.AI_rememberEvent(eToPlayer, MEMORY_HIRED_WAR_ALLY);
 			// <advc.104i> Similar to code in CvTeam::makeUnwillingToTalk
-			if(attacked.AI_getMemoryCount(eFromPlayer, MEMORY_DECLARED_WAR_RECENT) <= 0)
-				attacked.AI_changeMemoryCount(eFromPlayer, MEMORY_DECLARED_WAR_RECENT, 1);
+			if(attacked.AI_getMemoryCount(eFromPlayer, MEMORY_DECLARED_WAR_RECENT) < 2)
+				attacked.AI_rememberEvent(eFromPlayer, MEMORY_DECLARED_WAR_RECENT);
 			if(::atWar(TEAMID(eToPlayer), attacked.getTeam()) && attacked.
-					AI_getMemoryCount(eToPlayer, MEMORY_DECLARED_WAR_RECENT) <= 0)
-				attacked.AI_changeMemoryCount(eToPlayer, MEMORY_DECLARED_WAR_RECENT, 1);
+					AI_getMemoryCount(eToPlayer, MEMORY_DECLARED_WAR_RECENT) < 2)
+				attacked.AI_rememberEvent(eToPlayer, MEMORY_DECLARED_WAR_RECENT);
 			// </advc.104i>
 		}
 		break;

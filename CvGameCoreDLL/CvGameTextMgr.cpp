@@ -16006,7 +16006,8 @@ void CvGameTextMgr::getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePl
 		}
 	} // <advc.sha>
 	if(!bConstCache && bSHowHiddenAttitude && iTotal != iTotalCached &&
-			!g.isOption(GAMEOPTION_RANDOM_PERSONALITIES) && !g.isNetworkMultiPlayer()) {
+			!g.isOption(GAMEOPTION_RANDOM_PERSONALITIES) && !g.isNetworkMultiPlayer() &&
+			!g.isDebugMode()) {
 		FAssertMsg(iTotal == iTotalCached, "Attitude cache out of date");
 		kPlayer.AI_updateAttitudeCache(eTargetPlayer, true);
 		// Try again, this time without recursion. szBuffer hasn't been changed yet.

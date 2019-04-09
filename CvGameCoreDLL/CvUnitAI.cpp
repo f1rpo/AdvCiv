@@ -6530,32 +6530,6 @@ void CvUnitAI::AI_workerSeaMove()
 void CvUnitAI::AI_barbAttackSeaMove()
 {
 	PROFILE_FUNC();
-
-	/* original BTS code
-	if (GC.getGameINLINE().getSorenRandNum(2, "AI Barb") == 0)
-	{
-		if (AI_pillageRange(1))
-		{
-			return;
-		}
-	}
-
-	if (AI_anyAttack(2, 25))
-	{
-		return;
-	}
-
-	if (AI_pillageRange(4))
-	{
-		return;
-	}
-
-	if (AI_heal())
-	{
-		return;
-	}
-	*/
-
 	// <advc.306> Assault mode until cargo delivered
 	if(hasCargo()) {
 		// Opportunistic attack on Worker or empty city
@@ -6571,6 +6545,17 @@ void CvUnitAI::AI_barbAttackSeaMove()
 		}
 	} // </advc.306>
 
+	/* original BTS code
+	if (GC.getGameINLINE().getSorenRandNum(2, "AI Barb") == 0) {
+		if (AI_pillageRange(1))
+			return;
+	}
+	if (AI_anyAttack(2, 25))
+		return;
+	if (AI_pillageRange(4))
+		return;
+	if (AI_heal())
+		return;*/
 	// K-Mod
 	if (AI_anyAttack(1, 51)) // safe attack
 		return;
@@ -14591,20 +14576,30 @@ bool CvUnitAI::AI_protect(int iOddsThreshold, int iFlags, int iMaxPathTurns)
 bool CvUnitAI::AI_patrol() // advc.003: refactored
 {
 	PROFILE_FUNC();
-
-	int iBestValue = 0;
-	CvPlot* pBestPlot = NULL;
-	// <advc.102>
+	// <advc.102> Only patrol near own territory
+	if(!isBarbarian()) {
+		bool bFound = false;
+		CvPlayer const& kOwner = GET_PLAYER(getOwnerINLINE()); int foo;
+		for(CvCity* pCity = kOwner.firstCity(&foo); pCity != NULL; pCity = kOwner.nextCity(&foo)) {
+			if(::plotDistance(pCity->plot(), plot()) <= 10) {
+				bFound = true;
+				break;
+			}
+		}
+		if(!bFound)
+			return false;
+	}
 	CvPlot* pFacedPlot = plotDirection(getX_INLINE(), getY_INLINE(),
 			getFacingDirection(true));
 	int iFacedX = -100, iFacedY = -100;
-	if(pFacedPlot != NULL)
-	{
+	if(pFacedPlot != NULL) {
 		iFacedX = pFacedPlot->getX_INLINE();
 		iFacedY = pFacedPlot->getY_INLINE();
 	} // </advc.102>
 	CvGame& g = GC.getGameINLINE();
 
+	int iBestValue = 0;
+	CvPlot* pBestPlot = NULL;
 	for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 	{
 		CvPlot* pAdjacentPlot = plotDirection(getX_INLINE(), getY_INLINE(), (DirectionTypes)iI);
@@ -14685,16 +14680,13 @@ bool CvUnitAI::AI_patrol() // advc.003: refactored
 			FAssert(!atPlot(pBestPlot));
 		}
 	}
+	if(pBestPlot == NULL)
+		return false;
 
-	if(pBestPlot != NULL)
-	{
-		FAssert(!atPlot(pBestPlot));
-		getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(),
-				0, false, false, MISSIONAI_PATROL);
-		return true;
-	}
-
-	return false;
+	FAssert(!atPlot(pBestPlot));
+	getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(),
+			0, false, false, MISSIONAI_PATROL);
+	return true;
 }
 
 
@@ -18294,7 +18286,10 @@ bool CvUnitAI::AI_transportGoTo(CvPlot* pEndTurnPlot, CvPlot* pTargetPlot, int i
 	}
 	else
 	{
-		if (getGroup()->isAmphibPlot(pTargetPlot))
+		if (getGroup()->isAmphibPlot(pTargetPlot)
+				/*  advc.306: Allow Barbarians to unload in their own cities when
+					they're unable to reach any civs. */
+				|| (isBarbarian() && AI_getUnitAIType() == UNITAI_ATTACK_SEA))
 		{
 			// If target is actually an amphibious landing from pEndTurnPlot, then set pEndTurnPlot = pTargetPlot so that we can land this turn.
 			if (pTargetPlot != pEndTurnPlot && stepDistance(pTargetPlot, pEndTurnPlot) == 1)

@@ -2571,15 +2571,15 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 	if(parent == NULL)
 		return TRUE;
 	CvMap const& m = GC.getMapINLINE();
-	CvPlot* pNewPlot = m.plotSorenINLINE(node->m_iX, node->m_iY);
-	if(pNewPlot->isImpassable())
+	CvPlot const& kToPlot = *m.plotSorenINLINE(node->m_iX, node->m_iY);
+	if(kToPlot.isImpassable())
 		return FALSE;
-	CvPlot* pFromPlot = m.plotSorenINLINE(parent->m_iX, parent->m_iY);
-	if(pFromPlot->isWater() && pNewPlot->isWater() &&
+	CvPlot const& kFromPlot = *m.plotSorenINLINE(parent->m_iX, parent->m_iY);
+	if(kFromPlot.isWater() && kToPlot.isWater() &&
 			!m.plotINLINE(parent->m_iX, node->m_iY)->isWater() &&
 			!m.plotINLINE(node->m_iX, parent->m_iY)->isWater())
 		return FALSE;
-	TeamTypes ePlotTeam = pNewPlot->getTeam();
+	TeamTypes ePlotTeam = kToPlot.getTeam();
 	int* v = (int*)pointer;
 	int iMaxPath = v[5];
 	/*  As far as I understand the code, node (the pToPlot) is still set to 0
@@ -2589,29 +2589,34 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 	if(iMaxPath > 0 && (parent->m_iHeuristicCost + parent->m_iKnownCost > iMaxPath ||
 			node->m_iHeuristicCost + node->m_iKnownCost > iMaxPath))
 		return FALSE;
-	TeamTypes eTeam = (TeamTypes)v[0];
+	TeamTypes eTeam = (TeamTypes)v[0]; // The team that computes the path
 	TeamTypes eTargetTeam = (TeamTypes)v[1];
-	DomainTypes dom = (DomainTypes)v[2];
-	if(dom == NO_DOMAIN)
-		dom = DOMAIN_LAND;
+	DomainTypes eDom = (DomainTypes)v[2];
+	if(eDom == NO_DOMAIN)
+		eDom = DOMAIN_LAND;
 	// Check domain legality:
-	if(dom == DOMAIN_LAND && pNewPlot->isWater())
+	if(eDom == DOMAIN_LAND && kToPlot.isWater())
 		return FALSE;
-	bool coastalCity = pNewPlot->isCity(true) && pNewPlot->isCoastalLand();
+	/*  <advc.033> Naval blockades (Barbarian eTeam) are allowed to reach a city
+		but mustn't pass through */
+	if(eTeam == BARBARIAN_TEAM && eDom != DOMAIN_LAND && kFromPlot.isCity() &&
+			kFromPlot.getTeam() != BARBARIAN_TEAM)
+		return FALSE; // </advc.033>
+	bool bCoastalCity = kToPlot.isCity(true) && kToPlot.isCoastalLand();
 	// Use DOMAIN_IMMOBILE to encode sea units with impassable terrain
-	bool impassableTerrain = false;
-	if(dom == DOMAIN_IMMOBILE) {
-		impassableTerrain = true;
-		dom = DOMAIN_SEA;
+	bool bImpassableTerrain = false;
+	if(eDom == DOMAIN_IMMOBILE) {
+		bImpassableTerrain = true;
+		eDom = DOMAIN_SEA;
 	}
-	if(dom == DOMAIN_SEA && !coastalCity && !pNewPlot->isWater() &&
+	if(eDom == DOMAIN_SEA && !bCoastalCity && !kToPlot.isWater() &&
 			// Allow non-city land tile as cargo destination
-			(pNewPlot->getX_INLINE() != v[3] || pNewPlot->getY_INLINE() != v[4]))
+			(kToPlot.getX_INLINE() != v[3] || kToPlot.getY_INLINE() != v[4]))
 		return FALSE;
-	/*  This handles only Coast, and no other terrain types that a mod might make
-		impassable. */
-	if(!coastalCity && ePlotTeam != eTeam && impassableTerrain &&
-			pNewPlot->getTerrainType() != (TerrainTypes)(GC.getDefineINT("SHALLOW_WATER_TERRAIN")))
+	/*  This handles only Coast and no other terrain types that a mod might make
+		impassable */
+	if(!bCoastalCity && ePlotTeam != eTeam && bImpassableTerrain &&
+			kToPlot.getTerrainType() != (TerrainTypes)(GC.getDefineINT("SHALLOW_WATER_TERRAIN")))
 		return FALSE;
 	// Don't check isRevealed; caller ensures that destination city is deducible.
 	if(ePlotTeam == NO_TEAM)
@@ -2619,10 +2624,14 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 	if(GET_TEAM(ePlotTeam).getMasterTeam() == GET_TEAM(eTargetTeam).getMasterTeam())
 		return TRUE;
 	CvTeamAI const& kTeam = GET_TEAM(eTeam);
-	if(kTeam.isFriendlyTerritory(ePlotTeam) ||
-			/*  A war plan isn't enough; war against eTargetTeam could replace
-				that plan. */
-			kTeam.isAtWar(ePlotTeam) || kTeam.isOpenBorders(ePlotTeam))
+	if(kTeam.isFriendlyTerritory(ePlotTeam) || kTeam.isOpenBorders(ePlotTeam))
+		return TRUE;
+	// A war plan isn't enough; war against eTargetTeam could supplant that plan.
+	if(kTeam.isAtWar(ePlotTeam) &&
+			/*  Units can't just move through an enemy city, but they can conquer
+				it. Even ships can when part of a naval assault. They can't really
+				conquer forts though. */
+			(eDom == DOMAIN_LAND || !bCoastalCity || kToPlot.isCity()))
 		return TRUE;
 	return FALSE;
 }

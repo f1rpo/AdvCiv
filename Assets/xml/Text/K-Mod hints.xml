@@ -40,11 +40,11 @@
 	 reason not to chop. -->
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_3</Tag>
-	<English>In the late game, forests and jungles help offset the pollution caused by your civilization. If you don't need to chop them down, consider keeping them to reduce the effects of global warming.</English>
-	<French>In the late game, forests and jungles help offset the pollution caused by your civilization. If you don't need to chop them down, consider keeping them to reduce the effects of global warming.</French>
-	<German>Wälder und Dschungel helfen gegen Spielende, die Umweltverschmutzung Ihrer Zivilisation auszugleichen. Ziehen Sie in Betracht, sie zu erhalten, um dem Klimawandel entgegenzuwirken.</German>
-	<Italian>Foreste e giungle aiutano a contrastare l'inquinamento causato dalla tua civilità. Se non hai necessità di abbatterle, considera di mantenerle per ridurre gli effetti del riscaldamento globale.</Italian>
-	<Spanish>Los bosques y las selvas ayudan a compensar la polución causada por tu civilización. Si no necesitas talarlos, considéraros para reducir los efectos del calentamiento global.</Spanish>
+	<English>(K-Mod) In the late game, forests and jungles help offset the pollution caused by your civilization. If you don't need to chop them down, consider keeping them to reduce the effects of global warming.</English>
+	<French>(K-Mod) In the late game, forests and jungles help offset the pollution caused by your civilization. If you don't need to chop them down, consider keeping them to reduce the effects of global warming.</French>
+	<German>(K-Mod) Wälder und Dschungel helfen gegen Spielende, die Umweltverschmutzung Ihrer Zivilisation auszugleichen. Ziehen Sie in Betracht, sie zu erhalten, um dem Klimawandel entgegenzuwirken.</German>
+	<Italian>(K-Mod) Foreste e giungle aiutano a contrastare l'inquinamento causato dalla tua civilità. Se non hai necessità di abbatterle, considera di mantenerle per ridurre gli effetti del riscaldamento globale.</Italian>
+	<Spanish>(K-Mod) Los bosques y las selvas ayudan a compensar la polución causada por tu civilización. Si no necesitas talarlos, considéraros para reducir los efectos del calentamiento global.</Spanish>
 </TEXT>
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_4</Tag>
@@ -71,10 +71,11 @@
 	<Italian>(K-Mod) Le unità con la promozione "Leadership" (Grande Generale richiesto) riducono maggiormente le probabilità di rivolta di una città.</Italian>
 	<Spanish>(K-Mod) Las unidades con el ascendo de caudillo "liderazgo" reduce enormemente la probabilidad de rebeliones culturales en su ciudad.</Spanish>
 </TEXT>
+<!-- advc.008c: "grants" instead of "shares". "share to" sounds awkward. -->
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_7</Tag>
-	<English>(K-Mod) When a Great General chooses to lead a unit as a warlord, it shares an immediate experience boost to all units in the group. More experience points are given to bigger groups.</English>
-	<French>(K-Mod) When a Great General chooses to lead a unit as a warlord, it shares an immediate experience boost to all units in the group. More experience points are given to bigger groups.</French>
+	<English>(K-Mod) When a Great General chooses to lead a unit as a warlord, it grants an immediate experience boost to all units in the group. More experience points are given to bigger groups.</English>
+	<French>(K-Mod) When a Great General chooses to lead a unit as a warlord, it grants an immediate experience boost to all units in the group. More experience points are given to bigger groups.</French>
 	<German>(K-Mod) Wenn ein Großer General sich dazu entschließt, eine Einheit als Kriegsherr zu führen, teilt er einmalig Erfahrungspunkte mit allen Einheiten der Gruppe. Größere Gruppen erhalten dabei mehr Punkte als kleine.</German>
 	<Italian>(K-Mod) Quando un Grande Generale decide di unirsi ad un unità come Grande Condottiero, distribuisce in immediato aumento di esperienza con tutte le unità sulla stessa casella. Maggiore lo stack, maggiore l'esperienza.</Italian>
 	<Spanish>(K-Mod) Cuando un Gran General elige liderar una unidad como un caudillo, comparte un aumento inmediato de experiencia a todas las unidades en el grupo. Más puntos de experiencia son dados a grupos más grandes.</Spanish>

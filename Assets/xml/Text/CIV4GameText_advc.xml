@@ -5393,5 +5393,15 @@
 		<Italian>[NEWLINE]%d1 [ICON_FOOD] + %d2 [ICON_PRODUCTION]/Turno[NEWLINE]%s3: %d4/%d5 [ICON_PRODUCTION]</Italian>
 		<Spanish>[NEWLINE]%d1 [ICON_FOOD] + %d2 [ICON_PRODUCTION]/turno[NEWLINE]%s3: %d4/%d5 [ICON_PRODUCTION]</Spanish>
 	</TEXT>
+
+	<!-- advc.251 -->
+	<TEXT>
+		<Tag>TXT_KEY_SETTINGS_START_TURN</Tag>
+		<English>Start Turn %d1_Turn (%s2_Year)</English>
+		<French>Tour initial : %d1_Turn (%s2_Year)</French>
+		<German>Start in Runde %d1_Turn (%s2_Year)</German>
+		<Italian>Turno iniziale: %d1_Turn (%s2_Year)</Italian>
+		<Spanish>Turno inicial: %d1_Turn (%s2_Year)</Spanish>
+	</TEXT>
 	
 </Civ4GameText>

@@ -7828,24 +7828,24 @@ void CvTeam::makeUnwillingToTalk(TeamTypes otherId) {
 				(!ourMember.isHuman() && ourMember.getID() != getLeaderID()))
 			continue;
 		for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
-			CvPlayer& theirMember = GET_PLAYER((PlayerTypes)j);
+			CvPlayerAI& theirMember = GET_PLAYER((PlayerTypes)j);
 			if(!theirMember.isAlive() || theirMember.getTeam() != otherId ||
 					(!theirMember.isHuman() && theirMember.getID() !=
 					GET_TEAM(otherId).getLeaderID()))
 				continue;
 			if(!ourMember.isHuman() &&
 					ourMember.AI_getMemoryCount(theirMember.getID(),
-					MEMORY_DECLARED_WAR_RECENT) <= 0) {
-				ourMember.AI_changeMemoryCount(theirMember.getID(),
-						MEMORY_DECLARED_WAR_RECENT, 1);
+					MEMORY_DECLARED_WAR_RECENT) < 2) {
+				ourMember.AI_rememberEvent(theirMember.getID(),
+						MEMORY_DECLARED_WAR_RECENT);
 			}
 			/*  Memory has no effect on humans. Make the other side unwilling then.
 				Could simply always make both sides unwilling, but then, the
 				expected RTT duration would become longer. */
 			else if(ourMember.isHuman() && theirMember.AI_getMemoryCount(
-					ourMember.getID(), MEMORY_DECLARED_WAR_RECENT) <= 0) {
-				theirMember.AI_changeMemoryCount(ourMember.getID(),
-						MEMORY_DECLARED_WAR_RECENT, 1);
+					ourMember.getID(), MEMORY_DECLARED_WAR_RECENT) < 2) {
+				theirMember.AI_rememberEvent(ourMember.getID(),
+						MEMORY_DECLARED_WAR_RECENT);
 			}
 		}
 	}

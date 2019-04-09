@@ -4,7 +4,7 @@
 #include "CvFractal.h"
 #include "CvRandom.h"
 #include "CvGameCoreUtils.h"
-#include "CvGameCoreUtils.h"
+#include "CvInitCore.h" // advc.tsl
 #include "FProfiler.h"
 
 
@@ -114,7 +114,14 @@ void CvFractal::fracInitInternal(int iNewXs, int iNewYs, int iGrain, CvRandom& r
 	{
 		FAssertMsg(iHintsLength == iHintsWidth*iHintsHeight, "pbyHints is the wrong size!")
 	}
-
+	/*  <advc.tsl> No easy way to let map scripts set this param because the code
+		that exposes CvFractal (and CvFractal::FracVals) is in the EXE. */
+	int iPolarHeight = 0;
+	if(GC.getInitCore().getMapScriptName().compare(L"Fractal") == 0) {
+		/*  A power of 2 probably has no advantage here, but 64 also happens to work
+			pretty well. The closer to 0 this is set, the wider the polar water bands. */
+		iPolarHeight = (1 << 6);
+	} // </advc.tsl>
 	for (int iPass = iSmooth; iPass >= 0; iPass--)
 	{
 		int iScreen = 0;  // This screens out already marked spots in m_aaiFrac[][];
@@ -135,8 +142,8 @@ void CvFractal::fracInitInternal(int iNewXs, int iNewYs, int iGrain, CvRandom& r
 		{
 			for (iX = 0; iX < m_iFracX + 1; iX++)
 			{
-				m_aaiFrac[iX][   0    ] = 0;
-				m_aaiFrac[iX][m_iFracY] = 0;
+				m_aaiFrac[iX][   0    ] = iPolarHeight;
+				m_aaiFrac[iX][m_iFracY] = iPolarHeight;
 			}
 		}
 
@@ -151,8 +158,8 @@ void CvFractal::fracInitInternal(int iNewXs, int iNewYs, int iGrain, CvRandom& r
 		{
 			for (iY = 0; iY < m_iFracY + 1; iY++)
 			{
-				m_aaiFrac[   0    ][iY] = 0;
-				m_aaiFrac[m_iFracX][iY] = 0;
+				m_aaiFrac[   0    ][iY] = iPolarHeight;
+				m_aaiFrac[m_iFracX][iY] = iPolarHeight;
 			}
 		}
 

@@ -3418,19 +3418,24 @@ void FairPlay::evaluate() {
 	if(!powerTechFound)
 		return;*/
 	/*  Actually, never mind checking for starting tech. Don't want early rushes
-		on low difficulty either, and on King, the AI doesn't get Archery, but
-		lots of other freebies. */
-	int trainPercent = GC.getGameSpeedInfo(g.getGameSpeedType()).getTrainPercent();
-	if(trainPercent <= 0) {
-		FAssert(trainPercent > 0);
+		on low difficulty either. */
+	EraTypes startEra = g.getStartEra();
+	int trainMod = GC.getGameSpeedInfo(g.getGameSpeedType()).getTrainPercent() *
+			GC.getEraInfo(startEra).getTrainPercent();
+	if(trainMod <= 0) {
+		FAssert(trainMod > 0);
 		return;
 	}
-	int t = ::round(g.getElapsedGameTurns() / (trainPercent / 100.0));
+	int t = ::round(g.getElapsedGameTurns() / (trainMod / 10000.0));
+	double uMinus = 0;
 	/*  All bets off by turn 100, but, already by turn 50, the cost may
 		no longer be prohibitive. */
-	double uMinus = std::pow((100 - t) / 2.0, 1.28);
-	if(gameEra > 0) // The above only matters in the Ancient era
-		uMinus = 0;
+	int iTurnsRemaining = 100 - t - GC.getEraInfo(startEra).getStartPercent();
+	if(iTurnsRemaining > 0) {
+		uMinus = std::pow(iTurnsRemaining / 2.0, 1.28);
+		if(gameEra != startEra) // The above only matters in the start era
+			uMinus = 0;
+	}
 	// ... but dogpiling remains an issue in the Classical era
 	if(gameEra > 1)
 		return;

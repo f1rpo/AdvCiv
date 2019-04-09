@@ -3604,7 +3604,7 @@ int CvGame::countFreeTeamsAlive() const
 int CvGame::getRecommendedPlayers() const {
 
 	CvWorldInfo const& wi = GC.getWorldInfo(GC.getMapINLINE().getWorldSize());
-	return ::range(((-5 * getSeaLevelChange() + 100) * wi.getDefaultPlayers()) / 100,
+	return ::range(((-4 * getSeaLevelChange() + 100) * wi.getDefaultPlayers()) / 100,
 			2, MAX_CIV_PLAYERS);
 }
 
@@ -6406,21 +6406,20 @@ void CvGame::setHolyCity(ReligionTypes eIndex, CvCity* pNewValue, bool bAnnounce
 						//(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 
 				for (int iI = 0; iI < MAX_PLAYERS; iI++)
-				{	// advc.003:
-					CvPlayer const& civ = GET_PLAYER((PlayerTypes)iI);
-					if (civ.isAlive())
+				{
+					CvPlayer const& kObs = GET_PLAYER((PlayerTypes)iI);
+					if (!kObs.isAlive())
+						continue; // advc.003
+					if (pHolyCity->isRevealed(kObs.getTeam(), false)
+							|| kObs.isSpectator()) // advc.127
 					{
-						if (pHolyCity->isRevealed(civ.getTeam(), false)
-								|| civ.isSpectator()) // advc.127
-						{
-							szBuffer = gDLL->getText("TXT_KEY_MISC_REL_FOUNDED", GC.getReligionInfo(eIndex).getTextKeyWide(), pHolyCity->getNameKey());
-							gDLL->getInterfaceIFace()->addHumanMessage(civ.getID(), false, GC.getDefineINT("EVENT_MESSAGE_TIME_LONG"), szBuffer, GC.getReligionInfo(eIndex).getSound(), MESSAGE_TYPE_MAJOR_EVENT, GC.getReligionInfo(eIndex).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"), pHolyCity->getX_INLINE(), pHolyCity->getY_INLINE(), false, true);
-						}
-						else
-						{
-							szBuffer = gDLL->getText("TXT_KEY_MISC_REL_FOUNDED_UNKNOWN", GC.getReligionInfo(eIndex).getTextKeyWide());
-							gDLL->getInterfaceIFace()->addHumanMessage(civ.getID(), false, GC.getDefineINT("EVENT_MESSAGE_TIME_LONG"), szBuffer, GC.getReligionInfo(eIndex).getSound(), MESSAGE_TYPE_MAJOR_EVENT, GC.getReligionInfo(eIndex).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
-						}
+						szBuffer = gDLL->getText("TXT_KEY_MISC_REL_FOUNDED", GC.getReligionInfo(eIndex).getTextKeyWide(), pHolyCity->getNameKey());
+						gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(), false, GC.getDefineINT("EVENT_MESSAGE_TIME_LONG"), szBuffer, GC.getReligionInfo(eIndex).getSound(), MESSAGE_TYPE_MAJOR_EVENT, GC.getReligionInfo(eIndex).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"), pHolyCity->getX_INLINE(), pHolyCity->getY_INLINE(), false, true);
+					}
+					else
+					{
+						szBuffer = gDLL->getText("TXT_KEY_MISC_REL_FOUNDED_UNKNOWN", GC.getReligionInfo(eIndex).getTextKeyWide());
+						gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(), false, GC.getDefineINT("EVENT_MESSAGE_TIME_LONG"), szBuffer, GC.getReligionInfo(eIndex).getSound(), MESSAGE_TYPE_MAJOR_EVENT, GC.getReligionInfo(eIndex).getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 					}
 				}
 			}
@@ -7768,7 +7767,7 @@ void CvGame::createBarbarianUnits()
 		int iUnowned = 0, iTiles = 0;
 		std::vector<Shelf*> shelves; GC.getMap().getShelves(a.getID(), shelves);
 		for(size_t i = 0; i < shelves.size(); i++) {
-			// Shelves also count for land barbarians,
+			// Shelves also count for land barbarians, ...
 			iUnowned += shelves[i]->countUnownedPlots();
 			iTiles += shelves[i]->size();
 		}
@@ -8058,36 +8057,36 @@ int CvGame::numBarbariansToSpawn(int iTilesPerUnit, int iTiles, int iUnowned,
 }
 
 // Returns the number of land units spawned (possibly in cargo)
-int CvGame::spawnBarbarians(int n, CvArea& a, Shelf* shelf,
+int CvGame::spawnBarbarians(int n, CvArea& a, Shelf* pShelf,
 		bool bCargoAllowed) {
 
   // </advc.300>
 	/* <advc.306> Spawn cargo load before ships. Othwerwise, the newly placed ship
 	   would always be an eligible target, and too many ships would carry cargo. */
-	FAssert(!bCargoAllowed || shelf != NULL);
+	FAssert(!bCargoAllowed || pShelf != NULL);
 	int r = 0;
 	if(bCargoAllowed) {
-		CvUnit* cargo = shelf->randomBarbCargoUnit();
-		if(cargo != NULL) {
-			UnitAITypes loadAI = UNITAI_ATTACK;
+		CvUnit* pTransport = pShelf->randomBarbCargoUnit();
+		if(pTransport != NULL) {
+			UnitAITypes eLoadAI = UNITAI_ATTACK;
 			for(int i = 0; i < 2; i++) {
-				UnitTypes lut = randomBarbUnit(loadAI, a);
-				if(lut == NO_UNIT)
+				UnitTypes eLoadUnit = randomBarbUnit(eLoadAI, a);
+				if(eLoadUnit == NO_UNIT)
 					break;
-				CvUnit* load = GET_PLAYER(BARBARIAN_PLAYER).initUnit(
-						lut, cargo->getX(), cargo->getY(), loadAI);
-				/*  Don't set cargo to UNITAI_ASSAULT_SEA - that's for medium-/
-					large-scale invasions, and too laborious to adjust. Instead
-					add an unload routine to CvUnitAI::barbAttackSeaMove. */
-				if(load == NULL)
+				CvUnit* pLoadUnit = GET_PLAYER(BARBARIAN_PLAYER).initUnit(
+						eLoadUnit, pTransport->getX(), pTransport->getY(), eLoadAI);
+				/*  Don't set pTransport to UNITAI_ASSAULT_SEA -- that's for
+					medium-/large-scale invasions, and too laborious to adjust.
+					Instead add an unload routine to CvUnitAI::barbAttackSeaMove. */
+				if(pLoadUnit == NULL)
 					break;
-				load->setTransportUnit(cargo);
+				pLoadUnit->setTransportUnit(pTransport);
 				r++;
 				/*  Only occasionally spawn two units at once. Prefer the natural
 					way, i.e. a ship receiving a second passenger while travelling
 					to its target through fog of war. I don't think that happens
 					often enough though. */
-				if(cargo->getCargo() > 1 || ::bernoulliSuccess(0.7, "advc.306"))
+				if(pTransport->getCargo() > 1 || ::bernoulliSuccess(0.7, "advc.306"))
 					break;
 			}
 		}
@@ -8100,7 +8099,7 @@ int CvGame::spawnBarbarians(int n, CvArea& a, Shelf* shelf,
         // <advc.300>
 		// Reroll twice if the tile has poor yield
 		for(int i = 0; i < 3; i++) {
-			pPlot = randomBarbPlot(a, shelf);
+			pPlot = randomBarbPlot(a, pShelf);
 			/*  If we can't find a plot once, we won't find one in a later
 				iteration either. */
 			if(pPlot == NULL)
@@ -8119,7 +8118,7 @@ int CvGame::spawnBarbarians(int n, CvArea& a, Shelf* shelf,
 				break;
 		}
 		UnitAITypes ai = UNITAI_ATTACK;
-		if(shelf != NULL)
+		if(pShelf != NULL)
 			ai = UNITAI_ATTACK_SEA;
 		// Original code moved into new function:
 		UnitTypes ut = randomBarbUnit(ai, a);
@@ -8478,309 +8477,155 @@ bool CvGame::testVictory(VictoryTypes eVictory, TeamTypes eTeam, bool* pbEndScor
 	FAssert(eVictory >= 0 && eVictory < GC.getNumVictoryInfos());
 	FAssert(eTeam >=0 && eTeam < MAX_CIV_TEAMS);
 	FAssert(GET_TEAM(eTeam).isAlive());
-
-	bool bValid = isVictoryValid(eVictory);
-	if (pbEndScore)
-	{
+	// advc.003: Simplified this function a bit
+	if(pbEndScore != NULL)
 		*pbEndScore = false;
-	}
 
-	if (bValid)
+	if(!isVictoryValid(eVictory))
+		return false;
+
+	CvVictoryInfo const& kVictory = GC.getVictoryInfo(eVictory);
+	if (kVictory.isEndScore())
 	{
-		if (GC.getVictoryInfo(eVictory).isEndScore())
+		if (pbEndScore)
+			*pbEndScore = true;
+
+		if (getMaxTurns() == 0 || getElapsedGameTurns() < getMaxTurns())
+			return false;
+
+		for (int iK = 0; iK < MAX_CIV_TEAMS; iK++)
 		{
-			if (pbEndScore)
-			{
-				*pbEndScore = true;
-			}
-
-			if (getMaxTurns() == 0)
-			{
-				bValid = false;
-			}
-			else if (getElapsedGameTurns() < getMaxTurns())
-			{
-				bValid = false;
-			}
-			else
-			{
-				bool bFound = false;
-
-				for (int iK = 0; iK < MAX_CIV_TEAMS; iK++)
-				{
-					if (GET_TEAM((TeamTypes)iK).isAlive())
-					{
-						if (iK != eTeam)
-						{
-							if (getTeamScore((TeamTypes)iK) >= getTeamScore(eTeam))
-							{
-								bFound = true;
-								break;
-							}
-						}
-					}
-				}
-
-				if (bFound)
-				{
-					bValid = false;
-				}
-			}
+			if (GET_TEAM((TeamTypes)iK).isAlive() && iK != eTeam &&
+					getTeamScore((TeamTypes)iK) >= getTeamScore(eTeam))
+				return false;
 		}
 	}
-
-	if (bValid)
+	if (kVictory.isTargetScore())
 	{
-		if (GC.getVictoryInfo(eVictory).isTargetScore())
+		if (getTargetScore() == 0 || getTeamScore(eTeam) < getTargetScore())
+			return false;
+
+		for (int iK = 0; iK < MAX_CIV_TEAMS; iK++)
 		{
-			if (getTargetScore() == 0)
-			{
-				bValid = false;
-			}
-			else if (getTeamScore(eTeam) < getTargetScore())
-			{
-				bValid = false;
-			}
-			else
-			{
-				bool bFound = false;
+			if (GET_TEAM((TeamTypes)iK).isAlive() && iK != eTeam &&
+					getTeamScore((TeamTypes)iK) >= getTeamScore(eTeam))
+				return false;
+		}
 
-				for (int iK = 0; iK < MAX_CIV_TEAMS; iK++)
-				{
-					if (GET_TEAM((TeamTypes)iK).isAlive())
-					{
-						if (iK != eTeam)
-						{
-							if (getTeamScore((TeamTypes)iK) >= getTeamScore(eTeam))
-							{
-								bFound = true;
-								break;
-							}
-						}
-					}
-				}
+	}
+	CvTeam const& kTeam = GET_TEAM(eTeam);
+	if (kVictory.isConquest())
+	{
+		if (kTeam.getNumCities() == 0)
+			return false;
 
-				if (bFound)
-				{
-					bValid = false;
-				}
-			}
+		bool bFound = false;
+		for (int iK = 0; iK < MAX_CIV_TEAMS; iK++)
+		{
+			CvTeam const& kLoopTeam = GET_TEAM((TeamTypes)iK);
+			if (kLoopTeam.isAlive() && iK != eTeam &&
+					!kLoopTeam.isVassal(eTeam) && kLoopTeam.getNumCities() > 0)
+				return false;
 		}
 	}
-
-	if (bValid)
+	if (kVictory.isDiploVote())
 	{
-		if (GC.getVictoryInfo(eVictory).isConquest())
+		bool bFound = false;
+		for (int iK = 0; iK < GC.getNumVoteInfos(); iK++)
 		{
-			if (GET_TEAM(eTeam).getNumCities() == 0)
+			if (GC.getVoteInfo((VoteTypes)iK).isVictory() && getVoteOutcome((VoteTypes)iK) == eTeam)
 			{
-				bValid = false;
-			}
-			else
-			{
-				bool bFound = false;
-
-				for (int iK = 0; iK < MAX_CIV_TEAMS; iK++)
-				{
-					if (GET_TEAM((TeamTypes)iK).isAlive())
-					{
-						if (iK != eTeam && !GET_TEAM((TeamTypes)iK).isVassal(eTeam))
-						{
-							if (GET_TEAM((TeamTypes)iK).getNumCities() > 0)
-							{
-								bFound = true;
-								break;
-							}
-						}
-					}
-				}
-
-				if (bFound)
-				{
-					bValid = false;
-				}
-			}
-		}
-	}
-
-	if (bValid)
-	{
-		if (GC.getVictoryInfo(eVictory).isDiploVote())
-		{
-			bool bFound = false;
-
-			for (int iK = 0; iK < GC.getNumVoteInfos(); iK++)
-			{
-				if (GC.getVoteInfo((VoteTypes)iK).isVictory())
-				{
-					if (getVoteOutcome((VoteTypes)iK) == eTeam)
-					{
-						bFound = true;
-						break;
-					}
-				}
-			}
-
-			if (!bFound)
-			{
-				bValid = false;
-			}
-		}
-	}
-
-	if (bValid)
-	{
-		if (getAdjustedPopulationPercent(eVictory) > 0)
-		{
-			if (100 * GET_TEAM(eTeam).getTotalPopulation() < getTotalPopulation() * getAdjustedPopulationPercent(eVictory))
-			{
-				bValid = false;
-			}
-		}
-	}
-
-	if (bValid)
-	{
-		if (getAdjustedLandPercent(eVictory) > 0)
-		{
-			if (100 * GET_TEAM(eTeam).getTotalLand() < GC.getMapINLINE().getLandPlots() * getAdjustedLandPercent(eVictory))
-			{
-				bValid = false;
-			}
-		}
-	}
-
-	if (bValid)
-	{
-		if (GC.getVictoryInfo(eVictory).getReligionPercent() > 0)
-		{
-			bool bFound = false;
-
-			if (getNumCivCities() > (countCivPlayersAlive() * 2))
-			{
-				for (int iK = 0; iK < GC.getNumReligionInfos(); iK++)
-				{
-					if (GET_TEAM(eTeam).hasHolyCity((ReligionTypes)iK))
-					{
-						if (calculateReligionPercent((ReligionTypes)iK) >= GC.getVictoryInfo(eVictory).getReligionPercent())
-						{
-							bFound = true;
-							break;
-						}
-					}
-
-					if (bFound)
-					{
-						break;
-					}
-				}
-			}
-
-			if (!bFound)
-			{
-				bValid = false;
-			}
-		}
-	}
-
-	if (bValid)
-	{
-		if ((GC.getVictoryInfo(eVictory).getCityCulture() != NO_CULTURELEVEL) && (GC.getVictoryInfo(eVictory).getNumCultureCities() > 0))
-		{
-			int iCount = 0;
-
-			for (int iK = 0; iK < MAX_CIV_PLAYERS; iK++)
-			{
-				if (GET_PLAYER((PlayerTypes)iK).isAlive())
-				{
-					if (GET_PLAYER((PlayerTypes)iK).getTeam() == eTeam)
-					{
-						int iLoop;
-						for (CvCity* pLoopCity = GET_PLAYER((PlayerTypes)iK).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iK).nextCity(&iLoop))
-						{
-							if (pLoopCity->getCultureLevel() >= GC.getVictoryInfo(eVictory).getCityCulture())
-							{
-								iCount++;
-							}
-						}
-					}
-				}
-			}
-
-			if (iCount < GC.getVictoryInfo(eVictory).getNumCultureCities())
-			{
-				bValid = false;
-			}
-		}
-	}
-
-	if (bValid)
-	{
-		if (GC.getVictoryInfo(eVictory).getTotalCultureRatio() > 0)
-		{
-			int iThreshold = ((GET_TEAM(eTeam).countTotalCulture() * 100) / GC.getVictoryInfo(eVictory).getTotalCultureRatio());
-
-			bool bFound = false;
-
-			for (int iK = 0; iK < MAX_CIV_TEAMS; iK++)
-			{
-				if (GET_TEAM((TeamTypes)iK).isAlive())
-				{
-					if (iK != eTeam)
-					{
-						if (GET_TEAM((TeamTypes)iK).countTotalCulture() > iThreshold)
-						{
-							bFound = true;
-							break;
-						}
-					}
-				}
-			}
-
-			if (bFound)
-			{
-				bValid = false;
-			}
-		}
-	}
-
-	if (bValid)
-	{
-		for (int iK = 0; iK < GC.getNumBuildingClassInfos(); iK++)
-		{
-			if (GC.getBuildingClassInfo((BuildingClassTypes) iK).getVictoryThreshold(eVictory) > GET_TEAM(eTeam).getBuildingClassCount((BuildingClassTypes)iK))
-			{
-				bValid = false;
+				bFound = true;
 				break;
 			}
 		}
+		if (!bFound)
+			return false;
 	}
-
-	if (bValid)
+	if (getAdjustedPopulationPercent(eVictory) > 0)
 	{
-		for (int iK = 0; iK < GC.getNumProjectInfos(); iK++)
+		if (100 * kTeam.getTotalPopulation() < getTotalPopulation() *
+				getAdjustedPopulationPercent(eVictory))
+			return false;
+	}
+	if (getAdjustedLandPercent(eVictory) > 0)
+	{
+		if (100 * kTeam.getTotalLand() < GC.getMapINLINE().getLandPlots() *
+				getAdjustedLandPercent(eVictory))
+			return false;
+	}
+	if (kVictory.getReligionPercent() > 0)
+	{
+		if (getNumCivCities() <= countCivPlayersAlive() * 2)
+			return false;
+
+		bool bFound = false;
+		for (int iK = 0; iK < GC.getNumReligionInfos(); iK++)
 		{
-			if (GC.getProjectInfo((ProjectTypes) iK).getVictoryMinThreshold(eVictory) > GET_TEAM(eTeam).getProjectCount((ProjectTypes)iK))
+			ReligionTypes eLoopReligion = (ReligionTypes)iK;
+			if (kTeam.hasHolyCity(eLoopReligion) &&
+					calculateReligionPercent(eLoopReligion) >=
+					kVictory.getReligionPercent())
 			{
-				bValid = false;
+				bFound = true;
 				break;
 			}
 		}
+		if (!bFound)
+			return false;
 	}
-
-	if (bValid)
+	if (kVictory.getCityCulture() != NO_CULTURELEVEL &&
+			kVictory.getNumCultureCities() > 0)
 	{
-		long lResult = 1;
-		CyArgsList argsList;
-		argsList.add(eVictory);
-		gDLL->getPythonIFace()->callFunction(PYGameModule, "isVictory", argsList.makeFunctionArgs(), &lResult);
-		if (0 == lResult)
+		int iCount = 0;
+		for (int iK = 0; iK < MAX_CIV_PLAYERS; iK++)
 		{
-			bValid = false;
+			CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)iK);
+			if (!kLoopPlayer.isAlive() || kLoopPlayer.getTeam() != eTeam)
+				continue;
+			int iLoop;
+			for (CvCity* pLoopCity = kLoopPlayer.firstCity(&iLoop); pLoopCity != NULL;
+					pLoopCity = kLoopPlayer.nextCity(&iLoop))
+			{
+				if (pLoopCity->getCultureLevel() >= kVictory.getCityCulture())
+					iCount++;
+			}
+		}
+		if (iCount < kVictory.getNumCultureCities())
+			return false;
+	}
+	if (kVictory.getTotalCultureRatio() > 0)
+	{
+		int iThreshold = (kTeam.countTotalCulture() * 100) /
+				kVictory.getTotalCultureRatio();
+		for (int iK = 0; iK < MAX_CIV_TEAMS; iK++)
+		{
+			CvTeam const& kLoopTeam = GET_TEAM((TeamTypes)iK);
+			if (kLoopTeam.isAlive() && iK != eTeam &&
+					kLoopTeam.countTotalCulture() > iThreshold)
+				return false;
 		}
 	}
-
-	return bValid;
+	for (int iK = 0; iK < GC.getNumBuildingClassInfos(); iK++)
+	{
+		BuildingClassTypes eLoopClass = (BuildingClassTypes)iK;
+		if (GC.getBuildingClassInfo(eLoopClass).getVictoryThreshold(eVictory) >
+				kTeam.getBuildingClassCount(eLoopClass))
+			return false;
+	}
+	for (int iK = 0; iK < GC.getNumProjectInfos(); iK++)
+	{
+		ProjectTypes eLoopProject = (ProjectTypes)iK;
+		if (GC.getProjectInfo(eLoopProject).getVictoryMinThreshold(eVictory) >
+				kTeam.getProjectCount(eLoopProject))
+			return false;
+	}
+	long lResult = 1; // advc.003b: Disable this callback unless enabled through XML?
+	CyArgsList argsList; argsList.add(eVictory);
+	gDLL->getPythonIFace()->callFunction(PYGameModule, "isVictory", argsList.makeFunctionArgs(), &lResult);
+	if (lResult == 0)
+		return false;
+	return true;
 }
 
 void CvGame::testVictory()

@@ -2409,7 +2409,7 @@ int CvPlayerAI::AI_yieldWeight(YieldTypes eYield, const CvCity* pCity) const // 
 		// </advc.110>
 		break;
 	case YIELD_PRODUCTION:
-		iWeight *= 210; // advc.110: 270 in K-Mod, 200 in BtS
+		iWeight *= 220; // advc.110: 270 in K-Mod, 200 in BtS
 		iWeight /= 100;
 		// <advc.110>
 		if(!canPopRush())
@@ -9289,7 +9289,6 @@ void CvPlayerAI::AI_updateAttitudeCache(PlayerTypes ePlayer,
 		bool bUpdateWorstEnemy) // advc.130e
 {
 	PROFILE_FUNC();
-
 	FAssert(ePlayer >= 0 && ePlayer < MAX_PLAYERS);
 	FAssert(!isBarbarian() && !GET_PLAYER(ePlayer).isBarbarian()); // advc.003n
 	const CvPlayerAI& kPlayer = GET_PLAYER(ePlayer);
@@ -22173,9 +22172,9 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes humanId, int tributeType) {
 		break; // <advc.104m> New: demand gpt
 	} case 4: {
 		int gpt = (human.AI_getAvailableIncome() -
-				human.calculateInflatedCosts()) / 10;
+				human.calculateInflatedCosts()) / 5;
 		int mod = GC.getDIPLOMACY_VALUE_REMAINDER();
-		if(gpt >= mod) {
+		if(gpt >= 2 * mod) {
 			gpt -= gpt % mod;
 			setTradeItem(&item, TRADE_GOLD_PER_TURN, gpt);
 			if(human.canTradeItem(getID(), item))
@@ -22441,9 +22440,9 @@ void CvPlayerAI::write(FDataStreamBase* pStream)
 	// <advc.079>
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 		pStream->Write(m_aeLastBrag[i]);
-		pStream->Write(m_aeLastWarn[i]); // </advc.079>
-		pStream->Write(m_abTheyFarAhead[i]); // advc.130c
-	} 
+		pStream->Write(m_aeLastWarn[i]);
+	} // </advc.079>
+	pStream->Write(MAX_CIV_PLAYERS, m_abTheyFarAhead); // advc.130c
 	// K-Mod. save the attitude cache. (to avoid OOS problems)
 	pStream->Write(MAX_PLAYERS, &m_aiAttitudeCache[0]); // uiFlag >= 4
 	// K-Mod end
