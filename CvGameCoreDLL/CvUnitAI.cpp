@@ -19850,88 +19850,107 @@ bool CvUnitAI::AI_irrigateTerritory()
 
 	CvPlot* pLoopPlot;
 	int iPathTurns;
-	int iI, iJ;
 
 	int iBestValue = 0;
 	BuildTypes eBestBuild = NO_BUILD;
 	CvPlot* pBestPlot = NULL;
 
-	for (iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
+	std::vector<BuildTypes> irrigationCarryingBuilds;
+
+	// Cache the viable subset of builds so that we don't have to loop through all of them
+	for (int iI = 0; iI < static_cast<int>(GC.getNumBuildInfos()); iI++)
+	{
+		BuildTypes eBuild = ((BuildTypes)iI);
+		FAssertMsg(eBuild < GC.getNumBuildInfos(), "Invalid Build");
+		if (GC.getBuildInfo(eBuild).getImprovement() != NO_IMPROVEMENT)
+		{ /* advc.121: Same problems as in AI_improveBonus (see there).
+		  Hopefully fixed now, though no adverse consequences either way
+		  so long as there is only one improvement that carries irrigation. */
+			ImprovementTypes impId = (ImprovementTypes)(GC.getBuildInfo(eBuild).getImprovement());
+			if (GC.getImprovementInfo(impId).isCarriesIrrigation())
+			{
+				irrigationCarryingBuilds.push_back(eBuild);
+			}
+		}
+	} // <advc.121>
+
+	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 	{
 		pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+
+		if (pLoopPlot->area() != area())
+			continue;
+
 		// advc.003: Some changes to reduce indentation
 		if (!AI_plotValid(pLoopPlot) ||
-				pLoopPlot->getOwnerINLINE() != getOwnerINLINE() || // XXX team???
-				pLoopPlot->getWorkingCity() != NULL)
+			pLoopPlot->getOwnerINLINE() != getOwnerINLINE() || // XXX team???
+			pLoopPlot->getWorkingCity() != NULL)
 			continue;
 		ImprovementTypes eImprovement = pLoopPlot->getImprovementType();
-		if(eImprovement != NO_IMPROVEMENT &&
-				GET_PLAYER(getOwnerINLINE()).isOption(PLAYEROPTION_SAFE_AUTOMATION) &&
-				eImprovement != (GC.getDefineINT("RUINS_IMPROVEMENT")))
+		if (eImprovement != NO_IMPROVEMENT &&
+			GET_PLAYER(getOwnerINLINE()).isOption(PLAYEROPTION_SAFE_AUTOMATION) &&
+			eImprovement != (GC.getDefineINT("RUINS_IMPROVEMENT")))
 			continue;
-		if(eImprovement != NO_IMPROVEMENT &&
-				GC.getImprovementInfo(eImprovement).isCarriesIrrigation())
+		if (eImprovement != NO_IMPROVEMENT &&
+			GC.getImprovementInfo(eImprovement).isCarriesIrrigation())
 			continue;
-		BonusTypes eNonObsoleteBonus = pLoopPlot->getNonObsoleteBonusType(getTeam());
+		const BonusTypes eNonObsoleteBonus = pLoopPlot->getNonObsoleteBonusType(getTeam());
 		//if ((eImprovement == NO_IMPROVEMENT) || (eNonObsoleteBonus == NO_BONUS) || !(GC.getImprovementInfo(eImprovement).isImprovementBonusTrade(eNonObsoleteBonus)))
 		if (eImprovement == NO_IMPROVEMENT || eNonObsoleteBonus == NO_BONUS ||
-				!GET_PLAYER(getOwnerINLINE()).doesImprovementConnectBonus(
+			!GET_PLAYER(getOwnerINLINE()).doesImprovementConnectBonus(
 				eImprovement, eNonObsoleteBonus))
 		{
 			if (pLoopPlot->isIrrigationAvailable(true))
 			{
 				int iBestTempBuildValue = MAX_INT;
+
 				BuildTypes eBestTempBuild = NO_BUILD;
-				for (iJ = 0; iJ < GC.getNumBuildInfos(); iJ++)
+				for (int iJ = 0; iJ < static_cast<int>(irrigationCarryingBuilds.size()); iJ++)
 				{
-					BuildTypes eBuild = ((BuildTypes)iJ);
-					FAssertMsg(eBuild < GC.getNumBuildInfos(), "Invalid Build");
-					if (GC.getBuildInfo(eBuild).getImprovement() != NO_IMPROVEMENT)
+					const BuildTypes eBuild = irrigationCarryingBuilds[iJ];
 					{ /* advc.121: Same problems as in AI_improveBonus (see there).
-						 Hopefully fixed now, though no adverse consequences either way
-						 so long as there is only one improvement that carries irrigation. */
-						ImprovementTypes impId = (ImprovementTypes)(GC.getBuildInfo(eBuild).getImprovement());
-						if (GC.getImprovementInfo(impId).isCarriesIrrigation())
+					  Hopefully fixed now, though no adverse consequences either way
+					  so long as there is only one improvement that carries irrigation. */
+						const ImprovementTypes impId = (ImprovementTypes)(GC.getBuildInfo(eBuild).getImprovement());
+
+						if (canBuild(pLoopPlot, eBuild)
+							|| impId == pLoopPlot->getImprovementType()) // advc.121
 						{
-							if (canBuild(pLoopPlot, eBuild)
-									|| impId == pLoopPlot->getImprovementType()) // advc.121
+							/* int iValue = 10000;
+							iValue /= (GC.getBuildInfo(eBuild).getTime() + 1);*/
+							// <advc.121> Replacing the above
+							const int iValue = ((impId == pLoopPlot->getImprovementType()) ?
+								0 : GC.getBuildInfo(eBuild).getTime());
+							// </advc.121>
+							// XXX feature production???
+							if (iValue < iBestTempBuildValue)
 							{
-								/* int iValue = 10000;
-								iValue /= (GC.getBuildInfo(eBuild).getTime() + 1);*/
-								// <advc.121> Replacing the above
-								int iValue = ((impId == pLoopPlot->getImprovementType()) ?
-										0 : GC.getBuildInfo(eBuild).getTime());
-								// </advc.121>
-								// XXX feature production???
-								if (iValue < iBestTempBuildValue)
-								{
-									iBestTempBuildValue = iValue;
-									eBestTempBuild = eBuild;
-								}
+								iBestTempBuildValue = iValue;
+								eBestTempBuild = eBuild;
 							}
 						}
 					}
 				} // <advc.121>
-				if(eBestTempBuild != NO_BUILD &&
-						!canBuild(pLoopPlot, eBestTempBuild))
+				if (eBestTempBuild != NO_BUILD &&
+					!canBuild(pLoopPlot, eBestTempBuild))
 					eBestTempBuild = NO_BUILD; // </advc.121>
-				if(eBestTempBuild != NO_BUILD)
+				if (eBestTempBuild != NO_BUILD)
 				{
 					bool bValid = true;
 					// K-Mod. (I didn't want it to be this way...)
 					/* original bts code
 					if (GET_PLAYER(getOwnerINLINE()).isOption(PLAYEROPTION_LEAVE_FORESTS))
 					{
-						if (pLoopPlot->getFeatureType() != NO_FEATURE)
-						{
-							if (GC.getBuildInfo(eBestTempBuild).isFeatureRemove(pLoopPlot->getFeatureType()))
-							{
-								if (GC.getFeatureInfo(pLoopPlot->getFeatureType()).getYieldChange(YIELD_PRODUCTION) > 0)
-								{
-									bValid = false;
-								}
-							}
-						}
+					if (pLoopPlot->getFeatureType() != NO_FEATURE)
+					{
+					if (GC.getBuildInfo(eBestTempBuild).isFeatureRemove(pLoopPlot->getFeatureType()))
+					{
+					if (GC.getFeatureInfo(pLoopPlot->getFeatureType()).getYieldChange(YIELD_PRODUCTION) > 0)
+					{
+					bValid = false;
+					}
+					}
+					}
 					} */
 					if (pLoopPlot->getFeatureType() != NO_FEATURE)
 					{
@@ -19955,9 +19974,7 @@ bool CvUnitAI::AI_irrigateTerritory()
 							{
 								if (generatePath(pLoopPlot, 0, true, &iPathTurns)) // XXX should this actually be at the top of the loop? (with saved paths and all...)
 								{
-									int iValue = 10000;
-
-									iValue /= (iPathTurns + 1);
+									const int iValue = 10000 / (iPathTurns + 1);
 
 									if (iValue > iBestValue)
 									{
