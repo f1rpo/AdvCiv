@@ -617,19 +617,17 @@ protected:
 	short m_iReconCount;
 	short m_iRiverCrossingCount;
 	short m_iLatitude; // advc.tsl
-	/*  <advc.003b> These were bitfields (e.g. 'bool m_bStartingPlot:1;').
-		I doubt that this is a good memory/speed tradeoff on modern hardware. */
-	bool m_bStartingPlot;
-	bool m_bHills; // (unused; m_ePlotType says whether it's a hill)
-	bool m_bNOfRiver;
-	bool m_bWOfRiver;
-	bool m_bIrrigated;
-	bool m_bPotentialCityWork;
-	bool m_bShowCitySymbols;
-	bool m_bFlagDirty;
-	bool m_bPlotLayoutDirty;
-	bool m_bLayoutStateWorked;
-	// </advc.003b>
+
+	bool m_bStartingPlot:1;
+	bool m_bNOfRiver:1;
+	bool m_bWOfRiver:1;
+	bool m_bIrrigated:1;
+	bool m_bPotentialCityWork:1;
+	bool m_bShowCitySymbols:1;
+	bool m_bFlagDirty:1;
+	bool m_bPlotLayoutDirty:1;
+	bool m_bLayoutStateWorked:1;
+
 	char /*PlayerTypes*/ m_eOwner;
 	short /*PlotTypes*/ m_ePlotType;
 	short /*TerrainTypes*/ m_eTerrainType;

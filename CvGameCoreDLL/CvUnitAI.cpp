@@ -15191,16 +15191,15 @@ bool CvUnitAI::AI_exploreRange(int iRange) // advc.003: refactored
 
 			if (pLoopPlot->isVisibleEnemyUnit(this))
 				continue;
-
-			PROFILE("AI_exploreRange 3");
+			{ PROFILE("AI_exploreRange 3");
 			if (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pLoopPlot,
 					MISSIONAI_EXPLORE, getGroup(), 3) > 0)
-				continue;
-			PROFILE("AI_exploreRange 4");
+				continue; }
 			int iPathTurns;
+			{ PROFILE("AI_exploreRange 4");
 			if (atPlot(pLoopPlot) || !generatePath(pLoopPlot,
 					MOVE_NO_ENEMY_TERRITORY, true, &iPathTurns, iRange))
-				continue;
+				continue; }
 			if (iPathTurns > iRange)
 				continue;
 

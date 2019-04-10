@@ -357,9 +357,10 @@
 		<iDefineIntVal>4</iDefineIntVal>
 	</Define>
 
-	<!-- advc.106e: 0 (recommended) means that there is no announcement to
-		 other civs when a civ's state religion spreads in one of that civ's
-		 cities. Set to 1 to receive such announcements. -->
+	<!-- advc.106e: 0 (recommended) means that there is no announcement when a
+		 religion spreads in a foreign city whose owner already has that
+		 religion as his or her state religion. Set to 1 to receive such
+		 announcements. -->
 	<Define>
 		<DefineName>ANNOUNCE_STATE_RELIGION_SPREAD</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
@@ -455,17 +456,12 @@
 		<iDefineIntVal>50</iDefineIntVal>
 	</Define>
 
-	<!-- [advc.099]
-	     The percent-anger parameters are actually divided by 1000,
-		 and the original value of 400 means that 40% of a foreign
-		 population are angry/ cause anger (more without Open Borders, see
-		 above).
-		 Because foreign culture is never 100%, and due to rounding,
-		 exactly 40% would never result in 40% of the population causing anger,
-		 which is counterintuitive.
-		 Recommended: 415, originally 400.
+	<!-- advc.099: Actually a permillage, not a percentage.
+		 The original value of 400 means that 40% of a city's foreign
+		 population are angry (more without Open Borders, see above).
+		 I've slightly increased the value (to 415) to even out rounding errors.
 		 I've tried 50% (520), which is a nice even value and results in 100%
-		 culture anger at wartime, but it seemed a bit too punishing. -->
+		 culture anger at wartime, but that seemed a bit too punishing. -->
 	<Define>
 		<DefineName>CULTURE_PERCENT_ANGER</DefineName>
 		<iDefineIntVal>415</iDefineIntVal>
@@ -477,7 +473,7 @@
 		 city nearby. If set to 1 (recommended), revolts can occur in any
 		 cities with high foreign culture, even if the owner of that culture
 		 is no longer alive.
-		 Either way, the the revolt can only flip the city if the foreign
+		 Either way, the revolt can only flip the city if the foreign
 		 culture is alive and nearby. -->
 	<Define>
 		<DefineName>REVOLTS_IGNORE_CULTURE_RANGE</DefineName>
@@ -513,10 +509,9 @@
 		<iDefineIntVal>20</iDefineIntVal>
 	</Define>
 	
-	<!-- [advc.300]
-	     Determines at which percentage of owned tiles (per continent)
-		 Barbarian spawning peaks. In AdvCiv, the formula for the target
-		 number B of Barbarian units on a continent (or shelf) is 
+	<!-- advc.300: The percentage of owned tiles per landmass at which
+		 Barbarian activity reaches its peak. AdvCiv computes the target
+		 number B of Barbarian units on a landmass (or shelf) as
 		 B = ownedTiles / (peak * tilesPerUnit)
 		 if ownedTiles / totalTiles < peak, and otherwise
 		 B = unownedTiles / ((1 - peak) * tilesPerUnit), where
@@ -524,16 +519,16 @@
 		   positive food yield plus half the number of coastal water tiles
 		   on the shelf surrounding the continent;
 		 * ownedTiles is the number of tiles as above that are also
-		   within any cultural borders (could be barbarian borders too);
+		   within any cultural borders (could be Barbarian borders too);
 		 * unownedTiles = totalTiles - ownedTiles;
 		 * tilesPerUnit = "iUnownedTilesPerBarbarianUnit" in
 		   Civ4HandicapInfo.xml; and
 		 * peak = BARB_PEAK_PERCENT / 100.
 		 The idea is to make B maximal when the ratio of owned tiles equals
-		 the peak percentage. Setting BARB_PEAK_PERCENT to 0 results in the BtS
+		 the peak percentage. Setting BARB_PEAK_PERCENT to 0 results in BtS
 		 behavior, with B maximal when Barbarians first appear and then
 		 decreasing as the civs expand.
-		 Recommended: 67. -->
+		 Recommended: 67 -->
     <Define>
         <DefineName>BARB_PEAK_PERCENT</DefineName>
         <iDefineIntVal>67</iDefineIntVal>
@@ -571,10 +566,11 @@
 	</Define>
 	
 	<!-- [advc.314] Settings for goody hut outcomes. See also Civ4GoodyInfo.xml
-		 and Civ4HandicapInfo.xml. -->
+		 and Civ4HandicapInfo.xml. Turn numbers are adjusted to the game speed
+		 by the DLL. -->
 	<!-- Turn after which effects of goody huts begin to increase. Recommended:
-		 50; use a high value like 5000 for BtS behavior (hut effects not based
-		 on game turn), and increase GOODY_BUFF_PEAK_TURN accordingly. -->
+		 50; for BtS behavior, use a high value like 5000 (hut effects not based
+		 on game turn) and increase GOODY_BUFF_PEAK_TURN accordingly. -->
 	<Define>
 		<DefineName>GOODY_BUFF_START_TURN</DefineName>
 		<iDefineIntVal>50</iDefineIntVal>

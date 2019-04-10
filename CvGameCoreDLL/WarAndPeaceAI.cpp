@@ -2654,7 +2654,7 @@ double WarAndPeaceAI::Civ::militaryPower(CvUnitInfo const& u,
 
 	/*  Combat odds don't increase linearly with strength. Use a power law
 		with a power between 1.5 and 2 (configured in XML; 1.7 for now). */
-	r = pow(r, (double)GC.getDefineFLOAT("POWER_CORRECTION"));
+	r = pow(r, (double)GC.getPOWER_CORRECTION());
 	return r;
 }
 

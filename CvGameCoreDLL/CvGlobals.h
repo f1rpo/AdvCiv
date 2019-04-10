@@ -735,6 +735,8 @@ public:
 	inline int getBASE_RESEARCH_RATE() { return m_iBASE_RESEARCH_RATE; }
 	// advc.003b:
 	inline int getNEW_HURRY_MODIFIER() { return m_iNEW_HURRY_MODIFIER; }
+	// advc.104:
+	inline float getPOWER_CORRECTION() { return m_fPOWER_CORRECTION; }
 	
 	int getMOVE_DENOMINATOR();
 	int getNUM_UNIT_PREREQ_OR_BONUSES();
@@ -1209,6 +1211,7 @@ protected:
 	int m_iDELAY_UNTIL_BUILD_DECAY; // advc.011
 	int m_iBASE_RESEARCH_RATE; // advc.910
 	int m_iNEW_HURRY_MODIFIER; // advc.003b
+	float m_fPOWER_CORRECTION; // advc.104
 	int m_iMOVE_DENOMINATOR;
 	int m_iNUM_UNIT_PREREQ_OR_BONUSES;
 	int m_iNUM_BUILDING_PREREQ_OR_BONUSES;

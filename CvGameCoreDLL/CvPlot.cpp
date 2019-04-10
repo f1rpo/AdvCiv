@@ -201,7 +201,6 @@ void CvPlot::reset(int iX, int iY, bool bConstructorCall)
 	m_iLatitude = -1; // advc.tsl
 
 	m_bStartingPlot = false;
-	m_bHills = false;
 	m_bNOfRiver = false;
 	m_bWOfRiver = false;
 	m_bIrrigated = false;
@@ -9003,8 +9002,8 @@ void CvPlot::read(FDataStreamBase* pStream)
 
 	pStream->Read(&bVal);
 	m_bStartingPlot = bVal;
-	pStream->Read(&bVal);
-	m_bHills = bVal;
+	if(uiFlag < 4) // advc.003b: m_bHills removed
+		pStream->Read(&bVal);
 	pStream->Read(&bVal);
 	m_bNOfRiver = bVal;
 	pStream->Read(&bVal);
@@ -9246,6 +9245,7 @@ void CvPlot::write(FDataStreamBase* pStream)
 	uiFlag = 1; // advc.035
 	uiFlag = 2; // advc.003b
 	uiFlag = 3; // advc.tsl
+	uiFlag = 4; // advc.003b: m_bHills removed
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iX);
@@ -9265,7 +9265,6 @@ void CvPlot::write(FDataStreamBase* pStream)
 	pStream->Write(m_iLatitude); // advc.tsl
 
 	pStream->Write(m_bStartingPlot);
-	pStream->Write(m_bHills);
 	pStream->Write(m_bNOfRiver);
 	pStream->Write(m_bWOfRiver);
 	pStream->Write(m_bIrrigated);
