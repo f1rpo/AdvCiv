@@ -18,9 +18,9 @@ See also: https://forums.civfanatics.com/threads/advanced-civ.614217/page-5#post
 
 2. Lower the production bonuses from traits and resources to 80%. Let production modifiers and special commerce modifiers apply to Processes (Wealth, Research, Culture), but halve both modifiers. Reduce the production-to-commerce conversion rate of Processes to 80%.
 
-3. Better scaling of Great Person effects (e.g. Discover ability, Trade Mission) with the game progress - currently too powerful in the early game and midgame. Revise the progression of birth thresholds. Settled Great People grant a free building, but have a limited lifetime. Hurry-wonder mission for Great Prophet (religious wonders).
+3. Better scaling of Great Person effects (e.g. Discover ability, Trade Mission) with the game progress - currently too powerful in the early game and midgame. Revise the progression of birth thresholds. Settled Great People grant a free building (e.g. a Bank from a Merchant), but have a limited lifetime. Hurry-wonder mission for Great Prophet (religious wonders).
 
-4. Much lower corporation yields overall; the yields per city decrease each time the corporation expands. No HQ required in order to train Executives, but increased maintenance when there is no HQ or when war or a civic makes it inaccessible.
+4. Much lower corporation yields overall; the yields per city decrease each time the corporation expands. No HQ required in order to train Executives, but increased maintenance (and/or some other handicap) when there is no HQ or when war or a civic makes it inaccessible.
 
 5. Make resources less crucial for health and happiness as this disadvantages small civs too much by the mid/late game: A few more resources go obsolete (see tech-tree.pdf) and perhaps cap the total health bonus of buildings like Granary at 2 (not spelled out in stat-changes.pdf). Grant happiness from city culture rate (with diminishing returns) regardless of whether the culture slider is used; have the slider position only matter for Colosseum and Theater.
 (Already implemented: The AI is willing to sell even non-surplus resources at reasonable prices when it doesn't need those resources for city growth.)
@@ -35,11 +35,11 @@ See also: https://forums.civfanatics.com/threads/advanced-civ.614217/page-5#post
 
 10. Make nuke damage to units highly randomized, usually destroying some units outright and leaving others unscathed. Units can't move/attack into a tile on the same turn that it was nuked.
 
-11. Declarations of war take effect only at the end of a turn, i.e. the attacked side gets to make the first move. (Or merely force units to end their move after crossing a border into hostile territory; though this would solve only some of the AI problems with surprise wars.)
+11. Declarations of war take effect only at the end of a turn, i.e. the attacked side gets to make the first move. Or perhaps merely a rule change to ensure that a defending fleet gets a chance to destroy transports before they're able to unload (cf. change id 162 in the AdvCiv manual).
 
-12. Ravages of war:
+12. Ravages of war: (Civ 4 Reimagined and Dawn of Civilization already do some of this.)
 * Razing a city takes one attack per population; each attack reduces the population by one and has a chance of destroying a building.
-* Reduced city defense causes anger; bombardment causes war weariness and has a small chance of destroying a building (Civ 4 Reimagined already does this). Each attack against a city defender has a chance of destroying a building. Upon entering the city, few buildings or none are destroyed (unless razed).
+* Reduced city defense causes anger; bombardment causes war weariness and has a small chance of destroying a building. Each attack against a city defender has a chance of destroying a building. Upon entering the city, few buildings or none are destroyed (unless razed).
 * Reduce capture gold; perhaps only grant it when razing.
 
 13. City garrisons need to have sufficient (defensive) combat strength in order to quell "fear for safety" anger. (Already implemented as change 500b, but currently disabled through an XML switch.)
@@ -48,8 +48,6 @@ See also: https://forums.civfanatics.com/threads/advanced-civ.614217/page-5#post
 * Fold inflation into increased costs for units, civics and cities; i.e. pay for having a lot of stuff, not for the game turn number.
 * Add a small gold cost to air missions and airlifting.
 * Stronger impact of upkeep class on civic upkeep costs.
-* Overhaul of trade route profit modifiers (rewarding trade between coastal cities, even if on the same continent) and matching of partner cities.
+* Overhaul of trade route profit modifiers (rewarding trade between coastal cities, even if on the same continent) and the matching of partner cities.
 
 15. A slight waste effect when a commerce slider is in an extreme position (akin to Alpha Centauri) or a small cost for adjusting a slider.
-
-16. Reduce the AI production bonuses on the high difficulty settings and instead make human civs pay higher production costs. This should help reduce overcrowding of the map.

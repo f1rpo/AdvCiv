@@ -3055,8 +3055,11 @@ void CvPlayer::killUnits()
 CvSelectionGroup* CvPlayer::cycleSelectionGroups(CvUnit* pUnit, bool bForward,
 		bool bWorkers, bool* pbWrap)
 {
+	FAssert(GC.getGameINLINE().getActivePlayer() == getID() && isHuman());
+	// <advc.004h>
+	if(pUnit->canFound())
+		pUnit->updateFoundingBorder(true); // </advc.004h>
 	// K-Mod
-	FAssert(GC.getGameINLINE().getActivePlayer() == getID());
 	bool bDummy;
 	// this means we can just use bWrap directly and it will update *pbWrap if need be.
 	bool& bWrap = pbWrap ? *pbWrap : bDummy;
