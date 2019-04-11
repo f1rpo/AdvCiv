@@ -165,6 +165,8 @@ void CyCityPythonInterface1(python::class_<CyCity>& x)
 		.def("plot", &CyCity::plot, python::return_value_policy<python::manage_new_object>(), "CyPlot () - returns cities plot instance")
 		.def("isConnectedTo", &CyCity::isConnectedTo, "bool (CyCity*) - is city connected to CyCity* via the Trade Network?")
 		.def("isConnectedToCapital", &CyCity::isConnectedToCapital, "bool (iOwner) - connected to the capital?")
+		// advc.003:
+		.def("getArea", &CyCity::getArea, "int () - returns area id for location of city")
 		.def("area", &CyCity::area, python::return_value_policy<python::manage_new_object>(), "CyArea() () - returns CyArea instance for location of city")
 		.def("waterArea", &CyCity::waterArea, python::return_value_policy<python::manage_new_object>(), "CyArea* ()")
 		.def("getRallyPlot", &CyCity::getRallyPlot, python::return_value_policy<python::manage_new_object>(), "CyPlot () - returns city's rally plot instance")
@@ -458,6 +460,8 @@ void CyCityPythonInterface1(python::class_<CyCity>& x)
 		.def("AI_isEmphasize", &CyCity::AI_isEmphasize, "bool (int iEmphasizeType)")
 		.def("AI_countBestBuilds", &CyCity::AI_countBestBuilds, "int (CyArea* pArea)")
 		.def("AI_cityValue", &CyCity::AI_cityValue, "int ()")
+		// advc.001n:
+		.def("AI_neededFloatingDefenders", &CyCity::AI_neededFloatingDefenders, "int ()")
 
 		.def("getScriptData", &CyCity::getScriptData, "str () - Get stored custom data (via pickle)")
 		.def("setScriptData", &CyCity::setScriptData, "void (str) - Set stored custom data (via pickle)")

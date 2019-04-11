@@ -985,7 +985,7 @@ int CvMap::maxPlotDistance() const
 	//return std::max(1, plotDistance(0, 0, ((isWrapXINLINE()) ? (getGridWidthINLINE() / 2) : (getGridWidthINLINE() - 1)), ((isWrapYINLINE()) ? (getGridHeightINLINE() / 2) : (getGridHeightINLINE() - 1))));
 	CvGame const& g = GC.getGameINLINE();
 	CvWorldInfo const& w = GC.getWorldInfo(worldSize());
-	double civRatio = g.getRecommendedPlayers() / (double)g.countCivPlayersEverAlive();
+	double civRatio = g.getRecommendedPlayers() / (double)g.getCivPlayersEverAlive();
 	double seaLvlModifier = (100 - 5 * g.getSeaLevelChange()) / 100.0;
 	int wraps = -1; // 0 if cylindrical (1 wrap), -1 flat, +1 toroidical
 	if(isWrapXINLINE())
@@ -1218,13 +1218,13 @@ void CvMap::deleteArea(int iID)
 }
 
 
-CvArea* CvMap::firstArea(int *pIterIdx, bool bRev)
+CvArea* CvMap::firstArea(int *pIterIdx, bool bRev) const
 {
 	return !bRev ? m_areas.beginIter(pIterIdx) : m_areas.endIter(pIterIdx);
 }
 
 
-CvArea* CvMap::nextArea(int *pIterIdx, bool bRev)
+CvArea* CvMap::nextArea(int *pIterIdx, bool bRev) const
 {
 	return !bRev ? m_areas.nextIter(pIterIdx) : m_areas.prevIter(pIterIdx);
 }
@@ -1569,10 +1569,10 @@ void CvMap::calculateAreas_DFS(CvPlot const& kStart) {
 			CvPlot* t = plot(q.getX_INLINE(), p.getY_INLINE());
 			FAssertMsg(s != NULL && t != NULL, "Map appears to be non-convex");
 			if(q.getArea() == FFreeList::INVALID_INDEX && p.isWater() == q.isWater() &&
-					// For water tiles, orthogonal adjacency is unproblematic
-					(!p.isWater() || x == q.getX_INLINE() || y == q.getY_INLINE()
+					// For water tiles, orthogonal adjacency is unproblematic.
+					(!p.isWater() || x == q.getX_INLINE() || y == q.getY_INLINE() ||
 					// Diagonal adjacency only works if either s or t are water 
-					|| s == NULL || s->isWater() || t == NULL || t->isWater()) &&
+					s == NULL || s->isWater() || t == NULL || t->isWater()) &&
 					/*  Depth-first search that doesn't continue at impassables
 						except to other impassables so that mountain ranges and
 						ice packs end up in one CvArea. */

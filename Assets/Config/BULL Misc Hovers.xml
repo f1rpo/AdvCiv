@@ -14,14 +14,15 @@
 	 dll="0">
 	 
 	<options id="MiscHover" file="BUG Misc Hovers.ini">
-		<section id="Leaderhead">
+		<!-- advc.sha: Permanently disabled -->
+		<!--section id="Leaderhead">
 			<option id="LeaderheadHiddenAttitude" key="Show Hidden Attitude" 
 					type="boolean" default="False" dll="2"/>
 			<option id="LeaderheadWorstEnemy" key="Show Worst Enemy" 
 					type="boolean" default="False"/>
 			<option id="LeaderheadDefensivePacts" key="Show Defensive Pacts" 
 					type="boolean" default="False"/>
-		</section>
+		</section-->
 		
 		<section id="Plot">
 			<!--option id="LatLongCoords" key="Lat Long Coords" 
@@ -30,6 +31,9 @@
 					type="boolean" default="False"/-->
 			<!-- advc.011b -->
 			<option id="PartialBuildsAlways" key="Partial Builds Always"
+					type="boolean" default="False"/>
+			<!-- advc.099f -->
+			<option id="CultureInUnownedTiles" key="Culture in Unowned Tiles"
 					type="boolean" default="False"/>
 		</section>
 		
@@ -48,18 +52,19 @@
 			<option id="SpecialistActualEffects" key="Specialist Actual Effects" 
 					type="boolean" default="False"/> <!-- K-Mod added (this was unused, but missing) -->
 		</section>
-		
-		<section id="Tech">
+		<!-- advc.073: Don't need options for this; always enabled.
+			 advc.910 should cover SpedUpTechs (although it's not quite the same
+			 thing) -->
+		<!--section id="Tech">
 			<option id="SpedUpTechs" key="Sped Up Techs" 
 					type="boolean" default="False"/>
 			<option id="TechTradeDenial" key="Trade Denial" 
 					type="boolean" default="False"/>
-		</section>
-		
+		</section>	
 		<section id="Bonus">
 			<option id="BonusTradeDenial" key="Trade Denial" 
 					type="boolean" default="False"/>
-		</section>
+		</section-->
 		
 		
 		<section id="City Screen">
@@ -96,8 +101,9 @@
 			<!-- advc.064: default was False -->
 			<option id="HurryOverflow" key="Hurry Overflow" 
 					type="boolean" default="True"/>
+			<!-- advc.064: default was False -->
 			<option id="HurryOverflowIncludeCurrent" key="Hurry Overflow Include Current" 
-					type="boolean" default="False"/>
+					type="boolean" default="True"/>
 					
 			<option id="RemoveSpecialist" key="Remove Specialist" 
 					type="boolean" default="False"/>

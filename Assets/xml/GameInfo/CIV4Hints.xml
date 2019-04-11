@@ -475,7 +475,7 @@
 		<HintInfo>
 			<Description>TXT_KEY_KMOD_HINT_15</Description>
 		</HintInfo> <!-- right-click on +/- -->
-		<!-- advc.008c: Alt+Wake -->
+		<!-- k146: Alt+Wake -->
 		<HintInfo>
 			<Description>TXT_KEY_KMOD_HINT_16</Description>
 		</HintInfo>
@@ -636,7 +636,7 @@
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_21</Description>
 		</HintInfo>
-		<!-- Skip 22-26 and 31; shouldn't be as frequent. -->
+		<!-- Skip 22-26; shouldn't be as frequent. -->
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_27</Description>
 		</HintInfo>
@@ -648,6 +648,23 @@
 		</HintInfo>
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_30</Description>
+		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_31</Description>
+		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_32</Description>
+		</HintInfo>
+		<!-- Skip 33-34; shouldn't be as frequent. -->
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_35</Description>
+		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_36</Description>
+		</HintInfo>
+		<!-- Skip 37 -->
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_38</Description>
 		</HintInfo>
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_1</Description>
@@ -736,6 +753,27 @@
 		</HintInfo>
 		<HintInfo>
 			<Description>TXT_KEY_ADVC_HINT_31</Description>
+		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_32</Description>
+		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_33</Description>
+		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_34</Description>
+		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_35</Description>
+		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_36</Description>
+		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_37</Description>
+		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_ADVC_HINT_38</Description>
 		</HintInfo>
 	</HintInfos>
 </Civ4Hints>

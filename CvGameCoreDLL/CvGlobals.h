@@ -160,6 +160,7 @@ public:
 	DllExport CvPortal& getPortal();
 	DllExport CvSetupData& getSetupData();
 	DllExport CvInitCore& getInitCore();
+	inline CvInitCore& getInitCoreINLINE() { return *m_initCore; } // advc.003b
 	DllExport CvInitCore& getLoadedInitCore();
 	DllExport CvInitCore& getIniInitCore();
 	DllExport CvMessageCodeTranslator& getMessageCodes();
@@ -193,9 +194,9 @@ public:
 	DllExport CvInterfaceModeInfo& getInterfaceModeInfo(InterfaceModeTypes e);
 
 	//NiPoint3& getPt3CameraDir(); // advc.003j: unused
-
+	// <advc> Exposed these two to Python for dlph.27
 	DllExport bool& getLogging();
-	DllExport bool& getRandLogging();
+	DllExport bool& getRandLogging(); // </advc>
 	DllExport bool& getSynchLogging();
 	DllExport bool& overwriteLogs();
 
@@ -676,7 +677,7 @@ public:
 	CvString*& getFootstepAudioTags();
 	DllExport CvString& getFootstepAudioTags(int i);
 
-	CvString& getCurrentXMLFile();
+	CvString const& getCurrentXMLFile() const; // advc.003: 2x const
 	void setCurrentXMLFile(const TCHAR* szFileName);
 
 	//
@@ -685,15 +686,18 @@ public:
 	//
 
 	DllExport FVariableSystem* getDefinesVarSystem();
+	// advc.003: Needed a const version
+	FVariableSystem const* getDefinesVarSystemINLINE() const { return m_VarSystem; }
 	void cacheGlobals();
 
 	// ***** EXPOSED TO PYTHON *****
 	DllExport int getDefineINT( const char * szName ) const;
 	DllExport float getDefineFLOAT( const char * szName ) const;
 	DllExport const char * getDefineSTRING( const char * szName ) const;
-	void setDefineINT( const char * szName, int iValue );
-	void setDefineFLOAT( const char * szName, float fValue );
-	void setDefineSTRING( const char * szName, const char * szValue );
+	// advc.003b: Params for suppressing cache update added
+	void setDefineINT( const char * szName, int iValue, bool bUpdateCache = true);
+	void setDefineFLOAT( const char * szName, float fValue, bool bUpdateCache = true );
+	void setDefineSTRING( const char * szName, const char * szValue, bool bUpdateCache = true );
 
 	inline int getEXTRA_YIELD() { return m_iEXTRA_YIELD; } // K-Mod (why aren't all these functions inline?)
 	// advc.130s: Cached for performance reasons
@@ -709,7 +713,10 @@ public:
 	// <advc.003b>
 	inline int getDIPLOMACY_VALUE_REMAINDER() { return m_iDIPLOMACY_VALUE_REMAINDER; }
 	inline int getPEACE_TREATY_LENGTH() { return m_iPEACE_TREATY_LENGTH; }
+	inline int getTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER() { return m_iTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER; }
 	// </advc.003b>
+	// advc.210:
+	inline int getRESEARCH_MODIFIER_EXTRA_TEAM_MEMBER() { return m_iRESEARCH_MODIFIER_EXTRA_TEAM_MEMBER; }
 	// advc.099b:
 	inline int getCITY_RADIUS_DECAY() { return m_iCITY_RADIUS_DECAY; }
 	// advc.005f:
@@ -720,14 +727,17 @@ public:
 	inline int getUWAI_MULTI_WAR_RELUCTANCE() { return m_iUWAI_MULTI_WAR_RELUCTANCE; }
 	// advc.122:
 	inline int getCITY_TRADE_CULTURE_THRESH() { return m_iCITY_TRADE_CULTURE_THRESH; }
-	// advc.004h:
-	inline int getFOUNDING_SHOW_YIELDS() { return m_iFOUNDING_SHOW_YIELDS; }
 	// advc.002a:
 	inline int getMINIMAP_WATER_MODE() { return m_iMINIMAP_WATER_MODE; }
 	// advc.011:
 	inline int getDELAY_UNTIL_BUILD_DECAY() { return m_iDELAY_UNTIL_BUILD_DECAY; }
 	// advc.910:
 	inline int getBASE_RESEARCH_RATE() { return m_iBASE_RESEARCH_RATE; }
+	// advc.003b:
+	inline int getNEW_HURRY_MODIFIER() { return m_iNEW_HURRY_MODIFIER; }
+	// advc.104:
+	inline float getPOWER_CORRECTION() { return m_fPOWER_CORRECTION; }
+	
 	int getMOVE_DENOMINATOR();
 	int getNUM_UNIT_PREREQ_OR_BONUSES();
 	int getNUM_BUILDING_PREREQ_OR_BONUSES();
@@ -943,6 +953,7 @@ public:
 
 	void deleteInfoArrays();
 	bool isCachingDone() const; // advc.003c
+	void setHoFScreenUp(bool b); // advc.106i
 
 protected:
 
@@ -1172,6 +1183,7 @@ protected:
 
 	CvString m_szCurrentXMLFile;
 	bool m_bCachingDone; // advc.003c
+	bool m_bHoFScreenUp; // advc.106i
 	//////////////////////////////////////////////////////////////////////////
 	// Formerly Global Defines
 	//////////////////////////////////////////////////////////////////////////
@@ -1187,16 +1199,19 @@ protected:
 	// <advc.003b>
 	int m_iDIPLOMACY_VALUE_REMAINDER;
 	int m_iPEACE_TREATY_LENGTH;
+	int m_iTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER;
 	// </advc.003b>
+	int m_iRESEARCH_MODIFIER_EXTRA_TEAM_MEMBER; // advc.210
 	int m_iCITY_RADIUS_DECAY; // advc.099b
 	int m_iENABLE_005F; // advc.005f
 	int m_iPER_PLAYER_MESSAGE_CONTROL_LOG; // advc.007
 	int m_iUWAI_MULTI_WAR_RELUCTANCE; // advc.104
 	int m_iCITY_TRADE_CULTURE_THRESH; // advc.122
-	int m_iFOUNDING_SHOW_YIELDS; // advc.004h
 	int m_iMINIMAP_WATER_MODE; // advc.002a
 	int m_iDELAY_UNTIL_BUILD_DECAY; // advc.011
 	int m_iBASE_RESEARCH_RATE; // advc.910
+	int m_iNEW_HURRY_MODIFIER; // advc.003b
+	float m_fPOWER_CORRECTION; // advc.104
 	int m_iMOVE_DENOMINATOR;
 	int m_iNUM_UNIT_PREREQ_OR_BONUSES;
 	int m_iNUM_BUILDING_PREREQ_OR_BONUSES;

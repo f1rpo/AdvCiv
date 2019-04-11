@@ -121,6 +121,7 @@ void CyPlotPythonInterface1(python::class_<CyPlot>& x)
 		.def("getX", &CyPlot::getX, "int ()")
 		.def("getY", &CyPlot::getY, "int ()")
 		.def("at", &CyPlot::at, "bool (int iX, int iY)")
+		.def("setLatitude", &CyPlot::setLatitude, "void (int)") // advc.tsl
 		.def("getLatitude", &CyPlot::getLatitude, "int ()")
 		.def("area", &CyPlot::area, python::return_value_policy<python::manage_new_object>(), "CyArea* ()")
 		.def("waterArea", &CyPlot::waterArea, python::return_value_policy<python::manage_new_object>(), "CyArea* ()")

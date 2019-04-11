@@ -43,7 +43,9 @@ class CvInfoBase;
 // <advc.003g> floating point utility
 inline int round(double d) { return (int)((d >= 0 ? 0.5 : -0.5) + d); }
 int roundToMultiple(double d, int iMultiple);
-bool bernoulliSuccess(double pr, char const* pszLog = ""); // 0 <= pr <= 1
+bool bernoulliSuccess(double pr, // 0 <= pr <= 1
+		char const* pszLog = "", bool bAsync = false,
+		int iData1 = INT_MIN, int iData2 = INT_MIN);
 double median(std::vector<double>& distribution, bool bSorted = false);
 double mean(std::vector<double>& distribution);
 double max(std::vector<double>& distribution);
@@ -73,6 +75,13 @@ void contestedPlots(std::vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2); // adv
 bool isArticle(BuildingTypes bt);
 bool isArticle(ProjectTypes pt);
 // </advc.008e>
+// <advc.130h>
+template<typename T> void removeDuplicates(std::vector<T>& v) {
+	std::set<T> aeTmp(v.begin(), v.end());
+	v.assign(aeTmp.begin(), aeTmp.end());
+} // </advc.130h>
+// advc.004w:
+void applyColorToString(CvWString& s, char const* szColor, bool bLink = false);
 
 //sign function taken from FirePlace - JW
 template<class T> __forceinline T getSign( T x ) { return (( x < 0 ) ? T(-1) : x > 0 ? T(1) : T(0)); };

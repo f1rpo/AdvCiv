@@ -194,6 +194,7 @@ void WarAndPeaceCache::read(FDataStreamBase* stream) {
 	for(int i = 0; i < sz; i++) {
 		int masterId;
 		stream->Read(&masterId);
+		FAssert(masterId >= 0 && masterId < MAX_CIV_TEAMS); // Sanity check
 		readyToCapitulate.insert((TeamTypes)masterId);
 	}
 	stream->Read(&sz);

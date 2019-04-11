@@ -1493,6 +1493,11 @@ bool CyPlayer::isFoundedFirstCity()
 {
 	return m_pPlayer ? m_pPlayer->isFoundedFirstCity() : false;
 }
+// <advc.078>
+bool CyPlayer::isAnyGPPEver()
+{
+	return m_pPlayer ? m_pPlayer->isAnyGPPEver() : false;
+} // </advc.078>
 
 bool CyPlayer::isStrike()
 {
@@ -2134,10 +2139,10 @@ bool CyPlayer::AI_isWillingToTalk(int /*PlayerTypes*/ ePlayer) {
 	CvPlayerAI const& p = GET_PLAYER((PlayerTypes)ePlayer);
 	if(p.getNumCities() <= 0 && p.getNumUnits() <= 0)
 		return false; // </advc.001>
-	// Gets called dozens of time already when loading a savegame
-	WarEvaluator::checkCache = true;
+	// AI_isWillingToTalk gets called frequently by Civ4lerts
+	WarEvaluator::enableCache();
 	bool r = m_pPlayer->AI_isWillingToTalk(p.getID());
-	WarEvaluator::checkCache = false;
+	WarEvaluator::disableCache();
 	return r;
 } // </advc.104l>
 

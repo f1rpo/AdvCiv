@@ -6,8 +6,9 @@
 	Copyright (c) 2009 The BUG Mod.
 -->
 <Civ4GameText xmlns="http://www.firaxis.com">
-	
-	<TEXT>
+
+	<!-- advc.002f: Replaced by text in BUG Main Interface Options.xml -->
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CITYBAR__AIRPORTICONS_TEXT</Tag>
 		<English>Airport Icons</English>
 		<French>Airport Icons</French>
@@ -22,7 +23,7 @@
 		<German>Zeigt ein Flughafen-Symbol neben Städten an, die über einen Flughafen verfügen</German>
 		<Italian>Quando è selezionato, aggiunge una icona aeroportuale alle città che hanno un Aeroporto.</Italian>
 		<Spanish>Muestra un icono de aeropuerto sobre las barras de ciudad que tengan un aeropuerto.</Spanish>
-	</TEXT>
+	</TEXT-->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_CITYBAR__STARVATIONTURNS_TEXT</Tag>
 		<English>Turns to Starvation</English>

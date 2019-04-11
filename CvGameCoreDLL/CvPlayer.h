@@ -88,7 +88,8 @@ public:
 
 	CvPlotGroup* initPlotGroup(CvPlot* pPlot);													
 
-	CvCity* initCity(int iX, int iY, bool bBumpUnits, bool bUpdatePlotGroups);																																// Exposed to Python
+	CvCity* initCity(int iX, int iY, bool bBumpUnits, bool bUpdatePlotGroups,																																// Exposed to Python
+			int iOccupationTimer = 0); // advc.122
 	void acquireCity(CvCity* pCity, bool bConquest, bool bTrade, bool bUpdatePlotGroups);																							// Exposed to Python
 	void killCities();																																												// Exposed to Python
 	CvWString getNewCityName() const;																																								// Exposed to Python
@@ -189,7 +190,9 @@ public:
 
 	int findBestFoundValue() const;																																				// Exposed to Python
 
-	int upgradeAllPrice(UnitTypes eUpgradeUnit, UnitTypes eFromUnit);
+	int upgradeAllPrice(UnitTypes eUpgradeUnit, UnitTypes eFromUnit) const; // advc.003: const
+	// advc.080:
+	int upgradeAllXPChange(UnitTypes eUpgradeUnit, UnitTypes eFromUnit) const;
 
 	// note: bbai added bIncludeTraining to the following two functions.
 	int countReligionSpreadUnits(CvArea* pArea, ReligionTypes eReligion, bool bIncludeTraining = false) const;														// Exposed to Python
@@ -289,9 +292,9 @@ public:
 	int calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& iPaidUnits,
 			// K-Mod: changed iBaseUnitCost to iUnitCost
 			int& iPaidMilitaryUnits, int& iUnitCost, int& iMilitaryCost, int& iExtraCost,
-			int iExtraPop = 0) const; // advc.004b
+			int iExtraPop = 0, int iExtraUnits = 0) const; // advc.004b
 	int calculateUnitCost(																																				// Exposed to Python
-			int iExtraPop = 0) const; // advc.004b
+			int iExtraPop = 0, int iExtraUnits = 0) const; // advc.004b
 	int calculateUnitSupply(int& iPaidUnits, int& iBaseSupplyCost,																// Exposed to Python
 			int iExtraOutsideUnits = 0) const; // advc.004b
 	int calculateUnitSupply(																																			// Exposed to Python	
@@ -302,7 +305,10 @@ public:
 
 	//int calculateBaseNetGold() const; // disabled by K-Mod
 	//int calculateBaseNetResearch(TechTypes eTech = NO_TECH) const;   // disabled by K-Mod (was exposed to Python)
-	int calculateResearchModifier(TechTypes eTech) const;   // Exposed to Python
+	int calculateResearchModifier(TechTypes eTech,										   // Exposed to Python
+			// <advc.910>
+			int* piFromOtherKnown = NULL, int* piFromPaths = NULL,
+			int* piFromTeam = NULL) const; // </advc.910>
 	int calculateGoldRate() const;																																				// Exposed to Python
 	int calculateResearchRate(TechTypes eTech = NO_TECH) const;																						// Exposed to Python
 	int calculateTotalCommerce() const;
@@ -746,6 +752,9 @@ public:
 																																															
 	bool isFoundedFirstCity() const;																																	// Exposed to Python					
 	void setFoundedFirstCity(bool bNewValue);																										
+	// <advc.078>
+	bool isAnyGPPEver() const;		// (Exposed to Python)
+	void reportFirstGPP(); // </advc.078>
 																																															
 	DllExport bool isStrike() const;																																	// Exposed to Python					
 	void setStrike(bool bNewValue);		
@@ -881,6 +890,7 @@ public:
 	int getHurryCount(HurryTypes eIndex) const;																												// Exposed to Python
 	DllExport bool canHurry(HurryTypes eIndex) const;																									// Exposed to Python
 	bool canPopRush() const;
+	bool canGoldRush() const; // advc.064b
 	void changeHurryCount(HurryTypes eIndex, int iChange);
 
 	int getSpecialBuildingNotRequiredCount(SpecialBuildingTypes eIndex) const;												// Exposed to Python
@@ -1139,8 +1149,8 @@ public:
 	DllExport int getIntroMusicScriptId(PlayerTypes eForPlayer) const;
 	DllExport int getMusicScriptId(PlayerTypes eForPlayer) const;
 	DllExport void getGlobeLayerColors(GlobeLayerTypes eGlobeLayerType, int iOption, std::vector<NiColorA>& aColors, std::vector<CvPlotIndicatorData>& aIndicators) const;
+	void setBonusHelpDirty(); // advc.003p
 	DllExport void cheat(bool bCtrl, bool bAlt, bool bShift);
-
 	DllExport const CvArtInfoUnit* getUnitArtInfo(UnitTypes eUnit, int iMeshGroup = 0) const;
 	DllExport bool hasSpaceshipArrived() const;
 
@@ -1327,6 +1337,7 @@ protected:
 	int m_iWondersScore;
 	int m_iCombatExperience;
 	int m_iPopRushHurryCount;
+	int m_iGoldRushHurryCount; // advc.064b
 	int m_iInflationModifier;
 
 	uint m_uiStartTime;  // XXX save these?
@@ -1339,6 +1350,7 @@ protected:
 	bool m_bPbemNewTurn;
 	bool m_bExtendedGame;
 	bool m_bFoundedFirstCity;
+	bool m_bAnyGPPEver; // advc.078
 	bool m_bStrike;
 	bool m_bHuman;
 
@@ -1447,10 +1459,11 @@ protected:
 	// <advc.106b>
 	std::vector<CvTalkingHeadMessage*> m_aMajorMsgs;
 	int m_iNewMessages;
-	void postProcessBeginTurnEvents();
+	void postProcessMessages();
 	int getStartOfTurnMessageLimit() const;
 	// </advc.106b>
-	CivicTypes eReminderPending; // advc.004x
+	CivicTypes m_eReminderPending; // advc.004x
+	CvWString** m_aszBonusHelp; // advc.003p  (Not serialized)
 	CvTurnScoreMap m_mapScoreHistory;
 	CvTurnScoreMap m_mapEconomyHistory;
 	CvTurnScoreMap m_mapIndustryHistory;

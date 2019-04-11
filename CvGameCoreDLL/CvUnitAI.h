@@ -59,10 +59,6 @@ protected:
 
 	int m_iAutomatedAbortTurn;
 	int m_iSearchRangeRandPercent; // advc.128
-	/* advc.117, advc.121: Need this value repeatedly within a Worker move and
-	   it might be costly to recompute. No need for serialization b/c it all
-	   happens within the same AI move. */
-	int m_iNeededWorkers;
 
 	bool AI_considerDOW(CvPlot* pPlot); // K-Mod
 	bool AI_considerPathDOW(CvPlot* pPlot, int iFlags); // K-Mod
@@ -218,13 +214,15 @@ protected:
 	bool AI_carrierSeaTransport();
 	bool AI_connectPlot(CvPlot* pPlot, int iRange = 0);
 	bool AI_improveCity(CvCity* pCity);
-	bool AI_improveLocalPlot(int iRange, CvCity* pIgnoreCity);
+	bool AI_improveLocalPlot(int iRange, CvCity* pIgnoreCity,
+			int iNeededWorkersInArea = 0); // advc.117
 	bool AI_nextCityToImprove(CvCity* pCity);
 	bool AI_nextCityToImproveAirlift();
 	bool AI_irrigateTerritory();
 	bool AI_fortTerritory(bool bCanal, bool bAirbase);
 	//bool AI_improveBonus(int iMinValue = 0, CvPlot** ppBestPlot = NULL, BuildTypes* peBestBuild = NULL, int* piBestValue = NULL);
-	bool AI_improveBonus(); // K-Mod
+	bool AI_improveBonus( // K-Mod
+			int iNeededWorkersInArea = 0); // advc.121
 	bool AI_improvePlot(CvPlot* pPlot, BuildTypes eBuild);
 	BuildTypes AI_betterPlotBuild(CvPlot* pPlot, BuildTypes eBuild);
 	bool AI_connectBonus(bool bTestTrade = true);
@@ -307,10 +305,14 @@ protected:
 	// </advc.033>
 	bool AI_defendPlot(CvPlot* pPlot);
 	int AI_pillageValue(CvPlot* pPlot, int iBonusValueThreshold = 0);
+	//bool AI_canPillage(CvPlot& kPlot) const; // advc.003j
 	//int AI_nukeValue(CvCity* pCity);
 	int AI_nukeValue(CvPlot* pCenterPlot, int iSearchRange, CvPlot*& pBestTarget, int iCivilianTargetWeight = 50) const; // K-Mod
-	//bool AI_canPillage(CvPlot& kPlot) const; // advc.003j
-
+	// <advc.121>
+	int AI_connectBonusCost(CvPlot const& p, BuildTypes eBuild,
+			int iNeededWorkersInArea) const;
+	bool AI_canConnectBonus(CvPlot const& p, BuildTypes eBuild) const;
+	// </advc.121>
 	int AI_searchRange(int iRange);
 	bool AI_plotValid(CvPlot* pPlot);
 
@@ -336,7 +338,6 @@ protected:
 	bool AI_solveBlockageProblem(CvPlot* pDestPlot, bool bDeclareWar);
 	
 	int AI_calculatePlotWorkersNeeded(CvPlot* pPlot, BuildTypes eBuild);
-
 	//int AI_getEspionageTargetValue(CvPlot* pPlot, int iMaxPath);
 	int AI_getEspionageTargetValue(CvPlot* pPlot); // K-Mod
 

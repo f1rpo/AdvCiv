@@ -74,7 +74,7 @@
 	<!-- advc.004: rewritten (English, German) -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_REMINDER__AUTOLOG_HOVER</Tag>
-		<English>When checked and if Autolog is enabled ("Logging" tab), Autolog records reminders when they are created and triggered.</English>
+		<English>When checked and if Autolog is enabled ("Autolog" tab), Autolog records reminders when they are created and triggered.</English>
 		<French>En activant, les rappels seront écrits dans le log à travers Autolog quand ils sont créés et montrés.</French>
 		<German>Falls Autolog aktiviert ist (Reiter "Autolog"), protokolliert Autolog die Nachrichten, die Sie in die Erinnern-Funktion eingeben.</German>
 		<Italian>Quando è selezionato, i Promemoria verranno registrati dal Registro Automatico quando vengono creati e quando vengono mostrati.</Italian>

@@ -20,8 +20,21 @@ class BugMapOptionsTab(BugOptionsTab.BugOptionsTab):
 		column = self.addOneColumnLayout(screen, panel)
 		
 		left, center, right = self.addThreeColumnLayout(screen, column, "Top", True)
-		
-		self.addLabel(screen, left, "StrategyOverlay", "Strategy Layer:")
+		# advc.004:
+		self.addLabel(screen, left, "Layers", "Layers:")
+		# <advc.004z>
+		self.addCheckbox(screen, left, "MainInterface__ScoresInGlobeView")
+		self.addCheckbox(screen, left, "MainInterface__ResourceIconOptions")
+		self.addCheckbox(screen, left, "MainInterface__TribalVillageIcons")
+		# </advc.004z>
+		# advc.004m:
+		self.addCheckbox(screen, left, "MainInterface__StartWithResourceIcons")
+		# <advc.004h>
+		self.addCheckbox(screen, left, "MainInterface__FoundingYields")
+		self.addTextDropdown(screen, left, left, "MainInterface__FoundingBorder")
+		# </advc.004h>
+		self.addSpacer(screen, left, "Left1") # advc.004
+		self.addLabel(screen, left, "StrategyOverlay", "Dot Map Overlay:")
 		self.addCheckbox(screen, left, "StrategyOverlay__Enabled")
 		# advc.004: Disabled; Ctrl+X should suffice.
 		#self.addCheckbox(screen, left, "StrategyOverlay__ShowDotMap")
@@ -30,27 +43,27 @@ class BugMapOptionsTab(BugOptionsTab.BugOptionsTab):
 		#self.addTextEdit(screen, leftL, leftR, "StrategyOverlay__DotMapDotIcon")
 		self.addSlider(screen, leftL, leftR, "StrategyOverlay__DotMapBrightness", False, False, False, "up", 0, 100)
 		self.addSlider(screen, leftL, leftR, "StrategyOverlay__DotMapHighlightBrightness", False, False, False, "up", 0, 100)
-		
-		# advc (comment): I suppose EmperorFool disabled these lines (BULL options that BUG doesn't support). Anyway, it wasn't me.
 		#self.addLabel(screen, center, "CityBar", "CityBar:")
-		#self.addCheckbox(screen, center, "CityBar__AirportIcons")
 		#self.addCheckbox(screen, center, "CityBar__StarvationTurns")
-		# <advc.011b>
+		# advc.011b, advc.099f:
 		self.addLabel(screen, center, "TileHover", "Tile Hover:")
+		# advc.011b:
 		self.addCheckbox(screen, center, "MiscHover__PartialBuildsAlways")
-		# </advc.011b>
+		# advc.099f:
+		self.addCheckbox(screen, center, "MiscHover__CultureInUnownedTiles")
 		# advc.061:
 		self.addCheckbox(screen, center, "MainInterface__ListUnitsPerOwner")
 		#self.addCheckbox(screen, center, "MiscHover__LatLongCoords")
 		#self.addCheckbox(screen, center, "MiscHover__PartialBuilds")
-		
-		
+		# <advc.002f>
+		self.addLabel(screen, center, "CityIcons", "City Icons:")
+		self.addCheckbox(screen, center, "MainInterface__CityNetworkIcon")
+		self.addCheckbox(screen, center, "MainInterface__AirportIcon")
+		# </advc.002f>
 		self.addLabel(screen, right, "Misc", "Misc:")
 		self.addCheckbox(screen, right, "MainInterface__FieldOfView")
 		self.addCheckbox(screen, right, "MainInterface__FieldOfView_Remember", True)
 		self.addCheckbox(screen, right, "EventSigns__Enabled")
-		# advc.004m:
-		self.addCheckbox(screen, right, "MainInterface__StartWithResourceIcons")
 		
 		#self.addCheckbox(screen, right, "Actions__IgnoreHarmlessBarbarians")
 		

@@ -5,6 +5,9 @@
 
 // AI decision making logging
 
+/*  advc.mak: Uncomment to enable BBAI logging. NB: Should use this mostly in
+	Debug mode b/c of K-Mod's CvPlayer::concealUnknownCivs. */
+//#define LOG_AI
 // Log levels:
 // 0 - None
 // 1 - Important decisions only

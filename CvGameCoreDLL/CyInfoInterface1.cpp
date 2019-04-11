@@ -5,12 +5,12 @@
 // Python interface for info classes (formerly structs)
 // These are simple enough to be exposed directly - no wrappers
 //
-
+// advc.003e: Added template parameters 'boost::noncopyable'
 void CyInfoPythonInterface1()
 {
 	OutputDebugString("Python Extension Module - CyInfoPythonInterface1\n");
 
-	python::class_<CvInfoBase>("CvInfoBase")
+	python::class_<CvInfoBase, boost::noncopyable>("CvInfoBase")
 
 		.def("isGraphicalOnly", &CvInfoBase::isGraphicalOnly, "bool ()")
 
@@ -28,12 +28,12 @@ void CyInfoPythonInterface1()
 
 		;
 
-	python::class_<CvScalableInfo>("CvScalableInfo")
+	python::class_<CvScalableInfo, boost::noncopyable>("CvScalableInfo")
 		.def("setScale", &CvScalableInfo::setScale, "void (float fScale)")
 		.def("getScale", &CvScalableInfo::getScale, "float  ()")
 		;
 
-	python::class_<CvSpecialistInfo, python::bases<CvInfoBase> >("CvSpecialistInfo")
+	python::class_<CvSpecialistInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvSpecialistInfo")
 		.def("getGreatPeopleUnitClass", &CvSpecialistInfo::getGreatPeopleUnitClass, "int ()")
 		.def("getGreatPeopleRateChange", &CvSpecialistInfo::getGreatPeopleRateChange, "int ()")
 		.def("getMissionType", &CvSpecialistInfo::getMissionType, "int ()")
@@ -48,7 +48,7 @@ void CyInfoPythonInterface1()
 		.def("getTexture", &CvSpecialistInfo::getTexture, "string ()")
 		;
 
-	python::class_<CvTechInfo, python::bases<CvInfoBase> >("CvTechInfo")
+	python::class_<CvTechInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvTechInfo")
 		.def("getAdvisorType", &CvTechInfo::getAdvisorType, "int ()")
 		.def("getAIWeight", &CvTechInfo::getAIWeight, "int ()")
 		.def("getAITradeModifier", &CvTechInfo::getAITradeModifier, "int ()")
@@ -101,7 +101,7 @@ void CyInfoPythonInterface1()
 		.def("isTerrainTrade", &CvTechInfo::isTerrainTrade, "bool (int i)")
 		;
 
-	python::class_<CvPromotionInfo, python::bases<CvInfoBase> >("CvPromotionInfo")
+	python::class_<CvPromotionInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvPromotionInfo")
 
 		.def("getPrereqPromotion", &CvPromotionInfo::getPrereqPromotion, "int ()")
 		.def("getPrereqOrPromotion1", &CvPromotionInfo::getPrereqOrPromotion1, "int ()")
@@ -166,7 +166,7 @@ void CyInfoPythonInterface1()
 		.def("getUnitCombat", &CvPromotionInfo::getUnitCombat, "bool (int i)")
 		;
 
-	python::class_<CvMissionInfo, python::bases<CvInfoBase> >("CvMissionInfo")
+	python::class_<CvMissionInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvMissionInfo")
 		.def("getTime", &CvMissionInfo::getTime, "int ()")
 
 		.def("isSound", &CvMissionInfo::isSound, "bool ()")
@@ -177,7 +177,7 @@ void CyInfoPythonInterface1()
 		.def("getWaypoint", &CvMissionInfo::getWaypoint, "string ()")
 		;
 
-	python::class_<CvActionInfo>("CvActionInfo")
+	python::class_<CvActionInfo, boost::noncopyable>("CvActionInfo")
 		.def("getMissionData", &CvActionInfo::getMissionData, "int ()")
 		.def("getCommandData", &CvActionInfo::getCommandData, "int ()")
 		.def("getAutomateType", &CvActionInfo::getAutomateType, "int ()")
@@ -194,7 +194,7 @@ void CyInfoPythonInterface1()
 		.def("getButton", &CvActionInfo::getButton, "string ()")
 		;
 
-	python::class_<CvUnitInfo, python::bases<CvInfoBase, CvScalableInfo> >("CvUnitInfo")
+	python::class_<CvUnitInfo, boost::noncopyable, python::bases<CvInfoBase, CvScalableInfo> >("CvUnitInfo")
 
 		.def("getAIWeight", &CvUnitInfo::getAIWeight, "int ()")
 		.def("getProductionCost", &CvUnitInfo::getProductionCost, "int ()")
@@ -275,7 +275,6 @@ void CyInfoPythonInterface1()
 		.def("isNoBadGoodies", &CvUnitInfo::isNoBadGoodies, "bool ()")
 /************************************************************************************************/
 /* UNOFFICIAL_PATCH                       03/20/10                       Afforess & jdog5000    */
-/*                                                                                              */
 /* Bugfix                                                                                       */
 /************************************************************************************************/
 		.def("isOnlyDefensive", &CvUnitInfo::isOnlyDefensive, "bool ()")
@@ -322,6 +321,10 @@ void CyInfoPythonInterface1()
 
 		.def("getPrereqAndTechs", &CvUnitInfo::getPrereqAndTechs, "int (int i)")
 		.def("getPrereqOrBonuses", &CvUnitInfo::getPrereqOrBonuses, "int (int i)")
+		// <advc.905b>
+		.def("getSpeedBonuses", &CvUnitInfo::getSpeedBonuses, "int (int i)")
+		.def("getExtraMoves", &CvUnitInfo::getExtraMoves, "int (int i)")
+		// </advc.905b>
 		.def("getProductionTraits", &CvUnitInfo::getProductionTraits, "int (int i)")
 		.def("getFlavorValue", &CvUnitInfo::getFlavorValue, "int (int i)")
 		.def("getTerrainAttackModifier", &CvUnitInfo::getTerrainAttackModifier, "int (int i)")
@@ -366,7 +369,7 @@ void CyInfoPythonInterface1()
 		.def("getArtInfo", &CvUnitInfo::getArtInfo,  python::return_value_policy<python::reference_existing_object>(), "CvArtInfoUnit* (int i, bool bLate)")
 		;
 
-	python::class_<CvSpecialUnitInfo, python::bases<CvInfoBase> >("CvSpecialUnitInfo")
+	python::class_<CvSpecialUnitInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvSpecialUnitInfo")
 		.def("isValid", &CvSpecialUnitInfo::isValid, "bool ()")
 		.def("isCityLoad", &CvSpecialUnitInfo::isCityLoad, "bool ()")
 
@@ -374,11 +377,11 @@ void CyInfoPythonInterface1()
 		.def("getProductionTraits", &CvSpecialUnitInfo::getProductionTraits, "int (int i)")
 		;
 
-	python::class_<CvCivicOptionInfo, python::bases<CvInfoBase> >("CvCivicOptionInfo")
+	python::class_<CvCivicOptionInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvCivicOptionInfo")
 		.def("getTraitNoUpkeep", &CvCivicOptionInfo::getTraitNoUpkeep, "bool (int i)")
 		;
 
-	python::class_<CvCivicInfo, python::bases<CvInfoBase> >("CvCivicInfo")
+	python::class_<CvCivicInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvCivicInfo")
 
 		.def("getCivicOptionType", &CvCivicInfo::getCivicOptionType, "int ()")
 		.def("getAnarchyLength", &CvCivicInfo::getAnarchyLength, "int ()")
@@ -451,7 +454,7 @@ void CyInfoPythonInterface1()
 		.def("getImprovementYieldChanges", &CvCivicInfo::getImprovementYieldChanges, "int (int i, int j)")
 		;
 
-	python::class_<CvUnitClassInfo, python::bases<CvInfoBase> >("CvUnitClassInfo")
+	python::class_<CvUnitClassInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvUnitClassInfo")
 		.def("getMaxGlobalInstances", &CvUnitClassInfo::getMaxGlobalInstances, "int ()")
 		.def("getMaxTeamInstances", &CvUnitClassInfo::getMaxTeamInstances, "int ()")
 		.def("getMaxPlayerInstances", &CvUnitClassInfo::getMaxPlayerInstances, "int ()")
@@ -459,7 +462,7 @@ void CyInfoPythonInterface1()
 		.def("getDefaultUnitIndex", &CvUnitClassInfo::getDefaultUnitIndex, "int ()")
 		;
 
-	python::class_<CvBuildingInfo, python::bases<CvInfoBase, CvScalableInfo> >("CvBuildingInfo")
+	python::class_<CvBuildingInfo, boost::noncopyable, python::bases<CvInfoBase, CvScalableInfo> >("CvBuildingInfo")
 
 		.def("getBuildingClassType", &CvBuildingInfo::getBuildingClassType, "int ()")
 		.def("getVictoryPrereq", &CvBuildingInfo::getVictoryPrereq, "int ()")
@@ -623,7 +626,7 @@ void CyInfoPythonInterface1()
 		.def("getArtInfo", &CvBuildingInfo::getArtInfo,  python::return_value_policy<python::reference_existing_object>())
 		;
 
-	python::class_<CvSpecialBuildingInfo, python::bases<CvInfoBase> >("CvSpecialBuildingInfo")
+	python::class_<CvSpecialBuildingInfo, boost::noncopyable, python::bases<CvInfoBase> >("CvSpecialBuildingInfo")
 		.def("getObsoleteTech", &CvSpecialBuildingInfo::getObsoleteTech, "int ()")
 		.def("getTechPrereq", &CvSpecialBuildingInfo::getTechPrereq, "int ()")
 		.def("isValid", &CvSpecialBuildingInfo::isValid, "bool ()")

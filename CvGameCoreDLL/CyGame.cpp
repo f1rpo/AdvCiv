@@ -158,8 +158,8 @@ int CyGame::countCivPlayersAlive()
 }
 
 int CyGame::countCivPlayersEverAlive()
-{
-	return m_pGame ? m_pGame->countCivPlayersEverAlive() : -1;
+{	// advc.003b: was m_pGame->countCivPlayersEverAlive()
+	return m_pGame ? m_pGame->getCivPlayersEverAlive() : -1;
 }
 
 int CyGame::countCivTeamsAlive()
@@ -168,8 +168,8 @@ int CyGame::countCivTeamsAlive()
 }
 
 int CyGame::countCivTeamsEverAlive()
-{
-	return m_pGame ? m_pGame->countCivTeamsEverAlive() : -1;
+{	// advc.003b: was m_pGame->countCivTeamsEverAlive()
+	return m_pGame ? m_pGame->getCivTeamsEverAlive() : -1;
 }
 
 int CyGame::countHumanPlayersAlive()

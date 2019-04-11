@@ -97,7 +97,7 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 
 		self.X_CATEGORIES = 0
 		self.Y_CATEGORIES = (self.Y_TOP_PANEL + self.H_TOP_PANEL) - 4
-		self.W_CATEGORIES = 175
+		self.W_CATEGORIES = 182 # advc.002b: was 175
 		self.H_CATEGORIES = (self.Y_BOT_PANEL + 3) - self.Y_CATEGORIES
 
 		self.X_ITEMS = self.X_CATEGORIES + self.W_CATEGORIES + 2
@@ -322,7 +322,8 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		self.tab = self.TAB_INDEX
 	
 	def setPediaCommonWidgets(self):
-		self.HEAD_TEXT = u"<font=4b>" + localText.getText("TXT_KEY_SEVOPEDIA_TITLE",      ())         + u"</font>"
+		# advc.004y: was TXT_KEY_SEVOPEDIA_TITLE
+		self.HEAD_TEXT = u"<font=4b>" + localText.getText("TXT_KEY_CIVILOPEDIA_TITLE",      ())         + u"</font>"
 		self.BACK_TEXT = u"<font=4>"  + localText.getText("TXT_KEY_PEDIA_SCREEN_BACK",    ()).upper() + u"</font>"
 		self.NEXT_TEXT = u"<font=4>"  + localText.getText("TXT_KEY_PEDIA_SCREEN_FORWARD", ()).upper() + u"</font>"
 		self.EXIT_TEXT = u"<font=4>"  + localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT",    ()).upper() + u"</font>"
@@ -428,7 +429,10 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 			graphic = self.categoryGraphics[category[0]]
 			# <advc.002b> Prepend graphic only if there is room
 			szHeading = category[1]
-			if len(szHeading) <= 15:
+			iThresh = 16 # For English, 16 happens to be OK.
+			if gc.getGame().getCurrentLanguage() != 0:
+				iThresh = 15
+			if len(szHeading) <= iThresh:
 				szHeading = graphic + szHeading # </advc.002b>
 			screen.appendListBoxStringNoUpdate(self.CATEGORY_LIST_ID, szHeading, WidgetTypes.WIDGET_PEDIA_MAIN, SevoScreenEnums.PEDIA_MAIN + i + 1, 0, CvUtil.FONT_LEFT_JUSTIFY)
 		screen.updateListBox(self.CATEGORY_LIST_ID)
@@ -707,16 +711,10 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 
 		i = 0
 		for item in self.list:
-			if (info == gc.getConceptInfo):
+			if info == gc.getConceptInfo:
 				data1 = CivilopediaPageTypes.CIVILOPEDIA_PAGE_CONCEPT
 				data2 = item[1]
-			elif (info == self.getNewConceptInfo):
-				data1 = CivilopediaPageTypes.CIVILOPEDIA_PAGE_CONCEPT_NEW
-				data2 = item[1]
-			elif (info == self.getShortcutInfo):
-				data1 = CivilopediaPageTypes.CIVILOPEDIA_PAGE_CONCEPT_NEW
-				data2 = item[1]
-			elif (info == self.getTraitInfo):
+			elif info == self.getNewConceptInfo or info == self.getShortcutInfo or info == self.getTraitInfo: # advc.003
 				data1 = CivilopediaPageTypes.CIVILOPEDIA_PAGE_CONCEPT_NEW
 				data2 = item[1]
 			else:

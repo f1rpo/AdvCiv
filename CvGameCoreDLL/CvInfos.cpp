@@ -2162,7 +2162,7 @@ void CvPromotionInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iExperiencePercent);
 	stream->Write(m_iKamikazePercent);
 	stream->Write(m_bLeader);
-	stream->Write(&m_iBlitz); // advc.164
+	stream->Write(m_iBlitz); // advc.164
 	stream->Write(m_bAmphib);
 	stream->Write(m_bRiver);
 	stream->Write(m_bEnemyRoute);
@@ -10592,8 +10592,8 @@ void CvHandicapInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iUnitCostPercent);
 	// <advc.251>
 	if(uiFlag >= 4)
-		stream->read(&iBuildTimePercent);
-	else iBuildTimePercent = 100;
+		stream->Read(&m_iBuildTimePercent);
+	else m_iBuildTimePercent = 100;
 	if(uiFlag >= 3) {
 		stream->Read(&m_iBaseGrowthThresholdPercent);
 		stream->Read(&m_iGPThresholdPercent);
@@ -12077,7 +12077,7 @@ int CvImprovementInfo::getTechYieldChanges(int i, int j) const
 	return m_ppiTechYieldChanges[i][j]; 
 }
 
-int* CvImprovementInfo::getTechYieldChangesArray(int i)
+int* CvImprovementInfo::getTechYieldChangesArray(int i) const
 {
 	return m_ppiTechYieldChanges[i];
 }
@@ -12091,7 +12091,7 @@ int CvImprovementInfo::getRouteYieldChanges(int i, int j) const
 	return m_ppiRouteYieldChanges[i][j]; 
 }
 
-int* CvImprovementInfo::getRouteYieldChangesArray(int i)
+int* CvImprovementInfo::getRouteYieldChangesArray(int i) const
 {
 	return m_ppiRouteYieldChanges[i];
 }
@@ -13611,7 +13611,7 @@ int CvYieldInfo::getColorType() const
 }
 
 // Arrays
-
+// advc.003j: This is never called. The paths are unused.
 const TCHAR* CvYieldInfo::getSymbolPath(int i) const
 {
 	FAssertMsg(i < GC.getDefineINT("MAX_YIELD_STACK"), "Index out of bounds");
@@ -13621,13 +13621,10 @@ const TCHAR* CvYieldInfo::getSymbolPath(int i) const
 
 bool CvYieldInfo::read(CvXMLLoadUtility* pXML)
 {
-	CvString szTextVal;
 	if (!CvInfoBase::read(pXML))
 	{
 		return false;
 	}
-
-	int iNumSibs, j;
 
 	pXML->GetChildXmlValByName(&m_iHillsChange, "iHillsChange");
 	pXML->GetChildXmlValByName(&m_iPeakChange, "iPeakChange");
@@ -13640,10 +13637,11 @@ bool CvYieldInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iGoldenAgeYield, "iGoldenAgeYield");
 	pXML->GetChildXmlValByName(&m_iGoldenAgeYieldThreshold, "iGoldenAgeYieldThreshold");
 	pXML->GetChildXmlValByName(&m_iAIWeightPercent, "iAIWeightPercent");
-
+	CvString szTextVal;
 	pXML->GetChildXmlValByName(szTextVal, "ColorType");
 	m_iColorType = pXML->FindInInfoClass(szTextVal);
 
+	int iNumSibs, j;
 	if (gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(), "SymbolPaths"))
 	{
 		if (pXML->SkipToNextVal())
@@ -14667,7 +14665,7 @@ int CvLeaderHeadInfo::getMemoryDecayRand(int i) const
 		return -1;
 	// The "clean" approach would be to set this 52 times in LeaderHead XML
 	if(i == MEMORY_DECLARED_WAR_RECENT && m_piMemoryDecayRand[i] == 0)
-		return 22;
+		return 11;
 	return m_piMemoryDecayRand[i]; // </advc.104i>
 }
 
@@ -22913,8 +22911,9 @@ CvEspionageMissionInfo::CvEspionageMissionInfo()
 	m_iPlayerAnarchyCounter(0),
 	m_iCounterespionageNumTurns(0),
 	m_iCounterespionageMod(0),
-	m_iDifficultyMod(0)
+	m_iDifficultyMod(0),
 	// </kmodx>
+	m_bReturnToCapital(false)
 {
 }
 
@@ -23127,6 +23126,7 @@ bool CvEspionageMissionInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iCounterespionageNumTurns, "iCounterespionageNumTurns");
 	pXML->GetChildXmlValByName(&m_iCounterespionageMod, "iCounterespionageMod");
 	pXML->GetChildXmlValByName(&m_iDifficultyMod, "iDifficultyMod");
+	pXML->GetChildXmlValByName(&m_bReturnToCapital, "bReturnToCapital"); // advc.103
 
 	return true;
 }

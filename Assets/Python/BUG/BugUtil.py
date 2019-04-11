@@ -232,8 +232,11 @@ LEVEL_PREFIXES = (
 	"ERROR: ",
 )
 
-screenLogLevel = WARN
-fileLogLevel = DEBUG
+#screenLogLevel = WARN
+#fileLogLevel = DEBUG
+# k146 (advc): Matching the defaults set in 'BUG Core.xml'. I think these initial values matter during startup.
+screenLogLevel = ERROR
+fileLogLevel = WARN
 minimumLogLevel = min(screenLogLevel, fileLogLevel)
 
 logTime = True

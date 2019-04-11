@@ -23,9 +23,8 @@ class BugGeneralOptionsTab(BugOptionsTab.BugOptionsTab):
 		
 		self.createGreatPersonGeneralPanel(screen, left)
 		self.addSpacer(screen, left, "GeneralL1")
-		# advc.004: Extra spacers; for now, there is enough space to align left, center and right in the middle
+		# advc.004: Extra spacer; for now, there is enough space to align left, center and right in the middle
 		self.addSpacer(screen, left, "GeneralL2")
-		self.addSpacer(screen, left, "GeneralL3")
 		self.createTechSplashPanel(screen, left)
 		#self.createLeaderheadPanel(screen, left)
 
@@ -44,18 +43,20 @@ class BugGeneralOptionsTab(BugOptionsTab.BugOptionsTab):
 
 	def createGreatPersonGeneralPanel(self, screen, panel):
 		self.addLabel(screen, panel, "ProgressBars", "Progress Bars:")
+		# advc.004: Moved from Misc
+		self.addCheckbox(screen, panel, "MainInterface__ProgressBarsTickMarks")
 		self.addCheckboxTextDropdown(screen, panel, panel, "MainInterface__GPBar", "MainInterface__GPBar_Types")
 		#self.addCheckbox(screen, panel, "MainInterface__GPBar")
 		#self.addTextDropdown(screen, panel, panel, "MainInterface__GPBar_Types", True)
 		self.addCheckbox(screen, panel, "MainInterface__Combat_Counter")
-		# advc.004: Moved from Misc
-		self.addCheckbox(screen, panel, "MainInterface__ProgressBarsTickMarks")
-		
-	def createLeaderheadPanel(self, screen, panel):
-		self.addLabel(screen, panel, "Leaderheads", "Leaderheads:")
-		self.addCheckbox(screen, panel, "MiscHover__LeaderheadHiddenAttitude")
-		self.addCheckbox(screen, panel, "MiscHover__LeaderheadWorstEnemy")
-		self.addCheckbox(screen, panel, "MiscHover__LeaderheadDefensivePacts")
+		# advc.078:
+		self.addCheckbox(screen, panel, "MainInterface__OnceProgress")
+	# advc.sha: Permanently disabled
+	#def createLeaderheadPanel(self, screen, panel):
+	#	self.addLabel(screen, panel, "Leaderheads", "Leaderheads:")
+	#	self.addCheckbox(screen, panel, "MiscHover__LeaderheadHiddenAttitude")
+	#	self.addCheckbox(screen, panel, "MiscHover__LeaderheadWorstEnemy")
+	#	self.addCheckbox(screen, panel, "MiscHover__LeaderheadDefensivePacts")
 		
 	def createAutoSavePanel(self, screen, panel):
 		self.addLabel(screen, panel, "AutoSave", "AutoSave:")
@@ -121,5 +122,7 @@ class BugGeneralOptionsTab(BugOptionsTab.BugOptionsTab):
 		# <advc.106b>
 		self.addCheckbox(screen, panel, "MainInterface__AutoOpenEventLog")
 		self.addTextDropdown(screen, panel, panel, "MainInterface__MessageLimit", True)
-		# </advc.106b> 
+		# </advc.106b>
+		# advc.002n:
+		self.addCheckbox(screen, panel, "MainInterface__EndTurnMessage")
 		self.addCheckbox(screen, panel, "MainInterface__CityArrows")

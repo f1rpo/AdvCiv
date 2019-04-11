@@ -1214,6 +1214,8 @@
 	<ElementType name="iPlayerAnarchyCounter" content="textOnly" dt:type="int"/>
 	<ElementType name="iCounterespionageNumTurns" content="textOnly" dt:type="int"/>
 	<ElementType name="iCounterespionageMod" content="textOnly" dt:type="int"/>
+	<!-- advc.103 -->
+	<ElementType name="bReturnToCapital" content="textOnly" dt:type="boolean"/>
 	<ElementType name="EspionageMissionInfo" content="eltOnly">
 		<element type="Type"/>
 		<element type="Description"/>
@@ -1248,6 +1250,8 @@
 		<element type="iPlayerAnarchyCounter"/>
 		<element type="iCounterespionageNumTurns"/>
 		<element type="iCounterespionageMod"/>
+		<!-- advc.103 -->
+		<element type="bReturnToCapital"/>
 	</ElementType>
 	<ElementType name="EspionageMissionInfos" content="eltOnly">
 		<element type="EspionageMissionInfo" maxOccurs="*"/>

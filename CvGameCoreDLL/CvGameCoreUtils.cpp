@@ -26,6 +26,7 @@
 //#define PATH_DEFENSE_WEIGHT   (10)
 #define PATH_DEFENSE_WEIGHT     (4) // K-Mod. ( * defence bonus)
 #define PATH_TERRITORY_WEIGHT   (5) // was 3
+#define PATH_DOW_WEIGHT			(4) // advc.082
 #define PATH_STEP_WEIGHT        (4) // was 2
 #define PATH_STRAIGHT_WEIGHT    (2) // was 1
 //#define PATH_ASYMMETRY_WEIGHT   (1) // K-Mod
@@ -44,7 +45,7 @@ int roundToMultiple(double d, int iMultiple) {
 	return r - r % iMultiple;
 }
 
-bool bernoulliSuccess(double pr, char const* pszLog) {
+bool bernoulliSuccess(double pr, char const* pszLog, bool bAsync, int iData1, int iData2) {
 
     int chancePerMyriad = round(pr * 10000.0);
 	// These two checks are just for better performance
@@ -54,7 +55,10 @@ bool bernoulliSuccess(double pr, char const* pszLog) {
 		return false;
 	if(strlen(pszLog) <= 0)
 		pszLog = "bs";
-    return GC.getGameINLINE().getSorenRandNum(10000, pszLog) < chancePerMyriad;
+	if(bAsync)
+		return (GC.getASyncRand().get(10000, pszLog) < chancePerMyriad);
+    return GC.getGameINLINE().
+			getSorenRandNum(10000, pszLog, iData1, iData2) < chancePerMyriad;
 }
 
 double median(vector<double>& distribution, bool bSorted) {
@@ -162,7 +166,7 @@ void fatCross(CvPlot const& p, vector<CvPlot*>& r) {
 		r.push_back(NULL);
 	r[0] = const_cast<CvPlot*>(&p);
 	int pos = 1;
-	CvMap& map = GC.getMap();
+	CvMap const& map = GC.getMap();
 	for(int dx = -CITY_PLOTS_RADIUS; dx <= CITY_PLOTS_RADIUS; dx++) {
 		for(int dy = -CITY_PLOTS_RADIUS; dy <= CITY_PLOTS_RADIUS; dy++) {
 			// Skip corners and center
@@ -240,6 +244,13 @@ bool isArticle(ProjectTypes pt) {
 	CvWString txt = gDLL->getText(txtKey + L"_NA");
 	return (txt.compare(L".") != 0);
 } // </advc.008e>
+// <advc.004w> I'm not positive that there isn't already a function like this somewhere
+void applyColorToString(CvWString& s, char const* szColor, bool bLink) {
+
+	if(bLink)
+		s.Format(L"<link=literal>%s</link>", s.GetCString());
+	s.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR(szColor), s.GetCString());
+} // </advc.004w>
 
 CvPlot* plotCity(int iX, int iY, int iIndex)
 {
@@ -441,7 +452,7 @@ bool isBeforeUnitCycle(const CvUnit* pFirstUnit, const CvUnit* pSecondUnit)
 
 // K-Mod
 // return true if the first unit in the first group comes before the first unit in the second group.
-// (note: the purpose of this function is to return _false_ when the groupCycleDistance should include a pentalty.)
+// (note: the purpose of this function is to return _false_ when the groupCycleDistance should include a penalty.)
 bool isBeforeGroupOnPlot(const CvSelectionGroup* pFirstGroup, const CvSelectionGroup* pSecondGroup)
 {
 	FAssert(pFirstGroup && pSecondGroup);
@@ -482,8 +493,13 @@ int groupCycleDistance(const CvSelectionGroup* pFirstGroup, const CvSelectionGro
 	const int iBaseScale = 4;
 	int iPenalty = 0;
 	if (pFirstHead->getUnitType() != pSecondHead->getUnitType())
-	{
-		if (pFirstHead->canFight() != pSecondHead->canFight())
+	{	/*  <advc.075> When a unit in cargo is told to skip its turn, we want
+			the ship to be selected before its cargo on the next turn.
+			(Or would it be better to do this through isBeforeGroupOnPlot?) */
+		if(pFirstHead->isHuman() && pFirstHead->isCargo() != pSecondHead->isCargo())
+			iPenalty += 5;
+		else // </advc.075>
+			if (pFirstHead->canFight() != pSecondHead->canFight())
 			iPenalty += 4;
 		else
 		{
@@ -1996,7 +2012,8 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 	// So let the AI prefer diagonal movement.
 	// However, diagonal zig-zags will probably seem unnatural and weird to humans who are just trying to move in a straight line.
 	// So let the pathfinding for human groups prefer cardinal movement.
-	if (pSelectionGroup->AI_isControlled())
+	bool bAIControl = pSelectionGroup->AI_isControlled();
+	if (bAIControl)
 	{
 		if (pFromPlot->getX_INLINE() == pToPlot->getX_INLINE() || pFromPlot->getY_INLINE() == pToPlot->getY_INLINE())
 			iWorstCost += PATH_STRAIGHT_WEIGHT;
@@ -2020,7 +2037,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 	// the cost of battle...
 	if (iFlags & MOVE_ATTACK_STACK)
 	{
-		FAssert(pSelectionGroup->AI_isControlled()); // only the AI uses MOVE_ATTACK_STACK
+		FAssert(bAIControl); // only the AI uses MOVE_ATTACK_STACK
 		FAssert(pSelectionGroup->getDomainType() == DOMAIN_LAND);
 
 		int iEnemyDefence = 0;
@@ -2058,12 +2075,20 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 			}
 			// else, don't worry about it too much.
 		}
-	}
-	//
+	} //
 
+	// <advc.082>
+	TeamTypes eToPlotTeam = pToPlot->getTeam();
+	/*  The AVOID_ENEMY code in the no-moves-left branch below doesn't stop the AI
+		from trying to move _through_ enemy territory and thus declaring war
+		earlier than necessary */
+	if(bAIControl && (iFlags & MOVE_DECLARE_WAR) && eToPlotTeam != NO_TEAM &&
+			eToPlotTeam != eTeam && GET_TEAM(eTeam).AI_isSneakAttackReady(eToPlotTeam))
+		iWorstCost += PATH_DOW_WEIGHT;
+	// </advc.082>
 	if (iWorstMovesLeft <= 0)
 	{
-		if (pToPlot->getTeam() != eTeam)
+		if (eToPlotTeam != eTeam)
 		{
 			iWorstCost += PATH_TERRITORY_WEIGHT;
 		}
@@ -2121,7 +2146,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 				{
 					// For human-controlled units, only apply the following effects for multi-step moves.
 					// (otherwise this might prevent the user from attacking from where they want to attack from.)
-					if (pSelectionGroup->AI_isControlled() || parent->m_iKnownCost != 0 || iFlags & MOVE_HAS_STEPPED)
+					if (bAIControl || parent->m_iKnownCost != 0 || iFlags & MOVE_HAS_STEPPED)
 					{
 						iAttackCount++;
 						iFromDefenceMod += pLoopUnit->noDefensiveBonus() ? 0 : pFromPlot->defenseModifier(eTeam, false);
@@ -2140,7 +2165,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 					}
 					// If this is a direct attack move from a human player, make sure it is the best value move possible. (This allows humans to choose which plot they attack from.)
 					// (note: humans have no way of ordering units to attack units en-route, so the fact that this is an attack move means we are at the destination.)
-					else if (pLoopUnit->canAttack()) // parent->m_iKnownCost == 0 && !(iFlags & MOVE_HAS_STEPPED) && !pSelectionGroup->AI_isControlled()
+					else if (pLoopUnit->canAttack()) // parent->m_iKnownCost == 0 && !(iFlags & MOVE_HAS_STEPPED) && !bAIControl
 						return PATH_STEP_WEIGHT; // DONE!
 				}
 			}
@@ -2160,7 +2185,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 		iWorstCost += PATH_DEFENSE_WEIGHT * std::max(0, (iAttackCount*200 - iFromDefenceMod) / std::max(1, iAttackCount));
 		iWorstCost += std::max(0, iAttackWeight) / std::max(1, iAttackCount);
 		// if we're in enemy territory, consider the sum of our defensive bonuses as well as the average
-		if (pToPlot->isOwned() && atWar(pToPlot->getTeam(), eTeam))
+		if (pToPlot->isOwned() && atWar(eToPlotTeam, eTeam))
 		{
 			iWorstCost += PATH_DEFENSE_WEIGHT * std::max(0, (iDefenceCount*200 - iDefenceMod)/5);
 			iWorstCost += PATH_DEFENSE_WEIGHT * std::max(0, (iAttackCount*200 - iFromDefenceMod)/5);
@@ -2170,7 +2195,7 @@ int pathCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer
 		// additional cost for ending turn in or adjacent to enemy territory based on flags (based on BBAI)
 		if (iFlags & (MOVE_AVOID_ENEMY_WEIGHT_2 | MOVE_AVOID_ENEMY_WEIGHT_3))
 		{
-			if (pToPlot->isOwned() && GET_TEAM(eTeam).AI_getWarPlan(pToPlot->getTeam()) != NO_WARPLAN)
+			if (pToPlot->isOwned() && GET_TEAM(eTeam).AI_getWarPlan(eToPlotTeam) != NO_WARPLAN)
 			{
 				iWorstCost *= (iFlags & MOVE_AVOID_ENEMY_WEIGHT_3) ? 3 : 2;
 			}
@@ -2546,15 +2571,15 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 	if(parent == NULL)
 		return TRUE;
 	CvMap const& m = GC.getMapINLINE();
-	CvPlot* pNewPlot = m.plotSorenINLINE(node->m_iX, node->m_iY);
-	if(pNewPlot->isImpassable())
+	CvPlot const& kToPlot = *m.plotSorenINLINE(node->m_iX, node->m_iY);
+	if(kToPlot.isImpassable())
 		return FALSE;
-	CvPlot* pFromPlot = m.plotSorenINLINE(parent->m_iX, parent->m_iY);
-	if(pFromPlot->isWater() && pNewPlot->isWater() &&
+	CvPlot const& kFromPlot = *m.plotSorenINLINE(parent->m_iX, parent->m_iY);
+	if(kFromPlot.isWater() && kToPlot.isWater() &&
 			!m.plotINLINE(parent->m_iX, node->m_iY)->isWater() &&
 			!m.plotINLINE(node->m_iX, parent->m_iY)->isWater())
 		return FALSE;
-	TeamTypes ePlotTeam = pNewPlot->getTeam();
+	TeamTypes ePlotTeam = kToPlot.getTeam();
 	int* v = (int*)pointer;
 	int iMaxPath = v[5];
 	/*  As far as I understand the code, node (the pToPlot) is still set to 0
@@ -2564,29 +2589,34 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 	if(iMaxPath > 0 && (parent->m_iHeuristicCost + parent->m_iKnownCost > iMaxPath ||
 			node->m_iHeuristicCost + node->m_iKnownCost > iMaxPath))
 		return FALSE;
-	TeamTypes eTeam = (TeamTypes)v[0];
+	TeamTypes eTeam = (TeamTypes)v[0]; // The team that computes the path
 	TeamTypes eTargetTeam = (TeamTypes)v[1];
-	DomainTypes dom = (DomainTypes)v[2];
-	if(dom == NO_DOMAIN)
-		dom = DOMAIN_LAND;
+	DomainTypes eDom = (DomainTypes)v[2];
+	if(eDom == NO_DOMAIN)
+		eDom = DOMAIN_LAND;
 	// Check domain legality:
-	if(dom == DOMAIN_LAND && pNewPlot->isWater())
+	if(eDom == DOMAIN_LAND && kToPlot.isWater())
 		return FALSE;
-	bool coastalCity = pNewPlot->isCity(true) && pNewPlot->isCoastalLand();
+	/*  <advc.033> Naval blockades (Barbarian eTeam) are allowed to reach a city
+		but mustn't pass through */
+	if(eTeam == BARBARIAN_TEAM && eDom != DOMAIN_LAND && kFromPlot.isCity() &&
+			kFromPlot.getTeam() != BARBARIAN_TEAM)
+		return FALSE; // </advc.033>
+	bool bCoastalCity = kToPlot.isCity(true) && kToPlot.isCoastalLand();
 	// Use DOMAIN_IMMOBILE to encode sea units with impassable terrain
-	bool impassableTerrain = false;
-	if(dom == DOMAIN_IMMOBILE) {
-		impassableTerrain = true;
-		dom = DOMAIN_SEA;
+	bool bImpassableTerrain = false;
+	if(eDom == DOMAIN_IMMOBILE) {
+		bImpassableTerrain = true;
+		eDom = DOMAIN_SEA;
 	}
-	if(dom == DOMAIN_SEA && !coastalCity && !pNewPlot->isWater() &&
+	if(eDom == DOMAIN_SEA && !bCoastalCity && !kToPlot.isWater() &&
 			// Allow non-city land tile as cargo destination
-			(pNewPlot->getX_INLINE() != v[3] || pNewPlot->getY_INLINE() != v[4]))
+			(kToPlot.getX_INLINE() != v[3] || kToPlot.getY_INLINE() != v[4]))
 		return FALSE;
-	/*  This handles only Coast, and no other terrain types that a mod might make
-		impassable. */
-	if(!coastalCity && ePlotTeam != eTeam && impassableTerrain &&
-			pNewPlot->getTerrainType() != (TerrainTypes)(GC.getDefineINT("SHALLOW_WATER_TERRAIN")))
+	/*  This handles only Coast and no other terrain types that a mod might make
+		impassable */
+	if(!bCoastalCity && ePlotTeam != eTeam && bImpassableTerrain &&
+			kToPlot.getTerrainType() != (TerrainTypes)(GC.getDefineINT("SHALLOW_WATER_TERRAIN")))
 		return FALSE;
 	// Don't check isRevealed; caller ensures that destination city is deducible.
 	if(ePlotTeam == NO_TEAM)
@@ -2594,10 +2624,14 @@ int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data,
 	if(GET_TEAM(ePlotTeam).getMasterTeam() == GET_TEAM(eTargetTeam).getMasterTeam())
 		return TRUE;
 	CvTeamAI const& kTeam = GET_TEAM(eTeam);
-	if(kTeam.isFriendlyTerritory(ePlotTeam) ||
-			/*  A war plan isn't enough; war against eTargetTeam could replace
-				that plan. */
-			kTeam.isAtWar(ePlotTeam) || kTeam.isOpenBorders(ePlotTeam))
+	if(kTeam.isFriendlyTerritory(ePlotTeam) || kTeam.isOpenBorders(ePlotTeam))
+		return TRUE;
+	// A war plan isn't enough; war against eTargetTeam could supplant that plan.
+	if(kTeam.isAtWar(ePlotTeam) &&
+			/*  Units can't just move through an enemy city, but they can conquer
+				it. Even ships can when part of a naval assault. They can't really
+				conquer forts though. */
+			(eDom == DOMAIN_LAND || !bCoastalCity || kToPlot.isCity()))
 		return TRUE;
 	return FALSE;
 }
@@ -2816,35 +2850,18 @@ int areaValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointe
 	{
 		return TRUE;
 	}
-
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      10/02/09                                jdog5000      */
-/*                                                                                              */
-/* General AI                                                                                   */
-/************************************************************************************************/
-// original BTS code
 	return ((GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY)->isWater() == GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY)->isWater()) ? TRUE : FALSE);
-
+	// (advc.030 takes care of this)
+	// BETTER_BTS_AI_MOD, General AI, 10/02/09, jdog5000
 	// BBAI TODO: Why doesn't this work to break water and ice into separate area?
-/*
-	if( GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY)->isWater() != GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY)->isWater() )
-	{
-		return FALSE;
-	}
-
+	/*if( GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY)->isWater() != GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY)->isWater() )
+	return FALSE;
 	// Ice blocks become their own area
-	if( GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY)->isWater() && GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY)->isWater() )
-	{
+	if( GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY)->isWater() && GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY)->isWater() ) {
 		if( GC.getMapINLINE().plotSorenINLINE(parent->m_iX, parent->m_iY)->isImpassable() != GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY)->isImpassable() )
-		{
 			return FALSE;
-		}
 	}
-
-	return TRUE;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+	return TRUE;*/
 }
 
 
@@ -2904,34 +2921,18 @@ int countPlotGroup(FAStarNode* parent, FAStarNode* node, int data, const void* p
 // advc.003j (comment): Unused
 int baseYieldToSymbol(int iNumYieldTypes, int iYieldStack)
 {
-	int iReturn;	// holds the return value we will be calculating
-
-	// get the base value for the iReturn value
-	iReturn = iNumYieldTypes * GC.getDefineINT("MAX_YIELD_STACK");
-	// then add the offset to the return value
-	iReturn += iYieldStack;
-
-	// return the value we have calculated
-	return iReturn;
+	return iNumYieldTypes * GC.getDefineINT("MAX_YIELD_STACK") + iYieldStack;
 }
-
-/*  advc.003j: Vanilla Civ 4 function that used to be a DLLExport; certainly unused
-	since BtS, and doesn't sound too useful. */
-/*bool isPickableName(const TCHAR* szName)
-{
-	if (szName)
-	{
+/*  advc.003j: Vanilla Civ 4 function that used to be a DLLExport;
+	certainly unused since BtS, and doesn't sound too useful. */
+/*bool isPickableName(const TCHAR* szName) {
+	if (szName) {
 		int iLen = _tcslen(szName);
-
 		if (!_tcsicmp(&szName[iLen-6], "NOPICK"))
-		{
 			return false;
-		}
 	}
-
 	return true;
 }*/
-
 
 // create an array of shuffled numbers
 int* shuffle(int iNum, CvRandom& rand)
@@ -3082,6 +3083,7 @@ void getActivityTypeString(CvWString& szString, ActivityTypes eActivityType)
 	case ACTIVITY_PATROL: szString = L"PATROL"; break;
 	case ACTIVITY_PLUNDER: szString = L"PLUNDER"; break;
 	// </advc.007>
+	case ACTIVITY_BOARDED: szString = L"BOARDED"; break; // advc.075
 	default: szString = CvWString::format(L"UNKNOWN_ACTIVITY(%d)", eActivityType); break;
 	}
 }

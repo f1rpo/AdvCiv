@@ -77,6 +77,9 @@ class CvOptionsScreen:
 		
 	def refreshScreen (self):
 		
+		# advc.076: Active profile may have changed
+		UserProfile = CyUserProfile()
+		
 		#################### Game Options ####################
 		
 		szTab = self.getGameOptionsTabName()
@@ -224,6 +227,16 @@ class CvOptionsScreen:
 		# Modem Checkbox
    		self.getTabControl().setValue("ModemSelection", gc.getGame().isModem())
 		
+		# <advc.076> Update button tooltips b/c profile name may have changed
+		# Tbd.: A function updateTooltips to get rid of duplicate code and hardcoded widget names
+		szProfileName = UserProfile.getProfileName()
+		for iTab in range(4):
+			self.getTabControl().setToolTip("OptionsExitButton" + str(iTab), localText.getText("TXT_KEY_OPTIONS_SCREEN_EXIT_HELP", (szProfileName,)))
+		self.getTabControl().setToolTip("GameOptionsResetButton", localText.getText("TXT_KEY_OPTIONS_SCREEN_RESET1_HELP", (szProfileName,)))
+		self.getTabControl().setToolTip("GraphicOptionsResetButton", localText.getText("TXT_KEY_OPTIONS_SCREEN_RESET2_HELP", (szProfileName,)))
+		self.getTabControl().setToolTip("AudioOptionsResetButton", localText.getText("TXT_KEY_OPTIONS_SCREEN_RESET3_HELP", (szProfileName,)))
+		# </advc.076>
+		
 	def interfaceScreen (self):
 		"Initial creation of the screen"
 		self.initText()
@@ -240,6 +253,16 @@ class CvOptionsScreen:
 		self.pTabControl.attachTabItem("AudioForm", self.szAudioOptionsTabName)
 		self.pTabControl.attachTabItem("OtherForm", self.szOtherOptionsTabName)
 		
+		# <advc.076> Initialize some data for the draw...Tab functions
+		self.graphicOptionsDone = set()
+		self.playerOptionsDone = set()
+		self.tab1Options = set() # for the reset buttons
+		self.tab2Options = set()
+		self.iBlank = 0 # for attachVSpace
+		self.iHeading = 0 # for attachHeading
+		self.iExitButton = 0 # for attachExitButton
+		# </advc.076>
+		
 		self.drawGameOptionsTab()
 		self.drawGraphicOptionsTab()
 		self.drawAudioOptionsTab()
@@ -250,7 +273,7 @@ class CvOptionsScreen:
 		
 		tab = self.pTabControl
 		
-		tab.attachVBox("GameForm", "GameVBox")		
+		tab.attachVBox("GameForm", "GameVBox")
 		
 		# Add Game Options
 		
@@ -258,23 +281,59 @@ class CvOptionsScreen:
 		tab.setStyle("GamePanelCenter", "Panel_Tan15_Style")
 		tab.setLayoutFlag("GamePanelCenter", "LAYOUT_SIZE_HEXPANDING")
 		tab.setLayoutFlag("GamePanelCenter", "LAYOUT_SIZE_VEXPANDING")
-			
+
 		tab.attachScrollPanel("GamePanelCenter", "GamePanel")
 		tab.setLayoutFlag("GamePanel", "LAYOUT_SIZE_HEXPANDING")
 		tab.setLayoutFlag("GamePanel", "LAYOUT_SIZE_VEXPANDING")
 		
-		tab.attachHBox("GamePanel", "GameHBox")
-		tab.setLayoutFlag("GameHBox", "LAYOUT_SIZE_HEXPANDING")
-
-		tab.attachVBox("GameHBox", "GameVBox1")
-		tab.setLayoutFlag("GameVBox1", "LAYOUT_SIZE_HEXPANDING")
-		#tab.attachVSeparator("GameHBox", "GameHBoxSeparator")
-		tab.attachVBox("GameHBox", "GameVBox2")
-		tab.setLayoutFlag("GameVBox2", "LAYOUT_SIZE_HEXPANDING")
+		hbox = "GameHBox" # advc.076
+		tab.attachHBox("GamePanel", hbox)
+		tab.setLayoutFlag(hbox, "LAYOUT_SIZE_HEXPANDING")
+		vbox1 = "GameVBox1" # advc.076: Put this in a variable
+		tab.attachVBox(hbox, vbox1)
+		tab.setLayoutFlag(vbox1, "LAYOUT_SIZE_HEXPANDING")
+		# <advc.076> Un-commented, layout flag added b/c there was 0 space to the right of the separator. Now the separator itself gets streched a bit. Oh well.
+		tab.attachVSeparator(hbox, "GameHBoxSeparator")
+		tab.setLayoutFlag("GameHBoxSeparator", "LAYOUT_SIZE_HEXPANDING")
+		vbox2 = "GameVBox2"
+		# </advc.076>
+		tab.attachVBox(hbox, vbox2)
+		tab.setLayoutFlag(vbox2, "LAYOUT_SIZE_HEXPANDING")
 		
+		# <advc.076>
+	# Left column
+		self.attachHeading(tab, vbox1, "GENCONTROL")
+		self.attachPlayerOption(tab, vbox1, PlayerOptionTypes.PLAYEROPTION_WAIT_END_TURN)
+		self.attachPlayerOption(tab, vbox1, PlayerOptionTypes.PLAYEROPTION_MINIMIZE_POP_UPS)
+		self.attachHeading(tab, vbox1, "UNITCONTROL")
+		self.attachPlayerOption(tab, vbox1, PlayerOptionTypes.PLAYEROPTION_NO_UNIT_CYCLING)
+		self.attachPlayerOption(tab, vbox1, PlayerOptionTypes.PLAYEROPTION_RIGHT_CLICK_MENU)
+		self.attachPlayerOption(tab, vbox1, PlayerOptionTypes.PLAYEROPTION_STACK_ATTACK)
+		self.attachPlayerOption(tab, vbox1, PlayerOptionTypes.PLAYEROPTION_QUICK_ATTACK)
+		self.attachHeading(tab, vbox1, "RIVALS")
+		self.attachPlayerOption(tab, vbox1, PlayerOptionTypes.PLAYEROPTION_QUICK_DEFENSE)
+		self.attachPlayerOption(tab, vbox1, PlayerOptionTypes.PLAYEROPTION_SHOW_ENEMY_MOVES)
+		self.attachPlayerOption(tab, vbox1, PlayerOptionTypes.PLAYEROPTION_SHOW_FRIENDLY_MOVES)
+	# Right column
+		self.attachHeading(tab, vbox2, "AUTOMATE")
+		self.attachPlayerOption(tab, vbox2, PlayerOptionTypes.PLAYEROPTION_SAFE_AUTOMATION)
+		self.attachPlayerOption(tab, vbox2, PlayerOptionTypes.PLAYEROPTION_LEAVE_FORESTS)
+		self.attachPlayerOption(tab, vbox2, PlayerOptionTypes.PLAYEROPTION_START_AUTOMATED)
+		self.attachPlayerOption(tab, vbox2, PlayerOptionTypes.PLAYEROPTION_MISSIONARIES_AUTOMATED)
+		self.attachPlayerOption(tab, vbox2, PlayerOptionTypes.PLAYEROPTION_AUTO_PROMOTION)
+		self.attachHeading(tab, vbox2, "RECOMMEND")
+		self.attachPlayerOption(tab, vbox2, PlayerOptionTypes.PLAYEROPTION_NO_UNIT_RECOMMENDATIONS)
+		self.attachPlayerOption(tab, vbox2, PlayerOptionTypes.PLAYEROPTION_ADVISOR_HELP)
+		self.attachPlayerOption(tab, vbox2, PlayerOptionTypes.PLAYEROPTION_ADVISOR_POPUPS)
+		# </advc.076>
 		i = 0
 		for iOptionLoop in range(PlayerOptionTypes.NUM_PLAYEROPTION_TYPES):
-			
+			# <advc.076> They're all placed individually, so this loop does nothing unless someone adds new player options.
+			if iOptionLoop in self.playerOptionsDone:
+				continue
+			# Moved to the graphics tab
+			if iOptionLoop == PlayerOptionTypes.PLAYEROPTION_NUMPAD_HELP or iOptionLoop == PlayerOptionTypes.PLAYEROPTION_QUICK_MOVES:
+				continue # </advc.076>
 			bContinue = true
 			
 			if (iOptionLoop == PlayerOptionTypes.PLAYEROPTION_MODDER_1):
@@ -293,11 +352,13 @@ class CvOptionsScreen:
 				szHelp = gc.getPlayerOptionsInfoByIndex(iOptionLoop).getHelp()
 				szCallbackFunction = "handleGameOptionsClicked"
 				szWidgetName = "GameOptionCheckBox_" + str(iOptionLoop)
-				bOptionOn = UserProfile.getPlayerOption(iOptionLoop)#gc.getPlayer(gc.getGame().getActivePlayer()).isOption(iOptionLoop)
-				if ((i+1) <= (PlayerOptionTypes.NUM_PLAYEROPTION_TYPES+1)/2): 
-					vbox = "GameVBox1"
-				else: 
-					vbox = "GameVBox2"
+				#gc.getPlayer(gc.getGame().getActivePlayer()).isOption(iOptionLoop)
+				bOptionOn = UserProfile.getPlayerOption(iOptionLoop)
+				#if ((i+1) <= (PlayerOptionTypes.NUM_PLAYEROPTION_TYPES+1)/2): 
+				#	vbox = vbox1
+				#else: 
+				#	vbox = vbox2
+				vbox = vbox2 # advc.076: Put any new options in the right column
 				tab.attachCheckBox(vbox, szWidgetName, szOptionDesc, self.callbackIFace, szCallbackFunction, szWidgetName, bOptionOn)
 				tab.setToolTip(szWidgetName, szHelp)
 				i += 1
@@ -307,7 +368,7 @@ class CvOptionsScreen:
 		tab.attachHBox("GamePanelCenter", "LangHBox")
 		
 		# Languages Dropdown
-		tab.attachLabel("LangHBox", "LangLabel", localText.getText("TXT_KEY_OPTIONS_SCREEN_LANGUAGE", ()))	# Label
+		tab.attachLabel("LangHBox", "LangLabel", localText.getText("TXT_KEY_OPTIONS_SCREEN_LANGUAGE", ()))
 		szDropdownDesc = "LanguagesDropdownBox"
 
 		tab.attachSpacer("LangHBox")
@@ -345,11 +406,10 @@ class CvOptionsScreen:
 		szCallbackFunction = "handleGameReset"
 		szWidgetName = "GameOptionsResetButton"
 		tab.attachButton("LowerHBox", szWidgetName, szOptionDesc, self.callbackIFace, szCallbackFunction, szWidgetName)
-		
-		szOptionDesc = localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ())
-		szCallbackFunction = "handleExitButtonInput"
-		szWidgetName = "GameOptionsExitButton"
-		tab.attachButton("LowerHBox", szWidgetName, szOptionDesc, self.callbackIFace, szCallbackFunction, szWidgetName)
+		# advc.076:
+		tab.setToolTip(szWidgetName, localText.getText("TXT_KEY_OPTIONS_SCREEN_RESET1_HELP", (UserProfile.getProfileName(),)))
+		# advc.076: Moved into subroutine
+		self.attachExitButton(tab)
 		
 	def drawGraphicOptionsTab(self):
 		
@@ -400,8 +460,13 @@ class CvOptionsScreen:
 		tab.attachVBox("ResHBox", vbox1)
 		tab.attachVBox("ResHBox", vbox2)
 		
+		# <advc.076>
+		# Fullscreen Checkbox
+		self.attachGraphicsOption(tab, vbox1, GraphicOptionTypes.GRAPHICOPTION_FULLSCREEN)
+		self.attachVSpace(tab, vbox2)
+		# </advc.076>
 		# Screen Resolution Dropdown
-		tab.attachLabel(vbox1, "ResLabel", localText.getText("TXT_KEY_OPTIONS_SCREEN_RES", ()))	# Label
+		tab.attachLabel(vbox1, "ResLabel", localText.getText("TXT_KEY_OPTIONS_SCREEN_RES", ()))
 		tab.setControlFlag("ResLabel", "CF_LABEL_DEFAULTSIZE")
 		szDropdownDesc = "ResolutionDropdownBox"
 		aszDropdownElements = ()
@@ -411,8 +476,38 @@ class CvOptionsScreen:
 		szWidgetName = self.szResolutionComboBoxName = "ResolutionDropdownBox"
 		iInitialSelection = UserProfile.getResolution()
 		tab.attachDropDown(vbox2, szWidgetName, szDropdownDesc, aszDropdownElements, self.callbackIFace, szCallbackFunction, szWidgetName, iInitialSelection)
+		# advc.076:
+		tab.setToolTip(szWidgetName, localText.getText("TXT_KEY_OPTIONS_SCREEN_RES_HELP", ()))
 		
-		# Anti-Aliasing Dropdown
+		# advc.137: Replaced TXT_KEY_SEALEVEL_HIGH with TXT_KEY_HIGH
+		# and ditto for LOW. Also under Render Quality, Globe View
+		# and Movies.
+		# Graphics Level
+		#tab.attachLabel(vbox1, "GraphicsLevelLabel", localText.getText("TXT_KEY_OPTIONS_SCREEN_GRAPHICS_LEVEL", ()))
+		#tab.setControlFlag("GraphicsLevelLabel", "CF_LABEL_DEFAULTSIZE")
+		#szDropdownDesc = "GraphicsLevelDropdownBox"
+		#aszDropdownElements = (localText.getText("TXT_KEY_HIGH", ()), localText.getText("TXT_KEY_SEALEVEL_MEDIUM", ()), localText.getText("TXT_KEY_LOW", ()))
+		#szCallbackFunction = "handleGraphicsLevelDropdownBoxInput"
+		#szWidgetName = szDropdownDesc
+		#iInitialSelection = UserProfile.getGraphicsLevel()
+		#tab.attachDropDown(vbox2, szWidgetName, szDropdownDesc, aszDropdownElements, self.callbackIFace, szCallbackFunction, szWidgetName, iInitialSelection)
+		# advc.076: Disable GraphicsLevel dropdown. That menu only changes other settings and has no effect of its own - I think. Since I'm not perfectly sure, I'd like to force "high" (0), but if a player doesn't already have it at high, this will cause other settings to change when the player enters the options screen; can't have that.
+		#if UserProfile.getGraphicsLevel() != 0:
+		#	UserProfile.setGraphicsLevel(0)
+		
+		# Render Quality level
+		tab.attachLabel(vbox1, "GraphicsQualityLabel", localText.getText("TXT_KEY_OPTIONS_SCREEN_RENDER_QUALITY_LEVEL", ()))
+		tab.setControlFlag("GraphicsQualityLabel", "CF_LABEL_DEFAULTSIZE")
+		szDropdownDesc = "RenderQualityDropdownBox"
+		aszDropdownElements = (localText.getText("TXT_KEY_HIGH", ()), localText.getText("TXT_KEY_SEALEVEL_MEDIUM", ()), localText.getText("TXT_KEY_LOW", ()))
+		szCallbackFunction = "handleRenderQualityDropdownBoxInput"
+		szWidgetName = self.szRenderQualityDropdownBoxName = "RenderQualityDropdownBox"
+		iInitialSelection = UserProfile.getRenderQualityLevel()
+		tab.attachDropDown(vbox2, szWidgetName, szDropdownDesc, aszDropdownElements, self.callbackIFace, szCallbackFunction, szWidgetName, iInitialSelection)
+		# advc.076:
+		tab.setToolTip(szWidgetName, localText.getText("TXT_KEY_OPTIONS_SCREEN_RENDER_QUALITY_LEVEL_HELP", ()))
+		
+		# Anti-Aliasing Dropdown  advc.076: Switched places with RenderQuality
 		tab.attachLabel(vbox1, "AALabel", localText.getText("TXT_KEY_OPTIONS_ANTIALIAS", ()))
 		tab.setControlFlag("AALabel", "CF_LABEL_DEFAULTSIZE")
 		szDropdownDesc = "AntiAliasingDropdownBox"
@@ -434,32 +529,15 @@ class CvOptionsScreen:
 		iInitialSelection = UserProfile.getAntiAliasing()
 		tab.attachDropDown(vbox2, szWidgetName, szDropdownDesc, aszDropdownElements, self.callbackIFace, szCallbackFunction, szWidgetName, iInitialSelection)
 		tab.setLayoutFlag(szWidgetName, "LAYOUT_LEFT")
-		
-		# Graphics Level
-		# <advc.137> Replaced TXT_KEY_SEALEVEL_HIGH with TXT_KEY_HIGH
-		# and ditto for LOW. Also under Render Quality, Globe View
-		# and Movies.
-		tab.attachLabel(vbox1, "GraphicsLevelLabel", localText.getText("TXT_KEY_OPTIONS_SCREEN_GRAPHICS_LEVEL", ()))	# Label
-		tab.setControlFlag("GraphicsLevelLabel", "CF_LABEL_DEFAULTSIZE")
-		szDropdownDesc = "GraphicsLevelDropdownBox"
-		aszDropdownElements = (localText.getText("TXT_KEY_HIGH", ()), localText.getText("TXT_KEY_SEALEVEL_MEDIUM", ()), localText.getText("TXT_KEY_LOW", ()))
-		szCallbackFunction = "handleGraphicsLevelDropdownBoxInput"
-		szWidgetName = szDropdownDesc
-		iInitialSelection = UserProfile.getGraphicsLevel()
-		tab.attachDropDown(vbox2, szWidgetName, szDropdownDesc, aszDropdownElements, self.callbackIFace, szCallbackFunction, szWidgetName, iInitialSelection)
-		
-		# Render Quality level
-		tab.attachLabel(vbox1, "GraphicsQualityLabel", localText.getText("TXT_KEY_OPTIONS_SCREEN_RENDER_QUALITY_LEVEL", ()))	# Label
-		tab.setControlFlag("GraphicsQualityLabel", "CF_LABEL_DEFAULTSIZE")
-		szDropdownDesc = "RenderQualityDropdownBox"
-		aszDropdownElements = (localText.getText("TXT_KEY_HIGH", ()), localText.getText("TXT_KEY_SEALEVEL_MEDIUM", ()), localText.getText("TXT_KEY_LOW", ()))
-		szCallbackFunction = "handleRenderQualityDropdownBoxInput"
-		szWidgetName = self.szRenderQualityDropdownBoxName = "RenderQualityDropdownBox"
-		iInitialSelection = UserProfile.getRenderQualityLevel()
-		tab.attachDropDown(vbox2, szWidgetName, szDropdownDesc, aszDropdownElements, self.callbackIFace, szCallbackFunction, szWidgetName, iInitialSelection)
+		# <advc.076>
+		tab.setToolTip(szWidgetName, localText.getText("TXT_KEY_OPTIONS_SCREEN_ANTIALIAS_HELP", ()))
+		# Terrain Quality Checkboxes
+		self.attachGraphicsOption(tab, vbox1, GraphicOptionTypes.GRAPHICOPTION_HIRES_TERRAIN)
+		self.attachGraphicsOption(tab, vbox2, GraphicOptionTypes.GRAPHICOPTION_LOWRES_TEXTURES)
+		# </advc.076>
 		
 		# Globe view rendering level
-		tab.attachLabel(vbox1, "GlobeViewLabel", localText.getText("TXT_KEY_OPTIONS_SCREEN_GLOBE", ()))	# Label
+		tab.attachLabel(vbox1, "GlobeViewLabel", localText.getText("TXT_KEY_OPTIONS_SCREEN_GLOBE", ()))
 		tab.setControlFlag("GlobeViewLabel", "CF_LABEL_DEFAULTSIZE")
 				
 		szDropdownDesc = "GlobeViewDropdownBox"
@@ -467,7 +545,15 @@ class CvOptionsScreen:
 		szCallbackFunction = "handleGlobeViewDropdownBoxInput"
 		szWidgetName = self.szGlobeViewDropdownBoxName = "GlobeViewDropdownBox"
 		iInitialSelection = UserProfile.getGlobeViewRenderLevel()
-		tab.attachDropDown(vbox2, szWidgetName, szDropdownDesc, aszDropdownElements, self.callbackIFace, szCallbackFunction, szWidgetName, iInitialSelection)		
+		tab.attachDropDown(vbox2, szWidgetName, szDropdownDesc, aszDropdownElements, self.callbackIFace, szCallbackFunction, szWidgetName, iInitialSelection)
+		# <advc.076>
+		tab.setToolTip(szWidgetName, localText.getText("TXT_KEY_OPTIONS_SCREEN_GLOBE_HELP", ()))
+		# No Buildings in Globe View Checkbox
+		self.attachGraphicsOption(tab, vbox1, GraphicOptionTypes.GRAPHICOPTION_GLOBE_VIEW_BUILDINGS_DISABLED)
+		# No Movies Checkbox
+		self.attachGraphicsOption(tab, vbox2, GraphicOptionTypes.GRAPHICOPTION_NO_MOVIES)
+		# ^It would make more sense to place this _under_ the Movie Quality dropdown menu, but the layout looks weird when it alternates between a dropdown menu and a single checkbox.
+		# </advc.076>
 		
 		# Movies
 		tab.attachLabel(vbox1, "MovieLabel", localText.getText("TXT_KEY_GRAPHICS_SETTINGS_MOVIE_QUALITY", ()))
@@ -475,14 +561,15 @@ class CvOptionsScreen:
 				
 		szDropdownDesc = "MovieDropdownBox"
 		aszDropdownElements = (localText.getText("TXT_KEY_HIGH", ()), localText.getText("TXT_KEY_SEALEVEL_MEDIUM", ()), localText.getText("TXT_KEY_LOW", ()))
-		# </advc.137>
 		szCallbackFunction = "handleMovieDropdownBoxInput"
 		szWidgetName = self.szMovieDropdownBoxName = "MovieDropdownBox"
 		iInitialSelection = UserProfile.getMovieQualityLevel()
-		tab.attachDropDown(vbox2, szWidgetName, szDropdownDesc, aszDropdownElements, self.callbackIFace, szCallbackFunction, szWidgetName, iInitialSelection)		
+		tab.attachDropDown(vbox2, szWidgetName, szDropdownDesc, aszDropdownElements, self.callbackIFace, szCallbackFunction, szWidgetName, iInitialSelection)
+		# advc.076:
+		tab.setToolTip(szWidgetName, localText.getText("TXT_KEY_OPTIONS_SCREEN_MOVIE_QUALITY_HELP", ()))
 
 		# Main menu
-		tab.attachLabel(vbox1, "MainMenuLabel", localText.getText("TXT_KEY_OPENING_MENU", ()))	# Label
+		tab.attachLabel(vbox1, "MainMenuLabel", localText.getText("TXT_KEY_OPENING_MENU", ()))
 		tab.setControlFlag("MainMenuLabel", "CF_LABEL_DEFAULTSIZE")
 				
 		szDropdownDesc = "MainMenuDropdownBox"
@@ -493,27 +580,42 @@ class CvOptionsScreen:
 		szWidgetName = self.szMainMenuDropdownBoxName = "DropdownBox"
 		iInitialSelection = UserProfile.getMainMenu()
 		tab.attachDropDown(vbox2, szWidgetName, szDropdownDesc, aszDropdownElements, self.callbackIFace, szCallbackFunction, szWidgetName, iInitialSelection)
+		# advc.076:
+		tab.setToolTip(szWidgetName, localText.getText("TXT_KEY_OPTIONS_SCREEN_OPENING_MENU_HELP", ()))
 
 		####### GAME GRAPHICS
 
 		tab.attachVSeparator(hbox, "GfxSeparator")
-		tab.setLayoutFlag("GfxSeparator", "LAYOUT_LEFT")
+		# advc.076: Was LAYOUT_LEFT. Want a bit more space to the right. Still not ideal: HEXPANDING has the side-effect of stretching the separator.
+		tab.setLayoutFlag("GfxSeparator", "LAYOUT_SIZE_HEXPANDING")
 		
 		vbox = "GfxPanelVBox"
 		tab.attachVBox(hbox, vbox)
 		tab.setLayoutFlag(vbox, "LAYOUT_SIZE_HEXPANDING")
 		tab.setLayoutFlag(vbox, "LAYOUT_SIZE_VEXPANDING")
-		tab.setLayoutFlag(vbox, "LAYOUT_SPACING_NONE")			
-				
+		tab.setLayoutFlag(vbox, "LAYOUT_SPACING_NONE")
+		
 		# Checkboxes
+		# <advc.076>
+		self.attachHeading(tab, vbox, "ANIMATIONS")
+		self.attachGraphicsOption(tab, vbox, GraphicOptionTypes.GRAPHICOPTION_FROZEN_ANIMATIONS)
+		self.attachGraphicsOption(tab, vbox, GraphicOptionTypes.GRAPHICOPTION_EFFECTS_DISABLED)
+		self.attachGraphicsOption(tab, vbox, GraphicOptionTypes.GRAPHICOPTION_NO_COMBAT_ZOOM)
+		self.attachPlayerOption(tab, vbox, PlayerOptionTypes.PLAYEROPTION_QUICK_MOVES, True) # Moved from first tab
+		self.attachHeading(tab, vbox, "UNITGFX")
+		self.attachGraphicsOption(tab, vbox, GraphicOptionTypes.GRAPHICOPTION_SINGLE_UNIT_GRAPHICS)
+		self.attachGraphicsOption(tab, vbox, GraphicOptionTypes.GRAPHICOPTION_HEALTH_BARS)
+		self.attachHeading(tab, vbox, "VISAIDS")
+		self.attachGraphicsOption(tab, vbox, GraphicOptionTypes.GRAPHICOPTION_NO_ENEMY_GLOW)
+		self.attachPlayerOption(tab, vbox, PlayerOptionTypes.PLAYEROPTION_NUMPAD_HELP, True) # Moved from first tab
+		self.attachGraphicsOption(tab, vbox, GraphicOptionTypes.GRAPHICOPTION_CITY_RADIUS)
+		self.attachGraphicsOption(tab, vbox, GraphicOptionTypes.GRAPHICOPTION_CITY_DETAIL)
+
 		for iOptionLoop in range(GraphicOptionTypes.NUM_GRAPHICOPTION_TYPES):
-			szOptionDesc = gc.getGraphicOptionsInfoByIndex(iOptionLoop).getDescription()
-			szHelp = gc.getGraphicOptionsInfoByIndex(iOptionLoop).getHelp()
-			szCallbackFunction = "handleGraphicOptionsClicked"
-			szWidgetName = "GraphicOptionCheckbox_" + str(iOptionLoop)
-			bOptionOn = UserProfile.getGraphicOption(iOptionLoop)
-			tab.attachCheckBox(vbox, szWidgetName, szOptionDesc, self.callbackIFace, szCallbackFunction, szWidgetName, bOptionOn)
-			tab.setToolTip(szWidgetName, szHelp)
+			# <advc.076> They're all placed individually, so this loop does nothing unless someone adds new graphics options. (There's no room left, so let's hope not.)
+			if not iOptionLoop in self.graphicOptionsDone:
+				# Code moved into subroutine
+				self.attachGraphicsOption(tab, vbox, iOptionLoop) # </advc.076>
 			
 		########## EXIT
 
@@ -526,11 +628,67 @@ class CvOptionsScreen:
 		szCallbackFunction = "handleGraphicsReset"
 		szWidgetName = "GraphicOptionsResetButton"
 		tab.attachButton("LowerHBox", szWidgetName, szOptionDesc, self.callbackIFace, szCallbackFunction, szWidgetName)
+		# advc.076:
+		tab.setToolTip(szWidgetName, localText.getText("TXT_KEY_OPTIONS_SCREEN_RESET2_HELP", (UserProfile.getProfileName(),)))
+		# advc.076: Moved into subroutine
+		self.attachExitButton(tab)
+
+	# <advc.076> 
+	def attachGraphicsOption(self, tab, panel, iOption, bAsPlayerOption=False):
+		self.attachOption(tab, panel, iOption, False, bAsPlayerOption)
 		
-		szOptionDesc = localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ())
-		szCallbackFunction = "handleExitButtonInput"
-		szWidgetName = "GraphicOptionsExitButton"
-		tab.attachButton("LowerHBox", szWidgetName, szOptionDesc, self.callbackIFace, szCallbackFunction, szWidgetName)
+	def attachPlayerOption(self, tab, panel, iOption, bAsGfxOption=False):
+		self.attachOption(tab, panel, iOption, True, bAsGfxOption)
+
+	# Mix of the code from the "Checkboxes" loop in drawGraphicOptionsTab and drawGameOptionsTab
+	def attachOption(self, tab, panel, iOption, bPlayerOption, bWrongTab):
+		optionInfo = None
+		if bPlayerOption:
+			optionInfo = gc.getPlayerOptionsInfoByIndex(iOption)
+		else:
+			optionInfo = gc.getGraphicOptionsInfoByIndex(iOption)
+		szOptionDesc = optionInfo.getDescription()
+		szHelp = optionInfo.getHelp()
+		iOption = int(iOption) # So that str doesn't return the enum name
+		szCallbackFunction = ""
+		szWidgetName = ""
+		bOptionOn = False
+		tabOptions = None
+		if bPlayerOption:
+			szCallbackFunction = "handleGameOptionsClicked"
+			szWidgetName = "GameOptionCheckBox_"
+			bOptionOn = UserProfile.getPlayerOption(iOption)
+			self.playerOptionsDone.add(iOption)
+			if bWrongTab:
+				tabOptions = self.tab2Options
+			else:
+				tabOptions = self.tab1Options
+		else:
+			szCallbackFunction = "handleGraphicOptionsClicked"
+			szWidgetName = "GraphicOptionCheckbox_"
+			bOptionOn = UserProfile.getGraphicOption(iOption)
+			self.graphicOptionsDone.add(iOption)
+			if bWrongTab:
+				tabOptions = self.tab1Options
+			else:
+				tabOptions = self.tab2Options
+		tabOptions.add((iOption,bPlayerOption))
+		szWidgetName += str(iOption)
+		tab.attachCheckBox(panel, szWidgetName, szOptionDesc, self.callbackIFace, szCallbackFunction, szWidgetName, bOptionOn)
+		tab.setToolTip(szWidgetName, szHelp)
+	
+	def attachVSpace(self, tab, panel):
+		szWidgetName = "blank" + str(self.iBlank)
+		self.iBlank += 1
+		tab.attachLabel(panel, szWidgetName, "")
+		tab.setControlFlag(szWidgetName, "CF_LABEL_DEFAULTSIZE")
+		
+	def attachHeading(self, tab, panel, txtKey):
+		szWidgetName = "heading" + str(self.iHeading)
+		self.iHeading += 1
+		tab.attachLabel(panel, szWidgetName, localText.getText("TXT_KEY_OPTIONS_SCREEN_HEADING_" + txtKey, ()) + ":")
+		tab.setControlFlag(szWidgetName, "CF_LABEL_DEFAULTSIZE")
+	# </advc.076>
 		
 	def drawAudioOptionsTab(self):
 		
@@ -623,8 +781,13 @@ class CvOptionsScreen:
 			tab.setControlFlag(szWidgetName, "CF_SLIDER_FILL_DOWN")
 			
 			# CHECKBOX
-			
-			szOptionDesc = localText.getText("TXT_KEY_OPTIONS_NO_SOUND", ())
+			# <advc.076>
+			szDescKey = ""
+			if iWidgetNum == 0: # To make the overall sound switch stand out more
+				szDescKey = "TXT_KEY_OPTIONS_NO_SOUND"
+			else:
+				szDescKey = "TXT_KEY_OPTIONS_MUTE" # </advc.076>
+			szOptionDesc = localText.getText(szDescKey, ())
 			szCallbackFunction = "handleVolumeCheckboxesInput"
 			szWidgetName = "VolumeNoSoundCheckbox_" + str(iWidgetNum)
 			# bNoSoundTrue set above
@@ -637,8 +800,86 @@ class CvOptionsScreen:
 		tab.attachHBox("VolumePanelVBox", "SoundPanelHBox")
 		tab.setLayoutFlag("SoundPanelHBox", "LAYOUT_SIZE_HPREFERREDEXPANDING")
 		tab.setLayoutFlag("SoundPanelHBox", "LAYOUT_SIZE_VPREFERRED")
-						
+								
+		######################### Speaker Config Dropdown #########################
+
+		tab.attachVBox("SoundPanelHBox", "SoundConfigVBox")
+		# <advc.076>
+		# Die, advertisement!
+		#tab.attachImage("SoundConfigVBox", "SoundBlasterLogo", CyArtFileMgr().getMiscArtInfo("SOUND_BLASTER_LOGO").getPath())
+		# New H-box so that the speaker dropdown appears in the same line as its label
+		tab.attachHBox("SoundConfigVBox", "SpeakerConfigHBox")
+		tab.setLayoutFlag("SpeakerConfigHBox", "LAYOUT_SIZE_HEXPANDING")
+		# Was attached to SoundConfigVBox
+		tab.attachLabel("SpeakerConfigHBox", "SpeakerConfigLabel", localText.getText("TXT_KEY_OPTIONS_SPEAKERS", ()))
+		# </advc.076>
+		szDropdownDesc = "SpeakerConfigDropdownBox"
+		aszDropdownElements = ()
+		iCharLimit = 27 # advc.076, advc.002b
+		iInitialSelection = 0
+		for iSpeakerConfigLoop in range(15):
+			szActiveConfigKey = UserProfile.getSpeakerConfigFromList(iSpeakerConfigLoop)
+			szDesc = localText.getText(szActiveConfigKey, ())
+			# <advc.076> Truncate long device names
+			if len(szDesc) > iCharLimit:
+				szDesc = szDesc[:iCharLimit-3] + '...'
+			aszDropdownElements += (szDesc,)
+			# </advc.076>
+			#aszDropdownElements = aszDropdownElements + (szActiveConfig,)
+			if (UserProfile.getSpeakerConfig() == szActiveConfigKey):
+				iInitialSelection = iSpeakerConfigLoop
+			
+		szCallbackFunction = "handleSpeakerConfigDropdownInput"
+		szWidgetName = "SpeakerConfigDropdownBox"
+		# iInitialSelection set above
+		# advc.076: Was attached to SoundConfigVBox
+		tab.attachDropDown("SpeakerConfigHBox", szWidgetName, szDropdownDesc, aszDropdownElements, self.callbackIFace, szCallbackFunction, szWidgetName, iInitialSelection)
+		tab.setLayoutFlag(szWidgetName, "LAYOUT_SIZE_HFIXEDEXPANDING")
+		tab.setLayoutFlag(szWidgetName, "LAYOUT_LEFT")
+			
+		######################### Custom Audio Path #########################
+		# advc.076: Commented out
+		#tab.attachHSeparator("SoundConfigVBox", "SoundSeparator")
+
+		tab.attachHBox("SoundConfigVBox", "CustomPanelHBox")
+		tab.setLayoutFlag("CustomPanelHBox", "LAYOUT_SIZE_HPREFERREDEXPANDING")
+		tab.setLayoutFlag("CustomPanelHBox", "LAYOUT_SIZE_VPREFERRED")
+										
+		# Checkbox
+		szOptionDesc = localText.getText("TXT_KEY_OPTIONS_CUSTOM_MUSIC", ())
+		szCallbackFunction = "handleCustomMusicPathCheckboxInput"
+		self.szCustomMusicCheckboxName = "CustomMusicPathCheckbox"
+		szWidgetName = CvUtil.convertToStr(self.szCustomMusicCheckboxName)
+		bUseCustomMusicPath = false
+		if (UserProfile.getMusicPath() != ""):
+			bUseCustomMusicPath = true
+		# <advc.076> New V-box so that there is a newline after the CustomMusic checkbox. (Maybe one of the outer boxes could be removed now.)
+		tab.attachVBox("CustomPanelHBox", "CustomMusicVBox")
+		# These two were attached to CustomPanelHBox
+		tab.attachCheckBox("CustomMusicVBox", szWidgetName, szOptionDesc, self.callbackIFace, szCallbackFunction, szWidgetName, bUseCustomMusicPath)
+		tab.attachHBox("CustomMusicVBox", "AudioPathHBox")
+		# </advc.076>
+		tab.setLayoutFlag("AudioPathHBox", "LAYOUT_SIZE_HFIXEDEXPANDING")
+		
+		# Browse Button
+		szOptionDesc = localText.getText("TXT_KEY_OPTIONS_BROWSE", ())
+		szCallbackFunction = "handleCustomMusicPathButtonInput"
+		szWidgetName = "CustomMusicPathButton"
+		tab.attachButton("AudioPathHBox", szWidgetName, szOptionDesc, self.callbackIFace, szCallbackFunction, szWidgetName)
+
+		# Edit Box
+		szEditBoxDesc = u""
+		if (UserProfile.getMusicPath() != ""):
+			szEditBoxDesc = CvUtil.convertToUnicode(UserProfile.getMusicPath())
+		szWidgetName = "CustomMusicEditBox"
+		szCallbackFunction = "DummyCallback"
+		
+		tab.attachEdit("AudioPathHBox", szWidgetName, szEditBoxDesc, self.callbackIFace, szCallbackFunction, szWidgetName)
+		# advc.076: Moved along with Voice Config Section
+		tab.attachVSeparator("SoundPanelHBox", "SoundVSeparator")
+		
 		######################### Voice Config Section #########################
+		# advc.076: Swapped this section with Speaker Config/ Custom Audio
 		
 		tab.attachVBox("SoundPanelHBox", "VoiceVBox")
 
@@ -654,8 +895,15 @@ class CvOptionsScreen:
 		tab.attachLabel("VoiceVBox", "VoiceCaptureLabel", localText.getText("TXT_KEY_OPTIONS_CAPTURE_DEVICE", ()))
 		szDropdownDesc = "CaptureDeviceDropdownBox"
 		aszDropdownElements = ()
+		iCharLimit = 42 # advc.076, advc.002b
 		for iCaptureDevice in range(UserProfile.getNumCaptureDevices()):
-			aszDropdownElements = aszDropdownElements + (UserProfile.getCaptureDeviceDesc(iCaptureDevice),)
+			# <advc.076>
+			szDesc = UserProfile.getCaptureDeviceDesc(iCaptureDevice)
+			if len(szDesc) > iCharLimit:
+				szDesc = szDesc[:iCharLimit-3] + '...'
+			aszDropdownElements += (szDesc,)
+			# </advc.076>
+			#aszDropdownElements = aszDropdownElements + (UserProfile.getCaptureDeviceDesc(iCaptureDevice),)
 		szCallbackFunction = "handleCaptureDeviceDropdownInput"
 		szWidgetName = "CaptureDeviceDropdownBox"
 		iInitialSelection = UserProfile.getCaptureDeviceIndex()
@@ -673,11 +921,17 @@ class CvOptionsScreen:
 		tab.setControlFlag(szWidgetName, "CF_SLIDER_FILL_UP")
 		
 		# Playback Device Dropdown
-		tab.attachLabel("VoiceVBox", "VoicePlaybackLabel", localText.getText("TXT_KEY_OPTIONS_PLAYBACK_DEVICE", ()))	# Label
+		tab.attachLabel("VoiceVBox", "VoicePlaybackLabel", localText.getText("TXT_KEY_OPTIONS_PLAYBACK_DEVICE", ()))
 		szDropdownDesc = "PlaybackDeviceDropdownBox"
 		aszDropdownElements = ()
 		for iPlaybackDevice in range(UserProfile.getNumPlaybackDevices()):
-			aszDropdownElements = aszDropdownElements + (UserProfile.getPlaybackDeviceDesc(iPlaybackDevice),)
+			# <advc.076>
+			szDesc = UserProfile.getPlaybackDeviceDesc(iPlaybackDevice)
+			if len(szDesc) > iCharLimit:
+				szDesc = szDesc[:iCharLimit-3] + '...'
+			aszDropdownElements += (szDesc,)
+			# </advc.076>
+			#aszDropdownElements = aszDropdownElements + (UserProfile.getPlaybackDeviceDesc(iPlaybackDevice),)
 		szCallbackFunction = "handlePlaybackDeviceDropdownInput"
 		szWidgetName = "PlaybackDeviceDropdownBox"
 		iInitialSelection = UserProfile.getPlaybackDeviceIndex()
@@ -693,68 +947,6 @@ class CvOptionsScreen:
 		iInitialVal = UserProfile.getPlaybackVolume()
 		tab.attachHSlider("VoiceVBox", szWidgetName, self.callbackIFace, szCallbackFunction, szWidgetName, iMin, iMax, iInitialVal)
 		tab.setControlFlag(szWidgetName, "CF_SLIDER_FILL_UP")
-								
-		######################### Speaker Config Dropdown #########################
-		
-		tab.attachVSeparator("SoundPanelHBox", "SoundVSeparator")
-
-		tab.attachVBox("SoundPanelHBox", "SoundConfigVBox")
-
-		tab.attachImage("SoundConfigVBox", "SoundBlasterLogo", CyArtFileMgr().getMiscArtInfo("SOUND_BLASTER_LOGO").getPath())
-
-		tab.attachLabel("SoundConfigVBox", "SpeakerConfigLabel", localText.getText("TXT_KEY_OPTIONS_SPEAKERS", ()))	# Label
-		szDropdownDesc = "SpeakerConfigDropdownBox"
-		aszDropdownElements = ()
-		iInitialSelection = 0
-		for iSpeakerConfigLoop in range(15):
-			szActiveConfigKey = UserProfile.getSpeakerConfigFromList(iSpeakerConfigLoop)
-			szActiveConfig = localText.getText(szActiveConfigKey, ())
-			aszDropdownElements = aszDropdownElements + (szActiveConfig,)
-			if (UserProfile.getSpeakerConfig() == szActiveConfigKey):
-				iInitialSelection = iSpeakerConfigLoop
-			
-		szCallbackFunction = "handleSpeakerConfigDropdownInput"
-		szWidgetName = "SpeakerConfigDropdownBox"
-		# iInitialSelection set above
-		tab.attachDropDown("SoundConfigVBox", szWidgetName, szDropdownDesc, aszDropdownElements, self.callbackIFace, szCallbackFunction, szWidgetName, iInitialSelection)
-		tab.setLayoutFlag(szWidgetName, "LAYOUT_SIZE_HFIXEDEXPANDING")
-		tab.setLayoutFlag(szWidgetName, "LAYOUT_LEFT")
-			
-		######################### Custom Audio Path #########################
-		
-		tab.attachHSeparator("SoundConfigVBox", "SoundSeparator")
-
-		tab.attachHBox("SoundConfigVBox", "CustomPanelHBox")
-		tab.setLayoutFlag("CustomPanelHBox", "LAYOUT_SIZE_HPREFERREDEXPANDING")
-		tab.setLayoutFlag("CustomPanelHBox", "LAYOUT_SIZE_VPREFERRED")
-										
-		# Checkbox
-		szOptionDesc = localText.getText("TXT_KEY_OPTIONS_CUSTOM_MUSIC", ())
-		szCallbackFunction = "handleCustomMusicPathCheckboxInput"
-		self.szCustomMusicCheckboxName = "CustomMusicPathCheckbox"
-		szWidgetName = CvUtil.convertToStr(self.szCustomMusicCheckboxName)
-		bUseCustomMusicPath = false
-		if (UserProfile.getMusicPath() != ""):
-			bUseCustomMusicPath = true
-		tab.attachCheckBox("CustomPanelHBox", szWidgetName, szOptionDesc, self.callbackIFace, szCallbackFunction, szWidgetName, bUseCustomMusicPath)
-				
-		tab.attachHBox("CustomPanelHBox", "AudioPathHBox")
-		tab.setLayoutFlag("AudioPathHBox", "LAYOUT_SIZE_HFIXEDEXPANDING")
-		
-		# Browse Button
-		szOptionDesc = localText.getText("TXT_KEY_OPTIONS_BROWSE", ())
-		szCallbackFunction = "handleCustomMusicPathButtonInput"
-		szWidgetName = "CustomMusicPathButton"
-		tab.attachButton("AudioPathHBox", szWidgetName, szOptionDesc, self.callbackIFace, szCallbackFunction, szWidgetName)
-
-		# Edit Box
-		szEditBoxDesc = u""
-		if (UserProfile.getMusicPath() != ""):
-			szEditBoxDesc = CvUtil.convertToUnicode(UserProfile.getMusicPath())
-		szWidgetName = "CustomMusicEditBox"
-		szCallbackFunction = "DummyCallback"
-		
-		tab.attachEdit("AudioPathHBox", szWidgetName, szEditBoxDesc, self.callbackIFace, szCallbackFunction, szWidgetName)
 
 		########## EXIT
 
@@ -767,12 +959,10 @@ class CvOptionsScreen:
 		szCallbackFunction = "handleAudioReset"
 		szWidgetName = "AudioOptionsResetButton"
 		tab.attachButton("LowerHBox", szWidgetName, szOptionDesc, self.callbackIFace, szCallbackFunction, szWidgetName)
-		
-		szOptionDesc = localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ())
-		szCallbackFunction = "handleExitButtonInput"
-		szWidgetName = "AudioOptionsExitButton"
-		tab.attachButton("LowerHBox", szWidgetName, szOptionDesc, self.callbackIFace, szCallbackFunction, szWidgetName)
-		tab.setLayoutFlag(szWidgetName, "LAYOUT_HCENTER")
+		# advc.076:
+		tab.setToolTip(szWidgetName, localText.getText("TXT_KEY_OPTIONS_SCREEN_RESET3_HELP", (UserProfile.getProfileName(),)))
+		# advc.076: Moved into subroutine
+		self.attachExitButton(tab)
 		
 		
 	def drawOtherTab(self):
@@ -822,14 +1012,14 @@ class CvOptionsScreen:
 		tab.attachCheckBox("ClockPanelVBox", szWidgetName, szOptionDesc, self.callbackIFace, szCallbackFunction, szWidgetName, b24HourClock)
 		
 		# Edit Box Hours
-		tab.attachLabel("ClockPanelVBox", "HoursLabel", localText.getText("TXT_KEY_OPTIONS_HOURS", ()))	# Label
+		tab.attachLabel("ClockPanelVBox", "HoursLabel", localText.getText("TXT_KEY_OPTIONS_HOURS", ()))
 		szEditBoxDesc = str(getAlarmHourLeft())
 		szCallbackFunction = "DummyCallback"
 		szWidgetName = "AlarmHourEditBox"
 		tab.attachEdit("ClockPanelVBox", szWidgetName, szEditBoxDesc, self.callbackIFace, szCallbackFunction, szWidgetName)
 		
 		# Edit Box Mins
-		tab.attachLabel("ClockPanelVBox", "MinsLabel", localText.getText("TXT_KEY_OPTIONS_MINS", ()))	# Label
+		tab.attachLabel("ClockPanelVBox", "MinsLabel", localText.getText("TXT_KEY_OPTIONS_MINS", ()))
 		szEditBoxDesc = str(getAlarmMinLeft())
 		szCallbackFunction = "DummyCallback"
 		szWidgetName = "AlarmMinEditBox"
@@ -850,8 +1040,8 @@ class CvOptionsScreen:
 		tab.attachVBox("OtherPanelHBox", "ProfileVBox")
 		tab.setLayoutFlag("ProfileVBox", "LAYOUT_SIZE_HEXPANDING")
 		tab.setLayoutFlag("ProfileVBox", "LAYOUT_SIZE_VEXPANDING")
-		
-		tab.attachLabel("ProfileVBox", "ProfileLabel", localText.getText("TXT_KEY_OPTIONS_SCREEN_PROFILES", ()).upper() )
+		# advc.076: Txt key changed to ..._TITLE
+		tab.attachLabel("ProfileVBox", "ProfileLabel", localText.getText("TXT_KEY_OPTIONS_SCREEN_PROFILES_TITLE", ()).upper() )
 
 		tab.attachPanel("ProfileVBox", "ProfilePanel")
 		tab.setStyle("ProfilePanel", "Panel_Tan15_Style")
@@ -887,9 +1077,9 @@ class CvOptionsScreen:
 		tab.attachDropDown("ProfilePanelVBox",szWidgetName,szDropdownDesc, aszDropdownElements, self.callbackIFace, szCallbackFunction, szWidgetName, iInitialSelection)
 		
 		# Edit Box ProfileName
-		tab.attachLabel("ProfilePanelVBox","ProfilesName",localText.getText("TXT_KEY_OPTIONS_SCREEN_PROFILE_NAME", ()))	# Label
+		# advc.076: Txt key was TXT_KEY_OPTIONS_SCREEN_PROFILE_NAME
+		tab.attachLabel("ProfilePanelVBox","ProfilesName",localText.getText("TXT_KEY_OPTIONS_SCREEN_EDIT_PROFILE", ()))
 		
-	
 		#szCallbackIFace = ""
 		szEditBoxDesc = UserProfile.getProfileName()
 		szCallbackFunction = "DummyCallback"
@@ -911,35 +1101,35 @@ class CvOptionsScreen:
 		
 		
 		########## NETWORKING		
+		# advc.076: Remove the entire network panel
+		#tab.attachVBox("OtherPanelHBox", "NetVBox")
+		#tab.setLayoutFlag("NetVBox", "LAYOUT_SIZE_HEXPANDING")
+		#tab.setLayoutFlag("NetVBox", "LAYOUT_SIZE_VEXPANDING")
 		
-		tab.attachVBox("OtherPanelHBox", "NetVBox")
-		tab.setLayoutFlag("NetVBox", "LAYOUT_SIZE_HEXPANDING")
-		tab.setLayoutFlag("NetVBox", "LAYOUT_SIZE_VEXPANDING")
-		
-		tab.attachLabel("NetVBox", "NetLabel", localText.getText("TXT_KEY_OPTIONS_NETWORK", ()).upper() )
+		#tab.attachLabel("NetVBox", "NetLabel", localText.getText("TXT_KEY_OPTIONS_NETWORK", ()).upper() )
 
-		tab.attachPanel("NetVBox", "NetPanel")
-		tab.setStyle("NetPanel", "Panel_Tan15_Style")
-		tab.setLayoutFlag("NetPanel", "LAYOUT_SIZE_HPREFERREDEXPANDING")
-		tab.setLayoutFlag("NetPanel", "LAYOUT_SIZE_VPREFERREDEXPANDING")
+		#tab.attachPanel("NetVBox", "NetPanel")
+		#tab.setStyle("NetPanel", "Panel_Tan15_Style")
+		#tab.setLayoutFlag("NetPanel", "LAYOUT_SIZE_HPREFERREDEXPANDING")
+		#tab.setLayoutFlag("NetPanel", "LAYOUT_SIZE_VPREFERREDEXPANDING")
 		
-		tab.attachVBox("NetPanel", "NetPanelVBox")
-		tab.setLayoutFlag("NetPanelVBox", "LAYOUT_SIZE_HPREFERREDEXPANDING")
-		tab.setLayoutFlag("NetPanelVBox", "LAYOUT_SIZE_VPREFERREDEXPANDING")
+		#tab.attachVBox("NetPanel", "NetPanelVBox")
+		#tab.setLayoutFlag("NetPanelVBox", "LAYOUT_SIZE_HPREFERREDEXPANDING")
+		#tab.setLayoutFlag("NetPanelVBox", "LAYOUT_SIZE_VPREFERREDEXPANDING")
 
 		# Radio Buttons
-		tab.attachLabel("NetPanelVBox", "NetBandwidthLabel", localText.getText("TXT_KEY_OPTIONS_BANDWIDTH_DESC", ()) )
+		#tab.attachLabel("NetPanelVBox", "NetBandwidthLabel", localText.getText("TXT_KEY_OPTIONS_BANDWIDTH_DESC", ()) )
 		
-		bIsModem = gc.getGame().isModem()
-		szCallbackFunction = "handleBroadbandSelected"
-		szWidgetName = "BroadbandSelection"
-		szWidgetLbl = localText.getText("TXT_KEY_OPTIONS_BROADBAND_LBL", ())
-		tab.attachRadioButton("NetPanelVBox", szWidgetName, szWidgetLbl, self.callbackIFace, szCallbackFunction, str(szWidgetName), (not bIsModem))
+		#bIsModem = gc.getGame().isModem()
+		#szCallbackFunction = "handleBroadbandSelected"
+		#szWidgetName = "BroadbandSelection"
+		#szWidgetLbl = localText.getText("TXT_KEY_OPTIONS_BROADBAND_LBL", ())
+		#tab.attachRadioButton("NetPanelVBox", szWidgetName, szWidgetLbl, self.callbackIFace, szCallbackFunction, str(szWidgetName), (not bIsModem))
 		
-		szCallbackFunction = "handleModemSelected"
-		szWidgetName = "ModemSelection"
-		szWidgetLbl = localText.getText("TXT_KEY_OPTIONS_MODEM_LBL", ())
-		tab.attachRadioButton("NetPanelVBox", szWidgetName, szWidgetLbl, self.callbackIFace, szCallbackFunction, str(szWidgetName), bIsModem)
+		#szCallbackFunction = "handleModemSelected"
+		#szWidgetName = "ModemSelection"
+		#szWidgetLbl = localText.getText("TXT_KEY_OPTIONS_MODEM_LBL", ())
+		#tab.attachRadioButton("NetPanelVBox", szWidgetName, szWidgetLbl, self.callbackIFace, szCallbackFunction, str(szWidgetName), bIsModem)
 
 
 		########## EXIT
@@ -948,15 +1138,22 @@ class CvOptionsScreen:
 		
 		tab.attachHBox("OtherVBox", "LowerHBox")
 		tab.setLayoutFlag("LowerHBox", "LAYOUT_HCENTER")
-		
-		szOptionDesc = localText.getText("TXT_KEY_OPTIONS_RESET", ())
-		szCallbackFunction = "handleOtherReset"
-		szWidgetName = "OtherOptionsResetButton"
-		tab.attachButton("LowerHBox", szWidgetName, szOptionDesc, self.callbackIFace, szCallbackFunction, szWidgetName)
-		
-		szOptionDesc = localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ())
+		# advc.076: Don't need a reset button just for the clock options. Reset-all would make some sense. Too much work for now.
+		#szOptionDesc = localText.getText("TXT_KEY_OPTIONS_RESET", ())
+		#szCallbackFunction = "handleOtherReset"
+		#szWidgetName = "OtherOptionsResetButton"
+		#tab.attachButton("LowerHBox", szWidgetName, szOptionDesc, self.#callbackIFace, szCallbackFunction, szWidgetName)
+
+		# advc.076: Moved into subroutine
+		self.attachExitButton(tab)
+	
+	# advc.076: Moved here to reduce code duplication
+	def attachExitButton(self, tab):
+		box = "LowerHBox" # That widget name is used by all tabs
+		szButtonDesc = localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ())
 		szCallbackFunction = "handleExitButtonInput"
-		szWidgetName = "OtherOptionsExitButton"
-		tab.attachButton("LowerHBox", szWidgetName, szOptionDesc, self.callbackIFace, szCallbackFunction, szWidgetName)
-		tab.setLayoutFlag(szWidgetName, "LAYOUT_HCENTER")
-		
+		szWidgetName = "OptionsExitButton" + str(self.iExitButton)
+		self.iExitButton += 1
+		tab.attachButton(box, szWidgetName, szButtonDesc, self.callbackIFace, szCallbackFunction, szWidgetName)
+		# advc.076:
+		tab.setToolTip(szWidgetName, localText.getText("TXT_KEY_OPTIONS_SCREEN_EXIT_HELP", (UserProfile.getProfileName(),)))

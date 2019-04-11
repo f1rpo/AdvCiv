@@ -94,6 +94,9 @@ public:
 	void parseHurryHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseConscriptHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseActionHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
+	// <advc.003>
+	void parseActionHelp_Mission(CvActionInfo const& kAction, CvUnit const& kUnit,
+			MissionTypes eMission, CvWStringBuffer& szBuffer); // </advc.003>
 	void parseCitizenHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseFreeCitizenHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseDisabledCitizenHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
@@ -131,6 +134,9 @@ public:
 	void parseTerrainHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseFeatureHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseTechEntryHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
+	// BULL - Trade Denial - start
+	void parseTechTradeEntryHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
+	// BULL - Trade Denial - end
 	void parseTechPrereqHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseTechTreePrereq(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer, bool bTechTreeInfo);
 	void parseObsoleteHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
@@ -183,6 +189,9 @@ public:
 	void parsePediaBack(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parsePediaForward(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseBonusHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
+	// BULL - Trade Denial - start
+	void parseBonusTradeHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
+	// BULL - Trade Denial - end
 	void parseReligionHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseReligionHelpCity(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseCorporationHelpCity(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
@@ -201,23 +210,19 @@ public:
 	void parseLeaderheadHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseLeaderLineHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseCommerceModHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
-/*
-** K-Mod, 5/jan/11, karadoc
-** Environmental advisor mouse-over text
-*/
+	/*  K-Mod, 5/jan/11, karadoc
+		Environmental advisor mouse-over text */
 	void parsePollutionOffsetsHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parsePollutionHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
-/*
-** K-Mod end
-*/
+	// K-Mod end
 
 	// <advc.004a> Additional help text:
 	 // Discover ("bulb") button
 	CvWString getDiscoverPathText(UnitTypes ut, PlayerTypes pt) const;
 	// </advc.004a> <advc.004b> Found button
-	CvWString getFoundCostText(CvPlot* p, PlayerTypes ownerId) const;
-	CvWString getHomePlotYieldText(CvPlot* p, PlayerTypes ownerId) const;
-	CvWString getNetFeatureHealthText(CvPlot* cityPlot, PlayerTypes ownerId) const;
+	CvWString getFoundCostText(CvPlot const& p, PlayerTypes ownerId) const;
+	CvWString getHomePlotYieldText(CvPlot const& p, PlayerTypes ownerId) const;
+	CvWString getNetFeatureHealthText(CvPlot const& kCityPlot, PlayerTypes ownerId) const;
 	// </advc.004b>
 
 protected:

@@ -9,7 +9,8 @@
 #include "CvDLLInterfaceIFaceBase.h"
 #include "CvInitCore.h"
 
-int CvReplayInfo::REPLAY_VERSION = 5; // advc.707: was 4
+int CvReplayInfo::REPLAY_VERSION = 6; // advc.707, advc.106i: 4 in BtS
+bool CvReplayInfo::STORE_REPLAYS_AS_BTS = false; // advc.106i
 
 CvReplayInfo::CvReplayInfo() :
 	m_iActivePlayer(0),
@@ -27,11 +28,23 @@ CvReplayInfo::CvReplayInfo() :
 	m_pcMinimapPixels(NULL),
 	m_eCalendar(NO_CALENDAR), // advc.003: Safer to initialize it here
 	m_iNormalizedScore(0),
-	m_iFinalScore(-1), // advc.707
 	m_bMultiplayer(false),
 	m_iStartYear(0)
 {
-	m_nMinimapSize = ((GC.getDefineINT("MINIMAP_RENDER_SIZE") * GC.getDefineINT("MINIMAP_RENDER_SIZE")) / 2); 
+	m_nMinimapSize = ((GC.getDefineINT("MINIMAP_RENDER_SIZE") * GC.getDefineINT("MINIMAP_RENDER_SIZE")) / 2);
+	m = new Data(); // advc.003k
+	m->iFinalScore = -1; // advc.707
+	// <advc.106i>
+	m->szPurportedModName = gDLL->getModName(); // Local copy; not sure if necessary.
+	m->iVersionRead = -1;
+	m->bDisplayOtherMods = false;
+	// See comment in GlobalDefines_advc.xml
+	STORE_REPLAYS_AS_BTS = (GC.getDefineINT("HOF_STORE_REPLAYS_AS_BTS") > 0 &&
+			(GC.getNumPlayerColorInfos() <= 44 ||
+			/*  If no colors are added beyond those in BtS, then the new
+				player colors are apparently all old colors; no problem then. */
+			GC.getNumColorInfos() <= 127));
+	// </advc.106i>
 }
 
 CvReplayInfo::~CvReplayInfo()
@@ -41,6 +54,7 @@ CvReplayInfo::~CvReplayInfo()
 		SAFE_DELETE(m_listReplayMessages[i]);
 	}
 	SAFE_DELETE(m_pcMinimapPixels);
+	SAFE_DELETE(m); // advc.003k
 }
 
 void CvReplayInfo::createInfo(PlayerTypes ePlayer)
@@ -194,11 +208,11 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 	void *ptexture = (void*)gDLL->getInterfaceIFace()->getMinimapBaseTexture();
 	if (ptexture)
 		memcpy((void*)m_pcMinimapPixels, ptexture, m_nMinimapSize);
-
-	m_szModName = gDLL->getModName();
+	if(!STORE_REPLAYS_AS_BTS) // advc.106i
+		m_szModName = gDLL->getModName();
 	// <advc.707>
-	if(m_iFinalScore < 0)
-		m_iFinalScore = getFinalPlayerScore(); // </advc.707>
+	if(m->iFinalScore < 0)
+		m->iFinalScore = getFinalPlayerScore(); // </advc.707>
 }
 
 // <advc.106h>
@@ -262,7 +276,8 @@ void CvReplayInfo::addSettingsMsg() {
 		m += gDLL->getText("TXT_KEY_VICTORY_DISABLED") + L"\n";
 	} // <advc.250b>
 	if(g.isOption(GAMEOPTION_SPAH)) {
-		std::wstring* pointDistrib = g.startPointsAsHandicap().forSettingsScreen();
+		// bTab=false b/c that's a bit too much indentation
+		std::wstring* pointDistrib = g.startPointsAsHandicap().forSettingsScreen(false);
 		if(pointDistrib != NULL)
 			m += *pointDistrib;
 	} // </advc.250b>
@@ -626,9 +641,9 @@ int CvReplayInfo::getPlayerAgriculture(int iPlayer, int iTurn) const
 
 int CvReplayInfo::getFinalScore() const
 {
-	return m_iFinalScore; // advc.707
+	return m->iFinalScore; // advc.707
 }
-// <advc.707> This new function now does what getFinalScore used to do
+// <advc.707> This new function does what getFinalScore used to do
 int CvReplayInfo::getFinalPlayerScore() const
 {
 	return getPlayerScore(m_iActivePlayer, m_iFinalTurn);
@@ -636,7 +651,7 @@ int CvReplayInfo::getFinalPlayerScore() const
 // Can now also set the final score to sth. other than the player score
 void CvReplayInfo::setFinalScore(int sc)
 {
-	m_iFinalScore = sc;
+	m->iFinalScore = sc;
 } // </advc.707>
 
 int CvReplayInfo::getFinalEconomy() const
@@ -675,67 +690,100 @@ const unsigned char* CvReplayInfo::getMinimapPixels() const
 }
 
 const char* CvReplayInfo::getModName() const
-{
-	return m_szModName;
+{	/*  <advc.106i> Pretend to the EXE that every replay is an AdvCiv replay.
+		(Let CvReplayInfo::read decide which ones to show in HoF.) */ 
+	if(STORE_REPLAYS_AS_BTS || GC.getDefineINT("HOF_DISPLAY_BTS_REPLAYS") > 0 ||
+			GC.getDefineINT("HOF_DISPLAY_OTHER_MOD_REPLAYS") > 0)
+		return m->szPurportedModName;
+	else // </advc.106i>
+		return m_szModName;
 }
 
 
 bool CvReplayInfo::read(FDataStreamBase& stream)
 {
-	int iType;
-	int iNumTypes;
 	bool bSuccess = true;
-
-	try
-	{
+	try {
+		int iType;
+		int iNumTypes;
 		int iVersion;
 		stream.Read(&iVersion);
-		if (iVersion < 2)
-		{
+		// <advc.106i> Unpack mod id and version
+		int iAdvCivID = GC.getDefineINT("SAVE_VERSION");
+		int iModID = -1;
+		m->bDisplayOtherMods = (GC.getDefineINT("HOF_DISPLAY_OTHER_MOD_REPLAYS") > 0);
+		if(iVersion >= 100 * iAdvCivID) {
+			iModID = iVersion / 100;
+			iVersion = iVersion % 100;
+			/*  This would have to be an AdvCiv modmod with a different id, or
+				any mod that uses a very high replay version number. */
+			if(iModID != iAdvCivID && !m->bDisplayOtherMods)
+				return false;
+		} /* Replay from another mod that has increased the replay version;
+			 won't be able to parse that. (Actually, it might be OK - if the mod
+			 only appends additional data at the end of the stream.) */
+		if(iVersion > REPLAY_VERSION)
 			return false;
-		}
-
+		m->iVersionRead = iVersion; // For the checkBounds function
+		// </advc.106i>
+		if (iVersion < 2)
+			return false;
 		stream.Read(&m_iActivePlayer);
-
+		if(!checkBounds(m_iActivePlayer, 0, 64)) return false; // advc.106i
 		stream.Read(&iType);
 		m_eDifficulty = (HandicapTypes)iType;
+		if(!checkBounds(m_eDifficulty, 0, GC.getNumHandicapInfos())) return false; // advc.106i  (not -1 b/c of advc.250a)
 		stream.ReadString(m_szLeaderName);
 		stream.ReadString(m_szCivDescription);
 		stream.ReadString(m_szShortCivDescription);
 		stream.ReadString(m_szCivAdjective);
-		if (iVersion > 3)
-		{
+		if(iVersion > 3)
 			stream.ReadString(m_szMapScriptName);
-		}
-		else
-		{
-			m_szMapScriptName = gDLL->getText("TXT_KEY_TRAIT_PLAYER_UNKNOWN");
-		}
+		else m_szMapScriptName = gDLL->getText("TXT_KEY_TRAIT_PLAYER_UNKNOWN");
+		if(!checkBounds(m_szLeaderName.length() + m_szCivDescription.length() + m_szShortCivDescription.length() + m_szCivAdjective.length() + m_szMapScriptName.length(), 5, 250)) return false; // advc.106i
 		stream.Read(&iType);
 		m_eWorldSize = (WorldSizeTypes)iType;
+		if(!checkBounds(m_eWorldSize, 0, GC.getNumWorldInfos() - 1)) return false; // advc.106i
 		stream.Read(&iType);
 		m_eClimate = (ClimateTypes)iType;
+		if(!checkBounds(m_eClimate, 0, GC.getNumClimateInfos() - 1)) return false; // advc.106i
 		stream.Read(&iType);
-		m_eSeaLevel = (SeaLevelTypes)iType;
+		 // <advc.106i> For compatibility with advc.707
+		if(iVersion != 5 && iVersion >= 6) { // ==5 handled at the end of this function
+			m->iFinalScore = iType;
+			m_eSeaLevel = NO_SEALEVEL; // unused
+		}
+		else {
+			m->iFinalScore = INT_MIN; // Compute it later
+			m_eSeaLevel = (SeaLevelTypes)iType;
+			if(!checkBounds(m_eSeaLevel, 0, GC.getNumSeaLevelInfos() - 1)) return false; // advc.106i
+		} // </advc.106i>
 		stream.Read(&iType);
 		m_eEra = (EraTypes)iType;
+		if(!checkBounds(m_eEra, 0, GC.getNumEraInfos() - 1)) return false; // advc.106i
 		stream.Read(&iType);
 		m_eGameSpeed = (GameSpeedTypes)iType;
+		if(!checkBounds(m_eGameSpeed, 0, GC.getNumGameSpeedInfos() - 1)) return false; // advc.106i
 		stream.Read(&iNumTypes);
+		if(!checkBounds(iNumTypes, 0, GC.getNumGameOptionInfos() - 1)) return false; // advc.106i
 		for (int i = 0; i < iNumTypes; i++)
 		{
 			stream.Read(&iType);
+			if(!checkBounds(iType, 0, GC.getNumGameOptionInfos() - 1)) return false; // advc.106i
 			m_listGameOptions.push_back((GameOptionTypes)iType);
 		}
 		stream.Read(&iNumTypes);
 		for (int i = 0; i < iNumTypes; i++)
 		{
 			stream.Read(&iType);
+			if(!checkBounds(iType, 0, GC.getNumVictoryInfos() - 1)) return false; // advc.106i
 			m_listVictoryTypes.push_back((VictoryTypes)iType);
 		}
 		stream.Read(&iType);
 		m_eVictoryType = (VictoryTypes)iType;
+		if(!checkBounds(m_eVictoryType, -1, GC.getNumVictoryInfos() - 1)) return false; // advc.106i
 		stream.Read(&iNumTypes);
+		if(!checkBounds(iNumTypes, 0, 50000)) return false; // advc.106i
 		for (int i = 0; i < iNumTypes; i++)
 		{
 			CvReplayMessage* pMessage = new CvReplayMessage(0);
@@ -746,22 +794,32 @@ bool CvReplayInfo::read(FDataStreamBase& stream)
 			m_listReplayMessages.push_back(pMessage);
 		}
 		stream.Read(&m_iInitialTurn);
+		if(!checkBounds(m_iInitialTurn, 0, 1500)) return false; // advc.106i
 		stream.Read(&m_iStartYear);
+		if(!checkBounds(m_iStartYear, -10000, 100000)) return false; // advc.106i
 		stream.Read(&m_iFinalTurn);
+		checkBounds(m_iFinalTurn, 0, 10000); // advc.106i
 		stream.ReadString(m_szFinalDate);
+		if(!checkBounds(m_szFinalDate.length(), 4, 50)) return false; // advc.106i
 		stream.Read(&iType);
 		m_eCalendar = (CalendarTypes)iType;
+		if(!checkBounds(m_eCalendar, 0, GC.getNumCalendarInfos() - 1)) return false; // advc.106i
 		stream.Read(&m_iNormalizedScore);
+		if(!checkBounds(m_iNormalizedScore, -10000, 1000000)) return false; // advc.106i
 		stream.Read(&iNumTypes);
+		if(!checkBounds(iNumTypes, 1, 64)) return false; // advc.106i
 		for (int i = 0; i < iNumTypes; i++)
 		{
 			PlayerInfo info;
 			stream.Read(&iType);
 			info.m_eLeader = (LeaderHeadTypes)iType;
+			if(!checkBounds(info.m_eLeader, 0, GC.getNumLeaderHeadInfos() - 1)) return false; // advc.106i
 			stream.Read(&iType);
 			info.m_eColor = (ColorTypes)iType;
+			if(!checkBounds(info.m_eColor, 0, GC.getNumColorInfos() - 1)) return false; // advc.106i
 			int jNumTypes;
 			stream.Read(&jNumTypes);
+			if(!checkBounds(jNumTypes, 0, 10000)) return false; // advc.106i
 			for (int j = 0; j < jNumTypes; j++)
 			{
 				TurnData data;
@@ -774,29 +832,50 @@ bool CvReplayInfo::read(FDataStreamBase& stream)
 			m_listPlayerScoreHistory.push_back(info);
 		}
 		stream.Read(&m_iMapWidth);
+		if(!checkBounds(m_iMapWidth, 1, 1000)) return false; // advc.106i
 		stream.Read(&m_iMapHeight);
+		if(!checkBounds(m_iMapHeight, 1, 1000)) return false; // advc.106i
 		SAFE_DELETE(m_pcMinimapPixels);
 		m_pcMinimapPixels = new unsigned char[m_nMinimapSize];
 		stream.Read(m_nMinimapSize, m_pcMinimapPixels);
 		stream.Read(&m_bMultiplayer);
 		if (iVersion > 2)
-		{
-			stream.ReadString(m_szModName);
+		{	// <advc.106i>
+			try { /* I've had some issues with m_szModName sometimes remaining
+					 uninitialized, so I've added a separate try block. */
+				stream.ReadString(m_szModName);
+				m_szModName.GetLength(); // To check if bad ptr
+			} catch(...) {
+				FAssertMsg(false, "Failed to read replay file");
+				return false;
+			}
+			if(m_szModName.empty()) {
+				if(iModID < 0 && GC.getDefineINT("HOF_DISPLAY_BTS_REPLAYS") <= 0)
+					return false;
+			}
+			else if(!m->bDisplayOtherMods &&
+					std::strcmp(m_szModName.GetCString(), gDLL->getModName()) != 0)
+				return false; // Replay from a different mod
+			// </advc.106i>
 		} // <advc.707>
-		if(iVersion >= 5)
-			stream.Read(&m_iFinalScore);
-		else m_iFinalScore = getFinalPlayerScore(); // </advc.707>
-	}
-	catch (...)
-	{
-		bSuccess = false;
-	}
+		if(iVersion == 5)
+			stream.Read(&m->iFinalScore);
+		// </advc.707>
+	} catch(...) {
+		FAssertMsg(false, "Failed to read replay file");
+		return false;
+	} // <advc.707>
+	if(m->iFinalScore == INT_MIN)
+		m->iFinalScore = getFinalPlayerScore();
+	// </advc.707>
 	return bSuccess;
 }
 
 void CvReplayInfo::write(FDataStreamBase& stream)
 {
-	stream.Write(REPLAY_VERSION);
+	//stream.Write(REPLAY_VERSION);
+	// <advc.106i> Fold AdvCiv's (hopefully) globally unique id into the replay version
+	stream.Write(GC.getDefineINT("SAVE_VERSION") * 100 + REPLAY_VERSION);
 	stream.Write(m_iActivePlayer);
 	stream.Write((int)m_eDifficulty);
 	stream.WriteString(m_szLeaderName);
@@ -806,7 +885,11 @@ void CvReplayInfo::write(FDataStreamBase& stream)
 	stream.WriteString(m_szMapScriptName);
 	stream.Write((int)m_eWorldSize);
 	stream.Write((int)m_eClimate);
-	stream.Write((int)m_eSeaLevel);
+	//stream.Write((int)m_eSeaLevel);
+	/*  advc.106i: m_eSeaLevel is unused in AdvCiv and BtS. Need to stick to the
+		BtS replay format. Well, it's probably OK to append additional data at
+		the end, but I'm not quite sure. */
+	stream.Write(m->iFinalScore); // advc.707
 	stream.Write((int)m_eEra);
 	stream.Write((int)m_eGameSpeed);
 	stream.Write((int)m_listGameOptions.size());
@@ -854,5 +937,27 @@ void CvReplayInfo::write(FDataStreamBase& stream)
 	stream.Write(m_nMinimapSize, m_pcMinimapPixels);
 	stream.Write(m_bMultiplayer);
 	stream.WriteString(m_szModName);
-	stream.Write(m_iFinalScore); // advc.707
 }
+
+// <advc.106i>
+bool CvReplayInfo::checkBounds(int iValue, int iLower, int iUpper) const {
+
+	/*  If CvReplayInfo::read encounters a replay from another mod, it won't be able
+		to tell until it reaches the mod name at the end of the stream. I'm not aware
+		of any mods that change the replay format, but, if they do, the read function
+		is going to get out of step, which may throw an exception, which causes
+		the replay to be disregarded (good). If there is no exception, then the
+		mod name check should reject the replay. But ... I don't know, I don't
+		want to rely on exceptions. As all mods place their replays in the same
+		folder, it's not such an exceptional thing to encounter a strange replay. */
+	if(m->bDisplayOtherMods) // Still want sanity checks then, but be more generous.
+		iUpper *= 2;
+	if(iValue < iLower || iValue > iUpper) {
+		/*  The assertion is only there to warn me when an AdvCiv replay gets
+			rejected. If another mod has changed the replay format, then probably
+			just once, from version 4 to 5, but not to REPLAY_VERSION. */
+		FAssert(m->bDisplayOtherMods || m->iVersionRead < REPLAY_VERSION);
+		return false;
+	}
+	return true;
+} // </advc.106i>

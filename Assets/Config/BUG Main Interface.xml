@@ -39,6 +39,12 @@
 					values="0, 1, 2, 3, 4, 5, 10"
 					get="getMessageLimit">
 			</list>
+			
+			<!-- advc.002n: New option. This part of the main interface gets
+				 constantly updated; no dirty-bit needed. -->
+			<option id="EndTurnMessage" key="End Turn Message" 
+					type="boolean" default="False" 
+					get="isShowEndTurnMessage"/>
 
 			<!-- Gold Rate Warning -->
 			<!--option id="GoldRateWarning" key="Gold Rate Warning" 
@@ -86,11 +92,6 @@
 					get="isHideEspSlider" dirtyBit="PercentButtons, GameData, Espionage_Advisor">
 				<change module="CvCustomizableDomesticAdvisor" function="forcePositionCalc"/>
 			</option>
-
-			<!-- advc.004m -->
-			<option id="StartWithResourceIcons" key="Start With Resource Icons" 
-					type="boolean" default="True" 
-					get="isStartWithResourceIcons"/>
 			
 			<!-- City Cycle Arrows by SimCutie -->
 			<option id="CityArrows" key="City Cycle Arrows" 
@@ -100,7 +101,12 @@
 			<!-- Progress Bar Tick Marks -->
 			<option id="ProgressBarsTickMarks" key="Tick Marks" 
 					type="boolean" default="True" 
-					get="isShowpBarTickMarks" dirtyBit="GameData"/>
+					get="isShowBarTickMarks" dirtyBit="GameData"/>
+			
+			<!-- advc.078: New option -->
+			<option id="OnceProgress" key="Once Progress" 
+					type="boolean" default="False" 
+					get="isShowOnlyOnceProgress" dirtyBit="GameData"/>
 
 			<!-- Field of View -->
 			<option id="FieldOfView" key="Field of View" 
@@ -157,8 +163,41 @@
 					type="boolean" default="False"/>
 
 			<!-- Simple selection, by karadoc -->
+			<!-- advc.004: default was False -->
 			<option id="SimpleSelection" key="Simple Selection"
+					type="boolean" default="True"/>
+			
+			<!-- advc.004z -->
+			<option id="ScoresInGlobeView" key="Scores in Globe View" 
+					type="boolean" default="True" 
+					get="isScoresInGlobeView" dirtyBit="GlobeInfo,Score"/>
+			<!-- advc.004z -->
+			<option id="ResourceIconOptions" key="Resource Icon Options" 
+					type="boolean" default="False" 
+					get="isResourceIconOptions" dirtyBit="GlobeInfo,Score"/>
+			<!-- advc.004z -->
+			<option id="TribalVillageIcons" key="Tribal Village Icons" 
+					type="boolean" default="True" dirtyBit="GlobeLayer"/>
+			<!-- advc.004m -->
+			<option id="StartWithResourceIcons" key="Start With Resource Icons" 
+					type="boolean" default="True" 
+					get="isStartWithResourceIcons"/>
+			<!-- advc.004h -->
+			<option id="FoundingYields" key="Founding Yields" 
 					type="boolean" default="False"/>
+			<!-- advc.004h: The DLL relies on this order of the choices -->
+			<list   id="FoundingBorder" key="Founding Border" 
+					type="int" default="2" listType="string" 
+					values="None|Adjacent|City Cross" dirtyBit="ColoredPlots">
+				<choice id="None"/>
+				<choice id="Adjacent"/>
+				<choice id="CityCross"/>
+			</list>
+			<!-- advc.002f -->
+			<option id="CityNetworkIcon" key="City Network Icon" 
+					type="boolean" default="False" dirtyBit="CityInfo"/>
+			<option id="AirportIcon" key="Airport Icon" 
+					type="boolean" default="True" dirtyBit="CityInfo"/>
 		</section>
 	</options>
 	

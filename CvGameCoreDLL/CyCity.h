@@ -172,6 +172,7 @@ public:
 	CyPlot* plot();
 	bool isConnectedTo(CyCity* pCity);
 	bool isConnectedToCapital(int /*PlayerTypes*/ ePlayer);
+	int getArea(); // advc.003
 	CyArea* area();
 	CyArea* waterArea();
 	CyPlot* getRallyPlot();
@@ -481,6 +482,7 @@ public:
 	bool AI_isEmphasize(int iEmphasizeType);
 	int AI_countBestBuilds(CyArea* pArea);
 	int AI_cityValue();
+	int AI_neededFloatingDefenders(); // advc.001n
 
 	std::string getScriptData() const;
 	void setScriptData(std::string szNewValue);

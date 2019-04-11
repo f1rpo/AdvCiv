@@ -425,13 +425,47 @@
 		<Spanish>o</Spanish>
 	</TEXT>
 	
-	<!-- advc.106: Auto-save messages are triggered outside of the DLL.
-		 The best that modders can do is to set the message to be empty. 
-		 The original definition is in CIV4GameText_Misc1.xml. -->
+	<!-- advc.106l: Can't control these messages through the DLL,
+		 so I'm disabling them here. -->
 	<TEXT>
 		<Tag>TXT_KEY_AUTOSAVING</Tag>
 		<English></English><French></French><German></German>
 		<Italian></Italian><Spanish></Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_QUICK_SAVING</Tag>
+		<English></English><French></French><German></German>
+		<Italian></Italian><Spanish></Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_SAVING_GAME</Tag>
+		<English></English><French></French><German></German>
+		<Italian></Italian><Spanish></Spanish>
+	</TEXT>
+	<!-- Copied from CIV4GameText_Misc1.xml and appended a "2" to the name. -->
+	<TEXT>
+		<Tag>TXT_KEY_SAVING_GAME2</Tag>
+		<English>Saving Game...</English>
+		<French>Sauvegarde en cours...</French>
+		<German>Speichervorgang ...</German>
+		<Italian>Salvataggio in corso...</Italian>
+		<Spanish>Guardando la partida...</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_QUICK_SAVING2</Tag>
+		<English>Quick Saving...</English>
+		<French>Sauvegarde rapide en cours...</French>
+		<German>Schnellspeichern ...</German>
+		<Italian>Salvataggio rapido in corso...</Italian>
+		<Spanish>Guardado r&#225;pido...</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AUTOSAVING2</Tag>
+		<English>Autosaving...</English>
+		<French>Sauvegarde automatique...</French>
+		<German>Automatisches Speichern ...</German>
+		<Italian>Salvataggio automatico...</Italian>
+		<Spanish>Guardado autom&#225;tico...</Spanish>
 	</TEXT>
 	
 	<!-- advc.106 -->
@@ -463,6 +497,25 @@
 		<German>[AdvCiv]</German>
 		<Italian>[AdvCiv]</Italian>
 		<Spanish>[AdvCiv]</Spanish>
+	</TEXT>
+	
+	<!-- advc.106i -->
+	<TEXT>
+		<Tag>TXT_KEY_HOF_WARN</Tag>
+		<English>Known issue: If replay buttons at the bottom of the screen don't work, it can help to shorten the list through the menus.</English>
+		<French>Known issue: If replay buttons at the bottom of the screen don't work, it can help to shorten the list through the menus.</French>
+		<German>Bekanntes Problem: Falls die Schaltflächen am unteren Ende des Bildschirms nicht funktionieren, kann es helfen, über die Menüs einen Filter einzustellen, so dass weniger Einträge angezeigt werden.</German>
+		<Italian>Known issue: If replay buttons at the bottom of the screen don't work, it can help to shorten the list through the menus.</Italian>
+		<Spanish>Known issue: If replay buttons at the bottom of the screen don't work, it can help to shorten the list through the menus.</Spanish>
+	</TEXT>
+	<!-- Based on TXT_KEY_REPLAY_SCREEN_TITLE in CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_HOF_SHOW_REPLAY</Tag>
+		<English>Show Replay</English>
+		<French>Montrer film</French>
+		<German>Wiederholung abspielen</German>
+		<Italian>Mostra replay</Italian>
+		<Spanish>Mostrar repetición</Spanish>
 	</TEXT>
 
 	<!-- advc.106h -->
@@ -553,6 +606,52 @@
 		<German>Opfern Sie einen [COLOR_UNIT_TEXT]Siedler[COLOR_REVERT], damit dieser an seinem aktuellen Standort eine Stadt gr&#252;ndet.</German>
 		<Italian>Con questo comando, si ordina al [COLOR_UNIT_TEXT]colono[COLOR_REVERT] di costruire una citt&#224; nel punto in cui si trova. Il [COLOR_UNIT_TEXT]colono[COLOR_REVERT] viene sacrificato durante il procedimento.</Italian>
 		<Spanish>Esta orden hace que el [COLOR_UNIT_TEXT]Colono[COLOR_REVERT] construya una ciudad en el lugar en que se encuentre. El [COLOR_UNIT_TEXT]Colono[COLOR_REVERT] se consumir&#225; en el proceso.</Spanish>
+	</TEXT>
+	<!-- Info about expenses to be shown after the command description
+		 (TXT_KEY_COMMAND_DELETE_HELP in CIV4GameText_Help.xml) -->
+	<!-- Translation "expenses" from TXT_KEY_FINANCIAL_ADVISOR_EXPENSES_HEADER
+		 in CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_DELETE_DECREASE</Tag>
+		<English>-%d1_Gold [ICON_GOLD] expenses</English>
+		<French>-%d1_Gold [ICON_GOLD] dépenses</French>
+		<German>-%d1_Gold [ICON_GOLD] Ausgaben</German>
+		<Italian>-%d1_Gold [ICON_GOLD] spese</Italian>
+		<Spanish>-%d1_Gold [ICON_GOLD] gastos</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_DELETE_NO_DECREASE_UNIT_COST</Tag>
+		<English>Deleting units will not currently decrease unit cost.</English>
+		<French>Actuellement, il n'y a pas de coûts pour les unités.</French>
+		<German>Zur Zeit keine Einheitenkosten.</German>
+		<Italian>Attualmente non ci sono costi per le unità.</Italian>
+		<Spanish>Actualmente no hay costes por unidades.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_DELETE_NO_DECREASE</Tag>
+		<English>Deleting units will not currently decrease expenses.</English>
+		<French>Actuellement, il n'y a pas de dépenses pour les unités.</French>
+		<German>Zur Zeit keine Ausgaben für Einheiten.</German>
+		<Italian>Attualmente non ci sono spese per le unità.</Italian>
+		<Spanish>Actualmente no hay gastos por unidades.</Spanish>
+	</TEXT>
+	<!-- Translation "delete" from TXT_KEY_COMMAND_DELETE in
+		 CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_DELETE_MORE</Tag>
+		<English>Need to delete %d1_NumUnits more units to decrease expenses.</English>
+		<French>Nécessité de supprimer %d1_NumUnits unités de plus pour réduire les dépenses.</French>
+		<German>Um Ausgaben zu senken, müssten %d1_NumUnits weitere Einheiten aufgelöst werden.</German>
+		<Italian>Necessità di eliminare altre %d1_NumUnits unità per ridurre le spese.</Italian>
+		<Spanish>Necesidad de borrar %d1_NumUnits unidad(es) más para disminuir los gastos.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_DELETE_ONE_MORE</Tag>
+		<English>Need to delete one more unit to decrease expenses.</English>
+		<French>Nécessité de supprimer une unité de plus pour réduire les dépenses.</French>
+		<German>Um Ausgaben zu senken, müsste eine weitere Einheit aufgelöst werden.</German>
+		<Italian>Necessità di eliminare un'altra unità per ridurre le spese.</Italian>
+		<Spanish>Necesidad de borrar una unidad más para disminuir los gastos.</Spanish>
 	</TEXT>
 	
 	<!-- advc.550
@@ -758,27 +857,6 @@
 		<Spanish>[NUM1:Vuestro:Vuestra:Vuestros:Vuestras] %s1_UnitName [NUM1:ha:ha:han:han] muerto atacando a [NUM2:un:una:unos:unas] %s2_EnUName.</Spanish>
 	</TEXT>
 
-	<!-- advc.004g: Originally in CIV4GameText_Misc1.xml. The way that the
-		 option is named and described suggests that it shows a city radius
-		 around a selected Settler, but it actually shows the radii of
-		 existing cities owned by the active player. -->
-	<TEXT>
-		<Tag>TXT_KEY_GRAPHICOPTION_CITY_RADIUS</Tag>
-		<English>Show City Radii</English>
-		<French>Afficher Rayon ville</French>
-		<German>Stadtumkreise anzeigen</German>
-		<Italian>Mostra raggio d'azione delle citt&#224;</Italian>
-		<Spanish>Mostrar radio urbano</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_GRAPHICOPTION_CITY_RADIUS_HELP</Tag>
-		<English>Shows the radii of existing cities when a Settler is selected</English>
-		<French>Affiche les rayons de les villes quand un colon est s&#233;lectionn&#233;.</French>
-		<German>Zeigt die Umkreise bisheriger Städte an, wenn ein Siedler ausgewählt ist.</German>
-		<Italian>Mostra i raggi d'azione delle citt&#224; selezionando un colono</Italian>
-		<Spanish>Para ver los radios urbanos al seleccionar a un colono</Spanish>
-	</TEXT>
-
 	<!-- advc.004g: Originally in CIV4GameText_BTS.xml. The wording was too
 		 clunky. -->
 	<TEXT>
@@ -800,6 +878,17 @@
 		<Italian>Nuova linea</Italian>
 		<Spanish>Nueva l&#237;nea</Spanish>
 	</TEXT>
+
+	<!-- advc.002b: FromCIV4GameTextInfos.xml. German was "Bevorzugte
+		 Staatsformen", Italian "Forme di governo preferite". -->
+	<TEXT>
+		<Tag>TXT_KEY_PEDIA_FAV_CIVIC</Tag>
+		<English>Favorite Civics</English>
+		<French>Doctrines pr&#233;f&#233;r&#233;es</French>
+		<German>Lieblingsstaatsform</German>
+		<Italian>Governo preferito</Italian>
+		<Spanish>Principios favoritos</Spanish>
+	</TEXT>
 	
 	<!-- advc.004g: Originally in CIV4GameText_BTS.xml
 		 Was:
@@ -815,6 +904,18 @@
 		<German>Unterbricht feindliche Seehandelswege innerhalb der Blockade-Reichweite.</German>
 		<Italian>L'unit&#224; interrompe la rotta commerciale in modo che nessuna rotta commerciale intercontinentale possa passare dalla casella bloccata.</Italian>
 		<Spanish>La unidad corta la ruta comercial para que ninguna operaci&#243;n de comercio intercontinental pueda atravesar la casilla bloqueada.</Spanish>
+	</TEXT>
+	
+	<!-- advc.004g: Based on TXT_KEY_COMMAND_LOAD_HELP in
+		 CIV4GameText_Help.xml. For situations when "Load" means going
+		 from one ship to another. FR/IT/ES not changed. -->
+	<TEXT>
+		<Tag>TXT_KEY_COMMAND_TRANSFER_HELP</Tag>
+		<English>Move this unit into another transport.</English>
+		<French>Embarquer l'unit&#233; &#224; bord d'un transport.</French>
+		<German>Die Einheit steigt in ein anderes Transportschiff um.</German>
+		<Italian>Per muovere un'unit&#224; a bordo di un trasporto.</Italian>
+		<Spanish>Con esto subir&#233;is la unidad a un transporte.</Spanish>
 	</TEXT>
 	
 	<!-- advc.004: German translation - "Neuer Random Seed" was just too
@@ -1101,18 +1202,6 @@
 		</Spanish>
 	</TEXT>
 	
-	<!-- advc.004g: Originally in CIV4GameText_Misc1.xml. Correcting the
-		 comically bad German translation ("verlassen Wälder"). Not sure about
-		 Spanish (was "abandonan bosques"). -->
-	<TEXT>
-		<Tag>TXT_KEY_PLAYEROPTION_LEAVE_FORESTS</Tag>
-		<English>Automated Workers Leave Forests</English>
-		<French>Ouvriers auto. d&#233;laissent for&#234;ts</French>
-		<German>Automatisierte Bautrupps schonen W&#228;lder</German>
-		<Italian>I lavoratori automatizzati non toccano le foreste</Italian>
-		<Spanish>Trabajadores automatizados no tocan bosques</Spanish>
-	</TEXT>
-	
 	<!-- advc.004g: Originally in Civ4GameTextInfos.xml. Said "Show Tiles",
 		 which could mean anything. Romance languages are now the same as
 		 TXT_KEY_ACTION_GRID_HELP in CIV4GameText_Help.xml. -->
@@ -1132,6 +1221,27 @@
 		<German>Punkteanzeige ein/aus</German>
 		<Italian>Abilita/disabilita la 'Finestra dei punteggi'</Italian>
 		<Spanish>Activar visor de puntuaciones</Spanish>
+	</TEXT>
+	<!-- From CIV4GameText_Misc1.xml. Tooltip of the Globe View button.
+		 Said that Globe View "Brings up detailed information about your game's
+		 world." -->
+	<TEXT>
+		<Tag>TXT_KEY_GLOBEVIEW_TOGGLE</Tag>
+		<English>Zooms out to show the Globe (or back in)</English>
+		<French>Informations d&#233;taill&#233;es sur le monde du jeu.</French>
+		<German>Herauszoomen in die Globalansicht (oder wieder heranzoomen)</German>
+		<Italian>Informazioni dettagliate sul mondo della partita.</Italian>
+		<Spanish>Hace que aparezca informaci&#243;n detallada sobre el mundo de la partida.</Spanish>
+	</TEXT>
+	<!-- From CIV4GameText_Help.xml; shortened to fit in one line even with the
+		 larger font (advc.002b) -->
+	<TEXT>
+		<Tag>TXT_KEY_ACTION_YIELDS_HELP</Tag>
+		<English>Toggle Food/Production/Commerce icons</English>
+		<French>Alterner entre l'affichage des ic&#244;nes Nourriture / Production / Commerce</French>
+		<German>Nahrungs-/Produktions-/Wirtschaftssymbole ein-/ausblenden</German>
+		<Italian>Attiva/disattiva la visibilit&#224; delle icone Cibo/Produzione/Commercio.</Italian>
+		<Spanish>Activa la visibilidad de iconos de alimentos / producci&#243;n / comercio</Spanish>
 	</TEXT>
 	
 	<!-- advc.004z: Originally in CIV4GameText_Misc1.xml. Romanic translations
@@ -1183,14 +1293,14 @@
 		<Italian>PIL (oro+scienza)</Italian>
 		<Spanish>PNB (oro+ciencia)</Spanish>
 	</TEXT>
-	<!-- Only shortened the German translation -->
+	<!-- Shortened German, Italian, Spanish -->
 	<TEXT>
 		<Tag>TXT_KEY_DEMO_SCREEN_AGRICULTURE_TEXT</Tag>
 		<English>Crop Yield (Food)</English>
 		<French>R&#233;colte (Nour.)</French>
 		<German>Nahrungsertrag</German>
-		<Italian>Prod. raccolto (cibo)</Italian>
-		<Spanish>Rend. cosechas (Alim.)</Spanish>
+		<Italian>Raccolto (cibo)</Italian>
+		<Spanish>Cosechas (Alim.)</Spanish>
 	</TEXT>
 	<!-- Warlords has shortened these (CIV4GameText_Warlords_Civ4Changed.xml). 
 		 I'm keeping the Warlords version except for the German translation
@@ -1202,6 +1312,219 @@
 		<German>Produktion</German>
 		<Italian>Beni (Prod.)</Italian>
 		<Spanish>Merc.fabric.(Prod)</Spanish>
+	</TEXT>
+	
+	<!-- advc.077: The above is only used for the "Graphs" tab now. The
+		 following is for the "Demographics" tab, where icons can be used. -->
+	<TEXT>
+		<Tag>TXT_KEY_DEMOGRAPHICS_ECONOMY_TEXT</Tag>
+		<English>GNP</English>
+		<French>PNB</French>
+		<German>BSP</German>
+		<Italian>PIL</Italian>
+		<Spanish>PNB</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_DEMOGRAPHICS_AGRICULTURE_TEXT</Tag>
+		<English>Crop Yield</English>
+		<French>R&#233;colte</French>
+		<German>Erträge</German>
+		<Italian>Raccolto</Italian>
+		<Spanish>Cosechas</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_DEMOGRAPHICS_INDUSTRY_TEXT</Tag>
+		<English>Mfg. Goods</English>
+		<French>Marchandises</French>
+		<German>Industriegüter</German>
+		<Italian>Beni</Italian>
+		<Spanish>Merc. fabric.</Spanish>
+	</TEXT>
+	<!-- From CIV4GameTextInfos.xml: measures for "Demographics".
+		 Capitalization removed b/c no longer shown on a separate line.
+		 As for the leading spaces: I'm keeping these to be consistent with
+		 any _MEASURE keys that I don't change. -->
+	<!-- Was "gold". Using modern currencies is fine I think; says what that
+		 "gold" would be worth today. -->
+	<TEXT>
+		<Tag>TXT_KEY_DEMO_SCREEN_ECONOMY_MEASURE</Tag>
+		<English> million $</English>
+		<French> millions en euro</French>
+		<German> Mio. Euro</German>
+		<Italian>milioni d'euro</Italian>
+		<Spanish> mill. de euro</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_DEMO_SCREEN_INDUSTRY_MEASURE</Tag>
+		<English> million tons</English>
+		<French> mégatonnes</French>
+		<German> Mio. Tonnen</German>
+		<Italian>megaton</Italian>
+		<Spanish> megatones</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_DEMO_SCREEN_AGRICULTURE_MEASURE</Tag>
+		<English> million bushels</English>
+		<French> millions de boisseaux</French>
+		<German> Mio. Scheffel</German>
+		<Italian>milioni di stai</Italian>
+		<Spanish> mill. de fanegas</Spanish>
+	</TEXT>
+	<!-- Italian said "Popolazione" -->
+	<TEXT>
+		<Tag>TXT_KEY_DEMO_SCREEN_POPULATION_MEASURE</Tag>
+		<English> Years</English>
+		<French> Personnes</French>
+		<German> Jahre</German>
+		<Italian>Anni</Italian>
+		<Spanish> A&#241;os</Spanish>
+	</TEXT>
+	<!-- Use km^2 for all languages (was only French previously) -->
+	<TEXT>
+		<Tag>TXT_KEY_DEMO_SCREEN_LAND_AREA_MEASURE</Tag>
+		<English> km&#178;</English>
+		<French> Km&#178;</French>
+		<German> km&#178;</German>
+		<Italian>km&#178;</Italian>
+		<Spanish> km&#178;</Spanish>
+	</TEXT>
+	<!-- These two French names were too long for the best/ worst columns -->
+	<TEXT>
+		<Tag>TXT_KEY_LEADER_ALEXANDER</Tag>
+		<English>Alexander</English>
+		<French>
+			<Text>Alexandre</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</French>
+		<German>
+			<Text>Alexander</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</German>
+		<Italian>
+			<Text>Alessandro</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</Italian>
+		<Spanish>
+			<Text>Alejandro</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_LEADER_TOKUGAWA</Tag>
+		<English>Tokugawa</English>
+		<French>
+			<Text>Tokugawa</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</French>
+		<German>
+			<Text>Tokugawa</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</German>
+		<Italian>
+			<Text>Tokugawa</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</Italian>
+		<Spanish>
+			<Text>Tokugawa</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</Spanish>
+	</TEXT>
+	<!-- German spelling was long and unusual -->
+	<TEXT>
+		<Tag>TXT_KEY_LEADER_GENGHIS_KHAN</Tag>
+		<English>Genghis Khan</English>
+		<French>
+			<Text>Gengis</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</French>
+		<German>
+			<Text>Dschingis Khan</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</German>
+		<Italian>
+			<Text>Genghis Khan</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</Italian>
+		<Spanish>
+			<Text>Gengis Kan</Text>
+			<Gender>Male</Gender>
+			<Plural>0</Plural>
+		</Spanish>
+	</TEXT>
+	<!-- Spanish was too long -->
+	<TEXT>
+		<Tag>TXT_KEY_LEADER_ISABELLA</Tag>
+		<English>
+			<Text>Isabella</Text>
+			<Gender>Female</Gender>
+			<Plural>0</Plural>
+		</English>
+		<French>
+			<Text>Isabelle</Text>
+			<Gender>Female</Gender>
+			<Plural>0</Plural>
+		</French>
+		<German>
+			<Text>Isabella</Text>
+			<Gender>Female</Gender>
+			<Plural>0</Plural>
+		</German>
+		<Italian>
+			<Text>Isabella</Text>
+			<Gender>Female</Gender>
+			<Plural>0</Plural>
+		</Italian>
+		<Spanish>
+			<Text>Isabel</Text>
+			<Gender>Female</Gender>
+			<Plural>0</Plural>
+		</Spanish>
+	</TEXT>
+	<!-- From CIV4GameText_Misc1.xml. "ca." added b/c it's now
+		 an approximation. -->
+	<TEXT>
+		<Tag>TXT_KEY_DEMOGRAPHICS_SCREEN_RIVAL_AVERAGE</Tag>
+		<English>Rival Avg. (ca.)</English>
+		<French>Moy. rivaux (env.)</French>
+		<German>Gegn. Mittelw. (ca.)</German>
+		<Italian>Media rivali (ca.)</Italian>
+		<Spanish>Medio rival (aprox.)</Spanish>
+	</TEXT>
+	<!-- Just the German translations ("rival" was translated as a verb) -->
+	<TEXT>
+		<Tag>TXT_KEY_INFO_RIVAL_BEST</Tag>
+		<English>Rival Best</English>
+		<French>Meilleur rival</French>
+		<German>Stärkster Gegner</German>
+		<Italian>Migliore rivale</Italian>
+		<Spanish>Mejor rival</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_INFO_RIVAL_WORST</Tag>
+		<English>Rival Worst</English>
+		<French>Pire rival</French>
+		<German>Schwächster Gegner</German>
+		<Italian>Peggiore rivale</Italian>
+		<Spanish>Peor rival</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_THOUSANDS_SEPARATOR</Tag>
+		<English>,</English>
+		<French>[SPACE]</French>
+		<German>.</German>
+		<Italian>.</Italian>
+		<Spanish>.</Spanish>
 	</TEXT>
 	
 	<!-- advc.150a: Akin to TXT_KEY_MISC_PLAYER_CONVERT_RELIGION in
@@ -1868,7 +2191,7 @@
 
 	<!-- advc.005b: From CIV4GameText_Warlords.xml.
 		 I'm removing the roman numerals. It's clear enough e.g. which
-		 Gustav Adoplh is meant, and if not, I don't mind the ambuigity.
+		 Gustav Adolph is meant, and if not, I don't mind the ambuigity.
 		 They're not in the game as rulers (those are the AI leaders),
 		 but as generals. Also for that reason, Boudica and Charlemagne are
 		 replaced. Wanted famous replacements in about the same period,
@@ -2568,16 +2891,6 @@
 			<Plural>0</Plural>
 		</Spanish>
 	</TEXT>
-	
-	<!-- advc.130o (No longer used) -->
-	<TEXT>
-		<Tag>TXT_KEY_MEMORY_EXACTED_TRIBUTE</Tag>
-		<English>"You've exacted tribute from us."</English>
-		<French>"Vous nous avez levé un tribut."</French>
-		<German>"Ihr habt habt uns Tribut abgeknöpft."</German>
-		<Italian>"Ci hai fatto pagare un tributo."</Italian>
-		<Spanish>"Nos forzasteis a pagar un tributo."</Spanish>
-	</TEXT>
 
 	<!-- advc.210a: Translations based on TXT_KEY_MISC_SHIFT_ALT_PREPARE_WAR
 		 in CIV4GameText_BetterBTSAI.xml. -->
@@ -2701,24 +3014,14 @@
 		<Spanish>[NUM1:Dispuesto:Dispuesta] a [COLOR_NEGATIVE_TEXT]declarar la guerra[COLOR_REVERT] a %s1_LdrName</Spanish>
 	</TEXT>
 	
-	<!-- advc.120c: Translations based on TXT_KEY_TECH_DRAMA_STRATEGY in
-		 CIV4GameText_Strategy.xml ("slider"), TXT_KEY_CONCEPT_DIPLOMACY_PEDIA
-		 in CIV4GameText_Civilopedia_Concepts.xml ("screen"). -->
+	<!-- advc.120: From CIV4GameText_BTS.xml. "Enemy" changed to "Rival" -->
 	<TEXT>
-		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__HIDE_ESPSLIDER_TEXT</Tag>
-		<English>Hide Espionage Slider when 0</English>
-		<French>Masquer la réglette d'espionnage à 0</French>
-		<German>Spionageregler auf 0 ausblenden</German>
-		<Italian>Nascondi barra di spionaggio quando è 0</Italian>
-		<Spanish>Ocultar el control de espionaje cuando está en 0</Spanish>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__HIDE_ESPSLIDER_HOVER</Tag>
-		<English>Remove the espionage slider from the main interface if the slider position is 0. The slider can then still be accessed through the Espionage screen or the City screen.</English>
-		<French>Retirez la réglette d'espionnage de l'écran principal si la position de la réglette est 0. Vous pouvez toujours y accéder via l'écran Espionnage ou l'écran Ville.</French>
-		<German>Entfernt den Spionageregler vom Hauptbildschirm, wenn er auf 0 steht. Der Regler ist dann immer noch auf dem Spionagebildschirm und dem Stadtbildschirm verfügbar.</German>
-		<Italian>Rimuovere la barra di spionaggio dalla schermata principale se la sua posizione è 0. La barra può essere raggiunta attraverso la schermata Espionaggio o la schermata Città.</Italian>
-		<Spanish>Retire el control deslizante de espionaje de la pantalla principal si la posición del control deslizante es 0. Se puede acceder al control deslizante a través de la pantalla Espionaje o de la pantalla Ciudad.</Spanish>
+		<Tag>TXT_KEY_ESPIONAGE_TARGET_COUNTERESPIONAGE</Tag>
+		<English>Rival spies appear to be extra vigilant to our espionage efforts in the near future.</English>
+		<French>Les espions ennemis semblent porter une attention particuli&#232;re &#224; nos tentatives d'espionnage.</French>
+		<German>Gegnerische Spione werden unsere Spionage-Unternehmungen demn&#228;chst gut im Auge behalten.</German>
+		<Italian>Pare che le spie nemiche saranno molto attente a scoprire i nostri tentativi di spionaggio nell'immediato futuro.</Italian>
+		<Spanish>Parece que los esp&#237;as enemigos no perder&#225;n de vista a nuestros agentes de ahora en adelante.</Spanish>
 	</TEXT>
 	
 	<!-- advc.023: Based on INTERFACE_CITY_GROWING in Civ4GameTextInfos.xml -->
@@ -3036,14 +3339,15 @@
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_GAME_OPTION_RISE_FALL_HELP</Tag>
-		<English>Divides the game into chapters; at the end of each chapter, you take over an AI civ and the AI takes over your previous civ. (Singleplayer only, and Large or Huge map recommended.)</English>
-		<French>Divides the game into chapters; at the end of each chapter, you take over an AI civ and the AI takes over your previous civ. (Singleplayer only, and Large or Huge map recommended.)</French>
-		<German>Der Spieler übernimmt in jedem Spielabschnitt eine andere Zivilisation von der KI. (Nur Einzelspielermodus; große oder riesige Karte empfohlen.)</German>
-		<Italian>Divides the game into chapters; at the end of each chapter, you take over an AI civ and the AI takes over your previous civ. (Singleplayer only, and Large or Huge map recommended.)</Italian>
-		<Spanish>Divides the game into chapters; at the end of each chapter, you take over an AI civ and the AI takes over your previous civ. (Singleplayer only, and Large or Huge map recommended.)</Spanish>
+		<English>Divides the game into chapters; at the end of each chapter, you take over an AI civ and the AI takes over your previous civ. (Map size above "Standard" recommended.)</English>
+		<French>Divides the game into chapters; at the end of each chapter, you take over an AI civ and the AI takes over your previous civ. (Map size above "Standard" recommended.)</French>
+		<German>Der Spieler übernimmt in jedem Spielabschnitt eine andere Zivilisation von der KI. (Große oder riesige Karte empfohlen.)</German>
+		<Italian>Divides the game into chapters; at the end of each chapter, you take over an AI civ and the AI takes over your previous civ. (Map size above "Standard" recommended.)</Italian>
+		<Spanish>Divides the game into chapters; at the end of each chapter, you take over an AI civ and the AI takes over your previous civ. (Map size above "Standard" recommended.)</Spanish>
 	</TEXT>
 
-	<!-- advc.702 -->
+	<!-- advc.702 (obsoleted by advc.701, which removes the RF option from the
+		 Staging Room screen). -->
 	<TEXT>
 		<Tag>TXT_KEY_RF_SINGLEPL_ONLY</Tag>
 		<English>The Rise and Fall option is only for singleplayer games.</English>
@@ -3376,12 +3680,28 @@
 		<Spanish>If you retire, your remaining %d1 turns of the chapter are played by the AI.</Spanish>
 	</TEXT>
 	<TEXT>
+		<Tag>TXT_KEY_RF_RETIRE_FOR_GOOD</Tag>
+		<English>Alternatively, you can retire for good, that is, end the game right away and save a replay file for the Hall of Fame screen.</English>
+		<French>Alternatively, you can retire for good, that is, end the game right away and save a replay file for the Hall of Fame screen.</French>
+		<German>Sie können aber auch endgültig abdanken, das Spiel also direkt beenden und einen Eintrag in der Ruhmeshalle anlegen.</German>
+		<Italian>Alternatively, you can retire for good, that is, end the game right away and save a replay file for the Hall of Fame screen.</Italian>
+		<Spanish>Alternatively, you can retire for good, that is, end the game right away and save a replay file for the Hall of Fame screen.</Spanish>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_RF_CONFIRM_RETIRE_INTERLUDE</Tag>
 		<English>Plus a %d1-turn intermediate period on Auto Play.</English>
 		<French>Plus a %d1-turn intermediate period on Auto Play.</French>
 		<German>Plus eine Zwischenzeit von %d1 automatisierten Runden.</German>
 		<Italian>Plus a %d1-turn intermediate period on Auto Play.</Italian>
 		<Spanish>Plus a %d1-turn intermediate period on Auto Play.</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RF_END_GAME</Tag>
+		<English>End the game</English>
+		<French>End the game</French>
+		<German>Spiel beenden</German>
+		<Italian>End the game</Italian>
+		<Spanish>End the game</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_RF_POPUP_RECOMMEND_RETIRE</Tag>
@@ -3704,6 +4024,16 @@
 		<Italian>Soglia</Italian>
 		<Spanish>Límite</Spanish>
 	</TEXT>
+	<!-- From CIV4GameText_BTS.xml. "Steal Technology" is now too long
+		 (considering also the larger font from advc.002b) -->
+	<TEXT>
+		<Tag>TXT_KEY_ESPIONAGE_BUY_TECH</Tag>
+		<English>Steal Tech</English>
+		<French>Voler une tech</French>
+		<German>Tech stehlen</German>
+		<Italian>Ruba tecnologie</Italian>
+		<Spanish>Robar tecnolog&#237;a</Spanish>
+	</TEXT>
 	
 	<!-- advc.120f -->
 	<!-- Based on TXT_KEY_ESPIONAGE_TARGET_SWITCH_CIVIC in
@@ -3810,16 +4140,6 @@
 		<German>[COLOR_LIGHT_GREY]----- Ältere Nachrichten:[COLOR_REVERT]</German>
 		<Italian>[COLOR_LIGHT_GREY]----- Messaggi meno recenti:[COLOR_REVERT]</Italian>
 		<Spanish>[COLOR_LIGHT_GREY]----- Mensajes más antiguos:[COLOR_REVERT]</Spanish>
-	</TEXT>
-	<!-- advc.106b: Originally in CIV4GameText_Misc1.xml. Example and
-		 recommendation added. -->
-	<TEXT>
-		<Tag>TXT_KEY_PLAYER_OPTION_MINIMIZE_POPUPS_HELP</Tag>
-		<English>Popups (e.g. "what would you like to research next?") are minimized until all units have moved. (Recommended for the AdvCiv mod.)</English>
-		<French>Les fen&#234;tres sont minimis&#233;es tant que le joueur n'a pas d&#233;plac&#233; toutes ses unit&#233;s.</French>
-		<German>Popups werden minimiert, bis der Spieler alle Einheiten bewegt hat. (Für den AdvCiv-Mod empfohlen.)</German>
-		<Italian>I menu a comparsa vengono ridotti al minimo finch&#233; il giocatore non ha mosso tutte le sue unit&#224;</Italian>
-		<Spanish>Los elementos emergentes quedar&#225;n ocultos hasta que el jugador haya movido todas las unidades.</Spanish>
 	</TEXT>
 	
 	<!-- advc.104v -->
@@ -4089,6 +4409,32 @@
 		<Italian>[BOLD]Storia:[\BOLD][NEWLINE]</Italian>
 		<Spanish>[BOLD]Historia:[\BOLD][NEWLINE]</Spanish>
 	</TEXT>
+	<!-- Based on TXT_KEY_PEDIA_CATEGORY_BUILDING and _PROJECT in
+		 CIV4GameTextInfos_Objects.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_PEDIA_CATEGORY_BUILDING_PROJECT</Tag>
+		<English>Buildings and Projects</English>
+		<French>
+			<Text>B&#226;timents et Projets</Text>
+			<Gender>Male</Gender>
+			<Plural>1</Plural>
+		</French>
+		<German>
+			<Text>Geb&#228;ude und Projekte</Text>
+			<Gender>Male</Gender>
+			<Plural>1</Plural>
+		</German>
+		<Italian>
+			<Text>Edifici e Progetti</Text>
+			<Gender>Male</Gender>
+			<Plural>1</Plural>
+		</Italian>
+		<Spanish>
+			<Text>Edificios y Proyectos</Text>
+			<Gender>Male</Gender>
+			<Plural>1</Plural>
+		</Spanish>
+	</TEXT>
 
 	<!-- advc.106: Based on TXT_KEY_ERA_SPLASH_SCREEN in
 		 Civ4GameText_Misc1.xml. -->
@@ -4242,10 +4588,26 @@
 	
 	<!-- advc.130h -->
 	<TEXT>
+		<Tag>TXT_KEY_POPUP_DOW_EXTRA_TARGETS</Tag>
+		<English>We will also have to declare war on:</English>
+		<French>Nous devrons également déclarer la guerre à :</French>
+		<German>Wir werden auch den folgenden Parteien den Krieg erklären müssen:</German>
+		<Italian>Dovremo anche dichiarare guerra a:</Italian>
+		<Spanish>También tendremos que declarar la guerra a:</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_DOW_DP</Tag>
+		<English>These third parties will declare war on us:</English>
+		<French>Ces tiers vont nous déclarer la guerre :</French>
+		<German>Drittparteien, die uns den Krieg erklären werden:</German>
+		<Italian>Queste terze parti ci dichiareranno guerra:</Italian>
+		<Spanish>Estos terceros nos declararán la guerra:</Spanish>
+	</TEXT>
+	<TEXT>
 		<Tag>TXT_KEY_POPUP_DOW_PENALTIES</Tag>
 		<English>These third parties will disapprove:</English>
 		<French>Ces tiers vont désapprouver :</French>
-		<German>Außenstehende, die diesen Krieg ablehnen werden:</German>
+		<German>Drittparteien, die diesen Krieg ablehnen werden:</German>
 		<Italian>Queste terze parti disapproveranno:</Italian>
 		<Spanish>Estos terceros lo van a desaprobar:</Spanish>
 	</TEXT>
@@ -4261,6 +4623,25 @@
 		<Spanish>&#191;Esto es la GUERRA? (contra [COLOR_HIGHLIGHT_TEXT]%s1_Team[COLOR_REVERT])</Spanish>
 	</TEXT>
 	
+	<!-- advc.130o -->
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_DOW_TRIBUTE</Tag>
+		<English>We've recently received tribute. If we still declare war, everyone will ignore our demands and pleas in the foreseeable future.</English>
+		<French>Ils ont récemment rendu un tribut. Si nous déclarons la guerre quand même, tout le monde ignorera nos demandes et nos supplications dans un avenir prévisible.</French>
+		<German>Wir haben vor Kurzem Tribut erhalten. Wenn wir trotzdem angreifen, wird auf absehbare Zeit niemand auf unsere Forderungen und Bitten eingehen.</German>
+		<Italian>Hanno recentemente reso un tributo. Se dichiariamo la guerra, tutti ignoreranno le nostre richieste e le nostre suppliche nel prossimo futuro.</Italian>
+		<Spanish>Recientemente han rendido tributo. Si todavía declaramos la guerra, todos ignorarán nuestras demandas y súplicas en un futuro previsible.</Spanish>
+	</TEXT>
+	<!-- (No longer used) -->
+	<TEXT>
+		<Tag>TXT_KEY_MEMORY_EXACTED_TRIBUTE</Tag>
+		<English>"You've exacted tribute from us."</English>
+		<French>"Vous nous avez levé un tribut."</French>
+		<German>"Ihr habt habt uns Tribut abgeknöpft."</German>
+		<Italian>"Ci hai fatto pagare un tributo."</Italian>
+		<Spanish>"Nos forzasteis a pagar un tributo."</Spanish>
+	</TEXT>
+	
 	<!-- advc.048: Based on TXT_KEY_PROMOTION_VERSUS_TEXT in
 		 CIV4GameTextInfos.xml -->
 	<TEXT>
@@ -4270,6 +4651,15 @@
 		<German>gegen</German>
 		<Italian>contro</Italian>
 		<Spanish>contra</Spanish>
+	</TEXT>
+	<!-- Akin to TXT_ACO_PressALT in AdvancedCombatOdds_CIV4GameText.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_GROUP_ATTACK_BEST_ODDS_HELP</Tag>
+		<English>[COLOR_HIGHLIGHT_TEXT]Recommended attack (ALT for best odds)[COLOR_REVERT]:</English>
+		<French>[COLOR_HIGHLIGHT_TEXT]Attaque recommandée (ALT pour meilleure probabilité)[COLOR_REVERT]:</French>
+		<German>[COLOR_HIGHLIGHT_TEXT]Empfohl. Angriff (ALT für beste Chancen)[COLOR_REVERT]:</German>
+		<Italian>[COLOR_HIGHLIGHT_TEXT]Attacco raccomandato (ALT per migliori probabilità)[COLOR_REVERT]:</Italian>
+		<Spanish>[COLOR_HIGHLIGHT_TEXT]Ataque recomendado (ALT para mejores probabilidades)[COLOR_REVERT]:</Spanish>
 	</TEXT>
 	<!-- advc.048b: Overwrites CIV4GameText_Warlords.xml -->
 	<TEXT>
@@ -4291,18 +4681,6 @@
 		<Spanish>Ninguno (provoca una elección anticipada)</Spanish>
 	</TEXT>
 
-	<!-- advc.002n: Can restore the flashing end-turn message by deleting this
-		 text key. (The game will then use the original one in
-		 Civ4GameTextInfos.xml.)  -->
-	<TEXT>
-		<Tag>SYSTEM_END_TURN</Tag>
-		<English></English>
-		<French></French>
-		<German></German>
-		<Italian></Italian>
-		<Spanish></Spanish>
-	</TEXT>
-
 	<!-- advc.054: Originally in CIV4GameText_Misc1.xml. Text in parentheses
 		 added. -->
 	<TEXT>
@@ -4312,6 +4690,17 @@
 		<German>Alle Zivilisationen befinden sich für die gesamte Spieldauer entweder im Krieg oder im Frieden. (Ein Szenario kann festlegen, dass manche Zivilisationen sich von Anfang an im Krieg befinden; ansonsten dasselbe wie "Immer Frieden".)</German>
 		<Italian>Tutte le civilt&#224; sono bloccate in guerra o in pace per tutta la partita</Italian>
 		<Spanish>Todas las civilizaciones quedar&#225;n bloqueadas en guerra o en paz hasta que acabe la partida.</Spanish>
+	</TEXT>
+
+	<!-- advc.054: From CIV4GameText_Misc1.xml. Removed the single-player-only
+		 hint b/c the option is no longer shown on the Staging Room screen. -->
+	<TEXT>
+		<Tag>TXT_KEY_GAME_OPTION_LOCK_MODS_HELP</Tag>
+		<English>Sets a random admin password so that debug tools cannot be used, and the game assets cannot be modified.</English>
+		<French>Les outils de debug ne peuvent pas &#234;tre utilis&#233;s et les donn&#233;es de la partie ne peuvent pas &#234;tre modifi&#233;es.</French>
+		<German>Debug-Tools k&#246;nnen nicht verwendet und die Spieldaten k&#246;nnen nicht modifiziert werden.</German>
+		<Italian>Impedisce l'utilizzo degli strumenti di debug, impedendo la modifica dei beni di gioco.</Italian>
+		<Spanish>No se pueden usar herramientas de depuraci&#243;n, ni se pueden modificar los par&#225;metros del juego.</Spanish>
 	</TEXT>
 	
 	<!-- advc.061: Would prefer game terms like "Military", but space is
@@ -4501,6 +4890,518 @@
 		<German>Wir sind erstmals der %s1:3_CivAdj Zivilisation begegnet</German>
 		<Italian>Abbiamo incontrato la civilt&#224; %s1:4_CivAdj</Italian>
 		<Spanish>Hemos encontrado la civilizaci&#243;n %s1:2_CivAdj</Spanish>
+	</TEXT>
+	
+	<!-- advc.103: The other help texts for active missions are in
+		 CIV4GameText_BTS_FourthRoundTranslation.xml. Romance translations
+		 based on TXT_KEY_ZOOM_CITY_HELP in CIV4GameText_Misc1.xml. -->
+	<TEXT>
+		<Tag>TXT_KEY_ESPIONAGE_HELP_INVESTIGATE</Tag>
+		<English>Open the city screen of %s1_city; can open it again for free any number of times this turn.</English>
+		<French>Afficher l'&#233;cran de la ville pour %s1_city</French>
+		<German>Öffnet den Stadtbildschirm von %s1_city; kann für den Rest des Zuges kostenlos erneut geöffnet werden.</German>
+		<Italian>Accedi alla schermata cittadina di %s1_city</Italian>
+		<Spanish>Entrar en la pantalla de %s1_city</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_ESPIONAGE_HELP_NO_RETURN</Tag>
+		<English>Unit will hold its position (not returned to capital)</English>
+		<French>L'unité maintiendra sa position (ne retourne pas dans la capitale)</French>
+		<German>Einheit hält ihre Position (kehrt nicht in die Hauptstadt zurück)</German>
+		<Italian>L'unità manterrà la sua posizione (non ritorna nella capitale)</Italian>
+		<Spanish>La unidad mantendrá su posición (no regresa a la capital)</Spanish>
+	</TEXT>
+	
+	<!-- advc.910 -->
+	<TEXT>
+		<Tag>TXT_KEY_RESEARCH_MODIFIER</Tag>
+		<English>Research Modifier</English>
+		<French>Modificateur de recherche</French>
+		<German>Forschungsmodifikator</German>
+		<Italian>Modificatore di ricerca</Italian>
+		<Spanish>Modificador de investigación</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_RESEARCH_MODIFIER_OTHER_KNOWN</Tag>
+		<English>from diffusion</English>
+		<French>de la diffusion</French>
+		<German>durch Diffusion</German>
+		<Italian>da la diffusione</Italian>
+		<Spanish>por difusión</Spanish>
+	</TEXT>
+	<!-- Italian and French based on TXT_KEY_CONCEPT_TECHNOLOGY_PEDIA in
+		 CIV4GameText_Civilopedia_Concepts.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_RESEARCH_MODIFIER_PATHS</Tag>
+		<English>from prereq. techs</English>
+		<French>des tech pr&#233;alables</French>
+		<German>durch übererfüllte Tech-Voraussetzungen</German>
+		<Italian>da prerequisiti tecnologici</Italian>
+		<Spanish>por prerreq. tecnológicos</Spanish>
+	</TEXT>
+	<!-- advc.156
+		 Romance translations are probably pretty bad -->
+	<TEXT>
+		<Tag>TXT_KEY_RESEARCH_MODIFIER_TEAM</Tag>
+		<English>from teammate with same research</English>
+		<French>de membre de l'équipe avec la même recherche</French>
+		<German>durch Überschneidung mit Team-Mitglied</German>
+		<Italian>da membro del team con la stessa ricerca</Italian>
+		<Spanish>por miembro del equipo con misma investigación</Spanish>
+	</TEXT>
+	
+	<!-- dlph.7 (advc): From CIV4GameText_BTS.xml. Was "Cannot Nuke Friendly
+		 Territory or Units" - that's still true, but units don't prevent
+		 players from firing nukes, which is what matters in this context.
+		 And "friendly" isn't the right term. Strictly speaking, unclaimed
+		 territory is also allowed, but I think it's OK to omit that here. -->
+	<TEXT>
+		<Tag>TXT_KEY_CANT_NUKE_FRIENDS</Tag>
+		<English>[COLOR_WARNING_TEXT]Must strike only enemy territory[COLOR_REVERT]</English>
+		<French>[COLOR_WARNING_TEXT]Impossible de lancer le missile nucl&#233;aire sur des unit&#233;s ou un territoire amis[COLOR_REVERT]</French>
+		<German>[COLOR_WARNING_TEXT]Nur feindliches Gebiet darf getroffen werden[COLOR_REVERT]</German>
+		<Italian>[COLOR_WARNING_TEXT]Impossibile colpire con armi nucleari il territorio e le unit&#224; amiche[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_WARNING_TEXT]No se pueden hacer bombardeos nucleares contra los territorios o unidades amigos[COLOR_REVERT]</Spanish>
+	</TEXT>
+	
+	<!-- advc.072: Based on TXT_KEY_TRADE_PEACE_TREATY_STRING in
+		 CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_TRADE_PEACE_TREATY_STR</Tag>
+		<English>Peace Treaty</English>
+		<French>Trait&#233; de paix</French>
+		<German>Friedensvertrag</German>
+		<Italian>Trattato di pace</Italian>
+		<Spanish>Tratado de paz</Spanish>
+	</TEXT>
+	
+	<!-- advc.036 -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_WILL_PAY</Tag>
+		<English>Will pay</English>
+		<French>Payera</French>
+		<German>Zahlt</German>
+		<Italian>Pagher&#224;</Italian>
+		<Spanish>Pagar&#225;</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_WILL_ASK</Tag>
+		<English>Will ask for</English>
+		<French>Demandera</French>
+		<German>Verlangt</German>
+		<Italian>Chieder&#224;</Italian>
+		<Spanish>Demandar&#225;</Spanish>
+	</TEXT>
+	
+	<!-- advc.004w: Based on TXT_KEY_BONUS_AVAILABLE_PLAYER
+		 (CIV4GameText_BTS.xml).  -->
+	<TEXT>
+		<Tag>TXT_KEY_BONUS_AVAILABLE_US</Tag>
+		<English>[SPACE](we have %d1_num_bonus)[SPACE]</English>
+		<French>[SPACE](nous avons %d1_num_bonus)[SPACE]</French>
+		<German>[SPACE](wir haben %d1_num_bonus)[SPACE]</German>
+		<Italian>[SPACE](possediamo %d1_num_bonus)[SPACE]</Italian>
+		<Spanish>[SPACE](tenemos %d1_num_bonus)[SPACE]</Spanish>
+	</TEXT>
+	<!-- If this is still too verbose, one could also put all buildings in
+		 one line through the ::setListHelp function. -->
+	<TEXT>
+		<Tag>TXT_KEY_BONUS_SPEED_FOR</Tag>
+		<English>[ICON_PRODUCTION] for [LINK=literal]%s1_Building[\LINK]</English>
+		<French>[ICON_PRODUCTION] pour [LINK=literal]%s1_Building[\LINK]</French>
+		<German>[ICON_PRODUCTION]: [LINK=literal]%s1_Bonus[\LINK]</German>
+		<Italian>[ICON_PRODUCTION] per [LINK=literal]%s1_Bonus[\LINK]</Italian>
+		<Spanish>[ICON_PRODUCTION] por [LINK=literal]%s1_Bonus[\LINK]</Spanish>
+	</TEXT>
+	
+	<!-- advc.004w: Based on TXT_KEY_BUILDING_DOUBLE_SPEED_WITH and
+		 TXT_KEY_BUILDING_BUILDS_FASTER_WITH in CIV4GameTextInfos.xml. -->
+	<TEXT>
+		<Tag>TXT_KEY_DOUBLE_PRODUCTION_WITH</Tag>
+		<English>Double [ICON_PRODUCTION] Speed with [LINK=literal]%s1_Bonus[\LINK]</English>
+		<French>Vitesse de [ICON_PRODUCTION] doubl&#233;e avec : [LINK=literal]%s1_Bonus[\LINK]</French>
+		<German>Doppelte [ICON_PRODUCTION]/Runde mit [LINK=literal]%s1_Bonus[\LINK]</German>
+		<Italian>Raddoppia la velocit&#224; di [ICON_PRODUCTION] con [LINK=literal]%s1_Bonus[\LINK]</Italian>
+		<Spanish>Dobla la velocidad de [ICON_PRODUCTION] con [LINK=literal]%s1_Bonus[\LINK]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_FASTER_PRODUCTION_WITH</Tag>
+		<English>%d1_Mod%% Faster [ICON_PRODUCTION] with [LINK=literal]%s2_Bonus[\LINK]</English>
+		<French>%d1_Mod%% [ICON_PRODUCTION] plus vite avec : [LINK=literal]%s2_Bonus[\LINK]</French>
+		<German>%d1_Mod%% schnellere [ICON_PRODUCTION] mit [LINK=literal]%s2_Bonus[\LINK]</German>
+		<Italian>%d1_Mod%% [ICON_PRODUCTION] pi&#249; veloce con [LINK=literal]%s2_Bonus[\LINK]</Italian>
+		<Spanish>%d1_Mod%% [ICON_PRODUCTION] m&#225;s r&#225;pido con [LINK=literal]%s2_Bonus[\LINK]</Spanish>
+	</TEXT>
+	<!-- Super short version for use outside of Civilopedia -->
+	<TEXT>
+		<Tag>TXT_KEY_DOUBLE_PRODUCTION_WITH_SHORT</Tag>
+		<English>Double [ICON_PRODUCTION] with [LINK=literal]%s1_Bonus[\LINK]</English>
+		<French>[ICON_PRODUCTION] doubl&#233;e avec : [LINK=literal]%s1_Bonus[\LINK]</French>
+		<German>Doppelte [ICON_PRODUCTION]/Runde mit [LINK=literal]%s1_Bonus[\LINK]</German>
+		<Italian>Raddoppia la velocit&#224; di [ICON_PRODUCTION] con [LINK=literal]%s1_Bonus[\LINK]</Italian>
+		<Spanish>Dobla la velocidad de [ICON_PRODUCTION] con [LINK=literal]%s1_Bonus[\LINK]</Spanish>
+	</TEXT>
+	<!-- advc.004w: These two are from CIV4GameText_BTS.xml. Replace "production"
+		 with the production icon for consistency. -->
+	<TEXT>
+		<Tag>TXT_KEY_DOUBLE_SPEED_TRAIT</Tag>
+		<English>Double [ICON_PRODUCTION] Speed for %s1_trait Leaders</English>
+		<French>Vitesse de [ICON_PRODUCTION] doubl&#233;e avec le trait %s1_trait</French>
+		<German>Doppelte [ICON_PRODUCTION]/Runde f&#252;r %s1:2_trait Staatsoberhaupt</German>
+		<Italian>Doppia velocit&#224; [ICON_PRODUCTION] con un leader %s1_trait</Italian>
+		<Spanish>Doble velocidad de [ICON_PRODUCTION] con l&#237;der %s1:1_trait</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_PRODUCTION_MODIFIER_TRAIT</Tag>
+		<English>%D1_change%% [ICON_PRODUCTION] Speed for %s2_trait Leaders</English>
+		<French>Vitesse de [ICON_PRODUCTION] de %D1_change%% avec le trait %s2_trait</French>
+		<German>%D1_change%% [ICON_PRODUCTION]/Runde f&#252;r %s2:2_trait Staatsoberhaupt</German>
+		<Italian>%D1_change%% di velocit&#224; [ICON_PRODUCTION] con un leader %s2_trait</Italian>
+		<Spanish>%D1_change%% de velocidad de [ICON_PRODUCTION] con l&#237;der %s2:1_trait</Spanish>
+	</TEXT>
+	<!-- Shorter version -->
+	<TEXT>
+		<Tag>TXT_KEY_DOUBLE_SPEED_TRAIT_SHORT</Tag>
+		<English>Double [ICON_PRODUCTION] from %s1_trait Trait</English>
+		<French>[ICON_PRODUCTION] doubl&#233;e avec le trait %s1_trait</French>
+		<German>Doppelte [ICON_PRODUCTION]/Runde da %s1_trait</German>
+		<Italian>Doppia [ICON_PRODUCTION] con un leader %s1_trait</Italian>
+		<Spanish>Doble [ICON_PRODUCTION] con l&#237;der %s1:1_trait</Spanish>
+	</TEXT>
+	<!-- For consistency, use the production icon also in these two texts from
+		 Civ4GameTextInfos.xml: -->
+	<TEXT>
+		<Tag>TXT_KEY_TRAIT_DOUBLE_SPEED</Tag>
+		<English>[NEWLINE][SPACE][SPACE][ICON_BULLET]Double [ICON_PRODUCTION] Speed of[SPACE]</English>
+		<French>[NEWLINE][SPACE][SPACE][ICON_BULLET]Double la vitesse de [ICON_PRODUCTION] de :[SPACE]</French>
+		<German>[NEWLINE][SPACE][SPACE][ICON_BULLET]Doppelte [ICON_PRODUCTION]/Runde f&#252;r:[SPACE]</German>
+		<Italian>[NEWLINE][SPACE][SPACE][ICON_BULLET]Raddoppia la velocit&#224; di [ICON_PRODUCTION] di[SPACE]</Italian>
+		<Spanish>[NEWLINE][SPACE][SPACE][ICON_BULLET]Dobla la velocidad de [ICON_PRODUCTION] de[SPACE]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_TRAIT_PRODUCTION_MODIFIER</Tag>
+		<English>[NEWLINE][SPACE][SPACE][ICON_BULLET]%d1%% Faster [ICON_PRODUCTION] of[SPACE]</English>
+		<French>[NEWLINE][SPACE][SPACE][ICON_BULLET]Production %d1%% plus rapide de :[SPACE]</French>
+		<German>[NEWLINE][SPACE][SPACE][ICON_BULLET]%d1%% schnellere [ICON_PRODUCTION] f&#252;r:[SPACE]</German>
+		<Italian>[NEWLINE][SPACE][SPACE][ICON_BULLET]Produzione pi&#249; veloce del %d1%% per[SPACE]</Italian>
+		<Spanish>[NEWLINE][SPACE][SPACE][ICON_BULLET]Acelera un %d1%% la producci&#243;n de[SPACE]</Spanish>
+	</TEXT>
+
+	<!-- advc.073: Akin to TXT_KEY_MORECIV4LERTS_NEW_SALE in
+		 MoreCiv4lerts_CIV4GameText.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_WILL_IMPORT</Tag>
+		<English>Will import</English>
+		<French>Prospects[SPACE]</French>
+		<German>Interessenten</German>
+		<Italian>Importer&#224;</Italian>
+		<Spanish>Importar&#225;</Spanish>
+	</TEXT>
+	<!-- From CIV4GameText_BTS.xml -->
+	<!-- Was "Foreign Trade" and "Außenhandel" in German; that sounds too much
+		 like trade route profits. -->
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_TRADE_TABLE</Tag>
+		<English>Resource Trades</English>
+		<French>Commerce ext&#233;rieur</French>
+		<German>Ressourcenhandel</German>
+		<Italian>Commercio estero</Italian>
+		<Spanish>Intercambio extranjero</Spanish>
+	</TEXT>
+	<!-- Based on TXT_KEY_FOREIGN_ADVISOR_FOR_TRADE_2 and _NOT_FOR_TRADE_2
+		 (and replacing those keys on the Resources tab) -->
+	<!-- Translations not the same as TXT_KEY_MISC_WILL_IMPORT above (which has
+		 a quite different use).
+		 German sounds a little infantile now, but it needs to be brief. -->
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_WILL_IMPORT</Tag>
+		<English>Will Import</English>
+		<French>Importera</French>
+		<German>Will haben</German>
+		<Italian>Importer&#224;</Italian>
+		<Spanish>Importar&#225;</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_WILL_NOT_IMPORT</Tag>
+		<English>Won't Import</English>
+		<French>N'importera</French>
+		<German>Will nicht</German>
+		<Italian>Non importer&#224;</Italian>
+		<Spanish>No importar&#225;</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_WILL_EXPORT</Tag>
+		<English>Will Export</English>
+		<French>Exportera</French>
+		<German>Will geben</German>
+		<Italian>Esporter&#224;</Italian>
+		<Spanish>Exportar&#225;</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_WILL_NOT_EXPORT</Tag>
+		<English>Won't Export</English>
+		<French>N'exportera</French>
+		<German>Gibt nicht</German>
+		<Italian>Non esporter&#224;</Italian>
+		<Spanish>No exportar&#225;</Spanish>
+	</TEXT>
+	<!-- Based on TXT_KEY_FOREIGN_ADVISOR_EXPORT and _IMPORT. -->
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_EXPORTING</Tag>
+		<English>Exporting</English>
+		<French>Exportant</French>
+		<German>Liefert</German>
+		<Italian>Esportando</Italian>
+		<Spanish>Exportando</Spanish>
+	</TEXT>
+	<!-- French translation is probably confusing -->
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_IMPORTING</Tag>
+		<English>Importing</English>
+		<French>Important</French>
+		<German>Erhält</German>
+		<Italian>Importando</Italian>
+		<Spanish>Importando</Spanish>
+	</TEXT>
+	<!-- To replace the group headings. I've actually disabled these now,
+		 so: unused. -->
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_EXPORT</Tag>
+		<English>Takers</English>
+		<French>Exporter</French>
+		<German>Interessenten</German>
+		<Italian>Esportazione</Italian>
+		<Spanish>Exportar</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_IMPORT</Tag>
+		<English>Suppliers</English>
+		<French>Importer</French>
+		<German>Anbieter</German>
+		<Italian>Importazione</Italian>
+		<Spanish>Importar</Spanish>
+	</TEXT>
+	<!-- New label for the surplus box -->
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_SURPLUS_RESOURCES</Tag>
+		<English>Domestic Resources</English>
+		<French>Ressources domestiques</French>
+		<German>Verfügbare Ressourcen</German>
+		<Italian>Risorse disponibile</Italian>
+		<Spanish>Recursos disponibles</Spanish>
+	</TEXT>
+	<!-- New heading for a new column -->
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_NO_NEED</Tag>
+		<English>We Don't Need</English>
+		<French>Nul besoin</French>
+		<German>Kein Bedarf</German>
+		<Italian>Nessun bisogno</Italian>
+		<Spanish>No necesitamos</Spanish>
+	</TEXT>
+	<!-- German translation "Staatsoberhaupt" was too long -->
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_LEADER</Tag>
+		<English>Leader</English>
+		<French>Chef</French>
+		<German>Gegner</German>
+		<Italian>Leader</Italian>
+		<Spanish>L&#237;der</Spanish>
+	</TEXT>
+	
+	<!-- advc.004g: New key to replace the first "Can't Trade" heading on the
+		 "Technologies" tab. Based on TXT_KEY_FOREIGN_ADVISOR_CANT_TRADE
+		 (CIV4GameText_BTS.xml), and I've kept the Romance translations from
+		 there. -->
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_CANT_RECEIVE</Tag>
+		<English>Can't Receive</English>
+		<French>Commerce impossible</French>
+		<German>Vorbed. fehlt</German>
+		<Italian>Non pu&#242; commerciare</Italian>
+		<Spanish>No intercambia</Spanish>
+	</TEXT>
+	<!-- advc.004g: Was "Will Trade" -->
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_FOR_TRADE_2</Tag>
+		<English>Will Share</English>
+		<French>Echangera</French>
+		<German>Bietet</German>
+		<Italian>Commercer&#224;</Italian>
+		<Spanish>Intercambia</Spanish>
+	</TEXT>
+	<!-- advc.004g: Was "Won't Trade" -->
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_NOT_FOR_TRADE_2</Tag>
+		<English>Won't Share</English>
+		<French>N'&#233;changera pas</French>
+		<German>Hält zurück</German>
+		<Italian>Non commercer&#224;</Italian>
+		<Spanish>No intercambia</Spanish>
+	</TEXT>
+	<!-- advc.004g: Was "Can't Trade" -->
+	<TEXT>
+		<Tag>TXT_KEY_FOREIGN_ADVISOR_CANT_TRADE</Tag>
+		<English>Can't Share</English>
+		<French>Commerce impossible</French>
+		<German>Unmöglich</German>
+		<Italian>Non pu&#242; commerciare</Italian>
+		<Spanish>No intercambia</Spanish>
+	</TEXT>
+	
+	<!-- advc.004y: Like TXT_KEY_MAIN_MENU_CIVILOPEDIA (CIV4GameTextInfos.xml),
+		 but all capitalized. -->
+	<TEXT>
+		<Tag>TXT_KEY_CIVILOPEDIA_TITLE</Tag>
+		<English>CIVILOPEDIA</English>
+		<French>CIVILOPÉDIA</French>
+		<German>ZIVILOPÄDIE</German>
+		<Italian>CIVILOPEDIA</Italian>
+		<Spanish>CIVILOPEDIA</Spanish>
+	</TEXT>
+	
+	<!-- advc.002b: From CIV4GameText_BTS.xml. Was too long. -->
+	<TEXT>
+		<Tag>TXT_KEY_UNIT_COMBAT_LIMIT</Tag>
+		<English>[ICON_BULLET]Max. %d1%% damage to enemy on attack</English>
+		<French>[ICON_BULLET]D&#233;g&#226;ts de %d1%% maximum inflig&#233;s &#224; l'ennemi lors d'une attaque</French>
+		<German>[ICON_BULLET]Maximal %d1%% Angriffsschaden auf Gegner</German>
+		<Italian>[ICON_BULLET]Al massimo %d1%% di danni al nemico per attacco</Italian>
+		<Spanish>[ICON_BULLET]Da&#241;o m&#225;ximo de %d1%% al enemigo en ataque</Spanish>
+	</TEXT>
+	
+	<!-- advc.080 -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_LOST_XP</Tag>
+		<English>[COLOR_WARNING_TEXT]Will lose %d1 XP[COLOR_REVERT]</English>
+		<French>[COLOR_WARNING_TEXT]Perdra %d1 EXP[COLOR_REVERT]</French>
+		<German>[COLOR_WARNING_TEXT]Verliert %d1 EP[COLOR_REVERT]</German>
+		<Italian>[COLOR_WARNING_TEXT]Perderà %d1 XP[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_WARNING_TEXT]Perderá %d1 PX[COLOR_REVERT]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_LOST_XP_TOTAL</Tag>
+		<English>[COLOR_WARNING_TEXT]Will lose %d1 XP in total[COLOR_REVERT]</English>
+		<French>[COLOR_WARNING_TEXT]Perte totale d'EXP: %d1[COLOR_REVERT]</French>
+		<German>[COLOR_WARNING_TEXT]Verlorene Erfahrung: %d1[COLOR_REVERT]</German>
+		<Italian>[COLOR_WARNING_TEXT]Perderanno %d1 XP in totale[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_WARNING_TEXT]Perderán %d1 PX en total[COLOR_REVERT]</Spanish>
+	</TEXT>
+	
+	<!-- advc.064b: Based on TXT_KEY_MISC_HELP_PROD_OVERFLOW in
+		 CIV4GameTextInfos.xml and TXT_KEY_MISC_LOST_WONDER_PROD_CONVERTED
+		 in CIV4GameTextInfos.xml. -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_OVERFLOW_GOLD</Tag>
+		<English>[COLOR_WARNING_TEXT]%d1[COLOR_REVERT] [ICON_PRODUCTION] (overflow) in %s2_CityName have been converted into %d3 [ICON_GOLD].</English>
+		<French>[COLOR_WARNING_TEXT]%d1[COLOR_REVERT] [ICON_PRODUCTION] (excédent) à %s2_CityName a été convertis en %d3 [ICON_GOLD].</French>
+		<German>[COLOR_WARNING_TEXT]%d1[COLOR_REVERT] [ICON_PRODUCTION]-Überschuss in %s2_CityName wurde in %d3 [ICON_GOLD] umgewandelt.</German>
+		<Italian>[COLOR_WARNING_TEXT]%d1[COLOR_REVERT] [ICON_PRODUCTION] (eccedenza) a %s1_CityName sono stati convertiti in %d2 [ICON_GOLD].</Italian>
+		<Spanish>[COLOR_WARNING_TEXT]%d1[COLOR_REVERT] [ICON_PRODUCTION] (exceso) en %s1_CityName se han convertidos en %d2 [ICON_GOLD].</Spanish>
+	</TEXT>
+	<!-- From CIV4GameTextInfos.xml; terminology: I'm trying to use "build" only
+		 for Workers. -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_HELP_PROD_OVERFLOW</Tag>
+		<English>Overflow from previous order: %d1[ICON_PRODUCTION]</English>
+		<French>Exc&#233;dent de la production pr&#233;c&#233;dente: %d1[ICON_PRODUCTION]</French>
+		<German>&#220;berschuss aus vorherigem Auftrag: %d1[ICON_PRODUCTION]</German>
+		<Italian>In eccedenza dalla precedente costruzione: %d1[ICON_PRODUCTION]</Italian>
+		<Spanish>En exceso por construcci&#243;n anterior: %d1 [ICON_PRODUCTION]</Spanish>
+	</TEXT>
+	<!-- For city production hover (new) -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_HELP_PROD_NEW_OVERFLOW</Tag>
+		<English>%d1 [ICON_PRODUCTION] overflow for next order</English>
+		<French>%d1 [ICON_PRODUCTION] pour la prochaine production</French>
+		<German>%d1 [ICON_PRODUCTION] Überschuss für nächsten Auftrag</German>
+		<Italian>%d1 [ICON_PRODUCTION] per la prossima costruzione</Italian>
+		<Spanish>%d1 [ICON_PRODUCTION] para la próxima construcci&#243;n</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_HELP_PROD_GOLD</Tag>
+		<English>[COLOR_WARNING_TEXT]%d1[COLOR_REVERT] [ICON_PRODUCTION] to be converted into %d2 [ICON_GOLD]</English>
+		<French>[COLOR_WARNING_TEXT]%d1[COLOR_REVERT] [ICON_PRODUCTION] seront convertis en %d2 [ICON_GOLD]</French>
+		<German>[COLOR_WARNING_TEXT]%d1[COLOR_REVERT] [ICON_PRODUCTION] Verlust (Umwandlung zu %d2 [ICON_GOLD])</German>
+		<Italian>[COLOR_WARNING_TEXT]%d1[COLOR_REVERT] [ICON_PRODUCTION] da convertire in %d2 [ICON_GOLD]</Italian>
+		<Spanish>[COLOR_WARNING_TEXT]%d1[COLOR_REVERT] [ICON_PRODUCTION] se convertirán en %d2 [ICON_GOLD]</Spanish>
+	</TEXT>
+	<!-- Based on TXT_KEY_MISC_HELP_PROD_CHOPS (CIV4GameText_Warlords.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_HELP_PROD_CHOPS_UNUSED</Tag>
+		<English>%d1[ICON_PRODUCTION] from chopping for next order</English>
+		<French>%d1[ICON_PRODUCTION] en coupant du bois pour la prochaine production</French>
+		<German>%d1[ICON_PRODUCTION] durch Abholzung für nächsten Auftrag</German>
+		<Italian>%d1[ICON_PRODUCTION] dal legname per la prossima costruzione</Italian>
+		<Spanish>%d1[ICON_PRODUCTION] de la tala para la próxima construcci&#243;n</Spanish>
+	</TEXT>
+	<!-- Just the German translation (from CIV4GameTextInfos.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_HELP_BASE_YIELD</Tag>
+		<English>Base %s1_yield_type: %d2%F3</English>
+		<French>%s1_yield_type de base : %d2%F3</French>
+		<German>Grund-%s1_yield_type: %d2%F3</German>
+		<Italian>%s1_yield_type base: %d2%F3</Italian>
+		<Spanish>%s1_yield_type base: %d2 %F3</Spanish>
+	</TEXT>
+	
+	<!-- advc.064b -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_OVERFLOW_BLOCKS_HURRY</Tag>
+		<English>[COLOR_WARNING_TEXT]Can't hurry: already enough overflow or chopping [ICON_PRODUCTION] to finish.[COLOR_REVERT]</English>
+		<French>[COLOR_WARNING_TEXT]On ne peut pas accélérer parce qu'il y a déjà assez de [ICON_PRODUCTION] exc&#233;dentaire ou de coupage pour terminer la production.[COLOR_REVERT]</French>
+		<German>[COLOR_WARNING_TEXT]Beschleunigung nicht möglich, da bereits genug [ICON_PRODUCTION] aus Überschuss oder Abholzung vorrätig ist, um die Produktion abzuschließen.[COLOR_REVERT]</German>
+		<Italian>[COLOR_WARNING_TEXT]Non può velocizzare perché c'è già abbastanza [ICON_PRODUCTION] in eccedenza o dal legname per finire la produzione.[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_WARNING_TEXT]No se puede acelerar porque ya hay suficiente [ICON_PRODUCTION] de exceso o la tala para terminar la producción.[COLOR_REVERT]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_MISC_PRODUCTION_BLOCKS_HURRY</Tag>
+		<English>[COLOR_WARNING_TEXT]Can't hurry as production is already about to finish.[COLOR_REVERT]</English>
+		<French>[COLOR_WARNING_TEXT]On ne peut pas accélérer parce qu'il y a déjà assez de [ICON_PRODUCTION] pour terminer la production.[COLOR_REVERT]</French>
+		<German>[COLOR_WARNING_TEXT]Beschleunigung nicht möglich, da ohnehin am Rundenende abgeschlossen.[COLOR_REVERT]</German>
+		<Italian>[COLOR_WARNING_TEXT]Non può velocizzare perché c'è già abbastanza [ICON_PRODUCTION] per finire la produzione.[COLOR_REVERT]</Italian>
+		<Spanish>[COLOR_WARNING_TEXT]No se puede acelerar porque ya hay suficiente [ICON_PRODUCTION] para terminar la producción.[COLOR_REVERT]</Spanish>
+	</TEXT>
+
+	<!-- advc.004: From CIV4GameTextInfos.xml. The DLL passes the city name,
+		 but the Vanilla text didn't display it. -->
+	<TEXT>
+		<Tag>TXT_KEY_POPUP_WHAT_TO_BUILD</Tag>
+		<English>What would you like %s1_CityName to work on?</English>
+		<French>Que souhaitez-vous construire dans cette ville ?</French>
+		<German>Was wollt Ihr in %s1_CityName errichten?</German>
+		<Italian>Cosa vuoi creare in questa citt&#224;?</Italian>
+		<Spanish>&#191;Qu&#233; os gustar&#237;a construir en esta ciudad?</Spanish>
+	</TEXT>
+	
+	<!-- advc.004x: Based on TXT_KEY_CITY_BAR_HAMMER_PRODUCTION and
+		 TXT_KEY_CITY_BAR_FOOD_HAMMER_PRODUCTION in
+		 CIV4GameTextInfos.xml. Removed the production turns in parentheses. -->
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BAR_HAMMER_NO_PRODUCTION</Tag>
+		<English>[NEWLINE]%d1 [ICON_PRODUCTION]/Turn[NEWLINE]%s2: %d3/%d4 [ICON_PRODUCTION]</English>
+		<French>[NEWLINE]%d1 [ICON_PRODUCTION]/tour[NEWLINE]%s2 : %d3/%d4 [ICON_PRODUCTION]</French>
+		<German>[NEWLINE]%d1 [ICON_PRODUCTION]/Runde[NEWLINE]%s2: %d3/%d4 [ICON_PRODUCTION]</German>
+		<Italian>[NEWLINE]%d1 [ICON_PRODUCTION]/Turno[NEWLINE]%s2: %d3/%d4 [ICON_PRODUCTION]</Italian>
+		<Spanish>[NEWLINE]%d1 [ICON_PRODUCTION]/turno[NEWLINE]%s2: %d3/%d4 [ICON_PRODUCTION]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_CITY_BAR_FOOD_HAMMER_NO_PRODUCTION</Tag>
+		<English>[NEWLINE]%d1 [ICON_FOOD] + %d2 [ICON_PRODUCTION]/Turn[NEWLINE]%s3: %d4/%d5 [ICON_PRODUCTION]</English>
+		<French>[NEWLINE]%d1 [ICON_FOOD] + %d2 [ICON_PRODUCTION]/tour[NEWLINE]%s3 : %d4/%d5 [ICON_PRODUCTION]</French>
+		<German>[NEWLINE]%d1 [ICON_FOOD] + %d2 [ICON_PRODUCTION]/Runde[NEWLINE]%s3: %d4/%d5 [ICON_PRODUCTION]</German>
+		<Italian>[NEWLINE]%d1 [ICON_FOOD] + %d2 [ICON_PRODUCTION]/Turno[NEWLINE]%s3: %d4/%d5 [ICON_PRODUCTION]</Italian>
+		<Spanish>[NEWLINE]%d1 [ICON_FOOD] + %d2 [ICON_PRODUCTION]/turno[NEWLINE]%s3: %d4/%d5 [ICON_PRODUCTION]</Spanish>
+	</TEXT>
+
+	<!-- advc.251 -->
+	<TEXT>
+		<Tag>TXT_KEY_SETTINGS_START_TURN</Tag>
+		<English>Start Turn %d1_Turn (%s2_Year)</English>
+		<French>Tour initial : %d1_Turn (%s2_Year)</French>
+		<German>Start in Runde %d1_Turn (%s2_Year)</German>
+		<Italian>Turno iniziale: %d1_Turn (%s2_Year)</Italian>
+		<Spanish>Turno inicial: %d1_Turn (%s2_Year)</Spanish>
 	</TEXT>
 	
 </Civ4GameText>

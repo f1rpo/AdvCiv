@@ -3361,7 +3361,10 @@ class PangaeaBreaker:
 			print "The age of dinosours has come to a cataclysmic end."
 		# advc.021b: Was == 15; probably a coding error.
 		if meteorCount == mc.maximumMeteorCount:
-			print "Maximum meteor count of %d has been reached. Pangaea may still exist." % meteorCount
+			print "Maximum meteor count of %d has been reached." % meteorCount
+			# <advc.021b> Previously always said that "Pangaea may still exist"
+			if self.isPangea():
+				print "Pangaea still exists" # </advc.021b>
 		if mc.AllowPangeas:
 			print "Pangeas are allowed on this map and will not be suppressed."
 		elif not pangeaDetected:
@@ -3381,7 +3384,7 @@ class PangaeaBreaker:
 		continentList.reverse()
 		biggestSize = continentList[0].size
 		# advc.021b: was 0.7<...
-		if 0.73 < float(biggestSize) / float(totalLand):
+		if 0.75 < float(biggestSize) / float(totalLand):
 			return True
 		return False
 
@@ -3581,6 +3584,11 @@ class PangaeaBreaker:
 		C = self.createCentralityList(ID)
 		C.sort(lambda x, y:cmp(x.centrality, y.centrality))
 		C.reverse()
+		# <advc.021b> Kludge. I see meteors cast near the poles or twice in the same spot; ruling out water targets should help.
+		for i in range(len(C)):
+			centralPlot = CyMap().plot(C[i].x, C[i].y)
+			if not centralPlot is None and centralPlot.getX() >= 0 and centralPlot.getY() >= 0 and not centralPlot.isWater():
+				return C[i].x, C[i].y # </advc.021b>
 		return C[0].x, C[0].y
 
 
@@ -3749,6 +3757,7 @@ class ContinentMap:
 		oldWorldSize = 0
 		#biggest continent is automatically 'Old World'
 		oldWorldSize += continentList[0].size
+		print("%d continents, largest one (%d tiles) added to Old World" % (len(continentList),oldWorldSize)) # advc.021b
 		del continentList[0]
 		#If this was the only continent than we have a pangaea. Oh well.
 		if len(continentList) == 0:
@@ -3761,6 +3770,7 @@ class ContinentMap:
 			#get the next largest continent and temporarily remove from list
 			#add it back later and is automatically 'New World'
 			biggestNewWorld = continentList[0]
+			print("Second largest continent (%d tiles) reserved for New World" % (biggestNewWorld.size)) # advc.021b
 			del continentList[0]
 		#sort list by ID rather than size to make things
 		#interesting and possibly bigger new worlds
@@ -3778,9 +3788,10 @@ class ContinentMap:
 			if float(oldWorldSize) / float(totalLand) > (60 + PRand.randint(0, 9)) / 100.0:
 				break
 		# advc.021b: A too small Old World is going to be unplayable; rather reserve no New World then (or just some islands).
-		if reservedSecondBiggest and float(oldWorldSize) / float(iCivs) > 85:
+		if reservedSecondBiggest and float(oldWorldSize) / float(iCivs) < 85:
 			#add back the biggestNewWorld continent
 			continentList.append(biggestNewWorld)
+			print("Largest New World continent added to Old World b/c tiles per civ in the Old World was only %d" % (oldWorldSize // iCivs))
 		#what remains in the list will be considered 'New World'
 		#get ID for the next continent, we will use this ID for 'New World'
 		#designation
@@ -4528,9 +4539,11 @@ class StartingPlotFinder:
 					shuffledPlayers.append(player_list[iChoosePlayer])
 					del player_list[iChoosePlayer]
 			self.startingAreaList = list()
+			# advc.021b: Start with the largest area
+			areas.sort(lambda x, y: -1 * cmp(x.getNumTiles(), y.getNumTiles()))
 			for i in range(len(areas)):
 				# <advc.021b>
-				tileThresh = 40
+				tileThresh = 36
 				gc = CyGlobalContext()
 				sea = gc.getSeaLevelInfo(gc.getMap().getSeaLevel()).getSeaLevelChange()
 				if sea < 0:
@@ -4540,15 +4553,22 @@ class StartingPlotFinder:
 					if gc.getMap().getWorldSize() <= 0:
 						tileThresh *= 0.7
 				# Second clause was getNumTiles()>5 (>45 in Civ 4 Reimagined)
-				if areaOldWorld[i] and areas[i].getNumHabitableTiles() > tileThresh: # </advc.021b>
+				iHabitable = areas[i].getNumHabitableTiles()
+				if areaOldWorld[i] and iHabitable > tileThresh: # </advc.021b>
 					startArea = StartingArea(areas[i].getID())
 					self.startingAreaList.append(startArea)
+				# <advc.021b> Tracing
+				elif areaOldWorld[i] and areas[i].getNumTiles() > 15 and not areas[i].isWater():
+					print("Disregarded as starting area b/c too small: %d tiles (%d habitable, threshold %d)" % (areas[i].getNumTiles(),iHabitable, tileThresh))
+				# </advc.021b>
 			#Get the value of the whole old world
 			oldWorldValue = 0
 			for i in range(len(self.startingAreaList)):
 				oldWorldValue += self.startingAreaList[i].rawValue
 			#calulate value per player of old world
 			oldWorldValuePerPlayer = oldWorldValue / len(shuffledPlayers)
+			# advc.021b: Aim a little lower when eliminating low-value areas:
+			oldWorldValuePerPlayer *= 0.87
 			#Sort startingAreaList by rawValue
 			self.startingAreaList.sort(lambda x, y: cmp(x.rawValue, y.rawValue))
 			#Get rid of areas that have less value than oldWorldValuePerPlayer
@@ -4557,7 +4577,12 @@ class StartingPlotFinder:
 			#continents are *all* quite small. 
 			numAreas = max(1, len(self.startingAreaList) - len(shuffledPlayers) / 2)
 			for i in range(numAreas):
-				if self.startingAreaList[0].rawValue < oldWorldValuePerPlayer:
+				iRaw = self.startingAreaList[0].rawValue # advc.021b
+				if iRaw < oldWorldValuePerPlayer:
+					# <advc.021b> I think there's somehow one water area in the list; don't print that one.
+					if iRaw > 0:
+						print("Area disregarded b/c raw value (%d) too small compared with old-world value (%d)" % (iRaw, oldWorldValuePerPlayer))
+					# </advc.021b>
 					del self.startingAreaList[0]
 				else:
 					break #All remaining should be big enough
@@ -4638,7 +4663,7 @@ class StartingPlotFinder:
 			# advc.021b: I'm also disabling the difficulty-based bonuses:
 			#self.addHandicapBonus()
 		except Exception, e:
-			# advc.021b: Removed "due to a rarely occurring bug" - it's not that rare. Added info about the exception. (Although, for debugging, it would be better to change 'Exception' to a an unlikely type like 'ImportError' and consult PythonErr.log after generating the map. This reveals the origin of the exception.)
+			# advc.021b: Removed "due to a rarely occurring bug" - could be any error, and not necessarily that rare. Added info about the exception. (Although, for debugging, it's better to change 'Exception' to an unlikely type like 'ImportError' and consult PythonErr.log after generating the map. This reveals the origin of the exception.)
 			errorPopUp("PerfectWorld's starting plot finder has failed; this map likely has unfair starting locations. You may wish to quit this game and generate a new map." + "\n\nAn exception of type " + e.__class__.__name__ + " occurred. Arguments:\n" + str(e.args))
 			raise Exception, e
 
@@ -5069,6 +5094,7 @@ class StartingArea:
 		self.playerList = list()
 		self.plotList   = list()
 		self.distanceTable = array('i')
+		self.distTableOtherAreas = array('i') # advc.021b
 		self.rawValue = 0
 		self.CalculatePlotList()
 		self.idealNumberOfPlayers = 0
@@ -5077,12 +5103,16 @@ class StartingArea:
 	def CalculatePlotList(self):
 		gc = CyGlobalContext()
 		gameMap = CyMap()
-		# <advc.021b> Can't just use ActivePlayer b/c of networked multiplayer
+		# <advc.021b> Initialize found values. Enough to do this for a single player. Shouldn't matter which, but let's use a human.
+		# Can't just use ActivePlayer b/c of networked multiplayer
 		humanId = -1
 		for i in range(gc.getMAX_CIV_PLAYERS()):
-			if gc.getPlayer(i).isAlive() and gc.getPlayer(i).isHuman():
+			kPlayer = gc.getPlayer(i)
+			if kPlayer.isAlive() and kPlayer.isHuman():
 				humanId = i
-				break # </advc.021b>
+				kPlayer.AI_updateFoundValues(True)
+				break
+		# </advc.021b>
 		for y in range(mc.height):
 			for x in range(mc.width):
 				plot = gameMap.plot(x, y)
@@ -5095,13 +5125,17 @@ class StartingArea:
 						continue # </advc.021b>
 					food, value = sf.getCityPotentialValue(x, y)
 					# <advc.021b>
-					if humanId >= 0: # getFoundValue isn't available yet (cache not initialized)
-						value = gc.getPlayer(humanId).AI_foundValue(x, y, -1, True) # </advc.021b>
+					if humanId >= 0:
+						value = plot.getFoundValue(humanId)
+					# </advc.021b>
 					if value > 0:
 						startPlot = StartPlot(x, y, value)
 						if plot.isWater():
 							raise ValueError, "potential start plot is water!"
 						self.plotList.append(startPlot)
+		# <advc.021b> Want to be able to divide by this length
+		if len(self.plotList) <= 0:
+			return # </advc.021b>
 		#Sort plots by local value
 		self.plotList.sort(lambda x, y: cmp(x.localValue, y.localValue))
 		#To save time and space let's get rid of some of the lesser plots
@@ -5119,48 +5153,97 @@ class StartingArea:
 		elif seaChg > 0:
 			seaLevelAdj = -0.5
 		cull = min(int(round(0.7 * len(self.plotList))), max(0, int(round(len(self.plotList) * (0.22  + (gameMap.getWorldSize() - newWorldSubtr + seaLevelAdj) / (2.0 * civs))))))
+		print("cull ratio: %d percent of %d sites" % (int(100*cull/len(self.plotList)),len(self.plotList)))
 		# </advc.021b>
 		for i in range(cull):
 			del self.plotList[0]
 		#You now should be able to eliminate more plots by sorting high to low and
 		#having the best plot eat plots within 3 squares, then same for next, etc.
-		# advc.021b: A variable for these 3 squares; and make it 5, not 3.
-		elimDist = 5
 		self.plotList.reverse()
+		# advc.021b: Moved into subroutine
+		self.ClearVicinity(3)
+		# advc.021b: Area id isn't helpful b/c advc.030 reassigns area ids after (possibly) removing peaks during normalization
+		#print "number of final plots in areaID = %(a)3d is %(p)5d" % {"a":self.areaID, "p":len(self.plotList)}
+		# advc.021b: Moved up:
+		for n in range(len(self.plotList)):
+			self.rawValue += self.plotList[n].localValue
+		# Moved the last third of this function's body into a new function FillDistanceTable
+		
+	# advc.021b: Mostly cut from CalculatePlotList. Assumes that plotList is sorted by localValue in descending order
+	def ClearVicinity(self, radius):
+	
 		numPlots = len(self.plotList)
+		# <advc.021b>
+		protectedPlots = max(2,(1 + radius/10.0) * len(self.playerList))
+		if numPlots <= protectedPlots:
+			return # </advc.021b>
 		for n in range(numPlots):
-			#At some point the length of plot list will be much shorter than at
-			#the beginning of the loop, so it can never end normally
+			#At some point the length of plot list will be much shorter
+			#than at the beginning of the loop, so it can never end normally
 			if n >= len(self.plotList) - 1:
 				break
 			y = self.plotList[n].y
 			x = self.plotList[n].x
-			for yy in range(y - elimDist, y + elimDist + 1):
-				for xx in range(x - elimDist, x + elimDist + 1):
+			for yy in range(y - radius, y + radius + 1):
+				for xx in range(x - radius, x + radius + 1):
 					if yy < 0 or yy >= mc.height:
 						continue
 					xx = xx % mc.width #wrap xx
 					if xx < 0:
 						raise ValueError, "xx value not wrapping properly in StartingArea.CalculatePlotList"
+					# <advc.021b> Clear a circular range, not square.
+					if plotDistance(x, y, xx, yy) > radius:
+						continue # </advc.021b>
 					for m in range(n, len(self.plotList)):
-						#At some point the length of plot list will be much shorter than at
-						#the beginning of the loop, so it can never end normally
 						if m >= len(self.plotList) - 1:
 							break
+						# <advc.021b> Don't eliminate all our choices
+						if len(self.plotList) <= protectedPlots:
+							break # </advc.021b>
 						if self.plotList[m] != self.plotList[n]:
 							if self.plotList[m].x == xx and self.plotList[m].y == yy:
 								del self.plotList[m]
-		print "number of final plots in areaID = %(a)3d is %(p)5d" % {"a":self.areaID, "p":len(self.plotList)}
+					# <advc.021b>
+					if len(self.plotList) <= protectedPlots:
+						break
+				if len(self.plotList) <= protectedPlots:
+					break
+			if len(self.plotList) <= protectedPlots:
+				break
+		print("%d/%d sites eliminated at dist=%d" % (numPlots-len(self.plotList),numPlots,radius))
+		# </advc.021b>
+	
+
+	# advc.021b: Cut from CalculatePlotList
+	def FillDistanceTable(self):
+		gc = CyGlobalContext()
+		gameMap = CyMap()
+
 		#At this point we should have a list of the very best places
 		#to build cities on this continent. Now we need a table with
 		#the distance from each city to every other city
 		#Create distance table
 		for i in range(len(self.plotList) * len(self.plotList)):
 			self.distanceTable.append(-11)
+		# <advc.021b>
+		assignedStartingPlots = list()
+		for i in range(gc.getGame().countCivPlayersEverAlive()):
+			player = gc.getPlayer(i)
+			startingPlot = player.getStartingPlot()
+			if startingPlot != None and startingPlot.getX() >= 0 and startingPlot.getY() >= 0:
+				assignedStartingPlots.append(startingPlot)
+		for i in range(len(self.plotList) * len(assignedStartingPlots)):
+			# Same strange initial value as above
+			self.distTableOtherAreas.append(-11)
+		bSingleCiv = (len(self.playerList) == 1)
+		if bSingleCiv:
+			print("Only one civ to be placed; ignoring distances within area")
+		# </advc.021b>
 		#Fill distance table
 		for n in range(len(self.plotList)):
 			#While were already looping lets calculate the raw value
-			self.rawValue += self.plotList[n].localValue
+			# advc.021b: Moved up so that it remains in CalculatePlotList
+			#self.rawValue += self.plotList[n].localValue
 			avgDistance = 0
 			for m in range(n, len(self.plotList)):
 				nPlot = gameMap.plot(self.plotList[n].x, self.plotList[n].y)
@@ -5170,7 +5253,24 @@ class StartingArea:
 				#If path fails try reversing it
 				self.distanceTable[n * len(self.plotList) + m] = distance
 				self.distanceTable[m * len(self.plotList) + n] = distance
+				if not bSingleCiv: # advc.021b
+					avgDistance += distance
+			# <advc.021b>
+			for m in range(len(assignedStartingPlots)):
+				nPlot = gameMap.plot(self.plotList[n].x, self.plotList[n].y)
+				mPlot = gameMap.plot(assignedStartingPlots[m].getX(), assignedStartingPlots[m].getY())
+				distance = plotDistance(nPlot.getX(), nPlot.getY(), mPlot.getX(), mPlot.getY())
+				# Cap; don't need distance to be maximized, just large enough.
+				if distance >= 13:
+					distance = min(distance, 13)
+				else:
+					print("Start at %d/%d discouraged b/c too close to %d/%d; %d alternatives in plot list" % (nPlot.getX(),nPlot.getY(), mPlot.getX(),mPlot.getY(), len(self.plotList)-1))
+				# To account for area boundary
+				distance *= 2
+				distance += 5
+				self.distTableOtherAreas[m * len(self.plotList) + n] = distance
 				avgDistance += distance
+			# </advc.021b>
 			self.plotList[n].avgDistance = avgDistance
 
 
@@ -5180,12 +5280,18 @@ class StartingArea:
 		numPlayers = len(self.playerList)
 		if numPlayers <= 0:
 			return
+		# <advc.021b> Eliminate sites in a range that increases successively
+		for radius in range(4, 11):
+			self.ClearVicinity(radius)
+		# </advc.021b>
+		self.FillDistanceTable() # advc.021b: Was previously already done in the constructor
 		# <advc.021b> Sometimes begin by making the plot with the best localValue a starting plot
 		firstPlayerPlaced = False
 		if numPlayers == 1 or PRand.randint(0, 100) < (numPlayers - 2) * 20:
 			# On PM, the best plot is almost always at a coast. I want to have inland starts too from time to time.
 			for i in range(min(7, len(self.plotList))):
 				if not self.plotList[i].isCoast() or PRand.randint(0, 100) < 15:
+					print("First location placed with inland bias in area with %d players" % (numPlayers))
 					self.plotList[i].vacant = False
 					firstPlayerPlaced = True
 					break
@@ -5198,6 +5304,7 @@ class StartingArea:
 			#there are two players one will start on the middle and the other on the end
 			avgDistanceList.sort(lambda x, y:cmp(x.avgDistance, y.avgDistance))
 			avgDistanceList.reverse()
+			
 			#First place players as far as possible away from each other
 			#Place the first player
 			avgDistanceList[0].vacant = False
@@ -5212,6 +5319,13 @@ class StartingArea:
 							distance = self.distanceTable[ii]
 							if minDistance == -1 or minDistance > distance:
 								minDistance = distance
+					# <advc.021b>
+					for m in range(len(self.distTableOtherAreas) // len(self.plotList)):
+						ii = m * len(self.plotList) + n
+						distance = self.distTableOtherAreas[ii]
+						if minDistance == -1 or minDistance > distance:
+							minDistance = distance 
+					# </advc.021b>
 					self.plotList[n].nearestStart = minDistance
 					distanceList.append(self.plotList[n])
 			#Find biggest nearestStart and place a start there
@@ -5227,11 +5341,15 @@ class StartingArea:
 				sPlot = gameMap.plot(self.plotList[m].x,self.plotList[m].y)
 				if sPlot.isWater():
 					raise ValueError, "Start plot is water!"
-				sPlot.setImprovementType(gc.getInfoTypeForString("NO_IMPROVEMENT"))
+				#sPlot.setImprovementType(gc.getInfoTypeForString("NO_IMPROVEMENT"))
+				# advc.001: NO_IMPROVEMENT is not an InfoType. (getInfoType will return -1 then, which is equal to ImprovementTypes.NO_IMPROVEMENT, so this is really a harmless error.)
+				sPlot.setImprovementType(ImprovementTypes.NO_IMPROVEMENT)
 				playerID = self.playerList[n]
 				player = gc.getPlayer(playerID)
 				sPlot.setStartingPlot(True)
 				player.setStartingPlot(sPlot,True)
+				# advc.021b (Might need this again)
+				#print("%d/%d assigned as starting plot" % (sPlot.getX(),sPlot.getY()))
 				n += 1
 
 

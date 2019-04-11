@@ -556,6 +556,11 @@ enum WidgetTypes					// Exposed to Python
 	// K-Mod end
 	WIDGET_RF_CIV_CHOICE, // advc.706
 	WIDGET_LH_GLANCE, // advc.152
+	WIDGET_SHOW_REPLAY, // advc.106i
+	// BULL - Trade Denial - start
+	WIDGET_PEDIA_JUMP_TO_BONUS_TRADE,
+	WIDGET_PEDIA_JUMP_TO_TECH_TRADE,
+	// BULL - Trade Denial - end
 
 #ifdef _USRDLL
 	NUM_WIDGET_TYPES
@@ -602,7 +607,8 @@ enum ButtonPopupTypes			// Exposed to Python
 	BUTTONPOPUP_FOUND_RELIGION,
 	// <advc.706>
 	BUTTONPOPUP_RF_CHOOSECIV,
-	BUTTONPOPUP_RF_DEFEAT, // </advc.706>
+	BUTTONPOPUP_RF_DEFEAT,
+	BUTTONPOPUP_RF_RETIRE, // </advc.706>
 
 #ifdef _USRDLL
 	NUM_BUTTONPOPUP_TYPES
@@ -964,7 +970,11 @@ enum FontSymbols					// Exposed to Python
 	MAP_CHAR,
 	OCCUPATION_CHAR,
 	POWER_CHAR,
-
+	/*  <advc.002f> From BULL. Only using AIRPORT_CHAR so far, but need all of them
+		in order to be compatible with BULL's GameFont.tga */
+	CITIZEN_CHAR,
+	GREAT_GENERAL_CHAR,
+	AIRPORT_CHAR, // </advc.002f>
 #ifdef _USRDLL
 	MAX_NUM_SYMBOLS
 #endif
@@ -1383,6 +1393,7 @@ enum ActivityTypes			// Exposed to Python
 	ACTIVITY_MISSION,
 	ACTIVITY_PATROL,
 	ACTIVITY_PLUNDER,
+	ACTIVITY_BOARDED, // advc.075
 
 #ifdef _USRDLL
 	NUM_ACTIVITY_TYPES

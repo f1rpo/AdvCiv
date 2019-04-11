@@ -49,15 +49,15 @@
 		<Italian>Quando è selezionato, visualizza la tabella "Occhiata" nella schermata del Consigliere Estero (utilizzando l'Exotic Foreign Advisor Mod).</Italian>
 		<Spanish>Activa la pestaña 'Mirar' en el consejero de asuntos exteriores.</Spanish>
 	</TEXT>
-	
-	<TEXT>
+	<!-- advc.072: Now unused -->
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__EFAGLANCEATTITUDES_TEXT</Tag>
 		<English>Smilies</English>
 		<French>Smileys</French>
 		<German>Smilies</German>
 		<Italian>Icone</Italian>
 		<Spanish>Iconos</Spanish>
-	</TEXT>
+	</TEXT-->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__EFAGLANCEATTITUDES_LIST</Tag>
 		<English>Numbers|Smilies|Both</English>
@@ -97,24 +97,44 @@
 		<Spanish>Si se activa, se muestra una versión mejorada de la pestaña 'Info' en el consejero de asuntos exteriores.</Spanish>
 	</TEXT>
 
-	<!-- advc.004: German was "Vertragskündigungen" -->
+	<!-- advc.072: "EFA" prefix removed to avoid a name clash with remnants of
+		 the old EFADEALTURNSLEFT option in the INI files. -->
+	<!-- German was "Vertragskündigungen" -->
 	<TEXT>
-		<Tag>TXT_KEY_BUG_OPT_ADVISORS__EFADEALTURNSLEFT_TEXT</Tag>
+		<Tag>TXT_KEY_BUG_OPT_ADVISORS__DEALTURNSLEFT_TEXT</Tag>
 		<English>Deal Turns Left</English>
 		<French>Deal Turns Left</French>
 		<German>Vertragslaufzeiten</German>
 		<Italian>Turni di Accordo rimasti</Italian>
 		<Spanish>Turnos Restantes</Spanish>
 	</TEXT>
-
-	<!-- advc.004: Rewritten (English, German) -->
+	<!-- In part based on AI_DIPLO_CURRENT_DEALS_1, USER_DIPLO_CURRENT_DEALS_1
+		 (CIV4DiplomacyText.xml) and TXT_KEY_FOREIGN_ADVISOR_ACTIVE
+		 (CIV4GameTextInfos.xml). -->
 	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_ADVISORS__DEALTURNSLEFT_LIST</Tag>
+		<English>"Active" Tab|Current Deals|Both|Only Tooltip</English>
+		<French>Tab "Actif"|Accords actuels|Both|Only Tooltip</French>
+		<German>Reiter "Aktiv"|Verhandlungstisch|Beides|Nur in Hilfetext</German>
+		<Italian>Tab "Attivo"|Accordi attuali|Entrambi|Only Tooltip</Italian>
+		<Spanish>Tab "Activo"|Current Deals|Ambos|Only Tooltip</Spanish>
+	</TEXT>
+	<!-- Rewritten (English, German), then replaced with the key below. -->
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_OPT_ADVISORS__EFADEALTURNSLEFT_HOVER</Tag>
-		<English>When checked, the "Active" tab shows the remaining number of turns until cancelation for deals that cannot currently be canceled. (Regardless of this setting, the turns to cancel are shown when hovering over a deal.)</English>
+		<English>When checked, the "Active" tab shows the remaining number of turns until cancellation for deals that cannot currently be canceled. (Regardless of this setting, the turns to cancel are shown when hovering over a deal.)</English>
 		<French>When checked, shows how many turns are left before you can cancel each deal on the 'Active' tab.</French>
 		<German>Zeigt im Reiter "Aktiv" an, wann Vereinbarungen gekündigt werden können, die zur Zeit unkündbar sind. (Unabhängig von dieser Option wird die verbleibende Mindestlaufzeit auch im Hilfetext der Vereinbarung angezeigt.)</German>
 		<Italian>Quando è selezionato, mostra quanti turni sono rimasti prima che si possa annullare un accordo.</Italian>
 		<Spanish>Permite mostrar cuántos turnos quedan antes de que puedas cancelar cada intercambio en la pestaña 'Activo'.</Spanish>
+	</TEXT-->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPT_ADVISORS__DEALTURNSLEFT_HOVER</Tag>
+		<English>Where to show the remaining number of turns until cancellation for deals that cannot currently be canceled.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Active Tab[COLOR_REVERT]: On the "Active" tab of the Foreign Advisor screen.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Current Deals[COLOR_REVERT]: On the trade table when listing the current deals.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Both[COLOR_REVERT]: On the "Active" tab and the trade table.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Only Tooltip[COLOR_REVERT]: Show the turns to cancel only when hovering over a deal on the "Active" tab or the trade table.</English>
+		<French>Where to show the remaining number of turns until cancellation for deals that cannot currently be canceled.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Active Tab[COLOR_REVERT]: On the "Active" tab of the Foreign Advisor screen.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Current Deals[COLOR_REVERT]: On the trade table when listing the current deals.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Both[COLOR_REVERT]: On the "Active" tab and the trade table.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Only Tooltip[COLOR_REVERT]: Show the turns to cancel only when hovering over a deal on the "Active" tab or the trade table.</French>
+		<German>Anzeige der verbleibenden Mindestlaufzeit von Vereinbarungen:[NEWLINE][COLOR_HIGHLIGHT_TEXT]Aktiv[COLOR_REVERT]: Auf dem "Aktiv"-Reiter des Auslandsberater-Bildschirms.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Verhandlungstisch[COLOR_REVERT]: Auf dem Verhandlungstisch in der Liste der bisherigen Vereinbarungen.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Beides[COLOR_REVERT]: Sowohl im Auslandsberater als auch auf dem Verhandlungstisch.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Nur in Hilfetext[COLOR_REVERT]: Zeige die Mindestlaufzeit nur an, wenn der Mauszeiger über eine Vereinbarung bewegt wird (im Auslandsberater oder auf dem Verhandlungstisch).</German>
+		<Italian>Where to show the remaining number of turns until cancellation for deals that cannot currently be canceled.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Active Tab[COLOR_REVERT]: On the "Active" tab of the Foreign Advisor screen.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Current Deals[COLOR_REVERT]: On the trade table when listing the current deals.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Both[COLOR_REVERT]: On the "Active" tab and the trade table.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Only Tooltip[COLOR_REVERT]: Show the turns to cancel only when hovering over a deal on the "Active" tab or the trade table.</Italian>
+		<Spanish>Where to show the remaining number of turns until cancellation for deals that cannot currently be canceled.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Active Tab[COLOR_REVERT]: On the "Active" tab of the Foreign Advisor screen.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Current Deals[COLOR_REVERT]: On the trade table when listing the current deals.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Both[COLOR_REVERT]: On the "Active" tab and the trade table.[NEWLINE][COLOR_HIGHLIGHT_TEXT]Only Tooltip[COLOR_REVERT]: Show the turns to cancel only when hovering over a deal on the "Active" tab or the trade table.</Spanish>
 	</TEXT>
 
 <!-- Military Advisor -->

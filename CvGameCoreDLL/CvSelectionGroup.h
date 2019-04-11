@@ -81,8 +81,10 @@ public:
 	bool canEnterTerritory(TeamTypes eTeam, bool bIgnoreRightOfPassage = false) const;									// Exposed to Python
 	bool canEnterArea(TeamTypes eTeam, const CvArea* pArea, bool bIgnoreRightOfPassage = false) const;									// Exposed to Python
 	DllExport bool canMoveInto(CvPlot* pPlot, bool bAttack = false);																		// Exposed to Python
-	DllExport bool canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar = false) { return canMoveOrAttackInto(pPlot, bDeclareWar, false); } // Exposed to Python
-	bool canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar, bool bCheckMoves/* = false (see above) */, bool bAssumeVisible = true); // K-Mod. (hack to avoid breaking the DllExport)
+	DllExport bool canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar = false) {					 // Exposed to Python
+		return canMoveOrAttackInto(pPlot, bDeclareWar, false);
+	} // K-Mod. (hack to avoid breaking the DllExport)			advc.003: const
+	bool canMoveOrAttackInto(CvPlot* pPlot, bool bDeclareWar, bool bCheckMoves/* = false (see above) */, bool bAssumeVisible = true) const;
 	bool canMoveThrough(CvPlot* pPlot, bool bDeclareWar = false, bool bAssumeVisible = true) const; // Exposed to Python, K-Mod added bDeclareWar and bAssumeVisible
 	bool canFight();																																										// Exposed to Python 
 	bool canDefend();																																										// Exposed to Python
@@ -93,7 +95,7 @@ public:
 /*                                                                                              */
 /* General AI                                                                                   */
 /************************************************************************************************/
-	int getBombardTurns( CvCity* pCity );
+	int getBombardTurns( CvCity* pCity ) /* advc.003: */ const;
 	bool isHasPathToAreaPlayerCity( PlayerTypes ePlayer, int iFlags = 0, int iMaxPathTurns = -1 );
 	bool isHasPathToAreaEnemyCity( bool bIgnoreMinors = true, int iFlags = 0, int iMaxPathTurns = -1 );
 	bool isStranded() const; // Note: K-Mod no longer uses the stranded cache. I have a new system.
@@ -125,7 +127,8 @@ public:
 
 	RouteTypes getBestBuildRoute(CvPlot* pPlot, BuildTypes* peBestBuild = NULL) const;	// Exposed to Python
 
-	bool groupAttack(int iX, int iY, int iFlags, bool& bFailedAlreadyFighting);
+	bool groupAttack(int iX, int iY, int iFlags, bool& bFailedAlreadyFighting,
+			bool bMaxSurvival = false); // advc.048
 	void groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUnit = NULL, bool bEndMove = false);
 	bool groupPathTo(int iX, int iY, int iFlags);
 	bool groupRoadTo(int iX, int iY, int iFlags);
@@ -292,7 +295,12 @@ protected:
 
 	void activateHeadMission();
 	void deactivateHeadMission();
-	
+	// <advc.075>
+	void handleBoarded();
+	bool canDisembark() const;
+	void resetBoarded();
+	void getLandCargoGroups(std::vector<CvSelectionGroup*>& r);
+	// </advc.075>
 	bool sentryAlert(
 			bool bUpdateKnownEnemies = false); // advc.004l
 

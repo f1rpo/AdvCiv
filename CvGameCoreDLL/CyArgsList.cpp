@@ -90,7 +90,7 @@ void CyArgsList::add(const int* buf, int iLength)
 }
 
 void* CyArgsList::makeFunctionArgs() 
-{ 
+{
 	return gDLL->getPythonIFace()->MakeFunctionArgs(m_aList, m_iCnt);
 }
 

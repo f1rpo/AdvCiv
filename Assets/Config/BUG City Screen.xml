@@ -45,12 +45,18 @@
 					get="isShowFoodAssist" dirtyBit="CityScreen"/>
 			
 			<!-- WhipAssist by EmperorFool, Dresden -->
+			<!-- advc.064: default was False -->
 			<option id="WhipAssist" key="WhipAssist" 
-					type="boolean" default="False" 
+					type="boolean" default="True" 
 					get="isShowWhipAssist" dirtyBit="CityScreen"/>
 			<option id="WhipAssistOverflowCountCurrentProduction" key="WhipAssist Overflow Count Current Production" 
 					type="boolean" default="False" 
 					get="isWhipAssistOverflowCountCurrentProduction" dirtyBit="CityScreen"/>
+			
+			<!-- advc.064: New option for disabling hurry tick marks -->
+			<option id="HurryTickMarks" key="Hurry Tick Marks" 
+					type="boolean" default="False" 
+					get="isShowHurryTickMarks" dirtyBit="CityScreen"/>
 			
 			<!-- Culture Turns by Chinese American -->
 			<!-- advc.065: No longer optional -->

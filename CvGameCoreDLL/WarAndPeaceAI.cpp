@@ -19,6 +19,11 @@ using std::pair;
 
 WarAndPeaceAI::WarAndPeaceAI() : enabled(false), inBackgr(false) {}
 
+void WarAndPeaceAI::invalidateUICache() {
+
+	WarEvaluator::clearCache();
+}
+
 void WarAndPeaceAI::setUseKModAI(bool b) {
 
 	enabled = !b;
@@ -173,7 +178,7 @@ WarAndPeaceAI::Team::Team() {
 
 WarAndPeaceAI::Team::~Team() {
 
-	delete report;
+	SAFE_DELETE(report);
 }
 
 void WarAndPeaceAI::Team::init(TeamTypes agentId) {
@@ -1528,12 +1533,12 @@ DenialTypes WarAndPeaceAI::Team::declareWarTrade(TeamTypes targetId,
 				utilityThresh = std::max(utilityThresh,
 						-::round(tradeValToUtility(humanTradeVal) +
 						// Add 5 for gold that the human might be able to procure
-						(GET_TEAM(sponsorId).isGoldTrading() ||
+						((GET_TEAM(sponsorId).isGoldTrading() ||
 						GET_TEAM(agentId).isGoldTrading() ||
 						// Or they could ask nicely
 						(GET_TEAM(sponsorId).isAtWar(targetId) &&
 						GET_TEAM(agentId).AI_getAttitude(sponsorId) >=
-						ATTITUDE_PLEASED)) ? 5 : 0));
+						ATTITUDE_PLEASED)) ? 5 : 0)));
 			}
 			if(u > utilityThresh)
 				return NO_DENIAL;
@@ -1885,7 +1890,7 @@ double WarAndPeaceAI::Team::reparationsToHuman(double u) const {
 
 void WarAndPeaceAI::Team::respondToRebuke(TeamTypes targetId, bool prepare) {
 
-	/*  Caveat: Mustn't use PRNG here b/c this is called from both async (perpare=false)
+	/*  Caveat: Mustn't use PRNG here b/c this is called from both async (prepare=false)
 		and sync (prepare=true) contexts */
 	CvTeamAI& agent = GET_TEAM(agentId);
 	if(!canSchemeAgainst(targetId, true) || (prepare ?
@@ -2053,7 +2058,7 @@ void WarAndPeaceAI::Team::startReport() {
 void WarAndPeaceAI::Team::closeReport() {
 
 	report->log("\n");
-	delete report;
+	SAFE_DELETE(report);
 }
 
 void WarAndPeaceAI::Team::setForceReport(bool b) {
@@ -2374,9 +2379,10 @@ bool WarAndPeaceAI::Civ::considerDemand(PlayerTypes theyId, int tradeVal) const 
 	// Willing to pay at most this much
 	double paymentCap = TEAMREF(weId).warAndPeaceAI().reparationsToHuman(
 			// Interpret theirUtility as a probability of attack
-			-ourUtility * (8 + theirUtility) / 100.0);
+			-ourUtility * 2 * (4 + theirUtility) / 100.0);
 	return paymentCap >= (double)tradeVal;
-	// Some randomness? Actually none in the BtS code (AI_considerOffer) either
+	/*  Some randomness? None in the BtS code (AI_considerOffer) either.
+		Would have to use ::hash. */
 }
 
 bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
@@ -2391,11 +2397,9 @@ bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 		for(int i = 0; i < 4; i++) {
 			int cr = lh.getContactRand(CONTACT_DEMAND_TRIBUTE);
 			if(cr > 0) {
-				/*  demandTribute applies another probability test; halves
-					the probability. */
-				double pr = (8.5 - era) / cr;
-				// Excludes Gandhi (cr=10000 => pr=0.001)
-				if(pr > 0.005 && ::bernoulliSuccess(pr, "advc.104 (trib)") &&
+				double pr = (8.5 - era) / (2 * cr);
+				// Excludes Gandhi (cr=10000 => pr<0.0005)
+				if(pr > 0.001 && ::bernoulliSuccess(pr, "advc.104 (trib)") &&
 						we.AI_demandTribute(humanId, i))
 				return true;
 			}
@@ -2405,8 +2409,7 @@ bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 	else {
 		int cr = lh.getContactRand(CONTACT_ASK_FOR_HELP);
 		if(cr > 0) {
-			// test in askHelp halves this probability
-			double pr = (5.5 - era) / cr;
+			double pr = (5.5 - era) / (1.25 * cr);
 			if(::bernoulliSuccess(pr, "advc.104 (help)") && we.AI_askHelp(humanId))
 				return true;
 		}
@@ -2416,7 +2419,6 @@ bool WarAndPeaceAI::Civ::amendTensions(PlayerTypes humanId) const {
 	int crCivics = lh.getContactRand(CONTACT_CIVIC_PRESSURE);
 	if(crReligion <= crCivics) {
 		if(crReligion > 0) {
-			// Doesn't get reduced further in contactReligion
 			double pr = (8.0 - era) / crReligion;
 			if(::bernoulliSuccess(pr, "advc.104 (relig)") &&
 					we.AI_contactReligion(humanId))
@@ -2460,7 +2462,12 @@ bool WarAndPeaceAI::Civ::considerGiftRequest(PlayerTypes theyId,
 	/*  Accept probabilistically regardless of war utility (so long as we're
 		not planning war yet, which the caller ensures).
 		Probability to accept is 45% for Gandhi, 0% for Tokugawa. */
-	if(::bernoulliSuccess(0.5 - we.AI_prDenyHelp(), "advc.104 (gift)"))
+	double prSuccess = 0.5 - we.AI_prDenyHelp();
+	// Can't use sync'd RNG here, but don't want the outcome to change after reload.
+	std::vector<long> inputs;
+	inputs.push_back(GC.getGameINLINE().gameTurn());
+	inputs.push_back(tradeVal);
+	if(::hash(inputs, weId) < prSuccess)
 		return true;
 	// Probably won't want to attack theyId then
 	if(TEAMREF(weId).AI_isSneakAttackReady())
@@ -2651,7 +2658,7 @@ double WarAndPeaceAI::Civ::militaryPower(CvUnitInfo const& u,
 
 	/*  Combat odds don't increase linearly with strength. Use a power law
 		with a power between 1.5 and 2 (configured in XML; 1.7 for now). */
-	r = pow(r, (double)GC.getDefineFLOAT("POWER_CORRECTION"));
+	r = pow(r, (double)GC.getPOWER_CORRECTION());
 	return r;
 }
 

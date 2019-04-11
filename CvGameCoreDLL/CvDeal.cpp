@@ -73,7 +73,7 @@ void CvDeal::reset(int iID, PlayerTypes eFirstPlayer, PlayerTypes eSecondPlayer)
 }
 
 
-void CvDeal::kill(bool bKillTeam)
+void CvDeal::kill(bool bKillTeam, /* advc.130p: */ PlayerTypes eCancelPlayer)
 {
 	if (getLengthFirstTrades() > 0 || getLengthSecondTrades() > 0)
 	{	// <advc.106j>
@@ -126,25 +126,25 @@ void CvDeal::kill(bool bKillTeam)
 		}
 	}
 	// <advc.036>
-	killSilent(bKillTeam);
+	killSilent(bKillTeam, /* advc.130p: */ true, eCancelPlayer);
 }
 
-void CvDeal::killSilent(bool bKillTeam, bool bUpdateAttitude) { // </advc.036>
+void CvDeal::killSilent(bool bKillTeam, bool bUpdateAttitude, // </advc.036>
+		PlayerTypes eCancelPlayer) { // advc.130p
 
 	CLLNode<TradeData>* pNode;
-
 	for (pNode = headFirstTradesNode(); (pNode != NULL); pNode = nextFirstTradesNode(pNode))
 	{
 		endTrade(pNode->m_data, getFirstPlayer(), getSecondPlayer(), bKillTeam,
-				bUpdateAttitude); // advc.036
+				bUpdateAttitude, // advc.036
+				eCancelPlayer); // advc.130p
 	}
-
 	for (pNode = headSecondTradesNode(); (pNode != NULL); pNode = nextSecondTradesNode(pNode))
 	{
 		endTrade(pNode->m_data, getSecondPlayer(), getFirstPlayer(), bKillTeam,
-				bUpdateAttitude); // advc.036
+				bUpdateAttitude, // advc.036
+				eCancelPlayer); // advc.130p
 	}
-
 	GC.getGameINLINE().deleteDeal(getID());
 }
 
@@ -974,11 +974,11 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 			// advc.130j:
 			attacked.AI_rememberEvent(eToPlayer, MEMORY_HIRED_WAR_ALLY);
 			// <advc.104i> Similar to code in CvTeam::makeUnwillingToTalk
-			if(attacked.AI_getMemoryCount(eFromPlayer, MEMORY_DECLARED_WAR_RECENT) <= 0)
-				attacked.AI_changeMemoryCount(eFromPlayer, MEMORY_DECLARED_WAR_RECENT, 1);
+			if(attacked.AI_getMemoryCount(eFromPlayer, MEMORY_DECLARED_WAR_RECENT) < 2)
+				attacked.AI_rememberEvent(eFromPlayer, MEMORY_DECLARED_WAR_RECENT);
 			if(::atWar(TEAMID(eToPlayer), attacked.getTeam()) && attacked.
-					AI_getMemoryCount(eToPlayer, MEMORY_DECLARED_WAR_RECENT) <= 0)
-				attacked.AI_changeMemoryCount(eToPlayer, MEMORY_DECLARED_WAR_RECENT, 1);
+					AI_getMemoryCount(eToPlayer, MEMORY_DECLARED_WAR_RECENT) < 2)
+				attacked.AI_rememberEvent(eToPlayer, MEMORY_DECLARED_WAR_RECENT);
 			// </advc.104i>
 		}
 		break;
@@ -1091,8 +1091,8 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 
 // <advc.003> Refactored this function
 void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
-		PlayerTypes eToPlayer, bool bTeam,
-		bool bUpdateAttitude) { // advc.036
+		PlayerTypes eToPlayer, bool bTeam, /* advc.036: */ bool bUpdateAttitude,
+		PlayerTypes eCancelPlayer) { // advc.130p
 
 	bool teamTradeEnded = false; // advc.133
 	switch(trade.m_eItemType) {
@@ -1143,8 +1143,16 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer,
 		if(bTeam) {
 			endTeamTrade(TRADE_OPEN_BORDERS, TEAMID(eFromPlayer), TEAMID(eToPlayer));
 			teamTradeEnded = true; // advc.133
-			// advc.130p:
+			/*  <advc.130p> This class really shouldn't be adding cancellation
+				memory as this is an AI thing; but BtS does it that way too. */
+			/*  Don't check this after all -- if the other side loses all visible
+				territory and then regains some, they may still not really be worth
+				trading with. */
+			/*if(eCancelPlayer == NULL || TEAMREF(eCancelPlayer).AI_openBordersTrade(
+					TEAMID(eCancelPlayer == eToPlayer ? eFromPlayer : eToPlayer)) !=
+					DENIAL_NO_GAIN)*/
 			addEndTradeMemory(eFromPlayer, eToPlayer, TRADE_OPEN_BORDERS);
+			// </advc.130p>
 		}
 		break;
 

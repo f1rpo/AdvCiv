@@ -123,17 +123,17 @@ public:
 	int AI_getPlotDanger(CvPlot* pPlot, int iRange = -1, bool bTestMoves = true,
 			// <advc.104> Same as in AI_getAnyPlotDanger
 			bool bCheckBorder = true,
-			/*  Out parameter that counts enemy units in range with at most
-				hpLimit hit points. Not counted if NULL. In any case, damaged units
+			/*  Out-parameter that counts enemy units in range with at most
+				iMaxHP hit points. Not counted if NULL. In any case, damaged units
 				are included in the count returned by this function. */
-			int* lowHealth = NULL, int hpLimit = 60,
-			/*  For better performance, stop counting at limitCount.
-				I.e. return value can be at most limitCount. Healthy units are
-				counted before damaged ones (lowHealth).
-				Unlimited count if limitCount is negative. */
-			int limitCount = -1,
-			// Unless NO_PLAYER, count only danger from this enemy
-			PlayerTypes enemyId = NO_PLAYER) const; // </advc.104>
+			int* piLowHealth = NULL, int iMaxHP = 60,
+			/*  For better performance, stop counting at iLimit, i.e. the
+				return value can be at most iLimit. Healthy units are
+				counted before damaged ones (piLowHealth).
+				Unlimited count if iLimit is negative. */
+			int iLimit = -1,
+			// Unless NO_PLAYER, count only danger from this enemy.
+			PlayerTypes eEnemyPlayer = NO_PLAYER) const; // </advc.104>
 	//int AI_getUnitDanger(CvUnit* pUnit, int iRange = -1, bool bTestMoves = true, bool bAnyDanger = true) const;
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
@@ -141,6 +141,7 @@ public:
 	int AI_getWaterDanger(CvPlot* pPlot, int iRange, bool bTestMoves = true) const;
 
 	bool AI_avoidScience() const;
+	int AI_financialTroubleMargin() const; // advc.110
 	bool AI_isFinancialTrouble() const;
 	//int AI_goldTarget() const;
 	int AI_goldTarget(bool bUpgradeBudgetOnly = false) const; // K-Mod
@@ -275,6 +276,8 @@ public:
 	// advc.210e: Exposed to Python
 	int AI_corporationBonusVal(BonusTypes eBonus,
 			bool bTrade = false) const; // advc.036
+	// advc.036:
+	int AI_goldForBonus(BonusTypes eBonus, PlayerTypes eBonusOwner) const;
 
 	int AI_cityTradeVal(CvCity* pCity) const;
 	DenialTypes AI_cityTrade(CvCity* pCity, PlayerTypes ePlayer) const;
@@ -294,6 +297,8 @@ public:
 	int AI_totalUnitAIs(UnitAITypes eUnitAI) const;
 	int AI_totalAreaUnitAIs(CvArea* pArea, UnitAITypes eUnitAI) const;
 	int AI_totalWaterAreaUnitAIs(CvArea* pArea, UnitAITypes eUnitAI) const;
+	// advc.081:
+	int AI_totalWaterAreaUnitAIs(CvArea* pArea, std::vector<UnitAITypes> const& aeUnitAI) const;
 	int AI_countCargoSpace(UnitAITypes eUnitAI) const;
 
 	int AI_neededExplorers(CvArea* pArea) const;
@@ -490,14 +495,16 @@ public:
 	int AI_averageCulturePressure() const; // K-Mod
 	int AI_averageCommerceExchange(CommerceTypes eCommerce) const;
 
-	int AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance) const;
+	int AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance,
+			bool bConstCache = false) const; // advc.001n
 
 	int AI_getTotalCityThreat() const;
 	int AI_getTotalFloatingDefenseNeeded() const;
 
 
 	int AI_getTotalAreaCityThreat(CvArea* pArea) const;
-	int AI_countNumAreaHostileUnits(CvArea* pArea, bool bPlayer, bool bTeam, bool bNeutral, bool bHostile) const;
+	int AI_countNumAreaHostileUnits(CvArea* pArea, bool bPlayer, bool bTeam, bool bNeutral, bool bHostile,
+			CvPlot* pCenter = NULL) const; // advc.081
 	int AI_getTotalFloatingDefendersNeeded(CvArea* pArea) const;
 	int AI_getTotalFloatingDefenders(CvArea* pArea) const;
 	int AI_getTotalAirDefendersNeeded() const; // K-Mod
@@ -526,6 +533,8 @@ public:
 	int AI_getNumAdjacentAreaCitySites(int iWaterAreaID, int iExcludeArea, int& iBestValue) const;
 	int AI_getNumPrimaryAreaCitySites(int iMinimumValue = 0) const; // K-Mod
 	CvPlot* AI_getCitySite(int iIndex) const;
+	// advc.117, advc.121:
+	bool AI_isAdjacentCitySite(CvPlot const& p, bool bCheckCenter) const;
 
 	bool AI_deduceCitySite(const CvCity* pCity) const; // K-Mod
 	int AI_countPotentialForeignTradeCities(bool bCheckConnected = true, bool bCheckForeignTradePolicy = true, CvArea* pIgnoreArea = 0) const; // K-Mod
@@ -561,6 +570,7 @@ public:
 	void AI_ClearConstructionValueCache(); // K-Mod
 	// k146: Used in conjuction with canTrain
 	bool AI_haveResourcesToTrain(UnitTypes eUnit) const;
+	UnitTypes AI_getBestAttackUnit() const; // advc.079
 
 	// <advc.104>
 	WarAndPeaceAI::Civ& warAndPeaceAI();
@@ -589,7 +599,7 @@ public:
 	bool AI_askHelp(PlayerTypes humanId);
 	// tribute type: 0 for gold, 1 for map, 2 for tech and 3 for bonus resource
 	bool AI_demandTribute(PlayerTypes humanId, int tributeType);
-	// </advc.104m></advc.003>
+	// </advc.104m> </advc.003>
 	double AI_amortizationMultiplier(int iDelay) const; // advc.104, advc.031
 	// advc.104r: Made public and param added
 	void AI_doSplit(bool bForce = false);
@@ -656,10 +666,14 @@ protected:
 	int* m_aiPeacetimeGrantValue;
 	int* m_aiGoldTradedTo;
 	int* m_aiAttitudeExtra;
+	// <advc.079>
+	UnitTypes m_aeLastBrag[MAX_CIV_PLAYERS];
+	TeamTypes m_aeLastWarn[MAX_CIV_PLAYERS]; // </advc.079>
 	int* m_aiBonusValue;
 	int* m_aiBonusValueTrade; // advc.036
 	int* m_aiUnitClassWeights;
 	int* m_aiUnitCombatWeights;
+	bool m_abTheyFarAhead[MAX_CIV_PLAYERS]; // advc.130c
 	std::map<UnitClassTypes, int> m_GreatPersonWeights; // K-Mod
 	static int const singleBonusTradeTolerance = 20; // advc.036
 	//mutable int* m_aiCloseBordersAttitudeCache;
@@ -732,13 +746,15 @@ protected:
 			bool bGenerous,
 			// advc.036:
 			int iHappyLeft, int iHealthLeft, int iOtherListLength) const;
+	int AI_tradeValToGold(int iTradeVal, bool bOverpay, int iMaxGold = INT_MAX,
+			bool* bEnough = NULL) const;
 	int AI_checkCancel(CvDeal const& d, PlayerTypes ePlayer, bool bFlip);
 	bool AI_doDeals(PlayerTypes otherId);
 	// </advc.003>
 	bool AI_proposeResourceTrade(PlayerTypes otherId); // advc.133
-	// <advc.036>
 	// advc.132:
 	bool AI_checkCivicReligionConsistency(CLinkList<TradeData> const& tradeItems) const;
+	// <advc.036>
 	bool AI_checkResourceLimits(CLinkList<TradeData> const& weGive,
 			CLinkList<TradeData> const& theyGive, PlayerTypes theyId,
 			int iChange) const; // </advc.036>

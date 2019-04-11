@@ -1859,7 +1859,12 @@ class PLE:
 		# get units owner name if its not a player unit
 		if (pUnit.getOwner() != gc.getGame().getActivePlayer()):
 			pOwner = gc.getPlayer(pUnit.getOwner())
-			szOwner = u"<font=2> [" + localText.changeTextColor(pOwner.getName(), pOwner.getPlayerColor()) + u"]</font>"
+			szOwner = pOwner.getName()
+			#szOwner = localText.changeTextColor(szOwner, pOwner.getPlayerColor())
+			# <advc.069> ^Doesn't seem to be the proper use of changeTextColor. Tagging advc.001.
+			szOwner = u"<color=%d,%d,%d,%d>%s</color>" % (pOwner.getPlayerTextColorR(), pOwner.getPlayerTextColorG(), pOwner.getPlayerTextColorB(), pOwner.getPlayerTextColorA(), szOwner)
+			# </advc.069>
+			szOwner = u"<font=2> [" + szOwner + u"]</font>"
 		else:
 			szOwner = u""
 
@@ -2176,11 +2181,13 @@ class PLE:
 		if (self.bShowWoundedIndicator) and (pLoopUnit.isHurt()):
 			szDotState += "_INJURED"
 
-		# Units lead by a GG will get a star instead of a dot.
+		# Units led by a GG will get a star instead of a dot.
 		if (self.bShowGreatGeneralIndicator):
-			# is unit lead by a GG?
-			iLeaderPromo = gc.getInfoTypeForString('PROMOTION_LEADER')
-			if (iLeaderPromo != -1 and pLoopUnit.isHasPromotion(iLeaderPromo)):
+			# is unit led by a GG?
+			#iLeaderPromo = gc.getInfoTypeForString('PROMOTION_LEADER')
+			#if (iLeaderPromo != -1 and pLoopUnit.isHasPromotion(iLeaderPromo)):
+			# advc.003: Replacing the above
+			if pLoopUnit.getLeaderUnitType() >= 0:
 				szDotState += "_GG"
 				xSize = 16
 				ySize = 16

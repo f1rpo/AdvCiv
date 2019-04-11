@@ -43,6 +43,8 @@ public:
 	  void assignCivSelectionHelp(CvWStringBuffer& szBuffer,
 			PlayerTypes selectedCiv);
 	  CvWString retireConfirmMsg() const;
+	  bool launchRetirePopup(CvPopup* popup, CvPopupInfo& info);
+	  void handleRetirePopup(int buttonClicked);
 	  bool isSelectingCiv() const; // Waiting for callback
 	bool isDeliverMessages(PlayerTypes civId) const;
 	bool isCooperationRestricted(PlayerTypes aiCiv) const;

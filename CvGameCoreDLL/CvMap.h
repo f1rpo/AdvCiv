@@ -272,9 +272,9 @@ public: // advc.003: const added to several functions
 	CvArea* getArea(int iID) const;																// Exposed to Python
 	CvArea* addArea();
 	void deleteArea(int iID);
-	// iteration
-	CvArea* firstArea(int *pIterIdx, bool bRev=false);									// Exposed to Python
-	CvArea* nextArea(int *pIterIdx, bool bRev=false);									// Exposed to Python
+	// iteration (advc.003: const)
+	CvArea* firstArea(int *pIterIdx, bool bRev=false) const;									// Exposed to Python
+	CvArea* nextArea(int *pIterIdx, bool bRev=false) const;									// Exposed to Python
 
 	void recalculateAreas();																		// Exposed to Python
 

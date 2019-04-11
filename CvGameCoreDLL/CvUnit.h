@@ -18,6 +18,7 @@ class CvSelectionGroup;
 //class FAStarNode;
 class CvArtInfoUnit;
 class KmodPathFinder;
+class CvUnitAI; // advc.003: Needed for AI(void) functions
 
 struct CombatDetails					// Exposed to Python
 {
@@ -91,7 +92,7 @@ public:
 	void updateAirStrike(CvPlot* pPlot, bool bQuick, bool bFinish);
 
 	bool isActionRecommended(int iAction);
-	void updateFoundingBorder() const; // advc.004h
+	void updateFoundingBorder(bool bForceClear = false) const; // advc.004h
 
 	bool isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker) const;						// Exposed to Python 
 	bool isUnowned() const; // advc.061
@@ -101,7 +102,10 @@ public:
 
 	//FAStarNode* getPathLastNode() const; // disabled by K-Mod
 	CvPlot* getPathEndTurnPlot() const;																																						// Exposed to Python
-	bool generatePath(const CvPlot* pToPlot, int iFlags = 0, bool bReuse = false, int* piPathTurns = NULL, int iMaxPath = -1) const; // Exposed to Python (K-Mod added iMaxPath)
+	bool generatePath(const CvPlot* pToPlot, int iFlags = 0, bool bReuse = false,							// Exposed to Python
+			int* piPathTurns = NULL,
+			int iMaxPath = -1, // K-Mod
+			bool bUseTempFinder = false) const; // advc.128
 	KmodPathFinder& getPathFinder() const; // K-Mod
 
 	bool canEnterTerritory(TeamTypes eTeam, bool bIgnoreRightOfPassage = false) const;						// Exposed to Python
@@ -271,6 +275,7 @@ public:
 	int getStackExperienceToGive(int iNumUnits) const;
 
 	int upgradePrice(UnitTypes eUnit) const;																											// Exposed to Python
+	int upgradeXPChange(UnitTypes eUnit) const; // advc.080
 	bool upgradeAvailable(UnitTypes eFromUnit, UnitClassTypes eToUnitClass, int iCount = 0) const;					// Exposed to Python
 	bool canUpgrade(UnitTypes eUnit, bool bTestVisible = false) const;														// Exposed to Python
 	bool isReadyForUpgrade() const;
@@ -776,6 +781,17 @@ public:
 
 	void read(FDataStreamBase* pStream);
 	void write(FDataStreamBase* pStream);
+	// <advc.003>
+	inline CvUnitAI& AI() {
+		//return *static_cast<CvUnitAI*>(const_cast<CvUnit*>(this));
+		/*  The above won't work in an inline function b/c the compiler doesn't know
+			that CvUnitAI is derived from CvUnit */
+		return *reinterpret_cast<CvUnitAI*>(this);
+	}
+	inline CvUnitAI const& AI() const {
+		//return *static_cast<CvUnitAI const*>(this);
+		return *reinterpret_cast<CvUnitAI const*>(this);
+	} // </advc.003>
 
 	virtual void AI_init(UnitAITypes eUnitAI) = 0;
 	virtual void AI_uninit() = 0;

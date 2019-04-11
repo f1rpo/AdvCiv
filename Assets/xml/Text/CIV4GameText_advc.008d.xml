@@ -58,11 +58,11 @@
 	 routes." Not news anymore. -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_56</Tag>
-	<English>(UWAI) Some leaders are known not to wage war against civs they're pleased with; however, don't count on it if the target is a large civ that looks like very easy pickings.</English>
-	<French>(UWAI) Some leaders are known not to wage war against civs they're pleased with; however, don't count on it if the target is a large civ that looks like very easy pickings.</French>
+	<English>(UWAI) Some leaders are known not to wage war against civs they're pleased with (+4 relations); however, don't depend on it if the target is a large civ that looks like very easy pickings.</English>
+	<French>(UWAI) Some leaders are known not to wage war against civs they're pleased with (+4 relations); however, don't depend on it if the target is a large civ that looks like very easy pickings.</French>
 	<German>(UWAI) Von manchen Herrschern ist bekannt, dass sie keinen Krieg anfangen solange sie "erfreut" sind. Verlassen Sie sich darauf aber nicht, wenn die Beute groß ist und der zu erwartende Widerstand gering.</German>
-	<Italian>(UWAI) Some leaders are known not to wage war against civs they're pleased with; however, don't count on it if the target is a large civ that looks like very easy pickings.</Italian>
-	<Spanish>(UWAI) Some leaders are known not to wage war against civs they're pleased with; however, don't count on it if the target is a large civ that looks like very easy pickings.</Spanish>
+	<Italian>(UWAI) Some leaders are known not to wage war against civs they're pleased with (+4 relations); however, don't depend on it if the target is a large civ that looks like very easy pickings.</Italian>
+	<Spanish>(UWAI) Some leaders are known not to wage war against civs they're pleased with (+4 relations); however, don't depend on it if the target is a large civ that looks like very easy pickings.</Spanish>
 </TEXT>
 
 <!-- "Oil-based navies are a huge step up from coal-powered ironclads. If you
@@ -316,6 +316,14 @@
 	<Italian>(AdvCiv) You can't have trade routes with cities that you haven't located on the map. Be sure to regularly scout for new foreign cities in order to get the full trade benefits from your [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] agreements.</Italian>
 	<Spanish>(AdvCiv) You can't have trade routes with cities that you haven't located on the map. Be sure to regularly scout for new foreign cities in order to get the full trade benefits from your [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] agreements.</Spanish>
 </TEXT>
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_32</Tag>
+	<English>(AdvCiv) Normally, a colonial city or fort is required in order to integrate an island into your trade network. However, tiles that are workable by a mainland city only require a road.</English>
+	<French>(AdvCiv) Normally, a colonial city or fort is required in order to integrate an island into your trade network. However, tiles that are workable by a mainland city only require a road.</French>
+	<German>(AdvCiv) Um eine Insel in Ihr Handelsnetzwerk einzubinden, benötigen Sie dort normalerweise eine Stadt oder eine Festung. Falls die Insel aber für die Bürger einer Ihrer Städte auf dem Festland erreichbar ist, genügt eine Straße.</German>
+	<Italian>(AdvCiv) Normally, a colonial city or fort is required in order to integrate an island into your trade network. However, tiles that are workable by a mainland city only require a road.</Italian>
+	<Spanish>(AdvCiv) Normally, a colonial city or fort is required in order to integrate an island into your trade network. However, tiles that are workable by a mainland city only require a road.</Spanish>
+</TEXT>
 
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_16</Tag>
@@ -329,21 +337,21 @@
 <!-- advc.124 -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_17</Tag>
-	<English>(AdvCiv) If a civilization refuses to sign [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] with you on grounds of having "nothing to gain", have patience. Once their scouts reach your lands, they'll want to explore inside your borders. Civs that like you enough sign Open Borders even if they haven't located your territory yet.</English>
-	<French>(AdvCiv) If a civilization refuses to sign [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] with you on grounds of having "nothing to gain", have patience. Once their scouts reach your lands, they'll want to explore inside your borders. Civs that like you enough sign Open Borders even if they haven't located your territory yet.</French>
+	<English>(AdvCiv) If a civilization refuses to sign [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] with you on grounds of having "nothing to gain," have patience. Once their scouts reach your lands, they'll want to explore inside your borders. Civs that like you enough sign Open Borders even if they haven't located your territory yet.</English>
+	<French>(AdvCiv) If a civilization refuses to sign [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] with you on grounds of having "nothing to gain," have patience. Once their scouts reach your lands, they'll want to explore inside your borders. Civs that like you enough sign Open Borders even if they haven't located your territory yet.</French>
 	<German>(AdvCiv) Geduld, wenn eine Zivilisation sagt, dass sie von [COLOR_HIGHLIGHT_TEXT]Offenen Grenzen[COLOR_REVERT] "nichts hätte". Sobald die gegnerischen Kundschafter Ihr Gebiet erreichen, werden sie Ihre Grenzen betreten wollen. Wer Sie genug mag, vereinbart Offene Grenzen aber auch ohne Ihre Grenzen erreicht zu haben.</German>
-	<Italian>(AdvCiv) If a civilization refuses to sign [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] with you on grounds of having "nothing to gain", have patience. Once their scouts reach your lands, they'll want to explore inside your borders. Civs that like you enough sign Open Borders even if they haven't located your territory yet.</Italian>
-	<Spanish>(AdvCiv) If a civilization refuses to sign [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] with you on grounds of having "nothing to gain", have patience. Once their scouts reach your lands, they'll want to explore inside your borders. Civs that like you enough sign Open Borders even if they haven't located your territory yet.</Spanish>
+	<Italian>(AdvCiv) If a civilization refuses to sign [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] with you on grounds of having "nothing to gain," have patience. Once their scouts reach your lands, they'll want to explore inside your borders. Civs that like you enough sign Open Borders even if they haven't located your territory yet.</Italian>
+	<Spanish>(AdvCiv) If a civilization refuses to sign [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] with you on grounds of having "nothing to gain," have patience. Once their scouts reach your lands, they'll want to explore inside your borders. Civs that like you enough sign Open Borders even if they haven't located your territory yet.</Spanish>
 </TEXT>
 
 <!-- advc.099 -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_18</Tag>
-	<English>(AdvCiv) If conquered cities complain about "being ruled by a foreign culture", it won't help to conquer the remaining cities of the former owner. You'll have to increase your own culture in the conquered cities, or learn to live with the anger.</English>
-	<French>(AdvCiv) If conquered cities complain about "being ruled by a foreign culture", it won't help to conquer the remaining cities of the former owner. You'll have to increase your own culture in the conquered cities, or learn to live with the anger.</French>
+	<English>(AdvCiv) If conquered cities complain about "being ruled by a foreign culture," it won't help to conquer the remaining cities of the former owner. You'll have to increase your own culture in the conquered cities, or learn to live with the anger.</English>
+	<French>(AdvCiv) If conquered cities complain about "being ruled by a foreign culture," it won't help to conquer the remaining cities of the former owner. You'll have to increase your own culture in the conquered cities, or learn to live with the anger.</French>
 	<German>(AdvCiv) Wenn eine eroberte Stadt darüber klagt, "von einer fremden Kultur beherrscht" zu werden, hilft es nichts, die verbleibenden Städte des Vorbesitzers zu erobern. Sie können nur Ihren Kulturwert in den Städten erhöhen, oder sich mit der Unzufriedenheit arrangieren.</German>
-	<Italian>(AdvCiv) If conquered cities complain about "being ruled by a foreign culture", it won't help to conquer the remaining cities of the former owner. You'll have to increase your own culture in the conquered cities, or learn to live with the anger.</Italian>
-	<Spanish>(AdvCiv) If conquered cities complain about "being ruled by a foreign culture", it won't help to conquer the remaining cities of the former owner. You'll have to increase your own culture in the conquered cities, or learn to live with the anger.</Spanish>
+	<Italian>(AdvCiv) If conquered cities complain about "being ruled by a foreign culture," it won't help to conquer the remaining cities of the former owner. You'll have to increase your own culture in the conquered cities, or learn to live with the anger.</Italian>
+	<Spanish>(AdvCiv) If conquered cities complain about "being ruled by a foreign culture," it won't help to conquer the remaining cities of the former owner. You'll have to increase your own culture in the conquered cities, or learn to live with the anger.</Spanish>
 </TEXT>
 
 <!-- advc.108 -->
@@ -356,14 +364,14 @@
 	<Spanish>(AdvCiv) Don't count on discovering initially hidden resources like iron or horses near your capital. They're no more likely to appear there than anywhere else.</Spanish>
 </TEXT>
 
-<!-- advc.102 -->
+<!-- advc.102  (advc.076: Quick Moves is a graphics option now) -->
 <TEXT>
 	<Tag>TXT_KEY_ADVC_HINT_20</Tag>
-	<English>(AdvCiv) The "Show Friendly Moves" option doesn't show all moves because that would take too long. E.g. the moves of Workers aren't shown.</English>
-	<French>(AdvCiv) The "Show Friendly Moves" option doesn't show all moves because that would take too long. E.g. the moves of Workers aren't shown.</French>
-	<German>(AdvCiv) Die Option "Freundliche Bewegungen zeigen" lässt manche Einheiten aus, z.B. Bautrupps, damit die Animationen nicht zu viel Zeit in Anspruch nehmen.</German>
-	<Italian>(AdvCiv) The "Show Friendly Moves" option doesn't show all moves because that would take too long. E.g. the moves of Workers aren't shown.</Italian>
-	<Spanish>(AdvCiv) The "Show Friendly Moves" option doesn't show all moves because that would take too long. E.g. the moves of Workers aren't shown.</Spanish>
+	<English>(AdvCiv) The "Show Friendly Moves" option no longer shows Worker moves, but it's still advisable to enable the "Quick Moves" graphics option in addition.</English>
+	<French>(AdvCiv) The "Show Friendly Moves" option no longer shows Worker moves, but it's still advisable to enable the "Quick Moves" graphics option in addition.</French>
+	<German>(AdvCiv) Die Option "Freundliche Bewegungen zeigen" lässt die Bewegungen von Bautrupps und Missionaren aus; trotzdem ist es ratsam zusätzlich die Grafikoption "Schnelle Bewegungen" zu aktivieren.</German>
+	<Italian>(AdvCiv) The "Show Friendly Moves" option no longer shows Worker moves, but it's still advisable to enable the "Quick Moves" graphics option in addition.</Italian>
+	<Spanish>(AdvCiv) The "Show Friendly Moves" option no longer shows Worker moves, but it's still advisable to enable the "Quick Moves" graphics option in addition.</Spanish>
 </TEXT>
 
 <TEXT>
@@ -494,7 +502,7 @@
 </TEXT>
 <TEXT>
 	<Tag>TXT_KEY_HINT_63</Tag>
-	<English>If you are vexed by enemy spies, consider placing a Spy unit in each of your border cities.</English>
+	<English>If you are vexed by enemy spies, consider placing a Spy unit in each of your most vulnerable cities.</English>
 	<French>Gardez quelques espions &#224; l'int&#233;rieur de vos fronti&#232;res pour le contre-espionnage. Les espions ennemis peuvent faire des ravages !</French>
 	<German>Wenn feindliche Spione Ihnen &#196;rger bereiten, erw&#228;gen Sie, eigene Spione in einigen Ihrer Grenzst&#228;dte zu stationieren.</German>
 	<Italian>Tieni alcune spie all'interno dei tuoi confini per effettuare il controspionaggio. Le spie nemiche possono scatenare il caos!</Italian>
@@ -843,7 +851,7 @@
 	<Spanish>Las flechas del TECLADO NUM&#201;RICO se pueden usar para pasar de una ciudad a otra en la pantalla de la ciudad...</Spanish>
 </TEXT>
 
-<!-- advc.008c: Mouse wheel zoom is obvious. Ephasize the key command more. -->
+<!-- advc.008c: Mouse wheel zoom is obvious. Emphasize the key command more. -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_INTERFACE_3</Tag>
 	<English>Apart from turning the mouse wheel, you can also use [PAGE UP] and [PAGE DOWN] to zoom the camera in and out.</English>
@@ -875,7 +883,8 @@
 </TEXT>
 
 <!-- advc.004m: This said that group orders can be given if a group is
-	 selected. -->
+	 selected. The slider position not only being remembered, but continuing to
+	 apply is a K-Mod change btw. -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_INTERFACE_9</Tag>
 	<English>To change the default camera distance, you can enable the field-of-view slider on the "Map" tab of the BUG mod menu [CTRL + ALT + O]. The slider position is remembered even if you hide the slider again.</English>
@@ -890,11 +899,83 @@
 	 TXT_KEY_HINT_55). -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_57</Tag>
-	<English>(AdvCiv) Your spies can investigate rival cities again, but unlike in "Warlords" and Civ 4, a spy unit can't investigate on the same turn that it reaches the city tile.</English>
-	<French>(AdvCiv) Vos espions peuvent enquêter sur les villes rivales, mais contrairement aux "Warlords" et Civ 4, une unité d'espionnage ne peut pas enquêter au même tour qu'elle atteint la casse de la ville.</French>
-	<German>(AdvCiv) Ihre Spione haben nun wieder die Fähigkeit, gegnerische Städte zu erkunden; aber anders als in "Warlords" und Civ 4, kann ein Spion nicht noch im selben Zug erkunden, in dem er die Stadt erreicht hat.</German>
-	<Italian>(AdvCiv) Le tue spie possono indagare su città rivali, ma a differenza di "Warlords" e Civ 4, un'unità spia non può indagare sullo stesso turno che raggiunge la casella della città.</Italian>
-	<Spanish>(AdvCiv) Tus espías pueden investigar ciudades rivales, pero a diferencia de "Warlords" y Civ 4, una unidad de espionaje no puede investigar en el mismo turno en el que llega a la casilla de la ciudad.</Spanish>
+	<English>(AdvCiv) Your spy units can investigate rival cities again, but unlike in "Warlords" and Civ 4, a mission cost needs to be paid.</English>
+	<French>(AdvCiv) Vos unités d'espionnage peuvent enquêter sur les villes rivales, mais contrairement aux "Warlords" et Civ 4, un coût de mission doit être payé.</French>
+	<German>(AdvCiv) Ihre Spione haben nun wieder die Fähigkeit, gegnerische Städte zu erkunden; aber anders als in "Warlords" und Civ 4 fallen dabei Missionskosten an.</German>
+	<Italian>(AdvCiv) Le tue unità spia possono indagare su città rivali, ma a differenza di "Warlords" e Civ 4, un costo di missione deve essere pagato.</Italian>
+	<Spanish>(AdvCiv) Tus unidades de espionaje pueden investigar ciudades rivales, pero a diferencia de "Warlords" y Civ 4, se debe pagar un costo de misión.</Spanish>
+</TEXT>
+
+<!-- advc.210 -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_33</Tag>
+	<English>(AdvCiv) When any member of your team is researching the same technology as you are, you both receive a 10% penalty on your research rates. Still, when a particular technology is urgently needed by the team, it can make sense to research that technology together.</English>
+	<French>(AdvCiv) When any member of your team is researching the same technology as you are, you both receive a 10% penalty on your research rates. Still, when a particular technology is urgently needed by the team, it can make sense to research that technology together.</French>
+	<German>(AdvCiv) Ihre Forschungsrate wird um 10% reduziert, wenn eines Ihrer Team-Mitglieder an der gleichen Technologie forscht wie Sie. Wenn das Team eine bestimmte Technologie dringend benötigt, kann es sich trotzdem lohnen, gemeinsam an einer Technologie zu forschen.</German>
+	<Italian>(AdvCiv) When any member of your team is researching the same technology as you are, you both receive a 10% penalty on your research rates. Still, when a particular technology is urgently needed by the team, it can make sense to research that technology together.</Italian>
+	<Spanish>(AdvCiv) When any member of your team is researching the same technology as you are, you both receive a 10% penalty on your research rates. Still, when a particular technology is urgently needed by the team, it can make sense to research that technology together.</Spanish>
+</TEXT>
+
+<!-- advc.099f -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_34</Tag>
+	<English>(AdvCiv) To see the culture percentages of unowned tiles, hold down [Shift] or enable "Always Show Tile Culture" on the "Map" tab of the BUG menu.</English>
+	<French>(AdvCiv) To see the culture percentages of unowned tiles, hold down [Shift] or enable "Always Show Tile Culture" on the "Map" tab of the BUG menu.</French>
+	<German>(AdvCiv) Die Kulturanteile auf neutralen Feldern lassen sich mit der Umschalttaste einblenden, oder über die Option "Kultur stets anzeigen" auf dem Reiter "Karte" im BUG-Menü.</German>
+	<Italian>(AdvCiv) To see the culture percentages of unowned tiles, hold down [Shift] or enable "Always Show Tile Culture" on the "Map" tab of the BUG menu.</Italian>
+	<Spanish>(AdvCiv) To see the culture percentages of unowned tiles, hold down [Shift] or enable "Always Show Tile Culture" on the "Map" tab of the BUG menu.</Spanish>
+</TEXT>
+
+<!-- The right-click behavior is pretty obscure, and therefore perhaps worth
+	 pointing out. -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_35</Tag>
+	<English>When more than one of your cities is able to work a tile, the game assigns that tile to the closest city. You can override this by opening the screen of another city and left-clicking the tile. Right-click the tile to undo the assignment.</English>
+	<French>When more than one of your cities is able to work a tile, the game assigns that tile to the closest city. You can override this by opening the screen of another city and left-clicking the tile. Right-click the tile to undo the assignment.</French>
+	<German>Wenn mehrere Ihrer Städte dasselbe Geländefeld bearbeiten können, wird das Feld automatisch der nächstgelegenen Stadt zugewiesen. Um das Feld manuell einer anderen Stadt zuzuweisen, öffnen Sie den Bildschirm dieser Stadt und klicken Sie dort auf das Feld. Mit einem Rechtsklick können Sie die Zuweisung wieder zurücknehmen.</German>
+	<Italian>When more than one of your cities is able to work a tile, the game assigns that tile to the closest city. You can override this by opening the screen of another city and left-clicking the tile. Right-click the tile to undo the assignment.</Italian>
+	<Spanish>When more than one of your cities is able to work a tile, the game assigns that tile to the closest city. You can override this by opening the screen of another city and left-clicking the tile. Right-click the tile to undo the assignment.</Spanish>
+</TEXT>
+
+<!-- advc.008c: Thought it'd be nice to mention the small K-Mod change to
+	 fortified Spies. Overwrites the value in CIV4GameText_BTS.xml -->
+<TEXT>
+	<Tag>TXT_KEY_HINT_51</Tag>
+	<English>Good things come to spies who wait. Leaving a spy on a tile will reduce the costs of all Espionage Missions performed in that tile. If you fortify a Spy in a foreign tile, it will wake up once mission costs are maximally reduced.</English>
+	<French>Un espion patient est toujours r&#233;compens&#233;. Si vous laissez un espion sur une case, cela r&#233;duira le co&#251;t de toutes les missions d'espionnage lanc&#233;es contre les &#233;l&#233;ments dans cette case. Si vous laissez un espion dans une ville &#233;trang&#232;re, vos missions dans cette ville vous co&#251;teront donc bien moins cher.</French>
+	<German>Gut Ding will Weile haben - das gilt auch f&#252;r Spione. Je l&#228;nger sich ein Spion auf einem Gel&#228;ndefeld aufh&#228;lt, desto geringer werden die Kosten f&#252;r Spionagemissionen auf diesem Feld. Wenn Sie einen Spion auf einem gegnerischen Feld verschanzen, meldet er sich, wenn die Missionskosten maximal gesenkt sind.</German>
+	<Italian>La spia migliore &#232; quella che sa aspettare. Lasciando una spia su una casella riduce i costi di tutte le missioni di spionaggio verso quella casella. Perci&#242;, lasciando una spia in una citt&#224; nemica, le missioni verso di questa costeranno meno.</Italian>
+	<Spanish>Los esp&#237;as que saben esperar tienen sus ventajas. Dejar un esp&#237;a en una casilla reducir&#225; los costes de todas las misiones de espionaje realizadas contra los objetos de dicha casilla. Por tanto, dejar un esp&#237;a en una ciudad enemiga abaratar&#225; significativamente el coste de tus misiones en dicha ciudad.</Spanish>
+</TEXT>
+
+<!-- advc.008c: New hint (about a K-Mod feature) -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_36</Tag>
+	<English>(K-Mod) Your vassals will join you in preparing for war if you inform them of your war plans through "Let's discuss something else." You can also tell them to abandon their preparations.</English>
+	<French>(K-Mod) Your vassals will join you in preparing for war if you inform them of your war plans through "Let's discuss something else." You can also tell them to abandon their preparations.</French>
+	<German>(K-Mod) Wenn Sie Ihre Vasallenstaaten über einen geplanten Krieg in Kenntnis setzen, werden diese verstärkt Militäreinheiten produzieren. Sie finden diese Option unter "Reden wir über etwas anderes".</German>
+	<Italian>(K-Mod) Your vassals will join you in preparing for war if you inform them of your war plans through "Let's discuss something else." You can also tell them to abandon their preparations.</Italian>
+	<Spanish>(K-Mod) Your vassals will join you in preparing for war if you inform them of your war plans through "Let's discuss something else." You can also tell them to abandon their preparations.</Spanish>
+</TEXT>
+
+<!-- advc.106i -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_37</Tag>
+	<English>Replays created by the AdvCiv mod (v0.95 or later) can be viewed with any BtS installation; the mod isn't required.</English>
+	<French>Replays created by the AdvCiv mod (v0.95 or later) can be viewed with any BtS installation; the mod isn't required.</French>
+	<German>Wiederholungen von AdvCiv-Partien (ab Version 0.95) lassen sich von jeder BtS-Installation abspielen; der Mod wird nicht benötigt.</German>
+	<Italian>Replays created by the AdvCiv mod (v0.95 or later) can be viewed with any BtS installation; the mod isn't required.</Italian>
+	<Spanish>Replays created by the AdvCiv mod (v0.95 or later) can be viewed with any BtS installation; the mod isn't required.</Spanish>
+</TEXT>
+
+<!-- advc.164 -->
+<TEXT>
+	<Tag>TXT_KEY_ADVC_HINT_38</Tag>
+	<English>(AdvCiv) Ships can reach the [COLOR_HIGHLIGHT_TEXT]Blitz[COLOR_REVERT] promotion via [COLOR_HIGHLIGHT_TEXT]Drill I[COLOR_REVERT]. This gives them one extra attack per turn, which can make a great difference when a group of enemy transports has almost reached your shore.</English>
+	<French>(AdvCiv) Ships can reach the [COLOR_HIGHLIGHT_TEXT]Blitz[COLOR_REVERT] promotion via [COLOR_HIGHLIGHT_TEXT]Drill I[COLOR_REVERT]. This gives them one extra attack per turn, which can make a great difference when a group of enemy transports has almost reached your shore.</French>
+	<German>(AdvCiv) Schiffe mit [COLOR_HIGHLIGHT_TEXT]Drill I[COLOR_REVERT] können die Beförderung [COLOR_HIGHLIGHT_TEXT]Blitzkrieg[COLOR_REVERT] erhalten - und damit einen zusätzlichen Angriff pro Runde. Dies kann entscheidend sein, wenn ein Verband feindlicher Transportschiffe auf Ihre Küste zusteuert.</German>
+	<Italian>(AdvCiv) Ships can reach the [COLOR_HIGHLIGHT_TEXT]Blitz[COLOR_REVERT] promotion via [COLOR_HIGHLIGHT_TEXT]Drill I[COLOR_REVERT]. This gives them one extra attack per turn, which can make a great difference when a group of enemy transports has almost reached your shore.</Italian>
+	<Spanish>(AdvCiv) Ships can reach the [COLOR_HIGHLIGHT_TEXT]Blitz[COLOR_REVERT] promotion via [COLOR_HIGHLIGHT_TEXT]Drill I[COLOR_REVERT]. This gives them one extra attack per turn, which can make a great difference when a group of enemy transports has almost reached your shore.</Spanish>
 </TEXT>
 
 </Civ4GameText>

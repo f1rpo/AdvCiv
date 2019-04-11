@@ -125,7 +125,8 @@ public:
 	int getX();
 	int getY();
 	bool at(int iX, int iY);
-	int getLatitude();																							
+	void setLatitude(int iLatitude); // advc.tsl
+	int getLatitude();
 	CyArea* area();
 	CyArea* waterArea();
 	int getArea();

@@ -95,7 +95,7 @@
 			<iResearchPercent>90</iResearchPercent>
 			<!-- BBAI start: effectively modify cost for all techs from this era.  Default: 0 -->
 			<!-- advc.910 -->
-			<iTechCostModifier>-20</iTechCostModifier>
+			<iTechCostModifier>-11</iTechCostModifier>
 			<!-- BBAI end -->
 			<iBuildPercent>100</iBuildPercent>
 			<iImprovementPercent>100</iImprovementPercent>
@@ -147,7 +147,8 @@
 			<Type>ERA_MEDIEVAL</Type>
 			<Description>TXT_KEY_ERA_MEDIEVAL</Description>
 			<Strategy>TXT_KEY_ERA_MEDIEVAL_STRATEGY</Strategy>
-			<bNoGoodies>1</bNoGoodies>
+			<!-- advc.314: was 0 -->
+			<bNoGoodies>0</bNoGoodies>
 			<bNoAnimals>1</bNoAnimals>
 			<bNoBarbUnits>0</bNoBarbUnits>
 			<bNoBarbCities>0</bNoBarbCities>
@@ -168,7 +169,7 @@
 			<iResearchPercent>80</iResearchPercent>
 			<!-- BBAI start: effectively modify cost for all techs from this era.  Default: 4 -->
 			<!-- advc.910: was 6 in K-Mod -->
-			<iTechCostModifier>-15</iTechCostModifier>
+			<iTechCostModifier>-5</iTechCostModifier>
 			<!-- BBAI end -->
 			<iBuildPercent>100</iBuildPercent>
 			<iImprovementPercent>100</iImprovementPercent>
@@ -243,7 +244,7 @@
 			<iResearchPercent>70</iResearchPercent>
 			<!-- BBAI start: effectively modify cost for all techs from this era.  Default: 9 -->
 			<!-- advc.910: was 12 in K-Mod -->
-			<iTechCostModifier>5</iTechCostModifier>
+			<iTechCostModifier>11</iTechCostModifier>
 			<!-- BBAI end -->
 			<iBuildPercent>90</iBuildPercent>
 			<iImprovementPercent>90</iImprovementPercent>
@@ -316,8 +317,8 @@
 			<iCreatePercent>80</iCreatePercent>
 			<iResearchPercent>60</iResearchPercent>
 			<!-- BBAI start: effectively modify cost for all techs from this era.  Default: 14 -->
-			<!-- advc.910: was 16 in K-Mod -->
-			<iTechCostModifier>10</iTechCostModifier>
+			<!-- advc.910: 16 in K-Mod -->
+			<iTechCostModifier>14</iTechCostModifier>
 			<!-- BBAI end -->
 			<iBuildPercent>80</iBuildPercent>
 			<iImprovementPercent>80</iImprovementPercent>
@@ -388,7 +389,7 @@
 			<iResearchPercent>50</iResearchPercent>
 			<!-- BBAI start: effectively modify cost for all techs from this era.  Default: 18 -->
 			<!-- advc.910: was 20 in K-Mod -->
-			<iTechCostModifier>12</iTechCostModifier>
+			<iTechCostModifier>17</iTechCostModifier>
 			<!-- BBAI end -->
 			<iBuildPercent>70</iBuildPercent>
 			<iImprovementPercent>70</iImprovementPercent>
@@ -456,8 +457,8 @@
 			<iCreatePercent>60</iCreatePercent>
 			<iResearchPercent>40</iResearchPercent>
 			<!-- BBAI start: effectively modify cost for all techs from this era.  Default: 18 -->
-			<!-- advc.910: was 18 in K-Mod -->
-			<iTechCostModifier>10</iTechCostModifier>
+			<!-- advc.910: 18 in K-Mod -->
+			<iTechCostModifier>17</iTechCostModifier>
 			<!-- BBAI end -->
 			<iBuildPercent>60</iBuildPercent>
 			<iImprovementPercent>60</iImprovementPercent>

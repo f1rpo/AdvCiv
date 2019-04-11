@@ -343,6 +343,8 @@ void CyPlayerPythonInterface1(python::class_<CyPlayer>& x)
 		.def("isEverAlive", &CyPlayer::isEverAlive, "bool ()")
 		.def("isExtendedGame", &CyPlayer::isExtendedGame, "bool ()")
 		.def("isFoundedFirstCity", &CyPlayer::isFoundedFirstCity, "bool ()")
+		// advc.078:
+		.def("isAnyGPPEver", &CyPlayer::isAnyGPPEver, "bool ()")
 
 		.def("isStrike", &CyPlayer::isStrike, "bool ()")
 

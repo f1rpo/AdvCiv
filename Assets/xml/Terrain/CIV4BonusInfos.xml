@@ -208,7 +208,8 @@
 			<iPlacementOrder>1</iPlacementOrder>
 			<iConstAppearance>100</iConstAppearance>
 			<iMinAreaSize>3</iMinAreaSize>
-			<iMinLatitude>0</iMinLatitude>
+			<!-- advc.129: was 0 -->
+			<iMinLatitude>9</iMinLatitude>
 			<iMaxLatitude>90</iMaxLatitude>
 			<Rands>
 				<iRandApp1>10</iRandApp1>
@@ -632,9 +633,14 @@
 					<bFeature>1</bFeature>
 				</FeatureBoolean>
 			</FeatureBooleans>
+			<!-- advc.021a: Plains Jungle added -->
 			<FeatureTerrainBooleans>
 				<FeatureTerrainBoolean>
 					<TerrainType>TERRAIN_GRASS</TerrainType>
+					<bFeatureTerrain>1</bFeatureTerrain>
+				</FeatureTerrainBoolean>
+				<FeatureTerrainBoolean>
+					<TerrainType>TERRAIN_PLAINS</TerrainType>
 					<bFeatureTerrain>1</bFeatureTerrain>
 				</FeatureTerrainBoolean>
 			</FeatureTerrainBooleans>
@@ -759,7 +765,8 @@
 			<iPlacementOrder>4</iPlacementOrder>
 			<iConstAppearance>50</iConstAppearance>
 			<iMinAreaSize>3</iMinAreaSize>
-			<iMinLatitude>0</iMinLatitude>
+			<!-- advc.129: was 0 -->
+			<iMinLatitude>9</iMinLatitude>
 			<iMaxLatitude>50</iMaxLatitude>
 			<Rands>
 				<iRandApp1>25</iRandApp1>
@@ -973,7 +980,8 @@
 			<iPlacementOrder>4</iPlacementOrder>
 			<iConstAppearance>50</iConstAppearance>
 			<iMinAreaSize>3</iMinAreaSize>
-			<iMinLatitude>10</iMinLatitude>
+			<!-- advc.129: was 10 -->
+			<iMinLatitude>9</iMinLatitude>
 			<iMaxLatitude>50</iMaxLatitude>
 			<Rands>
 				<iRandApp1>25</iRandApp1>
@@ -1091,7 +1099,8 @@
 			<iPlacementOrder>4</iPlacementOrder>
 			<iConstAppearance>50</iConstAppearance>
 			<iMinAreaSize>3</iMinAreaSize>
-			<iMinLatitude>30</iMinLatitude>
+			<!-- advc.129: was 30 -->
+			<iMinLatitude>25</iMinLatitude>
 			<iMaxLatitude>90</iMaxLatitude>
 			<Rands>
 				<iRandApp1>25</iRandApp1>
@@ -1510,9 +1519,14 @@
 					<bFeature>1</bFeature>
 				</FeatureBoolean>
 			</FeatureBooleans>
+			<!-- advc.021a: Plains Jungle added -->
 			<FeatureTerrainBooleans>
 				<FeatureTerrainBoolean>
 					<TerrainType>TERRAIN_GRASS</TerrainType>
+					<bFeatureTerrain>1</bFeatureTerrain>
+				</FeatureTerrainBoolean>
+				<FeatureTerrainBoolean>
+					<TerrainType>TERRAIN_PLAINS</TerrainType>
 					<bFeatureTerrain>1</bFeatureTerrain>
 				</FeatureTerrainBoolean>
 			</FeatureTerrainBooleans>
@@ -1749,9 +1763,14 @@
 					<bFeature>1</bFeature>
 				</FeatureBoolean>
 			</FeatureBooleans>
+			<!-- advc.021a: Plains Jungle added -->
 			<FeatureTerrainBooleans>
 				<FeatureTerrainBoolean>
 					<TerrainType>TERRAIN_GRASS</TerrainType>
+					<bFeatureTerrain>1</bFeatureTerrain>
+				</FeatureTerrainBoolean>
+				<FeatureTerrainBoolean>
+					<TerrainType>TERRAIN_PLAINS</TerrainType>
 					<bFeatureTerrain>1</bFeatureTerrain>
 				</FeatureTerrainBoolean>
 			</FeatureTerrainBooleans>

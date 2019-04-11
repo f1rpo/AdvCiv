@@ -97,7 +97,7 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 		self.SHOW_ROW_BORDERS = True
 		
 		# Minimum space at the top and bottom of the screen.
-		self.MIN_TOP_BOTTOM_SPACE = 60
+		self.MIN_TOP_BOTTOM_SPACE = 30 # advc.073: was 60
 		
 		# Minimum space at the left and right end of the screen.
 		self.MIN_LEFT_RIGHT_SPACE = 25
@@ -121,11 +121,12 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 		# If 'True', the amount for each surplus resource is subtracted by one. So it shows how many you
 		# can give away without losing the resource yourself. This value isn't affected by any default 
 		# layout.
-		self.RES_SHOW_EXTRA_AMOUNT = True
+		self.RES_SHOW_EXTRA_AMOUNT = False # advc.073: was True
 		
 		# If 'True', the amount's are shown as an overlay on top of the lower left corner of the resources.
 		# If 'False', the amount's are shown below the resources so you'll need to use a higher value for 
 		# self.RES_SURPLUS_HEIGHT (see below).
+		# advc.073 (comment): I doubt that False will work correctly with the changes I've made
 		self.RES_SHOW_SURPLUS_AMOUNT_ON_TOP = True
 		
 		# If 'True', the resource columns are grouped as import and export.
@@ -136,7 +137,7 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 		
 		# Height of the panel showing the surplus resources. If self.RES_SHOW_SURPLUS_AMOUNT_ON_TOP is 'False'
 		# you'll need to set a higher value for this variable (110 is recommended).
-		self.RES_SURPLUS_HEIGHT = 80
+		self.RES_SURPLUS_HEIGHT = 110 # advc.073: was 80
 		
 		self.RES_GOLD_COL_WIDTH = 25
 		
@@ -309,7 +310,7 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 		if (CyGame().isDebugMode()):
 			self.szDropdownName = self.getWidgetName(self.DEBUG_DROPDOWN_ID)
 			screen.addDropDownBoxGFC(self.szDropdownName, 22, 12, 300, WidgetTypes.WIDGET_GENERAL, -1, -1, FontTypes.GAME_FONT)
-			for j in range(gc.getMAX_CIV_PLAYERS()): # advc.007: excluded barbs
+			for j in range(gc.getMAX_CIV_PLAYERS()): # advc.007: Exclude Barbarians
 				if (gc.getPlayer(j).isAlive()):
 					bSelected = False
 					if j == self.iActiveLeader:
@@ -380,8 +381,19 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 					
 		# Put everything inside a main panel, so we get vertical scrolling
 		mainPanelName = self.getNextWidgetName()
-		# advc.066: The second int param was 100
-		screen.addPanel(mainPanelName, "", "", True, True, 50, 60, self.W_SCREEN - 100, self.H_SCREEN - 200, PanelStyles.PANEL_STYLE_EMPTY)
+		
+		#screen.addPanel(mainPanelName, "", "", True, True, 50, 100, self.W_SCREEN - 100, self.H_SCREEN - 200, PanelStyles.PANEL_STYLE_EMPTY)
+		# <advc.066> Replacing the above (same as in drawInfoOriginal)
+		leftRightMargin = 25
+		topBottomMargin = 60
+		mainPanelWidth = self.W_SCREEN - 2 * leftRightMargin
+		mainPanelHeight = self.H_SCREEN - 2 * topBottomMargin
+		if not gc.getGame().isDebugMode():
+			hasMetCount = gc.getTeam(playerActive.getTeam()).getHasMetCivCount(True)
+			if hasMetCount > 0: # The 300 is a pretty arbitrary value
+				mainPanelHeight = min(mainPanelHeight, 300 * hasMetCount)
+		screen.addPanel(mainPanelName, "", "", True, True, leftRightMargin, topBottomMargin, mainPanelWidth, mainPanelHeight, PanelStyles.PANEL_STYLE_EMPTY)
+		# </advc.066>
 
 		# loop through all players and sort them by number of active deals
 		listPlayers = [(0,0)] * gc.getMAX_PLAYERS()
@@ -405,7 +417,7 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 
 			# Player panel
 			playerPanelName = self.getNextWidgetName()
-			# advc.066: Second argument was gc.getPlayer(iLoopPlayer).getName()
+			# advc.066: Third argument was gc.getPlayer(iLoopPlayer).getName()
 			screen.attachPanel(mainPanelName, playerPanelName, "", "", False, True, PanelStyles.PANEL_STYLE_MAIN)
 
 			screen.attachLabel(playerPanelName, "", "   ")
@@ -425,8 +437,14 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 
 				if (deal.getFirstPlayer() == iLoopPlayer and deal.getSecondPlayer() == self.iActiveLeader and not deal.isNone()) or (deal.getSecondPlayer() == iLoopPlayer and deal.getFirstPlayer() == self.iActiveLeader):
 					szDealText = CyGameTextMgr().getDealString(deal, iLoopPlayer)
+					# <advc.072>
+					iShowTurnsMode = AdvisorOpt.getShowDealTurns()
+					bShowTurns = False
+					if iShowTurnsMode == 0 or iShowTurnsMode == 2:
+						bShowTurns = True
+					# </advc.072>
 					# advc.007: Now that CvDeal::isCancelable checks if eByPlayer is a party to the deal, turns-to-cancel isn't shown in the widget anymore. To fix this, treat the ShowDealTurnsLeft option as enabled when viewing the screen from the perspective of another civ in Debug mode.
-					if AdvisorOpt.isShowDealTurnsLeft() or self.iActiveLeader != gc.getGame().getActivePlayer():
+					if bShowTurns or self.iActiveLeader != gc.getGame().getActivePlayer():
 						if BugDll.isPresent():
 							if not deal.isCancelable(self.iActiveLeader, False):
 								if deal.isCancelable(self.iActiveLeader, True):
@@ -467,7 +485,19 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 					
 		# Put everything inside a main panel, so we get vertical scrolling
 		mainPanelName = self.getNextWidgetName()
-		screen.addPanel(mainPanelName, "", "", True, True, 50, 100, self.W_SCREEN - 100, self.H_SCREEN - 200, PanelStyles.PANEL_STYLE_EMPTY)
+		
+		#screen.addPanel(mainPanelName, "", "", True, True, 50, 100, self.W_SCREEN - 100, self.H_SCREEN - 200, PanelStyles.PANEL_STYLE_EMPTY)
+		# <advc.066> Replacing the above (same as in drawActive)
+		leftRightMargin = 25
+		topBottomMargin = 60
+		mainPanelWidth = self.W_SCREEN - 2 * leftRightMargin
+		mainPanelHeight = self.H_SCREEN - 2 * topBottomMargin
+		if not gc.getGame().isDebugMode():
+			hasMetCount = gc.getTeam(playerActive.getTeam()).getHasMetCivCount(True)
+			if hasMetCount > 0: # 100 was just a guess, but it seems like this is the exact height of a row.
+				mainPanelHeight = min(mainPanelHeight, 100 * hasMetCount)
+		screen.addPanel(mainPanelName, "", "", True, True, leftRightMargin, topBottomMargin, mainPanelWidth, mainPanelHeight, PanelStyles.PANEL_STYLE_EMPTY)
+		# </advc.066>
 
 		ltCivicOptions = range (gc.getNumCivicOptionInfos())
 
@@ -483,18 +513,19 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 
 				# Player panel
 				playerPanelName = self.getNextWidgetName()
-				screen.attachPanel(mainPanelName, playerPanelName, gc.getPlayer(iLoopPlayer).getName(), "", False, True, PanelStyles.PANEL_STYLE_MAIN)
+				# advc.066: Third argument was gc.getPlayer(iLoopPlayer).getName()
+				screen.attachPanel(mainPanelName, playerPanelName, "", "", False, True, PanelStyles.PANEL_STYLE_MAIN)
 
 				screen.attachImageButton(playerPanelName, "", objLeaderHead.getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_LEADERHEAD, iLoopPlayer, self.iActiveLeader, False)
-						
+
 				infoPanelName = self.getNextWidgetName()
 				screen.attachPanel(playerPanelName, infoPanelName, "", "", False, False, PanelStyles.PANEL_STYLE_EMPTY)
 
 				religionName = self.getNextWidgetName()
 				szPlayerReligion = ""
-				
+
 				if (nPlayerReligion != -1):
-					
+
 					if (gc.getPlayer(iLoopPlayer).hasHolyCity (nPlayerReligion)):
 						szPlayerReligion = u"%c" %(objReligion.getHolyCityChar())
 					elif objReligion:
@@ -519,6 +550,7 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 						objCivicInfo = gc.getCivicInfo (nFavoriteCivic)
 						screen.attachImageButton (infoPanelName, "", objCivicInfo.getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_CIVIC, nFavoriteCivic, 1, False)
 						screen.attachTextGFC(infoPanelName, "", "(" + gc.getCivicOptionInfo (objCivicInfo.getCivicOptionType()).getDescription() + ")", FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+
 
 	def drawInfoImproved (self, bInitial):
 		screen = self.getScreen()
@@ -681,8 +713,9 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 			# Trade
 			if (bIsActivePlayer or objLoopPlayer.canHaveTradeRoutesWith(self.iActiveLeader)):
 				(iTradeCommerce, iTradeRoutes) = self.calculateTrade (self.iActiveLeader, iLoopPlayer)
-				if TradeUtil.isFractionalTrade():
-					iTradeCommerce //= 100
+				# advc.001: Commented out (cf. TradeUtil.py)
+				#if TradeUtil.isFractionalTrade():
+				#	iTradeCommerce //= 100
 				szTradeYield = u"%d %c" % (iTradeCommerce, gc.getYieldInfo(YieldTypes.YIELD_COMMERCE).getChar())
 				szTradeRoutes = u"%d" % (iTradeRoutes)
 			else:
@@ -759,6 +792,14 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 #		ExoticForPrint ("Entered drawGlance")
 
 		screen = self.getScreen()
+		
+		# <advc.066> Reduce panel height when there are few civs
+		self.mainPanelHeight = self.H_SCREEN - 155
+		if not gc.getGame().isDebugMode():
+			playerActive = gc.getPlayer(self.iActiveLeader)
+			hasMetCount = gc.getTeam(playerActive.getTeam()).getHasMetCivCount(True)
+			self.mainPanelHeight = min(self.mainPanelHeight, 100 * (hasMetCount + 1))
+		# </advc.066>
 
 		# Put everything inside a main panel, so we get vertical scrolling
 		headerPanelName = self.getNextWidgetName()
@@ -771,8 +812,8 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 		self.drawGlanceHeader(screen, headerPanelName)
 
 		mainPanelName = self.getNextWidgetName()
-		screen.addPanel(mainPanelName, "", "", True, True, 0, 104, self.W_SCREEN, self.H_SCREEN - 155, PanelStyles.PANEL_STYLE_MAIN)
-
+		# advc.066: The height was self.H_SCREEN - 155, now computed above.
+		screen.addPanel(mainPanelName, "", "", True, True, 0, 104, self.W_SCREEN, self.mainPanelHeight, PanelStyles.PANEL_STYLE_MAIN)
 		self.drawGlanceRows (screen, mainPanelName, self.iSelectedLeader != self.iActiveLeader, self.iSelectedLeader)
 
 	def initializeGlance (self):
@@ -802,11 +843,11 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 
 				# Player panel
 				self.nCount += 1
-
-		self.X_Spread = (self.W_SCREEN - 20) / self.nCount
-		if self.X_Spread < 57: self.X_Spread = 57 # advc.004: Lower bound was 58
-
-		self.Y_Spread = (self.H_SCREEN - 50) / (self.nCount + 2)
+		# advc.066: Was (self.W_SCREEN - 20) /... I don't think there are margins to account for here.
+		self.X_Spread = self.W_SCREEN / self.nCount
+		if self.X_Spread < 57: self.X_Spread = 57 # advc.066: Lower bound was 58
+		# advc.066: Was (self.H_SCREEN - 50) /...
+		self.Y_Spread = (self.mainPanelHeight + 105) / (self.nCount + 2)
 		self.Y_Text_Offset = (self.Y_Spread - 36) / 2
 		if self.Y_Text_Offset < 0: self.Y_Text_Offset = 0
 
@@ -898,24 +939,22 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 
 	def initTradeTable(self):
 		screen = self.getScreen()
-		
+		# advc.073: Moved the first of the two IconGrid_BUG.GRID_TEXT_COLUMN (GPT that the AI will pay) three positions back in both branches
 		if (self.RES_SHOW_ACTIVE_TRADE):
-			columns = ( IconGrid_BUG.GRID_ICON_COLUMN, IconGrid_BUG.GRID_MULTI_LIST_COLUMN, IconGrid_BUG.GRID_MULTI_LIST_COLUMN
-					  , IconGrid_BUG.GRID_MULTI_LIST_COLUMN, IconGrid_BUG.GRID_MULTI_LIST_COLUMN, IconGrid_BUG.GRID_TEXT_COLUMN
-					  , IconGrid_BUG.GRID_MULTI_LIST_COLUMN, IconGrid_BUG.GRID_MULTI_LIST_COLUMN, IconGrid_BUG.GRID_TEXT_COLUMN )
+			columns = ( IconGrid_BUG.GRID_ICON_COLUMN, IconGrid_BUG.GRID_MULTI_LIST_COLUMN, IconGrid_BUG.GRID_TEXT_COLUMN, IconGrid_BUG.GRID_MULTI_LIST_COLUMN, IconGrid_BUG.GRID_MULTI_LIST_COLUMN, IconGrid_BUG.GRID_MULTI_LIST_COLUMN, IconGrid_BUG.GRID_MULTI_LIST_COLUMN, IconGrid_BUG.GRID_MULTI_LIST_COLUMN, IconGrid_BUG.GRID_TEXT_COLUMN )
 		else:
-			columns = ( IconGrid_BUG.GRID_ICON_COLUMN, IconGrid_BUG.GRID_MULTI_LIST_COLUMN, IconGrid_BUG.GRID_MULTI_LIST_COLUMN
-					  , IconGrid_BUG.GRID_MULTI_LIST_COLUMN, IconGrid_BUG.GRID_MULTI_LIST_COLUMN, IconGrid_BUG.GRID_TEXT_COLUMN )
+			columns = ( IconGrid_BUG.GRID_ICON_COLUMN, IconGrid_BUG.GRID_MULTI_LIST_COLUMN, IconGrid_BUG.GRID_TEXT_COLUMN, IconGrid_BUG.GRID_MULTI_LIST_COLUMN, IconGrid_BUG.GRID_MULTI_LIST_COLUMN, IconGrid_BUG.GRID_MULTI_LIST_COLUMN )
 		self.NUM_RESOURCE_COLUMNS = len(columns) - 1
-		
-		gridX = self.MIN_LEFT_RIGHT_SPACE + 10
-		gridY = self.MIN_TOP_BOTTOM_SPACE + self.RES_SURPLUS_HEIGHT + self.RES_PANEL_SPACE + self.TITLE_HEIGHT + 10
-		gridWidth = self.W_SCREEN - self.MIN_LEFT_RIGHT_SPACE * 2 - 20
-		gridHeight = self.H_SCREEN - self.MIN_TOP_BOTTOM_SPACE * 2 - self.RES_SURPLUS_HEIGHT - self.RES_PANEL_SPACE - self.TITLE_HEIGHT - 20
-		
+		# <advc.003> Intermediate values leftSpace and topSpace added
+		leftSpace = self.MIN_LEFT_RIGHT_SPACE + 10
+		topSpace = self.MIN_TOP_BOTTOM_SPACE + 10
+		gridX = leftSpace
+		gridY = topSpace + self.RES_SURPLUS_HEIGHT + self.RES_PANEL_SPACE + self.TITLE_HEIGHT
+		gridWidth = self.W_SCREEN - gridX - leftSpace 
+		gridHeight = self.H_SCREEN - gridY - topSpace
+		# </advc.003>
 		self.resIconGridName = self.getNextWidgetName()
-		self.resIconGrid = IconGrid_BUG.IconGrid_BUG( self.resIconGridName, screen, gridX, gridY, gridWidth, gridHeight
-											, columns, True, self.SHOW_LEADER_NAMES, self.SHOW_ROW_BORDERS )
+		self.resIconGrid = IconGrid_BUG.IconGrid_BUG( self.resIconGridName, screen, gridX, gridY, gridWidth, gridHeight, columns, True, self.SHOW_LEADER_NAMES, self.SHOW_ROW_BORDERS )
 
 		self.resIconGrid.setGroupBorder(self.GROUP_BORDER)
 		self.resIconGrid.setGroupLabelOffset(self.GROUP_LABEL_OFFSET)
@@ -923,34 +962,59 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 		self.resIconGrid.setMinRowSpace(self.MIN_ROW_SPACE)
 		
 		self.leaderCol = 0
-		self.surplusCol = 1
-		self.usedCol = 2
-		self.willTradeCol = 3
-		self.wontTradeCol = 4
-		self.canPayCol = 5
+		#self.surplusCol = 1
+		#self.usedCol = 2
+		#self.willTradeCol = 3
+		#self.wontTradeCol = 4
+		#self.canPayCol = 5
+		# <advc.073>
+		self.willImportCol = 1
+		self.canPayCol = 2
+		self.willExportCol = 3
+		self.wontExportCol = 4
+		self.noNeedCol = 5
+		# </advc.073>
 		self.activeExportCol = 6
 		self.activeImportCol = 7
 		self.payingCol = 8
 		
 		self.resIconGrid.setHeader( self.leaderCol, localText.getText("TXT_KEY_FOREIGN_ADVISOR_LEADER", ()) )
-		self.resIconGrid.setHeader( self.surplusCol, localText.getText("TXT_KEY_FOREIGN_ADVISOR_FOR_TRADE_2", ()) )
-		self.resIconGrid.setHeader( self.usedCol, localText.getText("TXT_KEY_FOREIGN_ADVISOR_NOT_FOR_TRADE_2", ()) )
-		self.resIconGrid.setHeader( self.willTradeCol, localText.getText("TXT_KEY_FOREIGN_ADVISOR_FOR_TRADE_2", ()) )
-		self.resIconGrid.setHeader( self.wontTradeCol, localText.getText("TXT_KEY_FOREIGN_ADVISOR_NOT_FOR_TRADE_2", ()) )
+		# <advc.073>
+		# txt keys were TXT_KEY_FOREIGN_ADVISOR_FOR_TRADE_2, TXT_KEY_FOREIGN_ADVISOR_NOT_FOR_TRADE_2, TXT_KEY_FOREIGN_ADVISOR_FOR_TRADE_2, TXT_KEY_FOREIGN_ADVISOR_NOT_FOR_TRADE_2
+		# was surplusCol
+		self.resIconGrid.setHeader( self.willImportCol, localText.getText("TXT_KEY_FOREIGN_ADVISOR_WILL_IMPORT", ()) )
+		# Moved up
 		self.resIconGrid.setHeader( self.canPayCol, (u"%c" % gc.getCommerceInfo(CommerceTypes.COMMERCE_GOLD).getChar()) )
 		self.resIconGrid.setTextColWidth(self.canPayCol, self.RES_GOLD_COL_WIDTH)
+		# Replaced with noNeedCol below
+		#self.resIconGrid.setHeader( self.usedCol, localText.getText("TXT_KEY_FOREIGN_ADVISOR_WILL_NOT_IMPORT", ()) )
+		# was willTradeCol
+		self.resIconGrid.setHeader( self.willExportCol, localText.getText("TXT_KEY_FOREIGN_ADVISOR_WILL_EXPORT", ()) )
+		# was wontTradeCol
+		self.resIconGrid.setHeader( self.wontExportCol, localText.getText("TXT_KEY_FOREIGN_ADVISOR_WILL_NOT_EXPORT", ()) )
+		# New column that takes over most of the wontTradeCol resources
+		self.resIconGrid.setHeader( self.noNeedCol, localText.getText("TXT_KEY_FOREIGN_ADVISOR_NO_NEED", ()) )
+		# </advc.073>
 		
 		if (self.RES_SHOW_ACTIVE_TRADE):
-			self.resIconGrid.setHeader( self.activeExportCol, localText.getText("TXT_KEY_FOREIGN_ADVISOR_EXPORT", ()) )
-			self.resIconGrid.setHeader( self.activeImportCol, localText.getText("TXT_KEY_FOREIGN_ADVISOR_IMPORT", ()) )
+			# advc.073: was TXT_KEY_FOREIGN_ADVISOR_EXPORT. Now all the headings take the perspective of the foreign leader (except noNeed)
+			self.resIconGrid.setHeader( self.activeExportCol, localText.getText("TXT_KEY_FOREIGN_ADVISOR_IMPORTING", ()) )
+			# advc.073: was TXT_KEY_FOREIGN_ADVISOR_IMPORT
+			self.resIconGrid.setHeader( self.activeImportCol, localText.getText("TXT_KEY_FOREIGN_ADVISOR_EXPORTING", ()) )
 			self.resIconGrid.setHeader( self.payingCol, (u"%c" % gc.getCommerceInfo(CommerceTypes.COMMERCE_GOLD).getChar()) )
 			self.resIconGrid.setTextColWidth(self.payingCol, self.RES_GOLD_COL_WIDTH)
 		if (self.RES_SHOW_IMPORT_EXPORT_HEADER):
-			self.resIconGrid.createColumnGroup("", 1)
-			self.resIconGrid.createColumnGroup(localText.getText("TXT_KEY_FOREIGN_ADVISOR_EXPORT", ()), 2)
-			self.resIconGrid.createColumnGroup(localText.getText("TXT_KEY_FOREIGN_ADVISOR_IMPORT", ()), 3)
+			self.resIconGrid.createColumnGroup(" ", 1)
+			#self.resIconGrid.createColumnGroup(localText.getText("TXT_KEY_FOREIGN_ADVISOR_EXPORT", ()), 2)
+			# advc.073: Replacing the above. (I want the groups, but not the headings.)
+			self.resIconGrid.createColumnGroup(" ", 2)
+			#self.resIconGrid.createColumnGroup(localText.getText("TXT_KEY_FOREIGN_ADVISOR_IMPORT", ()), 3)
+			# advc.073: Replacing the above
+			self.resIconGrid.createColumnGroup(" ", 3)
 			if (self.RES_SHOW_ACTIVE_TRADE):
-				self.resIconGrid.createColumnGroup(localText.getText("TXT_KEY_FOREIGN_ADVISOR_ACTIVE", ()), 3)
+				#self.resIconGrid.createColumnGroup(localText.getText("TXT_KEY_FOREIGN_ADVISOR_ACTIVE", ()), 3)
+				# advc.073: Replacing the above
+				self.resIconGrid.createColumnGroup(" ", 3)
 		
 		gridWidth = self.resIconGrid.getPrefferedWidth()
 		gridHeight = self.resIconGrid.getPrefferedHeight()
@@ -974,7 +1038,8 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 		self.SURPLUS_ICONS_X = self.SURPLUS_X + 10
 		if (self.RES_SHOW_SURPLUS_AMOUNT_ON_TOP):
 			self.SURPLUS_TABLE_X = self.SURPLUS_ICONS_X + 15
-			SURPLUS_VERTICAL_SPACING = (self.RES_SURPLUS_HEIGHT - self.RESOURCE_ICON_SIZE - self.TITLE_HEIGHT) / 2
+			# advc.073: Take RESOURCE_ICON_SIZE times 2 (two rows now)
+			SURPLUS_VERTICAL_SPACING = (self.RES_SURPLUS_HEIGHT - 2 * self.RESOURCE_ICON_SIZE - self.TITLE_HEIGHT) / 2
 			self.SURPLUS_ICONS_Y = self.SURPLUS_Y + SURPLUS_VERTICAL_SPACING + self.TITLE_HEIGHT
 			self.SURPLUS_TABLE_Y = self.SURPLUS_ICONS_Y + (self.RESOURCE_ICON_SIZE - self.TABLE_CONTROL_HEIGHT) / 2 + 8
 		else:
@@ -985,7 +1050,8 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 			self.SURPLUS_TABLE_Y = self.SURPLUS_ICONS_Y + self.RESOURCE_ICON_SIZE
 		
 		self.SURPLUS_CIRCLE_X_START = self.SURPLUS_TABLE_X + 4
-		self.SURPLUS_CIRCLE_Y = self.SURPLUS_TABLE_Y + 5
+		# advc.073: Renamed from SURPLUS_CIRCLE_Y
+		self.SURPLUS_CIRCLE_Y_START = self.SURPLUS_TABLE_Y + 5
 		
 
 		
@@ -998,54 +1064,54 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 		tradeData = TradeData()
 		tradeData.ItemType = TradeableItems.TRADE_RESOURCES
 		listSurplus = []
+		listNonSurplus = [] # advc.073
 		
 		for iLoopBonus in range(gc.getNumBonusInfos()):
+			bSurplus = False # advc.073
 			tradeData.iData = iLoopBonus
 			for iLoopPlayer in range(gc.getMAX_PLAYERS()):
 				currentPlayer = gc.getPlayer(iLoopPlayer)
-				if ( currentPlayer.isAlive() and not currentPlayer.isBarbarian()
-														  and not currentPlayer.isMinorCiv() 
-														  and gc.getTeam(currentPlayer.getTeam()).isHasMet(activePlayer.getTeam())
-														  and iLoopPlayer != self.iActiveLeader 
-														  and activePlayer.canTradeItem(iLoopPlayer, tradeData, False)
-														  and activePlayer.getNumTradeableBonuses(iLoopBonus) > 1 ):
+				if not currentPlayer.isAlive() or currentPlayer.isBarbarian() or currentPlayer.isMinorCiv() or not gc.getTeam(currentPlayer.getTeam()).isHasMet(activePlayer.getTeam()) or iLoopPlayer == self.iActiveLeader or not activePlayer.canTradeItem(iLoopPlayer, tradeData, False):
+					continue # advc.003
+				if activePlayer.getNumTradeableBonuses(iLoopBonus) > 1:
 					listSurplus.append(iLoopBonus)
+					bSurplus = True # advc.073
 					break
-		
+			# <advc.073>
+			if not bSurplus and activePlayer.getNumTradeableBonuses(iLoopBonus) > 0:
+				listNonSurplus.append(iLoopBonus)
+			# </advc.073>
 		self.calculateSurplusPanelLayout()
 		
 		# Assemble the surplus panel
 		self.mainAvailablePanel = self.getNextWidgetName()
-		screen.addPanel( self.mainAvailablePanel, localText.getText("TXT_KEY_FOREIGN_ADVISOR_SURPLUS_RESOURCES", ()), ""
-					   , False, False, self.SURPLUS_X, self.SURPLUS_Y, self.SURPLUS_WIDTH, self.RES_SURPLUS_HEIGHT
-					   , PanelStyles.PANEL_STYLE_MAIN )
+		screen.addPanel( self.mainAvailablePanel, localText.getText("TXT_KEY_FOREIGN_ADVISOR_SURPLUS_RESOURCES", ()), "", False, False, self.SURPLUS_X, self.SURPLUS_Y, self.SURPLUS_WIDTH, self.RES_SURPLUS_HEIGHT, PanelStyles.PANEL_STYLE_MAIN )
 		
 		self.availableMultiList = self.getNextWidgetName()
-		screen.addMultiListControlGFC( self.availableMultiList, ""
-									 , self.SURPLUS_ICONS_X, self.SURPLUS_ICONS_Y
-									 , self.RESOURCE_ICON_SIZE * len(listSurplus), self.RESOURCE_ICON_SIZE
-									 , 1, 32, 32, TableStyles.TABLE_STYLE_EMPTY )
+		# advc.073: I don't know how to make the surplus amounts wrap into another row, so the surplus resources will all have to be placed in the top row, even if there isn't enough space.
+		maxIconsPerRow = max(len(listSurplus), self.SURPLUS_WIDTH // self.RESOURCE_ICON_SIZE)
+		# advc.073: Width based on max of listSurplus and listNonSurplus; height times 2.
+		screen.addMultiListControlGFC( self.availableMultiList, "", self.SURPLUS_ICONS_X, self.SURPLUS_ICONS_Y, self.RESOURCE_ICON_SIZE * min(maxIconsPerRow,len(listSurplus)+len(listNonSurplus)), 2 * self.RESOURCE_ICON_SIZE, 1, 32, 32, TableStyles.TABLE_STYLE_EMPTY )
 
 		self.availableTable = self.getNextWidgetName()
 		# add the circles behind the amounts
 		if (self.RES_SHOW_SURPLUS_AMOUNT_ON_TOP):
 			for iIndex in range(len(listSurplus)):
-				screen.addDDSGFC( self.availableTable + "Circle" + str(iIndex)
-								 , ArtFileMgr.getInterfaceArtInfo("WHITE_CIRCLE_40").getPath()
-								 , self.SURPLUS_CIRCLE_X_START + iIndex * self.RESOURCE_ICON_SIZE, self.SURPLUS_CIRCLE_Y
-								 , 16, 16, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+				# advc.073: SURPLUS_CIRCLE_Y replaced with SURPLUS_CIRCLE_Y_START plus an offset.
+				circleY = self.SURPLUS_CIRCLE_Y_START
+				# Can't do the same for the amounts, so don't do this after all:
+				#if iIndex > maxIconsPerRow:
+				#	circleY += self.RESOURCE_ICON_SIZE
+				screen.addDDSGFC( self.availableTable + "Circle" + str(iIndex), ArtFileMgr.getInterfaceArtInfo("WHITE_CIRCLE_40").getPath(), self.SURPLUS_CIRCLE_X_START + iIndex * self.RESOURCE_ICON_SIZE, circleY, 16, 16, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 		
 		# add the table showing the amounts
-		screen.addTableControlGFC( self.availableTable, len(listSurplus)
-							     , self.SURPLUS_TABLE_X, self.SURPLUS_TABLE_Y
-							     , len(listSurplus) * self.RESOURCE_ICON_SIZE, self.TABLE_CONTROL_HEIGHT
-							     , False, False, 16, 16, TableStyles.TABLE_STYLE_EMPTY )
+		screen.addTableControlGFC( self.availableTable, len(listSurplus), self.SURPLUS_TABLE_X, self.SURPLUS_TABLE_Y, len(listSurplus) * self.RESOURCE_ICON_SIZE, self.TABLE_CONTROL_HEIGHT, False, False, 16, 16, TableStyles.TABLE_STYLE_EMPTY )
 		
 		# Add the bonuses to the surplus panel with their amount
 		for iIndex in range(len(listSurplus)):
 #			screen.addCheckBoxGFCAt (self.mainAvailablePanel, "Foo" + str(iIndex), gc.getBonusInfo (listSurplus[iIndex]).getButton(), ArtFileMgr.getInterfaceArtInfo ("BUTTON_HILITE_SQUARE").getPath(), self.X_GLANCE_OFFSET + (self.RESOURCE_ICON_SIZE * iIndex), 10, 32, 32, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS, listSurplus[iIndex], -1, ButtonStyles.BUTTON_STYLE_LABEL, False)
-			screen.appendMultiListButton( self.availableMultiList, gc.getBonusInfo(listSurplus[iIndex]).getButton(), 0
-										, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS, listSurplus[iIndex], -1, False )
+			# advc.073: Pass the active player to the BULL widget in order to signal that all takers are supposed to be listed
+			screen.appendMultiListButton( self.availableMultiList, gc.getBonusInfo(listSurplus[iIndex]).getButton(), 0, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS_TRADE, listSurplus[iIndex], self.iActiveLeader, False )
 			screen.setTableColumnHeader( self.availableTable, iIndex, u"", self.RESOURCE_ICON_SIZE )
 			
 			amount = activePlayer.getNumTradeableBonuses(listSurplus[iIndex])
@@ -1057,8 +1123,11 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 			else:
 				amountStr = u"<font=3>" + str(amount) + "</font>"
 			screen.setTableText( self.availableTable, iIndex, 0, amountStr, "", WidgetTypes.WIDGET_GENERAL, -1, -1, 0 )
-		
-		
+		# <advc.073>
+		for iIndex in range(len(listNonSurplus)):
+			screen.appendMultiListButton(self.availableMultiList, gc.getBonusInfo(listNonSurplus[iIndex]).getButton(), 0, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS_TRADE, listNonSurplus[iIndex], self.iActiveLeader, False)
+			screen.setTableColumnHeader(self.availableTable, iIndex, u"", self.RESOURCE_ICON_SIZE)
+		# </advc.073>
 		
 # 		# Assemble the panel that shows the trade table
 		self.TABLE_PANEL_X = self.RES_LEFT_RIGHT_SPACE
@@ -1067,9 +1136,7 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 		self.TABLE_PANEL_HEIGHT = self.H_SCREEN - self.TABLE_PANEL_Y - self.RES_TOP_BOTTOM_SPACE
 		
 		self.tradePanel = self.getNextWidgetName()
-		screen.addPanel( self.tradePanel, localText.getText("TXT_KEY_FOREIGN_ADVISOR_TRADE_TABLE", ()), ""
-					   , True, True, self.TABLE_PANEL_X, self.TABLE_PANEL_Y, self.TABLE_PANEL_WIDTH, self.TABLE_PANEL_HEIGHT
-					   , PanelStyles.PANEL_STYLE_MAIN )
+		screen.addPanel( self.tradePanel, localText.getText("TXT_KEY_FOREIGN_ADVISOR_TRADE_TABLE", ()), "", True, True, self.TABLE_PANEL_X, self.TABLE_PANEL_Y, self.TABLE_PANEL_WIDTH, self.TABLE_PANEL_HEIGHT, PanelStyles.PANEL_STYLE_MAIN )
 		
 		self.resIconGrid.createGrid()
 		
@@ -1081,9 +1148,7 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 		
 		for iLoopPlayer in range(gc.getMAX_PLAYERS()):
 			currentPlayer = gc.getPlayer(iLoopPlayer)
-			if ( currentPlayer.isAlive() and not currentPlayer.isBarbarian() and not currentPlayer.isMinorCiv() 
-										 and gc.getTeam(currentPlayer.getTeam()).isHasMet(activePlayer.getTeam()) 
-										 and iLoopPlayer != self.iActiveLeader ):
+			if ( currentPlayer.isAlive() and not currentPlayer.isBarbarian() and not currentPlayer.isMinorCiv() and gc.getTeam(currentPlayer.getTeam()).isHasMet(activePlayer.getTeam()) and iLoopPlayer != self.iActiveLeader ):
 				message = ""
 				if ( not activePlayer.canTradeNetworkWith(iLoopPlayer) ):
 					message = localText.getText("TXT_KEY_FOREIGN_ADVISOR_NOT_CONNECTED", ())
@@ -1106,15 +1171,29 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 						if (activePlayer.canTradeItem(iLoopPlayer, tradeData, (not currentPlayer.isHuman()))): # surplus
 							importFromPlayer.append(iLoopBonus) # advc.036
 						else: # used
-							self.resIconGrid.addIcon( currentRow, self.usedCol, gc.getBonusInfo(iLoopBonus).getButton()
-													, 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS, iLoopBonus )
+							# advc.073: Use the BONUS_TRADE widget from BULL so that the DLL can tell that tile yields shouldn't be shown
+							#self.resIconGrid.addIcon( currentRow, self.usedCol, gc.getBonusInfo(iLoopBonus).getButton(), 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS_TRADE, iLoopBonus, iLoopPlayer )
+							pass # Or rather: Disable this column
 					if (currentPlayer.canTradeItem(self.iActiveLeader, tradeData, False)):
-						if (currentPlayer.canTradeItem(self.iActiveLeader, tradeData, (not currentPlayer.isHuman()))): # will trade
-							self.resIconGrid.addIcon( currentRow, self.willTradeCol, gc.getBonusInfo(iLoopBonus).getButton()
-													, 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS, iLoopBonus )
-						else: # won't trade
-							self.resIconGrid.addIcon( currentRow, self.wontTradeCol, gc.getBonusInfo(iLoopBonus).getButton()
-													, 64, *BugDll.widget("WIDGET_PEDIA_JUMP_TO_BONUS_TRADE", iLoopBonus, iLoopPlayer, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS, iLoopBonus, -1) )
+						#if (currentPlayer.canTradeItem(self.iActiveLeader, tradeData, (not currentPlayer.isHuman()))): # will trade
+						# <advc.073> Replacing the above: separate column now for must-be-joking resources
+						iDenial = currentPlayer.getTradeDenial(self.iActiveLeader, tradeData)
+						# Human isn't going to deny, but I still want to populate the noNeedCol and wontExportCol.
+						if iDenial == -1 and currentPlayer.isHuman():
+							if activePlayer.getNumAvailableBonuses(iLoopBonus) > 0 and activePlayer.AI_corporationBonusVal(iLoopBonus) <= 0:
+								iDenial = DenialTypes.DENIAL_JOKING
+							elif currentPlayer.getNumAvailableBonuses(iLoopBonus) < 2 or currentPlayer.AI_corporationBonusVal(iLoopBonus) > 0:
+								iDenial = DenialTypes.DENIAL_NO_GAIN
+						if iDenial != DenialTypes.DENIAL_JOKING:
+							if iDenial < 0:
+								# Use the BONUS_TRADE widget from BULL everywhere (also needed for advc.036). Was willTradeCol.
+								self.resIconGrid.addIcon( currentRow, self.willExportCol, gc.getBonusInfo(iLoopBonus).getButton(), 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS_TRADE, iLoopBonus, iLoopPlayer )
+							else: # won't trade
+								# advc.073: Changed so that WIDGET_PEDIA_JUMP_TO_BONUS_TRADE works w/o BugDll. And was wontTradeCol.
+								self.resIconGrid.addIcon( currentRow, self.wontExportCol, gc.getBonusInfo(iLoopBonus).getButton(), 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS_TRADE, iLoopBonus, iLoopPlayer )
+						else: # New column for resources that the active player doesn't need
+							self.resIconGrid.addIcon(currentRow, self.noNeedCol, gc.getBonusInfo(iLoopBonus).getButton(), 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS_TRADE, iLoopBonus, iLoopPlayer)
+						# </advc.073>
 				# <advc.036> Sorting both listSurplus and importSurplusFromPlayer by the number of copies owned by the active player would be even better, but would take me too long to write in Python.
 				importSurplusFromPlayer = []
 				rest = []
@@ -1124,8 +1203,9 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 					else: rest.append(iBonus)
 				importSorted = importSurplusFromPlayer + rest
 				for iLoopBonus in importSorted:
-					# Cut and pasted from the "bonuses" loop above
-					self.resIconGrid.addIcon( currentRow, self.surplusCol, gc.getBonusInfo(iLoopBonus).getButton(), 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS, iLoopBonus )
+					# Cut and pasted from the "bonuses" loop above, but using the BONUS_TRADE widget from BULL.
+					# advc.073: Was surplusCol; and add 1000 to iLoopBonus in order to signal that we're in the import column (hack).
+					self.resIconGrid.addIcon( currentRow, self.willImportCol, gc.getBonusInfo(iLoopBonus).getButton(), 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS_TRADE, iLoopBonus+1000, iLoopPlayer )
 				# </advc.036>
 				if (self.RES_SHOW_ACTIVE_TRADE):
 					amount = 0
@@ -1139,19 +1219,15 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 									if (tradeData2.ItemType == TradeableItems.TRADE_GOLD_PER_TURN):
 										amount += tradeData2.iData
 									if (tradeData2.ItemType == TradeableItems.TRADE_RESOURCES):
-										self.resIconGrid.addIcon( currentRow, self.activeImportCol
-																, gc.getBonusInfo(tradeData2.iData).getButton()
-																, 64, *BugDll.widgetVersion(4, WidgetTypes.WIDGET_DEAL_KILL, iLoopDeal, iLoopTradeItem,
-																							   WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS, tradeData2.iData, -1) )
+										# advc.073: DEAL_KILL widget enabled
+										self.resIconGrid.addIcon( currentRow, self.activeImportCol, gc.getBonusInfo(tradeData2.iData).getButton(), 64, WidgetTypes.WIDGET_DEAL_KILL, iLoopDeal, iLoopTradeItem)
 								for iLoopTradeItem in range(deal.getLengthSecondTrades()):
 									tradeData2 = deal.getSecondTrade(iLoopTradeItem)
 									if (tradeData2.ItemType == TradeableItems.TRADE_GOLD_PER_TURN):
 										amount -= tradeData2.iData
 									if (tradeData2.ItemType == TradeableItems.TRADE_RESOURCES):
-										self.resIconGrid.addIcon( currentRow, self.activeExportCol
-																, gc.getBonusInfo(tradeData2.iData).getButton()
-																, 64, *BugDll.widgetVersion(4, WidgetTypes.WIDGET_DEAL_KILL, iLoopDeal, iLoopTradeItem + deal.getLengthFirstTrades(),
-																							   WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS, tradeData2.iData, -1) )
+										# advc.073: DEAL_KILL widget enabled
+										self.resIconGrid.addIcon( currentRow, self.activeExportCol, gc.getBonusInfo(tradeData2.iData).getButton(), 64, WidgetTypes.WIDGET_DEAL_KILL, iLoopDeal, iLoopTradeItem + deal.getLengthFirstTrades())
 							
 							if ( deal.getSecondPlayer() == iLoopPlayer and deal.getFirstPlayer() == self.iActiveLeader ):
 								for iLoopTradeItem in range(deal.getLengthFirstTrades()):
@@ -1159,19 +1235,15 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 									if (tradeData2.ItemType == TradeableItems.TRADE_GOLD_PER_TURN):
 										amount -= tradeData2.iData
 									if (tradeData2.ItemType == TradeableItems.TRADE_RESOURCES):
-										self.resIconGrid.addIcon( currentRow, self.activeExportCol
-																, gc.getBonusInfo(tradeData2.iData).getButton()
-																, 64, *BugDll.widgetVersion(4, WidgetTypes.WIDGET_DEAL_KILL, iLoopDeal, iLoopTradeItem,
-																							   WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS, tradeData2.iData, -1) )
+										# advc.073: DEAL_KILL widget enabled
+										self.resIconGrid.addIcon( currentRow, self.activeExportCol, gc.getBonusInfo(tradeData2.iData).getButton(), 64, WidgetTypes.WIDGET_DEAL_KILL, iLoopDeal, iLoopTradeItem)
 								for iLoopTradeItem in range(deal.getLengthSecondTrades()):
 									tradeData2 = deal.getSecondTrade(iLoopTradeItem)
 									if (tradeData2.ItemType == TradeableItems.TRADE_GOLD_PER_TURN):
 										amount += tradeData2.iData
 									if (tradeData2.ItemType == TradeableItems.TRADE_RESOURCES):
-										self.resIconGrid.addIcon( currentRow, self.activeImportCol
-																, gc.getBonusInfo(tradeData2.iData).getButton()
-																, 64, *BugDll.widgetVersion(4, WidgetTypes.WIDGET_DEAL_KILL, iLoopDeal, iLoopTradeItem + deal.getLengthFirstTrades(),
-																							   WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS, tradeData2.iData, -1) )
+										# advc.073: DEAL_KILL widget enabled
+										self.resIconGrid.addIcon( currentRow, self.activeImportCol, gc.getBonusInfo(tradeData2.iData).getButton(), 64, WidgetTypes.WIDGET_DEAL_KILL, iLoopDeal, iLoopTradeItem + deal.getLengthFirstTrades())
 # BUG - Kill Deal - end
 					if (amount != 0):
 						self.resIconGrid.setText(currentRow, self.payingCol, str(amount))
@@ -1223,9 +1295,7 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 			iLoopTeam = currentPlayer.getTeam()
 			currentTeam = gc.getTeam(iLoopTeam)
 
-			if ( currentPlayer.isAlive() and not currentPlayer.isBarbarian() and not currentPlayer.isMinorCiv() 
-										 and gc.getTeam(currentPlayer.getTeam()).isHasMet(activePlayer.getTeam()) 
-										 and iLoopPlayer != self.iActiveLeader ):
+			if ( currentPlayer.isAlive() and not currentPlayer.isBarbarian() and not currentPlayer.isMinorCiv() and gc.getTeam(currentPlayer.getTeam()).isHasMet(activePlayer.getTeam()) and iLoopPlayer != self.iActiveLeader ):
 				message = ""
 				# advc.120d: Replacing the line below
 				if not activePlayer.canSeeTech(iLoopPlayer):
@@ -1259,26 +1329,19 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 					
 						tradeData.iData = iLoopTech
 						if (activePlayer.canTradeItem(iLoopPlayer, tradeData, False) and activePlayer.getTradeDenial(iLoopPlayer, tradeData) == DenialTypes.NO_DENIAL): # wants
-							self.techIconGrid.addIcon( currentRow, iTechColWants, gc.getTechInfo(iLoopTech).getButton()
-																				 , 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, iLoopTech )
+							self.techIconGrid.addIcon( currentRow, iTechColWants, gc.getTechInfo(iLoopTech).getButton(), 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, iLoopTech )
 						elif (gc.getTeam(activePlayer.getTeam()).isHasTech(iLoopTech) and currentPlayer.canResearch(iLoopTech, False)):
-							self.techIconGrid.addIcon( currentRow, iTechColCantYou, gc.getTechInfo(iLoopTech).getButton()
-																					 , 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, iLoopTech )
+							self.techIconGrid.addIcon( currentRow, iTechColCantYou, gc.getTechInfo(iLoopTech).getButton(), 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, iLoopTech )
 						elif currentPlayer.canResearch(iLoopTech, False):
-							self.techIconGrid.addIcon( currentRow, iTechColResearch, gc.getTechInfo(iLoopTech).getButton()
-																			, 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, iLoopTech )
-						
+							self.techIconGrid.addIcon( currentRow, iTechColResearch, gc.getTechInfo(iLoopTech).getButton(), 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, iLoopTech )
 						if (currentPlayer.canTradeItem(self.iActiveLeader, tradeData, False)):
 							if (currentPlayer.getTradeDenial(self.iActiveLeader, tradeData) == DenialTypes.NO_DENIAL): # will trade
-								self.techIconGrid.addIcon( currentRow, iTechColWill, gc.getTechInfo(iLoopTech).getButton()
-																					 , 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, iLoopTech )
+								self.techIconGrid.addIcon( currentRow, iTechColWill, gc.getTechInfo(iLoopTech).getButton(), 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, iLoopTech )
 							else: # won't trade
-								self.techIconGrid.addIcon( currentRow, iTechColWont, gc.getTechInfo(iLoopTech).getButton()
-																					 , 64, *BugDll.widget("WIDGET_PEDIA_JUMP_TO_TECH_TRADE", iLoopTech, iLoopPlayer, WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, iLoopTech, -1) )
+								# advc.073: Changed so that WIDGET_PEDIA_JUMP_TO_TECH_TRADE works w/o BugDll
+								self.techIconGrid.addIcon( currentRow, iTechColWont, gc.getTechInfo(iLoopTech).getButton(), 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH_TRADE, iLoopTech, iLoopPlayer )
 						elif (gc.getTeam(currentPlayer.getTeam()).isHasTech(iLoopTech) and activePlayer.canResearch(iLoopTech, False)):
-							self.techIconGrid.addIcon( currentRow, iTechColCantThem, gc.getTechInfo(iLoopTech).getButton()
-																					 , 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, iLoopTech )
-
+							self.techIconGrid.addIcon( currentRow, iTechColCantThem, gc.getTechInfo(iLoopTech).getButton(), 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, iLoopTech )
 				currentRow += 1
 		self.techIconGrid.refresh()
 
@@ -1314,7 +1377,8 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 #		self.techIconGrid.setHeader( iTechColStatus, "" )
 		self.techIconGrid.setTextColWidth( iTechColStatus, self.TECH_STATUS_COL_WIDTH )
 		self.techIconGrid.setHeader( iTechColWants, localText.getText("TXT_KEY_FOREIGN_ADVISOR_WANTS", ()) )
-		self.techIconGrid.setHeader( iTechColCantYou, localText.getText("TXT_KEY_FOREIGN_ADVISOR_CANT_TRADE", ()) )
+		# advc.004g: was TXT_KEY_FOREIGN_ADVISOR_CANT_TRADE
+		self.techIconGrid.setHeader( iTechColCantYou, localText.getText("TXT_KEY_FOREIGN_ADVISOR_CANT_RECEIVE", ()) )
 		self.techIconGrid.setHeader( iTechColResearch, localText.getText("TXT_KEY_FOREIGN_ADVISOR_CAN_RESEARCH", ()) )
 		self.techIconGrid.setHeader( iTechColGold, (u"%c" % gc.getCommerceInfo(CommerceTypes.COMMERCE_GOLD).getChar()) )
 		self.techIconGrid.setTextColWidth( iTechColGold, self.TECH_GOLD_COL_WIDTH )

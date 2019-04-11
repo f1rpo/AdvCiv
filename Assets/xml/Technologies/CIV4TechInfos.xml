@@ -629,10 +629,12 @@
 			<iGridX>7</iGridX>
 			<iGridY>2</iGridY>
 			<DomainExtraMoves/>
+			<!-- advc.120g: Added the espionage row (no functional change) -->
 			<CommerceFlexible>
 				<bFlexible>0</bFlexible>
 				<bFlexible>0</bFlexible>
 				<bFlexible>1</bFlexible>
+				<bFlexible>0</bFlexible>
 			</CommerceFlexible>
 			<TerrainTrades/>
 			<bRiverTrade>0</bRiverTrade>
@@ -2499,7 +2501,13 @@
 			<iGridX>5</iGridX>
 			<iGridY>7</iGridY>
 			<DomainExtraMoves/>
-			<CommerceFlexible/>
+			<!-- advc.120g -->
+			<CommerceFlexible>
+				<bFlexible>0</bFlexible>
+				<bFlexible>0</bFlexible>
+				<bFlexible>0</bFlexible>
+				<bFlexible>1</bFlexible>
+			</CommerceFlexible>
 			<TerrainTrades/>
 			<bRiverTrade>0</bRiverTrade>
 			<Flavors>

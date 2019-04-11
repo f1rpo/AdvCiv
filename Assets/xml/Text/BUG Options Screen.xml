@@ -192,6 +192,18 @@
 		<Italian>Mappa</Italian>
 		<Spanish>Mapa</Spanish>
 	</TEXT>
+	<!-- advc.004: New heading. The labels of the layer buttons say "display,"
+		 e.g. "Resource Display", but that's a confusing heading (the
+		 screen/monitor is also a "display"). "Views" is also too general. -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPTLABEL_LAYERS</Tag>
+		<English>Layers:</English>
+		<French>Layers:</French>
+		<German>Ansichten:</German>
+		<Italian>Layers:</Italian>
+		<Spanish>Layers:</Spanish>
+	</TEXT>
+	
 	<!-- advc.004: The Strategy layer (Globe view) is really a separate thing -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPTLABEL_STRATEGYOVERLAY</Tag>
@@ -216,6 +228,15 @@
 		<German>Geländefeld-Tooltip:</German>
 		<Italian>Casella Selezionata:</Italian>
 		<Spanish>Texto Flotante Casilla:</Spanish>
+	</TEXT>
+	<!-- advc.002f -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_OPTLABEL_CITYICONS</Tag>
+		<English>City Icons:</English>
+		<French>City Icons:</French>
+		<German>Städte-Symbole:</German>
+		<Italian>City Icons:</Italian>
+		<Spanish>City Icons:</Spanish>
 	</TEXT>
 	<!-- advc.009c: Commented out -->
 	<!--TEXT>
@@ -335,12 +356,12 @@
 	</TEXT>
 	
 	<!-- City Screen Tab -->
-	
+	<!-- advc.004: German shortened -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPTTAB_CITYSCREEN</Tag>
 		<English>City Screen</English>
 		<French>City Screen</French>
-		<German>Stadt-Bildschirm</German>
+		<German>Stadt</German>
 		<Italian>Citt&#224;</Italian>
 		<Spanish>Pantalla de Ciudad</Spanish>
 	</TEXT>
@@ -806,11 +827,13 @@
 		<Italian>Sottoversione (SVN):</Italian>
 		<Spanish>Subversion (SVN):</Spanish>
 	</TEXT>
+	<!-- advc.004: There are many debug logs; say that this one deals with the
+		 BUG mod. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPTLABEL_DEBUG_LOGGING</Tag>
-		<English>Debug Output:</English>
+		<English>Debug Output (BUG mod):</English>
 		<French>Debug Output:</French>
-		<German>Debug-Meldungen:</German>
+		<German>Debug-Meldungen (BUG-Mod):</German>
 		<Italian>Output del debug:</Italian>
 		<Spanish>Debug Output:</Spanish>
 	</TEXT>

@@ -8,10 +8,9 @@
 //#include "CvStructs.h"
 #include "CvDeal.h"
 #include "CvRandom.h"
-// advc.250b:
-#include "StartPointsAsHandicap.h"
-// advc.700:
-#include "RiseFall.h"
+#include "StartPointsAsHandicap.h" // advc.250b
+#include "RiseFall.h" // advc.700
+#include "CvHallOfFameInfo.h" // advc.106i
 
 class CvPlot;
 class CvCity;
@@ -54,7 +53,7 @@ public:
 
 	DllExport void updateSelectionList();
 	DllExport void updateTestEndTurn();
-
+	void autoSave(bool bInitial = false); // advc.106l
 	DllExport void testExtendedGame();
 
 	DllExport CvUnit* getPlotUnit(const CvPlot* pPlot, int iIndex) const;
@@ -130,10 +129,10 @@ public:
 	int countKnownTechNumTeams(TechTypes eTech);														// Exposed to Python
 	int getNumFreeBonuses(BuildingTypes eBuilding);													// Exposed to Python
 
-	int countReligionLevels(ReligionTypes eReligion);							// Exposed to Python 
+	int countReligionLevels(ReligionTypes eReligion) /* advc.003: */ const;							// Exposed to Python 
 	int calculateReligionPercent(ReligionTypes eReligion,						// Exposed to Python
 			bool ignoreOtherReligions = false) const; // advc.115b
-	int countCorporationLevels(CorporationTypes eCorporation);							// Exposed to Python 
+	int countCorporationLevels(CorporationTypes eCorporation) /* advc.003: */ const;							// Exposed to Python 
 	void replaceCorporation(CorporationTypes eCorporation1, CorporationTypes eCorporation2);
 
 	int goldenAgeLength() const;																					// Exposed to Python
@@ -254,25 +253,26 @@ public:
 	// advc.127:
 	void setAIAutoPlayBulk(int iNewValue, bool changePlayerStatus = true);
 	void changeAIAutoPlay(int iChange,
-			bool changePlayerStatus = true); // advc.127
-/*
-** K-mod, 6/dec/10, karadoc
-*/
-	int getGlobalWarmingIndex() const;								// Exposed to Python
+			bool bChangePlayerStatus = true); // advc.127
+	// <advc.003b>
+	int getCivPlayersEverAlive() const;
+	void changeCivPlayersEverAlive(int iChange);
+	int getCivTeamsEverAlive() const;
+	void changeCivTeamsEverAlive(int iChange);
+	// </advc.003b>
+	// K-mod, 6/dec/10, karadoc
+	int getGlobalWarmingIndex() const;													// Exposed to Python
 	void setGlobalWarmingIndex(int iNewValue);
 	void changeGlobalWarmingIndex(int iChange);
-	int getGlobalWarmingChances() const;							// Exposed to Python
-	int getGwEventTally() const;							// Exposed to Python
+	int getGlobalWarmingChances() const;																// Exposed to Python
+	int getGwEventTally() const;																	// Exposed to Python
 	void setGwEventTally(int iNewValue);
 	void changeGwEventTally(int iChange);
-
 	int calculateGlobalPollution() const; // Exposed to Python
-	int calculateGwLandDefence(PlayerTypes ePlayer = NO_PLAYER /* global */) const; // Exposed to Python
-	int calculateGwSustainabilityThreshold(PlayerTypes ePlayer = NO_PLAYER /* global */) const; // Exposed to Python
+	int calculateGwLandDefence(PlayerTypes ePlayer = NO_PLAYER /* global */) const;							// Exposed to Python
+	int calculateGwSustainabilityThreshold(PlayerTypes ePlayer = NO_PLAYER /* global */) const;			// Exposed to Python
 	int calculateGwSeverityRating() const; // Exposed to Python
-/*
-** K-mod end
-*/
+	//K-mod end
 
 	unsigned int getInitialTime();
 	DllExport void setInitialTime(unsigned int uiNewValue);
@@ -304,6 +304,9 @@ public:
 
 	DllExport bool isFinalInitialized() const;																		// Exposed to Python
 	DllExport void setFinalInitialized(bool bNewValue);
+	// <advc.004x>
+	void setDawnOfManShown(bool b);
+	bool isAboutToShowDawnOfMan() const; // </advc.004x>
 	// <advc.061>
 	void setScreenDimensions(int x, int y); // (exposed to Python)
 	int getScreenWidth() const;
@@ -386,6 +389,8 @@ public:
 
 	bool isForcedControl(ForceControlTypes eIndex) const;												// Exposed to Python
 	DllExport void setForceControl(ForceControlTypes eIndex, bool bEnabled);
+	// advc.003:
+	bool canConstruct(BuildingTypes eBuilding, bool bIgnoreCost, bool bTestVisible) const;
 
 	int getUnitCreatedCount(UnitTypes eIndex) const; // Exposed to Python
 	void incrementUnitCreatedCount(UnitTypes eIndex);
@@ -413,11 +418,11 @@ public:
 
 	bool isVictoryValid(VictoryTypes eIndex) const;															// Exposed to Python
 	void setVictoryValid(VictoryTypes eIndex, bool bValid);
-
-	bool isSpecialUnitValid(SpecialUnitTypes eIndex);														// Exposed to Python  
+												// advc.003: const
+	bool isSpecialUnitValid(SpecialUnitTypes eIndex) const;														// Exposed to Python  
 	void makeSpecialUnitValid(SpecialUnitTypes eIndex);													// Exposed to Python
-
-	bool isSpecialBuildingValid(SpecialBuildingTypes eIndex);										// Exposed to Python
+												// advc.003: const
+	bool isSpecialBuildingValid(SpecialBuildingTypes eIndex) const;										// Exposed to Python
 	void makeSpecialBuildingValid(SpecialBuildingTypes eIndex, bool bAnnounce = false);									// Exposed to Python
 
 	bool isNukesValid() const;														// Exposed to Python  
@@ -464,12 +469,17 @@ public:
 	DllExport int getIndexAfterLastDeal();																								// Exposed to Python	
 	int getNumDeals();																													// Exposed to Python	
 	DllExport CvDeal* getDeal(int iID);																										// Exposed to Python	
+	// advc.003f: Inlined, but mainly I want a const version of the DLLExport above.
+	CvDeal* getDealINLINE(int iID) const { return m_deals.getAt(iID); }
 	CvDeal* addDeal();																													
 	void deleteDeal(int iID);																										
-	// iteration																																					
-	CvDeal* firstDeal(int *pIterIdx, bool bRev=false);													// Exposed to Python									
-	CvDeal* nextDeal(int *pIterIdx, bool bRev=false);														// Exposed to Python									
-
+	// iteration (advc.003: const)																																					
+	CvDeal* firstDeal(int *pIterIdx, bool bRev=false) const;													// Exposed to Python									
+	CvDeal* nextDeal(int *pIterIdx, bool bRev=false) const;														// Exposed to Python									
+	// <advc.072>
+	CvDeal* nextCurrentDeal(PlayerTypes eGivePlayer, PlayerTypes eReceivePlayer,
+			TradeableItems eItemType, int iData = -1, bool bWidget = false);
+	// </advc.072>
 	VoteSelectionData* getVoteSelection(int iID) const;
 	VoteSelectionData* addVoteSelection(VoteSourceTypes eVoteSource);
 	void deleteVoteSelection(int iID);
@@ -479,14 +489,17 @@ public:
 	VoteTriggeredData* addVoteTriggered(VoteSourceTypes eVoteSource, const VoteSelectionSubData& kOptionData);
 	void deleteVoteTriggered(int iID);
 
-	CvRandom& getMapRand();																											// Exposed to Python	
-	int getMapRandNum(int iNum, const char* pszLog);														
-																																												
-	CvRandom& getSorenRand();																										// Exposed to Python	
-	int getSorenRandNum(int iNum, const char* pszLog);													
-																																												
-	DllExport int calculateSyncChecksum();																								// Exposed to Python	
-	DllExport int calculateOptionsChecksum();																							// Exposed to Python	
+	CvRandom& getMapRand();																											// Exposed to Python
+	int getMapRandNum(int iNum, const char* pszLog);
+
+	CvRandom& getSorenRand();																										// Exposed to Python
+	//  Returns a value from the half-closed interval [0,iNum)
+	int getSorenRandNum(int iNum, const char* pszLog,
+			int iData1 = INT_MIN, int iData2 = INT_MIN); // advc.007
+
+	DllExport int calculateSyncChecksum();																								// Exposed to Python
+	DllExport int calculateOptionsChecksum();																							// Exposed to Python
+	bool checkInSync(); // advc.001n
 
 	void addReplayMessage(ReplayMessageTypes eType = NO_REPLAY_MESSAGE, PlayerTypes ePlayer = NO_PLAYER, CvWString pszText = L"", 
 		int iPlotX = -1, int iPlotY = -1, ColorTypes eColor = NO_COLOR);
@@ -651,6 +664,7 @@ public:
 	RiseFall const& getRiseFall() const;
 	RiseFall& getRiseFall();
 	// </advc.703>
+	void setHallOfFame(CvHallOfFameInfo* pHallOfFame); // advc.106i
 
 protected:
 	int m_iElapsedGameTurns;
@@ -679,7 +693,10 @@ protected:
 	int m_iGwEventTally;		// K-Mod
 	int m_iTurnLoadedFromSave; // advc.044
 	int m_iNormalizationLevel; // advc.108
-
+	// <advc.003b>
+	int m_iCivPlayersEverAlive;
+	int m_iCivTeamsEverAlive;
+	// </advc.003b>
 	unsigned int m_uiInitialTime;
 
 	bool m_bScoreDirty;
@@ -697,6 +714,8 @@ protected:
 	bool m_bResourceLayerSet; // advc.003d
 	bool m_bFeignSP; // advc.135c
 	bool m_bScenario; // advc.052
+	bool m_bAllGameDataRead; // advc.003
+	bool m_bDoMShown; // advc.004x
 
 	HandicapTypes m_eHandicap;
 	HandicapTypes m_eAIHandicap; // advc.127
@@ -734,13 +753,18 @@ protected:
 
 	IDInfo* m_paHolyCity;
 	IDInfo* m_paHeadquarters;
-
 	int** m_apaiPlayerVote;
 
 	std::vector<CvWString> m_aszDestroyedCities;
 	std::vector<CvWString> m_aszGreatPeopleBorn;
 
 	FFreeListTrashArray<CvDeal> m_deals;
+	/*  <advc.072> Not serialized. One for use by CvPlayer::getItemTradeString,
+		the other for CvDLLWidgetData::parseTradeItem. */
+	CLinkList<DealItemData> m_currentDeals;
+	CLinkList<DealItemData> m_currentDealsWidget;
+	bool m_bShowingCurrentDeals;
+	// </advc.072>
 	FFreeListTrashArray<VoteSelectionData> m_voteSelections;
 	FFreeListTrashArray<VoteTriggeredData> m_votesTriggered;
 
@@ -749,8 +773,8 @@ protected:
 
 	ReplayMessageList m_listReplayMessages; 
 	CvReplayInfo* m_pReplayInfo;
-
 	int m_iNumSessions;
+	CvHallOfFameInfo* m_pHallOfFame; // advc.106i
 
 	std::vector<PlotExtraYield> m_aPlotExtraYields;
 	std::vector<PlotExtraCost> m_aPlotExtraCosts;
@@ -765,8 +789,8 @@ protected:
 	int		m_iNumCultureVictoryCities;
 	int		m_eCultureVictoryCultureLevel;
 
-	StartPointsAsHandicap spah; // advc.250b
-	RiseFall riseFall; // advc.700
+	StartPointsAsHandicap m_spah; // advc.250b
+	RiseFall m_riseFall; // advc.700
 
 	void uninit();
 	void setStartTurnYear(int iTurn = 0); // advc.250c
@@ -774,6 +798,7 @@ protected:
 	void initScenario();
 	void initFreeUnits_bulk();
 	// </advc.051>
+	void setAIHandicap(); // advc.127
 	// <advc.003i> These were public (and DLLExport)
 	void initFreeState();
 	void assignStartingPlots();

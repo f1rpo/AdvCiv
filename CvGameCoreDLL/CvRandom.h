@@ -17,7 +17,12 @@ public:
 	void uninit();
 	void reset(unsigned long ulSeed = 0);
 
-	DllExport unsigned short get(unsigned short usNum, const TCHAR* pszLog = NULL);  //  Returns value from 0 to num-1 inclusive.
+	DllExport unsigned short get(unsigned short usNum, const TCHAR* pszLog = NULL) {  //  Returns value from 0 to num-1 inclusive.
+		// <advc.001n>
+		return getInt(usNum, pszLog, INT_MIN, INT_MIN);
+	} // New name to avoid issues in CyRandomPythonInterface
+	unsigned short getInt(unsigned short usNum, const TCHAR* pszLog, int iData1, int iData2 = INT_MIN);
+	// </advc.001n>
 	DllExport float getFloat();
 
 	void reseed(unsigned long ulNewValue);

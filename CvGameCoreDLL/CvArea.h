@@ -36,7 +36,7 @@ public:
 	void setRepresentativeArea(int eArea);
 	// Should only be needed for computing the equivalence classes
 	int getRepresentativeArea() const;
-	bool canBeEntered(CvArea const& from, CvUnit const* u = NULL) const;
+	bool canBeEntered(CvArea const& kFrom, CvUnit const* u = NULL) const;
 	// </advc.030>
 	void changeNumTiles(int iChange);
 	void changeNumOwnedTiles(int iChange);

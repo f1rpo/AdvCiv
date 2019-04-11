@@ -9661,7 +9661,7 @@
 			<SpecialistCounts>
 				<SpecialistCount>
 					<SpecialistType>SPECIALIST_ARTIST</SpecialistType>
-					<!-- advc.200 -->
+					<!-- advc.913a: Was 0 in BtS, 2 in K-Mod. -->
 					<iSpecialistCount>1</iSpecialistCount>
 				</SpecialistCount>
 			</SpecialistCounts>

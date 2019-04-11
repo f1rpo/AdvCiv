@@ -358,7 +358,8 @@ class AbstractCityTestAlert(AbstractCityAlert):
 			willPass = self._willPassTest(city)
 			if passed != willPass and willPass: # avdc.106d: 'and willPass' added
 				message, icon = self._getPendingAlertMessageIcon(city, willPass)
-		if (message):
+		# advc.106d: suppress check added
+		if message and not self._suppressMessage(city):
 			addMessageAtCity(iPlayer, message, icon, city)
 	
 	def _passedTest(self, cityId):
@@ -398,6 +399,12 @@ class AbstractCityTestAlert(AbstractCityAlert):
 	def _getPendingAlertMessageIcon(self, city, passes):
 		"Returns a tuple of the message and icon to use for the pending alert."
 		return (None, None)
+	# <advc.106d>
+	def _suppressMessage(self, city):
+		"Returns true if no messages should currently be displayed about the city."
+		# By default, don't show messages about cities in occupation, but subclasses can override this.
+		return city.isOccupation()
+	# </advc.106d>
 
 # Population
 
@@ -640,6 +647,12 @@ class CityOccupation(AbstractCityTestAlert):
 			return (localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_PENDING_PACIFIED", (city.getName(), )),
 					HAPPY_ICON)
 
+	# <advc.106d> The default implementation suppresses messages about cities in occupation. Obv. don't want that here.
+	# (Untested b/c the occupation alert is permanently disabled.)
+	def _suppressMessage(self, city):
+		return False
+	# </advc.106d>
+
 # Hurrying Production
 
 class AbstractCanHurry(AbstractCityTestAlert):
@@ -721,13 +734,20 @@ class CanHurryPopulation(AbstractCanHurry):
 	
 	def _getAlertMessage(self, city, info):
 		iPop = city.hurryPopulation(self.keHurryType)
-		iOverflow = city.hurryProduction(self.keHurryType) - city.productionLeft()
-		if Civ4lertsOpt.isWhipAssistOverflowCountCurrentProduction():
-			iOverflow = iOverflow + city.getCurrentProductionDifference(True, False)
+		#iOverflow = city.hurryProduction(self.keHurryType) - city.productionLeft()
+		#if Civ4lertsOpt.isWhipAssistOverflowCountCurrentProduction():
+		#	iOverflow = iOverflow + city.getCurrentProductionDifference(True, False)
+		#iMaxOverflow = min(city.getProductionNeeded(), iOverflow)
+		#iOverflowGold = max(0, iOverflow - iMaxOverflow) * gc.getDefineINT("MAXED_UNIT_GOLD_PERCENT") / 100
+		#iOverflow =  100 * iMaxOverflow / city.getBaseYieldRateModifier(gc.getInfoTypeForString("YIELD_PRODUCTION"), city.getProductionModifier())
+		# <advc.064> Replacing the above (same code as in CvMainInterface.py)
+		HURRY_WHIP = gc.getInfoTypeForString("HURRY_POPULATION")
+		HURRY_BUY = gc.getInfoTypeForString("HURRY_GOLD")
+		bCountCurrentOverflow = Civ4lertsOpt.isWhipAssistOverflowCountCurrentProduction()
+		iOverflow = city.getHurryOverflow(HURRY_WHIP, True, bCountCurrentOverflow)
+		iOverflowGold = city.getHurryOverflow(HURRY_WHIP, False, bCountCurrentOverflow)
+		# </advc.064>
 		iAnger = city.getHurryAngerTimer() + city.flatHurryAngerLength()
-		iMaxOverflow = min(city.getProductionNeeded(), iOverflow)
-		iOverflowGold = max(0, iOverflow - iMaxOverflow) * gc.getDefineINT("MAXED_UNIT_GOLD_PERCENT") / 100
-		iOverflow =  100 * iMaxOverflow / city.getBaseYieldRateModifier(gc.getInfoTypeForString("YIELD_PRODUCTION"), city.getProductionModifier())
 		if (iOverflowGold > 0):
 			return localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_CAN_HURRY_POP_PLUS_GOLD", (city.getName(), info.getDescription(), iPop, iOverflow, iAnger, iOverflowGold))
 		else:

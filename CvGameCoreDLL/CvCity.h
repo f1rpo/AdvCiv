@@ -34,7 +34,8 @@ public:
 	CvCity();
 	virtual ~CvCity();
 
-	void init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, bool bUpdatePlotGroups);
+	void init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, bool bUpdatePlotGroups,
+			int iOccupationTimer = 0); // advc.122
 	void uninit();
 	void reset(int iID = 0, PlayerTypes eOwner = NO_PLAYER, int iX = 0, int iY = 0, bool bConstructorCall = false);
 	void setupGraphical();
@@ -49,6 +50,7 @@ public:
 	bool isCitySelected();
 	DllExport bool canBeSelected() const;
 	DllExport void updateSelectedCity(bool bTestProduction);
+	void setInvestigate(bool b); // advc.103
 
 	void updateYield();
 
@@ -132,7 +134,10 @@ public:
 	int getProductionTurnsLeft(UnitTypes eUnit, int iNum) const;					// Exposed to Python
 	int getProductionTurnsLeft(BuildingTypes eBuilding, int iNum) const;	// Exposed to Python
 	int getProductionTurnsLeft(ProjectTypes eProject, int iNum) const;		// Exposed to Python
-	int getProductionTurnsLeft(int iProductionNeeded, int iProduction, int iFirstProductionDifference, int iProductionDifference) const;
+	int getProductionTurnsLeft(int iProductionNeeded, int iProduction,
+			int iFirstProductionDifference, int iProductionDifference) const;
+	int sanitizeProductionTurns(int iTurns, OrderTypes eOrder = NO_ORDER,
+			int iData = -1, bool bAssert = false) const; // advc.004x
 	void setProduction(int iNewValue);																			// Exposed to Python
 	void changeProduction(int iChange);																			// Exposed to Python
 
@@ -140,15 +145,28 @@ public:
 	int getProductionModifier(UnitTypes eUnit) const;															// Exposed to Python
 	int getProductionModifier(BuildingTypes eBuilding) const;											// Exposed to Python
 	int getProductionModifier(ProjectTypes eProject) const;												// Exposed to Python
-
-	int getOverflowProductionDifference(int iProductionNeeded, int iProduction, int iProductionModifier, int iDiff, int iModifiedProduction) const;
-	int getProductionDifference(int iProductionNeeded, int iProduction, int iProductionModifier, bool bFoodProduction, bool bOverflow) const;
-	int getCurrentProductionDifference(bool bIgnoreFood, bool bOverflow) const;				// Exposed to Python
+	// advc.003j: Vanilla Civ 4 declaration that never had an implementation
+	//int getOverflowProductionDifference(int iProductionNeeded, int iProduction, int iProductionModifier, int iDiff, int iModifiedProduction) const;
+	int getProductionDifference(int iProductionNeeded, int iProduction,
+			int iProductionModifier, bool bFoodProduction, bool bOverflow,
+			// <advc.064bc>
+			bool bIgnoreFeatureProd = false, bool bIgnoreYieldRate = false,
+			bool bForceFeatureProd = false, int* piFeatureProd = NULL) const;
+			// <advc.064bc>
+	int getCurrentProductionDifference(bool bIgnoreFood, bool bOverflow,												// Exposed to Python
+			// <advc.064bc>
+			bool bIgnoreFeatureProd = false, bool bIgnoreYieldRate = false,
+			bool bForceFeatureProd = false, int* iFeatureProdReturn = NULL) const;
+			// </advc.064bc>
 	int getExtraProductionDifference(int iExtra) const;																					// Exposed to Python
 
 	bool canHurry(HurryTypes eHurry, bool bTestVisible = false) const;		// Exposed to Python
 	void hurry(HurryTypes eHurry);																						// Exposed to Python
-	// <advc.064>
+	// <advc.064b>
+	int overflowCapacity(int iProductionModifier, int iPopulationChange = 0) const;
+	int computeOverflow(int iRawOverflow, int iProductionModifier, OrderTypes eOrderType,
+			int* piProductionGold = NULL, int* piLostProduction = NULL,
+			int iPopulationChange = 0) const; // </advc.064b>  <advc.064>
 	bool hurryOverflow(HurryTypes eHurry, int* piProduction, int* piGold,
 			bool bCountThisTurn = false) const;		// (exposed to Python)
 	// </advc.064>
@@ -232,7 +250,7 @@ public:
 	int healthRate(bool bNoAngry = false, int iExtra = 0) const;	// Exposed to Python
 	int foodConsumption(bool bNoAngry = false, int iExtra = 0) const;				// Exposed to Python
 	int foodDifference(bool bBottom = true, bool bIgnoreProduction = false) const; // Exposed to Python, K-Mod added bIgnoreProduction
-	int growthThreshold() const;																	// Exposed to Python
+	int growthThreshold(/* advc.064b: */int iPopulationChange = 0) const;												// Exposed to Python
 
 	int productionLeft() const;																							// Exposed to Python
 	int hurryCost(bool bExtra) const;																				// Exposed to Python
@@ -292,7 +310,7 @@ public:
 	CvPlotGroup* plotGroup(PlayerTypes ePlayer) const;
 	bool isConnectedTo(CvCity* pCity) const;															// Exposed to Python
 	bool isConnectedToCapital(PlayerTypes ePlayer = NO_PLAYER) const;			// Exposed to Python
-	int getArea() const;
+	int getArea() const;										// advc.003: Exposed to Python
 	CvArea* area() const;																						// Exposed to Python
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                      01/02/09                                jdog5000      */
@@ -390,11 +408,11 @@ public:
 	int calculateNumCitiesMaintenanceTimes100(PlayerTypes owner = NO_PLAYER) const;									// Exposed to Python									// Exposed to Python
 	// </advc.104>
 	// <advc.004b> A projection for cities yet to be founded
-	static int calculateDistanceMaintenanceTimes100(CvPlot* pCityPlot,
+	static int calculateDistanceMaintenanceTimes100(CvPlot const& kCityPlot,
 			PlayerTypes eOwner, int iPopulation = -1);
-	static int calculateNumCitiesMaintenanceTimes100(CvPlot* pCityPlot,
+	static int calculateNumCitiesMaintenanceTimes100(CvPlot const& kCityPlot,
 			PlayerTypes eOwner, int iPopulation = -1, int iExtraCities = 0);
-	static int calculateColonyMaintenanceTimes100(CvPlot* pCityPlot,
+	static int calculateColonyMaintenanceTimes100(CvPlot const& kCityPlot,
 			PlayerTypes eOwner, int iPopulation = -1, int iExtraCities = 0);
 	static int initialPopulation();
 	// </advc.004b>
@@ -566,6 +584,8 @@ public:
 	int getOverflowProduction() const;																		// Exposed to Python
 	void setOverflowProduction(int iNewValue);											// Exposed to Python
 	void changeOverflowProduction(int iChange, int iProductionModifier);
+	// advc.064b:
+	int unmodifyOverflow(int iRawOverflow, int iProductionModifier) const;
 
 	int getFeatureProduction()const;																		// Exposed to Python
 	void setFeatureProduction(int iNewValue);											// Exposed to Python
@@ -1076,7 +1096,10 @@ public:
 	virtual UnitTypes AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync = false, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR) = 0;
 	virtual BuildingTypes AI_bestBuilding(int iFocusFlags = 0, int iMaxTurns = MAX_INT, bool bAsync = false, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR) = 0;
 	//virtual int AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags = 0) const = 0;
-	virtual int AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags = 0, int iThreshold = 0, bool bConstCache = false, bool bAllowRecursion = true) const = 0; // K-Mod
+	// K-Mod:
+	virtual int AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags = 0,
+			int iThreshold = 0, bool bConstCache = false, bool bAllowRecursion = true,
+			bool bIgnoreSpecialists = false) const = 0; // advc.121b
 	virtual int AI_projectValue(ProjectTypes eProject) = 0;
 	virtual int AI_neededSeaWorkers() = 0;
 	virtual bool AI_isDefended(int iExtra = 0) = 0;
@@ -1091,15 +1114,15 @@ public:
 /********************************************************************************/
 	virtual bool AI_isDanger() = 0;
 	
-	virtual int AI_neededDefenders(
-			bool bIgnoreEvac = false) = 0; // advc.139
-	virtual int AI_neededFloatingDefenders(
-			bool bIgnoreEvac = false) = 0; // advc.139
+	virtual int AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac = false,
+			bool bConstCache = false) = 0; // advc.001n
+	virtual int AI_neededFloatingDefenders(/* advc.139: */ bool bIgnoreEvac = false,
+			bool bConstCache = false) = 0; // advc.001n
 	// <advc.139> Frequently used, so I don't want to have to downcast all the time.
 	virtual bool AI_isEvacuating() const = 0;
 	virtual bool AI_isSafe() const = 0;
 	// </advc.139>
-	virtual int AI_neededAirDefenders() = 0;
+	virtual int AI_neededAirDefenders(/* advc.001n: */ bool bConstCache = false) = 0;
 	virtual int AI_minDefenders() = 0;
 	virtual bool AI_isEmphasizeAvoidGrowth() const = 0;
 	virtual bool AI_isAssignWorkDirty() const = 0;
@@ -1130,8 +1153,10 @@ public:
 	virtual int AI_yieldMultiplier(YieldTypes eYield) const = 0;
 	virtual int AI_getCultureWeight() const = 0; // K-Mod
 	virtual void AI_setCultureWeight(int iWeight) = 0; // K-Mod
-	virtual int AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance = 7) = 0;
-	virtual int AI_highestTeamCloseness(TeamTypes eTeam) = 0; // K-Mod
+	virtual int AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance = 7,
+			bool bConstCache = false) = 0; // advc.001n
+	virtual int AI_highestTeamCloseness(TeamTypes eTeam, // K-Mod
+			bool bConstCache = false) = 0; // advc.001n
 	virtual int AI_cityThreat(bool bDangerPercent = false) = 0;
 	virtual BuildingTypes AI_bestAdvancedStartBuilding(int iPass) = 0;
 	
@@ -1253,6 +1278,7 @@ protected:
 	bool m_bInfoDirty;
 	bool m_bLayoutDirty;
 	bool m_bPlundered;
+	bool m_bInvestigate; // advc.103: Refers to the active team
 
 	PlayerTypes m_ePreviousOwner;
 	PlayerTypes m_eOriginalOwner;
@@ -1372,10 +1398,17 @@ protected:
 	double garrisonStrength() const; // advc.500b
 	//int calculateMaintenanceDistance() const;
 	// advc.004b: Replacing the above (which was public, but is only used internally)
-	static int calculateMaintenanceDistance(CvPlot* cityPlot, PlayerTypes owner);
+	static int calculateMaintenanceDistance(CvPlot const* cityPlot, PlayerTypes owner);
 	void damageGarrison(PlayerTypes eRevoltSource);
 	// advc.123f:
 	void failProduction(int iOrderData, int iInvestedProduction, bool bProject = false);
+	// <advc.064b>
+	void handleOverflow(int iRawOverflow, int iProductionModifier, OrderTypes eOrderType);
+	int failGoldPercent(OrderTypes eOrder) const; // also used by 123f
+	void payOverflowGold(int iLostProduction, int iGoldChange);
+	int getProductionTurnsLeft(int iProductionNeeded, int iProduction,
+			int iProductionModifier, bool bFoodProduction, int iNum) const;
+	// </advc.064b
 };
 
 #endif

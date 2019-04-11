@@ -460,7 +460,7 @@ double WarUtilityAspect::partnerUtilFromTrade() {
 			weReceive = d.getFirstTrades();
 			isGift = (d.getLengthSecondTrades() == 0);
 		}
-		if(TEAMID(d.getSecondPlayer()) == TEAMID(theyId)) {
+		else if(TEAMID(d.getSecondPlayer()) == TEAMID(theyId)) {
 			weReceive = d.getSecondTrades();
 			isGift = (d.getLengthFirstTrades() == 0);
 		}
@@ -1598,7 +1598,15 @@ Rebuke::Rebuke(WarEvalParameters& params)
 	: WarUtilityAspect(params) {}
 
 void Rebuke::evaluate() {
-
+	// <advc.134a>
+	if(we->AI_getContactTimer(theyId, CONTACT_PEACE_TREATY) > 0) {
+		/*  Don't want to use the remaining time here b/c that gets doubled when
+			capitulation is offered */
+		int rejectedPeaceCost = GC.getLeaderHeadInfo(we->getPersonalityType()).
+				getContactDelay(CONTACT_PEACE_TREATY) / 5;
+		u += rejectedPeaceCost;
+		log("+%d for rejected peace offer", rejectedPeaceCost);
+	} // </advc.134a>
 	int rebukeDiplo = -1 * we->AI_getMemoryAttitude(theyId, MEMORY_REJECTED_DEMAND);
 	if(we->isHuman()) {
 		rebukeDiplo = 0;
@@ -1620,7 +1628,8 @@ void Rebuke::evaluate() {
 	}
 	double theirTotal = 0;
 	double theirLoss = lostAssetScore(weId, &theirTotal);
-	if(theirTotal <= 0) return;
+	if(theirTotal <= 0)
+		return;
 	/*  Give their loss and our gain equal weight. We want to demonstrate that we
 		can take by force what is denied to us (and more), and that those who
 		deny us end up paying more than was asked. */
@@ -2561,7 +2570,7 @@ int Risk::preEvaluate() {
 		}
 		uMinus += vassalCost;
 	}
-	return ::round(uMinus);
+	return -::round(uMinus);
 }
 
 void Risk::evaluate() {
@@ -3409,19 +3418,24 @@ void FairPlay::evaluate() {
 	if(!powerTechFound)
 		return;*/
 	/*  Actually, never mind checking for starting tech. Don't want early rushes
-		on low difficulty either, and on King, the AI doesn't get Archery, but
-		lots of other freebies. */
-	int trainPercent = GC.getGameSpeedInfo(g.getGameSpeedType()).getTrainPercent();
-	if(trainPercent <= 0) {
-		FAssert(trainPercent > 0);
+		on low difficulty either. */
+	EraTypes startEra = g.getStartEra();
+	int trainMod = GC.getGameSpeedInfo(g.getGameSpeedType()).getTrainPercent() *
+			GC.getEraInfo(startEra).getTrainPercent();
+	if(trainMod <= 0) {
+		FAssert(trainMod > 0);
 		return;
 	}
-	int t = ::round(g.getElapsedGameTurns() / (trainPercent / 100.0));
+	int t = ::round(g.getElapsedGameTurns() / (trainMod / 10000.0));
+	double uMinus = 0;
 	/*  All bets off by turn 100, but, already by turn 50, the cost may
 		no longer be prohibitive. */
-	double uMinus = std::pow((100 - t) / 2.0, 1.28);
-	if(gameEra > 0) // The above only matters in the Ancient era
-		uMinus = 0;
+	int iTurnsRemaining = 100 - t - GC.getEraInfo(startEra).getStartPercent();
+	if(iTurnsRemaining > 0) {
+		uMinus = std::pow(iTurnsRemaining / 2.0, 1.28);
+		if(gameEra != startEra) // The above only matters in the start era
+			uMinus = 0;
+	}
 	// ... but dogpiling remains an issue in the Classical era
 	if(gameEra > 1)
 		return;

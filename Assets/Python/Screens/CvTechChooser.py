@@ -583,6 +583,23 @@ class CvTechChooser:
 
 		j = 0
 		k = 0
+		
+		# Adjustments  (advc.120g: Moved up so that the icon appears before the tech trading icon)
+		for j in range( CommerceTypes.NUM_COMMERCE_TYPES ):
+			# advc.120g: The second condition said (I paraphrase) "not team.isCommerceFlexible". This hides the icon once the tech is dicovered, which I don't like. If there were multiple techs unlocking the same slider it would make more sense. Actually, buildings can - in theory - unlock a slider for a player. So I'm going to check if the player already has the slider, but the team doesn't (meaning that the player must have it through a building).
+			if (gc.getTechInfo(i).isCommerceFlexible(j) and (not gc.getPlayer(self.iCivSelected).isCommerceFlexible(j) or gc.getTeam(gc.getPlayer(self.iCivSelected).getTeam()).isCommerceFlexible(j))):
+				szAdjustButton = self.getNextWidgetName("AdjustButton")
+				if ( j == CommerceTypes.COMMERCE_CULTURE ):
+					szFileName = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_CULTURE").getPath()
+				elif ( j == CommerceTypes.COMMERCE_ESPIONAGE ):
+					szFileName = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_ESPIONAGE").getPath()
+				else:
+					szFileName = ArtFileMgr.getInterfaceArtInfo("INTERFACE_GENERAL_QUESTIONMARK").getPath()
+				screen.addDDSGFCAt( szAdjustButton, szTechRecord, szFileName, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_ADJUST, i, j, False )
+				fX += X_INCREMENT
+
+		j = 0
+		k = 0
 
 		# Free Techs
 		if ( gc.getTechInfo(i).getFirstFreeTechs() > 0 ):
@@ -773,22 +790,6 @@ class CvTechChooser:
 		k = 0
 		# K-Mod end.
 
-		# Adjustments
-		for j in range( CommerceTypes.NUM_COMMERCE_TYPES ):
-			if (gc.getTechInfo(i).isCommerceFlexible(j) and not (gc.getTeam(gc.getPlayer(self.iCivSelected).getTeam()).isCommerceFlexible(j))):
-				szAdjustButton = self.getNextWidgetName("AdjustButton")
-				if ( j == CommerceTypes.COMMERCE_CULTURE ):
-					szFileName = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_CULTURE").getPath()
-				elif ( j == CommerceTypes.COMMERCE_ESPIONAGE ):
-					szFileName = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_ESPIONAGE").getPath()
-				else:
-					szFileName = ArtFileMgr.getInterfaceArtInfo("INTERFACE_GENERAL_QUESTIONMARK").getPath()
-				screen.addDDSGFCAt( szAdjustButton, szTechRecord, szFileName, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_ADJUST, i, j, False )
-				fX += X_INCREMENT
-
-		j = 0
-		k = 0
-
 		# Terrain opens up as a trade route
 		for j in range( gc.getNumTerrainInfos() ):
 			if gc.getTechInfo(i).isTerrainTrade(j):
@@ -810,7 +811,7 @@ class CvTechChooser:
 		j = 0
 		k = 0
 
-		# Special buildings like monestaries...
+		# Special buildings like monasteries...
 		for j in range( gc.getNumSpecialBuildingInfos() ):
 			if (gc.getSpecialBuildingInfo(j).getTechPrereq() == i):
 				szSpecialBuilding = self.getNextWidgetName("SpecialBuildingButton")

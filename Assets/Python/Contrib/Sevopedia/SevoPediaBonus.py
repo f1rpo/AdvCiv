@@ -195,49 +195,10 @@ class SevoPediaBonus:
 	def placeBuildings(self):
 		screen = self.top.getScreen()
 		panelName = self.top.getNextWidgetName()
-		screen.addPanel( panelName, localText.getText("TXT_KEY_PEDIA_CATEGORY_BUILDING", ()), "", False, True, self.X_BUILDINGS, self.Y_BUILDINGS, self.W_BUILDINGS, self.H_BUILDINGS, PanelStyles.PANEL_STYLE_BLUE50 )
+		# advc.004y: txt key was TXT_KEY_PEDIA_CATEGORY_BUILDING
+		screen.addPanel( panelName, localText.getText("TXT_KEY_PEDIA_CATEGORY_BUILDING_PROJECT", ()), "", False, True, self.X_BUILDINGS, self.Y_BUILDINGS, self.W_BUILDINGS, self.H_BUILDINGS, PanelStyles.PANEL_STYLE_BLUE50 )
 		screen.attachLabel(panelName, "", "  ")
-		for iBuilding in range(gc.getNumBuildingInfos()):
-			info = gc.getBuildingInfo(iBuilding)
-			bShow = (info.getFreeBonus() == self.iBonus
-					or info.getBonusHealthChanges(self.iBonus) > 0
-					or info.getBonusHappinessChanges(self.iBonus) > 0
-					or info.getBonusProductionModifier(self.iBonus) > 0)
-			if (not bShow):
-				for eYield in range(YieldTypes.NUM_YIELD_TYPES):
-					if (info.getBonusYieldModifier(self.iBonus, eYield) > 0):
-						bShow = True
-						break
-			if (bShow):
-				screen.attachImageButton( panelName, "", gc.getBuildingInfo(iBuilding).getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BUILDING, iBuilding, 1, False )
-
-
-
-	def placeAllows(self):
-		screen = self.top.getScreen()
-		panelName = self.top.getNextWidgetName()
-		screen.addPanel( panelName, localText.getText("TXT_KEY_PEDIA_ALLOWS", ()), "", False, True, self.X_ALLOWS_PANE, self.Y_ALLOWS_PANE, self.W_ALLOWS_PANE, self.H_ALLOWS_PANE, PanelStyles.PANEL_STYLE_BLUE50 )
-		screen.attachLabel(panelName, "", "  ")
-		iActivePlayer = gc.getGame().getActivePlayer() # advc.003l
-		for eLoopUnit in range(gc.getNumUnitInfos()):
-			bFound = False
-			if (eLoopUnit >= 0):
-				if (gc.getUnitInfo(eLoopUnit).getPrereqAndBonus() == self.iBonus):
-					bFound = True	
-				else:
-					j = 0
-					while (not bFound and j < gc.getNUM_UNIT_PREREQ_OR_BONUSES()):
-						if (gc.getUnitInfo(eLoopUnit).getPrereqOrBonuses(j) == self.iBonus):
-							bFound = True
-						j += 1
-			if bFound:
-				szButton = gc.getUnitInfo(eLoopUnit).getButton()
-				# <advc.003l>
-				if iActivePlayer >= 0:
-					szButton = gc.getPlayer(iActivePlayer).getUnitButton(eLoopUnit)
-				# </advc.003l>
-				screen.attachImageButton( panelName, "", szButton, GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_UNIT, eLoopUnit, 1, False )
-
+		# advc.905b: Moved this loop from placeAllows, which only deals with units now.
 		for eLoopBuilding in range(gc.getNumBuildingInfos()):
 			bFound = False
 			if (gc.getBuildingInfo(eLoopBuilding).getPrereqAndBonus() == self.iBonus):
@@ -250,6 +211,61 @@ class SevoPediaBonus:
 					j += 1
 			if bFound:
 				screen.attachImageButton( panelName, "", gc.getBuildingInfo(eLoopBuilding).getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BUILDING, eLoopBuilding, 1, False )
+
+		for iBuilding in range(gc.getNumBuildingInfos()):
+			info = gc.getBuildingInfo(iBuilding)
+			bShow = (info.getFreeBonus() == self.iBonus
+					or info.getBonusHealthChanges(self.iBonus) > 0
+					or info.getBonusHappinessChanges(self.iBonus) > 0
+					or info.getBonusProductionModifier(self.iBonus) > 0)
+			if (not bShow):
+				for eYield in range(YieldTypes.NUM_YIELD_TYPES):
+					if (info.getBonusYieldModifier(self.iBonus, eYield) > 0):
+						bShow = True
+						break
+			if (bShow):
+				screen.attachImageButton( panelName, "", info.getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BUILDING, iBuilding, 1, False )
+		# <advc.004y>
+		for iProject in range(gc.getNumProjectInfos()):
+			info = gc.getProjectInfo(iProject)
+			if info.getBonusProductionModifier(self.iBonus) != 0:
+				screen.attachImageButton(panelName, "", info.getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BUILDING, iBuilding, 1, False)
+		# </advc.004y>
+
+
+
+	def placeAllows(self):
+		screen = self.top.getScreen()
+		panelName = self.top.getNextWidgetName()
+		# advc.905b: txt key was TXT_KEY_PEDIA_ALLOWS
+		screen.addPanel( panelName, localText.getText("TXT_KEY_WB_UNITS", ()), "", False, True, self.X_ALLOWS_PANE, self.Y_ALLOWS_PANE, self.W_ALLOWS_PANE, self.H_ALLOWS_PANE, PanelStyles.PANEL_STYLE_BLUE50 )
+		screen.attachLabel(panelName, "", "  ")
+		iActivePlayer = gc.getGame().getActivePlayer() # advc.003l
+		for eLoopUnit in range(gc.getNumUnitInfos()):
+			bFound = False
+			if (gc.getUnitInfo(eLoopUnit).getPrereqAndBonus() == self.iBonus):
+				bFound = True
+			else:
+				j = 0
+				while (not bFound and j < gc.getNUM_UNIT_PREREQ_OR_BONUSES()):
+					if (gc.getUnitInfo(eLoopUnit).getPrereqOrBonuses(j) == self.iBonus):
+						bFound = True
+					j += 1
+			# <advc.905b>
+			if not bFound:
+				for j in range(gc.getNUM_UNIT_PREREQ_OR_BONUSES()):
+					if gc.getUnitInfo(eLoopUnit).getSpeedBonuses(j) == self.iBonus:
+						bFound = True
+						break
+			# </advc.905b>
+			if bFound:
+				szButton = gc.getUnitInfo(eLoopUnit).getButton()
+				# <advc.003l>
+				if iActivePlayer >= 0:
+					szButton = gc.getPlayer(iActivePlayer).getUnitButton(eLoopUnit)
+				# </advc.003l>
+				screen.attachImageButton( panelName, "", szButton, GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_UNIT, eLoopUnit, 1, False )
+		# advc.905b: Allowed buildings moved to placeBuildings
 
 
 

@@ -1845,8 +1845,7 @@ bool InvasionGraph::Node::isContinuedWar(Node const& other) const {
 
 double InvasionGraph::Node::powerCorrect(double multiplier) {
 
-	return std::pow(multiplier,
-			(double)GC.getDefineFLOAT("POWER_CORRECTION"));
+	return std::pow(multiplier, (double)GC.getPOWER_CORRECTION());
 }
 
 double InvasionGraph::Node::getLostPower(MilitaryBranchTypes mb) const {

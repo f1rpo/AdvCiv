@@ -21,29 +21,29 @@ StartPointsAsHandicap::StartPointsAsHandicap() {
 	pointsDisplayString = NULL;
 	nCivs = nHuman = 0;
 	randPoints = false;
-	allPts = new int [2 * MAX_CIV_PLAYERS];
 }
 
 
 StartPointsAsHandicap::~StartPointsAsHandicap() {
 
 	for(size_t i = 0; i < civs.size(); i++)
-		delete civs[i];
-	SAFE_DELETE_ARRAY(allPts);
-	if(pointsDisplayString != NULL)
-		delete pointsDisplayString;
+		SAFE_DELETE(civs[i]);
+	SAFE_DELETE(pointsDisplayString);
 }
 
 
 void StartPointsAsHandicap::reset() {
 
+	for(size_t i = 0; i < civs.size(); i++)
+		SAFE_DELETE(civs[i]);
 	civs.clear();
-	pointsDisplayString = NULL;
+	SAFE_DELETE(pointsDisplayString);
 }
 
 
-wstring* StartPointsAsHandicap::forSettingsScreen() {
+wstring* StartPointsAsHandicap::forSettingsScreen(bool bTab) {
 
+	updatePointsDisplayString(bTab);
 	return pointsDisplayString;
 }
 
@@ -72,7 +72,7 @@ void StartPointsAsHandicap::setInitialItems() {
 		civs[i]->assignStartPoints();
 	if(unequalDistrib)
 		rearrangeStartingPlots();
-	updatePointsDisplayString();
+	updatePointsDisplayString(true);
 	// Report about game setup
 	//gDLL->logMsg("debug_SPaH.log", report, true, true);
 }
@@ -115,7 +115,7 @@ void StartPointsAsHandicap::read(FDataStreamBase* pStream) {
 			nHuman++;
 	}
 	std::sort(civs.begin(), civs.end(), isLeftPtsLessThanRight);
-	updatePointsDisplayString();
+	updatePointsDisplayString(true);
 }
 
 
@@ -311,13 +311,13 @@ int StartPointsAsHandicap::minDist(CvPlot* p) {
 }
 
 
-void StartPointsAsHandicap::updatePointsDisplayString() {
+void StartPointsAsHandicap::updatePointsDisplayString(bool bTab) {
 
 	if(civs[nCivs - 1]->startPoints_configured() <= 0) {
 		pointsDisplayString = new wstring();
 		return;
 	}
-	char const* ind = "\t"; // indent
+	char const* ind = (bTab ? "\t" : "  "); // indent
 	wostringstream s;
 	s << "Start Points As Handicap\n"
 			<< ind << "(distribution: ";
@@ -330,7 +330,7 @@ void StartPointsAsHandicap::updatePointsDisplayString() {
 			s << "\n" << ind;
 	}
 	s.seekp(((long)s.tellp()) - 2); // Drop final comma
-	s << ")\n" << ind;
+	s << ")\n";
 	if(randPoints && !showActual)
 		s << "Not shown: randomization" << std::endl;
 	pointsDisplayString = new wstring(s.str());

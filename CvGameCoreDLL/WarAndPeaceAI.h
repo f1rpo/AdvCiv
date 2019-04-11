@@ -25,6 +25,7 @@ class WarAndPeaceAI
 public:
 
 	WarAndPeaceAI();
+	void invalidateUICache();
 	// excluded: barbarians, minor civs, dead civs
 	 std::vector<PlayerTypes>& properCivs();
 	 std::vector<TeamTypes>& properTeams();

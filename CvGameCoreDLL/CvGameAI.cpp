@@ -71,24 +71,24 @@ void CvGameAI::AI_initScenario() {
 void CvGameAI::AI_sortOutWPAIOptions(bool bFromSaveGame) {
 
 	if(GC.getDefineINT("USE_KMOD_AI_NONAGGRESSIVE")) {
-		wpai.setUseKModAI(true);
+		m_wpai.setUseKModAI(true);
 		setOption(GAMEOPTION_AGGRESSIVE_AI, false);
 		return;
 	}
 	if(GC.getDefineINT("DISABLE_UWAI")) {
-		wpai.setUseKModAI(true);
+		m_wpai.setUseKModAI(true);
 		setOption(GAMEOPTION_AGGRESSIVE_AI, true);
 		return;
 	}
-	wpai.setInBackground(GC.getDefineINT("UWAI_IN_BACKGROUND") > 0);
+	m_wpai.setInBackground(GC.getDefineINT("UWAI_IN_BACKGROUND") > 0);
 	if(bFromSaveGame) {
-		if(wpai.isEnabled() || wpai.isEnabled(true))
+		if(m_wpai.isEnabled() || m_wpai.isEnabled(true))
 			setOption(GAMEOPTION_AGGRESSIVE_AI, true);
 		return;
 	}
 	// If still not returned: settings according to Custom Game screen
 	bool bUseKModAI = isOption(GAMEOPTION_AGGRESSIVE_AI);
-	wpai.setUseKModAI(bUseKModAI);
+	m_wpai.setUseKModAI(bUseKModAI);
 	if(!bUseKModAI)
 		setOption(GAMEOPTION_AGGRESSIVE_AI, true);
 } // </advc.104>
@@ -182,7 +182,7 @@ void CvGameAI::read(FDataStreamBase* pStream)
 
 	pStream->Read(&m_iPad);
 	// <advc.104>
-	wpai.read(pStream);
+	m_wpai.read(pStream);
 	AI_sortOutWPAIOptions(true);
 	// </advc.104>
 }
@@ -197,7 +197,7 @@ void CvGameAI::write(FDataStreamBase* pStream)
 
 	pStream->Write(m_iPad);
 
-	wpai.write(pStream); // advc.104
+	m_wpai.write(pStream); // advc.104
 }
 
 // Protected Functions...

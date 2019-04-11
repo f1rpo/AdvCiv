@@ -58,7 +58,7 @@
 			<iTerrainGrainChange>-1</iTerrainGrainChange>
 			<iFeatureGrainChange>-1</iFeatureGrainChange>
 			<!-- advc.910: was 110 -->
-			<iResearchPercent>105</iResearchPercent>
+			<iResearchPercent>100</iResearchPercent>
 			<!-- advc.140: was 70 -->
 			<iTradeProfitPercent>63</iTradeProfitPercent>
 			<!-- advc.140: was 60 -->
@@ -89,7 +89,7 @@
 			<iTerrainGrainChange>0</iTerrainGrainChange>
 			<iFeatureGrainChange>0</iFeatureGrainChange>
 			<!-- advc.910: was 120 -->
-			<iResearchPercent>110</iResearchPercent>
+			<iResearchPercent>105</iResearchPercent>
 			<!-- advc.140: was 60 -->
 			<iTradeProfitPercent>55</iTradeProfitPercent>
 			<!-- advc.140: was 70 -->
@@ -161,7 +161,7 @@
 			<iTerrainGrainChange>1</iTerrainGrainChange>
 			<iFeatureGrainChange>1</iFeatureGrainChange>
 			<!-- advc.910: was 140 -->
-			<iResearchPercent>125</iResearchPercent>
+			<iResearchPercent>137</iResearchPercent>
 			<iTradeProfitPercent>40</iTradeProfitPercent>
 			<!-- advc.140: was 90 -->
 			<iDistanceMaintenancePercent>89</iDistanceMaintenancePercent>
@@ -211,7 +211,7 @@
 		<!-- advc.test: From vincentz's 34-civs micro mod. For testing
 			 MAX_CIV_PLAYERS > 18. I haven't made any adjustments except
 			 increase iDefaultPlayers to the highest number that I think
-			 this map size can accomodate at Low sea level. -->
+			 this map size can accommodate at Low sea level. -->
 		<!--WorldInfo>
 			<Type>WORLDSIZE_GIANT</Type>
 			<Description>Giant</Description>

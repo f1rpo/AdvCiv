@@ -40,11 +40,11 @@
 	 reason not to chop. -->
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_3</Tag>
-	<English>In the late game, forests and jungles help offset the pollution caused by your civilization. If you don't need to chop them down, consider keeping them to reduce the effects of global warming.</English>
-	<French>In the late game, forests and jungles help offset the pollution caused by your civilization. If you don't need to chop them down, consider keeping them to reduce the effects of global warming.</French>
-	<German>Wälder und Dschungel helfen gegen Spielende, die Umweltverschmutzung Ihrer Zivilisation auszugleichen. Ziehen Sie in Betracht, sie zu erhalten, um dem Klimawandel entgegenzuwirken.</German>
-	<Italian>Foreste e giungle aiutano a contrastare l'inquinamento causato dalla tua civilità. Se non hai necessità di abbatterle, considera di mantenerle per ridurre gli effetti del riscaldamento globale.</Italian>
-	<Spanish>Los bosques y las selvas ayudan a compensar la polución causada por tu civilización. Si no necesitas talarlos, considéraros para reducir los efectos del calentamiento global.</Spanish>
+	<English>(K-Mod) In the late game, forests and jungles help offset the pollution caused by your civilization. If you don't need to chop them down, consider keeping them to reduce the effects of global warming.</English>
+	<French>(K-Mod) In the late game, forests and jungles help offset the pollution caused by your civilization. If you don't need to chop them down, consider keeping them to reduce the effects of global warming.</French>
+	<German>(K-Mod) Wälder und Dschungel helfen gegen Spielende, die Umweltverschmutzung Ihrer Zivilisation auszugleichen. Ziehen Sie in Betracht, sie zu erhalten, um dem Klimawandel entgegenzuwirken.</German>
+	<Italian>(K-Mod) Foreste e giungle aiutano a contrastare l'inquinamento causato dalla tua civilità. Se non hai necessità di abbatterle, considera di mantenerle per ridurre gli effetti del riscaldamento globale.</Italian>
+	<Spanish>(K-Mod) Los bosques y las selvas ayudan a compensar la polución causada por tu civilización. Si no necesitas talarlos, considéraros para reducir los efectos del calentamiento global.</Spanish>
 </TEXT>
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_4</Tag>
@@ -71,10 +71,11 @@
 	<Italian>(K-Mod) Le unità con la promozione "Leadership" (Grande Generale richiesto) riducono maggiormente le probabilità di rivolta di una città.</Italian>
 	<Spanish>(K-Mod) Las unidades con el ascendo de caudillo "liderazgo" reduce enormemente la probabilidad de rebeliones culturales en su ciudad.</Spanish>
 </TEXT>
+<!-- advc.008c: "grants" instead of "shares". "share to" sounds awkward. -->
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_7</Tag>
-	<English>(K-Mod) When a Great General chooses to lead a unit as a warlord, it shares an immediate experience boost to all units in the group. More experience points are given to bigger groups.</English>
-	<French>(K-Mod) When a Great General chooses to lead a unit as a warlord, it shares an immediate experience boost to all units in the group. More experience points are given to bigger groups.</French>
+	<English>(K-Mod) When a Great General chooses to lead a unit as a warlord, it grants an immediate experience boost to all units in the group. More experience points are given to bigger groups.</English>
+	<French>(K-Mod) When a Great General chooses to lead a unit as a warlord, it grants an immediate experience boost to all units in the group. More experience points are given to bigger groups.</French>
 	<German>(K-Mod) Wenn ein Großer General sich dazu entschließt, eine Einheit als Kriegsherr zu führen, teilt er einmalig Erfahrungspunkte mit allen Einheiten der Gruppe. Größere Gruppen erhalten dabei mehr Punkte als kleine.</German>
 	<Italian>(K-Mod) Quando un Grande Generale decide di unirsi ad un unità come Grande Condottiero, distribuisce in immediato aumento di esperienza con tutte le unità sulla stessa casella. Maggiore lo stack, maggiore l'esperienza.</Italian>
 	<Spanish>(K-Mod) Cuando un Gran General elige liderar una unidad como un caudillo, comparte un aumento inmediato de experiencia a todas las unidades en el grupo. Más puntos de experiencia son dados a grupos más grandes.</Spanish>
@@ -126,11 +127,11 @@
 </TEXT>
 <TEXT>
 	<Tag>TXT_KEY_KMOD_HINT_13</Tag>
-	<English>In the city build queue, use [CTRL] and [SHIFT] to move items up and down; and [ALT] to toggle whether or not items should repeat.</English>
-	<French>In the city build queue, use [CTRL] and [SHIFT] to move items up and down; and [ALT] to toggle whether or not items should repeat.</French>
-	<German>In der Bauauftragsliste einer Stadt können [Strg] und [Umschalt] benutzt werden, um Einträge hoch und runter zu bewegen, und [Alt] um Einträge endlos bauen zu lassen.</German>
-	<Italian>In the city build queue, use [CTRL] and [SHIFT] to move items up and down; and [ALT] to toggle whether or not items should repeat.</Italian>
-	<Spanish>En la cola de construcción, usa [CTRL] y [MAYÚS] para mover objetos arriba y abajo; y [ALT] para alternar si los objetos deben repetirse o no.</Spanish>
+	<English>(K-Mod) In the city build queue, use [CTRL] and [SHIFT] to move items up and down; and [ALT] to toggle whether or not items should repeat.</English>
+	<French>(K-Mod) In the city build queue, use [CTRL] and [SHIFT] to move items up and down; and [ALT] to toggle whether or not items should repeat.</French>
+	<German>(K-Mod) In der Bauauftragsliste einer Stadt können [Strg] und [Umschalt] benutzt werden, um Einträge hoch und runter zu bewegen, und [Alt] um Einträge endlos bauen zu lassen.</German>
+	<Italian>(K-Mod) In the city build queue, use [CTRL] and [SHIFT] to move items up and down; and [ALT] to toggle whether or not items should repeat.</Italian>
+	<Spanish>(K-Mod) En la cola de construcción, usa [CTRL] y [MAYÚS] para mover objetos arriba y abajo; y [ALT] para alternar si los objetos deben repetirse o no.</Spanish>
 </TEXT>
 <!-- replacement text for the inaccurate barbarian tip (changed english and german only)-->
 <!-- advc.008c: Replacement text had been invalidated by advc.300. Now the
@@ -149,12 +150,18 @@
 	<Spanish>Los bárbaros no reaparecerán en dos pasos de cualquiera de las unidades. Con el posicionamiento cuidadoso de batidores puedes bloquear completamente grupos de pillaje que se formen en tu área.</Spanish>
 </TEXT>
 <!-- replacement text for the double-click tip, because I've changed the functionality of double-click -->
+<!-- advc.008c: The K-Mod text was "Double clicking a stack of units will wake
+	 them all up." (And German: " Ein Doppelklick auf einen Einheitenstapel
+	 weckt sie alle auf.") My text hopefully makes clearer that the 3D models or
+	 the flag (in cities - to avoid entering the city screen) needs to be
+	 clicked, not the unit icons. Will also wake up a single unit if there
+	 isn't a stack. I've left the Spanish text alone. -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_INTERFACE_6</Tag>
-	<English>(K-Mod) Double clicking on a stack of units will wake them all up.</English>
-	<French>(K-Mod) Double clicking on a stack of units will wake them all up.</French>
-	<German>(K-Mod) Ein Doppelklick auf einen Einheitenstapel weckt sie alle auf.</German>
-	<Italian>(K-Mod) Double clicking on a stack of units will wake them all up.</Italian>
+	<English>(K-Mod) Double-click a tile to wake all units up. For city tiles, this only works if you double-click the units' flag.</English>
+	<French>(K-Mod) Double-click a tile to wake all units up. For city tiles, this only works if you double-click the units' flag.</French>
+	<German>(K-Mod) Ein Doppelklick auf ein Geländefeld weckt alle Einheiten dort auf. Bei Stadtfeldern funktioniert dies nur, wenn Sie auf die Flagge der Einheiten klicken.</German>
+	<Italian>(K-Mod) Double-click a tile to wake all units up. For city tiles, this only works if you double-click the units' flag.</Italian>
 	<Spanish>(K-Mod) Doble click en una pila de unidades las despertará a todas.</Spanish>
 </TEXT>
 <TEXT>
@@ -183,17 +190,6 @@
 	<German>Halten Sie beim Wecken einer Einheit [ALT] gedrückt, so werden weltweit alle Ihre Einheiten dieses Typs geweckt.</German>
 	<Italian>Hold [ALT] when clicking the 'Wake' command in order to wake all your units of the same type around the world.</Italian>
 	<Spanish>Hold [ALT] when clicking the 'Wake' command in order to wake all your units of the same type around the world.</Spanish>
-</TEXT>
-
-<!-- advc.008c: Thought it'd be nice to mention the small K-Mod change to
-	 fortified Spies. Overwrites the value in CIV4GameText_BTS.xml -->
-<TEXT>
-	<Tag>TXT_KEY_HINT_51</Tag>
-	<English>Good things come to spies who wait. Leaving a spy on a tile will reduce the costs of all Espionage Missions performed in that tile. If you fortify a Spy in a foreign tile, it will wake up once mission costs are maximally reduced.</English>
-	<French>Un espion patient est toujours r&#233;compens&#233;. Si vous laissez un espion sur une case, cela r&#233;duira le co&#251;t de toutes les missions d'espionnage lanc&#233;es contre les &#233;l&#233;ments dans cette case. Si vous laissez un espion dans une ville &#233;trang&#232;re, vos missions dans cette ville vous co&#251;teront donc bien moins cher.</French>
-	<German>Gut Ding will Weile haben - das gilt auch f&#252;r Spione. Je l&#228;nger sich ein Spion auf einem Gel&#228;ndefeld aufh&#228;lt, desto geringer werden die Kosten f&#252;r Spionagemissionen auf diesem Feld. Wenn Sie einen Spion auf einem gegnerischen Feld verschanzen, meldet er sich, wenn die Missionskosten maximal gesenkt sind.</German>
-	<Italian>La spia migliore &#232; quella che sa aspettare. Lasciando una spia su una casella riduce i costi di tutte le missioni di spionaggio verso quella casella. Perci&#242;, lasciando una spia in una citt&#224; nemica, le missioni verso di questa costeranno meno.</Italian>
-	<Spanish>Los esp&#237;as que saben esperar tienen sus ventajas. Dejar un esp&#237;a en una casilla reducir&#225; los costes de todas las misiones de espionaje realizadas contra los objetos de dicha casilla. Por tanto, dejar un esp&#237;a en una ciudad enemiga abaratar&#225; significativamente el coste de tus misiones en dicha ciudad.</Spanish>
 </TEXT>
 
 </Civ4GameText>
