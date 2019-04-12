@@ -314,7 +314,7 @@ protected:
 	bool AI_canConnectBonus(CvPlot const& p, BuildTypes eBuild) const;
 	// </advc.121>
 	int AI_searchRange(int iRange);
-	bool AI_plotValid(CvPlot* pPlot);
+	bool AI_plotValid(CvPlot const* pPlot); // advc.003: const
 
 	//int AI_finalOddsThreshold(CvPlot* pPlot, int iOddsThreshold);
 	int AI_getWeightedOdds(CvPlot* pPlot, bool bPotentialEnemy = false); // K-Mod

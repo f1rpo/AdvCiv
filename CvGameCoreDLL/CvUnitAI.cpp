@@ -19784,226 +19784,160 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity* pCity)
 
 
 // Returns true if a mission was pushed...
-bool CvUnitAI::AI_nextCityToImproveAirlift()
+bool CvUnitAI::AI_nextCityToImproveAirlift() // advc.003: style changes
 {
 	PROFILE_FUNC();
 
-	CvCity* pCity;
-	CvCity* pLoopCity;
-	CvPlot* pBestPlot;
-	int iValue;
-	int iBestValue;
-	int iLoop;
-
 	if (getGroup()->getNumUnits() > 1)
-	{
 		return false;
-	}
 
-	pCity = plot()->getPlotCity();
-
+	CvCity* pCity = plot()->getPlotCity();
 	if (pCity == NULL)
-	{
 		return false;
-	}
 
-	if (pCity->getMaxAirlift() == 0)
-	{
+	if (pCity->getMaxAirlift() <= 0)
 		return false;
-	}
 
-	iBestValue = 0;
-	pBestPlot = NULL;
-
-	for (pLoopCity = GET_PLAYER(getOwnerINLINE()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwnerINLINE()).nextCity(&iLoop))
+	int iBestValue = 0;
+	CvPlot* pBestPlot = NULL;
+	int iLoop;
+	for (CvCity* pLoopCity = GET_PLAYER(getOwnerINLINE()).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER(getOwnerINLINE()).nextCity(&iLoop))
 	{
-		if (pLoopCity != pCity)
+		if (pLoopCity == pCity)
+			continue;
+
+		if (canAirliftAt(pCity->plot(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE()))
 		{
-			if (canAirliftAt(pCity->plot(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE()))
+			int iValue = pLoopCity->AI_totalBestBuildValue(pLoopCity->area());
+			if (iValue > iBestValue)
 			{
-				iValue = pLoopCity->AI_totalBestBuildValue(pLoopCity->area());
-
-				if (iValue > iBestValue)
-				{
-					iBestValue = iValue;
-					pBestPlot = pLoopCity->plot();
-					FAssert(pLoopCity != pCity);
-				}
+				iBestValue = iValue;
+				pBestPlot = pLoopCity->plot();
 			}
 		}
 	}
 
-	if (pBestPlot != NULL)
-	{
-		getGroup()->pushMission(MISSION_AIRLIFT, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE());
-		return true;
-	}
+	if (pBestPlot == NULL)
+		return false;
 
-	return false;
+	getGroup()->pushMission(MISSION_AIRLIFT, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE());
+	return true;
 }
 
 
 // Returns true if a mission was pushed...
-bool CvUnitAI::AI_irrigateTerritory()
+bool CvUnitAI::AI_irrigateTerritory() // advc.003: refactored
 {
 	PROFILE_FUNC();
-
-	CvPlot* pLoopPlot;
-	int iPathTurns;
-
-	int iBestValue = 0;
-	BuildTypes eBestBuild = NO_BUILD;
-	CvPlot* pBestPlot = NULL;
-
+	// <devolution> Cache the viable subset of builds so that we don't have to loop through all of them
 	std::vector<BuildTypes> irrigationCarryingBuilds;
-
-	// Cache the viable subset of builds so that we don't have to loop through all of them
-	for (int iI = 0; iI < static_cast<int>(GC.getNumBuildInfos()); iI++)
+	for (int iI = 0; iI < GC.getNumBuildInfos(); iI++)
 	{
 		BuildTypes eBuild = ((BuildTypes)iI);
-		FAssertMsg(eBuild < GC.getNumBuildInfos(), "Invalid Build");
 		if (GC.getBuildInfo(eBuild).getImprovement() != NO_IMPROVEMENT)
-		{ /* advc.121: Same problems as in AI_improveBonus (see there).
-		  Hopefully fixed now, though no adverse consequences either way
-		  so long as there is only one improvement that carries irrigation. */
-			ImprovementTypes impId = (ImprovementTypes)(GC.getBuildInfo(eBuild).getImprovement());
-			if (GC.getImprovementInfo(impId).isCarriesIrrigation())
-			{
-				irrigationCarryingBuilds.push_back(eBuild);
-			}
-		}
-	} // <advc.121>
-
-	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
-	{
-		pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
-
-		if (pLoopPlot->area() != area())
-			continue;
-
-		// advc.003: Some changes to reduce indentation
-		if (!AI_plotValid(pLoopPlot) ||
-			pLoopPlot->getOwnerINLINE() != getOwnerINLINE() || // XXX team???
-			pLoopPlot->getWorkingCity() != NULL)
-			continue;
-		ImprovementTypes eImprovement = pLoopPlot->getImprovementType();
-		if (eImprovement != NO_IMPROVEMENT &&
-			GET_PLAYER(getOwnerINLINE()).isOption(PLAYEROPTION_SAFE_AUTOMATION) &&
-			eImprovement != (GC.getDefineINT("RUINS_IMPROVEMENT")))
-			continue;
-		if (eImprovement != NO_IMPROVEMENT &&
-			GC.getImprovementInfo(eImprovement).isCarriesIrrigation())
-			continue;
-		const BonusTypes eNonObsoleteBonus = pLoopPlot->getNonObsoleteBonusType(getTeam());
-		//if ((eImprovement == NO_IMPROVEMENT) || (eNonObsoleteBonus == NO_BONUS) || !(GC.getImprovementInfo(eImprovement).isImprovementBonusTrade(eNonObsoleteBonus)))
-		if (eImprovement == NO_IMPROVEMENT || eNonObsoleteBonus == NO_BONUS ||
-			!GET_PLAYER(getOwnerINLINE()).doesImprovementConnectBonus(
-				eImprovement, eNonObsoleteBonus))
 		{
-			if (pLoopPlot->isIrrigationAvailable(true))
+			ImprovementTypes eImprovement = (ImprovementTypes)(GC.getBuildInfo(eBuild).getImprovement());
+			if (GC.getImprovementInfo(eImprovement).isCarriesIrrigation())
+				irrigationCarryingBuilds.push_back(eBuild);
+		}
+	} // </devolution>
+
+	CvPlayer const& kOwner = GET_PLAYER(getOwnerINLINE());
+	bool const bSafeAuto = kOwner.isOption(PLAYEROPTION_SAFE_AUTOMATION);
+	bool const bLeaveForests = kOwner.isOption(PLAYEROPTION_LEAVE_FORESTS);
+	int const iGwEventTally = GC.getGameINLINE().getGwEventTally();
+	ImprovementTypes const eRuins = (ImprovementTypes)GC.getDefineINT("RUINS_IMPROVEMENT");
+	CvMap const& m = GC.getMapINLINE();
+
+	int iBestValue = 0;
+	CvPlot* pBestPlot = NULL;
+	BuildTypes eBestBuild = NO_BUILD;
+	for (int iI = 0; iI < m.numPlotsINLINE(); iI++)
+	{
+		CvPlot& kLoopPlot = *m.plotByIndexINLINE(iI);
+		if (kLoopPlot.area() != area())
+			continue;
+
+		if (!AI_plotValid(&kLoopPlot) ||
+				kLoopPlot.getOwnerINLINE() != kOwner.getID() || // XXX team???
+				kLoopPlot.getWorkingCity() != NULL)
+			continue;
+
+		ImprovementTypes const eCurrentImprov = kLoopPlot.getImprovementType();
+		if (eCurrentImprov != NO_IMPROVEMENT)
+		{
+			if (bSafeAuto && eCurrentImprov != eRuins)
+				continue;
+			if (GC.getImprovementInfo(eCurrentImprov).isCarriesIrrigation())
+				continue;
+			BonusTypes const eBonus = kLoopPlot.getNonObsoleteBonusType(getTeam());
+			if (eBonus != NO_BONUS &&
+					// !(GC.getImprovementInfo(eImprovement).isImprovementBonusTrade(eBonus)))
+					kOwner.doesImprovementConnectBonus(eCurrentImprov, eBonus)) // K-Mod
+				continue;
+		}
+		if (!kLoopPlot.isIrrigationAvailable(true))
+			continue;
+
+		int iBestTempBuildValue = MAX_INT;
+		BuildTypes eBestTempBuild = NO_BUILD;
+		for (int iJ = 0; iJ < static_cast<int>(irrigationCarryingBuilds.size()); iJ++)
+		{
+			const BuildTypes eBuild = irrigationCarryingBuilds[iJ];
+			const ImprovementTypes eIrrigImprov = (ImprovementTypes)
+					(GC.getBuildInfo(eBuild).getImprovement());
+			if (!canBuild(&kLoopPlot, eBuild))
+				continue;
+			/*  <advc.121> Was 10000/(...getTime()+1). Same problem as in
+				AI_improveBonus (see there). */
+			const int iValue = GC.getBuildInfo(eBuild).getTime();
+			// XXX feature production???
+			if (iValue < iBestTempBuildValue)
 			{
-				int iBestTempBuildValue = MAX_INT;
+				iBestTempBuildValue = iValue;
+				eBestTempBuild = eBuild;
+			}
+		}
+		if (eBestTempBuild == NO_BUILD)
+			continue;
 
-				BuildTypes eBestTempBuild = NO_BUILD;
-				for (int iJ = 0; iJ < static_cast<int>(irrigationCarryingBuilds.size()); iJ++)
-				{
-					const BuildTypes eBuild = irrigationCarryingBuilds[iJ];
-					{ /* advc.121: Same problems as in AI_improveBonus (see there).
-					  Hopefully fixed now, though no adverse consequences either way
-					  so long as there is only one improvement that carries irrigation. */
-						const ImprovementTypes impId = (ImprovementTypes)(GC.getBuildInfo(eBuild).getImprovement());
+		FeatureTypes const eFeature = kLoopPlot.getFeatureType();
+		if (eFeature != NO_FEATURE && GC.getBuildInfo(eBestTempBuild).isFeatureRemove(eFeature))
+		{
+			CvFeatureInfo const& kFeatureInfo = GC.getFeatureInfo(kLoopPlot.getFeatureType());
+			// K-Mod:
+			if ((iGwEventTally >= 0 && kFeatureInfo.getWarmingDefense() > 0) ||
+					(bLeaveForests && kFeatureInfo.getYieldChange(YIELD_PRODUCTION) > 0))
+				continue;
+		}
 
-						if (canBuild(pLoopPlot, eBuild)
-							|| impId == pLoopPlot->getImprovementType()) // advc.121
-						{
-							/* int iValue = 10000;
-							iValue /= (GC.getBuildInfo(eBuild).getTime() + 1);*/
-							// <advc.121> Replacing the above
-							const int iValue = ((impId == pLoopPlot->getImprovementType()) ?
-								0 : GC.getBuildInfo(eBuild).getTime());
-							// </advc.121>
-							// XXX feature production???
-							if (iValue < iBestTempBuildValue)
-							{
-								iBestTempBuildValue = iValue;
-								eBestTempBuild = eBuild;
-							}
-						}
-					}
-				} // <advc.121>
-				if (eBestTempBuild != NO_BUILD &&
-					!canBuild(pLoopPlot, eBestTempBuild))
-					eBestTempBuild = NO_BUILD; // </advc.121>
-				if (eBestTempBuild != NO_BUILD)
-				{
-					bool bValid = true;
-					// K-Mod. (I didn't want it to be this way...)
-					/* original bts code
-					if (GET_PLAYER(getOwnerINLINE()).isOption(PLAYEROPTION_LEAVE_FORESTS))
-					{
-					if (pLoopPlot->getFeatureType() != NO_FEATURE)
-					{
-					if (GC.getBuildInfo(eBestTempBuild).isFeatureRemove(pLoopPlot->getFeatureType()))
-					{
-					if (GC.getFeatureInfo(pLoopPlot->getFeatureType()).getYieldChange(YIELD_PRODUCTION) > 0)
-					{
-					bValid = false;
-					}
-					}
-					}
-					} */
-					if (pLoopPlot->getFeatureType() != NO_FEATURE)
-					{
-						if (GC.getBuildInfo(eBestTempBuild).isFeatureRemove(pLoopPlot->getFeatureType()))
-						{
-							const CvFeatureInfo& kFeatureInfo = GC.getFeatureInfo(pLoopPlot->getFeatureType());
-							if ((GC.getGame().getGwEventTally() >= 0 && kFeatureInfo.getWarmingDefense() > 0) ||
-								(GET_PLAYER(getOwnerINLINE()).isOption(PLAYEROPTION_LEAVE_FORESTS) && kFeatureInfo.getYieldChange(YIELD_PRODUCTION) > 0))
-							{
-								bValid = false;
-							}
-						}
-					}
-					// K-Mod end
+		if (kLoopPlot.isVisibleEnemyUnit(this) ||
+				kOwner.AI_plotTargetMissionAIs(&kLoopPlot, MISSIONAI_BUILD, getGroup(), 1) > 0)
+			continue;
 
-					if (bValid)
-					{
-						if (!pLoopPlot->isVisibleEnemyUnit(this))
-						{
-							if (GET_PLAYER(getOwnerINLINE()).AI_plotTargetMissionAIs(pLoopPlot, MISSIONAI_BUILD, getGroup(), 1) == 0)
-							{
-								if (generatePath(pLoopPlot, 0, true, &iPathTurns)) // XXX should this actually be at the top of the loop? (with saved paths and all...)
-								{
-									const int iValue = 10000 / (iPathTurns + 1);
-
-									if (iValue > iBestValue)
-									{
-										iBestValue = iValue;
-										eBestBuild = eBestTempBuild;
-										pBestPlot = pLoopPlot;
-									}
-								}
-							}
-						}
-					}
-				}
+		int iPathTurns; // XXX should this actually be at the top of the loop? (with saved paths and all...)
+		if (generatePath(&kLoopPlot, 0, true, &iPathTurns))
+		{
+			const int iValue = 10000 - iPathTurns; // advc.003b: Instead of dividing by iPathTurns+1
+			if (iValue > iBestValue)
+			{
+				iBestValue = iValue;
+				eBestBuild = eBestTempBuild;
+				pBestPlot = &kLoopPlot;
 			}
 		}
 	}
 
-	if (pBestPlot != NULL)
-	{
-		FAssertMsg(eBestBuild != NO_BUILD, "BestBuild is not assigned a valid value");
-		FAssertMsg(eBestBuild < GC.getNumBuildInfos(), "BestBuild is assigned a corrupt value");
+	if (pBestPlot == NULL)
+		return false;
 
-		getGroup()->pushMission(MISSION_ROUTE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0, false, false, MISSIONAI_BUILD, pBestPlot);
-		//getGroup()->pushMission(MISSION_BUILD, eBestBuild, -1, 0, (getGroup()->getLengthMissionQueue() > 0), false, MISSIONAI_BUILD, pBestPlot);
-		getGroup()->pushMission(MISSION_BUILD, eBestBuild, -1, 0, true, false, MISSIONAI_BUILD, pBestPlot); // K-Mod
-
-		return true;
-	}
-
-	return false;
+	FASSERT_BOUNDS(NO_BUILD, GC.getNumBuildInfos(), eBestBuild, "CvUnitAI::AI_irrigateTerritory");
+	getGroup()->pushMission(MISSION_ROUTE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), 0,
+			false, false, MISSIONAI_BUILD, pBestPlot);
+	getGroup()->pushMission(MISSION_BUILD, eBestBuild, -1, 0,
+			true, // K-Mod: was (getGroup()->getLengthMissionQueue() > 0)
+			false, MISSIONAI_BUILD, pBestPlot);
+	return true;
 }
 
 bool CvUnitAI::AI_fortTerritory(bool bCanal, bool bAirbase)
@@ -24757,7 +24691,7 @@ int CvUnitAI::AI_searchRange(int iRange)
 
 
 // XXX at some point test the game with and without this function...
-bool CvUnitAI::AI_plotValid(CvPlot* pPlot)
+bool CvUnitAI::AI_plotValid(CvPlot const* pPlot)
 {	/*  advc.003o: This function is called extremely often and the total time
 		spent is significant, but profiling it over and over won't help.
 		Regarding the XXX comment above: To get rid of this function, step 1 would be
