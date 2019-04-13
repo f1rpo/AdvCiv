@@ -15513,160 +15513,132 @@ CvCity* CvUnitAI::AI_pickTargetCity(int iFlags, int iMaxPathTurns, bool bHuntBar
 	return pBestCity;
 }
 
-// Returns true if a mission was pushed...
-bool CvUnitAI::AI_goToTargetCity(int iFlags, int iMaxPathTurns, CvCity* pTargetCity )
+// Returns true if a mission was pushed...		// advc.003: some style changes
+bool CvUnitAI::AI_goToTargetCity(int iFlags, int iMaxPathTurns, CvCity* pTargetCity)
 {
 	PROFILE_FUNC();
 
-	if( pTargetCity == NULL )
-	{
+	if (pTargetCity == NULL)
 		pTargetCity = AI_pickTargetCity(iFlags, iMaxPathTurns);
-	}
-	if(pTargetCity == NULL)
+	if (pTargetCity == NULL)
 		return false;
 
 	CvPlot* pEndTurnPlot = NULL; // K-Mod
-	int iPathTurns;
 	int iBestValue = 0;
 	CvPlot* pBestPlot = NULL;
-	if (0 == (iFlags & MOVE_THROUGH_ENEMY)
-		/*  advc.123b: Could also pass MOVE_THROUGH_ENEMY in AI_barbAttackMove,
-			but only want barbarians to disregard defenders blocking the
-			tiles around the city; no need to ignore obstacles along the
-			way; hence keep using MOVE_ATTACK_STACK.
-			The cleaner solution would be to address the TODO in the loop.
-			(I've only seen barbarians unable to goToTargetCity, but I'm not
-			positive that other units can't have that problem.) */
-			&& !isBarbarian())
+	if (!(iFlags & MOVE_THROUGH_ENEMY))
 	{
-		
 		for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 		{
 			CvPlot* pAdjacentPlot = plotDirection(pTargetCity->getX_INLINE(), pTargetCity->getY_INLINE(), ((DirectionTypes)iI));
-			if (pAdjacentPlot != NULL)
+			if (pAdjacentPlot == NULL || !AI_plotValid(pAdjacentPlot))
+				continue;
+			// K-Mod TODO: consider fighting for the best plot.
+			// <advc.083> For a start, let's check for EnemyDefender instead of EnemyUnit.
+			if (pAdjacentPlot->isVisibleEnemyDefender(this)
+				/*  Make sure that Barbarians can't be staved off by surrounding
+					cities with units. AI civs don't seem to have that problem. */
+					&& !isBarbarian())
+				continue; // </advc.083>
+
+			int iPathTurns;
+			if (!generatePath(pAdjacentPlot, iFlags, true, &iPathTurns, iMaxPathTurns))
+				continue;
+			if(iPathTurns <= iMaxPathTurns
+				/*  advc.083: This was previously asserted after the loop ("no suicide missions...")
+					but not actually guaranteed by the loop. If the pathfinder thinks
+					that it's OK to move through the city, then we might as well
+					pick a suboptimal (but nearby) plot to attack from. */
+					&& !pTargetCity->at(getPathEndTurnPlot()))
 			{
-				if (AI_plotValid(pAdjacentPlot))
+				int iValue = std::max(0, 100 +
+						//pAdjacentPlot->defenseModifier(getTeam(), false)
+						AI_plotDefense(pAdjacentPlot)); // advc.012
+				if (!pAdjacentPlot->isRiverCrossing(directionXY(pAdjacentPlot, pTargetCity->plot())))
+					iValue += (-12 * GC.getRIVER_ATTACK_MODIFIER());
+				if (!isEnemy(pAdjacentPlot->getTeam(), pAdjacentPlot))
+					iValue += 100;
+				if (atPlot(pAdjacentPlot))
+					iValue += 50;
+				iValue = std::max(1, iValue);
+				iValue *= 1000;
+				iValue /= iPathTurns + 1;
+				if (iValue > iBestValue)
 				{
-					// K-Mod TODO: consider fighting for the best plot.
-					if (!pAdjacentPlot->isVisibleEnemyUnit(this))
-					{
-						if (generatePath(pAdjacentPlot, iFlags, true, &iPathTurns, iMaxPathTurns))
-						{
-							if(iPathTurns <= iMaxPathTurns)
-							{
-								int iValue = std::max(0, 
-										AI_plotDefense(pAdjacentPlot) // advc.012
-										//pAdjacentPlot->defenseModifier(getTeam(), false)
-										+ 100);
-
-								if (!pAdjacentPlot->isRiverCrossing(directionXY(pAdjacentPlot, pTargetCity->plot())))
-								{
-									iValue += (12 * -(GC.getRIVER_ATTACK_MODIFIER()));
-								}
-
-								if (!isEnemy(pAdjacentPlot->getTeam(), pAdjacentPlot))
-								{
-									iValue += 100;                                
-								}
-
-								if( atPlot(pAdjacentPlot) )
-								{
-									iValue += 50;
-								}
-
-								iValue = std::max(1, iValue);
-
-								iValue *= 1000;
-
-								iValue /= (iPathTurns + 1);
-
-								if (iValue > iBestValue)
-								{
-									iBestValue = iValue;
-									//pBestPlot = getPathEndTurnPlot();
-									// K-Mod
-									pBestPlot = pAdjacentPlot;
-									pEndTurnPlot = getPathEndTurnPlot();
-									// K-Mod end
-								}
-							}
-						}
-					}
+					iBestValue = iValue;
+					//pBestPlot = getPathEndTurnPlot();
+					// K-Mod
+					pBestPlot = pAdjacentPlot;
+					pEndTurnPlot = getPathEndTurnPlot();
+					// K-Mod end
 				}
 			}
 		}
 	}
 	else
 	{
-		pBestPlot =  pTargetCity->plot();
-		// K-mod. As far as I know, nothing actually uses this flag here.. but that doesn't mean we should let the code be wrong.
+		pBestPlot = pTargetCity->plot();
+		// K-mod. As far as I know, nothing actually uses MOVE_THROUGH_ENEMY here.. but that doesn't mean we should let the code be wrong.
+		int iPathTurns;
 		if (!generatePath(pBestPlot, iFlags, true, &iPathTurns, iMaxPathTurns) || iPathTurns > iMaxPathTurns)
 			return false;
 		pEndTurnPlot = getPathEndTurnPlot();
 		// K-mod end
 	}
 
-	if (pBestPlot != NULL)
-	{
-		FAssertMsg(
-				isBarbarian() || // advc.123b
-				!pTargetCity->at(pEndTurnPlot) || 0 != (iFlags & MOVE_THROUGH_ENEMY), "no suicide missions...");
-		if (!atPlot(pEndTurnPlot))
-		{	/*  <advc.001t> Needed for the call in AI_attackMove. These stacks
-				aren't supposed to declare war, and they shouldn't move into
-				enemy cities when war is imminent. */
-			if(!(iFlags & MOVE_DECLARE_WAR) && GET_TEAM(getTeam()).
-					AI_isSneakAttackReady(pTargetCity->getTeam())) {
-				TeamTypes eBestPlotTeam = pBestPlot->getTeam();
-				if(eBestPlotTeam != NO_TEAM && GET_TEAM(eBestPlotTeam).
-						getMasterTeam() == GET_TEAM(pTargetCity->getTeam()).
-						getMasterTeam())
-					return false;
-			} // </advc.001t>
-			//getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), iFlags);
-			// K-Mod
-			if (AI_considerPathDOW(pEndTurnPlot, iFlags))
-			{	// <advc.163>
-				if(!canMove())
-					return true; // </advc.163>
-				/*  regenerate the path, just in case we want to take a different route after the DOW
-					(but don't bother recalculating the best destination)
-					Note. if the best destination happens to be on the border,
-					and has a stack of defenders on it, this will make us attack them.
-					That's bad. I'll try to fix that in the future. */
-				if (!generatePath(pBestPlot, iFlags, false))
-					return false;
-				CvPlot* pEnemyPlot = pEndTurnPlot; // advc.001t
-				pEndTurnPlot = getPathEndTurnPlot();
-				// <advc.139> Don't move through city that is about to be lost
-				if(pEndTurnPlot->getPlotCity() != NULL &&
-						pEndTurnPlot->getPlotCity()->AI_isEvacuating())
-					return false; // </advc.139>
-				// <advc.001t>
-				if(!isEnemy(pEndTurnPlot->getTeam())) {
-					// This triggers a few times in most games
-					/*FAssertMsg(isEnemy(pEndTurnPlot->getTeam()),
-						"Known issue: AI may change its mind about the path to"
-						" the target city after declaring war; temporary fix:"
-						" stick to the original path.");*/
-					if(isEnemy(pEnemyPlot->getTeam()))
-						pEndTurnPlot = pEnemyPlot;
-					else FAssert(isEnemy(pEnemyPlot->getTeam()));
-					/*  If the else... assert fails, it's probably b/c the stack
-						has multiple moves and there is an intermediate tile that
-						requires a DoW. So this can be fine. Could check this through
-						getPathFinder().GetEndNode() like it's done in
-						AI_considerPathDOW -- tbd.? */
-				} // </advc.001t>
-			}
-			// I'm going to use MISSIONAI_ASSAULT signal to our spies and other units that we're attacking this city.
-			getGroup()->pushMission(MISSION_MOVE_TO, pEndTurnPlot->getX_INLINE(), pEndTurnPlot->getY_INLINE(), iFlags, false, false, MISSIONAI_ASSAULT, pTargetCity->plot());
-			// K-Mod end
-			return true;
-		}
-	}
+	if (pBestPlot == NULL || atPlot(pEndTurnPlot))
+		return false;
 
-	return false;
+	/*  <advc.001t> Needed when called from AI_attackMove. Attack stacks aren't supposed
+		to declare war, and they shouldn't move into enemy cities when war is imminent. */
+	if(!(iFlags & MOVE_DECLARE_WAR) && GET_TEAM(getTeam()).
+			AI_isSneakAttackReady(pTargetCity->getTeam())) {
+		TeamTypes eBestPlotTeam = pBestPlot->getTeam();
+		if(eBestPlotTeam != NO_TEAM && GET_TEAM(eBestPlotTeam).
+				getMasterTeam() == GET_TEAM(pTargetCity->getTeam()).
+				getMasterTeam())
+			return false;
+	} // </advc.001t>
+
+	//getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX_INLINE(), pBestPlot->getY_INLINE(), iFlags);
+	// K-Mod start
+	if (AI_considerPathDOW(pEndTurnPlot, iFlags))
+	{	// <advc.163>
+		if(!canMove())
+			return true; // </advc.163>
+		/*  regenerate the path, just in case we want to take a different route after the DOW
+			(but don't bother recalculating the best destination)
+			Note. if the best destination happens to be on the border,
+			and has a stack of defenders on it, this will make us attack them.
+			That's bad. I'll try to fix that in the future. */
+		if (!generatePath(pBestPlot, iFlags, false))
+			return false;
+		CvPlot* pEnemyPlot = pEndTurnPlot; // advc.001t
+		pEndTurnPlot = getPathEndTurnPlot();
+		// <advc.139> Don't move through city that is about to be lost
+		if(pEndTurnPlot->getPlotCity() != NULL &&
+				pEndTurnPlot->getPlotCity()->AI_isEvacuating())
+			return false; // </advc.139>
+		// <advc.001t>
+		if(!isEnemy(pEndTurnPlot->getTeam())) {
+			// This will trigger a few times in most games
+			/*FAssertMsg(isEnemy(pEndTurnPlot->getTeam()),
+				"Known issue: AI may change its mind about the path to the target city "
+				"after declaring war; temporary fix: stick to the original path.");*/
+			if(isEnemy(pEnemyPlot->getTeam()))
+				pEndTurnPlot = pEnemyPlot;
+			else FAssert(isEnemy(pEnemyPlot->getTeam()));
+			/*  If the else... assert fails, it's probably b/c the stack has multiple
+				moves and there is an intermediate tile that requires a DoW. So this
+				can be fine. Could check this through getPathFinder().GetEndNode()
+				like it's done in AI_considerPathDOW -- tbd.? */
+		} // </advc.001t>
+	}
+	getGroup()->pushMission(MISSION_MOVE_TO, pEndTurnPlot->getX_INLINE(), pEndTurnPlot->getY_INLINE(),
+			// I'm going to use MISSIONAI_ASSAULT signal to our spies and other units that we're attacking this city.
+			iFlags, false, false, MISSIONAI_ASSAULT, pTargetCity->plot());
+	// K-Mod end
+	return true;
 }
 
 bool CvUnitAI::AI_pillageAroundCity(CvCity* pTargetCity, int iBonusValueThreshold, int iFlags, int iMaxPathTurns)
