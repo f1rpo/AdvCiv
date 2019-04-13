@@ -46,7 +46,7 @@ public:
 	RFChapterScore const& computeScoreBreakdown();
 	// Exposed to Python through CvGame:
 	  // First turn on which the player is in control
-	  int getStartTurn() const; 
+	  int getStartTurn() const;
 	  // Last turn on which the player is in control
 	  int getEndTurn() const;
 	  int getScoreTurn() const;

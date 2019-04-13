@@ -2,14 +2,17 @@
 
 #include "CvGameCoreDLL.h"
 #include "StartPointsAsHandicap.h"
+#include "CvGameAI.h"
+#include "CvPlayerAI.h"
 #include "CvInitCore.h"
-
-#include <climits>
+#include "CvMap.h"
 #include <cmath>
-#include <algorithm>
-#include <vector>
-#include <string>
 #include <sstream>
+
+/*  advc.003 (note): This was the first class added by AdvCiv and, apart from the
+	includes above, it hasn't been looked at for the past few years, so there are
+	probably things that could be improved. Seems to be working as intended though. */
+
 using std::vector;
 using std::wstring;
 using std::wostringstream;
@@ -17,7 +20,7 @@ using std::ostringstream;
 
 
 StartPointsAsHandicap::StartPointsAsHandicap() {
-	
+
 	pointsDisplayString = NULL;
 	nCivs = nHuman = 0;
 	randPoints = false;
@@ -125,7 +128,7 @@ void StartPointsAsHandicap::gatherCivs() {
 		if((PlayerTypes)i == NO_PLAYER)
 			continue;
 		CvPlayer const& p = GET_PLAYER((PlayerTypes)i);
-		if(!p.isAlive() || p.isMinorCiv()) 
+		if(!p.isAlive() || p.isMinorCiv())
 			continue;
 		MajorCiv* mciv = new MajorCiv(p.getID());
 		civs.push_back(mciv);
@@ -207,12 +210,12 @@ void StartPointsAsHandicap::randomizePoints() {
 	std::sort(civs.begin(), civs.end(), isLeftPtsLessThanRight);
 	/*  Increase and decrease some point values randomly. The random changes are
 		such that the following properties remain unchanged:
-         * the ordering of the civs (by points), e.g.
-           the civ with the 3rd most points will still
-           have the third most points after randomization;
-         * the sum of the points over all civs;
-         * the highest and the lowest point value among AI civs; and
-         * the human player's points. */
+		 * the ordering of the civs (by points), e.g.
+		   the civ with the 3rd most points will still
+		   have the third most points after randomization;
+		 * the sum of the points over all civs;
+		 * the highest and the lowest point value among AI civs; and
+		 * the human player's points. */
 	int nAI = nCivs - nHuman;
 	int middleAIIndex = nHuman + nAI / 2;
 	if(nAI < 4)
@@ -267,7 +270,7 @@ void StartPointsAsHandicap::bounce(int i, int j) {
 			i, civs[i]->startPoints_configured(),
 			j, civs[j]->startPoints_configured(),
 			deltaMax);
-	int delta = GC.getGameINLINE().getSorenRandNum(deltaMax, "advc.250b");
+	int delta = GC.getGame().getSorenRandNum(deltaMax, "advc.250b");
 	civs[i]->setStartPoints_actual(civs[i]->startPoints_configured() - delta);
 	civs[j]->setStartPoints_actual(civs[j]->startPoints_configured() + delta);
 }
@@ -298,10 +301,10 @@ void StartPointsAsHandicap::rearrangeStartingPlots() {
 	normalizeStartingPlotLocations. */
 int StartPointsAsHandicap::minDist(CvPlot* p) {
 
-	int r = INT_MAX;
+	int r = MAX_INT;
 	for(int i = 0; i < nHuman; i++) {
 		CvPlot* q = civs[i]->startingPlot();
-		int d = GC.getMapINLINE().calculatePathDistance(p, q);
+		int d = GC.getMap().calculatePathDistance(p, q);
 		if(d < 0) // No (land) path
 			d = 5 * ::plotDistance(p->getX(), p->getY(), q->getX(), q->getY());
 		if(d < r)
@@ -428,7 +431,7 @@ int StartPointsAsHandicap::MajorCiv::id() const {
 
 CvPlot* StartPointsAsHandicap::MajorCiv::startingPlot() const {
 
-    return GET_PLAYER(civId).getStartingPlot();
+	return GET_PLAYER(civId).getStartingPlot();
 }
 
 bool StartPointsAsHandicap::MajorCiv::isHuman() const {

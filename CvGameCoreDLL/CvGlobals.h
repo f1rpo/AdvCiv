@@ -12,7 +12,6 @@ static inline int ROUND_DIVIDE(int a, int b)
 }
 // K-Mod end
 
-//#include "CvStructs.h"
 //
 // 'global' vars for Civ IV.  singleton class.
 // All globals and global types should be contained in this class
@@ -159,8 +158,7 @@ public:
 	DllExport FMPIManager*& getFMPMgrPtr();
 	DllExport CvPortal& getPortal();
 	DllExport CvSetupData& getSetupData();
-	DllExport CvInitCore& getInitCore();
-	inline CvInitCore& getInitCoreINLINE() { return *m_initCore; } // advc.003b
+	DllExport inline CvInitCore& getInitCore() { return *m_initCore; } // advc.003b
 	DllExport CvInitCore& getLoadedInitCore();
 	DllExport CvInitCore& getIniInitCore();
 	DllExport CvMessageCodeTranslator& getMessageCodes();
@@ -169,12 +167,13 @@ public:
 	DllExport CvInterface& getInterface();
 	DllExport CvInterface* getInterfacePtr();
 	DllExport int getMaxCivPlayers() const;
-#ifdef _USRDLL
-	CvMap& getMapINLINE() { return *m_map; }				// inlined for perf reasons, do not use outside of dll
-	CvGameAI& getGameINLINE() { return *m_game; }			// inlined for perf reasons, do not use outside of dll
-#endif
-	DllExport CvMap& getMap();
-	DllExport CvGameAI& getGame();
+	// inlined for perf reasons, do not use outside of dll  // advc.003f: Both renamed
+	#ifdef _USRDLL
+	CvMap& getMap() { return *m_map; } // was getMapINLINE
+	CvGameAI& getGame() { return *m_game; } // was getGameINLINE
+	#endif
+	DllExport CvMap& getMapExternal(); // advc.003f: Exported through .def file
+	DllExport CvGameAI& getGameExternal(); // advc.003f: Exported through .def file
 	DllExport CvGameAI *getGamePointer();
 	DllExport CvRandom& getASyncRand();
 	DllExport CMessageQueue& getMessageQueue();
@@ -218,7 +217,7 @@ public:
 	// Global Infos
 	// All info type strings are upper case and are kept in this hash map for fast lookup
 	//
-	DllExport int getInfoTypeForString(const char* szType, bool hideAssert = false) const;			// returns the infos index, use this when searching for an info type string
+	DllExport int getInfoTypeForString(const char* szType, bool bHideAssert = false) const;			// returns the infos index, use this when searching for an info type string
 	void setInfoTypeFromString(const char* szType, int idx);
 	DllExport void infoTypeFromStringReset();
 	void addToInfosVectors(void *infoVector);
@@ -685,25 +684,32 @@ public:
 	// THESE ARE READ-ONLY
 	//
 
-	DllExport FVariableSystem* getDefinesVarSystem();
-	// advc.003: Needed a const version
-	FVariableSystem const* getDefinesVarSystemINLINE() const { return m_VarSystem; }
+	DllExport FVariableSystem* getDefinesVarSystem()
+	// <advc.003> Need a const version
+	{	CvGlobals const& kThis = *this;
+		return const_cast<FVariableSystem*>(kThis.getDefinesVarSystem());
+	} FVariableSystem const* getDefinesVarSystem() const { return m_VarSystem; }
+	// </advc.003>
 	void cacheGlobals();
 
 	// ***** EXPOSED TO PYTHON *****
-	DllExport int getDefineINT( const char * szName ) const;
-	DllExport float getDefineFLOAT( const char * szName ) const;
-	DllExport const char * getDefineSTRING( const char * szName ) const;
+	DllExport int getDefineINT(const char * szName) const;
+	DllExport float getDefineFLOAT(const char * szName) const;
+	DllExport const char * getDefineSTRING(const char * szName) const;
 	// advc.003b: Params for suppressing cache update added
-	void setDefineINT( const char * szName, int iValue, bool bUpdateCache = true);
-	void setDefineFLOAT( const char * szName, float fValue, bool bUpdateCache = true );
-	void setDefineSTRING( const char * szName, const char * szValue, bool bUpdateCache = true );
+	void setDefineINT(const char * szName, int iValue, bool bUpdateCache = true);
+	void setDefineFLOAT(const char * szName, float fValue, bool bUpdateCache = true);
+	void setDefineSTRING(const char * szName, const char * szValue, bool bUpdateCache = true);
 
 	inline int getEXTRA_YIELD() { return m_iEXTRA_YIELD; } // K-Mod (why aren't all these functions inline?)
 	// advc.130s: Cached for performance reasons
 	inline int isJOIN_WAR_DIPLO_BONUS() { return m_bJOIN_WAR_DIPLO_BONUS; }
 	// advc.099:
 	inline int getTILE_CULTURE_DECAY_PER_MILL() { return m_iTILE_CULTURE_DECAY_PER_MILL; }
+	// advc.099b:
+	inline int getCITY_RADIUS_DECAY() { return m_iCITY_RADIUS_DECAY; }
+	// advc.099c
+	inline int getREVOLTS_IGNORE_CULTURE_RANGE() { return m_iREVOLTS_IGNORE_CULTURE_RANGE; }
 	// advc.101:
 	inline int getNUM_WARNING_REVOLTS() { return m_iNUM_WARNING_REVOLTS; }
 	// advc.140:
@@ -714,11 +720,11 @@ public:
 	inline int getDIPLOMACY_VALUE_REMAINDER() { return m_iDIPLOMACY_VALUE_REMAINDER; }
 	inline int getPEACE_TREATY_LENGTH() { return m_iPEACE_TREATY_LENGTH; }
 	inline int getTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER() { return m_iTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER; }
+	inline ImprovementTypes getRUINS_IMPROVEMENT() { return (ImprovementTypes)m_iRUINS_IMPROVEMENT; }
+	void setRUINS_IMPROVEMENT(int iVal); // TextVals can't be loaded by cacheGlobals
 	// </advc.003b>
 	// advc.210:
 	inline int getRESEARCH_MODIFIER_EXTRA_TEAM_MEMBER() { return m_iRESEARCH_MODIFIER_EXTRA_TEAM_MEMBER; }
-	// advc.099b:
-	inline int getCITY_RADIUS_DECAY() { return m_iCITY_RADIUS_DECAY; }
 	// advc.005f:
 	inline int getENABLE_005F() { return m_iENABLE_005F; }
 	// advc.007:
@@ -737,7 +743,11 @@ public:
 	inline int getNEW_HURRY_MODIFIER() { return m_iNEW_HURRY_MODIFIER; }
 	// advc.104:
 	inline float getPOWER_CORRECTION() { return m_fPOWER_CORRECTION; }
-	
+	// advc.107:
+	inline EraTypes getEXTRA_DEFENDER_ERA() { return (EraTypes)m_iEXTRA_DEFENDER_ERA; }
+	// advc.113:
+	inline int getWORKER_RESERVE_PERCENT() { return m_iWORKER_RESERVE_PERCENT; }
+
 	int getMOVE_DENOMINATOR();
 	int getNUM_UNIT_PREREQ_OR_BONUSES();
 	int getNUM_BUILDING_PREREQ_OR_BONUSES();
@@ -836,12 +846,13 @@ public:
 	inline bool getUSE_DO_COMBAT_CALLBACK() { return m_bUSE_DO_COMBAT_CALLBACK; }
 
 	// more reliable versions of the 'gDLL->xxxKey' functions:
+	// NOTE: I've replaced all calls to the gDLL key functions with calls to these functions.
 	inline bool altKey() { return (GetKeyState(VK_MENU) & 0x8000); }
 	inline bool ctrlKey() { return (GetKeyState(VK_CONTROL) & 0x8000); }
 	inline bool shiftKey() { return (GetKeyState(VK_SHIFT) & 0x8000); }
-	// NOTE: I've replaced all calls to the gDLL key functions with calls to these functions.
-
-	inline bool suppressCycling() { return (GetKeyState('X') & 0x8000); } // hold X to temporarily suppress automatic unit cycling.
+	// hold X to temporarily suppress automatic unit cycling.
+	inline bool suppressCycling() { return (GetKeyState('X') & 0x8000) ||
+			((GetKeyState('U') & 0x8000) && shiftKey()); } // advc.088
 	// K-Mod end
 
 	DllExport int getMAX_CIV_PLAYERS();
@@ -1135,7 +1146,7 @@ protected:
 	std::vector<CvEventTriggerInfo*> m_paEventTriggerInfo;
 	std::vector<CvEventInfo*> m_paEventInfo;
 	std::vector<CvEspionageMissionInfo*> m_paEspionageMissionInfo;
-    std::vector<CvUnitArtStyleTypeInfo*> m_paUnitArtStyleTypeInfo;
+	std::vector<CvUnitArtStyleTypeInfo*> m_paUnitArtStyleTypeInfo;
 
 	// Game Text
 	std::vector<CvGameText*> m_paGameTextXML;
@@ -1193,6 +1204,8 @@ protected:
 	int m_iEXTRA_YIELD; // K-Mod
 	bool m_bJOIN_WAR_DIPLO_BONUS; // advc.130s
 	int m_iTILE_CULTURE_DECAY_PER_MILL; // advc.099
+	int m_iCITY_RADIUS_DECAY; // advc.099b
+	int m_iREVOLTS_IGNORE_CULTURE_RANGE; // advc.099c
 	int m_iNUM_WARNING_REVOLTS; // advc.101
 	int m_iMAX_DISTANCE_CITY_MAINTENANCE; // advc.140
 	int m_iOWN_EXCLUSIVE_RADIUS; // advc.035
@@ -1200,9 +1213,9 @@ protected:
 	int m_iDIPLOMACY_VALUE_REMAINDER;
 	int m_iPEACE_TREATY_LENGTH;
 	int m_iTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER;
+	int m_iRUINS_IMPROVEMENT;
 	// </advc.003b>
 	int m_iRESEARCH_MODIFIER_EXTRA_TEAM_MEMBER; // advc.210
-	int m_iCITY_RADIUS_DECAY; // advc.099b
 	int m_iENABLE_005F; // advc.005f
 	int m_iPER_PLAYER_MESSAGE_CONTROL_LOG; // advc.007
 	int m_iUWAI_MULTI_WAR_RELUCTANCE; // advc.104
@@ -1212,6 +1225,8 @@ protected:
 	int m_iBASE_RESEARCH_RATE; // advc.910
 	int m_iNEW_HURRY_MODIFIER; // advc.003b
 	float m_fPOWER_CORRECTION; // advc.104
+	int m_iEXTRA_DEFENDER_ERA; // advc.107
+	int m_iWORKER_RESERVE_PERCENT; // advc.113
 	int m_iMOVE_DENOMINATOR;
 	int m_iNUM_UNIT_PREREQ_OR_BONUSES;
 	int m_iNUM_BUILDING_PREREQ_OR_BONUSES;
@@ -1316,14 +1331,10 @@ protected:
 	FProfiler* m_Profiler;		// profiler
 	CvString m_szDllProfileText;
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      02/21/10                                jdog5000      */
-/*                                                                                              */
-/* Efficiency, Options                                                                          */
-/************************************************************************************************/
+// BETTER_BTS_AI_MOD, Efficiency, Options, 02/21/10, jdog5000: START
 public:
-	int getDefineINT( const char * szName, const int iDefault ) const;
-	
+	int getDefineINT(const char * szName, const int iDefault) const;
+
 // BBAI Options
 public:
 	bool getBBAI_AIR_COMBAT();
@@ -1371,7 +1382,7 @@ protected:
 	int m_iTECH_COST_KNOWN_PREREQ_MODIFIER;
 	int m_iTECH_COST_MODIFIER;
 	int m_iTECH_COST_NOTRADE_MODIFIER; // advc.550d
-	
+
 // From Lead From Behind by UncutDragon. (edited for K-Mod)
 public:
 	bool getLFBEnable() const;
@@ -1400,9 +1411,7 @@ protected:
 	bool m_bLFBUseCombatOdds;
 	int m_iCOMBAT_DIE_SIDES;
 	int m_iCOMBAT_DAMAGE;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+	// BETTER_BTS_AI_MOD: END
 };
 
 extern CvGlobals gGlobals;	// for debugging

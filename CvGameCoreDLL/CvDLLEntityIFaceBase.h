@@ -3,9 +3,8 @@
 #ifndef CvDLLEntityIFaceBase_h
 #define CvDLLEntityIFaceBase_h
 
-#pragma warning(disable:4100) 
+#pragma warning(disable:4100)
 
-//#include "CvEnums.h"
 
 //
 // abstract class containing entity-related functions that the DLL needs
@@ -34,12 +33,12 @@ public:
 	virtual bool IsSelected(const CvEntity*)  const { return false; }
 	virtual void PlayAnimation(CvEntity*, AnimationTypes eAnim, float fSpeed = 1.0f, bool bQueue = false, int iLayer = 0, float fStartPct = 0.0f, float fEndPct = 1.0f)  { FAssertMsg(false, "can't get here"); }
 	virtual void StopAnimation(CvEntity*, AnimationTypes eAnim)  { FAssertMsg(false, "can't get here"); }
-	virtual void StopAnimation(CvEntity * ) { FAssertMsg(false, "can't get here");}
+	virtual void StopAnimation(CvEntity *) { FAssertMsg(false, "can't get here");}
 	virtual void NotifyEntity(CvUnitEntity*, MissionTypes eMission) { FAssertMsg( false, "can't get here"); }
-	virtual void MoveTo(CvUnitEntity*, const CvPlot * pkPlot )  { FAssertMsg(false, "can't get here"); }
-	virtual void QueueMove(CvUnitEntity*, const CvPlot * pkPlot )  { FAssertMsg(false, "can't get here"); }
-	virtual void ExecuteMove(CvUnitEntity*, float fTimeToExecute, bool bCombat )  { FAssertMsg(false, "can't get here"); }
-	virtual void SetPosition(CvUnitEntity* pEntity, const CvPlot * pkPlot )  { FAssertMsg(false, "can't get here"); }
+	virtual void MoveTo(CvUnitEntity*, const CvPlot * pkPlot)  { FAssertMsg(false, "can't get here"); }
+	virtual void QueueMove(CvUnitEntity*, const CvPlot * pkPlot)  { FAssertMsg(false, "can't get here"); }
+	virtual void ExecuteMove(CvUnitEntity*, float fTimeToExecute, bool bCombat)  { FAssertMsg(false, "can't get here"); }
+	virtual void SetPosition(CvUnitEntity* pEntity, const CvPlot * pkPlot)  { FAssertMsg(false, "can't get here"); }
 	virtual void AddMission(const CvMissionDefinition* pDefinition) { FAssertMsg(false, "can't get here"); };
 	virtual void RemoveUnitFromBattle(CvUnit* pUnit) { FAssertMsg(false, "can't get here"); };
 	virtual void showPromotionGlow(CvUnitEntity* pEntity, bool show) { FAssertMsg(false, "can't get here"); };

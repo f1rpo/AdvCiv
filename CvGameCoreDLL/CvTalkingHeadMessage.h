@@ -42,7 +42,7 @@ public:
 	bool getShown() const;
 	DllExport void setShown(bool bShown);
 	bool getSoundPlayed() const; // advc.106b
-	int getExpireTurn(bool human = true); // advc.700: Param added
+	int getExpireTurn(/* advc.700: */ bool bHuman = true);
 
 
 protected:

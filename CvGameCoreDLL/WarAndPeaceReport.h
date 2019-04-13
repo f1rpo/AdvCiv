@@ -5,7 +5,6 @@
 
 #include "CvEnums.h"
 #include "CvString.h"
-#include "CvInfos.h"
 #include <vector>
 
 /* <advc.104>: New class. A report about the war planning of a single team

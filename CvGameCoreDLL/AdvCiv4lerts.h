@@ -3,7 +3,6 @@
 #ifndef ADVCIV4LERTS_H
 #define ADVCIV4LERTS_H
 
-#include "CvDeal.h"
 #include "CvString.h"
 
 /*  <advc.210>: I can't write this in Python, so I'm having Civ4lerts.py call
@@ -24,7 +23,7 @@ protected:
 	// and this, probably
 	virtual void reset();
 	void msg(CvWString s, LPCSTR icon = NULL, int x = -1, int y = -1,
-			int goodOrBad = 0) const;
+			ColorTypes colorId = NO_COLOR) const;
 	PlayerTypes ownerId;
 	bool isSilent;
 	bool isDebug;

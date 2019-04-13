@@ -93,7 +93,7 @@ public:
 	CvSeaLevelInfo * getSeaLevelInfo(int i) const;
 	CvInfoBase * getUnitAIInfo(int i) const;
 	CvColorInfo* getColorInfo(int i) const;
-    CvUnitArtStyleTypeInfo* getUnitArtStyleTypeInfo(int i) const;
+	CvUnitArtStyleTypeInfo* getUnitArtStyleTypeInfo(int i) const;
 
 	int getInfoTypeForString(const char* szInfoType) const;
 	int getTypesEnum(const char* szType) const;
@@ -239,7 +239,7 @@ public:
 	int getNumFeatureArtInfos() const { return ARTFILEMGR.getNumFeatureArtInfos(); }
 	int getNumAnimationPathInfos() const { return GC.getNumAnimationPathInfos(); }
 	int getNumAnimationCategoryInfos() const { return GC.getNumAnimationCategoryInfos(); }
-    int getNumUnitArtStyleTypeInfos() const { return GC.getNumUnitArtStyleTypeInfos(); }
+	int getNumUnitArtStyleTypeInfos() const { return GC.getNumUnitArtStyleTypeInfos(); }
 
 
 	int getNumEntityEventTypes() const { return GC.getNumEntityEventTypes(); }
@@ -254,12 +254,12 @@ public:
 	//////////////////////
 
 	CyVariableSystem* getCyDefinesVarSystem();
-	int getDefineINT( const char * szName ) const { return GC.getDefineINT( szName ); }
-	float getDefineFLOAT( const char * szName ) const { return GC.getDefineFLOAT( szName ); }
-	const char * getDefineSTRING( const char * szName ) const { return GC.getDefineSTRING( szName ); }
-	void setDefineINT( const char * szName, int iValue ) { return GC.setDefineINT( szName, iValue ); }
-	void setDefineFLOAT( const char * szName, float fValue ) { return GC.setDefineFLOAT( szName, fValue ); }
-	void setDefineSTRING( const char * szName, const char * szValue ) { return GC.setDefineSTRING( szName, szValue ); }
+	int getDefineINT(const char * szName) const { return GC.getDefineINT(szName); }
+	float getDefineFLOAT(const char * szName) const { return GC.getDefineFLOAT(szName); }
+	const char * getDefineSTRING(const char * szName) const { return GC.getDefineSTRING(szName); }
+	void setDefineINT(const char * szName, int iValue) { return GC.setDefineINT(szName, iValue); }
+	void setDefineFLOAT(const char * szName, float fValue) { return GC.setDefineFLOAT(szName, fValue); }
+	void setDefineSTRING(const char * szName, const char * szValue) { return GC.setDefineSTRING(szName, szValue); }
 
 	int getMOVE_DENOMINATOR() const { return GC.getMOVE_DENOMINATOR(); }
 	int getNUM_UNIT_PREREQ_OR_BONUSES() const { return GC.getNUM_UNIT_PREREQ_OR_BONUSES(); }

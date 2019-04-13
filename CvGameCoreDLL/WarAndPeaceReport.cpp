@@ -2,7 +2,8 @@
 
 #include "CvGameCoreDLL.h"
 #include "WarAndPeaceReport.h"
-
+#include "CvGamePlay.h"
+#include "CvInfos.h"
 #include <sstream>
 
 using std::ostringstream;
@@ -17,10 +18,10 @@ WarAndPeaceReport::~WarAndPeaceReport() {
 
 	if(!report.IsEmpty()) {
 		log("_This logfile is formatted in Textile. Paste its content "
-		    "into the web converter on "
-            "http://borgar.github.io/textile-js/#text_preview"
-		    " for HTML output that is easier to read. "
-		    "(You can download the web converter by saving the web page.)_");
+			"into the web converter on "
+			"http://borgar.github.io/textile-js/#text_preview"
+			" for HTML output that is easier to read. "
+			"(You can download the web converter by saving the web page.)_");
 		writeToFile();
 	}
 	deleteBuffer();
@@ -42,11 +43,11 @@ void WarAndPeaceReport::writeToFile() {
 
 	if(muted > 0)
 		return;
-	CvGame const& g = GC.getGameINLINE();
+	CvGame const& g = GC.getGame();
 	ostringstream logFileName;
 	//if(g.isNetworkMultiPlayer()) // For OOS debugging on a single PC
 		//logFileName << (int)g.getActivePlayer() << "_";
-	logFileName << "uwai" << g.gameTurn() << ".log";
+	logFileName << "uwai" << g.getGameTurn() << ".log";
 	gDLL->logMsg(logFileName.str().c_str(), report, false, false);
 	report.clear();
 }
@@ -58,7 +59,7 @@ void WarAndPeaceReport::deleteBuffer() {
 }
 
 char const* WarAndPeaceReport::leaderName(PlayerTypes civId, int charLimit) {
-											                // default: 8
+															// default: 8
 	CvLeaderHeadInfo& leader = GC.getLeaderHeadInfo(
 			GET_PLAYER(civId).getLeaderType());
 	return narrow(leader.getDescription(), charLimit);
@@ -94,7 +95,7 @@ char const* WarAndPeaceReport::narrow(const wchar* ws, int charLimit) {
 }
 
 char const* WarAndPeaceReport::masterName(TeamTypes masterId, int charLimit) {
-											                // default: 8
+															// default: 8
 	if(muted > 0)
 		return "";
 	CvTeam& mt = GET_TEAM(masterId);

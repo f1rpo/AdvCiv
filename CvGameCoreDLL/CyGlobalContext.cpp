@@ -5,15 +5,12 @@
 
 #include "CvGameCoreDLL.h"
 #include "CyGlobalContext.h"
+#include "CvGamePlay.h"
 #include "CyGame.h"
 #include "CyPlayer.h"
 #include "CyMap.h"
-#include "CvGlobals.h"
-#include "CvPlayerAI.h"
-//#include "CvStructs.h"
 #include "CvInfos.h"
 #include "CyTeam.h"
-#include "CvTeamAI.h"
 #include "CyArtFileMgr.h"
 
 CyGlobalContext::CyGlobalContext()
@@ -41,14 +38,14 @@ bool CyGlobalContext::isDebugBuild() const
 
 CyGame* CyGlobalContext::getCyGame() const
 {
-	static CyGame cyGame(&GC.getGameINLINE());
+	static CyGame cyGame(&GC.getGame());
 	return &cyGame;
 }
 
 
 CyMap* CyGlobalContext::getCyMap() const
 {
-	static CyMap cyMap(&GC.getMapINLINE());
+	static CyMap cyMap(&GC.getMap());
 	return &cyMap;
 }
 
@@ -75,7 +72,7 @@ CyPlayer* CyGlobalContext::getCyPlayer(int idx)
 
 CyPlayer* CyGlobalContext::getCyActivePlayer()
 {
-	PlayerTypes pt = GC.getGameINLINE().getActivePlayer();
+	PlayerTypes pt = GC.getGame().getActivePlayer();
 	return pt != NO_PLAYER ? getCyPlayer(pt) : NULL;
 }
 

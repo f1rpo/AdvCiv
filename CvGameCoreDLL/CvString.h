@@ -36,7 +36,7 @@ public:
 	~CvWString() {}
 
 	void Copy(const char* s)
-	{ 
+	{
 		if (s)
 		{
 			int iLen = strlen(s);
@@ -51,27 +51,27 @@ public:
 	}
 
 	// FString compatibility
-	const wchar* GetCString() const 	{ return c_str(); }	
+	const wchar* GetCString() const 	{ return c_str(); }
 
 	// implicit conversion
-	operator const wchar*() const 	{ return c_str(); }							
+	operator const wchar*() const 	{ return c_str(); }
 
 	// operators
 	wchar& operator[](int i) { return std::wstring::operator[](i);	}
 	wchar& operator[](std::wstring::size_type i) { return std::wstring::operator[](i);	}
 	const wchar operator[](int i) const { return std::wstring::operator[](i);	}
-	const CvWString& operator=( const wchar* s) { if (s) assign(s); else clear();	return *this; }	
-	const CvWString& operator=( const std::wstring& s) { assign(s.c_str());	return *this; }	
-	const CvWString& operator=( const std::string& w) { Copy(w.c_str());	return *this; }	
-	const CvWString& operator=( const CvWString& w) { assign(w.c_str());	return *this; }	
+	const CvWString& operator=( const wchar* s) { if (s) assign(s); else clear();	return *this; }
+	const CvWString& operator=( const std::wstring& s) { assign(s.c_str());	return *this; }
+	const CvWString& operator=( const std::string& w) { Copy(w.c_str());	return *this; }
+	const CvWString& operator=( const CvWString& w) { assign(w.c_str());	return *this; }
 #ifndef _USRDLL
 	// FString conversion, if not in the DLL
-	const CvWString& operator=( const FStringW& s) { assign(s.GetCString());	return *this; }	
-	const CvWString& operator=( const FStringA& w) { Copy(w.GetCString());	return *this; }	
+	const CvWString& operator=( const FStringW& s) { assign(s.GetCString());	return *this; }
+	const CvWString& operator=( const FStringA& w) { Copy(w.GetCString());	return *this; }
 #endif
-	const CvWString& operator=( const char* w) { Copy(w);	return *this; }	
+	const CvWString& operator=( const char* w) { Copy(w);	return *this; }
 
-	void Format( LPCWSTR lpszFormat, ... );
+	void Format(LPCWSTR lpszFormat, ...);
 
 	// static helpers
 	static bool formatv(std::wstring& out, const wchar * fmt, va_list args);
@@ -125,7 +125,7 @@ public:
 		memcpy(m_pBuffer + m_iLength, szCharacters, sizeof(wchar) * (inputLength + 1)); //null character
 		m_iLength = newLength;
 	}
-    
+
 	void append(const CvWString &szString)
 	{
 		append(szString.GetCString());
@@ -177,7 +177,7 @@ private:
 		{
 			m_iCapacity = 2 * newCapacity; //grow by %100
 			wchar *newBuffer = new wchar [m_iCapacity];
-			
+
 			//copy data
 			if(m_pBuffer != NULL)
 			{
@@ -227,26 +227,26 @@ public:
 	}
 
 	// implicit conversion
-	operator const char*() const 	{ return c_str(); }							
-	//	operator const CvWString() const 	{ return CvWString(c_str()); }							
+	operator const char*() const 	{ return c_str(); }
+	//	operator const CvWString() const 	{ return CvWString(c_str()); }
 
 	// operators
 	char& operator[](int i) { return std::string::operator[](i);	}
 	char& operator[](std::string::size_type i) { return std::string::operator[](i);	}
 	const char operator[](int i) const { return std::string::operator[](i);	}
-	const CvString& operator=( const char* s) { if (s) assign(s); else clear();	return *this; }	
-	const CvString& operator=( const std::string& s) { assign(s.c_str());	return *this; }	
+	const CvString& operator=( const char* s) { if (s) assign(s); else clear();	return *this; }
+	const CvString& operator=( const std::string& s) { assign(s.c_str());	return *this; }
 //	const CvString& operator=( const std::wstring& w) { Copy(w.c_str());	return *this; }		// don't want accidental conversions down to narrow strings
-//	const CvString& operator=( const wchar* w) { Copy(w);	return *this; }	
+//	const CvString& operator=( const wchar* w) { Copy(w);	return *this; }
 
 	// FString compatibility
 	bool IsEmpty() const { return empty();	}
 	const char* GetCString() const 	{ return c_str(); }							// convert
-	int CompareNoCase( const char* lpsz ) const { return stricmp(lpsz, c_str()); }
-	int CompareNoCase( const char* lpsz, int iLength ) const { return strnicmp(lpsz, c_str(), iLength);  }
-	void Format( LPCSTR lpszFormat, ... );
+	int CompareNoCase(const char* lpsz) const { return stricmp(lpsz, c_str()); }
+	int CompareNoCase(const char* lpsz, int iLength) const { return strnicmp(lpsz, c_str(), iLength);  }
+	void Format(LPCSTR lpszFormat, ...);
 	int GetLength() const { return size(); }
-	int Replace( char chOld, char chNew );
+	int Replace(char chOld, char chNew);
 
 	void getTokens(const CvString& delimiters, std::vector<CvString>& tokensOut) const;
 
@@ -262,14 +262,14 @@ public:
 // Don't move these into a cpp file, since I don't want CvString to be part of the DLL, MT
 //////////////////////////////////////////////////////////////////////////
 
-inline int CvString::Replace( char chOld, char chNew )
+inline int CvString::Replace(char chOld, char chNew)
 {
-	int i, iCnt = 0;
-	for(i=0;i<(int)size();i++)
+	int iCnt = 0;
+	for(int i = 0; i < (int)size(); i++)
 	{
 		if ((*this)[i] == chOld)
 		{
-			replace(i, 1, std::string(1, chNew) );
+			replace(i, 1, std::string(1, chNew));
 			iCnt++;
 		}
 	}
@@ -279,7 +279,7 @@ inline int CvString::Replace( char chOld, char chNew )
 inline void CvString::getTokens(const CvString& delimiters, std::vector<CvString>& tokensOut) const
 {
 	//tokenizer code taken from http://www.digitalpeer.com/id/simple
-	
+
 	// skip delimiters at beginning.
 	size_type lastPos = find_first_not_of(delimiters, 0);
 
@@ -291,7 +291,7 @@ inline void CvString::getTokens(const CvString& delimiters, std::vector<CvString
 		// found a token, parse it.
 		CvString token = substr(lastPos, pos - lastPos);
 		tokensOut.push_back(token);
-		
+
 		// skip delimiters.  Note the "not_of"
 		lastPos = find_first_not_of(delimiters, pos);
 
@@ -327,9 +327,9 @@ inline bool CvString::formatv(std::string & out, const char * fmt, va_list args)
 	}
 	while (!success && attempts<kMaxAttempts);
 
-	if ( attempts==kMaxAttempts )
+	if (attempts==kMaxAttempts)
 	{
-		// dxPrintNL( "CvString::formatv - Max reallocs occurred while formatting string. Result is likely truncated!", 0 );
+		// dxPrintNL("CvString::formatv - Max reallocs occurred while formatting string. Result is likely truncated!", 0);
 	}
 
 	if (success)
@@ -370,9 +370,9 @@ inline bool CvWString::formatv(std::wstring & out, const wchar * fmt, va_list ar
 	}
 	while (!success && attempts<kMaxAttempts);
 
-	if ( attempts==kMaxAttempts )
+	if (attempts==kMaxAttempts)
 	{
-		// dxPrintNL( "CvString::formatv - Max reallocs occurred while formatting string. Result is likely truncated!", 0 );
+		// dxPrintNL("CvString::formatv - Max reallocs occurred while formatting string. Result is likely truncated!", 0);
 	}
 
 	if (success)
@@ -393,7 +393,7 @@ inline bool CvWString::formatv(std::wstring & out, const wchar * fmt, va_list ar
 inline std::wstring CvWString::formatv(const wchar * fmt, va_list args)
 {
 	std::wstring result;
-	formatv( result, fmt, args );
+	formatv(result, fmt, args);
 	return result;
 }
 
@@ -425,7 +425,7 @@ inline bool CvWString::format(std::wstring & out, const wchar * fmt, ...)
 //
 //
 //
-inline void CvWString::Format( LPCWSTR lpszFormat, ... )
+inline void CvWString::Format( LPCWSTR lpszFormat, ...)
 {
 	std::wstring result;
 	va_list args;
@@ -441,7 +441,7 @@ inline void CvWString::Format( LPCWSTR lpszFormat, ... )
 inline std::string CvString::formatv(const char * fmt, va_list args)
 {
 	std::string result;
-	formatv( result, fmt, args );
+	formatv(result, fmt, args);
 	return result;
 }
 //
@@ -473,7 +473,7 @@ inline bool CvString::format(std::string & out, const char * fmt, ...)
 //
 //
 //
-inline void CvString::Format( LPCSTR lpszFormat, ... )
+inline void CvString::Format( LPCSTR lpszFormat, ...)
 {
 	std::string result;
 	va_list args;

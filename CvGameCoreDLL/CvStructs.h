@@ -5,8 +5,12 @@
 
 // structs.h
 
-//#include "CvEnums.h"
 #include "CvString.h"
+
+// <advc.071>
+class CvPlot;
+class CvUnit;
+// </advc.071>
 
 // XXX these should not be in the DLL per se (if the user changes them, we are screwed...)
 
@@ -327,7 +331,7 @@ typedef std::vector<CvBattleRound> CvBattleRoundVector;		//!< Type declaration f
 class CvMissionDefinition
 {
 public:
-	DllExport CvMissionDefinition();
+	CvMissionDefinition();
 
 	DllExport MissionTypes getMissionType() const;
 	void setMissionType(MissionTypes missionType);
@@ -356,23 +360,23 @@ class CvBattleDefinition : public CvMissionDefinition
 {
 public:
 	CvBattleDefinition();
-	DllExport CvBattleDefinition( const CvBattleDefinition & kCopy );
+	DllExport CvBattleDefinition(const CvBattleDefinition & kCopy);
 	DllExport ~CvBattleDefinition();
 	DllExport int getDamage(BattleUnitTypes unitType, BattleTimeTypes timeType) const;
 	void setDamage(BattleUnitTypes unitType, BattleTimeTypes timeType, int damage);
 	void addDamage(BattleUnitTypes unitType, BattleTimeTypes timeType, int increment);
-	
+
 	DllExport int getFirstStrikes(BattleUnitTypes unitType) const;
 	void setFirstStrikes(BattleUnitTypes unitType, int firstStrikes);
 	void addFirstStrikes(BattleUnitTypes unitType, int increment);
-	
+
 	DllExport bool isAdvanceSquare() const;
 	void setAdvanceSquare(bool advanceSquare);
 
 	int getNumRangedRounds() const;
 	void setNumRangedRounds(int count);
 	void addNumRangedRounds(int increment);
-	
+
 	int getNumMeleeRounds() const;
 	void setNumMeleeRounds(int count);
 	void addNumMeleeRounds(int increment);
@@ -404,7 +408,7 @@ class CvAirMissionDefinition : public CvMissionDefinition
 {
 public:
 	CvAirMissionDefinition();
-	DllExport CvAirMissionDefinition( const CvAirMissionDefinition & kCopy );
+	DllExport CvAirMissionDefinition(const CvAirMissionDefinition & kCopy);
 
 	DllExport int getDamage(BattleUnitTypes unitType) const;
 	void setDamage(BattleUnitTypes unitType, int damage);
@@ -498,6 +502,8 @@ struct DllExport CvWBData
 };
 // <advc.071>
 struct FirstContactData {
+	FirstContactData(CvPlot const* pAt1, CvPlot const* pAt2 = NULL,
+			CvUnit const* pUnit1 = NULL, CvUnit const* pUnit2 = NULL);
 	FirstContactData() : u1(), u2(), x1(-1), x2(-1), y1(-1), y2(-1) {}
 	IDInfo u1, u2;
 	int x1, y1, x2, y2;

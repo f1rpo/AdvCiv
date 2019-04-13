@@ -5,7 +5,6 @@
 #ifndef CIV4_PLOT_H
 #define CIV4_PLOT_H
 
-//#include "CvStructs.h"
 #include "LinkedList.h"
 #include <bitset>
 #include <set> // advc.300
@@ -43,8 +42,8 @@ public:
 
 	void erase();																																								// Exposed to Python
 
-	DllExport float getPointX() const;														
-	DllExport float getPointY() const;														
+	DllExport float getPointX() const;
+	DllExport float getPointY() const;
 	DllExport NiPoint3 getPoint() const;																																	// Exposed to Python
 
 	float getSymbolSize() const;
@@ -86,7 +85,7 @@ public:
 	bool isAdjacentToArea(int iAreaID) const;
 	bool isAdjacentToArea(const CvArea* pArea) const;																						// Exposed to Python
 	bool shareAdjacentArea( const CvPlot* pPlot) const;																					// Exposed to Python
-	bool isAdjacentToLand() const;																															// Exposed to Python 
+	bool isAdjacentToLand() const;																															// Exposed to Python
 	bool isCoastalLand(int iMinWaterSize = -1) const;																																	// Exposed to Python
 
 	bool isVisibleWorked() const;
@@ -112,7 +111,7 @@ public:
 	int getNearestLandArea() const;																															// Exposed to Python
 	CvPlot* getNearestLandPlot() const;																													// Exposed to Python
 
-	int seeFromLevel(TeamTypes eTeam) const;																										// Exposed to Python  
+	int seeFromLevel(TeamTypes eTeam) const;																										// Exposed to Python
 	int seeThroughLevel() const;																																// Exposed to Python
 	void changeAdjacentSight(TeamTypes eTeam, int iRange, bool bIncrement,
 			CvUnit* pUnit, bool bUpdatePlotGroups);
@@ -149,16 +148,18 @@ public:
 			PlayerTypes eAttackingPlayer, CvUnit const* pAttacker,
 			bool bTestAtWar, bool bTestPotentialEnemy, bool bTestCanMove,
 			bool bVisible) const; // </advc.028>
+	// BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000:
+	bool hasDefender(bool bCheckCanAttack, PlayerTypes eOwner, PlayerTypes eAttackingPlayer = NO_PLAYER, const CvUnit* pAttacker = NULL, bool bTestAtWar = false, bool bTestPotentialEnemy = false, bool bTestCanMove = false) const;
 	// disabled by K-Mod:
 	//int AI_sumStrength(PlayerTypes eOwner, PlayerTypes eAttackingPlayer = NO_PLAYER, DomainTypes eDomainType = NO_DOMAIN, bool bDefensiveBonuses = true, bool bTestAtWar = false, bool bTestPotentialEnemy = false) const;
 	CvUnit* getSelectedUnit() const;																																// Exposed to Python
-	int getUnitPower(PlayerTypes eOwner = NO_PLAYER) const;																					// Exposed to Python				
+	int getUnitPower(PlayerTypes eOwner = NO_PLAYER) const;																					// Exposed to Python
 
 	int defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding,
 		/*  advc.012: NO_TEAM means rival defense applies; moved bHelp to the
 			end b/c that parameter is rarely set */
-			TeamTypes eAttacker = NO_TEAM, bool bHelp = false) const;									// Exposed to Python				
-	int movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,														// Exposed to Python				
+			TeamTypes eAttacker = NO_TEAM, bool bHelp = false) const;									// Exposed to Python
+	int movementCost(const CvUnit* pUnit, const CvPlot* pFromPlot,														// Exposed to Python
 			bool bAssumeRevealed = true) const; // advc.001i
 
 	int getExtraMovePathCost() const;																																// Exposed to Python
@@ -169,34 +170,24 @@ public:
 	bool isAdjacentTeam(TeamTypes eTeam, bool bLandOnly = false) const;															// Exposed to Python
 	bool isWithinCultureRange(PlayerTypes ePlayer) const;																						// Exposed to Python
 	int getNumCultureRangeCities(PlayerTypes ePlayer) const;																				// Exposed to Python
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      11/30/08                                jdog5000      */
-/* General AI                                                                                   */
-/************************************************************************************************/
-	// advc.003: const qualifier added to these two
-	bool isHasPathToEnemyCity( TeamTypes eAttackerTeam, bool bIgnoreBarb = true ) const;
-	bool isHasPathToPlayerCity( TeamTypes eMoveTeam, PlayerTypes eOtherPlayer = NO_PLAYER ) const;
-	int calculatePathDistanceToPlot( TeamTypes eTeam, CvPlot* pTargetPlot,
-			// <advc.104b>
-			TeamTypes eTargetTeam = NO_TEAM, DomainTypes dom = NO_DOMAIN,
-			int iMaxPath = -1); // </advc.104b>
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      08/21/09                                jdog5000      */
-/* Efficiency                                                                                   */
-/************************************************************************************************/
+	// BETTER_BTS_AI_MOD, General AI, 11/30/08, jdog5000: START
+			// advc.003: const qualifier added to these two
+	bool isHasPathToEnemyCity(TeamTypes eAttackerTeam, bool bIgnoreBarb = true) const;
+	bool isHasPathToPlayerCity(TeamTypes eMoveTeam, PlayerTypes eOtherPlayer = NO_PLAYER) const;
+	int calculatePathDistanceToPlot(TeamTypes eTeam, CvPlot* pTargetPlot,
+			// <advc.104b>
+			TeamTypes eTargetTeam = NO_TEAM, DomainTypes eDomain = NO_DOMAIN,
+			int iMaxPath = -1); // </advc.104b>
+	// BETTER_BTS_AI_MOD: END
+	// BETTER_BTS_AI_MOD, Efficiency, 08/21/09, jdog5000: START
 	// Plot danger cache (rewritten for K-Mod to fix bugs and improvement performance)
 	inline int getActivePlayerSafeRangeCache() const { return m_iActivePlayerSafeRangeCache; }
 	inline void setActivePlayerSafeRangeCache(int range) { m_iActivePlayerSafeRangeCache = range; }
 	inline bool getBorderDangerCache(TeamTypes eTeam) const { return m_abBorderDangerCache[eTeam]; }
 	inline void setBorderDangerCache(TeamTypes eTeam, bool bNewValue) { m_abBorderDangerCache[eTeam] = bNewValue; }
 	void invalidateBorderDangerCache();
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+	// BETTER_BTS_AI_MOD: END
 	PlayerTypes calculateCulturalOwner(
 			bool bIgnoreCultureRange = false, // advc.099c
 			bool bOwnExclusiveRadius = false) const; // advc.035
@@ -217,9 +208,8 @@ public:
 	static void setAllFog(bool b); // </advc.706>
 	// <advc.300>
 	bool isCivUnitNearby(int iRadius) const;
-	void getAdjacentLandAreaIds(std::set<int>& r) const; // Caller provides the set
-	CvPlot const* nearestInvisiblePlot(bool bOnlyLand, int iMaxPlotDist,
-			TeamTypes eObserver) const;
+	void getAdjacentLandAreaIds(std::set<int>& r) const;
+	CvPlot const* nearestInvisiblePlot(bool bOnlyLand, int iMaxPlotDist, TeamTypes eObserver) const;
 	// </advc.300>
 	bool isVisibleToWatchingHuman() const;																														// Exposed to Python
 	bool isAdjacentVisible(TeamTypes eTeam, bool bDebug) const;																				// Exposed to Python
@@ -244,7 +234,8 @@ public:
 	int getNumVisibleEnemyDefenders(const CvUnit* pUnit) const;																				// Exposed to Python
 	int getNumVisiblePotentialEnemyDefenders(const CvUnit* pUnit) const;															// Exposed to Python
 	DllExport bool isVisibleEnemyUnit(PlayerTypes ePlayer) const;																			// Exposed to Python
-	bool isVisibleEnemyCityAttacker(PlayerTypes ePlayer) const; // advc.122
+	// advc.122:
+	bool isVisibleEnemyCityAttacker(PlayerTypes eDefender, TeamTypes eAssumePeace = NO_TEAM) const;
 	bool isVisiblePotentialEnemyUnit(PlayerTypes ePlayer) const; // K-Mod
 	DllExport int getNumVisibleUnits(PlayerTypes ePlayer) const;
 	bool isVisibleEnemyUnit(const CvUnit* pUnit) const;
@@ -269,41 +260,26 @@ public:
 	bool isValidDomainForAction(const CvUnit& unit) const;																						// Exposed to Python
 	bool isImpassable() const;																															// Exposed to Python
 
-	DllExport int getX() const;																																				// Exposed to Python
-#ifdef _USRDLL
-	inline int getX_INLINE() const
-	{
-		return m_iX;
-	}
-#endif
-	DllExport int getY() const;																																				// Exposed to Python
-#ifdef _USRDLL
-	inline int getY_INLINE() const
-	{
-		return m_iY;
-	}
-#endif
+	int getXExternal() const; // advc.003f: Exported through .def file																					// Exposed to Python
+	#ifdef _USRDLL
+	inline int getX() const { return m_iX; } // advc.003f: Renamed from getX_INLINE
+	#endif
+	int getYExternal() const; // advc.003f: Exported through .def file																					// Exposed to Python
+	#ifdef _USRDLL
+	inline int getY() const { return m_iY; } // advc.003f: Renamed from getY_INLINE
+	#endif
 	bool at(int iX, int iY) const;																																		// Exposed to Python
 	int getLatitude() const;																																					// Exposed to Python
 	void setLatitude(int iLatitude); // advc.tsl	(exposed to Python)
 	int getFOWIndex() const;
 
 	CvArea* area() const;																																							// Exposed to Python
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						01/02/09		jdog5000			*/
-/* 	General AI																	*/
-/********************************************************************************/
-/* original BTS code
-	CvArea* waterArea() const;
-*/
-	CvArea* waterArea(bool bNoImpassable = false) const;
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						END									*/
-/********************************************************************************/	
-
+	CvArea* waterArea(
+			// BETTER_BTS_AI_MOD, General AI, 01/02/09, jdog5000
+			bool bNoImpassable = false) const;
 	CvArea* secondWaterArea() const;
 	int getArea() const;																																		// Exposed to Python
-	void setArea(int iNewValue);			
+	void setArea(int iNewValue, /* advc.310: */ bool bProcess = true);
 
 	DllExport int getFeatureVariety() const;																													// Exposed to Python
 
@@ -332,15 +308,15 @@ public:
 
 	bool isStartingPlot() const;																																			// Exposed to Python
 	void setStartingPlot(bool bNewValue);																															// Exposed to Python
-	
-	DllExport bool isNOfRiver() const;																																// Exposed to Python					
-	void setNOfRiver(bool bNewValue, CardinalDirectionTypes eRiverDir);											// Exposed to Python					
-																																																		
-	DllExport bool isWOfRiver() const;																																// Exposed to Python					
-	void setWOfRiver(bool bNewValue, CardinalDirectionTypes eRiverDir);											// Exposed to Python					
-																																																		
-	DllExport CardinalDirectionTypes getRiverNSDirection() const;																			// Exposed to Python					
-	DllExport CardinalDirectionTypes getRiverWEDirection() const;																			// Exposed to Python					
+
+	DllExport bool isNOfRiver() const;																																// Exposed to Python
+	void setNOfRiver(bool bNewValue, CardinalDirectionTypes eRiverDir);											// Exposed to Python
+
+	DllExport bool isWOfRiver() const;																																// Exposed to Python
+	void setWOfRiver(bool bNewValue, CardinalDirectionTypes eRiverDir);											// Exposed to Python
+
+	DllExport CardinalDirectionTypes getRiverNSDirection() const;																			// Exposed to Python
+	DllExport CardinalDirectionTypes getRiverWEDirection() const;																			// Exposed to Python
 
 	CvPlot* getInlandCorner() const;																																	// Exposed to Python
 	bool hasCoastAtSECorner() const;
@@ -359,16 +335,16 @@ public:
 	bool isFlagDirty() const;																																										// Exposed to Python
 	void setFlagDirty(bool bNewValue);																																					// Exposed to Python
 
-	DllExport PlayerTypes getOwner() const;																																			// Exposed to Python
-#ifdef _USRDLL
-	inline PlayerTypes getOwnerINLINE() const
+	PlayerTypes getOwnerExternal() const; // advc.003f: Exported through .def file																					// Exposed to Python
+	#ifdef _USRDLL
+	inline PlayerTypes getOwner() const // advc.003f: Renamed from getOwnerINLINE
 	{
 		return (PlayerTypes)m_eOwner;
 	}
-#endif
+	#endif
 	void setOwner(PlayerTypes eNewValue, bool bCheckUnits, bool bUpdatePlotGroup);
-	/*  <advc.035> The returned civ becomes the owner if war/peace changes
-		between that civ and the current owner */
+	/*  <advc.035> The returned player becomes the owner if war/peace changes
+		between that player and the current owner */
 	PlayerTypes getSecondOwner() const;
 	void setSecondOwner(PlayerTypes eNewValue);
 	bool isContestedByRival(PlayerTypes eRival = NO_PLAYER) const;
@@ -404,7 +380,7 @@ public:
 
 	DllExport CvCity* getPlotCity() const;																																					// Exposed to Python
 	void setPlotCity(CvCity* pNewValue);
-	void setRuinsName(const CvWString& name); // advc.005c
+	void setRuinsName(const CvWString& szName); // advc.005c
 	const wchar* getRuinsName() const; // advc.005c
 
 	CvCity* getWorkingCity() const;																																				// Exposed to Python
@@ -431,14 +407,9 @@ public:
 	int calculateNatureYield(YieldTypes eIndex, TeamTypes eTeam, bool bIgnoreFeature = false) const;		// Exposed to Python
 	int calculateBestNatureYield(YieldTypes eIndex, TeamTypes eTeam) const;															// Exposed to Python
 	int calculateTotalBestNatureYield(TeamTypes eTeam) const;																						// Exposed to Python
-/******************************************************************************/
-/* BETTER_BTS_AI_MOD                      10/06/09				jdog5000      */
-/* City AI                                                                    */
-/******************************************************************************/
+	// BETTER_BTS_AI_MOD, City AI, 10/06/09, jdog5000:
 	int calculateImprovementYieldChange(ImprovementTypes eImprovement, YieldTypes eYield, PlayerTypes ePlayer, bool bOptimal = false, bool bBestRoute = false) const;	// Exposed to Python
-/******************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                */
-/******************************************************************************/
+
 	int calculateYield(YieldTypes eIndex, bool bDisplay = false) const;												// Exposed to Python
 	bool hasYield() const;																																		// Exposed to Python
 	void updateYield();
@@ -507,10 +478,10 @@ public:
 	bool isAdjacentNonrevealed(TeamTypes eTeam) const;																				// Exposed to Python
 
 	ImprovementTypes getRevealedImprovementType(TeamTypes eTeam, bool bDebug) const;					// Exposed to Python
-	void setRevealedImprovementType(TeamTypes eTeam, ImprovementTypes eNewValue);			
+	void setRevealedImprovementType(TeamTypes eTeam, ImprovementTypes eNewValue);
 
 	RouteTypes getRevealedRouteType(TeamTypes eTeam, bool bDebug) const;											// Exposed to Python
-	void setRevealedRouteType(TeamTypes eTeam, RouteTypes eNewValue);							
+	void setRevealedRouteType(TeamTypes eTeam, RouteTypes eNewValue);
 
 	int getBuildProgress(BuildTypes eBuild) const;																											// Exposed to Python
 	bool changeBuildProgress(BuildTypes eBuild, int iChange,									// Exposed to Python
@@ -518,7 +489,7 @@ public:
 			PlayerTypes ePlayer); // advc.251
 	bool decayBuildProgress(bool bTest = false); // advc.011
 
-	void updateFeatureSymbolVisibility(); 
+	void updateFeatureSymbolVisibility();
 	void updateFeatureSymbol(bool bForce = false);
 	/*  The plot layout contains bonuses and improvements ---
 		it is, like the city layout, passively computed by LSystems */
@@ -641,18 +612,11 @@ protected:
 	IDInfo m_plotCity;
 	IDInfo m_workingCity;
 	IDInfo m_workingCityOverride;
-
-/**************************************************************************/
-/* BETTER_BTS_AI_MOD                      08/21/09      jdog5000          */
-/* Efficiency                                                             */
-/**************************************************************************/
-	// Plot danger cache
+	// BETTER_BTS_AI_MOD, Efficiency (plot danger cache), 08/21/09, jdog5000: START
 	//bool m_bActivePlayerNoDangerCache;
 	int m_iActivePlayerSafeRangeCache; // K-Mod (the bbai implementation was flawed)
 	bool* m_abBorderDangerCache;
-/***************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                             */
-/***************************************************************************/
+	// BETTER_BTS_AI_MOD: END
 
 	short* m_aiYield;
 	int* m_aiCulture;
@@ -711,17 +675,6 @@ protected:
 
 	// added so under cheat mode we can access protected stuff
 	friend class CvGameTextMgr;
-
-/***************************************************************************/
-/* BETTER_BTS_AI_MOD                      02/21/10         jdog5000        */
-/* Lead From Behind                                                        */
-/***************************************************************************/
-// From Lead From Behind by UncutDragon
-public:
-	bool hasDefender(bool bCheckCanAttack, PlayerTypes eOwner, PlayerTypes eAttackingPlayer = NO_PLAYER, const CvUnit* pAttacker = NULL, bool bTestAtWar = false, bool bTestPotentialEnemy = false, bool bTestCanMove = false) const;
-/****************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                              */
-/****************************************************************************/
 };
 
 #endif

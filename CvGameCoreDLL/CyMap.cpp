@@ -1,22 +1,21 @@
 //
-// Python wrapper class for CvMap 
-// 
+// Python wrapper class for CvMap
+//
 
 #include "CvGameCoreDLL.h"
-#include "cyMap.h"
+#include "CyMap.h"
 #include "CyPlot.h"
 #include "CvMap.h"
 #include "CyCity.h"
 #include "CySelectionGroup.h"
 #include "CyUnit.h"
 #include "CyArea.h"
-#include "CvGlobals.h"
 #include "CvMapGenerator.h"
 #include "CvInitCore.h"
 
 CyMap::CyMap() : m_pMap(NULL)
 {
-	m_pMap = &GC.getMapINLINE();
+	m_pMap = &GC.getMap();
 }
 
 CyMap::CyMap(CvMap* pMap) : m_pMap(pMap)
@@ -80,17 +79,17 @@ bool CyMap::findWater(CyPlot* pPlot, int iRange, bool bFreshWater)
 
 bool CyMap::isPlot(int iX, int iY)
 {
-	return m_pMap ? m_pMap->isPlotINLINE(iX, iY) : false;
+	return m_pMap ? m_pMap->isPlot(iX, iY) : false;
 }
 
 int CyMap::numPlots()
 {
-	return m_pMap ? m_pMap->numPlotsINLINE() : -1;
+	return m_pMap ? m_pMap->numPlots() : -1;
 }
 
 int CyMap::plotNum(int iX, int iY)
 {
-	return m_pMap ? m_pMap->plotNumINLINE(iX, iY) : -1;
+	return m_pMap ? m_pMap->plotNum(iX, iY) : -1;
 }
 
 int CyMap::plotX(int iIndex)
@@ -103,14 +102,14 @@ int CyMap::plotY(int iIndex)
 	return m_pMap ? m_pMap->plotY(iIndex) : -1;
 }
 
-int CyMap::getGridWidth() 
+int CyMap::getGridWidth()
 {
-	return m_pMap->getGridWidthINLINE();
+	return m_pMap->getGridWidth();
 }
 
 int CyMap::getGridHeight()
 {
-	return m_pMap->getGridHeightINLINE();
+	return m_pMap->getGridHeight();
 }
 
 int CyMap::getLandPlots()
@@ -146,12 +145,12 @@ void CyMap::incrementNextRiverID()
 
 bool CyMap::isWrapX()
 {
-	return m_pMap ? m_pMap->isWrapXINLINE() : false;
+	return m_pMap ? m_pMap->isWrapX() : false;
 }
 
 bool CyMap::isWrapY()
 {
-	return m_pMap ? m_pMap->isWrapYINLINE() : false;
+	return m_pMap ? m_pMap->isWrapY() : false;
 }
 
 std::wstring CyMap::getMapScriptName()
@@ -196,7 +195,7 @@ int CyMap::getNumBonusesOnLand(int /* BonusTypes */ eIndex)
 
 CyPlot* CyMap::plotByIndex(int iIndex)
 {
-	return m_pMap ? new CyPlot(m_pMap->plotByIndexINLINE(iIndex)) : NULL;
+	return m_pMap ? new CyPlot(m_pMap->plotByIndex(iIndex)) : NULL;
 }
 
 //
@@ -207,24 +206,24 @@ CyPlot* CyMap::sPlotByIndex(int iIndex)
 	static CyPlot plot;
 	if (m_pMap)
 	{
-		plot.setPlot(m_pMap->plotByIndexINLINE(iIndex));
+		plot.setPlot(m_pMap->plotByIndex(iIndex));
 		return &plot;
 	}
 	return NULL;
 }
 
-CyPlot* CyMap::plot(int iX, int iY) 
+CyPlot* CyMap::plot(int iX, int iY)
 {
-	return new CyPlot(m_pMap->plotINLINE(iX, iY));
+	return new CyPlot(m_pMap->plot(iX, iY));
 }
 
 //
 // static version
 //
-CyPlot* CyMap::sPlot(int iX, int iY) 
+CyPlot* CyMap::sPlot(int iX, int iY)
 {
 	static CyPlot p;
-	p.setPlot(m_pMap->plotINLINE(iX, iY));
+	p.setPlot(m_pMap->plot(iX, iY));
 	return &p;
 }
 

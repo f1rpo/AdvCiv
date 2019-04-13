@@ -265,7 +265,7 @@ enum InterfaceMessageTypes	// Exposed to Python
 	MESSAGE_TYPE_COMBAT_MESSAGE,
 	MESSAGE_TYPE_QUEST,
 	// <advc.106b>
-	MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY, 
+	MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY,
 	MESSAGE_TYPE_EOT, // </advc.106b>
 #ifdef _USRDLL
 	NUM_INTERFACE_MESSAGE_TYPES
@@ -561,7 +561,19 @@ enum WidgetTypes					// Exposed to Python
 	WIDGET_PEDIA_JUMP_TO_BONUS_TRADE,
 	WIDGET_PEDIA_JUMP_TO_TECH_TRADE,
 	// BULL - Trade Denial - end
-
+	WIDGET_TRADE_ROUTES, // BULL - Trade Hover - start
+	// BULL - Finance Advisor - start
+	WIDGET_HELP_FINANCE_DOMESTIC_TRADE,
+	WIDGET_HELP_FINANCE_FOREIGN_TRADE,
+	WIDGET_HELP_FINANCE_SPECIALISTS,
+	// BULL - Finance Advisor - end
+	WIDGET_LEADERHEAD_RELATIONS, // BULL - Leaderhead Relations
+	WIDGET_FOOD_MOD_HELP, // BULL - Food Rate Hover
+	// <advc.085>
+	WIDGET_EXPAND_SCORES,
+	WIDGET_POWER_RATIO,
+	WIDGET_GOLDEN_AGE,
+	WIDGET_ANARCHY, // </advc.085>
 #ifdef _USRDLL
 	NUM_WIDGET_TYPES
 #endif
@@ -646,7 +658,7 @@ enum WorldSizeTypes				// Exposed to Python
 #endif
 };
 
-// This is our current relationship with each 
+// This is our current relationship with each
 // one of our connected network peers
 enum InitStates
 {
@@ -719,13 +731,13 @@ enum FlavorTypes						// Exposed to Python
 {
 	NO_FLAVOR = -1,
 	// K-Mod. These are the current flavors defined in GlobalTypes.xml
-    FLAVOR_MILITARY,
+	FLAVOR_MILITARY,
 	FLAVOR_RELIGION,
-    FLAVOR_PRODUCTION,
-    FLAVOR_GOLD,
-    FLAVOR_SCIENCE,
-    FLAVOR_CULTURE,
-    FLAVOR_GROWTH,
+	FLAVOR_PRODUCTION,
+	FLAVOR_GOLD,
+	FLAVOR_SCIENCE,
+	FLAVOR_CULTURE,
+	FLAVOR_GROWTH,
 	// K-Mod end
 	// <advc.001>
 	FLAVOR_ESPIONAGE, /*  Added by BtS, missing in karadoc's list. Not a bug really,
@@ -1112,13 +1124,14 @@ enum TaskTypes				// Exposed to Python
 	TASK_RALLY_PLOT,
 	TASK_CLEAR_RALLY_PLOT,
 	TASK_LIBERATE,
+	TASK_CEDE, // advc.122
 
 #ifdef _USRDLL
 	NUM_TASK_TYPES
 #endif
 };
 
-enum BuildingClassTypes				// Exposed to Python 
+enum BuildingClassTypes				// Exposed to Python
 {
 	NO_BUILDINGCLASS = -1,
 };
@@ -1221,7 +1234,7 @@ enum NewConceptTypes				// Exposed to Python
 
 enum CalendarTypes			// Exposed to Python
 {
-	NO_CALENDAR = -1, 
+	NO_CALENDAR = -1,
 
 	CALENDAR_DEFAULT,
 	CALENDAR_BI_YEARLY,
@@ -1785,7 +1798,7 @@ enum AnimationPathTypes	// Exposed to Python
 	ANIMATIONPATH_MELEE_FORTIFIED,
 	ANIMATIONPATH_MELEE_DIE_FADE,		//!< Used only in combat. The colateral damage die should have a fade integrated.
 	ANIMATIONPATH_MELEE_FLEE,			//!< Used only by settler children, so they don't die in combat
-	
+
 	// Ranged combat related animation paths
 	ANIMATIONPATH_RANGED_STRIKE,
 	ANIMATIONPATH_RANGED_DIE,
@@ -1794,7 +1807,7 @@ enum AnimationPathTypes	// Exposed to Python
 	ANIMATIONPATH_RANGED_RUNDIE,
 	ANIMATIONPATH_RANGED_DIE_FADE,		//!< Used only in combat. The colateral damage die should have a fade integrated.
 	ANIMATIONPATH_LEADER_COMMAND,
-	
+
 	// Air Units animation paths
 	ANIMATIONPATH_AIRFADEIN,
 	ANIMATIONPATH_AIRFADEOUT,
@@ -1942,12 +1955,12 @@ enum DiploEventTypes					// Exposed to Python
 #endif
 };
 
-enum DiploCommentTypes				// Exposed to Python 
+enum DiploCommentTypes				// Exposed to Python
 {
 	NO_DIPLOCOMMENT = -1
 };
 
-enum NetContactTypes					// Exposed to Python 
+enum NetContactTypes					// Exposed to Python
 {
 	NO_NETCONTACT = -1,
 	NETCONTACT_INITIAL,
@@ -1960,7 +1973,7 @@ enum NetContactTypes					// Exposed to Python
 #endif
 };
 
-enum ContactTypes							// Exposed to Python 
+enum ContactTypes							// Exposed to Python
 {
 	CONTACT_RELIGION_PRESSURE,
 	CONTACT_CIVIC_PRESSURE,
@@ -1980,7 +1993,7 @@ enum ContactTypes							// Exposed to Python
 	NUM_CONTACT_TYPES
 };
 
-enum MemoryTypes							// Exposed to Python 
+enum MemoryTypes							// Exposed to Python
 {
 	MEMORY_DECLARED_WAR,
 	MEMORY_DECLARED_WAR_ON_FRIEND,
@@ -2023,7 +2036,7 @@ enum MemoryTypes							// Exposed to Python
 	NUM_MEMORY_TYPES
 };
 
-enum AttitudeTypes				// Exposed to Python 
+enum AttitudeTypes				// Exposed to Python
 {
 	NO_ATTITUDE = -1,
 
@@ -2105,7 +2118,7 @@ enum FeatTypes						// Exposed to Python
 enum SaveGameTypes			// Exposed to Python
 {
 	SAVEGAME_NONE = -1,
-	
+
 	SAVEGAME_AUTO,
 	SAVEGAME_RECOVERY,
 	SAVEGAME_QUICK,
@@ -2232,7 +2245,7 @@ enum MenuScreenType
 	MENU_SCREEN_OPENING_MENU,
 	MENU_SCREEN_MOD_MENU,
 
-	MENU_SCREEN_GS_BUDDYLIST, 
+	MENU_SCREEN_GS_BUDDYLIST,
 	MENU_SCREEN_GS_CHATROOM,
 	MENU_SCREEN_GS_CHANNEL,
 	MENU_SCREEN_GS_CHOOSE_SCENARIO,
@@ -2444,7 +2457,7 @@ enum CivLoginStates
 	LOGIN_CIV_TAKEN,
 	LOGIN_CIV_HAS_ID,
 };
- 
+
 enum VersionTypes
 {
 	NO_VERSIONTYPE = -1,
@@ -2464,7 +2477,7 @@ enum VoteResultTypes
 
 enum VoteStatusTypes
 {
-	NO_VOTESTATUS = -1, 
+	NO_VOTESTATUS = -1,
 
 	VOTESTATUS_TIED = -2,
 	VOTESTATUS_UNDECIDED = -3,
@@ -2583,7 +2596,7 @@ enum GameMessageTypes				// Exposed to Python
 	GAMEMESSAGE_FILE_INFO,
 	GAMEMESSAGE_PICK_YOUR_CIV,
 	GAMEMESSAGE_CIV_CHOICE,
-	GAMEMESSAGE_CONFIRM_CIV_CLAIM, 
+	GAMEMESSAGE_CONFIRM_CIV_CLAIM,
 	GAMEMESSAGE_CLAIM_INFO,
 	GAMEMESSAGE_CIV_CHOICE_ACK,
 	GAMEMESSAGE_CIV_CHOICE_NACK,
@@ -2668,6 +2681,7 @@ enum GameMessageTypes				// Exposed to Python
 	GAMEMESSAGE_FOUND_RELIGION,
 	GAMEMESSAGE_MOD_NET_MESSAGE,
 	GAMEMESSAGE_PUSH_MODIFIED_MISSION, // advc.011b
+	GAMEMESSAGE_FP_TEST, // advc.003g
 };
 
 enum PopupControlLayout		// Exposed to Python
@@ -2783,7 +2797,10 @@ enum GlobeLayerTypes
 	GLOBE_LAYER_CULTURE,
 
 #ifdef _USRDLL
-	NUM_GLOBE_LAYER_TYPES
+	NUM_GLOBE_LAYER_TYPES,
+	// <advc.004m>
+	NO_GLOBE_LAYER,
+	GLOBE_LAYER_UNKNOWN // </advc.004m>
 #endif
 };
 

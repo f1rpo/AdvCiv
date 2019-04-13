@@ -100,11 +100,12 @@
 			<fBlue>1.00</fBlue>
 			<fAlpha>1.00</fAlpha>
 		</ColorVal>
+		<!-- advc.002i: was 0.99, 0.58, 0.16 -->
 		<ColorVal>
 			<Type>COLOR_YIELD_FOOD</Type>
-			<fRed>0.99</fRed>
-			<fGreen>0.58</fGreen>
-			<fBlue>0.16</fBlue>
+			<fRed>0.87</fRed>
+			<fGreen>0.53</fGreen>
+			<fBlue>0.13</fBlue>
 			<fAlpha>1.00</fAlpha>
 		</ColorVal>
 		<ColorVal>

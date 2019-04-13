@@ -4,14 +4,19 @@
 #define WAR_AND_PEACE_CACHE_H
 
 #include "CvEnums.h"
-#include "CvDeal.h"
-#include "CvInfos.h"
-#include "MilitaryBranch.h."
+#include "CvStructs.h"
+#include "LinkedList.h"
 #include <vector>
+#include <map>
+
+class WarAndPeaceCache;
+class MilitaryBranch;
+class CvCity;
+class FDataStreamBase;
 
 /* <advc.104>: Cached data used by the war-and-peace AI. Each civ has its own
    cache. That said, each civ's cache also contains certain (subjective)
-   information about all other civs.
+   information about all other civs, and (not nice) also a bit of team-level data.
    Also handles the updating of cached values, i.e. many of the AI's
    heuristic functions belong to this class. (Maybe it would be cleaner
    if the heuristics were moved to WarAndPeaceAI::Civ? Will have to split
@@ -26,20 +31,20 @@ public:
 	~WarAndPeaceCache();
 	/* Call order during initialization and clean-up:
 	   + When starting a new game directly after starting Civ 4:
-	     Constructors (for CvTeam and all related classes) are called, then init.
+		 Constructors (for CvTeam and all related classes) are called, then init.
 		 Actually, the CvTeam constructor is already called when starting up Civ.
 	   + When starting a new game after returning to the main menu
-	     from another game: Constructors are _not_ called; objects need
-		 to be reset in init. Highly error-prone, but there's no changing it.
+		 from another game: Constructors are _not_ called; objects need
+		 to be reset in init. Error-prone, but there's no changing it.
 		 clear(bool) handles the reset.
 	   + When loading a savegame right after starting Civ:
-	     Constructors are called (some already when starting Civ), read is called
+		 Constructors are called (some already when starting Civ), read is called
 		 while loading the savegame.
 	   + When loading a savegame after returning to the main menu:
-	     Only read is called. Will have to reset the object.
+		 Only read is called. Will have to reset the object.
 	   + When returning to the main menu, nothing special happens.
 	   + Only when exiting Civ, destructors are called. They might be called on
-	     other occasions, but, on exit, it's guaranteeed.
+		 other occasions, but, on exit, it's guaranteeed.
 	   + When saving a game, write is called. */
 	void init(PlayerTypes ownerId);
 	void update();
@@ -94,8 +99,9 @@ public:
 	void updateCanBeHiredAgainst(TeamTypes tId, int u, int thresh);
 	bool canTrainDeepSeaCargo() const;
 	bool canTrainAnyCargo() const;
+	bool isFocusOnPeacefulVictory() const;
 
-    /* Caching of power values. Military planning must not add the power
+	/* Caching of power values. Military planning must not add the power
 	   of hypothetical units to the vector; need to make a copy for that. */
 	std::vector<MilitaryBranch*> const& getPowerValues() const;
 	// Counts only combatants
@@ -154,6 +160,7 @@ private:
 	void updateWarUtilityIgnDistraction(TeamTypes targetId);
 	void updateCanScrub();
 	void updateTrainCargo();
+	bool calculateFocusOnPeacefulVictory();
 	// To supply team-on-team data
 	WarAndPeaceCache const& leaderCache() const;
 	WarAndPeaceCache& leaderCache();
@@ -169,6 +176,7 @@ private:
 	bool bHasAggressiveTrait, bHasProtectiveTrait;
 	bool canScrub;
 	bool trainDeepSeaCargo, trainAnyCargo;
+	bool focusOnPeacefulVictory;
 	std::set<TeamTypes> readyToCapitulate;
 	static double const goldPerProdUpperLimit;
    // Serializable arrays
@@ -192,7 +200,7 @@ private:
 	 int sponsorsAgainst[MAX_CIV_TEAMS];
 	 int warUtilityIgnDistraction[MAX_CIV_TEAMS];
 	 bool hireAgainst[MAX_CIV_TEAMS];
-	
+
 public:
 	/* Information to be cached about a CvCity and scoring functions useful
 	   for computing war utility. */
@@ -217,19 +225,18 @@ public:
 		bool canCurrentlyReachBySea() const;
 		/* CvCity doesn't have a proper ID. Use the plot number (index of
 		   the linearized map) as an ID. It's unique (b/c there is at most
-		   one city per plot), but not consecutive (most plots don't have
-		   a city). */
+		   one city per plot), but not consecutive (most plots don't have a city). */
 		int id() const;
 		// NULL if the city no longer exists at the time of retrieval
 		CvCity* city() const;
-		/*  See ::fatCross in CvGameCoreUtils. If the underlying CvCity
+		/*  See ::cityCross in CvGameCoreUtils. If the underlying CvCity
 			no longer exists, all entries are NULL. */
-		void fatCross(std::vector<CvPlot*>& r);
+		void cityCross(std::vector<CvPlot*>& r);
 		void write(FDataStreamBase* stream);
 		void read(FDataStreamBase* stream);
-	    static CvCity* cityById(int id);
+		static CvCity* cityById(int id);
 		// Wrapper for CvUnit::generatePath
-	    static bool measureDistance(PlayerTypes civId, DomainTypes dom,
+		static bool measureDistance(PlayerTypes civId, DomainTypes dom,
 				CvPlot* start, CvPlot* dest, int* r);
 		static double estimateMovementSpeed(PlayerTypes civId, DomainTypes dom, int dist);
 		/* For sorting cities. None of these are currently used, and I'm not
@@ -239,7 +246,7 @@ public:
 			is closer to us than 'two' in terms of getDistance. */
 		 static bool byOwnerAndDistance(City* one, City* two);
 		 static bool byDistance(City* one, City* two);
-	    // Unreachable cities are treated as having targetValue -1
+		// Unreachable cities are treated as having targetValue -1
 		 static bool byOwnerAndTargetValue(City* one, City* two);
 		 static bool byTargetValue(City* one, City* two);
 		 static bool byAttackPriority(City* one, City* two);

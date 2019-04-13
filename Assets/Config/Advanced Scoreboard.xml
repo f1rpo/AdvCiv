@@ -65,12 +65,15 @@
 					get="isShowCountCities" set="setShowCountCities" dirtyBit="Score"/>
 			
 			<!-- Advanced Layout -->
-			<!-- advc.106d: Default was !?2WSZVC6EPTUNBDRAHQ*LO -->
 			<option id="AlignIcons" key="Align Icons" 
 					type="boolean" default="True" 
 					get="isAlignIcons" set="setAlignIcons" dirtyBit="Score"/>
+			<!-- advc.085 -->
+			<option id="ExpandOnHover" key="Expand on Hover" 
+					type="boolean" default="True" dirtyBit="Score"/>
+			<!-- advc.106d: Default was !?2WSZVC6EPTUNBDRAHQ*LO -->
 			<option id="DisplayOrder" key="Display Order" 
-					type="string" default="!?2WSZCPTURAHQ*LO"
+					type="string" default="_J_P_D_B_N!?2WSZCTURAHQ*LO"
 					get="getDisplayOrder" set="setDisplayOrder" dirtyBit="Score"/>
 			<list   id="DefaultSpacing" key="Default Column Spacing" 
 					type="int" default="0" values="0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10" 
@@ -103,12 +106,14 @@
 					get="getRankColor" set="setRankColor" dirtyBit="Score"/>
 			
 			<!-- Power Ratio -->
+			<!-- advc.085: default was False -->
 			<option id="Power" key="Power" 
-					type="boolean" default="False" 
+					type="boolean" default="True" 
 					get="isShowPower" set="setShowPower" dirtyBit="Score"/>
 			<list   id="PowerFormula" key="Power Formula" 
 					type="int" default="0" listType="string" 
 					get="getPowerFormula" set="setPowerFormula" dirtyBit="Score">
+				<!-- advc.085: The DLL relies on this order of the choices -->
 				<choice id="ThemVersusYou" get="isPowerThemVersusYou"/>
 				<choice id="YouVersusThem" get="isPowerYouVersusThem"/>
 			</list>
@@ -116,22 +121,26 @@
 			<list   id="PowerDecimals" key="Power Ratio Decimals" 
 					type="int" default="1" values="1, 2" 
 					get="getPowerDecimals" set="setPowerDecimals" dirtyBit="Score"/>
+			<!-- advc.004: default color was WHITE -->
 			<option id="PowerColor" key="Power Color" 
-					type="color" default="COLOR_WHITE" 
+					type="color" default="COLOR_YIELD_FOOD" 
 					get="getPowerColor" set="setPowerColor" dirtyBit="Score"/>
+			<!-- advc.004: default was 1.2 -->
 			<list   id="PowerHighRatio" key="Power High" 
-					type="float" default="1.2" listType="float" 
+					type="float" default="1.3" listType="float" 
 					values="1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0" format="%.1f" 
 					get="getHighPowerRatio" set="setHighPowerRatio" dirtyBit="Score"/>
 			<option id="PowerHighColor" key="Power High Color" 
 					type="color" default="COLOR_WARNING_TEXT" 
 					get="getHighPowerColor" set="setHighPowerColor" dirtyBit="Score"/>
+			<!-- advc.004: default was 0.8 -->
 			<list   id="PowerLowRatio" key="Power Low" 
-					type="float" default="0.8" listType="float" 
+					type="float" default="1.0" listType="float" 
 					values="0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0" format="%.1f" 
 					get="getLowPowerRatio" set="setLowPowerRatio" dirtyBit="Score"/>
+			<!-- advc.004: default was COLOR_POSITIVE_TEXT -->
 			<option id="PowerLowColor" key="Power Low Color" 
-					type="color" default="COLOR_POSITIVE_TEXT" 
+					type="color" default="COLOR_WHITE" 
 					get="getLowPowerColor" set="setLowPowerColor" dirtyBit="Score"/>
 		</section>
 	</options>

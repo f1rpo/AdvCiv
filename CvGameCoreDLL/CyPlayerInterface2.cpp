@@ -17,8 +17,8 @@ void CyPlayerPythonInterface2(python::class_<CyPlayer>& x)
 {
 	OutputDebugString("Python Extension Module - CyPlayerPythonInterface2\n");
 
-	// set the docstring of the current module scope 
-	python::scope().attr("__doc__") = "Civilization IV Player Class"; 
+	// set the docstring of the current module scope
+	python::scope().attr("__doc__") = "Civilization IV Player Class";
 	x
 		.def("AI_updateFoundValues", &CyPlayer::AI_updateFoundValues, "void (bool bStartingLoc)")
 		.def("AI_foundValue", &CyPlayer::AI_foundValue, "int (int, int, int, bool)")
@@ -67,5 +67,9 @@ void CyPlayerPythonInterface2(python::class_<CyPlayer>& x)
 		.def("checkAlert", &CyPlayer::checkAlert, "void (int alertId, bool silent)")
 		// advc.210e:
 		.def("AI_corporationBonusVal", &CyPlayer::AI_corporationBonusVal, "int (int)")
+		// <advc.085>
+		.def("setScoreboardExpanded", &CyPlayer::setScoreboardExpanded, "void (bool)")
+		.def("isScoreboardExpanded", &CyPlayer::isScoreboardExpanded, "bool (void)")
+		// </advc.085>
 		;
 }

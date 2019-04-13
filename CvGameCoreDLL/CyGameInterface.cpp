@@ -1,13 +1,12 @@
 #include "CvGameCoreDLL.h"
 #include "CyGame.h"
-#include "CvRandom.h"
 #include "CyCity.h"
 #include "CyDeal.h"
 #include "CyReplayInfo.h"
 
 //
 // published python interface for CyGame
-// 
+//
 
 void CyGamePythonInterface()
 {
@@ -67,7 +66,7 @@ void CyGamePythonInterface()
 		.def("getCurrentEra", &CyGame::getCurrentEra, "int /*EratTypes*/ ()")
 
 		.def("getActiveTeam", &CyGame::getActiveTeam, "int () - returns ID for the group")
-		.def("getActiveCivilizationType", &CyGame::getActiveCivilizationType, "int () - returns CivilizationID" )
+		.def("getActiveCivilizationType", &CyGame::getActiveCivilizationType, "int () - returns CivilizationID")
 		.def("isNetworkMultiPlayer", &CyGame::isNetworkMultiPlayer, "bool () - NetworkMultiplayer()? ")
 		.def("isGameMultiPlayer", &CyGame::isGameMultiPlayer, "bool () - GameMultiplayer()? ")
 		.def("isTeamGame", &CyGame::isTeamGame, "bool ()")
@@ -259,15 +258,9 @@ void CyGamePythonInterface()
 		.def("hasSkippedSaveChecksum", &CyGame::hasSkippedSaveChecksum)
 		.def("saveReplay", &CyGame::saveReplay)
 		.def("addPlayer", &CyGame::addPlayer, "void (int eNewPlayer, int eLeader, int eCiv)")
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						8/1/08				jdog5000	*/
-/* 																			*/
-/* 	Debug																	*/
-/********************************************************************************/
+		// BETTER_BTS_AI_MOD, Debug, 8/1/08, jdog5000:
 		.def("changeHumanPlayer", &CyGame::changeHumanPlayer, "void ( int /*PlayerTypes*/ eNewHuman )")
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						END								*/
-/********************************************************************************/
+
 		.def("getCultureThreshold", &CyGame::getCultureThreshold, "int getCultureThreshold(CultureLevelTypes eLevel)")
 
 		.def("getPlotExtraYield", &CyGame::getPlotExtraYield, "int (int iX, int iY, int /*YieldTypes*/ eYield)") // K-Mod
@@ -281,6 +274,8 @@ void CyGamePythonInterface()
 
 		.def("isEventActive", &CyGame::isEventActive, "bool (int /*EventTriggerTypes*/ eTrigger)")
 		.def("doControl", &CyGame::doControl, "void (int /*ControlTypes*/ iControl)")
+		// BULL - AutoSave:
+		.def("saveGame", &CyGame::saveGame, "void saveGame(string fullyQualifiedFileName)")
 		// advc.104:
 		.def("useKModAI", &CyGame::useKModAI, "bool ()")
 		// advc.300:
@@ -301,9 +296,9 @@ void CyGamePythonInterface()
 		.def("riseScoreBreakdown", &CyGame::riseScoreBreakdown)
 		// </advc.704><advc.706>
 		.def("isRFInterlude", &CyGame::isRFInterlude, "bool ()")
-		.def("isRFBlockPopups", &CyGame::isRFBlockPopups, "bool ()")
-		.def("isAITurn", &CyGame::isAITurn, "bool ()")
-		// </advc.706>
+		.def("isRFBlockPopups", &CyGame::isRFBlockPopups, "bool ()") // </advc.706>
+		// advc.004m:
+		.def("reportCurrentLayer", &CyGame::reportCurrentLayer, "void(int /*GlobeLayerTypes*/)")
 		;
 
 	python::class_<CyDeal>("CyDeal")

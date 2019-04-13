@@ -199,6 +199,27 @@
 		<DefineName>UWAI_WEIGHT_TACTICAL_SITUATION</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
 	</Define>
+
+	<Define>
+		<!-- Recommended: 100 (BtS behavior)
+			 If this percentage is less than 100, all AI personality values
+			 from Civ4LeaderHeadInfos.xml are moved toward their median. Formula:
+			 ((UWAI_PERSONALITY_PERCENT * x +
+			 (100 - UWAI_PERSONALITY_PERCENT) * m) / 100
+			 where x is a personality value of a given leader and m the median
+			 over all leader personalities defined in XML (except the Barbarian
+			 leader). E.g. UWAI_PERSONALITY_PERCENT=50 moves the values halfway
+			 to the  median, making the AI personalities half as pronounced.
+			 0 eliminates the personalities (apart from traits). Favorite civic
+			 and religion are normally unaffected, but, in the special case of
+			 UWAI_PERSONALITY_PERCENT=0, all leaders are set to having no
+			 favorites. (They'll still "care for their brothers and sisters of
+			 the faith" though.) UWAI_PERSONALITY_PERCENT>100 makes the
+			 personalities more pronounced (not tested). Negative values invert
+			 the personalities (not tested and not recommended). -->
+		<DefineName>UWAI_PERSONALITY_PERCENT</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
 	<!-- [/advc.104x] -->
 	<!-- [advc.104] Misc. UWAI parameters -->
 	<Define>
@@ -207,6 +228,20 @@
 		<DefineName>UWAI_MULTI_WAR_RELUCTANCE</DefineName>
 		<iDefineIntVal>10</iDefineIntVal>
 	</Define>
+    <Define>
+		<!-- When computing per-civ power values (which play an important role
+			 in decisions on war and peace), the power value of each individual
+			 unit is raised to the power of (i.e. exponentiated by)
+			 POWER_CORRECTION. For example, if POWER_CORRECTION is 2, per-unit
+			 power values are squared. POWER_CORRECTION = 1 is the BtS behavior;
+			 power values then typically equal unit strength, e.g. two Warriors
+			 are as good as one Spearman. When squaring, one Spearman is as
+			 good as four Warriors. (That seems too much.)
+			 Recommended: 1.66; one Spearman then corresponds to 3.15 Warriors.
+			 -->
+        <DefineName>POWER_CORRECTION</DefineName>
+        <fDefineFloatVal>1.66</fDefineFloatVal>
+    </Define>
 	<!-- [/advc.104] -->
 
 	<!-- -->

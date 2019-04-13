@@ -3,22 +3,18 @@
 //
 #include "CvGameCoreDLL.h"
 #include "CvGlobals.h"
-#include "CvRandom.h"
-#include "CvGameAI.h"
-#include "CvDLLInterfaceIFaceBase.h"
+#include "CvGamePlay.h"
 #include "CvMap.h"
-#include "CvPlayerAI.h"
-#include "CvTeamAI.h"
 #include "CvInfos.h"
-#include "CvDLLUtilityIFaceBase.h"
 #include "CvArtFileMgr.h"
-#include "CvDLLXMLIFaceBase.h"
 #include "CvPlayerAI.h"
 #include "CvInfoWater.h"
 #include "CvGameTextMgr.h"
-#include "FProfiler.h"
 #include "FVariableSystem.h"
 #include "CvInitCore.h"
+#include "CvDLLInterfaceIFaceBase.h"
+#include "CvDLLUtilityIFaceBase.h"
+#include "CvDLLXMLIFaceBase.h"
 
 #define COPY(dst, src, typeName) \
 	{ \
@@ -159,6 +155,8 @@ m_bHoFScreenUp(false), // advc.106i
 m_iEXTRA_YIELD(0), // K-Mod
 m_bJOIN_WAR_DIPLO_BONUS(false), // advc.130s
 m_iTILE_CULTURE_DECAY_PER_MILL(0), // advc.099
+m_iCITY_RADIUS_DECAY(0), // advc.099b
+m_iREVOLTS_IGNORE_CULTURE_RANGE(0), // advc.099c
 m_iNUM_WARNING_REVOLTS(0), // advc.101
 m_iMAX_DISTANCE_CITY_MAINTENANCE(0), // advc.140
 m_iOWN_EXCLUSIVE_RADIUS(0), // advc.035
@@ -166,9 +164,9 @@ m_iOWN_EXCLUSIVE_RADIUS(0), // advc.035
 m_iDIPLOMACY_VALUE_REMAINDER(0),
 m_iPEACE_TREATY_LENGTH(0),
 m_iTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER(0),
+m_iRUINS_IMPROVEMENT(NO_IMPROVEMENT),
 // </advc.003b>
 m_iRESEARCH_MODIFIER_EXTRA_TEAM_MEMBER(0), // advc.210
-m_iCITY_RADIUS_DECAY(0), // advc.099b
 m_iENABLE_005F(0), // advc.005f
 m_iPER_PLAYER_MESSAGE_CONTROL_LOG(0), // advc.007
 m_iUWAI_MULTI_WAR_RELUCTANCE(0), // advc.104
@@ -178,6 +176,8 @@ m_iDELAY_UNTIL_BUILD_DECAY(0), // advc.011
 m_iBASE_RESEARCH_RATE(0), // advc.910
 m_iNEW_HURRY_MODIFIER(0), // advc.003b
 m_fPOWER_CORRECTION(0), // advc.104
+m_iEXTRA_DEFENDER_ERA(NO_ERA), // advc.107
+m_iWORKER_RESERVE_PERCENT(0), // advc.113
 m_iMOVE_DENOMINATOR(0),
 m_iNUM_UNIT_PREREQ_OR_BONUSES(0),
 m_iNUM_BUILDING_PREREQ_OR_BONUSES(0),
@@ -273,11 +273,8 @@ m_bUSE_DO_COMBAT_CALLBACK(false),
 // K-Mod end
 m_paHints(NULL),
 m_paMainMenus(NULL)
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      02/21/10                                jdog5000      */
-/*                                                                                              */
-/* Efficiency, Options                                                                          */
-/************************************************************************************************/
+
+// BETTER_BTS_AI_MOD, Efficiency, Options, 02/21/10, jdog5000: START
 // BBAI Options
 ,m_bBBAI_AIR_COMBAT(false)
 ,m_bBBAI_HUMAN_VASSAL_WAR_BUILD(false)
@@ -314,11 +311,9 @@ m_paMainMenus(NULL)
 ,m_bLFBUseCombatOdds(true)
 ,m_iCOMBAT_DIE_SIDES(-1)
 ,m_iCOMBAT_DAMAGE(-1)
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-
+// BETTER_BTS_AI_MOD: END
 {
+	// (constructor body)
 }
 
 CvGlobals::~CvGlobals()
@@ -563,11 +558,6 @@ CvPortal& CvGlobals::getPortal()
 CvSetupData& CvGlobals::getSetupData()
 {
 	return *m_setupData;
-}
-
-CvInitCore& CvGlobals::getInitCore()
-{
-	return *m_initCore;
 }
 
 CvInitCore& CvGlobals::getLoadedInitCore()
@@ -891,7 +881,7 @@ CvColorInfo& CvGlobals::getColorInfo(ColorTypes e)
 		extra colors. And anyway, a bad color value shouldn't lead to a crash. */
 	if(e >= getNumColorInfos()) {
 		FAssert(m_bHoFScreenUp || e < getNumColorInfos());
-		// +7: Skip COLOR_CLEAR to COLOR_LIGHT_GREY
+		// +7: Skip colors from COLOR_CLEAR to COLOR_LIGHT_GREY
 		e = (ColorTypes)((e + 7) % getNumColorInfos());
 	} // </advc.106i>
 	return *(m_paColorInfo[e]);
@@ -1080,8 +1070,8 @@ std::vector<CvEntityEventInfo*>& CvGlobals::getEntityEventInfo()
 
 CvEntityEventInfo& CvGlobals::getEntityEventInfo(EntityEventTypes e)
 {
-	FAssert( e > -1 );
-	FAssert( e < getNumEntityEventInfos() );
+	FAssert(e > -1);
+	FAssert(e < getNumEntityEventInfos());
 	return *(m_paEntityEventInfo[e]);
 }
 
@@ -2544,7 +2534,7 @@ CvString& CvGlobals::getArtStyleTypes(ArtStyleTypes e)
 
 int CvGlobals::getNumUnitArtStyleTypeInfos()
 {
-    return (int)m_paUnitArtStyleTypeInfo.size();
+	return (int)m_paUnitArtStyleTypeInfo.size();
 }
 
 std::vector<CvUnitArtStyleTypeInfo*>& CvGlobals::getUnitArtStyleTypeInfo()
@@ -2645,14 +2635,14 @@ int CvGlobals::getFootstepAudioTypeByTag(CvString strTag)
 {
 	int iIndex = -1;
 
-	if ( strTag.GetLength() <= 0 )
+	if (strTag.GetLength() <= 0)
 	{
 		return iIndex;
 	}
 
-	for ( int i = 0; i < m_iNumFootstepAudioTypes; i++ )
+	for (int i = 0; i < m_iNumFootstepAudioTypes; i++)
 	{
-		if ( strTag.CompareNoCase(m_paszFootstepAudioTypes[i]) == 0 )
+		if (strTag.CompareNoCase(m_paszFootstepAudioTypes[i]) == 0)
 		{
 			iIndex = i;
 			break;
@@ -2684,11 +2674,6 @@ CvString const& CvGlobals::getCurrentXMLFile() const
 	return m_szCurrentXMLFile;
 }
 
-FVariableSystem* CvGlobals::getDefinesVarSystem()
-{
-	return m_VarSystem;
-}
-
 void CvGlobals::cacheGlobals()
 {
 	m_iEXTRA_YIELD = getDefineINT("EXTRA_YIELD"); // K-Mod
@@ -2696,6 +2681,10 @@ void CvGlobals::cacheGlobals()
 	m_bJOIN_WAR_DIPLO_BONUS = (getDefineINT("ENABLE_JOIN_WAR_DIPLO_BONUS") > 0);
 	// advc.099:
 	m_iTILE_CULTURE_DECAY_PER_MILL = getDefineINT("TILE_CULTURE_DECAY_PER_MILL");
+	// advc.099b:
+	m_iCITY_RADIUS_DECAY = getDefineINT("CITY_RADIUS_DECAY");
+	// advc.099c:
+	m_iREVOLTS_IGNORE_CULTURE_RANGE = getDefineINT("REVOLTS_IGNORE_CULTURE_RANGE");
 	// advc.101:
 	m_iNUM_WARNING_REVOLTS = getDefineINT("NUM_WARNING_REVOLTS");
 	// advc.140:
@@ -2709,8 +2698,6 @@ void CvGlobals::cacheGlobals()
 	// </advc.003b>
 	// advc.210:
 	m_iRESEARCH_MODIFIER_EXTRA_TEAM_MEMBER = getDefineINT("RESEARCH_MODIFIER_EXTRA_TEAM_MEMBER");
-	// advc.099b:
-	m_iCITY_RADIUS_DECAY = getDefineINT("CITY_RADIUS_DECAY");
 	// advc.005f:
 	m_iENABLE_005F = getDefineINT("ENABLE_005F");
 	// advc.007:
@@ -2729,6 +2716,11 @@ void CvGlobals::cacheGlobals()
 	m_iNEW_HURRY_MODIFIER = getDefineINT("NEW_HURRY_MODIFIER");
 	// advc.104:
 	m_fPOWER_CORRECTION = getDefineFLOAT("POWER_CORRECTION");
+	// advc.107:					// The hyphens are stupid, but I don't want to change the XML file unnecessarily.
+	m_iEXTRA_DEFENDER_ERA = getDefineINT("EXTRA-DEFENDER_ERA");
+	// advc.113
+	m_iWORKER_RESERVE_PERCENT = getDefineINT("WORKER_RESERVE_PERCENT");
+
 	m_iMOVE_DENOMINATOR = getDefineINT("MOVE_DENOMINATOR");
 	m_iNUM_UNIT_PREREQ_OR_BONUSES = getDefineINT("NUM_UNIT_PREREQ_OR_BONUSES");
 	m_iNUM_BUILDING_PREREQ_OR_BONUSES = getDefineINT("NUM_BUILDING_PREREQ_OR_BONUSES");
@@ -2765,7 +2757,7 @@ void CvGlobals::cacheGlobals()
 	m_iPEAK_SEE_FROM_CHANGE = getDefineINT("PEAK_SEE_FROM_CHANGE");
 	m_iHILLS_SEE_FROM_CHANGE = getDefineINT("HILLS_SEE_FROM_CHANGE");
 	m_iUSE_SPIES_NO_ENTER_BORDERS = getDefineINT("USE_SPIES_NO_ENTER_BORDERS");
-	
+
 	m_fCAMERA_MIN_YAW = getDefineFLOAT("CAMERA_MIN_YAW");
 	m_fCAMERA_MAX_YAW = getDefineFLOAT("CAMERA_MAX_YAW");
 	m_fCAMERA_FAR_CLIP_Z_HEIGHT = getDefineFLOAT("CAMERA_FAR_CLIP_Z_HEIGHT");
@@ -2830,24 +2822,20 @@ void CvGlobals::cacheGlobals()
 	m_bUSE_DO_COMBAT_CALLBACK = getDefineINT("USE_DO_COMBAT_CALLBACK") != 0;
 	// K-Mod end
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      02/21/10                                jdog5000      */
-/*                                                                                              */
-/* Efficiency, Options                                                                          */
-/************************************************************************************************/
-// BBAI Options
+	// BETTER_BTS_AI_MOD, Efficiency, Options, 02/21/10, jdog5000: START
+	// BBAI Options
 	m_bBBAI_AIR_COMBAT = !(getDefineINT("BBAI_AIR_COMBAT") == 0);
 	m_bBBAI_HUMAN_VASSAL_WAR_BUILD = !(getDefineINT("BBAI_HUMAN_VASSAL_WAR_BUILD") == 0);
 	m_iBBAI_DEFENSIVE_PACT_BEHAVIOR = getDefineINT("BBAI_DEFENSIVE_PACT_BEHAVIOR");
 	m_bBBAI_HUMAN_AS_VASSAL_OPTION = !(getDefineINT("BBAI_HUMAN_AS_VASSAL_OPTION") == 0);
 
-// BBAI AI Variables
+	// BBAI AI Variables
 	m_iWAR_SUCCESS_CITY_CAPTURING = getDefineINT("WAR_SUCCESS_CITY_CAPTURING", m_iWAR_SUCCESS_CITY_CAPTURING);
 	m_iBBAI_ATTACK_CITY_STACK_RATIO = getDefineINT("BBAI_ATTACK_CITY_STACK_RATIO", m_iBBAI_ATTACK_CITY_STACK_RATIO);
 	m_iBBAI_SKIP_BOMBARD_BASE_STACK_RATIO = getDefineINT("BBAI_SKIP_BOMBARD_BASE_STACK_RATIO", m_iBBAI_SKIP_BOMBARD_BASE_STACK_RATIO);
 	m_iBBAI_SKIP_BOMBARD_MIN_STACK_RATIO = getDefineINT("BBAI_SKIP_BOMBARD_MIN_STACK_RATIO", m_iBBAI_SKIP_BOMBARD_MIN_STACK_RATIO);
 
-// Tech Diffusion
+	// Tech Diffusion
 	m_bTECH_DIFFUSION_ENABLE = !(getDefineINT("TECH_DIFFUSION_ENABLE") == 0);
 	m_iTECH_DIFFUSION_KNOWN_TEAM_MODIFIER = getDefineINT("TECH_DIFFUSION_KNOWN_TEAM_MODIFIER", m_iTECH_DIFFUSION_KNOWN_TEAM_MODIFIER);
 	m_iTECH_DIFFUSION_WELFARE_THRESHOLD = getDefineINT("TECH_DIFFUSION_WELFARE_THRESHOLD", m_iTECH_DIFFUSION_WELFARE_THRESHOLD);
@@ -2858,9 +2846,8 @@ void CvGlobals::cacheGlobals()
 	// <advc.550d>
 	m_iTECH_COST_NOTRADE_MODIFIER = getDefineINT("TECH_COST_NOTRADE_MODIFIER",
 			m_iTECH_COST_NOTRADE_MODIFIER); // </advc.550d>
-	
-// From Lead From Behind by UncutDragon
-// Lead from Behind flags
+
+	// From Lead From Behind by UncutDragon: flags
 	m_bLFBEnable = !(getDefineINT("LFB_ENABLE") == 0);
 	m_iLFBBasedOnGeneral = getDefineINT("LFB_BASEDONGENERAL");
 	m_iLFBBasedOnExperience = getDefineINT("LFB_BASEDONEXPERIENCE");
@@ -2873,83 +2860,79 @@ void CvGlobals::cacheGlobals()
 	m_bLFBUseCombatOdds = !(getDefineINT("LFB_USECOMBATODDS") == 0);
 	m_iCOMBAT_DIE_SIDES = getDefineINT("COMBAT_DIE_SIDES");
 	m_iCOMBAT_DAMAGE = getDefineINT("COMBAT_DAMAGE");
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-	getWPAI.cacheXML(); // advc.104x
+	// BETTER_BTS_AI_MOD: END
 	m_bCachingDone = true; // advc.003c
 }
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      02/21/10                                jdog5000      */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-int CvGlobals::getDefineINT( const char * szName, const int iDefault ) const
+// <advc.003b>
+void CvGlobals::setRUINS_IMPROVEMENT(int iValue) {
+
+	m_iRUINS_IMPROVEMENT = iValue;
+} // </advc.003b>
+
+// BETTER_BTS_AI_MOD, 02/21/10, jdog5000: START
+int CvGlobals::getDefineINT(const char * szName, const int iDefault) const
 {
 	int iReturn = 0;
 
-	if( getDefinesVarSystemINLINE()->GetValue( szName, iReturn ) )
+	if (getDefinesVarSystem()->GetValue(szName, iReturn))
 	{
 		return iReturn;
 	}
 
 	return iDefault;
-}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+} // BETTER_BTS_AI_MOD: END
 
 
-int CvGlobals::getDefineINT( const char * szName ) const
+int CvGlobals::getDefineINT(const char * szName) const
 {
 	int iReturn = 0;
 	bool bSuccess = // advc.003c
-			getDefinesVarSystemINLINE()->GetValue( szName, iReturn );
+			getDefinesVarSystem()->GetValue(szName, iReturn);
 	FAssert(bSuccess); // advc.003c
 	return iReturn;
 }
 
-float CvGlobals::getDefineFLOAT( const char * szName ) const
+float CvGlobals::getDefineFLOAT(const char * szName) const
 {
 	float fReturn = 0;
 	bool bSuccess = // advc.003c
-			getDefinesVarSystemINLINE()->GetValue( szName, fReturn );
+			getDefinesVarSystem()->GetValue(szName, fReturn);
 	/*  advc.003c: The EXE queries CAMERA_MIN_DISTANCE during startup, which
 		fails but doesn't cause any problems. */
 	FAssert(bSuccess || std::strcmp("CAMERA_MIN_DISTANCE", szName) == 0);
 	return fReturn;
 }
 
-const char * CvGlobals::getDefineSTRING( const char * szName ) const
+const char * CvGlobals::getDefineSTRING(const char * szName) const
 {
 	const char * szReturn = NULL;
 	bool bSuccess = // advc.003c
-			getDefinesVarSystemINLINE()->GetValue( szName, szReturn );
+			getDefinesVarSystem()->GetValue(szName, szReturn);
 	FAssert(bSuccess); // advc.003c
 	return szReturn;
 }
 
-void CvGlobals::setDefineINT( const char * szName, int iValue,
-		bool bUpdateCache ) // advc.003b
+void CvGlobals::setDefineINT(const char * szName, int iValue,
+		bool bUpdateCache) // advc.003b
 {
-	getDefinesVarSystem()->SetValue( szName, iValue );
+	getDefinesVarSystem()->SetValue(szName, iValue);
 	if(bUpdateCache) // advc.003b
 		cacheGlobals();
 }
 
-void CvGlobals::setDefineFLOAT( const char * szName, float fValue,
-		bool bUpdateCache ) // advc.003b
+void CvGlobals::setDefineFLOAT(const char * szName, float fValue,
+		bool bUpdateCache) // advc.003b
 {
-	getDefinesVarSystem()->SetValue( szName, fValue );
+	getDefinesVarSystem()->SetValue(szName, fValue);
 	if(bUpdateCache) // advc.003b
 		cacheGlobals();
 }
 
-void CvGlobals::setDefineSTRING( const char * szName, const char * szValue,
-		bool bUpdateCache ) // advc.003b
+void CvGlobals::setDefineSTRING(const char * szName, const char * szValue,
+		bool bUpdateCache) // advc.003b
 {
-	getDefinesVarSystem()->SetValue( szName, szValue );
+	getDefinesVarSystem()->SetValue(szName, szValue);
 	if(bUpdateCache) // advc.003b
 		cacheGlobals();
 }
@@ -3758,7 +3741,7 @@ void CvGlobals::setHoFScreenUp(bool b) {
 // Global Infos Hash Map
 //
 
-int CvGlobals::getInfoTypeForString(const char* szType, bool hideAssert) const
+int CvGlobals::getInfoTypeForString(const char* szType, bool bHideAssert) const
 {
 	FAssertMsg(szType, "null info type string");
 	InfosMap::const_iterator it = m_infosMap.find(szType);
@@ -3767,8 +3750,8 @@ int CvGlobals::getInfoTypeForString(const char* szType, bool hideAssert) const
 		return it->second;
 	}
 
-	//if(!hideAssert)
-	if (!hideAssert && !(strcmp(szType, "NONE")==0 || strcmp(szType, "")==0)) // K-Mod
+	//if(!bHideAssert)
+	if (!bHideAssert && !(strcmp(szType, "NONE")==0 || strcmp(szType, "")==0)) // K-Mod
 	{	// <advc.006>
 		char const* szCurrentXMLFile = getCurrentXMLFile().GetCString();
 		/*  This function gets called from Python with szType=PLOT_PEAK etc.
@@ -3778,7 +3761,7 @@ int CvGlobals::getInfoTypeForString(const char* szType, bool hideAssert) const
 			plot type. In fact, it doesn't seem to matter what values are returned;
 			no observable error occurs.
 			Looks like BUG introduced this problem, but I can't find the
-			call location in the BUG code, hence the workaround. */
+			call location in the BUG code, hence the workaround here. */
 		//if(std::strcmp(szCurrentXMLFile, "xml\\GameInfo/CIV4ForceControlInfos.xml") == 0)
 		{ /* ^I've also seen this call now after reloading Python and then returning
 			 to the main menu, i.e. unrelated to CIV4ForceControlInfos. */
@@ -3854,9 +3837,9 @@ int CvGlobals::getNumGlobeLayers() const { return NUM_GLOBE_LAYER_TYPES; }
 
 //
 // non-inline versions
-//
-CvMap& CvGlobals::getMap() { return *m_map; }
-CvGameAI& CvGlobals::getGame() { return *m_game; }
+// <advc.003f>
+CvMap& CvGlobals::getMapExternal() { return getMap(); }
+CvGameAI& CvGlobals::getGameExternal() { return getGame(); } // </advc.003f>
 CvGameAI *CvGlobals::getGamePointer(){ return m_game; }
 
 int CvGlobals::getMaxCivPlayers() const
@@ -3868,12 +3851,12 @@ bool CvGlobals::IsGraphicsInitialized() const { return m_bGraphicsInitialized;}
 
 // advc.003: onGraphicsInitialized call added
 void CvGlobals::SetGraphicsInitialized(bool bVal) {
-	
+
 	if(bVal == m_bGraphicsInitialized)
 		return;
 	m_bGraphicsInitialized = bVal;
 	if(m_bGraphicsInitialized)
-		getGameINLINE().onGraphicsInitialized();
+		getGame().onGraphicsInitialized();
 }
 void CvGlobals::setInterface(CvInterface* pVal) { m_interface = pVal; }
 void CvGlobals::setDiplomacyScreen(CvDiplomacyScreen* pVal) { m_diplomacyScreen = pVal; }
@@ -3895,11 +3878,8 @@ void CvGlobals::setAreaFinder(FAStar* pVal) { m_areaFinder = pVal; }
 void CvGlobals::setPlotGroupFinder(FAStar* pVal) { m_plotGroupFinder = pVal; }
 CvDLLUtilityIFaceBase* CvGlobals::getDLLIFaceNonInl() { return m_pDLL; }
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      02/21/10                                jdog5000      */
-/*                                                                                              */
-/* Efficiency, Options                                                                          */
-/************************************************************************************************/
+// BETTER_BTS_AI_MOD, Efficiency, Options, 02/21/10, jdog5000: START
+
 // BBAI Options
 bool CvGlobals::getBBAI_AIR_COMBAT()
 {
@@ -3921,7 +3901,6 @@ bool CvGlobals::getBBAI_HUMAN_AS_VASSAL_OPTION()
 	return m_bBBAI_HUMAN_AS_VASSAL_OPTION;
 }
 
-	
 // BBAI AI Variables
 int CvGlobals::getWAR_SUCCESS_CITY_CAPTURING()
 {
@@ -3978,16 +3957,13 @@ int CvGlobals::getTECH_COST_MODIFIER()
 {
 	return m_iTECH_COST_MODIFIER;
 }
-
 // <advc.550d>
 int CvGlobals::getTECH_COST_NOTRADE_MODIFIER() {
 
 	return m_iTECH_COST_NOTRADE_MODIFIER;
 } // </advc.550d>
 
-
-// From Lead From Behind by UncutDragon (edited for K-Mod)
-// Lead from Behind flags
+// From Lead From Behind by UncutDragon: flags (edited for K-Mod)
 bool CvGlobals::getLFBEnable() const
 {
 	return m_bLFBEnable;
@@ -4047,8 +4023,4 @@ int CvGlobals::getCOMBAT_DAMAGE() const
 {
 	return m_iCOMBAT_DAMAGE;
 }
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-
-
+// BETTER_BTS_AI_MOD: END

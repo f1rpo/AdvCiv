@@ -45,8 +45,8 @@ class CvArtInfoInterface;
 public: \
 	friend class Cv##name##ArtInfoItem; \
 	DllExport CvArtInfo##name##* get##name##ArtInfo(const char *szArtDefineTag) const; \
-	DllExport int getNum##name##ArtInfos() { return (int)m_pa##name##ArtInfo.size(); } \
-	DllExport std::vector<CvArtInfo##name##*>& get##name##ArtInfo() { return m_pa##name##ArtInfo; } \
+	int getNum##name##ArtInfos() { return (int)m_pa##name##ArtInfo.size(); } \
+	std::vector<CvArtInfo##name##*>& get##name##ArtInfo() { return m_pa##name##ArtInfo; } \
 	DllExport CvArtInfo##name##& get##name##ArtInfo(int i); \
 private: \
 	typedef std::map<const char* /* index */,CvArtInfo##name##* /*value */, ltstr> ArtInfo##name##MapType; \
@@ -76,7 +76,7 @@ public:
 
 	// Deletes Maps, Reloads Infos from XML, Rebuilds Maps
 	DllExport void Reset();																														// Exposed to Python
-	
+
 	// Builds Maps
 	DllExport void buildArtFileInfoMaps();																							// Exposed to Python
 

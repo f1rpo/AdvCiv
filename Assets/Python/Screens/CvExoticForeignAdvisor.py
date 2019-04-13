@@ -532,9 +532,8 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 						szPlayerReligion = u"%c" %(objReligion.getChar())
 
 				screen.attachTextGFC(infoPanelName, "", szPlayerReligion, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
-
-				screen.attachTextGFC(infoPanelName, "", localText.getText("TXT_KEY_FOREIGN_ADVISOR_TRADE", (self.calculateTrade (self.iActiveLeader, iLoopPlayer)[0], )), FontTypes.GAME_FONT, 
-									 *BugDll.widget("WIDGET_TRADE_ROUTES", self.iActiveLeader, iLoopPlayer))
+				# advc.004: BULL widget help enabled
+				screen.attachTextGFC(infoPanelName, "", localText.getText("TXT_KEY_FOREIGN_ADVISOR_TRADE", (self.calculateTrade (self.iActiveLeader, iLoopPlayer)[0], )), FontTypes.GAME_FONT,  WidgetTypes.WIDGET_TRADE_ROUTES, self.iActiveLeader, iLoopPlayer)
 
 				screen.attachTextGFC(infoPanelName, "", localText.getText("TXT_KEY_CIVICS_SCREEN_TITLE", ()) + ":", FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
@@ -671,8 +670,8 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 				szAttStr = "<font=2>" + objAttitude.getText(True, True, False, False) + "</font>"
 			else:
 				szAttStr = ""
-			screen.attachTextGFC(infoPanelName, itemName, szAttStr, FontTypes.GAME_FONT, 
-								*BugDll.widgetVersion(2, "WIDGET_LEADERHEAD_RELATIONS", iLoopPlayer, self.iActiveLeader, WidgetTypes.WIDGET_LEADERHEAD, iLoopPlayer, self.iActiveLeader))
+			 # advc.004: BULL widget help enabled
+			screen.attachTextGFC(infoPanelName, itemName, szAttStr, FontTypes.GAME_FONT, WidgetTypes.WIDGET_LEADERHEAD_RELATIONS, iLoopPlayer, self.iActiveLeader)
 			# Disable the widget if this is active player since it's a blank string.
 			if bIsActivePlayer:
 				screen.setHitTest(itemName, HitTestTypes.HITTEST_NOHIT)
@@ -703,9 +702,8 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 				szPlayerReligion = "<font=2>" + szPlayerReligion + "</font>"
 			else:
 				szPlayerReligion = ""
-			
-			screen.attachTextGFC(infoPanelName, itemName, szPlayerReligion, FontTypes.GAME_FONT, 
-								*BugDll.widgetVersion(2, "WIDGET_LEADERHEAD_RELATIONS", iLoopPlayer, self.iActiveLeader, WidgetTypes.WIDGET_LEADERHEAD, iLoopPlayer, self.iActiveLeader))
+			 # advc.004: BULL widget help enabled
+			screen.attachTextGFC(infoPanelName, itemName, szPlayerReligion, FontTypes.GAME_FONT, WidgetTypes.WIDGET_LEADERHEAD_RELATIONS, iLoopPlayer, self.iActiveLeader)
 			# Disable the widget if this is active player since we don't have diplo info.
 			if bIsActivePlayer:
 				screen.setHitTest(itemName, HitTestTypes.HITTEST_NOHIT)
@@ -722,18 +720,11 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 				szTradeYield = u"-"
 				szTradeRoutes = u"-"
 			itemName = self.getNextWidgetName()
-			screen.attachTextGFC(infoPanelName, itemName, szTradeRoutes, FontTypes.GAME_FONT, 
-								 *BugDll.widget("WIDGET_TRADE_ROUTES", self.iActiveLeader, iLoopPlayer))
-			if not BugDll.isPresent():
-				# Trade has no useful widget so disable hit testing.
-				screen.setHitTest(itemName, HitTestTypes.HITTEST_NOHIT)
+			 # advc.004: BULL widget help enabled (2x)
+			screen.attachTextGFC(infoPanelName, itemName, szTradeRoutes, FontTypes.GAME_FONT, WidgetTypes.WIDGET_TRADE_ROUTES, self.iActiveLeader, iLoopPlayer)
 			itemName = self.getNextWidgetName()
-			screen.attachTextGFC(infoPanelName, itemName, szTradeYield, FontTypes.GAME_FONT, 
-								 *BugDll.widget("WIDGET_TRADE_ROUTES", self.iActiveLeader, iLoopPlayer))
-			if not BugDll.isPresent():
-				# Trade has no useful widget so disable hit testing.
-				screen.setHitTest(itemName, HitTestTypes.HITTEST_NOHIT)
-			
+			screen.attachTextGFC(infoPanelName, itemName, szTradeYield, FontTypes.GAME_FONT, WidgetTypes.WIDGET_TRADE_ROUTES, self.iActiveLeader, iLoopPlayer)
+
 			# Civics
 			for nCivicOption in range (gc.getNumCivicOptionInfos()):
 				nCivic = objLoopPlayer.getCivics (nCivicOption)
@@ -779,8 +770,8 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 						else:
 							szDiplo = ""
 						itemName = self.getNextWidgetName()
-						screen.attachTextGFC(infoPanelName, itemName, szDiplo, FontTypes.GAME_FONT, 
-								*BugDll.widgetVersion(2, "WIDGET_LEADERHEAD_RELATIONS", iLoopPlayer, self.iActiveLeader, WidgetTypes.WIDGET_LEADERHEAD, iLoopPlayer, self.iActiveLeader))
+						 # advc.004: BULL widget help enabled
+						screen.attachTextGFC(infoPanelName, itemName, szDiplo, FontTypes.GAME_FONT, WidgetTypes.WIDGET_LEADERHEAD_RELATIONS, iLoopPlayer, self.iActiveLeader)
 						#screen.setHitTest(itemName, HitTestTypes.HITTEST_NOHIT)
 
 	def calculateTrade (self, nPlayer, nTradePartner):
@@ -906,12 +897,11 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 						else:
 							szText = ""
 						# <advc.152>
-						widgType = WidgetTypes.WIDGET_LEADERHEAD
+						widgType = WidgetTypes.WIDGET_LEADERHEAD_RELATIONS
 						if AdvisorOpt.isShowGlanceWarTrades():
 							widgType = WidgetTypes.WIDGET_LH_GLANCE
 						# </advc.152>
-						screen.setTextAt (szName, playerPanelName, szText, CvUtil.FONT_CENTER_JUSTIFY, self.X_GLANCE_OFFSET - 2 + (self.X_Spread * nCount), self.Y_GLANCE_OFFSET + self.Y_Text_Offset, -0.1, FontTypes.GAME_FONT, 
-								*BugDll.widgetVersion(2, "WIDGET_LEADERHEAD_RELATIONS", j, iLoopPlayer, widgType, j, iLoopPlayer))
+						screen.setTextAt (szName, playerPanelName, szText, CvUtil.FONT_CENTER_JUSTIFY, self.X_GLANCE_OFFSET - 2 + (self.X_Spread * nCount), self.Y_GLANCE_OFFSET + self.Y_Text_Offset, -0.1, FontTypes.GAME_FONT, widgType, j, iLoopPlayer)
 						nCount += 1
 
 			if nCount > 8:
@@ -1159,7 +1149,9 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 										, 64, WidgetTypes.WIDGET_LEADERHEAD, iLoopPlayer, self.iActiveLeader )
 				
 				# gold
-				if (gc.getTeam(activePlayer.getTeam()).isGoldTrading() or gc.getTeam(currentPlayer.getTeam()).isGoldTrading()):
+				# advc.036:
+				bWillTalk = currentPlayer.AI_isWillingToTalk(self.iActiveLeader)
+				if (gc.getTeam(activePlayer.getTeam()).isGoldTrading() or gc.getTeam(currentPlayer.getTeam()).isGoldTrading()) and bWillTalk:
 					sAmount = str(gc.getPlayer(iLoopPlayer).AI_maxGoldPerTurnTrade(self.iActiveLeader))
 					self.resIconGrid.setText(currentRow, self.canPayCol, sAmount)
 				
@@ -1179,13 +1171,13 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 						# <advc.073> Replacing the above: separate column now for must-be-joking resources
 						iDenial = currentPlayer.getTradeDenial(self.iActiveLeader, tradeData)
 						# Human isn't going to deny, but I still want to populate the noNeedCol and wontExportCol.
-						if iDenial == -1 and currentPlayer.isHuman():
+						if iDenial == DenialTypes.NO_DENIAL and currentPlayer.isHuman():
 							if activePlayer.getNumAvailableBonuses(iLoopBonus) > 0 and activePlayer.AI_corporationBonusVal(iLoopBonus) <= 0:
 								iDenial = DenialTypes.DENIAL_JOKING
 							elif currentPlayer.getNumAvailableBonuses(iLoopBonus) < 2 or currentPlayer.AI_corporationBonusVal(iLoopBonus) > 0:
 								iDenial = DenialTypes.DENIAL_NO_GAIN
 						if iDenial != DenialTypes.DENIAL_JOKING:
-							if iDenial < 0:
+							if iDenial == DenialTypes.NO_DENIAL and bWillTalk:
 								# Use the BONUS_TRADE widget from BULL everywhere (also needed for advc.036). Was willTradeCol.
 								self.resIconGrid.addIcon( currentRow, self.willExportCol, gc.getBonusInfo(iLoopBonus).getButton(), 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS_TRADE, iLoopBonus, iLoopPlayer )
 							else: # won't trade
@@ -1318,8 +1310,9 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 
 				self.techIconGrid.setText(currentRow, iTechColStatus, zsStatus)
 # BUG - AI status - end
-
-				if (gc.getTeam(activePlayer.getTeam()).isGoldTrading() or gc.getTeam(currentPlayer.getTeam()).isGoldTrading()):
+				# advc.036:
+				bWillTalk = currentPlayer.AI_isWillingToTalk(self.iActiveLeader)
+				if (gc.getTeam(activePlayer.getTeam()).isGoldTrading() or gc.getTeam(currentPlayer.getTeam()).isGoldTrading()) and bWillTalk:
 					sAmount = str(gc.getPlayer(iLoopPlayer).AI_maxGoldTrade(self.iActiveLeader))
 					self.techIconGrid.setText(currentRow, iTechColGold, sAmount)
 
@@ -1335,7 +1328,7 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 						elif currentPlayer.canResearch(iLoopTech, False):
 							self.techIconGrid.addIcon( currentRow, iTechColResearch, gc.getTechInfo(iLoopTech).getButton(), 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, iLoopTech )
 						if (currentPlayer.canTradeItem(self.iActiveLeader, tradeData, False)):
-							if (currentPlayer.getTradeDenial(self.iActiveLeader, tradeData) == DenialTypes.NO_DENIAL): # will trade
+							if currentPlayer.getTradeDenial(self.iActiveLeader, tradeData) == DenialTypes.NO_DENIAL and bWillTalk: # will trade
 								self.techIconGrid.addIcon( currentRow, iTechColWill, gc.getTechInfo(iLoopTech).getButton(), 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, iLoopTech )
 							else: # won't trade
 								# advc.073: Changed so that WIDGET_PEDIA_JUMP_TO_TECH_TRADE works w/o BugDll
@@ -1365,8 +1358,7 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 					IconGrid_BUG.GRID_MULTI_LIST_COLUMN,
 					IconGrid_BUG.GRID_MULTI_LIST_COLUMN)
 		self.techIconGridName = self.getNextWidgetName()
-		self.techIconGrid = IconGrid_BUG.IconGrid_BUG( self.techIconGridName, screen, gridX, gridY, gridWidth, gridHeight
-											 , columns, self.TECH_USE_SMALL_ICONS, self.SHOW_LEADER_NAMES, self.SHOW_ROW_BORDERS )
+		self.techIconGrid = IconGrid_BUG.IconGrid_BUG( self.techIconGridName, screen, gridX, gridY, gridWidth, gridHeight, columns, self.TECH_USE_SMALL_ICONS, self.SHOW_LEADER_NAMES, self.SHOW_ROW_BORDERS )
 
 		self.techIconGrid.setGroupBorder(self.GROUP_BORDER)
 		self.techIconGrid.setGroupLabelOffset(self.GROUP_LABEL_OFFSET)
@@ -1403,7 +1395,8 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 	# Handles the input for this screen...
 	def handleInput (self, inputClass):
 		if (inputClass.getNotifyCode() == NotifyCode.NOTIFY_CLICKED):
-			if (inputClass.getButtonType() == WidgetTypes.WIDGET_LEADERHEAD or BugDll.isWidgetVersion(2, inputClass.getButtonType(), "WIDGET_LEADERHEAD_RELATIONS")):
+			# advc.004: Removed BugDLL call from second condition
+			if inputClass.getButtonType() == WidgetTypes.WIDGET_LEADERHEAD or inputClass.getButtonType() == WidgetTypes.WIDGET_LEADERHEAD_RELATIONS:
 				if (inputClass.getFlags() & MouseFlags.MOUSE_LBUTTONUP):
 					self.iSelectedLeader = inputClass.getData1()
 					self.drawContents(False)

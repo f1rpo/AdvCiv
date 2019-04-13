@@ -1087,62 +1087,61 @@ class WorstEnemy(AbstractStatefulAlert):
 			self.enemies[player.getID()] = [-1] * gc.getMAX_TEAMS()
 		self.check(True) # advc.106c
 
-# <advc.210a>
-class WarTrade(AbstractStatefulAlert):
+class AdvCiv4lert(AbstractStatefulAlert):
 
 	def __init__(self, eventManager):
 		AbstractStatefulAlert.__init__(self, eventManager)
 		eventManager.addEventHandler("BeginActivePlayerTurn", self.onBeginActivePlayerTurn)
-		self.id = 0
 
 	def onBeginActivePlayerTurn(self, argsList):
 		self.check()
 
 	def check(self, silent=False):
-		if not Civ4lertsOpt.isShowWarTradeAlert():
-			return
-		gc.getPlayer(PlayerUtil.getActivePlayerID()).checkAlert(self.id, silent)
+		if self.isEnabled():
+			gc.getPlayer(PlayerUtil.getActivePlayerID()).checkAlert(self.getID(), silent)
 
 	def _reset(self):
 		self.check(True)
+
+# To be implemented by derived classes:
+
+	def isEnabled(self):
+		return
+
+	@staticmethod
+	def getID():
+		# The returned integer needs to correspond to the alert's position in the m_paAlerts vector in the DLL; see CvPlayer::CvPlayer.
+		return
+
+# <advc.210a>
+class WarTrade(AdvCiv4lert):
+
+	def isEnabled(self):
+		return Civ4lertsOpt.isShowWarTradeAlert()
+
+	@staticmethod
+	def getID():
+		return 0
 # </advc.210a>
 
 # <advc.210b>
-class Revolt(AbstractStatefulAlert):
+class Revolt(AdvCiv4lert):
 
-	def __init__(self, eventManager):
-		AbstractStatefulAlert.__init__(self, eventManager)
-		eventManager.addEventHandler("BeginActivePlayerTurn", self.onBeginActivePlayerTurn)
-		self.id = 1
+	def isEnabled(self):
+		return Civ4lertsOpt.isShowRevoltAlert()
 
-	def onBeginActivePlayerTurn(self, argsList):
-		self.check()
-
-	def check(self, silent=False):
-		if not Civ4lertsOpt.isShowRevoltAlert():
-			return
-		gc.getPlayer(PlayerUtil.getActivePlayerID()).checkAlert(self.id, silent)
-
-	def _reset(self):
-		self.check(True)
+	@staticmethod
+	def getID():
+		return 1
 # </advc.210b>
 
 # <advc.210d>
-class BonusThirdParties(AbstractStatefulAlert):
+class BonusThirdParties(AdvCiv4lert):
 
-	def __init__(self, eventManager):
-		AbstractStatefulAlert.__init__(self, eventManager)
-		eventManager.addEventHandler("BeginActivePlayerTurn", self.onBeginActivePlayerTurn)
-		self.id = 2
+	def isEnabled(self):
+		return Civ4lertsOpt.isShowBonusThirdPartiesAlert()
 
-	def onBeginActivePlayerTurn(self, argsList):
-		self.check()
-
-	def check(self, silent=False):
-		if not Civ4lertsOpt.isShowBonusThirdPartiesAlert():
-			return
-		gc.getPlayer(PlayerUtil.getActivePlayerID()).checkAlert(self.id, silent)
-
-	def _reset(self):
-		self.check(True)
+	@staticmethod
+	def getID():
+		return 2
 # </advc.210d>

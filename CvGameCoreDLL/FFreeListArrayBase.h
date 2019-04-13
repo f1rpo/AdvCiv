@@ -38,7 +38,7 @@ public:
 	virtual void init(int iNumSlots = 8) = 0;
 	virtual void uninit() = 0;
 	virtual T* getAt(int iIndex) const = 0;
-	T* operator[]( int iIndex ) const;
+	T* operator[](int iIndex) const;
 
 	// start at the beginning of the list and return the first item or NULL when done
 	T* beginIter(int* pIterIdx) const;
@@ -83,9 +83,9 @@ FFreeListArrayBase<T>::FFreeListArrayBase()
 //
 
 template < class T >
-inline T* FFreeListArrayBase< T >::operator[]( int iIndex ) const
+inline T* FFreeListArrayBase< T >::operator[](int iIndex) const
 {
-	return ( getAt( iIndex ) );
+	return getAt(iIndex);
 }
 
 //

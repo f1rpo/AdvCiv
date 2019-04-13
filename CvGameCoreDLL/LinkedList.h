@@ -170,7 +170,7 @@ inline void CLinkList<tVARTYPE>::concatenate(CLinkList<tVARTYPE>& list)
 //inserts at the tail of the list
 template <class tVARTYPE>
 inline void CLinkList<tVARTYPE>::insertAtBeginning(const tVARTYPE& val)
-{	
+{
 	CLLNode<tVARTYPE>* pNode;
 
 	assert((m_pHead == NULL) || (m_iLength > 0));
@@ -196,7 +196,7 @@ inline void CLinkList<tVARTYPE>::insertAtBeginning(const tVARTYPE& val)
 //inserts at the tail of the list
 template <class tVARTYPE>
 inline void CLinkList<tVARTYPE>::insertAtEnd(const tVARTYPE& val)
-{	
+{
 	CLLNode<tVARTYPE>* pNode;
 
 	assert((m_pHead == NULL) || (m_iLength > 0));

@@ -3,7 +3,7 @@
 #ifndef CvDLLSymbolIFaceBase_h
 #define CvDLLSymbolIFaceBase_h
 
-//#include "CvEnums.h"
+
 #include "CvDLLUtilityIFaceBase.h"
 #include "CvGlobals.h"	// for gDLL
 
@@ -21,13 +21,13 @@ class CvDLLSymbolIFaceBase
 public:
 	virtual void init(CvSymbol* , int iID, int iOffset, int iType, CvPlot* pPlot) = 0;
 	virtual CvSymbol* createSymbol() = 0;
-	virtual void destroy(CvSymbol*&, bool bSafeDelete=true ) = 0;
+	virtual void destroy(CvSymbol*&, bool bSafeDelete=true) = 0;
 	virtual void setAlpha(CvSymbol*, float fAlpha) = 0;
 	virtual void setScale(CvSymbol*, float fScale) = 0;
 	virtual void Hide(CvSymbol*, bool bHide) = 0;
 	virtual bool IsHidden(CvSymbol*) = 0;
 	virtual void updatePosition(CvSymbol*) = 0;
-	virtual int getID(CvSymbol*) = 0;	
+	virtual int getID(CvSymbol*) = 0;
 	virtual SymbolTypes getSymbol(CvSymbol* pSym) = 0;
 	virtual void setTypeYield(CvSymbol *, int iType, int count) =0;
 };

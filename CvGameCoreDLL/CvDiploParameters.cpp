@@ -1,5 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvDiploParameters.h"
+#include "CvGamePlay.h"
+
 
 CvDiploParameters::CvDiploParameters(PlayerTypes ePlayer) :
 	m_eWhoTalkingTo(ePlayer),
@@ -16,7 +18,7 @@ CvDiploParameters::CvDiploParameters(PlayerTypes ePlayer) :
 	m_theirOffer.clear();
 }
 
-CvDiploParameters::~CvDiploParameters() 
+CvDiploParameters::~CvDiploParameters()
 {
 	m_ourOffer.clear();
 	m_theirOffer.clear();
@@ -31,7 +33,7 @@ PlayerTypes CvDiploParameters::getWhoTalkingTo() const
 {	/*  <advc.134a> When checking a peace offer, the EXE calls this function
 		shortly before an (erroneous) at-war check. Tell the recipient of the offer
 		to feign peace. */
-	CvTeam& kActiveTeam = GET_TEAM(GC.getGameINLINE().getActiveTeam());
+	CvTeam& kActiveTeam = GET_TEAM(GC.getGame().getActiveTeam());
 	if(kActiveTeam.isPeaceOfferStage(1, TEAMID(m_eWhoTalkingTo)))
 		kActiveTeam.advancePeaceOfferStage(TEAMID(m_eWhoTalkingTo));
 	// </advc.134a>

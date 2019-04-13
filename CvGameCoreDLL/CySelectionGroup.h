@@ -4,10 +4,8 @@
 #define CySelectionGroup_h
 //
 // Python wrapper class for CySelectionGroup
-//  
 //
-
-//#include "CvEnums.h"
+//
 
 struct MissionData;
 
@@ -35,7 +33,7 @@ public:
 	bool canDoCommand(CommandTypes eCommand, int iData1, int iData2, bool bTestVisible);
 
 	bool isHuman();
-	int baseMoves();	
+	int baseMoves();
 	bool isWaiting();
 	bool isFull();
 	bool hasCargo();
@@ -48,21 +46,13 @@ public:
 	bool canMoveOrAttackInto(CyPlot* pPlot, bool bDeclareWar);
 	bool canMoveThrough(CyPlot* pPlot);
 	bool canFight();
-	bool canDefend();	
-	bool alwaysInvisible();	
-	bool isInvisible(int /*TeamTypes*/ eTeam);	
+	bool canDefend();
+	bool alwaysInvisible();
+	bool isInvisible(int /*TeamTypes*/ eTeam);
 	int countNumUnitAIType(UnitAITypes eUnitAI);
 	bool hasWorker();
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      11/30/08                                jdog5000      */
-/*                                                                                              */
-/* General AI                                                                                   */
-/************************************************************************************************/
-	bool isStranded();
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
 
+	bool isStranded(); // BETTER_BTS_AI_MOD, General AI, 11/30/08, jdog5000
 	bool at(int iX, int iY);
 	bool atPlot(CyPlot* pPlot);
 	CyPlot* plot();
@@ -73,7 +63,7 @@ public:
 
 	bool readyToSelect(bool bAny);
 	bool readyToMove(bool bAny);
-	bool readyToAuto();	
+	bool readyToAuto();
 	int getID();
 	int /*PlayerTypes*/ getOwner();
 	int /*TeamTypes*/ getTeam();
@@ -88,9 +78,9 @@ public:
 	int getNumUnits();
 	void clearMissionQueue();
 	int getLengthMissionQueue();
-	int getMissionType( int iNode );
-	int getMissionData1( int iNode );
-	int getMissionData2( int iNode );
+	int getMissionType(int iNode);
+	int getMissionData1(int iNode);
+	int getMissionData2(int iNode);
 	MissionData* getMissionFromQueue(int iIndex);
 	CyUnit* getHeadUnit();
 	CyUnit* getUnitAt(int index);

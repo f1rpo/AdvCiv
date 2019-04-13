@@ -3,9 +3,11 @@
 #ifndef MILITARY_ANALYST_H
 #define MILITARY_ANALYST_H
 
-#include "WarEvalParameters.h"
-#include "InvasionGraph.h"
+#include "MilitaryBranch.h"
 
+class InvasionGraph;
+class WarEvalParameters;
+class WarAndPeaceReport;
 class InvasionGraph;
 
 
@@ -44,7 +46,7 @@ public:
 	bool hasCapitulated(TeamTypes civId) const;
 	// From units lost at war
 	double lostPower(PlayerTypes civId, MilitaryBranchTypes mb) const;
-    // Net gain, i.e. build-up minus losses; can be negative
+	// Net gain, i.e. build-up minus losses; can be negative
 	double gainedPower(PlayerTypes civId, MilitaryBranchTypes mb) const;
 	// Production invested in military build-up
 	double militaryProduction(PlayerTypes civId) const;

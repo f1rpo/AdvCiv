@@ -3,11 +3,9 @@
 #ifndef CyGame_h
 #define CyGame_h
 //
-// Python wrapper class for CvGame 
+// Python wrapper class for CvGame
 // SINGLETON
 // updated 6-5
-
-//#include "CvEnums.h"
 
 class CvGame;
 class CvGameAI;
@@ -64,9 +62,9 @@ public:
 	int countKnownTechNumTeams(int /*TechTypes*/ eTech);
 	int getNumFreeBonuses(int /*BuildingTypes*/ eBuilding);
 
-	int countReligionLevels(int /*ReligionTypes*/ eReligion);	
+	int countReligionLevels(int /*ReligionTypes*/ eReligion);
 	int calculateReligionPercent(int /* ReligionTypes*/ eReligion);
-	int countCorporationLevels(int /*CorporationTypes*/ eCorporation);	
+	int countCorporationLevels(int /*CorporationTypes*/ eCorporation);
 
 	int goldenAgeLength();
 	int victoryDelay(int /*VictoryTypes*/ eVictory);
@@ -91,7 +89,7 @@ public:
 	void setGameTurn(int iNewValue);
 	int getTurnYear(int iGameTurn);
 	int getGameTurnYear();
-	
+
 	int getElapsedGameTurns();
 	int getMaxTurns() const;
 	void setMaxTurns(int iNewValue);
@@ -173,7 +171,7 @@ public:
 	bool isPaused();
 	int /*UnitTypes*/ getBestLandUnit();
 	int getBestLandUnitCombat();
-	
+
 	int /*TeamTypes*/ getWinner();
 	int /*VictoryTypes*/ getVictory();
 	void setWinner(int /*TeamTypes*/ eNewWinner, int /*VictoryTypes*/ eNewVictory);
@@ -181,7 +179,7 @@ public:
 	int /*HandicapTypes*/ getHandicapType();
 	CalendarTypes getCalendar() const;
 	int /*EraTypes*/ getStartEra();
-	int /*GameSpeedTypes*/ getGameSpeedType();	
+	int /*GameSpeedTypes*/ getGameSpeedType();
 	/*PlayerTypes*/ int getRankPlayer(int iRank);
 	int getPlayerRank(int /*PlayerTypes*/ iIndex);
 	int getPlayerScore(int /*PlayerTypes*/ iIndex);
@@ -267,21 +265,16 @@ public:
 	void saveReplay(int iPlayer);
 
 	void addPlayer(int /*PlayerTypes*/ eNewPlayer, int /*LeaderHeadTypes*/ eLeader, int /*CivilizationTypes*/ eCiv);
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						8/1/08				jdog5000	*/
-/* 																			*/
-/* 	Debug																	*/
-/********************************************************************************/
-	void changeHumanPlayer( int /*PlayerTypes*/ eNewHuman );
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						END								*/
-/********************************************************************************/
+
+	// BETTER_BTS_AI_MOD, Debug, 8/1/08, jdog5000:
+	void changeHumanPlayer(int /*PlayerTypes*/ eNewHuman);
+
 	int getCultureThreshold(int /*CultureLevelTypes*/ eLevel);
 
 	int getPlotExtraYield(int iX, int iY, int /*YieldTypes*/ eYield); // K-Mod
 	void setPlotExtraYield(int iX, int iY, int /*YieldTypes*/ eYield, int iExtraYield);
 	void changePlotExtraCost(int iX, int iY, int iExtraCost);
-	
+
 	bool isCivEverActive(int /*CivilizationTypes*/ eCivilization);
 	bool isLeaderEverActive(int /*LeaderHeadTypes*/ eLeader);
 	bool isUnitEverActive(int /*UnitTypes*/ eUnit);
@@ -290,6 +283,7 @@ public:
 	bool isEventActive(int /*EventTriggerTypes*/ eTrigger);
 	void doControl(int iControl);
 
+	void saveGame(std::string szFileName) const; // BULL - AutoSave
 	bool useKModAI(); // advc.104
 	int getBarbarianStartTurn(); // advc.300
 	std::wstring SPaHPointsForSettingsScreen(); // advc.250b
@@ -307,8 +301,8 @@ public:
 	// </advc.703>
 	// <advc.706>
 	bool isRFInterlude();
-	bool isRFBlockPopups();
-	bool isAITurn(); // </advc.706>
+	bool isRFBlockPopups(); // </advc.706>
+	void reportCurrentLayer(int iLayer); // advc.004m
 
 protected:
 	CvGame* m_pGame;

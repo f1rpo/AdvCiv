@@ -4,9 +4,9 @@
 #define CyTeam_h
 //
 // Python wrapper class for CvTeam
-// 
+//
 
-// //#include "CvEnums.h"
+#include "CvTeam.h"
 
 class CvTeam;
 class CyArea;
@@ -90,13 +90,13 @@ public:
 	int getTotalPopulation();
 	int getTotalLand();
 	int getNukeInterception();
-	void changeNukeInterception(int iChange);	 
+	void changeNukeInterception(int iChange);
 
 	int getForceTeamVoteEligibilityCount(int /*VoteSourceTypes*/ eVoteSource);
 	bool isForceTeamVoteEligible(int /*VoteSourceTypes*/ eVoteSource);
 	void changeForceTeamVoteEligibilityCount(int /*VoteSourceTypes*/ eVoteSource, int iChange);
 	int getExtraWaterSeeFromCount();
-	bool isExtraWaterSeeFrom();		 
+	bool isExtraWaterSeeFrom();
 	void changeExtraWaterSeeFromCount(int iChange);
 	int getMapTradingCount();
 	bool isMapTrading();
@@ -112,25 +112,25 @@ public:
 	void changeOpenBordersTradingCount(int iChange);
 	int getDefensivePactTradingCount();
 	bool isDefensivePactTrading();
-	void changeDefensivePactTradingCount(int iChange);															
+	void changeDefensivePactTradingCount(int iChange);
 	int getPermanentAllianceTradingCount();
 	bool isPermanentAllianceTrading();
-	void changePermanentAllianceTradingCount(int iChange);													
+	void changePermanentAllianceTradingCount(int iChange);
 	int getVassalTradingCount();
 	bool isVassalStateTrading();
-	void changeVassalTradingCount(int iChange);													
+	void changeVassalTradingCount(int iChange);
 	int getBridgeBuildingCount();
 	bool isBridgeBuilding();
-	void changeBridgeBuildingCount(int iChange);																		
+	void changeBridgeBuildingCount(int iChange);
 	int getIrrigationCount();
 	bool isIrrigation();
-	void changeIrrigationCount(int iChange);																				
+	void changeIrrigationCount(int iChange);
 	int getIgnoreIrrigationCount();
 	bool isIgnoreIrrigation();
-	void changeIgnoreIrrigationCount(int iChange);																	
+	void changeIgnoreIrrigationCount(int iChange);
 	int getWaterWorkCount();
 	bool isWaterWork();
-	void changeWaterWorkCount(int iChange);																	
+	void changeWaterWorkCount(int iChange);
 
 	int getVassalPower() const;
 	void setVassalPower(int iPower);
@@ -146,9 +146,9 @@ public:
 	int getID();
 
 	bool isStolenVisibility(int /*TeamTypes*/ eIndex);
-	int getWarWeariness(int /*TeamTypes*/ eIndex);								 
-	void setWarWeariness(int /*TeamTypes*/ eIndex, int iNewValue);	 
-	void changeWarWeariness(int /*TeamTypes*/ eIndex, int iChange);	 
+	int getWarWeariness(int /*TeamTypes*/ eIndex);
+	void setWarWeariness(int /*TeamTypes*/ eIndex, int iNewValue);
+	void changeWarWeariness(int /*TeamTypes*/ eIndex, int iChange);
 	int getTechShareCount(int iIndex);
 	bool isTechShare(int iIndex);
 	void changeTechShareCount(int iIndex, int iChange);
@@ -227,15 +227,8 @@ public:
 
 	bool AI_shareWar(int /*TeamTypes*/ eTeam);
 	void AI_setWarPlan(int /*TeamTypes*/ eIndex, int /*WarPlanTypes*/ eNewValue);
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      01/12/09                                jdog5000      */
-/*                                                                                              */
-/* Player Interface                                                                             */
-/************************************************************************************************/
+	// BETTER_BTS_AI_MOD, Player Interface, 01/12/09, jdog5000:
 	int AI_getWarPlan(int /*TeamTypes*/ eIndex) const;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
 	int AI_getAtWarCounter(int /*TeamTypes*/ eTeam) const;
 	int AI_getAtPeaceCounter(int /*TeamTypes*/ eTeam) const;
 	int AI_getWarSuccess(int /*TeamTypes*/ eIndex) const;

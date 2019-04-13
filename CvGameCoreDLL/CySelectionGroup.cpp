@@ -1,6 +1,6 @@
 //
 // Python wrapper class for CySelectionGroup
-// 
+//
 //
 #include "CvGameCoreDLL.h"
 #include "CySelectionGroup.h"
@@ -10,7 +10,6 @@
 #include "CvArea.h"
 #include "CyArea.h"
 #include "CyUnit.h"
-//#include "CvStructs.h"
 
 CySelectionGroup::CySelectionGroup() : m_pSelectionGroup(NULL)
 {
@@ -159,19 +158,11 @@ bool CySelectionGroup::hasWorker()
 {
 	return m_pSelectionGroup ? m_pSelectionGroup->hasWorker() : false;
 }
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      11/30/08                                jdog5000      */
-/*                                                                                              */
-/* General AI                                                                                   */
-/************************************************************************************************/
+// BETTER_BTS_AI_MOD, General AI, 11/30/08, jdog5000: START
 bool CySelectionGroup::isStranded()
 {
 	return m_pSelectionGroup ? m_pSelectionGroup->isStranded() : false;
-}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-
+} // BETTER_BTS_AI_MOD: END
 
 bool CySelectionGroup::at(int iX, int iY)
 {
@@ -185,12 +176,12 @@ bool CySelectionGroup::atPlot(CyPlot* pPlot)
 
 CyPlot* CySelectionGroup::plot()
 {
-	return m_pSelectionGroup ? new CyPlot( m_pSelectionGroup->plot() ) : NULL;
+	return m_pSelectionGroup ? new CyPlot(m_pSelectionGroup->plot()) : NULL;
 }
 
 CyArea* CySelectionGroup::area()
 {
-	return m_pSelectionGroup ? new CyArea( m_pSelectionGroup->area() ) : NULL;
+	return m_pSelectionGroup ? new CyArea(m_pSelectionGroup->area()) : NULL;
 }
 
 int /*RouteTypes*/ CySelectionGroup::getBestBuildRoute(CyPlot* pPlot, BuildTypes* peBestBuild)
@@ -224,7 +215,7 @@ int CySelectionGroup::getID()
 
 int /*PlayerTypes*/ CySelectionGroup::getOwner()
 {
-	return m_pSelectionGroup ? m_pSelectionGroup->getOwnerINLINE() : -1;
+	return m_pSelectionGroup ? m_pSelectionGroup->getOwner() : -1;
 }
 
 int /*TeamTypes*/ CySelectionGroup::getTeam()
@@ -243,7 +234,7 @@ void CySelectionGroup::setActivityType(int /*ActivityTypes*/ eNewValue)
 		m_pSelectionGroup->setActivityType((ActivityTypes) eNewValue);
 }
 
-int /*AutomateTypes*/ CySelectionGroup::getAutomateType() 
+int /*AutomateTypes*/ CySelectionGroup::getAutomateType()
 {
 	return m_pSelectionGroup ? (AutomateTypes) m_pSelectionGroup->getAutomateType() : -1;
 }
@@ -305,17 +296,17 @@ CyUnit* CySelectionGroup::getUnitAt(int index)
 	return m_pSelectionGroup ? new CyUnit(m_pSelectionGroup->getUnitAt(index)) : NULL;
 }
 
-int CySelectionGroup::getMissionType( int iNode )
+int CySelectionGroup::getMissionType(int iNode)
 {
 	return m_pSelectionGroup ? m_pSelectionGroup->getMissionType(iNode) : -1;
 }
 
-int CySelectionGroup::getMissionData1( int iNode )
+int CySelectionGroup::getMissionData1(int iNode)
 {
-	return m_pSelectionGroup ? m_pSelectionGroup->getMissionData1( iNode ) : -1;
+	return m_pSelectionGroup ? m_pSelectionGroup->getMissionData1(iNode) : -1;
 }
 
-int CySelectionGroup::getMissionData2( int iNode )
+int CySelectionGroup::getMissionData2(int iNode)
 {
-	return m_pSelectionGroup ? m_pSelectionGroup->getMissionData2( iNode ) : -1;
+	return m_pSelectionGroup ? m_pSelectionGroup->getMissionData2(iNode) : -1;
 }

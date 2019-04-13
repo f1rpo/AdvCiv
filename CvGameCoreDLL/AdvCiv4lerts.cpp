@@ -2,8 +2,10 @@
 
 #include "CvGameCoreDLL.h"
 #include "AdvCiv4lerts.h"
+#include "CvInfos.h"
+#include "CvGamePlay.h"
+#include "RiseFall.h" // advc.706
 #include "CvDLLInterfaceIFaceBase.h"
-
 #include <iterator>
 
 using std::set;
@@ -27,31 +29,27 @@ void AdvCiv4lert::init(PlayerTypes ownerId) {
 	reset();
 }
 
-void AdvCiv4lert::msg(CvWString s, LPCSTR icon, int x, int y, int goodOrBad) const {
+void AdvCiv4lert::msg(CvWString s, LPCSTR icon, int x, int y, ColorTypes colorId) const {
 
 	if(isSilent)
 		return;
 	// <advc.127>
 	bool autoPlayJustEnded = GET_PLAYER(ownerId).isAutoPlayJustEnded();
+	CvGame& g = GC.getGame();
 	bool force = (isDebug && (GET_PLAYER(ownerId).isSpectator() ||
 			/*  When Auto Play has just ended, we're no longer in spectator mode,
 				but the message should still be force-delivered. */
-			(autoPlayJustEnded && GC.getGameINLINE().isDebugMode())));
+			(autoPlayJustEnded && g.isDebugMode())));
 	if(!force && (GET_PLAYER(ownerId).isHumanDisabled() || autoPlayJustEnded))
 		return; // </advc.127>
-	CvGame& g = GC.getGame();
+	// <advc.706>
 	if(g.isOption(GAMEOPTION_RISE_FALL) && g.getRiseFall().isBlockPopups())
-		return;
-	int color = GC.getInfoTypeForString("COLOR_WHITE");
-	if(goodOrBad > 0)
-		color = GC.getInfoTypeForString("COLOR_GREEN");
-	else if(goodOrBad < 0)
-		color = GC.getInfoTypeForString("COLOR_RED");
+		return; // </advc.706>
 	bool arrows = (icon != NULL);
 	gDLL->getInterfaceIFace()->addHumanMessage(ownerId, false,
 			GC.getEVENT_MESSAGE_TIME(), s, NULL,
 			force ? MESSAGE_TYPE_MAJOR_EVENT : MESSAGE_TYPE_INFO, // advc.127
-			icon, (ColorTypes)color, x, y, arrows, arrows);
+			icon, (ColorTypes)colorId, x, y, arrows, arrows);
 }
 
 void AdvCiv4lert::check(bool silent) {
@@ -92,7 +90,7 @@ void WarTradeAlert::check() {
 	for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 		CvTeamAI const& warTeam = GET_TEAM((TeamTypes)i);
 		bool valid = (warTeam.isAlive() && !warTeam.isAVassal() &&
-				!warTeam.isMinorCiv() && !warTeam.isHuman() && 
+				!warTeam.isMinorCiv() && !warTeam.isHuman() &&
 				warTeam.getID() != owner.getTeam() &&
 				!warTeam.isAtWar(owner.getTeam()) &&
 				owner.canContactAndTalk(warTeam.getLeaderID()));
@@ -178,9 +176,9 @@ void RevoltAlert::check() {
 						GetCString(), szTempBuffer),
 						NULL // icon works, but is too distracting
 						,//ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),
-						c->getX_INLINE(), c->getY_INLINE(),
-						// red text (-1) also too distracting
-						0);
+						c->getX(), c->getY());
+						// red text also too distracting
+						//(ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
 			}
 		}
 #if 0 // Disabled: Message when revolt chance becomes 0
@@ -191,8 +189,7 @@ void RevoltAlert::check() {
 			msg(gDLL->getText("TXT_KEY_CIV4LERTS_NO_LONGER_REVOLT", c->getName().
 						GetCString()), NULL
 						,//ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),
-						c->getX_INLINE(), c->getY_INLINE(),
-						1); // Important and rare enough to be shown in green
+						c->getX(), c->getY());
 		}
 #endif
 		if(c->isOccupation())
@@ -203,7 +200,7 @@ void RevoltAlert::check() {
 			msg(gDLL->getText("TXT_KEY_CIV4LERTS_CITY_PACIFIED_ADVC", c->getName().
 						GetCString()), NULL,
 						//ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),
-						c->getX_INLINE(), c->getY_INLINE());
+						c->getX(), c->getY());
 			/*  Pretend that revolt chance is 0 after occupation ends, so that
 				a spearate alert is fired on the next turn if it's actually not 0. */
 			updatedRevolt.erase(c->plotNum());
@@ -230,8 +227,8 @@ void BonusThirdPartiesAlert::reset() {
 void BonusThirdPartiesAlert::check() {
 
 	multiset<int> updatedDeals[MAX_CIV_PLAYERS];
-	CvGame& g = GC.getGame(); int dummy=-1;
-	for(CvDeal* d = g.firstDeal(&dummy); d != NULL; d = g.nextDeal(&dummy)) {
+	CvGame& g = GC.getGame(); int foo=-1;
+	for(CvDeal* d = g.firstDeal(&foo); d != NULL; d = g.nextDeal(&foo)) {
 		// This alert ignores trades of ownerId
 		if(d->getFirstPlayer() == ownerId || d->getSecondPlayer() == ownerId)
 			continue;
@@ -252,11 +249,11 @@ void BonusThirdPartiesAlert::check() {
 			continue;
 		vector<int> newDeals;
 		set_difference(updatedDeals[i].begin(), updatedDeals[i].end(),
-				exportDeals[i].begin(), exportDeals[i].end(), 
+				exportDeals[i].begin(), exportDeals[i].end(),
 				inserter(newDeals, newDeals.begin()));
 		vector<int> missingDeals;
 		set_difference(exportDeals[i].begin(), exportDeals[i].end(),
-				updatedDeals[i].begin(), updatedDeals[i].end(), 
+				updatedDeals[i].begin(), updatedDeals[i].end(),
 				inserter(missingDeals, missingDeals.begin()));
 		for(size_t j = 0; j < newDeals.size(); j++) {
 			int newCount = updatedDeals[i].count(newDeals[j]);

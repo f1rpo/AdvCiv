@@ -5,52 +5,32 @@
 #ifndef CIV4_GAMECORE_UTILS_H
 #define CIV4_GAMECORE_UTILS_H
 
-
-//#include "CvStructs.h"
-#include "CvGlobals.h"
-#include "CvMap.h"
-
-#ifndef _USRDLL
-// use non inline functions when not in the dll
-#define getMapINLINE	getMap
-#define getGridHeightINLINE	getGridHeight
-#define getGridWidthINLINE	getGridWidth
-#define isWrapYINLINE	isWrapY
-#define isWrapXINLINE	isWrapX
-#define plotINLINE	plot
-#define getX_INLINE	getX
-#define getY_INLINE	getY
-
-#endif
-
 class CvPlot;
 class CvCity;
 class CvUnit;
+class CvSelectionGroup;
 class CvString;
 class CvRandom;
 class FAStarNode;
 class FAStar;
 class CvInfoBase;
 
-
-#ifndef SQR
-#define SQR(x) ( (x)*(x))
-#endif
-
-#undef max
-#undef min
+// advc.003j: Unused here and elsewhere; still defined in CvGameCoreDLL.
+//#ifndef SQR
+//#define SQR(x) ( (x)*(x))
+//#endif*
 
 // <advc.003g> floating point utility
 inline int round(double d) { return (int)((d >= 0 ? 0.5 : -0.5) + d); }
 int roundToMultiple(double d, int iMultiple);
 bool bernoulliSuccess(double pr, // 0 <= pr <= 1
 		char const* pszLog = "", bool bAsync = false,
-		int iData1 = INT_MIN, int iData2 = INT_MIN);
-double median(std::vector<double>& distribution, bool bSorted = false);
-double mean(std::vector<double>& distribution);
-double max(std::vector<double>& distribution);
-double min(std::vector<double>& distribution);
-// see e.g. wikipedia: "percentile rank"
+		int iData1 = MIN_INT, int iData2 = MIN_INT);
+double dMedian(std::vector<double>& distribution, bool bSorted = false);
+double dMean(std::vector<double> const& distribution);
+double dMax(std::vector<double> const& distribution);
+double dMin(std::vector<double> const& distribution);
+// see e.g. Wikipedia: "percentile rank"
 double percentileRank(std::vector<double>& distribution, double score,
 		bool bSorted = false, // Is the distribution sorted (ascending)?
 		bool bScorePartOfDistribution = true); /* Is 'score' to be considered as
@@ -59,21 +39,23 @@ double percentileRank(std::vector<double>& distribution, double score,
 // </advc.003g>
 // <advc.003>
 /*  Hash based on the components of x. Plot index of capital factored in for
-	increased range if civId given.
+	increased range if ePlayer given. (ePlayer is ignored if it has no capital.)
 	Result between 0 and 1. Returns float b/c CvRandom uses float (not double). */
-float hash(std::vector<long> const& x, PlayerTypes civId = NO_PLAYER);
+float hash(std::vector<long> const& x, PlayerTypes ePlayer = NO_PLAYER);
 // For hashing just a single input
-float hash(long x, PlayerTypes civId = NO_PLAYER);
-/*  'r' is an empty vector in which the 21 CvPlot* in the fat cross around p
-	will be placed. &p itself gets placed in r[0]; the others in no particular
-	order. If the fat cross has fewer than 21 plots (edge of the map),
-	NULL entries will be included. */
-void fatCross(CvPlot const& p, std::vector<CvPlot*>& r);
+float hash(long x, PlayerTypes ePlayer = NO_PLAYER);
+/*  'r' is an empty vector in which the 21 CvPlot* in the city radius ("fat cross")
+	around p will be placed. &p itself gets placed in r[0]; the others in
+	no particular order. If the city cross has fewer than 21 plots (edge of the map),
+	then NULL entries will be included.
+	For iterating over tiles in the radius of a CvCity, CvCity::getCityIndexPlot
+	is faster; but cityCross doesn't require a CvCity to exist in p. */
+void cityCross(CvPlot const& p, std::vector<CvPlot*>& r);
 // </advc.003>
 void contestedPlots(std::vector<CvPlot*>& r, TeamTypes t1, TeamTypes t2); // advc.035
 // <advc.008e>
-bool isArticle(BuildingTypes bt);
-bool isArticle(ProjectTypes pt);
+bool needsArticle(BuildingTypes eBuilding);
+bool needsArticle(ProjectTypes eProject);
 // </advc.008e>
 // <advc.130h>
 template<typename T> void removeDuplicates(std::vector<T>& v) {
@@ -91,17 +73,10 @@ inline int range(int iNum, int iLow, int iHigh)
 	FAssertMsg(iHigh >= iLow, "High should be higher than low");
 
 	if (iNum < iLow)
-	{
 		return iLow;
-	}
 	else if (iNum > iHigh)
-	{
 		return iHigh;
-	}
-	else
-	{
-		return iNum;
-	}
+	else return iNum;
 }
 
 inline float range(float fNum, float fLow, float fHigh)
@@ -109,182 +84,46 @@ inline float range(float fNum, float fLow, float fHigh)
 	FAssertMsg(fHigh >= fLow, "High should be higher than low");
 
 	if (fNum < fLow)
-	{
 		return fLow;
-	}
 	else if (fNum > fHigh)
-	{
 		return fHigh;
-	}
-	else
-	{
-		return fNum;
-	}
+	else return fNum;
 }
 
 /*  <advc.003g> Don't want to work with float in places where memory usage isn't a
 	concern. */
 inline double dRange(double d, double low, double high) {
 
-	if(d < low) return low;
-	if(d > high) return high;
+	if(d < low)
+		return low;
+	if(d > high)
+		return high;
 	return d;
 } // </advc.003g>
 
-inline int coordDistance(int iFrom, int iTo, int iRange, bool bWrap)
-{
-	if (bWrap && (abs(iFrom - iTo) > (iRange / 2)))
-	{
-		return (iRange - abs(iFrom - iTo));
-	}
+// advc.003: Body cut from CvUnitAI::AI_sacrificeValue. (K-Mod had used long -> int.)
+inline int longLongToInt(long long x) {
 
-	return abs(iFrom - iTo);
+	FAssert(x < MAX_INT);
+	//return std::min((long)MAX_INT, iValue); // K-Mod
+	/*  Erik (BUG1): We cannot change the signature [of AI_sacrificeValue] due to
+		the virtual specifier so we have to truncate the final value to an int. */
+	/*	Igor: if iValue is greater than MAX_INT, std::min<long long> ensures that it is truncated to MAX_INT, which makes sense logically.
+		static_cast<int>(iValue) doesn't guarantee that and the resulting value is implementation-defined. */
+	//return static_cast<int>(std::min(static_cast<long long>(MAX_INT), x));
+	/*  advc: Can't use std::min as above here, probably b/c of a conflicting definition
+		in windows.h. No matter: */
+	return static_cast<int>(std::min<long long>(MAX_INT, x));
 }
 
-inline int wrapCoordDifference(int iDiff, int iRange, bool bWrap)
-{
-	if (bWrap)
-	{
-		if (iDiff > (iRange / 2))
-		{
-			return (iDiff - iRange);
-		}
-		else if (iDiff < -(iRange / 2))
-		{
-			return (iDiff + iRange);
-		}
-	}
-
-	return iDiff;
-}
-
-inline int xDistance(int iFromX, int iToX)
-{
-	return coordDistance(iFromX, iToX, GC.getMapINLINE().getGridWidthINLINE(), GC.getMapINLINE().isWrapXINLINE());
-}
-
-inline int yDistance(int iFromY, int iToY)
-{
-	return coordDistance(iFromY, iToY, GC.getMapINLINE().getGridHeightINLINE(), GC.getMapINLINE().isWrapYINLINE());
-}
-
-inline int dxWrap(int iDX)																													// Exposed to Python
-{
-	return wrapCoordDifference(iDX, GC.getMapINLINE().getGridWidthINLINE(), GC.getMapINLINE().isWrapXINLINE());
-}
-
-inline int dyWrap(int iDY)																													// Exposed to Python
-{
-	return wrapCoordDifference(iDY, GC.getMapINLINE().getGridHeightINLINE(), GC.getMapINLINE().isWrapYINLINE());
-}
-
-// 4 | 4 | 3 | 3 | 3 | 4 | 4
-// -------------------------
-// 4 | 3 | 2 | 2 | 2 | 3 | 4
-// -------------------------
-// 3 | 2 | 1 | 1 | 1 | 2 | 3
-// -------------------------
-// 3 | 2 | 1 | 0 | 1 | 2 | 3
-// -------------------------
-// 3 | 2 | 1 | 1 | 1 | 2 | 3
-// -------------------------
-// 4 | 3 | 2 | 2 | 2 | 3 | 4
-// -------------------------
-// 4 | 4 | 3 | 3 | 3 | 4 | 4
-//
-// Returns the distance between plots according to the pattern above...
-inline int plotDistance(int iX1, int iY1, int iX2, int iY2)													// Exposed to Python
-{
-	int iDX;
-	int iDY;
-
-	iDX = xDistance(iX1, iX2);
-	iDY = yDistance(iY1, iY2);
-
-	return (std::max(iDX, iDY) + (std::min(iDX, iDY) / 2));
-}
-
-// K-Mod, plot-to-plot alias for convenience:
-inline int plotDistance(const CvPlot* plot1, const CvPlot* plot2)
-{
-	return plotDistance(plot1->getX_INLINE(), plot1->getY_INLINE(), plot2->getX_INLINE(), plot2->getY_INLINE());
-}
-// K-Mod end
-
-// 3 | 3 | 3 | 3 | 3 | 3 | 3
-// -------------------------
-// 3 | 2 | 2 | 2 | 2 | 2 | 3
-// -------------------------
-// 3 | 2 | 1 | 1 | 1 | 2 | 3
-// -------------------------
-// 3 | 2 | 1 | 0 | 1 | 2 | 3
-// -------------------------
-// 3 | 2 | 1 | 1 | 1 | 2 | 3
-// -------------------------
-// 3 | 2 | 2 | 2 | 2 | 2 | 3
-// -------------------------
-// 3 | 3 | 3 | 3 | 3 | 3 | 3
-//
-// Returns the distance between plots according to the pattern above...
-inline int stepDistance(int iX1, int iY1, int iX2, int iY2)													// Exposed to Python
-{
-	return std::max(xDistance(iX1, iX2), yDistance(iY1, iY2));
-}
-
-// K-Mod, plot-to-plot alias for convenience:
-inline int stepDistance(const CvPlot* plot1, const CvPlot* plot2)
-{
-	return stepDistance(plot1->getX_INLINE(), plot1->getY_INLINE(), plot2->getX_INLINE(), plot2->getY_INLINE());
-}
-// K-Mod end
-
-inline CvPlot* plotDirection(int iX, int iY, DirectionTypes eDirection)							// Exposed to Python
-{
-	if(eDirection == NO_DIRECTION)
-	{
-		return GC.getMapINLINE().plotINLINE(iX, iY);
-	}
-	else
-	{
-		return GC.getMapINLINE().plotINLINE((iX + GC.getPlotDirectionX()[eDirection]), (iY + GC.getPlotDirectionY()[eDirection]));
-	}
-}
-
-inline CvPlot* plotCardinalDirection(int iX, int iY, CardinalDirectionTypes eCardinalDirection)	// Exposed to Python
-{
-	return GC.getMapINLINE().plotINLINE((iX + GC.getPlotCardinalDirectionX()[eCardinalDirection]), (iY + GC.getPlotCardinalDirectionY()[eCardinalDirection]));
-}
-
-inline CvPlot* plotXY(int iX, int iY, int iDX, int iDY)																// Exposed to Python
-{
-	return GC.getMapINLINE().plotINLINE((iX + iDX), (iY + iDY));
-}
-
-inline CvPlot* plotXY(const CvPlot* pPlot, int iDX, int iDY) { return plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY); } // K-Mod
-
-inline DirectionTypes directionXY(int iDX, int iDY)																		// Exposed to Python
-{
-	if ((abs(iDX) > DIRECTION_RADIUS) || (abs(iDY) > DIRECTION_RADIUS))
-	{
-		return NO_DIRECTION;
-	}
-	else
-	{
-		return GC.getXYDirection((iDX + DIRECTION_RADIUS), (iDY + DIRECTION_RADIUS));
-	}
-}
-
-inline DirectionTypes directionXY(const CvPlot* pFromPlot, const CvPlot* pToPlot)			// Exposed to Python
-{
-	return directionXY(dxWrap(pToPlot->getX_INLINE() - pFromPlot->getX_INLINE()), dyWrap(pToPlot->getY_INLINE() - pFromPlot->getY_INLINE()));
-}
+// (advc.make: Distance functions moved into CvMap.h)
 
 CvPlot* plotCity(int iX, int iY, int iIndex);																			// Exposed to Python
 int plotCityXY(int iDX, int iDY);																									// Exposed to Python
 int plotCityXY(const CvCity* pCity, const CvPlot* pPlot);													// Exposed to Python
-bool isInnerRing(CvPlot const* pl, CvPlot const* cityPl); // advc.303
+bool isInnerRing(CvPlot const* pPlot, CvPlot const* pCityPlot); // advc.303
 
-CardinalDirectionTypes getOppositeCardinalDirection(CardinalDirectionTypes eDir);	// Exposed to Python 
+CardinalDirectionTypes getOppositeCardinalDirection(CardinalDirectionTypes eDir);	// Exposed to Python
 DirectionTypes cardinalDirectionToDirection(CardinalDirectionTypes eCard);				// Exposed to Python
 DllExport bool isCardinalDirection(DirectionTypes eDirection);															// Exposed to Python
 DirectionTypes estimateDirection(int iDX, int iDY);																// Exposed to Python
@@ -292,52 +131,47 @@ DllExport DirectionTypes estimateDirection(const CvPlot* pFromPlot, const CvPlot
 DllExport float directionAngle(DirectionTypes eDirection);
 
 bool atWar(TeamTypes eTeamA, TeamTypes eTeamB);												// Exposed to Python
-bool isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam);			// Exposed to Python
+bool isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam);					// Exposed to Python
 
-DllExport CvCity* getCity(IDInfo city);	// Exposed to Python
-DllExport CvUnit* getUnit(IDInfo unit);	// Exposed to Python
+DllExport CvCity* getCity(IDInfo city);												// Exposed to Python
+DllExport CvUnit* getUnit(IDInfo unit);												// Exposed to Python
 
-inline bool isCycleGroup(const CvSelectionGroup* pGroup) { return pGroup->getNumUnits() > 0 && !pGroup->isWaiting() && !pGroup->isAutomated(); } // K-Mod
+// (advc.make: inlined isCycleGroup moved to CvSelectionGroup to avoid a dependency)
 bool isBeforeUnitCycle(const CvUnit* pFirstUnit, const CvUnit* pSecondUnit);
 bool isBeforeGroupOnPlot(const CvSelectionGroup* pFirstGroup, const CvSelectionGroup* pSecondGroup); // K-Mod
 int groupCycleDistance(const CvSelectionGroup* pFirstGroup, const CvSelectionGroup* pSecondGroup); // K-Mod
 bool isPromotionValid(PromotionTypes ePromotion, UnitTypes eUnit, bool bLeader);	// Exposed to Python
-// <advc.315>
-inline bool isMostlyDefensive(CvUnitInfo const& u) {
 
-	return u.isOnlyDefensive() || u.isOnlyAttackAnimals() || u.isOnlyAttackBarbarians();
-} // </advc.315>
-
-int getPopulationAsset(int iPopulation);								// Exposed to Python
-int getLandPlotsAsset(int iLandPlots);									// Exposed to Python
-int getPopulationPower(int iPopulation);								// Exposed to Python
-int getPopulationScore(int iPopulation);								// Exposed to Python
-int getLandPlotsScore(int iLandPlots);									// Exposed to Python
-int getTechScore(TechTypes eTech);											// Exposed to Python
-int getWonderScore(BuildingClassTypes eWonderClass);		// Exposed to Python
+int getPopulationAsset(int iPopulation);											// Exposed to Python
+int getLandPlotsAsset(int iLandPlots);												// Exposed to Python
+int getPopulationPower(int iPopulation);											// Exposed to Python
+int getPopulationScore(int iPopulation);											// Exposed to Python
+int getLandPlotsScore(int iLandPlots);												// Exposed to Python
+int getTechScore(TechTypes eTech);													// Exposed to Python
+int getWonderScore(BuildingClassTypes eWonderClass);								// Exposed to Python
 
 //ImprovementTypes finalImprovementUpgrade(ImprovementTypes eImprovement, int iCount = 0);		// Exposed to Python
-ImprovementTypes finalImprovementUpgrade(ImprovementTypes eImprovement); // Exposed to Python, K-Mod. (I've removed iCount here, and in the python defs. It's a meaningless parameter.)
+ImprovementTypes finalImprovementUpgrade(ImprovementTypes eImprovement);			// Exposed to Python, K-Mod. (I've removed iCount here, and in the python defs. It's a meaningless parameter.)
 
-int getWorldSizeMaxConscript(CivicTypes eCivic);								// Exposed to Python
+int getWorldSizeMaxConscript(CivicTypes eCivic);									// Exposed to Python
 
 bool isReligionTech(TechTypes eTech);														// Exposed to Python
 // advc.003j: Unused BtS function; wasn't even declared in the header file.
 bool isCorporationTech(TechTypes eTech);
 
 bool isTechRequiredForUnit(TechTypes eTech, UnitTypes eUnit);							// Exposed to Python
-bool isTechRequiredForBuilding(TechTypes eTech, BuildingTypes eBuilding);	// Exposed to Python
-bool isTechRequiredForProject(TechTypes eTech, ProjectTypes eProject);		// Exposed to Python
+bool isTechRequiredForBuilding(TechTypes eTech, BuildingTypes eBuilding);			// Exposed to Python
+bool isTechRequiredForProject(TechTypes eTech, ProjectTypes eProject);				// Exposed to Python
 
 bool isWorldUnitClass(UnitClassTypes eUnitClass);											// Exposed to Python
 bool isTeamUnitClass(UnitClassTypes eUnitClass);											// Exposed to Python
 bool isNationalUnitClass(UnitClassTypes eUnitClass);									// Exposed to Python
 bool isLimitedUnitClass(UnitClassTypes eUnitClass);										// Exposed to Python
-bool isMundaneBuildingClass(int buildingClass); // advc.104
-bool isWorldWonderClass(BuildingClassTypes eBuildingClass);						// Exposed to Python
-bool isTeamWonderClass(BuildingClassTypes eBuildingClass);						// Exposed to Python
-bool isNationalWonderClass(BuildingClassTypes eBuildingClass);				// Exposed to Python
-bool isLimitedWonderClass(BuildingClassTypes eBuildingClass);					// Exposed to Python
+bool isMundaneBuildingClass(BuildingClassTypes eBuildingClass); // advc.104
+bool isWorldWonderClass(BuildingClassTypes eBuildingClass);							// Exposed to Python
+bool isTeamWonderClass(BuildingClassTypes eBuildingClass);							// Exposed to Python
+bool isNationalWonderClass(BuildingClassTypes eBuildingClass);						// Exposed to Python
+bool isLimitedWonderClass(BuildingClassTypes eBuildingClass);						// Exposed to Python
 int limitedWonderClassLimit(BuildingClassTypes eBuildingClass);
 
 bool isWorldProject(ProjectTypes eProject);														// Exposed to Python
@@ -345,15 +179,12 @@ bool isTeamProject(ProjectTypes eProject);														// Exposed to Python
 bool isLimitedProject(ProjectTypes eProject);													// Exposed to Python
 
 __int64 getBinomialCoefficient(int iN, int iK);
-int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender); // Exposed to Python
+int getCombatOdds(const CvUnit* pAttacker, const CvUnit* pDefender);				// Exposed to Python
 int estimateCollateralWeight(const CvPlot* pPlot, TeamTypes eAttackTeam, TeamTypes eDefenceTeam = NO_TEAM); // K-Mod
 
 int getEspionageModifier(TeamTypes eOurTeam, TeamTypes eTargetTeam);							// Exposed to Python
 
 DllExport void setTradeItem(TradeData* pItem, TradeableItems eItemType = TRADE_ITEM_NONE, int iData = 0);
-// <advc.071>
-void setFirstContactData(FirstContactData& kData, CvPlot const* pAt1, CvPlot const* pAt2 = NULL,
-		CvUnit const* pUnit1 = NULL, CvUnit const* pUnit2 = NULL); // </advc.071>
 
 bool isPlotEventTrigger(EventTriggerTypes eTrigger);
 
@@ -398,9 +229,11 @@ bool PUF_isCityAIType( const CvUnit* pUnit, int iData1, int iData2 = -1);
 bool PUF_isNotCityAIType( const CvUnit* pUnit, int iData1, int iData2 = -1);
 bool PUF_isSelected( const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
 bool PUF_makeInfoBarDirty(CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-bool PUF_isNoMission(const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
+//bool PUF_isNoMission(const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
+// advc.113b:
+bool PUF_isMissionPlotWorkingCity(const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
 bool PUF_isFiniteRange(const CvUnit* pUnit, int iData1 = -1, int iData2 = -1);
-// bbai
+// bbai start
 bool PUF_isAvailableUnitAITypeGroupie(const CvUnit* pUnit, int iData1, int iData2);
 bool PUF_isUnitAITypeGroupie(const CvUnit* pUnit, int iData1, int iData2);
 bool PUF_isFiniteRangeAndNotJustProduced(const CvUnit* pUnit, int iData1, int iData2);
@@ -426,17 +259,9 @@ int stepHeuristic(int iFromX, int iFromY, int iToX, int iToY);
 int stepValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
 int stepCost(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
 int stepAdd(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
-
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD					11/30/08				jdog5000	*/
-/* 																			*/
-/* 																			*/
-/********************************************************************************/
+// BETTER_BTS_AI_MOD, 11/30/08, jdog5000:
 int teamStepValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						END								*/
-/********************************************************************************/
-// advc.104b: 
+// advc.104b:
 int teamStepValid_advc(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
 int routeValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
 int borderValid(FAStarNode* parent, FAStarNode* node, int data, const void* pointer, FAStar* finder);
@@ -462,6 +287,6 @@ void getMissionAIString(CvWString& szString, MissionAITypes eMissionAI);
 void getUnitAIString(CvWString& szString, UnitAITypes eUnitAI);
 
 // Lead From Behind by UncutDragon
-int LFBgetCombatOdds(int iAttackerLowFS,	int iAttackerHighFS, int iDefenderLowFS, int iDefenderHighFS, int iNeededRoundsAttacker, int iNeededRoundsDefender, int iAttackerOdds);
+int LFBgetCombatOdds(int iAttackerLowFS, int iAttackerHighFS, int iDefenderLowFS, int iDefenderHighFS, int iNeededRoundsAttacker, int iNeededRoundsDefender, int iAttackerOdds);
 
 #endif

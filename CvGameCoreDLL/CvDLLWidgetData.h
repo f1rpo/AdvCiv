@@ -3,7 +3,6 @@
 #ifndef _CVDLLWIDGETDATA_H_
 #define _CVDLLWIDGETDATA_H_
 
-//#include "CvEnums.h"
 
 class CvDLLWidgetData
 {
@@ -17,10 +16,10 @@ public:
 	DllExport void parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &widgetDataStruct);
 
 	//	This will execute the action for the widget
-	DllExport bool executeAction( CvWidgetDataStruct &widgetDataStruct );
+	DllExport bool executeAction(CvWidgetDataStruct &widgetDataStruct);
 
 	//	This will execute an alternate action for the widget
-	DllExport bool executeAltAction( CvWidgetDataStruct &widgetDataStruct );
+	DllExport bool executeAltAction(CvWidgetDataStruct &widgetDataStruct);
 
 	DllExport bool isLink(const CvWidgetDataStruct &widgetDataStruct) const;
 
@@ -80,10 +79,14 @@ public:
 	void doPediaBuildJump(CvWidgetDataStruct &widgetDataStruct);
 	void doDealKill(CvWidgetDataStruct &widgetDataStruct);
 	void doRefreshMilitaryAdvisor(CvWidgetDataStruct &widgetDataStruct);
-	void doMenu( void );
+	void doMenu();
 	void doLaunch(CvWidgetDataStruct &widgetDataStruct);
 
-	//	Help parsing
+protected:
+
+	static CvDLLWidgetData* m_pInst;
+
+	//	Help parsing (advc.003: These were all public)
 	void parsePlotListHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseLiberateCityHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseCityNameHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
@@ -108,9 +111,17 @@ public:
 	void parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer); // K-Mod, the cheat mode text associated with ContactCivHelp
 	void parseScoreHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
+	// BULL - Trade Hover:
+	void parseTradeRoutes(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
+	// BULL - Food Rate Hover:
+	void parseFoodModHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
+	// <advc.085>
+	void parsePowerRatioHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
+	void parseGoldenAgeAnarchyHelp(PlayerTypes ePlayer, int iData2, bool bAnarchy, CvWStringBuffer &szBuffer);
+	// </advc.085>
 	void parseConvertHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseRevolutionHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
-//	void parsePopupQueue(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
+	// void parsePopupQueue(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseAutomateCitizensHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseAutomateProductionHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseEmphasizeHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
@@ -185,6 +196,11 @@ public:
 	void parseFinanceGrossIncome(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseFinanceNetGold(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseFinanceGoldReserve(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
+	// BULL - Finance Advisor - start
+	void parseFinanceDomesticTrade(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
+	void parseFinanceForeignTrade(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
+	void parseFinanceSpecialistGold(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
+	// BULL - Finance Advisor - end
 	void parseUnitHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parsePediaBack(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parsePediaForward(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
@@ -203,6 +219,8 @@ public:
 	void parseCivicHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseCivilizationHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseLeaderHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
+	// BULL - Leaderhead Relations:
+	void parseLeaderheadRelationsHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseDescriptionHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer, bool bMinimal);
 	void parseCloseScreenHelp(CvWStringBuffer &szBuffer);
 	void parseKillDealHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
@@ -218,16 +236,12 @@ public:
 
 	// <advc.004a> Additional help text:
 	 // Discover ("bulb") button
-	CvWString getDiscoverPathText(UnitTypes ut, PlayerTypes pt) const;
+	CvWString getDiscoverPathText(UnitTypes eUnit, PlayerTypes ePlayer) const;
 	// </advc.004a> <advc.004b> Found button
-	CvWString getFoundCostText(CvPlot const& p, PlayerTypes ownerId) const;
-	CvWString getHomePlotYieldText(CvPlot const& p, PlayerTypes ownerId) const;
-	CvWString getNetFeatureHealthText(CvPlot const& kCityPlot, PlayerTypes ownerId) const;
+	CvWString getFoundCostText(CvPlot const& p, PlayerTypes eOwner) const;
+	CvWString getHomePlotYieldText(CvPlot const& p, PlayerTypes eOwner) const;
+	CvWString getNetFeatureHealthText(CvPlot const& kCityPlot, PlayerTypes eOwner) const;
 	// </advc.004b>
-
-protected:
-	
-	static CvDLLWidgetData* m_pInst;
 
 };
 

@@ -1,6 +1,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvTalkingHeadMessage.h"
-#include "CvGlobals.h"
+#include "CvGameAI.h"
 
 CvTalkingHeadMessage::CvTalkingHeadMessage(int iMessageTurn, int iLen, LPCWSTR pszDesc, LPCTSTR pszSound, InterfaceMessageTypes eType, LPCTSTR pszIcon, ColorTypes eColor, int iX, int iY, bool bShowOffScreenArrows, bool bShowOnScreenArrows) :
 	m_iTurn(iMessageTurn),
@@ -83,7 +83,7 @@ void CvTalkingHeadMessage::setDescription(CvWString pszDescription)
 
 const CvString& CvTalkingHeadMessage::getSound() const
 {
-	/*  advc.106b: A hack that relies on the EXE playing the sound after calling
+	/*  advc.106b: A hack that relies on the EXE triggering the sound after calling
 		getSound */
 	const_cast<CvTalkingHeadMessage*>(this)->bSoundPlayed = true;
 	return (m_szSound);
@@ -205,7 +205,7 @@ void CvTalkingHeadMessage::setTarget(ChatTargetTypes eType)
 	m_eTarget = eType;
 }
 
-int CvTalkingHeadMessage::getExpireTurn(bool human) // advc.700: param added
+int CvTalkingHeadMessage::getExpireTurn(/* advc.700: */ bool bHuman)
 {
 	int iExpireTurn = getTurn();
 	switch (m_eMessageType)
@@ -216,7 +216,7 @@ int CvTalkingHeadMessage::getExpireTurn(bool human) // advc.700: param added
 	case MESSAGE_TYPE_CHAT:
 		iExpireTurn += 20;
 		break;
-    case MESSAGE_TYPE_COMBAT_MESSAGE:
+	case MESSAGE_TYPE_COMBAT_MESSAGE:
 		iExpireTurn += 20;
 		break;
 	case MESSAGE_TYPE_MINOR_EVENT:
@@ -226,12 +226,12 @@ int CvTalkingHeadMessage::getExpireTurn(bool human) // advc.700: param added
 	case MESSAGE_TYPE_MAJOR_EVENT:
 	case MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY: // advc.106b
 		// never expires
-		//iExpireTurn = GC.getGameINLINE().getGameTurn() + 1;
+		//iExpireTurn = GC.getGame().getGameTurn() + 1;
 		iExpireTurn += 100; // advc.106b
 		break;
 	case MESSAGE_TYPE_DISPLAY_ONLY:
 		// never saved
-		iExpireTurn = GC.getGameINLINE().getGameTurn() - 1;
+		iExpireTurn = GC.getGame().getGameTurn() - 1;
 		break;
 	// <advc.106b>
 	case MESSAGE_TYPE_EOT:
@@ -243,22 +243,22 @@ int CvTalkingHeadMessage::getExpireTurn(bool human) // advc.700: param added
 	}
 	/*  <advc.700> Quicker expiration for AI. Note that messages are delivered to
 		the AI only if GAMEOPTION_RISE_FALL. */
-	if(human)
+	if(bHuman)
 		return iExpireTurn;
 	iExpireTurn = getTurn();
 	switch(m_eMessageType) {
 	case MESSAGE_TYPE_INFO: iExpireTurn += 1; break;
-    case MESSAGE_TYPE_COMBAT_MESSAGE: iExpireTurn += 2; break;
+	case MESSAGE_TYPE_COMBAT_MESSAGE: iExpireTurn += 2; break;
 	case MESSAGE_TYPE_MINOR_EVENT: iExpireTurn += 10; break;
 	case MESSAGE_TYPE_QUEST:
-		iExpireTurn = GC.getGameINLINE().getGameTurn() + 1;
+		iExpireTurn = GC.getGame().getGameTurn() + 1;
 		break;
 	case MESSAGE_TYPE_MAJOR_EVENT:
 	case MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY: // advc.106b
 		iExpireTurn += 50;
 		break;
 	default:
-		iExpireTurn = GC.getGameINLINE().getGameTurn() - 1;
+		iExpireTurn = GC.getGame().getGameTurn() - 1;
 		break;
 	}
 	return iExpireTurn; // </advc.700>

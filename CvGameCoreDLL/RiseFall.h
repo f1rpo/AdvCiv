@@ -3,11 +3,12 @@
 #ifndef RISE_FALL_H
 #define RISE_FALL_H
 
-#include "CvString.h"
 #include "RFChapter.h"
 #include "RFTotalScore.h"
 
 class CvPopup;
+class CvDiplomacyResponse;
+class CvWString;
 
 // <advc.700>: Main class for the Rise & Fall mod component
 class RiseFall {
@@ -64,7 +65,7 @@ public:
 	static wchar const* fillWS(int n, bool addPlus = false);
 	RFChapter& getChapter(int i) const; // Helps with exposal to Python
 	// Exposed to Python through CvGame:
-	  std::wstring* chapterScoreBreakdown(); 
+	  std::wstring* chapterScoreBreakdown();
 	  std::wstring* riseScoreBreakdown();
 	  /*  Named "MaxChapters" in order to make clear that the game may well end
 		  before all chapters are through */

@@ -1,5 +1,5 @@
 //
-// Python wrapper class for CvPlayer 
+// Python wrapper class for CvPlayer
 //
 
 #include "CvGameCoreDLL.h"
@@ -9,14 +9,9 @@
 #include "CyArea.h"
 #include "CyPlot.h"
 #include "CvPlayerAI.h"
-//#include "CvEnums.h"
-#include "CvCity.h"
 #include "CvMap.h"
-#include "CvPlot.h"
 #include "CySelectionGroup.h"
 #include "CvDLLPythonIFaceBase.h"
-#include "CvGlobals.h"
-#include "WarEvaluator.h" // advc.104l
 
 CyPlayer::CyPlayer() : m_pPlayer(NULL)
 {
@@ -26,30 +21,24 @@ CyPlayer::CyPlayer(CvPlayer* pPlayer) : m_pPlayer(pPlayer)
 {
 }
 
-/************************************************************************************************/
-/* CHANGE_PLAYER                         08/27/08                                 jdog5000      */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-void CyPlayer::changeLeader( int /*LeaderHeadTypes*/ eNewLeader )
+// CHANGE_PLAYER, 08/27/08. jdog5000:
+void CyPlayer::changeLeader(int /*LeaderHeadTypes*/ eNewLeader)
 {
-	if( m_pPlayer )
-		m_pPlayer->changeLeader( (LeaderHeadTypes)eNewLeader );
+	if (m_pPlayer)
+		m_pPlayer->changeLeader((LeaderHeadTypes)eNewLeader);
 }
 
-void CyPlayer::changeCiv( int /*CivilizationTypes*/ eNewCiv )
+void CyPlayer::changeCiv(int /*CivilizationTypes*/ eNewCiv)
 {
-	if( m_pPlayer )
-		m_pPlayer->changeCiv( (CivilizationTypes)eNewCiv );
+	if (m_pPlayer)
+		m_pPlayer->changeCiv((CivilizationTypes)eNewCiv);
 }
-void CyPlayer::setIsHuman( bool bNewValue )
+void CyPlayer::setIsHuman(bool bNewValue)
 {
-	if( m_pPlayer )
-		m_pPlayer->setIsHuman( bNewValue );
+	if (m_pPlayer)
+		m_pPlayer->setIsHuman(bNewValue);
 }
-/************************************************************************************************/
-/* CHANGE_PLAYER                          END                                                   */
-/************************************************************************************************/
+// CHANGE_PLAYER: END
 
 int CyPlayer::startingPlotRange()
 {
@@ -69,12 +58,12 @@ bool CyPlayer::startingPlotWithinRange(CyPlot *pPlot, int /*PlayerTypes*/ ePlaye
 	return NULL;
 }
 
-CyPlot* CyPlayer::findStartingPlot(bool bRandomize) 
+CyPlot* CyPlayer::findStartingPlot(bool bRandomize)
 {
 	return m_pPlayer ? new CyPlot(m_pPlayer->findStartingPlot(bRandomize)) : NULL;
 }
 
-CyCity* CyPlayer::initCity(int x, int y) 
+CyCity* CyPlayer::initCity(int x, int y)
 {
 	return m_pPlayer ? new CyCity(m_pPlayer->initCity(x, y, true, true)) : NULL;
 }
@@ -176,12 +165,12 @@ std::wstring CyPlayer::getCivilizationAdjective(int iForm)
 	return m_pPlayer ? m_pPlayer->getCivilizationAdjective((uint)iForm) : std::wstring();
 }
 
-std::wstring CyPlayer::getCivilizationAdjectiveKey( )
+std::wstring CyPlayer::getCivilizationAdjectiveKey()
 {
 	return m_pPlayer ? m_pPlayer->getCivilizationAdjectiveKey() : std::wstring();
 }
 
-std::wstring CyPlayer::getFlagDecal( )
+std::wstring CyPlayer::getFlagDecal()
 {
 	return m_pPlayer ? m_pPlayer->getFlagDecal() : std::wstring();
 }
@@ -196,7 +185,7 @@ std::wstring CyPlayer::getStateReligionName(int iForm)
 	return m_pPlayer ? m_pPlayer->getStateReligionName((int)iForm) : std::wstring();
 }
 
-std::wstring CyPlayer::getStateReligionKey( )
+std::wstring CyPlayer::getStateReligionKey()
 {
 	return m_pPlayer ? m_pPlayer->getStateReligionKey() : std::wstring();
 }
@@ -226,7 +215,7 @@ std::string CyPlayer::getUnitButton(int eUnit)
 	return m_pPlayer ? m_pPlayer->getUnitButton((UnitTypes)eUnit) : "";
 }
 
-int CyPlayer::findBestFoundValue( )
+int CyPlayer::findBestFoundValue()
 {
 	return m_pPlayer ? m_pPlayer->findBestFoundValue() : -1;
 }
@@ -401,7 +390,7 @@ bool CyPlayer::canFound(int iX, int iY)
 	return m_pPlayer ? m_pPlayer->canFound(iX, iY) : false;
 }
 
-void CyPlayer::found(int x, int y) 
+void CyPlayer::found(int x, int y)
 {
 	if (m_pPlayer)
 		m_pPlayer->found(x,y);
@@ -807,7 +796,7 @@ int CyPlayer::getTotalLandScored()
 	return m_pPlayer ? m_pPlayer->getTotalLandScored() : -1;
 }
 
-int CyPlayer::getGold() 
+int CyPlayer::getGold()
 {
 	return m_pPlayer ? m_pPlayer->getGold() : -1;
 }
@@ -829,7 +818,7 @@ int CyPlayer::getGoldPerTurn()
 	return m_pPlayer ? m_pPlayer->getGoldPerTurn() : -1;
 }
 
-int CyPlayer::getAdvancedStartPoints() 
+int CyPlayer::getAdvancedStartPoints()
 {
 	return m_pPlayer ? m_pPlayer->getAdvancedStartPoints() : -1;
 }
@@ -1219,22 +1208,16 @@ int CyPlayer::getOverflowResearch()
 	return m_pPlayer ? m_pPlayer->getOverflowResearch() : 0;
 }
 
-/*
-** K-Mod, 27/dec/10, karadoc
-** replaced NoUnhealthyPopulation with UnhealthyPopulationModifier
-*/
 /* original bts code
-bool CyPlayer::isNoUnhealthyPopulation()
-{
+bool CyPlayer::isNoUnhealthyPopulation() {
 	return m_pPlayer ? m_pPlayer->isNoUnhealthyPopulation() : false;
 }*/
+/*  K-Mod, 27/dec/10, karadoc
+	replaced NoUnhealthyPopulation with UnhealthyPopulationModifier */
 int CyPlayer::getUnhealthyPopulationModifier()
 {
 	return m_pPlayer ? m_pPlayer->getUnhealthyPopulationModifier() : 0;
-}
-/*
-** K-Mod end
-*/
+} // K-Mod end
 
 bool CyPlayer::getExpInBorderModifier()
 {
@@ -1474,17 +1457,17 @@ bool CyPlayer::isMinorCiv()
 	return m_pPlayer ? m_pPlayer->isMinorCiv() : false;
 }
 
-bool CyPlayer::isAlive() 
+bool CyPlayer::isAlive()
 {
 	return m_pPlayer ? m_pPlayer->isAlive() : false;
 }
 
-bool CyPlayer::isEverAlive() 
+bool CyPlayer::isEverAlive()
 {
 	return m_pPlayer ? m_pPlayer->isEverAlive() : false;
 }
 
-bool CyPlayer::isExtendedGame() 
+bool CyPlayer::isExtendedGame()
 {
 	return m_pPlayer ? m_pPlayer->isExtendedGame() : false;
 }
@@ -1514,7 +1497,7 @@ int /* HandicapTypes */ CyPlayer::getHandicapType()
 	return m_pPlayer ? (int) m_pPlayer->getHandicapType() : -1;
 }
 
-int /* CivilizationTypes */  CyPlayer::getCivilizationType() 
+int /* CivilizationTypes */  CyPlayer::getCivilizationType()
 {
 	return m_pPlayer ? (int) m_pPlayer->getCivilizationType() : NO_CIVILIZATION;
 }
@@ -1669,7 +1652,7 @@ int CyPlayer::getGoldPerTurnByPlayer(int /*PlayerTypes*/ eIndex)
 	return m_pPlayer ? m_pPlayer->getGoldPerTurnByPlayer((PlayerTypes) eIndex) : -1;
 }
 
-bool CyPlayer::isFeatAccomplished(int /*FeatTypes*/ eIndex)	
+bool CyPlayer::isFeatAccomplished(int /*FeatTypes*/ eIndex)
 {
 	return m_pPlayer ? m_pPlayer->isFeatAccomplished((FeatTypes)eIndex) : false;
 }
@@ -1680,7 +1663,7 @@ void CyPlayer::setFeatAccomplished(int /*FeatTypes*/ eIndex, bool bNewValue)
 		m_pPlayer->setFeatAccomplished((FeatTypes)eIndex, bNewValue);
 }
 
-bool CyPlayer::isOption(int /*PlayerOptionTypes*/ eIndex)	
+bool CyPlayer::isOption(int /*PlayerOptionTypes*/ eIndex)
 {
 	return m_pPlayer ? m_pPlayer->isOption((PlayerOptionTypes)eIndex) : false;
 }
@@ -1691,7 +1674,7 @@ void CyPlayer::setOption(int /*PlayerOptionTypes*/ eIndex, bool bNewValue)
 		m_pPlayer->setOption((PlayerOptionTypes)eIndex, bNewValue);
 }
 
-bool CyPlayer::isLoyalMember(int /*VoteSourceTypes*/ eIndex)	
+bool CyPlayer::isLoyalMember(int /*VoteSourceTypes*/ eIndex)
 {
 	return m_pPlayer ? m_pPlayer->isLoyalMember((VoteSourceTypes)eIndex) : false;
 }
@@ -1913,7 +1896,7 @@ void CyPlayer::changeCombatExperience(int iChange)
 	{
 		m_pPlayer->changeCombatExperience(iChange);
 	}
-	
+
 }
 
 void CyPlayer::setCombatExperience(int iExperience)
@@ -1935,7 +1918,7 @@ int CyPlayer::findPathLength(int /*TechTypes*/ eTech, bool bCost)
 	return m_pPlayer ? m_pPlayer->findPathLength((TechTypes)eTech, bCost) : -1;
 }
 
-int CyPlayer::getQueuePosition( int /* TechTypes */ eTech )
+int CyPlayer::getQueuePosition(int /* TechTypes */ eTech)
 {
 	if (m_pPlayer)
 	{
@@ -2139,11 +2122,7 @@ bool CyPlayer::AI_isWillingToTalk(int /*PlayerTypes*/ ePlayer) {
 	CvPlayerAI const& p = GET_PLAYER((PlayerTypes)ePlayer);
 	if(p.getNumCities() <= 0 && p.getNumUnits() <= 0)
 		return false; // </advc.001>
-	// AI_isWillingToTalk gets called frequently by Civ4lerts
-	WarEvaluator::enableCache();
-	bool r = m_pPlayer->AI_isWillingToTalk(p.getID());
-	WarEvaluator::disableCache();
-	return r;
+	return m_pPlayer->AI().AI_isWillingToTalk(p.getID(), true);
 } // </advc.104l>
 
 bool CyPlayer::AI_demandRebukedWar(int /*PlayerTypes*/ ePlayer)
@@ -2275,7 +2254,7 @@ void CyPlayer::setScriptData(std::string szNewValue)
 
 void CyPlayer::chooseTech(int iDiscover, std::wstring szText, bool bFront)
 {
-	if ( m_pPlayer )
+	if (m_pPlayer)
 	{
 		m_pPlayer->chooseTech(iDiscover, szText.c_str(), bFront);
 	}
@@ -2362,8 +2341,21 @@ int CyPlayer::AI_corporationBonusVal(int eBonus) const {
 
 	if(m_pPlayer == NULL)
 		return -1;
-	/*  Adding AI_corporationBonusVal as a pure virtual function to CvPlayer
-		causes the EXE to crash during initialization. Will have to down-cast
-		instead. */
+	/*  Adding a virtual function CvPlayer::AI_corporationBonusVal causes
+		the EXE to crash during initialization. Will have to cast down instead. */
 	return dynamic_cast<CvPlayerAI*>(m_pPlayer)->AI_corporationBonusVal((BonusTypes)eBonus);
 } // </advc.210e>
+
+// <advc.085>
+void CyPlayer::setScoreboardExpanded(bool b) {
+
+	if(m_pPlayer != NULL)
+		m_pPlayer->setScoreboardExpanded(b);
+}
+
+bool CyPlayer::isScoreboardExpanded() const {
+
+	if(m_pPlayer == NULL)
+		return false;
+	return m_pPlayer->isScoreboardExpanded();
+} // </advc.085>

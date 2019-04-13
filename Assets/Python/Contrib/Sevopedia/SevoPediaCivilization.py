@@ -7,7 +7,6 @@
 #   sevotastic@yahoo.com
 #
 # additional work by Gaurav, Progor, Ket, Vovan, Fitchn, LunarMongoose
-# see ReadMe for details
 #
 
 from CvPythonExtensions import *
@@ -51,7 +50,11 @@ class SevoPediaCivilization:
 
 		self.X_BUILDING = self.X_MAIN_PANE
 		self.Y_BUILDING = self.Y_LEADER + self.H_LEADER + 10
-		self.W_BUILDING = 130
+		# <advc.004y> was 130
+		self.W_BUILDING = self.W_MAIN_PANE
+		# This would split the space evenly between UU and UB
+		#self.W_BUILDING = (self.top.R_PEDIA_PAGE - self.X_BUILDING - 10) // 2
+		# </advc.004y>
 		self.H_BUILDING = 110
 
 		self.X_UNIT = self.X_BUILDING + self.W_BUILDING + 10

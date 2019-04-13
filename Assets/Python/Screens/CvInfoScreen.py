@@ -1516,6 +1516,8 @@ class CvInfoScreen:
 		# <advc.077>
 		iMilitaryCoeff = 1000
 		iLandCoeff = 1000
+		# Minus 1 b/c history info for the current turn isn't available yet
+		iGameTurn = gc.getGame().getGameTurn() - 1
 		# </advc.077>
 		# Loop through all players to determine Rank and relative Strength
 		for iPlayerLoop in range(gc.getMAX_PLAYERS()):
@@ -1529,8 +1531,11 @@ class CvInfoScreen:
 					continue
 				# </advc.077>
 				
-				iValue = pCurrPlayer.calculateTotalCommerce()
+				#iValue = pCurrPlayer.calculateTotalCommerce()
+				# advc.077: Use the current value only for the active player
+				iValue = self.computeHistory(self.ECONOMY_SCORE, iPlayerLoop, iGameTurn)
 				if iPlayerLoop == self.iActivePlayer:
+					iValue = pCurrPlayer.calculateTotalCommerce() # advc.077
 					iEconomy = iValue
 				else: # <advc.077>
 					iActiveRivals += 1
@@ -1540,15 +1545,19 @@ class CvInfoScreen:
 					iEconomyGameAverage += iValue
 				aiGroupEconomy.append((iValue, iPlayerLoop))
 				
-				iValue = pCurrPlayer.calculateTotalYield(YieldTypes.YIELD_PRODUCTION)
+				#iValue = pCurrPlayer.calculateTotalYield(YieldTypes.YIELD_PRODUCTION)
+				iValue = self.computeHistory(self.INDUSTRY_SCORE, iPlayerLoop, iGameTurn) # advc.077
 				if iPlayerLoop == self.iActivePlayer:
+					iValue = pCurrPlayer.calculateTotalYield(YieldTypes.YIELD_PRODUCTION) # advc.077
 					iIndustry = iValue
 				else:
 					iIndustryGameAverage += iValue
 				aiGroupIndustry.append((iValue, iPlayerLoop))
 
-				iValue = pCurrPlayer.calculateTotalYield(YieldTypes.YIELD_FOOD)
+				#iValue = pCurrPlayer.calculateTotalYield(YieldTypes.YIELD_FOOD)
+				iValue = self.computeHistory(self.AGRICULTURE_SCORE, iPlayerLoop, iGameTurn) # advc.077
 				if iPlayerLoop == self.iActivePlayer:
+					iValue = pCurrPlayer.calculateTotalYield(YieldTypes.YIELD_FOOD) # advc.077
 					iAgriculture = iValue
 				else:
 					iAgricultureGameAverage += iValue
@@ -2731,7 +2740,8 @@ class CvInfoScreen:
 								if (iTeamLoop == self.iActiveTeam or self.pActiveTeam.isHasMet(iTeamLoop)):
 									self.aaWondersBuilt_BUG.append([-9999,iProjectLoop,True,gc.getPlayer(iPlayerLoop).getCivilizationShortDescription(0),None, iPlayerLoop])
 								else:
-									self.aaWondersBuilt_BUG.append([-9999,iProjectLoop,False,localText.getText("TXT_KEY_UNKNOWN", ()),None, 9999])
+									# advc.001: Last param was 9999
+									self.aaWondersBuilt_BUG.append([-9999,iProjectLoop,False,localText.getText("TXT_KEY_UNKNOWN", ()), None, gc.getBARBARIAN_PLAYER()])
 								self.iNumWonders += 1
 
 		# Sort wonders in order of date built
@@ -2779,7 +2789,8 @@ class CvInfoScreen:
 			if ePlayerColor != -1:
 				playerColor = gc.getPlayerColorInfo(ePlayerColor)
 				if playerColor:
-					color = playerColor.getColorTypePrimary()
+					#color = playerColor.getColorTypePrimary()
+					color = playerColor.getTextColorType() # dlph.36
 
 			if (self.szWonderDisplayMode == self.szWDM_Project):
 				pWonderInfo = gc.getProjectInfo(iWonderType)
@@ -2824,7 +2835,8 @@ class CvInfoScreen:
 			if ePlayerColor != -1:
 				playerColor = gc.getPlayerColorInfo(ePlayerColor)
 				if playerColor:
-					color = playerColor.getColorTypePrimary()
+					#color = playerColor.getColorTypePrimary()
+					color = playerColor.getTextColorType() # dlph.36
 
 			if (self.szWonderDisplayMode == self.szWDM_Project):
 				pWonderInfo = gc.getProjectInfo(iWonderType)

@@ -1,5 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvEventReporter.h"
+#include "CvGameAI.h"
+#include "CvPlayerAI.h"
 #include "CvDllPythonEvents.h"
 #include "CvInitCore.h"
 #include "CvDLLInterfaceIFaceBase.h" // advc.106l
@@ -47,7 +49,7 @@ void CvEventReporter::newGame()
 	// Called at the launch of a game (new or loaded)
 
 	// Report initial stats for the game
-	m_kStatistics.setMapName( CvString(GC.getInitCore().getMapScriptName()).GetCString() );
+	m_kStatistics.setMapName(CvString(GC.getInitCore().getMapScriptName()).GetCString());
 	m_kStatistics.setEra(GC.getInitCore().getEra());
 }
 
@@ -160,13 +162,13 @@ void CvEventReporter::gotoPlotSet(CvPlot *pPlot, PlayerTypes ePlayer)
 	m_kPythonEventMgr.reportGotoPlotSet(pPlot, ePlayer);
 }
 
-void CvEventReporter::cityBuilt( CvCity *pCity )
+void CvEventReporter::cityBuilt(CvCity *pCity)
 {
 	m_kPythonEventMgr.reportCityBuilt(pCity);
 	m_kStatistics.cityBuilt(pCity);
 }
 
-void CvEventReporter::cityRazed( CvCity *pCity, PlayerTypes ePlayer )
+void CvEventReporter::cityRazed(CvCity *pCity, PlayerTypes ePlayer)
 {
 	m_kPythonEventMgr.reportCityRazed(pCity, ePlayer);
 	m_kStatistics.cityRazed(pCity, ePlayer);
@@ -187,7 +189,7 @@ void CvEventReporter::cityLost( CvCity *pCity)
 	m_kPythonEventMgr.reportCityLost(pCity);
 }
 
-void CvEventReporter::cultureExpansion( CvCity *pCity, PlayerTypes ePlayer )
+void CvEventReporter::cultureExpansion(CvCity *pCity, PlayerTypes ePlayer)
 {
 	m_kPythonEventMgr.reportCultureExpansion(pCity, ePlayer);
 }
@@ -197,7 +199,7 @@ void CvEventReporter::cityGrowth(CvCity *pCity, PlayerTypes ePlayer)
 	m_kPythonEventMgr.reportCityGrowth(pCity, ePlayer);
 }
 
-void CvEventReporter::cityDoTurn( CvCity *pCity, PlayerTypes ePlayer )
+void CvEventReporter::cityDoTurn(CvCity *pCity, PlayerTypes ePlayer)
 {
 	m_kPythonEventMgr.reportCityProduction(pCity, ePlayer);
 }
@@ -248,7 +250,7 @@ void CvEventReporter::unitBuilt(CvCity *pCity, CvUnit *pUnit)
 	m_kStatistics.unitBuilt(pUnit);
 }
 
-void CvEventReporter::unitKilled(CvUnit *pUnit, PlayerTypes eAttacker )
+void CvEventReporter::unitKilled(CvUnit *pUnit, PlayerTypes eAttacker)
 {
 	m_kPythonEventMgr.reportUnitKilled(pUnit, eAttacker);
 	m_kStatistics.unitKilled(pUnit, eAttacker);
@@ -373,9 +375,9 @@ void CvEventReporter::changeWar(bool bWar, TeamTypes eTeam, TeamTypes eOtherTeam
 	m_kPythonEventMgr.reportChangeWar(bWar, eTeam, eOtherTeam);
 }
 
-void CvEventReporter::setPlayerAlive( PlayerTypes ePlayerID, bool bNewValue )
+void CvEventReporter::setPlayerAlive(PlayerTypes ePlayerID, bool bNewValue)
 {
-	m_kPythonEventMgr.reportSetPlayerAlive( ePlayerID, bNewValue );
+	m_kPythonEventMgr.reportSetPlayerAlive(ePlayerID, bNewValue);
 }
 
 void CvEventReporter::playerChangeStateReligion(PlayerTypes ePlayerID, ReligionTypes eNewReligion, ReligionTypes eOldReligion)
@@ -424,8 +426,8 @@ void CvEventReporter::preSave()
 	bool bAutoSave = m_bPreAutoSave;
 	bool bQuickSave = m_bPreQuickSave;
 	m_bPreAutoSave = m_bPreQuickSave = false;
-	CvGame const& g = GC.getGameINLINE();
-	FAssertMsg(bAutoSave || !g.isAITurn() || g.isNetworkMultiPlayer(),
+	CvGame const& g = GC.getGame();
+	FAssertMsg(bAutoSave || !g.isInBetweenTurns() || g.isNetworkMultiPlayer(),
 			"Quicksave in between turns?");
 	char const* szDefineName = "";
 	CvWString szMsgTag;
@@ -455,14 +457,14 @@ void CvEventReporter::preSave()
 
 void CvEventReporter::preAutoSave() {
 
-	FAssertMsg(!m_bPreAutoSave || GC.getGameINLINE().isNetworkMultiPlayer(),
+	FAssertMsg(!m_bPreAutoSave || GC.getGame().isNetworkMultiPlayer(),
 			"Should've been reset by preSave");
 	m_bPreAutoSave = true;
 }
 
 void CvEventReporter::preQuickSave() {
 
-	FAssertMsg(!m_bPreAutoSave || GC.getGameINLINE().isNetworkMultiPlayer(),
+	FAssertMsg(!m_bPreAutoSave || GC.getGame().isNetworkMultiPlayer(),
 			"Should've been reset by preSave");
 	m_bPreQuickSave = true;
 } // </advc.106l>
@@ -533,7 +535,7 @@ void CvEventReporter::readStatistics(FDataStreamBase* pStream)
 {
 	m_kStatistics.reset();
 	m_kStatistics.read(pStream);
-	GC.getGameINLINE().allGameDataRead(); // advc.003
+	GC.getGame().allGameDataRead(); // advc.003
 }
 void CvEventReporter::writeStatistics(FDataStreamBase* pStream)
 {

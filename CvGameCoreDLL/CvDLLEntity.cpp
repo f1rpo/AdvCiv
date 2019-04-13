@@ -1,7 +1,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvDLLEntity.h"
 #include "CvDLLEntityIFaceBase.h"
-#include "CvGlobals.h"
 
 CvDLLEntity::CvDLLEntity() : m_pEntity(NULL)
 {
@@ -58,34 +57,34 @@ void CvDLLEntity::StopAnimation(AnimationTypes eAnim)
 	gDLL->getEntityIFace()->StopAnimation(getEntity(), eAnim);
 }
 
-void CvDLLEntity::MoveTo( const CvPlot * pkPlot )
+void CvDLLEntity::MoveTo(const CvPlot * pkPlot)
 {
-	gDLL->getEntityIFace()->MoveTo(getUnitEntity(), pkPlot );
+	gDLL->getEntityIFace()->MoveTo(getUnitEntity(), pkPlot);
 }
 
-void CvDLLEntity::QueueMove( const CvPlot * pkPlot )
+void CvDLLEntity::QueueMove(const CvPlot * pkPlot)
 {
-	gDLL->getEntityIFace()->QueueMove(getUnitEntity(), pkPlot );
+	gDLL->getEntityIFace()->QueueMove(getUnitEntity(), pkPlot);
 }
 
-void CvDLLEntity::ExecuteMove( float fTimeToExecute, bool bCombat )
+void CvDLLEntity::ExecuteMove(float fTimeToExecute, bool bCombat)
 {
-	gDLL->getEntityIFace()->ExecuteMove(getUnitEntity(), fTimeToExecute, bCombat );
+	gDLL->getEntityIFace()->ExecuteMove(getUnitEntity(), fTimeToExecute, bCombat);
 }
 
-void CvDLLEntity::SetPosition( const CvPlot * pkPlot )
+void CvDLLEntity::SetPosition(const CvPlot * pkPlot)
 {
-	gDLL->getEntityIFace()->SetPosition(getUnitEntity(), pkPlot );
+	gDLL->getEntityIFace()->SetPosition(getUnitEntity(), pkPlot);
 }
 
-void CvDLLEntity::NotifyEntity( MissionTypes eMission )
+void CvDLLEntity::NotifyEntity(MissionTypes eMission)
 {
-	gDLL->getEntityIFace()->NotifyEntity( getUnitEntity(), eMission );
+	gDLL->getEntityIFace()->NotifyEntity(getUnitEntity(), eMission);
 }
 
 void CvDLLEntity::SetSiegeTower(bool show)
 {
-	gDLL->getEntityIFace()->SetSiegeTower( getUnitEntity(), show );
+	gDLL->getEntityIFace()->SetSiegeTower(getUnitEntity(), show);
 }
 
 bool CvDLLEntity::GetSiegeTower()

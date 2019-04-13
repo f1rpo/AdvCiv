@@ -12,17 +12,18 @@
 //------------------------------------------------------------------------------------------------
 
 #include "CvGameCoreDLL.h"
+#include "CvStructs.h"
 #include "CvUnit.h"
-//#include "CvStructs.h"
+#include "CvPlot.h" // advc.071
 
-int EventTriggeredData::getID() const 
-{ 
-	return m_iId; 
+int EventTriggeredData::getID() const
+{
+	return m_iId;
 }
 
-void EventTriggeredData::setID(int iID) 
-{ 
-	m_iId = iID; 
+void EventTriggeredData::setID(int iID)
+{
+	m_iId = iID;
 }
 
 void EventTriggeredData::read(FDataStreamBase* pStream)
@@ -63,14 +64,14 @@ void EventTriggeredData::write(FDataStreamBase* pStream)
 	pStream->WriteString(m_szGlobalText);
 }
 
-int VoteSelectionData::getID() const 
-{ 
-	return iId; 
+int VoteSelectionData::getID() const
+{
+	return iId;
 }
 
-void VoteSelectionData::setID(int iID) 
-{ 
-	iId = iID; 
+void VoteSelectionData::setID(int iID)
+{
+	iId = iID;
 }
 
 void VoteSelectionData::read(FDataStreamBase* pStream)
@@ -106,14 +107,14 @@ void VoteSelectionData::write(FDataStreamBase* pStream)
 	}
 }
 
-int VoteTriggeredData::getID() const 
-{ 
-	return iId; 
+int VoteTriggeredData::getID() const
+{
+	return iId;
 }
 
-void VoteTriggeredData::setID(int iID) 
-{ 
-	iId = iID; 
+void VoteTriggeredData::setID(int iID)
+{
+	iId = iID;
 }
 
 void VoteTriggeredData::read(FDataStreamBase* pStream)
@@ -210,7 +211,7 @@ void checkBattleUnitType(BattleUnitTypes unitType)
 
 CvBattleRound::CvBattleRound() :
 	m_iWaveSize(0),
-	m_bRangedRound(false) 
+	m_bRangedRound(false)
 {
 	m_aNumKilled[BATTLE_UNIT_ATTACKER] = m_aNumKilled[BATTLE_UNIT_DEFENDER] = 0;
 	m_aNumAlive[BATTLE_UNIT_ATTACKER] = m_aNumAlive[BATTLE_UNIT_DEFENDER] = 0;
@@ -336,8 +337,8 @@ void CvMissionDefinition::setPlot(const CvPlot *plot)
 // FUNCTION:    CvBattleDefinition::CvBattleDefinition
 //! \brief      Constructor.
 //------------------------------------------------------------------------------------------------
-CvBattleDefinition::CvBattleDefinition() : 
-	m_bAdvanceSquare(false), 
+CvBattleDefinition::CvBattleDefinition() :
+	m_bAdvanceSquare(false),
 	CvMissionDefinition()
 {
 	m_fMissionTime = 0.0f;
@@ -359,8 +360,8 @@ CvBattleDefinition::CvBattleDefinition() :
 //! \brief      Copy constructor
 //! \param      kCopy The object to copy
 //------------------------------------------------------------------------------------------------
-CvBattleDefinition::CvBattleDefinition( const CvBattleDefinition & kCopy ) :
-	m_bAdvanceSquare( kCopy.m_bAdvanceSquare )
+CvBattleDefinition::CvBattleDefinition(const CvBattleDefinition & kCopy) :
+	m_bAdvanceSquare(kCopy.m_bAdvanceSquare)
 {
 	m_fMissionTime = kCopy.m_fMissionTime;
 	m_eMissionType = MISSION_BEGIN_COMBAT;
@@ -520,7 +521,7 @@ CvAirMissionDefinition::CvAirMissionDefinition() :
 //! \brief      Copy constructor
 //! \param      kCopy The object to copy
 //------------------------------------------------------------------------------------------------
-CvAirMissionDefinition::CvAirMissionDefinition( const CvAirMissionDefinition & kCopy )
+CvAirMissionDefinition::CvAirMissionDefinition(const CvAirMissionDefinition & kCopy)
 {
 	m_fMissionTime = kCopy.m_fMissionTime;
 	m_eMissionType = kCopy.m_eMissionType;
@@ -567,3 +568,27 @@ PBGameSetupData::PBGameSetupData()
 	}
 }
 
+// <advc.071>
+FirstContactData::FirstContactData(CvPlot const* pAt1, CvPlot const* pAt2,
+		CvUnit const* pUnit1, CvUnit const* pUnit2) {
+
+	/*  Don't need to worry here about which unit is where and who sees whom - can
+		figure that out when we know which teams are meeting. */
+
+	if(pAt1 != NULL) {
+		x1 = pAt1->getX();
+		y1 = pAt1->getY();
+	}
+	if(pAt2 != NULL) {
+		x2 = pAt2->getX();
+		y2 = pAt2->getY();
+	}
+	if(pUnit1 != NULL) {
+		u1.eOwner = pUnit1->getOwner();
+		u1.iID = pUnit1->getID();
+	}
+	if(pUnit2 != NULL) {
+		u2.eOwner = pUnit2->getOwner();
+		u2.iID = pUnit2->getID();
+	}
+} // </advc.071>

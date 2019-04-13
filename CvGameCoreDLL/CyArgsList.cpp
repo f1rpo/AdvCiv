@@ -7,20 +7,20 @@
 // CyArgsList
 //////////////////////////////////////////////////////
 
-void CyArgsList::add(int i) 
-{ 
-	push_back(PyInt_FromLong(i)); 
+void CyArgsList::add(int i)
+{
+	push_back(PyInt_FromLong(i));
 }
 
-void CyArgsList::add(float f) 
-{ 
-	push_back(PyFloat_FromDouble(f)); 
+void CyArgsList::add(float f)
+{
+	push_back(PyFloat_FromDouble(f));
 }
 
 // add PyObject
-void CyArgsList::add(void* p) 
-{ 
-	push_back((PyObject*)p);	
+void CyArgsList::add(void* p)
+{
+	push_back((PyObject*)p);
 }
 
 // add null-terminated string
@@ -89,7 +89,7 @@ void CyArgsList::add(const int* buf, int iLength)
 	push_back(pList);
 }
 
-void* CyArgsList::makeFunctionArgs() 
+void* CyArgsList::makeFunctionArgs()
 {
 	return gDLL->getPythonIFace()->MakeFunctionArgs(m_aList, m_iCnt);
 }

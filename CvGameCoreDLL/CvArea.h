@@ -5,7 +5,6 @@
 #ifndef CIV4_AREA_H
 #define CIV4_AREA_H
 
-//#include "CvStructs.h"
 
 class CvCity;
 class CvPlot;
@@ -28,7 +27,7 @@ public:
 	int countNumUniqueBonusTypes() const;																			// Exposed to Python
 	int countHasReligion(ReligionTypes eReligion, PlayerTypes eOwner = NO_PLAYER) const;		// Exposed to Python
 	int countHasCorporation(CorporationTypes eCorporation, PlayerTypes eOwner = NO_PLAYER) const;		// Exposed to Python																					// Exposed to Python
-	
+
 	void setID(int iID);
 																										// Exposed to Python
 	// <advc.030>
@@ -46,11 +45,10 @@ public:
 			bool bIgnoreBarb = false) const;
 	int countCivCities() const;
 	int countCivs(bool bSubtractOCC = false) const; // with at least 1 city
-	bool hasAnyAreaPlayerBonus(BonusTypes bId) const;
+	bool hasAnyAreaPlayerBonus(BonusTypes eBonus) const;
 	int getBarbarianCitiesEverCreated() const;
-	void barbarianCityCreated();
+	void reportBarbarianCityCreated();
 	// </advc.300>
-																						// Exposed to Python
 	void changeNumRiverEdges(int iChange);																								// Exposed to Python
 
 	int getTotalPopulation() const;																						// Exposed to Python
@@ -175,7 +173,7 @@ public:
 	// <advc.003f> Inlined. All exposed to Python.
 	inline int  CvArea::getID() const { return m_iID; }
 	inline int  CvArea::getNumTiles() const { return m_iNumTiles; }
-	inline bool CvArea::isLake() const { 
+	inline bool CvArea::isLake() const {
 			return m_bLake; // <advc.030> Replacing the line below
 			//return (isWater() && (getNumTiles() <= GC.getLAKE_MAX_AREA_SIZE()));
 	}

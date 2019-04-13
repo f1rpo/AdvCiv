@@ -33,7 +33,7 @@
 #include <algorithm>
 // K-Mod end
 
-#define DllExport   __declspec( dllexport ) 
+#define DllExport   __declspec( dllexport )
 
 //
 // GameBryo
@@ -43,7 +43,7 @@ class NiColor
 public:
 	float r, g, b;
 };
-class NiColorA 
+class NiColorA
 {
 public:
 	NiColorA(float fr, float fg, float fb, float fa) : r(fr), g(fg), b(fb), a(fa) {}
@@ -62,7 +62,7 @@ class NiPoint3
 {
 public:
 	NiPoint3() {}
-	NiPoint3(float fx, float fy, float fz) : x(fx),y(fy),z(fz) {} 
+	NiPoint3(float fx, float fy, float fz) : x(fx),y(fy),z(fz) {}
 
 	bool NiPoint3::operator== (const NiPoint3& pt) const
 	{	return (x == pt.x && y == pt.y && z == pt.z);	}
@@ -212,7 +212,7 @@ void DumpMemUsage(const char* fn, int line);
 #define MEMORY_TRACK_EXEMPT()	CMemoryTrack __memoryTrackExemption(NULL, false);
 #define MEMORY_TRACE_FUNCTION()	CMemoryTrace __memoryTrace(__FUNCTION__);
 #else
-#define DUMP_MEMORY_USAGE()	
+#define DUMP_MEMORY_USAGE()
 #define	MEMORY_TRACK()
 #define MEMORY_TRACK_EXEMPT()
 #define MEMORY_TRACE_FUNCTION()
@@ -245,37 +245,32 @@ namespace python = boost::python;
 #include "CvDLLUtilityIFaceBase.h"
 
 //jason tests
-#include "CvPlayerAI.h"
+// advc.make: Removed most of these. (Don't know what the comment above means.)
 #include "CvGameCoreUtils.h"
-#include "CvMap.h"
-#include "CvGameAI.h"
-#include "CvPlot.h"
-#include "CvUnit.h"
 #include "CvGlobals.h"
-#include "CvCity.h"
 #include "FProfiler.h"
-#include "CyCity.h"
-#include "CvInfos.h"
-#include "CvTeamAI.h"
-#include "CvDLLPythonIFaceBase.h"
 #include "CvRandom.h"
-#include "CvArea.h"
-#include "CvDllEntity.h"
-#include "CvDeal.h"
-#include "CvDLLEntityIFaceBase.h"
-#include "CvGame.h"
-#include "CyGlobalContext.h"
-#include "CvSelectionGroup.h"
-#include "CvTalkingHeadMessage.h"
-#include "CvPlotGroup.h"
-#include "CvCityAI.h"
-#include "CvSelectionGroupAI.h"
-#include "CvUnitAI.h"
 
 #ifdef FINAL_RELEASE
 // Undefine OutputDebugString in final release builds
 #undef OutputDebugString
 #define OutputDebugString(x)
 #endif //FINAL_RELEASE
+
+/*  <advc.make> Cut from CvGameCoreUtils.h. The undefs make more sense to me here b/c
+	this is the file that includes windows.h, which contains the bothersome min/max defines. */
+#undef max
+#undef min
+#ifndef _USRDLL
+// use non inline functions when not in the dll  advc.003f: Renamed all these
+#define getMap	getMapExternal
+#define getGridHeight	getGridHeightExternal
+#define getGridWidth	getGridWidthExternal
+#define isWrapY	isWrapYExternal
+#define isWrapX	isWrapXExternal
+#define plot	plotExternal
+#define getX	getXExternal
+#define getY	getYExternal
+#endif // </advc.make>
 
 #endif	// CvGameCoreDLL_h

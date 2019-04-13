@@ -7,7 +7,6 @@
 #   sevotastic@yahoo.com
 #
 # additional work by Gaurav, Progor, Ket, Vovan, Fitchn, LunarMongoose
-# see ReadMe for details
 #
 
 from CvPythonExtensions import *
@@ -51,7 +50,10 @@ class SevoPediaCivic:
 		self.Y_SPECIAL = self.Y_MAIN_PANE + self.H_MAIN_PANE + 10
 		self.W_SPECIAL = self.top.R_PEDIA_PAGE - self.X_SPECIAL
 		self.H_SPECIAL = 160
-
+		# <advc.004y>
+		if self.top.bFullScreen:
+			self.H_SPECIAL += 40
+		# </advc.004y>
 		self.X_TEXT = self.X_MAIN_PANE
 		self.Y_TEXT = self.Y_SPECIAL + self.H_SPECIAL + 10
 		self.W_TEXT = self.top.R_PEDIA_PAGE - self.X_TEXT

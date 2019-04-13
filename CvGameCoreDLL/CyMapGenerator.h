@@ -6,7 +6,7 @@
 //
 //	FILE:	 CyMapGenerator.h
 //	AUTHOR:  Mustafa Thamer
-//	PURPOSE: 
+//	PURPOSE:
 //			Python wrapper class for CvMapGenerator
 //
 //-----------------------------------------------------------------------------
@@ -17,7 +17,7 @@
 class CvMapGenerator;
 class CyPlot;
 class CyMapGenerator
-{	
+{
 public:
 	CyMapGenerator();
 	CyMapGenerator(CvMapGenerator* pMapGenerator);		// Call from C++

@@ -1,6 +1,6 @@
 //
-// Python wrapper class for CvGame 
-// 
+// Python wrapper class for CvGame
+//
 
 #include "CvGameCoreDLL.h"
 #include "CyDeal.h"
@@ -17,8 +17,8 @@ CyDeal::~CyDeal()
 }
 
 bool CyDeal::isNone()
-{ 
-	return (NULL == m_pDeal); 
+{
+	return (NULL == m_pDeal);
 }
 
 int CyDeal::getID() const

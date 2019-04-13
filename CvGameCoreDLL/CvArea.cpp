@@ -1,15 +1,9 @@
 // area.cpp
 
 #include "CvGameCoreDLL.h"
-#include "CvArea.h"
 #include "CvMap.h"
-#include "CvPlot.h"
-#include "CvGlobals.h"
-#include "CvPlayerAI.h"
-#include "CvTeamAI.h"
-#include "CvGameCoreUtils.h"
+#include "CvGamePlay.h"
 #include "CvInfos.h"
-
 #include "CvDLLInterfaceIFaceBase.h"
 
 // Public Functions...
@@ -208,7 +202,7 @@ void CvArea::reset(int iID, bool bWater, bool bConstructorCall)
 }
 
 
-void CvArea::setID(int iID)														
+void CvArea::setID(int iID)
 {
 	m_iID = iID;
 	m_iRepresentativeAreaId = iID; // advc.030
@@ -219,9 +213,9 @@ int CvArea::calculateTotalBestNatureYield() const
 {
 	int iCount = 0;
 
-	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
+	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
-		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
 
 		if (pLoopPlot->getArea() == getID())
 		{
@@ -242,9 +236,9 @@ int CvArea::countCoastalLand() const
 
 	int iCount = 0;
 
-	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
+	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
 	{
-		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+		CvPlot* pLoopPlot = GC.getMap().plotByIndex(iI);
 
 		if (pLoopPlot->getArea() == getID())
 		{
@@ -355,7 +349,7 @@ void CvArea::updateLake(bool bCheckRepr) {
 		m_bLake = true;
 		return;
 	}
-	CvMap& m = GC.getMapINLINE(); int foo=-1;
+	CvMap& m = GC.getMap(); int foo=-1;
 	for(CvArea* other = m.firstArea(&foo); other != NULL; other = m.nextArea(&foo)) {
 		if(other->m_iRepresentativeAreaId == m_iRepresentativeAreaId && other->m_iID != m_iID) {
 			iTotalTiles += other->getNumTiles();
@@ -413,13 +407,13 @@ void CvArea::changeNumTiles(int iChange)
 
 	if (bOldLake != isLake())
 	{
-		GC.getMapINLINE().updateIrrigated();
-		GC.getMapINLINE().updateYield();
+		GC.getMap().updateIrrigated();
+		GC.getMap().updateYield();
 	}
 }
 
 
-void CvArea::changeNumOwnedTiles(int iChange)									
+void CvArea::changeNumOwnedTiles(int iChange)
 {
 	m_iNumOwnedTiles = (m_iNumOwnedTiles + iChange);
 	FAssert(getNumOwnedTiles() >= 0);
@@ -430,16 +424,15 @@ void CvArea::changeNumOwnedTiles(int iChange)
 // <advc.300>
 std::pair<int,int> CvArea::countOwnedUnownedHabitableTiles(bool bIgnoreBarb) const {
 
-	std::pair<int,int> r;
-	r.first = 0; r.second = 0;
-	CvMap const& map = GC.getMapINLINE();
-	for(int i = 0; i < map.numPlots(); i++) {
-		CvPlot* plot = map.plotByIndexINLINE(i);
-		if(plot == NULL || plot->area() == NULL || plot->area()->getID() != getID()
-				|| !plot->isHabitable())
+	std::pair<int,int> r(0, 0);
+	CvMap const& kMap = GC.getMap();
+	for(int i = 0; i < kMap.numPlots(); i++) {
+		CvPlot* pPlot = kMap.plotByIndex(i);
+		if(pPlot == NULL || pPlot->area() == NULL || pPlot->area()->getID() != getID()
+				|| !pPlot->isHabitable())
 			continue;
-		if(plot->isOwned() && (!bIgnoreBarb ||
-				plot->getOwnerINLINE() != BARBARIAN_PLAYER))
+		if(pPlot->isOwned() && (!bIgnoreBarb ||
+				pPlot->getOwner() != BARBARIAN_PLAYER))
 			r.first++;
 		else r.second++;
 	}
@@ -460,22 +453,22 @@ int CvArea::countCivs(bool bSubtractOCC) const {
 	   aren't cached/ serialized (yet). */
 	int r = 0;
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-		PlayerTypes civId = (PlayerTypes)i;
-		if(getCitiesPerPlayer(civId) > 0 &&
-				(!bSubtractOCC || !GET_PLAYER(civId).isHuman() ||
-				!GC.getGameINLINE().isOption(GAMEOPTION_ONE_CITY_CHALLENGE)))
+		PlayerTypes ePlayer = (PlayerTypes)i;
+		if(getCitiesPerPlayer(ePlayer) > 0 &&
+				(!bSubtractOCC || !GET_PLAYER(ePlayer).isHuman() ||
+				!GC.getGame().isOption(GAMEOPTION_ONE_CITY_CHALLENGE)))
 			r++;
 	}
 	return r;
 }
 
 
-bool CvArea::hasAnyAreaPlayerBonus(BonusTypes bId) const {
+bool CvArea::hasAnyAreaPlayerBonus(BonusTypes eBonus) const {
 
 	for(int i = 0; i < MAX_PLAYERS; i++) {
 		PlayerTypes ePlayer = (PlayerTypes)i;
 		// Barbarian, minor civ, anything goes so long as there's a city.
-		if(getCitiesPerPlayer(ePlayer) > 0 && GET_PLAYER(ePlayer).hasBonus(bId))
+		if(getCitiesPerPlayer(ePlayer) > 0 && GET_PLAYER(ePlayer).hasBonus(eBonus))
 			return true;
 	}
 	return false;
@@ -486,20 +479,20 @@ int CvArea::getBarbarianCitiesEverCreated() const {
 	return m_iBarbarianCitiesEver;
 }
 
-void CvArea::barbarianCityCreated() {
+void CvArea::reportBarbarianCityCreated() {
 
 	m_iBarbarianCitiesEver++;
 } // </advc.300>
 
 
-void CvArea::changeNumRiverEdges(int iChange)									
+void CvArea::changeNumRiverEdges(int iChange)
 {
 	m_iNumRiverEdges = (m_iNumRiverEdges + iChange);
 	FAssert(getNumRiverEdges() >= 0);
 }
 
 
-int CvArea::getTotalPopulation() const					
+int CvArea::getTotalPopulation() const
 {
 	return m_iTotalPopulation;
 }
@@ -512,7 +505,7 @@ void CvArea::changeNumStartingPlots(int iChange)
 }
 
 
-int CvArea::getUnitsPerPlayer(PlayerTypes eIndex) const												
+int CvArea::getUnitsPerPlayer(PlayerTypes eIndex) const
 {
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be >= 0");
 	FAssertMsg(eIndex < MAX_PLAYERS, "eIndex is expected to be < MAX_PLAYERS");
@@ -520,7 +513,7 @@ int CvArea::getUnitsPerPlayer(PlayerTypes eIndex) const
 }
 
 
-void CvArea::changeUnitsPerPlayer(PlayerTypes eIndex, int iChange)							
+void CvArea::changeUnitsPerPlayer(PlayerTypes eIndex, int iChange)
 {
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be >= 0");
 	FAssertMsg(eIndex < MAX_PLAYERS, "eIndex is expected to be < MAX_PLAYERS");
@@ -531,7 +524,7 @@ void CvArea::changeUnitsPerPlayer(PlayerTypes eIndex, int iChange)
 }
 
 
-int CvArea::getAnimalsPerPlayer(PlayerTypes eIndex) const			
+int CvArea::getAnimalsPerPlayer(PlayerTypes eIndex) const
 {
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be >= 0");
 	FAssertMsg(eIndex < MAX_PLAYERS, "eIndex is expected to be < MAX_PLAYERS");
@@ -562,12 +555,12 @@ int CvArea::getCitiesPerPlayer(PlayerTypes eIndex,
 }
 
 
-void CvArea::changeCitiesPerPlayer(PlayerTypes eIndex, int iChange)							
+void CvArea::changeCitiesPerPlayer(PlayerTypes eIndex, int iChange)
 {
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be >= 0");
 	FAssertMsg(eIndex < MAX_PLAYERS, "eIndex is expected to be < MAX_PLAYERS");
 	m_iNumCities = (m_iNumCities + iChange);
-	barbarianCityCreated(); // advc.300
+	reportBarbarianCityCreated(); // advc.300
 	FAssert(getNumCities() >= 0);
 	m_aiCitiesPerPlayer[eIndex] = (m_aiCitiesPerPlayer[eIndex] + iChange);
 	FAssert(getCitiesPerPlayer(eIndex, true) >= 0); // advc.030b
@@ -582,7 +575,7 @@ int CvArea::getPopulationPerPlayer(PlayerTypes eIndex) const
 }
 
 
-void CvArea::changePopulationPerPlayer(PlayerTypes eIndex, int iChange)							
+void CvArea::changePopulationPerPlayer(PlayerTypes eIndex, int iChange)
 {
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be >= 0");
 	FAssertMsg(eIndex < MAX_PLAYERS, "eIndex is expected to be < MAX_PLAYERS");
@@ -593,7 +586,7 @@ void CvArea::changePopulationPerPlayer(PlayerTypes eIndex, int iChange)
 }
 
 
-int CvArea::getBuildingGoodHealth(PlayerTypes eIndex) const 
+int CvArea::getBuildingGoodHealth(PlayerTypes eIndex) const
 {
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be >= 0");
 	FAssertMsg(eIndex < MAX_PLAYERS, "eIndex is expected to be < MAX_PLAYERS");
@@ -788,7 +781,7 @@ void CvArea::changeCleanPowerCount(TeamTypes eIndex, int iChange)
 		GET_TEAM(eIndex).updateCommerce();
 		GET_TEAM(eIndex).updatePowerHealth();
 
-		if (eIndex == GC.getGameINLINE().getActiveTeam())
+		if (eIndex == GC.getGame().getActiveTeam())
 		{
 			gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
 		}
@@ -818,7 +811,7 @@ void CvArea::changeBorderObstacleCount(TeamTypes eIndex, int iChange)
 
 	if (iChange > 0 && m_aiBorderObstacleCount[eIndex] == iChange)
 	{
-		GC.getMapINLINE().verifyUnitValidPlot();
+		GC.getMap().verifyUnitValidPlot();
 	}
 }
 
@@ -884,7 +877,7 @@ void CvArea::changeYieldRateModifier(PlayerTypes eIndex1, YieldTypes eIndex2, in
 	if (iChange != 0)
 	{
 		m_aaiYieldRateModifier[eIndex1][eIndex2] = (m_aaiYieldRateModifier[eIndex1][eIndex2] + iChange);
-		
+
 		GET_PLAYER(eIndex1).invalidateYieldRankCache(eIndex2);
 
 		if (eIndex2 == YIELD_COMMERCE)
@@ -894,7 +887,7 @@ void CvArea::changeYieldRateModifier(PlayerTypes eIndex1, YieldTypes eIndex2, in
 
 		GET_PLAYER(eIndex1).AI_makeAssignWorkDirty();
 
-		if (GET_PLAYER(eIndex1).getTeam() == GC.getGameINLINE().getActiveTeam())
+		if (GET_PLAYER(eIndex1).getTeam() == GC.getGame().getActiveTeam())
 		{
 			gDLL->getInterfaceIFace()->setDirty(CityInfo_DIRTY_BIT, true);
 		}
@@ -972,7 +965,7 @@ int CvArea::getNumTotalBonuses() const
 }
 
 
-void CvArea::changeNumBonuses(BonusTypes eBonus, int iChange)					
+void CvArea::changeNumBonuses(BonusTypes eBonus, int iChange)
 {
 	FAssertMsg(eBonus >= 0, "eBonus expected to be >= 0");
 	FAssertMsg(eBonus < GC.getNumBonusInfos(), "eBonus expected to be < GC.getNumBonusInfos");
@@ -989,7 +982,7 @@ int CvArea::getNumImprovements(ImprovementTypes eImprovement) const
 }
 
 
-void CvArea::changeNumImprovements(ImprovementTypes eImprovement, int iChange)	
+void CvArea::changeNumImprovements(ImprovementTypes eImprovement, int iChange)
 {
 	FAssertMsg(eImprovement >= 0, "eImprovement expected to be >= 0");
 	FAssertMsg(eImprovement < GC.getNumImprovementInfos(), "eImprovement expected to be < GC.getNumImprovementInfos");

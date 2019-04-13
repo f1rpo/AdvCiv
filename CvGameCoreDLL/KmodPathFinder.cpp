@@ -1,8 +1,11 @@
 
-
 #include "CvGameCoreDLL.h"
 #include "KmodPathFinder.h"
-#include "CvGameCoreUtils.h"
+#include "CvGameAI.h"
+#include "CvTeamAI.h"
+#include "CvInfos.h"
+#include "CvSelectionGroup.h"
+#include "CvMap.h"
 
 int KmodPathFinder::admissible_scaled_weight = 1;
 int KmodPathFinder::admissible_base_weight = 1;
@@ -66,13 +69,13 @@ KmodPathFinder::~KmodPathFinder()
 bool KmodPathFinder::ValidateNodeMap()
 {
 	//PROFILE_FUNC(); // advc.003o
-	if (!GC.getGameINLINE().isFinalInitialized())
+	if (!GC.getGame().isFinalInitialized())
 		return false;
 
-	if (map_width != GC.getMapINLINE().getGridWidthINLINE() || map_height != GC.getMapINLINE().getGridHeightINLINE())
+	if (map_width != GC.getMap().getGridWidth() || map_height != GC.getMap().getGridHeight())
 	{
-		map_width = GC.getMapINLINE().getGridWidthINLINE();
-		map_height = GC.getMapINLINE().getGridHeightINLINE();
+		map_width = GC.getMap().getGridWidth();
+		map_height = GC.getMap().getGridHeight();
 		//node_data = (FAStarNode*)
 		// <advc.003> According to cppcheck, the above is a "common realloc mistake".
 		FAStarNode* new_node_data = static_cast<FAStarNode*>(
@@ -112,8 +115,8 @@ bool KmodPathFinder::GeneratePath(int x1, int y1, int x2, int y2)
 		// and then subtract the start cost & moves off all the remaining nodes.
 		Reset(); // but this is easier.
 	}
-	bool bRecalcHeuristics = false;
 
+	bool bRecalcHeuristics = false;
 	if (dest_x != x2 || dest_y != y2)
 		bRecalcHeuristics = true;
 
@@ -125,17 +128,17 @@ bool KmodPathFinder::GeneratePath(int x1, int y1, int x2, int y2)
 	if (GetNode(x1, y1).m_bOnStack)
 	{
 		int iMoves = (settings.iFlags & MOVE_MAX_MOVES) ? settings.pGroup->maxMoves() : settings.pGroup->movesLeft();
-		if (iMoves != GetNode(x1,  y1).m_iData1)
+		if (iMoves != GetNode(x1, y1).m_iData1)
 		{
 			Reset();
-			FAssert(!GetNode(x1,  y1).m_bOnStack);
+			FAssert(!GetNode(x1, y1).m_bOnStack);
 		}
 		// Note: This condition isn't actually enough to catch all significant changes.
 		// We really need to check max moves /and/ moves left /and/ base moves.
 		// but I don't feel like doing all that at the moment.
 	}
 
-	if (!GetNode(x1,  y1).m_bOnStack)
+	if (!GetNode(x1, y1).m_bOnStack)
 	{
 		AddStartNode();
 		bRecalcHeuristics = true;
@@ -143,8 +146,8 @@ bool KmodPathFinder::GeneratePath(int x1, int y1, int x2, int y2)
 	//else (not else. maybe start == dest)
 	{
 		// check if the end plot is already mapped.
-		if (GetNode(x2,  y2).m_bOnStack)
-			end_node = &GetNode(x2,  y2);
+		if (GetNode(x2, y2).m_bOnStack)
+			end_node = &GetNode(x2, y2);
 	}
 
 	if (bRecalcHeuristics)
@@ -165,8 +168,8 @@ bool KmodPathFinder::GeneratePath(const CvPlot* pToPlot)
 {
 	if (!settings.pGroup || !pToPlot)
 		return false;
-	return GeneratePath(settings.pGroup->plot()->getX_INLINE(), settings.pGroup->plot()->getY_INLINE(),
-		pToPlot->getX_INLINE(), pToPlot->getY_INLINE());
+	return GeneratePath(settings.pGroup->plot()->getX(), settings.pGroup->plot()->getY(),
+		pToPlot->getX(), pToPlot->getY());
 }
 
 int KmodPathFinder::GetPathTurns() const
@@ -190,14 +193,14 @@ CvPlot* KmodPathFinder::GetPathFirstPlot() const
 	FAStarNode* node = end_node;
 
 	if (!node->m_pParent)
-		return GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY);
+		return GC.getMap().plotSoren(node->m_iX, node->m_iY);
 
 	while (node->m_pParent->m_pParent)
 	{
 		node = node->m_pParent;
 	}
 
-	return GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY);
+	return GC.getMap().plotSoren(node->m_iX, node->m_iY);
 }
 
 CvPlot* KmodPathFinder::GetPathEndTurnPlot() const
@@ -213,7 +216,7 @@ CvPlot* KmodPathFinder::GetPathEndTurnPlot() const
 		node = node->m_pParent;
 	}
 	FAssert(node);
-	return node ? GC.getMapINLINE().plotSorenINLINE(node->m_iX, node->m_iY) : NULL;
+	return node ? GC.getMap().plotSoren(node->m_iX, node->m_iY) : NULL;
 }
 
 void KmodPathFinder::SetSettings(const CvPathSettings& new_settings)
@@ -344,14 +347,14 @@ bool KmodPathFinder::ProcessNode()
 		if (!pAdjacentPlot)
 			continue;
 
-		const int& x = pAdjacentPlot->getX_INLINE(); // convenience
-		const int& y = pAdjacentPlot->getY_INLINE(); //
+		const int& x = pAdjacentPlot->getX(); // convenience
+		const int& y = pAdjacentPlot->getY(); //
 
 		if (parent_node->m_pParent && parent_node->m_pParent->m_iX == x && parent_node->m_pParent->m_iY == y)
 			continue; // no need to backtrack.
 
-		//int iPlotNum = GC.getMapINLINE().plotNumINLINE(x, y);
-		//FAssert(iPlotNum >= 0 && iPlotNum < GC.getMapINLINE().numPlotsINLINE());
+		//int iPlotNum = GC.getMap().plotNum(x, y);
+		//FAssert(iPlotNum >= 0 && iPlotNum < GC.getMap().numPlots());
 
 		FAStarNode* child_node = &GetNode(x, y);
 		bool bNewNode = !child_node->m_bOnStack;
@@ -371,7 +374,7 @@ bool KmodPathFinder::ProcessNode()
 
 				child_node->m_bOnStack = true;
 
-				if (pathValid_source(child_node, settings.pGroup , settings.iFlags))
+				if (pathValid_source(child_node, settings.pGroup, settings.iFlags))
 				{
 					open_list.push_back(child_node);
 					child_node->m_eFAStarListType = FASTARLIST_OPEN;
@@ -389,7 +392,7 @@ bool KmodPathFinder::ProcessNode()
 		}
 		else
 		{
-			if (!pathValid_join(parent_node, child_node, settings.pGroup , settings.iFlags))
+			if (!pathValid_join(parent_node, child_node, settings.pGroup, settings.iFlags))
 				child_node = NULL;
 		}
 

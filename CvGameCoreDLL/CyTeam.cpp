@@ -1,11 +1,11 @@
 //
-// Python wrapper class for CvTeam 
+// Python wrapper class for CvTeam
 // updated 6-5
 //
 #include "CvGameCoreDLL.h"
 #include "CyTeam.h"
+#include "CvTeamAI.h"
 #include "CyArea.h"
-#include "CvTeam.h"
 
 CyTeam::CyTeam() : m_pTeam(NULL)
 {
@@ -342,7 +342,7 @@ int CyTeam::getExtraWaterSeeFromCount()
 	return m_pTeam ? m_pTeam->getExtraWaterSeeFromCount() : -1;
 }
 
-bool CyTeam::isExtraWaterSeeFrom()	 
+bool CyTeam::isExtraWaterSeeFrom()
 {
 	return m_pTeam ? m_pTeam->isExtraWaterSeeFrom() : false;
 }
@@ -600,7 +600,7 @@ void CyTeam::setWarWeariness(int /*TeamTypes*/ eIndex, int iNewValue)
 		m_pTeam->setWarWeariness((TeamTypes)eIndex, iNewValue);
 }
 
-void CyTeam::changeWarWeariness(int /*TeamTypes*/ eIndex, int iChange)	 
+void CyTeam::changeWarWeariness(int /*TeamTypes*/ eIndex, int iChange)
 {
 	if (m_pTeam)
 		m_pTeam->changeWarWeariness((TeamTypes)eIndex, iChange);
@@ -681,17 +681,17 @@ bool CyTeam::isOpenBorders(int /*TeamTypes*/ eIndex)
 	return m_pTeam ? m_pTeam->isOpenBorders((TeamTypes)eIndex) : false;
 }
 
-bool CyTeam::isForcePeace(int /*TeamTypes*/ eIndex)				 
+bool CyTeam::isForcePeace(int /*TeamTypes*/ eIndex)
 {
 	return m_pTeam ? m_pTeam->isForcePeace((TeamTypes)eIndex) : false;
 }
 
-bool CyTeam::isVassal(int /*TeamTypes*/ eIndex)				 
+bool CyTeam::isVassal(int /*TeamTypes*/ eIndex)
 {
 	return m_pTeam ? m_pTeam->isVassal((TeamTypes)eIndex) : false;
 }
 
-void CyTeam::setVassal(int /*TeamTypes*/ eIndex, bool bVassal, bool bCapitulated)				 
+void CyTeam::setVassal(int /*TeamTypes*/ eIndex, bool bVassal, bool bCapitulated)
 {
 	if (m_pTeam)
 	{
@@ -699,7 +699,7 @@ void CyTeam::setVassal(int /*TeamTypes*/ eIndex, bool bVassal, bool bCapitulated
 	}
 }
 
-void CyTeam::assignVassal(int /*TeamTypes*/ eIndex, bool bSurrender)				 
+void CyTeam::assignVassal(int /*TeamTypes*/ eIndex, bool bSurrender)
 {
 	if (m_pTeam)
 	{
@@ -707,7 +707,7 @@ void CyTeam::assignVassal(int /*TeamTypes*/ eIndex, bool bSurrender)
 	}
 }
 
-void CyTeam::freeVassal(int /*TeamTypes*/ eIndex)				 
+void CyTeam::freeVassal(int /*TeamTypes*/ eIndex)
 {
 	if (m_pTeam)
 	{
@@ -722,7 +722,7 @@ bool CyTeam::isCapitulated() {
 	return m_pTeam->isCapitulated();
 } // </advc.130v>
 
-bool CyTeam::isDefensivePact(int /*TeamTypes*/ eIndex)				 
+bool CyTeam::isDefensivePact(int /*TeamTypes*/ eIndex)
 {
 	return m_pTeam ? m_pTeam->isDefensivePact((TeamTypes)eIndex) : false;
 }
@@ -995,20 +995,11 @@ void CyTeam::AI_setWarPlan(int /*TeamTypes*/ eIndex, int /*WarPlanTypes*/ eNewVa
 		m_pTeam->AI_setWarPlan((TeamTypes)eIndex, (WarPlanTypes)eNewValue);
 	}
 }
-
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      01/12/09                                jdog5000      */
-/*                                                                                              */
-/* Player Interface                                                                             */
-/************************************************************************************************/
+// BETTER_BTS_AI_MOD, Player Interface, 01/12/09, jdog5000: START
 int CyTeam::AI_getWarPlan(int /*TeamTypes*/ eIndex) const
 {
 	return m_pTeam ? m_pTeam->AI_getWarPlan((TeamTypes)eIndex) : -1;
-}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-
+} // BETTER_BTS_AI_MOD: END
 
 int CyTeam::AI_getAtWarCounter(int /*TeamTypes*/ eTeam) const
 {

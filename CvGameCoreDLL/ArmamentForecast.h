@@ -3,7 +3,12 @@
 #ifndef ARMAMENT_FORECAST_H
 #define ARMAMENT_FORECAST_H
 
-#include "MilitaryAnalyst.h"
+#include "WarAndPeaceAI.h"
+#include "WarAndPeaceCache.h"
+
+class MilitaryAnalyst;
+class WarAndPeaceReport;
+class CvArea;
 
 
 /* <advc.104>: New class. Predicts the military build-up of a civ. Part of
@@ -18,12 +23,12 @@ class ArmamentForecast {
 
 public:
 	/* 'm' belongs to the civ making the forecast ("we"), 'civId' is the civ whose
-	    armament is being predicted.
+		armament is being predicted.
 	   'military': Present military of civId; power values are increased
-	               by this class.
+				   by this class.
 	   'peaceScenario': True iff peace is assumed beetween us and our target.
 	   'partyAddedRecently': True iff this is the first forecast after adding
-	    any war parties. Needed in order to decide if a DoW on civId is recent
+		any war parties. Needed in order to decide if a DoW on civId is recent
 		(more build-up assumed then). */
 	ArmamentForecast(PlayerTypes civId, MilitaryAnalyst& m,
 			std::vector<MilitaryBranch*>& military, int timeHorizon,

@@ -70,6 +70,7 @@ class BugScoreOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addCheckbox(screen, left, "Scores__AlignIcons")
 		self.addCheckbox(screen, left, "Scores__GroupVassals", True)
 		self.addCheckbox(screen, left, "Scores__ColorCodeTeamScore", True)
+		self.addCheckbox(screen, left, "Scores__ExpandOnHover", True)
 		self.addCheckbox(screen, left, "Scores__LeftAlignName", True)
 		self.addCheckboxIntDropdown(screen, left, left, "Scores__ResearchIcons", "Scores__ResearchIconSize", "right", True)
 		# </advc.004>

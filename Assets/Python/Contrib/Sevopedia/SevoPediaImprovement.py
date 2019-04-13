@@ -7,7 +7,6 @@
 #   sevotastic@yahoo.com
 #
 # additional work by Gaurav, Progor, Ket, Vovan, Fitchn, LunarMongoose
-# see ReadMe for details
 #
 
 from CvPythonExtensions import *
@@ -49,7 +48,10 @@ class SevoPediaImprovement:
 		self.Y_IMPROVEMENTS_PANE = self.Y_UPPER_PANE + self.H_UPPER_PANE + 10
 		self.W_IMPROVEMENTS_PANE = 340
 		self.H_IMPROVEMENTS_PANE = 180
-
+		# <advc.004y>
+		if self.top.bFullScreen:
+			self.H_IMPROVEMENTS_PANE += 45
+		# </advc.004y>
 		self.X_REQUIRES = self.X_UPPER_PANE
 		self.Y_REQUIRES = self.Y_IMPROVEMENTS_PANE + self.H_IMPROVEMENTS_PANE + 10
 		self.W_REQUIRES = self.W_IMPROVEMENTS_PANE
@@ -86,7 +88,8 @@ class SevoPediaImprovement:
 	def placeYield(self):
 		screen = self.top.getScreen()
 		panelName = self.top.getNextWidgetName()
-		screen.addPanel( panelName, localText.getText("TXT_KEY_PEDIA_CATEGORY_IMPROVEMENT", ()), "", True, True, self.X_IMPROVEMENTS_PANE, self.Y_IMPROVEMENTS_PANE, self.W_IMPROVEMENTS_PANE, self.H_IMPROVEMENTS_PANE, PanelStyles.PANEL_STYLE_BLUE50 )
+		# advc.004y: text key was TXT_KEY_PEDIA_CATEGORY_IMPROVEMENT
+		screen.addPanel( panelName, localText.getText("TXT_KEY_PEDIA_IMPROVEMENT_YIELD", ()), "", True, True, self.X_IMPROVEMENTS_PANE, self.Y_IMPROVEMENTS_PANE, self.W_IMPROVEMENTS_PANE, self.H_IMPROVEMENTS_PANE, PanelStyles.PANEL_STYLE_BLUE50 )
 		listName = self.top.getNextWidgetName()
 		screen.attachListBoxGFC( panelName, listName, "", TableStyles.TABLE_STYLE_EMPTY )
 		screen.enableSelect(listName, False)

@@ -13,8 +13,6 @@
 // 3. Add a wrapper function (for convenience) to this file and implement it in the corresponding cpp
 //
 
-//#include "CvEnums.h"
-
 class CvCityEntity;
 class CvEntity;
 class CvUnitEntity;
@@ -22,7 +20,7 @@ class CvCity;
 class CvUnit;
 class CvPlot;
 
-class DllExport CvDLLEntity
+class CvDLLEntity
 		: private boost::noncopyable // advc.003e
 {
 public:
@@ -45,15 +43,15 @@ public:
 	void createUnitEntity(CvUnit*);
 	void destroyEntity();
 
-	bool IsSelected() const;
-	void PlayAnimation(AnimationTypes eAnim, float fSpeed = 1.0f, bool bQueue = false, int iLayer = 0, 
+	DllExport bool IsSelected() const;
+	void PlayAnimation(AnimationTypes eAnim, float fSpeed = 1.0f, bool bQueue = false, int iLayer = 0,
 		float fStartPct = 0.0f, float fEndPct = 1.0f);
 	void StopAnimation(AnimationTypes eAnim);
-	void MoveTo( const CvPlot * pkPlot );
-	void QueueMove( const CvPlot * pkPlot );
-	void ExecuteMove( float fTimeToExecute, bool bCombat );
-	void SetPosition( const CvPlot * pkPlot );
-	void NotifyEntity( MissionTypes eMission );
+	void MoveTo(const CvPlot * pkPlot);
+	void QueueMove(const CvPlot * pkPlot);
+	void ExecuteMove(float fTimeToExecute, bool bCombat);
+	void SetPosition(const CvPlot * pkPlot);
+	void NotifyEntity(MissionTypes eMission);
 	void SetSiegeTower(bool show);
 	bool GetSiegeTower();
 

@@ -351,34 +351,26 @@ class CvMilitaryAdvisor:
 				pActiveWars = PlayerUtil.getActiveWars(iLoopPlayer, self.iActivePlayer)
 				bCurrentWar = len(pActiveWars) > 0
 				for pLoopPlayer in pActiveWars:
-					self.iconGrid.addIcon(iRow, self.Col_Curr_Wars, 
-											gc.getLeaderHeadInfo (pLoopPlayer.getLeaderType()).getButton(), 32, 
-											*BugDll.widgetVersion(2, "WIDGET_LEADERHEAD_RELATIONS", iLoopPlayer, pLoopPlayer.getID(),
-																WidgetTypes.WIDGET_LEADERHEAD, iLoopPlayer, pLoopPlayer.getID()))
+					# advc.004: BULL widget help enabled
+					self.iconGrid.addIcon(iRow, self.Col_Curr_Wars, gc.getLeaderHeadInfo (pLoopPlayer.getLeaderType()).getButton(), 32, WidgetTypes.WIDGET_LEADERHEAD_RELATIONS, iLoopPlayer, pLoopPlayer.getID())
 
 				# show vassals
 				if bVassals:
 					for pLoopPlayer in pVassals[iLoopPlayer]:
-						self.iconGrid.addIcon(iRow, self.Col_Vassals, 
-												gc.getLeaderHeadInfo (pLoopPlayer.getLeaderType()).getButton(), 32, 
-												*BugDll.widgetVersion(2, "WIDGET_LEADERHEAD_RELATIONS", iLoopPlayer, pLoopPlayer.getID(),
-																	WidgetTypes.WIDGET_LEADERHEAD, iLoopPlayer, pLoopPlayer.getID()))
+						# advc.004: BULL widget help enabled
+						self.iconGrid.addIcon(iRow, self.Col_Vassals, gc.getLeaderHeadInfo (pLoopPlayer.getLeaderType()).getButton(), 32, WidgetTypes.WIDGET_LEADERHEAD_RELATIONS, iLoopPlayer, pLoopPlayer.getID())
 
 				# show defensive pacts
 				if bDefPacts:
 					for pLoopPlayer in pDefPacts[iLoopPlayer]:
-						self.iconGrid.addIcon(iRow, self.Col_DefPacts, 
-												gc.getLeaderHeadInfo (pLoopPlayer.getLeaderType()).getButton(), 32, 
-												*BugDll.widgetVersion(2, "WIDGET_LEADERHEAD_RELATIONS", iLoopPlayer, pLoopPlayer.getID(),
-																	WidgetTypes.WIDGET_LEADERHEAD, iLoopPlayer, pLoopPlayer.getID()))
+						# advc.004: BULL widget help enabled
+						self.iconGrid.addIcon(iRow, self.Col_DefPacts, gc.getLeaderHeadInfo(pLoopPlayer.getLeaderType()).getButton(), 32, WidgetTypes.WIDGET_LEADERHEAD_RELATIONS, iLoopPlayer, pLoopPlayer.getID())
 
 				# show players that the current player will declare on
 				bWHEOOH, pPossibleWars = PlayerUtil.getPossibleWars(iLoopPlayer, self.iActivePlayer)
 				for pLoopPlayer in pPossibleWars:
-					self.iconGrid.addIcon(iRow, self.Col_WillDeclareOn, 
-											gc.getLeaderHeadInfo (pLoopPlayer.getLeaderType()).getButton(), 32, 
-											*BugDll.widgetVersion(2, "WIDGET_LEADERHEAD_RELATIONS", iLoopPlayer, pLoopPlayer.getID(),
-																WidgetTypes.WIDGET_LEADERHEAD, iLoopPlayer, pLoopPlayer.getID()))
+					# advc.004: BULL widget help enabled
+					self.iconGrid.addIcon(iRow, self.Col_WillDeclareOn, gc.getLeaderHeadInfo (pLoopPlayer.getLeaderType()).getButton(), 32, WidgetTypes.WIDGET_LEADERHEAD_RELATIONS, iLoopPlayer, pLoopPlayer.getID())
 				# show WHEOOH
 				# if bWHEOOH:
 					# sWHEOOH = u" %c" % CyGame().getSymbolID(FontSymbols.OCCUPATION_CHAR)
@@ -399,10 +391,8 @@ class CvMilitaryAdvisor:
 				# show possible trade embargos
 				pPossibleEmbargos = PlayerUtil.getPossibleEmbargos(iLoopPlayer, self.iActivePlayer)
 				for pLoopPlayer in pPossibleEmbargos:
-					self.iconGrid.addIcon(iRow, self.Col_WillEmbargo, 
-											gc.getLeaderHeadInfo (pLoopPlayer.getLeaderType()).getButton(), 32, 
-											*BugDll.widgetVersion(2, "WIDGET_LEADERHEAD_RELATIONS", iLoopPlayer, pLoopPlayer.getID(),
-																WidgetTypes.WIDGET_LEADERHEAD, iLoopPlayer, pLoopPlayer.getID()))
+					# advc.004: BULL widget help enabled
+					self.iconGrid.addIcon(iRow, self.Col_WillEmbargo, gc.getLeaderHeadInfo (pLoopPlayer.getLeaderType()).getButton(), 32, WidgetTypes.WIDGET_LEADERHEAD_RELATIONS, iLoopPlayer, pLoopPlayer.getID())
 
 				#self.iconGrid.setText(iRow, self.Col_WHEOOH, sWHEOOH, 3)
 
@@ -608,10 +598,8 @@ class CvMilitaryAdvisor:
 	def Grid_WorstEnemy(self, iRow, iLeader):
 		pWorstEnemy = PlayerUtil.getWorstEnemy(iLeader, self.iActivePlayer)
 		if pWorstEnemy:
-			self.iconGrid.addIcon(iRow, self.Col_WEnemy,
-									gc.getLeaderHeadInfo(pWorstEnemy.getLeaderType()).getButton(), 45,  
-									*BugDll.widgetVersion(2, "WIDGET_LEADERHEAD_RELATIONS", iLeader, pWorstEnemy.getID(),
-														WidgetTypes.WIDGET_LEADERHEAD, iLeader, pWorstEnemy.getID()))
+			# advc.004: BULL widget help enabled
+			self.iconGrid.addIcon(iRow, self.Col_WEnemy, gc.getLeaderHeadInfo(pWorstEnemy.getLeaderType()).getButton(), 45, WidgetTypes.WIDGET_LEADERHEAD_RELATIONS, iLeader, pWorstEnemy.getID())
 		else:
 			pass
 			#self.iconGrid.addIcon(iRow, self.Col_WEnemy,

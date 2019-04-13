@@ -2,7 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvRandom.h"
-#include "CvGlobals.h"
+#include "CvGameAI.h"
 #include "CyArgsList.h"
 
 #define RANDOM_A      (1103515245)
@@ -10,13 +10,13 @@
 #define RANDOM_SHIFT  (16)
 
 CvRandom::CvRandom()
-{ 
+{
 	reset();
 }
 
 
 CvRandom::~CvRandom()
-{ 
+{
 	uninit();
 }
 
@@ -56,14 +56,14 @@ unsigned short CvRandom::getInt(unsigned short usNum, const TCHAR* pszLog,
 	{
 		if (GC.getLogging() && GC.getRandLogging())
 		{
-			CvGame const& g = GC.getGameINLINE(); // advc.003
+			CvGame const& g = GC.getGame(); // advc.003
 			if (g.getTurnSlice() > 0)
 			{
 				TCHAR szOut[1024];
 				// <advc.007>
 				CvString szData;
-				if(iData1 > INT_MIN) {
-					if(iData2 == INT_MIN)
+				if(iData1 > MIN_INT) {
+					if(iData2 == MIN_INT)
 						szData.Format(" (%d)", iData1);
 					else szData.Format(" (%d, %d)", iData1, iData2);
 				} // advc: Only the second %s is new

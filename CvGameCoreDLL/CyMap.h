@@ -3,9 +3,8 @@
 #ifndef CyMap_h
 #define CyMap_h
 
-//#include "CvEnums.h"
 //
-// Python wrapper class for CvMap 
+// Python wrapper class for CvMap
 // SINGLETON
 //
 
@@ -22,7 +21,7 @@ public:
 	CyMap(CvMap* pMap);		// Call from C++
 	CvMap* getMap() { return m_pMap;	}	// Call from C++
 	bool isNone() { return (m_pMap==NULL); }
-	
+
 	void erasePlots();
 	void setRevealedPlots(int /*TeamTypes*/ eTeam, bool bNewValue, bool bTerrainOnly);
 	void setAllPlotTypes(int /*PlotTypes*/ ePlotType);

@@ -20,7 +20,7 @@
 struct ProfileSample
 {
 	ProfileSample(char *name)
-	{	
+	{
 		strcpy(Name, name);
 		Added=false;
 		Parent=-1;
@@ -75,7 +75,7 @@ public:
 	};
 	~CProfileScope()
 	{
-		if(bValid )
+		if(bValid)
 		{
 #ifdef USE_INTERNAL_PROFILER
 			IFPEndSample(m_pSample);
@@ -83,7 +83,7 @@ public:
 			gDLL->EndSample(m_pSample);
 #endif
 			bValid = false;
-		}	
+		}
 	};
 
 private:
@@ -94,13 +94,13 @@ private:
 //---------------------------------------------------------------------------------------------------------------------
 
 // Main Interface for Profile
-#ifdef FP_PROFILE_ENABLE				// Turn Profiling On or Off .. 
+#ifdef FP_PROFILE_ENABLE				// Turn Profiling On or Off ..
 #ifdef USE_INTERNAL_PROFILER
 #define PROFILE(name)\
 	static ProfileSample sample(name);\
-	CProfileScope ProfileScope(&sample);		
+	CProfileScope ProfileScope(&sample);
 
-//BEGIN & END macros:		Only needed if you don't want to use the scope macro above. 
+//BEGIN & END macros:		Only needed if you don't want to use the scope macro above.
 // Macros must be in the same scope
 #define PROFILE_BEGIN(name)\
 	static ProfileSample sample__(name);\
@@ -110,15 +110,15 @@ private:
 
 #define PROFILE_FUNC()\
 	static ProfileSample sample(__FUNCTION__);\
-	CProfileScope ProfileScope(&sample);	
+	CProfileScope ProfileScope(&sample);
 
 #define PROFILE_STACK_DUMP	dumpProfileStack();
 #else
 #define PROFILE(name)\
 	static ProfileSample sample(name);\
-	CProfileScope ProfileScope(&sample);		
+	CProfileScope ProfileScope(&sample);
 
-//BEGIN & END macros:		Only needed if you don't want to use the scope macro above. 
+//BEGIN & END macros:		Only needed if you don't want to use the scope macro above.
 // Macros must be in the same scope
 #define PROFILE_BEGIN(name)\
 	static ProfileSample sample__(name);\
@@ -128,16 +128,16 @@ private:
 
 #define PROFILE_FUNC()\
 	static ProfileSample sample(__FUNCTION__);\
-	CProfileScope ProfileScope(&sample);	
+	CProfileScope ProfileScope(&sample);
 
 #define PROFILE_STACK_DUMP ;
 #endif
-#else
-#define PROFILE(name)				// Remove profiling code
-#define PROFILE_BEGIN(name)
-#define PROFILE_END()
-#define PROFILE_FUNC()
-#define PROFILE_STACK_DUMP ;
+#else // Remove profiling code		advc.006c: void(0) added
+#define PROFILE(name) (void)0
+#define PROFILE_BEGIN(name) (void)0
+#define PROFILE_END() (void)0
+#define PROFILE_FUNC() (void)0
+#define PROFILE_STACK_DUMP (void)0
 #endif
 
 

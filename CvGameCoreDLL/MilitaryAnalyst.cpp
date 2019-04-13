@@ -2,9 +2,12 @@
 
 #include "CvGameCoreDLL.h"
 #include "MilitaryAnalyst.h"
-#include <set>
+#include "WarEvalParameters.h"
+#include "WarAndPeaceAgent.h"
+#include "InvasionGraph.h"
+#include "CvGamePlay.h"
+#include "AI_Defines.h"
 #include <sstream>
-#include <algorithm>
 #include <iterator>
 
 using std::set;
@@ -55,7 +58,7 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 		if(masterTeamId == GET_PLAYER(weId).getMasterTeam())
 			weAndOurVassals.insert(civId);
 		if(masterTeamId == GET_TEAM(theyId).getMasterTeam())
-			theyAndTheirVassals.insert(civId);	
+			theyAndTheirVassals.insert(civId);
 		if(warEvalParams.isWarAlly(TEAMREF(civId).getMasterTeam()))
 			ourAllies.insert(civId);
 		if(warEvalParams.isExtraTarget(TEAMREF(civId).getMasterTeam()))
@@ -175,7 +178,7 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes weId, WarEvalParameters& warEvalPar
 	if(prepTime <= 0 && warEvalParams.isTotal())
 		timeHorizon += 5;
 	// Look a bit farther on Marathon speed
-	if(GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).
+	if(GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).
 			getGoldenAgePercent() >= 150)
 		timeHorizon += 5;
 	/*  Skip phase 1 if it would be short (InvasionGraph::Node::isSneakAttack
@@ -331,7 +334,7 @@ void MilitaryAnalyst::simulateNuclearWar() {
 		double firedOnUs = portionFired * vassalFactorWe * vassalFactorCiv *
 				/*  sqrt for pessimism - we may get hit worse than the
 					average target, and that worries us. */
-				civNukes / std::sqrt((double)civTargets);	
+				civNukes / std::sqrt((double)civTargets);
 		firedOnUs = std::min(firedOnUs, 1.5 * we.getNumCities());
 		double firedByUs = 0;
 		if(ourTargets > 0) {
@@ -379,7 +382,7 @@ void MilitaryAnalyst::prepareResults() {
 		node->getCapitulationsAccepted(*capitulationsAcceptedPerTeam[i]);
 	}
 	// Predict scores as current game score modified based on gained/ lost population
-	CvGame& g = GC.getGameINLINE();
+	CvGame& g = GC.getGame();
 	WarAndPeaceCache const& ourCache = GET_PLAYER(weId).warAndPeaceAI().getCache();
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
 		PlayerTypes civId = (PlayerTypes)i;
@@ -536,7 +539,7 @@ double MilitaryAnalyst::lostPower(PlayerTypes civId,
 	InvasionGraph::Node* node = ig->getNode(civId);
 	if(node == NULL)
 		return 0;
-    return node->getLostPower(mb);
+	return node->getLostPower(mb);
 }
 
 double MilitaryAnalyst::gainedPower(PlayerTypes civId,
@@ -545,7 +548,7 @@ double MilitaryAnalyst::gainedPower(PlayerTypes civId,
 	InvasionGraph::Node* node = ig->getNode(civId);
 	if(node == NULL)
 		return 0;
-    return node->getGainedPower(mb);
+	return node->getGainedPower(mb);
 }
 
 double MilitaryAnalyst::militaryProduction(PlayerTypes civId) const {
@@ -553,7 +556,7 @@ double MilitaryAnalyst::militaryProduction(PlayerTypes civId) const {
 	InvasionGraph::Node* node = ig->getNode(civId);
 	if(node == NULL)
 		return 0;
-    return node->getProductionInvested();
+	return node->getProductionInvested();
 }
 
 void MilitaryAnalyst::logResults(PlayerTypes civId) {

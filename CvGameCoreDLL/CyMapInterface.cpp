@@ -5,7 +5,6 @@
 #include "CySelectionGroup.h"
 #include "CyUnit.h"
 #include "CyPlot.h"
-//#include "CvStructs.h"
 //# include <boost/python/manage_new_object.hpp>
 //# include <boost/python/return_value_policy.hpp>
 
@@ -35,9 +34,9 @@ void CyMapPythonInterface()
 		.def("findWater", &CyMap::findWater, "bool (CyPlot* pPlot, int iRange, bool bFreshWater)")
 		.def("isPlot", &CyMap::isPlot, "bool (iX,iY) - is (iX, iY) a valid plot?")
 		.def("numPlots", &CyMap::numPlots, "int () - total plots in the map")
-		.def("plotNum", &CyMap::plotNum, "int (iX,iY) - the index for a given plot") 
-		.def("plotX", &CyMap::plotX, "int (iIndex) - given the index of a plot, returns its X coordinate") 
-		.def("plotY", &CyMap::plotY, "int (iIndex) - given the index of a plot, returns its Y coordinate") 
+		.def("plotNum", &CyMap::plotNum, "int (iX,iY) - the index for a given plot")
+		.def("plotX", &CyMap::plotX, "int (iIndex) - given the index of a plot, returns its X coordinate")
+		.def("plotY", &CyMap::plotY, "int (iIndex) - given the index of a plot, returns its Y coordinate")
 		.def("getGridWidth", &CyMap::getGridWidth, "int () - the width of the map, in plots")
 		.def("getGridHeight", &CyMap::getGridHeight, "int () - the height of the map, in plots")
 

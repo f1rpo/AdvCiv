@@ -11,7 +11,7 @@
 	 version="0.4w" 
 	 date="11/08/2006" 
 	 url="http://forums.civfanatics.com/showthread.php?t=158137">
-	 
+
 	<options id="NJAGC" file="Not Just Another Game Clock Mod Config.ini">
 		<section id="Not Just Another Game Clock Mod">
 			<option id="Enabled" key="Enabled" 
@@ -24,7 +24,7 @@
 					get="isShowEra" set="setShowEra" dirtyBit="GameData" 
 					label="Display Era" 
 					help="When checked, the current era is displayed to the left of the research bar."/>
-			
+
 			<!-- advc.002k: New option. No need for a dirty-bit; the time
 				 display is constantly updated (I guess in case a clock is
 				 activated) -->
@@ -36,12 +36,12 @@
 				<choice id="ADPostfix" get="isADPostfix"/>
 				<choice id="CommonEra" get="isCommonEra"/>
 			</list>
-					
+
 			<!-- advc.067: New option -->
 			<option id="ShowGameEra" key="Show Game Era" 
 					type="boolean" default="False" 
 					get="isShowGameEra" dirtyBit="GameData"/>
-					
+
 			<option id="ShowEraColor" key="Show Reflect Era In Turn Color" 
 					type="boolean" default="False" 
 					get="isUseEraColor" set="setUseEraColor" dirtyBit="GameData" 
@@ -50,44 +50,47 @@
 			<!-- advc.068: Tech_Screen added to dirty-bits. Colors changed;
 				 were RED, YELLOW, GREEN, CYAN, BLUE (too difficult to read
 				 on the blue interface), MAGENTA, WHITE.
-				 YIELD_FOOD is an orange; see init.xml. -->
+				 YIELD_FOOD is an orange; see init.xml. Removed the unused custom getters and setters.
+				 Note that the list ids must correspond to the type tags in
+				 Civ4EraInfos.xml (b/c of the getEraColor function defined
+				 below) -->
 			<list   id="Color_ERA_ANCIENT" key="ERA_ANCIENT" 
 					type="color" default="COLOR_YIELD_FOOD" 
-					get="getAncientEraColor" set="setAncientEraColor" dirtyBit="GameData,Tech_Screen" 
+					dirtyBit="GameData,Tech_Screen" 
 					label="Ancient Era" 
 					help="Color to use for the Ancient era."/>
 			<list   id="Color_ERA_CLASSICAL" key="ERA_CLASSICAL" 
 					type="color" default="COLOR_HIGHLIGHT_TEXT" 
-					get="getClassicalEraColor" set="setClassicalEraColor" dirtyBit="GameData,Tech_Screen" 
+					dirtyBit="GameData,Tech_Screen" 
 					label="Classical Era" 
 					help="Color to use for the Classical era."/>
 			<list   id="Color_ERA_MEDIEVAL" key="ERA_MEDIEVAL" 
 					type="color" default="COLOR_UNIT_TEXT" 
-					get="getMedievalEraColor" set="setMedievalEraColor" dirtyBit="GameData,Tech_Screen" 
+					dirtyBit="GameData,Tech_Screen" 
 					label="Medieval Era" 
 					help="Color to use for the Medieval era."/>
 			<list   id="Color_ERA_RENAISSANCE" key="ERA_RENAISSANCE" 
 					type="color" default="COLOR_GREEN" 
-					get="getRenaissanceEraColor" set="setRenaissanceEraColor" dirtyBit="GameData,Tech_Screen" 
+					dirtyBit="GameData,Tech_Screen" 
 					label="Renaissance Era" 
 					help="Color to use for the Renaissance era."/>
 			<list   id="Color_ERA_INDUSTRIAL" key="ERA_INDUSTRIAL" 
 					type="color" default="COLOR_WARNING_TEXT" 
-					get="getIndustrialEraColor" set="setIndustrialEraColor" dirtyBit="GameData,Tech_Screen" 
+					dirtyBit="GameData,Tech_Screen" 
 					label="Industrial Era" 
 					help="Color to use for the Industrial era."/>
 			<list   id="Color_ERA_MODERN" key="ERA_MODERN" 
 					type="color" default="COLOR_BUILDING_TEXT" 
-					get="getModernEraColor" set="setModernEraColor" dirtyBit="GameData,Tech_Screen" 
+					dirtyBit="GameData,Tech_Screen" 
 					label="Modern Era" 
 					help="Color to use for the Modern era."/>
 			<list   id="Color_ERA_FUTURE" key="ERA_FUTURE" 
 					type="color" default="COLOR_MAGENTA" 
-					get="getFutureEraColor" set="getFutureEraColor" dirtyBit="GameData,Tech_Screen" 
+					dirtyBit="GameData,Tech_Screen" 
 					label="Future Era" 
 					help="Color to use for the Future era."/>
 			<accessor get="getEraColor" set="setEraColor" args="era" id="Color_%s"/>
-			
+
 			<!-- advc.067: default was True -->
 			<option id="ShowTime" key="Show Game Clock" 
 					type="boolean" default="False" 
@@ -123,7 +126,7 @@
 					get="isAlternateTimeText" set="setAlternateTimeText" dirtyBit="GameData" 
 					label="Alternate Game Clock" 
 					help="When checked, the game clock switches between two views: standard and alternate."/>
-			
+
 			<!-- advc.067: New setting -->
 			<list   id="PrimaryTiming" key="Primary Time" 
 					type="int" default="5" 
@@ -138,7 +141,7 @@
 					get="getAlternatePeriod" set="setAlternatePeriod" dirtyBit="GameData" 
 					label="Period (in seconds)" 
 					help="Select the time each view of the game clock is displayed when alternating is enabled."/>
-					
+
 			<option id="ShowAltTime" key="Alternate Show Game Clock" 
 					type="boolean" default="True" 
 					get="isShowAltTime" set="setShowAltTime" dirtyBit="GameData" 
@@ -168,5 +171,5 @@
 					help="When checked, the in-game date and turns left in a Golden Age are displayed."/>
 		</section>
 	</options>
-	
+
 </mod>

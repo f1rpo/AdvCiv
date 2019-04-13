@@ -3,7 +3,7 @@
 #ifndef CvDLLUtilityIFaceBase_h
 #define CvDLLUtilityIFaceBase_h
 
-//#include "CvEnums.h"
+
 #include "LinkedList.h"
 
 //
@@ -62,11 +62,11 @@ public:
 
 	virtual void delMem(void *p, const char* pcFile, int iLine) = 0;
 	virtual void* newMem(size_t size, const char* pcFile, int iLine) = 0;
- 
+
 	virtual void delMemArray(void *p, const char* pcFile, int iLine) = 0;
 	virtual void* newMemArray(size_t size, const char* pcFile, int iLine) = 0;
 
-	virtual void* reallocMem(void* a, unsigned int uiBytes, const char* pcFile, int iLine) = 0; 
+	virtual void* reallocMem(void* a, unsigned int uiBytes, const char* pcFile, int iLine) = 0;
 	virtual unsigned int memSize(void* a) = 0;
 
 	virtual void clearVector(std::vector<int>& vec) = 0;
@@ -166,8 +166,8 @@ public:
 	virtual bool getAudioDisabled() = 0;
 	virtual int getAudioTagIndex(const TCHAR* szTag, int iScriptType = -1) = 0;
 
-	virtual void DoSound( int iScriptId ) = 0;
-	virtual void Do3DSound( int iScriptId, NiPoint3 vPosition ) = 0;
+	virtual void DoSound(int iScriptId) = 0;
+	virtual void Do3DSound(int iScriptId, NiPoint3 vPosition) = 0;
 
 	virtual FDataStreamBase* createFileStream() = 0;
 	virtual void destroyDataStream(FDataStreamBase*& stream) = 0;
@@ -203,7 +203,7 @@ public:
 
 	virtual CvWString getText(CvWString szIDTag, ...) = 0;
 	virtual CvWString getObjectText(CvWString szIDTag, uint uiForm, bool bNoSubs = false) = 0;
-	virtual void addText(const TCHAR* szIDTag, const wchar* szString, const wchar* szGender = L"N", const wchar* szPlural = L"false") = 0;		
+	virtual void addText(const TCHAR* szIDTag, const wchar* szString, const wchar* szGender = L"N", const wchar* szPlural = L"false") = 0;
 	virtual uint getNumForms(CvWString szIDTag) = 0;
 
 	virtual WorldSizeTypes getWorldSize() = 0;
@@ -236,7 +236,7 @@ public:
 	virtual bool getGraphicOption(GraphicOptionTypes eGraphicOption) = 0;
 	virtual bool getPlayerOption(PlayerOptionTypes ePlayerOption) = 0;
 	virtual int getMainMenu() = 0;
-	
+
 	virtual bool isFMPMgrHost() = 0;
 	virtual bool isFMPMgrPublic() = 0;
 	virtual void handleRetirement(PlayerTypes ePlayer) = 0;

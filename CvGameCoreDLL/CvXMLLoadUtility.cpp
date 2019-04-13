@@ -14,8 +14,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvDLLXMLIFaceBase.h"
 #include "CvXMLLoadUtility.h"
-#include "CvGlobals.h"
-#include "FProfiler.h"
 #include "CvDLLUtilityIFaceBase.h"
 
 static const int kBufSize = 2048;
@@ -23,10 +21,10 @@ static const int kBufSize = 2048;
 //
 // for logging
 //
-void CvXMLLoadUtility::logMsg(char* format, ... )
+void CvXMLLoadUtility::logMsg(char* format, ...)
 {
 	static char buf[kBufSize];
-	_vsnprintf( buf, kBufSize-4, format, (char*)(&format+1) );
+	_vsnprintf(buf, kBufSize-4, format, (char*)(&format+1));
 	gDLL->logMsg("xml.log", buf);
 }
 
@@ -41,7 +39,7 @@ bool CvXMLLoadUtility::CreateFXml()
 	{
 		char	szMessage[512];
 		sprintf( szMessage, "Caught unhandled exception creating XML parser object \n Current XML file is: %s", GC.getCurrentXMLFile().GetCString());
-		gDLL->MessageBox( szMessage, "Loading Error" );
+		gDLL->MessageBox(szMessage, "Loading Error");
 		return false;
 	}
 	return true;
@@ -63,7 +61,8 @@ void CvXMLLoadUtility::DestroyFXml()
 CvXMLLoadUtility::CvXMLLoadUtility() :
 m_iCurProgressStep(0),
 m_pCBFxn(NULL),
-m_pFXml(NULL)
+m_pFXml(NULL),
+m_bAssertMandatory(true) // advc.006b
 {
 	m_pSchemaCache = gDLL->getXMLIFace()->CreateFXmlSchemaCache();
 }

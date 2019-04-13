@@ -19,9 +19,9 @@ public:
 
 	DllExport unsigned short get(unsigned short usNum, const TCHAR* pszLog = NULL) {  //  Returns value from 0 to num-1 inclusive.
 		// <advc.001n>
-		return getInt(usNum, pszLog, INT_MIN, INT_MIN);
+		return getInt(usNum, pszLog, MIN_INT, MIN_INT);
 	} // New name to avoid issues in CyRandomPythonInterface
-	unsigned short getInt(unsigned short usNum, const TCHAR* pszLog, int iData1, int iData2 = INT_MIN);
+	unsigned short getInt(unsigned short usNum, const TCHAR* pszLog, int iData1, int iData2 = MIN_INT);
 	// </advc.001n>
 	DllExport float getFloat();
 

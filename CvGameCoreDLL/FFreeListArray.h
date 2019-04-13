@@ -125,13 +125,13 @@ void FFreeListArray<T>::insert(T data)
 {
 	int iIndex;
 
-	if (m_pArray == NULL) 
+	if (m_pArray == NULL)
 	{
 		init();
 	}
 
-	if ((m_iLastIndex == m_iNumSlots - 1) && 
-		(m_iFreeListCount == 0)) 
+	if ((m_iLastIndex == m_iNumSlots - 1) &&
+		(m_iFreeListCount == 0))
 	{
 		growArray();
 	}
@@ -158,7 +158,7 @@ void FFreeListArray<T>::insertAt(T data, int iIndex)
 {
 	int iTempIndex;
 
-	if (m_pArray == NULL) 
+	if (m_pArray == NULL)
 	{
 		init();
 	}
@@ -225,13 +225,13 @@ void FFreeListArray<T>::insertFirst(T data)
 {
 	int iI;
 
-	if (m_pArray == NULL) 
+	if (m_pArray == NULL)
 	{
 		init();
 	}
 
-	if ((m_iLastIndex == m_iNumSlots - 1) && 
-		(m_iFreeListCount == 0)) 
+	if ((m_iLastIndex == m_iNumSlots - 1) &&
+		(m_iFreeListCount == 0))
 	{
 		growArray();
 	}
@@ -257,7 +257,7 @@ T* FFreeListArray<T>::getAt(int iIndex)
 		return NULL;
 	}
 
-	if ((iIndex >= 0) && (iIndex <= m_iLastIndex)) 
+	if ((iIndex >= 0) && (iIndex <= m_iLastIndex))
 	{
 		if (m_pArray[iIndex].iNextFreeIndex == FFreeList::INVALID_INDEX)
 		{

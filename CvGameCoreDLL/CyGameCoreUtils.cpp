@@ -4,6 +4,9 @@
 #include "CyPlot.h"
 #include "CyCity.h"
 #include "CyUnit.h"
+/*  advc.make (would be nicer to move the respective functions to the
+	Python interface of CvMap) */
+#include "CvMap.h"
 
 int cyIntRange(int iNum, int iLow, int iHigh)
 {
@@ -17,12 +20,12 @@ float cyFloatRange(float fNum, float fLow, float fHigh)
 
 int cyDxWrap(int iDX)
 {
-	return dxWrap(iDX);
+	return GC.getMap().dxWrap(iDX);
 }
 
 int cyDyWrap(int iDY)
 {
-	return dyWrap(iDY);
+	return GC.getMap().dyWrap(iDY);
 }
 
 int cyPlotDistance(int iX, int iY, int iX2, int iY2)

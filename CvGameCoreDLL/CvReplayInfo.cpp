@@ -1,13 +1,14 @@
 #include "CvGameCoreDLL.h"
 #include "CvReplayInfo.h"
-#include "CvInfos.h"
-#include "CvGlobals.h"
+#include "CvGameAI.h"
 #include "CvPlayerAI.h"
+#include "CvInfos.h"
 #include "CvMap.h"
 #include "CvReplayMessage.h"
 #include "CvGameTextMgr.h"
-#include "CvDLLInterfaceIFaceBase.h"
 #include "CvInitCore.h"
+#include "StartPointsAsHandicap.h" // advc.250b
+#include "CvDLLInterfaceIFaceBase.h"
 
 int CvReplayInfo::REPLAY_VERSION = 6; // advc.707, advc.106i: 4 in BtS
 bool CvReplayInfo::STORE_REPLAYS_AS_BTS = false; // advc.106i
@@ -43,7 +44,11 @@ CvReplayInfo::CvReplayInfo() :
 			(GC.getNumPlayerColorInfos() <= 44 ||
 			/*  If no colors are added beyond those in BtS, then the new
 				player colors are apparently all old colors; no problem then. */
-			GC.getNumColorInfos() <= 127));
+			GC.getNumColorInfos() <= 127) &&
+			/*  This replay object may well not use any of the added world sizes etc.,
+				but I want the same replay format for all replays written by the mod. */
+			GC.getNumWorldInfos() <= 6 && GC.getNumVictoryInfos() >= 7 &&
+			GC.getNumHandicapInfos() >= 9 && GC.getNumGameSpeedInfos() >= 4);
 	// </advc.106i>
 }
 
@@ -59,8 +64,8 @@ CvReplayInfo::~CvReplayInfo()
 
 void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 {
-	CvGame& game = GC.getGameINLINE();
-	CvMap& map = GC.getMapINLINE();
+	CvGame& game = GC.getGame();
+	CvMap& map = GC.getMap();
 
 	if (ePlayer == NO_PLAYER)
 	{
@@ -110,13 +115,13 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 			m_eVictoryType = NO_VICTORY;
 		}
 
-		m_iNormalizedScore = player.calculateScore(true, player.getTeam() == GC.getGameINLINE().getWinner());
+		m_iNormalizedScore = player.calculateScore(true, player.getTeam() == GC.getGame().getWinner());
 		// <advc.707> Treat R&F games as "Score" victory (previously unused)
 		if(game.isOption(GAMEOPTION_RISE_FALL)) {
 			for(int i = 0; i < GC.getNumVictoryInfos(); i++) {
-				VictoryTypes vt = (VictoryTypes)i;
-				if(GC.getVictoryInfo(vt).isTargetScore()) {
-					m_eVictoryType = vt;
+				VictoryTypes eVictory = (VictoryTypes)i;
+				if(GC.getVictoryInfo(eVictory).isTargetScore()) {
+					m_eVictoryType = eVictory;
 					break;
 				}
 			}
@@ -126,12 +131,12 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 	m_bMultiplayer = game.isGameMultiPlayer();
 
 
-	m_iInitialTurn = GC.getGameINLINE().getStartTurn();
-	m_iStartYear = GC.getGameINLINE().getStartYear();
+	m_iInitialTurn = GC.getGame().getStartTurn();
+	m_iStartYear = GC.getGame().getStartYear();
 	m_iFinalTurn = game.getGameTurn();
-	GAMETEXT.setYearStr(m_szFinalDate, m_iFinalTurn, false, GC.getGameINLINE().getCalendar(), GC.getGameINLINE().getStartYear(), GC.getGameINLINE().getGameSpeedType());
+	GAMETEXT.setYearStr(m_szFinalDate, m_iFinalTurn, false, GC.getGame().getCalendar(), GC.getGame().getStartYear(), GC.getGame().getGameSpeedType());
 
-	m_eCalendar = GC.getGameINLINE().getCalendar();
+	m_eCalendar = GC.getGame().getCalendar();
 
 
 	std::map<PlayerTypes, int> mapPlayers;
@@ -184,7 +189,7 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 				pMsg->setText(game.getReplayMessageText(i));
 				pMsg->setPlot(game.getReplayMessagePlotX(i), game.getReplayMessagePlotY(i));
 				m_listReplayMessages.push_back(pMsg);
-			}	
+			}
 		}
 		else
 		{
@@ -195,16 +200,16 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 				pMsg->setText(game.getReplayMessageText(i));
 				pMsg->setPlot(game.getReplayMessagePlotX(i), game.getReplayMessagePlotY(i));
 				m_listReplayMessages.push_back(pMsg);
-			}	
+			}
 		}
 	}
 
-	m_iMapWidth = GC.getMapINLINE().getGridWidthINLINE();
-	m_iMapHeight = GC.getMapINLINE().getGridHeightINLINE();
-	
-	SAFE_DELETE(m_pcMinimapPixels);	
+	m_iMapWidth = GC.getMap().getGridWidth();
+	m_iMapHeight = GC.getMap().getGridHeight();
+
+	SAFE_DELETE(m_pcMinimapPixels);
 	m_pcMinimapPixels = new unsigned char[m_nMinimapSize];
-	
+
 	void *ptexture = (void*)gDLL->getInterfaceIFace()->getMinimapBaseTexture();
 	if (ptexture)
 		memcpy((void*)m_pcMinimapPixels, ptexture, m_nMinimapSize);
@@ -219,36 +224,35 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 void CvReplayInfo::addSettingsMsg() {
 
 	CvGame& g = GC.getGame();
-	PlayerTypes plId = g.getActivePlayer();
-	if(plId == NO_PLAYER)
+	PlayerTypes ePlayer = g.getInitialActivePlayer();
+	if(ePlayer == NO_PLAYER)
 		return;
 	bool bScenario = false;
 	// Strip away file ending of WB scenario
-	CvWString const wbEnding = L".CivBeyondSwordWBSave";
-	CvWString mn = getMapScriptName();
-	if(mn.length() > wbEnding.length() && mn.substr(mn.length() -
-			wbEnding.length(), wbEnding.length()).compare(wbEnding) == 0) {
-		mn = mn.substr(0, mn.length() - wbEnding.length());
+	CvWString const szWBEnding = L".CivBeyondSwordWBSave";
+	CvWString szMapName = getMapScriptName();
+	if(szMapName.length() > szWBEnding.length() && szMapName.substr(szMapName.length() -
+			szWBEnding.length(), szWBEnding.length()).compare(szWBEnding) == 0) {
+		szMapName = szMapName.substr(0, szMapName.length() - szWBEnding.length());
 		bScenario = true;
 	}
-	CvPlayer const& pl = GET_PLAYER(plId);
 	/*  Can't use getTextKeyWide for sea level b/c of the recommendation text
 		added by advc.137 (same issue in CvVictoryScreen.py) */
-	int lvlChg = GC.getSeaLevelInfo(getSeaLevel()).getSeaLevelChange();
-	CvWString m = gDLL->getText("TXT_KEY_MISC_RELOAD", 1) + L". " +
+	int iSeaLevelChange = GC.getSeaLevelInfo(getSeaLevel()).getSeaLevelChange();
+	CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
+	CvWString szSettings = gDLL->getText("TXT_KEY_MISC_RELOAD", 1) + L". " +
 			gDLL->getText("TXT_KEY_MAIN_MENU_SETTINGS") + L":\n" +
 			gDLL->getText("TXT_KEY_NAME_LEADER_CIV",
-			GC.getLeaderHeadInfo(pl.getLeaderType()).getTextKeyWide(),
-			pl.getCivilizationShortDescriptionKey(), pl.getReplayName()) + L"\n" +
+			GC.getLeaderHeadInfo(kPlayer.getLeaderType()).getTextKeyWide(),
+			kPlayer.getCivilizationShortDescriptionKey(), kPlayer.getReplayName()) + L"\n" +
 			gDLL->getText("TXT_KEY_SETTINGS_DIFFICULTY",
 			GC.getHandicapInfo(getDifficulty()).getTextKeyWide()) + L"\n" +
-			(bScenario ? mn :
-			gDLL->getText("TXT_KEY_SIZE_MAP_WITH",
+			(bScenario ? szMapName : gDLL->getText("TXT_KEY_SIZE_MAP_WITH",
 			GC.getWorldInfo(getWorldSize()).getTextKeyWide(),
 			getMapScriptName().GetCString()) + L" " +
 			gDLL->getText("TXT_KEY_SETTINGS_SEA_LEVEL",
-			(lvlChg == 0 ? GC.getSeaLevelInfo(getSeaLevel()).getTextKeyWide() :
-			gDLL->getText((lvlChg < 0 ? "TXT_KEY_LOW" : "TXT_KEY_HIGH"))))) +
+			(iSeaLevelChange == 0 ? GC.getSeaLevelInfo(getSeaLevel()).getTextKeyWide() :
+			gDLL->getText((iSeaLevelChange < 0 ? "TXT_KEY_LOW" : "TXT_KEY_HIGH"))))) +
 			(getClimate() == 0 ? L"" : (L", " +
 			gDLL->getText("TXT_KEY_SETTINGS_CLIMATE",
 			GC.getClimateInfo(getClimate()).getTextKeyWide()))) + L"\n" +
@@ -259,61 +263,61 @@ void CvReplayInfo::addSettingsMsg() {
 			GC.getEraInfo(getEra()).getTextKeyWide()))) + L"\n";
 	// <advc.250b>
 	if(g.isOption(GAMEOPTION_ADVANCED_START) && !g.isOption(GAMEOPTION_SPAH)) {
-		m += gDLL->getText("TXT_KEY_ADVANCED_START_POINTS") + L" "
+		szSettings += gDLL->getText("TXT_KEY_ADVANCED_START_POINTS") + L" "
 				+ CvWString::format(L"%d", g.getNumAdvancedStartPoints()) + L"\n";
 	} // </advc.250b>
 	int iDisabled = 0;
 	for(int i = 0; i < GC.getNumVictoryInfos(); i++) {
-		VictoryTypes vId = (VictoryTypes)i;
-		if(g.isVictoryValid(vId))
+		VictoryTypes eVictory = (VictoryTypes)i;
+		if(g.isVictoryValid(eVictory))
 			continue;
 		iDisabled++;
-		m += GC.getVictoryInfo(vId).getDescription();
-		m += L", ";
+		szSettings += GC.getVictoryInfo(eVictory).getDescription();
+		szSettings += L", ";
 	}
 	if(iDisabled > 0) {
-		m = m.substr(0, m.length() - 2) + L" "; // Drop the final comma
-		m += gDLL->getText("TXT_KEY_VICTORY_DISABLED") + L"\n";
+		szSettings = szSettings.substr(0, szSettings.length() - 2) + L" "; // Drop the final comma
+		szSettings += gDLL->getText("TXT_KEY_VICTORY_DISABLED") + L"\n";
 	} // <advc.250b>
 	if(g.isOption(GAMEOPTION_SPAH)) {
 		// bTab=false b/c that's a bit too much indentation
-		std::wstring* pointDistrib = g.startPointsAsHandicap().forSettingsScreen(false);
-		if(pointDistrib != NULL)
-			m += *pointDistrib;
+		std::wstring* pszPointDistrib = g.startPointsAsHandicap().forSettingsScreen(false);
+		if(pszPointDistrib != NULL)
+			szSettings += *pszPointDistrib;
 	} // </advc.250b>
 	int iOptions = 0;
 	for(int i = 0; i < GC.getNumGameOptionInfos(); i++) {
-		GameOptionTypes optId = (GameOptionTypes)i;
+		GameOptionTypes eOption = (GameOptionTypes)i;
 		// advc.250b:
-		if(optId == GAMEOPTION_ADVANCED_START || optId == GAMEOPTION_SPAH ||
-				!g.isOption(optId) ||
+		if(eOption == GAMEOPTION_ADVANCED_START || eOption == GAMEOPTION_SPAH ||
+				!g.isOption(eOption) ||
 				// advc.104:
-				(optId == GAMEOPTION_AGGRESSIVE_AI && getWPAI.isEnabled()))
+				(eOption == GAMEOPTION_AGGRESSIVE_AI && getWPAI.isEnabled()))
 			continue;
 		iOptions++;
-		m += GC.getGameOptionInfo(optId).getDescription();
-		m += L", ";
+		szSettings += GC.getGameOptionInfo(eOption).getDescription();
+		szSettings += L", ";
 	}
 	if(iOptions > 0)
-		m = m.substr(0, m.length() - 2) + L"\n";
-	CvWString const tag = "TXT_KEY_REPLAY_PREFIX_ADVC";
+		szSettings = szSettings.substr(0, szSettings.length() - 2) + L"\n";
+	CvWString const szKey = "TXT_KEY_REPLAY_PREFIX";
 	// gDLL->getModName(false) doesn't yield a wstring
-	CvWString modName = gDLL->getText(tag);
+	CvWString szModName = gDLL->getText(szKey);
 	// Don't list mod name if the tag isn't present
-	if(tag.compare(modName) == 0)
-		m = m.substr(0, m.length() - 1); // drop \n
+	if(szKey.compare(szModName) == 0)
+		szSettings = szSettings.substr(0, szSettings.length() - 1); // drop \n
 	else {
 		// Remove brackets
-		if(modName.at(0) == '[' && modName.at(modName.length() - 1) == ']')
-			modName = modName.substr(1, modName.length() - 2);
-		m += modName + L" Mod";
+		if(szModName.at(0) == '[' && szModName.at(szModName.length() - 1) == ']')
+			szModName = szModName.substr(1, szModName.length() - 2);
+		szSettings += szModName + L" Mod";
 	}
-	CvReplayMessage* settingsMsg = new CvReplayMessage(0,
-			REPLAY_MESSAGE_MAJOR_EVENT, plId);
-	settingsMsg->setText(m);
-	settingsMsg->setColor((ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"));
+	CvReplayMessage* pSettingsMsg = new CvReplayMessage(0,
+			REPLAY_MESSAGE_MAJOR_EVENT, ePlayer);
+	pSettingsMsg->setText(szSettings);
+	pSettingsMsg->setColor((ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"));
 	FAssert(m_listReplayMessages.empty());
-	m_listReplayMessages.push_back(settingsMsg);
+	m_listReplayMessages.push_back(pSettingsMsg);
 } // </advc.106h>
 
 
@@ -649,9 +653,9 @@ int CvReplayInfo::getFinalPlayerScore() const
 	return getPlayerScore(m_iActivePlayer, m_iFinalTurn);
 }
 // Can now also set the final score to sth. other than the player score
-void CvReplayInfo::setFinalScore(int sc)
+void CvReplayInfo::setFinalScore(int iScore)
 {
-	m->iFinalScore = sc;
+	m->iFinalScore = iScore;
 } // </advc.707>
 
 int CvReplayInfo::getFinalEconomy() const
@@ -691,12 +695,11 @@ const unsigned char* CvReplayInfo::getMinimapPixels() const
 
 const char* CvReplayInfo::getModName() const
 {	/*  <advc.106i> Pretend to the EXE that every replay is an AdvCiv replay.
-		(Let CvReplayInfo::read decide which ones to show in HoF.) */ 
+		(Let CvReplayInfo::read decide which ones to show in HoF.) */
 	if(STORE_REPLAYS_AS_BTS || GC.getDefineINT("HOF_DISPLAY_BTS_REPLAYS") > 0 ||
 			GC.getDefineINT("HOF_DISPLAY_OTHER_MOD_REPLAYS") > 0)
-		return m->szPurportedModName;
-	else // </advc.106i>
-		return m_szModName;
+		return m->szPurportedModName; // </advc.106i>
+	return m_szModName;
 }
 
 
@@ -754,7 +757,7 @@ bool CvReplayInfo::read(FDataStreamBase& stream)
 			m_eSeaLevel = NO_SEALEVEL; // unused
 		}
 		else {
-			m->iFinalScore = INT_MIN; // Compute it later
+			m->iFinalScore = MIN_INT; // Compute it later
 			m_eSeaLevel = (SeaLevelTypes)iType;
 			if(!checkBounds(m_eSeaLevel, 0, GC.getNumSeaLevelInfos() - 1)) return false; // advc.106i
 		} // </advc.106i>
@@ -865,7 +868,7 @@ bool CvReplayInfo::read(FDataStreamBase& stream)
 		FAssertMsg(false, "Failed to read replay file");
 		return false;
 	} // <advc.707>
-	if(m->iFinalScore == INT_MIN)
+	if(m->iFinalScore == MIN_INT)
 		m->iFinalScore = getFinalPlayerScore();
 	// </advc.707>
 	return bSuccess;

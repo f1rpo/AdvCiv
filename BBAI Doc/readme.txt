@@ -1,4 +1,4 @@
-advc.009: This folder contains the documentation of BBAI 1.01 (minus the installation instructions). Much of this has changed in K-Mod and AdvCiv. I'm including it mostly in order to credit the BBAI developers, i.e. jdog, EmperorFool, Afforess, Fuyu, LunarMongoose and others.
+advc.009: This folder contains the documentation of BBAI 1.01 (minus the installation instructions). Much of this has changed in K-Mod and AdvCiv. I'm including it mostly in order to credit the minor contributors, i.e. EmperorFool, Afforess, Fuyu, LunarMongoose and others (search changelog.txt for the word "thanks").
 
 
 

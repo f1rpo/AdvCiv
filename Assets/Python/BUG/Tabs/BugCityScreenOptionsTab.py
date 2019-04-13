@@ -63,7 +63,8 @@ class BugCityScreenOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addLabel(screen, panel, "BuildingEffects", "Building Actual Effects in Hovers:")
 		left, right = self.addTwoColumnLayout(screen, panel, "BuildingEffects", False)
 		self.addCheckbox(screen, left, "MiscHover__BuildingActualEffects")
-		#self.addCheckbox(screen, left, "MiscHover__BuildingAdditionalFood")
+		# BULL - Food Rate Hover:
+		self.addCheckbox(screen, left, "MiscHover__BuildingAdditionalFood")
 		self.addCheckbox(screen, left, "MiscHover__BuildingAdditionalProduction")
 		self.addCheckbox(screen, left, "MiscHover__BuildingAdditionalCommerce")
 		self.addCheckbox(screen, left, "MiscHover__BuildingSavedMaintenance")
