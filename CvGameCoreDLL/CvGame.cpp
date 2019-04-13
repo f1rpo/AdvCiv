@@ -7716,23 +7716,17 @@ void CvGame::createBarbarianUnits()
 	CvUnit* pLoopUnit;
 	CvArea* pLoopArea;
 	int iLoop;
-	bool bAnimals = false;
 
-	// advc.300: Checked later now
 	//if (GC.getEraInfo(getCurrentEra()).isNoBarbUnits()) ...
-	bool bSpawn = isBarbarianCreationEra(); // advc.307
-
-	if (getNumCivCities() < ((countCivPlayersAlive() * 3) / 2) && !isOption(GAMEOPTION_ONE_CITY_CHALLENGE))
-	{
-		/*  <advc.300> No need to delay barbs if they start slowly.
-			However, added a similar check to CvUnitAI::AI_barbAttackMove
-			for slow game speed settings. */
-		double crowdedness = getCivPlayersEverAlive();
-		crowdedness /= getRecommendedPlayers();
-		if(GC.getDefineINT("BARB_PEAK_PERCENT") < 35 || crowdedness > 1.25)
-			bAnimals = true; // </advc.300>
-	}
-
+	bool bSpawn = isBarbarianCreationEra(); // advc.307 (checked later now)
+	bool bAnimals = false;
+	if (getNumCivCities() < (3 * countCivPlayersAlive()) / 2 &&
+			!isOption(GAMEOPTION_ONE_CITY_CHALLENGE) &&
+			/*  advc.300: No need to delay Barbarians (bAnimals=true) if they start
+				slowly (PEAK_PERCENT>=35). For slow game speed settings, there is
+				now a similar check in CvUnitAI::AI_barbAttackMove. */
+			GC.getDefineINT("BARB_PEAK_PERCENT") < 35)
+		bAnimals = true;
 	// advc.300: Moved into new function
 	if (getGameTurn() < getBarbarianStartTurn())
 	{
@@ -7808,9 +7802,7 @@ void CvGame::createBarbarianUnits()
 			if(!bSpawn)
 				continue;
 			int iNeededSea = numBarbariansToSpawn(iBaseTilesPerSeaUnit,
-					shelves[i]->size(),
-                    shelves[i]->countUnownedPlots(),
-                    iShips);
+					shelves[i]->size(), shelves[i]->countUnownedPlots(), iShips);
 			// (Deleted) Use a different sanity check, based on barb cities.
 			/* ``BETTER_BTS_AI_MOD 9/25/08 jdog5000
 				 Limit construction of barb ships based on player navies [...]´´ */
@@ -8519,14 +8511,19 @@ bool CvGame::testVictory(VictoryTypes eVictory, TeamTypes eTeam, bool* pbEndScor
 		if (kTeam.getNumCities() == 0)
 			return false;
 
-		bool bFound = false;
+		int iEverAlive = 0; // advc.084
 		for (int iK = 0; iK < MAX_CIV_TEAMS; iK++)
 		{
 			CvTeam const& kLoopTeam = GET_TEAM((TeamTypes)iK);
 			if (kLoopTeam.isAlive() && iK != eTeam &&
 					!kLoopTeam.isVassal(eTeam) && kLoopTeam.getNumCities() > 0)
 				return false;
+			// <advc.084>
+			if(kLoopTeam.isEverAlive())
+				iEverAlive++;
 		}
+		if(iEverAlive <= 1)
+			return false; // </advc.084>
 	}
 	if (kVictory.isDiploVote())
 	{
