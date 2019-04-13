@@ -781,8 +781,8 @@ void CvNetPushMission::Execute()
 			CvSelectionGroup* pSelectionGroup = pUnit->getGroup();
 			if (pSelectionGroup != NULL)
 			{
-				pSelectionGroup->pushMission(m_eMission, m_iData1, m_iData2, m_iFlags, m_bShift,
-						false, NO_MISSIONAI, NULL, NULL, m_bModified); // advc.011b
+				pSelectionGroup->pushMission(m_eMission, m_iData1, m_iData2, m_iFlags, m_bShift, true,
+						NO_MISSIONAI, NULL, NULL, m_bModified); // advc.011b
 			}
 		}
 	}
