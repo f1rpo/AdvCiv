@@ -309,6 +309,7 @@ public:
 	bool isRFInterlude();
 	bool isRFBlockPopups();
 	bool isAITurn(); // </advc.706>
+	void reportCurrentLayer(int iLayer); // advc.004m
 
 protected:
 	CvGame* m_pGame;

@@ -638,8 +638,8 @@ public:
 	std::set<int> m_ActivePlayerCycledGroups;
 	double goodyHutEffectFactor(bool bSpeedAdjust = true) const; // advc.314
 	// <advc.004m>
-	bool isResourceLayer() const;
-	void reportResourceLayerToggled();
+	GlobeLayerTypes getCurrentLayer() const;
+	void reportCurrentLayer(GlobeLayerTypes eLayer);		// (exposed to Python)
 	// </advc.004m>
 	// <advc.052>
 	bool isScenario() const;
@@ -710,12 +710,11 @@ protected:
 	bool m_bNukesValid;
 	int m_iScreenWidth, m_iScreenHeight; // advc.061
 	bool m_bAITurn; // advc.106b
-	bool m_bResourceLayer; // advc.004m
-	bool m_bResourceLayerSet; // advc.003d
 	bool m_bFeignSP; // advc.135c
 	bool m_bScenario; // advc.052
 	bool m_bAllGameDataRead; // advc.003
 	bool m_bDoMShown; // advc.004x
+	bool m_bLayerFromSavegame; // advc.004m
 
 	HandicapTypes m_eHandicap;
 	HandicapTypes m_eAIHandicap; // advc.127
@@ -724,6 +723,7 @@ protected:
 	TeamTypes m_eWinner;
 	VictoryTypes m_eVictory;
 	GameStateTypes m_eGameState;
+	GlobeLayerTypes m_eCurrentLayer; // advc.004m
 	PlayerTypes m_eEventPlayer;
 
 	CvString m_szScriptData;

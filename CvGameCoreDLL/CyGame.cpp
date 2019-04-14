@@ -1317,3 +1317,8 @@ bool CyGame::isAITurn() {
 		return false;
 	return m_pGame->isAITurn();
 } // </advc.706>
+// <advc.004m>
+void CyGame::reportCurrentLayer(int iLayer) {
+	if(m_pGame != NULL)
+		m_pGame->reportCurrentLayer((GlobeLayerTypes)iLayer);
+} // </advc.004m>

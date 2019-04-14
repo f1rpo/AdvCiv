@@ -4297,7 +4297,7 @@ void CvCity::processBuilding(BuildingTypes eBuilding, int iChange, bool bObsolet
 
 		GET_PLAYER(getOwnerINLINE()).changeWondersScore(getWonderScore((BuildingClassTypes)(b.getBuildingClassType())) * iChange);
 		// <advc.004w>
-		if(GC.getGameINLINE().isResourceLayer()) {
+		if(GC.getGameINLINE().getCurrentLayer() == GLOBE_LAYER_RESOURCE) {
 			// Update text of resource indicators (CvGameTextMgr::setBonusExtraHelp)
 			PlayerTypes eDirtyPlayer = NO_PLAYER;
 			if(::isNationalWonderClass(eBuildingClass) &&
@@ -12196,7 +12196,7 @@ void CvCity::setHasReligion(ReligionTypes eIndex, bool bNewValue, bool bAnnounce
 					}
 				} /* <advc.004w> Update text of resource indicators
 					 (CvGameTextMgr::setBonusExtraHelp) */
-				if(kOwner.getID() == g.getActivePlayer() && g.isResourceLayer())
+				if(kOwner.getID() == g.getActivePlayer() && g.getCurrentLayer() == GLOBE_LAYER_RESOURCE)
 				{
 					gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
 					// advc.003p:

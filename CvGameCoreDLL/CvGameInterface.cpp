@@ -1564,44 +1564,44 @@ void CvGame::doControl(ControlTypes eControl)
 	CvPlot* pPlot;
 
 	if (!canDoControl(eControl))
-	{
 		return;
-	}
-
+	// <advc.003>
+	CvDLLInterfaceIFaceBase* pInterface = gDLL->getInterfaceIFace();
+	CvDLLEngineIFaceBase* pEngine = gDLL->getEngineIFace(); // </advc.003>
 	switch (eControl)
 	{
 	case CONTROL_CENTERONSELECTION:
-		gDLL->getInterfaceIFace()->lookAtSelectionPlot();
+		pInterface->lookAtSelectionPlot();
 		break;
 
 	case CONTROL_SELECTYUNITTYPE:
-		pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+		pHeadSelectedUnit = pInterface->getHeadSelectedUnit();
 		if (pHeadSelectedUnit != NULL)
 		{
-			gDLL->getInterfaceIFace()->selectGroup(pHeadSelectedUnit, false, true, false);
+			pInterface->selectGroup(pHeadSelectedUnit, false, true, false);
 		}
 		break;
 
 	case CONTROL_SELECTYUNITALL:
-		pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+		pHeadSelectedUnit = pInterface->getHeadSelectedUnit();
 		if (pHeadSelectedUnit != NULL)
 		{
-			//gDLL->getInterfaceIFace()->selectGroup(pHeadSelectedUnit, false, false, true);
-			gDLL->getInterfaceIFace()->selectGroup(pHeadSelectedUnit, false, true, true); // K-Mod
+			//pInterface->selectGroup(pHeadSelectedUnit, false, false, true);
+			pInterface->selectGroup(pHeadSelectedUnit, false, true, true); // K-Mod
 		}
 		break;
 
 	case CONTROL_SELECT_HEALTHY:
 		{
 			CvUnit* pGroupHead = NULL;
-			pHeadSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
-			gDLL->getInterfaceIFace()->clearSelectionList();
+			pHeadSelectedUnit = pInterface->getHeadSelectedUnit();
+			pInterface->clearSelectionList();
 			if (pHeadSelectedUnit != NULL)
 			{
 				pPlot = pHeadSelectedUnit->plot();
 				std::vector<CvUnit *> plotUnits;
 				getPlotUnits(pPlot, plotUnits);
-				gDLL->getInterfaceIFace()->selectionListPreChange();
+				pInterface->selectionListPreChange();
 				for (int iI = 0; iI < (int) plotUnits.size(); iI++)
 				{
 					pUnit = plotUnits[iI];
@@ -1621,25 +1621,25 @@ void CvGame::doControl(ControlTypes eControl)
 									pGroupHead = pUnit;
 								}
 
-								gDLL->getInterfaceIFace()->insertIntoSelectionList(pUnit, false, false, true, true, true);
+								pInterface->insertIntoSelectionList(pUnit, false, false, true, true, true);
 							}
 						}
 					}
 				}
 
-				gDLL->getInterfaceIFace()->selectionListPostChange();
+				pInterface->selectionListPostChange();
 			}
 		}
 		break;
 
 	case CONTROL_SELECTCITY:
-		if (gDLL->getInterfaceIFace()->isCityScreenUp())
+		if (pInterface->isCityScreenUp())
 		{
 			cycleCities();
 		}
 		else
 		{
-			gDLL->getInterfaceIFace()->selectLookAtCity();
+			pInterface->selectLookAtCity();
 		}
 		break;
 
@@ -1647,36 +1647,36 @@ void CvGame::doControl(ControlTypes eControl)
 		CvCity* pCapitalCity = GET_PLAYER(getActivePlayer()).getCapitalCity();
 		if (pCapitalCity != NULL)
 		{
-			gDLL->getInterfaceIFace()->selectCity(pCapitalCity);
+			pInterface->selectCity(pCapitalCity);
 		}
 		break;
 	}
 	case CONTROL_NEXTCITY:
-		if (gDLL->getInterfaceIFace()->isCitySelection())
+		if (pInterface->isCitySelection())
 		{
-			cycleCities(true, !(gDLL->getInterfaceIFace()->isCityScreenUp()));
+			cycleCities(true, !(pInterface->isCityScreenUp()));
 		}
 		else
 		{
-			gDLL->getInterfaceIFace()->selectLookAtCity(true);
+			pInterface->selectLookAtCity(true);
 		}
-		gDLL->getInterfaceIFace()->lookAtSelectionPlot();
+		pInterface->lookAtSelectionPlot();
 		break;
 
 	case CONTROL_PREVCITY:
-		if (gDLL->getInterfaceIFace()->isCitySelection())
+		if (pInterface->isCitySelection())
 		{
-			cycleCities(false, !(gDLL->getInterfaceIFace()->isCityScreenUp()));
+			cycleCities(false, !(pInterface->isCityScreenUp()));
 		}
 		else
 		{
-			gDLL->getInterfaceIFace()->selectLookAtCity(true);
+			pInterface->selectLookAtCity(true);
 		}
-		gDLL->getInterfaceIFace()->lookAtSelectionPlot();
+		pInterface->lookAtSelectionPlot();
 		break;
 
 	case CONTROL_NEXTUNIT:
-		pPlot = gDLL->getInterfaceIFace()->getSelectionPlot();
+		pPlot = pInterface->getSelectionPlot();
 		if (pPlot != NULL)
 		{
 			cyclePlotUnits(pPlot);
@@ -1684,7 +1684,7 @@ void CvGame::doControl(ControlTypes eControl)
 		break;
 
 	case CONTROL_PREVUNIT:
-		pPlot = gDLL->getInterfaceIFace()->getSelectionPlot();
+		pPlot = pInterface->getSelectionPlot();
 		if (pPlot != NULL)
 		{
 			cyclePlotUnits(pPlot, false);
@@ -1701,24 +1701,24 @@ void CvGame::doControl(ControlTypes eControl)
 		break;
 
 	case CONTROL_LASTUNIT:
-		pUnit = gDLL->getInterfaceIFace()->getLastSelectedUnit();
+		pUnit = pInterface->getLastSelectedUnit();
 
 		if (pUnit != NULL)
 		{
-			gDLL->getInterfaceIFace()->selectUnit(pUnit, true);
-			gDLL->getInterfaceIFace()->lookAtSelectionPlot();
+			pInterface->selectUnit(pUnit, true);
+			pInterface->lookAtSelectionPlot();
 		}
 		else
 		{
 			cycleSelectionGroups(true, false);
 		}
 
-		gDLL->getInterfaceIFace()->setLastSelectedUnit(NULL);
+		pInterface->setLastSelectedUnit(NULL);
 		break;
 
 	case CONTROL_ENDTURN:
 	case CONTROL_ENDTURN_ALT:
-		if (gDLL->getInterfaceIFace()->isEndTurnMessage())
+		if (pInterface->isEndTurnMessage())
 		{
 			CvMessageControl::getInstance().sendTurnComplete();
 		}
@@ -1733,42 +1733,39 @@ void CvGame::doControl(ControlTypes eControl)
 		break;
 
 	case CONTROL_PING:
-		gDLL->getInterfaceIFace()->setInterfaceMode(INTERFACEMODE_PING);
+		pInterface->setInterfaceMode(INTERFACEMODE_PING);
 		break;
 
 	case CONTROL_SIGN:
-		gDLL->getInterfaceIFace()->setInterfaceMode(INTERFACEMODE_SIGN);
+		pInterface->setInterfaceMode(INTERFACEMODE_SIGN);
 		break;
 
 	case CONTROL_GRID:
-		gDLL->getEngineIFace()->SetGridMode(!(gDLL->getEngineIFace()->GetGridMode()));
+		pEngine->SetGridMode(!pEngine->GetGridMode());
 		break;
 
 	case CONTROL_BARE_MAP:
-		gDLL->getInterfaceIFace()->toggleBareMapMode();
+		pInterface->toggleBareMapMode();
 		break;
 
 	case CONTROL_YIELDS:
-		gDLL->getInterfaceIFace()->toggleYieldVisibleMode();
+		pInterface->toggleYieldVisibleMode();
 		break;
 
 	case CONTROL_RESOURCE_ALL:
-		gDLL->getEngineIFace()->toggleResourceLayer();
-		/*  advc.004m: Need to keep track of toggling in order to be able to
-			tell whether it's enabled. */
-		GC.getGame().reportResourceLayerToggled();
+		pEngine->toggleResourceLayer();
 		break;
 
 	case CONTROL_UNIT_ICONS:
-		gDLL->getEngineIFace()->toggleUnitLayer();
+		pEngine->toggleUnitLayer();
 		break;
 
 	case CONTROL_GLOBELAYER:
-		gDLL->getEngineIFace()->toggleGlobeview();
+		pEngine->toggleGlobeview();
 		break;
 
 	case CONTROL_SCORES:
-		gDLL->getInterfaceIFace()->toggleScoresVisible();
+		pInterface->toggleScoresVisible();
 		break;
 
 	case CONTROL_LOAD_GAME:
@@ -1783,7 +1780,7 @@ void CvGame::doControl(ControlTypes eControl)
 		if(isOption(GAMEOPTION_RISE_FALL)) {
 			pInfo = new CvPopupInfo(BUTTONPOPUP_RF_RETIRE);
 			if(pInfo != NULL)
-				gDLL->getInterfaceIFace()->addPopup(pInfo, getActivePlayer(), true);
+				pInterface->addPopup(pInfo, getActivePlayer(), true);
 		}
 		else // </advc.706>
 		// K-Mod. (original code moved into CvGame::retire)
@@ -1792,7 +1789,7 @@ void CvGame::doControl(ControlTypes eControl)
 			if (NULL != pInfo)
 			{
 				pInfo->setData1(2);
-				gDLL->getInterfaceIFace()->addPopup(pInfo, getActivePlayer(), true);
+				pInterface->addPopup(pInfo, getActivePlayer(), true);
 			}
 		}
 		// K-Mod end
@@ -1831,41 +1828,42 @@ void CvGame::doControl(ControlTypes eControl)
 					// CTD if loading fails, so let's make sure that the file is good.
 					std::ifstream quickSaveFile(quickSavePath);
 					if(quickSaveFile.good()) {
-						gDLL->getInterfaceIFace()->exitingToMainMenu(quickSavePath.c_str());
+						pInterface->exitingToMainMenu(quickSavePath.c_str());
 						break;
 					}
 				}
+				FAssertMsg(false, "Failed to find quicksave");
 			} // </advc.003d>
 			gDLL->QuickLoad();
 		}
 		break;
 
 	case CONTROL_ORTHO_CAMERA:
-		gDLL->getEngineIFace()->SetOrthoCamera(!(gDLL->getEngineIFace()->GetOrthoCamera()));
+		pEngine->SetOrthoCamera(!pEngine->GetOrthoCamera());
 		break;
 
 	case CONTROL_CYCLE_CAMERA_FLYING_MODES:
-		gDLL->getEngineIFace()->CycleFlyingMode(1);
+		pEngine->CycleFlyingMode(1);
 		break;
 
 	case CONTROL_ISOMETRIC_CAMERA_LEFT:
-		gDLL->getEngineIFace()->MoveBaseTurnLeft();
+		pEngine->MoveBaseTurnLeft();
 		break;
 
 	case CONTROL_ISOMETRIC_CAMERA_RIGHT:
-		gDLL->getEngineIFace()->MoveBaseTurnRight();
+		pEngine->MoveBaseTurnRight();
 		break;
 
 	case CONTROL_FLYING_CAMERA:
-		gDLL->getEngineIFace()->SetFlying(!(gDLL->getEngineIFace()->GetFlying()));
+		pEngine->SetFlying(!pEngine->GetFlying());
 		break;
 
 	case CONTROL_MOUSE_FLYING_CAMERA:
-		gDLL->getEngineIFace()->SetMouseFlying(!(gDLL->getEngineIFace()->GetMouseFlying()));
+		pEngine->SetMouseFlying(!pEngine->GetMouseFlying());
 		break;
 
 	case CONTROL_TOP_DOWN_CAMERA:
-		gDLL->getEngineIFace()->SetSatelliteMode(!(gDLL->getEngineIFace()->GetSatelliteMode()));
+		pEngine->SetSatelliteMode(!pEngine->GetSatelliteMode());
 		break;
 
 	case CONTROL_CIVILOPEDIA:
@@ -1905,23 +1903,23 @@ void CvGame::doControl(ControlTypes eControl)
 		break;
 
 	case CONTROL_TURN_LOG:
-		if (!gDLL->GetWorldBuilderMode() || gDLL->getInterfaceIFace()->isInAdvancedStart())
+		if (!gDLL->GetWorldBuilderMode() || pInterface->isInAdvancedStart())
 		{
-			gDLL->getInterfaceIFace()->toggleTurnLog();
+			pInterface->toggleTurnLog();
 		}
 		break;
 
 	case CONTROL_CHAT_ALL:
-		if (!gDLL->GetWorldBuilderMode() || gDLL->getInterfaceIFace()->isInAdvancedStart())
+		if (!gDLL->GetWorldBuilderMode() || pInterface->isInAdvancedStart())
 		{
-			gDLL->getInterfaceIFace()->showTurnLog(CHATTARGET_ALL);
+			pInterface->showTurnLog(CHATTARGET_ALL);
 		}
 		break;
 
 	case CONTROL_CHAT_TEAM:
-		if (!gDLL->GetWorldBuilderMode() || gDLL->getInterfaceIFace()->isInAdvancedStart())
+		if (!gDLL->GetWorldBuilderMode() || pInterface->isInAdvancedStart())
 		{
-			gDLL->getInterfaceIFace()->showTurnLog(CHATTARGET_TEAM);
+			pInterface->showTurnLog(CHATTARGET_TEAM);
 		}
 		break;
 
@@ -1947,17 +1945,17 @@ void CvGame::doControl(ControlTypes eControl)
 		break;
 
 	case CONTROL_GLOBE_VIEW:
-		gDLL->getEngineIFace()->toggleGlobeview();
+		pEngine->toggleGlobeview();
 		break;
 
 	case CONTROL_DETAILS:
-		gDLL->getInterfaceIFace()->showDetails();
+		pInterface->showDetails();
 		break;
 
 	case CONTROL_ADMIN_DETAILS:
 		if (GC.getInitCore().getAdminPassword().empty())
 		{
-			gDLL->getInterfaceIFace()->showAdminDetails();
+			pInterface->showAdminDetails();
 		}
 		else
 		{
@@ -1965,7 +1963,7 @@ void CvGame::doControl(ControlTypes eControl)
 			if (NULL != pInfo)
 			{
 				pInfo->setData1((int)CONTROL_ADMIN_DETAILS);
-				gDLL->getInterfaceIFace()->addPopup(pInfo, NO_PLAYER, true);
+				pInterface->addPopup(pInfo, NO_PLAYER, true);
 			}
 		}
 		break;
@@ -1989,7 +1987,7 @@ void CvGame::doControl(ControlTypes eControl)
 				if (NULL != pInfo)
 				{
 					pInfo->setData1(4);
-					gDLL->getInterfaceIFace()->addPopup(pInfo, getActivePlayer(), true);
+					pInterface->addPopup(pInfo, getActivePlayer(), true);
 				}
 			} // advc.007
 		}
@@ -2005,7 +2003,7 @@ void CvGame::doControl(ControlTypes eControl)
 			pInfo = new CvPopupInfo(BUTTONPOPUP_FREE_COLONY);
 			if (pInfo)
 			{
-				gDLL->getInterfaceIFace()->addPopup(pInfo);
+				pInterface->addPopup(pInfo);
 			}
 		}
 		break;
@@ -2014,7 +2012,7 @@ void CvGame::doControl(ControlTypes eControl)
 		pInfo = new CvPopupInfo(BUTTONPOPUP_DIPLOMACY);
 		if (NULL != pInfo)
 		{
-			gDLL->getInterfaceIFace()->addPopup(pInfo);
+			pInterface->addPopup(pInfo);
 		}
 		break;
 
@@ -2086,7 +2084,9 @@ void CvGame::getGlobeLayers(std::vector<CvGlobeLayerData>& aLayers) const
 	kUnit.m_strName = "UNITS";
 	kUnit.m_strButtonHelpTag = "TXT_KEY_GLOBELAYER_UNITS";
 	kUnit.m_strButtonStyle = "Button_HUDGlobeUnit_Style";
-	kUnit.m_iNumOptions = NUM_UNIT_OPTION_TYPES;
+	kUnit.m_iNumOptions =
+			(GC.getDefineINT("SHOW_UNIT_LAYER_OPTIONS") <= 0 ? 0 : // advc.004z
+			NUM_UNIT_OPTION_TYPES);
 	kUnit.m_bGlobeViewRequired = false;
 	aLayers.push_back(kUnit);
 
@@ -2094,6 +2094,10 @@ void CvGame::getGlobeLayers(std::vector<CvGlobeLayerData>& aLayers) const
 	kResource.m_strName = "RESOURCES";
 	kResource.m_strButtonHelpTag = "TXT_KEY_GLOBELAYER_RESOURCES";
 	kResource.m_strButtonStyle = "Button_HUDBtnResources_Style";
+	/*  advc.004z (comment): Could check and enforce
+		getBugOptionBOOL("MainInterface__ResourceIconOptions", false)
+		here, but then the BUG option would require a restart. Therefore,
+		this is done in CvMainInterface.py (updateGlobeviewButtons) instead. */
 	kResource.m_iNumOptions = NUM_RESOURCE_OPTION_TYPES;
 	kResource.m_bGlobeViewRequired = false;
 	aLayers.push_back(kResource);

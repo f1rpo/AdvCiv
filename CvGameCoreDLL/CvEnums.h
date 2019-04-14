@@ -2783,7 +2783,10 @@ enum GlobeLayerTypes
 	GLOBE_LAYER_CULTURE,
 
 #ifdef _USRDLL
-	NUM_GLOBE_LAYER_TYPES
+	NUM_GLOBE_LAYER_TYPES,
+	// <advc.004m>
+	NO_GLOBE_LAYER,
+	GLOBE_LAYER_UNKNOWN // </advc.004m>
 #endif
 };
 

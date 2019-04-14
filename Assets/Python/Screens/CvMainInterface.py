@@ -5466,6 +5466,25 @@ class CvMainInterface:
 		kGLM = CyGlobeLayerManager()
 		#iNumLayers = kGLM.getNumLayers() # advc.003: unused
 		iCurrentLayerID = kGLM.getCurrentLayerID()
+		# <advc.004m>
+		# The layer id is meaningless to the DLL. Translate to enum type.
+		eCurrentLayerType = GlobeLayerTypes.NO_GLOBE_LAYER
+		if iCurrentLayerID >= 0:
+			szLayerName = kGLM.getLayer(iCurrentLayerID).getName()[:3]
+			if szLayerName == "STR":
+				eCurrentLayerType = GlobeLayerTypes.GLOBE_LAYER_STRATEGY
+			elif szLayerName == "TRA":
+				eCurrentLayerType = GlobeLayerTypes.GLOBE_LAYER_TRADE
+			elif szLayerName == "UNI":
+				eCurrentLayerType = GlobeLayerTypes.GLOBE_LAYER_UNIT
+			elif szLayerName == "RES":
+				eCurrentLayerType = GlobeLayerTypes.GLOBE_LAYER_RESOURCE
+			elif szLayerName == "REL":
+				eCurrentLayerType = GlobeLayerTypes.GLOBE_LAYER_RELIGION
+			elif szLayerName == "CUL":
+				eCurrentLayerType = GlobeLayerTypes.GLOBE_LAYER_CULTURE
+		gc.getGame().reportCurrentLayer(eCurrentLayerType)
+		# </advc.004m>
 
 		# Positioning things based on the visibility of the globe
 		if kEngine.isGlobeviewUp():
@@ -5492,9 +5511,10 @@ class CvMainInterface:
 		if kEngine.isGlobeviewUp() and CyInterface().getShowInterface() != InterfaceVisibility.INTERFACE_HIDE_ALL:
 			# set up panel
 			# <advc.004z>
-			bUnitLayer = (kGLM.getLayer(iCurrentLayerID).getName() == "UNITS")
-			# Clauses for RESOURCES and UNITS added. Would rather set NumOptions to 0, but GlobeLayerManager is not part of the SDK, apparently.
-			if iCurrentLayerID != -1 and kGLM.getLayer(iCurrentLayerID).getNumOptions() != 0 and (MainOpt.isResourceIconOptions() or kGLM.getLayer(iCurrentLayerID).getName() != "RESOURCES") and (gc.getDefineINT("SHOW_UNIT_LAYER_OPTIONS") > 0 or not bUnitLayer):
+			bUnitLayer = (eCurrentLayerType == GlobeLayerTypes.GLOBE_LAYER_UNIT)
+			bResourceLayer = (eCurrentLayerType == GlobeLayerTypes.GLOBE_LAYER_RESOURCE)
+			# Clause for the resource layer added. Could instead set NumOptions to 0 in CvGame::getGlobeLayers, but then the resource layer wouldn't update properly when ResourceIconOptions is toggled in the BUG menu.
+			if iCurrentLayerID >= 0 and kGLM.getLayer(iCurrentLayerID).getNumOptions() > 0 and (not bResourceLayer or MainOpt.isResourceIconOptions()):
 				# </advc.004z>
 				bHasOptions = True		
 			else:

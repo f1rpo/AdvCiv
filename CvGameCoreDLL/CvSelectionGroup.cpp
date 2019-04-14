@@ -329,71 +329,70 @@ void CvSelectionGroup::doTurnPost() {
 
 
 bool CvSelectionGroup::showMoves(
-		CvPlot const& fromPlot) const // advc.102
+		CvPlot const& kFromPlot) const // advc.102
 {
-	if (GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) || GC.getGameINLINE().isSimultaneousTeamTurns()
-			|| gDLL->getEngineIFace()->isGlobeviewUp()) // advc.102
+	if (GC.getGameINLINE().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) ||
+			GC.getGameINLINE().isSimultaneousTeamTurns())
 		return false;
 
 	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 	{
 		CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
-		// <advc.003> To reduce indentation
 		if(!kLoopPlayer.isAlive() || !kLoopPlayer.isHuman())
-			continue;
+			continue; // advc.003
 		CvUnit* pHeadUnit = getHeadUnit();
 		if(pHeadUnit == NULL)
-			continue; // </advc.003>
+			continue;
 		if (pHeadUnit->isEnemy(kLoopPlayer.getTeam()))
 		{
 			if (kLoopPlayer.isOption(PLAYEROPTION_SHOW_ENEMY_MOVES))
-			{
 				return true;
-			} // <advc.003>
 			else continue; 
 		}
 		if(!kLoopPlayer.isOption(PLAYEROPTION_SHOW_FRIENDLY_MOVES))
-			continue; // </advc.003>
+			continue;
 		// <advc.102> Hide uninteresting friendly moves
-		PlayerTypes groupOwner = m_eOwner;
-		TeamTypes spectator = kLoopPlayer.getTeam();
-		CvPlot const& toPlot = *plot();
-		PlayerTypes fromOwner = fromPlot.getOwnerINLINE();
-		PlayerTypes toOwner = toPlot.getOwnerINLINE();
-		bool isAwayFromHome = groupOwner != toOwner || groupOwner != fromOwner;
-		bool isInSpectatorsBorders = (fromOwner != NO_PLAYER &&
-				spectator == TEAMID(fromOwner)) || (toOwner != NO_PLAYER &&
-				spectator == TEAMID(toOwner));
-		bool showWorkers = GC.getDefineINT("SHOW_FRIENDLY_WORKER_MOVES"),
-			   showShips = GC.getDefineINT("SHOW_FRIENDLY_SEA_MOVES"),
-		  // Also refers to Executives; those have the same Unit AI
-		showMissionaries = GC.getDefineINT("SHOW_FRIENDLY_MISSIONARY_MOVES");
-		bool enteringOrLeaving = plot()->isVisible(spectator, false) !=
-				fromPlot.isVisible(spectator, false);
-		if(isInSpectatorsBorders) // Just to avoid cycling through the units
+		PlayerTypes eGroupOwner = m_eOwner;
+		TeamTypes eObs = kLoopPlayer.getTeam();
+		CvPlot const& kToPlot = *plot();
+		PlayerTypes eFromOwner = kFromPlot.getOwnerINLINE();
+		PlayerTypes eToOwner = kToPlot.getOwnerINLINE();
+		bool bAwayFromHome = (eGroupOwner != eToOwner || eGroupOwner != eFromOwner);
+		bool bInSpectatorsBorders = ((eFromOwner != NO_PLAYER &&
+				eObs == TEAMID(eFromOwner)) || (eToOwner != NO_PLAYER &&
+				eObs == TEAMID(eToOwner)));
+		bool bShowWorkers = GC.getDefineINT("SHOW_FRIENDLY_WORKER_MOVES"),
+			 bShowShips = GC.getDefineINT("SHOW_FRIENDLY_SEA_MOVES"),
+			// Also refers to Executives; those have the same Unit AI.
+			 bShowMissionaries = GC.getDefineINT("SHOW_FRIENDLY_MISSIONARY_MOVES");
+		bool bEnteringOrLeaving = (plot()->isVisible(eObs, false) != kFromPlot.isVisible(eObs, false));
+		if(bInSpectatorsBorders) // Just to avoid cycling through the units
 			return true;
-		if(showWorkers && showShips && showMissionaries)
+		if(bShowWorkers && bShowShips && bShowMissionaries)
 			return true;
-		for(CLLNode<IDInfo>* uNode = headUnitNode(); uNode != NULL;
-				uNode = nextUnitNode(uNode)) {
-			CvUnit& u = *(::getUnit(uNode->m_data));
-			bool isSeaUnit = u.getDomainType() == DOMAIN_SEA;
-			bool isCombatant = u.getUnitCombatType() != NO_UNITCOMBAT;
-			if(!isSeaUnit && isCombatant && !isAwayFromHome
-					&& plot()->getNumUnits() == 1)
+		for(CLLNode<IDInfo>* pNode = headUnitNode(); pNode != NULL; pNode = nextUnitNode(pNode)) {
+			CvUnit const* pLoopUnit = ::getUnit(pNode->m_data);
+			if(pLoopUnit == NULL) {
+				FAssert(false); // An invalid unit id while the stack is moving would be strange
+				continue;
+			}
+			CvUnit const& u = *pLoopUnit;
+			bool bSeaUnit = u.getDomainType() == DOMAIN_SEA;
+			bool bCombatant = u.getUnitCombatType() != NO_UNITCOMBAT;
+			if(!bSeaUnit && bCombatant && !bAwayFromHome && plot()->getNumUnits() == 1)
 				break;
-			bool isWorker = (u.AI_getUnitAIType() == UNITAI_WORKER ||
+			bool bWorker = (u.AI_getUnitAIType() == UNITAI_WORKER ||
 					u.AI_getUnitAIType() == UNITAI_WORKER_SEA);
-			bool isNonCargoShip = (isSeaUnit && !u.isHuman() &&
+			bool bNonTransportShip = (bSeaUnit && !u.isHuman() &&
 					(u.cargoSpace() <= 1 || AI_getMissionAIType() == MISSIONAI_PATROL));
-			bool isMissionary = u.AI_getUnitAIType() == UNITAI_MISSIONARY;
-			if(!isMissionary && isAwayFromHome && (!isSeaUnit ||
-					!isNonCargoShip || showShips || enteringOrLeaving))
+			bool bMissionary = (u.AI_getUnitAIType() == UNITAI_MISSIONARY);
+			if(!bMissionary && bAwayFromHome && (!bSeaUnit ||
+					!bNonTransportShip || bShowShips || bEnteringOrLeaving))
 				return true;
-			if((isWorker && showWorkers) || (isNonCargoShip && showShips &&
-					enteringOrLeaving) || (isMissionary && showMissionaries))
+			if((bWorker && bShowWorkers) || (bNonTransportShip && bShowShips &&
+					bEnteringOrLeaving) || (bMissionary && bShowMissionaries))
 				return true;
-			if(!isWorker && !isNonCargoShip && !isMissionary)
+			if(!bWorker && !bNonTransportShip && !bMissionary)
 				return true;
 			// </advc.102>
 		}
@@ -1624,32 +1623,36 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps) // advc.003: refactored
 		}
 	}
 
-	if (bAction)
-	{	//if (bDone || !canAllMove())
-		if (bDone || !readyForMission()) // K-Mod (I don't think this actually matters)
-		{	// <advc.102> Previously only DestVisible was checked
-			bool bDestVisible = plot()->isVisibleToWatchingHuman();
-			bool bStartVisible = pFromPlot->isVisibleToWatchingHuman();
-			if(bDestVisible || (bStartVisible && m->bInitiallyVisible)) {
-				// Pass fromPlot
-				updateMissionTimer(iSteps, pFromPlot);
-				if(showMoves(*pFromPlot) // </advc.102>
-						&& g.getActivePlayer() != NO_PLAYER
-						&& getOwnerINLINE() != g.getActivePlayer())
-				{
-					// <advc.102> Show FromPlot when moving out of sight
-					bool bDestActiveVisible = !isInvisible(g.getActiveTeam());
-					bool bStartActiveVisible = bDestActiveVisible &&
-							pFromPlot->isActiveVisible(false);
-					bDestActiveVisible = bDestActiveVisible &&
-							plot()->isActiveVisible(false);
-					if(bDestActiveVisible && bDestVisible) // </advc.102>
-						gDLL->getInterfaceIFace()->lookAt(plot()->getPoint(), CAMERALOOKAT_NORMAL);
-					// <advc.102>
-					else if(bStartActiveVisible && bStartVisible)
-						gDLL->getInterfaceIFace()->lookAt(pFromPlot->getPoint(), CAMERALOOKAT_NORMAL);
-					// </advc.102>
+	if (bAction &&
+			//(bDone || !canAllMove())
+			(bDone || !readyForMission())) // K-Mod (I don't think this actually matters)
+	{	// <advc.102>
+		bool bDestVisible = plot()->isVisibleToWatchingHuman();
+		bool bStartVisible = pFromPlot->isVisibleToWatchingHuman();
+		// Previously only DestVisible was checked
+		if(bDestVisible || (bStartVisible && m->bInitiallyVisible)) {
+			// Pass pFromPlot
+			updateMissionTimer(iSteps, pFromPlot);
+			if(showMoves(*pFromPlot)
+					&& g.getActivePlayer() != NO_PLAYER
+					&& getOwnerINLINE() != g.getActivePlayer()) {
+				// Show FromPlot when moving out of sight
+				bool bDestActiveVisible = !isInvisible(g.getActiveTeam());
+				bool bStartActiveVisible = (bDestActiveVisible &&
+						pFromPlot->isActiveVisible(false));
+				bDestActiveVisible = (bDestActiveVisible &&
+						plot()->isActiveVisible(false));
+				CvDLLInterfaceIFaceBase* pInterface = gDLL->getInterfaceIFace();
+				if(gDLL->getEngineIFace()->isGlobeviewUp()) {
+					if(bDestActiveVisible && g.getCurrentLayer() == GLOBE_LAYER_UNIT)
+						pInterface->setDirty(GlobeLayer_DIRTY_BIT, true);
 				}
+				else {
+					if(bDestActiveVisible && bDestVisible)
+						pInterface->lookAt(plot()->getPoint(), CAMERALOOKAT_NORMAL);
+					else if(bStartActiveVisible && bStartVisible)
+						pInterface->lookAt(pFromPlot->getPoint(), CAMERALOOKAT_NORMAL);
+				} // </advc.102>
 			}
 		}
 	}
@@ -4041,14 +4044,17 @@ void CvSelectionGroup::changeMissionTimer(int iChange)
 
 
 void CvSelectionGroup::updateMissionTimer(int iSteps,
-		CvPlot* fromPlot) // advc.102
+		CvPlot* pFromPlot) // advc.102
 {
 	CvUnit* pTargetUnit;
 	CvPlot* pTargetPlot;
 	int iTime;
 
-	if (!isHuman() && !showMoves(
-			fromPlot == NULL ? *plot() : *fromPlot)) // advc.102
+	if (!isHuman() && (!showMoves( // <advc.102>
+			pFromPlot == NULL ? *plot() : *pFromPlot) ||
+			// Are these timers synchronized?
+			(!GC.getGameINLINE().isNetworkMultiPlayer() &&
+			gDLL->getEngineIFace()->isGlobeviewUp()))) // </advc.102>
 	{
 		iTime = 0;
 	}

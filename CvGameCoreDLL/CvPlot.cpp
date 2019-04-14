@@ -3755,7 +3755,7 @@ void CvPlot::removeGoody()
 {
 	setImprovementType(NO_IMPROVEMENT);
 	// <advc.004z>
-	if(GC.getGameINLINE().isResourceLayer() && isVisibleToWatchingHuman())
+	if(GC.getGameINLINE().getCurrentLayer() == GLOBE_LAYER_RESOURCE && isVisibleToWatchingHuman())
 		gDLL->getInterfaceIFace()->setDirty(GlobeLayer_DIRTY_BIT, true);
 	// </advc.004z>
 }

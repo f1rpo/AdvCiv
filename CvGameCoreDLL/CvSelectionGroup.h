@@ -29,8 +29,7 @@ public:
 
 	void doTurn();
 	void doTurnPost(); // advc.004l
-	bool showMoves( // <advc.102>
-			CvPlot const& fromPlot) const;
+	bool showMoves( /* <advc.102> */ CvPlot const& kFromPlot) const;
 	void setInitiallyVisible(bool b); // </advc.102>
 
 	void updateTimers();
@@ -155,8 +154,7 @@ public:
 	int getMissionTimer() const;
 	void setMissionTimer(int iNewValue);
 	void changeMissionTimer(int iChange);
-	void updateMissionTimer(int iSteps = 0,
-		CvPlot* fromPlot = NULL); // advc.102
+	void updateMissionTimer(int iSteps = 0, /* advc.102: */ CvPlot* pFromPlot = NULL);
 
 	inline bool isForceUpdate() { return m_bForceUpdate; } // K-Mod made inline
 	inline void setForceUpdate(bool bNewValue) { m_bForceUpdate = bNewValue; } // K-Mod made inline

@@ -438,9 +438,7 @@ void CvGame::showDawnOfMan() {
 
 	if(getActivePlayer() == NO_PLAYER)
 		return;
-	// This appears to require an argument, and I've no clue which
-	//gDLL->getPythonIFace()->callFunction("CvScreensInterface", "showDawnOfMan");
-	// Instead (based on CvAllErasDawnOfManScreenEventManager.py):
+	// Based on CvAllErasDawnOfManScreenEventManager.py
 	CvPopupInfo* dom = new CvPopupInfo();
 	dom->setButtonPopupType(BUTTONPOPUP_PYTHON_SCREEN);
 	dom->setText(L"showDawnOfMan");
@@ -776,8 +774,9 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	m_ActivePlayerCycledGroups.clear(); // K-Mod
 	m_bAITurn = false; // advc.106b
 	m_iTurnLoadedFromSave = -1; // advc.044
-	m_bResourceLayer = bConstructorCall; // advc.004m
-	m_bResourceLayerSet = false; // advc.003d
+	// <advc.004m>
+	m_eCurrentLayer = GLOBE_LAYER_UNKNOWN;
+	m_bLayerFromSavegame = false; // </advc.004m>
 	m_bFeignSP = false; // advc.135c
 	m_bDoMShown = false; // advc.004x
 }
@@ -2526,10 +2525,9 @@ void CvGame::update()
 				autoSave(true); // advc.106l
 			/* <advc.004m> This seems to be the earliest place where bubbles can
 			   be enabled w/o crashing. */
-			if(bStartTurn && getBugOptionBOOL("MainInterface__StartWithResourceIcons", true)) {
-				m_bResourceLayer = true;
+			if(bStartTurn && getBugOptionBOOL("MainInterface__StartWithResourceIcons", true))
 				gDLL->getEngineIFace()->setResourceLayer(true);
-			} // </advc.004m>
+			// </advc.004m>
 		}
 
 		if (getNumGameTurnActive() == 0)
@@ -2572,13 +2570,6 @@ void CvGame::update()
 		} // <advc.705>
 		if(isOption(GAMEOPTION_RISE_FALL))
 			m_riseFall.restoreDiploText(); // </advc.705>
-		// <advc.003d>
-		if(!m_bResourceLayerSet) {
-			gDLL->getEngineIFace()->setResourceLayer(isResourceLayer());
-			/*  This flag is only for performance - who knows how long the
-				line above takes (even if bOn already equals bResourceLayer). */
-			m_bResourceLayerSet = true;
-		} // </advc.003d>
 	}
 	PROFILE_END();
 	stopProfilingDLL(false);
@@ -9474,7 +9465,11 @@ void CvGame::read(FDataStreamBase* pStream)
 	pStream->Read((int*)&m_eWinner);
 	pStream->Read((int*)&m_eVictory);
 	pStream->Read((int*)&m_eGameState);
-
+	// <advc.004m>
+	if(uiFlag >= 5) {
+		pStream->Read((int*)&m_eCurrentLayer);
+		m_bLayerFromSavegame = true;
+	} // </advc.004m>
 	pStream->ReadString(m_szScriptData);
 
 	if (uiFlag < 1)
@@ -9669,6 +9664,7 @@ void CvGame::write(FDataStreamBase* pStream)
 	uiFlag = 2; // advc.701: R&F option
 	uiFlag = 3; // advc.052
 	uiFlag = 4; // advc.003b: Civs and teams EverAlive tracked
+	uiFlag = 5; // advc.004m
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iElapsedGameTurns);
@@ -9717,6 +9713,7 @@ void CvGame::write(FDataStreamBase* pStream)
 	pStream->Write(m_eWinner);
 	pStream->Write(m_eVictory);
 	pStream->Write(m_eGameState);
+	pStream->Write(m_eCurrentLayer); // advc.004m
 
 	pStream->WriteString(m_szScriptData);
 
@@ -9863,10 +9860,7 @@ void CvGame::allGameDataRead() {
 // Called once the EXE signals that graphics have been initialized (w/e that means exactly)
 void CvGame::onGraphicsInitialized() {
 
-	// advc.004m:
-	m_bResourceLayer = getBugOptionBOOL("MainInterface__StartWithResourceIcons", true);
-	/*  (This causes the resource layer to be disabled when returning to the
-		main menu rather than remembering the latest status.) */
+	// (Nothing to be done here currently)
 }
 // </advc.003>
 
@@ -11289,14 +11283,27 @@ double CvGame::goodyHutEffectFactor(
 } // </advc.314>
 
 // <advc.004m>
-bool CvGame::isResourceLayer() const {
+GlobeLayerTypes CvGame::getCurrentLayer() const {
 
-	return m_bResourceLayer;
+	return m_eCurrentLayer;
 }
 
-void CvGame::reportResourceLayerToggled() {
+// Used by CvMainInterface.py to tell the DLL which layer is active
+void CvGame::reportCurrentLayer(GlobeLayerTypes eLayer) {
 
-	m_bResourceLayer = !m_bResourceLayer;
+	if(m_bLayerFromSavegame && eLayer != m_eCurrentLayer) {
+		m_bLayerFromSavegame = false;
+		/*  Can only enable the Resource and Unit layer from the DLL. That should
+			suffice as the others are only available in Globe view and we're not
+			in Globe view right after loading.
+			(Could call CyGlobeLayerManager.setCurrentLayer via Python to set a
+			Globe-only layer. Would have to write a Python function that first uses
+			CyGlobeLayerManager to figure out the proper layer id based on m_eCurrentLayer.) */
+		gDLL->getEngineIFace()->setResourceLayer(m_eCurrentLayer == GLOBE_LAYER_RESOURCE);
+		if(m_eCurrentLayer == GLOBE_LAYER_UNIT || eLayer == GLOBE_LAYER_UNIT)
+			gDLL->getEngineIFace()->toggleUnitLayer(); // No setter available
+	}
+	else m_eCurrentLayer = eLayer;
 } // </advc.004m>
 
 // <advc.127b>
