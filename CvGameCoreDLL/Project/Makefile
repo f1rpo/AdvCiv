@@ -8,6 +8,11 @@
 ####  Copyright 2010 Danny Daemonic  ####
 #########################################
 
+# advc: Target 'DebugMem' added: an almost-Release build that is less likely than a
+# Debug build to obscure accesses to uninitialized memory.
+# YOURMOD2 and YOURLOGS (see under "Paths"). WX added to GLOBAL_CFLAGS.
+# Internal profiler enabled (FP_PROFILE_ENABLE, USE_INTERNAL_PROFILER).
+# devolution has added the target 'Final_Release' with additional optimizations.
 
 ## User setup
 ##
@@ -26,19 +31,28 @@
 
 
 #### Paths ####
-#
 # Note: Edit Makefile.settings instead and add it to .gitignore
 # Note: $(PROGRAMFILES) converts to "C:\Program Files", "C:\Program Files (x86)" or whatever fits your system.
 # run "nmake.exe /P" in cmd.exe to see what it is on your system
+#
 #TOOLKIT=$(PROGRAMFILES)\Microsoft Visual C++ Toolkit 2003
 #PSDK=$(PROGRAMFILES)\Microsoft SDKs\Windows\v7.0A
-## Uncomment to have newly compiled dlls copied to your mod's Assets directory
-#YOURMOD=..
-
+#
 ## Civ install path
 ## Path to the directory where boost and python is stored
 ## Overwritten by enviroment variable CIV4_LIB_INSTALL_PATH
+#CIV4_PATH=$(PROGRAMFILES)\Sid Meier's Civilization 4\Beyond the Sword
 #CIV4_PATH=$(PROGRAMFILES)\2K Games\Firaxis Games\Sid Meier's Civilization IV Colonization\CvGameCoreDLL
+#
+## Optional:
+# To have newly compiled dlls copied to your mod's Assets directory
+#YOURMOD=..
+# When the same DLL is used for a second mod
+#YOURMOD2=$(PROGRAMFILES)\Sid Meier's Civilization 4\Beyond the Sword\Mods\ModName
+# To have logs deleted after compilation
+# Warning: Make double sure to set the right path and not to move any valuable file
+# with .log extension there. Or better don't use it at all.
+#YOURLOGS=C:\Users\Administrator\Documents\My Games\Beyond the Sword\Logs
 
 #### Tools ####
 CC="$(TOOLKIT)\bin\cl.exe"
@@ -51,17 +65,16 @@ FD="bin\fastdep.exe"
 
 #### BLACKLIST ####
 ## Uncomment to block CvTextScreen (accidentally included by Firaxis)
-BLACKLIST=CvTextScreens
+# BLACKLIST=CvTextScreens
 
 #### DEFINES ####
-## copy the following lines into "Additional options" in NMAKE properties
-## This will make VC++ aware of what is defined and what isn't, which affects the help popup and red lines
-## Use Release_DEFINES for all targets except debug
-## Assert adds /DFASSERT_ENABLE, which should be added to additional options too, if you care.
-## However you will only be able to tell a difference if you do something with asserts other than FAssert() or FAssertMsg()
-
 Debug_DEFINES=/DWIN32 /D_WINDOWS /D_USRDLL /DCVGAMECOREDLL_EXPORTS /D_DEBUG
 Release_DEFINES=/DWIN32 /D_WINDOWS /D_USRDLL /DCVGAMECOREDLL_EXPORTS /DNDEBUG /DFINAL_RELEASE
+## Optional: Copy the flags above into "Additional options" in NMAKE properties (Configuration Properties)
+## to make VC++ aware of what is defined and what isn't, which affects the help popup and red lines.
+## Use the Release_DEFINES for all targets except debug. Assert adds /DFASSERT_ENABLE,
+## which should be added to additional options too, if you care; however you will
+## only be able to tell a difference if you do something with asserts other than FAssert() or FAssertMsg().
 
 #### You shouldn't need to modify anything beyond this point ####
 #################################################################
@@ -150,8 +163,10 @@ CUSTOM_LDFLAGS =
 FILE_DEPENDS = $(TEMP_TARGET_FILES)\depends
 
 #### CFLAGS ####
-GLOBAL_CFLAGS=/GR /Gy /W3 /EHsc /Gd /Gm- /Fd"$(Target_PDB)" $(CUSTOM_CFLAGS) $(PROJECT_CFLAGS)
+GLOBAL_CFLAGS=/GR /Gy /W3 /WX /EHsc /Gd /Gm- /Fd"$(Target_PDB)" $(CUSTOM_CFLAGS) $(PROJECT_CFLAGS)
 Debug_CFLAGS=/MD /Zi /Od /RTC1 $(Debug_DEFINES) $(GLOBAL_CFLAGS)
+# (DebugMem: Using Debug_CFLAGS without /D_DEBUG /RTC1 might accomplish largely the same)
+DebugMem_CFLAGS=/MD /O2 /Zi /Oi /G7 $(Release_DEFINES) $(GLOBAL_CFLAGS)
 Release_CFLAGS= /MD /O2 /Oy /Oi /G7 $(Release_DEFINES) $(GLOBAL_CFLAGS)
 Final_Release_CFLAGS= /MD /O2 /Oy /Oi /G7 /arch:SSE2 /GL $(Release_DEFINES) $(GLOBAL_CFLAGS)
 
@@ -202,6 +217,12 @@ CFLAGS  = $(Debug_CFLAGS)
 LDFLAGS = $(Debug_LDFLAGS)
 LIBS    = $(LIBS) msvcprt.lib
 !ENDIF
+!IF "$(TARGET)" == "DebugMem"
+CFLAGS  = $(DebugMem_CFLAGS) /DFASSERT_ENABLE
+LDFLAGS = $(Debug_LDFLAGS)
+# Leaving out msvcprt might help with debugging memory (but I doubt it)
+LIBS    = $(LIBS) msvcprt.lib
+!ENDIF
 !IF "$(TARGET)" == "Release"
 CFLAGS  = $(Release_CFLAGS)
 LDFLAGS = $(Release_LDFLAGS)
@@ -214,7 +235,7 @@ LDFLAGS = $(Release_LDFLAGS)
 !IFNDEF _NMAKE_VER
 !ERROR Jom can't be used on profile builds
 !ENDIF
-CFLAGS  = $(Release_CFLAGS) /Zi
+CFLAGS  = $(Release_CFLAGS) /Zi /DFP_PROFILE_ENABLE /DUSE_INTERNAL_PROFILER
 LDFLAGS = $(Debug_LDFLAGS)
 !ENDIF
 !IF "$(TARGET)" == "Final_Release"
@@ -253,6 +274,13 @@ build: $(Target_BIN)
 !IFDEF YOURMOD
 	-COPY "$(Target_BIN)" "$(YOURMOD)\Assets\."
 !ENDIF
+!IFDEF YOURMOD2
+	-COPY "$(Target_BIN)" "$(YOURMOD2)\Assets\."
+!ENDIF
+!IFDEF YOURLOGS
+	-FOR %i IN ("$(YOURLOGS)"\*.log) DO @IF EXIST "%i" DEL "%i"
+!ENDIF
+
 
 precompile: Make_Dir Target_unfinished $(Target_PCH)
 

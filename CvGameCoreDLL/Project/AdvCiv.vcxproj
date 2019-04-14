@@ -13,6 +13,10 @@
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
+	<ProjectConfiguration Include="DebugMem|Win32">
+      <Configuration>DebugMem</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Profile|Win32">
       <Configuration>Profile</Configuration>
       <Platform>Win32</Platform>
@@ -31,6 +35,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\AdvCiv4lerts.cpp" />
+    <ClCompile Include="..\ArmamentForecast.cpp" />
     <ClCompile Include="..\BetterBTSAI.cpp" />
     <ClCompile Include="..\CvArea.cpp" />
     <ClCompile Include="..\CvArtFileMgr.cpp" />
@@ -41,6 +47,7 @@
     <ClCompile Include="..\CvDiploParameters.cpp" />
     <ClCompile Include="..\CvDLLButtonPopup.cpp" />
     <ClCompile Include="..\CvDLLEntity.cpp" />
+    <ClCompile Include="..\CvDLLInterfaceIBase2.cpp" />
     <ClCompile Include="..\CvDLLPython.cpp" />
     <ClCompile Include="..\CvDllPythonEvents.cpp" />
     <ClCompile Include="..\CvDllTranslator.cpp" />
@@ -130,12 +137,29 @@
     <ClCompile Include="..\CyUnit.cpp" />
     <ClCompile Include="..\CyUnitInterface1.cpp" />
     <ClCompile Include="..\FDialogTemplate.cpp" />
+    <ClCompile Include="..\InvasionGraph.cpp" />
     <ClCompile Include="..\KmodPathFinder.cpp" />
     <ClCompile Include="..\FAssert.cpp" />
+    <ClCompile Include="..\MilitaryAnalyst.cpp" />
+    <ClCompile Include="..\MilitaryBranch.cpp" />
+    <ClCompile Include="..\RFChapter.cpp" />
+    <ClCompile Include="..\RFChapterScore.cpp" />
+    <ClCompile Include="..\RFTotalScore.cpp" />
+    <ClCompile Include="..\RiseFall.cpp" />
+    <ClCompile Include="..\Shelf.cpp" />
+    <ClCompile Include="..\StartPointsAsHandicap.cpp" />
+    <ClCompile Include="..\WarAndPeaceAI.cpp" />
+    <ClCompile Include="..\WarAndPeaceCache.cpp" />
+    <ClCompile Include="..\WarAndPeaceReport.cpp" />
+    <ClCompile Include="..\WarEvalParameters.cpp" />
+    <ClCompile Include="..\WarEvaluator.cpp" />
+    <ClCompile Include="..\WarUtilityAspect.cpp" />
     <ClCompile Include="..\_precompile.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\AdvCiv4lerts.h" />
     <ClInclude Include="..\AI_Defines.h" />
+    <ClInclude Include="..\ArmamentForecast.h" />
     <ClInclude Include="..\BetterBTSAI.h" />
     <ClInclude Include="..\CvArea.h" />
     <ClInclude Include="..\CvArtFileMgr.h" />
@@ -231,13 +255,31 @@
     <ClInclude Include="..\FInputDevice.h" />
     <ClInclude Include="..\FProfiler.h" />
     <ClInclude Include="..\FVariableSystem.h" />
+    <ClInclude Include="..\InvasionGraph.h" />
     <ClInclude Include="..\KmodPathFinder.h" />
     <ClInclude Include="..\LinkedList.h" />
+    <ClInclude Include="..\MilitaryAnalyst.h" />
+    <ClInclude Include="..\MilitaryBranch.h" />
     <ClInclude Include="..\resource.h" />
+    <ClInclude Include="..\RFChapter.h" />
+    <ClInclude Include="..\RFChapterScore.h" />
+    <ClInclude Include="..\RFTotalScore.h" />
+    <ClInclude Include="..\RiseFall.h" />
+    <ClInclude Include="..\Shelf.h" />
+    <ClInclude Include="..\StartPointsAsHandicap.h" />
+    <ClInclude Include="..\WarAndPeaceAI.h" />
+    <ClInclude Include="..\WarAndPeaceCache.h" />
+    <ClInclude Include="..\WarAndPeaceReport.h" />
+    <ClInclude Include="..\WarEvalParameters.h" />
+    <ClInclude Include="..\WarEvaluator.h" />
+    <ClInclude Include="..\WarUtilityAspect.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\FVariableSystem.inl" />
     <None Include="..\interfaceDirtyBits.inl" />
+    <None Include="Makefile" />
+    <None Include="Makefile.project" />
+    <None Include="Makefile.settings" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\CvGameCoreDLL.rc" />
@@ -248,6 +290,10 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Makefile</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugMem|Win32'" Label="Configuration">
     <ConfigurationType>Makefile</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
   </PropertyGroup>
@@ -286,6 +332,9 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='DebugMem|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -319,6 +368,21 @@ nmake dll /NOLOGO</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>set TARGET=Debug
 nmake clean  /NOLOGO</NMakeCleanCommandLine>
     <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /DCVGAMECOREDLL_EXPORTS /D_DEBUG /DUSE_DATA_DIR</AdditionalOptions>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DebugMem|Win32'">
+    <NMakePreprocessorDefinitions>WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
+    <NMakeBuildCommandLine>set TARGET=DebugMem
+nmake source_list /NOLOGO
+nmake fastdep /NOLOGO
+nmake dll  /NOLOGO</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine>set TARGET=DebugMem
+nmake clean  /NOLOGO
+nmake source_list /NOLOGO
+nmake fastdep /NOLOGO
+nmake dll /NOLOGO</NMakeReBuildCommandLine>
+    <NMakeCleanCommandLine>set TARGET=DebugMem
+nmake clean  /NOLOGO</NMakeCleanCommandLine>
+    <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /DCVGAMECOREDLL_EXPORTS /DNDEBUG /DFINAL_RELEASE /DUSE_DATA_DIR</AdditionalOptions>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Profile|Win32'">
     <NMakePreprocessorDefinitions>WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
@@ -415,6 +479,10 @@ bin\jom build</NMakeReBuildCommandLine>
     <NMakeCleanCommandLine>set TARGET=Final_Release
 nmake clean /NOLOGO</NMakeCleanCommandLine>
     <AdditionalOptions>/DWIN32 /D_WINDOWS /D_USRDLL /DCVGAMECOREDLL_EXPORTS /DNDEBUG /DFINAL_RELEASE /DUSE_DATA_DIR</AdditionalOptions>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LocalDebuggerEnvironment>_NO_DEBUG_HEAP=1</LocalDebuggerEnvironment>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 
   <ItemDefinitionGroup>
