@@ -2,6 +2,9 @@
 
 #include "CvGameCoreDLL.h"
 #include "ArmamentForecast.h"
+#include "CvGameAI.h"
+#include "CvTeamAI.h"
+#include "CvMap.h"
 #include <sstream>
 
 using std::vector;

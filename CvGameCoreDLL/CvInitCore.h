@@ -5,27 +5,9 @@
 #ifndef CIV4_INITCORE_H
 #define CIV4_INITCORE_H
 
-//#include "CvEnums.h"
-
 /*
 ** K-Mod, 8/dec/10, karadoc
-** moved this macro to CvGlobals.h (and modified it)
-*
-#define FASSERT_BOUNDS(lower,upper,index,fnString)\
-	if (index < lower)\
-	{\
-		char acOut[256];\
-		sprintf(acOut, "Index in %s expected to be >= %d", fnString, lower);\
-		FAssertMsg(index >= lower, acOut);\
-	}\
-	else if (index >= upper)\
-	{\
-		char acOut[256];\
-		sprintf(acOut, "Index in %s expected to be < %d", fnString, upper);\
-		FAssertMsg(index < upper, acOut);\
-	}
-**
-** K-Mod end
+** moved FASSERT_BOUNDS to CvGlobals.h (and modified it)
 */
 
 class CvInitCore

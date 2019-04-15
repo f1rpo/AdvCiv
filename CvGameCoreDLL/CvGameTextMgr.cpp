@@ -11,28 +11,26 @@
 //---------------------------------------------------------------------------------------
 
 #include "CvGameCoreDLL.h"
+#include "CvGameAI.h"
+#include "CvPlayerAI.h"
+#include "CvTeamAI.h"
 #include "CvGameTextMgr.h"
-#include "CvGameCoreUtils.h"
-#include "CvDLLUtilityIFaceBase.h"
-#include "CvDLLInterfaceIFaceBase.h"
-#include "CvDLLSymbolIFaceBase.h"
 #include "CvInfos.h"
 #include "CvXMLLoadUtility.h"
 #include "CvCity.h"
-#include "CvPlayerAI.h"
-#include "CvTeamAI.h"
+#include "CvArtFileMgr.h"
 #include "CvSelectionGroup.h"
 #include "CvMap.h"
-#include "CvArea.h"
-#include "CvPlot.h"
 #include "CvPopupInfo.h"
-#include "FProfiler.h"
 #include "CyArgsList.h"
-#include "CvDLLPythonIFaceBase.h"
 #include "CvBugOptions.h"
 // <advc.050>
 #include "CvInitCore.h"
 #include <sstream> // </advc.050>
+#include "CvDLLPythonIFaceBase.h"
+#include "CvDLLUtilityIFaceBase.h"
+#include "CvDLLInterfaceIFaceBase.h"
+#include "CvDLLSymbolIFaceBase.h"
 
 int shortenID(int iId)
 {
@@ -2166,9 +2164,9 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 						if (!pMissionPlot->isCity())
 						{
 							DirectionTypes eDirection = estimateDirection(
-									dxWrap(pMissionPlot->getX_INLINE() -
+									m.dxWrap(pMissionPlot->getX_INLINE() -
 									pCity->plot()->getX_INLINE()),
-									dyWrap(pMissionPlot->getY_INLINE() -
+									m.dyWrap(pMissionPlot->getY_INLINE() -
 									pCity->plot()->getY_INLINE()));
 							getDirectionTypeString(szTempString, eDirection);
 							szString.append(CvWString::format(L"%s of ",
@@ -2185,9 +2183,9 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 						if (pMissionPlot != &kPlot)
 						{
 							DirectionTypes eDirection = estimateDirection(
-									dxWrap(pMissionPlot->getX_INLINE() -
+									m.dxWrap(pMissionPlot->getX_INLINE() -
 									kPlot.getX_INLINE()),
-									dyWrap(pMissionPlot->getY_INLINE() -
+									m.dyWrap(pMissionPlot->getY_INLINE() -
 									kPlot.getY_INLINE()));
 							getDirectionTypeString(szTempString, eDirection);
 							szString.append(CvWString::format(L" (%s)", szTempString.GetCString()));

@@ -6,9 +6,6 @@
 // Python wrapper class for CvPlayer 
 // 
 
-//#include "CvEnums.h"
-//#include "CvStructs.h"
-
 class CyUnit;
 class CvPlayer;
 class CyCity;

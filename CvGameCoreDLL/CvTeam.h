@@ -7,8 +7,6 @@
 
 #include <queue> // dlph.26
 
-//#include "CvEnums.h"
-
 class CvArea;
 
 class CvTeam

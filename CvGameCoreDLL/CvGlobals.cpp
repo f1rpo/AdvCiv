@@ -3,22 +3,20 @@
 //
 #include "CvGameCoreDLL.h"
 #include "CvGlobals.h"
-#include "CvRandom.h"
 #include "CvGameAI.h"
-#include "CvDLLInterfaceIFaceBase.h"
-#include "CvMap.h"
 #include "CvPlayerAI.h"
 #include "CvTeamAI.h"
+#include "CvMap.h"
 #include "CvInfos.h"
-#include "CvDLLUtilityIFaceBase.h"
 #include "CvArtFileMgr.h"
-#include "CvDLLXMLIFaceBase.h"
 #include "CvPlayerAI.h"
 #include "CvInfoWater.h"
 #include "CvGameTextMgr.h"
-#include "FProfiler.h"
 #include "FVariableSystem.h"
 #include "CvInitCore.h"
+#include "CvDLLInterfaceIFaceBase.h"
+#include "CvDLLUtilityIFaceBase.h"
+#include "CvDLLXMLIFaceBase.h"
 
 #define COPY(dst, src, typeName) \
 	{ \

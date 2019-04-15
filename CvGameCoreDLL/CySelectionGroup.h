@@ -7,8 +7,6 @@
 //  
 //
 
-//#include "CvEnums.h"
-
 struct MissionData;
 
 class CyPlot;

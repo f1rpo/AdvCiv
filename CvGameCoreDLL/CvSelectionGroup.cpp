@@ -1,29 +1,24 @@
 // selectionGroup.cpp
 
 #include "CvGameCoreDLL.h"
-#include "CvGlobals.h"
 #include "CvSelectionGroup.h"
+#include "CvGameAI.h"
 #include "CvPlayerAI.h"
 #include "CvTeamAI.h"
 #include "CvUnit.h"
-#include "CvGameCoreUtils.h"
 #include "CvMap.h"
-#include "CvPlot.h"
-#include "CvDLLEntityIFaceBase.h"
-#include "CvDLLInterfaceIFaceBase.h"
-#include "CvDLLEngineIFaceBase.h" // advc.102
-#include "CvDLLFAStarIFaceBase.h"
+#include "BetterBTSAI.h"
 #include "FAStarNode.h"
 #include "CvInfos.h"
-#include "FProfiler.h"
+#include "CvEventReporter.h"
 #include "CyPlot.h"
 #include "CySelectionGroup.h"
 #include "CyArgsList.h"
 #include "CvDLLPythonIFaceBase.h"
-#include <set>
-#include "CvEventReporter.h"
-
-#include "BetterBTSAI.h"
+#include "CvDLLEntityIFaceBase.h"
+#include "CvDLLInterfaceIFaceBase.h"
+#include "CvDLLEngineIFaceBase.h" // advc.102
+#include "CvDLLFAStarIFaceBase.h"
 
 KmodPathFinder CvSelectionGroup::path_finder; // K-Mod
 
@@ -309,7 +304,7 @@ void CvSelectionGroup::doTurn()
 		}
 	}
 	// K-Mod
-	if (!bCouldAllMove && isCycleGroup(this))
+	if (!bCouldAllMove && isCycleGroup())
 		GET_PLAYER(getOwnerINLINE()).updateGroupCycle(this);
 	// K-Mod end
 

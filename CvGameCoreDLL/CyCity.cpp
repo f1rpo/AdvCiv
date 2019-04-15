@@ -8,7 +8,6 @@
 #include "CyArea.h"
 #include "CyUnit.h"
 #include "CvDLLPythonIFaceBase.h"
-#include "CvGlobals.h"
 
 CyCity::CyCity() : m_pCity(NULL)
 {

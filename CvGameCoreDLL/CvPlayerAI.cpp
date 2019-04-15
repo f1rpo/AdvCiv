@@ -2,35 +2,25 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvPlayerAI.h"
-#include "CvRandom.h"
-#include "CvGlobals.h"
-#include "CvGameCoreUtils.h"
-#include "CvMap.h"
-#include "CvArea.h"
-#include "CvPlot.h"
+#include "CvGameAI.h"
 #include "CvTeamAI.h"
-#include "CvGameCoreUtils.h"
+#include "BetterBTSAI.h"
+#include "CvMap.h"
 #include "CvDiploParameters.h"
 #include "CvInitCore.h"
+#include "CvInfos.h"
+#include "CvPopupInfo.h"
+#include "CvEventReporter.h"
 #include "CyArgsList.h"
+#include "FAStarNode.h"
+#include "CvDLLFAStarIFaceBase.h"
 #include "CvDLLInterfaceIFaceBase.h"
 #include "CvDLLEntityIFaceBase.h"
 #include "CvDLLPythonIFaceBase.h"
 #include "CvDLLEngineIFaceBase.h"
-#include "CvInfos.h"
-#include "CvPopupInfo.h"
-#include "FProfiler.h"
-#include "CvDLLFAStarIFaceBase.h"
-#include "FAStarNode.h"
-#include "CvEventReporter.h"
-
-#include "BetterBTSAI.h"
 #include <iterator> // advc.036
-// <k146>
-#include <vector>
-#include <set>
-#include <queue>
-// </k146>
+#include <queue> // k146
+
 //#define GREATER_FOUND_RANGE			(5)
 #define CIVIC_CHANGE_DELAY			(20) // was 25
 #define RELIGION_CHANGE_DELAY		(15)
@@ -14357,7 +14347,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		case UNITAI_ATTACK:
 			if (u.getCombat() > 0)
 			{
-				if (!::isMostlyDefensive(u)) // advc.315
+				if (!u.isMostlyDefensive()) // advc.315
 				{
 					bValid = true;
 				}
@@ -14367,7 +14357,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		case UNITAI_ATTACK_CITY:
 			if (u.getCombat() > 0)
 			{
-				if (!::isMostlyDefensive(u)) // advc.315
+				if (!u.isMostlyDefensive()) // advc.315
 				{
 					if (!u.isNoCapture())
 					{
@@ -14380,7 +14370,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		case UNITAI_COLLATERAL:
 			if (u.getCombat() > 0)
 			{
-				if (!::isMostlyDefensive(u)) // advc.315
+				if (!u.isMostlyDefensive()) // advc.315
 				{
 					if (u.getCollateralDamage() > 0)
 					{
@@ -14393,7 +14383,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		case UNITAI_PILLAGE:
 			if (u.getCombat() > 0)
 			{
-				if (!::isMostlyDefensive(u)) // advc.315
+				if (!u.isMostlyDefensive()) // advc.315
 				{
 					bValid = true;
 				}
@@ -14403,7 +14393,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		case UNITAI_RESERVE:
 			if (u.getCombat() > 0)
 			{
-				if (!::isMostlyDefensive(u)) // advc.315
+				if (!u.isMostlyDefensive()) // advc.315
 				{
 						bValid = true;
 					}
@@ -14413,7 +14403,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 		case UNITAI_COUNTER:
 			if (u.getCombat() > 0)
 			{
-				if (!::isMostlyDefensive(u)) // advc.315
+				if (!u.isMostlyDefensive()) // advc.315
 				{
 					if (u.getInterceptionProbability() > 0)
 					{
@@ -14922,7 +14912,7 @@ int CvPlayerAI::AI_unitValue(UnitTypes eUnit, UnitAITypes eUnitAI, CvArea* pArea
 				const CvUnitInfo& kLoopInfo = GC.getUnitInfo(eLoopUnit);
 
 				if (kLoopInfo.getDomainType() == DOMAIN_LAND && kLoopInfo.getCombat() > 0 &&
-						!::isMostlyDefensive(kLoopInfo)) // advc.315
+						!kLoopInfo.isMostlyDefensive()) // advc.315
 				{
 					if (kLoopInfo.getCombatLimit() < 100)
 						iLimitedUnits += getUnitClassCount(i);
@@ -16065,7 +16055,7 @@ int CvPlayerAI::AI_adjacentPotentialAttackers(CvPlot* pPlot, bool bTestCanMove) 
 							Explorer has OnlyAttackBarbarians and I don't think
 							the AI will or should use Explorers for any
 							coordinated attacks anyway. */
-						&& !::isMostlyDefensive(pLoopUnit->getUnitInfo()))
+						&& !pLoopUnit->getUnitInfo().isMostlyDefensive())
 				{
 					if (!bTestCanMove || pLoopUnit->canMove())
 					{
@@ -16684,7 +16674,7 @@ int CvPlayerAI::AI_localAttackStrength(const CvPlot* pTargetPlot, TeamTypes eAtt
 						if (!pLoopUnit->canAttack()) // bCheckCanAttack means something else.
 							continue;
 						// <advc.315> See comment in AI_adjacentPotentialAttackers
-						if(::isMostlyDefensive(pLoopUnit->getUnitInfo()))
+						if(pLoopUnit->getUnitInfo().isMostlyDefensive())
 							continue; // </advc.315>
 						if (bCheckMoves)
 						{
@@ -18481,10 +18471,11 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 				// K-Mod - both offensive & defensive use of spread culture mission. (The first "if" is really just for effeciency.)
 				if (pCity->calculateCulturePercent(getID()) >= 8)
 				{
-					const CvCity* pOurClosestCity = GC.getMap().findCity(pPlot->getX(), pPlot->getY(), getID());
+					CvMap& m = GC.getMapINLINE(); // advc.003
+					const CvCity* pOurClosestCity = m.findCity(pPlot->getX(), pPlot->getY(), getID());
 					if (pOurClosestCity != NULL)
 					{
-						int iDistance = pCity->cultureDistance(xDistance(pPlot->getX(), pOurClosestCity->getX()), yDistance(pPlot->getY(), pOurClosestCity->getY()));
+						int iDistance = pCity->cultureDistance(m.xDistance(pPlot->getX(), pOurClosestCity->getX()), m.yDistance(pPlot->getY(), pOurClosestCity->getY()));
 						if (iDistance < 6)
 						{	// advc.003:
 							int iPressure = std::max(pCity->AI().AI_culturePressureFactor() -
@@ -26125,7 +26116,7 @@ void CvPlayerAI::AI_convertUnitAITypesForCrush()
 		}*/
 		
 		if (!pLoopUnit->canAttack() || (pLoopUnit->AI_getUnitAIType() == UNITAI_CITY_SPECIAL)
-				|| ::isMostlyDefensive(pLoopUnit->getUnitInfo())) // advc.315
+				|| pLoopUnit->getUnitInfo().isMostlyDefensive()) // advc.315
 		{
 			bValid = false;
 		}
@@ -28031,7 +28022,7 @@ void CvPlayerAI::AI_doEnemyUnitData()
 					{
 						int tmp = ((pLoopUnit->canAttack() &&
 								// advc.315:
-								!::isMostlyDefensive(pLoopUnit->getUnitInfo())) ?
+								!pLoopUnit->getUnitInfo().isMostlyDefensive()) ?
 								4 : 1);
 						iUnitValue += tmp;
 						if (pLoopPlot->getCulture(getID()) > 0)

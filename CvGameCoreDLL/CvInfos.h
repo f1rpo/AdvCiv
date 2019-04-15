@@ -1008,6 +1008,10 @@ public:
 	void write(FDataStreamBase* );
 	#endif
 	bool read(CvXMLLoadUtility* pXML);
+	// <advc.315>
+	inline bool isMostlyDefensive() const {
+		return isOnlyDefensive() || isOnlyAttackAnimals() || isOnlyAttackBarbarians();
+	} // </advc.315>
 
 	//---------------------------------------PROTECTED MEMBER VARIABLES---------------------------------
 
@@ -1786,7 +1790,11 @@ public:
 	void write(FDataStreamBase*);
 	#endif
 	bool read(CvXMLLoadUtility* pXML);
-
+	// <advc.310>
+	static void setDomesticGreatGeneralRateModifierEnabled(bool b);
+	static void setGlobalTradeRoutesEnabled(bool b);
+	static void setAreaBorderObstacleEnabled(bool b);
+	// </advc.310>
 	//---------------------------------------PUBLIC MEMBER VARIABLES---------------------------------
 protected:
 
@@ -1960,6 +1968,11 @@ protected:
 /************************************************************************************************/
 /* UNOFFICIAL_PATCH                        END                                                  */
 /************************************************************************************************/
+	// <advc.310>
+	static bool m_bEnabledAreaBorderObstacle;
+	static bool m_bEnabledGlobalTradeRoutes;
+	static bool m_bEnabledDomesticGreatGeneralRateModifier;
+	// </advc.310>
 };
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

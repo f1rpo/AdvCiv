@@ -6,7 +6,6 @@
 // Python wrapper class for CvCity 
 // 
 
-//#include "CvEnums.h"
 #include <string>
 # include <boost/python/tuple.hpp>
 namespace python = boost::python;

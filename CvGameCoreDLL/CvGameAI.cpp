@@ -4,7 +4,6 @@
 #include "CvGameAI.h"
 #include "CvPlayerAI.h"
 #include "CvTeamAI.h"
-#include "CvGlobals.h"
 #include "CvInfos.h"
 // advc.137:
 #include "CvInitCore.h"

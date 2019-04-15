@@ -5,7 +5,6 @@
 #ifndef CIV4_PLOT_H
 #define CIV4_PLOT_H
 
-//#include "CvStructs.h"
 #include "LinkedList.h"
 #include <bitset>
 #include <set> // advc.300

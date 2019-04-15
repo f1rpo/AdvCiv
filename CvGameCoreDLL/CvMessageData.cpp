@@ -1,9 +1,13 @@
 #include "CvGameCoreDLL.h"
 #include "CvMessageData.h"
+#include "CvGameAI.h"
+#include "CvPlayerAI.h"
+#include "CvTeamAI.h"
+#include "CvEventReporter.h"
 #include "FDataStreamBase.h"
 #include "CvDLLUtilityIFaceBase.h"
 #include "CvDLLInterfaceIFaceBase.h"
-#include "CvEventReporter.h"
+
 
 CvMessageData* CvMessageData::createMessage(GameMessageTypes eType)
 {

@@ -10,23 +10,16 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvMap.h"
+#include "CvGameAI.h"
+#include "CvPlayerAI.h"
 #include "CvCity.h"
 #include "CvPlotGroup.h"
-#include "CvGlobals.h"
-#include "CvPlayerAI.h"
-#include "CvRandom.h"
-#include "CvGameCoreUtils.h"
 #include "CvFractal.h"
-#include "CvPlot.h"
-#include "CvGameCoreUtils.h"
-#include "CvMap.h"
 #include "CvMapGenerator.h"
 #include "FAStarNode.h"
 #include "CvInitCore.h"
 #include "CvInfos.h"
-#include "FProfiler.h"
 #include "CyArgsList.h"
-
 #include "CvDLLEngineIFaceBase.h"
 #include "CvDLLIniParserIFaceBase.h"
 #include "CvDLLFAStarIFaceBase.h"
@@ -1511,7 +1504,7 @@ void CvMap::calculateReprAreas() {
 			int const x = p.getX_INLINE();
 			int const y = p.getY_INLINE();
 			for(int j = 0; j < NUM_DIRECTION_TYPES; j++) {
-				CvPlot* qp = ::plotDirection(x, y, (DirectionTypes)j);
+				CvPlot* qp = plotDirection(x, y, (DirectionTypes)j);
 				if(qp == NULL)
 					continue;
 				CvPlot& q = *qp;
@@ -1559,7 +1552,7 @@ void CvMap::calculateAreas_DFS(CvPlot const& kStart) {
 		int const x = p.getX_INLINE();
 		int const y = p.getY_INLINE();
 		for(int i = 0; i < NUM_DIRECTION_TYPES; i++) {
-			CvPlot* qp = ::plotDirection(x, y, (DirectionTypes)i);
+			CvPlot* qp = plotDirection(x, y, (DirectionTypes)i);
 			if(qp == NULL)
 				continue;
 			CvPlot& q = *qp;

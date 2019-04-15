@@ -1,8 +1,11 @@
 
-
 #include "CvGameCoreDLL.h"
 #include "KmodPathFinder.h"
-#include "CvGameCoreUtils.h"
+#include "CvGameAI.h"
+#include "CvTeamAI.h"
+#include "CvInfos.h"
+#include "CvSelectionGroup.h"
+#include "CvMap.h"
 
 int KmodPathFinder::admissible_scaled_weight = 1;
 int KmodPathFinder::admissible_base_weight = 1;

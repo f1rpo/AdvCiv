@@ -2,12 +2,11 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvInitCore.h"
-#include "CvDLLPythonIFaceBase.h"
+#include "CvPlayerAI.h"
 #include "CyArgsList.h"
 #include "CvInfos.h"
-#include "CvGlobals.h"
+#include "CvDLLPythonIFaceBase.h"
 #include "CvDLLUtilityIFaceBase.h"
-#include "CvGameCoreUtils.h"
 #include "CvDLLInterfaceIFaceBase.h" // advc.001m
 
 // Public Functions...

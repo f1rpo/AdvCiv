@@ -2,40 +2,25 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvUnit.h"
-#include "CvArea.h"
-#include "CvPlot.h"
-#include "CvCity.h"
-#include "CvGlobals.h"
-#include "CvGameCoreUtils.h"
-#include "CvMap.h"
+#include "CvGameAI.h"
 #include "CvPlayerAI.h"
-#include "CvRandom.h"
 #include "CvTeamAI.h"
-#include "CvGameCoreUtils.h"
+#include "CvCity.h"
+#include "CvMap.h"
 #include "CyUnit.h"
 #include "CyArgsList.h"
 #include "CyPlot.h"
+#include "CvInfos.h"
+#include "CvPopupInfo.h"
+#include "CvArtFileMgr.h"
+#include "BetterBTSAI.h" // BETTER_BTS_AI_MOD, AI logging, 02/24/10, jdog5000
+#include "CvBugOptions.h" // advc.002e
 #include "CvDLLEntityIFaceBase.h"
 #include "CvDLLInterfaceIFaceBase.h"
 #include "CvDLLEngineIFaceBase.h"
 #include "CvEventReporter.h"
 #include "CvDLLPythonIFaceBase.h"
 #include "CvDLLFAStarIFaceBase.h"
-#include "CvInfos.h"
-#include "FProfiler.h"
-#include "CvPopupInfo.h"
-#include "CvArtFileMgr.h"
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      02/24/10                                jdog5000      */
-/* AI logging                                                                                   */
-/************************************************************************************************/
-#include "BetterBTSAI.h"
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-#include "CvBugOptions.h" // advc.002e
-
-// Public Functions...
 
 
 CvUnit::CvUnit()
@@ -13822,7 +13807,7 @@ bool CvUnit::canApplyEvent(EventTypes eEvent) const
 	{
 		if (!canAttack()
 				// advc.315: Farm Bandits and Toxcatl random events
-				|| ::isMostlyDefensive(*m_pUnitInfo))
+				|| m_pUnitInfo->isMostlyDefensive())
 		{
 			return false;
 		}

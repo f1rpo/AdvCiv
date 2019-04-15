@@ -3,11 +3,12 @@
 #ifndef RISE_FALL_H
 #define RISE_FALL_H
 
-#include "CvString.h"
 #include "RFChapter.h"
 #include "RFTotalScore.h"
 
 class CvPopup;
+class CvDiplomacyResponse;
+class CvWString;
 
 // <advc.700>: Main class for the Rise & Fall mod component
 class RiseFall {

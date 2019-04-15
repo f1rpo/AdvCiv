@@ -1,7 +1,10 @@
 // <advc.700> New class; see header file for description.
 
-#include "RFChapterScore.h"
 #include "CvGameCoreDLL.h"
+#include "RFChapterScore.h"
+#include "CvGameAI.h"
+#include "CvPlayerAI.h"
+#include "CvTeamAI.h"
 
 
 RFChapterScore::RFChapterScore() {

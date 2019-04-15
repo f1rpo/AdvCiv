@@ -5,7 +5,6 @@
 #ifndef CIV4_AREA_H
 #define CIV4_AREA_H
 
-//#include "CvStructs.h"
 
 class CvCity;
 class CvPlot;

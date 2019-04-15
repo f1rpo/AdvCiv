@@ -3,6 +3,9 @@
 #include "CvGameCoreDLL.h"
 #include "RFTotalScore.h"
 #include "RFChapterScore.h"
+#include "CvGameAI.h"
+#include "CvPlayerAI.h"
+#include "CvTeamAI.h"
 
 
 RFTotalScore::RFTotalScore() {
@@ -91,7 +94,7 @@ void RFTotalScore::update(std::vector<RFChapter*> const& chapters) {
 		}
 	}
 	int victoryBase = 150;
-	CvGame& g = GC.getGame();
+	CvGame& g = GC.getGameINLINE();
 	if(g.getGameState() != GAMESTATE_ON) {
 		// Once we know that the human player doesn't win
 		TeamTypes winner = g.getWinner();

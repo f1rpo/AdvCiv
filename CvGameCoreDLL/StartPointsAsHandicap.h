@@ -3,9 +3,6 @@
 #ifndef SPAH_H
 #define SPAH_H
 
-#include "CvEnums.h"
-#include "CvGameCoreUtils.h"
-
 //  <advc.250b> New class
 class StartPointsAsHandicap {
 

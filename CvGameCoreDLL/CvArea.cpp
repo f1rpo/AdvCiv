@@ -1,15 +1,11 @@
 // area.cpp
 
 #include "CvGameCoreDLL.h"
-#include "CvArea.h"
 #include "CvMap.h"
-#include "CvPlot.h"
-#include "CvGlobals.h"
+#include "CvGameAI.h"
 #include "CvPlayerAI.h"
 #include "CvTeamAI.h"
-#include "CvGameCoreUtils.h"
 #include "CvInfos.h"
-
 #include "CvDLLInterfaceIFaceBase.h"
 
 // Public Functions...

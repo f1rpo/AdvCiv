@@ -2,11 +2,10 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvDLLButtonPopup.h"
-#include "CvGlobals.h"
+#include "CvGameAI.h"
 #include "CvPlayerAI.h"
 #include "CvTeamAI.h"
 #include "CvMap.h"
-#include "CvPlot.h"
 #include "CvArtFileMgr.h"
 #include "CyCity.h"
 #include "CyArgsList.h"
@@ -14,15 +13,13 @@
 #include "CvInfos.h"
 #include "CvInitCore.h"
 #include "CvGameTextMgr.h"
+#include "CvEventReporter.h"
+#include "CvMessageControl.h"
 #include "CvDLLPythonIFaceBase.h"
 #include "CvDLLInterfaceIFaceBase.h"
 #include "CvDLLEntityIFaceBase.h"
-#include "CvGameCoreUtils.h"
 #include "CvDLLEngineIFaceBase.h"
-#include "CvEventReporter.h"
-#include "CvMessageControl.h"
 
-// Public Functions...
 
 #define PASSWORD_DEFAULT (L"*****")
 

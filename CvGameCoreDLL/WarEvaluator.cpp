@@ -2,6 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "WarEvaluator.h"
+#include "CvGameAI.h"
 #include "WarUtilityAspect.h"
 #include "MilitaryAnalyst.h"
 

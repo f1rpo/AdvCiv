@@ -10,7 +10,6 @@
 #include "CvArea.h"
 #include "CyArea.h"
 #include "CyUnit.h"
-//#include "CvStructs.h"
 
 CySelectionGroup::CySelectionGroup() : m_pSelectionGroup(NULL)
 {

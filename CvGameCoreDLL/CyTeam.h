@@ -6,7 +6,7 @@
 // Python wrapper class for CvTeam
 // 
 
-// //#include "CvEnums.h"
+#include "CvTeam.h"
 
 class CvTeam;
 class CyArea;

@@ -7,8 +7,6 @@
 #include "CyPlayer.h"
 #include "CyGame.h"
 #include "CyGlobalContext.h"
-#include "CvRandom.h"
-//#include "CvStructs.h"
 #include "CvInfos.h"
 #include "CyTeam.h"
 

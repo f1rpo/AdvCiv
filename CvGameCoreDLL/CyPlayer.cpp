@@ -9,14 +9,11 @@
 #include "CyArea.h"
 #include "CyPlot.h"
 #include "CvPlayerAI.h"
-//#include "CvEnums.h"
 #include "CvCity.h"
 #include "CvMap.h"
-#include "CvPlot.h"
 #include "CySelectionGroup.h"
-#include "CvDLLPythonIFaceBase.h"
-#include "CvGlobals.h"
 #include "WarEvaluator.h" // advc.104l
+#include "CvDLLPythonIFaceBase.h"
 
 CyPlayer::CyPlayer() : m_pPlayer(NULL)
 {

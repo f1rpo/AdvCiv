@@ -7,7 +7,6 @@
 #include "CvGameAI.h"
 #include "CyGlobalContext.h"
 #include "CyPlayer.h"
-//#include "CvEnums.h"
 #include "CyCity.h"
 #include "CyDeal.h"
 #include "CyReplayInfo.h"

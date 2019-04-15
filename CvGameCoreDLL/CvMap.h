@@ -12,7 +12,6 @@
 //-----------------------------------------------------------------------------
 //
 
-
 #include "CvArea.h"
 #include "CvPlot.h"
 // <advc.300>
@@ -20,31 +19,9 @@
 #include <map>
 // </advc.300>
 
-
 class FAStar;
 class CvPlotGroup;
-
-
-inline int coordRange(int iCoord, int iRange, bool bWrap)
-{
-	if (bWrap)
-	{
-		if (iRange != 0)
-		{
-			if (iCoord < 0 )
-			{
-				return (iRange + (iCoord % iRange));
-			}
-			else if (iCoord >= iRange)
-			{
-				return (iCoord % iRange);
-			}
-		}
-	}
-
-	return iCoord;
-}
-
+class CvSelectionGroup;
 
 //
 // holds initialization info
@@ -64,17 +41,168 @@ struct CvMapInitData
 	{ }
 };
 
-
 //
 // CvMap
 //
-class CvSelectionGroup;
 class CvMap
 		: private boost::noncopyable // advc.003e
 {
+	/*  <advc.make> All the inline functions below used to be global functions
+		in CvGameCoreUtils.h except for coordRange, which was already in CvMap.h,
+		but as a global function. I've made some minor style changes.
+		Since I don't want to change all the call locations, I'm adding
+		global (inline) wrappers at the end of this file. */
+public:
+	// 4 | 4 | 3 | 3 | 3 | 4 | 4
+	// -------------------------
+	// 4 | 3 | 2 | 2 | 2 | 3 | 4
+	// -------------------------
+	// 3 | 2 | 1 | 1 | 1 | 2 | 3
+	// -------------------------
+	// 3 | 2 | 1 | 0 | 1 | 2 | 3
+	// -------------------------
+	// 3 | 2 | 1 | 1 | 1 | 2 | 3
+	// -------------------------
+	// 4 | 3 | 2 | 2 | 2 | 3 | 4
+	// -------------------------
+	// 4 | 4 | 3 | 3 | 3 | 4 | 4
+	//
+	// Returns the distance between plots according to the pattern above...
+	inline int plotDistance(int iX1, int iY1, int iX2, int iY2) const
+	{
+		int iDX = xDistance(iX1, iX2);
+		int iDY = yDistance(iY1, iY2);
+		return std::max(iDX, iDY) + (std::min(iDX, iDY) / 2);
+	}
+
+	// K-Mod, plot-to-plot alias for convenience:
+	inline int plotDistance(const CvPlot* plot1, const CvPlot* plot2) const
+	{
+		return plotDistance(
+				plot1->getX_INLINE(), plot1->getY_INLINE(),
+				plot2->getX_INLINE(), plot2->getY_INLINE());
+	}
+	// K-Mod end
+
+	// 3 | 3 | 3 | 3 | 3 | 3 | 3
+	// -------------------------
+	// 3 | 2 | 2 | 2 | 2 | 2 | 3
+	// -------------------------
+	// 3 | 2 | 1 | 1 | 1 | 2 | 3
+	// -------------------------
+	// 3 | 2 | 1 | 0 | 1 | 2 | 3
+	// -------------------------
+	// 3 | 2 | 1 | 1 | 1 | 2 | 3
+	// -------------------------
+	// 3 | 2 | 2 | 2 | 2 | 2 | 3
+	// -------------------------
+	// 3 | 3 | 3 | 3 | 3 | 3 | 3
+	//
+	// Returns the distance between plots according to the pattern above...
+	inline int stepDistance(int iX1, int iY1, int iX2, int iY2) const
+	{
+		return std::max(xDistance(iX1, iX2), yDistance(iY1, iY2));
+	}
+
+	// K-Mod, plot-to-plot alias for convenience:
+	inline int stepDistance(const CvPlot* plot1, const CvPlot* plot2) const
+	{
+		return stepDistance(
+				plot1->getX_INLINE(), plot1->getY_INLINE(),
+				plot2->getX_INLINE(), plot2->getY_INLINE());
+	} // K-Mod end
+
+	inline CvPlot* plotDirection(int iX, int iY, DirectionTypes eDirection) const
+	{
+		if(eDirection == NO_DIRECTION)
+			return plotINLINE(iX, iY);
+		else return plotINLINE(
+				iX + GC.getPlotDirectionX()[eDirection],
+				iY + GC.getPlotDirectionY()[eDirection]);
+	}
+
+	inline CvPlot* plotCardinalDirection(int iX, int iY, CardinalDirectionTypes eCardinalDirection) const
+	{
+		return plotINLINE(
+			iX + GC.getPlotCardinalDirectionX()[eCardinalDirection],
+			iY + GC.getPlotCardinalDirectionY()[eCardinalDirection]);
+	}
+
+	inline CvPlot* plotXY(int iX, int iY, int iDX, int iDY) const
+	{
+		return plotINLINE(iX + iDX, iY + iDY);
+	}
+	// K-Mod start
+	inline CvPlot* plotXY(const CvPlot* pPlot, int iDX, int iDY) const
+	{
+		return plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
+	} // K-Mod end 
+
+	inline DirectionTypes directionXY(int iDX, int iDY) const
+	{
+		if (abs(iDX) > DIRECTION_RADIUS || abs(iDY) > DIRECTION_RADIUS)
+			return NO_DIRECTION;
+		else return GC.getXYDirection(iDX + DIRECTION_RADIUS, iDY + DIRECTION_RADIUS);
+	}
+
+	inline DirectionTypes directionXY(const CvPlot* pFromPlot, const CvPlot* pToPlot) const
+	{
+		return directionXY(
+				dxWrap(pToPlot->getX_INLINE() - pFromPlot->getX_INLINE()),
+				dyWrap(pToPlot->getY_INLINE() - pFromPlot->getY_INLINE()));
+	}
+
+	inline int dxWrap(int iDX) const
+	{
+		return wrapCoordDifference(iDX, getGridWidthINLINE(), isWrapXINLINE());
+	}
+
+	inline int dyWrap(int iDY) const
+	{
+		return wrapCoordDifference(iDY, getGridHeightINLINE(), isWrapYINLINE());
+	}
+
+	inline int xDistance(int iFromX, int iToX) const
+	{
+		return coordDistance(iFromX, iToX, getGridWidthINLINE(), isWrapXINLINE());
+	}
+
+	inline int yDistance(int iFromY, int iToY) const
+	{
+		return coordDistance(iFromY, iToY, getGridHeightINLINE(), isWrapYINLINE());
+	}
+private: // Auxiliary functions
+	inline int coordDistance(int iFrom, int iTo, int iRange, bool bWrap) const
+	{
+		if (bWrap && abs(iFrom - iTo) > iRange / 2)
+			return iRange - abs(iFrom - iTo);
+		return abs(iFrom - iTo);
+	}
+
+	inline int wrapCoordDifference(int iDiff, int iRange, bool bWrap) const
+	{
+		if (!bWrap)
+			return iDiff;
+		if (iDiff > iRange / 2)
+			return iDiff - iRange;
+		else if (iDiff < -(iRange / 2))
+			return iDiff + iRange;
+		return iDiff;
+	}
+
+	inline int coordRange(int iCoord, int iRange, bool bWrap) const
+	{
+		if (!bWrap || iRange == 0)
+			return iCoord;
+		if (iCoord < 0 )
+			return (iRange + (iCoord % iRange));
+		else if (iCoord >= iRange)
+			return (iCoord % iRange);
+		return iCoord;
+	}
+	// </advc.make>
 
 	friend class CyMap;
-
 public:
 
 	CvMap();
@@ -336,4 +464,37 @@ private:
 	void calculateAreas_DFS(CvPlot const& p); // advc.030
 };
 
+/* <advc.make> Global wrappers for distance functions. The int versions are
+	exposed to Python */
+inline int plotDistance(int iX1, int iY1, int iX2, int iY2) {
+	return GC.getMapINLINE().plotDistance(iX1, iY1, iX2, iY2);
+}
+inline int plotDistance(const CvPlot* plot1, const CvPlot* plot2) {
+	return GC.getMapINLINE().plotDistance(plot1, plot2);
+}
+inline int stepDistance(int iX1, int iY1, int iX2, int iY2) {
+	return GC.getMapINLINE().stepDistance(iX1, iY1, iX2, iY2);
+}
+inline int stepDistance(const CvPlot* plot1, const CvPlot* plot2) {
+	return GC.getMapINLINE().stepDistance(plot1, plot2);
+}
+inline CvPlot* plotDirection(int iX, int iY, DirectionTypes eDirection) {
+	return GC.getMapINLINE().plotDirection(iX, iY, eDirection);
+}
+inline CvPlot* plotCardinalDirection(int iX, int iY, CardinalDirectionTypes eCardinalDirection)	{
+	return GC.getMapINLINE().plotCardinalDirection(iX, iY, eCardinalDirection);
+}
+inline CvPlot* plotXY(int iX, int iY, int iDX, int iDY)	{
+	return GC.getMapINLINE().plotXY(iX, iY, iDX, iDY);
+}
+inline CvPlot* plotXY(const CvPlot* pPlot, int iDX, int iDY) {
+	return GC.getMapINLINE().plotXY(pPlot, iDX, iDY);
+}
+inline DirectionTypes directionXY(int iDX, int iDY)	{
+	return GC.getMapINLINE().directionXY(iDX, iDY);
+}
+inline DirectionTypes directionXY(const CvPlot* pFromPlot, const CvPlot* pToPlot) {
+	return GC.getMapINLINE().directionXY(pFromPlot, pToPlot);
+}
+// </advc.make>
 #endif

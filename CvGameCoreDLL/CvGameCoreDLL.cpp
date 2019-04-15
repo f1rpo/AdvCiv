@@ -1,11 +1,6 @@
 #include "CvGameCoreDLL.h"
-
 #include "CvGameCoreDLLUndefNew.h"
-
 #include <new>
-
-#include "CvGlobals.h"
-#include "FProfiler.h"
 #include "CvDLLInterfaceIFaceBase.h"
 
 #include <psapi.h>

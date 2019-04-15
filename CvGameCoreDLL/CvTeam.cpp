@@ -1,35 +1,23 @@
 // team.cpp
 
 #include "CvGameCoreDLL.h"
-#include "CvPlayerAI.h"
-#include "CvDefines.h"
-#include "CvGameCoreUtils.h"
-#include "CvGlobals.h"
-#include "CvTeamAI.h"
-#include "CvPlayerAI.h"
-#include "CvMap.h"
-#include "CvPlot.h"
 #include "CvTeam.h"
-#include "CvDLLInterfaceIFaceBase.h"
+#include "CvGameAI.h"
+#include "CvPlayerAI.h"
+#include "CvTeamAI.h"
+#include "CvMap.h"
 #include "CvEventReporter.h"
-#include "CvDLLEngineIFaceBase.h"
 #include "CvArtFileMgr.h"
 #include "CvDiploParameters.h"
 #include "CvInfos.h"
 #include "CvPopupInfo.h"
-#include "CvDLLPythonIFaceBase.h"
 #include "CyArgsList.h"
-#include "FProfiler.h"
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      10/02/09                                jdog5000      */
-/* AI logging                                                                                   */
-/************************************************************************************************/
-#include "BetterBTSAI.h"
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+#include "BetterBTSAI.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 #include "CvInitCore.h" // advc.003m
 #include "CvBugOptions.h" // advc.071
+#include "CvDLLPythonIFaceBase.h"
+#include "CvDLLEngineIFaceBase.h"
+#include "CvDLLInterfaceIFaceBase.h"
 
 // Public Functions...
 

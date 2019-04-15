@@ -1,18 +1,13 @@
 #include "CvGameCoreDLL.h"
 #include "CvGameCoreUtils.h"
-#include <algorithm>
-#include "CvUnit.h"
+#include "CvGameAI.h"
 #include "CvPlayerAI.h"
+#include "CvTeamAI.h"
+#include "CvUnit.h"
 #include "CvMap.h"
-#include "CvPlot.h"
-#include "CvRandom.h"
 #include "FAStarNode.h"
 #include "CvCity.h"
-#include "CvTeamAI.h"
 #include "CvInfos.h"
-#include "CvGlobals.h"
-#include "FProfiler.h"
-
 #include "CvDLLInterfaceIFaceBase.h"
 #include "CvDLLEntityIFaceBase.h"
 #include "CvDLLFAStarIFaceBase.h"
@@ -61,7 +56,7 @@ bool bernoulliSuccess(double pr, char const* pszLog, bool bAsync, int iData1, in
 			getSorenRandNum(10000, pszLog, iData1, iData2) < chancePerMyriad;
 }
 
-double median(vector<double>& distribution, bool bSorted) {
+double dMedian(vector<double>& distribution, bool bSorted) {
 
 	FAssert(!distribution.empty());
 	if(!bSorted)
@@ -72,7 +67,7 @@ double median(vector<double>& distribution, bool bSorted) {
 	return (distribution[medianIndex] + distribution[medianIndex - 1]) / 2;
 }
 
-double mean(vector<double>& distribution) {
+double dMean(vector<double>& distribution) {
 
 	FAssert(!distribution.empty());
 	double r = 0;
@@ -81,7 +76,7 @@ double mean(vector<double>& distribution) {
 	return r / distribution.size();
 }
 
-double max(vector<double>& distribution) {
+double dMax(vector<double>& distribution) {
 
 	FAssert(!distribution.empty());
 	double r = distribution[0];
@@ -91,7 +86,7 @@ double max(vector<double>& distribution) {
 	return r;
 }
 
-double min(vector<double>& distribution) {
+double dMin(vector<double>& distribution) {
 
 	FAssert(!distribution.empty());
 	double r = distribution[0];
@@ -271,7 +266,9 @@ int plotCityXY(int iDX, int iDY)
 
 int plotCityXY(const CvCity* pCity, const CvPlot* pPlot)
 {
-	return plotCityXY(dxWrap(pPlot->getX_INLINE() - pCity->getX_INLINE()), dyWrap(pPlot->getY_INLINE() - pCity->getY_INLINE()));
+	CvMap const& m = GC.getMapINLINE();
+	return plotCityXY(m.dxWrap(pPlot->getX_INLINE() - pCity->getX_INLINE()),
+			m.dyWrap(pPlot->getY_INLINE() - pCity->getY_INLINE()));
 }
 
 /* <advc.303> Has to include the city tile in order to be compatible with
@@ -337,7 +334,10 @@ DirectionTypes estimateDirection(int iDX, int iDY)
 
 DirectionTypes estimateDirection(const CvPlot* pFromPlot, const CvPlot* pToPlot)
 {
-	return estimateDirection(dxWrap(pToPlot->getX_INLINE() - pFromPlot->getX_INLINE()), dyWrap(pToPlot->getY_INLINE() - pFromPlot->getY_INLINE()));
+	CvMap const& m = GC.getMapINLINE();
+	return estimateDirection(
+			m.dxWrap(pToPlot->getX_INLINE() - pFromPlot->getX_INLINE()),
+			m.dyWrap(pToPlot->getY_INLINE() - pFromPlot->getY_INLINE()));
 }
 
 
@@ -509,8 +509,8 @@ int groupCycleDistance(const CvSelectionGroup* pFirstGroup, const CvSelectionGro
 					iPenalty += 2;
 				if (pFirstHead->canAttack() != pSecondHead->canAttack()
 						// <advc.315>
-						|| ::isMostlyDefensive(pFirstHead->getUnitInfo()) !=
-						::isMostlyDefensive(pSecondHead->getUnitInfo()))
+						|| pFirstHead->getUnitInfo().isMostlyDefensive() !=
+						pSecondHead->getUnitInfo().isMostlyDefensive())
 						// </advc.315>
 					iPenalty += 1;
 			}
@@ -1278,7 +1278,7 @@ void setTradeItem(TradeData* pItem, TradeableItems eItemType, int iData)
 	pItem->m_bOffering = false;
 	pItem->m_bHidden = false;
 }
-/*  <advc.071> Don't want to include CvPlot.h and CvUnit.h header files in CvStructs.h.
+/*  <advc.071> Don't want to include CvPlot and CvUnit header files in CvStructs.h.
 	Don't need to worry here about which unit is where and who sees whom - can
 	figure that out when we know which teams are meeting. */
 void setFirstContactData(FirstContactData& kData, CvPlot const* pAt1, CvPlot const* pAt2,

@@ -1,13 +1,13 @@
 #include "CvGameCoreDLL.h"
 #include "CvReplayInfo.h"
-#include "CvInfos.h"
-#include "CvGlobals.h"
+#include "CvGameAI.h"
 #include "CvPlayerAI.h"
+#include "CvInfos.h"
 #include "CvMap.h"
 #include "CvReplayMessage.h"
 #include "CvGameTextMgr.h"
-#include "CvDLLInterfaceIFaceBase.h"
 #include "CvInitCore.h"
+#include "CvDLLInterfaceIFaceBase.h"
 
 int CvReplayInfo::REPLAY_VERSION = 6; // advc.707, advc.106i: 4 in BtS
 bool CvReplayInfo::STORE_REPLAYS_AS_BTS = false; // advc.106i

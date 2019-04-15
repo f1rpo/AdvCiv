@@ -2,34 +2,18 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvUnitAI.h"
-#include "CvMap.h"
-#include "CvArea.h"
-#include "CvPlot.h"
-#include "CvGlobals.h"
-#include "CvTeamAI.h"
+#include "CvGameAI.h"
 #include "CvPlayerAI.h"
-#include "CvGameCoreUtils.h"
-#include "CvRandom.h"
+#include "CvTeamAI.h"
+#include "CvMap.h"
 #include "CyUnit.h"
 #include "CyArgsList.h"
-#include "CvDLLPythonIFaceBase.h"
 #include "CvInfos.h"
-#include "FProfiler.h"
+#include "BetterBTSAI.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 #include "FAStarNode.h"
-
-// interface uses
+#include "CvDLLPythonIFaceBase.h"
 #include "CvDLLInterfaceIFaceBase.h"
 #include "CvDLLFAStarIFaceBase.h"
-
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      10/02/09                                jdog5000      */
-/*                                                                                              */
-/* AI logging                                                                                   */
-/************************************************************************************************/
-#include "BetterBTSAI.h"
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
 
 #define FOUND_RANGE				(7)
 
@@ -2966,7 +2950,7 @@ void CvUnitAI::AI_attackCityMove()
 			//if( !pLoopUnit->isOnlyDefensive() )
 			if (pLoopUnit->canAttack() // K-Mod
 					// advc.315:
-					&& !::isMostlyDefensive(pLoopUnit->getUnitInfo()))
+					&& !pLoopUnit->getUnitInfo().isMostlyDefensive())
 			{
 				iCityCapture += pLoopUnit->isNoCapture() ? 0 : 1;
 				iNoCombatLimit += pLoopUnit->combatLimit() < 100 ? 0 : 1;
@@ -15104,8 +15088,8 @@ bool CvUnitAI::AI_explore() // advc.003: refactored
 			continue;
 
 		iValue += g.getSorenRandNum(250 *
-				abs(xDistance(getX_INLINE(), pLoopPlot->getX_INLINE())) +
-				abs(yDistance(getY_INLINE(), pLoopPlot->getY_INLINE())), "AI explore 2");
+				abs(m.xDistance(getX_INLINE(), pLoopPlot->getX_INLINE())) +
+				abs(m.yDistance(getY_INLINE(), pLoopPlot->getY_INLINE())), "AI explore 2");
 
 		if (pLoopPlot->isAdjacentToLand())
 			iValue += 10000;
@@ -16587,7 +16571,7 @@ bool CvUnitAI::AI_pirateBlockade()
 				CvUnit const& u = *::getUnit(pNode->m_data);
 				pNode = p.nextUnitNode(pNode);
 				if(u.getDomainType() == DOMAIN_SEA && u.canFight() &&
-						!::isMostlyDefensive(u.getUnitInfo()) &&
+						!u.getUnitInfo().isMostlyDefensive() &&
 						isEnemy(u.getTeam(), pp) &&
 						!u.isInvisible(getTeam(), false) &&
 						u.currEffectiveStr(NULL, NULL, NULL) > iCurrEffStr + 50) {

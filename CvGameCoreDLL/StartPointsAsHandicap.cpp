@@ -2,14 +2,13 @@
 
 #include "CvGameCoreDLL.h"
 #include "StartPointsAsHandicap.h"
+#include "CvGameAI.h"
+#include "CvPlayerAI.h"
 #include "CvInitCore.h"
-
-#include <climits>
+#include "CvMap.h"
 #include <cmath>
-#include <algorithm>
-#include <vector>
-#include <string>
 #include <sstream>
+
 using std::vector;
 using std::wstring;
 using std::wostringstream;

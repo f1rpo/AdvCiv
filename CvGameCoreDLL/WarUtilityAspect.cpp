@@ -2,7 +2,11 @@
 
 #include "CvGameCoreDLL.h"
 #include "WarUtilityAspect.h"
+#include "CvGameAI.h"
+#include "CvPlayerAI.h"
+#include "CvTeamAI.h"
 #include "CvStatistics.h"
+#include "CvMap.h"
 
 using std::vector;
 using std::string;
@@ -743,7 +747,7 @@ double GreedForAssets::medianDistFromOurConquests(PlayerTypes civId) {
 	}
 	double r = INT_MAX;
 	if(!distances.empty())
-		r = ::median(distances);
+		r = ::dMedian(distances);
 	return r;
 }
 

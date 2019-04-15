@@ -11,11 +11,11 @@ Created:	2009-01-21
 // This file has been edited for K-Mod
 
 #include "CvGameCoreDLL.h"
-#include "CyArgsList.h"
-#include "CvDLLPythonIFaceBase.h"
-#include "FVariableSystem.h"
-
 #include "CvBugOptions.h"
+#include "CvGameAI.h"
+#include "CyArgsList.h"
+#include "FVariableSystem.h"
+#include "CvDLLPythonIFaceBase.h"
 
 bool getDefineBOOL(const char* xmlKey, bool bDefault)
 {

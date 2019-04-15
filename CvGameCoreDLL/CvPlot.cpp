@@ -2,37 +2,25 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvPlot.h"
+#include "CvGameAI.h"
+#include "CvPlayerAI.h"
+#include "CvTeamAI.h"
 #include "CvCity.h"
 #include "CvUnit.h"
-#include "CvGlobals.h"
-#include "CvArea.h"
+#include "CvMap.h"
+#include "CvInfos.h"
+#include "CvArtFileMgr.h"
+#include "CyArgsList.h"
+#include "CvEventReporter.h"
+#include "FAStarNode.h" // BETTER_BTS_AI_MOD, General AI, 11/30/08, jdog5000
+#include "CvDLLFAStarIFaceBase.h"
+#include "CvDLLPythonIFaceBase.h"
 #include "CvDLLInterfaceIFaceBase.h"
 #include "CvDLLSymbolIFaceBase.h"
 #include "CvDLLEntityIFaceBase.h"
 #include "CvDLLPlotBuilderIFaceBase.h"
 #include "CvDLLEngineIFaceBase.h"
 #include "CvDLLFlagEntityIFaceBase.h"
-#include "CvMap.h"
-#include "CvPlayerAI.h"
-#include "CvTeamAI.h"
-#include "CvGameCoreUtils.h"
-#include "CvRandom.h"
-#include "CvDLLFAStarIFaceBase.h"
-#include "CvInfos.h"
-#include "FProfiler.h"
-#include "CvArtFileMgr.h"
-#include "CyArgsList.h"
-#include "CvDLLPythonIFaceBase.h"
-#include "CvEventReporter.h"
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      11/30/08                                jdog5000      */
-/*                                                                                              */
-/* General AI                                                                                   */
-/************************************************************************************************/
-#include "FAStarNode.h"
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
 
 #define STANDARD_MINIMAP_ALPHA		(0.75f) // advc.002a: was 0.6
 bool CvPlot::m_bAllFog = false; // advc.706
@@ -481,8 +469,7 @@ if (GC.getImprovementInfo(getImprovementType()).getImprovementBonusDiscoverRand(
 					if(iOdds > 0)
 					{	// <advc.rom3>
 						//Afforess: check for valid terrains for this bonus before discovering it
-						if(!canHaveBonus((BonusTypes)iI), false,
-								true) // advc.129
+						if(!canHaveBonus((BonusTypes)iI), false, /* advc.129: */ true) 
 							continue; // </advc.rom3>
 						iOdds *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getVictoryDelayPercent();
 						iOdds /= 100;
@@ -1877,15 +1864,14 @@ bool CvPlot::canSeePlot(CvPlot *pPlot, TeamTypes eTeam, int iRange, DirectionTyp
 	iRange++;
 
 	if (pPlot == NULL)
-	{
 		return false;
-	}
 
 	//find displacement
 	int dx = pPlot->getX() - getX();
 	int dy = pPlot->getY() - getY();
-	dx = dxWrap(dx); //world wrap
-	dy = dyWrap(dy);
+	CvMap const& m = GC.getMapINLINE();
+	dx = m.dxWrap(dx); //world wrap
+	dy = m.dyWrap(dy);
 
 	//check if in facing direction
 	if (shouldProcessDisplacementPlot(dx, dy, iRange - 1, eFacingDirection))

@@ -5,18 +5,20 @@
 #ifndef CIV4_GAME_H
 #define CIV4_GAME_H
 
-//#include "CvStructs.h"
 #include "CvDeal.h"
 #include "CvRandom.h"
 #include "StartPointsAsHandicap.h" // advc.250b
 #include "RiseFall.h" // advc.700
-#include "CvHallOfFameInfo.h" // advc.106i
 
 class CvPlot;
 class CvCity;
 class CvReplayMessage;
 class CvReplayInfo;
+class CvArtInfoBuilding;
+class CvArea;
+class CvHallOfFameInfo; // advc.106i
 class CvGameAI; // advc.003: Needed for AI(void) functions
+class Shelf; // advc.300
 
 typedef std::vector<const CvReplayMessage*> ReplayMessageList;
 
@@ -803,6 +805,7 @@ protected:
 	void initFreeState();
 	void assignStartingPlots();
 	void normalizeStartingPlots(); // </advc.003i>
+	void applyOptionEffects(bool bEnableAll = false); // advc.310
 	void doTurn();
 	void doDeals();
 	void doGlobalWarming();

@@ -5,7 +5,6 @@
 #ifndef CIV4_GROUP_H
 #define CIV4_GROUP_H
 
-//#include "CvStructs.h"
 #include "LinkedList.h"
 #include "KmodPathFinder.h"
 
@@ -69,6 +68,8 @@ public:
 	int maxMoves() const; // K-Mod
 	int movesLeft() const; // K-Mod
 	bool isWaiting() const;																																							// Exposed to Python
+	// advc.make: Cut from CvGameCoreUtils
+	inline bool isCycleGroup() const { return getNumUnits() > 0 && !isWaiting() && !isAutomated(); } // K-Mod
 	bool isFull();																																											// Exposed to Python
 	bool hasCargo();																																										// Exposed to Python
 	int getCargo() const;

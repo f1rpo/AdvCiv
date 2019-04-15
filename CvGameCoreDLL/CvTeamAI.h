@@ -6,9 +6,7 @@
 #define CIV4_TEAM_AI_H
 
 #include "CvTeam.h"
-
-// advc.104
-#include "WarAndPeaceAI.h"
+#include "WarAndPeaceAI.h" // advc.104
 
 
 class CvTeamAI : public CvTeam
@@ -273,9 +271,10 @@ public:
 
 	// K-Mod. Strength Memory - a very basic and rough reminder-map of how strong the enemy presence is on each plot.
 	int AI_getStrengthMemory(int x, int y) const;
-	inline int AI_getStrengthMemory(const CvPlot* pPlot) { return AI_getStrengthMemory(pPlot->getX_INLINE(), pPlot->getY_INLINE()); }
 	void AI_setStrengthMemory(int x, int y, int value);
-	inline void AI_setStrengthMemory(const CvPlot* pPlot, int value) { AI_setStrengthMemory(pPlot->getX_INLINE(), pPlot->getY_INLINE(), value); }
+	// <advc.make> No longer inlined. To avoid including CvPlot.h.
+	int AI_getStrengthMemory(const CvPlot* pPlot);
+	void AI_setStrengthMemory(const CvPlot* pPlot, int value); // </advc.make>
 
 protected:
 

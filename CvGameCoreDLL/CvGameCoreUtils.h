@@ -5,40 +5,20 @@
 #ifndef CIV4_GAMECORE_UTILS_H
 #define CIV4_GAMECORE_UTILS_H
 
-
-//#include "CvStructs.h"
-#include "CvGlobals.h"
-#include "CvMap.h"
-
-#ifndef _USRDLL
-// use non inline functions when not in the dll
-#define getMapINLINE	getMap
-#define getGridHeightINLINE	getGridHeight
-#define getGridWidthINLINE	getGridWidth
-#define isWrapYINLINE	isWrapY
-#define isWrapXINLINE	isWrapX
-#define plotINLINE	plot
-#define getX_INLINE	getX
-#define getY_INLINE	getY
-
-#endif
-
 class CvPlot;
 class CvCity;
 class CvUnit;
+class CvSelectionGroup;
 class CvString;
 class CvRandom;
 class FAStarNode;
 class FAStar;
 class CvInfoBase;
 
-
-#ifndef SQR
-#define SQR(x) ( (x)*(x))
-#endif
-
-#undef max
-#undef min
+// advc.003j: Unused here and elsewhere; still defined in CvGameCoreDLL.
+//#ifndef SQR
+//#define SQR(x) ( (x)*(x))
+//#endif*
 
 // <advc.003g> floating point utility
 inline int round(double d) { return (int)((d >= 0 ? 0.5 : -0.5) + d); }
@@ -46,10 +26,10 @@ int roundToMultiple(double d, int iMultiple);
 bool bernoulliSuccess(double pr, // 0 <= pr <= 1
 		char const* pszLog = "", bool bAsync = false,
 		int iData1 = INT_MIN, int iData2 = INT_MIN);
-double median(std::vector<double>& distribution, bool bSorted = false);
-double mean(std::vector<double>& distribution);
-double max(std::vector<double>& distribution);
-double min(std::vector<double>& distribution);
+double dMedian(std::vector<double>& distribution, bool bSorted = false);
+double dMean(std::vector<double>& distribution);
+double dMax(std::vector<double>& distribution);
+double dMin(std::vector<double>& distribution);
 // see e.g. wikipedia: "percentile rank"
 double percentileRank(std::vector<double>& distribution, double score,
 		bool bSorted = false, // Is the distribution sorted (ascending)?
@@ -131,153 +111,7 @@ inline double dRange(double d, double low, double high) {
 	return d;
 } // </advc.003g>
 
-inline int coordDistance(int iFrom, int iTo, int iRange, bool bWrap)
-{
-	if (bWrap && (abs(iFrom - iTo) > (iRange / 2)))
-	{
-		return (iRange - abs(iFrom - iTo));
-	}
-
-	return abs(iFrom - iTo);
-}
-
-inline int wrapCoordDifference(int iDiff, int iRange, bool bWrap)
-{
-	if (bWrap)
-	{
-		if (iDiff > (iRange / 2))
-		{
-			return (iDiff - iRange);
-		}
-		else if (iDiff < -(iRange / 2))
-		{
-			return (iDiff + iRange);
-		}
-	}
-
-	return iDiff;
-}
-
-inline int xDistance(int iFromX, int iToX)
-{
-	return coordDistance(iFromX, iToX, GC.getMapINLINE().getGridWidthINLINE(), GC.getMapINLINE().isWrapXINLINE());
-}
-
-inline int yDistance(int iFromY, int iToY)
-{
-	return coordDistance(iFromY, iToY, GC.getMapINLINE().getGridHeightINLINE(), GC.getMapINLINE().isWrapYINLINE());
-}
-
-inline int dxWrap(int iDX)																													// Exposed to Python
-{
-	return wrapCoordDifference(iDX, GC.getMapINLINE().getGridWidthINLINE(), GC.getMapINLINE().isWrapXINLINE());
-}
-
-inline int dyWrap(int iDY)																													// Exposed to Python
-{
-	return wrapCoordDifference(iDY, GC.getMapINLINE().getGridHeightINLINE(), GC.getMapINLINE().isWrapYINLINE());
-}
-
-// 4 | 4 | 3 | 3 | 3 | 4 | 4
-// -------------------------
-// 4 | 3 | 2 | 2 | 2 | 3 | 4
-// -------------------------
-// 3 | 2 | 1 | 1 | 1 | 2 | 3
-// -------------------------
-// 3 | 2 | 1 | 0 | 1 | 2 | 3
-// -------------------------
-// 3 | 2 | 1 | 1 | 1 | 2 | 3
-// -------------------------
-// 4 | 3 | 2 | 2 | 2 | 3 | 4
-// -------------------------
-// 4 | 4 | 3 | 3 | 3 | 4 | 4
-//
-// Returns the distance between plots according to the pattern above...
-inline int plotDistance(int iX1, int iY1, int iX2, int iY2)													// Exposed to Python
-{
-	int iDX;
-	int iDY;
-
-	iDX = xDistance(iX1, iX2);
-	iDY = yDistance(iY1, iY2);
-
-	return (std::max(iDX, iDY) + (std::min(iDX, iDY) / 2));
-}
-
-// K-Mod, plot-to-plot alias for convenience:
-inline int plotDistance(const CvPlot* plot1, const CvPlot* plot2)
-{
-	return plotDistance(plot1->getX_INLINE(), plot1->getY_INLINE(), plot2->getX_INLINE(), plot2->getY_INLINE());
-}
-// K-Mod end
-
-// 3 | 3 | 3 | 3 | 3 | 3 | 3
-// -------------------------
-// 3 | 2 | 2 | 2 | 2 | 2 | 3
-// -------------------------
-// 3 | 2 | 1 | 1 | 1 | 2 | 3
-// -------------------------
-// 3 | 2 | 1 | 0 | 1 | 2 | 3
-// -------------------------
-// 3 | 2 | 1 | 1 | 1 | 2 | 3
-// -------------------------
-// 3 | 2 | 2 | 2 | 2 | 2 | 3
-// -------------------------
-// 3 | 3 | 3 | 3 | 3 | 3 | 3
-//
-// Returns the distance between plots according to the pattern above...
-inline int stepDistance(int iX1, int iY1, int iX2, int iY2)													// Exposed to Python
-{
-	return std::max(xDistance(iX1, iX2), yDistance(iY1, iY2));
-}
-
-// K-Mod, plot-to-plot alias for convenience:
-inline int stepDistance(const CvPlot* plot1, const CvPlot* plot2)
-{
-	return stepDistance(plot1->getX_INLINE(), plot1->getY_INLINE(), plot2->getX_INLINE(), plot2->getY_INLINE());
-}
-// K-Mod end
-
-inline CvPlot* plotDirection(int iX, int iY, DirectionTypes eDirection)							// Exposed to Python
-{
-	if(eDirection == NO_DIRECTION)
-	{
-		return GC.getMapINLINE().plotINLINE(iX, iY);
-	}
-	else
-	{
-		return GC.getMapINLINE().plotINLINE((iX + GC.getPlotDirectionX()[eDirection]), (iY + GC.getPlotDirectionY()[eDirection]));
-	}
-}
-
-inline CvPlot* plotCardinalDirection(int iX, int iY, CardinalDirectionTypes eCardinalDirection)	// Exposed to Python
-{
-	return GC.getMapINLINE().plotINLINE((iX + GC.getPlotCardinalDirectionX()[eCardinalDirection]), (iY + GC.getPlotCardinalDirectionY()[eCardinalDirection]));
-}
-
-inline CvPlot* plotXY(int iX, int iY, int iDX, int iDY)																// Exposed to Python
-{
-	return GC.getMapINLINE().plotINLINE((iX + iDX), (iY + iDY));
-}
-
-inline CvPlot* plotXY(const CvPlot* pPlot, int iDX, int iDY) { return plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY); } // K-Mod
-
-inline DirectionTypes directionXY(int iDX, int iDY)																		// Exposed to Python
-{
-	if ((abs(iDX) > DIRECTION_RADIUS) || (abs(iDY) > DIRECTION_RADIUS))
-	{
-		return NO_DIRECTION;
-	}
-	else
-	{
-		return GC.getXYDirection((iDX + DIRECTION_RADIUS), (iDY + DIRECTION_RADIUS));
-	}
-}
-
-inline DirectionTypes directionXY(const CvPlot* pFromPlot, const CvPlot* pToPlot)			// Exposed to Python
-{
-	return directionXY(dxWrap(pToPlot->getX_INLINE() - pFromPlot->getX_INLINE()), dyWrap(pToPlot->getY_INLINE() - pFromPlot->getY_INLINE()));
-}
+// (advc.make: Distance functions moved into CvMap.h)
 
 CvPlot* plotCity(int iX, int iY, int iIndex);																			// Exposed to Python
 int plotCityXY(int iDX, int iDY);																									// Exposed to Python
@@ -297,16 +131,11 @@ bool isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam);			// Exposed to
 DllExport CvCity* getCity(IDInfo city);	// Exposed to Python
 DllExport CvUnit* getUnit(IDInfo unit);	// Exposed to Python
 
-inline bool isCycleGroup(const CvSelectionGroup* pGroup) { return pGroup->getNumUnits() > 0 && !pGroup->isWaiting() && !pGroup->isAutomated(); } // K-Mod
+// (advc.make: inlined isCycleGroup moved to CvSelectionGroup to avoid a dependency)
 bool isBeforeUnitCycle(const CvUnit* pFirstUnit, const CvUnit* pSecondUnit);
 bool isBeforeGroupOnPlot(const CvSelectionGroup* pFirstGroup, const CvSelectionGroup* pSecondGroup); // K-Mod
 int groupCycleDistance(const CvSelectionGroup* pFirstGroup, const CvSelectionGroup* pSecondGroup); // K-Mod
 bool isPromotionValid(PromotionTypes ePromotion, UnitTypes eUnit, bool bLeader);	// Exposed to Python
-// <advc.315>
-inline bool isMostlyDefensive(CvUnitInfo const& u) {
-
-	return u.isOnlyDefensive() || u.isOnlyAttackAnimals() || u.isOnlyAttackBarbarians();
-} // </advc.315>
 
 int getPopulationAsset(int iPopulation);								// Exposed to Python
 int getLandPlotsAsset(int iLandPlots);									// Exposed to Python

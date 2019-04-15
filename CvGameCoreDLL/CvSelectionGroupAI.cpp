@@ -3,13 +3,9 @@
 #include "CvGameCoreDLL.h"
 #include "CvSelectionGroupAI.h"
 #include "CvPlayerAI.h"
-#include "CvMap.h"
-#include "CvPlot.h"
 #include "CvTeamAI.h"
+#include "CvMap.h"
 #include "CvDLLEntityIFaceBase.h"
-#include "CvGameCoreUtils.h"
-#include "FProfiler.h"
-#include "CVInfos.h"
 
 // Public Functions...
 

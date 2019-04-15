@@ -3,8 +3,6 @@
 #ifndef CyPlot_h
 #define CyPlot_h
 
-//#include "CvEnums.h"
-
 //
 // Python wrapper class for CvPlot
 // 

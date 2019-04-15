@@ -13,7 +13,6 @@
 #include "CvArtFileMgr.h"
 #include "CySelectionGroup.h"
 #include "CvDLLInterfaceIFaceBase.h"
-#include "CvGlobals.h"
 
 CyUnit::CyUnit() : m_pUnit(NULL)
 {

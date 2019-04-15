@@ -3,11 +3,9 @@
 //
 #include "CvGameCoreDLL.h"
 #include "CvXMLLoadUtility.h"
-#include "CvGlobals.h"
 #include "CvArtFileMgr.h"
 #include "CvGameTextMgr.h"
 #include "CvInfoWater.h"
-#include "FProfiler.h"
 
 //------------------------------------------------------------------------------------------------------
 //

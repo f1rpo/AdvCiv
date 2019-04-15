@@ -12,7 +12,6 @@ static inline int ROUND_DIVIDE(int a, int b)
 }
 // K-Mod end
 
-//#include "CvStructs.h"
 //
 // 'global' vars for Civ IV.  singleton class.
 // All globals and global types should be contained in this class

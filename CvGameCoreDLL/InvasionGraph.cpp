@@ -2,11 +2,12 @@
 
 #include "CvGameCoreDLL.h"
 #include "InvasionGraph.h"
+#include "CvGameAI.h"
+#include "CvTeamAI.h"
 #include "ArmamentForecast.h"
-#include <set>
-#include <vector>
+#include "CvPlot.h"
+#include "CvArea.h"
 #include <sstream>
-#include <limits>
 
 using std::ostringstream;
 using std::set;

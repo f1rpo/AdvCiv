@@ -16,7 +16,6 @@
 #include "CvInfoWater.h"
 #include "CvXMLLoadUtility.h"
 #include "CvDLLXMLIFaceBase.h"
-#include "CvGlobals.h"
 
 //======================================================================================================
 //					CvWaterPlaneInfo

@@ -1,6 +1,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvTalkingHeadMessage.h"
-#include "CvGlobals.h"
+#include "CvGameAI.h"
 
 CvTalkingHeadMessage::CvTalkingHeadMessage(int iMessageTurn, int iLen, LPCWSTR pszDesc, LPCTSTR pszSound, InterfaceMessageTypes eType, LPCTSTR pszIcon, ColorTypes eColor, int iX, int iY, bool bShowOffScreenArrows, bool bShowOnScreenArrows) :
 	m_iTurn(iMessageTurn),

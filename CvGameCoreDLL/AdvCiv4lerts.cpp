@@ -2,8 +2,10 @@
 
 #include "CvGameCoreDLL.h"
 #include "AdvCiv4lerts.h"
+#include "CvGameAI.h"
+#include "CvPlayerAI.h"
+#include "CvTeamAI.h"
 #include "CvDLLInterfaceIFaceBase.h"
-
 #include <iterator>
 
 using std::set;

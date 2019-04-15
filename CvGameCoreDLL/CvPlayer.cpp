@@ -1,16 +1,11 @@
 // player.cpp
 
 #include "CvGameCoreDLL.h"
-#include "CvGlobals.h"
-#include "CvArea.h"
-#include "CvMap.h"
-#include "CvPlot.h"
-#include "CvRandom.h"
-#include "CvTeamAI.h"
-#include "CvGameCoreUtils.h"
-#include "CvPlayerAI.h"
 #include "CvPlayer.h"
-#include "CvGameCoreUtils.h"
+#include "CvGameAI.h"
+#include "CvPlayerAI.h"
+#include "CvTeamAI.h"
+#include "CvMap.h"
 #include "CvArtFileMgr.h"
 #include "CvDiploParameters.h"
 #include "CvInitCore.h"
@@ -18,13 +13,12 @@
 #include "CvInfos.h"
 #include "CvPopupInfo.h"
 #include "CvDiploParameters.h"
-#include "FProfiler.h"
 #include "CvGameTextMgr.h"
 #include "CyCity.h"
 #include "CyPlot.h"
 #include "CyUnit.h"
 #include "CvEventReporter.h"
-
+#include "CvBugOptions.h" // advc.106b
 #include "CvDLLInterfaceIFaceBase.h"
 #include "CvDLLEntityIFaceBase.h"
 #include "CvDLLEngineIFaceBase.h"
@@ -34,7 +28,7 @@
 #include "CvDLLFlagEntityIFaceBase.h"
 #include "BetterBTSAI.h"
 //bbai end
-#include "CvBugOptions.h" // advc.106b
+
 
 // Public Functions...
 
@@ -5940,8 +5934,7 @@ bool CvPlayer::canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) 
 			return false;
 		}
 		CvUnitInfo const& u = GC.getUnitInfo(eUnit); // advc.003
-		if (u.getCombat() > 0 &&
-				!::isMostlyDefensive(u)) // advc.315
+		if (u.getCombat() > 0 && /* advc.315: */ !u.isMostlyDefensive()) 
 		{
 			if (earlyMP || // advc.314
 					//GC.getGameINLINE().getElapsedGameTurns() < 20
@@ -13817,7 +13810,7 @@ void CvPlayer::updateGroupCycle(CvSelectionGroup* pGroup)
 
 	CvPlot* pPlot = pGroup->plot();
 
-	if (!pPlot || !isCycleGroup(pGroup))
+	if (!pPlot || !pGroup->isCycleGroup())
 		return;
 
 	CvUnit* pUnit = pGroup->getHeadUnit();
@@ -13842,7 +13835,7 @@ void CvPlayer::updateGroupCycle(CvSelectionGroup* pGroup)
 		{
 			pSelectionGroupNode = deleteGroupCycleNode(pSelectionGroupNode);
 		}
-		else if (isCycleGroup(pNextGroup) && pNextGroup->canAllMove())
+		else if (pNextGroup->isCycleGroup() && pNextGroup->canAllMove())
 		{
 			//int iCost = groupCycleDistance(pPreviousGroup, pGroup) + groupCycleDistance(pGroup, pNextGroup) - groupCycleDistance(pPreviousGroup, pNextGroup);
 			int iCost = groupCycleDistance(pGroup, pNextGroup) + (pPreviousGroup ? groupCycleDistance(pPreviousGroup, pGroup) - groupCycleDistance(pPreviousGroup, pNextGroup) : 3);
@@ -13861,7 +13854,7 @@ void CvPlayer::updateGroupCycle(CvSelectionGroup* pGroup)
 	}
 	if (pPreviousGroup)
 	{
-		FAssert(isCycleGroup(pPreviousGroup) && pPreviousGroup->canAllMove());
+		FAssert(pPreviousGroup->isCycleGroup() && pPreviousGroup->canAllMove());
 		int iCost = groupCycleDistance(pPreviousGroup, pGroup) + 3; // cost for being at the end of the list.
 		if (iCost < iBestCost)
 		{
@@ -13910,7 +13903,7 @@ void CvPlayer::refreshGroupCycleList()
 	{
 		CvSelectionGroup* pLoopGroup = getSelectionGroup(pNode->m_data);
 		CvUnit* pLoopHead = pLoopGroup->getHeadUnit();
-		if (pLoopHead && isCycleGroup(pLoopGroup) && pLoopGroup->canAllMove() && (pLoopHead->hasMoved() || (pLoopHead->isCargo() && pLoopHead->getTransportUnit()->hasMoved())))
+		if (pLoopHead && pLoopGroup->isCycleGroup() && pLoopGroup->canAllMove() && (pLoopHead->hasMoved() || (pLoopHead->isCargo() && pLoopHead->getTransportUnit()->hasMoved())))
 		{
 			update_list.push_back(pLoopGroup);
 			pNode = deleteGroupCycleNode(pNode);
@@ -24809,7 +24802,7 @@ double CvPlayer::estimateYieldRate(YieldTypes yield, int iSamples) const {
 	}
 	if(samples.empty())
 		return 0;
-	return ::median(samples);
+	return ::dMedian(samples);
 } // </advc.104>
 
 // <advc.004x>

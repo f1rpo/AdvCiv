@@ -3,6 +3,8 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvDLLInterfaceIFaceBase.h" // </advc.127>
+#include "CvGameAI.h"
+#include "CvPlayerAI.h"
 
 void CvDLLInterfaceIFaceBase::addHumanMessage(PlayerTypes ePlayer, bool bForce,
 		int iLength, CvWString szString, LPCTSTR pszSound,

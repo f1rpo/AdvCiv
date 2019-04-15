@@ -1,34 +1,21 @@
 // cityAI.cpp
 
 #include "CvGameCoreDLL.h"
-#include "CvGlobals.h"
-#include "CvGameCoreUtils.h"
 #include "CvCityAI.h"
-#include "CvPlot.h"
-#include "CvArea.h"
+#include "CvGameAI.h"
 #include "CvPlayerAI.h"
 #include "CvTeamAI.h"
+#include "CvMap.h"
 #include "CyCity.h"
 #include "CyArgsList.h"
 #include "CvInfos.h"
-#include "FProfiler.h"
+#include "CvStatistics.h" // advc.310
+#include "BetterBTSAI.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 
 #include "CvDLLPythonIFaceBase.h"
 #include "CvDLLInterfaceIFaceBase.h"
 #include "CvDLLFAStarIFaceBase.h"
 
-// advc.310
-#include "CvStatistics.h"
-
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      10/02/09                                jdog5000      */
-/*                                                                                              */
-/* AI logging                                                                                   */
-/************************************************************************************************/
-#include "BetterBTSAI.h"
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
 
 #define BUILDINGFOCUS_FOOD					(1 << 1)
 #define BUILDINGFOCUS_PRODUCTION			(1 << 2)
@@ -49,7 +36,6 @@
 #define BUILDINGFOCUS_WONDEROK				(1 << 16)
 #define BUILDINGFOCUS_CAPITAL				(1 << 17)
 
-// Public Functions...
 
 CvCityAI::CvCityAI()
 {

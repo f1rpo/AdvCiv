@@ -5,6 +5,7 @@
 
 #include "CvStatistics.h"
 #include "CvDllPythonEvents.h"
+#include "CvPlayer.h" // advc.make: for K-Mod's friend declaration
 
 //
 // A singleton class which is used to track game events.

@@ -2,6 +2,8 @@
 
 #include "CvGameCoreDLL.h"
 #include "MilitaryBranch.h"
+#include "CvGameAI.h"
+#include "CvPlayerAI.h"
 
 using std::ostream;
 using std::vector;
@@ -323,7 +325,7 @@ double MilitaryBranch::Army::unitPower(CvUnitInfo const& u, bool modify) const {
 		return -1;*/
 	double r = u.getPowerValue();
 	if(modify) {
-		if(::isMostlyDefensive(u)) // advc.315
+		if(u.isMostlyDefensive()) // advc.315
 			return -1;
 		// Prefer potential city raiders
 		for(int i = 0; i < GC.getNumPromotionInfos(); i++) {
@@ -343,7 +345,7 @@ double MilitaryBranch::Army::unitPower(CvUnitInfo const& u, bool modify) const {
 double MilitaryBranch::Cavalry::unitPower(CvUnitInfo const& u, bool modify) const {
 
 	if(u.getMoves() <= 1 || u.getProductionCost() >= 150 ||
-			::isMostlyDefensive(u)) // advc.315
+			u.isMostlyDefensive()) // advc.315
 		return -1;
 	return GET_PLAYER(ownerId).warAndPeaceAI().militaryPower(u);
 }

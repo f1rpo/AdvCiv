@@ -11,12 +11,11 @@
 //------------------------------------------------------------------------------------------------
 #include "CvGameCoreDLL.h"
 #include "CvInfos.h"
-#include "CvGlobals.h"
 #include "CvArtFileMgr.h"
 #include "CvXMLLoadUtility.h"
-#include "CvDLLXMLIFaceBase.h"
 #include "CvGameTextMgr.h"
-#include "CvGameCoreUtils.h"
+#include "CvDLLXMLIFaceBase.h"
+
 
 //------------------------------------------------------------------------------------------------------
 //
@@ -6942,11 +6941,8 @@ int CvBuildingInfo::getGreatGeneralRateModifier() const
 }
 
 int CvBuildingInfo::getDomesticGreatGeneralRateModifier() const
-{
-	// <advc.310> Dynamic ability of Great Wall
-	CvGame const& g = GC.getGameINLINE();
-	if(!g.isOption(GAMEOPTION_RAGING_BARBARIANS) &&
-			!g.isOption(GAMEOPTION_NO_BARBARIANS))
+{	// <advc.310>
+	if(!m_bEnabledDomesticGreatGeneralRateModifier)
 		return 0; // </advc.310>
 	return m_iDomesticGreatGeneralRateModifier;
 }
@@ -7077,11 +7073,8 @@ int CvBuildingInfo::getCoastalTradeRoutes() const
 }
 
 int CvBuildingInfo::getGlobalTradeRoutes() const	
-{
-	// <advc.310> Dynamic ability of Great Wall
-	CvGame const& g = GC.getGameINLINE();
-	if(g.isOption(GAMEOPTION_RAGING_BARBARIANS) &&
-			!g.isOption(GAMEOPTION_NO_BARBARIANS))
+{	// <advc.310>
+	if(!m_bEnabledGlobalTradeRoutes)
 		return 0; // </advc.310>
 	return m_iGlobalTradeRoutes;
 }
@@ -7297,9 +7290,9 @@ bool CvBuildingInfo::isAreaCleanPower() const
 }
 
 bool CvBuildingInfo::isAreaBorderObstacle() const
-{
-	// advc.310: Dynamic ability of Great Wall
-	if(GC.getGameINLINE().isOption(GAMEOPTION_NO_BARBARIANS)) return false;
+{	// <advc.310>
+	if(!m_bEnabledAreaBorderObstacle)
+		return false; // </advc.310>
 	return m_bAreaBorderObstacle;
 }
 
@@ -8964,6 +8957,21 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 
 	return true;
 }
+// <advc.310>
+bool CvBuildingInfo::m_bEnabledDomesticGreatGeneralRateModifier = true;
+bool CvBuildingInfo::m_bEnabledGlobalTradeRoutes = true;
+bool CvBuildingInfo::m_bEnabledAreaBorderObstacle = true;
+void CvBuildingInfo::setDomesticGreatGeneralRateModifierEnabled(bool b) {
+	m_bEnabledDomesticGreatGeneralRateModifier = b;
+}
+void CvBuildingInfo::setGlobalTradeRoutesEnabled(bool b) {
+	m_bEnabledGlobalTradeRoutes = b;
+}
+void CvBuildingInfo::setAreaBorderObstacleEnabled(bool b) {
+	m_bEnabledAreaBorderObstacle = b;
+} // </advc.310>
+
+
 
 //======================================================================================================
 //					CvSpecialBuildingInfo

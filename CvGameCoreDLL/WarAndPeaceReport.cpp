@@ -2,7 +2,9 @@
 
 #include "CvGameCoreDLL.h"
 #include "WarAndPeaceReport.h"
-
+#include "CvGameAI.h"
+#include "CvPlayerAI.h"
+#include "CvTeamAI.h"
 #include <sstream>
 
 using std::ostringstream;

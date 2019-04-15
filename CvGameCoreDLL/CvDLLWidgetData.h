@@ -3,7 +3,6 @@
 #ifndef _CVDLLWIDGETDATA_H_
 #define _CVDLLWIDGETDATA_H_
 
-//#include "CvEnums.h"
 
 class CvDLLWidgetData
 {

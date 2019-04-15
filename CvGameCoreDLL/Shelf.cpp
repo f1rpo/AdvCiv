@@ -1,7 +1,11 @@
 // <advc.300> New class; see Shelf.h for description
 
-#include "Shelf.h"
 #include "CvGameCoreDLL.h"
+#include "Shelf.h"
+#include "CvGameAI.h"
+#include "CvPlot.h"
+#include "CvUnit.h"
+
 using std::vector;
 
 

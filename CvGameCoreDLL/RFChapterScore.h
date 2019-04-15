@@ -3,8 +3,6 @@
 #ifndef RF_CHAPTER_SCORE_H
 #define RF_CHAPTER_SCORE_H
 
-#include "CvGameCoreDLL.h"
-
 class RFChapter;
 
 /*  <advc.700>: New class. Computes and stores the score awarded for a

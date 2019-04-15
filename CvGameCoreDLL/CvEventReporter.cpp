@@ -1,5 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvEventReporter.h"
+#include "CvGameAI.h"
+#include "CvPlayerAI.h"
 #include "CvDllPythonEvents.h"
 #include "CvInitCore.h"
 #include "CvDLLInterfaceIFaceBase.h" // advc.106l

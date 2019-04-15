@@ -2,11 +2,15 @@
 
 #include "CvGameCoreDLL.h"
 #include "RiseFall.h"
-#include "CvDLLInterfaceIFaceBase.h"
-#include "CvDLLEngineIFaceBase.h"
+#include "CvGameAI.h"
+#include "CvPlayerAI.h"
+#include "CvTeamAI.h"
 #include "CvPopupInfo.h"
 #include "CvInitCore.h"
 #include "CvReplayInfo.h"
+#include "CvPlot.h"
+#include "CvDLLInterfaceIFaceBase.h"
+#include "CvDLLEngineIFaceBase.h"
 
 using std::wstringstream;
 using std::vector;
@@ -43,7 +47,7 @@ void RiseFall::init() {
 	// Caller can't tell whether initialization already done
 	if(!chapters.empty())
 		return;
-	CvGame& g = GC.getGame();
+	CvGame& g = GC.getGameINLINE();
 	if(g.isGameMultiPlayer()) {
 		shutOff(gDLL->getText("TXT_KEY_RF_SINGLEPL_ONLY"));
 		return;

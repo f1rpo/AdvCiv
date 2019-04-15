@@ -2,19 +2,14 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvTeamAI.h"
+#include "CvGameAI.h"
 #include "CvPlayerAI.h"
-#include "CvRandom.h"
-#include "CvGlobals.h"
-#include "CvGameCoreUtils.h"
 #include "CvMap.h"
-#include "CvPlot.h"
-#include "CvDLLInterfaceIFaceBase.h"
 #include "CvInfos.h"
-#include "FProfiler.h"
 #include "CyArgsList.h"
-#include "CvDLLPythonIFaceBase.h"
-
 #include "BetterBTSAI.h" // bbai
+#include "CvDLLInterfaceIFaceBase.h"
+#include "CvDLLPythonIFaceBase.h"
 #include "CvDLLFAStarIFaceBase.h" // K-Mod (currently used in AI_isLandTarget)
 #include <numeric> // K-Mod. used in AI_warSpoilsValue
 
@@ -2867,7 +2862,7 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eTeam, int iPowerMultiplier,
 		}
 	}
 	// advc.112: Probably not much of an improvement over using the mean
-	double medianPow = ::median(powerValues);
+	double medianPow = ::dMedian(powerValues);
 	int iAveragePower = iTotalPower / std::max(1, iNumNonVassals);
 /************************************************************************************************/
 /* BETTER_BTS_AI_MOD                       END                                                  */
@@ -5392,6 +5387,17 @@ void CvTeamAI::AI_setStrengthMemory(int x, int y, int value)
 	FAssert(m_aiStrengthMemory.size() == GC.getMapINLINE().numPlotsINLINE());
 	m_aiStrengthMemory[GC.getMapINLINE().plotNumINLINE(x, y)] = value;
 }
+// <advc.make> Was inlined in CvTeamAI.h
+int CvTeamAI::AI_getStrengthMemory(const CvPlot* pPlot) {
+	//return AI_getStrengthMemory(pPlot->getX_INLINE(), pPlot->getY_INLINE());
+	// To make sure that it won't be slower than before
+	return m_aiStrengthMemory[GC.getMapINLINE().plotNumINLINE(pPlot->getX_INLINE(), pPlot->getY_INLINE())];
+}
+
+void CvTeamAI::AI_setStrengthMemory(const CvPlot* pPlot, int value) {
+	//AI_setStrengthMemory(pPlot->getX_INLINE(), pPlot->getY_INLINE(), value);
+	m_aiStrengthMemory[GC.getMapINLINE().plotNumINLINE(pPlot->getX_INLINE(), pPlot->getY_INLINE())] = value;
+} // </advc.make>
 
 void CvTeamAI::AI_updateStrengthMemory()
 {

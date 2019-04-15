@@ -2,6 +2,8 @@
 
 #include "CvGameCoreDLL.h"
 #include "WarEvalParameters.h"
+#include "CvGameAI.h"
+#include "CvTeamAI.h"
 
 using std::vector;
 

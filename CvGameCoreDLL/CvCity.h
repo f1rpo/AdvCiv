@@ -6,7 +6,6 @@
 #define CIV4_CITY_H
 
 #include "CvDLLEntity.h"
-#include "LinkedList.h"
 
 class CvPlot;
 class CvPlotGroup;

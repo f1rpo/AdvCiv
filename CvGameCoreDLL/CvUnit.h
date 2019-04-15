@@ -6,8 +6,6 @@
 #define CIV4_UNIT_H
 
 #include "CvDLLEntity.h"
-//#include "CvEnums.h"
-//#include "CvStructs.h"
 
 #pragma warning( disable: 4251 )		// needs to have dll-interface to be used by clients of class
 

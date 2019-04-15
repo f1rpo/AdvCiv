@@ -3,7 +3,9 @@
 #include "CvGameCoreDLL.h"
 #include "WarAndPeaceCache.h"
 #include "WarAndPeaceAI.h"
+#include "CvGameAI.h"
 #include "CvPlayerAI.h"
+#include "CvMap.h"
 #include "MilitaryBranch.h"
 #include "WarEvalParameters.h"
 #include "WarEvaluator.h"
@@ -342,10 +344,10 @@ double WarAndPeaceCache::goldPerProdBuildings() {
 	// Cities about to be founded; will soon need buildings.
 	for(int i = 0; i < ::round(0.6 * std::min(owner.AI_getNumAIUnits(UNITAI_SETTLE),
 			owner.AI_getNumCitySites())); i++)
-		buildingCounts.push_back(::max(buildingCounts));
+		buildingCounts.push_back(::dMax(buildingCounts));
 	int era = owner.getCurrentEra();
 	CvLeaderHeadInfo const& lh = GC.getLeaderHeadInfo(owner.getPersonalityType());
-	double missing = ::median(buildingCounts) + std::max(0.0, ::median(wonderCounts) -
+	double missing = ::dMedian(buildingCounts) + std::max(0.0, ::dMedian(wonderCounts) -
 			/*  Assume one useless (small or great) wonder per era, but two for
 				Classical and none for Future. */
 			(std::min(5, era) + (era > 0 ? 1 : 0))) *

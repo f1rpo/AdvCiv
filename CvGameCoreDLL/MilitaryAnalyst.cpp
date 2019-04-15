@@ -2,9 +2,10 @@
 
 #include "CvGameCoreDLL.h"
 #include "MilitaryAnalyst.h"
-#include <set>
+#include "CvGameAI.h"
+#include "CvPlayerAI.h"
+#include "CvTeamAI.h"
 #include <sstream>
-#include <algorithm>
 #include <iterator>
 
 using std::set;

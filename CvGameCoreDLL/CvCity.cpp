@@ -1,44 +1,27 @@
 // city.cpp
 
 #include "CvGameCoreDLL.h"
-#include "CvGlobals.h"
 #include "CvCity.h"
-#include "CvArea.h"
-#include "CvMap.h"
-#include "CvPlot.h"
-#include "CvTeamAI.h"
-#include "CvGameCoreUtils.h"
+#include "CvGameAI.h"
 #include "CvPlayerAI.h"
+#include "CvTeamAI.h"
+#include "CvMap.h"
 #include "CvUnit.h"
 #include "CvInfos.h"
-#include "CvRandom.h"
 #include "CvArtFileMgr.h"
 #include "CvPopupInfo.h"
 #include "CyCity.h"
 #include "CyArgsList.h"
-#include "FProfiler.h"
 #include "CvGameTextMgr.h"
+#include "CvEventReporter.h"
 #include "CvBugOptions.h" // advc.060
 #include "CvInitCore.h" // advc.001: Needed for bugfix in getCityBillboardSizeIconColors
-
-// interfaces used
+#include "BetterBTSAI.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 #include "CvDLLEngineIFaceBase.h"
 #include "CvDLLPythonIFaceBase.h"
 #include "CvDLLEntityIFaceBase.h"
 #include "CvDLLInterfaceIFaceBase.h"
-#include "CvEventReporter.h"
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      10/02/09                                jdog5000      */
-/*                                                                                              */
-/* AI logging                                                                                   */
-/************************************************************************************************/
-#include "BetterBTSAI.h"
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-
-// Public Functions...
 
 CvCity::CvCity()
 {

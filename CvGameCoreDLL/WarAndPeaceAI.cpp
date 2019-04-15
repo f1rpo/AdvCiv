@@ -2,8 +2,10 @@
 
 #include "CvGameCoreDLL.h"
 #include "WarAndPeaceAI.h"
+#include "CvGameAI.h"
 #include "WarEvaluator.h"
 #include "CvDiploParameters.h"
+#include "CvMap.h"
 #include "CvDLLInterfaceIFaceBase.h"
 #include <iterator>
 

@@ -1,14 +1,11 @@
 // game.cpp
 
 #include "CvGameCoreDLL.h"
-#include "CvGameCoreUtils.h"
 #include "CvGame.h"
-#include "CvMap.h"
-#include "CvPlot.h"
+#include "CvGameAI.h"
 #include "CvPlayerAI.h"
-#include "CvRandom.h"
 #include "CvTeamAI.h"
-#include "CvGlobals.h"
+#include "CvMap.h"
 #include "CvInitCore.h"
 #include "CvMapGenerator.h"
 #include "CvArtFileMgr.h"
@@ -17,12 +14,11 @@
 #include "CyArgsList.h"
 #include "CvInfos.h"
 #include "CvPopupInfo.h"
-#include "FProfiler.h"
 #include "CvReplayInfo.h"
 #include "CvGameTextMgr.h"
-#include <set>
 #include "CvEventReporter.h"
 #include "CvMessageControl.h"
+#include "CvHallOfFameInfo.h" // advc.106i
 
 // interface uses
 #include "CvDLLInterfaceIFaceBase.h"
@@ -286,7 +282,7 @@ void CvGame::setInitialItems()
 				distr.push_back(civ.getAdvancedStartPoints());
 		}
 		iStartTurn = getStartTurn();
-		double maxMean = (::max(distr) + ::mean(distr)) / 2.0;
+		double maxMean = (::dMax(distr) + ::dMean(distr)) / 2.0;
 		if(maxMean > 370) {
 			iStartTurn += ::roundToMultiple(std::pow(std::max(0.0, maxMean - 325),
 					0.58), 5);
@@ -491,6 +487,7 @@ void CvGame::uninit()
 	m_aPlotExtraCosts.clear();
 	m_mapVoteSourceReligions.clear();
 	m_aeInactiveTriggers.clear();
+	applyOptionEffects(true); // advc.310
 	/*  advc.700: Need to call this explicitly due to the unusual way that
 		RiseFall is initialized (from updateBlockadedPlots) */
 	m_riseFall.reset();
@@ -868,6 +865,7 @@ void CvGame::initFreeState()
 			}
 		}
 	}
+	applyOptionEffects(); // advc.310
 	for (int iI = 0; iI < GC.getNumTechInfos(); iI++)
 	{
 		for (int iJ = 0; iJ < MAX_TEAMS; iJ++)
@@ -1007,6 +1005,19 @@ void CvGame::initFreeUnits_bulk() { // </advc.051>
 		}
 	}
 }
+
+/*  <advc.310> For building (or other) effects that only apply when certain
+	game options are set. */
+void CvGame::applyOptionEffects(bool bEnableAll) {
+
+	CvBuildingInfo::setDomesticGreatGeneralRateModifierEnabled(bEnableAll ||
+			isOption(GAMEOPTION_RAGING_BARBARIANS) || isOption(GAMEOPTION_NO_BARBARIANS));
+	CvBuildingInfo::setGlobalTradeRoutesEnabled(bEnableAll ||
+			!isOption(GAMEOPTION_RAGING_BARBARIANS) || isOption(GAMEOPTION_NO_BARBARIANS));
+	CvBuildingInfo::setAreaBorderObstacleEnabled(bEnableAll ||
+			!isOption(GAMEOPTION_NO_BARBARIANS));
+} // </advc.310>
+
 
 void CvGame::assignStartingPlots()
 {
@@ -5571,7 +5582,7 @@ int CvGame::getDifficultyForEndScore() const {
 	std::vector<double> distr;
 	for(size_t i = 0; i < aiStartPointDistrib.size(); i++)
 		distr.push_back(aiStartPointDistrib[i]);
-	return r + ::round((::max(distr) + ::mean(distr)) /
+	return r + ::round((::dMax(distr) + ::dMean(distr)) /
 			h.getAIAdvancedStartPercent());
 } // </advc.250>
 
@@ -8213,7 +8224,7 @@ UnitTypes CvGame::randomBarbUnit(UnitAITypes ai, CvArea const& a) {
 		CvUnitInfo& u = GC.getUnitInfo(ut);
 		DomainTypes dom = (DomainTypes)u.getDomainType();
 		if(u.getCombat() <= 0 || dom == DOMAIN_AIR ||
-				::isMostlyDefensive(u) || // advc.315
+				u.isMostlyDefensive() || // advc.315
 				(dom == DOMAIN_SEA) != sea ||
 				!GET_PLAYER(BARBARIAN_PLAYER).canTrain(ut))
 			continue;
@@ -9653,6 +9664,7 @@ void CvGame::read(FDataStreamBase* pStream)
 	if(uiFlag >= 3)
 		pStream->Read(&m_bScenario); // </advc.052>
 	m_iTurnLoadedFromSave = m_iElapsedGameTurns; // advc.044
+	applyOptionEffects(); // advc.310
 }
 
 

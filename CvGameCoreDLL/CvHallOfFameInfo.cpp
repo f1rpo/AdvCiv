@@ -1,6 +1,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvHallOfFameInfo.h"
-#include "CvGlobals.h"
+#include "CvGameAI.h"
 
 CvHallOfFameInfo::CvHallOfFameInfo()
 {

@@ -7,8 +7,6 @@
 // SINGLETON
 // updated 6-5
 
-//#include "CvEnums.h"
-
 class CvGame;
 class CvGameAI;
 class CyCity;
