@@ -5211,8 +5211,8 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 					{
 						if (ourTeam.isDefensivePactTrading() || theirTeam.isDefensivePactTrading())
 						{
-							/* <dlph.3> ``Added possibility of signing defensive pact while
-							              in war if BBAI defensive pact option is >= 1´´ */
+							/* <dlph.3> 'Added possibility of signing defensive pact while
+							              in war if BBAI defensive pact option is >= 1' */
 							if (((ourTeam.getAtWarCount(true) == 0) &&
 									(theirTeam.getAtWarCount(true) == 0)) ||
 									(GC.getBBAI_DEFENSIVE_PACT_BEHAVIOR() >= 1

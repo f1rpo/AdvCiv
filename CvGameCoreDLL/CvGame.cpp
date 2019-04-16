@@ -7806,8 +7806,8 @@ void CvGame::createBarbarianUnits()
 			int iNeededSea = numBarbariansToSpawn(iBaseTilesPerSeaUnit,
 					shelves[i]->size(), shelves[i]->countUnownedPlots(), iShips);
 			// (Deleted) Use a different sanity check, based on barb cities.
-			/* ``BETTER_BTS_AI_MOD 9/25/08 jdog5000
-				 Limit construction of barb ships based on player navies [...]´´ */
+			/* 'BETTER_BTS_AI_MOD 9/25/08 jdog5000
+				 Limit construction of barb ships based on player navies [...]' */
 			if(iShips > iBarbCities + 2)
 				iNeededSea = 0;
 			iNeededLand -= spawnBarbarians(iNeededSea, a, shelves[i],
@@ -8028,8 +8028,8 @@ int CvGame::numBarbariansToSpawn(int iTilesPerUnit, int iTiles, int iUnowned,
 		Subtract the defenders. (Alt. idea: Subtract half the Barbarian population in
 		this area.)
 		Old Firaxis to-do comment on this subject:
-		``XXX eventually need to measure how many barbs of eBarbUnitAI we have
-		  in this area...´´ */
+		'XXX eventually need to measure how many barbs of eBarbUnitAI we have
+		  in this area...' */
 		+ iBarbarianCities * std::max(0, iInitialDefenders));
 	if(iNeeded <= 0)
 		return 0;

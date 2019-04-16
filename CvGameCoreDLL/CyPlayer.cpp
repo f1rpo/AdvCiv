@@ -9,7 +9,6 @@
 #include "CyArea.h"
 #include "CyPlot.h"
 #include "CvPlayerAI.h"
-#include "CvCity.h"
 #include "CvMap.h"
 #include "CySelectionGroup.h"
 #include "WarEvaluator.h" // advc.104l

@@ -6,7 +6,6 @@
 #include "CvPlayerAI.h"
 #include "CvTeamAI.h"
 #include "CvMap.h"
-#include "CvUnit.h"
 #include "CvInfos.h"
 #include "CvArtFileMgr.h"
 #include "CvPopupInfo.h"

@@ -4,7 +4,6 @@
 #include "CvPlotGroup.h"
 #include "CvPlayerAI.h"
 #include "CvMap.h"
-#include "CvCity.h"
 #include "CvDLLFAStarIFaceBase.h"
 
 // Public Functions...

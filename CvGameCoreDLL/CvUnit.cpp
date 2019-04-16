@@ -5,7 +5,6 @@
 #include "CvGameAI.h"
 #include "CvPlayerAI.h"
 #include "CvTeamAI.h"
-#include "CvCity.h"
 #include "CvMap.h"
 #include "CyUnit.h"
 #include "CyArgsList.h"

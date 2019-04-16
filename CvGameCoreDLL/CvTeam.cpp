@@ -1889,12 +1889,12 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 	// This section includes some customization options from BBAI.
 	// The code has been modified for K-Mod, so that it uses "bPrimaryDoW" rather than the BBAI parameter.
 	// The original BtS code has been deleted.
-	/* dlph.3: ``BBAI option 1 didn't work because if clauses for canceling pacts
+	/* dlph.3: 'BBAI option 1 didn't work because if clauses for canceling pacts
 	   were wrong. BBAI otpion 2 needs further fixing. When all players have
 	   defensive pacts with all other players and someone declares war the
 	   correct behaviour would be to have all attack the inital attacker,
 	   but additional wars are declared due to recursive calls of declareWar
-	   in the loop below.´´ */
+	   in the loop below.' */
 	if(GC.getBBAI_DEFENSIVE_PACT_BEHAVIOR() == 0 || (GC.getBBAI_DEFENSIVE_PACT_BEHAVIOR() == 1 && bPrimaryDoW))
 	{
 		cancelDefensivePacts();
@@ -1968,7 +1968,7 @@ void CvTeam::declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, 
 			GET_PLAYER(i).AI_updateAttitudeCache();
 	}*/ // K-Mod end
 	// <dlph.26> The above is "updated when the war queue is emptied."
-	/*  advc (bugfix): But not unless this function communicates to tiggerWars that
+	/*  advc (bugfix): But not unless this function communicates to triggerWars that
 		a (primary) DoW has already occurred. */
 	triggerWars(true);
 	// advc: Moved down so that war status has already changed when event reported

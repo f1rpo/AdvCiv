@@ -12,7 +12,6 @@
 #include "CvMap.h"
 #include "CvGameAI.h"
 #include "CvPlayerAI.h"
-#include "CvCity.h"
 #include "CvPlotGroup.h"
 #include "CvFractal.h"
 #include "CvMapGenerator.h"

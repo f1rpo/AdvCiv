@@ -19785,7 +19785,7 @@ bool CvUnitAI::AI_nextCityToImproveAirlift() // advc.003: style changes
 bool CvUnitAI::AI_irrigateTerritory() // advc.003: refactored
 {
 	PROFILE_FUNC();
-	// <devolution> Cache the viable subset of builds so that we don't have to loop through all of them
+	// <devolution.opt1> Cache the viable subset of builds so that we don't have to loop through all of them
 	std::vector<BuildTypes> irrigationCarryingBuilds;
 	for (int iI = 0; iI < GC.getNumBuildInfos(); iI++)
 	{
@@ -19796,7 +19796,7 @@ bool CvUnitAI::AI_irrigateTerritory() // advc.003: refactored
 			if (GC.getImprovementInfo(eImprovement).isCarriesIrrigation())
 				irrigationCarryingBuilds.push_back(eBuild);
 		}
-	} // </devolution>
+	} // </devolution.opt1>
 
 	CvPlayer const& kOwner = GET_PLAYER(getOwnerINLINE());
 	bool const bSafeAuto = kOwner.isOption(PLAYEROPTION_SAFE_AUTOMATION);

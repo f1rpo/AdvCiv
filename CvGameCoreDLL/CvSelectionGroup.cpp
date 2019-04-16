@@ -5,7 +5,6 @@
 #include "CvGameAI.h"
 #include "CvPlayerAI.h"
 #include "CvTeamAI.h"
-#include "CvUnit.h"
 #include "CvMap.h"
 #include "BetterBTSAI.h"
 #include "FAStarNode.h"

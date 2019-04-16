@@ -6,7 +6,6 @@
 #define CIV4_UNIT_AI_H
 
 #include "CvUnit.h"
-#include <utility> // advc.033
 
 class CvCity;
 
