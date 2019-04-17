@@ -23042,13 +23042,19 @@ int CvUnitAI::AI_tradeMissionValue(CvPlot*& pBestPlot, int iThreshold)
 
 	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
-		if (GET_PLAYER((PlayerTypes)iI).isAlive())
+		const CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)iI);
+
+		if (kPlayer.isAlive())
 		{
+			// Erik: Do not consider cities belonging to players that we have a war plan against
+			if (GET_TEAM(getTeam()).AI_getWarPlan(kPlayer.getTeam()) != NO_WARPLAN)
+				continue;
+
 			for (CvCity* pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
 			{
 				if (AI_plotValid(pLoopCity->plot()) && !pLoopCity->plot()->isVisibleEnemyUnit(this))
 				{
-					int iValue = getTradeGold(pLoopCity->plot());
+					const int iValue = getTradeGold(pLoopCity->plot());
 					int iPathTurns;
 
 					if (iValue >= iThreshold && canTrade(pLoopCity->plot()))
