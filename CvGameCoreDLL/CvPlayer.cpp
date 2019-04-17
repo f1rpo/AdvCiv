@@ -2690,16 +2690,7 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	   where a dead civ arranged a vassal agreement. */
 	if(eOldOwner != NO_PLAYER)
 		GET_PLAYER(eOldOwner).verifyAlive(); // </advc.001>
-	// <advc.130w> Acquired city may increase expansionist hate
-	if(isBarbarian())
-		return;
-	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-		CvPlayerAI& civ = GET_PLAYER((PlayerTypes)i);
-		if(civ.isAlive() && civ.getID() != getID() && !civ.isMinorCiv() &&
-				pCityPlot->isRevealed(civ.getTeam(), false) &&
-				GET_TEAM(civ.getTeam()).isHasMet(getTeam()))
-			civ.AI_updateAttitudeCache(getID());
-	} // </advc.130w>
+	AI().AI_updateCityAttitude(*pCityPlot); // advc.130w
 }
 
 
@@ -5836,8 +5827,9 @@ void CvPlayer::raze(CvCity* pCity)
 
 	// Report this event
 	CvEventReporter::getInstance().cityRazed(pCity, getID());
-
+	CvPlot const& kCityPlot = *pCity->plot(); // advc.130w
 	disband(pCity);
+	AI().AI_updateCityAttitude(kCityPlot); // advc.130w
 }
 
 
@@ -16543,7 +16535,8 @@ void CvPlayer::changeEspionageSpendingWeightAgainstTeam(TeamTypes eIndex, int iC
 	setEspionageSpendingWeightAgainstTeam(eIndex, getEspionageSpendingWeightAgainstTeam(eIndex) + iChange);
 }
 
-void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, int iY, int iData, bool bAdd)
+void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, int iY, int iData, bool bAdd,
+		int iData2) // advc.250c
 {
 	if (getAdvancedStartPoints() < 0)
 	{
@@ -16637,7 +16630,8 @@ void CvPlayer::doAdvancedStartAction(AdvancedStartActionTypes eAction, int iX, i
 			{
 				if (getAdvancedStartPoints() >= iCost)
 				{
-					CvUnit* pUnit = initUnit(eUnit, iX, iY);
+					CvUnit* pUnit = initUnit(eUnit, iX, iY,
+							(UnitAITypes)iData2); // advc.250c
 					if (NULL != pUnit)
 					{
 						pUnit->finishMoves();

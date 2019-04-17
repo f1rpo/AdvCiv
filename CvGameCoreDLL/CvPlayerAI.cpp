@@ -316,7 +316,7 @@ void CvPlayerAI::AI_reset(bool bConstructor)
 		if(iI < MAX_CIV_PLAYERS) {
 			m_aeLastBrag[iI] = NO_UNIT;
 			m_aeLastWarn[iI] = NO_TEAM; // </advc.079>
-			m_abTheyFarAhead[iI] = false; // advc.130c
+			m_abTheyFarAhead[iI] = m_abTheyBarelyAhead[iI] = false; // advc.130c
 		}
 		m_abFirstContact[iI] = false;
 		for (int iJ = 0; iJ < NUM_CONTACT_TYPES; iJ++)
@@ -344,7 +344,8 @@ void CvPlayerAI::AI_reset(bool bConstructor)
 			if(getID() < MAX_CIV_PLAYERS) {
 				kLoopPlayer.m_aeLastBrag[getID()] = NO_UNIT;
 				kLoopPlayer.m_aeLastWarn[getID()] = NO_TEAM; // </advc.079>
-				kLoopPlayer.m_abTheyFarAhead[getID()] = false; // advc.130c
+				// advc.130c:
+				kLoopPlayer.m_abTheyFarAhead[getID()] = kLoopPlayer.m_abTheyBarelyAhead[getID()] = false;
 			}
 			kLoopPlayer.m_abFirstContact[getID()] = false;
 			for (int iJ = 0; iJ < NUM_CONTACT_TYPES; iJ++)
@@ -9286,13 +9287,16 @@ void CvPlayerAI::AI_updateAttitudeCache(PlayerTypes ePlayer,
 	if (!GC.getGameINLINE().isFinalInitialized() || ePlayer == getID() ||
 		!isAlive() || !kPlayer.isAlive() || !GET_TEAM(getTeam()).isHasMet(kPlayer.getTeam()))
 	{
-		m_abTheyFarAhead[ePlayer] = false; // advc.130c
+		m_abTheyFarAhead[ePlayer] = m_abTheyBarelyAhead[ePlayer] = false; // advc.130c
 		m_aiAttitudeCache[ePlayer] = 0;
 		return;
 	} // <advc.130c> Are they (ePlayer) 150% ahead in score?
 	CvGame const& g = GC.getGameINLINE();
-	m_abTheyFarAhead[ePlayer] = (g.getPlayerScore(ePlayer) * 10 >
-			g.getPlayerScore(getID()) * 15); // </advc.130c>
+	int iTheirScore = g.getPlayerScore(ePlayer);
+	int iOurScore = g.getPlayerScore(getID());
+	m_abTheyFarAhead[ePlayer] = (iTheirScore * 10 > iOurScore * 15);
+	m_abTheyBarelyAhead[ePlayer] = (iTheirScore > iOurScore &&
+			iTheirScore - iOurScore < 25); // </advc.130c>
 	// <advc.sha> Now computed in subroutines
 	int iAttitude = AI_getFirstImpressionAttitude(ePlayer);
 	iAttitude += AI_getTeamSizeAttitude(ePlayer);
@@ -9346,6 +9350,22 @@ void CvPlayerAI::AI_changeCachedAttitude(PlayerTypes ePlayer, int iChange)
 	m_aiAttitudeCache[ePlayer] += iChange;
 }
 // K-Mod end
+
+/*  <advc.130w> Gained and lost cities may change expansionist hate and perhaps other
+	modifiers too. This function should be called on the city owner. CvPlot param
+	b/c the city may have been razed. */
+void CvPlayerAI::AI_updateCityAttitude(CvPlot const& kCityPlot) {
+
+	if(isBarbarian())
+		return;
+	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
+		CvPlayerAI& kOtherCiv = GET_PLAYER((PlayerTypes)i);
+		if(kOtherCiv.isAlive() && kOtherCiv.getID() != getID() && !kOtherCiv.isMinorCiv() &&
+				kCityPlot.isRevealed(kOtherCiv.getTeam(), false) &&
+				GET_TEAM(kOtherCiv.getTeam()).isHasMet(getTeam()))
+			kOtherCiv.AI_updateAttitudeCache(getID());
+	}
+} // </advc.130w>
 
 AttitudeTypes CvPlayerAI::AI_getAttitude(PlayerTypes ePlayer, bool bForced) const
 {
@@ -10159,9 +10179,9 @@ int CvPlayerAI::AI_getRankDifferenceAttitude(PlayerTypes ePlayer) const {
 	int r = ::round(base * multiplier);
 	// Don't hate them if they're still in the first era
 	if(r < 0 && (GET_PLAYER(ePlayer).getCurrentEra() <= g.getStartEra() ||
-			/*  nor if the score difference is small (otherwise attitude can
-				change too frequently) */
-			g.getPlayerScore(ePlayer) - g.getPlayerScore(getID()) < 25))
+			/*  nor if the score difference is small (otherwise attitude
+				changes too frequently in the early game) */
+			m_abTheyBarelyAhead[ePlayer]))
 		return 0;
 	// Don't like them if we're still in the first era
 	if(r > 0 && (getCurrentEra() <= g.getStartEra() ||
@@ -10184,30 +10204,29 @@ int CvPlayerAI::AI_getLostWarAttitude(PlayerTypes ePlayer) const {
 int CvPlayerAI::AI_knownRankDifference(PlayerTypes otherId) const {
 
 	CvGame& g = GC.getGameINLINE();
-	int ourRank = g.getPlayerRank(getID());
-	int theirRank = g.getPlayerRank(otherId);
-	int delta = ourRank - theirRank;
+	int iOurRank = g.getPlayerRank(getID());
+	int iTheirRank = g.getPlayerRank(otherId);
+	int iDelta = iOurRank - iTheirRank;
 	// We know who's ranked better, but (perhaps) not the exact rank difference.
-	if(delta < -1)
-		delta = -1;
-	if(delta > 1)
-		delta = 1;
+	if(iDelta < -1)
+		iDelta = -1;
+	if(iDelta > 1)
+		iDelta = 1;
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-		PlayerTypes thirdId = (PlayerTypes)i;
-		CvPlayer const& thirdCiv = GET_PLAYER(thirdId);
-		if(!thirdCiv.isAlive() || thirdCiv.isBarbarian() || thirdCiv.isMinorCiv() ||
+		CvPlayer const& kThirdCiv = GET_PLAYER((PlayerTypes)i);
+		if(!kThirdCiv.isAlive() || kThirdCiv.isBarbarian() || kThirdCiv.isMinorCiv() ||
 				/*  This would deny otherId info about civs that we have met and they
 					haven't -- not crucial I think. */
 				//!TEAMREF(otherId).isHasMet(TEAMID(thirdId))
-				!GET_TEAM(getTeam()).isHasMet(TEAMID(thirdId)))
+				!GET_TEAM(getTeam()).isHasMet(kThirdCiv.getTeam()))
 			continue;
-		int thirdRank = g.getPlayerRank(thirdId);
-		if(delta < 0 && thirdRank > ourRank && thirdRank < theirRank)
-			delta--;
-		else if(delta > 0 && thirdRank < ourRank && thirdRank > theirRank)
-			delta++;
+		int iThirdRank = g.getPlayerRank(kThirdCiv.getID());
+		if(iDelta < 0 && iThirdRank > iOurRank && iThirdRank < iTheirRank)
+			iDelta--;
+		else if(iDelta > 0 && iThirdRank < iOurRank && iThirdRank > iTheirRank)
+			iDelta++;
 	}
-	return delta;
+	return iDelta;
 } // </advc.130c>
 
 PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, VoteSourceTypes eVoteSource, bool bPropose)
@@ -22280,6 +22299,8 @@ void CvPlayerAI::read(FDataStreamBase* pStream)
 	// <advc.130c>
 	if(uiFlag >= 13)
 		pStream->Read(MAX_CIV_PLAYERS, m_abTheyFarAhead);
+	if(uiFlag >= 14)
+		pStream->Read(MAX_CIV_PLAYERS, m_abTheyBarelyAhead);
 	// </advc.130c>
 	// K-Mod. Load the attitude cache. (originally, in BBAI and the CAR Mod, this was not saved.
 	// But there are rare situations in which it needs to be saved/read to avoid OOS errors.)
@@ -22388,7 +22409,7 @@ void CvPlayerAI::write(FDataStreamBase* pStream)
 	uiFlag = 10; // advc.036
 	uiFlag = 11; // advc.104i
 	uiFlag = 12; // advc.079
-	uiFlag = 13; // advc.130c
+	uiFlag = 14; // advc.130c
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iPeaceWeight);
@@ -22433,7 +22454,9 @@ void CvPlayerAI::write(FDataStreamBase* pStream)
 		pStream->Write(m_aeLastBrag[i]);
 		pStream->Write(m_aeLastWarn[i]);
 	} // </advc.079>
-	pStream->Write(MAX_CIV_PLAYERS, m_abTheyFarAhead); // advc.130c
+	// <advc.130c>
+	pStream->Write(MAX_CIV_PLAYERS, m_abTheyFarAhead);
+	pStream->Write(MAX_CIV_PLAYERS, m_abTheyBarelyAhead); // </advc.130c>
 	// K-Mod. save the attitude cache. (to avoid OOS problems)
 	pStream->Write(MAX_PLAYERS, &m_aiAttitudeCache[0]); // uiFlag >= 4
 	// K-Mod end
@@ -26688,14 +26711,14 @@ bool CvPlayerAI::AI_advancedStartPlaceExploreUnits(bool bLand)
 				int iAreaId = pLoopArea->getID();
 					
 				int iRange = 4;
-					for (int iX = -iRange; iX <= iRange; iX++)
+				for (int iX = -iRange; iX <= iRange; iX++)
+				{
+					for (int iY = -iRange; iY <= iRange; iY++)
 					{
-						for (int iY = -iRange; iY <= iRange; iY++)
-						{
-							CvPlot* pLoopPlot2 = plotXY(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), iX, iY);
+						CvPlot* pLoopPlot2 = plotXY(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), iX, iY);
 						if (NULL != pLoopPlot2) 
-							{
-								iExplorerCount += pLoopPlot2->plotCount(PUF_isUnitAIType, eUnitAI, -1, NO_PLAYER, getTeam());
+						{
+							iExplorerCount += pLoopPlot2->plotCount(PUF_isUnitAIType, eUnitAI, -1, NO_PLAYER, getTeam());
 							if (pLoopPlot2->getArea() == iAreaId)
 							{
 								if (pLoopPlot2->isGoody())
@@ -26730,7 +26753,8 @@ bool CvPlayerAI::AI_advancedStartPlaceExploreUnits(bool bLand)
 	
 	if (pBestExplorePlot != NULL)
 	{
-		doAdvancedStartAction(ADVANCEDSTARTACTION_UNIT, pBestExplorePlot->getX_INLINE(), pBestExplorePlot->getY_INLINE(), eBestUnitType, true);
+		doAdvancedStartAction(ADVANCEDSTARTACTION_UNIT, pBestExplorePlot->getX_INLINE(), pBestExplorePlot->getY_INLINE(), eBestUnitType, true,
+				UNITAI_EXPLORE); // advc.250c
 		return true;
 	}
 	return false;	

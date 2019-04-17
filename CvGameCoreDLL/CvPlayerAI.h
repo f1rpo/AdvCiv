@@ -13,7 +13,7 @@
 
 class CvPlayerAI : public CvPlayer
 {
-
+	friend CvPlayer; // adsvc.003: for CvPlayer::AI
 public:
 
 	CvPlayerAI();
@@ -673,7 +673,9 @@ protected:
 	int* m_aiBonusValueTrade; // advc.036
 	int* m_aiUnitClassWeights;
 	int* m_aiUnitCombatWeights;
-	bool m_abTheyFarAhead[MAX_CIV_PLAYERS]; // advc.130c
+	// <advc.130c>
+	bool m_abTheyFarAhead[MAX_CIV_PLAYERS];
+	bool m_abTheyBarelyAhead[MAX_CIV_PLAYERS]; // </advc.130c>
 	std::map<UnitClassTypes, int> m_GreatPersonWeights; // K-Mod
 	static int const singleBonusTradeTolerance = 20; // advc.036
 	//mutable int* m_aiCloseBordersAttitudeCache;
@@ -778,6 +780,7 @@ protected:
 	int AI_knownRankDifference(PlayerTypes otherId) const; // advc.130c
 	// advc.042: Relies on caller to reset GC.getBorderFinder()
 	bool AI_isUnimprovedBonus(CvPlot const& p, CvPlot* pFromPlot, bool bCheckPath) const;
+	void AI_updateCityAttitude(CvPlot const& kCityPlot); // advc.130w
 
 	// K-Mod. I've moved the bulk of AI_getStrategyHash into a new function: AI_updateStrategyHash.
 	inline int AI_getStrategyHash() const { return m_iStrategyHash; }

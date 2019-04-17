@@ -1627,26 +1627,26 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps) // advc.003: refactored
 		if(bDestVisible || (bStartVisible && m->bInitiallyVisible)) {
 			// Pass pFromPlot
 			updateMissionTimer(iSteps, pFromPlot);
-			if(showMoves(*pFromPlot)
-					&& g.getActivePlayer() != NO_PLAYER
-					&& getOwnerINLINE() != g.getActivePlayer()) {
-				// Show FromPlot when moving out of sight
+			if(g.getActivePlayer() != NO_PLAYER && getOwnerINLINE() != g.getActivePlayer()) {
 				bool bDestActiveVisible = !isInvisible(g.getActiveTeam());
-				bool bStartActiveVisible = (bDestActiveVisible &&
-						pFromPlot->isActiveVisible(false));
-				bDestActiveVisible = (bDestActiveVisible &&
-						plot()->isActiveVisible(false));
 				CvDLLInterfaceIFaceBase* pInterface = gDLL->getInterfaceIFace();
 				if(gDLL->getEngineIFace()->isGlobeviewUp()) {
-					if(bDestActiveVisible && g.getCurrentLayer() == GLOBE_LAYER_UNIT)
+					if(bDestActiveVisible && g.getCurrentLayer() == GLOBE_LAYER_UNIT &&
+							plot()->isActiveVisible(true))
 						pInterface->setDirty(GlobeLayer_DIRTY_BIT, true);
 				}
-				else {
+				else if(showMoves(*pFromPlot)) {
+					// Show FromPlot when moving out of sight
+					bool bStartActiveVisible = (bDestActiveVisible &&
+							pFromPlot->isActiveVisible(false));
+					bDestActiveVisible = (bDestActiveVisible &&
+							plot()->isActiveVisible(false));
 					if(bDestActiveVisible && bDestVisible)
 						pInterface->lookAt(plot()->getPoint(), CAMERALOOKAT_NORMAL);
 					else if(bStartActiveVisible && bStartVisible)
 						pInterface->lookAt(pFromPlot->getPoint(), CAMERALOOKAT_NORMAL);
-				} // </advc.102>
+					// </advc.102>
+				}
 			}
 		}
 	}
