@@ -1108,11 +1108,15 @@ void CvUnitAI::AI_setUnitAIType(UnitAITypes eNewValue)
 int CvUnitAI::AI_sacrificeValue(const CvPlot* pPlot) const
 {
     //int iValue;
-	long iValue; // K-Mod. (the int will overflow)
+	//long iValue; // K-Mod. (the int will overflow)
+	// Erik: Based on his comment he probably meant to use
+	// a 64 bit integer here since sizeof(int) == sizeof(long) hence a long long is needed
+	long long iValue;
+
     int iCollateralDamageValue = 0;
     if (pPlot != NULL)
     {
-        int iPossibleTargets = std::min((pPlot->getNumVisibleEnemyDefenders(this) - 1), collateralDamageMaxUnits());
+        const int iPossibleTargets = std::min((pPlot->getNumVisibleEnemyDefenders(this) - 1), collateralDamageMaxUnits());
 
         if (iPossibleTargets > 0)
         {
@@ -1208,13 +1212,17 @@ int CvUnitAI::AI_sacrificeValue(const CvPlot* pPlot) const
 		// K-Mod end
 		/*  <advc.048> LFBgetRelativeValueRating is too coarse to account for
 			small XP differences. Make sure that XP will at least break ties. */
-		int iXP = getExperience();
+		const int iXP = getExperience();
 		if(iValue > 100 * iXP)
 			iValue -= iXP; // </advc.048>
 	}
 
 	//return iValue;
-	return std::min((long)MAX_INT, iValue); // K-Mod
+	//return std::min((long)MAX_INT, iValue); // K-Mod
+	// Erik: We cannot change the signature due to the virtual specifier so we have to truncate the final value
+	// to an int. At least we probably avoid undefined behaviour during an intermediate computation...
+	// Note that if signed overflow do occur, the std::min operation is meaningless
+	return static_cast<int>(iValue);
 }
 
 // Protected Functions...
