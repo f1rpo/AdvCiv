@@ -2674,7 +2674,7 @@ int CvSelectionGroup::getBombardTurns(CvCity* pCity) const
 	return iBombardTurns;
 }
 
-bool CvSelectionGroup::isHasPathToAreaPlayerCity( PlayerTypes ePlayer, int iFlags, int iMaxPathTurns )
+bool CvSelectionGroup::isHasPathToAreaPlayerCity( PlayerTypes ePlayer, int iFlags, int iMaxPathTurns ) const
 {
 	PROFILE_FUNC();
 	int iLoop;
@@ -2696,7 +2696,7 @@ bool CvSelectionGroup::isHasPathToAreaPlayerCity( PlayerTypes ePlayer, int iFlag
 	return false;
 }
 
-bool CvSelectionGroup::isHasPathToAreaEnemyCity( bool bIgnoreMinors, int iFlags, int iMaxPathTurns )
+bool CvSelectionGroup::isHasPathToAreaEnemyCity( bool bIgnoreMinors, int iFlags, int iMaxPathTurns ) const
 {
 	PROFILE_FUNC();
 
