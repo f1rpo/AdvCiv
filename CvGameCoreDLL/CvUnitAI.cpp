@@ -12127,10 +12127,15 @@ bool CvUnitAI::AI_guardFort(bool bSearch)
 		return false; // </advc.107>
 	if (plot()->getOwnerINLINE() == getOwnerINLINE())
 	{
-		ImprovementTypes eImprovement = plot()->getImprovementType();
+		const ImprovementTypes eImprovement = plot()->getImprovementType();
 		if (eImprovement != NO_IMPROVEMENT)
 		{
-			if (GC.getImprovementInfo(eImprovement).isActsAsCity())
+			const CvImprovementInfo& kImprovement = GC.getImprovementInfo(eImprovement);
+
+			// Erik: Only consider guarding if we actually receive a defensive bonus from the improvement
+			// This is really only relevant for mods that have improvements that will act as a city without
+			// providing a defensive bonus
+			if (kImprovement.isActsAsCity() && kImprovement.getDefenseModifier() > 0)
 			{
 				if (plot()->plotCount(PUF_isCityAIType, -1, -1, getOwnerINLINE()) <= AI_getPlotDefendersNeeded(plot(), 0))
 				{
@@ -12158,10 +12163,12 @@ bool CvUnitAI::AI_guardFort(bool bSearch)
 		{
 			if (pLoopPlot->getOwnerINLINE() == getOwnerINLINE())
 			{
-				ImprovementTypes eImprovement = pLoopPlot->getImprovementType();
+				const ImprovementTypes eImprovement = pLoopPlot->getImprovementType();
 				if (eImprovement != NO_IMPROVEMENT)
 				{
-					if (GC.getImprovementInfo(eImprovement).isActsAsCity())
+					const CvImprovementInfo& kImprovement = GC.getImprovementInfo(eImprovement);
+
+					if (kImprovement.isActsAsCity() && kImprovement.getDefenseModifier() > 0)
 					{
 						int iValue = AI_getPlotDefendersNeeded(pLoopPlot, 0);
 
