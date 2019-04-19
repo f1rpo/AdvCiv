@@ -26,7 +26,7 @@ bool WarEvaluator::cacheCleared = true;
 	limited/ total or mutual war utility of two civs,
 	so caching just the last result isn't effective. */
 static int const cacheSz = 10;
-static long lastCallParams[cacheSz];
+static int lastCallParams[cacheSz];
 static int lastCallResult[cacheSz];
 static int lastIndex;
 
@@ -243,7 +243,7 @@ int WarEvaluator::evaluate(WarPlanTypes wp, bool isNaval, int preparationTime) {
 	params.setPreparationTime(preparationTime);
 	// Don't check cache in recursive calls (peaceScenario=true)
 	if(!peaceScenario && (checkCache || useCache || gDLL->isDiplomacy())) {
-		long id = params.id();
+		int id = params.id();
 		for(int i = 0; i < cacheSz; i++)
 			if(id == lastCallParams[i] && lastCallResult[i] != INT_MIN)
 				return lastCallResult[i];

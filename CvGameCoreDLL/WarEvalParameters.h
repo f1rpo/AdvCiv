@@ -54,7 +54,7 @@ public:
 	// NO_TEAM unless we're considering to capitulate
 	TeamTypes getCapitulationTeam() const;
 	// For WarEvaluator cache
-	long id() const;
+	int id() const;
 	// To be filled in by WarEvaluator
 	  void setTotal(bool b);
 	  void setNaval(bool b);
