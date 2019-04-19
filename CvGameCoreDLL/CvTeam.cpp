@@ -1202,73 +1202,7 @@ void CvTeam::doTurn()
 		m_abJustDeclaredWar[i] = false;
 	// </advc.162>
 	if (isBarbarian())
-	{
-		// <advc.307>
-		CvGame& g = GC.getGameINLINE();
-		bool bNoBarbCities = GC.getEraInfo(g.getCurrentEra()).isNoBarbCities();
-		bool bIgnorePrereqs = bNoBarbCities;
-				/*  Barbs get all tech from earlier eras for free. Don't need
-					to catch up. */ //|| (((int)g.getStartEra()) > 0);
-		// </advc.307>
-		/*  K-Mod. Delay the start of the barbarian research. (This is an
-			experimental change. It is currently compensated by an increase in
-			the barbarian tech rate.) */
-		const CvPlayerAI& kBarbPlayer = GET_PLAYER(getLeaderID());
-		const CvGame& kGame = GC.getGameINLINE();
-		if (kGame.getElapsedGameTurns() >= GC.getHandicapInfo(kGame.getHandicapType()).getBarbarianCreationTurnsElapsed() * GC.getGameSpeedInfo(kGame.getGameSpeedType()).getBarbPercent() / 200)
-		{
-			for (TechTypes i = (TechTypes)0; i < GC.getNumTechInfos(); i = (TechTypes)(i+1))
-			{
-				//if (!isHasTech((TechTypes)iI))
-				if (!isHasTech(i) && 
-					(bIgnorePrereqs || // advc.307
-					kBarbPlayer.canResearch(i, false, true))) // K-Mod. Make no progress on techs until prereqs are researched.
-				{
-					int iCount = 0;
-					int iPossibleCount = 0;
-					int hasTechCount = 0; // advc.307
-
-					for (int iJ = 0; iJ < MAX_CIV_TEAMS; iJ++)
-					{
-						// advc.003: kLoopTeam
-						CvTeam const& kLoopTeam = GET_TEAM((TeamTypes)iJ);
-						if (kLoopTeam.isAlive())
-						{
-							if (kLoopTeam.isHasTech(i)
-									// advc.302:
-									&& kLoopTeam.isInContactWithBarbarians()
-								)
-							{
-								iCount++;
-							}
-
-							iPossibleCount++;
-							// <advc.307>
-							if(kLoopTeam.isHasTech(i))
-								hasTechCount++; // </advc.307>
-						}
-					} /*  advc.302: Don't stop barb research entirely even when
-						  there is no contact with civs */
-					iCount = std::max(iCount, hasTechCount / 3);
-					if (iCount > 0)
-					{
-						FAssertMsg(iPossibleCount > 0, "iPossibleCount is expected to be greater than 0");
-						/*  advc.307: In the late game, count all civs as
-							having contact with barbs if at least one of them has
-							contact. Otherwise, New World barbs catch up too slowly
-							when colonized only by one or two civs. */
-						if(bNoBarbCities)
-							iCount = std::max(iCount, (2 * hasTechCount) / 3);
-						//changeResearchProgress(((TechTypes)iI), ((getResearchCost((TechTypes)iI) * ((GC.getDefineINT("BARBARIAN_FREE_TECH_PERCENT") * iCount) / iPossibleCount)) / 100), getLeaderID());
-						// K-Mod. Adjust research rate for game-speed & start-era - but _not_ world-size. And fix the rounding error.
-						int iBaseCost = getResearchCost(i, false) * GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getResearchPercent() / 100;
-						changeResearchProgress(i, std::max(1, iBaseCost * GC.getDefineINT("BARBARIAN_FREE_TECH_PERCENT") * iCount / (100 * iPossibleCount)), kBarbPlayer.getID());
-						// K-Mod end
-					}
-				}
-			}
-		}
-	}
+		doBarbarianResearch(); // advc.003: Moved into subroutine
 
 	for (int iI = 0; iI < MAX_TEAMS; iI++)
 	{
@@ -5155,7 +5089,7 @@ void CvTeam::setVassal(TeamTypes eIndex, bool bNewValue, bool bCapitulated)
 					if (GET_TEAM(eIndex).isAtWar((TeamTypes)iI))
 					{
 						//declareWar((TeamTypes)iI, false, WARPLAN_DOGPILE);
-						// dlph.26:
+						// dlph.26: "These wars declared by capitulated vassal don't trigger defensive pacts."
 						queueWar(getID(), (TeamTypes)iI, false, WARPLAN_DOGPILE, !bCapitulated);
 					}
 					else if (isAtWar((TeamTypes)iI))
@@ -7340,6 +7274,92 @@ void CvTeam::doWarWeariness()
 	}
 }
 
+// advc.003: Body cut from doTurn
+void CvTeam::doBarbarianResearch() {
+
+	FAssert(isBarbarian());
+	CvGame& g = GC.getGameINLINE();
+	int iElapsed = g.getElapsedGameTurns();
+	/*  <dlph.28> "Give some starting research to barbarians in advanced start
+		depending on other players' tech status after advanced start. */
+	if(iElapsed == 1 && // This function isn't called on turn 0
+			g.isOption(GAMEOPTION_ADVANCED_START)) {
+		for(TechTypes i = (TechTypes)0; i < GC.getNumTechInfos(); i = (TechTypes)(i+1)) {
+			if(isHasTech((TechTypes)i))
+				continue;
+			int iCount = 0;
+			int iPossibleCount = 0;
+			for(int iJ = 0; iJ < MAX_CIV_TEAMS; iJ++) {
+				if(GET_TEAM((TeamTypes)iJ).isAlive()) {
+					if (GET_TEAM((TeamTypes)iJ).isHasTech(i))
+						iCount++;
+					iPossibleCount++;
+				}
+			}
+			if(iCount > 0)
+				setResearchProgress(i, (getResearchCost(i) * iCount) / iPossibleCount, getLeaderID());
+		}
+	} // </dlph.28>
+	// <advc.307>
+	bool bNoBarbCities = GC.getEraInfo(g.getCurrentEra()).isNoBarbCities();
+	bool bIgnorePrereqs = bNoBarbCities;
+			/*  Barbs get all tech from earlier eras for free. Don't need
+				to catch up. */ //|| g.getStartEra() > 0;
+	// </advc.307>
+	/*  K-Mod. Delay the start of the barbarian research. (This is an
+		experimental change. It is currently compensated by an increase in
+		the barbarian tech rate.) */
+	if (iElapsed < GC.getHandicapInfo(g.getHandicapType()).
+			getBarbarianCreationTurnsElapsed() *
+			GC.getGameSpeedInfo(g.getGameSpeedType()).getBarbPercent() / 200)
+		return;
+
+	CvPlayerAI const& kBarbPlayer = GET_PLAYER(BARBARIAN_PLAYER);
+	for (TechTypes i = (TechTypes)0; i < GC.getNumTechInfos(); i = (TechTypes)(i+1))
+	{
+		//if (!isHasTech((TechTypes)iI))
+		if (!isHasTech(i) && /* advc.307: */ (bIgnorePrereqs || 
+				// K-Mod. Make no progress on techs until prereqs are researched.
+				kBarbPlayer.canResearch(i, false, true)))
+		{
+			int iCount = 0;
+			int iPossible = 0;
+			int iHasTech = 0; // advc.307
+			for (int iJ = 0; iJ < MAX_CIV_TEAMS; iJ++)
+			{
+				CvTeam const& kLoopTeam = GET_TEAM((TeamTypes)iJ);
+				if (!kLoopTeam.isAlive())
+					continue; // advc.003
+				if (kLoopTeam.isHasTech(i)
+						&& kLoopTeam.isInContactWithBarbarians()) // advc.302
+					iCount++;
+				iPossible++;
+				// <advc.307>
+				if(kLoopTeam.isHasTech(i))
+					iHasTech++; // </advc.307>
+			} /* advc.302: Don't stop barb research entirely even when there is
+				 no contact with any civs */
+			iCount = std::max(iCount, iHasTech / 3);
+			if (iCount > 0)
+			{
+				FAssert(iPossible > 0);
+				/*  advc.307: In the late game, count all civs as having contact with
+					barbs if at least one of them has contact. Otherwise, New World barbs
+					catch up too slowly when colonized only by one or two civs. */
+				if(bNoBarbCities)
+					iCount = std::max(iCount, (2 * iHasTech) / 3);
+				//changeResearchProgress(((TechTypes)iI), ((getResearchCost((TechTypes)iI) * ((GC.getDefineINT("BARBARIAN_FREE_TECH_PERCENT") * iCount) / iPossibleCount)) / 100), getLeaderID());
+				// K-Mod. Adjust research rate for game-speed & start-era - but _not_ world-size. And fix the rounding error.
+				int iBaseCost = getResearchCost(i, false) * GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getResearchPercent() / 100;
+				changeResearchProgress(i, std::max(1, iBaseCost *
+						GC.getDefineINT("BARBARIAN_FREE_TECH_PERCENT") * iCount /
+						(100 * iPossible)), kBarbPlayer.getID());
+				// K-Mod end
+			}
+		}
+	}
+}
+
 void CvTeam::updateTechShare(TechTypes eTech)
 {
 	if (isHasTech(eTech))
@@ -7379,6 +7399,7 @@ void CvTeam::updateTechShare(TechTypes eTech)
 		if (iCount >= iBestShare)
 		{
 			setHasTech(eTech, true, NO_PLAYER, true, true);
+			setNoTradeTech(eTech, true); // dlph.31
 		}
 	}
 }

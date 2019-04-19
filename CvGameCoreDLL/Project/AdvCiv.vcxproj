@@ -98,6 +98,7 @@
     <ClCompile Include="..\CyArtFileMgrInterface.cpp" />
     <ClCompile Include="..\CyCity.cpp" />
     <ClCompile Include="..\CyCityInterface1.cpp" />
+    <ClCompile Include="..\CyCityInterface2.cpp" />
     <ClCompile Include="..\CyDeal.cpp" />
     <ClCompile Include="..\CyEnumsInterface.cpp" />
     <ClCompile Include="..\CyGame.cpp" />

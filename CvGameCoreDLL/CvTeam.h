@@ -589,7 +589,7 @@ protected:
 	// </dlph.26>
 
 	void doWarWeariness();
-
+	void doBarbarianResearch(); // advc.003
 	void updateTechShare(TechTypes eTech);
 	void updateTechShare();
 

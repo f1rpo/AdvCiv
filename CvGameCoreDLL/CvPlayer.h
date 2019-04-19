@@ -81,7 +81,8 @@ public:
 	int startingPlotRange() const;																																									// Exposed to Python
 	bool startingPlotWithinRange(CvPlot* pPlot, PlayerTypes ePlayer, int iRange, int iPass) const;									// Exposed to Python
 	int startingPlotDistanceFactor(CvPlot* pPlot, PlayerTypes ePlayer, int iRange) const;
-	int findStartingArea() const;
+	//int findStartingArea() const;
+	std::vector<std::pair<int,int> > findStartingAreas() const; // dlph.35
 	// advc.027: New auxiliary function (public only for Debug mode info)
 	int coastRiverStartingAreaScore(CvArea const& a) const;
 	CvPlot* findStartingPlot(bool bRandomize = false);																																									// Exposed to Python
@@ -390,6 +391,8 @@ public:
 	bool canDoEspionageMission(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvPlot* pPlot, int iExtraData, const CvUnit* pUnit) const;		// Exposed to Python
 	int getEspionageMissionBaseCost(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvPlot* pPlot, int iExtraData, const CvUnit* pSpyUnit) const;
 	int getEspionageMissionCost(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvPlot* pPlot = NULL, int iExtraData = -1, const CvUnit* pSpyUnit = NULL) const;		// Exposed to Python
+	// dlph.33/advc:
+	int adjustMissionCostToTeamSize(int iBaseCost, PlayerTypes eTargetPlayer) const;
 	// <advc.120d> New functions, all exposed to Python
 	TechTypes getStealCostTech(PlayerTypes eTargetPlayer) const;
 	bool canSeeTech(PlayerTypes otherId) const;

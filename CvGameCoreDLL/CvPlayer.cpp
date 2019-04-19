@@ -1881,79 +1881,83 @@ int CvPlayer::coastRiverStartingAreaScore(CvArea const& a) const {
 	return r;
 } // </advc.027>
 
-
+// <dlph.35>
+class VectorPairSecondGreaterComparator {
+public:
+	bool operator() (const std::pair<int,int> &a, const std::pair<int,int> &b) {
+		return (a.second >= b.second);
+	}
+}; // </dlph.35>
 // Returns the id of the best area, or -1 if it doesn't matter:
-int CvPlayer::findStartingArea() const
+//int CvPlayer::findStartingArea() const
+// dlph.35: "Returns a vector of all starting areas sorted by their value (instead of one best starting area)."
+std::vector<std::pair<int,int> > CvPlayer::findStartingAreas() const  // advc.003: style changes
 {
 	PROFILE_FUNC();
+
+	std::vector<std::pair<int,int> > areas_by_value; // dlph.35
+	CvMap const& m = GC.getMapINLINE();
 
 	long result = -1;
 	CyArgsList argsList;
 	argsList.add(getID());		// pass in this players ID
-	if (gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "findStartingArea", argsList.makeFunctionArgs(), &result))
-	{
-		if (!gDLL->getPythonIFace()->pythonUsingDefaultImpl()) // Python override
-		{
-			if (result == -1 || GC.getMapINLINE().getArea(result) != NULL)
-			{
-				return result;
+	if (gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->getMapScriptModule(), "findStartingArea", argsList.makeFunctionArgs(), &result)) {
+		if (!gDLL->getPythonIFace()->pythonUsingDefaultImpl()) {
+			if (result == -1 || m.getArea(result) != NULL) {
+				//return result; // <dlph.35>
+				areas_by_value.push_back(std::make_pair(result, 1));
+				return areas_by_value; // </dlph.35>
 			}
-			else
-			{
-				FAssertMsg(false, "python findStartingArea() must return -1 or the ID of a valid area");
-			}
+			else FAssertMsg(false, "python findStartingArea() must return -1 or the ID of a valid area");
 		}
 	}
-
-	int iBestValue = 0;
-	int iBestArea = -1;
-	int iValue;
-	int iLoop = 0;
-
-	CvArea *pLoopArea = NULL;
 
 	// find best land area
-	for(pLoopArea = GC.getMapINLINE().firstArea(&iLoop); pLoopArea != NULL; pLoopArea = GC.getMapINLINE().nextArea(&iLoop))
+	//int iBestValue = 0; int iBestArea = -1; // dlph.35
+	int iLoop = 0;
+	for(CvArea* pLoopArea = m.firstArea(&iLoop); pLoopArea != NULL; pLoopArea = m.nextArea(&iLoop))
 	{
-		if (!pLoopArea->isWater())
+		if (pLoopArea->isWater())
+			continue;
+
+		// iNumPlayersOnArea is the number of players starting on the area, plus this player
+		int iNumPlayersOnArea = (pLoopArea->getNumStartingPlots() + 1);
+		// <advc.027>
+		int iTileValue = 1 + pLoopArea->calculateTotalBestNatureYield() + 
+				/*2 * pLoopArea->countCoastalLand() +
+				pLoopArea->getNumRiverEdges() +*/
+				coastRiverStartingAreaScore(*pLoopArea) + // Replacing the above
+				// New: factor in bonus resources
+				::round(pLoopArea->getNumTotalBonuses() * 1.5) +
+				pLoopArea->getNumTiles() / 2; // Halved
+		// </advc.027>
+		int iValue = iTileValue / iNumPlayersOnArea;
+		iValue *= std::min(NUM_CITY_PLOTS + 1, pLoopArea->getNumTiles() + 1);
+		iValue /= (NUM_CITY_PLOTS + 1);
+
+		if (iNumPlayersOnArea <= 2)
 		{
-			// iNumPlayersOnArea is the number of players starting on the area, plus this player
-			int iNumPlayersOnArea = (pLoopArea->getNumStartingPlots() + 1);
-			// <advc.027>
-			int iTileValue = 1 + pLoopArea->calculateTotalBestNatureYield() + 
-					/*2 * pLoopArea->countCoastalLand() +
-					pLoopArea->getNumRiverEdges() +*/
-					coastRiverStartingAreaScore(*pLoopArea) + // Replacing the above
-					// New: factor in bonus resources
-					::round(pLoopArea->getNumTotalBonuses() * 1.5) +
-					pLoopArea->getNumTiles() / 2; // Halved
-			// </advc.027>
-			iValue = iTileValue / iNumPlayersOnArea;
-
-			iValue *= std::min(NUM_CITY_PLOTS + 1, pLoopArea->getNumTiles() + 1);
-			iValue /= (NUM_CITY_PLOTS + 1);
-
-			if (iNumPlayersOnArea <= 2)
-			{
-				iValue *= 4;
-				iValue /= 3;
-			}
-
-			if (iValue > iBestValue)
-			{
-				iBestValue = iValue;
-				iBestArea = pLoopArea->getID();
-			}
+			iValue *= 4;
+			iValue /= 3;
 		}
+		/*if (iValue > iBestValue) {
+			iBestValue = iValue;
+			iBestArea = pLoopArea->getID();
+		}*/ // dlph.35:
+		areas_by_value.push_back(std::make_pair(pLoopArea->getID(), iValue));
 	}
-
-	return iBestArea;
+	//return iBestArea; // <dlph.35>
+	VectorPairSecondGreaterComparator kComparator;
+	std::sort(areas_by_value.begin(), areas_by_value.end(), kComparator);
+	areas_by_value.resize(8); // advc: No need to pass around every little island
+	return areas_by_value; // </dlph.35>
 }
 
 
 CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 {
 	PROFILE_FUNC();
+	CvMap const& m = GC.getMapINLINE();
 
 	long result = -1;
 	CyArgsList argsList;
@@ -1961,7 +1965,7 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 	if (gDLL->getPythonIFace()->callFunction(gDLL->getPythonIFace()->
 			getMapScriptModule(), "findStartingPlot", argsList.makeFunctionArgs(), &result)) {
 		if (!gDLL->getPythonIFace()->pythonUsingDefaultImpl()) { // Python override
-			CvPlot *pPlot = GC.getMapINLINE().plotByIndexINLINE(result);
+			CvPlot *pPlot = m.plotByIndexINLINE(result);
 			if (pPlot != NULL)
 				return pPlot;
 			else {
@@ -1976,11 +1980,14 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 		}
 	}
 
-	int iBestArea = -1;
+	//int iBestArea = -1;
+	// dlph.35: "This function is adjusted to work with a list of possible starting areas instead of a single one."
+	std::vector<std::pair<int,int> > areas_by_value;
 	bool bNew = false;
 	if (getStartingPlot() != NULL)
 	{
-		iBestArea = getStartingPlot()->getArea();
+		//iBestArea = getStartingPlot()->getArea(); // dlph.35:
+		areas_by_value.push_back(std::make_pair(getStartingPlot()->getArea(), 0));
 		setStartingPlot(NULL, true);
 		bNew = true;
 	}
@@ -1989,32 +1996,56 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 	
 	if (!bNew)
 	{
-		iBestArea = findStartingArea();
+		//iBestArea = findStartingArea();
+		areas_by_value = findStartingAreas(); // dlph.35
 	}
 
 	int iRange = startingPlotRange();
 	/*  <advc.140> Cut and pasted from CvMap::maxPlotDistance. I've changed that
 		function, but I think the original formula might be needed here.
-		(I'm not sure I understand the purpose of this outer loop.) */
-	CvMap const& m = GC.getMapINLINE();
-	int iMaxPlotDist = std::max(1, ::plotDistance(0, 0, ((m.isWrapXINLINE()) ?
+		I'm not sure I understand the purpose of this outer loop. */
+	// ^dlph.35 replaces the outer loop
+	/*int iMaxPlotDist = std::max(1, ::plotDistance(0, 0, ((m.isWrapXINLINE()) ?
 			(m.getGridWidthINLINE() / 2) : (m.getGridWidthINLINE() - 1)),
 			((m.isWrapYINLINE()) ? (m.getGridHeightINLINE() / 2) :
 			(m.getGridHeightINLINE() - 1))));
-	for(int iPass = 0; iPass < iMaxPlotDist; iPass++) // </advc.140>
+	for(int iPass = 0; iPass < iMaxPlotDist; iPass++)*/ // </advc.140>
+	/*  <dlph.35> "First pass avoids starting locations that have very little food
+		(before normalization) to avoid starting on the edge of very bad terrain." */
+	for(int iPass = 0; iPass < 2; iPass++)
 	{
-		CvPlot *pBestPlot = NULL;
-		int iBestValue = 0;
-		
-		for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
-		{
-			CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
-
-			if ((iBestArea == -1) || (pLoopPlot->getArea() == iBestArea))
+		for(size_t iJ = 0; iJ < areas_by_value.size(); iJ++)
+		{ // </dlph.35>
+			CvPlot *pBestPlot = NULL;
+			int iBestValue = 0;
+			for (int iI = 0; iI < m.numPlotsINLINE(); iI++)
 			{
+				CvPlot* pLoopPlot = m.plotByIndexINLINE(iI);
+				//if ((iBestArea == -1) || (pLoopPlot->getArea() == iBestArea))
+				// <dlph.35>
+				if (pLoopPlot->getArea() != areas_by_value[iJ].first)
+					continue;
+				if (iPass == 0) // "Avoid very bad terrain in the first pass."
+				{
+					int iTotalFood = 0;
+					int iLandPlots = 0;
+					for (int iX = -2; iX <= 2; iX++)
+					{
+						for (int iY = -2; iY <= 2; iY++)
+						{
+							CvPlot* pCheckPlot = plotXY(pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), iX, iY);
+							if (pCheckPlot != NULL && !pCheckPlot->isWater())
+							{
+								iLandPlots++;
+								iTotalFood += pCheckPlot->calculateBestNatureYield(YIELD_FOOD, NO_TEAM);
+							}
+						}
+					}
+					if (iTotalFood < std::max(1, iLandPlots) / 2)
+						continue;
+				} // </dlph.35>
 				//the distance factor is now done inside foundValue
 				int iValue = pLoopPlot->getFoundValue(getID());
-
 				if (bRandomize && iValue > 0)
 				{	/*  advc.003 (comment): That's a high random portion (found values tend
 						to range between 0 and 9999 too), but I'm not sure which map scripts
@@ -2029,13 +2060,10 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 					pBestPlot = pLoopPlot;
 				}
 			}
-		}
 
-		if (pBestPlot != NULL)
-		{
-			return pBestPlot;
-		}
-
+			if (pBestPlot != NULL)
+				return pBestPlot;
+		} // dlph.35: end of areas_by_value loop
 		FAssertMsg(iPass != 0, "CvPlayer::findStartingPlot - could not find starting plot in first pass.");
 	}
 
@@ -15397,24 +15425,43 @@ bool CvPlayer::canSpy() const {
 	return false;
 } // </advc.120d>
 
-int CvPlayer::getEspionageMissionCost(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvPlot* pPlot, int iExtraData, const CvUnit* pSpyUnit) const
+int CvPlayer::getEspionageMissionCost(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer,
+		const CvPlot* pPlot, int iExtraData, const CvUnit* pSpyUnit) const
 {
 	int iMissionCost = getEspionageMissionBaseCost(eMission, eTargetPlayer, pPlot, iExtraData, pSpyUnit);
-
-	if (-1 == iMissionCost)
-	{
+	if (iMissionCost < 0)
 		return -1;
-	}
 
-	// advc.003: Moved this up (unmarked K-Mod 1.45 change)
 	// Multiply cost of mission * number of team members
-	iMissionCost *= GET_TEAM(getTeam()).getNumMembers();
+	//iMissionCost *= GET_TEAM(getTeam()).getNumMembers(); // K-Mod
+	// dlph.33/advc
+	iMissionCost = adjustMissionCostToTeamSize(iMissionCost, eTargetPlayer);
 
 	iMissionCost *= getEspionageMissionCostModifier(eMission, eTargetPlayer, pPlot, iExtraData, pSpyUnit);
 	iMissionCost /= 100;
 
 	return std::max(0, iMissionCost);
 }
+
+// advc: Auxiliary function for dlph.33
+int CvPlayer::adjustMissionCostToTeamSize(int iBaseCost, PlayerTypes eTargetPlayer) const {
+
+	// Don't compute anything when the teams have equal size
+	int iOurTeamSize = GET_TEAM(getTeam()).getNumMembers();
+	int iTheirTeamSize = TEAMREF(eTargetPlayer).getNumMembers();
+	if(iOurTeamSize == iTheirTeamSize)
+		return iBaseCost;
+	// Tie it to the tech cost modifier
+	double extraTeamMemberModifier = GC.getDefineINT("TECH_COST_EXTRA_TEAM_MEMBER_MODIFIER") / 100.f;
+	/* <dlph.33> "New formula for espionage costs in team. Essentially, I want costs
+		to scale with 1+0.5(number of members - 1), but since there are two teams
+		(and two directions) involved, it will scale with the square root of the
+		ratio of those values. Idea for formula by Fran." */
+	return (int)(iBaseCost * std::sqrt(
+			(1 + extraTeamMemberModifier * (iOurTeamSize - 1)) /
+			(1 + extraTeamMemberModifier * (iTheirTeamSize - 1)))); // </dlph.33>
+}
+
 
 int CvPlayer::getEspionageMissionBaseCost(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvPlot* pPlot, int iExtraData, const CvUnit* pSpyUnit) const
 {

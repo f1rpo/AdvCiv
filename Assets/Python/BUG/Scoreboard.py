@@ -28,7 +28,7 @@ gc = CyGlobalContext()
 Z_DEPTH = -0.3
 
 # Columns IDs
-NUM_PARTS = 25
+NUM_PARTS = 27
 (
 	ALIVE,
 	WAR,
@@ -54,7 +54,8 @@ NUM_PARTS = 25
 	CITIES,
 	WAITING,
 	NET_STATS,
-	OOS
+	OOS,
+	LEADER_ICON, CIV_ICON # dlph.30
 ) = range(NUM_PARTS)
 
 # Types
@@ -91,7 +92,7 @@ def init():
 	
 	# Used keys:
 	# ABCDEFHIKLMNOPQRSTUVWZ*?
-	# GJXY
+	# (unused: JXY)
 	columns.append(Column('', ALIVE))
 	columns.append(Column('S', SCORE, DYNAMIC))
 	columns.append(Column('Z', SCORE_DELTA, DYNAMIC))
@@ -117,6 +118,10 @@ def init():
 	columns.append(Column('*', WAITING, FIXED, smallText("*")))
 	columns.append(Column('L', NET_STATS, DYNAMIC))
 	columns.append(Column('O', OOS, DYNAMIC))
+	# <dlph.30>
+	columns.append(Column('F', LEADER_ICON, SPECIAL))
+	columns.append(Column('G', CIV_ICON, SPECIAL))
+	# </dlph.30>
 	
 	global WAR_ICON, PEACE_ICON
 	WAR_ICON = smallSymbol(FontSymbols.WAR_CHAR)
@@ -287,7 +292,13 @@ class Scoreboard:
 		
 	def setOOS(self, value):
 		self._set(OOS, smallText(value))
-		
+	# <dlph.30>
+	def setLeaderIcon(self, leader):
+		self._set(LEADER_ICON, leader)
+
+	def setCivIcon(self, civ):
+		self._set(CIV_ICON, civ)
+	# </dlph.30>
 		
 	def _getContactWidget(self):
 		return (WidgetTypes.WIDGET_CONTACT_CIV, self._currPlayerScore.getID(), -1)
@@ -473,6 +484,30 @@ class Scoreboard:
 					x -= techIconSize
 					totalWidth += techIconSize + spacing
 					spacing = defaultSpacing
+				# <dlph.30>
+				elif (c == LEADER_ICON):
+					x -= spacing
+					for p, playerScore in enumerate(self._playerScores):
+						if (playerScore.has(c)):
+							leader = playerScore.value(c)
+							name = "ScoreLeader%d" % p
+							info = gc.getLeaderHeadInfo(leader)
+							screen.addDDSGFC( name, info.getButton(), x - techIconSize, y - p * height - 1, techIconSize, techIconSize, WidgetTypes.WIDGET_PEDIA_JUMP_TO_LEADER, leader, 1 )
+					x -= techIconSize
+					totalWidth += techIconSize + spacing
+					spacing = defaultSpacing
+				elif (c == CIV_ICON):
+					x -= spacing
+					for p, playerScore in enumerate(self._playerScores):
+						if (playerScore.has(c)):
+							civ = playerScore.value(c)
+							name = "ScoreCiv%d" % p
+							info = gc.getCivilizationInfo(civ)
+							screen.addDDSGFC( name, info.getButton(), x - techIconSize, y - p * height - 1, techIconSize, techIconSize, WidgetTypes.WIDGET_PEDIA_JUMP_TO_CIV, civ, -1 )
+					x -= techIconSize
+					totalWidth += techIconSize + spacing
+					spacing = defaultSpacing
+				# </dlph.30>
 		
 		for playerScore in self._playerScores:
 			interface.checkFlashReset( playerScore.getID() )

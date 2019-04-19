@@ -5044,6 +5044,11 @@ class CvMainInterface:
 			screen.hide( szName )
 			szName = "ScoreTech" + str(i)
 			screen.hide( szName )
+			# <dlph.30>
+			szName = "ScoreLeader" + str(i)
+			screen.hide( szName )
+			szName = "ScoreCiv" + str(i)
+			screen.hide( szName ) # </dlph.30>
 			for j in range( Scoreboard.NUM_PARTS ):
 				szName = "ScoreText%d-%d" %( i, j )
 				screen.hide( szName )
@@ -5208,6 +5213,11 @@ class CvMainInterface:
 													szBuffer = szBuffer + (" ?")
 													if (bAlignIcons):
 														scores.setNotMet()
+												# <dlph.30>
+												if (bAlignIcons):
+													scores.setLeaderIcon(gc.getPlayer(ePlayer).getLeaderType())
+													scores.setCivIcon(gc.getPlayer(ePlayer).getCivilizationType())
+												# </dlph.30>
 												if gc.getTeam(eTeam).isAlive() and (gc.getTeam(gc.getGame().getActiveTeam()).isHasMet(eTeam) or gc.getGame().isDebugMode()):
 												# K-Mod end
 													if (gc.getTeam(eTeam).isAtWar(gc.getGame().getActiveTeam())):

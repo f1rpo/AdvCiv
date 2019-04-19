@@ -2243,8 +2243,9 @@ void CvCityAI::AI_chooseProduction()
 	} // <dlph.15>
 	int iMissileCarriers = kPlayer.AI_totalUnitAIs(UNITAI_MISSILE_CARRIER_SEA);		
 	if (!bFinancialTrouble && iMissileCarriers > 0 && !bImportantCity)
-	{
-		if( (iProductionRank <= ((kPlayer.getNumCities() / 2) + 1)) )
+	{	// Bugfix(?): was '<=' in BtS
+		// advc: Make it '>=' though, not '>'.
+		if (iProductionRank >= kPlayer.getNumCities() / 2 + 1)
 		{
 			UnitTypes eBestMissileCarrierUnit = NO_UNIT;  
 			kPlayer.AI_bestCityUnitAIValue(UNITAI_MISSILE_CARRIER_SEA, NULL, &eBestMissileCarrierUnit);
@@ -2257,11 +2258,10 @@ void CvCityAI::AI_chooseProduction()
 				if ((kPlayer.AI_totalUnitAIs(UNITAI_MISSILE_AIR) < iMissileCarrierAirNeeded) || 
 						(bPrimaryArea && (kPlayer.AI_totalAreaUnitAIs(pArea, UNITAI_MISSILE_CARRIER_SEA) *
 						GC.getUnitInfo(eBestMissileCarrierUnit).getCargoSpace()
-						// Bugfix: was "<" in BtS
-						>
-						kPlayer.AI_totalAreaUnitAIs(pArea, UNITAI_MISSILE_AIR))))
+						// Bugfix: was '<' in BtS
+						> kPlayer.AI_totalAreaUnitAIs(pArea, UNITAI_MISSILE_AIR))))
 				{
-					// Don't always build missiles, more likely if really low
+					// Don't always build missiles, more likely if really low on missiles.
 					if (AI_chooseUnit(UNITAI_MISSILE_AIR, (kPlayer.AI_totalUnitAIs(UNITAI_MISSILE_AIR) < iMissileCarrierAirNeeded/2) ? 50 : 20))
 					{
 						if( gCityLogLevel >= 2 ) logBBAI("      City %S uses build missile", getName().GetCString());

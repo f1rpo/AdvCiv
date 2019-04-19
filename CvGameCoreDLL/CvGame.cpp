@@ -1072,34 +1072,31 @@ void CvGame::assignStartingPlots()
 			for (int iI = 0; iI < MAX_CIV_TEAMS; iI++)
 			{
 				int iLoopTeam = ((iI + iRandOffset) % MAX_CIV_TEAMS);
+				if (!GET_TEAM((TeamTypes)iLoopTeam).isAlive())
+					continue;
 
-				if (GET_TEAM((TeamTypes)iLoopTeam).isAlive())
+				for (int iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++)
 				{
-					for (int iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++)
-					{	// <advc.003>
-						CvPlayer& member = GET_PLAYER((PlayerTypes)iJ);
-						if(!member.isAlive())
-							continue; // </advc.003>
-						if (member.getTeam() == iLoopTeam
-								// <advc.108b>
-								&& !newPlotFound[iJ]) {
-							if(member.getStartingPlot() == NULL)
-								member.setStartingPlot(member.findStartingPlot(), true);
-							if(member.getStartingPlot() != NULL) {
-								playerOrder.push_back(member.getID());
-								bStartFound = true;
-								newPlotFound[member.getID()] = true;
-								break;
-							}
-						} // </advc.108b>
-					}
+					CvPlayer& kMember = GET_PLAYER((PlayerTypes)iJ);
+					if(!kMember.isAlive())
+						continue; // </advc.003>
+					if (kMember.getTeam() == iLoopTeam
+							// <advc.108b>
+							&& !newPlotFound[iJ]) {
+						if(kMember.getStartingPlot() == NULL)
+							kMember.setStartingPlot(kMember.findStartingPlot(), true);
+						if(kMember.getStartingPlot() != NULL) {
+							playerOrder.push_back(kMember.getID());
+							bStartFound = true;
+							newPlotFound[kMember.getID()] = true;
+							break;
+						}
+					} // </advc.108b>
 				}
 			}
 
 			if (!bStartFound)
-			{
 				break;
-			}
 		}
 
 		//check all players have starting plots

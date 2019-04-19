@@ -4856,40 +4856,29 @@ int CvPlayerAI::AI_militaryWeight(CvArea* pArea) const
 }
 
 // This function has been edited by Mongoose, then by jdog5000, and then by me (karadoc). Some changes are marked, others are not.
-int CvPlayerAI::AI_targetCityValue(CvCity* pCity, bool bRandomize, bool bIgnoreAttackers) const
+int CvPlayerAI::AI_targetCityValue(CvCity* pCity, bool bRandomize, bool bIgnoreAttackers) const // advc.003: some style changes
 {
 	PROFILE_FUNC();
-
 	FAssertMsg(pCity != NULL, "City is not assigned a valid value");
 
+	CvGame& g = GC.getGameINLINE();
+	CvPlayerAI const& kOwner = GET_PLAYER(pCity->getOwnerINLINE());
 	//int iValue = 1 + pCity->getPopulation() * (50 + pCity->calculateCulturePercent(getID())) / 100;
 	int iValue = 5 + pCity->getPopulation() * (100 + pCity->calculateCulturePercent(getID())) / 150; // K-Mod (to dilute the other effects)
 
-	const CvPlayerAI& kOwner = GET_PLAYER(pCity->getOwnerINLINE());
-
 	if (pCity->isCoastal())
-	{
 		iValue += 2;
-	}
 
 	// <advc.104d> Replacing the BBAI code below (essentially with K-Mod code)
 	iValue += AI_cityWonderVal(*pCity);
 	/*iValue += 4*pCity->getNumActiveWorldWonders();
-
-	for (int iI = 0; iI < GC.getNumReligionInfos(); iI++)
-	{
-		if (pCity->isHolyCity((ReligionTypes)iI))
-		{
+	for (int iI = 0; iI < GC.getNumReligionInfos(); iI++) {
+		if (pCity->isHolyCity((ReligionTypes)iI)) {
 			iValue += 2 + ((GC.getGameINLINE().calculateReligionPercent((ReligionTypes)iI)) / 5);
-
 			if (kOwner.getStateReligion() == iI)
-			{
 				iValue += 2;
-			}
 			if( getStateReligion() == iI )
-			{
 				iValue += 8;
-			}
 		}
 	}*/ // </advc.104d>
 	// <cdtw.2>
@@ -4904,104 +4893,81 @@ int CvPlayerAI::AI_targetCityValue(CvCity* pCity, bool bRandomize, bool bIgnoreA
 	if (pCity->isEverOwned(getID()))
 	{
 		iValue += 4;
-
 		if( pCity->getOriginalOwner() == getID() )
-		{
 			iValue += 2;
-		}
 	}
 
 	if (!bIgnoreAttackers)
-	{
-		iValue += std::min( 8, (AI_adjacentPotentialAttackers(pCity->plot()) + 2)/3 );
-	}
+		iValue += std::min(8, (AI_adjacentPotentialAttackers(pCity->plot()) + 2) / 3);
 
 	for (int iI = 0; iI < NUM_CITY_PLOTS; iI++)
 	{
 		CvPlot* pLoopPlot = plotCity(pCity->getX_INLINE(), pCity->getY_INLINE(), iI);
-
-		if (pLoopPlot != NULL)
-		{
-			if (pLoopPlot->getBonusType(getTeam()) != NO_BONUS)
-			{
-				iValue += std::max(1, AI_bonusVal(pLoopPlot->getBonusType(getTeam()), 1, true)/5);
-			}
-
-			if (pLoopPlot->getOwnerINLINE() == getID())
-			{
-				iValue++;
-			}
-
-			if (pLoopPlot->isAdjacentPlayer(getID(), true))
-			{
-				iValue++;
-			}
+		if (pLoopPlot == NULL)
+			continue;
+		if (pLoopPlot->getBonusType(getTeam()) != NO_BONUS) {
+			iValue += std::max(1, AI_bonusVal(pLoopPlot->getBonusType(
+					getTeam()), 1, true) / 5);
 		}
+		if (pLoopPlot->getOwnerINLINE() == getID())
+			iValue++;
+		if (pLoopPlot->isAdjacentPlayer(getID(), true))
+			iValue++;
 	}
 
 	if( kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3) )
 	{
-		if( pCity->getCultureLevel() >= (GC.getGameINLINE().culturalVictoryCultureLevel() - 1) )
+		if (pCity->getCultureLevel() >= g.culturalVictoryCultureLevel() - 1)
 		{
 			iValue += 15;
-			
 			if( kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4) )
 			{
 				iValue += 25;
-
-				 if (pCity->getCultureLevel() >= (GC.getGameINLINE().culturalVictoryCultureLevel()) ||
-					 pCity->findCommerceRateRank(COMMERCE_CULTURE) <= GC.getGameINLINE().culturalVictoryNumCultureCities()) // K-Mod
-				{
+				if (pCity->getCultureLevel() >= (g.culturalVictoryCultureLevel()) ||
+						// K-Mod:
+						pCity->findCommerceRateRank(COMMERCE_CULTURE) <=
+						g.culturalVictoryNumCultureCities()) 
 					iValue += 60; // was 10
-				}
 			}
 		}
 	}
 
 	if( kOwner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE3) )
 	{
-		if( pCity->isCapital() )
+		if (pCity->isCapital())
 		{
 			iValue += 10;
-
-			if( kOwner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4) )
+			if (kOwner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4))
 			{
 				iValue += 10; // was 20
-
-				if( GET_TEAM(pCity->getTeam()).getVictoryCountdown(GC.getGameINLINE().getSpaceVictory()) >= 0 )
-				{
+				if (GET_TEAM(pCity->getTeam()).getVictoryCountdown(g.getSpaceVictory()) >= 0)
 					iValue += 100; // was 30
-				}
 			}
 		}
 	}
-
-	CvCity* pNearestCity = GC.getMapINLINE().findCity(pCity->getX_INLINE(), pCity->getY_INLINE(), getID());
-
+	CvMap& m = GC.getMapINLINE();
+	CvCity* pNearestCity = m.findCity(pCity->getX_INLINE(), pCity->getY_INLINE(), getID());
 	if (pNearestCity != NULL)
 	{
 		// Now scales sensibly with map size, on large maps this term was incredibly dominant in magnitude
 		int iTempValue = 30;
-		iTempValue *= std::max(1, ((GC.getMapINLINE().maxStepDistance() * 2) - GC.getMapINLINE().calculatePathDistance(pNearestCity->plot(), pCity->plot())));
-		iTempValue /= std::max(1, (GC.getMapINLINE().maxStepDistance() * 2));
-
+		iTempValue *= std::max(1, m.maxStepDistance() * 2 -
+				m.calculatePathDistance(pNearestCity->plot(), pCity->plot()));
+		iTempValue /= std::max(1, m.maxStepDistance() * 2);
 		iValue += iTempValue;
 	}
 
 	if (bRandomize)
-	{
-		iValue += GC.getGameINLINE().getSorenRandNum(((pCity->getPopulation() / 2) + 1), "AI Target City Value");
-	}
+		iValue += g.getSorenRandNum((pCity->getPopulation() / 2) + 1, "AI Target City Value");
 
-	// K-Mod
-	if (pCity->getHighestPopulation() < 1)
-	{
-		// Usually this means the city would be auto-razed.
-		// (We can't use isAutoRaze for this, because that assumes the city is already captured.)
-		iValue = (iValue +2)/3;
-	}
+	// K-Mod.
+	//if (pCity->getHighestPopulation() < 1)
+	// Usually this means the city would be auto-razed.
+	// (We can't use isAutoRaze for this, because that assumes the city is already captured.)
+	// dlph.29 (bugfix):
+	if (pCity->getHighestPopulation() == 1 && !g.isOption(GAMEOPTION_NO_CITY_RAZING))
+		iValue = (iValue + 2) / 3;
 	// K-Mod end
-
 	return iValue;
 }
 
@@ -26571,81 +26537,70 @@ UnitTypes CvPlayerAI::AI_bestAdvancedStartUnitAI(CvPlot* pPlot, UnitAITypes eUni
 	return eBestUnit;
 }
 
-CvPlot* CvPlayerAI::AI_advancedStartFindCapitalPlot()
-{
+CvPlot* CvPlayerAI::AI_advancedStartFindCapitalPlot()  // advc.003: style changes
+{	// Not quite what Kek-Mod does, but would have the same result:
+	// <dlph.35> "Don't exchange team members starting location."
+	/*CvPlot* pCurrentStart = getStartingPlot();
+	if(pCurrentStart != NULL && getAdvancedStartCityCost(true, pCurrentStart) > 0)
+		return pCurrentStart;*/ // </dlph.35>
+	// advc: However, I don't want to make that change for now.
+	CvMap& m = GC.getMapINLINE();
 	CvPlot* pBestPlot = NULL;
 	int iBestValue = -1;
-	
 	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; iPlayer++)
 	{
-		CvPlayer& kPlayer = GET_PLAYER((PlayerTypes)iPlayer);
-		if (kPlayer.isAlive())
+		CvPlayer& kMember = GET_PLAYER((PlayerTypes)iPlayer);
+		if (!kMember.isAlive() || kMember.getTeam() != getTeam())
+			continue;
+
+		CvPlot* pLoopPlot = kMember.getStartingPlot();
+		if (pLoopPlot == NULL)
 		{
-			if (kPlayer.getTeam() == getTeam())
-			{
-				CvPlot* pLoopPlot = kPlayer.getStartingPlot();
-				if (pLoopPlot != NULL)
-				{
-					if (getAdvancedStartCityCost(true, pLoopPlot) > 0)
-					{
-					int iX = pLoopPlot->getX_INLINE();
-					int iY = pLoopPlot->getY_INLINE();
-						
-						int iValue = 1000;
-						if (iPlayer == getID())
-						{
-							iValue += 1000;
-						}
-						else
-						{
-							iValue += GC.getGame().getSorenRandNum(100, "AI Advanced Start Choose Team Start");
-						}
-						CvCity * pNearestCity = GC.getMapINLINE().findCity(iX, iY, NO_PLAYER, getTeam());
-						if (NULL != pNearestCity)
-						{
-							FAssert(pNearestCity->getTeam() == getTeam());
-							int iDistance = ::stepDistance(iX, iY, pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE());
-							if (iDistance < 10)
-							{
-								iValue /= (10 - iDistance);
-							}
-						}
-						
-						if (iValue > iBestValue)
-						{
-							iBestValue = iValue;
-							pBestPlot = pLoopPlot;							
-						}
-					}
-				}
-				else
-				{
-					FAssertMsg(false, "StartingPlot for a live player is NULL!");
-				}
-			}
+			FAssertMsg(false, "StartingPlot for a live player is NULL!");
+			continue;
+		}
+		if (getAdvancedStartCityCost(true, pLoopPlot) <= 0)
+			continue;
+			
+		int iValue = 1000;
+		if (kMember.getID() == getID())
+			iValue += 1000;
+		else iValue += GC.getGame().getSorenRandNum(100, "AI Advanced Start Choose Team Start");
+
+		int iX = pLoopPlot->getX_INLINE();
+		int iY = pLoopPlot->getY_INLINE();
+		CvCity* pNearestCity = m.findCity(iX, iY, NO_PLAYER, getTeam());
+		if (NULL != pNearestCity)
+		{
+			FAssert(pNearestCity->getTeam() == getTeam());
+			int iDistance = m.stepDistance(iX, iY, pNearestCity->getX_INLINE(), pNearestCity->getY_INLINE());
+			if (iDistance < 10)
+				iValue /= 10 - iDistance;
+		}
+		if (iValue > iBestValue)
+		{
+			iBestValue = iValue;
+			pBestPlot = pLoopPlot;							
 		}
 	}
 	
 	if (pBestPlot != NULL)
-	{
 		return pBestPlot;
-	}
 	
 	FAssertMsg(false, "AS: Failed to find a starting plot for a player");
-	
 	//Execution should almost never reach here.
 	
 	//Update found values just in case - particulary important for simultaneous turns.
-	AI_updateFoundValues();
+	AI_updateFoundValues(/* dlph.35 (bugfix): */ true);
 	
 	pBestPlot = NULL;
 	iBestValue = -1;
 	
-	if (NULL != getStartingPlot())
+	if (getStartingPlot() != NULL)
 	{
-		for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
+		for (int iI = 0; iI < m.numPlotsINLINE(); iI++)
 		{
-			CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
+			CvPlot* pLoopPlot = m.plotByIndexINLINE(iI);
 			if (pLoopPlot->getArea() == getStartingPlot()->getArea())
 			{
 				int iValue = pLoopPlot->getFoundValue(getID());
@@ -26665,9 +26620,7 @@ CvPlot* CvPlayerAI::AI_advancedStartFindCapitalPlot()
 	}
 	
 	if (pBestPlot != NULL)
-	{
 		return pBestPlot;
-	}
 	
 	//Commence panic.
 	FAssertMsg(false, "Failed to find an advanced start starting plot");
