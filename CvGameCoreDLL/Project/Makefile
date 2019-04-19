@@ -12,7 +12,7 @@
 # Debug build to obscure accesses to uninitialized memory.
 # YOURMOD2 and YOURLOGS (see under "Paths"). WX added to GLOBAL_CFLAGS.
 # Internal profiler enabled (FP_PROFILE_ENABLE, USE_INTERNAL_PROFILER).
-# devolution has added the target 'Final_Release' with additional optimizations.
+# devolution (Erik) has added the target 'Final_Release' with additional optimizations.
 
 ## User setup
 ##

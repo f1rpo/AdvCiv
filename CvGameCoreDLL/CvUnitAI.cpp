@@ -1107,25 +1107,24 @@ void CvUnitAI::AI_setUnitAIType(UnitAITypes eNewValue)
 
 int CvUnitAI::AI_sacrificeValue(const CvPlot* pPlot) const
 {
-    //int iValue;
-	//long iValue; // K-Mod. (the int will overflow)
-	// Erik: Based on his comment he probably meant to use
-	// a 64 bit integer here since sizeof(int) == sizeof(long) hence a long long is needed
-	long long iValue;
-
-    int iCollateralDamageValue = 0;
-    if (pPlot != NULL)
-    {
-        const int iPossibleTargets = std::min((pPlot->getNumVisibleEnemyDefenders(this) - 1), collateralDamageMaxUnits());
-
+	int iCollateralDamageValue = 0;
+	if (pPlot != NULL)
+	{
+		const int iPossibleTargets = std::min((pPlot->getNumVisibleEnemyDefenders(this) - 1), collateralDamageMaxUnits());
         if (iPossibleTargets > 0)
-        {
-            iCollateralDamageValue = collateralDamage();
-            iCollateralDamageValue += std::max(0, iCollateralDamageValue - 100);
-            iCollateralDamageValue *= iPossibleTargets;
-            iCollateralDamageValue /= 5;
-        }
-    }
+		{
+			iCollateralDamageValue = collateralDamage();
+			iCollateralDamageValue += std::max(0, iCollateralDamageValue - 100);
+			iCollateralDamageValue *= iPossibleTargets;
+			iCollateralDamageValue /= 5;
+		}
+	}
+
+	//int iValue;
+	//long iValue; // K-Mod. (the int will overflow)
+	/*  Erik (BUG1): Based on his comment he probably meant to use
+		a 64 bit integer here since sizeof(int) == sizeof(long) hence a long long is needed */
+	long long iValue;
 
 	if (getDomainType() == DOMAIN_AIR) 
 	{
@@ -1141,22 +1140,14 @@ int CvUnitAI::AI_sacrificeValue(const CvPlot* pPlot) const
 	} 
 	else 
 	{
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      05/14/10                                jdog5000      */
-/*                                                                                              */
-/* General AI                                                                                   */
-/************************************************************************************************/
-/* 
-// original bts code
 		iValue  = 128 * (currEffectiveStr(pPlot, ((pPlot == NULL) ? NULL : this)));
 		iValue *= (100 + iCollateralDamageValue);
+		// BETTER_BTS_AI_MOD, General AI, 05/14/10, jdog5000: START
+		/*original bts code
 		iValue /= (100 + cityDefenseModifier());
 		iValue *= (100 + withdrawalProbability());	
 		iValue /= std::max(1, (1 + m_pUnitInfo->getProductionCost()));
-		iValue /= (10 + getExperience());
-*/
-		iValue  = 128 * (currEffectiveStr(pPlot, ((pPlot == NULL) ? NULL : this)));
-		iValue *= (100 + iCollateralDamageValue);
+		iValue /= (10 + getExperience());*/
 		iValue /= (100 + cityDefenseModifier());
 		iValue *= (100 + withdrawalProbability());
 		iValue /= 100; // K-Mod
@@ -1172,38 +1163,33 @@ int CvUnitAI::AI_sacrificeValue(const CvPlot* pPlot) const
 
 		// Value units which can't kill units later, also combat limits mean higher survival odds
 		/* original bbai code
-		if (combatLimit() < 100)
-		{
+		if (combatLimit() < 100) {
 			iValue *= 150;
 			iValue /= 100;
-
 			iValue *= 100;
 			iValue /= std::max(1, combatLimit());
 		} */
 		// K-Mod. The above code is way too extreme.
 		// I'm going to replace it with something more meaningful, and less severe.
-		iValue *= 100 + 5 * (2 * firstStrikes() + chanceFirstStrikes()) / 2 + (immuneToFirstStrikes() ? 20 : 0) + (combatLimit() < 100 ? 20 : 0);
+		iValue *= 100 + 5 * (2 * firstStrikes() + chanceFirstStrikes()) /
+				2 + (immuneToFirstStrikes() ? 20 : 0) +
+				(combatLimit() < 100 ? 20 : 0);
 		iValue /= 100;
 		// K-Mod end
 
 		//iValue /= std::max(1, (1 + m_pUnitInfo->getProductionCost()));
 		iValue /= m_pUnitInfo->getProductionCost() > 0 ? m_pUnitInfo->getProductionCost() : 180; // K-Mod
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+		// BETTER_BTS_AI_MOD: END
 	}
 
 	// From Lead From Behind by UncutDragon
 	if (GC.getLFBEnable())
-	{
-		// Reduce the value of sacrificing 'valuable' units - based on great general, limited, healer, experience
+	{	// Reduce the value of sacrificing 'valuable' units - based on great general, limited, healer, experience
 		/* bbai code
 		iValue *= 100;
 		int iRating = LFBgetRelativeValueRating();
 		if (iRating > 0)
-		{
-			iValue /= (1 + 3*iRating);
-		} */
+			iValue /= (1 + 3*iRating);*/
 		// K-Mod. cf. LFBgetValueAdjustedOdds
 		iValue *= 1000;
 		iValue /= std::max(1, 1000 + 1000 * LFBgetRelativeValueRating() * GC.getLFBAdjustNumerator() / GC.getLFBAdjustDenominator());
@@ -1216,12 +1202,12 @@ int CvUnitAI::AI_sacrificeValue(const CvPlot* pPlot) const
 		if(iValue > 100 * iXP)
 			iValue -= iXP; // </advc.048>
 	}
-
 	//return iValue;
 	//return std::min((long)MAX_INT, iValue); // K-Mod
-	// Erik: We cannot change the signature due to the virtual specifier so we have to truncate the final value
-	// to an int. At least we probably avoid undefined behaviour during an intermediate computation...
-	// Note that if signed overflow do occur, the std::min operation is meaningless
+	/*  Erik (BUG1): We cannot change the signature due to the virtual specifier
+		so we have to truncate the final value to an int. At least we probably avoid
+		undefined behaviour during an intermediate computation...
+		Note that if signed overflow does occur, the std::min operation is meaningless. */
 	return static_cast<int>(iValue);
 }
 
@@ -12131,11 +12117,11 @@ bool CvUnitAI::AI_guardFort(bool bSearch)
 		if (eImprovement != NO_IMPROVEMENT)
 		{
 			const CvImprovementInfo& kImprovement = GC.getImprovementInfo(eImprovement);
-
-			// Erik: Only consider guarding if we actually receive a defensive bonus from the improvement
-			// This is really only relevant for mods that have improvements that will act as a city without
-			// providing a defensive bonus
-			if (kImprovement.isActsAsCity() && kImprovement.getDefenseModifier() > 0)
+			if (kImprovement.isActsAsCity()
+				/*  Erik (AI2): Only consider guarding if we actually receive a defensive bonus from the improvement.
+					This is really only relevant for mods that have improvements that will act as a city without
+					providing a defensive bonus. */
+					&& kImprovement.getDefenseModifier() > 0)
 			{
 				if (plot()->plotCount(PUF_isCityAIType, -1, -1, getOwnerINLINE()) <= AI_getPlotDefendersNeeded(plot(), 0))
 				{
@@ -19800,7 +19786,7 @@ bool CvUnitAI::AI_nextCityToImproveAirlift() // advc.003: style changes
 bool CvUnitAI::AI_irrigateTerritory() // advc.003: refactored
 {
 	PROFILE_FUNC();
-	// <devolution.opt1> Cache the viable subset of builds so that we don't have to loop through all of them
+	// Erik <OPT1> Cache the viable subset of builds so that we don't have to loop through all of them
 	std::vector<BuildTypes> irrigationCarryingBuilds;
 	for (int iI = 0; iI < GC.getNumBuildInfos(); iI++)
 	{
@@ -19811,7 +19797,7 @@ bool CvUnitAI::AI_irrigateTerritory() // advc.003: refactored
 			if (GC.getImprovementInfo(eImprovement).isCarriesIrrigation())
 				irrigationCarryingBuilds.push_back(eBuild);
 		}
-	} // </devolution.opt1>
+	} // </OPT1>
 
 	CvPlayer const& kOwner = GET_PLAYER(getOwnerINLINE());
 	bool const bSafeAuto = kOwner.isOption(PLAYEROPTION_SAFE_AUTOMATION);
@@ -23032,56 +23018,51 @@ bool CvUnitAI::AI_nukeRange(int iRange)
 	
 	return false;
 }
-#endif // end old AI_nukeRnage code.
+#endif // end old AI_nukeRange code.
 
 // K-Mod. Get the best trade mission value.
 // Note. The iThreshold parameter is only there to improve efficiency.
-int CvUnitAI::AI_tradeMissionValue(CvPlot*& pBestPlot, int iThreshold)
+int CvUnitAI::AI_tradeMissionValue(CvPlot*& pBestPlot, int iThreshold) // advc.003: style changes
 {
 	pBestPlot = NULL;
-
-	int iBestValue = 0;
-	int iBestPathTurns = INT_MAX;
-	int iLoop;
 
 	if (getUnitInfo().getBaseTrade() <= 0 && getUnitInfo().getTradeMultiplier() <= 0)
 		return 0;
 
+	int iBestValue = 0;
+	int iBestPathTurns = INT_MAX;
+	int iLoop;
 	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		const CvPlayerAI& kPlayer = GET_PLAYER((PlayerTypes)iI);
+		if (!kPlayer.isAlive())
+			continue;
+		// Erik <AI1>: Do not consider cities belonging to players that we have a war plan against
+		if (GET_TEAM(getTeam()).AI_getWarPlan(kPlayer.getTeam()) != NO_WARPLAN)
+			continue; // </AI1> 
 
-		if (kPlayer.isAlive())
+		for (CvCity* pLoopCity = kPlayer.firstCity(&iLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iLoop))
 		{
-			// Erik: Do not consider cities belonging to players that we have a war plan against
-			if (GET_TEAM(getTeam()).AI_getWarPlan(kPlayer.getTeam()) != NO_WARPLAN)
+			if (!AI_plotValid(pLoopCity->plot()) || pLoopCity->plot()->isVisibleEnemyUnit(this))
 				continue;
 
-			for (CvCity* pLoopCity = GET_PLAYER((PlayerTypes)iI).firstCity(&iLoop); pLoopCity != NULL; pLoopCity = GET_PLAYER((PlayerTypes)iI).nextCity(&iLoop))
-			{
-				if (AI_plotValid(pLoopCity->plot()) && !pLoopCity->plot()->isVisibleEnemyUnit(this))
-				{
-					const int iValue = getTradeGold(pLoopCity->plot());
-					int iPathTurns;
+			const int iValue = getTradeGold(pLoopCity->plot());
+			if (iValue < iThreshold || !canTrade(pLoopCity->plot()))
+				continue;
 
-					if (iValue >= iThreshold && canTrade(pLoopCity->plot()))
-					{
-						if (generatePath(pLoopCity->plot(), MOVE_NO_ENEMY_TERRITORY, true, &iPathTurns))
-						{
-							if (iValue / (4 + iPathTurns) > iBestValue / (4 + iBestPathTurns))
-							{
-								iBestValue = iValue;
-								iBestPathTurns = iPathTurns;
-								pBestPlot = getPathEndTurnPlot();
-								iThreshold = std::max(iThreshold, iBestValue * 4 / (4 + iBestPathTurns));
-							}
-						}
-					}
+			int iPathTurns;
+			if (generatePath(pLoopCity->plot(), MOVE_NO_ENEMY_TERRITORY, true, &iPathTurns))
+			{
+				if (iValue / (4 + iPathTurns) > iBestValue / (4 + iBestPathTurns))
+				{
+					iBestValue = iValue;
+					iBestPathTurns = iPathTurns;
+					pBestPlot = getPathEndTurnPlot();
+					iThreshold = std::max(iThreshold, iBestValue * 4 / (4 + iBestPathTurns));
 				}
 			}
 		}
 	}
-
 	return iBestValue;
 }
 
