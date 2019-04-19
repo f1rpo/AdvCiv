@@ -94,7 +94,8 @@
 			<iAIWarWearinessPercent>100</iAIWarWearinessPercent>
 			<!-- advc.251: renamed -->
 			<iAIHandicapIncrementTurns>0</iAIHandicapIncrementTurns>
-			<iAIAdvancedStartPercent>100</iAIAdvancedStartPercent>
+			<!-- advc.250c: was 100 -->
+			<iAIAdvancedStartPercent>67</iAIAdvancedStartPercent>
 			<!-- advc.148 -->
 			<iAIAttitudeChangePercent>30</iAIAttitudeChangePercent>
 			<Goodies>
@@ -260,7 +261,8 @@
 			<iAIWarWearinessPercent>90</iAIWarWearinessPercent>
 			<!-- advc.251: renamed -->
 			<iAIHandicapIncrementTurns>0</iAIHandicapIncrementTurns>
-			<iAIAdvancedStartPercent>100</iAIAdvancedStartPercent>
+			<!-- advc.250c: was 100 -->
+			<iAIAdvancedStartPercent>75</iAIAdvancedStartPercent>
 			<!-- advc.148 -->
 			<iAIAttitudeChangePercent>30</iAIAttitudeChangePercent>
 			<Goodies>
@@ -401,7 +403,8 @@
 			<iAIWarWearinessPercent>80</iAIWarWearinessPercent>
 			<!-- advc.251: renamed -->
 			<iAIHandicapIncrementTurns>0</iAIHandicapIncrementTurns>
-			<iAIAdvancedStartPercent>100</iAIAdvancedStartPercent>
+			<!-- advc.250c: was 100 -->
+			<iAIAdvancedStartPercent>90</iAIAdvancedStartPercent>
 			<!-- advc.148 -->
 			<iAIAttitudeChangePercent>30</iAIAttitudeChangePercent>
 			<Goodies>
@@ -688,8 +691,9 @@
 			<iBuildTimePercent>100</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>100</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>100</iGPThresholdPercent>
-			<!-- was 115 -->
-			<iResearchPercent>110</iResearchPercent>
+			<!-- advc.251 (end) -->
+			<iResearchPercent>115</iResearchPercent>
+			<!-- advc.251 (start) -->
 			<iTrainPercent>100</iTrainPercent>
 			<iConstructPercent>100</iConstructPercent>
 			<iCreatePercent>100</iCreatePercent>
@@ -743,7 +747,7 @@
 			<iAIGrowthPercent>95</iAIGrowthPercent>
 			<!-- advc.251 (start) -->
 			<iAIGPThresholdPercent>95</iAIGPThresholdPercent>
-			<iAIResearchPercent>100</iAIResearchPercent>
+			<iAIResearchPercent>105</iAIResearchPercent>
 			<!-- was 90 -->
 			<iAITrainPercent>95</iAITrainPercent>
 			<!-- was 100 -->

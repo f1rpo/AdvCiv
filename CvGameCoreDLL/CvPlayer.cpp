@@ -1528,22 +1528,23 @@ void CvPlayer::initFreeState()
 
 
 void CvPlayer::initFreeUnits()
-{	// <advc.003>
-	CvGame& g = GC.getGame();
+{	// <dlph.28>
+	if(isBarbarian())
+		return; // </dlph.28>
+	// <advc.003>
+	CvGame& g = GC.getGameINLINE();
 	int const iStartingUnitMultiplier = GC.getEraInfo(g.getStartEra()).
 			getStartingUnitMultiplier();
 	// </advc.003>
-	if (g.isOption(GAMEOPTION_ADVANCED_START) && !isBarbarian() &&
+	if (g.isOption(GAMEOPTION_ADVANCED_START) &&
 			(!isHuman() || !g.isOption(GAMEOPTION_SPAH))) // advc.250b
 	{
 		int iPoints = g.getNumAdvancedStartPoints();
-
 		// advc.250b (comment): Disabled through Handicap XML
 		iPoints *= GC.getHandicapInfo(getHandicapType()).getAdvancedStartPointsMod();
 		iPoints /= 100;
 
-		if (!isHuman()
-			&& !g.isOption(GAMEOPTION_SPAH)) // advc.250b
+		if (!isHuman() /* advc.250b: */ && !g.isOption(GAMEOPTION_SPAH)) 
 		{	/*  advc.250b, advc.001: Was this->getHandicapType(), i.e. Noble, which
 				means that this code block did nothing. */
 			iPoints *= GC.getHandicapInfo(g.getHandicapType()).getAIAdvancedStartPercent();
@@ -1552,9 +1553,9 @@ void CvPlayer::initFreeUnits()
 		/*  <advc.250c> Civs in Advanced Start can place a city even if they don't
 			have enough start points, but I prefer to enforce a minimum. */
 		if(iPoints > 0) {
-			int minPts = GC.getInitCore().getAdvancedStartMinPoints();
-			if(iPoints < minPts)
-				iPoints = minPts;
+			int iMinPoints = GC.getInitCore().getAdvancedStartMinPoints();
+			if(iPoints < iMinPoints)
+				iPoints = iMinPoints;
 		} // </advc.250c>
 		setAdvancedStartPoints(iPoints);
 
@@ -1574,7 +1575,6 @@ void CvPlayer::initFreeUnits()
 		for (int iI = 0; iI < GC.getNumUnitClassInfos(); iI++)
 		{
 			UnitTypes eLoopUnit = (UnitTypes)ci.getCivilizationUnits(iI);
-			
 			if (eLoopUnit != NO_UNIT)
 			{
 				int iFreeCount = ci.getCivilizationFreeUnitsClass(iI);
@@ -17985,7 +17985,7 @@ int CvPlayer::getAdvancedStartVisibilityCost(bool bAdd, CvPlot* pPlot) const
 			if(pPlot->isRevealed(getTeam(), false))
 				return -1;
 			if(!pPlot->isAdjacentRevealed(getTeam(),
-					true)) // advc.250c
+					GC.getGameINLINE().getStartEra() < 4)) // advc.250c
 				return -1;
 		}
 		else if (!pPlot->isRevealed(getTeam(), false))
