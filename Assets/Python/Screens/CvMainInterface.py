@@ -3660,9 +3660,8 @@ class CvMainInterface:
 
 					szBuffer = u"%d%c" %(iFoodDifference, gc.getYieldInfo(YieldTypes.YIELD_FOOD).getChar())
 					# draw label below
-
-				screen.setLabel( "PopulationInputText", "Background", szBuffer, CvUtil.FONT_RIGHT_JUSTIFY, iCityCenterRow1X - 6, iCityCenterRow1Y, -0.3, FontTypes.GAME_FONT, 
-						*BugDll.widget("WIDGET_FOOD_MOD_HELP", -1, -1) )
+				# advc.004: BULL widget help enabled
+				screen.setLabel( "PopulationInputText", "Background", szBuffer, CvUtil.FONT_RIGHT_JUSTIFY, iCityCenterRow1X - 6, iCityCenterRow1Y, -0.3, FontTypes.GAME_FONT, WidgetTypes.WIDGET_FOOD_MOD_HELP, -1, -1)
 				screen.show( "PopulationInputText" )
 # BUG - Food Rate Hover - end
 

@@ -771,6 +771,10 @@ public:
 	int getBaseTradeProfit(CvCity* pCity) const;
 	int calculateTradeProfit(CvCity* pCity) const;								// Exposed to Python
 	int calculateTradeYield(YieldTypes eIndex, int iTradeProfit) const;			// Exposed to Python
+	// BULL - Trade Hover - start
+	void calculateTradeTotals(YieldTypes eIndex, int& iDomesticYield, int& iDomesticRoutes,
+			int& iForeignYield, int& iForeignRoutes, PlayerTypes eWithPlayer = NO_PLAYER) const;
+	// BULL - Trade Hover - end
 	void setTradeYield(YieldTypes eIndex, int iNewValue);
 
 	int getExtraSpecialistYield(YieldTypes eIndex) const;						// Exposed to Python

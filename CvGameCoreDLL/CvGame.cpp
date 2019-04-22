@@ -776,6 +776,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	m_bLayerFromSavegame = false; // </advc.004m>
 	m_bFeignSP = false; // advc.135c
 	m_bDoMShown = false; // advc.004x
+	m_bScoreboardDirtyDelayed = false; // advc.085
 }
 
 
@@ -2521,9 +2522,19 @@ void CvGame::update()
 			game turn. I've tried doing that through BugEventManager.py, but
 			eventually gave up. Tagging advc.706 b/c it's especially important
 			to supress the update when R&F is enabled. */
-		if(!isAITurn())
+		if(!isAITurn()) {
 			CvEventReporter::getInstance().genericEvent("gameUpdate", pyArgs.makeFunctionArgs());
-
+			// <advc.085> See CvPlayer::setScoreboardExpanded
+			if(m_bScoreboardDirtyDelayed) {
+				gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
+				/*  For some strange reason, the HUD retains mouse focus after
+					expanding the scoreboard, and this is the only remedy I was
+					able to find (apart from CvInterface::makeInterfaceDirty,
+					which results in flickering). */
+				gDLL->getInterfaceIFace()->makeSelectionListDirty();
+				m_bScoreboardDirtyDelayed = false;
+			} // </advc.085>
+		}
 		if (getTurnSlice() == 0)
 		{	// <advc.700> Delay initial auto-save until RiseFall is initialized
 			bool bStartTurn = (getGameTurn() == getStartTurn()); // advc.004m
@@ -2767,7 +2778,7 @@ void CvGame::updateGwPercentAnger()
 } // K-Mod end
 
 /*  <advc.106l> Wrapper that reports the event. Everyone should call this
-	instead of calling the CvDLLEngineIFaceBase function directly. */
+	instead of calling the CvEngine function directly. */
 void CvGame::autoSave(bool bInitial) {
 	/*  <advc.135c> Avoid overlapping auto-saves in test games played on a
 		single machine. Don't know how to check this properly. */
@@ -4814,6 +4825,12 @@ void CvGame::setScoreDirty(bool bNewValue)
 {
 	m_bScoreDirty = bNewValue;
 }
+
+// <advc.085>
+void CvGame::setScoreboardDirtyOnUpdate() {
+
+	m_bScoreboardDirtyDelayed = true;
+} // </advc.085>
 
 
 bool CvGame::isCircumnavigated() const

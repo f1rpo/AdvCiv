@@ -561,7 +561,14 @@ enum WidgetTypes					// Exposed to Python
 	WIDGET_PEDIA_JUMP_TO_BONUS_TRADE,
 	WIDGET_PEDIA_JUMP_TO_TECH_TRADE,
 	// BULL - Trade Denial - end
-
+	WIDGET_TRADE_ROUTES, // BULL - Trade Hover - start
+	// BULL - Finance Advisor - start
+	WIDGET_HELP_FINANCE_DOMESTIC_TRADE,
+	WIDGET_HELP_FINANCE_FOREIGN_TRADE,
+	WIDGET_HELP_FINANCE_SPECIALISTS,
+	// BULL - Finance Advisor - end
+	WIDGET_LEADERHEAD_RELATIONS, // BULL - Leaderhead Relations
+	WIDGET_FOOD_MOD_HELP, // BULL - Food Rate Hover
 #ifdef _USRDLL
 	NUM_WIDGET_TYPES
 #endif

@@ -12,7 +12,7 @@
 
 from CvPythonExtensions import *
 import BugCore
-import BugDll
+#import BugDll # advc.004: unused now
 import BugUtil
 import DealUtil
 import FontUtil
@@ -260,10 +260,8 @@ class Scoreboard:
 	def setEspionage(self):
 		self._set(ESPIONAGE)
 		
-	def setTrade(self):
-		self._set(TRADE, True, 
-				  BugDll.widget("WIDGET_TRADE_ROUTES", self._activePlayer, self._currPlayerScore.getID(),
-								*self._getContactWidget()))
+	def setTrade(self): # advc.004: BULL widget help enabled
+		self._set(TRADE, True, (WidgetTypes.WIDGET_TRADE_ROUTES, self._activePlayer, self._currPlayerScore.getID()))
 		
 	def setBorders(self):
 		self._set(BORDERS, True, self._getDealWidget(TradeableItems.TRADE_OPEN_BORDERS))
@@ -300,17 +298,18 @@ class Scoreboard:
 		self._set(CIV_ICON, civ)
 	# </dlph.30>
 		
-	def _getContactWidget(self):
-		return (WidgetTypes.WIDGET_CONTACT_CIV, self._currPlayerScore.getID(), -1)
+	#def _getContactWidget(self): # advc.004: Now unused
+	#	return (WidgetTypes.WIDGET_CONTACT_CIV, self._currPlayerScore.getID(), -1)
 		
 	def _getDealWidget(self, type):
+		iData2 = 0 # advc.085: Was -1; tell the DLL to expand the scoreboard.
 		# lookup the Deal containing the given tradeable item type
 		deals = self._deals.get(self._currPlayerScore.getID(), None)
 		if deals:
 			deal = deals.get(type, None)
 			if deal:
-				return (WidgetTypes.WIDGET_DEAL_KILL, deal.getID(), -1)
-		return (WidgetTypes.WIDGET_DEAL_KILL, -1, -1)
+				return (WidgetTypes.WIDGET_DEAL_KILL, deal.getID(), iData2)
+		return (WidgetTypes.WIDGET_DEAL_KILL, -1, iData2)
 		
 	def _set(self, part, value=True, widget=None):
 		self._anyHas[part] = True
@@ -377,7 +376,21 @@ class Scoreboard:
 		
 		defaultSpacing = ScoreOpt.getDefaultSpacing()
 		spacing = defaultSpacing
-		format = re.findall('(-?[0-9]+|[^0-9])', ScoreOpt.getDisplayOrder().replace(' ', '').upper())
+		szDisplayOrder = ScoreOpt.getDisplayOrder()
+		# <advc.085>
+		if gc.getPlayer(self._activePlayer).isScoreboardExpanded():
+			gc.getPlayer(self._activePlayer).setScoreboardExpanded(False)
+		else: # Take out the keys preceded by an underscore
+			stringsToRemove = []
+			for i, c in enumerate(szDisplayOrder):
+				if i > 0 and szDisplayOrder[i - 1] == '_':
+					stringsToRemove.append('_' + c)
+			for s in stringsToRemove:
+				szDisplayOrder = szDisplayOrder.replace(s, '')
+			# Remove any stray underscores
+			szDisplayOrder = szDisplayOrder.replace('_', '')
+		# </advc.085>
+		format = re.findall('(-?[0-9]+|[^0-9])', szDisplayOrder.replace(' ', '').upper())
 		format.reverse()
 		for k in format:
 			if k == '-':
@@ -416,9 +429,7 @@ class Scoreboard:
 								widget = (WidgetTypes.WIDGET_CONTACT_CIV, playerScore.getID(), -1)
 							else:
 								widget = (WidgetTypes.WIDGET_GENERAL, -1, -1)
-						screen.setText( name, "Background", value, CvUtil.FONT_RIGHT_JUSTIFY, 
-										x, y - p * height, Z_DEPTH, 
-										FontTypes.SMALL_FONT, *widget )
+						screen.setText( name, "Background", value, CvUtil.FONT_RIGHT_JUSTIFY, x, y - p * height, Z_DEPTH, FontTypes.SMALL_FONT, *widget )
 						screen.show( name )
 				x -= width
 				totalWidth += width + spacing
@@ -460,7 +471,8 @@ class Scoreboard:
 						widget = playerScore.widget(c)
 						if widget is None:
 							if (playerScore.value(ALIVE)):
-								widget = (WidgetTypes.WIDGET_CONTACT_CIV, playerScore.getID(), -1)
+								# advc.085: iData2=0 to tell the DLL to expand the scoreboard
+								widget = (WidgetTypes.WIDGET_CONTACT_CIV, playerScore.getID(), 0)
 							else:
 								widget = (WidgetTypes.WIDGET_GENERAL, -1, -1)
 						screen.setText( name, "Background", value, align, 

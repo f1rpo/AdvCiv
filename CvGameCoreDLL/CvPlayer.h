@@ -1127,7 +1127,11 @@ public:
 
 	void verifyUnitStacksValid();
 	UnitTypes getTechFreeUnit(TechTypes eTech) const;
-	
+	// BULL - Trade Hover - start
+	void calculateTradeTotals(YieldTypes eIndex, int& iDomesticYield,
+			int& iDomesticRoutes, int& iForeignYield, int& iForeignRoutes,
+			PlayerTypes eWithPlayer = NO_PLAYER) const;
+	// BULL - Trade Hover - end
 	void checkAlert(int alertId, bool bSilent); // advc.210
 	// advc.104, advc.038, advc.132; exposed to Python.
 	double estimateYieldRate(YieldTypes yield, int iSamples = 5) const;
@@ -1144,7 +1148,10 @@ public:
 		//return *static_cast<CvPlayerAI const*>(this);
 		return *reinterpret_cast<CvPlayerAI const*>(this);
 	} // </advc.003>
-
+	// <advc.085> (both exposed to Python)
+	void setScoreboardExpanded(bool b);
+	bool isScoreboardExpanded() const;
+	// </advc.085>
 	DllExport void buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& ourList) const;
 	DllExport bool getHeadingTradeString(PlayerTypes eOtherPlayer, TradeableItems eItem, CvWString& szString, CvString& szIcon) const;
 	DllExport bool getItemTradeString(PlayerTypes eOtherPlayer, bool bOffer, bool bShowingCurrent, const TradeData& zTradeData, CvWString& szString, CvString& szIcon) const;
@@ -1343,6 +1350,7 @@ protected:
 	int m_iPopRushHurryCount;
 	int m_iGoldRushHurryCount; // advc.064b
 	int m_iInflationModifier;
+	int m_iChoosingFreeTechCount; // K-Mod (based on the 'Unofficial Patch'
 
 	uint m_uiStartTime;  // XXX save these?
 
@@ -1357,19 +1365,12 @@ protected:
 	bool m_bAnyGPPEver; // advc.078
 	bool m_bStrike;
 	bool m_bHuman;
-
-/************************************************************************************************/
-/* AI_AUTO_PLAY_MOD                        09/01/07                            MRGENIE          */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
+	// AI_AUTO_PLAY_MOD, 09/01/07, MRGENIE: START
 	bool m_bDisableHuman;				// Set to true to disable isHuman() check
 	bool m_bAutoPlayJustEnded; // advc.127
-/************************************************************************************************/
-/* AI_AUTO_PLAY_MOD                        END                                                  */
-/************************************************************************************************/
+	// AI_AUTO_PLAY_MOD: END
 	bool m_bSavingReplay; // advc.106i
-	int m_iChoosingFreeTechCount; // K-Mod (based on the 'Unofficial Patch'
+	bool m_bScoreboardExpanded; // advc.085
 
 	LeaderHeadTypes m_ePersonalityType;
 	EraTypes m_eCurrentEra;

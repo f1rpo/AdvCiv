@@ -65,12 +65,15 @@
 					get="isShowCountCities" set="setShowCountCities" dirtyBit="Score"/>
 			
 			<!-- Advanced Layout -->
-			<!-- advc.106d: Default was !?2WSZVC6EPTUNBDRAHQ*LO -->
 			<option id="AlignIcons" key="Align Icons" 
 					type="boolean" default="True" 
 					get="isAlignIcons" set="setAlignIcons" dirtyBit="Score"/>
+			<!-- advc.085 -->
+			<option id="ExpandOnHover" key="Expand on Hover" 
+					type="boolean" default="False" dirtyBit="Score"/>
+			<!-- advc.106d: Default was !?2WSZVC6EPTUNBDRAHQ*LO -->
 			<option id="DisplayOrder" key="Display Order" 
-					type="string" default="!?2WSZCPTURAHQ*LO"
+					type="string" default="!?2W_D_B_NSZCPTURAHQ*LO"
 					get="getDisplayOrder" set="setDisplayOrder" dirtyBit="Score"/>
 			<list   id="DefaultSpacing" key="Default Column Spacing" 
 					type="int" default="0" values="0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10" 

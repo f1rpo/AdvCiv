@@ -936,6 +936,15 @@
 		<Italian>Nuova estrazione casuale per ricarica</Italian>
 		<Spanish>Nueva "seed" aleatoria al volver a cargar</Spanish>
 	</TEXT>
+	<!-- Another bad German translation: "fremde Handelswege" -->
+	<TEXT>
+		<Tag>TXT_KEY_CIVIC_NO_FOREIGN_TRADE</Tag>
+		<English>[ICON_BULLET]No Foreign Trade Routes ([ICON_TRADE])</English>
+		<French>[ICON_BULLET]Aucune route commerciale &#233;trang&#232;re</French>
+		<German>[ICON_BULLET]Kein Auﬂenhandel ([ICON_TRADE])</German>
+		<Italian>[ICON_BULLET]Nessuna rotta commerciale estera ([ICON_TRADE])</Italian>
+		<Spanish>[ICON_BULLET]Sin rutas comerciales extranjeras ([ICON_TRADE])</Spanish>
+	</TEXT>
 	
 	<!-- advc.137: Originally in Civ4GameText_Help.xml. Changed only English and
 		 German. -->
@@ -5402,6 +5411,39 @@
 		<German>Start in Runde %d1_Turn (%s2_Year)</German>
 		<Italian>Turno iniziale: %d1_Turn (%s2_Year)</Italian>
 		<Spanish>Turno inicial: %d1_Turn (%s2_Year)</Spanish>
+	</TEXT>
+
+	<!-- advc.086: All from CIV4GameTextInfos.xml -->
+	<!-- "Gold" added in English to make clearer how that column differs from
+		 "Commerce" -->
+	<TEXT>
+		<Tag>TXT_KEY_FINANCIAL_ADVISOR_INCOME_HEADER</Tag>
+		<English>Gold Income</English>
+		<French>Recettes</French>
+		<German>Einnahmen</German>
+		<Italian>Entrate</Italian>
+		<Spanish>Ingresos</Spanish>
+	</TEXT>
+	<!-- Disabled through the DLL:
+		 TXT_KEY_ECON_MONEY_SPENT_UPKEEP, TXT_KEY_ECON_AMOUNT_MONEY_CITY_MAINT,
+		 TXT_KEY_ECON_AMOUNT_MONEY_CIVIC_UPKEEP -->
+	<!-- Said "in Enemy Territory", which isn't quite correct. -->
+	<TEXT>
+		<Tag>TXT_KEY_ECON_AMOUNT_MONEY_UNITS_ENEMY_TERRITORY</Tag>
+		<English>For Units not in Friendly Territory</English>
+		<French>Somme d&#233;pens&#233;e pour les unit&#233;s en territoire ennemi</French>
+		<German>f&#252;r Einheiten auﬂerhalb freundlichen Gebiets</German>
+		<Italian>Il quantitativo di soldi spesi nel mantenimento delle unit&#224; in territorio nemico</Italian>
+		<Spanish>Dinero gastado en unidades en territorio enemigo</Spanish>
+	</TEXT>
+	<!-- was "Income collected from other civilizations" -->
+	<TEXT>
+		<Tag>TXT_KEY_ECON_AMOUNT_MONEY_FOREIGN</Tag>
+		<English>From Gold Trades</English>
+		<French>Recettes provenant des autres civilisations</French>
+		<German>Gold aus Handelsvereinbarungen</German>
+		<Italian>Entrate dalle altre civilt&#224;</Italian>
+		<Spanish>Ingresos obtenidos de otras civilizaciones</Spanish>
 	</TEXT>
 	
 </Civ4GameText>

@@ -426,6 +426,9 @@
 		<HintInfo>
 			<Description>TXT_KEY_HINT_73</Description>
 		</HintInfo>
+		<HintInfo>
+			<Description>TXT_KEY_BUG_HINT_INTERFACE_4</Description>
+		</HintInfo>
 <!-- K-Mod hints -->
 		<HintInfo>
 			<Description>TXT_KEY_BUG_HINT_INTERFACE_1</Description>

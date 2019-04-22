@@ -4945,7 +4945,7 @@ int CvPlayerAI::AI_targetCityValue(CvCity* pCity, bool bRandomize, bool bIgnoreA
 			}
 		}
 	}
-	CvMap& m = GC.getMapINLINE();
+	CvMap const& m = GC.getMapINLINE();
 	CvCity* pNearestCity = m.findCity(pCity->getX_INLINE(), pCity->getY_INLINE(), getID());
 	if (pNearestCity != NULL)
 	{
@@ -18456,7 +18456,7 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 				// K-Mod - both offensive & defensive use of spread culture mission. (The first "if" is really just for effeciency.)
 				if (pCity->calculateCulturePercent(getID()) >= 8)
 				{
-					CvMap& m = GC.getMapINLINE(); // advc.003
+					CvMap const& m = GC.getMapINLINE(); // advc.003
 					const CvCity* pOurClosestCity = m.findCity(pPlot->getX(), pPlot->getY(), getID());
 					if (pOurClosestCity != NULL)
 					{
@@ -26544,7 +26544,7 @@ CvPlot* CvPlayerAI::AI_advancedStartFindCapitalPlot()  // advc.003: style change
 	if(pCurrentStart != NULL && getAdvancedStartCityCost(true, pCurrentStart) > 0)
 		return pCurrentStart;*/ // </dlph.35>
 	// advc: However, I don't want to make that change for now.
-	CvMap& m = GC.getMapINLINE();
+	CvMap const& m = GC.getMapINLINE();
 	CvPlot* pBestPlot = NULL;
 	int iBestValue = -1;
 	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; iPlayer++)
@@ -26561,7 +26561,7 @@ CvPlot* CvPlayerAI::AI_advancedStartFindCapitalPlot()  // advc.003: style change
 		}
 		if (getAdvancedStartCityCost(true, pLoopPlot) <= 0)
 			continue;
-			
+
 		int iValue = 1000;
 		if (kMember.getID() == getID())
 			iValue += 1000;
@@ -26580,10 +26580,10 @@ CvPlot* CvPlayerAI::AI_advancedStartFindCapitalPlot()  // advc.003: style change
 		if (iValue > iBestValue)
 		{
 			iBestValue = iValue;
-			pBestPlot = pLoopPlot;							
+			pBestPlot = pLoopPlot;
 		}
 	}
-	
+
 	if (pBestPlot != NULL)
 		return pBestPlot;
 	

@@ -761,6 +761,7 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	m_iNewMessages = 0; // advc.106b
 	m_bAutoPlayJustEnded = false; // advc.127
 	m_bSavingReplay = false; // advc.106i
+	m_bScoreboardExpanded = false; // advc.085
 	m_eReminderPending = NO_CIVIC; // advc.004x
 
 	m_eID = eID;
@@ -1987,7 +1988,7 @@ CvPlot* CvPlayer::findStartingPlot(bool bRandomize)
 	if (getStartingPlot() != NULL)
 	{
 		//iBestArea = getStartingPlot()->getArea(); // dlph.35:
-		areas_by_value.push_back(std::make_pair(getStartingPlot()->getArea(), 0));
+		areas_by_value.push_back(std::make_pair(getStartingPlot()->getArea(), 1));
 		setStartingPlot(NULL, true);
 		bNew = true;
 	}
@@ -16381,12 +16382,12 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 
 	if (kMission.getBuyTechCostFactor() > 0)
 	{
-		int iTech = iExtraData;
-
-		szBuffer = gDLL->getText("TXT_KEY_ESPIONAGE_TARGET_TECH_BOUGHT", GC.getTechInfo((TechTypes) iTech).getDescription()).GetCString();
-		GET_TEAM(getTeam()).setHasTech((TechTypes) iTech, true, getID(), false, true);
-		GET_TEAM(getTeam()).setNoTradeTech((TechTypes)iTech, true);
-
+		TechTypes eTech = (TechTypes)iExtraData;
+		szBuffer = gDLL->getText("TXT_KEY_ESPIONAGE_TARGET_TECH_BOUGHT",
+				GC.getTechInfo(eTech).getDescription()).GetCString();
+		GET_TEAM(getTeam()).setHasTech(eTech, true, getID(), false, true);
+		if(isSignificantDiscovery(eTech)) // advc.550e
+			GET_TEAM(getTeam()).setNoTradeTech(eTech, true);
 		bSomethingHappened = true;
 	}
 
@@ -22241,13 +22242,14 @@ bool CvPlayer::splitEmpire(int iAreaId)
 		CvTeam& kNewTeam = GET_TEAM(GET_PLAYER(eNewPlayer).getTeam());
 		for (int i = 0; i < GC.getNumTechInfos(); ++i)
 		{
-			if (GET_TEAM(getTeam()).isHasTech((TechTypes)i))
+			TechTypes eLoopTech = (TechTypes)i;
+			if (GET_TEAM(getTeam()).isHasTech(eLoopTech))
 			{
-				kNewTeam.setHasTech((TechTypes)i, true, eNewPlayer, false, false);
-				if (GET_TEAM(getTeam()).isNoTradeTech((TechTypes)i) || GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_BROKERING))
-				{
-					kNewTeam.setNoTradeTech((TechTypes)i, true);
-				}
+				kNewTeam.setHasTech(eLoopTech, true, eNewPlayer, false, false);
+				if (GET_TEAM(getTeam()).isNoTradeTech(eLoopTech) ||
+						(GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_BROKERING)
+						&& isSignificantDiscovery(eLoopTech))) // advc.550e
+					kNewTeam.setNoTradeTech(eLoopTech, true);
 			}
 		}
 		// dlph.24: Commented out
@@ -23541,6 +23543,40 @@ UnitTypes CvPlayer::getTechFreeUnit(TechTypes eTech) const
 
 	return eUnit;
 }
+
+// BULL - Trade Hover - start  // advc: style changes, _MOD_FRACTRADE removed
+/*  Adds the yield and count for each trade route with eWithPlayer to the
+	int references (out parameters). */
+void CvPlayer::calculateTradeTotals(YieldTypes eIndex,
+		int& iDomesticYield, int& iDomesticRoutes, int& iForeignYield, int& iForeignRoutes,
+		PlayerTypes eWithPlayer) const {
+
+	int foo;
+	for(CvCity* pCity = firstCity(&foo); NULL != pCity; pCity = nextCity(&foo)) {
+		pCity->calculateTradeTotals(eIndex, iDomesticYield, iDomesticRoutes,
+				iForeignYield, iForeignRoutes, eWithPlayer);
+	}
+} // BULL - Trade Hover - end
+
+// <advc.085>
+void CvPlayer::setScoreboardExpanded(bool b) {
+
+	m_bScoreboardExpanded = b;
+	if(b) {
+		FAssert(getBugOptionBOOL("Scores__AlignIcons", true));
+		if(getBugOptionBOOL("Scores__ExpandOnHover", false))
+			gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
+	}
+	/*  If !b, then it doesn't help to dirty it b/c the update is still in progress
+		(when called from Python). */
+	else GC.getGameINLINE().setScoreboardDirtyOnUpdate();
+}
+
+
+bool CvPlayer::isScoreboardExpanded() const {
+
+	return m_bScoreboardExpanded;
+} // </advc.085>
 
 
 void CvPlayer::buildTradeTable(PlayerTypes eOtherPlayer, CLinkList<TradeData>& ourList) const

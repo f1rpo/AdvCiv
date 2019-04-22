@@ -9368,6 +9368,34 @@ int CvCity::calculateTradeYield(YieldTypes eIndex, int iTradeProfit) const
 	}
 }
 
+// BULL - Trade Hover - start  (advc: simplified a bit, _MOD_FRACTRADE removed)
+/*  Adds the yield and count for each trade route with eWithPlayer to the
+	int references (out parameters). */
+void CvCity::calculateTradeTotals(YieldTypes eIndex, int& iDomesticYield, int& iDomesticRoutes,
+		int& iForeignYield, int& iForeignRoutes, PlayerTypes eWithPlayer) const {
+
+	if(isDisorder())
+		return;
+
+	int iNumTradeRoutes = getTradeRoutes();
+	for(int iI = 0; iI < iNumTradeRoutes; iI++) {
+		CvCity* pTradeCity = getTradeCity(iI);
+		if(pTradeCity != NULL && (eWithPlayer == NO_PLAYER ||
+				pTradeCity->getOwnerINLINE() == eWithPlayer)) {
+			int iTradeYield = getBaseTradeProfit(pTradeCity);
+			iTradeYield = calculateTradeYield(YIELD_COMMERCE,
+					calculateTradeProfit(pTradeCity));
+			if(pTradeCity->getOwnerINLINE() == getOwnerINLINE()) {
+				iDomesticYield += iTradeYield;
+				iDomesticRoutes++;
+			}
+			else {
+				iForeignYield += iTradeYield;
+				iForeignRoutes++;
+			}
+		}
+	}
+} // BULL - Trade Hover - end
 
 void CvCity::setTradeYield(YieldTypes eIndex, int iNewValue)
 {

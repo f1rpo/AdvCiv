@@ -2363,3 +2363,17 @@ int CyPlayer::AI_corporationBonusVal(int eBonus) const {
 		instead. */
 	return dynamic_cast<CvPlayerAI*>(m_pPlayer)->AI_corporationBonusVal((BonusTypes)eBonus);
 } // </advc.210e>
+
+// <advc.085>
+void CyPlayer::setScoreboardExpanded(bool b) {
+
+	if(m_pPlayer != NULL)
+		m_pPlayer->setScoreboardExpanded(b);
+}
+
+bool CyPlayer::isScoreboardExpanded() const {
+
+	if(m_pPlayer == NULL)
+		return false;
+	return m_pPlayer->isScoreboardExpanded();
+} // </advc.085>

@@ -528,6 +528,9 @@ public:
 	int estimateYieldRate(YieldTypes yield) const;
 	void checkAlert(int alertId, bool silent); // advc.210
 	int AI_corporationBonusVal(int eBonus) const; // advc.210e, advc.073
+	// <advc.085>
+	void setScoreboardExpanded(bool b);
+	bool isScoreboardExpanded() const; // </advc.085>
 
 private:
 	CvPlayer* m_pPlayer;

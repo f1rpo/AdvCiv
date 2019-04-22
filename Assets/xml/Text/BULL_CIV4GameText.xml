@@ -18,7 +18,6 @@
 	</TEXT>
 	
 	<!-- Food Assist -->
-	
 	<TEXT>
 		<Tag>TXT_KEY_CITY_BAR_FOOD_GROW</Tag>
 		<English>[NEWLINE]%d1 [ICON_FOOD]/Turn[NEWLINE]Growing: %d2/%d3 [ICON_FOOD] (%d4 [NUM4:Turn:Turns])</English>
@@ -53,7 +52,6 @@
 	</TEXT>
 	
 	<!-- Base Production -->
-	
 	<TEXT>
 		<Tag>TXT_KEY_CITY_BAR_HAMMER_PRODUCTION_WITH_BASE</Tag>
 		<English>[NEWLINE]%d1 [ICON_PRODUCTION]/Turn (%d6 [ICON_PRODUCTION]/Turn)[NEWLINE]%s2: %d3/%d4 [ICON_PRODUCTION] (%d5 [NUM5:Turn:Turns])</English>
@@ -88,7 +86,6 @@
 	</TEXT>
 	
 	<!-- Culture Turns -->
-	
 	<TEXT>
 		<Tag>TXT_KEY_CITY_BAR_CULTURE_NO_LEVEL</Tag>
 		<English>[NEWLINE][ICON_CULTURE]: %d1/%d2</English>
@@ -99,51 +96,51 @@
 	</TEXT>
 	
 <!-- Finance Advisor -->
-	
+	<!-- advc.086: These were headings; now directly state the numbers. -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_FINANCIAL_ADVISOR_DOMESTIC_TRADE</Tag>
-		<English>The Total Commerce from Domestic Trade Routes</English>
-		<French>The Total Commerce from Domestic Trade Routes</French>
-		<German>Gesamteinkommen durch inländische Handelsverbindungen</German>
-		<Italian>Commercio totale dalle rotte commerciali interne</Italian>
-		<Spanish>Comercio total por rutas domésticas</Spanish>
+		<English>%d1[ICON_COMMERCE] from %d2 Domestic Trade Routes</English>
+		<French>%d1[ICON_COMMERCE] from %d2 Domestic Trade Routes</French>
+		<German>%d1[ICON_COMMERCE] durch %d2 Handelswege im Inland</German>
+		<Italian>%d1[ICON_COMMERCE] da %d2 rotte commerciali interne</Italian>
+		<Spanish>%d1[ICON_COMMERCE] por %d2 rutas domésticas</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_FINANCIAL_ADVISOR_FOREIGN_TRADE</Tag>
-		<English>The Total Commerce from Foreign Trade Routes</English>
-		<French>The Total Commerce from Foreign Trade Routes</French>
-		<German>Gesamteinkommen durch ausländische Handelsverbindungen</German>
-		<Italian>Commercio totale dalle rotte commerciali estere</Italian>
-		<Spanish>Comercio total por rutas internacionales</Spanish>
+		<English>%d1[ICON_COMMERCE] from %d2 Foreign Trade Routes</English>
+		<French>%d1[ICON_COMMERCE] rom %d2 Foreign Trade Routes</French>
+		<German>%d1[ICON_COMMERCE] durch %d2 Handelswege ins Ausland</German>
+		<Italian>%d1[ICON_COMMERCE] da %d2 rotte commerciali estere</Italian>
+		<Spanish>%d1[ICON_COMMERCE] por %d2 rutas internacionales</Spanish>
 	</TEXT>
-	
-	<TEXT>
+	<!-- advc.086: Don't use this -->
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_FINANCIAL_ADVISOR_SPECIALISTS</Tag>
 		<English>The Total Gold from Specialists</English>
 		<French>The Total Gold from Specialists</French>
 		<German>Gesamteinkommen durch Spezialisten</German>
 		<Italian>Oro totale dagli Specialisti</Italian>
 		<Spanish>Oro total obtenido de especialistas</Spanish>
-	</TEXT>
+	</TEXT-->
+	<!-- advc.086: Leading NEWLINEs removed -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_FINANCIAL_ADVISOR_SPECIALIST_GOLD</Tag>
-		<English>[NEWLINE]%d1[ICON_GOLD]: %s3 (%d2)</English>
-		<French>[NEWLINE]%d1[ICON_GOLD]: %s3 (%d2)</French>
-		<German>[NEWLINE]%d1[ICON_GOLD]: %s3 (%d2)</German>
-		<Italian>[NEWLINE]%d1[ICON_GOLD]: %s3 (%d2)</Italian>
-		<Spanish>[NEWLINE]%d1[ICON_GOLD]: %s3 (%d2)</Spanish>
+		<English>%d1[ICON_GOLD]: %s3 (%d2)</English>
+		<French>%d1[ICON_GOLD]: %s3 (%d2)</French>
+		<German>%d1[ICON_GOLD]: %s3 (%d2)</German>
+		<Italian>%d1[ICON_GOLD]: %s3 (%d2)</Italian>
+		<Spanish>%d1[ICON_GOLD]: %s3 (%d2)</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_FINANCIAL_ADVISOR_SPECIALIST_TOTAL_GOLD</Tag>
-		<English>[NEWLINE]------------------------[NEWLINE]TOTAL SPECIALISTS: %d1[ICON_GOLD]</English>
-		<French>[NEWLINE]------------------------[NEWLINE]SP&#xC9;CIALISTES TOTAL : %d1[ICON_GOLD]</French>
-		<German>[NEWLINE]------------------------[NEWLINE]SPEZIALISTEN GESAMT: %d1[ICON_GOLD]</German>
-		<Italian>[NEWLINE]------------------------[NEWLINE]TOTALE SPECIALISTI: %d1[ICON_GOLD]</Italian>
-		<Spanish>[NEWLINE]------------------------[NEWLINE]ESPECIALISTAS TOTAL: %d1 [ICON_GOLD]</Spanish>
+		<English>------------------------[NEWLINE]TOTAL SPECIALISTS: %d1[ICON_GOLD]</English>
+		<French>------------------------[NEWLINE]SP&#xC9;CIALISTES TOTAL : %d1[ICON_GOLD]</French>
+		<German>------------------------[NEWLINE]SPEZIALISTEN GESAMT: %d1[ICON_GOLD]</German>
+		<Italian>------------------------[NEWLINE]TOTALE SPECIALISTI: %d1[ICON_GOLD]</Italian>
+		<Spanish>------------------------[NEWLINE]ESPECIALISTAS TOTAL: %d1 [ICON_GOLD]</Spanish>
 	</TEXT>
 
 <!-- Building Double Commerce Year -->
-
 	<TEXT>
 		<Tag>TXT_KEY_BUG_YEAR_BUILT</Tag>
 		<English>Built in %s1_year</English>
@@ -170,7 +167,6 @@
 	</TEXT>
 
 <!-- Production Decay -->
-
 	<TEXT>
 		<Tag>TXT_KEY_PRODUCTION_DECAY</Tag>
 		<English>[COLOR_NEGATIVE_TEXT]Will lose %d1[ICON_PRODUCTION] this turn[COLOR_REVERT]</English>
@@ -204,8 +200,89 @@
 		<Spanish>[COLOR_WARNING_TEXT]Perderá %d1[ICON_PRODUCTION] si no se activa durante %d2 [NUM2:turn:turns][COLOR_REVERT]</Spanish>
 	</TEXT>
 
-<!-- Tech Hover -->
+<!-- BULL - Leaderhead Relations - start -->
+<!-- Leaderhead Hover -->
+	<!-- advc: Color was yellow in these two -->
+	<TEXT>
+		<Tag>TXT_KEY_AT_WAR_WITH</Tag>
+		<English>[ICON_BULLET][COLOR_WARNING_TEXT]War with %s1_player[COLOR_REVERT]</English>
+		<French>[ICON_BULLET][COLOR_WARNING_TEXT]Guerre avec %s1_player[COLOR_REVERT]</French>
+		<German>[ICON_BULLET][COLOR_WARNING_TEXT]Krieg mit %s1_player[COLOR_REVERT]</German>
+		<Italian>[ICON_BULLET][COLOR_WARNING_TEXT]Guerra con %s1_player[COLOR_REVERT]</Italian>
+		<Spanish>[ICON_BULLET][COLOR_WARNING_TEXT]Guerra con %s1_player[COLOR_REVERT]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_AT_WAR_WITH_YOU</Tag>
+		<English>[ICON_BULLET][COLOR_WARNING_TEXT]You are at war![COLOR_REVERT]</English>
+		<French>[ICON_BULLET][COLOR_WARNING_TEXT]Vous êtes en guerre![COLOR_REVERT]</French>
+		<German>[ICON_BULLET][COLOR_WARNING_TEXT]Ihr seid im Krieg![COLOR_REVERT]</German>
+		<Italian>[ICON_BULLET][COLOR_WARNING_TEXT]Si è in guerra![COLOR_REVERT]</Italian>
+		<Spanish>[ICON_BULLET][COLOR_WARNING_TEXT]Usted está en guerra![COLOR_REVERT]</Spanish>
+	</TEXT>
+	<!-- advc: Color was cyan for peace and DP. But they're listed as
+		 active deals anyway, so these texts are redundant. -->
+	<!--TEXT>
+		<Tag>TXT_KEY_PEACE_TREATY_WITH</Tag>
+		<English>[ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Peace Treaty with %s1_player[COLOR_REVERT]</English>
+		<French>[ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Trait&#233; de paix avec %s1_player[COLOR_REVERT]</French>
+		<German>[ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Friedensvertrag mit %s1_player[COLOR_REVERT]</German>
+		<Italian>[ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Trattato di pace con %s1_player[COLOR_REVERT]</Italian>
+		<Spanish>[ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Tratado de paz con %s1_player[COLOR_REVERT]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_PEACE_TREATY_WITH_YOU</Tag>
+		<English>[ICON_BULLET][COLOR_HIGHLIGHT_TEXT]You have a Peace Treaty[COLOR_REVERT]</English>
+		<French>[ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Vous disposez d'un trait&#233; de paix[COLOR_REVERT]</French>
+		<German>[ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Ihr habt einen Friedensvertrag[COLOR_REVERT]</German>
+		<Italian>[ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Si dispone di un trattato di pace[COLOR_REVERT]</Italian>
+		<Spanish>[ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Ustedes tiene un tratado de paz[COLOR_REVERT]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_DEFENSIVE_PACT_WITH</Tag>
+		<English>[ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Defensive Pact with %s1_player[COLOR_REVERT]</English>
+		<French>[ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Défensive pacte avec %s1_player[COLOR_REVERT]</French>
+		<German>[ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Verteidigungsbündnis mit %s1_player[COLOR_REVERT]</German>
+		<Italian>[ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Difensive patto con %s1_player[COLOR_REVERT]</Italian>
+		<Spanish>[ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Pacto defensivo con %s1_player[COLOR_REVERT]</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_DEFENSIVE_PACT_WITH_YOU</Tag>
+		<English>[ICON_BULLET][COLOR_HIGHLIGHT_TEXT]You have a Defensive Pact[COLOR_REVERT]</English>
+		<French>[ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Vous disposez d'un pacte défensif[COLOR_REVERT]</French>
+		<German>[ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Ihr habt ein Verteidigungsbündnis[COLOR_REVERT]</German>
+		<Italian>[ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Si dispone di un patto di difesa[COLOR_REVERT]</Italian>
+		<Spanish>[ICON_BULLET][COLOR_HIGHLIGHT_TEXT]Ustedes tiene un pacto defensivo[COLOR_REVERT]</Spanish>
+	</TEXT-->
+	<!-- advc: Color was yellow in these three -->
+	<TEXT>
+		<Tag>TXT_KEY_WORST_ENEMY_OF</Tag>
+		<English>[ICON_BULLET][COLOR_YIELD_FOOD]Worst Enemy of %s1_player[COLOR_REVERT]</English>
+		<French>[ICON_BULLET][COLOR_YIELD_FOOD]Pire ennemi de %s1_player[COLOR_REVERT]</French>
+		<German>[ICON_BULLET][COLOR_YIELD_FOOD]Erzfeind von %s1_player[COLOR_REVERT]</German>
+		<Italian>[ICON_BULLET][COLOR_YIELD_FOOD]Peggiore ostile di %s1_player[COLOR_REVERT]</Italian>
+		<Spanish>[ICON_BULLET][COLOR_YIELD_FOOD]Peor enemigo de %s1_player[COLOR_REVERT]</Spanish>
+	</TEXT>
+	<!-- advc: I'm not using this -->
+	<!--TEXT>
+		<Tag>TXT_KEY_WORST_ENEMY_IS</Tag>
+		<English>[ICON_BULLET][COLOR_YIELD_FOOD]%s1_player is Worst Enemy[COLOR_REVERT]</English>
+		<French>[ICON_BULLET][COLOR_YIELD_FOOD]%s1_player est pire ennemi[COLOR_REVERT]</French>
+		<German>[ICON_BULLET][COLOR_YIELD_FOOD]Erzfeind: %s1_player[COLOR_REVERT]</German>
+		<Italian>[ICON_BULLET][COLOR_YIELD_FOOD]%s1_player è peggiore ostile[COLOR_REVERT]</Italian>
+		<Spanish>[ICON_BULLET][COLOR_YIELD_FOOD]%s1_player es peor enemigo[COLOR_REVERT]</Spanish>
+	</TEXT-->
+	<!-- advc: "the" added -->
+	<TEXT>
+		<Tag>TXT_KEY_WORST_ENEMY_IS_YOU</Tag>
+		<English>[ICON_BULLET][COLOR_YIELD_FOOD]You are the Worst Enemy[COLOR_REVERT]</English>
+		<French>[ICON_BULLET][COLOR_YIELD_FOOD]Vous êtes pire ennemi[COLOR_REVERT]</French>
+		<German>[ICON_BULLET][COLOR_YIELD_FOOD]Ihr seid der Erzfeind[COLOR_REVERT]</German>
+		<Italian>[ICON_BULLET][COLOR_YIELD_FOOD]Tu sei peggiore ostile[COLOR_REVERT]</Italian>
+		<Spanish>[ICON_BULLET][COLOR_YIELD_FOOD]Usted es peor enemigo[COLOR_REVERT]</Spanish>
+	</TEXT>
+<!-- BULL - Leaderhead Relations - end -->
 
+<!-- Tech Hover -->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_SPEEDS_UP</Tag>
 		<English>[NEWLINE][ICON_BULLET]Speeds up[SPACE]</English>
@@ -224,7 +301,6 @@
 	</TEXT>
 
 <!-- Actual Effects -->
-
 	<TEXT>
 		<Tag>TXT_KEY_ACTUAL_EFFECTS</Tag>
 		<English>Net Effect</English>
@@ -235,7 +311,6 @@
 	</TEXT>
 
 <!-- Min/Max Commerce Rate Buttons -->
-	
 	<TEXT>
 		<Tag>TXT_KEY_MISC_SET_RATE</Tag>
 		<English>Set %s1_CmrcType Rate to %d2_Value%%</English>
@@ -246,9 +321,7 @@
 	</TEXT>
 
 <!-- City Screen -->
-	
 	<!-- Yield Hovers -->
-	
 	<TEXT>
 		<Tag>TXT_KEY_MISC_HELP_WORKED_TILES_YIELD</Tag>
 		<English>[ICON_BULLET]%D1%F2 from Worked Tiles</English>
@@ -267,7 +340,6 @@
 	</TEXT>
 
 	<!-- Food Hover -->
-	
 	<TEXT>
 		<Tag>TXT_KEY_MISC_HELP_EATEN_FOOD</Tag>
 		<English>[ICON_BULLET]%D1[ICON_EATENFOOD] for Population</English>
@@ -284,7 +356,6 @@
 		<Italian>[ICON_BULLET]%D1[ICON_EATENFOOD] per la salute</Italian>
 		<Spanish>[ICON_BULLET]%D1[ICON_EATENFOOD] Por salud</Spanish>
 	</TEXT>
-	
 	<TEXT>
 		<Tag>TXT_KEY_MISC_HELP_BASE_FOOD_PRODUCED</Tag>
 		<English>-----------------------[NEWLINE]Base Food Produced: %d1[ICON_FOOD]</English>
@@ -309,7 +380,6 @@
 		<Italian>-----------------------[NEWLINE]Cibo totale consumato: %d1[ICON_EATENFOOD]</Italian>
 		<Spanish>-----------------------[NEWLINE]Alimento total consumido: %d1[ICON_EATENFOOD]</Spanish>
 	</TEXT>
-	
 	<TEXT>
 		<Tag>TXT_KEY_MISC_HELP_NET_FOOD_GROW</Tag>
 		<English>Net Food: %D1[ICON_FOOD]</English>
@@ -342,9 +412,18 @@
 		<Italian>Cibo netto: %D1[ICON_FOOD] per %s2_production_type</Italian>
 		<Spanish>Alimento neto: %D1[ICON_FOOD] por %s2_production_type</Spanish>
 	</TEXT>
+	<!-- advc.087: Compact version of TXT_KEY_MISC_HELP_WORKED_TILES_YIELD
+		 and TXT_KEY_MISC_HELP_EATEN_FOOD -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_HELP_WORKED_TILES_EATEN</Tag>
+		<English>%d1[ICON_FOOD] from Worked Tiles[NEWLINE]%d2[ICON_EATENFOOD] for Population</English>
+		<French>%d1[ICON_FOOD] : Cases Travaillées[NEWLINE]%d2[ICON_EATENFOOD] pour la population</French>
+		<German>%d1[ICON_FOOD] durch bearbeitete Geländefelder[NEWLINE]%d2[ICON_EATENFOOD] für Bevölkerung</German>
+		<Italian>%d1[ICON_FOOD] dalle caselle lavorate[NEWLINE]%d2[ICON_EATENFOOD] per la popolazione</Italian>
+		<Spanish>%d1[ICON_FOOD] por casillas trabajadas[NEWLINE]%d2[ICON_EATENFOOD] por poblaci&#243;n</Spanish>
+	</TEXT>
 
 	<!-- Commerce Hovers -->
-	
 	<TEXT>
 		<Tag>TXT_KEY_MISC_HELP_COMMERCE_SUBTOTAL_YIELD_FLOAT</Tag>
 		<English>-----------------------[NEWLINE]Base %s1_commerce_type: %s2%F3</English>
@@ -371,7 +450,6 @@
 	</TEXT>
 	
 	<!-- Defense Hover -->
-	
 	<TEXT>
 		<Tag>TXT_KEY_MISC_HELP_BUILDING_DEFENSE</Tag>
 		<English>[ICON_BULLET]%D1%%[ICON_DEFENSE] from Buildings</English>
@@ -439,7 +517,6 @@
 	</TEXT>
 
 <!-- Hurry Hover -->
-
 	<TEXT>
 		<Tag>TXT_KEY_MISC_HURRY_OVERFLOW</Tag>
 		<English>[ICON_BULLET]%s1 Overflow</English>
@@ -450,7 +527,6 @@
 	</TEXT>
 
 <!-- Trade Hover -->
-
 	<TEXT>
 		<Tag>TXT_KEY_BUG_TRADE_HEADING</Tag>
 		<English>Trade</English>
@@ -467,23 +543,24 @@
 		<Italian>Commercio Domestico</Italian>
 		<Spanish>Comercio Doméstico</Spanish>
 	</TEXT>
+	<!-- advc: " of %s2_CivName" removed from these two -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_FOREIGN_TRADE_HEADING</Tag>
-		<English>Trade with %s1_PlyrName of %s2_CivName</English>
-		<French>Commerce avec %%s1_PlyrName of %s2_CivName</French>
-		<German>Handel mit %%s1_PlyrName (%s2_CivName)</German>
-		<Italian>Commercio con %%s1_PlyrName (%s2_CivName)</Italian>
-		<Spanish>Comercio con %%s1_PlyrName of %s2_CivName</Spanish>
+		<English>Trade with %s1_PlyrName</English>
+		<French>Commerce avec %%s1_PlyrName</French>
+		<German>Handel mit %%s1_PlyrName</German>
+		<Italian>Commercio con %%s1_PlyrName</Italian>
+		<Spanish>Comercio con %%s1_PlyrName</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_CANNOT_TRADE_HEADING</Tag>
-		<English>No Trade with %s1_PlyrName of %s2_CivName</English>
-		<French>Pas de Commerce avec %%s1_PlyrName of %s2_CivName</French>
-		<German>Kein Handel mit %%s1_PlyrName (%s2_CivName)</German>
-		<Italian>Nessun commercio con %%s1_PlyrName (%s2_CivName)</Italian>
-		<Spanish>No hay comercio con %s1_PlyrName de %s2_CivName</Spanish>
+		<English>No Trade with %s1_PlyrName</English>
+		<French>Pas de Commerce avec %%s1_PlyrName</French>
+		<German>Kein Handel mit %%s1_PlyrName</German>
+		<Italian>Nessun commercio con %%s1_PlyrName</Italian>
+		<Spanish>No hay comercio con %s1_PlyrName</Spanish>
 	</TEXT>
-	<TEXT>
+	<!--TEXT>
 		<Tag>TXT_KEY_BUG_TOTAL_TRADE_YIELD</Tag>
 		<English>[NEWLINE]Total Yield: %s1[ICON_COMMERCE]</English>
 		<French>[NEWLINE]Total Yield: %s1[ICON_COMMERCE]</French>
@@ -506,29 +583,40 @@
 		<German>[NEWLINE]Durchschnittliches Einkommen: %s1[ICON_COMMERCE]</German>
 		<Italian>[NEWLINE]Average Yield: %s1[ICON_COMMERCE]</Italian>
 		<Spanish>[NEWLINE]Beneficio medio: %s1[ICON_COMMERCE]</Spanish>
+	</TEXT-->
+	<!-- advc: Replacing the above. Akin to keys under "Finance Advisor". -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_COMMERCE_FROM_ROUTES</Tag>
+		<English>%d1[ICON_COMMERCE] from %d2 Trade Routes</English>
+		<French>%d1[ICON_COMMERCE] from %d2 Trade Routes</French>
+		<German>%d1[ICON_COMMERCE] durch %d2 Handelswege</German>
+		<Italian>%d1[ICON_COMMERCE] da %d2 rotte commerciali</Italian>
+		<Spanish>%d1[ICON_COMMERCE] por %d2 rutas</Spanish>
 	</TEXT>
-	
+
+	<!-- advc.099: "defeated" is the proper term now -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_CANNOT_TRADE_DEAD</Tag>
-		<English>[NEWLINE][ICON_BULLET]They are dead</English>
+		<English>[NEWLINE][ICON_BULLET]They have been defeated</English>
 		<French>[NEWLINE][ICON_BULLET]They are dead</French>
-		<German>[NEWLINE][ICON_BULLET]Zivilisation ist ausgelöscht</German>
+		<German>[NEWLINE][ICON_BULLET]besiegt</German>
 		<Italian>[NEWLINE][ICON_BULLET]Scomparsi</Italian>
 		<Spanish>[NEWLINE][ICON_BULLET]Han sido eliminados</Spanish>
 	</TEXT>
+	<!-- advc.087: Minor changes to English and German CANNOT_TRADE texts -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_CANNOT_TRADE_NETWORK_NOT_CONNECTED</Tag>
-		<English>[NEWLINE][ICON_BULLET]Your Trade Networks are not connected</English>
+		<English>[NEWLINE][ICON_BULLET]No trade connection between the capitals</English>
 		<French>[NEWLINE][ICON_BULLET]Your Trade Networks are not connected</French>
-		<German>[NEWLINE][ICON_BULLET]Keine Handelsverbindungen</German>
+		<German>[NEWLINE][ICON_BULLET]Keine Handelsverbindung zwischen den Hauptstädten</German>
 		<Italian>[NEWLINE][ICON_BULLET]Le vostre reti commerciali non sono collegate</Italian>
 		<Spanish>[NEWLINE][ICON_BULLET]No hay conexión de rutas comerciales</Spanish>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_BUG_CANNOT_TRADE_CLOSED_BORDERS</Tag>
-		<English>[NEWLINE][ICON_BULLET]You have not signed an Open Borders agreement</English>
+		<English>[NEWLINE][ICON_BULLET]No [COLOR_HIGHLIGHT_TEXT]Open Borders[COLOR_REVERT] agreement</English>
 		<French>[NEWLINE][ICON_BULLET]You have not signed an Open Borders agreement</French>
-		<German>[NEWLINE][ICON_BULLET]Kein Abkommen über "Offene Grenzen"</German>
+		<German>[NEWLINE][ICON_BULLET]Kein Abkommen über [COLOR_HIGHLIGHT_TEXT]Offene Grenzen[COLOR_REVERT]</German>
 		<Italian>[NEWLINE][ICON_BULLET]Non avete siglato un Accordo di Libero Scambio</Italian>
 		<Spanish>[NEWLINE][ICON_BULLET]No se ha firmado un acuerdo de apertura de fronteras</Spanish>
 	</TEXT>
@@ -536,7 +624,7 @@
 		<Tag>TXT_KEY_BUG_CANNOT_TRADE_FOREIGN_YOU</Tag>
 		<English>[NEWLINE][ICON_BULLET]Your Civics don't allow Foreign Trade</English>
 		<French>[NEWLINE][ICON_BULLET]Your Civics don't allow Foreign Trade</French>
-		<German>[NEWLINE][ICON_BULLET]Eure Gesellschaftsform erlaubt keinen Außenhandel</German>
+		<German>[NEWLINE][ICON_BULLET]Eure Staatsform erlaubt keinen Außenhandel</German>
 		<Italian>[NEWLINE][ICON_BULLET]La tua Forma di Governo non consente il Commercio Estero</Italian>
 		<Spanish>[NEWLINE][ICON_BULLET]Tus principios no permiten el comercio con el extranjero</Spanish>
 	</TEXT>
@@ -544,13 +632,12 @@
 		<Tag>TXT_KEY_BUG_CANNOT_TRADE_FOREIGN_THEM</Tag>
 		<English>[NEWLINE][ICON_BULLET]Their Civics don't allow Foreign Trade</English>
 		<French>[NEWLINE][ICON_BULLET]Their Civics don't allow Foreign Trade</French>
-		<German>[NEWLINE][ICON_BULLET]Deren Gesellschaftsform erlaubt keinen Außenhandel</German>
+		<German>[NEWLINE][ICON_BULLET]Gegnerische Staatsform erlaubt keinen Außenhandel</German>
 		<Italian>[NEWLINE][ICON_BULLET]La loro Forma di Governo non consente il Commercio Estero</Italian>
 		<Spanish>[NEWLINE][ICON_BULLET]Sus principios no permiten el comercio con el extranjero</Spanish>
 	</TEXT>
 
 <!-- Unit Hover -->
-
 	<TEXT>
 		<Tag>TXT_KEY_MISC_EXPERIENCE</Tag>
 		<English>%d1 XP</English>
@@ -567,7 +654,6 @@
 		<Italian>%d1[ICON_STAR]</Italian>
 		<Spanish>%d1[ICON_STAR]</Spanish>
 	</TEXT>
-	
 	<TEXT>
 		<Tag>TXT_KEY_CITY_FREE_EXPERIENCE</Tag>
 		<English>[ICON_BULLET][COLOR_POSITIVE_TEXT]%D1 XP from City[COLOR_REVERT]</English>
@@ -626,7 +712,6 @@
 	</TEXT>
 
 <!-- Conscript Hover -->
-
 	<TEXT>
 		<Tag>TXT_KEY_MISC_CITY_HAS_CONSCRIPTED</Tag>
 		<English>[COLOR_NEGATIVE_TEXT]City cannot draft another unit this turn[COLOR_REVERT]</English>
@@ -653,7 +738,6 @@
 	</TEXT>
 
 <!-- Pre-Chop -->
-	
 	<TEXT>
 		<Tag>TXT_KEY_BUG_PRECLEARING_FEATURE_BONUS</Tag>
 		<English>Clearing a %s1_FeatName will create %d2_Num [ICON_PRODUCTION] for %s3_CityName.</English>
@@ -664,7 +748,6 @@
 	</TEXT>
 
 <!-- Feature Health -->
-
 	<TEXT>
 		<Tag>TXT_KEY_ACTION_CHANGE_IN_CITY</Tag>
 		<English>[ICON_BULLET]%s1 in %s2_CityName</English>
@@ -675,7 +758,6 @@
 	</TEXT>
 
 <!-- Delete/Fortify/Sleep All Units Actions -->
-	
 	<TEXT>
 		<Tag>TXT_KEY_SAME_UNITS_TYPE</Tag>
 		<English>[SPACE](&lt;ALT&gt; for All Units of the active unit's type)</English>
@@ -687,7 +769,6 @@
 
 
 <!-- Fractional Trade -->
-
 	<TEXT>
 		<Tag>TXT_KEY_TRADE_ROUTE_TOTAL_FRACTIONAL</Tag>
 		<English>%s1 [ICON_COMMERCE]: Total</English>
@@ -698,7 +779,6 @@
 	</TEXT>
 
 <!-- Free Tech Popup Fix -->
-
 	<TEXT>
 		<Tag>TXT_KEY_CHEATERS_NEVER_PROSPER</Tag>
 		<English>[COLOR_NEGATIVE_TEXT]You have already chosen your free tech(s)[COLOR_REVERT]</English>
@@ -709,7 +789,6 @@
 	</TEXT>
 
 <!-- Optional Compile-Time Components -->
-
 	<TEXT>
 		<Tag>TXT_KEY_MOD_FRACTRADE</Tag>
 		<English>Fractional Trade Routes</English>

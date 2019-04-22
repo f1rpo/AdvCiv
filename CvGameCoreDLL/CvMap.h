@@ -252,9 +252,9 @@ public: // advc.003: const added to several functions
 		return findCity(iX, iY, eOwner, eTeam, bSameArea, bCoastalOnly,
 				eTeamAtWarWith, eDirection, pSkipCity, NO_TEAM);
 	}
-	CvCity* findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam,
-			bool bSameArea, bool bCoastalOnly, TeamTypes eTeamAtWarWith,
-			DirectionTypes eDirection, CvCity* pSkipCity, TeamTypes observer) const;
+	CvCity* findCity(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, TeamTypes eTeam = NO_TEAM,
+			bool bSameArea = true, bool bCoastalOnly = false, TeamTypes eTeamAtWarWith = NO_TEAM,
+			DirectionTypes eDirection = NO_DIRECTION, CvCity* pSkipCity = NULL, TeamTypes observer = NO_TEAM) const;
 	// </advc.004r>
 	CvSelectionGroup* findSelectionGroup(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, bool bReadyToSelect = false, bool bWorkers = false) const;				// Exposed to Python
 

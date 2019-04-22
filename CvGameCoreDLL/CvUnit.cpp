@@ -5542,7 +5542,7 @@ void CvUnit::blockadeRange(std::vector<CvPlot*>& r, int iExtra) const {
 			int iPathDist =
 					//GC.getMapINLINE().calculatePathDistance(plot(), pLoopPlot);
 					/*  <advc.033> Faster (iMaxPath), but probably doesn't fix the
-						issue described below b/c still uses CvDLLFAStarIFaceBase. */
+						issue described below b/c still uses FAStar. */
 					plot()->calculatePathDistanceToPlot(BARBARIAN_TEAM, pLoopPlot,
 					BARBARIAN_TEAM, bImpassables ? DOMAIN_IMMOBILE : getDomainType(),
 					iRange + iExtra); // </advc.033>

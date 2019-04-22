@@ -978,4 +978,18 @@
 	<Spanish>(AdvCiv) Ships can reach the [COLOR_HIGHLIGHT_TEXT]Blitz[COLOR_REVERT] promotion via [COLOR_HIGHLIGHT_TEXT]Drill I[COLOR_REVERT]. This gives them one extra attack per turn, which can make a great difference when a group of enemy transports has almost reached your shore.</Spanish>
 </TEXT>
 
+<!-- Based on a BUG hint (but it describes BtS behavior); kept their FR and ES
+	 translations. K-Mod removed all but one of the BUG hints. Many of them are
+	 aimed at beginners, others are already covered by my own hints; so this is
+	 the only one that I want to include (in addition to the one in
+	 'K-Mod hints.xml'). -->
+<TEXT>
+	<Tag>TXT_KEY_BUG_HINT_INTERFACE_4</Tag>
+	<English>To cancel the missions of all your Workers, select one of them and click the [COLOR_HIGHLIGHT_TEXT]Cancel Mission[COLOR_REVERT] button while holding down the [ALT] key.</English>
+	<French>Pour annuler tous les ordres des Ouvriers, sélectionnez 1 ouvrier avec des ordres, et en gardant [ALT] enfoncé, cliquez le bouton pour annuler les ordres.</French>
+	<German>Um alle Bautrupp-Missionen abzubrechen, wählen Sie einen einzelnen Bautrupp aus und klicken Sie bei gedrückter [ALT]-Taste auf die "Abbrechen"-Schaltfläche.</German>
+	<Italian>Per cancellare velocemente tutti gli ordini dei lavoratori, selezionane uno che abbia ordini attivi, tieni premuto il tasto [ALT] e clicca il pulsante di cancellazione degli ordini.</Italian>
+	<Spanish>To cancel the missions of all your Workers, select one of them and click the [COLOR_HIGHLIGHT_TEXT]Cancel Mission[COLOR_REVERT] button while holding down the [ALT] key.</Spanish>
+</TEXT>
+
 </Civ4GameText>
