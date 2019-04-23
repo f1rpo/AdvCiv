@@ -776,7 +776,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	m_bLayerFromSavegame = false; // </advc.004m>
 	m_bFeignSP = false; // advc.135c
 	m_bDoMShown = false; // advc.004x
-	m_bScoreboardDirtyDelayed = false; // advc.085
+	m_iScoreboardDirtyTimer = -1; // advc.085
 }
 
 
@@ -2525,14 +2525,16 @@ void CvGame::update()
 		if(!isAITurn()) {
 			CvEventReporter::getInstance().genericEvent("gameUpdate", pyArgs.makeFunctionArgs());
 			// <advc.085> See CvPlayer::setScoreboardExpanded
-			if(m_bScoreboardDirtyDelayed) {
-				gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
-				/*  For some strange reason, the HUD retains mouse focus after
-					expanding the scoreboard, and this is the only remedy I was
-					able to find (apart from CvInterface::makeInterfaceDirty,
-					which results in flickering). */
-				gDLL->getInterfaceIFace()->makeSelectionListDirty();
-				m_bScoreboardDirtyDelayed = false;
+			if(m_iScoreboardDirtyTimer >= 0) {
+				if(m_iScoreboardDirtyTimer == 0) {
+					gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
+					/*  For some strange reason, the HUD retains mouse focus after
+						expanding the scoreboard, and this is the only remedy I was
+						able to find (apart from CvInterface::makeInterfaceDirty,
+						which results in flickering). */
+					gDLL->getInterfaceIFace()->makeSelectionListDirty();
+				}
+				m_iScoreboardDirtyTimer--;
 			} // </advc.085>
 		}
 		if (getTurnSlice() == 0)
@@ -4827,9 +4829,9 @@ void CvGame::setScoreDirty(bool bNewValue)
 }
 
 // <advc.085>
-void CvGame::setScoreboardDirtyOnUpdate() {
+void CvGame::setScoreboardDirtyTimer(int iDelay) {
 
-	m_bScoreboardDirtyDelayed = true;
+	m_iScoreboardDirtyTimer = iDelay;
 } // </advc.085>
 
 

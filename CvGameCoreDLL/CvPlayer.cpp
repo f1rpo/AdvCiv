@@ -23569,7 +23569,13 @@ void CvPlayer::setScoreboardExpanded(bool b) {
 	}
 	/*  If !b, then it doesn't help to dirty it b/c the update is still in progress
 		(when called from Python). */
-	else GC.getGameINLINE().setScoreboardDirtyOnUpdate();
+	else {
+		/*  0 would make the scoreboard collapse almost instantly when the mouse is
+			moved away. Can't properly inspect icons then. 1 works pretty well;
+			a higher delay shouldn't be necessary. */
+		int const iDelay = 1;
+		GC.getGameINLINE().setScoreboardDirtyTimer(iDelay);
+	}
 }
 
 

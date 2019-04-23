@@ -19,6 +19,7 @@ import FontUtil
 import CvUtil
 import re
 import string
+import MonkeyTools # advc.085: For checking Ctrl key
 
 # Globals
 ScoreOpt = BugCore.game.Scores
@@ -217,7 +218,12 @@ class Scoreboard:
 		self._set(MASTER, ACTIVE_MASTER_ICON)
 		
 	def setScore(self, value):
-		self._set(SCORE, smallText(value))
+		# <advc.085> Score breakdown when hovering over the active player's score (no longer provided by WIDGET_CONTACT_CIV) -- or anyone's score in Debug mode w/ Ctrl pressed.
+		widgetData = None
+		if self._activePlayer == self._currPlayerScore.getID() or (gc.getGame().isDebugMode() and MonkeyTools.bCtrl()):
+			widgetData = (WidgetTypes.WIDGET_SCORE_BREAKDOWN, self._currPlayerScore.getID(), 0)
+		# </advc.085>
+		self._set(SCORE, smallText(value), widgetData)
 		
 	def setScoreDelta(self, value):
 		self._set(SCORE_DELTA, smallText(value))

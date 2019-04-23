@@ -141,7 +141,7 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 	case WIDGET_CONTACT_CIV:
 		parseContactCivHelp(widgetDataStruct, szBuffer);
 		break;
-
+	// advc.085 (comment): Was unused in BtS; now used on the scoreboard.
 	case WIDGET_SCORE_BREAKDOWN:
 		parseScoreHelp(widgetDataStruct, szBuffer);
 		break;
@@ -1368,19 +1368,13 @@ void CvDLLWidgetData::doContactCiv(CvWidgetDataStruct &widgetDataStruct)
 	//	Do not execute this if we are trying to contact ourselves...
 	if (GC.getGameINLINE().getActivePlayer() == widgetDataStruct.m_iData1)
 	{
-		if (!gDLL->getInterfaceIFace()->isFocusedWidget())
-		{
+		if (!gDLL->getInterfaceIFace()->isFocusedWidget()
+				// advc.085: Never minimize the scoreboard
+				&& gDLL->getInterfaceIFace()->isScoresMinimized())
 			gDLL->getInterfaceIFace()->toggleScoresMinimized();
-		}
-
 		return;
 	}
-
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      01/11/09                                jdog5000      */
-/*                                                                                              */
-/* Player Interface                                                                             */
-/************************************************************************************************/
+	// BETTER_BTS_AI_MOD, Player Interface, 01/11/09, jdog5000: START
 	if (GC.shiftKey() && !GC.altKey())
 	{
 		if (GET_PLAYER((PlayerTypes)widgetDataStruct.m_iData1).isHuman())
@@ -1445,10 +1439,7 @@ void CvDLLWidgetData::doContactCiv(CvWidgetDataStruct &widgetDataStruct)
 		}
 		return;
 	}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-
+	// BETTER_BTS_AI_MOD: END
 	GET_PLAYER(GC.getGameINLINE().getActivePlayer()).contact((PlayerTypes)widgetDataStruct.m_iData1);
 }
 
@@ -3489,7 +3480,7 @@ void CvDLLWidgetData::parseChangePercentHelp(CvWidgetDataStruct &widgetDataStruc
 	}
 }
 
-
+// advc (comment): Could this function be merged into CvGameTextMgr::parseLeaderHeadHelp?
 void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)  // advc.003: Some style changes
 {
 	// do not execute if player is out of range
@@ -3520,22 +3511,23 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 		parseScoreboardCheatText(widgetDataStruct, szBuffer);
 		// K-Mod end
 	}
-	//	Show score info instead if we are trying to contact ourselves...
-	if ( eActivePlayer == ePlayer || (GC.ctrlKey() && //gDLL->getChtLvl() > 0) )
-			GC.getGameINLINE().isDebugMode())) // advc.135c
-	{
+	// Show score info instead if we are trying to contact ourselves...
+	/*  advc.085: No, show active player's contact hover, mainly, for the worst-enemy info.
+		(And I've moved these checks into Scoreboard.py.) */
+	/*if(eActivePlayer == ePlayer || (GC.ctrlKey() && GC.getGameINLINE().isDebugMode())) {
 		parseScoreHelp(widgetDataStruct, szBuffer);
 		return;
-	}
+	}*/
 
 	/* original bts code
 	szBuffer.append(gDLL->getText("TXT_KEY_MISC_CONTACT_LEADER", kPlayer.getNameKey(), kPlayer.getCivilizationShortDescription()));
 	szBuffer.append(NEWLINE);
 	GAMETEXT.parsePlayerTraits(szBuffer, ePlayer); */
-	if (!kActiveTeam.isHasMet(eTeam))
-	{
-		// K-Mod. If we haven't met the player yet - don't say "contact". Because we can't actually contact them!
-		szBuffer.append(CvWString::format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), kPlayer.getName()));
+	if (eActivePlayer != ePlayer && // advc.085
+			!kActiveTeam.isHasMet(eTeam))
+	{	// K-Mod. If we haven't met the player yet - don't say "contact". Because we can't actually contact them!
+		szBuffer.append(CvWString::format(SETCOLR L"%s" ENDCOLR,
+				TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), kPlayer.getName()));
 		// K-Mod end
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_HAVENT_MET_CIV"));
@@ -3543,8 +3535,17 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 	// K-Mod
 	else
 	{
-		szBuffer.append(gDLL->getText("TXT_KEY_MISC_CONTACT_LEADER", kPlayer.getNameKey(),
-				kPlayer.getCivilizationShortDescription()));
+		CvWString szTmp; // advc.085
+		szTmp.append(gDLL->getText(
+				eActivePlayer == ePlayer ? "TXT_KEY_LEADER_CIV_DESCRIPTION" : // advc.085
+				"TXT_KEY_MISC_CONTACT_LEADER",
+				kPlayer.getNameKey(), kPlayer.getCivilizationShortDescription()));
+		// <advc.085>
+		if(eActivePlayer == ePlayer) {
+			szBuffer.append(CvWString::format(SETCOLR L"%s" ENDCOLR,
+					TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"), szTmp.GetCString()));
+		}
+		else szBuffer.append(szTmp); // </advc.085>
 		szBuffer.append(NEWLINE);
 		GAMETEXT.parsePlayerTraits(szBuffer, ePlayer);
 	} // K-Mod end
@@ -3568,12 +3569,16 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 			szBuffer.append(NEWLINE);
 			GAMETEXT.getEspionageString(szBuffer, ((PlayerTypes)widgetDataStruct.m_iData1), eActivePlayer);
 		} */
-
-		// <advc.104l>
-		WarEvaluator::enableCache();
-		// Don't check this twice; potentially costly.
-		bool bWillTalk = kPlayer.AI_isWillingToTalk(eActivePlayer);
-		WarEvaluator::disableCache(); // </advc.104l>
+		bool bWillTalk = false;  // <advc.085>
+		if(eActivePlayer == ePlayer)
+			bWillTalk = true;
+		else { // </advc.085>
+			// <advc.104l>
+			WarEvaluator::enableCache();
+			// Don't check this twice; potentially costly.
+			bool bWillTalk = kPlayer.AI_isWillingToTalk(eActivePlayer);
+			WarEvaluator::disableCache(); // </advc.104l>
+		}
 		// K-Mod
 		if (!bWillTalk)
 		{
@@ -3583,8 +3588,11 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 		if (!((GC.altKey() || GC.ctrlKey()) && //gDLL->getChtLvl() > 0))
 			GC.getGameINLINE().isDebugMode())) // advc.135c
 		{
-			GAMETEXT.getAttitudeString(szBuffer, ePlayer, eActivePlayer);
-			GAMETEXT.getWarWearinessString(szBuffer, ePlayer, eActivePlayer); // K-Mod
+			if(eActivePlayer != ePlayer) // advc.085
+				GAMETEXT.getAttitudeString(szBuffer, ePlayer, eActivePlayer);
+			GAMETEXT.getWarWearinessString(szBuffer, ePlayer, // K-Mod
+					eActivePlayer == ePlayer ? NO_PLAYER : // advc.085
+					eActivePlayer);
 			// <advc.104v> Handled later
 			/*if (!kPlayer.isHuman() && willTalk) {
 				szBuffer.append(NEWLINE);
@@ -3599,84 +3607,79 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 			szBuffer.append(NEWLINE);
 			szBuffer.append(szString);
 		} // </advc.034>
-		if (eTeam != eActiveTeam )
+		//if (eTeam != eActiveTeam ) // advc.085
+		// Show which civs this player is at war with
+		CvWStringBuffer szWarWithString;
+		CvWStringBuffer szWorstEnemyString;
+		bool bFirst = true;
+		bool bFirst2 = true;
+		// advc.003: Variables renamed to ...Loop... in order to avoid shadowing
+		for (int iLoopTeam = 0; iLoopTeam < MAX_CIV_TEAMS; iLoopTeam++)
 		{
-			// Show which civs this player is at war with
-			CvWStringBuffer szWarWithString;
-			CvWStringBuffer szWorstEnemyString;
-			bool bFirst = true;
-			bool bFirst2 = true;
-			// advc.003: Variables renamed to ...Loop... in order to avoid shadowing
-			for (int iLoopTeam = 0; iLoopTeam < MAX_CIV_TEAMS; iLoopTeam++)
+			CvTeamAI& kLoopTeam = GET_TEAM((TeamTypes)iLoopTeam);
+			if (!kLoopTeam.isAlive() || kLoopTeam.isMinorCiv() || iLoopTeam == eTeam)
+					// K-Mod. show "at war" for the active player if appropriate
+					//|| iLoopTeam == TEAMID(ePlayer))
+				continue;
+			if (!kActiveTeam.isHasMet(kLoopTeam.getID()))
+				continue;
+			if (::atWar((TeamTypes)iLoopTeam, eTeam))
 			{
-				CvTeamAI& kLoopTeam = GET_TEAM((TeamTypes)iLoopTeam);
-				//if (kTeam.isAlive() && !kTeam.isMinorCiv() && iTeam != eActiveTeam && iTeam != GET_PLAYER(ePlayer).getTeam())
-				// K-Mod. show "at war" for the active player if appropriate
-				if (kLoopTeam.isAlive() && !kLoopTeam.isMinorCiv() && iLoopTeam != eTeam)
-				{
-					if (kActiveTeam.isHasMet(kLoopTeam.getID()))
-					{
-						if (::atWar((TeamTypes)iLoopTeam, eTeam))
-						{
-							setListHelp(szWarWithString, L"", kLoopTeam.getName().GetCString(), L", ", bFirst);
-							bFirst = false;
-						}
-						//if (kTeam.AI_getWorstEnemy() == GET_PLAYER(ePlayer).getTeam())
-						if (!kLoopTeam.isHuman() && kLoopTeam.AI_getWorstEnemy() == eTeam) // K-Mod
-						{
-							setListHelp(szWorstEnemyString, L"", kLoopTeam.getName().GetCString(), L", ", bFirst2);
-							bFirst2 = false;
-						}
-					}
-				}
+				setListHelp(szWarWithString, L"", kLoopTeam.getName().GetCString(), L", ", bFirst);
+				bFirst = false;
 			}
-
-			if (!szWorstEnemyString.isEmpty())
+			//if (kTeam.AI_getWorstEnemy() == GET_PLAYER(ePlayer).getTeam())
+			if (!kLoopTeam.isHuman() && kLoopTeam.AI_getWorstEnemy() == eTeam) // K-Mod
 			{
-				szBuffer.append(NEWLINE);
-				szBuffer.append(gDLL->getText(L"TXT_KEY_WORST_ENEMY_OF", szWorstEnemyString.getCString()));
+				setListHelp(szWorstEnemyString, L"", kLoopTeam.getName().GetCString(), L", ", bFirst2);
+				bFirst2 = false;
 			}
-			if (!szWarWithString.isEmpty())
-			{
-				szBuffer.append(NEWLINE);
-				szBuffer.append(gDLL->getText(L"TXT_KEY_AT_WAR_WITH", szWarWithString.getCString()));
-			}
-			// <advc.004v> Moved here from above
-			bool bShowCtrlTrade = !((GC.altKey() || GC.ctrlKey()) && //gDLL->getChtLvl() > 0)
-					GC.getGameINLINE().isDebugMode()) // advc.135c
-					&& !kPlayer.isHuman() && bWillTalk;
-			if (bShowCtrlTrade) {
-				szBuffer.append(NEWLINE);
-				szBuffer.append(gDLL->getText("TXT_KEY_MISC_CTRL_TRADE"));
-			} // </advc.004>
-			if (!kActiveTeam.isAtWar(eTeam))
-			{
-				if (kActiveTeam.canDeclareWar(eTeam))
-				{	// <advc.104v>
-					if(bShowCtrlTrade)
-						szBuffer.append(L", "); // Put them on one line
-					else // </advc.104v>
-						szBuffer.append(NEWLINE);
-					szBuffer.append(gDLL->getText("TXT_KEY_MISC_ALT_DECLARE_WAR"));
-				}
-				else
-				{
+		}
+		if (!szWarWithString.isEmpty()) // advc.004: List wars before worst enemies
+		{
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText(L"TXT_KEY_AT_WAR_WITH", szWarWithString.getCString()));
+		}
+		if (!szWorstEnemyString.isEmpty())
+		{
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText(L"TXT_KEY_WORST_ENEMY_OF", szWorstEnemyString.getCString()));
+		}
+		// <advc.004v> Moved here from above
+		bool bShowCtrlTrade = (!((GC.altKey() || GC.ctrlKey()) && //gDLL->getChtLvl() > 0)
+				GC.getGameINLINE().isDebugMode()) // advc.135c
+				&& !kPlayer.isHuman() && bWillTalk
+				&& ePlayer != eActivePlayer); // advc.085
+		if (bShowCtrlTrade) {
+			szBuffer.append(NEWLINE);
+			szBuffer.append(gDLL->getText("TXT_KEY_MISC_CTRL_TRADE"));
+		} // </advc.004>
+		if (!kActiveTeam.isAtWar(eTeam) /* advc.085: */ && ePlayer != eActivePlayer)
+		{
+			if (kActiveTeam.canDeclareWar(eTeam))
+			{	// <advc.104v>
+				if(bShowCtrlTrade)
+					szBuffer.append(L", "); // Put them on one line
+				else // </advc.104v>
 					szBuffer.append(NEWLINE);
-					szBuffer.append(gDLL->getText("TXT_KEY_MISC_CANNOT_DECLARE_WAR"));
-				}
-
-				// K-Mod. The BBAI war plan control currently is not implemented for multiplayer, and it is only relevant for team games.
-				if (!GC.getGameINLINE().isGameMultiPlayer() && kActiveTeam.getAliveCount() > 1)
-				{
-					szBuffer.append(NEWLINE);
-					szBuffer.append(gDLL->getText("TXT_KEY_MISC_SHIFT_ALT_PREPARE_WAR"));
-				}
+				szBuffer.append(gDLL->getText("TXT_KEY_MISC_ALT_DECLARE_WAR"));
+			}
+			else
+			{
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_MISC_CANNOT_DECLARE_WAR"));
+			}
+			// K-Mod. The BBAI war plan control currently is not implemented for multiplayer, and it is only relevant for team games.
+			if (!GC.getGameINLINE().isGameMultiPlayer() && kActiveTeam.getAliveCount() > 1)
+			{
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_MISC_SHIFT_ALT_PREPARE_WAR"));
 			}
 		}
 	}
 
-	if (kPlayer.isHuman())
-	{// szBuffer += "\n(<SHIFT> to Send Chat Message)";
+	if (kPlayer.isHuman() /* advc.085: */ && eActivePlayer != ePlayer)
+	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_MISC_SHIFT_SEND_CHAT"));
 	}
@@ -6048,6 +6051,10 @@ void CvDLLWidgetData::parseCommerceModHelp(CvWidgetDataStruct &widgetDataStruct,
 void CvDLLWidgetData::parseScoreHelp(CvWidgetDataStruct& widgetDataStruct, CvWStringBuffer& szBuffer)
 {
 	GAMETEXT.setScoreHelp(szBuffer, (PlayerTypes)widgetDataStruct.m_iData1);
+	// <advc.085>
+	if(widgetDataStruct.m_iData2 == 0)
+		GET_PLAYER(GC.getGameINLINE().getActivePlayer()).setScoreboardExpanded(true);
+	// </advc.085>
 }
 
 // BULL - Trade Hover - start
