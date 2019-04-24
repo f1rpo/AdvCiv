@@ -1149,7 +1149,9 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 										, 64, WidgetTypes.WIDGET_LEADERHEAD, iLoopPlayer, self.iActiveLeader )
 				
 				# gold
-				if (gc.getTeam(activePlayer.getTeam()).isGoldTrading() or gc.getTeam(currentPlayer.getTeam()).isGoldTrading()):
+				# advc.036:
+				bWillTalk = currentPlayer.AI_isWillingToTalk(self.iActiveLeader)
+				if (gc.getTeam(activePlayer.getTeam()).isGoldTrading() or gc.getTeam(currentPlayer.getTeam()).isGoldTrading()) and bWillTalk:
 					sAmount = str(gc.getPlayer(iLoopPlayer).AI_maxGoldPerTurnTrade(self.iActiveLeader))
 					self.resIconGrid.setText(currentRow, self.canPayCol, sAmount)
 				
@@ -1169,13 +1171,13 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 						# <advc.073> Replacing the above: separate column now for must-be-joking resources
 						iDenial = currentPlayer.getTradeDenial(self.iActiveLeader, tradeData)
 						# Human isn't going to deny, but I still want to populate the noNeedCol and wontExportCol.
-						if iDenial == -1 and currentPlayer.isHuman():
+						if iDenial == DenialTypes.NO_DENIAL and currentPlayer.isHuman():
 							if activePlayer.getNumAvailableBonuses(iLoopBonus) > 0 and activePlayer.AI_corporationBonusVal(iLoopBonus) <= 0:
 								iDenial = DenialTypes.DENIAL_JOKING
 							elif currentPlayer.getNumAvailableBonuses(iLoopBonus) < 2 or currentPlayer.AI_corporationBonusVal(iLoopBonus) > 0:
 								iDenial = DenialTypes.DENIAL_NO_GAIN
 						if iDenial != DenialTypes.DENIAL_JOKING:
-							if iDenial < 0:
+							if iDenial == DenialTypes.NO_DENIAL and bWillTalk:
 								# Use the BONUS_TRADE widget from BULL everywhere (also needed for advc.036). Was willTradeCol.
 								self.resIconGrid.addIcon( currentRow, self.willExportCol, gc.getBonusInfo(iLoopBonus).getButton(), 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS_TRADE, iLoopBonus, iLoopPlayer )
 							else: # won't trade
@@ -1308,8 +1310,9 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 
 				self.techIconGrid.setText(currentRow, iTechColStatus, zsStatus)
 # BUG - AI status - end
-
-				if (gc.getTeam(activePlayer.getTeam()).isGoldTrading() or gc.getTeam(currentPlayer.getTeam()).isGoldTrading()):
+				# advc.036:
+				bWillTalk = currentPlayer.AI_isWillingToTalk(self.iActiveLeader)
+				if (gc.getTeam(activePlayer.getTeam()).isGoldTrading() or gc.getTeam(currentPlayer.getTeam()).isGoldTrading()) and bWillTalk:
 					sAmount = str(gc.getPlayer(iLoopPlayer).AI_maxGoldTrade(self.iActiveLeader))
 					self.techIconGrid.setText(currentRow, iTechColGold, sAmount)
 
@@ -1325,7 +1328,7 @@ class CvExoticForeignAdvisor (CvForeignAdvisor.CvForeignAdvisor):
 						elif currentPlayer.canResearch(iLoopTech, False):
 							self.techIconGrid.addIcon( currentRow, iTechColResearch, gc.getTechInfo(iLoopTech).getButton(), 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, iLoopTech )
 						if (currentPlayer.canTradeItem(self.iActiveLeader, tradeData, False)):
-							if (currentPlayer.getTradeDenial(self.iActiveLeader, tradeData) == DenialTypes.NO_DENIAL): # will trade
+							if currentPlayer.getTradeDenial(self.iActiveLeader, tradeData) == DenialTypes.NO_DENIAL and bWillTalk: # will trade
 								self.techIconGrid.addIcon( currentRow, iTechColWill, gc.getTechInfo(iLoopTech).getButton(), 64, WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, iLoopTech )
 							else: # won't trade
 								# advc.073: Changed so that WIDGET_PEDIA_JUMP_TO_TECH_TRADE works w/o BugDll

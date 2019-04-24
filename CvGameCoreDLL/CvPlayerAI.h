@@ -172,7 +172,11 @@ public:
 	void AI_chooseResearch();
 
 	DllExport DiploCommentTypes AI_getGreeting(PlayerTypes ePlayer) const;
-	bool AI_isWillingToTalk(PlayerTypes ePlayer) const; // Exposed to Python
+	bool AI_isWillingToTalk(PlayerTypes ePlayer) const {								 // Exposed to Python
+		// <advc.104l> ^Virtual function that the EXE may well call; mustn't change signature.
+		return AI_isWillingToTalk(ePlayer, false);
+	}
+	bool AI_isWillingToTalk(PlayerTypes ePlayer, bool bAsync) const; // </advc.104l>
 	int AI_refuseToTalkTurns(PlayerTypes ePlayer) const; // advc.104i
 	bool AI_demandRebukedSneak(PlayerTypes ePlayer) const;
 	bool AI_demandRebukedWar(PlayerTypes ePlayer) const;

@@ -238,6 +238,9 @@ public:
 		bool considerDemand(PlayerTypes theyId, int tradeVal) const;
 		bool considerGiftRequest(PlayerTypes theyId, int tradeVal) const;
 		bool amendTensions(PlayerTypes humanId) const;
+		/*  Returns -1 if unwilling, 1 if willing and 0 to leave the decision to the
+			BtS AI */
+		int willTalk(PlayerTypes theyId, int atWarCounter, bool useCache) const;
 		// False if all assets of the human civ wouldn't nearly be enough
 		bool isPeaceDealPossible(PlayerTypes humanId) const;
 		/*  Can humanId trade assets to us with a total value of at least
@@ -308,6 +311,7 @@ public:
 	private:
 		// Probability assumed by the AI if this civ is human
 		double humanBuildUnitProb() const;
+		int willTalk(PlayerTypes theyId, int atWarCounter) const;
 
 		PlayerTypes weId;
 		WarAndPeaceCache cache;

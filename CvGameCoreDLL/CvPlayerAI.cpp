@@ -9015,7 +9015,7 @@ DiploCommentTypes CvPlayerAI::AI_getGreeting(PlayerTypes ePlayer) const
 }
 
 // return true if we are willing to talk to ePlayer
-bool CvPlayerAI::AI_isWillingToTalk(PlayerTypes ePlayer) const
+bool CvPlayerAI::AI_isWillingToTalk(PlayerTypes ePlayer, /* advc.104l: */ bool bAsync) const
 {
 	FAssert(getPersonalityType() != NO_LEADER);
 	FAssert(ePlayer != getID());
@@ -9054,35 +9054,22 @@ bool CvPlayerAI::AI_isWillingToTalk(PlayerTypes ePlayer) const
 			// advc.104i: Get this out of the way too:
 			|| kTheirTeam.isAVassal())
 		return false;
-
 	// K-Mod
 	if(kOurTeam.isHuman()) // ie. we are an AI player, but our team is human
 		return false; // let the human speak for us.
 	// K-Mod end
-
 	// <advc.104i>
-	int atWarCounter = kOurTeam.AI_getAtWarCounter(kTheirTeam.getID());
+	int iTurnsAtWar = kOurTeam.AI_getAtWarCounter(kTheirTeam.getID());
 	if(getWPAI.isEnabled()) {
-		if(kOurTeam.AI_surrenderTrade(kTheirTeam.getID()) == NO_DENIAL)
-			return true;
-		// 1 turn RTT and let the team leader handle peace negotiation
-		if(atWarCounter <= 1 || kOurTeam.getLeaderID() != getID())
+		// advc.104l: Synchronized code mustn't read from the war evaluator cache
+		int iWillTalk = warAndPeaceAI().willTalk(ePlayer, iTurnsAtWar, bAsync);
+		if(iWillTalk < 0)
 			return false;
-		// bValid=true: want to return true, but still need to check for DECLARED_WAR_RECENT.
-		bool bValid = false;
-		/*  Checking for a possible peace deal only serves as a convenience for
-			human players; no need to do it for AI-AI peace. */
-		if(!GET_PLAYER(ePlayer).isHuman())
-			bValid = true;
-		else bValid = (kOurTeam.AI_surrenderTrade(kTheirTeam.getID()) == NO_DENIAL ||
-					warAndPeaceAI().isPeaceDealPossible(ePlayer));
-		if(AI_getMemoryCount(ePlayer, MEMORY_DECLARED_WAR_RECENT) > 0) {
-			if(!bValid)
-				return false; // else RTT as in BtS
-		}
-		else return bValid;
+		if(iWillTalk > 0)
+			return true;
+		// iWillTalk==0: RTT as in BtS
 	}
-	if(!getWPAI.isEnabled()) { // </advc.104i>
+	else { // </advc.104i>
 		// K-Mod
 		if(kOurTeam.AI_refusePeace(kTheirTeam.getID())) {
 			TradeData item;
@@ -9093,7 +9080,7 @@ bool CvPlayerAI::AI_isWillingToTalk(PlayerTypes ePlayer) const
 	}
 	// advc.104i: Moved into a new function
 	int iRefuseDuration = AI_refuseToTalkTurns(ePlayer);
-	return (atWarCounter >= iRefuseDuration);
+	return (iTurnsAtWar >= iRefuseDuration);
 }
 
 // advc.104i: Cut from AI_isWillingToTalk

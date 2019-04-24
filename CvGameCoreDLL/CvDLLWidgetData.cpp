@@ -3569,16 +3569,8 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 			szBuffer.append(NEWLINE);
 			GAMETEXT.getEspionageString(szBuffer, ((PlayerTypes)widgetDataStruct.m_iData1), eActivePlayer);
 		} */
-		bool bWillTalk = false;  // <advc.085>
-		if(eActivePlayer == ePlayer)
-			bWillTalk = true;
-		else { // </advc.085>
-			// <advc.104l>
-			WarEvaluator::enableCache();
-			// Don't check this twice; potentially costly.
-			bool bWillTalk = kPlayer.AI_isWillingToTalk(eActivePlayer);
-			WarEvaluator::disableCache(); // </advc.104l>
-		}
+		bool bWillTalk = (eActivePlayer == ePlayer || // advc.085
+				kPlayer.AI_isWillingToTalk(eActivePlayer, /* advc.104l: */ true));
 		// K-Mod
 		if (!bWillTalk)
 		{

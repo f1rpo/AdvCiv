@@ -2483,6 +2483,40 @@ bool WarAndPeaceAI::Civ::considerGiftRequest(PlayerTypes theyId,
 	double thresh = utilityToTradeVal(-u);
 	return thresh >= tradeVal;
 }
+// Wrapper that handles the war evaluator cache
+int WarAndPeaceAI::Civ::willTalk(PlayerTypes theyId, int atWarCounter, bool useCache) const {
+
+	if(useCache)
+		WarEvaluator::enableCache();
+	int r = willTalk(theyId, atWarCounter);
+	if(useCache)
+		WarEvaluator::disableCache();
+	return r;
+}
+
+int WarAndPeaceAI::Civ::willTalk(PlayerTypes theyId, int atWarCounter) const {
+
+	CvTeamAI const& agent = TEAMREF(weId);
+	if(agent.AI_surrenderTrade(TEAMID(theyId)) == NO_DENIAL)
+		return 1;
+	// 1 turn RTT and let the team leader handle peace negotiation
+	if(atWarCounter <= 1 || agent.getLeaderID() != weId)
+		return -1;
+	// valid=true: want to return 1, but still need to check for DECLARED_WAR_RECENT.
+	bool valid = false;
+	/*  Checking for a possible peace deal only serves as a convenience for
+		human players; no need to do it for AI-AI peace. */
+	if(!GET_PLAYER(theyId).isHuman())
+		valid = true;
+	else valid = (agent.AI_surrenderTrade(TEAMID(theyId)) == NO_DENIAL ||
+			isPeaceDealPossible(theyId));
+	if(GET_PLAYER(weId).AI_getMemoryCount(theyId, MEMORY_DECLARED_WAR_RECENT) > 0) {
+		if(valid)
+			return 0;
+		return -1;
+	}
+	return (valid ? 1 : -1);
+}
 
 bool WarAndPeaceAI::Civ::isPeaceDealPossible(PlayerTypes humanId) const {
 

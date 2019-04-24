@@ -11,7 +11,6 @@
 #include "CvPlayerAI.h"
 #include "CvMap.h"
 #include "CySelectionGroup.h"
-#include "WarEvaluator.h" // advc.104l
 #include "CvDLLPythonIFaceBase.h"
 
 CyPlayer::CyPlayer() : m_pPlayer(NULL)
@@ -2135,11 +2134,7 @@ bool CyPlayer::AI_isWillingToTalk(int /*PlayerTypes*/ ePlayer) {
 	CvPlayerAI const& p = GET_PLAYER((PlayerTypes)ePlayer);
 	if(p.getNumCities() <= 0 && p.getNumUnits() <= 0)
 		return false; // </advc.001>
-	// AI_isWillingToTalk gets called frequently by Civ4lerts
-	WarEvaluator::enableCache();
-	bool r = m_pPlayer->AI_isWillingToTalk(p.getID());
-	WarEvaluator::disableCache();
-	return r;
+	return m_pPlayer->AI().AI_isWillingToTalk(p.getID(), true);
 } // </advc.104l>
 
 bool CyPlayer::AI_demandRebukedWar(int /*PlayerTypes*/ ePlayer)

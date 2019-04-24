@@ -8957,7 +8957,17 @@ void CvGameTextMgr::setTechTradeHelp(CvWStringBuffer &szBuffer, TechTypes eTech,
 		{
 			DenialTypes eDenial = GET_PLAYER(eTradePlayer).getTradeDenial(
 					eActivePlayer, item);
-			if (eDenial != NO_DENIAL)
+			// <advc.073>
+			if (eDenial == NO_DENIAL)
+			{
+				if(!GET_PLAYER(eTradePlayer).isHuman() && !GET_PLAYER(eTradePlayer).
+						AI_isWillingToTalk(eActivePlayer, true))
+				{
+					szBuffer.append(NEWLINE);
+					szBuffer.append(gDLL->getText("TXT_KEY_MISC_REFUSES_TO_TALK"));
+				}
+			} // </advc.073>
+			else
 			{
 				szTempBuffer.Format(SETCOLR L"%s" ENDCOLR,
 						TEXT_COLOR("COLOR_NEGATIVE_TEXT"),
@@ -13839,9 +13849,9 @@ void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 				if(!kTaker.isAlive() || kTaker.isHuman() ||
 						!TEAMREF(eActivePlayer).isHasMet(kTaker.getTeam()))
 					continue;
-				if(!pActivePlayer->canTradeItem(kTaker.getID(), item, true))
-					continue;
-				aTakers.push_back(kTaker.getID());
+				if(pActivePlayer->canTradeItem(kTaker.getID(), item, true) &&
+						kTaker.AI_isWillingToTalk(eActivePlayer, true))
+					aTakers.push_back(kTaker.getID());
 			}
 			if(aTakers.empty())
 				return;
@@ -13885,29 +13895,42 @@ void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBon
 				return;
 			} 
 			else if(eDenial == NO_DENIAL && !bHuman) {
-				::setTradeItem(&item, TRADE_GOLD_PER_TURN, 1);
-				if(pActivePlayer->canTradeItem(eTradePlayer, item, false)) {
-					int iGold = pActivePlayer->AI_goldForBonus(eBonus, eTradePlayer);
-					if(iGold > 0) {
-						szBuffer.append(NEWLINE);
-						szBuffer.append(CvWString::format(L"%s %d%c",
-								gDLL->getText("TXT_KEY_MISC_WILL_ASK").GetCString(),
-								iGold, iGoldChar));
-						return;
+				if(GET_PLAYER(eTradePlayer).AI_isWillingToTalk(eActivePlayer, true)) {
+					::setTradeItem(&item, TRADE_GOLD_PER_TURN, 1);
+					if(pActivePlayer->canTradeItem(eTradePlayer, item, false)) {
+						int iGold = pActivePlayer->AI_goldForBonus(eBonus, eTradePlayer);
+						if(iGold > 0) {
+							szBuffer.append(NEWLINE);
+							szBuffer.append(CvWString::format(L"%s %d%c",
+									gDLL->getText("TXT_KEY_MISC_WILL_ASK").GetCString(),
+									iGold, iGoldChar));
+							return;
+						}
 					}
+				}
+				else {
+					szBuffer.append(NEWLINE);
+					szBuffer.append(gDLL->getText("TXT_KEY_MISC_REFUSES_TO_TALK"));
 				}
 			}
 		} 
-		if(bImport && !bHuman && pActivePlayer->canTradeItem(eTradePlayer, item, true)) {
-			::setTradeItem(&item, TRADE_GOLD_PER_TURN, 1);
-			if(GET_PLAYER(eTradePlayer).canTradeItem(eActivePlayer, item, false)) {
-				int iGold = GET_PLAYER(eTradePlayer).AI_goldForBonus(eBonus, eActivePlayer);
-				if(iGold > 0) {
-					szBuffer.append(NEWLINE);
-					szBuffer.append(CvWString::format(L"%s %d%c",
-							gDLL->getText("TXT_KEY_MISC_WILL_PAY").GetCString(),
-							iGold, iGoldChar));
+		if(bImport && !bHuman) {
+			bool bWillTalk = GET_PLAYER(eTradePlayer).AI_isWillingToTalk(eActivePlayer, true);
+			if(bWillTalk && pActivePlayer->canTradeItem(eTradePlayer, item, true)) {
+				::setTradeItem(&item, TRADE_GOLD_PER_TURN, 1);
+				if(GET_PLAYER(eTradePlayer).canTradeItem(eActivePlayer, item, false)) {
+					int iGold = GET_PLAYER(eTradePlayer).AI_goldForBonus(eBonus, eActivePlayer);
+					if(iGold > 0) {
+						szBuffer.append(NEWLINE);
+						szBuffer.append(CvWString::format(L"%s %d%c",
+								gDLL->getText("TXT_KEY_MISC_WILL_PAY").GetCString(),
+								iGold, iGoldChar));
+					}
 				}
+			}
+			else if(!bWillTalk) {
+				szBuffer.append(NEWLINE);
+				szBuffer.append(gDLL->getText("TXT_KEY_MISC_REFUSES_TO_TALK"));
 			}
 		} // </advc.036>
 	}

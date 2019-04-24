@@ -73,7 +73,7 @@
 					type="boolean" default="False" dirtyBit="Score"/>
 			<!-- advc.106d: Default was !?2WSZVC6EPTUNBDRAHQ*LO -->
 			<option id="DisplayOrder" key="Display Order" 
-					type="string" default="!?2W_D_B_NSZCPTURAHQ*LO"
+					type="string" default="_D_B_N!?2WSZCPTURAHQ*LO"
 					get="getDisplayOrder" set="setDisplayOrder" dirtyBit="Score"/>
 			<list   id="DefaultSpacing" key="Default Column Spacing" 
 					type="int" default="0" values="0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10" 
