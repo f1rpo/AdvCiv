@@ -23563,7 +23563,7 @@ void CvPlayer::setScoreboardExpanded(bool b) {
 
 	m_bScoreboardExpanded = b;
 	if(b) {
-		FAssert(getBugOptionBOOL("Scores__AlignIcons", true));
+		FAssert(getBugOptionBOOL("Scores__AlignIcons", true, false));
 		if(getBugOptionBOOL("Scores__ExpandOnHover", false))
 			gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
 	}
