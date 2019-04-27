@@ -12256,7 +12256,7 @@ bool CvUnitAI::AI_guardCitySite()
 			for(int dy = -1; dy <= 1; dy++) {
 				CvPlot* adj = m.plot(pBestGuardPlot->getX_INLINE() + dx,
 						pBestGuardPlot->getY_INLINE() + dy);
-				if(adj == NULL || adj->isImpassable())
+				if(adj == NULL || (adj->isImpassable() && !m_pUnitInfo->isCanMoveImpassable()))
 					continue;
 				int iGuardVal = adj->defenseModifier(getTeam(), true);
 				iGuardVal += adj->seeFromLevel(getTeam()) * 30;
@@ -20292,174 +20292,129 @@ bool CvUnitAI::AI_improvePlot(CvPlot* pPlot, BuildTypes eBuild)
 	
 }
 
-BuildTypes CvUnitAI::AI_betterPlotBuild(CvPlot* pPlot, BuildTypes eBuild)
+BuildTypes CvUnitAI::AI_betterPlotBuild(CvPlot* pPlot, BuildTypes eBuild)  // advc.003: some style changes
 {
 	FAssert(pPlot != NULL);
 	FAssert(eBuild != NO_BUILD);
 	bool bBuildRoute = false;
 	bool bClearFeature = false;
-	
 	FeatureTypes eFeature = pPlot->getFeatureType();
 	
 	CvBuildInfo& kOriginalBuildInfo = GC.getBuildInfo(eBuild);
-	
 	if (kOriginalBuildInfo.getRoute() != NO_ROUTE)
-	{
 		return eBuild;
-	}
 	
 	int iWorkersNeeded = AI_calculatePlotWorkersNeeded(pPlot, eBuild);
-	
-	/********************************************************************************/
-	/* 	BETTER_BTS_AI_MOD						7/31/08				jdog5000	*/
-	/* 																			*/
-	/* 	Bugfix																	*/
-	/********************************************************************************/
+
 	//if ((pPlot->getBonusType() == NO_BONUS) && (pPlot->getWorkingCity() != NULL))
-	if ((pPlot->getNonObsoleteBonusType(getTeam()) == NO_BONUS) && (pPlot->getWorkingCity() != NULL))
-	{
+	// BETTER_BTS_AI_MOD, Bugfix, 7/31/08, jdog5000
+	if (pPlot->getNonObsoleteBonusType(getTeam()) == NO_BONUS &&
+			pPlot->getWorkingCity() != NULL)
 		iWorkersNeeded = std::max(1, std::min(iWorkersNeeded, pPlot->getWorkingCity()->AI_getWorkersHave()));
-	}
-	/********************************************************************************/
-	/* 	BETTER_BTS_AI_MOD						END								*/
-	/********************************************************************************/
 
 	if (eFeature != NO_FEATURE)
 	{
 		CvFeatureInfo& kFeatureInfo = GC.getFeatureInfo(eFeature);
 		if (kOriginalBuildInfo.isFeatureRemove(eFeature))
 		{
-			if ((kOriginalBuildInfo.getImprovement() == NO_IMPROVEMENT) || (!pPlot->isBeingWorked() || (kFeatureInfo.getYieldChange(YIELD_FOOD) + kFeatureInfo.getYieldChange(YIELD_PRODUCTION)) <= 0))
-			{
+			if (kOriginalBuildInfo.getImprovement() == NO_IMPROVEMENT ||
+					(!pPlot->isBeingWorked() ||
+					kFeatureInfo.getYieldChange(YIELD_FOOD) +
+					kFeatureInfo.getYieldChange(YIELD_PRODUCTION) <= 0))
 				bClearFeature = true;
-			}
 		}
-		
-		if ((kFeatureInfo.getMovementCost() > 1) && (iWorkersNeeded > 1))
-		{
+		if (kFeatureInfo.getMovementCost() > 1 && iWorkersNeeded > 1)
 			bBuildRoute = true;
-		}
 	}
-	/********************************************************************************/
-	/* 	BETTER_BTS_AI_MOD						7/31/08				jdog5000	*/
-	/* 																			*/
-	/* 	Bugfix																	*/
-	/********************************************************************************/
 	//if (pPlot->getBonusType() != NO_BONUS)
+	// BETTER_BTS_AI_MOD, Bugfix, 7/31/08, jdog5000: START
 	if (pPlot->getNonObsoleteBonusType(getTeam()) != NO_BONUS)
-	{
 		bBuildRoute = true;
-	}
 	else if (pPlot->isHills())
 	{
-		if ((GC.getHILLS_EXTRA_MOVEMENT() > 0) && (iWorkersNeeded > 1))
-		{
+		if (GC.getHILLS_EXTRA_MOVEMENT() > 0 && iWorkersNeeded > 1)
 			bBuildRoute = true;
-		}
-	}
-	/********************************************************************************/
-	/* 	BETTER_BTS_AI_MOD						END								*/
-	/********************************************************************************/
-	
+	} // BETTER_BTS_AI_MOD: END
+
 	if (pPlot->getRouteType() != NO_ROUTE)
-	{
 		bBuildRoute = false;
-	}
-	
+
+	int const NO_PLOTGROUP = FFreeList::INVALID_INDEX; // advc.003
 	BuildTypes eBestBuild = NO_BUILD;
 	int iBestValue = 0;
 	for (int iBuild = 0; iBuild < GC.getNumBuildInfos(); iBuild++)
 	{
 		BuildTypes eBuild = ((BuildTypes)iBuild);
 		CvBuildInfo& kBuildInfo = GC.getBuildInfo(eBuild);
-		
-		
+
 		RouteTypes eRoute = (RouteTypes)kBuildInfo.getRoute();
 		if ((bBuildRoute && (eRoute != NO_ROUTE)) || (bClearFeature && kBuildInfo.isFeatureRemove(eFeature)))
 		{
-			if (canBuild(pPlot, eBuild))
+			if (!canBuild(pPlot, eBuild))
+				continue;
+
+			int iValue = 10000;
+			if (bBuildRoute && eRoute != NO_ROUTE)
 			{
-				int iValue = 10000;
-				
-				if (bBuildRoute && (eRoute != NO_ROUTE))
-				{
-					iValue *= (1 + GC.getRouteInfo(eRoute).getValue());
-					iValue /= 2;
-					
-					/********************************************************************************/
-					/* 	BETTER_BTS_AI_MOD						7/31/08				jdog5000	*/
-					/* 																			*/
-					/* 	Bugfix																	*/
-					/********************************************************************************/
-					//if if (pPlot->getBonusType() != NO_BONUS)
-					if (pPlot->getNonObsoleteBonusType(getTeam()) != NO_BONUS)
-					{
-						iValue *= 2;
-					}
-					/********************************************************************************/
-					/* 	BETTER_BTS_AI_MOD						END								*/
-					/********************************************************************************/
-					
-					if (pPlot->getWorkingCity() != NULL)
-					{
-						iValue *= 2 + iWorkersNeeded + ((pPlot->isHills() && (iWorkersNeeded > 1)) ? 2 * GC.getHILLS_EXTRA_MOVEMENT() : 0);
-						iValue /= 3;
-					}
-					ImprovementTypes eImprovement = (ImprovementTypes)kOriginalBuildInfo.getImprovement();
-					if (eImprovement != NO_IMPROVEMENT)
-					{
-						int iRouteMultiplier = ((GC.getImprovementInfo(eImprovement).getRouteYieldChanges(eRoute, YIELD_FOOD)) * 100);
-						iRouteMultiplier += ((GC.getImprovementInfo(eImprovement).getRouteYieldChanges(eRoute, YIELD_PRODUCTION)) * 100);
-						iRouteMultiplier += ((GC.getImprovementInfo(eImprovement).getRouteYieldChanges(eRoute, YIELD_COMMERCE)) * 60);
-						iValue *= 100 + iRouteMultiplier;
-						iValue /= 100;
-					}
-					
-					int iPlotGroupId = -1;
-					for (int iDirection = 0; iDirection < NUM_DIRECTION_TYPES; iDirection++)
-					{
-						CvPlot* pLoopPlot = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), (DirectionTypes)iDirection);
-						if (pLoopPlot != NULL)
-						{
-							if (pPlot->isRiver() || (pLoopPlot->getRouteType() != NO_ROUTE))
-							{
-								CvPlotGroup* pLoopGroup = pLoopPlot->getPlotGroup(getOwnerINLINE());
-								if (pLoopGroup != NULL)
-								{
-									if (pLoopGroup->getID() != -1)
-									{
-										if (pLoopGroup->getID() != iPlotGroupId)
-										{
-											//This plot bridges plot groups, so route it.
-											iValue *= 4;
-											break;
-										}
-										else
-										{
-											iPlotGroupId = pLoopGroup->getID();
-										}
-									}
-								}
-							}
-						}
-					}	
-				}
+				iValue *= (1 + GC.getRouteInfo(eRoute).getValue());
+				iValue /= 2;
+				//if (pPlot->getBonusType() != NO_BONUS)
+				//	BETTER_BTS_AI_MOD, Bugfix, 7/31/08, jdog5000
+				if (pPlot->getNonObsoleteBonusType(getTeam()) != NO_BONUS)
+					iValue *= 2;
 
-				iValue /= (kBuildInfo.getTime() + 1);
-
-				if (iValue > iBestValue)
+				if (pPlot->getWorkingCity() != NULL)
 				{
-					iBestValue = iValue;
-					eBestBuild = eBuild;
+					iValue *= 2 + iWorkersNeeded +
+							((pPlot->isHills() && iWorkersNeeded > 1) ?
+							2 * GC.getHILLS_EXTRA_MOVEMENT() : 0);
+					iValue /= 3;
 				}
+				ImprovementTypes eImprovement = (ImprovementTypes)kOriginalBuildInfo.getImprovement();
+				if (eImprovement != NO_IMPROVEMENT)
+				{
+					CvImprovementInfo const& kImprov = GC.getImprovementInfo(eImprovement);
+					int iRouteMultiplier =
+						100 * kImprov.getRouteYieldChanges(eRoute, YIELD_FOOD) +
+						100 * kImprov.getRouteYieldChanges(eRoute, YIELD_PRODUCTION) +
+						 60 * kImprov.getRouteYieldChanges(eRoute, YIELD_COMMERCE);
+					iValue *= 100 + iRouteMultiplier;
+					iValue /= 100;
+				}
+				int iPlotGroupId = NO_PLOTGROUP;
+				for (int iDirection = 0; iDirection < NUM_DIRECTION_TYPES; iDirection++)
+				{
+					CvPlot* pLoopPlot = plotDirection(pPlot->getX_INLINE(), pPlot->getY_INLINE(), (DirectionTypes)iDirection);
+					if (pLoopPlot == NULL)
+						continue;
+					if (!pPlot->isRiver() && pLoopPlot->getRouteType() == NO_ROUTE)
+						continue;
+
+					CvPlotGroup* pLoopGroup = pLoopPlot->getPlotGroup(getOwnerINLINE());
+					if (pLoopGroup == NULL || pLoopGroup->getID() == NO_PLOTGROUP)
+						continue;
+
+					if (pLoopGroup->getID() != iPlotGroupId
+							// advc.001: Based on Mongoose Mod changelog (12-14 Dec 2012)
+							&& iPlotGroupId != NO_PLOTGROUP)
+					{
+						//This plot bridges plot groups, so route it.
+						iValue *= 4;
+						break;
+					}
+					else iPlotGroupId = pLoopGroup->getID();
+				}	
+			}
+			iValue /= (kBuildInfo.getTime() + 1);
+			if (iValue > iBestValue)
+			{
+				iBestValue = iValue;
+				eBestBuild = eBuild;
 			}
 		}
 	}
-	
 	if (eBestBuild == NO_BUILD)
-	{
 		return eBuild;
-	}
 	return eBestBuild;	
 }
 

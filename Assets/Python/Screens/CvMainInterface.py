@@ -5255,8 +5255,8 @@ class CvMainInterface:
 														szBuffer = szBuffer + szTempBuffer
 														if (bAlignIcons):
 															scores.setReligion(szTempBuffer)
-													
-													if (bEspionage and gc.getTeam(eTeam).getEspionagePointsAgainstTeam(gc.getGame().getActiveTeam()) < gc.getTeam(gc.getGame().getActiveTeam()).getEspionagePointsAgainstTeam(eTeam)):
+													# advc.120h: Second condition was gc.getTeam(eTeam).getEspionagePointsAgainstTeam(gc.getGame().getActiveTeam()) < gc.getTeam(gc.getGame().getActiveTeam()).getEspionagePointsAgainstTeam(eTeam)
+													if bEspionage and gc.getPlayer(gc.getGame().getActivePlayer()).getEspionageSpendingWeightAgainstTeam(eTeam) > 0:
 														szTempBuffer = u"%c" %(gc.getCommerceInfo(CommerceTypes.COMMERCE_ESPIONAGE).getChar())
 														szBuffer = szBuffer + szTempBuffer
 														if (bAlignIcons):
@@ -5266,16 +5266,24 @@ class CvMainInterface:
 												if gc.getGame().isDebugMode() or (gc.getActivePlayer().canSeeResearch(ePlayer) and
 												(gc.getPlayer(ePlayer).getTeam() != gc.getGame().getActiveTeam() or gc.getTeam(gc.getGame().getActiveTeam()).getNumMembers() > 1)):
 												# K-Mod end
-													if (gc.getPlayer(ePlayer).getCurrentResearch() != -1):
+													eCurrentResearch = gc.getPlayer(ePlayer).getCurrentResearch() # advc.003
+													if (eCurrentResearch != -1):
+														szTempBuffer = u"-%s" %gc.getTechInfo(eCurrentResearch).getDescription()
 														# <advc.004x>
-														iTurnsLeft = gc.getPlayer(ePlayer).getResearchTurnsLeft(gc.getPlayer(ePlayer).getCurrentResearch(), True)
-														if iTurnsLeft < 0:
-															szTempBuffer = u"-%s" %(gc.getTechInfo(gc.getPlayer(ePlayer).getCurrentResearch()).getDescription())
-														else: # </advc.004x>
-															szTempBuffer = u"-%s (%d)" %(gc.getTechInfo(gc.getPlayer(ePlayer).getCurrentResearch()).getDescription(), iTurnsLeft)
-														szBuffer = szBuffer + szTempBuffer
+														#iTurnsLeft = gc.getPlayer(ePlayer).getResearchTurnsLeft(gc.getPlayer(ePlayer).getCurrentResearch(), True)
+														#if iTurnsLeft >= 0:
+														# </advc.004x>
+															#szTempBuffer = u"-%s (%d)" %(gc.getTechInfo(gc.getPlayer(ePlayer).getCurrentResearch()).getDescription(), iTurnsLeft)
+														# <advc.085> Replacing the above
+														iProgressPercent = (gc.getTeam(eTeam).getResearchProgress(eCurrentResearch) * 100) / gc.getTeam(eTeam).getResearchCost(eCurrentResearch)
+														iProgressPercent = min(iProgressPercent, 99)
+														iProgressPercent = max(iProgressPercent, 0)
+														szTempBuffer += u" %d%%" % iProgressPercent
+														# </advc.085>
+														szBuffer += szTempBuffer
 														if (bAlignIcons):
-															scores.setResearch(gc.getPlayer(ePlayer).getCurrentResearch(), iTurnsLeft)
+															# advc.085: Pass along iProgressPercent instead of iTurnsLeft
+															scores.setResearch(gc.getPlayer(ePlayer).getCurrentResearch(), iProgressPercent)
 												# BUG: ...end of indentation
 # BUG - Dead Civs - end
 # BUG - Power Rating - start

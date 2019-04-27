@@ -14685,12 +14685,12 @@ void CvCity::getVisibleEffects(ZoomLevelTypes eCurZoom, std::vector<const TCHAR*
 
 void CvCity::getCityBillboardSizeIconColors(NiColorA& kDotColor, NiColorA& kTextColor) const
 {
+	PlayerColorTypes ePlayerColor = //GET_PLAYER(getOwnerINLINE()).getPlayerColor())
+		/*  advc.001: CvPlayer::getPlayerColor will return the Barbarian color
+			if the city owner hasn't been met (city revealed through map trade) */
+			GC.getInitCore().getColor(getOwnerINLINE());
 	NiColorA kPlayerColor = GC.getColorInfo((ColorTypes)GC.getPlayerColorInfo(
-			//GET_PLAYER(getOwnerINLINE()).getPlayerColor())
-			/*  advc.001: CvPlayer::getPlayerColor will return the Barbarian color
-				if the city owner hasn't been met (city revealed through map trade) */
-			GC.getInitCore().getColor(getOwnerINLINE()))
-			.getColorTypePrimary()).getColor();
+			ePlayerColor).getColorTypePrimary()).getColor();
 	NiColorA kGrowing;
 	kGrowing = NiColorA(0.73f,1,0.73f,1);
 	NiColorA kShrinking(1,0.73f,0.73f,1);
@@ -14729,7 +14729,9 @@ void CvCity::getCityBillboardSizeIconColors(NiColorA& kDotColor, NiColorA& kText
 	else
 	{
 		kDotColor = kPlayerColor;
-		NiColorA kPlayerSecondaryColor = GC.getColorInfo((ColorTypes) GC.getPlayerColorInfo(GET_PLAYER(getOwnerINLINE()).getPlayerColor()).getColorTypeSecondary()).getColor();
+		NiColorA kPlayerSecondaryColor = GC.getColorInfo((ColorTypes)
+				GC.getPlayerColorInfo(ePlayerColor). // advc.001
+				getColorTypeSecondary()).getColor();
 		kTextColor = kPlayerSecondaryColor;
 	}
 }

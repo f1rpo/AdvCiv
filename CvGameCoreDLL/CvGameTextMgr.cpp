@@ -1535,6 +1535,7 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString,
 	if(kPlot.getCenterUnit() == NULL)
 		return;
 	double fontFactor = 1;
+	// <advc.002b>
 	CvArtInfoMisc const* pTheme = ARTFILEMGR.getMiscArtInfo("DEFAULT_THEME_NAME");
 	if(pTheme != NULL && pTheme->getPath() != NULL) {
 		CvString szThemePath(pTheme->getPath());
@@ -1543,7 +1544,7 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString,
 			Only check if the AdvCiv theme has been removed: */
 		if(szThemePath.find("AdvCiv") == CvString::npos)
 			fontFactor = 14 / 12.0;
-	}
+	} // </advc.002b>
 	CvGame const& g = GC.getGameINLINE();
 	int iScreenHeight = g.getScreenHeight();
 	int iLineLimit = (iScreenHeight == 0 ? 25 :

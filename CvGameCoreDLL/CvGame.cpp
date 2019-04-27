@@ -3684,16 +3684,11 @@ int CvGame::countKnownTechNumTeams(TechTypes eTech)
 }
 
 
-int CvGame::getNumFreeBonuses(BuildingTypes eBuilding)
+int CvGame::getNumFreeBonuses(BuildingTypes eBuilding) const
 {
 	if (GC.getBuildingInfo(eBuilding).getNumFreeBonuses() == -1)
-	{
 		return GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getNumFreeBuildingBonuses();
-	}
-	else
-	{
-		return GC.getBuildingInfo(eBuilding).getNumFreeBonuses();
-	}
+	else return GC.getBuildingInfo(eBuilding).getNumFreeBonuses();
 }
 
 

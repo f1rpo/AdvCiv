@@ -1188,65 +1188,56 @@ bool CvPlot::isAdjacentPlotGroupConnectedBonus(PlayerTypes ePlayer, BonusTypes e
 }
 
 
-void CvPlot::updatePlotGroupBonus(bool bAdd)
+void CvPlot::updatePlotGroupBonus(bool bAdd)  // advc.003 style changes
 {
 	PROFILE_FUNC();
 
 	if (!isOwned())
-	{
 		return;
-	}
 
 	CvPlotGroup* pPlotGroup = getPlotGroup(getOwnerINLINE());
-	// <advc.003>
 	if(pPlotGroup == NULL)
-		return; // </advc.003>
+		return;
 
 	CvCity* pPlotCity = getPlotCity();
-
 	if (pPlotCity != NULL)
 	{
-		for (int iI = 0; iI < GC.getNumBonusInfos(); ++iI)
+		for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
 		{
-			if (!GET_TEAM(getTeam()).isBonusObsolete((BonusTypes)iI))
+			BonusTypes eLoopBonus = (BonusTypes)iI;
+			if (!GET_TEAM(getTeam()).isBonusObsolete(eLoopBonus))
 			{
-				pPlotGroup->changeNumBonuses(((BonusTypes)iI), (pPlotCity->getFreeBonus((BonusTypes)iI) * ((bAdd) ? 1 : -1)));
+				pPlotGroup->changeNumBonuses(eLoopBonus,
+						pPlotCity->getFreeBonus(eLoopBonus) * (bAdd ? 1 : -1));
 			}
 		}
-
 		if (pPlotCity->isCapital())
 		{
-			for (int iI = 0; iI < GC.getNumBonusInfos(); ++iI)
+			for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
 			{
-				pPlotGroup->changeNumBonuses(((BonusTypes)iI), (GET_PLAYER(getOwnerINLINE()).getBonusExport((BonusTypes)iI) * ((bAdd) ? -1 : 1)));
-				pPlotGroup->changeNumBonuses(((BonusTypes)iI), (GET_PLAYER(getOwnerINLINE()).getBonusImport((BonusTypes)iI) * ((bAdd) ? 1 : -1)));
+				BonusTypes eLoopBonus = (BonusTypes)iI;
+				pPlotGroup->changeNumBonuses(eLoopBonus,
+						GET_PLAYER(getOwnerINLINE()).getBonusExport(eLoopBonus) *
+						(bAdd ? -1 : 1));
+				pPlotGroup->changeNumBonuses(eLoopBonus,
+						GET_PLAYER(getOwnerINLINE()).getBonusImport(eLoopBonus) *
+						(bAdd ? 1 : -1));
 			}
 		}
 	}
 
 	/* original code
 	eNonObsoleteBonus = getNonObsoleteBonusType(getTeam());
-
-	if (eNonObsoleteBonus != NO_BONUS)
-	{
-		if (GET_TEAM(getTeam()).isHasTech((TechTypes)(GC.getBonusInfo(eNonObsoleteBonus).getTechCityTrade())))
-		{
-			if (isCity(true, getTeam()) ||
-				((getImprovementType() != NO_IMPROVEMENT) && GC.getImprovementInfo(getImprovementType()).isImprovementBonusTrade(eNonObsoleteBonus)))
-			{
+	if (eNonObsoleteBonus != NO_BONUS) {
+		if (GET_TEAM(getTeam()).isHasTech((TechTypes)(GC.getBonusInfo(eNonObsoleteBonus).getTechCityTrade()))) {
+			if (isCity(true, getTeam()) || ((getImprovementType() != NO_IMPROVEMENT) && GC.getImprovementInfo(getImprovementType()).isImprovementBonusTrade(eNonObsoleteBonus))) {
 				if ((pPlotGroup != NULL) && isBonusNetwork(getTeam()))
-				{
 					pPlotGroup->changeNumBonuses(eNonObsoleteBonus, ((bAdd) ? 1 : -1));
-				}
-			}
-		}
-	} */
+	} } } */
 	// K-Mod. I'm just trying to standardize the code to reduce the potential for mistakes. There are no functionality changes here.
 	BonusTypes eBonus = getNonObsoleteBonusType(getTeam(), true);
 	if (eBonus != NO_BONUS && pPlotGroup && isBonusNetwork(getTeam()))
-	{
 		pPlotGroup->changeNumBonuses(eBonus, bAdd ? 1 : -1);
-	}
 	// K-Mod end
 }
 
@@ -6100,20 +6091,16 @@ CvCity* CvPlot::getPlotCity() const
 }
 
 
-void CvPlot::setPlotCity(CvCity* pNewValue)
+void CvPlot::setPlotCity(CvCity* pNewValue)  // advc.003: style changes
 {
-	CvPlotGroup* pPlotGroup;
-	CvPlot* pLoopPlot;
-	int iI;
-
 	if(getPlotCity() == pNewValue)
 		return;
 
 	if (isCity())
 	{
-		for (iI = 0; iI < NUM_CITY_PLOTS; ++iI)
+		for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
 		{
-			pLoopPlot = plotCity(getX_INLINE(), getY_INLINE(), iI);
+			CvPlot* pLoopPlot = plotCity(getX_INLINE(), getY_INLINE(), iI);
 
 			if (pLoopPlot != NULL)
 			{
@@ -6126,35 +6113,32 @@ void CvPlot::setPlotCity(CvCity* pNewValue)
 	updatePlotGroupBonus(false);
 	if (isCity())
 	{
-		pPlotGroup = getPlotGroup(getOwnerINLINE());
-
+		CvPlotGroup* pPlotGroup = getPlotGroup(getOwnerINLINE());
 		if (pPlotGroup != NULL)
 		{
 			FAssertMsg((0 < GC.getNumBonusInfos()), "GC.getNumBonusInfos() is not greater than zero but an array is being allocated in CvPlot::setPlotCity");
-			for (iI = 0; iI < GC.getNumBonusInfos(); ++iI)
+			for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
 			{
-				getPlotCity()->changeNumBonuses(((BonusTypes)iI), -(pPlotGroup->getNumBonuses((BonusTypes)iI)));
+				BonusTypes eLoopBonus = (BonusTypes)iI;
+				getPlotCity()->changeNumBonuses((eLoopBonus),
+						-pPlotGroup->getNumBonuses(eLoopBonus));
 			}
 		}
 	}
 	if (pNewValue != NULL)
-	{
 		m_plotCity = pNewValue->getIDInfo();
-	}
-	else
-	{
-		m_plotCity.reset();
-	}
+	else m_plotCity.reset();
 	if (isCity())
 	{
-		pPlotGroup = getPlotGroup(getOwnerINLINE());
-
+		CvPlotGroup* pPlotGroup = getPlotGroup(getOwnerINLINE());
 		if (pPlotGroup != NULL)
 		{
 			FAssertMsg((0 < GC.getNumBonusInfos()), "GC.getNumBonusInfos() is not greater than zero but an array is being allocated in CvPlot::setPlotCity");
-			for (iI = 0; iI < GC.getNumBonusInfos(); ++iI)
+			for (int iI = 0; iI < GC.getNumBonusInfos(); iI++)
 			{
-				getPlotCity()->changeNumBonuses(((BonusTypes)iI), pPlotGroup->getNumBonuses((BonusTypes)iI));
+				BonusTypes eLoopBonus = (BonusTypes)iI;
+				getPlotCity()->changeNumBonuses(eLoopBonus,
+						pPlotGroup->getNumBonuses(eLoopBonus));
 			}
 		}
 	}
@@ -6162,10 +6146,9 @@ void CvPlot::setPlotCity(CvCity* pNewValue)
 
 	if (isCity())
 	{
-		for (iI = 0; iI < NUM_CITY_PLOTS; ++iI)
+		for (int iI = 0; iI < NUM_CITY_PLOTS; ++iI)
 		{
-			pLoopPlot = plotCity(getX_INLINE(), getY_INLINE(), iI);
-
+			CvPlot* pLoopPlot = plotCity(getX_INLINE(), getY_INLINE(), iI);
 			if (pLoopPlot != NULL)
 			{
 				pLoopPlot->changeCityRadiusCount(1);
@@ -6173,10 +6156,8 @@ void CvPlot::setPlotCity(CvCity* pNewValue)
 			}
 		}
 	}
-
 	updateIrrigated();
 	updateYield();
-
 	updateMinimapColor();
 }
 

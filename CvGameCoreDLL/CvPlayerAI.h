@@ -681,7 +681,7 @@ protected:
 	bool m_abTheyFarAhead[MAX_CIV_PLAYERS];
 	bool m_abTheyBarelyAhead[MAX_CIV_PLAYERS]; // </advc.130c>
 	std::map<UnitClassTypes, int> m_GreatPersonWeights; // K-Mod
-	static int const singleBonusTradeTolerance = 20; // advc.036
+	static int const m_iSingleBonusTradeTolerance = 20; // advc.036
 	//mutable int* m_aiCloseBordersAttitudeCache;
 	std::vector<int> m_aiCloseBordersAttitudeCache; // K-Mod. (the original system was prone to mistakes.)
 
@@ -743,7 +743,8 @@ protected:
 	// <advc.003>
 	// Variant that writes the proposal into pTheirList and pOurList
 	bool AI_counterPropose(PlayerTypes ePlayer, CLinkList<TradeData>& kTheyGive,
-			CLinkList<TradeData>& kWeGive, bool bTheyMayGiveMore, bool bWeMayGiveMore) const;
+			CLinkList<TradeData>& kWeGive, bool bTheyMayGiveMore, bool bWeMayGiveMore,
+			double generosity = 1) const;
 	bool AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const* pInventory,
 			PlayerTypes ePlayer, int& iGreaterVal, int& iSmallerVal,
 			CLinkList<TradeData>* pCounter,

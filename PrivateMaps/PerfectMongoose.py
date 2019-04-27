@@ -389,11 +389,12 @@ class MapConstants:
 
 		#The following values are used for assigning starting locations. For now,
 		#they have the same ratio that is found in CvPlot::getFoundValue
-		# <advc.021b> Was 20/40/10. Using the values from Civ 4 Reimagined instead, except for food, now valued at 23 (40 in Civ 4 Reimagined). Don't want to rule out steppe starts when there isn't enough room elsewhere. Let the normalization code worry about lack of food.
+		# <advc.021b> Was 10/40/20. Using the values from Civ 4 Reimagined instead, except for food, now valued at 23 (40 in Civ 4 Reimagined). Don't want to rule out steppe starts when there isn't enough room elsewhere. Let the normalization code worry about lack of food.
+		# Mongoose Mod uses 16/16/8 according to the changelog from 19 Jan 2013
 		# (Now that I've replaced PotentialValue with AI_foundValue in one important spot, these coefficients should be less important. They're still used though.)
-		self.CommerceValue   = 15
-		self.ProductionValue = 30
 		self.FoodValue       = 23
+		self.ProductionValue = 30
+		self.CommerceValue   = 15
 		# </advc.021b>
 
 		#Coastal cities are important, how important is determined by this

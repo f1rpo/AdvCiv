@@ -129,7 +129,7 @@ public:
 	int countTotalCivPower();																								// Exposed to Python
 	int countTotalNukeUnits();																							// Exposed to Python
 	int countKnownTechNumTeams(TechTypes eTech);														// Exposed to Python
-	int getNumFreeBonuses(BuildingTypes eBuilding);													// Exposed to Python
+	int getNumFreeBonuses(BuildingTypes eBuilding) const;	// advc.003: const										// Exposed to Python
 
 	int countReligionLevels(ReligionTypes eReligion) /* advc.003: */ const;							// Exposed to Python 
 	int calculateReligionPercent(ReligionTypes eReligion,						// Exposed to Python

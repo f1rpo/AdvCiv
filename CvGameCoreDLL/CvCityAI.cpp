@@ -3718,7 +3718,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 
 	CvPlayerAI& kOwner = GET_PLAYER(getOwnerINLINE());
 	CvTeamAI& kTeam = GET_TEAM(kOwner.getTeam()); // dlph.16
-	CvGame const& g = GC.getGame();
+	CvGame const& g = GC.getGameINLINE();
 	int iOwnerEra = kOwner.getCurrentEra();
 	CvBuildingInfo& kBuilding = GC.getBuildingInfo(eBuilding);
 	BuildingClassTypes eBuildingClass = (BuildingClassTypes) kBuilding.getBuildingClassType();
@@ -4359,9 +4359,12 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 
 			if (kBuilding.getFreeBonus() != NO_BONUS)
 			{
-				iValue += (kOwner.AI_bonusVal((BonusTypes)(kBuilding.getFreeBonus()), 1) *
-					((kOwner.getNumTradeableBonuses((BonusTypes)(kBuilding.getFreeBonus())) == 0) ? 2 : 1) *
-					(iNumCities + kBuilding.getNumFreeBonuses()));
+				iValue += kOwner.AI_bonusVal((BonusTypes)kBuilding.getFreeBonus(), 1) *
+						((kOwner.getNumTradeableBonuses(
+						(BonusTypes)kBuilding.getFreeBonus()) == 0) ? 2 : 1) *
+						(iNumCities + //kBuilding.getNumFreeBonuses()
+						// advc.001: Based on the Mongoose Mod changelog (15 Feb 2013)
+						g.getNumFreeBonuses(eBuilding));
 			}
 
 			if (kBuilding.getNoBonus() != NO_BONUS)

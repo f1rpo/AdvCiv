@@ -255,13 +255,15 @@ class Scoreboard:
 	def setPower(self, value):
 		self._set(POWER, smallText(value))
 		
-	def setResearch(self, tech, turns):
+	def setResearch(self, tech, progress): # advc.085: Last param was turns
 		if (ScoreOpt.isShowResearchIcons()):
 			self._set(RESEARCH, tech)
 		else:
 			self._set(RESEARCH, smallText(gc.getTechInfo(tech).getDescription()))
-		if turns >= 0: # advc.004x
-			self._set(RESEARCH_TURNS, smallText(u"(%d)" % turns))
+		#if turns >= 0: # advc.004x
+		#	self._set(RESEARCH_TURNS, smallText(u"(%d)" % turns))
+		# advc.085: Replacing the two lines above
+		self._set(RESEARCH_TURNS, smallText(u" %d%%" % progress))
 		
 	def setEspionage(self):
 		self._set(ESPIONAGE)
