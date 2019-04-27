@@ -261,7 +261,7 @@
     <ClInclude Include="..\LinkedList.h" />
     <ClInclude Include="..\MilitaryAnalyst.h" />
     <ClInclude Include="..\MilitaryBranch.h" />
-    <ClInclude Include="..\resource.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="..\RFChapter.h" />
     <ClInclude Include="..\RFChapterScore.h" />
     <ClInclude Include="..\RFTotalScore.h" />
@@ -283,7 +283,7 @@
     <None Include="Makefile.settings" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\CvGameCoreDLL.rc" />
+    <ResourceCompile Include="CvGameCoreDLL.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3021AF0E-699D-4232-86F6-FC374A0C9957}</ProjectGuid>

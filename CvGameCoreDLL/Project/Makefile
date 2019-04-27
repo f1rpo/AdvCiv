@@ -12,6 +12,7 @@
 # Debug build to obscure accesses to uninitialized memory.
 # YOURMOD2 and YOURLOGS (see under "Paths"). WX added to GLOBAL_CFLAGS.
 # Internal profiler enabled (FP_PROFILE_ENABLE, USE_INTERNAL_PROFILER).
+# CvGameCoreDLL.rc used only for final release.
 # devolution (Erik) has added the target 'Final_Release' with additional optimizations.
 
 ## User setup
@@ -142,7 +143,9 @@ Target_BIN=$(TARGET)\CvGameCoreDLL.dll
 Target_BIN_TEMP=$(TEMP_TARGET_FILES)\CvGameCoreDLL.dll
 
 !IF [IF NOT EXIST CvGameCoreDLL.rc EXIT 1] == 0
+!IF "$(TARGET)" == "Final_Release"
 Target_RESOURCE=$(TEMP_TARGET_FILES)\CvGameCoreDLL.res
+!ENDIF
 !ENDIF
 
 Target_STATICLIB=$(TEMP_TARGET_FILES)\CvGameCoreDLL.lib

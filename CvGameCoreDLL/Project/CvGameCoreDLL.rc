@@ -54,8 +54,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,1,7,0
- PRODUCTVERSION 3,1,7,0
+ FILEVERSION 0,9,5,0
+ PRODUCTVERSION 3,1,9,0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -70,15 +70,14 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "Comments", "Use the SDK to override the default game rules"
             VALUE "CompanyName", "Firaxis Games"
-            VALUE "FileDescription", "Game core DLL for Sid Meier's Civilization 4 : Beyond The Sword"
-            VALUE "FileVersion", "3, 1, 7, 0"
+            VALUE "FileDescription", "Modified game core DLL for Sid Meier's Civilization 4: Beyond The Sword (Advanced Civ mod)"
+            VALUE "FileVersion", "0, 9, 5, 0"
             VALUE "InternalName", "Sid Meier's Civilization 4 : Beyond The Sword Game Core DLL"
             VALUE "LegalCopyright", "Copyright (C) Firaxis Games.  All Rights Reserved."
             VALUE "OriginalFilename", "CvGameCoreDLL.dll"
             VALUE "ProductName", "Sid Meier's Civilization 4 : Beyond The Sword"
-            VALUE "ProductVersion", "3, 1, 7, 0"
+            VALUE "ProductVersion", "3, 1, 9, 0"
         END
     END
     BLOCK "VarFileInfo"
