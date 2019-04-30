@@ -210,7 +210,8 @@
 			<iMinAreaSize>3</iMinAreaSize>
 			<!-- advc.129: was 0 -->
 			<iMinLatitude>9</iMinLatitude>
-			<iMaxLatitude>90</iMaxLatitude>
+			<!-- advc.129: was 90 -->
+			<iMaxLatitude>68</iMaxLatitude>
 			<Rands>
 				<iRandApp1>10</iRandApp1>
 				<iRandApp2>10</iRandApp2>
