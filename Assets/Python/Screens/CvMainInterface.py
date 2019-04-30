@@ -1297,16 +1297,18 @@ class CvMainInterface:
 			self.updateCityScreen()
 			CyInterface().setDirty(InterfaceDirtyBits.Domestic_Advisor_DIRTY_BIT, True)
 			CyInterface().setDirty(InterfaceDirtyBits.CityScreen_DIRTY_BIT, False)
+		bScoreStringsUpdated = False # advc.004z
 		if ( CyInterface().isDirty(InterfaceDirtyBits.Score_DIRTY_BIT) == True or CyInterface().checkFlashUpdate() ):
 			# Scores!
 			self.updateScoreStrings()
 			CyInterface().setDirty(InterfaceDirtyBits.Score_DIRTY_BIT, False)
+			bScoreStringsUpdated = True # advc.004z
 		if ( CyInterface().isDirty(InterfaceDirtyBits.GlobeInfo_DIRTY_BIT) == True ):
 			# Globeview and Globelayer buttons
 			CyInterface().setDirty(InterfaceDirtyBits.GlobeInfo_DIRTY_BIT, False)
 			self.updateGlobeviewButtons()
 			# <advc.004z>
-			if MainOpt.isScoresInGlobeView():
+			if not bScoreStringsUpdated and MainOpt.isScoresInGlobeView():
 				# Show/hide scoreboard depending on whether the layer has options
 				self.updateScoreStrings() # </advc.004z>
 
@@ -5215,7 +5217,8 @@ class CvMainInterface:
 					iScoreDelta -= pPlayer.getScoreHistory(iPrevGameTurn)
 				if iScoreDelta != 0:
 					if iScoreDelta > 0:
-						iColorType = gc.getInfoTypeForString("COLOR_GREEN")
+						# advc.085: To match the color I (might) use for tech progress. Was just GREEN.
+						iColorType = gc.getInfoTypeForString("COLOR_ALT_HIGHLIGHT_TEXT")
 					elif iScoreDelta < 0:
 						iColorType = gc.getInfoTypeForString("COLOR_RED")
 					szScoreDelta = "%+d" % iScoreDelta
@@ -5305,10 +5308,17 @@ class CvMainInterface:
 					szBuffer = szBuffer + szTempBuffer
 					if bAlignIcons:
 						scores.setEspionage()
+				# <advc.085>
+				if ePlayer != eActivePlayer and (pPlayer.isGoldenAge() or pPlayer.isAnarchy()):
+					# szBuffer += # Perhaps tbd. (non-tabular layout)
+					if bAlignIcons:
+						scores.setGoldenAge(pPlayer.isAnarchy())
+				# </advc.085>
 			# K-Mod (original code deleted)
 			if g.isDebugMode() or (pActivePlayer.canSeeResearch(ePlayer) and (eTeam != eActiveTeam or pActiveTeam.getNumMembers() > 1)):
 			# K-Mod end
 				eCurrentResearch = pPlayer.getCurrentResearch() # advc.003
+				iProgressPercent = 0 # advc.085: Show that even when no current research
 				if eCurrentResearch != -1:
 					szTempBuffer = u"-%s" %gc.getTechInfo(eCurrentResearch).getDescription()
 					# <advc.004x>
@@ -5322,12 +5332,13 @@ class CvMainInterface:
 						iProgressPercent = (pTeam.getResearchProgress(eCurrentResearch) * 100) / iCurrentCost
 						iProgressPercent = min(iProgressPercent, 99)
 						iProgressPercent = max(iProgressPercent, 0)
-						szTempBuffer += u" %d%%" % iProgressPercent
-						# </advc.085>
-						szBuffer += szTempBuffer
-						if (bAlignIcons):
-							# advc.085: Pass along iProgressPercent instead of iTurnsLeft
-							scores.setResearch(eCurrentResearch, iProgressPercent)
+				szTempBuffer += u" %d%%" % iProgressPercent
+				
+				szBuffer += szTempBuffer # Don't req. eCurrentResearch!=-1
+				if bAlignIcons:
+					# Pass along iProgressPercent instead of iTurnsLeft
+					scores.setResearch(eCurrentResearch, iProgressPercent)
+					# </advc.085>
 			# BUG (Dead Civs): ...end of indentation
 # BUG - Dead Civs - end
 # BUG - Power Rating - start
@@ -5347,15 +5358,19 @@ class CvMainInterface:
 							fPowerRatio = 999.0
 					cPower = g.getSymbolID(FontSymbols.STRENGTH_CHAR)
 					szTempBuffer = BugUtil.formatFloat(fPowerRatio, ScoreOpt.getPowerDecimals()) + u"%c" % (cPower)
-					if iHighPowerColor >= 0 and fPowerRatio >= ScoreOpt.getHighPowerRatio():
-						szTempBuffer = localText.changeTextColor(szTempBuffer, iHighPowerColor)
-					elif iLowPowerColor >= 0 and fPowerRatio <= ScoreOpt.getLowPowerRatio():
-						szTempBuffer = localText.changeTextColor(szTempBuffer, iLowPowerColor)
+					# <advc.085> Don't color the power ratios of teammates
+					bAlly = (eTeam == eActiveTeam)
+					iColor = 0 # Want to pass that to widget help </advc.085>
+					if iHighPowerColor >= 0 and not bAlly and fPowerRatio >= ScoreOpt.getHighPowerRatio():
+						iColor = iHighPowerColor
+					elif iLowPowerColor >= 0 and not bAlly and fPowerRatio <= ScoreOpt.getLowPowerRatio():
+						iColor = iLowPowerColor
 					elif (iPowerColor >= 0):
-						szTempBuffer = localText.changeTextColor(szTempBuffer, iPowerColor)
+						iColor = iPowerColor
+					szTempBuffer = localText.changeTextColor(szTempBuffer, iColor)
 					szBuffer = szBuffer + u" " + szTempBuffer
 					if bAlignIcons:
-						scores.setPower(szTempBuffer)
+						scores.setPower(szTempBuffer, iColor)
 # BUG - Power Rating - end
 # BUG - Attitude Icons - start
 			if ScoreOpt.isShowAttitude():
@@ -5401,6 +5416,8 @@ class CvMainInterface:
 				else:
 					szTempBuffer = u"%d" % PlayerUtil.getNumRevealedCities(ePlayer)
 				# K-Mod end
+				# advc.085: Make city counts gray
+				szTempBuffer = localText.changeTextColor(szTempBuffer, gc.getInfoTypeForString("COLOR_BUILDING_TEXT"))
 				szBuffer = szBuffer + " " + szTempBuffer
 				if bAlignIcons:
 					scores.setNumCities(szTempBuffer)

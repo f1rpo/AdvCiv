@@ -636,6 +636,15 @@
 		<Italian>[NEWLINE][ICON_BULLET]La loro Forma di Governo non consente il Commercio Estero</Italian>
 		<Spanish>[NEWLINE][ICON_BULLET]Sus principios no permiten el comercio con el extranjero</Spanish>
 	</TEXT>
+	<!-- advc.124 -->
+	<TEXT>
+		<Tag>TXT_KEY_BUG_CANNOT_TRADE_NO_KNOWN_CITIES</Tag>
+		<English>[NEWLINE][ICON_BULLET]None of their cities are known to us</English>
+		<French>[NEWLINE][ICON_BULLET]Aucune de leurs villes ne nous est connue</French>
+		<German>[NEWLINE][ICON_BULLET]Uns sind keine ihrer Städte bekannt</German>
+		<Italian>[NEWLINE][ICON_BULLET]Nessuna delle loro città ci è nota</Italian>
+		<Spanish>[NEWLINE][ICON_BULLET]Ninguna de sus ciudades nos es conocida</Spanish>
+	</TEXT>
 
 <!-- Unit Hover -->
 	<TEXT>

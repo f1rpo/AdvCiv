@@ -34,6 +34,25 @@ void CvDLLWidgetData::freeInstance()
 
 void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &widgetDataStruct)
 {
+	// <advc.085> Replacing a few sporadic tests in the parse... functions
+	static WidgetTypes aePlayerAsData1[] = { 
+		WIDGET_HELP_FINANCE_AWAY_SUPPLY, WIDGET_HELP_FINANCE_CITY_MAINT,
+		WIDGET_HELP_FINANCE_CIVIC_UPKEEP, WIDGET_HELP_FINANCE_DOMESTIC_TRADE,
+		WIDGET_HELP_FINANCE_FOREIGN_INCOME, WIDGET_HELP_FINANCE_GOLD_RESERVE,
+		WIDGET_HELP_FINANCE_GROSS_INCOME, WIDGET_HELP_FINANCE_INFLATED_COSTS,
+		WIDGET_HELP_FINANCE_NET_GOLD, WIDGET_HELP_FINANCE_NUM_UNITS,
+		WIDGET_HELP_FINANCE_SPECIALISTS, WIDGET_HELP_FINANCE_UNIT_COST,
+		WIDGET_LEADERHEAD, WIDGET_LEADERHEAD_RELATIONS, WIDGET_LEADER_LINE,
+		WIDGET_CONTACT_CIV, WIDGET_SCORE_BREAKDOWN, WIDGET_POWER_RATIO,
+		WIDGET_GOLDEN_AGE, WIDGET_ANARCHY };
+	for(int i = 0; i < sizeof(aePlayerAsData1) / sizeof(WidgetTypes); i++) {
+		if(widgetDataStruct.m_eWidgetType == aePlayerAsData1[i] &&
+				(widgetDataStruct.m_iData1 <= NO_PLAYER ||
+				widgetDataStruct.m_iData1 >= MAX_PLAYERS)) {
+			FAssertMsg(false, "Player id missing in widget data");
+			return;
+		}
+	} // </advc.085>
 	switch (widgetDataStruct.m_eWidgetType)
 	{
 	case WIDGET_PLOT_LIST:
@@ -133,7 +152,7 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 	case WIDGET_CITY_TAB:
 		{
 			CvWString szTemp;
-            szTemp.Format(L"%s", GC.getCityTabInfo((CityTabTypes)widgetDataStruct.m_iData1).getDescription());
+			szTemp.Format(L"%s", GC.getCityTabInfo((CityTabTypes)widgetDataStruct.m_iData1).getDescription());
 			szBuffer.assign(szTemp);
 		}
 		break;
@@ -642,7 +661,34 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 	case WIDGET_FOOD_MOD_HELP:
 		parseFoodModHelp(widgetDataStruct, szBuffer);
 		break; // BULL - Food Rate Hover - end
+	// <advc.085>
+	case WIDGET_EXPAND_SCORES:
+		break; // Handled below (not the only widget that expands the scoreboard)
+	case WIDGET_POWER_RATIO:
+		parsePowerRatioHelp(widgetDataStruct, szBuffer);
+		break;
+	case WIDGET_GOLDEN_AGE:
+		parseGoldenAgeAnarchyHelp((PlayerTypes)widgetDataStruct.m_iData1,
+				widgetDataStruct.m_iData2, false, szBuffer);
+		break;
+	case WIDGET_ANARCHY:
+		parseGoldenAgeAnarchyHelp((PlayerTypes)widgetDataStruct.m_iData1,
+				widgetDataStruct.m_iData2, true, szBuffer);
+		break;
 	}
+	static WidgetTypes aeExpandTypes[] = {
+		WIDGET_CONTACT_CIV, WIDGET_DEAL_KILL, WIDGET_PEDIA_JUMP_TO_TECH,
+		WIDGET_EXPAND_SCORES, WIDGET_SCORE_BREAKDOWN, WIDGET_POWER_RATIO,
+		WIDGET_GOLDEN_AGE, WIDGET_ANARCHY
+	};
+	for(int i = 0; i < sizeof(aeExpandTypes) / sizeof(WidgetTypes); i++) {
+		if((widgetDataStruct.m_eWidgetType == aeExpandTypes[i] &&
+				widgetDataStruct.m_iData2 == 0) ||
+				// Need iData2 for sth. else; must only use these WidgetTypes on the scoreboard.
+				widgetDataStruct.m_eWidgetType == WIDGET_TRADE_ROUTES ||
+				widgetDataStruct.m_eWidgetType == WIDGET_POWER_RATIO)
+			GET_PLAYER(GC.getGameINLINE().getActivePlayer()).setScoreboardExpanded(true);
+	} // </advc.085>
 }
 
 // Protected Functions...
@@ -2168,10 +2214,7 @@ void CvDLLWidgetData::parseActionHelp(CvWidgetDataStruct &widgetDataStruct,
 					szBuffer.append(gDLL->getText("TXT_KEY_ACTION_GOES_TO_CIV"));
 
 					szTempBuffer.Format(SETCOLR L"%s" ENDCOLR,
-							GET_PLAYER(eGiftPlayer).getPlayerTextColorR(),
-							GET_PLAYER(eGiftPlayer).getPlayerTextColorG(),
-							GET_PLAYER(eGiftPlayer).getPlayerTextColorB(),
-							GET_PLAYER(eGiftPlayer).getPlayerTextColorA(),
+							PLAYER_TEXT_COLOR(GET_PLAYER(eGiftPlayer)),
 							GET_PLAYER(eGiftPlayer).getCivilizationShortDescription());
 					szBuffer.append(szTempBuffer);
 
@@ -3483,10 +3526,7 @@ void CvDLLWidgetData::parseChangePercentHelp(CvWidgetDataStruct &widgetDataStruc
 // advc (comment): Could this function be merged into CvGameTextMgr::parseLeaderHeadHelp?
 void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)  // advc.003: Some style changes
 {
-	// do not execute if player is out of range
 	PlayerTypes ePlayer = (PlayerTypes)widgetDataStruct.m_iData1;
-	if (ePlayer >= MAX_PLAYERS)
-		return;
 	// do not execute if player is not a real civ
 	CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer);
 	if (kPlayer.getCivilizationType() == NO_CIVILIZATION)
@@ -3498,10 +3538,6 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 	PlayerTypes eActivePlayer = GC.getGameINLINE().getActivePlayer();
 	TeamTypes eActiveTeam = GET_PLAYER(eActivePlayer).getTeam();
 	CvTeamAI const& kActiveTeam = GET_TEAM(eActiveTeam);
-	// <advc.085>
-	if(widgetDataStruct.m_iData2 == 0)
-		GET_PLAYER(eActivePlayer).setScoreboardExpanded(true);
-	// </advc.085>
 
 	// if alt down and cheat on, show extra info
 	if (GC.altKey() && //gDLL->getChtLvl() > 0)
@@ -3683,7 +3719,6 @@ void CvDLLWidgetData::parseContactCivHelp(CvWidgetDataStruct &widgetDataStruct, 
 void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
 	PlayerTypes ePlayer = (PlayerTypes) widgetDataStruct.m_iData1;
-	FAssert(ePlayer != NO_PLAYER);
 
 	const CvPlayerAI& kPlayer = GET_PLAYER(ePlayer);
 
@@ -5100,9 +5135,7 @@ void CvDLLWidgetData::parseNationalityHelp(CvWidgetDataStruct &widgetDataStruct,
 		CvPlayer const& civ = GET_PLAYER(sorted[i].second);
 		int iCulturePercent = sorted[i].first; // </advc.099>
 		swprintf(szTempBuffer, L"\n%d%% " SETCOLR L"%s" ENDCOLR,
-				iCulturePercent, civ.getPlayerTextColorR(),
-				civ.getPlayerTextColorG(), civ.getPlayerTextColorB(),
-				civ.getPlayerTextColorA(), civ.getCivilizationAdjective());
+				iCulturePercent, PLAYER_TEXT_COLOR(civ), civ.getCivilizationAdjective());
 		szBuffer.append(szTempBuffer);
 	}
 	PlayerTypes eCulturalOwner = c.calculateCulturalOwner(); // advc.099c
@@ -5355,11 +5388,10 @@ void CvDLLWidgetData::parseFeatureHelp(CvWidgetDataStruct &widgetDataStruct, CvW
 
 
 void CvDLLWidgetData::parseTechEntryHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
-{
-	if (widgetDataStruct.m_iData2 != 0)
-	{
-		GAMETEXT.setTechHelp(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
-	}
+{	/*  advc.085: 0 was unused, so this check wasn't needed for anything. Now 0
+		causes the scoreboard to expand (handled by caller). */
+	//if (widgetDataStruct.m_iData2 != 0)
+	GAMETEXT.setTechHelp(szBuffer, ((TechTypes)(widgetDataStruct.m_iData1)));
 }
 
 // BULL - Trade Denial - start
@@ -5622,19 +5654,16 @@ void CvDLLWidgetData::parseFinanceInflatedCosts(CvWidgetDataStruct &widgetDataSt
 
 void CvDLLWidgetData::parseFinanceGrossIncome(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-//	szBuffer = "Your gross income";
 	szBuffer.assign(gDLL->getText("TXT_KEY_ECON_GROSS_INCOME"));
 }
 
 void CvDLLWidgetData::parseFinanceNetGold(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-//	szBuffer = "Net Gold per turn";
 	szBuffer.assign(gDLL->getText("TXT_KEY_ECON_NET_GOLD"));
 }
 
 void CvDLLWidgetData::parseFinanceGoldReserve(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-//	szBuffer = "Amount of money in your gold reserves";
 	szBuffer.assign(gDLL->getText("TXT_KEY_ECON_GOLD_RESERVE"));
 }
 // BULL - Finance Advisor - start
@@ -5961,10 +5990,7 @@ void CvDLLWidgetData::parseKillDealHelp(CvWidgetDataStruct &widgetDataStruct,
 	if (NULL != pDeal)
 	{
 		PlayerTypes eActivePlayer = g.getActivePlayer();
-		// <advc.085>
-		if(widgetDataStruct.m_iData2 == 0)
-			GET_PLAYER(eActivePlayer).setScoreboardExpanded(true);
-		// </advc.085>  // <advc.073>
+		// <advc.073>
 		GAMETEXT.getDealString(szBuffer, *pDeal, eActivePlayer, false);
 		szBuffer.append(NEWLINE); // </advc.073>
 		if (pDeal->isCancelable(eActivePlayer, &szTemp))
@@ -6043,17 +6069,11 @@ void CvDLLWidgetData::parseCommerceModHelp(CvWidgetDataStruct &widgetDataStruct,
 void CvDLLWidgetData::parseScoreHelp(CvWidgetDataStruct& widgetDataStruct, CvWStringBuffer& szBuffer)
 {
 	GAMETEXT.setScoreHelp(szBuffer, (PlayerTypes)widgetDataStruct.m_iData1);
-	// <advc.085>
-	if(widgetDataStruct.m_iData2 == 0)
-		GET_PLAYER(GC.getGameINLINE().getActivePlayer()).setScoreboardExpanded(true);
-	// </advc.085>
 }
 
 // BULL - Trade Hover - start
 void CvDLLWidgetData::parseTradeRoutes(CvWidgetDataStruct& widgetDataStruct, CvWStringBuffer& szBuffer) {
 
-	// advc.085:
-	GET_PLAYER(GC.getGameINLINE().getActivePlayer()).setScoreboardExpanded(true);
 	GAMETEXT.buildTradeString(szBuffer, (PlayerTypes)widgetDataStruct.m_iData1, (PlayerTypes)widgetDataStruct.m_iData2);
 	GAMETEXT.getActiveDealsString(szBuffer, (PlayerTypes)widgetDataStruct.m_iData1, (PlayerTypes)widgetDataStruct.m_iData2,
 			true); // advc.087
@@ -6067,6 +6087,78 @@ void CvDLLWidgetData::parseFoodModHelp(CvWidgetDataStruct &widgetDataStruct, CvW
 	GAMETEXT.setFoodHelp(szBuffer, *pCity);
 }
 // BUG - Food Rate Hover - end
+// <advc.085>
+void CvDLLWidgetData::parsePowerRatioHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer) {
+
+	CvPlayer const& kPlayer = GET_PLAYER((PlayerTypes)widgetDataStruct.m_iData1);
+	CvPlayer const& kActivePlayer = GET_PLAYER(GC.getGameINLINE().getActivePlayer());
+	bool bThemVsYou = (getBugOptionINT("Scores__PowerFormula", 0, false) == 0);
+	int iPow = std::max(1, kPlayer.getPower());
+	int iActivePow = std::max(1, kActivePlayer.getPower());
+	int iPowerRatioPercent = ::round(bThemVsYou ?
+			(100.0 * iPow) / iActivePow : (100.0 * iActivePow) / iPow);
+	CvWString szCompareTag("TXT_KEY_POWER_RATIO_");
+	if(iPowerRatioPercent < 100)
+		szCompareTag += L"SMALLER";
+	else if(iPowerRatioPercent > 100)
+		szCompareTag += L"GREATER";
+	else szCompareTag += L"EQUAL";
+	CvWString szPowerRatioHelpTag("TXT_KEY_POWER_RATIO_HELP_");
+	if(bThemVsYou)
+		szPowerRatioHelpTag += L"THEM_VS_YOU";
+	else szPowerRatioHelpTag += L"YOU_VS_THEM";
+	szBuffer.append(gDLL->getText(szPowerRatioHelpTag, kPlayer.getName(),
+			gDLL->getText(szCompareTag).GetCString()));
+	ColorTypes eRatioColor = widgetDataStruct.m_iData2 <= 0 ? NO_COLOR :
+			(ColorTypes)widgetDataStruct.m_iData2;
+	if(eRatioColor != NO_COLOR) {
+		NiColorA const& kRatioColor = GC.getColorInfo(eRatioColor).getColor();
+		szBuffer.append(CvWString::format(L" " SETCOLR L"%d%%" ENDCOLR,
+				// Based on the TEXT_COLOR macro
+				(int)(kRatioColor.r * 255), (int)(kRatioColor.g * 255),
+				(int)(kRatioColor.b * 255), (int)(kRatioColor.a * 255),
+				iPowerRatioPercent));
+	}
+	else szBuffer.append(CvWString::format(L" %d%%", iPowerRatioPercent));
+	if(kActivePlayer.getMasterTeam() == kPlayer.getMasterTeam())
+		return; // Espionage vs. allies isn't so interesting
+	int iNeededDemographics = kActivePlayer.espionageNeededToSee(kPlayer.getID(), true);
+	// (Might make more sense to show this in the tech hover)
+	int iNeededResearch = kActivePlayer.espionageNeededToSee(kPlayer.getID(), false);
+	FAssert((iNeededDemographics <= 0 && iNeededDemographics != MAX_INT) ||
+			GC.getGameINLINE().isDebugMode());
+	if(iNeededDemographics == MAX_INT)
+		return;
+	szBuffer.append(NEWLINE);
+	CvWString szSeeWhat;
+	int iNeeded = iNeededDemographics;
+	if(iNeededResearch <= 0) {
+		iNeeded = iNeededResearch;
+		szSeeWhat = gDLL->getText("TXT_KEY_COMMERCE_RESEARCH");
+	}
+	else szSeeWhat = gDLL->getText("TXT_KEY_DEMO_SCREEN_TITLE");
+	szBuffer.append(gDLL->getText("TXT_KEY_SEE_INTEL_THRESHOLD",
+			szSeeWhat.GetCString(), -iNeeded));
+}
+
+
+void CvDLLWidgetData::parseGoldenAgeAnarchyHelp(PlayerTypes ePlayer, int iData2,
+		bool bAnarchy, CvWStringBuffer &szBuffer) {
+
+	CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
+	if(bAnarchy) {
+		int iTurns = kPlayer.getAnarchyTurns();
+		FAssert(iTurns > 0);
+		szBuffer.append(gDLL->getText("INTERFACE_ANARCHY", iTurns));
+	}
+	else {
+		szBuffer.append(gDLL->getText("TXT_KEY_CONCEPT_GOLDEN_AGE"));
+		int iTurns = kPlayer.getGoldenAgeTurns();
+		FAssert(iTurns > 0);
+		szBuffer.append(CvWString::format(L" (%s)",
+				gDLL->getText("TXT_KEY_MISC_TURNS_LEFT2", iTurns).GetCString()));
+	}
+} // </advc.085>
 
 /*
 ** K-Mod, 5/jan/11, karadoc

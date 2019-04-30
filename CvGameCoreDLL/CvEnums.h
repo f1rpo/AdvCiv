@@ -569,6 +569,11 @@ enum WidgetTypes					// Exposed to Python
 	// BULL - Finance Advisor - end
 	WIDGET_LEADERHEAD_RELATIONS, // BULL - Leaderhead Relations
 	WIDGET_FOOD_MOD_HELP, // BULL - Food Rate Hover
+	// <advc.085>
+	WIDGET_EXPAND_SCORES,
+	WIDGET_POWER_RATIO,
+	WIDGET_GOLDEN_AGE,
+	WIDGET_ANARCHY, // </advc.085>
 #ifdef _USRDLL
 	NUM_WIDGET_TYPES
 #endif

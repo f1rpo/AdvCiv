@@ -633,8 +633,9 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit,
 	//if (pUnit->getOwnerINLINE() != GC.getGameINLINE().getActivePlayer() && !pUnit->isAnimal() && !pUnit->getUnitInfo().isHiddenNationality())
 	if(!bOmitOwner && !pUnit->isUnowned()) // advc.061: Replacing the above
 	{
+		CvPlayer const& kOwner = GET_PLAYER(pUnit->getOwnerINLINE());
 		szString.append(L", ");
-		szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, GET_PLAYER(pUnit->getOwnerINLINE()).getPlayerTextColorR(), GET_PLAYER(pUnit->getOwnerINLINE()).getPlayerTextColorG(), GET_PLAYER(pUnit->getOwnerINLINE()).getPlayerTextColorB(), GET_PLAYER(pUnit->getOwnerINLINE()).getPlayerTextColorA(), GET_PLAYER(pUnit->getOwnerINLINE()).getName());
+		szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, PLAYER_TEXT_COLOR(kOwner), kOwner.getName());
 		szString.append(szTempBuffer);
 	}
 	bool bFirst = true; // advc.004
@@ -1403,9 +1404,7 @@ void CvGameTextMgr::appendUnitOwnerHeading(CvWStringBuffer& szString, PlayerType
 		szString.append(NEWLINE);
 	CvPlayer const& kOwner = GET_PLAYER(eOwner);
 	szString.append(CvWString::format(SETCOLR L"%s" ENDCOLR,
-			kOwner.getPlayerTextColorR(), kOwner.getPlayerTextColorG(),
-			kOwner.getPlayerTextColorB(), kOwner.getPlayerTextColorA(),
-			kOwner.getName()));
+			PLAYER_TEXT_COLOR(kOwner), kOwner.getName()));
 	CvWString szCounts; 
 	if(iArmy >= iTotal || iNavy >= iTotal || iOther >= iTotal) {
 		szCounts = CvWString::format(L" (%d %s)", iTotal,
@@ -1997,9 +1996,7 @@ void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot* pPlot,
 						szString.append(L", ");
 						CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)iJ);
 						szString.append(CvWString::format(SETCOLR L"%s" ENDCOLR,
-								kLoopPlayer.getPlayerTextColorR(), kLoopPlayer.getPlayerTextColorG(),
-								kLoopPlayer.getPlayerTextColorB(), kLoopPlayer.getPlayerTextColorA(),
-								kLoopPlayer.getName()));
+								PLAYER_TEXT_COLOR(kLoopPlayer), kLoopPlayer.getName()));
 					}
 				}
 			}
@@ -2031,9 +2028,7 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 		getUnitAIString(szTempString, pHeadUnit->AI_getUnitAIType());
 		CvPlayer const& kHeadOwner = GET_PLAYER(pHeadUnit->getOwnerINLINE());
 		szString.append(CvWString::format(SETCOLR L" %s " ENDCOLR,
-				kHeadOwner.getPlayerTextColorR(), kHeadOwner.getPlayerTextColorG(),
-				kHeadOwner.getPlayerTextColorB(), kHeadOwner.getPlayerTextColorA(),
-				szTempString.GetCString()));
+				PLAYER_TEXT_COLOR(kHeadOwner), szTempString.GetCString()));
 
 		// promotion icons
 		for (int iPromotionIndex = 0; iPromotionIndex < iPromotions; iPromotionIndex++)
@@ -2112,16 +2107,12 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 				szString.append(L"\n to ");
 				CvPlayer const& kMissionPlayer = GET_PLAYER(pMissionUnit->getOwnerINLINE());
 				szString.append(CvWString::format(SETCOLR L"%s" ENDCOLR,
-						kMissionPlayer.getPlayerTextColorR(), kMissionPlayer.getPlayerTextColorG(),
-						kMissionPlayer.getPlayerTextColorB(), kMissionPlayer.getPlayerTextColorA(),
-						pMissionUnit->getName().GetCString()));
+						PLAYER_TEXT_COLOR(kMissionPlayer), pMissionUnit->getName().GetCString()));
 				szString.append(CvWString::format(L"(%d) G:%d", shortenID(pMissionUnit->getID()),
 						shortenID(pMissionUnit->getGroupID())));
 				getUnitAIString(szTempString, pMissionUnit->AI_getUnitAIType());
 				szString.append(CvWString::format(SETCOLR L" %s" ENDCOLR,
-						kMissionPlayer.getPlayerTextColorR(), kMissionPlayer.getPlayerTextColorG(),
-						kMissionPlayer.getPlayerTextColorB(), kMissionPlayer.getPlayerTextColorA(),
-						szTempString.GetCString()));
+						PLAYER_TEXT_COLOR(kMissionPlayer), szTempString.GetCString()));
 			}
 
 			// mission plot
@@ -2173,9 +2164,7 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 						}
 						CvPlayer const& kCityOwner = GET_PLAYER(pCity->getOwnerINLINE());
 						szString.append(CvWString::format(SETCOLR L"%s" ENDCOLR L")",
-								kCityOwner.getPlayerTextColorR(), kCityOwner.getPlayerTextColorG(),
-								kCityOwner.getPlayerTextColorB(), kCityOwner.getPlayerTextColorA(),
-								pCity->getName().GetCString()));
+								PLAYER_TEXT_COLOR(kCityOwner), pCity->getName().GetCString()));
 					}
 					else
 					{
@@ -2193,12 +2182,9 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 						PlayerTypes eMissionPlotOwner = pMissionPlot->getOwnerINLINE();
 						if (eMissionPlotOwner != NO_PLAYER)
 						{
+							CvPlayer const& kMissionPlotOwner = GET_PLAYER(eMissionPlotOwner);
 							szString.append(CvWString::format(L", " SETCOLR L"%s" ENDCOLR,
-									GET_PLAYER(eMissionPlotOwner).getPlayerTextColorR(),
-									GET_PLAYER(eMissionPlotOwner).getPlayerTextColorG(),
-									GET_PLAYER(eMissionPlotOwner).getPlayerTextColorB(),
-									GET_PLAYER(eMissionPlotOwner).getPlayerTextColorA(),
-									GET_PLAYER(eMissionPlotOwner).getName()));
+									PLAYER_TEXT_COLOR(kMissionPlotOwner), kMissionPlotOwner.getName()));
 						}
 					}
 				}
@@ -2242,9 +2228,7 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 					getUnitAIString(szTempString, pCargoUnit->AI_getUnitAIType());
 					CvPlayer const& kCargoOwner = GET_PLAYER(pCargoUnit->getOwnerINLINE());
 					szString.append(CvWString::format(SETCOLR L" %s " ENDCOLR,
-							kCargoOwner.getPlayerTextColorR(), kCargoOwner.getPlayerTextColorG(),
-							kCargoOwner.getPlayerTextColorB(), kCargoOwner.getPlayerTextColorA(),
-							szTempString.GetCString()));
+							PLAYER_TEXT_COLOR(kCargoOwner), szTempString.GetCString()));
 
 					// promotion icons
 					for (int iPromotionIndex = 0; iPromotionIndex < iPromotions; iPromotionIndex++)
@@ -2278,9 +2262,7 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 					getUnitAIString(szTempString, pUnit->AI_getUnitAIType());
 					CvPlayer const& kUnitOwner = GET_PLAYER(pUnit->getOwnerINLINE());
 					szString.append(CvWString::format(SETCOLR L" %s " ENDCOLR,
-							kUnitOwner.getPlayerTextColorR(), kUnitOwner.getPlayerTextColorG(),
-							kUnitOwner.getPlayerTextColorB(), kUnitOwner.getPlayerTextColorA(),
-							szTempString.GetCString()));
+							PLAYER_TEXT_COLOR(kUnitOwner), szTempString.GetCString()));
 
 					// promotion icons
 					for (int iPromotionIndex = 0; iPromotionIndex < iPromotions; iPromotionIndex++)
@@ -2310,9 +2292,7 @@ void CvGameTextMgr::setPlotListHelpDebug(CvWStringBuffer& szString, CvPlot const
 							getUnitAIString(szTempString, pCargoUnit->AI_getUnitAIType());
 							CvPlayer const& kCargoOwner = GET_PLAYER(pCargoUnit->getOwnerINLINE());
 							szString.append(CvWString::format(SETCOLR L" %s " ENDCOLR,
-									kCargoOwner.getPlayerTextColorR(), kCargoOwner.getPlayerTextColorG(),
-									kCargoOwner.getPlayerTextColorB(), kCargoOwner.getPlayerTextColorA(),
-									szTempString.GetCString()));
+									PLAYER_TEXT_COLOR(kCargoOwner), szTempString.GetCString()));
 
 							// promotion icons
 							for (int iPromotionIndex = 0; iPromotionIndex < iPromotions; iPromotionIndex++)
@@ -4490,13 +4470,10 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 				} // </advc.023>
 			} // </advc.101>
 			if(eRevealOwner != NO_PLAYER) { // advc.099f
+				CvPlayer const& kRevealOwner = GET_PLAYER(eRevealOwner);
 				szTempBuffer.Format(L"%d%% " SETCOLR L"%s" ENDCOLR,
 						pPlot->calculateCulturePercent(eRevealOwner),
-						GET_PLAYER(eRevealOwner).getPlayerTextColorR(),
-						GET_PLAYER(eRevealOwner).getPlayerTextColorG(),
-						GET_PLAYER(eRevealOwner).getPlayerTextColorB(),
-						GET_PLAYER(eRevealOwner).getPlayerTextColorA(),
-						GET_PLAYER(eRevealOwner).getCivilizationAdjective());
+						PLAYER_TEXT_COLOR(kRevealOwner), kRevealOwner.getCivilizationAdjective());
 				szString.append(szTempBuffer);
 				szString.append(NEWLINE);
 			}
@@ -4510,17 +4487,14 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 					{/* K-Mod, 29/sep/10, Karadoc
 						Prevented display of 0% culture, to reduce the spam created by trade culture. */
 						/* original bts code
-						szTempBuffer.Format(L"%d%% " SETCOLR L"%s" ENDCOLR, pPlot->calculateCulturePercent((PlayerTypes)iPlayer), kPlayer.getPlayerTextColorR(), kPlayer.getPlayerTextColorG(), kPlayer.getPlayerTextColorB(), kPlayer.getPlayerTextColorA(), kPlayer.getCivilizationAdjective());
+						szTempBuffer.Format(L"%d%% " SETCOLR L"%s" ENDCOLR, pPlot->calculateCulturePercent((PlayerTypes)iPlayer), PLAYER_TEXT_COLOR(kPlayer), kPlayer.getCivilizationAdjective());
 						szString.append(szTempBuffer);
 						szString.append(NEWLINE);*/
 						int iCulturePercent = pPlot->calculateCulturePercent((PlayerTypes)iPlayer);
 						if (iCulturePercent >= 1)
 						{
 							szTempBuffer.Format(L"%d%% " SETCOLR L"%s" ENDCOLR,
-									iCulturePercent, kPlayer.getPlayerTextColorR(),
-									kPlayer.getPlayerTextColorG(),
-									kPlayer.getPlayerTextColorB(),
-									kPlayer.getPlayerTextColorA(),
+									iCulturePercent, PLAYER_TEXT_COLOR(kPlayer),
 									kPlayer.getCivilizationAdjective());
 							szString.append(szTempBuffer);
 							szString.append(NEWLINE);
@@ -4531,7 +4505,9 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot* pPlot)
 		}
 		else if(eRevealOwner != NO_PLAYER) // advc.099f
 		{
-			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, GET_PLAYER(eRevealOwner).getPlayerTextColorR(), GET_PLAYER(eRevealOwner).getPlayerTextColorG(), GET_PLAYER(eRevealOwner).getPlayerTextColorB(), GET_PLAYER(eRevealOwner).getPlayerTextColorA(), GET_PLAYER(eRevealOwner).getCivilizationDescription());
+			CvPlayer const& kRevealOwner = GET_PLAYER(eRevealOwner);
+			szTempBuffer.Format(SETCOLR L"%s" ENDCOLR,
+					PLAYER_TEXT_COLOR(kRevealOwner), kRevealOwner.getCivilizationDescription());
 			szString.append(szTempBuffer);
 			szString.append(NEWLINE);
 		}
@@ -10861,8 +10837,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 		szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_REDUCES_MAINTENANCE"));
 	}
 
-	if (kBuilding.isGoldenAge()
-			&& !inBuildingList) // advc.004w
+	if (kBuilding.isGoldenAge() /* advc.004w: */ && !inBuildingList)
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_GOLDEN_AGE"));
@@ -10874,8 +10849,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 		szBuffer.append(gDLL->getText("TXT_KEY_PROJECT_ENABLES_NUKES"));
 	}
 
-	if (kBuilding.isMapCentering()
-			&& !inBuildingList) // advc.004w
+	if (kBuilding.isMapCentering() /* advc.004w: */ && !inBuildingList)
 	{
 		szBuffer.append(NEWLINE);
 		szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_CENTERS_MAP"));
@@ -19911,6 +19885,19 @@ void CvGameTextMgr::buildTradeString(CvWStringBuffer& szBuffer, PlayerTypes ePla
 				szBuffer.append(gDLL->getText("TXT_KEY_BUG_CANNOT_TRADE_FOREIGN_THEM"));
 				bCanTrade = false;
 			}
+			// <advc.124>
+			bool bAnyCityKnown = false; int foo;
+			for(CvCity* pLoopCity = kWithPlayer.firstCity(&foo); pLoopCity != NULL;
+					pLoopCity = kWithPlayer.nextCity(&foo)) {
+				if(pLoopCity->isRevealed(kPlayer.getTeam(), false)) {
+					bAnyCityKnown = true;
+					break;
+				}
+			}
+			if(!bAnyCityKnown) {
+				szBuffer.append(gDLL->getText("TXT_KEY_BUG_CANNOT_TRADE_NO_KNOWN_CITIES"));
+				bCanTrade = false;
+			} // </advc.124>
 			if (!bCanTrade)
 				return;
 		}
@@ -20459,13 +20446,12 @@ void CvGameTextMgr::getTurnTimerText(CvWString& strText)
 				strText += gDLL->getText("TXT_KEY_MISC_TURNS_LEFT_TO_VICTORY", iMinVictoryTurns);
 			} /* <advc.003> Merged these two conditions so that more else-if
 				clauses can be added below */ 
-			else if (g.getMaxTurns() > 0 &&
-					((g.getElapsedGameTurns() >= (g.getMaxTurns() -
-					30)) // advc.004: was 100
+			else if (g.getMaxTurns() > 0 && (g.getElapsedGameTurns() >= g.getMaxTurns() -
+					30 // advc.004: was 100
 					&& g.getElapsedGameTurns() < g.getMaxTurns())) { // </advc.003>
 				if(!strText.empty())
 					strText += L" -- ";
-				strText += gDLL->getText("TXT_KEY_MISC_TURNS_LEFT", (g.getMaxTurns() - g.getElapsedGameTurns()));
+				strText += gDLL->getText("TXT_KEY_MISC_TURNS_LEFT", g.getMaxTurns() - g.getElapsedGameTurns());
 			} // <advc.700> The other countdowns take precedence
 			else if(g.isOption(GAMEOPTION_RISE_FALL)) {
 				std::pair<int,int> rfCountdown = g.getRiseFall().

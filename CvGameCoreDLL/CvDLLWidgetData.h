@@ -115,6 +115,10 @@ protected:
 	void parseTradeRoutes(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	// BULL - Food Rate Hover:
 	void parseFoodModHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
+	// <advc.085>
+	void parsePowerRatioHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
+	void parseGoldenAgeAnarchyHelp(PlayerTypes ePlayer, int iData2, bool bAnarchy, CvWStringBuffer &szBuffer);
+	// </advc.085>
 	void parseConvertHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	void parseRevolutionHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);
 	// void parsePopupQueue(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer);

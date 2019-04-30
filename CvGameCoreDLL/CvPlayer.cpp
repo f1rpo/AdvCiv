@@ -8360,9 +8360,10 @@ int CvPlayer::getResearchTurnsLeftTimes100(TechTypes eTech, bool bOverflow) cons
 }
 
 // K-Mod. Return true if this player can see what ePlayer is researching
-bool CvPlayer::canSeeResearch(PlayerTypes ePlayer) const
+bool CvPlayer::canSeeResearch(PlayerTypes ePlayer,
+		bool bCheckPoints) const // advc.085
 {
-	FAssert(ePlayer >= 0 && ePlayer < MAX_PLAYERS);
+	FASSERT_BOUNDS(0, MAX_PLAYERS, ePlayer, "canSeeResearch");
 	const CvPlayer& kOther = GET_PLAYER(ePlayer);
 
 	if (kOther.getTeam() == getTeam() || GET_TEAM(kOther.getTeam()).isVassal(getTeam()))
@@ -8377,7 +8378,9 @@ bool CvPlayer::canSeeResearch(PlayerTypes ePlayer) const
 		{
 			CvEspionageMissionInfo& kMissionInfo = GC.getEspionageMissionInfo(i);
 
-			if (kMissionInfo.isSeeResearch() && kMissionInfo.isPassive() && canDoEspionageMission(i, ePlayer, 0, 0, 0))
+			if (kMissionInfo.isSeeResearch() && kMissionInfo.isPassive() &&
+					canDoEspionageMission(i, ePlayer, NULL, 0, NULL,
+					bCheckPoints)) // advc.085
 				return true;
 		}
 	}
@@ -8385,9 +8388,10 @@ bool CvPlayer::canSeeResearch(PlayerTypes ePlayer) const
 }
 
 // return true if this player can see ePlayer's demographics (power graph, culture graph, etc.)
-bool CvPlayer::canSeeDemographics(PlayerTypes ePlayer) const
+bool CvPlayer::canSeeDemographics(PlayerTypes ePlayer,
+		bool bCheckPoints) const // advc.085
 {
-	FAssert(ePlayer >= 0 && ePlayer < MAX_PLAYERS);
+	FASSERT_BOUNDS(0, MAX_PLAYERS, ePlayer, "canSeeDemographics");
 	const CvPlayer& kOther = GET_PLAYER(ePlayer);
 
 	if (kOther.getTeam() == getTeam() || GET_TEAM(kOther.getTeam()).isVassal(getTeam()))
@@ -8403,12 +8407,35 @@ bool CvPlayer::canSeeDemographics(PlayerTypes ePlayer) const
 	{
 		CvEspionageMissionInfo& kMissionInfo = GC.getEspionageMissionInfo(i);
 
-		if (kMissionInfo.isSeeDemographics() && kMissionInfo.isPassive() && canDoEspionageMission(i, ePlayer, 0, 0, 0))
+		if (kMissionInfo.isSeeDemographics() && kMissionInfo.isPassive() &&
+				canDoEspionageMission(i, ePlayer, NULL, 0, NULL,
+				bCheckPoints)) // advc.085
 			return true;
 	}
 	return false;
 }
 // K-Mod end
+/*  <advc.085> !bDemographics means: return espionage needed to see research.
+	Mix of code from canSeeDemographics, canSeeResearch and canDoEspionageMission. */
+int CvPlayer::espionageNeededToSee(PlayerTypes ePlayer, bool bDemographics) const {
+
+	int r = MAX_INT;
+	if(!(bDemographics ?
+			canSeeDemographics(ePlayer, false) : canSeeResearch(ePlayer, false)))
+		return r;
+	int iEspionagePoints = GET_TEAM(getTeam()).getEspionagePointsAgainstTeam(TEAMID(ePlayer));
+	for(int i = 0; i < GC.getNumEspionageMissionInfos(); i++) {
+		EspionageMissionTypes eLoopMission = (EspionageMissionTypes)i;
+		CvEspionageMissionInfo& kMission = GC.getEspionageMissionInfo(eLoopMission);
+		if(!kMission.isPassive())
+			continue;
+		if(bDemographics ? kMission.isSeeDemographics() : kMission.isSeeResearch()) {
+			r = std::min(r, getEspionageMissionCost(
+					eLoopMission, ePlayer, NULL, 0, NULL) - iEspionagePoints);
+		}
+	}
+	return r;
+} // </advc.085>
 // <advc.550e>
 bool CvPlayer::isSignificantDiscovery(TechTypes eTech) const {
 
@@ -15317,17 +15344,14 @@ int CvPlayer::getEspionageSpending(TeamTypes eAgainstTeam) const
 	return iSpendingValue;
 }
 
-bool CvPlayer::canDoEspionageMission(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvPlot* pPlot, int iExtraData, const CvUnit* pUnit) const
+bool CvPlayer::canDoEspionageMission(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvPlot* pPlot, int iExtraData, const CvUnit* pUnit,
+		bool bCheckPoints) const // advc.085
 {
 	if (getID() == eTargetPlayer || NO_PLAYER == eTargetPlayer)
-	{
 		return false;
-	}
 
-	if (!GET_PLAYER(eTargetPlayer).isAlive() || !GET_TEAM(getTeam()).isHasMet(GET_PLAYER(eTargetPlayer).getTeam()))
-	{
+	if (!GET_PLAYER(eTargetPlayer).isAlive() || !GET_TEAM(getTeam()).isHasMet(TEAMID(eTargetPlayer)))
 		return false;
-	}
 
 	// K-Mod. Bugfix
 	if (pUnit && pPlot && !pUnit->canEspionage(pPlot, false))
@@ -15335,37 +15359,26 @@ bool CvPlayer::canDoEspionageMission(EspionageMissionTypes eMission, PlayerTypes
 	// K-Mod end
 
 	CvEspionageMissionInfo& kMission = GC.getEspionageMissionInfo(eMission);
-
 	// Need Tech Prereq, if applicable
 	if (kMission.getTechPrereq() != NO_TECH)
 	{
 		if (!GET_TEAM(getTeam()).isHasTech((TechTypes)kMission.getTechPrereq()))
-		{
 			return false;
-		}
 	}
 
 	int iCost = getEspionageMissionCost(eMission, eTargetPlayer, pPlot, iExtraData, pUnit);
 	if (iCost < 0)
-	{
 		return false;
-	}
 
-	//if (NO_PLAYER != eTargetPlayer) // advc.003: it's guaranteed
-	{
-		int iEspionagePoints = GET_TEAM(getTeam()).getEspionagePointsAgainstTeam(GET_PLAYER(eTargetPlayer).getTeam());
-
-		if (iEspionagePoints < iCost)
-		{
-			return false;
-		}
-
-		if (iEspionagePoints <= 0)
-		{
-			return false;
-		}
-	}
-
+	int iEspionagePoints = GET_TEAM(getTeam()).getEspionagePointsAgainstTeam(TEAMID(eTargetPlayer));
+	// <advc.085>
+	if (!bCheckPoints)
+		return true;
+	// </advc.085>
+	if (iEspionagePoints < iCost)
+		return false;
+	if (iEspionagePoints <= 0)
+		return false;
 	return true;
 }
 
@@ -23564,15 +23577,16 @@ void CvPlayer::setScoreboardExpanded(bool b) {
 	m_bScoreboardExpanded = b;
 	if(b) {
 		FAssert(getBugOptionBOOL("Scores__AlignIcons", true, false));
-		if(getBugOptionBOOL("Scores__ExpandOnHover", false))
+		if(getBugOptionBOOL("Scores__ExpandOnHover", false, false))
 			gDLL->getInterfaceIFace()->setDirty(Score_DIRTY_BIT, true);
+		else m_bScoreboardExpanded = false;
 	}
 	/*  If !b, then it doesn't help to dirty it b/c the update is still in progress
 		(when called from Python). */
 	else {
 		/*  0 would make the scoreboard collapse almost instantly when the mouse is
-			moved away. Can't properly inspect icons then. 1 works pretty well;
-			a higher delay shouldn't be necessary. */
+			moved away. Can't click buttons that way. A higher delay than 1
+			(1/4 second) shouldn't be necessary. */
 		int const iDelay = 1;
 		GC.getGameINLINE().setScoreboardDirtyTimer(iDelay);
 	}

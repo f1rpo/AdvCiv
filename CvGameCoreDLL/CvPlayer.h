@@ -324,8 +324,12 @@ public:
 	bool isCurrentResearchRepeat() const;																																	// Exposed to Python
 	bool isNoResearchAvailable() const;																																		// Exposed to Python
 	int getResearchTurnsLeft(TechTypes eTech, bool bOverflow) const;														// Exposed to Python
-	bool canSeeResearch(PlayerTypes ePlayer) const; // K-Mod, Exposed to Python
-	bool canSeeDemographics(PlayerTypes ePlayer) const; // K-Mod, Exposed to Python
+	bool canSeeResearch(PlayerTypes ePlayer, // K-Mod, Exposed to Python
+			bool bCheckPoints = true) const; // advc.085
+	bool canSeeDemographics(PlayerTypes ePlayer, // K-Mod, Exposed to Python
+			bool bCheckPoints = true) const; // advc.085
+	// advc.085:
+	int espionageNeededToSee(PlayerTypes ePlayer, bool bDemographics) const;
 	// advc.550e; also need it for advc.314
 	bool isSignificantDiscovery(TechTypes eTech) const;
 
@@ -388,7 +392,8 @@ public:
 	void changeAdvancedStartPoints(int iChange);																													// Exposed to Python
 
 	int getEspionageSpending(TeamTypes eAgainstTeam) const;																								// Exposed to Python
-	bool canDoEspionageMission(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvPlot* pPlot, int iExtraData, const CvUnit* pUnit) const;		// Exposed to Python
+	bool canDoEspionageMission(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvPlot* pPlot, int iExtraData, const CvUnit* pUnit,		// Exposed to Python
+			bool bCheckPoints = true) const; // advc.085
 	int getEspionageMissionBaseCost(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvPlot* pPlot, int iExtraData, const CvUnit* pSpyUnit) const;
 	int getEspionageMissionCost(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvPlot* pPlot = NULL, int iExtraData = -1, const CvUnit* pSpyUnit = NULL) const;		// Exposed to Python
 	// dlph.33/advc:

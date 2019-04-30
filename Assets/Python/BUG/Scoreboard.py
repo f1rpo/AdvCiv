@@ -29,7 +29,7 @@ gc = CyGlobalContext()
 Z_DEPTH = -0.3
 
 # Columns IDs
-NUM_PARTS = 27
+NUM_PARTS = 28
 (
 	ALIVE,
 	WAR,
@@ -56,7 +56,8 @@ NUM_PARTS = 27
 	WAITING,
 	NET_STATS,
 	OOS,
-	LEADER_ICON, CIV_ICON # dlph.30
+	LEADER_BUTTON, CIV_BUTTON, # dlph.30
+	GOLDEN_AGE # advc.085
 ) = range(NUM_PARTS)
 
 # Types
@@ -93,7 +94,7 @@ def init():
 	
 	# Used keys:
 	# ABCDEFHIKLMNOPQRSTUVWZ*?
-	# (unused: JXY)
+	# (unused: XY)
 	columns.append(Column('', ALIVE))
 	columns.append(Column('S', SCORE, DYNAMIC))
 	columns.append(Column('Z', SCORE_DELTA, DYNAMIC))
@@ -120,9 +121,10 @@ def init():
 	columns.append(Column('L', NET_STATS, DYNAMIC))
 	columns.append(Column('O', OOS, DYNAMIC))
 	# <dlph.30>
-	columns.append(Column('F', LEADER_ICON, SPECIAL))
-	columns.append(Column('G', CIV_ICON, SPECIAL))
+	columns.append(Column('F', LEADER_BUTTON, SPECIAL))
+	columns.append(Column('G', CIV_BUTTON, SPECIAL))
 	# </dlph.30>
+	columns.append(Column('J', GOLDEN_AGE, DYNAMIC)) # advc.085
 	
 	global WAR_ICON, PEACE_ICON
 	WAR_ICON = smallSymbol(FontSymbols.WAR_CHAR)
@@ -135,6 +137,10 @@ def init():
 	global VASSAL_PREFIX, VASSAL_POSTFIX
 	VASSAL_PREFIX = smallSymbol(FontSymbols.BULLET_CHAR)
 	VASSAL_POSTFIX = smallText(u" %s" % FontUtil.getChar(FontSymbols.BULLET_CHAR))
+	# <advc.085>
+	global GOLDEN_AGE_ICON, ANARCHY_ICON
+	GOLDEN_AGE_ICON = smallSymbol(FontSymbols.GOLDEN_AGE_CHAR)
+	ANARCHY_ICON = smallSymbol(FontSymbols.BAD_GOLD_CHAR) # </advc.085>
 
 def smallText(text):
 	return u"<font=2>%s</font>" % text
@@ -218,8 +224,12 @@ class Scoreboard:
 		self._set(MASTER, ACTIVE_MASTER_ICON)
 		
 	def setScore(self, value):
-		# <advc.085> Score breakdown when hovering over the active player's score (no longer provided by WIDGET_CONTACT_CIV) -- or anyone's score in Debug mode w/ Ctrl pressed.
+		# <advc.085>
+		# Set the contact widget explicitly for Score and Name (no longer the default)
 		widgetData = None
+		if gc.getPlayer(self._currPlayerScore.getID()).isAlive():
+			widgetData = self._getContactWidget()
+		# Score breakdown when hovering over the active player's score (no longer provided by WIDGET_CONTACT_CIV) -- or anyone's score in Debug mode w/ Ctrl pressed.
 		if self._activePlayer == self._currPlayerScore.getID() or (gc.getGame().isDebugMode() and MonkeyTools.bCtrl()):
 			widgetData = (WidgetTypes.WIDGET_SCORE_BREAKDOWN, self._currPlayerScore.getID(), 0)
 		# </advc.085>
@@ -235,7 +245,11 @@ class Scoreboard:
 		self._set(ID, smallText(value))
 		
 	def setName(self, value):
-		self._set(NAME, smallText(value))
+		# advc.085: See setScore
+		widgetData = None
+		if gc.getPlayer(self._currPlayerScore.getID()).isAlive():
+			widgetData = self._getContactWidget()
+		self._set(NAME, smallText(value), widgetData)
 		
 	def setNotMet(self):
 		self._set(NOT_MET)
@@ -251,19 +265,23 @@ class Scoreboard:
 		
 	def setPeace(self):
 		self._set(WAR, PEACE_ICON, self._getDealWidget(TradeableItems.TRADE_PEACE_TREATY))
-		
-	def setPower(self, value):
-		self._set(POWER, smallText(value))
-		
-	def setResearch(self, tech, progress): # advc.085: Last param was turns
-		if (ScoreOpt.isShowResearchIcons()):
-			self._set(RESEARCH, tech)
-		else:
-			self._set(RESEARCH, smallText(gc.getTechInfo(tech).getDescription()))
+	# <advc.085> Widget help added; pass along color.
+	def setPower(self, value, color):
+		self._set(POWER, smallText(value), (WidgetTypes.WIDGET_POWER_RATIO, self._currPlayerScore.getID(), color)) # </advc.085>
+	# <advc.085>
+	def setResearch(self, tech, progress): # Third param was 'turns'
+		if tech != -1: # No longer guaranteed by caller </advc.085>
+			if (ScoreOpt.isShowResearchIcons()):
+				self._set(RESEARCH, tech)
+			else:
+				self._set(RESEARCH, smallText(gc.getTechInfo(tech).getDescription()))
 		#if turns >= 0: # advc.004x
 		#	self._set(RESEARCH_TURNS, smallText(u"(%d)" % turns))
-		# advc.085: Replacing the two lines above
-		self._set(RESEARCH_TURNS, smallText(u" %d%%" % progress))
+		# <advc.085> Replacing the two lines above
+		szProgress = u" %d%%" % progress
+		# Color it green? I guess better not.
+		#szProgress = CyTranslator().changeTextColor(szProgress, gc.getInfoTypeForString("COLOR_ALT_HIGHLIGHT_TEXT"))
+		self._set(RESEARCH_TURNS, smallText(szProgress)) # </advc.085>
 		
 	def setEspionage(self):
 		self._set(ESPIONAGE)
@@ -300,14 +318,25 @@ class Scoreboard:
 		self._set(OOS, smallText(value))
 	# <dlph.30>
 	def setLeaderIcon(self, leader):
-		self._set(LEADER_ICON, leader)
+		self._set(LEADER_BUTTON, leader)
 
 	def setCivIcon(self, civ):
-		self._set(CIV_ICON, civ)
+		self._set(CIV_BUTTON, civ)
 	# </dlph.30>
-		
-	#def _getContactWidget(self): # advc.004: Now unused
-	#	return (WidgetTypes.WIDGET_CONTACT_CIV, self._currPlayerScore.getID(), -1)
+	# <advc.085>
+	def setGoldenAge(self, bAnarchy):
+		eWidget = WidgetTypes.WIDGET_GOLDEN_AGE
+		cIcon = GOLDEN_AGE_ICON
+		if bAnarchy:
+			eWidget = WidgetTypes.WIDGET_ANARCHY
+			cIcon = ANARCHY_ICON
+		# Add one space b/c the icons are very tiny; difficult to hover over.
+		self._set(GOLDEN_AGE, " " + cIcon, (eWidget, self._currPlayerScore.getID(), 0))
+	# </advc.085>
+
+	def _getContactWidget(self):
+		iData2 = 0 # advc.085: Was -1; tell the DLL to expand the scoreboard.
+		return (WidgetTypes.WIDGET_CONTACT_CIV, self._currPlayerScore.getID(), iData2)
 		
 	def _getDealWidget(self, type):
 		iData2 = 0 # advc.085: Was -1; tell the DLL to expand the scoreboard.
@@ -386,8 +415,10 @@ class Scoreboard:
 		spacing = defaultSpacing
 		szDisplayOrder = ScoreOpt.getDisplayOrder()
 		# <advc.085>
+		bExpanded = False
 		if gc.getPlayer(self._activePlayer).isScoreboardExpanded():
 			gc.getPlayer(self._activePlayer).setScoreboardExpanded(False)
+			bExpanded = True
 		else: # Take out the keys preceded by an underscore
 			stringsToRemove = []
 			for i, c in enumerate(szDisplayOrder):
@@ -395,7 +426,7 @@ class Scoreboard:
 					stringsToRemove.append('_' + c)
 			for s in stringsToRemove:
 				szDisplayOrder = szDisplayOrder.replace(s, '')
-			# Remove any stray underscores
+			# Remove any stray underscores as well
 			szDisplayOrder = szDisplayOrder.replace('_', '')
 		# </advc.085>
 		format = re.findall('(-?[0-9]+|[^0-9])', szDisplayOrder.replace(' ', '').upper())
@@ -419,26 +450,35 @@ class Scoreboard:
 			if (c == RESEARCH and not ScoreOpt.isShowResearchIcons()):
 				# switch SPECIAL research icon to DYNAMIC name
 				type = DYNAMIC
-			
+			# advc.085: For filling gaps so that the scoreboard doesn't collapse. 4 spaces seem to fit almost exactly for columns with a single icon.
+			szBlank = "    "
 			if (type == SKIP):
 				spacing = defaultSpacing
 				continue
-			
 			elif (type == FIXED):
 				width = column.width
 				value = column.text
 				x -= spacing
 				for p, playerScore in enumerate(self._playerScores):
+					name = "ScoreText%d-%d" %( p, c ) # advc.085: Moved up
 					if (playerScore.has(c) and playerScore.value(c)):
-						name = "ScoreText%d-%d" %( p, c )
 						widget = playerScore.widget(c)
 						if widget is None:
-							if (playerScore.value(ALIVE)):
-								widget = (WidgetTypes.WIDGET_CONTACT_CIV, playerScore.getID(), -1)
-							else:
+							#if (playerScore.value(ALIVE)):
+							#	widget = (WidgetTypes.WIDGET_CONTACT_CIV, playerScore.getID(), 0)
+							#else:
+							#	widget = (WidgetTypes.WIDGET_GENERAL, -1, -1)
+							# <advc.085> Contact widget now set explicitly for Score and Name. Default widget: expand the scoreboard.
+							if bExpanded:
+								widget = (WidgetTypes.WIDGET_EXPAND_SCORES, -1, 0)
+							else: # </advc.085>
 								widget = (WidgetTypes.WIDGET_GENERAL, -1, -1)
 						screen.setText( name, "Background", value, CvUtil.FONT_RIGHT_JUSTIFY, x, y - p * height, Z_DEPTH, FontTypes.SMALL_FONT, *widget )
-						screen.show( name )
+						screen.show(name)
+					# <advc.085>
+					elif bExpanded:
+						screen.setText(name, "Background", szBlank, CvUtil.FONT_RIGHT_JUSTIFY, x, y - p * height, Z_DEPTH, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_EXPAND_SCORES, -1, 0)
+						screen.show(name) # </advc.085>
 				x -= width
 				totalWidth += width + spacing
 				spacing = defaultSpacing
@@ -461,8 +501,8 @@ class Scoreboard:
 					continue
 				x -= spacing
 				for p, playerScore in enumerate(self._playerScores):
+					name = "ScoreText%d-%d" %( p, c ) # advc.085: Moved up
 					if (playerScore.has(c)):
-						name = "ScoreText%d-%d" %( p, c )
 						value = playerScore.value(c)
 						if (c == NAME and playerScore.isVassal() and ScoreOpt.isGroupVassals()):
 							if (ScoreOpt.isLeftAlignName()):
@@ -478,15 +518,27 @@ class Scoreboard:
 								adjustX = width
 						widget = playerScore.widget(c)
 						if widget is None:
-							if (playerScore.value(ALIVE)):
-								# advc.085: iData2=0 to tell the DLL to expand the scoreboard
-								widget = (WidgetTypes.WIDGET_CONTACT_CIV, playerScore.getID(), 0)
-							else:
+							#if (playerScore.value(ALIVE)):
+							#	widget = (WidgetTypes.WIDGET_CONTACT_CIV, playerScore.getID(), 0)
+							#else:
+							#	widget = (WidgetTypes.WIDGET_GENERAL, -1, -1)
+							# <advc.085> See under FIXED above
+							if bExpanded:
+								widget = (WidgetTypes.WIDGET_EXPAND_SCORES, -1, 0)
+							else: # </advc.085>
 								widget = (WidgetTypes.WIDGET_GENERAL, -1, -1)
 						screen.setText( name, "Background", value, align, 
 										x - adjustX, y - p * height, Z_DEPTH, 
 										FontTypes.SMALL_FONT, *widget )
-						screen.show( name )
+						screen.show(name)
+					# <advc.085>
+					elif bExpanded and c != NAME:
+						szBlankLoop = szBlank
+						if c == POWER: # Power ratio takes up extra space
+							# Mustn't add too much space though: when the power ratio is in the leftmost column, too many spaces will prevent the scoreboard from collapsing when the mouse is moved away to the left.
+							szBlankLoop += szBlank + szBlank
+						screen.setText(name, "Background", szBlankLoop, CvUtil.FONT_RIGHT_JUSTIFY, x, y - p * height, Z_DEPTH, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_EXPAND_SCORES, -1, 0)
+						screen.show(name) # </advc.085>
 				x -= width
 				totalWidth += width + spacing
 				spacing = defaultSpacing
@@ -499,13 +551,13 @@ class Scoreboard:
 							tech = playerScore.value(c)
 							name = "ScoreTech%d" % p
 							info = gc.getTechInfo(tech)
-							screen.addDDSGFC( name, info.getButton(), x - techIconSize, y - p * height - 1, techIconSize, techIconSize, 
-											  WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, tech, -1 )
+							iData2 = 0 # advc.085: was -1
+							screen.addDDSGFC( name, info.getButton(), x - techIconSize, y - p * height - 1, techIconSize, techIconSize, WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, tech, iData2 )
 					x -= techIconSize
 					totalWidth += techIconSize + spacing
 					spacing = defaultSpacing
 				# <dlph.30>
-				elif (c == LEADER_ICON):
+				elif c == LEADER_BUTTON:
 					x -= spacing
 					for p, playerScore in enumerate(self._playerScores):
 						if (playerScore.has(c)):
@@ -516,7 +568,7 @@ class Scoreboard:
 					x -= techIconSize
 					totalWidth += techIconSize + spacing
 					spacing = defaultSpacing
-				elif (c == CIV_ICON):
+				elif c == CIV_BUTTON:
 					x -= spacing
 					for p, playerScore in enumerate(self._playerScores):
 						if (playerScore.has(c)):

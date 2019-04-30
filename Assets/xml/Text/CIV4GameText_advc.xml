@@ -5445,5 +5445,65 @@
 		<Italian>Entrate dalle altre civilt&#224;</Italian>
 		<Spanish>Ingresos obtenidos de otras civilizaciones</Spanish>
 	</TEXT>
+
+	<!-- advc.085: Based on TXT_KEY_MISC_TURNS_LEFT (CIV4GameTextInfos.xml) -->
+	<TEXT>
+		<Tag>TXT_KEY_MISC_TURNS_LEFT2</Tag>
+		<English>%d1 [NUM1:turn:turns] left</English>
+		<French>il reste %d1 [NUM1:tour:tours]</French>
+		<German>noch %d1 [NUM1:Runde:Runden]</German>
+		<Italian>%d1 [NUM1:turno rimasto:turni rimasti]</Italian>
+		<Spanish>[NUM1:queda:quedan] %d1 [NUM1:turno:turnos]</Spanish>
+	</TEXT>
+	<!-- French "de" isn't going to become "d'Alexandre". Oh well. -->
+	<TEXT>
+		<Tag>TXT_KEY_POWER_RATIO_HELP_THEM_VS_YOU</Tag>
+		<English>%s1_Leader's military is %s2_Compare yours:</English>
+		<French>L'armée de %s1_Leader est %s2_Compare la vôtre :</French>
+		<German>%s1_Leader hat ein %s2_Compare:</German>
+		<Italian>L'esercito di %s1_Leader è %s2_Compare Vostro:</Italian>
+		<Spanish>El ejército de %s1_Leader es %s2_Compare el nuestro:</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_POWER_RATIO_HELP_YOU_VS_THEM</Tag>
+		<English>Your military is %s2_Compare %s1_Leader's:</English>
+		<French>Votre armée est %s2_Compare celle de %s1_Leader :</French>
+		<German>Your military is %s2_Compare %s1_Leader's:</German>
+		<Italian>Il Vostro esercito è %s2_Compare quello di %s1_Leader's:</Italian>
+		<Spanish>Nuestro ejército es %s2_Compare el de %s1_Leader:</Spanish>
+	</TEXT>
+	<!-- Translations based on TXT_KEY_TOPCIVS_POWER in CIV4GameTextInfos.xml -->
+	<TEXT>
+		<Tag>TXT_KEY_POWER_RATIO_GREATER</Tag>
+		<English>more powerful than</English>
+		<French>plus puissante que</French>
+		<German>mächtigeres Militär als wir</German>
+		<Italian>più potente di</Italian>
+		<Spanish>más poderoso que</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_POWER_RATIO_SMALLER</Tag>
+		<English>less powerful than</English>
+		<French>moins puissante que</French>
+		<German>schwächeres Militär als wir</German>
+		<Italian>meno potente di</Italian>
+		<Spanish>menos poderoso que</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_POWER_RATIO_EQUAL</Tag>
+		<English>on par with</English>
+		<French>sur le même niveau que</French>
+		<German>uns ebenbürtiges Militär</German>
+		<Italian>alla pari con</Italian>
+		<Spanish>a la par con</Spanish>
+	</TEXT>
+	<TEXT>
+		<Tag>TXT_KEY_SEE_INTEL_THRESHOLD</Tag>
+		<English>Threshold for seeing %s1 exceeded by %d2 [ICON_ESPIONAGE]</English>
+		<French>Seuil pour voir la %s1 dépassé par %d2 [ICON_ESPIONAGE]</French>
+		<German>Schwelle für sichtbare %s1 übertroffen um %d2 [ICON_ESPIONAGE]</German>
+		<Italian>Soglia per vedere la %s1 superata da %d2 [ICON_ESPIONAGE]</Italian>
+		<Spanish>Umbral para ver %s1 superado en %d2 [ICON_ESPIONAGE]</Spanish>
+	</TEXT>
 	
 </Civ4GameText>

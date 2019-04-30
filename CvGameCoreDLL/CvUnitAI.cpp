@@ -211,8 +211,7 @@ bool CvUnitAI::AI_update()
 	else
 	{	// <advc.139>
 		UnitAITypes const uai = AI_getUnitAIType();
-		int const iEvacAITypes = 9;
-		UnitAITypes evacAITypes[iEvacAITypes] = {
+		static UnitAITypes evacAITypes[] = {
 			/*  The other AI types are obscure or already have routines for
 				escaping untenable cities. */
 			UNITAI_ATTACK, UNITAI_ATTACK_CITY, UNITAI_COLLATERAL, UNITAI_PILLAGE,
@@ -220,7 +219,7 @@ bool CvUnitAI::AI_update()
 			UNITAI_CITY_SPECIAL,
 		};
 		bool bEvacAI = false;
-		for(int i = 0; i < iEvacAITypes; i++) {
+		for(int i = 0; i < sizeof(evacAITypes) / sizeof(UnitAITypes); i++) {
 			if(uai == evacAITypes[i]) {
 				bEvacAI = true;
 				break;
