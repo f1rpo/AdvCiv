@@ -6631,7 +6631,7 @@ m_iSpaceProductionModifier(0),
 m_iGlobalSpaceProductionModifier(0),	
 m_iTradeRoutes(0),									
 m_iCoastalTradeRoutes(0),						
-m_iGlobalTradeRoutes(0),						
+m_iAreaTradeRoutes(0), // advc.310
 m_iTradeRouteModifier(0),						
 m_iForeignTradeRouteModifier(0),						
 m_iAssetValue(0),									
@@ -7074,13 +7074,13 @@ int CvBuildingInfo::getCoastalTradeRoutes() const
 {
 	return m_iCoastalTradeRoutes;
 }
-
-int CvBuildingInfo::getGlobalTradeRoutes() const	
-{	// <advc.310>
-	if(!m_bEnabledGlobalTradeRoutes)
-		return 0; // </advc.310>
-	return m_iGlobalTradeRoutes;
-}
+// <advc.310>
+int CvBuildingInfo::getAreaTradeRoutes() const	
+{
+	if(!m_bEnabledAreaTradeRoutes)
+		return 0;
+	return m_iAreaTradeRoutes;
+} // </advc.310>
 
 int CvBuildingInfo::getTradeRouteModifier() const
 {
@@ -7892,7 +7892,7 @@ void CvBuildingInfo::read(FDataStreamBase* stream)
 	stream->Read(&m_iGlobalSpaceProductionModifier);
 	stream->Read(&m_iTradeRoutes);
 	stream->Read(&m_iCoastalTradeRoutes);
-	stream->Read(&m_iGlobalTradeRoutes);
+	stream->Read(&m_iAreaTradeRoutes); // advc.310
 	stream->Read(&m_iTradeRouteModifier);
 	stream->Read(&m_iForeignTradeRouteModifier);
 	stream->Read(&m_iAssetValue);
@@ -8237,7 +8237,7 @@ void CvBuildingInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iGlobalSpaceProductionModifier);
 	stream->Write(m_iTradeRoutes);
 	stream->Write(m_iCoastalTradeRoutes);
-	stream->Write(m_iGlobalTradeRoutes);
+	stream->Write(m_iAreaTradeRoutes); // advc.310
 	stream->Write(m_iTradeRouteModifier);
 	stream->Write(m_iForeignTradeRouteModifier);
 	stream->Write(m_iAssetValue);
@@ -8599,7 +8599,7 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iGlobalSpaceProductionModifier, "iGlobalSpaceProductionModifier");
 	pXML->GetChildXmlValByName(&m_iTradeRoutes, "iTradeRoutes");
 	pXML->GetChildXmlValByName(&m_iCoastalTradeRoutes, "iCoastalTradeRoutes");
-	pXML->GetChildXmlValByName(&m_iGlobalTradeRoutes, "iGlobalTradeRoutes");
+	pXML->GetChildXmlValByName(&m_iAreaTradeRoutes, "iAreaTradeRoutes"); // advc.310
 	pXML->GetChildXmlValByName(&m_iTradeRouteModifier, "iTradeRouteModifier");
 	pXML->GetChildXmlValByName(&m_iForeignTradeRouteModifier, "iForeignTradeRouteModifier");
 	pXML->GetChildXmlValByName(&m_iGlobalPopulationChange, "iGlobalPopulationChange");
@@ -8962,13 +8962,13 @@ bool CvBuildingInfo::read(CvXMLLoadUtility* pXML)
 }
 // <advc.310>
 bool CvBuildingInfo::m_bEnabledDomesticGreatGeneralRateModifier = true;
-bool CvBuildingInfo::m_bEnabledGlobalTradeRoutes = true;
+bool CvBuildingInfo::m_bEnabledAreaTradeRoutes = true;
 bool CvBuildingInfo::m_bEnabledAreaBorderObstacle = true;
 void CvBuildingInfo::setDomesticGreatGeneralRateModifierEnabled(bool b) {
 	m_bEnabledDomesticGreatGeneralRateModifier = b;
 }
-void CvBuildingInfo::setGlobalTradeRoutesEnabled(bool b) {
-	m_bEnabledGlobalTradeRoutes = b;
+void CvBuildingInfo::setAreaTradeRoutesEnabled(bool b) {
+	m_bEnabledAreaTradeRoutes = b;
 }
 void CvBuildingInfo::setAreaBorderObstacleEnabled(bool b) {
 	m_bEnabledAreaBorderObstacle = b;

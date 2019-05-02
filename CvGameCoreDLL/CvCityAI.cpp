@@ -4234,9 +4234,11 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 			iTempValue /= 100;
 
 			iTempValue += kBuilding.getCoastalTradeRoutes() * std::max((iCitiesTarget+1)/2, kOwner.countNumCoastalCities()) * iGlobalTradeValue;
-			iTempValue += kBuilding.getGlobalTradeRoutes() *
-					// advc.310: Same formula as for AreaHappiness (Notre Dame)
-					(iNumCitiesInArea + iCitiesTarget / 3)//std::max(iCitiesTarget, iNumCities)
+			// <advc.310>
+			iTempValue += kBuilding.getAreaTradeRoutes() *
+					// Same formula as for AreaHappiness (Notre Dame)
+					(iNumCitiesInArea + iCitiesTarget / 3) // </advc.310>
+					//std::max(iCitiesTarget, iNumCities)
 					* iGlobalTradeValue;
 			// K-Mod end
 

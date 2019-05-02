@@ -6349,9 +6349,10 @@ bool CvPlot::isHabitable(bool bIgnoreSea) const {
 	int iAdjHabitableLand = 0;
 	for(int i = 0; i < GC.getNumDirections(); i++) {
 		DirectionTypes dir = (DirectionTypes)i;
-		CvPlot* adjP = plotDirection(getX_INLINE(), getY_INLINE(), dir);
-		if(adjP == NULL) continue; CvPlot const& adj = *adjP;
-		if(adj.isHabitable(true))
+		CvPlot* pAdj = plotDirection(getX_INLINE(), getY_INLINE(), dir);
+		if(pAdj == NULL)
+			continue;
+		if(pAdj->isHabitable(true))
 			iAdjHabitableLand++;
 		if(iAdjHabitableLand >= 2)
 			return true;

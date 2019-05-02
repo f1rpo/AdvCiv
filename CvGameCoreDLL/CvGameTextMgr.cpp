@@ -11158,10 +11158,11 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 		szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_COASTAL_TRADE_ROUTES", kBuilding.getCoastalTradeRoutes()));
 	}
 
-	if (kBuilding.getGlobalTradeRoutes() != 0)
+	if (kBuilding.getAreaTradeRoutes() != 0) // advc.310: Renamed; was iGlobalTradeRoutes.
 	{
 		szBuffer.append(NEWLINE);
-		szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_TRADE_ROUTES_ALL_CITIES", kBuilding.getGlobalTradeRoutes()));
+		szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_TRADE_ROUTES_ALL_CITIES",
+				kBuilding.getAreaTradeRoutes())); // advc.310
 	}
 
 	if (kBuilding.getTradeRouteModifier() != 0)

@@ -565,9 +565,9 @@ class CvCustomizableDomesticAdvisor:
 				or info.getDomainProductionModifier(DomainTypes.DOMAIN_AIR) > 0 \
 				or info.getYieldChange(YieldTypes.YIELD_PRODUCTION) > 0:
 				icon += self.hammerIcon
-
+			# advc.310: iGlobalTradeRoutes renamed to iAreaTradeRoutes
 			if info.getTradeRouteModifier() > 0 or info.getTradeRoutes() > 0 or info.getCoastalTradeRoutes() > 0 \
-			or info.getGlobalTradeRoutes() > 0 or info.getForeignTradeRouteModifier() > 0:
+			or info.getAreaTradeRoutes() > 0 or info.getForeignTradeRouteModifier() > 0:
 				icon += self.tradeIcon
 
 			if info.getMaintenanceModifier() < 0:

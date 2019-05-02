@@ -1013,7 +1013,7 @@ void CvGame::applyOptionEffects(bool bEnableAll) {
 
 	CvBuildingInfo::setDomesticGreatGeneralRateModifierEnabled(bEnableAll ||
 			isOption(GAMEOPTION_RAGING_BARBARIANS) || isOption(GAMEOPTION_NO_BARBARIANS));
-	CvBuildingInfo::setGlobalTradeRoutesEnabled(bEnableAll ||
+	CvBuildingInfo::setAreaTradeRoutesEnabled(bEnableAll ||
 			!isOption(GAMEOPTION_RAGING_BARBARIANS) || isOption(GAMEOPTION_NO_BARBARIANS));
 	CvBuildingInfo::setAreaBorderObstacleEnabled(bEnableAll ||
 			!isOption(GAMEOPTION_NO_BARBARIANS));

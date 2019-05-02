@@ -7367,10 +7367,10 @@ void CvPlayer::processBuilding(BuildingTypes eBuilding, int iChange, CvArea* pAr
 	pArea->changeFreeSpecialist(getID(), (GC.getBuildingInfo(eBuilding).getAreaFreeSpecialist() * iChange));
 	changeFreeSpecialist(GC.getBuildingInfo(eBuilding).getGlobalFreeSpecialist() * iChange);
 	changeCoastalTradeRoutes(GC.getBuildingInfo(eBuilding).getCoastalTradeRoutes() * iChange);
-	// <advc.310> Now per area.
+	// <advc.310> Now per area
 	//changeTradeRoutes(GC.getBuildingInfo(eBuilding).getGlobalTradeRoutes() * iChange);
 	pArea->changeTradeRoutes(getID(),
-			GC.getBuildingInfo(eBuilding).getGlobalTradeRoutes() * iChange);
+			GC.getBuildingInfo(eBuilding).getAreaTradeRoutes() * iChange);
 	// </advc.310>
 	if (GC.getBuildingInfo(eBuilding).getAreaHealth() > 0)
 	{

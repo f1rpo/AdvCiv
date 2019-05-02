@@ -1636,7 +1636,8 @@ public:
 	int getGlobalSpaceProductionModifier() const;				// Exposed to Python
 	int getTradeRoutes() const;				// Exposed to Python
 	int getCoastalTradeRoutes() const;				// Exposed to Python
-	int getGlobalTradeRoutes() const;				// Exposed to Python
+	// advc.310: Renamed; was getGlobalTradeRoutes.
+	int getAreaTradeRoutes() const;				// Exposed to Python
 	int getTradeRouteModifier() const;				// Exposed to Python
 	int getForeignTradeRouteModifier() const;				// Exposed to Python
 	int getAssetValue() const;				// Exposed to Python
@@ -1792,7 +1793,7 @@ public:
 	bool read(CvXMLLoadUtility* pXML);
 	// <advc.310>
 	static void setDomesticGreatGeneralRateModifierEnabled(bool b);
-	static void setGlobalTradeRoutesEnabled(bool b);
+	static void setAreaTradeRoutesEnabled(bool b);
 	static void setAreaBorderObstacleEnabled(bool b);
 	// </advc.310>
 	//---------------------------------------PUBLIC MEMBER VARIABLES---------------------------------
@@ -1851,7 +1852,7 @@ protected:
 	int m_iGlobalSpaceProductionModifier;	
 	int m_iTradeRoutes;									
 	int m_iCoastalTradeRoutes;						
-	int m_iGlobalTradeRoutes;						
+	int m_iAreaTradeRoutes; // advc.310: was m_iGlobalTradeRoutes
 	int m_iTradeRouteModifier;						
 	int m_iForeignTradeRouteModifier;						
 	int m_iAssetValue;									
@@ -1970,7 +1971,7 @@ protected:
 /************************************************************************************************/
 	// <advc.310>
 	static bool m_bEnabledAreaBorderObstacle;
-	static bool m_bEnabledGlobalTradeRoutes;
+	static bool m_bEnabledAreaTradeRoutes;
 	static bool m_bEnabledDomesticGreatGeneralRateModifier;
 	// </advc.310>
 };

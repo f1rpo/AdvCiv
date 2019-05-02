@@ -426,16 +426,15 @@ void CvArea::changeNumOwnedTiles(int iChange)
 // <advc.300>
 std::pair<int,int> CvArea::countOwnedUnownedHabitableTiles(bool bIgnoreBarb) const {
 
-	std::pair<int,int> r;
-	r.first = 0; r.second = 0;
-	CvMap const& map = GC.getMapINLINE();
-	for(int i = 0; i < map.numPlots(); i++) {
-		CvPlot* plot = map.plotByIndexINLINE(i);
-		if(plot == NULL || plot->area() == NULL || plot->area()->getID() != getID()
-				|| !plot->isHabitable())
+	std::pair<int,int> r(0, 0);
+	CvMap const& kMap = GC.getMapINLINE();
+	for(int i = 0; i < kMap.numPlots(); i++) {
+		CvPlot* pPlot = kMap.plotByIndexINLINE(i);
+		if(pPlot == NULL || pPlot->area() == NULL || pPlot->area()->getID() != getID()
+				|| !pPlot->isHabitable())
 			continue;
-		if(plot->isOwned() && (!bIgnoreBarb ||
-				plot->getOwnerINLINE() != BARBARIAN_PLAYER))
+		if(pPlot->isOwned() && (!bIgnoreBarb ||
+				pPlot->getOwnerINLINE() != BARBARIAN_PLAYER))
 			r.first++;
 		else r.second++;
 	}
@@ -456,9 +455,9 @@ int CvArea::countCivs(bool bSubtractOCC) const {
 	   aren't cached/ serialized (yet). */
 	int r = 0;
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-		PlayerTypes civId = (PlayerTypes)i;
-		if(getCitiesPerPlayer(civId) > 0 &&
-				(!bSubtractOCC || !GET_PLAYER(civId).isHuman() ||
+		PlayerTypes ePlayer = (PlayerTypes)i;
+		if(getCitiesPerPlayer(ePlayer) > 0 &&
+				(!bSubtractOCC || !GET_PLAYER(ePlayer).isHuman() ||
 				!GC.getGameINLINE().isOption(GAMEOPTION_ONE_CITY_CHALLENGE)))
 			r++;
 	}
@@ -466,12 +465,12 @@ int CvArea::countCivs(bool bSubtractOCC) const {
 }
 
 
-bool CvArea::hasAnyAreaPlayerBonus(BonusTypes bId) const {
+bool CvArea::hasAnyAreaPlayerBonus(BonusTypes eBonus) const {
 
 	for(int i = 0; i < MAX_PLAYERS; i++) {
 		PlayerTypes ePlayer = (PlayerTypes)i;
 		// Barbarian, minor civ, anything goes so long as there's a city.
-		if(getCitiesPerPlayer(ePlayer) > 0 && GET_PLAYER(ePlayer).hasBonus(bId))
+		if(getCitiesPerPlayer(ePlayer) > 0 && GET_PLAYER(ePlayer).hasBonus(eBonus))
 			return true;
 	}
 	return false;
@@ -482,7 +481,7 @@ int CvArea::getBarbarianCitiesEverCreated() const {
 	return m_iBarbarianCitiesEver;
 }
 
-void CvArea::barbarianCityCreated() {
+void CvArea::reportBarbarianCityCreated() {
 
 	m_iBarbarianCitiesEver++;
 } // </advc.300>
@@ -563,7 +562,7 @@ void CvArea::changeCitiesPerPlayer(PlayerTypes eIndex, int iChange)
 	FAssertMsg(eIndex >= 0, "eIndex is expected to be >= 0");
 	FAssertMsg(eIndex < MAX_PLAYERS, "eIndex is expected to be < MAX_PLAYERS");
 	m_iNumCities = (m_iNumCities + iChange);
-	barbarianCityCreated(); // advc.300
+	reportBarbarianCityCreated(); // advc.300
 	FAssert(getNumCities() >= 0);
 	m_aiCitiesPerPlayer[eIndex] = (m_aiCitiesPerPlayer[eIndex] + iChange);
 	FAssert(getCitiesPerPlayer(eIndex, true) >= 0); // advc.030b

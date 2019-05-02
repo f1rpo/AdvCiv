@@ -158,7 +158,8 @@
 	<ElementType name="iGlobalSpaceProductionModifier" content="textOnly" dt:type="int"/>
 	<ElementType name="iTradeRoutes" content="textOnly" dt:type="int"/>
 	<ElementType name="iCoastalTradeRoutes" content="textOnly" dt:type="int"/>
-	<ElementType name="iGlobalTradeRoutes" content="textOnly" dt:type="int"/>
+	<!-- advc.310: Was iGlobalTradeRoutes; renamed (and semantics changed too). -->
+	<ElementType name="iAreaTradeRoutes" content="textOnly" dt:type="int"/>
 	<ElementType name="iTradeRouteModifier" content="textOnly" dt:type="int"/>
 	<ElementType name="iForeignTradeRouteModifier" content="textOnly" dt:type="int"/>
 	<ElementType name="iGlobalPopulationChange" content="textOnly" dt:type="int"/>
@@ -488,7 +489,8 @@
 		<element type="iGlobalSpaceProductionModifier"/>
 		<element type="iTradeRoutes"/>
 		<element type="iCoastalTradeRoutes"/>
-		<element type="iGlobalTradeRoutes"/>
+		<!-- advc.310: was iGlobalTradeRoutes -->
+		<element type="iAreaTradeRoutes"/>
 		<element type="iTradeRouteModifier"/>
 		<element type="iForeignTradeRouteModifier"/>
 		<element type="iGlobalPopulationChange"/>

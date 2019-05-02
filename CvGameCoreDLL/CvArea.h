@@ -45,11 +45,10 @@ public:
 			bool bIgnoreBarb = false) const;
 	int countCivCities() const;
 	int countCivs(bool bSubtractOCC = false) const; // with at least 1 city
-	bool hasAnyAreaPlayerBonus(BonusTypes bId) const;
+	bool hasAnyAreaPlayerBonus(BonusTypes eBonus) const;
 	int getBarbarianCitiesEverCreated() const;
-	void barbarianCityCreated();
+	void reportBarbarianCityCreated();
 	// </advc.300>
-																						// Exposed to Python
 	void changeNumRiverEdges(int iChange);																								// Exposed to Python
 
 	int getTotalPopulation() const;																						// Exposed to Python
