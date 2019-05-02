@@ -29,7 +29,7 @@ void AdvCiv4lert::init(PlayerTypes ownerId) {
 	reset();
 }
 
-void AdvCiv4lert::msg(CvWString s, LPCSTR icon, int x, int y, int goodOrBad) const {
+void AdvCiv4lert::msg(CvWString s, LPCSTR icon, int x, int y, ColorTypes colorId) const {
 
 	if(isSilent)
 		return;
@@ -41,19 +41,14 @@ void AdvCiv4lert::msg(CvWString s, LPCSTR icon, int x, int y, int goodOrBad) con
 			(autoPlayJustEnded && GC.getGameINLINE().isDebugMode())));
 	if(!force && (GET_PLAYER(ownerId).isHumanDisabled() || autoPlayJustEnded))
 		return; // </advc.127>
-	CvGame& g = GC.getGame();
+	CvGame& g = GC.getGameINLINE();
 	if(g.isOption(GAMEOPTION_RISE_FALL) && g.getRiseFall().isBlockPopups())
 		return;
-	int color = GC.getInfoTypeForString("COLOR_WHITE");
-	if(goodOrBad > 0)
-		color = GC.getInfoTypeForString("COLOR_GREEN");
-	else if(goodOrBad < 0)
-		color = GC.getInfoTypeForString("COLOR_RED");
 	bool arrows = (icon != NULL);
 	gDLL->getInterfaceIFace()->addHumanMessage(ownerId, false,
 			GC.getEVENT_MESSAGE_TIME(), s, NULL,
 			force ? MESSAGE_TYPE_MAJOR_EVENT : MESSAGE_TYPE_INFO, // advc.127
-			icon, (ColorTypes)color, x, y, arrows, arrows);
+			icon, (ColorTypes)colorId, x, y, arrows, arrows);
 }
 
 void AdvCiv4lert::check(bool silent) {
@@ -180,9 +175,9 @@ void RevoltAlert::check() {
 						GetCString(), szTempBuffer),
 						NULL // icon works, but is too distracting
 						,//ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),
-						c->getX_INLINE(), c->getY_INLINE(),
-						// red text (-1) also too distracting
-						0);
+						c->getX_INLINE(), c->getY_INLINE());
+						// red text also too distracting
+						//(ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
 			}
 		}
 #if 0 // Disabled: Message when revolt chance becomes 0
@@ -193,8 +188,7 @@ void RevoltAlert::check() {
 			msg(gDLL->getText("TXT_KEY_CIV4LERTS_NO_LONGER_REVOLT", c->getName().
 						GetCString()), NULL
 						,//ARTFILEMGR.getInterfaceArtInfo("INTERFACE_RESISTANCE")->getPath(),
-						c->getX_INLINE(), c->getY_INLINE(),
-						1); // Important and rare enough to be shown in green
+						c->getX_INLINE(), c->getY_INLINE());
 		}
 #endif
 		if(c->isOccupation())

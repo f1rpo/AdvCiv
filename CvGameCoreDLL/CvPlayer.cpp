@@ -14,6 +14,7 @@
 #include "CvPopupInfo.h"
 #include "CvDiploParameters.h"
 #include "CvGameTextMgr.h"
+#include "AdvCiv4lerts.h" // advc.210
 #include "CyCity.h"
 #include "CyPlot.h"
 #include "CyUnit.h"
@@ -82,6 +83,11 @@ CvPlayer::CvPlayer()
 	m_ppaaiImprovementYieldChange = NULL;
 
 	m_aszBonusHelp = NULL; // advc.003p
+	/*  advc.210: The order of this array needs to correspond to the ids returned
+		by the AdvCiv4lers.getID functions in Civ4lerts.py */
+	m_paAlerts.push_back(new WarTradeAlert()); // advc.210a
+	m_paAlerts.push_back(new RevoltAlert()); // advc.210b
+	m_paAlerts.push_back(new BonusThirdPartiesAlert()); // advc.210d
 
 	m_bDisableHuman = false; // bbai
 	m_iChoosingFreeTechCount = 0; // K-Mod
@@ -111,6 +117,9 @@ CvPlayer::~CvPlayer()
 	SAFE_DELETE_ARRAY(m_aiEspionageSpendingWeightAgainstTeam);
 	SAFE_DELETE_ARRAY(m_abFeatAccomplished);
 	SAFE_DELETE_ARRAY(m_abOptions);
+	// <advc.210>
+	for(size_t i = 0; i < m_paAlerts.size(); i++)
+		SAFE_DELETE(m_paAlerts[i]); // </advc.210>
 }
 
 
@@ -1024,9 +1033,9 @@ void CvPlayer::reset(PlayerTypes eID, bool bConstructorCall)
 	if (!bConstructorCall)
 	{
 		AI_reset(false);
-		warTradeAlert.init(getID()); // advc.210a
-		revoltAlert.init(getID()); // advc.210b
-		bonusThirdPartiesAlert.init(getID()); // advc.210d
+		// <advc.210>
+		for(size_t i = 0; i < m_paAlerts.size(); i++)
+			m_paAlerts[i]->init(getID()); // </advc.210>
 	}
 }
 
@@ -18808,10 +18817,8 @@ void CvPlayer::read(FDataStreamBase* pStream)
 	if(!isAlive())
 		return; // advc.003
 	// <advc.210>
-	warTradeAlert.init(getID()); // advc.210a
-	revoltAlert.init(getID()); // advc.210b
-	bonusThirdPartiesAlert.init(getID()); // advc.210d
-	// </advc.210>
+	for(size_t i = 0; i < m_paAlerts.size(); i++)
+		m_paAlerts[i]->init(getID()); // </advc.210>
 	/*  <advc.706> Loading into retirement. Can't do this in RiseFall::read b/c
 		CvPlayer::reset has to be through first. */
 	CvGame& g = GC.getGameINLINE();
@@ -24853,22 +24860,17 @@ bool CvPlayer::hasSpaceshipArrived() const
 // <advc.210>
 void CvPlayer::checkAlert(int alertId, bool bSilent)  {
 
-	// warTradeAlert.check(silent) doesn't work, hence the base class pointer
-	AdvCiv4lert* alert = NULL;
-	switch(alertId) {
-	case 0: alert = &warTradeAlert; break; // advc.210a
-	case 1: alert = &revoltAlert; break; // advc.210b
-	case 2: alert = &bonusThirdPartiesAlert; break; // advc.210d
-	default: FAssertMsg(false, "Invalid alert id");
-	}
-	if(alert == NULL)
+	if(alertId < 0 || alertId > (int)m_paAlerts.size()) {
+		FAssertMsg(false, "Invalid alert");
 		return;
-	alert->check(bSilent);
+	}
+	m_paAlerts[alertId]->check(bSilent);
 } // </advc.210>
 
 // <advc.104> Inspired by CvTeamAI::AI_estimateTotalYieldRate
 double CvPlayer::estimateYieldRate(YieldTypes yield, int iSamples) const {
 
+	PROFILE_FUNC();
 	CvGame const& g = GC.getGameINLINE();
 	int iGameTurn = g.gameTurn();
 	int iTurnsPlayed = iGameTurn - g.getStartTurn();

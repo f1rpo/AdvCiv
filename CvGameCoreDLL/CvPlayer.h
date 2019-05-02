@@ -11,13 +11,12 @@
 #include "CvPlotGroup.h"
 #include "LinkedList.h"
 #include "CvTalkingHeadMessage.h"
-// advc.210:
-#include "AdvCiv4lerts.h"
 
 class CvDiploParameters;
 class CvPopupInfo;
 class CvEventTriggerInfo;
 class CvPlayerRecord; // K-Mod
+class AdvCiv4lert; // advc.210
 class CvPlayerAI; // advc.003: Needed for AI(void) functions
 
 typedef std::list<CvTalkingHeadMessage> CvMessageQueue;
@@ -1430,6 +1429,10 @@ protected:
 	bool* m_pabLoyalMember;
 
 	std::vector<EventTriggerTypes> m_triggersFired;
+	std::vector<AdvCiv4lert*> m_paAlerts; // advc.210
+	// <advc.106b>
+	std::vector<CvTalkingHeadMessage*> m_aMajorMsgs;
+	int m_iNewMessages; // </advc.106b>
 
 	CivicTypes* m_paeCivics;
 
@@ -1463,15 +1466,6 @@ protected:
 	CvPopupQueue m_listPopups;
 	CvDiploQueue m_listDiplomacy;
 
-	WarTradeAlert warTradeAlert; // advc.210a
-	RevoltAlert revoltAlert; // advc.210b
-	BonusThirdPartiesAlert bonusThirdPartiesAlert; // advc.210d
-	// <advc.106b>
-	std::vector<CvTalkingHeadMessage*> m_aMajorMsgs;
-	int m_iNewMessages;
-	void postProcessMessages();
-	int getStartOfTurnMessageLimit() const;
-	// </advc.106b>
 	CivicTypes m_eReminderPending; // advc.004x
 	CvWString** m_aszBonusHelp; // advc.003p  (Not serialized)
 	CvTurnScoreMap m_mapScoreHistory;
@@ -1487,6 +1481,10 @@ protected:
 	void doEspionagePoints();
 	void doWarnings();
 	void doEvents();
+	// <advc.106b>
+	void postProcessMessages();
+	int getStartOfTurnMessageLimit() const;
+	// </advc.106b>
 	void decayBuildProgress(); // advc.011
 	void showForeignPromoGlow(bool b); // advc.002e
 	// <advc.314>
