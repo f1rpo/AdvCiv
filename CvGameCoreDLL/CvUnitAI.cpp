@@ -14584,22 +14584,17 @@ bool CvUnitAI::AI_patrol() // advc.003: refactored
 
 	int iBestValue = 0;
 	CvPlot* pBestPlot = NULL;
+	int iFirst = 0; // advc.007
 	for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
 	{
 		CvPlot* pAdjacentPlot = plotDirection(getX_INLINE(), getY_INLINE(), (DirectionTypes)iI);
-
 		if (pAdjacentPlot == NULL || !AI_plotValid(pAdjacentPlot) ||
 				pAdjacentPlot->isVisibleEnemyUnit(this) ||
 				!generatePath(pAdjacentPlot, 0, true))
 			continue;
-		/*  <advc.003> We shouldn't end the turn where we already are. Not sure if
-			this can occur. I thought it had when I added this clause a couple of
-			years ago ... */
-		if(atPlot(getPathEndTurnPlot())) {
-			FAssert(false);
-			continue;
-		} // </advc.003>
-
+		/*  We shouldn't end the turn where we already are. Not sure if this can
+			occur. I thought it had a couple of years ago ... */
+		FAssert(!atPlot(getPathEndTurnPlot()));
 		/*  <advc.102> Non-Barbarian AI should only patrol tiles it doesn't own b/c
 			owned tiles have visibility anyway. In order to get to unowned tiles,
 			however, units may have to traverse owned tiles, so they need to be
@@ -14607,10 +14602,10 @@ bool CvUnitAI::AI_patrol() // advc.003: refactored
 		if(!isBarbarian() && pAdjacentPlot->getOwner() == getOwner() &&
 				// Make sure not to hamper early exploration (perhaps not an issue)
 				g.getElapsedGameTurns() >= 25 &&
-				(pAdjacentPlot->isUnit() || ::bernoulliSuccess(0.9, "advc.102")))
+				(pAdjacentPlot->isUnit() || ::bernoulliSuccess(0.9,
+				iFirst++ <= 0 ? "advc.102" : NULL))) // advc.007: Don't pollute MPLog
 			continue;
 		// </advc.102>
-
 		int iValue = 1 + g.getSorenRandNum(10000, "AI Patrol");
 		// <advc.309>
 		if(isAnimal())

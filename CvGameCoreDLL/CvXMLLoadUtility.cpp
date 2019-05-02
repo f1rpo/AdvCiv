@@ -61,7 +61,8 @@ void CvXMLLoadUtility::DestroyFXml()
 CvXMLLoadUtility::CvXMLLoadUtility() :
 m_iCurProgressStep(0),
 m_pCBFxn(NULL),
-m_pFXml(NULL)
+m_pFXml(NULL),
+m_bAssertMandatory(true) // advc.006b
 {
 	m_pSchemaCache = gDLL->getXMLIFace()->CreateFXmlSchemaCache();
 }

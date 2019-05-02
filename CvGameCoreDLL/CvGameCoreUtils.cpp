@@ -46,7 +46,7 @@ bool bernoulliSuccess(double pr, char const* pszLog, bool bAsync, int iData1, in
 		return true;
 	if(chancePerMyriad <= 0)
 		return false;
-	if(strlen(pszLog) <= 0)
+	if(pszLog != NULL && strlen(pszLog) <= 0)
 		pszLog = "bs";
 	if(bAsync)
 		return (GC.getASyncRand().get(10000, pszLog) < chancePerMyriad);

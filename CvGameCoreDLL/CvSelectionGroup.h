@@ -97,7 +97,7 @@ public:
 /************************************************************************************************/
 	int getBombardTurns( CvCity* pCity ) /* advc.003: */ const;
 	bool isHasPathToAreaPlayerCity( PlayerTypes ePlayer, int iFlags = 0, int iMaxPathTurns = -1 ) /* Erik (CODE1): */ const;
-	bool isHasPathToAreaEnemyCity( bool bIgnoreMinors = true, int iFlags = 0, int iMaxPathTurns = -1 ) /* Erik (CODE2): */ const;
+	bool isHasPathToAreaEnemyCity( bool bIgnoreMinors = true, int iFlags = 0, int iMaxPathTurns = -1 ) /* Erik (CODE1): */ const;
 	bool isStranded() const; // Note: K-Mod no longer uses the stranded cache. I have a new system.
 	//void invalidateIsStrandedCache(); // deleted by K-Mod
 	//bool calculateIsStranded();

@@ -92,13 +92,22 @@ public:
 	bool GetChildXmlValByName(int* piVal, const TCHAR* szName,
 			/*  advc.006b: Was 0. Instead use a value that no one wants to use so that
 				the callee can check if the param was set. */
-			int iDefault = INT_MIN);
+			int iDefault = MIN_INT);
 	// overloaded function that gets the child value of the tag with szName if there is only one child
 	// value of that name
-	bool GetChildXmlValByName(float* pfVal, const TCHAR* szName, float fDefault = 0.0f);
+	bool GetChildXmlValByName(float* pfVal, const TCHAR* szName,
+			float fDefault = FLT_MIN); // advc.006b: was 0.0f
 	// overloaded function that gets the child value of the tag with szName if there is only one child
 	// value of that name
-	bool GetChildXmlValByName(bool* pbVal, const TCHAR* szName, bool bDefault = false);
+	bool GetChildXmlValByName(bool* pbVal, const TCHAR* szName,
+			/*  advc.006b: Caller will have to set this to false to avoid an error
+				if szName isn't found */
+			bool bMandatory = true,
+			bool bDefault = false);
+	/*  advc.006b: Unused for now. Can use this to disable the assertions added to
+		GetChildXmlValByName temporarily, e.g. while loading a CvInfo element that
+		doesn't have tags which are normally mandatory. */
+	void setAssertMandatoryEnabled(bool b);
 
 	// loads an xml file into the FXml variable.  The szFilename parameter has
 	// the m_szXmlPath member variable pre-pended to it to form the full pathname
@@ -301,6 +310,9 @@ private:
 
 	void orderHotkeyInfo(int** ppiSortedIndex, int* pHotkeyIndex, int iLength);
 	void logMsg(char* format, ... );
+	// <advc.006b>
+	bool m_bAssertMandatory;
+	static CvString szAssertMsg; // </advc.006b>
 };
 
 #ifdef _USRDLL

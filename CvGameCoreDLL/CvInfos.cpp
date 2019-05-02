@@ -195,25 +195,25 @@ bool CvInfoBase::read(CvXMLLoadUtility* pXML)
 	pXML->MapChildren();	// try to hash children for fast lookup by name
 
 	// GRAPHICAL ONLY
-	pXML->GetChildXmlValByName(&m_bGraphicalOnly, "bGraphicalOnly");
+	pXML->GetChildXmlValByName(&m_bGraphicalOnly, "bGraphicalOnly", /* advc.006b: */ false);
 
 	// TYPE
-	pXML->GetChildXmlValByName(m_szType, "Type");
+	pXML->GetChildXmlValByName(m_szType, "Type", /* advc.006b: */ "");
 
 	// DESCRIPTION
-	pXML->GetChildXmlValByName(m_szTextKey, "Description");
+	pXML->GetChildXmlValByName(m_szTextKey, "Description", /* advc.006b: */ L"");
 
 	// CIVILOPEDIA
-	pXML->GetChildXmlValByName(m_szCivilopediaKey, "Civilopedia");
+	pXML->GetChildXmlValByName(m_szCivilopediaKey, "Civilopedia", /* advc.006b: */ L"");
 
 	// HELP
-	pXML->GetChildXmlValByName(m_szHelpKey, "Help");
+	pXML->GetChildXmlValByName(m_szHelpKey, "Help", /* advc.006b: */ L"");
 
 	// STRATEGY
-	pXML->GetChildXmlValByName(m_szStrategyKey, "Strategy");
+	pXML->GetChildXmlValByName(m_szStrategyKey, "Strategy", /* advc.006b: */ L"");
 
 	// BUTTON
-	pXML->GetChildXmlValByName(m_szButton, "Button");
+	pXML->GetChildXmlValByName(m_szButton, "Button", /* advc.006b: */ "");
 
 	return true;
 }
@@ -298,7 +298,7 @@ bool CvHotkeyInfo::read(CvXMLLoadUtility* pXML)
 		return false;
 	}
 
-	if (pXML->GetChildXmlValByName(szTextVal, "HotKey"))
+	if (pXML->GetChildXmlValByName(szTextVal, "HotKey", /* advc.006b: */ ""))
 	{
 		setHotKey(szTextVal);
 	}
@@ -308,8 +308,8 @@ bool CvHotkeyInfo::read(CvXMLLoadUtility* pXML)
 	}
 	iVal = pXML->GetHotKeyInt(szTextVal);
 	setHotKeyVal(iVal);
-	// advc.006b: Default param added
-	if (pXML->GetChildXmlValByName(&iVal, "iHotKeyPriority", -1))
+
+	if (pXML->GetChildXmlValByName(&iVal, "iHotKeyPriority", /* advc.006b: */ -1))
 	{
 		setHotKeyPriority(iVal);
 	}
@@ -318,7 +318,7 @@ bool CvHotkeyInfo::read(CvXMLLoadUtility* pXML)
 		setHotKeyPriority(-1);
 	}
 
-	if (pXML->GetChildXmlValByName(szTextVal, "HotKeyAlt"))
+	if (pXML->GetChildXmlValByName(szTextVal, "HotKeyAlt", /* advc.006b: */ ""))
 	{
 		iVal = pXML->GetHotKeyInt(szTextVal);
 	}
@@ -327,8 +327,8 @@ bool CvHotkeyInfo::read(CvXMLLoadUtility* pXML)
 		iVal = pXML->GetHotKeyInt("");
 	}
 	setHotKeyValAlt(iVal);
-	// advc.006b: Default param added
-	if (pXML->GetChildXmlValByName(&iVal, "iHotKeyPriorityAlt", -1))
+
+	if (pXML->GetChildXmlValByName(&iVal, "iHotKeyPriorityAlt", /* advc.006b: */ -1))
 	{
 		setHotKeyPriorityAlt(iVal);
 	}
@@ -337,7 +337,7 @@ bool CvHotkeyInfo::read(CvXMLLoadUtility* pXML)
 		setHotKeyPriorityAlt(-1);
 	}
 
-	if (pXML->GetChildXmlValByName(&bVal, "bAltDown"))
+	if (pXML->GetChildXmlValByName(&bVal, "bAltDown", /* advc.006b: */ false))
 	{
 		setAltDown(bVal);
 	}
@@ -345,7 +345,7 @@ bool CvHotkeyInfo::read(CvXMLLoadUtility* pXML)
 	{
 		setAltDown(false);
 	}
-	if (pXML->GetChildXmlValByName(&bVal, "bShiftDown"))
+	if (pXML->GetChildXmlValByName(&bVal, "bShiftDown", /* advc.006b: */ false))
 	{
 		setShiftDown(bVal);
 	}
@@ -353,7 +353,7 @@ bool CvHotkeyInfo::read(CvXMLLoadUtility* pXML)
 	{
 		setShiftDown(false);
 	}
-	if (pXML->GetChildXmlValByName(&bVal, "bCtrlDown"))
+	if (pXML->GetChildXmlValByName(&bVal, "bCtrlDown", /* advc.006b: */ false))
 	{
 		setCtrlDown(bVal);
 	}
@@ -362,7 +362,7 @@ bool CvHotkeyInfo::read(CvXMLLoadUtility* pXML)
 		setCtrlDown(false);
 	}
 
-	if (pXML->GetChildXmlValByName(&bVal, "bAltDownAlt"))
+	if (pXML->GetChildXmlValByName(&bVal, "bAltDownAlt", /* advc.006b: */ false))
 	{
 		setAltDownAlt(bVal);
 	}
@@ -370,7 +370,7 @@ bool CvHotkeyInfo::read(CvXMLLoadUtility* pXML)
 	{
 		setAltDownAlt(false);
 	}
-	if (pXML->GetChildXmlValByName(&bVal, "bShiftDownAlt"))
+	if (pXML->GetChildXmlValByName(&bVal, "bShiftDownAlt", /* advc.006b: */ false))
 	{
 		setShiftDownAlt(bVal);
 	}
@@ -378,7 +378,7 @@ bool CvHotkeyInfo::read(CvXMLLoadUtility* pXML)
 	{
 		setShiftDownAlt(false);
 	}
-	if (pXML->GetChildXmlValByName(&bVal, "bCtrlDownAlt"))
+	if (pXML->GetChildXmlValByName(&bVal, "bCtrlDownAlt", /* advc.006b: */ false))
 	{
 		setCtrlDownAlt(bVal);
 	}
@@ -386,8 +386,8 @@ bool CvHotkeyInfo::read(CvXMLLoadUtility* pXML)
 	{
 		setCtrlDownAlt(false);
 	}
-	// advc.006b: Default param added
-	if (pXML->GetChildXmlValByName(&iVal, "iOrderPriority", 0))
+
+	if (pXML->GetChildXmlValByName(&iVal, "iOrderPriority", /* advc.006b: */ 0))
 	{
 		setOrderPriority(iVal);
 	}
@@ -2361,9 +2361,9 @@ bool CvMissionInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_bSound, "bSound");
 	pXML->GetChildXmlValByName(&m_bTarget, "bTarget");
 	pXML->GetChildXmlValByName(&m_bBuild, "bBuild");
-	pXML->GetChildXmlValByName(&m_bVisible, "bVisible");
+	pXML->GetChildXmlValByName(&m_bVisible, "bVisible", /* advc.006b: */ false);
 
-	if ( pXML->GetChildXmlValByName(szTmp, "EntityEventType") )
+	if ( pXML->GetChildXmlValByName(szTmp, "EntityEventType", /* advc.006b: */ "") )
 	{
 		m_eEntityEvent = (EntityEventTypes)pXML->FindInInfoClass(szTmp);
 	}
@@ -2474,14 +2474,14 @@ bool CvCommandInfo::read(CvXMLLoadUtility* pXML)
 		return false;
 	}
 
-	if (pXML->GetChildXmlValByName(szTextVal, "Automate"))
+	if (pXML->GetChildXmlValByName(szTextVal, "Automate", /* advc.006b: */ ""))
 	{		
 		setAutomate(GC.getTypesEnum(szTextVal));
 	}
 
-	pXML->GetChildXmlValByName(&m_bConfirmCommand, "bConfirmCommand");
-	pXML->GetChildXmlValByName(&m_bVisible, "bVisible");
-	pXML->GetChildXmlValByName(&m_bAll, "bAll");
+	pXML->GetChildXmlValByName(&m_bConfirmCommand, "bConfirmCommand", /* advc.006b: */ false);
+	pXML->GetChildXmlValByName(&m_bVisible, "bVisible", /* advc.006b: */ false);
+	pXML->GetChildXmlValByName(&m_bAll, "bAll", /* advc.006b: */ false);
 
 	return true;
 }
@@ -2560,7 +2560,7 @@ bool CvAutomateInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(szTextVal, "Automate");
 	setAutomate(GC.getTypesEnum(szTextVal));
 
-	pXML->GetChildXmlValByName(&m_bConfirmCommand, "bConfirmCommand");
+	pXML->GetChildXmlValByName(&m_bConfirmCommand, "bConfirmCommand", /* advc.006b: */ false);
 	pXML->GetChildXmlValByName(&m_bVisible, "bVisible");
 
 	return true;
@@ -5097,6 +5097,8 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 	{
 		pXML->GetChildXmlValByName( &m_iGroupSize, "iGroupSize");
 		m_iGroupDefinitions = iIndexVal = gDLL->getXMLIFace()->NumOfChildrenByTagName(pXML->GetXML(), "UnitMeshGroup");
+		// advc.006b: GetChildXmlValByName can't handle comments. Assert added to warn about that.
+		FAssertMsg(m_iGroupDefinitions > 0, "XML comment inside UnitMeshGroups?");
 		m_piUnitGroupRequired = new int[ iIndexVal ];
 		pXML->GetChildXmlValByName( &m_iUnitMeleeWaveSize, "iMeleeWaveSize" );
 		pXML->GetChildXmlValByName( &m_iUnitRangedWaveSize, "iRangedWaveSize" );
@@ -5113,9 +5115,9 @@ bool CvUnitInfo::read(CvXMLLoadUtility* pXML)
 				pXML->GetChildXmlValByName( &m_piUnitGroupRequired[k], "iRequired");
 				pXML->GetChildXmlValByName(szTextVal, "EarlyArtDefineTag");
 				setEarlyArtDefineTag(k, szTextVal);
-				pXML->GetChildXmlValByName(szTextVal, "LateArtDefineTag");
+				pXML->GetChildXmlValByName(szTextVal, "LateArtDefineTag", /* advc.006b: */ "");
 				setLateArtDefineTag(k, szTextVal);
-				pXML->GetChildXmlValByName(szTextVal, "MiddleArtDefineTag");
+				pXML->GetChildXmlValByName(szTextVal, "MiddleArtDefineTag", /* advc.006b: */ "");
 				setMiddleArtDefineTag(k, szTextVal);
 				gDLL->getXMLIFace()->NextSibling(pXML->GetXML());
 			}
@@ -6452,7 +6454,8 @@ bool CvDiplomacyInfo::read(CvXMLLoadUtility* pXML)
 	if ( gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"Responses") )
 	{
 		int iNewResponses = gDLL->getXMLIFace()->NumOfChildrenByTagName(pXML->GetXML(), "Response");
-
+		// advc.006b: GetChildXmlValByName can't handle comments
+		FAssertMsg(iNewResponses > 0, "XML comment inside Responses?");
 		gDLL->getXMLIFace()->SetToChild(pXML->GetXML());
 
 		for (i = 0; i < iNewResponses; i++)
@@ -9765,7 +9768,8 @@ bool CvCivilizationInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(szTextVal, "ArtStyleType");
 	m_iArtStyleType = GC.getTypesEnum(szTextVal);
 
-	pXML->GetChildXmlValByName(szTextVal, "UnitArtStyleType");
+	pXML->GetChildXmlValByName(szTextVal, "UnitArtStyleType",
+			""); // advc.006b: Barbarians and Minor Civs don't have one
 	m_iUnitArtStyleType = pXML->FindInInfoClass(szTextVal);
 
 	pXML->GetChildXmlValByName(szTextVal, "CivilizationSelectionSound");
@@ -12542,7 +12546,7 @@ bool CvImprovementInfo::read(CvXMLLoadUtility* pXML)
 		gDLL->getXMLIFace()->SetToParent(pXML->GetXML());
 	}
 
-	pXML->GetChildXmlValByName(szTextVal, "WorldSoundscapeAudioScript");
+	pXML->GetChildXmlValByName(szTextVal, "WorldSoundscapeAudioScript", /* advc.006b: */ "");
 	if ( szTextVal.GetLength() > 0 )
 		m_iWorldSoundscapeScriptId = gDLL->getAudioTagIndex( szTextVal.GetCString(), AUDIOTAG_SOUNDSCAPE );
 	else
@@ -13412,15 +13416,10 @@ bool CvFeatureInfo::read(CvXMLLoadUtility* pXML)
 
 	pXML->SetVariableListTagPairForAudioScripts(&m_pi3DAudioScriptFootstepIndex, "FootstepSounds", GC.getFootstepAudioTypes(), GC.getNumFootstepAudioTypes());
 
-	pXML->GetChildXmlValByName(szTextVal, "WorldSoundscapeAudioScript");
+	pXML->GetChildXmlValByName(szTextVal, "WorldSoundscapeAudioScript", /* advc.006b: */ "");
 	if ( szTextVal.GetLength() > 0 )
-	{
 		m_iWorldSoundscapeScriptId = gDLL->getAudioTagIndex( szTextVal.GetCString(), AUDIOTAG_SOUNDSCAPE );
-	}
-	else
-	{
-		m_iWorldSoundscapeScriptId = -1;
-	}
+	else m_iWorldSoundscapeScriptId = -1;
 
 	pXML->GetChildXmlValByName(m_szEffectType, "EffectType");
 	pXML->GetChildXmlValByName(&m_iEffectProbability, "iEffectProbability");
@@ -13878,7 +13877,7 @@ bool CvTerrainInfo::read(CvXMLLoadUtility* pXML)
 
 	pXML->SetVariableListTagPairForAudioScripts(&m_pi3DAudioScriptFootstepIndex, "FootstepSounds", GC.getFootstepAudioTypes(), GC.getNumFootstepAudioTypes());
 
-	pXML->GetChildXmlValByName(szTextVal, "WorldSoundscapeAudioScript");
+	pXML->GetChildXmlValByName(szTextVal, "WorldSoundscapeAudioScript", /* advc.006b: */ "");
 	if ( szTextVal.GetLength() > 0 )
 		m_iWorldSoundscapeScriptId = gDLL->getAudioTagIndex( szTextVal.GetCString(), AUDIOTAG_SOUNDSCAPE );
 	else
@@ -14058,7 +14057,8 @@ bool CvAdvisorInfo::read(CvXMLLoadUtility* pXML)
 		return false;
 	}
 
-	pXML->GetChildXmlValByName(szTextVal, "Texture");
+	pXML->GetChildXmlValByName(szTextVal, "Texture",
+			""); // advc.006b: Actually, none of them has a texture.
 	setTexture( szTextVal );
 
 	gDLL->getXMLIFace()->SetToChild( pXML->GetXML() );
@@ -17539,7 +17539,7 @@ bool CvAnimationPathInfo::read(CvXMLLoadUtility* pXML)
 	gDLL->getXMLIFace()->NextSibling(pXML->GetXML());
 	do
 	{
-		if ( pXML->GetChildXmlValByName( szTempString, _T("Category") ))
+		if ( pXML->GetChildXmlValByName( szTempString, _T("Category"), /* advc.006b: */ ""))
 		{
 			iCurrentCategory = pXML->FindInInfoClass( szTempString);
 			fParameter = 0.0f;
@@ -17776,7 +17776,7 @@ bool CvAssetInfoBase::read(CvXMLLoadUtility* pXML)
 		return false;
 	}
 
-	pXML->GetChildXmlValByName(szTextVal, "Path");
+	pXML->GetChildXmlValByName(szTextVal, "Path", /* advc.006b: */ "");
 	setPath(szTextVal);
 
 	return true;	
@@ -17814,10 +17814,10 @@ bool CvArtInfoAsset::read(CvXMLLoadUtility* pXML)
 		return false;
 	}
 
-	pXML->GetChildXmlValByName(szTextVal, "NIF");
+	pXML->GetChildXmlValByName(szTextVal, "NIF", /* advc.006b: */ "");
 	setNIF(szTextVal);
 
-	pXML->GetChildXmlValByName(szTextVal, "KFM");
+	pXML->GetChildXmlValByName(szTextVal, "KFM", /* advc.006b: */ "");
 	setKFM(szTextVal);
 
 
@@ -17836,7 +17836,7 @@ bool CvArtInfoBonus::read(CvXMLLoadUtility* pXML)
 	}
 
 	CvString szTextVal;
-	pXML->GetChildXmlValByName(szTextVal, "SHADERNIF");
+	pXML->GetChildXmlValByName(szTextVal, "SHADERNIF", /* advc.006b: */ "");
 	setShaderNIF(szTextVal);
 
 	pXML->GetChildXmlValByName(&m_iFontButtonIndex, "FontButtonIndex");
@@ -18023,14 +18023,14 @@ bool CvArtInfoUnit::read(CvXMLLoadUtility* pXML)
 
 	CvString szTextVal;
 
-	pXML->GetChildXmlValByName(szTextVal, "ActionSound");
+	pXML->GetChildXmlValByName(szTextVal, "ActionSound", /* advc.006b: */ "");
 	m_iActionSoundScriptId = (szTextVal.GetLength() > 0) ? gDLL->getAudioTagIndex( szTextVal.GetCString(), AUDIOTAG_3DSCRIPT ) : -1;
-	pXML->GetChildXmlValByName(szTextVal, "SelectionSound");
+	pXML->GetChildXmlValByName(szTextVal, "SelectionSound", /* advc.006b: */ "");
 	m_iSelectionSoundScriptId = (szTextVal.GetLength() > 0) ? gDLL->getAudioTagIndex( szTextVal.GetCString(), AUDIOTAG_3DSCRIPT ) : -1;
-	pXML->GetChildXmlValByName(szTextVal, "PatrolSound");
+	pXML->GetChildXmlValByName(szTextVal, "PatrolSound", /* advc.006b: */ "");
 	m_iPatrolSoundTag = (szTextVal.GetLength() > 0) ? gDLL->getAudioTagIndex( szTextVal.GetCString(), AUDIOTAG_3DSCRIPT ) : -1;
 
-	pXML->GetChildXmlValByName(szTextVal, "TrainSound");
+	pXML->GetChildXmlValByName(szTextVal, "TrainSound", /* advc.006b: */ "");
 	setTrainSound(szTextVal);
 
 	pXML->GetChildXmlValByName(&m_bActAsRanged, "bActAsRanged" );
@@ -18042,7 +18042,7 @@ bool CvArtInfoUnit::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_fAngleInterRate, "fAngleInterpRate", FLT_MAX );
 	pXML->GetChildXmlValByName(&m_fBankRate, "fBankRate", 0 );
 
-	pXML->GetChildXmlValByName(szTextVal, "SHADERNIF");
+	pXML->GetChildXmlValByName(szTextVal, "SHADERNIF", /* advc.006b: */ "");
 	setShaderNIF(szTextVal);
 
 	if ( gDLL->getXMLIFace()->SetToChildByTagName( pXML->GetXML(), "ShadowDef" ))
@@ -18266,7 +18266,7 @@ bool CvArtInfoImprovement::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_bExtraAnimations, "bExtraAnimations");
 
 	CvString szTextVal;
-	pXML->GetChildXmlValByName(szTextVal, "SHADERNIF");
+	pXML->GetChildXmlValByName(szTextVal, "SHADERNIF", /* advc.006b: */ "");
 	setShaderNIF(szTextVal);
 
 	return true;
@@ -19507,7 +19507,7 @@ bool CvGameText::read(CvXMLLoadUtility* pXML, const std::string& language_name)
 	if (bValid)
 	{
 		// TEXT
-		if (pXML->GetChildXmlValByName(wszTextVal, "Text"))
+		if (pXML->GetChildXmlValByName(wszTextVal, "Text", /* advc.006b: */ L""))
 		{
 			setText(wszTextVal);
 		}
@@ -19518,13 +19518,13 @@ bool CvGameText::read(CvXMLLoadUtility* pXML, const std::string& language_name)
 		}
 
 		// GENDER
-		if (pXML->GetChildXmlValByName(wszTextVal, "Gender"))
+		if (pXML->GetChildXmlValByName(wszTextVal, "Gender", /* advc.006b: */ L""))
 		{
 			setGender(wszTextVal);
 		}
 
 		// PLURAL
-		if (pXML->GetChildXmlValByName(wszTextVal, "Plural"))
+		if (pXML->GetChildXmlValByName(wszTextVal, "Plural", /* advc.006b: */ L""))
 		{
 			setPlural(wszTextVal);
 		}
@@ -19703,6 +19703,8 @@ bool CvDiplomacyTextInfo::read(CvXMLLoadUtility* pXML)
 	if ( gDLL->getXMLIFace()->SetToChildByTagName(pXML->GetXML(),"Responses") )
 	{
 		int iIndexVal = gDLL->getXMLIFace()->NumOfChildrenByTagName(pXML->GetXML(), "Response");
+		// advc.006b: GetChildXmlValByName can't handle comments
+		FAssertMsg(iIndexVal > 0, "XML comment inside Responses?");
 		init(iIndexVal);
 
 		for (j = 0; j < iIndexVal; j++)
@@ -19778,8 +19780,8 @@ bool CvEffectInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&iTemporary, "bIsProjectile" );
 	m_bProjectile = iTemporary != 0;
 
-	pXML->GetChildXmlValByName(&m_fProjectileSpeed, "fSpeed" );
-	pXML->GetChildXmlValByName(&m_fProjectileArc, "fArcValue" );
+	pXML->GetChildXmlValByName(&m_fProjectileSpeed, "fSpeed", /* advc.006b: */ 0);
+	pXML->GetChildXmlValByName(&m_fProjectileArc, "fArcValue", /* advc.006b: */ 0);
 	pXML->GetChildXmlValByName(&m_bSticky, "bSticky", false );
 	return true;
 }
@@ -20164,7 +20166,7 @@ bool CvTutorialInfo::read(CvXMLLoadUtility* pXML)
 	CvString szTextVal;
 
 	pXML->MapChildren();	// try to hash children for fast lookup by name
-	if (pXML->GetChildXmlValByName(szTextVal, "NextTutorialInfoType"))
+	if (pXML->GetChildXmlValByName(szTextVal, "NextTutorialInfoType", /* advc.006b: */ ""))
 	{
 		setNextTutorialInfoType(szTextVal);
 	}
