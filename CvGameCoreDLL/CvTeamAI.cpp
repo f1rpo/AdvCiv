@@ -200,7 +200,7 @@ void CvTeamAI::AI_doTurnPost()
 		} // K-Mod end
 	}
 	// <advc.109>
-	if(!isBarbarian() && !isMinorCiv() && getCurrentEra() > GC.getGame().getStartEra()) {
+	if(!isBarbarian() && !isMinorCiv() && getCurrentEra() > GC.getGameINLINE().getStartEra()) {
 		// Civs who haven't met half their competitors (rounded down) are lonely
 		int iHasMet = getHasMetCivCount(false);
 		int iYetToMeet = GC.getGameINLINE().countCivTeamsAlive() - iHasMet;
@@ -1948,7 +1948,7 @@ int CvTeamAI::AI_warDiplomacyCost(TeamTypes eTarget) const
 	// so that this diplomacy stuff doesn't become huge relative to other parts of the war evaluation.
 	iDiploCost *= 3;
 	iDiploCost /= std::max(5,
-			GC.getGame().getRecommendedPlayers() // advc.137
+			GC.getGameINLINE().getRecommendedPlayers() // advc.137
 			//GC.getWorldInfo((WorldSizeTypes)GC.getMapINLINE().getWorldSize()).getDefaultPlayers()
 		);
 
@@ -6040,7 +6040,7 @@ WarAndPeaceAI::Team& CvTeamAI::warAndPeaceAI() {
 bool CvTeamAI::AI_isPursuingCircumnavigation() const {
 
 	//PROFILE_FUNC(); // No problem at all it seems
-	if(!GC.getGame().circumnavigationAvailable())
+	if(!GC.getGameINLINE().circumnavigationAvailable())
 		return false;
 	for(int i = 0; i < GC.getNumUnitInfos(); i++) {
 		UnitTypes uId = (UnitTypes)i;
@@ -6957,7 +6957,7 @@ int CvTeamAI::AI_getTechMonopolyValue(TechTypes eTech, TeamTypes eTeam) const
 						break;
 
 					case UNITAI_EXPLORE_SEA:
-						iValue += GC.getGame().circumnavigationAvailable() ? 100 : 0;
+						iValue += GC.getGameINLINE().circumnavigationAvailable() ? 100 : 0;
 						break;
 
 					case UNITAI_ASSAULT_SEA:

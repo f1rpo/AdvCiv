@@ -64,7 +64,7 @@ protected:
 	WarAndPeaceReport& report;
 	int numRivals; // Civs presently alive, not on our team, non-vassal
 	int numKnownRivals; // Like above, but only those met by agent
-	// So that subclasses don't need to call GC.getGame().getCurrentEra() repeatedly:
+	// So that subclasses don't need to call GC.getGameINLINE().getCurrentEra() repeatedly:
 	EraTypes gameEra;
 
 	/*  Subclasses must not access these members until evaluate(m)

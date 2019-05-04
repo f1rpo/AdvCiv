@@ -1529,7 +1529,7 @@ void CvPlayer::initFreeState()
 {
 	setGold(0);
 
-	if(!GC.getGame().isOption(GAMEOPTION_ADVANCED_START)) // advc.250c
+	if(!GC.getGameINLINE().isOption(GAMEOPTION_ADVANCED_START)) // advc.250c
 		changeGold(GC.getHandicapInfo(getHandicapType()).getStartingGold());
 	changeGold(GC.getEraInfo(GC.getGameINLINE().getStartEra()).getStartingGold());
 
@@ -11461,7 +11461,7 @@ void CvPlayer::setAlive(bool bNewValue)
 			}
 		}
 	}
-	CvGame& g = GC.getGame(); // advc.003
+	CvGame& g = GC.getGameINLINE();
 	g.setScoreDirty(true);
 	// <advc.700>
 	if(g.isOption(GAMEOPTION_RISE_FALL))
@@ -14577,7 +14577,7 @@ void CvPlayer::postProcessMessages() {
 			}
 		}
 	}
-	if(!GC.getGame().getAIAutoPlay() && iLimit >= 0 && (m_iNewMessages > iLimit ||
+	if(!GC.getGameINLINE().getAIAutoPlay() && iLimit >= 0 && (m_iNewMessages > iLimit ||
 			(m_iNewMessages > 0 && (bRelevantDiplo ||
 			/*  Hotseat seems to show messages only if there hasn't been another
 				human turn since the message was triggered (can't check that here;
@@ -14597,7 +14597,7 @@ void CvPlayer::postProcessMessages() {
 	for(size_t i = 0; i < m_aMajorMsgs.size(); i++)
 		SAFE_DELETE(m_aMajorMsgs[i]);
 	m_aMajorMsgs.clear();
-	GC.getGame().setAITurn(false);
+	GC.getGameINLINE().setAITurn(false);
 }
 
 int CvPlayer::getStartOfTurnMessageLimit() const {
@@ -16504,7 +16504,7 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 	{
 		if (pPlot)
 		{
-			if (pPlot->isVisible(GC.getGame().getActiveTeam(), false))
+			if (pPlot->isVisible(GC.getGameINLINE().getActiveTeam(), false))
 			{
 				EffectTypes eEffect = GC.getEntityEventInfo(GC.getMissionInfo(MISSION_BOMBARD).getEntityEvent()).getEffectType();
 				gDLL->getEngineIFace()->TriggerEffect(eEffect, pPlot->getPoint(), (float)(GC.getASyncRand().get(360)));
@@ -18095,7 +18095,7 @@ int CvPlayer::getAdvancedStartVisibilityCost(bool bAdd, CvPlot* pPlot) const
 int CvPlayer::adjustAdvStartPtsToSpeed(int pts) {
 
 	pts *= 100;
-	return std::max(0, pts / GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).
+	return std::max(0, pts / GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).
 			getGrowthPercent());
 } // </advc.250c>
 
@@ -24075,7 +24075,7 @@ void CvPlayer::updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& o
 		}
 
 		// Don't show technologies with no tech trading game option 
-		if (GC.getGame().isOption(GAMEOPTION_NO_TECH_TRADING) && pNode->m_data.m_eItemType == TRADE_TECHNOLOGIES)
+		if (GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_TRADING) && pNode->m_data.m_eItemType == TRADE_TECHNOLOGIES)
 		{
 			pNode->m_data.m_bHidden = true;
 		}
@@ -24558,14 +24558,14 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption, std
 	for (int iI = 0; iI < m.numPlotsINLINE(); iI++)
 	{
 		CvPlot* pLoopPlot = m.plotByIndexINLINE(iI);
-		// <advc.003>
 		if(!pLoopPlot->isRevealed(getTeam(), true))
-			continue; // </advc.003>
-		BonusTypes eCurType = pLoopPlot->getBonusType((GC.getGame().isDebugMode()) ? NO_TEAM : getTeam());
+			continue;
+		BonusTypes eLoopBonus = pLoopPlot->getBonusType(
+				(GC.getGameINLINE().isDebugMode()) ? NO_TEAM : getTeam());
 		bool bOfInterest = false; // advc.004z
-		if (eCurType != NO_BONUS)
+		if (eLoopBonus != NO_BONUS)
 		{
-			CvBonusInfo& kBonusInfo = GC.getBonusInfo(eCurType);
+			CvBonusInfo& kBonusInfo = GC.getBonusInfo(eLoopBonus);
 			switch (eOption)
 			{
 			case SHOW_ALL_RESOURCES:
@@ -24596,9 +24596,9 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption, std
 			kData.m_strLabel = "RESOURCES";
 			kData.m_eVisibility = PLOT_INDICATOR_VISIBLE_ONSCREEN_ONLY;
 			kData.m_strIcon = // <advc.004z>
-					(eCurType == NO_BONUS ? GC.getImprovementInfo(impr).
+					(eLoopBonus == NO_BONUS ? GC.getImprovementInfo(impr).
 					getButton() // </advc.004z>
-					: GC.getBonusInfo(eCurType).getButton());
+					: GC.getBonusInfo(eLoopBonus).getButton());
 
 			int x = pLoopPlot->getX();
 			int y = pLoopPlot->getY();
@@ -24621,17 +24621,17 @@ void CvPlayer::getResourceLayerColors(GlobeLayerResourceOptionTypes eOption, std
 
 			szBuffer.clear();
 			// <advc.004z>
-			if(eCurType == NO_BONUS)
+			if(eLoopBonus == NO_BONUS)
 				GAMETEXT.setImprovementHelp(szBuffer, pLoopPlot->getImprovementType());
 			else { // </advc.004z>
 				//GAMETEXT.setBonusHelp(szBuffer, eCurType, false);
 				// <advc.003p> Replacing the above
-				if(m_aszBonusHelp[eCurType] != NULL)
-					szBuffer.append(*m_aszBonusHelp[eCurType]);
+				if(m_aszBonusHelp[eLoopBonus] != NULL)
+					szBuffer.append(*m_aszBonusHelp[eLoopBonus]);
 				else {
 					CvWStringBuffer szTempBuffer;
-					GAMETEXT.setBonusHelp(szTempBuffer, eCurType, false);
-					m_aszBonusHelp[eCurType] = new CvWString(szTempBuffer.getCString());
+					GAMETEXT.setBonusHelp(szTempBuffer, eLoopBonus, false);
+					m_aszBonusHelp[eLoopBonus] = new CvWString(szTempBuffer.getCString());
 					szBuffer.append(szTempBuffer);
 				}
 			} // </advc.003p>

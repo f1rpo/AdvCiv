@@ -899,7 +899,7 @@ int CvMapGenerator::placeGroup(BonusTypes eBonusType, CvPlot const& center,
 	int* shuffl = new int[sz];
 	for(int i = 0; i < sz; i++)
 		shuffl[i] = i;
-	::shuffleArray(shuffl, sz, GC.getGame().getMapRand());
+	::shuffleArray(shuffl, sz, GC.getGameINLINE().getMapRand());
 	for(int j = 0; j < sz && limit > 0; j++) {
 		int prPercent = pBonusInfo.getGroupRand();
 		prPercent = ::round(prPercent * std::pow(2/3.0, placed));

@@ -720,7 +720,7 @@ CvPlot* CvMap::syncRandPlot(int iFlags, int iArea, int iMinUnitDistance, int iTi
 		*iLegal = nLegal;
     if(nLegal == 0)
         return NULL;
-    return legalPlots[GC.getGame().getSorenRandNum(nLegal, "advc.304")];
+    return legalPlots[GC.getGameINLINE().getSorenRandNum(nLegal, "advc.304")];
 	// </advc.304>
 }
 

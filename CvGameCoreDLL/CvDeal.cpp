@@ -1226,7 +1226,7 @@ void CvDeal::startTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes
 							{
 								theirList.insertAtEnd(item);
 							}
-							GC.getGame().implementDeal((PlayerTypes)iI, (PlayerTypes)iJ, &ourList, &theirList);
+							GC.getGameINLINE().implementDeal((PlayerTypes)iI, (PlayerTypes)iJ, &ourList, &theirList);
 						}
 					}
 				}

@@ -4610,7 +4610,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 					/*  It's hard to measure an instant boost with units of
 						commerce per turn... So I'm just going to divide it by
 						(k146) ~12.5, scaled by game speed */
-					iValue += iTechValue * 8 / GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getResearchPercent();
+					iValue += iTechValue * 8 / GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getResearchPercent();
 				}
 				// else: If there is nothing to research, a free tech is worthless.
 			}
@@ -5515,7 +5515,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 						{
 							if (kOwner.hasHeadquarters((CorporationTypes)iCorp))
 							{
-								if (GC.getGame().isCompetingCorporation(eCorporation, (CorporationTypes)iCorp))
+								if (GC.getGameINLINE().isCompetingCorporation(eCorporation, (CorporationTypes)iCorp))
 								{
 									// This new corp is no good to us if our competing corp is already better.
 									// note: evaluation of the competing corp for this particular city is ok.
@@ -6598,7 +6598,7 @@ int CvCityAI::AI_minDefenders()
     if(iExtraDefenderEra >= 0 && iEra >= iExtraDefenderEra)  // </advc.107>
 		iDefenders++;
 
-	if (iEra - GC.getGame().getStartEra() / 2 >= GC.getNumEraInfos() / 2 && isCoastal(
+	if (iEra - GC.getGameINLINE().getStartEra() / 2 >= GC.getNumEraInfos() / 2 && isCoastal(
 			// advc.107: A small water area doesn't justify an extra defender
 			2 * GC.getMIN_WATER_SIZE_FOR_OCEAN()))
 		iDefenders++;
@@ -7140,7 +7140,7 @@ int CvCityAI::AI_clearFeatureValue(int iIndex)
 	{
 		iValue -= kFeatureInfo.getDefenseModifier()/2;
 	}
-	if (GC.getGame().getGwEventTally() >= 0) // if GW Threshold has been reached
+	if (GC.getGameINLINE().getGwEventTally() >= 0) // if GW Threshold has been reached
 	{
 		iValue += kFeatureInfo.getWarmingDefense() * (150 + 5 * GET_PLAYER(getOwner()).getGwPercentAnger()) / 100;
 	}
@@ -9049,9 +9049,9 @@ bool CvCityAI::AI_chooseLeastRepresentedUnit(UnitTypeWeightArray &allowedTypes, 
 
 bool CvCityAI::AI_bestSpreadUnit(bool bMissionary, bool bExecutive, int iBaseChance, UnitTypes* eBestSpreadUnit, int* iBestSpreadUnitValue)
 {
-	CvPlayerAI& kPlayer = GET_PLAYER(getOwnerINLINE());
-	CvTeamAI& kTeam = GET_TEAM(getTeam());
-	CvGame& kGame = GC.getGame();
+	CvPlayerAI const& kPlayer = GET_PLAYER(getOwnerINLINE());
+	CvTeamAI const& kTeam = GET_TEAM(getTeam());
+	CvGame& kGame = GC.getGameINLINE();
 	
 	FAssert(eBestSpreadUnit != NULL && iBestSpreadUnitValue != NULL);
 
@@ -11549,7 +11549,7 @@ bool CvCityAI::AI_doPanic()
 			}
 			else
 			{
-				if ((GC.getGame().getSorenRandNum(2, "AI choose panic unit") == 0) && AI_chooseUnit(UNITAI_CITY_COUNTER))
+				if ((GC.getGameINLINE().getSorenRandNum(2, "AI choose panic unit") == 0) && AI_chooseUnit(UNITAI_CITY_COUNTER))
 				{
 					AI_doHurry((iRatio > 140));	
 				}
@@ -11675,7 +11675,7 @@ void CvCityAI::AI_buildGovernorChooseProduction()
 			if (kBestBuilding.getCommerceChange(COMMERCE_CULTURE) + kBestBuilding.getObsoleteSafeCommerceChange(COMMERCE_CULTURE) > 0
 				&& (GC.getNumCultureLevelInfos() < 2 ||
 				getProductionTurnsLeft(eBestBuilding, 0) <=
-				GC.getGame().getCultureThreshold((CultureLevelTypes)2)))
+				GC.getGameINLINE().getCultureThreshold((CultureLevelTypes)2)))
 			{
 				pushOrder(ORDER_CONSTRUCT, eBestBuilding);
 				return;
@@ -12099,7 +12099,7 @@ int CvCityAI::AI_calculateWaterWorldPercent()
 	}
 	else
 	{
-		iWaterPercent = 100 - ((iTeamCityCount + iOtherCityCount) * 100) / std::max(1, (GC.getGame().getNumCities()));
+		iWaterPercent = 100 - ((iTeamCityCount + iOtherCityCount) * 100) / std::max(1, (GC.getGameINLINE().getNumCities()));
 	}
 
 	iWaterPercent *= 50;
@@ -12733,7 +12733,7 @@ int CvCityAI::AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance,
 	FAssert(GET_PLAYER(eIndex).isAlive());
 
 	int r = m_aiPlayerCloseness[eIndex];
-	if ((m_iCachePlayerClosenessTurn != GC.getGame().getGameTurn()
+	if ((m_iCachePlayerClosenessTurn != GC.getGameINLINE().getGameTurn()
 			|| m_iCachePlayerClosenessDistance != iMaxDistance)) {
 		r = AI_calculatePlayerCloseness(iMaxDistance,
 				eIndex, bConstCache); // advc.001n
@@ -12810,7 +12810,7 @@ int CvCityAI::AI_calculatePlayerCloseness(int iMaxDistance, // advc.003: some st
 	} // BETTER_BTS_AI_MOD: END
 	if(!bConstCache) // </advc.001n>
 	{
-		m_iCachePlayerClosenessTurn = GC.getGame().getGameTurn();	
+		m_iCachePlayerClosenessTurn = GC.getGameINLINE().getGameTurn();	
 		m_iCachePlayerClosenessDistance = iMaxDistance;
 	}
 	return r; // advc.001n

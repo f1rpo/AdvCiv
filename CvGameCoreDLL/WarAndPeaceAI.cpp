@@ -2049,7 +2049,7 @@ void WarAndPeaceAI::Team::startReport() {
 	report = new WarAndPeaceReport(!doReport);
 	if(!doReport)
 		return;
-	int year = GC.getGame().getGameTurnYear();
+	int year = GC.getGameINLINE().getGameTurnYear();
 	report->log("h3.");
 	report->log("Year %d, %s:", year, report->teamName(agentId));
 	for(size_t i = 0; i < members.size(); i++)
@@ -2723,7 +2723,7 @@ double WarAndPeaceAI::Civ::humanBuildUnitProb() const {
 	double r = 0.25; // 30 is about average, Gandhi 15
 	if(human.getCurrentEra() == 0)
 		r += 0.1;
-	if(GC.getGame().isOption(GAMEOPTION_RAGING_BARBARIANS) &&
+	if(GC.getGameINLINE().isOption(GAMEOPTION_RAGING_BARBARIANS) &&
 			human.getCurrentEra() <= 2)
 		r += 0.05;
 	return r;

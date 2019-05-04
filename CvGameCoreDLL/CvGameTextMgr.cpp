@@ -7207,7 +7207,7 @@ void CvGameTextMgr::parseSpecialistHelp(CvWStringBuffer &szHelpString, Specialis
 
 // BUG - Specialist Actual Effects - start
 		if (pCity && (GC.altKey() || getBugOptionBOOL("MiscHover__SpecialistActualEffects", false)) &&
-				(pCity->getOwnerINLINE() == GC.getGame().getActivePlayer() ||
+				(pCity->getOwnerINLINE() == GC.getGameINLINE().getActivePlayer() ||
 				//gDLL->getChtLvl() > 0))
 				GC.getGameINLINE().isDebugMode())) // advc.135c
 		{
@@ -9414,7 +9414,7 @@ void CvGameTextMgr::setBasicUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit,
 			if (u.getBuilds(iI))
 			{	// <advc.004w>
 				TechTypes tech = (TechTypes)GC.getBuildInfo((BuildTypes)iI).getTechPrereq();
-				PlayerTypes ePlayer = GC.getGame().getActivePlayer();
+				PlayerTypes ePlayer = GC.getGameINLINE().getActivePlayer();
 				if(tech != NO_TECH && ePlayer != NO_PLAYER && GC.getTechInfo(tech).
 						getEra() - GET_PLAYER(ePlayer).getCurrentEra() > 1)
 					continue; // </advc.004w>
@@ -10349,7 +10349,7 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 	CvWString szTempBuffer;
 
 	// <advc.003>
-	CvGame& g = GC.getGame();
+	CvGame const& g = GC.getGameINLINE();
 	CvBuildingInfo& kBuilding = GC.getBuildingInfo(eBuilding);
 	PlayerTypes ePlayer = NO_PLAYER;
 	if(pCity != NULL)
@@ -17068,7 +17068,7 @@ void CvGameTextMgr::setProductionHelp(CvWStringBuffer &szBuffer, CvCity const& c
 				iFromChopsUnused));
 	} // </advc.064b>
 	// BUG - Building Additional Production - start
-	if (bBuildingAdditionalYield && city.getOwnerINLINE() == GC.getGame().getActivePlayer())
+	if (bBuildingAdditionalYield && city.getOwnerINLINE() == GC.getGameINLINE().getActivePlayer())
 		setBuildingAdditionalYieldHelp(szBuffer, city, YIELD_PRODUCTION, DOUBLE_SEPARATOR);
 	// BUG - Building Additional Production - end
 }
@@ -17192,7 +17192,7 @@ void CvGameTextMgr::parseWarTradesHelp(CvWStringBuffer& szBuffer,
 
 	/*  Same checks as in getAttitudeText (AttitudeUtil.py), which displays
 		the fist icon. */
-	PlayerTypes activeId = GC.getGame().getActivePlayer();
+	PlayerTypes activeId = GC.getGameINLINE().getActivePlayer();
 	if(TEAMID(eOtherPlayer) == TEAMID(activeId) ||
 			eOtherPlayer == NO_PLAYER || TEAMID(eThisPlayer) == TEAMID(activeId) ||
 			TEAMID(eThisPlayer) == TEAMID(eOtherPlayer) || eThisPlayer == NO_PLAYER ||
@@ -17604,7 +17604,7 @@ void CvGameTextMgr::setCommerceHelp(CvWStringBuffer &szBuffer, CvCity const& cit
 	//szBuffer.append(NEWLINE);
 
 // BUG - Building Additional Commerce - start
-	if (bBuildingAdditionalCommerce && city.getOwnerINLINE() == GC.getGame().getActivePlayer())
+	if (bBuildingAdditionalCommerce && city.getOwnerINLINE() == GC.getGameINLINE().getActivePlayer())
 	{
 		setBuildingAdditionalCommerceHelp(szBuffer, city, eCommerceType, DOUBLE_SEPARATOR);
 	}
@@ -17979,7 +17979,7 @@ void CvGameTextMgr::parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity& city
 	szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_GREATPEOPLE_FINAL", iModGreatPeople));
 	//szBuffer.append(NEWLINE);
 // BUG - Building Additional Great People - start
-	if (bBuildingAdditionalGreatPeople && city.getOwnerINLINE() == GC.getGame().getActivePlayer())
+	if (bBuildingAdditionalGreatPeople && city.getOwnerINLINE() == GC.getGameINLINE().getActivePlayer())
 	{
 		setBuildingAdditionalGreatPeopleHelp(szBuffer, city, DOUBLE_SEPARATOR);
 	}
@@ -18279,7 +18279,7 @@ void CvGameTextMgr::setScoreHelp(CvWStringBuffer &szString, PlayerTypes ePlayer)
 		int iTotalScore = iPopScore + iLandScore + iTechScore + iWondersScore;
 		int iVictoryScore = player.calculateScore(true, true);
 		// <advc.250c> Show leader name while in Advanced Start
-		if(GC.getGame().isInAdvancedStart()) {
+		if(GC.getGameINLINE().isInAdvancedStart()) {
 			szString.append(GC.getLeaderHeadInfo(GET_PLAYER(ePlayer).
 					getLeaderType()).getText());
 			szString.append(L"\n");
@@ -20126,7 +20126,7 @@ void CvGameTextMgr::setFoodHelp(CvWStringBuffer &szBuffer, CvCity const& kCity) 
 		else szBuffer.append(gDLL->getText("TXT_KEY_MISC_HELP_NET_FOOD_STAGNATE"));
 	}
 	// BULL - Building Additional Food - start
-	if(kCity.getOwnerINLINE() == GC.getGame().getActivePlayer() &&
+	if(kCity.getOwnerINLINE() == GC.getGameINLINE().getActivePlayer() &&
 			(getBugOptionBOOL("MiscHover__BuildingAdditionalFood", false) ||
 			GC.altKey())) {
 		// ==========================

@@ -17,7 +17,7 @@
 
 	The main method for war planning is WarAndPeaceAI::Team::doWar. */
 
-#define getWPAI GC.getGame().warAndPeaceAI()
+#define getWPAI GC.getGameINLINE().warAndPeaceAI()
 
 class WarAndPeaceAI 
 		: private boost::noncopyable { // advc.003e

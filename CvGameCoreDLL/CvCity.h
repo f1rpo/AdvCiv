@@ -222,8 +222,8 @@ public:
 	int getReligionPercentAnger() const;																		// Exposed to Python
 	/*  advc.104: Moved parts of getReligionPercentAnger() into a subroutine.
 		getReligionPercentAnger(PlayerTypes) doesn't check if the city owner is
-		at war with civId; can be used for predicting anger caused by a DoW. */
-	double getReligionPercentAnger(PlayerTypes civId) const;
+		at war with ePlayer; can be used for predicting anger caused by a DoW. */
+	double getReligionPercentAnger(PlayerTypes ePlayer) const;
 	int getHurryPercentAnger(int iExtra = 0) const;																				// Exposed to Python
 	int getConscriptPercentAnger(int iExtra = 0) const;																		// Exposed to Python
 	int getDefyResolutionPercentAnger(int iExtra = 0) const;
@@ -269,16 +269,9 @@ public:
 	int getNumBuilding(BuildingTypes eIndex) const;									// Exposed to Python					
 	int getNumActiveBuilding(BuildingTypes eIndex) const;						// Exposed to Python
 	bool hasActiveWorldWonder() const;																			// Exposed to Python
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                       03/04/10                     Mongoose & jdog5000      */
-/*                                                                                              */
-/* Bugfix                                                                                       */
-/************************************************************************************************/
+	// UNOFFICIAL_PATCH, Bugfix, 03/04/10, Mongoose & jdog5000:
 	int getNumActiveWorldWonders(
-			PlayerTypes ownerId = NO_PLAYER) const; // advc.104d: Hypothetical owner
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                        END                                                  */
-/************************************************************************************************/
+			PlayerTypes eOwner = NO_PLAYER) const; // advc.104d: Hypothetical owner
 
 	int getReligionCount() const;																						// Exposed to Python  
 	int getCorporationCount() const;																						// Exposed to Python  
@@ -402,9 +395,9 @@ public:
 	int calculateCorporationMaintenance() const;									// Exposed to Python
 	/* <advc.104> Added an optional parameter to allow the computation of
 	   projected maintenance for cities yet to be conquered. */
-	int calculateDistanceMaintenanceTimes100(PlayerTypes owner = NO_PLAYER) const;										// Exposed to Python
-	int calculateColonyMaintenanceTimes100(PlayerTypes owner = NO_PLAYER) const;
-	int calculateNumCitiesMaintenanceTimes100(PlayerTypes owner = NO_PLAYER) const;									// Exposed to Python									// Exposed to Python
+	int calculateDistanceMaintenanceTimes100(PlayerTypes eOwner = NO_PLAYER) const;										// Exposed to Python
+	int calculateColonyMaintenanceTimes100(PlayerTypes eOwner = NO_PLAYER) const;
+	int calculateNumCitiesMaintenanceTimes100(PlayerTypes eOwner = NO_PLAYER) const;									// Exposed to Python									// Exposed to Python
 	// </advc.104>
 	// <advc.004b> A projection for cities yet to be founded
 	static int calculateDistanceMaintenanceTimes100(CvPlot const& kCityPlot,
@@ -483,41 +476,22 @@ public:
 	int getExtraBuildingGoodHappiness() const;														// Exposed to Python
 	int getExtraBuildingBadHappiness() const;															// Exposed to Python
 	void updateExtraBuildingHappiness();
-
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      02/24/10                            EmperorFool       */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-// From BUG
+	// BETTER_BTS_AI_MOD, from BUG, 02/24/10, EmperorFool:
 	int getAdditionalHappinessByBuilding(BuildingTypes eBuilding, int& iGood, int& iBad) const;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
 
 	int getExtraBuildingGoodHealth() const;														// Exposed to Python
 	int getExtraBuildingBadHealth() const;															// Exposed to Python
 	void updateExtraBuildingHealth();
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      02/24/10                            EmperorFool       */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-// From BUG
+	// BETTER_BTS_AI_MOD, from BUG, 02/24/10, EmperorFool:
 	int getAdditionalHealthByBuilding(BuildingTypes eBuilding, int& iGood, int& iBad,
 			bool bAssumeStrategicBonuses = false) const; // advc.001h
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-
 
 	int getFeatureGoodHappiness() const;																	// Exposed to Python
 	int getFeatureBadHappiness() const;																		// Exposed to Python
 	void updateFeatureHappiness();
 
-	int getBonusGoodHappiness(																		// Exposed to Python  
-			bool bIgnoreModifier = false) const; // advc.912c
+	int getBonusGoodHappiness(/* advc.912c: */ bool bIgnoreModifier = false) const;												// Exposed to Python  
 	int getBonusBadHappiness() const;																			// Exposed to Python  
 	void changeBonusGoodHappiness(int iChange);
 	void changeBonusBadHappiness(int iChange);

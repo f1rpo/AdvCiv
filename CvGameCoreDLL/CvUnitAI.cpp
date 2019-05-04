@@ -1050,7 +1050,7 @@ void CvUnitAI::AI_setBirthmark(int iNewValue)
 	m_iBirthmark = iNewValue;
 	if (AI_getUnitAIType() == UNITAI_EXPLORE_SEA)
 	{
-		if (GC.getGame().circumnavigationAvailable())
+		if (GC.getGameINLINE().circumnavigationAvailable())
 		{
 			m_iBirthmark -= m_iBirthmark % 4;
 			int iExplorerCount = GET_PLAYER(getOwnerINLINE()).AI_getNumAIUnits(UNITAI_EXPLORE_SEA);
@@ -1509,7 +1509,7 @@ void CvUnitAI::AI_settleMove()
 
 	if (iAreaBestFoundValue == 0 && iOtherBestFoundValue == 0)
 	{
-		if (GC.getGame().getGameTurn() - getGameTurnCreated() > 20)
+		if (GC.getGameINLINE().getGameTurn() - getGameTurnCreated() > 20)
 		{
 			if (NULL != getTransportUnit())
 			{
@@ -1799,10 +1799,10 @@ void CvUnitAI::AI_workerMove()
 
 	bool bBuildFort = false;
 
-	if (GC.getGame().getSorenRandNum(5, "AI Worker build Fort with Priority")
+	if (GC.getGameINLINE().getSorenRandNum(5, "AI Worker build Fort with Priority")
 			== 0) // advc.001: Was > 0; why should a Fort be given priority 80% of the time?
 	{
-		//bool bCanal = ((100 * area()->getNumCities()) / std::max(1, GC.getGame().getNumCities()) < 85);
+		//bool bCanal = ((100 * area()->getNumCities()) / std::max(1, GC.getGameINLINE().getNumCities()) < 85);
 		// K-Mod. The current AI for canals doesn't work anyway; so lets skip it to save time.
 		bool bCanal = false;
 		bool bAirbase = false;
@@ -1901,7 +1901,7 @@ void CvUnitAI::AI_workerMove()
 
 	if (!bBuildFort)
 	{
-		//bool bCanal = ((100 * area()->getNumCities()) / std::max(1, GC.getGame().getNumCities()) < 85);
+		//bool bCanal = ((100 * area()->getNumCities()) / std::max(1, GC.getGameINLINE().getNumCities()) < 85);
 		bool bCanal = false; // K-Mod. The current AI for canals doesn't work anyway; so lets skip it to save time.
 		bool bAirbase = false;
 		bAirbase = (kOwner.AI_totalUnitAIs(UNITAI_PARADROP) || kOwner.AI_totalUnitAIs(UNITAI_ATTACK_AIR) || kOwner.AI_totalUnitAIs(UNITAI_MISSILE_AIR));
@@ -1925,7 +1925,7 @@ void CvUnitAI::AI_workerMove()
 
 	if (!isHuman() || (isAutomated() && GET_TEAM(getTeam()).getAtWarCount(true) == 0))
 	{
-		if (!isHuman() || (getGameTurnCreated() < GC.getGame().getGameTurn()))
+		if (!isHuman() || (getGameTurnCreated() < GC.getGameINLINE().gameTurn()))
 		{
 			if (AI_nextCityToImproveAirlift())
 			{
@@ -2862,7 +2862,7 @@ void CvUnitAI::AI_attackCityMove()
 			// BBAI TODO: split out slow units ... will need to test to make sure this doesn't cause loops
 		}
 
-		if ((GC.getGame().getGameTurn() - plot()->getPlotCity()->getGameTurnAcquired()) <= 1
+		if ((GC.getGameINLINE().gameTurn() - plot()->getPlotCity()->getGameTurnAcquired()) <= 1
 				// cdtw.9: (comment from Dave_uk) only do this in our own cities though
 				&& plot()->getOwnerINLINE() == getOwnerINLINE())
 		{
@@ -4894,7 +4894,7 @@ void CvUnitAI::AI_missionaryMove()
 
 	if (!isHuman() || (isAutomated() && GET_TEAM(getTeam()).getAtWarCount(true) == 0))
 	{
-		if (!isHuman() || (getGameTurnCreated() < GC.getGame().getGameTurn()))
+		if (!isHuman() || (getGameTurnCreated() < GC.getGameINLINE().gameTurn()))
 		{
 			if (AI_spreadReligionAirlift())
 			{
@@ -5976,7 +5976,7 @@ void CvUnitAI::AI_spyMove()
 							getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_GUARD_SPY, pMissionPlot);
 							return;
 						}
-						if (GC.getGame().getSorenRandNum(6, "AI Spy continue guarding") > 0)
+						if (GC.getGameINLINE().getSorenRandNum(6, "AI Spy continue guarding") > 0)
 						{
 							getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_GUARD_SPY, pMissionPlot);
 							return;
@@ -6105,7 +6105,7 @@ void CvUnitAI::AI_spyMove()
 					return;
 				}
 
-				if (GC.getGame().getSorenRandNum(6, "AI Spy Skip Turn") > 0)
+				if (GC.getGameINLINE().getSorenRandNum(6, "AI Spy Skip Turn") > 0)
 				{
 					getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_ATTACK_SPY, plot());
 					return;
@@ -6123,7 +6123,7 @@ void CvUnitAI::AI_spyMove()
 			// I think this spontaneous thing is bad. I'm leaving it in, but with greatly diminished probability.
 			// scale for game speed
 			iSpontaneousChance *= 100;
-			iSpontaneousChance /= GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getVictoryDelayPercent();
+			iSpontaneousChance /= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getVictoryDelayPercent();
 			if (GC.getGameINLINE().getSorenRandNum(1500, "AI Spy Espionage") < iSpontaneousChance)
 			{
 				if (AI_espionageSpy())
@@ -6160,14 +6160,14 @@ void CvUnitAI::AI_spyMove()
 						? GC.getDefineINT("ESPIONAGE_SPY_NO_INTRUDE_INTERCEPT_MOD")
 						: GC.getDefineINT("ESPIONAGE_SPY_INTERCEPT_MOD"));
 					iInterceptChance /= 100;
-					if (GC.getGame().getSorenRandNum(100, "AI Spy early attack") < iInterceptChance + getFortifyTurns())
+					if (GC.getGameINLINE().getSorenRandNum(100, "AI Spy early attack") < iInterceptChance + getFortifyTurns())
 					{
 						if (AI_espionageSpy())
 							return;
 					}
 				}
 
-				if (GC.getGame().getSorenRandNum(100, "AI Spy Skip Turn") > 5)
+				if (GC.getGameINLINE().getSorenRandNum(100, "AI Spy Skip Turn") > 5)
 				{
 					// don't wait forever
 					getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_ATTACK_SPY, plot());
@@ -6216,16 +6216,16 @@ void CvUnitAI::AI_spyMove()
 		iAttackChance /= 100;
 		// scale for game speed
 		iAttackChance *= 100;
-		iAttackChance /= GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getVictoryDelayPercent();
+		iAttackChance /= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getVictoryDelayPercent();
 
 		iTransportChance = (100 * iTotalPoints - 130 * iLocalPoints) / std::max(1, iTotalPoints);
 	}
 	
 	if (plot()->getTeam() == getTeam())
 	{
-		if (GC.getGame().getSorenRandNum(100, "AI Spy guard / transport") >= iAttackChance)
+		if (GC.getGameINLINE().getSorenRandNum(100, "AI Spy guard / transport") >= iAttackChance)
 		{
-			if (GC.getGame().getSorenRandNum(100, "AI Spy transport") < iTransportChance)
+			if (GC.getGameINLINE().getSorenRandNum(100, "AI Spy transport") < iTransportChance)
 			{
 				if (AI_load(UNITAI_SPY_SEA, MISSIONAI_LOAD_SPECIAL, NO_UNITAI, -1, -1, -1, 0, 0, 8))
 					return;
@@ -6241,7 +6241,7 @@ void CvUnitAI::AI_spyMove()
 				//GET_TEAM(getTeam()).getAtWarCount(true) > 0 &&
 				// advc.105: Replacing the above
 				GET_PLAYER(getOwnerINLINE()).AI_isFocusWar(area()) &&
-				GC.getGame().getSorenRandNum(100, "AI Spy pillage improvement") <
+				GC.getGameINLINE().getSorenRandNum(100, "AI Spy pillage improvement") <
 				(kOwner.AI_getStrategyRand(5) % 36))
 		{
 			if (AI_bonusOffenseSpy(6))
@@ -6271,7 +6271,7 @@ void CvUnitAI::AI_spyMove()
 			}
 		}
 
-		if (GC.getGame().getSorenRandNum(10, "AI Spy skip turn at improvement") > 0)
+		if (GC.getGameINLINE().getSorenRandNum(10, "AI Spy skip turn at improvement") > 0)
 		{
 			getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_ATTACK_SPY, plot());
 			return;
@@ -6282,7 +6282,7 @@ void CvUnitAI::AI_spyMove()
 	{
 		if (kOwner.AI_areaMissionAIs(area(), MISSIONAI_RECON_SPY) <= kOwner.AI_areaMissionAIs(area(), MISSIONAI_GUARD_SPY)+1 &&
 			(getGroup()->AI_getMissionAIType() == MISSIONAI_RECON_SPY
-			|| GC.getGame().getSorenRandNum(3, "AI Spy Choose Movement") > 0))
+			|| GC.getGameINLINE().getSorenRandNum(3, "AI Spy Choose Movement") > 0))
 		{
 			if (AI_reconSpy(3))
 			{
@@ -6291,7 +6291,7 @@ void CvUnitAI::AI_spyMove()
 		}
 		else
 		{
-			if (GC.getGame().getSorenRandNum(100, "AI Spy defense (2)") >= iAttackChance)
+			if (GC.getGameINLINE().getSorenRandNum(100, "AI Spy defense (2)") >= iAttackChance)
 			{
 				if (AI_guardSpy(0))
 				{
@@ -6553,7 +6553,7 @@ void CvUnitAI::AI_barbAttackSeaMove()
 		return;
 
 	// Barb ships will often hang out for a little while blockading before moving on (BBAI)
-	if( (GC.getGame().getGameTurn() + AI_getBirthmark())%12 > 5 )
+	if( (GC.getGameINLINE().getGameTurn() + AI_getBirthmark())%12 > 5 )
 	{
 		if( AI_pirateBlockade())
 		{
@@ -6675,7 +6675,7 @@ void CvUnitAI::AI_pirateSeaMove()
 	}
 
 	
-	if (GC.getGame().getSorenRandNum(10, "AI Pirate Explore") == 0)
+	if (GC.getGameINLINE().getSorenRandNum(10, "AI Pirate Explore") == 0)
 	{
 		CvArea* pWaterArea = plot()->waterArea();
 
@@ -6694,7 +6694,7 @@ void CvUnitAI::AI_pirateSeaMove()
 		}
 	}
 
-	if (GC.getGame().getSorenRandNum(11, "AI Pirate Pillage") == 0)
+	if (GC.getGameINLINE().getSorenRandNum(11, "AI Pirate Pillage") == 0)
 	{
 		if (AI_pillageRange(1))
 		{
@@ -8610,8 +8610,8 @@ void CvUnitAI::AI_settlerSeaMove()
 /* BETTER_BTS_AI_MOD                       END                                                  */
 /************************************************************************************************/	
 	
-	//if ((GC.getGame().getGameTurn() - getGameTurnCreated()) < 8)
-	if (GC.getGame().getGameTurn() - getGameTurnCreated() < 8 && plot()->waterArea() &&
+	//if ((GC.getGameINLINE().gameTurn() - getGameTurnCreated()) < 8)
+	if (GC.getGameINLINE().gameTurn() - getGameTurnCreated() < 8 && plot()->waterArea() &&
 		kOwner.AI_areaMissionAIs(plot()->waterArea(), MISSIONAI_EXPLORE, getGroup()) < kOwner.AI_neededExplorers(plot()->waterArea())) // K-Mod
 	{
 		if ((plot()->getPlotCity() == NULL) || kOwner.AI_totalAreaUnitAIs(plot()->area(), UNITAI_SETTLE) == 0)
@@ -9545,7 +9545,7 @@ void CvUnitAI::AI_defenseAirMove()
 
 	if (!plot()->isCity(true))
 	{
-		//FAssertMsg(GC.getGame().getGameTurn() - getGameTurnCreated() > 1, "defenseAir units are expected to stay in cities/forts");
+		//FAssertMsg(GC.getGameINLINE().gameTurn() - getGameTurnCreated() > 1, "defenseAir units are expected to stay in cities/forts");
 		if (AI_airDefensiveCity())
 			return;
 	}
@@ -9644,7 +9644,7 @@ void CvUnitAI::AI_defenseAirMove()
 
 	if (canRecon(plot()))
 	{
-		if (GC.getGame().getSorenRandNum(bDefensive ? 6 : 3, "AI defensive air recon") == 0)
+		if (GC.getGameINLINE().getSorenRandNum(bDefensive ? 6 : 3, "AI defensive air recon") == 0)
 		{
 			if (AI_exploreAir())
 			{
@@ -11431,10 +11431,8 @@ bool CvUnitAI::AI_guardCityMinDefender(bool bSearch)
 	{
 		/* original bts code
 		int iCityDefenderCount = pPlotCity->plot()->plotCount(PUF_isUnitAIType, UNITAI_CITY_DEFENSE, -1, getOwnerINLINE());
-		if ((iCityDefenderCount - 1) < pPlotCity->AI_minDefenders())
-		{
-			if ((iCityDefenderCount <= 2) || (GC.getGame().getSorenRandNum(5, "AI shuffle defender") != 0))
-			{
+		if ((iCityDefenderCount - 1) < pPlotCity->AI_minDefenders()) {
+			if ((iCityDefenderCount <= 2) || (GC.getGameINLINE().getSorenRandNum(5, "AI shuffle defender") != 0)) {
 				getGroup()->pushMission(MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_GUARD_CITY, NULL);
 				return true;
 			}
@@ -11449,7 +11447,7 @@ bool CvUnitAI::AI_guardCityMinDefender(bool bSearch)
 
 		if (iDefendersHave < pPlotCity->AI_minDefenders())
 		{
-			if (iDefendersHave <= 1 || GC.getGame().getSorenRandNum(area()->getNumAIUnits(getOwnerINLINE(), UNITAI_CITY_DEFENSE) + 5, "AI shuffle defender") > 1)
+			if (iDefendersHave <= 1 || GC.getGameINLINE().getSorenRandNum(area()->getNumAIUnits(getOwnerINLINE(), UNITAI_CITY_DEFENSE) + 5, "AI shuffle defender") > 1)
 			{
 				getGroup()->pushMission(isFortifyable() ? MISSION_FORTIFY : MISSION_SKIP, -1, -1, 0, false, false, MISSIONAI_GUARD_CITY, NULL);
 				return true;
@@ -16606,7 +16604,7 @@ bool CvUnitAI::AI_pirateBlockade()
 		if(!AI_plotValid(pLoopPlot) ||
 				!pLoopPlot->isRevealed(getTeam(), false) || // advc.003b
 				pLoopPlot->isVisibleEnemyUnit(this) || !canPlunder(pLoopPlot) ||
-				//GC.getGame().getSorenRandNum(4, "AI Pirate Blockade") != 0 ||
+				//GC.getGameINLINE().getSorenRandNum(4, "AI Pirate Blockade") != 0 ||
 				/*  advc.033: Replacing the above. Should make Privateers a bit
 					more stationary. */
 				::hash(iI + turnNumberSalt, getOwnerINLINE()) > 0.25f ||
@@ -16722,11 +16720,11 @@ bool CvUnitAI::AI_pirateBlockade()
 				// advc.003b: AdjacentOwned now guaranteed
 				//&& !pLoopPlot->isAdjacentOwned()
 		{
-			int iRand = GC.getGame().getSorenRandNum(2500, "AI Pirate Retreat");
+			int iRand = GC.getGameINLINE().getSorenRandNum(2500, "AI Pirate Retreat");
 			iValue += iRand;
 			if (iRand > 1000)
 			{
-				iValue += GC.getGame().getSorenRandNum(2500, "AI Pirate Retreat");
+				iValue += GC.getGameINLINE().getSorenRandNum(2500, "AI Pirate Retreat");
 				bForceMove = true;
 			}
 		}
@@ -18583,7 +18581,7 @@ bool CvUnitAI::AI_settlerSeaFerry()
 		iValue /= 4 + iPathTurns;
 		if (atPlot(pLoopCity->plot()))
 			iValue += 100;
-		else iValue += GC.getGame().getSorenRandNum(100, "AI settler sea ferry");
+		else iValue += GC.getGameINLINE().getSorenRandNum(100, "AI settler sea ferry");
 		if (iValue > iBestValue)
 		{
 			iBestValue = iValue;
@@ -18685,7 +18683,7 @@ bool CvUnitAI::AI_settlerSeaFerry()
 			/*  For cities, it's 4+... in the divisor. 1 extra to deprioritize islands.
 				(Or we could say it's the extra turn for unloading outside a city.) */
 			iValue = (1000 * iValue) / (5 + iPathTurns);
-			iValue += GC.getGame().getSorenRandNum(65 + 40 * iOwnerEra, "advc.040");
+			iValue += GC.getGameINLINE().getSorenRandNum(65 + 40 * iOwnerEra, "advc.040");
  			if(iValue > iBestValue) {
 				iBestValue = iValue;
 				pBestPlot = &kPlot;							
@@ -22108,7 +22106,7 @@ bool CvUnitAI::AI_missileLoad(UnitAITypes eTargetUnitAI, int iMaxOwnUnitAI, bool
 					{
 						int iValue = 100;
 						
-						iValue += GC.getGame().getSorenRandNum(100, "AI missile load");
+						iValue += GC.getGameINLINE().getSorenRandNum(100, "AI missile load");
 
 						iValue *= 1 + pLoopUnit->getCargo();
 
@@ -22602,7 +22600,7 @@ bool CvUnitAI::AI_exploreAir()
 					{
 						if (canReconAt(plot(), pLoopCity->getX_INLINE(), pLoopCity->getY_INLINE()))
 						{
-							int iValue = 1 + GC.getGame().getSorenRandNum(15, "AI explore air");
+							int iValue = 1 + GC.getGameINLINE().getSorenRandNum(15, "AI explore air");
 							if (isEnemy(GET_PLAYER((PlayerTypes)iI).getTeam()))
 							{
 								iValue += 10;
@@ -22698,7 +22696,7 @@ bool CvUnitAI::AI_exploreAir2()
 							}
 						}
 
-						iValue += GC.getGame().getSorenRandNum(25, "AI explore air");
+						iValue += GC.getGameINLINE().getSorenRandNum(25, "AI explore air");
 						iValue *= std::min(7, plotDistance(getX_INLINE(), getY_INLINE(), pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE()));
 		
 						if (iValue > iBestValue)
@@ -23394,7 +23392,7 @@ int CvUnitAI::AI_getEspionageTargetValue(CvPlot* pPlot)
 				iValue += pCity->getPopulation();
 				iValue += pCity->plot()->calculateCulturePercent(getOwnerINLINE())/8;
 
-				int iRand = GC.getGame().getSorenRandNum(6, "AI spy choose city");
+				int iRand = GC.getGameINLINE().getSorenRandNum(6, "AI spy choose city");
 				iValue += iRand * iRand;
 
 				if( area()->getTargetCity(getOwnerINLINE()) == pCity )
@@ -23502,7 +23500,7 @@ bool CvUnitAI::AI_cityOffenseSpy(int iMaxPath, CvCity* pSkipCity)
 			// <advc.130v>
 			if(GET_TEAM(kLoopPlayer.getTeam()).isCapitulated())
 				iTeamWeight /= 2; // </advc.130v>
-			if (iTeamWeight < 200 && GC.getGame().getSorenRandNum(10, "AI team target saving throw") != 0)
+			if (iTeamWeight < 200 && GC.getGameINLINE().getSorenRandNum(10, "AI team target saving throw") != 0)
 			{
 				// low weight. Probably friendly attitude and below average points.
 				// don't target this team.
@@ -25518,7 +25516,7 @@ bool CvUnitAI::AI_canGroupWithAIType(UnitAITypes eUnitAI) const
 		switch (eUnitAI)
 		{
 		case (UNITAI_ATTACK_CITY):
-			if (plot()->isCity() && (GC.getGame().getGameTurn() - plot()->getPlotCity()->getGameTurnAcquired()) <= 1)
+			if (plot()->isCity() && (GC.getGameINLINE().gameTurn() - plot()->getPlotCity()->getGameTurnAcquired()) <= 1)
 			{
 				return false;
 			}

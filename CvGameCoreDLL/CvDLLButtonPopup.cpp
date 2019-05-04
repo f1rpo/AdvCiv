@@ -891,7 +891,7 @@ void CvDLLButtonPopup::OnFocus(CvPopup* pPopup, CvPopupInfo &info)
 bool CvDLLButtonPopup::launchButtonPopup(CvPopup* pPopup, CvPopupInfo &info)
 {
 	// <advc.706>
-	CvGame& g = GC.getGame();
+	CvGame& g = GC.getGameINLINE();
 	if(g.isOption(GAMEOPTION_RISE_FALL)) {
 		ButtonPopupTypes bpt = info.getButtonPopupType();
 		if(bpt == BUTTONPOPUP_RF_CHOOSECIV)
@@ -1387,7 +1387,7 @@ bool CvDLLButtonPopup::launchChangeReligionPopup(CvPopup* pPopup, CvPopupInfo &i
 
 bool CvDLLButtonPopup::launchChooseElectionPopup(CvPopup* pPopup, CvPopupInfo &info)
 {
-	VoteSelectionData* pVoteSelectionData = GC.getGame().getVoteSelection(info.getData1());
+	VoteSelectionData* pVoteSelectionData = GC.getGameINLINE().getVoteSelection(info.getData1());
 	if(NULL == pVoteSelectionData)
 		return false;
 	VoteSourceTypes eVoteSource = pVoteSelectionData->eVoteSource;
@@ -1395,7 +1395,7 @@ bool CvDLLButtonPopup::launchChooseElectionPopup(CvPopup* pPopup, CvPopupInfo &i
 	for(int iI = 0; iI < (int)pVoteSelectionData->aVoteOptions.size(); iI++)
 		gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, pVoteSelectionData->aVoteOptions[iI].szText, NULL, iI, WIDGET_GENERAL);
 	// advc.178:
-	bool bEarlyElection = (GC.getGame().getSecretaryGeneralTimer(eVoteSource) > 0);
+	bool bEarlyElection = (GC.getGameINLINE().getSecretaryGeneralTimer(eVoteSource) > 0);
 	gDLL->getInterfaceIFace()->popupAddGenericButton(pPopup, gDLL->getText(
 			bEarlyElection ? "TXT_KEY_EARLY_ELECTION" : // advc.178
 			"TXT_KEY_NONE").c_str(), NULL, GC.getNumVoteInfos(), WIDGET_GENERAL);
@@ -1732,7 +1732,7 @@ bool CvDLLButtonPopup::launchChangeCivicsPopup(CvPopup* pPopup, CvPopupInfo &inf
 			szBuffer += gDLL->getText("TXT_KEY_POPUP_START_REVOLUTION");
 			gDLL->getInterfaceIFace()->popupSetBodyString(pPopup, szBuffer);
 			// <advc.004o>
-			if(bStartButton || GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).
+			if(bStartButton || GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).
 					/*  "> 100" would leave the get-started button alone on Epic and
 						Marathon. That's what I meant to do initially, but now
 						I think the button shouldn't be there in any case, so,
@@ -1752,7 +1752,7 @@ bool CvDLLButtonPopup::launchChangeCivicsPopup(CvPopup* pPopup, CvPopupInfo &inf
 			/*  <advc.001> The EXE tries to show the first-revolution pop-up twice
 				when playing Advanced Start in a later era; perhaps also with
 				other settings. */
-			if(GC.getGame().getGameTurn() != GC.getGame().getStartTurn()) {
+			if(GC.getGameINLINE().getGameTurn() != GC.getGameINLINE().getStartTurn()) {
 				SAFE_DELETE_ARRAY(paeNewCivics)
 				return false;
 			} // </advc.001>
@@ -2840,7 +2840,7 @@ bool CvDLLButtonPopup::launchLaunchPopup(CvPopup* pPopup, CvPopupInfo &info)
 	}
 
 	CvWString szDate;
-	GAMETEXT.setTimeStr(szDate, GC.getGame().getGameTurn() + kTeam.getVictoryDelay(eVictory), false);
+	GAMETEXT.setTimeStr(szDate, GC.getGameINLINE().getGameTurn() + kTeam.getVictoryDelay(eVictory), false);
 
 	gDLL->getInterfaceIFace()->popupSetHeaderString(pPopup, GC.getVictoryInfo(eVictory).getCivilopedia());
 	//gDLL->getInterfaceIFace()->popupSetBodyString(pPopup, gDLL->getText("TXT_KEY_ESTIMATED_VICTORY_DATE", szDate.GetCString()));

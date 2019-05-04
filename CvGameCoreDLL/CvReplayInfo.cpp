@@ -218,9 +218,9 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 // <advc.106h>
 void CvReplayInfo::addSettingsMsg() {
 
-	CvGame& g = GC.getGame();
-	PlayerTypes plId = g.getActivePlayer();
-	if(plId == NO_PLAYER)
+	CvGame& g = GC.getGameINLINE();
+	PlayerTypes eActivePlayer = g.getActivePlayer();
+	if(eActivePlayer == NO_PLAYER)
 		return;
 	bool bScenario = false;
 	// Strip away file ending of WB scenario
@@ -231,15 +231,15 @@ void CvReplayInfo::addSettingsMsg() {
 		mn = mn.substr(0, mn.length() - wbEnding.length());
 		bScenario = true;
 	}
-	CvPlayer const& pl = GET_PLAYER(plId);
 	/*  Can't use getTextKeyWide for sea level b/c of the recommendation text
 		added by advc.137 (same issue in CvVictoryScreen.py) */
 	int lvlChg = GC.getSeaLevelInfo(getSeaLevel()).getSeaLevelChange();
+	CvPlayer const& kActivePlayer = GET_PLAYER(eActivePlayer);
 	CvWString m = gDLL->getText("TXT_KEY_MISC_RELOAD", 1) + L". " +
 			gDLL->getText("TXT_KEY_MAIN_MENU_SETTINGS") + L":\n" +
 			gDLL->getText("TXT_KEY_NAME_LEADER_CIV",
-			GC.getLeaderHeadInfo(pl.getLeaderType()).getTextKeyWide(),
-			pl.getCivilizationShortDescriptionKey(), pl.getReplayName()) + L"\n" +
+			GC.getLeaderHeadInfo(kActivePlayer.getLeaderType()).getTextKeyWide(),
+			kActivePlayer.getCivilizationShortDescriptionKey(), kActivePlayer.getReplayName()) + L"\n" +
 			gDLL->getText("TXT_KEY_SETTINGS_DIFFICULTY",
 			GC.getHandicapInfo(getDifficulty()).getTextKeyWide()) + L"\n" +
 			(bScenario ? mn :
@@ -264,11 +264,11 @@ void CvReplayInfo::addSettingsMsg() {
 	} // </advc.250b>
 	int iDisabled = 0;
 	for(int i = 0; i < GC.getNumVictoryInfos(); i++) {
-		VictoryTypes vId = (VictoryTypes)i;
-		if(g.isVictoryValid(vId))
+		VictoryTypes eVictory = (VictoryTypes)i;
+		if(g.isVictoryValid(eVictory))
 			continue;
 		iDisabled++;
-		m += GC.getVictoryInfo(vId).getDescription();
+		m += GC.getVictoryInfo(eVictory).getDescription();
 		m += L", ";
 	}
 	if(iDisabled > 0) {
@@ -283,15 +283,15 @@ void CvReplayInfo::addSettingsMsg() {
 	} // </advc.250b>
 	int iOptions = 0;
 	for(int i = 0; i < GC.getNumGameOptionInfos(); i++) {
-		GameOptionTypes optId = (GameOptionTypes)i;
+		GameOptionTypes eOption = (GameOptionTypes)i;
 		// advc.250b:
-		if(optId == GAMEOPTION_ADVANCED_START || optId == GAMEOPTION_SPAH ||
-				!g.isOption(optId) ||
+		if(eOption == GAMEOPTION_ADVANCED_START || eOption == GAMEOPTION_SPAH ||
+				!g.isOption(eOption) ||
 				// advc.104:
-				(optId == GAMEOPTION_AGGRESSIVE_AI && getWPAI.isEnabled()))
+				(eOption == GAMEOPTION_AGGRESSIVE_AI && getWPAI.isEnabled()))
 			continue;
 		iOptions++;
-		m += GC.getGameOptionInfo(optId).getDescription();
+		m += GC.getGameOptionInfo(eOption).getDescription();
 		m += L", ";
 	}
 	if(iOptions > 0)
@@ -309,7 +309,7 @@ void CvReplayInfo::addSettingsMsg() {
 		m += modName + L" Mod";
 	}
 	CvReplayMessage* settingsMsg = new CvReplayMessage(0,
-			REPLAY_MESSAGE_MAJOR_EVENT, plId);
+			REPLAY_MESSAGE_MAJOR_EVENT, eActivePlayer);
 	settingsMsg->setText(m);
 	settingsMsg->setColor((ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"));
 	FAssert(m_listReplayMessages.empty());

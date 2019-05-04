@@ -3961,7 +3961,7 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 	//if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1))
 	{
 		szBuffer.append(CvWString::format(L"\n\nTop %c cities by weight:", GC.getCommerceInfo(COMMERCE_CULTURE).getChar()));
-		int iLegendaryCulture = GC.getGame().getCultureThreshold((CultureLevelTypes)(GC.getNumCultureLevelInfos() - 1));
+		int iLegendaryCulture = GC.getGameINLINE().getCultureThreshold((CultureLevelTypes)(GC.getNumCultureLevelInfos() - 1));
 		std::vector<std::pair<int,int> > city_list; // (weight, city id)
 
 		int iLoop;
@@ -4974,7 +4974,7 @@ void CvDLLWidgetData::parseFlagHelp(CvWidgetDataStruct &widgetDataStruct, CvWStr
 {
 	CvWString szTempBuffer;
 	// <advc.135c>
-	CvGame const& g = GC.getGame();
+	CvGame const& g = GC.getGameINLINE();
 	if(g.isNetworkMultiPlayer() && g.isDebugToolsAllowed(false)) {
 		szTempBuffer.Format(SETCOLR L"%s" ENDCOLR, TEXT_COLOR("COLOR_WARNING_TEXT"),
 				L"Cheats enabled");
@@ -5078,7 +5078,7 @@ void CvDLLWidgetData::parseMaintenanceHelp(CvWidgetDataStruct &widgetDataStruct,
 			}
 
 // BUG - Building Saved Maintenance - start
-			if (pHeadSelectedCity->getOwnerINLINE() == GC.getGame().getActivePlayer() &&
+			if (pHeadSelectedCity->getOwnerINLINE() == GC.getGameINLINE().getActivePlayer() &&
 					(getBugOptionBOOL("MiscHover__BuildingSavedMaintenance", false) ||
 					GC.altKey())) // advc.063
 				GAMETEXT.setBuildingSavedMaintenanceHelp(szBuffer, *pHeadSelectedCity, DOUBLE_SEPARATOR);
@@ -5098,7 +5098,7 @@ void CvDLLWidgetData::parseHealthHelp(CvWidgetDataStruct &widgetDataStruct, CvWS
 		GAMETEXT.setGoodHealthHelp(szBuffer, *pHeadSelectedCity);
 
 // BUG - Building Additional Health - start
-		if (pHeadSelectedCity->getOwnerINLINE() == GC.getGame().getActivePlayer() &&
+		if (pHeadSelectedCity->getOwnerINLINE() == GC.getGameINLINE().getActivePlayer() &&
 				(getBugOptionBOOL("MiscHover__BuildingAdditionalHealth", false)
 				|| GC.altKey())) // advc.063
 			GAMETEXT.setBuildingAdditionalHealthHelp(szBuffer, *pHeadSelectedCity, DOUBLE_SEPARATOR);
@@ -5199,7 +5199,7 @@ void CvDLLWidgetData::parseHappinessHelp(CvWidgetDataStruct &widgetDataStruct, C
 		GAMETEXT.setHappyHelp(szBuffer, *pHeadSelectedCity);
 
 // BUG - Building Additional Happiness - start
-		if (pHeadSelectedCity->getOwnerINLINE() == GC.getGame().getActivePlayer() &&
+		if (pHeadSelectedCity->getOwnerINLINE() == GC.getGameINLINE().getActivePlayer() &&
 				(getBugOptionBOOL("MiscHover__BuildingAdditionalHappiness", false)
 				|| GC.altKey())) // advc.063
 			GAMETEXT.setBuildingAdditionalHappinessHelp(szBuffer, *pHeadSelectedCity, DOUBLE_SEPARATOR);
@@ -5283,9 +5283,9 @@ void CvDLLWidgetData::parseGreatPeopleHelp(CvWidgetDataStruct &widgetDataStruct,
 
 void CvDLLWidgetData::parseGreatGeneralHelp(CvWidgetDataStruct &widgetDataStruct, CvWStringBuffer &szBuffer)
 {
-	if (NO_PLAYER != GC.getGame().getActivePlayer())
+	if (NO_PLAYER != GC.getGameINLINE().getActivePlayer())
 	{
-		GAMETEXT.parseGreatGeneralHelp(szBuffer, GET_PLAYER(GC.getGame().getActivePlayer()));
+		GAMETEXT.parseGreatGeneralHelp(szBuffer, GET_PLAYER(GC.getGameINLINE().getActivePlayer()));
 	}
 }
 

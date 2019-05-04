@@ -226,8 +226,8 @@ void BonusThirdPartiesAlert::reset() {
 void BonusThirdPartiesAlert::check() {
 
 	multiset<int> updatedDeals[MAX_CIV_PLAYERS];
-	CvGame& g = GC.getGame(); int dummy=-1;
-	for(CvDeal* d = g.firstDeal(&dummy); d != NULL; d = g.nextDeal(&dummy)) {
+	CvGame& g = GC.getGameINLINE(); int foo=-1;
+	for(CvDeal* d = g.firstDeal(&foo); d != NULL; d = g.nextDeal(&foo)) {
 		// This alert ignores trades of ownerId
 		if(d->getFirstPlayer() == ownerId || d->getSecondPlayer() == ownerId)
 			continue;

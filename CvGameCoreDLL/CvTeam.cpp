@@ -116,7 +116,7 @@ void CvTeam::init(TeamTypes eID)
 	AI_init();
 
 	// BETTER_BTS_AI_MOD 12/30/08 jdog5000
-	if(GC.getGame().isFinalInitialized()) {
+	if(GC.getGameINLINE().isFinalInitialized()) {
 		// advc (note): This is for teams spawned through liberation
 		for(int i = 0; i < MAX_TEAMS; i++) {
 			CvTeam& kTarget = GET_TEAM((TeamTypes)i);
@@ -3059,41 +3059,41 @@ int CvTeam::countTotalCulture() const
 // <advc.302>
 bool CvTeam::isInContactWithBarbarians() const {
 
-	if(GC.getGameINLINE().isOption(GAMEOPTION_NO_BARBARIANS))
+	CvGame const& g = GC.getGameINLINE();
+	if(g.isOption(GAMEOPTION_NO_BARBARIANS))
 		return true; // Needed for advc.314 (free unit from goody hut)
-	bool checkCity = GC.getGame().getElapsedGameTurns() >=
-			GC.getGameSpeedInfo(GC.getGame().getGameSpeedType()).getBarbPercent();
-	// (Perhaps just unitThresh=1 would have the same effect)
-	int unitThresh = GC.getGame().getCurrentEra();
-	CvTeam const& barbTeam = GET_TEAM(BARBARIAN_TEAM);
-	CvMap& m = GC.getMap(); int foo=-1;
-	for(CvArea* ap = m.firstArea(&foo); ap != NULL; ap = m.nextArea(&foo)) {
-		CvArea const& a = *ap;
-		if(checkCity && countNumCitiesByArea(ap) == 0)
+	bool bCheckCity = g.getElapsedGameTurns() >=
+			GC.getGameSpeedInfo(g.getGameSpeedType()).getBarbPercent();
+	// (Perhaps just iUnitThresh=1 would have the same effect)
+	int iUnitThresh = g.getCurrentEra();
+	CvTeam const& kBarbarianTeam = GET_TEAM(BARBARIAN_TEAM);
+	CvMap const& m = GC.getMapINLINE(); int foo;
+	for(CvArea* pArea = m.firstArea(&foo); pArea != NULL; pArea = m.nextArea(&foo)) {
+		if(bCheckCity && countNumCitiesByArea(pArea) == 0)
 			continue;
-		if(!checkCity && countNumUnitsByArea(ap) < unitThresh)
+		if(!bCheckCity && countNumUnitsByArea(pArea) < iUnitThresh)
 			continue;
-		if(checkCity) {
-			int barbCities = barbTeam.countNumCitiesByArea(ap);
+		if(bCheckCity) {
+			int iBarbarianCities = kBarbarianTeam.countNumCitiesByArea(pArea);
 			//  Always allow barbs to progress in their main area (if any).
-			if(2 * barbCities > barbTeam.getNumCities())
+			if(2 * iBarbarianCities > kBarbarianTeam.getNumCities())
 				return true;
 			/*  Only allow barb research to progress if they're at least half as
 				important as an average civ. */
-			int cityThresh = (a.getNumCities() - barbCities) /
-					(2 * GC.getGame().countCivPlayersAlive());
-			if(barbCities > cityThresh)
+			int iCityThresh = (pArea->getNumCities() - iBarbarianCities) /
+					(2 * GC.getGameINLINE().countCivPlayersAlive());
+			if(iBarbarianCities > iCityThresh)
 				return true;
 			else continue;
 		}
-		int barbUnits = barbTeam.countNumUnitsByArea(ap);
-		if(barbUnits > unitThresh) // Preliminary check for efficiency
+		int iBarbarianUnits = kBarbarianTeam.countNumUnitsByArea(pArea);
+		if(iBarbarianUnits > iUnitThresh) // Preliminary check to save time
 			return true;
 		std::vector<Shelf*> sh;
-		m.getShelves(a.getID(), sh);
+		m.getShelves(pArea->getID(), sh);
 		for(size_t i = 0; i < sh.size(); i++)
-			barbUnits += sh[i]->countBarbarians();
-		if(barbUnits > unitThresh) // Actual check incl. ships
+			iBarbarianUnits += sh[i]->countBarbarians();
+		if(iBarbarianUnits > iUnitThresh) // Actual check incl. ships
 			return true;
 	}
 	return false;
@@ -3104,22 +3104,15 @@ int CvTeam::countNumUnitsByArea(CvArea* pArea) const
 {
 	PROFILE_FUNC();
 
-	int iCount;
-	int iI;
-
-	iCount = 0;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	int iCount = 0;
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
 			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
-			{
 				iCount += pArea->getUnitsPerPlayer((PlayerTypes)iI);
-			}
 		}
 	}
-
 	return iCount;
 }
 
@@ -3128,103 +3121,65 @@ int CvTeam::countNumCitiesByArea(CvArea* pArea) const
 {
 	PROFILE_FUNC();
 
-	int iCount;
-	int iI;
-
-	iCount = 0;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	int iCount = 0;
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
 			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
-			{
 				iCount += pArea->getCitiesPerPlayer((PlayerTypes)iI);
-			}
 		}
 	}
-
 	return iCount;
 }
 
 
 int CvTeam::countTotalPopulationByArea(CvArea* pArea) const
 {
-	int iCount;
-	int iI;
-
-	iCount = 0;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	int iCount = 0;
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
 			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
-			{
 				iCount += pArea->getPopulationPerPlayer((PlayerTypes)iI);
-			}
 		}
 	}
-
 	return iCount;
 }
 
 
 int CvTeam::countPowerByArea(CvArea* pArea) const
 {
-	int iCount;
-	int iI;
-
-	iCount = 0;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	int iCount = 0;
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
 			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
-			{
 				iCount += pArea->getPower((PlayerTypes)iI);
-			}
 		}
 	}
-
 	return iCount;
 }
 
 
 int CvTeam::countEnemyPowerByArea(CvArea* pArea) const
 {
-	int iCount;
-	int iI;
-
-	iCount = 0;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	int iCount = 0;
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
 			if (GET_PLAYER((PlayerTypes)iI).getTeam() != getID())
 			{
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      01/11/09                                jdog5000      */
-/*                                                                                              */
-/* General AI                                                                                   */
-/************************************************************************************************/
-/* original BTS code
-				if (isAtWar(GET_PLAYER((PlayerTypes)iI).getTeam()))
-*/
-				// Count planned wars as well
+				//if (isAtWar(GET_PLAYER((PlayerTypes)iI).getTeam()))
+				// BETTER_BTS_AI_MOD, General AI, 01/11/09, jdog5000: Count planned wars as well
 				if (AI_getWarPlan(GET_PLAYER((PlayerTypes)iI).getTeam()) != NO_WARPLAN)
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-				{
 					iCount += pArea->getPower((PlayerTypes)iI);
-				}
 			}
 		}
 	}
-
 	return iCount;
 }
 
@@ -3243,90 +3198,63 @@ int CvTeam::countEnemyCitiesByArea(CvArea* pArea) const
 }
 // K-Mod end
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      04/01/10                                jdog5000      */
-/*                                                                                              */
-/* War strategy AI                                                                              */
-/************************************************************************************************/
+// BETTER_BTS_AI_MOD, War strategy AI, 04/01/10, jdog5000: START
 // advc.003j (comment): unused
 int CvTeam::countEnemyPopulationByArea(CvArea* pArea) const
 {
-	int iCount;
-	int iI;
-
-	iCount = 0;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	int iCount = 0;
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
 			if (GET_PLAYER((PlayerTypes)iI).getTeam() != getID())
 			{
 				if( AI_getWarPlan(GET_PLAYER((PlayerTypes)iI).getTeam()) != NO_WARPLAN )
-				{
 					iCount += pArea->getPopulationPerPlayer((PlayerTypes)iI);
-				}
 			}
 		}
 	}
-
 	return iCount;
-}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+} // BETTER_BTS_AI_MOD: END
 
 
 int CvTeam::countNumAIUnitsByArea(CvArea* pArea, UnitAITypes eUnitAI) const
 {
 	PROFILE_FUNC();
 
-	int iCount;
-	int iI;
-
-	iCount = 0;
-
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
+	int iCount = 0;
+	for (int iI = 0; iI < MAX_PLAYERS; iI++)
 	{
 		if (GET_PLAYER((PlayerTypes)iI).isAlive())
 		{
 			if (GET_PLAYER((PlayerTypes)iI).getTeam() == getID())
-			{
 				iCount += pArea->getNumAIUnits(((PlayerTypes)iI), eUnitAI);
-			}
 		}
 	}
-
 	return iCount;
 }
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      05/19/10                                jdog5000      */
-/*                                                                                              */
-/* War strategy AI                                                                              */
-/************************************************************************************************/
+// BETTER_BTS_AI_MOD, War strategy AI, 05/19/10, jdog5000
 int CvTeam::countEnemyDangerByArea(CvArea* pArea, TeamTypes eEnemyTeam ) const
 {
 	PROFILE_FUNC();
 
 	int iCount = 0;
-
 	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 	{
 		CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iI);
-
 		if (pLoopPlot != NULL)
 		{
 			if (pLoopPlot->area() == pArea)
 			{
 				if (pLoopPlot->getTeam() == getID())
 				{
-					iCount += pLoopPlot->plotCount(PUF_canDefendEnemy, getLeaderID(), false, NO_PLAYER, eEnemyTeam, PUF_isVisible, getLeaderID());
+					iCount += pLoopPlot->plotCount(PUF_canDefendEnemy, getLeaderID(),
+							false, NO_PLAYER, eEnemyTeam, PUF_isVisible, getLeaderID());
 				}
 			}
 		}
 	}
-
 	return iCount;
 }
 
@@ -3334,24 +3262,21 @@ int CvTeam::countEnemyDangerByArea(CvArea* pArea, TeamTypes eEnemyTeam ) const
 EraTypes CvTeam::getCurrentEra() const {
 
 	double sum = 0;
-	int div = 0;
+	int iDiv = 0;
 	for(int i = 0; i < MAX_PLAYERS; i++) {
-		CvPlayer const& member = GET_PLAYER((PlayerTypes)i);
-		if(member.isAlive() && member.getTeam() == getID()) {
-			div++;
-			sum += member.getCurrentEra();
+		CvPlayer const& kMember = GET_PLAYER((PlayerTypes)i);
+		if(kMember.isAlive() && kMember.getTeam() == getID()) {
+			iDiv++;
+			sum += kMember.getCurrentEra();
 		}
 	}
-	if(div == 0) {
+	if(iDiv == 0) {
 		FAssertMsg(false, "No team members alive");
 		return (EraTypes)0;
 	}
-	return (EraTypes)::round(sum / div);
+	return (EraTypes)::round(sum / iDiv);
 } // </advc.112b>
-
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+// BETTER_BTS_AI_MOD: END
 // K-Mod
 int CvTeam::getTypicalUnitValue(UnitAITypes eUnitAI, DomainTypes eDomain) const
 {
@@ -3369,7 +3294,7 @@ int CvTeam::getTypicalUnitValue(UnitAITypes eUnitAI, DomainTypes eDomain) const
 int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSizeModifiers) const // K-Mod added bGlobalModifiers & bTeamSizeModifiers
 {
 	FAssertMsg(eTech != NO_TECH, "Tech is not assigned a valid value");
-	CvGame const& g = GC.getGameINLINE(); // advc.003
+	CvGame const& g = GC.getGameINLINE();
 
 	// advc.251: To reduce rounding errors (as there are quite a few modifiers to apply)
 	double cost = GC.getTechInfo(eTech).getResearchCost();
@@ -4749,8 +4674,8 @@ void CvTeam::setDisengage(TeamTypes eIndex, bool bNewValue) {
 
 void CvTeam::cancelDisengage(TeamTypes otherId) {
 
-	CvGame& g = GC.getGame(); int dummy=-1;
-	for(CvDeal* d = g.firstDeal(&dummy); d != NULL; d = g.nextDeal(&dummy)) {
+	CvGame& g = GC.getGameINLINE(); int foo;
+	for(CvDeal* d = g.firstDeal(&foo); d != NULL; d = g.nextDeal(&foo)) {
 		if(d->isDisengage() && d->isBetween(getID(), otherId)) {
 			d->kill(false);
 			break;

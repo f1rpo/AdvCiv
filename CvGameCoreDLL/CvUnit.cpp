@@ -130,7 +130,7 @@ void CvUnit::init(int iID, UnitTypes eUnit, UnitAITypes eUnitAI, PlayerTypes eOw
 			pick up roughly where we left off. */
 		int iOffset = step * iCreated + iRand;
 		// That's +8 in Medieval, +16 in Renaissance and +24 in Industrial or later
-		iOffset += std::min(24, 8 * std::max(0, GC.getGame().getStartEra() - 1));
+		iOffset += std::min(24, 8 * std::max(0, GC.getGameINLINE().getStartEra() - 1));
 		bool nameSet = false;
 		// If we run out of names, search backward
 		if(iOffset >= iNumNames) {
@@ -6273,7 +6273,7 @@ bool CvUnit::spread(ReligionTypes eReligion)
 			{
 				if (pCity->isHasReligion((ReligionTypes)iI) || iI == eReligion)
 				{
-					if (pCity != GC.getGame().getHolyCity((ReligionTypes)iI)) // holy city can't lose its religion!
+					if (pCity != GC.getGameINLINE().getHolyCity((ReligionTypes)iI)) // holy city can't lose its religion!
 					{
 						int iInfluence = pCity->getReligionGrip((ReligionTypes)iI);
 						iInfluence += GC.getGameINLINE().getSorenRandNum(iRandomWeight, "Religion influence");
