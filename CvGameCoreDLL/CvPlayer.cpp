@@ -2108,7 +2108,9 @@ CvCity* CvPlayer::initCity(int iX, int iY, bool bBumpUnits, bool bUpdatePlotGrou
 
 	pCity->init(pCity->getID(), getID(), iX, iY, bBumpUnits, bUpdatePlotGroups,
 			iOccupationTimer); // advc.122
-
+	/*  advc.104: Moved out of CvCity::init so that the new city is
+		already fully initialized */
+	setFoundedFirstCity(true);
 	return pCity;
 }
 
@@ -11976,16 +11978,19 @@ bool CvPlayer::isFoundedFirstCity() const
 
 void CvPlayer::setFoundedFirstCity(bool bNewValue)
 {
-	if (isFoundedFirstCity() != bNewValue)
-	{
-		m_bFoundedFirstCity = bNewValue;
+	if (isFoundedFirstCity() == bNewValue)
+		return;
 
-		if (getID() == GC.getGameINLINE().getActivePlayer())
-		{
-			gDLL->getInterfaceIFace()->setDirty(PercentButtons_DIRTY_BIT, true);
-			gDLL->getInterfaceIFace()->setDirty(ResearchButtons_DIRTY_BIT, true);
-		}
+	m_bFoundedFirstCity = bNewValue;
+	if (getID() == GC.getGameINLINE().getActivePlayer())
+	{
+		gDLL->getInterfaceIFace()->setDirty(PercentButtons_DIRTY_BIT, true);
+		gDLL->getInterfaceIFace()->setDirty(ResearchButtons_DIRTY_BIT, true);
 	}
+	/*  <advc.104> So that rivals (with higher ids) can immediately evaluate
+		war plans against this player  */
+	if(!isBarbarian() && getWPAI.isEnabled())
+		AI().warAndPeaceAI().getCache().update(); // </advc.104>
 }
 
 // <advc.078>
@@ -22173,28 +22178,18 @@ bool CvPlayer::splitEmpire(int iAreaId)
 {
 	PROFILE_FUNC();
 
-	if (!canSplitEmpire())
-	{
+	if (!canSplitEmpire() || !canSplitArea(iAreaId))
 		return false;
-	}
-
-	if (!canSplitArea(iAreaId))
-	{
-		return false;
-	}
 
 	CvArea* pArea = GC.getMapINLINE().getArea(iAreaId);
-	if (NULL == pArea)
-	{
+	if (pArea == NULL)
 		return false;
-	}
 
 	PlayerTypes eNewPlayer = getSplitEmpirePlayer(iAreaId);
 	if (eNewPlayer == NO_PLAYER)
-	{
 		return false;
-	}
 
+	CvGame& g = GC.getGameINLINE();
 	bool bPlayerExists = TEAMREF(eNewPlayer).isAlive();
 	FAssert(!bPlayerExists);
 	CvWString szMessage; // advc.127b
@@ -22210,12 +22205,9 @@ bool CvPlayer::splitEmpire(int iAreaId)
 			CivLeaderArray::iterator it;
 			for (it = aLeaders.begin(); it != aLeaders.end(); ++it)
 			{
-				int iValue = (1 + GC.getGameINLINE().getSorenRandNum(100, "Choosing Split Personality"));
-
+				int iValue = (1 + g.getSorenRandNum(100, "Choosing Split Personality"));
 				if (GC.getCivilizationInfo(getCivilizationType()).getDerivativeCiv() == it->first)
-				{
 					iValue += 1000;
-				}
 
 				if (iValue > iBestValue)
 				{
@@ -22225,37 +22217,24 @@ bool CvPlayer::splitEmpire(int iAreaId)
 				}
 			}
 		}
-
 		if (eBestLeader == NO_LEADER || eBestCiv == NO_CIVILIZATION)
-		{
 			return false;
-		}
 
 		szMessage = gDLL->getText("TXT_KEY_MISC_EMPIRE_SPLIT", getNameKey(), GC.getCivilizationInfo(eBestCiv).getShortDescriptionKey(), GC.getLeaderHeadInfo(eBestLeader).getTextKeyWide());
 		// advc.127b: Announcement loop moved down
-		
-		GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szMessage, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      12/30/08                                jdog5000      */
-/*                                                                                              */
-/* Bugfix                                                                                       */
-/************************************************************************************************/
-/*
+		g.addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szMessage, -1, -1, (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+
 		// remove leftover culture from old recycled player
-		for (int iPlot = 0; iPlot < GC.getMapINLINE().numPlotsINLINE(); ++iPlot)
-		{
+		/*  BETTER_BTS_AI_MOD, Bugfix, 12/30/08, jdog5000: commented out
+			(Clearing plot culture along with many other bits of data now handled by CvGame::addPlayer) */
+		/*
+		for (int iPlot = 0; iPlot < GC.getMapINLINE().numPlotsINLINE(); ++iPlot) {
 			CvPlot* pLoopPlot = GC.getMapINLINE().plotByIndexINLINE(iPlot);
-
 			pLoopPlot->setCulture(eNewPlayer, 0, false, false);
-		}
-*/
-		// Clearing plot culture along with many other bits of data now handled by CvGame::addPlayer
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+		}*/
 
-		GC.getGameINLINE().addPlayer(eNewPlayer, eBestLeader, eBestCiv);
+		g.addPlayer(eNewPlayer, eBestLeader, eBestCiv);
 		GET_PLAYER(eNewPlayer).setParent(getID());
 		GC.getInitCore().setLeaderName(eNewPlayer, GC.getLeaderHeadInfo(eBestLeader).getTextKeyWide());
 
@@ -22267,7 +22246,7 @@ bool CvPlayer::splitEmpire(int iAreaId)
 			{
 				kNewTeam.setHasTech(eLoopTech, true, eNewPlayer, false, false);
 				if (GET_TEAM(getTeam()).isNoTradeTech(eLoopTech) ||
-						(GC.getGameINLINE().isOption(GAMEOPTION_NO_TECH_BROKERING)
+						(g.isOption(GAMEOPTION_NO_TECH_BROKERING)
 						&& isSignificantDiscovery(eLoopTech))) // advc.550e
 					kNewTeam.setNoTradeTech(eLoopTech, true);
 			}
@@ -22383,7 +22362,7 @@ bool CvPlayer::splitEmpire(int iAreaId)
 			// advc.130j: Twice remembered
 			2 * GC.getLeaderHeadInfo(getPersonalityType()).getFreedomAppreciation());
 
-	GC.getGameINLINE().updatePlotGroups();
+	g.updatePlotGroups();
 	// K-Mod
 	GET_PLAYER(eNewPlayer).AI_updateAttitudeCache(getID());
 	AI().AI_updateAttitudeCache(eNewPlayer);

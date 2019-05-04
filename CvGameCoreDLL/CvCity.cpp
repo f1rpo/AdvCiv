@@ -276,7 +276,7 @@ void CvCity::init(int iID, PlayerTypes eOwner, int iX, int iY, bool bBumpUnits, 
 
 	g.AI_makeAssignWorkDirty();
 
-	kOwner.setFoundedFirstCity(true);
+	//kOwner.setFoundedFirstCity(true); // advc.104: Moved to CvPlayer::initCity
 
 	if (g.isFinalInitialized())
 	{
@@ -16250,6 +16250,8 @@ int CvCity::failGoldPercent(OrderTypes eOrder) const { // Fail and overflow gold
 
 void CvCity::handleOverflow(int iRawOverflow, int iProductionModifier, OrderTypes eOrderType) {
 
+	if(iRawOverflow < 0) // Can happen through the "+" cheat (Debug mode)
+		return;
 	FAssert(getOverflowProduction() == 0);
 	int iProductionGold = 0;
 	int iLostProduction = 0;

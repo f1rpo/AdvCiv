@@ -1149,24 +1149,22 @@ void CyGame::addPlayer(int eNewPlayer, int eLeader, int eCiv)
 	if (m_pGame)
 	{
 		m_pGame->addPlayer((PlayerTypes)eNewPlayer, (LeaderHeadTypes)eLeader, (CivilizationTypes)eCiv);
+		/*  <advc.104r> Only relevant for mod-mods (e.g. Barbarian Civ, PlatyBuilder).
+			Colonial vassals are handled by CvPlayer::splitEmpire instead. */
+		if(getWPAI.isEnabled())
+			getWPAI.processNewCivInGame((PlayerTypes)eNewPlayer); // </advc.104r>
 	}
 }
 
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						8/1/08				jdog5000	*/
-/* 																			*/
-/* 	Debug																	*/
-/********************************************************************************/
+// BETTER_BTS_AI_MOD, Debug, 8/1/08, jdog5000: START
 void CyGame::changeHumanPlayer( int /*PlayerTypes*/ eNewHuman )
 {
 	if (m_pGame)
 	{
 		m_pGame->changeHumanPlayer((PlayerTypes)eNewHuman);
 	}
-}
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						END								*/
-/********************************************************************************/
+} // BETTER_BTS_AI_MOD: END
+
 
 int CyGame::getCultureThreshold(int eLevel)
 {

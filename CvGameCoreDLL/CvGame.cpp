@@ -10078,28 +10078,16 @@ void CvGame::addPlayer(PlayerTypes eNewPlayer, LeaderHeadTypes eLeader, Civiliza
 	GC.getInitCore().setCiv(eNewPlayer, eCiv);
 	GC.getInitCore().setSlotStatus(eNewPlayer, SS_COMPUTER);
 	GC.getInitCore().setColor(eNewPlayer, eColor);
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						12/30/08            jdog5000    */
-/* 																			*/
-/* 	Bugfix																	*/
-/********************************************************************************/
-/* original BTS code
-	GET_TEAM(eTeam).init(eTeam);
-	GET_PLAYER(eNewPlayer).init(eNewPlayer);
-*/
+	// BETTER_BTS_AI_MOD, Bugfix, 12/30/08, jdog5000: START
 	// Team init now handled when appropriate in player initInGame
+	/*GET_TEAM(eTeam).init(eTeam);
+	GET_PLAYER(eNewPlayer).init(eNewPlayer);*/
 	// Standard player init is written for beginning of game, it resets global random events for this player only among other flaws
 	GET_PLAYER(eNewPlayer).initInGame(eNewPlayer);
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						END								*/
-/********************************************************************************/
+	// BETTER_BTS_AI_MOD: END
 }
 
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						8/1/08				jdog5000	*/
-/* 																			*/
-/* 	Debug																	*/
-/********************************************************************************/
+//	BETTER_BTS_AI_MOD, Debug, 8/1/08, jdog5000: START
 void CvGame::changeHumanPlayer( PlayerTypes eNewHuman )
 {
 	PlayerTypes eCurHuman = getActivePlayer();
@@ -10128,10 +10116,8 @@ void CvGame::changeHumanPlayer( PlayerTypes eNewHuman )
 
 	GET_PLAYER(eCurHuman).setIsHuman(false);
 	GET_PLAYER(eCurHuman).updateHuman(); // advc.127
-}
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						END								*/
-/********************************************************************************/
+} // BETTER_BTS_AI_MOD: END
+
 
 bool CvGame::isCompetingCorporation(CorporationTypes eCorporation1, CorporationTypes eCorporation2) const
 {
