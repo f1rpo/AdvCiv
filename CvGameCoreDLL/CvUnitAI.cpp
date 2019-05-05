@@ -1141,14 +1141,20 @@ int CvUnitAI::AI_sacrificeValue(const CvPlot* pPlot) const
 	{
 		iValue  = 128 * (currEffectiveStr(pPlot, ((pPlot == NULL) ? NULL : this)));
 		iValue *= (100 + iCollateralDamageValue);
-		// BETTER_BTS_AI_MOD, General AI, 05/14/10, jdog5000: START
-		/*original bts code
-		iValue /= (100 + cityDefenseModifier());
-		iValue *= (100 + withdrawalProbability());	
-		iValue /= std::max(1, (1 + m_pUnitInfo->getProductionCost()));
-		iValue /= (10 + getExperience());*/
-		iValue /= (100 + cityDefenseModifier());
+	
+		//iValue /= (100 + cityDefenseModifier());
+		/*  <advc.001> The above doesn't handle negative modifiers well
+			(especially not -100 ...). Bug found by keldath. */
+		int iCityDefenseModifier = cityDefenseModifier();
+		if(iCityDefenseModifier < 0) {
+			iCityDefenseModifier = (iCityDefenseModifier * 2) / 5;
+			FAssert(iCityDefenseModifier > -100);
+		}
+		iValue /= std::max(1, 100 + iCityDefenseModifier); // </advc.001>
 		iValue *= (100 + withdrawalProbability());
+		// BETTER_BTS_AI_MOD, General AI, 05/14/10, jdog5000: START
+		/*iValue /= std::max(1, (1 + m_pUnitInfo->getProductionCost()));
+		iValue /= (10 + getExperience());*/ // BtS code
 		iValue /= 100; // K-Mod
 
 		// Experience and medics now better handled in LFB
