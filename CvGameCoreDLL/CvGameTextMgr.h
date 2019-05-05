@@ -144,9 +144,9 @@ public:
 	bool setBuildingAdditionalCommerceHelp(CvWStringBuffer &szBuffer, const CvCity& city, CommerceTypes eIndex, const CvWString& szStart, bool bStarted = false);
 	bool setBuildingSavedMaintenanceHelp(CvWStringBuffer &szBuffer, const CvCity& city, const CvWString& szStart, bool bStarted = false);
 // BUG - Building Additional info - end
-	void setProductionHelp(CvWStringBuffer &szBuffer, CvCity const& City);  // advc.003: const city in this function and the next 2
-	void setCommerceHelp(CvWStringBuffer &szBuffer, CvCity const& city, CommerceTypes eCommerceType);
-	void setYieldHelp(CvWStringBuffer &szBuffer, CvCity const& city, YieldTypes eYieldType);
+	void setProductionHelp(CvWStringBuffer &szBuffer, CvCity const& kCity);  // advc.003: const city in this function and the next 2
+	void setCommerceHelp(CvWStringBuffer &szBuffer, CvCity const& kCity, CommerceTypes eCommerce);
+	void setYieldHelp(CvWStringBuffer &szBuffer, CvCity const& kCity, YieldTypes eYield);
 	void setConvertHelp(CvWStringBuffer& szBuffer, PlayerTypes ePlayer, ReligionTypes eReligion);
 	void setRevolutionHelp(CvWStringBuffer& szBuffer, PlayerTypes ePlayer);
 	void setVassalRevoltHelp(CvWStringBuffer& szBuffer, TeamTypes eMaster, TeamTypes eVassal);
