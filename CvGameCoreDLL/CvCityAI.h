@@ -45,8 +45,8 @@ public:
 			int iThreshold = 0, bool bConstCache = false, bool bAllowRecursion = true,
 			bool bIgnoreSpecialists = false) const; // advc.121b
 	// <advc.179>
-	double AI_estimateReligionBuildings(PlayerTypes civId, ReligionTypes eReligion,
-			std::vector<BuildingTypes> const& buildings) const; // </advc.179>
+	double AI_estimateReligionBuildings(PlayerTypes ePlayer, ReligionTypes eReligion,
+			std::vector<BuildingTypes> const& aeBuildings) const; // </advc.179>
 	ProjectTypes AI_bestProject(int* piBestValue = 0,
 			bool bAsync = false); // advc.001n
 	int AI_projectValue(ProjectTypes eProject);
@@ -83,7 +83,7 @@ public:
 	bool AI_isEvacuating() const;
 	bool AI_isSafe() const;
 	// </advc.139>
-	bool AI_isAwfulSite(PlayerTypes futureOwnerId) const; // advc.122
+	bool AI_isAwfulSite(PlayerTypes eFutureOwner) const; // advc.122
 	// advc.003: Moved from CvCity b/c it's part of the AI
 	int AI_culturePressureFactor() const; // K-Mod
 	int AI_getEmphasizeAvoidGrowthCount() const;

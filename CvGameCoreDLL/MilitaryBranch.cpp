@@ -2,6 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "MilitaryBranch.h"
+#include "WarAndPeaceAgent.h"
 #include "CvGameAI.h"
 #include "CvPlayerAI.h"
 

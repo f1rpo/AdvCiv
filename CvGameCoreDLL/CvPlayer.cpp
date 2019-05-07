@@ -2,9 +2,8 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvPlayer.h"
-#include "CvGameAI.h"
-#include "CvPlayerAI.h"
-#include "CvTeamAI.h"
+#include "CvGamePlay.h"
+#include "WarAndPeaceAgent.h" // advc.104
 #include "CvMap.h"
 #include "CvArtFileMgr.h"
 #include "CvDiploParameters.h"
@@ -14,6 +13,7 @@
 #include "CvPopupInfo.h"
 #include "CvDiploParameters.h"
 #include "CvGameTextMgr.h"
+#include "RiseFall.h" // advc.700
 #include "AdvCiv4lerts.h" // advc.210
 #include "CyCity.h"
 #include "CyPlot.h"
@@ -5558,14 +5558,9 @@ bool CvPlayer::canStopTradingWithTeam(TeamTypes eTeam, bool bContinueNotTrading)
 	if(getMasterTeam() == GET_TEAM(eTeam).getMasterTeam())
 		return false; // </advc.130d>
 	/*if (eTeam == getTeam())
-	{
 		return false;
-	}
-
 	if (GET_TEAM(getTeam()).isVassal(eTeam))
-	{
-		return false;
-	}*/
+		return false;*/
 	if(bContinueNotTrading) {
 		// <advc.130f>
 		// Allow resolutions to overrule turns-to-cancel
@@ -5573,60 +5568,48 @@ bool CvPlayer::canStopTradingWithTeam(TeamTypes eTeam, bool bContinueNotTrading)
 	}
 	return isTradingWithTeam(eTeam, true);
 	// BtS code: // </advc.130f>
-
-	/*if (!isTradingWithTeam(eTeam, false))
-	{
+	/*if (!isTradingWithTeam(eTeam, false)) {
 		if (bContinueNotTrading && !isTradingWithTeam(eTeam, true))
-		{
 			return true;
-		}
-
 		return false;
 	}
-
 	return true;*/
 }
 
 
-void CvPlayer::stopTradingWithTeam(TeamTypes eTeam,
-		bool bDiploPenalty) // advc.130f:
+void CvPlayer::stopTradingWithTeam(TeamTypes eTeam, /* advc.130f: */ bool bDiploPenalty) 
 {
-	CvDeal* pLoopDeal;
-	int iLoop;
-	int iI;
-
 	FAssert(eTeam != getTeam());
 	bool bDealCanceled = false; // advc.130f
-	for(pLoopDeal = GC.getGameINLINE().firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = GC.getGameINLINE().nextDeal(&iLoop))
+	int iLoop;
+	for(CvDeal* pLoopDeal = GC.getGameINLINE().firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = GC.getGameINLINE().nextDeal(&iLoop))
 	{
 		if (pLoopDeal->isEverCancelable(getID()) // advc.130f
-				&& !(pLoopDeal->isPeaceDeal())
+				&& !pLoopDeal->isPeaceDeal()
 				&& !pLoopDeal->isDisengage()) // advc.034
 		{
-			if (((pLoopDeal->getFirstPlayer() == getID()) && (GET_PLAYER(pLoopDeal->getSecondPlayer()).getTeam() == eTeam)) ||
-				  ((pLoopDeal->getSecondPlayer() == getID()) && (GET_PLAYER(pLoopDeal->getFirstPlayer()).getTeam() == eTeam)))
+			if ((pLoopDeal->getFirstPlayer() == getID() &&
+					TEAMID(pLoopDeal->getSecondPlayer()) == eTeam) ||
+					(pLoopDeal->getSecondPlayer() == getID() &&
+					TEAMID(pLoopDeal->getFirstPlayer()) == eTeam))
 			{
 				pLoopDeal->kill();
 				bDealCanceled = true; // advc.130f
 			}
 		}
-	}
-	if(!bDealCanceled && bDiploPenalty) return; // advc.130f
-	for (iI = 0; iI < MAX_PLAYERS; iI++)
-	{   CvPlayerAI& civ = GET_PLAYER((PlayerTypes)iI); // advc.003
-		if (civ.isAlive())
-		{
-			if (civ.getTeam() == eTeam)
-			{   // <advc.130j>
-				if(bDiploPenalty) // advc.130f: RECENT causes only refusal to talk
-					civ.AI_rememberEvent(getID(), MEMORY_STOPPED_TRADING);
-				// Don't rememberEvent - not supposed to be based on attitude
-				int mem = civ.AI_getMemoryCount(getID(), MEMORY_STOPPED_TRADING_RECENT);
-				civ.AI_changeMemoryCount(getID(), MEMORY_STOPPED_TRADING_RECENT,
-						2 - mem); // sets it to 2
-			}   // </advc.130j>
-		}
-	}
+	} // <advc.130f>
+	if(!bDealCanceled && bDiploPenalty)
+		return; // </advc.130f>
+	for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++) // advc.003n: was MAX_PLAYERS
+	{   CvPlayerAI& kTargetMember = GET_PLAYER((PlayerTypes)iI); // advc.003
+		if (!kTargetMember.isAlive() || kTargetMember.getTeam() != eTeam)
+			continue;
+		// <advc.130j>
+		if(bDiploPenalty) // advc.130f: RECENT causes only refusal to talk
+			kTargetMember.AI_rememberEvent(getID(), MEMORY_STOPPED_TRADING);
+		// Don't rememberEvent - not supposed to be based on attitude
+		kTargetMember.AI_setMemoryCount(getID(), MEMORY_STOPPED_TRADING_RECENT, 2);
+	} // </advc.130j>
 }
 
 // <advc.130f>
@@ -5643,75 +5626,57 @@ bool CvPlayer::isAnyDealTooRecentToCancel(TeamTypes eTeam) const {
 
 void CvPlayer::killAllDeals()
 {
-	CvDeal* pLoopDeal;
 	int iLoop;
-
-	for(pLoopDeal = GC.getGameINLINE().firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = GC.getGameINLINE().nextDeal(&iLoop))
+	for(CvDeal* pLoopDeal = GC.getGameINLINE().firstDeal(&iLoop); pLoopDeal != NULL; pLoopDeal = GC.getGameINLINE().nextDeal(&iLoop))
 	{
-		if ((pLoopDeal->getFirstPlayer() == getID()) || (pLoopDeal->getSecondPlayer() == getID()))
-		{
+		if (pLoopDeal->getFirstPlayer() == getID() ||
+				pLoopDeal->getSecondPlayer() == getID())
 			pLoopDeal->kill();
-		}
 	}
 }
 
 
-void CvPlayer::findNewCapital()
+void CvPlayer::findNewCapital()  // advc.003 style changes
 {
-	CvCity* pOldCapital;
-	CvCity* pLoopCity;
-	CvCity* pBestCity;
-	BuildingTypes eCapitalBuilding;
-	int iValue;
-	int iBestValue;
-	int iLoop;
-
-	eCapitalBuilding = ((BuildingTypes)(GC.getCivilizationInfo(getCivilizationType()).getCivilizationBuildings(GC.getDefineINT("CAPITAL_BUILDINGCLASS"))));
-
+	BuildingTypes eCapitalBuilding = (BuildingTypes)
+			GC.getCivilizationInfo(getCivilizationType()).
+			getCivilizationBuildings(GC.getDefineINT("CAPITAL_BUILDINGCLASS"));
 	if (eCapitalBuilding == NO_BUILDING)
-	{
 		return;
-	}
 
-	pOldCapital = getCapitalCity();
+	CvCity* pOldCapital = getCapitalCity();
 
-	iBestValue = 0;
-	pBestCity = NULL;
-
-	for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+	int iBestValue = 0;
+	CvCity* pBestCity = NULL; int iLoop;
+	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
-		if (pLoopCity != pOldCapital)
+		if (pLoopCity == pOldCapital ||
+				pLoopCity->getNumRealBuilding(eCapitalBuilding) != 0)
+			continue;
+
+		int iValue = pLoopCity->getPopulation() * 4;
+		iValue += pLoopCity->getYieldRate(YIELD_FOOD);
+		iValue += (pLoopCity->getYieldRate(YIELD_PRODUCTION) * 3);
+		iValue += (pLoopCity->getYieldRate(YIELD_COMMERCE) * 2);
+		iValue += pLoopCity->getCultureLevel();
+		iValue += pLoopCity->getReligionCount();
+		iValue += pLoopCity->getCorporationCount();
+		iValue += (pLoopCity->getNumGreatPeople() * 2);
+
+		iValue *= (pLoopCity->calculateCulturePercent(getID()) + 100);
+		iValue /= 100;
+
+		if (iValue > iBestValue)
 		{
-			if (0 == pLoopCity->getNumRealBuilding(eCapitalBuilding))
-			{
-				iValue = (pLoopCity->getPopulation() * 4);
-
-				iValue += pLoopCity->getYieldRate(YIELD_FOOD);
-				iValue += (pLoopCity->getYieldRate(YIELD_PRODUCTION) * 3);
-				iValue += (pLoopCity->getYieldRate(YIELD_COMMERCE) * 2);
-				iValue += pLoopCity->getCultureLevel();
-				iValue += pLoopCity->getReligionCount();
-				iValue += pLoopCity->getCorporationCount();
-				iValue += (pLoopCity->getNumGreatPeople() * 2);
-
-				iValue *= (pLoopCity->calculateCulturePercent(getID()) + 100);
-				iValue /= 100;
-
-				if (iValue > iBestValue)
-				{
-					iBestValue = iValue;
-					pBestCity = pLoopCity;
-				}
-			}
+			iBestValue = iValue;
+			pBestCity = pLoopCity;
 		}
 	}
 
 	if (pBestCity != NULL)
 	{
 		if (pOldCapital != NULL)
-		{
 			pOldCapital->setNumRealBuilding(eCapitalBuilding, 0);
-		}
 		FAssertMsg(!(pBestCity->getNumRealBuilding(eCapitalBuilding)), "(pBestCity->getNumRealBuilding(eCapitalBuilding)) did not return false as expected");
 		pBestCity->setNumRealBuilding(eCapitalBuilding, 1);
 	}
@@ -5720,20 +5685,12 @@ void CvPlayer::findNewCapital()
 
 int CvPlayer::getNumGovernmentCenters() const
 {
-	CvCity* pLoopCity;
-	int iCount;
-	int iLoop;
-
-	iCount = 0;
-
-	for (pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
+	int iCount = 0; int iLoop;
+	for (CvCity* pLoopCity = firstCity(&iLoop); pLoopCity != NULL; pLoopCity = nextCity(&iLoop))
 	{
 		if (pLoopCity->isGovernmentCenter())
-		{
 			iCount++;
-		}
 	}
-
 	return iCount;
 }
 
@@ -5743,32 +5700,23 @@ bool CvPlayer::canRaze(CvCity* pCity) const
 	if (!pCity->isAutoRaze())
 	{
 		if (GC.getGameINLINE().isOption(GAMEOPTION_NO_CITY_RAZING))
-		{
 			return false;
-		}
 
 		if (pCity->getOwnerINLINE() != getID())
-		{
 			return false;
-		}
 
 		if (pCity->calculateTeamCulturePercent(getTeam()) >= GC.getDefineINT("RAZING_CULTURAL_PERCENT_THRESHOLD"))
-		{
 			return false;
-		}
 	}
 
 	CyCity* pyCity = new CyCity(pCity);
-	CyArgsList argsList;
-	argsList.add(getID());	// Player ID
-	argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));	// pass in city class
+	CyArgsList argsList; argsList.add(getID());
+	argsList.add(gDLL->getPythonIFace()->makePythonObject(pyCity));
 	long lResult=0;
 	gDLL->getPythonIFace()->callFunction(PYGameModule, "canRazeCity", argsList.makeFunctionArgs(), &lResult);
-	delete pyCity;	// python fxn must not hold on to this pointer 
+	delete pyCity;
 	if (lResult == 0)
-	{
 		return (false);
-	}
 
 	return true;
 }
@@ -5795,19 +5743,19 @@ void CvPlayer::raze(CvCity* pCity)
 		{   // <advc.130v>
 			/*  advc.130j: Base effect doubled (but not changed to
 				AI_rememberEvent) */
-			int count = 2;
+			int iMemory = 2;
 			// <advc.130q>
 			if(GET_PLAYER(eHighestCulturePlayer).AI_razeAngerRating(*pCity) < 3)
-				count = 1; // </advc.130q>
+				iMemory = 1; // </advc.130q>
 			if(GET_TEAM(getTeam()).isCapitulated()) {
-				count /= 2;
+				iMemory /= 2;
 				GET_PLAYER(eHighestCulturePlayer).AI_changeMemoryCount(
 						GET_TEAM(getMasterTeam()).getLeaderID(),
-						MEMORY_RAZED_CITY, count);
-				if(count <= 0) // At least count it for the vassal then
-					count = 1;
+						MEMORY_RAZED_CITY, iMemory);
+				if(iMemory <= 0) // At least count it for the vassal then
+					iMemory = 1;
 			} // </advc.130v>
-			GET_PLAYER(eHighestCulturePlayer).AI_changeMemoryCount(getID(), MEMORY_RAZED_CITY, count);
+			GET_PLAYER(eHighestCulturePlayer).AI_changeMemoryCount(getID(), MEMORY_RAZED_CITY, iMemory);
 		}
 	}
 
@@ -5825,14 +5773,14 @@ void CvPlayer::raze(CvCity* pCity)
 						{   // <advc.130v>
 							/*  advc.130j: Effect doubled (but not changed to
 								AI_rememberEvent) */
-							int count = 2;
+							int iMemory = 2;
 							if(GET_TEAM(getTeam()).isCapitulated()) {
-								count = 1;
+								iMemory = 1;
 								GET_PLAYER((PlayerTypes)iJ).AI_changeMemoryCount(
 										GET_TEAM(getMasterTeam()).getLeaderID(),
-										MEMORY_RAZED_HOLY_CITY, count);
+										MEMORY_RAZED_HOLY_CITY, iMemory);
 							} // </advc.130v>
-							GET_PLAYER((PlayerTypes)iJ).AI_changeMemoryCount(getID(), MEMORY_RAZED_HOLY_CITY, count);
+							GET_PLAYER((PlayerTypes)iJ).AI_changeMemoryCount(getID(), MEMORY_RAZED_HOLY_CITY, iMemory);
 						}
 					}
 				}
@@ -8374,7 +8322,7 @@ int CvPlayer::getResearchTurnsLeftTimes100(TechTypes eTech, bool bOverflow) cons
 bool CvPlayer::canSeeResearch(PlayerTypes ePlayer,
 		bool bCheckPoints) const // advc.085
 {
-	FASSERT_BOUNDS(0, MAX_PLAYERS, ePlayer, "canSeeResearch");
+	FASSERT_BOUNDS(0, MAX_PLAYERS, ePlayer, "CvPlayer::canSeeResearch");
 	const CvPlayer& kOther = GET_PLAYER(ePlayer);
 
 	if (kOther.getTeam() == getTeam() || GET_TEAM(kOther.getTeam()).isVassal(getTeam()))
@@ -8402,7 +8350,7 @@ bool CvPlayer::canSeeResearch(PlayerTypes ePlayer,
 bool CvPlayer::canSeeDemographics(PlayerTypes ePlayer,
 		bool bCheckPoints) const // advc.085
 {
-	FASSERT_BOUNDS(0, MAX_PLAYERS, ePlayer, "canSeeDemographics");
+	FASSERT_BOUNDS(0, MAX_PLAYERS, ePlayer, "CvPlayer::canSeeDemographics");
 	const CvPlayer& kOther = GET_PLAYER(ePlayer);
 
 	if (kOther.getTeam() == getTeam() || GET_TEAM(kOther.getTeam()).isVassal(getTeam()))
@@ -20969,7 +20917,7 @@ void CvPlayer::applyEvent(EventTypes eEvent, int iEventTriggeredId, bool bUpdate
 		(*it)->setHasReligion(pTriggeredData->m_eReligion, true, true, false);
 	}
 
-	if (0 != kEvent.getOurAttitudeModifier())
+	if (kEvent.getOurAttitudeModifier() != 0)
 	{
 		if (NO_PLAYER != pTriggeredData->m_eOtherPlayer)
 		{
@@ -20984,19 +20932,19 @@ void CvPlayer::applyEvent(EventTypes eEvent, int iEventTriggeredId, bool bUpdate
 		}
 	}
 
-	if (0 != kEvent.getAttitudeModifier())
+	if (kEvent.getAttitudeModifier() != 0)
 	{
 		if (NO_PLAYER != pTriggeredData->m_eOtherPlayer)
 		{
 			/*  <advc.130j> Replacing AI_changeMemoryCount
 				with multiple AI_rememberEvent calls */
-			PlayerTypes opId = pTriggeredData->m_eOtherPlayer;
+			CvPlayerAI& kOther = GET_PLAYER(pTriggeredData->m_eOtherPlayer);
 			if(kEvent.getAttitudeModifier() > 0)
 				for(int i = 0; i < kEvent.getAttitudeModifier(); i++)
-					GET_PLAYER(opId).AI_rememberEvent(getID(), MEMORY_EVENT_GOOD_TO_US);
+					kOther.AI_rememberEvent(getID(), MEMORY_EVENT_GOOD_TO_US);
 			else
 				for(int i = 0; i < -kEvent.getAttitudeModifier(); i++)
-					GET_PLAYER(opId).AI_rememberEvent(getID(), MEMORY_EVENT_BAD_TO_US);
+					kOther.AI_rememberEvent(getID(), MEMORY_EVENT_BAD_TO_US);
 			// </advc.130j>
 		}
 	}

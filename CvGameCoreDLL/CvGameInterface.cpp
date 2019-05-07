@@ -4,6 +4,7 @@
 #include "CvTeamAI.h"
 #include "CvMap.h"
 #include "CvInitCore.h"
+#include "RiseFall.h" // advc.700
 #include "CyPlot.h"
 #include "CyArgsList.h"
 #include "CvPopupInfo.h"
@@ -432,7 +433,7 @@ void CvGame::updateBlockadedPlots()
 		initialized so that I can send an error msg to the player if necessary.
 		Not the case in e.g. CvGame::init or setInitialItems. */
 	if(isOption(GAMEOPTION_RISE_FALL) && getElapsedGameTurns() <= 0)
-		m_riseFall.init(); // </advc.700>
+		m_pRiseFall->init(); // </advc.700>
 }
 
 

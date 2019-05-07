@@ -5,6 +5,7 @@
 #include "CvDLLInterfaceIFaceBase.h" // </advc.127>
 #include "CvGameAI.h"
 #include "CvPlayerAI.h"
+#include "RiseFall.h" // advc.700
 
 void CvDLLInterfaceIFaceBase::addHumanMessage(PlayerTypes ePlayer, bool bForce,
 		int iLength, CvWString szString, LPCTSTR pszSound,
@@ -12,12 +13,12 @@ void CvDLLInterfaceIFaceBase::addHumanMessage(PlayerTypes ePlayer, bool bForce,
 		int iFlashX, int iFlashY, bool bShowOffScreenArrows,
 		bool bShowOnScreenArrows) {
 
-	CvPlayer& pl = GET_PLAYER(ePlayer);
-	if(pl.isHuman() ||
+	CvPlayer& kPlayer = GET_PLAYER(ePlayer);
+	if(kPlayer.isHuman() ||
 		/*  <advc.700> Want message archive to be available when human
 			takes over. AI messages expire just like human messages. */
 			(GC.getGameINLINE().isOption(GAMEOPTION_RISE_FALL) &&
-			!pl.isHumanDisabled() &&
+			!kPlayer.isHumanDisabled() &&
 			GC.getGameINLINE().getRiseFall().isDeliverMessages(ePlayer))) {
 			// </advc.700>
 		addMessage(ePlayer, bForce, iLength, szString, pszSound, eType,
@@ -26,7 +27,7 @@ void CvDLLInterfaceIFaceBase::addHumanMessage(PlayerTypes ePlayer, bool bForce,
 	}
 	//else if (GC.getGameINLINE().getActivePlayer() == ePlayer)
 	// advc.700: Replacing the above
-	else if(!pl.isHuman() && pl.isHumanDisabled()) {
+	else if(!kPlayer.isHuman() && kPlayer.isHumanDisabled()) {
 		// this means ePlayer is human, but currently using auto-play (K-Mod)
 		if(eType == MESSAGE_TYPE_MAJOR_EVENT || eType == MESSAGE_TYPE_CHAT ||
 				eType == MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY) { // advc.106b

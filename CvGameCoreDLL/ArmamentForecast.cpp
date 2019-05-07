@@ -2,8 +2,12 @@
 
 #include "CvGameCoreDLL.h"
 #include "ArmamentForecast.h"
-#include "CvGameAI.h"
-#include "CvTeamAI.h"
+#include "WarAndPeaceAgent.h"
+#include "MilitaryAnalyst.h"
+#include "WarEvalParameters.h"
+#include "WarAndPeaceReport.h"
+#include "CvGamePlay.h"
+#include "AI_Defines.h"
 #include "CvMap.h"
 #include <sstream>
 

@@ -3,12 +3,12 @@
 #ifndef WAR_EVALUATOR_H
 #define WAR_EVALUATOR_H
 
-#include "CvTeamAI.h"
-#include "WarEvalParameters.h"
-#include "WarUtilityAspect.h"
-#include "WarAndPeaceReport.h"
+#include "CvEnums.h"
+#include <vector>
 
+class WarEvalParameters;
 class WarUtilityAspect;
+class WarAndPeaceReport;
 
 /* <advc.104>: New class. Computes the utility of a war between two teams:
    'agent' against 'target'. From the point of view of 'agent'.  */

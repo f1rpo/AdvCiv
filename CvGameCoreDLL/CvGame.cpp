@@ -2,9 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvGame.h"
-#include "CvGameAI.h"
-#include "CvPlayerAI.h"
-#include "CvTeamAI.h"
+#include "CvGamePlay.h"
 #include "CvMap.h"
 #include "CvInitCore.h"
 #include "CvMapGenerator.h"
@@ -18,6 +16,8 @@
 #include "CvGameTextMgr.h"
 #include "CvEventReporter.h"
 #include "CvMessageControl.h"
+#include "StartPointsAsHandicap.h" // advc.250b
+#include "RiseFall.h" // advc.700
 #include "CvHallOfFameInfo.h" // advc.106i
 
 // interface uses
@@ -38,6 +38,9 @@ CvGame::CvGame()
 	m_aiRankTeam = new int[MAX_TEAMS];						// Ordered by rank...
 	m_aiTeamRank = new int[MAX_TEAMS];						// Ordered by team ID...
 	m_aiTeamScore = new int[MAX_TEAMS];						// Ordered by team ID...
+
+	m_pSpah = new StartPointsAsHandicap(); // advc.250b
+	m_pRiseFall = new RiseFall(); // advc.700
 
 	m_paiUnitCreatedCount = NULL;
 	m_paiUnitClassCreatedCount = NULL;
@@ -78,6 +81,9 @@ CvGame::~CvGame()
 	SAFE_DELETE_ARRAY(m_aiRankTeam);
 	SAFE_DELETE_ARRAY(m_aiTeamRank);
 	SAFE_DELETE_ARRAY(m_aiTeamScore);
+
+	SAFE_DELETE(m_pSpah); // advc.250b
+	SAFE_DELETE(m_pRiseFall); // advc.700
 }
 
 void CvGame::init(HandicapTypes eHandicap)
@@ -271,7 +277,7 @@ void CvGame::setInitialItems()
 		setOption(GAMEOPTION_SPAH, false);
 	if(isOption(GAMEOPTION_SPAH))
 		// Reassigns start plots and start points
-		m_spah.setInitialItems(); // </advc.250b>
+		m_pSpah->setInitialItems(); // </advc.250b>
 	int iStartTurn = getStartTurn(); // advc.250c, advc.251
 	// <advc.250c>
 	if(getStartEra() == 0 && GC.getDefineINT("INCREASE_START_TURN") > 0) {
@@ -405,8 +411,8 @@ void CvGame::regenerateMap()
 	cycleSelectionGroups_delayed(1, false);
 	// <advc.700>
 	if(isOption(GAMEOPTION_RISE_FALL)) {
-		m_riseFall.reset();
-		m_riseFall.init();
+		m_pRiseFall->reset();
+		m_pRiseFall->init();
 	}
 	else { // </advc.700>
 		autoSave(true); // advc.106l
@@ -490,7 +496,7 @@ void CvGame::uninit()
 	applyOptionEffects(true); // advc.310
 	/*  advc.700: Need to call this explicitly due to the unusual way that
 		RiseFall is initialized (from updateBlockadedPlots) */
-	m_riseFall.reset();
+	m_pRiseFall->reset();
 }
 
 // <advc.250c> Function body cut from CvGame::init. Changes marked in-line.
@@ -2590,7 +2596,7 @@ void CvGame::update()
 			gDLL->getInterfaceIFace()->setWorldBuilder(true);
 		} // <advc.705>
 		if(isOption(GAMEOPTION_RISE_FALL))
-			m_riseFall.restoreDiploText(); // </advc.705>
+			m_pRiseFall->restoreDiploText(); // </advc.705>
 	}
 	PROFILE_END();
 	stopProfilingDLL(false);
@@ -5589,7 +5595,7 @@ int CvGame::getDifficultyForEndScore() const {
 	if(!isOption(GAMEOPTION_SPAH))
 		return r;
 	std::vector<int> aiStartPointDistrib;
-	m_spah.distribution(aiStartPointDistrib);
+	m_pSpah->distribution(aiStartPointDistrib);
 	std::vector<double> distr;
 	for(size_t i = 0; i < aiStartPointDistrib.size(); i++)
 		distr.push_back(aiStartPointDistrib[i]);
@@ -5730,7 +5736,7 @@ void CvGame::setGameState(GameStateTypes eNewValue)
 		CvEventReporter::getInstance().gameEnd();
 		// <advc.707>
 		if(isOption(GAMEOPTION_RISE_FALL))
-			m_riseFall.prepareForExtendedGame(); // </advc.707>
+			m_pRiseFall->prepareForExtendedGame(); // </advc.707>
 		showEndGameSequence();
 		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 		{
@@ -6715,7 +6721,7 @@ void CvGame::doTurn()
 	verifyDeals();
 	// <advc.700>
 	if(isOption(GAMEOPTION_RISE_FALL))
-		m_riseFall.atGameTurnStart(); // </advc.700>
+		m_pRiseFall->atGameTurnStart(); // </advc.700>
 	// advc.127: was right after doHeadquarters
 	doDiploVote();
 
@@ -6794,7 +6800,7 @@ void CvGame::doTurn()
 	stopProfilingDLL(true);
 	// <advc.700>
 	if(isOption(GAMEOPTION_RISE_FALL))
-		m_riseFall.autoSave();
+		m_pRiseFall->autoSave();
 	else // </advc.700>
 		autoSave(); // advc.106l
 }
@@ -9563,10 +9569,10 @@ void CvGame::read(FDataStreamBase* pStream)
 	m_sorenRand.read(pStream);
 	// <advc.250b>
 	if(isOption(GAMEOPTION_SPAH))
-		m_spah.read(pStream); // </advc.250b> <advc.701>
+		m_pSpah->read(pStream); // </advc.250b> <advc.701>
 	if(uiFlag >= 2) {
 		if(isOption(GAMEOPTION_RISE_FALL))
-			m_riseFall.read(pStream);
+			m_pRiseFall->read(pStream);
 	}
 	else { // Options have been shuffled around
 		setOption(GAMEOPTION_NEW_RANDOM_SEED, isOption(GAMEOPTION_RISE_FALL));
@@ -9799,9 +9805,9 @@ void CvGame::write(FDataStreamBase* pStream)
 	m_sorenRand.write(pStream);
 	// <advc.250b>
 	if(isOption(GAMEOPTION_SPAH))
-		m_spah.write(pStream); // </advc.250b> <advc.701>
+		m_pSpah->write(pStream); // </advc.250b> <advc.701>
 	if(isOption(GAMEOPTION_RISE_FALL))
-		m_riseFall.write(pStream); // </advc.701>
+		m_pRiseFall->write(pStream); // </advc.701>
 	ReplayMessageList::_Alloc::size_type iSize = m_listReplayMessages.size();
 	pStream->Write(iSize);
 	for (ReplayMessageList::const_iterator it = m_listReplayMessages.begin(); it != m_listReplayMessages.end(); it++)
@@ -9859,7 +9865,7 @@ void CvGame::writeReplay(FDataStreamBase& stream, PlayerTypes ePlayer)
 		m_pReplayInfo->createInfo(ePlayer);
 		// <advc.707>
 		if(isOption(GAMEOPTION_RISE_FALL))
-			m_pReplayInfo->setFinalScore(m_riseFall.getFinalRiseScore());
+			m_pReplayInfo->setFinalScore(m_pRiseFall->getFinalRiseScore());
 		// </advc.707>
 		m_pReplayInfo->write(stream);
 	}
@@ -11384,18 +11390,18 @@ void CvGame::setScenario(bool b) {
 // advc.250b:
 StartPointsAsHandicap& CvGame::startPointsAsHandicap() {
 
-	return m_spah;
+	return *m_pSpah;
 }
 
 // <advc.703>
 RiseFall const& CvGame::getRiseFall() const {
 
-	return m_riseFall;
+	return *m_pRiseFall;
 }
 
 RiseFall& CvGame::getRiseFall() {
 
-	return m_riseFall;
+	return *m_pRiseFall;
 } // </advc.703>
 
 // <advc.106i>

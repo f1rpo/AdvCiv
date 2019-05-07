@@ -3,10 +3,14 @@
 #ifndef WAR_UTILITY_ASPECT_H
 #define WAR_UTILITY_ASPECT_H
 
-#include "MilitaryAnalyst.h"
 #include "WarAndPeaceAI.h"
 
 class MilitaryAnalyst;
+class WarEvalParameters;
+class WarAndPeaceReport;
+class WarAndPeaceAI::Civ;
+class WarAndPeaceAI::Team;
+class WarAndPeaceCache;
 
 
 /*  <advc.104> New class. An aspect of war evaluation.

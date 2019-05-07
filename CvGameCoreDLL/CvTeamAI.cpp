@@ -2,12 +2,13 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvTeamAI.h"
-#include "CvGameAI.h"
-#include "CvPlayerAI.h"
+#include "CvGamePlay.h"
 #include "CvMap.h"
 #include "CvInfos.h"
 #include "CyArgsList.h"
-#include "BetterBTSAI.h" // bbai
+#include "BetterBTSAI.h" // BBAI
+#include "AI_Defines.h" // BBAI
+#include "WarAndPeaceAgent.h" // advc.104
 #include "CvDLLInterfaceIFaceBase.h"
 #include "CvDLLPythonIFaceBase.h"
 #include "CvDLLFAStarIFaceBase.h" // K-Mod (currently used in AI_isLandTarget)
@@ -54,7 +55,7 @@ CvTeamAI::CvTeamAI()
 	m_aiEnemyPeacetimeTradeValue = new int[MAX_TEAMS];
 	m_aiEnemyPeacetimeGrantValue = new int[MAX_TEAMS];
 	m_aeWarPlan = new WarPlanTypes[MAX_TEAMS];
-
+	m_pWpai = new WarAndPeaceAI::Team(); // advc.104
 
 	AI_reset(true);
 }
@@ -76,6 +77,7 @@ CvTeamAI::~CvTeamAI()
 	SAFE_DELETE_ARRAY(m_aiEnemyPeacetimeTradeValue);
 	SAFE_DELETE_ARRAY(m_aiEnemyPeacetimeGrantValue);
 	SAFE_DELETE_ARRAY(m_aeWarPlan);
+	SAFE_DELETE(m_pWpai); // advc.104
 }
 
 
@@ -92,7 +94,7 @@ void CvTeamAI::AI_initMemory()
 {
 	// <advc.104>
 	if(isEverAlive() && !isBarbarian() && !isMinorCiv())
-		wpai.init(getID()); // </advc.104>
+		m_pWpai->init(getID()); // </advc.104>
 	// Note. this needs to be done after the map is set. unfortunately, AI_init is called before that happens.
 	FAssert(GC.getMapINLINE().numPlotsINLINE() > 0);
 	m_aiStrengthMemory.clear();
@@ -168,7 +170,7 @@ void CvTeamAI::AI_doTurnPre()
 		/*  Calls turnPre on the team members, i.e. WarAndPeaceAI::Civ::turnPre
 			happens before CvPlayerAI::AI_turnPre. Needs to be this way b/c
 			WarAndPeaceAI::Team::doWar requires the members to be up-to-date. */
-		wpai.turnPre();
+		m_pWpai->turnPre();
 	} // </advc.104>
 	// <advc.130n> Game turn increment can affect attitudes now
 	if(isHuman()) {
@@ -5202,7 +5204,7 @@ void CvTeamAI::read(FDataStreamBase* pStream)
 	// K-Mod end
 	// <advc.104>
 	if(isEverAlive() && !isBarbarian() && !isMinorCiv())
-		wpai.read(pStream); // </advc.104>
+		m_pWpai->read(pStream); // </advc.104>
 }
 
 
@@ -5245,7 +5247,7 @@ void CvTeamAI::write(FDataStreamBase* pStream)
 	// K-Mod end
 	// <advc.104>
 	if(isEverAlive() && !isBarbarian() && !isMinorCiv())
-		wpai.write(pStream); // </advc.104>
+		m_pWpai->write(pStream); // </advc.104>
 }
 
 // <advc.012>
@@ -5284,16 +5286,12 @@ void CvTeamAI::AI_forgiveEnemy(TeamTypes eEnemyTeam, bool bCapitulated, bool bFr
 			if(!GET_PLAYER(eOtherCiv).isAlive())
 				continue;
 			// <advc.104i> Be willing to talk to everyone, not just 'enemyId'.
-			int iMem = kMember.AI_getMemoryCount(eOtherCiv, MEMORY_DECLARED_WAR_RECENT);
-			if(iMem > 0) // To allow debugger break
-				kMember.AI_changeMemoryCount(eOtherCiv, MEMORY_DECLARED_WAR_RECENT, -iMem);
+			kMember.AI_setMemoryCount(eOtherCiv, MEMORY_DECLARED_WAR_RECENT, 0);
 			// </advc.104i>
-			// <advc.130f>
-			iMem = kMember.AI_getMemoryCount(eOtherCiv, MEMORY_STOPPED_TRADING_RECENT);
-			if(iMem > 1) {
-				kMember.AI_changeMemoryCount(eOtherCiv, MEMORY_STOPPED_TRADING_RECENT,
-						1 - iMem);
-			} // </advc.130f>
+			// <advc.130f> Cap at 1
+			if(kMember.AI_getMemoryCount(eOtherCiv, MEMORY_STOPPED_TRADING_RECENT) > 1)
+				kMember.AI_setMemoryCount(eOtherCiv, MEMORY_STOPPED_TRADING_RECENT, 1);
+			// </advc.130f>
 			CvPlayer const& kEnemyMember = GET_PLAYER(eOtherCiv);
 			if(kEnemyMember.getTeam() != eEnemyTeam)
 				continue;
@@ -5308,15 +5306,13 @@ void CvTeamAI::AI_forgiveEnemy(TeamTypes eEnemyTeam, bool bCapitulated, bool bFr
 			// No complete forgiveness unless capitulated
 			if(!bCapitulated && iLimit < 0)
 				iLimit++;
-			int iChg = std::min(0, std::max(iDeltaLoop, iLimit));
-			if(iChg != 0)
+			int iChange = std::min(0, std::max(iDeltaLoop, iLimit));
+			if(iChange != 0)
 				kMember.AI_changeMemoryCount(kEnemyMember.getID(),
-						MEMORY_DECLARED_WAR, iChg);
+						MEMORY_DECLARED_WAR, iChange);
 			if(bCapitulated) { // Directly willing to sign OB
-				kMember.AI_changeMemoryCount(kEnemyMember.getID(),
-						MEMORY_CANCELLED_OPEN_BORDERS,
-						-kMember.AI_getMemoryCount(kEnemyMember.getID(),
-						MEMORY_CANCELLED_OPEN_BORDERS));
+				kMember.AI_setMemoryCount(kEnemyMember.getID(),
+						MEMORY_CANCELLED_OPEN_BORDERS, 0);
 			} // <advc.134a>
 			int iContactPeace = kMember.AI_getContactTimer(kEnemyMember.getID(), CONTACT_PEACE_TREATY);
 			if(iContactPeace != 0) // for debugger stop
@@ -5329,23 +5325,23 @@ void CvTeamAI::AI_forgiveEnemy(TeamTypes eEnemyTeam, bool bCapitulated, bool bFr
 void CvTeamAI::AI_thankLiberator(TeamTypes eLiberator) {
 	
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-		CvPlayerAI& member = GET_PLAYER((PlayerTypes)i);
-		if(!member.isAlive() || member.getTeam() != getID())
+		CvPlayerAI& kMember = GET_PLAYER((PlayerTypes)i);
+		if(!kMember.isAlive() || kMember.getTeam() != getID())
 			continue;
-		int wsDiv = member.warSuccessAttitudeDivisor();
+		int iWSDivisor = kMember.warSuccessAttitudeDivisor();
 		for(int j = 0; j < MAX_CIV_PLAYERS; j++) {
-			CvPlayerAI& liberator = GET_PLAYER((PlayerTypes)j);
-			if(!liberator.isAlive() || liberator.getTeam() != eLiberator)
+			CvPlayerAI& kLiberatorMember = GET_PLAYER((PlayerTypes)j);
+			if(!kLiberatorMember.isAlive() || kLiberatorMember.getTeam() != eLiberator)
 				continue;
-			int memory = std::max(0, 2 -
-					GET_TEAM(eLiberator).AI_getWarSuccess(getID()) / wsDiv);
-			member.AI_changeMemoryCount(liberator.getID(), MEMORY_INDEPENDENCE,
-					2 * memory); // advc.130j: doubled
+			int iMemory = std::max(0, 2 -
+					GET_TEAM(eLiberator).AI_getWarSuccess(getID()) / iWSDivisor);
+			kMember.AI_changeMemoryCount(kLiberatorMember.getID(), MEMORY_INDEPENDENCE,
+					2 * iMemory); // advc.130j: doubled
 		}
 	}
 } // </advc.130y>
 
-// <advc.115b><advc.104>
+// <advc.115b> <advc.104>
 VoteSourceTypes CvTeamAI::AI_getLatestVictoryVoteSource() const {
 
 	VoteSourceTypes r = NO_VOTESOURCE;
@@ -5365,9 +5361,9 @@ VoteSourceTypes CvTeamAI::AI_getLatestVictoryVoteSource() const {
 bool CvTeamAI::AI_isAnyCloseToReligiousVictory() const {
 
 	for(int i = 0; i < MAX_CIV_PLAYERS; i++) {
-		CvPlayerAI const& member = GET_PLAYER((PlayerTypes)i);
-		if(member.isAlive() && member.getTeam() == getID() &&
-				member.isCloseToReligiousVictory())
+		CvPlayerAI const& kMember = GET_PLAYER((PlayerTypes)i);
+		if(kMember.isAlive() && kMember.getTeam() == getID() &&
+				kMember.isCloseToReligiousVictory())
 			return true;
 	}
 	return false;
@@ -6030,10 +6026,10 @@ void CvTeamAI::AI_abandonWarPlanIfTimedOut(int iAbandonTimeModifier, TeamTypes t
 // <advc.104>
 WarAndPeaceAI::Team& CvTeamAI::warAndPeaceAI() {
 
-	return wpai;
+	return *m_pWpai;
 } WarAndPeaceAI::Team const& CvTeamAI::warAndPeaceAI() const {
 
-	return wpai;
+	return *m_pWpai;
 } // </advc.104>
 
 // <advc.136a>
@@ -6095,7 +6091,7 @@ void CvTeamAI::AI_doWar()
 		/*  Let the K-Mod code handle barbs and minors (though I don't think
 			anything actually needs to be done for them) */
 		if(!isBarbarian() && !isMinorCiv() && getNumCities() > 0) {
-			wpai.doWar();
+			m_pWpai->doWar();
 			if(getWPAI.isEnabled())
 				return;
 		}

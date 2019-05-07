@@ -2,14 +2,13 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvUnitAI.h"
-#include "CvGameAI.h"
-#include "CvPlayerAI.h"
-#include "CvTeamAI.h"
+#include "CvGamePlay.h"
 #include "CvMap.h"
 #include "CyUnit.h"
 #include "CyArgsList.h"
 #include "CvInfos.h"
 #include "BetterBTSAI.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
+#include "AI_Defines.h" // BBAI
 #include "FAStarNode.h"
 #include "CvDLLPythonIFaceBase.h"
 #include "CvDLLInterfaceIFaceBase.h"

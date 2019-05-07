@@ -47,7 +47,7 @@
     <ClCompile Include="..\CvDiploParameters.cpp" />
     <ClCompile Include="..\CvDLLButtonPopup.cpp" />
     <ClCompile Include="..\CvDLLEntity.cpp" />
-    <ClCompile Include="..\CvDLLInterfaceIBase2.cpp" />
+    <ClCompile Include="..\CvDLLInterfaceIBase.cpp" />
     <ClCompile Include="..\CvDLLPython.cpp" />
     <ClCompile Include="..\CvDllPythonEvents.cpp" />
     <ClCompile Include="..\CvDllTranslator.cpp" />
@@ -149,6 +149,7 @@
     <ClCompile Include="..\RiseFall.cpp" />
     <ClCompile Include="..\Shelf.cpp" />
     <ClCompile Include="..\StartPointsAsHandicap.cpp" />
+    <ClInclude Include="..\WarAndPeaceAgent.cpp" />
     <ClCompile Include="..\WarAndPeaceAI.cpp" />
     <ClCompile Include="..\WarAndPeaceCache.cpp" />
     <ClCompile Include="..\WarAndPeaceReport.cpp" />
@@ -197,6 +198,7 @@
     <ClInclude Include="..\CvGameCoreDLLDefNew.h" />
     <ClInclude Include="..\CvGameCoreDLLUndefNew.h" />
     <ClInclude Include="..\CvGameCoreUtils.h" />
+    <ClInclude Include="..\CvGamePlay.h" />
     <ClInclude Include="..\CvGameTextMgr.h" />
     <ClInclude Include="..\CvGlobals.h" />
     <ClInclude Include="..\CvHallOfFameInfo.h" />
@@ -268,6 +270,7 @@
     <ClInclude Include="..\RiseFall.h" />
     <ClInclude Include="..\Shelf.h" />
     <ClInclude Include="..\StartPointsAsHandicap.h" />
+    <ClInclude Include="..\WarAndPeaceAgent.h" />
     <ClInclude Include="..\WarAndPeaceAI.h" />
     <ClInclude Include="..\WarAndPeaceCache.h" />
     <ClInclude Include="..\WarAndPeaceReport.h" />

@@ -2,9 +2,9 @@
 
 #include "CvGameCoreDLL.h"
 #include "AdvCiv4lerts.h"
-#include "CvGameAI.h"
-#include "CvPlayerAI.h"
-#include "CvTeamAI.h"
+#include "CvInfos.h"
+#include "CvGamePlay.h"
+#include "RiseFall.h" // advc.706
 #include "CvDLLInterfaceIFaceBase.h"
 #include <iterator>
 
@@ -41,9 +41,10 @@ void AdvCiv4lert::msg(CvWString s, LPCSTR icon, int x, int y, ColorTypes colorId
 			(autoPlayJustEnded && GC.getGameINLINE().isDebugMode())));
 	if(!force && (GET_PLAYER(ownerId).isHumanDisabled() || autoPlayJustEnded))
 		return; // </advc.127>
+	// <advc.706>
 	CvGame& g = GC.getGameINLINE();
 	if(g.isOption(GAMEOPTION_RISE_FALL) && g.getRiseFall().isBlockPopups())
-		return;
+		return; // </advc.706>
 	bool arrows = (icon != NULL);
 	gDLL->getInterfaceIFace()->addHumanMessage(ownerId, false,
 			GC.getEVENT_MESSAGE_TIME(), s, NULL,

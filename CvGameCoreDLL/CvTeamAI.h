@@ -6,12 +6,11 @@
 #define CIV4_TEAM_AI_H
 
 #include "CvTeam.h"
-#include "WarAndPeaceAI.h" // advc.104
+#include "WarAndPeaceAI.h"  // advc.104
 
 
 class CvTeamAI : public CvTeam
 {
-
 
 public:
 
@@ -303,7 +302,7 @@ protected:
 
 	bool m_bLonely; // advc.109
 
-	WarAndPeaceAI::Team wpai; // advc.104
+	WarAndPeaceAI::Team* m_pWpai; // advc.104
 
 	int AI_noTechTradeThreshold() const;
 	int AI_techTradeKnownPercent() const;

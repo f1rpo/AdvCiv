@@ -5,9 +5,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CyGlobalContext.h"
-#include "CvGameAI.h"
-#include "CvPlayerAI.h"
-#include "CvTeamAI.h"
+#include "CvGamePlay.h"
 #include "CyGame.h"
 #include "CyPlayer.h"
 #include "CyMap.h"

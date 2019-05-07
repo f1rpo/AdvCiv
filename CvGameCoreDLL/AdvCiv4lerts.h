@@ -3,7 +3,6 @@
 #ifndef ADVCIV4LERTS_H
 #define ADVCIV4LERTS_H
 
-#include "CvDeal.h"
 #include "CvString.h"
 
 /*  <advc.210>: I can't write this in Python, so I'm having Civ4lerts.py call

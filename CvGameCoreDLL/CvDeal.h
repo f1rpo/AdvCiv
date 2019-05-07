@@ -52,8 +52,8 @@ public:
 	DllExport PlayerTypes getFirstPlayer() const;
 	DllExport PlayerTypes getSecondPlayer() const;
 	// <advc.003>
-	bool isBetween(PlayerTypes civ1, PlayerTypes civ2) const;
-	bool isBetween(TeamTypes t1, TeamTypes t2) const;
+	bool isBetween(PlayerTypes ePlayer, PlayerTypes eOtherPlayer) const;
+	bool isBetween(TeamTypes eTeam, TeamTypes eOtherTeam) const;
 	// </advc.003>
 	void clearFirstTrades(); // advc.003j (comment): unused
 	void insertAtEndFirstTrades(TradeData trade);
@@ -94,10 +94,10 @@ protected:
 			PlayerTypes eCancelPlayer = NO_PLAYER); // advc.130p
 	// <advc.130p>
 	static void addEndTradeMemory(PlayerTypes eFromPlayer, PlayerTypes eToPlayer,
-			TradeableItems dealType);
-	bool recordTradeValue(CLinkList<TradeData>* list1, CLinkList<TradeData>* list2,
-			PlayerTypes p1, PlayerTypes p2, bool bPeace,
-			TeamTypes peaceTradeTarget = NO_TEAM, TeamTypes warTradeTarget = NO_TEAM);
+			TradeableItems eItemType);
+	bool recordTradeValue(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* pSecondList,
+			PlayerTypes eFirstPlayer, PlayerTypes eSecondPlayer, bool bPeace,
+			TeamTypes ePeaceTradeTarget = NO_TEAM, TeamTypes eWarTradeTarget = NO_TEAM);
 	// </advc.130p>
 	void startTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes eToTeam, bool bDual);
 	void endTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes eToTeam);
@@ -112,7 +112,6 @@ protected:
 
 	CLinkList<TradeData> m_firstTrades;
 	CLinkList<TradeData> m_secondTrades;
-
 };
 
 #endif

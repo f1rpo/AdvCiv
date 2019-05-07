@@ -3,7 +3,12 @@
 #ifndef ARMAMENT_FORECAST_H
 #define ARMAMENT_FORECAST_H
 
-#include "MilitaryAnalyst.h"
+#include "WarAndPeaceAI.h"
+#include "WarAndPeaceCache.h"
+
+class MilitaryAnalyst;
+class WarAndPeaceReport;
+class CvArea;
 
 
 /* <advc.104>: New class. Predicts the military build-up of a civ. Part of

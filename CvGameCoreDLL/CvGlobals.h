@@ -736,6 +736,10 @@ public:
 	inline int getNEW_HURRY_MODIFIER() { return m_iNEW_HURRY_MODIFIER; }
 	// advc.104:
 	inline float getPOWER_CORRECTION() { return m_fPOWER_CORRECTION; }
+	// advc.107:
+	inline EraTypes getEXTRA_DEFENDER_ERA() { return (EraTypes)m_iEXTRA_DEFENDER_ERA; }
+	// advc.113:
+	inline int getWORKER_RESERVE_PERCENT() { return m_iWORKER_RESERVE_PERCENT; }
 	
 	int getMOVE_DENOMINATOR();
 	int getNUM_UNIT_PREREQ_OR_BONUSES();
@@ -1211,6 +1215,8 @@ protected:
 	int m_iBASE_RESEARCH_RATE; // advc.910
 	int m_iNEW_HURRY_MODIFIER; // advc.003b
 	float m_fPOWER_CORRECTION; // advc.104
+	int m_iEXTRA_DEFENDER_ERA; // advc.107
+	int m_iWORKER_RESERVE_PERCENT; // advc.113
 	int m_iMOVE_DENOMINATOR;
 	int m_iNUM_UNIT_PREREQ_OR_BONUSES;
 	int m_iNUM_BUILDING_PREREQ_OR_BONUSES;
@@ -1315,11 +1321,7 @@ protected:
 	FProfiler* m_Profiler;		// profiler
 	CvString m_szDllProfileText;
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      02/21/10                                jdog5000      */
-/*                                                                                              */
-/* Efficiency, Options                                                                          */
-/************************************************************************************************/
+// BETTER_BTS_AI_MOD, Efficiency, Options, 02/21/10, jdog5000: START
 public:
 	int getDefineINT( const char * szName, const int iDefault ) const;
 	
@@ -1399,9 +1401,7 @@ protected:
 	bool m_bLFBUseCombatOdds;
 	int m_iCOMBAT_DIE_SIDES;
 	int m_iCOMBAT_DAMAGE;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+	// BETTER_BTS_AI_MOD: END
 };
 
 extern CvGlobals gGlobals;	// for debugging

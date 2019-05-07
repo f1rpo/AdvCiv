@@ -2,9 +2,10 @@
 
 #include "CvGameCoreDLL.h"
 #include "WarAndPeaceCache.h"
-#include "WarAndPeaceAI.h"
-#include "CvGameAI.h"
-#include "CvPlayerAI.h"
+#include "WarAndPeaceAgent.h"
+#include "WarAndPeaceReport.h"
+#include "CvGamePlay.h"
+#include "AI_Defines.h"
 #include "CvMap.h"
 #include "MilitaryBranch.h"
 #include "WarEvalParameters.h"
@@ -780,7 +781,7 @@ void WarAndPeaceCache::updateLatestTurnReachableBySea() {
 		// No pair means not reachable (by sea)
 		if(!c.canCurrentlyReachBySea())
 			continue;
-		latestTurnReachableBySea[c.id()] = std::make_pair(GC.getGame().getGameTurn(),
+		latestTurnReachableBySea[c.id()] = std::make_pair(GC.getGameINLINE().gameTurn(),
 				c.getDistance());
 	}
 }
@@ -1385,7 +1386,7 @@ bool WarAndPeaceCache::City::canReach() const {
 	std::map<int,std::pair<int,int> >::const_iterator pos = ltr.find(plotIndex);
 	if(pos == ltr.end())
 		return false;
-	int turnsUnreachable = GC.getGame().getGameTurn() - pos->second.first;
+	int turnsUnreachable = GC.getGameINLINE().gameTurn() - pos->second.first;
 	return (turnsUnreachable < 10);*/
 	/*  If this isn't enough time for naval stacks to reach their target,
 		consider adding a stackEnRoute flag to City that is updated in

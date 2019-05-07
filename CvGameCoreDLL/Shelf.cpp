@@ -2,6 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "Shelf.h"
+#include "CvInfos.h"
 #include "CvGameAI.h"
 #include "CvPlot.h"
 #include "CvUnit.h"

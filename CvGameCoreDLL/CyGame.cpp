@@ -5,6 +5,8 @@
 #include "CvGameCoreDLL.h"
 #include "CyGame.h"
 #include "CvGameAI.h"
+#include "StartPointsAsHandicap.h" // advc.250b
+#include "RiseFall.h" // advc.703
 #include "CyGlobalContext.h"
 #include "CyPlayer.h"
 #include "CyCity.h"

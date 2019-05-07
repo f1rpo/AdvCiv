@@ -62,7 +62,7 @@ public:
 	void makePeace(TeamTypes eTeam, bool bBumpUnits = true,																		// Exposed to Python
 			TeamTypes eBroker = NO_TEAM, // advc.100b
 			bool bCapitulate = false, // advc.034
-			CLinkList<TradeData>* reparations = NULL, // advc.039
+			CLinkList<TradeData>* pReparations = NULL, // advc.039
 			bool bRandomEvent = false); // advc.106g
 	bool canContact(TeamTypes eTeam,
 			bool bCheckWillingness = false) const; // K-Mod, Exposed to Python
@@ -305,8 +305,8 @@ public:
 	bool isForcePeace(TeamTypes eIndex) const;																// Exposed to Python
 	void setForcePeace(TeamTypes eIndex, bool bNewValue);
 	int turnsOfForcedPeaceRemaining(TeamTypes tId) const; // advc.104
-	bool isVassal(TeamTypes eIndex) const;																// Exposed to Python
-	void setVassal(TeamTypes eIndex, bool bNewValue, bool bCapitulated);
+	bool isVassal(TeamTypes eMaster) const;																// Exposed to Python
+	void setVassal(TeamTypes eMaster, bool bNewValue, bool bCapitulated);
 	// advc.155: Exposed to Python
 	TeamTypes getMasterTeam() const; // K-Mod
 

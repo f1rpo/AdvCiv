@@ -3,9 +3,11 @@
 #ifndef MILITARY_ANALYST_H
 #define MILITARY_ANALYST_H
 
-#include "WarEvalParameters.h"
-#include "InvasionGraph.h"
+#include "MilitaryBranch.h"
 
+class InvasionGraph;
+class WarEvalParameters;
+class WarAndPeaceReport;
 class InvasionGraph;
 
 

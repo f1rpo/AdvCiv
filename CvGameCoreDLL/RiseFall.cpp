@@ -2,9 +2,10 @@
 
 #include "CvGameCoreDLL.h"
 #include "RiseFall.h"
-#include "CvGameAI.h"
-#include "CvPlayerAI.h"
-#include "CvTeamAI.h"
+#include "CvInfos.h"
+#include "CvGamePlay.h"
+#include "WarAndPeaceAgent.h" // advc.104
+#include "AI_Defines.h"
 #include "CvPopupInfo.h"
 #include "CvInitCore.h"
 #include "CvReplayInfo.h"
@@ -1407,7 +1408,7 @@ int RiseFall::pessimisticDealVal(PlayerTypes aiCivId, int dealVal,
 			break;
 		case TRADE_WAR:
 			itemVal = humanTeam.AI_declareWarTradeVal((TeamTypes)data, aiTeamId);
-			if(getWPAI.isEnabled())
+			if(getWPAI.isEnabled()) // advc.104
 				replVal = GET_TEAM(humanTeamId).warAndPeaceAI().tradeValJointWar(
 						(TeamTypes)data, aiTeam.getID());
 			break;

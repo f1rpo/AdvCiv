@@ -3,11 +3,11 @@
 #ifndef WAR_EVAL_PARAMETERS_H
 #define WAR_EVAL_PARAMETERS_H
 
-#include "CvTeam.h"
-#include "CvPlayerAI.h"
-#include "WarAndPeaceReport.h"
+#include "CvEnums.h"
+#include <set>
 
 class WarUtilityAspect;
+class WarAndPeaceReport;
 
 /* <advc.104>: New class. Parameters that enter into the computation of
    war utility. On the level of teams (not individual civs).

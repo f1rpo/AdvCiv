@@ -11,17 +11,17 @@
 //---------------------------------------------------------------------------------------
 
 #include "CvGameCoreDLL.h"
-#include "CvGameAI.h"
-#include "CvPlayerAI.h"
-#include "CvTeamAI.h"
+#include "CvGamePlay.h"
 #include "CvGameTextMgr.h"
 #include "CvInfos.h"
 #include "CvXMLLoadUtility.h"
 #include "CvArtFileMgr.h"
 #include "CvMap.h"
+#include "RiseFall.h" // advc.700
+#include "AI_Defines.h" // BBAI
+#include "CvBugOptions.h"
 #include "CvPopupInfo.h"
 #include "CyArgsList.h"
-#include "CvBugOptions.h"
 // <advc.050>
 #include "CvInitCore.h"
 #include <sstream> // </advc.050>

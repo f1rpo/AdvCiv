@@ -2,9 +2,11 @@
 
 #include "CvGameCoreDLL.h"
 #include "InvasionGraph.h"
-#include "CvGameAI.h"
-#include "CvTeamAI.h"
+#include "WarAndPeaceAgent.h"
 #include "ArmamentForecast.h"
+#include "MilitaryAnalyst.h"
+#include "WarEvalParameters.h"
+#include "CvGamePlay.h"
 #include "CvPlot.h"
 #include "CvArea.h"
 #include <sstream>

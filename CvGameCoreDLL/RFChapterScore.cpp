@@ -2,9 +2,9 @@
 
 #include "CvGameCoreDLL.h"
 #include "RFChapterScore.h"
-#include "CvGameAI.h"
-#include "CvPlayerAI.h"
-#include "CvTeamAI.h"
+#include "RiseFall.h"
+#include "RFChapter.h"
+#include "CvGamePlay.h"
 
 
 RFChapterScore::RFChapterScore() {

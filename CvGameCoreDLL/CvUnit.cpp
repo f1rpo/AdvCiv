@@ -2,9 +2,9 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvUnit.h"
-#include "CvGameAI.h"
-#include "CvPlayerAI.h"
-#include "CvTeamAI.h"
+#include "CvGamePlay.h"
+#include "WarAndPeaceAgent.h" // advc.104
+#include "RiseFall.h" // advc.705
 #include "CvMap.h"
 #include "CyUnit.h"
 #include "CyArgsList.h"
@@ -13,6 +13,7 @@
 #include "CvPopupInfo.h"
 #include "CvArtFileMgr.h"
 #include "BetterBTSAI.h" // BETTER_BTS_AI_MOD, AI logging, 02/24/10, jdog5000
+#include "AI_Defines.h" // BBAI
 #include "CvBugOptions.h" // advc.002e
 #include "CvDLLEntityIFaceBase.h"
 #include "CvDLLInterfaceIFaceBase.h"

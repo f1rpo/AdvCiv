@@ -3,9 +3,7 @@
 //
 #include "CvGameCoreDLL.h"
 #include "CvGlobals.h"
-#include "CvGameAI.h"
-#include "CvPlayerAI.h"
-#include "CvTeamAI.h"
+#include "CvGamePlay.h"
 #include "CvMap.h"
 #include "CvInfos.h"
 #include "CvArtFileMgr.h"
@@ -176,6 +174,8 @@ m_iDELAY_UNTIL_BUILD_DECAY(0), // advc.011
 m_iBASE_RESEARCH_RATE(0), // advc.910
 m_iNEW_HURRY_MODIFIER(0), // advc.003b
 m_fPOWER_CORRECTION(0), // advc.104
+m_iEXTRA_DEFENDER_ERA(0), // advc.107
+m_iWORKER_RESERVE_PERCENT(0), // advc.113
 m_iMOVE_DENOMINATOR(0),
 m_iNUM_UNIT_PREREQ_OR_BONUSES(0),
 m_iNUM_BUILDING_PREREQ_OR_BONUSES(0),
@@ -271,11 +271,8 @@ m_bUSE_DO_COMBAT_CALLBACK(false),
 // K-Mod end
 m_paHints(NULL),
 m_paMainMenus(NULL)
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      02/21/10                                jdog5000      */
-/*                                                                                              */
-/* Efficiency, Options                                                                          */
-/************************************************************************************************/
+
+// BETTER_BTS_AI_MOD, Efficiency, Options, 02/21/10, jdog5000: START
 // BBAI Options
 ,m_bBBAI_AIR_COMBAT(false)
 ,m_bBBAI_HUMAN_VASSAL_WAR_BUILD(false)
@@ -312,11 +309,9 @@ m_paMainMenus(NULL)
 ,m_bLFBUseCombatOdds(true)
 ,m_iCOMBAT_DIE_SIDES(-1)
 ,m_iCOMBAT_DAMAGE(-1)
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-
+// BETTER_BTS_AI_MOD: END
 {
+	// (constructor body)
 }
 
 CvGlobals::~CvGlobals()
@@ -2727,6 +2722,11 @@ void CvGlobals::cacheGlobals()
 	m_iNEW_HURRY_MODIFIER = getDefineINT("NEW_HURRY_MODIFIER");
 	// advc.104:
 	m_fPOWER_CORRECTION = getDefineFLOAT("POWER_CORRECTION");
+	// advc.107:					// The hyphens are stupid, but I don't want to change the XML file unnecessarily.
+	m_iEXTRA_DEFENDER_ERA = getDefineINT("EXTRA-DEFENDER_ERA");
+	// advc.113
+	m_iWORKER_RESERVE_PERCENT = getDefineINT("WORKER-RESERVE_PERCENT");
+	
 	m_iMOVE_DENOMINATOR = getDefineINT("MOVE_DENOMINATOR");
 	m_iNUM_UNIT_PREREQ_OR_BONUSES = getDefineINT("NUM_UNIT_PREREQ_OR_BONUSES");
 	m_iNUM_BUILDING_PREREQ_OR_BONUSES = getDefineINT("NUM_BUILDING_PREREQ_OR_BONUSES");

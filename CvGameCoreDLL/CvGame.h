@@ -7,8 +7,6 @@
 
 #include "CvDeal.h"
 #include "CvRandom.h"
-#include "StartPointsAsHandicap.h" // advc.250b
-#include "RiseFall.h" // advc.700
 
 class CvPlot;
 class CvCity;
@@ -19,6 +17,8 @@ class CvArea;
 class CvHallOfFameInfo; // advc.106i
 class CvGameAI; // advc.003: Needed for AI(void) functions
 class Shelf; // advc.300
+class StartPointsAsHandicap; // advc.250b
+class RiseFall; // advc.700
 
 typedef std::vector<const CvReplayMessage*> ReplayMessageList;
 
@@ -793,8 +793,8 @@ protected:
 	int		m_iNumCultureVictoryCities;
 	int		m_eCultureVictoryCultureLevel;
 
-	StartPointsAsHandicap m_spah; // advc.250b
-	RiseFall m_riseFall; // advc.700
+	StartPointsAsHandicap* m_pSpah; // advc.250b
+	RiseFall* m_pRiseFall; // advc.700
 
 	void uninit();
 	void setStartTurnYear(int iTurn = 0); // advc.250c

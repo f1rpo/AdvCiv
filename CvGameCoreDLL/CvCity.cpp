@@ -2,9 +2,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "CvCity.h"
-#include "CvGameAI.h"
-#include "CvPlayerAI.h"
-#include "CvTeamAI.h"
+#include "CvGamePlay.h"
 #include "CvMap.h"
 #include "CvInfos.h"
 #include "CvArtFileMgr.h"
@@ -3843,15 +3841,8 @@ CvUnit* CvCity::initConscriptedUnit()
 void CvCity::conscript()
 {
 	if (!canConscript())
-	{
 		return;
-	}
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      10/02/09                                jdog5000      */
-/*                                                                                              */
-/* AI logging                                                                                   */
-/************************************************************************************************/
 	int iPopChange = -(getConscriptPopulation());
 	int iAngerLength = flatConscriptAngerLength();
 	changePopulation(iPopChange);
@@ -3872,13 +3863,8 @@ void CvCity::conscript()
 			gDLL->getInterfaceIFace()->lookAt(plot()->getPoint(), CAMERALOOKAT_NORMAL); // K-Mod
 			gDLL->getInterfaceIFace()->selectUnit(pUnit, true, false, true);
 		}
-		if (gCityLogLevel >= 2 && !isHuman())
-		{
+		if (gCityLogLevel >= 2 && !isHuman()) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 			logBBAI("      City %S does conscript of a %S at cost of %d pop, %d anger", getName().GetCString(), pUnit->getName().GetCString(), iPopChange, iAngerLength );
-		}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
 	}
 }
 
@@ -4502,30 +4488,32 @@ int CvCity::getCulturePercentAnger() const
 
 	int iAngryCulture = 0;
 	// <advc.099>
-	int const angerCB = GC.getDefineINT("CLOSED_BORDERS_CULTURE_ANGER_MODIFIER");
-	int const angerWar = GC.getDefineINT("AT_WAR_CULTURE_ANGER_MODIFIER");
+	int const iAngerModCB = GC.getDefineINT("CLOSED_BORDERS_CULTURE_ANGER_MODIFIER");
+	int const iAngerModWar = GC.getDefineINT("AT_WAR_CULTURE_ANGER_MODIFIER");
 	for(int iI = 0; iI < MAX_PLAYERS; iI++) {
-		CvPlayer const& p = GET_PLAYER((PlayerTypes)iI);
-		TeamTypes tId = p.getTeam();
-		CvTeam const& t = GET_TEAM(tId);
-		if(!p.isEverAlive() || tId == getTeam())
+		CvPlayer const& kRival = GET_PLAYER((PlayerTypes)iI);
+		if(!kRival.isEverAlive() || kRival.getTeam() == getTeam())
 			continue;
-		int iCulture = plot()->getCulture(p.getID());
-		if(iCulture > 0) {
-			int relationsModifier = 0;
-			if((!GET_TEAM(getTeam()).isOpenBorders(tId) && tId != BARBARIAN_TEAM) ||
-					(!p.isAlive()) ||
-					(t.isVassal(getTeam())) && t.isCapitulated())
-				relationsModifier += angerCB;
-			if(p.isAlive() && atWar(tId, getTeam()))
-				relationsModifier += angerWar;
-			iCulture *= std::max(0, (relationsModifier + 100));
-			iCulture /= 100;
-			iAngryCulture += iCulture;
+		int iCulture = plot()->getCulture(kRival.getID());
+		if(iCulture <= 0)
+			continue;
+		int iRelationsModifier = 0;
+		if(!kRival.isBarbarian()) {
+			if(kRival.isAlive() && ::atWar(kRival.getTeam(), getTeam()))
+				iRelationsModifier += iAngerModWar;
+			else {
+				bool const bCapitulatedVassal = (GET_TEAM(kRival.getTeam()).isCapitulated() &&
+						GET_TEAM(kRival.getTeam()).isVassal(getTeam()));
+				bool const bOB = GET_TEAM(getTeam()).isOpenBorders(kRival.getTeam());
+				if((!bOB && !bCapitulatedVassal) || !kRival.isAlive())
+					iRelationsModifier += iAngerModCB;
+			}
 		}
+		iCulture *= std::max(0, iRelationsModifier + 100);
+		iCulture /= 100;
+		iAngryCulture += iCulture;
 	} // </advc.099>
-
-	return ((GC.getDefineINT("CULTURE_PERCENT_ANGER") * iAngryCulture) / iTotalCulture);
+	return (GC.getDefineINT("CULTURE_PERCENT_ANGER") * iAngryCulture) / iTotalCulture;
 }
 
 // <advc.104>
@@ -4562,32 +4550,38 @@ double CvCity::getReligionPercentAnger(PlayerTypes ePlayer) const {
 int CvCity::getHurryPercentAnger(int iExtra) const
 {
 	if (getHurryAngerTimer() == 0)
-	{
 		return 0;
-	}
 
-	return ((((((getHurryAngerTimer() - 1) / flatHurryAngerLength()) + 1) * GC.getDefineINT("HURRY_POP_ANGER") * GC.getPERCENT_ANGER_DIVISOR()) / std::max(1, getPopulation() + iExtra)) + 1);
+	return ((((((getHurryAngerTimer() - 1) /
+			flatHurryAngerLength()) + 1) *
+			GC.getDefineINT("HURRY_POP_ANGER") *
+			GC.getPERCENT_ANGER_DIVISOR()) /
+			std::max(1, getPopulation() + iExtra)) + 1);
 }
 
 
 int CvCity::getConscriptPercentAnger(int iExtra) const
 {
 	if (getConscriptAngerTimer() == 0)
-	{
 		return 0;
-	}
 
-	return ((((((getConscriptAngerTimer() - 1) / flatConscriptAngerLength()) + 1) * GC.getDefineINT("CONSCRIPT_POP_ANGER") * GC.getPERCENT_ANGER_DIVISOR()) / std::max(1, getPopulation() + iExtra)) + 1);
+	return ((((((getConscriptAngerTimer() - 1) /
+			flatConscriptAngerLength()) + 1) *
+			GC.getDefineINT("CONSCRIPT_POP_ANGER") *
+			GC.getPERCENT_ANGER_DIVISOR()) /
+			std::max(1, getPopulation() + iExtra)) + 1);
 }
 
 int CvCity::getDefyResolutionPercentAnger(int iExtra) const
 {
 	if (getDefyResolutionAngerTimer() == 0)
-	{
 		return 0;
-	}
 
-	return ((((((getDefyResolutionAngerTimer() - 1) / flatDefyResolutionAngerLength()) + 1) * GC.getDefineINT("DEFY_RESOLUTION_POP_ANGER") * GC.getPERCENT_ANGER_DIVISOR()) / std::max(1, getPopulation() + iExtra)) + 1);
+	return ((((((getDefyResolutionAngerTimer() - 1) /
+			flatDefyResolutionAngerLength()) + 1) *
+			GC.getDefineINT("DEFY_RESOLUTION_POP_ANGER") *
+			GC.getPERCENT_ANGER_DIVISOR()) /
+			std::max(1, getPopulation() + iExtra)) + 1);
 }
 
 
@@ -4606,52 +4600,45 @@ int CvCity::getWarWearinessPercentAnger() const
 
 int CvCity::getLargestCityHappiness() const
 {
-	if (findPopulationRank() <= GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).getTargetNumCities())
-	{
+	if (findPopulationRank() <= GC.getWorldInfo(GC.getMapINLINE().getWorldSize()).
+			getTargetNumCities())
 		return GET_PLAYER(getOwnerINLINE()).getLargestCityHappiness();
-	}
-
 	return 0;
 }
 
 int CvCity::getVassalHappiness() const
-{
+{	// <advc.003n>
+	if(isBarbarian())
+		return 0; // </advc.003n>
 	int iHappy = 0;
-
-	for (int i = 0; i < MAX_TEAMS; i++)
+	for (int i = 0; i < MAX_CIV_TEAMS; i++) // advc.003n: was MAX_PLAYERS
 	{
-		if (getTeam() != i)
+		if (getTeam() == i)
+			continue;
+
+		if (GET_TEAM((TeamTypes)i).isVassal(getTeam())
+				&& !GET_TEAM((TeamTypes)i).isCapitulated()) // advc.142
 		{
-			if (GET_TEAM((TeamTypes)i).isVassal(getTeam())
-					&& !GET_TEAM((TeamTypes)i).isCapitulated() // advc.142
-				)
-			{
-				iHappy += GC.getDefineINT("VASSAL_HAPPINESS");
-				break; // advc.142
-			}
+			iHappy += GC.getDefineINT("VASSAL_HAPPINESS");
+			break; // advc.142
 		}
 	}
-
 	return iHappy;
 }
 
 int CvCity::getVassalUnhappiness() const
-{
-	int iUnhappy = 0;
-
-	for (int i = 0; i < MAX_TEAMS; i++)
-	{
-		if (getTeam() != i)
-		{
+{	// <advc.003b> Replacing the BtS code below
+	if(GET_TEAM(getTeam()).isAVassal())
+		return GC.getDefineINT("VASSAL_HAPPINESS");
+	return 0; // </advc.003b>
+	/*int iUnhappy = 0;
+	for (int i = 0; i < MAX_TEAMS; i++) {
+		if (getTeam() != i) {
 			if (GET_TEAM(getTeam()).isVassal((TeamTypes)i))
-			{
 				iUnhappy += GC.getDefineINT("VASSAL_HAPPINESS");
-				break; // advc.142: Just for performance
-			}
 		}
 	}
-
-	return iUnhappy;
+	return iUnhappy;*/
 }
 
 
@@ -4671,14 +4658,11 @@ int CvCity::unhappyLevel(int iExtra) const
 		iAngerPercent += getConscriptPercentAnger(iExtra);
 		iAngerPercent += getDefyResolutionPercentAnger(iExtra);
 		iAngerPercent += getWarWearinessPercentAnger();
-/*
-** K-Mod, 5/jan/11, karadoc
-** global warming anger _percent_; as part per 100.
-** Unfortunately, people who made the rest of the game used anger percent to mean part per 1000
-** so I have to multiply my GwPercentAnger by 10 to make it fit in.
-*/
+		/*  K-Mod, 5/jan/11, karadoc
+			global warming anger _percent_; as part per 100.
+			Unfortunately, people who made the rest of the game used anger percent to mean part per 1000
+			so I have to multiply my GwPercentAnger by 10 to make it fit in. */
 		iAngerPercent += std::max(0, GET_PLAYER(getOwnerINLINE()).getGwPercentAnger()*10);
-// K-Mod end
 
 		for (int iI = 0; iI < GC.getNumCivicInfos(); iI++)
 		{
@@ -4799,25 +4783,17 @@ int CvCity::extraFreeSpecialists() const
 
 int CvCity::unhealthyPopulation(bool bNoAngry, int iExtra) const
 {
-/*
-** K-Mod, 27/dec/10, karadoc
-** replaced NoUnhealthyPopulation with UnhealthyPopulationModifier
-*/
+	/*  K-Mod, 27/dec/10, karadoc
+		replaced NoUnhealthyPopulation with UnhealthyPopulationModifier */
 	/* original bts code
 	if (isNoUnhealthyPopulation())
-	{
 		return 0;
-	}
-
-	return std::max(0, ((getPopulation() + iExtra - ((bNoAngry) ? angryPopulation(iExtra) : 0))));
-	*/
+	return std::max(0, ((getPopulation() + iExtra - ((bNoAngry) ? angryPopulation(iExtra) : 0))));*/
 	int iUnhealth = getPopulation() + iExtra - ((bNoAngry)? angryPopulation(iExtra) : 0);
 	iUnhealth *= std::max(0, 100+getUnhealthyPopulationModifier());
 	iUnhealth = ROUND_DIVIDE(iUnhealth, 100);
 	return std::max(0, iUnhealth);
-/*
-** K-Mod end
-*/
+	// K-Mod end
 }
 
 
@@ -5135,7 +5111,7 @@ int CvCity::getHurryGold(HurryTypes eHurry, int iHurryCost) const
 
 int CvCity::hurryPopulation(HurryTypes eHurry) const
 {
-	return (getHurryPopulation(eHurry, hurryCost(true)));
+	return getHurryPopulation(eHurry, hurryCost(true));
 }
 
 int CvCity::getHurryPopulation(HurryTypes eHurry, int iHurryCost) const
@@ -5180,9 +5156,7 @@ int CvCity::hurryProduction(HurryTypes eHurry) const
 
 int CvCity::flatHurryAngerLength() const
 {
-	int iAnger;
-
-	iAnger = GC.getDefineINT("HURRY_ANGER_DIVISOR");
+	int iAnger = GC.getDefineINT("HURRY_ANGER_DIVISOR");
 	iAnger *= GC.getGameSpeedInfo(GC.getGameINLINE().getGameSpeedType()).getHurryConscriptAngerPercent();
 	iAnger /= 100;
 	iAnger *= std::max(0, 100 + getHurryAngerModifier());
@@ -5195,13 +5169,8 @@ int CvCity::flatHurryAngerLength() const
 int CvCity::hurryAngerLength(HurryTypes eHurry) const
 {
 	if (GC.getHurryInfo(eHurry).isAnger())
-	{
 		return flatHurryAngerLength();
-	}
-	else
-	{
-		return 0;
-	}
+	else return 0;
 }
 
 
@@ -5582,28 +5551,26 @@ int CvCity::getArea() const
 	return plot()->getArea();
 }
 
+
 CvArea* CvCity::area() const
 {
 	return plot()->area();
 }
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      01/02/09                                jdog5000      */
-/*                                                                                              */
-/* General AI                                                                                   */
-/************************************************************************************************/
+// BETTER_BTS_AI_MOD, General AI, 01/02/09, jdog5000: param added
 CvArea* CvCity::waterArea(bool bNoImpassable) const
 {
 	return plot()->waterArea(bNoImpassable);
 }
 
-// Expose plot function through city
+// BETTER_BTS_AI_MOD, General AI, 01/02/09, jdog5000: Expose plot function through city
 CvArea* CvCity::secondWaterArea() const
 {
 	return plot()->secondWaterArea();
 }
 
 // advc.003j (comment): Unused; may or may not work correctly.
+// BETTER_BTS_AI_MOD, General AI, 01/02/09, jdog5000: START
 // Find the largest water area shared by this city and other city, if any
 CvArea* CvCity::sharedWaterArea(CvCity* pOtherCity) const
 {
@@ -5641,6 +5608,7 @@ CvArea* CvCity::sharedWaterArea(CvCity* pOtherCity) const
 	return NULL;
 }
 
+
 bool CvCity::isBlockaded() const
 {
 	for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
@@ -5657,10 +5625,8 @@ bool CvCity::isBlockaded() const
 	}
 
 	return false;
-}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+} // BETTER_BTS_AI_MOD: END
+
 
 CvPlot* CvCity::getRallyPlot() const
 {
@@ -6948,12 +6914,8 @@ void CvCity::updateExtraBuildingHappiness()
 	}
 }
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      02/24/10                            EmperorFool       */
-/*                                                                                              */
-/* City AI                                                                                      */
-/************************************************************************************************/
-// BUG - Building Additional Happiness - start
+/*  BETTER_BTS_AI_MOD, City AI, 02/24/10, EmperorFool: START
+	(BUG - Building Additional Happiness) */
 /*
  * Returns the total additional happiness that adding one of the given buildings will provide
  * and sets the good and bad levels individually.
@@ -7182,10 +7144,7 @@ void subtractGoodOrBad(int iValue, int& iGood, int& iBad)
 		iBad += iValue;
 	}
 }
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-
+// BETTER_BTS_AI_MOD: END
 
 int CvCity::getExtraBuildingGoodHealth() const
 {
@@ -8742,7 +8701,7 @@ int CvCity::getAdditionalBaseYieldRateByBuilding(YieldTypes eIndex, BuildingType
 		if(kVS.getReligionYield(eIndex) != 0) {
 			ReligionTypes eVSReligion =
 					// This would be NO_RELIGION b/c the vote source doesn't exist yet:
-					//GC.getGameINLINE().getVoteSourceReligion(vsId);
+					//GC.getGameINLINE().getVoteSourceReligion(eVS);
 					GET_PLAYER(getOwnerINLINE()).getStateReligion();
 			if(eVSReligion != NO_RELIGION) {
 				// Based on processVoteSourceBonus

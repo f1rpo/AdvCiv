@@ -236,11 +236,11 @@ protected:
 
 	// <advc.004a> Additional help text:
 	 // Discover ("bulb") button
-	CvWString getDiscoverPathText(UnitTypes ut, PlayerTypes pt) const;
+	CvWString getDiscoverPathText(UnitTypes eUnit, PlayerTypes ePlayer) const;
 	// </advc.004a> <advc.004b> Found button
-	CvWString getFoundCostText(CvPlot const& p, PlayerTypes ownerId) const;
-	CvWString getHomePlotYieldText(CvPlot const& p, PlayerTypes ownerId) const;
-	CvWString getNetFeatureHealthText(CvPlot const& kCityPlot, PlayerTypes ownerId) const;
+	CvWString getFoundCostText(CvPlot const& p, PlayerTypes eOwner) const;
+	CvWString getHomePlotYieldText(CvPlot const& p, PlayerTypes eOwner) const;
+	CvWString getNetFeatureHealthText(CvPlot const& kCityPlot, PlayerTypes eOwner) const;
 	// </advc.004b>
 
 };
