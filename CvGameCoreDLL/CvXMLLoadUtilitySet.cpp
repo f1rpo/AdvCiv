@@ -138,16 +138,12 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 			// write global defines info to cache
 			// advc.003i: Disabled
 			/*bool bOk = gDLL->cacheWrite(cache);
-			if (!bOk)
-			{
+			if (!bOk) {
 				char	szMessage[1024];
 				sprintf( szMessage, "Failed writing to global defines cache. \n Current XML file is: %s", GC.getCurrentXMLFile().GetCString());
 				gDLL->MessageBox(szMessage, "XML Caching Error");
 			}
-			else
-			{
-				logMsg("Wrote GlobalDefines to cache");
-			}*/
+			else logMsg("Wrote GlobalDefines to cache");*/
 		}
 	}
 
@@ -192,43 +188,19 @@ bool CvXMLLoadUtility::SetGlobalDefines()
 		return false;
 	}
 
-	/* <advc.009> Load a separate GlobalDefines file. My guess as to the
-	   intended way of doing that: Set modularLoading=1 and name the
-	   configuration file something_GlobalDefines.xml.
-	   I can't get that to work, though, and it appears neither could
-	   the other modders. Hence: hard-coded filenames. */
+	// <advc.009> Load additional GlobalDefines files
 	if(!ReadGlobalDefines("xml\\GlobalDefines_devel.xml", cache))
 		return false;
 	if(!ReadGlobalDefines("xml\\GlobalDefines_advc.xml", cache))
 		return false; // </advc.009>
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      02/21/10                                jdog5000      */
-/*                                                                                              */
-/* XML Options                                                                                  */
-/************************************************************************************************/
-	if (!ReadGlobalDefines("xml\\BBAI_Game_Options_GlobalDefines.xml", cache))
-	{
-		//return false;
-	}
+	// BETTER_BTS_AI_MOD, XML Options, 02/21/10, jdog5000: START
+	ReadGlobalDefines("xml\\BBAI_Game_Options_GlobalDefines.xml", cache);
 	// advc.104x: Removed the BBAI prefix from the file name
-	if (!ReadGlobalDefines("xml\\AI_Variables_GlobalDefines.xml", cache))
-	{
-		//return false;
-	}
-
-	if (!ReadGlobalDefines("xml\\TechDiffusion_GlobalDefines.xml", cache))
-	{
-		//return false;
-	}
-
-	if (!ReadGlobalDefines("xml\\LeadFromBehind_GlobalDefines.xml", cache))
-	{
-		//return false;
-	}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+	ReadGlobalDefines("xml\\AI_Variables_GlobalDefines.xml", cache);
+	ReadGlobalDefines("xml\\TechDiffusion_GlobalDefines.xml", cache);
+	ReadGlobalDefines("xml\\LeadFromBehind_GlobalDefines.xml", cache);
+	// BETTER_BTS_AI_MOD: END
 
 	if (gDLL->isModularXMLLoading())
 	{
@@ -323,8 +295,8 @@ bool CvXMLLoadUtility::SetPostGlobalsGlobalDefines()
 		SetGlobalDefine("WARM_FEATURE", szVal);
 		idx = FindInInfoClass(szVal);
 		GC.getDefinesVarSystem()->SetValue("WARM_FEATURE", idx);
-
 //GWMod end M.A.
+
 		SetGlobalDefine("LAND_IMPROVEMENT", szVal);
 		idx = FindInInfoClass(szVal);
 		GC.getDefinesVarSystem()->SetValue("LAND_IMPROVEMENT", idx);
@@ -336,6 +308,7 @@ bool CvXMLLoadUtility::SetPostGlobalsGlobalDefines()
 		SetGlobalDefine("RUINS_IMPROVEMENT", szVal);
 		idx = FindInInfoClass(szVal);
 		GC.getDefinesVarSystem()->SetValue("RUINS_IMPROVEMENT", idx);
+		GC.setRUINS_IMPROVEMENT(idx); // advc.003b
 
 		SetGlobalDefine("NUKE_FEATURE", szVal);
 		idx = FindInInfoClass(szVal);
@@ -653,16 +626,13 @@ bool CvXMLLoadUtility::LoadGlobalText()
 	// write global text info to cache
 	// advc.003i: Disabled
 	/*bool bOk = gDLL->cacheWrite(cache);
-	if (!bLoaded)
-	{
+	if (!bOk) {
 		char	szMessage[1024];
 		sprintf( szMessage, "Failed writing to Global Text cache. \n Current XML file is: %s", GC.getCurrentXMLFile().GetCString());
 		gDLL->MessageBox(szMessage, "XML Caching Error");
 	}
 	if (bOk)
-	{
-		logMsg("Wrote GlobalText to cache");
-	}*/
+		logMsg("Wrote GlobalText to cache");*/
 
 	gDLL->destroyCache(cache);
 
@@ -1522,7 +1492,8 @@ void CvXMLLoadUtility::LoadGlobalClassInfo(std::vector<T*>& aInfos,
 		const char* szFileRoot, const char* szFileDirectory,
 		const char* szXmlPath, bool bTwoPass,
 		CvCacheObject* (CvDLLUtilityIFaceBase::*pArgFunction) (const TCHAR*))
-{	pArgFunction= NULL; // advc.003i: Disable XML cache
+{
+	pArgFunction = NULL; // advc.003i: Disable XML cache
 	bool bLoaded = false;
 	bool bWriteCache = true;
 	CvCacheObject* pCache = NULL;
@@ -1576,20 +1547,16 @@ void CvXMLLoadUtility::LoadGlobalClassInfo(std::vector<T*>& aInfos,
 				}
 			}
 			// advc.003i: Disabled
-			/*if (NULL != pArgFunction && bWriteCache)
-			{
+			/*if (NULL != pArgFunction && bWriteCache) {
 				// write info to cache
 				bool bOk = gDLL->cacheWrite(pCache);
-				if (!bOk)
-				{
+				if (!bOk) {
 					char szMessage[1024];
 					sprintf(szMessage, "Failed writing to %s cache. \n Current XML file is: %s", szFileDirectory, GC.getCurrentXMLFile().GetCString());
 					gDLL->MessageBox(szMessage, "XML Caching Error");
 				}
 				if (bOk)
-				{
 					logMsg("Wrote %s to cache", szFileDirectory);
-				}
 			}*/
 		}
 	}
@@ -1655,20 +1622,16 @@ void CvXMLLoadUtility::LoadDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInf
 				}
 			}
 			// advc.003i: Disabled
-			/*if (NULL != pArgFunction && bWriteCache)
-			{
+			/*if (NULL != pArgFunction && bWriteCache) {
 				// write info to cache
 				bool bOk = gDLL->cacheWrite(pCache);
-				if (!bOk)
-				{
+				if (!bOk) {
 					char szMessage[1024];
 					sprintf(szMessage, "Failed writing to %s cache. \n Current XML file is: %s", szFileDirectory, GC.getCurrentXMLFile().GetCString());
 					gDLL->MessageBox(szMessage, "XML Caching Error");
 				}
 				if (bOk)
-				{
 					logMsg("Wrote %s to cache", szFileDirectory);
-				}
 			}*/
 		}
 	}

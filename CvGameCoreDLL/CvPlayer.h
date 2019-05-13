@@ -39,39 +39,6 @@ public:
 	DllExport void setupGraphical();
 	DllExport void reset(PlayerTypes eID = NO_PLAYER, bool bConstructorCall = false);
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      12/30/08                                jdog5000      */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	void initInGame(PlayerTypes eID);
-	void resetPlotAndCityData( );
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-
-/************************************************************************************************/
-/* CHANGE_PLAYER                          12/30/08                                jdog5000      */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
-	void clearTraitBonuses();
-	void addTraitBonuses();
-	void changePersonalityType();
-	void resetCivTypeEffects();
-	void changeLeader( LeaderHeadTypes eNewLeader );
-	void changeCiv( CivilizationTypes eNewCiv );
-	void setIsHuman( bool bNewValue );
-/************************************************************************************************/
-/* CHANGE_PLAYER                           END                                                  */
-/************************************************************************************************/
-
-protected:
-
-	void uninit();
-
-public:
-
 	void initFreeState();
 	void initFreeUnits();
 	void addFreeUnitAI(UnitAITypes eUnitAI, int iCount);
@@ -102,21 +69,27 @@ public:
 
 	CvSelectionGroup* cycleSelectionGroups(CvUnit* pUnit, bool bForward, bool bWorkers, bool* pbWrap);
 
-	bool hasTrait(TraitTypes eTrait) const;																																			// Exposed to Python						
-/************************************************************************************************/
-/* AI_AUTO_PLAY_MOD                       07/09/08                                jdog5000      */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
+	bool hasTrait(TraitTypes eTrait) const;																																			// Exposed to Python
+	// BETTER_BTS_AI_MOD, 12/30/08, jdog5000: START
+	void initInGame(PlayerTypes eID);
+	void resetPlotAndCityData( );
+	// BETTER_BTS_AI_MOD: END
+	// CHANGE_PLAYER, 12/30/08, jdog5000: START
+	/*void clearTraitBonuses();
+	void addTraitBonuses();*/
+	void processTraits(int iChange); // advc.003q: Replacing the above
+	void changePersonalityType();
+	void resetCivTypeEffects();
+	void changeLeader( LeaderHeadTypes eNewLeader );
+	void changeCiv( CivilizationTypes eNewCiv );
+	void setIsHuman( bool bNewValue );
+	// CHANGE_PLAYER: END
+	// AI_AUTO_PLAY_MOD, 07/09/08, jdog5000: START
 	void setHumanDisabled(bool newVal);
-	bool isHumanDisabled() // <advc.127>
-		const; // const and exposed to Python
-	bool isSpectator() const;
-	// Exposed to Python:
-	bool isAutoPlayJustEnded() const; // </advc.127>
-/************************************************************************************************/
-/* AI_AUTO_PLAY_MOD                        END                                                  */
-/************************************************************************************************/
+	bool isHumanDisabled() /* advc.127: */ const;	// and exposed to Python
+	bool isSpectator() const; // advc.127
+	bool isAutoPlayJustEnded() const;		// advc.127: exposed to Python
+	// AI_AUTO_PLAY_MOD: END
 	// <advc.003f>
 	DllExport inline bool isHuman() const { return m_bHuman; }																																							// Exposed to Python
 	DllExport inline bool isBarbarian() const { return (m_eID == BARBARIAN_PLAYER); }																																		// Exposed to Python
@@ -242,10 +215,10 @@ public:
 
 	bool canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) const;													// Exposed to Python
 	void receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit,															// Exposed to Python
-			bool noRecursion = false); // advc.314
+			bool bNoRecursion = false); // advc.314
 	void doGoody(CvPlot* pPlot, CvUnit* pUnit,																											// Exposed to Python
 			// advc.314: Set this when rolling an additional outcome
-			GoodyTypes taboo = NO_GOODY);
+			GoodyTypes eTaboo = NO_GOODY);
 
 	DllExport bool canFound(int iX, int iY, bool bTestVisible = false) const;															// Exposed to Python			
 	void found(int iX, int iY);																																			// Exposed to Python			
@@ -399,7 +372,7 @@ public:
 	int adjustMissionCostToTeamSize(int iBaseCost, PlayerTypes eTargetPlayer) const;
 	// <advc.120d> New functions, all exposed to Python
 	TechTypes getStealCostTech(PlayerTypes eTargetPlayer) const;
-	bool canSeeTech(PlayerTypes otherId) const;
+	bool canSeeTech(PlayerTypes eOther) const;
 	bool canSpy() const;
 	// </advc.120d>
 	int getEspionageMissionCostModifier(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, const CvPlot* pPlot = NULL, int iExtraData = -1, const CvUnit* pSpyUnit = NULL) const;
@@ -571,19 +544,15 @@ public:
 	void setOverflowResearch(int iNewValue);																														// Exposed to Python
 	void changeOverflowResearch(int iChange);																														// Exposed to Python
 
-/*
-** K-Mod, 27/dec/10, karadoc
-** replaced NoUnhealthyPopulation with UnhealthyPopulationModifier
-*/
 	/* original bts code
 	int getNoUnhealthyPopulationCount() const;
 	bool isNoUnhealthyPopulation() const;																																			// Exposed to Python
 	void changeNoUnhealthyPopulationCount(int iChange); */
+	/*  K-Mod, 27/dec/10, karadoc
+		replace NoUnhealthyPopulation with UnhealthyPopulationModifier */
 	int getUnhealthyPopulationModifier() const; // Exposed to Python
 	void changeUnhealthyPopulationModifier(int iChange);
-/*
-** K-Mod end
-*/
+	// K-Mod end
 
 	int getExpInBorderModifier() const;
 	void changeExpInBorderModifier(int iChange);
@@ -757,49 +726,48 @@ public:
 
 	bool isExtendedGame() const;																																			// Exposed to Python					
 	DllExport void makeExtendedGame();																													
-																																															
+
 	bool isFoundedFirstCity() const;																																	// Exposed to Python					
 	void setFoundedFirstCity(bool bNewValue);																										
 	// <advc.078>
 	bool isAnyGPPEver() const;		// (Exposed to Python)
 	void reportFirstGPP(); // </advc.078>
-																																															
-	DllExport bool isStrike() const;																																	// Exposed to Python					
-	void setStrike(bool bNewValue);		
+
+	DllExport bool isStrike() const;																																	// Exposed to Python
+	void setStrike(bool bNewValue);
 
 	DllExport PlayerTypes getID() const { return m_eID; } // advc.003f																								// Exposed to Python
 																																															
-	DllExport HandicapTypes getHandicapType() const;																									// Exposed to Python					
-																																															
-	DllExport CivilizationTypes getCivilizationType() const;																					// Exposed to Python					
-																																															
-	DllExport LeaderHeadTypes getLeaderType() const;																									// Exposed to Python					
-																																															
-	LeaderHeadTypes getPersonalityType() const;																												// Exposed to Python									
-	void setPersonalityType(LeaderHeadTypes eNewValue);																					// Exposed to Python									
+	DllExport HandicapTypes getHandicapType() const;																									// Exposed to Python
+
+	DllExport CivilizationTypes getCivilizationType() const;																					// Exposed to Python
+	DllExport LeaderHeadTypes getLeaderType() const;																									// Exposed to Python
+	LeaderHeadTypes getPersonalityType() const;																												// Exposed to Python
+	void setPersonalityType(LeaderHeadTypes eNewValue);																					// Exposed to Python
 	// advc.003b: Inlined
-	inline DllExport EraTypes getCurrentEra() const { return m_eCurrentEra; }																										// Exposed to Python									
-	void setCurrentEra(EraTypes eNewValue);																											
-																																															
-	ReligionTypes getLastStateReligion() const;																												
-	DllExport ReligionTypes getStateReligion() const;																									// Exposed to Python					
-	void setLastStateReligion(ReligionTypes eNewValue);																					// Exposed to Python					
-																																															
+	inline DllExport EraTypes getCurrentEra() const { return m_eCurrentEra; }																										// Exposed to Python
+	void setCurrentEra(EraTypes eNewValue);
+
+	ReligionTypes getLastStateReligion() const;
+	DllExport ReligionTypes getStateReligion() const;																									// Exposed to Python
+	void setLastStateReligion(ReligionTypes eNewValue);																					// Exposed to Python
+
 	PlayerTypes getParent() const;
 	void setParent(PlayerTypes eParent);
-	TeamTypes getMasterTeam() const; // advc.003
-	bool isAVassal() const; // advc.003
+	// <advc.003> Convenient to have these team-level functions directly at CvPlayer
+	TeamTypes getMasterTeam() const;
+	bool isAVassal() const; // </advc.003>
 	DllExport inline TeamTypes getTeam() const { return m_eTeamType; } // advc.003f																				// Exposed to Python
 	void setTeam(TeamTypes eTeam);
 	void updateTeamType();
-													
+
 	DllExport PlayerColorTypes getPlayerColor() const;																								// Exposed to Python
 	DllExport int getPlayerTextColorR() const;																												// Exposed to Python
 	DllExport int getPlayerTextColorG() const;																												// Exposed to Python
 	DllExport int getPlayerTextColorB() const;																												// Exposed to Python
 	DllExport int getPlayerTextColorA() const;																												// Exposed to Python
 	ColorTypes getPlayerTextColor() const; // advc.106
-																																									
+
 	int getSeaPlotYield(YieldTypes eIndex) const;																											// Exposed to Python
 	void changeSeaPlotYield(YieldTypes eIndex, int iChange);
 
@@ -1030,7 +998,7 @@ public:
 	void clearPopups();
 	DllExport CvPopupInfo* popFrontPopup();
 	DllExport const CvPopupQueue& getPopups() const;
-	void killAll(ButtonPopupTypes bpt, int data1 = -1); // advc.004x
+	void killAll(ButtonPopupTypes ePopupType, int iData1 = -1); // advc.004x
 	DllExport void addDiplomacy(CvDiploParameters* pDiplo);
 	void clearDiplomacy();
 	DllExport const CvDiploQueue& getDiplomacy() const;
@@ -1056,7 +1024,7 @@ public:
 	int getEspionageHistory(int iTurn) const;																							// Exposed to Python
 	void updateEspionageHistory(int iTurn, int iBestEspionage);
 	// advc.004s:
-	void updateHistoryMovingAvg(CvTurnScoreMap& hist, int t, int iNewSample);
+	void updateHistoryMovingAvg(CvTurnScoreMap& history, int iGameTurn, int iNewSample);
 	const CvPlayerRecord* getPlayerRecord() const; // K-Mod
 
 	// Script data needs to be a narrow string for pickling in Python
@@ -1068,7 +1036,7 @@ public:
 	DllExport const CvString getSmtpHost() const;
 	DllExport void setSmtpHost(const char* szHost);
 
-	const EventTriggeredData* getEventOccured(EventTypes eEvent) const;			// Exposed to python
+	const EventTriggeredData* getEventOccured(EventTypes eEvent) const;				// Exposed to python
 	bool isTriggerFired(EventTriggerTypes eEventTrigger) const;
 	void setEventOccured(EventTypes eEvent, const EventTriggeredData& kEventTriggered, bool bOthers = true);
 	void resetEventOccured(EventTypes eEvent, bool bAnnounce = true);													// Exposed to Python
@@ -1123,7 +1091,7 @@ public:
 
 	void forcePeace(PlayerTypes ePlayer);    // exposed to Python
 	// advc.032: True iff a treaty was found and its turnsToCancel reset
-	bool resetPeaceTreaty(PlayerTypes otherId);
+	bool resetPeaceTreaty(PlayerTypes ePlayer);
 	bool canSpiesEnterBorders(PlayerTypes ePlayer) const;
 	int getNewCityProductionValue() const;
 
@@ -1136,9 +1104,9 @@ public:
 			int& iDomesticRoutes, int& iForeignYield, int& iForeignRoutes,
 			PlayerTypes eWithPlayer = NO_PLAYER) const;
 	// BULL - Trade Hover - end
-	void checkAlert(int alertId, bool bSilent); // advc.210
+	void checkAlert(int iAlertID, bool bSilent); // advc.210
 	// advc.104, advc.038, advc.132; exposed to Python.
-	double estimateYieldRate(YieldTypes yield, int iSamples = 5) const;
+	double estimateYieldRate(YieldTypes eYield, int iSamples = 5) const;
 	void setSavingReplay(bool b); // advc.106i
 
 	// <advc.003> A bit nicer than GET_PLAYER(getID())
@@ -1191,13 +1159,13 @@ public:
 	virtual int AI_getPlotDanger(CvPlot* pPlot, int iRange = -1, bool bTestMoves = true,
 		/*  advc.104: Shouldn't add params to virtual functions b/c the EXE
 			might call them. However, most AI functions are never called by the EXE. */
-			bool bCheckBorder = true, int* lowHealth = NULL, int hpLimit = 60,
-			int limitCount = -1, PlayerTypes enemyId = NO_PLAYER) const = 0;
+			bool bCheckBorder = true, int* piLowHealth = NULL, int iHPLimit = 60,
+			int iLimit = -1, PlayerTypes eEnemy = NO_PLAYER) const = 0;
 	virtual bool AI_isFinancialTrouble() const = 0;																											// Exposed to Python
 	virtual TechTypes AI_bestTech(int iMaxPathLength = 1, bool bIgnoreCost = false,
 			bool bAsync = false, TechTypes eIgnoreTech = NO_TECH,
 			AdvisorTypes eIgnoreAdvisor = NO_ADVISOR,
-			PlayerTypes eFromCiv = NO_PLAYER) const = 0; // advc.144
+			PlayerTypes eFromPlayer = NO_PLAYER) const = 0; // advc.144
 	virtual void AI_chooseFreeTech() = 0;
 	virtual void AI_chooseResearch() = 0;
 	virtual bool AI_isWillingToTalk(PlayerTypes ePlayer) const = 0; // Exposed to Python
@@ -1370,7 +1338,7 @@ protected:
 	bool m_bStrike;
 	bool m_bHuman;
 	// AI_AUTO_PLAY_MOD, 09/01/07, MRGENIE: START
-	bool m_bDisableHuman;				// Set to true to disable isHuman() check
+	bool m_bDisableHuman;		// Set to true to disable isHuman() check
 	bool m_bAutoPlayJustEnded; // advc.127
 	// AI_AUTO_PLAY_MOD: END
 	bool m_bSavingReplay; // advc.106i
@@ -1467,7 +1435,7 @@ protected:
 	CvDiploQueue m_listDiplomacy;
 
 	CivicTypes m_eReminderPending; // advc.004x
-	CvWString** m_aszBonusHelp; // advc.003p  (Not serialized)
+	CvWString** m_aszBonusHelp; // advc.003p  (not serialized)
 	CvTurnScoreMap m_mapScoreHistory;
 	CvTurnScoreMap m_mapEconomyHistory;
 	CvTurnScoreMap m_mapIndustryHistory;
@@ -1476,6 +1444,9 @@ protected:
 	CvTurnScoreMap m_mapCultureHistory;
 	CvTurnScoreMap m_mapEspionageHistory;
 
+	void uninit();
+	void initContainers();
+	bool initOtherData();
 	void doGold();
 	void doResearch();
 	void doEspionagePoints();
@@ -1492,7 +1463,7 @@ protected:
 	void addGoodyMsg(CvWString s, CvPlot const& p, TCHAR const* sound);
 	void promoteFreeUnit(CvUnit& u, double pr);
 	// </advc.314>
-	static int adjustAdvStartPtsToSpeed(int pts); // advc.250c
+	static int adjustAdvStartPtsToSpeed(int iPoints); // advc.250c
 	// advc.120f:
 	void announceEspionageToThirdParties(EspionageMissionTypes eMission, PlayerTypes eTarget);
 	bool checkExpireEvent(EventTypes eEvent, const EventTriggeredData& kTriggeredData) const;

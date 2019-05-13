@@ -3477,7 +3477,7 @@ void CvDLLWidgetData::parseTechTreeHelp(CvWidgetDataStruct &widgetDataStruct, Cv
 	TechTypes eTech = (TechTypes)widgetDataStruct.m_iData1;
 	GAMETEXT.setTechHelp(szBuffer, eTech, false,
 			// advc.004: bPlayerContext:
-			GET_PLAYER(GC.getGameINLINE().getActivePlayer()).canResearch(eTech),
+			!GET_TEAM(GC.getGameINLINE().getActiveTeam()).isHasTech(eTech),
 			false, false);
 }
 
@@ -3928,6 +3928,9 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 	
 	// List the top 3 culture cities (by culture value weight).
 	//if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE1))
+	/*  advc.007: The line above was already commented out; i.e. culture info was
+		always shown. */
+	if (kPlayer.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3) || GC.ctrlKey())
 	{
 		szBuffer.append(CvWString::format(L"\n\nTop %c cities by weight:", GC.getCommerceInfo(COMMERCE_CULTURE).getChar()));
 		int iLegendaryCulture = GC.getGameINLINE().getCultureThreshold((CultureLevelTypes)(GC.getNumCultureLevelInfos() - 1));

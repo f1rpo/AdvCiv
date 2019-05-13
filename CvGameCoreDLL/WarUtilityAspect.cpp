@@ -746,10 +746,11 @@ double GreedForAssets::medianDistFromOurConquests(PlayerTypes civId) {
 		int d = c.getDistance();
 		if(!c.canReachByLand()) // Don't worry about naval attacks
 			d += 100;
-		if(d < 0) d = INT_MAX; // -1 means unreachable
+		if(d < 0)
+			d = MAX_INT; // -1 means unreachable
 		distances.push_back(d);
 	}
-	double r = INT_MAX;
+	double r = MAX_INT;
 	if(!distances.empty())
 		r = ::dMedian(distances);
 	return r;
@@ -1785,9 +1786,9 @@ double HiredHand::eval(PlayerTypes allyId, int originalUtility, int obligationTh
 	}
 	int agentAtWarCounter = agent.AI_getAtWarCounter(TEAMID(theyId));
 	if(!agent.isAtWar(TEAMID(theyId)))
-		agentAtWarCounter = INT_MAX;
+		agentAtWarCounter = MAX_INT;
 	int allyAtWarCounter = ((allyId == NO_PLAYER ||
-			!TEAMREF(allyId).isAtWar(TEAMID(theyId)) ? INT_MAX :
+			!TEAMREF(allyId).isAtWar(TEAMID(theyId)) ? MAX_INT :
 			TEAMREF(allyId).AI_getAtWarCounter(TEAMID(theyId))));
 	// Whoever has been hired must have the smaller AtWarCounter
 	int turnsFought = std::min(agentAtWarCounter, allyAtWarCounter);

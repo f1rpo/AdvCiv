@@ -9,7 +9,6 @@
 #include "CvDLLUtilityIFaceBase.h"
 #include "CvDLLInterfaceIFaceBase.h" // advc.001m
 
-// Public Functions...
 
 CvInitCore::CvInitCore()
 {
@@ -509,7 +508,6 @@ void CvInitCore::resetGame()
 	// Data-defined victory conditions
 	refreshVictories();
 
-
 	// Standard game options
 	int i;
 	for (i = 0; i < NUM_GAMEOPTION_TYPES; ++i)
@@ -555,9 +553,9 @@ void CvInitCore::resetGame(CvInitCore * pSource, bool bClear, bool bSaveGameType
 	if (bClear || !pSource)
 	{
 		resetGame();
-	} // <advc.003>
+	} 
 	if(!pSource)
-		return; // </advc.003>
+		return; // advc.003
 	
 	// Only copy over saved data
 
@@ -591,13 +589,14 @@ void CvInitCore::resetGame(CvInitCore * pSource, bool bClear, bool bSaveGameType
 	int i;
 	for (i = 0; i < NUM_GAMEOPTION_TYPES; ++i)
 	{	// <advc.003>
-		GameOptionTypes got = (GameOptionTypes)i;
-		bool b = pSource->getOption(got); // </advc.003>
+		GameOptionTypes eLoopOption = (GameOptionTypes)i;
+		bool b = pSource->getOption(eLoopOption);
+		// </advc.003>
 		// <dlph.18>
-		CvGameOptionInfo& goi = GC.getGameOptionInfo(got);
-		if(goi.getVisible() == 0)
-			b = goi.getDefault(); // </dlph.18>
-		setOption((GameOptionTypes)i, b);
+		CvGameOptionInfo const& kLoopOption = GC.getGameOptionInfo(eLoopOption);
+		if(kLoopOption.getVisible() == 0)
+			b = kLoopOption.getDefault(); // </dlph.18>
+		setOption(eLoopOption, b);
 	}
 
 	for (i = 0; i < NUM_MPOPTION_TYPES; ++i)
@@ -1185,29 +1184,27 @@ void CvInitCore::setType(GameType eType)
 	{
 		m_eType = eType;
 		// <advc.054>
-		{	// Always visible in scenarios
-			CvGameOptionInfo& goi = GC.getGameOptionInfo(GAMEOPTION_NO_CHANGING_WAR_PEACE);
-			if(eType == GAME_SP_SCENARIO || eType == GAME_MP_SCENARIO ||
-					eType == GAME_HOTSEAT_SCENARIO || eType == GAME_PBEM_SCENARIO)
-				goi.setVisible(true);
+		// Permanent war/peace always visible in scenarios
+		CvGameOptionInfo& kPermWarPeace = GC.getGameOptionInfo(GAMEOPTION_NO_CHANGING_WAR_PEACE);
+		if(eType == GAME_SP_SCENARIO || eType == GAME_MP_SCENARIO ||
+				eType == GAME_HOTSEAT_SCENARIO || eType == GAME_PBEM_SCENARIO)
+			kPermWarPeace.setVisible(true);
+		// Otherwise as set in XML
+		else kPermWarPeace.setVisible(kPermWarPeace.getVisibleXML());
+		// Never visible in MP
+		std::vector<GameOptionTypes> aeHideMP;
+		aeHideMP.push_back(GAMEOPTION_LOCK_MODS);
+		aeHideMP.push_back(GAMEOPTION_NEW_RANDOM_SEED);
+		aeHideMP.push_back(GAMEOPTION_RISE_FALL); // advc.701
+		for(size_t i = 0; i < aeHideMP.size(); i++) {
+			CvGameOptionInfo& kOption = GC.getGameOptionInfo(aeHideMP[i]);
+			if(eType == GAME_MP_SCENARIO || eType == GAME_MP_NEW || eType == GAME_MP_LOAD ||
+					eType == GAME_HOTSEAT_SCENARIO || eType == GAME_HOTSEAT_NEW ||
+					eType == GAME_PBEM_LOAD || eType == GAME_PBEM_NEW ||
+					eType == GAME_PBEM_SCENARIO)
+				kOption.setVisible(false);
 			// Otherwise as set in XML
-			else goi.setVisible(goi.getVisibleXML());
-		}
-		{	// Never visible in MP
-			std::vector<GameOptionTypes> aeHideMP;
-			aeHideMP.push_back(GAMEOPTION_LOCK_MODS);
-			aeHideMP.push_back(GAMEOPTION_NEW_RANDOM_SEED);
-			aeHideMP.push_back(GAMEOPTION_RISE_FALL); // advc.701
-			for(size_t i = 0; i < aeHideMP.size(); i++) {
-				CvGameOptionInfo& goi = GC.getGameOptionInfo(aeHideMP[i]);
-				if(eType == GAME_MP_SCENARIO || eType == GAME_MP_NEW || eType == GAME_MP_LOAD ||
-						eType == GAME_HOTSEAT_SCENARIO || eType == GAME_HOTSEAT_NEW ||
-						eType == GAME_PBEM_LOAD || eType == GAME_PBEM_NEW ||
-						eType == GAME_PBEM_SCENARIO)
-					goi.setVisible(false);
-				// Otherwise as set in XML
-				else goi.setVisible(goi.getVisibleXML());
-			}
+			else kOption.setVisible(kOption.getVisibleXML());
 		} // </advc.054>
 		if(CvPlayerAI::areStaticsInitialized())
 		{
@@ -1917,12 +1914,11 @@ void CvInitCore::resetAdvancedStartPoints()
 		iPoints /= 100;
 	}
 	// <advc.250c> Reduce start-point costs based on game speed instead.
-	/*if (NO_GAMESPEED != getGameSpeed())
-	{
+	/*if (NO_GAMESPEED != getGameSpeed()) {
 		iPoints *= GC.getGameSpeedInfo(getGameSpeed()).getGrowthPercent();
 		iPoints /= 100;
 	}*/
-	// Effect of world size removed through WorldInfo XML
+	// (Effect of world size removed through WorldInfo XML)
 	// </advc.250c>
 	setNumAdvancedStartPoints(iPoints);
 }
@@ -2043,17 +2039,18 @@ void CvInitCore::read(FDataStreamBase* pStream)
 	if(CvPlayerAI::areStaticsInitialized())
 	{
 		for (int i=0;i<MAX_PLAYERS;i++)
-		{ /* <advc.706> Had a reproducible crash when loading a non-R&F game
-			 from within an R&F game right after inspecting a city.
-			 Resetting the human players before reading any other player data
-			 seems to have fixed it. */
-			CvPlayer& pl = GET_PLAYER((PlayerTypes)i);
-			if(pl.isHuman()) {
-				pl.reset((PlayerTypes)i);
-				pl.setIsHuman(true);
+		{
+			CvPlayer& kLoopPlayer = GET_PLAYER((PlayerTypes)i); // advc.003
+			/*  <advc.706> Had a reproducible crash when loading a non-R&F game
+				from within an R&F game right after inspecting a city.
+				Resetting the human players before reading any other player data
+				seems to have fixed it. */
+			if(kLoopPlayer.isHuman()) {
+				kLoopPlayer.reset((PlayerTypes)i);
+				kLoopPlayer.setIsHuman(true);
 			} // </advc.706>
-			GET_PLAYER((PlayerTypes)i).updateHuman();
-			GET_PLAYER((PlayerTypes) i).updateTeamType();
+			kLoopPlayer.updateHuman();
+			kLoopPlayer.updateTeamType();
 		}
 	}
 }

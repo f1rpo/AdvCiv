@@ -3,6 +3,20 @@
 	 A few of the Romance-language translations are based on www.deepl.com. -->
 <Civ4GameText>
 
+	<!-- advc.106i: Mod name to be used as a prefix for replay file names and
+		 to be written into the first replay message (the DLL removes the
+		 square brackets in that context). If this text key is removed
+		 entirely, then no file prefix is used and no mod name is written in the
+		 first replay message. -->
+	<TEXT>
+		<Tag>TXT_KEY_REPLAY_PREFIX</Tag>
+		<English>[AdvCiv]</English>
+		<French>[AdvCiv]</French>
+		<German>[AdvCiv]</German>
+		<Italian>[AdvCiv]</Italian>
+		<Spanish>[AdvCiv]</Spanish>
+	</TEXT>
+
 	<!-- advc.100: In-game text for displaying and logging messages about
 		 hired DoW. Original BtS text bits pertaining to DoW are located in
 		 CIV4GameTextInfos.xml. -->
@@ -486,16 +500,6 @@
 		<German>%s1 kündigt [NUM1:sein:ihr] Verteidigungsabkommen mit %s2</German>
 		<Italian>%s1 annulla la sua alleanza difensiva con %s2</Italian>
 		<Spanish>%s1 revoca su acuerdo de protecci&#243;n con %s2.</Spanish>
-	</TEXT>
-	
-	<!-- advc.106i: Delete if you want no prefix for replay file names. -->
-	<TEXT>
-		<Tag>TXT_KEY_REPLAY_PREFIX_ADVC</Tag>
-		<English>[AdvCiv]</English>
-		<French>[AdvCiv]</French>
-		<German>[AdvCiv]</German>
-		<Italian>[AdvCiv]</Italian>
-		<Spanish>[AdvCiv]</Spanish>
 	</TEXT>
 	
 	<!-- advc.106i -->

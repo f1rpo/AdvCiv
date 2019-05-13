@@ -115,9 +115,9 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 		// <advc.707> Treat R&F games as "Score" victory (previously unused)
 		if(game.isOption(GAMEOPTION_RISE_FALL)) {
 			for(int i = 0; i < GC.getNumVictoryInfos(); i++) {
-				VictoryTypes vt = (VictoryTypes)i;
-				if(GC.getVictoryInfo(vt).isTargetScore()) {
-					m_eVictoryType = vt;
+				VictoryTypes eVictory = (VictoryTypes)i;
+				if(GC.getVictoryInfo(eVictory).isTargetScore()) {
+					m_eVictoryType = eVictory;
 					break;
 				}
 			}
@@ -225,31 +225,31 @@ void CvReplayInfo::addSettingsMsg() {
 		return;
 	bool bScenario = false;
 	// Strip away file ending of WB scenario
-	CvWString const wbEnding = L".CivBeyondSwordWBSave";
-	CvWString mn = getMapScriptName();
-	if(mn.length() > wbEnding.length() && mn.substr(mn.length() -
-			wbEnding.length(), wbEnding.length()).compare(wbEnding) == 0) {
-		mn = mn.substr(0, mn.length() - wbEnding.length());
+	CvWString const szWBEnding = L".CivBeyondSwordWBSave";
+	CvWString szMapName = getMapScriptName();
+	if(szMapName.length() > szWBEnding.length() && szMapName.substr(szMapName.length() -
+			szWBEnding.length(), szWBEnding.length()).compare(szWBEnding) == 0) {
+		szMapName = szMapName.substr(0, szMapName.length() - szWBEnding.length());
 		bScenario = true;
 	}
 	/*  Can't use getTextKeyWide for sea level b/c of the recommendation text
 		added by advc.137 (same issue in CvVictoryScreen.py) */
-	int lvlChg = GC.getSeaLevelInfo(getSeaLevel()).getSeaLevelChange();
+	int iSeaLevelChange = GC.getSeaLevelInfo(getSeaLevel()).getSeaLevelChange();
 	CvPlayer const& kActivePlayer = GET_PLAYER(eActivePlayer);
-	CvWString m = gDLL->getText("TXT_KEY_MISC_RELOAD", 1) + L". " +
+	CvWString szSettings = gDLL->getText("TXT_KEY_MISC_RELOAD", 1) + L". " +
 			gDLL->getText("TXT_KEY_MAIN_MENU_SETTINGS") + L":\n" +
 			gDLL->getText("TXT_KEY_NAME_LEADER_CIV",
 			GC.getLeaderHeadInfo(kActivePlayer.getLeaderType()).getTextKeyWide(),
 			kActivePlayer.getCivilizationShortDescriptionKey(), kActivePlayer.getReplayName()) + L"\n" +
 			gDLL->getText("TXT_KEY_SETTINGS_DIFFICULTY",
 			GC.getHandicapInfo(getDifficulty()).getTextKeyWide()) + L"\n" +
-			(bScenario ? mn :
+			(bScenario ? szMapName :
 			gDLL->getText("TXT_KEY_SIZE_MAP_WITH",
 			GC.getWorldInfo(getWorldSize()).getTextKeyWide(),
 			getMapScriptName().GetCString()) + L" " +
 			gDLL->getText("TXT_KEY_SETTINGS_SEA_LEVEL",
-			(lvlChg == 0 ? GC.getSeaLevelInfo(getSeaLevel()).getTextKeyWide() :
-			gDLL->getText((lvlChg < 0 ? "TXT_KEY_LOW" : "TXT_KEY_HIGH"))))) +
+			(iSeaLevelChange == 0 ? GC.getSeaLevelInfo(getSeaLevel()).getTextKeyWide() :
+			gDLL->getText((iSeaLevelChange < 0 ? "TXT_KEY_LOW" : "TXT_KEY_HIGH"))))) +
 			(getClimate() == 0 ? L"" : (L", " +
 			gDLL->getText("TXT_KEY_SETTINGS_CLIMATE",
 			GC.getClimateInfo(getClimate()).getTextKeyWide()))) + L"\n" +
@@ -260,7 +260,7 @@ void CvReplayInfo::addSettingsMsg() {
 			GC.getEraInfo(getEra()).getTextKeyWide()))) + L"\n";
 	// <advc.250b>
 	if(g.isOption(GAMEOPTION_ADVANCED_START) && !g.isOption(GAMEOPTION_SPAH)) {
-		m += gDLL->getText("TXT_KEY_ADVANCED_START_POINTS") + L" "
+		szSettings += gDLL->getText("TXT_KEY_ADVANCED_START_POINTS") + L" "
 				+ CvWString::format(L"%d", g.getNumAdvancedStartPoints()) + L"\n";
 	} // </advc.250b>
 	int iDisabled = 0;
@@ -269,18 +269,18 @@ void CvReplayInfo::addSettingsMsg() {
 		if(g.isVictoryValid(eVictory))
 			continue;
 		iDisabled++;
-		m += GC.getVictoryInfo(eVictory).getDescription();
-		m += L", ";
+		szSettings += GC.getVictoryInfo(eVictory).getDescription();
+		szSettings += L", ";
 	}
 	if(iDisabled > 0) {
-		m = m.substr(0, m.length() - 2) + L" "; // Drop the final comma
-		m += gDLL->getText("TXT_KEY_VICTORY_DISABLED") + L"\n";
+		szSettings = szSettings.substr(0, szSettings.length() - 2) + L" "; // Drop the final comma
+		szSettings += gDLL->getText("TXT_KEY_VICTORY_DISABLED") + L"\n";
 	} // <advc.250b>
 	if(g.isOption(GAMEOPTION_SPAH)) {
 		// bTab=false b/c that's a bit too much indentation
-		std::wstring* pointDistrib = g.startPointsAsHandicap().forSettingsScreen(false);
-		if(pointDistrib != NULL)
-			m += *pointDistrib;
+		std::wstring* pszPointDistrib = g.startPointsAsHandicap().forSettingsScreen(false);
+		if(pszPointDistrib != NULL)
+			szSettings += *pszPointDistrib;
 	} // </advc.250b>
 	int iOptions = 0;
 	for(int i = 0; i < GC.getNumGameOptionInfos(); i++) {
@@ -292,29 +292,29 @@ void CvReplayInfo::addSettingsMsg() {
 				(eOption == GAMEOPTION_AGGRESSIVE_AI && getWPAI.isEnabled()))
 			continue;
 		iOptions++;
-		m += GC.getGameOptionInfo(eOption).getDescription();
-		m += L", ";
+		szSettings += GC.getGameOptionInfo(eOption).getDescription();
+		szSettings += L", ";
 	}
 	if(iOptions > 0)
-		m = m.substr(0, m.length() - 2) + L"\n";
-	CvWString const tag = "TXT_KEY_REPLAY_PREFIX_ADVC";
+		szSettings = szSettings.substr(0, szSettings.length() - 2) + L"\n";
+	CvWString const szKey = "TXT_KEY_REPLAY_PREFIX";
 	// gDLL->getModName(false) doesn't yield a wstring
-	CvWString modName = gDLL->getText(tag);
+	CvWString szModName = gDLL->getText(szKey);
 	// Don't list mod name if the tag isn't present
-	if(tag.compare(modName) == 0)
-		m = m.substr(0, m.length() - 1); // drop \n
+	if(szKey.compare(szModName) == 0)
+		szSettings = szSettings.substr(0, szSettings.length() - 1); // drop \n
 	else {
 		// Remove brackets
-		if(modName.at(0) == '[' && modName.at(modName.length() - 1) == ']')
-			modName = modName.substr(1, modName.length() - 2);
-		m += modName + L" Mod";
+		if(szModName.at(0) == '[' && szModName.at(szModName.length() - 1) == ']')
+			szModName = szModName.substr(1, szModName.length() - 2);
+		szSettings += szModName + L" Mod";
 	}
-	CvReplayMessage* settingsMsg = new CvReplayMessage(0,
+	CvReplayMessage* pSettingsMsg = new CvReplayMessage(0,
 			REPLAY_MESSAGE_MAJOR_EVENT, eActivePlayer);
-	settingsMsg->setText(m);
-	settingsMsg->setColor((ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"));
+	pSettingsMsg->setText(szSettings);
+	pSettingsMsg->setColor((ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"));
 	FAssert(m_listReplayMessages.empty());
-	m_listReplayMessages.push_back(settingsMsg);
+	m_listReplayMessages.push_back(pSettingsMsg);
 } // </advc.106h>
 
 
@@ -650,9 +650,9 @@ int CvReplayInfo::getFinalPlayerScore() const
 	return getPlayerScore(m_iActivePlayer, m_iFinalTurn);
 }
 // Can now also set the final score to sth. other than the player score
-void CvReplayInfo::setFinalScore(int sc)
+void CvReplayInfo::setFinalScore(int iScore)
 {
-	m->iFinalScore = sc;
+	m->iFinalScore = iScore;
 } // </advc.707>
 
 int CvReplayInfo::getFinalEconomy() const
@@ -695,9 +695,8 @@ const char* CvReplayInfo::getModName() const
 		(Let CvReplayInfo::read decide which ones to show in HoF.) */ 
 	if(STORE_REPLAYS_AS_BTS || GC.getDefineINT("HOF_DISPLAY_BTS_REPLAYS") > 0 ||
 			GC.getDefineINT("HOF_DISPLAY_OTHER_MOD_REPLAYS") > 0)
-		return m->szPurportedModName;
-	else // </advc.106i>
-		return m_szModName;
+		return m->szPurportedModName; // </advc.106i>
+	return m_szModName;
 }
 
 
@@ -755,7 +754,7 @@ bool CvReplayInfo::read(FDataStreamBase& stream)
 			m_eSeaLevel = NO_SEALEVEL; // unused
 		}
 		else {
-			m->iFinalScore = INT_MIN; // Compute it later
+			m->iFinalScore = MIN_INT; // Compute it later
 			m_eSeaLevel = (SeaLevelTypes)iType;
 			if(!checkBounds(m_eSeaLevel, 0, GC.getNumSeaLevelInfos() - 1)) return false; // advc.106i
 		} // </advc.106i>
@@ -866,7 +865,7 @@ bool CvReplayInfo::read(FDataStreamBase& stream)
 		FAssertMsg(false, "Failed to read replay file");
 		return false;
 	} // <advc.707>
-	if(m->iFinalScore == INT_MIN)
+	if(m->iFinalScore == MIN_INT)
 		m->iFinalScore = getFinalPlayerScore();
 	// </advc.707>
 	return bSuccess;

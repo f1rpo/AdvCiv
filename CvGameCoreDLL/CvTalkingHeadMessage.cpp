@@ -83,7 +83,7 @@ void CvTalkingHeadMessage::setDescription(CvWString pszDescription)
 
 const CvString& CvTalkingHeadMessage::getSound() const
 {
-	/*  advc.106b: A hack that relies on the EXE playing the sound after calling
+	/*  advc.106b: A hack that relies on the EXE triggering the sound after calling
 		getSound */
 	const_cast<CvTalkingHeadMessage*>(this)->bSoundPlayed = true;
 	return (m_szSound);
@@ -205,7 +205,7 @@ void CvTalkingHeadMessage::setTarget(ChatTargetTypes eType)
 	m_eTarget = eType;
 }
 
-int CvTalkingHeadMessage::getExpireTurn(bool human) // advc.700: param added
+int CvTalkingHeadMessage::getExpireTurn(/* advc.700: */ bool bHuman)
 {
 	int iExpireTurn = getTurn();
 	switch (m_eMessageType)
@@ -243,7 +243,7 @@ int CvTalkingHeadMessage::getExpireTurn(bool human) // advc.700: param added
 	}
 	/*  <advc.700> Quicker expiration for AI. Note that messages are delivered to
 		the AI only if GAMEOPTION_RISE_FALL. */
-	if(human)
+	if(bHuman)
 		return iExpireTurn;
 	iExpireTurn = getTurn();
 	switch(m_eMessageType) {

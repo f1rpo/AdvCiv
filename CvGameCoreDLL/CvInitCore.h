@@ -1,14 +1,11 @@
 #pragma once
 
-// game.h
 
 #ifndef CIV4_INITCORE_H
 #define CIV4_INITCORE_H
 
-/*
-** K-Mod, 8/dec/10, karadoc
-** moved FASSERT_BOUNDS to CvGlobals.h (and modified it)
-*/
+/*  K-Mod, 8/dec/10, karadoc
+	moved FASSERT_BOUNDS to CvGlobals.h (and modified it) */
 
 class CvInitCore
 {

@@ -9,6 +9,10 @@
 #include <cmath>
 #include <sstream>
 
+/*  advc.003 (note): This was the first class added by AdvCiv and, apart from the
+	includes above, it hasn't been looked at for the past few years, so there are
+	probably things that could be improved. Seems to be working as intended though. */
+
 using std::vector;
 using std::wstring;
 using std::wostringstream;
@@ -297,7 +301,7 @@ void StartPointsAsHandicap::rearrangeStartingPlots() {
 	normalizeStartingPlotLocations. */
 int StartPointsAsHandicap::minDist(CvPlot* p) {
 
-	int r = INT_MAX;
+	int r = MAX_INT;
 	for(int i = 0; i < nHuman; i++) {
 		CvPlot* q = civs[i]->startingPlot();
 		int d = GC.getMapINLINE().calculatePathDistance(p, q);

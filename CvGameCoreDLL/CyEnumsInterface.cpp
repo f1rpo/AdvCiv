@@ -425,10 +425,8 @@ void CyEnumsPythonInterface()
 		.value("WIDGET_ANARCHY", WIDGET_ANARCHY) // </advc.085>
 		.value("NUM_WIDGET_TYPES", NUM_WIDGET_TYPES)
 		;
-/*
-** K-Mod, 5/jan/11, karadoc
-** pollution flags
-*/
+	/*  K-Mod, 5/jan/11, karadoc
+		pollution flags */
 	python::enum_<int>("PollutionTypes")
 		.value("POLLUTION_POPULATION", POLLUTION_POPULATION)
 		.value("POLLUTION_BUILDINGS", POLLUTION_BUILDINGS)
@@ -437,9 +435,7 @@ void CyEnumsPythonInterface()
 
 		.value("POLLUTION_ALL", POLLUTION_ALL)
 		;
-/*
-** K-Mod end
-*/
+	// K-Mod end
 	python::enum_<ButtonPopupTypes>("ButtonPopupTypes")
 		.value("BUTTONPOPUP_TEXT", BUTTONPOPUP_TEXT)
 		.value("BUTTONPOPUP_MAIN_MENU", BUTTONPOPUP_MAIN_MENU)

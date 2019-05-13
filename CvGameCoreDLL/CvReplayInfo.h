@@ -58,7 +58,7 @@ public:
 	int getPlayerAgriculture(int iPlayer, int iTurn) const;
 	int getFinalScore() const;
 	// <advc.707>
-	void setFinalScore(int sc);
+	void setFinalScore(int iScore);
 	int getFinalPlayerScore() const; // </advc.707>
 	int getFinalEconomy() const;
 	int getFinalIndustry() const;

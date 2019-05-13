@@ -64,7 +64,7 @@ public:
 	void AI_doCentralizedProduction(); // K-Mod. (not used)
 	#endif
 	void AI_conquerCity(CvCity* pCity);
-	double AI_razeAngerRating(CvCity const& c) const; // advc.130q
+	double AI_razeMemoryScore(CvCity const& c) const; // advc.130q
 	bool AI_acceptUnit(CvUnit* pUnit) const;
 	bool AI_captureUnit(UnitTypes eUnit, CvPlot* pPlot) const;
 
@@ -97,7 +97,7 @@ public:
 	};
 	short AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet) const;
 	// K-Mod end
-	double AI_exclusiveRadiusWeight(int dist = -1) const; // advc.099b
+	double AI_exclusiveRadiusWeight(int iDist = -1) const; // advc.099b
 
 	bool AI_isAreaAlone(CvArea* pArea) const;
 	bool AI_isCapitalAreaAlone() const;
@@ -139,14 +139,14 @@ public:
 	int AI_goldTarget(bool bUpgradeBudgetOnly = false) const; // K-Mod
 
 	TechTypes AI_bestTech(int iMaxPathLength = 1, bool bFreeTech = false, bool bAsync = false, TechTypes eIgnoreTech = NO_TECH, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR,
-			PlayerTypes eFromCiv = NO_PLAYER) const; // advc.144
+			PlayerTypes eFromPlayer = NO_PLAYER) const; // advc.144
 
 	// BETTER_BTS_AI_MOD, Tech AI, 03/18/10, jdog5000: START
 	int AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech, bool bAsync,
 			const std::vector<int>& viBonusClassRevealed,
 			const std::vector<int>& viBonusClassUnrevealed,
 			const std::vector<int>& viBonusClassHave,
-			PlayerTypes eFromCiv = NO_PLAYER) const; // advc.144
+			PlayerTypes eFromPlayer = NO_PLAYER) const; // advc.144
 	int AI_obsoleteBuildingPenalty(TechTypes eTech, bool bConstCache) const; // K-Mod
 	int AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bEnablesWonder) const; // Rewritten for K-Mod
 	int AI_techUnitValue( TechTypes eTech, int iPathLength, bool &bEnablesUnitWonder ) const;
@@ -184,7 +184,7 @@ public:
 	int AI_getCloseBordersAttitude(PlayerTypes ePlayer) const;
 	int warSuccessAttitudeDivisor() const; // advc.130y, advc.sha
 	int AI_getWarAttitude(PlayerTypes ePlayer,
-			int iPartialSum = INT_MIN) const; // advc.sha
+			int iPartialSum = MIN_INT) const; // advc.sha
 	int AI_getPeaceAttitude(PlayerTypes ePlayer) const;
 	int AI_getSameReligionAttitude(PlayerTypes ePlayer) const;
 	int AI_getDifferentReligionAttitude(PlayerTypes ePlayer) const;
@@ -305,7 +305,7 @@ public:
 	int AI_nukeWeight() const; // K-Mod
 	int AI_nukeDangerDivisor() const; // dlph.16
 	bool AI_isLandWar(CvArea* pArea) const; // K-Mod
-	bool AI_isFocusWar(CvArea* ap = NULL) const; // advc.105
+	bool AI_isFocusWar(CvArea* pArea = NULL) const; // advc.105
 
 	int AI_missionaryValue(CvArea* pArea, ReligionTypes eReligion, PlayerTypes* peBestPlayer = NULL) const;
 	int AI_executiveValue(CvArea* pArea, CorporationTypes eCorporation, PlayerTypes* peBestPlayer = NULL, bool bSpreadOnly = false) const;
@@ -326,7 +326,7 @@ public:
 	// K-Mod start
 	int AI_localDefenceStrength(const CvPlot* pDefencePlot, TeamTypes eDefenceTeam, DomainTypes eDomainType = DOMAIN_LAND, int iRange = 0, bool bAtTarget = true, bool bCheckMoves = false, bool bNoCache = false) const;
 	int AI_localAttackStrength(const CvPlot* pTargetPlot, TeamTypes eAttackTeam, DomainTypes eDomainType = DOMAIN_LAND, int iRange = 2, bool bUseTarget = true, bool bCheckMoves = false, bool bCheckCanAttack = false,
-			int* attackerCount = NULL) const; // advc.139
+			int* piAttackerCount = NULL) const; // advc.139
 	int AI_cityTargetStrengthByPath(CvCity* pCity, CvSelectionGroup* pSkipSelectionGroup, int iMaxPathTurns) const;
 	// K-Mod end
 	// BBAI start
@@ -419,6 +419,7 @@ public:
 	inline void AI_setMemoryCount(PlayerTypes eAboutPlayer, MemoryTypes eMemoryType, int iValue);
 	// advc.130j: Increases memory count according to (hardcoded) granularity
 	void AI_rememberEvent(PlayerTypes ePlayer, MemoryTypes eMemoryType);
+	void AI_processRazeMemory(CvCity const& kCity); // advc.003n
 
 	// K-Mod
 	int AI_getCityTargetTimer() const;
@@ -602,7 +603,8 @@ protected:
 	int m_iReligionTimer;
 	int m_iExtraGoldTarget;
 	int m_iCityTargetTimer; // K-Mod
-	WarAndPeaceAI::Civ* m_pWpai; // advc.104
+	bool m_bDangerFromSubmarines; // advc.651 (not serialized)
+	WarAndPeaceAI::Civ* m_pWPAI; // advc.104
 
 	/*original bts code
 	mutable int m_iStrategyHash;
@@ -683,7 +685,7 @@ protected:
 	bool AI_proposeJointWar(PlayerTypes eHuman);
 	// advc.130t:
 	int AI_rivalPactAttitude(PlayerTypes ePlayer, bool bVassalPacts) const;
-	double AI_expansionistHate(PlayerTypes eOther) const;
+	double AI_expansionistHate(PlayerTypes ePlayer) const;
 	bool AI_canBeAttackedBy(CvUnit const& u) const; // advc.315
 
 	// <advc.130p>
@@ -728,7 +730,7 @@ protected:
 			bool bGenerous,
 			// advc.036:
 			int iHappyLeft, int iHealthLeft, int iOtherListLength) const;
-	int AI_tradeValToGold(int iTradeVal, bool bOverpay, int iMaxGold = INT_MAX,
+	int AI_tradeValToGold(int iTradeVal, bool bOverpay, int iMaxGold = MAX_INT,
 			bool* bEnough = NULL) const;
 	int AI_checkCancel(CvDeal const& d, PlayerTypes ePlayer, bool bFlip);
 	bool AI_doDeals(PlayerTypes eOther);
@@ -737,8 +739,8 @@ protected:
 	// advc.132:
 	bool AI_checkCivicReligionConsistency(CLinkList<TradeData> const& tradeItems) const;
 	// <advc.036>
-	bool AI_checkResourceLimits(CLinkList<TradeData> const& weGive,
-			CLinkList<TradeData> const& theyGive, PlayerTypes eThey,
+	bool AI_checkResourceLimits(CLinkList<TradeData> const& kWeGive,
+			CLinkList<TradeData> const& kTheyGive, PlayerTypes eThey,
 			int iChange) const; // </advc.036>
 	// <advc.026>
 	int AI_maxGoldTradeGenerous(PlayerTypes eTo) const;
@@ -753,9 +755,7 @@ protected:
 	// <advc.109>
 	bool AI_feelsSafe() const;
 	bool AI_isThreatFromMinorCiv() const; // </advc.109>
-	// <advc.651>
-	void AI_updateDangerFromSubmarines();
-		bool m_bDangerFromSubs; // Not stored in savegames </advc.651>
+	void AI_updateDangerFromSubmarines(); // advc.651
 	bool AI_cheatDangerVisibility(CvPlot const& kAt) const; // advc.128
 	int AI_knownRankDifference(PlayerTypes eOther) const; // advc.130c
 	// advc.042: Relies on caller to reset GC.getBorderFinder()

@@ -23,8 +23,8 @@ public:
 	int size() const;
 	int countUnownedPlots() const;
 	int countBarbarians() const;
-	CvUnit* randomBarbCargoUnit() const; // advc.306
-	bool killBarb(); // Just any one barb ship; false if none
+	CvUnit* randomBarbarianCargoUnit() const; // advc.306
+	bool killBarbarian(); // Just any one Barbarian ship; false if none.
 
 
 private:
@@ -36,7 +36,6 @@ public:
 	class Id : public std::pair<int,int> {
 	public: Id(int landId, int waterId); };
 };
-
 // </advc.300>
 
 #endif

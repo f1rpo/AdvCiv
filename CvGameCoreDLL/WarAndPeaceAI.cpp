@@ -116,11 +116,9 @@ bool WarAndPeaceAI::isUpdated() const {
 
 	/*  In scenarios, CvTeamAI functions aren't properly called during the first
 		turn. Should skip war planning in the first two turns to make sure that
-		all AI data are properly initialized and updated.
-		Not sure how to tell if this is a scenario. Could track whether CvTeamAI
-		functions have been called, I guess, but don't need war planning in the
-		first two turns anyway. */
-	return GC.getGameINLINE().getElapsedGameTurns() > 1;
+		all AI data is properly initialized and updated. */
+	CvGame const& g = GC.getGameINLINE();
+	return (!g.isScenario() || g.getElapsedGameTurns() > 1);
 }
 
 void WarAndPeaceAI::cacheXML() {

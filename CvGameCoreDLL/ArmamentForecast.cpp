@@ -309,13 +309,8 @@ void ArmamentForecast::predictArmament(int turnsBuildUp, double perTurnProductio
 	PROFILE_FUNC();
 	CvPlayerAI const& civ = GET_PLAYER(civId);
 	if(!defensive) {
-		/*  Space and culture victory tend to overrule military build-up (even when
-			military victory is pursued in parallel), and divert a lot of production
-			into cultural things or spaceship parts. */
-		bool peacefulVictory = civ.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3) ||
-				civ.AI_isDoVictoryStrategy(AI_VICTORY_SPACE3) ||
-				civ.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4) ||
-				civ.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4);
+		// Space and culture victory tend to divert production away from the military
+		bool const peacefulVictory = wpai.getCache().isFocusOnPeacefulVictory();
 		if(peacefulVictory) {
 			report.log("Build-up reduced b/c pursuing peaceful victory");
 			if(intensity == FULL)

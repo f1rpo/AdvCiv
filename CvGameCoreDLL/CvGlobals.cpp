@@ -155,6 +155,8 @@ m_bHoFScreenUp(false), // advc.106i
 m_iEXTRA_YIELD(0), // K-Mod
 m_bJOIN_WAR_DIPLO_BONUS(false), // advc.130s
 m_iTILE_CULTURE_DECAY_PER_MILL(0), // advc.099
+m_iCITY_RADIUS_DECAY(0), // advc.099b
+m_iREVOLTS_IGNORE_CULTURE_RANGE(0), // advc.099c
 m_iNUM_WARNING_REVOLTS(0), // advc.101
 m_iMAX_DISTANCE_CITY_MAINTENANCE(0), // advc.140
 m_iOWN_EXCLUSIVE_RADIUS(0), // advc.035
@@ -162,9 +164,9 @@ m_iOWN_EXCLUSIVE_RADIUS(0), // advc.035
 m_iDIPLOMACY_VALUE_REMAINDER(0),
 m_iPEACE_TREATY_LENGTH(0),
 m_iTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER(0),
+m_iRUINS_IMPROVEMENT(NO_IMPROVEMENT),
 // </advc.003b>
 m_iRESEARCH_MODIFIER_EXTRA_TEAM_MEMBER(0), // advc.210
-m_iCITY_RADIUS_DECAY(0), // advc.099b
 m_iENABLE_005F(0), // advc.005f
 m_iPER_PLAYER_MESSAGE_CONTROL_LOG(0), // advc.007
 m_iUWAI_MULTI_WAR_RELUCTANCE(0), // advc.104
@@ -174,7 +176,7 @@ m_iDELAY_UNTIL_BUILD_DECAY(0), // advc.011
 m_iBASE_RESEARCH_RATE(0), // advc.910
 m_iNEW_HURRY_MODIFIER(0), // advc.003b
 m_fPOWER_CORRECTION(0), // advc.104
-m_iEXTRA_DEFENDER_ERA(0), // advc.107
+m_iEXTRA_DEFENDER_ERA(NO_ERA), // advc.107
 m_iWORKER_RESERVE_PERCENT(0), // advc.113
 m_iMOVE_DENOMINATOR(0),
 m_iNUM_UNIT_PREREQ_OR_BONUSES(0),
@@ -884,7 +886,7 @@ CvColorInfo& CvGlobals::getColorInfo(ColorTypes e)
 		extra colors. And anyway, a bad color value shouldn't lead to a crash. */
 	if(e >= getNumColorInfos()) {
 		FAssert(m_bHoFScreenUp || e < getNumColorInfos());
-		// +7: Skip COLOR_CLEAR to COLOR_LIGHT_GREY
+		// +7: Skip colors from COLOR_CLEAR to COLOR_LIGHT_GREY
 		e = (ColorTypes)((e + 7) % getNumColorInfos());
 	} // </advc.106i>
 	return *(m_paColorInfo[e]);
@@ -2689,6 +2691,10 @@ void CvGlobals::cacheGlobals()
 	m_bJOIN_WAR_DIPLO_BONUS = (getDefineINT("ENABLE_JOIN_WAR_DIPLO_BONUS") > 0);
 	// advc.099:
 	m_iTILE_CULTURE_DECAY_PER_MILL = getDefineINT("TILE_CULTURE_DECAY_PER_MILL");
+	// advc.099b:
+	m_iCITY_RADIUS_DECAY = getDefineINT("CITY_RADIUS_DECAY");
+	// advc.099c:
+	m_iREVOLTS_IGNORE_CULTURE_RANGE = getDefineINT("REVOLTS_IGNORE_CULTURE_RANGE");
 	// advc.101:
 	m_iNUM_WARNING_REVOLTS = getDefineINT("NUM_WARNING_REVOLTS");
 	// advc.140:
@@ -2702,8 +2708,6 @@ void CvGlobals::cacheGlobals()
 	// </advc.003b>
 	// advc.210:
 	m_iRESEARCH_MODIFIER_EXTRA_TEAM_MEMBER = getDefineINT("RESEARCH_MODIFIER_EXTRA_TEAM_MEMBER");
-	// advc.099b:
-	m_iCITY_RADIUS_DECAY = getDefineINT("CITY_RADIUS_DECAY");
 	// advc.005f:
 	m_iENABLE_005F = getDefineINT("ENABLE_005F");
 	// advc.007:
@@ -2828,24 +2832,20 @@ void CvGlobals::cacheGlobals()
 	m_bUSE_DO_COMBAT_CALLBACK = getDefineINT("USE_DO_COMBAT_CALLBACK") != 0;
 	// K-Mod end
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      02/21/10                                jdog5000      */
-/*                                                                                              */
-/* Efficiency, Options                                                                          */
-/************************************************************************************************/
-// BBAI Options
+	// BETTER_BTS_AI_MOD, Efficiency, Options, 02/21/10, jdog5000: START
+	// BBAI Options
 	m_bBBAI_AIR_COMBAT = !(getDefineINT("BBAI_AIR_COMBAT") == 0);
 	m_bBBAI_HUMAN_VASSAL_WAR_BUILD = !(getDefineINT("BBAI_HUMAN_VASSAL_WAR_BUILD") == 0);
 	m_iBBAI_DEFENSIVE_PACT_BEHAVIOR = getDefineINT("BBAI_DEFENSIVE_PACT_BEHAVIOR");
 	m_bBBAI_HUMAN_AS_VASSAL_OPTION = !(getDefineINT("BBAI_HUMAN_AS_VASSAL_OPTION") == 0);
 
-// BBAI AI Variables
+	// BBAI AI Variables
 	m_iWAR_SUCCESS_CITY_CAPTURING = getDefineINT("WAR_SUCCESS_CITY_CAPTURING", m_iWAR_SUCCESS_CITY_CAPTURING);
 	m_iBBAI_ATTACK_CITY_STACK_RATIO = getDefineINT("BBAI_ATTACK_CITY_STACK_RATIO", m_iBBAI_ATTACK_CITY_STACK_RATIO);
 	m_iBBAI_SKIP_BOMBARD_BASE_STACK_RATIO = getDefineINT("BBAI_SKIP_BOMBARD_BASE_STACK_RATIO", m_iBBAI_SKIP_BOMBARD_BASE_STACK_RATIO);
 	m_iBBAI_SKIP_BOMBARD_MIN_STACK_RATIO = getDefineINT("BBAI_SKIP_BOMBARD_MIN_STACK_RATIO", m_iBBAI_SKIP_BOMBARD_MIN_STACK_RATIO);
 
-// Tech Diffusion
+	// Tech Diffusion
 	m_bTECH_DIFFUSION_ENABLE = !(getDefineINT("TECH_DIFFUSION_ENABLE") == 0);
 	m_iTECH_DIFFUSION_KNOWN_TEAM_MODIFIER = getDefineINT("TECH_DIFFUSION_KNOWN_TEAM_MODIFIER", m_iTECH_DIFFUSION_KNOWN_TEAM_MODIFIER);
 	m_iTECH_DIFFUSION_WELFARE_THRESHOLD = getDefineINT("TECH_DIFFUSION_WELFARE_THRESHOLD", m_iTECH_DIFFUSION_WELFARE_THRESHOLD);
@@ -2856,9 +2856,8 @@ void CvGlobals::cacheGlobals()
 	// <advc.550d>
 	m_iTECH_COST_NOTRADE_MODIFIER = getDefineINT("TECH_COST_NOTRADE_MODIFIER",
 			m_iTECH_COST_NOTRADE_MODIFIER); // </advc.550d>
-	
-// From Lead From Behind by UncutDragon
-// Lead from Behind flags
+
+	// From Lead From Behind by UncutDragon: flags
 	m_bLFBEnable = !(getDefineINT("LFB_ENABLE") == 0);
 	m_iLFBBasedOnGeneral = getDefineINT("LFB_BASEDONGENERAL");
 	m_iLFBBasedOnExperience = getDefineINT("LFB_BASEDONEXPERIENCE");
@@ -2871,18 +2870,18 @@ void CvGlobals::cacheGlobals()
 	m_bLFBUseCombatOdds = !(getDefineINT("LFB_USECOMBATODDS") == 0);
 	m_iCOMBAT_DIE_SIDES = getDefineINT("COMBAT_DIE_SIDES");
 	m_iCOMBAT_DAMAGE = getDefineINT("COMBAT_DAMAGE");
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+	// BETTER_BTS_AI_MOD: END
 	getWPAI.cacheXML(); // advc.104x
 	m_bCachingDone = true; // advc.003c
 }
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      02/21/10                                jdog5000      */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
+// <advc.003b>
+void CvGlobals::setRUINS_IMPROVEMENT(int iValue) {
+
+	m_iRUINS_IMPROVEMENT = iValue;
+} // </advc.003b>
+
+// BETTER_BTS_AI_MOD, 02/21/10, jdog5000: START
 int CvGlobals::getDefineINT( const char * szName, const int iDefault ) const
 {
 	int iReturn = 0;
@@ -2893,10 +2892,7 @@ int CvGlobals::getDefineINT( const char * szName, const int iDefault ) const
 	}
 
 	return iDefault;
-}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+} // BETTER_BTS_AI_MOD: END
 
 
 int CvGlobals::getDefineINT( const char * szName ) const
@@ -3776,7 +3772,7 @@ int CvGlobals::getInfoTypeForString(const char* szType, bool hideAssert) const
 			plot type. In fact, it doesn't seem to matter what values are returned;
 			no observable error occurs.
 			Looks like BUG introduced this problem, but I can't find the
-			call location in the BUG code, hence the workaround. */
+			call location in the BUG code, hence the workaround here. */
 		//if(std::strcmp(szCurrentXMLFile, "xml\\GameInfo/CIV4ForceControlInfos.xml") == 0)
 		{ /* ^I've also seen this call now after reloading Python and then returning
 			 to the main menu, i.e. unrelated to CIV4ForceControlInfos. */
@@ -3893,11 +3889,8 @@ void CvGlobals::setAreaFinder(FAStar* pVal) { m_areaFinder = pVal; }
 void CvGlobals::setPlotGroupFinder(FAStar* pVal) { m_plotGroupFinder = pVal; }
 CvDLLUtilityIFaceBase* CvGlobals::getDLLIFaceNonInl() { return m_pDLL; }
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      02/21/10                                jdog5000      */
-/*                                                                                              */
-/* Efficiency, Options                                                                          */
-/************************************************************************************************/
+// BETTER_BTS_AI_MOD, Efficiency, Options, 02/21/10, jdog5000: START
+
 // BBAI Options
 bool CvGlobals::getBBAI_AIR_COMBAT()
 {
@@ -3919,7 +3912,6 @@ bool CvGlobals::getBBAI_HUMAN_AS_VASSAL_OPTION()
 	return m_bBBAI_HUMAN_AS_VASSAL_OPTION;
 }
 
-	
 // BBAI AI Variables
 int CvGlobals::getWAR_SUCCESS_CITY_CAPTURING()
 {
@@ -3976,16 +3968,13 @@ int CvGlobals::getTECH_COST_MODIFIER()
 {
 	return m_iTECH_COST_MODIFIER;
 }
-
 // <advc.550d>
 int CvGlobals::getTECH_COST_NOTRADE_MODIFIER() {
 
 	return m_iTECH_COST_NOTRADE_MODIFIER;
 } // </advc.550d>
 
-
-// From Lead From Behind by UncutDragon (edited for K-Mod)
-// Lead from Behind flags
+// From Lead From Behind by UncutDragon: flags (edited for K-Mod)
 bool CvGlobals::getLFBEnable() const
 {
 	return m_bLFBEnable;
@@ -4045,8 +4034,4 @@ int CvGlobals::getCOMBAT_DAMAGE() const
 {
 	return m_iCOMBAT_DAMAGE;
 }
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
-
-
+// BETTER_BTS_AI_MOD: END

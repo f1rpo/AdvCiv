@@ -216,3 +216,31 @@ class ShortcutHandler(BugConfig.HandlerWithArgs):
 			CvEventInterface.getEventManager().addShortcutHandler(keys, BugUtil.getFunction(module, function, *element.args, **element.kwargs))
 		else:
 			BugUtil.info("InputUtil - ignoring <%s> %s, requires dll version %s", element.tag, keys, self.resolveDll(element, dll))
+
+
+# advc: I've added three keyboard shortcuts and need to put the handlers somewhere. Don't want to create a new BUG module just for this.
+
+# <advc.102>
+gc = BugUtil.gc
+def toggleShowFriendlyMoves(argsList=None):
+	if gc.getDefineINT("ENABLE_HOTKEY_SHOW_FRIENDLY_MOVES") <= 0:
+		return
+	pActivePlayer = gc.getPlayer(gc.getGame().getActivePlayer())
+	eFriendlyMoves = PlayerOptionTypes.PLAYEROPTION_SHOW_FRIENDLY_MOVES
+	bCurrentlyEnabled = pActivePlayer.isOption(eFriendlyMoves)
+	pActivePlayer.setOption(eFriendlyMoves, not bCurrentlyEnabled)
+	# Can't do it this way b/c CyUserProfile doesn't have an option setter (only getPlayerOption).
+	# currentProfile = CyUserProfile()
+	# currentProfile.setPlayerOption(eFriendlyMoves, not bCurrentlyEnabled)
+	# So the toggling isn't going to be visible on the Options screen and will be lost upon exiting the game.
+# </advc.102>
+# <advc.135c>
+def toggleDebugMode(argsList=None): 
+	# The built-in shortcut (also Ctrl+Z) works iff ChtLvl>0. Let CvGame::toggleDebugMode decide whether ChtLvl should matter.
+	if getChtLvl() <= 0:
+		gc.getGame().toggleDebugMode()
+# </advc.135c>
+# <advc.088>
+def unselectAll(argsList=None):
+	CyInterface().clearSelectionList()
+# </advc.088>

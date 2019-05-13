@@ -7,6 +7,11 @@
 
 #include "CvString.h"
 
+// <advc.071>
+class CvPlot;
+class CvUnit;
+// </advc.071>
+
 // XXX these should not be in the DLL per se (if the user changes them, we are screwed...)
 
 struct XYCoords
@@ -497,6 +502,8 @@ struct DllExport CvWBData
 };
 // <advc.071>
 struct FirstContactData {
+	FirstContactData(CvPlot const* pAt1, CvPlot const* pAt2 = NULL,
+			CvUnit const* pUnit1 = NULL, CvUnit const* pUnit2 = NULL);
 	FirstContactData() : u1(), u2(), x1(-1), x2(-1), y1(-1), y2(-1) {}
 	IDInfo u1, u2;
 	int x1, y1, x2, y2;

@@ -16,7 +16,7 @@ class FDataStreamBase;
 
 /* <advc.104>: Cached data used by the war-and-peace AI. Each civ has its own
    cache. That said, each civ's cache also contains certain (subjective)
-   information about all other civs.
+   information about all other civs, and (not nice) also a bit of team-level data.
    Also handles the updating of cached values, i.e. many of the AI's
    heuristic functions belong to this class. (Maybe it would be cleaner
    if the heuristics were moved to WarAndPeaceAI::Civ? Will have to split
@@ -35,7 +35,7 @@ public:
 		 Actually, the CvTeam constructor is already called when starting up Civ.
 	   + When starting a new game after returning to the main menu
 	     from another game: Constructors are _not_ called; objects need
-		 to be reset in init. Highly error-prone, but there's no changing it.
+		 to be reset in init. Error-prone, but there's no changing it.
 		 clear(bool) handles the reset.
 	   + When loading a savegame right after starting Civ:
 	     Constructors are called (some already when starting Civ), read is called
@@ -99,6 +99,7 @@ public:
 	void updateCanBeHiredAgainst(TeamTypes tId, int u, int thresh);
 	bool canTrainDeepSeaCargo() const;
 	bool canTrainAnyCargo() const;
+	bool isFocusOnPeacefulVictory() const;
 
     /* Caching of power values. Military planning must not add the power
 	   of hypothetical units to the vector; need to make a copy for that. */
@@ -159,6 +160,7 @@ private:
 	void updateWarUtilityIgnDistraction(TeamTypes targetId);
 	void updateCanScrub();
 	void updateTrainCargo();
+	bool calculateFocusOnPeacefulVictory();
 	// To supply team-on-team data
 	WarAndPeaceCache const& leaderCache() const;
 	WarAndPeaceCache& leaderCache();
@@ -174,6 +176,7 @@ private:
 	bool bHasAggressiveTrait, bHasProtectiveTrait;
 	bool canScrub;
 	bool trainDeepSeaCargo, trainAnyCargo;
+	bool focusOnPeacefulVictory;
 	std::set<TeamTypes> readyToCapitulate;
 	static double const goldPerProdUpperLimit;
    // Serializable arrays
@@ -222,14 +225,13 @@ public:
 		bool canCurrentlyReachBySea() const;
 		/* CvCity doesn't have a proper ID. Use the plot number (index of
 		   the linearized map) as an ID. It's unique (b/c there is at most
-		   one city per plot), but not consecutive (most plots don't have
-		   a city). */
+		   one city per plot), but not consecutive (most plots don't have a city). */
 		int id() const;
 		// NULL if the city no longer exists at the time of retrieval
 		CvCity* city() const;
-		/*  See ::fatCross in CvGameCoreUtils. If the underlying CvCity
+		/*  See ::cityCross in CvGameCoreUtils. If the underlying CvCity
 			no longer exists, all entries are NULL. */
-		void fatCross(std::vector<CvPlot*>& r);
+		void cityCross(std::vector<CvPlot*>& r);
 		void write(FDataStreamBase* stream);
 		void read(FDataStreamBase* stream);
 	    static CvCity* cityById(int id);

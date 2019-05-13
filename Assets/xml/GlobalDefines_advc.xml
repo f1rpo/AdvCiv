@@ -5,6 +5,71 @@
 	 BtS GlobalDefines.xml. -->
 
 <Civ4Defines xmlns="x-schema:CIV4GlobalDefinesSchema.xml">
+
+	<!-- advc.002b: The DLL needs to know (well, it's not crucial ...) if font
+		 sizes have been increased through a custom theme, and I don't know
+		 how to check that from within the DLL. Therefore this GlobalDefine.
+		 Should be set to the Size1_Normal value in Civ4Theme_Common.thm;
+		 that's 14 if the AdvCiv theme hasn't been changed. 12 if the AdvCiv
+		 theme has been removed and not replaced with another custom theme
+		 (though that's something the DLL code will detect anyway).
+		 Note: FONT_SIZE_FACTOR does not actually change the font size;
+		 only Civ4Theme_Common.thm can do that. -->
+	<Define>
+		<DefineName>FONT_SIZE_FACTOR</DefineName>
+		<iDefineIntVal>14</iDefineIntVal>
+	</Define>
+
+	<!-- advc.009: Moved from GlobalDefinesAlt.xml.
+		 302 in BtS, 303 in K-Mod. Picking 14223 as a unique id
+		 (that's A-D-V-C in numbers). Note that this number is only relevant
+		 for savegame version changes within the life cycle of a mod (none so
+		 far for AdvCiv). Setting this to e.g. 303 will not allow K-Mod saves
+		 to be loaded as the mod name is stored in the savegame and the EXE
+		 will reject the savegame if that name doesn't match the (folder) name
+		 of the currently loaded mod.
+		 Mod-mods should use a different SAVE_VERSION, ideally a completely
+		 different one, though this currently only matters for the
+		 HOF_DISPLAY_OTHER_MOD_REPLAYS option (see below). -->
+	<Define>
+		<DefineName>SAVE_VERSION</DefineName>
+		<iDefineIntVal>14223</iDefineIntVal>
+	</Define>
+
+	<!-- advc.106i: If set to 1, replay files are written in such a way that
+		 they appear like unmodded replays to BtS, meaning that AdvCiv replays
+		 will show up on the Hall of Fame screen even when no mod is loaded.
+		 If any player colors are added to CIV4ColorVals.xml beyond those in
+		 BtS, then this option is automatically disabled (as if set to 0)
+		 because BtS is unable to show replays that use unfamiliar color
+		 values. AdvCiv does not add such colors, but derived mods might.
+		 Additional map sizes, victory conditions, handicap or game speed
+		 settings will also cause problems.
+		 Mod-mods may also want to change TXT_KEY_REPLAY_PREFIX_ADVC in
+		 Civ4GameText_advc.xml. -->
+	<Define>
+		<DefineName>HOF_STORE_REPLAYS_AS_BTS</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	<!-- advc.106i: If set to 1, replays from unmodded BtS can be viewed
+		 through AdvCiv's Hall of Fame screen. If set to 0, unmodded replays
+		 are filtered out. -->
+	<Define>
+		<DefineName>HOF_DISPLAY_BTS_REPLAYS</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<!-- advc.106i: If set to 1, replays from other mods appear on AdvCiv's
+		 Hall of Fame screen if they use the regular format for replays (I
+		 think almost all mods do), though error handling code may discard
+		 replays with highly unusual data (not sure if e.g. Caveman2Cosmos
+		 replays would pass). If color ids appear in the replay that exceed
+		 the number of colors in AdvCiv, those colors are replaced (by
+		 applying the modulo operator to the color id).
+		 If set to 0, replays from other mods are filtered out. -->
+	<Define>
+		<DefineName>HOF_DISPLAY_OTHER_MOD_REPLAYS</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
 	
 	<!-- [advc.104, advc.019]
 		A value of 1 or greater enables K-Mod's AI for decisions on war
@@ -111,8 +176,10 @@
 
 	<!-- [advc.102]
 		 If set to 1 (or greater), the hotkey Shift + M (configured in
-		 BUG Core.xml) toggles the "show friendly moves" option.
-		 Recommended: 0; frequent toggling shouldn't be necessary anymore. -->
+		 'BUG Core.xml') toggles the "show friendly moves" option.
+		 Recommended: 0; frequent toggling shouldn't be necessary anymore.
+		 (Also, the toggling isn't reflected by the player options screen and
+		 not stored in the user profile.)  -->
 	<Define>
 		<DefineName>ENABLE_HOTKEY_SHOW_FRIENDLY_MOVES</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
@@ -373,39 +440,6 @@
 	<Define>
 		<DefineName>SETTINGS_IN_REPLAYS</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
-	</Define>
-	
-	<!-- advc.106i: If set to 1, replay files are written in such a way that
-		 they appear like unmodded replays to BtS, meaning that AdvCiv replays
-		 will show up on the Hall of Fame screen even when no mod is loaded.
-		 If any player colors are added to CIV4ColorVals.xml beyond those in
-		 BtS, then this option is automatically disabled (as if set to 0)
-		 because BtS is unable to show replays that use unfamiliar color
-		 values. AdvCiv does not add such colors, but derived mods might.
-		 Additional map sizes, victory conditions, handicap or game speed
-		 settings will also cause problems. -->
-	<Define>
-		<DefineName>HOF_STORE_REPLAYS_AS_BTS</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
-	</Define>
-	<!-- advc.106i: If set to 1, replays from unmodded BtS can be viewed
-		 through AdvCiv's Hall of Fame screen. If set to 0, unmodded replays
-		 are filtered out. -->
-	<Define>
-		<DefineName>HOF_DISPLAY_BTS_REPLAYS</DefineName>
-		<iDefineIntVal>0</iDefineIntVal>
-	</Define>
-	<!-- advc.106i: If set to 1, replays from other mods appear on AdvCiv's
-		 Hall of Fame screen if they use the regular format for replays (I
-		 think almost all mods do), though error handling code may discard
-		 replays with highly unusual data (not sure if e.g. Caveman2Cosmos
-		 replays would pass). If color ids appear in the replay that exceed
-		 the number of colors in AdvCiv, those colors are replaced (by
-		 applying the modulo operator to the color id).
-		 If set to 0, replays from other mods are filtered out. -->
-	<Define>
-		<DefineName>HOF_DISPLAY_OTHER_MOD_REPLAYS</DefineName>
-		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 	
 	<!-- advc.106l: "Saving" messages are displayed for this many seconds

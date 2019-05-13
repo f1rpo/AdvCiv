@@ -107,15 +107,16 @@
 	
 	<event type="LanguageChanged" module="BugOptions" function="clearAllTranslations"/>
 	<event type="LanguageChanged" module="BugOptionsScreen" function="clearAllTranslations"/>
+
 	<shortcut module="BugOptionsScreen" function="showOptionsScreen" keys="Alt Ctrl O | Alt J"/>
-	
 	<shortcut module="BugHelp" function="launch" keys="Alt Ctrl F1"/>
 		<!--arg type="string" value="TXT_KEY_BUG_HELP_FILE"/-->
 
-	<!-- advc.102: For convenience, I'm adding my hotkey to the
-		 BugOptionsScreen module (although it affects a player option,
-		 not a BUG option). -->
-	<shortcut module="BugOptionsScreen" function="toggleShowFriendlyMoves" keys="Shift M"/>
+	<!-- advc.102 -->
+	<shortcut module="InputUtil" function="toggleShowFriendlyMoves" keys="Shift M"/>
 	<!-- advc.135c -->
-	<shortcut module="BugOptionsScreen" function="toggleDebugMode" keys="Ctrl Z"/>
+	<shortcut module="InputUtil" function="toggleDebugMode" keys="Ctrl Z"/>
+	<!-- advc.088: If the key combination is changed here, it'll also have to
+		 be changed in CvGlobals::suppressCycling. -->
+	<shortcut module="InputUtil" function="unselectAll" keys="Shift U"/>
 </mod>

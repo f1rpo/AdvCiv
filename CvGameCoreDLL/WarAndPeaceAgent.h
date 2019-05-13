@@ -156,8 +156,7 @@ private:
 	bool inBackgr;
 	std::vector<PlayerTypes> members;
 	bool bForceReport;
-	// Only to be used in doWar and its subroutines
-	WarAndPeaceReport* report;
+	WarAndPeaceReport* report; // Only to be used in doWar and its subroutines
 };
 
 // This class handles war and peace on the level of CvPlayers
@@ -211,7 +210,7 @@ public:
 	/*  Confidence based on experience from past wars with targetId.
 		1 if none, otherwise between 0.5 and 1.5. */
 	double confidenceFromPastWars(TeamTypes targetId) const;
-  // Personality values that aren't cached. More traits in WarAndPeaceCache.
+  // Personality values that aren't cached. More in WarAndPeaceCache.
 	/*  A measure of how paranoid our leader is, based on EspionageWeight and
 		protective trait. EspionageWeight is between 50 (Gandhi) and 150 (Stalin).
 		Return value is between 0.5 and 1.8.
@@ -232,7 +231,7 @@ public:
 		he or she likes dogpile wars. */
 	double warConfidenceAllies() const;
 	double confidenceAgainstHuman() const;
-	// How willing our leader is to go after civs he really dislikes.
+	// How willing our leader is to go after civs he really dislikes
 	int vengefulness() const;
 	/*  Willingness to come to the aid of partners. "Interventionism" might
 		also fit. Between 1.3 (Roosevelt) and 0.7 (Qin). */

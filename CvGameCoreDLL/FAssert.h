@@ -6,7 +6,7 @@
 // Only compile in FAssert's if FASSERT_ENABLE is defined.  By default, however, let's key off of
 // _DEBUG.  Sometimes, however, it's useful to enable asserts in release builds, and you can do that
 // simply by changing the following lines to define FASSERT_ENABLE or using project settings to override
-// advc.test: No change currently
+// advc.make (comment): The Makefile and project configuration take care of this
 #ifdef _DEBUG
 #define FASSERT_ENABLE
 #endif
@@ -43,6 +43,18 @@ bool FAssertDlg( const char*, const char*, const char*, unsigned int, bool& );
 #define FAssertMsg( expr, msg )	FAssert( expr )
 
 #endif
+
+/*  <advc.make> Building with snprintf in the K-Mod code below works fine,
+	but the VS2010 editor can't handle it. Conversely, the editor can handle
+	_snprintf_s (which should be equivalent apart from the return value),
+	but then building fails. Therefore define '_CODE_EDITOR' through the project file
+	for the editor, but not in the Makefile.
+	(BtS had originally used sprintf, which doesn't handle buffer overflows well.) */
+#if _MSC_VER <= 1600 // Probably no problem in more recent versions
+#ifdef _CODE_EDITOR
+#define snprintf _snprintf_s
+#endif
+#endif // </advc.make>
 
 // K-mod. moved the following macro from CvInitCore.h to here (and modified it)
 #define FASSERT_BOUNDS(lower,upper,index,fnString)\

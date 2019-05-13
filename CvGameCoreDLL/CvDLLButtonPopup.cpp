@@ -1104,7 +1104,7 @@ bool CvDLLButtonPopup::launchProductionPopup(CvPopup* pPopup, CvPopupInfo &info)
 			else
 				szBuffer = gDLL->getText(((isLimitedProject(eCreateProject)) ?
 						// <advc.108e>
-						(::isArticle(eCreateProject) ?
+						(::needsArticle(eCreateProject) ?
 						"TXT_KEY_POPUP_CREATED_WORK_ON_NEXT_LIMITED_THE" :
 						"TXT_KEY_POPUP_CREATED_WORK_ON_NEXT_LIMITED")
 						// </advc.108e>

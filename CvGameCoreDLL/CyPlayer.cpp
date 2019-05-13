@@ -21,11 +21,7 @@ CyPlayer::CyPlayer(CvPlayer* pPlayer) : m_pPlayer(pPlayer)
 {
 }
 
-/************************************************************************************************/
-/* CHANGE_PLAYER                         08/27/08                                 jdog5000      */
-/*                                                                                              */
-/*                                                                                              */
-/************************************************************************************************/
+// CHANGE_PLAYER, 08/27/08. jdog5000:
 void CyPlayer::changeLeader( int /*LeaderHeadTypes*/ eNewLeader )
 {
 	if( m_pPlayer )
@@ -42,9 +38,7 @@ void CyPlayer::setIsHuman( bool bNewValue )
 	if( m_pPlayer )
 		m_pPlayer->setIsHuman( bNewValue );
 }
-/************************************************************************************************/
-/* CHANGE_PLAYER                          END                                                   */
-/************************************************************************************************/
+// CHANGE_PLAYER: END
 
 int CyPlayer::startingPlotRange()
 {
@@ -1214,22 +1208,16 @@ int CyPlayer::getOverflowResearch()
 	return m_pPlayer ? m_pPlayer->getOverflowResearch() : 0;
 }
 
-/*
-** K-Mod, 27/dec/10, karadoc
-** replaced NoUnhealthyPopulation with UnhealthyPopulationModifier
-*/
 /* original bts code
-bool CyPlayer::isNoUnhealthyPopulation()
-{
+bool CyPlayer::isNoUnhealthyPopulation() {
 	return m_pPlayer ? m_pPlayer->isNoUnhealthyPopulation() : false;
 }*/
+/*  K-Mod, 27/dec/10, karadoc
+	replaced NoUnhealthyPopulation with UnhealthyPopulationModifier */
 int CyPlayer::getUnhealthyPopulationModifier()
 {
 	return m_pPlayer ? m_pPlayer->getUnhealthyPopulationModifier() : 0;
-}
-/*
-** K-Mod end
-*/
+} // K-Mod end
 
 bool CyPlayer::getExpInBorderModifier()
 {
@@ -2353,9 +2341,8 @@ int CyPlayer::AI_corporationBonusVal(int eBonus) const {
 
 	if(m_pPlayer == NULL)
 		return -1;
-	/*  Adding AI_corporationBonusVal as a pure virtual function to CvPlayer
-		causes the EXE to crash during initialization. Will have to down-cast
-		instead. */
+	/*  Adding a virtual function CvPlayer::AI_corporationBonusVal causes
+		the EXE to crash during initialization. Will have to cast down instead. */
 	return dynamic_cast<CvPlayerAI*>(m_pPlayer)->AI_corporationBonusVal((BonusTypes)eBonus);
 } // </advc.210e>
 

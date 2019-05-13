@@ -62,8 +62,8 @@ unsigned short CvRandom::getInt(unsigned short usNum, const TCHAR* pszLog,
 				TCHAR szOut[1024];
 				// <advc.007>
 				CvString szData;
-				if(iData1 > INT_MIN) {
-					if(iData2 == INT_MIN)
+				if(iData1 > MIN_INT) {
+					if(iData2 == MIN_INT)
 						szData.Format(" (%d)", iData1);
 					else szData.Format(" (%d, %d)", iData1, iData2);
 				} // advc: Only the second %s is new

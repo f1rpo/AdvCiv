@@ -18,10 +18,10 @@ using std::ostringstream;
 /*  When a player trades with the AI, the EXE asks the DLL to compute trade values
 	several times in a row (usually about a dozen times), which is enough to cause
 	a noticeable delay. Therefore this primitive caching mechanism. The cache is
-	always used on the Trade screen; in other UI contexts, it has to be enabled
-	through the useCache param of the constructor, or the static enableCache.
-	As for the latter, it's important to call disableCache once war evaluations
-	have finished b/c the cache doesn't work in all situations
+	always used on the Trade screen; in other (async) UI contexts, it has to be enabled
+	explicitly through the useCache param of the constructor, or the static enableCache.
+	As for the latter, it's important to call disableCache before returning to a
+	synchronized context b/c the cache doesn't work in all situations
 	(see WarEvalParameters::id) and isn't stored in savegames. */
 bool WarEvaluator::checkCache = false;
 bool WarEvaluator::cacheCleared = true;
@@ -50,7 +50,7 @@ void WarEvaluator::clearCache() {
 		return;
 	cacheCleared = true;
 	for(int i = 0; i < cacheSz; i++)
-		lastCallResult[i] = INT_MIN;
+		lastCallResult[i] = MIN_INT;
 }
 
 WarEvaluator::WarEvaluator(WarEvalParameters& warEvalParams, bool useCache) :
@@ -66,7 +66,7 @@ WarEvaluator::WarEvaluator(WarEvalParameters& warEvalParams, bool useCache) :
 	if(bInitCache) {
 		for(int i = 0; i < cacheSz; i++) {
 			lastCallParams[i] = 0;
-			lastCallResult[i] = INT_MIN;
+			lastCallResult[i] = MIN_INT;
 		}
 		lastIndex = 0;
 		bInitCache = false;
@@ -212,7 +212,7 @@ int WarEvaluator::evaluate(WarPlanTypes wp, int preparationTime) {
 	int naval = MIN_INT;
 	if(!skipNaval)
 		naval = evaluate(wp, true, preparationTime);
-	int r = INT_MIN;
+	int r = MIN_INT;
 	if(extraRun) {
 		report.setMute(false);
 		r = evaluate(wp, naval > nonNaval + antiNavalBias, preparationTime);
@@ -248,7 +248,7 @@ int WarEvaluator::evaluate(WarPlanTypes wp, bool isNaval, int preparationTime) {
 	if(!peaceScenario && (checkCache || useCache || gDLL->isDiplomacy())) {
 		int id = params.id();
 		for(int i = 0; i < cacheSz; i++)
-			if(id == lastCallParams[i] && lastCallResult[i] != INT_MIN)
+			if(id == lastCallParams[i] && lastCallResult[i] != MIN_INT)
 				return lastCallResult[i];
 	}
 	if(peaceScenario)

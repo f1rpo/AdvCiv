@@ -61,15 +61,9 @@ public:
 	int AI_calculateAdjacentLandPlots(TeamTypes eTeam) const;
 	int AI_calculateCapitalProximity(TeamTypes eTeam) const;
 	int AI_calculatePlotWarValue(TeamTypes eTeam) const;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      07/10/08                                jdog5000      */
-/*                                                                                              */
-/* General AI                                                                                   */
-/************************************************************************************************/
+
+	// BETTER_BTS_AI_MOD, General AI, 07/10/08, jdog5000:
 	int AI_calculateBonusWarValue(TeamTypes eTeam) const;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
 
 	bool AI_haveSeenCities(TeamTypes eTeam, bool bPrimaryAreaOnly = false, int iMinimum = 1) const; // K-Mod
 	bool AI_isWarPossible() const;
@@ -166,15 +160,14 @@ public:
 	void AI_thankLiberator(TeamTypes eLiberator);
 	// </advc.130y>
 	TeamTypes AI_getWorstEnemy() const;
-	void AI_updateWorstEnemy(
-			bool bUpdateRivalTrade = true); // advc.130p
-	// <advc.130p> 0 or less if tId isn't an enemy at all
-	int AI_enmityValue(TeamTypes tId) const;
+	void AI_updateWorstEnemy(/* advc.130p: */ bool bUpdateRivalTrade = true);
+	// <advc.130p> 0 or less if eEnemy isn't an enemy at all
+	int AI_enmityValue(TeamTypes eEnemy) const;
 	double AI_getDiploDecay() const;
-	double AI_recentlyMetMultiplier(TeamTypes tId) const;
+	double AI_recentlyMetMultiplier(TeamTypes eOther) const;
 	// </advc.130p>
 	// advc.130k: Public visibility b/c CvPlayerAI needs it too
-	int AI_randomCounterChange(int cap = -1, double pr = 0.5) const;
+	int AI_randomCounterChange(int iUpperCap = -1, double pr = 0.5) const;
 	int AI_getWarPlanStateCounter(TeamTypes eIndex) const;
 	void AI_setWarPlanStateCounter(TeamTypes eIndex, int iNewValue);
 	void AI_changeWarPlanStateCounter(TeamTypes eIndex, int iChange);
@@ -207,10 +200,10 @@ public:
 	void AI_setWarSuccess(TeamTypes eIndex, int iNewValue);
 	void AI_changeWarSuccess(TeamTypes eIndex, int iChange);
 	// <advc.130m>
-	void AI_reportSharedWarSuccess(int iIntensity, TeamTypes agentId, TeamTypes enemyId,
-			bool bIgnoreDistress = false);
-	int AI_getSharedWarSuccess(TeamTypes allyId) const;
-	void AI_setSharedWarSuccess(TeamTypes allyId, int sws); // </advc.130m>
+	void AI_reportSharedWarSuccess(int iIntensity, TeamTypes eWarAlly,
+			TeamTypes eEnemy, bool bIgnoreDistress = false);
+	int AI_getSharedWarSuccess(TeamTypes eWarAlly) const;
+	void AI_setSharedWarSuccess(TeamTypes eWarAlly, int iWS); // </advc.130m>
 	// <advc.130n>
 	int AI_getReligionKnownSince(ReligionTypes eReligion) const; 
 	void AI_reportNewReligion(ReligionTypes eReligion);
@@ -240,8 +233,7 @@ public:
 	WarAndPeaceAI::Team& warAndPeaceAI(); 
 	WarAndPeaceAI::Team const& warAndPeaceAI() const;
 	// </advc.104>
-
-	// <advc.104> These were protected
+	// advc.104: These 9 were protected
 	int AI_maxWarRand() const;
 	int AI_maxWarNearbyPowerRatio() const;
 	int AI_maxWarDistantPowerRatio() const;
@@ -251,12 +243,12 @@ public:
 	int AI_dogpileWarRand() const;
 	int AI_makePeaceRand() const;
 	int AI_noWarAttitudeProb(AttitudeTypes eAttitude) const;
-	// </advc.104><advc.104y>
-	int AI_noWarProbAdjusted(TeamTypes tId) const;
-	bool AI_isAvoidWar(TeamTypes tId) const; // </advc.104y>
+	// <advc.104y>
+	int AI_noWarProbAdjusted(TeamTypes eOther) const;
+	bool AI_isAvoidWar(TeamTypes eOther) const; // </advc.104y>
 	bool AI_performNoWarRolls(TeamTypes eTeam);
 	// advc.012:
-	int AI_plotDefense(CvPlot const& p, bool bIgnoreBuilding = false) const;
+	int AI_plotDefense(CvPlot const& kPlot, bool bIgnoreBuilding = false) const;
 	
 	int AI_getAttitudeWeight(TeamTypes eTeam) const;
 	
@@ -311,12 +303,12 @@ protected:
 	void AI_doWar();
 
 	// advc.003: Chunk of code that occured twice in doWar
-	void AI_abandonWarPlanIfTimedOut(int iAbandonTimeModifier, TeamTypes t,
+	void AI_abandonWarPlanIfTimedOut(int iAbandonTimeModifier, TeamTypes eTarget,
 			bool bLimited, int iEnemyPowerPercent);
 	// advc.104o:
 	int AI_declareWarTradeValLegacy(TeamTypes eWarTeam, TeamTypes eTeam) const;
 	int AI_getOpenBordersAttitudeDivisor() const; // advc.130i
-	double AI_OpenBordersCounterIncrement(TeamTypes tId) const; // advc.130z
+	double AI_OpenBordersCounterIncrement(TeamTypes eOther) const; // advc.130z
 	bool AI_isPursuingCircumnavigation() const; // advc.136a
 
 
@@ -332,10 +324,9 @@ protected:
 #define GET_TEAM CvTeamAI::getTeamNonInl
 #endif
 
-/*  <advc.003> To facilitate access to and usage of team-level functions when
-	given 'PlayerTypes' values. */
-#define TEAMID(civId) GET_PLAYER(civId).getTeam()
-#define TEAMREF(civId) GET_TEAM(TEAMID(civId))
+// <advc.003> Easier access to team-level functions when given a PlayerTypes value
+#define TEAMID(ePlayer) GET_PLAYER(ePlayer).getTeam()
+#define TEAMREF(ePlayer) GET_TEAM(TEAMID(ePlayer))
 // </advc.003>
 
 #endif

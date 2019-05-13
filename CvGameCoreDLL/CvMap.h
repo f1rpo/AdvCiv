@@ -217,13 +217,13 @@ protected:
 	void uninit();
 	void setup();
 
-public: // advc.003: const added to several functions
+public: // advc.003: made several functions const
 
 	DllExport void erasePlots();																			// Exposed to Python
 	void setRevealedPlots(TeamTypes eTeam, bool bNewValue, bool bTerrainOnly = false);		// Exposed to Python
 	void setAllPlotTypes(PlotTypes ePlotType);												// Exposed to Python
 
-	void doTurn();																			
+	void doTurn();
 
 	void setFlagsDirty(); // K-Mod
 	DllExport void updateFlagSymbols();
@@ -245,7 +245,7 @@ public: // advc.003: const added to several functions
 	void combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvPlotGroup* pPlotGroup2);	
 
 	CvPlot* syncRandPlot(int iFlags = 0, int iArea = -1, int iMinUnitDistance = -1, int iTimeout = 100, // Exposed to Python 
-			int* iLegal = NULL); // advc.304
+			int* piLegal = NULL); // advc.304
 
 	DllExport CvCity* findCity(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, TeamTypes eTeam = NO_TEAM, bool bSameArea = true, bool bCoastalOnly = false, TeamTypes eTeamAtWarWith = NO_TEAM, DirectionTypes eDirection = NO_DIRECTION, CvCity* pSkipCity = NULL) {	// Exposed to Python
 		// <advc.004r>
@@ -254,7 +254,7 @@ public: // advc.003: const added to several functions
 	}
 	CvCity* findCity(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, TeamTypes eTeam = NO_TEAM,
 			bool bSameArea = true, bool bCoastalOnly = false, TeamTypes eTeamAtWarWith = NO_TEAM,
-			DirectionTypes eDirection = NO_DIRECTION, CvCity* pSkipCity = NULL, TeamTypes observer = NO_TEAM) const;
+			DirectionTypes eDirection = NO_DIRECTION, CvCity* pSkipCity = NULL, TeamTypes eObserver = NO_TEAM) const;
 	// </advc.004r>
 	CvSelectionGroup* findSelectionGroup(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, bool bReadyToSelect = false, bool bWorkers = false) const;				// Exposed to Python
 
@@ -356,7 +356,7 @@ public: // advc.003: const added to several functions
 	SeaLevelTypes getSeaLevel() const;																// Exposed to Python
 
 	int getNumCustomMapOptions() const;
-	DllExport CustomMapOptionTypes getCustomMapOption(int iOption);				// Exposed to Python
+	DllExport CustomMapOptionTypes getCustomMapOption(int iOption);					// Exposed to Python
 
 	int getNumBonuses(BonusTypes eIndex) const;																	// Exposed to Python
 	void changeNumBonuses(BonusTypes eIndex, int iChange);
@@ -400,28 +400,23 @@ public: // advc.003: const added to several functions
 	CvArea* getArea(int iID) const;																// Exposed to Python
 	CvArea* addArea();
 	void deleteArea(int iID);
-	// iteration (advc.003: const)
+	// iteration
 	CvArea* firstArea(int *pIterIdx, bool bRev=false) const;									// Exposed to Python
 	CvArea* nextArea(int *pIterIdx, bool bRev=false) const;									// Exposed to Python
 
 	void recalculateAreas();																		// Exposed to Python
-
+	// <advc.300>
+	void computeShelves();
+	void getShelves(int iArea, std::vector<Shelf*>& r) const;
+	// </advc.300>
 	void resetPathDistance();																		// Exposed to Python
-		// advc.003: 3x const
 	int calculatePathDistance(CvPlot const* pSource, CvPlot const* pDest) const;					// Exposed to Python
 
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      08/21/09                                jdog5000      */
-/*                                                                                              */
-/* Efficiency                                                                                   */
-/************************************************************************************************/
-	// Plot danger cache
+	// BETTER_BTS_AI_MOD, Efficiency (plot danger cache), 08/21/09, jdog5000: START
 	//void invalidateIsActivePlayerNoDangerCache();
 	void invalidateActivePlayerSafeRangeCache(); // K-Mod version
 	void invalidateBorderDangerCache(TeamTypes eTeam);
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+	// BETTER_BTS_AI_MOD: END
 
 	// Serialization:
 	virtual void read(FDataStreamBase* pStream);
@@ -446,22 +441,16 @@ protected:
 	int* m_paiNumBonusOnLand;
 
 	CvPlot* m_pMapPlots;
+	std::map<Shelf::Id,Shelf*> shelves; // advc.300
 
 	FFreeListTrashArray<CvArea> m_areas;
 	void calculateAreas();
 	// <advc.030>
 	void calculateAreas_030();
 	void calculateReprAreas();
-	void updateLakes(); // </advc.030>
-	// <advc.300>
-public:
-	// Caller provides the vector
-	void getShelves(int landAreaId, std::vector<Shelf*>& r) const;
-	void computeShelves();
-private:
-	std::map<Shelf::Id,Shelf*> shelves;
-	// </advc.300>
-	void calculateAreas_DFS(CvPlot const& p); // advc.030
+	void calculateAreas_DFS(CvPlot const& p);
+	void updateLakes();
+	// </advc.030>
 };
 
 /* <advc.make> Global wrappers for distance functions. The int versions are

@@ -8,14 +8,11 @@
 #include "CyArgsList.h"
 #include "CvDLLPythonIFaceBase.h"
 
-//
+
 // static
-//
 CvMapGenerator* CvMapGenerator::m_pInst = NULL;
 
-//
 // singleton accessor
-//
 CvMapGenerator& CvMapGenerator::GetInstance()
 {
 	if (m_pInst==NULL)
@@ -35,8 +32,8 @@ CvMapGenerator::~CvMapGenerator()
 {
 }
 
-// advc.003: Refactored
-bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY, bool bIgnoreLatitude)
+
+bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY, bool bIgnoreLatitude)  // advc.003: style changes
 {
 	PROFILE_FUNC();
 
@@ -720,94 +717,75 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 
 		// Place the bonuses:
 
-		int* piShuffle = shuffle(GC.getMapINLINE().numPlotsINLINE(), GC.getGameINLINE().getMapRand());
-
-		for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
+		CvMap& m = GC.getMapINLINE(); // advc.003 (and some stype changes in the following)
+		int* piShuffle = shuffle(m.numPlotsINLINE(), GC.getGameINLINE().getMapRand());
+		for (int iI = 0; iI < m.numPlotsINLINE(); iI++)
 		{
-			CvPlot* pPlot = GC.getMapINLINE().plotByIndexINLINE(piShuffle[iI]);
-			FAssertMsg(pPlot != NULL, "addUniqueBonusType(): pPlot is null");
+			CvPlot& kRandPlot = *m.plotByIndexINLINE(piShuffle[iI]);
 
-			if (GC.getMapINLINE().getNumBonuses(eBonusType) >= iBonusCount)
-			{
+			if (m.getNumBonuses(eBonusType) >= iBonusCount)
 				break; // We already have enough
-			}
 
-			if (pBestArea == pPlot->area())
-			{
-				if (canPlaceBonusAt(eBonusType, pPlot->getX_INLINE(), pPlot->getY_INLINE(), bIgnoreLatitude))
-				{
-					/*	<advc.129> About to place a cluster of eBonusType. Don't
-						place that cluster near an earlier cluster (or any instance)
-						of the same bonus class - that's what can lead to e.g.
-						starts with 5 Gold.
-						canPlaceBonusAt can't enforce this well b/c it doesn't
-						know whether a cluster starts (distance needs to be heeded)
-						or continues (distance mustn't be heeded). */
-					int classToAvoid = pBonusInfo.getBonusClassType();
-					/*  Only resources that occur in clusters are problematic.
-						Not sure about the classToAvoid>0 clause. 0 is the "general"
-						bonus class containing all the clustered resources except
-						for Gold, Silver, Gems which I've moved to a separate class
-						"precious". I.e. currently only double clusters of precious
-						bonuses are avoided. Eliminating all double clusters might
-						get in the way of (early) resource trades too much,
-						and make the map less exciting than it could be. */
-					if(pBonusInfo.getGroupRand() > 0 && classToAvoid > 0) {
-						bool skip = false;
-						/*  Can't use pClassInfo.getUniqueRange() b/c this has to be
-							0 for bonuses that appear in clusters. 5 hardcoded. */
-						int const dist = 5;
-						CvPlot const& randPlot = *pPlot;
-						int const x = randPlot.getX_INLINE();
-						int const y = randPlot.getY_INLINE();
-						for(int dx = -dist; dx <= dist; dx++)
-						for(int dy = -dist; dy <= dist; dy++) {
-							CvPlot* pp = plotXY(x, y, dx, dy);
-							if(pp == NULL) continue; CvPlot& p = *pp;
-							if(p.getArea() != randPlot.getArea() ||
-									plotDistance(x, y, p.getX_INLINE(),
-									p.getY_INLINE()) > dist)
-								continue;
-							BonusTypes otherId = p.getBonusType();
-							if(otherId != NO_BONUS && GC.getBonusInfo(otherId).
-									getBonusClassType() == classToAvoid &&
-									GC.getBonusInfo(otherId).getGroupRand() > 0) {
-								skip = true;
-								break;
-							}
-						}
-						if(skip)
-							continue;
+			if (pBestArea != kRandPlot.area())
+				continue;
+
+			int const x = kRandPlot.getX_INLINE();
+			int const y = kRandPlot.getY_INLINE();
+			if (!canPlaceBonusAt(eBonusType, x, y, bIgnoreLatitude))
+				continue;
+
+			/*	<advc.129> About to place a cluster of eBonusType. Don't place that
+				cluster near an earlier cluster (or any instance) of the same bonus class
+				- that's what can lead to e.g. starts with 5 Gold. canPlaceBonusAt
+				can't enforce this well b/c it doesn't know whether a cluster starts
+				(distance needs to be heeded) or continues (distance mustn't be heeded). */
+			int iClassToAvoid = pBonusInfo.getBonusClassType();
+			/*  Only resources that occur in clusters are problematic. Not sure about
+				the iClassToAvoid>0 clause. 0 is the "general" bonus class containing
+				all the clustered resources except for Gold, Silver, Gems which I've
+				moved to a separate class "precious". I.e. currently only double clusters
+				of precious bonuses are avoided. Eliminating all double clusters might
+				get in the way of (early) resource trades too much, and make the map
+				less exciting than it could be. */
+			if(pBonusInfo.getGroupRand() > 0 && iClassToAvoid > 0) {
+				bool bSkip = false;
+				/*  Can't use pClassInfo.getUniqueRange() b/c this has to be
+					0 for bonuses that appear in clusters. 5 hardcoded. */
+				int const iDist = 5;
+				for(int dx = -iDist; dx <= iDist; dx++)
+				for(int dy = -iDist; dy <= iDist; dy++) {
+					CvPlot* pLoopPlot = plotXY(x, y, dx, dy);
+					if(pLoopPlot == NULL) continue; CvPlot& p = *pLoopPlot;
+					if(p.getArea() != kRandPlot.getArea() ||
+							plotDistance(x, y, p.getX_INLINE(),
+							p.getY_INLINE()) > iDist)
+						continue;
+					BonusTypes eOtherBonus = p.getBonusType();
+					if(eOtherBonus != NO_BONUS && GC.getBonusInfo(eOtherBonus).
+							getBonusClassType() == iClassToAvoid &&
+							GC.getBonusInfo(eOtherBonus).getGroupRand() > 0) {
+						bSkip = true;
+						break;
 					}
-					// </advc.129>
-					pPlot->setBonusType(eBonusType);
-					// advc.129: Replacing the code below
-					placeGroup(eBonusType, *pPlot, bIgnoreLatitude);
-					/*for (int iDX = -(pBonusInfo.getGroupRange()); iDX <= pBonusInfo.getGroupRange(); iDX++)
-					{
-						for (int iDY = -(pBonusInfo.getGroupRange()); iDY <= pBonusInfo.getGroupRange(); iDY++)
-						{
-							if (GC.getMapINLINE().getNumBonuses(eBonusType) < iBonusCount)
-							{
-								CvPlot* pLoopPlot	= plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
-
-								if (pLoopPlot != NULL && (pLoopPlot->area() == pBestArea))
-								{
-									if (canPlaceBonusAt(eBonusType, pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), bIgnoreLatitude))
-									{
-										if (GC.getGameINLINE().getMapRandNum(100, "addUniqueBonusType") < pBonusInfo.getGroupRand())
-										{
-											pLoopPlot->setBonusType(eBonusType);
-										}
-									}
-								}
-							}
-						}
-					} */
 				}
+				if(bSkip)
+					continue;
 			}
-		}
+			// </advc.129>
+			kRandPlot.setBonusType(eBonusType);
+			// advc.129: Replacing the code below
+			placeGroup(eBonusType, kRandPlot, bIgnoreLatitude);
+			/*for (int iDX = -(pBonusInfo.getGroupRange()); iDX <= pBonusInfo.getGroupRange(); iDX++) {
+				for (int iDY = -(pBonusInfo.getGroupRange()); iDY <= pBonusInfo.getGroupRange(); iDY++) {
+					if (GC.getMapINLINE().getNumBonuses(eBonusType) < iBonusCount) {
+						CvPlot* pLoopPlot	= plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
+						if (pLoopPlot != NULL && (pLoopPlot->area() == pBestArea)) {
+							if (canPlaceBonusAt(eBonusType, pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), bIgnoreLatitude)) {
+								if (GC.getGameINLINE().getMapRandNum(100, "addUniqueBonusType") < pBonusInfo.getGroupRand())
+									pLoopPlot->setBonusType(eBonusType);
+			} } } } }*/
 
+		}
 		SAFE_DELETE_ARRAY(piShuffle);
 	}
 }
@@ -815,11 +793,8 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonusType)
 void CvMapGenerator::addNonUniqueBonusType(BonusTypes eBonusType)
 {
 	int iBonusCount = calculateNumBonusesToAdd(eBonusType);
-
 	if (iBonusCount == 0)
-	{
 		return;
-	}
 
 	int* piShuffle = shuffle(GC.getMapINLINE().numPlotsINLINE(), GC.getGameINLINE().getMapRand());
 	// advc.129: Moved into placeGroup
@@ -831,88 +806,68 @@ void CvMapGenerator::addNonUniqueBonusType(BonusTypes eBonusType)
 	for (int iI = 0; iI < GC.getMapINLINE().numPlotsINLINE(); iI++)
 	{
 		pPlot = GC.getMapINLINE().plotByIndexINLINE(piShuffle[iI]);
-		if (canPlaceBonusAt(eBonusType, pPlot->getX_INLINE(), pPlot->getY_INLINE(), bIgnoreLatitude))
-		{
-			pPlot->setBonusType(eBonusType);
-			iBonusCount--;
-			// advc.129: Replacing the code block below
-			iBonusCount -= placeGroup(eBonusType, *pPlot, bIgnoreLatitude, iBonusCount);
-			/*for (int iDX = -(pBonusInfo.getGroupRange()); iDX <= pBonusInfo.getGroupRange(); iDX++)
-			{
-				for (int iDY = -(pBonusInfo.getGroupRange()); iDY <= pBonusInfo.getGroupRange(); iDY++)
-				{
-					if (iBonusCount > 0)
-					{
-						CvPlot* pLoopPlot	= plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
+		if (!canPlaceBonusAt(eBonusType, pPlot->getX_INLINE(), pPlot->getY_INLINE(), bIgnoreLatitude))
+			continue; // advc.003
 
-						if (pLoopPlot != NULL)
-						{
-							if (canPlaceBonusAt(eBonusType, pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), bIgnoreLatitude))
-							{
-								if (GC.getGameINLINE().getMapRandNum(100, "addNonUniqueBonusType") < pBonusInfo.getGroupRand())
-								{
-									pLoopPlot->setBonusType(eBonusType);
-									iBonusCount--;
-								}
-							}
-						}
-					}
-				}
-			}
-
-			FAssertMsg(iBonusCount >= 0, "iBonusCount must be >= 0");*/
-
-			if (iBonusCount == 0)
-			{
-				break;
-			}
-		}
+		pPlot->setBonusType(eBonusType);
+		iBonusCount--;
+		// advc.129: Replacing the loop below
+		iBonusCount -= placeGroup(eBonusType, *pPlot, bIgnoreLatitude, iBonusCount);
+		/*for (int iDX = -(pBonusInfo.getGroupRange()); iDX <= pBonusInfo.getGroupRange(); iDX++) {
+			for (int iDY = -(pBonusInfo.getGroupRange()); iDY <= pBonusInfo.getGroupRange(); iDY++) {
+				if (iBonusCount > 0) {
+					CvPlot* pLoopPlot	= plotXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), iDX, iDY);
+					if (pLoopPlot != NULL) {
+						if (canPlaceBonusAt(eBonusType, pLoopPlot->getX_INLINE(), pLoopPlot->getY_INLINE(), bIgnoreLatitude)) {
+							if (GC.getGameINLINE().getMapRandNum(100, "addNonUniqueBonusType") < pBonusInfo.getGroupRand()) {
+								pLoopPlot->setBonusType(eBonusType);
+								iBonusCount--;
+		} } } } } }
+		FAssertMsg(iBonusCount >= 0, "iBonusCount must be >= 0");*/
+		if (iBonusCount == 0)
+			break;
 	}
-
 	SAFE_DELETE_ARRAY(piShuffle);
 }
 
 
 // <advc.129>
-int CvMapGenerator::placeGroup(BonusTypes eBonusType, CvPlot const& center,
-		bool bIgnoreLatitude, int limit) {
+int CvMapGenerator::placeGroup(BonusTypes eBonusType, CvPlot const& kCenter,
+		bool bIgnoreLatitude, int iLimit) {
 
-	CvBonusInfo const& pBonusInfo = GC.getBonusInfo(eBonusType);
-	// The one in the center is already placed, but that doesn't count here
-	int placed = 0;
-	std::vector<CvPlot*> groupRange;
-	for(int iDX = -pBonusInfo.getGroupRange(); iDX <=
-			pBonusInfo.getGroupRange(); iDX++) {
-		for(int iDY = -pBonusInfo.getGroupRange(); iDY <=
-				pBonusInfo.getGroupRange(); iDY++) {
-			CvPlot* p = plotXY(center.getX_INLINE(), center.getY_INLINE(), iDX, iDY);
+	CvBonusInfo const& kBonus = GC.getBonusInfo(eBonusType);
+	// The one in the center is already placed, but that doesn't count here.
+	int iPlaced = 0;
+	std::vector<CvPlot*> apGroupRange;
+	for(int iDX = -kBonus.getGroupRange(); iDX <= kBonus.getGroupRange(); iDX++) {
+		for(int iDY = -kBonus.getGroupRange(); iDY <= kBonus.getGroupRange(); iDY++) {
+			CvPlot* p = plotXY(kCenter.getX_INLINE(), kCenter.getY_INLINE(), iDX, iDY);
 			if(p != NULL && canPlaceBonusAt(eBonusType,
 					p->getX_INLINE(), p->getY_INLINE(), bIgnoreLatitude))
-				groupRange.push_back(p);
+				apGroupRange.push_back(p);
 		}
 	}
 	// Would've been nice, but must use MapRand instead.
 	//std::random_shuffle(groupRange.begin(), groupRange.end());
-	int sz = (int)groupRange.size();
+	int sz = (int)apGroupRange.size();
 	if(sz <= 0)
 		return 0;
-	int* shuffl = new int[sz];
+	int* piShuffled = new int[sz];
 	for(int i = 0; i < sz; i++)
-		shuffl[i] = i;
-	::shuffleArray(shuffl, sz, GC.getGameINLINE().getMapRand());
-	for(int j = 0; j < sz && limit > 0; j++) {
-		int prPercent = pBonusInfo.getGroupRand();
-		prPercent = ::round(prPercent * std::pow(2/3.0, placed));
-		if (GC.getGameINLINE().getMapRandNum(
-				100, "addNonUniqueBonusType") < prPercent) {
-			groupRange[shuffl[j]]->setBonusType(eBonusType);
-			limit--;
-			placed++;
+		piShuffled[i] = i;
+	::shuffleArray(piShuffled, sz, GC.getGameINLINE().getMapRand());
+	for(int j = 0; j < sz && iLimit > 0; j++) {
+		int iProb = kBonus.getGroupRand();
+		iProb = ::round(iProb * std::pow(2/3.0, iPlaced));
+		if (GC.getGameINLINE().getMapRandNum(100, "addNonUniqueBonusType") < iProb) {
+			apGroupRange[piShuffled[j]]->setBonusType(eBonusType);
+			iLimit--;
+			iPlaced++;
 		}
 	}
-	delete[] shuffl;
-	FAssert(limit >= 0);
-	return placed;
+	delete[] piShuffled;
+	FAssert(iLimit >= 0);
+	return iPlaced;
 } // </advc.129>
 
 
@@ -1220,20 +1175,20 @@ int CvMapGenerator::calculateNumBonusesToAdd(BonusTypes eBonusType)
 		}
 		// <advc.129>
 		if(GC.getDefineINT("SUBLINEAR_BONUS_QUANTITIES") > 0) {
-			int subtrahend = pBonusInfo.getTilesPer(); // Typically 16 or 32
-			int remainder = iNumPossible;
-			int result = 0;
+			int iSubtrahend = pBonusInfo.getTilesPer(); // Typically 16 or 32
+			int iRemainder = iNumPossible;
+			int iResult = 0;
 			/* Place one for the first, say, 16 tiles, the next after 17, then 18 ...
 			   i.e. number of resources placed grows sublinearly with the number of
 			   eligible plots. */
 			while(true) {
-				remainder -= subtrahend;
-				if(remainder < 0)
+				iRemainder -= iSubtrahend;
+				if(iRemainder < 0)
 					break;
-				result++;
-				subtrahend++;
+				iResult++;
+				iSubtrahend++;
 			}
-			iLandTiles += result;
+			iLandTiles += iResult;
 		}
 		else // </advc.129>
 			iLandTiles += (iNumPossible / pBonusInfo.getTilesPer());

@@ -71,9 +71,8 @@ protected:
 	// So that subclasses don't need to call GC.getGameINLINE().getCurrentEra() repeatedly:
 	EraTypes gameEra;
 
-	/*  Subclasses must not access these members until evaluate(m)
-		has been called.
-		Initialization is guaranteed although they're not references.
+	/*  Subclasses must not access these members until evaluate(m) has been called.
+		Initialization is then guaranteed although they're not references.
 		This is obviously not an ideal class design. A separate class
 		WarUtilityAspect::Civ would be even more unwieldy I think. */
 	MilitaryAnalyst* m;

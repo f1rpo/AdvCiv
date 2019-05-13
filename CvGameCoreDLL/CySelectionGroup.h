@@ -51,16 +51,8 @@ public:
 	bool isInvisible(int /*TeamTypes*/ eTeam);	
 	int countNumUnitAIType(UnitAITypes eUnitAI);
 	bool hasWorker();
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      11/30/08                                jdog5000      */
-/*                                                                                              */
-/* General AI                                                                                   */
-/************************************************************************************************/
-	bool isStranded();
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
 
+	bool isStranded(); // BETTER_BTS_AI_MOD, General AI, 11/30/08, jdog5000
 	bool at(int iX, int iY);
 	bool atPlot(CyPlot* pPlot);
 	CyPlot* plot();

@@ -115,8 +115,8 @@ public:
 	bool canMoveOrAttackInto(const CvPlot* pPlot, bool bDeclareWar = false,										// Exposed to Python
 			bool bDangerCheck = false) const; // advc.001k
 	// bool canMoveThrough(const CvPlot* pPlot, bool bDeclareWar = false) const; // disabled by K-Mod (was exposed to Python)
-	bool canEnterArea(CvArea const& a) const; // advc.030
-	bool isInvasionMove(CvPlot const& from, CvPlot const& to) const; // advc.162
+	bool canEnterArea(CvArea const& kArea) const; // advc.030
+	bool isInvasionMove(CvPlot const& kFrom, CvPlot const& kTo) const; // advc.162
 	void attack(CvPlot* pPlot, bool bQuick);
 	void attackForDamage(CvUnit *pDefender, int attackerDamageChange, int defenderDamageChange);
 	void fightInterceptor(const CvPlot* pPlot, bool bQuick);
@@ -284,17 +284,17 @@ public:
 	//void upgrade(UnitTypes eUnit);
 	CvUnit* upgrade(UnitTypes eUnit); // K-Mod
 
-	HandicapTypes getHandicapType() const;																// Exposed to Python		
-	CivilizationTypes getCivilizationType() const;							// Exposed to Python								
+	HandicapTypes getHandicapType() const;																// Exposed to Python
+	CivilizationTypes getCivilizationType() const;										// Exposed to Python
 	const wchar* getVisualCivAdjective(TeamTypes eForTeam) const;
-	SpecialUnitTypes getSpecialUnitType() const;								// Exposed to Python								 
-	UnitTypes getCaptureUnitType(CivilizationTypes eCivilization) const;	// Exposed to Python								
-	UnitCombatTypes getUnitCombatType() const;									// Exposed to Python								
-	DllExport DomainTypes getDomainType() const;													// Exposed to Python								
-	InvisibleTypes getInvisibleType() const;										// Exposed to Python								
-	int getNumSeeInvisibleTypes() const;									// Exposed to Python
+	SpecialUnitTypes getSpecialUnitType() const;										// Exposed to Python
+	UnitTypes getCaptureUnitType(CivilizationTypes eCivilization) const;				// Exposed to Python
+	UnitCombatTypes getUnitCombatType() const;											// Exposed to Python
+	DllExport DomainTypes getDomainType() const;													// Exposed to Python
+	InvisibleTypes getInvisibleType() const;											// Exposed to Python
+	int getNumSeeInvisibleTypes() const;												// Exposed to Python
 	InvisibleTypes getSeeInvisibleType(int i) const;									// Exposed to Python
-																																				
+
 	int flavorValue(FlavorTypes eFlavor) const;														// Exposed to Python		
 
 	bool isBarbarian() const;																							// Exposed to Python
@@ -304,12 +304,12 @@ public:
 
 	int baseMoves() const;																			// Exposed to Python
 	int maxMoves() const;																									// Exposed to Python
-	int movesLeft() const;																			// Exposed to Python			
-	DllExport bool canMove() const;																				// Exposed to Python			
-	DllExport bool hasMoved() const;																			// Exposed to Python			
-																																				
-	int airRange() const;																				// Exposed to Python			
-	int nukeRange() const;																			// Exposed to Python			 
+	int movesLeft() const;																			// Exposed to Python
+	DllExport bool canMove() const;																				// Exposed to Python
+	DllExport bool hasMoved() const;																			// Exposed to Python
+
+	int airRange() const;																				// Exposed to Python
+	int nukeRange() const;																			// Exposed to Python
 
 	bool canBuildRoute() const;																						// Exposed to Python
 	DllExport BuildTypes getBuildType() const;														// Exposed to Python
@@ -318,27 +318,26 @@ public:
 	bool isAnimal() const;																								// Exposed to Python
 	bool isNoBadGoodies() const;																					// Exposed to Python
 	bool isOnlyDefensive() const;																					// Exposed to Python
-	bool isNoCapture() const;																							// Exposed to Python 
-	bool isRivalTerritory() const;																				// Exposed to Python 
+	bool isNoCapture() const;																							// Exposed to Python
+	bool isRivalTerritory() const;																				// Exposed to Python
 	bool isMilitaryHappiness() const;																			// Exposed to Python
 	bool isInvestigate() const;																						// Exposed to Python
 	bool isCounterSpy() const;																						// Exposed to Python
 	bool isSpy() const;
 	bool isFound() const;																				// Exposed to Python
-	// advc.004h: Let only the EXE use isFound
-	bool canFound() const;
+	bool canFound() const; // advc.004h: Let only the EXE use isFound
 	bool isGoldenAge() const;																							// Exposed to Python
 	bool canCoexistWithEnemyUnit(TeamTypes eTeam) const;																				// Exposed to Python
 
-	DllExport bool isFighting() const;																		// Exposed to Python						
-	DllExport bool isAttacking() const;																		// Exposed to Python						
-	DllExport bool isDefending() const;																		// Exposed to Python						
-	bool isCombat() const;																								// Exposed to Python						
-																																				
-	DllExport int maxHitPoints() const;																		// Exposed to Python						
-	int currHitPoints() const;																	// Exposed to Python						
-	bool isHurt() const;																				// Exposed to Python						
-	DllExport bool isDead() const;																				// Exposed to Python						
+	DllExport bool isFighting() const;																		// Exposed to Python
+	DllExport bool isAttacking() const;																		// Exposed to Python
+	DllExport bool isDefending() const;																		// Exposed to Python
+	bool isCombat() const;																								// Exposed to Python
+
+	DllExport int maxHitPoints() const;																		// Exposed to Python
+	int currHitPoints() const;																	// Exposed to Python
+	bool isHurt() const;																				// Exposed to Python
+	DllExport bool isDead() const;																				// Exposed to Python
 
 	void setBaseCombatStr(int iCombat);																																										// Exposed to Python
 	int baseCombatStr() const;																																										// Exposed to Python
@@ -376,13 +375,13 @@ public:
 	int fortifyModifier() const;																						// Exposed to Python
 
 	int experienceNeeded() const;																						// Exposed to Python
-	int attackXPValue() const;																												// Exposed to Python	
-	int defenseXPValue() const;																												// Exposed to Python	
-	int maxXPValue() const;																														// Exposed to Python	
+	int attackXPValue() const;																												// Exposed to Python
+	int defenseXPValue() const;																												// Exposed to Python
+	int maxXPValue() const;																														// Exposed to Python
 
 	int firstStrikes() const;																								// Exposed to Python
-	int chanceFirstStrikes() const;																					// Exposed to Python 
-	int maxFirstStrikes() const;																						// Exposed to Python 
+	int chanceFirstStrikes() const;																					// Exposed to Python
+	int maxFirstStrikes() const;																						// Exposed to Python
 	DllExport bool isRanged() const;																									// Exposed to Python
 
 	bool alwaysInvisible() const;																						// Exposed to Python
@@ -795,8 +794,7 @@ public:
 	virtual void AI_uninit() = 0;
 	virtual void AI_reset(UnitAITypes eUnitAI = NO_UNITAI) = 0;
 	virtual bool AI_update() = 0;
-	virtual bool AI_follow(
-			bool bFirst = true) = 0; // K-Mod
+	virtual bool AI_follow(/* K-Mod: */ bool bFirst = true) = 0;
 	virtual void AI_upgrade() = 0;
 	virtual void AI_promote() = 0;
 	virtual int AI_groupFirstVal() = 0;
@@ -807,17 +805,10 @@ public:
 	virtual UnitAITypes AI_getUnitAIType() const = 0;																				// Exposed to Python
 	virtual void AI_setUnitAIType(UnitAITypes eNewValue) = 0;
     virtual int AI_sacrificeValue(const CvPlot* pPlot) const = 0;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      04/05/10                                jdog5000      */
-/*                                                                                              */
-/* Unit AI                                                                                      */
-/************************************************************************************************/
+	// BETTER_BTS_AI_MOD, Unit AI, 04/05/10, jdog5000: START
 	virtual bool AI_load(UnitAITypes eUnitAI, MissionAITypes eMissionAI, UnitAITypes eTransportedUnitAI = NO_UNITAI, int iMinCargo = -1, int iMinCargoSpace = -1, int iMaxCargoSpace = -1, int iMaxCargoOurUnitAI = -1, int iFlags = 0, int iMaxPath = MAX_INT, int iMaxTransportPath = MAX_INT) = 0;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
 
-protected:
+protected: // advc (note): The public Lead From Behind functions are declared at the end
 
 	int m_iID;
 	int m_iGroupID;
@@ -936,9 +927,9 @@ protected:
 	void resolveAirCombat(CvUnit* pInterceptor, CvPlot* pPlot, CvAirMissionDefinition& kBattle);
 	void checkRemoveSelectionAfterAttack();
 
-// Lead From Behind by UncutDragon. Edited for K-Mod
 public:
 	bool isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker,
+	// Lead From Behind (UncutDragon, edited for K-Mod): START
 			int* pBestDefenderRank,
 			bool bPreferUnowned = false) const; // advc.061
 	virtual void LFBgetBetterAttacker(CvUnit** ppAttacker, const CvPlot* pPlot, bool bPotentialEnemy, int& iAIAttackOdds, int& iAttackerValue) = 0;
@@ -951,6 +942,7 @@ public:
 	int LFGgetDefensiveValueAdjustment() const; // K-Mod
 	bool LFBisBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker, int* pBestDefenderRank) const;
 	int LFBgetDefenderCombatOdds(const CvUnit* pAttacker) const;
+	// Lead From Behind: END
 };
 
 #endif

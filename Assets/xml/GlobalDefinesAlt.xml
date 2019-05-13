@@ -202,16 +202,4 @@
 		<iDefineIntVal>14</iDefineIntVal>
 	</Define>
 	
-	<!-- advc.009: 302 in BtS, 303 in K-Mod. Picking 14223 as a unique id
-		 (that's A-D-V-C in numbers). Note that this number is only relevant
-		 for savegame version changes within the life cycle of a mod (none so
-		 far for AdvCiv). Setting this to e.g. 303 will not allow K-Mod saves
-		 to be loaded as the mod name is stored in the savegame and the EXE
-		 will reject the savegame if that name doesn't match the (folder) name
-		 of the currently loaded mod. -->
-	<Define>
-		<DefineName>SAVE_VERSION</DefineName>
-		<iDefineIntVal>14223</iDefineIntVal>
-	</Define>
-	
 </Civ4Defines>

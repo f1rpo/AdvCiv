@@ -703,6 +703,10 @@ public:
 	inline int isJOIN_WAR_DIPLO_BONUS() { return m_bJOIN_WAR_DIPLO_BONUS; }
 	// advc.099:
 	inline int getTILE_CULTURE_DECAY_PER_MILL() { return m_iTILE_CULTURE_DECAY_PER_MILL; }
+	// advc.099b:
+	inline int getCITY_RADIUS_DECAY() { return m_iCITY_RADIUS_DECAY; }
+	// advc.099c
+	inline int getREVOLTS_IGNORE_CULTURE_RANGE() { return m_iREVOLTS_IGNORE_CULTURE_RANGE; }
 	// advc.101:
 	inline int getNUM_WARNING_REVOLTS() { return m_iNUM_WARNING_REVOLTS; }
 	// advc.140:
@@ -713,11 +717,11 @@ public:
 	inline int getDIPLOMACY_VALUE_REMAINDER() { return m_iDIPLOMACY_VALUE_REMAINDER; }
 	inline int getPEACE_TREATY_LENGTH() { return m_iPEACE_TREATY_LENGTH; }
 	inline int getTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER() { return m_iTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER; }
+	inline ImprovementTypes getRUINS_IMPROVEMENT() { return (ImprovementTypes)m_iRUINS_IMPROVEMENT; }
+	void setRUINS_IMPROVEMENT(int iVal); // TextVals can't be loaded by cacheGlobals
 	// </advc.003b>
 	// advc.210:
 	inline int getRESEARCH_MODIFIER_EXTRA_TEAM_MEMBER() { return m_iRESEARCH_MODIFIER_EXTRA_TEAM_MEMBER; }
-	// advc.099b:
-	inline int getCITY_RADIUS_DECAY() { return m_iCITY_RADIUS_DECAY; }
 	// advc.005f:
 	inline int getENABLE_005F() { return m_iENABLE_005F; }
 	// advc.007:
@@ -839,12 +843,13 @@ public:
 	inline bool getUSE_DO_COMBAT_CALLBACK() { return m_bUSE_DO_COMBAT_CALLBACK; }
 
 	// more reliable versions of the 'gDLL->xxxKey' functions:
+	// NOTE: I've replaced all calls to the gDLL key functions with calls to these functions.
 	inline bool altKey() { return (GetKeyState(VK_MENU) & 0x8000); }
 	inline bool ctrlKey() { return (GetKeyState(VK_CONTROL) & 0x8000); }
 	inline bool shiftKey() { return (GetKeyState(VK_SHIFT) & 0x8000); }
-	// NOTE: I've replaced all calls to the gDLL key functions with calls to these functions.
-
-	inline bool suppressCycling() { return (GetKeyState('X') & 0x8000); } // hold X to temporarily suppress automatic unit cycling.
+	// hold X to temporarily suppress automatic unit cycling.
+	inline bool suppressCycling() { return (GetKeyState('X') & 0x8000) ||
+			((GetKeyState('U') & 0x8000) && shiftKey()); } // advc.088
 	// K-Mod end
 
 	DllExport int getMAX_CIV_PLAYERS();
@@ -1196,6 +1201,8 @@ protected:
 	int m_iEXTRA_YIELD; // K-Mod
 	bool m_bJOIN_WAR_DIPLO_BONUS; // advc.130s
 	int m_iTILE_CULTURE_DECAY_PER_MILL; // advc.099
+	int m_iCITY_RADIUS_DECAY; // advc.099b
+	int m_iREVOLTS_IGNORE_CULTURE_RANGE; // advc.099c
 	int m_iNUM_WARNING_REVOLTS; // advc.101
 	int m_iMAX_DISTANCE_CITY_MAINTENANCE; // advc.140
 	int m_iOWN_EXCLUSIVE_RADIUS; // advc.035
@@ -1203,9 +1210,9 @@ protected:
 	int m_iDIPLOMACY_VALUE_REMAINDER;
 	int m_iPEACE_TREATY_LENGTH;
 	int m_iTECH_COST_TOTAL_KNOWN_TEAM_MODIFIER;
+	int m_iRUINS_IMPROVEMENT;
 	// </advc.003b>
 	int m_iRESEARCH_MODIFIER_EXTRA_TEAM_MEMBER; // advc.210
-	int m_iCITY_RADIUS_DECAY; // advc.099b
 	int m_iENABLE_005F; // advc.005f
 	int m_iPER_PLAYER_MESSAGE_CONTROL_LOG; // advc.007
 	int m_iUWAI_MULTI_WAR_RELUCTANCE; // advc.104

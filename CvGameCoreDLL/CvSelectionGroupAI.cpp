@@ -7,7 +7,6 @@
 #include "CvMap.h"
 #include "CvDLLEntityIFaceBase.h"
 
-// Public Functions...
 
 CvSelectionGroupAI::CvSelectionGroupAI()
 {
@@ -132,8 +131,7 @@ bool CvSelectionGroupAI::AI_separateEmptyTransports()
 	}
 	return bSeparated;
 }
-// bbai / K-Mod
-
+// bbai / K-Mod end
 
 // Returns true if the group has become busy...
 bool CvSelectionGroupAI::AI_update()
@@ -320,20 +318,9 @@ int CvSelectionGroupAI::AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy)
 	CvUnit* pAttacker;
 
 	FAssert(getOwnerINLINE() != NO_PLAYER);
-
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      02/21/10                                jdog5000      */
-/*                                                                                              */
-/* Efficiency, Lead From Behind                                                                 */
-/************************************************************************************************/
-	// From Lead From Behind by UncutDragon
-	// original
 	//if (pPlot->getBestDefender(NO_PLAYER, getOwnerINLINE(), NULL, !bPotentialEnemy, bPotentialEnemy) == NULL)
-	// modified
+	// BETTER_BTS_AI_MOD, Efficiency, Lead From Behind (UncutDragon), 02/21/10, jdog5000:
 	if (!pPlot->hasDefender(false, NO_PLAYER, getOwnerINLINE(), NULL, !bPotentialEnemy, bPotentialEnemy))
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
 	{
 		return 100;
 	}
@@ -389,16 +376,14 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 
 		if (!bForce && !pLoopUnit->canMoveInto(pPlot, /*bAttack*/ true, /*bDeclareWar*/ bPotentialEnemy))
 			continue;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      02/21/10                                jdog5000      */
-/* Lead From Behind (UncutDragon)                                                               */
-/************************************************************************************************/
+
+		// BETTER_BTS_AI_MOD, Lead From Behind (UncutDragon), 02/21/10, jdog5000: START
 		if (GC.getLFBEnable() && GC.getLFBUseCombatOdds() && /* advc.048: */ !bMaxSurvival)
 		{
 			pLoopUnit->LFBgetBetterAttacker(&pBestUnit, pPlot, bPotentialEnemy, iBestOdds,
 					iBestValue); // K-Mod.
-		} 
-		else 
+		}
+		else
 		{
 			int iOdds = pLoopUnit->AI_attackOdds(pPlot, bPotentialEnemy);
 			int iValue = iOdds;
@@ -431,9 +416,7 @@ CvUnit* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot,
 				pBestUnit = pLoopUnit;
 			}
 		}
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+		// BETTER_BTS_AI_MOD: END
 	}
 	iUnitOdds = iBestOdds;
 	// <advc.048> Cut from CvSelectionGroup::groupAttack
@@ -552,14 +535,11 @@ int CvSelectionGroupAI::AI_compareStacks(const CvPlot* pPlot, bool bCheckCanAtta
 	// K-Mod. If there are more defenders than we have attacks, but yet the ratio is still greater than 100,
 	// then inflate the ratio futher to account for the fact that we are going to do significantly more damage to them than they to us.
 	// The purpose of this is to give the AI extra encouragement to attack when its units are better than the defender's units.
-	/* if (compareRatio > 100)
-	{
+	/* if (compareRatio > 100) {
 		FAssert(getHeadUnit() && getNumUnits() > 0);
 		int iDefenders = pPlot->getNumVisibleEnemyDefenders(getHeadUnit());
 		if (iDefenders > getNumUnits())
-		{
 			compareRatio += (compareRatio - 100) * (iDefenders - getNumUnits()) / getNumUnits();
-		}
 	} */ // (currently disabled)
 	// K-Mod end
 
@@ -935,8 +915,6 @@ CvUnit* CvSelectionGroupAI::AI_ejectBestDefender(CvPlot* pDefendPlot)
 }
 
 
-// Protected Functions...
-
 void CvSelectionGroupAI::read(FDataStreamBase* pStream)
 {
 	CvSelectionGroup::read(pStream);
@@ -981,5 +959,3 @@ void CvSelectionGroupAI::write(FDataStreamBase* pStream)
 	pStream->Write(m_iGroupAttackX);
 	pStream->Write(m_iGroupAttackY);
 }
-
-// Private Functions...

@@ -1766,17 +1766,10 @@ public:
 
 	int getBonusYieldModifier(int i, int j) const;				// Exposed to Python
 	int* getBonusYieldModifierArray(int i) const;
-
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                       06/27/10                    Afforess & jdog5000       */
-/*                                                                                              */
-/* Efficiency                                                                                   */
-/************************************************************************************************/
+	// UNOFFICIAL_PATCH, Efficiency, 06/27/10, Afforess & jdog5000: START
 	bool isAnySpecialistYieldChange() const;
 	bool isAnyBonusYieldModifier() const;
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                        END                                                  */
-/************************************************************************************************/
+	// UNOFFICIAL_PATCH: END
 
 	// Other
 
@@ -1959,16 +1952,10 @@ protected:
 
 	int** m_ppaiSpecialistYieldChange;
 	int** m_ppaiBonusYieldModifier;
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                       06/27/10                    Afforess & jdog5000       */
-/*                                                                                              */
-/* Efficiency                                                                                   */
-/************************************************************************************************/
+	// UNOFFICIAL_PATCH, Efficiency, 06/27/10, Afforess & jdog5000: START
 	bool m_bAnySpecialistYieldChange;
 	bool m_bAnyBonusYieldModifier;
-/************************************************************************************************/
-/* UNOFFICIAL_PATCH                        END                                                  */
-/************************************************************************************************/
+	// UNOFFICIAL_PATCH: END
 	// <advc.310>
 	static bool m_bEnabledAreaBorderObstacle;
 	static bool m_bEnabledAreaTradeRoutes;
@@ -3583,19 +3570,13 @@ public:
 	int getTechTradeKnownPercent() const;				// Exposed to Python
 	int getMaxGoldTradePercent() const;				// Exposed to Python
 	int getMaxGoldPerTurnTradePercent() const;				// Exposed to Python
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      03/21/10                                jdog5000      */
-/*                                                                                              */
-/* Victory Strategy AI                                                                          */
-/************************************************************************************************/
+	// BETTER_BTS_AI_MOD, Victory Strategy AI, 03/21/10, jdog5000: START
 	int getCultureVictoryWeight() const;
 	int getSpaceVictoryWeight() const;
 	int getConquestVictoryWeight() const;
 	int getDominationVictoryWeight() const;
 	int getDiplomacyVictoryWeight() const;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+	// BETTER_BTS_AI_MOD: END
 	int getMaxWarRand() const;				// Exposed to Python
 	int getMaxWarNearbyPowerRatio() const;				// Exposed to Python
 	int getMaxWarDistantPowerRatio() const;				// Exposed to Python
@@ -3703,19 +3684,13 @@ protected:
 	int m_iTechTradeKnownPercent;
 	int m_iMaxGoldTradePercent;
 	int m_iMaxGoldPerTurnTradePercent;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      03/21/10                                jdog5000      */
-/*                                                                                              */
-/* Victory Strategy AI                                                                          */
-/************************************************************************************************/
+	// BETTER_BTS_AI_MOD; Victory Strategy AI, 03/21/10, jdog5000: START
 	int m_iCultureVictoryWeight;
 	int m_iSpaceVictoryWeight;
 	int m_iConquestVictoryWeight;
 	int m_iDominationVictoryWeight;
 	int m_iDiplomacyVictoryWeight;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+	// BETTER_BTS_AI_MOD: END
 	int m_iMaxWarRand;
 	int m_iMaxWarNearbyPowerRatio;
 	int m_iMaxWarDistantPowerRatio;
@@ -3916,7 +3891,7 @@ public:
 	virtual ~CvSeaLevelInfo();
 
 	int getSeaLevelChange() const;		// Exposed to Python
-	inline int getResearchPercent() const { return m_iResearchPercent; }// advc.910
+	inline int getResearchPercent() const { return m_iResearchPercent; } // advc.910
 
 	bool read(CvXMLLoadUtility* pXML);
 
@@ -5304,15 +5279,7 @@ public:
 	int getConstructPercent() const;			//	Exposed to Python
 	int getCreatePercent() const;					//	Exposed to Python
 	int getResearchPercent() const;				//	Exposed to Python
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      08/21/09                                jdog5000      */
-/*                                                                                              */
-/* Tech Diffusion                                                                               */
-/************************************************************************************************/
-	int getTechCostModifier() const;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+	int getTechCostModifier() const; // BETTER_BTS_AI_MOD, Tech Diffusion, 08/21/09, jdog5000
 	int getBuildPercent() const;					//	Exposed to Python
 	int getImprovementPercent() const;		//	Exposed to Python
 	int getGreatPeoplePercent() const;		//	Exposed to Python
@@ -5351,15 +5318,7 @@ protected:
 	int m_iConstructPercent;
 	int m_iCreatePercent;
 	int m_iResearchPercent;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                      08/21/09                                jdog5000      */
-/*                                                                                              */
-/* Tech Diffusion                                                                               */
-/************************************************************************************************/
-	int m_iTechCostModifier;
-/************************************************************************************************/
-/* BETTER_BTS_AI_MOD                       END                                                  */
-/************************************************************************************************/
+	int m_iTechCostModifier; // BETTER_BTS_AI_MOD, Tech Diffusion, 08/21/09, jdog5000
 	int m_iBuildPercent;
 	int m_iImprovementPercent;
 	int m_iGreatPeoplePercent;
@@ -5727,18 +5686,14 @@ private:
 //
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 /*class CvQuestInfo :
-	public CvInfoBase
-{
+	public CvInfoBase {
 public:
-	struct QuestLink 
-	{
+	struct QuestLink  {
 		// Stores the QuestLinks Type and Name
 		QuestLink() :
 		m_szQuestLinkType("No Type"),
 		m_szQuestLinkName("No Name")
-		{
-		}
-
+		{}
 	CvString m_szQuestLinkType;
 	CvString m_szQuestLinkName;
 	};

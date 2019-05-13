@@ -68,7 +68,7 @@ void WarAndPeaceAI::Team::reset() {
 		new game and after loading a game.
 		inBackgr doesn't need to be reset after loading, but can't put this line
 		in the constructor b/c that gets called before all XML files have been
-		loaded. (Could just delete WarAndPeaceAI::Team::inBackgr and call getWPAI
+		loaded. (Could just remove WarAndPeaceAI::Team::inBackgr and call getWPAI
 		every time, but that's a bit clunky.) */
 	inBackgr = getWPAI.isEnabled(true);
 }
@@ -577,7 +577,7 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 	}
 	double prPeace = 0;
 	bool bOfferPeace = true;
-	int theirReluct = INT_MIN; // Costly, don't compute this sooner than necessary.
+	int theirReluct = MIN_INT; // Costly, don't compute this sooner than necessary.
 	if(human) {
 		int contactDelay = agentLeader.AI_getContactTimer(target.getLeaderID(),
 				CONTACT_PEACE_TREATY);
@@ -624,7 +624,7 @@ bool WarAndPeaceAI::Team::considerPeace(TeamTypes targetId, int u) {
 			bOfferPeace = false;
 		}
 	}
-	if(theirReluct == INT_MIN)
+	if(theirReluct == MIN_INT)
 		theirReluct = target.warAndPeaceAI().reluctanceToPeace(agentId, false);
 	report->log("Their reluctance to peace: %d", theirReluct);
 	if(bOfferPeace) {
@@ -1245,7 +1245,7 @@ void WarAndPeaceAI::Team::scheme() {
 		report->setMute(true);
 		WarEvalParameters params(agentId, targetId, *report);
 		WarEvaluator eval(params);
-		int uTotal = -INT_MIN;
+		int uTotal = INT_MIN;
 		bool totalNaval = false;
 		int totalPrepTime = -1;
 		if(!skipTotal) {
@@ -1858,7 +1858,7 @@ bool WarAndPeaceAI::Team::isLandTarget(TeamTypes theyId) const {
 		WarAndPeaceCache const& cache = ourMember.warAndPeaceAI().getCache();
 		// Sea route then unlikely to be much slower
 		if(!cache.canTrainDeepSeaCargo())
-			distLimit = INT_MAX;
+			distLimit = MAX_INT;
 		for(int j = 0; j < cache.size(); j++) {
 			WarAndPeaceCache::City* c = cache.getCity(j);
 			if(c == NULL || c->city()->getTeam() != theyId ||
@@ -2715,8 +2715,8 @@ double WarAndPeaceAI::Civ::confidenceAgainstHuman() const {
 		shouldn't exploit this, and while a Deity player will be difficult to
 		defeat, the AI should arguably still try.
 		The learning-which-civs-are-dangerous approach in warConfidenceLearned
-		is more elgant, but wouldn't prevent a Civ6-style AI-on-human dogpile
-		in the early game. */
+		is more elgant, but wouldn't prevent an AI-on-human dogpile in the
+		early game. */
 	//return GET_PLAYER(weId).isHuman() ? 1.0 : 0.9;
 }
 

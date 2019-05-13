@@ -78,7 +78,7 @@ public:
 	// advc.152:
 	void parseWarTradesHelp(CvWStringBuffer& szBuffer, PlayerTypes eThisPlayer, PlayerTypes eOtherPlayer);
 	void parseLeaderLineHelp(CvWStringBuffer &szBuffer, PlayerTypes eThisPlayer, PlayerTypes eOtherPlayer);
-	void parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity& city);
+	void parseGreatPeopleHelp(CvWStringBuffer &szBuffer, CvCity const& kCity);
 // BUG - Building Additional Great People - start
 	bool setBuildingAdditionalGreatPeopleHelp(CvWStringBuffer &szBuffer, const CvCity& city, const CvWString& szStart, bool bStarted = false);
 // BUG - Building Additional Great People - end
@@ -208,9 +208,8 @@ public:
 
 	void buildSingleLineTechTreeString(CvWStringBuffer &szBuffer, TechTypes eTech, bool bPlayerContext);
 	void buildTechTreeString(CvWStringBuffer &szBuffer, TechTypes eTech, bool bPlayerContext, TechTypes eFromTech);
-	// <advc.034>
-	void buildDisengageString(CvWString& szString, PlayerTypes activeId,
-			PlayerTypes otherId); // </advc.034>
+	// advc.034:
+	void buildDisengageString(CvWString& szString, PlayerTypes ePlayer, PlayerTypes eOther);
 
 	void getWarplanString(CvWStringBuffer& szString, WarPlanTypes eWarPlan);
 	void getAttitudeString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer, PlayerTypes eTargetPlayer,
@@ -220,11 +219,11 @@ public:
 	void getEspionageString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer, PlayerTypes eTargetPlayer);
 	void getTradeString(CvWStringBuffer& szBuffer, const TradeData& tradeData,
 			PlayerTypes ePlayer1, PlayerTypes ePlayer2,
-			int turnsToCancel = -1); // advc.004w
+			int iTurnsToCancel = -1); // advc.004w
 	void getDealString(CvWStringBuffer& szString, CvDeal& deal, PlayerTypes ePlayerPerspective = NO_PLAYER,
 			bool bCancel = false); // advc.004w
 	void getDealString(CvWStringBuffer& szBuffer, PlayerTypes ePlayer1, PlayerTypes ePlayer2, const CLinkList<TradeData>* pListPlayer1, const CLinkList<TradeData>* pListPlayer2, PlayerTypes ePlayerPerspective = NO_PLAYER,
-			int turnsToCancel = -1); // advc.004w
+			int iTurnsToCancel = -1); // advc.004w
 	void getActiveDealsString(CvWStringBuffer& szString, PlayerTypes eThisPlayer, PlayerTypes eOtherPlayer,
 			bool bExcludeDual = false); // advc.087
 	void getOtherRelationsString(CvWStringBuffer& szString, PlayerTypes eThisPlayer, PlayerTypes eOtherPlayer);

@@ -878,7 +878,7 @@ void CvCityAI::AI_chooseProduction()
 		}
 
 		int iOdds = std::max(0, 100 * iBestBuildingValue / (3 * iBestBuildingValue + 300) - 10);
-		if (AI_chooseBuilding(0, INT_MAX, 0, iOdds))
+		if (AI_chooseBuilding(0, MAX_INT, 0, iOdds))
 		{
 			if( gCityLogLevel >= 2 ) logBBAI("      City %S uses building value short-circuit 1 (odds: %d)", getName().GetCString(), iOdds);
 			return;
@@ -1765,7 +1765,7 @@ void CvCityAI::AI_chooseProduction()
 	{
 		//int iOdds = std::max(0, (bLandWar || (bAssault && pWaterArea) ? 80 : 130) * iBestBuildingValue / (iBestBuildingValue + 20 + iBuildUnitProb) - 25);
 		int iOdds = std::max(0, (bLandWar || (bAssault && pWaterArea) ? 90 - iBuildUnitProb/4 : 150 - iBuildUnitProb/2) * iBestBuildingValue / (iBestBuildingValue + 40 + iBuildUnitProb) - 20);
-		if (AI_chooseBuilding(0, INT_MAX, 0, iOdds))
+		if (AI_chooseBuilding(0, MAX_INT, 0, iOdds))
 		{
 			if( gCityLogLevel >= 2 ) logBBAI("      City %S uses building value short-circuit 2 (odds: %d)", getName().GetCString(), iOdds);
    			return;
@@ -2626,7 +2626,7 @@ void CvCityAI::AI_chooseProduction()
 	{
 		int iOdds = std::max(0, (bLandWar ? 160 : 220) * iBestBuildingValue / (iBestBuildingValue
 				/* <advc.131> was +32 */ + 20 /* </advc.131> */) - 100);
-		if (AI_chooseBuilding(0, INT_MAX, 0, iOdds))
+		if (AI_chooseBuilding(0, MAX_INT, 0, iOdds))
 		{
 			if( gCityLogLevel >= 2 ) logBBAI("      City %S uses building value short-circuit 3 (odds: %d)", getName().GetCString(), iOdds);
    			return;
@@ -3354,7 +3354,7 @@ UnitTypes CvCityAI::AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync, AdvisorTypes
 		}
 		// K-Mod end
 
-		FAssert(INT_MAX / 1000 > iValue);
+		FAssert(MAX_INT / 1000 > iValue);
 		//iValue *= 1000;
 		/*  advc.001: The K-Mod code below multiplies by ProductionModifier, which
 			is at least 100. Don't need that much precision, and the results get
@@ -6720,7 +6720,7 @@ void CvCityAI::AI_updateRouteToCity()  // advc.003: some style changes
 
 	gDLL->getFAStarIFace()->ForceReset(&GC.getRouteFinder());
 
-	int iBestValue = INT_MAX;
+	int iBestValue = MAX_INT;
 	CvCity* pBestCity = NULL; int iLoop=-1;
 	
 	for (int iI = 0; iI < MAX_PLAYERS; iI++)
@@ -6873,7 +6873,7 @@ int CvCityAI::AI_totalBestBuildValue(CvArea* pArea)  // advc.003: style changes
 
 		if (pLoopPlot->getImprovementType() == NO_IMPROVEMENT ||
 				!GET_PLAYER(getOwnerINLINE()).isOption(PLAYEROPTION_SAFE_AUTOMATION) ||
-				pLoopPlot->getImprovementType() == GC.getDefineINT("RUINS_IMPROVEMENT"))
+				pLoopPlot->getImprovementType() == GC.getRUINS_IMPROVEMENT())
 			iTotalValue += AI_getBestBuildValue(iI);
 	}
 	return iTotalValue;

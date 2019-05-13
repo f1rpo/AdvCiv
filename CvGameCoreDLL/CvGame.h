@@ -133,7 +133,7 @@ public:
 
 	int countReligionLevels(ReligionTypes eReligion) /* advc.003: */ const;							// Exposed to Python 
 	int calculateReligionPercent(ReligionTypes eReligion,						// Exposed to Python
-			bool ignoreOtherReligions = false) const; // advc.115b
+			bool bIgnoreOtherReligions = false) const; // advc.115b
 	int countCorporationLevels(CorporationTypes eCorporation) /* advc.003: */ const;							// Exposed to Python 
 	void replaceCorporation(CorporationTypes eCorporation1, CorporationTypes eCorporation2);
 
@@ -251,9 +251,11 @@ public:
 	DllExport void initScoreCalculation();
 
 	int getAIAutoPlay() const; // advc.003: const																// Exposed to Python
-	DllExport void setAIAutoPlay(int iNewValue);										// Exposed to Python
-	// advc.127:
-	void setAIAutoPlayBulk(int iNewValue, bool changePlayerStatus = true);
+	DllExport void setAIAutoPlay(int iNewValue) {										// Exposed to Python
+		// <advc.127>
+		setAIAutoPlay(iNewValue, true);
+	}
+	void setAIAutoPlay(int iNewValue, bool changePlayerStatus); // </advc.127>
 	void changeAIAutoPlay(int iChange,
 			bool bChangePlayerStatus = true); // advc.127
 	// <advc.003b>
@@ -498,7 +500,7 @@ public:
 	CvRandom& getSorenRand();																										// Exposed to Python
 	//  Returns a value from the half-closed interval [0,iNum)
 	int getSorenRandNum(int iNum, const char* pszLog,
-			int iData1 = INT_MIN, int iData2 = INT_MIN); // advc.007
+			int iData1 = MIN_INT, int iData2 = MIN_INT); // advc.007
 
 	DllExport int calculateSyncChecksum();																								// Exposed to Python
 	DllExport int calculateOptionsChecksum();																							// Exposed to Python
@@ -548,15 +550,8 @@ public:
 	bool hasSkippedSaveChecksum() const;
 
 	void addPlayer(PlayerTypes eNewPlayer, LeaderHeadTypes eLeader, CivilizationTypes eCiv);   // Exposed to Python
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						8/1/08				jdog5000	*/
-/* 																			*/
-/* 	Debug																	*/
-/********************************************************************************/
+	// BETTER_BTS_AI_MOD, Debug, 8/1/08, jdog5000:
 	void changeHumanPlayer( PlayerTypes eNewHuman );
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						END								*/
-/********************************************************************************/
 
 	bool testVictory(VictoryTypes eVictory, TeamTypes eTeam, bool* pbEndScore = NULL) const;
 
@@ -651,10 +646,10 @@ public:
 	// <advc.127b>
 	/*  Returns (-1,-1) if 'vs' doesn't exist in any city or (eObserver!=NO_TEAM)
 		isn't revealed to eObserver */
-	std::pair<int,int> getVoteSourceXY(VoteSourceTypes vs, TeamTypes eObserver,
+	std::pair<int,int> getVoteSourceXY(VoteSourceTypes eVS, TeamTypes eObserver,
 			bool bDebug = false) const;
-	BuildingTypes getVoteSourceBuilding(VoteSourceTypes vs) const;
-	CvCity* getVoteSourceCity(VoteSourceTypes vs, TeamTypes eObserver,
+	BuildingTypes getVoteSourceBuilding(VoteSourceTypes eVS) const;
+	CvCity* getVoteSourceCity(VoteSourceTypes eVS, TeamTypes eObserver,
 			bool bDebug = false) const;
 	// </advc.127b>
 	bool isFreeStartEraBuilding(BuildingTypes eBuilding) const; // advc.003
@@ -814,8 +809,8 @@ protected:
 	CvPlot* getRandGWPlot(int iPool); // K-Mod
 	void doHolyCity();
 	// <advc.138>
-	int religionPriority(TeamTypes teamId, ReligionTypes relId) const;
-	int religionPriority(PlayerTypes civId, ReligionTypes relId) const;
+	int religionPriority(TeamTypes eTeam, ReligionTypes eReligion) const;
+	int religionPriority(PlayerTypes ePlayer, ReligionTypes eReligion) const;
 	// </advc.138>
 	void doHeadquarters();
 	void doDiploVote();
@@ -826,15 +821,13 @@ protected:
 	void createBarbarianUnits();
 	void createAnimals();
 	// <advc.300>
-	void createBarbCity(bool bNoCivCities, float prMod = 1.0f);
-	int numBarbariansToSpawn(int iTilesPerUnit, int iTiles,
-			int iUnowned, int iUnitsPresent, int iBarbarianCities = 0);
-	int spawnBarbarians(int n, CvArea& a, Shelf* shelf, bool bCargoAllowed = false);
-	CvPlot* randomBarbPlot(CvArea const& a, Shelf* shelf) const;
-	bool killBarb(int iPresent, int iTiles, int iBarbPop,
-			CvArea& a, Shelf* shelf);
-	// Use of PRNG makes this non-const
-	UnitTypes randomBarbUnit(UnitAITypes ai, CvArea const& a);
+	void createBarbarianCity(bool bNoCivCities, int iProbModifierPercent = 100);
+	int numBarbariansToCreate(int iTilesPerUnit, int iTiles, int iUnowned,
+			int iUnitsPresent, int iBarbarianCities = 0);
+	int createBarbarianUnits(int n, CvArea& a, Shelf* shelf, bool bCargoAllowed = false);
+	CvPlot* randomBarbarianPlot(CvArea const& a, Shelf* shelf) const;
+	bool killBarbarian(int iPresent, int iTiles, int iPop, CvArea& a, Shelf* shelf);
+	UnitTypes randomBarbarianUnit(UnitAITypes eUnitAI, CvArea const& a);
 	// </advc.300>
 
 	void verifyCivics();

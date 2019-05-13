@@ -59,15 +59,9 @@ public:
 	int AI_neededSeaWorkers();
 
 	bool AI_isDefended(int iExtra = 0);
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD							9/19/08		jdog5000		    */
-/* 	Air AI																	    */
-/********************************************************************************/
 	//bool AI_isAirDefended(int iExtra = 0);
+	// BETTER_BTS_AI_MOD, Air AI, 9/19/08, jdog5000:
 	bool AI_isAirDefended(bool bCountLand = false, int iExtra = 0);
-/********************************************************************************/
-/* 	BETTER_BTS_AI_MOD						END								    */
-/********************************************************************************/
 	bool AI_isDanger();
 	int AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac = false,
 			bool bConstCache = false); // advc.001n
