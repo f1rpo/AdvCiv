@@ -20,50 +20,53 @@ CvMessageData* CvMessageData::createMessage(GameMessageTypes eType)
 		return new CvNetTurnComplete();
 	case GAMEMESSAGE_PUSH_ORDER:
 		return new CvNetPushOrder();
-	case GAMEMESSAGE_POP_ORDER: 
+	case GAMEMESSAGE_POP_ORDER:
 		return new CvNetPopOrder();
 	case GAMEMESSAGE_DO_TASK:
 		return new CvNetDoTask();
-	case GAMEMESSAGE_UPDATE_CIVICS: 
+	case GAMEMESSAGE_UPDATE_CIVICS:
 		return new CvNetUpdateCivics();
-	case GAMEMESSAGE_RESEARCH: 
+	case GAMEMESSAGE_RESEARCH:
 		return new CvNetResearch();
-	case GAMEMESSAGE_ESPIONAGE_CHANGE: 
+	case GAMEMESSAGE_ESPIONAGE_CHANGE:
 		return new CvNetEspionageChange();
 	case GAMEMESSAGE_ADVANCED_START_ACTION:
 		return new CvNetAdvancedStartAction();
-	case GAMEMESSAGE_MOD_NET_MESSAGE: 
+	case GAMEMESSAGE_MOD_NET_MESSAGE:
 		return new CvNetModNetMessage();
-	case GAMEMESSAGE_CONVERT: 
+	case GAMEMESSAGE_CONVERT:
 		return new CvNetConvert();
-	case GAMEMESSAGE_EMPIRE_SPLIT: 
+	case GAMEMESSAGE_EMPIRE_SPLIT:
 		return new CvNetEmpireSplit();
-	case GAMEMESSAGE_FOUND_RELIGION: 
+	case GAMEMESSAGE_FOUND_RELIGION:
 		return new CvNetFoundReligion();
-	case GAMEMESSAGE_LAUNCH_SPACESHIP: 
+	case GAMEMESSAGE_LAUNCH_SPACESHIP:
 		return new CvNetLaunchSpaceship();
-	case GAMEMESSAGE_EVENT_TRIGGERED: 
+	case GAMEMESSAGE_EVENT_TRIGGERED:
 		return new CvNetEventTriggered();
-	case GAMEMESSAGE_JOIN_GROUP: 
+	case GAMEMESSAGE_JOIN_GROUP:
 		return new CvNetJoinGroup();
-	case GAMEMESSAGE_PUSH_MISSION: 
+	case GAMEMESSAGE_PUSH_MISSION:
 		return new CvNetPushMission();
-	case GAMEMESSAGE_AUTO_MISSION: 
+	case GAMEMESSAGE_AUTO_MISSION:
 		return new CvNetAutoMission();
-	case GAMEMESSAGE_DO_COMMAND: 
+	case GAMEMESSAGE_DO_COMMAND:
 		return new CvNetDoCommand();
-	case GAMEMESSAGE_PERCENT_CHANGE: 
+	case GAMEMESSAGE_PERCENT_CHANGE:
 		return new CvNetPercentChange();
-	case GAMEMESSAGE_CHANGE_VASSAL: 
+	case GAMEMESSAGE_CHANGE_VASSAL:
 		return new CvNetChangeVassal();
-	case GAMEMESSAGE_CHOOSE_ELECTION: 
+	case GAMEMESSAGE_CHOOSE_ELECTION:
 		return new CvNetChooseElection();
-	case GAMEMESSAGE_DIPLO_VOTE: 
+	case GAMEMESSAGE_DIPLO_VOTE:
 		return new CvNetDiploVote();
-	case GAMEMESSAGE_CHANGE_WAR: 
+	case GAMEMESSAGE_CHANGE_WAR:
 		return new CvNetChangeWar();
-	case GAMEMESSAGE_PING: 
+	case GAMEMESSAGE_PING:
 		return new CvNetPing();
+	// <advc.003g>
+	case GAMEMESSAGE_FP_TEST: 
+		return new CvNetFPTest(); // </advc.003g>
 	default:
 		FAssertMsg(false, "Unknown message type");
 	}
@@ -1140,4 +1143,29 @@ void CvNetPing::Execute()
 		}
 	}
 }
+// <advc.003g>
+CvNetFPTest::CvNetFPTest(PlayerTypes ePlayer, int iResult) :
+	CvMessageData(GAMEMESSAGE_FP_TEST), m_ePlayer(ePlayer), m_iResult(iResult)
+{}
 
+void CvNetFPTest::Debug(char* szAddendum) 
+{ 
+	sprintf(szAddendum, "FPTest message received");	
+}
+
+void CvNetFPTest::PutInBuffer(FDataStreamBase* pStream)
+{
+	pStream->Write(m_iResult);
+	pStream->Write(m_ePlayer);
+}
+
+void CvNetFPTest::SetFromBuffer(FDataStreamBase* pStream)
+{
+	pStream->Read(&m_iResult);
+	pStream->Read((int*)&m_ePlayer);
+}
+
+void CvNetFPTest::Execute()
+{
+	GC.getGameINLINE().doFPCheck(m_iResult, m_ePlayer);
+} // </advc.003g>

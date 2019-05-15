@@ -1896,6 +1896,7 @@ void CyEnumsPythonInterface()
 		.value("GAMEMESSAGE_MOD_NET_MESSAGE", GAMEMESSAGE_MOD_NET_MESSAGE)
 		// advc.011b: Not sure if anything breaks if I don't add this here
 		.value("GAMEMESSAGE_PUSH_MODIFIED_MISSION", GAMEMESSAGE_PUSH_MISSION)
+		.value("GAMEMESSAGE_PUSH_FP_TEST", GAMEMESSAGE_PUSH_MISSION) // advc.003g
 		;
 
 	python::enum_<PopupControlLayout>("PopupControlLayout")

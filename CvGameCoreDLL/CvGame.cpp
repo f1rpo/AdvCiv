@@ -231,6 +231,10 @@ void CvGame::init(HandicapTypes eHandicap)
 void CvGame::setInitialItems()
 {
 	PROFILE_FUNC();
+
+	// advc.003g: Want to set this as soon as CvGame knows the GameType
+	b_mFPTestDone = !isNetworkMultiPlayer(); 
+
 	int iAI = 0; // advc.250b: Just for disabling SPaH in game w/o any AI civs
 	// K-Mod: Adjust the game handicap level to be the average of all the human player's handicap.
 	// (Note: in the original bts rules, it would always set to Noble if the humans had different handicaps)
@@ -755,6 +759,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	m_bLayerFromSavegame = false; // </advc.004m>
 	m_bFeignSP = false; // advc.135c
 	m_bDoMShown = false; // advc.004x
+	b_mFPTestDone = false; // advc.003g
 	m_iScoreboardDirtyTimer = -1; // advc.085
 }
 
@@ -8988,6 +8993,45 @@ bool CvGame::checkInSync() {
 	return true;
 } // </advc.001n>
 
+/*  <advc.003g> Test the platform's floating point behavior (intermediate precision
+	and/or rounding). */
+int CvGame::FPChecksum() const {
+
+	/*  I've used this together with the _controlfp call at the end to test the
+		error message in doFPCheck (i.e. for testing the test) */
+	/*if(getActivePlayer() == 0)
+		_controlfp(_PC_64, _MCW_PC);*/
+
+	// Test 1: based on https://stackoverflow.com/questions/14749929/c-float-operations-have-different-results-on-i386-and-arm-but-why
+	float x = 4.80000019f;
+	int result1 = (int)(38000 / x + 10000 / x);
+	result1 -= 9995; // 4 or 5
+	// Test 2: based on https://stackoverflow.com/questions/11832428/windows-intel-and-ios-arm-differences-in-floating-point-calculations
+	x = (-5.241729736328125f * 94.37158203125f) - (-7.25933837890625f * 68.14253997802734f);
+	int result2 = ::round(-10000.0 * x); // 5 or 6
+
+	/*if(getActivePlayer()==0)
+		_controlfp(_PC_24, _MCW_PC);*/
+
+	return 10 * result1 + result2; // Fold them into a single return value
+	// (I'm sure there are simpler and more reliable ways to test FP behavior ...)
+}
+
+void CvGame::doFPCheck(int iChecksum, PlayerTypes ePlayer) {
+
+	if(b_mFPTestDone)
+		return;
+	b_mFPTestDone = true;
+	if(iChecksum == FPChecksum())
+		return; // Active player is able to reproduce checksum received over the net
+
+	gDLL->getInterfaceIFace()->addHumanMessage(getActivePlayer(), true, GC.getEVENT_MESSAGE_TIME(),
+			CvWString::format(L"Your machine's FP test computation has yielded a"
+				 L" different result than that of %s. The game may frequently go"
+				 L" out of sync due to floating point calculations in the AdvCiv mod.",
+				 GET_PLAYER(ePlayer).getName()), NULL, MESSAGE_TYPE_MAJOR_EVENT, NULL,
+			(ColorTypes)GC.getInfoTypeForString("COLOR_WARNING_TEXT"));
+} // </advc.003g
 
 void CvGame::addReplayMessage(ReplayMessageTypes eType, PlayerTypes ePlayer, CvWString pszText, int iPlotX, int iPlotY, ColorTypes eColor)
 {
@@ -9377,6 +9421,7 @@ void CvGame::read(FDataStreamBase* pStream)
 		pStream->Read(&m_bScenario); // </advc.052>
 	m_iTurnLoadedFromSave = m_iElapsedGameTurns; // advc.044
 	applyOptionEffects(); // advc.310
+	b_mFPTestDone = !isNetworkMultiPlayer(); // advc.003g
 }
 
 

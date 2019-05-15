@@ -426,7 +426,19 @@ private:
 	int m_iX;
 	int m_iY;
 };
-
-
+// <advc.003g>
+class CvNetFPTest : public CvMessageData
+{
+public:
+	CvNetFPTest(PlayerTypes ePlayer = NO_PLAYER, int iResult = MIN_INT);
+	virtual void Debug(char* szAddendum);
+	virtual void Execute();
+	virtual void PutInBuffer(FDataStreamBase* pStream);
+	virtual void SetFromBuffer(FDataStreamBase* pStream);
+private:
+	PlayerTypes m_ePlayer;
+	int m_iResult;
+};
+// </advc.003g>
 
 #endif

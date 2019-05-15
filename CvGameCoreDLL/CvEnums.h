@@ -2680,6 +2680,7 @@ enum GameMessageTypes				// Exposed to Python
 	GAMEMESSAGE_FOUND_RELIGION,
 	GAMEMESSAGE_MOD_NET_MESSAGE,
 	GAMEMESSAGE_PUSH_MODIFIED_MISSION, // advc.011b
+	GAMEMESSAGE_FP_TEST, // advc.003g
 };
 
 enum PopupControlLayout		// Exposed to Python

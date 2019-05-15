@@ -203,4 +203,7 @@ void CvMessageControl::sendPing(int iX, int iY)
 	}
 }
 
-
+void CvMessageControl::sendFPTest(int iResult)
+{
+	gDLL->sendMessageData(new CvNetFPTest(GC.getGameINLINE().getActivePlayer(), iResult));
+}

@@ -449,67 +449,63 @@ void CvGame::updateSelectionList()
 }
 
 
-void CvGame::updateTestEndTurn()
+void CvGame::updateTestEndTurn()  // advc.003: nested else branches replaced w/ return statements
 {
+	if (!GET_PLAYER(getActivePlayer()).isTurnActive())
+		return;
 
-	bool bShift = GC.shiftKey();
+	// <advc.003g>
+	if(!b_mFPTestDone)
+		CvMessageControl::getInstance().sendFPTest(FPChecksum()); // </advc.003g>
+
 	bool bAny = (gDLL->getInterfaceIFace()->getHeadSelectedUnit() != NULL &&
 			!GET_PLAYER(getActivePlayer()).isOption(PLAYEROPTION_NO_UNIT_CYCLING));
 
-	if (GET_PLAYER(getActivePlayer()).isTurnActive())
+	if (gDLL->getInterfaceIFace()->isEndTurnMessage())
 	{
-		if (gDLL->getInterfaceIFace()->isEndTurnMessage())
-		{
-			if (GET_PLAYER(getActivePlayer()).hasReadyUnit(bAny))
-			{
-				gDLL->getInterfaceIFace()->setEndTurnMessage(false);
-			}
-		}
-		else
-		{
-			if (!(GET_PLAYER(getActivePlayer()).hasBusyUnit()) && !(GET_PLAYER(getActivePlayer()).hasReadyUnit(bAny)))
-			{
-				if (!(gDLL->getInterfaceIFace()->isForcePopup()))
-				{
-					if (!bShift && !GC.suppressCycling()) // K-Mod
-						gDLL->getInterfaceIFace()->setForcePopup(true);
-				}
-				else
-				{
-					if (GET_PLAYER(getActivePlayer()).hasAutoUnit())
-					{
-						//if (!(GC.shiftKey()))
-						// K-Mod. Don't start automoves if we currently have a group selected which would move.
-						CvUnit* pSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
-						if (!bShift && !GC.suppressCycling() && (pSelectedUnit == NULL || !pSelectedUnit->getGroup()->readyToAuto()))
-						// K-Mod end
-						{
-							CvMessageControl::getInstance().sendAutoMoves();
-						}
-					}
-					else
-					{
-						if (GET_PLAYER(getActivePlayer()).isOption(PLAYEROPTION_WAIT_END_TURN) || !gDLL->getInterfaceIFace()->isHasMovedUnit() || isHotSeat() || isPbem())
-						{
-							gDLL->getInterfaceIFace()->setEndTurnMessage(true);
-						}
-						else
-						{
-							if (gDLL->getInterfaceIFace()->getEndTurnCounter() > 0)
-							{
-								gDLL->getInterfaceIFace()->changeEndTurnCounter(-1);
-							}
-							else
-							{
-								CvMessageControl::getInstance().sendTurnComplete();
-								gDLL->getInterfaceIFace()->setEndTurnCounter(3); // XXX
-							}
-						}
-					}
-				}
-			}
-		}
+		if (GET_PLAYER(getActivePlayer()).hasReadyUnit(bAny))
+			gDLL->getInterfaceIFace()->setEndTurnMessage(false);
+		return;
 	}
+
+	if (GET_PLAYER(getActivePlayer()).hasBusyUnit() ||
+			GET_PLAYER(getActivePlayer()).hasReadyUnit(bAny))
+		return;
+
+	bool bShift = GC.shiftKey();
+
+	if (!(gDLL->getInterfaceIFace()->isForcePopup()))
+	{
+		if (!bShift && !GC.suppressCycling()) // K-Mod
+			gDLL->getInterfaceIFace()->setForcePopup(true);
+		return;
+	}
+
+	if (GET_PLAYER(getActivePlayer()).hasAutoUnit())
+	{
+		//if (!(GC.shiftKey()))
+		// K-Mod. Don't start automoves if we currently have a group selected which would move.
+		CvUnit* pSelectedUnit = gDLL->getInterfaceIFace()->getHeadSelectedUnit();
+		if (!bShift && !GC.suppressCycling() && (pSelectedUnit == NULL || !pSelectedUnit->getGroup()->readyToAuto()))
+		// K-Mod end
+			CvMessageControl::getInstance().sendAutoMoves();
+		return;
+	}
+
+	if (GET_PLAYER(getActivePlayer()).isOption(PLAYEROPTION_WAIT_END_TURN) || !gDLL->getInterfaceIFace()->isHasMovedUnit() || isHotSeat() || isPbem())
+	{
+		gDLL->getInterfaceIFace()->setEndTurnMessage(true);
+		return;
+	}
+
+	if (gDLL->getInterfaceIFace()->getEndTurnCounter() > 0)
+	{
+		gDLL->getInterfaceIFace()->changeEndTurnCounter(-1);
+		return;
+	}
+
+	CvMessageControl::getInstance().sendTurnComplete();
+	gDLL->getInterfaceIFace()->setEndTurnCounter(3); // XXX
 }
 
 CvUnit* CvGame::getPlotUnit(const CvPlot* pPlot, int iIndex) const

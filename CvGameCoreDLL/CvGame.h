@@ -505,6 +505,7 @@ public:
 	DllExport int calculateSyncChecksum();																								// Exposed to Python
 	DllExport int calculateOptionsChecksum();																							// Exposed to Python
 	bool checkInSync(); // advc.001n
+	void doFPCheck(int iChecksum, PlayerTypes ePlayer); // advc.003g
 
 	void addReplayMessage(ReplayMessageTypes eType = NO_REPLAY_MESSAGE, PlayerTypes ePlayer = NO_PLAYER, CvWString pszText = L"", 
 		int iPlotX = -1, int iPlotY = -1, ColorTypes eColor = NO_COLOR);
@@ -714,6 +715,7 @@ protected:
 	bool m_bAllGameDataRead; // advc.003
 	bool m_bDoMShown; // advc.004x
 	bool m_bLayerFromSavegame; // advc.004m
+	bool b_mFPTestDone; // advc.003g
 
 	HandicapTypes m_eHandicap;
 	HandicapTypes m_eAIHandicap; // advc.127
@@ -839,6 +841,7 @@ protected:
 
 	void testAlive();
 	void testVictory();
+	int FPChecksum() const; // advc.003g
 
 	void processVote(const VoteTriggeredData& kData, int iChange);
 
