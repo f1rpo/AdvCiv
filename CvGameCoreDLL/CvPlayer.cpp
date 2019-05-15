@@ -3176,8 +3176,8 @@ void CvPlayer::doTurn()  // advc.003: style changes
 				d->kill();
 			}
 		}
-	} // If DISENGAGE_LENGTH set to 0 in between sessions
-	else if(iDisengageLength <= 0) {
+	}
+	else if(iDisengageLength < 0) { // See GlobalDefines_advc.xml about this
 		CvTeam& kOurTeam = GET_TEAM(getTeam());
 		for(int i = 0; i < MAX_CIV_TEAMS; i++) {
 			TeamTypes tId = (TeamTypes)i;
@@ -3315,6 +3315,15 @@ void CvPlayer::verifyStateReligion() {
 	if(!isAnarchy() && !canDoReligion(getStateReligion()))
 		setLastStateReligion(NO_RELIGION);
 } // </dlph.10>
+
+// <advc.064d>
+void CvPlayer::verifyCityProduction() {
+
+	int foo;
+	for(CvCity* c = firstCity(&foo); c != NULL; c = nextCity(&foo))
+		c->verifyProduction();
+} // </advc.064d>
+
 
 void CvPlayer::updatePlotGroups()
 {
@@ -11192,6 +11201,8 @@ void CvPlayer::setLastStateReligion(ReligionTypes eNewValue)
 		}
 		GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, getID(), szBuffer);
 	}
+	// advc.064d: Production of religious buildings and units may no longer be valid
+	verifyCityProduction();
 
 	// Python Event
 	CvEventReporter::getInstance().playerChangeStateReligion(getID(), eNewValue, eOldReligion);
@@ -23620,6 +23631,13 @@ const CvArtInfoUnit* CvPlayer::getUnitArtInfo(UnitTypes eUnit, int iMeshGroup) c
 	{
 		eCivilization = (CivilizationTypes) GC.getDefineINT("BARBARIAN_CIVILIZATION");
 	}
+	// <advc.001> Redirect the call to the city owner
+	if(gDLL->getInterfaceIFace()->isCityScreenUp())
+	{
+		PlayerTypes eCityOwner = gDLL->getInterfaceIFace()->getHeadSelectedCity()->getOwnerINLINE();
+		if(eCityOwner != getID())
+			return GET_PLAYER(eCityOwner).getUnitArtInfo(eUnit, iMeshGroup);
+	} // </advc.001>
 	UnitArtStyleTypes eStyle = (UnitArtStyleTypes) GC.getCivilizationInfo(eCivilization).getUnitArtStyleType();
 	EraTypes eEra = getCurrentEra();
 	if (eEra == NO_ERA)

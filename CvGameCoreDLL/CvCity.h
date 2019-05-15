@@ -69,6 +69,7 @@ public:
 	int getNumNationalWondersLeft() const; // advc.004w, advc.131
 	bool isBuildingsMaxed() const;																								// Exposed to Python
 
+	void verifyProduction(); // advc.064d: public wrapper for doCheckProduction
 	bool canTrain(UnitTypes eUnit, bool bContinue = false, bool bTestVisible = false,					// Exposed to Python
 			bool bIgnoreCost = false, bool bIgnoreUpgrades = false,
 			bool bCheckAirUnitCap = true, // advc.001b

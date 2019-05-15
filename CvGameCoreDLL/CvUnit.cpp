@@ -3206,6 +3206,9 @@ void CvUnit::move(CvPlot* pPlot, bool bShow)
 		}
 	} // </advc.162>
 	setXY(pPlot->getX_INLINE(), pPlot->getY_INLINE(), true, true, bShow && pPlot->isVisibleToWatchingHuman(), bShow);
+	// <advc.001b> Arrival of air unit may interrupt production b/c of unit limit
+	if(getDomainType() == DOMAIN_AIR && pPlot->isCity() && pPlot->getOwnerINLINE() == getOwnerINLINE())
+		pPlot->getPlotCity()->verifyProduction(); // </advc.001b>
 
 	//change feature
 	FeatureTypes featureType = pPlot->getFeatureType();

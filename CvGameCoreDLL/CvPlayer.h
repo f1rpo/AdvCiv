@@ -126,6 +126,7 @@ public:
 
 	void verifyCivics();
 	void verifyStateReligion(); // dlph.10
+	void verifyCityProduction(); // advc.064d
 	void updatePlotGroups();
 
 	void updateYield();

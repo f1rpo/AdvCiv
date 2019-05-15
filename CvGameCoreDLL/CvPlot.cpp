@@ -1189,6 +1189,12 @@ void CvPlot::updatePlotGroupBonus(bool bAdd)  // advc.003 style changes
 	if (eBonus != NO_BONUS && pPlotGroup && isBonusNetwork(getTeam()))
 		pPlotGroup->changeNumBonuses(eBonus, bAdd ? 1 : -1);
 	// K-Mod end
+	/*  <advc.064d> This function is always called with bAdd=false first and
+		then with bAdd=true. Verifying city production after the first call would
+		be wasteful and would result in spurious choose production popups (as the
+		bonus is taken away only temporarily). */
+	if(bAdd)
+		pPlotGroup->verifyCityProduction(); // </advc.064d>
 }
 
 
@@ -6605,12 +6611,10 @@ void CvPlot::setCulture(PlayerTypes eIndex, int iNewValue, bool bUpdate, bool bU
 		return;
 	
 	if(m_aiCulture == NULL)
-	{
-		m_aiCulture = new int[MAX_PLAYERS];
-		for(int iI = 0; iI < MAX_PLAYERS; ++iI)
-			m_aiCulture[iI] = 0;
-		m_iTotalCulture = 0; // advc.003b
-	} // <advc.003b>
+	{	// <advc.003b>
+		m_aiCulture = new int[MAX_PLAYERS](); // value-initialize
+		m_iTotalCulture = 0;
+	}
 	if(GET_PLAYER(eIndex).isEverAlive())
 		m_iTotalCulture += iNewValue - m_aiCulture[eIndex]; // </advc.003b>
 	m_aiCulture[eIndex] = iNewValue;

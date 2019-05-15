@@ -906,7 +906,7 @@ void CvCity::doTurn()  // advc.003: some style changes
 		m_szPreviousName.clear();
 	} // </advc.106k>
 	bool bAllowNoProduction = !doCheckProduction();
-
+	bAllowNoProduction = false; // advc.064d
 	doGrowth();
 
 	doCulture();
@@ -1900,6 +1900,13 @@ bool CvCity::isBuildingsMaxed() const
 
 	return false;
 }
+
+// <advc.064d>
+void CvCity::verifyProduction() {
+
+	if(isProduction()) // Only want to address invalid orders here; no production is OK.
+		doCheckProduction();
+} // </advc.064d>
 
 
 bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool bIgnoreCost, bool bIgnoreUpgrades,
@@ -9839,6 +9846,7 @@ void CvCity::updateCorporationBonus()
 			else
 			{
 				processBonus((BonusTypes)iI, -1);
+				verifyProduction(); // advc.064d
 			}
 		}
 	}
@@ -10489,6 +10497,7 @@ void CvCity::changeNoBonusCount(BonusTypes eIndex, int iChange)
 		if (getNumBonuses(eIndex) > 0)
 		{
 			processBonus(eIndex, -1);
+			verifyProduction(); // advc.064d
 		}
 
 		m_paiNoBonus[eIndex] += iChange;
@@ -10557,28 +10566,28 @@ void CvCity::changeNumBonuses(BonusTypes eIndex, int iChange)
 	FAssertMsg(eIndex >= 0, "eIndex expected to be >= 0");
 	FAssertMsg(eIndex < GC.getNumBonusInfos(), "eIndex expected to be < GC.getNumBonusInfos()");
 
-	if (iChange != 0)
+	if (iChange == 0)
+		return;
+
+	bool bOldHasBonus = hasBonus(eIndex);
+
+	m_paiNumBonuses[eIndex] += iChange;
+
+	if (bOldHasBonus != hasBonus(eIndex))
 	{
-		bool bOldHasBonus = hasBonus(eIndex);
-
-		m_paiNumBonuses[eIndex] += iChange;
-
-		if (bOldHasBonus != hasBonus(eIndex))
+		if (hasBonus(eIndex))
 		{
-			if (hasBonus(eIndex))
-			{
-				processBonus(eIndex, 1);
-			}
-			else
-			{
-				processBonus(eIndex, -1);
-			}
+			processBonus(eIndex, 1);
 		}
-
-		if (isCorporationBonus(eIndex))
+		else
 		{
-			updateCorporation();
+			processBonus(eIndex, -1);
 		}
+	}
+
+	if (isCorporationBonus(eIndex))
+	{
+		updateCorporation();
 	}
 }
 
@@ -13130,6 +13139,13 @@ bool CvCity::doCheckProduction()  // advc.003:some style changes
 			}
 		}
 	}
+	// <advc.064d>
+	if (!isProduction() && !isDisorder())
+	{
+		if(isHuman() && !isProductionAutomated())
+			chooseProduction();
+		else AI_chooseProduction();
+	} // </advc.064d>
 
 	return bOK;
 }
