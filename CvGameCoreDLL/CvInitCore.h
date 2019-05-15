@@ -147,8 +147,7 @@ public:
 	DllExport bool getForceControl(ForceControlTypes eIndex) const;
 	DllExport void setForceControl(ForceControlTypes eIndex, bool bForceControl);
 
-
-	int getGameTurn() const	{ return m_iGameTurn; }
+	inline int getGameTurn() const	{ return m_iGameTurn; } // advc.003b
 	void setGameTurn(int iGameTurn)	{ m_iGameTurn = iGameTurn; }
 
 	int getMaxTurns() const	{ return m_iMaxTurns; }

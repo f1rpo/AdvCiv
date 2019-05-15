@@ -16854,8 +16854,16 @@ void CvGameTextMgr::getActiveDealsString(CvWStringBuffer &szBuffer,
 		{	// <advc.087>
 			if(bExludeDual) {
 				bool bDual = true;
-				for(CLLNode<TradeData>* pNode = pDeal->headFirstTradesNode();
-						pNode != NULL; pNode = pDeal->nextFirstTradesNode(pNode)) {
+				CLLNode<TradeData>* pNode;
+				for(pNode = pDeal->headFirstTradesNode(); pNode != NULL;
+						pNode = pDeal->nextFirstTradesNode(pNode)) {
+					if(!CvDeal::isDual(pNode->m_data.m_eItemType)) {
+						bDual = false;
+						break;
+					}
+				}
+				for(pNode = pDeal->headSecondTradesNode(); pNode != NULL;
+						pNode = pDeal->nextSecondTradesNode(pNode)) {
 					if(!CvDeal::isDual(pNode->m_data.m_eItemType)) {
 						bDual = false;
 						break;

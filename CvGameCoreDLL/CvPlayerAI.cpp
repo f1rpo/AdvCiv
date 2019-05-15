@@ -10539,7 +10539,7 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 					if (NO_PLAYER != kVoteData.eOtherPlayer && kVoteData.eOtherPlayer != pCity->getOwnerINLINE())
 					{
 						// BETTER_BTS_AI_MOD, Diplomacy AI, 10/03/09, jdog5000: START
-						if ((!bPropose && eSecretaryGeneral == getTeam()) || GET_PLAYER(kVoteData.eOtherPlayer).getTeam() == getTeam())
+						if (!bPropose && eSecretaryGeneral == getTeam() || GET_PLAYER(kVoteData.eOtherPlayer).getTeam() == getTeam())
 						{
 							bValid = true;
 						}
@@ -10547,10 +10547,10 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 						{
 							bValid = false;
 							// BBAI TODO: Wonders, holy city, aggressive AI?
-							if (g.getSorenRandNum(3, "AI Erratic Defiance (Assign City)") == 0)
-							{
+							// advc.118:
+							if ((kPlayer.getNumCities() <= 1 && kPlayer.getID() == getID()) ||
+									g.getSorenRandNum(3, "AI Erratic Defiance (Assign City)") == 0)
 								bDefy = true;
-							}
 						}
 						else
 						{
@@ -10987,10 +10987,10 @@ bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer,
 					iThreshold *= 3;
 				iThreshold *= (TEAMREF(ePlayer).getPower(false) + 100);
 				iThreshold /= (kOurTeam.getPower(false) + 100);
-			} // <advc.155>
-			int iRandExtra = ::round((::hash(g.getGameTurn(), getID()) - 0.5) *
-					iThreshold * 0.2);
-			iThreshold += iRandExtra; // </advc.155>
+			} // <advc.144>
+			int iRandExtra = ::round((::hash(g.gameTurn(), getID()) - 0.5) *
+					iThreshold * (bVassal ? 0.1 : 0.2));
+			iThreshold += iRandExtra; // </advc.144>
 			iThreshold -= kPlayer.AI_getPeacetimeGrantValue(getID());
 			bAccept = (iTheyReceive < iThreshold); // advc.130o: Don't return yet
 			// <advc.144>

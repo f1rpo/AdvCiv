@@ -872,8 +872,7 @@ bool CvXMLLoadUtility::GetChildXmlValByName(wchar* pszVal, const TCHAR* szName, 
 	}*/ // <advc.006b> Replacing the asserts above (which were already commented out)
 	/*  If pszDefault was set by the caller, we assume that it's OK to fall back
 		on pszDefault. Otherwise warn. */
-	if(pszDefault == NULL && m_bAssertMandatory)
-		FAssertMsg(false, (szAssertMsg + szName).c_str());
+	FAssertMsg(pszDefault != NULL || !m_bAssertMandatory, (szAssertMsg + szName).c_str());
 	return false; // </advc.006b>
 }
 
@@ -926,8 +925,7 @@ bool CvXMLLoadUtility::GetChildXmlValByName(char* pszVal, const TCHAR* szName, c
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b>
-	if(pszDefault == NULL && m_bAssertMandatory)
-		FAssertMsg(false, (szAssertMsg + szName).c_str());
+	FAssertMsg(pszDefault != NULL || !m_bAssertMandatory, (szAssertMsg + szName).c_str());
 	return false; // </advc.006>
 }
 
@@ -981,8 +979,7 @@ bool CvXMLLoadUtility::GetChildXmlValByName(std::string& pszVal, const TCHAR* sz
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b>
-	if(pszDefault == NULL && m_bAssertMandatory)
-		FAssertMsg(false, (szAssertMsg + szName).c_str());
+	FAssertMsg(pszDefault != NULL || !m_bAssertMandatory, (szAssertMsg + szName).c_str());
 	return false; // </advc.006>
 }
 
@@ -1028,8 +1025,7 @@ bool CvXMLLoadUtility::GetChildXmlValByName(std::wstring& pszVal, const TCHAR* s
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b>
-	if(pszDefault == NULL && m_bAssertMandatory)
-		FAssertMsg(false, (szAssertMsg + szName).c_str());
+	FAssertMsg(pszDefault != NULL || !m_bAssertMandatory, (szAssertMsg + szName).c_str());
 	return false; // </advc.006>
 }
 
@@ -1190,8 +1186,7 @@ bool CvXMLLoadUtility::GetChildXmlValByName(bool* pbVal, const TCHAR* szName,
 		//FAssertMsg(false, "Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b>
-	if(bMandatory && m_bAssertMandatory)
-		FAssertMsg(false, (szAssertMsg + szName).c_str());
+	FAssertMsg(!bMandatory || !m_bAssertMandatory, (szAssertMsg + szName).c_str());
 	return false; // </advc.006b>
 }
 
