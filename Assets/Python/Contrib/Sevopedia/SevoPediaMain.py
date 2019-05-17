@@ -74,13 +74,22 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		self.ITEM_LIST_ID	= "PediaMainItemList"
 		self.UPGRADES_GRAPH_ID	= "PediaMainUpgradesGraph"
 
-		self.X_SCREEN = 500
-		self.Y_SCREEN = 396
-		self.W_SCREEN = 1024
 		self.H_SCREEN = 768
+		self.W_SCREEN = 1024
+		# <advc.004y>
+		self.bWideScreen = True
+		self.H_MARGIN = 30
+		if self.bWideScreen:
+			self.W_SCREEN = max(self.W_SCREEN, self.getScreen().getXResolution() - 2 * self.H_MARGIN)
+			if self.W_SCREEN <= 1024:
+				self.bWideScreen = False
+		#self.X_SCREEN = 500 # now unused
+		#self.Y_SCREEN = 396 # unused to begin with
+		# </advc.004y>
 
 		self.H_PANEL = 55
-		self.BUTTON_SIZE = 64
+		# advc (tbd.): Increase these based on screen dimensions?
+		self.BUTTON_SIZE = 64 
 		self.BUTTON_COLUMNS = 9
 		self.ITEMS_MARGIN = 18
 		self.ITEMS_SEPARATION = 2
@@ -98,11 +107,20 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		self.X_CATEGORIES = 0
 		self.Y_CATEGORIES = (self.Y_TOP_PANEL + self.H_TOP_PANEL) - 4
 		self.W_CATEGORIES = 182 # advc.002b: was 175
+		# <advc.004y>
+		if self.bWideScreen:
+			# Can't be much thinner than this or hover text will sometimes appear in the categories columns and sometimes (when the text box is too wide) in the items column
+			self.W_CATEGORIES = 230
+		# </advc.004y>
 		self.H_CATEGORIES = (self.Y_BOT_PANEL + 3) - self.Y_CATEGORIES
 
 		self.X_ITEMS = self.X_CATEGORIES + self.W_CATEGORIES + 2
 		self.Y_ITEMS = self.Y_CATEGORIES
 		self.W_ITEMS = 210
+		# <advc.004y>
+		if self.bWideScreen:
+			self.W_ITEMS = 230
+		# </advc.004y>
 		self.H_ITEMS = self.H_CATEGORIES
 
 		self.X_PEDIA_PAGE = self.X_ITEMS + self.W_ITEMS + 18
@@ -112,18 +130,19 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		self.W_PEDIA_PAGE = self.R_PEDIA_PAGE - self.X_PEDIA_PAGE
 		self.H_PEDIA_PAGE = self.B_PEDIA_PAGE - self.Y_PEDIA_PAGE
 
-		self.X_TITLE = self.X_SCREEN
+		self.X_TITLE = (self.W_SCREEN - 24) // 2 # advc.004y: was 500
 		self.Y_TITLE = 8
-		self.X_TOC = 75
-		self.Y_TOC = 730
-		self.X_INDEX = 210
-		self.Y_INDEX = 730
-		self.X_BACK = 510
-		self.Y_BACK = 730
-		self.X_NEXT = 645
-		self.Y_NEXT = 730
-		self.X_EXIT = 994
-		self.Y_EXIT = 730
+		self.X_TOC = 45 # advc.004y: was 75
+		Y_FOOTER_CONTROLS = 730 # advc.004y: as in BtS (but new variable)
+		self.Y_TOC = Y_FOOTER_CONTROLS
+		self.X_INDEX = self.X_TOC + 135 # advc.004y: was 210
+		self.Y_INDEX = Y_FOOTER_CONTROLS
+		self.X_BACK = (self.W_SCREEN - 4) // 2 # advc.004y: was 510
+		self.Y_BACK = Y_FOOTER_CONTROLS
+		self.X_NEXT = 133 + (self.W_SCREEN // 2) # advc.004y: was 645
+		self.Y_NEXT = Y_FOOTER_CONTROLS
+		self.X_EXIT = self.W_SCREEN - 30 # advc.004y: was 994
+		self.Y_EXIT = Y_FOOTER_CONTROLS
 
 		self.tab = None
 		self.iActivePlayer = -1
@@ -410,7 +429,11 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		screen.addDDSGFC(self.BACKGROUND_ID, ArtFileMgr.getInterfaceArtInfo(self.INTERFACE_ART_INFO).getPath(), 0, 0, self.W_SCREEN, self.H_SCREEN, WidgetTypes.WIDGET_GENERAL, -1, -1)
 		screen.addPanel(self.TOP_PANEL_ID, u"", u"", True, False, self.X_TOP_PANEL, self.Y_TOP_PANEL, self.W_TOP_PANEL, self.H_TOP_PANEL, PanelStyles.PANEL_STYLE_TOPBAR)
 		screen.addPanel(self.BOT_PANEL_ID, u"", u"", True, False, self.X_BOT_PANEL, self.Y_BOT_PANEL, self.W_BOT_PANEL, self.H_BOT_PANEL, PanelStyles.PANEL_STYLE_BOTTOMBAR)
-		screen.setDimensions(screen.centerX(0), screen.centerY(0), self.W_SCREEN, self.H_SCREEN)
+		# <advc.004y>
+		X_SCREEN = self.H_MARGIN
+		if not self.bWideScreen:
+			X_SCREEN = screen.centerX(0) # </advc.004y>
+		screen.setDimensions(X_SCREEN, screen.centerY(0), self.W_SCREEN, self.H_SCREEN)
 
 		screen.setText(self.HEAD_ID, "Background", self.HEAD_TEXT, CvUtil.FONT_CENTER_JUSTIFY, self.X_TITLE, self.Y_TITLE, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL,      -1, -1)
 		screen.setText(self.BACK_ID, "Background", self.BACK_TEXT, CvUtil.FONT_LEFT_JUSTIFY,   self.X_BACK,  self.Y_BACK,  0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_PEDIA_BACK,    1, -1)
