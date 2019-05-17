@@ -3078,6 +3078,19 @@ int CvCity::getProductionTurnsLeft(int iProductionNeeded, int iProduction,
 			iFirstProductionDifference, iProductionDifference);
 } // </advc.064b>
 
+// <advc.064d> Body cut from popOrder
+void CvCity::doPopOrder(CLLNode<OrderData>* pOrder) {
+
+	bool bStart = false;
+	if(pOrder == headOrderQueueNode()) {
+		bStart = true;
+		stopHeadOrder();
+	}
+	m_orderQueue.deleteNode(pOrder);
+	if(bStart)
+		startHeadOrder();
+} // </advc.064d>
+
 int CvCity::getProductionTurnsLeft(int iProductionNeeded, int iProduction, int iFirstProductionDifference, int iProductionDifference) const
 {
 	int iProductionLeft = std::max(0,
@@ -12408,7 +12421,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 		kOwner.changeUnitClassMaking((UnitClassTypes)GC.getUnitInfo(eTrainUnit).getUnitClassType(), -1);
 		area()->changeNumTrainAIUnits(getOwnerINLINE(), eTrainAIUnit, -1);
 		kOwner.AI_changeNumTrainAIUnits(eTrainAIUnit, -1);
-
+		doPopOrder(pOrderNode); // advc.064d (see case ORDER_CONSTRUCT)
 		if(!bFinish)
 			break;
 		// <advc.064b> Moved into new function
@@ -12449,9 +12462,11 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 		BuildingClassTypes bct = (BuildingClassTypes)GC.getBuildingInfo(
 				eConstructBuilding).getBuildingClassType();
 		kOwner.changeBuildingClassMaking(bct, -1);
+		/*  advc.064d: processBuilding may now call verifyProduction. Important that
+			the constructed building is no longer in the queue at that point. */
+		doPopOrder(pOrderNode);
 		if(!bFinish)
 			break;
-
 		if (kOwner.isBuildingClassMaxedOut(bct,
 				// UNOFFICIAL_PATCH, Bugfix, 10/08/09, davidlallen & jdog5000: 
 				GC.getBuildingClassInfo(bct).getExtraPlayerInstances()))
@@ -12475,7 +12490,7 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 	case ORDER_CREATE: {
 		eCreateProject = (ProjectTypes)pOrderNode->m_data.iData1;
 		GET_TEAM(getTeam()).changeProjectMaking(eCreateProject, -1);
-
+		doPopOrder(pOrderNode); // advc.064d
 		if(!bFinish)
 			break;
 		// Event reported to Python before the project is built, so that we can show the movie before awarding free techs, for example
@@ -12532,15 +12547,20 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 		break;
 	}
 	case ORDER_MAINTAIN:
+		doPopOrder(pOrderNode); // advc.064d
 		break;
 
 	default:
 		FAssert(false);
+		doPopOrder(pOrderNode); // advc.064d
 		break;
 	}
+	/*  advc.064d: (BtS code moved into auxiliary function doPopOrder; called
+		from within the switch block)  */
+	pOrderNode = NULL; // for safety
 	// <advc.123f> Fail gold from great wonders and world projects
 	if(maxedBuildingOrProject != NO_BUILDING) { int foo=-1;
-		bool bProject = (pOrderNode->m_data.eOrderType == ORDER_CREATE);
+		bool bProject = (eOrderType == ORDER_CREATE);
 		ProjectTypes pt = (bProject ? (ProjectTypes)maxedBuildingOrProject :
 				NO_PROJECT);
 		BuildingTypes bt = (bProject ? NO_BUILDING :
@@ -12593,20 +12613,6 @@ void CvCity::popOrder(int iNum, bool bFinish, bool bChoose)
 			}
 		}
 	} // </advc.123f>
-	bool bStart = false;
-	if (pOrderNode == headOrderQueueNode())
-	{
-		bStart = true;
-		stopHeadOrder();
-	}
-
-	m_orderQueue.deleteNode(pOrderNode);
-	pOrderNode = NULL;
-
-	if (bStart)
-	{
-		startHeadOrder();
-	}
 
 	if (getTeam() == GC.getGameINLINE().getActiveTeam() || GC.getGameINLINE().isDebugMode())
 	{

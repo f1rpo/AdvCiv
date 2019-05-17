@@ -1347,6 +1347,7 @@ protected:
 	int getProductionTurnsLeft(int iProductionNeeded, int iProduction,
 			int iProductionModifier, bool bFoodProduction, int iNum) const;
 	// </advc.064b
+	void doPopOrder(CLLNode<OrderData>* pOrder); // advc.064d
 	// BETTER_BTS_AI_MOD (from BUG), 02/24/10, EmperorFool: START
 		// advc.003: These were declared outside of CvCity (global)
 	static void addGoodOrBad(int iValue, int& iGood, int& iBad);
