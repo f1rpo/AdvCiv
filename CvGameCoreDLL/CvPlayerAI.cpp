@@ -19067,7 +19067,9 @@ void CvPlayerAI::AI_doCommerce()
 					iRateDivisor += iTargetTurns/2;
 
 				// Individual player targeting
-				if (bFocusEspionage)
+				if (bFocusEspionage
+						// advc.120: Capitulated vassals should wait for gifts from the master
+						&& (!GET_TEAM(getTeam()).isCapitulated() || getMasterTeam() != kLoopTeam.getMasterTeam()))
 				{
 					for (int iPlayer = 0; iPlayer < MAX_CIV_PLAYERS; ++iPlayer)
 					{
@@ -23738,7 +23740,12 @@ void CvPlayerAI::AI_updateStrategyHash()
 				// Don't allow big esp if we have no local esp targets
 				for (int i = 0; i < MAX_CIV_TEAMS; i++)
 				{
-					if (i != getTeam() && kTeam.isHasMet((TeamTypes)i) && kTeam.AI_hasCitiesInPrimaryArea((TeamTypes)i))
+					if (i != getTeam() && kTeam.isHasMet((TeamTypes)i) &&
+							// <advc.120>
+							(!kTeam.isCapitulated() || kTeam.getMasterTeam() !=
+							GET_TEAM((TeamTypes)i).getMasterTeam()) &&
+							// </advc.120>
+							kTeam.AI_hasCitiesInPrimaryArea((TeamTypes)i))
 					{
 						m_iStrategyHash |= AI_STRATEGY_BIG_ESPIONAGE;
 						break;
@@ -23747,7 +23754,7 @@ void CvPlayerAI::AI_updateStrategyHash()
 			}
 		}
 
-		// The espionage economy decision is actually somewhere else. This is just a marker.
+		// The espionage economy decision is actually somewhere else [advc: namely in AI_doCommerce]. This is just a marker.
 		if (getCommercePercent(COMMERCE_ESPIONAGE) > 20)
 			m_iStrategyHash |= AI_STRATEGY_ESPIONAGE_ECONOMY;
 	}

@@ -351,7 +351,10 @@ bool CvSelectionGroup::showMoves(/* advc.102: */ CvPlot const& kFromPlot) const
 			// Also refers to Executives; those have the same Unit AI.
 			 bShowMissionaries = GC.getDefineINT("SHOW_FRIENDLY_MISSIONARY_MOVES");
 		bool bEnteringOrLeaving = (plot()->isVisible(eObs, false) != kFromPlot.isVisible(eObs, false));
-		if(bInSpectatorsBorders) // Just to avoid cycling through the units
+		bool bSeaPatrol = (getDomainType() == DOMAIN_SEA &&
+				AI_getMissionAIType() == MISSIONAI_PATROL);
+		// Just to avoid cycling through the units
+		if(bInSpectatorsBorders && (bEnteringOrLeaving || !bSeaPatrol))
 			return true;
 		if(bShowWorkers && bShowShips && bShowMissionaries)
 			return true;
@@ -369,7 +372,7 @@ bool CvSelectionGroup::showMoves(/* advc.102: */ CvPlot const& kFromPlot) const
 			bool bWorker = (u.AI_getUnitAIType() == UNITAI_WORKER ||
 					u.AI_getUnitAIType() == UNITAI_WORKER_SEA);
 			bool bNonTransportShip = (bSeaUnit && !u.isHuman() &&
-					(u.cargoSpace() <= 1 || AI_getMissionAIType() == MISSIONAI_PATROL));
+					(u.cargoSpace() <= 1 || bSeaPatrol));
 			bool bMissionary = (u.AI_getUnitAIType() == UNITAI_MISSIONARY);
 			if(!bMissionary && bAwayFromHome && (!bSeaUnit ||
 					!bNonTransportShip || bShowShips || bEnteringOrLeaving))
