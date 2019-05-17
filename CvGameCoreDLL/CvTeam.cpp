@@ -3110,9 +3110,9 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 	// </advc.910>
 	if (bGlobalModifiers) // K-Mod
 	{	// advc.003:
-		CvWorldInfo const& wi = GC.getWorldInfo(GC.getMapINLINE().getWorldSize());
+		CvWorldInfo const& kWorld = GC.getWorldInfo(GC.getMapINLINE().getWorldSize());
 		if(eTechEra > 0) { // advc.910
-			cost *= 0.01 * wi.getResearchPercent();
+			cost *= 0.01 * kWorld.getResearchPercent();
 			// advc.910:
 			cost *= 0.01 * GC.getSeaLevelInfo(GC.getMapINLINE().getSeaLevel()).getResearchPercent();
 		}
@@ -3129,7 +3129,7 @@ int CvTeam::getResearchCost(TechTypes eTech, bool bGlobalModifiers, bool bTeamSi
 		if(g.isOption(GAMEOPTION_NO_TECH_TRADING) && eTechEra > 0 && eTechEra < 6) {
 			iModifier += std::max(0, ::round((GC.getTECH_COST_NOTRADE_MODIFIER() + 5 *
 					std::pow(std::abs(eTechEra - 2.5), 1.5)) *
-					::dRange((wi.getDefaultPlayers() - 2) / 6.0, 0, 2)));
+					::dRange((kWorld.getDefaultPlayers() - 2) / 6.0, 0, 2)));
 		} // </advc.550d>
 	}
 
