@@ -2391,6 +2391,7 @@ public:
 	inline int getBuildTimePercent() const { return m_iBuildTimePercent; }
 	inline int getBaseGrowthThresholdPercent() const { return m_iBaseGrowthThresholdPercent; }
 	inline int getGPThresholdPercent() const { return m_iGPThresholdPercent; }
+	inline int getCultureLevelPercent() const { return m_iCultureLevelPercent; }
 	// </advc.251>
 	int getResearchPercent() const;				// Exposed to Python
 	// <advc.251>
@@ -2482,6 +2483,7 @@ protected:
 	int m_iBuildTimePercent;
 	int m_iBaseGrowthThresholdPercent;
 	int m_iGPThresholdPercent;
+	int m_iCultureLevelPercent;
 	// </advc.251>
 	int m_iResearchPercent;
 	// <advc.251>
@@ -5283,6 +5285,7 @@ public:
 	int getBuildPercent() const;					//	Exposed to Python
 	int getImprovementPercent() const;		//	Exposed to Python
 	int getGreatPeoplePercent() const;		//	Exposed to Python
+	int getCulturePercent() const; // advc.126
 	int getAnarchyPercent() const;				//	Exposed to Python
 	int getEventChancePerTurn() const;				//	Exposed to Python
 	int getSoundtrackSpace() const;				//	Exposed to Python
@@ -5322,6 +5325,7 @@ protected:
 	int m_iBuildPercent;
 	int m_iImprovementPercent;
 	int m_iGreatPeoplePercent;
+	int m_iCulturePercent; // advc.126
 	int m_iAnarchyPercent;
 	int m_iEventChancePerTurn;
 	int m_iSoundtrackSpace;

@@ -19,6 +19,9 @@
 			<iBuildPercent>300</iBuildPercent>
 			<iImprovementPercent>300</iImprovementPercent>
 			<iGreatPeoplePercent>300</iGreatPeoplePercent>
+			<!-- advc (note): Unused; the DLL doesn't even read it. (This goes
+				 for all iCulturePercent values in this file.) Handled by
+				 CvCultureLevelInfo instead. -->
 			<iCulturePercent>300</iCulturePercent>
 			<iAnarchyPercent>200</iAnarchyPercent>
 			<!-- advc.300: Reduced to 300 (was 400) -->

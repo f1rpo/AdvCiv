@@ -10164,7 +10164,17 @@ int CvGame::getCultureThreshold(CultureLevelTypes eLevel) const
 	{
 		iThreshold *= 100 + GC.getDefineINT("NO_ESPIONAGE_CULTURE_LEVEL_MODIFIER");
 		iThreshold /= 100;
-	}
+	} // <advc.126>
+	int const iExempt = 50; // Don't adjust thresholds below "developing"
+	if(iThreshold >= iExempt)
+	{
+		iThreshold *= GC.getEraInfo(getStartEra()).getCulturePercent();
+		iThreshold /= 100; // </advc.126>
+		// <advc.251>
+		iThreshold *= GC.getHandicapInfo(getHandicapType()).getCultureLevelPercent();
+		iThreshold /= 100;
+		iThreshold = std::max(iThreshold, iExempt);
+	} // </advc.251>
 	return iThreshold;
 }
 

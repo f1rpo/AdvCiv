@@ -5508,5 +5508,15 @@
 		<Italian>Soglia per vedere la %s1 superata da %d2 [ICON_ESPIONAGE]</Italian>
 		<Spanish>Umbral para ver %s1 superado en %d2 [ICON_ESPIONAGE]</Spanish>
 	</TEXT>
-	
+
+	<!-- advc.251: From Civ4GameTextInfos.xml. Threshold added. -->
+	<TEXT>
+		<Tag>TXT_KEY_VICTORY_SCREEN_CITY_CULTURE</Tag>
+		<English>%d1 %s2_Level cities (%d3_Thresh [ICON_CULTURE])</English>
+		<French>%d1 villes avec un niveau de culture %s2_Level (%d3_Thresh [ICON_CULTURE])</French>
+		<German>%d1 St&#228;dte der Stufe %s2_Level (%d3_Thresh [ICON_CULTURE])</German>
+		<Italian>%d1 citt&#224; con cultura %s2_Level (%d3_Thresh [ICON_CULTURE])</Italian>
+		<Spanish>%d1 ciudades con cultura %s2_Level (%d3_Thresh [ICON_CULTURE])</Spanish>
+	</TEXT>
+
 </Civ4GameText>

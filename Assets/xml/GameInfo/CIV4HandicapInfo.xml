@@ -24,6 +24,7 @@
 			<iBuildTimePercent>100</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>80</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>80</iGPThresholdPercent>
+			<iCultureLevelPercent>100</iCultureLevelPercent>
 			<!-- was 60 -->
 			<iResearchPercent>72</iResearchPercent>
 			<iTrainPercent>80</iTrainPercent>
@@ -194,6 +195,7 @@
 			<iBuildTimePercent>100</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>95</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>95</iGPThresholdPercent>
+			<iCultureLevelPercent>100</iCultureLevelPercent>
 			<!-- was 75 -->
 			<iResearchPercent>85</iResearchPercent>
 			<iTrainPercent>95</iTrainPercent>
@@ -339,6 +341,7 @@
 			<iBuildTimePercent>100</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>100</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>100</iGPThresholdPercent>
+			<iCultureLevelPercent>100</iCultureLevelPercent>
 			<iResearchPercent>90</iResearchPercent>
 			<iTrainPercent>100</iTrainPercent>
 			<iConstructPercent>100</iConstructPercent>
@@ -456,6 +459,7 @@
 			<iBuildTimePercent>100</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>100</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>100</iGPThresholdPercent>
+			<iCultureLevelPercent>100</iCultureLevelPercent>
 			<!-- advc.251: Was 100. Note that this doesn't mean that humans
 				 have an advantage over the AI; ResearchPercent applies to
 				 all civs. -->
@@ -571,6 +575,7 @@
 			<iBuildTimePercent>100</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>100</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>100</iGPThresholdPercent>
+			<iCultureLevelPercent>100</iCultureLevelPercent>
 			<!-- was 110 -->
 			<iResearchPercent>105</iResearchPercent>
 			<iTrainPercent>100</iTrainPercent>
@@ -691,6 +696,7 @@
 			<iBuildTimePercent>100</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>100</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>100</iGPThresholdPercent>
+			<iCultureLevelPercent>110</iCultureLevelPercent>
 			<!-- advc.251 (end) -->
 			<iResearchPercent>115</iResearchPercent>
 			<!-- advc.251 (start) -->
@@ -843,8 +849,7 @@
 			<iBuildTimePercent>110</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>110</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>110</iGPThresholdPercent>
-			<!-- advc.251 (end) -->
-			<!-- advc.251 (start) -->
+			<iCultureLevelPercent>120</iCultureLevelPercent>
 			<iResearchPercent>125</iResearchPercent>
 			<iTrainPercent>110</iTrainPercent>
 			<iConstructPercent>110</iConstructPercent>
@@ -999,6 +1004,7 @@
 			<iBuildTimePercent>115</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>120</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>120</iGPThresholdPercent>
+			<iCultureLevelPercent>130</iCultureLevelPercent>
 			<!-- was 125 -->
 			<iResearchPercent>135</iResearchPercent>
 			<iTrainPercent>120</iTrainPercent>
@@ -1159,6 +1165,7 @@
 			<iBuildTimePercent>120</iBuildTimePercent>
 			<iBaseGrowthThresholdPercent>130</iBaseGrowthThresholdPercent>
 			<iGPThresholdPercent>130</iGPThresholdPercent>
+			<iCultureLevelPercent>150</iCultureLevelPercent>
 			<!-- advc.251: was 130 -->
 			<iResearchPercent>150</iResearchPercent>
 			<iTrainPercent>130</iTrainPercent>

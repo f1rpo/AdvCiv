@@ -10134,6 +10134,7 @@ m_iUnitCostPercent(0),
 m_iBuildTimePercent(0),
 m_iBaseGrowthThresholdPercent(0),
 m_iGPThresholdPercent(0),
+m_iCultureLevelPercent(0),
 // </advc.251>
 m_iResearchPercent(0),
 // <advc.251>
@@ -10561,6 +10562,9 @@ void CvHandicapInfo::read(FDataStreamBase* stream)
 		stream->Read(&m_iGPThresholdPercent);
 	}
 	else m_iBaseGrowthThresholdPercent = m_iGPThresholdPercent = 100;
+	if(uiFlag >= 5)
+		stream->Read(&m_iCultureLevelPercent);
+	else m_iCultureLevelPercent = 100;
 	// </advc.251>
 	stream->Read(&m_iResearchPercent);
 	// <advc.251>
@@ -10661,7 +10665,8 @@ void CvHandicapInfo::write(FDataStreamBase* stream)
 	uiFlag = 1; // advc.251
 	uiFlag = 2; // advc.148
 	uiFlag = 3; // advc.251
-	uiFlag = 4; // advc.251
+	uiFlag = 4; // advc.251 (iBuildTimePercent)
+	uiFlag = 5; // advc.251 (iCultureLevelPercent)
 	stream->Write(uiFlag);		// Flag for Expansion
 
 	stream->Write(m_iFreeWinsVsBarbs);
@@ -10675,6 +10680,7 @@ void CvHandicapInfo::write(FDataStreamBase* stream)
 	stream->Write(m_iBuildTimePercent);
 	stream->Write(m_iBaseGrowthThresholdPercent);
 	stream->Write(m_iGPThresholdPercent);
+	stream->Write(m_iCultureLevelPercent);
 	// </advc.251>
 	stream->Write(m_iResearchPercent);
 	// <advc.251>
@@ -10770,6 +10776,7 @@ bool CvHandicapInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iBuildTimePercent, "iBuildTimePercent");
 	pXML->GetChildXmlValByName(&m_iBaseGrowthThresholdPercent, "iBaseGrowthThresholdPercent");
 	pXML->GetChildXmlValByName(&m_iGPThresholdPercent, "iGPThresholdPercent");
+	pXML->GetChildXmlValByName(&m_iCultureLevelPercent, "iCultureLevelPercent");
 	// </advc.251>
 	pXML->GetChildXmlValByName(&m_iResearchPercent, "iResearchPercent");
 	// <advc.251>
@@ -18731,6 +18738,7 @@ m_iTechCostModifier(0), // BETTER_BTS_AI_MOD, Tech Diffusion, 08/21/09, jdog5000
 m_iBuildPercent(0),
 m_iImprovementPercent(0),
 m_iGreatPeoplePercent(0),
+m_iCulturePercent(0), // advc.126
 m_iAnarchyPercent(0),
 m_iEventChancePerTurn(0),
 m_iSoundtrackSpace(0),
@@ -18835,6 +18843,11 @@ int CvEraInfo::getGreatPeoplePercent() const
 {
 	return m_iGreatPeoplePercent; 
 }
+// <advc.126>
+int CvEraInfo::getCulturePercent() const
+{
+	return m_iCulturePercent; 
+} // </advc.126>
 
 int CvEraInfo::getAnarchyPercent() const
 {
@@ -18936,6 +18949,7 @@ bool CvEraInfo::read(CvXMLLoadUtility* pXML)
 	pXML->GetChildXmlValByName(&m_iBuildPercent, "iBuildPercent");
 	pXML->GetChildXmlValByName(&m_iImprovementPercent, "iImprovementPercent");
 	pXML->GetChildXmlValByName(&m_iGreatPeoplePercent, "iGreatPeoplePercent");
+	pXML->GetChildXmlValByName(&m_iCulturePercent, "iCulturePercent"); // advc.126
 	pXML->GetChildXmlValByName(&m_iAnarchyPercent, "iAnarchyPercent");
 	pXML->GetChildXmlValByName(&m_iEventChancePerTurn, "iEventChancePerTurn");
 	pXML->GetChildXmlValByName(&m_iSoundtrackSpace, "iSoundtrackSpace");
