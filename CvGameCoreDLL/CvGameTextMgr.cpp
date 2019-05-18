@@ -1750,8 +1750,8 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString,
 			}
 			continue;
 		}
-		if(iNextIndex != iCenterOwner) {
-			FAssert(iNextIndex <= BARBARIAN_PLAYER);
+		if(iNextIndex != iCenterOwner &&
+				iNextIndex <= BARBARIAN_PLAYER) { // Can be > when a Spy is in a tile with Barbarians
 			appendUnitOwnerHeading(szString, (PlayerTypes)iNextIndex,
 					(int)perOwner[iNextIndex][ARMY].size(), (int)perOwner[iNextIndex][NAVY].size(),
 					(int)perOwner[iNextIndex][AIR].size(), (int)perOwner[iNextIndex][ALL].size(),
