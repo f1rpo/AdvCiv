@@ -15433,7 +15433,8 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 	{
 		if (pPlot)
 		{
-			if (pPlot->isVisible(GC.getGameINLINE().getActiveTeam(), false))
+			if (pPlot->isVisible(GC.getGameINLINE().getActiveTeam(), false)
+					&& GC.getGameINLINE().getActiveTeam() == getTeam()) // advc.120i
 			{
 				EffectTypes eEffect = GC.getEntityEventInfo(GC.getMissionInfo(MISSION_BOMBARD).getEntityEvent()).getEffectType();
 				gDLL->getEngineIFace()->TriggerEffect(eEffect, pPlot->getPoint(), (float)(GC.getASyncRand().get(360)));
@@ -15489,14 +15490,15 @@ bool CvPlayer::doEspionageMission(EspionageMissionTypes eMission, PlayerTypes eT
 
 		if (NO_PLAYER != eTargetPlayer)
 		{	// <advc.120>
-			ColorTypes col = NO_COLOR;
+			ColorTypes eColor = NO_COLOR;
 			if(bAggressiveMission)
-				col = (ColorTypes)GC.getInfoTypeForString("COLOR_RED");
+				eColor = (ColorTypes)GC.getInfoTypeForString("COLOR_RED");
 			// </advc.120>
-			gDLL->getInterfaceIFace()->addHumanMessage(eTargetPlayer, true,
+			gDLL->getInterfaceIFace()->addHumanMessage(eTargetPlayer,
+					/*true*/ false, // advc.120i
 					GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_DEAL_CANCELLED",
 					MESSAGE_TYPE_INFO, ARTFILEMGR.getInterfaceArtInfo(
-					"ESPIONAGE_BUTTON")->getPath(), col, iX, iY, true, true);
+					"ESPIONAGE_BUTTON")->getPath(), eColor, iX, iY, true, true);
 		}
 	}
 
