@@ -4029,7 +4029,8 @@ bool CvPlot::isTradeNetworkConnected(const CvPlot* pPlot, TeamTypes eTeam) const
 		// <advc.124>
 		if(pPlot->isRoute() && pPlot->isCityRadius()) {
 			CvCity* pWorkingCity = pPlot->getWorkingCity();
-			if(pWorkingCity != NULL && pWorkingCity->getTeam() == eTeam)
+			if(pWorkingCity != NULL && pWorkingCity->getTeam() == eTeam &&
+					area()->getCitiesPerPlayer(getOwnerINLINE()) <= 0)
 				return true;
 		} // </advc.124>
 	}
