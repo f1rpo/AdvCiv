@@ -44,7 +44,8 @@
 		 because BtS is unable to show replays that use unfamiliar color
 		 values. AdvCiv does not add such colors, but derived mods might.
 		 Additional map sizes, victory conditions, handicap or game speed
-		 settings will also cause problems.
+		 settings will also cause problems, and therefore cause this option to be
+		 disabled.
 		 Mod-mods may also want to change TXT_KEY_REPLAY_PREFIX_ADVC in
 		 Civ4GameText_advc.xml. -->
 	<Define>
@@ -343,7 +344,21 @@
         <DefineName>SUBLINEAR_BONUS_QUANTITIES</DefineName>
         <iDefineIntVal>1</iDefineIntVal>
     </Define>
-	
+
+	<!-- advc.129b: A value of 1 allows the Unofficial Patch to place a
+		 Flood Plains feature after razing a city on a tile that allows for
+		 such a terrain feature. (In AdvCiv, this is the case for flat riverside
+		 Desert tiles; see change 129b in Civ4FeatureInfos.xml. Originally,
+		 Flood Plains also occurred on river corners.)
+		 A value of 0 (BtS behavior) disables the placement of Flood Plains
+		 after razing.
+		 Either way, founding a city clears all terrain features in the
+		 city tile - at least temporarily. -->
+    <Define>
+        <DefineName>FLOODPLAIN_AFTER_RAZE</DefineName>
+        <iDefineIntVal>0</iDefineIntVal>
+    </Define>
+
 	<!-- [advc.002a]
 		 Determines the color of cultural borders of water tiles on the
 		 minimap.

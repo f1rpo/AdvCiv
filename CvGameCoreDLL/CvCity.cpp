@@ -775,7 +775,8 @@ void CvCity::kill(bool bUpdatePlotGroups)
 	pPlot->setRuinsName(getName()); // advc.005c
 
 	// UNOFFICIAL_PATCH, replace floodplains after city is removed, 03/04/10, jdog5000: START
-	if (pPlot->getBonusType() == NO_BONUS)
+	if (pPlot->getBonusType() == NO_BONUS
+			/* advc.129b: */ && GC.getDefineINT("FLOODPLAIN_AFTER_RAZE") > 0)
 	{
 		for (int iJ = 0; iJ < GC.getNumFeatureInfos(); iJ++)
 		{
