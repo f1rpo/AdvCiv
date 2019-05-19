@@ -4954,7 +4954,9 @@ bool CvPlayerAI::AI_getAnyPlotDanger(CvPlot* pPlot, int iRange, bool bTestMoves,
 					// advc.030: For CheckBorder, it's a helpful precondition.
 					&& pLoopPlot->area() == pPlotArea)
 			{
-				if (atWar(pLoopPlot->getTeam(), eTeam))
+				if (atWar(pLoopPlot->getTeam(), eTeam)
+						// advc.300: Don't worry about Barbarian borders
+						&& pLoopPlot->getTeam() != BARBARIAN_TEAM)
 				{	/* original bbai code
 					// Border cache is reversible, set for both team and enemy.
 					if (iDistance == 1) {
