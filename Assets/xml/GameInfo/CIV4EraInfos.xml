@@ -392,7 +392,7 @@
 			<iResearchPercent>50</iResearchPercent>
 			<!-- BBAI start: effectively modify cost for all techs from this era.  Default: 18 -->
 			<!-- advc.910: was 20 in K-Mod -->
-			<iTechCostModifier>17</iTechCostModifier>
+			<iTechCostModifier>14</iTechCostModifier>
 			<!-- BBAI end -->
 			<iBuildPercent>70</iBuildPercent>
 			<iImprovementPercent>70</iImprovementPercent>
@@ -461,8 +461,9 @@
 			<iCreatePercent>60</iCreatePercent>
 			<iResearchPercent>40</iResearchPercent>
 			<!-- BBAI start: effectively modify cost for all techs from this era.  Default: 18 -->
-			<!-- advc.910: 18 in K-Mod -->
-			<iTechCostModifier>17</iTechCostModifier>
+			<!-- advc.910: 18 in K-Mod. The historical time line is less of a
+				 concern here, and faster Space victory plays better. -->
+			<iTechCostModifier>7</iTechCostModifier>
 			<!-- BBAI end -->
 			<iBuildPercent>60</iBuildPercent>
 			<iImprovementPercent>60</iImprovementPercent>

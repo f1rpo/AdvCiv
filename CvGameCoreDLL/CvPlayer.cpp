@@ -6267,8 +6267,9 @@ int CvPlayer::getProductionNeeded(BuildingTypes eBuilding) const
 int CvPlayer::getProductionNeeded(ProjectTypes eProject) const
 {
 	CvGame const& g = GC.getGameINLINE(); // advc.003
-
-	int iProductionNeeded = GC.getProjectInfo(eProject).getProductionCost();
+	// <advc.251>
+	int const iBaseCost = GC.getProjectInfo(eProject).getProductionCost();
+	int iProductionNeeded = iBaseCost; // </advc.251>
 
 	iProductionNeeded *= GC.getDefineINT("PROJECT_PRODUCTION_PERCENT");
 	iProductionNeeded /= 100;
@@ -6281,7 +6282,7 @@ int CvPlayer::getProductionNeeded(ProjectTypes eProject) const
 	// <advc.251>
 	iProductionNeeded = ::roundToMultiple(0.01 * iProductionNeeded *
 			GC.getHandicapInfo(getHandicapType()).getCreatePercent(),
-			isHuman() ? 5 : 1);
+			isHuman() ? (iBaseCost > 500 ? 50 : 5) : 1);
 	if(!isHuman() && !isBarbarian()) {
 		CvHandicapInfo const& h = GC.getHandicapInfo(g.getHandicapType());
 		int iAIModifier = //h.getAIPerEraModifier() * getCurrentEra()

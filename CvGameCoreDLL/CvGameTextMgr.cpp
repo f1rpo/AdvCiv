@@ -12119,14 +12119,21 @@ void CvGameTextMgr::setProjectHelp(CvWStringBuffer &szBuffer, ProjectTypes eProj
 	//if (!bCivilopediaText) { // advc.003
 	if (pCity == NULL)
 	{
+		int iCost=-1; // advc.251
 		if (ePlayer != NO_PLAYER)
-		{
-			szTempBuffer.Format(L"\n%d%c", GET_PLAYER(ePlayer).getProductionNeeded(eProject), GC.getYieldInfo(YIELD_PRODUCTION).getChar());
-		}
+			iCost = GET_PLAYER(ePlayer).getProductionNeeded(eProject);	
 		else
 		{
-			szTempBuffer.Format(L"\n%d%c", kProject.getProductionCost(), GC.getYieldInfo(YIELD_PRODUCTION).getChar());
+			// <advc.251>
+			int const iBaseCost = kProject.getProductionCost();
+			iCost = iBaseCost;
+			iCost *= GC.getDefineINT("PROJECT_PRODUCTION_PERCENT");
+			iCost /= 100;
+			// To match CvPlayer::getProductionNeeded
+			iCost = ::roundToMultiple(iCost, iBaseCost > 500 ? 50 : 5);
+			// </advc.251>
 		}
+		szTempBuffer.Format(L"\n%d%c", iCost, GC.getYieldInfo(YIELD_PRODUCTION).getChar());
 		szBuffer.append(szTempBuffer);
 	}
 	else
