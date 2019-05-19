@@ -552,6 +552,9 @@ void CvSelectionGroup::pushMission(MissionTypes eMission, int iData1, int iData2
 			}
 
 			gDLL->getInterfaceIFace()->setHasMovedUnit(true);
+			/*  advc.001w: Prevent help text and mouse focus from lingering after
+				a command button is clicked */
+			GC.getGameINLINE().setFocusUpdateTimer(2);
 		}
 
 		CvEventReporter::getInstance().selectionGroupPushMission(this, eMission);

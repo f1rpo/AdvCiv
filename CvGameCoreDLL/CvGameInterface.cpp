@@ -453,7 +453,7 @@ void CvGame::updateTestEndTurn()  // advc.003: nested else branches replaced w/ 
 {
 	if (!GET_PLAYER(getActivePlayer()).isTurnActive())
 		return;
-	static bool bFocusMaybeStuck = false; // advc.001
+
 	// <advc.003g>
 	if(!b_mFPTestDone)
 		CvMessageControl::getInstance().sendFPTest(FPChecksum()); // </advc.003g>
@@ -465,13 +465,6 @@ void CvGame::updateTestEndTurn()  // advc.003: nested else branches replaced w/ 
 	{
 		if (GET_PLAYER(getActivePlayer()).hasReadyUnit(bAny))
 			gDLL->getInterfaceIFace()->setEndTurnMessage(false);
-		// <advc.001>
-		else if(bFocusMaybeStuck && gDLL->getInterfaceIFace()->getHeadSelectedUnit() == NULL) {
-			// As a side-effect, this gives the focus to the main map.
-			gDLL->getInterfaceIFace()->makeSelectionListDirty();
-		}
-		bFocusMaybeStuck = false;
-		// </advc.001>
 		return;
 	}
 
@@ -502,7 +495,6 @@ void CvGame::updateTestEndTurn()  // advc.003: nested else branches replaced w/ 
 	if (GET_PLAYER(getActivePlayer()).isOption(PLAYEROPTION_WAIT_END_TURN) || !gDLL->getInterfaceIFace()->isHasMovedUnit() || isHotSeat() || isPbem())
 	{
 		gDLL->getInterfaceIFace()->setEndTurnMessage(true);
-		bFocusMaybeStuck = true; // advc.001
 		return;
 	}
 

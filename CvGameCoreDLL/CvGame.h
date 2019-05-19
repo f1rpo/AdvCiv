@@ -284,6 +284,7 @@ public:
 	bool isScoreDirty() const;																							// Exposed to Python
 	void setScoreDirty(bool bNewValue);																			// Exposed to Python
 	void setScoreboardDirtyTimer(int iDelay); // advc.085
+	void setFocusUpdateTimer(int iDelay); // advc.001w
 
 	bool isCircumnavigated() const;																// Exposed to Python
 	void makeCircumnavigated();																		// Exposed to Python
@@ -697,6 +698,7 @@ protected:
 	int m_iCivTeamsEverAlive;
 	// </advc.003b>
 	int m_iScoreboardDirtyTimer; // advc.085
+	int m_iFocusUpdateTimer; // advc.001w
 	unsigned int m_uiInitialTime;
 
 	bool m_bScoreDirty;

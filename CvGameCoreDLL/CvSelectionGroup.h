@@ -289,8 +289,7 @@ protected:
 	void resetBoarded();
 	void getLandCargoGroups(std::vector<CvSelectionGroup*>& r);
 	// </advc.075>
-	bool sentryAlert(
-			bool bUpdateKnownEnemies = false); // advc.004l
+	bool sentryAlert(/*  advc.004l: */ bool bUpdateKnownEnemies = false);
 
 	// <advc.003k>
 	class Data {

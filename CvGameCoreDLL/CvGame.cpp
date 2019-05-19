@@ -760,6 +760,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	m_bFeignSP = false; // advc.135c
 	m_bDoMShown = false; // advc.004x
 	b_mFPTestDone = false; // advc.003g
+	m_iFocusUpdateTimer = -1; // advc.001w
 	m_iScoreboardDirtyTimer = -1; // advc.085
 }
 
@@ -2446,6 +2447,12 @@ void CvGame::update()
 				}
 				m_iScoreboardDirtyTimer--;
 			} // </advc.085>
+			// <advc.001w>
+			if(m_iFocusUpdateTimer >= 0) {
+				if(m_iFocusUpdateTimer == 0)
+					gDLL->getInterfaceIFace()->makeSelectionListDirty();
+				m_iFocusUpdateTimer--;
+			} // </advc.001w>
 		}
 		if (getTurnSlice() == 0)
 		{	// <advc.700> Delay initial auto-save until RiseFall is initialized
@@ -4677,6 +4684,14 @@ void CvGame::setScoreboardDirtyTimer(int iDelay) {
 
 	m_iScoreboardDirtyTimer = iDelay;
 } // </advc.085>
+
+// <advc.001w>
+void CvGame::setFocusUpdateTimer(int iDelay) {
+
+	// No need for this hack when there is no unit-cycling delay
+	if(!getBugOptionBOOL("MainInterface__RapidUnitCycling", false))
+		m_iFocusUpdateTimer = iDelay;
+} // </advc.001w>
 
 
 bool CvGame::isCircumnavigated() const
