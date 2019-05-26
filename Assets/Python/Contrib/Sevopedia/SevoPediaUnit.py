@@ -7,7 +7,6 @@
 #   sevotastic@yahoo.com
 #
 # additional work by Gaurav, Progor, Ket, Vovan, Fitchn, LunarMongoose
-# see ReadMe for details
 #
 
 from CvPythonExtensions import *
@@ -24,20 +23,34 @@ class SevoPediaUnit:
 	def __init__(self, main):
 		self.iUnit = -1
 		self.top = main
-		
+		# <advc.004y>
+		bWideScreen = self.top.bWideScreen
+		X_RESOLUTION = screen = self.top.getScreen().getXResolution()
+		# </advc.004y>
 		self.X_UNIT_PANE = self.top.X_PEDIA_PAGE
 		self.Y_UNIT_PANE = self.top.Y_PEDIA_PAGE
 		self.W_UNIT_PANE = 325
+		# <advc.004y>
+		if bWideScreen:
+			self.W_UNIT_PANE = (self.W_UNIT_PANE * X_RESOLUTION) // 1024
+		# </advc.004y>
 		self.H_UNIT_PANE = 145
-
-		self.W_ICON = 100
-		self.H_ICON = 100
-		self.X_ICON = self.X_UNIT_PANE + (self.H_UNIT_PANE - self.H_ICON) / 2
-		self.Y_ICON = self.Y_UNIT_PANE + (self.H_UNIT_PANE - self.H_ICON) / 2
-
+	
+		# advc.004y: Move the button and icon size settings up
 		self.ICON_SIZE = 64
+		# <advc.004y> Perhaps better not to enlarge the icon; use one size everyhwere in the game.
+		#if bWideScreen:
+		#	self.ICON_SIZE = 96 # </advc.004y>
 		self.BUTTON_SIZE = 64
 		self.PROMOTION_ICON_SIZE = 32
+	
+		# <advc.004y> ICON_SIZE as lower bound for icon frame
+		iIconFrameSize = max(100, self.ICON_SIZE)
+		self.W_ICON = iIconFrameSize # was 100
+		self.H_ICON = iIconFrameSize # was 100
+		# </advc.004y>
+		self.X_ICON = self.X_UNIT_PANE + (self.H_UNIT_PANE - self.H_ICON) / 2
+		self.Y_ICON = self.Y_UNIT_PANE + (self.H_UNIT_PANE - self.H_ICON) / 2
 
 		self.X_STATS_PANE = self.X_UNIT_PANE + 130
 		self.Y_STATS_PANE = self.Y_UNIT_PANE + 42
@@ -55,6 +68,10 @@ class SevoPediaUnit:
 		self.X_PREREQ_PANE = self.X_UNIT_PANE
 		self.Y_PREREQ_PANE = self.Y_UNIT_PANE + self.H_UNIT_PANE + 10
 		self.W_PREREQ_PANE = 280
+		# <advc.004y> Same split between PREREQ_PANE and UPGRADES_TO_PANE as between UNIT_PANE and UNIT_ANIMATION
+		if bWideScreen:
+			self.W_PREREQ_PANE = self.W_UNIT_PANE
+		# </advc.004y>
 		self.H_PREREQ_PANE = 110
 
 		self.X_UPGRADES_TO_PANE = self.X_PREREQ_PANE + self.W_PREREQ_PANE + 10
@@ -65,6 +82,10 @@ class SevoPediaUnit:
 		self.X_SPECIAL_PANE = self.X_UNIT_PANE
 		self.Y_SPECIAL_PANE = self.Y_PREREQ_PANE + self.H_PREREQ_PANE + 10
 		self.W_SPECIAL_PANE = 280
+		# <advc.004y>
+		if bWideScreen:
+			self.W_SPECIAL_PANE = self.W_UNIT_PANE
+		# </advc.004y>
 		self.H_SPECIAL_PANE = 175
 
 		self.X_PROMO_PANE = self.X_SPECIAL_PANE + self.W_SPECIAL_PANE + 10

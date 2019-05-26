@@ -7,7 +7,6 @@
 #   sevotastic@yahoo.com
 #
 # additional work by Gaurav, Progor, Ket, Vovan, Fitchn, LunarMongoose
-# see ReadMe for details
 #
 
 from CvPythonExtensions import *
@@ -103,14 +102,22 @@ class SevoPediaTech(CvPediaScreen.CvPediaScreen):
 
 
 	def placeCivilizations(self):
+		# <advc.004y> Show the box only for starting techs
+		civs = []
+		for iCiv in range(gc.getNumCivilizationInfos()):
+			if gc.getCivilizationInfo(iCiv).isCivilizationFreeTechs(self.iTech):
+				civs.append(iCiv)
+		if len(civs) <= 0:
+			return
+		# </advc.004y>
 		screen = self.top.getScreen()
 		panelName = self.top.getNextWidgetName()
 		screen.addPanel( panelName, localText.getText("TXT_KEY_PEDIA_CATEGORY_CIV", ()), "", False, True, self.X_CIVS, self.Y_CIVS, self.W_CIVS, self.H_CIVS, PanelStyles.PANEL_STYLE_BLUE50 )
 		screen.attachLabel(panelName, "", "  ")
-		for iCiv in range(gc.getNumCivilizationInfos()):
+		for iCiv in civs: # advc.004y: Use the list computed above
 			civ = gc.getCivilizationInfo(iCiv)
-			if civ.isCivilizationFreeTechs(self.iTech):
-				screen.attachImageButton(panelName, "", civ.getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_CIV, iCiv, 1, False)
+			#if civ.isCivilizationFreeTechs(self.iTech):
+			screen.attachImageButton(panelName, "", civ.getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_CIV, iCiv, 1, False)
 
 
 
