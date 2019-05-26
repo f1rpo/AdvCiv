@@ -949,19 +949,16 @@ class CvVictoryScreen:
 
 		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_MAP_SIZE", (gc.getWorldInfo(gc.getMap().getWorldSize()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_CLIMATE", (gc.getClimateInfo(gc.getMap().getClimate()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
-		# <advc.137> Use TXT_KEY_LOW/HIGH instead of SEA_LEVEL keys.
-		# (The SEA_LEVEL keys include the recommendation for the
-		# Custom Game screen - don't want that here.
+		# <advc.137> Use TXT_KEY_LOW/HIGH instead of SEA_LEVEL keys. (The SEA_LEVEL keys include the recommendation for the Custom Game screen - don't want that here.
 		seaLvl = gc.getSeaLevelInfo(gc.getMap().getSeaLevel()).getSeaLevelChange()
 		if seaLvl == 0: # Medium sea level - use the BtS code.
 			screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_SEA_LEVEL", (gc.getSeaLevelInfo(gc.getMap().getSeaLevel()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		else:
-			tkey = "TXT_KEY_HIGH"
+			szKey = "TXT_KEY_HIGH"
 			if seaLvl < 0:
-				tkey = "TXT_KEY_LOW"
-			s = localText.getText(tkey, ())
-			appendText = localText.getText("TXT_KEY_SETTINGS_SEA_LEVEL", (s,))
-			screen.appendListBoxStringNoUpdate(szSettingsTable, appendText, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
+				szKey = "TXT_KEY_LOW"
+			s = localText.getText(szKey, ())
+			screen.appendListBoxStringNoUpdate(szSettingsTable, localText.getText("TXT_KEY_SETTINGS_SEA_LEVEL", (s,)), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		# </advc.137>
 		# advc.004:
 		screen.appendListBoxStringNoUpdate(szSettingsTable, str(g.countCivPlayersEverAlive()) + " " + localText.getText("TXT_KEY_MAIN_MENU_PLAYERS", ()), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
@@ -984,31 +981,30 @@ class CvVictoryScreen:
 		szOptionsTable = self.getNextWidgetName()
 		screen.addListBoxGFC(szOptionsTable, "", self.SETTINGS_PANEL_X2 + self.MARGIN, self.SETTINGS_PANEL_Y + self.MARGIN, self.SETTINGS_PANEL_WIDTH - 2*self.MARGIN, self.SETTINGS_PANEL_HEIGHT - 2*self.MARGIN, TableStyles.TABLE_STYLE_EMPTY)
 		screen.enableSelect(szOptionsTable, False)
-
+		bSPaH = g.isOption(GameOptionTypes.GAMEOPTION_SPAH) # advc.250b
 		for i in range(GameOptionTypes.NUM_GAMEOPTION_TYPES):
 			if g.isOption(i):
 				# <advc.104> Handle Aggressive AI below; skip it here.
-				if gc.getGameOptionInfo(i).getTextKey() == "TXT_KEY_GAME_OPTION_AGGRESSIVE_AI":
+				if i == GameOptionTypes.GAMEOPTION_AGGRESSIVE_AI:
 					continue # </advc.104>
 				# <advc.250b> Handle Advanced Start options below if SPaH.
-				isSPaH = g.isOption(GameOptionTypes.GAMEOPTION_SPAH)
-				if isSPaH:
-					if gc.getGameOptionInfo(i).getTextKey() == "TXT_KEY_GAME_OPTION_SPAH":
+				if bSPaH:
+					if i == GameOptionTypes.GAMEOPTION_SPAH:
 						continue
-					if gc.getGameOptionInfo(i).getTextKey() == "TXT_KEY_GAME_OPTION_ADVANCED_START":
+					if i == GameOptionTypes.GAMEOPTION_ADVANCED_START:
 						continue
 				# </advc.250b>
 				# <advc.300> Show earliest turn that barbarians can spawn on
-				descr = gc.getGameOptionInfo(i).getDescription()
-				if gc.getGameOptionInfo(i).getTextKey() =="TXT_KEY_GAME_OPTION_RAGING_BARBARIANS":
-					barbStart = g.getBarbarianStartTurn()
+				szDescr = gc.getGameOptionInfo(i).getDescription()
+				if i == GameOptionTypes.GAMEOPTION_RAGING_BARBARIANS:
+					iBarbarianStartTurn = g.getBarbarianStartTurn()
 					# Stop displaying after some time [Since v0.94: Don't show the start turn at all.]
-					if False and barbStart + 25 > g.getGameTurn():
-						descr += "\n\t("
-						descr += localText.getText("TXT_KEY_BARB_START", ())
-						descr += " " + str(barbStart) + ")"
-				# Next line: Plug in descr </advc.300>
-				screen.appendListBoxStringNoUpdate(szOptionsTable, descr, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+					if False and iBarbarianStartTurn + 25 > g.getGameTurn():
+						szDescr += "\n\t("
+						szDescr += localText.getText("TXT_KEY_BARB_START", ())
+						szDescr += " " + str(iBarbarianStartTurn) + ")"
+				# </advc.300>
+				screen.appendListBoxStringNoUpdate(szOptionsTable, szDescr, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 		# <advc.004> Disabled victory conditions. Some overlap with CvReplayInfo::addSettingsMsg
 		for i in range(gc.getNumVictoryInfos()):
 			if not g.isVictoryValid(i):
@@ -1016,19 +1012,18 @@ class CvVictoryScreen:
 		# </advc.004>
 
 		# <advc.104> AI settings
-		isAggro = g.isOption(GameOptionTypes.GAMEOPTION_AGGRESSIVE_AI)
-		isK = g.useKModAI()
-		displayString = None
-		if isAggro and isK:
-			displayString = localText.getText("TXT_KEY_GAME_OPTION_AGGRESSIVE_AI",())
-		elif isK: # Only possible if Aggressive AI disabled through XML
-			displayString = "Non-aggressive AI"
-		if not displayString is None: # Copy-pasted from above
-			screen.appendListBoxStringNoUpdate(szOptionsTable, displayString, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		bLegacyAI = g.useKModAI()
+		szAIOption = None
+		if g.isOption(GameOptionTypes.GAMEOPTION_AGGRESSIVE_AI) and bLegacyAI:
+			szAIOption = localText.getText("TXT_KEY_GAME_OPTION_AGGRESSIVE_AI",())
+		elif bLegacyAI: # Only possible if Aggressive AI disabled through XML
+			szAIOption = "Non-Aggressive AI"
+		if not szAIOption is None:
+			screen.appendListBoxStringNoUpdate(szOptionsTable, szAIOption, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 		# </advc.104>
 
 		if (g.isOption(GameOptionTypes.GAMEOPTION_ADVANCED_START)):
-			if not isSPaH: # advc.250b
+			if not bSPaH: # advc.250b
 				szNumPoints = u"%s %d" % (localText.getText("TXT_KEY_ADVANCED_START_POINTS", ()), g.getNumAdvancedStartPoints())
 			# <advc.250b>
 			else:
