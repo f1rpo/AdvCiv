@@ -207,6 +207,20 @@
 		<DefineName>UWAI_MULTI_WAR_RELUCTANCE</DefineName>
 		<iDefineIntVal>10</iDefineIntVal>
 	</Define>
+    <Define>
+		<!-- When computing per-civ power values (which play an important role
+			 in decisions on war and peace), the power value of each individual
+			 unit is raised to the power of (i.e. exponentiated by)
+			 POWER_CORRECTION. For example, if POWER_CORRECTION is 2, per-unit
+			 power values are squared. POWER_CORRECTION = 1 is the BtS behavior;
+			 power values then typically equal unit strength, e.g. two Warriors
+			 are as good as one Spearman. When squaring, one Spearman is as
+			 good as four Warriors. (That seems too much.)
+			 Recommended: 1.65; one Spearman then corresponds to 3.1 Warriors.
+			 -->
+        <DefineName>POWER_CORRECTION</DefineName>
+        <fDefineFloatVal>1.65</fDefineFloatVal>
+    </Define>
 	<!-- [/advc.104] -->
 
 	<!-- -->

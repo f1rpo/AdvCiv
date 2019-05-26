@@ -87,22 +87,6 @@
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 
-	<!-- [advc.104]
-		 When computing per-civ power values (which play an important role
-		 in decisions on war and peace), the power value of each individual
-		 unit is raised to the power of (i.e. exponentiated by)
-		 POWER_CORRECTION. For example, if POWER_CORRECTION is 2, per-unit
-		 power values are squared. POWER_CORRECTION = 1 is the BtS behavior;
-		 power values then typically equal unit strength, e.g. two Warriors are
-		 as good as one Spearman. When squaring, one Spearman is as good as
-		 four Warriors. (That seems too much.)
-         Recommended: 1.7; one Spearman then corresponds to 3.25 Warriors, and
-		 one Grenadier (base power 12) to 6.5 Axemen (base power 6) . -->
-    <Define>
-        <DefineName>POWER_CORRECTION</DefineName>
-        <fDefineFloatVal>1.7</fDefineFloatVal>
-    </Define>
-
     <!-- [advc.100]
 		 Only relevant if UWAI disabled (or only in the background).
 		 When an AI civ is willing to declare war in exchange for gold or tech,
