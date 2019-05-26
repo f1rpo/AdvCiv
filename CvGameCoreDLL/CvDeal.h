@@ -88,7 +88,8 @@ public:
 
 protected:
 
-	bool startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer);
+	bool startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer,
+			bool bPeace); // advc.122
 	void endTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer, bool bTeam,
 			bool bUpdateAttitude = true, // advc.036
 			PlayerTypes eCancelPlayer = NO_PLAYER); // advc.130p

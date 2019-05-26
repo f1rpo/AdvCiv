@@ -254,7 +254,8 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 				GET_PLAYER(getFirstPlayer()).warAndPeaceAI().getCache().
 						reportSponsoredWar(*pSecondList, getSecondPlayer(),
 						(TeamTypes)pNode->m_data.m_iData); // </advc.104>
-			bool bSave = startTrade(pNode->m_data, getFirstPlayer(), getSecondPlayer());
+			bool bSave = startTrade(pNode->m_data, getFirstPlayer(), getSecondPlayer(),
+					bPeace); // advc.122
 			bBumpUnits = bBumpUnits || pNode->m_data.m_eItemType == TRADE_PEACE; // K-Mod
 
 			if (bSave)
@@ -282,7 +283,8 @@ void CvDeal::addTrades(CLinkList<TradeData>* pFirstList, CLinkList<TradeData>* p
 				GET_PLAYER(getSecondPlayer()).warAndPeaceAI().getCache().
 						reportSponsoredWar(*pFirstList, getFirstPlayer(),
 						(TeamTypes)pNode->m_data.m_iData); // </advc.104>
-			bool bSave = startTrade(pNode->m_data, getSecondPlayer(), getFirstPlayer());
+			bool bSave = startTrade(pNode->m_data, getSecondPlayer(), getFirstPlayer(),
+					bPeace); // advc.122
 			bBumpUnits = bBumpUnits || pNode->m_data.m_eItemType == TRADE_PEACE; // K-Mod
 
 			if (bSave)
@@ -788,7 +790,8 @@ void CvDeal::read(FDataStreamBase* pStream)
 }
 
 // Returns true if the trade should be saved...
-bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer)
+bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer,
+		bool bPeace) // advc.122
 {
 	bool bSave = false;
 
@@ -840,7 +843,8 @@ bool CvDeal::startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eT
 		if (pCity != NULL)
 		{
 			if( gTeamLogLevel >= 2 ) logBBAI("    Player %d (%S) gives a city due to TRADE_CITIES with %d (%S)", eFromPlayer, GET_PLAYER(eFromPlayer).getCivilizationDescription(0), eToPlayer, GET_PLAYER(eToPlayer).getCivilizationDescription(0) );
-			pCity->doTask(TASK_GIFT, eToPlayer);
+			pCity->doTask(/* advc.122: */ bPeace ? TASK_CEDE :
+					TASK_GIFT, eToPlayer);
 		}
 		break;
 	}

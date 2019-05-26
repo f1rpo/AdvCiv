@@ -776,7 +776,7 @@ void CvCity::kill(bool bUpdatePlotGroups)
 
 	// UNOFFICIAL_PATCH, replace floodplains after city is removed, 03/04/10, jdog5000: START
 	if (pPlot->getBonusType() == NO_BONUS
-			/* advc.129b: */ && GC.getDefineINT("FLOODPLAIN_AFTER_RAZE") > 0)
+			&& GC.getDefineINT("FLOODPLAIN_AFTER_RAZE") > 0) // advc.129b
 	{
 		for (int iJ = 0; iJ < GC.getNumFeatureInfos(); iJ++)
 		{
@@ -1270,6 +1270,7 @@ void CvCity::createGreatPeople(UnitTypes eGreatPersonUnit, bool bIncrementThresh
 
 void CvCity::doTask(TaskTypes eTask, int iData1, int iData2, bool bOption, bool bAlt, bool bShift, bool bCtrl)
 {
+	bool bCede = false; // advc.122
 	switch (eTask)
 	{
 	case TASK_RAZE:
@@ -1279,11 +1280,14 @@ void CvCity::doTask(TaskTypes eTask, int iData1, int iData2, bool bOption, bool 
 	case TASK_DISBAND:
 		GET_PLAYER(getOwnerINLINE()).disband(this);
 		break;
-
+	// <advc.122>
+	case TASK_CEDE:
+		bCede = true;
+		// fall through // </advc.122>
 	case TASK_GIFT:
 		if (getLiberationPlayer(false) == iData1)
 		{
-			liberate(false);
+			liberate(false, /* advc.122: */ bCede);
 		}
 		else
 		{
@@ -15331,10 +15335,10 @@ int CvCity::getBuildingHealthChange(BuildingClassTypes eBuildingClass) const
 	return 0;
 }
 
-void CvCity::liberate(bool bConquest)
+void CvCity::liberate(bool bConquest, /* advc.122: */ bool bCede)
 {
 	PlayerTypes ePlayer = getLiberationPlayer(bConquest);
-	if(NO_PLAYER == ePlayer)
+	if(ePlayer == NO_PLAYER)
 		return; // advc.003
 	PlayerTypes eOwner = getOwnerINLINE();
 	// dlph.23: No longer used
@@ -15369,8 +15373,8 @@ void CvCity::liberate(bool bConquest)
 	GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT, eOwner, szBuffer, getX_INLINE(), getY_INLINE(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 
 	GET_PLAYER(ePlayer).acquireCity(this, false, true, true);
-	// advc.130j:
-	GET_PLAYER(ePlayer).AI_rememberEvent(eOwner, MEMORY_LIBERATED_CITIES);
+	if(!bCede) // advc.122
+		GET_PLAYER(ePlayer).AI_rememberEvent(eOwner, MEMORY_LIBERATED_CITIES); // advc.130j
 	// <advc.003>
 	CvTeam& kTeam = TEAMREF(ePlayer);
 	CvTeam const& kOwnerTeam = TEAMREF(eOwner); // </advc.003>
@@ -15402,7 +15406,8 @@ void CvCity::liberate(bool bConquest)
 	}*/
 }
 
-PlayerTypes CvCity::getLiberationPlayer(bool bConquest) const
+PlayerTypes CvCity::getLiberationPlayer(bool bConquest,
+		TeamTypes eWarTeam) const // advc.122
 {
 	if (isCapital())
 	{
@@ -15524,8 +15529,8 @@ PlayerTypes CvCity::getLiberationPlayer(bool bConquest) const
 			CvPlot* pLoopPlot = ::plotCity(getX_INLINE(), getY_INLINE(), iPlot);
 
 			if (NULL != pLoopPlot)
-			{	// advc.122: was VisibleEnemyUnit
-				if (pLoopPlot->isVisibleEnemyCityAttacker(eBestPlayer))
+			{	// advc.122: was VisibleEnemyUnit; and eWarTeam added.
+				if (pLoopPlot->isVisibleEnemyCityAttacker(eBestPlayer, eWarTeam))
 				{
 					return NO_PLAYER;
 				}

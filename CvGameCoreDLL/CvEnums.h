@@ -1124,6 +1124,7 @@ enum TaskTypes				// Exposed to Python
 	TASK_RALLY_PLOT,
 	TASK_CLEAR_RALLY_PLOT,
 	TASK_LIBERATE,
+	TASK_CEDE, // advc.122
 
 #ifdef _USRDLL
 	NUM_TASK_TYPES

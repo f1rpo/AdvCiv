@@ -1443,6 +1443,11 @@ bool PUF_isEnemy(const CvUnit* pUnit, int iData1, int iData2)
 // <advc.122>
 bool PUF_isEnemyCityAttacker(const CvUnit* pUnit, int iData1, int iData2) {
 
+	if(iData2 >= 0) {
+		CvTeam const& kAssumePeace = GET_TEAM((TeamTypes)iData2);
+		if(GET_TEAM(pUnit->getTeam()).getMasterTeam() == kAssumePeace.getMasterTeam())
+			return false;
+	}
 	CvUnitInfo& u = pUnit->getUnitInfo();
 	if(u.getCargoSpace() <= 0 || u.getSpecialCargo() != NO_SPECIALUNIT) {
 		if(u.getDomainType() != DOMAIN_LAND)
@@ -1450,7 +1455,7 @@ bool PUF_isEnemyCityAttacker(const CvUnit* pUnit, int iData1, int iData2) {
 		if(u.isOnlyDefensive() || u.getCombat() <= 0)
 			return false;
 	}
-	return PUF_isEnemy(pUnit, iData1, iData2);
+	return PUF_isEnemy(pUnit, iData1, false);
 } // </advc.122>
 
 bool PUF_isVisible(const CvUnit* pUnit, int iData1, int iData2)

@@ -996,8 +996,9 @@ public:
 	int getBuildingHealthChange(BuildingClassTypes eBuildingClass) const;           // Exposed to Python
 	void setBuildingHealthChange(BuildingClassTypes eBuildingClass, int iChange);          // Exposed to Python
 
-	PlayerTypes getLiberationPlayer(bool bConquest) const;							   // Exposed to Python
-	void liberate(bool bConquest);													   // Exposed to Python
+	PlayerTypes getLiberationPlayer(bool bConquest,									   // Exposed to Python
+			TeamTypes eWarTeam = NO_TEAM) const; // advc.122
+	void liberate(bool bConquest, /* advc.122: */ bool bCede = false);							   // Exposed to Python
 
 	void changeNoBonusCount(BonusTypes eBonus, int iChange);						  // Exposed to Python
 	int getNoBonusCount(BonusTypes eBonus) const;

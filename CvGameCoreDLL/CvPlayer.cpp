@@ -4404,7 +4404,9 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 		{
 			CvCity* pCityTraded = getCity(item.m_iData);
 
-			if (pCityTraded != NULL && pCityTraded->getLiberationPlayer(false) == eWhoTo)
+			if (pCityTraded != NULL && pCityTraded->getLiberationPlayer(
+					false, /* advc.122: */ getTeam())
+					== eWhoTo)
 				return true;
 			// <advc.003>
 			if(!GET_PLAYER(eWhoTo).canReceiveTradeCity() ||
@@ -4423,7 +4425,7 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 					//pCityTraded->getOriginalOwner(),
 			};
 			for(int i = 0; i < iNumPrevOwners; i++) {
-				if(aePrevOwners[i] != NO_PLAYER &&
+				if(aePrevOwners[i] != NO_PLAYER && TEAMID(aePrevOwners[i]) != TEAMID(eWhoTo) &&
 						// advc.134a: Avoid calling CvTeam::isAtWar in canTradeItem
 						::atWar(TEAMID(aePrevOwners[i]), getTeam()) &&
 						!::atWar(TEAMID(aePrevOwners[i]),TEAMID(eWhoTo))) {
@@ -4433,21 +4435,21 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 			}
 			if(!bValid)
 				break;
-			CvPlot const& cityPlot = *pCityTraded->plot();
+			CvPlot const& kCityPlot = *pCityTraded->plot();
 			// Can't trade an endangered city to a third party
 			if(!::atWar(TEAMID(eWhoTo), getTeam()) && // advc.134a: Not: CvTeam::isAtWar
-					cityPlot.isVisibleEnemyCityAttacker(getID()))
+					kCityPlot.isVisibleEnemyCityAttacker(getID()))
 				break;
-			if(cityPlot.calculateCulturePercent(eWhoTo) < GC.getCITY_TRADE_CULTURE_THRESH())
+			if(kCityPlot.calculateCulturePercent(eWhoTo) < GC.getCITY_TRADE_CULTURE_THRESH())
 				break;
 			// The BtS condition:
 			if ((!ourTeam.isAVassal() && !theirTeam.isVassal(getTeam())) ||
 					// Alternative condition:
 					(theirTeam.isVassal(getTeam()) &&
 					// Tile culture, not city culture.
-					cityPlot.getCulture(eWhoTo) > cityPlot.getCulture(getID()))) {
+					kCityPlot.getCulture(eWhoTo) > kCityPlot.getCulture(getID())))
 				return true;
-			} // </advc.122>
+			// </advc.122>
 		}
 		break;
 
