@@ -4689,8 +4689,9 @@ void CvGame::setScoreboardDirtyTimer(int iDelay) {
 void CvGame::setFocusUpdateTimer(int iDelay) {
 
 	// No need for this hack when there is no unit-cycling delay
-	if(!getBugOptionBOOL("MainInterface__RapidUnitCycling", false))
-		m_iFocusUpdateTimer = iDelay;
+	if(getBugOptionBOOL("MainInterface__RapidUnitCycling", false))
+		m_iFocusUpdateTimer = -1;
+	else m_iFocusUpdateTimer = iDelay;
 } // </advc.001w>
 
 

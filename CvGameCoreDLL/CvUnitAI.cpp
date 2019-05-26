@@ -1164,6 +1164,7 @@ int CvUnitAI::AI_sacrificeValue(const CvPlot* pPlot) const
 			iValue -= iXP; // </advc.048>
 	}
 	//return iValue;
+	FAssert(iValue < MAX_INT); // advc
 	//return std::min((long)MAX_INT, iValue); // K-Mod
 	/*  Erik (BUG1): We cannot change the signature due to the virtual specifier
 		so we have to truncate the final value to an int. At least we probably avoid

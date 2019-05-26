@@ -3004,14 +3004,13 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 // END OF OVERLAP COMPUTATION
 // COUNT BAD TILES
 	// <advc.040>
-	bool bFirstColony = false;
-	if(bCoastal && iNumAreaCities <= 0 && !isBarbarian() &&
+	bool bFirstColony = 
+			(bCoastal && iNumAreaCities <= 0 && !isBarbarian() && getNumCities() > 0 &&
 			(pPlot->isFreshWater() ||
 			/*  Don't apply first-colony logic to tundra, snow and desert b/c
 				these are likely surrounded by more (unrevealed) bad terrain. */
 			pPlot->calculateNatureYield(YIELD_FOOD, getTeam(), true) +
-			pPlot->calculateNatureYield(YIELD_PRODUCTION, getTeam(), true) > 1))
-		bFirstColony = true;
+			pPlot->calculateNatureYield(YIELD_PRODUCTION, getTeam(), true) > 1));
 	int iUnrev = 0;
 	int iRevDecentLand = 0;
 	// </advc.040>
@@ -3297,11 +3296,11 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					}
 				}
 			}
-			int const featHealth = GC.getFeatureInfo(eFeature).getHealthPercent();
-			if(iI != CITY_HOME_PLOT && (!bRemoveableFeature || featHealth > 0)) {
+			int const iFeatHealth = GC.getFeatureInfo(eFeature).getHealthPercent();
+			if(iI != CITY_HOME_PLOT && (!bRemoveableFeature || iFeatHealth > 0)) {
 				/* (K-Mod) Note, this will be reduced by some factor before
 					being added to the total value. */
-				iHealth += featHealth;
+				iHealth += iFeatHealth;
 			}
 		}
 		// K-Mod end
@@ -4026,9 +4025,9 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 					}
 				} /* <advc.031> Apply greed only half. (Why is settling at the
 					 coast greedy at all?). */
-				int halfGreed = 100 + (kSet.iGreed - 100) / 2;
-				if(halfGreed > 100) {
-					iSeaValue *= halfGreed;
+				int iHalfGreed = 100 + (kSet.iGreed - 100) / 2;
+				if(iHalfGreed > 100) {
+					iSeaValue *= iHalfGreed;
 					iSeaValue /= 100;
 				}
 				// Modify based on production (since the point is to build a navy)
@@ -4490,49 +4489,50 @@ short CvPlayerAI::AI_foundValue_bulk(int iX, int iY, const CvFoundSettings& kSet
 	{
 		return 1;
 	}
-  if(!GET_TEAM(getTeam()).isCapitulated()) { // advc.130v
-	if (pArea->countCivCities() == 0) // advc.031: Had been counting Barb cities
+	if(!GET_TEAM(getTeam()).isCapitulated() && getNumCities() > 0) // advc.130v
 	{
-		//iValue *= 2;
-		// K-Mod: presumably this is meant to be a bonus for being the first on a new continent.
-		// But I don't want it to be a bonus for settling on tiny islands, so I'm changing it.
-		iValue *= range(100 * (pArea->//getNumTiles()
-				getNumRevealedTiles(getTeam()) // advc.031: Don't cheat
-				- 15) / //15
-				20 // req. 40 revealed tiles for the full bonus
-				, 100, 200);
-		iValue /= 100;
-		// K-Mod end
-	}
-	else
-	{
-		int iTeamAreaCities = GET_TEAM(getTeam()).countNumCitiesByArea(pArea);
-		/*  advc.040: Don't let a single rival city make all the difference.
-			Btw, the AI shouldn't magically know iTeamAreaCities. This entire
-			"stick to your continent" block should perhaps be removed. */
-		if(10*pArea->getNumCities() > 7*iTeamAreaCities)
-		//if (pArea->getNumCities() == iTeamAreaCities)
-		{	// advc.040: Why care about barb cities? And times 3/2 is huge.
-			/*iValue *= 3;
-			iValue /= 2;
-		}
-		else if (pArea->getNumCities() == (iTeamAreaCities + GET_TEAM(BARBARIAN_TEAM).countNumCitiesByArea(pArea)))
-		{*/
-			iValue *= 5; // advc.031: was *=4 and /=3
-			iValue /= 4;
-		}
-		else if (iTeamAreaCities > 0
-				/*  advc.040: One city isn't a good enough reason for
-					discriminating against new colonies */
-				&& AI_isPrimaryArea(pArea))
+		if (pArea->countCivCities() == 0) // advc.031: Had been counting Barbarian cities
 		{
-			//iValue *= 5;
-			//iValue /= 4;
-			; // advc.031: Instead reduce the value in the else branch
+			//iValue *= 2;
+			// K-Mod: presumably this is meant to be a bonus for being the first on a new continent.
+			// But I don't want it to be a bonus for settling on tiny islands, so I'm changing it.
+			iValue *= range(100 * (pArea->//getNumTiles()
+					getNumRevealedTiles(getTeam()) // advc.031: Don't cheat
+					- 15) / //15
+					20 // req. 40 revealed tiles for the full bonus
+					, 100, 200);
+			iValue /= 100;
+			// K-Mod end
 		}
-		else iValue = ::round(iValue * 0.8); // advc.031
-	}
-  } // </advc.130v>
+		else
+		{
+			int iTeamAreaCities = GET_TEAM(getTeam()).countNumCitiesByArea(pArea);
+			/*  advc.040: Don't let a single rival city make all the difference.
+				Btw, the AI shouldn't magically know iTeamAreaCities. This entire
+				"stick to your continent" block should perhaps be removed. */
+			if(10*pArea->getNumCities() > 7*iTeamAreaCities)
+			//if (pArea->getNumCities() == iTeamAreaCities)
+			{	// advc.040: Why care about barb cities? And times 3/2 is huge.
+				/*iValue *= 3;
+				iValue /= 2;
+			}
+			else if (pArea->getNumCities() == (iTeamAreaCities + GET_TEAM(BARBARIAN_TEAM).countNumCitiesByArea(pArea)))
+			{*/
+				iValue *= 5; // advc.031: was *=4 and /=3
+				iValue /= 4;
+			}
+			else if (iTeamAreaCities > 0
+					/*  advc.040: One city isn't a good enough reason for
+						discriminating against new colonies */
+					&& AI_isPrimaryArea(pArea))
+			{
+				//iValue *= 5;
+				//iValue /= 4;
+				; // advc.031: Instead reduce the value in the else branch
+			}
+			else iValue = ::round(iValue * 0.8); // advc.031
+		}
+	} // </advc.130v>
 // END OF AREA CHECKS
 // BONUS COUNT CHECKS
 	if (!kSet.bStartingLoc && getNumCities() > 0)
@@ -13168,7 +13168,7 @@ DenialTypes CvPlayerAI::AI_cityTrade(CvCity* pCity, PlayerTypes ePlayer) const {
 	/*if(pCity->getLiberationPlayer(false) == ePlayer)
 		return NO_DENIAL;*/
 	// advc.122: Not so fast
-	bool const bLib = pCity->getLiberationPlayer(false) == ePlayer;
+	bool const bLib = pCity->getLiberationPlayer(false, getTeam()) == ePlayer;
 	if(!bLib && !kPlayer.isHuman() && kPlayer.getTeam() != getTeam() && 
 			!pCity->isEverOwned(ePlayer)) {
 		// <advc.122> "We don't want to trade this" seems appropriate
@@ -17738,7 +17738,8 @@ int CvPlayerAI::AI_espionageVal(PlayerTypes eTargetPlayer, EspionageMissionTypes
 // K-Mod
 bool CvPlayerAI::AI_isMaliciousEspionageTarget(PlayerTypes eTarget) const
 {
-	if (GET_PLAYER(eTarget).getTeam() == getTeam()
+	// advc.120b: was GET_PLAYER(eTarget).getTeam() == getTeam()
+	if (GET_PLAYER(eTarget).getMasterTeam() == getMasterTeam()
 			|| eTarget == BARBARIAN_PLAYER) // advc.003n
 		return false;
 	return
@@ -17748,7 +17749,8 @@ bool CvPlayerAI::AI_isMaliciousEspionageTarget(PlayerTypes eTarget) const
 				AI_getAttitude(eTarget) + 1, NUM_ATTITUDE_TYPES - 1)) < 100 ||
 		// </advc.120b>
 		GET_TEAM(getTeam()).AI_getWarPlan(GET_PLAYER(eTarget).getTeam()) != NO_WARPLAN ||
-		(AI_isDoVictoryStrategyLevel4() && GET_PLAYER(eTarget).AI_isDoVictoryStrategyLevel4() && !AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY1));
+		(AI_isDoVictoryStrategyLevel4() && GET_PLAYER(eTarget).AI_isDoVictoryStrategyLevel4() &&
+		!AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY3)); // advc.120b: was DIPLOMACY1
 }
 // K-Mod end
 
@@ -23107,8 +23109,9 @@ int CvPlayerAI::AI_calculateDominationVictoryStage() const
 
 		if (iValue >= 100)
 		{
-			if (getNumCities() > 3 &&
-					g.getPlayerRank(getID()) < (g.countCivPlayersAlive() + 1)/2)
+			if (getNumCities() > 3 && g.getPlayerRank(getID()) <
+					// advc.115: was (g.countCivPlayersAlive+1)/2
+					g.countCivPlayersAlive() / 2)
 				return 2;
 			return 1;
 		}
