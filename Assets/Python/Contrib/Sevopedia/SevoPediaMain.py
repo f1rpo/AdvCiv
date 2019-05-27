@@ -78,11 +78,22 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		self.W_SCREEN = 1024
 		# <advc.004y>
 		self.bWideScreen = True
+		self.bFullScreen = True
+		if self.bFullScreen:
+			self.bWideScreen = True
 		self.HORIZONTAL_MARGIN = 30
+		# VERTICAL_MARGIN: Want the Advisor buttons to remain visible. BOTTOM_MARGIN could be 0, but I don't think asymmetrical margins look good.
+		self.TOP_MARGIN = 50
+		self.BOTTOM_MARGIN = 50
 		if self.bWideScreen:
 			self.W_SCREEN = max(self.W_SCREEN, self.getScreen().getXResolution() - 2 * self.HORIZONTAL_MARGIN)
 			if self.W_SCREEN <= 1024:
 				self.bWideScreen = False
+				self.bFullScreen = False
+		if self.bFullScreen:
+			self.H_SCREEN = max(self.H_SCREEN, self.getScreen().getYResolution() - self.BOTTOM_MARGIN - self.TOP_MARGIN)
+			if self.H_SCREEN <= 768:
+				self.bFullScreen = False
 		#self.X_SCREEN = 500 # now unused
 		#self.Y_SCREEN = 396 # unused to begin with
 		# </advc.004y>
@@ -132,8 +143,10 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 
 		self.X_TITLE = (self.W_SCREEN - 24) // 2 # advc.004y: was 500
 		self.Y_TITLE = 8
-		self.X_TOC = 45 # advc.004y: was 75
-		Y_FOOTER_CONTROLS = 730 # advc.004y: as in BtS (but new variable)
+		# <advc.004y>
+		self.X_TOC = 45 # was 75
+		Y_FOOTER_CONTROLS = self.Y_BOT_PANEL + 16 # was 730
+		# </advc.004y>
 		self.Y_TOC = Y_FOOTER_CONTROLS
 		self.X_INDEX = self.X_TOC + 135 # advc.004y: was 210
 		self.Y_INDEX = Y_FOOTER_CONTROLS
@@ -431,9 +444,13 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		screen.addPanel(self.BOT_PANEL_ID, u"", u"", True, False, self.X_BOT_PANEL, self.Y_BOT_PANEL, self.W_BOT_PANEL, self.H_BOT_PANEL, PanelStyles.PANEL_STYLE_BOTTOMBAR)
 		# <advc.004y>
 		X_SCREEN = self.HORIZONTAL_MARGIN
+		Y_SCREEN = self.BOTTOM_MARGIN
 		if not self.bWideScreen:
-			X_SCREEN = screen.centerX(0) # </advc.004y>
-		screen.setDimensions(X_SCREEN, screen.centerY(0), self.W_SCREEN, self.H_SCREEN)
+			X_SCREEN = screen.centerX(0)
+		if not self.bFullScreen:
+			Y_SCREEN = screen.centerY(0)
+		# </advc.004y>
+		screen.setDimensions(X_SCREEN, Y_SCREEN, self.W_SCREEN, self.H_SCREEN)
 
 		screen.setText(self.HEAD_ID, "Background", self.HEAD_TEXT, CvUtil.FONT_CENTER_JUSTIFY, self.X_TITLE, self.Y_TITLE, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL,      -1, -1)
 		screen.setText(self.BACK_ID, "Background", self.BACK_TEXT, CvUtil.FONT_LEFT_JUSTIFY,   self.X_BACK,  self.Y_BACK,  0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_PEDIA_BACK,    1, -1)
