@@ -10970,7 +10970,7 @@ void CvPlayer::setFoundedFirstCity(bool bNewValue)
 	}
 	/*  <advc.104> So that rivals (with higher ids) can immediately evaluate
 		war plans against this player  */
-	if(!isBarbarian() && getWPAI.isEnabled())
+	if(!isBarbarian() && getParent() == NO_PLAYER && getWPAI.isEnabled())
 		AI().warAndPeaceAI().getCache().update(); // </advc.104>
 }
 
