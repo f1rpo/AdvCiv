@@ -50,7 +50,7 @@ public:
 	int maxLandDist() const;
 	int maxSeaDist() const;
 	bool isUpdated() const;
-	void cacheXML(); // Can't do this in constructor b/c not yet loaded
+	void doXML(); // Can't do this in constructor b/c not yet loaded
 	double aspectWeight(int xmlId) const;
 	static int const preparationTimeLimited = 8;
 	static int const preparationTimeLimitedNaval = 10;
@@ -69,6 +69,8 @@ private:
 	std::vector<int> xmlWeights;
 	bool enabled; // true iff K-Mod AI disabled through Game Options
 	bool inBackgr; // status of the XML flag
+
+	void applyPersonalityWeight();
 };
 
 #endif // </advc.104>

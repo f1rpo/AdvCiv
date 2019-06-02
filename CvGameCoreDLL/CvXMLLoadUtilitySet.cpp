@@ -8,6 +8,7 @@
 #include "CvArtFileMgr.h"
 #include "CvGameTextMgr.h"
 #include "CvInfoWater.h"
+#include "CvGameAI.h" // advc.104x
 #include "FVariableSystem.h"
 
 
@@ -18,7 +19,7 @@ bool CvXMLLoadUtility::ReadGlobalDefines(const TCHAR* szXMLFileName, CvCacheObje
 {
 	// advc.003: Handle successful read upfront
 	if (gDLL->cacheRead(cache, szXMLFileName)) {		// src data file name
-		logMsg("Read GobalDefines from cache");
+		logMsg("Read GlobalDefines from cache");
 		return true;
 	}
 
@@ -781,7 +782,7 @@ bool CvXMLLoadUtility::LoadPreMenuGlobals()
 	UpdateProgressCB("GlobalOther");
 
 	DestroyFXml();
-
+	getWPAI.doXML(); // advc.104x
 	return true;
 }
 
@@ -790,7 +791,7 @@ bool CvXMLLoadUtility::LoadPreMenuGlobals()
 //  FUNCTION:   LoadPostMenuGlobals()
 //
 //  PURPOSE :   loads global xml data which isn't needed for the main menus
-//		this data is loaded as a secodn stage, when the game is launched
+//		this data is loaded as a second stage, when the game is launched
 //
 //------------------------------------------------------------------------------------------------------
 bool CvXMLLoadUtility::LoadPostMenuGlobals()
@@ -862,7 +863,7 @@ bool CvXMLLoadUtility::LoadPostMenuGlobals()
 	// Load the attachable infos
 	LoadGlobalClassInfo(GC.getAttachableInfo(), "CIV4AttachableInfos", "Misc", "Civ4AttachableInfos/AttachableInfos/AttachableInfo", false);
 
-	// Specail Case Diplomacy Info due to double vectored nature and appending of Responses
+	// Special Case Diplomacy Info due to double vectored nature and appending of Responses
 	LoadDiplomacyInfo(GC.getDiplomacyInfo(), "CIV4DiplomacyInfos", "GameInfo", "Civ4DiplomacyInfos/DiplomacyInfos/DiplomacyInfo", &CvDLLUtilityIFaceBase::createDiplomacyInfoCacheObject);
 	// advc.003j:
 	//LoadGlobalClassInfo(GC.getQuestInfo(), "Civ4QuestInfos", "Misc", "Civ4QuestInfos/QuestInfo", false);

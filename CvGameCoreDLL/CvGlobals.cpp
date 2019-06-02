@@ -2871,7 +2871,6 @@ void CvGlobals::cacheGlobals()
 	m_iCOMBAT_DIE_SIDES = getDefineINT("COMBAT_DIE_SIDES");
 	m_iCOMBAT_DAMAGE = getDefineINT("COMBAT_DAMAGE");
 	// BETTER_BTS_AI_MOD: END
-	getWPAI.cacheXML(); // advc.104x
 	m_bCachingDone = true; // advc.003c
 }
 

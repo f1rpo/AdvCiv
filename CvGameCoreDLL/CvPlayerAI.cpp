@@ -9731,6 +9731,9 @@ int CvPlayerAI::AI_getFirstImpressionAttitude(PlayerTypes ePlayer) const {
 				getWarmongerRespect());
 		personalityModifier += iRespectModifier * 0.75;
 		personalityModifier += h.getAIAttitudeChangePercent() / 100.0; // advc.148
+		/*  advc.104x: Low UWAI_PERSONALITY_PERCENT makes the peace weights and
+			respect values more similar; don't want that to increase the relations bonus. */
+		personalityModifier *= GC.getDefineINT("UWAI_PERSONALITY_PERCENT") / 100.0;
 		iAttitude += ::round(personalityModifier);
 		// </advc.130b>
 	}
@@ -9875,7 +9878,8 @@ PlayerVoteTypes CvPlayerAI::AI_diploVote(const VoteSelectionSubData& kVoteData, 
 				else iSecondBestVal = iValue; // advc.115b
 			}
 		} // <advc.115b>
-		if(iBestValue == iSecondBestVal)
+		if(iBestValue == iSecondBestVal || (eBestTeam != getMasterTeam() &&
+				kOurTeam.AI_isAnyMemberDoVictoryStrategyLevel4()))
 			return PLAYER_VOTE_ABSTAIN; // </advc.115b>
 		return eBestTeam;
 	}
