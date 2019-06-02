@@ -8362,7 +8362,10 @@ void CvCity::setCultureLevel(CultureLevelTypes eNewValue, bool bUpdatePlotGroups
 				getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"),
 				getX_INLINE(), getY_INLINE(), true, true);
 		if (getCultureLevel() == GC.getNumCultureLevelInfos() - 1)
-		{
+		{	// <advc.106> Cut from below. Use this for the replay message as well.
+			CvWString szMsg(gDLL->getText("TXT_KEY_MISC_CULTURE_LEVEL", getNameKey(),
+					GC.getCultureLevelInfo(getCultureLevel()).getTextKeyWide()));
+			// </advc.106>
 			for (int iI = 0; iI < MAX_PLAYERS; iI++)
 			{
 				CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
@@ -8372,11 +8375,9 @@ void CvCity::setCultureLevel(CultureLevelTypes eNewValue, bool bUpdatePlotGroups
 				if (isRevealed(kLoopPlayer.getTeam(), false)
 						|| kLoopPlayer.isSpectator()) // advc.127
 				{
-					szBuffer = gDLL->getText("TXT_KEY_MISC_CULTURE_LEVEL",
-							getNameKey(), GC.getCultureLevelInfo(getCultureLevel()).getTextKeyWide());
 					gDLL->getInterfaceIFace()->addHumanMessage(
 							kLoopPlayer.getID(), false, GC.getEVENT_MESSAGE_TIME(),
-							szBuffer, "AS2D_CULTURELEVEL", MESSAGE_TYPE_MAJOR_EVENT,
+							szMsg, "AS2D_CULTURELEVEL", MESSAGE_TYPE_MAJOR_EVENT,
 							GC.getCommerceInfo(COMMERCE_CULTURE).getButton(),
 							(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
 							getX_INLINE(), getY_INLINE(), true, true);
@@ -8391,7 +8392,11 @@ void CvCity::setCultureLevel(CultureLevelTypes eNewValue, bool bUpdatePlotGroups
 							GC.getCommerceInfo(COMMERCE_CULTURE).getButton(),
 							(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
 				}
-			}
+			} // <advc.106>
+			GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT,
+					getOwnerINLINE(), szMsg, getX_INLINE(), getY_INLINE(),
+					(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+			// </advc.106>
 		}
 		// ONEVENT - Culture growth
 		CvEventReporter::getInstance().cultureExpansion(this, getOwnerINLINE());	
