@@ -363,6 +363,7 @@ public:
 	DllExport GameStateTypes getGameState() const;																		// Exposed to Python
 	DllExport void setGameState(GameStateTypes eNewValue);
 
+	PlayerTypes getInitialActivePlayer() const; // advc.106h
 	EraTypes getStartEra() const;																			// Exposed to Python
 
 	CalendarTypes getCalendar() const;																// Exposed to Python
@@ -726,6 +727,7 @@ protected:
 	TeamTypes m_eWinner;
 	VictoryTypes m_eVictory;
 	GameStateTypes m_eGameState;
+	PlayerTypes m_eInitialActivePlayer; // advc.106h
 	GlobeLayerTypes m_eCurrentLayer; // advc.004m
 	PlayerTypes m_eEventPlayer;
 

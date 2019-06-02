@@ -224,8 +224,8 @@ void CvReplayInfo::createInfo(PlayerTypes ePlayer)
 void CvReplayInfo::addSettingsMsg() {
 
 	CvGame& g = GC.getGameINLINE();
-	PlayerTypes eActivePlayer = g.getActivePlayer();
-	if(eActivePlayer == NO_PLAYER)
+	PlayerTypes ePlayer = g.getInitialActivePlayer();
+	if(ePlayer == NO_PLAYER)
 		return;
 	bool bScenario = false;
 	// Strip away file ending of WB scenario
@@ -239,16 +239,15 @@ void CvReplayInfo::addSettingsMsg() {
 	/*  Can't use getTextKeyWide for sea level b/c of the recommendation text
 		added by advc.137 (same issue in CvVictoryScreen.py) */
 	int iSeaLevelChange = GC.getSeaLevelInfo(getSeaLevel()).getSeaLevelChange();
-	CvPlayer const& kActivePlayer = GET_PLAYER(eActivePlayer);
+	CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
 	CvWString szSettings = gDLL->getText("TXT_KEY_MISC_RELOAD", 1) + L". " +
 			gDLL->getText("TXT_KEY_MAIN_MENU_SETTINGS") + L":\n" +
 			gDLL->getText("TXT_KEY_NAME_LEADER_CIV",
-			GC.getLeaderHeadInfo(kActivePlayer.getLeaderType()).getTextKeyWide(),
-			kActivePlayer.getCivilizationShortDescriptionKey(), kActivePlayer.getReplayName()) + L"\n" +
+			GC.getLeaderHeadInfo(kPlayer.getLeaderType()).getTextKeyWide(),
+			kPlayer.getCivilizationShortDescriptionKey(), kPlayer.getReplayName()) + L"\n" +
 			gDLL->getText("TXT_KEY_SETTINGS_DIFFICULTY",
 			GC.getHandicapInfo(getDifficulty()).getTextKeyWide()) + L"\n" +
-			(bScenario ? szMapName :
-			gDLL->getText("TXT_KEY_SIZE_MAP_WITH",
+			(bScenario ? szMapName : gDLL->getText("TXT_KEY_SIZE_MAP_WITH",
 			GC.getWorldInfo(getWorldSize()).getTextKeyWide(),
 			getMapScriptName().GetCString()) + L" " +
 			gDLL->getText("TXT_KEY_SETTINGS_SEA_LEVEL",
@@ -314,7 +313,7 @@ void CvReplayInfo::addSettingsMsg() {
 		szSettings += szModName + L" Mod";
 	}
 	CvReplayMessage* pSettingsMsg = new CvReplayMessage(0,
-			REPLAY_MESSAGE_MAJOR_EVENT, eActivePlayer);
+			REPLAY_MESSAGE_MAJOR_EVENT, ePlayer);
 	pSettingsMsg->setText(szSettings);
 	pSettingsMsg->setColor((ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"));
 	FAssert(m_listReplayMessages.empty());

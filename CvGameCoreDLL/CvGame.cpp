@@ -328,8 +328,6 @@ void CvGame::setInitialItems()
 
 void CvGame::regenerateMap()
 {
-	
-
 	if (GC.getInitCore().getWBMapScript())
 		return;
 
@@ -607,7 +605,7 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	m_eWinner = NO_TEAM;
 	m_eVictory = NO_VICTORY;
 	m_eGameState = GAMESTATE_ON;
-
+	m_eInitialActivePlayer = NO_PLAYER; // advc.106h
 	m_szScriptData = "";
 
 	for (iI = 0; iI < MAX_PLAYERS; iI++)
@@ -918,6 +916,7 @@ void CvGame::initFreeState()
 		if(iStartEra > getStartEra())
 			GC.getInitCore().setEra((EraTypes)iStartEra);
 	}
+	m_eInitialActivePlayer = getActivePlayer(); // advc.106h
 }
 
 
@@ -5583,6 +5582,12 @@ void CvGame::setGameState(GameStateTypes eNewValue)
 	gDLL->getInterfaceIFace()->setDirty(Cursor_DIRTY_BIT, true);
 }
 
+// <advc.106h>
+PlayerTypes CvGame::getInitialActivePlayer() const {
+
+	return m_eInitialActivePlayer;
+} // </advc.106h>
+
 
 GameSpeedTypes CvGame::getGameSpeedType() const
 {
@@ -9247,6 +9252,10 @@ void CvGame::read(FDataStreamBase* pStream)
 	pStream->Read((int*)&m_eWinner);
 	pStream->Read((int*)&m_eVictory);
 	pStream->Read((int*)&m_eGameState);
+	// <advc.106h>
+	if(uiFlag >= 6)
+		pStream->Read((int*)&m_eInitialActivePlayer);
+	else m_eInitialActivePlayer = getActivePlayer(); // </advc.106h>
 	// <advc.004m>
 	if(uiFlag >= 5) {
 		pStream->Read((int*)&m_eCurrentLayer);
@@ -9450,6 +9459,7 @@ void CvGame::write(FDataStreamBase* pStream)
 	uiFlag = 3; // advc.052
 	uiFlag = 4; // advc.003b: Civs and teams EverAlive tracked
 	uiFlag = 5; // advc.004m
+	uiFlag = 6; // advc.106h
 	pStream->Write(uiFlag);		// flag for expansion
 
 	pStream->Write(m_iElapsedGameTurns);
@@ -9498,6 +9508,7 @@ void CvGame::write(FDataStreamBase* pStream)
 	pStream->Write(m_eWinner);
 	pStream->Write(m_eVictory);
 	pStream->Write(m_eGameState);
+	pStream->Write(m_eInitialActivePlayer); // advc.106h
 	pStream->Write(m_eCurrentLayer); // advc.004m
 
 	pStream->WriteString(m_szScriptData);
