@@ -4472,11 +4472,20 @@ void CvGame::setAIAutoPlay(int iNewValue, /* <advc.127> */ bool bChangePlayerSta
 	m_iAIAutoPlay = std::max(0, iNewValue);
 	if(!bChangePlayerStatus)
 		return; // </advc.127>
+	// Erik <BM1>
+	if (m_iAIAutoPlay == 0)
+	{
+		// Required by the benchmark to be informed when autoplay has completed
+		CyArgsList pyArgs;
+		pyArgs.add(getTurnSlice());
+		CvEventReporter::getInstance().genericEvent("AutoPlayComplete", pyArgs.makeFunctionArgs());
+	} // Erik </BM1>
 
 	/*  AI_AUTO_PLAY_MOD, 07/09/08, jdog5000: START
 		(Multiplayer compatibility idea from Jeckel) */
 	// <advc.127> To make sure I'm not breaking anything in singleplayer
-	if(!isGameMultiPlayer()) {
+	if(!isGameMultiPlayer())
+	{
 		GET_PLAYER(getActivePlayer()).setHumanDisabled((getAIAutoPlay() != 0));
 		return;
 	} // </advc.127>

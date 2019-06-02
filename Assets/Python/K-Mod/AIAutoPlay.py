@@ -11,6 +11,7 @@ import PyHelpers
 import Popup as PyPopup
 
 import ChangePlayer
+import time # Erik (BM1)
 
 # globals
 gc = CyGlobalContext()
@@ -31,7 +32,11 @@ class AIAutoPlay :
 		self.bSaveAllDeaths = True
 
 		self.DefaultTurnsToAuto = 1
-		
+		# Erik <BM1>
+		self.benchmarkStartTime = 0
+		self.numTurns = 0
+		self.bBenchmark = False # advc
+		# </BM1>
 		self.customEM = customEM
 
 		self.customEM.addEventHandler( "kbdEvent", self.onKbdEvent )
@@ -41,6 +46,7 @@ class AIAutoPlay :
 		self.customEM.addEventHandler( 'OnLoad', self.onGameLoad )
 		self.customEM.addEventHandler( 'GameStart', self.onGameStart )
 		self.customEM.addEventHandler( 'victory', self.onVictory )
+		self.customEM.addEventHandler( 'AutoPlayComplete', self.onAutoPlayComplete ) # Erik (BM1)
 
 		self.customEM.setPopupHandler( 7050, ["toAIChooserPopup",self.AIChooserHandler,self.blankHandler] )
 		self.customEM.setPopupHandler( 7052, ["pickHumanPopup",self.pickHumanHandler,self.blankHandler] )
@@ -75,6 +81,7 @@ class AIAutoPlay :
 		self.customEM.removeEventHandler( 'OnLoad', self.onGameLoad )
 		self.customEM.removeEventHandler( 'GameStart', self.onGameStart )
 		self.customEM.removeEventHandler( 'victory', self.onVictory )
+		self.customEM.addEventHandler( 'AutoPlayComplete', self.onAutoPlayComplete ) # Erik (BM1)
 
 		self.customEM.setPopupHandler( 7050, ["toAIChooserPopup",self.blankHandler,self.blankHandler] )
 		self.customEM.setPopupHandler( 7052, ["pickHumanPopup",self.blankHandler,self.blankHandler] )
@@ -238,27 +245,31 @@ class AIAutoPlay :
 	def onKbdEvent( self, argsList ) :
 		'keypress handler'
 		eventType,key,mx,my,px,py = argsList
+		# Get it?  Shift ... control ... to the AI
+		if eventType != 6 or not self.customEM.bShift or not self.customEM.bCtrl:
+			return # advc.003
+		self.bBenchmark = False # advc (for BM1)
+		theKey=int(key)
+		# advc: B for benchmark added (for BM1)
+		if theKey == int(InputTypes.KB_X) or theKey == int(InputTypes.KB_B):
+			if game.getAIAutoPlay() > 0:
+				if self.refortify:
+					doRefortify(game.getActivePlayer())
+				game.setAIAutoPlay(0)
+				self.checkPlayer()
+			else:
+				# <advc> for BM1
+				if theKey == int(InputTypes.KB_B):
+					self.bBenchmark = True # </advc>
+				self.toAIChooser()
 
-		if ( eventType == 6 ):
-			theKey=int(key)
-
-			if( theKey == int(InputTypes.KB_X) and self.customEM.bShift and self.customEM.bCtrl ) :
-				# Get it?  Shift ... control ... to the AI
-				if( game.getAIAutoPlay() > 0 ) :
-					if( self.refortify ) :
-						doRefortify( game.getActivePlayer() )
-					game.setAIAutoPlay( 0 )
-					self.checkPlayer()
-				else :
-					self.toAIChooser()
-
-			if( theKey == int(InputTypes.KB_M) and self.customEM.bShift and self.customEM.bCtrl ) :
-				# Toggle auto moves
-				if( self.LOG_DEBUG ) : CyInterface().addImmediateMessage("Moving your units...","")
-				game.setAIAutoPlay( 1 )
-
-			if( theKey == int(InputTypes.KB_O) and self.customEM.bShift and self.customEM.bCtrl ) :
-				doRefortify( game.getActivePlayer() )
+		if theKey == int(InputTypes.KB_M):
+			# Toggle auto moves
+			if self.LOG_DEBUG:
+				CyInterface().addImmediateMessage("Moving your units...","")
+			game.setAIAutoPlay(1)
+		if theKey == int(InputTypes.KB_O):
+			doRefortify( game.getActivePlayer() )
 
 
 	def onBeginGameTurn( self, argsList):
@@ -292,7 +303,11 @@ class AIAutoPlay :
 		yResolution = screen.getYResolution()
 		popupSizeX = 400
 		popupSizeY = 250
-
+		# <advc> Based on Erik's code (BM1)
+		if self.bBenchmark:
+			popupSizeX += 100
+			popupSizeY += 80
+		# </advc>
 		popup = PyPopup.PyPopup(7050,contextType = EventContextTypes.EVENTCONTEXT_ALL)
 		popup.setPosition((xResolution - popupSizeX )/2, (yResolution-popupSizeY)/2-50)
 		popup.setSize(popupSizeX,popupSizeY)
@@ -301,7 +316,13 @@ class AIAutoPlay :
 		popup.addSeparator()
 		popup.createPythonEditBox( '%d'%(self.DefaultTurnsToAuto), 'Number of turns to turn over to AI', 0)
 		popup.setEditBoxMaxCharCount( 4, 2, 0 )
-
+		if self.bBenchmark: # advc
+			# Erik <BM1>
+			popup.addSeparator()
+			# In-game benchmark RNG seed input
+			popup.setBodyString(localText.getText("Enter seed (or leave empty to use the existing seed)", ()) )
+			popup.createPythonEditBox('', 'RNG seed', 1)
+			# </BM1>
 		popup.addSeparator()
 		popup.addButton("OK")
 		popup.addButton(localText.getText("TXT_KEY_AIAUTOPLAY_CANCEL", ()))
@@ -313,13 +334,33 @@ class AIAutoPlay :
 		if( popupReturn.getButtonClicked() == 1 ):  # if you pressed cancel
 			return
 
-		numTurns = 0
+		self.numTurns = 0
 		if( popupReturn.getEditBoxString(0) != '' ) :
-			numTurns = int( popupReturn.getEditBoxString(0) )
-
-		if( numTurns > 0 ) :
-			if( self.LOG_DEBUG ) : CyInterface().addImmediateMessage("Fully automating for %d turns"%(numTurns),"")
-			game.setAIAutoPlay(numTurns)
+			self.numTurns = int( popupReturn.getEditBoxString(0) )
+		# Erik <BM1>
+			if self.bBenchmark: # advc
+				self.benchmarkStartTime = time.clock()
+		if self.bBenchmark: # advc
+			if( popupReturn.getEditBoxString(1) != '' ) :
+				seed = int(popupReturn.getEditBoxString(1))
+				# advc: CvRandom::reseed isn't exposed to Python, but init does the same thing.
+				gc.getGame().getSorenRand().init(seed)
+		# </BM1>
+		if( self.numTurns > 0 ) :
+			if( self.LOG_DEBUG ) : CyInterface().addImmediateMessage("Fully automating for %d turns"%(self.numTurns),"")
+			game.setAIAutoPlay(self.numTurns)
+	# Erik <BM1>
+	def onAutoPlayComplete(self, argsList):
+		# <advc>
+		if not self.bBenchmark:
+			return # </advc>
+		benchmarkEndTime = time.clock()
+		timeElapsed = benchmarkEndTime - self.benchmarkStartTime	
+		popupInfo = PyPopup.PyPopup(game.getActivePlayer())
+		popupInfo.setHeaderString('Benchmark complete!') # advc: Put this in the header
+		popupInfo.setBodyString('Elapsed time: ' + str(timeElapsed) + ' seconds. turns: ' + str(self.numTurns))	
+		popupInfo.launch(true, PopupStates.POPUPSTATE_QUEUED)
+	# </BM1>
 
 ########################## Utility functions ###########################################
 			
