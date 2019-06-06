@@ -21361,11 +21361,8 @@ bool CvPlayer::isValidTriggerCorporation(const CvEventTriggerInfo& kTrigger, CvC
 void CvPlayer::launch(VictoryTypes eVictory)
 {
 	CvTeam& kTeam = GET_TEAM(getTeam());
-
 	if (!kTeam.canLaunch(eVictory))
-	{
 		return;
-	}
 
 	kTeam.finalizeProjectArtTypes();
 	kTeam.setVictoryCountdown(eVictory, kTeam.getVictoryDelay(eVictory));
@@ -21378,34 +21375,38 @@ void CvPlayer::launch(VictoryTypes eVictory)
 
 	kTeam.setCanLaunch(eVictory, false);
 
-	CvCity *capital = getCapitalCity();
-
-	//message
-	CvWString szBuffer;
-	for(int i = 0; i < MAX_PLAYERS; ++i)
+	CvCity* pCapital = getCapitalCity();
+	// <advc.106> Cut from the loop below. Use this for the replay message as well.
+	CvWString szMsg(gDLL->getText("TXT_KEY_VICTORY_TEAM_HAS_LAUNCHED",
+			kTeam.getName().GetCString()));
+	int iPlotX = -1;
+	int iPlotY = -1; // </advc.106>
+	for(int i = 0; i < MAX_CIV_PLAYERS; ++i)
 	{
-		if (GET_PLAYER((PlayerTypes)i).isAlive())
+		CvPlayer const& kObs = GET_PLAYER((PlayerTypes)i);
+		if (!kObs.isAlive())
+			continue;
+
+		if(pCapital != NULL && pCapital->isRevealed(kObs.getTeam(), false))
 		{
-			int plotX = -1;
-			int plotY = -1;
-			if((capital != NULL) && capital->isRevealed(GET_PLAYER((PlayerTypes) i).getTeam(), false))
-			{
-				plotX = capital->getX();
-				plotY = capital->getY();
-			}
-
-			if (GET_PLAYER((PlayerTypes)i).getTeam() == getTeam())
-			{
-				szBuffer = gDLL->getText("TXT_KEY_VICTORY_YOU_HAVE_LAUNCHED");
-			}
-			else
-			{
-				szBuffer = gDLL->getText("TXT_KEY_VICTORY_TEAM_HAS_LAUNCHED", GET_TEAM(getTeam()).getName().GetCString());
-			}
-
-			gDLL->getInterfaceIFace()->addHumanMessage(((PlayerTypes)i), true, GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CULTURELEVEL", MESSAGE_TYPE_MAJOR_EVENT, ARTFILEMGR.getMiscArtInfo("SPACE_SHIP_BUTTON")->getPath(), (ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"), plotX, plotY, true, true);
+			iPlotX = pCapital->getX();
+			iPlotY = pCapital->getY();
 		}
+		CvWString szBuffer(szMsg); // advc.106
+		if (kObs.getTeam() == getTeam())
+			szBuffer = gDLL->getText("TXT_KEY_VICTORY_YOU_HAVE_LAUNCHED");
+
+		gDLL->getInterfaceIFace()->addHumanMessage(kObs.getID(), true,
+				GC.getEVENT_MESSAGE_TIME(), szBuffer, "AS2D_CULTURELEVEL",
+				MESSAGE_TYPE_MAJOR_EVENT, ARTFILEMGR.getMiscArtInfo("SPACE_SHIP_BUTTON")->getPath(),
+				(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"),
+				iPlotX, iPlotY, true, true);
 	}
+	// <advc.106>
+	GC.getGameINLINE().addReplayMessage(REPLAY_MESSAGE_MAJOR_EVENT,
+			getID(), szMsg, iPlotX, iPlotY,
+			(ColorTypes)GC.getInfoTypeForString("COLOR_HIGHLIGHT_TEXT"));
+	// </advc.106>
 }
 
 bool CvPlayer::isFreePromotion(UnitCombatTypes eUnitCombat, PromotionTypes ePromotion) const

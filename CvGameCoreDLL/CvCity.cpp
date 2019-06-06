@@ -8361,12 +8361,23 @@ void CvCity::setCultureLevel(CultureLevelTypes eNewValue, bool bUpdatePlotGroups
 				MESSAGE_TYPE_MINOR_EVENT, GC.getCommerceInfo(COMMERCE_CULTURE).
 				getButton(), (ColorTypes)GC.getInfoTypeForString("COLOR_WHITE"),
 				getX_INLINE(), getY_INLINE(), true, true);
-		if (getCultureLevel() == GC.getNumCultureLevelInfos() - 1)
-		{	// <advc.106> Cut from below. Use this for the replay message as well.
+		// <advc.106>
+		// To replace hardcoded getCultureLevel()==GC.getNumCultureLevelInfos()-1
+		int iVictoryCultureLevel = NO_CULTURELEVEL;
+		for(int i = 0; i < GC.getNumVictoryInfos(); i++)
+		{
+			if(!GC.getGameINLINE().isVictoryValid((VictoryTypes)i))
+				continue;
+			int iLevel = GC.getVictoryInfo((VictoryTypes)i).getCityCulture();
+			if(iLevel > 0 && (iVictoryCultureLevel <= 0 || iVictoryCultureLevel > iLevel))
+				iVictoryCultureLevel = iLevel;
+		}
+		if (getCultureLevel() == iVictoryCultureLevel && iVictoryCultureLevel > 0)
+		{	// Cut from below. Use this for the replay message as well.
 			CvWString szMsg(gDLL->getText("TXT_KEY_MISC_CULTURE_LEVEL", getNameKey(),
 					GC.getCultureLevelInfo(getCultureLevel()).getTextKeyWide()));
 			// </advc.106>
-			for (int iI = 0; iI < MAX_PLAYERS; iI++)
+			for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 			{
 				CvPlayer const& kLoopPlayer = GET_PLAYER((PlayerTypes)iI);
 				if (!kLoopPlayer.isAlive())
