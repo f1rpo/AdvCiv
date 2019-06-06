@@ -3775,7 +3775,7 @@ bool CvPlot::isVisibleEnemyUnit(CvUnit const* pUnit, CvUnit const* pPotentialEne
 
 	return (::PUF_isEnemy(pPotentialEnemy, pUnit->getOwnerINLINE(),
 			pUnit->isAlwaysHostile(this)) &&
-			!pPotentialEnemy->isInvisible(getTeam(), false));
+			!pPotentialEnemy->isInvisible(pUnit->getTeam(), false));
 } // </advc.004l>
 
 
