@@ -1808,7 +1808,11 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)  // advc.003: style changes
 						iRazeValue += 20;
 				} */
 			// K-Mod end
-
+			/*  <advc.116> Some advantages of conquering Barbarian cities aren't
+				fully covered by the code below I believe. Also, razing Barbarian cities
+				makes the AI look bad - why conquer the city in the first place? */
+			if(bBarbCity)
+				iRazeValue -= 7; // </advc.116>
 			// Distance related aspects
 			if (iCloseness > 0)
 				iRazeValue -= iCloseness;
@@ -1852,7 +1856,7 @@ void CvPlayerAI::AI_conquerCity(CvCity* pCity)  // advc.003: style changes
 				}
 				/*  <advc.116> If we expect to conquer most of the area, then
 					non-closeness (alone) really shouldn't be a reason to raze. */
-				if(!kPreviousOwner.isBarbarian()) {
+				if(!bPrevOwnerBarb) {
 					CvArea const& a = *pCity->area();
 					double ourLocalPowRatio = a.getPower(getID()) / (getPower() + 0.1);
 					int iTheirLocalCities = 0;
@@ -4687,7 +4691,7 @@ int CvPlayerAI::AI_militaryWeight(CvArea* pArea) const
 }
 
 // This function has been edited by Mongoose, then by jdog5000, and then by me (karadoc). Some changes are marked, others are not.
-int CvPlayerAI::AI_targetCityValue(CvCity* pCity, bool bRandomize, bool bIgnoreAttackers) const // advc.003: some style changes
+int CvPlayerAI::AI_targetCityValue(CvCity* pCity, bool bRandomize, bool bIgnoreAttackers) const  // advc.003: some style changes
 {
 	PROFILE_FUNC();
 	FAssertMsg(pCity != NULL, "City is not assigned a valid value");
@@ -4700,7 +4704,7 @@ int CvPlayerAI::AI_targetCityValue(CvCity* pCity, bool bRandomize, bool bIgnoreA
 	if (pCity->isCoastal())
 		iValue += 2;
 
-	// <advc.104d> Replacing the BBAI code below (essentially with K-Mod code)
+	// advc.104d: Replacing the BBAI code below (essentially with K-Mod code)
 	iValue += AI_cityWonderVal(*pCity);
 	/*iValue += 4*pCity->getNumActiveWorldWonders();
 	for (int iI = 0; iI < GC.getNumReligionInfos(); iI++) {
@@ -4711,12 +4715,11 @@ int CvPlayerAI::AI_targetCityValue(CvCity* pCity, bool bRandomize, bool bIgnoreA
 			if( getStateReligion() == iI )
 				iValue += 8;
 		}
-	}*/ // </advc.104d>
+	}*/
 	// <cdtw.2>
-	if(pCity->plot()->defenseModifier(pCity->getTeam(), false) <=
-			GC.getCITY_DEFENSE_DAMAGE_HEAL_RATE()) {
+	if(pCity->plot()->defenseModifier(pCity->getTeam(), false) <= GC.getCITY_DEFENSE_DAMAGE_HEAL_RATE()) {
 		if(AI_isDoStrategy(AI_STRATEGY_AIR_BLITZ) || AI_isDoStrategy(AI_STRATEGY_LAND_BLITZ))
-			iValue += 8;
+			iValue += 6;
 		else if(AI_isDoStrategy(AI_STRATEGY_FASTMOVERS))
 			iValue += 3;
 		else iValue++;
@@ -4745,45 +4748,67 @@ int CvPlayerAI::AI_targetCityValue(CvCity* pCity, bool bRandomize, bool bIgnoreA
 		if (pLoopPlot->isAdjacentPlayer(getID(), true))
 			iValue++;
 	}
-
+	bool bThwartVictory = false; // advc.104d
 	if( kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE3) )
 	{
 		if (pCity->getCultureLevel() >= g.culturalVictoryCultureLevel() - 1)
 		{
-			iValue += 15;
+			iValue += 10; // advc.104d: Was 15; will reduce distance penalty instead.
 			if( kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE4) )
 			{
-				iValue += 25;
+				iValue += 15; // advc.104d: was 25
 				if (pCity->getCultureLevel() >= (g.culturalVictoryCultureLevel()) ||
 						// K-Mod:
 						pCity->findCommerceRateRank(COMMERCE_CULTURE) <=
 						g.culturalVictoryNumCultureCities()) 
-					iValue += 60; // was 10
+					iValue += 50; // advc.104d: Was 60 in K-Mod, was 10 in BBAI.
 			}
+			bThwartVictory = true; // advc.104d
 		}
 	}
 
 	if( kOwner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE3) )
 	{
 		if (pCity->isCapital())
-		{
-			iValue += 10;
+		{	// <advc.104d>
+			if(!AI_isDoVictoryStrategyLevel4()) { // Don't worry yet if we're ahead
+				iValue += 5; // Was 10; will reduce distance penalty instead.
+				bThwartVictory = true;
+			} // </advc.104d>
 			if (kOwner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4))
 			{
 				iValue += 10; // was 20
 				if (GET_TEAM(pCity->getTeam()).getVictoryCountdown(g.getSpaceVictory()) >= 0)
 					iValue += 100; // was 30
+				bThwartVictory = true; // advc.104d
 			}
-		}
-	}
+		} // <advc.104d> Against Space3, taking any high-production cities helps.
+		else if(!kOwner.AI_isDoVictoryStrategy(AI_VICTORY_SPACE4) &&
+				!AI_isDoVictoryStrategyLevel4() &&
+				pCity->findYieldRateRank(YIELD_PRODUCTION) <
+				std::min(5, kOwner.getNumCities() / 4)) {
+			iValue += 3;
+			bThwartVictory = true;
+		} // </advc.104d>
+	} // <advc.104d> Target the capital area of civs aiming at a peaceful victory
+	if(kOwner.AI_isDoVictoryStrategy(AI_VICTORY_CULTURE2 | AI_VICTORY_SPACE2) &&
+			!kOwner.AI_isDoVictoryStrategyLevel3() && !AI_isDoVictoryStrategyLevel3()) {
+		CvCity* pTargetCapital = kOwner.getCapitalCity();
+		if(pTargetCapital != NULL && pTargetCapital->area() == pCity->area())
+			bThwartVictory = true;
+	} // </advc.104d>
+
 	CvMap const& m = GC.getMapINLINE();
 	CvCity* pNearestCity = m.findCity(pCity->getX_INLINE(), pCity->getY_INLINE(), getID());
 	if (pNearestCity != NULL)
 	{
 		// Now scales sensibly with map size, on large maps this term was incredibly dominant in magnitude
 		int iTempValue = 30;
-		iTempValue *= std::max(1, m.maxStepDistance() * 2 -
-				m.calculatePathDistance(pNearestCity->plot(), pCity->plot()));
+		int iPathDist = m.calculatePathDistance(pNearestCity->plot(), pCity->plot());
+		// <advc.104d>
+		if(bThwartVictory)
+			iPathDist /= 2; // </advc.104d>
+		iTempValue *= std::max(1, m.maxStepDistance() * 2 - iPathDist);
 		iTempValue /= std::max(1, m.maxStepDistance() * 2);
 		iValue += iTempValue;
 	}
@@ -21354,7 +21379,7 @@ bool CvPlayerAI::AI_demandTribute(PlayerTypes eHuman, int iTributeType) {
 	return true;
 } // advc.003: End of functions cut from AI_doDiplo
 
-// <advc.104> <advc.031>
+// <advc.104> (also used for advc.031)
 /*  Assets like additional cities become less valuable over the course of a game
 	b/c there are fewer and fewer turns to go. Not worth considering in the
 	first half of the game, but e.g. after 300 turns (normal settings),
@@ -21367,7 +21392,7 @@ double CvPlayerAI::AI_amortizationMultiplier(int iDelay) const {
 	return ::dRange(2.0 * // Use this coefficient to fine-tune the effect
 			(1 - GC.getGameINLINE().gameTurnProgress(std::max(0, iDelay))),
 			0.2, 1.0);
-} // </advc.104> </advc.031>
+} // </advc.104>
 
 //
 // read object from a stream

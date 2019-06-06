@@ -3774,6 +3774,19 @@ int CvTeamAI::AI_getTotalWarOddsTimes100( ) const
 	int iDogpileWarRand;
 	AI_getWarRands( iTotalWarRand, iLimitedWarRand, iDogpileWarRand );
 
+	/*  <advc.104> With UWAI, this function is only called for AI tech and civic
+		decisions. Don't want unit spending (see AI_getWarThresholds) to matter
+		for those decisions. */
+	if(getWPAI.isEnabled()) {
+		// I don't see a fundamental difference between Domination and Conquest here
+		int iMilitaryVictoryFactor = 0;
+		if(AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CONQUEST2 | AI_VICTORY_DOMINATION2))
+			iMilitaryVictoryFactor = 3; // Don't care about 2 vs. 3 vs. 4 here
+		else if(AI_isAnyMemberDoVictoryStrategy(AI_VICTORY_CONQUEST1 | AI_VICTORY_DOMINATION1))
+			iMilitaryVictoryFactor = 2;
+		return 100 * iMilitaryVictoryFactor +  20000 / std::max(iTotalWarRand, 1);
+	} // </advc.104>
+
 	int iTotalWarThreshold;
 	int iLimitedWarThreshold;
 	int iDogpileWarThreshold;

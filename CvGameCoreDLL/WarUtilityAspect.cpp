@@ -601,7 +601,7 @@ void GreedForAssets::evaluate() {
 	log("Score for present assets: %d", ::round(presentScore));
 	/*  Count mundane buildings for presentScore? May build these in the
 		conquered cities too eventually ... */
-	double baseUtility = std::min(600.0, 300 * conqScore / (presentScore+0.001));
+	double baseUtility = std::min(650.0, 350 * conqScore / (presentScore+0.001));
 	log("Base utility from assets: %d", ::round(baseUtility));
 	double overextCost = overextensionCost();
 	double defCost = defensibilityCost();
@@ -1026,7 +1026,7 @@ void Loathing::evaluate() {
 	log("Divisor from number of rivals (%d): %d",
 			nNonVassalCivs, rivalDivisor);
 	// Utility proportional to veng and lr would be too extreme
-	double fromLosses = 4 * std::sqrt(veng * abs(lr));
+	double fromLosses = 3.33 * std::sqrt(veng * abs(lr));
 	if(lr < 0)
 		fromLosses *= -1;
 	// We like to bring in war allies against our nemesis
@@ -1130,7 +1130,7 @@ void MilitaryVictory::evaluate() {
 	double maxProgress = -1;
 	/*  The distinction between stage 3 and 4 is too coarse to be useful; treat
 		them the same way. */
-	if(we->AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST2)) {
+	if(we->AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3)) {
 		double prgr = ::dRange(progressRatingConquest(), 0.0, 1.0);
 		if(!we->AI_isDoVictoryStrategy(AI_VICTORY_CONQUEST3))
 			prgr /= 1.5;
@@ -1139,7 +1139,7 @@ void MilitaryVictory::evaluate() {
 		progressRating += prgr;
 		nVictories++;
 	}
-	if(we->AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION2)) {
+	if(we->AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3)) {
 		double prgr = ::dRange(progressRatingDomination(), 0.0, 1.0);
 		if(!we->AI_isDoVictoryStrategy(AI_VICTORY_DOMINATION3))
 			prgr /= 1.5;
@@ -1149,7 +1149,7 @@ void MilitaryVictory::evaluate() {
 		nVictories++;
 	}
 	// Diplomatic victories can come through military means
-	if(we->AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY3 | AI_VICTORY_DIPLOMACY4)) {
+	if(we->AI_isDoVictoryStrategy(AI_VICTORY_DIPLOMACY3)) {
 		double prgr = ::dRange(progressRatingDiplomacy(), 0.0, 1.0);
 		if(prgr > maxProgress)
 			maxProgress = prgr;
@@ -2192,10 +2192,10 @@ bool KingMaking::anyVictory(PlayerTypes civId, int iVictoryFlags, int stage,
 	return (bCultValid || bSpaceValid || bDomValid || bDiploValid);
 }
 
-void KingMaking::addLeadingCivs(set<PlayerTypes>& r, double margin, bool bPredict)
-		const {
+void KingMaking::addLeadingCivs(set<PlayerTypes>& r, double margin, bool bPredict) const {
 
 	CvGame& g = GC.getGameINLINE();
+	CvCity* ourCapital = we->getCapitalCity();
 	double bestScore = 1;
 	for(size_t i = 0; i < civs.size(); i++) {
 		double sc = bPredict ? m->predictedGameScore(civs[i]) :
@@ -2208,6 +2208,14 @@ void KingMaking::addLeadingCivs(set<PlayerTypes>& r, double margin, bool bPredic
 				civ.getCurrentEra() <= 4 && g.getCurrentEra() <= 4) {
 			double commerceRate = civ.estimateYieldRate(YIELD_COMMERCE);
 			sc += commerceRate / 2;
+			// Beware of peaceful civs on other landmasses
+			CvCity* cap = civ.getCapitalCity();
+			if(ourCapital != NULL && cap != NULL && ourCapital->area() !=
+					cap->area() && civ.AI_isDoVictoryStrategy(
+					AI_VICTORY_CULTURE2 | AI_VICTORY_SPACE2) &&
+					ourCapital->area()->getNumStartingPlots() >
+					cap->area()->getNumStartingPlots())
+				sc *= (4/3.0);
 		}
 		if(sc > bestScore)
 			bestScore = sc;
@@ -2284,19 +2292,17 @@ void KingMaking::evaluate() {
 		u += ::round(caughtUpBonus);
 		return;
 	}
-	double weight = 4.5; // So that 25% loss correspond to 100 utility
+	double weight = 4; // So that 25% loss correspond to 100 utility
 	// We're a bit less worried about helping them indirectly
 	if(uPlus < 0) // If we'll catch up despite their progress, we're even less worried.
 		weight = (bCaughtUp ? 2 : 3);
 	uPlus *= 100 * weight;
 	log("%d base utility for change in asset ratio", ::round(uPlus));
-	/*  winningRivals seems too big a divisor when there are just 2 or 3
-		competitors */
-	double div = 1 + std::pow(winningRivals / 3.0, 2.0);
+	/*  Over the course of the game, we become more willing to take out rivals even
+		if several rivals are still in competition. */
+	double progressFactor = std::max(2/3.0 - (1/3.0) * GC.getGameINLINE().gameTurnProgress(), 1/3.0);
+	double div = 1 + std::pow(progressFactor * winningRivals, 2.0);
 	double competitionMultiplier = 1.0 / div;
-	// It doesn't get more competitive than this:
-	if(winningRivals == 1)
-		competitionMultiplier = 1;
 	log("Winning civs: %d (%d rivals)", ::round(winningFuture.size()),
 			::round(winningRivals));
 	uPlus = ::dRange(uPlus, -100.0, 100.0);
@@ -2394,9 +2400,9 @@ int Effort::preEvaluate() {
 					(allWarsLongDist ? " (reduced b/c of distance)" : ""));
 		}
 	}
-	double g = ourCache->goldValueOfProduction();
-	log("1 production valued as %.2f gold", g);
-	int d = agent.AI_getAtWarCounter(params.targetId()); // rather use the max over all wars?
+	double goldVal = ourCache->goldValueOfProduction();
+	log("1 production valued as %.2f gold", goldVal);
+	int duration = agent.AI_getAtWarCounter(params.targetId()); // rather use the max over all wars?
 	/*  How powerful are we relative to our rivals at the end of the simulation?
 		Simpler to use the BtS power ratio here than to go through all military
 		branches. Our rival's per-branch power isn't public info either.
@@ -2432,14 +2438,16 @@ int Effort::preEvaluate() {
 		if(mb == CAVALRY || mb == LOGISTICS) // Included in other branches
 			continue;
 		UnitTypes ut = ourCache->getPowerValues()[mb]->getTypicalUnitType();
-		if(ut == NO_UNIT) continue;
+		if(ut == NO_UNIT)
+			continue;
 		CvUnitInfo const& u = GC.getUnitInfo(ut);
 		double lost = m->lostPower(weId, mb);
 		/*  Really shouldn't be negative, but sometimes is minus 0.0-something;
 			probably not a bug worth chasing. */
 		FAssert(lost >= -1); if(!(lost>=0)) continue;
 		double typicalPow = weAI->militaryPower(u, u.getPowerValue());
-		if(typicalPow <= 0) continue;
+		if(typicalPow <= 0)
+			continue;
 		double typicalCost = we->getProductionNeeded(ut);
 		double n = lost / typicalPow;
 		lostUnits += n;
@@ -2497,18 +2505,18 @@ int Effort::preEvaluate() {
 	/*  Convert the lost production into gold based on current opportunities for
 		peaceful development. The conversion rate is precomputed by
 		WarAndPeaceCache. */
-	int extraDuration = d - giveWarAChanceDuration;
+	int extraDuration = duration - giveWarAChanceDuration;
 	if(extraDuration > 0) {
 		double gameSpeedDiv = GC.getGameSpeedInfo(
 				GC.getGameINLINE().getGameSpeedType()).getResearchPercent() / 100.0;
-		g = std::min(5.0, g * (1 + vagueOpportunityWeight * 0.025 *
+		goldVal = std::min(5.0, goldVal * (1 + vagueOpportunityWeight * 0.025 *
 				std::min(extraDuration, 40) / gameSpeedDiv));
 		log("Gold per production adjusted to %.2f based on war duration (%d turns)",
-				g, d);
+				goldVal, duration);
 	}
-	g = supply + g * totalLostProduction;
-	log("Gold value of build-up and war effort: %d", ::round(g));
-	uMinus += weAI->tradeValToUtility(g);
+	goldVal = supply + goldVal * totalLostProduction;
+	log("Gold value of build-up and war effort: %d", ::round(goldVal));
+	uMinus += weAI->tradeValToUtility(goldVal);
 	/*  Nukes are included in army, and therefore already covered by the costs above.
 		But these don't take into account that nukes are always lost when used.
 		Therefore add some extra cost. */
@@ -2927,10 +2935,10 @@ void Affection::evaluate() {
 		that will only please us when it sees our soldiers approach isn't a true friend. */
 	if(wp != WARPLAN_PREPARING_LIMITED && wp != WARPLAN_PREPARING_TOTAL &&
 			wp != NO_WARPLAN) {
-		directPlanFactor = 0.1 * std::max(0,
+		directPlanFactor = std::min(1.0, 0.1 * std::max(0,
 				/*  If war stays imminent for a long time, and relations remain good,
 					affection should matter again. */
-				agent.AI_getWarPlanStateCounter(TEAMID(theyId)) - 3);
+				agent.AI_getWarPlanStateCounter(TEAMID(theyId)) - 3));
 		if(directPlanFactor < 0.01)
 			return;
 	}
@@ -3395,6 +3403,7 @@ void FairPlay::evaluate() {
 				((int)m->lostCities(theyId).size()) -
 				((int)m->conqueredCities(weId).size())))) /
 				std::sqrt((double)std::max(1, iPotentialOtherEnemies)) - 0.33);
+		fromOtherEnemies *= (1 - (2/3.0) * GC.getGameINLINE().gameTurnProgress());
 		/*  Once we've gone through the trouble of preparing war, we'd like to go
 			through with it, but if there are many civs in the game, there's a good
 			chance that several of them start plotting at the same time, so
