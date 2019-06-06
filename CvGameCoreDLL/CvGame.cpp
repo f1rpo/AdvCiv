@@ -388,6 +388,7 @@ void CvGame::regenerateMap()
 	setStartTurnYear();
 	m_iElapsedGameTurns = 0;
 	// </advc.251>
+	setTurnSlice(0); // advc.001: Reset minutesPlayed to 0
 	CvEventReporter::getInstance().resetStatistics();
 
 	setInitialItems();
@@ -7365,7 +7366,7 @@ void CvGame::createBarbarianCities()  // advc.003 some style changes
 	   area settled by a civ. Moved the rest of createBarbarianCities (plural)
 	   into new function createBarbarianCity (singular). */
 	createBarbarianCity(false);
-	// A second city at full probability is too much; try halved probability.
+	// A second city at full probability is too much; try 50%.
 	createBarbarianCity(true, 50);
 }
 
@@ -7456,12 +7457,12 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent) {
 		}
 		if(!bCivArea) {
 			/*  BtS triples iTargetCities here. Want to make it era-based.
-				Important that the multiplier is small in the first two eras
+				Important that the multiplier is small in the first four eras
 				so that civs get a chance to settle small landmasses before
 				Barbarians appear there. Once there is a Barbarian city on a
 				small landmass, there may not be room for another city, and a
 				naval attack on a Barbarian city is difficult to execute for the AI. */
-			double mult = std::min(6.0, std::pow(iEra + 1.0, 2.0) / 3);
+			double mult = 0.5 + 0.75 * iEra;
 			iTargetCities = ::round(mult * iTargetCities); // </advc.300>
 		}
 		int iUnownedTilesThreshold = GC.getHandicapInfo(getHandicapType()).getUnownedTilesPerBarbarianCity();
