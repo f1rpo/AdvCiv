@@ -27,9 +27,9 @@ bool bernoulliSuccess(double pr, // 0 <= pr <= 1
 		char const* pszLog = "", bool bAsync = false,
 		int iData1 = MIN_INT, int iData2 = MIN_INT);
 double dMedian(std::vector<double>& distribution, bool bSorted = false);
-double dMean(std::vector<double>& distribution);
-double dMax(std::vector<double>& distribution);
-double dMin(std::vector<double>& distribution);
+double dMean(std::vector<double> const& distribution);
+double dMax(std::vector<double> const& distribution);
+double dMin(std::vector<double> const& distribution);
 // see e.g. Wikipedia: "percentile rank"
 double percentileRank(std::vector<double>& distribution, double score,
 		bool bSorted = false, // Is the distribution sorted (ascending)?

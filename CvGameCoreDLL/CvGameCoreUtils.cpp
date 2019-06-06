@@ -61,7 +61,7 @@ double dMedian(vector<double>& distribution, bool bSorted) {
 	return (distribution[medianIndex] + distribution[medianIndex - 1]) / 2;
 }
 
-double dMean(vector<double>& distribution) {
+double dMean(vector<double> const& distribution) {
 
 	FAssert(!distribution.empty());
 	double r = 0;
@@ -70,7 +70,7 @@ double dMean(vector<double>& distribution) {
 	return r / distribution.size();
 }
 
-double dMax(vector<double>& distribution) {
+double dMax(vector<double> const& distribution) {
 
 	FAssert(!distribution.empty());
 	double r = distribution[0];
@@ -80,7 +80,7 @@ double dMax(vector<double>& distribution) {
 	return r;
 }
 
-double dMin(vector<double>& distribution) {
+double dMin(vector<double> const& distribution) {
 
 	FAssert(!distribution.empty());
 	double r = distribution[0];

@@ -4061,12 +4061,11 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 	
 	// double space if had any war plan
 	if (bHadAny)
-	{
 		szBuffer.append(NEWLINE);
-	}
 
-	// advc.104: K-Mod/BBAI war percentages aren't helpful for testing UWAI
-	if(getWPAI.isEnabled()) return;
+	// <advc.104> K-Mod/BBAI war percentages aren't helpful for testing UWAI
+	if(getWPAI.isEnabled())
+		return; // </advc.104>
 	
 	// calculate war percentages
 	float fOverallWarPercentage = 0;

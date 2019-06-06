@@ -17,7 +17,6 @@
 #pragma warning( disable: 4127 )
 
 class CvXMLLoadUtility;
-class WarAndPeaceAI; // advc.104x
 
 //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 //
@@ -3674,7 +3673,7 @@ public:
 	#endif
 	bool read(CvXMLLoadUtility* pXML);
 	//---------------------------------------PROTECTED MEMBER VARIABLES---------------------------------
-	friend WarAndPeaceAI; // advc.104x (for applyPersonalityWeight)
+	friend class WarAndPeaceAI; // advc.104x (for applyPersonalityWeight)
 protected:
 
 	int m_iWonderConstructRand;

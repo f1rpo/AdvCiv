@@ -5335,11 +5335,12 @@ class CvMainInterface:
 						iProgressPercent = min(iProgressPercent, 99)
 						iProgressPercent = max(iProgressPercent, 0)
 				szTempBuffer += u" %d%%" % iProgressPercent
-				
-				szBuffer += szTempBuffer # Don't req. eCurrentResearch!=-1
-				if bAlignIcons:
-					# Pass along iProgressPercent instead of iTurnsLeft
-					scores.setResearch(eCurrentResearch, iProgressPercent)
+				# Don't req. eCurrentResearch!=-1 unless in Debug mode
+				if eCurrentResearch != -1 or not gc.getGame().isDebugMode():
+					szBuffer += szTempBuffer
+					if bAlignIcons:
+						# Pass along iProgressPercent instead of iTurnsLeft
+						scores.setResearch(eCurrentResearch, iProgressPercent)
 					# </advc.085>
 			# BUG (Dead Civs): ...end of indentation
 # BUG - Dead Civs - end
